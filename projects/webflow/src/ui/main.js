@@ -43,10 +43,10 @@
   const operation=tool.request.bind(tool);
   const Btn=(label,click,opts={})=>h('button',{
     key:opts.key||label,type:'button',className:'wf-btn'+(opts.primary?' wf-primary':'')+(opts.quiet?' wf-quiet':'')+
-      (opts.icon?' wf-icon':''),onClick:click,disabled:opts.disabled===true,
+      (opts.icon?' wf-icon':'')+(opts.shortcut?' wf-shortcut':''),onClick:click,disabled:opts.disabled===true,
     title:opts.title,'aria-label':opts.ariaLabel||undefined,'aria-pressed':opts.pressed,'aria-current':opts.current,
     'aria-expanded':opts.expanded,'aria-haspopup':opts.popup,'aria-controls':opts.controls,
-    'aria-describedby':opts.describedBy,id:opts.id,'data-wf-menu':opts.menuId
+    'aria-describedby':opts.describedBy,id:opts.id,'data-wf-menu':opts.menuId,'data-wf-more':opts.moreId
   },label);
   const Status=({state,text})=>h('span',{className:'wf-badge','data-state':state,role:'status'},
     text||labels[state]||state||'未核验');
@@ -87,7 +87,8 @@
     const [filter,setFilter]=R.useState('all');
     const [sort,setSort]=R.useState('favorite');
     const [detail,setDetail]=R.useState(null);
-    const [query,setQuery]=R.useState('');
+    // Per-task, per-mount editing drafts only. Host authority never sees these until preparation.
+    const [drafts,setDrafts]=R.useState({});
     const [mdSource,setMdSource]=R.useState('https://github.com/shopable-ai/opendesk-browser/blob/main/projects/webflow/examples/workflows/md-demo.md');
     const [mdPreview,setMdPreview]=R.useState(null);
     const [mdError,setMdError]=R.useState('');
@@ -110,13 +111,13 @@
     const pageReadEpoch=R.useRef(0);
     const currentPageRef=R.useRef({status:'unavailable'}),taskReadPending=R.useRef(false);
     const localCancellation=R.useRef(null);
-    const queryDirty=R.useRef(false),prefsDirty=R.useRef(false);
+    const prefsDirty=R.useRef(false);
     const request=R.useCallback((name,args)=>operation(name,args),[]);
 
     // The bridge conservatively marks trusted inputs as drafts. Reconcile
     // view-only controls on every render, retaining unconfirmed durable edits.
     R.useEffect(()=>{
-      tool.setState?.({dirty:prefsDirty.current||Boolean(query.trim())&&queryDirty.current,
+      tool.setState?.({dirty:prefsDirty.current||Object.values(drafts).some(value=>value?.dirty===true),
         busy:saving||active?.state==='saving'||active?.state==='cancelling-local'});
     });
 
@@ -382,24 +383,30 @@
       catch(e){failObservation(id,pin,epoch,e);}
     };
     const prepare=async pin=>{
-      if(!recoveryReady||busy.current||taskReadPending.current||activeRef.current||pin.state!=='available'||!pin.binding||!query.trim())return;
+      const draft=drafts[pin.taskId]||{},query=typeof draft.query==='string'?draft.query.trim():'';
+      if(!recoveryReady||busy.current||taskReadPending.current||activeRef.current||pin.state!=='available'||!pin.binding||!query||query.length>120)return;
       if(currentPageRef.current.status!=='available'||!sameSite(currentPageRef.current.url,pin.site)){
         setError('请先切换至该任务获准网站，再从 Web Flow 点击运行。');return;
       }
       const id='webflow:'+global.crypto.randomUUID();
       const item={clientRequestId:id,taskId:pin.taskId,version:pin.version,at:Date.now(),
-        task:pin.binding,params:{query:query.trim(),limit:3}};
+        task:pin.binding,params:{query,limit:3,...(draft.showExecutionTab===false?{showExecutionTab:false}:{})}};
       const epoch=observation.current;
       busy.current=true;activeRef.current=id;setError('');setNotice('');
       setActive({...item,state:'saving'});
       try{
         await save(pendingKey,item,null);
         if(!alive.current)return;
-        queryDirty.current=false;
+        setDrafts(previous=>{
+          const prior=previous[pin.taskId];
+          if(!prior||String(prior.query||'').trim()!==item.params.query||
+            (prior.showExecutionTab===false)!==(item.params.showExecutionTab===false))return previous;
+          return {...previous,[pin.taskId]:{...prior,dirty:false}};
+        });
         pendingRef.current=item;
         // Stop or navigation may have invalidated this preparation during I/O.
         if(activeRef.current!==id||observation.current!==epoch||cancelledRef.current===id)return;
-        const ready={clientRequestId:id,task:pin.binding,params:{query:query.trim(),limit:3}};
+        const ready={clientRequestId:id,task:pin.binding,params:item.params};
         stagedRef.current=ready;setStaged(ready);setActive({...item,state:'ready'});
         setNotice('原步骤已保存并读回。点击“确认手动运行”才会执行网页操作。');
       }catch(e){
@@ -540,29 +547,49 @@
     const taskCard=pin=>{
       const star=settings.favorites.includes(M.taskKey(pin));
       const reason=runReason(pin),expanded=detail===pin.taskId;
-      return h('article',{key:pin.taskId,className:'wf-task-row'},
+      const draft=drafts[pin.taskId]||{};
+      const keyword=typeof draft.query==='string'?draft.query:'';
+      const tabVisible=draft.showExecutionTab!==false;
+      const focusMore=()=>global.queueMicrotask(()=>
+        tool.root.querySelector('[data-wf-more="'+pin.taskId+'"]')?.focus());
+      return h('article',{key:pin.taskId,className:'wf-task-row','data-menu-open':more===pin.taskId,
+        onKeyDown:e=>{
+          if(e.key!=='Escape'||e.nativeEvent?.isComposing)return;
+          if(more===pin.taskId){e.stopPropagation();setMore(null);focusMore();}
+          else if(expanded){e.stopPropagation();setDetail(null);
+            global.queueMicrotask(()=>tool.root.querySelector('[data-wf-task-name="'+pin.taskId+'"]')?.focus());}
+        },
+        onBlur:e=>{if(more===pin.taskId&&!e.currentTarget.contains(e.relatedTarget))setMore(null);}},
         h('div',{className:'wf-task-main'},
           h('span',{className:'wf-task-icon','aria-hidden':'true'},pin.icon),
           h('div',{className:'wf-task-info'},
             h('button',{type:'button',className:'wf-task-name',title:pin.title,'data-wf-task-name':pin.taskId,
-              'aria-expanded':expanded,onClick:()=>inspect(pin)},pin.title),
+              'aria-expanded':expanded,'aria-controls':'wf-params-'+pin.taskId,onClick:()=>inspect(pin)},pin.title),
             h('div',{className:'wf-task-meta'},
               h('span',{className:'wf-truncate',title:pin.site},pin.site.replace('https://','')),
               h(Status,{state:pin.state,text:pin.state==='available'?
-                (pageInfo.status==='checking'?'正在核验网页':!sameTarget(pin)?'当前网站不可运行':labels.available):undefined}))),
+                (pageInfo.status==='checking'?'正在核验网页':!sameTarget(pin)?'当前网站不可运行':labels.available):undefined})),
+            h('div',{className:'wf-task-secondary'},
+              h('span',null,'参数 3 项 · 结果固定 3 条'),
+              h('span',null,'手动 · 双阶段确认'))),
           h('div',{className:'wf-item-buttons'},
-            Btn(Icon('star',star),()=>toggleFavorite(pin),{key:'fav-'+pin.taskId,icon:true,disabled:saving,
-              title:star?'取消收藏':'收藏',ariaLabel:(star?'取消收藏 ':'收藏 ')+pin.title,pressed:star}),
-            Btn(Icon('play'),()=>{setDetail(pin.taskId);setQuery('');setMore(null);},
-              {key:'run-'+pin.taskId,icon:true,primary:true,disabled:Boolean(reason),
-                title:reason||'填写参数并保存运行步骤',
-                ariaLabel:reason?'无法运行 '+pin.title+'：'+reason:'准备运行 '+pin.title}),
+            Btn(Icon('star',star),()=>toggleFavorite(pin),{key:'fav-'+pin.taskId,icon:true,shortcut:true,
+              disabled:saving,title:star?'取消收藏':'收藏',
+              ariaLabel:(star?'取消收藏 ':'收藏 ')+pin.title,pressed:star}),
+            Btn(Icon('play'),()=>{setDetail(pin.taskId);setMore(null);},{
+              key:'run-'+pin.taskId,icon:true,shortcut:true,primary:true,disabled:Boolean(reason),
+              title:reason||'配置参数并准备手动运行；点击不会执行',
+              ariaLabel:reason?'无法运行 '+pin.title+'：'+reason:'准备运行 '+pin.title}),
             h('div',{className:'wf-menu-anchor'},
               Btn(Icon('more'),()=>setMore(more===pin.taskId?null:pin.taskId),
                 {key:'more-'+pin.taskId,icon:true,ariaLabel:'更多操作：'+pin.title,
-                  menuId:pin.taskId,title:'更多操作',expanded:more===pin.taskId,popup:'true'}),
-              more===pin.taskId&&h('div',{className:'wf-menu',role:'group','aria-label':pin.title+' 操作'},
+                  menuId:pin.taskId,moreId:pin.taskId,title:'更多操作',
+                  expanded:more===pin.taskId,popup:'true',controls:'wf-menu-'+pin.taskId}),
+              more===pin.taskId&&h('div',{id:'wf-menu-'+pin.taskId,className:'wf-menu',role:'group',
+                'aria-label':pin.title+' 操作'},
                 h('button',{type:'button',onClick:()=>inspect(pin)},'查看详情'),
+                h('button',{type:'button',disabled:saving,onClick:()=>{
+                  setMore(null);void toggleFavorite(pin);}},star?'取消收藏':'收藏脚本'),
                 pin.state==='available'&&h('button',{type:'button',
                   onClick:()=>{setMore(null);openTask(pin);}},'宿主管理'))))),
         pin.error&&h('p',{className:'wf-sub wf-row-error',role:'status'},pin.error),
@@ -570,25 +597,50 @@
           h('div',{className:'wf-actions'},
             Btn(['disabled','runtime'].includes(pin.state)?'打开任务管理':'打开安装审阅',()=>openTask(pin)),
             pin.state==='initialization'&&Btn('重试初始化',()=>{void readTasks();},{disabled:loading})),
-        expanded&&h('div',{className:'wf-task-detail wf-stack'},
-          pin.diagnostic&&h('details',{className:'wf-help'},h('summary',null,'诊断信息'),
-            h('p',{className:'wf-mono'},pin.diagnostic)),
-          detailList([['网站',pin.site],['任务 ID',h('code',{className:'wf-mono'},pin.taskId)],
-            ['精确版本',pin.version],['manifestHash',h('code',{className:'wf-mono'},pin.manifestHash)],
-            ['contentHash',h('code',{className:'wf-mono'},pin.contentHash)],
-            ['安装身份',pin.binding&&h('code',{className:'wf-mono'},pin.binding.installationId||'待核对')||'不可读取'],
-            ['授权代次',pin.binding?String(pin.binding.generation):'不可读取']]),
-          h('label',{className:'wf-label',htmlFor:'wf-query'},'搜索关键词',
-            h('input',{id:'wf-query',className:'wf-input',value:query,maxLength:120,
-              disabled:Boolean(activeRef.current),placeholder:'输入本次搜索关键词',
-              onChange:e=>{queryDirty.current=true;setQuery(e.target.value);},autoComplete:'off'})),
-          h('p',{className:'wf-sub'},sameTarget(pin)?
-            '目标网站匹配；实际派发仍须通过宿主的权限、安装及任务核验。':
-            '当前标签页不是获准网站；请切换页面后重新检查。'),
+        expanded&&h('div',{id:'wf-params-'+pin.taskId,className:'wf-task-detail wf-stack',
+          'aria-label':pin.title+' 参数配置'},
+          h('div',{className:'wf-params-heading'},
+            h('strong',null,'运行参数'),
+            h('span',{className:'wf-sub'},'编辑不执行 · 刷新或关闭后草稿不会保留')),
+          h('div',{className:'wf-param-list'},
+            h('div',{className:'wf-param-row'},
+              h('div',{className:'wf-param-label'},
+                h('label',{htmlFor:'wf-query'},'搜索关键词',h('span',{className:'wf-required','aria-hidden':'true'},' *')),
+                h('small',null,'文本 · 必填 · 最多 120 字符')),
+              h('input',{id:'wf-query',className:'wf-input',value:keyword,maxLength:120,
+                'aria-required':true,disabled:Boolean(activeRef.current),
+                placeholder:'输入本次搜索关键词',autoComplete:'off',
+                onChange:e=>{const value=e.target.value;setDrafts(old=>({...old,
+                  [pin.taskId]:{...old[pin.taskId],query:value,dirty:true}}));}})),
+            h('div',{className:'wf-param-row'},
+              h('div',{className:'wf-param-label'},
+                h('strong',null,'结果数量'),h('small',null,'整数 · 必填 · 固定值')),
+              h('span',{className:'wf-param-fixed','aria-label':'结果数量固定为 3'},'3 条')),
+            h('div',{className:'wf-param-row'},
+              h('div',{className:'wf-param-label'},
+                h('strong',null,'显示执行标签页'),h('small',null,'开关 · 可选 · 默认开启')),
+              h('label',{className:'wf-param-check'},
+                h('input',{id:'wf-show-execution-tab',type:'checkbox',checked:tabVisible,
+                  'aria-label':'显示执行标签页',disabled:Boolean(activeRef.current),
+                  onChange:e=>{const value=e.target.checked;setDrafts(old=>({...old,
+                    [pin.taskId]:{...old[pin.taskId],showExecutionTab:value,dirty:true}}));}}),
+                h('span',null,tabVisible?'开启':'关闭')))),
+          h('p',{className:'wf-sub'},
+            '运行方式：手动。先保存并读回原步骤，再点击“确认手动运行”；参数编辑不更改自动任务授权。'),
+          h('p',{className:reason?'wf-warn wf-sub':'wf-sub',role:reason?'status':undefined},
+            reason||'当前满足准备条件；最终执行仍由宿主检查安装、页面与权限。'),
           h('div',{className:'wf-actions'},
             Btn('保存运行步骤',()=>{void prepare(pin);},{primary:true,
-              disabled:runDisabled(pin)||!query.trim()||query.trim().length>120}),
-            Btn('收起详情',()=>setDetail(null),{quiet:true})))
+              disabled:runDisabled(pin)||!keyword.trim()||keyword.trim().length>120}),
+            Btn('收起参数',()=>setDetail(null),{quiet:true})),
+          h('details',{className:'wf-help wf-technical'},
+            h('summary',null,'技术详情 / 诊断信息'),
+            pin.diagnostic&&h('p',{className:'wf-mono'},pin.diagnostic),
+            detailList([['网站',pin.site],['任务 ID',h('code',{className:'wf-mono'},pin.taskId)],
+              ['精确版本',pin.version],['manifestHash',h('code',{className:'wf-mono'},pin.manifestHash)],
+              ['contentHash',h('code',{className:'wf-mono'},pin.contentHash)],
+              ['安装身份',pin.binding&&h('code',{className:'wf-mono'},pin.binding.installationId||'待核对')||'不可读取'],
+              ['授权代次',pin.binding?String(pin.binding.generation):'不可读取']])))
       );
     };
     const historyCard=(entry,index)=>h('li',{key:entry.clientRequestId+'-'+index,className:'wf-record-row'},

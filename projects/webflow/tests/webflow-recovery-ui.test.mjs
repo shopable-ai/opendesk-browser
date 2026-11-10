@@ -852,3 +852,20 @@ test('P0 trusted read permission failure downgrades one prior success Toast and 
   assert.equal(starts(host).length,1,'permission failure never resubmits Task');
   await f.close();
 });
+
+test('script rows keep separate parameter drafts and expose defaults without an implicit run',async t=>{
+  const host=sdk(),f=await mount(t,host);
+  await f.click('脚本');
+  const card=taskCard(f);
+  assert.match(card.querySelector('.wf-task-secondary').textContent,/参数 3 项.*手动 · 双阶段确认/);
+  assert.equal(card.querySelectorAll('.wf-shortcut').length,2);
+  await f.click('百度搜索 · 前三条自然结果',card);
+  assert.equal(card.querySelectorAll('.wf-param-row').length,3);
+  assert.match(card.querySelector('.wf-param-fixed').textContent,/3 条/);
+  assert.equal(f.document.getElementById('wf-show-execution-tab').checked,true);
+  await f.input('百度参数草稿');
+  await f.click('Google 搜索 · 前三条自然结果');
+  await f.click('百度搜索 · 前三条自然结果');
+  assert.equal(f.document.getElementById('wf-query').value,'百度参数草稿');
+  assert.equal(starts(host).length,0,'opening, switching and editing cannot start any task');
+});

@@ -64,3 +64,23 @@ test('My page, owning dock and standalone task catalog consume the same presenta
   for(const id of ['task-catalog-list','task-package-file','task-verify-run','task-verify','task-publish','task-install','task-catalog-status'])
     assert.ok(catalog.getElementById(id),id+' must have a real React consumer');
 });
+
+test('installed script rows expose the true Schema as a structured list and a manual entry only',async()=>{
+  const {MyTasksPage}=await loadSidebarReact();
+  const view=createMyWorkbenchView();
+  view.data.taskRows={rows:[{taskId:'demo',title:'演示任务',enabled:true,description:'仅展示',
+    siteLabel:'example.com',parameterCount:2}],selectedId:'demo',
+    identity:{taskId:'demo',version:'1.0.0',installationId:'demo',generation:1}};
+  view.data.taskParams=[
+    {name:'term',rule:{type:'string',title:'关键词',default:'hello',description:'用于本次查找'},required:true},
+    {name:'limit',rule:{type:'integer',title:'数量',enum:[3],default:3},required:true}
+  ];
+  const doc=parseHTML(renderToStaticMarkup(React.createElement(MyTasksPage,{view}))).document;
+  assert.match(doc.querySelector('.task-card-meta').textContent,/example.com.*参数 2 项.*手动准备/);
+  assert.equal(doc.querySelectorAll('.task-param-field').length,2);
+  assert.match(doc.getElementById('task-param-term-meta').textContent,/文本.*必填.*默认：hello/);
+  assert.match(doc.getElementById('task-param-limit-meta').textContent,/整数.*必填.*固定值：3.*默认：3/);
+  assert.equal(doc.getElementById('task-param-limit').getAttribute('aria-readonly'),'true');
+  assert.equal(doc.getElementById('task-param-term').getAttribute('aria-describedby').includes('task-param-term-meta'),true);
+  assert.equal(doc.querySelectorAll('#task-run').length,1,'no second executor in the list');
+});

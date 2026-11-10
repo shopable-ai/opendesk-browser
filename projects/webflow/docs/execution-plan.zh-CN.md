@@ -8,6 +8,18 @@
 
 **当前生效边界：** 复用已有 `dist/development` writer PID 76922，未停止/重启它或覆写输出。现有固定工作台构建被并行 AI Proxy 来源 pin 失配（当前检查 `projects/ai-proxy/src/Settings.tsx`）阻断；旧 watcher hooks 也曾报告本组件旧 pin。当前组件 pin 与源码一致，但新固定产物及已安装 Side Panel 生效仍 **NOT_TESTED**；不得以工具 JSON 更新替代。下一步仅在相关 owner 恢复来源审阅/原配置 hooks 后，由原 watcher 编译，沿安全刷新入口核对打开 Web Flow 的实际控件。保留其他任务、草稿和 UNKNOWN，不重复真实 Task、不进入 production/全量验收。证据见 [control-stability-20261111.json](../evidence/control-stability-20261111.json)。
 
+## Codex 本地 MCP Demo · 源码完善与 Mac 交接（2026-11-11，OD-AI-WORKFLOW-BRIDGE）
+
+**原始目标：** 已批准的 WebFlow 浏览器任务完成后，依托现有 OpenDesk 可信 Native/MCP 桥接，唤起官方 Codex 本地桌面并创建未发送草稿，或经 Codex App Server 创建新 Thread、提交一次只读 Turn、取得真实回答和持久身份，最终将可信回执展示于原 WebFlow。**当前这条真实 WebFlow→Native→Codex 入口尚未接线。**
+
+**本轮增量（仅独立 Demo，main）：** 复用 `projects/webflow/demos/codex-local-handoff/` 原源码，不重建项目。Codex App Server 结果优先收集最终 `item/completed agentMessage.text`，允许 `turn/completed` 完整快照回退，delta-only 明确标成非权威；`turn.status=completed` 不再直接得到 `businessSuccess=true`，改为 `businessSuccess:null`、`taskVerified:false`。超时、子进程异常、权限请求或 RPC 拒绝的错误回执包含已取得的 `threadId`、`turnId`、`submissionState`，UNKNOWN 不重试。保留原 MCP 初始化门禁与同服务 single-flight，CLI 拒绝未知 flag。新增针对 final/stream/empty/failed/approval/timeout/crash/error-envelope/并发等回归。Codex 原生执行提示词写入 [CODEX-LOCAL-ACCEPTANCE.prompt.md](../demos/codex-local-handoff/CODEX-LOCAL-ACCEPTANCE.prompt.md)。
+
+**实际证据与限制：** NODE = 独立 Linux Node v22.16.0 `node --test projects/webflow/demos/codex-local-handoff/demo.test.mjs` **16/16 PASS**（按提交的业务逻辑本地同源测试），GitHub main 六个源码/文档文件逐个读回身份核对。**不是当前 main 工作区在真实 Mac 的构建/执行证据。** MAC_DRAFT、MAC_TURN、DESKTOP_THREAD = NOT_TESTED；BROWSER_NATIVE / WEBFLOW_E2E = NOT_IMPLEMENTED / NOT_TESTED。旧百度/Google Task、其它 Markdown/A→B 链路与正式 WebFlow 包均未修改或重放；未调用真实 Codex、Native、Chrome，也不宣称本轮完成业务闭环。
+
+**下一条最小用户操作：** 在真实 Mac 的现有 `main` 工作区打开上述仓库内 Codex 提示词，先做只读 deep link 草稿和 App Server Thread/Turn/真实回答/桌面同会话核验，按实际结果最小修复；实测可证后再由可信 Browser/Native owner 补固定受审阅入口并完成原 WebFlow 单次结果回填，UNKNOWN 保留原身份只读对账。禁止把本机模拟 MCP CLI 触发器当已安装 WebFlow 执行权。
+
+---
+
 ## Markdown 双聊天执行纵切 · 本轮实际源码与未接线边界（2026-11-11，OD-AI-WORKFLOW-BRIDGE）
 
 **唯一产品目标：** WebFlow 读取并冻结真实 GitHub Markdown T01/T02 → 用户一次明确批准 → 原 ChatGPT Task 0.2.0 在两个不同的普通 ChatGPT 新聊天中各发送一次 → 以原 Controller 持久回执、消息身份和完整回复独立验收 → Native Workspace 写入并独立读回 T01/T02，T02 只接收已读回的 T01 完整 JSON → 重启/刷新只恢复原身份，不能重新发送。

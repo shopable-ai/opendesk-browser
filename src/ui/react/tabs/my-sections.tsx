@@ -7,10 +7,13 @@ import {scheduleStatusGuidance} from '../../scheduled-task-workbench.js';
 export function MyTaskParams({view}){
   return (view.data.taskParams||[]).map(({name,rule,required})=>{
     const id='task-param-'+name,help=rule.description?id+'-help':undefined;
+    const metaId=id+'-meta',fixed=Array.isArray(rule.enum)&&rule.enum.length===1;
+    const kind=({string:'文本',integer:'整数',number:'数值',boolean:'开关'})[rule.type]||String(rule.type||'参数');
+    const displayValue=value=>typeof value==='boolean'?(value?'开启':'关闭'):String(value);
     const field=view.field(id),toggle=rule.type==='boolean'&&!rule.enum;
     const optionalToggle=toggle&&!required&&!Object.hasOwn(rule,'default');
     const multiline=rule.type==='string'&&(rule.maxLength??1024)>160;
-    const error=field.error,describedBy=[help,toggle?id+'-state':null,error?id+'-error':null].filter(Boolean).join(' ')||undefined;
+    const error=field.error,describedBy=[metaId,help,toggle?id+'-state':null,error?id+'-error':null].filter(Boolean).join(' ')||undefined;
     const clearError=()=>{
       const field=view.field(id),status=view.field('task-status');
       field.omitted=false;
@@ -25,7 +28,7 @@ export function MyTaskParams({view}){
       <div className={'od-input-group task-param-control'+(toggle?' task-param-control--check':'')}>
       <label className="od-field-label" htmlFor={id}>{rule.title||name}{required&&<span className="task-param-required" aria-hidden="true"> *</span>}</label>
       {rule.enum?<MyControl view={view} as="select" id={id} className="od-field"
-        name={name} data-task-param={name} data-task-type={rule.type} aria-required={required||undefined} aria-describedby={describedBy} aria-invalid={error?'true':undefined}
+        name={name} data-task-param={name} data-task-type={rule.type} aria-required={required||undefined} aria-readonly={fixed||undefined} aria-describedby={describedBy} aria-invalid={error?'true':undefined}
         onChange={clearError}>
         {!required&&rule.default===undefined&&<option value="">（不填写）</option>}
         {rule.enum.map(value=><option key={String(value)} value={String(value)}>{String(value)}</option>)}
@@ -45,7 +48,11 @@ export function MyTaskParams({view}){
         step={rule.type==='integer'?'1':'any'} minLength={rule.minLength} maxLength={rule.maxLength}
         min={rule.minimum} max={rule.maximum} rows={multiline?3:undefined} required={required}/>}
       </div>
-      {help&&<p id={help} className="od-field-help">{rule.description}</p>}
+      <div id={metaId} className="task-param-meta"><span>{kind}</span><span>{required?'必填':'可选'}</span>
+        {fixed&&<span>固定值：{displayValue(rule.enum[0])}</span>}
+        {Object.hasOwn(rule,'default')&&<span>默认：{displayValue(rule.default)}</span>}
+      </div>
+      {help&&<p id={help} className="od-field-help">{rule.description}</p>
       {error&&<p id={id+'-error'} className="od-field-help task-param-error" role="alert">{error}</p>}
     </div>;
   });
