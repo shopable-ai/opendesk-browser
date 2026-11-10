@@ -132,3 +132,10 @@ test('current delegated consumers match verified search packages and their stric
   assert.throws(()=>validateTaskParams(schema,{...args,unknown:true}),{code:'E_SCHEMA'});
  }
 });
+
+test('parameter presentation cannot bypass the original saved request and second confirmation',()=>{
+  assert.ok(uiCode.includes("showExecutionTab:false"),'optional UI switch stays inside reviewed Schema');
+  assert.ok(uiCode.includes('params:item.params'),'saved parameters must be reused exactly');
+  assert.equal((uiCode.match(/request\('tasks.start'/g)||[]).length,1,'one existing SDK execution entry');
+  assert.ok(uiCode.includes('wf-param-row')&&uiCode.includes('wf-technical'));
+});

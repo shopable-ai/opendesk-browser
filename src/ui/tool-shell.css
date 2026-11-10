@@ -60,6 +60,10 @@
 .task-card-copy{display:grid;gap:var(--space-1);flex:1;min-width:0}
 .task-card-copy strong{display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;font-size:var(--od-body-size);font-weight:600;line-height:1.5;overflow-wrap:anywhere}
 .task-card-copy small{display:-webkit-box;-webkit-line-clamp:1;-webkit-box-orient:vertical;overflow:hidden;color:var(--od-sub);font-size:var(--od-note-size);line-height:1.5}
+.task-card-meta{display:flex;flex-wrap:wrap;gap:2px var(--space-2);font-size:var(--od-note-size);color:var(--od-sub);line-height:1.35}
+.task-card-meta>span+span::before{content:'·';margin-right:var(--space-2);color:var(--od-sub)}
+.task-card-group:is(:hover,:focus-within) .task-card-copy{padding-right:66px}
+@media(hover:none),(pointer:coarse){.task-card-group .task-card-copy{padding-right:0}}
 .task-card-state{color:var(--od-sub);white-space:nowrap}
 .task-selected-workspace{display:grid;gap:var(--space-3);min-width:0;padding:0}
 .task-selected-workspace>:not([hidden]){margin-block:0}
@@ -67,7 +71,13 @@
 #task-current-site[data-state=unmatched],#task-current-site[data-state=unavailable]{color:var(--od-negative)}
 #task-params-form{display:grid;gap:var(--space-3);min-width:0;margin:0}
 #task-params-form:empty{display:none}
-.task-param-fields{display:grid;gap:var(--space-2);min-width:0}
+.task-param-fields{display:grid;gap:0;min-width:0;border:1px solid var(--od-line);border-radius:var(--radius-control);overflow:hidden}
+.task-param-field+.task-param-field{border-top:1px solid var(--od-line)}
+.task-param-field .task-param-control{border:0;border-radius:0}
+.task-param-field .task-param-control:has([aria-invalid=true]){box-shadow:inset 0 0 0 1px var(--od-negative)}
+.task-param-meta{display:flex;flex-wrap:wrap;gap:2px var(--space-2);padding:0 var(--space-3) var(--space-2);font-size:var(--od-note-size);line-height:1.45;color:var(--od-sub)}
+.task-param-meta>span+span::before{content:'·';margin-right:var(--space-2)}
+.task-param-field>.od-field-help{padding:0 var(--space-3) var(--space-2)}
 .task-param-control{display:grid;grid-template-columns:minmax(80px,36%) minmax(0,1fr);align-items:center;min-width:0;min-height:40px}
 .task-param-control:has([aria-invalid=true]){border-color:var(--od-negative)}
 .task-param-control>label{padding:var(--space-2) var(--space-3);margin:0;font-size:var(--od-note-size);font-weight:500;color:var(--od-sub);overflow-wrap:anywhere}
@@ -79,6 +89,7 @@
 .task-param-clear.od-button{min-height:24px;padding:0 var(--space-1);font-size:var(--od-note-size)}
 #task-params-form .task-param-control>textarea{resize:vertical;font-family:inherit;line-height:1.5}
 .task-param-control:has(textarea){align-items:start}
+@media(max-width:360px){.task-param-control:not(.task-param-control--check){grid-template-columns:minmax(0,1fr)}.task-param-control:not(.task-param-control--check)>label{padding-bottom:0}}
 .task-params-toolbar{display:flex;align-items:center;justify-content:space-between;gap:var(--space-3)}
 .task-params-section-label{font-size:var(--od-note-size);font-weight:600}
 .task-params-section-label>span{margin-left:var(--space-1);font-weight:400;color:var(--od-sub)}

@@ -388,7 +388,9 @@ export function createTaskWorkbench({client,host,currentPageTarget,api=globalThi
     myView.project('taskRows',{rows:visible.map(row=>{
       const info=candidateFor(row);
       return {taskId:row.taskId,version:row.version,enabled:row.enabled===true,
-        title:info?.manifest.title||row.taskId,description:info?.manifest.description||'已安装任务'};
+        title:info?.manifest.title||row.taskId,description:info?.manifest.description||'已安装任务',
+        siteLabel:String(info?.manifest.siteOrigins?.[0]||'网站待核对').replace(/^https?:\/\//u,'').replace(/\/.*$/u,''),
+        parameterCount:Object.keys(info?.manifest.paramsSchema?.properties||{}).length};
     }),selectedId:selected,identity:selectedTask?Object.fromEntries(
       ['taskId','version','manifestHash','generation','installationId'].map(key=>[key,selectedTask[key]])):null,
       emptyText,manageMode:taskManagementMode,onManage:openTaskManagement,

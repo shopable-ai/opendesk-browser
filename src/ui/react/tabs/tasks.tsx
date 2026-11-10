@@ -66,11 +66,15 @@ export function MyTaskRows({rows=[],selectedId='',emptyText='',onSelect,
           else {setExpandedTaskId(row.taskId);onSelect?.(row.taskId);}
         }}>
         <span className="task-card-icon"><TaskGlyph/></span>
-        <span className="task-card-copy"><strong>{row.title}</strong><small>{!row.enabled&&<span className="task-card-state off">已停用 · </span>}{row.description}</small></span>
+        <span className="task-card-copy"><strong>{row.title}</strong>
+          <small>{!row.enabled&&<span className="task-card-state off">已停用 · </span>}{row.description}</small>
+          <span className="task-card-meta"><span>{row.siteLabel||"网站待核对"}</span>
+            <span>参数 {Number.isSafeInteger(row.parameterCount)?row.parameterCount:"—"} 项</span>
+            <span>运行入口：手动准备</span></span></span>
       </Button>
       <span className="task-card-actions">
       <IconButton id={row.taskId===selectedId?'task-parameters-open':undefined} className="task-card-run od-icon-button--quiet"
-        label={'参数与运行「'+row.title+'」'} title="参数与运行" aria-haspopup="dialog" aria-controls="task-parameters-sheet"
+        label={'配置参数与准备运行「'+row.title+'」'} title="配置参数（运行需确认）" aria-haspopup="dialog" aria-controls="task-parameters-sheet"
         onClick={event=>openParameters(row,event.currentTarget)}>
         <svg viewBox="0 0 24 24" aria-hidden="true"><path d="m9 5 10 7-10 7Z"/></svg>
       </IconButton>
@@ -80,7 +84,7 @@ export function MyTaskRows({rows=[],selectedId='',emptyText='',onSelect,
         onClick={event=>{
           const trigger=event.currentTarget;
           setMenu(menu?.taskId===row.taskId?null:{taskId:row.taskId,title:row.title,trigger,items:[
-            {id:'run',label:'参数与运行',onClick:()=>openParameters(row,trigger)},
+            {id:'run',label:'配置参数 / 准备运行',onClick:()=>openParameters(row,trigger)},
             {id:'manage',label:'管理任务',onClick:native=>{
               if(!native?.isTrusted)return;
               setExpandedTaskId(row.taskId);onManage?.(row.taskId);setMenu(null);
