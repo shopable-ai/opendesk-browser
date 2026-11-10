@@ -1,3 +1,23 @@
+## 2026-11-11 · Web Flow R2 任务生命周期通知 P0（OD-AI-WORKFLOW-BRIDGE）
+
+**用户真正要解决的问题：** Web Flow 手动、自动或经原计划批准的浏览器脚本执行后，用户需要知道是否真正开始、正在执行、脚本是否执行完成、结果是否实际回传、失败/UNKNOWN 如何处理，以及如何查看原始运行记录。这不是扩展更新提醒，也不重建调度器。
+
+### 唯一实现与事件语义
+
+- **复用展示：** 原 [公开 ui.notify R1.2](../../../docs/api/sidebar-tools.zh-CN.md#非阻断消息opendesktooluinotifyr12-生命周期与可安装实验室) 和唯一 React Toast Store；手动沙箱只使用可选的 notify.open/update/dismiss，可信「运行与授权 → 当前任务」使用原 Host addToolToast/updateToolToast，均消费可信只读运行状态，不新增 ui.toast、Quasar、Host、API 回调或执行权限。
+- **默认静默：** 网页匹配、Scheduler 计划到期、草稿保存、等待批准都不等于执行；只有原准入后出现匹配 Run 身份，才提示准备/执行。反复读取同一状态应更新同一条通知，不通过通知新建 Run。
+- **完成与回传分开：** 手动任务需原 clientRequestId 关联、匹配的持久 Controller Result/runId/resultId、outcome.ok=true 且资源 released，才能提示「脚本执行完成（仅脚本执行）」。执行结果报告 blocked/no_results/dom_changed/dom_unavailable/stopped 时仅提示脚本报告阻断/异常，不提示业务成功。可信自动任务需相同 requestId、persistence=verified、release=released 才提示脚本完成；只有 delivery=confirmed 才提示原对话结果已回传。单纯 completed、Toast 回执 accepted 或分配了 Run ID 不是业务成功。
+- **失败与异常：** 原可信失败仅展示安全的错误代码和原任务入口；尚未创建 Run 的失败是准入/启动问题，不声称脚本执行失败。UNKNOWN 显示结果未确认、禁止自动重试；旧 Host、不支持、通知超时、权限撤销时保留原正文与原请求记录，不能因为通知失败而重试脚本、发送结果或扩大授权。网页文本不能伪造可信状态。
+- **生命周期与恢复：** R1.2 每实例每分钟最多 3 条创建、每句柄 12 次更新、30 分钟有效，实例卸载、停用/撤权、安装代际变化使旧通知失效。句柄非持久执行身份，关闭提示不删除原 Run/Result。手动任务在「记录 → 查询原请求（只读）」查看；自动任务在「运行与授权 → 当前任务」及原请求记录查看。P0 仅已打开的 Side Panel/PC 工具宿主可见；关闭侧栏、刷新后仍保留原记录，不能承诺不可见宿主 Toast。
+
+### 范围与分级
+
+- **P0（本轮）：** 在原手动与可信自动两条执行状态链上接已有通知，更新单条状态与异常提示，保留原管理/查询入口；不改原调度、授权、运行或数据表。
+- **P1（后续）：** 解决关闭宿主后跨 Side Panel/PC/多窗口去重、未读状态与恢复索引，仍由原 Run/Result 提供事实，不另建账本。
+- **P2（后续）：** 在独立审阅授权下实现已批准网页右下角 Toast、避开编辑/敏感输入，以及可选 Chrome 系统通知；P0 未开发网页注入和系统通知。
+- **硬性验收否决：** 业务未成功却通知业务成功；通知扩大原执行权限；通知重复事件导致任务重新执行。源码、Node、可安装包、真实 Chrome、业务接受分层取证，不能相互冒充。
+
+---
 ## 2026-11-11 · ChatGPT A→B 结果回填最小业务合同（OD-AI-WORKFLOW-BRIDGE）
 
 **用户最终要做的事：** 在原 ChatGPT 聊天 A 要求 Web Flow 创建独立新聊天 B，指定选项时核验真实模型/推理，默认保留草稿；独立批准 send:true 后只点击一次发送；验证 B 的真实持久 URL、用户消息和完整助手回复，最后在来源 A 得到可点击链接和可信执行状态。
