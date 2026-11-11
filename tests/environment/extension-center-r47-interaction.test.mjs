@@ -5,6 +5,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import {readFile} from 'node:fs/promises';
 import {createExtensionCenter} from '../../src/ui/extension-center.js';
+import {OFFICIAL_STORE_WEBSITE} from '../../src/marketplace/store-website.js';
 import {SIDEBAR_TOOL_FORMAT,SIDEBAR_TOOL_STORE} from '../../src/ui/sidebar-tools/package.js';
 import {SIDEBAR_TOOL_ENABLE_STORE} from '../../src/ui/sidebar-tools/lifecycle.js';
 import {TOOL_CLEANUP_STORE} from '../../src/ui/sidebar-tools/installation.js';
@@ -146,29 +147,41 @@ function openMenuUninstall(f,key){
   return trigger;
 }
 
-test('extension toolbar shop reports via the shared Host toast without replacing another status',async t=>{
+test('extension toolbar shop keeps Host feedback intact when opening a configured site',async t=>{
   const notices=[];
   const f=fixture(t,{notify:(message,options)=>notices.push({message,options})});
   await f.ui.refresh();
   const original=f.state.statusModel?.text;
   f.state.toolbarModel.onMarket();
   await tick();
-  assert.deepEqual(notices,[{
-    message:'官方扩展商店尚未上线。',
-    options:{type:'info',position:'bottom-right'}
-  }]);
+  if(OFFICIAL_STORE_WEBSITE.status==='ready'){
+    assert.deepEqual(notices,[]);
+    assert.deepEqual(f.invocations.filter(row=>row[0]==='market'),
+      [['market',{url:OFFICIAL_STORE_WEBSITE.url,active:true}]]);
+  }else{
+    assert.deepEqual(notices,[{
+      message:'官方扩展商店尚未上线。',
+      options:{type:'info',position:'bottom-right'}
+    }]);
+    assert.deepEqual(f.invocations.filter(row=>row[0]==='market'),[]);
+  }
   assert.equal(f.state.statusModel?.text,original,'existing installation feedback remains intact');
-  assert.deepEqual(f.invocations.filter(row=>row[0]==='market'),[]);
 });
 
-test('extension toolbar shop icon does not open a bundled marketplace before the public URL is configured',async t=>{
+test('extension toolbar shop icon never opens the bundled marketplace as a public catalog',async t=>{
   const f=fixture(t);await f.ui.refresh();
-  assert.equal(f.state.toolbarModel.storeWebsiteStatus,'coming_soon');
-  assert.match(f.doc.getElementById('extension-center-market').getAttribute('aria-label'),/尚未上线/);
+  assert.equal(f.state.toolbarModel.storeWebsiteStatus,OFFICIAL_STORE_WEBSITE.status);
+  const label=f.doc.getElementById('extension-center-market').getAttribute('aria-label');
+  if(OFFICIAL_STORE_WEBSITE.status==='ready')
+    assert.match(label,/官方扩展商店/);
+  else assert.match(label,/尚未上线/);
   f.state.toolbarModel.onMarket();
   await tick();
-  assert.deepEqual(f.invocations.filter(row=>row[0]==='market'),[]);
-  assert.match(f.state.statusModel.text,/官方扩展商店尚未上线/);
+  const marketTabs=f.invocations.filter(row=>row[0]==='market');
+  if(OFFICIAL_STORE_WEBSITE.status==='ready')
+    assert.deepEqual(marketTabs,[['market',{url:OFFICIAL_STORE_WEBSITE.url,active:true}]]);
+  else assert.deepEqual(marketTabs,[]);
+  assert.ok(marketTabs.every(row=>!row[1].url.includes('ui/marketplace.html')));
 });
 
 test('R5.11 each row has one main target and only an overflow secondary control',async t=>{
