@@ -58,6 +58,7 @@
   const safeError=error=>M.bounded(error&&error.code?error.code+'：'+(error.message||'操作失败'):
     error&&error.message||'操作失败',190);
   const defaultPrefs=()=>({theme:'system',favorites:[]});
+  const pagePanelKey='webflow.pagePanelVisible.v1';
   const pendingKey='webflow.pending.v1';
   // Storage may return JSON object fields in a different order. Compare all
   // values while preserving array order, types, and missing/extra fields.
@@ -96,6 +97,10 @@
     const [mdBusy,setMdBusy]=R.useState(false);
     const [active,setActive]=R.useState(null);
     const [saving,setSaving]=R.useState(false);
+    const [panelPreference,setPanelPreference]=R.useState({status:'loading',value:false,etag:null});
+    const [panelSaving,setPanelSaving]=R.useState(false);
+    const panelPreferenceRef=R.useRef({status:'loading',value:false,etag:null});
+    const panelSavingRef=R.useRef(false),panelDirtyRef=R.useRef(false),panelReadEpoch=R.useRef(0);
     const [showFilters,setShowFilters]=R.useState(false);
     const [more,setMore]=R.useState(null);
     const [hostNavigation,setHostNavigation]=R.useState({base:false,actions:false});
@@ -148,12 +153,40 @@
     const localCancellation=R.useRef(null);
     const prefsDirty=R.useRef(false);
     const request=R.useCallback((name,args)=>operation(name,args),[]);
+    const adoptPanelPreference=state=>{panelPreferenceRef.current=state;setPanelPreference(state);};
+    const readPanelPreference=R.useCallback(async()=>{
+      const epoch=++panelReadEpoch.current;
+      try{
+        const reply=await request('storage.get',{key:pagePanelKey,withEtag:true});
+        if(!alive.current||epoch!==panelReadEpoch.current||panelSavingRef.current)return null;
+        if((reply?.value!==null&&typeof reply?.value!=='boolean')||typeof reply?.etag!=='string')
+          throw Error('网页辅助面板设置数据无效');
+        const current={status:'ready',value:reply.value===true,etag:reply.etag};
+        adoptPanelPreference(current);panelDirtyRef.current=false;
+        return current;
+      }catch(error){
+        if(alive.current&&epoch===panelReadEpoch.current&&!panelSavingRef.current){
+          adoptPanelPreference({status:'error',value:false,etag:null});
+          setError('网页显示设置读取失败：'+safeError(error));
+        }
+        return null;
+      }
+    },[request]);
+    R.useEffect(()=>{
+      void readPanelPreference();
+      if(page!=='settings')return;
+      // Multiple settings windows share the Host storage namespace.
+      const refresh=()=>{if(!panelSavingRef.current)void readPanelPreference();};
+      const interval=global.setInterval(refresh,1400);
+      global.addEventListener('focus',refresh);
+      return ()=>{global.clearInterval(interval);global.removeEventListener('focus',refresh);};
+    },[page,readPanelPreference]);
 
     // The bridge conservatively marks trusted inputs as drafts. Reconcile
     // view-only controls on every render, retaining unconfirmed durable edits.
     R.useEffect(()=>{
-      tool.setState?.({dirty:prefsDirty.current||Object.values(drafts).some(value=>value?.dirty===true),
-        busy:saving||active?.state==='saving'||active?.state==='cancelling-local'});
+      tool.setState?.({dirty:prefsDirty.current||panelDirtyRef.current||Object.values(drafts).some(value=>value?.dirty===true),
+        busy:saving||panelSaving||active?.state==='saving'||active?.state==='cancelling-local'});
     });
 
     const readTasks=R.useCallback(async()=>{
@@ -249,7 +282,7 @@
         }catch(e){if(!disposed)setError(safeError(e));}
       }
       void load();void readTasks();void readCurrentPage();
-      return ()=>{disposed=true;alive.current=false;seq.current++;observation.current++;pageReadEpoch.current++;
+      return ()=>{disposed=true;alive.current=false;seq.current++;observation.current++;pageReadEpoch.current++;panelReadEpoch.current++;
         if(timer.current)clearTimeout(timer.current);
         taskNotices.current?.dispose();clearFeedback();};
     },[readTasks,readCurrentPage,request]);
@@ -260,28 +293,38 @@
       return ()=>tool.root.removeEventListener('opendesk-page-changed',onPageChanged);
     },[readCurrentPage]);
 
-    // Reuse the bounded Host Header. Never allow this sandbox event to authorize work.
+    // R1.5 Host gear owns the settings entry; the sandbox owns its view.
     R.useEffect(()=>{
       const child=page==='settings'||page==='help'||page==='md';
       const view=child?page:'home';
-      const base={page:view,title:child?(page==='help'?'帮助':page==='md'?'Markdown 任务队列':'应用偏好'):'Web Flow',
+      const base={page:view,title:child?(page==='help'?'帮助':page==='md'?'Markdown 任务队列':'Web Flow 设置'):'Web Flow',
         canBack:child,primary:null,secondary:null};
-      let actions=false,accepted=false;
+      const helpAction={id:'help',label:'帮助',icon:'diagnostics'};
+      let actions=false,settingsEntry=false,accepted=false;
       if(typeof tool.setNavigation==='function'){
-        if(tool.navigationFeatures?.headerActions===true){
-          actions=tool.setNavigation({...base,headerActions:[
-            {id:'help',label:'帮助',icon:'diagnostics'},
-            {id:'settings',label:'应用偏好',icon:'settings'}
-          ]})===true;
+        const headers=tool.navigationFeatures?.headerActions===true;
+        if(tool.navigationFeatures?.settingsPage===true){
+          settingsEntry=tool.setNavigation({...base,settingsPage:'settings',
+            ...(headers?{headerActions:[helpAction]}:{})})===true;
+          if(settingsEntry){accepted=true;actions=headers;}
         }
-        accepted=actions||tool.setNavigation(base)===true;
+        if(!accepted&&headers){
+          actions=tool.setNavigation({...base,headerActions:[helpAction,
+            {id:'settings',label:'应用偏好',icon:'settings'}]})===true;
+          accepted=actions;
+        }
+        if(!accepted)accepted=tool.setNavigation(base)===true;
       }
-      setHostNavigation({base:accepted,actions});
+      setHostNavigation({base:accepted,actions,settings:settingsEntry});
       const onNavigation=event=>{
         const info=event.detail;
         if(info?.action==='back'&&child){setPage(returnTab.current);setNotice('');}
+        else if(settingsEntry&&info?.action==='settings'&&info.page==='settings'){
+          if(!child)returnTab.current=page;
+          setPage('settings');setNotice('');
+        }
         else if(actions&&info?.action==='header'&&info.page===view&&
-          (info.actionId==='help'||info.actionId==='settings')){
+          (info.actionId==='help'||!settingsEntry&&info.actionId==='settings')){
           if(!child)returnTab.current=page;
           setPage(info.actionId);setNotice('');
         }
@@ -351,6 +394,36 @@
         if(confirmed&&alive.current){prefsDirty.current=false;setSettings(value);setNotice('');showFeedback('偏好已保存并读回。');}}
       catch(e){if(alive.current)setError('偏好未确认保存：'+safeError(e));}
       finally{if(alive.current)setSaving(false);}
+    };
+    const savePanelVisibility=async visible=>{
+      const previous=panelPreferenceRef.current;
+      if(panelSavingRef.current||previous.status!=='ready'||typeof visible!=='boolean'||previous.value===visible)return;
+      panelSavingRef.current=true;setPanelSaving(true);panelDirtyRef.current=true;setError('');
+      let writeFailure=null;
+      try{await request('storage.set',{key:pagePanelKey,value:visible,ifMatch:previous.etag});}
+      catch(error){writeFailure=error;}
+      try{
+        // Read independently even if the write ACK is lost or rejected.
+        const reply=await request('storage.get',{key:pagePanelKey,withEtag:true});
+        if(!alive.current)return;
+        if((reply?.value!==null&&typeof reply?.value!=='boolean')||typeof reply?.etag!=='string')
+          throw Error('网页显示设置读回结构无效');
+        const current={status:'ready',value:reply.value===true,etag:reply.etag};
+        adoptPanelPreference(current);panelDirtyRef.current=false;
+        if(!writeFailure&&current.value===visible)
+          showFeedback(visible?'网页辅助面板已开启并读回。':'网页辅助面板已关闭并读回。');
+        else setError(writeFailure?
+          '设置写入未确认，已重新读取当前有效状态：'+safeError(writeFailure):
+          '设置写入回执与读回不一致，请核对当前显示状态。');
+      }catch(error){
+        if(alive.current){
+          adoptPanelPreference({status:'error',value:false,etag:null});
+          setError('网页显示设置结果未知，请重新进入设置核对，不能重复盲写：'+safeError(error));
+        }
+      }finally{
+        panelSavingRef.current=false;
+        if(alive.current)setPanelSaving(false);
+      }
     };
     const toggleFavorite=pin=>{
       const key=M.taskKey(pin),set=new Set(settings.favorites);
@@ -772,7 +845,25 @@
     }
     function settingsPage(){
       return h('div',{className:'wf-stack'},
-        h(Head,{title:'应用偏好',action:!hostNavigation.base&&Btn('返回',()=>setTab(returnTab.current),{quiet:true})}),
+        !hostNavigation.base&&h(Head,{title:'Web Flow 设置',action:Btn('返回',()=>setTab(returnTab.current),{quiet:true})}),
+        h(Card,{children:h('div',{className:'wf-stack'},
+          h('h3',null,'网页显示'),
+          h('label',{className:'wf-switch-row'},
+            h('span',{className:'wf-switch-description'},
+              h('strong',null,'显示网页辅助面板'),
+              h('span',{className:'wf-sub'},'在支持的网站显示 Web Flow 辅助区域；关闭只影响页面显示，不停止后台任务。')),
+            h('span',{className:'wf-switch-control'},
+              h('input',{type:'checkbox',role:'switch',
+                checked:panelPreference.status==='ready'&&panelPreference.value,
+                disabled:panelPreference.status!=='ready'||panelSaving,
+                onChange:event=>{void savePanelVisibility(event.target.checked);},
+                'aria-label':'显示网页辅助面板'}),
+              h('span',{className:'wf-switch-track','aria-hidden':true}))),
+          h('p',{className:'wf-sub',role:'status'},
+            panelSaving?'正在保存并核对网页显示状态…':
+            panelPreference.status==='loading'?'正在读取网页显示设置…':
+            panelPreference.status!=='ready'?'设置状态尚未确认，请重新进入设置核对。':
+            panelPreference.value?'网页辅助面板已开启。':'网页辅助面板已关闭。'))}),
         h(Card,{children:h('label',{className:'wf-label'},'外观主题',
           h('select',{className:'wf-select',value:settings.theme,disabled:saving,
             onChange:e=>{void savePrefs({...settings,theme:e.target.value});}},
@@ -837,11 +928,11 @@
           Btn(h(R.Fragment,null,Icon('help'),h('span',null,'帮助')),()=>setTab('help'),
             {key:'help',quiet:true,ariaLabel:'帮助',title:'帮助与使用说明',controls:'wf-panel',
               current:page==='help'?'page':undefined}),
-          Btn(h(R.Fragment,null,Icon('settings'),h('span',null,'偏好')),()=>setTab('settings'),
+          !hostNavigation.settings&&Btn(h(R.Fragment,null,Icon('settings'),h('span',null,'偏好')),()=>setTab('settings'),
             {key:'settings',quiet:true,ariaLabel:'应用偏好',title:'应用偏好',controls:'wf-panel',
               current:page==='settings'?'page':undefined}))),
       h('main',{className:'wf-body',role:'tabpanel',id:'wf-panel',
-        'aria-label':({overview:'概览',scripts:'脚本',history:'记录',md:'Markdown 任务队列',settings:'应用偏好',help:'帮助'})[page],tabIndex:0},
+        'aria-label':({overview:'概览',scripts:'脚本',history:'记录',md:'Markdown 任务队列',settings:'Web Flow 设置',help:'帮助'})[page],tabIndex:0},
         error&&h('div',{className:'wf-banner wf-warning',role:'alert'},
           h('p',null,error),Btn('关闭提示',()=>setError(''),{quiet:true})),
         notice&&h('div',{className:'wf-banner',role:'status'},

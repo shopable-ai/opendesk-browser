@@ -1,7 +1,7 @@
 {
   "format": "opendesk.sidebar-tool.v2",
   "id": "webflow",
-  "version": "0.3.30",
+  "version": "0.3.31",
   "title": "Web Flow",
   "description": "ChatGPT 正常需求与受限任务候选的自动执行引导；复用可信批准、原聊天结果、手动运行及原请求恢复。",
   "capabilities": [

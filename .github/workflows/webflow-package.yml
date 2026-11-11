@@ -9,6 +9,9 @@ on:
       - 'projects/webflow/app.ci.json'
       - 'projects/webflow/src/ui/**'
       - 'projects/webflow/tests/webflow-ui.test.mjs'
+      - 'projects/webflow/tests/page-panel-settings.test.mjs'
+      - 'projects/webflow/trusted/page-panel-ui.js'
+      - 'projects/webflow/trusted/chatgpt-bridge-page.js'
       - 'projects/webflow/tests/webflow-recovery-ui.test.mjs'
       - 'projects/webflow/tests/webflow-compact-browser.mjs'
       - 'projects/webflow/tests/webflow-ui-server.mjs'
@@ -46,7 +49,9 @@ jobs:
         run: |
           node --check projects/webflow/src/ui/model.js
           node --check projects/webflow/src/ui/main.js
-          node --test projects/webflow/tests/webflow-ui.test.mjs projects/webflow/tests/webflow-recovery-ui.test.mjs tests/environment/task-delegation-package.test.mjs tests/environment/my-react-workbench.test.mjs
+          node --check projects/webflow/trusted/page-panel-ui.js
+          node --check projects/webflow/trusted/chatgpt-bridge-page.js
+          node --test projects/webflow/tests/webflow-ui.test.mjs projects/webflow/tests/webflow-recovery-ui.test.mjs projects/webflow/tests/page-panel-settings.test.mjs tests/environment/task-delegation-package.test.mjs tests/environment/my-react-workbench.test.mjs
       - name: Build only through the original Sidebar Tool packager
         run: |
           node scripts/build-sidebar-tool.mjs projects/webflow --out artifacts/sidebar-tools/webflow/candidate.opendesk-tool.json

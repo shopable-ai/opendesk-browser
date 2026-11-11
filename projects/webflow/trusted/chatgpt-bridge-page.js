@@ -6,6 +6,7 @@ import {validateWebFlowTaskIntent,validateWebFlowTaskIntentV2,WEBFLOW_TASK_INTEN
   WEBFLOW_TASK_INTENT_V2_PROTOCOL} from '../../../src/native-agent/chatgpt-task-request.js';
 import {CHATGPT_BRIDGE_PROTOCOL} from '../../../src/native-agent/chatgpt-bridge-trigger-gate.js';
 import {createLegacyChatGPTTaskPanel} from './legacy-chatgpt-panel.js';
+import {initWebFlowPagePanel} from './page-panel-ui.js';
 import {chatGPTConversationRoute} from './chatgpt-conversation-route.js';
 
 const fail=(code,message)=>Object.assign(new Error(message),{code});
@@ -204,6 +205,7 @@ export function initChatGPTFixedBridgePage({api=chrome,doc=document,win=window,
   site=createChatGPTBridgeSite({doc,win}),readPage=inspectChatGPTEditsOnPage,showLegacyPanel=false,createConversationAdapter}={}){
   if(win!==win.top||win.location.origin!=='https://chatgpt.com')return null;
   if(activeBridgeDocuments.has(doc)||doc.getElementById('opendesk-fixed-bridge-r12'))return null;
+  const pagePanel=initWebFlowPagePanel({api,doc,win});
   const {root,fields,taskSelect,queryField,queryInput,targetField,targetInput,argsField,argsInput,argsHelp,selection,prepareButton,autoButton,runButton,cancelButton,status,viewStatus,result,details,summary,identity,adoptButton,viewButton,preapproveButton,conversationButton,revokeConversationButton,approvalHint}=createLegacyChatGPTTaskPanel({
     doc,visible:showLegacyPanel===true,fixedTaskId:FIXED_PAGE_TASK_ID,
     baiduTaskId:BAIDU_TASK_ID,installedChoice:INSTALLED_CHOICE
@@ -1201,7 +1203,7 @@ export function initChatGPTFixedBridgePage({api=chrome,doc=document,win=window,
   };
   const dispose=()=>{win.removeEventListener('pageshow',restoreFromCache);if(closed)return;closed=true;activeBridgeDocuments.delete(doc);lifecycleEpoch++;
     discovery.reset(null);
-    conversationAdapter?.dispose();
+    conversationAdapter?.dispose();pagePanel.dispose();
     if(state){state.cancelled=true;state.attempted=true;}deferredDiscovery=null;discoveryObserver?.disconnect();win.clearInterval(poll);
     for(const [target,type] of wakeEvents)target.removeEventListener(type,scheduleCheck,true);
     for(const type of refreshNavigationEvents)refreshNavigation?.removeEventListener(type,invalidateRefreshNavigation);

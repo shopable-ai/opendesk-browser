@@ -49,6 +49,22 @@ html:has(#webflow-app),body:has(#webflow-app){margin:0}
 .wf-actions{display:flex;flex-wrap:wrap;gap:6px}
 .wf-input,.wf-select{background:var(--paper);color:var(--ink);display:block;width:100%;min-width:0;border:1px solid #8698b0;border-radius:8px;padding:8px 10px;min-height:35px;font-size:13px}
 .wf-label{display:grid;gap:4px;font-size:12px;font-weight:650}
+/* Tool-owned, accessible switch. The trusted Host does not expose its React Switch to sandboxes. */
+.wf-switch-row{display:flex;align-items:center;justify-content:space-between;gap:12px;min-width:0;cursor:pointer}
+.wf-switch-description{display:grid;gap:3px;min-width:0;flex:1}
+.wf-switch-description strong{font-size:13px;font-weight:650}
+.wf-switch-description .wf-sub{font-weight:400;font-size:11px}
+.wf-switch-control{position:relative;display:inline-block;width:44px;height:26px;flex:none}
+.wf-switch-control input{position:absolute;inset:0;z-index:1;margin:0;width:100%;height:100%;opacity:0;cursor:pointer}
+.wf-switch-track{display:block;width:44px;height:26px;border-radius:999px;background:var(--line);border:1px solid var(--sub);transition:background .15s ease}
+.wf-switch-track::after{content:"";display:block;width:20px;height:20px;margin:2px;border-radius:50%;background:var(--paper);box-shadow:0 1px 4px #0003;transition:transform .15s ease}
+.wf-switch-control input:checked+.wf-switch-track{background:var(--brand);border-color:var(--brand)}
+.wf-switch-control input:checked+.wf-switch-track::after{transform:translateX(18px);background:var(--on-brand)}
+.wf-switch-control input:focus-visible+.wf-switch-track{outline:2px solid var(--focus);outline-offset:3px}
+.wf-switch-control input:disabled+.wf-switch-track{opacity:.55}
+.wf-switch-row:has(input:disabled){cursor:default}
+@media(prefers-reduced-motion:reduce){.wf-switch-track,.wf-switch-track::after{transition:none}}
+
 .wf-filter{display:flex;gap:5px;overflow:auto;scrollbar-width:thin}
 .wf-chip{border:1px solid var(--line);background:var(--paper);border-radius:999px;padding:5px 10px;white-space:nowrap;color:var(--sub);font-size:12px}
 .wf-chip[aria-pressed=true]{background:var(--tint);border-color:#90a9d4;color:var(--ink)}

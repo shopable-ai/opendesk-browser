@@ -1,3 +1,13 @@
+## R5 · 网页辅助面板「工具设置」滑块闭环（2026-11-11；OD-WEBFLOW-PAGE-PANEL-SETTINGS-R5）
+
+**唯一产品目标：** 在「扩展 → Web Flow → 右上角齿轮 → 网页显示」用默认关闭的独立滑块控制 `https://chatgpt.com` 的 WebFlow 页面辅助区。开启实际挂载、关闭实际卸载；已存状态在 SPA/新标签/扩展重载复用，任何可见/隐藏操作均不得改变 Controller、Headless 文件处理、Stop、UNKNOWN、授权、Run/Result。
+
+**复用与差量：** R1.5 的 `settingsPage` 与现有 `opendesk-tool-navigation` 负责指定齿轮导航；沙箱通过原 `storage.get/set`、`ifMatch` 及独立读回写自己的独立配置；固定编译 WebFlow 只读读取现有工具数据命名空间并观察 Chrome 变更、已安装、启停与页面 DOM 生命周期；新增独立只读 Shadow DOM，不复活旧文件悬浮窗口。旧 Host 降级保留「应用偏好」。仅改 WebFlow UI、定向 trusted 适配器、测试和此 WebFlow package CI，Framework SDK 及执行权限模块不变。
+
+**状态必须以证据判定：** SOURCE（GitHub 文件/提交及构建）／NODE（定向自动化及回归）／PACKAGE（候选同源、独立正式 JSON 晋升）／CHROME（真实已安装 Host 齿轮、启停、刷新/SPA/多实例）／BUSINESS（文件 Task、Stop、UNKNOWN 与权限回归）各自标记 PASS、FAIL 或 NOT_TESTED。**真实 Chrome、Native 和发布包没有独立证据前绝不写产品完成。** 当前设计没有网页内 ×：关闭统一从齿轮设置操作，因此不产生两套持久写入口。
+
+---
+
 ## R2 同一个 B · 0.3.0 双阶段候选增量及尚未接线清单（2026-11-11；OD-WEBFLOW-CHAT-A-B-A-TASK-BOUNDARY-R2）
 
 **产品目标：** A 中提出任务 → 一个新 B 只准备未发送草稿 → 可信侧栏独立 APPROVE_SEND → 从原 PREPARE Run 精确 borrowed 同一个 B 只原生发送一次 → 原 Durable Result 审核完整回复和真实 /c/ → 原 A 一次性回填。任何 UNKNOWN 不重建 B、不补发、不重交付。WebFlow 编排、独立 Task 操作 ChatGPT DOM、Browser 原 Host/Authority/Controller 负责安装与副作用。

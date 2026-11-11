@@ -1,3 +1,13 @@
+## R5 · WebFlow 网页辅助面板齿轮控制（OD-WEBFLOW-PAGE-PANEL-SETTINGS-R5；2026-11-11）
+
+**真实目标：** 扩展 → Web Flow → 右上角现有「工具设置」齿轮 → 网页显示 →「显示网页辅助面板」。用户独立控制 `https://chatgpt.com` 内 WebFlow 辅助区，初始关闭，开启挂载、关闭物理卸载，已存偏好在新标签/刷新/SPA/重载恢复；不能与文件处理开关、自动运行、工具启停混淆。
+
+**职责与数据流：** WebFlow 沙箱复用 R1.5 `navigationFeatures.settingsPage` / `setNavigation({settingsPage:'settings'})`，不写 Framework。显示偏好独立 `webflow.pagePanelVisible.v1` 存入既有 `storage.local` 工具命名空间，按 ETag/CAS 写入、独立读回；固定编译的 WebFlow Content 只读观察该工具命名空间、真实安装和工具启停，拒绝站点脚本传入配置。仅挂载新的轻量只读 Shadow DOM；旧 `legacy-chatgpt-panel.js` 保持退役默认隐藏，Headless 文件适配器继续独立。新页区没有 ×，关闭入口唯一归齿轮设置，避免无授权网页写配置。无自动任务派发、文件访问、Stop 或额外权限。
+
+**验收证据门槛：** 此合同仅定义实施和必须独立验收的语义；源码测试、工具包同源晋升、真实安装 Chrome/Native 均须分别出具实际证据。尤其不得将源码可见、离线 Chromium UI 或 GitHub 提交推断为真实扩展已安装。当前 R5 结果和缺口只以 [原执行计划](execution-plan.zh-CN.md) 为准。
+
+---
+
 ## Web Flow 脚本列表调用「我的」共享运行抽屉（2026-11-11）
 
 **原始用户动作：** Web Flow → 脚本 → ▶，必须在当前 Side Panel / app.html 从底部上滑打开「我的 → 已安装任务 → ▶」所用的同一个可信 TaskRunSheet，以当前已安装 Task 的真实 Schema、安装身份、目标/权限和原 TaskWorkbench/RunHost 执行，不能在 Web Flow 沙箱复制第二套抽屉/Runner，也不能把跳去「我的」当最终体验。列表原 ☆/▶/⋯ 及 hover/focus 保留。此目标与其他 V1/V2 ChatGPT 自动链分离。
