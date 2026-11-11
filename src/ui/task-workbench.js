@@ -668,6 +668,7 @@ export function createTaskWorkbench({client,host,currentPageTarget,api=globalThi
   const SHEET_LOCK='opendesk.shared-task-run-sheet.webflow.lock.v1';
   const pinFields=['taskId','version','manifestHash','generation','installationId'];
   let sheetCounter=0,prepared=null,preparationLoaded=false,preparationBusy=false,confirmClaimed=false;
+  let sheetAssertAuthorized=null;
   const samePin=(a,b)=>Boolean(a&&b&&pinFields.every(k=>a[k]===b[k]));
   const sameTarget=(a,b)=>Boolean(a&&b&&['tabId','windowId','documentId','url'].every(k=>a[k]===b[k]));
   const prepError=(code,message)=>Object.assign(new Error(message),{code});
@@ -699,7 +700,9 @@ export function createTaskWorkbench({client,host,currentPageTarget,api=globalThi
     const row=installed.find(r=>r.taskId===taskId),info=candidateFor(row);
     if(!preparationLoaded||disposed||!row?.enabled||row.runtimeCurrent===false||
       info?.stage!=='available'||info.runtimeCurrent===false)return false;
+    if(source==='webflow'){localQuery='';localFilter='all';ui('local-discover-search').value='';}
     if(ui('task-installed-list').value!==taskId){ui('task-installed-list').value=taskId;renderInstalledSelection();}
+    else if(source==='webflow')renderInstalledCards();
     const ready=prepared?.state==='ready'&&samePin(prepared.task,row);
     const blocked=!settled(prepared);
     sheetStatus(source==='webflow'?(blocked?(ready?'ready':'unknown'):'editing'):'editing',
@@ -724,6 +727,8 @@ export function createTaskWorkbench({client,host,currentPageTarget,api=globalThi
       if(!info.manifest.siteOrigins.includes(new URL(target.url).origin))
         throw prepError('E_PERMISSION','当前网站不在固定任务授权范围');
       const params=paramsFromForm(info.manifest.paramsSchema);
+      if(typeof sheetAssertAuthorized!=='function')throw prepError('E_TOOL_AUTH','原 Web Flow 授权已失效');
+      await sheetAssertAuthorized();
       if(await hasLegacyPending())throw prepError('E_PENDING_LEGACY','Web Flow 旧请求未释放，先核对原记录');
       const resolved=await client.request('resolveInstalledTask',{taskId:row.taskId});
       await currentPageTarget.revalidate(target);
@@ -734,6 +739,7 @@ export function createTaskWorkbench({client,host,currentPageTarget,api=globalThi
         contentHash:resolved.contentHash,params,target:Object.fromEntries(
           ['tabId','windowId','documentId','url'].map(k=>[k,target[k]])),createdAt:Date.now()};
       await sheetLock(async()=>{
+        await sheetAssertAuthorized();
         if(!settled(await readSheet())||await hasLegacyPending())
           throw prepError('E_PREPARE_BUSY','已有未释放的准备记录或旧请求');
         wrote=true;await api.storage.local.set({[SHEET_KEY]:item});
@@ -847,12 +853,13 @@ export function createTaskWorkbench({client,host,currentPageTarget,api=globalThi
       ...(runId?{runId}:{})}).catch(()=>{});
   };
   function run(event,agentIntent=null,expectedIdentity=null,preparedAttempt=null) {
-    if(!event?.isTrusted||disposed||running||working||host.currentRun||!preparationLoaded||
+    if(!event?.isTrusted||disposed||running||working||host.currentRun||
       (agentIntent===null&&ui('task-run').disabled)||
       (preparedAttempt&&!samePin(preparedAttempt.task,expectedIdentity))){
       if(agentIntent) return Promise.reject(Object.assign(new Error('运行宿主繁忙、已关闭或缺少用户确认'),{code:'E_TASK_BUSY'}));
       return expectedIdentity?false:undefined;
     }
+    const writeAuthorization=preparedAttempt?sheetAssertAuthorized:null;
     let chosen,params,site,permission,captured;
     try {
       chosen=agentIntent?installed.find(row=>row.taskId===agentIntent.taskId):installedRow();
@@ -897,6 +904,8 @@ export function createTaskWorkbench({client,host,currentPageTarget,api=globalThi
       // Manual Run keeps the original synchronous Chrome permission entry.
       if(agentIntent?.assertWrite)await agentIntent.assertWrite();
       if(preparedAttempt){
+        if(typeof writeAuthorization!=='function')throw prepError('E_TOOL_AUTH','原 Web Flow 授权不再有效');
+        await writeAuthorization();
         if(resolved.contentHash!==preparedAttempt.contentHash)
           throw prepError('E_REVISION','准备的脚本内容身份已经变化');
         await claimSheet(preparedAttempt);
@@ -1274,7 +1283,10 @@ export function createTaskWorkbench({client,host,currentPageTarget,api=globalThi
       throw prepError('E_REVISION','固定 Task 安装身份不符合工具审阅版本');
     const latest=await readSheet();
     await assertAuthorized();prepared=latest;preparationLoaded=true;
-    return openSheet(taskId,'webflow');
+    sheetAssertAuthorized=assertAuthorized;
+    const opened=openSheet(taskId,'webflow');
+    if(!opened)sheetAssertAuthorized=null;
+    return opened;
   },async openTaskReview(taskId,{assertAuthorized=()=>{}}={}) {
     if(!validTaskId(taskId))throw {code:'E_SCHEMA',message:'任务标识无效'};
     await client.ready;

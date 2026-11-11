@@ -114,7 +114,8 @@ test('original builder accepts and preserves real v2 pins without embedding a ru
   assert.equal(tool.delegatedTasks.length,2);
   assert.equal(tool.delegatedTasks[0].manifestHash,config.delegatedTasks[0].manifestHash);
   assert.equal(tool.delegatedTasks[1].contentHash,config.delegatedTasks[1].contentHash);
-  assert.ok(tool.js.includes('tasks.start'));
+  assert.ok(tool.js.includes("request('tasks.configure'"));
+  assert.ok(!tool.js.includes("request('tasks.start'"),'sandbox cannot submit a new Run');
   assert.ok(tool.css.includes('.wf-app'));
 });
 
@@ -138,7 +139,7 @@ test('script play opens the trusted Host sheet; legacy execution remains isolate
   assert.ok(uiCode.includes("request('tasks.configure',{taskId:pin.taskId})"));
   assert.ok(uiCode.includes("Btn(Icon('play'),()=>openSharedTask(pin)"));
   assert.ok(uiCode.includes('参数由已安装任务 Schema 提供'));
-  assert.equal((uiCode.match(/request\('tasks.start'/g)||[]).length,1,'old delegated start kept exclusively for restoration');
-  assert.ok(uiCode.includes('params:item.params'));
+  assert.equal((uiCode.match(/request\('tasks.start'/g)||[]).length,0,'old delegated starts are not reachable from the new list');
+  assert.ok(uiCode.includes('webflow.pending.v1'),'old original requests remain recoverable');
   assert.equal(uiCode.includes('wf-param-row'),false,'inline forms do not duplicate the trusted sheet');
 });
