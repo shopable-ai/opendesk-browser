@@ -215,6 +215,45 @@ const complete=(id,retirementState='released')=>({clientRequestId:id,runId:'run-
   state:'completed',retirementState,value:{status:'success',results:[{title:'真实 SDK 回包内容',url:'https://example.com/'}],count:1},
   result:{tag:'controller-result',runId:'run-original',resultId:'result-original',state:'completed',outcome:{ok:true}}});
 
+
+test('overview keeps original recovery query in records without exposing the ID or developer cards',async t=>{
+  const host=sdk(),id=legacy(host,'webflow:recovery-overview');
+  const f=await mount(t,host),overview=f.document.querySelector('.wf-overview');
+  assert.ok(overview,'overview is shown');
+  assert.match(overview.textContent,/有一项运行需要核对/);
+  assert.match(overview.textContent,/不会自动重新执行/);
+  assert.doesNotMatch(overview.textContent,/webflow:recovery-overview|Markdown 两任务接续|自动执行接线仍待完成|打开 MD 任务队列/);
+  assert.match(overview.textContent,/固定脚本\s*2/);
+  await f.click('查看记录');
+  assert.match(f.text(),/webflow:recovery-overview/,'original request locator remains available in record details');
+  assert.equal(host.store.get('webflow.pending.v1').clientRequestId,id,'recovery record is not cleared');
+  assert.equal(starts(host).length,0,'navigation must not replay a Task');
+});
+
+test('overview labels fixed script count accurately and links to scripts on errors',async t=>{
+  const host=sdk();
+  host.taskRead=async()=>{throw problem('E_PERMISSION');};
+  const f=await mount(t,host),overview=f.document.querySelector('.wf-overview');
+  assert.ok(overview);
+  assert.match(overview.textContent,/有 2 个脚本需要检查/);
+  assert.match(overview.textContent,/固定脚本\s*2/);
+  assert.match(overview.textContent,/可运行\s*0/);
+  assert.match(overview.textContent,/需检查\s*2/);
+  assert.doesNotMatch(overview.textContent,/Markdown 两任务接续|自动执行接线仍待完成|打开 MD 任务队列/);
+  await f.click('查看脚本');
+  assert.equal(f.document.querySelector('[role="tabpanel"]').getAttribute('aria-label'),'脚本');
+  assert.equal(starts(host).length,0);
+});
+
+test('overview has a quiet normal state without developer progress cards',async t=>{
+  const host=sdk(),f=await mount(t,host),overview=f.document.querySelector('.wf-overview');
+  assert.ok(overview);
+  assert.match(overview.textContent,/当前没有待处理事项/);
+  assert.match(overview.textContent,/固定脚本\s*2/);
+  assert.doesNotMatch(overview.textContent,/Markdown 两任务接续|自动执行接线仍待完成|打开 MD 任务队列/);
+  assert.equal(starts(host).length,0);
+});
+
 test('trusted page-change notifications recheck eligibility without executing a task',async t=>{
   const host=sdk(),f=await mount(t,host);
   await f.click('脚本');
