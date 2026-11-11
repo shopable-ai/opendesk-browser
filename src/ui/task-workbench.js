@@ -853,7 +853,7 @@ export function createTaskWorkbench({client,host,currentPageTarget,api=globalThi
     try{value=await client.request('importTaskPackage',{package:parsed});}
     catch(error){
       if(error?.code==='E_REQUEST_CONFLICT')
-        throw {code:'E_REQUEST_CONFLICT',message:'任务 ID 与版本已存在，但固定源码或 Manifest 不同；不能覆盖，请修改版本或核对原任务。'};
+        throw {code:'E_TASK_IMPORT_CONFLICT',message:'任务 ID 与版本已存在，但固定源码或 Manifest 不同；不能覆盖，请修改版本或核对原任务。'};
       throw error;
     }
     const duplicate=(value?.stage!=='candidate'&&!!value?.stage)||
