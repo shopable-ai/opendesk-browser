@@ -140,4 +140,4 @@ node --test --test-name-pattern='real package and offline preview|fixed inputs p
 3. 撤销网站权限、停用及卸载，读回停止注入和清理；遇到未知副作用不自动重放。
 4. 依据这些原生回执更新 F/S/A、评分和最后提交；正式 Chrome 验收完成前不标 R3 完成或 95+。
 
-起始源码提交：`c27fa0520a6ffeb5afbad1bab47b091e119170a7`，当时 main 工作区干净、origin/main 落后本地 6 个提交。本轮交付提交待写入实际提交 SHA；不推送、不创建分支或 worktree。没有更改其他扩展业务或中断已有 watcher。已有真实 PASS 先读回再决定是否补测。
+起始源码提交：`c27fa0520a6ffeb5afbad1bab47b091e119170a7`，当时 main 工作区干净、origin/main 落后本地 6 个提交。**本轮代码、预览、fixture 与安装包交付提交：`4747d63a3ae94d1efda845b4ac292329a90862e7`**；本段随后单独提交文档回执，未推送。预览 context 的 `sourceCommit` 记录生成时的起始基线，当前业务字节由 `uiSha256` 和 adapter 摘要核实，不以基线 SHA 冒充交付提交。没有创建分支/worktree、更改其他扩展业务或中断已有 watcher。已有真实 PASS 先读回再决定是否补测。
