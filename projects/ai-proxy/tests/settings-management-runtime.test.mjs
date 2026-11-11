@@ -119,5 +119,6 @@ test('real PC proxy editor matches preview reading order, while retaining native
  assert.equal(dialog.find('.proxyAuthDetails').length,1,'real optional auth interface remains present');
  assert.equal(dialog.find('.editorActions [type="submit"]').length,2,'real save and save-another actions remain');
  assert.equal(dialog.find('.editorActions [data-add-another="true"]').length,1);
- assert.equal(dialog.find('.editorActions button[type="button"]').length,2,'close and cancel are not submit actions');
+ assert.equal(dialog.find('.editorActions button[type="button"]').length,1,'cancel is not a submit action');
+ assert.equal(dialog.find('.editorHead button[type="button"]').length,1,'close is not a submit action');
 });
