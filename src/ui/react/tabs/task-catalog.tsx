@@ -107,13 +107,19 @@ export function TaskCatalogPage({view,hidden=false,standalone=false}){
         </aside>
       </div>
 
-      <div className="od-stack">
-        <label htmlFor="task-package-file">导入任务包 JSON、程序草稿 JSON 或 .js 文件</label>
+      <MyControl view={view} as="div" id="task-catalog-dropzone" className="od-stack task-file-dropzone od-surface"
+        role="group" aria-label="拖放或选择单个任务文件" tabIndex={0} aria-describedby="task-catalog-status"
+        onDragEnter={event=>view.actions.taskFileDragEnter?.('catalog',event.nativeEvent)}
+        onDragOver={event=>view.actions.taskFileDragOver?.('catalog',event.nativeEvent)}
+        onDragLeave={event=>view.actions.taskFileDragLeave?.('catalog',event.nativeEvent)}
+        onDrop={event=>view.actions.taskFileDrop?.('catalog',event.nativeEvent)}
+        onKeyDown={event=>view.actions.taskFileZoneKeydown?.('catalog',event.nativeEvent)}>
+        <label htmlFor="task-package-file">拖入单个 .js、任务包 JSON 或程序草稿 JSON，或点击选择文件</label>
         <MyControl view={view} as="input" id="task-package-file" type="file" className="od-field"
           accept=".json,.js,application/json,text/javascript"
           onChange={event=>view.actions.taskPackageFileChange?.(event.nativeEvent)}/>
         <MyControl view={view} as="p" id="task-catalog-status" className="hint" role="status" aria-live="polite"/>
-      </div>
+      </MyControl>
     </div>
   </MyControl>;
 }
