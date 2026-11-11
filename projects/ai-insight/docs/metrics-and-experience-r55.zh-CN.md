@@ -204,7 +204,7 @@
 
 **本轮已落地的源码设计**：沿原有 `preview/index.html`、`preview/preview.js` 增量加入网页轻状态标签与迷你信息卡、模拟当前 AI 会话切换、人工确认/拒绝/撤销跨会话关系、当前站点“模拟撤权”与 UI 隐藏分离、侧栏“当前/全部问题”+折叠区+固定下一步、PC Problem 链式详情；执行时间线取消把未知终点画成虚构的 14 分钟。保持 R5 Core / Schema 与原 24 项合同测试源码不变，新增 6 项 VM DOM-shim 定向测试源码。原演示 Problem 的 `result` 引用了尚未确认关联的 Claude 结论，所以 UI 只能显示为“已记录线索（来源待核对）”，不能当 V 证据。
 
-**已执行的静态核对**：连接 GitHub 从现行 main 读回文件，检查 8 条静态约束：JS 中静态 `#id` 引用全部存在；HTML 和动态按钮的 `data-act` 均有处理分支；指标字典确为 26 项；26 个身份不重复；新增测试源有 6 个 `test()`；预览控制器无 `fetch` / `XMLHttpRequest` / `localStorage` / Chrome 采集调用；存在暗色样式；存在 390px 窄屏样式。**8/8 STATIC_OK，不是 Node 测试通过、浏览器点击通过或实站数据正确。** HTML 标签开闭数量初步静态一致（section/div/details/dialog），但不能替代真实 HTML/ARIA 浏览器检查。
+**已执行的静态核对**：连接 GitHub 从现行 main 读回文件，检查 8 条静态约束：JS 中静态 `#id` 引用全部存在；HTML 和动态按钮的 `data-act` 均有处理分支；指标字典确为 26 项；26 个身份不重复；新增测试源有 6 个 `test()`；预览控制器无 `fetch` / `XMLHttpRequest` / `localStorage` / Chrome 采集调用；存在暗色样式；存在 390px 窄屏样式。**8/8 初始 STATIC_OK；最终远端源码读回又验证了 2 项：撤权站点内容遮蔽、未验证线索标签，合计 10/10 STATIC_OK。** 预览控制器与不变的 R5 Core 在隔离 V8 中通过 **JavaScript 语法解析**（仅解析，不运行 DOM/Node 断言）。这些都**不是** Node 测试通过、浏览器点击通过或实站数据正确。 HTML 标签开闭数量初步静态一致（section/div/details/dialog），但不能替代真实 HTML/ARIA 浏览器检查。
 
 | 验证层级 | 状态 | 证据与不可外推的范围 |
 |---|---|---|
