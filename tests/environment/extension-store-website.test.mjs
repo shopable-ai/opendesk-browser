@@ -3,9 +3,26 @@ import assert from 'node:assert/strict';
 import {OFFICIAL_STORE_WEBSITE,STORE_WEBSITE_SCHEMA,resolveStoreWebsiteConfig,navigateOfficialStore}
   from '../../src/marketplace/store-website.js';
 import {handleLegacyMarketEntry} from '../../src/marketplace/legacy-market-entry.js';
+import {BROWSER_PUBLIC_CONFIG,BROWSER_PUBLIC_CONFIG_SCHEMA,resolveBrowserPublicConfig}
+  from '../../src/config/browser-config.js';
 
 const config=url=>({schema:STORE_WEBSITE_SCHEMA,url});
 const good='https://store.vendor-example.io/extensions';
+
+test('public Browser config is the canonical navigation source, frozen and fail-closed',()=>{
+  const value={schema:BROWSER_PUBLIC_CONFIG_SCHEMA,navigation:{extensionStore:null}};
+  assert.deepEqual(BROWSER_PUBLIC_CONFIG,value);
+  assert.ok(Object.isFrozen(BROWSER_PUBLIC_CONFIG));
+  assert.ok(Object.isFrozen(BROWSER_PUBLIC_CONFIG.navigation));
+  assert.deepEqual(resolveBrowserPublicConfig({
+    ...value,navigation:{extensionStore:good}
+  }),{schema:BROWSER_PUBLIC_CONFIG_SCHEMA,navigation:{extensionStore:good}});
+  for(const invalid of [
+    null,[],{}, {...value,schema:'unknown'}, {...value,privileges:{install:true}},
+    {...value,navigation:{}}, {...value,navigation:{extensionStore:99}},
+    {...value,navigation:{extensionStore:null,extra:true}}
+  ])assert.equal(resolveBrowserPublicConfig(invalid),null);
+});
 
 test('website URL is intentionally unconfigured until official launch',()=>{
   assert.ok(['ready','coming_soon'].includes(OFFICIAL_STORE_WEBSITE.status));
