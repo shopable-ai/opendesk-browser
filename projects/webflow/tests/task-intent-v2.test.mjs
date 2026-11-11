@@ -2,7 +2,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import {readFile} from 'node:fs/promises';
 import {validateWebFlowTaskIntent,validateWebFlowTaskIntentV2} from '../../../src/native-agent/chatgpt-task-request.js';
-import {resolveWebFlowV2FixedTarget} from '../../../src/native-agent/webflow-v2-target.js';
+import {resolveWebFlowV2FixedTarget,webFlowV2ReviewedArgs} from '../../../src/native-agent/webflow-v2-target.js';
 import {REVIEWED_BUILTIN_TASK_RELEASES} from '../../../src/platform/tasks/builtin-releases.js';
 
 const id='wf-7e98a39d-4751-4755-a7c5-65dc62bb8e07';
@@ -91,4 +91,18 @@ test('historical 0.1 draft remains verifiable and strictly refuses send:true',as
   assert.throws(()=>resolveWebFlowV2FixedTarget({intent:intent({prompt:'Hello B',send:true}),...f}),
     {code:'E_WEBFLOW_V2_SCHEMA'});
   assert.equal(resolveWebFlowV2FixedTarget({intent:intent({prompt:'Hello B'}),...f}).args.send,false);
+});
+
+test('two-phase ChatGPT V2 may PREPARE, but cannot submit without trusted continuation',()=>{
+  const chatgpt=(args)=>({protocol:'webflow.task.intent.v2',candidateId:id,
+    taskId:'chatgpt.conversation.create',args});
+  assert.deepEqual(webFlowV2ReviewedArgs(chatgpt({prompt:'Hello B',phase:'prepare'})),
+    {prompt:'Hello B',phase:'prepare'});
+  assert.deepEqual(webFlowV2ReviewedArgs(chatgpt({prompt:'Legacy B'})),
+    {send:false,prompt:'Legacy B'});
+  for(const args of [
+    {prompt:'Hello B',phase:'submit'},
+    {prompt:'Hello B',phase:'prepare',send:false},
+    {prompt:'Hello B',phase:'submit',prepareRunId:'run-original-0001'}
+  ])assert.throws(()=>webFlowV2ReviewedArgs(chatgpt(args)),{code:'E_WEBFLOW_V2_SCHEMA'});
 });
