@@ -16,12 +16,12 @@ import {encodeValue} from '../../src/platform/page-port/codec.js';
 const tick=()=>new Promise(resolve=>setTimeout(resolve,0));
 const native=()=>({isTrusted:true,preventDefault(){},defaultPrevented:false});
 const artifacts=new URL('../../artifacts/my-react-workbench-tests/',import.meta.url);
-let MyTasksPage,createRoot;
+let MyTasksPage,TaskRunSheet,createRoot;
 test.before(async()=>{
   await mkdir(artifacts,{recursive:true});
-  await build({stdin:{contents:'export {MyTasksPage} from "./src/ui/react/tabs/my-page.tsx";',resolveDir:process.cwd()},
+  await build({stdin:{contents:'export {MyTasksPage} from "./src/ui/react/tabs/my-page.tsx"; export {TaskRunSheet} from "./src/ui/react/tabs/task-run-sheet.tsx";',resolveDir:process.cwd()},
     bundle:true,packages:'external',platform:'node',format:'esm',outfile:new URL('page.mjs',artifacts).pathname,logLevel:'silent'});
-  ({MyTasksPage}=await import(new URL('page.mjs',artifacts)));
+  ({MyTasksPage,TaskRunSheet}=await import(new URL('page.mjs',artifacts)));
 });
 test.after(()=>rm(artifacts,{recursive:true,force:true}));
 
@@ -114,10 +114,20 @@ async function fixture({twoTasks=false,paramsSchema,otherParamsSchema}={}){
   const currentPageTarget={snapshot,ready:Promise.resolve(),capture:()=>({...snapshot}),revalidate:async()=>{},
     subscribe(fn){pageSubscribers.add(fn);return ()=>pageSubscribers.delete(fn);}};
   const permissionAdded=new Set(),permissionRemoved=new Set();
+  const localStore=new Map();
+  const navigatorPrototype=globalThis.navigator||{};
+  Object.defineProperty(globalThis,'navigator',{configurable:true,value:{
+    ...navigatorPrototype,locks:{request:async(_key,_options,callback)=>callback()}
+  }});
+  state.localStore=localStore;
   const api={permissions:{contains:async input=>{state.permissionCalls.push({action:'contains',input});return state.pendingPermission?await state.pendingPermission:true;},
     request:async input=>{state.permissionCalls.push({action:'request',input});return true;},
     onAdded:{addListener:fn=>permissionAdded.add(fn),removeListener:fn=>permissionAdded.delete(fn)},
     onRemoved:{addListener:fn=>permissionRemoved.add(fn),removeListener:fn=>permissionRemoved.delete(fn)}},
+    storage:{local:{
+      async get(key){return {[key]:structuredClone(localStore.get(key))};},
+      async set(record){for(const [key,value]of Object.entries(record))localStore.set(key,structuredClone(value));}
+    }},
     runtime:{getURL:path=>'chrome-extension://test/'+path,sendMessage:async()=>({ok:true})},
     tabs:{create:async()=>({id:4})}};
   const view=createMyWorkbenchView({document:doc});
@@ -129,12 +139,14 @@ async function fixture({twoTasks=false,paramsSchema,otherParamsSchema}={}){
   const input=async(id,value,event='input')=>{await React.act(async()=>{view.field(id).value=value;await view.actions[id.replace(/-([a-z])/g,(_,letter)=>letter.toUpperCase())+event[0].toUpperCase()+event.slice(1)]?.(native());await tick();});};
   const mount=async()=>{
     ({createRoot}=await import('react-dom/client'));const root=createRoot(doc.getElementById('mount'));
-    await React.act(async()=>root.render(React.createElement(MyTasksPage,{view})));
+    await React.act(async()=>root.render(React.createElement(React.Fragment,null,
+      React.createElement(MyTasksPage,{view}),React.createElement(TaskRunSheet,{view}))));
     return root;
   };
   const fire=async(node,type,properties={})=>{
     const event=new window.Event(type,{bubbles:true,cancelable:true});
-    Object.defineProperties(event,Object.fromEntries(Object.entries({isTrusted:false,...properties}).map(([key,value])=>[key,{value}])));
+    const taskOpen=type==='click'&&(node?.classList?.contains('task-card-run')||node?.id==='task-parameters-open');
+    Object.defineProperties(event,Object.fromEntries(Object.entries({isTrusted:Boolean(taskOpen),...properties}).map(([key,value])=>[key,{value}])));
     await React.act(async()=>{node.dispatchEvent(event);await tick();});
     return event;
   };
@@ -171,6 +183,41 @@ test('row parameter action selects its own task, opens the one Sheet and retains
     assert.equal(f.doc.getElementById('task-param-name').value,'任务一草稿');
     assert.equal(f.doc.querySelectorAll('#task-parameters-sheet').length,1);
     assert.equal(f.state.starts.length,0);assert.equal(f.state.permissionCalls.length,0);
+  }finally{if(root)await React.act(async()=>root.unmount());f.dispose();}
+});
+
+
+test('Web Flow opens the exact same trusted React Sheet, prepares without running, and confirms once',async()=>{
+  const f=await fixture();let root;
+  try{
+    root=await f.mount();
+    const pin={taskId:'test.task',version:'1.0.0',manifestHash:'a'.repeat(64),contentHash:'b'.repeat(64)};
+    await assert.rejects(f.workbench.openTaskRunSheet('test.task',{expectedPin:{...pin,contentHash:'c'.repeat(64)}}),
+      error=>error?.code==='E_REVISION','a different installed script hash must not open the trusted Sheet');
+    assert.equal(f.state.starts.length,0);
+    let opened;
+    await React.act(async()=>{opened=await f.workbench.openTaskRunSheet('test.task',{expectedPin:pin});await tick();});
+    assert.equal(opened,true);
+    const sheet=f.doc.getElementById('task-parameters-sheet'),identity={...f.view.data.taskRows.identity};
+    assert.equal(sheet.open,true);
+    assert.equal(f.view.data.taskSheetRequest.source,'webflow');
+    assert.equal(f.doc.querySelectorAll('#task-parameters-sheet').length,1);
+    assert.equal(f.state.starts.length,0,'opening is UI only');
+    await React.act(async()=>{
+      assert.equal(await f.view.actions.taskRunSheetPrepare(native(),identity),true);await tick();
+    });
+    assert.equal(f.view.data.taskSheetStage,'ready');
+    const saved=f.state.localStore.get('opendesk.shared-task-run-sheet.webflow.v1');
+    assert.equal(saved?.state,'ready');
+    assert.equal(f.state.starts.length,0,'save/readback must never invoke RunHost');
+    await React.act(async()=>{
+      assert.equal(f.view.actions.taskRunSheetConfirm(native(),identity),true);
+      assert.equal(f.view.actions.taskRunSheetConfirm(native(),identity),false,'double click is rejected');
+      await tick();await tick();
+    });
+    assert.equal(f.state.starts.length,1,'the original RunHost starts exactly once');
+    assert.equal(f.state.localStore.get('opendesk.shared-task-run-sheet.webflow.v1').state,'submitted');
+    await React.act(async()=>{f.host.finish();await tick();});
   }finally{if(root)await React.act(async()=>root.unmount());f.dispose();}
 });
 

@@ -3,7 +3,7 @@ import {MyControl} from './my-controls.tsx';
 import {MyTaskRows,MyTaskDetail} from './tasks.tsx';
 import {Button,IconButton} from '../components/ui/button.tsx';
 import {SchedulePlanRows,ScheduleManagerRows} from './schedule.tsx';
-import {MyTaskParams,MyTaskHistory,MyScheduleDetail,MyCopyConfirmation} from './my-sections.tsx';
+import {MyTaskHistory,MyScheduleDetail,MyCopyConfirmation} from './my-sections.tsx';
 import {MyAgentToggle} from './my-agent.tsx';
 
 export function MyTasksDock({view,hidden=false}){

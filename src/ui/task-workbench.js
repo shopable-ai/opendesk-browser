@@ -1208,7 +1208,7 @@ export function createTaskWorkbench({client,host,currentPageTarget,api=globalThi
     const row=installed.find(r=>r.taskId===taskId),info=candidateFor(row);
     if(!row?.enabled||row.runtimeCurrent===false||info?.stage!=='available'||info.runtimeCurrent===false||
       ['taskId','version','manifestHash','contentHash'].some(k=>
-        (k==='contentHash'?info?.contentHash||row?.contentHash:row[k])!==expectedPin[k]))
+        (k==='contentHash'?info?.manifest?.program?.sourceHash:row[k])!==expectedPin[k]))
       throw prepError('E_REVISION','固定 Task 安装身份不符合工具审阅版本');
     const latest=await readSheet();
     await assertAuthorized();prepared=latest;preparationLoaded=true;
