@@ -80,4 +80,13 @@ Web Flow 脚本列表：[收藏] [▶] [⋯]
 - **CHROME_TESTED=NOT_TESTED / BUSINESS_ACCEPTED=NO：** 本轮无法核对真实已安装扩展的版本、授权代次和 Side Panel/PC 像素交互；未实际运行百度脚本，不提供虚构 Run/Result/业务成功。禁止自动重放历史 `webflow:fcd2a5b4-c77e-430e-ae7b-1cd2b5e68caa`。
 - **最小剩余操作：** 得到并修复 Web Flow 定向 CI 失败（若有）；经原 packager 校验正式同源包；明确核对 Chrome 实际安装版本；用户在真实百度页面点击 Web Flow ▶，验证仅打开与「我的」同一个底部 Sheet，保存不运行、确认一次仅产生一个原 Run，并独立读回 Result/释放状态。离线 Chromium 模拟 SDK 不代替安装验收。
 
+
+## 8. 底部抽屉回归后的架构边界审计（OD-WEBFLOW-MY-RUN-SHEET-UI-REGRESSION-R1）
+
+- **已确认的好处：** 两个入口复用唯一 `TaskRunSheet`、`MyTaskParams` 与原 `TaskWorkbench / RunHost`；本轮仅恢复 UI，不增加第二 Runner、权限数据库或 `tasks.start` 执行通道。
+- **尚未解耦的历史耦合：** `src/ui/react/tabs/task-run-sheet.tsx` 仍以 `sheet.source==='webflow'` 决定双阶段按钮；`src/ui/task-workbench.js` 仍包含 `SHEET_KEY/SHEET_LOCK='opendesk.shared-task-run-sheet.webflow.*'`、`source==='webflow'` 条件及 `sidebarToolStorageKey('webflow')` / `webflow.pending.v1` 遗留请求栅栏。这些在本轮恢复前已存在，**不能把未新增耦合说成已经彻底解耦**。
+- **安全处理建议：** 保留当前未知结果、旧准备/未释放与跨来源阻断；后续独立通用化为受信执行策略描述和 Web Flow adapter，采取双读/版本化迁移与精确任务身份对账，先测试拒绝路径及并行状态，再删除旧业务标识。绝不能直接删旧 pending 检测、重建准备 ID、重放 UNKNOWN 或把策略提交改造成第二 Runner。此为后续架构债，不混入本轮窄范围视觉恢复。
+- **验收否决：** 未取得真实 Chromium/安装版本与新源码定向 Node 绿灯，本轮仅 `SOURCE_COMMITTED`，`UI_CHROME=NOT_TESTED`；涉及完整框架解耦的目标仍为 `PARTIAL`，不得给架构维度虚报 95 分。
+
+
 与并行开发发生文件冲突时，只处理本目标的独立增量，不覆盖其他 owner、日常 watcher、dist 与历史请求。
