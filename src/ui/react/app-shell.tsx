@@ -6,6 +6,7 @@ import {ExtensionCenterPage} from './tabs/tools.tsx';
 import {CloudConnectionPage} from './tabs/cloud.tsx';
 import {DeveloperPage,DeveloperDock} from './tabs/develop.tsx';
 import {MyTasksPage,MyTasksDock} from './tabs/my-page.tsx';
+import {TaskRunSheet} from './tabs/task-run-sheet.tsx';
 import {MyAgentDock} from './tabs/my-agent.tsx';
 import {WorkflowPage} from './tabs/workflow.tsx';
 import {SharedProviderSettingsSheet} from './components/provider-settings.tsx';
@@ -57,6 +58,7 @@ export function SidebarAppShell({
         {toolView&&<ToolHost view={toolView} active trustedControls={null} showListBack={false}/>}
       </section>
     </div>
+    <TaskRunSheet view={myView}/>
     <UpdateNoticeSlot surface="app" activeTab="tools" onOpenReview={onOpenUpdateReview}/>
   </main>;
   return <>
@@ -112,6 +114,7 @@ export function SidebarAppShell({
         browserHistoryModel={browserHistoryModel} browserHistoryActions={browserHistoryActions}
         hidden={activeTab!=='debug'}/>}
     </main>
+    <TaskRunSheet view={myView}/>
     <MyAgentDock agent={myAgent} active={activeTab==='tasks'} onOpenSettings={onOpenProviderSettings}/>
     {providerSettings&&<SharedProviderSettingsSheet providerSettings={providerSettings} webflowAuto={webflowAuto}
       onOpenNativeSettings={onOpenNativeSettings} nativeConnection={nativeConnection}

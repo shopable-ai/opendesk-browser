@@ -3353,7 +3353,7 @@ function createSidebarToolsController({api=globalThis.chrome,doc=globalThis.docu
     }
     if(!tool.capabilities.includes(operation.startsWith('storage.')?'storage.local':
        operation==='currentPage.info'?'currentPage.read':
-       operation==='tasks.open'?'tasks.open':
+       (operation==='tasks.open'||operation==='tasks.configure')?'tasks.open':
        operation==='page.request'?'page.module':
        ['toc.snapshot','toc.navigate'].includes(operation)?TOC_CAPABILITY:
        (VIDEO_SPEED_OPERATIONS.includes(operation)||VIDEO_SPEED_GLOBAL_OPERATIONS.includes(operation))?VIDEO_SPEED_CAPABILITY:
@@ -3790,6 +3790,24 @@ function createSidebarToolsController({api=globalThis.chrome,doc=globalThis.docu
           throw new Error('网站剪藏授权已撤销');
         assertSession(source,token);return data;
       }
+      if(operation==='tasks.configure'){
+        // No script, params, target URL or Run request may cross this UI-only bridge.
+        if(!verifiedGesture)throw Object.assign(new Error('请直接点击脚本运行按钮'),{code:'E_USER_GESTURE_REQUIRED'});
+        if(!payload||Array.isArray(payload)||Object.keys(payload).length!==1||
+          typeof payload.taskId!=='string'||!/^[a-zA-Z0-9][a-zA-Z0-9._-]{0,59}$/.test(payload.taskId))
+          throw Object.assign(new Error('任务标识无效'),{code:'E_SCHEMA'});
+        const delegated=tool.delegatedTasks?.find(row=>row.taskId===payload.taskId);
+        if(!delegated)throw Object.assign(new Error('工具没有该固定任务的授权身份'),{code:'E_TASK_SCOPE'});
+        await assertInstalledTool(tool,revocationEpoch,'任务配置期间安装或授权已变更');
+        await assertSidebarToolEnabled(api,tool.id);assertSession(source,token);
+        const opened=await taskWorkbench.openTaskRunSheet(payload.taskId,{
+          expectedPin:delegated,assertAuthorized:async()=>{
+            await assertInstalledTool(tool,revocationEpoch,'任务配置期间安装或授权已变更');
+            await assertSidebarToolEnabled(api,tool.id);assertSession(source,token);
+          }});
+        if(!opened)throw Object.assign(new Error('任务运行抽屉无法打开'),{code:'E_TASK_SHEET_UNAVAILABLE'});
+        return {opened:true};
+      }
       if(operation==='tasks.open'){
         if(!payload||Array.isArray(payload)||Object.keys(payload).length!==1||
           typeof payload.taskId!=='string'||!/^[a-zA-Z0-9][a-zA-Z0-9._-]{0,59}$/.test(payload.taskId))
@@ -4084,7 +4102,7 @@ function createSidebarToolsController({api=globalThis.chrome,doc=globalThis.docu
       message.operation==='cookieEditor.import.begin'||
       message.operation==='cookieEditor.write.begin'||
       message.operation==='cookieEditor.clear.begin'||
-      message.operation==='cookieEditor.export.begin'||message.operation==='tasks.start'||message.operation==='controllers.start')&&
+      message.operation==='cookieEditor.export.begin'||message.operation==='tasks.start'||message.operation==='tasks.configure'||message.operation==='controllers.start')&&
       globalThis.navigator?.userActivation?.isActive===true;
     const exportGrantEpoch=message.operation==='cookieEditor.export.begin'
       ?cookieSiteRecord(tool,websiteOrigin(currentPageTarget?.snapshot?.url))?.grantEpoch:null;

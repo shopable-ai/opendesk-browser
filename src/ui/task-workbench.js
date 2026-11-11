@@ -6,6 +6,7 @@ import {permissionPattern} from '../environment.js';
 import {createChromePermissionConsent,requireChromePermissions} from '../platform/chrome/permission-gate.js';
 import {decodeValue} from '../platform/page-port/codec.js';
 import {createTaskPackage, validateTaskParams, TASK_PACKAGE_FORMAT} from '../platform/tasks/contract.js';
+import {sidebarToolStorageKey} from './sidebar-tools/package.js';
 import {digestUtf8} from '../platform/protocol.js';
 import {PROGRAM_DRAFT_FORMAT, PROGRAM_DRAFT_V2_FORMAT, PROGRAM_DRAFT_INPUT_LIMIT, PROGRAM_DRAFT_LIMIT, validateProgramDraft} from './program-source.js';
 import {formatTaskValue, presentTaskValue, formatTaskError, formatTaskRunTechnical,
@@ -660,6 +661,138 @@ export function createTaskWorkbench({client,host,currentPageTarget,api=globalThi
       return ui('task-catalog-status').text=`已导入待验证任务 ${identity(value)}；未自动赋予可信状态`;
     }
   }
+
+  // The same workbench owns My and Web Flow task preparation. This is a
+  // durable, UI-only guard; it never executes scripts or mints RunHost results.
+  const SHEET_KEY='opendesk.shared-task-run-sheet.webflow.v1';
+  const SHEET_LOCK='opendesk.shared-task-run-sheet.webflow.lock.v1';
+  const pinFields=['taskId','version','manifestHash','generation','installationId'];
+  let sheetCounter=0,prepared=null,preparationLoaded=false,preparationBusy=false,confirmClaimed=false;
+  const samePin=(a,b)=>Boolean(a&&b&&pinFields.every(k=>a[k]===b[k]));
+  const sameTarget=(a,b)=>Boolean(a&&b&&['tabId','windowId','documentId','url'].every(k=>a[k]===b[k]));
+  const prepError=(code,message)=>Object.assign(new Error(message),{code});
+  const serial=v=>JSON.stringify(v,(_k,x)=>x&&!Array.isArray(x)&&typeof x==='object'
+    ?Object.fromEntries(Object.keys(x).sort().map(k=>[k,x[k]])):x);
+  const settled=v=>!v||v.state==='retired'||v.state==='cancelled';
+  const sheetStatus=(stage,message='')=>{
+    myView.data.taskSheetStage=stage;myView.data.taskSheetMessage=message;myView.publish();
+  };
+  async function sheetLock(fn){
+    if(!globalThis.navigator?.locks?.request)throw prepError('E_LOCK_UNAVAILABLE','跨页面互斥锁不可用，拒绝运行');
+    return globalThis.navigator.locks.request(SHEET_LOCK,{mode:'exclusive'},fn);
+  }
+  async function readSheet(){
+    if(!api.storage?.local)throw prepError('E_STORAGE_UNAVAILABLE','可信存储不可用');
+    const v=(await api.storage.local.get(SHEET_KEY))[SHEET_KEY];
+    if(v==null)return null;
+    if(v.format!=='opendesk.task-preparation.v1'||typeof v.id!=='string'||
+      !['ready','submitted','unknown','retired','cancelled'].includes(v.state))
+      throw prepError('E_PREPARE_CORRUPT','准备记录损坏；禁止重新提交');
+    return v;
+  }
+  async function hasLegacyPending(){
+    if(!api.storage?.local)throw prepError('E_STORAGE_UNAVAILABLE','无法读取旧请求');
+    const key=sidebarToolStorageKey('webflow'),v=(await api.storage.local.get(key))[key];
+    return Boolean(v&&typeof v==='object'&&v['webflow.pending.v1']);
+  }
+  function openSheet(taskId,source,trigger){
+    const row=installed.find(r=>r.taskId===taskId),info=candidateFor(row);
+    if(!preparationLoaded||disposed||!row?.enabled||row.runtimeCurrent===false||
+      info?.stage!=='available'||info.runtimeCurrent===false)return false;
+    if(ui('task-installed-list').value!==taskId){ui('task-installed-list').value=taskId;renderInstalledSelection();}
+    const ready=prepared?.state==='ready'&&samePin(prepared.task,row);
+    const blocked=!settled(prepared);
+    sheetStatus(source==='webflow'?(blocked?(ready?'ready':'unknown'):'editing'):'editing',
+      source==='webflow'&&blocked?(ready?'已恢复此前保存的参数；仍需明确确认，未自动执行。':
+        '存在未释放的准备或执行记录，禁止新建请求。'):'');
+    if(source==='webflow'&&ready){
+      myView.data.taskParamsMode='json';ui('task-params-json').value=JSON.stringify(prepared.params,null,2);
+      ui('task-params-json').error='';
+    }
+    myView.data.taskSheetRequest={requestId:++sheetCounter,source,trigger,
+      identity:Object.fromEntries(pinFields.map(k=>[k,row[k]])),title:info.manifest.title};
+    myView.publish();return true;
+  }
+  async function prepareSheet(event,expected){
+    if(!event?.isTrusted||disposed||!preparationLoaded||preparationBusy||running||working||host.currentRun||
+      myView.data.taskSheetRequest?.source!=='webflow'||myView.data.taskSheetStage!=='editing')return false;
+    preparationBusy=true;let wrote=false;sheetStatus('saving','保存并核对参数中，此步骤不会调用 RunHost。');
+    try{
+      const row=installedRow(),info=candidateFor(row),target=currentPageTarget.capture();
+      if(!row?.enabled||!samePin(row,expected)||info?.stage!=='available'||row.runtimeCurrent===false||
+        info.runtimeCurrent===false)throw prepError('E_REVISION','任务安装身份或版本已变化');
+      if(!info.manifest.siteOrigins.includes(new URL(target.url).origin))
+        throw prepError('E_PERMISSION','当前网站不在固定任务授权范围');
+      const params=paramsFromForm(info.manifest.paramsSchema);
+      if(await hasLegacyPending())throw prepError('E_PENDING_LEGACY','Web Flow 旧请求未释放，先核对原记录');
+      const resolved=await client.request('resolveInstalledTask',{taskId:row.taskId});
+      await currentPageTarget.revalidate(target);
+      if(!samePin(row,resolved)||resolved.manifestHash!==info.manifestHash)
+        throw prepError('E_REVISION','Task Authority 的安装身份已改变');
+      const item={format:'opendesk.task-preparation.v1',id:'webflow:'+globalThis.crypto.randomUUID(),
+        state:'ready',task:Object.fromEntries(pinFields.map(k=>[k,row[k]])),
+        contentHash:resolved.contentHash,params,target:Object.fromEntries(
+          ['tabId','windowId','documentId','url'].map(k=>[k,target[k]])),createdAt:Date.now()};
+      await sheetLock(async()=>{
+        if(!settled(await readSheet())||await hasLegacyPending())
+          throw prepError('E_PREPARE_BUSY','已有未释放的准备记录或旧请求');
+        wrote=true;await api.storage.local.set({[SHEET_KEY]:item});
+        if(serial(await readSheet())!==serial(item))
+          throw prepError('E_SAVE_UNKNOWN','持久保存未能一致读回，禁止重跑');
+      });
+      prepared=item;
+      myView.data.taskParamsMode='json';ui('task-params-json').value=JSON.stringify(item.params,null,2);
+      sheetStatus('ready','参数、安装身份和目标文档已冻结并读回；尚未执行网页操作。');
+      return true;
+    }catch(e){
+      if(wrote){preparationLoaded=false;sheetStatus('unknown','准备保存结果未知；禁止重新创建执行身份。');}
+      else sheetStatus('editing',formatTaskError(e));
+      fail(e);return false;
+    }finally{preparationBusy=false;}
+  }
+  async function cancelSheet(event,expected){
+    if(!event?.isTrusted||preparationBusy||prepared?.state!=='ready'||!samePin(prepared.task,expected)||
+      myView.data.taskSheetRequest?.source!=='webflow')return false;
+    preparationBusy=true;sheetStatus('saving','正在取消尚未执行的准备。');
+    try{
+      const cancelled=await sheetLock(async()=>{
+        const saved=await readSheet();
+        if(saved?.id!==prepared.id||saved.state!=='ready')
+          throw prepError('E_PREPARE_CHANGED','准备可能已被提交，禁止取消');
+        const value={...saved,state:'cancelled'};
+        await api.storage.local.set({[SHEET_KEY]:value});
+        if(serial(await readSheet())!==serial(value))throw prepError('E_SAVE_UNKNOWN','取消回执未知');
+        return value;
+      });
+      prepared=cancelled;confirmClaimed=false;sheetStatus('editing','准备已取消，没有发送执行请求。');
+      return true;
+    }catch(e){preparationLoaded=false;sheetStatus('unknown','取消状态未知；请核对原记录。');fail(e);return false;}
+    finally{preparationBusy=false;}
+  }
+  async function claimSheet(item){
+    return sheetLock(async()=>{
+      const saved=await readSheet();
+      if(saved?.id!==item.id||saved.state!=='ready'||!samePin(saved.task,item.task)||
+        !sameTarget(saved.target,item.target)||serial(saved.params)!==serial(item.params)||
+        saved.contentHash!==item.contentHash)
+        throw prepError('E_PREPARE_CHANGED','准备已提交或改变，禁止重放');
+      if(await hasLegacyPending())throw prepError('E_PENDING_LEGACY','旧请求未释放');
+      const next={...saved,state:'submitted',submittedAt:Date.now()};
+      await api.storage.local.set({[SHEET_KEY]:next});
+      if(serial(await readSheet())!==serial(next))
+        throw prepError('E_SAVE_UNKNOWN','提交标记读回失败；禁止再次确认');
+      prepared=next;sheetStatus('submitted','唯一准备身份已占用，将调用原 RunHost。');
+    });
+  }
+  function confirmSheet(event,expected){
+    if(!event?.isTrusted||!preparationLoaded||preparationBusy||confirmClaimed||
+      myView.data.taskSheetRequest?.source!=='webflow'||myView.data.taskSheetStage!=='ready'||
+      prepared?.state!=='ready'||!samePin(prepared.task,expected))return false;
+    confirmClaimed=true; // Consume the second, real, user gesture synchronously.
+    const accepted=run(event,null,expected,prepared);
+    if(accepted!==true)confirmClaimed=false;
+    return accepted===true;
+  }
   // Only a real trusted click is an active attempt; this is telemetry only,
   // never an execution requirement or a permission prompt.
   const reportTaskUsage=(kind,taskId,runId)=>{
@@ -669,9 +802,10 @@ export function createTaskWorkbench({client,host,currentPageTarget,api=globalThi
       toolId:'opendesk',channel:'extension',toolIdentity:taskId,
       ...(runId?{runId}:{})}).catch(()=>{});
   };
-  function run(event,agentIntent=null,expectedIdentity=null) {
-    if(!event?.isTrusted||disposed||running||working||host.currentRun||
-      (agentIntent===null&&ui('task-run').disabled)){
+  function run(event,agentIntent=null,expectedIdentity=null,preparedAttempt=null) {
+    if(!event?.isTrusted||disposed||running||working||host.currentRun||!preparationLoaded||
+      (agentIntent===null&&ui('task-run').disabled)||
+      (preparedAttempt&&!samePin(preparedAttempt.task,expectedIdentity))){
       if(agentIntent) return Promise.reject(Object.assign(new Error('运行宿主繁忙、已关闭或缺少用户确认'),{code:'E_TASK_BUSY'}));
       return expectedIdentity?false:undefined;
     }
@@ -689,9 +823,12 @@ export function createTaskWorkbench({client,host,currentPageTarget,api=globalThi
       if(chosen?.runtimeCurrent===false||info?.runtimeCurrent===false)throw {code:'E_BUILTIN_VERSION_UNAVAILABLE',message:'运行时已更新，请对同一固定任务重新验证并确认安装'};
       if(!chosen?.enabled||info?.stage!=='available')throw {code:'E_PERMISSION',message:'当前任务未启用或不可安装'};
       captured=currentPageTarget.capture();
+      if(preparedAttempt&&!sameTarget(preparedAttempt.target,captured))
+        throw prepError('E_TARGET_CHANGED','确认时网页文档身份已改变，不能重放');
       site=new URL(captured.url).origin;
       if(!info.manifest.siteOrigins.includes(site))throw {code:'E_PERMISSION',message:'此任务不适用于当前网站'};
-      params=agentIntent?validateTaskParams(info.manifest.paramsSchema,agentIntent.params):
+      params=preparedAttempt?validateTaskParams(info.manifest.paramsSchema,preparedAttempt.params):
+        agentIntent?validateTaskParams(info.manifest.paramsSchema,agentIntent.params):
         paramsFromForm(info.manifest.paramsSchema);
       chosen={...chosen,manifestHash:info.manifestHash,title:info.manifest.title};
       permission=requireChromePermissions({api,request:{origins:[permissionPattern(captured.url)]}});
@@ -715,6 +852,15 @@ export function createTaskWorkbench({client,host,currentPageTarget,api=globalThi
       // Recheck its retained model grant at the actual RunHost write boundary.
       // Manual Run keeps the original synchronous Chrome permission entry.
       if(agentIntent?.assertWrite)await agentIntent.assertWrite();
+      if(preparedAttempt){
+        if(resolved.contentHash!==preparedAttempt.contentHash)
+          throw prepError('E_REVISION','准备的脚本内容身份已经变化');
+        await claimSheet(preparedAttempt);
+      }else{
+        const outstanding=await readSheet();
+        if(!settled(outstanding))throw prepError('E_PREPARE_BUSY','Web Flow 有未释放准备或执行，不能从「我的」绕过');
+        if(await hasLegacyPending())throw prepError('E_PENDING_LEGACY','Web Flow 旧请求未释放，先核对');
+      }
       if(disposed)throw {code:'E_HOST_CLOSED',message:'Sidebar 已关闭'};
       if(agentIntent&&(agentStopRequested||agentIntent.signal?.aborted))
         throw {code:'E_CANCELLED',message:'已请求停止，尚未启动任务'};
@@ -736,6 +882,15 @@ export function createTaskWorkbench({client,host,currentPageTarget,api=globalThi
       setTaskNotice(runOwnerKey,`运行中：${resolved.manifest.title} · v${resolved.version}`);
       update(); // Expose the owning Stop immediately; do not rely on a later host event.
       const completion=await host.completion;
+      if(preparedAttempt&&!host.currentRun&&!completion?.pendingSettlement&&terminal.has(completion?.state)){
+        try{await sheetLock(async()=>{
+          const v=await readSheet();if(v?.id!==preparedAttempt.id||v.state!=='submitted')return;
+          const next={...v,state:'retired',runId:claim.runId,retiredAt:Date.now()};
+          await api.storage.local.set({[SHEET_KEY]:next});
+          if(serial(await readSheet())!==serial(next))throw prepError('E_SAVE_UNKNOWN','释放记录读回失败');
+          prepared=next;sheetStatus('retired','原运行完成且资源释放。');
+        });}catch(e){setTaskNotice(identity(chosen),'释放证据未确认；禁止新请求：'+formatTaskError(e));}
+      }
       reportTaskUsage('event.manual_result',resolved.taskId,claim.runId);
       if(completion?.state==='paused_unknown'||completion?.pendingSettlement)
         setTaskNotice(runOwnerKey,unresolvedTaskRunMessage());
@@ -942,6 +1097,11 @@ export function createTaskWorkbench({client,host,currentPageTarget,api=globalThi
   });
   registerAction('taskCatalogListChange',()=>selectCandidate(catalogList.value));
   registerAction('taskRunClick',(event,expected)=>run(event,null,expected));
+  registerAction('taskRunSheetOpen',(event,taskId,trigger)=>event?.isTrusted&&openSheet(taskId,'my',trigger));
+  registerAction('taskRunSheetClose',()=>{myView.data.taskSheetRequest=null;myView.publish();});
+  registerAction('taskRunSheetPrepare',prepareSheet);
+  registerAction('taskRunSheetConfirm',confirmSheet);
+  registerAction('taskRunSheetCancel',cancelSheet);
   registerAction('taskStopClick',asyncAction(()=>activeRunId && host.currentRun===activeRunId?
     host.stop({runId:activeRunId,controller:true}):Promise.resolve()));
   registerAction('taskRefreshClick',asyncAction(()=>refresh()));
@@ -1000,6 +1160,8 @@ export function createTaskWorkbench({client,host,currentPageTarget,api=globalThi
   const unsubscribeConn=client.subscribeConnection?.(state=>{if(state.connected)refresh().catch(fail);});
   client.ready.then(async()=>{
     await restoreParams().catch(error=>console.warn('Task parameter drafts could not be restored',error));
+    try{prepared=await readSheet();preparationLoaded=true;}
+    catch(error){preparationLoaded=false;fail(error);}
     if(!disposed)return refresh();
   }).catch(fail);
   navigate('tasks',{initial:true});update();
@@ -1039,6 +1201,18 @@ export function createTaskWorkbench({client,host,currentPageTarget,api=globalThi
     // No runId yet: run() checks this flag before host.start, then cancels
     // the late claim if the RPC already crossed the RunHost boundary.
     return Promise.resolve({requested:true,pending:agentStartSubmitted});
+  },async openTaskRunSheet(taskId,{expectedPin,assertAuthorized=()=>{}}={}){
+    if(!validTaskId(taskId)||expectedPin?.taskId!==taskId)
+      throw prepError('E_SCHEMA','配置请求缺少有效任务身份');
+    await client.ready;await refresh();await assertAuthorized();
+    const row=installed.find(r=>r.taskId===taskId),info=candidateFor(row);
+    if(!row?.enabled||row.runtimeCurrent===false||info?.stage!=='available'||info.runtimeCurrent===false||
+      ['taskId','version','manifestHash','contentHash'].some(k=>
+        (k==='contentHash'?info?.contentHash||row?.contentHash:row[k])!==expectedPin[k]))
+      throw prepError('E_REVISION','固定 Task 安装身份不符合工具审阅版本');
+    const latest=await readSheet();
+    await assertAuthorized();prepared=latest;preparationLoaded=true;
+    return openSheet(taskId,'webflow');
   },async openTaskReview(taskId,{assertAuthorized=()=>{}}={}) {
     if(!validTaskId(taskId))throw {code:'E_SCHEMA',message:'任务标识无效'};
     await client.ready;

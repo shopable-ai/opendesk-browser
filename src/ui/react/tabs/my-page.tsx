@@ -1,6 +1,6 @@
 import * as React from 'react';
 import {MyControl} from './my-controls.tsx';
-import {MyTaskRows,MyTaskDetail,TaskGlyph} from './tasks.tsx';
+import {MyTaskRows,MyTaskDetail} from './tasks.tsx';
 import {Button,IconButton} from '../components/ui/button.tsx';
 import {SchedulePlanRows,ScheduleManagerRows} from './schedule.tsx';
 import {MyTaskParams,MyTaskHistory,MyScheduleDetail,MyCopyConfirmation} from './my-sections.tsx';
@@ -13,96 +13,11 @@ export function MyTasksDock({view,hidden=false}){
   </MyControl>;
 }
 
-function MyTaskWorkspace({view,visible,parameterRequest}){
-  const dialog=React.useRef(null),composing=React.useRef(false),focusInvalid=React.useRef(false),openedRequest=React.useRef(null);
-  const [sheet,setSheet]=React.useState(null);
-  const tasks=view.data.taskRows||{},selectedId=tasks.selectedId;
-  const selected=tasks.rows?.find(row=>row.taskId===selectedId);
-  const hasParams=(view.data.taskParams||[]).length>0;
-  const status=view.field('task-status').text||'';
-  const fieldExplainsStatus=status&&(view.field('task-params-json').error===status||(view.data.taskParams||[]).some(({name})=>
-    view.field('task-param-'+name).error?.endsWith(status)));
-  const close=()=>{composing.current=false;setSheet(null);};
-  React.useLayoutEffect(()=>{
-    if(visible&&parameterRequest!==openedRequest.current&&parameterRequest?.taskId===selectedId&&tasks.identity){
-      openedRequest.current=parameterRequest;
-      parameterRequest.trigger?.focus({preventScroll:true});
-      setSheet({identity:{...tasks.identity},title:selected?.title||'当前任务'});
-    }
-  },[parameterRequest,visible,selectedId]);
-  React.useLayoutEffect(()=>{
-    const node=dialog.current;
-    if(sheet&&visible&&sheet.identity.taskId===selectedId){
-      if(!node.open){node.showModal();node.querySelector(view.data.taskParamsMode==='json'?'#task-params-json':'input,select,textarea')?.focus();}
-    }else{
-      if(node.open)node.close();
-      if(sheet)setSheet(null);
-    }
-  },[sheet,visible,selectedId]);
-  React.useEffect(()=>()=>{if(dialog.current?.open)dialog.current.close();},[]);
-  React.useLayoutEffect(()=>{
-    if(focusInvalid.current){
-      focusInvalid.current=false;
-      dialog.current?.querySelector('[aria-invalid="true"]')?.focus();
-    }
-  });
-  const run=event=>{
-    if(composing.current||event.nativeEvent.isComposing)return;
-    // TaskWorkbench validates schema and the captured installation before it
-    // requests permission. Only accepted explicit Run closes the Sheet.
-    if(view.actions.taskRunClick?.(event.nativeEvent,sheet?.identity)===true)close();
-    else if(sheet)focusInvalid.current=true;
-  };
-  const runButton=<MyControl view={view} as="button" id="task-run" type="button" className="od-button od-button--primary" onClick={run}>运行任务</MyControl>;
+function MyTaskWorkspace({view}){
   return (<MyControl view={view} as="div" id="task-selected-workspace" className="task-selected-workspace">
 <MyControl view={view} as="p" id="task-current-site" className="identity">
 </MyControl>
-{/* The native modal stays mounted: opening/closing never replaces form nodes,
-    drafts or IME state. Chromium owns modal focus, inertness and focus return. */}
-<dialog ref={dialog} id="task-parameters-sheet" className="task-params-sheet" aria-labelledby="task-parameters-title" aria-describedby="task-parameters-description"
-  onClose={event=>{if(!event.currentTarget.open)close();}}
-  onCancel={event=>{event.preventDefault();if(!composing.current)close();}}
-  onCompositionStart={()=>{composing.current=true;}} onCompositionEnd={()=>{composing.current=false;}}
-  onKeyDownCapture={event=>{
-    if((event.key==='Escape'||event.key==='Enter')&&(composing.current||event.nativeEvent.isComposing||event.repeat)){
-      event.preventDefault();event.stopPropagation();
-    }
-  }}>
-<header className="task-params-sheet-heading">
-<span className="task-card-icon"><TaskGlyph/></span>
-<div><p className="task-params-sheet-kicker">参数与运行</p><h2 id="task-parameters-title">{sheet?.title||selected?.title||'当前任务'}</h2></div>
-<IconButton className="od-icon-button--quiet" label="关闭任务参数" onClick={close}><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m6 6 12 12M18 6 6 18"/></svg></IconButton>
-</header>
-<div className="task-params-sheet-content">
-{hasParams&&<div className="task-params-toolbar">
-<span className="task-params-section-label">任务参数 <span>{view.data.taskParams.length}</span></span>
-<div className="task-params-mode od-segmented" role="group" aria-label="参数编辑方式">
-{[['form','表单'],['json','JSON']].map(([mode,label])=><Button key={mode} variant="quiet"
-  aria-pressed={(view.data.taskParamsMode||'form')===mode} onClick={()=>view.actions.taskParamsModeChange?.(mode)}>{label}</Button>)}
-</div>
-</div>}
-<p id="task-parameters-description" className="hint">{hasParams?'关闭后保留草稿；点击“运行任务”才会执行。':'此任务无需填写参数，可直接运行。'}</p>
-<MyControl view={view} as="form" id="task-params-form" onInput={event=>view.actions.taskParamsFormInput?.(event.nativeEvent)} onChange={event=>view.actions.taskParamsFormChange?.(event.nativeEvent)} onSubmit={event=>view.actions.taskParamsFormSubmit?.(event.nativeEvent)} autoComplete="off" aria-label="任务参数">
-<div className="task-param-fields" hidden={view.data.taskParamsMode==='json'}>
-<MyTaskParams view={view}/>
-</div>
-<div className="task-param-json" hidden={view.data.taskParamsMode!=='json'}>
-<label htmlFor="task-params-json" className="od-field-label">参数 JSON</label>
-<MyControl view={view} as="textarea" controlBase="aria" id="task-params-json" className="od-field" rows={8} spellCheck={false} maxLength={65536}
-  aria-invalid={view.field('task-params-json').error?'true':undefined}
-  aria-describedby={view.field('task-params-json').error?'task-params-json-error':undefined}
-  onInput={()=>{
-    const field=view.field('task-params-json'),status=view.field('task-status');
-    if(field.error&&status.text===field.error)status.text='';
-    field.error='';view.publish();
-  }}/>
-{view.field('task-params-json').error&&<p id="task-params-json-error" className="od-field-help task-param-error" role="alert">{view.field('task-params-json').error}</p>}
-</div>
-</MyControl>
-{sheet&&<p className="task-params-sheet-status hint" role="status">{view.data.taskRunBlockedReason||''}{!fieldExplainsStatus&&status?' '+status:''}</p>}
-</div>
-<footer className="task-params-sheet-actions"><Button variant="quiet" onClick={close}>取消</Button>{runButton}</footer>
-</dialog>
+
 <MyControl view={view} as="p" id="task-status" role="status" aria-live="polite">
 </MyControl>
 <MyControl view={view} as="div" id="task-result-panel" className="task-result-panel">
@@ -236,8 +151,9 @@ export function MyTasksPage({view,agent=null,hidden=false}){
 <option value="">{"读取已安装任务…"}</option>
 </MyControl>
 <MyControl view={view} as="div" id="task-installed-cards" className="task-card-list od-stack" aria-label="已安装任务列表">
-<MyTaskRows {...(view.data.taskRows||{})} visible={!hidden&&!view.field('my-task-surface').hidden} renderWorkspace={({expanded,parameterRequest})=>
-<MyTaskWorkspace view={view} parameterRequest={parameterRequest} visible={expanded&&!hidden&&!view.field('my-task-surface').hidden}/>}/>
+<MyTaskRows {...(view.data.taskRows||{})} visible={!hidden&&!view.field('my-task-surface').hidden}
+  onOpenParameters={(taskId,event,trigger)=>view.actions.taskRunSheetOpen?.(event,taskId,trigger)}
+  renderWorkspace={()=> <MyTaskWorkspace view={view}/> }/>
 </MyControl>
 </MyControl>
 
