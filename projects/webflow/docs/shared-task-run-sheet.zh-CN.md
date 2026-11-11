@@ -1,6 +1,6 @@
 # Web Flow「运行」复用「我的」抽屉 · 专项实现附录（2026-11-11）
 
-> 固定检索词：OD-AI-WORKFLOW-BRIDGE。本文是实施附录，唯一需求源仍是 [product-contract.zh-CN.md](product-contract.zh-CN.md)、唯一进度源仍是 [execution-plan.zh-CN.md](execution-plan.zh-CN.md)。**当前 DESIGN_ONLY / NOT_IMPLEMENTED / NOT_TESTED**。可点击演示见 [script-run-shared-sheet.html](../preview/script-run-shared-sheet.html)。
+> 固定检索词：OD-AI-WORKFLOW-BRIDGE。本文是实施附录，唯一需求源仍是 [product-contract.zh-CN.md](product-contract.zh-CN.md)、唯一进度源仍是 [execution-plan.zh-CN.md](execution-plan.zh-CN.md)。**当前 DESIGN_ONLY / NOT_IMPLEMENTED / NOT_TESTED**。可点击演示见 [preview/index.html](../preview/index.html)。
 
 ## 1. 最终用户操作（最高优先级）
 
