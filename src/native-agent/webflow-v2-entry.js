@@ -12,9 +12,19 @@ export function webFlowV2ReviewedEntry(taskId){
 }
 
 // Only reviewed defaults may be applied before single-candidate admission.
-// An omitted send is always false; no omitted or malformed field can
-// authorize a send. The installed manifest is checked separately by the Host.
+// Legacy 0.1/0.2 ChatGPT candidates preserve safe send:false default.
+// New two-phase candidates can ONLY enter through PREPARE; SUBMIT is exclusively
+// an independently approved trusted continuation, never a page-supplied V2.
+// The installed manifest and exact release pin are checked separately.
 export function webFlowV2ReviewedArgs(intent){
-  const defaults=intent?.taskId==='chatgpt.conversation.create'?{send:false}:{};
-  return Object.freeze({...defaults,...intent.args});
+  const chatgpt=intent?.taskId==='chatgpt.conversation.create';
+  const args=intent?.args;
+  if(chatgpt&&args&&Object.hasOwn(args,'phase')){
+    if(args.phase!=='prepare'||Object.hasOwn(args,'send'))
+      throw Object.assign(new Error('两阶段 ChatGPT V2 只能请求 PREPARE；SUBMIT 必须从可信原 B 批准接续'),
+        {code:'E_WEBFLOW_V2_SCHEMA'});
+    return Object.freeze({...args});
+  }
+  const defaults=chatgpt?{send:false}:{};
+  return Object.freeze({...defaults,...args});
 }
