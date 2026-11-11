@@ -112,7 +112,12 @@ export function MyTasksPage({view,agent=null,hidden=false}){
 </MyControl>
 </div>
 </div>
-<MyControl view={view} as="div" id="task-add-menu" className="task-add-menu od-surface" role="group" aria-label="添加任务">
+<MyControl view={view} as="div" id="task-add-menu" className="task-add-menu od-surface task-file-dropzone" role="group" aria-label="添加任务：可拖放单个文件" tabIndex={0} aria-describedby="task-add-status"
+onDragEnter={event=>view.actions.taskFileDragEnter?.('add',event.nativeEvent)}
+onDragOver={event=>view.actions.taskFileDragOver?.('add',event.nativeEvent)}
+onDragLeave={event=>view.actions.taskFileDragLeave?.('add',event.nativeEvent)}
+onDrop={event=>view.actions.taskFileDrop?.('add',event.nativeEvent)}
+onKeyDown={event=>view.actions.taskFileZoneKeydown?.('add',event.nativeEvent)}>
 <div className="task-add-heading od-toolbar">
 <strong>{"添加任务"}</strong>
 <MyControl view={view} as="button" id="task-add-close" onClick={event=>view.actions.taskAddCloseClick?.(event.nativeEvent)} type="button" className="od-icon-button" title="关闭添加任务" aria-label="关闭添加任务">
@@ -121,7 +126,7 @@ export function MyTasksPage({view,agent=null,hidden=false}){
 </svg>
 </MyControl>
 </div>
-<p className="hint">{"支持任务包 JSON、程序草稿 JSON 和 .js；扩展工具包应在「扩展」导入。"}</p>
+<p className="hint">{"将单个 .js 或 .json 文件拖到这里，或点击下方按钮选择；导入只保存草稿/候选，不会安装或运行。扩展工具包请到「扩展」。"}</p>
 <MyControl view={view} as="button" type="button" id="task-add-import" onClick={event=>view.actions.taskAddImportClick?.(event.nativeEvent)} className="od-button">{"导入任务文件"}</MyControl>
 <MyControl view={view} as="input" id="task-add-file" onChange={event=>view.actions.taskAddFileChange?.(event.nativeEvent)} type="file" accept=".json,.js,application/json,text/javascript" aria-label="选择本地任务包"/>
 <div className="task-add-options od-toolbar">
