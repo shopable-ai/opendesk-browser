@@ -237,7 +237,7 @@ export function controllerMethods({storage, api, session, clock, assertHost, cur
     return {...structuredClone(Object.fromEntries(['tag', 'runId', 'state', 'runRevision', 'requestId', 'ownerEpoch', 'cancelSeq', 'identity',
       'target', 'targetQuarantine', 'revision', 'deadlineAt', 'retirementId', 'retirementState', 'resultId', 'terminalReason', 'workerRetired',
       'scriptId', 'contentHash', 'sourceKind', 'networkOrigins','profile','appBinding',
-      'targetDisposition','retainedTarget','retainedFrom'].filter(key => run[key] !== undefined).map(key => [key, run[key]]))),
+      'targetDisposition','retainedTarget','retainedFrom','retainedContinuation'].filter(key => run[key] !== undefined).map(key => [key, run[key]]))),
       ...(taskInstallation?{taskInstallation}:{})};
   }
   async function snapshotControllerRun(request, sender) {
@@ -903,14 +903,17 @@ export function controllerMethods({storage, api, session, clock, assertHost, cur
       // A retained target is usable by at most one new Run. The original
       // immutable owned/document identity is checked and consumed atomically
       // with admission; lost acknowledgements cannot create a second sender.
-      let continuationKey=null;
+      let continuationKey=null,previousForContinuation=null;
       if(Object.hasOwn(request,'retainedFrom')){
         const previous=await transaction.get(RUN_STORE,request.retainedFrom.runId);
         assertRetainedControllerContinuation({previous,retainedFrom:request.retainedFrom,
           selection:request.target,observed,installedTask,current:saved,host,session});
         continuationKey=retainedContinuationKey(request.retainedFrom.runId);
+        invariant(!previous.retainedContinuation,EFFECT_UNKNOWN,
+          'Retained source Run has already consumed its continuation');
         invariant(!await transaction.get(COMMAND_JOURNAL,continuationKey),EFFECT_UNKNOWN,
           'Retained document already continued; inspect the original Run');
+        previousForContinuation=previous;
       }
       const slot = await transaction.get(RUN_STORE, '@slot');
       invariant(!slot?.currentRunId&&!slot?.preview, CONTROLLER_OWNER_ERROR, 'Previous target or preview still active');
@@ -951,6 +954,10 @@ export function controllerMethods({storage, api, session, clock, assertHost, cur
           sourceHash: pinned.revision.contentHash, pinKey: pinned.pinKey};
       }
       await transaction.put(RUN_STORE, run, runId);
+      if(previousForContinuation)await transaction.put(RUN_STORE,{
+        ...previousForContinuation,
+        retainedContinuation:{runId,requestId:run.requestId,consumedAt:now()},
+        runRevision:previousForContinuation.runRevision+1},previousForContinuation.runId);
       await transaction.put(RUN_STORE, {tag: 'slot', currentRunId: runId, state: 'held', releaseCount: 0, fencedEpoch: 1, retirementId: null}, '@slot');
       await transaction.put(COMMAND_JOURNAL, {tag: 'controller-start', runId, requestDigest}, admissionKey);
       if(continuationKey)await transaction.put(COMMAND_JOURNAL,{
