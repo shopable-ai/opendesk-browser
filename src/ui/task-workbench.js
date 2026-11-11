@@ -1150,7 +1150,6 @@ export function createTaskWorkbench({client,host,currentPageTarget,api=globalThi
       event.preventDefault();showTaskAddMenu(false);
     }
   });
-  }
   registerAction('taskManageToggleClick',event=>{
     if(!event.isTrusted||!installed.length)return;
     setTaskManagementMode(!taskManagementMode);
