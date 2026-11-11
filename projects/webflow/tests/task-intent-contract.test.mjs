@@ -2,7 +2,8 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import {readFile} from 'node:fs/promises';
 import {WEBFLOW_TASK_INTENT_PROTOCOL,WEBFLOW_TASK_INTENT_V2_PROTOCOL,
-  validateWebFlowTaskIntent,validateWebFlowTaskIntentV2,validateTaskIntent}
+  validateWebFlowTaskIntent,validateWebFlowTaskIntentV2,validateTaskIntent,
+  normalizeTaskArgs,isValidTaskTarget}
   from '../src/task-intent-contract.js';
 import * as legacy from '../../../src/native-agent/chatgpt-task-request.js';
 import {webFlowV2ReviewedArgs} from '../../../src/native-agent/webflow-v2-entry.js';
@@ -19,6 +20,9 @@ test('one WebFlow parser and historical ChatGPT bridge exports use the same impl
   assert.strictEqual(legacy.validateWebFlowTaskIntent,validateWebFlowTaskIntent);
   assert.strictEqual(legacy.validateWebFlowTaskIntentV2,validateWebFlowTaskIntentV2);
   assert.equal(legacy.WEBFLOW_TASK_INTENT_PROTOCOL,WEBFLOW_TASK_INTENT_PROTOCOL);
+  assert.deepEqual(normalizeTaskArgs({b:true,a:1}),{a:1,b:true});
+  assert.equal(isValidTaskTarget('https://www.baidu.com/'),true);
+  assert.equal(isValidTaskTarget('javascript:alert(1)'),false);
   assert.deepEqual(validateWebFlowTaskIntent(JSON.stringify(v1)),v1);
   assert.deepEqual(validateWebFlowTaskIntentV2(JSON.stringify(v2)),v2);
   assert.ok(Object.isFrozen(validateWebFlowTaskIntent(JSON.stringify(v1)).args));

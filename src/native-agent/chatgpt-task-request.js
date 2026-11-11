@@ -1,4 +1,7 @@
-import {validateTaskIntent} from '../../projects/webflow/src/task-intent-contract.js';
+import {validateTaskIntent,isPlainTaskRecord as plain,hasOnlyTaskKeys as own,
+  TASK_ID_PATTERN as taskIdPattern,TASK_CANDIDATE_TOKEN_PATTERN as token,
+  normalizeTaskArgs as genericArgs,isValidTaskTarget as validTarget}
+  from '../../projects/webflow/src/task-intent-contract.js';
 // ChatGPT DOM text is a candidate only. This parser has no capability to approve or run tasks.
 export const CHATGPT_TASK_REQUEST_KIND='opendesk.task.request';
 export const CHATGPT_TASK_REQUEST_PROTOCOL='opendesk.task.request.v1';
@@ -6,9 +9,6 @@ export const BAIDU_TASK_ID='baidu.search.top3';
 export const FIXED_PAGE_TASK_ID='page.read.fixed';
 export const FIXED_PAGE_URL='https://httpbingo.org/html';
 const fail=(code,message)=>Object.assign(new Error(message),{code});
-const plain=value=>value!==null&&typeof value==='object'&&!Array.isArray(value)&&Object.getPrototypeOf(value)===Object.prototype;
-const own=(obj,names)=>plain(obj)&&Object.keys(obj).every(k=>names.includes(k));
-const taskIdPattern=/^[a-zA-Z0-9][a-zA-Z0-9._-]{0,59}$/u;
 const versionPattern=/^(0|[1-9]\d*)\.(0|[1-9]\d*)\.(0|[1-9]\d*)$/u;
 const hashPattern=/^[a-f0-9]{64}$/u;
 const installationKeys=['version','manifestHash','scriptId','revision','contentHash','installationId','generation'];
@@ -26,20 +26,6 @@ export function normalizeChatGPTTaskInstallation(value,taskId){
     throw fail('E_BRIDGE_SCHEMA','任务安装快照不合法');
   return Object.freeze(Object.fromEntries(installationKeys.map(key=>[key,value[key]])));
 }
-function genericArgs(value){
-  if(!plain(value)||Object.keys(value).length>16||
-    !Object.entries(value).every(([key,item])=>/^[a-zA-Z][a-zA-Z0-9_]{0,39}$/u.test(key)&&
-      (typeof item==='string'&&item.length<=4096||typeof item==='boolean'||
-        typeof item==='number'&&Number.isFinite(item))))
-    throw fail('E_BRIDGE_SCHEMA','任务参数必须是受限的基本类型对象');
-  return Object.freeze(Object.fromEntries(Object.keys(value).sort().map(key=>[key,value[key]])));
-}
-function validTarget(value){
-  if(typeof value!=='string'||value.length>2048||value.trim()!==value||
-    !/^https?:\/\//u.test(value)||value.includes('#')||/[\u0000-\u0020\u007f]/u.test(value))return false;
-  try{const url=new URL(value);return ['https:','http:'].includes(url.protocol)&&!url.username&&!url.password&&!url.hash;}catch{return false;}
-}
-const token=/^[a-zA-Z0-9._:-]{8,128}$/u;
 export function validateChatGPTTaskRequest(text){
   if(typeof text!=='string'||text.length>4096)throw fail('E_BRIDGE_LIMIT','任务请求超出长度限制');
   let candidate;
