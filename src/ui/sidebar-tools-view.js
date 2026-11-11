@@ -119,6 +119,8 @@ export function createSidebarToolsView() {
     const caption=typeof options?.caption==='string'?options.caption:'';
     const timeout=Number.isSafeInteger(options?.timeout)&&
       (options.timeout===0||options.timeout>=1000&&options.timeout<=15000)?options.timeout:5000;
+    // Trusted success receipts may opt out of hover/focus pausing.
+    const pauseOnInteraction=options?.pauseOnInteraction!==false;
     const groupKey=existingId===null&&options?.group!==false?
       JSON.stringify([owner,message,caption,type,position]):null;
     const list=snapshot.toasts||[];
@@ -127,7 +129,7 @@ export function createSidebarToolsView() {
       groupKey?list.find(row=>row.groupKey===groupKey):null;
     if(existingId!==null&&!previous)return null;
     let toasts=list.filter(row=>row.id!==previous?.id);
-    const row={id:previous?.id||++nextToastId,message,caption,type,position,timeout,owner,
+    const row={id:previous?.id||++nextToastId,message,caption,type,position,timeout,pauseOnInteraction,owner,
       groupKey,count:existingId!==null?1:previous?Math.min(previous.count+1,99):1,
       revision:++nextToastRevision};
     if(!previous&&toasts.length>=3){
