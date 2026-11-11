@@ -1,0 +1,1470 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "urn:opendesk:ai-insight:r5:1",
+  "title": "OpenDesk AI Insight R5 candidate data contract",
+  "description": "Design/preview only; no storage, ingestion, permission or production conformance is implied.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schemaVersion",
+    "scopeId",
+    "records",
+    "events",
+    "consent"
+  ],
+  "properties": {
+    "schemaVersion": {
+      "const": 1
+    },
+    "scopeId": {
+      "type": "string",
+      "minLength": 1
+    },
+    "records": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "goals": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/Goal"
+          }
+        },
+        "plans": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/Plan"
+          }
+        },
+        "problems": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/Problem"
+          }
+        },
+        "attempts": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/Attempt"
+          }
+        },
+        "conversations": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/Conversation"
+          }
+        },
+        "turns": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/Turn"
+          }
+        },
+        "prompts": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/Prompt"
+          }
+        },
+        "responses": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/Response"
+          }
+        },
+        "executions": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/Execution"
+          }
+        },
+        "observations": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/Observation"
+          }
+        },
+        "artifacts": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/Artifact"
+          }
+        },
+        "evidence": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/Evidence"
+          }
+        },
+        "reviews": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/Review"
+          }
+        },
+        "outcomes": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/Outcome"
+          }
+        },
+        "conversationLinks": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/ConversationLink"
+          }
+        },
+        "problemRelations": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/ProblemRelation"
+          }
+        },
+        "audit": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/Audit"
+          }
+        }
+      }
+    },
+    "events": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/Event"
+      }
+    },
+    "consent": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/Consent"
+      }
+    }
+  },
+  "$defs": {
+    "Goal": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "scopeId": {
+          "type": "string",
+          "minLength": 1
+        },
+        "schemaVersion": {
+          "const": 1
+        },
+        "createdAt": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "updatedAt": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "title": {
+          "type": "string"
+        },
+        "problemIds": {
+          "type": "array",
+          "uniqueItems": true,
+          "items": {
+            "type": "string",
+            "minLength": 1
+          }
+        }
+      },
+      "required": [
+        "id",
+        "scopeId",
+        "schemaVersion",
+        "createdAt",
+        "updatedAt",
+        "title"
+      ]
+    },
+    "Plan": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "scopeId": {
+          "type": "string",
+          "minLength": 1
+        },
+        "schemaVersion": {
+          "const": 1
+        },
+        "createdAt": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "updatedAt": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "goalIds": {
+          "type": "array",
+          "uniqueItems": true,
+          "items": {
+            "type": "string",
+            "minLength": 1
+          }
+        },
+        "problemIds": {
+          "type": "array",
+          "uniqueItems": true,
+          "items": {
+            "type": "string",
+            "minLength": 1
+          }
+        },
+        "status": {
+          "enum": [
+            "DRAFT",
+            "ACTIVE",
+            "DONE",
+            "ARCHIVED"
+          ]
+        }
+      },
+      "required": [
+        "id",
+        "scopeId",
+        "schemaVersion",
+        "createdAt",
+        "updatedAt",
+        "status"
+      ]
+    },
+    "Problem": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "scopeId": {
+          "type": "string",
+          "minLength": 1
+        },
+        "schemaVersion": {
+          "const": 1
+        },
+        "createdAt": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "updatedAt": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "title": {
+          "type": "string",
+          "minLength": 1
+        },
+        "status": {
+          "enum": [
+            "OPEN",
+            "IN_PROGRESS",
+            "BLOCKED",
+            "NEEDS_VERIFICATION",
+            "USER_CONFIRMED",
+            "EVIDENCE_VERIFIED",
+            "REOPENED",
+            "CLOSED",
+            "UNKNOWN"
+          ]
+        },
+        "acceptanceCriteria": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "parentProblemIds": {
+          "type": "array",
+          "uniqueItems": true,
+          "items": {
+            "type": "string",
+            "minLength": 1
+          }
+        },
+        "revision": {
+          "type": "integer",
+          "minimum": 1
+        }
+      },
+      "required": [
+        "id",
+        "scopeId",
+        "schemaVersion",
+        "createdAt",
+        "updatedAt",
+        "title",
+        "status",
+        "revision"
+      ]
+    },
+    "Attempt": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "scopeId": {
+          "type": "string",
+          "minLength": 1
+        },
+        "schemaVersion": {
+          "const": 1
+        },
+        "createdAt": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "updatedAt": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "problemIds": {
+          "type": "array",
+          "uniqueItems": true,
+          "items": {
+            "type": "string",
+            "minLength": 1
+          }
+        },
+        "conversationIds": {
+          "type": "array",
+          "uniqueItems": true,
+          "items": {
+            "type": "string",
+            "minLength": 1
+          }
+        },
+        "turnIds": {
+          "type": "array",
+          "uniqueItems": true,
+          "items": {
+            "type": "string",
+            "minLength": 1
+          }
+        },
+        "status": {
+          "enum": [
+            "PLANNED",
+            "RUNNING",
+            "FAILED",
+            "CLAIMED_DONE",
+            "VERIFIED",
+            "UNKNOWN"
+          ]
+        }
+      },
+      "required": [
+        "id",
+        "scopeId",
+        "schemaVersion",
+        "createdAt",
+        "updatedAt",
+        "problemIds",
+        "status"
+      ]
+    },
+    "Conversation": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "scopeId": {
+          "type": "string",
+          "minLength": 1
+        },
+        "schemaVersion": {
+          "const": 1
+        },
+        "createdAt": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "updatedAt": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "origin": {
+          "type": "string",
+          "pattern": "^https://"
+        },
+        "provider": {
+          "enum": [
+            "ChatGPT",
+            "Claude",
+            "Gemini",
+            "Grok",
+            "DeepSeek",
+            "OTHER"
+          ]
+        },
+        "accountId": {
+          "type": "string",
+          "minLength": 1
+        },
+        "externalConversationId": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "coverage": {
+          "enum": [
+            "FULL",
+            "PARTIAL",
+            "UNKNOWN"
+          ]
+        }
+      },
+      "required": [
+        "id",
+        "scopeId",
+        "schemaVersion",
+        "createdAt",
+        "updatedAt",
+        "origin",
+        "provider",
+        "accountId"
+      ]
+    },
+    "Turn": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "scopeId": {
+          "type": "string",
+          "minLength": 1
+        },
+        "schemaVersion": {
+          "const": 1
+        },
+        "createdAt": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "updatedAt": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "conversationId": {
+          "type": "string",
+          "minLength": 1
+        },
+        "promptId": {
+          "type": "string",
+          "minLength": 1
+        },
+        "responseIds": {
+          "type": "array",
+          "uniqueItems": true,
+          "items": {
+            "type": "string",
+            "minLength": 1
+          }
+        },
+        "generationIds": {
+          "type": "array",
+          "uniqueItems": true,
+          "items": {
+            "type": "string",
+            "minLength": 1
+          }
+        }
+      },
+      "required": [
+        "id",
+        "scopeId",
+        "schemaVersion",
+        "createdAt",
+        "updatedAt",
+        "conversationId"
+      ]
+    },
+    "Prompt": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "scopeId": {
+          "type": "string",
+          "minLength": 1
+        },
+        "schemaVersion": {
+          "const": 1
+        },
+        "createdAt": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "updatedAt": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "turnId": {
+          "type": "string",
+          "minLength": 1
+        },
+        "bodyRef": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "bodyConsentRevision": {
+          "type": [
+            "integer",
+            "null"
+          ],
+          "minimum": 1
+        }
+      },
+      "required": [
+        "id",
+        "scopeId",
+        "schemaVersion",
+        "createdAt",
+        "updatedAt",
+        "turnId"
+      ]
+    },
+    "Response": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "scopeId": {
+          "type": "string",
+          "minLength": 1
+        },
+        "schemaVersion": {
+          "const": 1
+        },
+        "createdAt": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "updatedAt": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "turnId": {
+          "type": "string",
+          "minLength": 1
+        },
+        "generationId": {
+          "type": "string",
+          "minLength": 1
+        },
+        "bodyRef": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "outcomeClaim": {
+          "enum": [
+            "NONE",
+            "CLAIMED_BY_AI",
+            "UNKNOWN"
+          ]
+        }
+      },
+      "required": [
+        "id",
+        "scopeId",
+        "schemaVersion",
+        "createdAt",
+        "updatedAt",
+        "turnId",
+        "generationId"
+      ]
+    },
+    "Execution": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "scopeId": {
+          "type": "string",
+          "minLength": 1
+        },
+        "schemaVersion": {
+          "const": 1
+        },
+        "createdAt": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "updatedAt": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "conversationId": {
+          "type": "string",
+          "minLength": 1
+        },
+        "turnId": {
+          "type": "string",
+          "minLength": 1
+        },
+        "generationId": {
+          "type": "string",
+          "minLength": 1
+        },
+        "status": {
+          "enum": [
+            "SUBMITTED_OBSERVED",
+            "FIRST_OUTPUT_OBSERVED",
+            "OUTPUT_PROGRESS_OBSERVED",
+            "COMPLETION_OBSERVED",
+            "STOP_OBSERVED",
+            "ERROR_OBSERVED",
+            "OBSERVATION_GAP",
+            "STATUS_UNKNOWN",
+            "REGENERATED"
+          ]
+        },
+        "startObservedAt": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "format": "date-time"
+        },
+        "endObservedAt": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "format": "date-time"
+        },
+        "coverage": {
+          "enum": [
+            "FULL",
+            "PARTIAL",
+            "UNKNOWN"
+          ]
+        },
+        "rightCensored": {
+          "type": "boolean"
+        }
+      },
+      "required": [
+        "id",
+        "scopeId",
+        "schemaVersion",
+        "createdAt",
+        "updatedAt",
+        "conversationId",
+        "generationId",
+        "status",
+        "coverage",
+        "rightCensored"
+      ]
+    },
+    "Observation": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "scopeId": {
+          "type": "string",
+          "minLength": 1
+        },
+        "schemaVersion": {
+          "const": 1
+        },
+        "createdAt": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "updatedAt": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "executionId": {
+          "type": "string",
+          "minLength": 1
+        },
+        "eventId": {
+          "type": "string",
+          "minLength": 1
+        },
+        "source": {
+          "enum": [
+            "DOM",
+            "PAGE_VISIBILITY",
+            "EXTENSION",
+            "RUN_RESULT",
+            "USER"
+          ]
+        },
+        "visibility": {
+          "enum": [
+            "VISIBLE",
+            "HIDDEN",
+            "UNKNOWN"
+          ]
+        },
+        "gapReason": {
+          "enum": [
+            "NONE",
+            "REFRESH",
+            "FROZEN",
+            "CLOSED",
+            "WORKER_STOP",
+            "PERMISSION_REVOKED",
+            "CLOCK_JUMP",
+            "UNKNOWN"
+          ]
+        },
+        "coverage": {
+          "enum": [
+            "FULL",
+            "PARTIAL",
+            "UNKNOWN"
+          ]
+        }
+      },
+      "required": [
+        "id",
+        "scopeId",
+        "schemaVersion",
+        "createdAt",
+        "updatedAt",
+        "executionId",
+        "eventId",
+        "source",
+        "coverage"
+      ]
+    },
+    "Artifact": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "scopeId": {
+          "type": "string",
+          "minLength": 1
+        },
+        "schemaVersion": {
+          "const": 1
+        },
+        "createdAt": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "updatedAt": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "problemIds": {
+          "type": "array",
+          "uniqueItems": true,
+          "items": {
+            "type": "string",
+            "minLength": 1
+          }
+        },
+        "kind": {
+          "enum": [
+            "CODE",
+            "FILE",
+            "LINK",
+            "DECISION",
+            "NOTE",
+            "OTHER"
+          ]
+        },
+        "versionRef": {
+          "type": [
+            "string",
+            "null"
+          ]
+        }
+      },
+      "required": [
+        "id",
+        "scopeId",
+        "schemaVersion",
+        "createdAt",
+        "updatedAt",
+        "problemIds",
+        "kind"
+      ]
+    },
+    "Evidence": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "scopeId": {
+          "type": "string",
+          "minLength": 1
+        },
+        "schemaVersion": {
+          "const": 1
+        },
+        "createdAt": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "updatedAt": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "artifactIds": {
+          "type": "array",
+          "uniqueItems": true,
+          "items": {
+            "type": "string",
+            "minLength": 1
+          }
+        },
+        "outcomeIds": {
+          "type": "array",
+          "uniqueItems": true,
+          "items": {
+            "type": "string",
+            "minLength": 1
+          }
+        },
+        "sourceKind": {
+          "enum": [
+            "AI_CLAIM",
+            "RUN_RESULT",
+            "TEST",
+            "USER",
+            "REVIEW",
+            "OTHER"
+          ]
+        },
+        "verdict": {
+          "enum": [
+            "PASS",
+            "FAIL",
+            "INCONCLUSIVE",
+            "UNKNOWN"
+          ]
+        },
+        "validFor": {
+          "type": "array",
+          "uniqueItems": true,
+          "items": {
+            "type": "string",
+            "minLength": 1
+          }
+        },
+        "sourceRevision": {
+          "type": [
+            "string",
+            "null"
+          ]
+        }
+      },
+      "required": [
+        "id",
+        "scopeId",
+        "schemaVersion",
+        "createdAt",
+        "updatedAt",
+        "sourceKind",
+        "verdict",
+        "validFor"
+      ]
+    },
+    "Review": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "scopeId": {
+          "type": "string",
+          "minLength": 1
+        },
+        "schemaVersion": {
+          "const": 1
+        },
+        "createdAt": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "updatedAt": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "outcomeIds": {
+          "type": "array",
+          "uniqueItems": true,
+          "items": {
+            "type": "string",
+            "minLength": 1
+          }
+        },
+        "evidenceIds": {
+          "type": "array",
+          "uniqueItems": true,
+          "items": {
+            "type": "string",
+            "minLength": 1
+          }
+        },
+        "decision": {
+          "enum": [
+            "ACCEPT",
+            "REJECT",
+            "REOPEN",
+            "UNKNOWN"
+          ]
+        },
+        "reviewerKind": {
+          "enum": [
+            "USER",
+            "TEST_RUNNER",
+            "OTHER"
+          ]
+        }
+      },
+      "required": [
+        "id",
+        "scopeId",
+        "schemaVersion",
+        "createdAt",
+        "updatedAt",
+        "outcomeIds",
+        "decision"
+      ]
+    },
+    "Outcome": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "scopeId": {
+          "type": "string",
+          "minLength": 1
+        },
+        "schemaVersion": {
+          "const": 1
+        },
+        "createdAt": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "updatedAt": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "problemIds": {
+          "type": "array",
+          "uniqueItems": true,
+          "items": {
+            "type": "string",
+            "minLength": 1
+          }
+        },
+        "state": {
+          "enum": [
+            "CLAIMED_BY_AI",
+            "RUN_RECORDED",
+            "NEEDS_VERIFICATION",
+            "USER_CONFIRMED",
+            "EVIDENCE_VERIFIED",
+            "REOPENED",
+            "UNKNOWN"
+          ]
+        },
+        "evidenceIds": {
+          "type": "array",
+          "uniqueItems": true,
+          "items": {
+            "type": "string",
+            "minLength": 1
+          }
+        },
+        "acceptanceVersion": {
+          "type": "integer",
+          "minimum": 1
+        }
+      },
+      "required": [
+        "id",
+        "scopeId",
+        "schemaVersion",
+        "createdAt",
+        "updatedAt",
+        "problemIds",
+        "state",
+        "evidenceIds"
+      ]
+    },
+    "ConversationLink": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "scopeId": {
+          "type": "string",
+          "minLength": 1
+        },
+        "schemaVersion": {
+          "const": 1
+        },
+        "createdAt": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "updatedAt": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "problemId": {
+          "type": "string",
+          "minLength": 1
+        },
+        "conversationId": {
+          "type": "string",
+          "minLength": 1
+        },
+        "status": {
+          "enum": [
+            "CANDIDATE",
+            "CONFIRMED",
+            "REJECTED",
+            "UNDONE"
+          ]
+        },
+        "decisionSource": {
+          "enum": [
+            "HEURISTIC",
+            "AI_INFERENCE",
+            "USER"
+          ]
+        },
+        "supportingEvidenceIds": {
+          "type": "array",
+          "uniqueItems": true,
+          "items": {
+            "type": "string",
+            "minLength": 1
+          }
+        },
+        "opposingEvidenceIds": {
+          "type": "array",
+          "uniqueItems": true,
+          "items": {
+            "type": "string",
+            "minLength": 1
+          }
+        },
+        "confidence": {
+          "type": [
+            "number",
+            "null"
+          ],
+          "minimum": 0,
+          "maximum": 1
+        },
+        "revision": {
+          "type": "integer",
+          "minimum": 1
+        }
+      },
+      "required": [
+        "id",
+        "scopeId",
+        "schemaVersion",
+        "createdAt",
+        "updatedAt",
+        "problemId",
+        "conversationId",
+        "status",
+        "decisionSource",
+        "revision"
+      ]
+    },
+    "ProblemRelation": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "scopeId": {
+          "type": "string",
+          "minLength": 1
+        },
+        "schemaVersion": {
+          "const": 1
+        },
+        "createdAt": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "updatedAt": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "leftProblemId": {
+          "type": "string",
+          "minLength": 1
+        },
+        "rightProblemId": {
+          "type": "string",
+          "minLength": 1
+        },
+        "relation": {
+          "enum": [
+            "SAME_PROBLEM",
+            "SUBPROBLEM_OF",
+            "RELATED",
+            "SIMILAR",
+            "DISTINCT",
+            "UNKNOWN"
+          ]
+        },
+        "decisionSource": {
+          "enum": [
+            "HEURISTIC",
+            "AI_INFERENCE",
+            "USER"
+          ]
+        },
+        "confidence": {
+          "type": [
+            "number",
+            "null"
+          ],
+          "minimum": 0,
+          "maximum": 1
+        },
+        "supportingEvidenceIds": {
+          "type": "array",
+          "uniqueItems": true,
+          "items": {
+            "type": "string",
+            "minLength": 1
+          }
+        },
+        "opposingEvidenceIds": {
+          "type": "array",
+          "uniqueItems": true,
+          "items": {
+            "type": "string",
+            "minLength": 1
+          }
+        },
+        "revision": {
+          "type": "integer",
+          "minimum": 1
+        }
+      },
+      "required": [
+        "id",
+        "scopeId",
+        "schemaVersion",
+        "createdAt",
+        "updatedAt",
+        "leftProblemId",
+        "rightProblemId",
+        "relation",
+        "decisionSource",
+        "revision"
+      ]
+    },
+    "Audit": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "scopeId": {
+          "type": "string",
+          "minLength": 1
+        },
+        "schemaVersion": {
+          "const": 1
+        },
+        "createdAt": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "updatedAt": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "subjectId": {
+          "type": "string",
+          "minLength": 1
+        },
+        "action": {
+          "type": "string"
+        },
+        "actor": {
+          "enum": [
+            "USER",
+            "SYSTEM",
+            "ADAPTER"
+          ]
+        },
+        "beforeRevision": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "afterRevision": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "reversible": {
+          "type": "boolean"
+        }
+      },
+      "required": [
+        "id",
+        "scopeId",
+        "schemaVersion",
+        "createdAt",
+        "updatedAt",
+        "subjectId",
+        "action",
+        "actor",
+        "beforeRevision",
+        "afterRevision"
+      ]
+    },
+    "Consent": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "scopeId": {
+          "type": "string",
+          "minLength": 1
+        },
+        "schemaVersion": {
+          "const": 1
+        },
+        "createdAt": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "updatedAt": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "origin": {
+          "type": "string",
+          "pattern": "^https://"
+        },
+        "accountId": {
+          "type": "string",
+          "minLength": 1
+        },
+        "metadata": {
+          "type": "boolean"
+        },
+        "body": {
+          "type": "boolean"
+        },
+        "state": {
+          "enum": [
+            "GRANTED",
+            "PAUSED",
+            "REVOKED"
+          ]
+        },
+        "revision": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "expiresAt": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "format": "date-time"
+        }
+      },
+      "required": [
+        "id",
+        "scopeId",
+        "schemaVersion",
+        "createdAt",
+        "updatedAt",
+        "origin",
+        "accountId",
+        "metadata",
+        "body",
+        "state",
+        "revision"
+      ]
+    },
+    "Event": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "eventId",
+        "dedupeKey",
+        "scopeId",
+        "accountId",
+        "origin",
+        "conversationId",
+        "executionId",
+        "generationId",
+        "eventType",
+        "observedAt",
+        "adapterVersion",
+        "consentRevision",
+        "observationEpochId",
+        "monotonicTickMs",
+        "coverage"
+      ],
+      "properties": {
+        "eventId": {
+          "type": "string",
+          "minLength": 1
+        },
+        "dedupeKey": {
+          "type": "string",
+          "minLength": 1
+        },
+        "scopeId": {
+          "type": "string",
+          "minLength": 1
+        },
+        "accountId": {
+          "type": "string",
+          "minLength": 1
+        },
+        "origin": {
+          "type": "string",
+          "pattern": "^https://"
+        },
+        "conversationId": {
+          "type": "string",
+          "minLength": 1
+        },
+        "executionId": {
+          "type": "string",
+          "minLength": 1
+        },
+        "generationId": {
+          "type": "string",
+          "minLength": 1
+        },
+        "eventType": {
+          "enum": [
+            "SUBMITTED_OBSERVED",
+            "FIRST_OUTPUT_OBSERVED",
+            "OUTPUT_PROGRESS_OBSERVED",
+            "COMPLETION_OBSERVED",
+            "STOP_OBSERVED",
+            "ERROR_OBSERVED",
+            "OBSERVATION_GAP",
+            "STATUS_UNKNOWN",
+            "REGENERATED"
+          ]
+        },
+        "observedAt": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "adapterVersion": {
+          "type": "string",
+          "minLength": 1
+        },
+        "consentRevision": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "observationEpochId": {
+          "type": "string",
+          "minLength": 1
+        },
+        "monotonicTickMs": {
+          "type": "number",
+          "minimum": 0
+        },
+        "coverage": {
+          "enum": [
+            "FULL",
+            "PARTIAL",
+            "UNKNOWN"
+          ]
+        },
+        "siteVisibility": {
+          "enum": [
+            "VISIBLE",
+            "HIDDEN",
+            "UNKNOWN"
+          ]
+        },
+        "eventEvidenceIds": {
+          "type": "array",
+          "uniqueItems": true,
+          "items": {
+            "type": "string",
+            "minLength": 1
+          }
+        }
+      }
+    }
+  }
+}
