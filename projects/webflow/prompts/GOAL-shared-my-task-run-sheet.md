@@ -13,7 +13,7 @@ Web Flow 来源保留明确的两阶段确认：「保存并核对」只冻结�
 
 ## 开始前必须核对的真实代码与文档
 
-1. `projects/webflow/docs/product-contract.zh-CN.md`、`projects/webflow/docs/execution-plan.zh-CN.md` 是唯一权威需求与执行进度；专项附录 `projects/webflow/docs/shared-task-run-sheet.zh-CN.md`；交互设计预览 `projects/webflow/preview/script-run-shared-sheet.html`。旧版聊天里独立居中弹窗原型已废弃，不能当实现依据。
+1. `projects/webflow/docs/product-contract.zh-CN.md`、`projects/webflow/docs/execution-plan.zh-CN.md` 是唯一权威需求与执行进度；专项附录 `projects/webflow/docs/shared-task-run-sheet.zh-CN.md`；交互设计预览 `projects/webflow/preview/index.html`。旧版聊天里独立居中弹窗原型已废弃，不能当实现依据。
 2. 「我的」真实入口 `src/ui/react/tabs/tasks.tsx` 的 `openParameters()`、`src/ui/react/tabs/my-page.tsx` 的 `MyTaskWorkspace` 与 `task-parameters-sheet`、`src/ui/react/tabs/my-sections.tsx` 的 `MyTaskParams`；可信控制器 `src/ui/task-workbench.js` 的 `taskRunClick→run()`。
 3. Web Flow 现有 `projects/webflow/src/ui/main.js`：▶ 当前展开行内参数；`prepare/run/read/stop` 旧链及 `webflow.pending.v1` 遗留恢复仍要兼容。
 4. 原 `OpenDeskTool.request('tasks.open',{taskId})` 在 `src/ui/sidebar-tools.js` 只是“我的管理/安装审阅导航”，可能 suspendTool；不是打开参数抽屉，更不是运行。先检查公开 SDK 是否已有更合适的受控 UI-only 接口；没有则在平台原 owner 最小增加通用打开能力，并同步唯一 API 文档，不能直接改成宽权限运行。
