@@ -1,25 +1,30 @@
-# Mouse Gestures · 四方向 MVP（待真实 Chrome 验收）
+# Mouse Gestures · 双阈值、原生右键兼容与安装后默认开启（0.2.1）
 
-> OD-MOUSE-GESTURES-4DIR-REAL · 0.2.0 源码候选：四方向 Page 手势、Side Panel 开关、应用私有存储及普通 HTTP(S) 网站匹配已接线。真实 Chrome 安装、原生右键菜单与宿主权限撤销仍须实测，不能标记为正式验收。
+> 当前为已提交到 main 的 SOURCE_WIRED 候选。真实 Chrome 原生鼠标菜单时序、安装/升级、网站权限、撤权与同一包身份尚未验收：NATIVE_CHROME_NOT_TESTED / INSTALL_NOT_TESTED。不能将页面模拟或隔离逻辑测试记成正式发布 PASS。
 
-- 正式 Side Panel 位于 `src/index.html` / `src/style.css` / `src/main.js`；仅保留「开启鼠标手势」开关、两列四项默认手势和「松开右键执行 · Esc 取消」。初次没有保存的设置默认关闭。
-- Page 在 `src/page/gesture.js` 实现 ← 后退、→ 前进、↑ 刷新、↓ 滚至文档底部。56px 激活，横纵主轴 + 28px 垂直偏移限制，斜向/选区/编辑控件排除和单次执行保护。
-- `src/page/runtime.js` 使用现有 `OpenDeskAppPage`、受管 UI、`storage.local` 与 Page Authority。设置读回失败时 fail-closed；在执行手势前重新读取最新设置并核验身份，避免关闭开关后仍执行。周期性同步仅用于旧页面 UI 及时取消轨迹；不能冒充跨所有标签页即时推送。
-- `pageRules.matches` 为 `http://*/*` / `https://*/*`，与官方现有 Page Module 格式一致。匹配不等于安装、Chrome User Scripts 或网站权限已批准；仍须原 Installer/Authority 审阅。Chrome 内部页、浏览器 PDF、不获准的 iframe 不支持。
-- 单文件 `preview/index.html` 只模拟界面，不调用 Chrome API，也不写正式设置。旧的左滑试点证据仅适用于历史代码，不支持新版本生产通过声明。
+## 当前产品行为
 
-定向开发验证：
+- **安装后默认开启**：用户审阅并完成 Chrome 网站权限后，首次无 preferences 记录时 enabled=true，Side Panel 滑块同步显示开启，不增加第二次“启用”步骤。用户明确保存 enabled:false 则一直保持关闭；读取失败、值损坏、权限失败及撤权一律 fail-closed，不将“默认开启”当作授权。
+- 默认触发方式为 **右键拖动**；四方向手势：← 后退、→ 前进、↑ 刷新、↓ 到文档底部。只处理顶层已授权普通 HTTP(S) 网页，不扩容标签、Native 或后台权限。
+- **双阈值**：0–11px 视为普通单击/抖动；从 12px 起作为拖动意图，可显示灰色虚线；净位移达到 56px 且正交最大偏移不超过 28px 才识别方向。明显斜线和折返超过 12px 不执行。Esc、失焦、页面隐藏、停用及销毁取消。
+- **原生菜单保护**：contextmenu 如果在移动前到达（常见于 Mac），保留原生菜单并放弃该次手势，不假设网页脚本能事后关闭菜单。移动达到意图阈值而菜单尚未出现时，拦截后续与该次右键会话关联的菜单事件；释放后拦截需匹配按键、元素、位置（16px 内）和最多 450ms 的窗口，不拦截键盘菜单及其他目标。
+- **替代方式**：在 Side Panel 的折叠「操作偏好」中，可将触发方式改为 Option/Alt + 左键拖动，作为 Mac 原生菜单提前触发时的保守替代。该方式不能保证所有网页不劫持组合键；仍需真实验收。也可关闭「显示轨迹与动作提示」，不影响方向识别。
+- 轨迹绘制复用受管 Page UI Shadow DOM 的 SVG，pointer-events:none，仅在意图阈值后显示。灰色候选轨迹、蓝色已识别动作及橙色无效反馈均不拦截网页点击；松开、取消或撤权清空路径与监听器。requestAnimationFrame 可用时合并绘图，点数上限 80。
+- 偏好沿用父工具私有 storage.local 与 ETag/CAS，跨 Side Panel 和 Page 使用既有 OpenDeskAppPage / Page Authority；不增加权限、第二套安装器或直接改 Browser Host。Page 在执行前重新读设置与身份；1200ms 同步不是跨标签实时广播。
+- preview/index.html 是独立单文件、无权限的 Side Panel 模拟和左键拖动练习区。练习不会导航、读写真实设置或证明原生右键菜单可用。
 
-```bash
-node --test projects/mouse-gestures/tests/*.test.mjs
-node --check projects/mouse-gestures/src/page/gesture.js
-node --check projects/mouse-gestures/src/page/runtime.js
-node --check projects/mouse-gestures/src/page/main.js
-node --check projects/mouse-gestures/src/main.js
-node scripts/build-sidebar-tool.mjs --help
-```
+## 定向验证及待办
 
-正式验收必须在独立已安装 Chrome + 用户批准的普通网页上验证四方向真实右拖、普通右键菜单、开关即时停用、刷新重启、卸载撤权清理和同一候选包身份。Mac 上原生菜单可能先于鼠标移动出现；Node/无头回归不能替代这一测试。
+    node --test projects/mouse-gestures/tests/*.test.mjs
+    node --check projects/mouse-gestures/src/page/gesture.js
+    node --check projects/mouse-gestures/src/page/runtime.js
+    node --check projects/mouse-gestures/src/page/main.js
+    node --check projects/mouse-gestures/src/main.js
+    node scripts/build-sidebar-tool.mjs --help
+
+已执行：当前 GitHub 源码在隔离 V8 中通过 18 项行为与语法检查；本地对相同状态机设计的 10 项 Node 针对性用例 PASS。**这些不等于仓库 Node 全套测试、打包、正式 Chrome 扩展安装或生产验收已通过。** 后续须按上述命令在仓库工作区执行回归，打包同一个候选 0.2.1，然后在真实 macOS/Windows Chrome 验证普通右键、双阈值、四方向、Mac menu-first、Windows menu-after、Alt-left、滑块首次默认 ON、显式 OFF 持久化、刷新、撤权、卸载、升级及轨迹清理。若系统先打开原生菜单，默认策略是放弃当前手势，不牺牲普通右键。
+
+pageRules 仍为 http://*/* 与 https://*/*，不代表已自动获得网站访问。Chrome 内部页、浏览器 PDF、不获准的 iframe 不支持。
 
 ---
 
