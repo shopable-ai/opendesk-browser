@@ -232,7 +232,7 @@ export function DiagnosticsPage({ state, busy, onRefresh, onProbe, onStop, onPro
         <small>Chrome Proxy API</small></div>
       <div><small>{t('configurationStatus')}</small><strong>{state.runtime.applied ? t('applied') : t('notConfirmed')}</strong>
         <small>{t('doesNotProveReachability')}</small></div>
-      <div><small>{t(simulatedDiagnostics ? 'diagSitesChecked' : 'diagSitesLive')}</small><strong>{current.length} / {AI_SITES.length}</strong>
+      <div><small>{t(simulatedDiagnostics ? 'diagSitesChecked' : 'diagSitesLive')}</small><strong>{simulatedDiagnostics ? `${current.length} / ${AI_SITES.length}` : t('notTested')}</strong>
         <small>{current.length === 0 ? t('notTested') : t('diagCurrentRouteOnly')}</small></div>
       <div><small>{t('diagRunStatus')}</small><strong>{locked ? t('diagRunning') : t('diagIdle')}</strong>
         <small>{snapshot?.activeRun ? t('diagProgress', {
@@ -290,7 +290,7 @@ export function DiagnosticsPage({ state, busy, onRefresh, onProbe, onStop, onPro
         </article>
         <article className="diagnosticFeature">
           <small>{t('customTargets')}</small><h3>{t('prioritySitesTop510')}</h3>
-          <p>{t('diagFavoritesCount', {count: favorites.length})}</p>
+          <p>{simulatedDiagnostics ? t('diagFavoritesCount', {count: favorites.length}) : t('notTested')}</p>
           {simulatedDiagnostics && <UsageOverview />}
           <Button variant="secondary" data-testid="usage-manage" onClick={() => openPanel('top')}>{t('usageManage')}</Button>
         </article>
