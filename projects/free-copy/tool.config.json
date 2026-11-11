@@ -1,0 +1,17 @@
+{
+  "id": "free-copy",
+  "version": "0.1.0",
+  "title": "自由复制",
+  "description": "恢复已授权网页的文字选择、原生右键菜单和复制；支持全局暂停与当前网站例外。",
+  "format": "opendesk.sidebar-tool.v2",
+  "capabilities": ["page.module", "storage.local", "currentPage.read"],
+  "files": {
+    "html": "src/index.html",
+    "css": "src/style.css",
+    "js": "src/main.js"
+  },
+  "assets": [],
+  "requires": {"browserSdk": "1.0.0"},
+  "contributes": {"contextMenus": []},
+  "pageModule": {"revision": 1}
+}

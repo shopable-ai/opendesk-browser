@@ -1,0 +1,22 @@
+<section class="fc-panel" aria-label="自由复制设置">
+  <div class="fc-setting">
+    <div class="fc-setting-copy">
+      <label for="fc-enabled">开启自由复制</label>
+      <p class="fc-note">恢复网页文字选择、右键菜单及原生复制</p>
+    </div>
+    <input id="fc-enabled" class="fc-switch" type="checkbox" role="switch"
+      aria-label="开启或暂停自由复制" disabled>
+  </div>
+  <div class="fc-divider"></div>
+  <div class="fc-setting">
+    <div class="fc-setting-copy">
+      <label for="fc-site-enabled">在当前网站启用</label>
+      <p id="fc-origin" class="fc-note">正在检测当前网站…</p>
+    </div>
+    <input id="fc-site-enabled" class="fc-switch" type="checkbox" role="switch"
+      aria-label="在当前网站启用自由复制" disabled>
+  </div>
+  <p id="fc-status" class="fc-status" role="status">正在读取设置…</p>
+  <p class="fc-hint">保持浏览器原生右键和复制，不收集选中文字或读取剪贴板。暂停会撤销本工具的网页样式及事件处理。</p>
+  <p id="fc-error" class="fc-error" role="alert" hidden></p>
+</section>
