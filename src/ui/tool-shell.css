@@ -820,10 +820,9 @@ body:has([aria-modal=true]) .sidebar-tool-toast-stack{display:none}
 .workflow-sheet-content .workflow-provider{max-height:none;overflow:visible;padding-right:0;margin:0}
 .workflow-sheet-content .workflow-connection-line{padding:var(--space-2) var(--space-3);border:1px solid var(--od-line);border-radius:var(--radius-surface);background:var(--od-muted)}
 .workflow-sheet-content .workflow-provider-info,.workflow-sheet-content .workflow-provider-diagnostics{margin-top:var(--space-3)}
-.task-params-sheet{inset:0 0 0 auto;box-sizing:border-box;margin:0 0 0 auto;padding:0;width:min(500px,100%);max-width:100%;height:100dvh;max-height:100dvh;color:var(--od-ink);background:var(--od-paper);border:1px solid var(--od-line);border-right:0;border-radius:var(--radius-surface) 0 0 var(--radius-surface);box-shadow:-10px 0 32px color-mix(in srgb,var(--od-ink) 16%,transparent);overflow:hidden}
+.task-params-sheet{inset:auto 0 0;box-sizing:border-box;margin:0;padding:0;width:100%;max-width:none;max-height:calc(100dvh - var(--space-4));color:var(--od-ink);background:var(--od-paper);border:1px solid var(--od-line);border-bottom:0;border-radius:var(--radius-surface) var(--radius-surface) 0 0;box-shadow:0 -10px 32px color-mix(in srgb,var(--od-ink) 16%,transparent);overflow:hidden}
 .task-params-sheet[open]{display:flex;flex-direction:column}
 .task-params-editor-fields{min-width:0;border:0;margin:0;padding:0}
-@media(max-width:520px){.task-params-sheet{width:100%;border-left:0;border-radius:0}}
 .task-params-sheet::backdrop{background:color-mix(in srgb,var(--od-ink) 40%,transparent)}
 .task-params-sheet-heading{display:flex;align-items:center;gap:var(--space-3);padding:var(--space-4);border-bottom:1px solid var(--od-line);flex:none}
 .task-params-sheet-heading>div{min-width:0;flex:1}
@@ -835,7 +834,7 @@ body:has([aria-modal=true]) .sidebar-tool-toast-stack{display:none}
 .task-params-sheet-content #task-params-form{margin-top:var(--space-3)}
 .task-params-sheet-status:empty{display:none}
 .task-param-error{color:var(--od-negative)}
-.task-params-sheet-actions{display:flex;justify-content:flex-end;gap:var(--space-2);padding:var(--space-3) var(--space-4);border-top:1px solid var(--od-line);background:var(--od-paper);flex:none}
+.task-params-sheet-actions{display:flex;flex-wrap:wrap;justify-content:flex-end;gap:var(--space-2);padding:var(--space-3) var(--space-4);border-top:1px solid var(--od-line);background:var(--od-paper);flex:none}
 @media(max-width:360px){.workflow-sheet-panel{max-height:min(78dvh,520px)}.workflow-sheet-content{padding:var(--space-3)}}
 @media(prefers-reduced-motion:reduce){.workflow-sheet-panel,.workflow-sheet-overlay{animation:none!important;transition:none!important}}
 
