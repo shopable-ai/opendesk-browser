@@ -305,6 +305,54 @@
  .pc-parity .nd-shortcut>.ap-button{margin-left:auto}
 }
 @media(pointer:coarse){.pc-parity .nd-page .ap-button,.pc-parity .ap-secondary{min-height:40px}}
+
+/* OD-AI-PROXY-MODAL-UX-R1: scoped add/edit dialog layout */
+.modal-shade[hidden],.proxy-auth-fields[hidden],.proxy-form-error[hidden]{display:none!important}
+.modal.modal--proxy{width:min(652px,100%);padding:24px 26px 21px}
+.modal--proxy .modal-head{margin-bottom:8px}
+.modal--proxy .modal-head h2{font-size:18px;letter-spacing:-.3px}
+.proxy-form{min-width:0}
+.proxy-intro{color:var(--sub);font-size:12px;line-height:1.65;margin:0 0 20px}
+.proxy-form-main{display:grid;gap:18px}
+.proxy-form .field{gap:7px;min-width:0}
+.proxy-form .field>span,.proxy-form .field>label{font-size:12px;font-weight:650;color:#334155}
+.proxy-form .field input,.proxy-form .field select{min-height:42px;font-size:13px;border-radius:8px;border-color:#becada;min-width:0}
+.proxy-form .field input::placeholder{color:#8a98ab;opacity:1}
+.proxy-form .field input:focus-visible,.proxy-form .field select:focus-visible{outline:2px solid #89a5ee;outline-offset:1px;border-color:var(--brand)}
+.proxy-form .field [aria-invalid=true]{border-color:var(--red);box-shadow:0 0 0 1px #bd465822}
+.proxy-required{font-weight:750;color:var(--red)}
+.proxy-connection-row{display:grid;grid-template-columns:120px minmax(0,1fr) 104px;gap:12px;align-items:start}
+.proxy-host-hint{margin:8px 0 0;color:var(--sub);font-size:11px;line-height:1.5}
+.proxy-auth-card{border:1px solid #dce4ef;border-radius:10px;background:#f8fafc;padding:13px 15px 15px}
+.proxy-auth-header{display:flex;align-items:center;justify-content:space-between;gap:12px}
+.proxy-auth-heading{display:flex;align-items:center;gap:8px}
+.proxy-auth-heading strong{font-size:12px}
+.proxy-optional{font-size:10px;font-weight:600;color:#64748b;border:1px solid #d9e2ee;background:#fff;border-radius:5px;padding:2px 6px}
+.proxy-auth-check{display:inline-flex;align-items:center;gap:7px;cursor:pointer;font-size:12px;font-weight:650;color:#365375;white-space:nowrap}
+.proxy-auth-check input{width:16px;height:16px;margin:0;accent-color:var(--brand)}
+.proxy-auth-subtitle{margin:6px 0 0;font-size:11px;line-height:1.5;color:var(--sub)}
+.proxy-auth-fields{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:12px;margin-top:15px;padding-top:13px;border-top:1px solid #e0e7f0}
+.proxy-password-wrap{position:relative;min-width:0}
+.proxy-password-wrap input{padding-right:66px!important}
+.proxy-password-toggle{position:absolute;right:5px;top:50%;transform:translateY(-50%);border:0;border-radius:5px;min-height:30px;padding:3px 9px;background:#eef3fb;color:#37579d;cursor:pointer;font-size:12px}
+.proxy-password-toggle:hover{background:#e0e9fa}
+.proxy-password-toggle:focus-visible{outline:2px solid var(--brand);outline-offset:2px}
+.proxy-auth-help{font-size:11px;line-height:1.5;color:var(--sub);margin:9px 0 0}
+.proxy-form-error{font-size:12px;line-height:1.5;color:#a53747;background:#fff1f3;border:1px solid #f0d1d5;padding:9px 11px;border-radius:7px;margin-top:15px}
+.proxy-form-note{margin:17px 0 0;color:var(--sub);font-size:11px;line-height:1.6}
+.proxy-form-footer{border-top:1px solid var(--line);padding-top:15px;margin-top:17px}
+.proxy-form-footer .btn{min-height:39px;font-size:12px}
+@media(max-width:560px){
+ .modal.modal--proxy{padding:19px 17px 17px;max-height:calc(100dvh - 22px)}
+ .proxy-connection-row{grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:10px}
+ .proxy-host-field{grid-column:1/-1;grid-row:1}
+ .proxy-protocol-field{grid-column:1;grid-row:2}
+ .proxy-port-field{grid-column:2;grid-row:2}
+ .proxy-auth-fields{grid-template-columns:1fr}
+ .proxy-auth-card{padding:12px}
+ .proxy-form-footer .btn{flex:1}
+}
+
 </style>
 </head>
 <body>
@@ -765,9 +813,112 @@ function restorePreviewHash(){
 window.addEventListener('hashchange',restorePreviewHash);
 window.addEventListener('popstate',restorePreviewHash);
 function openPc(id='proxies'){s.view='pc';s.section=navs.some(n=>n[0]===id)?id:'proxies';render()}
-function openModal(title,body,action){modalAction=action;document.getElementById('modal').innerHTML=`<div class="modal-head"><h2 id="modalTitle">${esc(title)}</h2>${btn(ico('close'),'close-modal','icon-btn','aria-label="关闭"')}</div>${body}`;document.getElementById('modalShade').hidden=false;document.getElementById('modal').querySelector('input,select,button')?.focus({preventScroll:true})}
-function closeModal(){document.getElementById('modalShade').hidden=true;document.getElementById('modal').innerHTML='';modalAction=null}
-function proxyModal(id,local=false){const p=profile(id);openPc('proxies');openModal(p?'编辑代理':local?'添加本地客户端':'添加代理',`<form id="proxyForm"><div class="fields"><label class="field"><span>名称 <b style="color:#bd4658">*</b></span><input name="name" maxlength="48" value="${esc(p?.name|| (local?'本地客户端':''))}" placeholder="例如：自用代理" required autofocus></label><label class="field"><span>代理协议</span><select name="scheme"><option ${p?.scheme==='HTTP'?'selected':''}>HTTP</option><option ${p?.scheme==='HTTPS'?'selected':''}>HTTPS</option><option ${p?.scheme==='SOCKS5'||local?'selected':''}>SOCKS5</option><option ${p?.scheme==='SOCKS4'?'selected':''}>SOCKS4</option></select></label><label class="field"><span>服务器地址 <b style="color:#bd4658">*</b></span><input name="host" value="${esc(p?.host||(local?'127.0.0.1':''))}" placeholder="proxy.example.com" required></label><label class="field"><span>端口 <b style="color:#bd4658">*</b></span><input type="number" name="port" min="1" max="65535" value="${esc(p?.port||'')}" placeholder="7890" required></label></div><div class="notice below">保存仅修改本次交互预览的数据，不会自动启用代理。</div><div class="form-foot">${btn('取消','close-modal') }<button class="btn primary" type="submit">保存配置（模拟）</button></div></form>`,{type:'proxy',id:id||null})}
+let modalReturnFocus=null;
+function openModal(title,body,action){
+  const shade=document.getElementById('modalShade');
+  if(shade.hidden)modalReturnFocus=document.activeElement;
+  modalAction=action;
+  const dialog=document.getElementById('modal');
+  dialog.classList.toggle('modal--proxy',action?.type==='proxy');
+  dialog.innerHTML=`<div class="modal-head"><h2 id="modalTitle">${esc(title)}</h2>${btn(ico('close'),'close-modal','icon-btn','aria-label="关闭"')}</div>${body}`;
+  shade.hidden=false;
+  dialog.querySelector('input[autofocus],input:not([disabled]),select,button')?.focus({preventScroll:true});
+}
+function closeModal(){
+  document.getElementById('modalShade').hidden=true;
+  const dialog=document.getElementById('modal');
+  dialog.innerHTML='';
+  dialog.classList.remove('modal--proxy');
+  const wasProxy=modalAction?.type==='proxy';
+  modalAction=null;
+  const target=modalReturnFocus?.isConnected?modalReturnFocus:(wasProxy?document.querySelector('[data-action="add-proxy"]'):null);
+  target?.focus?.({preventScroll:true});
+  modalReturnFocus=null;
+}
+function validProxyHost(value){
+  const host=String(value||'').trim();
+  if(!host||host.length>253||[...host].some(ch=>ch.charCodeAt(0)<=32||'/?#@'.includes(ch))||host.includes(String.fromCharCode(92)))return false;
+  const wrapped=host.includes(':')&&!host.startsWith('[')?'['+host+']':host;
+  try{
+    const url=new URL('http://'+wrapped);
+    return !!url.hostname&&!url.username&&!url.password&&!url.port&&url.pathname==='/'&&(!host.includes(':')||url.hostname.startsWith('['));
+  }catch{return false;}
+}
+function proxyModal(id,local=false){
+  const p=profile(id),hasAuth=!!p?.auth?.hasPassword;
+  const scheme=p?.scheme||(local?'SOCKS5':'HTTP');
+  openPc('proxies');
+  openModal(p?'编辑代理':local?'添加本地客户端':'添加代理',`<form id="proxyForm" class="proxy-form" autocomplete="off" novalidate>
+    <p class="proxy-intro">设置代理连接信息。保存配置后仍需手动应用，当前页面不会连接代理服务器。</p>
+    <div class="proxy-form-main">
+      <label class="field"><span>配置名称 <span class="proxy-required" aria-hidden="true">*</span></span>
+        <input name="name" maxlength="48" value="${esc(p?.name||(local?'本地客户端':''))}" placeholder="例如：香港节点 · 主用" required autofocus></label>
+      <div>
+        <div class="proxy-connection-row">
+          <label class="field proxy-protocol-field"><span>协议 <span class="proxy-required" aria-hidden="true">*</span></span>
+            <select name="scheme" required>${['HTTP','HTTPS','SOCKS5','SOCKS4'].map(v=>`<option value="${v}" ${v===scheme?'selected':''}>${v}</option>`).join('')}</select></label>
+          <label class="field proxy-host-field"><span>服务器地址 <span class="proxy-required" aria-hidden="true">*</span></span>
+            <input name="host" maxlength="253" value="${esc(p?.host||(local?'127.0.0.1':''))}" placeholder="proxy.example.com" autocapitalize="off" autocomplete="off" spellcheck="false" required></label>
+          <label class="field proxy-port-field"><span>端口 <span class="proxy-required" aria-hidden="true">*</span></span>
+            <input type="number" name="port" min="1" max="65535" step="1" inputmode="numeric" value="${esc(p?.port||'')}" placeholder="7890" required></label>
+        </div>
+        <p class="proxy-host-hint">地址支持域名、IPv4 或 IPv6；请勿包含协议前缀、端口和路径。</p>
+      </div>
+      <section class="proxy-auth-card" aria-label="账号密码认证（可选）">
+        <div class="proxy-auth-header"><div class="proxy-auth-heading"><strong>账号密码</strong><span class="proxy-optional">可选</span></div>
+          <label class="proxy-auth-check"><input id="proxyAuthToggle" type="checkbox" name="authEnabled" value="1" ${hasAuth?'checked':''}><span>使用认证</span></label></div>
+        <p class="proxy-auth-subtitle">仅在代理服务要求用户名、密码时启用。</p>
+        <div id="proxyAuthFields" class="proxy-auth-fields" ${hasAuth?'':'hidden'}>
+          <label class="field"><span>用户名</span><input id="proxyUsername" name="username" maxlength="128" value="${esc(p?.auth?.username||'')}" placeholder="代理账号" autocomplete="off" ${hasAuth?'':'disabled'}></label>
+          <div class="field"><label for="proxyPassword">密码</label><div class="proxy-password-wrap">
+            <input id="proxyPassword" type="password" name="password" maxlength="256" placeholder="${hasAuth?'已填写 · 留空保持状态':'请输入认证密码'}" autocomplete="new-password" ${hasAuth?'':'disabled'}>
+            <button class="proxy-password-toggle" type="button" data-action="proxy-password" aria-controls="proxyPassword" aria-pressed="false">显示</button>
+          </div></div>
+        </div>
+        <p class="proxy-auth-help" id="proxyPasswordHelp">安全提示：这是离线预览，仅记录是否填写密码，不保留密码内容。请勿输入真实凭据。</p>
+      </section>
+    </div>
+    <p id="proxyFormError" class="proxy-form-error" role="alert" hidden></p>
+    <p class="proxy-form-note">保存仅修改本次预览数据，不会启用代理；实际协议与认证兼容性需在正式扩展中验证。</p>
+    <div class="form-foot proxy-form-footer">${btn('取消','close-modal')}<button class="btn primary" type="submit">${p?'保存修改（模拟）':'添加代理（模拟）'}</button></div>
+  </form>`,{type:'proxy',id:id||null});
+  syncProxyAuth(document.getElementById('proxyForm'));
+}
+function syncProxyAuth(form){
+  if(!form)return;
+  const enabled=form.elements.authEnabled.checked;
+  const configured=!!profile(modalAction?.id)?.auth?.hasPassword;
+  form.querySelector('#proxyAuthFields').hidden=!enabled;
+  for(const field of [form.elements.username,form.elements.password])field.disabled=!enabled;
+  form.elements.username.required=enabled;
+  form.elements.password.required=enabled&&!configured;
+}
+function proxyFormError(form,message,name){
+  const feedback=form.querySelector('#proxyFormError');
+  feedback.textContent=message;
+  feedback.hidden=false;
+  const control=form.elements.namedItem(name);
+  if(control){control.setAttribute('aria-invalid','true');control.focus();}
+}
+function saveProxyPreview(form,values){
+  const name=String(values.name||'').trim(),host=String(values.host||'').trim();
+  const rawPort=String(values.port||'').trim(),port=Number(rawPort),scheme=String(values.scheme||'');
+  if(!name||name.length>48)return proxyFormError(form,'请输入 1–48 个字符的配置名称。','name');
+  if(!['HTTP','HTTPS','SOCKS5','SOCKS4'].includes(scheme))return proxyFormError(form,'请选择有效的代理协议。','scheme');
+  if(!validProxyHost(host))return proxyFormError(form,'请输入有效的域名或 IP 地址，不要包含协议头、端口和路径。','host');
+  if(!/^[0-9]{1,5}$/.test(rawPort)||!Number.isInteger(port)||port<1||port>65535)return proxyFormError(form,'端口必须是 1–65535 之间的整数。','port');
+  const old=profile(modalAction?.id),authEnabled=!!form.elements.authEnabled.checked;
+  const username=String(values.username||'').trim(),password=String(values.password||'');
+  if(authEnabled&&!username)return proxyFormError(form,'使用认证时请填写用户名。','username');
+  if(authEnabled&&!password&&!old?.auth?.hasPassword)return proxyFormError(form,'使用认证时请填写密码。','password');
+  // Password content is intentionally discarded; only a boolean marker is used in this preview.
+  const auth=authEnabled?{username,hasPassword:true}:null;
+  if(old)Object.assign(old,{name,host,port,scheme,auth});
+  else s.profiles.push({id:'p'+(++nextId),name,host,port,scheme,auth,favorite:false});
+  form.elements.password.value='';
+  s.dirty=true;closeModal();s.scene='normal';render();
+  toast('代理配置已保存（模拟），尚未应用');
+}
 function ruleModal(id,quick=false){openPc('rules');const r=s.rules.find(r=>r.id===id);openModal(r?'编辑网站规则':'添加网站规则',`<form id="ruleForm"><div class="fields"><label class="field span2"><span>网站域名 <b style="color:#bd4658">*</b></span><input name="domain" value="${esc(r?.domain||(quick?s.site:''))}" placeholder="example.com" required maxlength="253" autofocus></label><label class="field"><span>匹配范围</span><select name="scope"><option value="exact" ${!r?.includeSubdomains?'selected':''}>仅此域名</option><option value="sub" ${r?.includeSubdomains?'selected':''}>域名及其子域</option></select></label><label class="field"><span>使用线路</span><select name="target"><option value="direct" ${r?.target==='direct'?'selected':''}>直连</option>${s.profiles.map(p=>`<option value="${esc(p.id)}" ${r?.target===p.id?'selected':''}>${esc(p.name)}</option>`).join('')}</select></label><label class="field"><span>优先级</span><input type="number" name="priority" min="1" max="9999" value="${r?.priority||10}" required></label><label class="field" style="justify-content:end"><span class="checklabel"><input type="checkbox" name="enabled" ${!r||r.enabled?'checked':''}> 启用规则</span></label></div><div class="form-foot">${btn('取消','close-modal')}<button type="submit" class="btn primary">保存规则（模拟）</button></div></form>`,{type:'rule',id:id||null})}
 function addSub(){openPc('thirdparty');openModal('导入订阅来源',`<form id="subForm"><div class="fields"><label class="field span2"><span>来源名称</span><input name="name" placeholder="例如：我的订阅" maxlength="48" required autofocus></label><label class="field span2"><span>订阅 URL</span><input name="url" type="url" placeholder="https://example.com/subscription" required></label></div><div class="notice warn below">仅保存 URL 文本，不下载配置或联网请求。</div><div class="form-foot">${btn('取消','close-modal')}<button class="btn primary" type="submit">保存来源（模拟）</button></div></form>`,{type:'sub'})}
 function apply(){if(['conflict','unknown'].includes(s.scene)){openPc('diagnostics');toast('无法确认代理控制状态，请先核查');return}if(s.mode==='profile'&&!profile(s.selected)){toast('请先选择代理');return}s.applied=true;s.scene='normal';s.activeMode=s.mode;if(s.mode==='profile')s.activeProfile=s.selected;s.dirty=false;render();toast('配置已应用到预览（模拟）；没有修改真实浏览器')}
@@ -785,12 +936,34 @@ case'diag-speed':diagnosticSpeedStart(id);break;
 case'diag-cancel':diagnosticCancel();break;
 case'diag-remove-site':{const x=s.diagSites.find(x=>x.id===id&&x.custom);if(x){s.diagSites=s.diagSites.filter(item=>item.id!==id);delete s.diagRecords[id];render()}break}
 case'probe':if(s.section==='diagnostics'&&!diagnosticReady()){toast(diagnosticMessage()||'请先启用并应用配置');break;}s.diagRan=true;s.diagnosticCount++;render();toast('模拟检测已完成，没有请求网络');break;default:break}});
-document.getElementById('modalShade').addEventListener('click',e=>{if(e.target.id==='modalShade')closeModal();const el=e.target.closest('[data-action]');if(!el)return;const a=el.dataset.action;const id=el.dataset.id;if(a==='close-modal')closeModal();else if(a==='open-rules'){closeModal();openPc('rules')}else if(a==='confirm-delete'){const kind=el.dataset.kind;if(kind==='proxy')s.profiles=s.profiles.filter(x=>x.id!==id);else if(kind==='rule')s.rules=s.rules.filter(x=>x.id!==id);else if(kind==='sub')s.subs=s.subs.filter(x=>x.id!==id);closeModal();s.dirty=true;render();toast('已从本次预览内存删除')}});
-document.getElementById('modalShade').addEventListener('submit',e=>{e.preventDefault();const form=e.target,values=Object.fromEntries(new FormData(form));if(form.id==='proxyForm'){const name=String(values.name||'').trim(),host=String(values.host||'').trim(),port=Number(values.port),scheme=String(values.scheme||'HTTP');if(!name||!host||!Number.isInteger(port)||port<1||port>65535){toast('请检查名称、地址、端口');return}const p=profile(modalAction?.id);if(p){Object.assign(p,{name,host,port,scheme})}else{s.profiles.push({id:'p'+(++nextId),name,host,port,scheme,favorite:false})}s.dirty=true;closeModal();s.scene='normal';render();toast('代理配置已保存（模拟），尚未应用')}else if(form.id==='ruleForm'){const domain=String(values.domain||'').trim().toLowerCase(),priority=Number(values.priority);if(!/^[a-z0-9.-]+$/.test(domain)||!Number.isInteger(priority)||priority<1||priority>9999){toast('请检查域名及优先级');return}let r=s.rules.find(r=>r.id===modalAction?.id);if(!r){r={id:'r'+(++nextId)};s.rules.push(r)}Object.assign(r,{domain,priority,target:values.target,includeSubdomains:values.scope==='sub',enabled:!!form.elements.enabled.checked});closeModal();s.dirty=true;render();toast('网站规则已保存（模拟），尚未应用')}else if(form.id==='subForm'){try{const url=new URL(String(values.url||''));if(url.protocol!=='https:')throw Error('请使用 HTTPS 订阅地址');const name=String(values.name||'').trim();if(!name)throw Error('请输入名称');s.subs.push({id:'s'+(++nextId),name,url:url.href,enabled:true});closeModal();render();toast('订阅来源已保存（模拟），未联网同步')}catch(e){toast(e.message)}}});
+document.getElementById('modalShade').addEventListener('click',e=>{if(e.target.id==='modalShade')closeModal();const el=e.target.closest('[data-action]');if(!el)return;const a=el.dataset.action;const id=el.dataset.id;if(a==='close-modal')closeModal();else if(a==='proxy-password'){const field=document.getElementById('proxyPassword');if(!field)return;const show=field.type==='password';field.type=show?'text':'password';el.textContent=show?'隐藏':'显示';el.setAttribute('aria-pressed',String(show));}else if(a==='open-rules'){closeModal();openPc('rules')}else if(a==='confirm-delete'){const kind=el.dataset.kind;if(kind==='proxy')s.profiles=s.profiles.filter(x=>x.id!==id);else if(kind==='rule')s.rules=s.rules.filter(x=>x.id!==id);else if(kind==='sub')s.subs=s.subs.filter(x=>x.id!==id);closeModal();s.dirty=true;render();toast('已从本次预览内存删除')}});
+document.getElementById('modalShade').addEventListener('submit',e=>{e.preventDefault();const form=e.target,values=Object.fromEntries(new FormData(form));if(form.id==='proxyForm'){saveProxyPreview(form,values)}else if(form.id==='ruleForm'){const domain=String(values.domain||'').trim().toLowerCase(),priority=Number(values.priority);if(!/^[a-z0-9.-]+$/.test(domain)||!Number.isInteger(priority)||priority<1||priority>9999){toast('请检查域名及优先级');return}let r=s.rules.find(r=>r.id===modalAction?.id);if(!r){r={id:'r'+(++nextId)};s.rules.push(r)}Object.assign(r,{domain,priority,target:values.target,includeSubdomains:values.scope==='sub',enabled:!!form.elements.enabled.checked});closeModal();s.dirty=true;render();toast('网站规则已保存（模拟），尚未应用')}else if(form.id==='subForm'){try{const url=new URL(String(values.url||''));if(url.protocol!=='https:')throw Error('请使用 HTTPS 订阅地址');const name=String(values.name||'').trim();if(!name)throw Error('请输入名称');s.subs.push({id:'s'+(++nextId),name,url:url.href,enabled:true});closeModal();render();toast('订阅来源已保存（模拟），未联网同步')}catch(e){toast(e.message)}}});
+
+document.getElementById('modalShade').addEventListener('change',e=>{
+  if(e.target.id==='proxyAuthToggle')syncProxyAuth(e.target.form);
+});
+document.getElementById('modalShade').addEventListener('input',e=>{
+  const form=e.target.closest('#proxyForm');if(!form)return;
+  e.target.removeAttribute('aria-invalid');
+  const feedback=form.querySelector('#proxyFormError');
+  feedback.hidden=true;feedback.textContent='';
+});
+
 document.getElementById('app').addEventListener('submit',e=>{if(e.target.id==='diagnosticAddSite'){e.preventDefault();diagnosticAddSite(e.target.elements.host.value)}});
 document.getElementById('app').addEventListener('change',e=>{const el=e.target,kind=el.dataset.change;if(kind==='rule-enabled'){const r=s.rules.find(r=>r.id===el.dataset.id);if(r){r.enabled=el.checked;s.dirty=true;render();toast('规则已更新，待应用')}}else if(kind==='rule-priority'){const r=s.rules.find(r=>r.id===el.dataset.id);const v=Number(el.value);if(r&&Number.isInteger(v)&&v>=1&&v<=9999){r.priority=v;s.dirty=true;render();toast('优先级已更新，待应用')}else if(r){el.value=r.priority}}else if(el.id==='ruleDefaultRoute'){if(el.value==='direct'||s.profiles.some(p=>p.id===el.value)){s.ruleDefault=el.value;s.dirty=true;render();toast('默认路由已保存，等待明确应用')}}else if(el.id==='diagOutcome'){if(diagnosticOutcomes()[el.value])s.diagOutcome=el.value}else if(el.id==='diagSpeedScenario'){if(['normal','slow','timeout'].includes(el.value))s.diagSpeedScenario=el.value}else if(kind==='diagnostic-pick'){const x=s.diagSites?.find(x=>x.id===el.dataset.id);if(x){x.selected=el.checked;render()}}else if(kind==='diagnostic-priority'){const x=s.diagSites?.find(x=>x.id===el.dataset.id);if(x){x.priority=Number(el.value)===2?2:1;render()}}else if(el.id==='diagScenario'){s.diagScenario=el.value;s.diagRan=false;toast('已设置下一次模拟探测情景')}else if(el.id==='diagScene'){s.scene=el.value;s.diagRan=false;render()}else if(el.id==='language'){s.language=el.value;toast('语言偏好已记录，本便携预览仍使用简体中文')}else if(el.id==='startup'){s.startup=el.checked;toast('预览偏好已更新')}});
 document.querySelectorAll('[data-compare]').forEach(el=>el.addEventListener('click',()=>{s.compare=el.dataset.compare;render()}));document.getElementById('scene').addEventListener('change',e=>{switchSerial++;s.switching=null;s.scene=e.target.value;if(s.scene==='empty'){s.applied=false;s.mode='profile';s.selected=''}else if(s.scene==='normal'){s.applied=true;s.mode='profile';s.selected=s.profiles[0]?.id||'';s.activeMode='profile';s.activeProfile=s.selected}else s.applied=false;s.diagRan=false;render()});
-document.getElementById('reset').addEventListener('click',()=>{switchSerial++;diagSerial++;if(diagBatch){clearTimeout(diagBatchTimer);diagBatch=null}if(diagSpeedTask){clearTimeout(diagSpeedTimer);diagSpeedTask=null}s=fresh();sidePos=0;closeModal();render();toast('已恢复初始预览')});document.addEventListener('keydown',e=>{if(e.key==='Escape'&&!document.getElementById('modalShade').hidden)closeModal()});
+document.getElementById('reset').addEventListener('click',()=>{switchSerial++;diagSerial++;if(diagBatch){clearTimeout(diagBatchTimer);diagBatch=null}if(diagSpeedTask){clearTimeout(diagSpeedTimer);diagSpeedTask=null}s=fresh();sidePos=0;closeModal();render();toast('已恢复初始预览')});document.addEventListener('keydown',e=>{
+  const shade=document.getElementById('modalShade');
+  if(shade.hidden)return;
+  if(e.key==='Escape'){e.preventDefault();closeModal();return}
+  if(e.key!=='Tab')return;
+  const fields=[...shade.querySelectorAll('button:not([disabled]),input:not([disabled]),select:not([disabled]),textarea:not([disabled])')]
+    .filter(el=>el.getClientRects().length>0);
+  if(!fields.length)return;
+  const first=fields[0],last=fields[fields.length-1],focused=document.activeElement;
+  if(e.shiftKey&&(focused===first||!shade.contains(focused))){e.preventDefault();last.focus()}
+  else if(!e.shiftKey&&(focused===last||!shade.contains(focused))){e.preventDefault();first.focus()}
+});
 restorePreviewHash();
 })();
 </script>
