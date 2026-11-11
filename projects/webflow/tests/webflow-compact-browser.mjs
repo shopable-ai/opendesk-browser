@@ -229,8 +229,8 @@ try{
     }
     await eventually('document.querySelectorAll(".wf-task-row .wf-badge[data-state=available]").length===2','two fixed tasks checked');
     await eventually(`!!document.querySelector(${JSON.stringify('button[aria-label^="准备运行 "]:not(:disabled)')})`,'recovery and current page ready');
-    assert.equal(await evaluate('document.querySelectorAll(".wf-item-buttons button:disabled").length'),1,
-      'Wrong-site run remains disabled: '+JSON.stringify(await evaluate('[...document.querySelectorAll(".wf-item-buttons button:disabled")].map(e=>({name:e.getAttribute("aria-label"),title:e.title}))')));
+    assert.equal(await evaluate('document.querySelectorAll(".wf-item-buttons button:disabled").length'),0,
+      'Trusted configuration may open on another website; RunHost still validates the actual target before execution');
     assert.ok(await evaluate('[...document.querySelectorAll(".wf-icon")].every(e=>e.getAttribute("aria-label")&&e.title)'),
       'Icon controls expose names and native title hints');
     await assertLayout(width,'Scripts');

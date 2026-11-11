@@ -38,7 +38,7 @@ function sdk(){
         (api.taskRead?api.taskRead(args.taskId):{task:api.pins.find(p=>p.taskId===args.taskId)}):api.read(args.clientRequestId);
       if(name==='tasks.start')return api.start(args.clientRequestId,args);
       if(name==='tasks.stop')return api.stop(args.clientRequestId);
-      if(name==='tasks.open')return {opened:true};
+      if(name==='tasks.open'||name==='tasks.configure')return {opened:true};
       throw Error('Unexpected operation '+name);
     }};
   return api;
@@ -95,6 +95,21 @@ async function mount(t,host=sdk()){
   return f;
 }
 
+test('script play and more menu request only the shared trusted Task sheet',async t=>{
+  const host=sdk(),f=await mount(t,host);
+  await f.click('脚本');
+  const card=taskCard(f);
+  await f.click('运行',card);
+  assert.deepEqual(host.calls.filter(x=>x.name==='tasks.configure').map(x=>x.args),
+    [{taskId:'baidu.search.top3'}]);
+  assert.equal(starts(host).length,0);
+  assert.equal(host.store.has('webflow.pending.v1'),false);
+  await f.click('更多操作：百度搜索 · 前三条自然结果',card);
+  await f.click('配置参数',card);
+  assert.equal(host.calls.filter(x=>x.name==='tasks.configure').length,2);
+  assert.equal(starts(host).length,0);
+  assert.deepEqual(f.errors,[]);
+});
 test('opening Web Flow recognizes the verified Baidu upgrade by its exact package identity',async t=>{
   const pkg=JSON.parse(readFileSync(new URL('../../../examples/tasks/baidu.search.top3.v1.opendesk-task.json',import.meta.url),'utf8'));
   const host=sdk();
