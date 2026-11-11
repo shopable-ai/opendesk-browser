@@ -80,7 +80,9 @@ test('stop binds persisted source and task ID; a wrong response cannot expose a 
     assert.equal(h.calls.at(-1).sourceTabId,7);
     assert.equal(h.calls.at(-1).sourceDocumentId,'original-document');
     assert.equal(h.calls.at(-1).projectId,'project-1');
-    assert.match(h.get('status').textContent,/已停止/);
+    assert.match(h.get('status').textContent,/停止请求已接收/);
+    assert.match(h.get('status').textContent,/已派发副作用仍以真实回执为准/);
+    assert.doesNotMatch(h.get('status').textContent,/任务已停止/);
     h.get('review').fire();await settle();
     assert.equal(h.calls.at(-1).action,'project-review');
   }finally{h.destroy();}
@@ -135,7 +137,9 @@ for(const order of ['before-response','after-response'])test(`Stop settlement su
   try{
     await settle();h.choose();h.get('stop').fire();await settle();
     await finishStop();await settle();await settle();
-    assert.match(h.get('status').textContent,/已停止/);
+    assert.match(h.get('status').textContent,/停止请求已接收/);
+    assert.match(h.get('status').textContent,/已派发副作用仍以真实回执为准/);
+    assert.doesNotMatch(h.get('status').textContent,/任务已停止/);
     assert.equal(h.get('stop').disabled,false);
     assert.deepEqual(h.calls.map(x=>x.action),['project-list','project-stop','project-status']);
     assert.deepEqual(h.calls.at(-1),{protocol:'opendesk.chatgpt.project.v1',action:'project-status',sourceTabId:7,sourceDocumentId:task.sourceDocumentId,projectId:task.projectId});
