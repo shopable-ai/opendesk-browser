@@ -13,6 +13,9 @@ button:focus-visible,select:focus-visible,textarea:focus-visible,input:focus-vis
 .clip button.clip-outline{background:var(--paper)}.clip-page-title{font-size:12px;color:var(--sub);margin:0 0 10px;white-space:nowrap;text-overflow:ellipsis;overflow:hidden}
 .clip-modes{display:flex;gap:3px;padding:3px;border-radius:9px;border:1px solid var(--edge);background:var(--layer);margin-bottom:9px}
 .clip-modes button{flex:1;min-width:0;border:0;background:transparent;color:var(--sub);font-size:12px}
+/* R2: five reachable modes even at 320px; full-width primary action remains below. */
+.clip-modes{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:2px}
+.clip-modes button{padding:5px 2px;min-width:0;white-space:nowrap}
 .clip-modes button[aria-pressed=true],.clip-actions button[aria-pressed=true]{background:var(--paper);color:var(--brand);box-shadow:0 1px 3px color-mix(in srgb,var(--od-ink) 12%,transparent);font-weight:700}
 .clip .clip-fetch{width:100%;min-height:38px}.clip-hint{font-size:11px;line-height:1.55;color:var(--sub);margin:7px 0 10px}
 .clip-actions{margin:10px 0 7px;flex-wrap:wrap}.clip-actions button{font-size:12px}
