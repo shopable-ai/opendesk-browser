@@ -11,6 +11,7 @@
 - [共享纯模型](../src/insight-core.js)：只服务 R5 确定性计算和交互原型；没有 SDK/Host 权限，也不是生产采集器。
 - [测试](../tests/insight-contract.test.mjs)：Node 内建 `node:test`；运行结果必须与本机执行回执绑定，不因文件存在标 PASS。
 - [交互预览](../preview/index.html)：读取纯模型、模拟状态；只有本站项目文件，没有外部网络、存储或历史会话读取。
+- [R5.5 指标/交互深化](metrics-and-experience-r55.zh-CN.md) 是**产品展示层的增量设计**：12 P0 / 9 P1 / 5 P2 指标字段字典与三端信息架构；不新增 R5 Schema 版本或改变 `intervalMetrics` 真值规则。
 
 **责任分离**：未来可信页面适配器采集 O 级事件；数据合同持有身份与规范；纯聚合器派生 D；用户审阅产生 C；独立的实际测试/回执可能产生 V。知识、Prompt、浏览器活动时间、任务执行等仍由原有模块持有，AI Insight 只引用有权使用的来源身份与回执，不接管源数据库或加第二套 Host。
 
