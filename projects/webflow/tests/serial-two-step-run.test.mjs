@@ -25,8 +25,13 @@ function harness(options={}){
     readB:async()=>{stats.readB++;return completedB?{verified:true,operationKey:'wf-task-0001',
       runId:'run-00000001',resultId:'result-000001',resultRef:{kind:'durable-result',id:'result-000001',sha256:SHA}}:null;},
     deliverA:async()=>{stats.deliver++;if(options.deliveryUnknown)throw Error('lost ack');},
-    readA:async()=>{stats.readA++;return completedA?{verified:true,deliveryKey:'wf-delivery-0001',
-      messageId:'message-00001',deliveryRef:{kind:'message',id:'message-00001',sha256:SHA},aiReplyObserved:false}:null;}});
+    readA:async run=>{stats.readA++;if(!completedA)return null;
+      const proof={verified:true,deliveryKey:run.input.deliveryKey,
+        source:structuredClone(run.input.source),authorizationRef:run.input.authorizationRef,
+        bRunId:run.bProof.runId,bResultId:run.bProof.resultId,
+        messageId:'message-00001',contentSha256:SHA,
+        deliveryRef:{kind:'message',id:'message-00001',sha256:SHA},aiReplyObserved:false};
+      return options.mutateAProof?.(proof)??proof;}});
   return {data,stats,make,setAuthorized:v=>{authorized=v},setOwner:v=>{owner=v},
     setCompletedB:v=>{completedB=v},setCompletedA:v=>{completedA=v}};
 }
@@ -108,6 +113,25 @@ test('A lost ACK and restart cannot resend',async()=>{
   const restart=h.make();
   assert.equal((await restart.advance(i.workflowId)).phase,'DONE');
   assert.equal(h.stats.deliver,1);
+});
+
+test('readA rejects mismatched A source, authorization, B result or observed content SHA',async()=>{
+  for(const mutateAProof of [
+    p=>({...p,source:{...p.source,documentId:'forged-document'}}),
+    p=>({...p,authorizationRef:'forged-grant-id'}),
+    p=>({...p,bRunId:'forged-run-id'}),
+    p=>({...p,bResultId:'forged-result-id'}),
+    p=>({...p,contentSha256:'b'.repeat(64)}),
+    p=>({...p,deliveryRef:{...p.deliveryRef,id:'forged-message-id'}})
+  ]){
+    const h=harness({mutateAProof}),i=input(),w=h.make();await w.start(i);
+    await toBVerified(w,i.workflowId);await w.advance(i.workflowId);
+    await assert.rejects(w.advance(i.workflowId),{code:'E_SERIAL_A_PROOF'});
+    const saved=await w.get(i.workflowId);
+    assert.equal(saved.phase,'A_INTENT_RECORDED');
+    assert.equal(saved.aProof,null);
+    assert.equal(h.stats.deliver,1);
+  }
 });
 
 test('A absent after original attempt stays unknown on repeated recovery',async()=>{

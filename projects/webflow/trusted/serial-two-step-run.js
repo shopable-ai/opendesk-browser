@@ -39,12 +39,20 @@ function resultProof(proof,run){
 }
 function deliveryProof(proof,run){
   if(!plain(proof)||proof.verified!==true||proof.deliveryKey!==run.input.deliveryKey||
+    !plain(proof.source)||canonical(proof.source)!==canonical(run.input.source)||
+    proof.authorizationRef!==run.input.authorizationRef||
+    !run.bProof||proof.bRunId!==run.bProof.runId||
+    proof.bResultId!==run.bProof.resultId||
     !validId(proof.messageId)||!plain(proof.deliveryRef)||
-    !validKind(proof.deliveryRef.kind)||!validId(proof.deliveryRef.id)||!SHA.test(proof.deliveryRef.sha256))
+    !validKind(proof.deliveryRef.kind)||!validId(proof.deliveryRef.id)||
+    !SHA.test(proof.deliveryRef.sha256)||proof.contentSha256!==proof.deliveryRef.sha256||
+    (proof.deliveryRef.kind==='message'&&proof.deliveryRef.id!==proof.messageId))
     fail('E_SERIAL_A_PROOF');
-  // Exact source tab/document, account, draft/IME and user-message checks
-  // must be performed by the original trusted site delivery adapter.
+  // The site adapter must independently inspect the real source A message.
+  // An ACK or a caller-claimed digest alone must never complete this flow.
   return copy({messageId:proof.messageId,deliveryRef:proof.deliveryRef,
+    contentSha256:proof.contentSha256,bRunId:proof.bRunId,bResultId:proof.bResultId,
+    authorizationRef:proof.authorizationRef,deliveryKey:proof.deliveryKey,
     aiReplyObserved:proof.aiReplyObserved===true});
 }
 
