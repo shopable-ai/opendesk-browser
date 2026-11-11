@@ -16,9 +16,12 @@ function fixture(overrides = {}) {
   const effects = [], errors = [], focuses = [], notices = [];
   const context = {
     getEnvironment:()=>({getDraftRevision:()=>0,setDraftDirty:()=>true}),
+    presentation: 'sidebar',
     editingId: '', proxy: { name: 'Draft', scheme: 'https', host: 'proxy.example.com', port: '443' },
     username: '', password: '', endpoints: [], locale: 'zh-CN', emptyEndpoint: {},
-    editorDialog: {current: {querySelector: selector => selector === '#ep-host' ? {focus: () => focuses.push('host')} : null}},
+    editorDialog: {current: {querySelector: selector =>
+      selector === '#ep-host' ? {focus: () => focuses.push('host')} :
+      selector === '#ep-name' ? {focus: () => focuses.push('name')} : null}},
     crypto: { randomUUID: () => { effects.push('uuid'); return 'new'; } },
     isValidProxyPort,
     setError: value => errors.push(value), setErrorKey: value => errors.push(value),
@@ -140,4 +143,13 @@ test('save-another safely skips focus when the editor ref is detached', async ()
   const f = fixture({editorDialog: {current: null}});
   await assert.doesNotReject(() => f.submit(true));
   assert.deepEqual(f.focuses, []);
+});
+
+test('PC save-and-add-another focuses first name field; Side Panel continues focusing host',async()=>{
+ const pc=fixture({presentation:'management'});
+ await pc.submit(true);
+ assert.deepEqual(pc.focuses,['name']);
+ const side=fixture({presentation:'sidebar'});
+ await side.submit(true);
+ assert.deepEqual(side.focuses,['host']);
 });
