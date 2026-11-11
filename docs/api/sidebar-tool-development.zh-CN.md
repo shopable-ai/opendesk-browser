@@ -156,7 +156,8 @@
 | --- | --- | --- |
 | `storage.local` | `storage.get`、`storage.set` | 工具 ID 专属存储，单项 JSON ≤8,192 bytes、最多 32 键、总 JSON ≤32,768 bytes；支持条件写入 `withEtag/ifMatch` |
 | `currentPage.read` | `currentPage.info` | 当前可信目标的普通网页标题与 URL；不返回 DOM、Cookie、完整正文 |
-| `tasks.open` | `tasks.open` | 导航到已安装且已启用任务的 UI；不等于启动任务 |
+| `tasks.open` | `tasks.open` | 打开已安装任务管理或未安装候选的审阅；不启动任务 |
+| `tasks.open`（还须随 v2 审阅固定 `delegatedTasks`） | `tasks.configure`：`{taskId}` | 仅原始用户点击发起，可信 Host 校验固定 Task 安装版本、工具/Task 授权和来源，直接在同一 React Root 打开共享参数抽屉。只是 UI 操作；不允许沙箱注入组件、脚本、任意网页目标或自动发起 Run。 |
 | `user.export` | `clipboard.writeText`、`file.download` | 用户操作后复制或下载纯文本；上限 150 KB，文件名仅允许安全的 `.md` / `.txt` / `.json`；浏览器可能拒绝剪贴板 |
 
 **仅在已有官方可信服务存在、并取得额外授权时才可用的专项能力**：`page.toc`（目录服务）、`page.clip`（文章/选区剪藏）、`page.capture` 与 `knowledge.store`（知识收件箱官方专用）。这些名字即使在 schema 允许列表中，也**不代表第三方小工具可获得任意网页访问、后台调用、任意 Native 文件写入或通用数据采集**。扩展新 capability 需要先实现受信宿主、精确消息合同、用户批准、撤权和负向测试，不靠文档或 JSON 声明虚构运行能力。

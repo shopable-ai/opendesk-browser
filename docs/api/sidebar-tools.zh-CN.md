@@ -452,6 +452,7 @@ Host→app 复用 `navigation-action`，root 的 `opendesk-tool-navigation` 新 
 | `storage.local` | `storage.set`：`{key,value,ifMatch?}` | `{saved:true}`；若提供 `ifMatch`，按相同工具 Web Lock 下的 ETag 防冲突写入 |
 | `currentPage.read` | `currentPage.info` | `{status:'available',title,url}` 或 `{status:'unavailable',message}`；只提供当前目标标题/URL |
 | `tasks.open` | `tasks.open`：`{taskId}` | 已安装（含停用）任务聚焦原「我的」管理；未安装则打开原全页任务目录，优先预选同 taskId 最新可用固定候选，否则预选其最新待审阅候选；无候选时提示导入/初始化并可恢复。不接受 URL，不隐式安装、启用、运行或停止任务 |
+| `tasks.open` + v2 固定 `delegatedTasks` | `tasks.configure`：`{taskId}` | **UI-only**：仅针对当前工具已审阅、真实安装且启用、固定版本与 hash 完全匹配的 Task。可信 Host 必须在接收原始 iframe 点击消息时取得用户激活，重核工具包/撤权代次和 Task 身份，然后在**原 React Root** 打开共享 `TaskRunSheet`；不跳转「我的」、不销毁工具 iframe、不接受代码/参数/目标 URL、**不启动 RunHost**，成功仅返回 `{opened:true}`。Web Flow 模式的参数保存、读回、最终确认另走 TaskWorkbench 可信检查。 |
 | `user.export` | `browser.clipboard.writeText`：`{text}` | 环境允许时复制纯文本，成功返回 `{copied:true}` |
 | `user.export` | `browser.downloads.text`：`{text,filename}` | 请求 Chrome 下载安全文件名的 `.md` / `.txt` / `.json` / `.csv` 纯文本；返回 `{started:true}` 仅表示下载已发起，不证明真实落盘 |
 

@@ -15,7 +15,7 @@ const MARKET_CAPABILITY_UI=Object.freeze({
   'storage.local':['本机应用数据','保存此应用的本地配置与资料','data'],
   'browser.storage':['浏览器存储','通过受控 SDK 使用浏览器存储','data'],
   'currentPage.read':['当前网页内容','在授权范围内读取当前页面','web'],
-  'tasks.open':['打开任务','通过受控入口打开任务','tool'],
+  'tasks.open':['打开任务','打开已安装任务管理或获准任务的可信参数抽屉；本能力本身不执行任务','tool'],
   'page.toc':['页面目录','读取文章结构并生成目录','web'],
   'page.clip':['网页摘录','提取并保存网页选定内容','web'],
   'page.capture':['网页内容捕获','在授权后捕获当前网页信息','web'],

@@ -449,7 +449,7 @@ function createSidebarToolsController({api=globalThis.chrome,doc=globalThis.docu
     'storage.local':'保存此工具的数据',
     'currentPage.read':'读取当前网页标题和地址',
     'browser.page.environment.read':'只读检测已授权当前网页的 UA、语言、时区、视口、屏幕及像素比',
-    'tasks.open':'打开任务管理或安装审阅',
+    'tasks.open':'打开任务管理、安装审阅或已授权固定任务的可信参数抽屉（仅 UI）',
     'tasks.run':'运行已审阅的固定任务、读取结果及停止原实例',
     'controllers.run':'运行应用包内已审阅的网页自动化、读取结果及停止原实例',
     'page.toc':'读取已授权网站的目录、定位章节和显示网页目录',
