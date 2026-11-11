@@ -13,6 +13,10 @@
 .filterpop button{border:0;background:transparent;border-radius:6px;color:var(--ink);text-align:left;font-size:11px;padding:8px 10px}
 .filterpop button[aria-pressed="true"]{color:var(--brand);font-weight:700;background:var(--brandsoft)}
 .filterpop button:hover,.filterpop button:focus-visible{background:var(--brandsoft)}
+.demo-import-drop{border:1px dashed #a8b7d5;background:#f7faff;border-radius:10px;padding:11px;display:grid;gap:8px;outline-offset:3px}
+.demo-import-drop[data-over="true"]{border-style:solid;border-color:#4165d8;background:#eef3ff}
+.demo-import-drop input{font-size:11px;max-width:100%}
+.demo-import-result{font-size:11px;color:#4b628d;white-space:pre-wrap;overflow-wrap:anywhere}
 </style>
 </head>
 <body><div class="wrap">
@@ -57,7 +61,7 @@ if(state.step==='ways') b.innerHTML=`<p class="subtle">选择你现在拥有的�
 else if(state.step==='existing') b.innerHTML=`<div class="callout warn"><b>当前限制：</b>真实 Web Flow 是固定任务委托，不支持从沙箱任意枚举并关联所有已安装任务。下方只演示已声明的 2 个 Task。</div><div class="items">${DATA.map(x=>`<div class="item"><div class="taskicon">${x.letter}</div><div class="text"><b>${x.name}</b><small>${x.id}</small></div><button class="btn" data-info="${x.id}">核对</button></div>`).join('')}</div><button class="btn ghost" data-way="advanced">为什么不能直接关联其它 Task？</button>`;
 else if(state.step==='new')b.innerHTML=`<div class="steps"><div class="step"><span class="number">1</span><span>顶部选择「开发」→ Controller JavaScript 或本地 Controller 项目。</span></div><div class="step"><span class="number">2</span><span>编写脚本，在获准网站明确点击 Run，核对真实结果与停止行为。</span></div><div class="step"><span class="number">3</span><span>生成固定候选并验证，由可信宿主确认安装，任务归「我的」管理。</span></div><div class="step"><span class="number">4</span><span>当前固定委托需由开发者更新 Web Flow 的审阅任务清单；未来可用可信任务关联。</span></div></div><div class="actions"><button class="btn" data-way="codex">使用 Codex 协助</button><button class="btn primary" data-go-dev="1">查看开发入口（模拟）</button></div><div class="callout">不能把「运行草稿」误认为「已安装」。保存源代码不会自动执行或安装。</div>`;
 else if(state.step==='codex')b.innerHTML=`<label class="field">我要自动化完成什么？<textarea id="goal" placeholder="例如：打开指定网站，读取第一个页面标题并提取前三条数据">${esc(state.draftGoal)}</textarea></label><label class="field">目标网站<input id="target" value="${esc(state.draftTarget)}" placeholder="https://example.com/"></label><div class="actions"><button class="btn" id="previewPrompt">查看生成内容</button><button class="btn primary" id="copyPrompt">复制 Codex 提示词</button></div><div class="callout">只复制任务说明，不连接你的 Codex 会话、不读取本地文件、不授予网站权限。提示词将要求 Codex遵守现有 Skills 与安装合同。</div><details id="promptDetail"><summary style="font-size:11px;color:var(--brand);cursor:pointer">提示词内容</summary><pre id="promptOut" style="font-size:10px;background:#f6f8fd;padding:10px;white-space:pre-wrap;overflow-wrap:anywhere;max-height:140px;overflow:auto"></pre></details>`;
-else if(state.step==='install')b.innerHTML=`<div class="steps"><div class="step"><span class="number">1</span><span><b>获得脚本</b>：在「开发」完成 Controller Task，或使用原正式入口导入已冻结的候选。</span></div><div class="step"><span class="number">2</span><span><b>验证版本</b>：核对固定源码、任务 ID、Schema、网站范围与必要能力。</span></div><div class="step"><span class="number">3</span><span><b>可信安装</b>：由「我的」任务目录/原 Installer 显示版本和权限，用户确认。安装之后需要保留独立的安装身份。</span></div><div class="step"><span class="number">4</span><span><b>关联 Web Flow</b>：当前任务必须在 Web Flow 安装包的委托清单中；长期方案需要新的用户批准关联能力。</span></div><div class="step"><span class="number">5</span><span><b>使用与维护</b>：打开获准网站，手动执行/单独批准自动范围；核验回执、版本变化与撤销。</span></div></div><div class="callout warn">Controller Task 不等于 Page 网页增强。只有 Page USER_SCRIPT 才涉及 Chrome「允许用户脚本」开关。</div><button class="btn ghost" data-way="advanced">了解关联架构</button>`;
+else if(state.step==='install')b.innerHTML=`<div class="steps"><div class="step"><span class="number">1</span><span><b>获得脚本</b>：在「开发」完成 Controller Task，或使用原正式入口导入已冻结的候选。</span></div><div class="step"><span class="number">2</span><span><b>验证版本</b>：核对固定源码、任务 ID、Schema、网站范围与必要能力。</span></div><div class="step"><span class="number">3</span><span><b>可信安装</b>：由「我的」任务目录/原 Installer 显示版本和权限，用户确认。安装之后需要保留独立的安装身份。</span></div><div class="step"><span class="number">4</span><span><b>关联 Web Flow</b>：当前任务必须在 Web Flow 安装包的委托清单中；长期方案需要新的用户批准关联能力。</span></div><div class="step"><span class="number">5</span><span><b>使用与维护</b>：打开获准网站，手动执行/单独批准自动范围；核验回执、版本变化与撤销。</span></div></div><div class="callout warn">Controller Task 不等于 Page 网页增强。只有 Page USER_SCRIPT 才涉及 Chrome「允许用户脚本」开关。</div><div id="demoDrop" class="demo-import-drop" role="group" aria-label="模拟文件拖放识别" tabindex="0"><strong style="font-size:11px">拖入单个文件，预览文件识别（模拟）</strong><span class="subtle">或点击选择文件；绝不上传、安装、执行或修改真实任务</span><input id="demoFile" type="file" accept=".js,.json" aria-label="选择模拟识别文件"><div id="demoFileResult" class="demo-import-result" role="status" aria-live="polite">未选择文件</div></div><button class="btn ghost" data-way="advanced">了解关联架构</button>`;
 else if(state.step==='help')b.innerHTML=`<div class="steps"><div class="step"><span class="number">1</span><span>在「脚本」搜索并核对 Web Flow 当前已审阅的固定任务。</span></div><div class="step"><span class="number">2</span><span>点击 ＋ 选择「开发中心」「Codex」「安装说明」等路径。</span></div><div class="step"><span class="number">3</span><span>创建、安装、Web Flow 关联与自动运行授权是彼此独立的步骤。</span></div></div><p class="subtle">本交互预览不读取真实任务、不调用 Codex、也不执行网页操作。</p>`;
 else if(state.step==='advanced')b.innerHTML=`<div class="callout"><b>现状：</b>Web Flow v2 使用安装时审阅的 delegatedTasks 固定列表，不能凭输入一个 Task ID 获得新的执行权限。</div><div class="steps"><div class="step"><span class="number">A</span><span><b>近期：</b>维护已审阅的 Task pin；新增任务时使用原包构建、审核和升级，核对新安装版本与权限。</span></div><div class="step"><span class="number">B</span><span><b>长期：</b>由通用可信宿主弹出已安装 Task Picker；用户确认「允许此 Web Flow 调用这个固定任务」，记录独立绑定与可撤销的授权。</span></div><div class="step"><span class="number">C</span><span>运行前重新核对双方 installationId / generation、版本 hash、网站、Schema、权限和撤销状态；UNKNOWN 不重放。</span></div></div><p class="subtle">B/C 是建议的新框架能力，非已存在 API。本演示绝不会偷偷模拟真实关联成功。</p>`;
 }
@@ -74,6 +78,39 @@ $('#close').onclick=close;$('#sheetback').onclick=()=>open('ways');$('#overlay')
 $('#tabcontent').addEventListener('input',e=>{if(e.target.id==='search'){state.search=e.target.value;updateRows();}});
 $('#tabcontent').addEventListener('click',e=>{const b=e.target.closest('button');if(!b)return;if(b.id==='add')open();else if(b.id==='filter'){const p=$('#filterpop');p.hidden=!p.hidden;b.setAttribute('aria-expanded',String(!p.hidden));}else if(b.dataset.filter){state.filter=b.dataset.filter;updateRows();document.querySelectorAll('#filterpop [data-filter]').forEach(x=>x.setAttribute('aria-pressed',String(x.dataset.filter===state.filter)));$('#filterpop').hidden=true;$('#filter').setAttribute('aria-expanded','false');$('#filter').focus();}else if(b.dataset.script)msg('真实运行需要对应任务已安装、获准网站与可信点击；这里只作设计演示。');else if(b.dataset.more)open('existing');else if(b.dataset.goto){state.tab=b.dataset.goto;render()}});
 $('#sheetbody').addEventListener('input',e=>{if(e.target.id==='goal')state.draftGoal=e.target.value;if(e.target.id==='target')state.draftTarget=e.target.value});
+async function previewImport(files){
+ const result=$('#demoFileResult');if(!result)return;
+ const list=Array.from(files||[]);
+ if(!list.length){result.textContent='取消选择；未发生操作';return}
+ if(list.length!==1){result.textContent='模拟拒绝：一次仅接受一个文件；本次 '+list.length+' 个文件均未导入';return}
+ const file=list[0],name=file.name.toLowerCase();
+ if(file.size===0){result.textContent='模拟拒绝：空文件';return}
+ if(file.size>2*1024*1024){result.textContent='模拟拒绝：超过本预览的 2 MiB 展示上限（不等于正式宿主限额）';return}
+ if(/\\.(md|zip)$/.test(name)){result.textContent='模拟拒绝：Markdown 属工作流输入，ZIP/项目目录暂不支持';return}
+ if(!/\\.(js|json)$/.test(name)){result.textContent='模拟拒绝：未知格式，请使用合法脚本/任务包';return}
+ let contents;
+ try{contents=await file.text()}catch{result.textContent='模拟失败：文件读取异常';return}
+ if(!contents.trim()){result.textContent='模拟拒绝：文件内容为空';return}
+ if(name.endsWith('.js')){result.textContent='模拟识别：JavaScript 源码 → 原「开发」草稿；未保存、验证或运行';return}
+ let data;
+ try{data=JSON.parse(contents)}catch{result.textContent='模拟拒绝：JSON 语法错误';return}
+ const type=data&&data.format;
+ result.textContent=type==='opendesk.task-package.v1'
+ ?'模拟识别：Task Package → 原任务目录待验证候选；无安装或授权'
+ :typeof type==='string'&&type.startsWith('opendesk.program-draft.')
+ ?'模拟识别：Program Draft → 原「开发」草稿；未安装或执行'
+ :typeof type==='string'&&type.startsWith('opendesk.sidebar-tool.')
+ ?'模拟分流：Sidebar Tool → 「扩展」可信导入入口'
+ :typeof type==='string'&&/page|userscript|user.script/i.test(type)
+ ?'模拟分流：Page USER_SCRIPT → 「扩展 → 网页增强」'
+ :'模拟拒绝：不是受支持的任务包/程序草稿格式';
+}
+$('#sheetbody').addEventListener('change',e=>{if(e.target.id==='demoFile')void previewImport(e.target.files)});
+$('#sheetbody').addEventListener('dragover',e=>{if(e.target.closest('#demoDrop')&&Array.from(e.dataTransfer?.types||[]).includes('Files')){e.preventDefault();$('#demoDrop').dataset.over='true'}});
+$('#sheetbody').addEventListener('dragleave',e=>{if(e.target.closest('#demoDrop')&&!$('#demoDrop').contains(e.relatedTarget))$('#demoDrop').dataset.over='false'});
+$('#sheetbody').addEventListener('drop',e=>{if(!e.target.closest('#demoDrop'))return;e.preventDefault();$('#demoDrop').dataset.over='false';void previewImport(e.dataTransfer?.files)});
+$('#sheetbody').addEventListener('keydown',e=>{if(e.target.id==='demoDrop'&&(e.key==='Enter'||e.key===' ')){e.preventDefault();$('#demoFile')?.click()}});
+
 $('#sheetbody').addEventListener('click',async e=>{const b=e.target.closest('button');if(!b)return;if(b.dataset.way){open(b.dataset.way);return}if(b.dataset.info){msg('正式版需由原 Host 返回安装与授权状态；本预览不读取真实身份。');return}if(b.dataset.goDev){close();showHost('dev');return}if(b.id==='previewPrompt'){const det=$('#promptDetail');det.open=true;$('#promptOut').textContent=promptText();return}if(b.id==='copyPrompt'){const p=promptText();try{if(navigator.clipboard&&window.isSecureContext){await navigator.clipboard.writeText(p)}else{const ta=document.createElement('textarea');ta.value=p;ta.style.position='fixed';ta.style.left='-5000px';document.body.appendChild(ta);ta.select();if(!document.execCommand('copy'))throw Error('copy blocked');ta.remove()}msg('已复制 Codex 提示词，可粘贴到本地 Codex。')}catch{const d=$('#promptDetail');d.open=true;$('#promptOut').textContent=p;msg('浏览器未允许复制：请展开提示词并手动复制。')}return}});
 function showHost(which){document.querySelectorAll('.hostnav button').forEach(b=>b.classList.toggle('active',b.dataset.host===which));if(which==='dev'){$('#appview').hidden=true;$('#devview').hidden=false;close()}else if(which==='tools'){$('#devview').hidden=true;$('#appview').hidden=false}else msg('该宿主 Tab 非本次交互范围，请点击「扩展」或「开发」。')}
 document.querySelector('.hostnav').onclick=e=>{const b=e.target.closest('[data-host]');if(b)showHost(b.dataset.host)};$('#devview').onclick=e=>{if(e.target.closest('[data-host=tools]'))showHost('tools')};

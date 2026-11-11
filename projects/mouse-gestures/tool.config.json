@@ -2,7 +2,7 @@
   "id": "mouse-gestures",
   "version": "0.2.1",
   "title": "鼠标手势",
-  "description": "在获准普通网页上启用四方向右键手势：后退、前进、刷新、到底。",
+  "description": "获准网页上默认开启四方向手势，保留右键菜单并支持 Option/Alt 左键替代。",
   "format": "opendesk.sidebar-tool.v2",
   "capabilities": ["page.module", "storage.local"],
   "files": {
@@ -13,5 +13,5 @@
   "assets": [],
   "requires": {"browserSdk": "1.0.0"},
   "contributes": {"contextMenus": []},
-  "pageModule": {"revision": 2}
+  "pageModule": {"revision": 3}
 }

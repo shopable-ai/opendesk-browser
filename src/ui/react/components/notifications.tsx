@@ -31,10 +31,20 @@ function ToolToastStacks({view,toasts,visible}){
 
 const TOOL_TOAST_LABELS={info:'提示',success:'成功',warning:'注意',error:'错误'};
 const TOOL_TOAST_SYMBOLS={info:'i',success:'✓',warning:'!',error:'!'};
+// Restore focus when an auto-expiring success notice has keyboard focus.
+function restoreToastFocus(node,priorFocus){
+  const doc=node?.ownerDocument;
+  if(!doc||!node.contains(doc.activeElement))return;
+  const target=[priorFocus.current,doc.getElementById('sidebar-tool-back'),
+    doc.querySelector('[role=tab][aria-selected=true]')].find(item=>
+    item?.isConnected&&!item.disabled&&!item.closest?.('[hidden],[inert]'));
+  target?.focus?.({preventScroll:true});
+}
 function ToolToast({view,toast,visible,paused}) {
   const [hovered,setHovered]=React.useState(false),[focused,setFocused]=React.useState(false);
-  const priorFocus=React.useRef(null);
+  const priorFocus=React.useRef(null),toastNode=React.useRef<HTMLDivElement|null>(null);
   const duration=Number.isSafeInteger(toast.timeout)?toast.timeout:5000;
+  const pauseOnInteraction=toast.pauseOnInteraction!==false;
   // Revisions reset a changed notice's time once. Hover/focus pause the same
   // countdown across unrelated React renders without resetting on every repaint.
   const remaining=React.useRef<{revision:number|null,ms:number}>({revision:null,ms:duration});
@@ -43,18 +53,21 @@ function ToolToast({view,toast,visible,paused}) {
     if(remaining.current.revision!==revision)
       remaining.current={revision,ms:duration};
     if(!visible){view.dismissToast(toast.id);return;}
-    if(paused||hovered||focused||duration===0)return;
+    if(paused||(pauseOnInteraction&&(hovered||focused))||duration===0)return;
     const start=Date.now(),delay=Math.max(1,remaining.current.ms);
-    const timer=setTimeout(()=>view.dismissToast(toast.id),delay);
+    const timer=setTimeout(()=>{
+      if(!pauseOnInteraction)restoreToastFocus(toastNode.current,priorFocus);
+      view.dismissToast(toast.id);
+    },delay);
     return ()=>{
       if(remaining.current.revision===revision)
         remaining.current.ms=Math.max(1,remaining.current.ms-(Date.now()-start));
       clearTimeout(timer);
     };
-  },[view,toast.id,toast.revision,toast.count,visible,paused,hovered,focused,duration]);
+  },[view,toast.id,toast.revision,toast.count,visible,paused,hovered,focused,duration,pauseOnInteraction]);
   if(!visible)return null;
   const type=Object.hasOwn(TOOL_TOAST_LABELS,toast.type)?toast.type:'info';
-  return <div className="sidebar-tool-toast" data-type={type}
+  return <div ref={toastNode} className="sidebar-tool-toast" data-type={type}
     onMouseEnter={()=>setHovered(true)} onMouseLeave={()=>setHovered(false)}
     onFocus={event=>{
       if(!event.currentTarget.contains(event.relatedTarget))priorFocus.current=event.relatedTarget;
@@ -73,14 +86,8 @@ function ToolToast({view,toast,visible,paused}) {
       aria-label={'同一通知出现 '+toast.count+' 次'}>×{toast.count}</span>}
     <IconButton label="关闭提示" onMouseDown={event=>event.preventDefault()}
       onClick={event=>{
-        const doc=event.currentTarget.ownerDocument;
-        if(event.currentTarget===doc.activeElement){
-          // A focus transition from the opaque tool iframe has no relatedTarget.
-          const target=[priorFocus.current,doc.getElementById('sidebar-tool-back'),
-            doc.querySelector('[role=tab][aria-selected=true]')].find(node=>
-            node?.isConnected&&!node.disabled&&!node.closest?.('[hidden],[inert]'));
-          target?.focus?.({preventScroll:true});
-        }
+        if(event.currentTarget===event.currentTarget.ownerDocument.activeElement)
+          restoreToastFocus(toastNode.current,priorFocus);
         view.dismissToast(toast.id);
       }}>
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6"

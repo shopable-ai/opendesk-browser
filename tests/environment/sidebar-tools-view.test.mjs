@@ -93,6 +93,42 @@ test('transient tool feedback expires, replaces safely and leaves the live tool 
   assert.equal(view.runtime.frameRoot.firstChild,frame,'feedback never remounts or replaces the tool');
 });
 
+
+test('install-success feedback disappears after five seconds even under hover and focus',async t=>{
+  const {window,document}=parseHTML('<html><body><div id="mount"></div></body></html>');
+  const prior={window:globalThis.window,document:globalThis.document,act:globalThis.IS_REACT_ACT_ENVIRONMENT};
+  globalThis.window=window;globalThis.document=document;globalThis.IS_REACT_ACT_ENVIRONMENT=true;
+  const {createRoot}=await import('react-dom/client');
+  const root=createRoot(document.getElementById('mount')),view=createSidebarToolsView();
+  t.after(async()=>{
+    await React.act(async()=>root.unmount());view.dispose();
+    globalThis.window=prior.window;globalThis.document=prior.document;globalThis.IS_REACT_ACT_ENVIRONMENT=prior.act;
+  });
+  t.mock.timers.enable({apis:['setTimeout','Date']});
+  await React.act(async()=>root.render(React.createElement(ToolHost,{view})));
+  await React.act(async()=>view.patch('sidebar-tool-display',{hidden:false}));
+  let focused=document.body;
+  Object.defineProperty(document,'activeElement',{configurable:true,get:()=>focused});
+  const back=document.getElementById('sidebar-tool-back');
+  back.focus=()=>{focused=back;};
+  await React.act(async()=>view.showToast('已安装「快速笔记」',{
+    type:'success',position:'bottom-center',timeout:5000,pauseOnInteraction:false}));
+  const toast=document.querySelector('.sidebar-tool-toast'),close=toast.querySelector('button');
+  assert.equal(view.getSnapshot().toast.pauseOnInteraction,false);
+  await React.act(async()=>{
+    toast.dispatchEvent(new window.Event('mouseover',{bubbles:true}));
+    focused=close;
+    close.dispatchEvent(new window.Event('focusin',{bubbles:true}));
+  });
+  await React.act(async()=>t.mock.timers.tick(4999));
+  assert.ok(document.querySelector('.sidebar-tool-toast'),'success is visible until its deadline');
+  await React.act(async()=>t.mock.timers.tick(1));
+  assert.equal(document.querySelector('.sidebar-tool-toast'),null,
+    'hover or focus must not leave installation success visible indefinitely');
+  assert.equal(focused?.id,'sidebar-tool-back',
+    'automatic dismissal restores keyboard focus instead of dropping it');
+});
+
 test('one workbench notification viewport stays outside hidden Tabs and scrolling content',async t=>{
   const {window,document}=parseHTML('<html><body><div id="mount"></div></body></html>');
   const prior={window:globalThis.window,document:globalThis.document,act:globalThis.IS_REACT_ACT_ENVIRONMENT};

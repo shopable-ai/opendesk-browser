@@ -1,3 +1,72 @@
+## R3 · A→唯一 B→原 A 可信发送接续（2026-11-11；OD-WEBFLOW-CHAT-A-B-A-SAME-B-R3-TRUSTED-SEND-CLOSURE）
+
+**原始用户目标：** ChatGPT A 中请求新建唯一 B，只准备草稿；可信侧栏单独批准后，在同一个 B 原草稿发送一次，观察完整回答及真实 /c/ 链接，并单次返回原 A。刷新、ACK UNKNOWN、重启、权限变化均禁止重复创建、发送或交付。
+
+**本次已落地的最小只读增量（非发送闭环）：** 现有 `web-task-ingress.js` 的可信 Side Panel 历史读取，在原 Authority / Ledger / Durable Result 授权栅栏通过后，重用既有 `attestReviewedBPrepare`，按原 PREPARE Run、保留的 B 标签/文档/权限、固定安装身份及冻结草稿 SHA 对账；只有与同一账本 `webBPrepared` 严格一致时投影 `receipt.preparedB.state=document-checked`。当前 B 失效、证明变化时只返回 `unverified`，原 Durable Result 仍保留；撤权/读回栅栏失效时删除可披露的 B 投影。原可信 `CurrentTask.tsx` 展示冻结原文、Run、B 身份及明显的「不可发送」说明。该投影从不创建 Run、批准、切换目标或点击 ChatGPT 发送。
+
+**仍不可越过的首个 P0 阻塞：** 当前证明只覆盖 Chrome tab/document/URL/permission 与原安装身份，**不证明 ChatGPT A/B 的真实账号/Profile 相同，也不证明原 B 当前 DOM 草稿未被编辑**；独立 APPROVE_SEND 与 borrowed SUBMIT 消费者仍缺失。网站未经核验的账号标识、Cookie 推测和本只读投影均不构成批准。没有账号和原草稿可信实时核验，不得接通发送；0.3.0 不可变，原 0.2.0 不得跨版接续。
+
+**本轮证据计划：** 新增定向 Node 回归覆盖可信 Side Panel 的 PREPARE 证明披露、重启读回、B document 变更时只读拒绝及零发送；React 静态渲染测试验证无 SUBMIT/批准按钮。需要根据实际 GitHub Actions/本机 Node 结果再判定 PASS；历史 CI 不继承。SOURCE=PARTIAL（只读审阅接线），NODE_TEST=待对应提交 CI，PACKAGE=NOT_TESTED，CHROME=NOT_TESTED，BUSINESS=NOT_TESTED。本轮未真实发送任何 ChatGPT 消息。
+
+**唯一下一依赖：** 从当前受信 Host + 原 ChatGPT Controller Task 的站点证据，建立可验证的 A/B 账号/Profile 同一性和原 B 当前草稿实时读回；然后在原 Ledger 中实现独立且不可重放的 APPROVE_SEND，接入同一 0.3.0 原 Run 的 retainedFrom+borrowed SUBMIT，最终做真正 A 交付。不得回退成第二个 owned B，也不得绕过审批；无法验证则保留 BLOCKED。
+
+---
+
+## OD-UNIFIED-TASK-IMPORT-R1 · 统一可信导入与 Web Flow 添加入口（2026-11-11）
+
+**原始目标：** 普通用户在「我的」拖入或选择文件进入正确的草稿/候选流程；Web Flow 从已审阅任务中选择、引导开发或导入，并且不能绕过可信安装/固定授权；复用一个 TaskWorkbench、RunHost、TaskRunSheet。
+
+**设计基线（本任务启动时，非完成证据）：**
+- 已有 `src/ui/task-workbench.js:readFile(fileOverride)`、两个可信宿主文件选择器、共享 TaskRunSheet；Web Flow 当前固定百度/Google 两个 Controller Task pin，正式包/配置基线 **0.3.32**，HTML 添加原型非生产入口。
+- 选择 B：一个 Host 导入器、多个安全 UI 消费者。禁止新建安装器/权限 Store/Runner。Web Flow 沙箱缺少任意文件导入/导航/动态 Task Picker 的通用公开授权入口，当前只允许指引而非伪点击或执行，相关 R2 SDK 缺口须单独论证。
+- 三方案比较：A 双解析器可迅速独立开发但验证/权限行为漂移、维护成本高；B 复用现有读文件与原 Host、最小权限最易回归；C 新建脚本中心在既有核心之上重复数据库与流程、迁移风险最大。此阶段采用 B。
+- 阶段 Owner：文件选择/拖放 → 可信 React；格式校验/草稿或候选 → TaskWorkbench+现有 validator/Host；核验 → 原 Run 证据；安装及 Authority → 可信 Installer；固定应用委托 → 审阅后的 Web Flow 包；运行/持久结果 → 原 TaskRunSheet+RunHost；业务结果 → 原持久记录与用户独立核对。
+- 失败与恢复：错误 JSON/不支持格式/超限/多文件在导入前拒绝；主机不可用时保留清晰错误；重复与版本冲突交由现有身份 Authority，不能在界面自证成功；UNKNOWN 只读查询或停止；撤权后重新审阅，不通过重新拖放取得新权限。
+- R1 定向验收以本次代码和 CI/现场回执为准；原 Chrome 证据与其他任务测试不能继承。
+
+**R1 实际源码交付（2026-11-11；截至本次核查）：** 已提交到 `main` 的差量包括：
+- 可信导入：`src/ui/task-workbench.js` 复用 `readFile`，前置类型、大小、JSON/空文件检查，明确拒绝 ZIP/Markdown/Sidebar/Page 误导入；新增单文件拖放/文件选择的统一代理，目录拖入和多文件拒绝；重复内容沿 Host 幂等返回，冲突身份拒绝覆盖，未自动验证/安装/授权/运行。补充 `src/ui/task-run-diagnostics.js` 导入专属建议。
+- 可信 UI：`src/ui/react/tabs/my-page.tsx`、`task-catalog.tsx`、`src/ui/tool-shell.css` 增加统一拖放区、键盘访问和视觉反馈；原 TaskRunSheet 和 Host/Authority/RunHost 未改。
+- Web Flow 沙箱：`projects/webflow/src/ui/main.js` 和 `style.css` 增加 `+` 四路径向导，现有固定 pin 可查看；创建/文件导入仅展示手动可信路径，Codex 提供可编辑/可复制文本；不增加 tool.capabilities/delegatedTasks 或原生导航特权。
+- `preview/script-onboarding.html` 增加纯模拟的拖入/识别/拒绝；预览不接入真实 Host。
+- 检验源码：`tests/environment/my-react-workbench.test.mjs` 新增覆盖 picker/drop/多文件/错误 JSON/超限/合法 Draft/候选/幂等冲突/无 RunHost 副作用的 5 项测试；`projects/webflow/tests/webflow-compact-browser.mjs` 新增每个 320/360/400px 尺寸的四路径/返回/焦点/零执行断言。**这些是已提交测试代码，不能替代通过回执。**
+
+**实施证据：** GitHub Contents API 均以读取时最新文件 SHA 条件写入；示例提交 `95a358d`（WebFlow 新向导）、`0f6aefc`（导入幂等与冲突）、`770430c`（定向测试）。针对最新源码用 V8 `AsyncFunction` 解析主控制器、Web Flow 主 UI、演示 HTML 和两个测试脚本的 JavaScript 语法，结果 PASS；未跑真实 Node 模块导入、React TSX 编译/安装、Chromium 或原生测试。无本机 CodexPro 工作区（连接失败）、Mac Desktop 返回 HTTP 429；GitHub Actions [R1 Web Flow run #43042977172](https://github.com/shopable-ai/opendesk-browser/actions/runs/43042977172) 在读取时 pending。后续查新 run/commit 和 jobs，绝不能继承被取消的旧 run 或历史 0.3.32 的通过记录。
+
+**当前证据状态：**
+| 层级 | 状态 | 原因或下一步 |
+|---|---|---|
+| SOURCE | PARTIAL | 代码差量写入 `main`，主要 JS 语法解析通过；尚无编译/运行断言结果 |
+| NODE | NOT_TESTED | 5 条新增定向测试与既有回归已写入，但无成功 CI 作证 |
+| PACKAGE | NOT_TESTED | 原打包器的候选/晋升/同源尚无本轮通过回执 |
+| CHROMIUM | NOT_TESTED | 320/360/400px 定向断言已写入但未收到执行结果 |
+| CHROME_NATIVE | BLOCKED | 本地 CodexPro/桌面连接不可用，无原生 Side Panel/安装环境 |
+| INSTALL | NOT_TESTED | 未通过原 Installer 审阅安装本次源码 |
+| BUSINESS | NOT_TESTED | 未对新文件/授权做真实受控站点业务验收 |
+| RELEASE | BLOCKED | 当前 `tool.config.json` 与正式 `webflow.opendesk-tool.json` 都还是 **0.3.32**；正式包尚未包含 `wf-add-script` 的新代码。必须在本轮 CI 通过后按原版本升级/候选→晋升→回读→用户安装流程收尾，不得手改包 |
+
+**完整验收差量矩阵：** 
+1. 文件类：合法 JS、Program Draft、合法 Task Package、格式错误、扩展包/Page 误导入、Markdown/ZIP/目录、空文件、超限、文件多选、拖放/选择结果一致、取消无副作用、重复幂等与版本冲突；Node 侧测试已编写，真实行为仍待执行。
+2. 权限类：未安装/停用/撤销不可运行、固定百度/Google pin 不变、无跨 App 动态授权、UNKNOWN 不重放、准备只保存不执行、确认只执行一次；既有合同未改，需原生回归证明。
+3. UI 类：「我的」/Catalog/ Web Flow `+` 的 320/360/400px、PC、键盘、Escape、焦点归还、IME；新增 Web Flow Chromium 断言已编写，可信原生/IME 仍未执行。
+
+**剩余 R1 操作（不要重写已完成源码）：** 检查最新 Github Actions Node/Chromium 检查及 logs；若失败只修失败点，重测同源；按仓库原打包器升级 Web Flow 应用版本（不可改授权清单），生成/晋升/回读唯一正式 JSON 并与源码 SHA 对齐；安装新包到真实 Chrome 并检查版本、原 TaskRunSheet、拖放与权限恢复。只有全部 PASS 才声明 R1 完成。
+
+**后续独立任务：** R2 通用可信「已安装 Task Picker + 跨应用动态绑定授权」公开 SDK/审阅与撤销（含精准版本 pin），R3 ZIP/目录/仓库/AI 高级导入。两个任务不重建 TaskWorkbench/Installer/权限 Store，也不并入本轮 MVP。
+
+
+
+**R2 远端差量核查（OD-UNIFIED-TASK-IMPORT-R1-CLOSURE；2026-11-11，仅继承与验证，不重复开发）：**
+- GitHub `main` 只读快照：`e928987848d2783e68a541b4e2e4bd146651a9df`。R1 的可信拖入/选择、TaskWorkbench 分流与 Web Flow `+` 四路径实现仍在源码；截至本次核查，没有可继承的本任务 Node/Chromium 完整 PASS 回执。
+- 本次最新 Web Flow CI：[run #43045910826](https://github.com/shopable-ai/opendesk-browser/actions/runs/43045910826)，触发 HEAD `3e05b2c093f4f60d66a55a142e2aeaedbbbf2dd6`，读回 `pending/无结论`；旧 [run #43042977172](https://github.com/shopable-ai/opendesk-browser/actions/runs/43042977172) 仍为 queued，无通过凭证。
+- 对比真实源码与唯一正式 JSON：`src/ui/main.js` 包含 `wf-add-script`，但 `webflow.opendesk-tool.json` 不包含此入口，版本仍 `0.3.32`；正式 JSON 为 105661 字节、SHA-256 `9d017ddf205da48e6106078d0495e31cf52bc16b113d907b03026fb52e26ff73`，固定百度 1.1.5 / Google 1.0.3 及五项 capabilities 未扩展。该正式包**不代表本次 R1 新功能已交付**。
+- `.github/workflows/webflow-package.yml` 明确普通 push 只执行候选构建、Chromium 与本地晋升检查；仅 `workflow_dispatch` 才会按原条件写入规则提交正式包。必须先取得有效测试回执并按真实版本规则升级，再走原候选→门禁→晋升→同源→受控发布，不能直接修改正式 JSON。
+- 本机 CodexPro `open_current_workspace` 返回 `UNAVAILABLE: Connection failed`；OpenDesk Mac Desktop/Code/Browser status 返回 HTTP 429；当前没有获准的真实 Chrome Side Panel 控制、安装版本、文件拖放、授权及 Run/Result 现场证据。本轮没有执行任何 Task、触发聊天发送或重放 UNKNOWN。
+- **R2 八层状态（仅本任务 R1）：** `SOURCE=PARTIAL`（源码存在但未有新编译/运行回执）；`NODE=NOT_TESTED`；`PACKAGE=FAIL`（当前正式 0.3.32 不含新入口）；`CHROMIUM=NOT_TESTED`；`CHROME_NATIVE=BLOCKED`；`INSTALL=NOT_TESTED`；`BUSINESS=NOT_TESTED`；`RELEASE=BLOCKED`。上述状态不同于历史的其他版本 PASS。
+- **剩余唯一链路：** 取得当前源码同源 Node/Chromium CI 完整成功证明→核对并安全升级/发布含新入口的唯一 Web Flow 包→在真实 Chrome 通过原可信安装审阅→实际验证拖放分流、四路径焦点/返回、固定任务授权/撤销及不重复执行→按证据升级八层状态。已实现 R1 功能不重复设计或开发；R2 动态绑定与 R3 高级导入不纳入。
+
+---
+
 ## 概览清理 R1（2026-11-11；OD-WEBFLOW-OVERVIEW-CLEANUP-R1）
 
 **本轮最小闭环：** 原打开的 Web Flow 概览已复现开发卡片、原请求 UUID 和含混统计。保留三 Tab、现有脚本配置及记录恢复；首页只显示普通状态、真实脚本统计和最近活动摘要，原身份仅在记录详情保留。删除首页 Markdown 入口，不改其引擎或数据。

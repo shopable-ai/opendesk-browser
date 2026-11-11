@@ -327,10 +327,32 @@ export function createWebTaskIngress({api,ledger,loadFoundation,ensureRunner,ver
           const approval=ledger.captureAutoPolicyEpoch();
           const final=await historyReadFence(row,broker,approval);
           const snapshot=await broker.authority.snapshotControllerRun({runId:run.runId},actual);
-          const projection=run.state==='completed'?
-            {value:verifyChatGPTTaskDurableResult(snapshot,run.runId,row.scope.installation,
-              {...row.scope,requestId:row.requestId}).value}:
+          const durable=run.state==='completed'?verifyChatGPTTaskDurableResult(snapshot,run.runId,
+            row.scope.installation,{...row.scope,requestId:row.requestId}):null;
+          const projection=durable?{value:durable.value}:
             {error:terminalError(snapshot,run,row.scope.installation)};
+          if(durable&&isReviewedBPrepare(row)&&row.webBPrepared){
+            // Trusted, read-only PREPARE review: do not mistake a preserved B
+            // document for a verified account, live composer or send grant.
+            // A stale B must not erase the valid historical Durable Result.
+            let preparedB={state:'unverified'};
+            try{
+              const proof=await attestReviewedBPrepare({
+                api,row,requestId:row.requestId,snapshot,durable});
+              if(JSON.stringify(proof)!==JSON.stringify(row.webBPrepared))
+                throw fail('E_CHAT_B_PREPARE','原 B 证明与已冻结账本不一致');
+              preparedB={state:'document-checked',source:structuredClone(row.source),
+                prepareRunId:proof.prepareRunId,prepareRequestId:proof.prepareRequestId,
+                tabId:proof.tabId,documentId:proof.documentId,url:proof.url,
+                prompt:row.scope.args.prompt,draftSha256:proof.draftSha256,
+                installationId:proof.installationId,generation:proof.generation,
+                manifestHash:proof.manifestHash,contentHash:proof.contentHash,
+                accountVerified:false,liveDraftVerified:false,sendApproved:false};
+            }catch{
+              // No fallback to a page-supplied tab, cached proof or a new B.
+            }
+            projection.preparedB=preparedB;
+          }
           await historyReadFence(row,broker,approval);
           final();Object.assign(receipt,{persistence:'verified',...projection});
           disclosures.push({receipt,final});
@@ -346,7 +368,7 @@ export function createWebTaskIngress({api,ledger,loadFoundation,ensureRunner,ver
     // the batch return boundary so a later revocation removes earlier bytes.
     for(const {receipt,final} of disclosures){
       try{final();}catch(error){
-        delete receipt.value;receipt.persistence='not-available';
+        delete receipt.value;delete receipt.preparedB;receipt.persistence='not-available';
         receipt.error={code:error.code||'E_WEB_TASK_UNKNOWN',message:String(error.message).slice(0,2048)};
       }
     }

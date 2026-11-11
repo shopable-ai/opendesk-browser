@@ -2,6 +2,7 @@ import {createDeveloperView} from '../../src/ui/develop-view.js';
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import {readFile,mkdir,rm} from 'node:fs/promises';
+import {createHash} from 'node:crypto';
 import {build} from 'esbuild';
 import {parseHTML} from 'linkedom';
 import * as React from 'react';
@@ -91,6 +92,12 @@ async function fixture({twoTasks=false,paramsSchema,otherParamsSchema}={}){
       if(['inspectTaskRun','cancelTaskRun'].includes(action)&&state.taskRunRequest)return state.taskRunRequest(action,input);
       if(action==='inspectTaskRun')return null;
       if(action==='listTaskCatalog')return structuredClone({catalog:state.catalog,installed:state.installed});
+      if(action==='importTaskPackage'){
+        if(state.importConflict)throw Object.assign(Error('immutable version conflict'),{code:'E_REQUEST_CONFLICT'});
+        return {taskId:input.package?.manifest?.taskId||'imported.task',
+          version:input.package?.manifest?.version||'1.0.0',stage:state.importDuplicate?'available':'candidate',
+          manifestHash:state.importDuplicate?'a'.repeat(64):'c'.repeat(64)};
+      }
       if(action==='listSchedules')return {schedules:structuredClone(state.plans)};
       if(action==='resolveInstalledTask')return {...structuredClone(installed),manifest,manifestHash,sourceHash,contentHash:sourceHash,
         revision:1,generation:state.changeResolved?2:1};
@@ -1006,4 +1013,116 @@ test('public MyControl respects props.disabled and retains a disabled field over
       assert.equal(f.doc.getElementById(id).disabled,propDisabled||fieldDisabled);
     }
   }finally{if(root)await React.act(async()=>root.unmount());f.dispose();}
+});
+
+function importFixtureFile(name,source,size=source.length){
+  return {name,size,text:async()=>source};
+}
+test('R1 file picker and drag-drop route through the same trusted import, never install or run',async()=>{
+  const f=await fixture();let root;
+  try{
+    root=await f.mount();
+    await f.dispatch('task-open-catalog');
+    const dropZone=f.doc.getElementById('task-add-menu');
+    assert.equal(dropZone.getAttribute('aria-label'),'添加任务：可拖放单个文件');
+    assert.equal(dropZone.getAttribute('tabindex'),'0');
+    const js=importFixtureFile('sample.js','async function main(){ return 1; }');
+    await React.act(async()=>{f.view.field('task-add-file').files=[js];
+      await f.view.actions.taskAddFileChange(native());});
+    assert.match(f.view.field('task-add-status').text,/未保存草稿/);
+    const dropEvent={dataTransfer:{types:['Files'],files:[js]},preventDefault(){},stopPropagation(){}};
+    await React.act(async()=>{await f.view.actions.taskFileDrop('add',dropEvent);});
+    assert.match(f.view.field('task-add-status').text,/未保存草稿/);
+    assert.equal(f.state.calls.filter(x=>['importTaskPackage','installTask','runTask'].includes(x.action)).length,0);
+    assert.equal(f.state.starts.length,0);
+  }finally{if(root)await React.act(async()=>root.unmount());f.dispose();}
+});
+
+test('R1 malformed, multiple and disguised file import fail closed without Host admission',async()=>{
+  const f=await fixture();
+  try{
+    const fake=(name,body,size)=>importFixtureFile(name,body,size);
+    const invalid=[
+      [fake('broken.json','{oops'),/JSON 语法错误/],
+      [fake('blank.js','   '),/内容为空/],
+      [fake('program.md','workflow'),/Markdown/],
+      [fake('package.zip','binary'),/ZIP/],
+      [fake('sidebar.opendesk-tool.json',JSON.stringify({format:'opendesk.sidebar-tool.v2'})),/Sidebar Tool/],
+      [fake('page.json',JSON.stringify({format:'opendesk.page-userscript.v1'})),/Page USER_SCRIPT/],
+      [fake('disguised.js',JSON.stringify({format:'opendesk.task-package.v1'})),/JSON 包/],
+      [fake('too-large.js','x',Number.MAX_SAFE_INTEGER),/大小上限/]
+    ];
+    for(const [file,message] of invalid){
+      await f.view.actions.taskFileDrop('add',{
+        dataTransfer:{types:['Files'],files:[file]},preventDefault(){},stopPropagation(){}});
+      assert.match(f.view.field('task-add-status').text,message,file.name);
+    }
+    await f.view.actions.taskFileDrop('add',{
+      dataTransfer:{types:['Files'],files:[fake('one.js','a'),fake('two.js','b')]},
+      preventDefault(){},stopPropagation(){}});
+    assert.match(f.view.field('task-add-status').text,/一次只能导入 1 个文件/);
+    await f.view.actions.taskFileDrop('add',{
+      dataTransfer:{types:['Files'],files:[]},preventDefault(){},stopPropagation(){}});
+    assert.match(f.view.field('task-add-status').text,/文件夹\/目录拖放暂不支持/);
+    assert.equal(f.state.calls.some(x=>x.action==='importTaskPackage'),false);
+    assert.equal(f.state.starts.length,0);
+    assert.equal(f.state.permissionCalls.some(x=>x.action==='request'),false);
+  }finally{f.dispose();}
+});
+
+test('R1 task package reaches only the existing Host candidate importer, not installer',async()=>{
+  const f=await fixture();
+  try{
+    const packageBody=JSON.stringify({format:'opendesk.task-package.v1',
+      manifest:{taskId:'imported.task',version:'1.0.0'}});
+    await f.view.actions.taskFileDrop('add',{
+      dataTransfer:{types:['Files'],files:[importFixtureFile('candidate.json',packageBody)]},
+      preventDefault(){},stopPropagation(){}});
+    assert.equal(f.state.calls.filter(x=>x.action==='importTaskPackage').length,1);
+    assert.match(f.view.field('task-add-status').text,/待验证任务/);
+    assert.equal(f.state.starts.length,0);
+    assert.equal(f.state.calls.filter(x=>/install|runTask/.test(x.action)).length,0);
+  }finally{f.dispose();}
+});
+
+test('R1 valid Program Draft goes to the original authoring route and catalog JS uses same Host bridge',async()=>{
+  const f=await fixture();
+  try{
+    const source='async function main(){ return 1; }';
+    const sha=createHash('sha256').update(source).digest('hex');
+    const draft={format:'opendesk.program-draft.v1',
+      project:{id:'import.example',version:'1.0.0',entry:'main.js'},
+      runtimeKind:'controller',
+      build:{mode:'development',sourceHash:sha,byteLength:Buffer.byteLength(source)},
+      sourceUtf8:source,authoring:{files:[{path:'main.js',sourceUtf8:source,sha256:sha}]}};
+    await f.view.actions.taskFileDrop('add',{
+      dataTransfer:{types:['Files'],files:[importFixtureFile('authoring.json',JSON.stringify(draft))]},
+      preventDefault(){},stopPropagation(){}});
+    assert.match(f.view.field('task-add-status').text,/未保存草稿/);
+    assert.equal(f.state.calls.filter(x=>x.action==='importTaskPackage').length,0);
+    f.workbench.showCatalogPage();await tick();await tick();
+    await f.view.actions.taskFileDrop('catalog',{
+      dataTransfer:{types:['Files'],files:[importFixtureFile('catalog.js',source)]},
+      preventDefault(){},stopPropagation(){}});
+    assert.match(f.view.field('task-catalog-status').text,/同窗口.*未保存草稿/);
+    assert.equal(f.state.starts.length,0);
+  }finally{f.dispose();}
+});
+
+test('R1 existing immutable Task version reports idempotent duplicate or actionable conflict',async()=>{
+  const f=await fixture();
+  try{
+    const body=JSON.stringify({format:'opendesk.task-package.v1',
+      manifest:{taskId:'imported.task',version:'1.0.0'}});
+    const event=()=>({dataTransfer:{types:['Files'],files:[importFixtureFile('same.json',body)]},
+      preventDefault(){},stopPropagation(){}});
+    f.state.importDuplicate=true;
+    await f.view.actions.taskFileDrop('add',event());
+    assert.match(f.view.field('task-add-status').text,/同一固定版本已存在/);
+    f.state.importConflict=true;
+    await f.view.actions.taskFileDrop('add',event());
+    assert.match(f.view.field('task-add-status').text,/不能覆盖/);
+    assert.equal(f.state.starts.length,0);
+    assert.equal(f.state.calls.filter(x=>/install|runTask/.test(x.action)).length,0);
+  }finally{f.dispose();}
 });

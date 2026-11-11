@@ -1640,6 +1640,11 @@ body:has([aria-modal=true]) .sidebar-tool-toast-stack{display:none}
 .task-add-menu .task-add-options .od-button{flex:1 1 115px;min-width:0;white-space:normal}
 .task-add-menu #task-add-import{justify-self:stretch;min-height:36px;white-space:normal}
 .task-add-menu #task-add-status:empty{display:none}
+/* Unified trusted file import: a visible drop target with native keyboard access. */
+.task-file-dropzone{min-width:0;border:1px dashed var(--od-line);border-radius:var(--radius-surface);padding:var(--space-3);background:var(--od-paper)}
+.task-file-dropzone:focus-visible{outline:2px solid var(--od-ink);outline-offset:2px}
+.task-file-dropzone[data-import-drag-active="true"]{border-style:solid;border-color:var(--od-ink);background:var(--od-tint)}
+.task-file-dropzone .od-field{max-width:100%}
 /* R33.3.11 schedule Header: compact icon actions on one baseline. */
 .schedule-panel .schedule-header{display:flex;flex-wrap:nowrap;align-items:center;gap:var(--space-2);min-width:0}
 .schedule-header-heading{flex:1 1 auto;min-width:0}

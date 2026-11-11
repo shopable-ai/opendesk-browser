@@ -15,7 +15,7 @@
       docs/api/sidebar-tool-development.zh-CN.md (侧栏标题与简洁内容)
       .agents/skills/opendesk-ui-preview/SKILL.md (模拟隔离及证据边界)
     已安装授权由原 Installer / Page Authority 管理；本页面不申请任何权限。
-    单一滑块仅改变本页内存。刷新后恢复关闭的演示初始状态。
+    控件仅改变本页内存。刷新后恢复默认开启的模拟状态。
     四方向仅为交互示意，不能代替正式扩展代码及 Chrome 原生验收。
   -->
   <style>
@@ -93,12 +93,29 @@
     .gesture-copy { min-width:0; display:grid; gap:var(--space-1); }
     .gesture-label { font-size:var(--od-body-size); overflow-wrap:anywhere; }
     .hint { margin-top:var(--space-4); color:var(--od-sub); font-size:var(--od-note-size); }
+    .practice { width:min(360px,100%); margin-top:16px; padding:14px; background:var(--od-paper);
+      border:1px solid var(--od-line); border-radius:var(--radius-surface); }
+    .practice h2 { font-size:13px; margin-bottom:6px; }
+    .practice-pad { position:relative; height:140px; margin-top:8px; border:1px dashed var(--od-input-border);
+      border-radius:8px; background:var(--od-muted); cursor:crosshair; touch-action:none; user-select:none; overflow:hidden; }
+    .practice-pad svg { position:absolute; inset:0; width:100%; height:100%; pointer-events:none; }
+    .practice-label { position:absolute; top:44%; width:100%; color:var(--od-sub); text-align:center; opacity:.6; pointer-events:none; }
+    .practice-feedback { position:absolute; bottom:8px; left:8px; padding:5px 9px; border-radius:6px;
+      background:#1d293d; color:white; font-size:11px; pointer-events:none; }
+    .practice .od-note { margin:6px 0; }
     .preview-caption { max-width:360px; margin:var(--space-3) var(--space-3) 0; color:var(--od-sub);
       font-size:var(--od-meta-size); text-align:center; line-height:1.55; }
     .od-button { display:inline-flex; align-items:center; justify-content:center;
       min-height:36px; padding:var(--space-2) var(--space-3); border-radius:var(--radius-control);
       border:1px solid var(--od-brand); background:var(--od-brand); color:var(--od-on-brand); font-weight:650; }
     .od-button--secondary { background:var(--od-muted); color:var(--od-ink); border-color:var(--od-input-border); }
+    .mock-preferences { border-top:1px solid var(--od-line); margin-top:12px; padding-top:12px; }
+    .mock-preferences summary { cursor:pointer; color:var(--od-sub); font-size:12px; font-weight:600; }
+    .mock-pref-row { display:flex; align-items:center; justify-content:space-between; gap:8px; margin:12px 0 6px; }
+    .mock-pref-row select { min-width:0; max-width:190px; padding:7px; border:1px solid var(--od-line);
+      border-radius:8px; background:var(--od-paper); color:var(--od-ink); font:inherit; }
+    .mock-trace-option { display:flex; align-items:center; gap:8px; min-height:38px; margin-top:6px; }
+    .mock-trace-option input { accent-color:var(--od-brand); }
     .extension-list { padding:var(--space-4) var(--space-3); }
     .extension-list .od-note { margin:var(--space-2) 0 var(--space-3); }
     /* Narrow browser viewports represent the actual panel width, without an extra gutter. */
@@ -144,7 +161,7 @@
               <p id="gesture-help" class="od-note">在网页上使用右键手势</p>
             </div>
             <input id="gesture-enabled" class="mg-switch" type="checkbox" role="switch"
-              aria-label="开启鼠标手势" aria-describedby="gesture-help">
+              aria-label="开启鼠标手势" aria-describedby="gesture-help" checked>
           </div>
           <div class="section-head">
             <h2 id="gesture-list-title">默认手势</h2>
@@ -155,7 +172,19 @@
             <li class="od-collection-row"><span class="gesture-arrow" aria-hidden="true">↑</span><span class="gesture-label">刷新</span></li>
             <li class="od-collection-row"><span class="gesture-arrow" aria-hidden="true">↓</span><span class="gesture-label">到底</span></li>
           </ul>
-          <p class="hint">松开右键执行 · Esc 取消</p>
+          <p id="gesture-hint" class="hint">右键拖动，松开执行 · Esc 取消</p>
+          <details class="mock-preferences">
+            <summary>操作偏好</summary>
+            <div class="mock-pref-row">
+              <label for="mock-trigger">触发方式</label>
+              <select id="mock-trigger">
+                <option value="right">右键拖动（默认）</option>
+                <option value="alt-left">Option / Alt + 左键拖动</option>
+              </select>
+            </div>
+            <p class="od-note">若系统原生菜单先弹出，可选 Option / Alt + 左键。</p>
+            <label class="mock-trace-option"><input id="mock-trace" type="checkbox" checked>显示轨迹与动作提示</label>
+          </details>
         </section>
         <section id="extension-list" class="extension-list" hidden aria-label="扩展列表（模拟）">
           <p class="od-note">扩展列表 · 导航模拟</p>
@@ -163,34 +192,86 @@
         </section>
       </main>
     </div>
-    <p class="preview-caption">交互模拟 · 滑块仅改变本页内存，刷新恢复关闭；不请求权限、不调用 Chrome API、不写正式配置。真实手势须以已安装扩展及 Chrome 验收为准。</p>
+    <section class="practice" aria-label="网页手势反馈演示">
+      <h2>网页手势效果模拟</h2>
+      <p class="od-note">按住<strong>左键</strong>在下方区域拖动，模拟 12px 意图与 56px 方向识别；不会执行网页操作。</p>
+      <div id="practice-pad" class="practice-pad" tabindex="0" aria-label="手势练习区域">
+        <span class="practice-label">在此拖动体验</span>
+        <svg viewBox="0 0 330 140" preserveAspectRatio="none" aria-hidden="true"><path id="practice-line" d="" stroke="#2586ef" stroke-width="4" stroke-linecap="round" stroke-linejoin="round" fill="none"/></svg>
+        <div id="practice-feedback" class="practice-feedback" hidden></div>
+      </div>
+      <p id="practice-status" class="od-note" role="status">等待拖动（仅模拟）</p>
+    </section>
+    <p class="preview-caption">交互模拟 · 默认开启；设置只影响本页内存，刷新重置。不请求权限、不调用 Chrome API、不写正式配置。原生菜单和真实安装须在 Chrome 验收。</p>
   </div>
   <script>
     (() => {
       'use strict';
-      const toggle = document.getElementById('gesture-enabled');
-      const back = document.getElementById('back');
-      const panel = document.getElementById('gesture-panel');
-      const list = document.getElementById('extension-list');
-      const reopen = document.getElementById('reopen');
-      const title = document.getElementById('host-title');
-      function sync() {
-        toggle.setAttribute('aria-checked', String(toggle.checked));
+      const by=id=>document.getElementById(id);
+      const toggle=by('gesture-enabled'),trigger=by('mock-trigger'),trace=by('mock-trace');
+      const back=by('back'),panel=by('gesture-panel'),list=by('extension-list');
+      const reopen=by('reopen'),title=by('host-title'),hint=by('gesture-hint');
+      const pad=by('practice-pad'),line=by('practice-line');
+      const feedback=by('practice-feedback'),status=by('practice-status');
+      let start=null,points=[];
+      const clear=message=>{start=null;points=[];line.setAttribute('d','');feedback.hidden=true;status.textContent=message;};
+      function sync(){
+        toggle.setAttribute('aria-checked',String(toggle.checked));
+        hint.textContent=trigger.value==='alt-left'?
+          'Option / Alt + 左键拖动，松开执行 · Esc 取消':
+          '右键拖动，松开执行 · Esc 取消';
+        if(!toggle.checked)clear('手势已关闭（模拟）');
       }
-      toggle.addEventListener('change', sync);
-      back.addEventListener('click', () => {
-        panel.hidden = true;
-        list.hidden = false;
-        back.hidden = true;
-        title.textContent = '扩展';
-        reopen.focus();
+      const local=event=>{
+        const r=pad.getBoundingClientRect();
+        return [Math.max(0,Math.min(330,(event.clientX-r.left)*330/r.width)),
+          Math.max(0,Math.min(140,(event.clientY-r.top)*140/r.height))];
+      };
+      function update(){
+        if(!start||!points.length)return null;
+        const [x,y]=points.at(-1),dx=x-start[0],dy=y-start[1];
+        const distance=Math.hypot(dx,dy);
+        if(distance<12){line.setAttribute('d','');feedback.hidden=true;return null;}
+        const which=Math.abs(dx)>=56&&Math.abs(dy)<=28?(dx<0?'← 后退':'→ 前进'):
+          Math.abs(dy)>=56&&Math.abs(dx)<=28?(dy<0?'↑ 刷新':'↓ 到底'):null;
+        if(trace.checked){
+          line.setAttribute('stroke',which?'#2586ef':'#94a3b8');
+          line.setAttribute('stroke-dasharray',which?'none':'5 4');
+          line.setAttribute('d',points.map(([px,py],i)=>(i?'L':'M')+px+' '+py).join(' '));
+          feedback.textContent=which?which+' · 松开执行':'继续拖动';
+          feedback.hidden=false;
+        }
+        status.textContent=which?'已识别 '+which+'（模拟）':'拖动候选（模拟）';
+        return which;
+      }
+      toggle.addEventListener('change',sync);
+      trigger.addEventListener('change',sync);
+      trace.addEventListener('change',()=>{if(!trace.checked){line.setAttribute('d','');feedback.hidden=true;}else update();});
+      pad.addEventListener('pointerdown',event=>{
+        if(!toggle.checked||event.button!==0)return;
+        start=local(event);start.which=null;points=[start];
+        pad.setPointerCapture?.(event.pointerId);
+        status.textContent='移动超过 12px 开始预览';
       });
-      reopen.addEventListener('click', () => {
-        list.hidden = true;
-        panel.hidden = false;
-        back.hidden = false;
-        title.textContent = '鼠标手势';
-        toggle.focus();
+      pad.addEventListener('pointermove',event=>{
+        if(!start||(event.buttons&1)===0)return;
+        points.push(local(event));if(points.length>80)points.shift();
+        start.which=update();
+      });
+      pad.addEventListener('pointerup',event=>{
+        if(!start)return;
+        points.push(local(event));const last=update();
+        clear(last?'已模拟 '+last+'；没有执行网页操作':'手势未识别，不执行');
+      });
+      pad.addEventListener('pointercancel',()=>clear('模拟已取消'));
+      pad.addEventListener('keydown',event=>{if(event.key==='Escape'){clear('Esc 已取消');event.preventDefault();}});
+      back.addEventListener('click',()=>{
+        panel.hidden=true;list.hidden=false;back.hidden=true;
+        title.textContent='扩展';reopen.focus();
+      });
+      reopen.addEventListener('click',()=>{
+        list.hidden=true;panel.hidden=false;back.hidden=false;
+        title.textContent='鼠标手势';toggle.focus();
       });
       sync();
     })();

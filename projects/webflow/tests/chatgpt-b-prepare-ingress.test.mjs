@@ -30,9 +30,13 @@ function harness(){
   const owner={id,frameId:0,documentId:'original-offscreen',url:'chrome-extension://test-extension/cloud-control/runner.html'};
   const page={id,frameId:0,documentId:source.documentId,url:source.url,
     tab:{id:source.tabId,url:source.url}};
+  const panel={id,frameId:0,documentId:'trusted-sidepanel-document',
+    url:'chrome-extension://test-extension/sidepanel.html?hostInstanceId=trusted-host'};
   const api={runtime:{id,getURL:p=>'chrome-extension://'+id+'/'+p,
     getContexts:async filter=>[{contextType:'OFFSCREEN_DOCUMENT',documentId:owner.documentId,
-      documentUrl:owner.url,frameId:0}]
+      documentUrl:owner.url,frameId:0},
+      {contextType:'SIDE_PANEL',documentId:panel.documentId,documentUrl:panel.url,
+        frameId:0,incognito:false}]
       .filter(x=>filter.contextTypes.includes(x.contextType)&&
         (!filter.documentIds||filter.documentIds.includes(x.documentId))&&
         (!filter.documentUrls||filter.documentUrls.includes(x.documentUrl)))},
@@ -62,7 +66,7 @@ function harness(){
       verifyTaskScope:async()=>({...pkg.manifest,installation:install})});
   };
   reopen();
-  return {store,source,page,owner,delivery,scope,runRows,resultRows,reopen,
+  return {store,source,page,panel,owner,api,delivery,scope,runRows,resultRows,reopen,
     get ledger(){return ledger;},get ingress(){return ingress;}};
 }
 test('real PREPARE consumer retains B proof and does not deliver as if B replied',async()=>{
@@ -102,9 +106,34 @@ test('real PREPARE consumer retains B proof and does not deliver as if B replied
   assert.equal(persisted.webBPrepared.tabId,58);
   assert.equal(persisted.webBPrepared.profileVerified,false);
   assert.equal(persisted.webDelivery,undefined);
+  const original=await h.ingress.handle({protocol:WEB_TASK_PROTOCOL,kind:'history',
+    source},h.panel);
+  assert.equal(original.length,1);
+  assert.equal(original[0].receipt.persistence,'verified');
+  assert.equal(original[0].receipt.preparedB.state,'document-checked');
+  assert.equal(original[0].receipt.preparedB.tabId,58);
+  assert.equal(original[0].receipt.preparedB.prepareRunId,rId);
+  assert.equal(original[0].receipt.preparedB.prompt,args.prompt);
+  assert.equal(original[0].receipt.preparedB.accountVerified,false);
+  assert.equal(original[0].receipt.preparedB.liveDraftVerified,false);
+  assert.equal(original[0].receipt.preparedB.sendApproved,false);
+  assert.equal(h.delivery.length,0,'read-only history never dispatches to A or B');
   h.reopen();
   const again=await h.ingress.handle({protocol:WEB_TASK_PROTOCOL,kind:'settle',
     requestId:admitted.requestId},h.owner);
   assert.equal(again.state,'prepared-account-unverified');
+  const afterRestart=await h.ingress.handle({protocol:WEB_TASK_PROTOCOL,kind:'history',
+    source},h.panel);
+  assert.equal(afterRestart[0].receipt.preparedB.state,'document-checked');
+  const oldFrame=h.api.webNavigation.getFrame;
+  h.api.webNavigation.getFrame=async args=>args.tabId===58?
+    {documentId:'replaced-b-document',url:origin,documentLifecycle:'active'}:oldFrame(args);
+  const stale=await h.ingress.handle({protocol:WEB_TASK_PROTOCOL,kind:'history',
+    source},h.panel);
+  assert.equal(stale[0].receipt.persistence,'verified',
+    'historical PREPARE Durable Result remains readable after B changes');
+  assert.equal(stale[0].receipt.preparedB.state,'unverified');
+  assert.equal(stale[0].receipt.preparedB.tabId,undefined,
+    'a stale B cannot be disclosed as a currently checked original B');
   assert.equal(h.delivery.length,0);
 });

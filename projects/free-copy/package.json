@@ -1,0 +1,21 @@
+{
+  "name": "@opendesk-apps/free-copy",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "自由复制 · 受管网页复制限制恢复",
+  "opendesk": {
+    "format": "opendesk.project.v1",
+    "id": "app.free-copy",
+    "runtimeKind": "page-userscript",
+    "sourceFormat": "esm",
+    "entry": "src/page/main.js",
+    "pageRules": {
+      "matches": ["http://*/*", "https://*/*"],
+      "excludeMatches": [],
+      "runAt": "document_idle",
+      "allFrames": false,
+      "world": "USER_SCRIPT"
+    }
+  }
+}

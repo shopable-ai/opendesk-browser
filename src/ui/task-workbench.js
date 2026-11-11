@@ -782,40 +782,86 @@ export function createTaskWorkbench({client,host,currentPageTarget,api=globalThi
     navigate('catalog');
   }
   async function readFile(fileOverride=null) {
-    // Both Sidebar and full catalog share one parser, Host import and validation.
+    // The trusted TaskWorkbench is the only file parser for My and the catalog.
+    // Import is not verification, installation, association or execution.
     const file=fileOverride||ui('task-package-file').files?.[0];
     if(!file)return;
     if(!fileOverride)ui('task-package-file').value='';
-    if(file.size>PROGRAM_DRAFT_INPUT_LIMIT)throw {code:'E_LIMIT',message:'文件超过程序草稿包大小上限'};
-    const sourceUtf8=await file.text();
-    const parsed=file.name.toLowerCase().endsWith('.js') ? null : JSON.parse(sourceUtf8);
-    if(/\.opendesk-tool\.json$/i.test(file.name)||['opendesk.sidebar-tool.v1','opendesk.sidebar-tool.v2'].includes(parsed?.format))
-      throw {code:'E_TASK_FILE_KIND',message:'这是扩展工具包，请到「扩展」选择「导入本地工具包」，不能作为自动化任务安装'};
-    const project=[PROGRAM_DRAFT_FORMAT,PROGRAM_DRAFT_V2_FORMAT].includes(parsed?.format) ? await validateProgramDraft(parsed) : null;
+    const filename=String(file.name||'');
+    const isJavaScript=/\.js$/i.test(filename);
+    const isJson=/\.json$/i.test(filename);
+    if(!isJavaScript&&!isJson)
+      throw {code:'E_TASK_FILE_KIND',message:/\.(zip|md)$/i.test(filename)?
+        'ZIP/项目目录与 Web Flow Markdown 不是可直接安装的 Controller Task。请使用对应开发或工作流入口。':
+        '不支持此文件格式；请选择 .js 源码、Task Package JSON 或 Program Draft JSON'};
+    if(!Number.isFinite(file.size)||file.size<=0)
+      throw {code:'E_TASK_FILE_EMPTY',message:'文件为空或无法读取，请选择实际的单个文件'};
+    if(file.size>PROGRAM_DRAFT_INPUT_LIMIT)
+      throw {code:'E_LIMIT',message:'文件超过程序草稿包大小上限，请缩小文件后重新选择'};
+    let sourceUtf8;
+    try{sourceUtf8=await file.text();}
+    catch{throw {code:'E_TASK_FILE_READ',message:'文件读取失败，请检查文件权限后重新选择'};}
+    if(!sourceUtf8.trim())throw {code:'E_TASK_FILE_EMPTY',message:'文件内容为空，未导入'};
+    let parsed=null;
+    if(isJson){
+      try{parsed=JSON.parse(sourceUtf8);}
+      catch{throw {code:'E_TASK_JSON',message:'JSON 语法错误，请检查括号、逗号与引号后重试'};}
+      if(!parsed||typeof parsed!=='object'||Array.isArray(parsed))
+        throw {code:'E_TASK_FILE_KIND',message:'JSON 必须是具有 format 的任务包或程序草稿对象'};
+    }else if(sourceUtf8.trimStart().startsWith('{')){
+      // Prevent a structured package named *.js being silently accepted as
+      // executable source. A normal JS object/function remains an inert draft.
+      let disguised=null;
+      try{disguised=JSON.parse(sourceUtf8);}catch{/* Not JSON; treat as source draft. */}
+      if(disguised&&typeof disguised.format==='string')
+        throw {code:'E_TASK_FILE_KIND',message:'文件内容是结构化 JSON 包而不是 JavaScript 源码，请使用 .json 后重新导入'};
+    }
+    if(/\.opendesk-tool\.json$/i.test(filename)||
+      ['opendesk.sidebar-tool.v1','opendesk.sidebar-tool.v2'].includes(parsed?.format))
+      throw {code:'E_TASK_FILE_KIND',message:'这是 Sidebar Tool 扩展包，请在「扩展」使用原可信安装入口'};
+    if(typeof parsed?.format==='string'&&/page|user.script|userscript/i.test(parsed.format))
+      throw {code:'E_TASK_FILE_KIND',message:'这是 Page USER_SCRIPT/网页增强，不是 Controller Task；请前往「扩展 → 网页增强」'};
+    const project=[PROGRAM_DRAFT_FORMAT,PROGRAM_DRAFT_V2_FORMAT].includes(parsed?.format)
+      ? await validateProgramDraft(parsed):null;
     if(!project&&parsed&&parsed.format!==TASK_PACKAGE_FORMAT)
-      throw {code:'E_TASK_FILE_KIND',message:'支持任务包 opendesk.task-package.v1、程序草稿 JSON 或 .js 源码；扩展包请到「扩展」导入'};
-    if(!project && file.size>(parsed?TASK_PACKAGE_LIMIT:CONTROLLER_SOURCE_LIMIT))throw {code:'E_LIMIT',message:'文件超过任务包大小上限'};
-    if(project || file.name.toLowerCase().endsWith('.js')) {
-      const draft=project || sourceUtf8;
-      if(catalogSurface) {
+      throw {code:'E_TASK_FILE_KIND',message:'不支持该 JSON 格式；任务包需为 opendesk.task-package.v1，或合法 Program Draft'};
+    if(!project && file.size>(parsed?TASK_PACKAGE_LIMIT:CONTROLLER_SOURCE_LIMIT))
+      throw {code:'E_LIMIT',message:'文件超过任务包或 JavaScript 源码大小上限'};
+    if(project||isJavaScript){
+      const draft=project||sourceUtf8;
+      if(catalogSurface){
         const response=await api.runtime.sendMessage({protocol:'opendesk.sidebar.draft-import.v1',
-          ...(project ? {draft} : {sourceUtf8})}).catch(error=>{
-          const message=error?.message || String(error);
+          ...(project?{draft}:{sourceUtf8})}).catch(error=>{
+          const message=error?.message||String(error);
           if(message.includes('Receiving end does not exist'))return;
           throw {code:'E_DRAFT_TRANSPORT',message};
         });
-        if(!response?.ok)throw response?.error || {code:'E_HOST_NOT_FOUND',message:'请在同一窗口打开 Sidebar，再重新导入 JavaScript 草稿'};
-        return ui('task-catalog-status').text='已导入同窗口 Sidebar 的未保存草稿；返回目标网页，在「开发」明确运行。未保存、未安装、未自动执行。';
+        if(!response?.ok)throw response?.error||
+          {code:'E_HOST_NOT_FOUND',message:'请在同一窗口打开 Sidebar，再重新导入 JavaScript 草稿'};
+        return ui('task-catalog-status').text='文件已送到同窗口「开发」的未保存草稿；未安装、未运行、未授权。请前往开发核对。';
       }
       if(!importDraft)throw {code:'E_DRAFT_EDITOR_UNAVAILABLE',message:'开发编辑器尚未连接'};
       await importDraft(draft);
       navigate('develop');
-      return ui('task-catalog-status').text='JavaScript 已进入未保存草稿；不能跳过任务验证直接安装';
-    }else{
-      const value=await client.request('importTaskPackage',{package:parsed});
-      await refresh(identity(value));announce();
-      return ui('task-catalog-status').text=`已导入待验证任务 ${identity(value)}；未自动赋予可信状态`;
+      return ui('task-catalog-status').text='文件已进入「开发」的未保存草稿；请先审阅、验证，不会自动安装或运行。';
     }
+    // A byte-identical Task ID + version is idempotent in the existing Host.
+    // Do not call an existing available/verified version "newly imported".
+    const previous=catalog.find(row=>row.taskId===parsed?.manifest?.taskId &&
+      row.version===parsed?.manifest?.version);
+    let value;
+    try{value=await client.request('importTaskPackage',{package:parsed});}
+    catch(error){
+      if(error?.code==='E_REQUEST_CONFLICT')
+        throw {code:'E_TASK_IMPORT_CONFLICT',message:'任务 ID 与版本已存在，但固定源码或 Manifest 不同；不能覆盖，请修改版本或核对原任务。'};
+      throw error;
+    }
+    const duplicate=(value?.stage!=='candidate'&&!!value?.stage)||
+      previous?.manifestHash===value?.manifestHash && previous?.manifestHash!=null;
+    await refresh(identity(value));announce();
+    return ui('task-catalog-status').text=duplicate?
+      `任务 ${identity(value)} 的同一固定版本已存在；未重复创建、安装或授权，请在目录核对状态。`:
+      `已导入待验证任务 ${identity(value)}；请核对源码与 Manifest，尚未安装或授权。`;
   }
   // Only a real trusted click is an active attempt; this is telemetry only,
   // never an execution requirement or a permission prompt.
@@ -1050,22 +1096,80 @@ export function createTaskWorkbench({client,host,currentPageTarget,api=globalThi
       }
     });
     registerAction('taskAddFileChange',asyncAction(async()=>{
-      const input=ui('task-add-file'),file=input.files?.[0];
-      if(!file)return;
-      try{
-        const status=await readFile(file);
-        ui('task-add-status').text=status+
-          (file.name.toLowerCase().endsWith('.js')?'':'；需要安装时，请打开「浏览任务目录」审阅和验证');
-        if(doc.documentElement?.dataset?.opendeskTab==='develop'){
-          showTaskAddMenu(false);
-          get('tab-develop').focus?.({preventScroll:true});
-        }
-      }catch(error){
-        ui('task-add-status').text=formatTaskError(error);
-        throw error;
-      }finally{input.value='';}
+      const input=ui('task-add-file');
+      try{await importSelectedFiles(input.files,'add');}
+      finally{
+        input.files=null;
+        const node=get('task-add-file');if(node)node.value='';
+      }
     }));
   }
+  // HTML file input and drag-and-drop both pass the same File to readFile.
+  // There is no second parser, Host request or application-owned Task store.
+  function isFileDrag(event){
+    return Array.from(event?.dataTransfer?.types||[]).includes('Files');
+  }
+  function markImportDrag(source,active){
+    const field=ui(source==='add'?'task-add-menu':'task-catalog-dropzone');
+    if(field.dataset.importDragActive===String(active))return;
+    field.dataset.importDragActive=String(active);
+    myView.publish();
+  }
+  async function importSelectedFiles(fileList,source){
+    const files=Array.from(fileList||[]);
+    if(!files.length)return; // User canceled picker; no mutation.
+    try{
+      if(files.length!==1)
+        throw {code:'E_TASK_FILE_COUNT',message:`一次只能导入 1 个文件；本次选择了 ${files.length} 个，均未导入。请逐个选择。`};
+      const message=await readFile(files[0]);
+      if(disposed)return;
+      ui(source==='add'?'task-add-status':'task-catalog-status').text=message;
+      success(message);
+      if(source==='add'&&doc.documentElement?.dataset?.opendeskTab==='develop'){
+        showTaskAddMenu(false);
+        focus('tab-develop',{preventScroll:true});
+      }
+    }catch(error){
+      const message=formatTaskError(error);
+      ui(source==='add'?'task-add-status':'task-catalog-status').text=message;
+      throw error;
+    }finally{myView.publish();}
+  }
+  registerAction('taskFileDragEnter',(source,event)=>{
+    if(!isFileDrag(event))return;
+    event.preventDefault();markImportDrag(source,true);
+  });
+  registerAction('taskFileDragOver',(source,event)=>{
+    if(!isFileDrag(event))return;
+    event.preventDefault();
+    if(event.dataTransfer)event.dataTransfer.dropEffect='copy';
+  });
+  registerAction('taskFileDragLeave',(source,event)=>{
+    if(event.currentTarget?.contains?.(event.relatedTarget))return;
+    markImportDrag(source,false);
+  });
+  const droppedFiles=asyncAction(({files,source})=>importSelectedFiles(files,source));
+  registerAction('taskFileDrop',(source,event)=>{
+    if(!isFileDrag(event))return;
+    event.preventDefault();event.stopPropagation();
+    markImportDrag(source,false);
+    const files=event.dataTransfer?.files;
+    if(!files?.length){
+      ui(source==='add'?'task-add-status':'task-catalog-status').text=
+        '未找到可读取的文件；文件夹/目录拖放暂不支持。请选择单个 .js 或 .json 文件。';
+      myView.publish();return;
+    }
+    return droppedFiles({files,source});
+  });
+  registerAction('taskFileZoneKeydown',(source,event)=>{
+    if(event.target!==event.currentTarget||event.isComposing||event.repeat)return;
+    if(event.key==='Enter'||event.key===' '){
+      event.preventDefault();
+      get(source==='add'?'task-add-file':'task-package-file')?.click?.();
+    }else if(source==='add'&&event.key==='Escape'){
+      event.preventDefault();showTaskAddMenu(false);
+    }
+  });
   registerAction('taskManageToggleClick',event=>{
     if(!event.isTrusted||!installed.length)return;
     setTaskManagementMode(!taskManagementMode);
@@ -1214,7 +1318,14 @@ export function createTaskWorkbench({client,host,currentPageTarget,api=globalThi
     host.stop({runId:activeRunId,controller:true}):Promise.resolve()));
   registerAction('taskRefreshClick',asyncAction(()=>refresh()));
   registerAction('taskCatalogRefreshClick',asyncAction(()=>refresh()));
-  registerAction('taskPackageFileChange',asyncAction(()=>readFile()));
+  registerAction('taskPackageFileChange',asyncAction(async()=>{
+    const input=ui('task-package-file');
+    try{await importSelectedFiles(input.files,'catalog');}
+    finally{
+      input.files=null;
+      const node=get('task-package-file');if(node)node.value='';
+    }
+  }));
   registerAction('taskVerifyClick',asyncAction(verify));
   registerAction('taskPublishClick',asyncAction(publish));
   registerAction('taskInstallClick',asyncAction(install));

@@ -47,7 +47,7 @@ const compiledWebFlowInputs=Object.freeze({
   // 2026-11-09 reviewed UNKNOWN diagnostics and before-click cancellation;
   // exact Host/SW ownership, after-click no-replay and safe-refresh fences remain.
   // Reviewed optional display adapter init/dispose; Task bridge is unchanged.
-  'projects/webflow/trusted/chatgpt-bridge-page.js':'c4d886828cfa830127f76bd0faf193914a20855c',
+  'projects/webflow/trusted/chatgpt-bridge-page.js':'8b69919c9d477ca92acfca4ecc521e2e74cdb1b7',
   'projects/webflow/trusted/legacy-chatgpt-panel.js':'c25df281a5df633afad53c94c8dc1ad04ba1d0da',
   // Reviewed read-only display preference; no Task dispatch or grant writes.
   'projects/webflow/trusted/page-panel-ui.js':'4ba1e76028ed9afee2692e5853d08df5d360af87',
@@ -62,7 +62,7 @@ const compiledWebFlowInputs=Object.freeze({
   // distinguish reserved IDs/persistence/delivery/release; UNKNOWN never replays.
   // Reviewed same-receipt, owner-bound Toast projection; execution stays unchanged.
   // Retain the upstream PREPARE-only/account-unverified status copy.
-  'projects/webflow/trusted/CurrentTask.tsx':'379529877fbb5fff7fc4083f53a513d59abfa9ca',
+  'projects/webflow/trusted/CurrentTask.tsx':'aa2ecc7a76140fdf228444223b10d700207f4014',
   // Reviewed display-only scripts route, consumed by the same fixed tool shell.
   'projects/webflow/src/ui/app-page-routes.js':'04468dd893393f82482123355243d8cdad4b1fb7',
   'projects/webflow/trusted/RuntimePanel.tsx':'f418c26696933f0b9440080fd2586e47e42b870f'

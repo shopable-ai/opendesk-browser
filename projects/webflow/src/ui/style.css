@@ -135,7 +135,7 @@ html:has(#webflow-app),body:has(#webflow-app){margin:0}
 .wf-menu button:hover:not(:disabled){background:var(--tint)}
 .wf-row-error{margin-top:7px}
 .wf-task-detail{background:var(--tint);border-radius:8px;margin-top:8px;padding:10px;min-width:0}
-.wf-search-row{display:grid;grid-template-columns:minmax(0,1fr) 34px 34px;gap:6px;align-items:center;position:relative;min-width:0}
+.wf-search-row{display:grid;grid-template-columns:minmax(0,1fr) repeat(3,34px);gap:6px;align-items:center;position:relative;min-width:0}
 .wf-search-input{min-width:0;min-height:36px}
 .wf-search-row>.wf-icon{width:34px;min-width:34px;height:34px;min-height:34px;padding:0}
 .wf-filter-popover{display:grid;gap:3px;position:absolute;z-index:19;right:0;top:43px;width:min(230px,100%);padding:10px;border:1px solid var(--line);border-radius:10px;background:var(--paper);box-shadow:0 12px 26px #142d4830}
@@ -178,3 +178,19 @@ html:has(#webflow-app),body:has(#webflow-app){margin:0}
 }
 
 .wf-task-detail .wf-sub{white-space:normal;overflow-wrap:anywhere}
+
+/* R1 script onboarding lives inside the sandbox, never in the trusted TaskRunSheet. */
+.wf-add-sheet{background:var(--paper);border:1px solid var(--line);border-radius:10px;padding:12px;min-width:0}
+.wf-add-sheet .wf-line{flex-wrap:wrap}
+.wf-add-way{width:100%;min-height:54px;display:grid;grid-template-columns:minmax(0,1fr) auto;gap:2px 8px;align-items:center;text-align:left;border:1px solid var(--line);border-radius:9px;background:var(--paper);color:var(--ink);padding:9px 11px}
+.wf-add-way:hover{background:var(--tint);border-color:var(--brand)}
+.wf-add-way strong{grid-column:1;font-size:12px}
+.wf-add-way small{grid-column:1;color:var(--sub);font-size:11px}
+.wf-add-way>span{grid-column:2;grid-row:1/span 2;color:var(--sub)}
+.wf-add-installed{display:flex;flex-wrap:wrap;align-items:center;gap:8px;padding:9px;border:1px solid var(--line);border-radius:8px}
+.wf-add-installed .wf-grow strong,.wf-add-installed .wf-grow small{display:block;overflow-wrap:anywhere}
+.wf-add-installed .wf-grow small{font-size:10px;color:var(--sub)}
+.wf-add-input{resize:vertical;min-height:66px}
+.wf-add-prompt{font:11px/1.55 ui-monospace,Consolas,monospace;min-height:150px;max-height:310px}
+.wf-add-sheet .wf-label{font-size:11px}
+@media(max-width:350px){.wf-search-row{gap:4px;grid-template-columns:minmax(0,1fr) repeat(3,32px)}.wf-search-row>.wf-icon{width:32px;min-width:32px;height:32px;min-height:32px}}

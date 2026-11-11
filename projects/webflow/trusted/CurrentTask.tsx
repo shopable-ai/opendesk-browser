@@ -274,6 +274,14 @@ export function WebflowCurrentTask({controller,tasks=[],onSummary=null,onAuthori
     <p className="od-note">{row.scope.taskId} · {new Date(row.createdAt).toLocaleString()} ·
      {row.pendingAuto&&row.status==='prepared'&&row.receipt.execution==='not-started'?'未批准 · 尚未执行':executionLabel[row.receipt.execution]||'结果未知，请核对原记录'} ·
      {row.receipt.delivery==='confirmed'?'原聊天交付已确认':row.receipt.delivery==='unknown'?'回传未知，禁止补发':row.receipt.delivery==='not-sent'?'尚未发送':'尚未确认交付'}</p>
+    {row.receipt.preparedB&&<div data-webflow-prepared-b-review className="od-surface od-surface--padded od-stack">
+     <strong>唯一 B · 未发送草稿（可信只读审阅）</strong>
+     {row.receipt.preparedB.state==='document-checked'?<>
+      <p className="od-note">原 PREPARE Run 与保留的 B 标签页、文档及权限已在本次查询时重新核对。下方是冻结的任务原文及 SHA，并非当前输入框的二次读回；B 尚无真实 /c/ 会话链接。</p>
+      <p className="od-note">ChatGPT 账号/Profile、B 当前草稿及独立 APPROVE_SEND 仍未核验；不可发送，也不可将旧草稿重新创建为另一个 B。</p>
+      <pre className="od-result" style={{whiteSpace:'pre-wrap',overflowWrap:'anywhere'}}>{JSON.stringify(row.receipt.preparedB,null,2)}</pre>
+     </>:<p role="status" className="od-note">原 B 文档、安装或持久证明不再满足只读核查条件。保留原 PREPARE Result，不自动重建、不批准、不发送；请核对原请求。</p>}
+    </div>}
     <pre className="od-result" style={{whiteSpace:'pre-wrap',overflowWrap:'anywhere'}}>{JSON.stringify(row,null,2)}</pre>
    </div>)}
   </details>}

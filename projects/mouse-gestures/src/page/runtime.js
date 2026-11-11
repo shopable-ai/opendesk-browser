@@ -17,7 +17,20 @@ export function createMouseGestureRuntime({ui,bridge=globalThis.OpenDeskAppPage,
       await bridge.readContext();
       const saved=await bridge.storage.get({key:POLICY_KEY,withEtag:true});
       if(disposed||requested!==version||!ui.active())return false;
-      const enabled=saved?.value?.enabled===true;
+      // No stored preferences means a newly installed, authorized app is ON.
+      // Only an explicit user setting "enabled:false" disables gestures.
+      // Failed reads or malformed data still fail closed in the catch branch.
+      if(typeof saved?.etag!=='string'||!saved.etag||
+        (saved.value!=null&&(typeof saved.value!=='object'||Array.isArray(saved.value))))
+        throw Error('E_GESTURE_POLICY');
+      const prefs=saved.value||{};
+      if(prefs.enabled!==undefined&&typeof prefs.enabled!=='boolean')
+        throw Error('E_GESTURE_POLICY_ENABLED');
+      const enabled=prefs.enabled!==false;
+      gesture.setOptions?.({
+        trigger:prefs.trigger==='alt-left'?'alt-left':'right',
+        showTrace:prefs.showTrace!==false
+      });
       gesture.setEnabled(enabled);
       return enabled;
     }catch(error){
