@@ -8,7 +8,7 @@ const taskId='example.task',version='0.1.0',scriptId=`task:${taskId}:${version}`
 function fixture(){
   return {
     previous:{
-      tag:'controller-run',runId:'run-prepared',requestId:'request-prepared',sourceKind:'saved',
+      tag:'controller-run',runId:'run-prepared',requestId:'request-prepared',sourceKind:'saved',runRevision:4,
       namespace:'tool:test-extension',principal:'principal-a',browserSessionIncarnation:'session-a',
       scriptId,contentHash:hash,revision:{scriptId,sourceHash:hash,revision:1},
       installedTaskAuthorization:{taskId,version,manifestHash,
@@ -57,6 +57,9 @@ test('mismatched source Run or wrong immutable installation cannot continue',()=
 test('changed page, reload, cross-session or absent retention fails closed',()=>{
   const changes=[
     f=>{f.previous.state='failed';},
+    f=>{f.previous.tombstoned=true;},
+    f=>{f.previous.runRevision=undefined;},
+    f=>{f.previous.retainedContinuation={runId:'other-run'};},
     f=>{f.previous.retirementState='pending';},
     f=>{f.previous.workerRetired=false;},
     f=>{f.previous.targetDisposition='close';},
