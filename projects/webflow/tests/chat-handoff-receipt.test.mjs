@@ -83,6 +83,11 @@ test('wrong A, account, Controller run, or B target URL refuses attestation',asy
   await assert.rejects(attestChatHandoffBReply(fixture({readController:async()=>forged})),
     {code:'E_CHAT_RECEIPT_IDENTITY'});
 });
+test('only reviewed B-target mismatch is reclassified; broken durable records retain bridge error',async()=>{
+  const broken=snapshot();broken.results=[];
+  await assert.rejects(attestChatHandoffBReply(fixture({
+    readController:async()=>broken})),{code:'E_BRIDGE_RESULT'});
+});
 test('bad approval, prompt drift and incomplete B reply are not success',async()=>{
   await assert.rejects(attestChatHandoffBReply(fixture({
     trustedScope:{...scope,expectedAuthorizationRef:'wrong-grant'}})),
