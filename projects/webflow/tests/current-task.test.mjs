@@ -318,3 +318,34 @@ test('trusted panel reuses a single owner-bound Toast, dedupes polls, and never 
  }
  assert.ok(calls.includes('clear'),'unmount clears its own transient Host notices');
 });
+
+test('read-only original B review shows frozen PREPARE evidence without a send control',()=>{
+ const original={requestId:'prepare-original-request',source:{tabId:19,documentId:'doc-a',
+  url:'https://chatgpt.com/c/0be71d2c-7f21-4d98-963a-5edbcabca394'},
+  scope:{taskId:'chatgpt.conversation.create',args:{prompt:'Approved? Not yet.'}},
+  status:'consumed',createdAt:1,receipt:{execution:'prepared-account-unverified',
+    delivery:'not-sent',persistence:'verified',release:'released',
+    preparedB:{state:'document-checked',tabId:58,documentId:'original-b-document',
+      prepareRunId:'prepare-run-001',prompt:'Approved? Not yet.',
+      draftSha256:'b'.repeat(64),accountVerified:false,liveDraftVerified:false,sendApproved:false}}};
+ const bridge={view:{source:original.source,history:[original],session:null},
+  error:'',revision:0,read:async()=>{}};
+ const {document}=parseHTML(renderToStaticMarkup(React.createElement(
+  WebflowCurrentTask,{controller:{},bridge})));
+ const review=document.querySelector('[data-webflow-prepared-b-review]');
+ assert.ok(review);
+ assert.match(review.textContent,/唯一 B.*未发送草稿/);
+ assert.match(review.textContent,/账号\/Profile.*仍未核验/);
+ assert.match(review.textContent,/Approved\? Not yet\./);
+ assert.match(review.textContent,/original-b-document/);
+ assert.equal(document.querySelector('[data-webflow-action="approve-send"]'),null);
+ assert.equal(document.querySelector('[data-webflow-action="submit"]'),null);
+ assert.equal(document.querySelector('button')?.textContent,'刷新状态');
+ const stale={...original,receipt:{...original.receipt,preparedB:{state:'unverified'}}};
+ const staleBridge={...bridge,view:{...bridge.view,history:[stale]}};
+ const staleDoc=parseHTML(renderToStaticMarkup(React.createElement(
+  WebflowCurrentTask,{controller:{},bridge:staleBridge}))).document;
+ const staleReview=staleDoc.querySelector('[data-webflow-prepared-b-review]');
+ assert.match(staleReview.textContent,/不自动重建、不批准、不发送/);
+ assert.equal(staleReview.querySelector('pre'),null);
+});

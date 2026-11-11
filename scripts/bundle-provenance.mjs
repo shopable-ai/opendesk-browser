@@ -62,7 +62,7 @@ const compiledWebFlowInputs=Object.freeze({
   // distinguish reserved IDs/persistence/delivery/release; UNKNOWN never replays.
   // Reviewed same-receipt, owner-bound Toast projection; execution stays unchanged.
   // Retain the upstream PREPARE-only/account-unverified status copy.
-  'projects/webflow/trusted/CurrentTask.tsx':'379529877fbb5fff7fc4083f53a513d59abfa9ca',
+  'projects/webflow/trusted/CurrentTask.tsx':'aa2ecc7a76140fdf228444223b10d700207f4014',
   // Reviewed display-only scripts route, consumed by the same fixed tool shell.
   'projects/webflow/src/ui/app-page-routes.js':'04468dd893393f82482123355243d8cdad4b1fb7',
   'projects/webflow/trusted/RuntimePanel.tsx':'f418c26696933f0b9440080fd2586e47e42b870f'

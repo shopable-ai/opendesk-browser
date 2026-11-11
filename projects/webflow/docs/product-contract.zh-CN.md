@@ -1,3 +1,13 @@
+## R3 · ChatGPT A→唯一 B→原 A 同一草稿接续安全合同（2026-11-11）
+
+**产品完成条件：** A 中提出任务 → 唯一 B 仅 PREPARE 草稿 → 可信界面冻结原 B/原 Run/原草稿与安装及账号身份并独立 APPROVE_SEND → 原 B borrowed SUBMIT_ONCE → 原 Durable Result 中真实完整回复与 /c/ 链接 → 原 A DELIVER_ONCE。JSON completed、单次 Node 测试、只读 B 证明均不得替代真实 Chrome/BUSINESS。
+
+**新增只读审阅，不是批准：** 在原 Trigger Ledger 的 `webBPrepared` 已固定且 Authority 对原 PREPARE Durable Result 验证通过时，可信 Side Panel 的原请求历史可重做 `attestReviewedBPrepare`，提供 `receipt.preparedB`。状态 `document-checked` 仅表示读取当刻原 retained B 标签页/文档、Chrome 权限、冻结 Run/安装 SHA 匹配；`unverified` 表示证据不再完整。冻结的 prompt/SHA 供人工核对，但 ChatGPT 账号、当前 DOM 草稿和独立提交批准始终明确 `false`。不暴露网页可调用入口、不赋予 Task Run 权限、不生成 B2。受信历史读回失效则隐藏投影，历史 PREPARE Durable Result 仍按原权限管理。
+
+**下一次编码的硬依赖：** 先获取可信且可复查的 A/B 账号/Profile 与当前原 B 草稿读回；失败停在只读，不尝试基于 Cookie 猜测或网页自报放行。随后才允许将一次批准与冻结身份持久绑定到原 Ledger，借用原 retainedFrom+borrowed 运行，最终执行 A 单次交付；未知副作用永久只读对账。0.3.0 Task、其 Manifest/SHA 及 0.1/0.2 均保持不可变，跨 AI 逻辑属于独立 Adapter/Task。
+
+---
+
 ## 统一脚本导入与 Web Flow 添加入口 · R1（OD-UNIFIED-TASK-IMPORT-R1；2026-11-11）
 
 **用户目标：**「我的」负责本地自动化任务的导入、草稿、固定版本候选、验证、安装、启停和历史；Web Flow →「脚本」只消费应用已获审阅许可的固定 Controller Task，提供从已有任务、顶部开发、Codex 辅助、已有文件进入正确流程的单个添加入口。一个固定任务只安装一次；既有 TaskWorkbench/RunHost/TaskRunSheet/Authority 及持久化结果是唯一可信执行体系，不复制安装器或任务数据库。

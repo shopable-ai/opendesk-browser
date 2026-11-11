@@ -1,3 +1,17 @@
+## R3 · A→唯一 B→原 A 可信发送接续（2026-11-11；OD-WEBFLOW-CHAT-A-B-A-SAME-B-R3-TRUSTED-SEND-CLOSURE）
+
+**原始用户目标：** ChatGPT A 中请求新建唯一 B，只准备草稿；可信侧栏单独批准后，在同一个 B 原草稿发送一次，观察完整回答及真实 /c/ 链接，并单次返回原 A。刷新、ACK UNKNOWN、重启、权限变化均禁止重复创建、发送或交付。
+
+**本次已落地的最小只读增量（非发送闭环）：** 现有 `web-task-ingress.js` 的可信 Side Panel 历史读取，在原 Authority / Ledger / Durable Result 授权栅栏通过后，重用既有 `attestReviewedBPrepare`，按原 PREPARE Run、保留的 B 标签/文档/权限、固定安装身份及冻结草稿 SHA 对账；只有与同一账本 `webBPrepared` 严格一致时投影 `receipt.preparedB.state=document-checked`。当前 B 失效、证明变化时只返回 `unverified`，原 Durable Result 仍保留；撤权/读回栅栏失效时删除可披露的 B 投影。原可信 `CurrentTask.tsx` 展示冻结原文、Run、B 身份及明显的「不可发送」说明。该投影从不创建 Run、批准、切换目标或点击 ChatGPT 发送。
+
+**仍不可越过的首个 P0 阻塞：** 当前证明只覆盖 Chrome tab/document/URL/permission 与原安装身份，**不证明 ChatGPT A/B 的真实账号/Profile 相同，也不证明原 B 当前 DOM 草稿未被编辑**；独立 APPROVE_SEND 与 borrowed SUBMIT 消费者仍缺失。网站未经核验的账号标识、Cookie 推测和本只读投影均不构成批准。没有账号和原草稿可信实时核验，不得接通发送；0.3.0 不可变，原 0.2.0 不得跨版接续。
+
+**本轮证据计划：** 新增定向 Node 回归覆盖可信 Side Panel 的 PREPARE 证明披露、重启读回、B document 变更时只读拒绝及零发送；React 静态渲染测试验证无 SUBMIT/批准按钮。需要根据实际 GitHub Actions/本机 Node 结果再判定 PASS；历史 CI 不继承。SOURCE=PARTIAL（只读审阅接线），NODE_TEST=待对应提交 CI，PACKAGE=NOT_TESTED，CHROME=NOT_TESTED，BUSINESS=NOT_TESTED。本轮未真实发送任何 ChatGPT 消息。
+
+**唯一下一依赖：** 从当前受信 Host + 原 ChatGPT Controller Task 的站点证据，建立可验证的 A/B 账号/Profile 同一性和原 B 当前草稿实时读回；然后在原 Ledger 中实现独立且不可重放的 APPROVE_SEND，接入同一 0.3.0 原 Run 的 retainedFrom+borrowed SUBMIT，最终做真正 A 交付。不得回退成第二个 owned B，也不得绕过审批；无法验证则保留 BLOCKED。
+
+---
+
 ## OD-UNIFIED-TASK-IMPORT-R1 · 统一可信导入与 Web Flow 添加入口（2026-11-11）
 
 **原始目标：** 普通用户在「我的」拖入或选择文件进入正确的草稿/候选流程；Web Flow 从已审阅任务中选择、引导开发或导入，并且不能绕过可信安装/固定授权；复用一个 TaskWorkbench、RunHost、TaskRunSheet。
