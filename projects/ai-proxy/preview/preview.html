@@ -822,7 +822,7 @@ function openModal(title,body,action){
   dialog.classList.toggle('modal--proxy',action?.type==='proxy');
   dialog.innerHTML=`<div class="modal-head"><h2 id="modalTitle">${esc(title)}</h2>${btn(ico('close'),'close-modal','icon-btn','aria-label="关闭"')}</div>${body}`;
   shade.hidden=false;
-  dialog.querySelector('input[autofocus],input:not([disabled]),select,button')?.focus({preventScroll:true});
+  (dialog.querySelector('input[autofocus]')||dialog.querySelector('input:not([disabled]),select,button'))?.focus({preventScroll:true});
 }
 function closeModal(){
   document.getElementById('modalShade').hidden=true;
