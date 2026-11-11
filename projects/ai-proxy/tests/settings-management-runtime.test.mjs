@@ -17,7 +17,7 @@ const headerActions=await bundle('../src/domain/header-actions.ts');
 const {translate}=await bundle('../src/i18n/locale.ts');
 const settingsCode=(await transform(await readFile(new URL('../src/Settings.tsx',import.meta.url),'utf8'),{loader:'tsx',format:'cjs',jsx:'automatic'})).code;
 const statusCode=(await transform(await readFile(new URL('../src/ui/Status.tsx',import.meta.url),'utf8'),{loader:'tsx',format:'cjs',jsx:'automatic'})).code;
-function render(locale,runtime,{config={...domain.freshConfig(),selection:{mode:'direct'}},route='#/rules',stateOverride}={}){
+function render(locale,runtime,{config={...domain.freshConfig(),selection:{mode:'direct'}},route='#/rules',stateOverride,presentation='management'}={}){
  const hooks={...React,useState:initial=>[typeof initial==='function'?initial():initial,()=>{}],useRef:initial=>({current:initial}),useEffect(){}};
  const i18n={useI18n:()=>({locale,t:(key,params)=>translate(locale,key,params)})};
  const statusModule={exports:{}};
@@ -39,7 +39,7 @@ function render(locale,runtime,{config={...domain.freshConfig(),selection:{mode:
   if(name==='./ui/FormField')return {FormField:({id,label,className,children})=>React.createElement('div',{className},React.createElement('label',{htmlFor:id},label),typeof children==='function'?children({id}):children)};
   return new Proxy({},{get:()=>()=>null});
  }});
- return load(renderToStaticMarkup(React.createElement(module.exports.default,{presentation:'management'})));
+ return load(renderToStaticMarkup(React.createElement(module.exports.default,{presentation})));
 }
 
 test('management summary labels saved Direct as a selection independently from confirmed Rules, system, errors and unknown runtime',()=>{
@@ -121,4 +121,20 @@ test('real PC proxy editor matches preview reading order, while retaining native
  assert.equal(dialog.find('.editorActions [data-add-another="true"]').length,1);
  assert.equal(dialog.find('.editorActions button[type="button"]').length,1,'cancel is not a submit action');
  assert.equal(dialog.find('.editorHead button[type="button"]').length,1,'close is not a submit action');
+});
+
+test('shared editor keeps the compact Side Panel field order without cloning business controls',()=>{
+ const config=domain.freshConfig();
+ const runtime={state:'disabled',control:'controllable_by_this_extension',canStop:false,
+  desired:config.selection,managedIntent:false,applied:false,pendingChanges:false,
+  activeSelection:null,browserMode:'system',proxyError:null};
+ const $=render('zh-CN',runtime,{config,route:'#/profiles',presentation:'sidebar'});
+ const fields=$('.proxyEditorDialog .proxyEditorFields'), children=fields.children().toArray();
+ const indexOf=selector=>children.findIndex(el=>$(el).is(selector));
+ assert.ok(indexOf('.proxyPrimaryFields')<indexOf('.proxyNameField'),
+  'Side Panel still places connection before the optional name field');
+ assert.deepEqual(fields.find('.proxyPrimaryFields').children().map((_,el)=>$(el).attr('class')).get(),
+  ['proxyHostField','proxySchemeField','proxyPortField'],
+  'Side Panel retains host → protocol → port');
+ assert.equal(fields.find('.proxyNameField').length,1,'only one name editor is mounted');
 });
