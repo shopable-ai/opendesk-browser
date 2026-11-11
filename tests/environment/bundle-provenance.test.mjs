@@ -11,6 +11,38 @@ import {BUILTIN_CATALOG} from '../../src/libs/catalog.js';
 import {PACKAGE_ENTRIES} from '../../scripts/build-contract.mjs';
 const root='/repo';
 
+test('reviewed WebFlow task intent parser is pinned to only original three fixed entries',()=>{
+  const path='projects/webflow/src/task-intent-contract.js';
+  const modules={[resolve(path)]:{renderedLength:1,originalLength:1}};
+  for(const target of ['sw.js','ui/tool-shell.js','agents/web-task-content.js']){
+    const result=describeBundle({chunk:{fileName:target,modules},lock:{packages:{}}});
+    assert.equal(result.modules[0].reviewedFirstPartyBlob,'50a7ec4bd3d8707ba53724efdc378cd98c2404d6');
+  }
+  for(const target of ['agents/chatgpt-fixed-bridge.js','native-agent/settings.js',
+    'agents/page-relay.js','ui/sidebar-tool-host.js']){
+    assert.throws(()=>describeBundle({chunk:{fileName:target,modules},lock:{packages:{}}}),
+      /cannot enter a privileged fixed bundle/);
+  }
+});
+
+test('reviewed WebFlow intent source pin rejects mutated and symlinked content',async t=>{
+  const root=await realpath(await mkdtemp(join(tmpdir(),'webflow-intent-source-pin-')));
+  t.after(()=>rm(root,{recursive:true,force:true}));
+  const path='projects/webflow/src/task-intent-contract.js';
+  const file=join(root,path);
+  await mkdir(dirname(file),{recursive:true});
+  const bytes=await readFile(resolve(path));
+  await writeFile(file,bytes);
+  const input={chunk:{fileName:'sw.js',modules:{[file]:{renderedLength:1,originalLength:1}}},
+    root,lock:{packages:{}}};
+  assert.equal(describeBundle(input).modules[0].reviewedFirstPartyBlob,'50a7ec4bd3d8707ba53724efdc378cd98c2404d6');
+  await writeFile(file,Buffer.concat([bytes,Buffer.from('\n// drift')]));
+  assert.throws(()=>describeBundle(input),/Trusted Web Flow source changed/);
+  await rm(file);
+  await symlink(resolve(path),file);
+  assert.throws(()=>describeBundle(input),/Trusted Web Flow source must not be a symlink/);
+});
+
 test('reviewed app display routes enter only the fixed tool shell',()=>{
  const routes=['projects/ai-proxy/trusted/app-page-routes.js','projects/webflow/src/ui/app-page-routes.js'];
  const modules=Object.fromEntries(routes.map(path=>[resolve(path),{renderedLength:1,originalLength:1}]));

@@ -25,7 +25,8 @@
 - V1 五字段、V2 四字段；协议字符串、候选 token、URL/args 约束、错误码、重复字段拒绝、冻结输出保持原样。
 - 新模块只实现结构解析；旧 ChatGPT 导出是**同一函数的再导出**，不是第二份解析实现。ChatGPT 旧 V1 请求与安装快照校验保持原位置、原执行语义。
 - 不改 V2 已审入口与 PIN/Schema，`phase=submit` 仍必须经独立可信批准；不改变 ChatGPT 0.1/0.2/0.3 Task 源码、Manifest、版本/哈希、授权、UNKNOWN 不重放。
-- 不更改 `scripts/bundle-provenance.mjs` 固定来源/输出、WXT content-script、Ledger Key、Bridge 协议、Controller retained/borrowed。
+- 不变更原 WXT content-script 输出路径、Ledger Key、Bridge 协议、Controller retained/borrowed。新增解析器必须经 `scripts/bundle-provenance.mjs` 原固定资源审计：pin Git Blob `50a7ec4bd3d8707ba53724efdc378cd98c2404d6`，严格只允许 `sw.js`、`ui/tool-shell.js`、`agents/web-task-content.js` 三个既有固定输出，不放开 ChatGPT 官方页面脚本或其他 Bundle。新增精确目标/改源后不能跳过重审。
+- 增加 provenance 定向测试：原三个输出接受相同审阅源；未授权输出、SHA 漂移和符号链接全部失败关闭。
 - CI 新增这次代码的 paths、独立 Node 兼容/安全测试及构建后 `verify-package`。任何 CI PASS 只能绑定当前提交 SHA；未取得回执之前 NODE/PACKAGE 保持 NOT_TESTED。
 
 ## 下一阶段

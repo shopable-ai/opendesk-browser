@@ -4,7 +4,9 @@
 
 **本轮源码候选：** `projects/webflow/src/task-intent-contract.js` 是唯一通用解析器；旧 `chatgpt-task-request.js` 保留专用 V1 请求处理及兼容再导出；`generic-task-adapter.js` 与 `webflow-v2-target.js` 改为直连；新增 4 组 Node 定向测试，Bridge CI 检查覆盖源码、构建与 `verify-package`。原 immutable Task、Manifest、hash、Ledger、固定入口及 V2 PREPARE-only 未作修改。
 
-**证据：** SOURCE=待提交读回；NODE=NOT_TESTED；PACKAGE=NOT_TESTED；CHROME_NATIVE=BLOCKED（本机 CodexPro/文件隧道不可用）；BUSINESS=NOT_TESTED。测试以本次新提交 SHA 为准，不继承历史通过。R2 `APPROVE_SEND → borrowed SUBMIT → B 完整回复 → A 一次性交付` 不在 R0 实施。
+**编译边界补充：** 原 `bundle-provenance.mjs` 禁止没有精确审阅 SHA 的 `projects/` 源码进入可信 WXT 固定包；新增解析器现已按实际三消费者加单文件 Blob Pin `50a7ec4bd3d8707ba53724efdc378cd98c2404d6`，且仅允许 `sw.js`、`ui/tool-shell.js`、`agents/web-task-content.js`。已新增定向 SHA/非目标/符号链接拒绝测试，未经新提交 Node 与 Build 回执不得称 PASS。
+
+**证据：** SOURCE=提交后需读回；NODE=NOT_TESTED；PACKAGE=NOT_TESTED；CHROME_NATIVE=BLOCKED（本机 CodexPro/文件隧道不可用）；BUSINESS=NOT_TESTED。测试以本次新提交 SHA 为准，不继承历史通过。R2 `APPROVE_SEND → borrowed SUBMIT → B 完整回复 → A 一次性交付` 不在 R0 实施。
 
 ---
 
