@@ -785,7 +785,7 @@ export function createChatGPTFilesController({api,files,readAnswer=readChatGPTEd
     }catch(error){
       if(!s.project){
         const stoppedPrevious=previous&&ticket?.stopped&&ticket.source===sourceIdentity(previous.source);
-        if(stoppedPrevious){previous.paused=true;previous.message='任务已停止；已派发写入不会重放。';}
+        if(stoppedPrevious){previous.paused=true;previous.message='停止请求已接收；已派发写入须以原真实回执结算，不会重放。';}
         if(previous)sessions.set(key,previous);else sessions.delete(key);
         // The prior task was hidden from Stop by this tentative session. Save
         // its exact-source stop fence before the next queued wake can run.
@@ -1000,11 +1000,11 @@ export function createChatGPTFilesController({api,files,readAnswer=readChatGPTEd
       }
       return enqueue(async()=>{await restore();const source=await pageSource(sender),s=sessions.get(projectKey(source));
       for(const row of sessions.values())if(sourceIdentity(row.source)===sourceIdentity(source)){row.paused=true;row.pauseReason='stop';}
-      if(!s||s.source.documentId!==source.documentId||s.source.url!==source.url||s.source.windowId!==source.windowId){await persist();return {message:'原对话文件任务已停止',automation:{phase:'paused'}};}
-      s.paused=true;s.message='任务已停止；已派发写入不会重放。';await persist();
+      if(!s||s.source.documentId!==source.documentId||s.source.url!==source.url||s.source.windowId!==source.windowId){await persist();return {message:'已阻止同来源后续文件操作；没有当前来源可展示的任务，已派发操作仍须核对原回执。',automation:{phase:'paused'}};}
+      s.paused=true;s.message='停止请求已接收；已派发写入须以原真实回执结算，不会重放。';await persist();
       // Stop remains effective after revocation, but cannot disclose a prior
       // receipt or file contents without the still-current project grant.
-      if(s.project?.grantId){try{await projectAuthority(s);}catch{return {message:'任务已停止；项目授权不可用，文件详情已隐藏。',automation:{phase:'paused'}};}}
+      if(s.project?.grantId){try{await projectAuthority(s);}catch{return {message:'停止请求已接收；项目授权不可用，文件详情已隐藏；已派发副作用仍须核对真实回执。',automation:{phase:'paused'}};}}
       return snapshot(s);});},
     tick(){return enqueue(tick);},
     drop(tabId){
