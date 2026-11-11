@@ -254,9 +254,20 @@ try{
       'row.scrollIntoView({block:"nearest"});const b=row.querySelector(".wf-task-name").getBoundingClientRect();'+
       'return {x:b.left+b.width/2,y:b.top+b.height/2}})()');
     await cdp('Input.dispatchMouseEvent',{type:'mouseMoved',x:hoverPoint.x,y:hoverPoint.y});
-    await eventually('(()=>{const el=document.querySelector(".wf-task-row:nth-child(2) button[aria-pressed]");'+
-      'return el&&el.getBoundingClientRect().width>0})()','favorite appears after native hover');
-    await click('.wf-task-row:nth-child(2) button[aria-pressed]');
+    // Headless Linux can report hover:none/pointer:coarse even after CDP mouseMoved.
+    // In that real input mode shortcuts are deliberately display:none; the
+    // visible More menu is the supported user path, not a fixture loophole.
+    const fineHover=await evaluate('matchMedia("(hover: hover) and (pointer: fine)").matches');
+    if(fineHover){
+      await eventually('(()=>{const el=document.querySelector(".wf-task-row:nth-child(2) button[aria-pressed]");'+
+        'return el&&el.getBoundingClientRect().width>0})()','favorite appears after native hover');
+      await click('.wf-task-row:nth-child(2) button[aria-pressed]');
+    }else{
+      await click('[data-wf-menu="'+nameOrder[1]+'"]');
+      await eventually('document.querySelector(".wf-task-row:nth-child(2) .wf-menu")?.textContent.includes("收藏脚本")',
+        'touch/coarse input has an accessible favorite menu item');
+      await click('.wf-task-row:nth-child(2) .wf-menu button:nth-child(2)');
+    }
     await eventually('document.querySelector(".wf-task-name").dataset.wfTaskName==='+JSON.stringify(nameOrder[1]),'favorite sorts first');
     await filterBy(4);
     await eventually('document.querySelectorAll(".wf-task-row").length===1','favorite filter');
