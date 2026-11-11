@@ -226,6 +226,54 @@ test('Web Flow opens the exact same trusted React Sheet, prepares without runnin
   }finally{if(root)await React.act(async()=>root.unmount());f.dispose();}
 });
 
+
+test('Web Flow tool revocation blocks both saving and eventual RunHost submission',async()=>{
+  const f=await fixture();let root;
+  try{
+    root=await f.mount();
+    const pin={taskId:'test.task',version:'1.0.0',manifestHash:'a'.repeat(64),contentHash:'b'.repeat(64)};
+    let authorized=true,checks=0;
+    const assertAuthorized=async()=>{checks++;if(!authorized)throw Object.assign(
+      new Error('tool generation changed'),{code:'E_TOOL_CHANGED'});};
+    await React.act(async()=>{assert.equal(await f.workbench.openTaskRunSheet('test.task',{
+      expectedPin:pin,assertAuthorized}),true);await tick();});
+    const identity={...f.view.data.taskRows.identity};
+    authorized=false;
+    await React.act(async()=>{
+      assert.equal(await f.view.actions.taskRunSheetPrepare(native(),identity),false);await tick();
+    });
+    assert.equal(f.state.localStore.has('opendesk.shared-task-run-sheet.webflow.v1'),false);
+    assert.equal(f.state.starts.length,0,'a revoked tool cannot save a fresh executable step');
+    authorized=true;
+    await React.act(async()=>{
+      assert.equal(await f.view.actions.taskRunSheetPrepare(native(),identity),true);await tick();
+    });
+    assert.equal(f.state.localStore.get('opendesk.shared-task-run-sheet.webflow.v1')?.state,'ready');
+    authorized=false;
+    await React.act(async()=>{
+      assert.equal(f.view.actions.taskRunSheetConfirm(native(),identity),true);
+      await tick();await tick();
+    });
+    assert.equal(f.state.starts.length,0,'revocation between save and confirmation cannot start RunHost');
+    assert.equal(f.state.localStore.get('opendesk.shared-task-run-sheet.webflow.v1')?.state,'ready');
+    assert.ok(checks>=4,'authority must be consulted at open, prepare and final admission');
+  }finally{if(root)await React.act(async()=>root.unmount());f.dispose();}
+});
+
+test('My entry cannot bypass a Web Flow ready identity in the same TaskWorkbench',async()=>{
+  const f=await fixture();let root;
+  try{
+    root=await f.mount();
+    const pin={taskId:'test.task',version:'1.0.0',manifestHash:'a'.repeat(64),contentHash:'b'.repeat(64)};
+    await React.act(async()=>{assert.equal(await f.workbench.openTaskRunSheet('test.task',{expectedPin:pin}),true);await tick();});
+    const identity={...f.view.data.taskRows.identity};
+    await React.act(async()=>{assert.equal(await f.view.actions.taskRunSheetPrepare(native(),identity),true);await tick();});
+    await React.act(async()=>{f.view.actions.taskRunClick(native(),identity);await tick();await tick();});
+    assert.equal(f.state.starts.length,0,'the shared prepared identity fences manual TaskWorkbench entry');
+    assert.equal(f.state.localStore.get('opendesk.shared-task-run-sheet.webflow.v1')?.state,'ready');
+  }finally{if(root)await React.act(async()=>root.unmount());f.dispose();}
+});
+
 test('JSON editing uses original typed validation and preserves the editor draft across task selection',async()=>{
   const f=await fixture({twoTasks:true});let root;
   try{
