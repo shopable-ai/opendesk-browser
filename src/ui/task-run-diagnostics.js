@@ -87,6 +87,12 @@ export function formatTaskError(error) {
     advice = '检查网页元素是否仍存在、可见且可操作；开发者可更新 Locator 或等待条件。';
   else if (code === 'E_TIMEOUT' || code === 'E_EFFECT_UNKNOWN' || code === 'E_REQUEST_CONFLICT')
     advice = EFFECT_UNCERTAIN;
+  else if (/^E_TASK_(?:FILE_|JSON|IMPORT_)/.test(code))
+    advice = code === 'E_TASK_FILE_COUNT' ? '一次只选择一个文件后重新拖入或点击导入，不会安装或运行剩余文件。' :
+      code === 'E_TASK_IMPORT_CONFLICT' ? '任务固定版本不可覆盖；请检查已有候选，并使用新的有效版本号重新提交。' :
+      '请核对文件类型、真实 format 与内容，修正后重新选择；文件导入本身不会执行或安装。';
+  else if (code === 'E_LIMIT' && /文件|草稿包|任务包/.test(message))
+    advice = '请缩小或拆分文件，按合法格式重新导入；大项目文件夹/ZIP 请走后续安全项目导入流程。';
   else if (code === 'E_CANCELLED')
     advice = '已收到停止或取消信号。此前操作是否已经生效，应以网页和持久结果为准。';
   else if (/^E_(?:HTTP|NETWORK|FETCH|REQUEST_FAILED)/.test(code))
