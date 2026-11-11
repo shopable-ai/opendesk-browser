@@ -5,7 +5,6 @@ import {digestUtf8} from '../../../src/platform/protocol.js';
 const ROOT='https://chatgpt.com/',ORIGIN='https://chatgpt.com';
 const fail=reason=>{throw Object.assign(new Error(reason),{code:'E_CHAT_B_PREPARE'});};
 const token=x=>typeof x==='string'&&x.length>=8&&x.length<=128;
-const same=(a,b)=>a?.tabId===b?.tabId&&a?.documentId===b?.documentId&&a?.url===b?.url;
 export function isReviewedBPrepare(row){
   return row?.site?.adapter==='chatgpt'&&
     row?.intentProtocol==='webflow.task.intent.v2'&&
@@ -39,8 +38,13 @@ export async function attestReviewedBPrepare({row,snapshot,durable,api}={}){
     frame.url!==ROOT||frame.documentLifecycle!=='active'||frame.errorOccurred||
     tab?.id!==retained.tabId||tab.url!==ROOT||tab.incognito||tab.pendingUrl)
     fail('Original B document is no longer active or authorized');
-  if(!same(row.source,row.source)||typeof row.scope.args.prompt!=='string'||
-    !row.scope.args.prompt.trim())fail('Original A request or prompt is missing');
+  let sourceUrl;
+  try{sourceUrl=new URL(row.source?.url);}catch{fail('Original A URL is missing');}
+  if(!Number.isSafeInteger(row.source?.tabId)||row.source.tabId<0||
+    !token(row.source?.documentId)||sourceUrl.origin!==ORIGIN||
+    !/\/c\/[A-Za-z0-9-]+\/?$/u.test(sourceUrl.pathname)||
+    typeof row.scope.args.prompt!=='string'||!row.scope.args.prompt.trim())
+    fail('Original A request or prompt is missing');
   // The next approval must additionally verify the ChatGPT account/Profile.
   // A prepared B with unknown account is never itself a send grant.
   return Object.freeze({prepareRunId:run.runId,prepareRequestId:row.requestId,
