@@ -22,7 +22,7 @@
     node --check projects/mouse-gestures/src/main.js
     node scripts/build-sidebar-tool.mjs --help
 
-已执行：当前 GitHub 源码在隔离 V8 中通过 18 项行为与语法检查；本地对相同状态机设计的 10 项 Node 针对性用例 PASS。**这些不等于仓库 Node 全套测试、打包、正式 Chrome 扩展安装或生产验收已通过。** 后续须按上述命令在仓库工作区执行回归，打包同一个候选 0.2.1，然后在真实 macOS/Windows Chrome 验证普通右键、双阈值、四方向、Mac menu-first、Windows menu-after、Alt-left、滑块首次默认 ON、显式 OFF 持久化、刷新、撤权、卸载、升级及轨迹清理。若系统先打开原生菜单，默认策略是放弃当前手势，不牺牲普通右键。
+已执行：当前 GitHub main 源码在隔离 V8 中通过 18 项直接行为/语法检查；三份仓库原有及新增测试源码经 Node API 适配后在隔离 V8 执行 **29/29 PASS**；本地对同一状态机设计的 10 项 Node 针对性用例 PASS。**这些不等于仓库 Node 全套测试、打包、正式 Chrome 扩展安装或生产验收已通过。** 后续须按上述命令在仓库工作区执行回归，打包同一个候选 0.2.1，然后在真实 macOS/Windows Chrome 验证普通右键、双阈值、四方向、Mac menu-first、Windows menu-after、Alt-left、滑块首次默认 ON、显式 OFF 持久化、刷新、撤权、卸载、升级及轨迹清理。若系统先打开原生菜单，默认策略是放弃当前手势，不牺牲普通右键。
 
 pageRules 仍为 http://*/* 与 https://*/*，不代表已自动获得网站访问。Chrome 内部页、浏览器 PDF、不获准的 iframe 不支持。
 
