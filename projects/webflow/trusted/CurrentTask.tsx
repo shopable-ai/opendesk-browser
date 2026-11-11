@@ -245,7 +245,7 @@ export function WebflowCurrentTask({controller,tasks=[],onSummary=null,onAuthori
  const v2Pending=session?.pendingAuto?.protocol==='webflow.task.intent.v2';
  const chatgptDraftPending=v2Pending&&session?.pendingAuto?.scope?.taskId==='chatgpt.conversation.create';
  const options=!v2Pending&&session?.pendingAuto&&autoParameterOptions(tasks.find(task=>task.taskId===session.pendingAuto.scope?.taskId));
- const executionLabel={'not-started':'尚未执行',validating:'核验中',preparing:'准备中',starting:'正在启动',completed:'已完成',running:'执行中',stopping:'正在停止',failed:'执行失败',stopped:'已停止',paused_unknown:'已暂停，结果未知（UNKNOWN），请核对原请求',unknown:'结果未知（UNKNOWN），请核对原请求'};
+ const executionLabel={'prepared-account-unverified':'原 B 草稿已保留 · 账号待核验，尚未发送','not-started':'尚未执行',validating:'核验中',preparing:'准备中',starting:'正在启动',completed:'已完成',running:'执行中',stopping:'正在停止',failed:'执行失败',stopped:'已停止',paused_unknown:'已暂停，结果未知（UNKNOWN），请核对原请求',unknown:'结果未知（UNKNOWN），请核对原请求'};
  const currentStatus=receipt&&!unstarted?(executionLabel[execution]||'任务状态未知（UNKNOWN），请核对原请求'):session?.status;
  React.useEffect(()=>{
   onSummary?.(error?'任务状态未确认，请打开运行与授权查看':
@@ -302,7 +302,7 @@ export function WebflowCurrentTask({controller,tasks=[],onSummary=null,onAuthori
      options?'现有授权仅限固定输入或尚未批准此任务。可一次允许更换关键词，以后同范围自动执行。':
      '本任务的目标、参数或安装版本尚未获准。请审阅后执行。'}</p>
     <p className="od-body" style={{overflowWrap:'anywhere'}}>目标：{session.pendingAuto.scope.targetUrl}</p>
-    {chatgptDraftPending&&<p className="od-note" role="note">当前仅能保留未发送草稿，send 默认 false。自动发送、模型及推理强度更改、持久会话链接核验尚未完成；空白草稿没有真实 /c/ 地址。</p>}
+    {chatgptDraftPending&&<p className="od-note" role="note">当前仅能准备未发送草稿。0.3.0 先执行 PREPARE，原 B 会保留，但账号与独立发送批准尚未接通；不会自动发送，也没有真实 /c/ 链接。旧版 0.2.0 仍以 send:false 准备草稿。</p>}
     {options&&<p className="od-note">{options.description}目标、任务版本或权限变化后仍需审核。</p>}
     <strong className="od-field-label">本次输入</strong>
     <pre className="od-result" style={{whiteSpace:'pre-wrap',overflowWrap:'anywhere'}}>{JSON.stringify(session.pendingAuto.scope.args,null,2)}</pre>
