@@ -24,6 +24,7 @@ import {normalizeBrowserOperation} from '../../framework/sdk/browser-contract.js
 import {isControllerNavigation} from '../../framework/control/locator-contract.js';
 import {withRunAdmissionLock} from './run-admission-lock.js';
 import {controllerMayRetainOwnedTarget} from './controller-target-retention.js';
+import {assertRetainedControllerContinuation,retainedContinuationKey} from './controller-retained-continuation.js';
 // Reuse exact literals within the fixed privileged bundle budget.
 const RUN_STORE="runs",
   RUN_WRITE="readwrite",
@@ -236,7 +237,7 @@ export function controllerMethods({storage, api, session, clock, assertHost, cur
     return {...structuredClone(Object.fromEntries(['tag', 'runId', 'state', 'runRevision', 'requestId', 'ownerEpoch', 'cancelSeq', 'identity',
       'target', 'targetQuarantine', 'revision', 'deadlineAt', 'retirementId', 'retirementState', 'resultId', 'terminalReason', 'workerRetired',
       'scriptId', 'contentHash', 'sourceKind', 'networkOrigins','profile','appBinding',
-      'targetDisposition','retainedTarget'].filter(key => run[key] !== undefined).map(key => [key, run[key]]))),
+      'targetDisposition','retainedTarget','retainedFrom'].filter(key => run[key] !== undefined).map(key => [key, run[key]]))),
       ...(taskInstallation?{taskInstallation}:{})};
   }
   async function snapshotControllerRun(request, sender) {
@@ -747,7 +748,7 @@ export function controllerMethods({storage, api, session, clock, assertHost, cur
     const admissionStartedAt=now();
     // A single admission API supports exact saved revisions and immutable draft
     // snapshots. The original top-level saved request remains compatible.
-    fields(request, ['requestId', 'scriptId', 'revision', 'contentHash', 'source', 'paramsWire', 'target', 'deadlineAt','networkOrigins','expectedTaskGeneration','expectedTaskInstallationId','taskDelegation','taskDelegationStep','cloudRequestId','scheduledFireId','expectedScheduleOwner'],
+    fields(request, ['requestId', 'scriptId', 'revision', 'contentHash', 'source', 'paramsWire', 'target', 'deadlineAt','networkOrigins','expectedTaskGeneration','expectedTaskInstallationId','taskDelegation','taskDelegationStep','cloudRequestId','scheduledFireId','expectedScheduleOwner','retainedFrom'],
       ['requestId', 'paramsWire', 'target', 'deadlineAt']);
     id(request.requestId); selection(request.target); const runParams=decodeValue(request.paramsWire);
     const environment=builtinIdentity(await loadBuiltin({runtime:api.runtime}));
@@ -773,6 +774,14 @@ export function controllerMethods({storage, api, session, clock, assertHost, cur
     }
     const saved = isDraft||isAppController ? null : variant || request;
     const isInstalledTask = !isDraft&&!isAppController && saved.scriptId?.startsWith('task:');
+    if(Object.hasOwn(request,'retainedFrom')){
+      fields(request.retainedFrom,['runId','requestId'],['runId','requestId']);
+      id(request.retainedFrom.runId);id(request.retainedFrom.requestId);
+      invariant(isInstalledTask&&request.target.mode==='borrowed'&&
+        !request.taskDelegation&&!request.taskDelegationStep&&
+        !request.cloudRequestId&&!request.scheduledFireId,
+        'E_PERMISSION','Retained continuation requires an independently admitted installed Task');
+    }
     if(request.taskDelegation){
       invariant((isInstalledTask||isAppController)&&!request.cloudRequestId&&!request.scheduledFireId,'E_PERMISSION');
       if(!isAppController)normalizeDelegatedTask(request.taskDelegation.task,true);
@@ -891,6 +900,18 @@ export function controllerMethods({storage, api, session, clock, assertHost, cur
       if(delegationStepKey)invariant(step.state==='prepared'&&!step.cancelled&&
         step.admissionCount===0&&step.maxAdmissions===1,CANCELLED_CODE,
         'Step is cancelled or already committed');
+      // A retained target is usable by at most one new Run. The original
+      // immutable owned/document identity is checked and consumed atomically
+      // with admission; lost acknowledgements cannot create a second sender.
+      let continuationKey=null;
+      if(Object.hasOwn(request,'retainedFrom')){
+        const previous=await transaction.get(RUN_STORE,request.retainedFrom.runId);
+        assertRetainedControllerContinuation({previous,retainedFrom:request.retainedFrom,
+          selection:request.target,observed,installedTask,current:saved,host,session});
+        continuationKey=retainedContinuationKey(request.retainedFrom.runId);
+        invariant(!await transaction.get(COMMAND_JOURNAL,continuationKey),EFFECT_UNKNOWN,
+          'Retained document already continued; inspect the original Run');
+      }
       const slot = await transaction.get(RUN_STORE, '@slot');
       invariant(!slot?.currentRunId&&!slot?.preview, CONTROLLER_OWNER_ERROR, 'Previous target or preview still active');
       const runId = newId(), scriptId = isAppController?`app-controller:${variant.appId}`:isDraft ? `draft:${runId}` : saved.scriptId;
@@ -906,6 +927,7 @@ export function controllerMethods({storage, api, session, clock, assertHost, cur
             {targetDisposition:installedTask.candidate.package.manifest.targetDisposition}:{})}:{}),
         ...(request.taskDelegation?{taskDelegation:structuredClone(request.taskDelegation)}:{}),
         ...(request.taskDelegationStep?{taskDelegationStep:structuredClone(request.taskDelegationStep)}:{}),
+        ...(request.retainedFrom?{retainedFrom:structuredClone(request.retainedFrom)}:{}),
         ...(scheduledFire?{scheduledFireId:scheduledFire.fireId}:{}),
         opId: newId(), resultId: newId(), requestId: request.requestId, requestDigest, deadlineAt: request.deadlineAt,
         paramsWire: structuredClone(executionParamsWire), selection: structuredClone(request.target),
@@ -931,6 +953,10 @@ export function controllerMethods({storage, api, session, clock, assertHost, cur
       await transaction.put(RUN_STORE, run, runId);
       await transaction.put(RUN_STORE, {tag: 'slot', currentRunId: runId, state: 'held', releaseCount: 0, fencedEpoch: 1, retirementId: null}, '@slot');
       await transaction.put(COMMAND_JOURNAL, {tag: 'controller-start', runId, requestDigest}, admissionKey);
+      if(continuationKey)await transaction.put(COMMAND_JOURNAL,{
+        tag:'controller-retained-continuation',fromRunId:request.retainedFrom.runId,
+        fromRequestId:request.retainedFrom.requestId,runId,requestId:run.requestId,
+        requestDigest,consumed:true,createdAt:now()},continuationKey);
       if(delegationStepKey)await transaction.put(COMMAND_JOURNAL,
         {...step,state:'submitted',runId,resultId:run.resultId,ownerEpoch:run.ownerEpoch,
           admissionCount:1,submittedAt:now()},delegationStepKey);
