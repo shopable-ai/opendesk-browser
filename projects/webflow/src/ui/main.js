@@ -620,8 +620,9 @@
               disabled:saving,title:star?'取消收藏':'收藏',
               ariaLabel:(star?'取消收藏 ':'收藏 ')+pin.title,pressed:star}),
             Btn(Icon('play'),()=>openSharedTask(pin),{
-              key:'run-'+pin.taskId,icon:true,shortcut:true,primary:true,disabled:Boolean(reason),
-              title:reason||'配置参数并准备手动运行；点击不会执行',
+              key:'run-'+pin.taskId,icon:true,shortcut:true,primary:true,
+              disabled:pin.state!=='available'||!pin.binding,
+              title:reason?reason+'（可查看参数，运行前必须满足条件）':'配置参数并准备手动运行；点击不会执行',
               ariaLabel:reason?'无法运行 '+pin.title+'：'+reason:'准备运行 '+pin.title}),
             h('div',{className:'wf-menu-anchor'},
               Btn(Icon('more'),()=>setMore(more===pin.taskId?null:pin.taskId),

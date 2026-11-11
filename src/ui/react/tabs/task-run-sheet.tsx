@@ -1,6 +1,6 @@
 import * as React from 'react';
 import {MyControl} from './my-controls.tsx';
-import {MyTaskParams} from './my-sections.tsx';
+import {MyTaskParams,MyTaskHistory} from './my-sections.tsx';
 import {TaskGlyph} from './tasks.tsx';
 import {Button,IconButton} from '../components/ui/button.tsx';
 
@@ -39,7 +39,7 @@ export function TaskRunSheet({view}){
     const accepted=isWebflow
       ?view.actions.taskRunSheetConfirm?.(event.nativeEvent,sheet?.identity)
       :view.actions.taskRunClick?.(event.nativeEvent,sheet?.identity);
-    if(accepted===true)close();
+    if(accepted===true&&!isWebflow)close();
     else if(sheet)focusInvalid.current=true;
   };
   const prepare=event=>{
@@ -97,8 +97,9 @@ export function TaskRunSheet({view}){
 </div></fieldset>
 </MyControl>
 {sheet&&<p className="task-params-sheet-status hint" role="status">{view.data.taskRunBlockedReason||''}{isWebflow&&view.data.taskSheetMessage?' '+view.data.taskSheetMessage:''}{!fieldExplainsStatus&&status?' '+status:''}</p>}
+{isWebflow&&['submitted','unknown','retired'].includes(stage)&&<details className="od-disclosure task-sheet-history"><summary>可信运行记录（含历史任务）</summary><MyTaskHistory rows={view.data.taskHistory||[]}/></details>}
 </div>
-<footer className="task-params-sheet-actions"><Button variant="quiet" onClick={close}>关闭</Button>{isWebflow&&stage==='ready'&&<Button variant="quiet" onClick={cancelPrepared}>取消未运行步骤</Button>}{isWebflow&&stage==='unknown'&&<Button variant="secondary" onClick={query}>查询原请求</Button>}{isWebflow&&stage==='unknown'&&<Button variant="quiet" onClick={stop}>停止原请求</Button>}{isWebflow&&stage==='editing'?<Button variant="primary" onClick={prepare} disabled={Boolean(view.data.taskRunBlockedReason)}>保存并核对</Button>:isWebflow&&stage==='ready'?<MyControl view={view} as="button" id="task-run" type="button" className="od-button od-button--primary" onClick={run}>确认执行一次</MyControl>:!isWebflow?runButton:null}</footer>
+<footer className="task-params-sheet-actions"><Button variant="quiet" onClick={close}>关闭</Button>{isWebflow&&stage==='ready'&&<Button variant="quiet" onClick={cancelPrepared}>取消未运行步骤</Button>}{isWebflow&&['submitted','unknown'].includes(stage)&&<Button variant="secondary" onClick={query}>查询原请求</Button>}{isWebflow&&['submitted','unknown'].includes(stage)&&<Button variant="quiet" onClick={stop}>停止原请求</Button>}{isWebflow&&stage==='editing'?<Button variant="primary" onClick={prepare} disabled={Boolean(view.data.taskRunBlockedReason)}>保存并核对</Button>:isWebflow&&stage==='ready'?<MyControl view={view} as="button" id="task-run" type="button" className="od-button od-button--primary" onClick={run}>确认执行一次</MyControl>:!isWebflow?runButton:null}</footer>
 </dialog>
   </>;
 }
