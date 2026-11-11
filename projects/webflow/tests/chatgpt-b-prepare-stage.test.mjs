@@ -25,7 +25,7 @@ function fixture(){
     generateId:()=> 'a0000000-0000-4000-8000-'+String(++seq).padStart(12,'0')});
   let ledger=create();
   const admit=async()=>{
-    const candidateId='wf-b-prepare-000001';
+    const candidateId='wf-v2-b-prepare-test-000000001';
     const candidate={candidateId,turnKey:'turn-b-001',answerKey:'answer-b-001',
       text:JSON.stringify({protocol:'webflow.task.intent.v2',candidateId,
         taskId:scope.taskId,args:scope.args})};
