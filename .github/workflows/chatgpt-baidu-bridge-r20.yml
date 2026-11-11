@@ -14,6 +14,7 @@ on:
       - 'src/native-agent/chatgpt-fixed-bridge-host.js'
       - 'src/native-agent/chatgpt-task-request.js'
       - 'src/native-agent/webflow-v2-target.js'
+      - 'src/native-agent/webflow-v2-entry.js'
       - 'src/platform/tasks/contract.js'
       - 'src/platform/host/controller-methods.js'
       - 'src/run-host.js'
@@ -99,6 +100,7 @@ jobs:
           node --check projects/webflow/trusted/legacy-chatgpt-panel.js
           node --check src/native-agent/chatgpt-fixed-bridge-host.js
           node --check src/native-agent/webflow-v2-target.js
+          node --check src/native-agent/webflow-v2-entry.js
           node --check src/platform/host/controller-target-retention.js
           node --check src/platform/host/controller-retained-continuation.js
           node --check src/run-host.js
