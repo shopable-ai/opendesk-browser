@@ -1,8 +1,13 @@
 // Public store navigation is presentation-only. It grants no installation authority.
 // The externally connectable install channel remains in channel-config.json.
-import source from './store-website-config.json' with {type:'json'};
+import {BROWSER_PUBLIC_CONFIG} from '../config/browser-config.js';
 
 export const STORE_WEBSITE_SCHEMA='opendesk.market.website-navigation.v1';
+// Adapt the framework public config to the original navigation contract.
+// Trusted installation origins and approvals are not part of this projection.
+const source=BROWSER_PUBLIC_CONFIG?Object.freeze({
+  schema:STORE_WEBSITE_SCHEMA,url:BROWSER_PUBLIC_CONFIG.navigation.extensionStore
+}):null;
 const invalid=()=>({status:'invalid',url:null});
 
 export function resolveStoreWebsiteConfig(config=source){
