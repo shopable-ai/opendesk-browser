@@ -1153,7 +1153,13 @@ export function createTaskWorkbench({client,host,currentPageTarget,api=globalThi
     if(!isFileDrag(event))return;
     event.preventDefault();event.stopPropagation();
     markImportDrag(source,false);
-    return droppedFiles({files:event.dataTransfer?.files,source});
+    const files=event.dataTransfer?.files;
+    if(!files?.length){
+      ui(source==='add'?'task-add-status':'task-catalog-status').text=
+        '未找到可读取的文件；文件夹/目录拖放暂不支持。请选择单个 .js 或 .json 文件。';
+      myView.publish();return;
+    }
+    return droppedFiles({files,source});
   });
   registerAction('taskFileZoneKeydown',(source,event)=>{
     if(event.target!==event.currentTarget||event.isComposing||event.repeat)return;
