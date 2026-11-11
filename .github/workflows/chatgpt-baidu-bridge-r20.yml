@@ -6,6 +6,8 @@ on:
     paths:
       - 'src/native-agent/chatgpt-bridge-trigger-gate.js'
       - 'src/native-agent/chatgpt-fixed-bridge-page.js'
+      - 'src/native-agent/chatgpt-bridge-site.js'
+      - 'projects/webflow/tests/sidebar-bridge.test.mjs'
       - 'projects/webflow/trusted/chatgpt-bridge-page.js'
       - 'projects/webflow/trusted/legacy-chatgpt-panel.js'
       - 'scripts/bundle-provenance.mjs'
@@ -103,6 +105,8 @@ jobs:
         run: |
           node --check src/native-agent/chatgpt-bridge-trigger-gate.js
           node --check src/native-agent/chatgpt-fixed-bridge-page.js
+          node --check src/native-agent/chatgpt-bridge-site.js
+          node --check projects/webflow/tests/sidebar-bridge.test.mjs
           node --check projects/webflow/trusted/chatgpt-bridge-page.js
           node --check projects/webflow/trusted/legacy-chatgpt-panel.js
           node --check src/native-agent/chatgpt-fixed-bridge-host.js
@@ -184,6 +188,7 @@ jobs:
             tests/environment/chatgpt-baidu-bridge-r20.test.mjs \
             tests/environment/webflow-fixed-source.test.mjs \
             projects/webflow/tests/chatgpt-legacy-panel.test.mjs \
+            projects/webflow/tests/sidebar-bridge.test.mjs \
             projects/webflow/tests/task-intent-v2.test.mjs \
             projects/webflow/tests/task-v2-live-ledger.test.mjs \
             projects/webflow/tests/background-execution-view.test.mjs \
