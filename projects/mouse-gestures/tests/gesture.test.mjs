@@ -52,9 +52,9 @@ test('plain right-click keeps native menu', () => {
   assert.equal(f.backCount(),0);
 });
 
-test('small movement does not navigate or suppress context menu', () => {
-  const f=fixture();rightDown(f);moveLeft(f,200-GESTURE_LIMITS.activatePx+1);
-  const up=rightUp(f,200-GESTURE_LIMITS.activatePx+1);
+test('sub-intent jitter (<12px) does not navigate or suppress native context menu', () => {
+  const f=fixture();rightDown(f);moveLeft(f,200-GESTURE_LIMITS.intentPx+1);
+  const up=rightUp(f,200-GESTURE_LIMITS.intentPx+1);
   assert.equal(f.backCount(),0);assert.equal(up.prevented,false);
   assert.equal(f.dispatch('contextmenu').prevented,false);
 });
