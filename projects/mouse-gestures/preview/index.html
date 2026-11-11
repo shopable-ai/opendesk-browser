@@ -16,14 +16,20 @@
       .agents/skills/opendesk-ui-preview/SKILL.md (模拟隔离及证据边界)
     已安装授权由原 Installer / Page Authority 管理；本页面不申请任何权限。
     单一滑块仅改变本页内存。刷新后恢复开启的演示初始状态。
-    当前 R1 Demo 仅验证左滑后退；其他方向仅为规划示意。
+    当前 R1 Demo 仅验证左滑后退；不展示尚未验证的规划动作。
   -->
   <style>
     :root {
       --od-ink:#1b2c49; --od-sub:#5b6e86; --od-line:#dfe6ef;
       --od-brand:#365eda; --od-paper:#fff; --od-bg:#fff;
-      --od-focus:#365eda; --od-muted:#f5f7fb; --od-positive:#117a5d;
+      --od-focus:var(--od-brand); --od-accent-ink:var(--od-brand);
+      --od-muted:#f5f7fb; --od-positive:#117a5d;
       --od-on-brand:#fff; --od-input-border:#7f8da1;
+      /* Offline mapping from design-tokens.css; the mock host stays light. */
+      --od-dark-ink:#e9eef7; --od-dark-sub:#b3c1d3; --od-dark-line:#374457;
+      --od-dark-brand:#3566ba; --od-dark-paper:#151c28; --od-dark-bg:#101722;
+      --od-dark-input-border:#6d809b; --od-dark-accent-ink:#9dc1ff;
+      --od-dark-muted:#222d3e; --od-dark-positive:#a1f3cc;
       --space-1:4px; --space-2:8px; --space-3:12px; --space-4:16px;
       --radius-control:8px; --radius-surface:12px; --od-icon-size:34px;
       --od-body-size:13px; --od-note-size:12px; --od-meta-size:11px;
@@ -32,18 +38,20 @@
     }
     * { box-sizing:border-box; }
     [hidden] { display:none!important; }
-    body { margin:0; min-width:0; min-height:100vh; background:#f5f7fb; }
+    body { margin:0; min-width:0; min-height:100vh; background:var(--od-muted); }
     button,input { font:inherit; }
     button { cursor:pointer; }
     :focus-visible { outline:2px solid var(--od-focus); outline-offset:2px; }
     h1,h2,p { margin:0; }
-    .preview-viewport { min-height:100vh; display:flex; flex-direction:column; align-items:center; padding:28px 12px; }
+    h1,h2,p,label,button { overflow-wrap:anywhere; }
+    .preview-viewport { min-height:100vh; display:flex; flex-direction:column; align-items:center;
+      padding:calc(var(--space-3) * 2) var(--space-3); }
     .preview-device { width:min(360px,100%); min-height:440px; border:1px solid var(--od-line);
       border-radius:var(--radius-surface); overflow:hidden; background:var(--od-paper);
-      box-shadow:0 10px 36px #1b2c490e; }
+      display:flex; flex-direction:column; }
     .od-page-head { min-height:51px; display:flex; align-items:center; gap:var(--space-2);
       padding:var(--space-2) var(--space-3); border-bottom:1px solid var(--od-line); }
-    .od-page-title { flex:1; min-width:0; font-size:var(--od-body-size); font-weight:650; }
+    .od-page-title { flex:1; min-width:0; font-size:var(--od-note-size); font-weight:600; }
     .od-icon-button { display:inline-grid; place-items:center; flex:none;
       width:var(--od-icon-size); height:var(--od-icon-size); padding:0;
       border:1px solid transparent; border-radius:var(--radius-control);
@@ -51,7 +59,9 @@
     .od-icon-button:hover { background:var(--od-muted); }
     .od-icon-button svg { width:18px; height:18px; fill:none; stroke:currentColor;
       stroke-width:1.8; stroke-linecap:round; stroke-linejoin:round; }
-    .od-page { padding:var(--space-4) var(--space-3); }
+    main { flex:1; min-width:0; display:flex; flex-direction:column; }
+    .od-page { flex:1; padding:var(--space-4) var(--space-3);
+      color:var(--od-ink); background:var(--od-paper); }
     .setting-row { display:flex; align-items:center; justify-content:space-between;
       gap:var(--space-3); min-height:48px; }
     .setting-copy { min-width:0; }
@@ -59,34 +69,35 @@
     .od-note { color:var(--od-sub); font-size:var(--od-note-size); line-height:1.55; }
     .setting-copy .od-note { margin-top:var(--space-1); }
     .mg-switch { appearance:none; -webkit-appearance:none; flex:none; position:relative;
-      width:38px; height:22px; margin:0; border:0; border-radius:999px;
-      background:#9ba9bd; cursor:pointer; transition:background .12s ease; }
-    .mg-switch:before { content:""; position:absolute; width:18px; height:18px; top:2px;
-      left:2px; border-radius:50%; background:#fff; box-shadow:0 1px 3px #0003;
+      width:38px; height:36px; margin:0; padding:0; border:0;
+      background:transparent; cursor:pointer; }
+    .mg-switch:before { content:""; position:absolute; width:38px; height:22px; top:7px;
+      left:0; border-radius:999px; background:var(--od-input-border); transition:background .12s ease; }
+    .mg-switch:after { content:""; position:absolute; width:18px; height:18px; top:9px;
+      left:2px; border-radius:50%; background:var(--od-on-brand);
       transition:transform .12s ease; }
-    .mg-switch:checked { background:var(--od-brand); }
-    .mg-switch:checked:before { transform:translateX(16px); }
+    .mg-switch:checked:before { background:var(--od-brand); }
+    .mg-switch:checked:after { transform:translateX(16px); }
     .mg-switch:focus-visible { outline:2px solid var(--od-focus); outline-offset:3px; }
     .runtime-state { display:flex; align-items:center; gap:var(--space-2);
-      color:var(--od-sub); font-size:var(--od-meta-size); margin-top:var(--space-2); }
+      color:var(--od-sub); font-size:var(--od-note-size); margin-top:var(--space-2); }
     .runtime-dot { flex:none; width:7px; height:7px; border-radius:50%; background:var(--od-positive); }
-    .runtime-state[data-enabled="false"] .runtime-dot { background:#9ba9bd; }
+    .runtime-state[data-enabled="false"] .runtime-dot { background:var(--od-sub); }
     .section-head { display:flex; align-items:baseline; justify-content:space-between; gap:var(--space-2);
       padding-top:var(--space-4); margin-top:var(--space-4); margin-bottom:var(--space-3);
       border-top:1px solid var(--od-line); }
     .section-head h2 { font-size:var(--od-note-size); font-weight:650; }
-    .section-head .od-note { font-size:var(--od-meta-size); }
-    .od-collection { display:grid; grid-template-columns:repeat(2,minmax(0,1fr));
-      gap:var(--space-2); margin:0; padding:0; list-style:none; }
+    .od-collection { min-width:0; margin:0; padding:0; list-style:none; overflow:hidden;
+      border:1px solid var(--od-line); border-radius:var(--radius-surface); background:var(--od-paper); }
     .od-collection-row { display:flex; align-items:center; gap:var(--space-2);
-      min-width:0; padding:var(--space-2); border:1px solid var(--od-line);
-      border-radius:var(--radius-control); background:var(--od-muted); }
+      min-width:0; padding:var(--space-3); }
     .gesture-arrow { display:grid; place-items:center; flex:none; width:26px; height:26px;
-      border-radius:calc(var(--radius-control) - 2px); background:var(--od-paper);
-      color:var(--od-brand); font-size:19px; font-weight:700; }
-    .gesture-label { min-width:0; font-size:var(--od-note-size); white-space:nowrap; }
-    .hint { margin-top:var(--space-4); color:var(--od-sub); font-size:var(--od-meta-size); }
-    .preview-caption { max-width:360px; margin-top:var(--space-3); color:#65758f;
+      border-radius:calc(var(--radius-control) - 2px); background:var(--od-muted);
+      color:var(--od-accent-ink); font-size:19px; font-weight:700; }
+    .gesture-copy { min-width:0; display:grid; gap:var(--space-1); }
+    .gesture-label { font-size:var(--od-body-size); overflow-wrap:anywhere; }
+    .hint { margin-top:var(--space-4); color:var(--od-sub); font-size:var(--od-note-size); }
+    .preview-caption { max-width:360px; margin:var(--space-3) var(--space-3) 0; color:var(--od-sub);
       font-size:var(--od-meta-size); text-align:center; line-height:1.55; }
     .od-button { display:inline-flex; align-items:center; justify-content:center;
       min-height:36px; padding:var(--space-2) var(--space-3); border-radius:var(--radius-control);
@@ -94,12 +105,29 @@
     .od-button--secondary { background:var(--od-muted); color:var(--od-ink); border-color:var(--od-input-border); }
     .extension-list { padding:var(--space-4) var(--space-3); }
     .extension-list .od-note { margin:var(--space-2) 0 var(--space-3); }
-    @media (max-width:300px) {
-      .preview-viewport { padding:8px 4px; }
-      .od-collection { grid-template-columns:1fr; }
+    /* Narrow browser viewports represent the actual panel width, without an extra gutter. */
+    @media (max-width:440px) {
+      .preview-viewport { padding:0; }
+      .preview-device { width:100%; border:0; border-radius:0; }
+    }
+    @media (prefers-color-scheme:dark) {
+      #gesture-panel {
+        --od-ink:var(--od-dark-ink); --od-sub:var(--od-dark-sub); --od-line:var(--od-dark-line);
+        --od-brand:var(--od-dark-brand); --od-paper:var(--od-dark-paper); --od-bg:var(--od-dark-bg);
+        --od-input-border:var(--od-dark-input-border); --od-accent-ink:var(--od-dark-accent-ink);
+        --od-focus:var(--od-dark-accent-ink); --od-muted:var(--od-dark-muted);
+        --od-positive:var(--od-dark-positive); color-scheme:dark;
+      }
+    }
+    @media (pointer:coarse) {
+      .mg-switch { width:44px; height:44px; }
+      .mg-switch:before { left:3px; top:11px; }
+      .mg-switch:after { left:5px; top:13px; }
+      .od-icon-button { width:44px; height:44px; }
+      .od-button { min-height:44px; }
     }
     @media (prefers-reduced-motion:reduce) {
-      .mg-switch,.mg-switch:before { transition:none; }
+      .mg-switch:before,.mg-switch:after { transition:none; }
     }
   </style>
 </head>
@@ -117,24 +145,20 @@
           <div class="setting-row">
             <div class="setting-copy">
               <label for="gesture-enabled">开启鼠标手势</label>
-              <p class="od-note">按住右键拖动，快速操作网页</p>
+              <p id="gesture-help" class="od-note">在网页上使用右键手势</p>
             </div>
             <input id="gesture-enabled" class="mg-switch" type="checkbox" role="switch"
-              aria-label="开启鼠标手势" checked>
+              aria-label="开启鼠标手势" aria-describedby="gesture-help runtime-label" checked>
           </div>
           <div id="runtime-state" class="runtime-state" data-enabled="true" role="status" aria-live="polite">
             <span class="runtime-dot" aria-hidden="true"></span>
             <span id="runtime-label">已开启</span>
           </div>
           <div class="section-head">
-            <h2 id="gesture-list-title">默认手势</h2>
-            <span class="od-note">操作说明</span>
+            <h2 id="gesture-list-title">已验证手势</h2>
           </div>
           <ul class="od-collection" aria-labelledby="gesture-list-title">
-            <li class="od-collection-row"><span class="gesture-arrow" aria-hidden="true">←</span><span class="gesture-label">后退</span></li>
-            <li class="od-collection-row"><span class="gesture-arrow" aria-hidden="true">→</span><span class="gesture-label">前进</span></li>
-            <li class="od-collection-row"><span class="gesture-arrow" aria-hidden="true">↑</span><span class="gesture-label">刷新</span></li>
-            <li class="od-collection-row"><span class="gesture-arrow" aria-hidden="true">↓</span><span class="gesture-label">到底</span></li>
+            <li class="od-collection-row"><span class="gesture-arrow" aria-hidden="true">←</span><span class="gesture-copy"><span class="gesture-label">后退</span><span class="od-note">按住右键向左拖动</span></span></li>
           </ul>
           <p class="hint">松开右键执行 · Esc 取消</p>
         </section>
@@ -144,7 +168,7 @@
         </section>
       </main>
     </div>
-    <p class="preview-caption">设计预览 · 唯一滑块只改变本页内存。默认假设安装范围已授权，不会请求权限或执行 Chrome 操作。当前 R1 仅验证「← 后退」，其余动作为产品规划。</p>
+    <p class="preview-caption">交互模拟 · 滑块仅改变本页内存，刷新恢复开启。假设宿主已完成必要授权，不请求权限、不调用 Chrome API、不写正式配置。当前 R1 Demo 仅验证左滑后退，不代表正式扩展已验收。</p>
   </div>
   <script>
     (() => {
