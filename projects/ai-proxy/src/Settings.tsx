@@ -816,6 +816,11 @@ const tabs: {id:Page; name:string; caption:string}[] = [
             badge={config.rules.length}
             actions={!ruleEditorOpen?<Button id="settings-rule-add" variant="primary" className="primary"
               disabled={busy} onClick={()=>editRule()}>{t('addRule')}</Button>:undefined}/>}
+          {!ruleEditorOpen && config.selection.mode !== 'rules' && <div className="rulesModeHint">
+            <span className="hint">{t('apRuleSaveNote')}</span>
+            <Button type="button" variant="secondary" disabled={busy}
+              onClick={()=>void act({type:'SELECT',selection:{...config.selection,mode:'rules'}})}>{t('apSwitchToRulesMode')}</Button>
+          </div>}
           <div className="rulesGrid">
             {!ruleEditorOpen?<section className="rulesList" aria-label={t('websiteRules2')}>
               {ruleSaved&&<p className="r86Notice" role="status">{t('apRuleSavedNotice')}</p>}

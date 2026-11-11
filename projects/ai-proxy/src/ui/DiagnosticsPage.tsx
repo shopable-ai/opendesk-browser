@@ -49,6 +49,8 @@ export function DiagnosticsPage({ state, busy, onRefresh, onProbe, onStop, onPro
   const panelContent = useRef<HTMLElement>(null);
   const focusPanelAfterNavigation = useRef(false);
   const navigation = getEnvironment().navigation;
+  // Only the isolated preview adapter has simulated diagnostics and usage state.
+  const simulatedDiagnostics = getEnvironment().preview === true;
   const [panel, updatePanel] = useState<Panel>(() => parseDiagnosticHash(navigation.getRoute()));
   function setPanel(next: Panel) {
     const hash = diagnosticHash(next);
@@ -80,11 +82,12 @@ export function DiagnosticsPage({ state, busy, onRefresh, onProbe, onStop, onPro
     setPanel(next);
   }
   const load = useCallback(async () => {
+    if (!simulatedDiagnostics) { setSnapshot(null); return; }
     try {
       const result = await request({ type: 'GET_DIAGNOSTICS' });
       if (result.ok && result.diagnostics) setSnapshot(result.diagnostics);
     } catch { /* Last completed evidence is kept with its revision marker. */ }
-  }, []);
+  }, [simulatedDiagnostics]);
   useEffect(() => { void load(); }, [load]);
   useEffect(() => {
     // A clock update is display-only; it must never trigger network scanning.
@@ -140,6 +143,7 @@ export function DiagnosticsPage({ state, busy, onRefresh, onProbe, onStop, onPro
   useEffect(() => { setSnapshot(null); void load(); }, [state.config, state.runtime.control, state.runtime.applied, load]);
 
   const submit = useCallback(async (command: Request): Promise<boolean> => {
+    if (!simulatedDiagnostics) { setError(t('diagProductionUnavailable')); return false; }
     try {
       const result = await request(command);
       if (!result.ok) { setError(result.error.includes('Invalid public HTTPS domain')
@@ -148,9 +152,9 @@ export function DiagnosticsPage({ state, busy, onRefresh, onProbe, onStop, onPro
       setError('');
       return true;
     } catch { setError(t('diagBackgroundUnavailable')); return false; }
-  }, [t]);
+  }, [simulatedDiagnostics, t]);
   async function test(ids: string[]) {
-    if (running || snapshot?.activeRun || !ids.length) return;
+    if (!simulatedDiagnostics || running || snapshot?.activeRun || !ids.length) return;
     setRunning(true);
     setError('');
     try { await submit({ type: 'RUN_DIAGNOSTICS', siteIds: ids }); }
@@ -208,11 +212,19 @@ export function DiagnosticsPage({ state, busy, onRefresh, onProbe, onStop, onPro
     </div>;
   };
   return <>
-    <div className="diagnosticLead">
-      <h2>{t('checkBrowserSettingsSeparatelyFromNetworkConnectivity')}</h2>
-      <p>{t('diagLeadExplanation')}</p>
-      <span className="diagnosticEvidence">{t('diagEvidenceOnly')}</span>
-    </div>
+    <header className="diagnosticLead">
+      <div className="diagnosticLeadMain">
+        <h2>{t('diagWorkbenchTitle')}</h2>
+        <p>{t(simulatedDiagnostics ? 'diagLeadExplanation' : 'diagEvidenceBoundary')}</p>
+        <span className="diagnosticCurrentRoute">{t('selected')}: {state.config.selection.mode === 'profile'
+          ? selectedProfile?.name ?? t('noProfileSelected')
+          : t(({ rules: 'popupModeRules', direct: 'popupModeDirect', system: 'popupModeSystem' } as const)[state.config.selection.mode])}</span>
+        <span className="diagnosticEvidence">{t(simulatedDiagnostics ? 'diagEvidenceOnly' : 'diagOnDemandOnly')}</span>
+      </div>
+      <div className="diagnosticLeadState" aria-label={t('diagModelVerification')}>
+        <strong>{t('notTested')}</strong><small>{t('diagModelVerification')}</small>
+      </div>
+    </header>
     <div className="diagnosticMetrics" aria-label={t('currentDiagnosticsSummary')}>
       <div><small>{t('proxyControl')}</small><strong>{state.runtime.control === 'controlled_by_this_extension'
         ? t('controlledByThisExtension') : state.runtime.control === 'controlled_by_other_extensions'
@@ -220,7 +232,7 @@ export function DiagnosticsPage({ state, busy, onRefresh, onProbe, onStop, onPro
         <small>Chrome Proxy API</small></div>
       <div><small>{t('configurationStatus')}</small><strong>{state.runtime.applied ? t('applied') : t('notConfirmed')}</strong>
         <small>{t('doesNotProveReachability')}</small></div>
-      <div><small>{t('diagSitesChecked')}</small><strong>{current.length} / {AI_SITES.length}</strong>
+      <div><small>{t(simulatedDiagnostics ? 'diagSitesChecked' : 'diagSitesLive')}</small><strong>{current.length} / {AI_SITES.length}</strong>
         <small>{current.length === 0 ? t('notTested') : t('diagCurrentRouteOnly')}</small></div>
       <div><small>{t('diagRunStatus')}</small><strong>{locked ? t('diagRunning') : t('diagIdle')}</strong>
         <small>{snapshot?.activeRun ? t('diagProgress', {
@@ -250,11 +262,12 @@ export function DiagnosticsPage({ state, busy, onRefresh, onProbe, onStop, onPro
         }}
         onClick={() => setPanel(id)}>{label}</Button>)}
     </div>
+    {!simulatedDiagnostics && <p className="diagnosticRuntimeNotice" role="status">{t("diagProductionUnavailable")}</p>}
     {error && <p className="notice error" role="alert">{error}</p>}
     {locked && <div className="diagnosticRunProgress" role="status">
       <span>{t('diagRunning')} · {snapshot?.activeRun
         ? t('diagProgress', {done:snapshot.activeRun.completed, total:snapshot.activeRun.total}) : t('diagStarting')}</span>
-      <Button onClick={() => void submit({ type:'CANCEL_DIAGNOSTICS' })}>{t('diagCancel')}</Button>
+      <Button variant="secondary" onClick={() => void submit({ type:'CANCEL_DIAGNOSTICS' })}>{t('diagCancel')}</Button>
     </div>}
     <section ref={panelContent} id="diagnostic-panel" role="tabpanel" tabIndex={0} aria-labelledby={'diagnostic-tab-' + panel} className="diagnosticPanel">
       {panel === 'overview' && <div className="diagnosticOverview">
@@ -264,49 +277,49 @@ export function DiagnosticsPage({ state, busy, onRefresh, onProbe, onStop, onPro
             ? selectedProfile?.name ?? t('noProfileSelected')
             : t(({ rules: 'popupModeRules', direct: 'popupModeDirect', system: 'popupModeSystem' } as const)[state.config.selection.mode])}</h3>
           <p>{state.runtime.applied ? t('diagProxyAppliedCaveat') : t('diagCheckProxySettings')}</p>
-          <Button onClick={() => openPanel('proxy')}>{t('viewActualControlStatus')}</Button>
+          <Button variant="secondary" onClick={() => openPanel('proxy')}>{t('viewActualControlStatus')}</Button>
         </article>
         <article className="diagnosticFeature">
           <small>{t('priorityScenario')}</small><h3>{t('aiSiteAvailability')}</h3>
-          <p>{t('diagAiFirstFive')}</p>
+          <p>{t(simulatedDiagnostics ? 'diagAiFirstFive' : 'diagProductionUnavailable')}</p>
           <div className="actions">
-            <Button variant="primary" className="primary" disabled={locked} onClick={() =>
+            <Button variant="primary" className="primary" disabled={!simulatedDiagnostics || locked} onClick={() =>
               void test(AI_SITES.slice(0, 5).map(s => s.id))}>{t('diagStartFive')}</Button>
-            <Button onClick={() => openPanel('ai')}>{t('diagManageTests')}</Button>
+            <Button variant="secondary" onClick={() => openPanel('ai')}>{t('diagManageTests')}</Button>
           </div>
         </article>
         <article className="diagnosticFeature">
           <small>{t('customTargets')}</small><h3>{t('prioritySitesTop510')}</h3>
           <p>{t('diagFavoritesCount', {count: favorites.length})}</p>
-          <UsageOverview />
-          <Button data-testid="usage-manage" onClick={() => openPanel('top')}>{t('usageManage')}</Button>
+          {simulatedDiagnostics && <UsageOverview />}
+          <Button variant="secondary" data-testid="usage-manage" onClick={() => openPanel('top')}>{t('usageManage')}</Button>
         </article>
         <article className="diagnosticFeature">
-          <small>{t('connectionSpeed')}</small><h3>{t('diagHttpTiming')}</h3>
-          <p>{t('diagSpeedCaveat')}</p>
-          <Button onClick={() => openPanel('speed')}>{t('diagSeeTiming')}</Button>
+          <small>{t('connectionSpeed')}</small><h3>{t(simulatedDiagnostics ? 'diagHttpTiming' : 'speedTest')}</h3>
+          <p>{t(simulatedDiagnostics ? 'diagSpeedCaveat' : 'diagSpeedNotConnected')}</p>
+          <Button variant="secondary" onClick={() => openPanel('speed')}>{t('diagSeeTiming')}</Button>
         </article>
       </div>}
       {panel === 'ai' && <div className="diagnosticSection">
         <div className="diagnosticSectionHead"><div><h3>{t('aiSiteAvailability')}</h3>
-          <p className="hint">{t('diagAiListHelp')}</p></div>
+          <p className="hint">{t(simulatedDiagnostics ? 'diagAiListHelp' : 'diagProductionUnavailable')}</p></div>
           <div className="actions">
-            <Button variant="primary" className="primary" disabled={locked || selectedIds.length === 0}
+            <Button variant="primary" className="primary" disabled={!simulatedDiagnostics || locked || selectedIds.length === 0}
               onClick={() => void test(selectedIds)}>{t('diagCheckSelected', {count:selectedIds.length})}</Button>
           </div></div>
         <div className="diagnosticSiteList">{AI_SITES.map(site => {
           const favorite = favorites.some(f => f.id === site.id);
           return <article className="diagnosticSite" key={site.id}>
             <label className="diagnosticSiteName">
-              <input type="checkbox" checked={selectedIds.includes(site.id)} disabled={locked}
+              <input type="checkbox" checked={selectedIds.includes(site.id)} disabled={!simulatedDiagnostics || locked}
                 onChange={e => setSelectedIds(v => e.target.checked
                   ? [...v, site.id] : v.filter(id => id !== site.id))} />
               <span><strong>{site.name}</strong><small>{site.domain}</small></span>
             </label>
             {renderResult(site)}
             <div className="diagnosticSiteActions">
-              <Button disabled={locked} onClick={() => void test([site.id])}>{t('diagTestOne')}</Button>
-              <Button disabled={saving} onClick={() => void submit(favorite
+              <Button variant="secondary" disabled={!simulatedDiagnostics || locked} onClick={() => void test([site.id])}>{t('diagTestOne')}</Button>
+              <Button variant="secondary" disabled={!simulatedDiagnostics || saving} onClick={() => void submit(favorite
                 ? {type:'REMOVE_DIAGNOSTIC_SITE',id:site.id}
                 : {type:'SAVE_DIAGNOSTIC_SITE',domain:site.domain,priority:'P1'})}
                 aria-label={favorite ? t('diagRemoveFavorite') : t('diagAddFavorite')}>
@@ -314,10 +327,10 @@ export function DiagnosticsPage({ state, busy, onRefresh, onProbe, onStop, onPro
             </div>
           </article>;
         })}</div>
-        <p className="hint">{t('diagExtensionEvidence')}</p>
+        <p className="hint">{t(simulatedDiagnostics ? 'diagExtensionEvidence' : 'diagEvidenceBoundary')}</p>
       </div>}
       {panel === 'top' && <div className="diagnosticSection">
-        <UsageControls favorites={snapshot?.favorites ?? []} locked={locked} saving={saving}
+        {simulatedDiagnostics ? <UsageControls favorites={snapshot?.favorites ?? []} locked={locked} saving={saving}
           submit={submit} test={test} renderResult={renderResult}>
           <form data-draft-scope="diagnostic-site" className="diagnosticAddSite" onSubmit={e => void save(e)}>
             <label htmlFor="diag-add-domain">{t('diagAddDomain')}</label>
@@ -328,12 +341,15 @@ export function DiagnosticsPage({ state, busy, onRefresh, onProbe, onStop, onPro
             <Button type="submit" disabled={saving}>{t('diagSaveSite')}</Button>
           </form>
           <p className="hint">{t('diagCustomManualOnly')}</p>
-        </UsageControls>
+        </UsageControls> : <div className="diagnosticUnavailable" role="status">
+          <h3>{t('prioritySitesTop510')}</h3><p>{t('diagProductionUnavailable')}</p>
+        </div>}
       </div>}
 
       {panel === 'speed' && <div className="diagnosticSection">
-        <h3>{t('diagHttpTiming')}</h3><p className="hint">{t('diagSpeedCaveat')}</p>
-        <div className="diagnosticSiteList">{AI_SITES.map(site => {
+        <h3>{t(simulatedDiagnostics ? 'diagHttpTiming' : 'speedTest')}</h3>
+        <p className="hint">{t(simulatedDiagnostics ? 'diagSpeedCaveat' : 'diagSpeedNotConnected')}</p>
+        {simulatedDiagnostics ? <div className="diagnosticSiteList">{AI_SITES.map(site => {
           const stats = snapshot?.statistics[site.id];
           return <article className="diagnosticSite" key={site.id}>
             <div className="diagnosticSiteName"><strong>{site.name}</strong><small>{site.domain}</small></div>
@@ -343,10 +359,12 @@ export function DiagnosticsPage({ state, busy, onRefresh, onProbe, onStop, onPro
               <small>p50: {stats?.p50Ms === null || stats?.p50Ms === undefined ? '—' : stats.p50Ms + ' ms'}</small>
               <small>p95: {stats?.p95Ms === null || stats?.p95Ms === undefined ? '—' : stats.p95Ms + ' ms'}</small>
             </div>
-            <Button disabled={locked} onClick={() => void test([site.id])}>{t('diagTestOne')}</Button>
+            <Button variant="secondary" disabled={!simulatedDiagnostics || locked} onClick={() => void test([site.id])}>{t('diagTestOne')}</Button>
           </article>;
-        })}</div>
-        <p className="hint">{t('diagNoThroughput')}</p>
+        })}</div> : <div className="diagnosticUnavailable" role="status">
+          <p>{t('diagSpeedNotConnected')}</p>
+        </div>}
+        {simulatedDiagnostics && <p className="hint">{t('diagNoThroughput')}</p>}
       </div>}
       {panel === 'proxy' && <div className="basicDiagnostic diagnosticSection">
         <h3>{t('basicProxyDiagnostics')}</h3>
@@ -354,8 +372,8 @@ export function DiagnosticsPage({ state, busy, onRefresh, onProbe, onStop, onPro
         <Status status={state.runtime} />
         <div className="actions">
           <Button variant="primary" className="primary" disabled={busy} onClick={() => void onProbe()}>{t('probeApiIpifyOrg')}</Button>
-          <Button disabled={busy} onClick={() => { void onRefresh(); void load(); }}>{t('refreshState')}</Button>
-          <Button disabled={busy} onClick={() => void onStop()}>{t('stopManagingAndReleaseControl')}</Button>
+          <Button variant="secondary" disabled={busy} onClick={() => { void onRefresh(); void load(); }}>{t('refreshState')}</Button>
+          <Button variant="secondary" className="diagnosticStopAction" disabled={busy} onClick={() => void onStop()}>{t('stopManagingAndReleaseControl')}</Button>
         </div>
         <p className="hint">{t('theProbeTargetsApiIpifyOrgExtensionRequestsAlone')}</p>
       </div>}
@@ -363,10 +381,10 @@ export function DiagnosticsPage({ state, busy, onRefresh, onProbe, onStop, onPro
         <h3>{t('diagTroubleshoot')}</h3>
         {issues.map(code => <article key={code} className="diagnosticIssue">
           <strong>{t(diagnosisKeys[code][0])}</strong>
-          <p>{t(diagnosisKeys[code][1])}</p>
+          <p>{!simulatedDiagnostics && code === 'limited_evidence' ? t('diagEvidenceBoundary') : t(diagnosisKeys[code][1])}</p>
           <div className="actions">
-            <Button onClick={onProfiles}>{t('diagCheckSettings')}</Button>
-            <Button disabled={locked} onClick={() => void test([selectedIds[0] ?? 'chatgpt'])}>{t('diagRetest')}</Button>
+            <Button variant="secondary" onClick={onProfiles}>{t('diagCheckSettings')}</Button>
+            <Button variant="secondary" disabled={!simulatedDiagnostics || locked} onClick={() => void test([selectedIds[0] ?? "chatgpt"])}>{t('diagRetest')}</Button>
           </div>
         </article>)}
       </div>}
