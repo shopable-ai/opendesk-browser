@@ -1112,6 +1112,8 @@ test('trusted Stop preserves the dispatched write identity and real receipt or U
       assert.equal(saved.resultPacket.result.requestId,requestId);
       assert.equal(saved.resultPacket.result.status,unknown?'unknown':'success');
       assert.equal(saved.paused,true);assert.equal(h.counts().writes,1);
+      assert.match(saved.message,/停止请求已接收/);
+      assert.match(saved.message,/已派发副作用仍以原真实回执结算/);
       h.controller.dispose();const before=h.counts();
       const resumed=createChatGPTFilesController({api:h.api,files:h.files,readAnswer:h.readAnswer});
       try{await resumed.tick();assert.deepEqual(h.counts(),before);assert.equal(h.ledger[writeLedger][requestId].state,row.state);}

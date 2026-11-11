@@ -250,10 +250,26 @@ try{
     await filterBy(1);
     const nameOrder=await evaluate('[...document.querySelectorAll(".wf-task-name")].map(e=>e.dataset.wfTaskName)');
     const favoriteMenu='[data-wf-menu="'+nameOrder[1]+'"]';
-    await click(favoriteMenu);
-    await eventually('!!document.querySelector(".wf-menu")','favorite menu opens');
-    assert.equal(await evaluate('document.querySelector(".wf-menu button:nth-child(2)").textContent'),'收藏脚本');
-    await click('.wf-menu button:nth-child(2)');
+    // The row's shortcut actions are intentionally hidden until a real pointer
+    // hover or keyboard focus. The native fixture must reveal them first.
+    const hoverPoint=await evaluate('(()=>{const row=document.querySelector(".wf-task-row:nth-child(2)");'+
+      'row.scrollIntoView({block:"nearest"});const b=row.querySelector(".wf-task-name").getBoundingClientRect();'+
+      'return {x:b.left+b.width/2,y:b.top+b.height/2}})()');
+    await cdp('Input.dispatchMouseEvent',{type:'mouseMoved',x:hoverPoint.x,y:hoverPoint.y});
+    // Headless Linux can report hover:none/pointer:coarse even after CDP mouseMoved.
+    // In that real input mode shortcuts are deliberately display:none; the
+    // visible More menu is the supported user path, not a fixture loophole.
+    const fineHover=await evaluate('matchMedia("(hover: hover) and (pointer: fine)").matches');
+    if(fineHover){
+      await eventually('(()=>{const el=document.querySelector(".wf-task-row:nth-child(2) button[aria-pressed]");'+
+        'return el&&el.getBoundingClientRect().width>0})()','favorite appears after native hover');
+      await click('.wf-task-row:nth-child(2) button[aria-pressed]');
+    }else{
+      await click('[data-wf-menu="'+nameOrder[1]+'"]');
+      await eventually('document.querySelector(".wf-task-row:nth-child(2) .wf-menu")?.textContent.includes("收藏脚本")',
+        'touch/coarse input has an accessible favorite menu item');
+      await click('.wf-task-row:nth-child(2) .wf-menu button:nth-child(2)');
+    }
     await eventually('document.querySelector(".wf-task-name").dataset.wfTaskName==='+JSON.stringify(nameOrder[1]),'favorite sorts first');
     await filterBy(4);
     await eventually('document.querySelectorAll(".wf-task-row").length===1','favorite filter');
