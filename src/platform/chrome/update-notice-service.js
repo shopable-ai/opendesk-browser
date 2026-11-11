@@ -17,7 +17,8 @@ import {showTrustedUpdateToast} from './update-notice-page.js';
 import {UPDATE_NOTICE_PROTOCOL,UPDATE_NOTICE_STORE,UPDATE_NOTICE_LOCK,
   readUpdateNoticeState,appendTrustedRelease,trustedUpdateReleaseKey,
   browserUpdateReleaseKey,claimUpdateToast,acknowledgeUpdateToast,
-  actOnUpdateToast,setNoticePreference,updateNoticeSnapshot} from './update-notice-state.js';
+  actOnUpdateToast,setNoticePreference,updateNoticeSnapshot,
+  formatUpdateBadgeCount} from './update-notice-state.js';
 
 const safeOrigins=new Set(['https://chatgpt.com','https://chat.deepseek.com',
   'https://gemini.google.com']);
@@ -34,7 +35,30 @@ export function installUpdateNoticeService({api=globalThis.chrome,now=()=>Date.n
   let writeUnknown=false,verifiedInventory=false,lastInventoryAt=0,lastError=null;
   let reconciling=null,kicking=null;
   let authorityRevision=0;
+  let badgeSequence=0,badgeWork=Promise.resolve();
   const liveClaims=new Map();
+  // Chrome Action is owned by this trusted Worker, never a Side Panel or Tool.
+  // All writes serialize; a late asynchronous result cannot replace a newer badge.
+  function syncBadge(){
+    if(typeof api.action?.setBadgeText!=='function')return badgeWork;
+    const sequence=++badgeSequence;
+    badgeWork=badgeWork.catch(()=>{}).then(async()=>{
+      if(sequence!==badgeSequence)return;
+      let count=0;
+      try{
+        if(verifiedInventory&&!writeUnknown&&now()-lastInventoryAt<300000)
+          count=updateNoticeSnapshot(await read()).badgeCount;
+      }catch{/* Corrupt or unavailable storage fails closed to no number. */}
+      if(sequence!==badgeSequence)return;
+      const label=count?'打开侧边栏 · '+count+' 项扩展待更新':'打开侧边栏';
+      try{
+        await api.action.setBadgeText({text:formatUpdateBadgeCount(count)});
+        await api.action.setBadgeBackgroundColor?.({color:'#2563eb'});
+        await api.action.setTitle?.({title:label});
+      }catch(error){console.warn('[update-notice badge]',errorText(error));}
+    });
+    return badgeWork;
+  }
   const manifest=()=>api.runtime.getManifest();
   const read=async()=>readUpdateNoticeState(
     (await api.storage.local.get(UPDATE_NOTICE_STORE))[UPDATE_NOTICE_STORE]);
@@ -51,8 +75,10 @@ export function installUpdateNoticeService({api=globalThis.chrome,now=()=>Date.n
       try{await writeVerifiedLocalValue(api,UPDATE_NOTICE_STORE,next,before,'更新通知状态');}
       catch(error){
         if(error?.code==='E_OUTCOME_UNKNOWN')writeUnknown=true;
+        if(writeUnknown)void syncBadge();
         throw error;
       }
+      void syncBadge();
       return next;
     });
   }
@@ -138,7 +164,8 @@ export function installUpdateNoticeService({api=globalThis.chrome,now=()=>Date.n
       candidates.push({kind:'sidebar-tool',key:trustedUpdateReleaseKey({
         id:release.toolId,version:release.version,sha256:release.sha256}),
         id:release.toolId,version:release.version,sha256:release.sha256,
-        title:release.packageTitle,source:release.id,fromVersion:old.version,
+        title:release.packageTitle,description:release.description,
+        source:release.id,fromVersion:old.version,
         status,newCapabilities,requiresReview:comparison>0});
     }
     return {candidates,registry:data[SIDEBAR_TOOL_STORE],
@@ -167,6 +194,7 @@ export function installUpdateNoticeService({api=globalThis.chrome,now=()=>Date.n
             if(old?.claim?.ackedAt>0&&['applied','unknown'].includes(candidate.status))
               expiredToastClaims.set(old.claim.token,old.claim.tabId);
             if(old&&old.status===candidate.status&&old.title===candidate.title&&
+               old.description===candidate.description&&
                JSON.stringify(old.newCapabilities)===JSON.stringify(candidate.newCapabilities))continue;
             next=appendTrustedRelease(next,candidate,time);dirty=true;
           }
@@ -176,12 +204,13 @@ export function installUpdateNoticeService({api=globalThis.chrome,now=()=>Date.n
             if(row.claim?.ackedAt>0)expiredToastClaims.set(row.claim.token,row.claim.tabId);
             next=appendTrustedRelease(next,{kind:'sidebar-tool',key:row.key,id:row.id,
               version:row.version,sha256:row.sha256,title:row.title,
-              fromVersion:row.fromVersion,status:'unknown',
+              description:row.description,fromVersion:row.fromVersion,status:'unknown',
               newCapabilities:row.newCapabilities,requiresReview:row.requiresReview},time);dirty=true;
           }
           return dirty?next:null;
         });
         lastInventoryAt=now();verifiedInventory=true;lastError=null;
+        await syncBadge();
         for(const [token,tabId] of expiredToastClaims){
           liveClaims.delete(token);
           void Promise.resolve(api.tabs.sendMessage(tabId,{protocol:UPDATE_NOTICE_PROTOCOL,
@@ -191,6 +220,7 @@ export function installUpdateNoticeService({api=globalThis.chrome,now=()=>Date.n
       }catch(error){
         // Never use a cached catalog as proof of a newly offered update.
         verifiedInventory=false;lastError=errorText(error);
+        await syncBadge();
         return false;
       }finally{reconciling=null;}
     })();
@@ -283,7 +313,13 @@ export function installUpdateNoticeService({api=globalThis.chrome,now=()=>Date.n
   async function replyList(){
     const verified=await ensureInventory();
     const value=updateNoticeSnapshot(await read());
-    return {...value,verified:verified===true&&!writeUnknown,
+    const trusted=verified===true&&!writeUnknown;
+    return {...value,verified:trusted,
+      // A stale persisted candidate is not an actionable, verified update.
+      actionableCount:trusted?value.actionableCount:0,
+      unreadCount:trusted?value.unreadCount:0,
+      badgeCount:trusted?value.badgeCount:0,
+      newCount:trusted?value.newCount:0,
       problem:writeUnknown?'E_UPDATE_WRITE_UNKNOWN':verified?null:lastError};
   }
   async function recordBrowser(status,versionValue,fromVersion=null){
@@ -442,6 +478,7 @@ export function installUpdateNoticeService({api=globalThis.chrome,now=()=>Date.n
     if(change.status==='complete'||change.url)void checkToast();
   });
   api.runtime.onStartup?.addListener(()=>{void reconcile().then(ok=>{if(ok)void checkToast();});});
+  void syncBadge(); // Clear any previous badge until the inventory is verified.
   void reconcile().then(ok=>{if(ok)void checkToast();});
-  return Object.freeze({read,replyList,reconcile,checkToast});
+  return Object.freeze({read,replyList,reconcile,checkToast,syncBadge});
 }

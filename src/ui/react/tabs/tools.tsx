@@ -602,7 +602,7 @@ export function ExtensionDiscovery({model,onDiscover,showEntry=false,locale=mode
 export function ExtensionCenterPage({
   rowsModel={rows:[],busy:false,pendingKey:null,onOpenRow:()=>{},onMore:()=>{}},
   toolbarModel=null,detailModel=null,uninstallModel=null,feedbackModel=null,recoveryModel=null,discoveryModel=null,
-  statusModel=null,menuKey=null,rowMenuModel=null,view='list',onBack=()=>{}
+  statusModel=null,menuKey=null,rowMenuModel=null,updateCenter=null,view='list',onBack=()=>{}
 }){
   const locale=toolbarModel?.locale||toolbarModel?.language||detailModel?.locale||'zh-CN';
   const t=(key,params={})=>extensionCenterText(locale,key,params);
@@ -662,7 +662,10 @@ export function ExtensionCenterPage({
     onDragEnter={onDragEnter} onDragOver={onDragOver}
     onDragLeave={onDragLeave} onDrop={onDrop}>
     <div ref={pageRef} id="extension-center-list-view" hidden={detailVisible||languageVisible}>
-      <div className="ec-toolbar"><ExtensionToolbar locale={locale} model={toolbarModel}/></div>
+      <div className="ec-toolbar">
+        <ExtensionToolbar locale={locale} model={toolbarModel}/>
+        {updateCenter}
+      </div>
       <ExtensionDiscovery locale={locale} model={showWebDiscovery?discoveryModel:null}
         showEntry={showWebDiscovery} onDiscover={toolbarModel?.onDiscover}/>
       <input id="extension-center-file" type="file" accept=".json,application/json" hidden

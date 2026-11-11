@@ -45,7 +45,7 @@ async function fixture({provenance=true,capabilities=[],toolId='prompt-shortcuts
   const changed=event(),onMessage=event(),onInstalled=event(),onUpdateAvailable=event(),
     onStartup=event(),onActivated=event(),onUpdated=event(),onRemoved=event();
   let time=100000;
-  const views=[],opens=[],hides=[];
+  const views=[],opens=[],hides=[],badgeWrites=[],badgeTitles=[];
   const api={
     runtime:{id:extensionId,getManifest:()=>({version:'0.1.0',name:'OpenDesk Browser'}),
       getURL:path=>'chrome-extension://'+extensionId+'/'+String(path).replace(/^\/+/,''),onMessage,onInstalled,
@@ -75,7 +75,12 @@ async function fixture({provenance=true,capabilities=[],toolId='prompt-shortcuts
     webNavigation:{async getFrame({tabId}){return {documentId:source(tabId).documentId,
       documentLifecycle:'active',url:pageUrl,errorOccurred:false};}},
     permissions:{onRemoved,async contains({origins}){return origins?.[0]===origin+'/*';}},
-    sidePanel:{open(args){opens.push(args);return Promise.resolve();}}
+    sidePanel:{open(args){opens.push(args);return Promise.resolve();}},
+    action:{
+      async setBadgeText(args){badgeWrites.push(args.text);},
+      async setBadgeBackgroundColor(){},
+      async setTitle(args){badgeTitles.push(args.title);}
+    }
   };
   let queue=Promise.resolve();
   const lockManager={request(_name,_options,fn){
@@ -86,7 +91,8 @@ async function fixture({provenance=true,capabilities=[],toolId='prompt-shortcuts
   async function send(message,sender=source()){
     return new Promise(resolve=>onMessage.emit({protocol:UPDATE_NOTICE_PROTOCOL,...message},sender,resolve));
   }
-  return {api,service,store,views,opens,hides,release,tool,source,send,lockManager,at(value){time=value;},
+  return {api,service,store,views,opens,hides,badgeWrites,badgeTitles,
+    release,tool,source,send,lockManager,at(value){time=value;},
     async settled(){await service.reconcile();await queue;}};
 }
 
@@ -275,4 +281,49 @@ test('revocation while visible ACK waits for the write lock cannot revive a live
   const action=f.send({kind:'page-action',action:'view',token});
   assert.equal(f.opens.length,0,'late ACK must not restore the synchronous gesture hint');
   assert.equal((await action).error.code,'E_UPDATE_SITE_REVOKED');
+});
+
+test('Chrome Action badge survives view, follows ignore and preference, and restores after restart',async()=>{
+  const f=await fixture();await f.settled();await f.service.syncBadge();
+  assert.equal(f.badgeWrites.at(-1),'1');
+  assert.match(f.badgeTitles.at(-1),/1 项扩展待更新/);
+  const key='sidebar-tool:'+f.tool.id+':'+f.release.version+':'+f.release.sha256;
+  const sender={id:extensionId,url:'chrome-extension://'+extensionId+'/sidepanel.html',frameId:0};
+  assert.equal((await f.send({kind:'action',key,action:'view'},sender)).ok,true);
+  await f.service.syncBadge();
+  assert.equal((await f.service.replyList()).newCount,0);
+  assert.equal((await f.service.replyList()).actionableCount,1);
+  assert.equal(f.badgeWrites.at(-1),'1');
+  assert.equal((await f.send({kind:'set-mode',mode:'silent'},sender)).ok,true);
+  await f.service.syncBadge();
+  assert.equal(f.badgeWrites.at(-1),'');
+  assert.equal((await f.send({kind:'set-mode',mode:'inbox-only'},sender)).ok,true);
+  await f.service.syncBadge();
+  assert.equal(f.badgeWrites.at(-1),'1');
+  f.api.runtime.onStartup.emit();
+  await f.service.reconcile();await f.service.syncBadge();
+  assert.equal(f.badgeWrites.at(-1),'1');
+  assert.equal((await f.send({kind:'action',key,action:'ignore'},sender)).ok,true);
+  await f.service.syncBadge();
+  assert.equal(f.badgeWrites.at(-1),'');
+  assert.equal((await f.service.replyList()).actionableCount,0);
+});
+
+test('unverified provenance, capability review and Chrome apply cannot fabricate actionable badge',async()=>{
+  const unknown=await fixture({provenance:false});await unknown.settled();
+  await unknown.service.syncBadge();
+  assert.equal(unknown.badgeWrites.at(-1),'');
+  const review=await fixture({capabilities:['browser.tabs']});await review.settled();
+  await review.service.syncBadge();
+  assert.equal(review.badgeWrites.at(-1),'1');
+  assert.equal((await review.service.replyList()).records[0].status,'review_required');
+  const browser=await fixture();await browser.settled();
+  browser.api.runtime.onUpdateAvailable.emit({version:'0.2.0'});
+  // Wait for the existing update event's queued, verified storage transaction.
+  await browser.lockManager.request('test',{mode:'exclusive'},async()=>{});
+  await browser.service.syncBadge();
+  const list=await browser.service.replyList();
+  assert.equal(list.browserPendingCount,1);
+  assert.equal(list.actionableCount,1);
+  assert.equal(browser.badgeWrites.at(-1),'1','Chrome apply alone adds no installer task');
 });

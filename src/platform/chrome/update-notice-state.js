@@ -77,6 +77,8 @@ export function appendTrustedRelease(previous,candidate,now){
     ignoredAt:null,dismissedAt:null,snoozeUntil:null,claim:null};
   row.status=candidate.status;
   row.title=String(candidate.title||candidate.id).slice(0,80);
+  row.description=typeof candidate.description==='string'?
+    candidate.description.slice(0,360):null;
   row.fromVersion=typeof candidate.fromVersion==='string'?candidate.fromVersion.slice(0,32):null;
   row.source=typeof candidate.source==='string'?candidate.source.slice(0,160):null;
   row.sha256=candidate.kind==='sidebar-tool'?candidate.sha256:null;
@@ -189,12 +191,29 @@ export function actOnUpdateToast(previous,{now,action,token,tabId=null,documentI
   state.revision++;
   return state;
 }
+// Badge counts are a projection of the one persisted, trusted release inventory.
+ // Viewing a release never removes it from the actionable count. Browser extension
+ // updates are managed by Chrome, not by the Sidebar Tool installer.
 export function updateNoticeSnapshot(state){
   const valid=readUpdateNoticeState(state);
   const records=Object.values(valid.records).sort((a,b)=>b.discoveredAt-a.discoveredAt)
     .map(({claim,...row})=>({...row})); // Never send private claim tokens to the UI.
+  const seen=new Set();
+  const actionable=records.filter(row=>{
+    if(row.kind!=='sidebar-tool'||!['available','review_required'].includes(row.status)||
+       row.ignoredAt!==null||seen.has(row.id))return false;
+    seen.add(row.id);return true;
+  });
+  const unreadCount=actionable.filter(row=>row.viewedAt===null).length;
+  const badgeCount=actionable.filter(row=>effectiveNoticeMode(valid,row)!=='silent').length;
+  const browserPendingCount=records.filter(row=>row.kind==='browser'&&
+    row.status==='pending_browser_apply'&&row.ignoredAt===null).length;
   return {revision:valid.revision,globalMode:valid.globalMode,toolModes:valid.toolModes,
-    records,openRequestedAt:valid.openRequestedAt,
-    newCount:records.filter(row=>['available','review_required','pending_browser_apply'].includes(row.status)&&
-      row.ignoredAt===null&&row.viewedAt===null).length};
+    records,openRequestedAt:valid.openRequestedAt,actionableCount:actionable.length,
+    unreadCount,badgeCount,browserPendingCount,
+    newCount:unreadCount}; // Legacy unread name retained for existing consumers.
+}
+export function formatUpdateBadgeCount(count){
+  if(!Number.isSafeInteger(count)||count<0)throw new TypeError('E_UPDATE_BADGE_COUNT');
+  return count>9?'9+':count?String(count):'';
 }

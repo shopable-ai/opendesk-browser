@@ -23,7 +23,8 @@ export function sidebarKeyboardDestination(key,index,tabs){
   return next<0?null:tabs[next];
 }
 
-export function SidebarNavigation({activeTab='tasks',debugEnabled=false,appDebugEnabled=false,locale='zh-CN',onNavigate=()=>{}}){
+export function SidebarNavigation({activeTab='tasks',debugEnabled=false,appDebugEnabled=false,
+  updateCount=0,locale='zh-CN',onNavigate=()=>{}}){
   const available=TABS.filter(tab=>(tab.key!=='debug'||debugEnabled)&&
     (tab.key!=='app-debug'||appDebugEnabled));
   const navigate=key=>onNavigate(key)!==false;
@@ -45,8 +46,11 @@ export function SidebarNavigation({activeTab='tasks',debugEnabled=false,appDebug
     const index=available.findIndex(value=>value.key===tab.key);
     const isHidden=tab.key==='debug'&&!debugEnabled||tab.key==='app-debug'&&!appDebugEnabled;
     const selected=tab.key===activeTab;
+    const count=tab.key==='tools'&&Number.isSafeInteger(updateCount)&&updateCount>0?updateCount:0;
+    const title=translateSidebarNavigation(tab.messageKey,locale);
     return <button key={tab.key} type="button" id={tab.id} role="tab"
       data-workbench-tab={tab.key} aria-selected={selected}
+      aria-label={count?title+'，'+count+' 项扩展待更新':undefined}
       aria-controls={tab.key==='app-debug'?'workbench-tools':'workbench-'+tab.key}
       hidden={isHidden}
       tabIndex={selected?0:-1}
@@ -62,7 +66,8 @@ export function SidebarNavigation({activeTab='tasks',debugEnabled=false,appDebug
         }
       }}
       onKeyDown={event=>{if(index>=0)onKeyDown(event,index);}}>
-      {translateSidebarNavigation(tab.messageKey,locale)}
+      <span>{title}</span>
+      {count>0&&<span className="od-nav-update-count" aria-hidden="true">{count>9?'9+':count}</span>}
     </button>;
   })}</>;
 }

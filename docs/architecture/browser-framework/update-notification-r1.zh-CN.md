@@ -271,3 +271,23 @@ PR #78 中未进入 `main` 的更新候选状态、Web Toast、原 MV3 Worker �
 
 
 2026-11-11 当前 GitHub Actions 结果（commit `610f1d31`，run [42863092448](https://github.com/shopable-ai/opendesk-browser/actions/runs/42863092448)）：更新通知相关 Node 21/21 PASS，原 Host 定向 1/1 PASS，`npm run check` PASS；`npm run build` FAIL，原因是独立并行 WebFlow 任务 JSON 被 `opendesk-fixed-sw` 来源门禁拦截（`projects/webflow/tasks/chatgpt.conversation.create.v1.opendesk-task.json`），未放宽门禁。真实 Mac/已安装 Chrome NOT_TESTED。主分支代码合入 ≠ 正式发行已验收。
+
+
+## R2 框架级入口修订（2026-11-11，最终以最新 main/CI 回执为准）
+//
+本次改造仅调整可信框架 UI 与 Chrome Action 投影，不新增发行、安装或权限状态源。
+工具栏 Chrome Action：0 隐藏，1–9 实际数，10+ 显示 9+；点击继续执行原 sw.js 点击行为。
+Side Panel：现有「扩展」Tab 内联相同数字；扩展列表工具栏提供「更新中心」入口，取代右下角 fixed 文字。
+PC app.html：在原 ToolHost 上方提供同一个更新中心，不使用第二个状态管理器。
+actionableCount：可信清单中 status=available/review_required、未忽略、按 toolId 去重的扩展工具数；已查看仍计入。
+unreadCount：其中未查看的数量；只用于提示未读，不表示待安装总数。newCount 保留旧兼容字段。
+badgeCount：actionableCount 中提醒偏好不为 silent 的工具数，仍按 toolId 去重。
+browserPendingCount：Chrome 本体 pending_browser_apply；单独列在「浏览器」，永远不纳入工具安装角标。
+偏好：silent 不弹 Toast 且不显示数字，但更新中心仍可手动访问；inbox-only 有数字而不弹 Toast；
+toast+inbox 两者均有；全局静默优先于每工具偏好。
+核验：Service Worker 在每次可信 state 写回、核验成功/失败、启动时串行同步 chrome.action；
+未核验、失败或写回结果未知，隐藏数字。历史可读，但审阅安装入口禁用。
+更新中心只调用已有的「标记已读」「稍后」「忽略」和原安装器审阅回调；
+用户查看详情不是安装成功；新增权限仍由原 Installer 授权。
+验收边界：Node、npm run check、生产构建和实际 Chrome/Native 验收分别报告，不互相代替。
+**注意：本节取代上方 R1 的固定底部通知条入口建议；旧 R1 文字为历史设计背景。**
