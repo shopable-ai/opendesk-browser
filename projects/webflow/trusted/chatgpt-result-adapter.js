@@ -11,7 +11,10 @@ const ORIGIN='https://chatgpt.com';
 const ROOT=ORIGIN+'/';
 const release=REVIEWED_BUILTIN_TASK_RELEASES.find(row=>
   row.taskId===TASK_ID&&row.version===VERSION);
-const fail=message=>{throw Object.assign(new Error(message),{code:'E_BRIDGE_RESULT'});};
+// The fixed adapter may identify a *retained-target* mismatch for the
+// trusted handoff receipt to classify, without weakening its own error code.
+const fail=(message,failureKind)=>{throw Object.assign(new Error(message),
+  {code:'E_BRIDGE_RESULT',...(failureKind?{failureKind}:{})});};
 
 // A page-reported "draft-prepared" alone does not prove that B survived
 // Controller retirement. Bind the result to the exact original retained tab
@@ -29,7 +32,8 @@ function verify(value,request,run){
     retained.documentId!==target.documentId||
     retained.origin!==ORIGIN||
     retained.url!==(checked.send?checked.conversationUrl:ROOT))
-    fail('The retained ChatGPT B tab/document or observed URL is not bound to this original Run');
+    fail('The retained ChatGPT B tab/document or observed URL is not bound to this original Run',
+      'retained-target-mismatch');
   return checked;
 }
 
