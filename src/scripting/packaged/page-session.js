@@ -4,7 +4,7 @@ import {SDK_FILES} from '../../framework/sdk/registry.js';
 
 export const PAGE_SESSION_MESSAGE = 'OPENDESK_CONTROLLER_PAGE_SESSION_V1';
 const methods = new Set(['title', 'content', 'contentOpen', 'contentRead', 'contentClose', 'url', 'snapshot', 'snapshots', 'click', 'type', 'keyboard',
-  'waitForTimeout', 'waitForSelector', 'uploadChunk', 'uploadCommit', 'addScriptTag', 'addStyleTag',
+  'waitForTimeout', 'waitForSelector', 'uploadChunk', 'uploadCommit', 'uploadAbort', 'addScriptTag', 'addStyleTag',
   'locatorRead', 'locatorPrepare', 'locatorCommit', 'locatorObserve']);
 const installations = new WeakMap();
 const ownerKey = run => JSON.stringify([run.runId, run.ownerEpoch]);
