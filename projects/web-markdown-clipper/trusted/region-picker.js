@@ -149,6 +149,7 @@ export function beginRegionPick({doc=globalThis.document,win=globalThis.window,e
       const focus=doc.activeElement;
       consume(event);
       if(focus&&focus!==doc.body&&focus!==doc.documentElement)commit(focus);
+      else if(candidates[index])commit(candidates[index]);
       return;
     }
     if((event.key==='ArrowUp'||event.key==='ArrowDown')&&candidates.length){
