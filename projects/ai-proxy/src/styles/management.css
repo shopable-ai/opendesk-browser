@@ -292,7 +292,9 @@
     display:grid; grid-template-columns:120px minmax(0,1fr) 104px;
     align-items:start; gap:12px;
   }
-  :scope .options .proxyPrimaryFields > div {
+  :scope .options .proxyPrimaryFields > div,
+  :scope .options .proxyPrimaryFields > div:first-child,
+  :scope .options .proxyPrimaryFields > div:nth-child(2) {
     grid-column:auto; grid-row:auto; min-width:0;
   }
   :scope .options .proxyEditorForm :is(.proxyNameField,.proxyPrimaryFields > div,.proxyAuthFields > div) > label,
