@@ -83,7 +83,7 @@ export function TaskRunSheet({view}){
 {request?.sites?.length>0&&<p className="hint">适用网站：{request.sites.join('、')}</p>}
 {request?.target&&<p className="hint">已核对网页：{request.target.expectedUrl}</p>}
 {hasParams&&!request?.recoveryOnly&&<div className="task-params-toolbar">
-<span className="task-params-section-label">任务参数 <span>{view.data.taskParams.length}</span></span>
+<span className="task-params-section-label">运行参数</span>
 <div className="task-params-mode od-segmented" role="group" aria-label="参数编辑方式">
 {[['form','表单'],['json','JSON']].map(([mode,label])=><Button key={mode} variant="quiet"
   aria-pressed={(view.data.taskParamsMode||'form')===mode} disabled={fieldsDisabled} onClick={()=>view.actions.taskParamsModeChange?.(mode)}>{label}</Button>)}

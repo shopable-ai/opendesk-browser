@@ -21,8 +21,7 @@ export function MyTaskDetail({value=''}) {
 export function MyTaskRows({rows=[],selectedId='',emptyText='',onSelect,
   manageMode=false,onManage,onParametersOpen,renderWorkspace,workspace=null,visible=true}) {
   const [expandedTaskId,setExpandedTaskId]=React.useState(selectedId);
-  const [lastInteractedId,setLastInteractedId]=React.useState(null),[menu,setMenu]=React.useState(null);
-  const activeActionId=rows.some(row=>row.taskId===lastInteractedId)?lastInteractedId:rows[0]?.taskId;
+  const [menu,setMenu]=React.useState(null);
   const menuModel=React.useMemo(()=>menu?{...menu,onClose:restore=>{
     if(restore)menu.trigger?.focus({preventScroll:true});setMenu(null);
   }}:null,[menu]);
@@ -53,9 +52,7 @@ export function MyTaskRows({rows=[],selectedId='',emptyText='',onSelect,
     {rows.length===0&&<p className="task-search-empty">{emptyText}</p>}
     <div className="od-collection" hidden={rows.length===0}>
     {rows.map(row=><div key={row.taskId}
-      className={'task-card-group od-collection-row'+(row.taskId===selectedId?' selected':'')+(row.taskId===activeActionId?' task-card-group--action-visible':'')}
-      onPointerEnter={event=>{if(event.pointerType!=='touch')setLastInteractedId(row.taskId);}}
-      onFocusCapture={()=>setLastInteractedId(row.taskId)}>
+      className={'task-card-group od-collection-row'+(row.taskId===selectedId?' selected':'')}>
       <Button variant="quiet" className="task-card" data-task-id={row.taskId} title={row.title}
         aria-pressed={row.taskId===selectedId} aria-expanded={row.taskId===selectedId&&expanded}
         aria-controls="task-selected-workspace"
@@ -67,9 +64,7 @@ export function MyTaskRows({rows=[],selectedId='',emptyText='',onSelect,
         <span className="task-card-icon"><TaskGlyph/></span>
         <span className="task-card-copy"><strong>{row.title}</strong>
           <small>{!row.enabled&&<span className="task-card-state off">已停用 · </span>}{row.description}</small>
-          <span className="task-card-meta"><span>{row.siteLabel||"网站待核对"}</span>
-            <span>参数 {Number.isSafeInteger(row.parameterCount)?row.parameterCount:"—"} 项</span>
-            <span>运行入口：手动准备</span></span></span>
+          </span>
       </Button>
       <span className="task-card-actions">
       <IconButton id={row.taskId===selectedId?'task-parameters-open':undefined} className="task-card-run od-icon-button--quiet"
