@@ -386,7 +386,7 @@ const tabs: {id:Page; name:string; caption:string}[] = [
       setProxy(emptyEndpoint);
       setUsername('');
       setPassword('');
-      editorDialog.current?.querySelector<HTMLInputElement>('#ep-host')?.focus();
+      editorDialog.current?.querySelector<HTMLInputElement>(presentation==='management'?'#ep-name':'#ep-host')?.focus();
     } else closeEditor();
   }
   async function editPac(profile: Profile) {
@@ -582,6 +582,47 @@ const tabs: {id:Page; name:string; caption:string}[] = [
     const a = document.createElement('a');a.href=href;a.download='ai-proxy-share-v2.json';a.click();
     setTimeout(()=>URL.revokeObjectURL(href),3000);
   }
+  // Shared real controls, separate PC/Side Panel reading order; one business state.
+  const proxyNameControl = (
+    <FormField id="ep-name" className="proxyNameField" label={t('nameOptional')}>
+          {controlProps=><ClearableInput {...controlProps} autoFocus={presentation==='management'} fieldLabel={t('name')} maxLength={80} value={proxy.name}
+             onValueChange={name=>setProxy({...proxy,name})} placeholder={t('eGMyLocalProxy')}/>}</FormField>
+  );
+  const proxySchemeControl = (
+    <div className="proxySchemeField"><label htmlFor="ep-scheme">{t('protocol')}</label>
+            <select id="ep-scheme" value={proxy.scheme}
+              onChange={e=>{
+                const scheme=e.target.value as ProxyScheme;
+                if (scheme.startsWith('socks')) { setUsername(''); setPassword(''); }
+                setProxy({...proxy,scheme});
+              }}>
+              <option value="http">HTTP</option>
+              <option value="https">HTTPS</option>
+              <option value="socks4">SOCKS4</option>
+              <option value="socks5">SOCKS5</option>
+            </select></div>
+  );
+  const proxyHostControl = (
+    <div className="proxyHostField"><label htmlFor="ep-host">{t('host')}</label>
+            <ClearableInput id="ep-host" autoFocus={presentation!=='management'} required fieldLabel={t('host')} value={proxy.host}
+               aria-describedby={addressPasteError?'ep-host-error':undefined}
+               onValueChange={host=>{setProxy({...proxy,host});setAddressPasteError(false);}}
+               onPaste={handleProxyPaste} placeholder={t('127001OrProxyExampleCom')}/>
+             <HostQuickPick value={proxy.host} onChoose={host=>{setProxy({...proxy,host});setAddressPasteError(false);}}/>
+             {addressPasteError&&<small id="ep-host-error" className="proxyEntryError" role="alert">{t('proxyPasteUnsupported')}</small>}
+           </div>
+  );
+  const proxyPortControl = (
+    <div className="proxyPortField"><label htmlFor="ep-port">{t('port')}</label>
+            <ClearableInput id="ep-port" type="number" min={1} max={65535} required fieldLabel={t('port')}
+               aria-invalid={proxy.port!==''&&!isValidProxyPort(proxy.port)}
+               aria-describedby={proxy.port!==''&&!isValidProxyPort(proxy.port)?'ep-port-error':undefined}
+               value={proxy.port} onValueChange={port=>setProxy({...proxy,port})} placeholder="7890"/>
+             <PortQuickPick scheme={proxy.scheme} value={proxy.port} onChoose={port=>setProxy({...proxy,port})}/>
+             {proxy.port!==''&&!isValidProxyPort(proxy.port)&&<small id="ep-port-error" className="proxyEntryError" role="alert">{t('errInvalidPort')}</small>}
+           </div>
+  );
+
   return <main className={'options' + (tab==='subscriptions' ? ' sourcesOptions' : '')}>
     <header className="optionsHead">
       {presentation==='management'?<div className="managementIdentity">
@@ -1016,40 +1057,12 @@ const tabs: {id:Page; name:string; caption:string}[] = [
         </header>
         <div className="proxyEditorFields">
         <p className="hint proxyEditorIntro">{t('proxyEditorIntro')}</p>
-        <FormField id="ep-name" className="proxyNameField" label={t('nameOptional')}>
-          {controlProps=><ClearableInput {...controlProps} fieldLabel={t('name')} maxLength={80} value={proxy.name}
-             onValueChange={name=>setProxy({...proxy,name})} placeholder={t('eGMyLocalProxy')}/>}</FormField>
+        {presentation==='management' && proxyNameControl}
         <div className="proxyPrimaryFields">
-          <div className="proxySchemeField"><label htmlFor="ep-scheme">{t('protocol')}</label>
-            <select id="ep-scheme" value={proxy.scheme}
-              onChange={e=>{
-                const scheme=e.target.value as ProxyScheme;
-                if (scheme.startsWith('socks')) { setUsername(''); setPassword(''); }
-                setProxy({...proxy,scheme});
-              }}>
-              <option value="http">HTTP</option>
-              <option value="https">HTTPS</option>
-              <option value="socks4">SOCKS4</option>
-              <option value="socks5">SOCKS5</option>
-            </select></div>
-          <div className="proxyHostField"><label htmlFor="ep-host">{t('host')}</label>
-            <ClearableInput id="ep-host" autoFocus required fieldLabel={t('host')} value={proxy.host}
-               aria-describedby={addressPasteError?'ep-host-error':undefined}
-               onValueChange={host=>{setProxy({...proxy,host});setAddressPasteError(false);}}
-               onPaste={handleProxyPaste} placeholder={t('127001OrProxyExampleCom')}/>
-             <HostQuickPick value={proxy.host} onChoose={host=>{setProxy({...proxy,host});setAddressPasteError(false);}}/>
-             {addressPasteError&&<small id="ep-host-error" className="proxyEntryError" role="alert">{t('proxyPasteUnsupported')}</small>}
-           </div>
-          <div className="proxyPortField"><label htmlFor="ep-port">{t('port')}</label>
-            <ClearableInput id="ep-port" type="number" min={1} max={65535} required fieldLabel={t('port')}
-               aria-invalid={proxy.port!==''&&!isValidProxyPort(proxy.port)}
-               aria-describedby={proxy.port!==''&&!isValidProxyPort(proxy.port)?'ep-port-error':undefined}
-               value={proxy.port} onValueChange={port=>setProxy({...proxy,port})} placeholder="7890"/>
-             <PortQuickPick scheme={proxy.scheme} value={proxy.port} onChoose={port=>setProxy({...proxy,port})}/>
-             {proxy.port!==''&&!isValidProxyPort(proxy.port)&&<small id="ep-port-error" className="proxyEntryError" role="alert">{t('errInvalidPort')}</small>}
-           </div>
+          {presentation==='management' ? <>{proxySchemeControl}{proxyHostControl}{proxyPortControl}</> : <>{proxyHostControl}{proxySchemeControl}{proxyPortControl}</>}
         </div>
         <p className="hint proxyEditorProtocolHelp">{t('proxyEditorProtocolHelp')}</p>
+        {presentation!=='management' && proxyNameControl}
         <details className="proxyAuthDetails">
           <summary>{t('proxyEditorAuthOptions')}</summary>
           <p className="notice">{t('apAuthHelp')}</p>
