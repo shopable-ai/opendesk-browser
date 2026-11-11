@@ -145,7 +145,7 @@ const compiledChatGPTFilesInputs=Object.freeze({
   'projects/webflow/trusted/chatgpt-result-adapter.js':'b55e4f27e5919464515b9687f45e8ca012f97c1b',
   // 0.3 is opt-in and cannot claim a completed A/B workflow from a draft.
   // Its strict results and retained-B proof are first-party compiled inputs.
-  'projects/webflow/src/chatgpt-conversation-result-v0.3.js':'6bff4d2ecabf8200c59d932e027336f39a049f11',
+  'projects/webflow/src/chatgpt-conversation-result-v0.3.js':'53fd0ca5ae064053fc00d34ce5771800289efcc4',
   'projects/webflow/trusted/chatgpt-result-adapter-v0.3.js':'9e58fafd786733db036a5995889cbff00157622e',
   'projects/webflow/trusted/chatgpt-b-prepare-stage.js':'68eeee6e3dee11d6d9abd1c534fe960c4a083e01'
 });
