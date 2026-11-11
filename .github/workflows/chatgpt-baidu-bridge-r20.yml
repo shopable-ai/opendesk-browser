@@ -17,7 +17,9 @@ on:
       - 'src/platform/tasks/contract.js'
       - 'src/platform/host/controller-methods.js'
       - 'src/platform/host/controller-target-retention.js'
+      - 'src/platform/host/controller-retained-continuation.js'
       - 'projects/webflow/tests/controller-retained-target.test.mjs'
+      - 'projects/webflow/tests/controller-retained-continuation.test.mjs'
       - 'projects/webflow/tests/chatgpt-background-ingress.test.mjs'
       - 'projects/webflow/tests/auto-grants.test.mjs'
       - 'projects/webflow/src/tasks/chatgpt-conversation-create.js'
@@ -90,6 +92,8 @@ jobs:
           node --check src/native-agent/chatgpt-fixed-bridge-host.js
           node --check src/native-agent/webflow-v2-target.js
           node --check src/platform/host/controller-target-retention.js
+          node --check src/platform/host/controller-retained-continuation.js
+          node --check projects/webflow/tests/controller-retained-continuation.test.mjs
           node --check src/platform/host/controller-methods.js
           node --check src/platform/tasks/contract.js
           node --check src/platform/tasks/service.js
@@ -114,6 +118,8 @@ jobs:
           node --check src/page-events/web-task-ingress.js
           node --check projects/webflow/tests/task-v2-live-ledger.test.mjs
           node --check tests/environment/chatgpt-baidu-bridge-r20.test.mjs
+      - name: One-shot retained-target continuation provenance (Node, not Chrome)
+        run: node --test projects/webflow/tests/controller-retained-continuation.test.mjs
       - name: ChatGPT immutable version upgrade and send contracts (Node, not Chrome)
         run: |
           node --test \
