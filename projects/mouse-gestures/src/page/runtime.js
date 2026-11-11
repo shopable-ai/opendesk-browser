@@ -29,6 +29,7 @@ export function createMouseGestureRuntime({ui,bridge=globalThis.OpenDeskAppPage,
       const enabled=prefs.enabled!==false;
       gesture.setOptions?.({
         trigger:prefs.trigger==='alt-left'?'alt-left':'right',
+        menuPolicy:prefs.menuPolicy==='gesture-first'?'gesture-first':'native-first',
         showTrace:prefs.showTrace!==false,
         gestureMappings:prefs.gestureMappings||{}
       });

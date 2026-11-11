@@ -191,3 +191,58 @@ test('an unfinished second segment cannot execute the first segment',()=>{
   f.dispatch('mousemove',{clientX:110,clientY:118});rightUp(f,110,118);
   assert.equal(f.backCount(),0);
 });
+
+test('gesture-first suppresses early native menu and completes one right drag', () => {
+  const f=fixture();
+  f.api.setOptions({menuPolicy:'gesture-first'});
+  rightDown(f);
+  const menu=f.dispatch('contextmenu');
+  assert.equal(menu.prevented,true);
+  assert.equal(menu.stopped,true);
+  moveLeft(f);rightUp(f);
+  assert.equal(f.backCount(),1);
+  const next=f.dispatch('contextmenu',{clientX:120});
+  assert.equal(next.prevented,true);
+  rightDown(f);rightUp(f,200,100);
+  assert.equal(f.backCount(),1,'plain right-click cannot execute actions');
+});
+
+test('gesture-first plain right-click suppresses the menu by explicit trade-off', () => {
+  const f=fixture();
+  f.api.setOptions({menuPolicy:'gesture-first'});
+  rightDown(f);
+  assert.equal(f.dispatch('contextmenu').prevented,true);
+  const up=rightUp(f,200,100);
+  assert.equal(up.prevented,false);
+  assert.equal(f.backCount(),0);
+});
+
+test('gesture-first preserves keyboard, Shift-right-click, exclusions, disabled and Alt-left', () => {
+  const f=fixture();
+  f.api.setOptions({menuPolicy:'gesture-first'});
+  assert.equal(f.dispatch('contextmenu',{button:0}).prevented,false);
+  f.dispatch('mousedown',{shiftKey:true});
+  assert.equal(f.dispatch('contextmenu',{shiftKey:true}).prevented,false);
+  f.dispatch('mousedown',{target:{closest:()=>true}});
+  assert.equal(f.dispatch('contextmenu').prevented,false);
+  f.api.setEnabled(false);
+  rightDown(f);
+  assert.equal(f.dispatch('contextmenu').prevented,false);
+  f.api.setEnabled(true);
+  f.api.setOptions({trigger:'alt-left',menuPolicy:'gesture-first'});
+  rightDown(f);
+  assert.equal(f.dispatch('contextmenu').prevented,false);
+});
+
+test('switching menu policy while dragging cancels the in-progress gesture', () => {
+  const f=fixture();
+  rightDown(f);moveLeft(f);
+  f.api.setOptions({menuPolicy:'gesture-first'});
+  rightUp(f);
+  assert.equal(f.backCount(),0);
+  rightDown(f);
+  assert.equal(f.dispatch('contextmenu').prevented,true);
+  f.api.setOptions({menuPolicy:'native-first'});
+  rightDown(f);
+  assert.equal(f.dispatch('contextmenu').prevented,false);
+});

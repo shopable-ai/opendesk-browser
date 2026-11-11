@@ -22,7 +22,14 @@
         <option value="alt-left">Option / Alt + 左键拖动</option>
       </select>
     </div>
-    <p class="mg-note">如果原生菜单先于拖动出现，可切换为 Option / Alt + 左键。</p>
+    <div class="mg-preference-row">
+      <label for="gesture-menu-policy">网页右键菜单</label>
+      <select id="gesture-menu-policy" aria-describedby="gesture-menu-help" disabled>
+        <option value="native-first">原生菜单优先（默认）</option>
+        <option value="gesture-first">手势优先（需主动启用）</option>
+      </select>
+    </div>
+    <p id="gesture-menu-help" class="mg-note">默认保留普通右键菜单。若 macOS 在拖动前就弹出菜单，手势可能无法开始；可改用 Option / Alt + 左键或手动启用手势优先。</p>
     <label class="mg-trace-option" for="gesture-trace"><input id="gesture-trace" type="checkbox" checked disabled>显示轨迹与动作提示</label>
     <div class="mg-combo-setting">
       <span class="mg-combo-title">组合手势动作</span>
