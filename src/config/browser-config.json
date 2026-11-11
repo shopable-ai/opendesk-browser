@@ -1,6 +1,6 @@
 {
   "schema": "opendesk.browser.public-config.v1",
   "navigation": {
-    "extensionStore": null
+    "extensionStore": "https://codexproxy.com/"
   }
 }
