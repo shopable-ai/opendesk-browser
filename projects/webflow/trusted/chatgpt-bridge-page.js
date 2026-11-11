@@ -1001,6 +1001,11 @@ export function initChatGPTFixedBridgePage({api=chrome,doc=document,win=window,
       }
     }
     if(!userObserved)throw fail('E_CHAT_DELIVERY_UNKNOWN','未观察到唯一的新增用户消息；禁止重发');
+    // Our durable-result message is data for the current AI continuation, never
+    // a fresh user command. Exclude its exact turn even if discovery ran before
+    // delivery confirmation or the website later remounts that message.
+    deliveredTurn={url:state.url,node:resultUser,key:userKey(resultUser),text:resultUser.textContent};
+    if(deferredDiscovery&&isDeliveredUser(deferredDiscovery.user))deferredDiscovery=null;
     // Official message IDs are optional for legacy delivery, but mandatory
     // evidence for independent WebFlow readA. Text observation alone is not
     // a durable receipt. Never turn a missing ID into a guessed message ID.
@@ -1009,11 +1014,6 @@ export function initChatGPTFixedBridgePage({api=chrome,doc=document,win=window,
       /^[A-Za-z0-9._:-]{8,128}$/u.test(observedId)&&
       site.inspect().users.filter(node=>node.getAttribute?.('data-message-id')===observedId).length===1?
       {messageId:observedId,contentSha256:await digestUtf8(message.text)}:null;
-    // Our durable-result message is data for the current AI continuation, never
-    // a fresh user command. Exclude its exact turn even if discovery ran before
-    // delivery confirmation or the website later remounts that message.
-    deliveredTurn={url:state.url,node:resultUser,key:userKey(resultUser),text:resultUser.textContent};
-    if(deferredDiscovery&&isDeliveredUser(deferredDiscovery.user))deferredDiscovery=null;
     deliveryClaim.confirmed(); // only exact user confirmation AND an empty native draft
     note('已在原对话确认新增用户消息。等待官方 AI 继续回复…');
     let aiReplyObserved=false;
