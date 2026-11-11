@@ -534,6 +534,52 @@ export function createChatGPTBridgeTriggerLedger({storage,revocationStorage,cloc
           .map(([requestId,row])=>({requestId,...structuredClone(row)}));
       });
     },
+    // WebFlow owns the A/B stage; this is an immutable proof on the SAME
+    // existing trigger row, never a second queue, DB, grant or Task runner.
+    recordWebTaskPreparedB(requestId,proof){
+      requireRequestId(requestId);
+      const fields=['prepareRunId','prepareRequestId','resultId','tabId','documentId',
+        'url','draftSha256','installationId','generation','manifestHash',
+        'contentHash','profileVerified'];
+      if(!plain(proof)||Object.keys(proof).sort().join(',')!==fields.sort().join(',')||
+        !TOKEN.test(proof.prepareRequestId)||proof.prepareRequestId!==requestId||
+        typeof proof.prepareRunId!=='string'||!proof.prepareRunId||
+        typeof proof.resultId!=='string'||!proof.resultId||
+        !Number.isSafeInteger(proof.tabId)||proof.tabId<0||
+        typeof proof.documentId!=='string'||!proof.documentId||
+        proof.url!=='https://chatgpt.com/'||
+        typeof proof.draftSha256!=='string'||!/^[a-f0-9]{64}$/.test(proof.draftSha256)||
+        typeof proof.installationId!=='string'||!proof.installationId||
+        !Number.isSafeInteger(proof.generation)||proof.generation<1||
+        ['manifestHash','contentHash'].some(k=>typeof proof[k]!=='string'||!/^[a-f0-9]{64}$/.test(proof[k]))||
+        proof.profileVerified!==false)
+        throw fail('E_CHAT_B_PREPARE','待批准 B 证据结构无效或账户未经核验');
+      return sequence(async()=>{
+        const rows=await load(),row=rows[requestId];
+        if(row?.site?.adapter!=='chatgpt'||row.intentProtocol!==WEBFLOW_TASK_INTENT_V2_PROTOCOL||
+          row.scope?.taskId!=='chatgpt.conversation.create'||
+          row.scope?.installation?.version!=='0.3.0'||
+          row.scope?.args?.phase!=='prepare'||row.status!=='consumed'||
+          row.controllerSubmitted!==true||!row.webHostDocumentId||
+          proof.installationId!==row.scope.installation.installationId||
+          proof.generation!==row.scope.installation.generation||
+          proof.manifestHash!==row.scope.installation.manifestHash||
+          proof.contentHash!==row.scope.installation.contentHash)
+          throw fail('E_CHAT_B_PREPARE','原 ChatGPT B 请求或已安装身份不匹配');
+        if(row.webBPrepared){
+          if(stableJSON(row.webBPrepared)!==stableJSON(proof))
+            throw fail('E_BRIDGE_REPLAY','原 B 的准备证据已固定，不得覆盖');
+          return {requestId,stage:'prepared-account-unverified'};
+        }
+        await checkAuto(row);
+        row.webBPrepared=structuredClone(proof);
+        row.webObservation={...row.webObservation,execution:'prepared-account-unverified',
+          persistence:'verified',release:'released',
+          runId:proof.prepareRunId,resultId:proof.resultId};
+        await save(rows);
+        return {requestId,stage:'prepared-account-unverified'};
+      });
+    },
     recordWebTaskObservation(requestId,observation){
       requireRequestId(requestId);
       if(!plain(observation))throw fail('E_BRIDGE_SCHEMA','网页观察必须为受限对象');
