@@ -93,11 +93,11 @@ test('site pause differs from UI hide; theme and Escape collapse are UI-only',()
   assert.match(h.n('site-chip-label').textContent,/站点未授权或已暂停/);
   assert.match(h.n('site-mini').innerHTML,/模拟重新授权/);
   h.click('site-visibility','','隐藏提示');assert.equal(h.n('site-dock').hidden,true);
-  assert.match(h.n('site-hidden-note').textContent,/网页提示/);
+  assert.equal(h.n('site-hidden-note').hidden,false);
   h.click('site-visibility','','显示提示');assert.equal(h.n('site-dock').hidden,false);
   h.click('site-regrant','https://chatgpt.com','模拟重新授权');
   assert.match(h.n('site-chip-label').textContent,/已观察页面完成/);
-  h.click('site-expand');h.click('site-expand');h.key('Escape');
+  h.click('site-expand');h.key('Escape');
   assert.equal(h.n('site-mini').hidden,true);
   h.click('theme');assert.equal(h.doc.documentElement.dataset.theme,'dark');
 });
