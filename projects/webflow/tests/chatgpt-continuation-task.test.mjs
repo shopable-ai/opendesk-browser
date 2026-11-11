@@ -1,10 +1,14 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import {readFile} from 'node:fs/promises';
+import {digestUtf8} from '../../../src/platform/protocol.js';
+import {verifyTaskPackage,validateTaskParams} from '../../../src/platform/tasks/contract.js';
 
 const sourcePath=new URL('../src/tasks/chatgpt-conversation-create-v0.3.js',import.meta.url);
 const source=await readFile(sourcePath,'utf8');
 const execute=new Function('page','params',source+'\nreturn main()');
+const candidate=JSON.parse(await readFile(new URL('../tasks/chatgpt.conversation.create.0.3.0.opendesk-task.json',import.meta.url),'utf8'));
+
 const uuid='10101010-2020-4030-8040-505050505050';
 function harness({draft=undefined,attachments=0,users=0,send=true,model,
   readbackMismatch=false,reply='{"sum":80}',completion=true,userId=true,clickError=false}={}){
@@ -40,6 +44,23 @@ function harness({draft=undefined,attachments=0,users=0,send=true,model,
     ...(send?{prepareRunId:'run-original-0001',prepareRequestId:'request-original-0001'}:{}),...(model?{model}:{})};
   return {state,run:()=>execute(page,args)};
 }
+
+test('0.3 frozen candidate package matches source and explicit two-phase Schema',async()=>{
+  assert.equal(candidate.manifest.taskId,'chatgpt.conversation.create');
+  assert.equal(candidate.manifest.version,'0.3.0');
+  assert.equal(await digestUtf8(source),candidate.manifest.program.sourceHash);
+  assert.deepEqual(await verifyTaskPackage(candidate),candidate);
+  assert.equal(candidate.manifest.targetDisposition,'retain-on-success');
+  assert.deepEqual(validateTaskParams(candidate.manifest.paramsSchema,{prompt:'hello',phase:'prepare'}),
+    {prompt:'hello',phase:'prepare'});
+  assert.equal(validateTaskParams(candidate.manifest.paramsSchema,
+    {prompt:'hello',phase:'submit',prepareRunId:'run-original-0001',
+      prepareRequestId:'request-original-0001'}).phase,'submit');
+  assert.throws(()=>validateTaskParams(candidate.manifest.paramsSchema,{prompt:'hello'}),
+    {code:'E_PARAMS'});
+  assert.throws(()=>validateTaskParams(candidate.manifest.paramsSchema,
+    {prompt:'hello',phase:'submit',send:true}),{code:'E_SCHEMA'});
+});
 
 test('0.3 PREPARE remains unsent without a fake B URL',async()=>{
   const h=harness({send:false}),r=await h.run();
