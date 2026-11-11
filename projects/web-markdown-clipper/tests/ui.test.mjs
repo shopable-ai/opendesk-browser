@@ -21,7 +21,7 @@ function mounted({request=async()=>({}),clipboard=async()=>({copied:true}),downl
     'clip-show-source','clip-show-preview','clip-copy','clip-download','clip-home','clip-selection-hint'];
   const nodes=Object.fromEntries(ids.map(id=>[id,new Node(id)]));
   nodes['clip-meta'].value='none';
-  const modes=['article','selection','quote','link'].map(name=>{const n=new Node(name);n.dataset.clipMode=name;return n;});
+  const modes=['article','selection','quote','link','region'].map(name=>{const n=new Node(name);n.dataset.clipMode=name;return n;});
   const root={querySelector:key=>nodes[key.slice(1)],querySelectorAll:()=>modes,events:{},
     addEventListener(name,fn){this.events[name]=fn;}};
   const document={createElement:tag=>new Node(tag),createDocumentFragment:()=>new Node('fragment')};
@@ -476,4 +476,58 @@ test('switching modes before the right-click ticket is consumed keeps the newly 
  assert.equal(saved,null);
  assert.equal(nodes['clip-fetch'].textContent,'生成链接');
  assert.equal(nodes['clip-source'].value,'');
+});
+
+test('region mode: one Host request waits for webpage click and renders only its returned Markdown',async()=>{
+ const started=deferred(),calls=[];
+ const {nodes,modes}=mounted({request:(operation,args)=>{calls.push({operation,args});return started.promise;}});
+ await modes[4].fire('click');
+ assert.equal(nodes['clip-fetch'].textContent,'点选网页区域');
+ const reading=nodes['clip-fetch'].fire('click');
+ assert.equal(nodes['clip-fetch'].textContent,'取消点选');
+ assert.equal(calls[0].operation,'clip.region');
+ assert.match(calls[0].args.pickId,/^[a-z0-9]+$/i);
+ assert.equal(nodes['clip-source'].value,'');
+ started.resolve({mode:'clip.region',source:'https://example.com/a',
+  title:'AI 回答',site:'example.com',loadedOnly:true,markdown:'# 回答 A\n\n仅本条正文\n'});
+ await reading;
+ assert.equal(nodes['clip-source'].value,'# 回答 A\n\n仅本条正文\n');
+ assert.equal(nodes['clip-fetch'].textContent,'重新选择区域');
+ assert.match(nodes['clip-status'].textContent,/DOM 快照/);
+ assert.equal(nodes['clip-copy'].disabled,false);
+});
+test('region mode: cancel sends same pickId, stale success never restores content',async()=>{
+ const started=deferred(),ops=[];
+ const {nodes,modes}=mounted({request:(operation,args)=>{
+  ops.push({operation,args});
+  return operation==='clip.region'?started.promise:Promise.resolve({cancelled:true});
+ }});
+ await modes[4].fire('click');
+ const reading=nodes['clip-fetch'].fire('click');
+ const id=ops[0].args.pickId;
+ await nodes['clip-fetch'].fire('click');
+ assert.equal(ops.at(-1).operation,'clip.region.cancel');
+ assert.equal(ops.at(-1).args.pickId,id);
+ assert.equal(nodes['clip-fetch'].disabled,false);
+ started.resolve({mode:'clip.region',source:'https://example.com/a',markdown:'LATE'});
+ await reading;
+ assert.equal(nodes['clip-source'].value,'');
+ assert.equal(nodes['clip-copy'].disabled,true);
+});
+test('region mode: switching to an existing legacy mode cancels without replay',async()=>{
+ const selected=deferred(),ops=[];
+ const {nodes,modes}=mounted({request:(operation,args)=>{
+  ops.push(operation);
+  return operation==='clip.region'?selected.promise:operation==='clip.region.cancel'?
+   Promise.resolve({cancelled:true}):Promise.resolve({mode:operation,markdown:'ARTICLE',source:'https://example.com/a'});
+ }});
+ await modes[4].fire('click');
+ const pending=nodes['clip-fetch'].fire('click');
+ await modes[0].fire('click');
+ assert.deepEqual(ops.slice(0,2),['clip.region','clip.region.cancel']);
+ selected.resolve({mode:'clip.region',markdown:'STALE',source:'https://example.com/a'});
+ await pending;
+ assert.equal(nodes['clip-source'].value,'');
+ await nodes['clip-fetch'].fire('click');
+ assert.equal(nodes['clip-source'].value,'ARTICLE');
 });
