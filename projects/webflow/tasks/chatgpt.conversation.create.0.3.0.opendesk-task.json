@@ -1,0 +1,80 @@
+{
+  "format": "opendesk.task-package.v1",
+  "manifest": {
+    "format": "opendesk.task.v1",
+    "taskId": "chatgpt.conversation.create",
+    "version": "0.3.0",
+    "title": "ChatGPT 唯一 B：先备草稿，再批准原页发送",
+    "description": "PREPARE 仅在新 B 准备未发送草稿；SUBMIT 必须由可信 WebFlow 针对原保留 Run 执行独立授权及精确 borrowed 接续后调用，本 Task 禁止重填草稿和重复点击。未完成可信编排与真实 Chrome 验收前不得作为自动执行版本。",
+    "author": "OpenDesk Browser",
+    "source": "local-developer",
+    "siteOrigins": [
+      "https://chatgpt.com"
+    ],
+    "permissions": [
+      "page.automation"
+    ],
+    "entryFormat": "async-main",
+    "program": {
+      "revision": 1,
+      "sourceHash": "2bfe2d610d63d5204edc4c2dd5b240a9771bede88ae1994ac92bde6dd0e40a42"
+    },
+    "paramsSchema": {
+      "type": "object",
+      "properties": {
+        "prompt": {
+          "type": "string",
+          "title": "待发送提示词",
+          "minLength": 1,
+          "maxLength": 3000
+        },
+        "model": {
+          "type": "string",
+          "title": "模型",
+          "minLength": 1,
+          "maxLength": 80
+        },
+        "effort": {
+          "type": "string",
+          "title": "推理强度",
+          "minLength": 1,
+          "maxLength": 80
+        },
+        "thinking": {
+          "type": "boolean",
+          "title": "启用思考"
+        },
+        "phase": {
+          "type": "string",
+          "title": "执行阶段",
+          "description": "prepare 仅建立未发送 B 草稿；submit 仅接续原 B 草稿",
+          "enum": [
+            "prepare",
+            "submit"
+          ]
+        },
+        "prepareRunId": {
+          "type": "string",
+          "title": "原草稿 Run ID",
+          "minLength": 8,
+          "maxLength": 128
+        },
+        "prepareRequestId": {
+          "type": "string",
+          "title": "原草稿 Request ID",
+          "minLength": 8,
+          "maxLength": 128
+        }
+      },
+      "required": [
+        "prompt",
+        "phase"
+      ],
+      "additionalProperties": false
+    },
+    "deadlineMs": 120000,
+    "targetDisposition": "retain-on-success"
+  },
+  "manifestHash": "758c6d0aa2100cff0e2197dbfd5141532e76e4a7c0410a355ec8e5795255b559",
+  "sourceUtf8": "// OD-AI-WORKFLOW-BRIDGE: reviewed ChatGPT conversation Task, version 0.3.0.\n// The original Controller owns the fresh tab, permission check, effect journal,\n// immutable script, and durable result. This script NEVER retries a click.\nasync function main() {\n  const fail=(code,message)=>{const error=new Error(message);error.code=code;throw error;};\n  const cfg=params??{};\n  const allowed=['prompt','phase','prepareRunId','prepareRequestId','model','effort','thinking'];\n  const token=v=>typeof v==='string'&&/^[A-Za-z0-9._:-]{8,128}$/u.test(v);\n  if(!cfg||typeof cfg!=='object'||Array.isArray(cfg)||\n    Object.keys(cfg).some(key=>!allowed.includes(key))||\n    typeof cfg.prompt!=='string'||cfg.prompt.length<1||cfg.prompt.length>3000||\n    !cfg.prompt.trim()||!['prepare','submit'].includes(cfg.phase))\n    fail('E_CHAT_CREATE_PARAMS','An exact prompt and explicit prepare/submit phase are required');\n  if((cfg.phase==='prepare'&&(Object.hasOwn(cfg,'prepareRunId')||Object.hasOwn(cfg,'prepareRequestId')))||\n    (cfg.phase==='submit'&&(!token(cfg.prepareRunId)||!token(cfg.prepareRequestId))))\n    fail('E_CHAT_CONTINUATION_PARAMS','Original PREPARE Run and request IDs required');\n  // Do not modify the user's current model/effort. Unsupported explicit\n  // selections must never silently downgrade or send with another setting.\n  if(['model','effort','thinking'].some(key=>Object.hasOwn(cfg,key)))\n    fail('E_CHAT_SETTINGS_UNVERIFIED','The requested model or thinking settings cannot be verified');\n  const original=new URL(await page.url());\n  if(original.origin!=='https://chatgpt.com'||original.pathname!=='/'||\n    original.search||original.hash||original.username||original.password)\n    fail('E_CHAT_CREATE_TARGET','Only a fresh official ChatGPT root is allowed');\n  const editor=page.locator('#prompt-textarea');\n  if(await editor.count()!==1||!await editor.isVisible())\n    fail('E_CHAT_CREATE_EDITOR','Cannot uniquely identify the native composer');\n  const attachments=page.locator('form [data-attachment-id],form [data-file-id],form [data-upload-id],form [data-testid*=\"attachment-preview\"],form [data-testid*=\"file-preview\"]');\n  const users=page.locator('[data-message-author-role=\"user\"],[data-chatgpt-search-unit-key$=\":user\"]');\n  const generating=page.locator('[data-testid=\"stop-button\"],[data-testid=\"composer-stop-button\"],[data-is-streaming=\"true\"],.result-streaming');\n  if(await attachments.count()!==0||await users.count()!==0||await generating.count()!==0)\n    fail('E_CHAT_CREATE_DRAFT','Existing attachment, turn or generation must be preserved');\n  const readback=await editor.innerText();\n  if(cfg.phase==='prepare'){\n    if(readback!=='')fail('E_CHAT_CREATE_DRAFT','Existing draft must be preserved');\n    await editor.fill(cfg.prompt,{timeout:12000});\n    if(await editor.innerText()!==cfg.prompt||await page.url()!==original.href||\n      await attachments.count()!==0||await users.count()!==0||await generating.count()!==0)\n      fail('E_CHAT_CREATE_READBACK','Native draft readback or context changed');\n    return {kind:'chatgpt.conversation.create.result',version:3,phase:'prepare',\n      status:'draft-prepared',send:false,messageConfirmed:false,conversationId:null,\n      conversationUrl:null,sourceUrl:original.href,promptChars:cfg.prompt.length,\n      readbackConfirmed:true,observedAt:new Date().toISOString()};\n  }\n  // The trusted WebFlow consumer must independently approve and bind the exact\n  // retainedFrom + borrowed target to this immutable installed Task before SUBMIT.\n  // SUBMIT NEVER calls fill or creates a replacement draft.\n  if(readback!==cfg.prompt)\n    fail('E_CHAT_SEND_PREFLIGHT','Original approved B draft is absent or changed');\n\n  // A PREPARE result is not a send approval; this step requires a separate\n  // trusted user grant and an exactly bound retained continuation.\n  const submit=page.locator('button[data-testid=\"send-button\"],button#composer-submit-button');\n  if(await submit.count()!==1||!await submit.isVisible()||!await submit.isEnabled()||\n    await generating.count()!==0||await attachments.count()!==0||\n    await editor.innerText()!==cfg.prompt||await page.url()!==original.href)\n    fail('E_CHAT_SEND_PREFLIGHT','Native submit control or context cannot be verified');\n  // IMPORTANT: do not catch and retry. Controller journals the native effect;\n  // a lost ACK or navigation must be reconciled against the ORIGINAL Run.\n  await submit.click({timeout:12000});\n\n  const messageSelector={user:[\n    '[data-message-author-role=\"user\"]',\n    '[data-chatgpt-search-unit-key$=\":user\"]'],assistant:[\n    '[data-message-author-role=\"assistant\"]',\n    '[data-content-search-unit-key$=\":assistant\"]']};\n  async function unique(role){\n    for(const selector of messageSelector[role]){\n      const found=page.locator(selector),count=await found.count();\n      if(count>1)fail('E_CHAT_MESSAGE_AMBIGUOUS','Multiple '+role+' messages were observed');\n      if(count===1)return found;\n    }\n    return null;\n  }\n  async function refOf(row,role){\n    const names=role==='user'?['data-message-id','data-chatgpt-search-message-ids','data-chatgpt-search-unit-key']:\n      ['data-message-id','data-chatgpt-search-message-ids','data-content-search-unit-key'];\n    for(const name of names){\n      const value=await row.getAttribute(name);\n      if(typeof value==='string'&&/^[A-Za-z0-9:_-]{8,160}$/.test(value))return value;\n    }\n    fail('E_CHAT_MESSAGE_ID','Stable native '+role+' message identity was not exposed');\n  }\n  async function responseText(){\n    for(const css of [\n      '[data-message-author-role=\"assistant\"] [data-testid=\"message-content\"]',\n      '[data-content-search-unit-key$=\":assistant\"] [data-testid=\"message-content\"]',\n      '[data-message-author-role=\"assistant\"] .markdown',\n      '[data-content-search-unit-key$=\":assistant\"]']){\n      const found=page.locator(css),count=await found.count();\n      if(count>1)fail('E_CHAT_REPLY_AMBIGUOUS','Response content is not unique');\n      if(count===1)return await found.innerText();\n    }\n    return '';\n  }\n  for(let attempt=0;attempt<75;attempt++){\n    await page.waitForTimeout(900);\n    const now=new URL(await page.url());\n    if(now.origin!=='https://chatgpt.com')\n      fail('E_CHAT_CREATE_TARGET','ChatGPT origin changed after submission');\n    const found=/^\\/c\\/([a-f0-9-]{36})$/iu.exec(now.pathname);\n    if(!found||now.search||now.hash)continue;\n    const user=await unique('user');\n    if(!user)continue;\n    if(await user.innerText()!==cfg.prompt)\n      fail('E_CHAT_MESSAGE_MISMATCH','Submitted user message differs from the approved prompt');\n    const userMessageRef=await refOf(user,'user');\n    const assistant=await unique('assistant');\n    if(!assistant||await generating.count()!==0)continue;\n    const reply=await responseText();\n    if(typeof reply!=='string'||!reply.trim()||new TextEncoder().encode(reply).byteLength>65536)\n      continue;\n    // Completion action and a second stable observation are both required.\n    const actions=page.locator('[data-testid=\"copy-turn-action-button\"],[data-assistant-message-actions]');\n    if(await actions.count()===0)continue;\n    const assistantMessageRef=await refOf(assistant,'assistant');\n    await page.waitForTimeout(1100);\n    if(await page.url()!==now.href||await generating.count()!==0||\n      await users.count()>2||await responseText()!==reply||\n      await user.innerText()!==cfg.prompt||\n      await refOf(assistant,'assistant')!==assistantMessageRef)\n      continue;\n    return {kind:'chatgpt.conversation.create.result',version:3,phase:'submit',\n      status:'reply-complete',send:true,messageConfirmed:true,\n      conversationId:found[1],conversationUrl:now.href,\n      userMessageRef,assistantMessageRef,replyText:reply,\n      sourceUrl:original.href,promptChars:cfg.prompt.length,\n      prepareRunId:cfg.prepareRunId,prepareRequestId:cfg.prepareRequestId,\n      readbackConfirmed:true,observedAt:new Date().toISOString()};\n  }\n  // An incomplete or unverifiable response is not proof of failure to send.\n  // Never create another chat or click Send again for this operation identity.\n  fail('E_CHAT_REPLY_UNKNOWN','Send was attempted; inspect the original Run/tab for completion');\n}\n"
+}
