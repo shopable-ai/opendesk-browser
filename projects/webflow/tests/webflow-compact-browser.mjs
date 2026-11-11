@@ -305,6 +305,8 @@ try{
     const beforeConfigure=await (await fetch(fixtureUrl+'/counts')).json();
     await click('.wf-menu button');
     await eventually('!document.querySelector(".wf-menu")','configure closes the row menu');
+    await eventually('fetch("/counts").then(r=>r.json()).then(x=>x.configures>='+String(beforeConfigure.configures+1)+')',
+      'mock SDK receives selected Task configuration request');
     const afterConfigure=await (await fetch(fixtureUrl+'/counts')).json();
     assert.equal(afterConfigure.configures,beforeConfigure.configures+1,
       'native click must request exactly one Host Task sheet');
