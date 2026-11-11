@@ -1,26 +1,47 @@
-# OpenDesk WebFlow 媒体桥 R1：可信扩展素材仓库
+# OpenDesk WebFlow · 媒体仓库至已授权网页的 R1/R2 最小闭环
 
-任务 ID：`OD-WEBFLOW-MEDIA-BRIDGE-R1`；检索：`OD-AI-WORKFLOW-BRIDGE`。
+任务 ID：`OD-WEBFLOW-MEDIA-BRIDGE-R1`；固定检索词：`OD-AI-WORKFLOW-BRIDGE`。
+唯一分支：`main`。当前是**源码已接线、待真实安装验收**，不是已发布功能。
 
-## 用户目标与已知基础
+## 原始问题与范围
 
-最终目标是用户选入真实 PNG，扩展保存原始 File/Blob，在刷新/关闭 Side Panel 后用 `assetId` 定位，经原 Controller/Host 权限核验后上传到已授权网页；上传和发布是两个不同的业务状态。已有 `ChromePage.uploadFile`、`uploadChunk`/`uploadCommit`（单文件 1 MiB）、本地文章 Demo 与基础测试。Demo 的 IndexedDB 是网页 Origin，不是扩展素材仓库。本轮不替换它们。
+用户在扩展可信设置页只选择一次真实 PNG。扩展把原始 Blob 保存到扩展自有 IndexedDB 并生成可持久读回的 `assetId`。Side Panel 关闭后，用户在 **原有已安装、已验证、明确授权**的 Controller Task 里输入 `assetId`，Controller 调用原 Browser Framework Host 受控读取、分块写入同一网页的 `input[type=file]`；网页从实际收到的 File 独立计算 SHA-256 并对照，最后仅把文章保存为本地草稿。**不上传真实第三方平台、不发布文章、不支持大视频**。
 
-## 本阶段实现与边界
+上传输入框接受 File、网页确认收到 File、页面本地草稿提交完成是三个不同状态。沙箱、网页 Origin、MV3 Worker 内存、剪贴板与普通 storage.local 配置都不能成为可信永久素材源。
 
-`projects/webflow/trusted/media-vault.js` 是仅受信扩展 Origin 可调用的 WebFlow 专属 IDB 仓库，使用 `opendesk-webflow-media-v1` 独立数据库，不修改 Browser Framework 既有严格 V2 Schema。存储原始 Blob、SHA-256、名称/MIME/大小、`assetId`、来源、Profile 作用域、创建时间、状态及有效期。独立事务读回并复算哈希才确认保存。首版只支持 PNG、≤1 MiB、单 Profile 总量≤10 MiB、≤20 件、7 天过期；支持列举、人工删除和过期清理。SW 内存/剪贴板/Blob URL 不是持久介质，WebFlow Task JSON 不携带字节。本仓库模块**没有公开读取消息接口**，不授予沙箱或网页资产访问权限。
+## 核对过的先存能力（复用，未重做）
 
-`src/native-agent/settings.html` 既有可信设置页加入 PNG 选择、已存记录、哈希复验和人工删除；`src/native-agent/settings.js` 只初始化该 UI，不创建新 WXT 入口或第二个安装器。需要在真正安装的 Chrome 扩展设置页验证。
+- R1 已有 `projects/webflow/trusted/media-vault.js` 与 `media-vault-settings-ui.js`，只允许扩展 Origin，IndexedDB `opendesk-webflow-media-v1` 持久 Blob、SHA-256、名称、MIME、大小、来源、Profile 身份、创建/过期时间；每文件≤1 MiB、每 Profile≤10 MiB/20 件、7 天 TTL。独立读回并复算哈希。可信设置页入口 `src/native-agent/settings.html` / `settings.js` 已存在。
+- 浏览器原 `page.uploadFile`、`uploadChunk`、`uploadCommit`、File 构造、原 RunHost/Task Catalog/权限与持久操作日志、本地 `article-editor.html` / Controller Demo 原样复用，没有第二套执行器、安装器或任务协议。
+- 初始时 R2 未接 `assetId`；R3 仅有仓库配额/过期/哈希，未覆盖跨 Controller 传递与撤权。
 
-**R2 未完成：** 目前 Controller 公共接口不支持凭 assetId 到 Host 取二进制。后续必须在原 Browser Framework Host/Controller owner 内实现：原已授权 Run、任务安装 pin、目标 Origin、具体 File 读授权、Profile、Stop/撤权/期限全部成立时才允许取件；通过有界通道返回到原 Controller/Page session，复用 `uploadFile`，以目标网页原生 `File` 的文件名/MIME/大小/哈希作为成功依据。不能简单把 `assetId` 传给网页或把资产字节放进任务 JSON，也不能绕过原权限系统。请求 `UNKNOWN` 时仅按原 ID/回执查询，不再次提交文件。
+## 本轮新增源码及契约
 
-**R3 部分：** R1 包含长度/格式/Origin/Profile/数量/容量/TTL/哈希校验与人工删除；Controller 撤权、Stop、传输取消、未知结果恢复及目标网页确认尚需依附 R2 端到端测试。
+1. **用户入口**：原 `ChromePage.uploadAsset(css,assetId)` 仅传受限引用，不传字节、不允许绝对路径。现有 `uploadFile` 保持不变。
+2. **安装审阅**：原 `Task Manifest` 明确支持 `media.read` 权限，由原 Task Catalog 显示并审阅；默认无此权的草稿、App Controller、旧安装任务均不得读取。原任务运行参数 `paramsWire.assetId` 必须等于每次操作的 assetId（仅 `assetId` 本身不能授权）。
+3. **唯一可信 Host**：`src/sw.js` 把既有媒体仓库的读取能力仅注入原 `createFoundationBroker → authority → controllerMethods` 私有依赖。每次读取重新核验原注册 Host、Run owner、安装版本、启用状态、目标页面/Origin、Chrome 网站权限、期限与取消状态。扩展内部无对网页公开的媒体读取消息接口。
+4. **原生分块链**：`src/framework/control/native-driver.js` 对获批的二进制重新核对长度、MIME、SHA-256，每包沿现有 49152 字节通道 `uploadChunk`，最后 `uploadCommit` 到原文档 File input；不足或失败时同 Session `uploadAbort`，停用/换页后原 Cancel/Pagehide 兜底。上传 ACK 不会自动重放。
+5. **网站独立收据**：现有演示页在真实 `change` 事件读取实际 File.arrayBuffer()，独立生成 `data-filename/data-mime/data-size/data-sha256`；原 Controller 仅在四字段与 Host 预期完全一致时继续保存草稿，返回 `site-file-received` + `draft-saved-local`。不会报告第三方发布成功。
+6. **审阅与测试**：现有 Demo Controller 增加 `verifyOnly:true`，使用相同源码在真实本地网页填写标题/正文形成原生页面操作成功记录，但**不读素材、不上传**。待原 Task 目录验证源码 SHA / RunId、标记 Available、人工安装后，改为 `verifyOnly:false` 真正上传；见目录内 `package-media-task.mjs`，只生成原格式候选包，不自行安装。原 `fixed-entry-budget.yml` CI 加入定向 Node/构建检查，新增 `tests/environment/webflow-media-asset-r2.test.mjs`。
 
-## 本地 Chrome 验收（不能用 Demo 模拟代替）
+## 严格状态（截至本轮 GitHub 写入，不得提前升格）
 
-1. 安装当前 `main` 打出的正式扩展，打开 `chrome-extension://<当前扩展ID>/native-agent/settings.html`，在「WebFlow 素材仓库」选择真实 PNG（1 MiB 内）。记录 `assetId`、SHA-256、原文件名/MIME/字节数。
-2. 关闭 Side Panel、关闭设置页并重新打开；刷新列表后点「核对原始字节」，验证原始 Blob 的 SHA-256，亦验证多次重启浏览器/Service Worker 后仍可读。
-3. 以不同 Profile/网页 Origin 及无权限场景测试失败关闭；容量溢出、过期、删除后的读取必须失败。
-4. R2 接入后，运行原已批准的 Controller 到既有本地 `article-editor.html`，按真实 `assetId` 取图、上传，网页脚本独立计算文件 `File.arrayBuffer()` SHA-256 并提供实际接收凭证。测试停用/撤权、取消/UNKNOWN 不重传。
+| 阶段 | 状态 | 凭证/边界 |
+| --- | --- | --- |
+| R1：素材存取与恢复 | SOURCE_EXISTING / CHROME NOT_TESTED | 已在 main 的仓库源码；真实 Chrome 重启/持久读回尚无本轮现场证据 |
+| R2：取件授权与网页上传 | SOURCE_IMPLEMENTED / NODE 待 CI / CHROME NOT_TESTED | 原 Host、Controller 分块和本地网页收据均已接线；尚无真实用户 PNG → 网站收件的现场回执 |
+| R3：取消、撤权与 UNKNOWN | SOURCE_PARTIAL / CHROME NOT_TESTED | 现有 Run 栅栏和分块清理复用；需真实中断、撤权、失 ACK、SW 重启现场回归 |
+| INSTALL / BUSINESS | NOT_TESTED | 没有本轮正式安装包执行和网站实际收件、草稿读回证据 |
 
-验收分层：SOURCE（源码）、NODE（专项单测）、CHROME（正式扩展现场）、INSTALL（正式包安装）、BUSINESS（网页真实接收）。仅依据同 SHA 的真实日志和截图填写 PASS；未实际做的项目全部 NOT_TESTED。`uploadFile` 完成不等于网页处理完成，草稿保存不等于文章已发布。
+没有实测的测试不写 PASS。CI 即使通过，仍不能替代用户真实 Chrome 的文件选择和网页接收。
+
+## 本地最短验收（使用真实文件，不手写 Base64）
+
+1. 在 Mac 原仓库最新 `main` 跑 `node --test tests/environment/webflow-media-vault-r1.test.mjs tests/environment/webflow-media-asset-r2.test.mjs tests/environment/controller-media-upload.test.mjs`，再运行 `npm run check && npm run build:dev`，按既有安装器/开发指引刷新原正式扩展，不创建新扩展安装链。
+2. 启动 `python3 -m http.server 43111 --bind 127.0.0.1 --directory projects/webflow/demos/article-media`，在 Chrome 打开 `http://127.0.0.1:43111/article-editor.html`，明确授予该精确站点权限。
+3. 在**当前已安装的** `chrome-extension://<扩展ID>/native-agent/settings.html` 保存本机真实 PNG，记录 assetId 与 SHA；关闭 Side Panel 与设置页，重新打开；验证再次读取字节、SHA 不变（另测 Service Worker 重启）。
+4. 在根目录运行 `node projects/webflow/demos/article-media/package-media-task.mjs`，生成原格式 `webflow-media-png-local.v0.1.0.opendesk-task.json`。在原「我的」任务目录导入该包成为 **candidate**。用同一字节的 `article-publish.controller.js` 在开发编辑器运行 `{\"assetId\":\"上述真实ID\",\"verifyOnly\":true}`，等原 Controller Run/result/retirement **完整成功**，输入真实 runId 做原任务验证 → Available → 显式人工安装，审阅权限含 `media.read`。注意：未经安装的草稿一律不可执行真实 uploadAsset。
+5. 在已安装任务的参数面板输入 `assetId`，`verifyOnly=false`，明确点击运行一次。核对原 Controller 操作/RunId、网页 `#image-ready-0` 的原 File 名称/MIME/大小/SHA、Controller 的 `mediaReceipts`、`#save-state[data-state=saved]`、刷新后网页本地草稿。
+6. 负面回归：取消、停用/卸载任务、撤掉 localhost 权限、换网页/Origin、删除/过期资产、超配额、丢 ACK/UNKNOWN。若无法确定是否已提交，只查询原 runId/operation；严禁自动再次上传或保存。
+
+`FILE_INPUT_COMMITTED` 不等于 `SITE_FILE_RECEIVED`；后者不等于 `DRAFT_SAVED`；本轮任何结果都**不等于外部发布成功**。
