@@ -88,8 +88,8 @@ test('site miniature expands, confirms Claude B and reversibly recomputes shared
 
 test('site pause differs from UI hide; theme and Escape collapse are UI-only',()=>{
   const h=harness();h.click('surface','site');h.click('site-expand');
-  assert.match(h.n('site-mini').innerHTML,/暂停此站点观察/);
-  h.click('site-pause','https://chatgpt.com','暂停此站点观察');
+  assert.match(h.n('site-mini').innerHTML,/暂停观察（模拟撤权）/);
+  h.click('site-pause','https://chatgpt.com','暂停观察（模拟撤权）');
   assert.match(h.n('site-chip-label').textContent,/站点未授权或已暂停/);
   assert.match(h.n('site-mini').innerHTML,/模拟重新授权/);
   h.click('site-visibility','','隐藏提示');assert.equal(h.n('site-dock').hidden,true);
