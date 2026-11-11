@@ -141,18 +141,19 @@
 .pc-parity .r3-evidence span{padding:11px;border:1px solid var(--ap-line);border-radius:7px;font-size:11px;color:var(--ap-muted)}
 @media(max-width:860px){.pc-parity .r3-site-row{grid-template-columns:minmax(145px,1fr) auto auto}.pc-parity .r3-site-result{grid-column:1}}
 /* R3.2: premium network diagnostics, scoped to the pre-existing design system */
-.pc-parity .nd-hero{position:relative;display:flex;align-items:center;justify-content:space-between;gap:18px;padding:23px 25px;border:1px solid #405880;border-radius:13px;overflow:hidden;color:#f7f9ff;background:linear-gradient(110deg,#1d3258 0%,#263f6f 68%,#38568b 100%)}
-.pc-parity .nd-hero:before{content:"";position:absolute;inset:0;pointer-events:none;background:radial-gradient(circle at 90% -10%,#bbccff21,transparent 42%),radial-gradient(circle at 9% 120%,#77b0ea10,transparent 55%)}
+.pc-parity .nd-hero{position:relative;display:flex;align-items:center;justify-content:space-between;gap:18px;padding:21px 23px;border:1px solid #d9e3ef;border-radius:12px;overflow:hidden;color:var(--ap-ink);background:#f3f6fb}
+.pc-parity .nd-hero:before{content:"";position:absolute;top:0;bottom:0;left:0;width:3px;pointer-events:none;background:var(--brand)}
 .pc-parity .nd-hero>*{position:relative;z-index:1}
 .pc-parity .nd-eyebrow{display:block;font-size:11px;font-weight:750;letter-spacing:.45px;color:var(--ap-accent)}
-.pc-parity .nd-hero .nd-eyebrow{color:#c0ccff}
-.pc-parity .nd-hero h2{font-size:23px;color:white;letter-spacing:-.4px;line-height:1.38;margin:7px 0 8px}
-.pc-parity .nd-hero p{font-size:12px;line-height:1.6;color:#d8e2f6;max-width:510px;margin:0}
-.pc-parity .nd-tags{display:flex;gap:7px;flex-wrap:wrap;margin-top:15px}
-.pc-parity .nd-tags span{color:#f7f9ff;background:#ffffff17;border:1px solid #ffffff45;padding:5px 10px;font-size:12px;line-height:1.4;border-radius:99px}
-.pc-parity .nd-hero-flag{flex:none;min-width:148px;border:1px solid #ffffff40;background:#10254755;border-radius:10px;padding:12px 14px;display:grid;gap:5px}
-.pc-parity .nd-hero-flag small{color:#e8efff;font-size:12px;line-height:1.4}
-.pc-parity .nd-hero-flag strong{color:#fff;font-size:18px;line-height:1.35}
+.pc-parity .nd-hero .nd-eyebrow{color:#3155ab}
+.pc-parity .nd-hero h2{font-size:22px;color:var(--ap-ink);letter-spacing:-.35px;line-height:1.38;margin:0}
+.pc-parity .nd-hero p{font-size:12px;line-height:1.6;color:#475569;max-width:510px;margin:0}
+.pc-parity .nd-tags{display:flex;gap:7px;flex-wrap:wrap;margin-top:11px}
+.pc-parity .nd-tags span{color:#3155ab;background:#fff;border:1px solid #cad8ee;padding:5px 10px;font-size:12px;line-height:1.4;border-radius:99px}
+.pc-parity .nd-hero-flag{flex:none;min-width:148px;border:1px solid #d9e3ef;background:#fff;border-radius:9px;padding:11px 14px;display:grid;gap:4px}
+.pc-parity .nd-hero-flag small{color:#64748b;font-size:12px;line-height:1.4}
+.pc-parity .nd-hero-flag strong{color:#334155;font-size:18px;line-height:1.35}
+.pc-parity .nd-hero-flag strong:before{content:"";display:inline-block;width:7px;height:7px;margin-right:8px;border-radius:50%;vertical-align:2px;background:#8593a9}
 .pc-parity .nd-stats{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px;margin:13px 0 17px}
 .pc-parity .nd-stat{padding:13px 14px;border:1px solid var(--ap-line);border-radius:10px;background:var(--ap-surface);min-width:0;display:grid;gap:5px}
 .pc-parity .nd-stat small,.pc-parity .nd-stat>span{font-size:12px;line-height:1.4;color:var(--ap-muted)}
