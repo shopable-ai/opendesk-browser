@@ -8,8 +8,13 @@ export function handleLegacyMarketEntry({
   document=globalThis.document,
   website=OFFICIAL_STORE_WEBSITE
 }={}){
+  // A query merely containing "intent" is not proof of a review.
+  // Only a single, well-formed install locator may enter the trusted flow.
+  const parameters=new URLSearchParams(location?.search||'');
+  const reviewId=parameters.get('intent');
+  const REVIEW_ID=/^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
   if(location?.pathname!=='/ui/marketplace.html'||
-    new URLSearchParams(location?.search||'').has('intent'))return false;
+    parameters.size===1&&REVIEW_ID.test(reviewId||''))return false;
 
   if(website.status==='ready'){
     try{location.replace(website.url);return true;}
