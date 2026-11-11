@@ -2,7 +2,7 @@
 
 **ChatGPT 项目文件浮窗退役（2026-11-11；OD-AI-WORKFLOW-BRIDGE）：** 当前 `main` 的网页文件适配器为 Headless，不再注入「项目文件／停止项目任务／展开」面板；状态、Stop 和审阅通过 Web Flow「运行与授权 → 项目文件」进入现有可信扩展设置。原消息监听、文件授权、Native 回执和 UNKNOWN 防重放保留。**源码已退役不等于用户 Chrome 已更新。**
 
-工具包 `tool.config.json` 为 0.3.27，但唯一正式 `webflow.opendesk-tool.json` 仍为 0.3.26；工具包与浏览器内容脚本 `agents/chatgpt-fixed-bridge.js` 属于不同发行路径，不能互相代替。实际安装的扩展 ID、unpacked 路径、脚本 hash、Chrome/Native 文件全链待验收。完整溯源及待验收入口见[原执行计划 Headless 专项](docs/execution-plan.zh-CN.md)。
+**正式工具包状态更新（2026-11-11）：** `tool.config.json` 与唯一正式 `webflow.opendesk-tool.json` 均为 **0.3.27**，正式包包含 R2 `createTaskNoticePublisher`；[Web Flow CI 42989278190](https://github.com/shopable-ai/opendesk-browser/actions/runs/42989278190) 的定向 Node 71/71、Chromium 源码组件 320/360/400px、`--promote-from` 和 `--check-project` 均通过（`PROJECT_PACKAGE_MATCH`，包 SHA-256 `4008ed394a171ba91649e97e916d974e0352e1fe8c2c2e89580fa2cc3e02abca`）。**这些不证明用户本机已更新或实站任务已成功。** 工具包与浏览器内容脚本 `agents/chatgpt-fixed-bridge.js` 属于不同发行路径，不能互相代替；实际安装的扩展 ID、unpacked 路径、Host R1.2、脚本 hash 和 Chrome/Native 全链仍待现场核验。完整溯源及待验收入口见[原执行计划 Headless 专项](docs/execution-plan.zh-CN.md)。
 
 **百度首页最新核心测试（2026-11-10，20:10）：** 在自有 ego TaskSpace **61** 的百度首页，经真实「扩展 → Web Flow 0.3.26 → 脚本」保存新关键词 `MDN Web API MutationObserver`，新请求 `webflow:fcd2a5b4-c77e-430e-ae7b-1cd2b5e68caa` 仅点击一次「确认手动运行」。页面随后跳转到 **wappass.baidu.com 的百度安全验证**，回跳地址携带本次关键词；没有取得三条结果。WebFlow 仍显示“原请求仍未确定”、阶段“执行中”、资源释放 `not-started`；这不是底层已释放证明，Run/Result、输入读回和准入次数尚未读回。ego 已将 Space 交由用户控制，按合同停止浏览器操作；未重放、解验证码或修改产品源码。开发服务实读已连接，revision `4fbac865a7b7d5ad4419f3436de5dc5e55e31e75bab596a04cf899e535c9d006`，原 UI 租约已释放。**首页核心链仍未完成**；用户处理验证并明确继续后，先只读核对同一请求及真实资源状态，再决定下一条独立操作。详见[原证据的 homepageCoreAttempt](evidence/baidu-core-ui-20261110.json)和下方历史范围。
 
