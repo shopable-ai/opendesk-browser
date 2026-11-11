@@ -35,6 +35,10 @@ on:
       - 'projects/webflow/tests/chatgpt-send-task.test.mjs'
       - 'projects/webflow/tests/chatgpt-continuation-task.test.mjs'
       - 'projects/webflow/src/chatgpt-conversation-result.js'
+      - 'projects/webflow/src/chatgpt-conversation-result-v0.3.js'
+      - 'projects/webflow/trusted/chatgpt-result-adapter-v0.3.js'
+      - 'projects/webflow/tests/chatgpt-v3-result.test.mjs'
+      - 'projects/webflow/trusted/chatgpt-result-adapter.js'
       - 'projects/webflow/src/github-issue-input.js'
       - 'projects/webflow/trusted/chatgpt-result-adapter.js'
       - 'projects/webflow/trusted/chat-handoff-receipt.js'
@@ -115,6 +119,9 @@ jobs:
           node --check projects/webflow/tests/chatgpt-continuation-task.test.mjs
           node --check projects/webflow/tests/chatgpt-send-task.test.mjs
           node --check projects/webflow/src/chatgpt-conversation-result.js
+          node --check projects/webflow/src/chatgpt-conversation-result-v0.3.js
+          node --check projects/webflow/trusted/chatgpt-result-adapter-v0.3.js
+          node --check projects/webflow/tests/chatgpt-v3-result.test.mjs
           node --check projects/webflow/src/github-issue-input.js
           node --check projects/webflow/trusted/chatgpt-result-adapter.js
           node --check projects/webflow/trusted/chat-handoff-receipt.js
@@ -143,6 +150,7 @@ jobs:
             projects/webflow/tests/chatgpt-draft-task.test.mjs \
             projects/webflow/tests/chatgpt-send-task.test.mjs \
             projects/webflow/tests/chatgpt-continuation-task.test.mjs \
+            projects/webflow/tests/chatgpt-v3-result.test.mjs \
             projects/webflow/tests/chatgpt-create-result.test.mjs \
             projects/webflow/tests/chat-handoff-contract.test.mjs \
             projects/webflow/tests/github-issue-input.test.mjs \
