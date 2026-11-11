@@ -71,7 +71,7 @@ export function beginRegionPick({doc=globalThis.document,win=globalThis.window,e
   overlay.style.cssText='all:initial!important;position:fixed!important;inset:auto!important;display:none!important;z-index:2147483647!important;pointer-events:none!important;border:2px solid #2563eb!important;background:rgba(37,99,235,.07)!important;box-sizing:border-box!important;border-radius:6px!important;';
   const label=doc.createElement('div');
   label.style.cssText='all:initial!important;position:absolute!important;left:0!important;top:0!important;transform:translateY(-100%)!important;white-space:nowrap!important;max-width:90vw!important;overflow:hidden!important;background:#1d4ed8!important;color:white!important;padding:4px 8px!important;border-radius:5px!important;font:12px/1.35 system-ui,sans-serif!important;box-shadow:0 1px 5px #0003!important;pointer-events:none!important;';
-  label.textContent='点击选中 · ↑扩大 ↓缩小 · Esc取消';
+  label.textContent='点击或回车选中 · ↑扩大 ↓缩小 · Esc取消';
   overlay.append(label);
   doc.documentElement.append(overlay);
   const listeners=[];
@@ -104,7 +104,7 @@ export function beginRegionPick({doc=globalThis.document,win=globalThis.window,e
     overlay.style.setProperty('height',(bottom-top)+'px','important');
     label.style.setProperty('top',top<24?'0px':'0px','important');
     label.style.setProperty('transform',top<24?'none':'translateY(-100%)','important');
-    label.textContent=(index+1)+'/'+candidates.length+' · 点击整块剪藏 · ↑扩大 ↓缩小 · Esc取消';
+    label.textContent=(index+1)+'/'+candidates.length+' · 点击/回车剪藏 · ↑扩大 ↓缩小 · Esc取消';
   };
   const update=(target)=>{
     if(!target||target===overlay||overlay.contains(target))return;
@@ -124,10 +124,8 @@ export function beginRegionPick({doc=globalThis.document,win=globalThis.window,e
     if(finished||event.isTrusted===false)return;
     event.preventDefault?.();event.stopImmediatePropagation?.();event.stopPropagation?.();
   };
-  const onClick=event=>{
-    if(finished||event.isTrusted===false||event.button!==0)return;
-    consume(event);
-    if(!candidates[index]||!candidates[index].contains(event.target))update(event.target);
+  const commit=target=>{
+    if(!candidates[index]||!candidates[index].contains(target))update(target);
     const node=candidates[index];
     if(!node||!node.isConnected)return;
     // Conversion is synchronous at click time: the result is a DOM snapshot,
@@ -137,9 +135,22 @@ export function beginRegionPick({doc=globalThis.document,win=globalThis.window,e
     try{settle(null,{markdown:extract(node),streaming,loadedOnly:true});}
     catch(error){settle(error);}
   };
+  const onClick=event=>{
+    if(finished||event.isTrusted===false||event.button!==0)return;
+    consume(event);
+    commit(event.target);
+  };
   const onKey=event=>{
     if(finished||event.isTrusted===false)return;
     if(event.key==='Escape'){consume(event);cancel();return;}
+    if(event.key==='Enter'||event.key===' '){
+      // Keyboard activation on a focused link must not follow that link.
+      // The selected region is still the actual focused, connected DOM.
+      const focus=doc.activeElement;
+      consume(event);
+      if(focus&&focus!==doc.body&&focus!==doc.documentElement)commit(focus);
+      return;
+    }
     if((event.key==='ArrowUp'||event.key==='ArrowDown')&&candidates.length){
       consume(event);
       index=Math.max(0,Math.min(candidates.length-1,index+(event.key==='ArrowUp'?1:-1)));
