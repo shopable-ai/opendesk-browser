@@ -42,7 +42,7 @@ function snapshot(phase,value=phase==='prepare'?draft():reply()){
       {mode:'borrowed',tabId:58,frameId:0,documentId:'document-retained-001',expectedUrl:origin},
     ...(phase==='prepare'?{retainedTarget:{tabId:58,documentId:'document-retained-001',
       origin:'https://chatgpt.com',url:origin}}:{retainedFrom:{runId:prepareIds.prepareRunId,
-      requestId:prepareIds.prepareRequestId}})},
+      requestId:prepareIds.prepareRequestId}}),
     },
     results:[{tag:'controller-result',runId:phase==='prepare'?prepareIds.prepareRunId:'run-submit-0001',
       resultId:'result-0001',state:'completed',sourceKind:'saved',revision,
