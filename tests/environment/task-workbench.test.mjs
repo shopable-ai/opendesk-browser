@@ -519,6 +519,8 @@ test('shared Task run sheet shortens visual labels without changing accessible n
   const f=make();t.after(()=>f.ui.dispose());await tick();await tick();
   f.myView.project('taskParams',[...f.myView.data.taskParams,{
     name:'showExecutionTab',rule:{type:'boolean',title:'显示执行标签页',default:true},required:false
+  },{
+    name:'prompt',rule:{type:'string',title:'待发送提示词',minLength:1,maxLength:3000},required:true
   }]);
   const {renderSidebarReact}=await import('../helpers/sidebar-react-fixture.mjs');
   const $=load(await renderSidebarReact({myView:f.myView}));
@@ -526,6 +528,11 @@ test('shared Task run sheet shortens visual labels without changing accessible n
   assert.equal(label.text().trim(),'显示标签页');
   assert.equal(label.attr('title'),'显示执行标签页');
   assert.equal($('#task-param-showExecutionTab').attr('aria-label'),'显示执行标签页');
+  assert.equal($('input#task-param-prompt').length,1,'long string is a single-line input by default');
+  assert.equal($('textarea#task-param-prompt').length,0,'maxLength does not force a multiline editor');
+  assert.equal($('input#task-param-prompt').attr('aria-label'),'待发送提示词');
+  assert.equal($('input#task-param-prompt').attr('maxlength'),'3000');
+  assert.equal($('textarea#task-params-json').length,1,'explicit JSON mode remains multiline');
   const footer=$('#task-parameters-sheet .task-params-sheet-actions');
   assert.match(footer.text(),/取消/);
   assert.match(footer.text(),/运行任务/);

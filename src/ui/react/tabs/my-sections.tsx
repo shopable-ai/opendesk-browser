@@ -13,7 +13,7 @@ export function MyTaskParams({view,disabled=false}){
     const fixed=Array.isArray(rule.enum)&&rule.enum.length===1;
     const field=view.field(id),toggle=rule.type==='boolean'&&!rule.enum;
     const optionalToggle=toggle&&!required&&!Object.hasOwn(rule,'default');
-    const multiline=rule.type==='string'&&(rule.maxLength??1024)>160;
+    // maxLength validates content; it must not silently change a plain text field to textarea.
     const error=field.error,describedBy=[help,toggle?id+'-state':null,error?id+'-error':null].filter(Boolean).join(' ')||undefined;
     const clearError=()=>{
       const field=view.field(id),status=view.field('task-status');
@@ -43,11 +43,11 @@ export function MyTaskParams({view,disabled=false}){
           className="task-param-clear" aria-label={'不填写'+(rule.title||name)} onClick={()=>{
             clearError();field.omitted=true;field.checked=false;view.publish();view.actions.taskParamsFormChange?.();
           }}>清除</Button>}
-      </span>:<MyControl view={view} controlBase="aria" as={multiline?'textarea':'input'} id={id} name={name} className="od-field" disabled={disabled}
+      </span>:<MyControl view={view} controlBase="aria" as="input" id={id} name={name} className="od-field" disabled={disabled}
         data-task-param={name} data-task-type={rule.type} aria-label={fullTitle} aria-required={rule.type!=='boolean'&&required||undefined} aria-describedby={describedBy} aria-invalid={error?'true':undefined} onInput={clearError} onChange={clearError}
         type={rule.type==='boolean'?'checkbox':['number','integer'].includes(rule.type)?'number':'text'}
         step={rule.type==='integer'?'1':'any'} minLength={rule.minLength} maxLength={rule.maxLength}
-        min={rule.minimum} max={rule.maximum} rows={multiline?3:undefined} required={required}/>}
+        min={rule.minimum} max={rule.maximum} required={required}/>}
       </div>
       {help&&<p id={help} className="visually-hidden">{rule.description}</p>}
       {error&&<p id={id+'-error'} className="od-field-help task-param-error" role="alert">{error}</p>}

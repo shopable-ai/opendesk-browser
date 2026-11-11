@@ -188,7 +188,7 @@
           {name:'showExecutionTab',title:'显示执行标签页',type:'boolean',default:true}
         ]},
         { id:'chatgpt',title:'ChatGPT 新对话：审阅后单次发送并核验回复',desc:'在原可信 Controller 的全新官方 ChatGPT 标签页准备草稿；仅当安装版本与本次任务的 send:true 单独获批时，进行一次原生发送并核验真实会话 URL、消息身份和完整回答。结果不确定时禁止重新发送。',site:'chatgpt.com',enabled:true,fields:[
-          {name:'prompt',title:'待发送提示词',type:'string',required:true,minLength:1,maxLength:3000,multiline:true,placeholder:'输入本次任务提示词'},
+          {name:'prompt',title:'待发送提示词',type:'string',required:true,minLength:1,maxLength:3000,placeholder:'输入本次任务提示词'},
           {name:'send',title:'是否提交真实消息',type:'boolean',default:false},
           {name:'model',title:'模型',type:'string',minLength:1,maxLength:80,placeholder:'可选'},
           {name:'effort',title:'推理强度',type:'string',minLength:1,maxLength:80,placeholder:'可选'},
@@ -256,7 +256,6 @@
           let field='';
           if(f.type==='boolean')field=`<button type="button" class="switch" role="switch" id="preview-field-${info}" data-field="${info}" aria-label="${name}" aria-checked="${Boolean(v)}"></button><span class="switch-value">${v===undefined?'未填写':v?'是':'否'}</span>`;
           else if(f.enum)field=`<select id="preview-field-${info}" data-field="${info}" aria-label="${name}">${f.enum.map(o=>`<option value="${escapeHTML(o)}" ${String(o)===String(v)?'selected':''}>${escapeHTML(o)}</option>`).join('')}</select>`;
-          else if(f.multiline)field=`<textarea id="preview-field-${info}" data-field="${info}" aria-label="${name}" placeholder="${escapeHTML(f.placeholder||'')}" rows="2">${escapeHTML(v??'')}</textarea>`;
           else field=`<input id="preview-field-${info}" data-field="${info}" aria-label="${name}" type="${f.type==='integer'?'number':'text'}" value="${escapeHTML(v??'')}" placeholder="${escapeHTML(f.placeholder||'')}" ${f.type==='integer'?'step="1"':''}>`;
           return `<div class="field-row" data-row="${info}"><label title="${name}" for="preview-field-${info}" id="preview-label-${info}">${shortName}${required}</label><div class="control">${field}</div></div>`;
         }).join('');
