@@ -3,6 +3,9 @@ import assert from 'node:assert/strict';
 import {createBoundPage} from '../../src/framework/ChromePage.js';
 import {validateTaskManifest} from '../../src/platform/tasks/contract.js';
 import {createPackagedPageSession} from '../../src/scripting/packaged/registry.js';
+import {describeBundle} from '../../scripts/bundle-provenance.mjs';
+import {fileURLToPath} from 'node:url';
+import {resolve} from 'node:path';
 
 const assetId='wf-media-12345678-1234-4123-a123-123456789abc';
 const localOrigin='http://127.0.0.1:43111';
@@ -56,4 +59,21 @@ test('R3 staged page upload can abort exact ID without affecting a second run',a
     assert.equal(session.snapshot().uploads,1);
   }finally{session.dispose();}
   assert.equal(session.snapshot().uploads,0);
+});
+
+test('security: exact Git blob pins restrict media source to original SW and trusted Settings',()=>{
+  const root=fileURLToPath(new URL('../../',import.meta.url));
+  function inspect(path,target) {
+    const source=resolve(root,path);
+    return describeBundle({chunk:{fileName:target,modules:{[source]:{
+      renderedLength:1,originalLength:1
+    }}},root,lock:{packages:{}}}).modules[0];
+  }
+  const vault='projects/webflow/trusted/media-vault.js';
+  const settings='projects/webflow/trusted/media-vault-settings-ui.js';
+  assert.match(inspect(vault,'sw.js').reviewedFirstPartyBlob,/^[a-f0-9]{40}$/);
+  assert.match(inspect(vault,'native-agent/settings.js').reviewedFirstPartyBlob,/^[a-f0-9]{40}$/);
+  assert.match(inspect(settings,'native-agent/settings.js').reviewedFirstPartyBlob,/^[a-f0-9]{40}$/);
+  assert.throws(()=>inspect(settings,'sw.js'),/Historical\/user\/vendor code/);
+  assert.throws(()=>inspect(vault,'ui/tool-shell.js'),/Historical\/user\/vendor code/);
 });
