@@ -150,6 +150,13 @@ export function createPackagedPageSession({document: doc = document, window: win
     requireValue(upload.total === total && upload.offset === offset, 'E_UPLOAD_FORMAT');
     upload.bytes.set(Uint8Array.from(binary, c => c.charCodeAt(0)), offset); upload.offset += binary.length; return undefined;
   }
+  function uploadAbort(id) {
+    requireValue(typeof id === 'string' && id.length > 0 && id.length <= 128,'E_UPLOAD_FORMAT');
+    const item=uploads.get(id);
+    if(item) item.bytes.fill(0);
+    uploads.delete(id);
+    return undefined;
+  }
   function uploadCommit(css, id, total, metadata = {}) {
     const upload = uploads.get(id); uploads.delete(id);
     requireValue((total === 0 && !upload) || (upload && upload.total === total && upload.offset === total), 'E_UPLOAD_FORMAT');
@@ -211,6 +218,7 @@ export function createPackagedPageSession({document: doc = document, window: win
       case 'waitForSelector': return selectWait(...args);
       case 'uploadChunk': return uploadChunk(...args);
       case 'uploadCommit': return uploadCommit(...args);
+      case 'uploadAbort': requireValue(args.length === 1, 'E_ARGUMENT_TYPE'); return uploadAbort(args[0]);
       case 'addScriptTag': case 'addStyleTag': return addTag(method, args[0]);
       default: throw new PageError('E_OPERATION_UNSUPPORTED', `Not a packaged DOM operation: ${method}`);
     }
@@ -219,7 +227,9 @@ export function createPackagedPageSession({document: doc = document, window: win
     if (disposed) return; disposed = true;
     for (const wait of [...waits]) wait.cancel(new PageError(cancelCode()));
     for (const resource of [...resources]) resource.cancel();
-    clearContent(); for (const node of nodes) node.remove(); nodes.clear(); uploads.clear(); locatorDOM.clear();
+    clearContent(); for (const node of nodes) node.remove(); nodes.clear();
+    for(const upload of uploads.values()) upload.bytes.fill(0);
+    uploads.clear(); locatorDOM.clear();
     signal?.removeEventListener('abort', dispose);
   }
   signal?.addEventListener('abort', dispose, {once: true}); if (signal?.aborted) dispose();
