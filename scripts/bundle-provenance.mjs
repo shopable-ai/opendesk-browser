@@ -47,7 +47,7 @@ const compiledWebFlowInputs=Object.freeze({
   // 2026-11-09 reviewed UNKNOWN diagnostics and before-click cancellation;
   // exact Host/SW ownership, after-click no-replay and safe-refresh fences remain.
   // Reviewed optional display adapter init/dispose; Task bridge is unchanged.
-  'projects/webflow/trusted/chatgpt-bridge-page.js':'a7d31544f6acb570778e9daa7a42c88e4487cfb5',
+  'projects/webflow/trusted/chatgpt-bridge-page.js':'8b69919c9d477ca92acfca4ecc521e2e74cdb1b7',
   'projects/webflow/trusted/legacy-chatgpt-panel.js':'c25df281a5df633afad53c94c8dc1ad04ba1d0da',
   // Reviewed read-only display preference; no Task dispatch or grant writes.
   'projects/webflow/trusted/page-panel-ui.js':'4ba1e76028ed9afee2692e5853d08df5d360af87',

@@ -229,5 +229,16 @@ export function createChatGPTBridgeSite({doc = document, win = window} = {}) {
       messages.some(row=>row.messageId===anchorMessageId))return null;
     return {route:snap.route,anchorMessageId,messages};
   }
-  return Object.freeze({inspect,prepare,commit,confirm,readUserMessagesAfter});
+
+  function readUserMessageById(messageId){
+    if(typeof messageId!=='string'||!/^[A-Za-z0-9._:-]{8,128}$/u.test(messageId))return null;
+    const snap=inspect();
+    if(!snap.ok||!snap.route?.startsWith('c/'))return null;
+    const candidates=snap.users.filter(node=>node.getAttribute?.('data-message-id')===messageId);
+    if(candidates.length!==1)return null;
+    const text=messageText(candidates[0]);
+    if(typeof text!=='string'||!text||new TextEncoder().encode(text).byteLength>8192)return null;
+    return {messageId,text,route:snap.route};
+  }
+  return Object.freeze({inspect,prepare,commit,confirm,readUserMessagesAfter,readUserMessageById});
 }

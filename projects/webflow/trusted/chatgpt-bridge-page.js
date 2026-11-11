@@ -1010,10 +1010,11 @@ export function initChatGPTFixedBridgePage({api=chrome,doc=document,win=window,
     // evidence for independent WebFlow readA. Text observation alone is not
     // a durable receipt. Never turn a missing ID into a guessed message ID.
     const observedId=resultUser?.getAttribute?.('data-message-id');
-    const observedMessageProof=typeof observedId==='string'&&
-      /^[A-Za-z0-9._:-]{8,128}$/u.test(observedId)&&
-      site.inspect().users.filter(node=>node.getAttribute?.('data-message-id')===observedId).length===1?
-      {messageId:observedId,contentSha256:await digestUtf8(message.text)}:null;
+    const observedReadback=typeof observedId==='string'?
+      site.readUserMessageById?.(observedId):null;
+    const observedMessageProof=observedReadback?.messageId===observedId&&
+      observedReadback.route===snap.route&&observedReadback.text===message.text?
+      {messageId:observedId,contentSha256:await digestUtf8(observedReadback.text)}:null;
     deliveryClaim.confirmed(); // only exact user confirmation AND an empty native draft
     note('已在原对话确认新增用户消息。等待官方 AI 继续回复…');
     let aiReplyObserved=false;

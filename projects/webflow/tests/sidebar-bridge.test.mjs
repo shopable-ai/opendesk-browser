@@ -3,6 +3,7 @@ import assert from 'node:assert/strict';
 import {createHash} from 'node:crypto';
 import {parseHTML} from 'linkedom';
 import {initChatGPTFixedBridgePage} from '../../../src/native-agent/chatgpt-fixed-bridge-page.js';
+import {createChatGPTBridgeSite} from '../../../src/native-agent/chatgpt-bridge-site.js';
 const protocol='opendesk.chatgpt.bridge.r12.v1';
 const url='https://chatgpt.com/c/sidebar-test-12345678';
 function fixture({active=false,adoptError=false,adoptErrorCode='E_BUILTIN_VERSION_UNAVAILABLE',readError=false,persistentPending=false,background=false,sendHook,navigationAvailable=true,lookupFailure=false}={}){
@@ -49,6 +50,34 @@ function fixture({active=false,adoptError=false,adoptErrorCode='E_BUILTIN_VERSIO
   submit:()=>events.get('click')({type:'click',isTrusted:true,button:0,target:snapshot.sendButton}),
   stop:trusted=>events.get('click')({type:'click',isTrusted:trusted,button:0,target:snapshot.stopButton})};
 }
+test('original ChatGPT site readback requires a unique official user message and actual body',()=>{
+ const url='https://chatgpt.com/c/10101010-2020-4030-8040-505050505050';
+ const {document}=parseHTML(`<html><body>
+   <form><textarea id="prompt-textarea"></textarea></form>
+   <article data-message-author-role="user" data-message-id="source-message-0001">
+    <div data-testid="message-content">Issue #76</div></article>
+   <article data-message-author-role="user" data-message-id="result-message-0001">
+    <div data-testid="message-content">Actual result text</div></article>
+ </body></html>`);
+ const editor=document.querySelector('textarea');
+ Object.defineProperty(editor,'value',{configurable:true,value:'',writable:true});
+ editor.getClientRects=()=>[{width:100}];
+ const win={location:{origin:'https://chatgpt.com',
+   pathname:'/c/10101010-2020-4030-8040-505050505050',search:''},
+   getComputedStyle:()=>({display:'block',visibility:'visible'}),top:null};
+ win.top=win;
+ const site=createChatGPTBridgeSite({doc:document,win});
+ assert.equal(site.inspect().ok,true);
+ assert.deepEqual(site.readUserMessagesAfter('source-message-0001').messages,
+   [{messageId:'result-message-0001',text:'Actual result text'}]);
+ assert.deepEqual(site.readUserMessageById('result-message-0001'),
+   {messageId:'result-message-0001',text:'Actual result text',
+    route:'c/10101010-2020-4030-8040-505050505050'});
+ document.querySelector('[data-message-id="result-message-0001"]').setAttribute('data-message-id','other-message-0001');
+ assert.equal(site.readUserMessageById('result-message-0001'),null);
+ assert.equal(site.readUserMessagesAfter('missing-message-0001'),null);
+});
+
 test('an adopted legacy candidate routes execution back to its exact responding Side Panel host',async()=>{
  const h=fixture({active:true});try{
   const view=(await h.receive({kind:'sidebar-control',requestId:null,action:'adopt'})).data;
