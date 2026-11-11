@@ -15,6 +15,9 @@ on:
       - 'projects/webflow/tests/chatgpt-legacy-panel.test.mjs'
       - 'src/native-agent/chatgpt-fixed-bridge-host.js'
       - 'src/native-agent/chatgpt-task-request.js'
+      - 'src/page-events/generic-task-adapter.js'
+      - 'projects/webflow/src/task-intent-contract.js'
+      - 'projects/webflow/tests/task-intent-contract.test.mjs'
       - 'src/native-agent/webflow-v2-target.js'
       - 'src/native-agent/webflow-v2-entry.js'
       - 'src/platform/tasks/contract.js'
@@ -110,6 +113,9 @@ jobs:
           node --check projects/webflow/trusted/chatgpt-bridge-page.js
           node --check projects/webflow/trusted/legacy-chatgpt-panel.js
           node --check src/native-agent/chatgpt-fixed-bridge-host.js
+          node --check projects/webflow/src/task-intent-contract.js
+          node --check src/page-events/generic-task-adapter.js
+          node --check src/native-agent/chatgpt-task-request.js
           node --check src/native-agent/webflow-v2-target.js
           node --check src/native-agent/webflow-v2-entry.js
           node --check src/platform/host/controller-target-retention.js
@@ -181,6 +187,8 @@ jobs:
         run: |
           node --test \
             tests/environment/chatgpt-task-request-r1.test.mjs \
+            tests/environment/generic-task-adapter.test.mjs \
+            projects/webflow/tests/task-intent-contract.test.mjs \
             tests/environment/chatgpt-fixed-page-r11.test.mjs \
             tests/environment/baidu-search-top3-r1.test.mjs \
             tests/environment/chatgpt-fixed-bridge-r12.test.mjs \
@@ -199,3 +207,5 @@ jobs:
             projects/webflow/tests/chatgpt-send-task.test.mjs
       - name: Production extension build (not native Chrome)
         run: npm run build
+      - name: Verify production package contract
+        run: node scripts/verify-package.mjs dist/production

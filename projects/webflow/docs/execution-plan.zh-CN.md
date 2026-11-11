@@ -1,3 +1,13 @@
+## R0 · Provider 命名与通用解析边界（2026-11-11；`OD-WEBFLOW-PROVIDER-BOUNDARY-REFACTOR-R0`）
+
+**原始目标：** OpenDesk WebFlow 日后支持多个 AI 网站，但不为新 Provider 复制工作流内核；本轮是 R2 前定向重构，只将通用 WebFlow V1/V2 意图解析从 ChatGPT 模块提取，保留旧入口兼容，不实现新的发送/回填。文件审计与保护边界见 [Provider R0 审计](provider-boundary-r0.zh-CN.md)。
+
+**本轮源码候选：** `projects/webflow/src/task-intent-contract.js` 是唯一通用解析器；旧 `chatgpt-task-request.js` 保留专用 V1 请求处理及兼容再导出；`generic-task-adapter.js` 与 `webflow-v2-target.js` 改为直连；新增 4 组 Node 定向测试，Bridge CI 检查覆盖源码、构建与 `verify-package`。原 immutable Task、Manifest、hash、Ledger、固定入口及 V2 PREPARE-only 未作修改。
+
+**证据：** SOURCE=待提交读回；NODE=NOT_TESTED；PACKAGE=NOT_TESTED；CHROME_NATIVE=BLOCKED（本机 CodexPro/文件隧道不可用）；BUSINESS=NOT_TESTED。测试以本次新提交 SHA 为准，不继承历史通过。R2 `APPROVE_SEND → borrowed SUBMIT → B 完整回复 → A 一次性交付` 不在 R0 实施。
+
+---
+
 ## R3 · A→唯一 B→原 A 可信发送接续（2026-11-11；OD-WEBFLOW-CHAT-A-B-A-SAME-B-R3-TRUSTED-SEND-CLOSURE）
 
 **原始用户目标：** ChatGPT A 中请求新建唯一 B，只准备草稿；可信侧栏单独批准后，在同一个 B 原草稿发送一次，观察完整回答及真实 /c/ 链接，并单次返回原 A。刷新、ACK UNKNOWN、重启、权限变化均禁止重复创建、发送或交付。

@@ -1,4 +1,4 @@
-import {validateWebFlowTaskIntent} from '../native-agent/chatgpt-task-request.js';
+import {validateWebFlowTaskIntent} from '../../projects/webflow/src/task-intent-contract.js';
 
 const activeDocuments=new WeakSet();
 

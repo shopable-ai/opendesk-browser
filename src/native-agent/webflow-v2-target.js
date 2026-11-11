@@ -2,7 +2,7 @@
 // This is target resolution only, never a permission grant or a Task dispatch.
 import {REVIEWED_BUILTIN_TASK_RELEASES} from '../platform/tasks/builtin-releases.js';
 import {validateTaskParams} from '../platform/tasks/contract.js';
-import {WEBFLOW_TASK_INTENT_V2_PROTOCOL} from './chatgpt-task-request.js';
+import {WEBFLOW_TASK_INTENT_V2_PROTOCOL} from '../../projects/webflow/src/task-intent-contract.js';
 import {webFlowV2ReviewedEntry,webFlowV2ReviewedArgs} from './webflow-v2-entry.js';
 export {webFlowV2ReviewedEntry,webFlowV2ReviewedArgs} from './webflow-v2-entry.js';
 
