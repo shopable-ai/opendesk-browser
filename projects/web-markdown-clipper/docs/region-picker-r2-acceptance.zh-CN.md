@@ -1,5 +1,7 @@
 # 网页剪藏 R2 · 区域点选源码实施与验收证据（未晋升）
 
+> **后续 R3 差量状态（2026-11-12）**：该文件保留 R2 当时原始证据，不追认测试通过。R3 已修复 `region-picker.js` 严格模式的未声明变量，并将区域单测加入正式 App CI，但尚无 Node/Chrome/发行通过证据。详见 [R3 验收账本](region-picker-r3-acceptance.zh-CN.md)。
+
 - 任务：`OD-WEB-MARKDOWN-CLIPPER-REGION-PICK-R2`
 - 唯一分支：`main`；原始需求：[R1](region-picker-r1.zh-CN.md)
 - 记录：2026-11-11；状态：**SOURCE_IMPLEMENTED / PREVIEW_STAGE_SYNCED / PACKAGE_NOT_PROMOTED / CHROME_NOT_TESTED**
