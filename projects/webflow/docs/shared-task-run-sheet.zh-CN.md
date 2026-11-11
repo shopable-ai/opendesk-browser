@@ -78,6 +78,6 @@ Web Flow 脚本列表：[收藏] [▶] [⋯]
 - **CI_PENDING：** `.github/workflows/webflow-package.yml` 已加入 `my-react-workbench.test.mjs`、Web Flow UI 与 Chromium 模拟 SDK 的新入口断言；新版本仍以 GitHub Actions 实际结束结果为准。旧版 CI 的 `wf-query` 测试确实失败过，不能混报为通过。
 - **PACKAGE_READY=NOT_VERIFIED：** Web Flow `tool.config.json` 与正式 `webflow.opendesk-tool.json` 当前已保持 0.3.30 同源 JS/CSS/HTML/依赖代码，但尚无该版本通过原 build/promote 流程的最终 CI 回执。
 - **CHROME_TESTED=NOT_TESTED / BUSINESS_ACCEPTED=NO：** 本轮无法核对真实已安装扩展的版本、授权代次和 Side Panel/PC 像素交互；未实际运行百度脚本，不提供虚构 Run/Result/业务成功。禁止自动重放历史 `webflow:fcd2a5b4-c77e-430e-ae7b-1cd2b5e68caa`。
-- **最小剩余操作：** 得到并修复 Web Flow 定向 CI 失败（若有）；经原 packager 校验正式同源包；明确核对 Chrome 实际安装版本；用户在真实百度页面点击 Web Flow ▶，验证仅打开与「我的」同一个右侧 Sheet，保存不运行、确认一次仅产生一个原 Run，并独立读回 Result/释放状态。离线 Chromium 模拟 SDK 不代替安装验收。
+- **最小剩余操作：** 得到并修复 Web Flow 定向 CI 失败（若有）；经原 packager 校验正式同源包；明确核对 Chrome 实际安装版本；用户在真实百度页面点击 Web Flow ▶，验证仅打开与「我的」同一个底部 Sheet，保存不运行、确认一次仅产生一个原 Run，并独立读回 Result/释放状态。离线 Chromium 模拟 SDK 不代替安装验收。
 
 与并行开发发生文件冲突时，只处理本目标的独立增量，不覆盖其他 owner、日常 watcher、dist 与历史请求。
