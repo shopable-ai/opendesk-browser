@@ -74,3 +74,15 @@ test('synchronization to restricted website is optional, not a false failure',as
   assert.equal(store.actions.some(x=>x.op==='page.request'),true);
   one.close();
 });
+
+test('preview and installed Side Panel both retain four visible gesture entries',async()=>{
+  const expected=['←后退','→前进','↑刷新','↓到底'];
+  for(const relative of ['../preview/index.html','../src/index.html']){
+    const html=await fs.readFile(new URL(relative,import.meta.url),'utf8');
+    const list=html.match(/<ul\\b[^>]*class="(?:od-collection|mg-list)"[^>]*>([\\s\\S]*?)<\\/ul>/);
+    assert.ok(list,relative+' should expose the gesture list');
+    const rows=[...list[1].matchAll(/<li\\b[^>]*>([\\s\\S]*?)<\\/li>/g)]
+      .map(match=>match[1].replace(/<[^>]*>/g,'').replace(/\\s+/g,'').trim());
+    assert.deepEqual(rows,expected,relative+' must keep all four direction labels');
+  }
+});
