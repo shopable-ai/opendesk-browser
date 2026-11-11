@@ -4,7 +4,9 @@
 
 正式 React 同源预览：[打开网页剪藏](preview/index.html)。预览复用正式 ToolHost 与工具源码，Host 数据和权限均为隔离模拟；不能代替 Chrome 安装、存储和权限证据。
 
-**待开发：AI 长回答区域点选剪藏 R1（设计已归档，功能未实现）**：[原始目标、交互、可信 Host 边界、预览联动与验收矩阵](docs/region-picker-r1.zh-CN.md)。与原有鼠标拖动「选区」不同：新「区域」入口要能点击单条 AI 回答的 DOM 容器，自动生成已加载正文的 Markdown，避免拖动整篇长回答；正式源码与同源预览必须一起实现/测试，不要只改预览跳转或用模拟成功冒充真实 Chrome。
+**R2 区域点选：源码已接线，正式发布及 Chrome 尚未验收。** [R1 需求基线](docs/region-picker-r1.zh-CN.md) · [R2 源码和测试证据](docs/region-picker-r2-acceptance.zh-CN.md)。正式 UI 新增「区域」，用户点击「点选网页区域」后可在授权普通网页中高亮并单击内容块，自动经可信 Host 和既有 `domToMarkdown` 返回预览；支持 Esc、取消、重新选择和父子范围调整，继续复用「我的摘录」的复制/下载/保存。该功能仅提取目标时刻的已加载 DOM，并不承诺虚拟化/跨源 iframe 内容完整。
+
+**当前重要边界：正式已晋升安装包仍为 1.2.10，不含 R2；源码已变化，`--check-project` 在正式打包晋升前预期不匹配。** `preview/stage.html` 已按正式 HTML/CSS/JS 及模拟 Host 重新生成；`preview/index.html` 仍导向现有 React 预构建页面，须在本地重新执行其构建并实测，不能仅凭 stage 源码一致性宣称 React 预览已更新。已添加 UI/DOM 测试，但完整 Node、CI、正式候选包、原位升级及真实 Chrome 操作均需取得实测回执。严禁更换工具 ID、删除旧数据或模拟验收。
 
 
 
