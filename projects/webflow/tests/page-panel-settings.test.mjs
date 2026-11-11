@@ -31,6 +31,12 @@ function fixture(extra={}){
   const {document}=parseHTML('<html><head></head><body></body></html>');
   const win={location:{origin:'https://chatgpt.com'}};
   win.top=win;
+  const navigationListeners=new Map();
+  win.navigation={
+    addEventListener:(name,cb)=>navigationListeners.set(name,cb),
+    removeEventListener:(name,cb)=>{if(navigationListeners.get(name)===cb)navigationListeners.delete(name);},
+    dispatch:name=>navigationListeners.get(name)?.()
+  };
   const api={storage:{local,onChanged}};
   return {api,document,win,local,subscribers,selector:()=>document.getElementById('opendesk-webflow-page-assist')};
 }
@@ -64,6 +70,21 @@ test('page panel defaults off, responds to local storage changes and never dupli
   assert.equal(f.selector(),null,'disable must unmount, not CSS-hide');
   panel.dispose();
   assert.equal(f.subscribers.size,0);
+});
+
+test('SPA body replacement reattaches one existing DOM root and disposes navigation listener',async()=>{
+  const f=fixture({[DATA]:{[WEBFLOW_PAGE_PANEL_KEY]:true}});
+  const panel=initWebFlowPagePanel({api:f.api,doc:f.document,win:f.win});
+  await panel.ready;
+  const original=f.selector();assert.ok(original);
+  original.remove();
+  assert.equal(f.selector(),null);
+  f.win.navigation.dispatch('currententrychange');
+  await pause();
+  assert.equal(f.selector(),original,'reattach original UI without creating duplicate observers');
+  assert.equal(f.document.querySelectorAll('#opendesk-webflow-page-assist').length,1);
+  panel.dispose();
+  assert.equal(f.selector(),null);
 });
 
 test('tool disabled, uninstalled or malformed preferences always unmount page UI',async()=>{

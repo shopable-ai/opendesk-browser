@@ -73,11 +73,16 @@ export function initWebFlowPagePanel({api=globalThis.chrome,doc=globalThis.docum
     void refresh();
   };
   api.storage.onChanged.addListener(changed);
+  // SPA navigation retains the same document; a replaced body needs reattachment.
+  const navigation=win.navigation;
+  const onNavigate=()=>{if(root&&!root.isConnected)void refresh();};
+  navigation?.addEventListener?.('currententrychange',onNavigate);
   const ready=refresh();
   const dispose=()=>{
     if(disposed)return;
     disposed=true;revision++;
     api.storage.onChanged.removeListener(changed);
+    navigation?.removeEventListener?.('currententrychange',onNavigate);
     unmount();
   };
   return Object.freeze({dispose,ready});

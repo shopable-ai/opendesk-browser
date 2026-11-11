@@ -205,7 +205,10 @@ export function initChatGPTFixedBridgePage({api=chrome,doc=document,win=window,
   site=createChatGPTBridgeSite({doc,win}),readPage=inspectChatGPTEditsOnPage,showLegacyPanel=false,createConversationAdapter}={}){
   if(win!==win.top||win.location.origin!=='https://chatgpt.com')return null;
   if(activeBridgeDocuments.has(doc)||doc.getElementById('opendesk-fixed-bridge-r12'))return null;
-  const pagePanel=initWebFlowPagePanel({api,doc,win});
+  // Presentation failure must never interrupt the Headless Task/file bridge.
+  let pagePanel=null;
+  try{pagePanel=initWebFlowPagePanel({api,doc,win});}
+  catch(error){console.warn('Web Flow optional page UI could not initialize',error);}
   const {root,fields,taskSelect,queryField,queryInput,targetField,targetInput,argsField,argsInput,argsHelp,selection,prepareButton,autoButton,runButton,cancelButton,status,viewStatus,result,details,summary,identity,adoptButton,viewButton,preapproveButton,conversationButton,revokeConversationButton,approvalHint}=createLegacyChatGPTTaskPanel({
     doc,visible:showLegacyPanel===true,fixedTaskId:FIXED_PAGE_TASK_ID,
     baiduTaskId:BAIDU_TASK_ID,installedChoice:INSTALLED_CHOICE
@@ -1203,7 +1206,7 @@ export function initChatGPTFixedBridgePage({api=chrome,doc=document,win=window,
   };
   const dispose=()=>{win.removeEventListener('pageshow',restoreFromCache);if(closed)return;closed=true;activeBridgeDocuments.delete(doc);lifecycleEpoch++;
     discovery.reset(null);
-    conversationAdapter?.dispose();pagePanel.dispose();
+    conversationAdapter?.dispose();pagePanel?.dispose();
     if(state){state.cancelled=true;state.attempted=true;}deferredDiscovery=null;discoveryObserver?.disconnect();win.clearInterval(poll);
     for(const [target,type] of wakeEvents)target.removeEventListener(type,scheduleCheck,true);
     for(const type of refreshNavigationEvents)refreshNavigation?.removeEventListener(type,invalidateRefreshNavigation);
