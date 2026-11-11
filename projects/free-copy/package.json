@@ -1,6 +1,6 @@
 {
   "name": "@opendesk-apps/free-copy",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "private": true,
   "type": "module",
   "description": "自由复制 · 受管网页复制限制恢复",

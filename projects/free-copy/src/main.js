@@ -9,7 +9,7 @@
   if(!globalSwitch||!siteSwitch||!originView||!status||!errorView||typeof request!=='function')
     throw Error('E_FREE_COPY_TOOL_CONTEXT');
   const KEY='preferences';
-  let closed=false,busy=false,epoch=0,loaded=false,origin=null;
+  let closed=false,busy=false,reading=false,epoch=0,loaded=false,origin=null;
   let settings={enabled:true,disabledOrigins:[]};
   const message=text=>{errorView.textContent=text;errorView.hidden=!text;};
   function checkedSettings(value) {
@@ -42,19 +42,21 @@
     siteSwitch.checked=origin!==null&&!settings.disabledOrigins.includes(origin);
     globalSwitch.setAttribute('aria-checked',String(globalSwitch.checked));
     siteSwitch.setAttribute('aria-checked',String(siteSwitch.checked));
-    globalSwitch.disabled=!loaded||busy;
-    siteSwitch.disabled=!loaded||busy||!origin;
+    globalSwitch.disabled=!loaded||busy||reading;
+    siteSwitch.disabled=!loaded||busy||reading||!origin;
     originView.textContent=origin||'当前页面不支持或未授权';
-    status.textContent=!loaded?'设置不可用':!settings.enabled?'已全局暂停':
+    status.textContent=busy?'正在保存设置…':reading?'正在读取设置…':
+      !loaded?'设置不可用':!settings.enabled?'已全局暂停 · 网站设置将在恢复后生效':
       !origin?'全局已开启 · 当前页面不可用':
       siteSwitch.checked?'设置已开启 · 在已授权网页上生效':'当前网站已暂停';
   }
   async function refresh() {
     if(closed||busy)return;
     const turn=++epoch;
-    globalSwitch.disabled=true;siteSwitch.disabled=true;
+    reading=true;render();
     const [saved,site]=await Promise.allSettled([readSettings(),currentOrigin()]);
     if(closed||turn!==epoch)return;
+    reading=false;
     if(saved.status==='fulfilled') {
       settings=saved.value.value;loaded=true;
       message('');

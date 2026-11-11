@@ -6,11 +6,12 @@ import vm from 'node:vm';
 const js=await fs.readFile(new URL('../src/main.js',import.meta.url),'utf8');
 const tick=()=>new Promise(resolve=>setImmediate(resolve));
 function fixture(){
-  const store={value:null,revision:1,origin:'https://example.com',fail:false,requests:[],conflict:false};
+  const store={value:null,revision:1,origin:'https://example.com',fail:false,requests:[],conflict:false,saveGate:null};
   const request=async(op,args)=>{
     store.requests.push({op,args});
     if(op==='storage.get')return {value:store.value?{...store.value}:null,etag:'v'+store.revision};
     if(op==='storage.set'){
+      if(store.saveGate)await store.saveGate;
       if(store.fail)throw Error('E_STORAGE_FAIL');
       if(store.conflict){store.conflict=false;store.revision++;
         throw Object.assign(Error('conflict'),{code:'E_STORAGE_CONFLICT'});}
@@ -95,6 +96,18 @@ test('site unavailable disables only site switch',async()=>{
   f.store.origin='chrome://settings';
   await f.reload();
   assert.equal(f.siteSwitch.disabled,true);
+  assert.equal(f.globalSwitch.disabled,false);
+  f.close();
+});
+test('pending save reports progress, locks both switches and then shows verified pause',async()=>{
+  const f=fixture();await f.settle();
+  let release;f.store.saveGate=new Promise(resolve=>{release=resolve;});
+  const change=f.changeGlobal(false);await f.settle();
+  assert.match(f.status.textContent,/正在保存/);
+  assert.equal(f.globalSwitch.disabled,true);
+  assert.equal(f.siteSwitch.disabled,true);
+  release();await change;await f.settle();
+  assert.match(f.status.textContent,/已全局暂停.*恢复后生效/);
   assert.equal(f.globalSwitch.disabled,false);
   f.close();
 });

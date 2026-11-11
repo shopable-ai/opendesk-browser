@@ -1,0 +1,177 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Free Copy · 本地限制复制 fixture</title>
+  <style>
+    * { box-sizing: border-box; }
+    body { margin: 0; color: #17212b; background: #f5f7fa; font: 16px/1.6 system-ui, sans-serif; }
+    main { max-width: 1100px; margin: auto; padding: 24px 340px 60px 24px; }
+    section { margin: 20px 0; padding: 18px; background: white; border: 1px solid #bac7d4; border-radius: 8px; }
+    h1 { font-size: 24px; } h2 { font-size: 19px; }
+    .sample { padding: 16px; border: 2px dashed #61788e; background: #eef5ff; white-space: pre-wrap; }
+    #css-sample, #css-sample * { -webkit-user-select: none !important; user-select: none !important; }
+    .boundary { border-color: #a46700; }
+    input, textarea, button, [contenteditable], [draggable] { font: inherit; margin: 8px 0; }
+    input, textarea { display: block; width: 100%; }
+    [contenteditable], [draggable] { padding: 12px; border: 1px solid #61788e; }
+    #observations { position: fixed; top: 12px; right: 12px; width: 295px; max-height: calc(100vh - 24px); overflow: auto; padding: 16px; background: #fffbea; border: 1px solid #a46700; font-size: 14px; }
+    #observations h2 { margin-top: 0; }
+    #observations ol { padding-left: 24px; }
+    .count { display: inline-block; width: 7ch; font-variant-numeric: tabular-nums; }
+    @media (max-width: 760px) {
+      main { padding: 16px; }
+      #observations { position: static; width: auto; max-height: none; margin: 16px; }
+    }
+  </style>
+</head>
+<body>
+  <aside id="observations" aria-label="站点处理器观测计数" data-opendesk-free-copy-ignore>
+    <h2>站点处理器累计计数</h2>
+    <p>计数不代表工具状态或 PASS。ON 时事件可能被上游截断，所以计数不增加是预期之一。</p>
+    <ol>
+      <li>selectstart 阻止：<span class="count" id="count-select">0</span></li>
+      <li>复制快捷键阻止：<span class="count" id="count-key">0</span></li>
+      <li>copy 篡改：<span class="count" id="count-copy">0</span></li>
+      <li>contextmenu 阻止：<span class="count" id="count-menu">0</span></li>
+      <li>mousedown 边界：<span class="count" id="count-mouse">0</span></li>
+      <li>input 输入：<span class="count" id="count-input">0</span></li>
+      <li>textarea 输入：<span class="count" id="count-textarea">0</span></li>
+      <li>富文本输入：<span class="count" id="count-edit">0</span></li>
+      <li>按钮点击：<span class="count" id="count-button">0</span></li>
+      <li>原生 dragstart：<span class="count" id="count-drag">0</span></li>
+    </ol>
+    <p>CSS 禁选没有事件计数。每 300ms 仅更新变化的数字，不改测试文本、焦点或选区；没有 live region。刷新页面清零。</p>
+  </aside>
+  <main>
+    <h1>本地限制复制测试页</h1>
+    <p>本页只制造限制，不包含 Free Copy 实现、状态检测或模拟开关；不请求网络、不持久化、不自动读写系统剪贴板。仅在用户触发 copy 时，篡改区写入该事件的 clipboardData。</p>
+    <h2>真实 OFF → ON → OFF 操作说明</h2>
+    <ol>
+      <li>通过现有本地静态 HTTP 服务访问此文件（文档根为仓库时路径为 <code>/projects/free-copy/tests/fixtures/blocked-copy.html</code>）。在工具原安装权限链中批准该 HTTP(S) origin；file:// 不属于当前支持范围。本页不启动服务。</li>
+      <li>在真实 Side Panel 关闭 Free Copy，等待设置收敛（约 1.2 秒，必要时稍久），逐区确认限制确实存在。若 OFF 本来就不受限，该项不能记为通过。</li>
+      <li>在 Side Panel 开启，等待收敛；每次只拖选一条蓝色区域原文，验证选择、复制快捷键或原生右键菜单。复制结果由测试者手动粘贴到下方核对框或独立纯文本编辑器，与各区原文逐字比较。本页不自动采集复制结果。</li>
+      <li>再次关闭并等待收敛，同页重做相同动作，确认限制回来。每阶段记录实际行为和计数差值；不要仅凭设置滑块或数字判定成功。</li>
+      <li>每阶段检查普通控件仍能编辑、选择、复制、粘贴、打开原生菜单、点击及拖动。仅用真实鼠标/键盘，不用合成事件代替原生证据。</li>
+    </ol>
+    <p>监听使用元素或 document 的冒泡阶段，刻意不模拟更早的 window capture 竞态。各限制独立，不跨区混选；Safari/Chrome、系统菜单时序等实际差异须如实记录。普通右键测试不做右拖手势，共存验收另行执行。</p>
+
+    <section>
+      <h2>0 · 无限制基线</h2>
+      <p>三个阶段都应能拖选、原生复制和打开右键菜单。原文期望为下方整行：</p>
+      <p class="sample" id="baseline">BASELINE 原文：春风经过书桌，数字 0123456789。</p>
+    </section>
+    <section>
+      <h2>1 · 仅 CSS user-select:none</h2>
+      <p>OFF：鼠标拖选受阻。ON：应可拖选并复制整行；再次 OFF：禁选恢复。无 JS 禁选监听。原文期望：</p>
+      <p class="sample" id="css-sample">CSS 原文：蓝色山谷里有一条安静的小河。</p>
+    </section>
+    <section>
+      <h2>2 · 仅 selectstart.preventDefault</h2>
+      <p>OFF：拖选受阻且 selectstart 计数增加。ON：应可拖选复制；再次 OFF：恢复阻止。原文期望：</p>
+      <p class="sample" id="select-sample">SELECTSTART 原文：午后的阳光落在第七页。</p>
+    </section>
+    <section>
+      <h2>3 · 仅 keydown Ctrl/Cmd+C.preventDefault</h2>
+      <p>先拖选本区整行。OFF：Ctrl+C / Cmd+C 被取消并计数；原生右键复制仍应正常。ON：快捷键应复制原文；再次 OFF：快捷键受阻。可先从基线复制不同文字，避免旧剪贴板值误判。原文期望：</p>
+      <p class="sample" id="key-sample" tabindex="0">KEYDOWN 原文：纸飞机飞过三座白色的桥。</p>
+    </section>
+    <section>
+      <h2>4 · 仅 copy 篡改 clipboardData</h2>
+      <p>OFF：拖选后用快捷键或原生菜单复制，手动粘贴应得到 <code>[FIXTURE_COPY_TAMPERED]</code>，并计数。ON：应得到下方原文；再次 OFF：固定篡改标记回来。写入能力异常时不是 PASS，可查看控制台错误。原文期望：</p>
+      <p class="sample" id="copy-sample" tabindex="0">COPY 原文：真正的复制结果应该是这一行。</p>
+    </section>
+    <section>
+      <h2>5 · 仅 contextmenu.preventDefault</h2>
+      <p>在下方区域直接右键。OFF：原生菜单被阻止并计数。ON：应显示原生菜单；再次 OFF：恢复阻止。选择和快捷键复制始终不被本区限制。原文期望：</p>
+      <p class="sample" id="menu-sample">CONTEXTMENU 原文：右键菜单应该由浏览器提供。</p>
+    </section>
+    <section class="boundary">
+      <h2>6 · 已知边界：仅 mousedown.preventDefault</h2>
+      <p>仅阻止本区左键按下默认行为并计数。OFF 通常无法开始鼠标拖选；ON 仍可能无法拖选，不能因此将基础解锁判为失败或宣称全部解除。无 selectstart/CSS 限制；浏览器其他选择方式可能不同。原文期望：</p>
+      <p class="sample" id="mouse-sample">MOUSEDOWN 原文：这是明确保留的兼容性边界。</p>
+    </section>
+    <section id="controls">
+      <h2>7 · 普通交互控件保留</h2>
+      <p>本区没有任何限制监听或自定义复制逻辑。编辑输入触发对应计数；单纯选择、复制不增加输入计数。原文初值如下，用户编辑后以实际输入为准。</p>
+      <label for="normal-input">普通 input</label>
+      <input id="normal-input" value="INPUT 原文：可编辑、选择、复制与粘贴。">
+      <label for="normal-textarea">普通 textarea</label>
+      <textarea id="normal-textarea" rows="3">TEXTAREA 原文：第一行可以编辑。
+第二行保留换行。</textarea>
+      <p id="edit-label">普通 contenteditable：可编辑、选择、复制与粘贴</p>
+      <div id="normal-edit" contenteditable="true" role="textbox" aria-labelledby="edit-label" aria-multiline="true">EDITABLE 原文：富文本区域保持原生行为。</div>
+      <button id="normal-button" type="button">普通按钮：点击或 Enter / Space 增加计数</button>
+      <div id="normal-drag" draggable="true">DRAGGABLE 原文：从这里原生拖动，观察 dragstart 计数。</div>
+      <p>拖动不自定义 dataTransfer、不强制接收 drop。只验证原生拖动启动及控件保持，不宣称跨应用放置成功。</p>
+      <label for="paste-check">手动粘贴核对框（仅供测试者检查，不读取或记录其内容）</label>
+      <textarea id="paste-check" rows="3" placeholder="手动粘贴并比对原文；OFF 快捷键失败时可能仍保留上次复制内容。"></textarea>
+    </section>
+  </main>
+  <script>
+    'use strict';
+    const counts = Object.create(null);
+    const displayed = Object.create(null);
+    const bump = name => { counts[name] = (counts[name] || 0) + 1; };
+    const byId = id => document.getElementById(id);
+    const editableOrControl = target => target instanceof Element &&
+      target.closest('input,textarea,select,button,[contenteditable],[draggable="true"]');
+    // Native copy/keyboard events may target body or the focused sample. Scope by
+    // both selection endpoints, never by reading the selected text or clipboard.
+    function selectionIn(id) {
+      const selection = window.getSelection();
+      const sample = byId(id);
+      return Boolean(selection && !selection.isCollapsed &&
+        sample.contains(selection.anchorNode) && sample.contains(selection.focusNode));
+    }
+    byId('select-sample').addEventListener('selectstart', event => {
+      if (!event.isTrusted) return;
+      event.preventDefault();
+      bump('select');
+    });
+    document.addEventListener('keydown', event => {
+      if (!event.isTrusted || editableOrControl(event.target) || !selectionIn('key-sample') ||
+          !(event.ctrlKey || event.metaKey) || event.altKey || event.shiftKey ||
+          event.key.toLowerCase() !== 'c') return;
+      event.preventDefault();
+      bump('key');
+    });
+    document.addEventListener('copy', event => {
+      if (!event.isTrusted || editableOrControl(event.target) || !selectionIn('copy-sample')) return;
+      // Deliberately malicious site behavior, not a clipboard helper or tool implementation.
+      event.clipboardData.setData('text/plain', '[FIXTURE_COPY_TAMPERED]');
+      event.preventDefault();
+      bump('copy');
+    });
+    byId('menu-sample').addEventListener('contextmenu', event => {
+      if (!event.isTrusted) return;
+      event.preventDefault();
+      bump('menu');
+    });
+    byId('mouse-sample').addEventListener('mousedown', event => {
+      if (!event.isTrusted || event.button !== 0) return;
+      event.preventDefault();
+      bump('mouse');
+    });
+    for (const [id, type, counter] of [
+      ['normal-input', 'input', 'input'],
+      ['normal-textarea', 'input', 'textarea'],
+      ['normal-edit', 'input', 'edit'],
+      ['normal-button', 'click', 'button'],
+      ['normal-drag', 'dragstart', 'drag']
+    ]) {
+      byId(id).addEventListener(type, event => { if (event.isTrusted) bump(counter); });
+    }
+    // Only isolated fixed-width counter text changes. Never rewrite sample DOM,
+    // move focus, observe selectionchange, or use a live region during selection.
+    window.setInterval(() => {
+      for (const [name, value] of Object.entries(counts)) {
+        if (displayed[name] === value) continue;
+        byId('count-' + name).textContent = String(value);
+        displayed[name] = value;
+      }
+    }, 300);
+  </script>
+</body>
+</html>

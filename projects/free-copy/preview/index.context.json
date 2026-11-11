@@ -1,0 +1,59 @@
+{
+  "format": "opendesk.ui-preview-context.v1",
+  "toolId": "free-copy",
+  "surface": "side-panel",
+  "view": "extension-tool-detail",
+  "activeTab": "扩展",
+  "hostInteractions": [
+    "五个顶部页签（非扩展仅占位）",
+    "返回精简列表与重新进入",
+    "模拟卸载、取消和确认",
+    "正式全局/本站滑块与键盘操作",
+    "外部模拟网站切换、读取恢复、保存失败（内存）"
+  ],
+  "scenario": "success",
+  "previewControls": {
+    "scenarios": [
+      "success",
+      "loading",
+      "error",
+      "permission-denied",
+      "paused",
+      "save-error"
+    ],
+    "themes": [
+      "light",
+      "dark"
+    ]
+  },
+  "viewportCssPx": {
+    "width": 360,
+    "height": 760
+  },
+  "source": {
+    "commit": "c27fa0520a6ffeb5afbad1bab47b091e119170a7",
+    "designSha256": "3494abfcca3e86adcbb189b1708f758b3fc16d2ec946f50853c1fabfb1d52f79",
+    "shellSha256": "86409b71005d0475ca06587c7ff0a8fae17c3f11484a5ce1737f415989070322",
+    "uiSha256": "b30138965897c98d68a3ab62e0de163e0c560e8ffed6ff809c5d5ce3f9b6c975"
+  },
+  "adapterSources": {
+    "mock-host.js": "f35b24ad11a034eec1e863b27fe73d4154b1d13961b9befea404424203f7de28",
+    "controls.html": "86fd55b2457863d3ad8271363cc59080d206d4ba38d9714f19c8258ea029582d",
+    "controls.js": "50d0c71780a34a64d6456d5e4b2df2305d96deba9d4db560d5be07e57efed896"
+  },
+  "simulation": {
+    "mock": true,
+    "installed": false,
+    "permissionsGranted": false,
+    "network": false,
+    "realUninstall": false,
+    "sdkOperations": [
+      "storage.get",
+      "storage.set",
+      "currentPage.info",
+      "page.request"
+    ]
+  },
+  "html": "/Users/shopme/Documents/workspace/opendesk-browser/projects/free-copy/preview/index.html",
+  "inlinePreview": "REQUIRES_CLIENT_RENDER_CHECK"
+}

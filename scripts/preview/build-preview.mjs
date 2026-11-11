@@ -5,6 +5,7 @@ import {execFileSync} from 'node:child_process';
 import {resolve,join,dirname} from 'node:path';
 import {fileURLToPath,pathToFileURL} from 'node:url';
 import {createSidebarToolPackage} from '../build-sidebar-tool.mjs';
+import {resolveSidebarAppProject} from '../app-update.mjs';
 import {officialSourceProjectPath} from '../../src/sidebar-tools/official-catalog.js';
 import {officialDesignSources,canonicalThemeOverride} from './shared-tool-design.mjs';
 import {sidebarPreviewShellSource} from './sidebar-shell-source.mjs';
@@ -31,10 +32,12 @@ export const PREVIEW_BOOKMARK_OPERATIONS=Object.freeze([
 // are not proof that a tool can demonstrate a state or a forced theme.
 export const PREVIEW_CONTROLS=Object.freeze({
   'quick-notes':Object.freeze({scenarios:[...PREVIEW_SCENARIOS,'revoked','long'],themes:['light','dark']}),
+  'free-copy':Object.freeze({scenarios:['success','loading','error','permission-denied','paused','save-error'],themes:['light','dark']}),
   'bookmark-manager':Object.freeze({scenarios:PREVIEW_SCENARIOS,themes:['light','dark']})
 });
 const scenarioLabels={success:'已授权（模拟）',empty:'空数据',error:'读取失败',loading:'持续加载',
-  'permission-denied':'未授权',untrusted:'不可信文本',revoked:'授权已撤销',long:'长错误提示'};
+  'permission-denied':'未授权',untrusted:'不可信文本',revoked:'授权已撤销',long:'长错误提示',
+  paused:'全局暂停', 'save-error':'下一次保存失败'};
 const repoRoot=fileURLToPath(new URL('../../',import.meta.url));
 const sha256=bytes=>createHash('sha256').update(bytes).digest('hex');
 const base64=bytes=>Buffer.from(bytes).toString('base64');
@@ -65,18 +68,18 @@ export async function generatePreview({
   if(surface!=='side-panel'&&!(tool==='reading-toc'&&surface==='page-overlay'))
     fail('surface '+surface+' has no verified production preview adapter');
   if(!['quick-notes','bookmark-manager','adblock','reading-toc',
-    'markdown-workbench','web-markdown-clipper','knowledge-inbox','ai-knowledge-answers'].includes(tool))
+    'markdown-workbench','web-markdown-clipper','knowledge-inbox','ai-knowledge-answers','free-copy'].includes(tool))
     fail('mock SDK adapter is not implemented for '+tool);
   if(!(PREVIEW_CONTROLS[tool]?.scenarios||PREVIEW_SCENARIOS).includes(scenario)&&!(tool==='reading-toc'&&scenario==='chatgpt-multi'))fail('unsupported scenario');
   if(!['light','dark'].includes(theme))fail('unsupported theme');
   if(tool==='reading-toc'&&theme!=='light')fail('Reading TOC preview shell is light only');
   if(!Number.isInteger(width)||width<240||width>1440||
     !Number.isInteger(height)||height<320||height>2400)fail('invalid CSS viewport');
-  const project=join(repoRoot,officialSourceProjectPath(tool));
+  const project=tool==='free-copy'?await resolveSidebarAppProject(tool):join(repoRoot,officialSourceProjectPath(tool));
   const pkg=await createSidebarToolPackage(project);
   // Respect each existing production CSS contract: some older official tools use
   // canonical shared tokens or a legacy scoped stylesheet; do not silently reskin.
-  if(!['reading-toc','adblock','knowledge-inbox','web-markdown-clipper'].includes(tool)&&
+  if(!['reading-toc','adblock','knowledge-inbox','web-markdown-clipper','free-copy'].includes(tool)&&
     !pkg.css.startsWith('/* opendesk.shared-design.v1 sha256='))
     fail('official design CSS is missing from the validated tool package');
   if(tool==='web-markdown-clipper'&&!pkg.css.startsWith('/* opendesk.shared-tokens.v1 sha256='))
@@ -84,7 +87,15 @@ export async function generatePreview({
   if(tool==='knowledge-inbox'&&(!pkg.css.includes('.ki{')||/@import\b|url\s*\(\s*['"]?\s*(?:https?:|\/\/)/i.test(pkg.css)))
     fail('knowledge-inbox legacy scoped CSS source contract has changed');
   let mock,operations;
-  if(tool==='quick-notes'){
+  if(tool==='free-copy'){
+    if(!pkg.css.startsWith('/* opendesk.shared-tokens.v1 sha256='))
+      fail('Free Copy must consume canonical shared tokens');
+    operations=['storage.get','storage.set','currentPage.info','page.request'];
+    const invoked=[...pkg.js.matchAll(/\brequest\s*\(\s*['"]([^'"]+)['"]/g)].map(match=>match[1]);
+    if(operations.some(op=>!invoked.includes(op))||invoked.some(op=>!operations.includes(op)))
+      fail('Free Copy mock and packaged UI operations differ');
+    mock=await readFile(join(project,'preview/mock-host.js'));
+  }else if(tool==='quick-notes'){
     const invoked=[...pkg.js.matchAll(/\brequest\s*\(\s*['"]([^'"]+)['"]/g)].map(match=>match[1]);
     if(!invoked.length||invoked.some(operation=>!PREVIEW_MOCK_OPERATIONS.includes(operation))||
       PREVIEW_MOCK_OPERATIONS.some(operation=>!invoked.includes(operation)))
@@ -200,7 +211,11 @@ export async function generatePreview({
       trustedOverlayModuleSha256:tocOverlay.moduleSha256}:{}),
     previewControls:PREVIEW_CONTROLS[tool]||null,
     mock:true,installed:false,permissionsGranted:false,
-    operations
+    operations,
+    ...(tool==='free-copy'?{adapterSources:Object.fromEntries(await Promise.all(
+      ['mock-host.js','controls.html','controls.js'].map(async name=>
+        [name,sha256(await readFile(join(project,'preview',name)))])
+    ))}:{})
   });
   const viewportTitle='OpenDesk Browser · '+pkg.title+' · 仅供离线模拟';
   // The maintainable preview template has no copy of official component markup,
@@ -295,7 +310,7 @@ export async function generatePreview({
   const values=Object.freeze({
     PAGE_TITLE:htmlEscape(viewportTitle),
     APP_CONTENT:'<div id="sidebar-tool-frame" class="sidebar-tool-frame"><iframe id="opendesk-preview-frame" class="sidebar-tool-iframe" title="'+htmlEscape(viewportTitle)+'" sandbox="allow-scripts" referrerpolicy="no-referrer"></iframe></div>',
-    PREVIEW_CONTROLS:previewControls,
+    PREVIEW_CONTROLS:previewControls+(tool==='free-copy'?await readFile(join(project,'preview/controls.html'),'utf8'):''),
     SHELL_DATA_JSON:safeJS({title:pkg.title,scenario,theme,frameBase64:base64(frameForDisplay),variants}),
     SHELL_BEHAVIOR:shellBehavior,
     TOOL_NAME:htmlEscape(pkg.title),
@@ -321,6 +336,10 @@ export async function generatePreview({
     if(!used.has(key))fail('preview template is missing required slot '+key);
   if(/\{\{[A-Z0-9_]+\}\}/.test(outputHtml))
     fail('unresolved preview template slot');
+  if(tool==='free-copy'){
+    const behavior=await readFile(join(project,'preview/controls.js'),'utf8');
+    outputHtml=outputHtml.replace('</body></html>','<script>'+behavior+'</script>\n</body></html>');
+  }
   if(adblock){
     const marker='  </section>\n</div>\n<dialog class="preview-confirm od-surface"';
     if(outputHtml.split(marker).length!==2)
@@ -393,10 +412,12 @@ export function previewReviewContext(preview){
     hostInteractions:['五个顶部页签（非扩展仅占位）','返回精简列表与重新进入','模拟卸载、取消和确认',
       ...(manifest.tool==='adblock'?['正式 React 全局与本站开关（离线模拟）','全部四种可信写操作的确认与取消（离线模拟）']:[]),
       ...(manifest.tool==='bookmark-manager'?['外层预览测试控制（不属于正式工具）']:[]),
-      ...(manifest.tool==='reading-toc'?['简体中文/English 原位切换（离线模拟）','Side Panel / 可信网页悬浮源代码切换','章节/空态/加载/错误模拟']:[])],
+      ...(manifest.tool==='reading-toc'?['简体中文/English 原位切换（离线模拟）','Side Panel / 可信网页悬浮源代码切换','章节/空态/加载/错误模拟']:[]),
+      ...(manifest.tool==='free-copy'?['正式全局/本站滑块与键盘操作','外部模拟网站切换、读取恢复、保存失败（内存）']:[])],
     scenario:manifest.scenario,previewControls:manifest.previewControls,viewportCssPx:manifest.viewport,
     source:{commit:manifest.sourceCommit,designSha256:manifest.designSha256,
       shellSha256:manifest.shellSha256,uiSha256:manifest.uiSha256},
+    ...(manifest.adapterSources?{adapterSources:manifest.adapterSources}:{}),
     simulation:{mock:true,installed:false,permissionsGranted:false,network:false,
       realUninstall:false,sdkOperations:manifest.operations},
     html:output,inlinePreview:'REQUIRES_CLIENT_RENDER_CHECK'

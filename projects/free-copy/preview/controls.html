@@ -1,0 +1,15 @@
+<aside id="fc-preview-controls" class="preview-diagnostic-area" aria-label="自由复制离线模拟辅助区">
+  <details class="od-disclosure od-surface od-surface--padded">
+    <summary>自由复制场景操作（非正式工具）</summary>
+    <p class="od-note">仅模拟设置及当前网站，不执行网页解锁。上方“恢复初始预览”会清空模拟偏好；这里“重新读取”保留偏好。保存用 650ms 延迟展示。</p>
+    <div class="od-toolbar" role="group" aria-label="模拟网站和设置故障">
+      <button class="od-button od-button--secondary" type="button" data-fc-preview="site-a">网站 A</button>
+      <button class="od-button od-button--secondary" type="button" data-fc-preview="site-b">网站 B</button>
+      <button class="od-button od-button--secondary" type="button" data-fc-preview="unavailable">页面不可用 / 未授权</button>
+      <button class="od-button od-button--secondary" type="button" data-fc-preview="refresh">重新读取（保留偏好）</button>
+      <button class="od-button od-button--secondary" type="button" data-fc-preview="fail-save">下一次保存失败</button>
+      <button class="od-button od-button--secondary" type="button" data-fc-preview="recover">恢复读取与页面</button>
+    </div>
+    <p id="fc-preview-feedback" class="od-note" role="status">所有操作只影响离线内存；没有真实权限或复制回执。</p>
+  </details>
+</aside>
