@@ -1,10 +1,10 @@
 ## Web Flow 脚本列表调用「我的」共享运行抽屉（2026-11-11）
 
-**原始用户动作：** Web Flow → 脚本 → ▶，必须在当前 Side Panel / app.html 右侧打开「我的 → 已安装任务 → ▶」所用的同一个可信 TaskRunSheet，以当前已安装 Task 的真实 Schema、安装身份、目标/权限和原 TaskWorkbench/RunHost 执行，不能在 Web Flow 沙箱复制第二套抽屉/Runner，也不能把跳去「我的」当最终体验。列表原 ☆/▶/⋯ 及 hover/focus 保留。此目标与其他 V1/V2 ChatGPT 自动链分离。
+**原始用户动作：** Web Flow → 脚本 → ▶，必须在当前 Side Panel / app.html 从底部上滑打开「我的 → 已安装任务 → ▶」所用的同一个可信 TaskRunSheet，以当前已安装 Task 的真实 Schema、安装身份、目标/权限和原 TaskWorkbench/RunHost 执行，不能在 Web Flow 沙箱复制第二套抽屉/Runner，也不能把跳去「我的」当最终体验。列表原 ☆/▶/⋯ 及 hover/focus 保留。此目标与其他 V1/V2 ChatGPT 自动链分离。
 
 **安全与双阶段：** 打开/编辑不执行；Web Flow 来源先“保存并核对”可信冻结同一准备身份及参数并持久读回，再凭第二次真实用户点击“确认执行一次”通过原唯一可信工作台执行最多一次。「我的」原手动任务行为不回归。原 Web Flow pending/UNKNOWN、单实例排他、权限/目标文档、版本与代次、read/stop、原持久 Run/Result 和资源释放栅栏必须保留，互相防绕过；不能从两条 Run 路径双派发。资源/业务成功分开判定。
 
-**源码核对结论：** 当前 `tasks.open({taskId})` 仅是管理导航，会暂停工具；尚没有证据表明已具备 UI-only 共用抽屉调用。先复用 `MyTaskWorkspace/MyTaskParams/TaskWorkbench`，缺通用入口才由原平台 owner 最小补，不能视设计中的 `tasks.configure` 为已实现 API。实现规格及验收用例见 [共用任务运行抽屉专项附录](shared-task-run-sheet.zh-CN.md)；最新进度仍仅写入本目录的 execution-plan。**当前仅完成设计与模拟预览，正式功能 NOT_IMPLEMENTED / NOT_TESTED。**
+**源码核对结论（2026-11-11 更新）：** `tasks.open({taskId})` 仍是管理审阅入口；可信 `tasks.configure` 已作为 UI-only 入口连接唯一 React `TaskRunSheet`，并复用原 TaskWorkbench / RunHost。共享组件提取时曾误将原底部上滑抽屉改成右侧全高；本轮以历史提交 `93dc11a` 的「我的」UI 为基准恢复底部布局与“取消”操作，纠正了两份错误预览。「我的」仍按原手动行为直接运行；Web Flow 独立保留双阶段准备与确认，未新增第二 Runner。**源码已提交，最新定向 Node、真实 Chromium UI、正式扩展构建/安装和 Native 真实运行均不能据此宣称 PASS。** 最新状态见 [执行计划](execution-plan.zh-CN.md)。
 
 ---
 

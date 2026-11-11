@@ -1,3 +1,15 @@
+## 「我的」脚本运行底部抽屉恢复（2026-11-11；OD-WEBFLOW-MY-RUN-SHEET-UI-REGRESSION-R1）
+
+**真实目标：** 以历史提交 `93dc11a9058e0d68497977e948f3a11605c82463` 中「我的」成熟的底部上滑抽屉为基准，纠正 `38a9aea0788ae7dc514acfd3241a9e44ebdfca68` 在共享组件提取时引入的右侧全高布局，继续共用唯一 TaskRunSheet / TaskWorkbench / RunHost。「我的」保留直接手动运行；Web Flow 保留“保存并核对 → 确认执行一次”。
+
+**已提交的最小源码修复：** `src/ui/tool-shell.css` 恢复底部位置/宽度/圆角/阴影，底部操作区可换行；`src/ui/react/tabs/task-run-sheet.tsx` 恢复「我的」“取消”按钮；`projects/webflow/preview/index.html` 和 `preview/script-run-shared-sheet.html` 纠正右侧预览；`tests/environment/my-react-workbench.test.mjs` 新增布局契约、双入口共用、草稿、取消及保存不执行的定向回归。历史与当前 `MyTaskParams` blob SHA 相同；不改原 Runner、安装权限与任务存储。源码提交 `ce8d9e6`、`762b327`、`a1e31a5`、`d9e6700`、`7ccb01d`、`807ba13`。
+
+**状态边界：** `SOURCE_COMMITTED=YES`；`TARGETED_NODE=NOT_TESTED`（CI 仍需按对应 HEAD 和完整日志确认）；`CHROMIUM_UI=NOT_TESTED`；`BROWSER_BUILD=NOT_TESTED`；`INSTALLED_VERSION=NOT_VERIFIED`；`NATIVE_REAL_RUN=NOT_TESTED`。CodexPro 本机连接 UNAVAILABLE，OpenDesk Desktop Browser Session terminated；没有本轮真实安装 Chromium 截图。Web Flow 其他任务及历史 UNKNOWN/未释放 Run 不允许因视觉验收被重放。
+
+**下一步只做验收：** 按受影响文件执行 Node 定向回归与构建；在真实已更新 Chromium 的「我的」/Web Flow 两入口复验底部布局、表单/JSON、滚动、IME、焦点恢复、Stage 与单次授权安全，再核验 PC/窄面板截图及实际安装版本。不得把离线预览、linkedom 或 CI mock-SDK 当成已安装 Chrome PASS。
+
+---
+
 ## ChatGPT A→B→A · R2 独立 Task/保留结果接续边界（2026-11-11；OD-WEBFLOW-CHAT-A-B-A-TASK-BOUNDARY-R2）
 
 **真实目标：** WebFlow 编排、独立 ChatGPT Controller Task 执行、原 Host 审核、同一个 B 两阶段接续并将真实回复返回 A。不把完成 Run/Result 或页面自报状态当作业务完成。

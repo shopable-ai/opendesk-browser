@@ -1,3 +1,5 @@
+> **历史设计提示词，不可直接作为新一轮执行目标**：本文旧版“右侧抽屉”是假设，现以「我的」历史正确版恢复**底部上滑抽屉**。2026-11-11 已提交共享 UI 源码回归修复，真实 Chromium/已安装版本仍待验收。请依照 `OD-WEBFLOW-MY-RUN-SHEET-UI-REGRESSION-R1` 和执行计划最新卡继续，不重复旧组件提取。
+
 # GOAL：OpenDesk Browser · Web Flow「脚本」运行按钮直接打开并复用「我的」可信任务运行抽屉
 
 固定检索词：OD-AI-WORKFLOW-BRIDGE

@@ -1,10 +1,10 @@
 # Web Flow「运行」复用「我的」抽屉 · 专项实现附录（2026-11-11）
 
-> 固定检索词：OD-AI-WORKFLOW-BRIDGE。本文是实施附录，唯一需求源仍是 [product-contract.zh-CN.md](product-contract.zh-CN.md)、唯一进度源仍是 [execution-plan.zh-CN.md](execution-plan.zh-CN.md)。**当前 SOURCE_IMPLEMENTED / CI_PENDING / INSTALLED_CHROME_NOT_TESTED**（以本节第 7 条为准）。可点击演示见 [preview/index.html](../preview/index.html)。
+> 固定检索词：OD-AI-WORKFLOW-BRIDGE。本文是实施附录，唯一需求源仍是 [product-contract.zh-CN.md](product-contract.zh-CN.md)、唯一进度源仍是 [execution-plan.zh-CN.md](execution-plan.zh-CN.md)。**当前 SOURCE_IMPLEMENTED / TARGETED_NODE_NOT_TESTED / INSTALLED_CHROME_NOT_TESTED；底部布局恢复见执行计划顶部最新卡**（以本节第 7 条为准）。可点击演示见 [preview/index.html](../preview/index.html)。
 
 ## 1. 最终用户操作（最高优先级）
 
-用户在 Web Flow →「脚本」看到百度/Google 等已安装脚本。点击列表右侧 ▶ **不直接执行**，而是像「我的 → 已安装任务 → ▶」一样，在**右侧打开相同的可信参数运行抽屉**；使用同一 Task Schema、表单/JSON、参数校验、安装身份、网站权限、RunHost 与结果链。不创建第二套外观相似、业务逻辑不同的 Web Flow 运行弹窗。
+用户在 Web Flow →「脚本」看到百度/Google 等已安装脚本。点击列表右侧 ▶ **不直接执行**，而是像「我的 → 已安装任务 → ▶」一样，从**底部上滑打开相同的可信参数运行抽屉**；使用同一 Task Schema、表单/JSON、参数校验、安装身份、网站权限、RunHost 与结果链。不创建第二套外观相似、业务逻辑不同的 Web Flow 运行弹窗。
 
 保留现有脚本列表、收藏/▶/更多和 hover/focus 布局，不再重新设计整个列表。脚本列表只显示异常提示，运行记录负责状态与高级诊断。Side Panel 和 app.html 都应生效，不以切换去「我的」替代最终体验。
 
@@ -25,7 +25,7 @@
 
 ~~~text
 Web Flow 脚本列表：[收藏] [▶] [⋯]
-  ▶ 真正点击（只打开右侧共享可信抽屉，不启动脚本）
+  ▶ 真正点击（只打开底部共享可信抽屉，不启动脚本）
 抽屉：与「我的」一致的标题、参数表单 / JSON、目标网站、授权状态
   阶段一：[保存并核对] → 可信来源冻结唯一准备身份、参数、版本、目标，持久化后读回；RunHost 仍未执行
   阶段二：[确认执行一次] → 第二次真实可信用户点击 → 再验同一来源/参数/版本/网站/权限 → **同一 TaskWorkbench / RunHost 至多一次启动**
@@ -44,7 +44,7 @@ Web Flow 脚本列表：[收藏] [▶] [⋯]
 | 共享可信 UI | 从 `MyTaskWorkspace` 提取 `TaskRunSheet`（如 `src/ui/react/tabs/task-run-sheet.tsx`），仍在唯一 `SidebarAppShell` React root，用同一个 `MyTaskParams` / MyControl / Tokens；「我的」和 Web Flow 两处消费 | 在 Web Flow iframe 内复制 My 的 JSX/DOM，或创建第二 React 根 |
 | 唯一控制器 | 原 `TaskWorkbench` 提供可信任务选择、Schema 校验、保存/读回准备、再次检查身份、一次性执行。冻结参数摘要/固定安装 pin/可信网页目标/source epoch | 复制 RunHost、另造执行账本、仅用按钮 disabled 防重 |
 | UI-only 打开动作 | 先核对公开 SDK 是否已有适用入口；若确实缺口，公共 owner 最小增加通用 `tasks.configure({taskId})`（**已写入正式 Host + 公开 SDK 文档，待定向 CI / Chrome 验收**），经原 `tasks.open` 能力范围、已安装精确 pin、真实用户手势、工具身份与撤权检查后，Host 开共享抽屉，**不执行** | 改写现有 `tasks.open` 管理语义、沙箱传 JS/任意 URL/tabId、虚构受信任点击 |
-| 呈现宿主 | 抽屉覆盖在现有侧栏/PC 工具 Host 右侧，不销毁、导航或重复挂载 Web Flow；`app.html` 也能挂同一可信 overlay | 强制跳「我的」作为最终方案；依赖隐藏的 My Tab dialog 可见 |
+| 呈现宿主 | 抽屉从现有侧栏/PC 工具 Host 底部上滑，不销毁、导航或重复挂载 Web Flow；`app.html` 也能挂同一可信 overlay | 强制跳「我的」作为最终方案；依赖隐藏的 My Tab dialog 可见 |
 | Web Flow UI | 只调用可信抽屉打开入口，复用普通脚本列表；遗留请求保留只读核对/安全取消 | 二次派发已改走 My 的请求、丢弃旧 pending、把原请求 ID/Hash 常驻脚本 Tab |
 
 **关键实现细节：** 执行第二阶段必须仍由可信真实用户激活进入现有 Workbench.run，且每次确认只消费一个准备身份；同次参数/版本/页面/授权发生变更时拒绝启动。不能把 React 中点击后的合成事件传给沙箱模拟 `isTrusted`；不能把“已经打开抽屉”冒充执行许可。新增入口属于跨应用通用 UI-only 需求，须按根仓库 Extension Type & Ownership Gate 检查并同步唯一公开 API 文档；不得把固定 Web Flow 特例硬编码进 Host。
