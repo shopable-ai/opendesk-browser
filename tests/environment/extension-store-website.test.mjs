@@ -56,9 +56,13 @@ test('old standalone bundled market entries redirect only to the approved websit
   assert.equal(handleLegacyMarketEntry({location,document,website}),true);
   assert.deepEqual(links,[good]);
   assert.equal(pages.length,0,'a navigated public store cannot render the bundled catalog');
-  const reviewLocation={...location,search:'?intent=review-uuid'};
+  const reviewId='3ddf3b4c-3fc5-4bfb-9a48-29ba074bb5e3';
+  const reviewLocation={...location,search:'?intent='+reviewId};
   assert.equal(handleLegacyMarketEntry({location:reviewLocation,document,website}),false);
   assert.deepEqual(links,[good],'trusted install review remains an extension page');
+  for(const query of ['?intent=','?intent=review-uuid','?intent='+reviewId+'&debug=1']){
+    assert.equal(handleLegacyMarketEntry({location:{...location,search:query},document,website}),true);
+  }
   assert.equal(handleLegacyMarketEntry({location:{...location,pathname:'/ui/market-install.html'},document,website}),false);
 });
 
