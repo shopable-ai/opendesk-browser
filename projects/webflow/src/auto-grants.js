@@ -5,6 +5,7 @@ import {validateTaskParams} from '../../../src/platform/tasks/contract.js';
 import {autoParameterOptions} from './authorization-policy.js';
 
 export const WEBFLOW_AUTO_GRANTS_KEY='opendesk.webflow.auto-trigger-grants.v1';
+const V2_AUTO_PROTOCOL='webflow.task.intent.v2';
 // Missing source in historical v1 data means the original ChatGPT-only grant.
 // It never means the current website, a wildcard, or all registered profiles.
 export const LEGACY_AUTO_SOURCE_ORIGIN='https://chatgpt.com';
@@ -61,14 +62,18 @@ export function validateAutoSettings(value){
   for(const [taskId,row] of Object.entries(value.grants)){
     if(!row||row.scope?.taskId!==taskId||typeof row.grantId!=='string'||!row.grantId||
       !['active','revoked'].includes(row.state)||!Number.isSafeInteger(row.approvedAt)||row.approvedAt<0)throw fail();
+    if(row.intentProtocol!==undefined&&row.intentProtocol!==V2_AUTO_PROTOCOL)throw fail();
     normalizeAutoScope(row.scope);
     normalizeAutoParameterPolicy(row.parameterPolicy,row.scope);
   }
   return structuredClone(value);
 }
-export function assertAutoGrant(settings,scope,{grantId,epoch,sourceUrl}={}){
+export function assertAutoGrant(settings,scope,{grantId,epoch,sourceUrl,intentProtocol}={}){
   const canonical=normalizeAutoScope(scope),grant=settings.grants[canonical.taskId];
-  if(sourceOriginOf(sourceUrl)!==canonical.sourceOrigin||settings.enabled!==true||!grant||grant.state!=='active'||
+  const expectedProtocol=intentProtocol??'webflow.task.intent.v1';
+  if(!['webflow.task.intent.v1',V2_AUTO_PROTOCOL].includes(expectedProtocol)||
+    (grant?.intentProtocol??'webflow.task.intent.v1')!==expectedProtocol||
+    sourceOriginOf(sourceUrl)!==canonical.sourceOrigin||settings.enabled!==true||!grant||grant.state!=='active'||
     grantId!==undefined&&grant.grantId!==grantId||epoch!==undefined&&settings.epoch!==epoch||
     !matchesAutoScope(grant,canonical))throw fail();
   return grant;

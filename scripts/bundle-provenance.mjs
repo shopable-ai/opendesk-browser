@@ -40,7 +40,7 @@ const compiledWebFlowInputs=Object.freeze({
   // lifecycle lock before Authority admission; no execution or data writes.
   // Reviewed original shared-sheet lock/UNKNOWN guard; no migration or replay.
   'projects/webflow/trusted/task-run-recovery.js':'21bac4fbeb97923ddfc50f2ceb6fddd229f64496',
-  'projects/webflow/src/auto-grants.js':'ef783837abb1ff87f963a7343d34b796db6a58c6',
+  'projects/webflow/src/auto-grants.js':'5b904ed84942f40accb5b459d4aa01341ad7a7b7',
   // Reviewed bounded keyword policy shared by the ledger and compiled controls.
   'projects/webflow/src/authorization-policy.js':'bb508189bdbbfe403707febbb36bb49d07d476c7',
   // Reviewed fixed ChatGPT site adapter/retired UI, only in the isolated fixed Content entry.
@@ -62,7 +62,7 @@ const compiledWebFlowInputs=Object.freeze({
   // distinguish reserved IDs/persistence/delivery/release; UNKNOWN never replays.
   // Reviewed same-receipt, owner-bound Toast projection; execution stays unchanged.
   // Retain the upstream PREPARE-only/account-unverified status copy.
-  'projects/webflow/trusted/CurrentTask.tsx':'e14ae6381dac186279dc39916873124166458937',
+  'projects/webflow/trusted/CurrentTask.tsx':'379529877fbb5fff7fc4083f53a513d59abfa9ca',
   // Reviewed display-only scripts route, consumed by the same fixed tool shell.
   'projects/webflow/src/ui/app-page-routes.js':'04468dd893393f82482123355243d8cdad4b1fb7',
   'projects/webflow/trusted/RuntimePanel.tsx':'f418c26696933f0b9440080fd2586e47e42b870f'
@@ -145,7 +145,7 @@ const compiledChatGPTFilesInputs=Object.freeze({
   'projects/webflow/trusted/chatgpt-result-adapter.js':'b55e4f27e5919464515b9687f45e8ca012f97c1b',
   // 0.3 is opt-in and cannot claim a completed A/B workflow from a draft.
   // Its strict results and retained-B proof are first-party compiled inputs.
-  'projects/webflow/src/chatgpt-conversation-result-v0.3.js':'6bff4d2ecabf8200c59d932e027336f39a049f11',
+  'projects/webflow/src/chatgpt-conversation-result-v0.3.js':'53fd0ca5ae064053fc00d34ce5771800289efcc4',
   'projects/webflow/trusted/chatgpt-result-adapter-v0.3.js':'9e58fafd786733db036a5995889cbff00157622e',
   'projects/webflow/trusted/chatgpt-b-prepare-stage.js':'68eeee6e3dee11d6d9abd1c534fe960c4a083e01'
 });

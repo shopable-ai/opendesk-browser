@@ -18,8 +18,8 @@
 .pc-parity{
   --ap-bg:#f5f7fb;--ap-surface:#fff;--ap-soft:#f6f8fb;
   --ap-ink:var(--ink);--ap-muted:var(--sub);--ap-line:var(--line);
-  --ap-control-line:#8593a9;--ap-accent:#414fca;
-  --ap-accent-fill:#edf0ff;--ap-on-accent:#fff;
+  --ap-control-line:#8593a9;--ap-accent:var(--brand);
+  --ap-accent-fill:var(--brand-light);--ap-on-accent:#fff;
   --ap-good:#196542;--ap-good-bg:#edf7f1;
   --ap-warn:#855300;--ap-warn-bg:#fff5e3;
   --ap-bad:#ae303c;--ap-bad-bg:#fff0f1;
@@ -27,7 +27,7 @@
 }
 .pc-parity *{box-sizing:border-box}
 .pc-parity .ap-button{cursor:pointer}
-.pc-parity .ap-button:disabled{opacity:.55;cursor:not-allowed}
+.pc-parity .ap-button:disabled{opacity:1;background:#eef2f7;border-color:#dce3ec;color:#56677f;filter:none;cursor:not-allowed}
 .pc-parity .ap-primary{color:var(--ap-on-accent)}
 .pc-parity .ap-primary:hover:not(:disabled){color:var(--ap-on-accent)}
 .pc-parity :where(button,input,select,summary):focus-visible{outline:2px solid var(--ap-accent);outline-offset:2px}
@@ -39,14 +39,21 @@
 .pc-parity .ap-wrap{flex-wrap:wrap}
 .pc-parity .ap-stack{display:grid;gap:14px}
 .pc-parity .ap-grow{flex:1;min-width:0}
-.pc-parity .ap-button{display:inline-flex;align-items:center;justify-content:center;gap:7px;min-height:36px;padding:7px 13px;border:1px solid var(--ap-line);border-radius:7px;background:var(--ap-surface);font-size:13px;font-weight:550;white-space:normal;line-height:1.4;text-decoration:none}
-.pc-parity .ap-button:hover:not(:disabled){background:var(--ap-soft);border-color:var(--ap-muted)}
+.pc-parity .ap-button{display:inline-flex;align-items:center;justify-content:center;gap:7px;min-height:38px;padding:8px 13px;border:1px solid #cbd5e1;border-radius:8px;background:var(--ap-surface);color:var(--ap-ink);font-size:13px;font-weight:600;white-space:normal;line-height:1.4;text-align:center;text-decoration:none;transition:background-color .15s,border-color .15s,color .15s,box-shadow .15s}
+.pc-parity .ap-button:hover:not(:disabled){background:#f1f5ff;border-color:#a9bce2}
+.pc-parity .ap-button:focus-visible,.pc-parity .ap-link:focus-visible{outline:2px solid var(--ap-accent);outline-offset:2px}
+.pc-parity .ap-button[aria-busy="true"]:disabled{background:var(--ap-accent-fill);border-color:#bac9f3;color:#3054ae;cursor:progress}
 .pc-parity .ap-primary{color:var(--ap-on-accent);background:var(--ap-accent);border-color:var(--ap-accent)}
-.pc-parity .ap-primary:hover:not(:disabled){background:var(--ap-accent);filter:brightness(.95)}
-.pc-parity .ap-quiet{border-color:transparent;background:transparent;color:var(--ap-muted);padding:6px 9px}
-.pc-parity .ap-link{padding:3px 0;color:var(--ap-accent);font-size:12px;font-weight:550;text-decoration:none}
-.pc-parity .ap-link:hover{text-decoration:underline;text-underline-offset:3px}
+.pc-parity .ap-primary:hover:not(:disabled){background:var(--brand-hover);border-color:var(--brand-hover)}
+.pc-parity .ap-primary:active:not(:disabled){background:#244597;border-color:#244597}
+.pc-parity .ap-secondary{color:#3054ae;background:#f5f7ff;border-color:#c5d3f0;font-weight:650}
+.pc-parity .ap-secondary:hover:not(:disabled){color:#244597;background:#e9efff;border-color:#9bb3e2}
+.pc-parity .ap-quiet{border-color:var(--ap-line);background:var(--ap-soft);color:#36506d;padding:6px 9px}
+.pc-parity .ap-quiet:hover:not(:disabled){border-color:#b6c9ec;background:var(--ap-accent-fill);color:#244b9e}
+.pc-parity .ap-link{display:inline-flex;align-items:center;justify-content:center;min-height:32px;padding:5px 9px;border:1px solid transparent;border-radius:7px;background:transparent;color:#3054ae;font-size:12px;font-weight:650;line-height:1.4;text-decoration:none}
+.pc-parity .ap-link:hover:not(:disabled){background:var(--ap-accent-fill);border-color:#d7e1fa;text-decoration:none}
 .pc-parity .ap-danger{color:var(--ap-bad)}
+.pc-parity .ap-quiet.ap-danger:hover:not(:disabled){background:var(--ap-bad-bg);border-color:#ebc4c9;color:var(--ap-bad)}
 .pc-parity .ap-tag{display:inline-flex;align-items:center;gap:5px;padding:2px 7px;font-size:11px;line-height:1.65;border-radius:4px;background:var(--ap-soft);color:var(--ap-muted);white-space:nowrap}
 .pc-parity .ap-tag.accent{background:var(--ap-accent-fill);color:var(--ap-accent)}
 .pc-parity .ap-tag.good{background:var(--ap-good-bg);color:var(--ap-good)}
@@ -122,9 +129,9 @@
 .pc-parity .r3-site-icon{flex:none;display:grid;place-items:center;width:30px;height:30px;border:1px solid var(--ap-line);border-radius:8px;font-size:12px;font-weight:650;background:var(--ap-soft)}
 .pc-parity .r3-site-name{display:grid;gap:3px;min-width:0}
 .pc-parity .r3-site-name strong{font-size:12px}
-.pc-parity .r3-site-name small{font-size:10px;color:var(--ap-muted);overflow:hidden;text-overflow:ellipsis}
+.pc-parity .r3-site-name small{font-size:11px;color:var(--ap-muted);overflow:hidden;text-overflow:ellipsis}
 .pc-parity .r3-site-result{display:grid;gap:3px;font-size:11px}
-.pc-parity .r3-site-result small{font-size:10px}
+.pc-parity .r3-site-result small{font-size:11px}
 .pc-parity .r3-site-row select{border:1px solid var(--ap-line);background:var(--ap-soft);color:var(--ap-ink);border-radius:6px;padding:7px 2px}
 .pc-parity .r3-add{display:flex;align-items:flex-end;gap:9px;margin:17px 0}
 .pc-parity .r3-progress{background:var(--ap-soft);border-radius:8px;padding:10px;font-size:12px;margin-bottom:12px}
@@ -134,52 +141,54 @@
 .pc-parity .r3-evidence span{padding:11px;border:1px solid var(--ap-line);border-radius:7px;font-size:11px;color:var(--ap-muted)}
 @media(max-width:860px){.pc-parity .r3-site-row{grid-template-columns:minmax(145px,1fr) auto auto}.pc-parity .r3-site-result{grid-column:1}}
 /* R3.2: premium network diagnostics, scoped to the pre-existing design system */
-.pc-parity .nd-hero{position:relative;display:flex;align-items:center;justify-content:space-between;gap:23px;padding:25px 27px;border-radius:13px;overflow:hidden;color:#f7f9ff;background:linear-gradient(113deg,#1b2949,#2c4070 63%,#43598d)}
-.pc-parity .nd-hero:before{content:"";position:absolute;inset:0;pointer-events:none;background:radial-gradient(circle at 88% -10%,#bbccff30,transparent 43%),radial-gradient(circle at 11% 120%,#77b0ea1a,transparent 55%)}
+.pc-parity .nd-hero{position:relative;display:flex;align-items:center;justify-content:space-between;gap:18px;padding:21px 23px;border:1px solid #d9e3ef;border-radius:12px;overflow:hidden;color:var(--ap-ink);background:#f3f6fb}
+.pc-parity .nd-hero:before{content:"";position:absolute;top:0;bottom:0;left:0;width:3px;pointer-events:none;background:var(--brand)}
 .pc-parity .nd-hero>*{position:relative;z-index:1}
-.pc-parity .nd-eyebrow{display:block;font-size:10px;font-weight:750;letter-spacing:1.1px;color:var(--ap-accent)}
-.pc-parity .nd-hero .nd-eyebrow{color:#c0ccff}
-.pc-parity .nd-hero h2{font-size:23px;color:white;letter-spacing:-.4px;line-height:1.38;margin:7px 0 8px}
-.pc-parity .nd-hero p{font-size:12px;line-height:1.6;color:#d8e2f6;max-width:510px;margin:0}
-.pc-parity .nd-tags{display:flex;gap:7px;flex-wrap:wrap;margin-top:15px}
-.pc-parity .nd-tags span{color:#e8ecff;background:#ffffff15;border:1px solid #ffffff25;padding:4px 9px;font-size:10px;border-radius:99px}
-.pc-parity .nd-hero-flag{flex:none;min-width:137px;border:1px solid #ffffff25;background:#ffffff14;border-radius:11px;padding:15px;display:grid;gap:4px}
-.pc-parity .nd-hero-flag small{color:inherit;font-size:10px}
-.pc-parity .nd-hero-flag strong{color:#fff;font-size:21px}
+.pc-parity .nd-eyebrow{display:block;font-size:11px;font-weight:750;letter-spacing:.45px;color:var(--ap-accent)}
+.pc-parity .nd-hero .nd-eyebrow{color:#3155ab}
+.pc-parity .nd-hero h2{font-size:22px;color:var(--ap-ink);letter-spacing:-.35px;line-height:1.38;margin:0}
+.pc-parity .nd-hero p{font-size:12px;line-height:1.6;color:#475569;max-width:510px;margin:0}
+.pc-parity .nd-tags{display:flex;gap:7px;flex-wrap:wrap;margin-top:11px}
+.pc-parity .nd-tags span{color:#3155ab;background:#fff;border:1px solid #cad8ee;padding:5px 10px;font-size:12px;line-height:1.4;border-radius:99px}
+.pc-parity .nd-hero-flag{flex:none;min-width:148px;border:1px solid #d9e3ef;background:#fff;border-radius:9px;padding:11px 14px;display:grid;gap:4px}
+.pc-parity .nd-hero-flag small{color:#64748b;font-size:12px;line-height:1.4}
+.pc-parity .nd-hero-flag strong{color:#334155;font-size:18px;line-height:1.35}
+.pc-parity .nd-hero-flag strong:before{content:"";display:inline-block;width:7px;height:7px;margin-right:8px;border-radius:50%;vertical-align:2px;background:#8593a9}
 .pc-parity .nd-stats{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px;margin:13px 0 17px}
 .pc-parity .nd-stat{padding:13px 14px;border:1px solid var(--ap-line);border-radius:10px;background:var(--ap-surface);min-width:0;display:grid;gap:5px}
-.pc-parity .nd-stat small,.pc-parity .nd-stat>span{font-size:10px;color:var(--ap-muted)}
+.pc-parity .nd-stat small,.pc-parity .nd-stat>span{font-size:12px;line-height:1.4;color:var(--ap-muted)}
 .pc-parity .nd-stat strong{font-size:13px;font-weight:700;overflow-wrap:anywhere}
 .pc-parity .nd-stat em{font-style:normal;color:var(--ap-muted);font-size:11px}
-.pc-parity .nd-stale{font-size:11px;color:var(--ap-warn);padding:9px 12px;background:var(--ap-warn-bg);border-radius:7px;margin-bottom:12px}
+.pc-parity .nd-stale{font-size:12px;color:var(--ap-warn);padding:9px 12px;background:var(--ap-warn-bg);border:1px solid #eedbb5;border-radius:7px;margin-bottom:12px}
 .pc-parity .r3-tabs.nd-tabs{display:flex;gap:4px;border:1px solid var(--ap-line);border-radius:10px;background:var(--ap-soft);padding:4px;margin:16px 0 18px;scrollbar-width:thin}
 .pc-parity .r3-tabs.nd-tabs :is(button,a[data-preview-link]){flex:1;min-width:97px;border:1px solid transparent;display:inline-flex;align-items:center;justify-content:center;gap:7px;border-radius:7px;padding:9px 7px}
-.pc-parity .r3-tabs.nd-tabs :is(button,a[data-preview-link])[aria-current=page]{color:var(--ap-ink);background:var(--ap-surface);border-color:var(--ap-line);box-shadow:0 2px 7px #0000000e}
+.pc-parity .r3-tabs.nd-tabs :is(button,a[data-preview-link])[aria-current=page]{color:#244b92;background:var(--ap-surface);border-color:#cbd5e7;box-shadow:0 2px 7px #0000000e}
+.pc-parity .r3-tabs.nd-tabs :is(button,a[data-preview-link]):not([aria-current=page]):hover{background:#e8eefb;color:#3054ae}
 .pc-parity .nd-overview-grid{display:grid;grid-template-columns:1.13fr 1fr;gap:13px}
 .pc-parity .nd-panel{padding:19px;border:1px solid var(--ap-line);background:var(--ap-surface);border-radius:11px;min-width:0}
 .pc-parity .nd-panel h3{font-size:16px;letter-spacing:-.2px;margin:8px 0}
 .pc-parity .nd-between{display:flex;align-items:center;justify-content:space-between;gap:8px;flex-wrap:wrap}
-.pc-parity .nd-pill{background:var(--ap-soft);border:1px solid var(--ap-line);border-radius:99px;padding:4px 9px;font-size:10px;color:var(--ap-muted)}
+.pc-parity .nd-pill{background:var(--ap-soft);border:1px solid var(--ap-line);border-radius:99px;padding:4px 9px;font-size:11px;color:#475569}
 .pc-parity .nd-host{font-size:24px;font-weight:700;letter-spacing:-.5px;margin:12px 0 4px;overflow-wrap:anywhere}
-.pc-parity .nd-subtitle{font-size:11px;line-height:1.55;color:var(--ap-muted);margin:4px 0 10px}
+.pc-parity .nd-subtitle{font-size:12px;line-height:1.55;color:var(--ap-muted);margin:4px 0 10px}
 .pc-parity .nd-reading{display:flex;align-items:center;gap:10px;padding:13px;border:1px solid var(--ap-line);border-radius:9px;background:var(--ap-soft);margin:16px 0 12px}
 .pc-parity .nd-reading:before{content:"";width:8px;height:8px;flex:none;border-radius:50%;background:var(--ap-warn)}
 .pc-parity .nd-reading strong{display:block;font-size:12px}
-.pc-parity .nd-reading small{font-size:10px;color:var(--ap-muted)}
+.pc-parity .nd-reading small{font-size:11px;line-height:1.5;color:var(--ap-muted)}
 .pc-parity .nd-actions{display:flex;align-items:center;flex-wrap:wrap;gap:8px;margin-top:13px}
 .pc-parity .nd-quick{margin:10px 0;display:grid}
 .pc-parity .nd-quick-item{display:flex;align-items:center;gap:10px;border-bottom:1px solid var(--ap-line);padding:7px 0}
 .pc-parity .nd-quick-item:last-child{border-bottom:0}
 .pc-parity .nd-quick-item span:last-child{display:grid;gap:2px}
 .pc-parity .nd-quick-item strong{font-size:12px}
-.pc-parity .nd-quick-item small{font-size:10px;color:var(--ap-muted)}
+.pc-parity .nd-quick-item small{font-size:11px;color:var(--ap-muted)}
 .pc-parity .nd-shortcuts{display:grid;grid-template-columns:1fr 1fr;gap:13px;margin-top:13px}
 .pc-parity .nd-shortcut{display:flex;align-items:center;gap:12px;padding:15px;background:var(--ap-surface);border:1px solid var(--ap-line);border-radius:10px}
 .pc-parity .nd-shortcut-icon{display:grid;place-items:center;flex:none;width:42px;height:42px;border-radius:9px;color:var(--ap-accent);background:var(--ap-accent-fill);font-size:21px}
 .pc-parity .nd-shortcut-info{flex:1;min-width:0}
 .pc-parity .nd-shortcut-info h3{font-size:14px;margin:3px 0}
-.pc-parity .nd-shortcut-info p{font-size:10px;color:var(--ap-muted);margin:0}
-.pc-parity .nd-footnote{font-size:11px;color:var(--ap-muted);margin:13px 1px}
+.pc-parity .nd-shortcut-info p{font-size:12px;line-height:1.45;color:var(--ap-muted);margin:0}
+.pc-parity .nd-footnote{font-size:12px;line-height:1.6;color:var(--ap-muted);margin:13px 1px}
 .pc-parity .nd-progressbar{display:block;width:100%;height:5px;border-radius:99px;background:var(--ap-line);overflow:hidden;margin:7px 0}
 .pc-parity .nd-progressbar i{display:block;height:100%;border-radius:99px;background:var(--ap-accent)}
 .pc-parity .nd-page .r3-panel-heading h3{font-size:18px;letter-spacing:-.3px}
@@ -196,7 +205,7 @@
 .pc-parity .nd-page .r3-progress{background:var(--ap-accent-fill);color:var(--ap-accent);border:1px solid var(--ap-line)}
 .pc-parity .nd-speed-metrics{display:grid!important;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px}
 .pc-parity .nd-speed-metrics>span{display:grid;gap:6px;align-content:center;min-height:119px}
-.pc-parity .nd-speed-metrics small,.pc-parity .nd-speed-metrics em{font-size:10px;color:var(--ap-muted);font-style:normal}
+.pc-parity .nd-speed-metrics small,.pc-parity .nd-speed-metrics em{font-size:11px;color:var(--ap-muted);font-style:normal}
 .pc-parity .nd-speed-metrics strong{font-size:20px;letter-spacing:-.4px;overflow-wrap:anywhere}
 .pc-parity .nd-speed-controls{margin-top:14px;display:grid;gap:12px}
 .pc-parity .nd-speed-controls .ap-field{max-width:330px}
@@ -283,6 +292,19 @@
   .pc-proxy-row .pc-proxy-icon-btn,.pc-list-icon-btn{width:36px;height:36px;min-width:36px;min-height:36px}
 }
 
+/* Small-width diagnostics: keep actions readable and in flow. */
+@media(max-width:390px){
+ .pc-parity .nd-hero{padding:18px 15px}
+ .pc-parity .nd-hero-flag{min-width:0;justify-content:space-between}
+ .pc-parity .nd-panel{padding:15px}
+ .pc-parity .nd-page .r3-site-row{grid-template-columns:minmax(0,1fr);gap:9px}
+ .pc-parity .nd-page .r3-site-title,.pc-parity .nd-page .r3-site-result{grid-column:1}
+ .pc-parity .nd-row-actions{justify-content:flex-start;flex-wrap:wrap}
+ .pc-parity .nd-actions .ap-button{max-width:100%;flex:1 1 auto}
+ .pc-parity .nd-shortcut{flex-wrap:wrap}
+ .pc-parity .nd-shortcut>.ap-button{margin-left:auto}
+}
+@media(pointer:coarse){.pc-parity .nd-page .ap-button,.pc-parity .ap-secondary{min-height:40px}}
 </style>
 </head>
 <body>
@@ -398,7 +420,7 @@ function pcRules(){
           <button type="button" class="ap-button" data-action="test-rule">计算</button>
         </div>
         <div id="ruleResult" class="rule-test-result" role="status"><strong>${esc(testResult.label)}</strong> · ${esc(testResult.detail)}（仅模拟）</div>
-        ${s.mode!=='rules'?`<div class="ap-row ap-between ap-wrap" style="margin-top:9px"><span class="ap-small ap-muted">当前是${esc(modeNames[s.mode])}；网站规则尚未使用。</span><button type="button" class="ap-link" data-action="mode" data-id="rules">切换到按规则</button></div>`:''}
+        ${s.mode!=='rules'?`<div class="ap-row ap-between ap-wrap" style="margin-top:9px"><span class="ap-small ap-muted">当前是${esc(modeNames[s.mode])}；网站规则尚未使用。</span><button type="button" class="ap-button ap-secondary" data-action="mode" data-id="rules">切换到按规则 →</button></div>`:''}
       </div>
       <p class="ap-small ap-muted">规则作用于匹配域名的请求，包含同域的所有标签页。页面内其他域名的资源分别匹配规则。</p>
     </div>`;
@@ -496,27 +518,27 @@ function diagnosticOverview(){
   return `<div class="nd-overview">
     <div class="nd-overview-grid">
       <article class="nd-panel">
-        <div class="nd-between"><span class="nd-eyebrow">01 / CURRENT WEBSITE</span><span class="nd-pill">当前网站</span></div>
+        <div class="nd-between"><span class="nd-eyebrow">当前网站</span><span class="nd-pill">当前网站</span></div>
         <h3>先检查你正在使用的网站</h3><div class="nd-host">${esc(s.site)}</div>
         <p class="nd-subtitle">预期路由：${esc(s.mode==='rules'?routeFor(s.site):planned())} · ${esc(modeNames[s.mode])}</p>
         <div class="nd-reading"><div><strong>${esc(currentLabel)}</strong><small>网络请求仅模拟，AI 登录与模型功能未验证</small></div></div>
-        <div class="nd-actions"><button type="button" class="ap-button ap-primary" data-action="diag-current" ${!ready||diagBatch?'disabled':''}>模拟检测当前网站 →</button>
+        <div class="nd-actions"><button type="button" class="ap-button ap-primary" data-action="diag-current" ${diagBatch?'aria-busy="true"':''} ${!ready||diagBatch?'disabled':''}>模拟检测当前网站 →</button>
         <button type="button" class="ap-button" data-action="diag-view" data-id="proxy">排查代理设置</button></div>
         ${hint?`<p class="nd-interactive-note">${esc(hint)}</p>`:''}
       </article>
       <article class="nd-panel">
-        <div class="nd-between"><span class="nd-eyebrow">02 / AI PRIORITY</span><span class="nd-pill">${favorites.length} 个 AI 网站</span></div>
+        <div class="nd-between"><span class="nd-eyebrow">常用 AI 网站</span><span class="nd-pill">${favorites.length} 个 AI 网站</span></div>
         <h3>常用 AI 工具快速检查</h3><p class="nd-subtitle">检测网站响应，不冒充登录成功或模型调用正常。</p>
         <div class="nd-quick">${favorites.slice(0,3).map(x=>`<div class="nd-quick-item"><span class="r3-site-icon" aria-hidden="true">${esc(x.name[0])}</span><span><strong>${esc(x.name)}</strong><small>${esc(diagnosticRecord(x.id)?diagnosticOutcomes()[diagnosticRecord(x.id).kind][0]:'尚未检测')}</small></span></div>`).join('')||'<p class="nd-subtitle">还未收藏任何网站。</p>'}</div>
-        <div class="nd-actions"><button type="button" class="ap-button ap-primary" data-action="diag-all" ${!ready||diagBatch||!favorites.length?'disabled':''}>模拟检测已收藏 ${Math.min(favorites.length,10)} 项 →</button>
-          <button type="button" class="ap-link" data-action="diag-view" data-id="ai">查看全部</button></div>
+        <div class="nd-actions"><button type="button" class="ap-button ap-primary" data-action="diag-all" ${diagBatch?'aria-busy="true"':''} ${!ready||diagBatch||!favorites.length?'disabled':''}>模拟检测已收藏 ${Math.min(favorites.length,10)} 项 →</button>
+          <button type="button" class="ap-button ap-secondary" data-action="diag-view" data-id="ai">查看全部 →</button></div>
         ${hint?`<p class="nd-interactive-note">${esc(hint)}</p>`:''}
         ${diagBatch?`<div class="r3-progress" role="status">模拟检测 ${diagBatch.index} / ${diagBatch.ids.length} <button type="button" class="ap-link" data-action="diag-cancel">取消</button></div>`:''}
       </article>
     </div>
     <div class="nd-shortcuts">
-      <article class="nd-shortcut"><div class="nd-shortcut-icon" aria-hidden="true">☆</div><div class="nd-shortcut-info"><span class="nd-eyebrow">MY PRIORITIES</span><h3>我的关键网站</h3><p>Top 5 / Top 10 · ${favorites.length} 个主动收藏</p></div><button type="button" class="ap-button" data-action="diag-view" data-id="top">查看 →</button></article>
-      <article class="nd-shortcut"><div class="nd-shortcut-icon" aria-hidden="true">↗</div><div class="nd-shortcut-info"><span class="nd-eyebrow">SPEED & STABILITY</span><h3>速度与线路质量</h3><p>HTTP 耗时 ${esc(s.diagSpeed.latency||'未测')} · 下载 ${esc(s.diagSpeed.download||'未测')}</p></div><button type="button" class="ap-button" data-action="diag-view" data-id="speed">测试 →</button></article>
+      <article class="nd-shortcut"><div class="nd-shortcut-icon" aria-hidden="true">☆</div><div class="nd-shortcut-info"><span class="nd-eyebrow">我的收藏</span><h3>我的关键网站</h3><p>Top 5 / Top 10 · ${favorites.length} 个主动收藏</p></div><button type="button" class="ap-button" data-action="diag-view" data-id="top">查看 →</button></article>
+      <article class="nd-shortcut"><div class="nd-shortcut-icon" aria-hidden="true">↗</div><div class="nd-shortcut-info"><span class="nd-eyebrow">测速与稳定性</span><h3>速度与线路质量</h3><p>HTTP 耗时 ${esc(s.diagSpeed.latency||'未测')} · 下载 ${esc(s.diagSpeed.download||'未测')}</p></div><button type="button" class="ap-button" data-action="diag-view" data-id="speed">测试 →</button></article>
     </div>
     <p class="nd-footnote">已演示检查 ${completed}/${favorites.length} 个收藏网站。真实网络状态未知，当前证据不足以推荐最快线路。切换代理后旧诊断会失效。</p>
   </div>`;
@@ -526,7 +548,7 @@ function diagnosticSitesPanel(){
   return `<div class="r3-panel-heading"><div><h3>常用 AI 网站</h3><p>勾选重要网站；HTTP 返回、CORS、账号与模型功能分层解读。</p></div><span class="ap-tag">模拟 · 不访问网络</span></div>
     <div class="r3-testbar">
       <label class="ap-field"><span class="ap-label">下次模拟结果</span><select id="diagOutcome" class="ap-select">${Object.entries(outcomes).map(([kind,v])=>`<option value="${kind}" ${s.diagOutcome===kind?'selected':''}>${esc(v[0])}</option>`).join('')}</select></label>
-      <button type="button" class="ap-button ap-primary" data-action="diag-all" ${!ready||diagBatch||!favorites.length?'disabled':''}>检测全部已收藏</button>
+      <button type="button" class="ap-button ap-primary" data-action="diag-all" ${diagBatch?'aria-busy="true"':''} ${!ready||diagBatch||!favorites.length?'disabled':''}>检测全部已收藏</button>
       <button type="button" class="ap-button" data-action="diag-cancel" ${!diagBatch?'disabled':''}>取消</button>
     </div>
     ${!ready?`<p class="nd-interactive-note">${esc(diagnosticMessage())}</p>`:''}
@@ -544,7 +566,7 @@ function diagnosticSitesPanel(){
 }
 function diagnosticTopPanel(){
   const favorites=s.diagSites.filter(x=>x.selected).sort((a,b)=>b.priority-a.priority||a.name.localeCompare(b.name));
-  return `<div class="r3-panel-heading"><div><span class="nd-eyebrow">MY IMPORTANT SITES</span><h3>我的关键网站</h3><p>只有用户主动收藏才会在这里出现，不把访问次数误当成重要性。</p></div>
+  return `<div class="r3-panel-heading"><div><span class="nd-eyebrow">我的关键网站</span><h3>我的关键网站</h3><p>只有用户主动收藏才会在这里出现，不把访问次数误当成重要性。</p></div>
     <div class="ap-row ap-wrap"><button type="button" class="ap-button ${s.diagLimit===5?'ap-primary':''}" data-action="diag-top" data-id="5">Top 5</button><button type="button" class="ap-button ${s.diagLimit===10?'ap-primary':''}" data-action="diag-top" data-id="10">Top 10</button></div></div>
     <div class="ap-row ap-between ap-wrap" style="margin:12px 0"><span class="ap-small ap-muted">已收藏 ${favorites.length} 项 · P0 / P1 由你决定</span>
       <button type="button" class="ap-button" data-action="diag-all" ${!diagnosticReady()||diagBatch||!favorites.length?'disabled':''}>模拟检测已收藏网站 →</button></div>
@@ -554,7 +576,7 @@ function diagnosticTopPanel(){
 }
 function diagnosticSpeedPanel(){
   const ready=diagnosticReady();
-  return `<div class="r3-panel-heading"><div><span class="nd-eyebrow">CONTROLLED PERFORMANCE</span><h3>网速与线路质量</h3><p>HTTP 请求耗时与下载吞吐分开呈现，不使用 AI 网站做大文件测速。</p></div><span class="ap-tag">真实传输 0 B</span></div>
+  return `<div class="r3-panel-heading"><div><span class="nd-eyebrow">受控测速</span><h3>网速与线路质量</h3><p>HTTP 请求耗时与下载吞吐分开呈现，不使用 AI 网站做大文件测速。</p></div><span class="ap-tag">真实传输 0 B</span></div>
     <div class="r3-facts nd-speed-metrics">
       <span><small>轻量 HTTP 请求耗时</small><strong>${esc(s.diagSpeed.latency||'未知')}</strong><em>不是 ICMP Ping</em></span>
       <span><small>受控下载近似吞吐</small><strong>${esc(s.diagSpeed.download||'未知')}</strong><em>计划总用量最多 5 MiB</em></span>

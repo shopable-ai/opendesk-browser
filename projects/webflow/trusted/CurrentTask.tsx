@@ -298,7 +298,7 @@ export function WebflowCurrentTask({controller,tasks=[],onSummary=null,onAuthori
    {pendingReview&&<div className="od-surface od-surface--padded od-stack" aria-label="任务范围审核">
     <strong>待批准 · 尚未执行</strong>
     <p className="od-note">{v2Pending?
-     'V2 每条候选必须在可信侧栏独立批准一次，绝不沿用 V1 任务授权，也不会保存长期通配许可。':
+     '首次审阅并批准固定网站、已安装版本和精确参数后，同范围新任务自动运行；参数或版本变化、撤销权限后仍需重新审阅。V2 不继承 V1 授权。':
      options?'现有授权仅限固定输入或尚未批准此任务。可一次允许更换关键词，以后同范围自动执行。':
      '本任务的目标、参数或安装版本尚未获准。请审阅后执行。'}</p>
     <p className="od-body" style={{overflowWrap:'anywhere'}}>目标：{session.pendingAuto.scope.targetUrl}</p>
@@ -315,7 +315,7 @@ export function WebflowCurrentTask({controller,tasks=[],onSummary=null,onAuthori
     {options?<details className="od-disclosure od-disclosure--flat"><summary>高级：仅允许此关键词</summary>
      <p className="od-note">仅保存这组固定输入，并替换旧授权；下次换关键词仍需批准。</p>
      <Button disabled={Boolean(working)} onClick={event=>void command('approve-range',event.nativeEvent)}>批准此精确范围并执行</Button>
-    </details>:<Button variant="primary" disabled={Boolean(working)} onClick={event=>void command('approve-range',event.nativeEvent)}>{chatgptDraftPending?'批准创建未发送的 ChatGPT 草稿':v2Pending?'批准本条 V2 候选并执行一次':'批准此精确范围并执行'}</Button>}
+    </details>:<Button variant="primary" disabled={Boolean(working)} onClick={event=>void command('approve-range',event.nativeEvent)}>{chatgptDraftPending?'批准此草稿范围':v2Pending?'批准此范围并自动执行':'批准此精确范围并执行'}</Button>}
    </div>}
    {(session.actions?.cancel||session.actions?.run||session.actions?.view)&&<div className="od-toolbar" style={{flexWrap:'wrap'}}>
     {session.actions?.cancel&&action('cancel')}{session.actions?.run&&action('run')}{session.actions?.view&&action('view')}</div>}
