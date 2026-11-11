@@ -1015,17 +1015,12 @@ const tabs: {id:Page; name:string; caption:string}[] = [
           <Button type="button" className="proxyIconButton" disabled={busy} onClick={()=>void requestCloseEditor()} title={t('closeProxyEditor')} aria-label={t('closeProxyEditor')}><ProxyIcon name="close"/></Button>
         </header>
         <div className="proxyEditorFields">
-        <p className="hint">{t('proxyEditorIntro')}</p>
+        <p className="hint proxyEditorIntro">{t('proxyEditorIntro')}</p>
+        <FormField id="ep-name" className="proxyNameField" label={t('nameOptional')}>
+          {controlProps=><ClearableInput {...controlProps} fieldLabel={t('name')} maxLength={80} value={proxy.name}
+             onValueChange={name=>setProxy({...proxy,name})} placeholder={t('eGMyLocalProxy')}/>}</FormField>
         <div className="proxyPrimaryFields">
-          <div><label htmlFor="ep-host">{t('host')}</label>
-            <ClearableInput id="ep-host" autoFocus required fieldLabel={t('host')} value={proxy.host}
-               aria-describedby={addressPasteError?'ep-host-error':undefined}
-               onValueChange={host=>{setProxy({...proxy,host});setAddressPasteError(false);}}
-               onPaste={handleProxyPaste} placeholder={t('127001OrProxyExampleCom')}/>
-             <HostQuickPick value={proxy.host} onChoose={host=>{setProxy({...proxy,host});setAddressPasteError(false);}}/>
-             {addressPasteError&&<small id="ep-host-error" className="proxyEntryError" role="alert">{t('proxyPasteUnsupported')}</small>}
-           </div>
-          <div><label htmlFor="ep-scheme">{t('protocol')}</label>
+          <div className="proxySchemeField"><label htmlFor="ep-scheme">{t('protocol')}</label>
             <select id="ep-scheme" value={proxy.scheme}
               onChange={e=>{
                 const scheme=e.target.value as ProxyScheme;
@@ -1037,7 +1032,15 @@ const tabs: {id:Page; name:string; caption:string}[] = [
               <option value="socks4">SOCKS4</option>
               <option value="socks5">SOCKS5</option>
             </select></div>
-          <div><label htmlFor="ep-port">{t('port')}</label>
+          <div className="proxyHostField"><label htmlFor="ep-host">{t('host')}</label>
+            <ClearableInput id="ep-host" autoFocus required fieldLabel={t('host')} value={proxy.host}
+               aria-describedby={addressPasteError?'ep-host-error':undefined}
+               onValueChange={host=>{setProxy({...proxy,host});setAddressPasteError(false);}}
+               onPaste={handleProxyPaste} placeholder={t('127001OrProxyExampleCom')}/>
+             <HostQuickPick value={proxy.host} onChoose={host=>{setProxy({...proxy,host});setAddressPasteError(false);}}/>
+             {addressPasteError&&<small id="ep-host-error" className="proxyEntryError" role="alert">{t('proxyPasteUnsupported')}</small>}
+           </div>
+          <div className="proxyPortField"><label htmlFor="ep-port">{t('port')}</label>
             <ClearableInput id="ep-port" type="number" min={1} max={65535} required fieldLabel={t('port')}
                aria-invalid={proxy.port!==''&&!isValidProxyPort(proxy.port)}
                aria-describedby={proxy.port!==''&&!isValidProxyPort(proxy.port)?'ep-port-error':undefined}
@@ -1046,10 +1049,7 @@ const tabs: {id:Page; name:string; caption:string}[] = [
              {proxy.port!==''&&!isValidProxyPort(proxy.port)&&<small id="ep-port-error" className="proxyEntryError" role="alert">{t('errInvalidPort')}</small>}
            </div>
         </div>
-        <p className="hint">{t('proxyEditorProtocolHelp')}</p>
-        <FormField id="ep-name" className="proxyNameField" label={t('nameOptional')}>
-          {controlProps=><ClearableInput {...controlProps} fieldLabel={t('name')} maxLength={80} value={proxy.name}
-             onValueChange={name=>setProxy({...proxy,name})} placeholder={t('eGMyLocalProxy')}/>}</FormField>
+        <p className="hint proxyEditorProtocolHelp">{t('proxyEditorProtocolHelp')}</p>
         <details className="proxyAuthDetails">
           <summary>{t('proxyEditorAuthOptions')}</summary>
           <p className="notice">{t('apAuthHelp')}</p>
