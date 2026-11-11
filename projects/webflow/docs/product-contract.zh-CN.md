@@ -32,6 +32,16 @@
 - **硬性验收否决：** 业务未成功却通知业务成功；通知扩大原执行权限；通知重复事件导致任务重新执行。源码、Node、可安装包、真实 Chrome、业务接受分层取证，不能相互冒充。
 
 ---
+## 2026-11-11 · R2 同一个 B 的两阶段安全接续（OD-WEBFLOW-CHAT-A-B-A-TASK-BOUNDARY-R2）
+
+**原始用户目标（不变）：** ChatGPT A 指令只触发已安装独立 Task，先在唯一 B 保存未发送草稿，用户在可信 WebFlow 独立批准后复用同一 B 原生提交一次，完成回复后向原 A 回传真实 B URL 与可信结果。WebFlow 负责 A/B 工作流身份，独立 Task 负责网站 DOM/设置，通用 Browser Controller 只负责权限、精确文档、Run/Result 和不可重放副作用。
+
+**本次真正接入的公共能力：** 新增 `controller-retained-continuation.js` 的通用 `assertRetainedControllerContinuation` 与 `controllerMethods.startControllerRun({retainedFrom:{runId,requestId},target:{mode:'borrowed',tabId,frameId:0,documentId,expectedUrl},...})` 可选受审接续参数。仅允许原已安装且未变更版本、SHA、installationId/generation 的同一 Task、同一 Host principal/namespace/浏览器会话继续；必须从原已完成、资源释放、`retain-on-success` 的 owned Run 取出被验证的 `retainedTarget`，匹配 Chrome 当前 tab/document/URL/origin 后，在原 `runs + commandJournal` 准入事务中一次性写入原 Run 的接续占用记录。新的读取/失败/回执未知不开放第二次接续；不会授予执行许可，也没有 ChatGPT DOM 或发送按钮逻辑。
+
+**本轮尚未完成（不可误报）：** 这只是 P1 的 Controller 依赖，不是 WebFlow 已发送。同一 A 的 PREPARE 持久绑定、草稿/账号/profile/SHA 读回、独立 APPROVE_SEND 授权、原 WebFlow 消费者从 owned 切换到上述 borrowed 接续、升级后的不可变 ChatGPT Task 与结果 Adapter、GPT-6/High 真实选择、长输入及 Chrome A→B→A 均须继续落实。现有 0.2.0 不可变、两次运行会创建不同 owned B；不可借通用 Controller 接口跳过原候选批准、来源 A 和副作用 UNKNOWN 规则。刷新/重启后旧浏览器会话未证明能安全接续时仅只读查询和拒绝重发，不得新建 B 代替恢复。
+
+**验收层次：** 新增 `projects/webflow/tests/controller-retained-continuation.test.mjs` 及专门的 CI 入口，但仅记录实际完成的测试回执；SOURCE 为公共基础接线部分完成，NODE_TEST/PACKAGE/CHROME/BUSINESS 需要按版本分别验证，不继承其他 Task 的 PASS。下一个实际开发步骤是由 WebFlow 原消费者 owner 将原 B 工作流身份和独立第二次批准安全传给 Controller，并在新的已审阅 Task 版本中只对原 B 草稿执行单次 Submit。
+
 ## 2026-11-11 · ChatGPT A→B 结果回填最小业务合同（OD-AI-WORKFLOW-BRIDGE）
 
 **用户最终要做的事：** 在原 ChatGPT 聊天 A 要求 Web Flow 创建独立新聊天 B，指定选项时核验真实模型/推理，默认保留草稿；独立批准 send:true 后只点击一次发送；验证 B 的真实持久 URL、用户消息和完整助手回复，最后在来源 A 得到可点击链接和可信执行状态。
