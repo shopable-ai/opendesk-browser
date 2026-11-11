@@ -122,7 +122,7 @@ export async function recoverHostTab({api, storage, session, authority, consumer
 }
 
 export async function createFoundationBroker({api = chrome, ports = new Map(), clock = {now:()=>Date.now()}, indexedDB = globalThis.indexedDB,
-  templateConsumer,downloadEventsAttached=false,onToolUninstalled,withControllerAdmission} = {}) {
+  templateConsumer,downloadEventsAttached=false,onToolUninstalled,withControllerAdmission,readMediaAsset} = {}) {
   // The fixed SW package must never opt back into the legacy Template consumer
   // after its storage methods were eliminated at build time.
   if (!INCLUDE_DORMANT_TEMPLATE_RUNTIME && templateConsumer !== undefined)
@@ -143,7 +143,7 @@ export async function createFoundationBroker({api = chrome, ports = new Map(), c
     if (!port || port.registrationId !== registrationId) return;
     try { port.postMessage({protocol:PROTOCOL,registrationId,event}); } catch { /* The durable facts remain queryable. */ }
   };
-  const authority = createRunAuthority({storage,api,session,entitlement,validatePlan,clock,emitToHost});
+  const authority = createRunAuthority({storage,api,session,entitlement,validatePlan,clock,emitToHost,readMediaAsset});
   const downloads = createDownloadService({storage,api,clock,assertHost:authority.assertHost});
   const sdk = createSdkBroker({authority,storage,api,clock});
   const pageDependencies = createDependencyManager({api,storage,assertHost:authority.assertHost,clock});
