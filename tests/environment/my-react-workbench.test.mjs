@@ -2,6 +2,7 @@ import {createDeveloperView} from '../../src/ui/develop-view.js';
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import {readFile,mkdir,rm} from 'node:fs/promises';
+import {createHash} from 'node:crypto';
 import {build} from 'esbuild';
 import {parseHTML} from 'linkedom';
 import * as React from 'react';
@@ -91,8 +92,12 @@ async function fixture({twoTasks=false,paramsSchema,otherParamsSchema}={}){
       if(['inspectTaskRun','cancelTaskRun'].includes(action)&&state.taskRunRequest)return state.taskRunRequest(action,input);
       if(action==='inspectTaskRun')return null;
       if(action==='listTaskCatalog')return structuredClone({catalog:state.catalog,installed:state.installed});
-      if(action==='importTaskPackage')return {taskId:input.package?.manifest?.taskId||'imported.task',
-        version:input.package?.manifest?.version||'1.0.0'};
+      if(action==='importTaskPackage'){
+        if(state.importConflict)throw Object.assign(Error('immutable version conflict'),{code:'E_REQUEST_CONFLICT'});
+        return {taskId:input.package?.manifest?.taskId||'imported.task',
+          version:input.package?.manifest?.version||'1.0.0',stage:state.importDuplicate?'available':'candidate',
+          manifestHash:state.importDuplicate?'a'.repeat(64):'c'.repeat(64)};
+      }
       if(action==='listSchedules')return {schedules:structuredClone(state.plans)};
       if(action==='resolveInstalledTask')return {...structuredClone(installed),manifest,manifestHash,sourceHash,contentHash:sourceHash,
         revision:1,generation:state.changeResolved?2:1};
@@ -1074,6 +1079,48 @@ test('R1 task package reaches only the existing Host candidate importer, not ins
       preventDefault(){},stopPropagation(){}});
     assert.equal(f.state.calls.filter(x=>x.action==='importTaskPackage').length,1);
     assert.match(f.view.field('task-add-status').text,/待验证任务/);
+    assert.equal(f.state.starts.length,0);
+    assert.equal(f.state.calls.filter(x=>/install|runTask/.test(x.action)).length,0);
+  }finally{f.dispose();}
+});
+
+test('R1 valid Program Draft goes to the original authoring route and catalog JS uses same Host bridge',async()=>{
+  const f=await fixture();
+  try{
+    const source='async function main(){ return 1; }';
+    const sha=createHash('sha256').update(source).digest('hex');
+    const draft={format:'opendesk.program-draft.v1',
+      project:{id:'import.example',version:'1.0.0',entry:'main.js'},
+      runtimeKind:'controller',
+      build:{mode:'development',sourceHash:sha,byteLength:Buffer.byteLength(source)},
+      sourceUtf8:source,authoring:{files:[{path:'main.js',sourceUtf8:source,sha256:sha}]}};
+    await f.view.actions.taskFileDrop('add',{
+      dataTransfer:{types:['Files'],files:[importFixtureFile('authoring.json',JSON.stringify(draft))]},
+      preventDefault(){},stopPropagation(){}});
+    assert.match(f.view.field('task-add-status').text,/未保存草稿/);
+    assert.equal(f.state.calls.filter(x=>x.action==='importTaskPackage').length,0);
+    f.workbench.showCatalogPage();await tick();await tick();
+    await f.view.actions.taskFileDrop('catalog',{
+      dataTransfer:{types:['Files'],files:[importFixtureFile('catalog.js',source)]},
+      preventDefault(){},stopPropagation(){}});
+    assert.match(f.view.field('task-catalog-status').text,/同窗口.*未保存草稿/);
+    assert.equal(f.state.starts.length,0);
+  }finally{f.dispose();}
+});
+
+test('R1 existing immutable Task version reports idempotent duplicate or actionable conflict',async()=>{
+  const f=await fixture();
+  try{
+    const body=JSON.stringify({format:'opendesk.task-package.v1',
+      manifest:{taskId:'imported.task',version:'1.0.0'}});
+    const event=()=>({dataTransfer:{types:['Files'],files:[importFixtureFile('same.json',body)]},
+      preventDefault(){},stopPropagation(){}});
+    f.state.importDuplicate=true;
+    await f.view.actions.taskFileDrop('add',event());
+    assert.match(f.view.field('task-add-status').text,/同一固定版本已存在/);
+    f.state.importConflict=true;
+    await f.view.actions.taskFileDrop('add',event());
+    assert.match(f.view.field('task-add-status').text,/不能覆盖/);
     assert.equal(f.state.starts.length,0);
     assert.equal(f.state.calls.filter(x=>/install|runTask/.test(x.action)).length,0);
   }finally{f.dispose();}
