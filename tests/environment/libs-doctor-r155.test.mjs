@@ -21,6 +21,8 @@ test('R15.5 doctor differentiates source, package and actual Chrome acceptance',
   assert.equal(lodash.apiCoverage,'8-method subset');
   assert.equal(report.policy.expectedSwHardBytes,2*1024*1024);
   assert.equal(report.policy.configuredSwHardBytes,BUILD_POLICY.serviceWorkerProductionBytes);
+  assert.equal(report.policy.expectedDevelopmentSwHardBytes,8*1024*1024);
+  assert.equal(report.policy.configuredDevelopmentSwHardBytes,BUILD_POLICY.developmentBytes);
   assert.equal(report.policy.status,'PASS');
   assert.equal(report.runtime,'RUNTIME_UNVERIFIED');
   assert.equal(report.native,'NATIVE_UNVERIFIED');
@@ -69,7 +71,7 @@ test('R15.5 doctor accepts only approved development maps and rejects symlink re
 test('R15.5 diagnostic PACKAGE_PASS cannot accept an oversized shipped SW',()=>{
   // Pin the approved limit independently: exact boundary passes, +1 fails.
   for(const mode of ['production','development']){
-    const limit=2*1024*1024;
+    const limit=(mode==='production'?2:8)*1024*1024;
     assert.equal(verifyShippedSwBudget(mode,limit).budgetBytes,limit);
     assert.throws(()=>verifyShippedSwBudget(mode,limit+1),
       new RegExp('exceeds '+mode+' byte budget'));

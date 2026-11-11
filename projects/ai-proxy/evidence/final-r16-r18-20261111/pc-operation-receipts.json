@@ -1,0 +1,110 @@
+{
+  "browser": "ego lite",
+  "extensionId": "ccfcjegpkdlgbclopjmadlcjedelidmf",
+  "testOnlyName": "UI-20261111-AIProxy-PC",
+  "actions": [
+    {
+      "action": "add, save, reload",
+      "status": "PASS",
+      "readBack": {
+        "name": "UI-20261111-AIProxy-PC",
+        "scheme": "http",
+        "host": "192.0.2.10",
+        "port": 18080
+      },
+      "receipt": "代理配置已保存，未自动应用。"
+    },
+    {
+      "action": "edit, save, reload",
+      "status": "PASS",
+      "readBack": {
+        "name": "UI-20261111-AIProxy-PC-EDITED",
+        "scheme": "http",
+        "host": "192.0.2.11",
+        "port": 18081
+      }
+    },
+    {
+      "action": "switch foreground away and back with open editor",
+      "status": "PASS",
+      "readBack": {
+        "name": "UI-20261111-DRAFT-ONLY",
+        "host": "192.0.2.11"
+      }
+    },
+    {
+      "action": "save invalid port 0",
+      "status": "PASS",
+      "error": "端口必须在 1–65535",
+      "editorOpen": true,
+      "successNotice": null
+    },
+    {
+      "action": "cancel discard editor draft",
+      "status": "PASS",
+      "readBack": {
+        "name": "UI-20261111-DRAFT-ONLY",
+        "port": "0"
+      },
+      "successNotice": null
+    },
+    {
+      "action": "refresh status with unsaved rule form",
+      "status": "PASS",
+      "readBack": {
+        "domain": "unsaved-ui.example"
+      },
+      "savedRule": false
+    },
+    {
+      "action": "discard test-only proxy/rule drafts",
+      "status": "PASS",
+      "persisted": false
+    },
+    {
+      "action": "cancel delete, reload",
+      "status": "PASS",
+      "readBack": {
+        "name": "UI-20261111-AIProxy-PC-EDITED",
+        "host": "192.0.2.11",
+        "port": 18081
+      },
+      "successNotice": null
+    },
+    {
+      "action": "confirm delete, reload",
+      "status": "PASS",
+      "recordCount": 0,
+      "testNamePresent": false,
+      "receipt": "代理配置已删除。"
+    },
+    {
+      "action": "scroll profiles then click navigation",
+      "status": "PASS",
+      "navTop": 74,
+      "headerBottom": 72.59375,
+      "temporaryStyle": false
+    },
+    {
+      "action": "Side Panel GET_STATE read",
+      "status": "PASS_DOM_ONLY",
+      "contextType": "SIDE_PANEL",
+      "testRecordRead": true,
+      "afterScriptedFocusRecordRemoved": true,
+      "viewport": [
+        0,
+        0
+      ],
+      "visual": "NOT_TESTED"
+    },
+    {
+      "action": "daily Chrome original page",
+      "status": "NOT_TESTED",
+      "reason": "Chrome URL security policy rejects chrome-extension scheme; no workaround attempted"
+    }
+  ],
+  "proxyApplyClicked": false,
+  "proxyStopClicked": false,
+  "finalProxyStatus": "尚未管理浏览器代理",
+  "finalTestRecords": 0
+}

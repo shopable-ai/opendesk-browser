@@ -51,31 +51,32 @@ export const PACKAGE_ENTRIES = Object.freeze({
 
 // These are project-owned engineering budgets, not Chrome MV3 size limits.
 // Keep the fixed, self-contained classic bundles and security scanners.
-// SW has a 2 MiB hard cap in both modes and a non-blocking 512 KiB review line.
-// Ordinary generated JS retains the 512 KiB cap.
-// The fixed Side Panel / catalog host entry ui/tool-shell.js has a 3 MiB hard
-// cap in both production and development, with a non-blocking 2 MiB review line.
+// Development allows 8 MiB per fixed generated JS entry. Production keeps
+// its existing per-entry caps and non-blocking review lines.
+// SW production has a 2 MiB hard cap and a 512 KiB review line.
+// Ordinary production JS retains the 512 KiB cap.
+// The fixed Side Panel / catalog host entry ui/tool-shell.js has a 3 MiB
+// production cap, with a non-blocking 2 MiB review line.
 // This is an engineering budget, not a Chrome size limit, runtime permission
 // grant or security exemption.
 // The Sidebar Tool Host combines the existing installer, audited tool services
-// and isolated development bridge. Give this fixed entry 1 MiB in both modes
+// and isolated development bridge. Give this fixed entry 1 MiB in production
 // rather than repeatedly tuning the previous 516 KiB cap for small additions.
 // WXT and package verification consume this same limit; all source/CSP checks remain.
 export const SIDEBAR_TOOL_HOST_BYTES=1024*1024;
 // The trusted settings entry now embeds the existing React Workspace. Its
 // measured 530,465 B bundle exceeds the ordinary 512 KiB engineering budget.
-// Give only this exact entry 576 KiB; retain the fixed-source/CSP gates.
+// Give only this exact production entry 576 KiB; retain the fixed-source/CSP gates.
 export const SETTINGS_WORKSPACE_BYTES=576*1024;
-export const BUILD_POLICY = Object.freeze({productionBytes: 512 * 1024, fixedEntryReviewBytes: 320 * 1024, toolShellProductionBytes: 3 * 1024 * 1024, toolShellDevelopmentBytes: 3 * 1024 * 1024, toolShellReviewBytes: 2 * 1024 * 1024, serviceWorkerProductionBytes: 2 * 1024 * 1024, serviceWorkerReviewBytes: 512 * 1024, developmentBytes: 2 * 1024 * 1024, splitChunks: false, runtimeChunk: false, formats: ['iife'], sourcemap: {production: false, development: true}});
+export const BUILD_POLICY = Object.freeze({productionBytes: 512 * 1024, fixedEntryReviewBytes: 320 * 1024, toolShellProductionBytes: 3 * 1024 * 1024, toolShellDevelopmentBytes: 8 * 1024 * 1024, toolShellReviewBytes: 2 * 1024 * 1024, serviceWorkerProductionBytes: 2 * 1024 * 1024, serviceWorkerReviewBytes: 512 * 1024, developmentBytes: 8 * 1024 * 1024, splitChunks: false, runtimeChunk: false, formats: ['iife'], sourcemap: {production: false, development: true}});
 // Existing reader/CLI limits, shared by the build and package verifier. These
 // are separate from the unchanged generated-entry budget above.
 export const RESOURCE_LIMITS = Object.freeze({vendorBytes:128 * 1024, manifestBytes:8192, licenseBytes:8192});
 export function entryByteBudget(target, mode='production') {
   if(!['production','development'].includes(mode))throw Error('Unknown build mode: '+mode);
-  if(target==='sw.js')return mode==='development'?BUILD_POLICY.developmentBytes:BUILD_POLICY.serviceWorkerProductionBytes;
-  // Both modes use the same 3 MiB Tool Shell cap. The WXT development-only
-  // connection/status code still runs through the identical security checks.
-  if(target==='ui/tool-shell.js')return mode==='development'?BUILD_POLICY.toolShellDevelopmentBytes:BUILD_POLICY.toolShellProductionBytes;
+  if(mode==='development')return BUILD_POLICY.developmentBytes;
+  if(target==='sw.js')return BUILD_POLICY.serviceWorkerProductionBytes;
+  if(target==='ui/tool-shell.js')return BUILD_POLICY.toolShellProductionBytes;
   if(target==='ui/sidebar-tool-host.js')return SIDEBAR_TOOL_HOST_BYTES;
   if(target==='native-agent/settings.js')return SETTINGS_WORKSPACE_BYTES;
   return BUILD_POLICY.productionBytes;

@@ -452,7 +452,7 @@ Host→app 复用 `navigation-action`，root 的 `opendesk-tool-navigation` 新 
 | `storage.local` | `storage.set`：`{key,value,ifMatch?}` | `{saved:true}`；若提供 `ifMatch`，按相同工具 Web Lock 下的 ETag 防冲突写入 |
 | `currentPage.read` | `currentPage.info` | `{status:'available',title,url}` 或 `{status:'unavailable',message}`；只提供当前目标标题/URL |
 | `tasks.open` | `tasks.open`：`{taskId}` | 已安装（含停用）任务聚焦原「我的」管理；未安装则打开原全页任务目录，优先预选同 taskId 最新可用固定候选，否则预选其最新待审阅候选；无候选时提示导入/初始化并可恢复。不接受 URL，不隐式安装、启用、运行或停止任务 |
-| `tasks.open` + v2 固定 `delegatedTasks` | `tasks.configure`：`{taskId}` | **UI-only**：仅针对当前工具已审阅、真实安装且启用、固定版本与 hash 完全匹配的 Task。可信 Host 必须在接收原始 iframe 点击消息时取得用户激活，重核工具包/撤权代次和 Task 身份，然后在**原 React Root** 打开共享 `TaskRunSheet`；不跳转「我的」、不销毁工具 iframe、不接受代码/参数/目标 URL、**不启动 RunHost**，成功仅返回 `{opened:true}`。Web Flow 模式的参数保存、读回、最终确认另走 TaskWorkbench 可信检查。 |
+| `tasks.open` + `tasks.run` | `tasks.configure`：`{task,preparationId?}` | **UI-only**：`task` 为下节 `tasks.read` 的完整六字段安装 pin，仅限当前工具已审阅 delegatedTasks 中真实安装且启用、固定版本与 hash 完全匹配的 Task。真实点击/键盘动作经 Bridge 私有端口，可信 Host 在接收原始 iframe 消息时取得用户激活，重核工具包/撤权代次和 Task 身份，在**原 React Root** 打开当前宿主唯一可信 TaskRunSheet，返回 `{opened:true}`；不导航、不卸载 iframe、不创建 Run、不启动 RunHost。可选 `preparationId` 只定位原准备记录；不接收源码、参数、URL 或目标身份。Web Flow 模式的参数保存、读回和最终确认另走 TaskWorkbench 可信检查 |
 | `user.export` | `browser.clipboard.writeText`：`{text}` | 环境允许时复制纯文本，成功返回 `{copied:true}` |
 | `user.export` | `browser.downloads.text`：`{text,filename}` | 请求 Chrome 下载安全文件名的 `.md` / `.txt` / `.json` / `.csv` 纯文本；返回 `{started:true}` 仅表示下载已发起，不证明真实落盘 |
 
@@ -483,10 +483,20 @@ App 在 `tool.config.json` 声明 `format: "opendesk.sidebar-tool.v2"`、capabil
 
 | `OpenDeskTool.request` operation | 精确 payload | 返回 |
 | --- | --- | --- |
-| `tasks.read` | `{taskId}` | `{task: {taskId,version,manifestHash,contentHash,installationId,generation}}`，仅解析已审阅的固定 Task，不返回源码 |
+| `tasks.read` | `{taskId}` | `{task: {taskId,version,manifestHash,contentHash,installationId,generation},manifest,runtimeCurrent,preparations}`，仅解析已审阅且启用的固定 Task；manifest 提供真实参数 Schema、网站和标题，不返回源码。`runtimeCurrent:false` 可查看配置，不续期安装/验证；保存准备及执行仍须当前运行时验证通过 |
 | `tasks.start` | `{clientRequestId,task,params}` | 下述运行快照；`task` 必须使用 metadata 返回的完整安装 pin |
 | `tasks.read` | `{clientRequestId}` | 同一 App iframe 请求对应的运行快照 |
 | `tasks.stop` | `{clientRequestId}` | 取消/停止原请求，返回快照；不接受 `runId` 或任意目标 |
+
+`tasks.configure` 必须在当前真实点击或键盘事件回调中同步调用；合成事件、普通 window.postMessage 或已消耗的手势均不支持。Host 复核当前工具包、授权代次与精确任务 pin，打开后由可信 TaskWorkbench 解析当前安装身份。工具保持挂载，不能通过沙箱操纵可信表单。抽屉中“保存并核对”在原 Authority commandJournal 持久保存并读回同一准备身份，尚不执行；“确认执行一次”需要第二次可信点击，再核对安装、参数、权限和目标文档，经原 RunHost 消费准备身份至多一次。刷新恢复、未知结果仅查询或停止，不由工具再调用 `tasks.start`。工具及任务撤权、旧 Web Flow 未核清请求继续阻止新执行。
+
+metadata 的 `preparations` 是原 Authority commandJournal 的只读定位投影，按创建时间倒序最多 100 条；每条仅含 `{preparationId,task,state,runId,resultId,settled}`，其中 `task` 为相同完整六字段 pin，尚未准入的 Run/Result ID 可为空。不包含参数、目标网页、源码、Result 或解码后的 value。列表限当前受审 App 的 `appId/packageHash/generation`、精确 Task 安装 pin，以及当前 Host 的 namespace/principal；新 iframe 可重新发现同包同代次记录，不能用本地缓存或其他工具的 ID 冒领。metadata 读取不打开抽屉，也不执行任务。
+
+`tasks.configure` 的可选 `preparationId` 仅接受 1–80 位英文字母、数字、点、下划线、冒号、连字符。Host 在当前 App/Task 的 Authority 列表中核对该 ID，再由可信工作台恢复同一记录；缺失、其他工具/Task、安装 pin 不匹配均拒绝，不回退成新配置。payload 不允许额外的 `appId/binding/runId/params/target`。异步查询前后均复核安装、停用/撤权代次和当前 iframe；旧包、旧代次或卸载后的工具不能靠恢复入口取得权限。Task 更新、重装或撤权不继承旧执行许可；可信工作台中已定位的原记录仍保留，安装不可用时参数只读，仅可核对或取消/停止原请求，实际操作仍走原 Authority 检查。
+
+`settled` 与结果披露独立：未提交准备明确取消后可为 `true`；已准入请求则须原准备与原 Run/Result 身份关联一致、持久终态结果匹配且资源 `released`，才为 `true`。它不代表 `outcome.ok`、网页业务成功或结果可见。结果因权限/文档变化被拒绝披露时，可信查询可保留 `settled:true` 而不返回结果；UI 应显示“已结算，结果当前不可见”，不能据此补跑。反之，结果可见、全局 slot 空闲、停止 ACK 或本地 completed/released 缓存都不能替代 Authority 结算。未结算记录继续阻止新准入，恢复只核对同一原请求；已结算后须关闭原记录并以新意图打开配置。
+
+实现与定向测试覆盖见 [Host 私有手势与恢复](../../tests/environment/sidebar-tools-host.test.mjs)、[准备、结算与结果披露](../../tests/environment/task-run-preparation.test.mjs)、[可信工作台恢复](../../tests/environment/task-workbench.test.mjs)。这是当前源码/测试覆盖范围；同候选真实浏览器验证仍在进行，Chrome、安装生效和业务链不据此标为 PASS，95+ 未验证。
 
 `clientRequestId` 由 App 在发起 start 前生成，仅允许英文字母、数字、点、下划线、冒号、连字符，长度 1–80。同一 iframe 内不得将同 ID 用于另一请求；提前 Stop 留下取消标记，晚到的 start 不会重新运行。`params` 须符合 Task 自己的 schema，canonical JSON ≤8,192 UTF-8 bytes、深度 ≤12；例如固定采集 Task 可接收 primitive 字段 `{url,configJson,waitForSelector,timeoutMs}`。
 

@@ -170,16 +170,16 @@ test('SW review at 512 KiB is non-blocking and 2 MiB hard cap blocks +1 byte',()
   setBytes(BUILD_POLICY.serviceWorkerProductionBytes+1);
   assert.throws(()=>summarizeFixedEntries(f.receipt,f.measured),/exceeds configured/);
 });
-test('fixed UI host budgets apply only to their exact outputs in both modes',()=>{
+test('production UI host budgets remain exact and development entries share 8 MiB',()=>{
   assert.equal(entryByteBudget('ui/tool-shell.js','production'),3*1024*1024);
-  assert.equal(entryByteBudget('ui/tool-shell.js','development'),3*1024*1024);
+  assert.equal(entryByteBudget('ui/tool-shell.js','development'),8*1024*1024);
   assert.equal(entryByteBudget('sw.js','production'),2*1024*1024);
-  assert.equal(entryByteBudget('sw.js','development'),2*1024*1024);
+  assert.equal(entryByteBudget('sw.js','development'),8*1024*1024);
   assert.equal(entryByteBudget('ui/sidebar-tool-host.js','production'),1024*1024);
-  assert.equal(entryByteBudget('ui/sidebar-tool-host.js','development'),1024*1024);
+  assert.equal(entryByteBudget('ui/sidebar-tool-host.js','development'),8*1024*1024);
   for(const target of ['agents/page-relay.js','libs/packages/axios.js','ui/sidebar-tool-host-copy.js']){
     assert.equal(entryByteBudget(target,'production'),512*1024);
-    assert.equal(entryByteBudget(target,'development'),512*1024);
+    assert.equal(entryByteBudget(target,'development'),8*1024*1024);
   }
   assert.throws(()=>entryByteBudget('ui/tool-shell.js','unknown'),/Unknown build mode/);
 });
@@ -232,17 +232,23 @@ test('other fixed entries still receive 320 KiB review and fail closed above 512
   setBytes(BUILD_POLICY.productionBytes+1);
   assert.throws(()=>summarizeFixedEntries(f.receipt,f.measured),/exceeds configured/);
 });
-test('development distinguishes SW budget and source maps from executable code',()=>{
+test('development reports an 8 MiB cap per entry and excludes source maps from that cap',()=>{
   const f=packageFixture();f.receipt.mode='development';
-  f.measured['sw.js'].bytes=400000;
-  f.receipt.report.files.find(row=>row.path==='sw.js').bytes=400000;
-  f.receipt.bundleModules.find(row=>row.target==='sw.js').bytes=400000;
-  f.measured['sw.js.map']={bytes:500000,sha256:digest};
+  const limit=8*1024*1024;
+  for(const path of ['sw.js','ui/tool-shell.js','ui/sidebar-tool-host.js','native-agent/settings.js','agents/health.js']){
+    f.measured[path].bytes=limit;
+    f.receipt.report.files.find(row=>row.path===path).bytes=limit;
+    f.receipt.bundleModules.find(row=>row.target===path).bytes=limit;
+  }
+  f.measured['sw.js.map']={bytes:16*1024*1024,sha256:digest};
   f.receipt.report.files.push({path:'sw.js.map',...f.measured['sw.js.map']});
   const report=summarizePackageResources(f.receipt,f.measured);
-  assert.equal(report.entries.find(row=>row.path==='sw.js').budgetBytes,2*1024*1024);
-  assert.equal(report.entries.find(row=>row.path==='ui/tool-shell.js').budgetBytes,3*1024*1024);
-  assert.equal(report.sourceMapBytes,500000);
+  for(const row of report.entries)assert.equal(row.budgetBytes,limit,row.path);
+  assert.equal(report.sourceMapBytes,16*1024*1024);
+  f.measured['agents/health.js'].bytes++;
+  f.receipt.report.files.find(row=>row.path==='agents/health.js').bytes++;
+  f.receipt.bundleModules.find(row=>row.target==='agents/health.js').bytes++;
+  assert.throws(()=>summarizePackageResources(f.receipt,f.measured),/exceeds configured byte budget/);
 });
 test('fails closed on missing, duplicated, unmeasured or mismatched fixed entries',()=>{
   const {receipt,measured} = fixture();

@@ -317,5 +317,77 @@
     "fail": 0,
     "skipped": 0,
     "note": "230 文件专项 + 60 原 Task 回归 + 4 来源检查；来源检查包含其他 owner 更新后的集成输入，不把历史复现失败重复计入最终通过数，也不代表 CI/Chrome/Native。"
+  },
+  "localContinuation01a1c9e9": {
+    "date": "2026-11-11",
+    "initialMain": "76f9ceb1f0a5f9348e9df969aabecb85de0f3d2c",
+    "browser": {
+      "name": "ego(lite)",
+      "taskSpace": 81,
+      "extensionId": "ccfcjegpkdlgbclopjmadlcjedelidmf",
+      "freshHomepage": {
+        "url": "https://chatgpt.com/",
+        "nativeComposerObserved": true,
+        "legacyFileProjectNodes": 0,
+        "legacyStopButtons": 0
+      },
+      "bridgeSha256": "ace6601be28a0d8518af83d1476cbc966f61a90726322a40a85e7a3a98f13608",
+      "bridgeMatchesDisk": true,
+      "headlessControlsPresent": true,
+      "reloadScenario": "PASS: native aria-labelled textbox visible, document complete, zero legacy nodes/buttons; initial #prompt-textarea timeout was an outdated selector, not a reproduced product failure.",
+      "messagesSent": 0,
+      "filePermissionsChanged": false,
+      "unknownOperationsReplayed": false,
+      "userControl": "Paused when user took control; explicitly resumed the same TaskSpace 81 after the user selected 继续浏览器复验.",
+      "cleanup": "finish({keep:[]}) completed once; all task-created pages released."
+    },
+    "nativeSectionDefect": {
+      "hashUrl": "native-agent/settings.html#chatgpt-files-controls",
+      "before": "E_OWNER",
+      "plainUrl": "native-agent/settings.html",
+      "plainUrlObservation": "已连接",
+      "cause": "Native optionsSender compared the whole sender URL including an in-document fragment.",
+      "fix": "Ignore fragment while preserving the exact packaged settings URL and existing sender/permission checks.",
+      "source": "src/native-agent/service-worker.js",
+      "tests": "tests/environment/native-agent-bridge.test.mjs",
+      "regressionBefore": {
+        "pass": 0,
+        "fail": 1,
+        "error": "E_OWNER"
+      },
+      "after": {
+        "pass": 50,
+        "fail": 0,
+        "skipped": 0
+      },
+      "syntaxAndDiff": "PASS",
+      "browserAfterFix": {
+        "status": "PASS",
+        "nativeStatus": "已连接",
+        "feedback": "",
+        "headlessControls": true,
+        "transportSha256": "2a18f42a6c969d342c0f1f6442657d09248705121cf921bf539ddacbfdcc6003",
+        "matchesDisk": true
+      }
+    },
+    "development": {
+      "originalWriterPid": 26507,
+      "originalWriterLaterExited": true,
+      "restart": "RUNNING via original npm run dev and output guard",
+      "path": "dist/development",
+      "writerPid": 41134,
+      "service": "127.0.0.1:43119",
+      "revision": "d8ab735ace3918523ea4f86b0008dbc29e3ebcdfadf49ec121830a9ff8eb0d51",
+      "browserObservation": "开发服务已连接 · 构建指纹 d8ab735ace39；保存源码后自动安全更新。",
+      "writerLeftRunning": true
+    },
+    "remaining": "Native file reads/writes, active task lifecycle, Stop/UNKNOWN and production acceptance remain NOT_TESTED.",
+    "artifacts": [
+      "artifacts/webflow-headless-01a1c9e9/page-after.json",
+      "artifacts/webflow-headless-01a1c9e9/runtime-after.json",
+      "artifacts/webflow-headless-01a1c9e9/homepage-after.png",
+      "artifacts/webflow-headless-01a1c9e9/native-after.png"
+    ],
+    "verdict": "CORE_BROWSER_CHECKS_PASS; FULL_FILE_NATIVE_ACCEPTANCE_NOT_TESTED"
   }
 }

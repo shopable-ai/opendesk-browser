@@ -300,7 +300,10 @@ export function createNativeAgentService({api=globalThis.chrome,hostPorts=new Ma
       !sender.incognito&&!sender.tab?.incognito&&
       (!sender.documentLifecycle||sender.documentLifecycle==='active')&&
       (sender.frameId===undefined||sender.frameId===0);
-    const optionsSender=trustedDocument&&sender.url===api.runtime.getURL('native-agent/settings.html');
+    // Section links stay in the same packaged document. Queries and alternate
+    // paths still fail the exact URL comparison; a fragment grants no authority.
+    const optionsSender=trustedDocument&&typeof sender.url==='string'&&
+      sender.url.split('#',1)[0]===api.runtime.getURL('native-agent/settings.html');
     const panelIdentity=trustedDocument?toolDocumentIdentity(
       api.runtime.getURL(SIDEPANEL_DOCUMENT_PATH),sender.url):null;
     // Scheduled runners are never a human-facing authorization surface.

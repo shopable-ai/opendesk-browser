@@ -1,5 +1,5 @@
 import {CONTROLLER_SOURCE_LIMIT,TASK_PACKAGE_LIMIT} from '../source-budgets.js';
-import {assertTaskDelegationApp} from '../tasks/delegation-installation.js';
+import {assertTaskDelegationApp,readTaskDelegationApp} from '../tasks/delegation-installation.js';
 import {assertAppControllerBinding} from '../tasks/app-controller-installation.js';
 import {validateTaskParams} from '../tasks/contract.js';
 import {sameTaskPin,normalizeDelegatedTask} from '../tasks/delegation-contract.js';
@@ -80,7 +80,7 @@ function hasNativeEffect(operation) {
 // Delegate of the unique authority. Every durable fence is ordered by its
 // injected storage transaction; the maps below only correlate live promises.
 export function controllerMethods({storage, api, session, clock, assertHost, currentHost,
-  loadBuiltin=loadBuiltinWorkerSource,emitToHost=async()=>{},cloud,scheduled,readMediaAsset}) {
+  loadBuiltin=loadBuiltinWorkerSource,emitToHost=async()=>{},cloud,scheduled,readMediaAsset,withTaskRunRecovery=work=>work()}) {
   const isolatedTransport=createIsolatedHttpTransport({api});
   const nativeTransport=createNativeHttpTransport({api});
   const pending = new Map(), cancellations = new Map(), navigating = new Map(), boundTargets = new Map(), creatingTabs = new Map();
@@ -237,7 +237,7 @@ export function controllerMethods({storage, api, session, clock, assertHost, cur
     return {...structuredClone(Object.fromEntries(['tag', 'runId', 'state', 'runRevision', 'requestId', 'ownerEpoch', 'cancelSeq', 'identity',
       'target', 'targetQuarantine', 'revision', 'deadlineAt', 'retirementId', 'retirementState', 'resultId', 'terminalReason', 'workerRetired',
       'scriptId', 'contentHash', 'sourceKind', 'networkOrigins','profile','appBinding',
-      'targetDisposition','retainedTarget','retainedFrom','retainedContinuation'].filter(key => run[key] !== undefined).map(key => [key, run[key]]))),
+      'targetDisposition','retainedTarget','retainedFrom','retainedContinuation','taskPreparationId'].filter(key => run[key] !== undefined).map(key => [key, run[key]]))),
       ...(taskInstallation?{taskInstallation}:{})};
   }
   async function snapshotControllerRun(request, sender) {
@@ -259,8 +259,12 @@ export function controllerMethods({storage, api, session, clock, assertHost, cur
       const run=request.runId?runs.find(row=>row.runId===request.runId):
         request.requestId?matches[0]??null:null;
       if(request.runId||request.requestId)invariant(run,CONTROLLER_OWNER_ERROR);
-      const results = (await transaction.all('results')).filter(value=>value.tag==='controller-result' &&
-        value.namespace===namespace(host) && (!run || value.runId===run.runId));
+      const results = (await transaction.all('results')).filter(value=>{
+        const original=runs.find(row=>row.runId===value.runId);
+        return value.tag==='controller-result'&&value.namespace===namespace(host)&&
+          (!run||value.runId===run.runId)&&original?.resultId===value.resultId&&
+          same(original.principal,value.principal)&&original.state===value.state;
+      });
       const ids = new Set((run ? [run] : runs).map(row=>row.runId));
       const downloads = (await transaction.all('downloadReceipts')).filter(row=>row.tag==='attempt' && ids.has(row.attempt.runId))
         .map(({attempt})=>Object.fromEntries(['attemptId','runId','state','downloadId','submissionCount','artifactHash','resourceReleasedAt'].map(key=>[key,attempt[key]])));
@@ -273,7 +277,14 @@ export function controllerMethods({storage, api, session, clock, assertHost, cur
     return withDelegatedResultLocks(deliveryRuns.filter(run=>resultRuns.has(run.runId)),async()=>{
       const denied = new Set();
       for (const run of deliveryRuns) {
-        try { invariant(!run.resultDeliveryRevoked,CONTROLLER_PERMISSION_ERROR); await requireRunGrants(run); }
+        try {
+          invariant(!run.resultDeliveryRevoked,CONTROLLER_PERMISSION_ERROR); await requireRunGrants(run);
+          if(run.taskPreparationId&&run.taskDelegation&&resultRuns.has(run.runId)){
+            await verifyControllerTarget({api,target:run.target,expectedUrl:run.selection.expectedUrl,
+              expectedWindowId:run.selection.expectedWindowId});
+            checkFence(run);
+          }
+        }
         catch { denied.add(run.runId); }
       }
       // Native queries are outside the IDB transaction; recheck the durable fence before delivery.
@@ -282,7 +293,7 @@ export function controllerMethods({storage, api, session, clock, assertHost, cur
         for (const run of deliveryRuns) {
           const current=await transaction.get(RUN_STORE,run.runId);
           if(current?.resultDeliveryRevoked)denied.add(run.runId);
-          if(run.taskDelegation){try{await assertRunTaskAuthorization(transaction,current);}catch{denied.add(run.runId);}}
+          if(run.taskDelegation||run.taskPreparationId){try{await assertRunTaskAuthorization(transaction,current);}catch{denied.add(run.runId);}}
         }
       });
       // Cover an event waiting for its durable transaction, without comparing
@@ -403,16 +414,20 @@ export function controllerMethods({storage, api, session, clock, assertHost, cur
     }
     return ready;
   }
-  async function withTaskDelegation(binding,work){
-    if(!binding)return work();
+  async function withAppLifecycleLock(appId,work,lockedAppIds=[]){
+    if(lockedAppIds.includes(appId))return work();
     const locks=globalThis.navigator?.locks;
     invariant(locks?.request,'E_TOOL_LOCK');
-    return locks.request('opendesk.sidebar-tools:tool:'+binding.appId,async()=>{
+    return locks.request('opendesk.sidebar-tools:tool:'+appId,work);
+  }
+  async function withTaskDelegation(binding,work,lockedAppIds=[]){
+    if(!binding)return work();
+    return withAppLifecycleLock(binding.appId,async()=>{
       await assertTaskDelegationApp(api,binding);
       // Installation writers use this same lifecycle lock. The verified binding
       // remains current until work settles; site grants are checked separately.
       return work(binding);
-    });
+    },lockedAppIds);
   }
   async function withDelegatedResultLocks(runs,work){
     // The trusted snapshot is also a result-disclosure route. Order App locks
@@ -666,9 +681,197 @@ export function controllerMethods({storage, api, session, clock, assertHost, cur
     });
   }
 
+  // Shared preparation is a commandJournal fence, never a second Run/runner.
+  const preparationKey = (ns, preparationId) => `task-preparation:${canonical([ns,preparationId])}`;
+  const preparationStartKey = (ns, preparationId) => `task-preparation-start:${canonical([ns,preparationId])}`;
+  function preparationView(row) {
+    return structuredClone(Object.fromEntries(['preparationId','task','params','target','binding','source',
+      'deadlineAt','expiresAt','state','runId','resultId','operationRef'].filter(key=>row[key]!==undefined).map(key=>[key,row[key]])));
+  }
+  async function runDurablySettled(transaction,run){
+    if(!run||run.tag!==CONTROLLER_RUN_TAG||!terminals.has(run.state)||run.retirementState!=='released')return false;
+    const result=await transaction.get('results',run.resultId);
+    return result?.tag==='controller-result'&&result.runId===run.runId&&result.resultId===run.resultId&&
+      result.namespace===run.namespace&&same(result.principal,run.principal)&&result.state===run.state;
+  }
+  async function preparationUnresolved(transaction,row) {
+    if(!row.runId)return row.state!=='cancelled';
+    const run=await transaction.get(RUN_STORE,row.runId);
+    return run?.taskPreparationId!==row.preparationId||run?.resultId!==row.resultId||
+      run?.namespace!==row.namespace||!same(run?.principal,row.principal)||!await runDurablySettled(transaction,run);
+  }
+  async function assertPreparationSlot(transaction,ns,exceptId) {
+    for(const row of await transaction.all(COMMAND_JOURNAL))
+      if(row.tag==='task-run-preparation'&&row.namespace===ns&&row.preparationId!==exceptId)
+        invariant(!await preparationUnresolved(transaction,row),CONTROLLER_OWNER_ERROR,'An unresolved Task preparation owns admission');
+    const slot=await transaction.get(RUN_STORE,'@slot');
+    invariant(!slot?.currentRunId&&!slot?.preview,CONTROLLER_OWNER_ERROR,'Previous execution still owns the single slot');
+    for(const run of await transaction.all(RUN_STORE))
+      if(run.tag===CONTROLLER_RUN_TAG)
+        invariant(await runDurablySettled(transaction,run),CONTROLLER_OWNER_ERROR,
+          'An unsettled or unreleased Controller Run owns admission');
+  }
+  async function verifyRecoveryRecord(row,sender,appId){
+    if(!row||typeof row!=='object'||Array.isArray(row)||typeof row.clientRequestId!=='string')return false;
+    const host=await assertHost(sender);
+    return tx(RUN_READ,async transaction=>{
+      await currentHost(transaction,host,sender);
+      const steps=(await transaction.all(COMMAND_JOURNAL)).filter(step=>step.tag==='task-delegation-step'&&
+        step.appId===appId&&step.clientRequestId===row.clientRequestId&&step.securityPartition===namespace(host)&&
+        same(step.principalRef,host.principal));
+      if(!steps.length)return false;
+      for(const step of steps){
+        if(!step.runId){
+          if(!(step.prepared===true&&step.cancelled===true&&step.state==='cancelled'&&step.admissionCount===0))return false;
+          continue;
+        }
+        const run=await transaction.get(RUN_STORE,step.runId);
+        if(run?.namespace!==namespace(host)||!same(run?.principal,host.principal)||run?.resultId!==step.resultId||
+          run?.taskDelegationStep?.operationRef!==step.operationRef||
+          run?.taskDelegationStep?.clientRequestId!==step.clientRequestId||!await runDurablySettled(transaction,run))return false;
+      }
+      return true;
+    });
+  }
+  const withRecovery=(binding,sender,work)=>withTaskRunRecovery(work,
+    {appId:binding?.appId,verifyRecovery:(row,appId)=>verifyRecoveryRecord(row,sender,appId)});
+  async function withPreparationBinding(binding,work,lockedAppIds=[]) {
+    if(!binding)return work();
+    invariant(!binding.controller,CONTROLLER_SCHEMA_ERROR);
+    // The public binding may omit the redundant installed App tasks list.
+    return withAppLifecycleLock(binding.appId,async()=>{
+      const app=await readTaskDelegationApp(api,binding.appId);
+      const checked={...app,...binding};
+      await assertTaskDelegationApp(api,checked);
+      return work(checked);
+    },lockedAppIds);
+  }
+  async function prepareTaskRun(request,sender) {
+    request=structuredClone(request);
+    fields(request,['preparationId','task','params','target','binding'],['preparationId','task','params','target']);
+    id(request.preparationId);normalizeDelegatedTask(request.task,true);selection(request.target);
+    invariant(request.target.mode==='borrowed',CONTROLLER_SCHEMA_ERROR,'Task preparation requires an exact borrowed target');
+    if(request.binding){
+      normalizeDelegatedTask(request.binding.task,true);
+      invariant(same(request.binding.task,request.task),CONTROLLER_OWNER_ERROR);
+    }
+    await withRecovery(request.binding,sender,(lockedAppIds=[])=>withPreparationBinding(request.binding,()=>withRunAdmissionLock(async()=>{
+      const host=await assertHost(sender),environment=builtinIdentity(await loadBuiltin({runtime:api.runtime}));
+      const observed=await observeControllerTarget({api,...request.target});
+      const fence=nativeFence(request.target.tabId,observed.allowedOrigin,request.target.frameId);
+      const key=preparationKey(namespace(host),request.preparationId);
+      await tx(RUN_WRITE,async transaction=>{
+        await currentHost(transaction,host,sender);
+        const old=await transaction.get(COMMAND_JOURNAL,key);
+        if(old){
+          invariant(!(old.state==='cancelled'&&!old.task),CANCELLED_CODE,'Task preparation was cancelled before saving');
+          invariant(old.tag==='task-run-preparation'&&same(old.principal,host.principal)&&
+            same(old.task,request.task)&&same(old.params,request.params)&&same(old.target,request.target)&&
+            same(old.binding??null,request.binding??null),REQUEST_CONFLICT);
+          return;
+        }
+        await assertPreparationSlot(transaction,namespace(host));
+        const source={kind:'saved',scriptId:`task:${request.task.taskId}:${request.task.version}`,revision:1,contentHash:request.task.contentHash};
+        const installed=await assertInstalledTask(transaction,namespace(host),{...source,origin:observed.allowedOrigin,
+          params:request.params,migrate:true,builtinIdentity:environment,
+          expectedGeneration:request.task.generation,expectedInstallationId:request.task.installationId});
+        invariant(installed.installation.manifestHash===request.task.manifestHash,'E_REVISION');
+        const at=now(),deadlineAt=at+(installed.candidate.package.manifest.deadlineMs??30000);
+        const row={tag:'task-run-preparation',namespace:namespace(host),principal:host.principal,...request,source,
+          builtinIdentity:environment,browserSessionIncarnation:session,nativeFence:fence,observedTarget:observed,
+          createdAt:at,deadlineAt,expiresAt:deadlineAt,state:'prepared',runId:null,resultId:null,operationRef:newId()};
+        await transaction.put(COMMAND_JOURNAL,row,key);
+      });
+      // Read the committed identity back; a lost reply is recovered by inspection.
+    },{allowWithoutLocks:api!==globalThis.chrome}),lockedAppIds));
+    return inspectTaskRun({preparationId:request.preparationId},sender);
+  }
+  async function inspectTaskRun(request={},sender) {
+    fields(request,['preparationId']);
+    if(request.preparationId!==undefined)id(request.preparationId);
+    const host=await assertHost(sender);
+    const row=await tx(RUN_READ,async transaction=>{
+      await currentHost(transaction,host,sender);
+      if(request.preparationId!==undefined){
+        const row=await transaction.get(COMMAND_JOURNAL,preparationKey(namespace(host),request.preparationId));
+        if(!row)return null;
+        invariant(row.tag==='task-run-preparation'&&same(row.principal,host.principal),CONTROLLER_OWNER_ERROR);
+        return row;
+      }
+      const rows=[];
+      for(const row of await transaction.all(COMMAND_JOURNAL))
+        if(row.tag==='task-run-preparation'&&row.namespace===namespace(host)&&
+          await preparationUnresolved(transaction,row))rows.push(row);
+      invariant(rows.length<=1,CONTROLLER_OWNER_ERROR,'Multiple unresolved Task preparations');
+      return rows[0]??null;
+    });
+    if(!row)return {preparation:null,settled:false};
+    const preparation=preparationView(row);
+    if(!row.runId){
+      if(row.state==='prepared'&&row.browserSessionIncarnation!==session)preparation.state='unknown';
+      return {preparation,settled:row.state==='cancelled'};
+    }
+    const settled=await tx(RUN_READ,async transaction=>{
+      await currentHost(transaction,host,sender);
+      return !await preparationUnresolved(transaction,row);
+    });
+    // Reuse original snapshot result-disclosure guards; never transfer Run ownership.
+    let snapshot;
+    try { snapshot=await snapshotControllerRun({runId:row.runId},sender); }
+    catch { return {preparation:{...preparation,state:'unknown'},settled}; }
+    if(snapshot.run?.taskPreparationId!==row.preparationId||snapshot.run?.resultId!==row.resultId)
+      return {preparation:{...preparation,state:'unknown'},settled:false};
+    // A durable running row is not a live Worker proof after transport loss.
+    if(!snapshot.results.length)preparation.state='unknown';
+    return {preparation,settled,
+      snapshot:{...snapshot,runs:snapshot.runs.filter(run=>run.runId===row.runId)}};
+  }
+  // Locators only, scoped to the caller's current reviewed App and exact Task.
+  // Results remain behind inspectTaskRun's original disclosure guards.
+  async function listTaskRunPreparations(request,sender){
+    fields(request,['binding'],['binding']);
+    normalizeDelegatedTask(request.binding?.task,true);
+    return withPreparationBinding(request.binding,async()=>{
+      const host=await assertHost(sender),binding=request.binding;
+      return tx(RUN_READ,async transaction=>{
+        await currentHost(transaction,host,sender);
+        const rows=(await transaction.all(COMMAND_JOURNAL)).filter(row=>row.tag==='task-run-preparation'&&
+          row.namespace===namespace(host)&&same(row.principal,host.principal)&&
+          row.binding?.appId===binding.appId&&row.binding.packageHash===binding.packageHash&&
+          row.binding.generation===binding.generation&&same(row.task,binding.task))
+          .sort((a,b)=>b.createdAt-a.createdAt).slice(0,100);
+        const preparations=[];
+        for(const row of rows)preparations.push({...Object.fromEntries(
+          ['preparationId','task','state','runId','resultId'].map(key=>[key,row[key]])),
+          settled:!await preparationUnresolved(transaction,row)});
+        return {preparations};
+      });
+    });
+  }
+  async function cancelTaskRun(request,sender) {
+    fields(request,['preparationId'],['preparationId']);id(request.preparationId);
+    const host=await assertHost(sender);
+    const row=await tx(RUN_WRITE,async transaction=>{
+      await currentHost(transaction,host,sender);
+      const row=await transaction.get(COMMAND_JOURNAL,preparationKey(namespace(host),request.preparationId))??
+        {tag:'task-run-preparation',namespace:namespace(host),principal:host.principal,
+          preparationId:request.preparationId,state:'cancelled',runId:null,resultId:null,operationRef:newId(),createdAt:now()};
+      invariant(row?.tag==='task-run-preparation'&&same(row.principal,host.principal),CONTROLLER_OWNER_ERROR);
+      if(!row.runId){row.state='cancelled';row.cancelledAt=now();
+        await transaction.put(COMMAND_JOURNAL,row,preparationKey(namespace(host),row.preparationId));}
+      return row;
+    });
+    if(row.runId)await stopControllerRunInternal({runId:row.runId,requestId:`${row.operationRef}:cancel`},sender,row);
+    return inspectTaskRun(request,sender);
+  }
+
   async function startControllerRun(request, sender) {
     request=structuredClone(request);
-    const operation=()=>withTaskDelegation(request?.taskDelegation,()=>startControllerRunDelegated(request,sender));
+    if(request?.taskPreparationId!==undefined)id(request.taskPreparationId);
+    const operation=()=>request?.profile==='app-service'?prepareAppServiceRun(request,sender):
+      withRecovery(request?.taskDelegation,sender,(lockedAppIds=[])=>request?.taskPreparationId?
+        withPreparationBinding(request.taskDelegation,()=>startControllerRunDelegated(request,sender),lockedAppIds):
+        withTaskDelegation(request?.taskDelegation,()=>startControllerRunDelegated(request,sender),lockedAppIds));
     return request?.cloudRequestId&&cloud?.withStartupFailure?
       cloud.withStartupFailure(request,sender,'admission',operation):operation();
   }
@@ -676,7 +879,6 @@ export function controllerMethods({storage, api, session, clock, assertHost, cur
     return withRunAdmissionLock(()=>startControllerRunLocked(request,sender),{allowWithoutLocks:api!==globalThis.chrome});
   }
   async function startControllerRunLocked(request, sender) {
-    if(request?.profile==='app-service')return prepareAppServiceRun(request,sender);
     selection(request.target);
     let changed = false;
     const target = request.target;
@@ -710,7 +912,10 @@ export function controllerMethods({storage, api, session, clock, assertHost, cur
     await requireCloudRunnerSender(api,sender);
     const locks=globalThis.navigator?.locks;
     invariant(locks?.request,'E_TOOL_LOCK');
-    return locks.request('opendesk.sidebar-tools:tool:'+request.appId,()=>locks.request('opendesk.sidebar-tools:catalog',async()=>{
+    // Keep the lifecycle/recovery locks outside admission, including App services,
+    // so the injected recovery adapter never reacquires an App lock we hold.
+    return withRecovery({appId:request.appId},sender,(lockedAppIds=[])=>withAppLifecycleLock(request.appId,()=>
+      locks.request('opendesk.sidebar-tools:catalog',()=>withRunAdmissionLock(async()=>{
       const {tool,binding}=await readAppServiceInstallation(api,request.appId);
       const expectedScheduleOwner=await scheduled.prepareAdmission(request.scheduledFireId,request.expectedScheduleOwner);
       const host=await assertHost(sender),environment=builtinIdentity(await loadBuiltin({runtime:api.runtime}));
@@ -723,6 +928,7 @@ export function controllerMethods({storage, api, session, clock, assertHost, cur
           const run=await owner(transaction,await transaction.get(RUN_STORE,old.runId),host,sender);
           return {runId:run.runId,state:run.state,duplicate:true};
         }
+        await assertPreparationSlot(transaction,namespace(host));
         const slot=await transaction.get(RUN_STORE,'@slot');
         invariant(!slot?.currentRunId&&!slot?.preview,CONTROLLER_OWNER_ERROR,'Previous execution still owns the single slot');
         const fire=await scheduled.admit(transaction,request.scheduledFireId,{...request,expectedScheduleOwner,paramsDecoded:{}},null,now());
@@ -742,13 +948,13 @@ export function controllerMethods({storage, api, session, clock, assertHost, cur
         await scheduled.bind(transaction,fire,run);
         return {...project(run),sourceUtf8:tool.background.js,paramsWire:run.paramsWire};
       });
-    }));
+    },{allowWithoutLocks:api!==globalThis.chrome})),lockedAppIds));
   }
   async function prepareControllerRun(request, sender, assertCandidate) {
     const admissionStartedAt=now();
     // A single admission API supports exact saved revisions and immutable draft
     // snapshots. The original top-level saved request remains compatible.
-    fields(request, ['requestId', 'scriptId', 'revision', 'contentHash', 'source', 'paramsWire', 'target', 'deadlineAt','networkOrigins','expectedTaskGeneration','expectedTaskInstallationId','taskDelegation','taskDelegationStep','cloudRequestId','scheduledFireId','expectedScheduleOwner','retainedFrom'],
+    fields(request, ['requestId', 'scriptId', 'revision', 'contentHash', 'source', 'paramsWire', 'target', 'deadlineAt','networkOrigins','expectedTaskGeneration','expectedTaskInstallationId','taskDelegation','taskDelegationStep','cloudRequestId','scheduledFireId','expectedScheduleOwner','retainedFrom','taskPreparationId'],
       ['requestId', 'paramsWire', 'target', 'deadlineAt']);
     id(request.requestId); selection(request.target); const runParams=decodeValue(request.paramsWire);
     const environment=builtinIdentity(await loadBuiltin({runtime:api.runtime}));
@@ -785,7 +991,8 @@ export function controllerMethods({storage, api, session, clock, assertHost, cur
     if(request.taskDelegation){
       invariant((isInstalledTask||isAppController)&&!request.cloudRequestId&&!request.scheduledFireId,'E_PERMISSION');
       if(!isAppController)normalizeDelegatedTask(request.taskDelegation.task,true);
-      await assertTaskDelegationApp(api,request.taskDelegation);
+      await assertTaskDelegationApp(api,request.taskPreparationId?
+        {...await readTaskDelegationApp(api,request.taskDelegation.appId),...request.taskDelegation}:request.taskDelegation);
     }
     if(request.taskDelegationStep){
       invariant(request.taskDelegation&&!request.cloudRequestId&&!request.scheduledFireId&&
@@ -838,10 +1045,12 @@ export function controllerMethods({storage, api, session, clock, assertHost, cur
     const capturedFence = nativeFence(request.target.tabId, selectedOrigin || observed.allowedOrigin, request.target.frameId ?? 0);
     const expectedScheduleOwner=request.scheduledFireId?
       await scheduled.prepareAdmission(request.scheduledFireId,request.expectedScheduleOwner):undefined;
-    const admissionKey = request.taskDelegationStep ? 'delegated-start:'+request.taskDelegationStep.operationRef :
+    const admissionKey = request.taskPreparationId ? preparationStartKey(namespace(host),request.taskPreparationId) : request.taskDelegationStep ? 'delegated-start:'+request.taskDelegationStep.operationRef :
       request.scheduledFireId ? `scheduled-start:${request.scheduledFireId}` :
       request.cloudRequestId ? `cloud-start:${request.cloudRequestId}` : `controller-start:${canonical([host.registrationId, request.requestId])}`;
     invariant(!request.cloudRequestId || isInstalledTask && request.requestId===request.cloudRequestId && request.target.mode==='owned','E_TASK');
+    const runDelegation=request.taskDelegation&&request.taskPreparationId?
+      {...await readTaskDelegationApp(api,request.taskDelegation.appId),...request.taskDelegation}:request.taskDelegation;
     const admitted = await tx(RUN_WRITE, async transaction => {
       await currentHost(transaction, host, sender);
       assertCandidate();
@@ -880,8 +1089,30 @@ export function controllerMethods({storage, api, session, clock, assertHost, cur
           step.preparedHost?.iframeInstanceId===request.taskDelegation.instanceId&&
           step.preparedHost?.browserSessionIncarnation===session,'E_OWNER');
       }
+      const preparation=request.taskPreparationId?await transaction.get(COMMAND_JOURNAL,
+        preparationKey(namespace(host),request.taskPreparationId)):null;
+      if(request.taskPreparationId){
+        id(request.taskPreparationId);
+        invariant(preparation?.tag==='task-run-preparation'&&same(preparation.principal,host.principal)&&
+          isInstalledTask&&!request.taskDelegationStep&&!request.cloudRequestId&&!request.scheduledFireId&&
+          same(preparation.source,{kind:'saved',scriptId:saved.scriptId,revision:saved.revision,contentHash:saved.contentHash})&&
+          same(preparation.params,runParams)&&same(preparation.target,request.target)&&
+          same(preparation.binding??null,request.taskDelegation??null)&&
+          preparation.deadlineAt===request.deadlineAt&&
+          preparation.task.generation===request.expectedTaskGeneration&&
+          preparation.task.installationId===request.expectedTaskInstallationId&&
+          preparation.task.manifestHash===installedTask.installation.manifestHash,CONTROLLER_OWNER_ERROR,
+          'Task preparation does not match admission');
+        assertBuiltinIdentity(preparation.builtinIdentity,environment);
+      }
       const old = await transaction.get(COMMAND_JOURNAL, admissionKey);
       if (old) {
+        if(preparation){
+          const run=await transaction.get(RUN_STORE,old.runId);
+          invariant(preparation.runId===old.runId&&run?.taskPreparationId===preparation.preparationId&&
+            run.resultId===preparation.resultId,CONTROLLER_OWNER_ERROR);
+          return {run,duplicate:true};
+        }
         if(delegationStepKey){
           invariant(step.runId===old.runId,'E_OWNER');
           const previousRun=await transaction.get(RUN_STORE,old.runId);
@@ -897,6 +1128,13 @@ export function controllerMethods({storage, api, session, clock, assertHost, cur
         assertBuiltinIdentity(run.revision?.builtinIdentity,environment);
         return {run, duplicate: true};
       }
+      if(preparation){
+        invariant(preparation.state==='prepared'&&!preparation.runId,CANCELLED_CODE);
+        invariant(now()<preparation.expiresAt&&preparation.browserSessionIncarnation===session,CONTROLLER_TIMEOUT_ERROR);
+        checkFence({target:preparation.observedTarget,selection:preparation.target,nativeFence:preparation.nativeFence});
+        invariant(same(observed,preparation.observedTarget),DOC_REPLACED);
+      }
+      await assertPreparationSlot(transaction,namespace(host),request.taskPreparationId);
       if(delegationStepKey)invariant(step.state==='prepared'&&!step.cancelled&&
         step.admissionCount===0&&step.maxAdmissions===1,CANCELLED_CODE,
         'Step is cancelled or already committed');
@@ -928,9 +1166,10 @@ export function controllerMethods({storage, api, session, clock, assertHost, cur
           authorization:installedTask.installation.authorization},
           ...(installedTask.candidate.package.manifest.targetDisposition?
             {targetDisposition:installedTask.candidate.package.manifest.targetDisposition}:{})}:{}),
-        ...(request.taskDelegation?{taskDelegation:structuredClone(request.taskDelegation)}:{}),
+        ...(runDelegation?{taskDelegation:structuredClone(runDelegation)}:{}),
         ...(request.taskDelegationStep?{taskDelegationStep:structuredClone(request.taskDelegationStep)}:{}),
         ...(request.retainedFrom?{retainedFrom:structuredClone(request.retainedFrom)}:{}),
+        ...(preparation?{taskPreparationId:preparation.preparationId}:{}),
         ...(scheduledFire?{scheduledFireId:scheduledFire.fireId}:{}),
         opId: newId(), resultId: newId(), requestId: request.requestId, requestDigest, deadlineAt: request.deadlineAt,
         paramsWire: structuredClone(executionParamsWire), selection: structuredClone(request.target),
@@ -967,6 +1206,8 @@ export function controllerMethods({storage, api, session, clock, assertHost, cur
       if(delegationStepKey)await transaction.put(COMMAND_JOURNAL,
         {...step,state:'submitted',runId,resultId:run.resultId,ownerEpoch:run.ownerEpoch,
           admissionCount:1,submittedAt:now()},delegationStepKey);
+      if(preparation)await transaction.put(COMMAND_JOURNAL,{...preparation,state:'submitted',runId,
+        resultId:run.resultId,submittedAt:now()},preparationKey(namespace(host),preparation.preparationId));
       if(scheduledFire)await scheduled.bind(transaction,scheduledFire,run);
       return {run, pinned, duplicate: false};
     }, frozenSource ? stores : [...stores, 'scriptHeads', 'scriptRevisions', ...(isInstalledTask?['frameworkKV']:[])]);
@@ -1371,10 +1612,18 @@ export function controllerMethods({storage, api, session, clock, assertHost, cur
     for (const value of cancellations.values()) if (value.runId === runId) value.abort.abort(new FoundationError(code, code));
   }
   async function stopControllerRun(request, sender) {
+    return stopControllerRunInternal(request,sender);
+  }
+  async function stopControllerRunInternal(request, sender, preparation) {
     fields(request, ['runId', 'requestId', 'expectedRunRevision', 'reason'], ['runId', 'requestId']); id(request.runId); id(request.requestId);
     const host = await assertHost(sender), key = `controller-stop:${canonical([request.runId, request.requestId])}`;
     const answer = await tx(RUN_WRITE, async transaction => {
-      const run = await owner(transaction, await transaction.get(RUN_STORE, request.runId), host, sender);
+      let run=await transaction.get(RUN_STORE,request.runId);
+      if(preparation){
+        await currentHost(transaction,host,sender);
+        invariant(run?.tag===CONTROLLER_RUN_TAG&&run.namespace===namespace(host)&&
+          run.taskPreparationId===preparation.preparationId&&run.resultId===preparation.resultId,CONTROLLER_OWNER_ERROR);
+      }else run=await owner(transaction,run,host,sender);
       const old = await transaction.get(COMMAND_JOURNAL, key);
       if (old) { invariant(old.requestDigest === canonical(request), REQUEST_CONFLICT); return old.response; }
       if (!run.cancelSeq && !terminals.has(run.state) && !run.retirementId) {
@@ -1388,6 +1637,7 @@ export function controllerMethods({storage, api, session, clock, assertHost, cur
     });
     abortOperations(request.runId, request.reason === CONTROLLER_TIMEOUT_ERROR ? CONTROLLER_TIMEOUT_ERROR : CANCELLED_CODE);
     const run = await tx(RUN_READ, transaction => transaction.get(RUN_STORE, request.runId), [RUN_STORE]);
+    await emitToHost(run.registrationId,{type:'controller-fenced',runId:run.runId,reasonCode:run.terminalReason}).catch(()=>{});
     await createControllerDriver({api, clock, authorize: async () => true}).cancel(run).catch(() => {});
     return answer;
   }
@@ -1704,7 +1954,7 @@ export function controllerMethods({storage, api, session, clock, assertHost, cur
     return result;
   }
   return Object.freeze({commitControllerScript, getControllerScript, listControllerScripts, tombstoneControllerScript, garbageCollectControllerScript,
-    prepareDelegatedStep, inspectDelegatedStep, cancelDelegatedStep,
+    prepareDelegatedStep, inspectDelegatedStep, cancelDelegatedStep,prepareTaskRun,inspectTaskRun,cancelTaskRun,listTaskRunPreparations,
     startControllerRun, controllerOperation, stopControllerRun,
     finishControllerRun, snapshotControllerRun, retireControllerTarget, loseControllerHost, invalidateControllerTarget, invalidateAppServices, recoverControllers});
 }

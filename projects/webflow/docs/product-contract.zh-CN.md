@@ -14,6 +14,12 @@
 
 **安全与双阶段：** 打开/编辑不执行；Web Flow 来源先“保存并核对”可信冻结同一准备身份及参数并持久读回，再凭第二次真实用户点击“确认执行一次”通过原唯一可信工作台执行最多一次。「我的」原手动任务行为不回归。原 Web Flow pending/UNKNOWN、单实例排他、权限/目标文档、版本与代次、read/stop、原持久 Run/Result 和资源释放栅栏必须保留，互相防绕过；不能从两条 Run 路径双派发。资源/业务成功分开判定。
 
+**当前源码与恢复边界：** 共享 `TaskRunSheet/MyTaskParams` 已接入唯一可信 React 根，Web Flow ▶ 经公开 UI-only 打开入口保留原 iframe，使用原 TaskWorkbench/RunHost；`tasks.open` 仍只做管理导航。记录页从 metadata 的 Authority 定位投影发现原准备，再经可信抽屉恢复同一记录，不复制参数/结果账本，不补发旧请求。精确 App 包/撤权代次与六字段 Task 安装身份贯穿读取、打开、保存和确认，异步查找期间停用、卸载或撤权均拒绝；可信工作台保留已定位的原记录，安装失效时只读恢复，不继承旧执行许可。
+
+**结算不等于结果或业务成功：** 只采信 Authority 的 `settled`，不以结果是否可见或全局 slot 是否空闲推断；已结算但结果不可披露时显示真实限制，未结算仍保留原请求围栏。旧 Web Flow pending/recent 仅作定位，不能凭缓存的 completed/released 解锁；UNKNOWN 只核对或尝试停止，不重放。公开签名、字段和权限限制仅在[原 Sidebar Tool API](../../../docs/api/sidebar-tools.zh-CN.md#固定已安装-controller-task-委托v2)维护；项目附录只说明消费方式与验收边界。
+
+**证据等级：** 当前已有源码实现与定向测试覆盖，不能再标为仅设计或未实现；覆盖入口见[共享任务运行抽屉专项附录](shared-task-run-sheet.zh-CN.md)。已有测试覆盖不等于最新合并候选定向 Node 已通过；固定编译生效、真实安装、Side Panel/app.html 核心链、Chrome PASS 和 95+ 均未据此确认。最新进度仍由 leader 在原 execution-plan 记录。
+
 **源码核对结论（2026-11-11 更新）：** `tasks.open({taskId})` 仍是管理审阅入口；可信 `tasks.configure` 已作为 UI-only 入口连接唯一 React `TaskRunSheet`，并复用原 TaskWorkbench / RunHost。共享组件提取时曾误将原底部上滑抽屉改成右侧全高；本轮以历史提交 `93dc11a` 的「我的」UI 为基准恢复底部布局与“取消”操作，纠正了两份错误预览。「我的」仍按原手动行为直接运行；Web Flow 独立保留双阶段准备与确认，未新增第二 Runner。**源码已提交，最新定向 Node、真实 Chromium UI、正式扩展构建/安装和 Native 真实运行均不能据此宣称 PASS。** 最新状态见 [执行计划](execution-plan.zh-CN.md)。
 
 ---

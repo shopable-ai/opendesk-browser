@@ -205,11 +205,11 @@ export function initSidebarToolSandbox() {
     catch{try{window[method]=blocked;}catch{/* Browser-level controls still apply. */}}
   }
   const consumeRequestGesture=operation=>{
-    const gesture=(operation==='ai.generate'||operation==='tool.page.open')&&aiKey&&
+    const gesture=(operation==='ai.generate'||operation==='tool.page.open'||operation==='tasks.configure')&&aiKey&&
       apply(currentTargetGetter,aiKey,[])!==null?aiKey:exportClick;
     const clickTimeStamp=gesture&&timeStampGetter?apply(timeStampGetter,gesture,[]):null;
     const direct=exportPort&&!disposed&&timeStampGetter&&
-      (operation==='browser.clipboard.writeText'||operation==='browser.downloads.text'||operation==='localTasks.export'||operation==='ai.generate'||operation==='ai.settings.open'||operation==='tool.page.open')&&
+      (operation==='browser.clipboard.writeText'||operation==='browser.downloads.text'||operation==='localTasks.export'||operation==='ai.generate'||operation==='ai.settings.open'||operation==='tool.page.open'||operation==='tasks.configure')&&
       gesture&&apply(trustedGetter,gesture,[])===true&&
       apply(currentTargetGetter,gesture,[])!==null&&
       finite(clickTimeStamp)&&!apply(setHas,consumedClickTimeStamps,[clickTimeStamp]);
@@ -355,7 +355,10 @@ export function initSidebarToolSandbox() {
   const request=(operation,payload={})=>{
     if(operation==='ui.confirm')return confirmUi(payload);
     if(!instance)return rejected(new NativeError('工具界面尚未就绪'));
-    return sendRequest(operation,payload,consumeRequestGesture(operation));
+    const port=consumeRequestGesture(operation);
+    if(operation==='tasks.configure'&&!port)
+      return rejected(exportError('E_USER_GESTURE_REQUIRED','请实际点击脚本的运行按钮'));
+    return sendRequest(operation,payload,port);
   };
   const prepareRequest=(operation,factory)=>{
     const ai=operation==='ai.generate';

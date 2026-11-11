@@ -1,0 +1,53 @@
+{
+  "browser": "ego lite; separate from daily Chrome",
+  "extensionId": "ccfcjegpkdlgbclopjmadlcjedelidmf",
+  "url": "chrome-extension://ccfcjegpkdlgbclopjmadlcjedelidmf/app.html?hostInstanceId=4a602c16-3d26-442f-8fdd-f3416e6cbd92&toolId=ai-proxy&view=settings&section=profiles",
+  "installVersion": "0.3.12",
+  "installType": "development",
+  "hashes": {
+    "app.html": "8f8a7af068e744c0b2040ce1a77e40d6940a01e14f12ba33bb7b21ee4d7eda77",
+    "ui/tool-shell.js": "7ce80cad0633024f3c7a7aa5a7c2b020041803abaf4bd6d42d08a8a5b6d2b962",
+    "ui/sidebar-tool-host.js": "b4f9135b7f02f2298013f5f15a023f31473277258d326150c50c1dd7378e89c4",
+    "ui/tool-shell.css": "22f34be54d58ba08540e8bae5d033183085fa531e76506a50d378619bf4c036f",
+    "development-update.json": "4a1217b4b3436658e68e1efd8a378f90a35f420593fe1f06435ba33191fe524d"
+  },
+  "development": {
+    "type": "connected",
+    "documentId": "12590C26862BA246DF334787AEDBDA51",
+    "revision": "be5111d97f6b48ac1c4baa5d9efe40233c48630006c85f3b5d1a97025fc1496a"
+  },
+  "sidePanel": {
+    "contextType": "SIDE_PANEL",
+    "url": "chrome-extension://ccfcjegpkdlgbclopjmadlcjedelidmf/sidepanel.html?hostInstanceId=ca11769a-8144-4995-9828-be550245834e",
+    "viewport": [
+      0,
+      0
+    ],
+    "trusted": "true",
+    "text": "连接方式\n指定代理\n网站规则\n直连\n跟随系统\n浏览器状态\n请选择一个代理\n技术详情\n选择代理\n\n浏览器设置 · 跟随系统（可能使用系统代理）\n\n待应用选择 · 尚未选择配置\n\n我的代理1\nH\nUI-20261111-AIProxy-PC-EDITED\nHTTP · 192.0.2.11:18081\n选择\n添加代理\n当前网站\n当前网站不可读取\n可手动输入域名添加规则\n预期路由 · 未实测\n网站未知，无法预览匹配\n技术详情\n添加规则\n重新识别\n高级代理功能\n\n仅管理浏览器代理设置，不等于全设备 VPN，也不保证当前网站可达。",
+    "captureStage": "initial Side Panel read; before explicit resume refresh after PC deletion"
+  },
+  "finalStatus": "浏览器状态\n尚未管理浏览器代理\n待应用选择 · 指定代理\n查看真实控制状态 →",
+  "recordCount": 0,
+  "temporaryStyles": [],
+  "canonicalDevelopmentPath": "/Users/shopme/Documents/workspace/opendesk-browser/dist/development",
+  "diskHashMatches": {
+    "app.html": true,
+    "ui/tool-shell.js": true,
+    "ui/sidebar-tool-host.js": true,
+    "ui/tool-shell.css": true,
+    "development-update.json": true
+  },
+  "sidePanelAfterResume": {
+    "contextType": "SIDE_PANEL",
+    "url": "chrome-extension://ccfcjegpkdlgbclopjmadlcjedelidmf/sidepanel.html?hostInstanceId=ca11769a-8144-4995-9828-be550245834e",
+    "visibility": "visible",
+    "viewport": [
+      0,
+      0
+    ],
+    "trigger": "scripted focus event for existing GET_STATE resume handler",
+    "text": "连接方式\n指定代理\n网站规则\n直连\n跟随系统\n浏览器状态\n尚未添加代理\n技术详情\n添加代理\n\n浏览器设置 · 跟随系统（可能使用系统代理）\n\n待应用选择 · 尚未选择配置\n\n订阅与本地客户端\n订阅来源\n本地客户端\nClash / sing-box\n当前网站\n当前网站不可读取\n可手动输入域名添加规则\n预期路由 · 未实测\n网站未知，无法预览匹配\n技术详情\n添加规则\n重新识别\n高级代理功能\n\n仅管理浏览器代理设置，不等于全设备 VPN，也不保证当前网站可达。",
+    "management": false
+  }
+}

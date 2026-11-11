@@ -149,7 +149,7 @@ test('final production verification blocks a physically oversized SW before pack
   await padScript(path,BUILD_POLICY.serviceWorkerProductionBytes+1);
   await assert.rejects(verifyPackage(root,{mode:'production'}),/Packaged JS exceeds byte budget: sw.js/);
 });
-test('development retains its larger SW allowance while other entries share the 512 KiB production cap',async t=>{
+test('development allows 8 MiB for SW and ordinary entries without becoming a production artifact',async t=>{
   const {root}=await packageCopy(t,'development');
   await padScript(`${root}/sw.js`,BUILD_POLICY.developmentBytes-1);
   assert.equal((await verifyPackage(root,{mode:'development'})).mode,'development');
@@ -161,6 +161,10 @@ test('development retains its larger SW allowance while other entries share the 
   assert.equal((await verifyPackage(other.root,{mode:'development'})).mode,'development',
     'growing beyond the old 320 KiB limit must not be rejected');
   await padScript(entry,BUILD_POLICY.productionBytes+1);
+  assert.equal((await verifyPackage(other.root,{mode:'development'})).mode,'development');
+  await padScript(entry,BUILD_POLICY.developmentBytes);
+  assert.equal((await verifyPackage(other.root,{mode:'development'})).mode,'development');
+  await padScript(entry,BUILD_POLICY.developmentBytes+1);
   await assert.rejects(verifyPackage(other.root,{mode:'development'}),/Packaged JS exceeds byte budget: agents\/health.js/);
   await writeFile(`${root}/sw.js`,(await readFile(`${root}/sw.js`)).toString()+'\n\n');
   await assert.rejects(verifyPackage(root,{mode:'development'}),/Packaged JS exceeds byte budget: sw.js/);

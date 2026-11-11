@@ -36,24 +36,32 @@ function reviewedPackagedTask(target,path,root){
 // Web Flow's trigger policy is pure data validation; only its compiled settings
 // component enters the trusted shell. Installed sandbox JSON cannot replace either.
 const compiledWebFlowInputs=Object.freeze({
+  // Reviewed compatibility fence: read old AppStorage under the original
+  // lifecycle lock before Authority admission; no execution or data writes.
+  // Reviewed original shared-sheet lock/UNKNOWN guard; no migration or replay.
+  'projects/webflow/trusted/task-run-recovery.js':'21bac4fbeb97923ddfc50f2ceb6fddd229f64496',
   'projects/webflow/src/auto-grants.js':'ef783837abb1ff87f963a7343d34b796db6a58c6',
   // Reviewed bounded keyword policy shared by the ledger and compiled controls.
   'projects/webflow/src/authorization-policy.js':'bb508189bdbbfe403707febbb36bb49d07d476c7',
   // Reviewed fixed ChatGPT site adapter/retired UI, only in the isolated fixed Content entry.
   // 2026-11-09 reviewed UNKNOWN diagnostics and before-click cancellation;
   // exact Host/SW ownership, after-click no-replay and safe-refresh fences remain.
-  'projects/webflow/trusted/chatgpt-bridge-page.js':'325eabdec2a0d01312be399cbc4e47a1f7881d6a',
+  // Reviewed optional display adapter init/dispose; Task bridge is unchanged.
+  'projects/webflow/trusted/chatgpt-bridge-page.js':'52ed2ac2db472bb48d23f8fcdcfebedad4c0dda8',
   'projects/webflow/trusted/legacy-chatgpt-panel.js':'c25df281a5df633afad53c94c8dc1ad04ba1d0da',
+  // Reviewed read-only display preference; no Task dispatch or grant writes.
+  'projects/webflow/trusted/page-panel-ui.js':'4ba1e76028ed9afee2692e5853d08df5d360af87',
   // Reviewed fixed Side Panel controls and exact-document projection; never loaded from tool JSON.
   // 2026-11-09 reviewed prompt-only follow-up: readable intent then one JSON
   // candidate. 2026-11-10: installed Schema optional-default comparison; exact
   // identity, required inputs, fixed values and original candidate bytes remain fenced.
   // 2026-11-11: stable loading/control slot and persistent emergency management;
   // original native gestures, authority and unknown-result fences are unchanged.
-  'projects/webflow/trusted/AutoSettings.tsx':'52b36315216cef2765c05c54aa4e432c26ff4c18',
+  'projects/webflow/trusted/AutoSettings.tsx':'022ad9259c2afa92b222a7a6df69f91758bfa449',
   // Reviewed read-only projection: correlate the same request, prefer its Run,
   // distinguish reserved IDs/persistence/delivery/release; UNKNOWN never replays.
-  'projects/webflow/trusted/CurrentTask.tsx':'29cf57434ef25f320699c53a4bb1387913df1b26',
+  // Reviewed same-receipt, owner-bound Toast projection; execution stays unchanged.
+  'projects/webflow/trusted/CurrentTask.tsx':'1f797970cf66a5859d6d3efcb0747011c2dd7c43',
   // Reviewed display-only scripts route, consumed by the same fixed tool shell.
   'projects/webflow/src/ui/app-page-routes.js':'04468dd893393f82482123355243d8cdad4b1fb7',
   'projects/webflow/trusted/RuntimePanel.tsx':'f418c26696933f0b9440080fd2586e47e42b870f'
@@ -61,8 +69,9 @@ const compiledWebFlowInputs=Object.freeze({
 function reviewedCompiledWebFlow(target,path,root){
   if(!Object.hasOwn(compiledWebFlowInputs,path))return null;
   const siteAdapter=path==='projects/webflow/trusted/chatgpt-bridge-page.js'||
-    path==='projects/webflow/trusted/legacy-chatgpt-panel.js';
-  const allowed=siteAdapter?target==='agents/chatgpt-fixed-bridge.js':
+    path==='projects/webflow/trusted/legacy-chatgpt-panel.js'||
+    path==='projects/webflow/trusted/page-panel-ui.js';
+  const allowed=path==='projects/webflow/trusted/task-run-recovery.js'?target==='sw.js':siteAdapter?target==='agents/chatgpt-fixed-bridge.js':
     path.startsWith('projects/webflow/trusted/')||path==='projects/webflow/src/ui/app-page-routes.js'?target==='ui/tool-shell.js':
       ['sw.js','ui/tool-shell.js','agents/chatgpt-fixed-bridge.js'].includes(target);
   if(!allowed)return null;
@@ -115,7 +124,8 @@ function reviewedCompiledChatGPTImages(target,path,root){
 // arbitrary project files never inherit this compiled-source admission.
 const compiledChatGPTFilesInputs=Object.freeze({
   'projects/webflow/trusted/chatgpt-files-service.js':'65a9aee1d533a85bc9bbf5c529a7993859a657a5',
-  'projects/webflow/trusted/chatgpt-files-controller.js':'ca202ad9d2b8e4586bd4582b9a78ac07d9e379b7',
+  // Same reviewed Stop acknowledgement wording correction, no dispatch changes.
+  'projects/webflow/trusted/chatgpt-files-controller.js':'bfdab1b8fee238e7bc81f81ada8e06c384052314',
   'projects/webflow/trusted/chatgpt-project-policy.js':'647fcd233f662e9239c46d348205329b39db15e9',
   'projects/webflow/trusted/chatgpt-file-intent-page.js':'5de3861f877efc97235f1831c7d6826c16ac8c80',
   'projects/webflow/trusted/chatgpt-files-settings-ui.js':'2553160d9625c694a3ea77537daa4e83aac8a558',
@@ -123,7 +133,8 @@ const compiledChatGPTFilesInputs=Object.freeze({
   'projects/webflow/trusted/chatgpt-file-intent-gate.js':'1222d7775877b78ba5d42ecf76367f2a1ddc035b',
   'projects/webflow/trusted/chatgpt-files-config.js':'622509c3ecf38fa40b32275b705e068a49c6c530',
   'projects/webflow/trusted/chatgpt-files.html':'b8a723d99b97130a9f3fb7f75f2a9e29b34977e8',
-  'projects/webflow/trusted/chatgpt-project-runtime-ui.js':'b775438992847dabc2f43ff5f42531d7a207389d',
+  // Reviewed display-only correction: a Stop acknowledgement does not prove rollback.
+  'projects/webflow/trusted/chatgpt-project-runtime-ui.js':'33ca63abba0fa7453902f4713bfd856a25596ab8',
   'projects/webflow/trusted/chatgpt-conversation-route.js':'8e28adedd8cc2b49ff34897c0857d33cf2478c87',
   // Reviewed pure result validation/formatting, including strict string IDs.
   // Its existing Host consumers alone may compile it; no Content/Native entry.

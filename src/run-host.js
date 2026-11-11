@@ -44,7 +44,7 @@ export function createRunHost({api = globalThis.chrome, client: suppliedClient, 
     return scraping ||= templateModuleFactory(services);
   };
   const controls = client.controller || Object.fromEntries(['commitControllerScript','getControllerScript','tombstoneControllerScript','garbageCollectControllerScript','startControllerRun',
-    'controllerOperation','stopControllerRun','finishControllerRun','snapshotControllerRun','retireControllerTarget']
+    'prepareTaskRun','inspectTaskRun','cancelTaskRun','controllerOperation','stopControllerRun','finishControllerRun','snapshotControllerRun','retireControllerTarget']
     .map(method => [method, request => client.request(method, request)]));
   async function start(request) {
     if (request?.profile === 'app-service' || request?.source !== undefined || request?.scriptId !== undefined)
@@ -52,7 +52,7 @@ export function createRunHost({api = globalThis.chrome, client: suppliedClient, 
     return startScraping(request);
   }
   async function startController(request) {
-    const {profile, appId, scriptId, revision, contentHash, source, params, target, networkOrigins = [], expectedTaskGeneration, expectedTaskInstallationId, taskDelegation, taskDelegationStep, cloudRequestId, scheduledFireId, expectedScheduleOwner, retainedFrom,
+    const {profile, appId, scriptId, revision, contentHash, source, params, target, networkOrigins = [], expectedTaskGeneration, expectedTaskInstallationId, taskDelegation, taskDelegationStep, taskPreparationId, cloudRequestId, scheduledFireId, expectedScheduleOwner, retainedFrom,
       deadlineAt = clock.now() + 30000, requestId = crypto.randomUUID()} = request;
     const appService = profile === 'app-service';
     if (appService && Object.keys(request).some(key =>
@@ -74,6 +74,7 @@ export function createRunHost({api = globalThis.chrome, client: suppliedClient, 
       ...(expectedTaskInstallationId!==undefined?{expectedTaskInstallationId}:{}),
       ...(taskDelegation?{taskDelegation:structuredClone(taskDelegation)}:{}),
       ...(taskDelegationStep?{taskDelegationStep:structuredClone(taskDelegationStep)}:{}),
+      ...(taskPreparationId!==undefined?{taskPreparationId}:{}),
       ...(retainedFrom!==undefined?{retainedFrom:structuredClone(retainedFrom)}:{}),
       ...(cloudRequestId?{cloudRequestId}:{}),
       ...(scheduledFireId?{scheduledFireId}:{}),

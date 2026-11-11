@@ -15,15 +15,17 @@ import {encodeValue} from '../../src/platform/page-port/codec.js';
 // alarms or real RunHost are claimed by this suite.
 const tick=()=>new Promise(resolve=>setTimeout(resolve,0));
 const native=()=>({isTrusted:true,preventDefault(){},defaultPrevented:false});
-const TEST_WEBFLOW_TOOL=Object.freeze({toolId:'webflow',version:'0.3.30',
-  packageHash:'f'.repeat(64),revocationEpoch:'epoch-a'});
 const artifacts=new URL('../../artifacts/my-react-workbench-tests/',import.meta.url);
-let MyTasksPage,TaskRunSheet,createRoot;
+let MyTasksPage,TaskRunSheet,MyControl,createRoot;
+function MyWorkbench({view,hidden=false}){
+  return React.createElement(React.Fragment,null,
+    React.createElement(MyTasksPage,{view,hidden}),React.createElement(TaskRunSheet,{view}));
+}
 test.before(async()=>{
   await mkdir(artifacts,{recursive:true});
-  await build({stdin:{contents:'export {MyTasksPage} from "./src/ui/react/tabs/my-page.tsx"; export {TaskRunSheet} from "./src/ui/react/tabs/task-run-sheet.tsx";',resolveDir:process.cwd()},
+  await build({stdin:{contents:'export {MyTasksPage} from "./src/ui/react/tabs/my-page.tsx"; export {TaskRunSheet} from "./src/ui/react/tabs/task-run-sheet.tsx"; export {MyControl} from "./src/ui/react/tabs/my-controls.tsx";',resolveDir:process.cwd()},
     bundle:true,packages:'external',platform:'node',format:'esm',outfile:new URL('page.mjs',artifacts).pathname,logLevel:'silent'});
-  ({MyTasksPage,TaskRunSheet}=await import(new URL('page.mjs',artifacts)));
+  ({MyTasksPage,TaskRunSheet,MyControl}=await import(new URL('page.mjs',artifacts)));
 });
 test.after(()=>rm(artifacts,{recursive:true,force:true}));
 
@@ -51,7 +53,7 @@ async function fixture({twoTasks=false,paramsSchema,otherParamsSchema}={}){
       node.id=id;node.value='';outside.append(node);
     }
   }
-  for(const name of ['tasks','workflow','develop','tools','cloud','catalog','debug']){
+  for(const name of ['workflow','develop','tools','cloud','catalog','debug']){
     if(!doc.getElementById('workbench-'+name)){const node=doc.createElement('div');node.id='workbench-'+name;outside.append(node);}
   }
   if(!doc.getElementById('workspace-content')){const node=doc.createElement('div');node.id='workspace-content';outside.append(node);}
@@ -86,6 +88,8 @@ async function fixture({twoTasks=false,paramsSchema,otherParamsSchema}={}){
     subscribeInstalledTasks(fn){installedSubscribers.add(fn);return ()=>installedSubscribers.delete(fn);},
     controller:{async snapshotControllerRun(){return structuredClone({runs:state.runs,results:state.results});}},
     async request(action,input){state.calls.push({action,input:structuredClone(input)});
+      if(['inspectTaskRun','cancelTaskRun'].includes(action)&&state.taskRunRequest)return state.taskRunRequest(action,input);
+      if(action==='inspectTaskRun')return null;
       if(action==='listTaskCatalog')return structuredClone({catalog:state.catalog,installed:state.installed});
       if(action==='listSchedules')return {schedules:structuredClone(state.plans)};
       if(action==='resolveInstalledTask')return {...structuredClone(installed),manifest,manifestHash,sourceHash,contentHash:sourceHash,
@@ -116,20 +120,10 @@ async function fixture({twoTasks=false,paramsSchema,otherParamsSchema}={}){
   const currentPageTarget={snapshot,ready:Promise.resolve(),capture:()=>({...snapshot}),revalidate:async()=>{},
     subscribe(fn){pageSubscribers.add(fn);return ()=>pageSubscribers.delete(fn);}};
   const permissionAdded=new Set(),permissionRemoved=new Set();
-  const localStore=new Map();
-  const navigatorPrototype=globalThis.navigator||{};
-  Object.defineProperty(globalThis,'navigator',{configurable:true,value:{
-    ...navigatorPrototype,locks:{request:async(_key,_options,callback)=>callback()}
-  }});
-  state.localStore=localStore;
   const api={permissions:{contains:async input=>{state.permissionCalls.push({action:'contains',input});return state.pendingPermission?await state.pendingPermission:true;},
     request:async input=>{state.permissionCalls.push({action:'request',input});return true;},
     onAdded:{addListener:fn=>permissionAdded.add(fn),removeListener:fn=>permissionAdded.delete(fn)},
     onRemoved:{addListener:fn=>permissionRemoved.add(fn),removeListener:fn=>permissionRemoved.delete(fn)}},
-    storage:{local:{
-      async get(key){return {[key]:structuredClone(localStore.get(key))};},
-      async set(record){for(const [key,value]of Object.entries(record))localStore.set(key,structuredClone(value));}
-    }},
     runtime:{getURL:path=>'chrome-extension://test/'+path,sendMessage:async()=>({ok:true})},
     tabs:{create:async()=>({id:4})}};
   const view=createMyWorkbenchView({document:doc});
@@ -141,8 +135,7 @@ async function fixture({twoTasks=false,paramsSchema,otherParamsSchema}={}){
   const input=async(id,value,event='input')=>{await React.act(async()=>{view.field(id).value=value;await view.actions[id.replace(/-([a-z])/g,(_,letter)=>letter.toUpperCase())+event[0].toUpperCase()+event.slice(1)]?.(native());await tick();});};
   const mount=async()=>{
     ({createRoot}=await import('react-dom/client'));const root=createRoot(doc.getElementById('mount'));
-    await React.act(async()=>root.render(React.createElement(React.Fragment,null,
-      React.createElement(MyTasksPage,{view}),React.createElement(TaskRunSheet,{view}))));
+    await React.act(async()=>root.render(React.createElement(MyWorkbench,{view})));
     return root;
   };
   const fire=async(node,type,properties={})=>{
@@ -171,17 +164,17 @@ test('row parameter action selects its own task, opens the one Sheet and retains
     const rows=[...f.doc.querySelectorAll('.task-card-group')];
     assert.equal(rows.filter(row=>row.classList.contains('task-card-group--action-visible')).length,1);
     assert.equal(rows[0].querySelector('.task-card-manage').getAttribute('aria-haspopup'),'menu');
-    await f.fire(rows[0].querySelector('.task-card-run'),'click');
+    await f.fire(rows[0].querySelector('.task-card-run'),'click',{isTrusted:true});
     assert.equal(f.doc.getElementById('task-param-name').getAttribute('data-slot'),'input');
     assert.equal(f.doc.getElementById('task-params-json').getAttribute('data-slot'),'textarea');
     await f.input('task-param-name','任务一草稿');
     await f.fire(f.doc.getElementById('task-parameters-sheet'),'cancel');
-    await f.fire(rows[1].querySelector('.task-card-run'),'click');
+    await f.fire(rows[1].querySelector('.task-card-run'),'click',{isTrusted:true});
     assert.equal(f.view.data.taskRows.selectedId,'other.task');
     assert.equal(f.doc.getElementById('task-parameters-sheet').open,true);
     assert.equal(f.doc.getElementById('task-param-name').value,'Alice');
     await f.fire(f.doc.getElementById('task-parameters-sheet'),'cancel');
-    await f.fire(rows[0].querySelector('.task-card-run'),'click');
+    await f.fire(rows[0].querySelector('.task-card-run'),'click',{isTrusted:true});
     assert.equal(f.doc.getElementById('task-param-name').value,'任务一草稿');
     assert.equal(f.doc.querySelectorAll('#task-parameters-sheet').length,1);
     assert.equal(f.state.starts.length,0);assert.equal(f.state.permissionCalls.length,0);
@@ -209,8 +202,8 @@ test('shared TaskRunSheet restores the My bottom drawer and distinct cancel/prep
     await f.fire(footer.firstElementChild,'click');
     assert.equal(sheet.open,false);
     assert.equal(f.state.starts.length,0,'cancel does not execute');
-    const pin={taskId:'test.task',version:'1.0.0',manifestHash:'a'.repeat(64),contentHash:'b'.repeat(64)};
-    await React.act(async()=>{assert.equal(await f.workbench.openTaskRunSheet('test.task',{expectedPin:pin,toolIdentity:TEST_WEBFLOW_TOOL}),true);await tick();});
+    const task={...f.view.data.taskRows.identity,contentHash:f.state.catalog[0].manifest.program.sourceHash};
+    await React.act(async()=>{assert.equal(await f.workbench.openTaskRunSheet({task,binding:{delegationId:'fixture-tool'}}),true);await tick();});
     assert.equal(sheet.open,true);
     assert.equal(f.doc.querySelectorAll('#task-parameters-sheet').length,1,'both entries reuse one dialog');
     assert.equal(f.doc.getElementById('task-param-name').value,'我的草稿','shared form keeps the draft');
@@ -220,189 +213,89 @@ test('shared TaskRunSheet restores the My bottom drawer and distinct cancel/prep
   }finally{if(root)await React.act(async()=>root.unmount());f.dispose();}
 });
 
-test('Web Flow opens the exact same trusted React Sheet, prepares without running, and confirms once',async()=>{
+test('tool request uses the same hoisted Sheet and separate parent prepare, confirm and unknown-cancel callbacks',async()=>{
   const f=await fixture();let root;
   try{
     root=await f.mount();
-    const pin={taskId:'test.task',version:'1.0.0',manifestHash:'a'.repeat(64),contentHash:'b'.repeat(64)};
-    await assert.rejects(f.workbench.openTaskRunSheet('test.task',{expectedPin:{...pin,contentHash:'c'.repeat(64)},toolIdentity:TEST_WEBFLOW_TOOL}),
-      error=>error?.code==='E_REVISION','a different installed script hash must not open the trusted Sheet');
-    assert.equal(f.state.starts.length,0);
-    let opened;
-    await React.act(async()=>{opened=await f.workbench.openTaskRunSheet('test.task',{expectedPin:pin,toolIdentity:TEST_WEBFLOW_TOOL});await tick();});
-    assert.equal(opened,true);
-    const sheet=f.doc.getElementById('task-parameters-sheet'),identity={...f.view.data.taskRows.identity};
-    assert.equal(sheet.open,true);
-    assert.equal(f.view.data.taskSheetRequest.source,'webflow');
-    assert.equal(f.doc.querySelectorAll('#task-parameters-sheet').length,1);
-    assert.equal(f.state.starts.length,0,'opening is UI only');
     await React.act(async()=>{
-      assert.equal(await f.view.actions.taskRunSheetPrepare(native(),identity),true);await tick();
-    });
-    assert.equal(f.view.data.taskSheetStage,'ready');
-    const saved=f.state.localStore.get('opendesk.shared-task-run-sheet.webflow.v1');
-    assert.equal(saved?.state,'ready');
-    assert.equal(f.state.starts.length,0,'save/readback must never invoke RunHost');
-    await React.act(async()=>{
-      assert.equal(f.view.actions.taskRunSheetConfirm(native(),identity),true);
-      assert.equal(f.view.actions.taskRunSheetConfirm(native(),identity),false,'double click is rejected');
-      await tick();await tick();
-    });
-    assert.equal(f.state.starts.length,1,'the original RunHost starts exactly once');
-    const submitted=f.state.localStore.get('opendesk.shared-task-run-sheet.webflow.v1');
-    assert.equal(submitted.state,'submitted');
-    assert.equal(submitted.runId,'run-1','the real RunHost identity must persist for read-only recovery');
-    await React.act(async()=>{assert.equal(await f.view.actions.taskRunSheetQuery(native(),identity),true);await tick();});
-    assert.equal(f.view.data.taskSheetStage,'unknown','a pending run must never be inferred complete');
-    assert.equal(f.state.starts.length,1,'read-only query cannot replay the operation');
-    await React.act(async()=>{f.host.finish();await tick();});
-  }finally{if(root)await React.act(async()=>root.unmount());f.dispose();}
-});
-
-
-test('Web Flow tool revocation blocks both saving and eventual RunHost submission',async()=>{
-  const f=await fixture();let root;
-  try{
-    root=await f.mount();
-    const pin={taskId:'test.task',version:'1.0.0',manifestHash:'a'.repeat(64),contentHash:'b'.repeat(64)};
-    let authorized=true,checks=0;
-    const assertAuthorized=async()=>{checks++;if(!authorized)throw Object.assign(
-      new Error('tool generation changed'),{code:'E_TOOL_CHANGED'});};
-    await React.act(async()=>{assert.equal(await f.workbench.openTaskRunSheet('test.task',{
-      expectedPin:pin,toolIdentity:TEST_WEBFLOW_TOOL,assertAuthorized}),true);await tick();});
-    const identity={...f.view.data.taskRows.identity};
-    authorized=false;
-    await React.act(async()=>{
-      assert.equal(await f.view.actions.taskRunSheetPrepare(native(),identity),false);await tick();
-    });
-    assert.equal(f.state.localStore.has('opendesk.shared-task-run-sheet.webflow.v1'),false);
-    assert.equal(f.state.starts.length,0,'a revoked tool cannot save a fresh executable step');
-    authorized=true;
-    await React.act(async()=>{
-      assert.equal(await f.view.actions.taskRunSheetPrepare(native(),identity),true);await tick();
-    });
-    assert.equal(f.state.localStore.get('opendesk.shared-task-run-sheet.webflow.v1')?.state,'ready');
-    authorized=false;
-    await React.act(async()=>{
-      assert.equal(f.view.actions.taskRunSheetConfirm(native(),identity),true);
-      await tick();await tick();
-    });
-    assert.equal(f.state.starts.length,0,'revocation between save and confirmation cannot start RunHost');
-    assert.equal(f.state.localStore.get('opendesk.shared-task-run-sheet.webflow.v1')?.state,'ready');
-    assert.ok(checks>=4,'authority must be consulted at open, prepare and final admission');
-  }finally{if(root)await React.act(async()=>root.unmount());f.dispose();}
-});
-
-test('My entry cannot bypass a Web Flow ready identity in the same TaskWorkbench',async()=>{
-  const f=await fixture();let root;
-  try{
-    root=await f.mount();
-    const pin={taskId:'test.task',version:'1.0.0',manifestHash:'a'.repeat(64),contentHash:'b'.repeat(64)};
-    await React.act(async()=>{assert.equal(await f.workbench.openTaskRunSheet('test.task',{expectedPin:pin,toolIdentity:TEST_WEBFLOW_TOOL}),true);await tick();});
-    const identity={...f.view.data.taskRows.identity};
-    await React.act(async()=>{assert.equal(await f.view.actions.taskRunSheetPrepare(native(),identity),true);await tick();});
-    await React.act(async()=>{f.view.actions.taskRunClick(native(),identity);await tick();await tick();});
-    assert.equal(f.state.starts.length,0,'the shared prepared identity fences manual TaskWorkbench entry');
-    assert.equal(f.state.localStore.get('opendesk.shared-task-run-sheet.webflow.v1')?.state,'ready');
-  }finally{if(root)await React.act(async()=>root.unmount());f.dispose();}
-});
-
-
-test('unresolved pre-v1 Web Flow history without pending key fences My and shared prepare',async()=>{
-  const f=await fixture();let root;
-  try{
-    root=await f.mount();
-    const namespace='opendesk.sidebar-tools.data.v1:webflow';
-    const original={clientRequestId:'webflow:legacy-unknown',
-      taskId:'test.task',version:'1.0.0',state:'unknown',retirementState:'unknown',at:Date.now()};
-    f.state.localStore.set(namespace,{'webflow.recent.v1':[original]});
-    const identity={...f.view.data.taskRows.identity};
-    await React.act(async()=>{f.view.actions.taskRunClick(native(),identity);await tick();await tick();});
-    assert.equal(f.state.starts.length,0,'My cannot bypass an unreleased legacy summary');
-    const pin={taskId:'test.task',version:'1.0.0',manifestHash:'a'.repeat(64),contentHash:'b'.repeat(64)};
-    await React.act(async()=>{assert.equal(await f.workbench.openTaskRunSheet('test.task',{expectedPin:pin,toolIdentity:TEST_WEBFLOW_TOOL}),true);await tick();});
-    await React.act(async()=>{
-      assert.equal(await f.view.actions.taskRunSheetPrepare(native(),identity),false);await tick();
-    });
-    assert.equal(f.state.starts.length,0);
-    assert.equal(f.state.localStore.has('opendesk.shared-task-run-sheet.webflow.v1'),false,
-      'legacy history needs original-request reconciliation, never a new preparation');
-    assert.equal(f.state.localStore.get(namespace)['webflow.recent.v1'][0].clientRequestId,
-      original.clientRequestId,'the original evidence must remain untouched');
-  }finally{if(root)await React.act(async()=>root.unmount());f.dispose();}
-});
-
-
-test('My shared Sheet visibly blocks a Web Flow outstanding preparation before any Run click',async()=>{
-  const f=await fixture();let root;
-  try{
-    root=await f.mount();
-    const pin={taskId:'test.task',version:'1.0.0',manifestHash:'a'.repeat(64),contentHash:'b'.repeat(64)};
-    await React.act(async()=>{assert.equal(await f.workbench.openTaskRunSheet('test.task',{expectedPin:pin,toolIdentity:TEST_WEBFLOW_TOOL}),true);await tick();});
-    const identity={...f.view.data.taskRows.identity};
-    await React.act(async()=>{assert.equal(await f.view.actions.taskRunSheetPrepare(native(),identity),true);await tick();});
-    await React.act(async()=>{
-      f.view.actions.taskRunSheetClose();
-      assert.equal(f.view.actions.taskRunSheetOpen(native(),'test.task'),true);
+      const task={...f.view.data.taskRows.identity,contentHash:f.state.catalog[0].manifest.program.sourceHash};
+      await assert.rejects(f.workbench.openTaskRunSheet({task:{...task,contentHash:'c'.repeat(64)},
+        binding:{delegationId:'fixture-tool'}}),error=>error?.code==='E_REVISION',
+        'a different installed script hash must not open the trusted Sheet');
+      assert.equal(f.view.data.taskRunSheet??null,null);
+      await f.workbench.openTaskRunSheet({task,binding:{delegationId:'fixture-tool'}});
+      assert.ok(f.state.calls.some(({action,input})=>action==='resolveInstalledTask'&&input.purpose==='configure'));
       await tick();
+      root.render(React.createElement(MyWorkbench,{view:f.view,hidden:true}));
     });
-    assert.equal(f.view.data.taskSheetRequest.source,'my');
-    assert.equal(f.view.field('task-run').disabled,true,'the shared My run action must visibly block');
-    assert.match(f.view.data.taskRunBlockedReason,/Web Flow 有尚未释放/);
-    assert.equal(f.state.starts.length,0);
-  }finally{if(root)await React.act(async()=>root.unmount());f.dispose();}
-});
-
-
-test('revocation after durable submit fence prevents RunHost start and never replays',async()=>{
-  const f=await fixture();let root;
-  try{
-    root=await f.mount();
-    const pin={taskId:'test.task',version:'1.0.0',manifestHash:'a'.repeat(64),contentHash:'b'.repeat(64)};
-    let checks=0,authorized=true;
-    const assertAuthorized=async()=>{checks++;if(!authorized||checks===6)
-      throw Object.assign(new Error('revoked after submit fence'),{code:'E_TOOL_CHANGED'});};
-    await React.act(async()=>{assert.equal(await f.workbench.openTaskRunSheet('test.task',{
-      expectedPin:pin,toolIdentity:TEST_WEBFLOW_TOOL,assertAuthorized}),true);await tick();});
-    const expected={...f.view.data.taskRows.identity};
-    await React.act(async()=>{assert.equal(await f.view.actions.taskRunSheetPrepare(native(),expected),true);await tick();});
-    const item=f.state.localStore.get('opendesk.shared-task-run-sheet.webflow.v1');
-    assert.equal(item.state,'ready');
-    await React.act(async()=>{
-      assert.equal(f.view.actions.taskRunSheetConfirm(native(),expected),true);
-      await tick();await tick();await tick();
+    const sheet=f.doc.getElementById('task-parameters-sheet'),form=f.doc.getElementById('task-params-form');
+    const name=f.doc.getElementById('task-param-name'),run=f.doc.getElementById('task-run');
+    const identity=f.view.data.taskRunSheet.identity,calls=[];
+    const button=label=>[...sheet.querySelectorAll('button')].find(node=>node.textContent===label);
+    assert.equal(f.view.data.taskRunSheet.source,'tool');assert.equal(f.view.data.taskRunSheet.phase,'editing');
+    assert.equal(sheet.open,true);assert.equal(sheet.closest('[hidden]'),null);
+    assert.equal(f.doc.querySelectorAll('#task-parameters-sheet').length,1);
+    assert.equal(button('停止'),undefined);assert.equal(button('取消准备'),undefined);
+    assert.equal(run.textContent,'保存并核对');assert.equal(run.disabled,false);
+    assert.equal(sheet.querySelector('fieldset').hasAttribute('disabled'),false);
+    // Parent callbacks are presentation spies; this test does not emulate
+    // Authority or claim a persisted preparation / real execution receipt.
+    f.view.actions.taskSheetPrepareClick=f.view.action((...args)=>{
+      assert.equal(args.length,2);assert.equal(args[0].isTrusted,true);assert.equal(args[1],identity);
+      calls.push('prepare');f.view.project('taskRunSheet',{...f.view.data.taskRunSheet,phase:'prepared',preparationId:'fixture-preparation'});
+      return false;
     });
-    assert.ok(checks>=6,'recheck authorization after the durable submit fence');
-    assert.equal(f.state.localStore.get('opendesk.shared-task-run-sheet.webflow.v1').state,'submitted',
-      'unknown effect needs the same frozen identity, never another prepare');
-    assert.equal(f.state.starts.length,0,'revocation at the final Host write boundary forbids start');
-    assert.equal(f.view.actions.taskRunSheetConfirm(native(),expected),false,
-      'the same prepared request cannot be confirmed again');
+    f.view.actions.taskSheetConfirmClick=f.view.action((...args)=>{
+      assert.equal(args.length,2);assert.equal(args[0].isTrusted,true);assert.equal(args[1],identity);
+      calls.push('confirm');f.view.project('taskRunSheet',{...f.view.data.taskRunSheet,phase:'submitted'});
+      return false;
+    });
+    f.view.actions.taskSheetCancelClick=f.view.action((...args)=>{
+      assert.equal(args.length,1);assert.equal(args[0].isTrusted,true);calls.push('cancel');
+      f.view.project('taskRunSheet',{...f.view.data.taskRunSheet,phase:'cancelled'});
+    });
+    await React.act(async()=>{f.view.publish();await tick();});
+    await f.fire(run,'click',{isTrusted:true});
+    assert.deepEqual(calls,['prepare']);assert.equal(f.view.data.taskRunSheet.phase,'prepared');
+    assert.equal(run.textContent,'确认执行一次');assert.equal(run.disabled,false);
+    assert.equal(sheet.querySelector('fieldset').hasAttribute('disabled'),true);
+    assert.ok([...sheet.querySelectorAll('.task-params-mode button')].every(node=>node.disabled));
+    assert.equal(f.doc.getElementById('task-params-form'),form);assert.equal(f.doc.getElementById('task-param-name'),name);
+    assert.equal(f.state.starts.length,0);assert.equal(f.state.permissionCalls.length,0);
+    await f.fire(run,'click',{isTrusted:true});
+    assert.deepEqual(calls,['prepare','confirm']);assert.equal(f.view.data.taskRunSheet.phase,'submitted');
+    assert.equal(f.doc.getElementById('task-run'),null);assert.deepEqual(calls,['prepare','confirm']);
+    await React.act(async()=>f.view.project('taskRunSheet',{...f.view.data.taskRunSheet,phase:'unknown',status:'准备回执未知'}));
+    assert.equal(f.doc.getElementById('task-run'),null);assert.equal(sheet.querySelector('fieldset').hasAttribute('disabled'),true);
+    assert.match(sheet.querySelector('[role="status"]').textContent,/准备回执未知/);
+    assert.ok(button('取消准备'),'lost preparation ACK retains cancellation of the original identity');
+    await f.fire(button('取消准备'),'click',{isTrusted:true});assert.deepEqual(calls,['prepare','confirm','cancel']);
+    assert.equal(f.view.data.taskRunSheet.phase,'cancelled');assert.equal(f.view.data.taskRunSheet.preparationId,'fixture-preparation');
+    assert.equal(f.state.starts.length,0);assert.equal(f.state.permissionCalls.length,0);
   }finally{if(root)await React.act(async()=>root.unmount());f.dispose();}
 });
 
 
-test('Web Flow package version or revocation-epoch change cannot adopt an old prepared request',async()=>{
-  const f=await fixture();let root;
-  try{
-    root=await f.mount();
-    const pin={taskId:'test.task',version:'1.0.0',manifestHash:'a'.repeat(64),contentHash:'b'.repeat(64)};
-    const identity={...f.view.data.taskRows.identity};
-    await React.act(async()=>{assert.equal(await f.workbench.openTaskRunSheet('test.task',
-      {expectedPin:pin,toolIdentity:TEST_WEBFLOW_TOOL}),true);await tick();});
-    await React.act(async()=>{assert.equal(await f.view.actions.taskRunSheetPrepare(native(),identity),true);await tick();});
-    const before=f.state.localStore.get('opendesk.shared-task-run-sheet.webflow.v1');
-    assert.equal(before.tool.version,TEST_WEBFLOW_TOOL.version);
-    assert.equal(before.tool.revocationEpoch,'epoch-a');
-    const afterReinstall={...TEST_WEBFLOW_TOOL,revocationEpoch:'epoch-b'};
-    await React.act(async()=>{assert.equal(await f.workbench.openTaskRunSheet('test.task',
-      {expectedPin:pin,toolIdentity:afterReinstall}),true);await tick();});
-    assert.equal(f.view.data.taskSheetStage,'unknown');
-    assert.equal(f.view.actions.taskRunSheetConfirm(native(),identity),false);
-    assert.equal(f.state.starts.length,0);
-    assert.equal(f.state.localStore.get('opendesk.shared-task-run-sheet.webflow.v1').id,before.id);
-  }finally{if(root)await React.act(async()=>root.unmount());f.dispose();}
-});
+// Preparation persistence belongs to Authority, not this React fixture's local storage.
+// The six incoming legacy Sheet cases are covered at their current owners:
+// tests/environment/task-run-preparation.test.mjs:
+// - Revocation before admission / changed package or epoch:
+//   'revocation, replacement version, environment and document changes block prepared submission without releasing it'
+//   'minimal original App binding remains pinned and uses its lifecycle lock; revoked App cannot submit or disclose Result'
+// - My bypass / outstanding preparation:
+//   'a shared preparation blocks My, drafts, legacy Task admission and other hosts until explicit cancellation'
+// - Unresolved legacy history:
+//   'injected business recovery fence holds through durable prepare and admission, failures block every entry'
+//   'legacy AppStorage release flags require original matching delegation journal and Run/Result'
+// - Durable fence / no replay / pinned identity:
+//   'atomic preparation admission permits only one durable Run across retries and new request IDs'
+//   'unknown durable submission is observed after a lost reply and never readmitted or replayed'
+//   'atomic identity rejects changed params, source, deadline, target, installation and preparation binding'
+// tests/environment/task-workbench.test.mjs:
+//   'shared sheet opens without Run, freezes actual Schema params, confirms once through original Host'
+//   'shared sheet lost save acknowledgement retains same identity and only queries or cancels'
+// React drawer layout and prepared/unknown controls remain covered above; these
+// presentation assertions do not claim Authority persistence or real execution.
 
 test('JSON editing uses original typed validation and preserves the editor draft across task selection',async()=>{
   const f=await fixture({twoTasks:true});let root;
@@ -431,7 +324,7 @@ for(const invalid of ['{','[]','{"name":"ok","count":1.5}','{"name":"ok","unknow
   test(`invalid JSON parameters cannot request permission or start: ${invalid}`,async()=>{
     const f=await fixture();let root;
     try{
-      root=await f.mount();await f.fire(f.doc.getElementById('task-parameters-open'),'click');
+      root=await f.mount();await f.fire(f.doc.getElementById('task-parameters-open'),'click',{isTrusted:true});
       await React.act(async()=>f.view.actions.taskParamsModeChange('json'));
       await f.input('task-params-json',invalid);
       await React.act(async()=>{assert.equal(f.view.actions.taskRunClick(native(),{...f.view.data.taskRows.identity}),false);await tick();});
@@ -467,7 +360,7 @@ test('Switch preserves initial omission, explicit false, required false and clea
     optional:{type:'boolean',title:'可选开关'},required:{type:'boolean',title:'必填开关'},
     off:{type:'boolean',title:'默认关闭',default:false}},required:['required'],additionalProperties:false}});let root;
   try{
-    root=await f.mount();
+    root=await f.mount();await f.fire(f.doc.getElementById('task-parameters-open'),'click',{isTrusted:true});
     const control=f.doc.getElementById('task-param-optional');
     assert.equal(control.getAttribute('role'),'switch');assert.equal(control.name,'optional');
     assert.equal(f.doc.querySelector('label[for="task-param-optional"]').textContent,'可选开关');
@@ -554,8 +447,18 @@ test('numeric boundaries, unbounded long strings and invalid values retain the o
     }
     for(const [name,value]of [['whole','1.5'],['whole','3'],['decimal','1.1']]){
       await f.input('task-param-whole','0');await f.input('task-param-decimal','0');await f.input('task-param-'+name,value);
+      await React.act(async()=>{assert.equal(f.view.actions.taskRunClick(native(),{...f.view.data.taskRows.identity}),false);});
+      assert.ok(f.view.field('task-param-'+name).error,'form submission keeps strict numeric validation');
       await React.act(async()=>f.view.actions.taskParamsModeChange('json'));
-      assert.equal(f.view.data.taskParamsMode,'form');assert.ok(f.view.field('task-param-'+name).error);
+      assert.equal(f.view.data.taskParamsMode,'json','schema-invalid numbers can still be edited in JSON');
+      assert.equal(JSON.parse(f.view.field('task-params-json').value)[name],Number(value));
+      await React.act(async()=>{
+        assert.equal(f.view.actions.taskRunClick(native(),{...f.view.data.taskRows.identity}),false);
+        f.view.actions.taskParamsModeChange('form');
+      });
+      assert.equal(f.view.data.taskParamsMode,'json','JSON-to-form still rejects the invalid numeric value');
+      await f.input('task-params-json','{"whole":0,"decimal":0}');
+      await React.act(async()=>f.view.actions.taskParamsModeChange('form'));
     }
     assert.equal(f.state.starts.length,0);assert.equal(f.state.permissionCalls.length,0);
   }finally{if(root)await React.act(async()=>root.unmount());f.dispose();}
@@ -569,7 +472,7 @@ for(const dismissal of ['cancel button','close button','native cancel','native c
       const sheet=f.doc.getElementById('task-parameters-sheet'),form=f.doc.getElementById('task-params-form');
       const name=f.doc.getElementById('task-param-name');
       assert.equal(sheet.open,false);assert.ok(sheet.contains(form));
-      await f.fire(f.doc.getElementById('task-parameters-open'),'click');assert.equal(sheet.open,true);
+      await f.fire(f.doc.getElementById('task-parameters-open'),'click',{isTrusted:true});assert.equal(sheet.open,true);
       name.value='保留草稿';await f.fire(name,'input');
       const permissions=f.state.permissionCalls.length;
       if(dismissal==='native close')await React.act(async()=>{sheet.close();await tick();});
@@ -577,7 +480,7 @@ for(const dismissal of ['cancel button','close button','native cancel','native c
       else await f.fire(dismissal==='close button'?sheet.querySelector('[aria-label="关闭任务参数"]'):
         [...sheet.querySelectorAll('button')].find(node=>node.textContent==='取消'),'click');
       assert.equal(sheet.open,false);
-      await f.fire(f.doc.getElementById('task-parameters-open'),'click');
+      await f.fire(f.doc.getElementById('task-parameters-open'),'click',{isTrusted:true});
       assert.equal(sheet.open,true);assert.equal(f.doc.getElementById('task-params-form'),form);
       assert.equal(f.doc.getElementById('task-param-name'),name);assert.equal(name.value,'保留草稿');
       assert.equal(f.view.field('task-param-name').value,'保留草稿');
@@ -586,15 +489,21 @@ for(const dismissal of ['cancel button','close button','native cancel','native c
   });
 }
 
-test('hiding the task page closes the parameter Sheet without reopening it on return',async()=>{
+test('hiding My leaves the hoisted parameter Sheet visible with the same draft on return',async()=>{
   const f=await fixture();let root;
   try{
-    root=await f.mount();await f.fire(f.doc.getElementById('task-parameters-open'),'click');
+    root=await f.mount();await f.fire(f.doc.getElementById('task-parameters-open'),'click',{isTrusted:true});
     const sheet=f.doc.getElementById('task-parameters-sheet');assert.equal(sheet.open,true);
-    await React.act(async()=>root.render(React.createElement(MyTasksPage,{view:f.view,hidden:true})));
-    assert.equal(sheet.open,false);
-    await React.act(async()=>root.render(React.createElement(MyTasksPage,{view:f.view,hidden:false})));
-    assert.equal(sheet.open,false);assert.equal(f.state.starts.length,0);
+    const form=f.doc.getElementById('task-params-form'),name=f.doc.getElementById('task-param-name');
+    name.value='隐藏时保留';await f.fire(name,'input');
+    await React.act(async()=>root.render(React.createElement(MyWorkbench,{view:f.view,hidden:true})));
+    assert.equal(f.doc.getElementById('workbench-tasks').hidden,true);
+    assert.equal(sheet.open,true);assert.equal(sheet.closest('[hidden]'),null);
+    assert.equal(f.doc.querySelectorAll('#task-parameters-sheet').length,1);
+    await React.act(async()=>root.render(React.createElement(MyWorkbench,{view:f.view,hidden:false})));
+    assert.equal(sheet.open,true);assert.equal(f.doc.getElementById('task-params-form'),form);
+    assert.equal(f.doc.getElementById('task-param-name'),name);assert.equal(name.value,'隐藏时保留');
+    assert.equal(f.state.starts.length,0);assert.equal(f.state.permissionCalls.length,0);
   }finally{if(root)await React.act(async()=>root.unmount());f.dispose();}
 });
 
@@ -602,7 +511,7 @@ for(const key of ['Enter','Escape']){
   test(`composing ${key} is prevented and cannot run or close the parameter Sheet`,async()=>{
     const f=await fixture();let root;
     try{
-      root=await f.mount();await f.fire(f.doc.getElementById('task-parameters-open'),'click');
+      root=await f.mount();await f.fire(f.doc.getElementById('task-parameters-open'),'click',{isTrusted:true});
       const sheet=f.doc.getElementById('task-parameters-sheet'),name=f.doc.getElementById('task-param-name');
       const permissions=f.state.permissionCalls.length;
       const event=await f.fire(name,'keydown',{key,isComposing:true});
@@ -615,7 +524,7 @@ for(const key of ['Enter','Escape']){
 test('an untrusted React Run click leaves the parameter Sheet open without starting',async()=>{
   const f=await fixture();let root;
   try{
-    root=await f.mount();await f.fire(f.doc.getElementById('task-parameters-open'),'click');
+    root=await f.mount();await f.fire(f.doc.getElementById('task-parameters-open'),'click',{isTrusted:true});
     const permissions=f.state.permissionCalls.length;
     await f.fire(f.doc.getElementById('task-run'),'click');
     assert.equal(f.doc.getElementById('task-parameters-sheet').open,true);
@@ -626,7 +535,7 @@ test('an untrusted React Run click leaves the parameter Sheet open without start
 test('schema-invalid parameters reject trusted Run before permission and leave the Sheet open',async()=>{
   const f=await fixture();let root;
   try{
-    root=await f.mount();await f.fire(f.doc.getElementById('task-parameters-open'),'click');
+    root=await f.mount();await f.fire(f.doc.getElementById('task-parameters-open'),'click',{isTrusted:true});
     const name=f.doc.getElementById('task-param-name');name.value='';await f.fire(name,'input');
     const permissions=f.state.permissionCalls.length;let accepted;
     await React.act(async()=>{accepted=f.view.actions.taskRunClick(native(),{...f.view.data.taskRows.identity});await tick();});
@@ -639,7 +548,7 @@ test('schema-invalid parameters reject trusted Run before permission and leave t
 test('field validation errors are associated with their inputs and editing clears only that field error',async()=>{
   const f=await fixture();let root;
   try{
-    root=await f.mount();await f.fire(f.doc.getElementById('task-parameters-open'),'click');
+    root=await f.mount();await f.fire(f.doc.getElementById('task-parameters-open'),'click',{isTrusted:true});
     const name=f.doc.getElementById('task-param-name'),count=f.doc.getElementById('task-param-count');
     name.value='';await f.fire(name,'input');count.value='1.5';await f.fire(count,'input');
     await React.act(async()=>{assert.equal(f.view.actions.taskRunClick(native(),{...f.view.data.taskRows.identity}),false);await tick();});
@@ -669,7 +578,7 @@ test('field validation errors are associated with their inputs and editing clear
 test('correcting a parameter clears its obsolete summary without clearing other field or runtime errors',async()=>{
   const f=await fixture();let root;
   try{
-    root=await f.mount();await f.fire(f.doc.getElementById('task-parameters-open'),'click');
+    root=await f.mount();await f.fire(f.doc.getElementById('task-parameters-open'),'click',{isTrusted:true});
     const name=f.doc.getElementById('task-param-name'),count=f.doc.getElementById('task-param-count');
     name.value='';await f.fire(name,'input');count.value='1.5';await f.fire(count,'input');
     await React.act(async()=>{f.view.actions.taskRunClick(native(),{...f.view.data.taskRows.identity});await tick();});
@@ -690,7 +599,7 @@ test('disabled task shows its disabled reason despite matching the current site'
   try{
     root=await f.mount();assert.equal(f.view.data.taskRunBlockedReason,'');
     await f.dispatch('task-toggle');
-    await f.fire(f.doc.getElementById('task-parameters-open'),'click');
+    await f.fire(f.doc.getElementById('task-parameters-open'),'click',{isTrusted:true});
     assert.equal(f.state.installed[0].enabled,false);
     assert.equal(f.view.field('task-current-site').dataset.state,'matched');
     assert.equal(f.doc.getElementById('task-run').disabled,true);
@@ -705,7 +614,7 @@ test('disabled task shows its disabled reason despite matching the current site'
 test('a busy host shows the running reason and clears it when the host finishes',async()=>{
   const f=await fixture();let root;
   try{
-    root=await f.mount();await f.fire(f.doc.getElementById('task-parameters-open'),'click');
+    root=await f.mount();await f.fire(f.doc.getElementById('task-parameters-open'),'click',{isTrusted:true});
     assert.equal(f.view.data.taskRunBlockedReason,'');
     await React.act(async()=>{f.host.forceRun('other-owner-run');await tick();});
     assert.equal(f.view.field('task-current-site').dataset.state,'matched');
@@ -753,7 +662,7 @@ test('trusted snapshot Run accepts required empty string and empty enum values a
     mode:{type:'string',title:'模式',default:'',enum:['','other']}
   },required:['name','mode'],additionalProperties:false}});let root;
   try{
-    root=await f.mount();await f.fire(f.doc.getElementById('task-parameters-open'),'click');
+    root=await f.mount();await f.fire(f.doc.getElementById('task-parameters-open'),'click',{isTrusted:true});
     assert.equal(f.doc.getElementById('task-param-name').value,'');
     assert.equal(f.doc.getElementById('task-param-mode').value,'');
     let accepted;
@@ -767,15 +676,16 @@ test('trusted snapshot Run accepts required empty string and empty enum values a
 test('React owns the full page, reflects errors, keeps edits across tab hiding and cleans its subscription',async()=>{
   const f=await fixture();let root;
   try{
-    root=await f.mount();assert.equal(f.view.subscriberCount,1);
-    assert.ok(f.doc.querySelector('#workbench-tasks #task-params-form input[data-task-param="name"]'));
+    root=await f.mount();assert.equal(f.view.subscriberCount,2);
+    assert.ok(f.doc.querySelector('#task-parameters-sheet #task-params-form input[data-task-param="name"]'));
+    assert.equal(f.doc.querySelector('#workbench-tasks #task-params-form'),null);
     assert.equal(f.doc.getElementById('task-param-name').value,'Alice');
     await React.act(async()=>{
       const node=f.doc.getElementById('task-param-name');node.value='新草稿';node.dispatchEvent(new window.Event('input',{bubbles:true}));
     });
     assert.equal(f.view.field('task-param-name').value,'新草稿');
-    await React.act(async()=>root.render(React.createElement(MyTasksPage,{view:f.view,hidden:true})));
-    await React.act(async()=>root.render(React.createElement(MyTasksPage,{view:f.view,hidden:false})));
+    await React.act(async()=>root.render(React.createElement(MyWorkbench,{view:f.view,hidden:true})));
+    await React.act(async()=>root.render(React.createElement(MyWorkbench,{view:f.view,hidden:false})));
     assert.equal(f.doc.getElementById('task-param-name').value,'新草稿');
     await React.act(async()=>{f.view.setText('task-status','可控运行错误');});
     assert.match(f.doc.getElementById('task-status').textContent,/可控运行错误/);
@@ -855,4 +765,245 @@ test('history paging deduplicates Fire identities, shows failures, and stop chec
     const fire=plan.history[0];f.host.forceRun('different-run');f.view.data.planRows.onStop(plan,fire);await tick();assert.equal(f.state.stops.length,0);
     f.host.forceRun(fire.runId);f.view.data.planRows.onStop(plan,fire);await tick();assert.equal(f.state.stops[0].runId,fire.runId);
   }finally{f.dispose();}
+});
+
+
+for(const mode of ['form','json'])test(`tool ${mode} correction clears only its matching request summary`,async()=>{
+  const f=await fixture();let root;
+  try{
+    root=await f.mount();
+    await React.act(async()=>{await f.workbench.openTaskRunSheet({task:{...f.view.data.taskRows.identity,
+      contentHash:f.state.catalog[0].manifest.program.sourceHash},binding:{appId:'webflow'}});});
+    if(mode==='json')await React.act(async()=>f.view.actions.taskParamsModeChange('json'));
+    const input=f.doc.getElementById(mode==='json'?'task-params-json':'task-param-name');
+    input.value=mode==='json'?'{':'';await f.fire(input,'input');
+    await React.act(async()=>{f.view.actions.taskSheetPrepareClick(native(),f.view.data.taskRunSheet.identity);});
+    assert.match(f.view.data.taskRunSheet.status,/E_PARAMS/);
+    input.value=mode==='json'?'{}':'corrected';await f.fire(input,'input');
+    assert.equal(f.view.data.taskRunSheet.status,'');
+    await React.act(async()=>{
+      f.view.field(input.id).error='E_PARAMS: obsolete';
+      f.view.field('task-param-count').error='unrelated count error';
+      f.view.project('taskRunSheet',{...f.view.data.taskRunSheet,status:'权限失效'});
+    });
+    await f.fire(input,'input');
+    assert.equal(f.view.data.taskRunSheet.status,'权限失效');
+    assert.equal(f.view.field('task-param-count').error,'unrelated count error');assert.equal(f.state.starts.length,0);
+  }finally{if(root)await React.act(async()=>root.unmount());f.dispose();}
+});
+
+test('settled and uninstalled recovery show original values without an execution control',async()=>{
+  const f=await fixture();let root;
+  try{
+    root=await f.mount();
+    await React.act(async()=>f.view.project('taskRunSheet',{identity:{taskId:'uninstalled'},title:'uninstalled',source:'tool',
+      preparationId:'original',phase:'settled',recoveryOnly:true,originalParams:{original:'saved value'},
+      status:'原运行已结算；请关闭后打开新配置。'}));
+    const sheet=f.doc.getElementById('task-parameters-sheet');
+    assert.equal(sheet.open,true);assert.equal(f.doc.getElementById('task-parameters-title').textContent,'uninstalled');
+    assert.match(sheet.querySelector('[aria-label="原准备参数"]').textContent,/saved value/);
+    assert.equal(f.doc.getElementById('task-run'),null);
+    const labels=[...sheet.querySelectorAll('button')].map(node=>node.textContent);
+    assert.ok(labels.includes('查询状态'));assert.ok(!labels.includes('停止'));assert.ok(!labels.includes('取消准备'));
+    assert.match(sheet.textContent,/关闭后打开新配置/);assert.equal(f.state.starts.length,0);
+  }finally{if(root)await React.act(async()=>root.unmount());f.dispose();}
+});
+
+
+for(const action of ['taskSheetQueryClick','taskSheetCancelClick']){
+  for(const outcome of ['resolve','reject','stale'])test(`shared drawer ${action} publishes pending busy and fences ${outcome}`,async()=>{
+    const f=await fixture();let root,resolvePending,rejectPending;
+    try{
+      root=await f.mount();
+      const task={...f.view.data.taskRows.identity,contentHash:f.state.catalog[0].manifest.program.sourceHash};
+      const binding={appId:'app-a',packageHash:'d'.repeat(64),generation:'epoch-a',instanceId:'frame-a',task};
+      const preparation={preparationId:'original',state:'prepared',task,binding,
+        params:{name:'Saved',count:2,accept:true,mode:'a'},target:{}};
+      f.state.taskRunRequest=async()=>({preparation});
+      await React.act(async()=>{await f.workbench.openTaskRunSheet({task,binding});});
+      const pending=new Promise((resolve,reject)=>{resolvePending=resolve;rejectPending=reject;});
+      f.state.taskRunRequest=()=>pending;
+      await React.act(async()=>{f.view.actions[action](native());});
+      assert.equal(f.view.data.taskRunSheet.busy,true,'pending state must reach the React store before the reply');
+      const buttons=[...f.doc.getElementById('task-parameters-sheet').querySelectorAll('button')];
+      for(const label of ['查询状态','取消准备','确认执行一次'])
+        assert.equal(buttons.find(button=>button.textContent===label)?.disabled,true,label+' stays disabled while pending');
+      const calls=f.state.calls.length;
+      await React.act(async()=>{f.view.actions.taskSheetQueryClick(native());f.view.actions.taskSheetCancelClick(native());
+        f.view.actions.taskSheetConfirmClick(native(),task);});
+      assert.equal(f.state.calls.length,calls,'duplicate actions cannot reach the client');
+      if(outcome==='stale'){
+        await React.act(async()=>{f.view.actions.taskSheetClose();});
+        f.state.taskRunRequest=async()=>({preparation});
+        await React.act(async()=>{await f.workbench.openTaskRunSheet({task,binding});});
+        // Same preparation ID, new sheet sequence: neither reply nor finally owns it.
+        await React.act(async()=>f.view.project('taskRunSheet',{...f.view.data.taskRunSheet,busy:true,status:'new owner'}));
+      }
+      await React.act(async()=>{
+        if(outcome==='reject')rejectPending(Object.assign(Error('query unavailable'),{code:'E_TEST'}));
+        else resolvePending({preparation:{...preparation,state:'cancelled'}});
+        await tick();await tick();
+      });
+      if(outcome==='stale'){
+        assert.equal(f.view.data.taskRunSheet.status,'new owner');assert.equal(f.view.data.taskRunSheet.busy,true);
+      }else{
+        assert.equal(f.view.data.taskRunSheet.busy,false);
+        assert.equal([...f.doc.querySelectorAll('#task-parameters-sheet button')].find(button=>button.textContent==='查询状态').disabled,false);
+        if(outcome==='reject')assert.match(f.view.data.taskRunSheet.status,/E_TEST/);
+        else assert.equal(f.view.data.taskRunSheet.phase,'cancelled');
+      }
+      assert.equal(f.state.starts.length,0);assert.equal(f.state.permissionCalls.length,0);
+    }finally{resolvePending?.(null);if(root)await React.act(async()=>root.unmount());f.dispose();}
+  });
+}
+
+for(const explicit of [false,true]){
+  for(const mismatch of ['task','appId','packageHash','generation','unbound'])
+    test(`shared drawer rejects ${explicit?'explicit':'global'} preparation with different ${mismatch}`,async()=>{
+      const f=await fixture({twoTasks:true});let root;
+      try{
+        root=await f.mount();
+        const task={...f.view.data.taskRows.identity,contentHash:f.state.catalog[0].manifest.program.sourceHash};
+        const binding={appId:'app-a',packageHash:'d'.repeat(64),generation:'epoch-a',instanceId:'frame-a',task};
+        const preparation={preparationId:'original-a',state:'prepared',task,binding,
+          params:{name:'App A saved'},target:{}};
+        f.state.taskRunRequest=async()=>({preparation});
+        const requestedTask=mismatch==='task'?{...f.state.installed[1],contentHash:task.contentHash}:task;
+        let requestedBinding={...binding,task:requestedTask,instanceId:'reopened-frame'};
+        if(mismatch==='appId')requestedBinding.appId='app-b';
+        if(mismatch==='packageHash')requestedBinding.packageHash='e'.repeat(64);
+        if(mismatch==='generation')requestedBinding.generation='epoch-b';
+        if(mismatch==='unbound')requestedBinding=null;
+        await React.act(async()=>{
+          await assert.rejects(f.workbench.openTaskRunSheet({task:requestedTask,binding:requestedBinding,
+            ...(explicit?{preparationId:preparation.preparationId}:{})}),
+            error=>['E_TASK_BUSY','E_REVISION'].includes(error?.code));
+        });
+        assert.equal(f.view.data.taskRunSheet??null,null,'a foreign preparation never becomes confirmable');
+        assert.equal(f.state.calls.some(({action})=>['prepareTaskRun','cancelTaskRun','resolveInstalledTask'].includes(action)),false);
+        assert.equal(f.state.starts.length,0);assert.equal(f.state.permissionCalls.length,0);
+      }finally{if(root)await React.act(async()=>root.unmount());f.dispose();}
+    });
+}
+
+test('shared drawer restores the same task and App package generation across frame reopen',async()=>{
+  const f=await fixture();let root;
+  try{
+    root=await f.mount();
+    const task={...f.view.data.taskRows.identity,contentHash:f.state.catalog[0].manifest.program.sourceHash};
+    const binding={appId:'app-a',packageHash:'d'.repeat(64),generation:'epoch-a',instanceId:'original-frame',task};
+    const preparation={preparationId:'original',state:'prepared',task,binding,params:{name:'Saved'},target:{}};
+    f.state.taskRunRequest=async()=>({preparation});
+    await React.act(async()=>{assert.equal(await f.workbench.openTaskRunSheet({task,binding:{...binding,instanceId:'new-frame'}}),true);});
+    assert.equal(f.view.data.taskRunSheet.preparationId,'original');
+    assert.equal(f.view.data.taskRunSheet.phase,'prepared');assert.equal(f.doc.getElementById('task-run').disabled,false);
+    assert.equal(f.state.starts.length,0);
+  }finally{if(root)await React.act(async()=>root.unmount());f.dispose();}
+});
+
+
+for(const draft of ['', '-', '1e', 'not-a-number', '1e999', ' '])
+  test(`form draft switches to JSON with incomplete required text and numeric ${JSON.stringify(draft)}`,async()=>{
+    const f=await fixture();let root;
+    try{
+      root=await f.mount();
+      const task={...f.view.data.taskRows.identity,contentHash:f.state.catalog[0].manifest.program.sourceHash};
+      await React.act(async()=>{await f.workbench.openTaskRunSheet({task,binding:{appId:'fixture-app'}});});
+      await f.input('task-param-name','');await f.input('task-param-count',draft);
+      // Form submissions still use the original validator before conversion.
+      await React.act(async()=>{
+        assert.equal(f.view.actions.taskSheetPrepareClick(native(),task),false);
+        assert.equal(f.view.actions.taskRunClick(native(),task),false);
+      });
+      await React.act(async()=>f.view.actions.taskParamsModeChange('json'));
+      assert.equal(f.view.data.taskParamsMode,'json','unfinished drafts are editable in JSON');
+      const text=f.view.field('task-params-json').value;
+      assert.deepEqual(JSON.parse(text),{name:'',count:draft,accept:true,mode:'a'},'invalid numeric input retains its exact text instead of null or zero');
+      await React.act(async()=>{
+        assert.equal(f.view.actions.taskSheetPrepareClick(native(),task),false);
+        assert.equal(f.view.actions.taskRunClick(native(),task),false);
+        f.view.actions.taskParamsModeChange('form');
+      });
+      assert.equal(f.view.data.taskParamsMode,'json','strict JSON-to-form validation retains the unfinished JSON');
+      assert.equal(f.view.field('task-params-json').value,text);
+      await f.input('task-params-json',JSON.stringify({...JSON.parse(text),name:'Valid name'}));
+      await React.act(async()=>{
+        assert.equal(f.view.actions.taskSheetPrepareClick(native(),task),false);
+        assert.equal(f.view.actions.taskRunClick(native(),task),false);
+      });
+      assert.equal(f.state.calls.some(({action})=>action==='prepareTaskRun'),false);
+      assert.equal(f.state.starts.length,0);assert.equal(f.state.permissionCalls.length,0);
+    }finally{if(root)await React.act(async()=>root.unmount());f.dispose();}
+  });
+
+test('form draft switch keeps numeric and boolean primitives while required text is incomplete',async()=>{
+  const f=await fixture({paramsSchema:{type:'object',properties:{
+    name:{type:'string',title:'名称',minLength:1},count:{type:'integer',title:'次数',default:2},
+    decimal:{type:'number',title:'比例',default:0.5},accept:{type:'boolean',title:'确认',default:false},
+    mode:{type:'boolean',title:'模式',enum:[false,true],default:true}},required:['name'],additionalProperties:false}});let root;
+  try{
+    root=await f.mount();await f.input('task-param-name','');await f.input('task-param-count','7');
+    await f.input('task-param-decimal','-0.25');
+    await React.act(async()=>f.view.actions.taskParamsModeChange('json'));
+    assert.equal(f.view.data.taskParamsMode,'json');
+    assert.deepEqual(JSON.parse(f.view.field('task-params-json').value),{name:'',count:7,decimal:-0.25,accept:false,mode:true});
+    assert.equal(f.state.starts.length,0);assert.equal(f.state.permissionCalls.length,0);
+  }finally{if(root)await React.act(async()=>root.unmount());f.dispose();}
+});
+
+for(const frozen of ['prepared','busy'])test(`shared drawer ${frozen} freezes boolean labels and optional clear without losing drafts`,async()=>{
+  // React Aria exposes its mouse fallback specifically for DOM test environments.
+  const priorEnv=process.env.NODE_ENV;process.env.NODE_ENV='test';
+  const f=await fixture({paramsSchema:{type:'object',properties:{
+    name:{type:'string',title:'名称',default:'Alice'},accept:{type:'boolean',title:'确认',default:true},
+    optional:{type:'boolean',title:'可选'},count:{type:'integer',title:'次数',default:2}},required:['name'],additionalProperties:false}});let root;
+  try{
+    root=await f.mount();
+    const task={...f.view.data.taskRows.identity,contentHash:f.state.catalog[0].manifest.program.sourceHash};
+    await React.act(async()=>{await f.workbench.openTaskRunSheet({task,binding:{appId:'fixture-app'}});});
+    await f.input('task-param-name','editing draft');
+    const label=name=>f.doc.getElementById('task-param-'+name).closest('.task-param-toggle').querySelector('label');
+    // React Aria handles mouse presses on the label; a lone synthetic click
+    // neither supplies button=0 nor starts that press in linkedom.
+    const clickLabel=async name=>{
+      const node=label(name);
+      for(const type of ['mousedown','mouseup','click'])await f.fire(node,type,{button:0,detail:1});
+    };
+    await clickLabel('accept');assert.equal(f.view.field('task-param-accept').checked,false,'editing label can toggle');
+    await clickLabel('optional');assert.equal(f.view.field('task-param-optional').checked,true,'editing optional label can toggle');
+    assert.equal(f.view.field('task-param-optional').omitted,false);
+    const order=[...f.doc.querySelectorAll('[data-task-param]')];
+    const values=()=>f.view.data.taskParams.map(({name})=>{const field=f.view.field('task-param-'+name);return {value:field.value,checked:field.checked,omitted:field.omitted};});
+    const draft=values();
+    await React.act(async()=>f.view.project('taskRunSheet',{...f.view.data.taskRunSheet,
+      phase:frozen==='prepared'?'prepared':'editing',busy:frozen==='busy'}));
+    for(const name of ['accept','optional']){
+      await clickLabel(name);
+    }
+    const clear=f.doc.querySelector('button[aria-label="不填写可选"]');
+    await f.fire(clear,'click',{button:0});
+    assert.deepEqual(values(),draft,'frozen clicks cannot mutate the captured draft');
+    assert.equal(clear.disabled,true);
+    for(const name of ['accept','optional'])assert.equal(f.doc.getElementById('task-param-'+name).disabled,true,'the React Aria input receives explicit disabled');
+    assert.deepEqual([...f.doc.querySelectorAll('[data-task-param]')],order,'controls keep their order and instances');
+    await React.act(async()=>f.view.project('taskRunSheet',{...f.view.data.taskRunSheet,phase:'editing',busy:false}));
+    await clickLabel('accept');assert.equal(f.view.field('task-param-accept').checked,true);
+    await f.fire(clear,'click');assert.equal(f.view.field('task-param-optional').omitted,true,'editing can clear an optional boolean');
+    assert.equal(f.view.field('task-param-name').value,'editing draft');
+    assert.equal(f.state.starts.length,0);assert.equal(f.state.permissionCalls.length,0);
+  }finally{if(root)await React.act(async()=>root.unmount());f.dispose();
+    if(priorEnv===undefined)delete process.env.NODE_ENV;else process.env.NODE_ENV=priorEnv;}
+});
+
+test('public MyControl respects props.disabled and retains a disabled field override',async()=>{
+  const f=await fixture();let root;
+  try{
+    root=await f.mount();
+    const id='disabled-prop-fixture';
+    for(const [propDisabled,fieldDisabled]of [[true,false],[false,true],[false,false]]){
+      f.view.field(id).disabled=fieldDisabled;
+      await React.act(async()=>root.render(React.createElement(MyControl,{view:f.view,as:'input',controlBase:'aria',id,disabled:propDisabled})));
+      assert.equal(f.doc.getElementById(id).disabled,propDisabled||fieldDisabled);
+    }
+  }finally{if(root)await React.act(async()=>root.unmount());f.dispose();}
 });

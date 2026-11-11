@@ -144,3 +144,7 @@ R4.5 的原候选证据保持原有身份，不因本页更新自动升级为 R4
 ## Time Review R1.2
 
 `time-review` 始终为 `optional`，包能力为 `time.review` 与 `user.export`。复用现有候选安装、更新、停用和卸载流程；安装不等于授权计时。首次需包含 `time-review/time-review-host.js`、`alarms` 与可选 `idle` 的扩展构建。之后只改工具 UI 可用原打包器生成独立包。实际使用见 [Time Review](../../examples/sidebar-tools/time-review/README.zh-CN.md)，本轮组件和原生证据见 [专属工作流](../framework/workstreams/time-review-r12-01a12b0d.md)。
+
+## AI Proxy 独立分发（2026-11-11）
+
+AI Proxy 是独立项目扩展，已从 `official-tools/catalog.json` 移除，不再随 Browser 离线分发，也不是默认安装项；`optional` 仍参与离线打包，不能用它表示“不随包分发”。保留 `projects/ai-proxy/` 及唯一正式独立包 `projects/ai-proxy/ai-proxy.opendesk-tool.json`，可通过原本地工具包审阅链安装。已有安装、数据、固定可信能力及 Host/安装链不因移除目录登记而删除或停用。默认预装仍为 `reading-toc`、`quick-notes`、`cookie-editor`、`prompt-shortcuts`。本次仅调整生成资源输入，不代表已有开发/生产输出已刷新或 Chrome 已验证。

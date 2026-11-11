@@ -1,6 +1,6 @@
 # Web Flow「运行」复用「我的」抽屉 · 专项实现附录（2026-11-11）
 
-> 固定检索词：OD-AI-WORKFLOW-BRIDGE。本文是实施附录，唯一需求源仍是 [product-contract.zh-CN.md](product-contract.zh-CN.md)、唯一进度源仍是 [execution-plan.zh-CN.md](execution-plan.zh-CN.md)。**当前 SOURCE_IMPLEMENTED / TARGETED_NODE_NOT_TESTED / INSTALLED_CHROME_NOT_TESTED；底部布局恢复见执行计划顶部最新卡**（以本节第 7 条为准）。可点击演示见 [preview/index.html](../preview/index.html)。
+> 固定检索词：OD-AI-WORKFLOW-BRIDGE。本文是实施附录，唯一需求源仍是 [product-contract.zh-CN.md](product-contract.zh-CN.md)、唯一进度源仍是 [execution-plan.zh-CN.md](execution-plan.zh-CN.md)。**当前 SOURCE_IMPLEMENTED / TARGETED_NODE_NOT_TESTED / INSTALLED_CHROME_NOT_TESTED；底部布局恢复见执行计划顶部最新卡**（以本节第 7 条为准）。可点击演示见 [preview/index.html](../preview/index.html)。 公开 API 仅在[原 Sidebar Tool 文档](../../../docs/api/sidebar-tools.zh-CN.md#固定已安装-controller-task-委托v2)维护；本文不另立规格。已有实现和测试覆盖不代表最新合并候选已通过定向 Node、浏览器或业务验收，95+ 未验证。
 
 ## 1. 最终用户操作（最高优先级）
 
@@ -8,15 +8,15 @@
 
 保留现有脚本列表、收藏/▶/更多和 hover/focus 布局，不再重新设计整个列表。脚本列表只显示异常提示，运行记录负责状态与高级诊断。Side Panel 和 app.html 都应生效，不以切换去「我的」替代最终体验。
 
-## 2. 设计前的源码基线及当前实现
+## 2. 当前真实源码与消费入口
 
-以下四段记录的是抽取共享组件**以前的历史基线**，不是当前 main 的运行状态。
+以下记录当前源码消费入口；历史抽取与底部布局修正见第 7、8 节。公开 `tasks.configure` 使用完整 `task` 安装 pin 和可选 `preparationId`；下文历史接线说明中的 `{taskId}` 简写不替代原公开 API 合同。
 
-- 「我的」：`src/ui/react/tabs/tasks.tsx` 的 `openParameters()`；`src/ui/react/tabs/my-page.tsx` 的 `MyTaskWorkspace` 使用 `<dialog id="task-parameters-sheet" class="task-params-sheet">`，包含表单/JSON、关闭保留草稿、焦点和 IME；`my-sections.tsx` 的 `MyTaskParams` 渲染真实 Schema 字段。
-- 可信运行控制器：`src/ui/task-workbench.js` 的 `taskRunClick → run()` 校验 `paramsSchema`、version / manifestHash / installationId / generation / 真实网页 / Chrome 权限，调用**唯一原 RunHost**。不复制这个执行方法。
-- Web Flow：`projects/webflow/src/ui/main.js` 的 ▶ 当前展开沙箱行内参数，`prepare()` 持久化并读回旧原请求，`run()` 用受审 `tasks.start`。旧 `webflow.pending.v1` 需要继续安全恢复；新可信运行路径不能同时再调用 `tasks.start`。
-- 公开 SDK 的 `tasks.open({taskId})` **仅做任务管理/安装审阅导航**，`src/ui/sidebar-tools.js` 严格仅接受 taskId 并可暂停工具，不会打开「我的」运行抽屉。不要冒充已有可复用运行入口。
-- `projects/webflow/tool.config.json` 当前是 0.3.27，百度 1.1.5、Google 1.0.3；所查根正式 JSON 仍为 0.3.26。源码、正式包和当前已安装页面必须分别核对。
+- 共享可信 UI：`src/ui/react/tabs/task-run-sheet.tsx` 已提供 `TaskRunSheet`，复用 `MyTaskParams`、MyControl 与 Tokens；`app-shell.tsx` 在唯一 React 根挂载，位于隐藏 Tab/工具容器之外。「我的」与工具来源共用组件，保留原手动运行链。
+- 唯一控制器：`src/ui/task-workbench.js` 已提供共享抽屉的打开、保存/读回、确认、查询与取消；原 `run()` 和 RunHost 继续持有执行权限，不复制执行器。`src/platform/host/controller-methods.js` 在原 commandJournal 保存准备身份并原子消费，关联原 Run/Result。
+- Web Flow：`projects/webflow/src/ui/main.js` 的 ▶ 和更多菜单同步调用公开 UI-only 入口；「记录」从 metadata 发现原准备定位并打开同一可信抽屉。`model.js` 仅保留有效、精确 pin 匹配且去重的定位投影，不将参数/结果写成第二账本。新共享路径不调用 `tasks.start`；旧 `webflow.pending.v1` / `webflow.recent.v1` 仍保留原 read/stop 恢复。
+- Bridge/Host：`src/sidebar-tools/bridge.js` 与 `src/ui/sidebar-tools.js` 已接入 `tasks.configure` 私有真实手势通道，打开当前宿主可信抽屉，不导航、不卸载 iframe、不创建 Run。`tasks.open` 仍仅做任务管理/安装审阅导航，不替代共享抽屉。
+- 工具源码、候选/正式 JSON、当前已安装包及固定编译 Host 分别核对，不以旧版本号或某个包已生成推定当前运行代码已生效；实际交付进度由 leader 记录。
 - 两个搜索 Task 当前真实 Schema 均为：`query` 必填 1–120 字；`limit` 整数固定枚举 3；`showExecutionTab` 可选布尔，默认 true。**通用组件应从 Task Authority/manifest 取得参数，不在框架硬编码百度字段。**
 
 **当前 main 已有的源码接线：** `src/ui/react/tabs/task-run-sheet.tsx` 是唯一可信抽屉；`SidebarAppShell` 在 Side Panel 与 app.html 的唯一 React Root 统一挂载；`src/ui/sidebar-tools.js` 的 `tasks.configure({taskId})` 仅在可信宿主核对真实点击、已安装 App、包 hash、撤权代次、固定 delegatedTask 和当前 session 后打开抽屉，不发送 Run。它冻结来源应用 `toolId/version/packageHash/revocationEpoch`；`src/ui/task-workbench.js` 从 Task Authority 读取真实 Task Schema/安装身份，保存准备到可信存储并读回，同一准备经第二次确认进入原 `run() → RunHost`，不存在第二 Runner。旧沙箱内 `prepare()/run()/tasks.start` 新执行路径已移除，旧 `webflow.pending.v1` 与历史记录仍只读查询/停止。**实现不等于已安装 Chrome 验收。**
@@ -37,17 +37,17 @@ Web Flow 脚本列表：[收藏] [▶] [⋯]
 - 第一阶段保存前关闭：只保留编辑草稿，不创建执行；保存后关闭：保留同一准备记录，允许继续确认/安全取消；不能重新生成另一个待执行请求。
 - 从「我的」或 Web Flow 打开相同任务时须共用运行占用/冲突判断，不允许靠当前 Tab 的局部 state 来防重。旧 Web Flow pending/UNKNOWN 必须与新入口共用冲突保护，防止绕路重复操作。
 
-## 4. 推荐组件与能力边界
+## 4. 已实现的组件与能力边界
 
-| 层 | 建议 | 明确禁止 |
+| 层 | 当前实现 | 明确禁止 |
 | --- | --- | --- |
-| 共享可信 UI | 从 `MyTaskWorkspace` 提取 `TaskRunSheet`（如 `src/ui/react/tabs/task-run-sheet.tsx`），仍在唯一 `SidebarAppShell` React root，用同一个 `MyTaskParams` / MyControl / Tokens；「我的」和 Web Flow 两处消费 | 在 Web Flow iframe 内复制 My 的 JSX/DOM，或创建第二 React 根 |
+| 共享可信 UI | 已提取 `TaskRunSheet`（`src/ui/react/tabs/task-run-sheet.tsx`），在唯一 `SidebarAppShell` React root，用同一个 `MyTaskParams` / MyControl / Tokens；「我的」和 Web Flow 两处消费 | 在 Web Flow iframe 内复制 My 的 JSX/DOM，或创建第二 React 根 |
 | 唯一控制器 | 原 `TaskWorkbench` 提供可信任务选择、Schema 校验、保存/读回准备、再次检查身份、一次性执行。冻结参数摘要/固定安装 pin/可信网页目标/source epoch | 复制 RunHost、另造执行账本、仅用按钮 disabled 防重 |
-| UI-only 打开动作 | 先核对公开 SDK 是否已有适用入口；若确实缺口，公共 owner 最小增加通用 `tasks.configure({taskId})`（**已写入正式 Host + 公开 SDK 文档，待定向 CI / Chrome 验收**），经原 `tasks.open` 能力范围、已安装精确 pin、真实用户手势、工具身份与撤权检查后，Host 开共享抽屉，**不执行** | 改写现有 `tasks.open` 管理语义、沙箱传 JS/任意 URL/tabId、虚构受信任点击 |
+| UI-only 打开动作 | 已由原 Bridge/Host 接入 `tasks.configure`，完整签名及准备记录投影见原公开 API；核对已审阅能力、精确安装 pin、真实用户手势、工具身份与撤权后打开共享抽屉，**不执行** | 改写现有 `tasks.open` 管理语义、沙箱传 JS/任意 URL/tabId、虚构受信任点击 |
 | 呈现宿主 | 抽屉从现有侧栏/PC 工具 Host 底部上滑，不销毁、导航或重复挂载 Web Flow；`app.html` 也能挂同一可信 overlay | 强制跳「我的」作为最终方案；依赖隐藏的 My Tab dialog 可见 |
 | Web Flow UI | 只调用可信抽屉打开入口，复用普通脚本列表；遗留请求保留只读核对/安全取消 | 二次派发已改走 My 的请求、丢弃旧 pending、把原请求 ID/Hash 常驻脚本 Tab |
 
-**关键实现细节：** 执行第二阶段必须仍由可信真实用户激活进入现有 Workbench.run，且每次确认只消费一个准备身份；同次参数/版本/页面/授权发生变更时拒绝启动。不能把 React 中点击后的合成事件传给沙箱模拟 `isTrusted`；不能把“已经打开抽屉”冒充执行许可。新增入口属于跨应用通用 UI-only 需求，须按根仓库 Extension Type & Ownership Gate 检查并同步唯一公开 API 文档；不得把固定 Web Flow 特例硬编码进 Host。
+**关键实现细节：** 执行第二阶段必须仍由可信真实用户激活进入现有 Workbench.run，且每次确认只消费一个准备身份；同次参数/版本/页面/授权发生变更时拒绝启动。不能把 React 中点击后的合成事件传给沙箱模拟 `isTrusted`；不能把“已经打开抽屉”冒充执行许可。该入口是跨应用通用 UI-only 能力，签名与字段只维护在唯一公开 API 文档；不得把固定 Web Flow 特例硬编码进 Host。
 
 ## 5. 状态 / 恢复合同
 
@@ -57,10 +57,14 @@ Web Flow 脚本列表：[收藏] [▶] [⋯]
 | PREPARED 已核对 | 继续确认 / 安全取消；第二次点击时核对准备身份 | 参数悄悄变动、重建新请求 |
 | RUNNING / SETTLING | 查看同次进度；尝试停止 | 双击创建第二 Run |
 | UNKNOWN / 缺结果 / 未确认释放 | 查询同一原请求 / 尝试停止 | 超时自动重试、人工点新运行绕过 |
-| 同次持久结果 + released | 本次结束，后续重新运行需新意图 | 只凭 completed 或停止 ACK 解锁 |
+| Authority 明确 settled | 原记录只读；结果不可见时明确提示，后续运行须关闭并打开新配置 | 用结果可见性、全局 slot 或停止 ACK 推断结算 |
 | 结果业务 blocked / no_results | 准确呈现实际业务状态 | 把控制器 completed 写成“搜索成功” |
 
-旧手动 Web Flow 的 `webflow.pending.v1`、`recent.v1` 是**恢复定位，不是新共享执行器的事实来源**。新来源若归「我的」工作台所有，Web Flow 记录页只呈现原可信只读视图/链接，不复制一份“已成功”账本。权限、Task 更新、框架重启、目标文档变化、旧失联实例与新操作必须分别围栏。
+旧手动 Web Flow 的 `webflow.pending.v1`、`recent.v1` 是**恢复定位，不是新共享执行器的事实来源**。新准备归原可信工作台与 Authority 所有，Web Flow 记录页只消费原只读定位投影并打开可信视图，不复制一份“已成功”账本。权限、Task 更新、框架重启、目标文档变化、旧失联实例与新操作必须分别围栏。
+
+**结算与披露分离：** `settled` 来自 Authority 对原准备、匹配持久 Run/Result 和资源释放的核对，或未提交准备的明确取消；它不证明网页业务成功。结果披露仍独立经过原权限/文档检查，可能已结算而结果不可见；未取得结果也不能反推仍占用。新准入仍由原 Authority 围栏决定，不由 UI 或缓存解锁。
+
+**精确身份与只读恢复：** metadata 仅返回当前 App 包/撤权代次和精确 Task 安装 pin 下的原定位；重新挂载可重新发现，不能从 storage 伪造。打开指定原记录时查找不到或身份不匹配即拒绝，不降级成新配置；异步读取前后复核工具安装、启用与授权。可信工作台已持有的原记录在 Task 卸载/停用/Schema 不可用时仍保留原身份及只读参数，只核对或取消/停止原请求，不继承新安装权限。结果拒绝披露不删除原记录，也不触发重放。旧 pending/recent 的缓存释放标记必须回到原 Authority 核对，查找失败继续拒绝新准入；UI-only 打开本身可用，不等于解除执行围栏。
 
 ## 6. 最小验收
 
@@ -80,6 +84,17 @@ Web Flow 脚本列表：[收藏] [▶] [⋯]
 - **CHROME_TESTED=NOT_TESTED / BUSINESS_ACCEPTED=NO：** 本轮无法核对真实已安装扩展的版本、授权代次和 Side Panel/PC 像素交互；未实际运行百度脚本，不提供虚构 Run/Result/业务成功。禁止自动重放历史 `webflow:fcd2a5b4-c77e-430e-ae7b-1cd2b5e68caa`。
 - **最小剩余操作：** 得到并修复 Web Flow 定向 CI 失败（若有）；经原 packager 校验正式同源包；明确核对 Chrome 实际安装版本；用户在真实百度页面点击 Web Flow ▶，验证仅打开与「我的」同一个底部 Sheet，保存不运行、确认一次仅产生一个原 Run，并独立读回 Result/释放状态。离线 Chromium 模拟 SDK 不代替安装验收。
 
+
+源码已接入共享 TaskRunSheet、Bridge/Host UI-only 入口、原 Authority 准备持久化与一次性 RunHost 准入；metadata 原定位发现、指定记录恢复、结算与结果披露分离均已有定向测试覆盖，不能继续记为仅设计或未实施。
+
+本地补充的可复核覆盖入口（仅记录覆盖范围，本次冲突合并不运行测试，不据此声明最新候选 PASS）：
+
+- [Host 测试](../../../tests/environment/sidebar-tools-host.test.mjs)：私有手势、不重挂载/不执行、精确原定位、非法/越权字段、异步查询中撤权/停用/卸载拒绝。
+- [Authority 准备测试](../../../tests/environment/task-run-preparation.test.mjs)：持久准备不执行、一次性准入、身份/文档变化、UNKNOWN 不重放、匹配持久结果与释放、结算不依赖结果披露、精确 App/Task 定位投影。
+- [可信工作台测试](../../../tests/environment/task-workbench.test.mjs)：同一原记录恢复、缺失/错误 ID 拒绝、安装失效只读、显式结算与不可见结果、关闭/取消和晚到回包围栏。
+- [Web Flow 消费测试](../tests/shared-task-run-sheet.test.mjs)与[旧记录恢复测试](../tests/task-run-recovery.test.mjs)：同步打开、metadata 定位/去重/清除、旧 UNKNOWN 原 read/stop、缓存不当结算回执与共用恢复锁。
+
+**浏览器验证尚未确认完成。** 以上源码和测试覆盖不证明当前固定编译已生效、工具已安装更新、真实 Side Panel/app.html 行为或网页业务成功；本附录不声明 Chrome PASS 或 95+。最小验收清单保留为浏览器核验目标，实际执行结果及剩余项由 leader 在原 execution-plan 统一记录，本次不改该文件。不重放历史请求，不接管并行 owner 的浏览器、watcher 或产物。
 
 ## 8. 底部抽屉回归后的架构边界审计（OD-WEBFLOW-MY-RUN-SHEET-UI-REGRESSION-R1）
 

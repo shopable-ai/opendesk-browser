@@ -171,27 +171,10 @@ html:has(#webflow-app),body:has(#webflow-app){margin:0}
 .wf-task-row:is(:hover,:focus-within) .wf-shortcut,.wf-task-row[data-menu-open="true"] .wf-shortcut{visibility:visible;opacity:1;pointer-events:auto;width:29px;min-width:29px;min-height:31px}
 .wf-task-row:is(:hover,:focus-within) .wf-task-main,.wf-task-row[data-menu-open="true"] .wf-task-main{padding-right:94px}
 .wf-item-buttons .wf-menu-anchor>.wf-icon{width:32px;min-width:32px;min-height:34px}
-.wf-param-list{border:1px solid var(--line);border-radius:9px;background:var(--paper);overflow:hidden}
-.wf-param-row{display:grid;grid-template-columns:minmax(0,.95fr) minmax(0,1.05fr);gap:8px;align-items:center;min-width:0;padding:9px}
-.wf-param-row+.wf-param-row{border-top:1px solid var(--line)}
-.wf-param-label{display:grid;gap:2px;min-width:0}
-.wf-param-label :is(strong,label){font-weight:650;font-size:12px;color:var(--ink)}
-.wf-param-label small{font-size:10px;line-height:1.4;color:var(--sub)}
-.wf-param-fixed{font-size:12px;font-weight:650;color:var(--sub)}
-.wf-required{color:var(--warn)}
-.wf-param-check{display:flex;gap:8px;align-items:center;justify-content:flex-end;min-height:40px;white-space:nowrap}
-.wf-param-check input{width:18px;height:18px;min-width:18px;accent-color:var(--brand)}
-.wf-param-check span{color:var(--ink);font-size:12px}
-.wf-params-heading{display:flex;justify-content:space-between;gap:9px;align-items:center;flex-wrap:wrap}
-.wf-params-heading strong{font-size:12px}
-.wf-technical{border-top:1px solid var(--line);padding-top:8px}
-.wf-technical .wf-detail{margin-top:9px}
-@media(max-width:420px){
-  .wf-param-row{grid-template-columns:minmax(0,1fr);gap:5px}
-  .wf-param-check{justify-content:flex-start}
-}
 @media(hover:none),(pointer:coarse){
   .wf-task-row .wf-task-main,.wf-task-row:is(:hover,:focus-within) .wf-task-main,.wf-task-row[data-menu-open="true"] .wf-task-main{padding-right:43px}
   .wf-item-buttons>.wf-shortcut{display:none}
   .wf-item-buttons .wf-menu-anchor>.wf-icon{width:42px;min-width:42px;min-height:44px}
 }
+
+.wf-task-detail .wf-sub{white-space:normal;overflow-wrap:anywhere}

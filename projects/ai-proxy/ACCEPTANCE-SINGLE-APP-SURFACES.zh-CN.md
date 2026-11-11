@@ -183,3 +183,43 @@ AIProxy：ID ai-proxy、版本0.3.9、946159字节、SHA-256 `30615091d14dcb61b2
 **下一道真相门禁**：必须读取本变更提交 SHA 对应的 GitHub App CI 实际运行结果，确保 `discover`、`ci-contract`、`app-validate (ai-proxy)` 全部 PASS；失败则继续只修复新发现的准确原因，绝不晋升包。独立 App Release 必须核对同 HEAD 来源与候选 SHA 才能将 AI Proxy `0.3.13` 通过原 packer 晋升。完成后仍需真实 Chrome Host+Tool 原位更新、R16/R18 两视口截图、PC/Side Panel 持久化与 Chrome 实际状态验收。**此处只记修复，不声称 CI／安装／截图已经通过。**
 
 **首轮修复后的真实 CI 反馈与第二层纠偏**：[#42853577453](https://github.com/shopable-ai/opendesk-browser/actions/runs/42853577453) 的 `app-validate (ai-proxy)` 不再出现 `E_OFFICIAL_FIXTURE_PIN`，改为 R26 旧断言 `Missing expected rejection`：当前安装器已允许**明确审阅后的本地导入**复用工具 ID，但无审阅仍应 `E_REVIEW_REQUIRED`，伪造官方市场来源仍必须 `E_OFFICIAL_ID_RESERVED`。因此只更新 `tests/environment/sidebar-tool-enable-r26.test.mjs` 中这两条真实拒绝边界，继续对正确的历史正式包执行严格 SHA 与 provenance 校验；没有改安装器、安全 pin、默认权限、测试通过判定。公共 `ci-contract` 的子进程原仅显示退出码，本次将其原断言的失败信息补充为真实 stdout／stderr，失败仍严格非零。**这只是下一次 CI 的待检验修复，不是通过声明。**
+
+## 13. 2026-11-11 · PC 管理界面本地修复（不执行发行）
+
+**本节按用户最新范围取代前文的当前动作清单**：只完善正式 PC 界面、复用日常持续开发服务并验证相关交互；没有访问 GitHub、执行 fetch/push、CI、发行、评分或恢复已暂停目标。工作分支仍为 `main`，开始与收尾 HEAD 均为 `387e49cd358a47f66809b54a84ccab13597c3735`；本轮变更尚未提交。没有修改唯一预览、正式工具 JSON、安装身份或代理应用状态。
+
+**浏览器证据边界**：本节截图和 CRUD 来自已有 **ego lite** 实例中的真实 `ccfcjegpkdlgbclopjmadlcjedelidmf` 扩展，绝不是历史 `adhc…` 隔离 Host，也不等于日常 Chrome 的相同 ID 数据。日常 Chrome 的当前标签目录未见所给管理页；通过受支持 Chrome 接口打开无旧实例参数的管理地址，被 URL 安全策略拒绝（只允许 HTTP/HTTPS，禁止 chrome-extension 协议），随后停止该操作，没有通过原生输入等其他通道绕过。**日常 Chrome 的原问题根因及修改后实显仍为 NOT_TESTED**；下面的可复现原因和通过项目仅约束 ego 的这一真实安装。
+
+**运行身份与生效证据**：ego 中实际安装 AI Proxy `0.3.12`，installType 为 development；当前源码配置及目录包已是其他任务交付的 `0.3.14`，本轮没有因版本号打包或升级。实际 `app.html`、`ui/tool-shell.js`、`ui/sidebar-tool-host.js`、`ui/tool-shell.css` 和 `development-update.json` 的 SHA-256 均与 `/Users/shopme/Documents/workspace/opendesk-browser/dist/development` 对应文件一致。原 `node scripts/dev.mjs` PID `44560` 保留，未停止进程或启动第二个 writer；来源输入修复后由原 watcher 重新读取配置和编译，经原安全更新链生效。页面开发端口回执 connected，已应用 revision 为 `be5111d97f6b48ac1c4baa5d9efe40233c48630006c85f3b5d1a97025fc1496a`。当前 hostInstanceId 由正常页面绑定生成，未复用用户提供的旧参数作为授权。
+
+**实际差异与原因**：
+
+- 修改前是旧已安装包的沙箱 UI，存在重复 Host/应用标题；没有可信 React 挂载标记。`app.html` 实际存在，不能归因于旧隔离目录缺页。Host 的 AI Proxy 分支额外要求已安装版本和当前本地目录包匹配，令合法旧安装退回沙箱。只移除这一发行匹配展示门槛，保留安装身份、能力、启用状态、epoch、撤销和逐请求检查；安装包 JS 仍不进入可信页面。
+- 正确挂载后又确认 PC token 被后加载的基础样式覆盖、导航按钮居中、两栏继承 17px 间距、官方栏目额外分隔。`Settings.tsx` 和 `management.css` 复用原组件调整顶栏、副标题、状态详情入口、七栏目及内容层级、配色、间距、编辑器操作区；管理框实测 1250px、导航 215px、两栏 gap 0。保存/删除成功回执仅在真实成功后进入可见顶栏，保存仍明确未自动应用。
+- 长页滚动曾使导航被拉伸后滑入吸顶栏下，实际点击被 header 拦截。先在原页检查 computed styles 并临时验证，再将导航改为按内容高度、在顶栏下 74px 吸附；外层保留连续背景。正式更新后 navY 74、header bottom 72.59375，滚动后点击通过，无临时 style 遗留。
+- 原共享编译另被已提交的 `my-sections.tsx` 缺少一个 JSX 右括号，以及 Web Flow 两项过期来源哈希阻断。仅补括号；核对 `CurrentTask.tsx` 的同请求通知展示及 `AutoSettings.tsx` 的 prop 传递差异、执行原定向测试后，在原 `scripts/bundle-provenance.mjs` 同步这两条哈希。未修改 Web Flow 业务、放宽来源校验或替换构建器。AI Proxy 的五项变更来源在原 `trusted/source-lock.json` 对应更新，其他来源记录保留。
+
+| 用户操作／保护 | 本轮结果 |
+| --- | --- |
+| 七栏目进入、返回、内容读取 | ego 实际界面通过；七页无横向溢出，长页滚动后导航点击通过 |
+| 添加、保存、刷新读回 | `UI-20261111-AIProxy-PC` / HTTP / `192.0.2.10:18080` 一致 |
+| 编辑、保存、刷新读回 | 改为 `UI-20261111-AIProxy-PC-EDITED` / `192.0.2.11:18081`，一致 |
+| 取消删除、刷新 | 原测试记录保留，无删除或保存成功回执 |
+| 确认删除、刷新 | 有真实删除回执，记录消失；本轮测试项已清理，最终 0 条 |
+| 未保存草稿 | 代理编辑切换前台焦点后保留；规则表单点击刷新状态后仍为 `unsaved-ui.example`；取消丢弃继续保留编辑，确认后仅丢弃本轮草稿，未保存规则 |
+| 错误与失败 | 实际端口 0 被拒绝并保留表单，无成功提示；存储失败/取消/迟到回执由定向 Node 测试覆盖，未在真实存储注入故障 |
+| R18 Side Panel 基本读取 | 同一真实 `SIDE_PANEL` context 的可信紧凑 DOM 读取到 PC 保存的测试配置；PC 删除后通过原 focus handler 的脚本化事件刷新读回为空。viewport 为 0×0，原生可见布局/400px 截图 NOT_TESTED，不把普通标签页当作 Side Panel |
+| 保存／选择／已应用分离 | 全程未点击选择、应用或停止管理，PC 始终显示尚未管理浏览器代理；浏览器及系统代理未改 |
+| 日常 Chrome 的实际页面 | URL 安全策略限制，NOT_TESTED；不据 ego 同 ID 的运行证据宣称已在日常 Chrome 通过 |
+
+**相关自动检查**：AI Proxy 保存/凭证、确认、管理状态、错误/草稿、准入和 Host 集成共 31 项通过；旧安装在无目录包读取时挂载及撤销两项 Host 回归通过；两项固定 CSS 来源保护与两项 Side Panel 状态语义通过。解除共享编译阻断所需 Web Flow 原测试 14+6 项通过；最小 JSX 转译、来源匹配和 `git diff --check` 通过。原 watcher 完成编译，未运行全仓测试、production、完整验收矩阵或评分。
+
+**本节证据**（均在原 evidence 目录中；历史 adhc… 截图不作本节验收证据）：
+
+- [修改前 1440×900](evidence/final-r16-r18-20261111/pc-actual-before-1440.png)、[唯一参考同视口](evidence/final-r16-r18-20261111/pc-reference-1440.png)、[修改后带专用测试项](evidence/final-r16-r18-20261111/pc-actual-after-1440.png)、[清理后最终页面](evidence/final-r16-r18-20261111/pc-actual-after-empty-1440.png)。参考截图保留外层预览工具栏供识别，仅比较其 R16 应用区域。
+- [编辑器](evidence/final-r16-r18-20261111/pc-editor-after.png)、[删除确认](evidence/final-r16-r18-20261111/pc-delete-confirm.png)、[删除回执](evidence/final-r16-r18-20261111/pc-delete-receipt.png)；`pc-section-1.png` 至 `pc-section-7.png` 为实际七栏目。
+- [资源及开发连接身份](evidence/final-r16-r18-20261111/pc-runtime-identity.json)、[主要操作回执](evidence/final-r16-r18-20261111/pc-operation-receipts.json)、[七栏目回执](evidence/final-r16-r18-20261111/pc-route-receipts.json)、[侧栏只读刷新回执](evidence/final-r16-r18-20261111/side-panel-read-receipt.json)。
+
+**剩余可观察差异**：真实界面保留配置下拉框、控制权详情、导入入口及高级 PAC 等原功能，所以内容卡片比预览 Mock 更高；没有复制预览的示例节点、免费/已应用模拟标记或伪造服务状态。规则页小标题、部分图标和真实业务文案仍有差异；未声称逐像素一致。当前准确未完成项是日常 Chrome 的页面实显与原生侧栏视觉取证，而非发行、CI、包版本或旧隔离 Host 缺少 app.html。
+
+本轮自建原生侧栏已按所属窗口关闭，ego TaskSpace 77 已 `finish({keep:[]})` 释放；测试记录、草稿和临时样式均已清理。原开发服务继续保留。

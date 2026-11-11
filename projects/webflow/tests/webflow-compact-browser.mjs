@@ -229,8 +229,8 @@ try{
     }
     await eventually('document.querySelectorAll(".wf-task-row .wf-badge[data-state=available]").length===2','two fixed tasks checked');
     await eventually(`!!document.querySelector(${JSON.stringify('button[aria-label^="准备运行 "]:not(:disabled)')})`,'recovery and current page ready');
-    assert.equal(await evaluate('document.querySelectorAll(".wf-item-buttons button:disabled").length'),0,
-      'Trusted configuration may open on another website; RunHost still validates the actual target before execution');
+    assert.equal(await evaluate('document.querySelectorAll(".wf-item-buttons .wf-primary:disabled").length'),0,
+      'Opening configuration is UI-only and does not require the target website');
     assert.ok(await evaluate('[...document.querySelectorAll(".wf-icon")].every(e=>e.getAttribute("aria-label")&&e.title)'),
       'Icon controls expose names and native title hints');
     await assertLayout(width,'Scripts');
@@ -268,7 +268,7 @@ try{
       await click('[data-wf-menu="'+nameOrder[1]+'"]');
       await eventually('document.querySelector(".wf-task-row:nth-child(2) .wf-menu")?.textContent.includes("收藏脚本")',
         'touch/coarse input has an accessible favorite menu item');
-      await click('.wf-task-row:nth-child(2) .wf-menu button:nth-child(2)');
+      await click('.wf-task-row:nth-child(2) .wf-menu button:nth-child(3)');
     }
     await eventually('document.querySelector(".wf-task-name").dataset.wfTaskName==='+JSON.stringify(nameOrder[1]),'favorite sorts first');
     await filterBy(4);
@@ -276,7 +276,7 @@ try{
     await filterBy(1);
     await filterBy(2);
     await eventually('document.querySelectorAll(".wf-task-row").length===2','installed available filter');
-    // Available means installed, not that the current website matches both tasks.
+    // Available means installed; configuration does not perform website actions.
     await click('#wf-filter-toggle');
     await selectSort('name');
     await eventually(`document.querySelector(${JSON.stringify('select[aria-label="脚本排序方式"]')}).value==="name"`,'name sort selected');
@@ -299,26 +299,38 @@ try{
     await expectFocus(menu);
     await key('Enter','Enter',13);
     await eventually('!!document.querySelector(".wf-menu")','Enter opens more menu');
-    // The selected script now opens the trusted parent TaskRunSheet through one
-    // UI-only Host request. This standalone UI fixture can verify the request,
-    // never impersonate the trusted parent or the real RunHost.
+    // Only the transport is mocked here; the trusted parent owns the Task sheet.
     const beforeConfigure=await (await fetch(fixtureUrl+'/counts')).json();
     await click('.wf-menu button');
     await eventually('!document.querySelector(".wf-menu")','configure closes the row menu');
-    await eventually('fetch("/counts").then(r=>r.json()).then(x=>x.configures>='+String(beforeConfigure.configures+1)+')',
-      'mock SDK receives selected Task configuration request');
+    await eventually('fetch("/counts").then(r=>r.json()).then(c=>c.configurations.length==='+
+      (beforeConfigure.configurations.length+1)+')','configuration transport request');
     const afterConfigure=await (await fetch(fixtureUrl+'/counts')).json();
-    assert.equal(afterConfigure.configures,beforeConfigure.configures+1,
-      'native click must request exactly one Host Task sheet');
-    assert.equal(afterConfigure.starts,0,'configure cannot invoke tasks.start');
-    assert.equal(afterConfigure.lastConfigure?.taskId,nameOrder[0],
-      'the Host receives the exact selected installed Task ID');
-    assert.equal(await evaluate('document.querySelectorAll(".wf-param-row, #wf-query, #wf-show-execution-tab, #task-parameters-sheet").length'),0,
-      'iframe must not render a duplicate parameter editor or fake Host dialog');
+    const taskId=nameOrder[0];
+    const config=JSON.parse(await readFile('projects/webflow/tool.config.json','utf8'));
+    assert.deepEqual(afterConfigure.configurations.at(-1),{task:{
+      ...config.delegatedTasks.find(pin=>pin.taskId===taskId),
+      installationId:'fixture-installation',generation:1}},'Exact installed Task pin passed to configure');
+    assert.equal(afterConfigure.starts,0,'Opening configuration does not execute a Task');
+    assert.equal(afterConfigure.preparations,0,'Consumer does not create a second preparation');
+    assert.equal(await evaluate('document.querySelectorAll("input[name=query],#wf-query,.wf-param-row,#wf-show-execution-tab,#task-parameters-sheet").length'),0,
+      'Sandbox does not duplicate the trusted parameter editor');
     assert.equal(await evaluate('document.querySelectorAll(".wf-task-row").length'),2,
       'the current list remains mounted');
     await assertLayout(width,'Task configure request');
     await screenshot('configure-'+width);
+    await click(menu);
+    await click('.wf-menu button:nth-child(2)');
+    await eventually('!!document.querySelector(".wf-task-detail")','menu opens task details');
+    assert.ok(await evaluate('document.querySelector(".wf-task-detail").textContent.includes("参数 3 项；在可信运行配置中编辑")'),
+      'Parameter summary comes from the real pinned manifest');
+    assert.equal(await evaluate('document.querySelectorAll(".wf-task-detail input,.wf-task-detail textarea").length'),0);
+    await assertLayout(width,'Read-only task details');
+    await screenshot('details-'+width);
+    await evaluate('document.querySelector(".wf-task-detail button").focus()');
+    await key('Enter','Enter',13);
+    await eventually('!document.querySelector(".wf-task-detail")','collapse details');
+    await expectFocus('.wf-task-row .wf-task-name');
     await click('[data-page="history"]');
     assert.ok(await evaluate('document.body.textContent.includes("暂无手动运行记录")'),'Honest empty manual history');
     await assertLayout(width,'Empty history');
@@ -326,8 +338,8 @@ try{
     await click('[data-page="scripts"]');
     await click(favoriteMenu);
     await eventually('!!document.querySelector(".wf-menu")','remove favorite menu opens');
-    assert.equal(await evaluate('document.querySelector(".wf-menu button:nth-child(2)").textContent'),'取消收藏');
-    await click('.wf-menu button:nth-child(2)');
+    assert.equal(await evaluate('document.querySelector(".wf-menu button:nth-child(3)").textContent'),'取消收藏');
+    await click('.wf-menu button:nth-child(3)');
     await eventually('document.querySelectorAll("button[aria-pressed=true]").length===0','favorite removed');
     await click('#wf-filter-toggle');
     await selectSort('favorite');
@@ -393,12 +405,15 @@ try{
     widths:tested,screenshots:screenshots.length,layouts,tooltipEvidence,
     notTested:['native select popup keyboard interaction (DOM option selection used)',
       'ARIA tooltip keyboard disclosure (source uses title only)',
-      'long arbitrary error messages (fixture exposes E_PERMISSION only)','native extension/Authority/IME/screen reader'],
+      'long arbitrary error messages (fixture exposes E_PERMISSION only)',
+      'trusted TaskRunSheet rendering, Schema form, preparation and confirmation',
+      'native extension/Authority/IME/screen reader'],
     checks:['responsive overview and scripts','three tabs, no duplicate header',
-      'two real fixed Task projections','wrong-site run disabled','icon aria-labels',
+      'two real fixed Task manifest projections','UI-only configuration independent of website','icon aria-labels',
       'keyboard tab wrapping/Home/End and visible focus','Chinese/site/long empty search and clear',
       'attention/available/favorite filters','favorite persistence and name sort',
-      'filter/menu Escape focus return','menu keyboard and task identity',
+      'filter/menu Escape focus return','menu keyboard and read-only Task details',
+      'exact installed Task pin passed to configure without preparing or executing',
       'empty history and long record keyboard disclosure','permission read errors','settings',
       'zero Task dispatches'],
     browserExtensionInstalled:false,taskExecuted:false,trustedAutoReactVerified:false

@@ -122,7 +122,7 @@ export async function recoverHostTab({api, storage, session, authority, consumer
 }
 
 export async function createFoundationBroker({api = chrome, ports = new Map(), clock = {now:()=>Date.now()}, indexedDB = globalThis.indexedDB,
-  templateConsumer,downloadEventsAttached=false,onToolUninstalled,withControllerAdmission,readMediaAsset} = {}) {
+  templateConsumer,downloadEventsAttached=false,onToolUninstalled,withControllerAdmission,readMediaAsset,withTaskRunRecovery} = {}) {
   // The fixed SW package must never opt back into the legacy Template consumer
   // after its storage methods were eliminated at build time.
   if (!INCLUDE_DORMANT_TEMPLATE_RUNTIME && templateConsumer !== undefined)
@@ -143,7 +143,7 @@ export async function createFoundationBroker({api = chrome, ports = new Map(), c
     if (!port || port.registrationId !== registrationId) return;
     try { port.postMessage({protocol:PROTOCOL,registrationId,event}); } catch { /* The durable facts remain queryable. */ }
   };
-  const authority = createRunAuthority({storage,api,session,entitlement,validatePlan,clock,emitToHost,readMediaAsset});
+  const authority = createRunAuthority({storage,api,session,entitlement,validatePlan,clock,emitToHost,readMediaAsset,withTaskRunRecovery});
   const downloads = createDownloadService({storage,api,clock,assertHost:authority.assertHost});
   const sdk = createSdkBroker({authority,storage,api,clock});
   const pageDependencies = createDependencyManager({api,storage,assertHost:authority.assertHost,clock});
@@ -164,7 +164,7 @@ export async function createFoundationBroker({api = chrome, ports = new Map(), c
   await authority.schedules.reconcile();
   const authenticate = (request,sender) => authority.assertHost(sender, request.registrationId);
   const routes = {
-    ...createMethodRoutes(authority,['cloudStatus','cloudPair','cloudApprove','cloudRevokeResults','cloudCancelRequest','cloudStop','cloudUnpair','cloudClients','cloudClientGrant','cloudClientRevoke','cloudProgramInbox','cloudProgramFetch','cloudProgramReceived','cloudNext','cloudResolve','commitControllerScript','getControllerScript','listControllerScripts','prepareDelegatedStep','inspectDelegatedStep','cancelDelegatedStep','startControllerRun','controllerOperation','stopControllerRun','finishControllerRun','snapshotControllerRun','retireControllerTarget','tombstoneControllerScript','garbageCollectControllerScript','importTaskPackage','listTaskCatalog','getTaskCandidate','verifyTaskCandidate','makeTaskAvailable','installTask','setInstalledTaskEnabled','uninstallTask','resolveInstalledTask','saveSchedule','changeSchedule','listSchedules','listScheduleHistory','listDueSchedules','setScheduleFireState','grantSdk','inspectSdkGrant','revokeSdkGrant','registerHost']),
+    ...createMethodRoutes(authority,['cloudStatus','cloudPair','cloudApprove','cloudRevokeResults','cloudCancelRequest','cloudStop','cloudUnpair','cloudClients','cloudClientGrant','cloudClientRevoke','cloudProgramInbox','cloudProgramFetch','cloudProgramReceived','cloudNext','cloudResolve','commitControllerScript','getControllerScript','listControllerScripts','prepareDelegatedStep','inspectDelegatedStep','cancelDelegatedStep','prepareTaskRun','inspectTaskRun','cancelTaskRun','listTaskRunPreparations','startControllerRun','controllerOperation','stopControllerRun','finishControllerRun','snapshotControllerRun','retireControllerTarget','tombstoneControllerScript','garbageCollectControllerScript','importTaskPackage','listTaskCatalog','getTaskCandidate','verifyTaskCandidate','makeTaskAvailable','installTask','setInstalledTaskEnabled','uninstallTask','resolveInstalledTask','saveSchedule','changeSchedule','listSchedules','listScheduleHistory','listDueSchedules','setScheduleFireState','grantSdk','inspectSdkGrant','revokeSdkGrant','registerHost']),
     ...createMethodRoutes(pageDependencies,['importPageCandidate','getPageCandidate']),
     ...createMethodRoutes(installedPages,['prepareAppPage','importAppPage','verifyAppPage','synchronizeAppPages','requestAppPage','importPageInstallPackage','prepareScrollSitePackage','readScrollSiteConfig','pickScrollSiteElement','observeScrollSitePage','saveScrollSiteRule','saveScrollNavigationSettings','listPagePrograms','verifyPageCandidate','makePageAvailable','installPageProgram','runInstalledPageProgram','sendQueueOperation','setInstalledPageEnabled','uninstallPageProgram']),
     ...createMethodRoutes(downloads,['prepareArtifact','prepareAttempt','retirePreparedArtifact','dispatchDownload','reconcileDownload','recordResourceRelease']),

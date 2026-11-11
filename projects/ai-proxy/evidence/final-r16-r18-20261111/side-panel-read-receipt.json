@@ -1,0 +1,12 @@
+{
+  "contextType": "SIDE_PANEL",
+  "url": "chrome-extension://ccfcjegpkdlgbclopjmadlcjedelidmf/sidepanel.html?hostInstanceId=ca11769a-8144-4995-9828-be550245834e",
+  "visibility": "visible",
+  "viewport": [
+    0,
+    0
+  ],
+  "trigger": "scripted focus event for existing GET_STATE resume handler",
+  "text": "连接方式\n指定代理\n网站规则\n直连\n跟随系统\n浏览器状态\n尚未添加代理\n技术详情\n添加代理\n\n浏览器设置 · 跟随系统（可能使用系统代理）\n\n待应用选择 · 尚未选择配置\n\n订阅与本地客户端\n订阅来源\n本地客户端\nClash / sing-box\n当前网站\n当前网站不可读取\n可手动输入域名添加规则\n预期路由 · 未实测\n网站未知，无法预览匹配\n技术详情\n添加规则\n重新识别\n高级代理功能\n\n仅管理浏览器代理设置，不等于全设备 VPN，也不保证当前网站可达。",
+  "management": false
+}

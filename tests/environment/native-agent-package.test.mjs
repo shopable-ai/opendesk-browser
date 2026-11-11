@@ -10,8 +10,8 @@ test('Native remains optional after merging the current permission catalog',asyn
   const manifest=JSON.parse(await readFile('manifest.json','utf8'));
   assert.equal(manifest.permissions.includes('nativeMessaging'),false);
   assert.equal(manifest.optional_permissions.filter(p=>p==='nativeMessaging').length,1);
-  assert.doesNotThrow(()=>verifyManifest(manifest));
-  assert.throws(()=>verifyManifest({...manifest,permissions:[...manifest.permissions,'nativeMessaging']}),/Unexpected required browser API permissions/);
+  assert.doesNotThrow(()=>verifyManifest(manifest,{source:true}));
+  assert.throws(()=>verifyManifest({...manifest,permissions:[...manifest.permissions,'nativeMessaging']},{source:true}),/Unexpected required browser API permissions/);
 });
 
 test('independent SW budget and fixed packaged Native transport entry',()=>{
@@ -19,7 +19,7 @@ test('independent SW budget and fixed packaged Native transport entry',()=>{
   assert.equal(BUILD_POLICY.fixedEntryReviewBytes,320*1024);
   assert.equal(BUILD_POLICY.serviceWorkerReviewBytes,512*1024);
   assert.equal(BUILD_POLICY.serviceWorkerProductionBytes,2*1024*1024);
-  assert.equal(BUILD_POLICY.developmentBytes,2*1024*1024);
+  assert.equal(BUILD_POLICY.developmentBytes,8*1024*1024);
   assert.equal(PACKAGE_ENTRIES['native-agent/transport'],'./src/native-agent/transport.js');
   assert.equal(FIXED_OUTPUTS.transport,'native-agent/transport.js');
   // Sidebar Tools and R15 Page core remain separately reviewed fixed entries;

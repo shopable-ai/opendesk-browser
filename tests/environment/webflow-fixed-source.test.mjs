@@ -7,7 +7,7 @@ import {describeBundle} from '../../scripts/bundle-provenance.mjs';
 
 const policy='projects/webflow/src/auto-grants.js';
 const controls=['AutoSettings.tsx','CurrentTask.tsx','RuntimePanel.tsx'].map(name=>'projects/webflow/trusted/'+name);
-const pageSources=['chatgpt-bridge-page.js','legacy-chatgpt-panel.js'].map(name=>'projects/webflow/trusted/'+name);
+const pageSources=['chatgpt-bridge-page.js','legacy-chatgpt-panel.js','page-panel-ui.js'].map(name=>'projects/webflow/trusted/'+name);
 const chunk=(target,path)=>({fileName:target,modules:{[resolve(path)]:{renderedLength:1,originalLength:1}}});
 test('Web Flow permits its exact policy and three reviewed UI sources only in their designated fixed bundles',()=>{
   for(const target of ['sw.js','agents/chatgpt-fixed-bridge.js','ui/tool-shell.js'])

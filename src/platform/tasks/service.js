@@ -8,7 +8,7 @@ import {installedKey, taskKey, taskScriptId, scriptStorageKey,
   validateTaskParams, verifyTaskPackage} from './contract.js';
 
 const candidateStates = new Set(['candidate','verified','available']);
-function requireCurrentLibraries(candidate){
+function requireVerificationEvidence(candidate){
   if(candidate?.verification?.kind==='builtin-release'){
     invariant(candidate.verification.source==='packaged' &&
       candidate.verification.manifestHash===candidate.package.manifestHash &&
@@ -17,6 +17,9 @@ function requireCurrentLibraries(candidate){
   } else if(candidate?.package?.manifest.siteOrigins.length>1)
     invariant(candidate.package.manifest.siteOrigins.includes(candidate.verification?.origin),
       'E_VERIFICATION','Task verification must come from a declared exact origin');
+}
+function requireCurrentLibraries(candidate){
+  requireVerificationEvidence(candidate);
   invariant(candidate?.verification?.builtinAbi===BUILTIN_ABI,
     'E_BUILTIN_VERSION_UNAVAILABLE','任务所验证的内置库版本已更改；请对同一固定任务包重新验证');
 }
@@ -52,7 +55,7 @@ function installAuthorization(manifest,previous) {
     generation:(previous?.generation??0)+1,
     scope:{capabilities:structuredClone(manifest.permissions),siteOrigins:structuredClone(manifest.siteOrigins),networkOrigins:[]}};
 }
-export async function assertInstalledTask(tx,namespace,{scriptId,contentHash,origin,params,migrate=false,expectedGeneration,expectedInstallationId,builtinIdentity:environment}) {
+export async function assertInstalledTask(tx,namespace,{scriptId,contentHash,origin,params,migrate=false,expectedGeneration,expectedInstallationId,builtinIdentity:environment,metadataOnly=false}) {
   // Run admission invokes this INSIDE its durable revision-pin/slot transaction.
   // Even a direct low-level startControllerRun cannot bypass an installation.
   // Task IDs cannot contain ':'; resolve by the installedTask primary key.
@@ -71,10 +74,13 @@ export async function assertInstalledTask(tx,namespace,{scriptId,contentHash,ori
     'E_REVISION','任务安装或授权在运行准备期间改变，请重新运行');
   const candidate=validCandidate(await tx.get(TASK_STORE,taskKey(namespace,install.taskId,install.version)),namespace);
   await verifyTaskPackage(candidate.package);
-  requireCurrentLibraries(candidate);
-  assertBuiltinIdentity(candidate.builtinIdentity,environment);
-  assertBuiltinIdentity(candidate.verification?.builtinIdentity,environment);
-  assertBuiltinIdentity(install.builtinIdentity,environment);
+  requireVerificationEvidence(candidate);
+  if(!metadataOnly){
+    requireCurrentLibraries(candidate);
+    assertBuiltinIdentity(candidate.builtinIdentity,environment);
+    assertBuiltinIdentity(candidate.verification?.builtinIdentity,environment);
+    assertBuiltinIdentity(install.builtinIdentity,environment);
+  }
   invariant(candidate.stage==='available' && candidate.verification?.sourceHash===contentHash &&
     candidate.verification?.manifestHash===candidate.package.manifestHash &&
     candidate.package.manifestHash===install.manifestHash &&
@@ -442,7 +448,8 @@ export function taskMethods({storage,api,assertHost,currentHost,clock={now:()=>D
   }
   async function resolveInstalledTask(request,sender) {
     const current=await environment();
-    fields(request,['taskId']);
+    fields(request,['taskId','purpose'],['taskId']);
+    invariant(request.purpose===undefined||request.purpose==='configure','E_SCHEMA');
     const initialization=await initializeBuiltins(sender,current);
     return scoped(sender,[TASK_STORE,'scriptRevisions'],'readonly',async(tx,ns)=>{
       const row=await tx.get(TASK_STORE,installedKey(ns,request.taskId));
@@ -459,11 +466,13 @@ export function taskMethods({storage,api,assertHost,currentHost,clock={now:()=>D
       // checks installation integrity here; run admission checks the REAL origin.
       const {candidate}=await assertInstalledTask(tx,ns,{scriptId:row.scriptId,
         contentHash:stored.package.manifest.program.sourceHash,
-        origin:stored.package.manifest.siteOrigins[0],builtinIdentity:current});
+        origin:stored.package.manifest.siteOrigins[0],builtinIdentity:current,
+        metadataOnly:request.purpose==='configure'});
       return {taskId:row.taskId,version:row.version,scriptId:row.scriptId,revision:1,
         installationId:row.authorization?.installationId??null,generation:row.authorization?.generation??null,
         contentHash:candidate.package.manifest.program.sourceHash,manifest:structuredClone(candidate.package.manifest),
-        manifestHash:candidate.package.manifestHash};
+        manifestHash:candidate.package.manifestHash,
+        ...(request.purpose==='configure'?{runtimeCurrent:runtimeCurrent(candidate,current)&&identityCurrent(row.builtinIdentity,current)}:{})};
     });
   }
   return {importTaskPackage,listTaskCatalog,getTaskCandidate,verifyTaskCandidate,makeTaskAvailable,

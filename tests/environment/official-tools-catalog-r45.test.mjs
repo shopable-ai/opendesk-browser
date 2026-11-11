@@ -12,6 +12,7 @@ import {validateOfficialSourceCatalog,validateOfficialReleaseCatalog,OFFICIAL_SO
   OFFICIAL_SOURCE_REPOSITORY,OFFICIAL_CATALOG_PATH,OFFICIAL_STAY_FOCUS_RELEASE_URL,officialPackagePath,loadOfficialCatalog,loadOfficialTool,
   officialToolStatus,matchesOfficialRelease} from '../../src/sidebar-tools/official-catalog.js';
 import {officialFixtures,officialToolFixture,officialFixtureFetch} from '../helpers/official-tools.mjs';
+import {validateSidebarToolPackage} from '../../src/ui/sidebar-tools/package.js';
 import {officialMarketApps} from '../../src/marketplace/catalog.js';
 
 const hash=bytes=>createHash('sha256').update(bytes).digest('hex');
@@ -87,10 +88,10 @@ async function fixture(t){
 test('R4.8 authored catalog includes default Cookie Editor and optional AI VIP Share UI',async()=>{
   const source=await readOfficialSources();
   assert.deepEqual(source.tools.map(row=>row.id).sort(),
-    ['adblock','ai-knowledge-answers','ai-proxy','ai-send-queue','ai-vip-share','bookmark-manager','cookie-editor','knowledge-inbox','markdown-workbench','prompt-shortcuts','quick-notes','reading-toc','stay-focus','time-review','video-downloader','video-speed-controller','video-svip','web-markdown-clipper']);
+    ['adblock','ai-knowledge-answers','ai-send-queue','ai-vip-share','bookmark-manager','cookie-editor','knowledge-inbox','markdown-workbench','prompt-shortcuts','quick-notes','reading-toc','stay-focus','time-review','video-downloader','video-speed-controller','video-svip','web-markdown-clipper']);
   const policies=Object.fromEntries(source.tools.map(row=>[row.id,row.installationPolicy]));
   assert.deepEqual(policies,{'ai-send-queue':'optional','ai-knowledge-answers':'optional','reading-toc':'preinstalled','web-markdown-clipper':'optional',
-    'quick-notes':'preinstalled','markdown-workbench':'optional','knowledge-inbox':'optional','time-review':'optional','stay-focus':'optional','adblock':'optional','cookie-editor':'preinstalled','ai-vip-share':'optional','bookmark-manager':'optional','prompt-shortcuts':'preinstalled','video-speed-controller':'optional','ai-proxy':'optional','video-svip':'optional','video-downloader':'optional'});
+    'quick-notes':'preinstalled','markdown-workbench':'optional','knowledge-inbox':'optional','time-review':'optional','stay-focus':'optional','adblock':'optional','cookie-editor':'preinstalled','ai-vip-share':'optional','bookmark-manager':'optional','prompt-shortcuts':'preinstalled','video-speed-controller':'optional','video-svip':'optional','video-downloader':'optional'});
   for(const row of source.tools){
     assert(['optional','preinstalled'].includes(row.installationPolicy));
     assert.equal(Object.hasOwn(row,'version'),false);assert.equal(Object.hasOwn(row,'capabilities'),false);
@@ -106,6 +107,18 @@ test('R4.8 authored catalog includes default Cookie Editor and optional AI VIP S
     }
   }
   assert(!source.tools.some(row=>/starter/.test(row.id)));
+});
+test('AI Proxy stays independently installable without Browser offline distribution',async()=>{
+  const {catalog,resources,sourceInputs}=await officialFixtures();
+  assert.equal(catalog.apps.some(row=>row.toolId==='ai-proxy'),false);
+  assert.equal(resources.has(officialPackagePath('ai-proxy')),false);
+  assert.equal(JSON.parse(resources.get(OFFICIAL_CATALOG_PATH)).apps.some(row=>row.toolId==='ai-proxy'),false);
+  assert.equal(sourceInputs.some(row=>row.path.startsWith('projects/ai-proxy/')),false);
+  assert.deepEqual(catalog.apps.filter(row=>row.installationPolicy==='preinstalled').map(row=>row.toolId),
+    ['reading-toc','quick-notes','cookie-editor','prompt-shortcuts']);
+  const tool=validateSidebarToolPackage(JSON.parse(await readFile('projects/ai-proxy/ai-proxy.opendesk-tool.json','utf8')));
+  assert.equal(tool.id,'ai-proxy');
+  assert(tool.capabilities.includes('browser.proxy.managed'));
 });
 test('R4.8 only trusted source and exact release policy can authorize preinstalled descriptor',async()=>{
   const source=await readOfficialSources();

@@ -107,10 +107,13 @@ export function createTaskDelegationHost({api,client,host,currentPageTarget,appI
     if(operation==='tasks.read'&&payload.taskId){
       live();const app=await readApp();live();
       const pin=app.tasks.find(row=>row.taskId===payload.taskId);invariant(pin,'E_PERMISSION');
-      const resolved=await client.request('resolveInstalledTask',{taskId:payload.taskId});
+      const resolved=await client.request('resolveInstalledTask',{taskId:payload.taskId,purpose:'configure'});
       invariant(sameTaskPin(pin,resolved),'E_REVISION');
       await assertApp({...app,instanceId,task:resolved});live();
-      return {task:normalizeInstalledPin(resolved)};
+      const task=normalizeInstalledPin(resolved);
+      const {preparations}=await client.request('listTaskRunPreparations',{binding:{...app,instanceId,task}});
+      await assertApp({...app,instanceId,task});live();
+      return {task,manifest:structuredClone(resolved.manifest),runtimeCurrent:resolved.runtimeCurrent!==false,preparations};
     }
     if(operation==='tasks.start'||operation==='controllers.start'){
       invariant(verifiedUserActivation===true,'E_USER_GESTURE_REQUIRED');

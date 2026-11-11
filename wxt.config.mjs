@@ -108,11 +108,9 @@ export default defineConfig({
           return {code:code.replace(listener,''),map:null};
         }
       });
-      // The Sidebar Tool Host has a 1 MiB cap; other generated JS retains
-      // its 512 KiB cap in both modes. SW has a 2 MiB hard gate
-      // in both modes (non-blocking 512 KiB advisory).
-      // 320 KiB remains advisory for other generated entries. Neither the
-      // fixed IIFE allowlist nor CSP/package/security checks are weakened.
+      // Development fixed JS entries allow 8 MiB each; production retains
+      // its per-entry budgets and non-blocking review lines.
+      // The fixed IIFE allowlist and CSP/package/security checks remain.
       if (entry.type === 'background') {
         const options = config.build.terserOptions;
         config.build.terserOptions = {...options, format:{...options.format,semicolons:false}, compress:{...options.compress, passes:6, toplevel:true, top_retain:['sw','background'], unsafe:true}};

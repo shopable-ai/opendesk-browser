@@ -27,6 +27,7 @@ import {OFFICIAL_STAY_FOCUS_RELEASE_URL as OFFICIAL_FOCUS_LATEST_URL} from '../.
 import {OFFICIAL_READING_TOC_RELEASE} from '../../src/sidebar-tools/official-reading-toc.js';
 import {TRUSTED_BOOKMARK_COMPONENT_VERSION} from '../../src/ui/trusted-bookmark-admission.js';
 import {admitsTrustedPrompt,TRUSTED_PROMPT_VERSION} from '../../src/ui/trusted-prompt-admission.js';
+import {TRUSTED_AI_PROXY_VERSION} from '../../projects/ai-proxy/trusted/admission.js';
 import {MARKET_PROVENANCE_STORE,MARKET_OPERATIONS_STORE,reconcileMarketOperation,recoverMarketOperation,
   TOOL_CLEANUP_STORE,retryUninstalledToolCleanup,getPendingToolCleanups,installReviewedSidebarTool,
   TOOL_REVOCATION_EPOCHS_STORE,recordToolUninstall} from '../../src/ui/sidebar-tools/installation.js';
@@ -1718,6 +1719,24 @@ for(const failure of ['read','package','epoch'])test('R14 Header reports current
   assert.equal(reads-before,1,'failure does not automatically retry the action');
 });
 
+for(const version of ['0.3.12','0.1.1'])test('AI Proxy fixed management opens the reviewed install without bundled release matching: '+version,async t=>{
+  const tool={...await officialToolFixture('ai-proxy'),version};
+  let mounted,packageReads=0;
+  const f=await hostFixture(t,{tool,startTool:false,store:new Map([[SIDEBAR_TOOL_STORE,[tool]]]),
+    fetcher:async(url,options)=>{
+      if(String(url).endsWith('/ai-proxy/ai-proxy.opendesk-tool.json')){packageReads++;throw Error('bundled release unavailable');}
+      return officialFixtureFetch(url,options);
+    },
+    trustedAIProxyPilot:{enabled:true,version:TRUSTED_AI_PROXY_VERSION,mount(options){mounted=options;return ()=>{};}}});
+  f.host.openTool(tool.id);
+  await settle(()=>f.runtime.frameRoot.dataset.aiProxyTrusted==='true');
+  assert.ok(mounted,'the fixed component receives the original admitted Host bridge');
+  assert.equal(f.runtime.frameRoot.children.length,0,'installed JavaScript is never projected into the trusted document');
+  assert.equal(packageReads,0,'a newer or missing bundled release cannot select an old sandbox UI');
+  f.store.set(SIDEBAR_TOOL_ENABLE_STORE,{'ai-proxy':false});
+  await assert.rejects(mounted.request('storage.get',{key:'probe'}),{code:'E_TOOL_CHANGED'});
+});
+
 for(const mode of ['sync','async','busy'])test('R14 Header reports trusted handler failure and preserves its owner: '+mode,async t=>{
   const tool=await officialToolFixture('ai-proxy');
   let mounted,calls=0,disposals=0;
@@ -1886,7 +1905,7 @@ test('R14 Clipper legacy fallback replaces the enhanced snapshot without remount
     'enhanced navigation does not inherit the old Clipper primary action');
   assert.match(f.elements['sidebar-tool-title'].textContent,/详情/);
 });
-async function hostFixture(t,{store=new Map([[SIDEBAR_TOOL_STORE,[sample]]]),locks=sharedLocks(),getHook,setHook,startTool=true,tool=sample,snapshotBeforeGet=false,target,awaitReady=true,fetcher=officialFixtureFetch,trustedBookmarkPilot=null,trustedAIProxyPilot=null,trustedPromptPilot=null,headerActionsEnabled=true,chromePermissions=null,hostReply=null,runHost=null,foundationClient=null,configureApi=null,localeController=null,toolLocaleService=null,taskReview=null,taskNavigationDone=null}={}){
+async function hostFixture(t,{store=new Map([[SIDEBAR_TOOL_STORE,[sample]]]),locks=sharedLocks(),getHook,setHook,startTool=true,tool=sample,snapshotBeforeGet=false,target,awaitReady=true,fetcher=officialFixtureFetch,trustedBookmarkPilot=null,trustedAIProxyPilot=null,trustedPromptPilot=null,headerActionsEnabled=true,chromePermissions=null,hostReply=null,runHost=null,foundationClient=null,configureApi=null,localeController=null,toolLocaleService=null,taskReview=null,taskNavigationDone=null,taskConfigure=null}={}){
   const oldWindow=globalThis.window,oldConfirm=globalThis.confirm;
   const win=new Node('window');globalThis.window=win;globalThis.confirm=()=>true;
   const {doc,view,runtime,elements,emit,selectFile}=toolRuntimeFixture();
@@ -1909,7 +1928,7 @@ async function hostFixture(t,{store=new Map([[SIDEBAR_TOOL_STORE,[sample]]]),loc
   }}};
   if(chromePermissions)api.permissions=chromePermissions;
   configureApi?.(api);
-  const host=createSidebarTools({api,doc,view,localeController,toolLocaleService,currentPageTarget:target,runHost,foundationClient,lockManager:locks,fetcher,trustedBookmarkPilot,trustedAIProxyPilot,trustedPromptPilot,headerActionsEnabled,taskWorkbench:{async openTaskReview(id,{assertAuthorized}){await taskReview?.(id);await assertAuthorized();focused++;await taskNavigationDone?.();return true;}}});
+  const host=createSidebarTools({api,doc,view,localeController,toolLocaleService,currentPageTarget:target,runHost,foundationClient,lockManager:locks,fetcher,trustedBookmarkPilot,trustedAIProxyPilot,trustedPromptPilot,headerActionsEnabled,taskWorkbench:{openTaskRunSheet:taskConfigure,async openTaskReview(id,{assertAuthorized}){await taskReview?.(id);await assertAuthorized();focused++;await taskNavigationDone?.();return true;}}});
   t.after(()=>{host.dispose();view.dispose();globalThis.window=oldWindow;globalThis.confirm=oldConfirm;});
   if(awaitReady)await host.ready;else await pause();host.setVisible(true);
   assert.equal(elements['sidebar-tool-frame'].children.length,0,'opening Tools never starts saved packages');
@@ -5674,9 +5693,9 @@ for(const destination of ['detail','list','settings'])test('R1.8 previous instal
 
 const delegatedPin={taskId:'fixed-capture',version:'1.0.0',manifestHash:'a'.repeat(64),contentHash:'b'.repeat(64)};
 const delegatedInstall={...delegatedPin,installationId:'12345678-1234-4123-8123-123456789abc',generation:1};
-async function delegationHostFixture(t,{startGate=null,controller=false}={}){
+async function delegationHostFixture(t,{startGate=null,controller=false,configure=false,preparations=[],preparationRead=null}={}){
   const {digest,digestUtf8}=await import('../../src/platform/protocol.js');
-  const tool={...sample,format:'opendesk.sidebar-tool.v2',id:'delegation-demo',capabilities:['tasks.run'],
+  const tool={...sample,format:'opendesk.sidebar-tool.v2',id:'delegation-demo',capabilities:configure?['tasks.open','tasks.run']:['tasks.run'],
     requires:{browserSdk:'1.0.0'},contributes:{contextMenus:[]},delegatedTasks:[delegatedPin]};
   if(controller){
     const {BUILTIN_ABI}=await import('../../src/libs/runtime-contract.js');
@@ -5687,7 +5706,7 @@ async function delegationHostFixture(t,{startGate=null,controller=false}={}){
       builtinIdentity:{abi:BUILTIN_ABI,catalogSha256:'c'.repeat(64),bundleSha256:'d'.repeat(64)},permissions:['page.automation']};
   }
   const store=new Map([[SIDEBAR_TOOL_STORE,[tool]],[TOOL_REVOCATION_EPOCHS_STORE,{[tool.id]:'app-epoch'}]]);
-  const calls=[],stops=[],cancels=[],protocolCalls=[],steps=new Map();
+  const calls=[],stops=[],cancels=[],protocolCalls=[],sheets=[],steps=new Map();
   const result={runId:'original-run',resultId:'original-result',outcome:{ok:true,valueWire:encodeDelegationValue({data:[1,2,3]})}};
   const target={capture:()=>({tabId:2,frameId:0,documentId:'real-document',url:'https://example.com/',windowId:1}),revalidate:async()=>{}};
   const runHost={start:async request=>{
@@ -5707,12 +5726,18 @@ async function delegationHostFixture(t,{startGate=null,controller=false}={}){
   const previous=Object.getOwnPropertyDescriptor(globalThis.navigator,'userActivation');
   Object.defineProperty(globalThis.navigator,'userActivation',{configurable:true,value:{isActive:true}});
   t.after(()=>{if(previous)Object.defineProperty(globalThis.navigator,'userActivation',previous);else delete globalThis.navigator.userActivation;});
-  const f=await hostFixture(t,{tool,store,target,runHost,foundationClient:{request:async(operation,payload)=>{
+  const f=await hostFixture(t,{tool,store,target,runHost,taskConfigure:async value=>{await value.assertAuthorized();sheets.push(value);return true;},foundationClient:{request:async(operation,payload)=>{
     protocolCalls.push([operation,structuredClone(payload)]);
     if(operation==='resolveInstalledTask'){
       assert.equal(controller,false,'App Controller must not look up a Task');
-      assert.deepEqual(payload,{taskId:delegatedPin.taskId});
+      assert.deepEqual(payload,{taskId:delegatedPin.taskId,...(payload.purpose?{purpose:'configure'}:{})});
       return {...delegatedInstall,scriptId:'task:fixed-capture:1.0.0',revision:1,manifest:{deadlineMs:30000}};
+    }
+    if(operation==='listTaskRunPreparations'){
+      assert.deepEqual(payload,{binding:{appId:tool.id,packageHash:await sidebarToolPackageHash(tool),
+        generation:'app-epoch',tasks:[delegatedPin],instanceId:f.loaded.instance,task:delegatedInstall}});
+      await preparationRead?.(payload);
+      return {preparations:structuredClone(preparations)};
     }
     const id=payload.clientRequestId;
     if(operation==='prepareDelegatedStep'){
@@ -5745,12 +5770,12 @@ async function delegationHostFixture(t,{startGate=null,controller=false}={}){
   }}});
   const rpc=async(operation,payload,id)=>{f.ask(operation,payload,id);await settle(()=>f.frame.contentWindow.sent.some(row=>row.requestId===id));
     return f.frame.contentWindow.sent.find(row=>row.requestId===id);};
-  return {...f,tool,calls,stops,cancels,protocolCalls,rpc};
+  return {...f,tool,calls,stops,cancels,protocolCalls,sheets,rpc};
 }
 test('fixed Task public iframe dispatch start/read/stop keeps the same App mounted and decodes its result',async t=>{
   const f=await delegationHostFixture(t),frame=f.frame;
   const metadata=await f.rpc('tasks.read',{taskId:delegatedPin.taskId},'describe');
-  assert.equal(metadata.ok,true);assert.deepEqual(metadata.result,{task:delegatedInstall});
+  assert.equal(metadata.ok,true);assert.deepEqual(metadata.result,{task:delegatedInstall,manifest:{deadlineMs:30000},runtimeCurrent:true,preparations:[]});
   const started=await f.rpc('tasks.start',{task:metadata.result.task,clientRequestId:'original-client',params:{}},'start');
   assert.equal(started.ok,true);assert.equal(started.result.runId,'original-run');assert.equal(f.calls.length,1);
   const read=await f.rpc('tasks.read',{clientRequestId:'original-client'},'read');
@@ -5760,7 +5785,7 @@ test('fixed Task public iframe dispatch start/read/stop keeps the same App mount
   assert.equal(f.elements['sidebar-tool-frame'].children[0],frame);assert.equal(f.focused,0);
   assert.ok(f.stops.every(row=>row.runId==='original-run'));
   assert.deepEqual(f.protocolCalls.map(([operation])=>operation),[
-    'resolveInstalledTask','resolveInstalledTask','prepareDelegatedStep','inspectDelegatedStep','cancelDelegatedStep']);
+    'resolveInstalledTask','listTaskRunPreparations','resolveInstalledTask','prepareDelegatedStep','inspectDelegatedStep','cancelDelegatedStep']);
   f.host.closeTool();await pause();assert.equal(f.elements['sidebar-tool-frame'].children.length,0);
   assert.ok(f.stops.length>=2,'closing the original iframe retires its own delegation');
 });
@@ -6151,4 +6176,128 @@ test('tasks.open recovery late tab completion cannot close a replacement app',as
   assert.ok(replacement);assert.notEqual(replacement,f.frame);
   gate.resolve();await pause();await pause();
   assert.equal(f.elements['sidebar-tool-frame'].children[0],replacement);
+});
+
+test('tasks.configure requires private trusted gesture and opens only shared UI without remount or admission',async t=>{
+  const f=await delegationHostFixture(t,{configure:true}),frame=f.frame;
+  const rpc=async(payload,id,{privatePort=true}={})=>{
+    const message={protocol:f.loaded.protocol,toolId:f.tool.id,instance:f.loaded.instance,kind:'request',
+      requestId:id,operation:'tasks.configure',payload};
+    if(privatePort)frame.contentWindow.ports[0].postMessage(message);
+    else f.ask('tasks.configure',payload,id);
+    await settle(()=>frame.contentWindow.sent.some(row=>row.requestId===id));
+    return frame.contentWindow.sent.find(row=>row.requestId===id);
+  };
+  assert.equal((await rpc({task:delegatedInstall},'window',{privatePort:false})).error.code,'E_USER_GESTURE_REQUIRED');
+  globalThis.navigator.userActivation.isActive=false;
+  assert.equal((await rpc({task:delegatedInstall},'1')).error.code,'E_USER_GESTURE_REQUIRED');
+  globalThis.navigator.userActivation.isActive=true;
+  assert.equal((await rpc({task:delegatedInstall,source:'code'},'2')).ok,false);
+  assert.equal((await rpc({task:{...delegatedInstall,version:'9.9.9'}},'3')).ok,false);
+  const opened=await rpc({task:delegatedInstall},'4');
+  assert.equal(opened.ok,true);assert.deepEqual(opened.result,{opened:true});
+  assert.equal(f.sheets.length,1);assert.deepEqual(f.sheets[0].task,delegatedInstall);
+  assert.ok(f.sheets[0].trigger===frame,'the original iframe is the native Dialog focus-return target');
+  assert.equal(f.elements['sidebar-tool-frame'].children[0],frame);assert.equal(f.focused,0);
+  assert.equal(f.calls.length,0);assert.equal(f.protocolCalls.some(([name])=>name.includes('prepare')),false);
+  f.store.set(TOOL_REVOCATION_EPOCHS_STORE,{[f.tool.id]:'revoked'});
+  await assert.rejects(f.sheets[0].assertAuthorized(),/安装或授权已变更/);
+});
+
+
+// Exercise the existing private click channel; the Workbench spy above only
+// records authorized UI opens and deliberately provides no execution path.
+async function configurePreparation(f,payload,id='1'){
+  f.frame.contentWindow.ports[0].postMessage({protocol:f.loaded.protocol,toolId:f.tool.id,
+    instance:f.loaded.instance,kind:'request',requestId:id,operation:'tasks.configure',payload});
+  await settle(()=>f.frame.contentWindow.sent.some(row=>row.requestId===id));
+  return f.frame.contentWindow.sent.find(row=>row.requestId===id);
+}
+const unknownTaskPreparation={preparationId:'original-unknown-preparation',task:delegatedInstall,
+  state:'unknown',runId:'previous-run',resultId:'previous-result',settled:false};
+function assertPreparationDidNotRun(f){
+  assert.deepEqual(f.calls,[],'configuration must not start or replay a Run');
+  assert.deepEqual(f.stops,[]);assert.deepEqual(f.cancels,[]);
+  assert.ok(f.protocolCalls.every(([name])=>['resolveInstalledTask','listTaskRunPreparations'].includes(name)),
+    'metadata/configuration must not prepare, admit, inspect or cancel execution');
+}
+
+test('tasks.configure preparation metadata reopens the same UNKNOWN locator without replay',async t=>{
+  const f=await delegationHostFixture(t,{configure:true,preparations:[unknownTaskPreparation]});
+  const metadata=await f.rpc('tasks.read',{taskId:delegatedPin.taskId},'preparation-metadata');
+  assert.equal(metadata.ok,true);
+  assert.deepEqual(metadata.result,{task:delegatedInstall,manifest:{deadlineMs:30000},runtimeCurrent:true,
+    preparations:[unknownTaskPreparation]});
+  assert.equal(f.sheets.length,0,'reading metadata cannot open or execute a task');
+  const reply=await configurePreparation(f,{task:metadata.result.task,
+    preparationId:metadata.result.preparations[0].preparationId});
+  assert.equal(reply.ok,true);assert.deepEqual(reply.result,{opened:true});
+  assert.equal(f.sheets.length,1);
+  const sheet=f.sheets[0];
+  assert.equal(sheet.preparationId,unknownTaskPreparation.preparationId);
+  assert.deepEqual(sheet.task,delegatedInstall);
+  assert.deepEqual(sheet.binding,f.protocolCalls[1][1].binding);
+  await sheet.assertAuthorized();
+  assert.equal(f.elements['sidebar-tool-frame'].children[0],f.frame);assert.equal(f.focused,0);
+  assert.deepEqual(f.protocolCalls.map(([name])=>name),[
+    'resolveInstalledTask','listTaskRunPreparations','listTaskRunPreparations']);
+  assertPreparationDidNotRun(f);
+});
+
+test('tasks.configure preparation rejects malformed IDs and injected ownership or execution fields',async t=>{
+  const f=await delegationHostFixture(t,{configure:true,preparations:[unknownTaskPreparation]});
+  const invalid=[null,0,{},[],true,'','bad/id','https://evil.example/prep','x'.repeat(81)];
+  const payloads=invalid.map(preparationId=>({task:delegatedInstall,preparationId}));
+  for(const extra of [{appId:'foreign-tool'},{binding:{appId:'foreign-tool'}},
+    {runId:'previous-run'},{params:{}},{target:{tabId:2}}])
+    payloads.push({task:delegatedInstall,preparationId:unknownTaskPreparation.preparationId,...extra});
+  for(const [index,payload] of payloads.entries()){
+    const reply=await configurePreparation(f,payload,String(index+1));
+    assert.equal(reply.ok,false);assert.equal(reply.error.code,'E_SCHEMA');
+  }
+  assert.deepEqual(f.protocolCalls,[]);assert.deepEqual(f.sheets,[]);
+  assertPreparationDidNotRun(f);
+});
+
+test('tasks.configure preparation rejects absent, foreign-tool and foreign-task IDs from the scoped Authority list',async t=>{
+  // Authority owns filtering; the fixture returns only its current binding's
+  // locator. Every list call also asserts the exact App/install/Task binding.
+  const f=await delegationHostFixture(t,{configure:true,preparations:[unknownTaskPreparation]});
+  for(const [index,preparationId] of ['missing-preparation','foreign-tool-preparation','foreign-task-preparation'].entries()){
+    const reply=await configurePreparation(f,{task:delegatedInstall,preparationId},String(index+1));
+    assert.equal(reply.ok,false);assert.equal(reply.error.code,'E_PERMISSION');
+  }
+  const wrongTask=await configurePreparation(f,{task:{...delegatedInstall,taskId:'other-task'},
+    preparationId:unknownTaskPreparation.preparationId},'4');
+  assert.equal(wrongTask.ok,false);assert.equal(wrongTask.error.code,'E_PERMISSION');
+  assert.equal(f.protocolCalls.length,3,'unapproved Task must be rejected before lookup');
+  assert.deepEqual(f.sheets,[]);assertPreparationDidNotRun(f);
+});
+
+for(const operation of ['tasks.configure','tasks.read'])for(const revoke of ['generation','disable','uninstall'])
+  test(operation+' preparation rejects revocation during metadata lookup: '+revoke,async t=>{
+    const gate=deferred(),entered=deferred();t.after(()=>gate.resolve());
+    const f=await delegationHostFixture(t,{configure:true,preparations:[unknownTaskPreparation],
+      preparationRead:async()=>{entered.resolve();await gate.promise;}});
+    const pending=operation==='tasks.configure'
+      ?configurePreparation(f,{task:delegatedInstall,preparationId:unknownTaskPreparation.preparationId})
+      :f.rpc('tasks.read',{taskId:delegatedPin.taskId},'revoked-metadata');
+    await entered.promise;
+    if(revoke==='generation')f.store.set(TOOL_REVOCATION_EPOCHS_STORE,{[f.tool.id]:'revoked'});
+    if(revoke==='disable')f.store.set(SIDEBAR_TOOL_ENABLE_STORE,{[f.tool.id]:false});
+    if(revoke==='uninstall')f.store.set(SIDEBAR_TOOL_STORE,[]);
+    gate.resolve();const reply=await pending;
+    assert.equal(reply.ok,false);assert.equal(reply.result,undefined);
+    assert.deepEqual(f.sheets,[],'revoked metadata must not open the shared sheet');
+    assertPreparationDidNotRun(f);
+  });
+
+
+test('tasks.configure preparation propagates Authority denial without opening or executing',async t=>{
+  const f=await delegationHostFixture(t,{configure:true,preparations:[unknownTaskPreparation],
+    preparationRead:async()=>{throw Object.assign(Error('Preparation binding revoked'),{code:'E_PERMISSION'});}});
+  const reply=await configurePreparation(f,{task:delegatedInstall,preparationId:unknownTaskPreparation.preparationId});
+  assert.equal(reply.ok,false);assert.equal(reply.error.code,'E_PERMISSION');
+  assert.equal(reply.result,undefined);assert.deepEqual(f.sheets,[]);
+  assertPreparationDidNotRun(f);
 });

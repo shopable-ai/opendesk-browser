@@ -18,7 +18,7 @@ export function MyControl({view,as:Tag='div',id,children,onInput,onChange,onTogg
     'data-'+key.replace(/[A-Z]/g,char=>'-'+char.toLowerCase()),value
   ]));
   const attributes={...props,...field.attributes,...dataset,id,
-    hidden:Boolean(props.hidden||field.hidden),disabled:field.disabled||undefined,title:field.title??props.title,
+    hidden:Boolean(props.hidden||field.hidden),disabled:props.disabled||field.disabled||undefined,title:field.title??props.title,
     onInput:event=>{update(event);onInput?.(event);},
     onChange:event=>{update(event);onChange?.(event);}
   };

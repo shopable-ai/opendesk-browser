@@ -7,6 +7,12 @@ import {sidebarToolPackageHash,validateSidebarToolPackage} from '../../src/ui/si
 let fixture;
 export const officialFixtures=()=>fixture||(fixture=createOfficialToolResources());
 export async function officialToolFixture(id){
+  if(id==='ai-proxy'){
+    // AI Proxy is distributed independently; installed-tool tests must not
+    // reintroduce it into the Browser's offline catalog or fetch resources.
+    return validateSidebarToolPackage(JSON.parse(await readFile(
+      new URL('../../projects/ai-proxy/ai-proxy.opendesk-tool.json',import.meta.url),'utf8')));
+  }
   if(id==='reading-toc'){
     // Exercise the exact reviewed legacy page.toc release, not the current
     // page.module build (1.1.x). Never re-pin a different capability model.

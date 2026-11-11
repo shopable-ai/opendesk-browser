@@ -24,4 +24,17 @@
 - 实际浏览器只读观察：既有扩展 ID `ccfcjegpkdlgbclopjmadlcjedelidmf`，Web Flow 标题读回 **0.3.26**。通过原「扩展 → 导入扩展」选择正式 JSON 时，系统选择器「打开」持续 disabled，未进入包审阅、未安装；当前工具无法稳定定向绑定侧栏，已停止原生输入并释放原 UI 锁。实际安装包 Hash、新版宿主「我的」和 WebFlow 最终验收 **NOT_TESTED**。
 - 既有手动请求 `webflow:fcd2a5b4-c77e-430e-ae7b-1cd2b5e68caa` 显示 UNKNOWN、资源未释放；原只查询/停止恢复路径仍可见。本轮未重放、未停止其他 owner 的请求、未创建新执行。因此新版可信手动运行、真实持久结果/释放及关闭重开均 **NOT_TESTED**。
 
-收尾条件仍未满足：正式包可供原安装器审阅，但不能宣称已安装成功、六专家达标或正式验收完成。下一条用户操作是使用可稳定定向的原侧栏安装入口更新这一个正式包并读回身份，再续验同一次安装后的 UI 和合法全新手动请求。
+收尾条件仍未满足：正式包可供原安装器审阅，但不能宣称已安装成功、六专家达标或正式验收完成。以下续接状态取代上文历史运行状态。
+
+### 交付续接实读（2026-11-11）
+
+- `main` HEAD 仍为 `0e237927272b657d62148ccb56021d75580a6cf9`。原 `0.3.27` 正式包的版本、103849 B 与上述 SHA 已重新读取一致；`tool.config.json` 为用户批准的 `0.3.28`，能力与百度/Google 委托 pin 均未变。
+- 旧 `0.3.28` 候选 SHA `e4efcc58f0afbe31ded3f8019dea6a7d6ca24ca27d17692856871e1a00a1097b` 对应共享抽屉改造之前的源码，不能晋升、安装或引用旧测试作为当前输入的 PASS。
+- 共享抽屉对话 `01a1c9c4-c354-7933-93ce-e62f874ccddb` 实读为 active / inProgress，正在修改 Web Flow consumer、唯一 React Root、TaskWorkbench、准备记录与权限链，并补定向测试。本交付任务未覆盖、提交或打包这些活跃修改。
+- 上文 watcher RUNNING 及 revision `7b378e…` 仅属历史。续接首次检查 43119 无监听，构建停止于 settings 来源审阅；该活跃 owner 随后已将 `chatgpt-project-runtime-ui.js` 精确 pin 从 `b775438…` 更新为 `33ca63abba0fa7453902f4713bfd856a25596ab8`，对应已合入 main 的 Stop 回执文字修正。再次检查 PID 22826 同时监听 43119/43120，原日志记录 `dist/development` 构建成功并 RUNNING；实际客户端应用情况尚未验证。开发服务与共享输出继续由该 owner 持有，本交付任务未启动第二个 writer。
+- 沿用 ego TaskSpace 79 / p1 的只读检查中，实际 URL 为该扩展的 `sidepanel.html`，页面正文却是「本地任务目录」；没有可靠的当前安装器或 Web Flow 版本读回。历史已安装 `0.3.26` 不能升级为当前事实，安装版本/包 SHA 与新宿主生效继续为 `NOT_TESTED`。未输入诊断代码，未发起或重放 Task，未改动历史 UNKNOWN。
+- 独立修复本任务原 Chromium 验证驱动及其 SDK fixture：消费真实固定 Task Manifest，菜单「配置运行」仅记录 `tasks.configure`，核对六字段安装身份，配置不创建旧 pending/Task。移除已退役行内参数编辑器的过时断言，保留收藏、筛选、键盘、详情回焦与错误显示检查；不在 fixture 实现可信抽屉或第二执行器。现有 headless 驱动在 Chrome 156.0.8078.4 的 320/360/400px、21 张截图通过，实际 `tasks.start` 次数为 0；证据 `artifacts/script-list-unify-acceptance-r1/shared-consumer-chromium/receipt.json`。这是 `SOURCE_COMPONENT_CHROMIUM_MOCK_SDK`，共享抽屉、参数表单、可信准备/确认、真实安装均未因此通过。两脚本语法及 diff 空白检查通过；未重复旧全组测试。
+
+- 最新交付输入：该活跃 owner 已重建候选 `0.3.28 / 94507 B / c92e4ea2395d4beb5265cb528d2b9f637c5e50de1894335fcc9fcd471e647571`，仍未晋升正式 JSON。四份 UI 源码与本次 Chromium receipt 哈希一致；该事实只绑定消费端验证，不代替 Host/权限回归、正式包门禁或安装。该 owner 同时在操作其 TaskSpace 80 的实际安装链，本任务未争用它的浏览器或提交活跃源码。
+
+当前唯一下一步：共享抽屉 owner 稳定并交出源码及交付回执后，核对 `0.3.28` 当前候选的受影响回归、晋升与同源结果，再续验同一安装的配置/取消不执行；源码漂移才重建，不重复覆盖其包或安装操作。本续接仅留下本记录及两份消费端验证脚本的未提交改动，等待与稳定输入整合。

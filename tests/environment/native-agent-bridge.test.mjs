@@ -32,6 +32,38 @@ function mock({enabled=true,granted=true,lastConnectedAt=null}={}){
 const message=(requestId,method,params={})=>({v:1,kind:'request',requestId,method,params});
 const settingsSender=f=>({id:f.api.runtime.id,
   url:f.api.runtime.getURL('native-agent/settings.html'),documentId:'settings-document'});
+test('Native settings section links retain the same trusted document and permission boundary',async t=>{
+ const f=mock({enabled:false});t.after(()=>f.service.dispose());await f.service.ready;
+ for(const hash of ['#chatgpt-files','#chatgpt-files-controls','#chatgpt-images']){
+   const sender={...settingsSender(f),url:settingsSender(f).url+hash,frameId:0};
+   assert.equal((await f.service.handleSettings({type:'status'},sender)).enabled,false);
+   await f.service.handleSettings({type:'enable'},sender);
+   assert.equal(f.stored[AGENT_ENABLED_KEY],true);
+   await f.service.handleSettings({type:'disable'},sender);
+   assert.equal(f.stored[AGENT_ENABLED_KEY],false);
+ }
+ const trusted={...settingsSender(f),url:settingsSender(f).url+'#chatgpt-files-controls',frameId:0};
+ for(const sender of [
+   {...trusted,id:'foreign-extension'},
+   {...trusted,documentId:''},
+   {...trusted,documentId:undefined},
+   {...trusted,frameId:1},
+   {...trusted,incognito:true},
+   {...trusted,tab:{incognito:true}},
+   {...trusted,documentLifecycle:'prerender'},
+   {...trusted,url:settingsSender(f).url+'?admin=true#chatgpt-files-controls'},
+   {...trusted,url:settingsSender(f).url+'/other#chatgpt-files-controls'},
+   {...trusted,url:'https://example.com/native-agent/settings.html#chatgpt-files-controls'},
+   {...trusted,url:'chrome-extension://foreign/native-agent/settings.html#chatgpt-files-controls'}
+ ])for(const type of ['status','enable','disable'])
+   await assert.rejects(()=>f.service.handleSettings({type},sender),{code:'E_OWNER'});
+ const denied=mock({enabled:false,granted:false});t.after(()=>denied.service.dispose());await denied.service.ready;
+ await assert.rejects(()=>denied.service.handleSettings({type:'enable'},
+   {...settingsSender(denied),url:settingsSender(denied).url+'#chatgpt-files-controls'}),{code:'E_PERMISSION_REQUIRED'});
+ assert.equal(denied.stored[AGENT_ENABLED_KEY],false);
+ assert.equal(denied.native(),undefined);
+ assert.equal(f.requests.length,0,'settings sections never submit user tasks');
+});
 test('managed service negotiation uses the original port and retires requests on permission removal',async t=>{
   const protocol='opendesk.managed-services.v1';
   for(const version of [undefined,0,1,2]){

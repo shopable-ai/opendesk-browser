@@ -11,6 +11,7 @@ test('React shell can start, refresh and navigate without retired task catalog D
   let navigate;
   const host={currentRun:null,subscribe(fn){subscribers.add(fn);return ()=>subscribers.delete(fn);}};
   const client={ready:Promise.resolve(),async request(action){
+    if(action==='inspectTaskRun')return {preparation:null};
     assert.equal(action,'listTaskCatalog');return {catalog:[],installed:[]};
   }};
   const api={runtime:{getURL:path=>'chrome-extension://test/'+path},
@@ -46,6 +47,7 @@ test('My file import presents the pending task without retired catalog nodes; so
   const key=pkg.manifest.taskId+'@'+pkg.manifest.version;
   const host={currentRun:null,subscribe(){return ()=>{};}};
   const client={ready:Promise.resolve(),async request(action,args){
+    if(action==='inspectTaskRun')return {preparation:null};
     if(action==='listTaskCatalog')return {catalog:rows,installed:[]};
     if(action==='importTaskPackage'){
       rows=[{...pkg.manifest,manifest:pkg.manifest,manifestHash:pkg.manifestHash,stage:'candidate'}];

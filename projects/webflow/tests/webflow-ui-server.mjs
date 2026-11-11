@@ -6,6 +6,12 @@ import {build} from 'esbuild';
 import {createHash} from 'node:crypto';
 const project=new URL('../',import.meta.url);
 const config=JSON.parse(await readFile(new URL('tool.config.json',project),'utf8'));
+const taskPackages=new Map(await Promise.all(config.delegatedTasks.map(async pin=>{
+ const task=JSON.parse(await readFile(new URL('../../examples/tasks/'+pin.taskId+'.v1.opendesk-task.json',project),'utf8'));
+ if(task.manifest.version!==pin.version||task.manifestHash!==pin.manifestHash||
+    task.manifest.program.sourceHash!==pin.contentHash)throw Error('Fixture Task pin changed: '+pin.taskId);
+ return [pin.taskId,task];
+})));
 const files={'/model.js':'model.js','/md-workflow.js':'md-workflow.js','/main.js':'main.js','/style.css':'style.css'};
 const sources=new Map(await Promise.all(Object.entries(files).map(async([route,file])=>
  [route,await readFile(new URL('src/ui/'+file,project))])));
@@ -47,12 +53,12 @@ const server=createServer(async(req,res)=>{
   }
   if(files[req.url]){res.writeHead(200,{'Content-Type':req.url.endsWith('.css')?'text/css':'text/javascript'});
    res.end(sources.get(req.url));return;}
-  if(req.url==='/counts'){
-   const configured=calls.filter(c=>c.name==='tasks.configure');
-   json({starts:calls.filter(c=>c.name==='tasks.start').length,
-     configures:configured.length,lastConfigure:configured.at(-1)?.args||null,
-     clientRequestId:run?.clientRequestId});return;
-  }
+  if(req.url==='/counts'){json({starts:calls.filter(c=>c.name==='tasks.start').length,
+   preparations:calls.filter(c=>c.name==='storage.set'&&c.args.key==='webflow.pending.v1').length,
+   configurations:calls.filter(c=>c.name==='tasks.configure').map(c=>c.args),
+   configures:calls.filter(c=>c.name==='tasks.configure').length,
+   lastConfigure:calls.filter(c=>c.name==='tasks.configure').at(-1)?.args||null,
+   clientRequestId:run?.clientRequestId});return;}
   if(req.url==='/control/released'&&req.method==='POST'){mode='released';json({});return;}
   if(req.url==='/control/revoked'&&req.method==='POST'){revoked=true;json({});return;}
   if(req.url==='/control/task-unavailable'&&req.method==='POST'){taskUnavailable=true;json({});return;}
@@ -71,10 +77,15 @@ const server=createServer(async(req,res)=>{
     if(taskUnavailable&&args.taskId==='baidu.search.top3'){
      json({code:'E_PERMISSION',message:'Task is disabled or not installed'},403);return;
     }
-    json({task:{...pin,installationId:'fixture-installation',generation:1}});return;}
+    json({task:{...pin,installationId:'fixture-installation',generation:1},
+     manifest:taskPackages.get(args.taskId)?.manifest});return;}
+   // Transport receipt only: this fixture does not render or implement Host UI.
    if(name==='tasks.configure'){
-    if(!config.delegatedTasks.some(p=>p.taskId===args?.taskId)||
-      !args||Object.keys(args).length!==1){json({code:'E_SCHEMA'},400);return;}
+    const task=args?.task,pin=config.delegatedTasks.find(p=>p.taskId===task?.taskId);
+    if(!args||Object.keys(args).length!==1||!pin||!task||
+      Object.keys(task).length!==6||
+      !['taskId','version','manifestHash','contentHash'].every(key=>task[key]===pin[key])||
+      task.installationId!=='fixture-installation'||task.generation!==1){json({code:'E_SCHEMA'},400);return;}
     json({opened:true});return;
    }
    if(name==='tasks.start'){

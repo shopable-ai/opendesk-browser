@@ -83,14 +83,13 @@
     const [loading,setLoading]=R.useState(true);
     const [pageInfo,setPageInfo]=R.useState({status:'unavailable'});
     const [error,setError]=R.useState('');
+    const [configureError,setConfigureError]=R.useState('');
     const [notice,setNotice]=R.useState('');
     const [feedback,setFeedback]=R.useState('');
     const [search,setSearch]=R.useState('');
     const [filter,setFilter]=R.useState('all');
     const [sort,setSort]=R.useState('favorite');
     const [detail,setDetail]=R.useState(null);
-    // Per-task, per-mount editing drafts only. Host authority never sees these until preparation.
-    const [drafts,setDrafts]=R.useState({});
     const [mdSource,setMdSource]=R.useState('https://github.com/shopable-ai/opendesk-browser/blob/main/projects/webflow/examples/workflows/md-demo.md');
     const [mdPreview,setMdPreview]=R.useState(null);
     const [mdError,setMdError]=R.useState('');
@@ -106,13 +105,12 @@
     const [hostNavigation,setHostNavigation]=R.useState({base:false,actions:false});
     const returnTab=R.useRef('overview');
     const [recoveryReady,setRecoveryReady]=R.useState(false);
-    const [staged,setStaged]=R.useState(null);
     const [snapshots,setSnapshots]=R.useState({});
     const alive=R.useRef(true), seq=R.useRef(0), timer=R.useRef(null);
-    const busy=R.useRef(false), activeRef=R.useRef(null), historyRef=R.useRef([]);
-    const observation=R.useRef(0), pendingRef=R.useRef(null), stagedRef=R.useRef(null),cancelledRef=R.useRef(null);
+    const configuring=R.useRef(false), activeRef=R.useRef(null), historyRef=R.useRef([]);
+    const observation=R.useRef(0), pendingRef=R.useRef(null);
     const recordWrites=R.useRef(Promise.resolve());
-    const taskNotices=R.useRef(null),openingShared=R.useRef(false);
+    const taskNotices=R.useRef(null);
     if(!taskNotices.current)taskNotices.current=M.createTaskNoticePublisher(tool.ui?.notify);
     const feedbackRef=R.useRef({revision:0,handle:null,timer:null});
     // Small, verified UI receipts use the existing R1.2 host. Unlike task notices,
@@ -150,7 +148,6 @@
     };
     const pageReadEpoch=R.useRef(0);
     const currentPageRef=R.useRef({status:'unavailable'}),taskReadPending=R.useRef(false);
-    const localCancellation=R.useRef(null);
     const prefsDirty=R.useRef(false);
     const request=R.useCallback((name,args)=>operation(name,args),[]);
     const adoptPanelPreference=state=>{panelPreferenceRef.current=state;setPanelPreference(state);};
@@ -185,15 +182,14 @@
     // The bridge conservatively marks trusted inputs as drafts. Reconcile
     // view-only controls on every render, retaining unconfirmed durable edits.
     R.useEffect(()=>{
-      tool.setState?.({dirty:prefsDirty.current||panelDirtyRef.current||Object.values(drafts).some(value=>value?.dirty===true),
-        busy:saving||panelSaving||active?.state==='saving'||active?.state==='cancelling-local'});
+      tool.setState?.({dirty:prefsDirty.current||panelDirtyRef.current,busy:saving||panelSaving});
     });
 
     const readTasks=R.useCallback(async()=>{
       const epoch=++seq.current;
       taskReadPending.current=true;
       setLoading(true);
-      setTasks(old=>old.map(pin=>({...pin,state:'checking',binding:null,error:'',diagnostic:''})));
+      setTasks(old=>old.map(pin=>({...pin,state:'checking',binding:null,preparations:[],error:'',diagnostic:''})));
       const rows=await Promise.all(PINNED.map(async pin=>{
         try{
           const reply=await request('tasks.read',{taskId:pin.taskId});
@@ -203,7 +199,8 @@
           if(typeof reply.task.installationId!=='string'||!reply.task.installationId.trim()||
             !Number.isSafeInteger(reply.task.generation)||reply.task.generation<1)
             return {...pin,state:'unavailable',binding:null,error:M.taskReadMessage()};
-          return {...pin,state:'available',binding:reply.task};
+          return {...pin,...M.taskMetadata(reply.manifest),state:reply.runtimeCurrent===false?'runtime':'available',binding:reply.task,
+            preparations:M.taskPreparations(reply.preparations,reply.task)};
         }catch(e){return {...pin,state:M.errorState(e),binding:null,
           error:M.taskReadMessage(e),diagnostic:safeError(e)};}
       }));
@@ -480,8 +477,7 @@
       if(!current(id,epoch))return;
       forgetResult(id);setActive({clientRequestId:id,taskId:pin.taskId,state:'unknown'});
       // A failed trusted read invalidates the old optimistic toast; it does not prove a failed Run.
-      if(localCancellation.current?.clientRequestId!==id)
-        taskNotices.current?.publish(id,{clientRequestId:id,taskId:pin.taskId,state:'unknown',semantic:'UNKNOWN'},pin);
+      taskNotices.current?.publish(id,{clientRequestId:id,taskId:pin.taskId,state:'unknown',semantic:'UNKNOWN'},pin);
       setNotice('');
       setError('原请求未确认：'+safeError(e)+'。请查询或停止原步骤，不能新建请求补跑。');
     };
@@ -490,21 +486,28 @@
       try{await accept(id,pin,await request('tasks.read',{clientRequestId:id}),epoch,attempt);}
       catch(e){failObservation(id,pin,epoch,e);}
     };
-    // New preparations and starts are exclusively owned by trusted TaskWorkbench.
-    // The legacy read/stop/recovery paths below retain saved request identities.
+    // UI-only: preserve the real click turn. The trusted sheet owns parameters,
+    // preparation and execution; this consumer never starts a new request.
+    const configure=(pin,preparationId)=>{
+      if(runReason(pin)||taskReadPending.current||configuring.current)return;
+      if(preparationId!==undefined&&!pin.preparations?.some(record=>record.preparationId===preparationId))return;
+      configuring.current=true;setConfigureError('');
+      try{
+        const opened=preparationId===undefined?request('tasks.configure',{task:pin.binding}):
+          request('tasks.configure',{task:pin.binding,preparationId});
+        setMore(null);
+        void Promise.resolve(opened).catch(e=>{
+          if(alive.current)setConfigureError('运行配置未打开：'+safeError(e));
+        }).finally(()=>{configuring.current=false;});
+      }catch(e){configuring.current=false;if(alive.current)setConfigureError('运行配置未打开：'+safeError(e));}
+    };
     const readOriginal=(entry)=>{
       const pin=PINNED.find(p=>p.taskId===entry?.taskId),id=entry?.clientRequestId;
       if(!id||!pin)return;
       if(activeRef.current&&activeRef.current!==id){setError('请先核对当前未释放的原请求。');return;}
-      if(stagedRef.current?.clientRequestId===id){
-        setNotice('本实例的步骤已保存但尚未提交；可以确认手动运行，或取消未运行步骤。');return;
-      }
-      if(localCancellation.current?.clientRequestId===id){
-        setNotice('本实例从未提交此步骤；取消保存结果未确认，可以重试取消未运行步骤。');return;
-      }
       if(timer.current)clearTimeout(timer.current);
       const epoch=++observation.current;
-      stagedRef.current=null;setStaged(null);activeRef.current=id;forgetResult(id);
+      activeRef.current=id;forgetResult(id);
       setActive({...entry,state:'checking'});setError('');setNotice('');
       void (async()=>{
         try{
@@ -519,29 +522,14 @@
       })();
     };
     const readActive=()=>readOriginal(active);
-    const cancelStaged=()=>{
-      const ready=stagedRef.current||localCancellation.current;if(!ready||busy.current)return;
-      const id=ready.clientRequestId,epoch=++observation.current;
-      // Invalidate confirmation synchronously. This instance has never called
-      // start for the staged ID; no platform operation needs to be stopped.
-      stagedRef.current=null;setStaged(null);cancelledRef.current=id;
-      localCancellation.current=ready;busy.current=true;
-      setActive({clientRequestId:id,taskId:ready.task.taskId,state:'cancelling-local'});
-      void save(pendingKey,null,id,()=>current(id,epoch)).then(saved=>{
-        if(saved&&current(id,epoch)){
-          pendingRef.current=null;activeRef.current=null;localCancellation.current=null;setActive(null);
-          setNotice('');showFeedback('未运行步骤已取消；没有派发网页操作。');
-        }
-      }).catch(e=>failObservation(id,ready.task,epoch,e)).finally(()=>{busy.current=false;});
-    };
     const stopOriginal=(entry)=>{
       const id=entry?.clientRequestId;
       if(!id)return;
       if(activeRef.current&&activeRef.current!==id){setError('请先停止当前原请求。');return;}
-      activeRef.current=id;cancelledRef.current=id;
+      activeRef.current=id;
       const epoch=++observation.current;
       if(timer.current)clearTimeout(timer.current);
-      stagedRef.current=null;setStaged(null);forgetResult(id);
+      forgetResult(id);
       setActive({...entry,state:'stopping'});
       setNotice('正在停止原请求；已产生的网页副作用不会撤销。停止后请查询原请求确认释放。');
       try{
@@ -553,15 +541,6 @@
       }catch(e){if(current(id,epoch))setError('停止结果未知：'+safeError(e));}
     };
     const stop=()=>stopOriginal(active);
-    const openSharedTask=pin=>{
-      if(openingShared.current)return;
-      if(pin.state!=='available'||!pin.binding){setError('请先核对脚本的真实安装状态。');return;}
-      openingShared.current=true;setMore(null);setError('');
-      // UI-only request: no parameters, URL, source code, or Run crosses this boundary.
-      void request('tasks.configure',{taskId:pin.taskId}).catch(e=>{
-        if(alive.current)setError('共享运行抽屉未打开：'+safeError(e));
-      }).finally(()=>{openingShared.current=false;});
-    };
     const openTask=pin=>{
       if(pin.state==='checking')return;
       setError('');void request('tasks.open',{taskId:pin.taskId}).catch(e=>{
@@ -578,10 +557,8 @@
       }
       setNotice('');
     };
-    const sameTarget=pin=>pageInfo.status==='available'&&sameSite(pageInfo.url,pin.site);
     const rows=M.filterTasks(tasks,search,filter,settings.favorites,sort);
     const summary=M.summary(tasks,history);
-    const runDisabled=pin=>!recoveryReady||pin.state!=='available'||Boolean(activeRef.current)||!sameTarget(pin);
     const runStateLabel=state=>({
       completed:'执行完成',failed:'执行失败',unknown:'结果未知',stopped:'已停止',
       interrupted:'已中断',cancelled:'已取消',canceled:'已取消',
@@ -589,11 +566,10 @@
       preparing:'正在提交',stopping:'停止请求中','cancelling-local':'取消保存中'
     })[state]||state||'未核验';
     const gotoScripts=()=>setTab('scripts');
-    const runReason=pin=>!recoveryReady?'正在恢复原步骤，请先完成核验':
-      activeRef.current?'存在尚未释放的原请求，请先查询或停止':
-      pin.state!=='available'?labels[pin.state]||'任务不可用':
-      !pin.binding?'固定安装身份未取得':
-      !sameTarget(pin)?'请先切换到该任务获准的网站':'';
+    // Opening trusted configuration is not admission. Recovery errors and old
+    // UNKNOWNs remain visible; the Authority fences preparation/execution.
+    const runReason=pin=>!['available','runtime'].includes(pin.state)?labels[pin.state]||'任务不可用':
+      !pin.binding?'固定安装身份未取得':'';
     const inspect=pin=>{
       const fromMenu=more===pin.taskId;
       setDetail(detail===pin.taskId?null:pin.taskId);setMore(null);
@@ -605,39 +581,37 @@
     const taskCard=pin=>{
       const star=settings.favorites.includes(M.taskKey(pin));
       const reason=runReason(pin),expanded=detail===pin.taskId;
-      const draft=drafts[pin.taskId]||{};
-      const keyword=typeof draft.query==='string'?draft.query:'';
-      const tabVisible=draft.showExecutionTab!==false;
       const focusMore=()=>global.queueMicrotask(()=>
         tool.root.querySelector('[data-wf-more="'+pin.taskId+'"]')?.focus());
+      const closeDetails=()=>{
+        setDetail(null);
+        global.queueMicrotask(()=>tool.root.querySelector('[data-wf-task-name="'+pin.taskId+'"]')?.focus());
+      };
       return h('article',{key:pin.taskId,className:'wf-task-row','data-menu-open':more===pin.taskId,
         onKeyDown:e=>{
           if(e.key!=='Escape'||e.nativeEvent?.isComposing)return;
           if(more===pin.taskId){e.stopPropagation();setMore(null);focusMore();}
-          else if(expanded){e.stopPropagation();setDetail(null);
-            global.queueMicrotask(()=>tool.root.querySelector('[data-wf-task-name="'+pin.taskId+'"]')?.focus());}
+          else if(expanded){e.stopPropagation();closeDetails();}
         },
         onBlur:e=>{if(more===pin.taskId&&!e.currentTarget.contains(e.relatedTarget))setMore(null);}},
         h('div',{className:'wf-task-main'},
           h('span',{className:'wf-task-icon','aria-hidden':'true'},pin.icon),
           h('div',{className:'wf-task-info'},
             h('button',{type:'button',className:'wf-task-name',title:pin.title,'data-wf-task-name':pin.taskId,
-              'aria-haspopup':'dialog','aria-controls':'task-parameters-sheet',onClick:()=>openSharedTask(pin)},pin.title),
+              'aria-expanded':expanded,'aria-controls':'wf-details-'+pin.taskId,onClick:()=>inspect(pin)},pin.title),
             h('div',{className:'wf-task-meta'},
               h('span',{className:'wf-truncate',title:pin.site},pin.site.replace('https://','')),
-              h(Status,{state:pin.state,text:pin.state==='available'?
-                (pageInfo.status==='checking'?'正在核验网页':!sameTarget(pin)?'当前网站不可运行':labels.available):undefined})),
+              h(Status,{state:pin.state})),
             h('div',{className:'wf-task-secondary'},
-              h('span',null,'参数由已安装任务 Schema 提供'),
+              h('span',null,pin.parameterCount==null?'参数待核对':'参数 '+pin.parameterCount+' 项'),
               h('span',null,'手动 · 双阶段确认'))),
           h('div',{className:'wf-item-buttons'},
             Btn(Icon('star',star),()=>toggleFavorite(pin),{key:'fav-'+pin.taskId,icon:true,shortcut:true,
               disabled:saving,title:star?'取消收藏':'收藏',
               ariaLabel:(star?'取消收藏 ':'收藏 ')+pin.title,pressed:star}),
-            Btn(Icon('play'),()=>openSharedTask(pin),{
-              key:'run-'+pin.taskId,icon:true,shortcut:true,primary:true,
-              disabled:pin.state!=='available'||!pin.binding,
-              title:reason?reason+'（可查看参数，运行前必须满足条件）':'配置参数并准备手动运行；点击不会执行',
+            Btn(Icon('play'),()=>configure(pin),{
+              key:'run-'+pin.taskId,icon:true,shortcut:true,primary:true,disabled:Boolean(reason),
+              title:reason||'打开可信运行配置；点击不会执行',
               ariaLabel:reason?'无法运行 '+pin.title+'：'+reason:'准备运行 '+pin.title}),
             h('div',{className:'wf-menu-anchor'},
               Btn(Icon('more'),()=>setMore(more===pin.taskId?null:pin.taskId),
@@ -646,7 +620,8 @@
                   expanded:more===pin.taskId,popup:'true',controls:'wf-menu-'+pin.taskId}),
               more===pin.taskId&&h('div',{id:'wf-menu-'+pin.taskId,className:'wf-menu',role:'group',
                 'aria-label':pin.title+' 操作'},
-                h('button',{type:'button',onClick:()=>openSharedTask(pin)},'配置参数'),
+                h('button',{type:'button',disabled:Boolean(reason),onClick:()=>configure(pin)},'配置运行'),
+                h('button',{type:'button',onClick:()=>inspect(pin)},'查看详情'),
                 h('button',{type:'button',disabled:saving,onClick:()=>{
                   setMore(null);void toggleFavorite(pin);}},star?'取消收藏':'收藏脚本'),
                 pin.state==='available'&&h('button',{type:'button',
@@ -656,7 +631,13 @@
           h('div',{className:'wf-actions'},
             Btn(['disabled','runtime'].includes(pin.state)?'打开任务管理':'打开安装审阅',()=>openTask(pin)),
             pin.state==='initialization'&&Btn('重试初始化',()=>{void readTasks();},{disabled:loading})),
-
+        expanded&&h('div',{id:'wf-details-'+pin.taskId,className:'wf-task-detail wf-stack',
+          'aria-label':pin.title+' 详情','aria-describedby':'wf-description-'+pin.taskId},
+          h('strong',null,pin.title),
+          h('p',{id:'wf-description-'+pin.taskId,className:'wf-sub'},pin.description||'任务说明待核对'),
+          h('p',{className:'wf-sub'},'网站：'+(pin.siteOrigins?.join(' · ')||pin.site)),
+          h('p',{className:'wf-sub'},pin.parameterCount==null?'参数待核对':'参数 '+pin.parameterCount+' 项；在可信运行配置中编辑'),
+          Btn('收起详情',closeDetails,{quiet:true}))
       );
     };
     const historyCard=(entry,index)=>h('li',{key:entry.clientRequestId+'-'+index,className:'wf-record-row'},
@@ -695,14 +676,8 @@
         h('p',{className:'wf-sub'},'目标网站：'+(pin?.site||'未确认')),
         h('code',{className:'wf-mono'},active.clientRequestId),
         h('p',{className:'wf-sub'},'资源释放：'+(snapshot?.retirementState||'未确认')+'；后续 B：不自动执行'),
-        staged&&h('p',null,'已保存参数：'+staged.params.query),
-        staged&&h('p',{className:'wf-sub'},staged.params.showExecutionTab===false?'后台执行：不切到执行标签页':'前台执行：显示执行标签页'),
-        staged&&h('p',{className:'wf-sub'},'旧版待提交记录只允许查询或取消，不提供重放入口。'),
-        h('div',{className:'wf-actions'},Btn('查询原请求',readActive,{
-          disabled:active.state==='saving'||active.state==='cancelling-local'}),
-          staged?Btn('取消未运行步骤',cancelStaged):localCancellation.current?
-            Btn('重试取消未运行步骤',cancelStaged,{disabled:active.state==='cancelling-local'}):
-            Btn('停止原请求',stop,{disabled:active.state==='saving'})),
+        h('div',{className:'wf-actions'},Btn('查询原请求',readActive),
+          Btn('停止原请求',stop)),
         pendingRef.current?.task&&h('details',{className:'wf-help'},h('summary',null,'保存时的任务身份'),
           detailList([['安装身份',pendingRef.current.task.installationId],
             ['授权代次',String(pendingRef.current.task.generation)],
@@ -720,7 +695,7 @@
             h('div',{className:'wf-grow'},
               h('strong',null,active?'手动原步骤待核对':
                 summary.attention?'有固定脚本需要处理':'当前没有待处理异常'),
-              h('p',{className:'wf-sub'},active?'当前步骤须确认运行、只读查询或停止；不会自动补跑。':
+              h('p',{className:'wf-sub'},active?'当前步骤只能只读查询或停止；不会自动补跑。':
                 summary.attention?'请核对固定任务的安装、版本和权限。':
                 '手动任务仅按已审阅的安装及网站范围使用。'),
               active&&h('code',{className:'wf-mono wf-active-locator',
@@ -834,13 +809,21 @@
     }
     function records(){
       return h('div',{className:'wf-stack'},
-        h('p',{className:'wf-sub'},'仅展示手动原请求摘要；自动任务在“运行与授权 → 当前任务”核对。'),
+        h('p',{className:'wf-sub'},'共享运行引用来自宿主；历史手动记录仅为原请求摘要，不是当前结果。'),
+        ...tasks.flatMap(pin=>(pin.preparations||[]).map(entry=>
+          h(Card,{key:entry.preparationId,children:h('div',{className:'wf-stack'},
+            h('strong',null,pin.title),
+            h(Status,{state:entry.state,text:runStateLabel(entry.state)}),
+            detailList([['preparationId',entry.preparationId],['runId',entry.runId||'未取得'],
+              ['resultId',entry.resultId||'未取得'],['原记录状态',entry.settled?'已结算':'待核对']]),
+            h('p',{className:'wf-sub'},'仅为原运行引用；结果与资源释放须在可信运行配置中核对。'),
+            Btn('查看原运行',()=>configure(pin,entry.preparationId),{disabled:Boolean(runReason(pin))}))}))),
         activeCard(),
         history.length?h('ul',{className:'wf-history'},...history.map(historyCard)):
-          h(Card,{extra:'wf-empty',children:[
+          !tasks.some(pin=>pin.preparations?.length)&&h(Card,{extra:'wf-empty',children:[
             h('strong',{key:'empty'},'暂无手动运行记录'),
             h('p',{key:'note',className:'wf-sub'},
-              '记录是恢复定位信息，不是业务成功证明。可在脚本中保存步骤并确认运行。')
+              '记录是恢复定位信息，不是业务成功证明。可从脚本打开可信运行配置。')
           ]}));
     }
     function settingsPage(){
@@ -935,16 +918,17 @@
         'aria-label':({overview:'概览',scripts:'脚本',history:'记录',md:'Markdown 任务队列',settings:'Web Flow 设置',help:'帮助'})[page],tabIndex:0},
         error&&h('div',{className:'wf-banner wf-warning',role:'alert'},
           h('p',null,error),Btn('关闭提示',()=>setError(''),{quiet:true})),
+        configureError&&h('div',{className:'wf-banner wf-warning',role:'alert'},
+          h('p',null,configureError),Btn('关闭配置提示',()=>setConfigureError(''),{quiet:true})),
         notice&&h('div',{className:'wf-banner',role:'status'},
           h('p',null,notice),Btn('×',()=>setNotice(''),
             {quiet:true,icon:true,ariaLabel:'关闭状态提示',title:'关闭状态提示'})),
         feedback&&h('div',{className:'wf-banner','data-wf-feedback':'fallback',role:'status'},
           h('p',null,feedback)),
-        page==='scripts'&&activeCard(),
+        page==='scripts'&&active&&activeRef.current&&h('div',{className:'wf-banner wf-line wf-between',role:'status'},
+          h('span',null,'有原请求待核对；只能查询或停止。'),
+          Btn('查询原请求',readActive),Btn('查看记录',()=>setTab('history'),{quiet:true})),
         sections[page]()));
-  }
-  function sameSite(url,origin){
-    try{return new URL(url).origin===origin;}catch{return false;}
   }
   function businessLabel(value){
     const names={'reported-success':'任务返回 success（仍须核查网页事实）',

@@ -4,9 +4,8 @@ import {readFileSync} from 'node:fs';
 import {resolve,dirname} from 'node:path';
 import {fileURLToPath} from 'node:url';
 import vm from 'node:vm';
-import {verifyTaskPackage,validateTaskParams} from '../../../src/platform/tasks/contract.js';
-import {createSidebarToolPackage} from '../../../scripts/build-sidebar-tool.mjs';
 import {validateSidebarToolPackage} from '../../../src/ui/sidebar-tools/package.js';
+import {verifyTaskPackage,validateTaskParams} from '../../../src/platform/tasks/contract.js';
 
 const project=resolve(dirname(fileURLToPath(import.meta.url)),'..');
 const modelCode=readFileSync(resolve(project,'src/ui/model.js'),'utf8');
@@ -103,20 +102,25 @@ test('UNKNOWN remains terminal for auto-replay purposes and imported records can
   assert.equal(M.recentRecords([{foo:'bad'}]).length,0);
   assert.equal(M.recentRecords(Array.from({length:50},(_,n)=>({clientRequestId:'c'+n,taskId:'b'}))).length,12);
 });
-test('original builder accepts and preserves real v2 pins without embedding a runner',async()=>{
-  const tool=validateSidebarToolPackage(await createSidebarToolPackage(project));
-  assert.equal(tool.id,'webflow');
+// Validate the candidate before promotion, or the official artifact on normal runs.
+test('v2 package preserves reviewed scripts and pins without a sandbox runner',()=>{
+  const tool=validateSidebarToolPackage(JSON.parse(readFileSync(process.env.WEBFLOW_PACKAGE_PATH||resolve(project,'webflow.opendesk-tool.json'),'utf8')));
+  assert.equal(tool.id,config.id);
   assert.equal(tool.version,config.version);
   assert.equal(tool.uiRuntime,'opendesk.react-ui.v1');
-  // The original builder emits one pinned classic script per reviewed dependency.
-  assert.equal(tool.scripts.length,config.files.dependencies.length);
   assert.deepEqual(tool.scripts.map(asset=>asset.name),config.files.dependencies);
-  assert.equal(tool.delegatedTasks.length,2);
-  assert.equal(tool.delegatedTasks[0].manifestHash,config.delegatedTasks[0].manifestHash);
-  assert.equal(tool.delegatedTasks[1].contentHash,config.delegatedTasks[1].contentHash);
-  assert.ok(tool.js.includes("request('tasks.configure'"));
-  assert.ok(!tool.js.includes("request('tasks.start'"),'sandbox cannot submit a new Run');
+  assert.deepEqual(tool.delegatedTasks,config.delegatedTasks);
+  assert.ok(tool.js.includes('tasks.configure'));
+  assert.ok(!tool.js.includes('tasks.start'));
   assert.ok(tool.css.includes('.wf-app'));
+});
+
+test('consumer keeps reviewed dependencies and delegates new runs to trusted configuration',()=>{
+  assert.ok(config.files.dependencies.length>0);
+  assert.ok(uiCode.includes("request('tasks.configure',{task:pin.binding})"));
+  assert.ok(!uiCode.includes("request('tasks.start'"));
+  assert.ok(!uiCode.includes("request('tasks.prepare'"));
+  assert.ok(!uiCode.includes('wf-query'));
 });
 
 test('current delegated consumers match verified search packages and their strict optional visibility Schema',async()=>{
@@ -134,12 +138,22 @@ test('current delegated consumers match verified search packages and their stric
  }
 });
 
-test('script play opens the trusted Host sheet; legacy execution remains isolated from new list entrypoints',()=>{
-  assert.equal((uiCode.match(/request\('tasks.configure'/g)||[]).length,1,'one UI-only open operation');
-  assert.ok(uiCode.includes("request('tasks.configure',{taskId:pin.taskId})"));
-  assert.ok(uiCode.includes("Btn(Icon('play'),()=>openSharedTask(pin)"));
-  assert.ok(uiCode.includes('参数由已安装任务 Schema 提供'));
-  assert.equal((uiCode.match(/request\('tasks.start'/g)||[]).length,0,'old delegated starts are not reachable from the new list');
+test('script play opens the trusted Host sheet without sandbox execution',()=>{
+  assert.equal((uiCode.match(/request\('tasks.configure'/g)||[]).length,2,'configure and preparation recovery only open the shared UI');
+  assert.ok(uiCode.includes("request('tasks.configure',{task:pin.binding})"));
+  assert.ok(uiCode.includes("Btn(Icon('play'),()=>configure(pin)"));
+  assert.equal((uiCode.match(/request\('tasks.start'/g)||[]).length,0,'legacy requests are queried or stopped without sandbox execution');
   assert.ok(uiCode.includes('webflow.pending.v1'),'old original requests remain recoverable');
   assert.equal(uiCode.includes('wf-param-row'),false,'inline forms do not duplicate the trusted sheet');
+});
+test('manifest metadata supplies arbitrary parameter counts without manufacturing a search form',()=>{
+  const manifest={title:'Installed title',description:'Installed description',siteOrigins:['https://example.test'],
+    paramsSchema:{type:'object',properties:{topic:{type:'string'},enabled:{type:'boolean'}}}};
+  const metadata=M.taskMetadata(manifest);
+  assert.equal(metadata.title,manifest.title);
+  assert.equal(metadata.description,manifest.description);
+  assert.equal(metadata.site,'https://example.test');
+  assert.equal(metadata.parameterCount,2);
+  assert.equal(M.taskMetadata({}).parameterCount,null);
+  assert.equal(M.taskMetadata({paramsSchema:{type:'object',properties:{}}}).parameterCount,0);
 });

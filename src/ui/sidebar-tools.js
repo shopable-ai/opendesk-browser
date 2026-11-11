@@ -1,7 +1,8 @@
 import {createSidebarToolAIAdapter,validateSidebarToolAIRequest} from './ai/sidebar-tool-adapter.js';
 import {createLocalTaskBridge,pickLocalTaskCredential,validateLocalTaskRequest} from '../platform/host/local-tasks.js';
 import {createTaskDelegationHost} from '../platform/host/task-delegation.js';
-import {TASK_DELEGATION_OPERATIONS,taskDelegationReview} from '../platform/tasks/delegation-contract.js';
+import {TASK_DELEGATION_OPERATIONS,taskDelegationReview,normalizeDelegatedTask,sameTaskPin} from '../platform/tasks/delegation-contract.js';
+import {readTaskDelegationApp,assertTaskDelegationApp} from '../platform/tasks/delegation-installation.js';
 import {APP_CONTROLLER_OPERATIONS,appControllerReview} from '../platform/tasks/app-controller-contract.js';
 import {patchToolField,setToolFieldAttribute,requestToolFieldEffect} from './sidebar-tools-view.js';
 import {ANALYTICS_PROTOCOL} from '../analytics/contract.js';
@@ -1756,7 +1757,6 @@ function createSidebarToolsController({api=globalThis.chrome,doc=globalThis.docu
       return;
     }
     if(!forceSandbox&&!readOnly&&!launchGate&&tool.id===TRUSTED_AI_PROXY_ID&&
-       tool.version===TRUSTED_AI_PROXY_VERSION&&
        trustedAIProxyPilot?.enabled===true&&typeof trustedAIProxyPilot.mount==='function'){
       const epoch=frameRevocationEpoch;
       nativePending=true;render();requestToolFieldEffect(view, backButton, 'focus', {preventScroll:true});
@@ -1766,8 +1766,9 @@ function createSidebarToolsController({api=globalThis.chrome,doc=globalThis.docu
         mountTool(tool,{forceSandbox:true,initialPage});
         notice('已在应用沙箱中打开 AI Proxy。');
       };
-      void (async()=>await admittedNativeAIProxy(tool,epoch)&&
-        await bundledPresentationFits(tool,TRUSTED_AI_PROXY_VERSION))().then(admitted=>{
+      // The fixed UI follows the reviewed installation, independently of the
+      // bundled release. Installed bytes still execute only in the sandbox.
+      void admittedNativeAIProxy(tool,epoch).then(admitted=>{
         if(disposed||active!==tool||instance!==token)return;
         if(!admitted){fallback();return;}
         try{
@@ -2054,7 +2055,7 @@ function createSidebarToolsController({api=globalThis.chrome,doc=globalThis.docu
           }
           const id=Number(message?.requestId);
           if(!(message?.kind==='open-ai-settings'&&Object.keys(message).length===5||
-             message?.kind==='request'&&['browser.clipboard.writeText','browser.downloads.text','localTasks.export','ai.generate','tool.page.open','ui.confirm'].includes(message.operation))||
+             message?.kind==='request'&&['browser.clipboard.writeText','browser.downloads.text','localTasks.export','ai.generate','tool.page.open','tasks.configure','ui.confirm'].includes(message.operation))||
              typeof message.requestId!=='string'||!/^[1-9]\d{0,15}$/.test(message.requestId)||
              !Number.isSafeInteger(id)||id<=lastRequest)return;
           lastRequest=id;
@@ -2384,6 +2385,37 @@ function createSidebarToolsController({api=globalThis.chrome,doc=globalThis.docu
         assertAuthorized:async()=>{await assertInstalledTool(tool,revocationEpoch,'安装或授权已变更');
           await assertSidebarToolEnabled(api,tool.id);assertSession(source,token);}});
       return sidebarAI.request(operation,payload);
+    }
+    if(operation==='tasks.configure'){
+      if(!verifiedGesture||!directExportPort||!tool.capabilities.includes('tasks.open')||
+         !tool.capabilities.includes('tasks.run')||!frame||source!==frame.contentWindow)
+        throw Object.assign(new Error('请实际点击脚本的运行按钮'),{code:'E_USER_GESTURE_REQUIRED'});
+      if(!payload||!Object.hasOwn(payload,'task')||Object.keys(payload).some(key=>!['task','preparationId'].includes(key))||
+         (payload.preparationId!==undefined&&(typeof payload.preparationId!=='string'||!/^[A-Za-z0-9._:-]{1,80}$/.test(payload.preparationId))))
+        throw Object.assign(new Error('任务配置参数无效'),{code:'E_SCHEMA'});
+      const task=normalizeDelegatedTask(payload.task,true);
+      await assertInstalledTool(tool,revocationEpoch,'任务配置期间安装或授权已变更');
+      const app=await readTaskDelegationApp(api,tool.id);
+      if(!app.tasks.some(pin=>sameTaskPin(pin,task)))
+        throw Object.assign(new Error('未批准此固定任务'),{code:'E_PERMISSION'});
+      const binding={...app,instanceId:token,task};
+      const assertAuthorized=async()=>{
+        await assertInstalledTool(tool,revocationEpoch,'任务配置期间安装或授权已变更');
+        await assertSidebarToolEnabled(api,tool.id);
+        await assertTaskDelegationApp(api,binding);assertSession(source,token);
+      };
+      await assertAuthorized();
+      if(payload.preparationId!==undefined){
+        const {preparations}=await foundationClient.request('listTaskRunPreparations',{binding});
+        await assertAuthorized();
+        if(!preparations.some(row=>row.preparationId===payload.preparationId))
+          throw Object.assign(new Error('原准备记录不属于此工具与任务'),{code:'E_PERMISSION'});
+      }
+      const opened=await taskWorkbench.openTaskRunSheet({task,binding,assertAuthorized,trigger:frame,
+        ...(payload.preparationId!==undefined?{preparationId:payload.preparationId}:{})});
+      // UI only: keep the original iframe mounted and never create a Run here.
+      if(!opened)throw Object.assign(new Error('任务运行抽屉未打开'),{code:'E_TASK_BUSY'});
+      return {opened:true};
     }
     if(TASK_DELEGATION_OPERATIONS.includes(operation)||APP_CONTROLLER_OPERATIONS.includes(operation)){
       const capability=APP_CONTROLLER_OPERATIONS.includes(operation)?'controllers.run':'tasks.run';
@@ -3353,7 +3385,7 @@ function createSidebarToolsController({api=globalThis.chrome,doc=globalThis.docu
     }
     if(!tool.capabilities.includes(operation.startsWith('storage.')?'storage.local':
        operation==='currentPage.info'?'currentPage.read':
-       (operation==='tasks.open'||operation==='tasks.configure')?'tasks.open':
+       operation==='tasks.open'?'tasks.open':
        operation==='page.request'?'page.module':
        ['toc.snapshot','toc.navigate'].includes(operation)?TOC_CAPABILITY:
        (VIDEO_SPEED_OPERATIONS.includes(operation)||VIDEO_SPEED_GLOBAL_OPERATIONS.includes(operation))?VIDEO_SPEED_CAPABILITY:
@@ -3790,28 +3822,6 @@ function createSidebarToolsController({api=globalThis.chrome,doc=globalThis.docu
           throw new Error('网站剪藏授权已撤销');
         assertSession(source,token);return data;
       }
-      if(operation==='tasks.configure'){
-        // No script, params, target URL or Run request may cross this UI-only bridge.
-        if(!verifiedGesture)throw Object.assign(new Error('请直接点击脚本运行按钮'),{code:'E_USER_GESTURE_REQUIRED'});
-        if(!payload||Array.isArray(payload)||Object.keys(payload).length!==1||
-          typeof payload.taskId!=='string'||!/^[a-zA-Z0-9][a-zA-Z0-9._-]{0,59}$/.test(payload.taskId))
-          throw Object.assign(new Error('任务标识无效'),{code:'E_SCHEMA'});
-        const delegated=tool.delegatedTasks?.find(row=>row.taskId===payload.taskId);
-        if(!delegated)throw Object.assign(new Error('工具没有该固定任务的授权身份'),{code:'E_TASK_SCOPE'});
-        await assertInstalledTool(tool,revocationEpoch,'任务配置期间安装或授权已变更');
-        await assertSidebarToolEnabled(api,tool.id);assertSession(source,token);
-        // The Host derives immutable tool identity from the installed package;
-        // none of these fields come from the sandbox's configure payload.
-        const toolIdentity={toolId:tool.id,version:tool.version,
-          packageHash:await sidebarToolPackageHash(tool),revocationEpoch};
-        const opened=await taskWorkbench.openTaskRunSheet(payload.taskId,{
-          expectedPin:delegated,toolIdentity,assertAuthorized:async()=>{
-            await assertInstalledTool(tool,revocationEpoch,'任务配置期间安装或授权已变更');
-            await assertSidebarToolEnabled(api,tool.id);assertSession(source,token);
-          }});
-        if(!opened)throw Object.assign(new Error('任务运行抽屉无法打开'),{code:'E_TASK_SHEET_UNAVAILABLE'});
-        return {opened:true};
-      }
       if(operation==='tasks.open'){
         if(!payload||Array.isArray(payload)||Object.keys(payload).length!==1||
           typeof payload.taskId!=='string'||!/^[a-zA-Z0-9][a-zA-Z0-9._-]{0,59}$/.test(payload.taskId))
@@ -4106,7 +4116,7 @@ function createSidebarToolsController({api=globalThis.chrome,doc=globalThis.docu
       message.operation==='cookieEditor.import.begin'||
       message.operation==='cookieEditor.write.begin'||
       message.operation==='cookieEditor.clear.begin'||
-      message.operation==='cookieEditor.export.begin'||message.operation==='tasks.start'||message.operation==='tasks.configure'||message.operation==='controllers.start')&&
+      message.operation==='cookieEditor.export.begin'||message.operation==='tasks.configure'||message.operation==='tasks.start'||message.operation==='controllers.start')&&
       globalThis.navigator?.userActivation?.isActive===true;
     const exportGrantEpoch=message.operation==='cookieEditor.export.begin'
       ?cookieSiteRecord(tool,websiteOrigin(currentPageTarget?.snapshot?.url))?.grantEpoch:null;

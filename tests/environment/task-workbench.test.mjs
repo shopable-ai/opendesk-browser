@@ -26,9 +26,9 @@ after(()=>{
     activeHandles:process._getActiveHandles?.().map(handle=>handle.constructor?.name)??[]
   }));
 });
-const make=({installedInitially=true,secondTask=false,sharedStore=null,draftStorage,deadlineMs,notify}={})=>{
+const make=({installedInitially=true,secondTask=false,sharedStore=null,draftStorage,deadlineMs,notify,appTab}={})=>{
   const nodes=new Map();
-  const doc={documentElement:{dataset:{}},activeElement:null,querySelector:()=>null};
+  const doc={...(appTab?{location:{href:'chrome-extension://extension/app.html'}}:{}),documentElement:{dataset:{}},activeElement:null,querySelector:()=>null};
   const get=id=>{
     if(!nodes.has(id)){
       const node={focus(){doc.activeElement=node;},click(){},scrollTo(){}};
@@ -63,6 +63,7 @@ const make=({installedInitially=true,secondTask=false,sharedStore=null,draftStor
   const client={ready:Promise.resolve(),subscribeConnection:()=>()=>{},
     controller:{snapshotControllerRun:async()=>structuredClone(view)},
     async request(method,payload) {
+      if(method==='inspectTaskRun')return {preparation:null};
       if(method==='listTaskCatalog')return {catalog:structuredClone(state.catalog),installed:structuredClone(state.installed)};
       if(method==='installTask') {
         installedState=[installed];state.installed=structuredClone(installedState);
@@ -99,7 +100,7 @@ const make=({installedInitially=true,secondTask=false,sharedStore=null,draftStor
   };
   const api={storage:draftStorage?{session:draftStorage}:undefined,permissions:{contains:async()=>true,request:value=>{permissions.push(value);return Promise.resolve(true);}},
     runtime:{getURL:path=>'chrome-extension://extension/'+path,sendMessage:async message=>{draftMessages.push(message);return {ok:true};}},
-    tabs:{create:async request=>{catalogOpens.push(request);return {id:99};}}};
+    tabs:{...(appTab?{getCurrent:async()=>typeof appTab==='function'?appTab():appTab}:{}),create:async request=>{catalogOpens.push(request);return {id:99};}}};
   // Mirror the real React Side Panel: Task Workbench receives the shared
   // Developer view rather than a legacy DOM-only candidate control.
   const developerView=createDeveloperView();
@@ -1534,3 +1535,290 @@ test('recovery keeps pending candidates reviewable and builtin installation uses
   assert.equal(f.catalogState.installed.length,1);
   assert.deepEqual(f.starts,[]);
 });
+
+async function sharedSheetFixture(t,{loseSaveReply=false}={}){
+  const f=make();t.after(()=>f.ui.dispose());await f.ui.refresh();await tick();
+  const request=f.client.request,calls=[];let preparation=null;
+  f.client.request=async(method,args)=>{
+    calls.push({method,args:structuredClone(args)});
+    if(method==='prepareTaskRun'){
+      preparation={...structuredClone(args),state:'prepared',deadlineAt:Date.now()+30000};
+      if(loseSaveReply)throw {code:'E_OUTCOME_UNKNOWN',message:'save reply lost'};
+      return {preparation};
+    }
+    if(method==='inspectTaskRun')return {preparation};
+    if(method==='cancelTaskRun'){preparation={...preparation,state:'cancelled'};return {preparation};}
+    return request(method,args);
+  };
+  const resolved=await request('resolveInstalledTask',{taskId:'demo.form'});
+  const task=Object.fromEntries(['taskId','version','manifestHash','contentHash','installationId','generation'].map(key=>[key,resolved[key]]));
+  let checks=0;
+  assert.equal(await f.ui.openTaskRunSheet({task,binding:{appId:'webflow'},assertAuthorized:async()=>{checks++;}}),true);
+  return {...f,task,calls,get preparation(){return preparation;},get checks(){return checks;}};
+}
+
+test('shared sheet opens without Run, freezes actual Schema params, confirms once through original Host',async t=>{
+  const f=await sharedSheetFixture(t);
+  assert.equal(f.myView.data.taskRunSheet.source,'tool');assert.equal(f.starts.length,0);
+  f.field('task-param-name').value='Ada';
+  f.myView.actions.taskSheetPrepareClick({isTrusted:true},f.task);
+  f.myView.actions.taskSheetPrepareClick({isTrusted:true},f.task);
+  await tick();await tick();
+  assert.equal(f.calls.filter(x=>x.method==='prepareTaskRun').length,1);
+  assert.equal(f.starts.length,0);assert.equal(f.myView.data.taskRunSheet.phase,'prepared');
+  f.myView.actions.taskSheetConfirmClick({isTrusted:true},f.task);
+  f.myView.actions.taskSheetConfirmClick({isTrusted:true},f.task);
+  await tick();await tick();
+  assert.equal(f.starts.length,1);
+  assert.deepEqual(f.starts[0].params,{name:'Ada'});
+  assert.equal(f.starts[0].taskPreparationId,f.preparation.preparationId);
+  assert.equal(f.starts[0].requestId,f.preparation.preparationId);
+  assert.deepEqual(f.starts[0].taskDelegation,{appId:'webflow'});
+  assert.ok(f.checks>=3);f.host.complete({ok:true});await tick();
+});
+
+test('shared sheet lost save acknowledgement retains same identity and only queries or cancels',async t=>{
+  const f=await sharedSheetFixture(t,{loseSaveReply:true});
+  f.myView.actions.taskSheetPrepareClick({isTrusted:true},f.task);await tick();await tick();
+  const id=f.myView.data.taskRunSheet.preparationId;
+  assert.equal(f.myView.data.taskRunSheet.phase,'unknown');
+  f.myView.actions.taskSheetPrepareClick({isTrusted:true},f.task);
+  f.myView.actions.taskSheetConfirmClick({isTrusted:true},f.task);
+  assert.equal(f.starts.length,0);assert.equal(f.calls.filter(x=>x.method==='prepareTaskRun').length,1);
+  f.myView.actions.taskSheetQueryClick({isTrusted:true});await tick();await tick();
+  assert.equal(f.myView.data.taskRunSheet.preparationId,id);
+  assert.equal(f.myView.data.taskRunSheet.phase,'prepared');assert.equal(f.starts.length,0);
+  f.myView.actions.taskSheetCancelClick({isTrusted:true});await tick();await tick();
+  assert.equal(f.myView.data.taskRunSheet.phase,'cancelled');
+});
+
+test('shared sheet rejects stale document and synthetic prepare without submitting',async t=>{
+  const f=await sharedSheetFixture(t);
+  f.myView.actions.taskSheetPrepareClick({isTrusted:false},f.task);await tick();assert.equal(f.preparation,null);
+  f.myView.actions.taskSheetPrepareClick({isTrusted:true},f.task);await tick();await tick();
+  f.page.capture=()=>({...f.page.snapshot,documentId:'replacement'});
+  f.myView.actions.taskSheetConfirmClick({isTrusted:true},f.task);await tick();await tick();
+  assert.equal(f.starts.length,0);assert.match(f.field('task-status').text,/网页|文档|变化/);
+});
+
+for(const destination of ['closed','new task']){
+  test(`My parameter discovery arriving after ${destination} preserves the current UI and draft`,async t=>{
+    const f=make({secondTask:true});t.after(()=>f.ui.dispose());await tick();await tick();
+    const request=f.client.request;let release;
+    f.client.request=(method,args)=>method==='inspectTaskRun'
+      ?new Promise(resolve=>{release=resolve;}):request(method,args);
+    f.myView.actions.taskParametersOpen('demo.form',{isTrusted:true});
+    const original=f.myView.data.taskRunSheet,releaseOriginal=release;
+    const preparation={preparationId:'late-original',task:original.identity,params:{name:'Old server value'},state:'prepared'};
+    f.action('taskSheetClose');
+    if(destination==='new task'){
+      f.myView.actions.taskParametersOpen('demo.second',{isTrusted:true});
+      f.field('task-param-name').value='新草稿';f.action('taskParamsFormInput');
+    }
+    releaseOriginal({preparation});await tick();await tick();
+    if(destination==='closed')assert.equal(f.myView.data.taskRunSheet,null);
+    else{
+      assert.equal(f.myView.data.taskRunSheet.identity.taskId,'demo.second');
+      assert.equal(f.field('task-param-name').value,'新草稿');
+    }
+    assert.equal(f.starts.length,0);
+  });
+}
+
+test('same preparation query arriving after sheet close cannot reopen it',async t=>{
+  const f=await sharedSheetFixture(t);
+  f.myView.actions.taskSheetPrepareClick({isTrusted:true},f.task);await tick();await tick();
+  const request=f.client.request;let release;
+  f.client.request=(method,args)=>method==='inspectTaskRun'
+    ?new Promise(resolve=>{release=resolve;}):request(method,args);
+  f.action('taskSheetQueryClick');f.action('taskSheetClose');
+  release({preparation:f.preparation});await tick();await tick();
+  assert.equal(f.myView.data.taskRunSheet,null);assert.equal(f.starts.length,0);
+  f.myView.actions.taskParametersOpen('demo.form',{isTrusted:true});
+  assert.equal(f.myView.data.taskRunSheet.preparationId,f.preparation.preparationId,'safe shared occupancy is retained');
+});
+
+test('configuration resolution requests metadata while execution keeps its original resolution',async t=>{
+  const f=await sharedSheetFixture(t);
+  assert.deepEqual(f.calls.find(call=>call.method==='resolveInstalledTask').args,{taskId:'demo.form',purpose:'configure'});
+  f.action('taskRunClick');await tick();await tick();
+  const resolutions=f.calls.filter(call=>call.method==='resolveInstalledTask');
+  assert.deepEqual(resolutions.at(-1).args,{taskId:'demo.form'});
+  assert.equal(f.starts.length,1);f.host.complete(true);await tick();
+});
+
+test('Panel and PC instances retain separate drafts and PC waits for its own stable Tab scope',async t=>{
+  const values={},reads=[];
+  const draftStorage={get:async key=>{reads.push(key);return {[key]:structuredClone(values[key])};},
+    set:async next=>Object.assign(values,structuredClone(next))};
+  const panel=make({draftStorage});t.after(()=>panel.ui.dispose());await tick();await tick();
+  panel.field('task-param-name').value='Panel 草稿';panel.action('taskParamsFormInput');await tick();
+  let resolveTab;
+  const pc=make({draftStorage,appTab:()=>new Promise(resolve=>{resolveTab=resolve;})});t.after(()=>pc.ui.dispose());
+  await pc.ui.refresh();await tick();
+  pc.field('task-param-name').value='PC 草稿';pc.action('taskParamsFormInput');await tick();
+  assert.deepEqual(Object.keys(values),['opendesk.sidebar.task-params.v1:7'],'no write before scope resolves');
+  resolveTab({id:41,windowId:7});await tick();await tick();
+  panel.field('task-param-name').value='Panel 最新';panel.action('taskParamsFormInput');await tick();
+  const panelAgain=make({draftStorage}),pcAgain=make({draftStorage,appTab:{id:41,windowId:7}});
+  t.after(()=>panelAgain.ui.dispose());t.after(()=>pcAgain.ui.dispose());await tick();await tick();
+  assert.equal(panelAgain.field('task-param-name').value,'Panel 最新');
+  assert.equal(pcAgain.field('task-param-name').value,'PC 草稿');
+  const otherPC=make({draftStorage,appTab:{id:42,windowId:11}});t.after(()=>otherPC.ui.dispose());await tick();await tick();
+  assert.equal(otherPC.field('task-param-name').value,'Alice');
+  assert.equal(reads.at(-1),'opendesk.sidebar.task-params.v1:11:tab:42','scope uses its own tab/window, not target tab 9/window 7');
+  otherPC.field('task-param-name').value='另一 PC';otherPC.action('taskParamsFormInput');await tick();
+  assert.equal(values['opendesk.sidebar.task-params.v1:7:tab:41'][0][1].name.value,'PC 草稿');
+  assert.equal(pc.starts.length+panel.starts.length+otherPC.starts.length,0);
+});
+
+test('preparation query cannot display another request identity',async t=>{
+  const f=await sharedSheetFixture(t);
+  f.myView.actions.taskSheetPrepareClick({isTrusted:true},f.task);await tick();await tick();
+  const id=f.preparation.preparationId,request=f.client.request;
+  f.client.request=(method,args)=>method==='inspectTaskRun'
+    ?Promise.resolve({preparation:{...f.preparation,preparationId:'different-request',params:{name:'Wrong request'}}})
+    :request(method,args);
+  f.action('taskSheetQueryClick');await tick();await tick();
+  assert.equal(f.myView.data.taskRunSheet.preparationId,id);
+  assert.equal(f.field('task-param-name').value,'Alice');assert.equal(f.starts.length,0);
+});
+
+test('late My discovery error cannot change a newly opened sheet status',async t=>{
+  const f=make({secondTask:true});t.after(()=>f.ui.dispose());await tick();await tick();
+  const request=f.client.request;let rejectOriginal;
+  f.client.request=(method,args)=>method==='inspectTaskRun'
+    ?new Promise((resolve,reject)=>{rejectOriginal=reject;}):request(method,args);
+  f.myView.actions.taskParametersOpen('demo.form',{isTrusted:true});
+  const reject=rejectOriginal;
+  f.action('taskSheetClose');
+  f.myView.actions.taskParametersOpen('demo.second',{isTrusted:true});
+  const status=f.myView.data.taskRunSheet.status;
+  reject(new Error('late discovery failure'));await tick();await tick();
+  assert.equal(f.myView.data.taskRunSheet.identity.taskId,'demo.second');
+  assert.equal(f.myView.data.taskRunSheet.status,status);
+});
+
+for(const settled of [false,true])test(`Authority settlement is explicit (${settled}) and original records survive uninstall`,async t=>{
+  const f=await sharedSheetFixture(t);
+  f.myView.actions.taskSheetPrepareClick({isTrusted:true},f.task);await tick();await tick();
+  const preparation=structuredClone(f.preparation),request=f.client.request;
+  f.action('taskSheetClose');
+  f.catalogState.installed=[];f.catalogState.catalog=[];
+  f.client.request=(method,args)=>method==='inspectTaskRun'
+    ?Promise.resolve({preparation,snapshot:{run:{state:'completed',retirementState:'released',runId:'original',resultId:'result'},
+      slotAvailable:true,results:[{runId:'original',resultId:'result'}]},settled})
+    :method==='resolveInstalledTask'?assert.fail('recovery must not resolve an uninstalled task'):request(method,args);
+  assert.equal(await f.ui.openTaskRunSheet({task:f.task,preparationId:preparation.preparationId,binding:{appId:'webflow'}}),true);
+  const sheet=f.myView.data.taskRunSheet;
+  assert.equal(sheet.preparationId,preparation.preparationId);assert.equal(sheet.title,f.task.taskId);
+  assert.deepEqual(sheet.originalParams,preparation.params);assert.equal(sheet.recoveryOnly,true);
+  assert.equal(sheet.phase,settled?'settled':'prepared');
+  if(settled)assert.match(sheet.status,/关闭.*新配置/);
+  f.myView.actions.taskSheetConfirmClick({isTrusted:true},f.task);assert.equal(f.starts.length,0);
+  f.action('taskSheetQueryClick');await tick();await tick();
+  assert.equal(f.myView.data.taskRunSheet.preparationId,preparation.preparationId);
+  assert.equal(f.calls.filter(call=>call.method==='prepareTaskRun').length,1);
+});
+
+test('explicit original preparation lookup fails closed on a missing or different record',async t=>{
+  const f=await sharedSheetFixture(t),request=f.client.request;f.action('taskSheetClose');
+  const lookups=[];
+  f.client.request=(method,args)=>method==='inspectTaskRun'
+    ?(lookups.push(args),Promise.resolve({preparation:null,settled:false})):request(method,args);
+  await assert.rejects(f.ui.openTaskRunSheet({task:f.task,preparationId:'missing'}),{code:'E_REVISION'});
+  assert.deepEqual(lookups,[{preparationId:'missing'}]);assert.equal(f.myView.data.taskRunSheet,null);
+  f.client.request=(method,args)=>method==='inspectTaskRun'?Promise.resolve({preparation:{preparationId:'other',task:f.task}}):request(method,args);
+  await assert.rejects(f.ui.openTaskRunSheet({task:f.task,preparationId:'missing'}),{code:'E_REVISION'});
+  assert.equal(f.myView.data.taskRunSheet,null);assert.equal(f.starts.length,0);
+});
+
+for(const operation of ['prepare','cancel'])for(const outcome of ['resolve','reject']){
+  test(`late ${operation} ${outcome} cannot replace or unlock a newer sheet`,async t=>{
+    const f=await sharedSheetFixture(t),request=f.client.request;
+    if(operation==='cancel'){f.myView.actions.taskSheetPrepareClick({isTrusted:true},f.task);await tick();await tick();}
+    let release,reject;
+    f.client.request=(method,args)=>method===(operation==='prepare'?'prepareTaskRun':'cancelTaskRun')
+      ?new Promise((resolve,fail)=>{release=resolve;reject=fail;}):request(method,args);
+    if(operation==='prepare')f.myView.actions.taskSheetPrepareClick({isTrusted:true},f.task);else f.action('taskSheetCancelClick');await tick();
+    f.action('taskSheetClose');
+    f.myView.actions.taskParametersOpen('demo.form',{isTrusted:true});await tick();await tick();
+    const newer={...f.myView.data.taskRunSheet,status:'新实例状态',busy:true};
+    f.myView.project('taskRunSheet',newer);
+    if(outcome==='resolve')release({});else reject(new Error('late failure'));
+    await tick();await tick();
+    assert.deepEqual(f.myView.data.taskRunSheet,newer);assert.equal(f.starts.length,0);
+    f.action('taskSheetClose');await f.ui.openTaskRunSheet({task:f.task});
+    assert.ok(f.myView.data.taskRunSheet,'late response must not retain a stale global busy lock');
+  });
+}
+
+for(const settled of [undefined,false,true])test(`settlement ${settled} does not depend on visible results or global slot`,async t=>{
+  const f=await sharedSheetFixture(t);
+  f.myView.actions.taskSheetPrepareClick({isTrusted:true},f.task);await tick();await tick();
+  const preparation={...f.preparation,state:'submitted'},request=f.client.request;
+  f.client.request=(method,args)=>method==='inspectTaskRun'?Promise.resolve({preparation,settled,
+    snapshot:{run:{runId:'original',resultId:'hidden',state:'completed',retirementState:'released'},results:[],slotAvailable:false}}):request(method,args);
+  f.action('taskSheetQueryClick');await tick();await tick();
+  assert.equal(f.myView.data.taskRunSheet.phase,settled===true?'settled':'submitted');
+  assert.equal(f.myView.data.taskRunSheet.resultText,'');
+  if(settled)assert.match(f.myView.data.taskRunSheet.status,/结果当前不可见/);
+  f.action('taskSheetClose');
+  f.myView.actions.taskParametersOpen('demo.form',{isTrusted:true});
+  assert.equal(f.myView.data.taskRunSheet.source,settled===true?'my':'tool','settled records must not occupy a fresh configuration');
+  assert.equal(f.starts.length,0);
+});
+
+test('uninstalled recovery cancels only the original preparation identity',async t=>{
+  const f=await sharedSheetFixture(t);
+  f.myView.actions.taskSheetPrepareClick({isTrusted:true},f.task);await tick();await tick();
+  const id=f.preparation.preparationId;f.action('taskSheetClose');
+  f.catalogState.installed=[];f.catalogState.catalog=[];
+  await f.ui.openTaskRunSheet({task:f.task,preparationId:id});
+  f.action('taskSheetCancelClick');await tick();await tick();
+  assert.equal(f.myView.data.taskRunSheet.preparationId,id);
+  assert.equal(f.myView.data.taskRunSheet.phase,'cancelled');
+  assert.deepEqual(f.calls.filter(call=>call.method==='cancelTaskRun').map(call=>call.args),[{preparationId:id}]);
+  assert.equal(f.starts.length,0);
+});
+
+for(const stage of ['start failure','start receipt','final lookup receipt','final lookup failure']){
+  for(const destination of ['closed','reopened'])test(`run ${stage} after sheet ${destination} cannot write a later sheet epoch`,async t=>{
+    const f=await sharedSheetFixture(t);
+    f.myView.actions.taskSheetPrepareClick({isTrusted:true},f.task);await tick();await tick();
+    const preparation=structuredClone(f.preparation),request=f.client.request;
+    const start=f.host.start.bind(f.host);
+    let release,reject,lookups=0;
+    const pending=new Promise((resolve,fail)=>{release=resolve;reject=fail;});
+    if(stage.startsWith('start'))f.host.start=async args=>{
+      await pending;return start(args);
+    };
+    else f.client.request=(method,args)=>{
+      if(method==='inspectTaskRun'&&++lookups===2)return pending;
+      return request(method,args);
+    };
+    f.myView.actions.taskSheetConfirmClick({isTrusted:true},f.task);await tick();await tick();
+    if(!stage.startsWith('start')){
+      assert.equal(f.starts.length,1);f.host.complete(true);await tick();await tick();
+      assert.equal(lookups,2,'the final original-request lookup must actually be pending');
+    }
+    f.action('taskSheetClose');
+    let newer=null;
+    if(destination==='reopened'){
+      f.myView.actions.taskParametersOpen('demo.form',{isTrusted:true});
+      assert.equal(f.myView.data.taskRunSheet.preparationId,preparation.preparationId,
+        'reopening the same preparation must still create a separate sheet epoch');
+      newer={...f.myView.data.taskRunSheet,status:'新实例状态',busy:true};
+      f.myView.project('taskRunSheet',newer);
+    }
+    if(stage.endsWith('failure'))reject({code:'E_OUTCOME_UNKNOWN',message:'late original run failure'});
+    else release(stage.startsWith('start')?undefined:{preparation:{...preparation,state:'submitted'},settled:false});
+    await tick();await tick();
+    assert.deepEqual(f.myView.data.taskRunSheet,newer,'late run handlers must preserve the current sheet and busy state');
+    if(stage==='start receipt'){
+      assert.equal(f.starts.length,1);f.host.complete(true);await tick();await tick();
+      assert.deepEqual(f.myView.data.taskRunSheet,newer,'completion must not overwrite the reopened preparation');
+    }
+    assert.equal(f.starts.length,stage==='start failure'?0:1,'no stale callback may replay execution');
+  });
+}

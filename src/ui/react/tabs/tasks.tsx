@@ -19,7 +19,7 @@ export function MyTaskDetail({value=''}) {
   </div>;
 }
 export function MyTaskRows({rows=[],selectedId='',emptyText='',onSelect,
-  manageMode=false,onManage,onOpenParameters,renderWorkspace,workspace=null,visible=true}) {
+  manageMode=false,onManage,onParametersOpen,renderWorkspace,workspace=null,visible=true}) {
   const [expandedTaskId,setExpandedTaskId]=React.useState(selectedId);
   const [lastInteractedId,setLastInteractedId]=React.useState(null),[menu,setMenu]=React.useState(null);
   const activeActionId=rows.some(row=>row.taskId===lastInteractedId)?lastInteractedId:rows[0]?.taskId;
@@ -27,10 +27,10 @@ export function MyTaskRows({rows=[],selectedId='',emptyText='',onSelect,
     if(restore)menu.trigger?.focus({preventScroll:true});setMenu(null);
   }}:null,[menu]);
   React.useEffect(()=>{if(!visible||!rows.some(row=>row.taskId===menu?.taskId))setMenu(null);},[visible,rows,menu?.taskId]);
-  const openParameters=(row,trigger,event)=>{
+  const openParameters=(row,nativeEvent,trigger)=>{
     setMenu(null);setExpandedTaskId(row.taskId);
-    if(row.taskId!==selectedId)onSelect?.(row.taskId);
-    onOpenParameters?.(row.taskId,event?.nativeEvent||event,trigger);
+    trigger?.focus({preventScroll:true});
+    onParametersOpen?.(row.taskId,nativeEvent,trigger);
   };
   const previousSelection=React.useRef(selectedId);
   const rowsRef=React.useRef(null),returnFocus=React.useRef(null);
@@ -74,7 +74,7 @@ export function MyTaskRows({rows=[],selectedId='',emptyText='',onSelect,
       <span className="task-card-actions">
       <IconButton id={row.taskId===selectedId?'task-parameters-open':undefined} className="task-card-run od-icon-button--quiet"
         label={'配置参数与准备运行「'+row.title+'」'} title="配置参数（运行需确认）" aria-haspopup="dialog" aria-controls="task-parameters-sheet"
-        onClick={event=>openParameters(row,event.currentTarget,event.nativeEvent)}>
+        onClick={event=>openParameters(row,event.nativeEvent,event.currentTarget)}>
         <svg viewBox="0 0 24 24" aria-hidden="true"><path d="m9 5 10 7-10 7Z"/></svg>
       </IconButton>
       <IconButton className="task-card-manage od-icon-button--quiet"
@@ -83,7 +83,7 @@ export function MyTaskRows({rows=[],selectedId='',emptyText='',onSelect,
         onClick={event=>{
           const trigger=event.currentTarget;
           setMenu(menu?.taskId===row.taskId?null:{taskId:row.taskId,title:row.title,trigger,items:[
-            {id:'run',label:'配置参数 / 准备运行',onClick:native=>openParameters(row,trigger,native)},
+            {id:'run',label:'配置参数 / 准备运行',onClick:native=>openParameters(row,native,trigger)},
             {id:'manage',label:'管理任务',onClick:native=>{
               if(!native?.isTrusted)return;
               setExpandedTaskId(row.taskId);onManage?.(row.taskId);setMenu(null);

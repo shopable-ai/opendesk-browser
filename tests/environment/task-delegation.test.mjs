@@ -20,6 +20,7 @@ function fixture(overrides={}){
     controller:{snapshotControllerRun:async()=>({run:{runId:'run-1',resultId:'result-1',state:'completed',retirementState:'released'},results:[result]})},...overrides.host};
   const client={request:async(method,input)=>{
     if(method==='resolveInstalledTask')return overrides.client?.request(method,input)??row;
+    if(method==='listTaskRunPreparations')return {preparations:[]};
     let step=ledger.get(input.clientRequestId);
     if(method==='prepareDelegatedStep'){
       if(step?.cancelled)throw Object.assign(new Error('cancelled'),{code:'E_CANCELLED'});
@@ -117,7 +118,7 @@ test('real RunHost cancellation before ready creates no admission and cannot can
 });
 
 test('metadata resolves only the approved fixed Task and never reveals source bytes',async()=>{
-  const f=fixture();assert.deepEqual(await f.service.request('tasks.read',{taskId:pin.taskId}),{task});
+  const f=fixture();assert.deepEqual(await f.service.request('tasks.read',{taskId:pin.taskId}),{task,manifest:{deadlineMs:30000},runtimeCurrent:true,preparations:[]});
   await assert.rejects(f.service.request('tasks.read',{taskId:'other'}),{code:'E_PERMISSION'});
   assert.equal(f.calls.length,0);f.revoke();
   await assert.rejects(f.service.request('tasks.read',{taskId:pin.taskId}),{code:'E_PERMISSION'});

@@ -498,6 +498,33 @@ async function installedRecoveryFixture({disabled=false}={}) {
   return {f,pkg,request,proof,candidateKey,installKey,revisionKey,oldCandidate,oldInstall,oldRevision,current,verify,available,install};
 }
 
+test('configuration metadata survives runtime expiry without renewing authorization or admitting execution',async()=>{
+  const {f,pkg,request,oldInstall,current}=await installedRecoveryFixture();
+  const runs=await f.tx.all('runs');
+  const metadata=await f.send('resolveInstalledTask',{taskId:request.taskId,purpose:'configure'});
+  assert.equal(metadata.runtimeCurrent,false);
+  assert.deepEqual(metadata.manifest,pkg.manifest);
+  assert.equal(metadata.installationId,oldInstall.authorization.installationId);
+  assert.equal(metadata.generation,oldInstall.authorization.generation);
+  assert.deepEqual(await f.tx.get('frameworkKV',installedKey(f.namespace,request.taskId)),oldInstall);
+  assert.deepEqual(await f.tx.all('runs'),runs,'metadata does not create a Run');
+  await assert.rejects(f.send('resolveInstalledTask',{taskId:request.taskId}),errorCode('E_BUILTIN_VERSION_UNAVAILABLE'));
+  await assert.rejects(assertInstalledTask(f.tx,f.namespace,{scriptId:oldInstall.scriptId,
+    contentHash:pkg.manifest.program.sourceHash,origin:'https://example.com',builtinIdentity:current}),errorCode('E_BUILTIN_VERSION_UNAVAILABLE'));
+  await assert.rejects(f.send('resolveInstalledTask',{taskId:request.taskId,purpose:'execute'}),errorCode('E_SCHEMA'));
+});
+
+test('configuration metadata still rejects disabled, altered and revoked installations',async()=>{
+  const disabled=await installedRecoveryFixture({disabled:true});
+  await assert.rejects(disabled.f.send('resolveInstalledTask',{taskId:disabled.request.taskId,purpose:'configure'}),errorCode('E_TASK_DISABLED'));
+  for(const change of [row=>({...row,manifestHash:'0'.repeat(64)}),
+    row=>({...row,authorization:{...row.authorization,scope:{}}})]){
+    const {f,request,oldInstall,installKey}=await installedRecoveryFixture();
+    await f.tx.put('frameworkKV',change(oldInstall),installKey);
+    await assert.rejects(f.send('resolveInstalledTask',{taskId:request.taskId,purpose:'configure'}),errorCode('E_PERMISSION'));
+  }
+});
+
 test('same immutable Task recovers through fresh proof and atomic same-version reinstall with archived history',async()=>{
   for(const disabled of [false,true]){
     const c=await installedRecoveryFixture({disabled});

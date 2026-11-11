@@ -28,6 +28,38 @@
       E_OWNER:'当前应用无权读取此任务。请到“扩展”核对 Web Flow 的任务授权后重新打开。'
     })[error.code]||'任务状态读取失败。请刷新脚本状态；仍失败时展开详情查看诊断信息。';
   }
+  // Read-only manifest projection, never a parameter draft or authorization.
+  function taskMetadata(manifest){
+    if(!manifest||typeof manifest!=='object')return {parameterCount:null};
+    const metadata={parameterCount:null};
+    if(typeof manifest.title==='string'&&manifest.title.trim())metadata.title=bounded(manifest.title,120);
+    if(typeof manifest.description==='string')metadata.description=bounded(manifest.description,1000);
+    if(Array.isArray(manifest.siteOrigins)){
+      metadata.siteOrigins=manifest.siteOrigins.filter(x=>typeof x==='string');
+      if(metadata.siteOrigins.length)metadata.site=metadata.siteOrigins.join(' · ');
+    }
+    const schema=manifest.paramsSchema;
+    if(schema&&schema.type==='object'&&schema.properties&&typeof schema.properties==='object'&&
+      !Array.isArray(schema.properties))metadata.parameterCount=Object.keys(schema.properties).length;
+    return metadata;
+  }
+  // Only metadata from tasks.read may supply original Authority locators.
+  // Copy no result data and never persist these refs into legacy app storage.
+  function taskPreparations(records,task){
+    if(!Array.isArray(records))return [];
+    const seen=new Set();
+    return records.filter(record=>{
+      if(!record||typeof record.preparationId!=='string'||!record.preparationId.trim()||
+        seen.has(record.preparationId)||!pinsEqual(task,record.task)||
+        record.task.installationId!==task.installationId||record.task.generation!==task.generation||
+        typeof record.state!=='string'||typeof record.settled!=='boolean')return false;
+      seen.add(record.preparationId);return true;
+    }).map(record=>({preparationId:record.preparationId,
+      task:Object.fromEntries([...fields,'installationId','generation'].map(key=>[key,task[key]])),
+      state:bounded(record.state,36),settled:record.settled,
+      ...(typeof record.runId==='string'?{runId:record.runId}:{}),
+      ...(typeof record.resultId==='string'?{resultId:record.resultId}:{})}));
+  }
   function filterTasks(rows,query,filter,starred,sort='favorite'){
     const q=String(query||'').trim().toLocaleLowerCase();
     const saved=new Set(Array.isArray(starred)?starred:[]);
@@ -209,7 +241,7 @@
     latest:Array.isArray(records)?records[0]||null:null
   });
   global.OpenDeskWebFlowModel=Object.freeze({
-    taskKey,pinsEqual,errorState,taskReadMessage,filterTasks,businessState,projectRun,recentRecords,summary,
+    taskMetadata,taskPreparations,taskKey,pinsEqual,errorState,taskReadMessage,filterTasks,businessState,projectRun,recentRecords,summary,
     isTerminal:s=>terminal.has(s),pendingRecord,released,bounded,taskNotice,createTaskNoticePublisher
   });
 })(globalThis);

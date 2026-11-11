@@ -1,7 +1,6 @@
 import * as React from 'react';
 import {MyControl} from './my-controls.tsx';
 import {MyTaskRows,MyTaskDetail} from './tasks.tsx';
-import {Button,IconButton} from '../components/ui/button.tsx';
 import {SchedulePlanRows,ScheduleManagerRows} from './schedule.tsx';
 import {MyTaskHistory,MyScheduleDetail,MyCopyConfirmation} from './my-sections.tsx';
 import {MyAgentToggle} from './my-agent.tsx';
@@ -17,7 +16,6 @@ function MyTaskWorkspace({view}){
   return (<MyControl view={view} as="div" id="task-selected-workspace" className="task-selected-workspace">
 <MyControl view={view} as="p" id="task-current-site" className="identity">
 </MyControl>
-
 <MyControl view={view} as="p" id="task-status" role="status" aria-live="polite">
 </MyControl>
 <MyControl view={view} as="div" id="task-result-panel" className="task-result-panel">
@@ -151,9 +149,8 @@ export function MyTasksPage({view,agent=null,hidden=false}){
 <option value="">{"读取已安装任务…"}</option>
 </MyControl>
 <MyControl view={view} as="div" id="task-installed-cards" className="task-card-list od-stack" aria-label="已安装任务列表">
-<MyTaskRows {...(view.data.taskRows||{})} visible={!hidden&&!view.field('my-task-surface').hidden}
-  onOpenParameters={(taskId,event,trigger)=>view.actions.taskRunSheetOpen?.(event,taskId,trigger)}
-  renderWorkspace={()=> <MyTaskWorkspace view={view}/> }/>
+<MyTaskRows {...(view.data.taskRows||{})} visible={!hidden&&!view.field('my-task-surface').hidden} onParametersOpen={(taskId,event,trigger)=>view.actions.taskParametersOpen?.(taskId,event,trigger)} renderWorkspace={()=>
+<MyTaskWorkspace view={view}/>}/>
 </MyControl>
 </MyControl>
 

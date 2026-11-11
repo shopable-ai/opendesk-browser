@@ -1,0 +1,65 @@
+[
+  {
+    "section": "panel optionsContent optionsContent--profiles",
+    "selected": "代理配置",
+    "headings": [
+      "代理配置1",
+      "当前代理模式",
+      "代理服务器 1"
+    ],
+    "horizontalOverflow": false
+  },
+  {
+    "section": "panel optionsContent optionsContent--rules",
+    "selected": "网站规则",
+    "headings": [
+      "网站规则0",
+      "无规则命中时"
+    ],
+    "horizontalOverflow": false
+  },
+  {
+    "section": "panel optionsContent optionsContent--subscriptions",
+    "selected": "订阅管理",
+    "headings": [
+      "订阅管理",
+      "我的订阅 0"
+    ],
+    "horizontalOverflow": false
+  },
+  {
+    "section": "panel optionsContent optionsContent--backup",
+    "selected": "导入备份",
+    "headings": [
+      "导入备份",
+      "导入备份",
+      "导出备份"
+    ],
+    "horizontalOverflow": false
+  },
+  {
+    "section": "panel optionsContent optionsContent--diagnostic",
+    "selected": "网络诊断",
+    "headings": [
+      "网络诊断",
+      "把浏览器设置与网络可用性分开验证"
+    ],
+    "horizontalOverflow": false
+  },
+  {
+    "section": "panel optionsContent optionsContent--general",
+    "selected": "通用设置",
+    "headings": [
+      "通用设置"
+    ],
+    "horizontalOverflow": false
+  },
+  {
+    "section": "panel optionsContent optionsContent--official",
+    "selected": "官方网络",
+    "headings": [
+      "官方网络"
+    ],
+    "horizontalOverflow": false
+  }
+]

@@ -3,12 +3,6 @@
   "sourceRepository": "https://github.com/shopable-ai/opendesk-browser",
   "tools": [
     {
-      "id": "ai-proxy",
-      "project": "projects/ai-proxy",
-      "kind": "sidebar-tool",
-      "installationPolicy": "optional"
-    },
-    {
       "id": "ai-send-queue",
       "project": "projects/ai-send-queue",
       "kind": "sidebar-tool",

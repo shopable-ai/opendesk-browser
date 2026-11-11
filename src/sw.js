@@ -2,6 +2,7 @@ import {configureSidePanel, resolveToolSender, httpUrl, permissionPattern, Envir
 import {verifyWorkflowLinkBusinessProof} from './analytics/workflow-business-proof.js';
 import {PROTOCOL as FOUNDATION_PROTOCOL, projectFoundationError} from './platform/protocol.js';
 import {createFoundationBroker} from './platform/host/broker.js';
+import {withWebflowTaskRunRecovery} from '../projects/webflow/trusted/task-run-recovery.js';
 import {createWebflowMediaVault} from '../projects/webflow/trusted/media-vault.js';
 import {registerDownloadEvents} from './platform/downloads/events.js';
 import {PAGE_BOOT_PROTOCOL} from './scripting/user-scripts/installed-programs.js';
@@ -68,6 +69,7 @@ chrome.alarms?.onAlarm?.addListener(alarm=>{if(alarm?.name===MANAGED_PROXY_ALARM
 recoverManagedProxy();
 try{importScripts('cloud-control/cloud-host.js');}catch(e){console.warn('E_CLOUD_LOAD',e);}
 const foundation = createFoundationBroker({api:chrome, ports:hostPorts,downloadEventsAttached:true,
+  withTaskRunRecovery:(work,options)=>withWebflowTaskRunRecovery(chrome,work,options),
   withControllerAdmission:bridgeTriggerGate.withControllerAdmission,
   // The existing extension SW is the only trusted reader. Controller and page
   // sandboxes receive only the exact file they are authorized to upload.

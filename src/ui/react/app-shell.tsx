@@ -52,16 +52,18 @@ export function SidebarAppShell({
     hidden:!['tasks','develop'].includes(activeTab),stopOnly:false};
   // app.html is a small presentation adapter around the existing React ToolHost.
   // Do not construct a second workbench, installer or SDK.
-  if(pageSurface==='app')return <main id="workspace-content" className="opendesk-app-page-content">
+  if(pageSurface==='app')return <>
+  <TaskRunSheet view={myView}/>
+  <main id="workspace-content" className="opendesk-app-page-content">
     <div id="workbench-tools" className="od-page" data-workbench-page="tools">
       <section id="sidebar-tools" className="sidebar-tools" aria-label="当前已安装应用">
         {toolView&&<ToolHost view={toolView} active trustedControls={null} showListBack={false}/>}
       </section>
     </div>
-    <TaskRunSheet view={myView}/>
     <UpdateNoticeSlot surface="app" activeTab="tools" onOpenReview={onOpenUpdateReview}/>
-  </main>;
+  </main></>;
   return <>
+    <TaskRunSheet view={myView}/>
     {toolView&&<NotificationViewport view={toolView} snapshot={toolSnapshot}/>}
     <nav className="workbench-nav" role="tablist" aria-label={translateSidebarNavigation('sidebar.navigation',uiLocale)}
       aria-description={translateSidebarNavigation('sidebar.navigationHint',uiLocale)}
@@ -114,7 +116,6 @@ export function SidebarAppShell({
         browserHistoryModel={browserHistoryModel} browserHistoryActions={browserHistoryActions}
         hidden={activeTab!=='debug'}/>}
     </main>
-    <TaskRunSheet view={myView}/>
     <MyAgentDock agent={myAgent} active={activeTab==='tasks'} onOpenSettings={onOpenProviderSettings}/>
     {providerSettings&&<SharedProviderSettingsSheet providerSettings={providerSettings} webflowAuto={webflowAuto}
       onOpenNativeSettings={onOpenNativeSettings} nativeConnection={nativeConnection}

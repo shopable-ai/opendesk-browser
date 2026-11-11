@@ -74,6 +74,7 @@
 .task-param-fields{display:grid;gap:0;min-width:0;border:1px solid var(--od-line);border-radius:var(--radius-control);overflow:hidden}
 .task-param-field+.task-param-field{border-top:1px solid var(--od-line)}
 .task-param-field .task-param-control{border:0;border-radius:0}
+.task-param-field .task-param-control:focus-within{outline-offset:-2px}
 .task-param-field .task-param-control:has([aria-invalid=true]){box-shadow:inset 0 0 0 1px var(--od-negative)}
 .task-param-meta{display:flex;flex-wrap:wrap;gap:2px var(--space-2);padding:0 var(--space-3) var(--space-2);font-size:var(--od-note-size);line-height:1.45;color:var(--od-sub)}
 .task-param-meta>span+span::before{content:'·';margin-right:var(--space-2)}
