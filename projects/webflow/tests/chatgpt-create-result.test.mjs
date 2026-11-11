@@ -31,9 +31,13 @@ const draft=()=>({
 });
 function snapshot(value){
   const revision={scriptId:install.scriptId,revision:1,sourceHash:pin.sourceHash};
-  return {run:{runId:'run-0001',resultId:'result-0001',state:'completed',
+  return {run:{runId:'run-0001',requestId:'request-0001',resultId:'result-0001',state:'completed',
     retirementState:'released',sourceKind:'saved',scriptId:install.scriptId,
-    contentHash:pin.sourceHash,revision},
+    contentHash:pin.sourceHash,revision,targetDisposition:'retain-on-success',
+    target:{mode:'owned',tabId:22,frameId:0,documentId:'document-0001',
+      allowedOrigin:'https://chatgpt.com'},
+    retainedTarget:{tabId:22,documentId:'document-0001',origin:'https://chatgpt.com',
+      url:value.send?value.conversationUrl:'https://chatgpt.com/'}},
     results:[{runId:'run-0001',resultId:'result-0001',state:'completed',
       tag:'controller-result',sourceKind:'saved',revision,
       outcome:{ok:true,valueWire:encodeValue(value)}}],
@@ -132,3 +136,31 @@ for(const field of ['requestId','runId','resultId']){
     }
   });
 }
+
+test('draft B requires an original retained tab/document, not only a page-reported draft status',()=>{
+  const a={...args,send:false},value=draft(),valid=snapshot(value);
+  assert.equal(verify(value,a).value.status,'draft-prepared');
+  const variants=[
+    {retainedTarget:undefined},
+    {retainedTarget:{...valid.run.retainedTarget,tabId:23}},
+    {retainedTarget:{...valid.run.retainedTarget,documentId:'foreign-document'}},
+    {retainedTarget:{...valid.run.retainedTarget,url:'https://chatgpt.com/c/'+uuid}},
+    {targetDisposition:'close'},
+    {requestId:'another-request'}
+  ];
+  for(const override of variants)assert.throws(()=>verify(value,a,{
+    run:{...valid.run,...override}}),{code:'E_BRIDGE_RESULT'});
+});
+
+test('completed B must match the Controller-retained URL, not just self-reported page values',()=>{
+  const valid=snapshot(base());
+  for(const retainedTarget of [
+    {...valid.run.retainedTarget,url:'https://chatgpt.com/'},
+    {...valid.run.retainedTarget,url:'https://chatgpt.com/c/aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa'},
+    {...valid.run.retainedTarget,origin:'https://evil.example'}
+  ])assert.throws(()=>verify(base(),args,{
+    run:{...valid.run,retainedTarget}}),{code:'E_BRIDGE_RESULT'});
+  const wrongPin={...request(),installation:{...install,manifestHash:'0'.repeat(64)}};
+  assert.throws(()=>verifyChatGPTTaskDurableResult(valid,'run-0001',
+    wrongPin.installation,wrongPin),{code:'E_BRIDGE_RESULT'});
+});

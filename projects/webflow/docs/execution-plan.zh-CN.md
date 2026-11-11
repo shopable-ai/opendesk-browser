@@ -1,3 +1,15 @@
+## ChatGPT A→B→A · R2 独立 Task/保留结果接续边界（2026-11-11；OD-WEBFLOW-CHAT-A-B-A-TASK-BOUNDARY-R2）
+
+**真实目标：** WebFlow 编排、独立 ChatGPT Controller Task 执行、原 Host 审核、同一个 B 两阶段接续并将真实回复返回 A。不把完成 Run/Result 或页面自报状态当作业务完成。
+
+**差量事实（GitHub 主分支核对）：** 当前内置 ChatGPT Task 0.2.0 在全新 `https://chatgpt.com/` 运行；`send:false` 填草稿并通过 `retain-on-success` 留下原 owned 页，`send:true` 仍在新 owned 页重新填写，**不是原 B 的第二阶段**。Controller 已支持原 owned 保留和精确 borrowed 目标，但 WebFlow 普通 `tasks.start` 委托仅捕获当前页面，缺少从准备 Run 到批准发送 Run 的受信绑定/一份草稿/账号同一性及防重放接续入口。显式 GPT-6 / High 仍安全拒绝；Chrome/业务整链没有本任务成功证据。
+
+**本轮最小源代码修正：** 将已审阅 0.2.0 的业务结果校验/formatter 通过单独固定编译的版本绑定 Adapter 接回原 `verifyChatGPTTaskDurableResult`，不执行插件提供的任意验证器。原 0.2.0 完成回执现在还必须匹配原请求、`retain-on-success`、owned tab/document 以及 Controller `retainedTarget`：草稿保留根 URL、已发送结果保留精确 `/c/` URL。即使网页返回 `draft-prepared` 或 `reply-complete`，保留证据缺失/不一致时拒绝向 A 声称 B 已准备或完整完成。保留 0.1.0 原安装和原 Result 兼容，不放宽默认授权，不调整 V1/V2 协议或固定 Task 包。
+
+**边界与下一动作：** 本次仅 P1 的结果证据栅栏和 P2 已安装结果适配层，不是两阶段接续本身；未增加新的 Task 版本，0.2.0 不可变。应由原 Controller/可信 WebFlow owner 建立原 Run 保留目标→独立 APPROVE_SEND→精确 borrowed B 的安全入口，新增不可变 Task 版本校验已有草稿及账号，并以同一 B 的 Chrome 操作验收。所有未知副作用仅只读恢复，不能再新建 B 或重新发送。SOURCE 仅按提交差量记账；NODE_TEST/PACKAGE/CHROME/BUSINESS 须绑定后续真实证据，当前一律不得据此宣称 PASS。
+
+---
+
 ## Web Flow R2 通知正式包验收状态更新（2026-11-11，OD-WEBFLOW-R2-NOTICE-SHIP-R3）
 
 **原始用户目标：** 用户不应在 Web Flow 偏好保存后再点「知道了」；经读回的普通成功反馈用短暂统一 Toast。已安装并授权的 Task 从启动、运行、完成/失败/UNKNOWN 到原聊天结果回传要分层展示、尽量更新同一通知；关闭 Side Panel/刷新后从**原持久请求身份**恢复，不因通知重试、增权或删除原记录。此交付卡仅针对 R2 通知遗留、唯一正式包及真实安装验收，非扩展更新提醒、Runner 重建或文件浮窗需求。
