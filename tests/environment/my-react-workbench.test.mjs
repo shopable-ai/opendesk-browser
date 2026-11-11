@@ -187,6 +187,37 @@ test('row parameter action selects its own task, opens the one Sheet and retains
 });
 
 
+test('shared TaskRunSheet restores the My bottom drawer and distinct cancel/prepare actions',async()=>{
+  // Layout contract only; linkedom cannot verify Chromium dialog geometry or focus.
+  const css=await readFile('src/ui/tool-shell.css','utf8');
+  const sheetRule=css.match(/\\.task-params-sheet\\{([^}]*)\\}/)?.[1]||'';
+  assert.match(sheetRule,/inset:auto 0 0/,'the original My drawer must anchor to the bottom');
+  assert.match(sheetRule,/width:100%/,'the shared drawer uses the host width');
+  assert.match(sheetRule,/max-height:calc\\(100dvh - var\\(--space-4\\)\\)/);
+  assert.doesNotMatch(sheetRule,/height:100dvh/,'the right-side full-height regression must not recur');
+  const f=await fixture();let root;
+  try{
+    root=await f.mount();
+    await f.fire(f.doc.getElementById('task-parameters-open'),'click');
+    const sheet=f.doc.getElementById('task-parameters-sheet');
+    const footer=sheet.querySelector('.task-params-sheet-actions');
+    assert.equal(sheet.open,true);
+    assert.equal(footer.firstElementChild.textContent.trim(),'取消','My retains the original cancel action');
+    await f.input('task-param-name','我的草稿');
+    await f.fire(footer.firstElementChild,'click');
+    assert.equal(sheet.open,false);
+    assert.equal(f.state.starts.length,0,'cancel does not execute');
+    const pin={taskId:'test.task',version:'1.0.0',manifestHash:'a'.repeat(64),contentHash:'b'.repeat(64)};
+    await React.act(async()=>{assert.equal(await f.workbench.openTaskRunSheet('test.task',{expectedPin:pin}),true);await tick();});
+    assert.equal(sheet.open,true);
+    assert.equal(f.doc.querySelectorAll('#task-parameters-sheet').length,1,'both entries reuse one dialog');
+    assert.equal(f.doc.getElementById('task-param-name').value,'我的草稿','shared form keeps the draft');
+    assert.deepEqual([...footer.querySelectorAll('button')].map(button=>button.textContent.trim()),
+      ['关闭','保存并核对'],'Web Flow preserves its explicit prepare stage');
+    assert.equal(f.state.starts.length,0,'Web Flow opening does not start RunHost');
+  }finally{if(root)await React.act(async()=>root.unmount());f.dispose();}
+});
+
 test('Web Flow opens the exact same trusted React Sheet, prepares without running, and confirms once',async()=>{
   const f=await fixture();let root;
   try{
