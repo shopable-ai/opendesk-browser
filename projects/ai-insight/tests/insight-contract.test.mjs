@@ -86,6 +86,7 @@ test('15. deletion removes problem and its exclusive derived records',()=>{
   const s=C.applyAction(state(),{type:'DELETE_PROBLEM',problemId:'prob_bug'});
   assert.equal(C.problemMetrics(s,'prob_bug'),null);
   assert.equal(s.executions.some(e=>e.id==='exec_a'),false);
+  assert.equal(s.conversations.some(c=>c.id==='conv_a'),false);
   assert.equal(s.evidence.some(e=>e.id==='evi_ai_claim'),false);
 });
 test('16. missing historic timestamp cannot yield fabricated duration',()=>{
@@ -104,4 +105,19 @@ test('18. event idempotency is scoped by origin, account, generation and consent
   s=C.applyAction(s,{type:'OBSERVE_EVENT',event:e});
   assert.equal(s.observedEvents.length,1);
   assert.throws(()=>C.applyAction(s,{type:'OBSERVE_EVENT',event:{...e,promptText:'secret'}}),/正文/);
+});
+
+test('19. schema-shaped eventType/observedAt is accepted by state reducer',()=>{
+  const e=ev('SUBMITTED_OBSERVED',0),f=ev('COMPLETION_OBSERVED',60);
+  delete e.type;delete e.atMs;e.eventType='SUBMITTED_OBSERVED';e.observedAt='2026-11-11T00:00:00.000Z';
+  delete f.type;delete f.atMs;f.eventType='COMPLETION_OBSERVED';f.observedAt='2026-11-11T01:00:00.000Z';
+  const r=C.reduceExecution([e,f]);assert.equal(r.durationMs,60*M);
+});
+test('20. event idempotency is isolated by consent revision',()=>{
+  let s=state(),e={...ev('SUBMITTED_OBSERVED',0),consentRevision:1};
+  s=C.applyAction(s,{type:'OBSERVE_EVENT',event:e});
+  s=C.applyAction(s,{type:'REVOKE_ORIGIN',origin:'https://chatgpt.com'});
+  s=C.applyAction(s,{type:'GRANT_ORIGIN',origin:'https://chatgpt.com'});
+  s=C.applyAction(s,{type:'OBSERVE_EVENT',event:{...e,consentRevision:3,eventId:'fresh'}});
+  assert.equal(s.observedEvents.length,2);
 });

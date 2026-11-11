@@ -15,15 +15,16 @@
     const seen = new Set(); let status = 'NOT_STARTED', startMs = null, firstMs = null;
     let endMs = null, gap = false, accepted = 0, duplicates = 0, rejected = [];
     for (const event of events) {
-      if (!event || !EVENTS.includes(event.type) || !Number.isFinite(event.atMs) || !event.eventId || !event.dedupeKey ||
+      const type = event?.eventType ?? event?.type;
+      const atMs = Number.isFinite(event?.atMs) ? event.atMs : Date.parse(event?.observedAt ?? '');
+      if (!event || !EVENTS.includes(type) || !Number.isFinite(atMs) || !event.eventId || !event.dedupeKey ||
           !event.scopeId || !event.origin || !event.accountId || !event.generationId) {
         rejected.push('INVALID_EVENT'); continue;
       }
-      const key = [event.scopeId,event.origin,event.accountId,event.generationId,event.dedupeKey].join('|');
+      const key = [event.scopeId,event.origin,event.accountId,event.consentRevision ?? 'demo',event.generationId,event.dedupeKey].join('|');
       if (seen.has(key)) { duplicates++; continue; }
       seen.add(key);
-      if (startMs !== null && event.atMs < startMs) { rejected.push('CLOCK_REGRESSION'); gap = true; status = 'STATUS_UNKNOWN'; continue; }
-      const type = event.type;
+      if (startMs !== null && atMs < startMs) { rejected.push('CLOCK_REGRESSION'); gap = true; status = 'STATUS_UNKNOWN'; continue; }
       const allowed =
         (status === 'NOT_STARTED' && type === 'SUBMITTED_OBSERVED') ||
         (ACTIVE.has(status) && (
@@ -35,10 +36,10 @@
         )) ||
         (ENDS.has(status) && type === 'REGENERATED');
       if (!allowed) { rejected.push('INVALID_TRANSITION:' + status + '→' + type); continue; }
-      if (type === 'SUBMITTED_OBSERVED') startMs = event.atMs;
-      if (type === 'FIRST_OUTPUT_OBSERVED' && firstMs === null) firstMs = event.atMs;
+      if (type === 'SUBMITTED_OBSERVED') startMs = atMs;
+      if (type === 'FIRST_OUTPUT_OBSERVED' && firstMs === null) firstMs = atMs;
       if (type === 'OBSERVATION_GAP' || type === 'STATUS_UNKNOWN') gap = true;
-      if (ENDS.has(type)) endMs = event.atMs;
+      if (ENDS.has(type)) endMs = atMs;
       status = type; accepted++;
     }
     const complete = status === 'COMPLETION_OBSERVED';
@@ -197,7 +198,7 @@
         assert(g && s.mode!=='privacy','授权已撤销，禁止采集');
         assert(e.scopeId===s.scopeId && e.consentRevision===g.revision,'Scope 或授权版本失效');
         assert(e.body===undefined && e.promptText===undefined && e.responseText===undefined,'未获正文授权');
-        const key=[e.scopeId,e.origin,e.accountId,e.generationId,e.dedupeKey].join('|');
+        const key=[e.scopeId,e.origin,e.accountId,e.consentRevision,e.generationId,e.dedupeKey].join('|');
         if (!s.observedEvents.some(v=>v.key===key)){s.observedEvents.push({key,eventId:e.eventId,atMs:e.atMs,type:e.type});}
         return s;
       }
@@ -213,6 +214,7 @@
         if(s.outcome.problemId===p.id) s.outcome={problemId:null,state:'UNKNOWN',verifiedEvidenceIds:[],userConfirmed:false};
         const orphans=related.filter(id=>!s.links.some(l=>l.conversationId===id && l.status==='CONFIRMED'));
         s.executions=s.executions.filter(e=>!orphans.includes(e.conversationId));
+        s.conversations=s.conversations.filter(c=>!orphans.includes(c.id));
         s.observedEvents=[]; // demo has no independent provenance mapping; purge rather than retain ambiguous derived rows
         s.deletedProblems.push(p.id);
         audit(s,'DELETE_PROBLEM',{deleted:true});return s;
