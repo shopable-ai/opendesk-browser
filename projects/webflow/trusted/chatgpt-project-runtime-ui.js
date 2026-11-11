@@ -83,6 +83,8 @@ export function initChatGPTProjectRuntimeUI({api=globalThis.chrome,document:doc=
       delivery:data.delivery,observed:data.observed};
     receipt.textContent=JSON.stringify(output,null,2);receipt.hidden=false;
   };
+  // Stop fences future work; it does not undo already dispatched Native effects.
+  const stopMessage=phase=>'停止请求已接收；后续文件操作已阻止；当前阶段：'+phase+'；已派发副作用仍以真实回执为准，不能视作撤回。';
   // A tasks write may be Stop's own persistence, but is never authority to
   // redisplay its cached bytes. Recheck only the same task through the runtime.
   async function reconcileStop(settlement){
@@ -94,9 +96,9 @@ export function initChatGPTProjectRuntimeUI({api=globalThis.chrome,document:doc=
       validateStatus(data,settlement.task);
       showReceipt(data,settlement.task);
       tasks=tasks.map(row=>taskKey(row)===selected?{...row,phase:data.phase}:row);
-      if(!persistentError)status.textContent='原文件任务已停止；已重新核对当前状态：'+data.phase+'；不自动重新派发。';
+      if(!persistentError)status.textContent=stopMessage(data.phase)+' 已重新核对同一任务；不会重放。';
     }catch(error){
-      if(active()){persistentError=true;status.textContent=errorMessage(error)+' Stop 已取得停止回执；当前详情未确认，请查询原任务，不要重新派发。';}
+      if(active()){persistentError=true;status.textContent=errorMessage(error)+' 已收到停止请求回执，但当前详情尚未确认；请查询原任务，不要重新派发。';}
     }
   }
   async function refreshList(){
@@ -138,7 +140,7 @@ export function initChatGPTProjectRuntimeUI({api=globalThis.chrome,document:doc=
         status.textContent='已打开可信文件审阅页；需在该页面独立核对权限与具体修改。';
       }else{
         validateStatus(data,task);
-        status.textContent=action==='project-stop'?'原文件任务已停止；不自动重新派发。':
+        status.textContent=action==='project-stop'?stopMessage(data.phase):
           '已从原请求查询当前可信状态。仅此页显示经授权的文件详情。';
         if(action==='project-stop')tasks=tasks.map(row=>taskKey(row)===selected?{...row,phase:data.phase}:row);
         if(settlement){
