@@ -12,12 +12,12 @@ export function isReviewedBPrepare(row){
     row.scope?.installation?.version==='0.3.0'&&
     row.scope?.targetUrl===ROOT&&row.scope?.args?.phase==='prepare';
 }
-export async function attestReviewedBPrepare({row,snapshot,durable,api}={}){
+export async function attestReviewedBPrepare({row,requestId,snapshot,durable,api}={}){
   if(!isReviewedBPrepare(row)||!snapshot?.run||!api?.webNavigation?.getFrame||
     !api?.tabs?.get||!api?.permissions?.contains)fail('Not a reviewed 0.3 PREPARE');
   const run=snapshot.run,retained=run.retainedTarget,installed=row.scope.installation;
   if(row.status!=='consumed'||row.controllerSubmitted!==true||
-    run.requestId!==row.requestId||run.runId!==durable?.runId||
+    !token(requestId)||run.requestId!==requestId||run.runId!==durable?.runId||
     run.resultId!==durable.resultId||run.state!=='completed'||
     run.retirementState!=='released'||run.targetDisposition!=='retain-on-success'||
     run.target?.mode!=='owned'||run.target.frameId!==0||
@@ -47,7 +47,7 @@ export async function attestReviewedBPrepare({row,snapshot,durable,api}={}){
     fail('Original A request or prompt is missing');
   // The next approval must additionally verify the ChatGPT account/Profile.
   // A prepared B with unknown account is never itself a send grant.
-  return Object.freeze({prepareRunId:run.runId,prepareRequestId:row.requestId,
+  return Object.freeze({prepareRunId:run.runId,prepareRequestId:requestId,
     resultId:durable.resultId,tabId:retained.tabId,documentId:retained.documentId,
     url:ROOT,draftSha256:await digestUtf8(row.scope.args.prompt),
     installationId:installed.installationId,generation:installed.generation,
