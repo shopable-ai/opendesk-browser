@@ -1063,6 +1063,7 @@ test('R1 malformed, multiple and disguised file import fail closed without Host 
     assert.match(f.view.field('task-add-status').text,/一次只能导入 1 个文件/);
     await f.view.actions.taskFileDrop('add',{
       dataTransfer:{types:['Files'],files:[]},preventDefault(){},stopPropagation(){}});
+    assert.match(f.view.field('task-add-status').text,/文件夹\/目录拖放暂不支持/);
     assert.equal(f.state.calls.some(x=>x.action==='importTaskPackage'),false);
     assert.equal(f.state.starts.length,0);
     assert.equal(f.state.permissionCalls.some(x=>x.action==='request'),false);
