@@ -330,6 +330,7 @@
 .proxy-optional{font-size:10px;font-weight:600;color:#64748b;border:1px solid #d9e2ee;background:#fff;border-radius:5px;padding:2px 6px}
 .proxy-auth-check{display:inline-flex;align-items:center;gap:7px;cursor:pointer;font-size:12px;font-weight:650;color:#365375;white-space:nowrap}
 .proxy-auth-check input{width:16px;height:16px;margin:0;accent-color:var(--brand)}
+.proxy-auth-check.is-disabled{cursor:not-allowed;opacity:.55}
 .proxy-auth-subtitle{margin:6px 0 0;font-size:11px;line-height:1.5;color:var(--sub)}
 .proxy-auth-fields{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:12px;margin-top:15px;padding-top:13px;border-top:1px solid #e0e7f0}
 .proxy-password-wrap{position:relative;min-width:0}
@@ -880,7 +881,7 @@ function proxyModal(id,local=false){
       <section class="proxy-auth-card" aria-label="账号密码认证（可选）">
         <div class="proxy-auth-header"><div class="proxy-auth-heading"><strong>账号密码</strong><span class="proxy-optional">可选</span></div>
           <label class="proxy-auth-check"><input id="proxyAuthToggle" type="checkbox" name="authEnabled" value="1" ${hasAuth?'checked':''}><span>使用认证</span></label></div>
-        <p class="proxy-auth-subtitle">仅在代理服务要求用户名、密码时启用。</p>
+        <p class="proxy-auth-subtitle">HTTP / HTTPS 可设置认证；Chrome 原生 SOCKS4 / SOCKS5 不支持账号密码。</p>
         <div id="proxyAuthFields" class="proxy-auth-fields" ${hasAuth?'':'hidden'}>
           <label class="field"><span>用户名</span><input id="proxyUsername" name="username" maxlength="128" value="${esc(p?.auth?.username||'')}" placeholder="代理账号" autocomplete="off" ${hasAuth?'':'disabled'}></label>
           <div class="field"><label for="proxyPassword">密码</label><div class="proxy-password-wrap">
@@ -889,7 +890,7 @@ function proxyModal(id,local=false){
           </div></div>
         </div>
         <p class="proxy-auth-help" id="proxyPasswordHelp">离线预览仅记录认证状态和用户名，不保存密码。请勿输入真实凭据。</p>
-        <p id="proxyAuthProtocolNote" class="proxy-auth-protocol-note" role="note" hidden>SOCKS4 不支持密码认证；如需使用账号密码，请选择其他协议。</p>
+        <p id="proxyAuthProtocolNote" class="proxy-auth-protocol-note" role="note" hidden>Chrome 原生 SOCKS4 / SOCKS5 不支持账号密码。请选择无认证 SOCKS 节点，或使用 HTTP / HTTPS。</p>
       </section>
     </div>
     <p id="proxyFormError" class="proxy-form-error" role="alert" hidden></p>
@@ -900,18 +901,21 @@ function proxyModal(id,local=false){
 }
 function syncProxyAuth(form){
   if(!form)return;
-  const enabled=form.elements.authEnabled.checked;
+  const scheme=form.elements.scheme.value;
+  const blocked=scheme==='SOCKS4'||scheme==='SOCKS5';
+  const toggle=form.elements.authEnabled;
+  // Preserve the temporary choice if the user switches away from HTTP and back.
+  if(blocked&&!toggle.disabled)toggle.dataset.restoreChecked=toggle.checked?'1':'0';
+  if(blocked){toggle.checked=false;toggle.disabled=true;}
+  else if(toggle.disabled){toggle.disabled=false;toggle.checked=toggle.dataset.restoreChecked==='1';}
+  form.querySelector('.proxy-auth-check').classList.toggle('is-disabled',blocked);
+  const enabled=toggle.checked&&!blocked;
   const configured=!!profile(modalAction?.id)?.auth?.hasPassword;
   form.querySelector('#proxyAuthFields').hidden=!enabled;
   for(const field of [form.elements.username,form.elements.password])field.disabled=!enabled;
   form.elements.username.required=enabled;
   form.elements.password.required=enabled&&!configured;
-  const socks4=form.elements.scheme.value==='SOCKS4';
-  form.querySelector('#proxyAuthProtocolNote').hidden=!socks4;
-  const schemeHelper=form.querySelector('#proxyAuthProtocolNote');
-  schemeHelper.textContent=socks4?'SOCKS4 不支持密码认证；如需使用账号密码，请选择其他协议。':
-    'SOCKS5 的认证可用性取决于浏览器和正式扩展实现，需要单独验证。';
-  schemeHelper.hidden=!(socks4||(enabled&&form.elements.scheme.value==='SOCKS5'));
+  form.querySelector('#proxyAuthProtocolNote').hidden=!blocked;
 }
 function proxyFormError(form,message,name){
   const feedback=form.querySelector('#proxyFormError');
@@ -929,7 +933,7 @@ function saveProxyPreview(form,values){
   if(!/^[0-9]{1,5}$/.test(rawPort)||!Number.isInteger(port)||port<1||port>65535)return proxyFormError(form,'端口必须是 1–65535 之间的整数。','port');
   const old=profile(modalAction?.id),authEnabled=!!form.elements.authEnabled.checked;
   const username=String(values.username||'').trim(),password=String(values.password||'');
-  if(authEnabled&&scheme==='SOCKS4')return proxyFormError(form,'SOCKS4 不支持密码认证；请关闭认证或切换协议。','scheme');
+  if(authEnabled&&(scheme==='SOCKS4'||scheme==='SOCKS5'))return proxyFormError(form,'Chrome 原生 SOCKS4 / SOCKS5 不支持账号密码认证；请改用 HTTP / HTTPS 或关闭认证。','scheme');
   if(authEnabled&&!username)return proxyFormError(form,'使用认证时请填写用户名。','username');
   if(authEnabled&&!password&&!old?.auth?.hasPassword)return proxyFormError(form,'使用认证时请填写密码。','password');
   // Password content is intentionally discarded; only a boolean marker is used in this preview.
