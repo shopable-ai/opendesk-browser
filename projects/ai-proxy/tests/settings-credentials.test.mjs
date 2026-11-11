@@ -13,7 +13,7 @@ const bundled = await build({ entryPoints: [new URL('../src/domain/proxy-entry.t
 const { isValidProxyPort } = await import(`data:text/javascript;base64,${Buffer.from(bundled.outputFiles[0].text).toString('base64')}`);
 
 function fixture(overrides = {}) {
-  const effects = [], errors = [], focuses = [];
+  const effects = [], errors = [], focuses = [], notices = [];
   const context = {
     getEnvironment:()=>({getDraftRevision:()=>0,setDraftDirty:()=>true}),
     editingId: '', proxy: { name: 'Draft', scheme: 'https', host: 'proxy.example.com', port: '443' },
@@ -22,12 +22,13 @@ function fixture(overrides = {}) {
     crypto: { randomUUID: () => { effects.push('uuid'); return 'new'; } },
     isValidProxyPort,
     setError: value => errors.push(value), setErrorKey: value => errors.push(value),
+    setProxyNotice: value => notices.push(value),
     act: async value => { effects.push(structuredClone(value)); return true; },
     closeEditor: () => effects.push('close'),
     ...Object.fromEntries(['setEditingId', 'setProxy', 'setUsername', 'setPassword'].map(key => [key, value => effects.push([key, value])])),
     ...overrides
   };
-  return { context, effects, errors, focuses, submit: async (another = false) => {
+  return { context, effects, errors, focuses, notices, submit: async (another = false) => {
     const fn = runInNewContext(`${code}; saveProxy`, context);
     await fn({ preventDefault() {}, nativeEvent: { submitter: { getAttribute: () => String(another) } } });
   } };
@@ -77,6 +78,7 @@ test('unauthenticated add/edit/save-another use one conditional endpoint/profile
         f.context.proxy.scheme = scheme;
         await f.submit(another);
         assert.deepEqual(f.errors, []);
+        assert.deepEqual(f.notices,['','apProxySavedNotice']);
         const actions = f.effects.filter(item => item?.type);
         assert.deepEqual(actions.map(item => item.type), ['SAVE_ENDPOINT']);
         assert.equal(actions[0].createProfile,!editingId);
@@ -97,6 +99,7 @@ test('failed unauthenticated endpoint write keeps the draft and does not save a 
   await f.submit();
   assert.deepEqual(calls, ['SAVE_ENDPOINT']);
   assert.deepEqual(f.effects, ['uuid']);
+  assert.deepEqual(f.notices,[''],'failed writes cannot announce a saved proxy');
 });
 
 // Failed or superseded saves must leave the user's current focus and draft alone.

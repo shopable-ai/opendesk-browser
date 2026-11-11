@@ -1037,5 +1037,8 @@
   "apAdvancedHelp": "轮换计划、PAC 和更多配置在 PC 管理中。未接入能力会明确提示。",
   "apManageAdvanced": "管理高级选项",
   "apProxyServers": "代理服务器",
-  "apProxyServersHelp": "这里集中管理代理；侧栏负责高频选择。"
+  "apProxyServersHelp": "这里集中管理代理；侧栏负责高频选择。",
+  "apManagementCenter": "管理中心",
+  "apProxySavedNotice": "代理配置已保存，未自动应用。",
+  "apProxyDeletedNotice": "代理配置已删除。"
 }

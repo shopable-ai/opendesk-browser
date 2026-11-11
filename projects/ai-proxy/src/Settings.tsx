@@ -96,6 +96,7 @@ const tabs: {id:Page; name:string; caption:string}[] = [
   }
   const [copiedPageLink,setCopiedPageLink] = useState(false);
   const [pageLinkCopyFailed,setPageLinkCopyFailed] = useState(false);
+  const [proxyNotice,setProxyNotice] = useState<''|'apProxySavedNotice'|'apProxyDeletedNotice'>('');
   const pageLinkCopyRequest = useRef(0);
   const sectionContent=useRef<HTMLElement>(null);
   const lastSection=useRef(tab);
@@ -240,6 +241,7 @@ const tabs: {id:Page; name:string; caption:string}[] = [
     closeEditor();
   }
   function openEditor(endpoint?: ProxyEndpoint) {
+    setProxyNotice('');
     editorGeneration.current++;
     setError('');
     getEnvironment().beginDraft('settings-proxy',state?.configEtag);
@@ -345,6 +347,7 @@ const tabs: {id:Page; name:string; caption:string}[] = [
   }
   async function saveProxy(event: React.FormEvent) {
     event.preventDefault();
+    setProxyNotice('');
     const draftRevision=getEnvironment().getDraftRevision('settings-proxy');
     const saveAnother = !editingId && (event.nativeEvent as SubmitEvent).submitter
       ?.getAttribute('data-add-another') === 'true';
@@ -377,6 +380,7 @@ const tabs: {id:Page; name:string; caption:string}[] = [
     }});
     if (!result) return;
     if(!getEnvironment().setDraftDirty(false,'settings-proxy',draftRevision))return;
+    setProxyNotice('apProxySavedNotice');
     if (saveAnother) {
       setEditingId('');
       setProxy(emptyEndpoint);
@@ -584,7 +588,7 @@ const tabs: {id:Page; name:string; caption:string}[] = [
         <span className="managementAppIcon" aria-hidden="true">AI</span>
         <div className="managementBrandCopy">
           <h2 className="managementTitle">AI Proxy</h2>
-          <p>{t('apManageSettings')}</p>
+          <p>{t('settings')} · {t('browserProxyManager')}</p>
         </div>
       </div>:<nav className="settingsSectionNav" aria-label={t('settingsSections')}>
         <label htmlFor="settings-section" className="settingsSectionLabel">{t('settingsSections')}</label>
@@ -602,7 +606,10 @@ const tabs: {id:Page; name:string; caption:string}[] = [
           <Button type="button" disabled={busy} onClick={()=>setPendingSection(null)}>{t('apKeepEditing')}</Button>
         </span>}
       </nav>}
-      {presentation==='management'?<Button className="settingsRefresh" disabled={busy} onClick={()=>void refresh()}><ProxyIcon name="refresh"/>{t('refreshStatus')}</Button>:<>
+      {presentation==='management'?<>
+        {proxyNotice&&<p className="managementFeedback" role="status">{t(proxyNotice)}</p>}
+        <Button className="settingsRefresh" disabled={busy} onClick={()=>void refresh()}><ProxyIcon name="refresh"/>{t('refreshStatus')}</Button>
+      </>:<>
       <details className="settingsMore"><summary title={t('copyPageLink')+' / '+t('refreshStatus')} aria-label={t('copyPageLink')+' / '+t('refreshStatus')}><ProxyIcon name="more"/></summary><div className="optionsHeadActions">
         <Button type="button" className="optionsCopyLink" aria-label={copiedPageLink?t('pageLinkCopied'):t('copyPageLink')}
           title={t('copyPageLink')} onClick={() => void copyCurrentPageLink()}>
@@ -624,14 +631,15 @@ const tabs: {id:Page; name:string; caption:string}[] = [
       <span className="managementSelectionLabel">{state.runtime.pendingChanges
         ? t('apPendingSelection')+' · '+(modes.find(item=>item.mode===config.selection.mode)?.name ?? t('unableToVerify'))
         : t('selectedModeLabel',{mode:modes.find(item=>item.mode===config.selection.mode)?.name ?? t('unableToVerify')})}</span>
+      <Button className="textAction" disabled={busy||navigationBusy} onClick={()=>navigate('diagnostic')}>{t('viewActualControlStatus')}</Button>
     </div>}
     <div className="layout">
       {presentation==='management'&&<nav className="managementNav" aria-label={t('settingsSections')}>
-        <p className="managementNavLabel">{t('settingsSections')}</p>
+        <p className="managementNavLabel">{t('apManagementCenter')}</p>
         {tabs.map(item=><Button key={item.id} disabled={busy||navigationBusy}
           className={item.id==='official'?'managementOptional':''} aria-current={tab===item.id?'page':undefined}
           onClick={()=>navigate(item.id)}><OptionsNavIcon section={item.id}/><span>{item.name}</span>
-          {item.id==='official'&&<small>{t('officialOptional')}</small>}</Button>)}
+          </Button>)}
       </nav>}
       <section ref={sectionContent} className={'panel optionsContent optionsContent--' + tab}>
         {pageLinkCopyFailed && <p className="notice error" role="alert">{t('pageLinkCopyFailed')}</p>}
@@ -640,6 +648,7 @@ const tabs: {id:Page; name:string; caption:string}[] = [
         {tab!=='official' && tab!=='rules' && !(tab==='subscriptions' && parseSubscriptionRoute(locationHash).kind==='official') &&
           <OptionsPageHeader
           title={tabs.find(item=>item.id===tab)?.name ?? ''}
+          eyebrow={presentation==='management'?t('settings'):undefined}
           description={tab==='profiles'?t('apProfileIntro'):tabs.find(item=>item.id===tab)?.caption ?? ''}
           className={tab==='profiles'?'profilePanelHead':''}
           actions={tab==='profiles'?<>
@@ -715,7 +724,10 @@ const tabs: {id:Page; name:string; caption:string}[] = [
                   <Button id={'settings-proxy-'+p.id} className="proxyIconButton" disabled={busy} onClick={()=>source?.kind==='local-client'?editLocal(p):openEditor(p)}
                     title={t('editNamedProxy',{name:p.name})} aria-label={t('editNamedProxy',{name:p.name})}><ProxyIcon name="edit"/></Button>
                   <Button className="proxyIconButton quietDanger" disabled={busy||config.managed} title={config.managed?t('stopManagingTheProxyBeforeDeletingIt'):t('deleteNamedProxy',{name:p.name})}
-                    onClick={async()=>{const ifMatch=state.configEtag;if(await confirmIntent(t('confirmDeleteProxy',{name:p.name})))void act({type:'DELETE_ENDPOINT',id:p.id,ifMatch});}}
+                    onClick={async()=>{setProxyNotice('');const ifMatch=state.configEtag;
+                      if(await confirmIntent(t('confirmDeleteProxy',{name:p.name}))){
+                        if(await act({type:'DELETE_ENDPOINT',id:p.id,ifMatch}))setProxyNotice('apProxyDeletedNotice');
+                      }}}
                     aria-label={t('deleteNamedProxy',{name:p.name})}><ProxyIcon name="trash"/></Button>
                 </div>
               </article>;

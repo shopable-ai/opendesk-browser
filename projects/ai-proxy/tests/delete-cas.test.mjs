@@ -3,6 +3,7 @@ import assert from 'node:assert/strict';
 import {readFile} from 'node:fs/promises';
 import {runInNewContext} from 'node:vm';
 import {build,transform} from 'esbuild';
+import {parseExpressionAt} from 'acorn';
 
 const settings=await readFile(new URL('../src/Settings.tsx',import.meta.url),'utf8');
 const sources=await readFile(new URL('../src/ui/SourcesPage.tsx',import.meta.url),'utf8');
@@ -18,7 +19,7 @@ function handler(text,key){
   const confirm=text.indexOf("t('"+key+"'");
   assert.ok(confirm>=0);
   const start=text.lastIndexOf('onClick={',confirm)+'onClick={'.length;
-  const end=text.indexOf('}',text.indexOf(';',text.indexOf('DELETE_',confirm)))+1;
+  const {end}=parseExpressionAt(text,start,{ecmaVersion:'latest'});
   return '('+text.slice(start,end)+')';
 }
 const cases=[
@@ -38,13 +39,14 @@ for(const [name,code,type,collection,target,update] of cases){
     try{
       const opened=await pc1.request({type:'GET_STATE'});assert.equal(opened.ok,true,JSON.stringify(opened));
       const state=opened.state,initialEtag=state.configEtag;
-      let approve,confirmationCount=0;const actions=[],responses=[],pending=[];
+      let approve,confirmationCount=0;const actions=[],responses=[],pending=[],notices=[];
       const confirm=()=>{confirmationCount++;return new Promise(resolve=>{approve=resolve;});};
       const environment={confirm,getDraftRevision:()=>0,setDraftDirty:()=>true};
       const context={state,config:state.config,configEtag:initialEtag,p:target,endpoint:target,busy:false,
         t:key=>key,confirmIntent:confirm,getEnvironment:()=>environment,
         ruleEditorGeneration:{current:0},sectionContent:{current:null},navigation:{getRoute:()=> 'rules'},parseOptionsHash:()=> 'rules',
         ruleListPosition:{current:null},setRuleSaved(){},finishRuleEditor(){},navigateSubscription(){},
+        setProxyNotice:value=>notices.push(value),
         act(message){actions.push(copy(message));const result=pc1.request(message).then(response=>{responses.push(response);return response.ok;});pending.push(result);return result;}};
       const compiled=await transform(code,{loader:'ts'});
       const click=runInNewContext(compiled.code,context);
@@ -59,6 +61,7 @@ for(const [name,code,type,collection,target,update] of cases){
       assert.equal(actions.length,1);assert.equal(actions[0].type,type);assert.equal(actions[0].id,target.id);
       assert.equal(actions[0].ifMatch,initialEtag);
       assert.equal(responses[0].ok,false);assert.equal(responses[0].errorCode,'E_CONFLICT');
+      assert.ok(!notices.includes('apProxyDeletedNotice'),'conflicting DELETE cannot announce deletion');
       assert.equal(writes,writesBefore,'stale DELETE must perform zero storage writes');
       assert.deepEqual(stored,before);assert.ok(stored[collection].some(row=>row.id===target.id));
       // Positive control: a fresh ETag can delete this same unreferenced record.

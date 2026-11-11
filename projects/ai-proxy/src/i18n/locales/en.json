@@ -1037,5 +1037,8 @@
   "apAdvancedHelp": "Manage rotation plans, PAC and more in PC settings. Unavailable capabilities are clearly labeled.",
   "apManageAdvanced": "Manage advanced options",
   "apProxyServers": "Proxy servers",
-  "apProxyServersHelp": "Manage proxies here and choose them from the side panel."
+  "apProxyServersHelp": "Manage proxies here and choose them from the side panel.",
+  "apManagementCenter": "Management",
+  "apProxySavedNotice": "Proxy saved. Not automatically applied.",
+  "apProxyDeletedNotice": "Proxy deleted."
 }
