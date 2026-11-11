@@ -6,7 +6,7 @@ const sourcePath=new URL('../src/tasks/chatgpt-conversation-create-v0.3.js',impo
 const source=await readFile(sourcePath,'utf8');
 const execute=new Function('page','params',source+'\nreturn main()');
 const uuid='10101010-2020-4030-8040-505050505050';
-function harness({draft='',attachments=0,users=0,send=true,model,
+function harness({draft=undefined,attachments=0,users=0,send=true,model,
   readbackMismatch=false,reply='{"sum":80}',completion=true,userId=true,clickError=false}={}){
   const state={url:'https://chatgpt.com/',draft:draft??(send?'Task 01 compute 17 28 35':''),attachments,users,sendCalls:0,fillCalls:0,submitted:false,waits:0};
   const row=key=>({
