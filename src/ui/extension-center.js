@@ -22,7 +22,7 @@ import {SEND_QUEUE_PIN} from '../platform/host/send-queue-admission.js';
 
 // One trusted presentation. All writes and launches delegate to the existing hosts.
 export function createExtensionCenter({api,client,doc,sidebarTools,taskWorkbench,currentPageTarget,localeController=null,toolLocaleService=null,extensionList=null,
-  createScrollConversation=null,openAIProviderSettings=null}){
+  createScrollConversation=null,openAIProviderSettings=null,notify=null}){
   const get=id=>doc.getElementById(id);
   const list=get('extension-center-list'),search=get('extension-center-search');
   const more=get('extension-center-more'),workspace=get('workspace-content');
@@ -547,13 +547,22 @@ export function createExtensionCenter({api,client,doc,sidebarTools,taskWorkbench
     }
     renderPageDiscovery();
   }
+  // Store navigation is not an installation action. Prefer the existing
+  // nonblocking Host toast near the user instead of a status below the list.
+  function storeNotice(key,type='info',error=null){
+    const content=()=>t(key)+(error?errorText(error):'');
+    let shown=false;
+    if(typeof notify==='function'){
+      try{notify(content(),{type,position:'bottom-right'});shown=true;}catch{/* Keep inline fallback. */}
+    }
+    if(!shown||type==='error')message(content,type);
+  }
   function openStoreWebsite(){
     void navigateOfficialStore(api).then(result=>{
       if(disposed)return;
-      if(result.status==='coming_soon')message(()=>t('storeComingSoon'),'info');
-      else if(result.status==='invalid')message(()=>t('storeConfigInvalid'),'error');
-      else if(result.status==='failed')
-        message(()=>t('storeOpenFailed')+errorText(result.error),'error');
+      if(result.status==='coming_soon')storeNotice('storeComingSoon');
+      else if(result.status==='invalid')storeNotice('storeConfigInvalid','error');
+      else if(result.status==='failed')storeNotice('storeOpenFailed','error',result.error);
     });
   }
   // The original trusted review owns installation; selecting never executes tool JS.
