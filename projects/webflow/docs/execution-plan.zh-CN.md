@@ -1,3 +1,22 @@
+## Web Flow R2 通知正式包验收状态更新（2026-11-11，OD-WEBFLOW-R2-NOTICE-SHIP-R3）
+
+**原始用户目标：** 用户不应在 Web Flow 偏好保存后再点「知道了」；经读回的普通成功反馈用短暂统一 Toast。已安装并授权的 Task 从启动、运行、完成/失败/UNKNOWN 到原聊天结果回传要分层展示、尽量更新同一通知；关闭 Side Panel/刷新后从**原持久请求身份**恢复，不因通知重试、增权或删除原记录。此交付卡仅针对 R2 通知遗留、唯一正式包及真实安装验收，非扩展更新提醒、Runner 重建或文件浮窗需求。
+
+**最新确认（取代下方早前 0.3.26 / CI 待核对的历史状态）：**
+- 用户给出的原 R2 源码提交 `92139db13c79c9325d1d4d8ea11e5e2fcd00aa09`、`a39ac2d46d7116420f92dda67bad520ea18c009e` 已在 main 祖先链；`src/ui/main.js` 使用原 `ui.notify.open`，只在偏好保存及读回确认后反馈；旧 Host 走 4.5s 自动消失回退，不再提供「知道了」确认按钮；`src/ui/model.js` 含 `createTaskNoticePublisher`，可信 `trusted/CurrentTask.tsx` 另处理执行与回传。保留对不同请求身份、Run/Result、交付回执及 UNKNOWN 的隔离。
+- 旧 [CI 42983420751](https://github.com/shopable-ai/opendesk-browser/actions/runs/42983420751) 的 Node **70/70 PASS**，但 Chromium 因隐藏的收藏操作失败，未晋升。此为历史失败，不再作为最新阻塞。
+- 最新直接读取 [CI 42989278190](https://github.com/shopable-ai/opendesk-browser/actions/runs/42989278190)：head `0e237927272b657d62148ccb56021d75580a6cf9`，整体 **SUCCESS**；Node **71/71 PASS**，源码组件真实 Chromium **320/360/400 px PASS、21 张截图**（只是 `UI_COMPONENT_MOCK_SDK`，**不代表 MV3 安装或真实 Task 执行**）；原打包器候选构建、`--promote-from`、`--check-project` 全部 PASS；`PROJECT_PACKAGE_MATCH`。
+- 真实仓库唯一正式包 `projects/webflow/webflow.opendesk-tool.json` 已在 [e2e3013](https://github.com/shopable-ai/opendesk-browser/commit/e2e301383a53e8e86eadf4c4edde556feb0eb02f) 提交 main；与 `tool.config.json` 同为 **0.3.27**，正式包携带 `createTaskNoticePublisher`。CI 校验包长度 **103849 字节**、SHA-256 `4008ed394a171ba91649e97e916d974e0352e1fe8c2c2e89580fa2cc3e02abca`，原 Task pins/权限未扩张。无需再次构建或制造第二份正式包。
+- 本轮只核查 GitHub、CI 与正式包；本机 CodexPro `UNAVAILABLE: Connection failed`，OpenDesk Mac 连接探测返回 HTTP 429，未取得 Chrome 已安装 Tool 版本、安装身份、Host R1.2 支持、截图、真实 Run/Result 或回传的现场证据。**严禁把 CI 源码组件 Chromium 当作本机 Chrome 已验收。**
+
+**本任务五级状态（证据即状态）：** `SOURCE_IMPLEMENTED=PASS`（复用已提交的 R2 源码）；`NODE_TESTED=PASS`（CI 71/71，绑定上述 head）；`PACKAGE_READY=PASS`（唯一 0.3.27 正式包及 `PROJECT_PACKAGE_MATCH`）；`CHROME_TESTED=NOT_TESTED`（仅有 CI mock-SDK 组件测试）；`BUSINESS_ACCEPTED=NOT_ACCEPTED`（尚无本轮新真实请求/回传链证据）。
+
+**唯一未完的 T04 现场闭环：** 使用现有「扩展」安装/更新入口审阅并升级唯一 0.3.27 包，不直接修改安装记录；读回真实 Web Flow 安装版本、来源、身份和 Host R1.2。A：主题或收藏偏好保存并读回，验证一次底部 Toast 自动消失、无「知道了」横幅，检查旧 Host 回退。B：选一个**全新已安装、已授权**的安全测试 Task，按原双阶段确认仅执行一次，采集 `requestId`/`runId`/`resultId`、Run/Result 持久读回、单通知状态更新、真实网页业务结果及独立的原聊天 delivery 回执；失败/UNKNOWN 不自动重放。关闭与重开 Side Panel 后**只读恢复同一请求**；通知关闭不改任务记录，保留截图、版本和授权代次。历史 UNKNOWN 请求不得为测试再执行。现场成功后方可将 `CHROME_TESTED`、`BUSINESS_ACCEPTED` 升级 PASS。
+
+**本轮范围：** 不重写 R2 通知/Controller/Runner/任务列表，不创建新测试包、并行报告、分支或 worktree；本轮只修正现有文档过时状态。其余未核验项继续严格标记 NOT_TESTED。
+
+---
+
 ## Web Flow R2 通知旧横幅清理与正式包缺口（2026-11-11，OD-AI-WORKFLOW-BRIDGE）
 
 **用户现场现象：** Web Flow 偏好保存后仍展示「偏好已保存并读回。」「知道了」横幅，且未观察到新的任务 Toast。已读 GitHub main 核对出两个不同问题，不能将偏好保存提示当成任务通知验证：(1) 应用 main.js 仍保留旧 setNotice 成功横幅；(2) 正式 `projects/webflow/webflow.opendesk-tool.json` 仍是 **0.3.26**，其中 js 不含 `createTaskNoticePublisher`，而最新配置已为 **0.3.27**；仓库工作流在普通 push 上只验证候选，正式包写回需要经同源校验的显式发布。
