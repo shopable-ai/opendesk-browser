@@ -3801,6 +3801,11 @@ function createSidebarToolsController({api=globalThis.chrome,doc=globalThis.docu
         return data;
       }
       if(CLIP_OPERATIONS.includes(operation)){
+        if(operation.startsWith('clip.region')){
+          if(tool.id!=='web-markdown-clipper'||typeof payload?.pickId!=='string'||
+             !/^[A-Za-z0-9_-]{8,64}$/.test(payload.pickId))
+            throw new Error('区域点选会话无效');
+        }
         if(!currentPageTarget?.capture||!currentPageTarget?.revalidate||!api.tabs?.sendMessage)
           throw new Error('网页剪藏不可用');
         const target=currentPageTarget.capture();
@@ -3811,18 +3816,21 @@ function createSidebarToolsController({api=globalThis.chrome,doc=globalThis.docu
         assertSession(source,token);
         const response=await api.tabs.sendMessage(target.tabId,{
           protocol:CLIP_PROTOCOL,operation,toolId:tool.id,expectedUrl:target.url,
-          installEpoch:revocationEpoch
+          installEpoch:revocationEpoch,
+          ...(operation.startsWith('clip.region')?{pickId:payload.pickId}:{})
         },{frameId:0,documentId:target.documentId});
         assertSession(source,token);
         await currentPageTarget.revalidate(target);
         if(!response?.ok)throw new Error(String(response?.error||'剪藏失败').slice(0,200));
+        if(operation==='clip.region.cancel')return {cancelled:response.data?.cancelled===true};
         const data=response.data;
         if(!data||typeof data.markdown!=='string'||typeof data.source!=='string'||
-          new TextEncoder().encode(JSON.stringify(data)).length>160000)
+          new TextEncoder().encode(JSON.stringify(data)).length>(operation==='clip.region'?176000:160000))
           throw new Error('剪藏响应过大或格式无效');
         const latest=(await api.storage.local.get(CLIP_SITE_STORE))[CLIP_SITE_STORE];
         if(!installedSiteAllowed(latest,tool.id,target.url))
           throw new Error('网站剪藏授权已撤销');
+        await assertInstalledTool(tool,revocationEpoch,'剪藏期间安装身份已变化');
         assertSession(source,token);return data;
       }
       if(operation==='tasks.open'){
