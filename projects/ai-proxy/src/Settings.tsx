@@ -866,15 +866,21 @@ const tabs: {id:Page; name:string; caption:string}[] = [
             {!ruleEditorOpen?<section className="rulesList" aria-label={t('websiteRules2')}>
               {ruleSaved&&<p className="r86Notice" role="status">{t('apRuleSavedNotice')}</p>}
               <p className="hint">{t('apRuleSaveNote')}</p>
+              {presentation==='management' && config.rules.length>0 && <div className="managementRulesHeader" aria-hidden="true">
+                <span/><span>{t('ruleWebsiteInput')}</span><span>{t('ruleWebsiteUse')}</span><span>{t('priority')}</span><span/>
+              </div>}
               {config.rules.length === 0 ? <div className="sourceEmpty rulesEmpty">{t('rulesEmpty')}</div> :
                 <div className="records">{config.rules.map(r=>{
-              const detail=(r.action==='direct'?t('directConnection2'):endpoints.find(e=>e.id===r.endpointId)?.name || t('missingProxy2'))+' · '+t('priority')+' '+r.priority;
+              const routeName=r.action==='direct'?t('directConnection2'):endpoints.find(e=>e.id===r.endpointId)?.name || t('missingProxy2');
+               const detail=routeName+' · '+t('priority')+' '+r.priority;
               return <article className="record ruleRecord" key={r.id} data-details-dismissed={dismissedRuleDetail===r.id||undefined}
                 onFocusCapture={()=>setDismissedRuleDetail('')} onMouseEnter={()=>setDismissedRuleDetail('')}
                 onKeyDown={event=>{if(event.key==='Escape'){event.preventDefault();event.stopPropagation();setDismissedRuleDetail(r.id);}}}>
             <span className={'ruleStateIcon '+(r.enabled?'isEnabled':'')} role="img" title={t(r.enabled?'apRuleEnabled':'apRuleDisabled')} aria-label={t(r.enabled?'apRuleEnabled':'apRuleDisabled')}><ProxyIcon name={r.enabled?'selected':'pause'}/></span>
             <div className="ruleRecordText"><strong title={r.domain+t(r.includeSubdomains?'apRuleSubdomainScope':'apRuleExactScope')}>{r.domain}{r.includeSubdomains?t('subdomains'):''}</strong>
-            <small id={'settings-rule-detail-'+r.id} title={detail}>{detail}</small></div>
+            <small id={'settings-rule-detail-'+r.id} title={detail}>{presentation==='management'?t(r.includeSubdomains?'apRuleSubdomainScope':'apRuleExactScope'):detail}</small></div>
+             {presentation==='management'&&<><span className="managementRuleTarget" title={routeName}>{routeName}</span>
+               <span className="managementRulePriority" title={t('priority')+' '+r.priority}>{r.priority}</span></>}
             <div className="actions"><Button className="proxyIconButton" id={'settings-rule-'+r.id} aria-describedby={'settings-rule-detail-'+r.id} disabled={busy} title={t('editNamedRule',{domain:r.domain,scope:t(r.includeSubdomains?'apRuleSubdomainScope':'apRuleExactScope')})} aria-label={t('editNamedRule',{domain:r.domain,
               scope:t(r.includeSubdomains?'apRuleSubdomainScope':'apRuleExactScope')})} onClick={()=>editRule(r)}><ProxyIcon name="edit"/></Button>
               <Button className="proxyIconButton quietDanger" aria-describedby={'settings-rule-detail-'+r.id} disabled={busy} title={t('deleteNamedRule',{domain:r.domain,scope:t(r.includeSubdomains?'apRuleSubdomainScope':'apRuleExactScope')})} aria-label={t('deleteNamedRule',{domain:r.domain,
