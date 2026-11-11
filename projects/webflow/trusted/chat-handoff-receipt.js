@@ -57,7 +57,16 @@ export async function attestChatHandoffBReply({handoffJson,trustedScope,
   const account=()=>verifyTargetProfile({tabId:run.target.tabId,
     documentId:run.target.documentId,expectedProfileId});
   check(await account()===expectedProfileId,'E_CHAT_RECEIPT_PROFILE');
-  const verified=verifyChatGPTTaskDurableResult(snapshot,runId,request.installation,request);
+  // The fixed-compiled business adapter owns the B target/result binding.
+  // Preserve all other adapter errors, but expose its proven retained-target
+  // mismatch through the handoff receipt's existing identity error code.
+  let verified;
+  try{verified=verifyChatGPTTaskDurableResult(snapshot,runId,request.installation,request);}
+  catch(error){
+    if(error?.code==='E_BRIDGE_RESULT'&&error?.failureKind==='retained-target-mismatch')
+      fail('E_CHAT_RECEIPT_IDENTITY');
+    throw error;
+  }
   const value=verified.value;
   check(value.send===true&&value.status==='reply-complete'&&
     value.conversationUrl===run.retainedTarget.url,'E_CHAT_RECEIPT_IDENTITY');
