@@ -641,7 +641,14 @@
           Btn('收起详情',closeDetails,{quiet:true}))
       );
     };
-    const historyCard=(entry,index)=>h('li',{key:entry.clientRequestId+'-'+index,className:'wf-record-row'},
+    const historyCard=(entry,index,compact=false)=>h('li',{key:entry.clientRequestId+'-'+index,className:'wf-record-row'},
+      compact===true?h('div',{className:'wf-record-summary'},
+        h('div',{className:'wf-record-info'},
+          h('strong',null,PINNED.find(p=>p.taskId===entry.taskId)?.title||entry.taskId),
+          h('span',{className:'wf-sub'},time(entry.at)+' · 手动运行')),
+        h(Status,{state:entry.state,text:runStateLabel(entry.state)}),
+        Btn(Icon('chevron'),()=>setTab('history'),{quiet:true,icon:true,
+          ariaLabel:'查看记录：'+(PINNED.find(p=>p.taskId===entry.taskId)?.title||entry.taskId),title:'查看记录'})):
       h('details',{className:'wf-record-details'},
         h('summary',{className:'wf-record-summary',title:'展开查看原请求证据'},
           h('div',{className:'wf-record-info'},
@@ -694,26 +701,21 @@
         h(Card,{children:h('div',{className:'wf-stack'},
           h('div',{className:'wf-line wf-between'},
             h('div',{className:'wf-grow'},
-              h('strong',null,active?'手动原步骤待核对':
-                summary.attention?'有固定脚本需要处理':'当前没有待处理异常'),
-              h('p',{className:'wf-sub'},active?'当前步骤只能只读查询或停止；不会自动补跑。':
-                summary.attention?'请核对固定任务的安装、版本和权限。':
-                '手动任务仅按已审阅的安装及网站范围使用。'),
-              active&&h('code',{className:'wf-mono wf-active-locator',
-                title:'待核对的原请求 clientRequestId'},active.clientRequestId)),
-            (active||summary.attention>0)&&Btn(active?'处理原步骤':'查看原因',
+              h('strong',null,active?'有一项运行需要核对':loading?'正在检查脚本状态':
+                summary.attention?'有 '+summary.attention+' 个脚本需要检查':'当前没有待处理异常'),
+              h('p',{className:'wf-sub'},active?'上次运行结果尚未确认，不会自动重新执行':
+                loading?'正在读取脚本安装状态。':summary.attention?'请检查脚本的安装、版本和权限。':
+                '已审阅脚本可按批准范围使用。')),
+            (active||!loading&&summary.attention>0)&&Btn(active?'查看记录':'查看脚本',
               ()=>setTab(active?'history':'scripts'),{quiet:true})),
-          h('div',{className:'wf-metrics','aria-label':'固定任务概况'},
-            ...[['自带脚本',summary.reviewed],['可运行',loading?'…':summary.available],
-              ['需处理',loading?'…':summary.attention]]
+          h('p',{className:'wf-sub'},'固定脚本共 '+summary.fixed+' 个'),
+          h('div',{className:'wf-metrics','aria-label':'脚本概况'},
+            ...[['已安装',loading?'…':summary.installed??'待核对'],['可运行',loading?'…':summary.available],
+              ['需检查',loading?'…':summary.attention]]
               .map(([label,n])=>h('span',{key:label},label+' ',h('strong',null,n)))))}),
-        h(Card,{children:h('div',{className:'wf-stack'},
-          h('strong',null,'Markdown 两任务接续'),
-          h('p',{className:'wf-sub'},'读取仓库任务文件，查看任务清单和输入版本；真实聊天自动执行接线仍待完成。'),
-          Btn('打开 MD 任务队列',()=>setTab('md'),{quiet:true}))}),
         h('section',{className:'wf-stack','aria-label':'最近活动'},
           h('h3',null,'最近活动'),
-          history.length?h('ul',{className:'wf-history'},...history.slice(0,3).map(historyCard)):
+          history.length?h('ul',{className:'wf-history'},...history.slice(0,3).map((entry,index)=>historyCard(entry,index,true))):
             h(Card,{children:h('p',{className:'wf-sub'},
               '暂无手动运行摘要。自动任务请在上方“运行与授权 → 当前任务”查看。')})));
     }

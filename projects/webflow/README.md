@@ -1,8 +1,10 @@
 # Web Flow
 
+**概览清理 R1（2026-11-11）：** 唯一正式包现为 **0.3.32**，首页收敛为状态、真实脚本统计与最近活动；待核对请求从「查看记录」进入原恢复页，身份信息保留在详情。Markdown 开发卡片和实验入口已从首页移除，相关引擎与数据保留。相关 Node 164/164、候选晋升及同源检查通过；源码组件通过不代表新包已安装，**0.3.32 实际 Chrome 安装验收 NOT_TESTED**。结果与证据边界见[本轮执行卡](docs/execution-plan.zh-CN.md#概览清理-r12026-11-11od-webflow-overview-cleanup-r1)。
+
 **ChatGPT 项目文件浮窗退役（2026-11-11；OD-AI-WORKFLOW-BRIDGE）：** 当前 `main` 的网页文件适配器为 Headless，不再注入「项目文件／停止项目任务／展开」面板；状态、Stop 和审阅通过 Web Flow「运行与授权 → 项目文件」进入现有可信扩展设置。原消息监听、文件授权、Native 回执和 UNKNOWN 防重放保留。**源码已退役不等于用户 Chrome 已更新。**
 
-**正式工具包状态更新（2026-11-11）：** `tool.config.json` 与唯一正式 `webflow.opendesk-tool.json` 均为 **0.3.27**，正式包包含 R2 `createTaskNoticePublisher`；[Web Flow CI 42989278190](https://github.com/shopable-ai/opendesk-browser/actions/runs/42989278190) 的定向 Node 71/71、Chromium 源码组件 320/360/400px、`--promote-from` 和 `--check-project` 均通过（`PROJECT_PACKAGE_MATCH`，包 SHA-256 `4008ed394a171ba91649e97e916d974e0352e1fe8c2c2e89580fa2cc3e02abca`）。**这些不证明用户本机已更新或实站任务已成功。** 工具包与浏览器内容脚本 `agents/chatgpt-fixed-bridge.js` 属于不同发行路径，不能互相代替；实际安装的扩展 ID、unpacked 路径、Host R1.2、脚本 hash 和 Chrome/Native 全链仍待现场核验。完整溯源及待验收入口见[原执行计划 Headless 专项](docs/execution-plan.zh-CN.md)。
+**R2 正式工具包历史状态（2026-11-11；当前版本以上方 R1 卡为准）：** `tool.config.json` 与唯一正式 `webflow.opendesk-tool.json` 当时均为 **0.3.27**，正式包包含 R2 `createTaskNoticePublisher`；[Web Flow CI 42989278190](https://github.com/shopable-ai/opendesk-browser/actions/runs/42989278190) 的定向 Node 71/71、Chromium 源码组件 320/360/400px、`--promote-from` 和 `--check-project` 均通过（`PROJECT_PACKAGE_MATCH`，包 SHA-256 `4008ed394a171ba91649e97e916d974e0352e1fe8c2c2e89580fa2cc3e02abca`）。**这些不证明用户本机已更新或实站任务已成功。** 工具包与浏览器内容脚本 `agents/chatgpt-fixed-bridge.js` 属于不同发行路径，不能互相代替；实际安装的扩展 ID、unpacked 路径、Host R1.2、脚本 hash 和 Chrome/Native 全链仍待现场核验。完整溯源及待验收入口见[原执行计划 Headless 专项](docs/execution-plan.zh-CN.md)。
 
 **百度首页最新核心测试（2026-11-10，20:10）：** 在自有 ego TaskSpace **61** 的百度首页，经真实「扩展 → Web Flow 0.3.26 → 脚本」保存新关键词 `MDN Web API MutationObserver`，新请求 `webflow:fcd2a5b4-c77e-430e-ae7b-1cd2b5e68caa` 仅点击一次「确认手动运行」。页面随后跳转到 **wappass.baidu.com 的百度安全验证**，回跳地址携带本次关键词；没有取得三条结果。WebFlow 仍显示“原请求仍未确定”、阶段“执行中”、资源释放 `not-started`；这不是底层已释放证明，Run/Result、输入读回和准入次数尚未读回。ego 已将 Space 交由用户控制，按合同停止浏览器操作；未重放、解验证码或修改产品源码。开发服务实读已连接，revision `4fbac865a7b7d5ad4419f3436de5dc5e55e31e75bab596a04cf899e535c9d006`，原 UI 租约已释放。**首页核心链仍未完成**；用户处理验证并明确继续后，先只读核对同一请求及真实资源状态，再决定下一条独立操作。详见[原证据的 homepageCoreAttempt](evidence/baidu-core-ui-20261110.json)和下方历史范围。
 
@@ -14,7 +16,7 @@
 
 **精确授权的可选默认值（2026-11-10）：** 新审阅的精确授权沿原 `parameterPolicy` 存储可信 Host 从已安装任务取出的固定 Schema，`variableKeys: []` 表示无参数可变，只按该 Schema 比较可选默认值。因此 Google 的显式默认 `true` 批准也匹配省略该选项的请求，`false`、关键词及其他固定值变化仍待批准；required 参数必须显式存在。此规则不按任务或参数名硬编码，不给 Google 增加可变关键词许可。历史无 Schema 授权继续精确匹配，需重新审阅才能采用默认值语义；不改候选原文或发送见证。本次只改固定编译授权与可信展示，不重打无变化的应用 JSON。
 
-> **Markdown 两任务 Demo（2026-11-10；源码阶段）：** [真实仓库任务样例](examples/workflows/md-demo.md) → Web Flow「概览 → Markdown 两任务」，可解析两任务、独立验证 T01/T02 的计算与读回交接规则；公开 GitHub 将借原 Browser Network SDK 读取，首次需审阅 `network` 能力及目标站点权限；实际浏览器读取、真实新聊天、跨聊执行/恢复和安装包晋升均 **NOT_TESTED / 待接线**。权威规范与进度仍只见 [产品合同](docs/product-contract.zh-CN.md) / [执行计划](docs/execution-plan.zh-CN.md)。
+> **Markdown 两任务 Demo（2026-11-10；历史源码阶段）：** [真实仓库任务样例](examples/workflows/md-demo.md) 可解析两任务、独立验证 T01/T02 的计算与读回交接规则；**概览清理 R1 已移除首页实验入口**，保留源码、引擎和历史数据。公开 GitHub 读取仍须原 Browser Network SDK 的 `network` 能力及目标站点权限；实际浏览器读取、真实新聊天、跨聊执行/恢复均 **NOT_TESTED / 待接线**，不属于本轮概览清理。权威规范与进度仍只见 [产品合同](docs/product-contract.zh-CN.md) / [执行计划](docs/execution-plan.zh-CN.md)。
 
 
 > **2026-11-10 本轮源码增量（OD-AI-WORKFLOW-BRIDGE）：** V2 四字段候选已进入 ChatGPT 完整回答识别、可信固定目标校验、独立单候选 Side Panel 批准与原 Controller/Run/Result 查询栅栏；不会继承 V1 的任何任务级批准。新增 `tests/task-v2-live-ledger.test.mjs` 并接入固定桥接 CI；本轮隔离 V8 语法及账本行为检查通过，Node CI 的实际结果、Chrome、打包与新聊天 A→B 业务 **未验收**。未知/当前页/动态目标仍拒绝；启动前自动前台偏好、`chatgpt.conversation.create`、Gemini 均 **未完成**。以[本轮执行卡](docs/execution-plan.zh-CN.md)为准。

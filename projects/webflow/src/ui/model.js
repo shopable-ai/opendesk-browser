@@ -236,7 +236,12 @@
   }
 
   const summary=(tasks,records)=>({
-    reviewed:tasks.length,available:tasks.filter(x=>x.state==='available').length,
+    fixed:tasks.length,
+    // A fixed catalog entry is not an installation. If a read failed, do not
+    // infer absence (or installation) from that failure.
+    installed:tasks.some(x=>!x.binding&&!['missing','removed'].includes(x.state))?null:
+      tasks.filter(x=>x.binding).length,
+    available:tasks.filter(x=>x.state==='available').length,
     attention:tasks.filter(x=>['changed','unavailable','error',...Object.values(taskStates)].includes(x.state)).length,
     latest:Array.isArray(records)?records[0]||null:null
   });

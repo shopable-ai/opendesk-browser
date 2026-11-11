@@ -215,6 +215,88 @@ const complete=(id,retirementState='released')=>({clientRequestId:id,runId:'run-
   state:'completed',retirementState,value:{status:'success',results:[{title:'真实 SDK 回包内容',url:'https://example.com/'}],count:1},
   result:{tag:'controller-result',runId:'run-original',resultId:'result-original',state:'completed',outcome:{ok:true}}});
 
+test('overview shows normal state and verified counts without development actions',async t=>{
+  const host=sdk(),f=await mount(t,host);
+  assert.match(f.text(),/当前没有待处理异常/);
+  assert.match(f.text(),/固定脚本共 2 个/);
+  assert.deepEqual([...f.document.querySelectorAll('.wf-metrics>span')].map(n=>n.textContent),
+    ['已安装 2','可运行 2','需检查 0']);
+  assert.doesNotMatch(f.text(),/Markdown 两任务|自动执行接线|打开 MD 任务队列/);
+  assert.equal(host.calls.some(c=>c.name==='storage.set'),false);
+});
+
+test('overview separates missing and installed runtime failures and links to scripts',async t=>{
+  const host=sdk();
+  host.taskRead=async id=>{
+    if(id===host.pins[0].taskId)throw problem('E_TASK_NOT_INSTALLED');
+    return {task:host.pins[1],manifest:manifests.get(id),runtimeCurrent:false};
+  };
+  const f=await mount(t,host);
+  assert.match(f.text(),/有 2 个脚本需要检查/);
+  assert.deepEqual([...f.document.querySelectorAll('.wf-metrics>span')].map(n=>n.textContent),
+    ['已安装 1','可运行 0','需检查 2']);
+  await f.click('查看脚本');
+  assert.equal(f.document.querySelector('main').getAttribute('aria-label'),'脚本');
+  assert.match(f.text(),/尚未安装/);assert.match(f.text(),/待重新验证/);
+  assert.equal(host.calls.some(c=>['storage.set','tasks.configure'].includes(c.name)),false);
+});
+
+test('unreadable installation is not reported as zero installed or as the fixed script count',async t=>{
+  for(const mixed of [false,true]){
+    const host=sdk();host.taskRead=async id=>{
+      if(mixed&&id===host.pins[1].taskId)return {task:host.pins[1]};
+      throw problem('E_PERMISSION');
+    };
+    const f=await mount(t,host);
+    assert.deepEqual([...f.document.querySelectorAll('.wf-metrics>span')].map(n=>n.textContent),
+      ['已安装 待核对','可运行 '+(mixed?1:0),'需检查 '+(mixed?1:2)]);
+    await f.close();
+  }
+});
+
+test('overview keeps original request evidence on records only without querying, replaying or writing data',async t=>{
+  const host=sdk(),id=legacy(host,'webflow:aaaaaaaa-bbbb-cccc-dddd-eeeeeeeeeeee');
+  host.taskRead=async taskId=>({task:host.pins.find(p=>p.taskId===taskId),
+    manifest:manifests.get(taskId),runtimeCurrent:false});
+  host.store.set('webflow.recent.v1',[{clientRequestId:id,taskId:host.pins[0].taskId,
+    version:host.pins[0].version,state:'unknown',retirementState:'held',at:100}]);
+  const before=structuredClone([...host.store]);
+  const f=await mount(t,host);
+  assert.match(f.text(),/有一项运行需要核对/);
+  assert.match(f.text(),/上次运行结果尚未确认，不会自动重新执行/);
+  assert.doesNotMatch(f.text(),/webflow:|clientRequestId|Markdown 两任务|自动执行接线/);
+  assert.equal(f.document.querySelector('.wf-record-details'),null,'home activity is summary only');
+  await f.click('查看记录');
+  assert.equal(f.document.querySelector('main').getAttribute('aria-label'),'记录');
+  assert.match(f.text(),new RegExp(id));
+  assert.ok(f.find('查询原请求'));assert.ok(f.find('停止原请求'));
+  await f.click('概览');
+  await f.click('查看记录：百度搜索 · 前三条自然结果');
+  assert.equal(f.document.querySelector('main').getAttribute('aria-label'),'记录');
+  await f.tick();
+  assert.deepEqual([...host.store],before);
+  assert.equal(host.calls.some(c=>c.name==='storage.set'||c.name==='tasks.configure'||
+    c.name==='tasks.stop'||c.name==='tasks.read'&&c.args.clientRequestId),false);
+});
+
+test('home activity navigates to complete record details while preserving settled history',async t=>{
+  const host=sdk(),id='webflow:settled-history';
+  host.store.set('webflow.recent.v1',[{clientRequestId:id,taskId:host.pins[0].taskId,
+    version:host.pins[0].version,state:'completed',retirementState:'released',
+    runId:'historical-run',resultId:'historical-result',at:100}]);
+  const before=structuredClone([...host.store]);
+  const f=await mount(t,host);
+  assert.match(f.text(),/当前没有待处理异常/);assert.doesNotMatch(f.text(),/webflow:|historical-run|historical-result/);
+  await f.click('查看记录：百度搜索 · 前三条自然结果');
+  assert.equal(f.document.querySelectorAll('.wf-record-details').length,1);
+  assert.match(f.document.querySelector('.wf-record-expanded').textContent,/historical-run/);
+  assert.match(f.document.querySelector('.wf-record-expanded').textContent,/historical-result/);
+  assert.match(f.text(),new RegExp(id));
+  assert.ok(f.find('查询原请求（只读）'));
+  assert.deepEqual([...host.store],before);
+  assert.equal(host.calls.some(c=>c.name==='storage.set'||c.name==='tasks.read'&&c.args.clientRequestId),false);
+});
+
 test('trusted page-change notifications recheck eligibility without executing a task',async t=>{
   const host=sdk(),f=await mount(t,host);
   await f.click('脚本');
@@ -298,7 +380,7 @@ test('Authority installation states expose recovery without pretending to run or
     await f.click(action,card);
     assert.deepEqual(host.calls.filter(c=>c.name==='tasks.open').map(c=>c.args),[{taskId:'baidu.search.top3'}]);
     assert.equal(starts(host).length,0);
-    await f.click('概览');assert.match(f.text(),/有固定脚本需要处理/);
+    await f.click('概览');assert.match(f.text(),/有 1 个脚本需要检查/);
     await f.close();
   }
 });
