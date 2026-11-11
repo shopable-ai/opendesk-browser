@@ -216,7 +216,12 @@ test('Web Flow opens the exact same trusted React Sheet, prepares without runnin
       await tick();await tick();
     });
     assert.equal(f.state.starts.length,1,'the original RunHost starts exactly once');
-    assert.equal(f.state.localStore.get('opendesk.shared-task-run-sheet.webflow.v1').state,'submitted');
+    const submitted=f.state.localStore.get('opendesk.shared-task-run-sheet.webflow.v1');
+    assert.equal(submitted.state,'submitted');
+    assert.equal(submitted.runId,'run-1','the real RunHost identity must persist for read-only recovery');
+    await React.act(async()=>{assert.equal(await f.view.actions.taskRunSheetQuery(native(),identity),true);await tick();});
+    assert.equal(f.view.data.taskSheetStage,'unknown','a pending run must never be inferred complete');
+    assert.equal(f.state.starts.length,1,'read-only query cannot replay the operation');
     await React.act(async()=>{f.host.finish();await tick();});
   }finally{if(root)await React.act(async()=>root.unmount());f.dispose();}
 });

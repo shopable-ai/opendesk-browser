@@ -50,6 +50,8 @@ export function TaskRunSheet({view}){
     if(composing.current||event.nativeEvent.isComposing)return;
     void view.actions.taskRunSheetCancel?.(event.nativeEvent,sheet?.identity);
   };
+  const query=event=>{if(event.nativeEvent?.isTrusted)void view.actions.taskRunSheetQuery?.(event.nativeEvent,sheet?.identity);};
+  const stop=event=>{if(event.nativeEvent?.isTrusted)void view.actions.taskRunSheetStop?.(event.nativeEvent,sheet?.identity);};
   const runButton=<MyControl view={view} as="button" id="task-run" type="button" className="od-button od-button--primary" onClick={run}>运行任务</MyControl>;
   return <>
 {/* The native modal stays mounted: opening/closing never replaces form nodes,
@@ -96,7 +98,7 @@ export function TaskRunSheet({view}){
 </MyControl>
 {sheet&&<p className="task-params-sheet-status hint" role="status">{view.data.taskRunBlockedReason||''}{isWebflow&&view.data.taskSheetMessage?' '+view.data.taskSheetMessage:''}{!fieldExplainsStatus&&status?' '+status:''}</p>}
 </div>
-<footer className="task-params-sheet-actions"><Button variant="quiet" onClick={close}>关闭</Button>{isWebflow&&stage==='ready'&&<Button variant="quiet" onClick={cancelPrepared}>取消未运行步骤</Button>}{isWebflow&&stage==='editing'?<Button variant="primary" onClick={prepare} disabled={Boolean(view.data.taskRunBlockedReason)}>保存并核对</Button>:isWebflow&&stage==='ready'?<MyControl view={view} as="button" id="task-run" type="button" className="od-button od-button--primary" onClick={run}>确认执行一次</MyControl>:!isWebflow?runButton:null}</footer>
+<footer className="task-params-sheet-actions"><Button variant="quiet" onClick={close}>关闭</Button>{isWebflow&&stage==='ready'&&<Button variant="quiet" onClick={cancelPrepared}>取消未运行步骤</Button>}{isWebflow&&stage==='unknown'&&<Button variant="secondary" onClick={query}>查询原请求</Button>}{isWebflow&&stage==='unknown'&&<Button variant="quiet" onClick={stop}>停止原请求</Button>}{isWebflow&&stage==='editing'?<Button variant="primary" onClick={prepare} disabled={Boolean(view.data.taskRunBlockedReason)}>保存并核对</Button>:isWebflow&&stage==='ready'?<MyControl view={view} as="button" id="task-run" type="button" className="od-button od-button--primary" onClick={run}>确认执行一次</MyControl>:!isWebflow?runButton:null}</footer>
 </dialog>
   </>;
 }

@@ -784,6 +784,50 @@ export function createTaskWorkbench({client,host,currentPageTarget,api=globalThi
       prepared=next;sheetStatus('submitted','唯一准备身份已占用，将调用原 RunHost。');
     });
   }
+  async function querySheet(event,expected){
+    if(!event?.isTrusted||myView.data.taskSheetRequest?.source!=='webflow')return false;
+    try{
+      const saved=await readSheet();
+      if(!saved||!samePin(saved.task,expected))
+        throw prepError('E_PREPARE_CHANGED','原准备记录已改变，不能查询其他身份');
+      prepared=saved;
+      if(saved.state==='ready'){
+        sheetStatus('ready','原准备仍未提交 RunHost，可以继续核对并明确确认。');
+        return true;
+      }
+      if(saved.state==='submitted'||saved.state==='unknown'){
+        if(!saved.runId){
+          sheetStatus('unknown','原准备已标记提交，但未取得可靠的 runId；禁止重跑。');
+          return true;
+        }
+        const snapshot=await client.controller.snapshotControllerRun({});
+        const current=installed.find(x=>samePin(x,saved.task));
+        const run=snapshot.runs?.find(x=>x.runId===saved.runId&&
+          current?.scriptId===x.revision?.scriptId);
+        const result=snapshot.results?.find(x=>x.runId===saved.runId&&
+          current?.scriptId===x.revision?.scriptId);
+        const label=run?.state?runStateNames[run.state]||run.state:'尚未读到可信运行记录';
+        sheetStatus('unknown','原 RunHost '+label+'。'+(result?'持久结果存在；':'结果尚未确认；')+
+          '资源释放尚未独立确认，不能自动重跑。');
+        return true;
+      }
+      sheetStatus(saved.state==='retired'?'retired':'editing',
+        saved.state==='retired'?'原 RunHost 已明确释放资源。':'尚未运行的准备已取消。');
+      return true;
+    }catch(e){sheetStatus('unknown','查询失败或状态未知；禁止新建执行。');fail(e);return false;}
+  }
+  async function stopSheet(event,expected){
+    if(!event?.isTrusted||myView.data.taskSheetRequest?.source!=='webflow')return false;
+    try{
+      const saved=await readSheet();
+      if(!saved||!samePin(saved.task,expected)||!['submitted','unknown'].includes(saved.state)||
+        !saved.runId||host.currentRun!==saved.runId)
+        throw prepError('E_STOP_UNAVAILABLE','原 RunHost 在当前窗口无可停止的运行槽；请使用原运行记录核对');
+      await host.stop({runId:saved.runId,controller:true,reason:'E_CANCELLED'});
+      sheetStatus('unknown','已向原 RunHost 请求停止；已产生的网页副作用不会撤销。请查询原请求验证收尾。');
+      return true;
+    }catch(e){sheetStatus('unknown','停止回执或运行槽未确认，不能自动重跑。');fail(e);return false;}
+  }
   function confirmSheet(event,expected){
     if(!event?.isTrusted||!preparationLoaded||preparationBusy||confirmClaimed||
       myView.data.taskSheetRequest?.source!=='webflow'||myView.data.taskSheetStage!=='ready'||
@@ -871,6 +915,21 @@ export function createTaskWorkbench({client,host,currentPageTarget,api=globalThi
           expectedUrl:captured.url,expectedWindowId:captured.windowId},
         deadlineAt:Date.now()+(resolved.manifest.deadlineMs??30000)});
       activeRunId=claim.runId;agentStartSubmitted=false;
+      if(preparedAttempt){
+        try{await sheetLock(async()=>{
+          const saved=await readSheet();
+          if(saved?.id!==preparedAttempt.id||saved.state!=='submitted')
+            throw prepError('E_PREPARE_CHANGED','运行已提交但保存的准备身份变化');
+          const value={...saved,runId:claim.runId};
+          await api.storage.local.set({[SHEET_KEY]:value});
+          if(serial(await readSheet())!==serial(value))
+            throw prepError('E_SAVE_UNKNOWN','真实 runId 持久读回失败');
+          prepared=value;
+        });}catch(e){
+          // The RunHost may already be executing. Never retry the start.
+          setTaskNotice(runOwnerKey,'原 RunHost 已收到执行；运行 ID 保存未知，禁止重新执行：'+formatTaskError(e));
+        }
+      }
       if(agentIntent&&agentStopRequested){
         // Stop can arrive while the RunHost admission RPC has been sent but
         // before its runId is known. Cancel the late run exactly once, and
@@ -882,7 +941,8 @@ export function createTaskWorkbench({client,host,currentPageTarget,api=globalThi
       setTaskNotice(runOwnerKey,`运行中：${resolved.manifest.title} · v${resolved.version}`);
       update(); // Expose the owning Stop immediately; do not rely on a later host event.
       const completion=await host.completion;
-      if(preparedAttempt&&!host.currentRun&&!completion?.pendingSettlement&&terminal.has(completion?.state)){
+      if(preparedAttempt&&!host.currentRun&&!completion?.pendingSettlement&&terminal.has(completion?.state)&&
+        completion.retirement?.state==='released'&&completion.result){
         try{await sheetLock(async()=>{
           const v=await readSheet();if(v?.id!==preparedAttempt.id||v.state!=='submitted')return;
           const next={...v,state:'retired',runId:claim.runId,retiredAt:Date.now()};
@@ -1102,6 +1162,8 @@ export function createTaskWorkbench({client,host,currentPageTarget,api=globalThi
   registerAction('taskRunSheetPrepare',prepareSheet);
   registerAction('taskRunSheetConfirm',confirmSheet);
   registerAction('taskRunSheetCancel',cancelSheet);
+  registerAction('taskRunSheetQuery',querySheet);
+  registerAction('taskRunSheetStop',stopSheet);
   registerAction('taskStopClick',asyncAction(()=>activeRunId && host.currentRun===activeRunId?
     host.stop({runId:activeRunId,controller:true}):Promise.resolve()));
   registerAction('taskRefreshClick',asyncAction(()=>refresh()));
