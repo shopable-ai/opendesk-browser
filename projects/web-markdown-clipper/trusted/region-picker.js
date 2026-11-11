@@ -4,14 +4,26 @@ export const REGION_PICK_TIMEOUT_MS=90000;
 const BLOCKED='input,textarea,select,option,button,[role="button"],[role="textbox"],[contenteditable]:not([contenteditable="false"]),nav,aside,header,footer,form,dialog,[inert],[aria-hidden="true"],[role="navigation"],[role="banner"],[role="toolbar"]';
 const STRUCTURAL='h1,h2,h3,h4,h5,h6,p,pre,ul,ol,table,blockquote,li';
 const TURN='article,[role="article"],[data-message-id],[data-turn-id],[data-message-author-role]';
-const semantic=el=>el.matches?.(TURN);
+const semantic=el=>Boolean(el.matches?.(TURN));
+function topLevelTurns(container){
+  const descendants=[...container.querySelectorAll?.(TURN)||[]];
+  // A single message can have both an <article> and nested data markers.
+  // Count only outermost descendants to avoid incorrectly treating one reply
+  // as multiple conversation turns.
+  return descendants.filter(el=>{
+    for(let parent=el.parentElement;parent&&parent!==container;parent=parent.parentElement){
+      if(semantic(parent))return false;
+    }
+    return true;
+  }).length;
+}
 const chars=el=>String(el.textContent||'').trim().length;
 
 export function regionCandidates(start,doc,win){
   if(!start||start.nodeType!==1||start.getRootNode()!==doc||
     start.closest?.(BLOCKED)||start.closest?.('[data-opendesk-clip-root]'))return [];
   const result=[];
-  let node=start,previous=0;
+  let node=start;
   while(node&&node!==doc.body&&node!==doc.documentElement&&result.length<14){
     if(node.nodeType!==1||node.matches?.(BLOCKED))break;
     const rect=node.getBoundingClientRect?.();
@@ -19,14 +31,19 @@ export function regionCandidates(start,doc,win){
     const length=chars(node);
     if(length>=16&&length<=2000000){
       // A conversation wrapper with multiple turns is never a default region.
-      const turns=node.querySelectorAll?.(TURN).length||0;
+      const turns=topLevelTurns(node);
       const ownTurn=semantic(node);
       const multipleTurns=turns>1||(!ownTurn&&turns>0&&node.matches?.('main,[role="main"]'));
+      // Never use the full application shell as a region, even on a single-
+      // message page; content is picked from children instead.
+      const shell=node.matches?.('main,[role="main"]')&&
+        (node.querySelector?.('nav,aside,form,[role="navigation"],[role="textbox"]')||length>80000);
       const editable=node.querySelector?.('input,textarea,select,[contenteditable]:not([contenteditable="false"]),[role="textbox"]');
       const hasBlocks=Boolean(node.querySelector?.(STRUCTURAL));
-      if(!multipleTurns&&!editable&&(hasBlocks||ownTurn||node.matches?.(STRUCTURAL))){
-        // Skip huge upward jumps into the entire thread / site shell.
-        if(result.length&&length>Math.max(previous*3,previous+2500)&&!ownTurn)break;
+      if(!multipleTurns&&!shell&&!editable&&(hasBlocks||ownTurn||node.matches?.(STRUCTURAL))){
+        // A long reply commonly jumps from a short paragraph directly to its
+        // containing 50-screen <div>; don't stop at the paragraph. The first
+        // multi-turn wrapper, edit surface or outer shell remains excluded.
         result.push(node);previous=length;
       }
     }
