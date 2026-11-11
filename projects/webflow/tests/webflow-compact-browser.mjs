@@ -235,6 +235,29 @@ try{
       'Icon controls expose names and native title hints');
     await assertLayout(width,'Scripts');
     await screenshot('scripts-'+width);
+    // R1 onboarding is source UI-only and MUST NOT call the trusted Run Host.
+    const beforeOnboarding=await (await fetch(fixtureUrl+'/counts')).json();
+    await click('#wf-add-script');
+    await eventually('document.querySelectorAll("#wf-script-add-sheet .wf-add-way").length===4','four trusted onboarding routes');
+    await assertLayout(width,'Script add menu');
+    await click('#wf-script-add-sheet .wf-add-way:nth-of-type(2)');
+    await eventually('document.querySelector("#wf-script-add-sheet")?.textContent.includes("顶部")','developer route explains manual Host navigation');
+    assert.ok(await evaluate('document.querySelector("#wf-script-add-sheet").textContent.includes("没有跳转")'+
+      '||document.querySelector("#wf-script-add-sheet").textContent.includes("手动点击")'));
+    await click('#wf-script-add-sheet button');
+    await eventually('document.querySelectorAll("#wf-script-add-sheet .wf-add-way").length===4','return to four routes');
+    await click('#wf-script-add-sheet .wf-add-way:nth-of-type(3)');
+    await eventually('!!document.querySelector("#wf-codex-text")','editable Codex prompt');
+    assert.ok(await evaluate('document.querySelector("#wf-codex-text").value.includes("shopable-ai/opendesk-browser")'));
+    assert.ok(await evaluate('document.querySelector("#wf-codex-text").value.includes("delegatedTasks")'));
+    await key('Escape','Escape',27);
+    await eventually('!document.querySelector("#wf-script-add-sheet")','Escape dismisses script onboarding');
+    await eventually('document.activeElement?.id==="wf-add-script"','script onboarding restores focus');
+    const afterOnboarding=await (await fetch(fixtureUrl+'/counts')).json();
+    assert.equal(afterOnboarding.starts,beforeOnboarding.starts,'Onboarding must not execute tasks');
+    assert.equal(afterOnboarding.preparations,beforeOnboarding.preparations,'Onboarding must not prepare tasks');
+    assert.equal(afterOnboarding.configurations.length,beforeOnboarding.configurations.length,
+      'Onboarding must not open trusted Run Sheet');
     await searchFor('百度');
     await eventually('document.querySelectorAll(".wf-task-row").length===1','Chinese search');
     await searchFor('www.google.com');
