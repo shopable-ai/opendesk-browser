@@ -82,3 +82,63 @@ These are **independent category estimates of current evidence adequacy**, not f
 5. Fix only actual failures, rerun affected tests and preserve other agents' changes. If no fix is needed, do not bump version or manufacture a source commit. Record current candidate SHA and evidence, then recalculate independent scores. Accept only with actual required evidence and mean ≥95.
 
 No native Chrome session, shared browser profile, install state, user files or source files were modified during this blocked verification.
+
+---
+
+## R3 continued acceptance — 2026-11-12
+
+- Task: `OD-MOUSE-GESTURES-DIRECTION-ARROWS-R3-LOCAL-ACCEPTANCE`
+- Scope: native repository Node tests, formal Sidebar Tool candidate build, and physical macOS Chrome acceptance only. R1/R2 source and 62 V8 checks were **not** repeated.
+- Disposition: **REMOTE_SOURCE_RECHECKED / LOCAL_NODE_BLOCKED / CANDIDATE_BUILD_BLOCKED / NATIVE_CHROME_BLOCKED / NOT_ACCEPTED**.
+- Remote `main` HEAD observed before this document update: `f469c1f832c959faba4f6791a8509918aafc542c`; remote `main` moved during the R3 review, so this is an observation and **not** a local checkout.
+- From R1 feature commit `489fcf76ce1593984385624dee51545fa9f640b0` to this remote HEAD: comparison `ahead`, 32 commits ahead, 0 behind; files under `projects/mouse-gestures/` changed: **0**. This does **not** check uncommitted changes on the user's Mac.
+
+### Existing source and test evidence, rechecked remotely
+
+- Read repository `AGENTS.md`, current project README, this R2 record, six tests, the core Page modules, project metadata, and the existing packaging Skill. No new source edit was justified from this remote read-only review.
+- `package.json` and `tool.config.json`: version `0.3.0`, Page Module revision `4`; static import chain `src/page/main.js` → `runtime.js` → `gesture.js` → `segments.js` exists.
+- Core source blobs remain `segments.js=9e199df9d895ae0fa521b0bc7236764b03779697`, `gesture.js=10f46df7b1845a513c0d8cbd87a14622f3947508`, `runtime.js=8c4d823abb295bfe9d412604d8b05365ebb8d228`, `src/main.js=43e32aef8b64bc93130259b5297c7787224f5e22`.
+- Six original tests exist in GitHub (`segments`, `gesture`, `four-directions`, `runtime`, `panel`, `preview-parity`). Historical **62/62 isolated V8 checks** remain R2 evidence only and were **not** counted as R3 native Node tests.
+- GitHub Actions run [43049960722](https://github.com/shopable-ai/opendesk-browser/actions/runs/43049960722) was queried again: `status=queued`, `conclusion=null`; its `discover` job is queued and its artifact list empty. **No CI PASS or package may be inferred.**
+
+### Actual attempted execution and blockers
+
+1. `CodexPro.open_current_workspace` → `UNAVAILABLE: Error code: UNAVAILABLE; Error: McpServerError: Connection failed.` No workspace ID, dirty-file state, or local agent ownership could be obtained.
+2. OpenDesk Mac Desktop `tm_status`, `tm_inspect_desktop`, `tm_browser_status`, and Code Mac `tm_files_status` → `UNAVAILABLE: ... MCP SSE probe returned 429 from openai.org`. No host-bound browser session, Chrome tab, user authorization or physical mouse evidence available.
+3. Independent execution container: Node `v22.16.0` exists, but no Git checkout; `git ls-remote https://github.com/shopable-ai/opendesk-browser.git refs/heads/main` → `fatal: ... Could not resolve host: github.com`. This is a **separate container**, not the Mac Codex workspace. No synthetic reenactment has been counted as native acceptance.
+4. **Not executed:** `node --test projects/mouse-gestures/tests/*.test.mjs`; `node --check` for `segments.js`, `gesture.js`, `runtime.js`, `page/main.js`, and `src/main.js`. Native Node pass/fail numbers, TAP stdout and original failure traces: **unavailable**.
+5. **Not executed:** `node scripts/build-sidebar-tool.mjs projects/mouse-gestures --out artifacts/sidebar-tools/mouse-gestures/candidate.opendesk-tool.json`. GitHub project listing shows no tracked `mouse-gestures.opendesk-tool.json`. No verified candidate path on the Mac, candidate bytes, SHA-256, package source identity or `--promote-from` / `--check-project` receipt exists. **No promotion performed.**
+6. **Not executed:** real macOS Chrome plain right-click, one-leg arrow, three two-leg examples, configured-once action, partial/diagonal/reversal/third-leg safeguards, Escape/blur/visibility, persisted on/off, Alt-left, `showTrace=false`, permission revoke, disable/uninstall cleanup, and menu-first/menu-after screenshots/video. **All native Chrome acceptance cases BLOCKED.** Windows remains `NOT_TESTED`.
+7. No remote business source was modified, no local Mac or Chrome profile touched, and no repair, version bump, duplicate builder, new branch or purported installable artifact created. The only intended write for R3 is this accurate continuation of the existing acceptance document.
+
+### Acceptance matrix (R3)
+
+| Gate | Evidence | R3 status |
+| --- | --- | --- |
+| R1 implementation / remote source wiring | Current source and blobs read; comparison from R1 shows 0 business-file changes | SOURCE_RECHECKED, not native-verified |
+| Six repository test files | Existence and imports confirmed; **no native CLI output** | LOCAL_NODE_BLOCKED |
+| Five native Node syntax checks | No real workspace | BLOCKED |
+| Official candidate built from existing packager | No builder execution, candidate file, byte digest or promotion | BLOCKED |
+| Real installed macOS Chrome / physical mouse / menu timing | Mac services HTTP 429; cannot access native input | BLOCKED |
+| Disable / revoke / uninstall lifecycle | No installed Chrome receipt | BLOCKED |
+| Windows | No Windows environment evidence | NOT_TESTED |
+| Product source repair | No reproduced source failure; source left untouched | NONE |
+| Production release / final sign-off | Required gates missing | **NOT ACCEPTED** |
+
+### Independent six-view evidence-quality scores (provisional, 0–100)
+
+Scores measure **adequacy of verified evidence** rather than claiming six external human audits. Remote recheck does not substitute for missing local/Chrome gates, so the R2 provisional deductions remain warranted.
+
+| View | Score | Principal remaining deduction |
+| --- | ---: | --- |
+| Product | 86 | Actual installed end-user behavior unknown |
+| Interaction | 91 | Rounded 36×36 arrow presentation not viewed with a physical mouse |
+| Algorithm | 93 | Native repository Node and OS input lifecycle not rerun |
+| Chrome | 40 | No actual menu-first / menu-after or installed Chrome behavior |
+| Security | 82 | Real authorization, withdrawal, unload and cleanup not verified |
+| Test quality | 70 | 62 isolated checks only; missing Node TAP, build digest and Chrome evidence |
+| **Arithmetic mean** | **77.0 / 100** | **Below the ≥95 goal. NOT ACCEPTED.** |
+
+### Precise next unblocked actions
+
+When the *authorized user's Mac* can be connected, inspect its current `main` / dirty files / competing agents first. Run the exact six requested native Node CLI commands and retain raw TAP + syntax-check results. If passing, run the existing packager to the stable candidate path, validate package/source/version/revision/identity and only then consider promotion under the repository's existing gate. Use the authorized real macOS Chrome session with a physical mouse to collect the requested menu-first, menu-after, direction, cancellation and revoke evidence. Report real failures and fix only reproduced defects; recalculate scores and accept **only** after required evidence exists. Do not rerun or re-label the historical isolated 62 checks.
