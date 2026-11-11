@@ -1,8 +1,8 @@
 {
   "id": "mouse-gestures",
-  "version": "0.2.1",
+  "version": "0.3.0",
   "title": "鼠标手势",
-  "description": "获准网页上默认开启四方向手势，保留右键菜单并支持 Option/Alt 左键替代。",
+  "description": "获准网页上默认开启四方向与有限双段组合，使用独立圆角箭头反馈并保留原生右键菜单。",
   "format": "opendesk.sidebar-tool.v2",
   "capabilities": ["page.module", "storage.local"],
   "files": {
@@ -13,5 +13,5 @@
   "assets": [],
   "requires": {"browserSdk": "1.0.0"},
   "contributes": {"contextMenus": []},
-  "pageModule": {"revision": 3}
+  "pageModule": {"revision": 4}
 }

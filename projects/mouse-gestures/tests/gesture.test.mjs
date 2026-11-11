@@ -2,7 +2,7 @@ import assert from 'node:assert/strict';
 import test from 'node:test';
 import {GESTURE_LIMITS, mountBackGesture} from '../src/page/gesture.js';
 
-function fixture({historyLength=3,selection=false,authorizeGesture=()=>true}={}) {
+function fixture({historyLength=3,selection=false,authorizeGesture=()=>true,gestureMappings={}}={}) {
   const subscribers = new Map(), disposers = [];
   const host = {style:{values:new Map(),setProperty(name,value){this.values.set(name,value);}}};
   const createNode = () => ({style:{},attributes:new Map(),children:[],
@@ -17,7 +17,7 @@ function fixture({historyLength=3,selection=false,authorizeGesture=()=>true}={})
       disposers.push(()=>all.delete(callback));},
     onDispose(fn){disposers.push(fn);},
     destroy(){if(stopped)return;stopped=true;for(const fn of disposers.reverse())fn();}};
-  const api=mountBackGesture({ui,doc,win,authorizeGesture,navigateBack(){back++;}});
+  const api=mountBackGesture({ui,doc,win,authorizeGesture,gestureMappings,navigateBack(){back++;}});
   const target={closest:()=>false};
   function dispatch(type, options={}) {
     const key=(['blur'].includes(type)?'win:':'doc:')+type;
@@ -156,5 +156,38 @@ test('stop/disposal or newer gesture revokes an asynchronous action decision',as
   rightDown(f);resolve(true);await Promise.resolve();await Promise.resolve();
   assert.equal(f.backCount(),0);
   f.api.setEnabled(false);moveLeft(f);rightUp(f);
+  assert.equal(f.backCount(),0);
+});
+
+test('arrow overlay shows exactly one rounded-square glyph per recognized segment',()=>{
+  const f=fixture();const svg=f.ui.content.children[0];
+  const [line,first,second]=svg.children;
+  rightDown(f);moveLeft(f,110,100);
+  assert.equal(first.attributes.get('visibility'),'visible');
+  assert.equal(first.children[0].attributes.get('rx'),'9');
+  assert.equal(first.children[1].textContent,'←');
+  assert.equal(second.attributes.get('visibility'),'hidden');
+  f.dispatch('mousemove',{clientX:110,clientY:170});
+  assert.equal(first.attributes.get('visibility'),'visible');
+  assert.equal(second.attributes.get('visibility'),'visible');
+  assert.equal(second.children[1].textContent,'↓');
+  assert.ok(line.attributes.get('d').includes('L'));
+  rightUp(f,110,170);assert.equal(f.backCount(),0);
+  assert.equal(first.attributes.get('visibility'),'hidden');
+  assert.equal(second.attributes.get('visibility'),'hidden');
+});
+test('mapped two-segment gesture executes once, unmapped combo never falls back',()=>{
+  const off=fixture();rightDown(off);moveLeft(off,110,100);
+  off.dispatch('mousemove',{clientX:110,clientY:170});rightUp(off,110,170);
+  assert.equal(off.backCount(),0);
+  const on=fixture({gestureMappings:{'left-down':'left'}});
+  rightDown(on);moveLeft(on,110,100);
+  on.dispatch('mousemove',{clientX:110,clientY:170});rightUp(on,110,170);
+  assert.equal(on.backCount(),1);
+  rightUp(on,110,170);assert.equal(on.backCount(),1);
+});
+test('an unfinished second segment cannot execute the first segment',()=>{
+  const f=fixture();rightDown(f);moveLeft(f,110,100);
+  f.dispatch('mousemove',{clientX:110,clientY:118});rightUp(f,110,118);
   assert.equal(f.backCount(),0);
 });

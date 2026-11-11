@@ -1,4 +1,31 @@
-# Mouse Gestures · 双阈值、原生右键兼容与安装后默认开启（0.2.1）
+# Mouse Gestures · 独立方向箭头与双段组合识别（0.3.0 / Page revision 4）
+
+> 源码候选：DIRECTION_ARROWS_SOURCE_WIRED。本版本尚未获得正式 OpenDesk 安装的真实 macOS Chrome 原生右键菜单、权限撤销和同一候选包身份验收证据；不得标记为已发布生产 PASS。历史 0.2.1 验证仅作为基线。
+
+## 本轮增量功能（OD-MOUSE-GESTURES-DIRECTION-ARROWS-R1）
+
+- **方向视觉**：每个达到 56px 的有效段，在实际轨迹段末端附近显示一枚 36×36px、9px 圆角的单向箭头（←、→、↑、↓），每枚箭头独立成块。保留纯 SVG 轨迹，不使用首尾相连或双头的箭头图标。候选段仍显示灰色虚线；无效、未配置组合转为橙色提示。鼠标附近的状态文字用“左 / 下”表述顺序，不拼接两个箭头 glyph。
+- **有限两段识别**：单方向仍为 12px 意图、56px 激活、28px 侧向约束；转向以当前段的最远点为基准，转向达到 12px 开始锁定第二段、达到 56px 才认可。连续同向合并；超过 12px 回退、斜线、第三段或中途结束的第二段不执行。仍仅在松开鼠标后执行一次动作。
+- **组合映射**：仅允许 8 种直角两段方向（左上、左下、右上、右下、上左、上右、下左、下右）。Side Panel「操作偏好」内可把某个组合映射为已有的后退、前进、刷新、滚到底部四种动作。默认映射为空，未配置的组合**不会回退执行第一段动作**。存储使用原 preferences.gestureMappings 和既有 ETag/CAS；不扩大浏览器权限。
+- **原生右键保护**：保持原来的右键、Menu-first/Mac 放弃、Menu-after 关联拦截、Esc、失焦、撤权取消和 Option/Alt + 左键替代路径。showTrace=false 同时隐藏路径、圆角箭头及文字反馈，但不禁用识别。未获取真实 Chrome 证据时，这些行为仍待原生验收。
+- **预览**：preview/index.html 为完全离线的左键练习模拟，嵌入纯分段逻辑快照，并有源码一致性回归检查；它不安装真实插件、申请权限或执行网页导航。
+
+## 验证分层
+
+```bash
+node --test projects/mouse-gestures/tests/*.test.mjs
+node --check projects/mouse-gestures/src/page/segments.js
+node --check projects/mouse-gestures/src/page/gesture.js
+node --check projects/mouse-gestures/src/page/runtime.js
+node --check projects/mouse-gestures/src/page/main.js
+node --check projects/mouse-gestures/src/main.js
+```
+
+初步纯分段模块在隔离本地 Node v22.16.0 运行 **6/6 PASS**（未包含正式模块打包与 Chrome）。原仓库 Node 全套、构建/包一致性、Chrome macOS / Windows 原生手势 **等待本轮新增源代码候选的验证回执**，未执行或没有回执时保持 NOT_TESTED。真实安装授权和撤权测试必须使用仓库已有机制、同一候选版本，不用模拟替代。
+
+---
+
+## 历史 0.2.1 基线说明
 
 > 当前为已提交到 main 的 SOURCE_WIRED 候选。真实 Chrome 原生鼠标菜单时序、安装/升级、网站权限、撤权与同一包身份尚未验收：NATIVE_CHROME_NOT_TESTED / INSTALL_NOT_TESTED。不能将页面模拟或隔离逻辑测试记成正式发布 PASS。
 
