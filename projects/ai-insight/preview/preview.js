@@ -84,7 +84,7 @@
       '<div class="item mt"><strong>当前有效结论</strong><p class="note">'+E(x.result)+'</p><strong>下一步</strong><p class="note">'+E(x.next)+'</p></div>'+
       '<div class="mt">'+action+'</div>'+validation+
       '<hr class="divide"><div class="row">'+B('Side Panel','surface','panel','primary')+B('PC 问题详情','tab','problems')+B('收起','site-expand')+'</div>'+
-      '<div class="row">'+(g?.metadata?B('暂停此站点观察','site-pause',g.origin,'danger'):g?B('模拟重新授权','site-regrant',g.origin):tag('站点未授权','warn'))+B('隐藏提示','site-visibility')+'</div>'+
+      '<div class="row">'+(g?.metadata?B('暂停观察（模拟撤权）','site-pause',g.origin,'danger'):g?B('模拟重新授权','site-regrant',g.origin):tag('站点未授权','warn'))+B('隐藏提示','site-visibility')+'</div>'+
       '<p class="hint mt">隐藏提示仅改变 UI；暂停将修改模拟授权版本并阻断后续观察。真实授权需用户另行批准。</p>';
  };
 
