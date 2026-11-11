@@ -41,6 +41,16 @@
 **后续独立任务：** R2 通用可信「已安装 Task Picker + 跨应用动态绑定授权」公开 SDK/审阅与撤销（含精准版本 pin），R3 ZIP/目录/仓库/AI 高级导入。两个任务不重建 TaskWorkbench/Installer/权限 Store，也不并入本轮 MVP。
 
 
+
+**R2 远端差量核查（OD-UNIFIED-TASK-IMPORT-R1-CLOSURE；2026-11-11，仅继承与验证，不重复开发）：**
+- GitHub `main` 只读快照：`e928987848d2783e68a541b4e2e4bd146651a9df`。R1 的可信拖入/选择、TaskWorkbench 分流与 Web Flow `+` 四路径实现仍在源码；截至本次核查，没有可继承的本任务 Node/Chromium 完整 PASS 回执。
+- 本次最新 Web Flow CI：[run #43045910826](https://github.com/shopable-ai/opendesk-browser/actions/runs/43045910826)，触发 HEAD `3e05b2c093f4f60d66a55a142e2aeaedbbbf2dd6`，读回 `pending/无结论`；旧 [run #43042977172](https://github.com/shopable-ai/opendesk-browser/actions/runs/43042977172) 仍为 queued，无通过凭证。
+- 对比真实源码与唯一正式 JSON：`src/ui/main.js` 包含 `wf-add-script`，但 `webflow.opendesk-tool.json` 不包含此入口，版本仍 `0.3.32`；正式 JSON 为 105661 字节、SHA-256 `9d017ddf205da48e6106078d0495e31cf52bc16b113d907b03026fb52e26ff73`，固定百度 1.1.5 / Google 1.0.3 及五项 capabilities 未扩展。该正式包**不代表本次 R1 新功能已交付**。
+- `.github/workflows/webflow-package.yml` 明确普通 push 只执行候选构建、Chromium 与本地晋升检查；仅 `workflow_dispatch` 才会按原条件写入规则提交正式包。必须先取得有效测试回执并按真实版本规则升级，再走原候选→门禁→晋升→同源→受控发布，不能直接修改正式 JSON。
+- 本机 CodexPro `open_current_workspace` 返回 `UNAVAILABLE: Connection failed`；OpenDesk Mac Desktop/Code/Browser status 返回 HTTP 429；当前没有获准的真实 Chrome Side Panel 控制、安装版本、文件拖放、授权及 Run/Result 现场证据。本轮没有执行任何 Task、触发聊天发送或重放 UNKNOWN。
+- **R2 八层状态（仅本任务 R1）：** `SOURCE=PARTIAL`（源码存在但未有新编译/运行回执）；`NODE=NOT_TESTED`；`PACKAGE=FAIL`（当前正式 0.3.32 不含新入口）；`CHROMIUM=NOT_TESTED`；`CHROME_NATIVE=BLOCKED`；`INSTALL=NOT_TESTED`；`BUSINESS=NOT_TESTED`；`RELEASE=BLOCKED`。上述状态不同于历史的其他版本 PASS。
+- **剩余唯一链路：** 取得当前源码同源 Node/Chromium CI 完整成功证明→核对并安全升级/发布含新入口的唯一 Web Flow 包→在真实 Chrome 通过原可信安装审阅→实际验证拖放分流、四路径焦点/返回、固定任务授权/撤销及不重复执行→按证据升级八层状态。已实现 R1 功能不重复设计或开发；R2 动态绑定与 R3 高级导入不纳入。
+
 ---
 
 ## 概览清理 R1（2026-11-11；OD-WEBFLOW-OVERVIEW-CLEANUP-R1）
