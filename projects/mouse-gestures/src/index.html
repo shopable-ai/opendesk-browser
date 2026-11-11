@@ -1,1 +1,17 @@
-<main class="mg-panel"><h2>鼠标手势 · 技术试点</h2><p>在已获网站访问授权的 <code>example.com</code> 页面，按住鼠标右键向左移动至少 56px，然后松开，即可返回上一条历史记录。</p><p>普通右键点击保持原生菜单；Esc 取消当前手势。当前仅支持网页后退，不提供标签页控制与自定义规则。</p><p id="mg-runtime" role="status"></p></main>
+<section class="mg-panel" aria-label="鼠标手势">
+  <div class="mg-setting-row">
+    <div class="mg-setting-copy"><label for="gesture-enabled">开启鼠标手势</label>
+      <p class="mg-note">在已授权网页上使用右键手势</p></div>
+    <input id="gesture-enabled" class="mg-switch" type="checkbox" role="switch"
+      aria-label="开启鼠标手势" aria-describedby="gesture-help" disabled>
+  </div>
+  <div class="mg-section-head"><h2 id="gesture-list-title">默认手势</h2></div>
+  <ul class="mg-list" aria-labelledby="gesture-list-title">
+    <li class="mg-item"><span class="mg-arrow" aria-hidden="true">←</span><span>后退</span></li>
+    <li class="mg-item"><span class="mg-arrow" aria-hidden="true">→</span><span>前进</span></li>
+    <li class="mg-item"><span class="mg-arrow" aria-hidden="true">↑</span><span>刷新</span></li>
+    <li class="mg-item"><span class="mg-arrow" aria-hidden="true">↓</span><span>到底</span></li>
+  </ul>
+  <p id="gesture-help" class="mg-hint">松开右键执行 · Esc 取消</p>
+  <p id="gesture-error" class="mg-error" role="alert" hidden></p>
+</section>

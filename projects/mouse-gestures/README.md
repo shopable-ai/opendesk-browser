@@ -1,4 +1,30 @@
-# Mouse Gestures · P0 右键后退技术试点
+# Mouse Gestures · 四方向 MVP（待真实 Chrome 验收）
+
+> OD-MOUSE-GESTURES-4DIR-REAL · 0.2.0 源码候选：四方向 Page 手势、Side Panel 开关、应用私有存储及普通 HTTP(S) 网站匹配已接线。真实 Chrome 安装、原生右键菜单与宿主权限撤销仍须实测，不能标记为正式验收。
+
+- 正式 Side Panel 位于 `src/index.html` / `src/style.css` / `src/main.js`；仅保留「开启鼠标手势」开关、两列四项默认手势和「松开右键执行 · Esc 取消」。初次没有保存的设置默认关闭。
+- Page 在 `src/page/gesture.js` 实现 ← 后退、→ 前进、↑ 刷新、↓ 滚至文档底部。56px 激活，横纵主轴 + 28px 垂直偏移限制，斜向/选区/编辑控件排除和单次执行保护。
+- `src/page/runtime.js` 使用现有 `OpenDeskAppPage`、受管 UI、`storage.local` 与 Page Authority。设置读回失败时 fail-closed；在执行手势前重新读取最新设置并核验身份，避免关闭开关后仍执行。周期性同步仅用于旧页面 UI 及时取消轨迹；不能冒充跨所有标签页即时推送。
+- `pageRules.matches` 为 `http://*/*` / `https://*/*`，与官方现有 Page Module 格式一致。匹配不等于安装、Chrome User Scripts 或网站权限已批准；仍须原 Installer/Authority 审阅。Chrome 内部页、浏览器 PDF、不获准的 iframe 不支持。
+- 单文件 `preview/index.html` 只模拟界面，不调用 Chrome API，也不写正式设置。旧的左滑试点证据仅适用于历史代码，不支持新版本生产通过声明。
+
+定向开发验证：
+
+```bash
+node --test projects/mouse-gestures/tests/*.test.mjs
+node --check projects/mouse-gestures/src/page/gesture.js
+node --check projects/mouse-gestures/src/page/runtime.js
+node --check projects/mouse-gestures/src/page/main.js
+node --check projects/mouse-gestures/src/main.js
+node scripts/build-sidebar-tool.mjs --help
+```
+
+正式验收必须在独立已安装 Chrome + 用户批准的普通网页上验证四方向真实右拖、普通右键菜单、开关即时停用、刷新重启、卸载撤权清理和同一候选包身份。Mac 上原生菜单可能先于鼠标移动出现；Node/无头回归不能替代这一测试。
+
+---
+
+## 历史试点记录（0.1.0）
+
 
 > 2026-11-11：SOURCE_CREATED / Node 9/9 PASS / standalone headless DOM smoke PASS；正式 OpenDesk 安装、用户 Chrome/权限撤销、production `NOT_TESTED`；组合包 `NOT_BUILT`，不可冒称已正式交付。
 
