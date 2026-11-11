@@ -209,7 +209,7 @@ const tabs: {id:Page; name:string; caption:string}[] = [
     if (!dialog) return;
     if (editorOpen && !dialog.open) {
       dialog.showModal();
-      dialog.querySelector<HTMLInputElement>('#ep-host')?.focus();
+      dialog.querySelector<HTMLInputElement>(presentation==='management'?'#ep-name':'#ep-host')?.focus();
     }
     if (!editorOpen && dialog.open) dialog.close();
   }, [editorOpen]);
