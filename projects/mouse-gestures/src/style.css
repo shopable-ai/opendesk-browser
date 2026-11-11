@@ -17,3 +17,12 @@
 .mg-error{margin:12px 0 0;color:var(--od-danger,#b42318);font-size:12px;line-height:1.55}
 @media(max-width:260px){.mg-item{padding:8px;gap:6px}}
 @media(prefers-reduced-motion:reduce){.mg-switch:before,.mg-switch:after{transition:none}}
+
+.mg-preferences{margin-top:12px;border-top:1px solid var(--od-border,#dfe6ef);padding-top:12px}
+.mg-preferences summary{cursor:pointer;font-size:12px;color:var(--od-text-secondary,#5b6e86);font-weight:600;list-style-position:inside}
+.mg-preferences summary:focus-visible{outline:2px solid var(--od-brand,#365eda);outline-offset:2px}
+.mg-preference-row{display:flex;align-items:center;justify-content:space-between;gap:8px;margin:12px 0 6px;font-size:12px}
+.mg-preference-row select{min-width:0;max-width:190px;min-height:34px;padding:5px 8px;border:1px solid var(--od-border,#dfe6ef);border-radius:8px;color:var(--od-text,#1b2c49);background:var(--od-bg,#fff)}
+.mg-preference-row select:disabled,.mg-trace-option input:disabled{opacity:.55;cursor:not-allowed}
+.mg-trace-option{display:flex;align-items:center;gap:8px;min-height:36px;margin-top:8px;font-size:12px;cursor:pointer}
+.mg-trace-option input{accent-color:var(--od-brand,#365eda);width:16px;height:16px;margin:0}
