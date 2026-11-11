@@ -845,9 +845,23 @@ export function createTaskWorkbench({client,host,currentPageTarget,api=globalThi
       navigate('develop');
       return ui('task-catalog-status').text='文件已进入「开发」的未保存草稿；请先审阅、验证，不会自动安装或运行。';
     }
-    const value=await client.request('importTaskPackage',{package:parsed});
+    // A byte-identical Task ID + version is idempotent in the existing Host.
+    // Do not call an existing available/verified version "newly imported".
+    const previous=catalog.find(row=>row.taskId===parsed?.manifest?.taskId &&
+      row.version===parsed?.manifest?.version);
+    let value;
+    try{value=await client.request('importTaskPackage',{package:parsed});}
+    catch(error){
+      if(error?.code==='E_REQUEST_CONFLICT')
+        throw {code:'E_REQUEST_CONFLICT',message:'任务 ID 与版本已存在，但固定源码或 Manifest 不同；不能覆盖，请修改版本或核对原任务。'};
+      throw error;
+    }
+    const duplicate=(value?.stage!=='candidate'&&!!value?.stage)||
+      previous?.manifestHash===value?.manifestHash && previous?.manifestHash!=null;
     await refresh(identity(value));announce();
-    return ui('task-catalog-status').text=`已导入待验证任务 ${identity(value)}；请核对源码与 Manifest，尚未安装或授权。`;
+    return ui('task-catalog-status').text=duplicate?
+      `任务 ${identity(value)} 的同一固定版本已存在；未重复创建、安装或授权，请在目录核对状态。`:
+      `已导入待验证任务 ${identity(value)}；请核对源码与 Manifest，尚未安装或授权。`;
   }
   // Only a real trusted click is an active attempt; this is telemetry only,
   // never an execution requirement or a permission prompt.
