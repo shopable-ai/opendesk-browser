@@ -16,7 +16,7 @@
 | 路径 | 差量 |
 | --- | --- |
 | `src/index.html`、`src/style.css`、`src/main.js` | 第五种区域模式、320px 五列布局、开始/取消/重新选择、错误/流式快照状态；旧预览/保存/复制/下载重用；迟到结果按页面 epoch 与版本丢弃 |
-| `trusted/region-picker.js`（新） | 单次悬停容器高亮、单击、↑/↓ 调层级、Esc、超时、页面离开和事件清理；过滤表单/编辑区、根和多轮候选 |
+| `trusted/region-picker.js`（新） | 单次悬停容器高亮、单击或聚焦后 Enter/空格、↑/↓ 调层级、Esc、超时、页面离开和事件清理；过滤表单/编辑区、根和多轮候选 |
 | `trusted/page.js`、`trusted/policy.js` | `clip.region`、`clip.region.cancel`；基于现有工具身份、页面来源、安装 epoch 与站点授权的验证；点击立即使用原有 `domToMarkdown` 转换器；撤权触发取消 |
 | `src/ui/sidebar-tools.js`、`src/sidebar-tools/bridge.js` | 有限操作清单、`pickId` 验证、现有 `tabId / frameId:0 / documentId` 路由、会话校验、110 秒 Side Panel 读请求上限；取消走相同可信通道 |
 | `preview/mock-host.js`、`preview/stage.html` | 原正式 HTML/CSS/JS 源绑定生成舞台；隔离的模拟长回复 A（36 章）、B（4 章）、单击/范围调整/Esc、流式/拒绝/超限/读取失败模拟，标识 `UI_PREVIEW_ONLY` |
@@ -26,9 +26,9 @@
 
 ## 3. 测试和可复核证据
 
-- 已完成：通过 GitHub 读取并回写上述源文件；区域选择器 JS 源码经 V8 语法检查，模拟环境直接运行仓库中 5 个 `region-picker.test.mjs` 用例：**5/5 PASS**。但这不是本地 `node --test`，也未驱动 Chrome。
+- 已完成：通过 GitHub 读取并回写上述源文件；区域选择器 JS 源码经 V8 语法检查，模拟环境直接运行仓库中 6 个 `region-picker.test.mjs` 用例（增加 Enter 阻止原链接导航）：**6/6 PASS**。但这不是本地 `node --test`，也未驱动 Chrome。
 - 已完成：在连接器 V8 受限环境中模拟运行 `ui.test.mjs` 测试夹具 **27/28 PASS**；剩余 1 项因该环境缺少 Node `Buffer`/动态 `import` 无法执行，**不能**归类为真实 FAIL 或 PASS。
-- 已完成：`preview/stage.html` 按 `scripts/preview/clipper-stage.mjs` 的源码顺序、离线 CSP、正式 CSS Token 与 SHA256 元数据重新生成。来源 SHA256：`43374ea534274f3f0abd80c922f522e36ad1cb59b2de93d09a07a86913573be0`；本次舞台 SHA256：`15147539ace52d710b697682ad01f535b57a4f07b62b4d03ef23f84cc3410f45`。这些是代码层一致性检查，不能替代浏览器实测。
+- 已完成：`preview/stage.html` 按 `scripts/preview/clipper-stage.mjs` 的源码顺序、离线 CSP、正式 CSS Token 与 SHA256 元数据重新生成。来源 SHA256：`6b02bf51b7ab6b533cfda312d26b3461163d00b9b544add4ec89c8006974c62e`；本次舞台 SHA256：`267c373b5536629af487adfd90e6737b7feadbad73cd2f243c8d13f2789ccb02`。这些是代码层一致性检查，不能替代浏览器实测。
 - 尚未执行：`node --test projects/web-markdown-clipper/tests/*.test.mjs`、`npm run build`、`node scripts/build-sidebar-tool.mjs ... --check-project`、app-ci、React 同源预览重构建、真实 Chrome 安装/授权/保存/读回/升级；**退出码：N/A，状态：BLOCKED/NOT_TESTED**。
 - 当前 `tool.config.json` 和发行包均仍为 **1.2.10**；源码已变化，正式包和当前源码不一致，`--check-project` 在完成测试/候选包晋升前**预期不会通过**。不要通过取消测试或同版本覆盖跳过正式发布闸门。
 - GitHub Actions 针对本轮主分支推送自动排队（`markdown-tools-r22`、`app-ci`、`sidebar-preview-contract`），记录时状态为 `queued`，还没有 PASS/FAIL 结论。队列并非测试通过证据。
