@@ -6,14 +6,20 @@ const input=q('clip-source'),display=q('clip-preview'),state=q('clip-status');
 const modes=Array.from(root.querySelectorAll('[data-clip-mode]'));
 let mode='article',version=0,pageEpoch=0,pageKey='',pageInfo=null;
 let results=Object.create(null),record=null,markdown='',exportBusy=false,extracting=false,saving=false;
+let activePickId=null;
+const newPickId=()=>Date.now().toString(36)+Math.random().toString(36).slice(2,15);
+function stopRegionPick(){
+ const pickId=activePickId;activePickId=null;
+ if(pickId)void request('clip.region.cancel',{pickId}).catch(()=>{});
+}
 const emptyHints=Object.freeze({
  article:'点击「提取当前文章」',
  selection:'请先在网页选中文字',
  quote:'先选择文字，再生成带来源引用',
- link:'生成当前网页链接'
+ link:'生成当前网页链接',region:'点击「点选网页区域」，然后在网页单击目标回答'
 });
 const actions=Object.freeze({article:'提取当前文章',selection:'提取选中文字',
- quote:'生成引用',link:'生成链接'});
+ quote:'生成引用',link:'生成链接',region:'点选网页区域'});
 const say=(value,error=false)=>{state.textContent=String(value);state.dataset.error=String(error);};
 const setExportBusy=busy=>{exportBusy=busy;updateExportButtons();};
 const notes=globalThis.OpenDeskClipNotes?.create?.({
@@ -133,15 +139,18 @@ function updateExportButtons(){
 }
 function updateFetchButton(){
  const button=q('clip-fetch');
- button.textContent=actions[mode];button.setAttribute('aria-label',actions[mode]);
- button.disabled=extracting||saving;
+ const label=mode==='region'?(extracting?'取消点选':results.region?'重新选择区域':'点选网页区域'):actions[mode];
+ button.textContent=label;button.setAttribute('aria-label',label);
+ button.disabled=saving||(extracting&&mode!=='region');
  for(const item of modes){
   item.setAttribute('aria-pressed',String(item.dataset.clipMode===mode));
   item.disabled=saving;
  }
  q('clip-meta').disabled=saving;
  const hint=q('clip-selection-hint');
- if(hint)hint.textContent=mode==='selection'||mode==='quote'
+ if(hint)hint.textContent=mode==='region'
+  ?'在授权网页移动鼠标高亮内容，单击一次提取整块；↑/↓ 调整范围，Esc 取消。'
+  :mode==='selection'||mode==='quote'
   ?'请先在网页中选中文字；也可右键直接进入摘录保存流程。'
   :'在网页选中文字后，也可右键选择「保存选中内容到我的摘录」。';
 }
@@ -153,7 +162,7 @@ function cacheFor(target){
  if(target==='quote'&&results.selection)return results.quote=results.selection;
  if(target==='selection'&&results.quote)return results.selection=results.quote;
  if(target==='link'){
-  const base=results.article||results.selection||results.quote;
+  const base=results.article||results.selection||results.quote||results.region;
   if(base)return results.link={...base,markdown:'['+escapeLabel(base.title)+']('+base.source+')\n',
     mode:'clip.link'};
  }
@@ -188,36 +197,47 @@ function refresh(){
  const home=q('clip-home');if(home)home.dataset.clipState=extracting?'extracting':record?'ready':'empty';
 }
 function invalidate(text='网页已变化，请重新剪藏'){
+ stopRegionPick();
  version++;pageEpoch++;pageKey='';pageInfo=null;results=Object.create(null);
  extracting=false;refresh();say(text);
 }
 function selectMode(next){
  if(next===mode||saving||!Object.hasOwn(actions,next))return;
+ stopRegionPick();
  mode=next;version++;extracting=false;refresh();
- say(record?'已恢复本页'+(next==='link'?'链接':next==='quote'?'引用':next==='selection'?'选区':'文章')+' Markdown':emptyHints[next]);
+ say(record?'已恢复本页'+(next==='link'?'链接':next==='quote'?'引用':next==='selection'?'选区':next==='region'?'区域':'文章')+' Markdown':emptyHints[next]);
 }
 modes.forEach(button=>button.addEventListener('click',()=>selectMode(button.dataset.clipMode)));
 q('clip-meta').addEventListener('change',()=>{
  if(saving)return;
+ if(activePickId){stopRegionPick();extracting=false;}
  version++;refresh();
  say(record?'已按来源格式更新完整 Markdown':emptyHints[mode]);
 });
 q('clip-fetch').addEventListener('click',async()=>{
  if(saving)return;
+ if(mode==='region'&&extracting){
+  version++;stopRegionPick();extracting=false;refresh();say('已取消区域点选');return;
+ }
  const token=++version,selectedMode=mode;
+ const pickId=selectedMode==='region'?newPickId():null;
+ if(pickId)activePickId=pickId;
  if(selectedMode==='selection'||selectedMode==='quote'){
   delete results.selection;delete results.quote;
  }else delete results[selectedMode];
  extracting=true;refresh();say('正在读取授权网页…');
- const operation=selectedMode==='article'?'clip.article':selectedMode==='link'?'clip.link':'clip.selection';
+ const operation=selectedMode==='region'?'clip.region':selectedMode==='article'?'clip.article':selectedMode==='link'?'clip.link':'clip.selection';
  try{
-  const result=await request(operation);
+  const result=await request(operation,pickId?{pickId}:{});
   if(token!==version)return;
   const source=safeSource(result?.source);
   if(typeof result?.markdown!=='string'||!result.markdown.trim()||!source||
      (result.mode&&result.mode!==operation))
    throw Error('剪藏结果无效');
   if(pageKey&&pageKey!==source)throw Error('网页已变化，请重新剪藏');
+  if(selectedMode==='region'&&typeof TextEncoder==='function'&&
+     new TextEncoder().encode(result.markdown).length>160000)
+   throw Error('所选区域超过单条摘录限制，请选择较小范围；内容未截断');
   pageKey=source;
   const raw={...result,source};
   if(selectedMode==='link')
@@ -226,12 +246,18 @@ q('clip-fetch').addEventListener('click',async()=>{
    results.selection=raw;results.quote=raw;
   }else results[selectedMode]=raw;
   extracting=false;refresh();
-  say('已提取完整 Markdown，可保存到「我的摘录」、复制或下载');
+  say(selectedMode==='region'
+   ?(result.streaming?'已提取正在生成的回答快照，内容可能未完整生成；可稍后重新选择':
+      '已提取所选区域当前已加载的 Markdown（DOM 快照；虚拟化未加载内容不在其中）')
+   :'已提取完整 Markdown，可保存到「我的摘录」、复制或下载');
  }catch(error){
   if(token===version){
    extracting=false;refresh();say(error?.message||'剪藏失败',true);
   }
- }finally{if(token===version){extracting=false;updateFetchButton();}}
+ }finally{
+  if(pickId&&activePickId===pickId)activePickId=null;
+  if(token===version){extracting=false;updateFetchButton();}
+ }
 });
 q('clip-show-source').addEventListener('click',()=>{
  input.hidden=false;display.hidden=true;
