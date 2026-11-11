@@ -28,10 +28,10 @@ main.page{max-width:1230px;margin:auto;padding:20px}h1{font-size:18px;margin:0}h
 .frame.hover .item:not(:hover):not(:focus-within) .extra{opacity:0}.icon:hover{background:#eaf0ff}
 .record{border:1px solid #e0e6ef;border-radius:9px;padding:12px}.record p{font-size:11px;color:#65758c}.record details{border-top:1px solid #e5eaf2;margin-top:10px;padding-top:9px;font-size:11px}
 .badge{font-size:10px;background:#f1f3fa;border-radius:6px;padding:3px 7px;color:#5571b1}
-.overlay{position:absolute;inset:27px 0 0;background:#20365a78;z-index:10;display:flex;justify-content:flex-end}
-.overlay[hidden]{display:none}.sheet{width:100%;max-width:410px;background:#fff;height:100%;display:flex;flex-direction:column;box-shadow:-12px 0 26px #31456a25}
+.overlay{position:absolute;inset:27px 0 0;background:#20365a78;z-index:10;display:flex;align-items:flex-end;justify-content:center}
+.overlay[hidden]{display:none}.sheet{width:100%;max-width:none;background:#fff;height:auto;max-height:calc(100% - 12px);display:flex;flex-direction:column;overflow:hidden;border-radius:12px 12px 0 0;box-shadow:0 -12px 26px #31456a25}
 .sheetheader{padding:16px;border-bottom:1px solid #e4e9f0;display:flex;gap:10px;align-items:center}.sheetheader .sheettitle{flex:1}.sheettitle small{color:#7a8ba1}.sheettitle strong{display:block;font-size:14px}
-.sheetbody{padding:16px;flex:1;min-height:0;overflow:auto}.sheetfooter{border-top:1px solid #e2e8ef;padding:13px 16px;display:flex;justify-content:flex-end;gap:8px}
+.sheetbody{padding:16px;flex:1;min-height:0;overflow:auto}.sheetfooter{border-top:1px solid #e2e8ef;padding:13px 16px;display:flex;flex-wrap:wrap;justify-content:flex-end;gap:8px}
 .row{display:flex;justify-content:space-between;align-items:center;gap:8px}.row strong{font-size:12px}.switch{display:flex;gap:2px;background:#eff3f8;border-radius:7px;padding:3px}.switch button{border:0;background:none;border-radius:6px;padding:5px 9px;color:#73839b}.switch button.current{background:white;color:#3e62c1}
 .field{margin-top:14px}.field label{display:block;font-size:11px;font-weight:700;margin-bottom:6px}.field input,.field textarea{border:1px solid #dce4ed;border-radius:8px;width:100%;padding:10px;background:#fff;color:#293951}
 .fixed{border-radius:8px;background:#f5f7fb;border:1px solid #e1e7f0;padding:10px;color:#64748b;font-size:12px}
@@ -62,7 +62,7 @@ main.page{max-width:1230px;margin:auto;padding:20px}h1{font-size:18px;margin:0}h
 <div class="items"><div class="item"><div class="glyph">百</div><div class="txt"><strong>百度搜索 · 前三条自然结果</strong><small>www.baidu.com · 已安装</small></div>
 <button class="icon extra" data-action="favorite" title="收藏">☆</button><button class="icon play" data-action="open" title="配置参数 / 准备运行">▶</button><button class="icon extra" data-action="more" title="更多操作">⋯</button></div>
 <div class="item"><div class="glyph">G</div><div class="txt"><strong>Google 搜索 · 前三条自然结果</strong><small>www.google.com · 已安装</small></div><button class="icon extra" disabled>☆</button><button class="icon play" disabled>▶</button><button class="icon extra" disabled>⋯</button></div></div>
-<div class="note" id="scriptNote">点击 ▶ 打开与「我的」相同的右侧参数抽屉。不会立即运行。</div></div>
+<div class="note" id="scriptNote">点击 ▶ 打开与「我的」相同的底部参数抽屉。不会立即运行。</div></div>
 <div class="body" id="records" hidden><div class="record"><div class="row"><strong>百度搜索</strong><span class="badge" id="state">可运行</span></div>
 <p id="recordInfo">目前没有待处理的运行。</p><div class="row" style="justify-content:flex-start;flex-wrap:wrap">
 <button class="btn primary" data-action="continue" id="continue">继续确认</button><button class="btn" data-action="read" id="read">查询原请求</button>
@@ -104,7 +104,7 @@ function render(){
  el("read").hidden=!blocked()||s.phase==="prepared";el("stop").hidden=!blocked()||s.phase==="prepared";
  el("recordInfo").textContent=({idle:"暂无未完成任务。",prepared:"已保存准备，没有启动脚本。",running:"模拟已派发一次，等待真实运行结果。",unknown:"结果未知，不能重复运行。",unreleased:"执行结束，但资源释放尚未证实。",stopping:"停止已经请求，仍待核对原结果。",released:"持久结果与资源释放已核实，可以重新运行。 "})[s.phase];
  el("technical").textContent="模拟请求 ID："+(s.prepared?.id||"暂无")+"；真实资源记录未在此页面读取。";
- el("scriptNote").textContent=blocked()?"原请求未确认，禁止从脚本页再次执行。请在记录页处理。":"点击 ▶ 打开与「我的」相同的右侧参数抽屉。不会立即运行。";
+ el("scriptNote").textContent=blocked()?"原请求未确认，禁止从脚本页再次执行。请在记录页处理。":"点击 ▶ 打开与「我的」相同的底部参数抽屉。不会立即运行。";
  el("scriptNote").classList.toggle("warn",blocked());
  document.querySelectorAll('[data-action="open"]').forEach(b=>b.disabled=blocked());
  el("counts").textContent="准备 "+s.prepareCount+" / 执行 "+s.runCount+" / 查询 "+s.readCount;
