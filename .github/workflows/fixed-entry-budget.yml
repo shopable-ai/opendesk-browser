@@ -56,6 +56,7 @@ jobs:
           node --test tests/environment/webflow-media-vault-r1.test.mjs tests/environment/webflow-media-asset-r2.test.mjs tests/environment/controller-media-upload.test.mjs
           node --check projects/webflow/demos/article-media/article-publish.controller.js
           node --check projects/webflow/demos/article-media/package-media-task.mjs
+          node projects/webflow/demos/article-media/package-media-task.mjs
       - name: Audit contracts, Rollup provenance and SW sizing tests
         run: |
           node --check tests/framework/background-runtime-r20-native.mjs
