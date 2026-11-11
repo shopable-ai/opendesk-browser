@@ -291,7 +291,295 @@ function pcRules(){
 }
 function pcSubscriptions(){return `${heading('订阅管理','管理订阅来源和本地代理入口。',btn(ico('plus',15)+' 导入订阅','add-sub','btn primary'))}<div class="subtabs"><button data-action="subtab" data-id="sources" class="${s.subtab==='sources'?'active':''}" type="button">订阅来源</button><button data-action="subtab" data-id="local" class="${s.subtab==='local'?'active':''}" type="button">本地客户端</button></div>${s.subtab==='sources'?`<div class="panel"><div class="panel-head"><div><h3>已保存的订阅</h3><p>本页演示只保存订阅地址，不发起请求，也不解析真实节点。</p></div><span class="tag">${s.subs.length} 条</span></div><div class="proxy-table">${s.subs.map(x=>`<div class="table-row">${ico('link')}<div class="table-main"><div class="name">${esc(x.name)} <span class="tag">未同步</span></div><p>${esc(new URL(x.url).hostname)}</p></div><div class="table-actions">${btn('查看','view-sub','btn sm','data-id="'+esc(x.id)+'"')}${btn('移除','delete-sub','btn sm danger','data-id="'+esc(x.id)+'"')}</div></div>`).join('')}</div>${s.subs.length?'':'<div class="empty-state">暂无订阅来源</div>'}</div>`:`<div class="panel"><div class="panel-head"><div><h3>本地代理客户端</h3><p>Clash / sing-box 等应用的 HTTP 或 SOCKS5 本地端口。</p></div>${btn('添加客户端','add-local','btn sm')}</div><div class="notice">本地客户端须自行运行。本原型不会启动 Clash、sing-box，也不验证本地端口。</div><div class="below">${s.profiles.filter(p=>p.host==='127.0.0.1').map(p=>`<div class="settings-row"><span class="description"><strong>${esc(p.name)}</strong><p>${esc(endpoint(p))}</p></span><span class="tag">未验证</span></div>`).join('')}</div></div>`}<div class="panel soft"><div class="panel-head"><div><h3>接入说明</h3><p>订阅导入与实际网络连通是不同步骤。</p></div></div><div class="notice">正式扩展的联网获取、协议兼容和启用授权依赖真实实现；本页均不执行。</div></div>`}
 function pcBackup(){return `${heading('导入备份','导出与导入分开处理；先预览数据，再由用户确认。')}<div class="fields"><div class="panel" style="margin-top:0"><div class="panel-head"><div><h3>导入备份</h3><p>仅解析 AI Proxy 示例 JSON，最大 256 KiB。</p></div></div><label class="field"><span>配置内容</span><textarea id="importText" placeholder='粘贴包含 proxies / rules 的 JSON'>${esc(s.previewImport)}</textarea></label><div class="below">${btn('填入示例','import-example','btn sm')} ${btn('解析预览','import-check','btn primary sm')}</div><div id="importResult" class="below"></div></div><div class="panel" style="margin-top:0"><div class="panel-head"><div><h3>导出备份</h3><p>导出代理和规则的演示配置，不包含凭据。</p></div></div>${btn(ico('download',15)+' 导出无密码 JSON','export','btn')}<p class="pc-section-help">PAC 文本和任何账号密码不会写入备份。</p><div class="line"></div><h3>兼容范围</h3><p class="muted below" style="font-size:12px">本便携预览使用简化 schema，不声称与正式业务导入器逐字段一致。</p></div></div>`}
-function pcDiagnostics(){return `${heading('连接诊断','分开检查选择、应用和线路状态。所有结果均为模拟。')}<div class="stats"><div class="stat"><small>用户选择</small><strong style="font-size:12px">${esc(planned())}</strong></div><div class="stat"><small>配置应用</small><strong>${s.applied?'已应用':'未应用'}</strong></div><div class="stat"><small>代理控制权</small><strong>${s.scene==='conflict'?'存在冲突':'未实际检测'}</strong></div><div class="stat"><small>探测结果</small><strong>${s.diagRan?(s.diagScenario==='success'?'模拟通过':s.diagScenario==='auth'?'认证错误':'模拟失败'):'尚未检测'}</strong></div></div><div class="notice warn">离线预览：不会访问网络、检测真实代理、读取浏览器系统权限或更改实际出口。</div><div class="panel"><div class="panel-head"><div><h3>检测线路</h3><p>只有用户主动点击后才生成一次模拟结果。</p></div></div><div class="fields"><label class="field"><span>下一次探测结果</span><select id="diagScenario"><option value="success" ${s.diagScenario==='success'?'selected':''}>成功 · 126 ms（模拟）</option><option value="failure" ${s.diagScenario==='failure'?'selected':''}>失败 · 连接超时</option><option value="auth" ${s.diagScenario==='auth'?'selected':''}>认证错误 · HTTP 407</option></select></label><label class="field"><span>控制情景</span><select id="diagScene"><option value="normal" ${s.scene==='normal'?'selected':''}>可管理</option><option value="error" ${s.scene==='error'?'selected':''}>线路异常</option><option value="conflict" ${s.scene==='conflict'?'selected':''}>其他扩展管理</option><option value="unknown" ${s.scene==='unknown'?'selected':''}>状态未知</option></select></label></div><div class="below">${btn('开始检测','probe','btn primary')} ${btn('重新应用配置','apply','btn')}</div><div class="below notice">${s.diagRan?`第 ${s.diagnosticCount} 次检测：${s.diagScenario==='success'?'模拟线路正常（126 ms）':s.diagScenario==='auth'?'模拟 HTTP 407 认证错误':'模拟网络超时'}。`: '尚未检测。点击“开始检测”查看模拟结果。'}</div></div>`}
+let diagBatch=null,diagBatchTimer=null,diagSpeedTask=null,diagSpeedTimer=null;
+function diagnosticModel(){
+  if(!Array.isArray(s.diagSites))s.diagSites=[
+    ['chatgpt','ChatGPT','chatgpt.com',true],
+    ['claude','Claude','claude.ai',true],
+    ['gemini','Gemini','gemini.google.com',true],
+    ['copilot','Microsoft Copilot','copilot.microsoft.com',false],
+    ['perplexity','Perplexity','perplexity.ai',true],
+    ['deepseek','DeepSeek','chat.deepseek.com',false],
+    ['grok','Grok','grok.com',true],
+    ['poe','Poe','poe.com',false],
+    ['huggingface','Hugging Face','huggingface.co',false]
+  ].map(([id,name,host,selected])=>({id,name,host,selected,priority:selected?2:1,custom:false}));
+  s.diagRecords??={};s.diagView??='overview';s.diagOutcome??='ok';
+  s.diagLimit??=5;s.diagSpeedScenario??='normal';
+  s.diagSpeed??={latency:null,download:null};
+  const signature=JSON.stringify([s.mode,s.selected,s.applied,s.activeMode,s.activeProfile,s.scene,s.site,s.profiles,s.rules,s.ruleDefault]);
+  if(s.diagSignature&&s.diagSignature!==signature){
+    if(diagBatch){clearTimeout(diagBatchTimer);diagBatch=null}
+    if(diagSpeedTask){clearTimeout(diagSpeedTimer);diagSpeedTask=null}
+    s.diagRecords={};s.diagSpeed={latency:null,download:null};
+    s.diagStale='配置或当前网站变化：旧诊断已失效。';
+  }
+  s.diagSignature=signature;
+}
+function diagnosticReady(){
+  return s.applied&&!pending()&&s.scene==='normal'&&
+    (s.mode!=='profile'||!!profile(s.selected));
+}
+function diagnosticOutcomes(){
+  return {
+    ok:['网页可达（模拟）','请求已模拟，登录与模型功能未验证',200],
+    blocked403:['HTTP 403 · 访问受限','原因可能涉及地区、账号或服务策略，不能归因为代理',403],
+    limited429:['HTTP 429 · 限流','可能涉及账号、配额或服务节流',429],
+    cors:['CORS · 无法判断','跨域读取受限不代表网站不可达',null],
+    timeout:['请求超时','单次超时无法定位 DNS/TLS/代理故障',null],
+    auth407:['HTTP 407 · 代理认证','需要检查代理认证，不会自动重试',407],
+    redirect:['HTTP 302 · 跳转／需登录','跳转不代表账号已登录',302],
+    dns:['DNS 信息未知','没有可靠的底层 DNS 证据',null],
+    tls:['TLS 信息未知','没有可靠的 TLS 证据',null]
+  };
+}
+function diagnosticMessage(){
+  if(s.scene==='conflict')return '代理控制权冲突：其他扩展可能正在管理代理。';
+  if(s.scene==='unknown')return '浏览器代理控制状态尚未确认。';
+  if(s.scene==='error')return '当前线路异常，请先检查配置。';
+  if(s.scene==='empty'||!s.profiles.length)return '请先添加并启用代理配置。';
+  if(pending())return '配置尚未应用；请先明确应用选择。';
+  if(!s.applied)return '请先启用配置，再运行模拟检测。';
+  return '';
+}
+function diagnosticRecord(id){
+  const record=s.diagRecords[id];
+  if(!record||record.signature!==s.diagSignature)return null;
+  return record;
+}
+function diagnosticRecordHTML(id){
+  const result=diagnosticRecord(id),known=diagnosticOutcomes();
+  if(!result)return '<span class="ap-muted">未测试</span>';
+  const line=known[result.kind]||known.timeout;
+  return `<span class="r3-result">${esc(line[0])}</span><small class="ap-muted">${result.ms===null?'耗时未知':result.ms+' ms'} · ${esc(result.time)} · 模拟</small>`;
+}
+function diagnosticSiteRow(site){
+  const r=diagnosticRecord(site.id);
+  const tone=r?.kind==='ok'?'nd-good':['blocked403','limited429','auth407'].includes(r?.kind)?'nd-warning':r?.kind==='timeout'?'nd-error':'';
+  return `<div class="r3-site-row">
+    <label class="r3-site-title">
+      <input type="checkbox" data-change="diagnostic-pick" data-id="${esc(site.id)}" ${site.selected?'checked':''} aria-label="收藏 ${esc(site.name)}">
+      <span class="r3-site-icon" aria-hidden="true">${esc(site.name[0])}</span>
+      <span class="r3-site-name"><strong>${esc(site.name)}</strong><small>${esc(site.host)}</small></span>
+    </label>
+    <span class="r3-site-result ${tone}">${diagnosticRecordHTML(site.id)}</span>
+    <div class="nd-row-actions">
+      <select data-change="diagnostic-priority" data-id="${esc(site.id)}" aria-label="${esc(site.name)}优先级"><option value="2" ${site.priority===2?'selected':''}>P0</option><option value="1" ${site.priority===1?'selected':''}>P1</option></select>
+      <button type="button" class="ap-button ap-quiet" data-action="diag-one" data-id="${esc(site.id)}" ${!diagnosticReady()||diagBatch?'disabled':''}>检测</button>
+      ${site.custom?`<button type="button" class="ap-button ap-quiet ap-danger" data-action="diag-remove-site" data-id="${esc(site.id)}">移除</button>`:''}
+    </div>
+  </div>`;
+}
+function diagnosticOverview(){
+  const favorites=s.diagSites.filter(x=>x.selected).sort((a,b)=>b.priority-a.priority||a.name.localeCompare(b.name));
+  const currentId='current:'+s.site;
+  const current=diagnosticRecord(currentId);
+  const currentLabel=current?(diagnosticOutcomes()[current.kind]?.[0]||'未知'):'尚未检测';
+  const ready=diagnosticReady(),hint=diagnosticMessage(),completed=favorites.filter(x=>diagnosticRecord(x.id)).length;
+  return `<div class="nd-overview">
+    <div class="nd-overview-grid">
+      <article class="nd-panel">
+        <div class="nd-between"><span class="nd-eyebrow">01 / CURRENT WEBSITE</span><span class="nd-pill">当前网站</span></div>
+        <h3>先检查你正在使用的网站</h3><div class="nd-host">${esc(s.site)}</div>
+        <p class="nd-subtitle">预期路由：${esc(s.mode==='rules'?routeFor(s.site):planned())} · ${esc(modeNames[s.mode])}</p>
+        <div class="nd-reading"><div><strong>${esc(currentLabel)}</strong><small>网络请求仅模拟，AI 登录与模型功能未验证</small></div></div>
+        <div class="nd-actions"><button type="button" class="ap-button ap-primary" data-action="diag-current" ${!ready||diagBatch?'disabled':''}>模拟检测当前网站 →</button>
+        <button type="button" class="ap-button" data-action="diag-view" data-id="proxy">排查代理设置</button></div>
+        ${hint?`<p class="nd-interactive-note">${esc(hint)}</p>`:''}
+      </article>
+      <article class="nd-panel">
+        <div class="nd-between"><span class="nd-eyebrow">02 / AI PRIORITY</span><span class="nd-pill">${favorites.length} 个 AI 网站</span></div>
+        <h3>常用 AI 工具快速检查</h3><p class="nd-subtitle">检测网站响应，不冒充登录成功或模型调用正常。</p>
+        <div class="nd-quick">${favorites.slice(0,3).map(x=>`<div class="nd-quick-item"><span class="r3-site-icon" aria-hidden="true">${esc(x.name[0])}</span><span><strong>${esc(x.name)}</strong><small>${esc(diagnosticRecord(x.id)?diagnosticOutcomes()[diagnosticRecord(x.id).kind][0]:'尚未检测')}</small></span></div>`).join('')||'<p class="nd-subtitle">还未收藏任何网站。</p>'}</div>
+        <div class="nd-actions"><button type="button" class="ap-button ap-primary" data-action="diag-all" ${!ready||diagBatch||!favorites.length?'disabled':''}>模拟检测已收藏 ${Math.min(favorites.length,10)} 项 →</button>
+          <button type="button" class="ap-link" data-action="diag-view" data-id="ai">查看全部</button></div>
+        ${hint?`<p class="nd-interactive-note">${esc(hint)}</p>`:''}
+        ${diagBatch?`<div class="r3-progress" role="status">模拟检测 ${diagBatch.index} / ${diagBatch.ids.length} <button type="button" class="ap-link" data-action="diag-cancel">取消</button></div>`:''}
+      </article>
+    </div>
+    <div class="nd-shortcuts">
+      <article class="nd-shortcut"><div class="nd-shortcut-icon" aria-hidden="true">☆</div><div class="nd-shortcut-info"><span class="nd-eyebrow">MY PRIORITIES</span><h3>我的关键网站</h3><p>Top 5 / Top 10 · ${favorites.length} 个主动收藏</p></div><button type="button" class="ap-button" data-action="diag-view" data-id="top">查看 →</button></article>
+      <article class="nd-shortcut"><div class="nd-shortcut-icon" aria-hidden="true">↗</div><div class="nd-shortcut-info"><span class="nd-eyebrow">SPEED & STABILITY</span><h3>速度与线路质量</h3><p>HTTP 耗时 ${esc(s.diagSpeed.latency||'未测')} · 下载 ${esc(s.diagSpeed.download||'未测')}</p></div><button type="button" class="ap-button" data-action="diag-view" data-id="speed">测试 →</button></article>
+    </div>
+    <p class="nd-footnote">已演示检查 ${completed}/${favorites.length} 个收藏网站。真实网络状态未知，当前证据不足以推荐最快线路。切换代理后旧诊断会失效。</p>
+  </div>`;
+}
+function diagnosticSitesPanel(){
+  const outcomes=diagnosticOutcomes(),ready=diagnosticReady(),favorites=s.diagSites.filter(x=>x.selected);
+  return `<div class="r3-panel-heading"><div><h3>常用 AI 网站</h3><p>勾选重要网站；HTTP 返回、CORS、账号与模型功能分层解读。</p></div><span class="ap-tag">模拟 · 不访问网络</span></div>
+    <div class="r3-testbar">
+      <label class="ap-field"><span class="ap-label">下次模拟结果</span><select id="diagOutcome" class="ap-select">${Object.entries(outcomes).map(([kind,v])=>`<option value="${kind}" ${s.diagOutcome===kind?'selected':''}>${esc(v[0])}</option>`).join('')}</select></label>
+      <button type="button" class="ap-button ap-primary" data-action="diag-all" ${!ready||diagBatch||!favorites.length?'disabled':''}>检测全部已收藏</button>
+      <button type="button" class="ap-button" data-action="diag-cancel" ${!diagBatch?'disabled':''}>取消</button>
+    </div>
+    ${!ready?`<p class="nd-interactive-note">${esc(diagnosticMessage())}</p>`:''}
+    ${diagBatch?`<div class="r3-progress" role="status">已完成 ${diagBatch.index}/${diagBatch.ids.length} · 可取消</div>`:''}
+    <div class="r3-site-list">
+      ${s.diagSites.filter(x=>!x.custom).map(diagnosticSiteRow).join('')}
+      ${s.diagSites.some(x=>x.custom)?'<div class="r3-site-group">自定义网站 · 仅本地</div>':''}
+      ${s.diagSites.filter(x=>x.custom).map(diagnosticSiteRow).join('')}
+    </div>
+    <form class="r3-add" id="diagnosticAddSite" novalidate>
+      <label class="ap-field ap-grow"><span class="ap-label">添加常用网站</span><input class="ap-input" name="host" maxlength="2048" placeholder="example.com 或 https://example.com" required></label>
+      <button type="submit" class="ap-button">添加</button>
+    </form>
+    <p class="ap-small ap-muted">默认五个 AI 网站，其余自行勾选。仅保留主机名，不保存路径、查询或账号信息。</p>`;
+}
+function diagnosticTopPanel(){
+  const favorites=s.diagSites.filter(x=>x.selected).sort((a,b)=>b.priority-a.priority||a.name.localeCompare(b.name));
+  return `<div class="r3-panel-heading"><div><span class="nd-eyebrow">MY IMPORTANT SITES</span><h3>我的关键网站</h3><p>只有用户主动收藏才会在这里出现，不把访问次数误当成重要性。</p></div>
+    <div class="ap-row ap-wrap"><button type="button" class="ap-button ${s.diagLimit===5?'ap-primary':''}" data-action="diag-top" data-id="5">Top 5</button><button type="button" class="ap-button ${s.diagLimit===10?'ap-primary':''}" data-action="diag-top" data-id="10">Top 10</button></div></div>
+    <div class="ap-row ap-between ap-wrap" style="margin:12px 0"><span class="ap-small ap-muted">已收藏 ${favorites.length} 项 · P0 / P1 由你决定</span>
+      <button type="button" class="ap-button" data-action="diag-all" ${!diagnosticReady()||diagBatch||!favorites.length?'disabled':''}>模拟检测已收藏网站 →</button></div>
+    ${!diagnosticReady()?`<p class="nd-interactive-note">${esc(diagnosticMessage())}</p>`:''}
+    <div class="r3-site-list">${favorites.slice(0,s.diagLimit).map(diagnosticSiteRow).join('')||'<div class="ap-notice">暂无收藏网站，请先从 AI 网站列表勾选或添加。</div>'}</div>
+    <div class="r3-card"><div class="nd-between"><h3>自动推荐常用网站</h3><span class="ap-tag">尚未实现</span></div><p class="ap-small ap-muted">默认不读取浏览记录。未来需要先征得同意，本原型不采集或上传浏览记录。</p></div>`;
+}
+function diagnosticSpeedPanel(){
+  const ready=diagnosticReady();
+  return `<div class="r3-panel-heading"><div><span class="nd-eyebrow">CONTROLLED PERFORMANCE</span><h3>网速与线路质量</h3><p>HTTP 请求耗时与下载吞吐分开呈现，不使用 AI 网站做大文件测速。</p></div><span class="ap-tag">真实传输 0 B</span></div>
+    <div class="r3-facts nd-speed-metrics">
+      <span><small>轻量 HTTP 请求耗时</small><strong>${esc(s.diagSpeed.latency||'未知')}</strong><em>不是 ICMP Ping</em></span>
+      <span><small>受控下载近似吞吐</small><strong>${esc(s.diagSpeed.download||'未知')}</strong><em>计划总用量最多 5 MiB</em></span>
+      <span><small>AI 登录与模型功能</small><strong>未验证</strong><em>需要真实授权测试</em></span>
+    </div>
+    <div class="nd-panel nd-speed-controls"><div class="nd-between"><h3>运行一次网络质量演示</h3><span class="nd-pill">主动开始 · 随时取消</span></div>
+      <label class="ap-field"><span class="ap-label">选择模拟情景</span><select class="ap-select" id="diagSpeedScenario">
+        <option value="normal" ${s.diagSpeedScenario==='normal'?'selected':''}>正常响应</option>
+        <option value="slow" ${s.diagSpeedScenario==='slow'?'selected':''}>高耗时 / 低吞吐</option>
+        <option value="timeout" ${s.diagSpeedScenario==='timeout'?'selected':''}>请求超时</option>
+      </select></label>
+      <div class="nd-actions"><button type="button" class="ap-button ap-primary" data-action="diag-speed" data-id="latency" ${!ready||diagSpeedTask?'disabled':''}>轻量 HTTP 耗时</button>
+      <button type="button" class="ap-button" data-action="diag-speed" data-id="download" ${!ready||diagSpeedTask?'disabled':''}>模拟下载测速</button>
+      <button type="button" class="ap-button" data-action="diag-cancel" ${!diagSpeedTask?'disabled':''}>取消</button></div>
+      ${!ready?`<p class="nd-interactive-note">${esc(diagnosticMessage())}</p>`:''}
+      ${diagSpeedTask?`<div class="r3-progress" role="status">模拟进行中 ${diagSpeedTask.step}/3 · 可取消</div>`:''}
+      <div class="nd-safety"><strong>流量预算与安全边界</strong><span>本原型实际发送 0 B。正式下载测速应限制为自有或授权端点、默认最多 5 MiB；计费网络需确认。上传测速未实现。</span></div>
+    </div>`;
+}
+function diagnosticBasePanel(){
+  const ready=diagnosticReady();
+  const currentStatus=s.diagRan?(s.diagScenario==='success'?'本次探测通过 · 原型模拟':s.diagScenario==='auth'?'HTTP 407 · 代理认证（模拟）':'线路不可达 · 超时（模拟）'):'尚未探测';
+  return `<div class="nd-panel nd-advanced">
+    <div class="r3-panel-heading"><div><h3>基础诊断</h3><p>区分代理选择、Chrome 配置应用、控制权与线路可达性。</p></div><span class="ap-tag">离线 · 模拟</span></div>
+    <div class="diagnostic-summary">
+      <div class="diagnostic-cell"><span class="ap-small ap-muted">用户选择</span><strong>${esc(planned())}</strong></div>
+      <div class="diagnostic-cell"><span class="ap-small ap-muted">配置应用</span><strong>${s.applied?'已应用（模拟）':'尚未应用'}</strong></div>
+      <div class="diagnostic-cell"><span class="ap-small ap-muted">代理控制权</span><strong>${s.scene==='conflict'?'其他扩展管理':s.scene==='unknown'?'状态未知':'模拟可管理'}</strong></div>
+      <div class="diagnostic-cell"><span class="ap-small ap-muted">期望线路</span><strong>${esc(s.mode==='rules'?routeFor(s.site):planned())}</strong></div>
+    </div>
+    <div class="diagnostic-result ${s.diagRan?(s.diagScenario==='success'?'success':'error'):''}">
+      <strong>${esc(currentStatus)}</strong>
+      <p class="ap-small">当前网站：${esc(s.site)} · ${s.diagRan?'第 '+s.diagnosticCount+' 次检测':'真实连接状态仍未知'}</p>
+      <p class="ap-small">未发送任何网络请求；配置已应用不代表线路可用，不能证明实际出口 IP。</p>
+    </div>
+    <div class="nd-actions"><button type="button" class="ap-button ap-primary" data-action="probe" ${!ready?'disabled':''}>${s.diagRan?'重新模拟检测':'开始检测'}</button>
+      <button type="button" class="ap-button" data-action="apply" ${s.scene==='conflict'||s.scene==='unknown'?'disabled':''}>重新应用配置</button></div>
+    ${!ready?`<p class="nd-interactive-note">${esc(diagnosticMessage())}</p>`:''}
+    <div class="scenario-box"><div class="ap-row ap-between"><h3>演示情景</h3><span class="ap-tag">仅改变模拟结果</span></div>
+      <div class="ap-columns">
+        <label class="ap-field"><span class="ap-label">下一次探测结果</span><select class="ap-select" id="diagScenario">
+          <option value="success" ${s.diagScenario==='success'?'selected':''}>成功 · 模拟 126 ms</option>
+          <option value="failure" ${s.diagScenario==='failure'?'selected':''}>失败 · 连接超时</option>
+          <option value="auth" ${s.diagScenario==='auth'?'selected':''}>HTTP 407 · 代理认证</option></select></label>
+        <label class="ap-field"><span class="ap-label">配置应用情景</span><select class="ap-select" id="diagScene">
+          <option value="normal" ${s.scene==='normal'?'selected':''}>正常 · 模拟可管理</option>
+          <option value="error" ${s.scene==='error'?'selected':''}>线路异常</option>
+          <option value="conflict" ${s.scene==='conflict'?'selected':''}>其他扩展管理</option>
+          <option value="unknown" ${s.scene==='unknown'?'selected':''}>状态未知</option></select></label>
+      </div><p class="ap-small ap-muted">HTTP 407 仅适用于需认证的 HTTP/HTTPS 代理；不自动更换或直连。</p></div>
+  </div>`;
+}
+function diagnosticBatchStart(ids){
+  diagnosticModel();
+  if(!diagnosticReady()){toast(diagnosticMessage()||'请先启用配置');return}
+  if(diagBatch)return;
+  const idsUnique=[...new Set(ids)].filter(id=>id.startsWith('current:')||s.diagSites.some(x=>x.id===id)).slice(0,10);
+  if(!idsUnique.length){toast('请先收藏至少一个网站');return}
+  const job={ids:idsUnique,index:0,kind:s.diagOutcome,signature:s.diagSignature};
+  diagBatch=job;
+  for(const id of idsUnique)delete s.diagRecords[id];
+  const step=()=>{
+    if(diagBatch!==job||s.diagSignature!==job.signature)return;
+    if(job.index>=job.ids.length){diagBatch=null;render();toast('模拟检测完成，真实可达性仍未知');return}
+    const id=job.ids[job.index++];
+    const info=diagnosticOutcomes()[job.kind]||diagnosticOutcomes().ok;
+    s.diagRecords[id]={kind:job.kind,ms:info[2]===null?null:120+job.index*24,time:new Date().toLocaleTimeString('zh-CN',{hour:'2-digit',minute:'2-digit'}),signature:job.signature};
+    render();diagBatchTimer=setTimeout(step,360);
+  };
+  render();diagBatchTimer=setTimeout(step,220);
+}
+function diagnosticSpeedStart(kind){
+  diagnosticModel();
+  if(!diagnosticReady()||diagSpeedTask){toast(diagnosticMessage()||'检测正在进行');return}
+  if(!['latency','download'].includes(kind))return;
+  const job={kind,step:0,signature:s.diagSignature,scenario:s.diagSpeedScenario};
+  diagSpeedTask=job;
+  const step=()=>{
+    if(diagSpeedTask!==job||s.diagSignature!==job.signature)return;
+    job.step++;
+    if(job.step>=3){
+      s.diagSpeed[kind]=job.scenario==='timeout'?'超时（模拟）':kind==='latency'?(job.scenario==='slow'?'486 ms（模拟）':'126 ms（模拟）'):(job.scenario==='slow'?'9.4 Mbps（模拟）':'52.8 Mbps（模拟）');
+      diagSpeedTask=null;render();toast('仅模拟测速，未发送真实请求');return;
+    }
+    render();diagSpeedTimer=setTimeout(step,350);
+  };
+  render();diagSpeedTimer=setTimeout(step,350);
+}
+function diagnosticCancel(){
+  if(diagBatch){clearTimeout(diagBatchTimer);diagBatch=null}
+  if(diagSpeedTask){clearTimeout(diagSpeedTimer);diagSpeedTask=null}
+  render();toast('已取消模拟检测；保留已完成结果');
+}
+function diagnosticAddSite(value){
+  diagnosticModel();
+  const raw=String(value||'').trim();
+  if(!raw||raw.length>2048||/[\s\\\x00-\x1f]/.test(raw)){toast('请输入合法的公网 HTTPS 网站域名');return}
+  let url;
+  try{url=new URL(/^https?:\/\//i.test(raw)?raw:'https://'+raw)}catch{toast('域名格式不正确');return}
+  const host=url.hostname.toLowerCase().replace(/\.$/,'');
+  if(url.protocol!=='https:'||url.username||url.password||url.port||host.length>253||
+    !host.includes('.')||host.startsWith('[')||/^\d+\.\d+\.\d+\.\d+$/.test(host)||
+    /(^localhost$|\.(local|localhost|internal|test|invalid)$)/.test(host)||
+    !host.split('.').every(x=>/^[a-z0-9](?:[a-z0-9-]{0,61}[a-z0-9])?$/.test(x))){
+    toast('仅支持公网 HTTPS 域名，不接受 IP、内网、端口或凭据');return;
+  }
+  if(s.diagSites.some(x=>x.host===host)){toast('网站已在列表中');return}
+  if(s.diagSites.length>=30){toast('最多添加 30 个网站');return}
+  s.diagSites.push({id:'custom-'+host,name:host,host,selected:true,priority:2,custom:true});
+  render();toast('已加入本地收藏，不联网');
+}
+function pcDiagnostics(){
+  diagnosticModel();
+  const selected=s.diagSites.filter(x=>x.selected);
+  const finished=selected.filter(x=>diagnosticRecord(x.id)).length;
+  const current=diagnosticRecord('current:'+s.site);
+  const menu=[['overview','概览','⌂'],['ai','AI 网站','◉'],['top','关键网站','☆'],['speed','测速','↗'],['proxy','基础诊断','≡']];
+  const panel=s.diagView==='ai'?diagnosticSitesPanel():s.diagView==='top'?diagnosticTopPanel():
+    s.diagView==='speed'?diagnosticSpeedPanel():s.diagView==='proxy'?diagnosticBasePanel():diagnosticOverview();
+  const control=s.scene==='conflict'?'模拟扩展冲突':s.scene==='unknown'?'状态未知':'模拟可管理';
+  return heading('网络诊断','')+`<div class="pc-parity" data-reference-page="#options/diagnostics/${esc(s.diagView)}">
+    <section class="nd-hero" aria-label="网络诊断工作台">
+      <div><h2>检查你关心的网站</h2><div class="nd-tags"><span>当前：${esc(s.mode==='rules'?'按规则':planned())}</span></div></div>
+      <div class="nd-hero-flag"><strong>未验证</strong><small>真实网站可达性</small></div>
+    </section>
+    <div class="nd-stats" aria-label="网络诊断概况">
+      <div class="nd-stat"><small>代理控制权</small><strong>${esc(control)}</strong></div>
+      <div class="nd-stat"><small>收藏网站测试</small><strong>${finished} <em>/ ${selected.length}</em></strong></div>
+      <div class="nd-stat"><small>当前网站响应</small><strong>${esc(current?diagnosticOutcomes()[current.kind][0]:'尚未检测')}</strong><span>${esc(s.site)}</span></div>
+      <div class="nd-stat"><small>AI 模型功能</small><strong>未验证</strong></div>
+    </div>
+    ${s.diagStale?`<div class="nd-stale" role="status">↻ ${esc(s.diagStale)}</div>`:''}
+    <nav class="r3-tabs nd-tabs" aria-label="网络诊断子页面">
+      ${menu.map(([id,name,glyph])=>`<button type="button" class="nd-tab-button" data-action="diag-view" data-id="${id}" aria-current="${s.diagView===id?'page':'false'}"><span aria-hidden="true">${glyph}</span> ${name}</button>`).join('')}
+    </nav>
+    <section class="nd-page" aria-label="网络诊断 ${esc(menu.find(x=>x[0]===s.diagView)?.[1]||'概览')}">${panel}</section>
+    <details class="nd-evidence"><summary>如何理解检测结果和可信程度？<span>查看说明 →</span></summary>
+      <div class="r3-evidence"><span>① 代理设置与控制权 · 应用不等于连通</span><span>② HTTP 网站可达性 · CORS 不等于网站失败</span><span>③ 请求耗时与受控吞吐 · 不是 ICMP Ping</span><span>④ AI 登录和模型推理 · 未验证</span></div>
+      <p class="ap-small ap-muted">HTTP 403、429、CORS、DNS/TLS 信息不足等状态不能直接归因于代理。没有可信的多次测量时不推荐最快线路，也不擅自切换浏览器代理。</p>
+    </details>
+  </div>`;
+}
 function pcGeneral(){return `${heading('通用设置','管理界面行为和基础使用偏好。')}<div class="panel"><div class="panel-head"><div><h3>基础偏好</h3><p>仅在本次预览内存中生效。</p></div></div><div class="settings-row">${ico('globe',20)}<div class="description"><strong>界面语言</strong><p>切换语言暂为演示，实际文字仍使用简体中文</p></div><select id="language" class="select"><option value="zh-CN" ${s.language==='zh-CN'?'selected':''}>简体中文</option><option value="zh-TW" ${s.language==='zh-TW'?'selected':''}>繁體中文</option><option value="en" ${s.language==='en'?'selected':''}>English</option></select></div><div class="settings-row">${ico('refresh',20)}<div class="description"><strong>打开扩展时显示状态</strong><p>保留运行摘要的显示偏好</p></div><input type="checkbox" id="startup" class="switch" ${s.startup?'checked':''}></div><div class="settings-row">${ico('shield',20)}<div class="description"><strong>隐私与安全</strong><p>不在网页中直接暴露代理凭据</p></div><span class="tag green">已保持</span></div><div class="settings-row">${ico('gear',20)}<div class="description"><strong>外观</strong><p>统一使用当前 PC 管理的浅色配色</p></div><span class="tag">浅色</span></div></div>`}
 function pcOfficial(){return `${heading('官方网络','了解可选的官方服务，不影响免费代理管理。')}<div class="panel"><div class="panel-head"><div><h3>官方网络服务</h3><p>这是独立的扩展管理栏目，不混入日常代理快速操作。</p></div><span class="tag">可选服务</span></div><div class="notice">此交互预览不连接真实账号、查询套餐、创建订单或进行支付。任何展示都不代表已开通权益。</div><div class="stats"><div class="stat"><small>账号状态</small><strong>未验证</strong></div><div class="stat"><small>订阅状态</small><strong>未验证</strong></div><div class="stat"><small>可用线路</small><strong>—</strong></div><div class="stat"><small>连接权限</small><strong>未授予</strong></div></div>${btn('了解账号接入说明','official-info','btn')}</div>`}
 const pageContent={proxies:pcProxies,rules:pcRules,thirdparty:pcSubscriptions,import:pcBackup,diagnostics:pcDiagnostics,general:pcGeneral,official:pcOfficial};
@@ -310,12 +598,22 @@ function pick(id,pc=false){if(!profile(id)||s.switching)return;if(['conflict','u
 function routeFor(domain){const sorted=[...s.rules].filter(r=>r.enabled).sort((a,b)=>a.priority-b.priority);const r=sorted.find(r=>r.domain===domain||(r.includeSubdomains&&domain.endsWith('.'+r.domain)));return r?(r.target==='direct'?'直连':pname(r.target)):(s.ruleDefault&&s.ruleDefault!=='direct'?pname(s.ruleDefault):'直连（默认）')}
 function downloadJson(){const data={schemaVersion:1,proxies:s.profiles.map(p=>({id:p.id,name:p.name,protocol:p.scheme.toLowerCase(),host:p.host,port:p.port})),rules:s.rules.map(r=>({...r})),settings:{mode:s.mode,selectedProxyId:s.selected}};const blob=new Blob([JSON.stringify(data,null,2)],{type:'application/json'});const url=URL.createObjectURL(blob);const a=document.createElement('a');a.href=url;a.download='ai-proxy-preview-backup.json';a.click();setTimeout(()=>URL.revokeObjectURL(url),500);toast('演示 JSON 已导出，不含凭据')}
 function confirmDelete(kind,id){const isProxy=kind==='proxy',item=isProxy?profile(id):kind==='rule'?s.rules.find(r=>r.id===id):s.subs.find(x=>x.id===id);if(!item)return;if(isProxy&&(s.selected===id||s.activeProfile===id||s.rules.some(r=>r.target===id))){openModal('代理仍在使用中',`<p style="font-size:12px;line-height:1.7">“${esc(item.name)}”正在被当前选择、已应用线路或网站规则引用。请先调整相关配置后再删除。</p><div class="form-foot">${btn('关闭','close-modal')} ${btn('查看网站规则','open-rules','btn primary')}</div>`,null);return}openModal('确认删除？',`<p style="font-size:12px;line-height:1.7">确认从本次预览中删除 “${esc(item.name||item.domain)}” 吗？</p><p class="muted below" style="font-size:11px">此操作仅改变本页内存数据，不会影响真实扩展。</p><div class="form-foot">${btn('取消','close-modal')}${btn('删除（模拟）','confirm-delete','btn danger','data-kind="'+kind+'" data-id="'+esc(id)+'"')}</div>`,null)}
-app.addEventListener('click',ev=>{const el=ev.target.closest('[data-action]');if(!el)return;const a=el.dataset.action,id=el.dataset.id;switch(a){case'host-tab':s.hostTab=id;render();break;case'back-host':s.hostTab='扩展';render();toast('当前仅演示 AI Proxy');break;case'open-pc':openPc(id);break;case'back-side':s.view='side';render();document.querySelector('[data-action="open-pc"]')?.focus();break;case'mode':if(['conflict','unknown'].includes(s.scene)){toast('请先核查代理控制状态');return}s.mode=id;if(s.mode==='profile'&&!s.selected)s.selected=s.profiles[0]?.id||'';s.dirty=true;render();toast('仅预选连接方式，尚未自动应用');break;case'status':statusClick();break;case'apply':apply();break;case'pick':pick(id);break;case'pick-pc':pick(id,true);break;case'add-proxy':proxyModal();break;case'edit-proxy':proxyModal(id);break;case'delete-proxy':confirmDelete('proxy',id);break;case'favorite':{const p=profile(id);if(p)p.favorite=!p.favorite;render();break}case'site-rule':ruleModal(null,true);break;case'add-rule':ruleModal();break;case'edit-rule':ruleModal(id);break;case'delete-rule':confirmDelete('rule',id);break;case'add-sub':addSub();break;case'add-local':proxyModal(null,true);break;case'subtab':s.subtab=id;render();break;case'delete-sub':confirmDelete('sub',id);break;case'view-sub':{const sub=s.subs.find(x=>x.id===id);openModal('订阅详情',`<div class="notice"><strong>${esc(sub?.name)}</strong><p class="below">已记录域名：${esc(sub?new URL(sub.url).hostname:'')}</p><p class="below">状态：未联网同步</p></div><div class="form-foot">${btn('关闭','close-modal')}</div>`,null);break}case'refresh-site':toast('已刷新模拟网站信息：'+s.site);break;case'test-rule':{const v=document.getElementById('ruleTestDomain')?.value.trim().replace(/^https?:\/\//,'').split('/')[0].toLowerCase();if(v)document.getElementById('ruleResult').textContent=`${v} → ${routeFor(v)}（仅模拟规则计算）`;break}case'pac-info':case'official-info':openModal('说明',`<div class="notice">此能力在交互预览中仅保留说明入口，不实际执行 PAC、登录、订阅购买或代理网络请求。</div><div class="form-foot">${btn('关闭','close-modal')}</div>`,null);break;case'export':downloadJson();break;case'import-example':s.previewImport=JSON.stringify({schemaVersion:1,proxies:[{id:'import1',name:'导入演示代理',protocol:'http',host:'192.0.2.10',port:8080}],rules:[]},null,2);render();toast('已填入示例 JSON');break;case'import-check':{const input=document.getElementById('importText');s.previewImport=input?.value||'';const result=document.getElementById('importResult');if(s.previewImport.length>256*1024){result.innerHTML='<div class="notice error">文件超过 256 KiB</div>';break}try{const v=JSON.parse(s.previewImport);const count=Array.isArray(v.proxies)?v.proxies.length:0;if(!Array.isArray(v.proxies)&&!Array.isArray(v.rules))throw Error('缺少 proxies / rules 数组');result.innerHTML=`<div class="notice">解析完成：${count} 个代理候选。此预览仅支持基础字段，请确认后再导入。</div><div class="below">${btn('确认导入（模拟）','import-confirm','btn primary sm')}</div>`}catch(e){result.innerHTML=`<div class="notice error">${esc(e.message)}</div>`}break}case'import-confirm':{try{const v=JSON.parse(s.previewImport);let added=0;for(const row of Array.isArray(v.proxies)?v.proxies:[]){const name=String(row.name||'').trim(),host=String(row.host||'').trim(),port=Number(row.port),scheme=String(row.protocol||'http').toUpperCase();if(!name||!host||!Number.isInteger(port)||port<1||port>65535||!['HTTP','HTTPS','SOCKS4','SOCKS5'].includes(scheme))continue;s.profiles.push({id:'p'+(++nextId),name:name.slice(0,48),host:host.slice(0,240),port,scheme,favorite:false});added++}s.previewImport='';render();toast(`已导入 ${added} 项（仅模拟），未启用代理`)}catch{toast('解析失败，未导入')}break}case'probe':s.diagRan=true;s.diagnosticCount++;render();toast('模拟检测已完成，没有请求网络');break;default:break}});
+app.addEventListener('click',ev=>{const el=ev.target.closest('[data-action]');if(!el)return;const a=el.dataset.action,id=el.dataset.id;switch(a){case'host-tab':s.hostTab=id;render();break;case'back-host':s.hostTab='扩展';render();toast('当前仅演示 AI Proxy');break;case'open-pc':openPc(id);break;case'back-side':s.view='side';render();document.querySelector('[data-action="open-pc"]')?.focus();break;case'mode':if(['conflict','unknown'].includes(s.scene)){toast('请先核查代理控制状态');return}s.mode=id;if(s.mode==='profile'&&!s.selected)s.selected=s.profiles[0]?.id||'';s.dirty=true;render();toast('仅预选连接方式，尚未自动应用');break;case'status':statusClick();break;case'apply':apply();break;case'pick':pick(id);break;case'pick-pc':pick(id,true);break;case'add-proxy':proxyModal();break;case'edit-proxy':proxyModal(id);break;case'delete-proxy':confirmDelete('proxy',id);break;case'favorite':{const p=profile(id);if(p)p.favorite=!p.favorite;render();break}case'site-rule':ruleModal(null,true);break;case'add-rule':ruleModal();break;case'edit-rule':ruleModal(id);break;case'delete-rule':confirmDelete('rule',id);break;case'add-sub':addSub();break;case'add-local':proxyModal(null,true);break;case'subtab':s.subtab=id;render();break;case'delete-sub':confirmDelete('sub',id);break;case'view-sub':{const sub=s.subs.find(x=>x.id===id);openModal('订阅详情',`<div class="notice"><strong>${esc(sub?.name)}</strong><p class="below">已记录域名：${esc(sub?new URL(sub.url).hostname:'')}</p><p class="below">状态：未联网同步</p></div><div class="form-foot">${btn('关闭','close-modal')}</div>`,null);break}case'refresh-site':toast('已刷新模拟网站信息：'+s.site);break;case'test-rule':{const v=document.getElementById('ruleTestDomain')?.value.trim().replace(/^https?:\/\//,'').split('/')[0].toLowerCase();if(v)document.getElementById('ruleResult').textContent=`${v} → ${routeFor(v)}（仅模拟规则计算）`;break}case'pac-info':case'official-info':openModal('说明',`<div class="notice">此能力在交互预览中仅保留说明入口，不实际执行 PAC、登录、订阅购买或代理网络请求。</div><div class="form-foot">${btn('关闭','close-modal')}</div>`,null);break;case'export':downloadJson();break;case'import-example':s.previewImport=JSON.stringify({schemaVersion:1,proxies:[{id:'import1',name:'导入演示代理',protocol:'http',host:'192.0.2.10',port:8080}],rules:[]},null,2);render();toast('已填入示例 JSON');break;case'import-check':{const input=document.getElementById('importText');s.previewImport=input?.value||'';const result=document.getElementById('importResult');if(s.previewImport.length>256*1024){result.innerHTML='<div class="notice error">文件超过 256 KiB</div>';break}try{const v=JSON.parse(s.previewImport);const count=Array.isArray(v.proxies)?v.proxies.length:0;if(!Array.isArray(v.proxies)&&!Array.isArray(v.rules))throw Error('缺少 proxies / rules 数组');result.innerHTML=`<div class="notice">解析完成：${count} 个代理候选。此预览仅支持基础字段，请确认后再导入。</div><div class="below">${btn('确认导入（模拟）','import-confirm','btn primary sm')}</div>`}catch(e){result.innerHTML=`<div class="notice error">${esc(e.message)}</div>`}break}case'import-confirm':{try{const v=JSON.parse(s.previewImport);let added=0;for(const row of Array.isArray(v.proxies)?v.proxies:[]){const name=String(row.name||'').trim(),host=String(row.host||'').trim(),port=Number(row.port),scheme=String(row.protocol||'http').toUpperCase();if(!name||!host||!Number.isInteger(port)||port<1||port>65535||!['HTTP','HTTPS','SOCKS4','SOCKS5'].includes(scheme))continue;s.profiles.push({id:'p'+(++nextId),name:name.slice(0,48),host:host.slice(0,240),port,scheme,favorite:false});added++}s.previewImport='';render();toast(`已导入 ${added} 项（仅模拟），未启用代理`)}catch{toast('解析失败，未导入')}break}case'diag-view':{if(['overview','ai','top','speed','proxy'].includes(id)){s.diagView=id;render()}break}
+case'diag-top':s.diagLimit=id==='10'?10:5;render();break;
+case'diag-one':diagnosticBatchStart([id]);break;
+case'diag-current':diagnosticBatchStart(['current:'+s.site]);break;
+case'diag-all':diagnosticBatchStart(s.diagSites.filter(x=>x.selected).sort((a,b)=>b.priority-a.priority).map(x=>x.id));break;
+case'diag-speed':diagnosticSpeedStart(id);break;
+case'diag-cancel':diagnosticCancel();break;
+case'diag-remove-site':{const x=s.diagSites.find(x=>x.id===id&&x.custom);if(x){s.diagSites=s.diagSites.filter(item=>item.id!==id);delete s.diagRecords[id];render()}break}
+case'probe':s.diagRan=true;s.diagnosticCount++;render();toast('模拟检测已完成，没有请求网络');break;default:break}});
 document.getElementById('modalShade').addEventListener('click',e=>{if(e.target.id==='modalShade')closeModal();const el=e.target.closest('[data-action]');if(!el)return;const a=el.dataset.action;const id=el.dataset.id;if(a==='close-modal')closeModal();else if(a==='open-rules'){closeModal();openPc('rules')}else if(a==='confirm-delete'){const kind=el.dataset.kind;if(kind==='proxy')s.profiles=s.profiles.filter(x=>x.id!==id);else if(kind==='rule')s.rules=s.rules.filter(x=>x.id!==id);else if(kind==='sub')s.subs=s.subs.filter(x=>x.id!==id);closeModal();s.dirty=true;render();toast('已从本次预览内存删除')}});
 document.getElementById('modalShade').addEventListener('submit',e=>{e.preventDefault();const form=e.target,values=Object.fromEntries(new FormData(form));if(form.id==='proxyForm'){const name=String(values.name||'').trim(),host=String(values.host||'').trim(),port=Number(values.port),scheme=String(values.scheme||'HTTP');if(!name||!host||!Number.isInteger(port)||port<1||port>65535){toast('请检查名称、地址、端口');return}const p=profile(modalAction?.id);if(p){Object.assign(p,{name,host,port,scheme})}else{s.profiles.push({id:'p'+(++nextId),name,host,port,scheme,favorite:false})}s.dirty=true;closeModal();s.scene='normal';render();toast('代理配置已保存（模拟），尚未应用')}else if(form.id==='ruleForm'){const domain=String(values.domain||'').trim().toLowerCase(),priority=Number(values.priority);if(!/^[a-z0-9.-]+$/.test(domain)||!Number.isInteger(priority)||priority<1||priority>9999){toast('请检查域名及优先级');return}let r=s.rules.find(r=>r.id===modalAction?.id);if(!r){r={id:'r'+(++nextId)};s.rules.push(r)}Object.assign(r,{domain,priority,target:values.target,includeSubdomains:values.scope==='sub',enabled:!!form.elements.enabled.checked});closeModal();s.dirty=true;render();toast('网站规则已保存（模拟），尚未应用')}else if(form.id==='subForm'){try{const url=new URL(String(values.url||''));if(url.protocol!=='https:')throw Error('请使用 HTTPS 订阅地址');const name=String(values.name||'').trim();if(!name)throw Error('请输入名称');s.subs.push({id:'s'+(++nextId),name,url:url.href,enabled:true});closeModal();render();toast('订阅来源已保存（模拟），未联网同步')}catch(e){toast(e.message)}}});
-document.getElementById('app').addEventListener('change',e=>{const el=e.target,kind=el.dataset.change;if(kind==='rule-enabled'){const r=s.rules.find(r=>r.id===el.dataset.id);if(r){r.enabled=el.checked;s.dirty=true;toast('规则已更新，待应用')}}else if(kind==='rule-priority'){const r=s.rules.find(r=>r.id===el.dataset.id);const v=Number(el.value);if(r&&Number.isInteger(v)&&v>=1&&v<=9999){r.priority=v;s.dirty=true;toast('优先级已更新，待应用')}else if(r){el.value=r.priority}}else if(el.id==='diagScenario'){s.diagScenario=el.value;s.diagRan=false;toast('已设置下一次模拟探测情景')}else if(el.id==='diagScene'){s.scene=el.value;s.diagRan=false;render()}else if(el.id==='language'){s.language=el.value;toast('语言偏好已记录，本便携预览仍使用简体中文')}else if(el.id==='startup'){s.startup=el.checked;toast('预览偏好已更新')}});
+document.getElementById('app').addEventListener('submit',e=>{if(e.target.id==='diagnosticAddSite'){e.preventDefault();diagnosticAddSite(e.target.elements.host.value)}});
+document.getElementById('app').addEventListener('change',e=>{const el=e.target,kind=el.dataset.change;if(kind==='rule-enabled'){const r=s.rules.find(r=>r.id===el.dataset.id);if(r){r.enabled=el.checked;s.dirty=true;toast('规则已更新，待应用')}}else if(kind==='rule-priority'){const r=s.rules.find(r=>r.id===el.dataset.id);const v=Number(el.value);if(r&&Number.isInteger(v)&&v>=1&&v<=9999){r.priority=v;s.dirty=true;toast('优先级已更新，待应用')}else if(r){el.value=r.priority}}else if(el.id==='ruleDefaultRoute'){if(el.value==='direct'||s.profiles.some(p=>p.id===el.value)){s.ruleDefault=el.value;s.dirty=true;render();toast('默认路由已保存，等待明确应用')}}else if(el.id==='diagOutcome'){if(diagnosticOutcomes()[el.value])s.diagOutcome=el.value}else if(el.id==='diagSpeedScenario'){if(['normal','slow','timeout'].includes(el.value))s.diagSpeedScenario=el.value}else if(kind==='diagnostic-pick'){const x=s.diagSites?.find(x=>x.id===el.dataset.id);if(x){x.selected=el.checked;render()}}else if(kind==='diagnostic-priority'){const x=s.diagSites?.find(x=>x.id===el.dataset.id);if(x){x.priority=Number(el.value)===2?2:1;render()}}else if(el.id==='diagScenario'){s.diagScenario=el.value;s.diagRan=false;toast('已设置下一次模拟探测情景')}else if(el.id==='diagScene'){s.scene=el.value;s.diagRan=false;render()}else if(el.id==='language'){s.language=el.value;toast('语言偏好已记录，本便携预览仍使用简体中文')}else if(el.id==='startup'){s.startup=el.checked;toast('预览偏好已更新')}});
 document.querySelectorAll('[data-compare]').forEach(el=>el.addEventListener('click',()=>{s.compare=el.dataset.compare;render()}));document.getElementById('scene').addEventListener('change',e=>{switchSerial++;s.switching=null;s.scene=e.target.value;if(s.scene==='empty'){s.applied=false;s.mode='profile';s.selected=''}else if(s.scene==='normal'){s.applied=true;s.mode='profile';s.selected=s.profiles[0]?.id||'';s.activeMode='profile';s.activeProfile=s.selected}else s.applied=false;s.diagRan=false;render()});
 document.getElementById('reset').addEventListener('click',()=>{switchSerial++;diagSerial++;s=fresh();sidePos=0;closeModal();render();toast('已恢复初始预览')});document.addEventListener('keydown',e=>{if(e.key==='Escape'&&!document.getElementById('modalShade').hidden)closeModal()});
+if(location.hash==='#options/rules'){s.view='pc';s.section='rules'}else if(location.hash.startsWith('#options/diagnostics')){s.view='pc';s.section='diagnostics';const sub=location.hash.split('/')[2];s.diagView=['overview','ai','top','speed','proxy'].includes(sub)?sub:'overview'}
 render();
 })();
 </script>
