@@ -428,7 +428,10 @@ function createSidebarToolsController({api=globalThis.chrome,doc=globalThis.docu
     if(disposed||!visible)return;
     // A success for one operation cannot erase an unrelated persistent error.
     if(status.attributes['data-state']!=='error')notice('');
-    view.showToast(message,{type:'success',caption,position:'bottom-center'});
+    // Install/update/uninstall successes expire after 5 seconds even if the
+    // pointer remains over them; actionable errors retain their own lifetime.
+    view.showToast(message,{type:'success',caption,position:'bottom-center',
+      timeout:5000,pauseOnInteraction:false});
   };
   const refreshNoticeLanguage=()=>{
     if(!disposed&&noticeProjection)patchToolField(view,status,{textContent:noticeProjection()});
