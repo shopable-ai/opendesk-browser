@@ -1,0 +1,181 @@
+<!doctype html>
+<html lang="zh-CN"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Web Flow · 共用任务抽屉交互预览</title>
+<style>
+:root{font:13px/1.5 system-ui,-apple-system,"PingFang SC",sans-serif;color:#293951;background:#eef2f9}
+*{box-sizing:border-box}body{margin:0}button,input,textarea{font:inherit}button{cursor:pointer}button:disabled{opacity:.4;cursor:not-allowed}
+button:focus-visible,input:focus-visible,textarea:focus-visible{outline:2px solid #8cacec;outline-offset:2px}
+main.page{max-width:1230px;margin:auto;padding:20px}h1{font-size:18px;margin:0}h2{font-size:14px;margin:0}p{margin:7px 0}.sub{color:#7e8da3;font-size:11px}
+.layout{margin-top:18px;display:grid;grid-template-columns:240px minmax(0,1fr);min-height:680px;background:#fff;border:1px solid #dce4ee;border-radius:14px;overflow:hidden;box-shadow:0 18px 38px #32486a13}
+.controls{padding:18px;border-right:1px solid #e1e7f0}.section{border-top:1px solid #e6eaf1;margin-top:17px;padding-top:15px}.section strong{display:block;margin-bottom:8px;font-size:12px}
+.scenes{display:grid;grid-template-columns:1fr 1fr;gap:6px}.scenes button,.size button{border:1px solid #d8e2ee;background:#fff;border-radius:8px;padding:8px 5px;font-size:11px;color:#63718a}
+.scenes button.selected,.size button.selected{border-color:#9ab1e8;background:#edf2ff;color:#345bc2;font-weight:700}
+.controls label{font-size:11px;display:flex;gap:7px;align-items:center}.controls input[type=checkbox]{accent-color:#3e62c1}
+.note{border:1px solid #e0e7f0;border-radius:9px;background:#f8fafd;padding:11px;font-size:11px;line-height:1.65;margin-top:12px}
+.note.warn{background:#fffaf2;border-color:#e8d3b1;color:#855b20}.btn{background:#fff;border:1px solid #d7e1ed;color:#52617a;border-radius:8px;padding:8px 10px;font-weight:650;font-size:11px}
+.btn.primary{background:#4265c8;border-color:#4265c8;color:white}.btn.danger{color:#ad5157;border-color:#edcbd0}
+.stage{background:#eaf0f9;padding:16px;min-width:0}.stagebar{display:flex;justify-content:space-between;gap:6px;align-items:center;margin-bottom:14px}.size{display:flex;gap:5px}
+.frame{width:min(100%,425px);min-height:540px;margin:auto;border-radius:12px;background:white;border:1px solid #d2dfef;overflow:hidden;position:relative;box-shadow:0 12px 28px #354a701c}
+.frame.wide{width:min(100%,760px)}.chrome{height:27px;border-bottom:1px solid #e4e9f0;background:#f9fbfd;padding:7px 13px;font-size:10px;color:#92a0b5}
+.nav{display:flex;align-items:center;gap:8px;padding:9px 12px;border-bottom:1px solid #e4e9f0;background:#fbfcfe}.nav strong{margin-right:auto}
+.nav button{border:0;border-radius:6px;background:transparent;color:#6c7990;padding:6px 8px;font-size:11px}.nav button.current{background:#edf2ff;color:#3e5fc2;font-weight:700}
+.head{display:flex;gap:10px;align-items:center;padding:14px 13px 8px}.glyph{display:grid;place-items:center;width:30px;height:30px;border-radius:8px;color:#3b62c7;background:#eaf0ff;font-weight:800}
+.tabs{display:flex;gap:1px;margin:0 13px;border-bottom:1px solid #e2e8f1}.tabs button{flex:1;border:0;border-bottom:2px solid transparent;background:white;padding:9px 2px;color:#8190a4}.tabs button.current{border-bottom-color:#3f63c4;color:#3657b7;font-weight:700}
+.body{padding:13px}.search{border:1px solid #dce5ef;border-radius:8px;padding:9px;color:#90a0b5}.items{border:1px solid #e2e7ee;border-radius:9px;margin-top:10px}
+.item{display:flex;gap:8px;align-items:center;padding:10px 8px}.item+.item{border-top:1px solid #e6eaf2}.item:hover{background:#f9fbff}
+.txt{flex:1;min-width:0}.txt strong{font-size:11px;display:block;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.txt small{font-size:10px;color:#8a97ac}
+.icon{background:transparent;border:0;color:#70809b;border-radius:7px;width:28px;height:30px;font-size:16px}.icon.play{background:#eaf0ff;color:#4265c8}
+.frame.hover .item:not(:hover):not(:focus-within) .extra{opacity:0}.icon:hover{background:#eaf0ff}
+.record{border:1px solid #e0e6ef;border-radius:9px;padding:12px}.record p{font-size:11px;color:#65758c}.record details{border-top:1px solid #e5eaf2;margin-top:10px;padding-top:9px;font-size:11px}
+.badge{font-size:10px;background:#f1f3fa;border-radius:6px;padding:3px 7px;color:#5571b1}
+.overlay{position:absolute;inset:27px 0 0;background:#20365a78;z-index:10;display:flex;justify-content:flex-end}
+.overlay[hidden]{display:none}.sheet{width:100%;max-width:410px;background:#fff;height:100%;display:flex;flex-direction:column;box-shadow:-12px 0 26px #31456a25}
+.sheetheader{padding:16px;border-bottom:1px solid #e4e9f0;display:flex;gap:10px;align-items:center}.sheetheader .sheettitle{flex:1}.sheettitle small{color:#7a8ba1}.sheettitle strong{display:block;font-size:14px}
+.sheetbody{padding:16px;flex:1;min-height:0;overflow:auto}.sheetfooter{border-top:1px solid #e2e8ef;padding:13px 16px;display:flex;justify-content:flex-end;gap:8px}
+.row{display:flex;justify-content:space-between;align-items:center;gap:8px}.row strong{font-size:12px}.switch{display:flex;gap:2px;background:#eff3f8;border-radius:7px;padding:3px}.switch button{border:0;background:none;border-radius:6px;padding:5px 9px;color:#73839b}.switch button.current{background:white;color:#3e62c1}
+.field{margin-top:14px}.field label{display:block;font-size:11px;font-weight:700;margin-bottom:6px}.field input,.field textarea{border:1px solid #dce4ed;border-radius:8px;width:100%;padding:10px;background:#fff;color:#293951}
+.fixed{border-radius:8px;background:#f5f7fb;border:1px solid #e1e7f0;padding:10px;color:#64748b;font-size:12px}
+.field .sub{display:block;margin-top:4px}.review{border-radius:9px;background:#f4f7fc;padding:13px;line-height:2;margin-top:15px;overflow-wrap:anywhere}
+.err{font-size:11px;color:#af4450;margin-top:12px;min-height:17px}.foot{font-size:10px;color:#8b99ad;text-align:center;margin-top:11px}
+@media(max-width:660px){.layout{grid-template-columns:1fr}.controls{border-right:0;border-bottom:1px solid #e1e7f0}.stage{padding:13px 8px}.page{padding:12px!important}.frame{min-height:510px}}
+</style>
+</head>
+<body><main class="page">
+<h1>Web Flow ·「我的」任务运行抽屉复用方案</h1>
+<p class="sub">右侧可点击 · 单文件离线原型 · 不执行真实网页任务 · OD-AI-WORKFLOW-BRIDGE</p>
+<div class="layout">
+<aside class="controls"><h2>交互测试台</h2><p class="sub">先在右侧 Web Flow 列表点击 ▶，再对比「我的」里的 ▶。</p>
+<div class="section"><strong>设置模拟状态</strong><div class="scenes">
+<button data-scene="idle" class="selected">可运行</button><button data-scene="prepared">待确认</button>
+<button data-scene="running">运行中</button><button data-scene="unknown">结果未知</button>
+<button data-scene="unreleased">未确认释放</button><button data-scene="released">已释放</button>
+</div></div>
+<div class="section"><strong>列表交互</strong><label><input type="checkbox" id="hover" checked>Hover / 焦点时显示次要操作</label></div>
+<div class="section"><strong>模拟统计</strong><p class="sub" id="counts">准备 0 / 执行 0 / 查询 0</p><button class="btn" data-action="reset">重置预览</button></div>
+<div class="note">这个预览只验证交互，不代表共享组件、SDK 或真正 RunHost 已接线。第一步打开/保存不会运行；第二次真实确认才允许提交。</div></aside>
+<section class="stage"><div class="stagebar"><strong>扩展界面模拟</strong><div class="size"><button data-size="panel" class="selected">Side Panel</button><button data-size="pc">PC 页面</button></div></div>
+<div class="frame hover" id="frame"><div class="chrome">● ● ● &nbsp; OpenDesk Browser / Demo</div>
+<div class="nav"><strong>OpenDesk</strong><button data-page="my">我的</button><button data-page="webflow" class="current">扩展 · Web Flow</button></div>
+<div class="head"><div class="glyph" id="appGlyph">W</div><div><h2 id="appTitle">Web Flow</h2><p class="sub" id="appSub">已安装脚本与运行记录</p></div></div>
+<nav class="tabs" id="tabs"><button data-tab="overview">概览</button><button class="current" data-tab="scripts">脚本</button><button data-tab="records">记录</button></nav>
+<div class="body" id="scripts"><div class="search">⌕ 搜索脚本或网站</div>
+<div class="items"><div class="item"><div class="glyph">百</div><div class="txt"><strong>百度搜索 · 前三条自然结果</strong><small>www.baidu.com · 已安装</small></div>
+<button class="icon extra" data-action="favorite" title="收藏">☆</button><button class="icon play" data-action="open" title="配置参数 / 准备运行">▶</button><button class="icon extra" data-action="more" title="更多操作">⋯</button></div>
+<div class="item"><div class="glyph">G</div><div class="txt"><strong>Google 搜索 · 前三条自然结果</strong><small>www.google.com · 已安装</small></div><button class="icon extra" disabled>☆</button><button class="icon play" disabled>▶</button><button class="icon extra" disabled>⋯</button></div></div>
+<div class="note" id="scriptNote">点击 ▶ 打开与「我的」相同的右侧参数抽屉。不会立即运行。</div></div>
+<div class="body" id="records" hidden><div class="record"><div class="row"><strong>百度搜索</strong><span class="badge" id="state">可运行</span></div>
+<p id="recordInfo">目前没有待处理的运行。</p><div class="row" style="justify-content:flex-start;flex-wrap:wrap">
+<button class="btn primary" data-action="continue" id="continue">继续确认</button><button class="btn" data-action="read" id="read">查询原请求</button>
+<button class="btn danger" data-action="stop" id="stop">尝试停止</button></div>
+<details><summary>技术信息 / 原请求身份</summary><p id="technical">仅模拟，实际 ID 从原 Authority 取得。</p></details></div></div>
+<div class="body" id="overview" hidden><div class="note"><strong>Web Flow</strong><p>脚本列表负责找到任务，记录页负责原请求状态；真实执行仍由可信工作台管理。</p></div></div>
+<div class="overlay" id="overlay" hidden><section class="sheet" role="dialog" aria-modal="true" aria-labelledby="drawerTitle">
+<header class="sheetheader"><div class="glyph">▶</div><div class="sheettitle"><small>参数与运行 · <span id="originLabel">Web Flow</span></small><strong id="drawerTitle">百度搜索：前三条自然结果</strong></div><button class="icon" data-action="close" aria-label="关闭">×</button></header>
+<div class="sheetbody"><div class="row"><strong>任务参数 · 3 项</strong><div class="switch" id="editorSwitch"><button data-editor="form" class="current">表单</button><button data-editor="json">JSON</button></div></div>
+<p class="sub" id="helper">关闭保留草稿；点击保存并核对才建立准备身份。</p>
+<div id="form">
+<div class="field"><label for="query">搜索关键词 *</label><input id="query" value="上海自然博物馆开放时间" maxlength="120" autocomplete="off"><span class="sub">必填，1–120 字</span></div>
+<div class="field"><label>结果数量</label><div class="fixed">3（任务固定，不能修改）</div></div>
+<div class="row" style="margin-top:15px"><label for="showTab">显示执行标签页</label><input type="checkbox" id="showTab" checked></div></div>
+<div id="json" class="field" hidden><label for="jsonInput">任务参数 JSON</label><textarea id="jsonInput" rows="9" spellcheck="false"></textarea></div>
+<div class="review" id="review" hidden></div><div class="err" role="alert" id="error"></div>
+<p class="sub" id="stageHelp">当前只是配置页面，未真正执行。</p></div>
+<footer class="sheetfooter"><button class="btn" data-action="close">取消</button><button class="btn primary" id="primary" data-action="prepare">保存并核对</button></footer>
+</section></div>
+</div><div class="foot">相同抽屉形式 · 同一 Task Schema · 本页只展示预期效果，不连接 SDK</div></section></div>
+<script>
+(function(){
+"use strict";
+const el=id=>document.getElementById(id);
+let s={page:"webflow",tab:"scripts",phase:"idle",source:"webflow",stage:"edit",editor:"form",query:"上海自然博物馆开放时间",showTab:true,prepared:null,prepareCount:0,runCount:0,readCount:0,open:false,hover:true,menu:false};
+const blocks=["scripts","records","overview"];
+const status={idle:"可运行",prepared:"已保存待确认",running:"执行中",unknown:"结果未知",unreleased:"释放未确认",stopping:"停止待核对",released:"已释放"};
+function blocked(){return ["prepared","running","unknown","unreleased","stopping"].includes(s.phase)}
+function render(){
+ el("frame").classList.toggle("hover",s.hover);el("overlay").hidden=!s.open;
+ el("appGlyph").textContent=s.page==="my"?"我":"W";el("appTitle").textContent=s.page==="my"?"我的 · 已安装任务":"Web Flow";
+ el("appSub").textContent=s.page==="my"?"原有可信任务入口":"已安装脚本与运行记录";
+ document.querySelectorAll("[data-page]").forEach(b=>b.classList.toggle("current",b.dataset.page===s.page));
+ el("tabs").hidden=s.page==="my";
+ blocks.forEach(id=>{el(id).hidden=s.page==="my"?id!=="scripts":s.tab!==id});
+ document.querySelectorAll("[data-tab]").forEach(b=>b.classList.toggle("current",b.dataset.tab===s.tab));
+ document.querySelectorAll("[data-scene]").forEach(b=>b.classList.toggle("selected",b.dataset.scene===s.phase));
+ el("state").textContent=status[s.phase];el("continue").hidden=s.phase!=="prepared";
+ el("read").hidden=!blocked()||s.phase==="prepared";el("stop").hidden=!blocked()||s.phase==="prepared";
+ el("recordInfo").textContent=({idle:"暂无未完成任务。",prepared:"已保存准备，没有启动脚本。",running:"模拟已派发一次，等待真实运行结果。",unknown:"结果未知，不能重复运行。",unreleased:"执行结束，但资源释放尚未证实。",stopping:"停止已经请求，仍待核对原结果。",released:"持久结果与资源释放已核实，可以重新运行。 "})[s.phase];
+ el("technical").textContent="模拟请求 ID："+(s.prepared?.id||"暂无")+"；真实资源记录未在此页面读取。";
+ el("scriptNote").textContent=blocked()?"原请求未确认，禁止从脚本页再次执行。请在记录页处理。":"点击 ▶ 打开与「我的」相同的右侧参数抽屉。不会立即运行。";
+ el("scriptNote").classList.toggle("warn",blocked());
+ document.querySelectorAll('[data-action="open"]').forEach(b=>b.disabled=blocked());
+ el("counts").textContent="准备 "+s.prepareCount+" / 执行 "+s.runCount+" / 查询 "+s.readCount;
+ if(s.open)renderDrawer();
+}
+function renderDrawer(){
+ el("originLabel").textContent=s.source==="my"?"我的":"Web Flow";
+ const review=s.stage==="review";
+ el("form").hidden=review||s.editor!=="form";el("json").hidden=review||s.editor!=="json";el("review").hidden=!review;el("editorSwitch").hidden=review;
+ el("query").value=s.query;el("showTab").checked=s.showTab;el("jsonInput").value=JSON.stringify({query:s.query,limit:3,showExecutionTab:s.showTab},null,2);
+ document.querySelectorAll("[data-editor]").forEach(b=>b.classList.toggle("current",b.dataset.editor===s.editor));
+ el("helper").textContent=review?"准备已冻结并读回。第二次点击才执行。":s.source==="my"?"关闭后保留草稿；点击“运行任务”才会执行。":"与「我的」同一表单，先保存并核对，再确认执行。";
+ el("stageHelp").textContent=review?"模拟再次校验同一安装身份、参数及目标网页；不会调用真实 RunHost。":"本预览不请求任何真实权限，也不会运行网页操作。";
+ el("error").textContent="";
+ if(review){const p=s.prepared?.params;el("review").textContent="已保存的原请求："+s.prepared?.id+"；关键词："+p?.query+"；结果数量：3；显示执行页："+(p?.showExecutionTab?"是":"否")+"。";}
+ el("primary").textContent=review?"确认执行一次":s.source==="my"?"运行任务":"保存并核对";
+ el("primary").dataset.action=review?"confirm":s.source==="my"?"runMy":"prepare";
+}
+function open(source,trigger){
+ if(blocked()&&s.phase!=="prepared"){s.page="webflow";s.tab="records";render();return}
+ s.source=source;s.stage=s.phase==="prepared"?"review":"edit";s.editor="form";s.open=true;render();
+ (s.stage==="review"?el("primary"):el("query")).focus();
+}
+function values(){
+ if(s.editor==="json"){
+  let p;try{p=JSON.parse(el("jsonInput").value)}catch{throw Error("JSON 格式错误")}
+  if(!p||Array.isArray(p)||typeof p!=="object"||Object.keys(p).some(k=>!["query","limit","showExecutionTab"].includes(k))||typeof p.query!=="string"||p.query.trim().length<1||p.query.length>120||p.limit!==3||("showExecutionTab" in p&&typeof p.showExecutionTab!=="boolean"))throw Error("参数需符合 Task Schema：query 非空、limit=3、showExecutionTab 必须是布尔值");
+  return {query:p.query.trim(),limit:3,showExecutionTab:p.showExecutionTab!==false};
+ }
+ const query=el("query").value.trim();if(!query||query.length>120)throw Error("请输入 1–120 字的关键词");
+ return {query,limit:3,showExecutionTab:el("showTab").checked};
+}
+document.addEventListener("click",e=>{
+ const b=e.target.closest("button");if(!b)return;
+ if(b.dataset.scene){
+  const phase=b.dataset.scene;s.phase=phase;s.prepared=phase==="idle"?null:{id:"demo-existing-001",params:{query:s.query,limit:3,showExecutionTab:s.showTab},submitted:phase!=="prepared"};
+  s.page="webflow";s.tab=phase==="idle"?"scripts":"records";s.open=false;render();return;
+ }
+ if(b.dataset.size){el("frame").classList.toggle("wide",b.dataset.size==="pc");document.querySelectorAll("[data-size]").forEach(x=>x.classList.toggle("selected",x===b));return}
+ if(b.dataset.page){s.page=b.dataset.page;s.open=false;s.tab="scripts";render();return}
+ if(b.dataset.tab){s.tab=b.dataset.tab;render();return}
+ if(b.dataset.editor){
+  try{const v=values();s.query=v.query;s.showTab=v.showExecutionTab;s.editor=b.dataset.editor;renderDrawer()}catch(error){el("error").textContent=error.message}return;
+ }
+ switch(b.dataset.action){
+ case "open":open(s.page,b);break;
+ case "close":s.open=false;render();break;
+ case "prepare":case "runMy":
+  try{
+   if(blocked())throw Error("存在未结束的原请求，不能创建第二请求");
+   const p=values();s.query=p.query;s.showTab=p.showExecutionTab;s.prepared={id:"demo-"+Date.now(),params:p,submitted:false};
+   if(b.dataset.action==="prepare"){s.phase="prepared";s.prepareCount++;s.stage="review";render();}
+   else{s.phase="running";s.prepared.submitted=true;s.runCount++;s.open=false;s.tab="records";s.page="webflow";render()}
+  }catch(error){el("error").textContent=error.message}break;
+ case "confirm":
+  if(s.phase!=="prepared"||s.prepared?.submitted){el("error").textContent="同一请求已提交或身份未知，不得重试。";break;}
+  s.prepared.submitted=true;s.runCount++;s.phase="running";s.open=false;s.page="webflow";s.tab="records";render();break;
+ case "continue":open("webflow",b);break;
+ case "read":s.readCount++;render();break;
+ case "stop":s.phase="stopping";render();break;
+ case "favorite":b.textContent=b.textContent==="☆"?"★":"☆";break;
+ case "more":el("scriptNote").textContent="更多操作仅含查看脚本详情、宿主管理。";break;
+ case "reset":s.phase="idle";s.prepared=null;s.prepareCount=0;s.runCount=0;s.readCount=0;s.open=false;s.page="webflow";s.tab="scripts";s.query="上海自然博物馆开放时间";s.showTab=true;render();break;
+ }
+});
+document.addEventListener("change",e=>{if(e.target.id==="hover"){s.hover=e.target.checked;render()}if(e.target.id==="showTab")s.showTab=e.target.checked});
+document.addEventListener("input",e=>{if(e.target.id==="query")s.query=e.target.value});
+document.addEventListener("keydown",e=>{
+ if(!s.open)return;
+ if(e.key==="Escape"&&!e.isComposing){e.preventDefault();s.open=false;render()}
+});
+render();
+})();
+</script></main></body></html>
