@@ -98,6 +98,27 @@ test('V2 standing scope denies parameter drift and remains revoked after restart
     epoch:h.state[CHATGPT_BRIDGE_LEDGER_KEY][request.requestId].autoEpoch}),{code:'E_WEBFLOW_V2_DENIED'});
 });
 
+test('enabling one newly approved V2 scope does not reactivate other paused task grants',async()=>{
+  const h=harness();
+  const google=BUILTIN_TASK_RELEASES.find(row=>row.taskId==='google.search.top3');
+  assert.ok(google);
+  const oldGrant={...structuredClone(scope),taskId:'google.search.top3',
+    targetUrl:'https://www.google.com/',
+    installation:{...structuredClone(scope.installation),version:google.version,
+      manifestHash:google.manifestHash,contentHash:google.sourceHash,
+      scriptId:`task:google.search.top3:${google.version}`}};
+  await h.ledger.approveAuto(oldGrant);
+  await h.ledger.setAutoEnabled(false);
+  const candidate=candidateFor(31),request=await h.admit(candidate);
+  assert.equal(request.pendingApproval,true);
+  await approve(h,request,candidate);
+  const settings=h.state[WEBFLOW_AUTO_GRANTS_KEY];
+  assert.equal(settings.enabled,true);
+  assert.equal(settings.grants[scope.taskId].state,'active');
+  assert.equal(settings.grants[oldGrant.taskId].state,'revoked',
+    'approving V2 cannot resume an unrelated task paused by the global switch');
+});
+
 test('one V2 approval enters the original Controller exactly once; UNKNOWN and revocation fail closed',async()=>{
   const h=harness(),candidate=candidateFor(4),request=await h.admit(candidate);
   await approve(h,request,candidate);

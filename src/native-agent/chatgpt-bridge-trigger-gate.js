@@ -391,7 +391,13 @@ export function createChatGPTBridgeTriggerLedger({storage,revocationStorage,cloc
           if(!Object.hasOwn(settings.grants,review.taskId)&&Object.keys(settings.grants).length>=128)
             throw fail('E_BRIDGE_LIMIT','持续批准记录已满');
           const grantId=generateId();requireRequestId(grantId);
-          settings.enabled=true; // Explicit trusted review approves future exact-scope use.
+          // Enabling this newly reviewed scope must not quietly resume
+          // unrelated grants that the user previously paused globally.
+          if(settings.enabled!==true){
+            for(const previous of Object.values(settings.grants))
+              if(previous.state==='active')previous.state='revoked';
+          }
+          settings.enabled=true; // Native click permits this reviewed V2 scope.
           settings.grants[review.taskId]={scope:review,grantId,
             intentProtocol:WEBFLOW_TASK_INTENT_V2_PROTOCOL,state:'active',approvedAt:now};
           row.autoGrantId=grantId;row.autoEpoch=settings.epoch+1;
