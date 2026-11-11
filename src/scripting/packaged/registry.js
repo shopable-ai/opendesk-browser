@@ -159,11 +159,16 @@ export function createPackagedPageSession({document: doc = document, window: win
   }
   function uploadCommit(css, id, total, metadata = {}) {
     const upload = uploads.get(id); uploads.delete(id);
-    requireValue((total === 0 && !upload) || (upload && upload.total === total && upload.offset === total), 'E_UPLOAD_FORMAT');
-    const el = element(css); requireValue(el.tagName === 'INPUT' && el.type === 'file' && !el.disabled && !el.multiple && !el.webkitdirectory, 'E_INPUT_TARGET_UNSUPPORTED');
-    const {name, type} = normalizeUploadMetadata(metadata);
-    const transfer = new win.DataTransfer(); transfer.items.add(new win.File([upload?.bytes || new Uint8Array()], name, {type}));
-    check(); el.files = transfer.files; event(el, new win.Event('change', {bubbles: true})); return undefined;
+    try {
+      requireValue((total === 0 && !upload) || (upload && upload.total === total && upload.offset === total), 'E_UPLOAD_FORMAT');
+      const el = element(css); requireValue(el.tagName === 'INPUT' && el.type === 'file' && !el.disabled && !el.multiple && !el.webkitdirectory, 'E_INPUT_TARGET_UNSUPPORTED');
+      const {name, type} = normalizeUploadMetadata(metadata);
+      const transfer = new win.DataTransfer(); transfer.items.add(new win.File([upload?.bytes || new Uint8Array()], name, {type}));
+      check(); el.files = transfer.files; event(el, new win.Event('change', {bubbles: true})); return undefined;
+    } finally {
+      // The new File owns its content; clear only the per-run staging buffer.
+      if (upload) upload.bytes.fill(0);
+    }
   }
   async function addTag(method, value) {
     const isScript = method === 'addScriptTag'; options(value, isScript ? ['url', 'type'] : ['url', 'content']);
