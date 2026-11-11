@@ -138,3 +138,21 @@ test('shared editor keeps the compact Side Panel field order without cloning bus
   'Side Panel retains host → protocol → port');
  assert.equal(fields.find('.proxyNameField').length,1,'only one name editor is mounted');
 });
+
+test('PC website rules expose preview-style route/priority columns while Side Panel stays compact',()=>{
+ const base=domain.freshConfig();
+ const config={...base,rules:[{id:'rule-1',domain:'chat.example',includeSubdomains:true,
+  priority:20,enabled:true,action:'direct'}]};
+ const runtime={state:'disabled',control:'controllable_by_this_extension',canStop:false,
+  desired:config.selection,managedIntent:false,applied:false,pendingChanges:false,
+  activeSelection:null,browserMode:'system',proxyError:null};
+ const pc=render('zh-CN',runtime,{config,route:'#/rules'});
+ assert.equal(pc('.managementRulesHeader').length,1);
+ assert.equal(pc('.ruleRecord .managementRuleTarget').text(),translate('zh-CN','directConnection2'));
+ assert.equal(pc('.ruleRecord .managementRulePriority').text(),'20');
+ assert.match(pc('.ruleRecordText small').text(),/子域/);
+ const side=render('zh-CN',runtime,{config,route:'#/rules',presentation:'sidebar'});
+ assert.equal(side('.managementRulesHeader').length,0);
+ assert.equal(side('.managementRuleTarget,.managementRulePriority').length,0);
+ assert.match(side('.ruleRecordText small').text(),/20/);
+});
