@@ -320,6 +320,34 @@ test('My shared Sheet visibly blocks a Web Flow outstanding preparation before a
   }finally{if(root)await React.act(async()=>root.unmount());f.dispose();}
 });
 
+
+test('revocation after durable submit fence prevents RunHost start and never replays',async()=>{
+  const f=await fixture();let root;
+  try{
+    root=await f.mount();
+    const pin={taskId:'test.task',version:'1.0.0',manifestHash:'a'.repeat(64),contentHash:'b'.repeat(64)};
+    let checks=0,authorized=true;
+    const assertAuthorized=async()=>{checks++;if(!authorized||checks===6)
+      throw Object.assign(new Error('revoked after submit fence'),{code:'E_TOOL_CHANGED'});};
+    await React.act(async()=>{assert.equal(await f.workbench.openTaskRunSheet('test.task',{
+      expectedPin:pin,assertAuthorized}),true);await tick();});
+    const expected={...f.view.data.taskRows.identity};
+    await React.act(async()=>{assert.equal(await f.view.actions.taskRunSheetPrepare(native(),expected),true);await tick();});
+    const item=f.state.localStore.get('opendesk.shared-task-run-sheet.webflow.v1');
+    assert.equal(item.state,'ready');
+    await React.act(async()=>{
+      assert.equal(f.view.actions.taskRunSheetConfirm(native(),expected),true);
+      await tick();await tick();await tick();
+    });
+    assert.ok(checks>=6,'recheck authorization after the durable submit fence');
+    assert.equal(f.state.localStore.get('opendesk.shared-task-run-sheet.webflow.v1').state,'submitted',
+      'unknown effect needs the same frozen identity, never another prepare');
+    assert.equal(f.state.starts.length,0,'revocation at the final Host write boundary forbids start');
+    assert.equal(f.view.actions.taskRunSheetConfirm(native(),expected),false,
+      'the same prepared request cannot be confirmed again');
+  }finally{if(root)await React.act(async()=>root.unmount());f.dispose();}
+});
+
 test('JSON editing uses original typed validation and preserves the editor draft across task selection',async()=>{
   const f=await fixture({twoTasks:true});let root;
   try{

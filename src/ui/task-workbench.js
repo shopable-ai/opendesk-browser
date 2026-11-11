@@ -923,6 +923,11 @@ export function createTaskWorkbench({client,host,currentPageTarget,api=globalThi
         if(resolved.contentHash!==preparedAttempt.contentHash)
           throw prepError('E_REVISION','准备的脚本内容身份已经变化');
         await claimSheet(preparedAttempt);
+        // The immutable request is now fenced. Tool authorization must still
+        // be current at the LAST write boundary, after the lock and storage
+        // readback. Revocation here fails closed as submitted/UNKNOWN, not retry.
+        await writeAuthorization();
+        await currentPageTarget.revalidate(captured);
       }else{
         const outstanding=await readSheet();
         if(!settled(outstanding))throw prepError('E_PREPARE_BUSY','Web Flow 有未释放准备或执行，不能从「我的」绕过');
