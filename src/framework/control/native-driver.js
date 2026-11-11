@@ -15,7 +15,7 @@ const methods = Object.freeze({
   packaged: new Set(['title', 'content', 'contentOpen', 'contentRead', 'contentClose', 'url', 'snapshot', 'snapshots', 'click', 'type', 'keyboard',
     'waitForTimeout', 'waitForSelector', 'uploadChunk', 'uploadCommit', 'addScriptTag', 'addStyleTag',
     'locatorRead', 'locatorWait', 'locatorAction', 'locatorObserve']),
-  browser: new Set(['goto', 'reload', 'bringToFront', 'cookies', 'setCookie', 'deleteCookie', 'screenshot', 'uploadFromUrl']),
+  browser: new Set(['goto', 'reload', 'bringToFront', 'cookies', 'setCookie', 'deleteCookie', 'screenshot', 'uploadFromUrl', 'uploadFromAsset']),
   'user-script': new Set(['evaluate', '$eval', '$$eval', 'evaluateExpression', 'eval', 'waitForFunction'])
 });
 // These operations only observe page state or manage framework-owned read buffers.
@@ -53,9 +53,9 @@ export function validateControllerEnvelope(envelope) {
 export const COOKIE_PREFLIGHT_METHODS=Object.freeze(['cookies','setCookie','deleteCookie']);
 export const COOKIE_PREFLIGHT_CODES=Object.freeze([COOKIE_FORMAT_CODE,'E_COOKIE_SCOPE','E_COOKIE_PARTITION_UNSUPPORTED','E_PERMISSION_DENIED']);
 export function createControllerDriver({api = globalThis.chrome, authorize, clock = Date, withWrite = async (_owner, fn) => fn(),
-  beforeEffect = async () => {}} = {}) {
+  beforeEffect = async () => {}, readMediaAsset} = {}) {
   requireValue(api && typeof authorize === 'function' && typeof clock.now === 'function' && typeof withWrite === 'function' &&
-    typeof beforeEffect === 'function', 'E_PAGE_CONTEXT_REQUIRED');
+    typeof beforeEffect === 'function' && (readMediaAsset === undefined || typeof readMediaAsset === 'function'), 'E_PAGE_CONTEXT_REQUIRED');
   const runs = new Map(), retired = new Set();
   const finalFailures = new WeakMap();
   if (!unavailableByAPI.has(api)) unavailableByAPI.set(api, new Set());
@@ -515,6 +515,55 @@ export function createControllerDriver({api = globalThis.chrome, authorize, cloc
       await permission(state, 'pre', {url}); await packaged(state, 'uploadCommit', [css, uploadId, total, metadata]); return true;
     } finally { bytes.fill(0); }
   }
+  // Trusted Host -> original page session; only small bounded transport frames
+  // cross to the page. The Controller never sees bytes or a filesystem path.
+  async function uploadFromAsset(state) {
+    const [css, assetId] = state.args;
+    selector(css);
+    requireValue(typeof assetId === 'string' && /^wf-media-[0-9a-f]{8}(?:-[0-9a-f]{4}){3}-[0-9a-f]{12}$/.test(assetId),
+      'E_MEDIA_ID');
+    requireValue(typeof readMediaAsset === 'function', 'E_CAPABILITY_UNAVAILABLE');
+    await permission(state, 'pre'); await verifyTarget(state);
+    const asset = await race(state, readMediaAsset(assetId, state.envelope));
+    const bytes = asset?.bytes, metadata = asset?.metadata;
+    requireValue(bytes instanceof Uint8Array && metadata && typeof metadata === 'object',
+      'E_MEDIA_CORRUPT');
+    const media = normalizeUploadMetadata({name: metadata.name, type: metadata.mime});
+    requireValue(media.type === 'image/png' && Number.isSafeInteger(metadata.size) &&
+      metadata.size > 0 && metadata.size <= VALUE_LIMITS.uploadBytes &&
+      bytes.length === metadata.size && /^[a-f0-9]{64}$/.test(metadata.sha256), 'E_MEDIA_CORRUPT');
+    const uploadId = newPageRequestId();
+    let committed = false;
+    try {
+      const digest = new Uint8Array(await race(state, globalThis.crypto.subtle.digest('SHA-256', bytes)));
+      const hash = Array.from(digest, byte => byte.toString(16).padStart(2, '0')).join('');
+      requireValue(hash === metadata.sha256, 'E_MEDIA_HASH');
+      await permission(state, 'pre'); await verifyTarget(state);
+      for (let offset = 0; offset < bytes.length; offset += VALUE_LIMITS.chunkBytes) {
+        await permission(state, 'pre'); await verifyTarget(state);
+        const chunk = bytes.subarray(offset, offset + VALUE_LIMITS.chunkBytes);
+        let binary = ''; for (const byte of chunk) binary += String.fromCharCode(byte);
+        await packaged(state, 'uploadChunk', [uploadId, offset, bytes.length, btoa(binary)]);
+      }
+      await permission(state, 'pre'); await verifyTarget(state);
+      await packaged(state, 'uploadCommit', [css, uploadId, bytes.length, media]);
+      committed = true;
+      return {assetId, name:media.name, mime:media.type, size:metadata.size, sha256:hash,
+        state:'file-input-committed'};
+    } finally {
+      bytes.fill(0);
+      if (!committed) {
+        // Abort the exact staged upload, never any unrelated session/upload.
+        // If consent was revoked, cleanup is denied and normal run cancellation
+        // or pagehide will dispose the isolated session.
+        const cleanupEnvelope = {...state.envelope, requestId:newPageRequestId(),
+          operation:{kind:'packaged',method:'uploadAbort',args:controlEncodeValue([uploadId])}};
+        await cleanupCall(state.envelope, () => chromeCall(api, api.tabs, 'sendMessage',
+          state.envelope.target.tabId,{type:MESSAGE,action:'execute',envelope:cleanupEnvelope},
+          messageTarget(state.envelope.target)));
+      }
+    }
+  }
   async function cleanupCall(envelope, dispatch) {
     let timer;
     try {
@@ -683,6 +732,10 @@ export function createControllerDriver({api = globalThis.chrome, authorize, cloc
       requireValue(['png', 'jpeg'].includes(args[0].format), 'E_OPTION_UNSUPPORTED');
     }
     if (method === 'uploadFromUrl') { requireValue(args.length === 2 || args.length === 3, ARG_TYPE_CODE); selector(args[0]); httpURL(args[1]); if (args.length === 3) normalizeUploadMetadata(args[2]); }
+    if (method === 'uploadFromAsset') {
+      requireValue(args.length === 2, ARG_TYPE_CODE); selector(args[0]);
+      requireValue(typeof args[1] === 'string' && /^wf-media-[0-9a-f]{8}(?:-[0-9a-f]{4}){3}-[0-9a-f]{12}$/.test(args[1]), 'E_MEDIA_ID');
+    }
     const key = ownerKey(envelope.identity); requireValue(!retired.has(key), 'E_CANCELLED');
     let run = runs.get(key);
     if (!run) {
@@ -719,6 +772,7 @@ export function createControllerDriver({api = globalThis.chrome, authorize, cloc
       else if (method === 'bringToFront') result = await bringToFront(state);
       else if (method === 'screenshot') result = await screenshot(state);
       else if (method === 'uploadFromUrl') result = await uploadFromURL(state);
+      else if (method === 'uploadFromAsset') result = await uploadFromAsset(state);
       else result = await cookieOperation(state);
       const failure=finalFailures.get(result);
       const reply = failure ? {requestId:envelope.requestId,error:failure} :
