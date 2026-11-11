@@ -44,7 +44,7 @@ export function regionCandidates(start,doc,win){
         // A long reply commonly jumps from a short paragraph directly to its
         // containing 50-screen <div>; don't stop at the paragraph. The first
         // multi-turn wrapper, edit surface or outer shell remains excluded.
-        result.push(node);previous=length;
+        result.push(node);
       }
     }
     node=node.parentElement;
