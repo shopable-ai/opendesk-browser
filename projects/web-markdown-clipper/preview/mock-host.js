@@ -60,7 +60,7 @@ const heading=document.createElement('strong');
 heading.textContent='UI_PREVIEW_ONLY · 模拟 AI 对话网页';
 demo.append(heading);
 const guide=document.createElement('p');
-guide.textContent='在上方选择「区域」→「点选网页区域」，再点下方任意回答；↑/↓ 调整，Esc 取消。';
+guide.textContent='在上方选择「区域」→「点选网页区域」，再点下方回答；↑/↓ 调整，Enter/空格选择，Esc 取消。';
 demo.append(guide);
 const cases=document.createElement('div');cases.style.cssText='display:flex;flex-wrap:wrap;gap:5px';
 let regionCase='normal',pendingRegion=null;
@@ -74,7 +74,7 @@ for(const [id,label] of [['normal','正常'],['streaming','流式'],['denied','�
 demo.append(cases);
 const userPrompt=document.createElement('p');userPrompt.textContent='用户：请输出详细方案与代码示例。';demo.append(userPrompt);
 function mockReply(id,chapters){
- const article=document.createElement('article');article.dataset.demoReply=id;
+ const article=document.createElement('article');article.dataset.demoReply=id;article.tabIndex=0;
  article.style.cssText='margin:10px 0;padding:10px;border:1px solid #94a3b8;border-radius:8px';
  const h=document.createElement('h2');h.textContent='AI 回答 '+id;article.append(h);
  for(let i=1;i<=chapters;i++){
@@ -121,9 +121,8 @@ function previewPick(id){
    node.style.outline='3px solid #2563eb';
    active={article,sub,node};
   };
-  const click=e=>{
-   if(!e.target.closest?.('[data-demo-reply]'))return;
-   e.preventDefault();e.stopImmediatePropagation();hover(e);
+  const deliver=()=>{
+   if(!active?.article)return;
    if(regionCase==='oversize')return finish(reason('E_BODY_LIMIT','演示：内容超过 160,000 字节，未截断保存'));
    if(regionCase==='failure')return finish(reason('E_CLIP_READ','演示：网页区域读取失败'));
    const markdown=demoMarkdown(active.article.dataset.demoReply,active.node===active.sub?active.sub.dataset.demoSection:null);
@@ -131,8 +130,17 @@ function previewPick(id){
    finish(null,{markdown,title:pageTitle(),site:new URL(source).hostname,source,capturedAt:new Date().toISOString(),
     mode:'clip.region',loadedOnly:true,streaming:regionCase==='streaming'});
   };
+  const click=e=>{
+   if(!e.target.closest?.('[data-demo-reply]'))return;
+   e.preventDefault();e.stopImmediatePropagation();hover(e);deliver();
+  };
   const key=e=>{
-   if(e.key==='Escape'){e.preventDefault();e.stopPropagation();finish(reason('E_CANCELLED','演示：Esc 取消区域点选'));}
+   if(e.key==='Escape'){e.preventDefault();e.stopPropagation();finish(reason('E_CANCELLED','演示：Esc 取消区域点选'));return;}
+   if(e.key==='Enter'||e.key===' '){
+    e.preventDefault();e.stopPropagation();
+    if(document.activeElement?.closest?.('[data-demo-reply]'))hover({target:document.activeElement});
+    deliver();return;
+   }
    if(['ArrowUp','ArrowDown'].includes(e.key)){
     level=e.key==='ArrowDown'?1:0;
     if(active){if(active.node)active.node.style.outline='';
