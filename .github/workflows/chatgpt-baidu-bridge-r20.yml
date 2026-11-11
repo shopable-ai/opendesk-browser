@@ -32,6 +32,7 @@ on:
       - 'projects/webflow/tests/chatgpt-send-task.test.mjs'
       - 'projects/webflow/src/chatgpt-conversation-result.js'
       - 'projects/webflow/src/github-issue-input.js'
+      - 'projects/webflow/trusted/chatgpt-result-adapter.js'
       - 'projects/webflow/trusted/chat-handoff-receipt.js'
       - 'projects/webflow/trusted/serial-two-step-run.js'
       - 'projects/webflow/tests/serial-two-step-run.test.mjs'
@@ -108,6 +109,7 @@ jobs:
           node --check projects/webflow/tests/chatgpt-send-task.test.mjs
           node --check projects/webflow/src/chatgpt-conversation-result.js
           node --check projects/webflow/src/github-issue-input.js
+          node --check projects/webflow/trusted/chatgpt-result-adapter.js
           node --check projects/webflow/trusted/chat-handoff-receipt.js
           node --check projects/webflow/tests/chatgpt-create-result.test.mjs
           node --check projects/webflow/trusted/md-run-ledger.js
