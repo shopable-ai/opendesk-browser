@@ -6,7 +6,7 @@ import {websiteOrigin,grantedOrigins,installedSiteAllowed,changeInstalledSiteAcc
 export const CLIP_SITE_STORE='opendesk.sidebar-tools.clip-sites.v1';
 export const CLIP_PROTOCOL='opendesk.page-clip.v1';
 export const CLIP_CAPABILITY='page.clip';
-export const CLIP_OPERATIONS=Object.freeze(['clip.article','clip.selection','clip.link']);
+export const CLIP_OPERATIONS=Object.freeze(['clip.article','clip.selection','clip.link','clip.region','clip.region.cancel']);
 export function clipGrantAllowed(installed,settings,id,url,enableRecords){
   const origin=websiteOrigin(url);
   if(!sidebarToolEnabled(enableRecords,id)||!origin||!Array.isArray(installed)||typeof id!=='string')return false;
