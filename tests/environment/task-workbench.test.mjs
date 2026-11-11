@@ -539,6 +539,23 @@ test('shared Task run sheet shortens visual labels without changing accessible n
   assert(footer.find('button svg[aria-hidden="true"]').length>=2,'all footer actions retain visible labels beside decorative icons');
 });
 
+test('multiline paste preserves exact JSON parameters and prevents lossy Input switch',async t=>{
+  const f=make();t.after(()=>f.ui.dispose());await tick();await tick();
+  f.field('task-param-name').value='Ada';
+  f.action('taskParamsMultilinePaste',{name:'name',text:'\n中文 "quoted"',start:3,end:3});
+  assert.equal(f.myView.data.taskParamsMode,'json');
+  const original={name:'Ada\n中文 "quoted"'};
+  assert.deepEqual(JSON.parse(f.field('task-params-json').value),original);
+  f.action('taskParamsModeChange','form');
+  assert.equal(f.myView.data.taskParamsMode,'json','native Input cannot represent multiline values');
+  assert.deepEqual(JSON.parse(f.field('task-params-json').value),original);
+  assert.match(f.field('task-status').text,/E_PARAMS/);
+  await f.click('task-run');await tick();await tick();
+  assert.equal(f.starts.length,1);
+  assert.deepEqual(f.starts[0].params,original,'Host must receive original newline, not collapsed Input text');
+  f.host.complete({ok:true});await tick();
+});
+
 test('My keeps search inside installed task management without executing or requesting permissions',async t=>{
   const f=make({secondTask:true});t.after(()=>f.ui.dispose());await tick();await tick();
   assert.deepEqual(f.myView.data.taskRows.rows.map(row=>row.taskId),['demo.form','demo.second']);
@@ -593,6 +610,31 @@ test('My Escape closes task management, clears filters and returns focus without
   assert.equal(f.doc.activeElement,f.get('task-manage-toggle'),
     'production action restores focus to the management button');
   assert.equal(f.field('task-run').disabled,false);
+  assert.equal(f.starts.length,0);assert.equal(f.permissions.length,0);
+});
+
+test('My search Escape clears query first, keeps active filter and focus, then closes on second Escape',async t=>{
+  const f=make({secondTask:true});t.after(()=>f.ui.dispose());await tick();await tick();
+  f.catalogState.installed[1].enabled=false;await f.ui.refresh();
+  await f.click('task-manage-toggle');await f.click('local-filter-disabled');
+  f.field('local-discover-search').value='no match';f.action('localDiscoverSearchInput');
+  assert.deepEqual(f.myView.data.taskRows.rows,[]);
+  const search=f.get('local-discover-search');search.focus();
+  let prevented=0;
+  const escape=()=>f.action('taskSearchPanelKeydown',{key:'Escape',target:search,defaultPrevented:false,
+    isComposing:false,repeat:false,preventDefault(){prevented++;}});
+  escape();
+  assert.equal(prevented,1);
+  assert.equal(f.field('task-search-panel').hidden,false);
+  assert.equal(f.field('local-discover-search').value,'');
+  assert.equal(f.field('local-filter-disabled').attributes['aria-pressed'],'true');
+  assert.deepEqual(f.myView.data.taskRows.rows.map(row=>row.taskId),['demo.second']);
+  assert.equal(f.doc.activeElement,search);
+  assert.equal(f.field('task-run').disabled,true,'filtered-out selected Task stays blocked');
+  escape();await tick();
+  assert.equal(prevented,2);
+  assert.equal(f.field('task-search-panel').hidden,true);
+  assert.equal(f.field('local-filter-all').attributes['aria-pressed'],'true');
   assert.equal(f.starts.length,0);assert.equal(f.permissions.length,0);
 });
 
@@ -1599,6 +1641,19 @@ test('shared sheet opens without Run, freezes actual Schema params, confirms onc
   assert.equal(f.starts[0].requestId,f.preparation.preparationId);
   assert.deepEqual(f.starts[0].taskDelegation,{appId:'webflow'});
   assert.ok(f.checks>=3);f.host.complete({ok:true});await tick();
+});
+
+test('prepared WebFlow parameters with newlines recover in JSON without changing Host bytes',async t=>{
+  const f=await sharedSheetFixture(t);
+  const original='第一行\nSecond & "quoted"';
+  f.field('task-param-name').value=original;
+  f.myView.actions.taskSheetPrepareClick({isTrusted:true},f.task);
+  await tick();await tick();
+  assert.equal(f.myView.data.taskRunSheet.phase,'prepared');
+  assert.equal(f.myView.data.taskParamsMode,'json');
+  assert.equal(f.preparation.params.name,original);
+  assert.equal(JSON.parse(f.field('task-params-json').value).name,original);
+  assert.equal(f.starts.length,0,'preparation never submits a Run');
 });
 
 test('shared sheet lost save acknowledgement retains same identity and only queries or cancels',async t=>{

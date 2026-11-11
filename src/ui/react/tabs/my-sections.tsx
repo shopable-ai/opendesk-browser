@@ -46,6 +46,13 @@ export function MyTaskParams({view,disabled=false}){
       </span>:<MyControl view={view} controlBase="aria" as="input" id={id} name={name} className="od-field" disabled={disabled}
         data-task-param={name} data-task-type={rule.type} aria-label={fullTitle} aria-required={rule.type!=='boolean'&&required||undefined} aria-describedby={describedBy} aria-invalid={error?'true':undefined} onInput={clearError} onChange={clearError}
         type={rule.type==='boolean'?'checkbox':['number','integer'].includes(rule.type)?'number':'text'}
+        onPaste={event=>{
+          if(rule.type!=='string')return;
+          const text=event.clipboardData?.getData('text/plain');
+          if(typeof text!=='string'||!/[\r\n]/u.test(text))return;
+          event.preventDefault();
+          view.actions.taskParamsMultilinePaste?.({name,text,start:event.currentTarget.selectionStart,end:event.currentTarget.selectionEnd});
+        }}
         step={rule.type==='integer'?'1':'any'} minLength={rule.minLength} maxLength={rule.maxLength}
         min={rule.minimum} max={rule.maximum} required={required}/>}
       </div>
