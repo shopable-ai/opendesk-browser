@@ -600,6 +600,14 @@ export function createChatGPTBridgeTriggerLedger({storage,revocationStorage,cloc
       return sequence(async()=>{
         const rows=await load(),row=rows[requestId];
         if(!row?.site)throw fail('E_BRIDGE_REQUEST','没有对应的网页请求记录');
+        if(row.site.adapter==='chatgpt'&&row.webDelivery==='delivered'){
+          // This row is the immutable original A result receipt. Observers
+          // cannot replace its Run/Result, delivery or diagnostic evidence.
+          if(Object.entries(patch).some(([key,value])=>
+            stableJSON(value)!==stableJSON(row.webObservation?.[key])))
+            throw fail('E_BRIDGE_REPLAY','已确认原聊天交付回执不得被后续观察覆盖');
+          return {requestId,webObservation:structuredClone(row.webObservation)};
+        }
         row.webObservation={...row.webObservation,...patch};
         await save(rows);
         return {requestId,webObservation:structuredClone(row.webObservation)};

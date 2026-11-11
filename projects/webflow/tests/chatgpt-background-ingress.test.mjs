@@ -492,3 +492,28 @@ test('atomic A receipt storage failure never marks delivered or sends a second t
   const [rowRead]=await h.handle('history',{source},h.panel);
   assert.equal(rowRead.receipt.delivery,'unknown');
 });
+
+
+test('confirmed A message receipt stays immutable when later observation tries to rewrite identity',async()=>{
+  const h=fixture();await h.approve();const row=await h.completed();
+  h.state.deliveryReplyFactory=async message=>({ok:true,data:{
+    sent:true,userObserved:true,aiReplyObserved:false,messageId:'user-message-0001',
+    contentSha256:await digestUtf8(message.text)
+  }});
+  await h.handle('settle',{requestId:row.requestId});
+  const original=structuredClone(h.values[CHATGPT_BRIDGE_LEDGER_KEY][row.requestId]);
+  for(const patch of [{runId:'different-run'}, {resultId:'different-result'},
+    {delivery:'unknown'}, {persistence:'not-confirmed'},
+    {error:{code:'TAMPER',message:'changed'}}]){
+    await assert.rejects(h.ledger.recordWebTaskObservation(row.requestId,patch),
+      {code:'E_BRIDGE_REPLAY'});
+    assert.deepEqual(h.values[CHATGPT_BRIDGE_LEDGER_KEY][row.requestId],original);
+  }
+  const read=await h.ledger.recordWebTaskObservation(row.requestId,{
+    runId:original.webObservation.runId,
+    resultId:original.webObservation.resultId,
+    delivery:'confirmed'
+  });
+  assert.equal(read.webObservation.messageId,'user-message-0001');
+  assert.deepEqual(h.values[CHATGPT_BRIDGE_LEDGER_KEY][row.requestId],original);
+});
