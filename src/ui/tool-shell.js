@@ -379,6 +379,7 @@ workflowView=createWorkflowView({api:chrome,client:foundationClient,host:scriptE
 extensionList.connectWorkflowPage(workflowView);
 // app.html owns only ToolHost; the Side Panel alone renders the list nodes.
 const extensionCenter=hostUrl.pathname===APP_DOCUMENT_PATHNAME?null:createExtensionCenter({api:chrome,client:foundationClient,doc:document,sidebarTools,taskWorkbench,currentPageTarget,localeController,toolLocaleService,extensionList,
+  notify:(message,options)=>toolView.showToast(message,options),
   createScrollConversation:identity=>createBusinessConversation({api:chrome,providerRuntime,hostInstanceId,
     consumerId:'scroll-navigation',policy:scrollConversationPolicy,...identity}),
   openAIProviderSettings:()=>extensionList?.openProviderSettings?.()});

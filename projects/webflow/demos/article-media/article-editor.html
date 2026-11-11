@@ -88,12 +88,38 @@ small{color:#65758c}code{background:#e9edf4;border-radius:4px;padding:2px 4px}
     ready.id='image-ready-'+index;ready.className='media-ready';ready.hidden=true;
     input.addEventListener('change',()=>{
       const file=input.files && input.files[0];
+      ready.hidden=true;
+      delete ready.dataset.sha256;
+      delete ready.dataset.filename;
+      delete ready.dataset.mime;
+      delete ready.dataset.size;
       if(!valid(file,'image')){
         ready.hidden=false;ready.textContent='图片不支持或超过 1 MiB';images[index]=null;return;
       }
-      images[index]=file;ready.hidden=false;ready.textContent='已选择图片：'+file.name+'（'+file.type+'）';
-      preview('image-'+index,file);
-      if(index<2)appendImageSlot(index+1);
+      images[index]=file;
+      void (async()=>{
+        try {
+          // Independent website-side receipt. Read the actual File in the input,
+          // not a Controller-provided hash or filename assertion.
+          const bytes=await file.arrayBuffer();
+          const digest=new Uint8Array(await crypto.subtle.digest('SHA-256',bytes));
+          if(input.files?.[0]!==file)return; // Ignore a superseded selection.
+          const hash=Array.from(digest,n=>n.toString(16).padStart(2,'0')).join('');
+          ready.dataset.sha256=hash;
+          ready.dataset.filename=file.name;
+          ready.dataset.mime=file.type;
+          ready.dataset.size=String(file.size);
+          ready.textContent='网页实际接收：'+file.name+'（'+file.type+'；'+file.size+' 字节；SHA-256 '+hash+'）';
+          ready.hidden=false;
+          preview('image-'+index,file);
+          if(index<2)appendImageSlot(index+1);
+        }catch(error){
+          if(input.files?.[0]!==file)return;
+          images[index]=null;
+          ready.textContent='图片读取或哈希失败：'+(error?.message||'未知错误');
+          ready.hidden=false;
+        }
+      })();
     });
     row.append(label,input,ready);root.append(row);
   }

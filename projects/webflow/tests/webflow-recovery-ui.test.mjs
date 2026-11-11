@@ -869,3 +869,65 @@ test('script rows keep separate parameter drafts and expose defaults without an 
   assert.equal(f.document.getElementById('wf-query').value,'百度参数草稿');
   assert.equal(starts(host).length,0,'opening, switching and editing cannot start any task');
 });
+
+test('confirmed preference readback uses R1.2 Toast and does not leave a legacy 知道了 banner',async t=>{
+  const host=sdk(),open=[],dismisses=[];
+  host.notify={open(options){
+    open.push(options);
+    return {ready:Promise.resolve({status:'accepted'}),
+      update(){return Promise.resolve({status:'accepted'});},
+      dismiss(){dismisses.push(true);return Promise.resolve({status:'accepted'});}};
+  }};
+  const f=await mount(t,host);
+  await f.click('脚本');
+  await f.click('收藏 百度搜索 · 前三条自然结果',taskCard(f));
+  assert.equal(open.length,1,'one verified save uses exactly one Host Toast');
+  assert.equal(open[0].message,'偏好已保存并读回。');
+  assert.equal(open[0].type,'success');
+  assert.equal(open[0].position,'bottom-right');
+  assert.doesNotMatch(f.text(),/知道了|偏好已保存并读回。/,'no redundant in-content success banner');
+  assert.equal(starts(host).length,0,'feedback cannot run a Task');
+  await f.close();
+  assert.equal(dismisses.length,1,'closed tool retires its own Toast handle');
+});
+
+test('old or rejected R1.2 Host shows a short non-blocking fallback, never a fake save or retry',async t=>{
+  for(const mode of ['missing','rejected','throw']){
+    const host=sdk(),calls=[];
+    if(mode==='rejected')host.notify={open(options){
+      calls.push(options);
+      return {ready:Promise.resolve({status:'rejected',reason:'unavailable'}),
+        dismiss(){return Promise.resolve({status:'rejected'});}};
+    }};
+    if(mode==='throw')host.notify={open(){throw Error('host unavailable');}};
+    const f=await mount(t,host);
+    await f.click('脚本');
+    await f.click('收藏 百度搜索 · 前三条自然结果',taskCard(f));
+    await f.flush();
+    assert.match(f.text(),/偏好已保存并读回。/);
+    assert.equal(f.document.querySelector('[data-wf-feedback="fallback"]')?.textContent,
+      '偏好已保存并读回。');
+    assert.doesNotMatch(f.text(),/知道了/,'legacy fallback should not demand acknowledgement');
+    assert.equal(starts(host).length,0);
+    await f.tick();
+    assert.equal(f.document.querySelector('[data-wf-feedback="fallback"]'),null,
+      'fallback disappears without a confirmation button');
+    if(mode==='rejected')assert.equal(calls.length,1);
+    await f.close();
+  }
+});
+
+test('failed preference readback never sends a success Toast',async t=>{
+  const host=sdk(),events=[];
+  host.notify={open(options){events.push(options);
+    return {ready:Promise.resolve({status:'accepted'}),
+      dismiss(){return Promise.resolve({status:'accepted'});}};
+  }};
+  host.failSave=true;
+  const f=await mount(t,host);
+  await f.click('脚本');
+  await f.click('收藏 百度搜索 · 前三条自然结果',taskCard(f));
+  assert.equal(events.length,0);
+  assert.match(f.text(),/偏好未确认保存/);
+  assert.equal(starts(host).length,0);
+});

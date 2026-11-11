@@ -21,8 +21,15 @@ async function main() {
     throw Error('E_CONFIRM_REQUIRED: 演示发布必须明确传入 confirmDemoPublish:true');
   }
 
+  if(input.verifyOnly !== undefined && typeof input.verifyOnly !== 'boolean')
+    throw Error('E_DEMO_INPUT: verifyOnly 必须是布尔值');
+  const assetMode = input.assetId !== undefined;
+  if(assetMode && (typeof input.assetId!=='string' ||
+      !/^wf-media-[0-9a-f]{8}(?:-[0-9a-f]{4}){3}-[0-9a-f]{12}$/.test(input.assetId) ||
+      input.images !== undefined || input.video !== undefined || action !== 'draft'))
+    throw Error('E_DEMO_ASSET_SCOPE: 可信素材只允许一张 PNG、仅本地草稿，不得混合外部媒体');
   const pixel = 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR4nGNgYGBgAAAABQABpfZFQAAAAABJRU5ErkJggg==';
-  const images = input.images === undefined ?
+  const images = assetMode ? [{assetId:input.assetId}] : input.images === undefined ?
     [{name:'demo-cover.png', type:'image/png', dataUrl:pixel}] : input.images;
   if (!Array.isArray(images) || images.length < 1 || images.length > 3) {
     throw Error('E_DEMO_MEDIA: 本演示仅支持 1-3 张小图；真实多媒体须使用独立受审文件引用');
@@ -37,20 +44,46 @@ async function main() {
       throw Error('E_DEMO_MEDIA: 媒体必须为受支持的小型 Base64 Data URL，并提供真实文件名和 MIME');
     }
   }
-  for (const asset of images) validateAsset(asset, 'image');
+  if(!assetMode) for (const asset of images) validateAsset(asset, 'image');
   if (input.video !== undefined && input.video !== null) validateAsset(input.video, 'video');
 
   await page.locator('#article-title').fill(title);
   await page.locator('#article-body').fill(body);
+  if(input.verifyOnly === true) {
+    // A real page effect establishes a source-bound verification Run.
+    // No asset read, upload, draft save, or publication occurs in this mode.
+    return {scope:'LOCAL_FIXTURE_ONLY',status:'source-verified-no-upload',
+      title:await page.locator('#article-title').inputValue(),
+      assetRead:false,uploadAttempted:false,externalPublished:false};
+  }
 
-  // One reviewed file input per operation; each upload must be acknowledged by the page.
+  // This local fixture now checks the independent File actually received by the
+  // website. The trusted Host alone resolves assetId; no bytes enter params.
+  const mediaReceipts = [];
   for (let index = 0; index < images.length; index++) {
-    const asset = images[index], selector = '#image-' + index;
+    const asset = images[index], selector = '#image-' + index, ready = '#image-ready-' + index;
     await page.locator(selector).waitFor({state:'attached'});
-    await page.uploadFile(selector, asset.dataUrl, {name:asset.name, type:asset.type});
-    await page.locator('#image-ready-' + index).waitFor({state:'visible'});
-    const savedName = await page.locator('#image-ready-' + index).textContent();
-    if (!savedName || !savedName.includes(asset.name)) throw Error('E_MEDIA_NOT_CONFIRMED: 图片未被页面确认');
+    if(assetMode) {
+      const staged = await page.uploadAsset(selector,asset.assetId);
+      if(staged?.state!=='file-input-committed' || staged.assetId!==asset.assetId)
+        throw Error('E_MEDIA_COMMIT_UNKNOWN: 文件选择框提交结果未知，不得自动重试');
+      await page.locator(ready+'[data-sha256="'+staged.sha256+'"]').waitFor({state:'visible',timeout:12000});
+      const received = {
+        name:await page.locator(ready).getAttribute('data-filename'),
+        mime:await page.locator(ready).getAttribute('data-mime'),
+        size:Number(await page.locator(ready).getAttribute('data-size')),
+        sha256:await page.locator(ready).getAttribute('data-sha256')
+      };
+      if(received.name!==staged.name || received.mime!==staged.mime ||
+        received.size!==staged.size || received.sha256!==staged.sha256)
+        throw Error('E_MEDIA_NOT_CONFIRMED: 网页接收文件的名称、MIME、大小或 SHA-256 不一致');
+      mediaReceipts.push({assetId:asset.assetId,...received,state:'site-file-received'});
+    }else{
+      await page.uploadFile(selector, asset.dataUrl, {name:asset.name, type:asset.type});
+      await page.locator(ready+'[data-filename="'+asset.name+'"]').waitFor({state:'visible',timeout:12000});
+      const savedName = await page.locator(ready).textContent();
+      if (!savedName || !savedName.includes(asset.name)) throw Error('E_MEDIA_NOT_CONFIRMED: 图片未被页面确认');
+    }
   }
 
   if (input.video) {
@@ -74,6 +107,7 @@ async function main() {
     status:state,
     title:await page.locator('#article-title').inputValue(),
     imageCount:images.length,
+    mediaReceipts,
     videoSelected:Boolean(input.video),
     persistedBy:'fixture-indexeddb',
     externalPublished:false,

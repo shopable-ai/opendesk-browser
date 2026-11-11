@@ -31,7 +31,7 @@ const page=()=>({programId:'reader',manifestHash:'a'.repeat(64),installed:{
   pageRules:{matches:['https://example.com/*'],excludeMatches:[]}
 }});
 
-function fixture(t,{disabled=false,readError=false,installedRows=[app],cleanupRows=null}={}){
+function fixture(t,{disabled=false,readError=false,installedRows=[app],cleanupRows=null,notify=null}={}){
   const {doc,adapter,state}=createExtensionCenterDOM(t);
   const nodes=new Proxy({}, {get:(_,id)=>doc.getElementById(id)});
   const store=new Map([[SIDEBAR_TOOL_STORE,structuredClone(installedRows)],
@@ -120,7 +120,7 @@ function fixture(t,{disabled=false,readError=false,installedRows=[app],cleanupRo
     openImport(){invocations.push(['import']);return true;}
   };
   const taskWorkbench={navigate(tab){invocations.push(['navigate',tab]);return true;}};
-  const ui=createExtensionCenter({api,client,doc,sidebarTools,taskWorkbench,extensionList:adapter});
+  const ui=createExtensionCenter({api,client,doc,sidebarTools,taskWorkbench,extensionList:adapter,notify});
   t.after(()=>ui.dispose());
   const list=nodes['extension-center-list'];
   const buttons=key=>[...list.querySelectorAll('button[data-extension-key]')].filter(node=>node.dataset.extensionKey===key);
@@ -145,6 +145,31 @@ function openMenuUninstall(f,key){
   uninstall.dispatch('click');
   return trigger;
 }
+
+test('extension toolbar shop reports via the shared Host toast without replacing another status',async t=>{
+  const notices=[];
+  const f=fixture(t,{notify:(message,options)=>notices.push({message,options})});
+  await f.ui.refresh();
+  const original=f.state.statusModel?.text;
+  f.state.toolbarModel.onMarket();
+  await tick();
+  assert.deepEqual(notices,[{
+    message:'官方扩展商店尚未上线。',
+    options:{type:'info',position:'bottom-right'}
+  }]);
+  assert.equal(f.state.statusModel?.text,original,'existing installation feedback remains intact');
+  assert.deepEqual(f.invocations.filter(row=>row[0]==='market'),[]);
+});
+
+test('extension toolbar shop icon does not open a bundled marketplace before the public URL is configured',async t=>{
+  const f=fixture(t);await f.ui.refresh();
+  assert.equal(f.state.toolbarModel.storeWebsiteStatus,'coming_soon');
+  assert.match(f.doc.getElementById('extension-center-market').getAttribute('aria-label'),/尚未上线/);
+  f.state.toolbarModel.onMarket();
+  await tick();
+  assert.deepEqual(f.invocations.filter(row=>row[0]==='market'),[]);
+  assert.match(f.state.statusModel.text,/官方扩展商店尚未上线/);
+});
 
 test('R5.11 each row has one main target and only an overflow secondary control',async t=>{
   const f=fixture(t);

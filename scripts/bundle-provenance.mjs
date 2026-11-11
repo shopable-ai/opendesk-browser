@@ -73,6 +73,27 @@ function reviewedCompiledWebFlow(target,path,root){
   return hash;
 }
 // The image bridge is first-party Web Flow business code over the original
+// WebFlow R1/R2 media bytes belong only to extension-owned Settings and the
+// original SW Host. These are immutable reviewed Git blobs, never untrusted Task
+// code, and may not enter Content, Page Relay, Side Panel or other bundles.
+const compiledWebflowMediaInputs=Object.freeze({
+  'projects/webflow/trusted/media-vault.js':'947d388ab521bb08845d69fac6bee74e6d0c73e2',
+  'projects/webflow/trusted/media-vault-settings-ui.js':'2befa6909a9f9163e59036d8a80cb713e07a6cae'
+});
+function reviewedCompiledWebflowMedia(target,path,root){
+  const allowed=path==='projects/webflow/trusted/media-vault.js'?
+    ['sw.js','native-agent/settings.js'].includes(target):
+    path==='projects/webflow/trusted/media-vault-settings-ui.js'&&target==='native-agent/settings.js';
+  if(!allowed||!Object.hasOwn(compiledWebflowMediaInputs,path))return null;
+  const file=resolve(root,path);
+  if(realpathSync(file)!==file)throw Error('WebFlow media trusted source must not be a symlink: '+path);
+  const bytes=readFileSync(file);
+  const hash=createHash('sha1').update('blob '+bytes.length+'\0').update(bytes).digest('hex');
+  if(hash!==compiledWebflowMediaInputs[path])
+    throw Error('WebFlow media trusted source changed; review and re-pin before fixed build: '+path);
+  return hash;
+}
+// The image bridge is first-party Web Flow business code over the original
 // Native transport. Exact blobs enter only the original transport/settings;
 // no installed tool, page or sandbox receives this filesystem capability.
 const compiledChatGPTImageInputs=Object.freeze({
@@ -772,6 +793,7 @@ export function describeBundle({chunk,root=process.cwd(),lock}) {
     const reviewedSource=reviewedPackagedTask(chunk.fileName,path,root)||
       reviewedCompiledTimeReview(chunk.fileName,path,root)||
       reviewedCompiledWebFlow(chunk.fileName,path,root)||
+      reviewedCompiledWebflowMedia(chunk.fileName,path,root)||
       reviewedCompiledChatGPTImages(chunk.fileName,path,root)||
       reviewedCompiledChatGPTFiles(chunk.fileName,path,root)||
       reviewedCompiledVideoSpeed(chunk.fileName,path,root)||

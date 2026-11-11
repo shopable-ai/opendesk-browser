@@ -83,6 +83,7 @@
     const [pageInfo,setPageInfo]=R.useState({status:'unavailable'});
     const [error,setError]=R.useState('');
     const [notice,setNotice]=R.useState('');
+    const [feedback,setFeedback]=R.useState('');
     const [search,setSearch]=R.useState('');
     const [filter,setFilter]=R.useState('all');
     const [sort,setSort]=R.useState('favorite');
@@ -108,6 +109,40 @@
     const recordWrites=R.useRef(Promise.resolve());
     const taskNotices=R.useRef(null);
     if(!taskNotices.current)taskNotices.current=M.createTaskNoticePublisher(tool.ui?.notify);
+    const feedbackRef=R.useRef({revision:0,handle:null,timer:null});
+    // Small, verified UI receipts use the existing R1.2 host. Unlike task notices,
+    // these never depend on, authorize or mutate a Controller Run.
+    const clearFeedback=()=>{
+      const slot=feedbackRef.current;
+      slot.revision++;
+      if(slot.timer!==null){clearTimeout(slot.timer);slot.timer=null;}
+      const prior=slot.handle;slot.handle=null;
+      if(prior)try{void Promise.resolve(prior.dismiss()).catch(()=>{});}catch{}
+      if(alive.current)setFeedback('');
+    };
+    const showFeedback=message=>{
+      clearFeedback();
+      const slot=feedbackRef.current,revision=slot.revision;
+      const fallback=()=>{
+        if(!alive.current||slot.revision!==revision)return;
+        setFeedback(message);
+        slot.timer=setTimeout(()=>{
+          if(alive.current&&slot.revision===revision){setFeedback('');slot.timer=null;}
+        },4500);
+      };
+      const open=tool.ui?.notify?.open;
+      if(typeof open!=='function'){fallback();return;}
+      let handle;
+      try{handle=open({message,type:'success',position:'bottom-right',timeout:3500});}
+      catch{fallback();return;}
+      if(!handle||typeof handle.dismiss!=='function'||!handle.ready){
+        fallback();return;
+      }
+      slot.handle=handle;
+      void Promise.resolve(handle.ready).then(receipt=>{
+        if(receipt?.status!=='accepted')fallback();
+      },fallback);
+    };
     const pageReadEpoch=R.useRef(0);
     const currentPageRef=R.useRef({status:'unavailable'}),taskReadPending=R.useRef(false);
     const localCancellation=R.useRef(null);
@@ -216,7 +251,7 @@
       void load();void readTasks();void readCurrentPage();
       return ()=>{disposed=true;alive.current=false;seq.current++;observation.current++;pageReadEpoch.current++;
         if(timer.current)clearTimeout(timer.current);
-        taskNotices.current?.dispose();};
+        taskNotices.current?.dispose();clearFeedback();};
     },[readTasks,readCurrentPage,request]);
 
     R.useEffect(()=>{
@@ -313,7 +348,7 @@
       prefsDirty.current=true;
       setSaving(true);setError('');
       try{const confirmed=await save('webflow.settings.v1',value);
-        if(confirmed&&alive.current){prefsDirty.current=false;setSettings(value);setNotice('偏好已保存并读回。');}}
+        if(confirmed&&alive.current){prefsDirty.current=false;setSettings(value);setNotice('');showFeedback('偏好已保存并读回。');}}
       catch(e){if(alive.current)setError('偏好未确认保存：'+safeError(e));}
       finally{if(alive.current)setSaving(false);}
     };
@@ -481,7 +516,7 @@
       void save(pendingKey,null,id,()=>current(id,epoch)).then(saved=>{
         if(saved&&current(id,epoch)){
           pendingRef.current=null;activeRef.current=null;localCancellation.current=null;setActive(null);
-          setNotice('未运行步骤已取消；没有派发网页操作。');
+          setNotice('');showFeedback('未运行步骤已取消；没有派发网页操作。');
         }
       }).catch(e=>failObservation(id,ready.task,epoch,e)).finally(()=>{busy.current=false;});
     };
@@ -570,7 +605,7 @@
               h(Status,{state:pin.state,text:pin.state==='available'?
                 (pageInfo.status==='checking'?'正在核验网页':!sameTarget(pin)?'当前网站不可运行':labels.available):undefined})),
             h('div',{className:'wf-task-secondary'},
-              h('span',null,'参数 3 项 · 结果固定 3 条'),
+              h('span',null,'参数 3 项 · 最多返回 3 条'),
               h('span',null,'手动 · 双阶段确认'))),
           h('div',{className:'wf-item-buttons'},
             Btn(Icon('star',star),()=>toggleFavorite(pin),{key:'fav-'+pin.taskId,icon:true,shortcut:true,
@@ -614,8 +649,8 @@
                   [pin.taskId]:{...old[pin.taskId],query:value,dirty:true}}));}})),
             h('div',{className:'wf-param-row'},
               h('div',{className:'wf-param-label'},
-                h('strong',null,'结果数量'),h('small',null,'整数 · 必填 · 固定值')),
-              h('span',{className:'wf-param-fixed','aria-label':'结果数量固定为 3'},'3 条')),
+                h('strong',null,'结果数量'),h('small',null,'整数 · 必填 · 固定上限')),
+              h('span',{className:'wf-param-fixed','aria-label':'最多返回 3 条'},'最多 3 条')),
             h('div',{className:'wf-param-row'},
               h('div',{className:'wf-param-label'},
                 h('strong',null,'显示执行标签页'),h('small',null,'开关 · 可选 · 默认开启')),
@@ -680,6 +715,7 @@
         h('code',{className:'wf-mono'},active.clientRequestId),
         h('p',{className:'wf-sub'},'资源释放：'+(snapshot?.retirementState||'未确认')+'；后续 B：不自动执行'),
         staged&&h('p',null,'已保存参数：'+staged.params.query),
+        staged&&h('p',{className:'wf-sub'},staged.params.showExecutionTab===false?'后台执行：不切到执行标签页':'前台执行：显示执行标签页'),
         staged&&Btn('确认手动运行',()=>run(tasks.find(p=>p.taskId===staged.task.taskId)),{
           primary:true,disabled:tasks.find(p=>p.taskId===staged.task.taskId)?.state!=='available'||
             !sameTarget(PINNED.find(p=>p.taskId===staged.task.taskId))||busy.current}),
@@ -903,7 +939,10 @@
         error&&h('div',{className:'wf-banner wf-warning',role:'alert'},
           h('p',null,error),Btn('关闭提示',()=>setError(''),{quiet:true})),
         notice&&h('div',{className:'wf-banner',role:'status'},
-          h('p',null,notice),Btn('知道了',()=>setNotice(''),{quiet:true})),
+          h('p',null,notice),Btn('×',()=>setNotice(''),
+            {quiet:true,icon:true,ariaLabel:'关闭状态提示',title:'关闭状态提示'})),
+        feedback&&h('div',{className:'wf-banner','data-wf-feedback':'fallback',role:'status'},
+          h('p',null,feedback)),
         page==='scripts'&&activeCard(),
         sections[page]()));
   }

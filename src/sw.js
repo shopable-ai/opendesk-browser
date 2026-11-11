@@ -2,6 +2,7 @@ import {configureSidePanel, resolveToolSender, httpUrl, permissionPattern, Envir
 import {verifyWorkflowLinkBusinessProof} from './analytics/workflow-business-proof.js';
 import {PROTOCOL as FOUNDATION_PROTOCOL, projectFoundationError} from './platform/protocol.js';
 import {createFoundationBroker} from './platform/host/broker.js';
+import {createWebflowMediaVault} from '../projects/webflow/trusted/media-vault.js';
 import {registerDownloadEvents} from './platform/downloads/events.js';
 import {PAGE_BOOT_PROTOCOL} from './scripting/user-scripts/installed-programs.js';
 import {reportBrowserCleanupError} from './platform/chrome/lifecycle-errors.js';
@@ -68,6 +69,10 @@ recoverManagedProxy();
 try{importScripts('cloud-control/cloud-host.js');}catch(e){console.warn('E_CLOUD_LOAD',e);}
 const foundation = createFoundationBroker({api:chrome, ports:hostPorts,downloadEventsAttached:true,
   withControllerAdmission:bridgeTriggerGate.withControllerAdmission,
+  // The existing extension SW is the only trusted reader. Controller and page
+  // sandboxes receive only the exact file they are authorized to upload.
+  readMediaAsset: assetId => createWebflowMediaVault({extensionId:chrome.runtime.id,
+    origin:globalThis.location.origin}).read(assetId),
   onToolUninstalled:async({toolId})=>{
     if(toolId==='cookie-editor'){
       if(!cookieAccounts)throw Object.assign(Error('E_ACCOUNT_HOST'),{code:'E_ACCOUNT_HOST'});

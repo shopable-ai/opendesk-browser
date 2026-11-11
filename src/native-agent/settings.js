@@ -1,4 +1,5 @@
 import {initChatGPTFilesSettingsUI} from '../../projects/webflow/trusted/chatgpt-files-settings-ui.js';
+import {initWebflowMediaVaultSettingsUI} from '../../projects/webflow/trusted/media-vault-settings-ui.js';
 import {AGENT_CONFIG_PROTOCOL} from './protocol.js';
 import {initAnalyticsConsentControls} from '../analytics/consent-ui.js';
 import {createDevelopmentPairingRequest} from './pairing.js';
@@ -8,6 +9,7 @@ export function initNativeAgentSettings({api=globalThis.chrome,document:doc=glob
   initTrustedPageLocale({api,doc,page:'settings'});
   initAnalyticsConsentControls({api,doc});
   initChatGPTFilesSettingsUI({api,document:doc});
+  initWebflowMediaVaultSettingsUI({api,document:doc});
   const status=doc.getElementById('bridge-status');
   const caption=doc.getElementById('bridge-caption');
   const toggle=doc.getElementById('bridge-toggle');
