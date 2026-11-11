@@ -1,10 +1,10 @@
 {
   "id": "mouse-gestures",
-  "version": "0.1.0",
-  "title": "鼠标手势（技术试点）",
-  "description": "在获批普通网页上右键向左拖动后退；仅验证最小手势链。",
+  "version": "0.2.0",
+  "title": "鼠标手势",
+  "description": "在获准普通网页上启用四方向右键手势：后退、前进、刷新、到底。",
   "format": "opendesk.sidebar-tool.v2",
-  "capabilities": ["page.module"],
+  "capabilities": ["page.module", "storage.local"],
   "files": {
     "html": "src/index.html",
     "css": "src/style.css",
@@ -13,5 +13,5 @@
   "assets": [],
   "requires": {"browserSdk": "1.0.0"},
   "contributes": {"contextMenus": []},
-  "pageModule": {"revision": 1}
+  "pageModule": {"revision": 2}
 }

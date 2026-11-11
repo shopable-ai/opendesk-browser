@@ -15,8 +15,8 @@
       docs/api/sidebar-tool-development.zh-CN.md (侧栏标题与简洁内容)
       .agents/skills/opendesk-ui-preview/SKILL.md (模拟隔离及证据边界)
     已安装授权由原 Installer / Page Authority 管理；本页面不申请任何权限。
-    单一滑块仅改变本页内存。刷新后恢复开启的演示初始状态。
-    当前 R1 Demo 仅验证左滑后退；不展示尚未验证的规划动作。
+    单一滑块仅改变本页内存。刷新后恢复关闭的演示初始状态。
+    四方向仅为交互示意，不能代替正式扩展代码及 Chrome 原生验收。
   -->
   <style>
     :root {
@@ -83,7 +83,7 @@
       padding-top:var(--space-4); margin-top:var(--space-4); margin-bottom:var(--space-3);
       border-top:1px solid var(--od-line); }
     .section-head h2 { font-size:var(--od-note-size); font-weight:650; }
-    .od-collection { min-width:0; margin:0; padding:0; list-style:none; overflow:hidden;
+    .od-collection { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); min-width:0; margin:0; padding:0; list-style:none; overflow:hidden;
       border:1px solid var(--od-line); border-radius:var(--radius-surface); background:var(--od-paper); }
     .od-collection-row { display:flex; align-items:center; gap:var(--space-2);
       min-width:0; padding:var(--space-3); }
@@ -144,13 +144,16 @@
               <p id="gesture-help" class="od-note">在网页上使用右键手势</p>
             </div>
             <input id="gesture-enabled" class="mg-switch" type="checkbox" role="switch"
-              aria-label="开启鼠标手势" aria-describedby="gesture-help" checked>
+              aria-label="开启鼠标手势" aria-describedby="gesture-help">
           </div>
           <div class="section-head">
-            <h2 id="gesture-list-title">已验证手势</h2>
+            <h2 id="gesture-list-title">默认手势</h2>
           </div>
           <ul class="od-collection" aria-labelledby="gesture-list-title">
-            <li class="od-collection-row"><span class="gesture-arrow" aria-hidden="true">←</span><span class="gesture-copy"><span class="gesture-label">后退</span><span class="od-note">按住右键向左拖动</span></span></li>
+            <li class="od-collection-row"><span class="gesture-arrow" aria-hidden="true">←</span><span class="gesture-label">后退</span></li>
+            <li class="od-collection-row"><span class="gesture-arrow" aria-hidden="true">→</span><span class="gesture-label">前进</span></li>
+            <li class="od-collection-row"><span class="gesture-arrow" aria-hidden="true">↑</span><span class="gesture-label">刷新</span></li>
+            <li class="od-collection-row"><span class="gesture-arrow" aria-hidden="true">↓</span><span class="gesture-label">到底</span></li>
           </ul>
           <p class="hint">松开右键执行 · Esc 取消</p>
         </section>
@@ -160,7 +163,7 @@
         </section>
       </main>
     </div>
-    <p class="preview-caption">交互模拟 · 滑块仅改变本页内存，刷新恢复开启。假设宿主已完成必要授权，不请求权限、不调用 Chrome API、不写正式配置。当前 R1 Demo 仅验证左滑后退，不代表正式扩展已验收。</p>
+    <p class="preview-caption">交互模拟 · 滑块仅改变本页内存，刷新恢复关闭；不请求权限、不调用 Chrome API、不写正式配置。真实手势须以已安装扩展及 Chrome 验收为准。</p>
   </div>
   <script>
     (() => {

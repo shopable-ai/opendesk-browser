@@ -87,6 +87,12 @@ export function createTaskWorkbench({client,host,currentPageTarget,api=globalThi
     const recoveryOnly=!row||!row.enabled||!schema;
     if(row)selectSheetTask(row.taskId);
     if(schema){
+      // A native single-line Input cannot display line breaks from saved runs.
+      // Keep the original params in the existing JSON editor when recovering.
+      const hasMultiline=Object.entries(schema.properties).some(([name,rule])=>
+        rule.type==='string'&&!rule.enum&&typeof preparation.params[name]==='string'&&
+        /[\r\n]/u.test(preparation.params[name]));
+      if(hasMultiline)myView.data.taskParamsMode='json';
       for(const [name,rule]of Object.entries(schema.properties)){
         const control=ui('task-param-'+name),value=preparation.params[name];
         control.omitted=!Object.hasOwn(preparation.params,name);
@@ -1065,8 +1071,14 @@ export function createTaskWorkbench({client,host,currentPageTarget,api=globalThi
     setTaskManagementMode(!taskManagementMode);
   });
   registerAction('taskSearchPanelKeydown',event=>{
-    if(event.key!=='Escape'||event.defaultPrevented||event.isComposing||!taskManagementMode)return;
+    if(event.key!=='Escape'||event.defaultPrevented||event.isComposing||event.repeat||!taskManagementMode)return;
     event.preventDefault();
+    const search=ui('local-discover-search');
+    if(event.target===get('local-discover-search')&&search.value){
+      // First Escape clears only the query; retain the filter and input focus.
+      search.value='';localQuery='';renderInstalledCards();update();
+      return;
+    }
     setTaskManagementMode(false);
     taskSearchReturnFocus();
   });
@@ -1099,6 +1111,11 @@ export function createTaskWorkbench({client,host,currentPageTarget,api=globalThi
     if(!schema)return;
     try{
       const params=paramsFromForm(schema,{draft:mode==='json'});
+      if(mode==='form'){
+        const multiline=Object.entries(schema.properties).find(([name,rule])=>
+          rule.type==='string'&&!rule.enum&&typeof params[name]==='string'&&/[\r\n]/u.test(params[name]));
+        if(multiline)throw {code:'E_PARAMS',message:`「${multiline[1].title||multiline[0]}」包含换行符；请在 JSON 模式编辑，避免单行输入框丢失内容`};
+      }
       if(mode==='json')ui('task-params-json').value=JSON.stringify(params,null,2);
       else for(const [name,rule]of Object.entries(schema.properties)){
         const control=ui('task-param-'+name);
@@ -1109,6 +1126,23 @@ export function createTaskWorkbench({client,host,currentPageTarget,api=globalThi
       ui('task-params-json').error='';myView.data.taskParamsMode=mode;
       persistParams();myView.publish();
     }catch(error){fail(error);}
+  });
+  registerAction('taskParamsMultilinePaste',({name,text,start,end})=>{
+    const schema=candidateFor(installedRow())?.manifest.paramsSchema;
+    const rule=schema?.properties?.[name];
+    if(myView.data.taskParamsMode!=='form'||rule?.type!=='string'||rule.enum||
+      typeof text!=='string'||!/[\r\n]/u.test(text))return;
+    const control=ui('task-param-'+name),old=String(control.value??'');
+    const from=Number.isInteger(start)?Math.max(0,Math.min(start,old.length)):old.length;
+    const to=Number.isInteger(end)?Math.max(from,Math.min(end,old.length)):from;
+    const params=paramsFromForm(schema,{draft:true});
+    params[name]=old.slice(0,from)+text+old.slice(to);
+    ui('task-params-json').value=JSON.stringify(params,null,2);
+    ui('task-params-json').error='';
+    myView.data.taskParamsMode='json';
+    ui('task-status').text='已转入 JSON 编辑以完整保留粘贴文本中的换行符。';
+    persistParams();myView.publish();
+    focus('task-params-json',{preventScroll:true});
   });
   registerAction('taskInstalledListChange',renderInstalledSelection);
   registerAction('taskResultRevealClick',()=>{

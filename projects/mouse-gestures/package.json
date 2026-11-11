@@ -1,9 +1,9 @@
 {
   "name": "@opendesk-apps/mouse-gestures",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "private": true,
   "type": "module",
-  "description": "Mouse Gestures 最小网页手势模块",
+  "description": "Mouse Gestures 四方向受管网页手势",
   "opendesk": {
     "format": "opendesk.project.v1",
     "id": "app.mouse-gestures",
@@ -11,7 +11,7 @@
     "sourceFormat": "esm",
     "entry": "src/page/main.js",
     "pageRules": {
-      "matches": ["https://example.com/*"],
+      "matches": ["http://*/*", "https://*/*"],
       "excludeMatches": [],
       "runAt": "document_idle",
       "allFrames": false,
