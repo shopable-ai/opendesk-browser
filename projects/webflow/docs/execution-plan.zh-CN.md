@@ -8,6 +8,20 @@
 
 ---
 
+## R2 同一个 B · PREPARE 真实消费者接线增量（2026-11-11；OD-WEBFLOW-CHAT-A-B-A-TASK-BOUNDARY-R2）
+
+**这次到底做成了什么：** 最新 `main` 已加入不可变 ChatGPT Task 0.3.0 的明确 opt-in 发布资源（`src/platform/tasks/builtin-releases.js` 的 optional pin），**不会自动升级当前 0.2.0 已安装任务**；0.3 固定编译 Result Adapter 只审核拥有独立 Phase、原 Run、保留 B 文档和 borrowed 接续身份的结果，且普通结果 formatter 始终拒绝把 0.3 当成 A→B→A 已交付。来源与受审模块精确 Blob SHA 已写入 `scripts/bundle-provenance.mjs` 的原受限 SW/UI 目标映射，没有关闭 SHA 或白名单。
+
+**实际消费者增量：** `src/page-events/web-task-ingress.js` 在原 `settle` 分支识别由可信 V2 PREPARE 产生的 0.3 未发送草稿，不再将其作为 B 完整回复发送 A，而是通过 `trusted/chatgpt-b-prepare-stage.js` 核实原 Controller Durable、保留 B 的 tab/document/root、Chrome 权限与实际文档和 prompt SHA；调用原 `chatgpt-bridge-trigger-gate.js` **同一触发账本** `recordWebTaskPreparedB` 原子持久化不可覆盖的原 B 身份。刷新/Worker 恢复时查询同一 Run，无新 B、无第二次发送； `CurrentTask.tsx` 显示「原 B 草稿已保留 · 账号待核验，尚未发送」。同时修复原 ingress 在 settle/history/check-delivery 向 0.2/0.3 固定 Result Adapter 传参时漏掉真正 `requestId` 的问题。ChatGPT 0.3 PREPARE 仍经原 V2 独立批准和原 owned Consumer；从网页输入的 V2 SUBMIT 已由单独提交的 `webflow-v2-entry.js` 防线拒绝。
+
+**本次明确没完成：** 账号/Profile 的可信 A/B 读回验证仍无真实 Host 证据；因此所存 `webBPrepared.profileVerified=false`，不代表授权发送。原 `APPROVE_SEND` 可信二次批准、对应独立 SUBMIT 请求行、通过原 `retainedFrom+borrowed` 启动原 B、跨 Run 证据对账、真实完成回复及 A DELIVER_ONCE 尚未接通；`claim` 目前仅负责 PREPARE 的 owned 路径，不能声称 A→同一个 B→A 已通过。GPT-6/High、长输入也仍未完成。没有用户授权，不能运行真实 ChatGPT 发送。
+
+**本轮验证事实：** 0.3 Task 的早期隔离 V8 行为预检 8/8 PASS；新增 Result/Stage/Ingress 三组 Node 测试、CI 受影响文件接线与固定编译 SHA 来源审阅已提交。定向 JS 在当前 GitHub 字节上做过 V8 语法预检（不是 Node/MV3）。最新相关 [Bridge CI 43007731641](https://github.com/shopable-ai/opendesk-browser/actions/runs/43007731641) 在最后只读核查时为 QUEUED；本机 CodexPro 连接 UNAVAILABLE，没有绑定本 HEAD 的 Node 完整 PASS、编译产物、Chrome 实站或 A/B 业务证据。
+
+**五层：** SOURCE=PARTIAL（PREPARE 消费者接入，SUBMIT/DELIVER 缺失）；NODE_TEST=NOT_CONFIRMED；PACKAGE=PINNED_OPT_IN_SOURCE（未取得绑定构建及本机安装回执）；CHROME=NOT_TESTED；BUSINESS=NOT_TESTED。**唯一下一依赖：** 为原 B 建立可信账号/Profile 双端读回与独立 APPROVE_SEND，持久冻结批准草稿 SHA+原 Run+安装身份后，才能从原 Run 的 retainedTarget 在相同 B 上创建唯一 borrowed SUBMIT Run，随后验证真实回复与一次性 A 交付。不得在缺失的校验处放宽防重放。
+
+---
+
 ## R2 同一个 B · 0.3.0 双阶段候选增量及尚未接线清单（2026-11-11；OD-WEBFLOW-CHAT-A-B-A-TASK-BOUNDARY-R2）
 
 **产品目标：** A 中提出任务 → 一个新 B 只准备未发送草稿 → 可信侧栏独立 APPROVE_SEND → 从原 PREPARE Run 精确 borrowed 同一个 B 只原生发送一次 → 原 Durable Result 审核完整回复和真实 /c/ → 原 A 一次性回填。任何 UNKNOWN 不重建 B、不补发、不重交付。WebFlow 编排、独立 Task 操作 ChatGPT DOM、Browser 原 Host/Authority/Controller 负责安装与副作用。

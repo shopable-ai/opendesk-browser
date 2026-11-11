@@ -4,6 +4,7 @@
   'use strict';
   const tool=global.OpenDeskTool, R=global.OpenDeskPageReact, M=global.OpenDeskWebFlowModel;
   const W=global.OpenDeskMdWorkflow;
+  const SharedSwitch=global.OpenDeskSidebarUI?.Switch;
   const mount=tool&&tool.root&&tool.root.querySelector('#webflow-app');
   if(!mount||!R||!M||typeof R.createRoot!=='function'||typeof tool.request!=='function'){
     if(mount)mount.textContent='Web Flow 无法加载受支持的公开 SDK / React 运行时。';
@@ -831,17 +832,28 @@
         !hostNavigation.base&&h(Head,{title:'Web Flow 设置',action:Btn('返回',()=>setTab(returnTab.current),{quiet:true})}),
         h(Card,{children:h('div',{className:'wf-stack'},
           h('h3',null,'网页显示'),
-          h('label',{className:'wf-switch-row'},
+          h('div',{className:'wf-switch-row'},
             h('span',{className:'wf-switch-description'},
-              h('strong',null,'显示网页辅助面板'),
-              h('span',{className:'wf-sub'},'在支持的网站显示 Web Flow 辅助区域；关闭只影响页面显示，不停止后台任务。')),
-            h('span',{className:'wf-switch-control'},
-              h('input',{type:'checkbox',role:'switch',
-                checked:panelPreference.status==='ready'&&panelPreference.value,
-                disabled:panelPreference.status!=='ready'||panelSaving,
-                onChange:event=>{void savePanelVisibility(event.target.checked);},
-                'aria-label':'显示网页辅助面板'}),
-              h('span',{className:'wf-switch-track','aria-hidden':true}))),
+              h('strong',{id:'wf-page-panel-label'},'显示网页辅助面板'),
+              h('span',{id:'wf-page-panel-description',className:'wf-sub'},
+                '在支持的网站显示 Web Flow 辅助区域；关闭只影响页面显示，不停止后台任务。')),
+            h('div',{className:'wf-switch-control'},
+              typeof SharedSwitch==='function'?
+                h(SharedSwitch,{
+                  isSelected:panelPreference.status==='ready'&&panelPreference.value,
+                  isDisabled:panelPreference.status!=='ready'||panelSaving,
+                  onChange:visible=>{void savePanelVisibility(visible);},
+                  'aria-labelledby':'wf-page-panel-label',
+                  'aria-describedby':'wf-page-panel-description'
+                }):
+                h('label',{className:'wf-switch-native'},
+                  h('input',{type:'checkbox',role:'switch',
+                    checked:panelPreference.status==='ready'&&panelPreference.value,
+                    disabled:panelPreference.status!=='ready'||panelSaving,
+                    onChange:event=>{void savePanelVisibility(event.target.checked);},
+                    'aria-labelledby':'wf-page-panel-label',
+                    'aria-describedby':'wf-page-panel-description'}),
+                  h('span',{className:'wf-switch-track','aria-hidden':true})))),
           h('p',{className:'wf-sub',role:'status'},
             panelSaving?'正在保存并核对网页显示状态…':
             panelPreference.status==='loading'?'正在读取网页显示设置…':

@@ -3,7 +3,7 @@ import assert from 'node:assert/strict';
 import {
   defaultUpdateNoticeState,readUpdateNoticeState,trustedUpdateReleaseKey,
   appendTrustedRelease,claimUpdateToast,acknowledgeUpdateToast,actOnUpdateToast,
-  noticeEligible,setNoticePreference,updateNoticeSnapshot,NOTICE_DAY_MS,
+  noticeEligible,setNoticePreference,updateNoticeSnapshot,formatUpdateBadgeCount,NOTICE_DAY_MS,
   UPDATE_NOTICE_STORE
 } from '../../src/platform/chrome/update-notice-state.js';
 
@@ -141,4 +141,44 @@ test('invalid claim ownership and unknown action fail closed',()=>{
   assert.equal(ack(first.state,2,100005,1),null);
   assert.equal(act(first.state,2,100005,1,'ignore'),null);
   assert.throws(()=>act(first.state,1,100006,1,'install'),{code:'E_UPDATE_ACTION'});
+});
+
+test('badge counts reflect distinct actionable tools, not unread notices or browser apply',()=>{
+  const releases=Array.from({length:10},(_,i)=>release('tool-'+i));
+  let state=prepare(100000,releases);
+  assert.equal(updateNoticeSnapshot(state).actionableCount,10);
+  assert.equal(updateNoticeSnapshot(state).badgeCount,10);
+  assert.equal(formatUpdateBadgeCount(10),'9+');
+  assert.equal(formatUpdateBadgeCount(3),'3');
+  assert.equal(formatUpdateBadgeCount(0),'');
+  assert.throws(()=>formatUpdateBadgeCount(-1));
+  const [first]=releases;
+  state=actOnUpdateToast(state,{now:100100,action:'view',token:null,key:first.key});
+  assert.equal(updateNoticeSnapshot(state).unreadCount,9);
+  assert.equal(updateNoticeSnapshot(state).badgeCount,10,'viewed must still count');
+  state=actOnUpdateToast(state,{now:100101,action:'ignore',token:null,key:first.key});
+  assert.equal(updateNoticeSnapshot(state).badgeCount,9);
+  state=setNoticePreference(state,{mode:'silent'},100102);
+  assert.equal(updateNoticeSnapshot(state).actionableCount,9,'silent is not installed');
+  assert.equal(updateNoticeSnapshot(state).badgeCount,0);
+  state=setNoticePreference(state,{mode:'inbox-only'},100103);
+  assert.equal(updateNoticeSnapshot(state).badgeCount,9);
+  state=appendTrustedRelease(state,{
+    kind:'browser',id:'a'.repeat(32),version:'1.2.3',
+    key:'browser:'+('a'.repeat(32))+':1.2.3',title:'OpenDesk Browser',
+    status:'pending_browser_apply'
+  },100104);
+  assert.equal(updateNoticeSnapshot(state).browserPendingCount,1);
+  assert.equal(updateNoticeSnapshot(state).badgeCount,9,'browser apply does not count as Tool install');
+  state=appendTrustedRelease(state,{...releases[1],status:'applied'},100105);
+  assert.equal(updateNoticeSnapshot(state).badgeCount,8);
+});
+
+test('per-tool silent hides only that tool badge, with history still queryable',()=>{
+  const a=release('tool-alpha'),b=release('tool-beta');
+  let state=prepare(100000,[a,b]);
+  state=setNoticePreference(state,{mode:'silent',toolId:a.id},100010);
+  assert.equal(updateNoticeSnapshot(state).actionableCount,2);
+  assert.equal(updateNoticeSnapshot(state).badgeCount,1);
+  assert.equal(updateNoticeSnapshot(state).records.length,2);
 });

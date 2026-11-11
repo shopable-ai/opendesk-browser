@@ -2,6 +2,7 @@
 // This never executes a website script, grants authority or interprets an
 // imported package's JavaScript as a validator. Controller owns Run/Result.
 import {REVIEWED_BUILTIN_TASK_RELEASES} from '../../../src/platform/tasks/builtin-releases.js';
+import {reviewedChatGPTV3Adapter} from './chatgpt-result-adapter-v0.3.js';
 import {validateChatGPTCreateResult,formatChatGPTCreateDelivery}
   from '../src/chatgpt-conversation-result.js';
 
@@ -45,6 +46,7 @@ export function reviewedChatGPTResultAdapter(request){
   // Unknown/newer versions cannot bypass the reviewed business validator by
   // falling back to the generic 7-KiB JSON formatter.
   if(request?.installation?.version==='0.1.0')return null;
+  if(request?.installation?.version==='0.3.0')return reviewedChatGPTV3Adapter(request);
   if(request?.installation?.version!==VERSION)
     fail('ChatGPT Task release has no fixed-compiled, reviewed result adapter');
   const installed=request.installation;

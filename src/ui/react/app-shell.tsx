@@ -12,7 +12,7 @@ import {WorkflowPage} from './tabs/workflow.tsx';
 import {SharedProviderSettingsSheet} from './components/provider-settings.tsx';
 import {ToolHost} from './tabs/tool-host.tsx';
 import {NotificationViewport} from './components/notifications.tsx';
-import {UpdateNoticeSlot} from './components/update-notice.tsx';
+import {UpdateNoticeSlot,useUpdateNoticeController} from './components/update-notice.tsx';
 import {WebflowAutoControls} from '../../../projects/webflow/trusted/AutoSettings.tsx';
 import {DebugPage} from './tabs/debug.tsx';
 
@@ -32,6 +32,9 @@ export function SidebarAppShell({
   browserHistoryModel=null,browserHistoryActions=null,localeController=null
 }){
   // The existing trusted preference owner drives the entire React shell without remounts.
+  const updateNotice=useUpdateNoticeController(()=>{
+    if(pageSurface!=='app')onNavigate('tools');
+  });
   const uiLocale=React.useSyncExternalStore(localeController?.subscribe??subscribeEmptyTool,
     localeController?.getLocale??defaultUiLocale,localeController?.getLocale??defaultUiLocale);
   React.useEffect(()=>{document.documentElement.lang=uiLocale;},[uiLocale]);
@@ -57,10 +60,12 @@ export function SidebarAppShell({
   <main id="workspace-content" className="opendesk-app-page-content">
     <div id="workbench-tools" className="od-page" data-workbench-page="tools">
       <section id="sidebar-tools" className="sidebar-tools" aria-label="当前已安装应用">
+        <div className="od-app-update-entry">
+          <UpdateNoticeSlot controller={updateNotice} surface="app" onOpenReview={onOpenUpdateReview}/>
+        </div>
         {toolView&&<ToolHost view={toolView} active trustedControls={null} showListBack={false}/>}
       </section>
     </div>
-    <UpdateNoticeSlot surface="app" activeTab="tools" onOpenReview={onOpenUpdateReview}/>
   </main></>;
   return <>
     <TaskRunSheet view={myView}/>
@@ -69,7 +74,8 @@ export function SidebarAppShell({
       aria-description={translateSidebarNavigation('sidebar.navigationHint',uiLocale)}
       data-debug-enabled={debugEnabled?'true':undefined}>
       <SidebarNavigation activeTab={activeTab} debugEnabled={debugEnabled}
-        appDebugEnabled={appDebugEnabled} locale={uiLocale} onNavigate={onNavigate}/>
+        appDebugEnabled={appDebugEnabled} locale={uiLocale} onNavigate={onNavigate}
+        updateCount={updateNotice.state.verified?updateNotice.state.badgeCount:0}/>
     </nav>
     <main id="workspace-content">
       <div id="site-access-recovery" className="row" role="status" hidden={siteAccess.data.websites!==false}>
@@ -92,7 +98,9 @@ export function SidebarAppShell({
               应用调试正在运行；打开已安装应用前，请先在「应用调试」停止。
             </p>}
             <section id="extension-center" aria-label="扩展管理">
-              <ExtensionCenterPage {...extensionProps}/>
+              <ExtensionCenterPage {...extensionProps}
+                updateCenter={<UpdateNoticeSlot controller={updateNotice}
+                  onOpenReview={onOpenUpdateReview}/>}/>
             </section>
           </div>
           {toolView&&<ToolHost view={toolView} renderNotifications={false} concealed={activeTab==='tools'&&(isPanelPreview||localeOpen)}
@@ -124,7 +132,5 @@ export function SidebarAppShell({
       <MyTasksDock view={myView} hidden={runDock.taskHidden}/>
       <DeveloperDock view={developerView} hidden={runDock.developHidden&&!developerCanStop}/>
     </footer>
-    <UpdateNoticeSlot activeTab={activeTab} onOpenTools={()=>onNavigate('tools')}
-      onOpenReview={onOpenUpdateReview}/>
-  </>;
+   </>;
 }

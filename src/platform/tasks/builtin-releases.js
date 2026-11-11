@@ -19,13 +19,23 @@ const historicalReleases=[
   {taskId:'chatgpt.conversation.create',version:'0.1.0',manifestHash:'9cc34831cf5ea39654534219baef90ef2eccf3c274f5f20ce4c10eb2bb864bec',
     sourceHash:'6ae168d4039ac2ef12dceb7888125f4a5561a3f44dcb8bfdf78d43836678fd9d',sourcePath:'projects/webflow/tasks/chatgpt.conversation.create.v1.opendesk-task.json'}
 ];
+// Version 0.3.0 is an explicitly installable immutable resource,
+// NOT a new automatic release. No 0.2.0 installation, grant or ongoing Run
+// is silently upgraded to a two-stage task.
+const optionalReleases=[
+  {taskId:'chatgpt.conversation.create',version:'0.3.0',
+    manifestHash:'758c6d0aa2100cff0e2197dbfd5141532e76e4a7c0410a355ec8e5795255b559',
+    sourceHash:'2bfe2d610d63d5204edc4c2dd5b240a9771bede88ae1994ac92bde6dd0e40a42',
+    sourcePath:'projects/webflow/tasks/chatgpt.conversation.create.0.3.0.opendesk-task.json'}
+];
+const packagedReleases=[...releases,...historicalReleases,...optionalReleases];
 // Exactly one latest release per taskId is auto-provisioned; historical bytes
 // remain verifiable for existing authorized installations and explicit restore.
 export const BUILTIN_TASK_RELEASES=Object.freeze(releases.map(({sourcePath,...pin})=>Object.freeze(pin)));
-export const REVIEWED_BUILTIN_TASK_RELEASES=Object.freeze([...releases,...historicalReleases].map(({sourcePath,...pin})=>Object.freeze(pin)));
+export const REVIEWED_BUILTIN_TASK_RELEASES=Object.freeze(packagedReleases.map(({sourcePath,...pin})=>Object.freeze(pin)));
 // Data assets, never fixed executable inputs or web-accessible scripts. The
 // build and original Task loader share this exact immutable resource set.
-export const PACKAGED_TASK_RESOURCES=Object.freeze([...releases,...historicalReleases].map(row=>Object.freeze({
+export const PACKAGED_TASK_RESOURCES=Object.freeze(packagedReleases.map(row=>Object.freeze({
   ...row,path:`tasks/builtin/${row.taskId}/${row.version}.json`
 })));
 export async function loadPackagedTask(release,{runtime=globalThis.chrome?.runtime,fetchImpl=globalThis.fetch}={}) {
@@ -56,7 +66,7 @@ export async function loadPackagedTask(release,{runtime=globalThis.chrome?.runti
 }
 export async function assertPackagedTask(value) {
   const pkg=await verifyTaskPackage(value);
-  invariant([...releases,...historicalReleases].some(pin=>pin.taskId===pkg.manifest.taskId&&
+  invariant(packagedReleases.some(pin=>pin.taskId===pkg.manifest.taskId&&
     pin.version===pkg.manifest.version&&pin.manifestHash===pkg.manifestHash&&
     pin.sourceHash===pkg.manifest.program.sourceHash),
     'E_VERIFICATION','Task is not an exact packaged builtin release');

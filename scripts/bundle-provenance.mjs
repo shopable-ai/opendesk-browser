@@ -61,7 +61,8 @@ const compiledWebFlowInputs=Object.freeze({
   // Reviewed read-only projection: correlate the same request, prefer its Run,
   // distinguish reserved IDs/persistence/delivery/release; UNKNOWN never replays.
   // Reviewed same-receipt, owner-bound Toast projection; execution stays unchanged.
-  'projects/webflow/trusted/CurrentTask.tsx':'1f797970cf66a5859d6d3efcb0747011c2dd7c43',
+  // Retain the upstream PREPARE-only/account-unverified status copy.
+  'projects/webflow/trusted/CurrentTask.tsx':'e14ae6381dac186279dc39916873124166458937',
   // Reviewed display-only scripts route, consumed by the same fixed tool shell.
   'projects/webflow/src/ui/app-page-routes.js':'04468dd893393f82482123355243d8cdad4b1fb7',
   'projects/webflow/trusted/RuntimePanel.tsx':'f418c26696933f0b9440080fd2586e47e42b870f'
@@ -141,7 +142,12 @@ const compiledChatGPTFilesInputs=Object.freeze({
   'projects/webflow/src/chatgpt-conversation-result.js':'25581b6c905b5f8d6fd2bb7d7939c7ca8bfbd270',
   // Fixed-compiled ChatGPT Task 0.2.0 business-result registry: immutable
   // release identity, retained B provenance and no dynamic package validators.
-  'projects/webflow/trusted/chatgpt-result-adapter.js':'0bcb00f2f53f182d62eac1679241a116f2405c40'
+  'projects/webflow/trusted/chatgpt-result-adapter.js':'b55e4f27e5919464515b9687f45e8ca012f97c1b',
+  // 0.3 is opt-in and cannot claim a completed A/B workflow from a draft.
+  // Its strict results and retained-B proof are first-party compiled inputs.
+  'projects/webflow/src/chatgpt-conversation-result-v0.3.js':'6bff4d2ecabf8200c59d932e027336f39a049f11',
+  'projects/webflow/trusted/chatgpt-result-adapter-v0.3.js':'9e58fafd786733db036a5995889cbff00157622e',
+  'projects/webflow/trusted/chatgpt-b-prepare-stage.js':'68eeee6e3dee11d6d9abd1c534fe960c4a083e01'
 });
 const chatGPTFilesTargets=Object.freeze({
   'chatgpt-files-service.js':['native-agent/transport.js'],
@@ -156,7 +162,10 @@ const chatGPTFilesTargets=Object.freeze({
   'chatgpt-project-runtime-ui.js':['native-agent/settings.js'],
   'chatgpt-conversation-route.js':['sw.js','ui/tool-shell.js','agents/chatgpt-fixed-bridge.js'],
   'chatgpt-conversation-result.js':['sw.js','ui/tool-shell.js'],
-  'chatgpt-result-adapter.js':['sw.js','ui/tool-shell.js']
+  'chatgpt-result-adapter.js':['sw.js','ui/tool-shell.js'],
+  'chatgpt-conversation-result-v0.3.js':['sw.js','ui/tool-shell.js'],
+  'chatgpt-result-adapter-v0.3.js':['sw.js','ui/tool-shell.js'],
+  'chatgpt-b-prepare-stage.js':['sw.js']
 });
 function reviewedCompiledChatGPTFiles(target,path,root){
   if(!Object.hasOwn(compiledChatGPTFilesInputs,path)||

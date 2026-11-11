@@ -79,10 +79,6 @@
     .mg-switch:checked:before { background:var(--od-brand); }
     .mg-switch:checked:after { transform:translateX(16px); }
     .mg-switch:focus-visible { outline:2px solid var(--od-focus); outline-offset:3px; }
-    .runtime-state { display:flex; align-items:center; gap:var(--space-2);
-      color:var(--od-sub); font-size:var(--od-note-size); margin-top:var(--space-2); }
-    .runtime-dot { flex:none; width:7px; height:7px; border-radius:50%; background:var(--od-positive); }
-    .runtime-state[data-enabled="false"] .runtime-dot { background:var(--od-sub); }
     .section-head { display:flex; align-items:baseline; justify-content:space-between; gap:var(--space-2);
       padding-top:var(--space-4); margin-top:var(--space-4); margin-bottom:var(--space-3);
       border-top:1px solid var(--od-line); }
@@ -148,11 +144,7 @@
               <p id="gesture-help" class="od-note">在网页上使用右键手势</p>
             </div>
             <input id="gesture-enabled" class="mg-switch" type="checkbox" role="switch"
-              aria-label="开启鼠标手势" aria-describedby="gesture-help runtime-label" checked>
-          </div>
-          <div id="runtime-state" class="runtime-state" data-enabled="true" role="status" aria-live="polite">
-            <span class="runtime-dot" aria-hidden="true"></span>
-            <span id="runtime-label">已开启</span>
+              aria-label="开启鼠标手势" aria-describedby="gesture-help" checked>
           </div>
           <div class="section-head">
             <h2 id="gesture-list-title">已验证手势</h2>
@@ -174,18 +166,13 @@
     (() => {
       'use strict';
       const toggle = document.getElementById('gesture-enabled');
-      const state = document.getElementById('runtime-state');
-      const status = document.getElementById('runtime-label');
       const back = document.getElementById('back');
       const panel = document.getElementById('gesture-panel');
       const list = document.getElementById('extension-list');
       const reopen = document.getElementById('reopen');
       const title = document.getElementById('host-title');
       function sync() {
-        const enabled = toggle.checked;
-        state.dataset.enabled = String(enabled);
-        status.textContent = enabled ? '已开启' : '已暂停';
-        toggle.setAttribute('aria-checked', String(enabled));
+        toggle.setAttribute('aria-checked', String(toggle.checked));
       }
       toggle.addEventListener('change', sync);
       back.addEventListener('click', () => {

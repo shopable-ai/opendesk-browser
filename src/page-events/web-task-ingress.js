@@ -9,6 +9,7 @@ import {SITE_PROFILES_KEY,WEB_TASK_PROTOCOL,validWebTaskSource} from './web-task
 import {CHATGPT_TASK_PROFILE} from './web-task-contract.js';
 import {createChatGPTBackgroundAdapter} from '../native-agent/chatgpt-background-adapter.js';
 import {activateWebFlowExecutionTarget} from '../native-agent/webflow-execution-view.js';
+import {isReviewedBPrepare,attestReviewedBPrepare} from '../../projects/webflow/trusted/chatgpt-b-prepare-stage.js';
 
 const fail=(code,message)=>Object.assign(new Error(message),{code});
 const sameSource=(a,b)=>a?.tabId===b?.tabId&&a?.documentId===b?.documentId&&a?.url===b?.url;
@@ -172,7 +173,8 @@ export function createWebTaskIngress({api,ledger,loadFoundation,ensureRunner,ver
     await assertTaskApproval(row,message.requestId,source);
     if(approval!==ledger.captureAutoPolicyEpoch())throw fail('E_WEBFLOW_AUTO_DENIED','查询期间持续批准已改变');
     final();
-    return {requestId:message.requestId,state:run?.state??(row.status==='consumed'?'UNKNOWN':row.status),
+    return {requestId:message.requestId,state:row.webBPrepared&&isReviewedBPrepare(row)?'prepared-account-unverified':
+      run?.state??(row.status==='consumed'?'UNKNOWN':row.status),
       runId:run?.runId??null,resultId:run?.resultId??null,delivery:row.webDelivery??'not-sent'};
   }
   async function settle(message,sender){
@@ -189,7 +191,18 @@ export function createWebTaskIngress({api,ledger,loadFoundation,ensureRunner,ver
       runId:run.runId,resultId:run.resultId,delivery:row.webDelivery==='delivered'?'confirmed':'unknown'};
     await verifySubmission(row,actual);
     const snapshot=await broker.authority.snapshotControllerRun({runId:run.runId},actual);
-    const durable=verifyChatGPTTaskDurableResult(snapshot,run.runId,row.scope.installation,row.scope);
+    const durable=verifyChatGPTTaskDurableResult(snapshot,run.runId,row.scope.installation,
+      {...row.scope,requestId:message.requestId});
+    if(isReviewedBPrepare(row)){
+      // The PREPARE Run is final only as an unsent draft, NOT as the B reply.
+      // Verify the real surviving B document and persist its proof on the
+      // existing trigger row; never send a success message to A here.
+      const proof=await attestReviewedBPrepare({api,row,requestId:message.requestId,snapshot,durable});
+      await verifySubmission(row,actual);
+      await ledger.recordWebTaskPreparedB(message.requestId,proof);
+      return {requestId:message.requestId,state:'prepared-account-unverified',
+        runId:durable.runId,resultId:durable.resultId,delivery:'not-sent'};
+    }
     if(isChatGPT)await ledger.recordWebTaskObservation(message.requestId,{execution:'completed',persistence:'verified',
       release:'released',runId:durable.runId,resultId:durable.resultId});
     const result={protocol:'opendesk.task.result.v1',taskId:row.scope.taskId,requestId:message.requestId,
@@ -229,7 +242,8 @@ export function createWebTaskIngress({api,ledger,loadFoundation,ensureRunner,ver
     const notStarted=!run&&['prepared','approved','revoked'].includes(row.status)&&
       !Object.hasOwn(row,'consumedAt')&&!row.controllerSubmitted&&!row.webHostDocumentId&&
       !row.webDelivery&&!row.webObservation;
-    return {...row.webObservation,execution:run?.state==='completed'?'completed':
+    return {...row.webObservation,execution:row.webBPrepared&&isReviewedBPrepare(row)?'prepared-account-unverified':
+      run?.state==='completed'?'completed':
       ['preparing','running','stopping','paused_unknown','failed','stopped','interrupted'].includes(run?.state)?run.state:notStarted?'not-started':'unknown',
     persistence:row.webObservation?.persistence??'not-confirmed',release:run?.retirementState??(notStarted?'not-started':'unknown'),
     delivery:row.webDelivery==='delivered'?'confirmed':row.webDelivery==='dispatching'?'unknown':
@@ -301,7 +315,8 @@ export function createWebTaskIngress({api,ledger,loadFoundation,ensureRunner,ver
           const final=await historyReadFence(row,broker,approval);
           const snapshot=await broker.authority.snapshotControllerRun({runId:run.runId},actual);
           const projection=run.state==='completed'?
-            {value:verifyChatGPTTaskDurableResult(snapshot,run.runId,row.scope.installation,row.scope).value}:
+            {value:verifyChatGPTTaskDurableResult(snapshot,run.runId,row.scope.installation,
+              {...row.scope,requestId:row.requestId}).value}:
             {error:terminalError(snapshot,run,row.scope.installation)};
           await historyReadFence(row,broker,approval);
           final();Object.assign(receipt,{persistence:'verified',...projection});
@@ -362,7 +377,8 @@ export function createWebTaskIngress({api,ledger,loadFoundation,ensureRunner,ver
       throw fail('E_WEB_TASK_OWNER','原后台宿主已失联，只能查询原记录');
     const actual=await runner({id:api.runtime.id,url:ownerUrl,documentId:contexts[0].documentId,frameId:0});
     const snapshot=await broker.authority.snapshotControllerRun({runId:run.runId},actual);
-    verifyChatGPTTaskDurableResult(snapshot,run.runId,row.scope.installation,row.scope);
+    verifyChatGPTTaskDurableResult(snapshot,run.runId,row.scope.installation,
+      {...row.scope,requestId:message.requestId});
     const approval=ledger.captureAutoPolicyEpoch(),final=await verifySite(row);
     await assertTaskApproval(row,message.requestId,source);
     if(approval!==ledger.captureAutoPolicyEpoch())throw fail('E_WEBFLOW_AUTO_DENIED','交付核验期间持续批准改变');
