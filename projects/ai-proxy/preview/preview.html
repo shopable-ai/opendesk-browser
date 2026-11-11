@@ -831,7 +831,7 @@ function closeModal(){
   dialog.classList.remove('modal--proxy');
   const wasProxy=modalAction?.type==='proxy';
   modalAction=null;
-  const target=modalReturnFocus?.isConnected?modalReturnFocus:(wasProxy?document.querySelector('[data-action="add-proxy"]'):null);
+  const target=modalReturnFocus?.isConnected&&modalReturnFocus!==document.body?modalReturnFocus:(wasProxy?document.querySelector('[data-action="add-proxy"]'):null);
   target?.focus?.({preventScroll:true});
   modalReturnFocus=null;
 }
