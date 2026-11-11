@@ -199,7 +199,14 @@
         assert(e.scopeId===s.scopeId && e.consentRevision===g.revision,'Scope 或授权版本失效');
         assert(e.body===undefined && e.promptText===undefined && e.responseText===undefined,'未获正文授权');
         const key=[e.scopeId,e.origin,e.accountId,e.consentRevision,e.generationId,e.dedupeKey].join('|');
-        if (!s.observedEvents.some(v=>v.key===key)){s.observedEvents.push({key,eventId:e.eventId,atMs:e.atMs,type:e.type});}
+        const type=e.eventType ?? e.type;
+        const atMs=Number.isFinite(e.atMs)?e.atMs:Date.parse(e.observedAt ?? '');
+        assert(e.eventId && e.dedupeKey && e.generationId && EVENTS.includes(type) && Number.isFinite(atMs),
+          'INVALID_EVENT：缺少事件身份、有效类型或观察时间');
+        if (!s.observedEvents.some(v=>v.key===key)){
+          s.observedEvents.push({key,eventId:e.eventId,atMs,type,
+            conversationId:e.conversationId ?? null, executionId:e.executionId ?? null});
+        }
         return s;
       }
       case 'DELETE_PROBLEM': {
@@ -215,7 +222,9 @@
         const orphans=related.filter(id=>!s.links.some(l=>l.conversationId===id && l.status==='CONFIRMED'));
         s.executions=s.executions.filter(e=>!orphans.includes(e.conversationId));
         s.conversations=s.conversations.filter(c=>!orphans.includes(c.id));
-        s.observedEvents=[]; // demo has no independent provenance mapping; purge rather than retain ambiguous derived rows
+        // Preserve events attributed to conversations still shared by another problem;
+        // unattributed events are discarded conservatively on deletion.
+        s.observedEvents=s.observedEvents.filter(v=>v.conversationId && !orphans.includes(v.conversationId));
         s.deletedProblems.push(p.id);
         audit(s,'DELETE_PROBLEM',{deleted:true});return s;
       }

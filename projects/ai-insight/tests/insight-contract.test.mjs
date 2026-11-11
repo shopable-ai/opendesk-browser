@@ -136,3 +136,23 @@ test('21. sample event fixture carries strict metadata without private body',()=
   }
   assert.equal(sample.consent[0].body,false);
 });
+
+test('22. deleting one problem keeps a conversation shared with another',()=>{
+  let s=state();
+  s.links.push({id:'shared',problemId:'prob_theme',conversationId:'conv_a',status:'CONFIRMED'});
+  const e={...ev('SUBMITTED_OBSERVED',0),conversationId:'conv_a',executionId:'exec_a',consentRevision:1};
+  s=C.applyAction(s,{type:'OBSERVE_EVENT',event:e});
+  s=C.applyAction(s,{type:'DELETE_PROBLEM',problemId:'prob_bug'});
+  assert.ok(s.conversations.some(c=>c.id==='conv_a'));
+  assert.ok(s.executions.some(e=>e.id==='exec_a'));
+  assert.equal(s.observedEvents.length,1);
+  assert.equal(C.problemMetrics(s,'prob_theme').conversationCount,1);
+});
+test('23. malformed observation is rejected before state persistence',()=>{
+  const s=state();
+  assert.throws(()=>C.applyAction(s,{type:'OBSERVE_EVENT',event:{
+    scopeId:s.scopeId,origin:'https://chatgpt.com',accountId:'account_demo_1',
+    consentRevision:1,generationId:'gen_1',dedupeKey:'faulty',eventId:'e_faulty'
+  }}),/INVALID_EVENT/);
+  assert.equal(s.observedEvents.length,0);
+});

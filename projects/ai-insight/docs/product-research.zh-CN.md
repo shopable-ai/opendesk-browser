@@ -33,7 +33,7 @@
 | AI 长任务/并发/等待模型 | DESIGN_ONLY | 有事件口径和区间计算原则；未通过专项实站计时验证 |
 | OpenDesk 复用扫描 | SOURCE_REVIEW_PARTIAL | 检查过部分 main 源码、README 和配置；不是集成或生产验收 |
 | 真实用户需求、付费/留存 | HYPOTHESIS | 无独立有效访谈或使用统计证据 |
-| 数据合同、状态机测试 | PARTIAL | R5 已落盘候选 JSON Schema、纯模型与 20 项 Node 测试源码；本机 Node 未执行，详见 [数据合同](data-contract-r5.zh-CN.md) |
+| 数据合同、状态机测试 | PARTIAL | R5 已落盘候选 JSON Schema、纯模型与 24 项 Node 测试源码；本机 Node 未执行，详见 [数据合同](data-contract-r5.zh-CN.md) |
 | AI Insight 可点击预览 | PREVIEW_SOURCE_READY | 已有 PC/Side Panel/网页轻提示预览源码；真实浏览器交互仍 NOT_TESTED，详见 [R5 验收](r5-acceptance.zh-CN.md) |
 | 本地 Codex、真实 Chrome 验收 | BLOCKED / NOT_TESTED | CodexPro 连接 UNAVAILABLE，本机桥接 Session terminated；无 Native Chrome 证据 |
 | AI Insight 正式业务代码 | NOT_STARTED | R4/R5 研究阶段不应擅自扩张生产功能 |
@@ -303,6 +303,6 @@ R4 评估三条路线（主观加权评估、非用户调研）：A 统计+提�
 本次仅建立产品研究与续接文档，没有修改 OpenDesk 业务代码、运行 Chrome、获取私人对话正文或宣称 R5 实现已完成。
 ## 12. R5 实际增量（2026-11-11）
 
-按原始目标差量执行了 T01–T04 的可独立部分：19 个对象定义的候选 Schema、Problem 关系/审计/拆分与 Execution 计算纯核心、20 项 Node 测试源码、非私密事件 fixture，以及共享模型的 PC/Side Panel/网页轻提示交互预览。GitHub 读回后连接器隔离 JS 检查 21/21 PASS；不代表本机 Node 或真实 Chrome。权威技术口径见 [数据合同](data-contract-r5.zh-CN.md)，精确证据等级、环境阻塞、专家自评与下一轮最小动作见 [R5 验收](r5-acceptance.zh-CN.md)。
+按原始目标差量执行了 T01–T04 的可独立部分：19 个对象定义的候选 Schema、Problem 关系/审计/拆分与 Execution 计算纯核心、24 项 Node 测试源码、非私密事件 fixture，以及共享模型的 PC/Side Panel/网页轻提示交互预览。GitHub 读回后连接器隔离 JS 检查 21/21 PASS；不代表本机 Node 或真实 Chrome。权威技术口径见 [数据合同](data-contract-r5.zh-CN.md)，精确证据等级、环境阻塞、专家自评与下一轮最小动作见 [R5 验收](r5-acceptance.zh-CN.md)。
 
 剩余阻塞：本机 Codex/工作区连接、完整 JSON Schema Validator、预览逐按钮 Chrome 证据、两个已授权 AI 站点事件探针、正式权限撤销与删除链验证。**R5 不是生产已交付。**

@@ -58,7 +58,7 @@
    $('#pc-privacy').innerHTML=privacy();$('#panel-summary').innerHTML=summary();
    $('#panel-candidates').innerHTML=candidates();$('#panel-links').innerHTML=links();
    $('#panel-metrics').innerHTML=stat();$('#panel-outcome').innerHTML=outcome();$('#panel-privacy').innerHTML=privacy();
-   $('#site-summary').textContent=p()?.title||'未关联';
+   $('#site-summary').textContent=(p()?.title||'未关联')+' · AI 状态未知（模拟）';
    if(blocked)$$('.panel-scroll > section').forEach(el=>el.hidden=true);else $$('.panel-scroll > section').forEach(el=>el.hidden=false);
  }
  const flash=txt=>{$('#live').textContent=txt};

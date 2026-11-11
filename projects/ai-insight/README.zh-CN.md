@@ -11,7 +11,7 @@
 ## R5 当前交付入口（2026-11-11）
 
 - [统一数据合同与指标字典](docs/data-contract-r5.zh-CN.md) · [JSON Schema](contracts/insight-r5.schema.json) · [非私密 fixture](contracts/sample-envelope.json)
-- [纯计算与关联模型](src/insight-core.js) · [20 项 Node 测试源码](tests/insight-contract.test.mjs)
+- [纯计算与关联模型](src/insight-core.js) · [24 项 Node 测试源码](tests/insight-contract.test.mjs)
 - [PC / Side Panel / 网页轻提示交互预览](preview/index.html)：使用 `src/insight-core.js` 的同一演示状态，预览无网络、无真实采集。
 - [R5 差量状态与后续验收操作](docs/r5-acceptance.zh-CN.md)
 
