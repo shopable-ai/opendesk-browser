@@ -10,7 +10,8 @@ const config=url=>({schema:STORE_WEBSITE_SCHEMA,url});
 const good='https://store.vendor-example.io/extensions';
 
 test('public Browser config is the canonical navigation source, frozen and fail-closed',()=>{
-  const value={schema:BROWSER_PUBLIC_CONFIG_SCHEMA,navigation:{extensionStore:null}};
+  const value={schema:BROWSER_PUBLIC_CONFIG_SCHEMA,
+    navigation:{extensionStore:BROWSER_PUBLIC_CONFIG.navigation.extensionStore}};
   assert.deepEqual(BROWSER_PUBLIC_CONFIG,value);
   assert.ok(Object.isFrozen(BROWSER_PUBLIC_CONFIG));
   assert.ok(Object.isFrozen(BROWSER_PUBLIC_CONFIG.navigation));
@@ -24,7 +25,9 @@ test('public Browser config is the canonical navigation source, frozen and fail-
   ])assert.equal(resolveBrowserPublicConfig(invalid),null);
 });
 
-test('website URL is intentionally unconfigured until official launch',()=>{
+test('site navigation follows the framework URL config, including temporary HTTPS test sites',()=>{
+  const configured=BROWSER_PUBLIC_CONFIG.navigation.extensionStore;
+  assert.deepEqual(OFFICIAL_STORE_WEBSITE,resolveStoreWebsiteConfig(config(configured)));
   assert.ok(['ready','coming_soon'].includes(OFFICIAL_STORE_WEBSITE.status));
   assert.notEqual(OFFICIAL_STORE_WEBSITE.status,'invalid');
   assert.deepEqual(resolveStoreWebsiteConfig(config(null)),{status:'coming_soon',url:null});
