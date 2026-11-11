@@ -426,7 +426,11 @@ function closeEditor(force=false){
  }
  $('editor-overlay').hidden=true;draft=null;original=null;restoreFocus(returnFocus);
 }
-function restoreFocus(el){if(el&&document.contains(el)&&!el.closest('[hidden]'))el.focus()}
+function restoreFocus(el){
+ if(el&&document.contains(el)&&!el.closest('[hidden]')){el.focus();return}
+ const fallback=document.querySelector('#pc-content [data-cmd="new-rule"]')||document.querySelector('[data-page="rules"]');
+ if(fallback&&!fallback.closest('[hidden]'))fallback.focus();
+}
 function sameScopeConflict(rules,candidate){
  return rules.find(r=>r.id!==candidate.id&&r.enabled&&candidate.enabled&&r.pattern===candidate.pattern&&r.site===candidate.site);
 }
