@@ -121,3 +121,18 @@ test('20. event idempotency is isolated by consent revision',()=>{
   s=C.applyAction(s,{type:'OBSERVE_EVENT',event:{...e,consentRevision:3,eventId:'fresh'}});
   assert.equal(s.observedEvents.length,2);
 });
+
+test('21. sample event fixture carries strict metadata without private body',()=>{
+  const sample=JSON.parse(readFileSync(new URL('../contracts/sample-envelope.json',import.meta.url)));
+  const schema=JSON.parse(readFileSync(new URL('../contracts/insight-r5.schema.json',import.meta.url)));
+  assert.equal(sample.schemaVersion,1);
+  assert.equal(sample.records.problems[0].id,'prob_bug');
+  for(const event of sample.events){
+    for(const key of schema.$defs.Event.required)assert.ok(Object.hasOwn(event,key),key);
+    for(const key of Object.keys(event))assert.ok(Object.hasOwn(schema.$defs.Event.properties,key),'undeclared '+key);
+    assert.equal(event.origin,'https://chatgpt.com');
+    assert.equal('promptText' in event,false);
+    assert.equal('responseText' in event,false);
+  }
+  assert.equal(sample.consent[0].body,false);
+});
