@@ -36,7 +36,13 @@ function verify(value,request,run){
 // Only the exact, reviewed immutable installed release may use this adapter.
 // Future Task versions must opt in with a separately audited contract.
 export function reviewedChatGPTResultAdapter(request){
-  if(request?.taskId!==TASK_ID||request?.installation?.version!==VERSION)return null;
+  if(request?.taskId!==TASK_ID)return null;
+  // The read-only 0.1.0 draft keeps its historical generic result behavior.
+  // Unknown/newer versions cannot bypass the reviewed business validator by
+  // falling back to the generic 7-KiB JSON formatter.
+  if(request?.installation?.version==='0.1.0')return null;
+  if(request?.installation?.version!==VERSION)
+    fail('ChatGPT Task release has no fixed-compiled, reviewed result adapter');
   const installed=request.installation;
   if(!release||installed.manifestHash!==release.manifestHash||
     installed.contentHash!==release.sourceHash||

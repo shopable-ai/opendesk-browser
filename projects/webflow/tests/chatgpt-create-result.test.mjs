@@ -6,6 +6,7 @@ import {verifyChatGPTTaskDurableResult,formatChatGPTInstalledResult}
   from '../../../src/native-agent/chatgpt-fixed-bridge-host.js';
 import {validateChatGPTCreateResult,formatChatGPTCreateDelivery}
   from '../src/chatgpt-conversation-result.js';
+import {reviewedChatGPTResultAdapter} from '../trusted/chatgpt-result-adapter.js';
 
 const pin=BUILTIN_TASK_RELEASES.find(row=>row.taskId==='chatgpt.conversation.create');
 const uuid='6af1df79-ab04-83e8-8e06-db19beebafab';
@@ -136,6 +137,14 @@ for(const field of ['requestId','runId','resultId']){
     }
   });
 }
+
+test('unknown ChatGPT Task versions cannot bypass the reviewed result adapter',()=>{
+  const old={...request(),installation:{...install,version:'0.1.0'}};
+  const future={...request(),installation:{...install,version:'0.3.0'}};
+  assert.doesNotThrow(()=>reviewedChatGPTResultAdapter(old));
+  assert.equal(reviewedChatGPTResultAdapter(old),null);
+  assert.throws(()=>reviewedChatGPTResultAdapter(future),{code:'E_BRIDGE_RESULT'});
+});
 
 test('draft B requires an original retained tab/document, not only a page-reported draft status',()=>{
   const a={...args,send:false},value=draft(),valid=snapshot(value);
