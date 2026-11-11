@@ -20,7 +20,7 @@ test('R2 Controller passes only opaque assetId, never Blob/Base64 or filesystem 
     [['uploadFromAsset',['#image-0',assetId],'browser']]);
   assert.equal(JSON.stringify(calls).includes('base64'),false);
   for(const bad of ['', '/Users/example/Pictures/cover.png', 'data:image/png;base64,AAAA', 'https://example.com/foo.png']){
-    assert.rejects(page.uploadAsset('#image-0',bad),{code:'E_MEDIA_ID'});
+    assert.throws(()=>page.uploadAsset('#image-0',bad),{code:'E_MEDIA_ID'});
   }
 });
 
