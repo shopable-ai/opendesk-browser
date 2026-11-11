@@ -51,13 +51,121 @@ const etag=value=>{
  return hash.toString(16).padStart(8,'0').repeat(8);
 };
 const reason=(code,message)=>Object.assign(new Error(message),{code});
+
+// UI_PREVIEW_ONLY: a simulated target webpage follows the real sidebar tool.
+const demo=document.createElement('section');
+demo.id='clip-region-demo';
+demo.style.cssText='margin:16px 8px;padding:12px;border:1px dashed #94a3b8;border-radius:10px;font:12px/1.6 system-ui;background:Canvas;color:CanvasText';
+const heading=document.createElement('strong');
+heading.textContent='UI_PREVIEW_ONLY · 模拟 AI 对话网页';
+demo.append(heading);
+const guide=document.createElement('p');
+guide.textContent='在上方选择「区域」→「点选网页区域」，再点下方任意回答；↑/↓ 调整，Esc 取消。';
+demo.append(guide);
+const cases=document.createElement('div');cases.style.cssText='display:flex;flex-wrap:wrap;gap:5px';
+let regionCase='normal',pendingRegion=null;
+for(const [id,label] of [['normal','正常'],['streaming','流式'],['denied','权限拒绝'],['oversize','内容超限'],['failure','读取失败']]){
+ const button=document.createElement('button');button.type='button';button.textContent=label;
+ button.style.cssText='border:1px solid #94a3b8;border-radius:6px;padding:3px 7px;color:CanvasText;background:Canvas';
+ button.setAttribute('aria-pressed',String(id===regionCase));
+ button.addEventListener('click',()=>{regionCase=id;for(const b of cases.children)b.setAttribute('aria-pressed',String(b===button));send('模拟区域场景：'+label);});
+ cases.append(button);
+}
+demo.append(cases);
+const userPrompt=document.createElement('p');userPrompt.textContent='用户：请输出详细方案与代码示例。';demo.append(userPrompt);
+function mockReply(id,chapters){
+ const article=document.createElement('article');article.dataset.demoReply=id;
+ article.style.cssText='margin:10px 0;padding:10px;border:1px solid #94a3b8;border-radius:8px';
+ const h=document.createElement('h2');h.textContent='AI 回答 '+id;article.append(h);
+ for(let i=1;i<=chapters;i++){
+  const section=document.createElement('section');section.dataset.demoSection=''+i;
+  const title=document.createElement('h3');title.textContent='第 '+i+' 章 · 分析与验证';
+  const p=document.createElement('p');p.textContent='已加载在 DOM 内的第 '+i+' 章，包含技术方案、注意事项和验证步骤。无需纵向拖动长文本选区。';
+  section.append(title,p);article.append(section);
+ }
+ demo.append(article);return article;
+}
+mockReply('A',36);mockReply('B',4);
+document.body.append(demo);
+function demoMarkdown(reply,section){
+ if(section)return '## 第 '+section+' 章 · 分析与验证\n\n已选择下一级内容容器。\n';
+ const count=reply==='A'?36:4;
+ const fence=String.fromCharCode(96).repeat(3);
+ return ['# AI 回答 '+reply,'','> UI_PREVIEW_ONLY：仅用于交互演示。','',
+  ...Array.from({length:count},(_,i)=>[
+   '## 第 '+(i+1)+' 章 · 分析与验证','',
+   '已加载内容包含 **重要结论**、[参考链接](https://example.com/docs) 以及验证步骤。','',
+   ...(i===1?[fence+'js','const result = await verify();',fence,'']:[]),
+   ...(i===2?['| 项目 | 状态 |','| --- | --- |','| 区域点选 | 支持 |','']:[])
+  ].join('\n'))].join('\n')+'\n';
+}
+function previewPick(id){
+ if(pendingRegion)pendingRegion.cancel('已开始新的点选');
+ return new Promise((resolve,reject)=>{
+  let active=null,level=0,done=false;
+  const clear=()=>{
+   document.removeEventListener('mousemove',hover,true);
+   document.removeEventListener('pointermove',hover,true);
+   document.removeEventListener('click',click,true);
+   document.removeEventListener('keydown',key,true);
+   if(active?.node)active.node.style.outline='';
+   if(pendingRegion?.id===id)pendingRegion=null;
+  };
+  const finish=(error,result)=>{if(done)return;done=true;clear();error?reject(error):resolve(result);};
+  const hover=e=>{
+   const article=e.target.closest?.('[data-demo-reply]');
+   if(!article)return;
+   if(active?.node)active.node.style.outline='';
+   const sub=e.target.closest('[data-demo-section]');
+   const node=level===1&&sub?sub:article;
+   node.style.outline='3px solid #2563eb';
+   active={article,sub,node};
+  };
+  const click=e=>{
+   if(!e.target.closest?.('[data-demo-reply]'))return;
+   e.preventDefault();e.stopImmediatePropagation();hover(e);
+   if(regionCase==='oversize')return finish(reason('E_BODY_LIMIT','演示：内容超过 160,000 字节，未截断保存'));
+   if(regionCase==='failure')return finish(reason('E_CLIP_READ','演示：网页区域读取失败'));
+   const markdown=demoMarkdown(active.article.dataset.demoReply,active.node===active.sub?active.sub.dataset.demoSection:null);
+   send('模拟点选成功（非真实 Chrome）',enc.encode(markdown).length);
+   finish(null,{markdown,title:pageTitle(),site:new URL(source).hostname,source,capturedAt:new Date().toISOString(),
+    mode:'clip.region',loadedOnly:true,streaming:regionCase==='streaming'});
+  };
+  const key=e=>{
+   if(e.key==='Escape'){e.preventDefault();e.stopPropagation();finish(reason('E_CANCELLED','演示：Esc 取消区域点选'));}
+   if(['ArrowUp','ArrowDown'].includes(e.key)){
+    level=e.key==='ArrowDown'?1:0;
+    if(active){if(active.node)active.node.style.outline='';
+     active.node=level&&active.sub?active.sub:active.article;
+     active.node.style.outline='3px solid #2563eb';}
+    e.preventDefault();e.stopPropagation();
+   }
+  };
+  pendingRegion={id,cancel:message=>finish(reason('E_CANCELLED',message))};
+  document.addEventListener('mousemove',hover,true);
+  document.addEventListener('pointermove',hover,true);
+  document.addEventListener('click',click,true);
+  document.addEventListener('keydown',key,true);
+  send('正在模拟区域点选，UI_PREVIEW_ONLY');
+ });
+}
+
 globalThis.OpenDeskTool={
  root:document.querySelector('.clip'),
  setState({dirty,busy}={}){post('edit-state',{dirty:dirty===true,busy:busy===true});},
  setNavigation({page}={}){post('navigation-state',{page});},
  async request(operation,args={}){
   if(latencyMs&&operation.startsWith('clipNotes.'))await new Promise(resolve=>setTimeout(resolve,latencyMs));
-  if(['clip.article','clip.selection','clip.link'].includes(operation)){
+  if(operation==='clip.region.cancel'){
+    const cancelled=pendingRegion?.id===args.pickId;
+    if(cancelled)pendingRegion.cancel('演示：已取消区域点选');
+    return {cancelled};
+   }
+   if(operation==='clip.region'){
+    if(regionCase==='denied')throw reason('E_PERMISSION_DENIED','演示：当前网站拒绝区域读取');
+    return await previewPick(args.pickId);
+   }
+   if(['clip.article','clip.selection','clip.link'].includes(operation)){
    const another=source.includes('next-page');
     const markdown=operation==='clip.article'?(another?'# 新网页文章\n\n本页是新的网页快照。\n':sample):
      operation==='clip.selection'?(another?'来自新网页的选区内容。\n':selection):
