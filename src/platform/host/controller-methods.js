@@ -79,7 +79,7 @@ function hasNativeEffect(operation) {
 // Delegate of the unique authority. Every durable fence is ordered by its
 // injected storage transaction; the maps below only correlate live promises.
 export function controllerMethods({storage, api, session, clock, assertHost, currentHost,
-  loadBuiltin=loadBuiltinWorkerSource,emitToHost=async()=>{},cloud,scheduled}) {
+  loadBuiltin=loadBuiltinWorkerSource,emitToHost=async()=>{},cloud,scheduled,readMediaAsset}) {
   const isolatedTransport=createIsolatedHttpTransport({api});
   const nativeTransport=createNativeHttpTransport({api});
   const pending = new Map(), cancellations = new Map(), navigating = new Map(), boundTargets = new Map(), creatingTabs = new Map();
@@ -988,6 +988,13 @@ export function controllerMethods({storage, api, session, clock, assertHost, cur
       return;
     }
     invariant(operation.kind!=='browser-sdk','E_CAPABILITY','Browser app operations require an installed app-service');
+    // Only an installed, enabled, immutable Task with explicit media.read may
+    // use one user-reviewed assetId bound to its admitted params.
+    if(operation.kind==='browser'&&operation.method==='uploadFromAsset'){
+      invariant(run.installedTaskAuthorization?.authorization?.scope?.capabilities?.includes('media.read') &&
+        run.sourceKind==='saved','E_CAPABILITY','该安装任务未获素材读取权限');
+      return;
+    }
     if(run.sourceKind==='app-controller'){
       invariant(operation.kind!=='service'&&!(operation.kind==='browser'&&
         ['cookies','setCookie','deleteCookie','uploadFromUrl'].includes(operation.method)),'E_CAPABILITY',
@@ -1157,7 +1164,19 @@ export function controllerMethods({storage, api, session, clock, assertHost, cur
           throw error;
         }
       };
-      const driver = createControllerDriver({api, clock, authorize:authorizeOperation, beforeEffect, withWrite:withLocatorWrite});
+      const driver = createControllerDriver({api, clock, authorize:authorizeOperation, beforeEffect,
+        withWrite:withLocatorWrite,
+        readMediaAsset: async (assetId, captured) => {
+          invariant(same(captured,envelope),'E_OWNER');
+          // The package manifest, installed incarnation and current run state
+          // were already checked before dispatch; repeat at the actual read.
+          invariant(typeof readMediaAsset==='function','E_CAPABILITY_UNAVAILABLE');
+          invariant(run.installedTaskAuthorization?.authorization?.scope?.capabilities?.includes('media.read') &&
+            decodeValue(run.paramsWire)?.assetId===assetId,'E_MEDIA_SCOPE',
+            '素材必须与已批准的运行参数一致');
+          await authorizeOperation(envelope,{phase:'pre'});
+          return readMediaAsset(assetId);
+        }});
       const recordReceipt = async receipt => tx(RUN_WRITE, async transaction => {
         const operation = await transaction.get(COMMAND_JOURNAL, key);
         invariant(operation?.requestDigest === requestDigest, REQUEST_CONFLICT);
