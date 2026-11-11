@@ -1,3 +1,15 @@
+## R2 同一个 B · 0.3.0 双阶段候选增量及尚未接线清单（2026-11-11；OD-WEBFLOW-CHAT-A-B-A-TASK-BOUNDARY-R2）
+
+**产品目标：** A 中提出任务 → 一个新 B 只准备未发送草稿 → 可信侧栏独立 APPROVE_SEND → 从原 PREPARE Run 精确 borrowed 同一个 B 只原生发送一次 → 原 Durable Result 审核完整回复和真实 /c/ → 原 A 一次性回填。任何 UNKNOWN 不重建 B、不补发、不重交付。WebFlow 编排、独立 Task 操作 ChatGPT DOM、Browser 原 Host/Authority/Controller 负责安装与副作用。
+
+**本轮已经写入 main 的非运行增量：** `05701fb5` 新建 `src/tasks/chatgpt-conversation-create-v0.3.js`，PREPARE 只填空草稿且绝不点击发送；SUBMIT 要求原 PREPARE Run/Request 身份和现有原样草稿，绝不重新填入，点击至多一次并校验原生消息/完整回复，显式 model/effort/thinking 暂时安全拒绝。 `78a26610` + `99f5d6d1` + `290b4767` 新增/修正 `tests/chatgpt-continuation-task.test.mjs`，核验草稿/单发/不重填/ACK 未知/候选包及 Schema。 `bc551a41` 冻结独立 **未安装** 0.3.0 Task 候选包：source SHA-256 `2bfe2d610d63d5204edc4c2dd5b240a9771bede88ae1994ac92bde6dd0e40a42`，manifest SHA-256 `758c6d0aa2100cff0e2197dbfd5141532e76e4a7c0410a355ec8e5795255b559`。 `acd1bd85` / `17d8f383` 更新原 Bridge CI 路径、检查与测试。旧 0.1.0/0.2.0 源码和 release pins 均未变。隔离 V8 行为预检 8/8 PASS，但不是 Node/Chrome；GitHub CI [43003737489](https://github.com/shopable-ai/opendesk-browser/actions/runs/43003737489) 最后只读观察为 queued，不能标 PASS。
+
+**未完成的第一真实依赖（P1）：** 0.3.0 只是未注册/未安装候选，现有 `web-task-ingress.claim()` 仍创建 owned 新页，`withControllerAdmission()` 现有持续候选严格要求 owned；原消费者未绑定 PREPARE Run/原 B 与独立 APPROVE_SEND，未建可信发送 Run。需先由可信 WebFlow 真实消费者把一次 PREPARE 的 `retainedTarget` + 受信草稿 SHA、原 A、账号/Profile、安装精确身份和批准绑定到新提交 Run 的 `retainedFrom + borrowed`；Controller 原子一次性栅栏已存在，禁止复制。必须保证 PREPARE 阶段不提前向 A 当作最终业务成功交付。之后才能审查并注册 0.3.0 安装身份与双阶段固定编译 Result Adapter，在原宿主真实 Run/Result 与 A 一次性回填之间闭合。
+
+**证据等级（本任务，不可继承其他功能的绿灯）：** SOURCE=PARTIAL（Task 候选已提交，实际消费者未接）/ NODE_TEST=NOT_CONFIRMED（CI 排队）/ PACKAGE=CANDIDATE_ONLY（哈希已核对，不是已安装正式版本）/ CHROME=NOT_TESTED / BUSINESS=NOT_TESTED。下一动作：实现可信 WebFlow 原 B 续接消费者 + APPPROVE_SEND 独立授权，版本与账号身份守恒，完成原定向 Node/发布审阅；没有真实 Chrome 授权不得发送。
+
+---
+
 ## 「我的」脚本运行底部抽屉恢复（2026-11-11；OD-WEBFLOW-MY-RUN-SHEET-UI-REGRESSION-R1）
 
 **真实目标：** 以历史提交 `93dc11a9058e0d68497977e948f3a11605c82463` 中「我的」成熟的底部上滑抽屉为基准，纠正 `38a9aea0788ae7dc514acfd3241a9e44ebdfca68` 在共享组件提取时引入的右侧全高布局，继续共用唯一 TaskRunSheet / TaskWorkbench / RunHost。「我的」保留直接手动运行；Web Flow 保留“保存并核对 → 确认执行一次”。
