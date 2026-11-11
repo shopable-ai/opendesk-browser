@@ -8,6 +8,20 @@
 
 **证据：** SOURCE=提交后需读回；NODE=NOT_TESTED；PACKAGE=NOT_TESTED；CHROME_NATIVE=BLOCKED（本机 CodexPro/文件隧道不可用）；BUSINESS=NOT_TESTED。测试以本次新提交 SHA 为准，不继承历史通过。R2 `APPROVE_SEND → borrowed SUBMIT → B 完整回复 → A 一次性交付` 不在 R0 实施。
 
+### R1 本地验收核查（2026-11-11；`OD-WEBFLOW-PROVIDER-BOUNDARY-R1-LOCAL-ACCEPTANCE`）
+
+**结论：** R0 第一阶段源码保持实现状态，**尚未完成工程/原生验收，不能关闭 R0**；本次没有发现需要重复重构的源码缺陷，不提前实施 R2。此段是 R1 新证据，不改写上方 R0 的历史阶段记录。
+
+**本次 GitHub 只读核验（读取时 main HEAD：`29621c6256bbbbc733c6c96d2e0ff39ca37eb77f`）：** 三个 R0 提交 `f0c6e0b98c46603800d996b6655b948625f735e4`、`24d8572303d004d2fec4a1b51917410a16612ef8`、`939b749e9839ce849a24288369b6833ef850c0d0` 均可检索；唯一通用解析器 Git Blob 仍为 `50a7ec4bd3d8707ba53724efdc378cd98c2404d6`，与 `scripts/bundle-provenance.mjs` 的精确锁相同。旧 `chatgpt-task-request.js` 保留 V1 与通用再导出，通用 Observer/目标校验直连新模块；白名单仍严格是 `sw.js`、`ui/tool-shell.js`、`agents/web-task-content.js`。两项 provenance 定向测试与四项 parser 测试源码存在。以 `939b749e` 为基线对比读取时后续 main 提交，未见以上 R0 关键文件继续漂移；这些是 SOURCE/静态审计，不是执行 PASS。
+
+**真实执行环境：** CodexPro `open_current_workspace` / `server_config` 均返回 `UNAVAILABLE: Connection failed`；OpenDesk Desktop、Browser、CodeTunnel 均返回 `MCP SSE probe returned 429`。独立执行容器的 `git ls-remote` 因 `Could not resolve host: github.com` 失败，该容器不是用户 Mac 工作区，不可把其 Node 22 版本视为项目本地验收。本次无法核对用户本机 git dirty status、并行 owner 或共享 dist/watcher 占用，因而没有启动 Node、构建、Chrome、安装或真实聊天行为，也没有修改业务源码。
+
+**CI 证据：** [AI Chat Bridge #43049715351](https://github.com/shopable-ai/opendesk-browser/actions/runs/43049715351) 精确绑定 R0 最后提交 `939b749e9839ce849a24288369b6833ef850c0d0`，本次读回 `status=queued`、`conclusion=null`，唯一 job `contract-and-build` 仍为 queued；前两个 R0 提交的同名 run `#43048128982`、`#43048667186` 也为 queued。没有可引用的相同源码组合的 Node/BUILD/PACKAGE 成功回执。CI 脚本声明 Node 22、定向回归、`npm run build` 与 `verify-package`，声明检查不等于执行成功。
+
+**证据分级（仅 R1）：** SOURCE=STATIC_VERIFIED（文件、依赖、Blob pin、测试源码存在；非运行）；NODE=NOT_TESTED；CI=QUEUED；BUILD=NOT_TESTED；PACKAGE=NOT_TESTED；CHROME_NATIVE=BLOCKED；R2_BUSINESS=OUT_OF_SCOPE。没有实际失败堆栈可以据此修改源码；安全、兼容、UNKNOWN 的运行等价性尚未取得证据。
+
+**唯一 P0 阻塞与恢复操作：** 当前缺少可执行的同源验证通道（本地 CodexPro/隧道不可用且对应 CI 未执行）。恢复已绑定仓库的本地 CodexPro 连接，先只读核对 `main` / dirty status / owner / dist 占用，随后优先复用上述 CI（若已完成且输入身份一致）或执行本任务列出的 P1/P2 定向 Node、P3 原 production build+verify-package；仅实际失败才做最小修复。最后独立进行 R0 的无发送 Chrome 测试并按实际证据关闭。R2 的同一个 B 发送闭环仍是另一个任务，不从 R0 源码推断已通过。
+
 ---
 
 ## R3 · A→唯一 B→原 A 可信发送接续（2026-11-11；OD-WEBFLOW-CHAT-A-B-A-SAME-B-R3-TRUSTED-SEND-CLOSURE）
