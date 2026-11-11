@@ -57,6 +57,29 @@ test('repeated start same canonical snapshot preserves original identity',async(
   assert.equal(h.stats.dispatch,0);
 });
 
+test('a second workflowId cannot reuse one B operation or A delivery key',async()=>{
+  const h=harness(),w=h.make(),first=input();await w.start(first);
+  await assert.rejects(h.make().start({...first,workflowId:'wf-workflow-0002',
+    deliveryKey:'wf-delivery-0002'}),{code:'E_SERIAL_WORKFLOW_CONFLICT'});
+  await assert.rejects(h.make().start({...first,workflowId:'wf-workflow-0003',
+    operationKey:'wf-task-0003'}),{code:'E_SERIAL_WORKFLOW_CONFLICT'});
+  const unrelated=await h.make().start({...first,workflowId:'wf-workflow-0004',
+    operationKey:'wf-task-0004',deliveryKey:'wf-delivery-0004'});
+  assert.equal(unrelated.phase,'PREPARED');
+  assert.equal(h.stats.dispatch,0);
+});
+
+test('parallel distinct workflow starts cannot reserve a duplicate operationKey',async()=>{
+  const h=harness(),w=h.make(),first=input();
+  const second={...first,workflowId:'wf-workflow-0005',deliveryKey:'wf-delivery-0005'};
+  const outcomes=await Promise.allSettled([w.start(first),h.make().start(second)]);
+  assert.equal(outcomes.filter(row=>row.status==='fulfilled').length,1);
+  const rejected=outcomes.filter(row=>row.status==='rejected');
+  assert.equal(rejected.length,1);
+  assert.equal(rejected[0].reason.code,'E_SERIAL_WORKFLOW_CONFLICT');
+  assert.equal(h.stats.dispatch,0);
+});
+
 test('same workflowId with drifted source or authority fails closed',async()=>{
   const w=harness().make(),i=input();await w.start(i);
   await assert.rejects(w.start({...i,authorizationRef:'grant-00000002'}),{code:'E_SERIAL_WORKFLOW_CONFLICT'});

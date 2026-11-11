@@ -14,6 +14,8 @@ const plain=value=>value!==null&&typeof value==='object'&&!Array.isArray(value)&
   Object.getPrototypeOf(value)===Object.prototype;
 const copy=value=>structuredClone(value);
 const scopedKey=(namespace,id)=>PREFIX+JSON.stringify([namespace,id]);
+// Prevent different workflows from reusing a committed side-effect identity.
+const indexKey=(namespace,kind,id)=>PREFIX+JSON.stringify(['index',namespace,kind,id]);
 
 function validateInput(input){
   if(!plain(input)||!validId(input.workflowId)||!validId(input.operationKey)||
@@ -62,11 +64,21 @@ export function createSerialTwoStepRun({storage,namespace,assertOwner,authorize,
     const {value,frozen}=validateInput(input);
     if(await authorize(copy(value),'start')!==true)fail('E_SERIAL_WORKFLOW_AUTH');
     return storage.transaction(['frameworkKV'],'readwrite',async tx=>{
-      const k=key(value.workflowId),previous=await tx.get('frameworkKV',k);
-      if(previous){
-        if(previous.inputFrozen!==frozen)fail('E_SERIAL_WORKFLOW_CONFLICT');
-        return copy(previous);
-      }
+      const k=key(value.workflowId);
+      const operationIndex=indexKey(namespace,'operation',value.operationKey);
+      const deliveryIndex=indexKey(namespace,'delivery',value.deliveryKey);
+      const previous=await tx.get('frameworkKV',k);
+      const operationOwner=await tx.get('frameworkKV',operationIndex);
+      const deliveryOwner=await tx.get('frameworkKV',deliveryIndex);
+      if((operationOwner!==undefined&&operationOwner!==value.workflowId)||
+        (deliveryOwner!==undefined&&deliveryOwner!==value.workflowId)||
+        (previous&&previous.inputFrozen!==frozen))fail('E_SERIAL_WORKFLOW_CONFLICT');
+      // Both uniqueness claims use the original atomic frameworkKV transaction.
+      if(operationOwner!==value.workflowId)
+        await tx.put('frameworkKV',operationIndex,value.workflowId);
+      if(deliveryOwner!==value.workflowId)
+        await tx.put('frameworkKV',deliveryIndex,value.workflowId);
+      if(previous)return copy(previous);
       const record={version:1,workflowId:value.workflowId,input:value,inputFrozen:frozen,
         phase:'PREPARED',revision:1,bRunId:null,bProof:null,aProof:null,createdAt:clock()};
       await tx.put('frameworkKV',k,record);return copy(record);
