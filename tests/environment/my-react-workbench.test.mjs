@@ -15,6 +15,8 @@ import {encodeValue} from '../../src/platform/page-port/codec.js';
 // alarms or real RunHost are claimed by this suite.
 const tick=()=>new Promise(resolve=>setTimeout(resolve,0));
 const native=()=>({isTrusted:true,preventDefault(){},defaultPrevented:false});
+const TEST_WEBFLOW_TOOL=Object.freeze({toolId:'webflow',version:'0.3.30',
+  packageHash:'f'.repeat(64),revocationEpoch:'epoch-a'});
 const artifacts=new URL('../../artifacts/my-react-workbench-tests/',import.meta.url);
 let MyTasksPage,TaskRunSheet,createRoot;
 test.before(async()=>{
@@ -208,7 +210,7 @@ test('shared TaskRunSheet restores the My bottom drawer and distinct cancel/prep
     assert.equal(sheet.open,false);
     assert.equal(f.state.starts.length,0,'cancel does not execute');
     const pin={taskId:'test.task',version:'1.0.0',manifestHash:'a'.repeat(64),contentHash:'b'.repeat(64)};
-    await React.act(async()=>{assert.equal(await f.workbench.openTaskRunSheet('test.task',{expectedPin:pin}),true);await tick();});
+    await React.act(async()=>{assert.equal(await f.workbench.openTaskRunSheet('test.task',{expectedPin:pin,toolIdentity:TEST_WEBFLOW_TOOL}),true);await tick();});
     assert.equal(sheet.open,true);
     assert.equal(f.doc.querySelectorAll('#task-parameters-sheet').length,1,'both entries reuse one dialog');
     assert.equal(f.doc.getElementById('task-param-name').value,'我的草稿','shared form keeps the draft');
@@ -223,11 +225,11 @@ test('Web Flow opens the exact same trusted React Sheet, prepares without runnin
   try{
     root=await f.mount();
     const pin={taskId:'test.task',version:'1.0.0',manifestHash:'a'.repeat(64),contentHash:'b'.repeat(64)};
-    await assert.rejects(f.workbench.openTaskRunSheet('test.task',{expectedPin:{...pin,contentHash:'c'.repeat(64)}}),
+    await assert.rejects(f.workbench.openTaskRunSheet('test.task',{expectedPin:{...pin,contentHash:'c'.repeat(64)},toolIdentity:TEST_WEBFLOW_TOOL}),
       error=>error?.code==='E_REVISION','a different installed script hash must not open the trusted Sheet');
     assert.equal(f.state.starts.length,0);
     let opened;
-    await React.act(async()=>{opened=await f.workbench.openTaskRunSheet('test.task',{expectedPin:pin});await tick();});
+    await React.act(async()=>{opened=await f.workbench.openTaskRunSheet('test.task',{expectedPin:pin,toolIdentity:TEST_WEBFLOW_TOOL});await tick();});
     assert.equal(opened,true);
     const sheet=f.doc.getElementById('task-parameters-sheet'),identity={...f.view.data.taskRows.identity};
     assert.equal(sheet.open,true);
@@ -267,7 +269,7 @@ test('Web Flow tool revocation blocks both saving and eventual RunHost submissio
     const assertAuthorized=async()=>{checks++;if(!authorized)throw Object.assign(
       new Error('tool generation changed'),{code:'E_TOOL_CHANGED'});};
     await React.act(async()=>{assert.equal(await f.workbench.openTaskRunSheet('test.task',{
-      expectedPin:pin,assertAuthorized}),true);await tick();});
+      expectedPin:pin,toolIdentity:TEST_WEBFLOW_TOOL,assertAuthorized}),true);await tick();});
     const identity={...f.view.data.taskRows.identity};
     authorized=false;
     await React.act(async()=>{
@@ -296,7 +298,7 @@ test('My entry cannot bypass a Web Flow ready identity in the same TaskWorkbench
   try{
     root=await f.mount();
     const pin={taskId:'test.task',version:'1.0.0',manifestHash:'a'.repeat(64),contentHash:'b'.repeat(64)};
-    await React.act(async()=>{assert.equal(await f.workbench.openTaskRunSheet('test.task',{expectedPin:pin}),true);await tick();});
+    await React.act(async()=>{assert.equal(await f.workbench.openTaskRunSheet('test.task',{expectedPin:pin,toolIdentity:TEST_WEBFLOW_TOOL}),true);await tick();});
     const identity={...f.view.data.taskRows.identity};
     await React.act(async()=>{assert.equal(await f.view.actions.taskRunSheetPrepare(native(),identity),true);await tick();});
     await React.act(async()=>{f.view.actions.taskRunClick(native(),identity);await tick();await tick();});
@@ -318,7 +320,7 @@ test('unresolved pre-v1 Web Flow history without pending key fences My and share
     await React.act(async()=>{f.view.actions.taskRunClick(native(),identity);await tick();await tick();});
     assert.equal(f.state.starts.length,0,'My cannot bypass an unreleased legacy summary');
     const pin={taskId:'test.task',version:'1.0.0',manifestHash:'a'.repeat(64),contentHash:'b'.repeat(64)};
-    await React.act(async()=>{assert.equal(await f.workbench.openTaskRunSheet('test.task',{expectedPin:pin}),true);await tick();});
+    await React.act(async()=>{assert.equal(await f.workbench.openTaskRunSheet('test.task',{expectedPin:pin,toolIdentity:TEST_WEBFLOW_TOOL}),true);await tick();});
     await React.act(async()=>{
       assert.equal(await f.view.actions.taskRunSheetPrepare(native(),identity),false);await tick();
     });
@@ -336,7 +338,7 @@ test('My shared Sheet visibly blocks a Web Flow outstanding preparation before a
   try{
     root=await f.mount();
     const pin={taskId:'test.task',version:'1.0.0',manifestHash:'a'.repeat(64),contentHash:'b'.repeat(64)};
-    await React.act(async()=>{assert.equal(await f.workbench.openTaskRunSheet('test.task',{expectedPin:pin}),true);await tick();});
+    await React.act(async()=>{assert.equal(await f.workbench.openTaskRunSheet('test.task',{expectedPin:pin,toolIdentity:TEST_WEBFLOW_TOOL}),true);await tick();});
     const identity={...f.view.data.taskRows.identity};
     await React.act(async()=>{assert.equal(await f.view.actions.taskRunSheetPrepare(native(),identity),true);await tick();});
     await React.act(async()=>{
@@ -361,7 +363,7 @@ test('revocation after durable submit fence prevents RunHost start and never rep
     const assertAuthorized=async()=>{checks++;if(!authorized||checks===6)
       throw Object.assign(new Error('revoked after submit fence'),{code:'E_TOOL_CHANGED'});};
     await React.act(async()=>{assert.equal(await f.workbench.openTaskRunSheet('test.task',{
-      expectedPin:pin,assertAuthorized}),true);await tick();});
+      expectedPin:pin,toolIdentity:TEST_WEBFLOW_TOOL,assertAuthorized}),true);await tick();});
     const expected={...f.view.data.taskRows.identity};
     await React.act(async()=>{assert.equal(await f.view.actions.taskRunSheetPrepare(native(),expected),true);await tick();});
     const item=f.state.localStore.get('opendesk.shared-task-run-sheet.webflow.v1');
@@ -376,6 +378,29 @@ test('revocation after durable submit fence prevents RunHost start and never rep
     assert.equal(f.state.starts.length,0,'revocation at the final Host write boundary forbids start');
     assert.equal(f.view.actions.taskRunSheetConfirm(native(),expected),false,
       'the same prepared request cannot be confirmed again');
+  }finally{if(root)await React.act(async()=>root.unmount());f.dispose();}
+});
+
+
+test('Web Flow package version or revocation-epoch change cannot adopt an old prepared request',async()=>{
+  const f=await fixture();let root;
+  try{
+    root=await f.mount();
+    const pin={taskId:'test.task',version:'1.0.0',manifestHash:'a'.repeat(64),contentHash:'b'.repeat(64)};
+    const identity={...f.view.data.taskRows.identity};
+    await React.act(async()=>{assert.equal(await f.workbench.openTaskRunSheet('test.task',
+      {expectedPin:pin,toolIdentity:TEST_WEBFLOW_TOOL}),true);await tick();});
+    await React.act(async()=>{assert.equal(await f.view.actions.taskRunSheetPrepare(native(),identity),true);await tick();});
+    const before=f.state.localStore.get('opendesk.shared-task-run-sheet.webflow.v1');
+    assert.equal(before.tool.version,TEST_WEBFLOW_TOOL.version);
+    assert.equal(before.tool.revocationEpoch,'epoch-a');
+    const afterReinstall={...TEST_WEBFLOW_TOOL,revocationEpoch:'epoch-b'};
+    await React.act(async()=>{assert.equal(await f.workbench.openTaskRunSheet('test.task',
+      {expectedPin:pin,toolIdentity:afterReinstall}),true);await tick();});
+    assert.equal(f.view.data.taskSheetStage,'unknown');
+    assert.equal(f.view.actions.taskRunSheetConfirm(native(),identity),false);
+    assert.equal(f.state.starts.length,0);
+    assert.equal(f.state.localStore.get('opendesk.shared-task-run-sheet.webflow.v1').id,before.id);
   }finally{if(root)await React.act(async()=>root.unmount());f.dispose();}
 });
 

@@ -3800,8 +3800,12 @@ function createSidebarToolsController({api=globalThis.chrome,doc=globalThis.docu
         if(!delegated)throw Object.assign(new Error('工具没有该固定任务的授权身份'),{code:'E_TASK_SCOPE'});
         await assertInstalledTool(tool,revocationEpoch,'任务配置期间安装或授权已变更');
         await assertSidebarToolEnabled(api,tool.id);assertSession(source,token);
+        // The Host derives immutable tool identity from the installed package;
+        // none of these fields come from the sandbox's configure payload.
+        const toolIdentity={toolId:tool.id,version:tool.version,
+          packageHash:await sidebarToolPackageHash(tool),revocationEpoch};
         const opened=await taskWorkbench.openTaskRunSheet(payload.taskId,{
-          expectedPin:delegated,assertAuthorized:async()=>{
+          expectedPin:delegated,toolIdentity,assertAuthorized:async()=>{
             await assertInstalledTool(tool,revocationEpoch,'任务配置期间安装或授权已变更');
             await assertSidebarToolEnabled(api,tool.id);assertSession(source,token);
           }});

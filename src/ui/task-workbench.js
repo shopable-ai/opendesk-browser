@@ -670,8 +670,14 @@ export function createTaskWorkbench({client,host,currentPageTarget,api=globalThi
   const SHEET_LOCK='opendesk.shared-task-run-sheet.webflow.lock.v1';
   const pinFields=['taskId','version','manifestHash','generation','installationId'];
   let sheetCounter=0,prepared=null,preparationLoaded=false,preparationBusy=false,confirmClaimed=false;
-  let sheetAssertAuthorized=null;
+  let sheetAssertAuthorized=null,sheetToolIdentity=null;
   const samePin=(a,b)=>Boolean(a&&b&&pinFields.every(k=>a[k]===b[k]));
+  const validToolIdentity=v=>Boolean(v&&typeof v==='object'&&!Array.isArray(v)&&
+    typeof v.toolId==='string'&&v.toolId.length>0&&typeof v.version==='string'&&v.version.length>0&&
+    typeof v.packageHash==='string'&&/^[a-f0-9]{64}$/.test(v.packageHash)&&
+    (v.revocationEpoch===null||typeof v.revocationEpoch==='string'&&v.revocationEpoch.length>0&&v.revocationEpoch.length<=128));
+  const sameToolIdentity=(a,b)=>Boolean(validToolIdentity(a)&&validToolIdentity(b)&&
+    ['toolId','version','packageHash','revocationEpoch'].every(k=>a[k]===b[k]));
   const sameTarget=(a,b)=>Boolean(a&&b&&['tabId','windowId','documentId','url'].every(k=>a[k]===b[k]));
   const prepError=(code,message)=>Object.assign(new Error(message),{code});
   const serial=v=>JSON.stringify(v,(_k,x)=>x&&!Array.isArray(x)&&typeof x==='object'
@@ -717,7 +723,8 @@ export function createTaskWorkbench({client,host,currentPageTarget,api=globalThi
     if(source==='webflow'){localQuery='';localFilter='all';ui('local-discover-search').value='';}
     if(ui('task-installed-list').value!==taskId){ui('task-installed-list').value=taskId;renderInstalledSelection();}
     else if(source==='webflow')renderInstalledCards();
-    const ready=prepared?.state==='ready'&&samePin(prepared.task,row);
+    const ready=prepared?.state==='ready'&&samePin(prepared.task,row)&&
+      sameToolIdentity(prepared.tool,sheetToolIdentity);
     const blocked=!settled(prepared);
     sheetStatus(source==='webflow'?(blocked?(ready?'ready':'unknown'):'editing'):'editing',
       source==='webflow'&&blocked?(ready?'已恢复此前保存的参数；仍需明确确认，未自动执行。':
@@ -741,6 +748,7 @@ export function createTaskWorkbench({client,host,currentPageTarget,api=globalThi
       if(!info.manifest.siteOrigins.includes(new URL(target.url).origin))
         throw prepError('E_PERMISSION','当前网站不在固定任务授权范围');
       const params=paramsFromForm(info.manifest.paramsSchema);
+      if(!validToolIdentity(sheetToolIdentity))throw prepError('E_TOOL_CHANGED','工具版本身份不可用');
       if(typeof sheetAssertAuthorized!=='function')throw prepError('E_TOOL_AUTH','原 Web Flow 授权已失效');
       await sheetAssertAuthorized();
       if(await hasLegacyPending())throw prepError('E_PENDING_LEGACY','Web Flow 旧请求未释放，先核对原记录');
@@ -750,7 +758,7 @@ export function createTaskWorkbench({client,host,currentPageTarget,api=globalThi
         throw prepError('E_REVISION','Task Authority 的安装身份已改变');
       const item={format:'opendesk.task-preparation.v1',id:'webflow:'+globalThis.crypto.randomUUID(),
         state:'ready',task:Object.fromEntries(pinFields.map(k=>[k,row[k]])),
-        contentHash:resolved.contentHash,params,target:Object.fromEntries(
+        tool:{...sheetToolIdentity},contentHash:resolved.contentHash,params,target:Object.fromEntries(
           ['tabId','windowId','documentId','url'].map(k=>[k,target[k]])),createdAt:Date.now()};
       await sheetLock(async()=>{
         await sheetAssertAuthorized();
@@ -793,6 +801,7 @@ export function createTaskWorkbench({client,host,currentPageTarget,api=globalThi
     return sheetLock(async()=>{
       const saved=await readSheet();
       if(saved?.id!==item.id||saved.state!=='ready'||!samePin(saved.task,item.task)||
+        !sameToolIdentity(saved.tool,item.tool)||!sameToolIdentity(saved.tool,sheetToolIdentity)||
         !sameTarget(saved.target,item.target)||serial(saved.params)!==serial(item.params)||
         saved.contentHash!==item.contentHash)
         throw prepError('E_PREPARE_CHANGED','准备已提交或改变，禁止重放');
@@ -851,7 +860,8 @@ export function createTaskWorkbench({client,host,currentPageTarget,api=globalThi
   function confirmSheet(event,expected){
     if(!event?.isTrusted||!preparationLoaded||preparationBusy||confirmClaimed||
       myView.data.taskSheetRequest?.source!=='webflow'||myView.data.taskSheetStage!=='ready'||
-      prepared?.state!=='ready'||!samePin(prepared.task,expected))return false;
+      prepared?.state!=='ready'||!samePin(prepared.task,expected)||
+      !sameToolIdentity(prepared.tool,sheetToolIdentity))return false;
     confirmClaimed=true; // Consume the second, real, user gesture synchronously.
     const accepted=run(event,null,expected,prepared);
     if(accepted!==true)confirmClaimed=false;
@@ -1291,8 +1301,8 @@ export function createTaskWorkbench({client,host,currentPageTarget,api=globalThi
     // No runId yet: run() checks this flag before host.start, then cancels
     // the late claim if the RPC already crossed the RunHost boundary.
     return Promise.resolve({requested:true,pending:agentStartSubmitted});
-  },async openTaskRunSheet(taskId,{expectedPin,assertAuthorized=()=>{}}={}){
-    if(!validTaskId(taskId)||expectedPin?.taskId!==taskId)
+  },async openTaskRunSheet(taskId,{expectedPin,toolIdentity,assertAuthorized=()=>{}}={}){
+    if(!validTaskId(taskId)||expectedPin?.taskId!==taskId||!validToolIdentity(toolIdentity))
       throw prepError('E_SCHEMA','配置请求缺少有效任务身份');
     await client.ready;await refresh();await assertAuthorized();
     const row=installed.find(r=>r.taskId===taskId),info=candidateFor(row);
@@ -1302,7 +1312,7 @@ export function createTaskWorkbench({client,host,currentPageTarget,api=globalThi
       throw prepError('E_REVISION','固定 Task 安装身份不符合工具审阅版本');
     const latest=await readSheet();
     await assertAuthorized();prepared=latest;preparationLoaded=true;
-    sheetAssertAuthorized=assertAuthorized;
+    sheetAssertAuthorized=assertAuthorized;sheetToolIdentity={...toolIdentity};
     const opened=openSheet(taskId,'webflow');
     if(!opened)sheetAssertAuthorized=null;
     return opened;
