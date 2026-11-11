@@ -740,7 +740,7 @@ export function createTaskWorkbench({client,host,currentPageTarget,api=globalThi
         if(serial(await readSheet())!==serial(item))
           throw prepError('E_SAVE_UNKNOWN','持久保存未能一致读回，禁止重跑');
       });
-      prepared=item;
+      prepared=item;confirmClaimed=false; // Only a distinct, durably read-back ready ID may be confirmed again.
       myView.data.taskParamsMode='json';ui('task-params-json').value=JSON.stringify(item.params,null,2);
       sheetStatus('ready','参数、安装身份和目标文档已冻结并读回；尚未执行网页操作。');
       return true;
