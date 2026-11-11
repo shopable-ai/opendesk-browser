@@ -177,6 +177,189 @@
   :scope .options .proxyEditorFields { padding:0 22px 20px; gap:14px; }
   :scope .options .proxyEditorForm .editorActions { padding:14px 22px; justify-content:flex-end; }
   :scope .options .editorActions [data-add-another] { flex-basis:auto; order:-1; margin-right:auto; }
+
+  /* R16 PC parity: the real React workbench follows preview/preview.html,
+   * without importing the preview's mock state or disturbing the Side Panel. */
+  :scope .options .managementNav { background:#f7f9fc; }
+  :scope .options .managementNav button {
+    min-height:42px; border-radius:9px; font-size:13px; line-height:1.45;
+    transition:background-color .12s,color .12s;
+  }
+  :scope .options .managementNav button:hover:not(:disabled) { background:#ecf0f7; }
+  :scope .options .managementNav button[aria-current="page"] {
+    color:#3157c7; background:#eaf0ff; font-weight:710;
+  }
+  :scope .options .managementNav button:focus-visible,
+  :scope .options :is(button,select,input,textarea,summary):focus-visible {
+    outline:2px solid var(--accent); outline-offset:2px;
+  }
+  :scope .options .panel.optionsContent { background:#fff; }
+  :scope .options .sectionHeading { align-items:flex-start; gap:12px; }
+  :scope .options .sectionHeading h2 { font-size:15px; line-height:1.4; }
+  :scope .options .sectionHeading .hint { margin-top:3px; font-size:12px; }
+  :scope .options .optionsPageHead .eyebrow { color:#8594aa; }
+  :scope .options .managementConnectionBar { background:#f8f9fc; }
+  :scope .options :is(.settingsRefresh,.settingsImport) {
+    display:inline-flex; align-items:center; justify-content:center; gap:7px;
+    min-height:36px; padding:7px 12px; border:1px solid #d5deeb;
+    border-radius:8px; background:#fff; color:#334155; font-weight:625;
+  }
+  :scope .options :is(.settingsRefresh,.settingsImport):hover:not(:disabled) {
+    background:#f6f9ff; border-color:#bdcce8;
+  }
+  :scope .options .optionsPageHead .panelHeadActions > .primary,
+  :scope .options .modeActions > .primary {
+    background:#365dd5; border-color:#365dd5; color:#fff; border-radius:8px;
+  }
+  :scope .options :is(.optionsPageHead .panelHeadActions > .primary,.modeActions > .primary):hover:not(:disabled) {
+    background:#2f50b7; border-color:#2f50b7; color:#fff;
+  }
+  :scope .options :is(.optionsModeBar,.listSection,.rulesList,.rulesDefault,.backupCard,.generalInfoCard) {
+    border:1px solid var(--line); border-radius:11px;
+  }
+  :scope .options .listSection { background:#fff; }
+  :scope .options .profileRecords {
+    display:block; container-type:inline-size; border-top:1px solid var(--line);
+  }
+  :scope .options .profileRecords .proxyRecord {
+    position:relative; grid-template-columns:34px minmax(0,1fr);
+    gap:13px; min-height:68px; padding:11px 100px 11px 9px;
+  }
+  :scope .options .profileRecords .proxyRecord .proxyRecordMain { min-width:0; overflow:hidden; }
+  :scope .options .profileRecords .proxyRecord .proxyRecordText { min-width:0; }
+  :scope .options .profileRecords .proxyRecord .proxyRecordTitle strong,
+  :scope .options .profileRecords .proxyRecord small.mono {
+    display:block; max-width:100%; overflow:hidden; white-space:nowrap;
+    text-overflow:ellipsis; overflow-wrap:normal;
+  }
+  :scope .options .profileRecords .proxyRecord .recordActions {
+    position:absolute; right:8px; top:50%; transform:translateY(-50%);
+    display:flex; align-items:center; justify-content:flex-end; flex-wrap:nowrap;
+    gap:4px; padding:4px; border:1px solid var(--line); border-radius:9px;
+    background:#fff; opacity:1; visibility:visible; pointer-events:auto;
+  }
+  :scope .options .profileRecords .recordActions > button,
+  :scope .options .profileRecords .proxySelect {
+    display:inline-grid; place-items:center; flex:none; min-width:32px;
+    width:32px; min-height:32px; height:32px; padding:5px; border-radius:7px;
+  }
+  :scope .options .profileRecords .recordActions > button:hover:not(:disabled) {
+    background:#edf2ff; color:#3157c7;
+  }
+  :scope .options .profileRecords .recordActions > .quietDanger:hover:not(:disabled) {
+    color:#bd4658; background:#fff1f3;
+  }
+  :scope .options .rulesPage .rulesList { background:#fff; }
+  :scope .options .rulesPage .ruleRecord {
+    border-bottom:1px solid var(--line); padding:12px 8px; min-height:64px;
+  }
+  :scope .options .rulesPage .ruleRecord:last-child { border-bottom:0; }
+  :scope .options .rulesPage .ruleRecord:hover { background:#fbfcfe; }
+  :scope .options .rulesPage .ruleRecord .actions { display:flex; gap:5px; }
+  :scope .options .backupExport { background:#fff; }
+  :scope .options .backupCard { min-height:210px; }
+  :scope .options .generalGrid > .record { background:#fff; }
+  :scope .options .managementEmptyState { background:#fbfcfe; border-color:#cad6e5; }
+
+  /* Preview's add/edit dialog: name, protocol + host + port, optional auth.
+   * Save/ETag/unknown/credential safety remains in Settings.tsx / service.ts. */
+  :scope .options .proxyEditorDialog {
+    width:min(652px,calc(100vw - 32px)); max-width:652px;
+    max-height:calc(100dvh - 32px); border-radius:13px;
+    box-shadow:0 25px 80px #10233b45;
+  }
+  :scope .options .proxyEditorForm {
+    display:grid; grid-template-rows:auto minmax(0,1fr) auto;
+    max-height:calc(100dvh - 32px); gap:0; padding:0;
+  }
+  :scope .options .proxyEditorForm .editorHead {
+    padding:22px 26px 9px; border:0; gap:12px;
+  }
+  :scope .options .proxyEditorForm .editorHead h2 {
+    font-size:18px; font-weight:720; letter-spacing:-.025em;
+  }
+  :scope .options .proxyEditorForm .proxyEditorFields {
+    display:grid; align-content:start; min-height:0; min-width:0;
+    gap:16px; overflow:auto; overscroll-behavior:contain;
+    padding:0 26px 18px;
+  }
+  :scope .options .proxyEditorFields > * { margin:0; }
+  :scope .options .proxyEditorIntro { font-size:12px; line-height:1.65; }
+  :scope .options .proxyEditorForm :is(.proxyPrimaryFields > div,.proxyNameField,.proxyAuthFields > div) {
+    display:grid; align-content:start; gap:7px; min-width:0;
+  }
+  :scope .options .proxyPrimaryFields {
+    display:grid; grid-template-columns:120px minmax(0,1fr) 104px;
+    align-items:start; gap:12px;
+  }
+  :scope .options .proxyPrimaryFields > div {
+    grid-column:auto; grid-row:auto; min-width:0;
+  }
+  :scope .options .proxyEditorForm :is(.proxyNameField,.proxyPrimaryFields > div,.proxyAuthFields > div) > label,
+  :scope .options .proxyEditorForm .proxyNameField > label {
+    font-size:12px; font-weight:650; color:#334155;
+  }
+  :scope .options .proxyEditorForm :is(.proxyNameField,.proxyPrimaryFields,.proxyAuthFields) input,
+  :scope .options .proxyEditorForm :is(.proxyPrimaryFields,.proxyAuthFields) select {
+    min-width:0; width:100%; min-height:42px; font-size:13px;
+    border:1px solid #becada; border-radius:8px; background:#fff;
+  }
+  :scope .options .proxyEditorForm input[aria-invalid="true"] {
+    border-color:#bd4658; box-shadow:0 0 0 1px #bd465822;
+  }
+  :scope .options .proxyEditorProtocolHelp { font-size:11px; line-height:1.5; }
+  :scope .options .proxyAuthDetails {
+    padding:14px 15px; margin:0; border:1px solid #dce4ef;
+    background:#f8fafc; border-radius:10px;
+  }
+  :scope .options .proxyAuthDetails > summary {
+    padding:3px 0; color:#365375; font-size:12px; font-weight:700;
+  }
+  :scope .options .proxyAuthDetails[open] { display:grid; gap:12px; }
+  :scope .options .proxyAuthDetails :is(.notice,.proxyAuthFields,.hint) { margin:0; }
+  :scope .options .proxyAuthFields {
+    display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:12px;
+    padding-top:12px; border-top:1px solid #e0e7f0;
+  }
+  :scope .options .proxyEditorForm .editorActions {
+    display:flex; align-items:center; justify-content:flex-end; flex-wrap:wrap;
+    gap:8px; margin:0; padding:15px 26px; border-top:1px solid var(--line);
+    background:#fff;
+  }
+  :scope .options .proxyEditorForm .editorActions > button {
+    min-height:39px; border-radius:8px; padding:8px 13px; font-size:12px;
+  }
+  :scope .options .proxyEditorForm .editorActions > button.primary {
+    color:#fff; background:#365dd5; border-color:#365dd5;
+  }
+  :scope .options .proxyEditorForm .editorActions > button.primary:hover:not(:disabled) {
+    background:#2f50b7; border-color:#2f50b7;
+  }
+  @container (max-width:430px) {
+    :scope .options .profileRecords .proxyRecord {
+      grid-template-columns:30px minmax(0,1fr);
+      padding:10px 9px; gap:8px 10px;
+    }
+    :scope .options .profileRecords .proxyRecord .recordActions {
+      position:static; grid-column:2; grid-row:2; transform:none;
+      justify-self:start; width:max-content; max-width:100%;
+    }
+  }
+  @media(max-width:560px) {
+    :scope .options .proxyEditorDialog { width:calc(100vw - 20px); max-height:calc(100dvh - 20px); }
+    :scope .options .proxyEditorForm { max-height:calc(100dvh - 20px); }
+    :scope .options .proxyEditorForm .editorHead { padding:18px 17px 8px; }
+    :scope .options .proxyEditorForm .proxyEditorFields { padding:0 17px 15px; }
+    :scope .options .proxyPrimaryFields { grid-template-columns:minmax(0,1fr); gap:11px; }
+    :scope .options .proxyPrimaryFields > div { grid-column:auto; grid-row:auto; }
+    :scope .options .proxyAuthFields { grid-template-columns:minmax(0,1fr); }
+    :scope .options .proxyEditorForm .editorActions { padding:13px 17px; }
+  }
+  @media(pointer:coarse) {
+    :scope .options .profileRecords .recordActions > button,
+    :scope .options .profileRecords .proxySelect { width:36px; height:36px; min-height:36px; min-width:36px; }
+  }
+
   @media(max-width:840px) and (min-width:721px) {
     :scope .options .layout { grid-template-columns:175px minmax(0,1fr); }
     :scope .options .panel.optionsContent { padding:24px 20px; }
