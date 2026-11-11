@@ -10,6 +10,7 @@
     "tests/environment/app-ci.test.mjs",
     "tests/environment/sidebar-tool-hierarchical-back-r12.test.mjs",
     "projects/web-markdown-clipper/tests/ui.test.mjs",
+    "projects/web-markdown-clipper/tests/region-picker.test.mjs",
     "projects/web-markdown-clipper/tests/notes.test.mjs",
     "projects/web-markdown-clipper/tests/navigation-r14.test.mjs"
   ],
