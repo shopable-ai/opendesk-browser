@@ -1,6 +1,6 @@
 {
   "id": "mouse-gestures",
-  "version": "0.2.0",
+  "version": "0.2.1",
   "title": "鼠标手势",
   "description": "在获准普通网页上启用四方向右键手势：后退、前进、刷新、到底。",
   "format": "opendesk.sidebar-tool.v2",

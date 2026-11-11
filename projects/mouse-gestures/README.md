@@ -1,6 +1,10 @@
 # Mouse Gestures · 四方向 MVP（待真实 Chrome 验收）
 
-> OD-MOUSE-GESTURES-4DIR-REAL · 0.2.0 源码候选：四方向 Page 手势、Side Panel 开关、应用私有存储及普通 HTTP(S) 网站匹配已接线。真实 Chrome 安装、原生右键菜单与宿主权限撤销仍须实测，不能标记为正式验收。
+> OD-MOUSE-GESTURES-4DIR-LOCAL-CHROME-R3（历史标识 OD-MOUSE-GESTURES-4DIR-REAL）· 0.2.1 可安装候选：四方向 Page 手势、Side Panel 开关、应用私有存储及普通 HTTP(S) 网站匹配已接线。真实 Chrome 安装、原生右键菜单与宿主权限撤销仍须实测，不能标记为正式验收。
+
+2026-11-11 R3 实际结果：当前预览 DOM 为四项、两列，开关两态都完整显示；未复现“只显示一项”，没有重写 UI。复现并修复了松开右键后等待授权期间 Escape 无法取消迟到动作的问题，新增先失败后通过的回归，业务 Node 测试 27/27 通过。预览证据不代表已安装 Side Panel；Chrome 四方向、原生菜单、持久化及撤权仍为 `NOT_TESTED`。
+
+唯一可导入包：[`mouse-gestures.opendesk-tool.json`](mouse-gestures.opendesk-tool.json)，版本 0.2.1，包含侧栏和同源 Page Module；由原打包器校验、晋升，尚未证明已在 Chrome 安装生效。
 
 - 正式 Side Panel 位于 `src/index.html` / `src/style.css` / `src/main.js`；仅保留「开启鼠标手势」开关、两列四项默认手势和「松开右键执行 · Esc 取消」。初次没有保存的设置默认关闭。
 - Page 在 `src/page/gesture.js` 实现 ← 后退、→ 前进、↑ 刷新、↓ 滚至文档底部。56px 激活，横纵主轴 + 28px 垂直偏移限制，斜向/选区/编辑控件排除和单次执行保护。

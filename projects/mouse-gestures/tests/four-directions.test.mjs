@@ -61,6 +61,15 @@ test('an active gesture cannot survive pending authority, blur or disposal',asyn
   assert.deepEqual(f.actions,[]);
   assert.equal([...f.listeners.values()].reduce((n,set)=>n+set.size,0),0);
 });
+test('Escape cancels an authority check pending after right-button release',async()=>{
+  let resolve;
+  const f=setup({gate:()=>new Promise(r=>{resolve=r;})});
+  f.swipe(110,100);assert.deepEqual(f.actions,[]);
+  f.fire('keydown',{key:'Escape'});
+  resolve(true);await settle();assert.deepEqual(f.actions,[]);
+  f.swipe(290,100);resolve(true);await settle();
+  assert.deepEqual(f.actions,['forward']);
+});
 test('right-click without a directional gesture never blocks contextmenu',()=>{
   const f=setup();f.fire('mousedown');
   assert.equal(Boolean(f.fire('contextmenu').prevented),false);

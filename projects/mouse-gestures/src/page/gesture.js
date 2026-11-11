@@ -114,8 +114,8 @@ export function mountGestures({ui, doc=globalThis.document, win=doc.defaultView,
     }
   },true);
   ui.on(doc,'keydown',event=>{
-    if(event.key!=='Escape'||!state)return;
-    const engaged=Boolean(state.selected);cancel();
+    if(event.key!=='Escape')return;
+    const engaged=Boolean(state?.selected);cancel();
     if(engaged){menuGuardUntil=Date.now()+GESTURE_LIMITS.menuGuardMs;event.preventDefault();}
   },true);
   ui.on(win,'blur',cancel);

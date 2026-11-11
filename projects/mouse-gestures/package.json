@@ -1,6 +1,6 @@
 {
   "name": "@opendesk-apps/mouse-gestures",
-  "version": "0.2.0",
+  "version": "0.2.1",
   "private": true,
   "type": "module",
   "description": "Mouse Gestures 四方向受管网页手势",
