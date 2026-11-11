@@ -88,11 +88,12 @@ function reviewedCompiledWebflowMedia(target,path,root){
   const file=resolve(root,path);
   if(realpathSync(file)!==file)throw Error('WebFlow media trusted source must not be a symlink: '+path);
   const bytes=readFileSync(file);
-  const hash=createHash('sha1').update('blob '+bytes.length+'\\0').update(bytes).digest('hex');
+  const hash=createHash('sha1').update('blob '+bytes.length+'\0').update(bytes).digest('hex');
   if(hash!==compiledWebflowMediaInputs[path])
     throw Error('WebFlow media trusted source changed; review and re-pin before fixed build: '+path);
   return hash;
 }
+// The image bridge is first-party Web Flow business code over the original
 // Native transport. Exact blobs enter only the original transport/settings;
 // no installed tool, page or sandbox receives this filesystem capability.
 const compiledChatGPTImageInputs=Object.freeze({
