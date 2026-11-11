@@ -92,6 +92,7 @@ test('site pause differs from UI hide; theme and Escape collapse are UI-only',()
   h.click('site-pause','https://chatgpt.com','暂停观察（模拟撤权）');
   assert.match(h.n('site-chip-label').textContent,/站点未授权或已暂停/);
   assert.match(h.n('site-mini').innerHTML,/模拟重新授权/);
+  assert.doesNotMatch(h.n('site-mini').innerHTML,/修复浏览器扩展的保存失败/);
   h.click('site-visibility','','隐藏提示');assert.equal(h.n('site-dock').hidden,true);
   assert.equal(h.n('site-hidden-note').hidden,false);
   h.click('site-visibility','','显示提示');assert.equal(h.n('site-dock').hidden,false);
@@ -108,6 +109,7 @@ test('compact side panel and PC drill keep one problem identity, not fake Attemp
   assert.match(h.n('panel-problems').innerHTML,/修复浏览器扩展的保存失败/);
   h.click('panel-view','current');assert.equal(h.n('panel-current').hidden,false);
   assert.match(h.n('pc-drill').innerHTML,/Attempt · 尚无独立持久化演示记录/);
+  assert.match(h.n('pc-summary').innerHTML,/已记录线索（来源待核对）/);
   h.click('split','link_c','拆分为新问题');
   assert.match(h.n('pc-problems').innerHTML,/独立复测问题/);
   h.click('select-problem','prob_new_001');
