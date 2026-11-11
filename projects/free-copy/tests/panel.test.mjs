@@ -58,7 +58,7 @@ test('side panel starts ready and global switch persists pause and resume',async
 test('current-site exception is isolated to origin and follows tab changes',async()=>{
   const f=fixture();await f.settle();
   await f.changeSite(false);
-  assert.deepEqual(f.store.value.disabledOrigins,['https://example.com']);
+  assert.deepEqual(Array.from(f.store.value.disabledOrigins),['https://example.com']);
   assert.equal(f.siteSwitch.checked,false);
   f.store.origin='https://other.example';
   await f.reload();
@@ -67,7 +67,7 @@ test('current-site exception is isolated to origin and follows tab changes',asyn
   f.store.origin='https://example.com';
   await f.reload();assert.equal(f.siteSwitch.checked,false);
   await f.changeSite(true);
-  assert.deepEqual(f.store.value.disabledOrigins,[]);
+  assert.deepEqual(Array.from(f.store.value.disabledOrigins),[]);
   f.close();
 });
 test('CAS conflict retries and never overwrites unrelated settings',async()=>{

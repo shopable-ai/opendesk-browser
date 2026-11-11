@@ -2,8 +2,8 @@
 // Never reads selected text, never changes clipboard contents and never handles paste.
 export const DRAG_GUARD_PX=56;
 const TEXT_TARGETS=':where(html,body,article,main,section,header,footer,aside,p,div,span,li,dt,dd,blockquote,pre,code,h1,h2,h3,h4,h5,h6,strong,em,small,b,i,td,th,label)';
-const EXCLUDE='input,textarea,select,option,button,canvas,svg,video,audio,[contenteditable],[contenteditable] *,[role="textbox"],[role="textbox"] *,[role="button"],[role="slider"],[draggable="true"],[draggable="true"] *,[data-opendesk-free-copy-ignore]';
-const CSS=TEXT_TARGETS+':not(:is('+EXCLUDE+')){-webkit-user-select:text!important;user-select:text!important;-webkit-touch-callout:default!important}';
+const EXCLUDE='input,textarea,select,option,button,button *,label,label *,canvas,svg,video,audio,[contenteditable],[contenteditable] *,[role="textbox"],[role="textbox"] *,[role="button"],[role="slider"],[draggable="true"],[draggable="true"] *,[data-opendesk-free-copy-ignore]';
+const CSS=TEXT_TARGETS+':not(#__opendesk_free_copy_spec_1):not(#__opendesk_free_copy_spec_2):not(:is('+EXCLUDE+')){-webkit-user-select:text!important;user-select:text!important;-webkit-touch-callout:default!important}';
 
 function staticTextTarget(event,doc) {
   const node=event?.target;
