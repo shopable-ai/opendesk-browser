@@ -14,7 +14,7 @@
    return '<div class="row between"><div><span class="hint">'+E(x.id)+'</span><h2>'+E(x.title)+'</h2></div>'+tag(x.status,x.status==='EVIDENCE_VERIFIED'?'good':'warn')+'</div><hr class="divide"><p class="note">有效结论：'+E(x.result)+'</p><p class="note mt">下一步：'+E(x.next)+'</p><div class="row mt">'+B('查看恢复摘要','tab','restore')+B('查看验收','tab','outcomes')+'</div>';
  };
  const stat=()=>{const x=p();if(!x)return '';const m=C.problemMetrics(s,x.id);
-   return '<div class="stat-grid"><div class="surface stat"><strong>'+m.conversationCount+'</strong><span>对话（已确认）</span></div><div class="surface stat"><strong>'+m.platformCount+'</strong><span>AI 平台</span></div><div class="surface stat"><strong>'+fmt(m.sumMs)+'</strong><span>已知执行时长总和</span></div><div class="surface stat"><strong>'+fmt(m.unionMs)+'</strong><span>并行区间并集</span></div></div><p class="note mt">完整样本 '+m.exactSampleCount+'，未知 '+m.unknownSampleCount+'；覆盖率 '+(m.coverage===null?'无数据':Math.round(m.coverage*100)+'%')+'。不估计人工工时。</p>';
+   return '<div class="stat-grid"><div class="surface stat"><strong>'+m.conversationCount+'</strong><span>对话（已确认）</span></div><div class="surface stat"><strong>'+m.platformCount+'</strong><span>AI 平台</span></div><div class="surface stat"><strong>'+fmt(m.sumMs)+'</strong><span>已知执行时长总和</span></div><div class="surface stat"><strong>'+fmt(m.unionMs)+'</strong><span>并行区间并集</span></div></div><p class="note mt">完整样本 '+m.exactSampleCount+'/'+m.executionCount+'（已发现请求），未知 '+m.unknownSampleCount+'；样本内完整率 '+(m.coverage===null?'无数据':Math.round(m.coverage*100)+'%')+'。不估计人工工时。</p>';
  };
  const candidates=()=>{const x=p();if(!x)return '';return s.candidates.filter(c=>c.problemId===x.id&&c.status==='PENDING').map(c=>{
    const v=s.conversations.find(y=>y.id===c.conversationId);return '<div class="item"><div class="row between"><strong>'+E(v.platform)+' · '+E(v.label)+'</strong>'+tag(c.relation==='SIMILAR'?'仅相似':'同问题候选')+'</div><p class="note">支持：'+E(c.evidenceFor.join('、'))+'；反对：'+E(c.evidenceAgainst.join('、'))+'；推断置信 '+Math.round(c.confidence*100)+'%（非准确率）</p><div class="row">'+(c.relation==='SAME_PROBLEM'?B('确认关联','link',c.id,'primary'):'')+B('拒绝错误关联','reject',c.id)+'</div></div>';
@@ -95,6 +95,7 @@
  };
 
  function render(){
+   const focusWasInMini=Boolean(document.activeElement?.closest?.('#site-mini'));
    document.documentElement.dataset.theme=theme;
    $('#theme-btn').textContent=theme==='dark'?'切换浅色':'切换暗色';
    $('#scenario').value=s.mode;
@@ -128,6 +129,8 @@
    $('#site-dock').hidden=!siteShown;$('#site-hidden-note').hidden=siteShown;
    $('#site-mini').hidden=!siteExpanded||!siteShown;
    if(siteExpanded&&siteShown)$('#site-mini').innerHTML=siteMini();
+   // A clicked action inside a replaced mini card must not strand keyboard focus on a detached node.
+   if(focusWasInMini)$('#site-chip').focus();
    $('#site-visibility-btn').textContent=siteShown?'隐藏网页提示':'显示网页提示';
  }
 
