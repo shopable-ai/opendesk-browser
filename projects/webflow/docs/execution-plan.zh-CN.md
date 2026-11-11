@@ -1,3 +1,15 @@
+## Web Flow「运行」共享「我的」可信抽屉（2026-11-11；设计交接）
+
+**原始目标：** Web Flow 的脚本列表 ▶ 在当前 Side Panel/app.html 右侧打开「我的」现成可信 TaskRunSheet，用同一 Schema/表单/JSON、TaskWorkbench 与 RunHost 执行。保留原列表 hover 图标；Web Flow 来源先持久“保存并核对”，再由第二次明确用户点击确认执行一次；旧 UNKNOWN 不重跑。固定检索词 OD-AI-WORKFLOW-BRIDGE。
+
+**本轮已完成：** 核对 `src/ui/react/tabs/tasks.tsx` 的 openParameters、`my-page.tsx` 的 MyTaskWorkspace/任务抽屉、`task-workbench.js` 的 taskRunClick→run、Web Flow `src/ui/main.js` 的行内参数与旧 prepare/run、`sidebar-tools.js` 的 `tasks.open` 仅导航管理。写入 [专项设计/职责与验收](shared-task-run-sheet.zh-CN.md)、[独立可点击 HTML 预览](../preview/script-run-shared-sheet.html)、[下一轮开发提示词](../prompts/GOAL-shared-my-task-run-sheet.md) 并在原产品合同登记。本轮没有修改可信运行代码/正式 Web Flow 包。
+
+**明确尚未完成：** 抽取共享 React TaskRunSheet、从工具 UI 触发可信 Host 的 UI-only 打开调用、在两个容器右侧呈现、Web Flow 来源可信准备持久化读回及唯一 TaskWorkbench.run 接线、跨来源占用排他与旧 Web Flow pending 的冲突检查、定向 Node/Chrome/正式包验收，均 **NOT_IMPLEMENTED / NOT_TESTED**；静态预览不能证明实际功能。当前 `tool.config.json` 指向 0.3.27 / 百度 1.1.5 / Google 1.0.3，而本次读到的根正式工具包 0.3.26，需在下一轮重新核对最新 main 与已安装实例。
+
+**下一条最小用户操作：** 在 Web Flow 脚本列表点百度 ▶，只打开与「我的」共用抽屉而不触发执行。未通过前先修该最短 UI 路径，然后依次修复可信两阶段 → 单次 TaskWorkbench/RunHost → 原结果/UNKNOWN 安全 → 两容器复验。保留并行 owner 与旧真实百度未释放请求，不自动补跑历史请求。
+
+---
+
 ## 自动运行控件稳定性（2026-11-11；核心 UI 修复）
 
 **当前操作与原因：** 打开 Web Flow 时，`AutoSettings.tsx` 在首轮异步读取及写入期间临时插入“关闭未来自动准入”，完成后又移除；未知状态文字还会被开关替换。真实组件的 ego 慢读取复现中，首页控制区从 102.5px 缩为 61px。该控制归本项目固定编译的可信 UI，不在应用 JSON 内。
