@@ -28,8 +28,10 @@ on:
       - 'projects/webflow/tasks/chatgpt.conversation.create.v1.opendesk-task.json'
       - 'projects/webflow/tests/chatgpt-draft-task.test.mjs'
       - 'projects/webflow/src/tasks/chatgpt-conversation-create-v0.2.js'
+      - 'projects/webflow/src/tasks/chatgpt-conversation-create-v0.3.js'
       - 'projects/webflow/tasks/chatgpt.conversation.create.0.2.0.opendesk-task.json'
       - 'projects/webflow/tests/chatgpt-send-task.test.mjs'
+      - 'projects/webflow/tests/chatgpt-continuation-task.test.mjs'
       - 'projects/webflow/src/chatgpt-conversation-result.js'
       - 'projects/webflow/src/github-issue-input.js'
       - 'projects/webflow/trusted/chatgpt-result-adapter.js'
@@ -106,6 +108,8 @@ jobs:
           node --check src/platform/tasks/service.js
           node --check projects/webflow/src/tasks/chatgpt-conversation-create.js
           node --check projects/webflow/src/tasks/chatgpt-conversation-create-v0.2.js
+          node --check projects/webflow/src/tasks/chatgpt-conversation-create-v0.3.js
+          node --check projects/webflow/tests/chatgpt-continuation-task.test.mjs
           node --check projects/webflow/tests/chatgpt-send-task.test.mjs
           node --check projects/webflow/src/chatgpt-conversation-result.js
           node --check projects/webflow/src/github-issue-input.js
@@ -135,6 +139,7 @@ jobs:
           node --test \
             projects/webflow/tests/chatgpt-draft-task.test.mjs \
             projects/webflow/tests/chatgpt-send-task.test.mjs \
+            projects/webflow/tests/chatgpt-continuation-task.test.mjs \
             projects/webflow/tests/chatgpt-create-result.test.mjs \
             projects/webflow/tests/chat-handoff-contract.test.mjs \
             projects/webflow/tests/github-issue-input.test.mjs \
