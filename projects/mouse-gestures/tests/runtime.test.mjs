@@ -4,7 +4,7 @@ import {createMouseGestureRuntime} from '../src/page/runtime.js';
 
 function runtimeFixture(){
   const actions=[],timeouts=new Map(),disposers=[],listeners=[];
-  let closed=false,nextTimer=1,enabled=undefined,revoked=false,mode="right",showTrace=true;
+  let closed=false,nextTimer=1,enabled=undefined,revoked=false,mode="right",showTrace=true,gestureMappings={};
   const win={setTimeout(fn,delay){const id=nextTimer++;timeouts.set(id,{fn,delay});return id;},
     clearTimeout(id){timeouts.delete(id);}};
   const doc={defaultView:win};
@@ -12,7 +12,7 @@ function runtimeFixture(){
     destroy(){if(closed)return;closed=true;disposers.forEach(fn=>fn());}};
   const bridge={async readContext(){if(revoked)throw Error('E_PAGE_AUTHORIZATION');return {locale:'zh-CN'};},
     storage:{async get({key,withEtag}){assert.equal(key,'preferences');assert.equal(withEtag,true);
-      if(revoked)throw Error('E_APP_PAGE_OWNER');return {value:enabled===undefined?null:{enabled,trigger:mode,showTrace},etag:'v2'};}},
+      if(revoked)throw Error('E_APP_PAGE_OWNER');return {value:enabled===undefined?null:{enabled,trigger:mode,showTrace,gestureMappings},etag:'v2'};}},
     onRequest(fn){actions.push(fn);return ()=>actions.splice(actions.indexOf(fn),1);}};
   const state={active:false,authorize:null,options:null};
   const mount=({enabled,authorizeGesture})=>{
@@ -22,7 +22,7 @@ function runtimeFixture(){
   };
   const runtime=createMouseGestureRuntime({ui,bridge,doc,win,mount});
   return {runtime,ui,win,bridge,state,actions,timeouts,listeners,
-    setEnabled(value){enabled=value;},setPreferences(value){mode=value.trigger;showTrace=value.showTrace;},revoke(){revoked=true;},isClosed:()=>closed};
+    setEnabled(value){enabled=value;},setPreferences(value){mode=value.trigger;showTrace=value.showTrace;gestureMappings=value.gestureMappings||{};},revoke(){revoked=true;},isClosed:()=>closed};
 }
 
 test('Page runtime starts inactive pending authorization, then defaults ON without saved preferences',async()=>{
@@ -30,7 +30,7 @@ test('Page runtime starts inactive pending authorization, then defaults ON witho
   assert.equal(f.state.active,false); // Before async authority and settings read
   assert.deepEqual(await f.runtime.ready,{state:'ready',enabled:true});
   assert.equal(f.state.active,true);
-  assert.deepEqual(f.state.options,{trigger:'right',showTrace:true});
+  assert.deepEqual(f.state.options,{trigger:'right',showTrace:true,gestureMappings:{}});
   f.setEnabled(false);
   assert.equal((await f.actions[0]({operation:'gesture.refresh'})).enabled,false);
   assert.equal(f.runtime.isActive(),false);
@@ -71,9 +71,9 @@ test('Page policy timer uses existing bridge and cleans up once',async()=>{
 
 test('stored trigger and trace preferences are delivered to gesture engine',async()=>{
   const f=runtimeFixture();await f.runtime.ready;
-  f.setPreferences({trigger:'alt-left',showTrace:false});
+  f.setPreferences({trigger:'alt-left',showTrace:false,gestureMappings:{}});
   f.setEnabled(true);await f.runtime.readPolicy();
-  assert.deepEqual(f.state.options,{trigger:'alt-left',showTrace:false});
+  assert.deepEqual(f.state.options,{trigger:'alt-left',showTrace:false,gestureMappings:{}});
   f.ui.destroy();
 });
 
@@ -83,4 +83,13 @@ test('malformed enabled state is fail-closed, never reinterpreted as default on'
   await assert.rejects(f.runtime.readPolicy(),/E_GESTURE_POLICY_ENABLED/);
   assert.equal(f.isClosed(),true);
   assert.equal(f.runtime.isActive(),false);
+});
+
+test('Page runtime delivers configured combo mappings without a new permission',async()=>{
+  const f=runtimeFixture();await f.runtime.ready;
+  f.setEnabled(true);
+  f.setPreferences({trigger:'right',showTrace:true,gestureMappings:{'left-down':'up'}});
+  await f.runtime.readPolicy();
+  assert.deepEqual(f.state.options.gestureMappings,{'left-down':'up'});
+  f.ui.destroy();
 });

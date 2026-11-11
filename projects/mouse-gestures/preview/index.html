@@ -102,6 +102,15 @@
     .practice-label { position:absolute; top:44%; width:100%; color:var(--od-sub); text-align:center; opacity:.6; pointer-events:none; }
     .practice-feedback { position:absolute; bottom:8px; left:8px; padding:5px 9px; border-radius:6px;
       background:#1d293d; color:white; font-size:11px; pointer-events:none; }
+    .practice-arrow-badge { position:absolute; display:grid; place-items:center; width:36px; height:36px;
+      border-radius:9px; background:#2563eb; color:#fff; font:650 23px/1 system-ui,sans-serif;
+      box-shadow:0 3px 9px #1e40af30; pointer-events:none; }
+    .practice-arrow-badge[hidden] { display:none!important; }
+    .mock-combo-setting { margin-top:12px; padding-top:12px; border-top:1px solid var(--od-line); }
+    .mock-combo-title { display:block; margin-bottom:8px; font-weight:650; font-size:12px; }
+    .mock-combo-setting label { display:block; margin:8px 0 4px; font-size:12px; }
+    .mock-combo-setting select { width:100%; min-height:34px; border:1px solid var(--od-line); border-radius:8px;
+      padding:5px 8px; color:var(--od-ink); background:var(--od-paper); }
     .practice .od-note { margin:6px 0; }
     .preview-caption { max-width:360px; margin:var(--space-3) var(--space-3) 0; color:var(--od-sub);
       font-size:var(--od-meta-size); text-align:center; line-height:1.55; }
@@ -184,6 +193,29 @@
             </div>
             <p class="od-note">若系统原生菜单先弹出，可选 Option / Alt + 左键。</p>
             <label class="mock-trace-option"><input id="mock-trace" type="checkbox" checked>显示轨迹与动作提示</label>
+            <div class="mock-combo-setting">
+              <span class="mock-combo-title">组合手势动作（仅模拟保存）</span>
+              <label for="mock-combo">方向组合</label>
+              <select id="mock-combo">
+                <option value="left-down">先向左，再向下</option>
+                <option value="left-up">先向左，再向上</option>
+                <option value="right-down">先向右，再向下</option>
+                <option value="right-up">先向右，再向上</option>
+                <option value="up-right">先向上，再向右</option>
+                <option value="up-left">先向上，再向左</option>
+                <option value="down-right">先向下，再向右</option>
+                <option value="down-left">先向下，再向左</option>
+              </select>
+              <label for="mock-combo-action">执行动作</label>
+              <select id="mock-combo-action">
+                <option value="none">未配置（不执行）</option>
+                <option value="left">后退</option>
+                <option value="right">前进</option>
+                <option value="up">刷新</option>
+                <option value="down">滚动到底部</option>
+              </select>
+              <p class="od-note">组合默认不执行，配置仅保留在当前预览页面。</p>
+            </div>
           </details>
         </section>
         <section id="extension-list" class="extension-list" hidden aria-label="扩展列表（模拟）">
@@ -194,10 +226,12 @@
     </div>
     <section class="practice" aria-label="网页手势反馈演示">
       <h2>网页手势效果模拟</h2>
-      <p class="od-note">按住<strong>左键</strong>在下方区域拖动，模拟 12px 意图与 56px 方向识别；不会执行网页操作。</p>
+      <p class="od-note">按住<strong>左键</strong>绘制单段或直角组合。每段只显示一个带圆角方块的方向箭头；不会执行网页操作。</p>
       <div id="practice-pad" class="practice-pad" tabindex="0" aria-label="手势练习区域">
         <span class="practice-label">在此拖动体验</span>
         <svg viewBox="0 0 330 140" preserveAspectRatio="none" aria-hidden="true"><path id="practice-line" d="" stroke="#2586ef" stroke-width="4" stroke-linecap="round" stroke-linejoin="round" fill="none"/></svg>
+        <span id="practice-arrow-one" class="practice-arrow-badge" aria-hidden="true" hidden></span>
+        <span id="practice-arrow-two" class="practice-arrow-badge" aria-hidden="true" hidden></span>
         <div id="practice-feedback" class="practice-feedback" hidden></div>
       </div>
       <p id="practice-status" class="od-note" role="status">等待拖动（仅模拟）</p>
@@ -213,8 +247,120 @@
       const reopen=by('reopen'),title=by('host-title'),hint=by('gesture-hint');
       const pad=by('practice-pad'),line=by('practice-line');
       const feedback=by('practice-feedback'),status=by('practice-status');
-      let start=null,points=[];
-      const clear=message=>{start=null;points=[];line.setAttribute('d','');feedback.hidden=true;status.textContent=message;};
+      // PREVIEW_SEGMENT_LOGIC_START: inline snapshot from src/page/segments.js,
+      // kept byte-equivalent by the project parity test (without ES exports).
+// Pure, bounded gesture segmentation. No browser APIs, side effects or permissions.
+const SEGMENT_LIMITS=Object.freeze({intentPx:12,activatePx:56,maxCrossPx:28,reversalPx:12,maxSegments:2});
+const DIRECTIONS=Object.freeze(['left','right','up','down']);
+const COMBO_KEYS=Object.freeze([
+  'left-up','left-down','right-up','right-down',
+  'up-left','up-right','down-left','down-right'
+]);
+const ARROWS=Object.freeze({left:'←',right:'→',up:'↑',down:'↓'});
+const DIRECTION_NAMES=Object.freeze({left:'左',right:'右',up:'上',down:'下'});
+const horizontal=dir=>dir==='left'||dir==='right';
+const progress=(dir,dx,dy)=>dir==='left'?-dx:dir==='right'?dx:dir==='up'?-dy:dy;
+const side=(dir,dx,dy)=>horizontal(dir)?dy:dx;
+const perpendicular=(dir,value)=>horizontal(dir)?(value<0?'up':'down'):(value<0?'left':'right');
+const validMappingKey=key=>COMBO_KEYS.includes(key);
+
+function normalizeGestureMappings(value){
+  if(!value||typeof value!=='object'||Array.isArray(value))return {};
+  const result={};
+  for(const key of COMBO_KEYS)if(DIRECTIONS.includes(value[key]))result[key]=value[key];
+  return result;
+}
+function createGestureTrack(x,y){
+  return {x,y,lastX:x,lastY:y,points:[[x,y]],intent:false,invalid:false,turning:false,
+    segments:[],current:null,stage:'pending'};
+}
+function invalidate(track){track.invalid=true;track.turning=false;track.stage='invalid';}
+function updateGestureTrack(track,x,y,limits=SEGMENT_LIMITS){
+  track.lastX=x;track.lastY=y;
+  if(track.points.length>=80)track.points.shift();
+  track.points.push([x,y]);
+  const dx=x-track.x,dy=y-track.y;
+  if(!track.intent&&Math.hypot(dx,dy)<limits.intentPx)return track;
+  track.intent=true;
+  if(track.invalid)return track;
+  if(!track.current){
+    let dir=null;
+    if(Math.abs(dx)>=limits.intentPx&&Math.abs(dx)>Math.abs(dy)*1.2)
+      dir=dx<0?'left':'right';
+    else if(Math.abs(dy)>=limits.intentPx&&Math.abs(dy)>Math.abs(dx)*1.2)
+      dir=dy<0?'up':'down';
+    if(!dir){
+      if(Math.abs(dx)>limits.maxCrossPx&&Math.abs(dy)>limits.maxCrossPx)invalidate(track);
+      else track.stage='dragging';
+      return track;
+    }
+    track.current={dir,anchorX:track.x,anchorY:track.y,peakX:track.x,peakY:track.y,
+      peak:0,maxCross:0,recognized:false};
+  }
+  const s=track.current;
+  const along=progress(s.dir,x-s.anchorX,y-s.anchorY);
+  const cross=side(s.dir,x-s.anchorX,y-s.anchorY);
+  if(s.peak-along>limits.reversalPx){invalidate(track);return track;}
+  if(!s.recognized){
+    s.maxCross=Math.max(s.maxCross,Math.abs(cross));
+    if(s.maxCross>limits.maxCrossPx||along<0){invalidate(track);return track;}
+    if(along>s.peak){s.peak=along;s.peakX=x;s.peakY=y;}
+    if(along>=limits.activatePx){
+      s.recognized=true;
+      track.segments.push({dir:s.dir,x:s.peakX,y:s.peakY});
+      track.stage='recognized';
+    }else track.stage='dragging';
+    return track;
+  }
+  // A turn is measured from the last peak, not from the original mouse-down.
+  // The first accepted segment stays anchored at its actual turning point.
+  const off=side(s.dir,x-s.peakX,y-s.peakY);
+  if(Math.abs(off)>=limits.intentPx)track.turning=true;
+  if(track.turning){
+    track.stage='turning';
+    if(Math.abs(along-s.peak)>limits.maxCrossPx){invalidate(track);return track;}
+    if(Math.abs(off)>=limits.activatePx){
+      if(track.segments.length>=limits.maxSegments){invalidate(track);return track;}
+      const next=perpendicular(s.dir,off);
+      const key=s.dir+'-'+next;
+      if(!validMappingKey(key)){invalidate(track);return track;}
+      track.segments.at(-1).x=s.peakX;
+      track.segments.at(-1).y=s.peakY;
+      track.segments.push({dir:next,x,y});
+      track.current={dir:next,anchorX:s.peakX,anchorY:s.peakY,peakX:x,peakY:y,
+        peak:Math.abs(off),maxCross:Math.abs(along-s.peak),recognized:true};
+      track.turning=false;track.stage='recognized';
+    }
+    return track;
+  }
+  s.maxCross=Math.max(s.maxCross,Math.abs(cross));
+  if(s.maxCross>limits.maxCrossPx){invalidate(track);return track;}
+  if(along>s.peak){s.peak=along;s.peakX=x;s.peakY=y;
+    const last=track.segments.at(-1);last.x=x;last.y=y;}
+  track.stage='recognized';
+  return track;
+}
+function gestureOutcome(track,mappings={}){
+  const dirs=track.segments.map(segment=>segment.dir);
+  const sequence=dirs.join('-');
+  if(!track.intent||track.invalid||track.turning||dirs.length===0)
+    return {sequence,action:null,state:track.invalid?'invalid':track.turning?'incomplete':'pending'};
+  if(dirs.length===1)return {sequence,action:dirs[0],state:'mapped'};
+  if(dirs.length!==2)return {sequence,action:null,state:'invalid'};
+  const action=normalizeGestureMappings(mappings)[sequence]||null;
+  return {sequence,action,state:action?'mapped':'unmapped'};
+}
+
+      // PREVIEW_SEGMENT_LOGIC_END
+      const badges=[by('practice-arrow-one'),by('practice-arrow-two')];
+      const combo=by('mock-combo'),comboAction=by('mock-combo-action');
+      const actionNames={left:'后退',right:'前进',up:'刷新',down:'到底'};
+      let track=null,mappings={};
+      function hideDraw(){
+        line.setAttribute('d','');feedback.hidden=true;
+        for(const badge of badges)badge.hidden=true;
+      }
+      const clear=message=>{track=null;hideDraw();status.textContent=message;};
       function sync(){
         toggle.setAttribute('aria-checked',String(toggle.checked));
         hint.textContent=trigger.value==='alt-left'?
@@ -227,41 +373,67 @@
         return [Math.max(0,Math.min(330,(event.clientX-r.left)*330/r.width)),
           Math.max(0,Math.min(140,(event.clientY-r.top)*140/r.height))];
       };
+      const pretty=segments=>segments.map(s=>DIRECTION_NAMES[s.dir]).join(' / ');
       function update(){
-        if(!start||!points.length)return null;
-        const [x,y]=points.at(-1),dx=x-start[0],dy=y-start[1];
-        const distance=Math.hypot(dx,dy);
-        if(distance<12){line.setAttribute('d','');feedback.hidden=true;return null;}
-        const which=Math.abs(dx)>=56&&Math.abs(dy)<=28?(dx<0?'← 后退':'→ 前进'):
-          Math.abs(dy)>=56&&Math.abs(dx)<=28?(dy<0?'↑ 刷新':'↓ 到底'):null;
+        if(!track)return {action:null,state:'pending'};
+        const outcome=gestureOutcome(track,mappings);
+        if(!track.intent){hideDraw();return outcome;}
         if(trace.checked){
-          line.setAttribute('stroke',which?'#2586ef':'#94a3b8');
-          line.setAttribute('stroke-dasharray',which?'none':'5 4');
-          line.setAttribute('d',points.map(([px,py],i)=>(i?'L':'M')+px+' '+py).join(' '));
-          feedback.textContent=which?which+' · 松开执行':'继续拖动';
+          line.setAttribute('stroke',track.invalid||outcome.state==='unmapped'?'#d97757':
+            track.segments.length?'#2586ef':'#94a3b8');
+          line.setAttribute('stroke-dasharray',track.segments.length?'none':'5 4');
+          line.setAttribute('d',track.points.map(([x,y],i)=>(i?'L':'M')+x+' '+y).join(' '));
+          for(const [i,badge] of badges.entries()){
+            const segment=track.invalid?null:track.segments[i];
+            badge.hidden=!segment;
+            if(!segment)continue;
+            badge.textContent=ARROWS[segment.dir];
+            badge.style.left=Math.max(4,Math.min(segment.x*pad.clientWidth/330+12,pad.clientWidth-40))+'px';
+            badge.style.top=Math.max(4,Math.min(segment.y*pad.clientHeight/140-44,pad.clientHeight-40))+'px';
+          }
+          const seq=pretty(track.segments);
+          feedback.textContent=track.invalid?'无效 · 松开取消':
+            track.turning?'转向未完成 · 松开取消':
+            outcome.state==='unmapped'?seq+' · 未配置动作':
+            outcome.state==='mapped'?'已识别 '+seq+' · '+actionNames[outcome.action]:'继续拖动';
           feedback.hidden=false;
-        }
-        status.textContent=which?'已识别 '+which+'（模拟）':'拖动候选（模拟）';
-        return which;
+        }else hideDraw();
+        const seq=pretty(track.segments);
+        status.textContent=track.invalid?'轨迹无效（模拟）':
+          track.turning?'正在转向：'+seq+' / 候选（松开不执行）':
+          track.segments.length?'已识别 '+seq+(outcome.state==='unmapped'?' · 未配置动作':' · '+actionNames[outcome.action]):
+          '拖动候选（模拟）';
+        return outcome;
       }
       toggle.addEventListener('change',sync);
       trigger.addEventListener('change',sync);
-      trace.addEventListener('change',()=>{if(!trace.checked){line.setAttribute('d','');feedback.hidden=true;}else update();});
+      trace.addEventListener('change',()=>update());
+      combo.addEventListener('change',()=>{comboAction.value=mappings[combo.value]||'none';});
+      comboAction.addEventListener('change',()=>{
+        if(!COMBO_KEYS.includes(combo.value))return;
+        if(comboAction.value==='none')delete mappings[combo.value];
+        else if(DIRECTIONS.includes(comboAction.value))mappings[combo.value]=comboAction.value;
+        mappings=normalizeGestureMappings(mappings);update();
+      });
       pad.addEventListener('pointerdown',event=>{
         if(!toggle.checked||event.button!==0)return;
-        start=local(event);start.which=null;points=[start];
+        const [x,y]=local(event);track=createGestureTrack(x,y);
         pad.setPointerCapture?.(event.pointerId);
         status.textContent='移动超过 12px 开始预览';
       });
       pad.addEventListener('pointermove',event=>{
-        if(!start||(event.buttons&1)===0)return;
-        points.push(local(event));if(points.length>80)points.shift();
-        start.which=update();
+        if(!track||(event.buttons&1)===0)return;
+        const [x,y]=local(event);updateGestureTrack(track,x,y);update();
       });
       pad.addEventListener('pointerup',event=>{
-        if(!start)return;
-        points.push(local(event));const last=update();
-        clear(last?'已模拟 '+last+'；没有执行网页操作':'手势未识别，不执行');
+        if(!track)return;
+        const [x,y]=local(event);updateGestureTrack(track,x,y);
+        const outcome=gestureOutcome(track,mappings);
+        const sequence=pretty(track.segments);
+        const summary=outcome.state==='mapped'?'已识别 '+sequence+' · 模拟'+actionNames[outcome.action]+'（未执行）':
+          outcome.state==='unmapped'?'已识别 '+sequence+' · 未配置动作，不执行':
+          '手势未完成或无效，不执行';
+        clear(summary);
       });
       pad.addEventListener('pointercancel',()=>clear('模拟已取消'));
       pad.addEventListener('keydown',event=>{if(event.key==='Escape'){clear('Esc 已取消');event.preventDefault();}});

@@ -5,22 +5,37 @@
   const toggle=root?.querySelector('#gesture-enabled');
   const triggerControl=root?.querySelector('#gesture-trigger');
   const traceControl=root?.querySelector('#gesture-trace');
+  const comboControl=root?.querySelector('#gesture-combo');
+  const comboActionControl=root?.querySelector('#gesture-combo-action');
   const hint=root?.querySelector('#gesture-help');
   const error=root?.querySelector('#gesture-error');
   if(!toggle||!triggerControl||!traceControl||!hint||!error||
     typeof request!=='function')throw Error('E_MOUSE_GESTURES_TOOL_CONTEXT');
   const key='preferences';
   let closed=false,busy=false,revision=0;
-  let current={enabled:true,trigger:'right',showTrace:true};
+  let current={enabled:true,trigger:'right',showTrace:true,gestureMappings:{}};
+  const comboKeys=new Set(['left-up','left-down','right-up','right-down',
+    'up-left','up-right','down-left','down-right']);
+  const validActions=new Set(['left','right','up','down']);
+  function cleanMappings(value){
+    if(!value||typeof value!=='object'||Array.isArray(value))return {};
+    const result={};
+    for(const key of comboKeys)if(validActions.has(value[key]))result[key]=value[key];
+    return result;
+  }
   const showError=message=>{error.textContent=message;error.hidden=!message;};
   const controlsDisabled=disabled=>{
     toggle.disabled=disabled;triggerControl.disabled=disabled;traceControl.disabled=disabled;
+    if(comboControl)comboControl.disabled=disabled;
+    if(comboActionControl)comboActionControl.disabled=disabled;
   };
   function apply(){
     toggle.checked=current.enabled;
     toggle.setAttribute('aria-checked',String(current.enabled));
     triggerControl.value=current.trigger;
     traceControl.checked=current.showTrace;
+    if(comboControl&&comboActionControl)
+      comboActionControl.value=current.gestureMappings[comboControl.value]||'none';
     hint.textContent=current.trigger==='alt-left'?
       '按住 Option / Alt 与左键拖动，松开执行 · Esc 取消':
       '右键拖动，松开执行 · Esc 取消';
@@ -38,7 +53,8 @@
     // Authorized new installations start enabled without writing on first read.
     enabled:saved?.value?.enabled!==false,
     trigger:saved?.value?.trigger==='alt-left'?'alt-left':'right',
-    showTrace:saved?.value?.showTrace!==false
+    showTrace:saved?.value?.showTrace!==false,
+    gestureMappings:cleanMappings(saved?.value?.gestureMappings)
   });
   async function refresh(){
     if(closed||busy)return;
@@ -68,7 +84,7 @@
         const before=await readSettings();
         if(closed)return;
         try{
-          const value={...(before.value||{}),...changes};
+          const value={...(before.value||{}),...(typeof changes==='function'?changes(before.value||{}):changes)};
           const receipt=await request('storage.set',{key,value,ifMatch:before.etag});
           if(receipt?.saved!==true)throw Error('E_GESTURE_SAVE_UNKNOWN');
           written=true;break;
@@ -96,6 +112,19 @@
   toggle.addEventListener('change',()=>void persist({enabled:toggle.checked}));
   triggerControl.addEventListener('change',()=>void persist({trigger:triggerControl.value}));
   traceControl.addEventListener('change',()=>void persist({showTrace:traceControl.checked}));
+  comboControl?.addEventListener('change',()=>{
+    if(comboActionControl)comboActionControl.value=current.gestureMappings[comboControl.value]||'none';
+  });
+  comboActionControl?.addEventListener('change',()=>{
+    if(!comboControl||!comboKeys.has(comboControl.value))return;
+    const key=comboControl.value,action=comboActionControl.value;
+    if(action!=='none'&&!validActions.has(action))return;
+    void persist(old=>{
+      const map=cleanMappings(old.gestureMappings);
+      if(action==='none')delete map[key];else map[key]=action;
+      return {gestureMappings:map};
+    });
+  });
   root.addEventListener('opendesk-page-changed',()=>void refresh());
   window.addEventListener('focus',()=>void refresh());
   window.addEventListener('pagehide',()=>{closed=true;revision++;},{once:true});

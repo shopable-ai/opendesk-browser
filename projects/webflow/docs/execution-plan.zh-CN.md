@@ -1,3 +1,15 @@
+## R0 · Provider 命名与通用解析边界（2026-11-11；`OD-WEBFLOW-PROVIDER-BOUNDARY-REFACTOR-R0`）
+
+**原始目标：** OpenDesk WebFlow 日后支持多个 AI 网站，但不为新 Provider 复制工作流内核；本轮是 R2 前定向重构，只将通用 WebFlow V1/V2 意图解析从 ChatGPT 模块提取，保留旧入口兼容，不实现新的发送/回填。文件审计与保护边界见 [Provider R0 审计](provider-boundary-r0.zh-CN.md)。
+
+**本轮源码候选：** `projects/webflow/src/task-intent-contract.js` 是唯一通用解析器；旧 `chatgpt-task-request.js` 保留专用 V1 请求处理及兼容再导出；`generic-task-adapter.js` 与 `webflow-v2-target.js` 改为直连；新增 4 组 Node 定向测试，Bridge CI 检查覆盖源码、构建与 `verify-package`。原 immutable Task、Manifest、hash、Ledger、固定入口及 V2 PREPARE-only 未作修改。
+
+**编译边界补充：** 原 `bundle-provenance.mjs` 禁止没有精确审阅 SHA 的 `projects/` 源码进入可信 WXT 固定包；新增解析器现已按实际三消费者加单文件 Blob Pin `50a7ec4bd3d8707ba53724efdc378cd98c2404d6`，且仅允许 `sw.js`、`ui/tool-shell.js`、`agents/web-task-content.js`。已新增定向 SHA/非目标/符号链接拒绝测试，未经新提交 Node 与 Build 回执不得称 PASS。
+
+**证据：** SOURCE=提交后需读回；NODE=NOT_TESTED；PACKAGE=NOT_TESTED；CHROME_NATIVE=BLOCKED（本机 CodexPro/文件隧道不可用）；BUSINESS=NOT_TESTED。测试以本次新提交 SHA 为准，不继承历史通过。R2 `APPROVE_SEND → borrowed SUBMIT → B 完整回复 → A 一次性交付` 不在 R0 实施。
+
+---
+
 ## R3 · A→唯一 B→原 A 可信发送接续（2026-11-11；OD-WEBFLOW-CHAT-A-B-A-SAME-B-R3-TRUSTED-SEND-CLOSURE）
 
 **原始用户目标：** ChatGPT A 中请求新建唯一 B，只准备草稿；可信侧栏单独批准后，在同一个 B 原草稿发送一次，观察完整回答及真实 /c/ 链接，并单次返回原 A。刷新、ACK UNKNOWN、重启、权限变化均禁止重复创建、发送或交付。
@@ -64,6 +76,30 @@
 - 本机 CodexPro `open_current_workspace` 返回 `UNAVAILABLE: Connection failed`；OpenDesk Mac Desktop/Code/Browser status 返回 HTTP 429；当前没有获准的真实 Chrome Side Panel 控制、安装版本、文件拖放、授权及 Run/Result 现场证据。本轮没有执行任何 Task、触发聊天发送或重放 UNKNOWN。
 - **R2 八层状态（仅本任务 R1）：** `SOURCE=PARTIAL`（源码存在但未有新编译/运行回执）；`NODE=NOT_TESTED`；`PACKAGE=FAIL`（当前正式 0.3.32 不含新入口）；`CHROMIUM=NOT_TESTED`；`CHROME_NATIVE=BLOCKED`；`INSTALL=NOT_TESTED`；`BUSINESS=NOT_TESTED`；`RELEASE=BLOCKED`。上述状态不同于历史的其他版本 PASS。
 - **剩余唯一链路：** 取得当前源码同源 Node/Chromium CI 完整成功证明→核对并安全升级/发布含新入口的唯一 Web Flow 包→在真实 Chrome 通过原可信安装审阅→实际验证拖放分流、四路径焦点/返回、固定任务授权/撤销及不重复执行→按证据升级八层状态。已实现 R1 功能不重复设计或开发；R2 动态绑定与 R3 高级导入不纳入。
+
+
+### R3 · 统一脚本导入剩余验收（OD-UNIFIED-TASK-IMPORT-R1-CLOSURE；2026-11-11）
+
+**原始产品目标及本轮范围：**「我的」可信文件选择/拖放后按 JS、Program Draft、Task Package 分类，分别进入原开发草稿或待验证候选；Web Flow「脚本」的 `+` 四路径负责固定已审阅任务、创建、Codex 提示词和文件导入指引。保持原 TaskWorkbench/Schema/RunHost/TaskRunSheet/安装与 Authority，未审阅不得安装或执行，UNKNOWN 不重放。此轮仅验收、必要最小修复、唯一正式包发布与原生 Chrome 安装，不新开发动态 Picker、ZIP 或另一个 Runner。
+
+**继承并核对（非本轮重做）：** GitHub `main` 核对快照 `24d8572303d004d2fec4a1b51917410a16612ef8`（R2 文档提交 `c87ae0fc56b71d255142b1fdaad5be9cfa6f1338` 之后 4 个提交）。差量文件仅含其他 Web Flow Provider/对话接续及相关文档/测试，不触及 R1 的 `src/ui/task-workbench.js`、`src/ui/react/tabs/my-page.tsx`、`projects/webflow/src/ui/main.js` 或其 R1 测试。源码实际仍见「我的」拖放与统一 `readFile` 消费者、Web Flow `wf-add-script` 与现有 Chromium 320/360/400px 断言；这些是代码存在证据，不是执行 PASS。R1 已提交五项导入测试和原包/授权边界，均保留，不重复实现。
+
+**本轮新远端事实：** GitHub Actions [Web Flow #43045910826](https://github.com/shopable-ai/opendesk-browser/actions/runs/43045910826) 重新读取为 `pending`、`conclusion=null`，绑定较早 `3e05b2c093f4f60d66a55a142e2aeaedbbbf2dd6`；前序 [#43045307212](https://github.com/shopable-ai/opendesk-browser/actions/runs/43045307212) 为 `cancelled`。共享 App/Sidebar 新近 CI 多数为 `queued`，本次仍无能对应 R1 当前源码的完整 Node/Chromium PASS 回执。当前 `tool.config.json` 和唯一正式 `webflow.opendesk-tool.json` 均为 `0.3.32`；正式包 Blob `5ff706dbe9252953d1bc51a7223e716640f27b4a` 与 R2 完全一致，故其已核验 SHA-256 `9d017ddf205da48e6106078d0495e31cf52bc16b113d907b03026fb52e26ff73` 仍有效。正式包没有 `wf-add-script`：尚未交付 R1 新入口。
+
+**执行环境与新动作：** 本轮重新调用 CodexPro `open_current_workspace` 返回 `UNAVAILABLE / Connection failed`；OpenDesk Desktop/Browser/Code 本机桥接返回 HTTP 429；隔离执行环境无法解析 `github.com`，故无法在本机运行所列 Node 套件、真实 Chromium fixture、检查当前 Chrome 安装身份或执行 Installer/真实 Task。通过 GitHub Connector 只读对照了仓库 AGENTS、Web Flow AGENTS/README/合同/计划、正式配置、构建工作流与相关源码测试；未运行新测试，未改业务源码、未生成候选/晋升包、未派发 Run 或消息、未操作 UNKNOWN。仅此 R3 证据写回原执行计划。
+
+**八层验收（仅本任务，不能继承其他任务旧 PASS）：**
+- `SOURCE=PARTIAL`：R1 代码存在且并行差量未触及；无最新执行证明。
+- `NODE=NOT_TESTED`：新旧回归均未现场执行；CI 不具 PASS。
+- `PACKAGE=FAIL`：现有正式 0.3.32 缺少新入口；新候选构建/同源检查尚未执行。
+- `CHROMIUM=NOT_TESTED`：320/360/400px 测试脚本存在但无本轮通过结果。
+- `CHROME_NATIVE=BLOCKED`：本机桌面/浏览器桥接 429，未现场访问 Side Panel。
+- `INSTALL=NOT_TESTED`：未运行原安装器的升级审阅与安装身份读回。
+- `BUSINESS=NOT_TESTED`：未实际导入/验证/运行测试 Task 或核对历史。
+- `RELEASE=BLOCKED`：必须先取得源码同源门禁；工作流普通 push 只验证候选，正式包 CI 发布需原 `workflow_dispatch` 和来源校验。
+
+**未完成的最短接续：** 待可执行环境/CI 恢复后，优先继承相同源码且完整的有效 Node+Chromium PASS；仅失败才定向修复/重测；确认无其他 Owner 已升级后，从 0.3.32 按原规则评估 0.3.33，经 `--out` → 受影响测试与权限/来源核查 → `--promote-from` → `--check-project` → 受控提交/发布/读回；最后在原 Chrome 安装身份下现场验收拖放、四路径、撤权/固定 pins、一次执行与 UNKNOWN 只读历史。无安装证据前禁止宣布 R1 PASS。
+
 
 ---
 

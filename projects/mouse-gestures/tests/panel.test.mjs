@@ -30,19 +30,23 @@ function panel(store){
     setAttribute(k,v){this.attributes.set(k,v);}};
   const trigger={value:'right',disabled:true,addEventListener(type,fn){listeners.set('trigger:'+type,fn);}};
   const trace={checked:true,disabled:true,addEventListener(type,fn){listeners.set('trace:'+type,fn);}};
+  const combo={value:'left-down',disabled:true,addEventListener(type,fn){listeners.set('combo:'+type,fn);}};
+  const comboAction={value:'none',disabled:true,addEventListener(type,fn){listeners.set('comboAction:'+type,fn);}};
   const hint={textContent:''},error={textContent:'',hidden:true};
   const elements=new Map([['#gesture-enabled',toggle],['#gesture-trigger',trigger],
-    ['#gesture-trace',trace],['#gesture-help',hint],['#gesture-error',error]]);
+    ['#gesture-trace',trace],['#gesture-combo',combo],['#gesture-combo-action',comboAction],['#gesture-help',hint],['#gesture-error',error]]);
   const root={querySelector(id){return elements.get(id)||null;},
     addEventListener(type,fn){listeners.set('root:'+type,fn);}};
   const window={addEventListener(type,fn){windowHandlers.set(type,fn);}};
   const tool={root,request:store.request,setState(state){states.push(state);}};
   vm.runInNewContext(panelSource,{globalThis:{OpenDeskTool:tool},window});
   const flush=async()=>{await tick();await tick();};
-  return {toggle,trigger,trace,hint,error,states,windowHandlers,
+  return {toggle,trigger,trace,combo,comboAction,hint,error,states,windowHandlers,
     async change(value){toggle.checked=value;listeners.get('enabled:change')();await flush();},
     async changeTrigger(value){trigger.value=value;listeners.get('trigger:change')();await flush();},
     async changeTrace(value){trace.checked=value;listeners.get('trace:change')();await flush();},
+    async changeCombo(value){combo.value=value;listeners.get('combo:change')();await flush();},
+    async changeComboAction(value){comboAction.value=value;listeners.get('comboAction:change')();await flush();},
     async reload(){listeners.get('root:opendesk-page-changed')();await flush();},
     close(){windowHandlers.get('pagehide')?.();}};
 }
@@ -124,4 +128,21 @@ test('production panel and standalone preview both mark first-install default ON
   for(const html of [production,preview]){
     assert.match(html,/<input[^>]*id="gesture-enabled"[^>]*class="mg-switch"[\s\S]*?checked/);
   }
+});
+
+test('Side Panel only saves explicitly assigned two-segment mappings via CAS',async()=>{
+  const store=storeFixture(),one=panel(store);await tick();
+  assert.equal(one.comboAction.value,'none');
+  await one.changeComboAction('up');
+  assert.deepEqual(JSON.parse(JSON.stringify(store.read().gestureMappings)),{'left-down':'up'});
+  await one.changeCombo('up-right');
+  assert.equal(one.comboAction.value,'none');
+  await one.changeComboAction('right');
+  assert.deepEqual(JSON.parse(JSON.stringify(store.read().gestureMappings)),{'left-down':'up','up-right':'right'});
+  await one.changeCombo('left-down');
+  assert.equal(one.comboAction.value,'up');
+  await one.changeComboAction('none');
+  assert.deepEqual(JSON.parse(JSON.stringify(store.read().gestureMappings)),{'up-right':'right'});
+  assert.equal(one.toggle.checked,true);
+  one.close();
 });

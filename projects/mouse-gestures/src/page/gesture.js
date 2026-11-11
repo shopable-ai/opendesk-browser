@@ -1,10 +1,10 @@
+import {SEGMENT_LIMITS,ARROWS,DIRECTION_NAMES,createGestureTrack,updateGestureTrack,gestureOutcome,normalizeGestureMappings} from './segments.js';
+
 // Only same-document, trusted mouse input. No Chrome/Tab APIs or synthetic menus.
 export const GESTURE_LIMITS=Object.freeze({
-  jitterPx:8,intentPx:12,activatePx:56,maxCrossPx:28,reversalPx:12,
-  menuMatchPx:16,menuGuardMs:450
+  ...SEGMENT_LIMITS,jitterPx:8,menuMatchPx:16,menuGuardMs:450
 });
 export const GESTURE_TRIGGERS=Object.freeze({RIGHT:'right',ALT_LEFT:'alt-left'});
-const LABELS=Object.freeze({left:'← 后退',right:'→ 前进',up:'↑ 刷新',down:'↓ 到底'});
 const EXCLUDED_TARGETS='input,textarea,select,option,button,a,[contenteditable],[role="textbox"],[role="slider"],[draggable="true"],canvas,video';
 const NS='http://www.w3.org/2000/svg';
 const cssName=name=>name.replace(/[A-Z]/g,c=>'-'+c.toLowerCase());
@@ -20,52 +20,6 @@ function excluded(event,win,trigger){
 const primaryButton=trigger=>trigger===GESTURE_TRIGGERS.RIGHT?2:0;
 const buttonMask=trigger=>trigger===GESTURE_TRIGGERS.RIGHT?2:1;
 
-function recordPoint(session,x,y){
-  const dx=x-session.x,dy=y-session.y;
-  session.minDx=Math.min(session.minDx,dx);
-  session.maxDx=Math.max(session.maxDx,dx);
-  session.minDy=Math.min(session.minDy,dy);
-  session.maxDy=Math.max(session.maxDy,dy);
-  session.maxX=Math.max(session.maxX,Math.abs(dx));
-  session.maxY=Math.max(session.maxY,Math.abs(dy));
-  session.lastX=x;session.lastY=y;
-  if(session.points.length>=80)session.points.shift();
-  session.points.push([x,y]);
-  return {dx,dy,distance:Math.hypot(dx,dy)};
-}
-function reversed(session){
-  return (session.maxDx>GESTURE_LIMITS.reversalPx&&
-    -session.minDx>GESTURE_LIMITS.reversalPx)||
-    (session.maxDy>GESTURE_LIMITS.reversalPx&&
-    -session.minDy>GESTURE_LIMITS.reversalPx)||session.backtracked;
-}
-function monitorReversal(session,dx,dy){
-  // Also invalidate backtracking on one side of the origin, not just crossings.
-  if(!session.candidate){
-    if(Math.abs(dx)>=GESTURE_LIMITS.intentPx&&Math.abs(dx)>Math.abs(dy)*1.2)
-      session.candidate=dx<0?'left':'right';
-    else if(Math.abs(dy)>=GESTURE_LIMITS.intentPx&&Math.abs(dy)>Math.abs(dx)*1.2)
-      session.candidate=dy<0?'up':'down';
-    session.peak=0;
-  }
-  if(!session.candidate)return;
-  const progress=session.candidate==='left'?-dx:session.candidate==='right'?dx:
-    session.candidate==='up'?-dy:dy;
-  session.peak=Math.max(session.peak,progress);
-  if(session.peak-progress>GESTURE_LIMITS.reversalPx)session.backtracked=true;
-}
-function direction(session,dx,dy){
-  if(reversed(session))return null;
-  if(Math.abs(dx)>=GESTURE_LIMITS.activatePx&&
-    Math.abs(dy)<=GESTURE_LIMITS.maxCrossPx&&
-    session.maxY<=GESTURE_LIMITS.maxCrossPx&&Math.abs(dx)>Math.abs(dy)*1.5)
-    return dx<0?'left':'right';
-  if(Math.abs(dy)>=GESTURE_LIMITS.activatePx&&
-    Math.abs(dx)<=GESTURE_LIMITS.maxCrossPx&&
-    session.maxX<=GESTURE_LIMITS.maxCrossPx&&Math.abs(dy)>Math.abs(dx)*1.5)
-    return dy<0?'up':'down';
-  return null;
-}
 function sameRelease(event,release){
   return event?.isTrusted===true&&event.button===release.button&&
     event.target===release.target&&Number.isFinite(event.clientX)&&
@@ -79,14 +33,15 @@ function pageBottom(doc){
 }
 
 export function mountGestures({ui,doc=globalThis.document,win=doc.defaultView,
-  enabled=true,trigger=GESTURE_TRIGGERS.RIGHT,showTrace=true,authorizeGesture=()=>true,
+  enabled=true,trigger=GESTURE_TRIGGERS.RIGHT,showTrace=true,gestureMappings={},authorizeGesture=()=>true,
   navigateBack=()=>win.history.back(),navigateForward=()=>win.history.forward(),
   reloadPage=()=>win.location.reload(),scrollBottom=()=>win.scrollTo(0,pageBottom(doc))}={}){
   if(!ui?.on||!ui?.onDispose||!ui?.host||!ui?.content||!doc?.createElementNS||!win||
     typeof authorizeGesture!=='function')throw Error('E_GESTURE_CONTEXT');
   let disposed=false,allowed=enabled===true;
   let activeTrigger=trigger===GESTURE_TRIGGERS.ALT_LEFT?trigger:GESTURE_TRIGGERS.RIGHT;
-  let displayTrace=showTrace!==false,session=null,releaseGuard=null,epoch=0,frame=null;
+  let displayTrace=showTrace!==false,mappings=normalizeGestureMappings(gestureMappings);
+  let session=null,releaseGuard=null,epoch=0,frame=null;
   const host=ui.host;
   for(const [name,value] of Object.entries({position:'fixed',inset:'0',width:'100vw',height:'100vh',
     maxWidth:'none',zIndex:'2147483646',pointerEvents:'none',display:'none'}))
@@ -103,12 +58,27 @@ export function mountGestures({ui,doc=globalThis.document,win=doc.defaultView,
   const label=doc.createElementNS(NS,'text');
   for(const [name,value] of Object.entries({fill:'#fff','font-size':'12','font-family':'system-ui,sans-serif'}))
     label.setAttribute(name,value);
-  svg.append(path);svg.append(bubble);svg.append(label);ui.content.append(svg);
+  // Each recognized segment gets ONE independent arrow in a rounded square.
+  // Never draw joined or double-ended arrow glyphs.
+  const badges=Array.from({length:2},()=>{
+    const group=doc.createElementNS(NS,'g');group.setAttribute('visibility','hidden');
+    const square=doc.createElementNS(NS,'rect');
+    for(const [name,value] of Object.entries({width:'36',height:'36',rx:'9',fill:'#2563eb',
+      'fill-opacity':'0.96'}))square.setAttribute(name,value);
+    const glyph=doc.createElementNS(NS,'text');
+    for(const [name,value] of Object.entries({x:'18',y:'25',fill:'#fff',
+      'font-size':'23','font-weight':'650','font-family':'system-ui,sans-serif',
+      'text-anchor':'middle'}))glyph.setAttribute(name,value);
+    group.append(square);group.append(glyph);return {group,glyph};
+  });
+  svg.append(path);
+  for(const badge of badges)svg.append(badge.group);
+  svg.append(bubble);svg.append(label);ui.content.append(svg);
   const alive=()=>!disposed&&allowed&&ui.active();
   function hide(){
     if(frame!==null&&typeof win.cancelAnimationFrame==='function')win.cancelAnimationFrame(frame);
     frame=null;host.style.setProperty('display','none','important');path.setAttribute('d','');
-    label.textContent='';
+    label.textContent='';for(const badge of badges)badge.group.setAttribute('visibility','hidden');
   }
   function reset({clearGuard=true}={}){
     epoch++;session=null;if(clearGuard)releaseGuard=null;hide();
@@ -116,17 +86,33 @@ export function mountGestures({ui,doc=globalThis.document,win=doc.defaultView,
   function render(){
     frame=null;
     if(!alive()||!session?.intent||!displayTrace)return hide();
-    const s=session;
+    const s=session,outcome=gestureOutcome(s,mappings);
     host.style.setProperty('display','block','important');
-    const stroke=s.stage==='recognized'?'#2586ef':s.stage==='invalid'?'#d97757':'#94a3b8';
+    const stroke=s.invalid?'#d97757':outcome.state==='unmapped'?'#d97757':
+      s.segments.length?'#2586ef':'#94a3b8';
     path.setAttribute('stroke',stroke);
-    path.setAttribute('stroke-dasharray',s.stage==='dragging'?'5 4':'none');
+    path.setAttribute('stroke-dasharray',s.segments.length?'none':'5 4');
     path.setAttribute('d',s.points.map(([x,y],i)=>(i?'L':'M')+x+' '+y).join(' '));
-    label.textContent=s.stage==='recognized'?LABELS[s.selected]+' · 松开执行':
-      s.stage==='invalid'?'手势无效 · 松开取消':'继续拖动';
-    const w=Math.max(148,Math.min(win.innerWidth||800,10000));
-    const h=Math.max(30,Math.min(win.innerHeight||600,10000));
-    const x=Math.max(4,Math.min(s.lastX+14,w-152));
+    const w=Math.max(44,win.innerWidth||800),h=Math.max(44,win.innerHeight||600);
+    for(const [index,badge] of badges.entries()){
+      const segment=s.segments[index];
+      if(!segment||s.invalid){badge.group.setAttribute('visibility','hidden');continue;}
+      const x=Math.max(4,Math.min(segment.x+12,w-40));
+      const y=Math.max(4,Math.min(segment.y-44,h-40));
+      badge.group.setAttribute('transform','translate('+x+' '+y+')');
+      badge.glyph.textContent=ARROWS[segment.dir];
+      badge.group.setAttribute('visibility','visible');
+    }
+    const names=s.segments.map(segment=>DIRECTION_NAMES[segment.dir]).join(' / ');
+    label.textContent=s.invalid?'手势无效 · 松开取消':
+      outcome.state==='incomplete'?'转向未完成 · 松开取消':
+      outcome.state==='unmapped'?names+' · 未配置动作':
+      s.segments.length===2?names+' · 执行'+
+        ({left:'后退',right:'前进',up:'刷新',down:'到底'}[outcome.action]||'') :
+      s.segments.length===1?'已识别'+names+' · 松开执行':'继续拖动';
+    const width=Math.min(Math.max(150,label.textContent.length*12+20),Math.max(40,w-8));
+    bubble.setAttribute('width',String(width));
+    const x=Math.max(4,Math.min(s.lastX+18,w-width-4));
     const y=Math.max(4,Math.min(s.lastY+18,h-31));
     bubble.setAttribute('x',String(x));bubble.setAttribute('y',String(y));
     label.setAttribute('x',String(x+9));label.setAttribute('y',String(y+18));
@@ -156,39 +142,25 @@ export function mountGestures({ui,doc=globalThis.document,win=doc.defaultView,
     if(event.button!==primaryButton(activeTrigger))return;
     reset(); // New physical press invalidates an old correlated menu guard.
     if(!alive()||event.isTrusted!==true||excluded(event,win,activeTrigger))return;
-    session={x:event.clientX,y:event.clientY,lastX:event.clientX,lastY:event.clientY,
-      target:event.target,button:event.button,minDx:0,maxDx:0,minDy:0,maxDy:0,maxX:0,maxY:0,
-      points:[[event.clientX,event.clientY]],intent:false,invalid:false,stage:'pending',selected:null,
-      candidate:null,peak:0,backtracked:false};
+    session=createGestureTrack(event.clientX,event.clientY);
+    session.target=event.target;session.button=event.button;
   },true);
   ui.on(doc,'mousemove',event=>{
     if(!session||session.stage==='canceled')return;
     if(!alive()||event.isTrusted!==true||(event.buttons&buttonMask(activeTrigger))===0)return reset();
     if(activeTrigger===GESTURE_TRIGGERS.ALT_LEFT&&!event.altKey)return reset();
-    const {dx,dy,distance}=recordPoint(session,event.clientX,event.clientY);
-    monitorReversal(session,dx,dy);
-    if(!session.intent&&distance<GESTURE_LIMITS.intentPx)return;
-    session.intent=true;
-    session.invalid=session.invalid||reversed(session)||
-      (session.maxX>GESTURE_LIMITS.maxCrossPx&&session.maxY>GESTURE_LIMITS.maxCrossPx);
-    session.selected=session.invalid?null:direction(session,dx,dy);
-    session.stage=session.invalid?'invalid':session.selected?'recognized':'dragging';
-    scheduleRender();
+    updateGestureTrack(session,event.clientX,event.clientY);
+    if(session.intent)scheduleRender();
   },true);
   ui.on(doc,'mouseup',event=>{
     if(!session||event.button!==session.button)return;
     const s=session;
     const trusted=event.isTrusted===true&&alive()&&
       (activeTrigger!==GESTURE_TRIGGERS.ALT_LEFT||event.altKey);
-    if(trusted&&s.stage!=='canceled'){
-      const {dx,dy}=recordPoint(s,event.clientX,event.clientY);
-      monitorReversal(s,dx,dy);
-      if(Math.hypot(dx,dy)>=GESTURE_LIMITS.intentPx)s.intent=true;
-      s.invalid=s.invalid||reversed(s)||
-        (s.maxX>GESTURE_LIMITS.maxCrossPx&&s.maxY>GESTURE_LIMITS.maxCrossPx);
-      s.selected=s.invalid?null:direction(s,dx,dy);
-    }
-    const chosen=trusted&&s.stage!=='canceled'&&s.intent&&!s.invalid?s.selected:null;
+    if(trusted&&s.stage!=='canceled')
+      updateGestureTrack(s,event.clientX,event.clientY);
+    const selected=gestureOutcome(s,mappings);
+    const chosen=trusted&&s.stage!=='canceled'?selected.action:null;
     const suppress=trusted&&s.intent;
     reset();
     if(suppress){
@@ -221,7 +193,7 @@ export function mountGestures({ui,doc=globalThis.document,win=doc.defaultView,
     if(!session){epoch++;return;}
     const hadIntent=session.intent;
     if(hadIntent){
-      session.stage='canceled';session.selected=null;epoch++;hide();event.preventDefault();
+      session.stage='canceled';epoch++;hide();event.preventDefault();
     }else reset();
   },true);
   ui.on(win,'blur',reset);
@@ -234,8 +206,10 @@ export function mountGestures({ui,doc=globalThis.document,win=doc.defaultView,
       if(disposed)return;
       const requested=next.trigger===GESTURE_TRIGGERS.ALT_LEFT?GESTURE_TRIGGERS.ALT_LEFT:GESTURE_TRIGGERS.RIGHT;
       const visible=next.showTrace!==false;
-      if(requested!==activeTrigger||visible!==displayTrace)reset();
-      activeTrigger=requested;displayTrace=visible;
+      const nextMappings=normalizeGestureMappings(next.gestureMappings??mappings);
+      if(requested!==activeTrigger||visible!==displayTrace||
+        JSON.stringify(nextMappings)!==JSON.stringify(mappings))reset();
+      activeTrigger=requested;displayTrace=visible;mappings=nextMappings;
     }
   });
 }

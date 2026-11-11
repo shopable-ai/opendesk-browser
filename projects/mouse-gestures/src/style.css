@@ -26,3 +26,9 @@
 .mg-preference-row select:disabled,.mg-trace-option input:disabled{opacity:.55;cursor:not-allowed}
 .mg-trace-option{display:flex;align-items:center;gap:8px;min-height:36px;margin-top:8px;font-size:12px;cursor:pointer}
 .mg-trace-option input{accent-color:var(--od-brand,#365eda);width:16px;height:16px;margin:0}
+
+.mg-combo-setting{border-top:1px solid var(--od-border,#dfe6ef);margin-top:12px;padding-top:12px}
+.mg-combo-title{display:block;font-size:12px;font-weight:650;margin-bottom:8px}
+.mg-combo-fields{display:grid;gap:6px;font-size:12px}
+.mg-combo-fields select{width:100%;min-height:34px;padding:5px 8px;border:1px solid var(--od-border,#dfe6ef);border-radius:8px;color:var(--od-text,#1b2c49);background:var(--od-bg,#fff)}
+.mg-combo-fields select:disabled{opacity:.55;cursor:not-allowed}

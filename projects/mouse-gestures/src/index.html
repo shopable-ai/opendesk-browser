@@ -24,6 +24,31 @@
     </div>
     <p class="mg-note">如果原生菜单先于拖动出现，可切换为 Option / Alt + 左键。</p>
     <label class="mg-trace-option" for="gesture-trace"><input id="gesture-trace" type="checkbox" checked disabled>显示轨迹与动作提示</label>
+    <div class="mg-combo-setting">
+      <span class="mg-combo-title">组合手势动作</span>
+      <div class="mg-combo-fields">
+        <label for="gesture-combo">方向组合</label>
+        <select id="gesture-combo" disabled>
+          <option value="left-down">先向左，再向下</option>
+          <option value="left-up">先向左，再向上</option>
+          <option value="right-down">先向右，再向下</option>
+          <option value="right-up">先向右，再向上</option>
+          <option value="up-right">先向上，再向右</option>
+          <option value="up-left">先向上，再向左</option>
+          <option value="down-right">先向下，再向右</option>
+          <option value="down-left">先向下，再向左</option>
+        </select>
+        <label for="gesture-combo-action">执行动作</label>
+        <select id="gesture-combo-action" disabled>
+          <option value="none">未配置（不执行）</option>
+          <option value="left">后退</option>
+          <option value="right">前进</option>
+          <option value="up">刷新</option>
+          <option value="down">滚动到底部</option>
+        </select>
+      </div>
+      <p class="mg-note">只有完成两段并松开，才执行已保存的动作。</p>
+    </div>
   </details>
   <p id="gesture-error" class="mg-error" role="alert" hidden></p>
 </section>

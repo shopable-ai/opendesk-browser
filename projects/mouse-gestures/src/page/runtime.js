@@ -29,7 +29,8 @@ export function createMouseGestureRuntime({ui,bridge=globalThis.OpenDeskAppPage,
       const enabled=prefs.enabled!==false;
       gesture.setOptions?.({
         trigger:prefs.trigger==='alt-left'?'alt-left':'right',
-        showTrace:prefs.showTrace!==false
+        showTrace:prefs.showTrace!==false,
+        gestureMappings:prefs.gestureMappings||{}
       });
       gesture.setEnabled(enabled);
       return enabled;
