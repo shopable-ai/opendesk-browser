@@ -1,0 +1,69 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="od-preview-kind" content="DESIGN_REVIEW_ONLY_NOT_SOURCE_PARITY">
+<title>OpenDesk AI Insight R5 · 可点击原型</title>
+<style>
+:root{--od-ink:#1b2c49;--od-sub:#53647e;--od-line:#dfe6ef;--od-brand:#365eda;--od-paper:#fff;--od-bg:#f5f7fb;--od-muted:#edf2fa;--od-positive:#117a5d;--od-negative:#ae3d4b;--od-warning:#80510d;--od-focus:#365eda;color-scheme:light;font:13px/1.55 -apple-system,BlinkMacSystemFont,"SF Pro Text","PingFang SC",system-ui,sans-serif}
+:root[data-theme=dark]{--od-ink:#e9eef7;--od-sub:#b3c1d3;--od-line:#374457;--od-brand:#9dc1ff;--od-paper:#151c28;--od-bg:#101722;--od-muted:#222d3e;--od-positive:#a1f3cc;--od-negative:#ff9ea6;--od-warning:#ffd08a;--od-focus:#9dc1ff;color-scheme:dark}
+*{box-sizing:border-box}[hidden]{display:none!important}html,body{margin:0;background:var(--od-bg);color:var(--od-ink)}button,select,input{font:inherit}button{cursor:pointer;min-height:34px;padding:7px 10px;border:1px solid var(--od-line);border-radius:8px;background:var(--od-paper);color:var(--od-ink)}button:hover:not(:disabled){background:var(--od-muted)}button:disabled{opacity:.5;cursor:not-allowed}button.primary{background:#365eda;border-color:#365eda;color:#fff}button.primary:hover{background:#294cac}button.danger{color:var(--od-negative);border-color:var(--od-negative)}button.selected{background:var(--od-muted);border-color:var(--od-brand)}:focus-visible{outline:2px solid var(--od-focus);outline-offset:2px}
+select,input{min-height:36px;max-width:100%;padding:7px 9px;border:1px solid var(--od-line);border-radius:8px;background:var(--od-paper);color:var(--od-ink)}h1,h2,h3,p{margin:0}h1{font-size:19px}h2{font-size:15px}h3{font-size:13px}.muted{color:var(--od-sub)}.hint{font-size:11px;color:var(--od-sub);line-height:1.6}.note{font-size:12px;color:var(--od-sub);line-height:1.65}.row{display:flex;align-items:center;gap:8px;flex-wrap:wrap}.between{justify-content:space-between}.stack{display:grid;gap:12px}.mt{margin-top:10px}.badge{display:inline-block;padding:2px 7px;border-radius:50px;border:1px solid var(--od-line);font-size:11px;color:var(--od-sub);background:var(--od-muted)}.badge.good{color:var(--od-positive)}.badge.warn{color:var(--od-warning)}.badge.bad{color:var(--od-negative)}.surface{min-width:0;background:var(--od-paper);border:1px solid var(--od-line);border-radius:12px}.pad{padding:14px}.item{border:1px solid var(--od-line);padding:11px;border-radius:9px;display:grid;gap:6px}.list{display:grid;gap:8px}.divide{border:0;border-top:1px solid var(--od-line);margin:12px 0}.stat-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:9px}.stat strong{font-size:21px;display:block}.stat{padding:12px}.stat span{display:block;font-size:11px;color:var(--od-sub)}.top{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;padding:12px max(12px,calc((100vw - 1200px)/2));background:var(--od-paper);border-bottom:1px solid var(--od-line)}.controls{display:flex;align-items:center;flex-wrap:wrap;gap:7px;padding:10px max(12px,calc((100vw - 1200px)/2));border-bottom:1px solid var(--od-line)}.controls button{font-size:12px;min-height:31px}.demo{padding:5px 8px;border-radius:6px;background:var(--od-muted);color:var(--od-warning);font-size:11px}.pc-layout{max-width:1220px;margin:18px auto 45px;padding:0 12px;display:grid;grid-template-columns:214px minmax(0,1fr);gap:14px}.pc-nav{align-self:start;position:sticky;top:12px;padding:8px}.pc-nav button{display:block;width:100%;text-align:left;border:0;background:transparent;padding:10px}.pc-nav button.selected{background:var(--od-muted);color:var(--od-brand);font-weight:700}.main-col{min-width:0;display:grid;gap:12px;align-content:start}.header-row{display:flex;justify-content:space-between;align-items:flex-start;flex-wrap:wrap;gap:10px}.panel{width:min(96%,370px);margin:18px auto 36px;overflow:hidden;box-shadow:0 14px 36px #1c2a4615}.panel-head{padding:12px;border-bottom:1px solid var(--od-line)}.panel-scroll{padding:12px;min-height:440px;max-height:72vh;overflow:auto}.site{max-width:880px;margin:24px auto;padding:0 12px}.fake-chat{min-height:330px;display:grid;place-content:center;text-align:center;gap:14px;padding:24px}.fake-prompt{background:var(--od-muted);border-radius:10px;padding:14px;max-width:470px;text-align:left}.site-strip{margin:0 12px 12px;border-radius:9px;background:var(--od-muted);border:1px solid var(--od-line);padding:10px;display:flex;align-items:center;justify-content:space-between;gap:8px;flex-wrap:wrap}.timeline-row{display:grid;grid-template-columns:120px minmax(0,1fr) 74px;align-items:center;gap:8px;margin:12px 0;font-size:12px}.track{position:relative;height:24px;border-radius:6px;background:var(--od-muted);overflow:hidden}.bar{position:absolute;top:4px;bottom:4px;border-radius:5px;background:#557bd8}.bar.claude{background:#ba8a5c}.bar.unknown{background:repeating-linear-gradient(45deg,#879ab8 0 4px,#d1dae6 4px 8px)}.ticks{display:flex;justify-content:space-between;margin-left:128px;margin-right:83px;color:var(--od-sub);font-size:10px}.notice{padding:11px 14px;border-radius:6px;border-left:3px solid var(--od-warning);background:var(--od-muted)}.notice.error{border-left-color:var(--od-negative)}.empty{padding:35px 16px;text-align:center}.empty h2{margin-bottom:8px}.stage{border-left:2px solid var(--od-line);padding:7px 0 9px 13px;display:grid;gap:10px}.stage div{border-bottom:1px solid var(--od-line);padding-bottom:8px}.stage div:last-child{border:0}.sr{position:absolute;clip:rect(0,0,0,0);width:1px;height:1px;overflow:hidden}
+dialog{width:min(92vw,430px);border:1px solid var(--od-line);border-radius:12px;padding:18px;background:var(--od-paper);color:var(--od-ink);box-shadow:0 16px 56px #11182755}dialog::backdrop{background:#14203b9c}dialog input{display:block;width:100%;margin:9px 0}.dialog-actions{display:flex;justify-content:flex-end;gap:8px;margin-top:14px}
+@media(max-width:740px){.pc-layout{display:block}.pc-nav{position:static;display:flex;overflow-x:auto;gap:4px;margin-bottom:12px}.pc-nav button{flex:0 0 auto;width:auto;white-space:nowrap}.stat-grid{grid-template-columns:repeat(2,minmax(0,1fr))}.timeline-row{grid-template-columns:85px minmax(0,1fr) 60px;gap:5px}.ticks{margin-left:90px;margin-right:65px}}
+@media(max-width:390px){.stat strong{font-size:18px}.stat{padding:10px}.panel{width:100%;border-left:0;border-right:0;border-radius:0}}
+@media(prefers-reduced-motion:reduce){*{scroll-behavior:auto!important;transition:none!important}}
+</style>
+</head>
+<body>
+<header class="top"><div class="row"><strong>◈ OpenDesk AI Insight</strong><span class="badge">R5 原型</span></div><div class="row"><span class="demo">全部为模拟数据 · 无网站访问</span><button type="button" data-act="theme" id="theme-btn">切换暗色</button></div></header>
+<div class="controls" aria-label="原型设置">
+ <span class="hint">呈现端</span>
+ <button type="button" data-act="surface" data-val="pc">PC 工作台</button>
+ <button type="button" data-act="surface" data-val="panel">Side Panel</button>
+ <button type="button" data-act="surface" data-val="site">网页轻提示</button>
+ <span class="hint">模拟场景</span>
+ <select id="scenario" aria-label="模拟数据场景"><option value="normal">正常</option><option value="empty">无数据</option><option value="partial">部分数据</option><option value="error">观察错误</option><option value="privacy">隐私关闭</option></select>
+ <button type="button" data-act="reset">重置演示</button>
+</div>
+<div id="live" class="sr" role="status" aria-live="polite"></div>
+<section id="pc" class="pc-layout" aria-label="PC 工作台">
+ <nav class="pc-nav surface" aria-label="工作台页面">
+   <button data-act="tab" data-val="problems" type="button">问题中心</button>
+   <button data-act="tab" data-val="timeline" type="button">执行与并行</button>
+   <button data-act="tab" data-val="outcomes" type="button">成果与证据</button>
+   <button data-act="tab" data-val="restore" type="button">工作恢复</button>
+   <button data-act="tab" data-val="weekly" type="button">周复盘</button>
+   <button data-act="tab" data-val="privacy" type="button">隐私与数据</button>
+ </nav>
+ <main class="main-col">
+   <div class="header-row"><div><div class="hint">OPEN DESK / AI INSIGHT</div><h1 id="page-title">问题中心</h1><p class="note">以真实问题为中心 · 观察不等于推断</p></div><button data-act="new" class="primary" type="button">＋ 创建问题</button></div>
+   <div id="pc-message"></div>
+   <div data-pane="problems" class="stack">
+    <section class="surface pad"><div id="pc-summary"></div></section>
+    <div id="pc-stats"></div>
+    <section class="surface pad"><h2>跨 AI 关联候选</h2><p class="note">系统只提出候选，不能根据相似标题自动合并。</p><div id="pc-candidates" class="list mt"></div></section>
+    <section class="surface pad"><h2>已确认的关联对话</h2><div id="pc-links" class="list mt"></div></section>
+    <section class="surface pad"><h2>全部问题</h2><div id="pc-problems" class="list mt"></div></section>
+   </div>
+   <div data-pane="timeline" class="stack"><section class="surface pad"><h2>AI 执行观察时间线</h2><p class="note mt">40 分钟与 25 分钟并行任务重叠 25 分钟：区间合计 65，并集 40。后台可观察 ≠ 服务端计算 ≠ 用户注意力。</p><div class="ticks mt"><span>0m</span><span>20m</span><span>40m</span><span>60m</span><span>70m</span></div><div id="pc-timeline"></div><hr class="divide"><div id="pc-metrics"></div></section></div>
+   <div data-pane="outcomes" class="stack"><section class="surface pad"><h2>成果确认与证据</h2><p class="note mt">AI 自称完成、用户确认、独立测试回执，不是同一件事。</p><div id="pc-outcome" class="mt"></div></section></div>
+   <div data-pane="restore" class="stack"><section class="surface pad"><h2>继续工作摘要</h2><div id="pc-restore" class="stage mt"></div></section></div>
+   <div data-pane="weekly" class="stack"><section class="surface pad"><h2>周复盘（模拟）</h2><div id="pc-weekly"></div></section></div>
+   <div data-pane="privacy" class="stack"><section class="surface pad"><h2>按站点与账号管理授权</h2><p class="note mt">元数据与聊天正文分级授权；本预览没有持久存储、外发请求或历史读取。</p><div id="pc-privacy" class="list mt"></div><div class="row mt"><button class="danger" data-act="privacy" type="button">暂停所有采集（演示）</button><button class="danger" data-act="delete" type="button">删除当前模拟问题</button></div></section></div>
+ </main>
+</section>
+<section id="panel" class="panel surface" aria-label="Side Panel" hidden>
+ <header class="panel-head row between"><strong>◈ AI Insight</strong><div class="row"><button data-act="new" type="button">＋ 问题</button><button data-act="surface" data-val="pc" type="button">PC</button></div></header>
+ <div class="panel-scroll stack"><div id="panel-message"></div><section class="surface pad"><h2>当前问题与下一步</h2><div id="panel-summary"></div></section><section class="surface pad"><h2>关联候选</h2><div id="panel-candidates" class="list mt"></div></section><section class="surface pad"><h2>关联对话</h2><div id="panel-links" class="list mt"></div></section><section class="surface pad"><h2>执行区间</h2><div id="panel-metrics"></div></section><section class="surface pad"><h2>成果验收</h2><div id="panel-outcome"></div></section><section class="surface pad"><h2>授权控制</h2><div id="panel-privacy" class="list mt"></div></section></div>
+</section>
+<section id="site" class="site" aria-label="网页轻提示" hidden>
+ <div class="surface"><header class="pad"><strong>受控 AI 网页模拟</strong><p class="hint">不注入实际 ChatGPT / Claude 页面</p></header><div class="fake-chat"><h2>示例 AI 对话 A</h2><div class="fake-prompt">请修复浏览器扩展保存失败，并提供可复现的验收步骤。</div><p class="note">这里的回复和运行状态均为演示。</p></div><div class="site-strip"><div><strong>◈ 当前问题</strong><div id="site-summary" class="note"></div></div><button data-act="surface" data-val="panel" class="primary" type="button">打开 Side Panel</button></div></div>
+ <p class="note mt">正式网页提示须避让输入框与网站操作区；此界面不代表真实 Content Script。</p>
+</section>
+<dialog id="create-dialog" aria-labelledby="create-title"><form id="create-form"><h2 id="create-title">创建真实问题（模拟）</h2><p class="note mt">仅创建本地内存对象，不自动读取私人聊天。</p><label for="new-name">问题名称 *</label><input id="new-name" name="name" maxlength="120" required placeholder="例如：修复页面按钮失效"><div class="dialog-actions"><button type="button" data-act="cancel">取消</button><button type="submit" class="primary">创建</button></div></form></dialog>
+<dialog id="delete-dialog" aria-labelledby="delete-title"><h2 id="delete-title">删除模拟问题？</h2><p class="note mt">清理该 Problem 的关联、独占派生记录和演示证据。共享数据仍按其他 Problem 的归属保留。</p><div class="dialog-actions"><button type="button" data-act="cancel">取消</button><button type="button" data-act="confirm-delete" class="danger">确认删除</button></div></dialog>
+<script src="../src/insight-core.js"></script>
+<script src="./preview.js"></script>
+</body>
+</html>
