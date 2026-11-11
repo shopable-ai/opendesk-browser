@@ -584,7 +584,7 @@ export function createChatGPTBridgeTriggerLedger({storage,revocationStorage,cloc
       requireRequestId(requestId);
       if(!plain(observation))throw fail('E_BRIDGE_SCHEMA','网页观察必须为受限对象');
       const patch={};
-      for(const key of ['execution','persistence','release','delivery','aiReplyObserved','runId','resultId','error']){
+      for(const key of ['execution','persistence','release','delivery','aiReplyObserved','runId','resultId','messageId','contentSha256','error']){
         if(!Object.hasOwn(observation,key))continue;
         const value=observation[key];
         if(key==='error'){
@@ -592,6 +592,8 @@ export function createChatGPTBridgeTriggerLedger({storage,revocationStorage,cloc
             Object.entries(value).some(([field,text])=>typeof text!=='string'||text.length>(field==='code'?128:2048))))
             throw fail('E_BRIDGE_SCHEMA','网页观察错误对象不合法或超限');
         }else if(key==='aiReplyObserved'?typeof value!=='boolean':
+          key==='messageId'?(typeof value!=='string'||!/^[A-Za-z0-9._:-]{8,128}$/u.test(value)):
+          key==='contentSha256'?(typeof value!=='string'||!/^[a-f0-9]{64}$/u.test(value)):
           typeof value!=='string'||!value||value.length>128){
           throw fail('E_BRIDGE_SCHEMA','网页观察字段不合法或超限');
         }

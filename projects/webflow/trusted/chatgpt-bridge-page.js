@@ -1,4 +1,5 @@
 import {createChatGPTBridgeSite} from '../../../src/native-agent/chatgpt-bridge-site.js';
+import {digestUtf8} from '../../../src/platform/protocol.js';
 import {createChatGPTTaskDiscovery} from '../../../src/native-agent/chatgpt-task-discovery.js';
 import {chatGPTConversationId,inspectChatGPTEditsOnPage} from '../../../src/native-agent/workspace-chatgpt.js';
 import {validateChatGPTTaskIntent,CHATGPT_TASK_INTENT_PROTOCOL,validateChatGPTTaskRequest,CHATGPT_TASK_REQUEST_PROTOCOL,FIXED_PAGE_TASK_ID,BAIDU_TASK_ID,FIXED_PAGE_URL,baiduSearchTarget} from '../../../src/native-agent/chatgpt-task-request.js';
@@ -1000,6 +1001,14 @@ export function initChatGPTFixedBridgePage({api=chrome,doc=document,win=window,
       }
     }
     if(!userObserved)throw fail('E_CHAT_DELIVERY_UNKNOWN','未观察到唯一的新增用户消息；禁止重发');
+    // Official message IDs are optional for legacy delivery, but mandatory
+    // evidence for independent WebFlow readA. Text observation alone is not
+    // a durable receipt. Never turn a missing ID into a guessed message ID.
+    const observedId=resultUser?.getAttribute?.('data-message-id');
+    const observedMessageProof=typeof observedId==='string'&&
+      /^[A-Za-z0-9._:-]{8,128}$/u.test(observedId)&&
+      site.inspect().users.filter(node=>node.getAttribute?.('data-message-id')===observedId).length===1?
+      {messageId:observedId,contentSha256:await digestUtf8(message.text)}:null;
     // Our durable-result message is data for the current AI continuation, never
     // a fresh user command. Exclude its exact turn even if discovery ran before
     // delivery confirmation or the website later remounts that message.
@@ -1020,7 +1029,7 @@ export function initChatGPTFixedBridgePage({api=chrome,doc=document,win=window,
     }
     note(aiReplyObserved?'原对话已收到结果，且官方 AI 完成新回复':
       '已证实原对话收到结果；官方 AI 是否完成本轮回复尚未证实');
-    return {sent:true,userObserved:true,aiReplyObserved};
+    return {sent:true,userObserved:true,aiReplyObserved,...(observedMessageProof??{})};
     }finally{deliveryPending=false;update();scheduleCheck();}
   };
   // A probe is a read-only challenge, not request admission or native-ledger proof.

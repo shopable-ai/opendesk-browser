@@ -5,6 +5,7 @@ import {createChatGPTBridgeTriggerLedger,CHATGPT_BRIDGE_LEDGER_KEY,CHATGPT_BRIDG
   from '../../../src/native-agent/chatgpt-bridge-trigger-gate.js';
 import {WEB_TASK_PROTOCOL} from '../../../src/page-events/web-task-contract.js';
 import {encodeValue} from '../../../src/platform/page-port/codec.js';
+import {digestUtf8} from '../../../src/platform/protocol.js';
 
 const source={tabId:4,documentId:'chat-document',url:'https://chatgpt.com/c/background-test'};
 const scope={taskId:'baidu.search.top3',args:{query:'OpenDesk Browser',limit:3},targetUrl:'https://www.baidu.com/',
@@ -32,6 +33,7 @@ function fixture(){
         if(message.kind==='progress')return {ok:true};
         if(state.deliveryError)throw Error('ACK lost');
         if(state.deliveryReply)return structuredClone(state.deliveryReply);
+        if(state.deliveryReplyFactory)return state.deliveryReplyFactory(message);
         return {ok:true,data:{sent:true,userObserved:true,aiReplyObserved:true}};}},
     webNavigation:{onCommitted:event(),onHistoryStateUpdated:event(),onReferenceFragmentUpdated:event(),getFrame:async()=>({
       documentId:source.documentId,url:source.url,documentLifecycle:'active'})}};
@@ -407,4 +409,39 @@ test('foreground activation reservation is a durable one-use marker across worke
   await assert.rejects(h.ledger.reserveWebTaskActivation({requestId,source,runId}),{code:'E_BRIDGE_REPLAY'});
   h.restart();
   await assert.rejects(h.ledger.reserveWebTaskActivation({requestId,source,runId}),{code:'E_BRIDGE_REPLAY'});
+});
+
+test('exact observed A message ID and delivery text hash survive a read-only restart',async()=>{
+  const h=fixture();await h.approve();const row=await h.completed();
+  h.state.deliveryReplyFactory=async message=>({ok:true,data:{
+    sent:true,userObserved:true,aiReplyObserved:false,messageId:'user-message-0001',
+    contentSha256:await digestUtf8(message.text)
+  }});
+  await h.handle('settle',{requestId:row.requestId});
+  const saved=h.values[CHATGPT_BRIDGE_LEDGER_KEY][row.requestId];
+  assert.equal(saved.webObservation.messageId,'user-message-0001');
+  assert.match(saved.webObservation.contentSha256,/^[a-f0-9]{64}$/);
+  h.restart();
+  const [history]=await h.handle('history',{source},h.panel);
+  assert.equal(history.receipt.messageId,'user-message-0001');
+  assert.equal(history.receipt.contentSha256,saved.webObservation.contentSha256);
+  assert.equal(h.sent.filter(item=>item.message.kind==='deliver').length,1);
+});
+
+test('mismatching A message identity or content hash stays UNKNOWN and never resends',async()=>{
+  for(const mismatch of ['hash','messageId']){
+    const h=fixture();await h.approve();const row=await h.completed();
+    h.state.deliveryReplyFactory=async message=>({ok:true,data:{
+      sent:true,userObserved:true,aiReplyObserved:false,
+      messageId:mismatch==='messageId'?'not valid':'user-message-0001',
+      contentSha256:mismatch==='hash'?'a'.repeat(64):await digestUtf8(message.text)
+    }});
+    await assert.rejects(h.handle('settle',{requestId:row.requestId}),{code:'E_CHAT_DELIVERY_PROOF'});
+    const saved=h.values[CHATGPT_BRIDGE_LEDGER_KEY][row.requestId];
+    assert.equal(saved.webDelivery,'dispatching');
+    assert.equal(saved.webObservation.delivery,'unknown');
+    h.restart();
+    await h.handle('settle',{requestId:row.requestId});
+    assert.equal(h.sent.filter(item=>item.message.kind==='deliver').length,1);
+  }
 });

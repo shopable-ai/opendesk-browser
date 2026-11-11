@@ -1,4 +1,5 @@
 import {resolveToolSender,permissionPattern} from '../environment.js';
+import {digestUtf8} from '../platform/protocol.js';
 import {requireCloudRunnerSender,requireCloudSidePanelSender} from '../platform/host/cloud-observer.js';
 import {toolDocumentIdentity,SIDEPANEL_DOCUMENT_PATH,CLOUD_RUNNER_DOCUMENT_PATH} from '../tool-document-url.js';
 import {validateWebFlowTaskIntent,WEBFLOW_TASK_INTENT_V2_PROTOCOL} from '../native-agent/chatgpt-task-request.js';
@@ -211,7 +212,7 @@ export function createWebTaskIngress({api,ledger,loadFoundation,ensureRunner,ver
     // Same durable trigger row carries only a delivery fence, never a second Result.
     const approval=ledger.captureAutoPolicyEpoch();
     await ledger.markWebTaskDelivery(message.requestId,'dispatching');
-    let reply;
+    let reply,observedMessageProof=null;
     try{
       // The dispatch fence already exists. Retain final-check failures too,
       // without reopening this request for another delivery attempt.
@@ -219,13 +220,23 @@ export function createWebTaskIngress({api,ledger,loadFoundation,ensureRunner,ver
       const deliveryFinal=await ledger.assertWebTaskDelivery(message.requestId,row.source);
       if(approval!==ledger.captureAutoPolicyEpoch())throw fail('E_WEBFLOW_AUTO_DENIED','交付期间持续批准已改变');
       final();deliveryFinal();
-      reply=await api.tabs.sendMessage(row.source.tabId,isChatGPT?chatgpt.delivery(row,durable,message.requestId):
-        {protocol:WEB_TASK_PROTOCOL,kind:'deliver',sourceUrl:row.source.url,requestId:message.requestId,result},
-      {documentId:row.source.documentId});
+      const outgoing=isChatGPT?chatgpt.delivery(row,durable,message.requestId):
+        {protocol:WEB_TASK_PROTOCOL,kind:'deliver',sourceUrl:row.source.url,requestId:message.requestId,result};
+      reply=await api.tabs.sendMessage(row.source.tabId,outgoing,{documentId:row.source.documentId});
       if(isChatGPT&&reply?.ok===false&&typeof reply.error?.code==='string'&&typeof reply.error.message==='string')
         throw fail(reply.error.code.slice(0,128),reply.error.message.slice(0,2048));
       if(reply?.ok!==true||isChatGPT&&(reply.data?.sent!==true||reply.data?.userObserved!==true))
         throw fail('E_WEB_TASK_UNKNOWN','结果交付回执未知，禁止自动重发');
+      // Proof is accepted only when it binds an official observed A message ID
+      // to the exact original Controller text. Reject incomplete or forged
+      // evidence without ever re-opening the one-use send tombstone.
+      if(isChatGPT&&(Object.hasOwn(reply.data,'messageId')||Object.hasOwn(reply.data,'contentSha256'))){
+        const {messageId,contentSha256}=reply.data;
+        if(typeof messageId!=='string'||!/^[A-Za-z0-9._:-]{8,128}$/u.test(messageId)||
+          contentSha256!==await digestUtf8(outgoing.text))
+          throw fail('E_CHAT_DELIVERY_PROOF','原对话新增消息身份或内容 SHA-256 不匹配，禁止确认交付');
+        observedMessageProof={messageId,contentSha256};
+      }
     }catch(error){
       if(isChatGPT)await ledger.recordWebTaskObservation(message.requestId,{delivery:'unknown',
         error:{code:error.code||'E_WEB_TASK_UNKNOWN',message:error.message}});
@@ -233,7 +244,7 @@ export function createWebTaskIngress({api,ledger,loadFoundation,ensureRunner,ver
     }
     await ledger.markWebTaskDelivery(message.requestId,'delivered');
     if(isChatGPT)await ledger.recordWebTaskObservation(message.requestId,{delivery:'confirmed',
-      aiReplyObserved:reply.data.aiReplyObserved===true});
+      aiReplyObserved:reply.data.aiReplyObserved===true,...(observedMessageProof??{})});
     return {requestId:message.requestId,state:'completed',runId:durable.runId,resultId:durable.resultId};
   }
   function receiptFor(row,run){
