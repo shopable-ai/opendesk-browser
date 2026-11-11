@@ -440,7 +440,7 @@ function saveEditor(){
  error.hidden=true;
  const success=apply(next=>{
   if(draft.id){const idx=next.rules.findIndex(r=>r.id===draft.id);if(idx<0)throw Error('规则已不存在');next.rules[idx]=clone(draft)}
-  else{next.rules.push({...clone(draft),id:'local-'+(++uid)})}
+  else{let id;do{id='local-'+(++uid)}while(next.rules.some(r=>r.id===id));next.rules.push({...clone(draft),id})}
  });
  if(success)closeEditor(true);
  else{error.hidden=false;error.textContent='模拟保存失败，未写入任何配置。请更换演示场景重试。'}
@@ -648,9 +648,9 @@ document.addEventListener('input',e=>{
  const t=e.target;
  if(t.id==='search-rule'){const pos=t.selectionStart;query=t.value;renderPC();const n=$('search-rule');n.focus();try{n.setSelectionRange(pos,pos)}catch{}}
  if(t.id==='edit-name'&&draft)draft.name=t.value;
- if(t.id==='trail-color')apply(next=>{next.appearance.color=t.value});
- if(t.id==='trail-width')apply(next=>{next.appearance.width=Number(t.value)});
- if(t.id==='trail-threshold')apply(next=>{next.appearance.threshold=Number(t.value)});
+ if(t.id==='trail-color')$('web-demo').style.setProperty('--trail-color',t.value);
+ if(t.id==='trail-width'){$('web-demo').style.setProperty('--trail-width',t.value);t.closest('.setting-row').querySelector('p').textContent='当前 '+t.value+'px'}
+ if(t.id==='trail-threshold')t.closest('.setting-row').querySelector('p').textContent='当前 '+t.value+'px，仅模拟左键轨迹';
 });
 document.addEventListener('change',e=>{
  const t=e.target;
@@ -659,6 +659,9 @@ document.addEventListener('change',e=>{
  if(t.id==='current-site'){currentSite=t.value;renderAll();return}
  if(t.id==='pc-global'||t.id==='side-global'){const checked=t.checked;apply(next=>{next.global=checked});renderAll();return}
  if(t.id==='side-site'){const checked=t.checked;apply(next=>{const s=next.sites.find(s=>s.domain===currentSite);if(s)s.mode=checked?'on':'off'});renderAll();return}
+ if(t.id==='trail-color'){apply(next=>{next.appearance.color=t.value});return}
+ if(t.id==='trail-width'){apply(next=>{next.appearance.width=Number(t.value)});return}
+ if(t.id==='trail-threshold'){apply(next=>{next.appearance.threshold=Number(t.value)});return}
  if(t.id==='trail-feedback'){apply(next=>{next.appearance.feedback=t.checked});return}
  if(t.dataset.siteMode){const mode=t.value,domain=t.dataset.siteMode;apply(next=>{const s=next.sites.find(s=>s.domain===domain);if(s)s.mode=mode});return}
  if(t.id.startsWith('rule-')){const id=t.id.slice(5),checked=t.checked;
