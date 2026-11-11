@@ -1,3 +1,19 @@
+## OD-UNIFIED-TASK-IMPORT-R1 · 统一可信导入与 Web Flow 添加入口（2026-11-11）
+
+**原始目标：** 普通用户在「我的」拖入或选择文件进入正确的草稿/候选流程；Web Flow 从已审阅任务中选择、引导开发或导入，并且不能绕过可信安装/固定授权；复用一个 TaskWorkbench、RunHost、TaskRunSheet。
+
+**设计基线（本任务启动时，非完成证据）：**
+- 已有 `src/ui/task-workbench.js:readFile(fileOverride)`、两个可信宿主文件选择器、共享 TaskRunSheet；Web Flow 当前固定百度/Google 两个 Controller Task pin，正式包/配置基线 **0.3.32**，HTML 添加原型非生产入口。
+- 选择 B：一个 Host 导入器、多个安全 UI 消费者。禁止新建安装器/权限 Store/Runner。Web Flow 沙箱缺少任意文件导入/导航/动态 Task Picker 的通用公开授权入口，当前只允许指引而非伪点击或执行，相关 R2 SDK 缺口须单独论证。
+- 三方案比较：A 双解析器可迅速独立开发但验证/权限行为漂移、维护成本高；B 复用现有读文件与原 Host、最小权限最易回归；C 新建脚本中心在既有核心之上重复数据库与流程、迁移风险最大。此阶段采用 B。
+- 阶段 Owner：文件选择/拖放 → 可信 React；格式校验/草稿或候选 → TaskWorkbench+现有 validator/Host；核验 → 原 Run 证据；安装及 Authority → 可信 Installer；固定应用委托 → 审阅后的 Web Flow 包；运行/持久结果 → 原 TaskRunSheet+RunHost；业务结果 → 原持久记录与用户独立核对。
+- 失败与恢复：错误 JSON/不支持格式/超限/多文件在导入前拒绝；主机不可用时保留清晰错误；重复与版本冲突交由现有身份 Authority，不能在界面自证成功；UNKNOWN 只读查询或停止；撤权后重新审阅，不通过重新拖放取得新权限。
+- R1 定向验收以本次代码和 CI/现场回执为准；原 Chrome 证据与其他任务测试不能继承。
+
+**实施与最终验收：** 本卡后续将依据 GitHub 实际提交和实测证据回填；写入本段不构成 SOURCE/NODE/PACKAGE/CHROME 的 PASS。不得自动更新正式工具包或将历史 0.3.32 的构建/装机当作新源码验证。
+
+---
+
 ## 概览清理 R1（2026-11-11；OD-WEBFLOW-OVERVIEW-CLEANUP-R1）
 
 **本轮最小闭环：** 原打开的 Web Flow 概览已复现开发卡片、原请求 UUID 和含混统计。保留三 Tab、现有脚本配置及记录恢复；首页只显示普通状态、真实脚本统计和最近活动摘要，原身份仅在记录详情保留。删除首页 Markdown 入口，不改其引擎或数据。
