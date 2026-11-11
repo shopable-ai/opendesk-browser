@@ -191,7 +191,8 @@ export function createWebTaskIngress({api,ledger,loadFoundation,ensureRunner,ver
       runId:run.runId,resultId:run.resultId,delivery:row.webDelivery==='delivered'?'confirmed':'unknown'};
     await verifySubmission(row,actual);
     const snapshot=await broker.authority.snapshotControllerRun({runId:run.runId},actual);
-    const durable=verifyChatGPTTaskDurableResult(snapshot,run.runId,row.scope.installation,row.scope);
+    const durable=verifyChatGPTTaskDurableResult(snapshot,run.runId,row.scope.installation,
+      {...row.scope,requestId:message.requestId});
     if(isReviewedBPrepare(row)){
       // The PREPARE Run is final only as an unsent draft, NOT as the B reply.
       // Verify the real surviving B document and persist its proof on the
@@ -314,7 +315,8 @@ export function createWebTaskIngress({api,ledger,loadFoundation,ensureRunner,ver
           const final=await historyReadFence(row,broker,approval);
           const snapshot=await broker.authority.snapshotControllerRun({runId:run.runId},actual);
           const projection=run.state==='completed'?
-            {value:verifyChatGPTTaskDurableResult(snapshot,run.runId,row.scope.installation,row.scope).value}:
+            {value:verifyChatGPTTaskDurableResult(snapshot,run.runId,row.scope.installation,
+              {...row.scope,requestId:row.requestId}).value}:
             {error:terminalError(snapshot,run,row.scope.installation)};
           await historyReadFence(row,broker,approval);
           final();Object.assign(receipt,{persistence:'verified',...projection});
@@ -375,7 +377,8 @@ export function createWebTaskIngress({api,ledger,loadFoundation,ensureRunner,ver
       throw fail('E_WEB_TASK_OWNER','原后台宿主已失联，只能查询原记录');
     const actual=await runner({id:api.runtime.id,url:ownerUrl,documentId:contexts[0].documentId,frameId:0});
     const snapshot=await broker.authority.snapshotControllerRun({runId:run.runId},actual);
-    verifyChatGPTTaskDurableResult(snapshot,run.runId,row.scope.installation,row.scope);
+    verifyChatGPTTaskDurableResult(snapshot,run.runId,row.scope.installation,
+      {...row.scope,requestId:message.requestId});
     const approval=ledger.captureAutoPolicyEpoch(),final=await verifySite(row);
     await assertTaskApproval(row,message.requestId,source);
     if(approval!==ledger.captureAutoPolicyEpoch())throw fail('E_WEBFLOW_AUTO_DENIED','交付核验期间持续批准改变');
