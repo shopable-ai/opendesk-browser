@@ -63,7 +63,9 @@ node --check projects/mouse-gestures/src/main.js
 
 公开 `OpenDeskSDK.browser.tabs.*Owned` 只操作本工具 Owned TabRef，不能凭网页手势关闭/切换/恢复用户任意已有标签。Page `history.back()` 本轮不需要 SDK 增量。Chrome 原生 `tabs` API 属扩展页/Service Worker，`sessions.restore` 要独立 `sessions` 权限；这不等于 USER_SCRIPT 已获得调用权限。后续最小方案必须由平台 owner 独立证明 SDK Gap，限定当前真实 Sender/tabId/documentId、窗口与安装授权代数，并从可信来源证实用户手势，单独审阅恢复权限与破坏性动作，保守处理撤权和 UNKNOWN；不接受脚本自报 `isTrusted` 或任意 tabId。当前结论：`SDK_GAP_NOT_PROVEN`；普通 Page 直接控制他人标签 `BLOCKED`。
 
-## 下一轮：正式交互预览与配置管理
+## 历史计划：当时的下一轮（0.1.0，非当前待办）
+
+以下保留当时计划，不要求重做已经完成的预览、四方向或存储，也不覆盖顶部 R3 可安装候选与真实 Chrome 待验收状态。
 
 只在既有代码上增量：先完成真实 Chrome 的右键菜单时序取舍；再在 `preview/` 制作可点击单文件 PC+Side Panel 预览，复用现有布局与 Tokens，配置最小字段为 `enabled` / `gestureThreshold` / `siteExclusions` / `gestureMappings` / `showTrace`；最终用应用私有 `storage.local` 与 ETag/CAS 保证保存→刷新→读取不覆盖并行设置。定向验证配置停用/站点撤权资源清理；预览、Node、Headless、已安装 Chrome/production 的证据严格分层。未验证前不发布正式包、不增加标签能力。
 
