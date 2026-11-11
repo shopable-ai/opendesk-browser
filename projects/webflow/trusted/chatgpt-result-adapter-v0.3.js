@@ -25,7 +25,9 @@ function verifyRun(snapshot,value,request){
     if(target.mode!=='owned'||selection?.mode!=='owned'||
       retained?.tabId!==target.tabId||retained.documentId!==target.documentId||
       retained.origin!==ORIGIN||retained.url!==ROOT||
-      run.retainedFrom!==undefined||run.retainedContinuation)
+      // The original PREPARE may later record a consumed continuation;
+      // reading its immutable draft result must still work for recovery.
+      run.retainedFrom!==undefined)
       fail('Unsent B was not retained as the sole original owned document');
   }else{
     // Controller admits this with an atomic retainedFrom journal and identical
