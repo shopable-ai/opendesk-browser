@@ -40,6 +40,7 @@ on:
       - 'projects/webflow/tests/chatgpt-v3-result.test.mjs'
       - 'projects/webflow/trusted/chatgpt-b-prepare-stage.js'
       - 'projects/webflow/tests/chatgpt-b-prepare-stage.test.mjs'
+      - 'projects/webflow/tests/chatgpt-b-prepare-ingress.test.mjs'
       - 'projects/webflow/trusted/chatgpt-result-adapter.js'
       - 'projects/webflow/src/github-issue-input.js'
       - 'projects/webflow/trusted/chatgpt-result-adapter.js'
@@ -126,6 +127,7 @@ jobs:
           node --check projects/webflow/tests/chatgpt-v3-result.test.mjs
           node --check projects/webflow/trusted/chatgpt-b-prepare-stage.js
           node --check projects/webflow/tests/chatgpt-b-prepare-stage.test.mjs
+          node --check projects/webflow/tests/chatgpt-b-prepare-ingress.test.mjs
           node --check projects/webflow/src/github-issue-input.js
           node --check projects/webflow/trusted/chatgpt-result-adapter.js
           node --check projects/webflow/trusted/chat-handoff-receipt.js
@@ -156,6 +158,7 @@ jobs:
             projects/webflow/tests/chatgpt-continuation-task.test.mjs \
             projects/webflow/tests/chatgpt-v3-result.test.mjs \
             projects/webflow/tests/chatgpt-b-prepare-stage.test.mjs \
+            projects/webflow/tests/chatgpt-b-prepare-ingress.test.mjs \
             projects/webflow/tests/chatgpt-create-result.test.mjs \
             projects/webflow/tests/chat-handoff-contract.test.mjs \
             projects/webflow/tests/github-issue-input.test.mjs \
