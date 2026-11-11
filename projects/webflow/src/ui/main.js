@@ -32,7 +32,8 @@
       more:'M5 12h.01 M12 12h.01 M19 12h.01',
       chevron:'m8 5 7 7-7 7',
       help:'M9 9a3 3 0 0 1 6 1c0 2-3 2-3 4 M12 17v.5 M12 21a9 9 0 1 0 0-18a9 9 0 0 0 0 18',
-      settings:'M4 7h7m4 0h5M4 17h3m4 0h9 M15 7a2 2 0 1 0-4 0 2 2 0 0 0 4 0 M11 17a2 2 0 1 0-4 0 2 2 0 0 0 4 0'
+      settings:'M4 7h7m4 0h5M4 17h3m4 0h9 M15 7a2 2 0 1 0-4 0 2 2 0 0 0 4 0 M11 17a2 2 0 1 0-4 0 2 2 0 0 0 4 0',
+      plus:'M12 5v14 M5 12h14'
     };
     return h('svg',{viewBox:'0 0 24 24',width:17,height:17,fill:filled?'currentColor':'none',
       stroke:'currentColor',strokeWidth:1.8,strokeLinecap:'round',strokeLinejoin:'round',
@@ -102,6 +103,11 @@
     const panelPreferenceRef=R.useRef({status:'loading',value:false,etag:null});
     const panelSavingRef=R.useRef(false),panelDirtyRef=R.useRef(false),panelReadEpoch=R.useRef(0);
     const [showFilters,setShowFilters]=R.useState(false);
+    const [scriptAdd,setScriptAdd]=R.useState(null);
+    const [codexGoal,setCodexGoal]=R.useState('');
+    const [codexTarget,setCodexTarget]=R.useState('');
+    const [codexText,setCodexText]=R.useState('');
+    const scriptAddReturnFocus=R.useRef(null);
     const [more,setMore]=R.useState(null);
     const [hostNavigation,setHostNavigation]=R.useState({base:false,actions:false});
     const returnTab=R.useRef('overview');
@@ -548,13 +554,61 @@
         if(alive.current)setError('宿主任务管理入口不可用：'+safeError(e));
       });
     };
+    const openScriptAdd=step=>{
+      if(!scriptAdd)scriptAddReturnFocus.current=tool.root.querySelector('#wf-add-script');
+      setScriptAdd(step);setShowFilters(false);setMore(null);
+    };
+    const closeScriptAdd=()=>{
+      setScriptAdd(null);
+      global.queueMicrotask(()=>{
+        const prior=scriptAddReturnFocus.current;
+        (prior?.isConnected?prior:tool.root.querySelector('#wf-add-script'))?.focus?.();
+        scriptAddReturnFocus.current=null;
+      });
+    };
+    R.useEffect(()=>{
+      if(!scriptAdd)return;
+      global.queueMicrotask(()=>tool.root.querySelector('#wf-script-add-sheet')?.focus?.());
+      const onEscape=event=>{
+        if(event.key!=='Escape'||event.isComposing||event.keyCode===229)return;
+        event.preventDefault();event.stopPropagation();closeScriptAdd();
+      };
+      tool.root.addEventListener('keydown',onEscape);
+      return ()=>tool.root.removeEventListener('keydown',onEscape);
+    },[scriptAdd]);
+    const codexPrompt=()=>`# GOAL：为 OpenDesk Browser 开发可验证的网页自动化任务
+仓库：https://github.com/shopable-ai/opendesk-browser
+唯一分支：main
+用户目标：${codexGoal.trim()||'[请填写任务需求]'}
+目标网站：${codexTarget.trim()||'[请填写完整网站 URL]'}
+
+先读 AGENTS.md、projects/webflow/AGENTS.md、项目 README 和公开脚本开发/程序发布 Skills。
+按真实用途确认 Controller Task / Page USER_SCRIPT / Sidebar Tool 类型，先检索现有源码与任务目录。
+Controller 使用受控 page/Locator，不在 Worker 访问网页 document；Page USER_SCRIPT 使用对应页面合同。
+复用原 Task Schema、TaskWorkbench、RunHost、Authority、Installer、原持久化结果，不创建新引擎。
+定义最小网站范围、输入参数 Schema、权限、唯一 ID、固定源码 Hash、可核对的完成条件。
+只在明确授权的安全测试页面试运行；区分草稿、候选、验证、安装、Web Flow 委托和业务成功。
+Web Flow 当前仅有安装包中已审阅的固定 delegatedTasks；不得自行关联或通过 sandbox 执行任意 taskId。
+失败/UNKNOWN 只读查询或停止原请求，不自动重放。最终列出实改文件、证据、阻塞与下一条操作。`;
+    const copyCodexPrompt=async()=>{
+      const value=codexText||codexPrompt();
+      try{
+        if(typeof global.navigator?.clipboard?.writeText!=='function')throw Error('clipboard unavailable');
+        await global.navigator.clipboard.writeText(value);
+        if(alive.current)showFeedback('提示词已复制；尚未启动 Codex 或执行脚本。');
+      }catch{
+        const area=tool.root.querySelector('#wf-codex-text');
+        area?.focus?.();area?.select?.();
+        setNotice('浏览器未开放剪贴板写入；已选中提示词，请按 Cmd/Ctrl+C 复制。没有启动 Codex。');
+      }
+    };
     const setTab=name=>{
       if((name==='help'||name==='settings'||name==='md')&&['overview','scripts','history'].includes(page))
         returnTab.current=page;
       setPage(name);
       if(name==='scripts')void readCurrentPage();
       if(['overview','scripts','history'].includes(name)){
-        setDetail(null);setMore(null);setShowFilters(false);
+        setDetail(null);setMore(null);setShowFilters(false);setScriptAdd(null);
       }
       setNotice('');
     };
@@ -775,6 +829,66 @@
           h('p',{className:'wf-sub'},'聊天：尚未创建 · 成果：尚未保存。运行记录须进入原持久账本，而不是保存在 MD 或另建队列。'))}));
     }
 
+    // This is a sandbox onboarding guide, not an importer or Authority grant.
+    // The only executable targets are the current reviewed fixed task pins.
+    function scriptOnboarding(){
+      const way=(id,title,description)=>h('button',{key:id,type:'button',className:'wf-add-way',
+        onClick:()=>openScriptAdd(id)},
+        h('strong',null,title),h('small',null,description),h('span',{'aria-hidden':'true'},'›'));
+      const header=h('div',{className:'wf-line wf-between'},
+        h('strong',null,({ways:'添加脚本',existing:'已审阅任务',new:'新建自动化脚本',
+          codex:'Codex 辅助开发',import:'导入已有文件'})[scriptAdd]||'添加脚本'),
+        h('div',{className:'wf-line'},
+          scriptAdd!=='ways'&&Btn('返回',()=>openScriptAdd('ways'),{quiet:true}),
+          Btn('关闭',closeScriptAdd,{quiet:true})));
+      let content=null;
+      if(scriptAdd==='ways')content=h('div',{className:'wf-stack'},
+        h('p',{className:'wf-sub'},'先选择素材来源。创建、导入、验证、安装、委托及运行不会在此一步完成。'),
+        way('existing','从已有任务中添加','查看当前 Web Flow 已获准委托的固定任务'),
+        way('new','创建新的自动化脚本','使用顶部「开发」的原编辑和验证流程'),
+        way('codex','通过 Codex 辅助开发','编辑开发需求、生成并复制提示词'),
+        way('import','导入已有脚本或任务包','使用「我的」的可信文件导入入口'));
+      else if(scriptAdd==='existing')content=h('div',{className:'wf-stack'},
+        h('p',{className:'wf-sub'},'当前仅支持安装包已审阅的两个固定任务；其他已安装任务尚不能动态关联。'),
+        ...tasks.map(pin=>h('div',{key:pin.taskId,className:'wf-add-installed'},
+          h('span',{className:'wf-grow'},h('strong',null,pin.title),
+            h('small',null,pin.taskId+' · '+(labels[pin.state]||'待核对'))),
+          Btn(pin.state==='available'?'查看脚本':'查看安装审阅',()=>{
+            closeScriptAdd();
+            if(pin.state==='available')setDetail(pin.taskId);
+            else openTask(pin);
+          },{quiet:true,disabled:pin.state==='checking'}))),
+        h('p',{className:'wf-sub'},'不能凭添加按钮获得 Web Flow 委托、安装或运行权限。'));
+      else if(scriptAdd==='new')content=h('div',{className:'wf-stack'},
+        h('p',null,'请使用 OpenDesk 顶部「开发」编辑 JavaScript 草稿；Controller Task 使用受控 page/Locator，网页增强则选择 Page USER_SCRIPT。'),
+        h('p',{className:'wf-sub'},'完成真实验证、生成待验证候选、原宿主审阅安装后，再核对 Web Flow 的固定任务委托。'),
+        h('p',{className:'wf-sub'},'当前公开 Sandbox SDK 没有跳转到顶部「开发」的通用受控入口；请手动点击顶部「开发」，本按钮不会伪造宿主导航。'),
+        Btn('使用 Codex 编写提示词',()=>openScriptAdd('codex'),{primary:true}));
+      else if(scriptAdd==='import')content=h('div',{className:'wf-stack'},
+        h('p',null,'请返回 OpenDesk 顶部「我的 → 添加任务」，拖放单个文件或点击选择。'),
+        h('p',{className:'wf-sub'},'.js 仅进入未保存草稿；Task Package JSON 进入待验证候选；Program Draft JSON 进入原「开发」。'),
+        h('p',{className:'wf-sub'},'Sidebar Tool JSON 应在「扩展」导入；Page USER_SCRIPT 走网页增强；Web Flow .md 为工作流输入；ZIP 与目录暂不支持。'),
+        h('p',{className:'wf-sub'},'沙箱没有公开的受控文件导入/宿主 Tab 导航能力，不会私传源码、伪造点击或自动赋权。'));
+      else if(scriptAdd==='codex')content=h('div',{className:'wf-stack'},
+        h('label',{className:'wf-label'},'我要自动化做什么',
+          h('textarea',{className:'wf-input wf-add-input',value:codexGoal,rows:3,
+            placeholder:'例如：读取指定网站首页前三条公开结果',
+            onChange:event=>setCodexGoal(event.target.value)})),
+        h('label',{className:'wf-label'},'目标网站',
+          h('input',{className:'wf-input',type:'url',value:codexTarget,
+            placeholder:'https://example.com/',onChange:event=>setCodexTarget(event.target.value)})),
+        Btn('重新生成提示词',()=>setCodexText(codexPrompt()),{quiet:true}),
+        h('label',{className:'wf-label'},'可编辑开发提示词',
+          h('textarea',{id:'wf-codex-text',className:'wf-input wf-add-input wf-add-prompt',
+            rows:9,value:codexText||codexPrompt(),
+            onChange:event=>setCodexText(event.target.value)})),
+        Btn('复制提示词',()=>{void copyCodexPrompt();},{primary:true}),
+        h('p',{className:'wf-sub'},'这只是文本；复制不等于打开 Codex、编译、安装、授权或运行。'));
+      return h('section',{id:'wf-script-add-sheet',className:'wf-add-sheet wf-stack',
+        role:'region','aria-label':'添加脚本向导',tabIndex:-1,onKeyDown:e=>{
+          if(e.key==='Escape'&&!e.isComposing){e.stopPropagation();e.preventDefault();closeScriptAdd();}
+        }},header,content);
+    }
     function scripts(){
       return h('div',{className:'wf-stack'},
         h('div',{className:'wf-search-row'},
@@ -787,6 +901,9 @@
           Btn(Icon('refresh'),()=>{void readTasks();void readCurrentPage();},
             {key:'refresh',icon:true,ariaLabel:'刷新脚本安装状态',title:'刷新脚本安装状态',
               disabled:loading}),
+          Btn(Icon('plus'),()=>openScriptAdd('ways'),
+            {key:'add',id:'wf-add-script',icon:true,primary:true,ariaLabel:'添加脚本',title:'添加脚本',
+              expanded:Boolean(scriptAdd),controls:'wf-script-add-sheet'}),
           showFilters&&h('div',{id:'wf-filter-options',className:'wf-filter-popover',role:'group',
             'aria-label':'脚本状态筛选'},
             h('strong',null,'显示任务'),
@@ -801,6 +918,7 @@
                  onChange:e=>setSort(e.target.value)},
                  h('option',{value:'favorite'},'收藏优先'),
                  h('option',{value:'name'},'按名称'))))),
+        scriptAdd&&scriptOnboarding(),
         h('p',{className:'wf-sub'},rows.length+' / '+tasks.length+' 个固定脚本'),
         rows.length?h('div',{className:'wf-task-list'},...rows.map(taskCard)):
           h(Card,{extra:'wf-empty',children:[
