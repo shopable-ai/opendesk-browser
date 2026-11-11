@@ -299,22 +299,24 @@ try{
     await expectFocus(menu);
     await key('Enter','Enter',13);
     await eventually('!!document.querySelector(".wf-menu")','Enter opens more menu');
+    // The selected script now opens the trusted parent TaskRunSheet through one
+    // UI-only Host request. This standalone UI fixture can verify the request,
+    // never impersonate the trusted parent or the real RunHost.
+    const beforeConfigure=await (await fetch(fixtureUrl+'/counts')).json();
     await click('.wf-menu button');
-    await eventually('!!document.querySelector(".wf-task-detail")','menu opens task details');
-    assert.equal(await evaluate('document.querySelectorAll(".wf-task-detail .wf-param-row").length'),3,
-      'Parameter configuration retains all three fields');
-    assert.equal(await evaluate('document.querySelector("#wf-query").maxLength'),120);
-    assert.equal(await evaluate('document.querySelector("#wf-query").getAttribute("aria-required")'),'true');
-    assert.equal(await evaluate('document.querySelector(".wf-param-fixed").textContent'),'最多 3 条');
-    assert.equal(await evaluate('document.querySelector("#wf-show-execution-tab").checked'),true);
-    assert.equal(await evaluate('document.querySelector(".wf-technical").open'),false,
-      'Technical identity starts collapsed');
-    await click('.wf-technical summary');
-    await eventually('document.querySelector(".wf-technical").open','technical identity expands');
-    assert.ok(await evaluate('[...document.querySelectorAll(".wf-task-detail .wf-technical .wf-mono")].filter(e=>e.getBoundingClientRect().width>0&&e.getBoundingClientRect().height>0).length>=3'),
-      'Expanded technical identity remains visible');
-    await assertLayout(width,'Long task identity');
-    await screenshot('details-'+width);
+    await eventually('!document.querySelector(".wf-menu")','configure closes the row menu');
+    const afterConfigure=await (await fetch(fixtureUrl+'/counts')).json();
+    assert.equal(afterConfigure.configures,beforeConfigure.configures+1,
+      'native click must request exactly one Host Task sheet');
+    assert.equal(afterConfigure.starts,0,'configure cannot invoke tasks.start');
+    assert.equal(afterConfigure.lastConfigure?.taskId,nameOrder[0],
+      'the Host receives the exact selected installed Task ID');
+    assert.equal(await evaluate('document.querySelectorAll(".wf-param-row, #wf-query, #wf-show-execution-tab, #task-parameters-sheet").length'),0,
+      'iframe must not render a duplicate parameter editor or fake Host dialog');
+    assert.equal(await evaluate('document.querySelectorAll(".wf-task-row").length'),2,
+      'the current list remains mounted');
+    await assertLayout(width,'Task configure request');
+    await screenshot('configure-'+width);
     await click('[data-page="history"]');
     assert.ok(await evaluate('document.body.textContent.includes("暂无手动运行记录")'),'Honest empty manual history');
     await assertLayout(width,'Empty history');

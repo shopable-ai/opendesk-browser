@@ -12,6 +12,11 @@ on:
       - 'projects/webflow/tests/webflow-recovery-ui.test.mjs'
       - 'projects/webflow/tests/webflow-compact-browser.mjs'
       - 'projects/webflow/tests/webflow-ui-server.mjs'
+      - 'src/ui/task-workbench.js'
+      - 'src/ui/sidebar-tools.js'
+      - 'src/ui/react/tabs/task-run-sheet.tsx'
+      - 'src/ui/react/tabs/my-page.tsx'
+      - 'tests/environment/my-react-workbench.test.mjs'
       - '!projects/webflow/*.opendesk-tool.json'
   workflow_dispatch:
 
@@ -41,7 +46,7 @@ jobs:
         run: |
           node --check projects/webflow/src/ui/model.js
           node --check projects/webflow/src/ui/main.js
-          node --test projects/webflow/tests/webflow-ui.test.mjs projects/webflow/tests/webflow-recovery-ui.test.mjs tests/environment/task-delegation-package.test.mjs
+          node --test projects/webflow/tests/webflow-ui.test.mjs projects/webflow/tests/webflow-recovery-ui.test.mjs tests/environment/task-delegation-package.test.mjs tests/environment/my-react-workbench.test.mjs
       - name: Build only through the original Sidebar Tool packager
         run: |
           node scripts/build-sidebar-tool.mjs projects/webflow --out artifacts/sidebar-tools/webflow/candidate.opendesk-tool.json

@@ -47,7 +47,12 @@ const server=createServer(async(req,res)=>{
   }
   if(files[req.url]){res.writeHead(200,{'Content-Type':req.url.endsWith('.css')?'text/css':'text/javascript'});
    res.end(sources.get(req.url));return;}
-  if(req.url==='/counts'){json({starts:calls.filter(c=>c.name==='tasks.start').length,clientRequestId:run?.clientRequestId});return;}
+  if(req.url==='/counts'){
+   const configured=calls.filter(c=>c.name==='tasks.configure');
+   json({starts:calls.filter(c=>c.name==='tasks.start').length,
+     configures:configured.length,lastConfigure:configured.at(-1)?.args||null,
+     clientRequestId:run?.clientRequestId});return;
+  }
   if(req.url==='/control/released'&&req.method==='POST'){mode='released';json({});return;}
   if(req.url==='/control/revoked'&&req.method==='POST'){revoked=true;json({});return;}
   if(req.url==='/control/task-unavailable'&&req.method==='POST'){taskUnavailable=true;json({});return;}
@@ -67,6 +72,11 @@ const server=createServer(async(req,res)=>{
      json({code:'E_PERMISSION',message:'Task is disabled or not installed'},403);return;
     }
     json({task:{...pin,installationId:'fixture-installation',generation:1}});return;}
+   if(name==='tasks.configure'){
+    if(!config.delegatedTasks.some(p=>p.taskId===args?.taskId)||
+      !args||Object.keys(args).length!==1){json({code:'E_SCHEMA'},400);return;}
+    json({opened:true});return;
+   }
    if(name==='tasks.start'){
     run={clientRequestId:args.clientRequestId,runId:'fixture-run-original',resultId:'fixture-result-original'};
     json({...run,state:'running',retirementState:'retiring',result:null,value:null});return;
