@@ -26,13 +26,14 @@ export function assertRetainedControllerContinuation({
     previous.workerRetired===true&&
     typeof previous.retirementId==='string'&&previous.retirementId.length>0&&
     previous.scriptId===current?.scriptId&&previous.contentHash===current?.contentHash&&
-    previous.revision?.scriptId===current.scriptId&&
-    previous.revision?.sourceHash===current.contentHash&&
+    previous.revision?.scriptId===current?.scriptId&&
+    previous.revision?.sourceHash===current?.contentHash&&
     previous.revision?.revision===installedTask?.candidate?.package?.manifest?.program?.revision&&
     previousTask?.taskId===installation?.taskId&&
-    previousTask?.version===installation.version&&
-    previousTask?.manifestHash===installation.manifestHash&&
-    priorAuth?.installationId===auth?.installationId&&
+    previousTask?.version===installation?.version&&
+    previousTask?.manifestHash===installation?.manifestHash&&
+    typeof priorAuth?.installationId==='string'&&priorAuth.installationId.length>0&&
+    priorAuth.installationId===auth?.installationId&&
     Number.isSafeInteger(priorAuth?.generation)&&priorAuth.generation>0&&
     priorAuth.generation===auth?.generation&&
     selection?.mode==='borrowed'&&selection.frameId===0&&
