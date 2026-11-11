@@ -21,6 +21,8 @@ async function main() {
     throw Error('E_CONFIRM_REQUIRED: 演示发布必须明确传入 confirmDemoPublish:true');
   }
 
+  if(input.verifyOnly !== undefined && typeof input.verifyOnly !== 'boolean')
+    throw Error('E_DEMO_INPUT: verifyOnly 必须是布尔值');
   const assetMode = input.assetId !== undefined;
   if(assetMode && (typeof input.assetId!=='string' ||
       !/^wf-media-[0-9a-f]{8}(?:-[0-9a-f]{4}){3}-[0-9a-f]{12}$/.test(input.assetId) ||
@@ -47,6 +49,13 @@ async function main() {
 
   await page.locator('#article-title').fill(title);
   await page.locator('#article-body').fill(body);
+  if(input.verifyOnly === true) {
+    // A real page effect establishes a source-bound verification Run.
+    // No asset read, upload, draft save, or publication occurs in this mode.
+    return {scope:'LOCAL_FIXTURE_ONLY',status:'source-verified-no-upload',
+      title:await page.locator('#article-title').inputValue(),
+      assetRead:false,uploadAttempted:false,externalPublished:false};
+  }
 
   // This local fixture now checks the independent File actually received by the
   // website. The trusted Host alone resolves assetId; no bytes enter params.
