@@ -7,6 +7,9 @@ import {scheduleStatusGuidance} from '../../scheduled-task-workbench.js';
 export function MyTaskParams({view,disabled=false}){
   return (view.data.taskParams||[]).map(({name,rule,required})=>{
     const id='task-param-'+name,help=rule.description?id+'-help':undefined;
+    const fullTitle=rule.title||name;
+    // Presentation alias only: keep the installed Task Schema and accessible name intact.
+    const shortTitle=name==='showExecutionTab'&&fullTitle==='显示执行标签页'?'显示标签页':fullTitle;
     const fixed=Array.isArray(rule.enum)&&rule.enum.length===1;
     const field=view.field(id),toggle=rule.type==='boolean'&&!rule.enum;
     const optionalToggle=toggle&&!required&&!Object.hasOwn(rule,'default');
@@ -24,9 +27,9 @@ export function MyTaskParams({view,disabled=false}){
     };
     return <div key={name} className="od-form-field task-param-field">
       <div className={'od-input-group task-param-control'+(toggle?' task-param-control--check':'')}>
-      <label className="od-field-label" htmlFor={id} title={rule.description||rule.title||name}>{rule.title||name}{required&&<span className="task-param-required" aria-hidden="true"> *</span>}</label>
+      <label className="od-field-label" htmlFor={id} title={fullTitle}>{shortTitle}{required&&<span className="task-param-required" aria-hidden="true"> *</span>}</label>
       {rule.enum?<MyControl view={view} as="select" id={id} className="od-field" disabled={disabled}
-        name={name} data-task-param={name} data-task-type={rule.type} aria-required={required||undefined} aria-readonly={fixed||undefined} aria-describedby={describedBy} aria-invalid={error?'true':undefined}
+        name={name} data-task-param={name} data-task-type={rule.type} aria-label={fullTitle} aria-required={required||undefined} aria-readonly={fixed||undefined} aria-describedby={describedBy} aria-invalid={error?'true':undefined}
         onChange={clearError}>
         {!required&&rule.default===undefined&&<option value="">（不填写）</option>}
         {rule.enum.map(value=><option key={String(value)} value={String(value)}>{String(value)}</option>)}
@@ -41,7 +44,7 @@ export function MyTaskParams({view,disabled=false}){
             clearError();field.omitted=true;field.checked=false;view.publish();view.actions.taskParamsFormChange?.();
           }}>清除</Button>}
       </span>:<MyControl view={view} controlBase="aria" as={multiline?'textarea':'input'} id={id} name={name} className="od-field" disabled={disabled}
-        data-task-param={name} data-task-type={rule.type} aria-required={rule.type!=='boolean'&&required||undefined} aria-describedby={describedBy} aria-invalid={error?'true':undefined} onInput={clearError} onChange={clearError}
+        data-task-param={name} data-task-type={rule.type} aria-label={fullTitle} aria-required={rule.type!=='boolean'&&required||undefined} aria-describedby={describedBy} aria-invalid={error?'true':undefined} onInput={clearError} onChange={clearError}
         type={rule.type==='boolean'?'checkbox':['number','integer'].includes(rule.type)?'number':'text'}
         step={rule.type==='integer'?'1':'any'} minLength={rule.minLength} maxLength={rule.maxLength}
         min={rule.minimum} max={rule.maximum} rows={multiline?3:undefined} required={required}/>}

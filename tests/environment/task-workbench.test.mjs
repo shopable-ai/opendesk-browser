@@ -515,6 +515,23 @@ test('task cards retain readable selection and do not surface raw IDs as the mai
     'React owns exactly one shared task workspace, not a duplicated form');
 });
 
+test('shared Task run sheet shortens visual labels without changing accessible names or action labels',async t=>{
+  const f=make();t.after(()=>f.ui.dispose());await tick();await tick();
+  f.myView.project('taskParams',[...f.myView.data.taskParams,{
+    name:'showExecutionTab',rule:{type:'boolean',title:'显示执行标签页',default:true},required:false
+  }]);
+  const {renderSidebarReact}=await import('../helpers/sidebar-react-fixture.mjs');
+  const $=load(await renderSidebarReact({myView:f.myView}));
+  const label=$('label[for="task-param-showExecutionTab"]');
+  assert.equal(label.text().trim(),'显示标签页');
+  assert.equal(label.attr('title'),'显示执行标签页');
+  assert.equal($('#task-param-showExecutionTab').attr('aria-label'),'显示执行标签页');
+  const footer=$('#task-parameters-sheet .task-params-sheet-actions');
+  assert.match(footer.text(),/取消/);
+  assert.match(footer.text(),/运行任务/);
+  assert(footer.find('button svg[aria-hidden="true"]').length>=2,'all footer actions retain visible labels beside decorative icons');
+});
+
 test('My keeps search inside installed task management without executing or requesting permissions',async t=>{
   const f=make({secondTask:true});t.after(()=>f.ui.dispose());await tick();await tick();
   assert.deepEqual(f.myView.data.taskRows.rows.map(row=>row.taskId),['demo.form','demo.second']);

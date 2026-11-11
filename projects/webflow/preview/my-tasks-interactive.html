@@ -1,0 +1,312 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>OpenDesk · 我的自动化任务｜交互预览</title>
+  <style>
+    :root {
+      color-scheme: light;
+      font-family: -apple-system, BlinkMacSystemFont, "PingFang SC", "Microsoft YaHei", "Segoe UI", sans-serif;
+      color: #18253b; background: #f5f7fb;
+      --line: #e6eaf1; --muted: #68778d; --ink: #18253b; --paper: #fff;
+      --soft: #f4f6f9; --soft-hover: #f1f4fa; --brand: #4265d6;
+    }
+    * { box-sizing: border-box; }
+    html,body { margin:0; min-height:100%; }
+    button,input,textarea,select { font:inherit; }
+    button { cursor:pointer; }
+    button:focus-visible, input:focus-visible,textarea:focus-visible,select:focus-visible { outline:2px solid #6d8de9; outline-offset:2px; }
+    [hidden] { display:none !important; }
+    .page { max-width:900px; margin:0 auto; padding:24px 18px 48px; }
+    .overline { color:var(--brand); text-transform:uppercase; letter-spacing:.09em; font-size:11px; font-weight:700; }
+    .page-head { display:flex; flex-wrap:wrap; justify-content:space-between; align-items:end; gap:14px; margin:4px 0 16px; }
+    .page-head h1 { font-size:19px; margin:0 0 5px; letter-spacing:-.03em; font-weight:700; }
+    .page-head p { margin:0; color:var(--muted);font-size:12px; line-height:1.6; }
+    .widths { display:flex; background: #eaedf4; border:1px solid #e1e5ee; gap:2px; border-radius:9px; padding:3px; align-self:end; }
+    .widths button { min-width:54px; padding:6px 8px; border:0; border-radius:6px; background:transparent; color:#65748d; font-size:12px; }
+    .widths button[aria-pressed="true"] { background:#fff; color:#263858;box-shadow:0 1px 3px #24355c20;font-weight:600; }
+    .shell-wrap { overflow:auto; padding:4px 2px 20px; scrollbar-width:thin; }
+    .shell { width:var(--panel-width,360px); max-width:100%; height:620px; position:relative; margin:0 auto; overflow:hidden; border:1px solid #d8dfec; border-radius:13px; background:#fff; box-shadow:0 16px 42px #2c3b6520; display:flex; flex-direction:column; }
+    .chrome-bar { height:38px; flex:0 0 38px; display:flex; align-items:center; gap:7px; padding:0 12px; border-bottom:1px solid var(--line); background:#f9fafd; }
+    .mini-logo { display:inline-grid;place-items:center;width:20px;height:20px;border-radius:6px;background:#4567d8;color:#fff;font-size:11px;font-weight:800; }
+    .chrome-bar strong { font-size:12px; }
+    .chrome-bar .rhs { margin-left:auto;font-size:11px;color:#9aa5b7; }
+    .side-nav { height:41px; border-bottom:1px solid var(--line);display:flex;gap:0; flex:none; }
+    .side-nav span { font-size:12px; display:flex;align-items:center;justify-content:center; flex:1; color:#8792a4; }
+    .side-nav span.on { color:var(--brand);border-bottom:2px solid var(--brand); font-weight:650;background:#fafbff; }
+    .side-content { flex:1; min-height:0; overflow:auto; padding:14px 12px 22px; scrollbar-width:thin; }
+    .task-header { display:flex;align-items:center;gap:7px;margin-bottom:11px; }
+    .task-header h2 {font-size:13px;margin:0;font-weight:700;}
+    .count { font-size:11px; color:#808da0; }
+    .task-header button { border:0; background:transparent;border-radius:7px;padding:6px;display:grid;place-items:center;color:#64738a; }
+    .task-header button:hover,.task-header button[aria-expanded="true"] { background:#f1f4fa; color:var(--brand); }
+    .task-header button svg {width:17px;height:17px;stroke:currentColor;fill:none;stroke-linecap:round;stroke-linejoin:round;stroke-width:1.7;}
+    .right { margin-left:auto; }
+    .section-label { margin-bottom:8px;font-size:11px;font-weight:600;color:#69788f; }
+    .search-panel { display:grid; gap:7px;margin:0 0 10px; }
+    .search-panel input {height:32px;width:100%;min-width:0;border:1px solid #d7dfec;border-radius:7px;padding:0 9px;font-size:12px;color:var(--ink); }
+    .filters {display:flex;gap:4px;flex-wrap:wrap;}
+    .filters button {border:1px solid #e2e7f0;border-radius:6px;background:#fff;color:#6b798e;padding:4px 8px;font-size:11px;}
+    .filters button[aria-pressed="true"] {background:#edf2ff;color:#375ac8;border-color:#ccd8fa;}
+    .task-list {border:1px solid var(--line);border-radius:9px;overflow:hidden;}
+    .task-item {position:relative; background:#fff;min-width:0;}
+    .task-item + .task-item {border-top:1px solid var(--line);}
+    .task-item.selected {background:#f8faff;box-shadow:inset 2px 0 0 #5676e4;}
+    .task-item:hover,.task-item:focus-within {background:var(--soft-hover);}
+    .task-content {border:0;display:flex;width:100%; min-width:0;min-height:60px;gap:10px;align-items:center;text-align:left;background:transparent;color:var(--ink);padding:8px 10px;}
+    .task-content:hover {background:transparent;}
+    .glyph {flex:none;width:29px;height:29px;border:1px solid #e2e6ed;border-radius:7px;display:grid;place-items:center;background:#fff;color:#6e7b90;}
+    .glyph svg {width:16px;height:16px;stroke:currentColor;fill:none;stroke-linecap:round;stroke-linejoin:round;stroke-width:1.7;}
+    .task-copy {display:block;min-width:0; flex:1;}
+    .task-title,.task-description {display:block;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+    .task-title {font-size:12px;font-weight:650;line-height:20px;}
+    .task-description {font-size:11px;color:#8a95a7;line-height:18px;}
+    /* Overlay, never a reflow: no hover padding or width changes on task-copy. */
+    .task-actions {position:absolute;z-index:2;top:50%;right:6px;transform:translateY(-50%);display:flex;gap:3px;align-items:center;padding:3px;border-radius:7px;background:linear-gradient(90deg,#f1f4faeb,#f1f4fa 18%);opacity:0;visibility:hidden;pointer-events:none;transition:opacity .12s ease;}
+    .task-item:hover .task-actions,.task-item:focus-within .task-actions,.task-item.action-open .task-actions {opacity:1;visibility:visible;pointer-events:auto;}
+    .task-actions button {display:grid;place-items:center;width:29px;height:29px;border:0;border-radius:6px;background:transparent;color:#43536e;}
+    .task-actions button:hover {background:#e0e8f9;color:#3257c7;}
+    .task-actions svg {width:16px;height:16px;stroke:currentColor;stroke-width:1.8;fill:none;stroke-linecap:round;stroke-linejoin:round;}
+    .task-menu {position:absolute;right:7px;top:calc(50% + 16px);z-index:12;min-width:142px;border:1px solid #dfe5ef;border-radius:8px;padding:4px;background:#fff;box-shadow:0 9px 25px #1d2b4e29;}
+    .task-menu button {display:block;width:100%;text-align:left;background:transparent;border:0;border-radius:5px;padding:8px 9px;font-size:12px;color:#34435d;}
+    .task-menu button:hover {background:#edf2fb;}
+    .empty {padding:20px 12px; text-align:center;font-size:12px;color:#8190a4;}
+    .current-site {margin:12px 0 0;color:#7890ac;font-size:11px;display:flex;align-items:center;gap:5px;}
+    .current-site b {font-weight:600;color:#627793;}
+    .site-selector {display:flex;align-items:center;justify-content:space-between;gap:7px;margin-top:13px;font-size:11px;color:#8190a4;}
+    .site-selector select {min-width:0;max-width:150px;padding:5px 6px;background:#f8fafd;border:1px solid var(--line);border-radius:6px;font-size:11px;color:#697b95;}
+    .footer-hint {max-width:720px;margin:10px auto 0;color:#7c889c;font-size:11px;line-height:1.7;text-align:center;}
+    .backdrop {position:absolute;z-index:18;inset:0;background:#1d294b55;}
+    .sheet {position:absolute;z-index:19;left:0;right:0;bottom:0;max-height:88%;display:flex;flex-direction:column;border-top:1px solid #dbe2ed;border-radius:14px 14px 0 0;overflow:hidden;background:white;box-shadow:0 -9px 25px #12214625;}
+    .sheet-head {display:flex;gap:9px;align-items:center;flex:none;padding:13px 12px;border-bottom:1px solid var(--line);}
+    .sheet-head .glyph {width:29px;height:29px;}
+    .sheet-heading {flex:1;min-width:0;}
+    .sheet-heading strong {display:block;font-size:12px;line-height:20px;font-weight:700;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+    .sheet-heading small {display:block;font-size:10px;color:#8b98aa;line-height:16px;}
+    .icon-close {border:0;background:transparent;color:#8490a2;padding:5px;border-radius:6px;line-height:1;font-size:18px;}
+    .icon-close:hover {background:#eef1f7;}
+    .sheet-scroll {flex:1;min-height:0;overflow:auto;padding:13px 12px;scrollbar-width:thin;}
+    .sheet-topline {display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:9px;}
+    .sheet-topline strong {font-size:12px;font-weight:650;}
+    .tabs {display:flex;gap:2px;padding:2px;background:#f0f2f6;border-radius:7px;}
+    .tabs button {font-size:11px;border:0;border-radius:5px;padding:4px 10px;background:transparent;color:#7b8899;}
+    .tabs button[aria-pressed="true"] {background:#fff;box-shadow:0 1px 3px #1c2b4b1a;color:#273a62;font-weight:600;}
+    .form-list {border:1px solid #dde4ed;border-radius:8px;overflow:hidden;}
+    .field-row {display:grid;grid-template-columns:clamp(104px,34%,142px) minmax(0,1fr);align-items:stretch;min-height:42px;}
+    .field-row + .field-row {border-top:1px solid var(--line);}
+    .field-row label {min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;display:flex;align-items:center;gap:2px;padding:9px 9px;background:#f3f5f8;color:#52627a;border-right:1px solid #e3e8f1;font-size:11px;font-weight:550;}
+    .field-row label[title] {cursor:help;}
+    .req {color:#c64e59;flex:none;}
+    .control {min-width:0;display:flex;align-items:center;padding:4px 7px;gap:5px;}
+    .control input:not([type=checkbox]),.control select,.control textarea {display:block;min-width:0;width:100%;border:0;outline:none;color:#22324f;background:transparent;font-size:12px;border-radius:0;}
+    .control input:not([type=checkbox]) {height:30px;}
+    .control select {height:30px;}
+    .control textarea {resize:vertical;min-height:64px;padding:6px 0;line-height:1.5;}
+    .control:focus-within {box-shadow:inset 0 0 0 2px #b5c6f9;}
+    .control input::placeholder,.control textarea::placeholder {color:#b1bdcb;}
+    .switch {width:31px;height:18px;position:relative;display:inline-flex;align-items:center;border:0;border-radius:20px;padding:2px;background:#d6dce6;flex:none;transition:background .14s;}
+    .switch[aria-checked="true"] {background:#4266d8;}
+    .switch::before {content:"";display:block;width:14px;height:14px;box-shadow:0 1px 3px #13234b30;background:#fff;border-radius:50%;transform:translateX(0);transition:transform .14s;}
+    .switch[aria-checked="true"]::before {transform:translateX(13px);}
+    .switch-value {font-size:11px;color:#8190a2;}
+    .json-editor {font-family:ui-monospace,SFMono-Regular,Consolas,monospace;width:100%;height:190px;resize:vertical;border:1px solid #dbe2eb;border-radius:8px;padding:10px;font-size:12px;line-height:1.65;color:#273858;}
+    .form-notice {margin:10px 0 0;font-size:11px;color:#8190a5;line-height:1.55;}
+    .form-error {margin-top:8px;font-size:11px;color:#bf3e51;background:#fff1f2;border:1px solid #ffd8de;border-radius:6px;padding:8px;line-height:1.5;}
+    .form-success {margin-top:8px;font-size:11px;color:#157356;background:#edf9f3;border:1px solid #d2e9db;border-radius:6px;padding:8px;line-height:1.5;}
+    .field-row.invalid {box-shadow:inset 0 0 0 1px #df5b70;}
+    .sheet-footer {display:flex;align-items:center;justify-content:flex-end;gap:8px;padding:10px 12px;border-top:1px solid var(--line);flex:none;background:#fff;}
+    .btn {display:inline-flex;align-items:center;justify-content:center;gap:5px;white-space:nowrap;border:1px solid #e0e5ef;border-radius:7px;padding:8px 10px;background:#fff;color:#586a84;font-size:12px;font-weight:600;}
+    .btn svg {width:15px;height:15px;flex:none;stroke:currentColor;stroke-width:1.8;fill:none;stroke-linecap:round;stroke-linejoin:round;}
+    @media (max-width:400px){.sheet-footer{gap:6px}.sheet-footer .btn{padding:7px 9px}}
+    .btn.primary {background:#4165d9;border-color:#4165d9;color:#fff;}
+    .btn:hover:not(:disabled) {filter:brightness(.98);}
+    .pill {font-size:10px;color:#929dae;margin-right:auto;white-space:nowrap;}
+    .pill b {font-weight:600;}
+    @media(prefers-reduced-motion:reduce) {*,*::before,*::after {transition:none!important;} }
+  </style>
+</head>
+<body>
+  <main class="page">
+    <div class="overline">INTERACTIVE PROTOTYPE · 2026-11-11</div>
+    <div class="page-head">
+      <div><h1>「我的」Tab · 脚本列表与参数窗口</h1><p>鼠标悬停查看覆盖式操作按钮；点击 ▶ 查看紧凑参数表单。可切换侧栏宽度。</p></div>
+      <div class="widths" role="group" aria-label="预览侧栏宽度">
+        <button type="button" data-width="320">320px</button>
+        <button type="button" data-width="360" aria-pressed="true">360px</button>
+        <button type="button" data-width="600">600px</button>
+      </div>
+    </div>
+    <div class="shell-wrap">
+      <section class="shell" id="shell" style="--panel-width:360px" aria-label="OpenDesk 我的任务预览">
+        <div class="chrome-bar"><span class="mini-logo">O</span><strong>OpenDesk Browser</strong><span class="rhs">Side Panel</span></div>
+        <nav class="side-nav" aria-label="演示标签页"><span>发现</span><span class="on">我的</span><span>扩展</span><span>开发</span></nav>
+        <div class="side-content">
+          <header class="task-header">
+            <h2>自动化任务</h2><span class="count" id="task-count">3 个</span>
+            <button id="toggle-search" class="right" type="button" title="搜索与筛选" aria-label="搜索与筛选" aria-expanded="false">
+              <svg viewBox="0 0 24 24"><path d="M4 7h9m6 0h1M4 17h1m6 0h9"/><circle cx="16" cy="7" r="3"/><circle cx="8" cy="17" r="3"/></svg>
+            </button>
+          </header>
+          <div id="search-panel" class="search-panel" hidden>
+            <input id="search" type="search" placeholder="搜索已安装任务（Esc 清空）" aria-label="搜索任务">
+            <div class="filters" role="group" aria-label="任务状态筛选">
+              <button data-filter="all" aria-pressed="true">全部</button><button data-filter="available">可运行</button><button data-filter="disabled">已停用</button>
+            </div>
+          </div>
+          <div class="section-label">已安装任务</div>
+          <div class="task-list" id="task-list"></div>
+          <p class="current-site" id="site-status">当前网页：<b>chatgpt.com</b></p>
+          <div class="site-selector"><span>切换模拟网页（仅用于预览）</span>
+            <select id="site-selector" aria-label="模拟当前网页"><option value="chatgpt.com">chatgpt.com</option><option value="www.baidu.com">www.baidu.com</option><option value="www.google.com">www.google.com</option></select>
+          </div>
+        </div>
+        <div class="backdrop" id="backdrop" hidden></div>
+        <section id="sheet" class="sheet" role="dialog" aria-modal="true" aria-label="配置参数与准备运行" hidden>
+          <header class="sheet-head"><span class="glyph"><svg viewBox="0 0 24 24"><rect x="4" y="3" width="16" height="18" rx="3"/><path d="m9 9 6 3-6 3Z"/></svg></span>
+            <span class="sheet-heading"><small>参数与运行</small><strong id="sheet-title"></strong></span><button id="sheet-close" type="button" class="icon-close" aria-label="关闭参数窗口">×</button>
+          </header>
+          <div class="sheet-scroll">
+            <div class="sheet-topline"><strong>运行参数</strong><div class="tabs" role="group" aria-label="编辑方式"><button data-mode="form" aria-pressed="true">表单</button><button data-mode="json">JSON</button></div></div>
+            <div id="form-fields" class="form-list"></div>
+            <div id="json-fields" hidden><textarea id="json-editor" class="json-editor" spellcheck="false" aria-label="任务参数 JSON"></textarea></div>
+            <p class="form-notice" id="form-notice">这是可点击的 UI 预览，不会提交或运行任何任务。</p>
+            <div id="form-message" aria-live="polite"></div>
+          </div>
+          <footer class="sheet-footer"><span class="pill">交互模拟 · <b>不执行脚本</b></span><button type="button" class="btn" id="sheet-cancel"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M18 6 6 18M6 6l12 12"/></svg>取消</button><button type="button" class="btn primary" id="sheet-validate"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="m8 12 3 3 5-6"/></svg>模拟校验</button></footer>
+        </section>
+      </section>
+    </div>
+    <p class="footer-hint">此 HTML 是本轮 UI 交互规范预览（不连接正式运行器）：列表不展示域名/参数数目；悬浮操作不改变文字宽度；参数表单沿用实际三个任务的 Schema 字段。所有“运行”相关操作只做本地预览，不访问真实网页。</p>
+  </main>
+  <script>
+    (() => {
+      const tasks = [
+        { id:'baidu',title:'百度搜索：前三条自然网页结果',desc:'在已授权的百度首页填写关键词并点击一次搜索，或只读提取精确关键词结果页；过滤广告，固定 limit=3。需本机验证后才能安装。',site:'www.baidu.com',enabled:true,fields:[
+          {name:'query',title:'搜索关键词',type:'string',required:true,minLength:1,maxLength:120,placeholder:'输入关键词'},
+          {name:'limit',title:'结果数量',type:'integer',required:true,enum:[3],default:3},
+          {name:'showExecutionTab',title:'显示执行标签页',type:'boolean',default:true}
+        ]},
+        { id:'chatgpt',title:'ChatGPT 新对话：审阅后单次发送并核验回复',desc:'在原可信 Controller 的全新官方 ChatGPT 标签页准备草稿；仅当安装版本与本次任务的 send:true 单独获批时，进行一次原生发送并核验真实会话 URL、消息身份和完整回答。结果不确定时禁止重新发送。',site:'chatgpt.com',enabled:true,fields:[
+          {name:'prompt',title:'待发送提示词',type:'string',required:true,minLength:1,maxLength:3000,multiline:true,placeholder:'输入本次任务提示词'},
+          {name:'send',title:'是否提交真实消息',type:'boolean',default:false},
+          {name:'model',title:'模型',type:'string',minLength:1,maxLength:80,placeholder:'可选'},
+          {name:'effort',title:'推理强度',type:'string',minLength:1,maxLength:80,placeholder:'可选'},
+          {name:'thinking',title:'启用思考',type:'boolean',optional:true}
+        ]},
+        { id:'google',title:'Google 搜索：前三条自然网页结果',desc:'在已授权 Google 首页填写关键词并点击一次搜索，经同 Origin 文档交接后只读取前三条可见结果链接。固定 limit=3；遇验证停止。',site:'www.google.com',enabled:true,fields:[
+          {name:'query',title:'搜索关键词',type:'string',required:true,minLength:1,maxLength:120,placeholder:'输入关键词'},
+          {name:'limit',title:'结果数量',type:'integer',required:true,enum:[3],default:3},
+          {name:'showExecutionTab',title:'显示执行标签页',type:'boolean',default:true}
+        ]}
+      ];
+      const $ = id => document.getElementById(id);
+      let selected='baidu', openId=null, menuId=null, mode='form', filter='all', values={}, lastTrigger=null;
+      const drafts={};
+      const glyph='<svg viewBox="0 0 24 24" aria-hidden="true"><rect x="4" y="3" width="16" height="18" rx="3"/><path d="m9 9 6 3-6 3Z"/></svg>';
+      const runSvg='<svg viewBox="0 0 24 24" aria-hidden="true"><path d="m9 5 10 7-10 7Z"/></svg>';
+      const dotsSvg='<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 5h.01M12 12h.01M12 19h.01" stroke-width="3.5"/></svg>';
+      const taskById=id=>tasks.find(t=>t.id===id);
+      const initial=task=>Object.fromEntries(task.fields.flatMap(f=>(f.default!==undefined?[[f.name,f.default]]:[])));
+      const escapeHTML=v=>String(v).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+      function list(){
+        const query=$('search').value.trim().toLowerCase();
+        const visible=tasks.filter(t=>(filter==='all'||(filter==='available'?t.enabled:!t.enabled))&&(!query||(t.title+' '+t.desc+' '+t.site).toLowerCase().includes(query)));
+        $('task-count').textContent=`${visible.length} 个`;
+        $('task-list').innerHTML=visible.length?visible.map(t=>`<div class="task-item ${selected===t.id?'selected':''}" data-id="${t.id}">
+          <button type="button" class="task-content" data-action="select" aria-label="选择 ${escapeHTML(t.title)}">
+            <span class="glyph">${glyph}</span><span class="task-copy"><strong class="task-title" title="${escapeHTML(t.title)}">${escapeHTML(t.title)}</strong><small class="task-description" title="${escapeHTML(t.desc)}">${escapeHTML(t.desc)}</small></span>
+          </button>
+          <span class="task-actions"><button type="button" data-action="run" title="配置参数与运行" aria-label="运行 ${escapeHTML(t.title)}">${runSvg}</button><button type="button" data-action="menu" title="管理任务" aria-label="管理 ${escapeHTML(t.title)}">${dotsSvg}</button></span>
+          ${menuId===t.id?`<div class="task-menu"><button type="button" data-action="run">配置参数 / 准备运行</button><button type="button" data-action="select">查看任务详情</button></div>`:''}
+        </div>`).join(''):'<div class="empty">没有符合条件的已安装任务</div>';
+      }
+      $('task-list').addEventListener('click',e=>{
+        const action=e.target.closest('[data-action]'),row=e.target.closest('.task-item');if(!action||!row)return;
+        const id=row.dataset.id;lastTrigger=action;
+        if(action.dataset.action==='select'){selected=id;menuId=null;list();}
+        if(action.dataset.action==='run'){selected=id;menuId=null;list();openSheet(id);}
+        if(action.dataset.action==='menu'){menuId=menuId===id?null:id;row.classList.add('action-open');list();}
+      });
+      function openSheet(id){
+        const t=taskById(id);openId=id;values={...initial(t),...(drafts[id]||{})};mode='form';
+        $('sheet-title').textContent=t.title;
+        $('form-message').innerHTML='';
+        $('form-notice').textContent=t.site===$('site-selector').value?'关闭后保留草稿；实际脚本执行需要正式授权。':'当前网页不适用该任务；可在此预览参数布局，但不会运行。';
+        renderFields();$('backdrop').hidden=false;$('sheet').hidden=false;
+        $('sheet').querySelector('input,select,textarea,.switch')?.focus();
+      }
+      function closeSheet(){
+        if(openId){ if(mode==='json'){try{Object.assign(values,JSON.parse($('json-editor').value));}catch{}}
+          drafts[openId]={...values}; }
+        openId=null;$('backdrop').hidden=true;$('sheet').hidden=true;
+        lastTrigger?.focus?.({preventScroll:true});
+      }
+      function renderFields(){
+        if(!openId)return;
+        const t=taskById(openId);
+        document.querySelectorAll('[data-mode]').forEach(el=>el.setAttribute('aria-pressed',String(el.dataset.mode===mode)));
+        $('form-fields').hidden=mode!=='form';$('json-fields').hidden=mode!=='json';
+        if(mode==='json'){
+          $('json-editor').value=JSON.stringify(values,null,2);
+          return;
+        }
+        $('form-fields').innerHTML=t.fields.map(f=>{
+          const v=values[f.name],name=escapeHTML(f.title),info=escapeHTML(f.name),shortName=escapeHTML(f.name==='showExecutionTab'&&f.title==='显示执行标签页'?'显示标签页':f.title),required=f.required?'<span class="req">*</span>':'';
+          let field='';
+          if(f.type==='boolean')field=`<button type="button" class="switch" role="switch" id="preview-field-${info}" data-field="${info}" aria-label="${name}" aria-checked="${Boolean(v)}"></button><span class="switch-value">${v===undefined?'未填写':v?'是':'否'}</span>`;
+          else if(f.enum)field=`<select id="preview-field-${info}" data-field="${info}" aria-label="${name}">${f.enum.map(o=>`<option value="${escapeHTML(o)}" ${String(o)===String(v)?'selected':''}>${escapeHTML(o)}</option>`).join('')}</select>`;
+          else if(f.multiline)field=`<textarea id="preview-field-${info}" data-field="${info}" aria-label="${name}" placeholder="${escapeHTML(f.placeholder||'')}" rows="2">${escapeHTML(v??'')}</textarea>`;
+          else field=`<input id="preview-field-${info}" data-field="${info}" aria-label="${name}" type="${f.type==='integer'?'number':'text'}" value="${escapeHTML(v??'')}" placeholder="${escapeHTML(f.placeholder||'')}" ${f.type==='integer'?'step="1"':''}>`;
+          return `<div class="field-row" data-row="${info}"><label title="${name}" for="preview-field-${info}" id="preview-label-${info}">${shortName}${required}</label><div class="control">${field}</div></div>`;
+        }).join('');
+      }
+      $('form-fields').addEventListener('input',e=>{const node=e.target.closest('[data-field]');if(!node||node.getAttribute('role')==='switch')return;const f=taskById(openId).fields.find(x=>x.name===node.dataset.field);if(!f)return;values[f.name]=f.type==='integer'?(node.value===''?'':Number(node.value)):node.value;node.closest('.field-row').classList.remove('invalid');$('form-message').innerHTML='';});
+      $('form-fields').addEventListener('change',e=>{const node=e.target.closest('select[data-field]');if(!node)return;const f=taskById(openId).fields.find(x=>x.name===node.dataset.field);values[f.name]=f.type==='integer'?Number(node.value):node.value;});
+      $('form-fields').addEventListener('click',e=>{const b=e.target.closest('.switch');if(!b)return;const k=b.dataset.field;values[k]=!Boolean(values[k]);b.setAttribute('aria-checked',String(values[k]));b.nextElementSibling.textContent=values[k]?'是':'否';$('form-message').innerHTML='';});
+      document.querySelectorAll('[data-mode]').forEach(btn=>btn.addEventListener('click',()=>{
+        if(!openId||btn.dataset.mode===mode)return;
+        if(mode==='json'){try{const value=JSON.parse($('json-editor').value);if(value&&typeof value==='object'&&!Array.isArray(value)){values=value;}else throw Error();}catch{$('form-message').innerHTML='<div class="form-error">参数 JSON 格式错误，请检查后切换。</div>';return;}}
+        mode=btn.dataset.mode;$('form-message').innerHTML='';renderFields();
+      }));
+      $('sheet-validate').addEventListener('click',()=>{
+        if(!openId)return;
+        const t=taskById(openId),errors=[];
+        if(mode==='json'){
+          try{const v=JSON.parse($('json-editor').value);if(!v||typeof v!=='object'||Array.isArray(v))throw Error();values=v;}
+          catch{$('form-message').innerHTML='<div class="form-error">E_PARAMS：参数 JSON 格式不正确。</div>';return;}
+        }
+        for(const f of t.fields){const supplied=Object.hasOwn(values,f.name),v=supplied?values[f.name]:f.default;
+          if(f.required&&(v===undefined||v==='')){errors.push(f);continue;}
+          if(v===undefined||v==='')continue;
+          if(f.type==='string'&&(typeof v!=='string'||v.length<(f.minLength??0)||v.length>(f.maxLength??1024)))errors.push(f);
+          if(f.type==='integer'&&(!Number.isSafeInteger(v)||v< (f.minimum??-Infinity)||v>(f.maximum??Infinity)))errors.push(f);
+          if(f.type==='boolean'&&typeof v!=='boolean')errors.push(f);
+          if(f.enum&&!f.enum.includes(v))errors.push(f);
+        }
+        document.querySelectorAll('.field-row').forEach(el=>el.classList.toggle('invalid',errors.some(f=>f.name===el.dataset.row)));
+        if(errors.length){$('form-message').innerHTML=`<div class="form-error">E_PARAMS：请检查「${escapeHTML(errors[0].title)}」${errors.length>1?'等字段':''}，输入未满足必填或格式规则。</div>`;return;}
+        const siteMatch=t.site===$('site-selector').value;
+        $('form-message').innerHTML=siteMatch?'<div class="form-success">参数格式通过模拟校验。正式任务不会在此预览中执行。</div>':'<div class="form-error">参数格式通过；但当前网页不适用该任务。请在对应网站的真实扩展中运行。</div>';
+      });
+      $('sheet-close').addEventListener('click',closeSheet);$('sheet-cancel').addEventListener('click',closeSheet);$('backdrop').addEventListener('click',closeSheet);
+      document.addEventListener('keydown',e=>{if(e.key==='Escape'){
+        if(openId){e.preventDefault();closeSheet();return;}
+        if(menuId){menuId=null;list();return;}
+        if(e.target===$('search')&&$('search').value){$('search').value='';list();e.preventDefault();}
+      }});
+      document.querySelectorAll('[data-width]').forEach(b=>b.addEventListener('click',()=>{
+        document.querySelectorAll('[data-width]').forEach(x=>x.setAttribute('aria-pressed',String(x===b)));
+        $('shell').style.setProperty('--panel-width',b.dataset.width+'px');
+      }));
+      $('toggle-search').addEventListener('click',()=>{
+        const show=$('search-panel').hidden;$('search-panel').hidden=!show;$('toggle-search').setAttribute('aria-expanded',String(show));if(show)$('search').focus();
+      });
+      $('search').addEventListener('input',list);
+      document.querySelectorAll('[data-filter]').forEach(b=>b.addEventListener('click',()=>{filter=b.dataset.filter;document.querySelectorAll('[data-filter]').forEach(x=>x.setAttribute('aria-pressed',String(x===b)));list();}));
+      $('site-selector').addEventListener('change',()=>{$('site-status').innerHTML='当前网页：<b>'+escapeHTML($('site-selector').value)+'</b>';if(openId)$('form-notice').textContent=taskById(openId).site===$('site-selector').value?'关闭后保留草稿；实际执行需要正式授权。':'当前网页不适用该任务；可预览参数布局，但不会运行。';});
+      list();
+    })();
+  </script>
+</body>
+</html>

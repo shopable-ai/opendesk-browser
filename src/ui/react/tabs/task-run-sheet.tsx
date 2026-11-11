@@ -12,6 +12,19 @@ import {Button,IconButton} from '../components/ui/button.tsx';
 // trigger is a trusted host DOM focus target, never sandbox request data.
 // taskSheetClose(); taskSheet{Prepare,Confirm}Click(event,identity);
 // taskSheet{Query,Stop,Cancel}Click(event). The owner guards stale identities.
+// Icons decorate the existing trusted actions; never replace their text or handlers.
+function SheetActionIcon({kind}) {
+  return <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+    {kind==='close'?<path d="M18 6 6 18M6 6l12 12"/>:
+      kind==='query'?<><path d="M20 11a8 8 0 1 0-2.4 5.7M20 4v7h-7"/></>:
+      kind==='stop'?<rect x="6" y="6" width="12" height="12" rx="2"/>:
+      kind==='cancel'?<><circle cx="12" cy="12" r="9"/><path d="M9 9l6 6m0-6-6 6"/></>:
+      kind==='prepare'?<><path d="M5 3h10l4 4v14H5zM14 3v5h5"/><path d="m8 15 2.5 2.5L16 12"/></>:
+      kind==='confirm'?<><circle cx="12" cy="12" r="9"/><path d="m8 12 3 3 5-6"/></>:
+      <path d="m8 5 12 7-12 7Z"/>}
+  </svg>;
+}
+
 export function TaskRunSheet({view}){
   React.useSyncExternalStore(view.subscribe,view.getSnapshot,view.getSnapshot);
   const request=view.data.taskRunSheet;
@@ -117,10 +130,10 @@ export function TaskRunSheet({view}){
 {result?.outcome?.error&&<p role="alert">{result.outcome.error.message||result.outcome.error.code}</p>}
 </section>}
 </div>
-<footer className="task-params-sheet-actions"><Button variant="quiet" onClick={close}>{tool?'关闭':'取消'}</Button>{tool&&request?.preparationId&&view.actions.taskSheetQueryClick&&<Button variant="quiet" disabled={request.busy} onClick={event=>view.actions.taskSheetQueryClick(event.nativeEvent)}>查询状态</Button>}
-{tool&&request?.preparationId&&['submitted','unknown'].includes(phase)&&view.actions.taskSheetStopClick&&<Button variant="danger" disabled={request.busy} onClick={event=>view.actions.taskSheetStopClick(event.nativeEvent)}>停止</Button>}
-{tool&&request?.preparationId&&['editing','preparing','prepared','unknown'].includes(phase)&&view.actions.taskSheetCancelClick&&<Button variant="quiet" disabled={request.busy} onClick={event=>view.actions.taskSheetCancelClick(event.nativeEvent)}>取消准备</Button>}
+<footer className="task-params-sheet-actions"><Button variant="quiet" onClick={close}><SheetActionIcon kind="close"/>{tool?'关闭':'取消'}</Button>{tool&&request?.preparationId&&view.actions.taskSheetQueryClick&&<Button variant="quiet" disabled={request.busy} onClick={event=>view.actions.taskSheetQueryClick(event.nativeEvent)}><SheetActionIcon kind="query"/>查询状态</Button>}
+{tool&&request?.preparationId&&['submitted','unknown'].includes(phase)&&view.actions.taskSheetStopClick&&<Button variant="danger" disabled={request.busy} onClick={event=>view.actions.taskSheetStopClick(event.nativeEvent)}><SheetActionIcon kind="stop"/>停止</Button>}
+{tool&&request?.preparationId&&['editing','preparing','prepared','unknown'].includes(phase)&&view.actions.taskSheetCancelClick&&<Button variant="quiet" disabled={request.busy} onClick={event=>view.actions.taskSheetCancelClick(event.nativeEvent)}><SheetActionIcon kind="cancel"/>取消准备</Button>}
 {(!tool||(['editing','prepared'].includes(phase)&&!request?.recoveryOnly))&&<Button id="task-run" variant="primary" disabled={blocked||(!tool&&(view.field('task-run').disabled||view.field('task-run').hidden))||!action}
-  onClick={run}>{tool?(phase==='editing'?'保存并核对':'确认执行一次'):'运行任务'}</Button>}</footer>
+  onClick={run}><SheetActionIcon kind={tool?(phase==='editing'?'prepare':'confirm'):'run'}/>{tool?(phase==='editing'?'保存并核对':'确认执行一次'):'运行任务'}</Button>}</footer>
 </dialog>);
 }
