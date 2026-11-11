@@ -10,7 +10,36 @@
 - 失败与恢复：错误 JSON/不支持格式/超限/多文件在导入前拒绝；主机不可用时保留清晰错误；重复与版本冲突交由现有身份 Authority，不能在界面自证成功；UNKNOWN 只读查询或停止；撤权后重新审阅，不通过重新拖放取得新权限。
 - R1 定向验收以本次代码和 CI/现场回执为准；原 Chrome 证据与其他任务测试不能继承。
 
-**实施与最终验收：** 本卡后续将依据 GitHub 实际提交和实测证据回填；写入本段不构成 SOURCE/NODE/PACKAGE/CHROME 的 PASS。不得自动更新正式工具包或将历史 0.3.32 的构建/装机当作新源码验证。
+**R1 实际源码交付（2026-11-11；截至本次核查）：** 已提交到 `main` 的差量包括：
+- 可信导入：`src/ui/task-workbench.js` 复用 `readFile`，前置类型、大小、JSON/空文件检查，明确拒绝 ZIP/Markdown/Sidebar/Page 误导入；新增单文件拖放/文件选择的统一代理，目录拖入和多文件拒绝；重复内容沿 Host 幂等返回，冲突身份拒绝覆盖，未自动验证/安装/授权/运行。补充 `src/ui/task-run-diagnostics.js` 导入专属建议。
+- 可信 UI：`src/ui/react/tabs/my-page.tsx`、`task-catalog.tsx`、`src/ui/tool-shell.css` 增加统一拖放区、键盘访问和视觉反馈；原 TaskRunSheet 和 Host/Authority/RunHost 未改。
+- Web Flow 沙箱：`projects/webflow/src/ui/main.js` 和 `style.css` 增加 `+` 四路径向导，现有固定 pin 可查看；创建/文件导入仅展示手动可信路径，Codex 提供可编辑/可复制文本；不增加 tool.capabilities/delegatedTasks 或原生导航特权。
+- `preview/script-onboarding.html` 增加纯模拟的拖入/识别/拒绝；预览不接入真实 Host。
+- 检验源码：`tests/environment/my-react-workbench.test.mjs` 新增覆盖 picker/drop/多文件/错误 JSON/超限/合法 Draft/候选/幂等冲突/无 RunHost 副作用的 5 项测试；`projects/webflow/tests/webflow-compact-browser.mjs` 新增每个 320/360/400px 尺寸的四路径/返回/焦点/零执行断言。**这些是已提交测试代码，不能替代通过回执。**
+
+**实施证据：** GitHub Contents API 均以读取时最新文件 SHA 条件写入；示例提交 `95a358d`（WebFlow 新向导）、`0f6aefc`（导入幂等与冲突）、`770430c`（定向测试）。针对最新源码用 V8 `AsyncFunction` 解析主控制器、Web Flow 主 UI、演示 HTML 和两个测试脚本的 JavaScript 语法，结果 PASS；未跑真实 Node 模块导入、React TSX 编译/安装、Chromium 或原生测试。无本机 CodexPro 工作区（连接失败）、Mac Desktop 返回 HTTP 429；GitHub Actions [R1 Web Flow run #43042977172](https://github.com/shopable-ai/opendesk-browser/actions/runs/43042977172) 在读取时 pending。后续查新 run/commit 和 jobs，绝不能继承被取消的旧 run 或历史 0.3.32 的通过记录。
+
+**当前证据状态：**
+| 层级 | 状态 | 原因或下一步 |
+|---|---|---|
+| SOURCE | PARTIAL | 代码差量写入 `main`，主要 JS 语法解析通过；尚无编译/运行断言结果 |
+| NODE | NOT_TESTED | 5 条新增定向测试与既有回归已写入，但无成功 CI 作证 |
+| PACKAGE | NOT_TESTED | 原打包器的候选/晋升/同源尚无本轮通过回执 |
+| CHROMIUM | NOT_TESTED | 320/360/400px 定向断言已写入但未收到执行结果 |
+| CHROME_NATIVE | BLOCKED | 本地 CodexPro/桌面连接不可用，无原生 Side Panel/安装环境 |
+| INSTALL | NOT_TESTED | 未通过原 Installer 审阅安装本次源码 |
+| BUSINESS | NOT_TESTED | 未对新文件/授权做真实受控站点业务验收 |
+| RELEASE | BLOCKED | 当前 `tool.config.json` 与正式 `webflow.opendesk-tool.json` 都还是 **0.3.32**；正式包尚未包含 `wf-add-script` 的新代码。必须在本轮 CI 通过后按原版本升级/候选→晋升→回读→用户安装流程收尾，不得手改包 |
+
+**完整验收差量矩阵：** 
+1. 文件类：合法 JS、Program Draft、合法 Task Package、格式错误、扩展包/Page 误导入、Markdown/ZIP/目录、空文件、超限、文件多选、拖放/选择结果一致、取消无副作用、重复幂等与版本冲突；Node 侧测试已编写，真实行为仍待执行。
+2. 权限类：未安装/停用/撤销不可运行、固定百度/Google pin 不变、无跨 App 动态授权、UNKNOWN 不重放、准备只保存不执行、确认只执行一次；既有合同未改，需原生回归证明。
+3. UI 类：「我的」/Catalog/ Web Flow `+` 的 320/360/400px、PC、键盘、Escape、焦点归还、IME；新增 Web Flow Chromium 断言已编写，可信原生/IME 仍未执行。
+
+**剩余 R1 操作（不要重写已完成源码）：** 检查最新 Github Actions Node/Chromium 检查及 logs；若失败只修失败点，重测同源；按仓库原打包器升级 Web Flow 应用版本（不可改授权清单），生成/晋升/回读唯一正式 JSON 并与源码 SHA 对齐；安装新包到真实 Chrome 并检查版本、原 TaskRunSheet、拖放与权限恢复。只有全部 PASS 才声明 R1 完成。
+
+**后续独立任务：** R2 通用可信「已安装 Task Picker + 跨应用动态绑定授权」公开 SDK/审阅与撤销（含精准版本 pin），R3 ZIP/目录/仓库/AI 高级导入。两个任务不重建 TaskWorkbench/Installer/权限 Store，也不并入本轮 MVP。
+
 
 ---
 
