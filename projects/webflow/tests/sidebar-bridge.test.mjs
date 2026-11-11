@@ -1,5 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
+import {createHash} from 'node:crypto';
 import {parseHTML} from 'linkedom';
 import {initChatGPTFixedBridgePage} from '../../../src/native-agent/chatgpt-fixed-bridge-page.js';
 const protocol='opendesk.chatgpt.bridge.r12.v1';
@@ -13,7 +14,7 @@ function fixture({active=false,adoptError=false,adoptErrorCode='E_BUILTIN_VERSIO
  const navigation={currentEntry:{key:'fixture-current-entry'},addEventListener(type,fn){if(!navigationListeners.has(type))navigationListeners.set(type,new Set());navigationListeners.get(type).add(fn);},
   removeEventListener(type,fn){navigationListeners.get(type)?.delete(fn);}};
  const win={...(navigationAvailable?{navigation}:{}),location:{href:url,origin:'https://chatgpt.com'},setInterval(fn){poll=fn;return 1;},clearInterval(){},addEventListener(){},removeEventListener(){}};win.top=win;
- const sends=[],reloads=[],hostReads=[];win.document=document;win.location.reload=()=>reloads.push('reload');
+ const sends=[],reloads=[],hostReads=[],afterMessages=[];win.document=document;win.location.reload=()=>reloads.push('reload');
  const intent={protocol:persistentPending||background?'webflow.task.intent.v1':'opendesk.task.intent.v1',candidateId:'sidebar-candidate',taskId:'baidu.search.top3',targetUrl:'https://www.baidu.com/',args:{query:'OpenDesk Browser',limit:3}};
  const installation={version:'1.1.1',manifestHash:'a'.repeat(64),contentHash:'b'.repeat(64),scriptId:'task:baidu.search.top3:1.1.1',revision:1,installationId:'original-install',generation:1};
  const prepared={requestId:'77777777-7777-4777-8777-777777777777',taskId:intent.taskId,targetUrl:intent.targetUrl,args:intent.args,installation,
@@ -32,14 +33,16 @@ function fixture({active=false,adoptError=false,adoptErrorCode='E_BUILTIN_VERSIO
  const elements=[],create=document.createElement.bind(document);document.createElement=(...args)=>{const node=create(...args),add=node.addEventListener.bind(node);
   node.handlers=new Map();node.addEventListener=(type,fn,...rest)=>{node.handlers.set(type,fn);return add(type,fn,...rest);};
   elements.push(node);return node;};
- const page=initChatGPTFixedBridgePage({api,doc:document,win,site:{inspect:()=>active?snapshot:{ok:false}},
+ const page=initChatGPTFixedBridgePage({api,doc:document,win,site:{inspect:()=>active?snapshot:{ok:false},
+  readUserMessagesAfter:anchorMessageId=>({route:snapshot.route,anchorMessageId,
+    messages:afterMessages.map(row=>({...row}))})},
   readPage:()=>readError?{ok:false,error:{code:'E_CHAT_FORMAT',message:'没有任务协议'}}:({ok:true,turnKey:'turn',answerKey:'answer',blocks:[JSON.stringify(intent)]})});
  const sender={id:'extension',url:'chrome-extension://extension/sidepanel.html?hostInstanceId=real'};
  const receive=(message,from=sender)=>new Promise(resolve=>{
   const response=listener({protocol,sourceUrl:win.location.href,...message},from,resolve);
   if(response===false)queueMicrotask(()=>resolve(undefined));
  });
- return {page,receive,sends,hostReads,sender,win,snapshot,poll:()=>poll(),elements,prepared,api,document,reloads,
+ return {page,receive,sends,hostReads,sender,win,snapshot,poll:()=>poll(),elements,prepared,api,document,reloads,afterMessages,
   navigationEvent:type=>{for(const fn of navigationListeners.get(type)||[])fn({type});},
   compose:()=>events.get('compositionstart')(),
   receiveSync:(message,reply)=>listener({protocol,sourceUrl:win.location.href,...message},sender,reply),
@@ -96,6 +99,41 @@ test('background page accepts exact SW progress but gives it no trusted manageme
   assert.equal((await h.receive({kind:'sidebar-read'})).data.runId,'background-run');
  }finally{h.page.dispose();}
 });
+test('independent A readback hashes only the unique observed message after the source turn',async()=>{
+ const h=fixture({active:true});try{
+  const body='真实 B 链接和摘要',messageId='official-message-0001';
+  h.afterMessages.push({messageId,text:body});
+  const args={kind:'workflow-read-a',workflowId:'wf-workflow-0001',
+   deliveryKey:'wf-delivery-0001',authorizationRef:'grant-00000001',
+   anchorMessageId:'source-message-0001',
+   contentSha256:createHash('sha256').update(body).digest('hex')};
+  const result=await h.receive(args);
+  assert.equal(result.ok,true);
+  assert.equal(result.data.readOnly,true);
+  assert.equal(result.data.messageId,messageId);
+  assert.equal(result.data.contentSha256,args.contentSha256);
+  assert.equal(h.sends.length,0);
+  assert.equal((await h.receive({...args,contentSha256:'f'.repeat(64)})).ok,false);
+  assert.equal((await h.receive({...args,messageId:'forged-message-0001'})).ok,false);
+  h.afterMessages.push({messageId:'official-message-0002',text:body});
+  assert.equal((await h.receive(args)).ok,false);
+  assert.equal(h.sends.length,0);
+ }finally{h.page.dispose();}
+});
+test('A readback rejects missing anchor, wrong sender, URL and delivery identity',async()=>{
+ const h=fixture({active:true});try{
+  const args={kind:'workflow-read-a',workflowId:'wf-workflow-0001',
+   deliveryKey:'wf-delivery-0001',authorizationRef:'grant-00000001',
+   anchorMessageId:'source-message-0001',contentSha256:'a'.repeat(64)};
+  assert.equal((await h.receive(args)).ok,false);
+  assert.equal(await h.receive(args,{id:'other',url:h.sender.url}),undefined);
+  assert.equal(await h.receive(args,{id:'extension',url:'chrome-extension://extension/fake.js'}),undefined);
+  assert.equal((await h.receive({...args,sourceUrl:url+'/other'})).ok,false);
+  assert.equal((await h.receive({...args,deliveryKey:'bad'})).ok,false);
+  assert.equal(h.sends.length,0);
+ }finally{h.page.dispose();}
+});
+
 test('pending Schema-supported candidate stays unexecuted through polling, then uses the same request after trusted approval',async()=>{
  const h=fixture({active:true,persistentPending:true});try{
   const view=(await h.receive({kind:'sidebar-control',requestId:null,action:'adopt'})).data;

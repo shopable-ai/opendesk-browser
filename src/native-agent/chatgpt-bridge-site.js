@@ -208,5 +208,26 @@ export function createChatGPTBridgeSite({doc = document, win = window} = {}) {
     const newMessage=snapshot.users.at(-1);
     return !before.users.includes(newMessage) && messageText(newMessage) === text;
   }
-  return Object.freeze({inspect,prepare,commit,confirm});
+
+  // A read-only observation after the frozen user trigger, never a second send.
+  function readUserMessagesAfter(anchorMessageId){
+    if(typeof anchorMessageId!=='string'||!/^[A-Za-z0-9._:-]{8,128}$/u.test(anchorMessageId))return null;
+    const snap=inspect();
+    if(!snap.ok||!snap.route?.startsWith('c/'))return null;
+    const ids=snap.users.map(node=>node.getAttribute?.('data-message-id'));
+    const index=ids.indexOf(anchorMessageId);
+    if(index<0||ids.lastIndexOf(anchorMessageId)!==index||
+      snap.users.length-index-1>32)return null;
+    const messages=snap.users.slice(index+1).map(node=>({
+      messageId:node.getAttribute?.('data-message-id'),text:messageText(node)
+    }));
+    if(messages.some(row=>typeof row.messageId!=='string'||
+      !/^[A-Za-z0-9._:-]{8,128}$/u.test(row.messageId)||
+      typeof row.text!=='string'||!row.text||
+      new TextEncoder().encode(row.text).byteLength>8192)||
+      new Set(messages.map(row=>row.messageId)).size!==messages.length||
+      messages.some(row=>row.messageId===anchorMessageId))return null;
+    return {route:snap.route,anchorMessageId,messages};
+  }
+  return Object.freeze({inspect,prepare,commit,confirm,readUserMessagesAfter});
 }

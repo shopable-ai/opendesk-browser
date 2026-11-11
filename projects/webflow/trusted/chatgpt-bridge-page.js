@@ -1032,6 +1032,39 @@ export function initChatGPTFixedBridgePage({api=chrome,doc=document,win=window,
     return {sent:true,userObserved:true,aiReplyObserved,...(observedMessageProof??{})};
     }finally{deliveryPending=false;update();scheduleCheck();}
   };
+  // Independent readA recovers the official DOM message without using the
+  // single-task state.requestId or performing a second native send.
+  const readWorkflowA=async message=>{
+    const id=/^[A-Za-z0-9._:-]{8,128}$/u,sha=/^[a-f0-9]{64}$/u;
+    if(closed||win.document!==doc||win!==win.top||
+      win.location.origin!=='https://chatgpt.com'||
+      message.sourceUrl!==win.location.href||
+      ![message.workflowId,message.deliveryKey,message.authorizationRef,
+        message.anchorMessageId].every(value=>typeof value==='string'&&id.test(value))||
+      !sha.test(message.contentSha256)||
+      (message.messageId!==undefined&&
+        (typeof message.messageId!=='string'||!id.test(message.messageId))))
+      throw fail('E_CHAT_A_READBACK','原对话来源或证据身份不合法');
+    const first=site.readUserMessagesAfter?.(message.anchorMessageId);
+    if(!first||!first.route?.startsWith('c/'))
+      throw fail('E_CHAT_A_READBACK','原消息锚点不存在或不唯一');
+    const matches=[];
+    for(const row of first.messages){
+      if(await digestUtf8(row.text)===message.contentSha256)matches.push(row);
+    }
+    if(matches.length!==1||message.messageId!==undefined&&
+      matches[0].messageId!==message.messageId)
+      throw fail('E_CHAT_A_READBACK','没有唯一匹配的官方新增用户消息');
+    const second=site.readUserMessagesAfter?.(message.anchorMessageId);
+    if(closed||win.document!==doc||message.sourceUrl!==win.location.href||
+      !second||second.route!==first.route||
+      JSON.stringify(second.messages)!==JSON.stringify(first.messages))
+      throw fail('E_CHAT_A_READBACK','只读核对期间原会话或消息发生变化');
+    return {readOnly:true,workflowId:message.workflowId,deliveryKey:message.deliveryKey,
+      authorizationRef:message.authorizationRef,sourceUrl:message.sourceUrl,
+      anchorMessageId:message.anchorMessageId,
+      messageId:matches[0].messageId,contentSha256:message.contentSha256};
+  };
   // A probe is a read-only challenge, not request admission or native-ledger proof.
   const listenerRuntimeId=api.runtime.id,listenerRuntimeURL=api.runtime.getURL('/');
   const currentRuntimeId=()=>{try{return api.runtime.id??null;}catch{return null;}};
@@ -1068,10 +1101,13 @@ export function initChatGPTFixedBridgePage({api=chrome,doc=document,win=window,
     return {allowed:true,reason:'idle'};
   };
   const onMessage=(message,sender,reply)=>{
-    if(message?.protocol!==CHATGPT_BRIDGE_PROTOCOL||!['deliver','progress','sidebar-read','sidebar-control','sidebar-probe','sidebar-refresh'].includes(message.kind))return false;
+    if(message?.protocol!==CHATGPT_BRIDGE_PROTOCOL||!['deliver','progress','sidebar-read','sidebar-control','sidebar-probe','sidebar-refresh','workflow-read-a'].includes(message.kind))return false;
     const recoveryMessage=message.kind==='sidebar-probe'||message.kind==='sidebar-refresh';
     if(sender?.id!==(recoveryMessage?listenerRuntimeId:currentRuntimeId())||sender?.tab)return false;
-    const backgroundSender=state?.backgroundOwner&&['deliver','progress'].includes(message.kind)&&
+    const workflowReadSender=message.kind==='workflow-read-a'&&
+      sender?.url===api.runtime.getURL('sw.js');
+    const backgroundSender=workflowReadSender||state?.backgroundOwner&&
+      ['deliver','progress'].includes(message.kind)&&
       (sender.url===undefined||sender.url===api.runtime.getURL('sw.js'));
     let sendingHostId;
     if(!backgroundSender)try{
@@ -1082,6 +1118,12 @@ export function initChatGPTFixedBridgePage({api=chrome,doc=document,win=window,
     }catch{return false;}
     if(!backgroundSender&&['progress','deliver'].includes(message.kind)&&state?.bridgeHostId&&
       (message.bridgeHostId!==state.bridgeHostId||sendingHostId!==state.bridgeHostId))return false;
+    if(message.kind==='workflow-read-a'){
+      void readWorkflowA(message).then(data=>reply({ok:true,data}),
+        error=>reply({ok:false,error:{code:error.code||'E_CHAT_A_READBACK',
+          message:error.message||'只读回执未核实'}}));
+      return true;
+    }
     if(message.kind==='sidebar-read'||message.kind==='sidebar-control'||recoveryMessage){
       const projection=()=>({url:win.location.href,status:status.textContent,error:status.classList.contains('error'),
         selection:state||proposal?selection.textContent:'',messageStage:messageNotice?.url===win.location.href?messageNotice.stage:null,viewStatus:state?viewStatus.textContent:'',
