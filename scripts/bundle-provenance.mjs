@@ -130,7 +130,7 @@ const compiledChatGPTFilesInputs=Object.freeze({
   'projects/webflow/src/chatgpt-conversation-result.js':'25581b6c905b5f8d6fd2bb7d7939c7ca8bfbd270',
   // Fixed-compiled ChatGPT Task 0.2.0 business-result registry: immutable
   // release identity, retained B provenance and no dynamic package validators.
-  'projects/webflow/trusted/chatgpt-result-adapter.js':'1a6aa119b694c99afb9018af203000a87b86982e'
+  'projects/webflow/trusted/chatgpt-result-adapter.js':'0bcb00f2f53f182d62eac1679241a116f2405c40'
 });
 const chatGPTFilesTargets=Object.freeze({
   'chatgpt-files-service.js':['native-agent/transport.js'],
