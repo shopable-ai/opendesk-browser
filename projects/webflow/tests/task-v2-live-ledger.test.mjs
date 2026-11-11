@@ -57,22 +57,45 @@ test('identical old V1 grant never automatically approves a V2 candidate',async(
   assert.equal(h.state[WEBFLOW_AUTO_GRANTS_KEY].grants[scope.taskId].grantId,originalGrant);
 });
 
-test('V2 trusted single-candidate approval survives restart but cannot be repeated or used for a different candidate',async()=>{
-  const h=harness();
-  const candidate=candidateFor(2),request=await h.admit(candidate);
-  assert.equal(request.pendingApproval,true,'V2 review works with legacy auto mode disabled');
+test('V2 standing scope persists across restart and a new source A without V1 inheritance',async()=>{
+  const h=harness(),candidate=candidateFor(2),request=await h.admit(candidate);
+  assert.equal(request.pendingApproval,true);
   await approve(h,request,candidate);
-  assert.equal(h.state[WEBFLOW_AUTO_GRANTS_KEY],undefined,'V2 approval must not create a V1 task-wide grant');
-  assert.equal(h.state[CHATGPT_BRIDGE_LEDGER_KEY][request.requestId].status,'approved');
+  const settings=h.state[WEBFLOW_AUTO_GRANTS_KEY];
+  assert.equal(settings.enabled,true);
+  assert.equal(settings.grants[scope.taskId].intentProtocol,'webflow.task.intent.v2');
+  assert.equal(settings.grants[scope.taskId].grantId,
+    h.state[CHATGPT_BRIDGE_LEDGER_KEY][request.requestId].autoGrantId);
   h.restart();
   await assert.rejects(approve(h,request,candidate),{code:'E_WEBFLOW_V2_DENIED'});
   await h.ledger.assertV2WebTaskGrant({requestId:request.requestId,source,scope,
     grantId:h.state[CHATGPT_BRIDGE_LEDGER_KEY][request.requestId].autoGrantId,
     epoch:h.state[CHATGPT_BRIDGE_LEDGER_KEY][request.requestId].autoEpoch});
-  const newer=await h.admit(candidateFor(3));
-  assert.equal(newer.pendingApproval,true);
-  assert.equal(h.state[CHATGPT_BRIDGE_LEDGER_KEY][newer.requestId].autoGrantId,undefined);
+  const sourceA2={tabId:20,documentId:'new-source-A2',
+    url:'https://chatgpt.com/c/69c4fd57-9662-44b3-b0ea-1cd0cdb4ba31'};
+  const newer=await h.ledger.admitWebTask({source:sourceA2,site:CHATGPT_TASK_PROFILE,
+    ...structuredClone(scope),candidate:candidateFor(3),allowPending:true});
+  assert.equal(newer.pendingApproval,false);
+  assert.equal(h.state[CHATGPT_BRIDGE_LEDGER_KEY][newer.requestId].status,'approved');
+  assert.equal(h.state[CHATGPT_BRIDGE_LEDGER_KEY][newer.requestId].source.documentId,sourceA2.documentId);
   await assert.rejects(approve(h,newer,candidate),{code:'E_WEBFLOW_V2_DENIED'});
+});
+
+test('V2 standing scope denies parameter drift and remains revoked after restart',async()=>{
+  const h=harness(),candidate=candidateFor(21),request=await h.admit(candidate);
+  await approve(h,request,candidate);
+  const changedArgs={query:'Different input requires review',limit:3};
+  const changed=candidateFor(22);
+  changed.text=JSON.stringify({protocol:'webflow.task.intent.v2',
+    candidateId:changed.candidateId,taskId:scope.taskId,args:changedArgs});
+  const fresh=await h.ledger.admitWebTask({source,site:CHATGPT_TASK_PROFILE,
+    ...structuredClone(scope),args:changedArgs,candidate:changed,allowPending:true});
+  assert.equal(fresh.pendingApproval,true);
+  await h.ledger.revokeAuto(scope.taskId);
+  h.restart();
+  await assert.rejects(h.ledger.assertV2WebTaskGrant({requestId:request.requestId,source,scope,
+    grantId:h.state[CHATGPT_BRIDGE_LEDGER_KEY][request.requestId].autoGrantId,
+    epoch:h.state[CHATGPT_BRIDGE_LEDGER_KEY][request.requestId].autoEpoch}),{code:'E_WEBFLOW_V2_DENIED'});
 });
 
 test('one V2 approval enters the original Controller exactly once; UNKNOWN and revocation fail closed',async()=>{

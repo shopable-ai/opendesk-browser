@@ -40,7 +40,7 @@ const compiledWebFlowInputs=Object.freeze({
   // lifecycle lock before Authority admission; no execution or data writes.
   // Reviewed original shared-sheet lock/UNKNOWN guard; no migration or replay.
   'projects/webflow/trusted/task-run-recovery.js':'21bac4fbeb97923ddfc50f2ceb6fddd229f64496',
-  'projects/webflow/src/auto-grants.js':'ef783837abb1ff87f963a7343d34b796db6a58c6',
+  'projects/webflow/src/auto-grants.js':'5b904ed84942f40accb5b459d4aa01341ad7a7b7',
   // Reviewed bounded keyword policy shared by the ledger and compiled controls.
   'projects/webflow/src/authorization-policy.js':'bb508189bdbbfe403707febbb36bb49d07d476c7',
   // Reviewed fixed ChatGPT site adapter/retired UI, only in the isolated fixed Content entry.
@@ -62,7 +62,7 @@ const compiledWebFlowInputs=Object.freeze({
   // distinguish reserved IDs/persistence/delivery/release; UNKNOWN never replays.
   // Reviewed same-receipt, owner-bound Toast projection; execution stays unchanged.
   // Retain the upstream PREPARE-only/account-unverified status copy.
-  'projects/webflow/trusted/CurrentTask.tsx':'e14ae6381dac186279dc39916873124166458937',
+  'projects/webflow/trusted/CurrentTask.tsx':'379529877fbb5fff7fc4083f53a513d59abfa9ca',
   // Reviewed display-only scripts route, consumed by the same fixed tool shell.
   'projects/webflow/src/ui/app-page-routes.js':'04468dd893393f82482123355243d8cdad4b1fb7',
   'projects/webflow/trusted/RuntimePanel.tsx':'f418c26696933f0b9440080fd2586e47e42b870f'

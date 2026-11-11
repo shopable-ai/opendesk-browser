@@ -165,14 +165,25 @@ export function createChatGPTBridgeTriggerLedger({storage,revocationStorage,cloc
     const ticket=autoDenialRevision;
     if(row.intentProtocol===WEBFLOW_TASK_INTENT_V2_PROTOCOL){
       const settings=await loadAuto(),grant=row.v2Authorization;
-      if(!grant||grant.grantId!==row.autoGrantId||grant.epoch!==row.autoEpoch||
-        settings.epoch!==grant.epoch||
-        !['approved','consumed'].includes(row.status)||row.mode!=='auto'||
-        !Number.isSafeInteger(grant.approvedAt)||grant.approvedAt>clock()||
+      if(!['approved','consumed'].includes(row.status)||row.mode!=='auto'||
         !Number.isSafeInteger(row.approvalExpiresAt)||
         (row.status==='approved'&&clock()>=row.approvalExpiresAt)||
         autoDenied||ticket!==autoDenialRevision)
-        throw fail('E_WEBFLOW_V2_DENIED','V2 本候选的独立批准已过期、撤销或身份不匹配');
+        throw fail('E_WEBFLOW_V2_DENIED','V2 原候选状态或授权已失效');
+      if(grant){
+        // Historical one-candidate V2 grants remain one-use, not standing grants.
+        if(grant.grantId!==row.autoGrantId||grant.epoch!==row.autoEpoch||
+          settings.epoch!==grant.epoch||
+          !Number.isSafeInteger(grant.approvedAt)||grant.approvedAt>clock())
+          throw fail('E_WEBFLOW_V2_DENIED','V2 原候选的单次批准不匹配');
+      }else{
+        try{
+          assertAutoGrant(settings,row.scope,{grantId:row.autoGrantId,epoch:row.autoEpoch,
+            sourceUrl:row.source?.url,intentProtocol:WEBFLOW_TASK_INTENT_V2_PROTOCOL});
+        }catch{throw fail('E_WEBFLOW_V2_DENIED','V2 持续批准已撤销或超出审阅范围');}
+      }
+      if(autoDenied||ticket!==autoDenialRevision)
+        throw fail('E_WEBFLOW_V2_DENIED','V2 核验期间授权已撤销');
       return;
     }
     const settings=await loadAuto(); // Storage/schema uncertainty must remain an explicit failure.
@@ -282,11 +293,17 @@ export function createChatGPTBridgeTriggerLedger({storage,revocationStorage,cloc
     return sequence(async()=>{
       const ticket=autoDenialRevision,settings=await loadAuto();
       let grant;
-      if(!v2)try{grant=assertAutoGrant(settings,scope,{sourceUrl:source.url});}catch(error){
+      if(v2)try{
+        grant=assertAutoGrant(settings,scope,{sourceUrl:source.url,
+          intentProtocol:WEBFLOW_TASK_INTENT_V2_PROTOCOL});
+      }catch(error){
+        if(!allowPending||error.code!=='E_WEBFLOW_AUTO_DENIED')throw error;
+      }
+      else try{grant=assertAutoGrant(settings,scope,{sourceUrl:source.url});}catch(error){
         if((site&&site.adapter!=='chatgpt')||!allowPending||!settings.enabled||error.code!=='E_WEBFLOW_AUTO_DENIED')throw error;
       }
-      // A V2 candidate may be discovered with legacy V1 auto-run disabled.
-      // It is NEVER approved or executed until a separate native user click.
+      // V2 may only reuse a trusted, reviewed V2 scope; missing scopes remain
+      // pending and must never inherit a historical V1 standing grant.
       const rows=await load(),now=clock();prune(rows,now);
       if(Object.values(rows).some(row=>row.candidate?.candidateId===candidate.candidateId))
         throw fail('E_BRIDGE_REPLAY','候选已准入或结果未知，禁止重放');
@@ -350,8 +367,8 @@ export function createChatGPTBridgeTriggerLedger({storage,revocationStorage,cloc
       });
     },
     readAutoSettings(){return sequence(loadAuto);},
-    // V2 approval is one immutable candidate in this ORIGINAL durable ledger,
-    // not a task-wide V1 grant. ACK loss leaves the same candidate fenced.
+    // A trusted native click stores an exact, protocol-specific V2 scope.
+    // Each later A document gets a NEW one-use request, never a reused candidate.
     approveV2Pending({source,requestId,candidate,scope}={}){
       if(!validWebTaskSource(source))throw fail('E_BRIDGE_SOURCE','V2 原聊天身份不合法');
       requireRequestId(requestId);candidate=candidateSnapshot(candidate);
@@ -359,24 +376,32 @@ export function createChatGPTBridgeTriggerLedger({storage,revocationStorage,cloc
       if(review.taskId!==intent.taskId||review.targetUrl!==webFlowV2ReviewedEntry(intent.taskId)||
         stableJSON(review.args)!==stableJSON(webFlowV2ReviewedArgs(intent)))
         throw fail('E_WEBFLOW_V2_DENIED','V2 可信审批目标、参数或安装审核内容不一致');
-      return sequence(async()=>{
-        const rows=await load(),row=rows[requestId],settings=await loadAuto(),now=clock();
-        if(!row||row.intentProtocol!==WEBFLOW_TASK_INTENT_V2_PROTOCOL||
-          row.site?.adapter!=='chatgpt'||!row.pendingAuto||row.status!=='prepared'||
-          row.v2Authorization||row.autoGrantId||row.controllerSubmitted||
-          !sameSource(row.source,source)||!sameCandidate(row,candidate)||
-          stableJSON(row.scope)!==stableJSON(review)||
-          now>=row.expiresAt||autoDenied||revokeAll||revokedTabs.has(source.tabId)||
-          revokedRequests.some(item=>item.requestId===requestId&&sameSource(item.source,source)))
-          throw fail('E_WEBFLOW_V2_DENIED','V2 候选已处理、状态未知或来源和授权不匹配');
-        const id=generateId();requireRequestId(id);
-        row.v2Authorization={grantId:id,epoch:settings.epoch,approvedAt:now};
-        row.autoGrantId=id;row.autoEpoch=settings.epoch;
-        row.status='approved';row.pendingAuto=false;row.mode='auto';row.approvedAt=now;
-        row.approvalExpiresAt=Math.min(row.expiresAt,now+120000);
-        await save(rows);await checkAuto(row);
-        return {requestId,approved:true,protocol:WEBFLOW_TASK_INTENT_V2_PROTOCOL,expiresAt:row.approvalExpiresAt};
-      });
+      return (async()=>{
+        let expiresAt;
+        await changeAuto(async settings=>{
+          const rows=await load(),row=rows[requestId],now=clock();
+          if(!row||row.intentProtocol!==WEBFLOW_TASK_INTENT_V2_PROTOCOL||
+            row.site?.adapter!=='chatgpt'||!row.pendingAuto||row.status!=='prepared'||
+            row.v2Authorization||row.autoGrantId||row.controllerSubmitted||
+            !sameSource(row.source,source)||!sameCandidate(row,candidate)||
+            stableJSON(row.scope)!==stableJSON(review)||
+            now>=row.expiresAt||autoDenied||revokeAll||revokedTabs.has(source.tabId)||
+            revokedRequests.some(item=>item.requestId===requestId&&sameSource(item.source,source)))
+            throw fail('E_WEBFLOW_V2_DENIED','V2 候选已处理、状态未知或来源和授权不匹配');
+          if(!Object.hasOwn(settings.grants,review.taskId)&&Object.keys(settings.grants).length>=128)
+            throw fail('E_BRIDGE_LIMIT','持续批准记录已满');
+          const grantId=generateId();requireRequestId(grantId);
+          settings.enabled=true; // Explicit trusted review approves future exact-scope use.
+          settings.grants[review.taskId]={scope:review,grantId,
+            intentProtocol:WEBFLOW_TASK_INTENT_V2_PROTOCOL,state:'active',approvedAt:now};
+          row.autoGrantId=grantId;row.autoEpoch=settings.epoch+1;
+          row.status='approved';row.pendingAuto=false;row.mode='auto';row.approvedAt=now;
+          row.approvalExpiresAt=Math.min(row.expiresAt,now+120000);
+          expiresAt=row.approvalExpiresAt;
+          return rows; // Original storage update persists grant and request together.
+        },{recover:true});
+        return {requestId,approved:true,protocol:WEBFLOW_TASK_INTENT_V2_PROTOCOL,expiresAt};
+      })();
     },
     assertV2WebTaskGrant({requestId,source,scope,grantId,epoch}={}){
       requireRequestId(requestId);
