@@ -90,3 +90,25 @@ npm run build
 - **已完成**：R2/main 基线核查、未声明变量的最小源码修复、区域测试登记到正式 App CI。
 - **尚未完成**：完整 Node/Host/App CI/预览/Chrome 测试、必要二次修复、版本晋升、官方包 SHA、用户数据原位升级与真实读回、五角色证据性 `≥95`。
 - **当前状态：PARTIAL**。只有收齐上述全部验证回执且旧数据保留被证实，才能写 `YES / R3 CLOSED`。
+
+## 七、R3 本机发布收口复核（2026-11-12；未完成）
+
+- 本次任务：`OD-WEB-MARKDOWN-CLIPPER-REGION-PICK-R3-LOCAL-RELEASE-CLOSURE`；本节是对原 R3 的**差量核实记录**，不重复 R2/R3 已完成的功能开发。
+- GitHub 远端 `main`：核实 HEAD 为 `2e88f05af220fc509f518e70ea720ac2bfe445f7`；无法从远端读取用户 Mac 的未提交工作区修改，因此 **`git switch/pull/status/rev-parse` 均未在用户本机执行**。
+- 已按要求从 GitHub `main` 读回 R2/R3 验收文档、`app.ci.json`、`tool.config.json`：`trusted/region-picker.js` 不再出现 `previous=length`；`app.ci.json` 的 Node 清单包含 `projects/web-markdown-clipper/tests/region-picker.test.mjs`；工具及正式安装包均仍为 `web-markdown-clipper@1.2.10`。
+- 本机 CodexPro `open_current_workspace`：`UNAVAILABLE / Connection failed`，未取得工作区或可执行会话；OpenDesk Desktop Mac96 `tm_status`：`UNAVAILABLE / MCP SSE probe 429`，未取得用户 Chrome 操作通道。
+- 独立执行容器核实 Node.js `v22.16.0`、npm `10.9.2`、git `2.47.3`，但其中**没有该项目仓库**；实际尝试 `git ls-remote https://github.com/shopable-ai/opendesk-browser.git refs/heads/main` 时 DNS 无法解析 `github.com`，**退出码 128**。此结果只反映隔离容器，**不是用户 Mac 的本地测试**。
+- GitHub Actions 在此轮核实时，最终代码 HEAD 上的 `OpenDesk App CI (discovered projects, shared gates)`、`Markdown tools R22 - packages and native Chrome`、`Sidebar Preview Contract R1` 均为 **QUEUED**，没有成功结论（分别见 [App CI](https://github.com/shopable-ai/opendesk-browser/actions/runs/43059758470)、[Markdown R22](https://github.com/shopable-ai/opendesk-browser/actions/runs/43059758214)、[Preview](https://github.com/shopable-ai/opendesk-browser/actions/runs/43059757834)）。
+
+| 本轮待执行门禁 | 状态 | 本轮真实退出码/产物 |
+| --- | --- | --- |
+| T01 用户 Mac `git switch/pull/status/rev-parse` | BLOCKED / NOT_TESTED | N/A；仅 GitHub 远端 HEAD 已核实 |
+| T02 项目 Node 全量、Host/Content 环境测试、`npm run build`、App CI plan/inspect/build/node/browser/native | BLOCKED / NOT_TESTED | N/A；未实际运行，不得标为 0 |
+| T03 React 同源预览重建与 320/360/400/440px、浅深色、键盘/区域交互 | BLOCKED / NOT_TESTED | N/A；没有 Chromium 点击回执 |
+| T04 ChatGPT/Claude/Gemini、Provider/导航/撤权/单轮隔离/Markdown 150KB 和存储 160KB | BLOCKED / NOT_TESTED | N/A；没有 Host/DOM 真实回执 |
+| T05 新版本候选构建、验证、`--promote-from`、`--check-project` | BLOCKED / NOT_TESTED | N/A；正式包仍为 `1.2.10`；没有新包 SHA256 |
+| T06 用户 Chrome 同 ID 升级、复制/下载、摘录存取/旧数据保留 | BLOCKED / NOT_TESTED | N/A；没有截图、浏览器版本和持久化哈希 |
+
+**独立评分保持原 R3 静态阶段分**：UX 68、浏览器架构 75、Markdown 63、安全 72、QA 28；算术平均 **61.2/100**。本轮并无提高分数的浏览器/Node 证据；不能以目标 95 人为补分。反方攻击（多轮 DOM 合并、取消/跳转竞态、点击导航、大小边界）依然 **NOT_TESTED**；没有声称已修复或回归通过。
+
+**安全停止点：PARTIAL。** 没有改动业务源码、工具 ID、授权、数据或正式包。具备真实 Mac/Chrome 会话后，只需从 T01 工作区安全检查开始，执行原第 4 节剩余命令和测试矩阵；切勿重做 R2 开发或直接晋升。

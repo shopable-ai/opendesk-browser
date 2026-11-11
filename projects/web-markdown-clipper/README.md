@@ -1,5 +1,7 @@
 # 网页剪藏 · 当前已核实安装配置版本 1.2.10
 
+**R3 本机发布收口复核（2026-11-12）：** 已从 GitHub 核实当前 `main` 与区域点选源码/App CI 记录；Mac CodexPro 和 OpenDesk Desktop 通道仍不可用，GitHub Actions 对当前 HEAD 的相关任务仍排队。独立容器无法解析 github.com 且无完整仓库，未执行真实 Node/React/Chrome 测试。保持 `1.2.10` 正式包，不作候选晋升；具体回执、退出码与剩余门禁见 [R3 验收账本](docs/region-picker-r3-acceptance.zh-CN.md)。
+
 **R3 增量修复仍未发布（2026-11-12）**：已修复区域候选识别时的 ES Module 未声明变量错误，并将 `region-picker.test.mjs` 加入正式 App CI；原有 R2 设计与安装身份均不变。目前本地 Node/CI、正式 React 预览、候选包晋升及真实 Chrome 同 ID 升级验收仍未完成，正式包仍为 `1.2.10`。完整可追溯结果见 [R3 验收账本](docs/region-picker-r3-acceptance.zh-CN.md)。**禁止把源码修复称为已发布。**
 
 保存开始时收起未保存确认；保存尚未完成时，返回、取消与迟到的放弃操作均保留编辑状态及正文，成功后回到更新后的阅读页。工具 ID、权限与本地数据命名空间不变，已安装版本通过同 ID 更新。
