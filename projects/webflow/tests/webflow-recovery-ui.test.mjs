@@ -38,7 +38,8 @@ function sdk(){
         (api.taskRead?api.taskRead(args.taskId):{task:api.pins.find(p=>p.taskId===args.taskId)}):api.read(args.clientRequestId);
       if(name==='tasks.start')return api.start(args.clientRequestId,args);
       if(name==='tasks.stop')return api.stop(args.clientRequestId);
-      if(name==='tasks.open'||name==='tasks.configure')return {opened:true};
+      if(name==='tasks.configure')return api.configure?.(args)??{opened:true};
+      if(name==='tasks.open')return {opened:true};
       throw Error('Unexpected operation '+name);
     }};
   return api;
@@ -86,919 +87,190 @@ async function mount(t,host=sdk()){
     async duplicateClick(label){const node=find(label);await React.act(async()=>{
       node.dispatchEvent(new window.Event('click',{bubbles:true}));
       node.dispatchEvent(new window.Event('click',{bubbles:true}));});},
-    async input(value,id='wf-query'){await React.act(async()=>{const node=document.getElementById(id);
-      Object.getOwnPropertyDescriptor(Object.getPrototypeOf(node),'value').set.call(node,value);
-      node.dispatchEvent(new window.Event('input',{bubbles:true}));});},
     async tick(){await React.act(async()=>{const work=[...timers.values()];timers.clear();for(const fn of work)fn();});},
     async flush(fn=()=>{}){await React.act(async()=>{fn();});}
   };
   return f;
 }
 
-test('script play and more menu request only the shared trusted Task sheet',async t=>{
+
+// Current Web Flow list UI; legacy v1 inline-form tests remain accessible in Git history.
+
+const configureCalls=host=>host.calls.filter(c=>c.name==='tasks.configure');
+const starts=host=>host.calls.filter(c=>c.name==='tasks.start');
+const reads=host=>host.calls.filter(c=>c.name==='tasks.read'&&c.args.clientRequestId);
+const stops=host=>host.calls.filter(c=>c.name==='tasks.stop');
+const taskCard=f=>[...f.document.querySelectorAll('article')].find(n=>n.textContent.includes('百度搜索'));
+const pinned=host=>({clientRequestId:'webflow:original-123',taskId:host.pins[0].taskId,
+  version:host.pins[0].version,at:Date.now(),task:{...host.pins[0]},
+  params:{query:'saved legacy query',limit:3}});
+const complete=(id,retirementState='released')=>({
+  clientRequestId:id,runId:'run-original',resultId:'result-original',
+  state:'completed',retirementState,
+  value:{status:'success',count:1,results:[{title:'trusted SDK result',url:'https://example.com/'}]},
+  result:{tag:'controller-result',runId:'run-original',resultId:'result-original',
+    state:'completed',outcome:{ok:true}}
+});
+const changedPage=f=>f.document.getElementById('root').dispatchEvent(
+  new f.window.Event('opendesk-page-changed'));
+
+test('clicking ▶ opens only the Host TaskRunSheet; no inline editor, save, or start',async t=>{
   const host=sdk(),f=await mount(t,host);
   await f.click('脚本');
   const card=taskCard(f);
   await f.click('运行',card);
-  assert.deepEqual(host.calls.filter(x=>x.name==='tasks.configure').map(x=>x.args),
-    [{taskId:'baidu.search.top3'}]);
+  assert.deepEqual(configureCalls(host).map(c=>c.args),[{taskId:'baidu.search.top3'}]);
   assert.equal(starts(host).length,0);
   assert.equal(host.store.has('webflow.pending.v1'),false);
+  assert.equal(f.document.getElementById('wf-query'),null);
+  assert.equal(f.document.getElementById('wf-show-execution-tab'),null);
+  assert.equal(f.document.getElementById('task-parameters-sheet'),null,
+    'the real trusted Sheet belongs to the parent React root, not the iframe');
+  assert.deepEqual(f.errors,[]);
+});
+
+test('the menu and task-name actions use the same UI-only Host request',async t=>{
+  const host=sdk(),f=await mount(t,host);await f.click('脚本');
+  const card=taskCard(f);
+  await f.click('百度搜索 · 前三条自然结果',card);
   await f.click('更多操作：百度搜索 · 前三条自然结果',card);
   await f.click('配置参数',card);
-  assert.equal(host.calls.filter(x=>x.name==='tasks.configure').length,2);
+  assert.equal(configureCalls(host).length,2);
   assert.equal(starts(host).length,0);
-  assert.deepEqual(f.errors,[]);
-});
-test('opening Web Flow recognizes the verified Baidu upgrade by its exact package identity',async t=>{
-  const pkg=JSON.parse(readFileSync(new URL('../../../examples/tasks/baidu.search.top3.v1.opendesk-task.json',import.meta.url),'utf8'));
-  const host=sdk();
-  host.pins[0]={taskId:pkg.manifest.taskId,version:pkg.manifest.version,
-    manifestHash:pkg.manifestHash,contentHash:pkg.manifest.program.sourceHash,
-    installationId:'install-'+pkg.manifest.taskId,generation:2};
-  const f=await mount(t,host);
-  assert.deepEqual(f.errors,[]);
-  await f.click('脚本');
-  assert.match(f.text(),/百度搜索/);
-  assert.match(taskCard(f).textContent,/可手动运行/);
-  // Technical identities now expand on demand instead of occupying the row.
-  await f.click('百度搜索 · 前三条自然结果',taskCard(f));
-  assert.ok(taskCard(f).textContent.includes(pkg.manifest.version));
 });
 
-const starts=host=>host.calls.filter(c=>c.name==='tasks.start');
-const taskCard=f=>[...f.document.querySelectorAll('article')].find(n=>n.textContent.includes('百度搜索'));
-async function prepare(f){
-  await f.click('脚本');await f.click('运行',taskCard(f));await f.input('OpenDesk Browser');
-  await f.click('保存运行步骤',taskCard(f));
-}
-const complete=(id,retirementState='released')=>({clientRequestId:id,runId:'run-original',resultId:'result-original',
-  state:'completed',retirementState,value:{status:'success',results:[{title:'真实 SDK 回包内容',url:'https://example.com/'}],count:1},
-  result:{tag:'controller-result',runId:'run-original',resultId:'result-original',state:'completed',outcome:{ok:true}}});
-
-test('trusted page-change notifications recheck eligibility without executing a task',async t=>{
-  const host=sdk(),f=await mount(t,host);
-  await f.click('脚本');
-  assert.equal(f.find('运行',taskCard(f)).disabled,false);
-  host.page={status:'available',url:'https://www.google.com/'};
-  await f.flush(()=>f.document.getElementById('root').dispatchEvent(
-    new f.window.Event('opendesk-page-changed')));
-  assert.equal(f.find('运行',taskCard(f)).disabled,true);
-  host.page={status:'available',url:'https://www.baidu.com/'};
-  await f.flush(()=>f.document.getElementById('root').dispatchEvent(
-    new f.window.Event('opendesk-page-changed')));
-  assert.equal(f.find('运行',taskCard(f)).disabled,false);
-  assert.equal(starts(host).length,0);
-  assert.ok(host.calls.filter(call=>call.name==='currentPage.info').length>=3);
-});
-test('missing fixed task is unavailable rather than a changed hash',async t=>{
-  const host=sdk();host.pins=host.pins.filter(pin=>pin.taskId!=='baidu.search.top3');
+test('rapid double-click sends at most one configure request and zero Runs',async t=>{
+  const host=sdk(),pending=deferred();host.configure=()=>pending.promise;
   const f=await mount(t,host);await f.click('脚本');
-  assert.match(taskCard(f).textContent,/任务不可用/);
-  assert.match(taskCard(f).textContent,/未读取到有效的任务安装/);
-  assert.equal(f.find('运行',taskCard(f)).disabled,true);
+  const button=f.find('运行',taskCard(f));
+  await f.flush(()=>{
+    button.dispatchEvent(new f.window.Event('click',{bubbles:true}));
+    button.dispatchEvent(new f.window.Event('click',{bubbles:true}));
+  });
+  assert.equal(configureCalls(host).length,1);
   assert.equal(starts(host).length,0);
+  await f.flush(()=>pending.resolve({opened:true}));
 });
-test('uninstalled or disabled task has a readable recovery path, optional diagnostics and a read-only refresh',async t=>{
-  const host=sdk();
-  host.taskRead=async id=>{
-    if(id==='baidu.search.top3')throw Object.assign(Error('Task is disabled or not installed'),{code:'E_PERMISSION'});
+
+test('revoked UI opening reports an error without submitting a task',async t=>{
+  const host=sdk();host.configure=async()=>{throw problem('E_TOOL_CHANGED');};
+  const f=await mount(t,host);await f.click('脚本');await f.click('运行',taskCard(f));
+  assert.match(f.text(),/共享运行抽屉未打开/);
+  assert.equal(starts(host).length,0);
+  assert.equal(host.store.has('webflow.pending.v1'),false);
+});
+
+test('an exact installed hash drift disables the UI-only entrypoint',async t=>{
+  const host=sdk();host.pins[0].manifestHash='f'.repeat(64);
+  const f=await mount(t,host);await f.click('脚本');
+  assert.equal(f.find('运行',taskCard(f)).disabled,true);
+  assert.match(taskCard(f).textContent,/固定版本不匹配/);
+  assert.equal(configureCalls(host).length,0);
+});
+
+test('missing and disabled tasks stay non-runnable and expose original management action',async t=>{
+  const host=sdk();host.taskRead=async id=>{
+    if(id==='baidu.search.top3')throw Object.assign(Error('disabled'),{code:'E_TASK_DISABLED'});
     return {task:host.pins[1]};
   };
   const f=await mount(t,host);await f.click('脚本');
-  assert.match(taskCard(f).textContent,/此任务尚未安装或已停用/);
-  assert.match(taskCard(f).textContent,/“我的”.*安装或恢复.*刷新/);
-  assert.ok(!taskCard(f).textContent.includes('Task is disabled or not installed'));
   assert.equal(f.find('运行',taskCard(f)).disabled,true);
-  await f.click('更多操作：百度搜索 · 前三条自然结果',taskCard(f));
-  assert.ok(!taskCard(f).textContent.includes('宿主管理'),'SDK cannot open an unavailable task');
-  await f.click('查看详情',taskCard(f));
-  assert.match(taskCard(f).textContent,/E_PERMISSION：Task is disabled or not installed/);
-  const pending=deferred();host.taskRead=id=>id==='baidu.search.top3'?pending.promise:{task:host.pins[1]};
-  await f.click('刷新');
-  assert.ok(!taskCard(f).textContent.includes('此任务尚未安装或已停用'),'refresh clears the previous failure');
-  assert.equal(f.find('运行',taskCard(f)).disabled,true);
-  await f.flush(()=>pending.resolve({task:host.pins[0]}));
-  assert.match(taskCard(f).textContent,/可手动运行/);
-  assert.equal(f.find('运行',taskCard(f)).disabled,false);
-  assert.ok(!taskCard(f).textContent.includes('E_PERMISSION'));
-  assert.equal(starts(host).length,0,'metadata recovery never dispatches or replays a task');
-  assert.ok(host.calls.every(call=>['storage.get','currentPage.info','tasks.read'].includes(call.name)));
-});
-test('permission denial and unreadable metadata are not misreported as a missing task',async t=>{
-  for(const code of ['E_PERMISSION','E_OWNER','E_TOOL_DISABLED','E_NETWORK']){
-    const host=sdk();host.taskRead=async()=>{throw Object.assign(Error('internal transport failure'),{code});};
-    const f=await mount(t,host);await f.click('脚本');
-    assert.equal(f.find('运行',taskCard(f)).disabled,true);
-    assert.ok(!taskCard(f).textContent.includes('尚未安装或已停用'));
-    assert.ok(!taskCard(f).textContent.includes('internal transport failure'));
-    await f.click('百度搜索 · 前三条自然结果',taskCard(f));
-    assert.ok(taskCard(f).textContent.includes(code+'：internal transport failure'));
-    assert.equal(starts(host).length,0);await f.close();
-  }
-});
-test('Authority installation states expose recovery without pretending to run or re-enable',async t=>{
-  for(const [code,label,action] of [
-    ['E_TASK_REMOVED','已卸载','打开安装审阅'],
-    ['E_TASK_NOT_INSTALLED','尚未安装','打开安装审阅'],
-    ['E_TASK_DISABLED','已停用','打开任务管理'],
-    ['E_TASK_INITIALIZATION','初始化失败','打开安装审阅'],
-    ['E_BUILTIN_VERSION_UNAVAILABLE','待重新验证','打开任务管理']
-  ]){
-    const host=sdk();host.taskRead=async id=>{
-      if(id==='baidu.search.top3')throw Object.assign(Error('exact storage diagnostic'),{code});
-      return {task:host.pins[1]};
-    };
-    const f=await mount(t,host);await f.click('脚本');
-    const card=taskCard(f);
-    assert.match(card.textContent,new RegExp(label));
-    assert.equal(f.find('运行',card).disabled,true);
-    assert.ok(!card.textContent.includes('exact storage diagnostic'));
-    await f.click(action,card);
-    assert.deepEqual(host.calls.filter(c=>c.name==='tasks.open').map(c=>c.args),[{taskId:'baidu.search.top3'}]);
-    assert.equal(starts(host).length,0);
-    await f.click('概览');assert.match(f.text(),/有固定脚本需要处理/);
-    await f.close();
-  }
-});
-test('runtime mismatch explains recovery, stays in attention and only becomes runnable after an authoritative refresh',async t=>{
-  const host=sdk();let stale=true;
-  host.taskRead=async id=>{
-    if(id==='baidu.search.top3'&&stale)throw Object.assign(Error('stale runtime identity'),{code:'E_BUILTIN_VERSION_UNAVAILABLE'});
-    return {task:host.pins.find(pin=>pin.taskId===id)};
-  };
-  const f=await mount(t,host);await f.click('脚本');
-  assert.match(taskCard(f).textContent,/运行时已更新.*同一固定任务包重新验证并确认安装/);
-  assert.doesNotMatch(taskCard(f).textContent,/读取失败|任务状态读取失败/);
-  assert.equal(f.find('运行',taskCard(f)).disabled,true);
-  await f.click('筛选脚本');await f.click('需处理');
-  assert.equal(f.document.querySelectorAll('article').length,1);
   await f.click('打开任务管理',taskCard(f));
-  assert.deepEqual(host.calls.filter(c=>c.name==='tasks.open').map(c=>c.args),[{taskId:'baidu.search.top3'}]);
-  await f.click('刷新');assert.match(taskCard(f).textContent,/待重新验证/);
-  stale=false;await f.click('刷新');
-  assert.match(f.text(),/没有匹配的固定任务/);
-  await f.click('清除筛选');
-  assert.match(taskCard(f).textContent,/可手动运行/);
-  assert.equal(f.find('运行',taskCard(f)).disabled,false);
-  assert.equal(starts(host).length,0,'opening recovery and refreshing never submits or replays a task');
-});
-test('retrying failed initialization re-reads Authority and never submits a task',async t=>{
-  const host=sdk();let unavailable=true;
-  host.taskRead=async id=>{
-    if(unavailable)throw Object.assign(Error('initial storage failure'),{code:'E_TASK_INITIALIZATION'});
-    return {task:host.pins.find(p=>p.taskId===id)};
-  };
-  const f=await mount(t,host);await f.click('脚本');
-  assert.equal(f.find('运行',taskCard(f)).disabled,true);
-  unavailable=false;await f.click('重试初始化',taskCard(f));
-  assert.match(taskCard(f).textContent,/可手动运行/);
-  assert.equal(f.find('运行',taskCard(f)).disabled,false);
-  assert.equal(starts(host).length,0);
-  assert.equal(host.calls.filter(c=>c.name==='tasks.open').length,0);
-});
-const pageChanged=f=>f.document.getElementById('root').dispatchEvent(new f.window.Event('opendesk-page-changed'));
-test('page recheck disables the old site and saved confirmation until the newest SDK read succeeds',async t=>{
-  const host=sdk(),f=await mount(t,host);await prepare(f);
-  const older=deferred(),newest=deferred();let reads=0;
-  host.pageRead=()=>++reads===1?older.promise:newest.promise;
-  const oldConfirmation=f.find('确认手动运行');
-  await f.flush(()=>{
-    pageChanged(f);
-    oldConfirmation.dispatchEvent(new f.window.Event('click',{bubbles:true}));
-  });
-  assert.equal(starts(host).length,0,'same-turn click cannot borrow the old page read');
-  assert.equal(f.find('确认手动运行').disabled,true,'pending page read cannot retain old-site permission');
-  assert.match(taskCard(f).textContent,/正在核验网页/);
-  await f.flush(()=>pageChanged(f));
-  await f.flush(()=>newest.resolve({status:'available',url:'https://www.google.com/'}));
-  await f.flush(()=>older.resolve({status:'available',url:'https://www.baidu.com/'}));
-  assert.equal(f.find('确认手动运行').disabled,true,'late old-site reply cannot override the new target');
-  assert.match(taskCard(f).textContent,/当前网站不可运行/);
-  host.pageRead=async()=>{throw problem('E_PERMISSION');};
-  await f.flush(()=>pageChanged(f));
-  assert.equal(f.find('确认手动运行').disabled,true,'read failure keeps admission disabled');
-  host.pageRead=async()=>({status:'available',url:'https://www.baidu.com/'});
-  await f.flush(()=>pageChanged(f));
-  assert.equal(f.find('确认手动运行').disabled,false);
-  assert.equal(starts(host).length,0,'page notifications never dispatch a task');
-});
-test('page event payload cannot grant permission and a late closed-page read cannot alter its replacement',async t=>{
-  const host=sdk(),late=deferred();let f=await mount(t,host);await f.click('脚本');
-  host.pageRead=()=>late.promise;
-  await f.flush(()=>{
-    const event=new f.window.Event('opendesk-page-changed');
-    event.detail={status:'available',url:'https://www.baidu.com/'};
-    f.document.getElementById('root').dispatchEvent(event);
-  });
-  assert.equal(f.find('运行',taskCard(f)).disabled,true);
-  await f.close();host.pageRead=null;host.page={status:'unavailable'};
-  f=await mount(t,host);await f.click('脚本');
-  const before=host.calls.length;
-  await f.flush(()=>late.resolve({status:'available',url:'https://www.baidu.com/'}));
-  assert.equal(f.find('运行',taskCard(f)).disabled,true);
-  assert.equal(host.calls.length,before);
-  assert.deepEqual(f.errors,[]);
-});
-test('a fixed task requires a complete installation and refresh invalidates saved confirmation while pending',async t=>{
-  const host=sdk(),f=await mount(t,host);await prepare(f);
-  const pending=deferred();host.taskRead=id=>id==='baidu.search.top3'?pending.promise:{task:host.pins[1]};
-  await f.click('刷新');
-  assert.equal(f.find('确认手动运行').disabled,true,'refresh cannot retain a stale installation');
-  await f.flush(()=>pending.resolve({task:{...host.pins[0],installationId:''}}));
-  assert.equal(f.find('确认手动运行').disabled,true);
-  assert.match(taskCard(f).textContent,/任务不可用/);
-  host.taskRead=null;host.pins[0]={...host.pins[0],version:'99.0.0'};
-  await f.click('刷新');
-  assert.match(taskCard(f).textContent,/固定版本不匹配/);
+  assert.deepEqual(host.calls.filter(c=>c.name==='tasks.open').map(x=>x.args),
+    [{taskId:'baidu.search.top3'}]);
   assert.equal(starts(host).length,0);
 });
-test('compact filter preserves the preview sort affordance',async t=>{
-  const f=await mount(t);await f.click('脚本');await f.click('筛选脚本');
-  assert.equal(f.document.querySelector('select[aria-label="脚本排序方式"]')?.value,'favorite');
-});
-test('view-only search releases the host input marker without clearing an unsaved query',async t=>{
+
+test('trusted page-change notification invalidates the old origin before a new read',async t=>{
   const host=sdk(),f=await mount(t,host);await f.click('脚本');
-  const before=host.editStates.length;
-  await f.input('百度','wf-search');
-  assert.ok(host.editStates.length>before,'search must reconcile the host input marker');
-  assert.deepEqual(host.editStates.at(-1),{dirty:false,busy:false});
-  await f.input('','wf-search');await f.click('运行',taskCard(f));await f.input('未保存参数');
-  assert.deepEqual(host.editStates.at(-1),{dirty:true,busy:false});
-  await f.input('百度','wf-search');
-  assert.deepEqual(host.editStates.at(-1),{dirty:true,busy:false},'view controls retain the query draft');
-  await f.click('概览');await f.click('脚本');
-  assert.deepEqual(host.editStates.at(-1),{dirty:true,busy:false},'hidden drafts remain protected');
-  await f.input('','wf-search');
-  await f.click('收藏 百度搜索 · 前三条自然结果',taskCard(f));
-  assert.deepEqual(host.editStates.at(-1),{dirty:true,busy:false},'saved preferences cannot clear query edits');
-  assert.equal(starts(host).length,0);
+  assert.equal(f.find('运行',taskCard(f)).disabled,false);
+  host.page={status:'available',url:'https://www.google.com/'};
+  await f.flush(()=>changedPage(f));
+  assert.equal(f.find('运行',taskCard(f)).disabled,true);
+  host.page={status:'available',url:'https://www.baidu.com/'};
+  await f.flush(()=>changedPage(f));
+  assert.equal(f.find('运行',taskCard(f)).disabled,false);
+  assert.equal(configureCalls(host).length,0);
 });
-test('saved parameters release draft protection only after their SDK readback',async t=>{
-  const host=sdk(),f=await mount(t,host),readback=deferred();
-  await f.click('脚本');await f.click('运行',taskCard(f));await f.input('持久参数');
-  host.beforeGet=args=>args.key==='webflow.pending.v1'&&!args.withEtag?readback.promise:undefined;
-  await f.click('保存运行步骤',taskCard(f));
-  assert.ok(host.store.has('webflow.pending.v1'),'write committed before the held readback');
-  assert.deepEqual(host.editStates.at(-1),{dirty:true,busy:true});
-  await f.flush(()=>readback.resolve());
-  assert.deepEqual(host.editStates.at(-1),{dirty:false,busy:false});
-  assert.equal(f.find('确认手动运行').disabled,false);
-  assert.equal(starts(host).length,0);
-});
-test('unconfirmed parameter writes keep draft protection and never submit a task',async t=>{
-  for(const failure of ['write','readback']){
-    const host=sdk(),f=await mount(t,host);await f.click('脚本');
-    await f.click('运行',taskCard(f));await f.input('不可丢失的参数');
-    host.failSave=failure==='write';
-    if(failure==='readback')host.afterSet=({key,value})=>host.store.set(key,{...value,params:{query:'不同参数',limit:3}});
-    await f.click('保存运行步骤',taskCard(f));
-    assert.match(f.text(),/运行步骤未确认保存/);
-    assert.deepEqual(host.editStates.at(-1),{dirty:true,busy:false});
-    await f.input('百度','wf-search');
-    assert.deepEqual(host.editStates.at(-1),{dirty:true,busy:false});
-    assert.equal(starts(host).length,0);await f.close();
-  }
-});
-test('preference writes stay protected until confirmed, and failures cannot be cleared by search',async t=>{
-  for(const failure of [false,'write','readback']){
-    const host=sdk(),f=await mount(t,host),readback=deferred();await f.click('脚本');
-    host.beforeGet=args=>args.key==='webflow.settings.v1'&&!args.withEtag?readback.promise:undefined;
-    host.failSave=failure==='write';
-    if(failure==='readback')host.afterSet=({key})=>host.store.set(key,{theme:'dark',favorites:[]});
-    await f.click('收藏 百度搜索 · 前三条自然结果',taskCard(f));
-    if(failure!=='write')assert.deepEqual(host.editStates.at(-1),{dirty:true,busy:true});
-    await f.flush(()=>readback.resolve());
-    assert.deepEqual(host.editStates.at(-1),{dirty:Boolean(failure),busy:false});
-    await f.input('百度','wf-search');
-    assert.deepEqual(host.editStates.at(-1),{dirty:Boolean(failure),busy:false});
-    if(failure)assert.match(f.text(),/偏好未确认保存/);
-    else assert.match(f.text(),/偏好已保存并读回/);
-    if(failure){
-      host.failSave=false;host.afterSet=null;host.beforeGet=null;
-      await f.click('收藏 百度搜索 · 前三条自然结果',taskCard(f));
-      assert.deepEqual(host.editStates.at(-1),{dirty:false,busy:false},'a confirmed retry releases the failed preference edit');
-    }
-    assert.equal(starts(host).length,0);await f.close();
-  }
-});
-test('storage readback may reorder object fields without losing saved favorites or the original step',async t=>{
-  const host=sdk();
-  const reordered=value=>Array.isArray(value)?value.map(reordered):value&&typeof value==='object'?
-    Object.fromEntries(Object.keys(value).sort().map(key=>[key,reordered(value[key])])):value;
-  host.afterSet=({key,value})=>host.store.set(key,reordered(value));
+
+test('legacy pending ID is restored as read-only recovery; UNKNOWN never starts a new Run',async t=>{
+  const host=sdk(),saved=pinned(host);host.store.set('webflow.pending.v1',saved);
   const f=await mount(t,host);await f.click('脚本');
-  await f.click('收藏 百度搜索 · 前三条自然结果',taskCard(f));
-  assert.equal(f.find('取消收藏 百度搜索 · 前三条自然结果',taskCard(f)).getAttribute('aria-pressed'),'true');
-  assert.match(f.text(),/偏好已保存并读回/);
-  assert.ok(!f.text().includes('保存后读回不一致'));
-  await prepare(f);
-  assert.equal(f.find('确认手动运行').disabled,false);
-  assert.equal(starts(host).length,0,'saving preferences or a step never dispatches');
-});
-test('changed values, fields, types and array order still fail preference readback',async t=>{
-  for(const mutate of [value=>({...value,favorites:[]}),value=>({...value,extra:true}),
-    value=>({favorites:value.favorites}),value=>({...value,theme:1}),
-    value=>({...value,favorites:[...value.favorites].reverse()})]){
-    const host=sdk();host.store.set('webflow.settings.v1',{theme:'system',favorites:[
-      ['taskId','version','manifestHash','contentHash'].map(key=>config.delegatedTasks[1][key]).join('|')]});
-    host.afterSet=({key,value})=>{if(key==='webflow.settings.v1')host.store.set(key,mutate(value));};
-    const f=await mount(t,host);await f.click('脚本');
-    await f.click('收藏 百度搜索 · 前三条自然结果',taskCard(f));
-    assert.match(f.text(),/偏好未确认保存：保存后读回不一致/);
-    assert.equal(f.find('收藏 百度搜索 · 前三条自然结果',taskCard(f)).getAttribute('aria-pressed'),'false');
-    assert.equal(starts(host).length,0);await f.close();
-  }
-});
-test('compact overview retains three tabs, on-demand help and no duplicate navigation',async t=>{
-  const host=sdk(),f=await mount(t,host);
-  assert.equal(f.document.querySelectorAll('.wf-head').length,1,'one sandbox tab strip, no duplicate product header');
-  assert.equal(f.document.querySelectorAll('.wf-history').length,0,'no synthetic history');
-  assert.ok(!f.text().includes('快速开始')&&!f.text().includes('查看可用脚本'));
-  await f.click('脚本');
-  assert.equal(f.document.querySelector('[data-page="scripts"]').getAttribute('aria-selected'),'true');
-  assert.ok(taskCard(f));
-  assert.equal(f.document.querySelectorAll('.wf-task-row').length,2);
-  await f.click('概览');await f.click('帮助');
-  assert.equal(f.document.querySelector('main h2').textContent,'使用与排障');
-  const keyboardTabs=()=>[...f.document.querySelectorAll('[role="tab"]')].filter(tab=>tab.getAttribute('tabindex')==='0');
-  assert.equal(keyboardTabs().length,1,'help retains one keyboard entry into primary navigation');
-  assert.equal(keyboardTabs()[0].getAttribute('data-page'),'overview');
-  await f.click('应用偏好');
-  assert.equal(keyboardTabs().length,1,'settings retains one keyboard entry into primary navigation');
-  await f.click('返回');
-  assert.equal(f.document.querySelector('[data-page="overview"]').getAttribute('aria-selected'),'true');
-  assert.equal(starts(host).length,0);
-  assert.equal(host.store.has('webflow.pending.v1'),false);
-  assert.deepEqual([...new Set(host.calls.map(c=>c.name))].sort(),['currentPage.info','storage.get','tasks.read']);
-});
-
-test('compact filter and icon actions preserve real task scope and favorites',async t=>{
-  const host=sdk(),f=await mount(t,host);
-  await f.click('脚本');
-  const rows=()=>[...f.document.querySelectorAll('.wf-task-row')];
-  assert.equal(rows().length,2);
-  const baidu=taskCard(f);
-  const favorite=[...baidu.querySelectorAll('button')].find(b=>b.getAttribute('aria-label')?.startsWith('收藏 '));
-  assert.ok(favorite,'favorite has a meaningful accessible name');
-  await React.act(async()=>favorite.dispatchEvent(new f.document.defaultView.Event('click',{bubbles:true})));
-  assert.equal(f.document.querySelectorAll('.wf-task-row').length,2,'favoriting does not navigate');
-  await f.click('筛选脚本');
-  assert.ok(f.document.getElementById('wf-filter-options'));
-  await f.click('收藏',f.document.getElementById('wf-filter-options'));
-  assert.equal(rows().length,1,'favorites come from saved preferences');
-  assert.ok(rows()[0].textContent.includes('百度搜索'));
-  await f.click('筛选脚本');await f.click('全部',f.document.getElementById('wf-filter-options'));
-  assert.equal(rows().length,2);
-  const google=rows().find(row=>row.textContent.toLowerCase().includes('google'));
-  const googleRun=[...google.querySelectorAll('button')].find(b=>b.getAttribute('aria-label')?.startsWith('无法运行 '));
-  assert.ok(googleRun?.disabled,'wrong target website must disable manual run');
-  assert.match(googleRun.getAttribute('aria-label'),/网站/);
-  assert.equal(starts(host).length,0,'UI controls cannot dispatch a Task');
-});
-
-test('help and settings use Host header icons and return to the original tab',async t=>{
-  const host=sdk();host.withNavigation=true;
-  const f=await mount(t,host);
-  assert.ok(host.navigation.length>0);
-  assert.equal(host.navigation.at(-1).page,'home');
-  assert.deepEqual(Array.from(host.navigation.at(-1).headerActions,a=>[a.id,a.label,a.icon]),
-    [['help','帮助','diagnostics'],['settings','应用偏好','settings']]);
-  assert.equal(f.document.querySelector('.wf-head-actions'),null,'no duplicate content controls');
-  const dispatch=async detail=>React.act(async()=>{
-    const event=new f.document.defaultView.Event('opendesk-tool-navigation',{bubbles:true});
-    event.detail=detail;
-    f.document.getElementById('root').dispatchEvent(event);
-  });
-  await f.click('脚本');
-  await dispatch({action:'header',actionId:'help',page:'settings'});
-  assert.equal(f.document.querySelector('[data-page="scripts"]').getAttribute('aria-selected'),'true',
-    'stale page actions cannot navigate');
-  await dispatch({action:'header',actionId:'help',page:'home'});
-  assert.equal(f.document.querySelector('main h2').textContent,'使用与排障');
-  assert.equal(host.navigation.at(-1).page,'help');
-  assert.equal(f.document.querySelectorAll('main .wf-panel').length,4,'all original help topics are expanded');
-  assert.equal([...f.document.querySelectorAll('button')].some(b=>b.textContent==='返回'),false,
-    'Host retains the only back control');
-  await dispatch({action:'header',actionId:'settings',page:'help'});
-  assert.equal(f.document.querySelector('main h2').textContent,'应用偏好');
-  assert.equal(host.navigation.at(-1).page,'settings');
-  assert.equal(host.navigation.at(-1).title,'应用偏好');
-  assert.equal(f.document.querySelector('main select').querySelectorAll('option').length,3,'theme choices retained');
-  assert.equal(f.document.querySelector('main details'),null,'settings sections need no second expansion');
-  assert.match(f.text(),/开发与安装/);
-  assert.match(f.text(),/未来的多步骤流程/);
-  await dispatch({action:'back'});
-  assert.equal(f.document.querySelector('[data-page="scripts"]').getAttribute('aria-selected'),'true');
-  assert.equal(host.navigation.at(-1).page,'home');
-  assert.ok(host.navigation.every(state=>state.headerActions?.length===2));
-  assert.equal(starts(host).length,0);
-});
-
-test('rejected Host header projection retains content controls and base navigation',async t=>{
-  const host=sdk();host.withNavigation=true;host.rejectHeaderActions=true;
-  const f=await mount(t,host);
-  assert.ok('headerActions' in host.navigation.at(-2));
-  assert.equal('headerActions' in host.navigation.at(-1),false);
-  assert.equal(f.document.querySelectorAll('.wf-head-actions button').length,2);
-  await f.click('帮助');
-  assert.equal(f.document.querySelector('main h2').textContent,'使用与排障');
-  const event=new f.window.Event('opendesk-tool-navigation',{bubbles:true});
-  event.detail={action:'header',actionId:'settings',page:'help'};
-  await f.flush(()=>f.document.getElementById('root').dispatchEvent(event));
-  assert.equal(f.document.querySelector('main h2').textContent,'使用与排障','rejected actions ignored');
-  assert.equal(starts(host).length,0);
-});
-
-test('the step ID is durably read back before the direct manual start; duplicate clicks start once',async t=>{
-  const host=sdk(),ack=deferred();host.start=()=>ack.promise;
-  const f=await mount(t,host);await prepare(f);
-  assert.equal(starts(host).length,0,'preparation must not dispatch');
-  const saved=host.store.get('webflow.pending.v1');assert.ok(saved?.clientRequestId);
-  await f.duplicateClick('确认手动运行');
-  assert.equal(starts(host).length,1);assert.equal(starts(host)[0].args.clientRequestId,saved.clientRequestId);
-  assert.equal(f.find('保存运行步骤').disabled,true);
-  assert.equal(f.find('停止原请求').disabled,false,'Stop must remain usable before ACK');
-  await f.flush(()=>ack.resolve({clientRequestId:saved.clientRequestId,state:'unknown'}));
-  assert.equal(starts(host).length,1);
-});
-
-test('unchecking the execution tab persists false, cancels locally and dispatches the confirmed params once across reopen',async t=>{
-  const host=sdk(),ack=deferred();host.start=()=>ack.promise;
-  let f=await mount(t,host);
-  const params={query:'OpenDesk Browser',limit:3,showExecutionTab:false};
-  const prepareBackground=async()=>{
-    await f.click('脚本');await f.click('运行',taskCard(f));await f.input(params.query);
-    const checkbox=f.document.getElementById('wf-show-execution-tab');
-    assert.equal(checkbox.checked,true,'execution tab defaults to visible');
-    await f.flush(()=>{
-      // Linkedom does not perform the browser checkbox click default action.
-      checkbox.checked=false;
-      checkbox.dispatchEvent(new f.window.Event('click',{bubbles:true}));
-    });
-    assert.equal(f.document.getElementById('wf-show-execution-tab').checked,false);
-    assert.match(taskCard(f).textContent,/关闭/);
-    assert.match(taskCard(f).textContent,/最多 3 条/);
-    const before=host.calls.length;
-    await f.click('保存运行步骤',taskCard(f));
-    const saved=host.store.get('webflow.pending.v1');
-    assert.deepEqual(saved.params,params);
-    assert.equal(saved.params.showExecutionTab,false,'persist a boolean, not a missing or coerced value');
-    const calls=host.calls.slice(before),write=calls.findIndex(c=>c.name==='storage.set');
-    assert.ok(write>=0&&calls.slice(write+1).some(c=>c.name==='storage.get'&&
-      c.args.key==='webflow.pending.v1'&&!c.args.withEtag),'saved step is read back before confirmation');
-    await f.click('记录');
-    assert.match(f.text(),/已保存参数：OpenDesk Browser/);
-    assert.match(f.text(),/后台执行：不切到执行标签页/);
-    assert.doesNotMatch(f.text(),/前台执行：显示执行标签页/);
-    assert.equal(f.find('确认手动运行').disabled,false);
-    assert.equal(starts(host).length,0,'saving and displaying confirmation never dispatch');
-    return saved;
-  };
-  await prepareBackground();await f.click('取消未运行步骤');
-  assert.equal(host.store.get('webflow.pending.v1'),null);
-  assert.equal(starts(host).length,0,'cancelling never starts a task');
-  assert.equal(host.calls.filter(c=>c.name==='tasks.stop').length,0,'local cancellation needs no platform stop');
-  await f.close();f=await mount(t,host);
-  const saved=await prepareBackground();
-  await f.duplicateClick('确认手动运行');
-  assert.deepEqual(starts(host).map(c=>c.args),[{
-    clientRequestId:saved.clientRequestId,task:saved.task,params
-  }]);
-  await f.flush(()=>ack.resolve({clientRequestId:saved.clientRequestId,state:'unknown',semantic:'UNKNOWN'}));
-  await f.close();
-  const beforeReopen=host.calls.length;
-  f=await mount(t,host);await f.click('记录');await f.click('查询原请求');
-  const recoveryCalls=host.calls.slice(beforeReopen);
-  assert.ok(recoveryCalls.some(c=>c.name==='tasks.read'&&c.args.clientRequestId===saved.clientRequestId));
-  assert.ok(recoveryCalls.filter(c=>c.name.startsWith('tasks.')).every(c=>c.name==='tasks.read'),
-    'recovery only queries tasks; local recovery summaries may still be persisted');
-  assert.equal(starts(host).length,1,'reopening cannot replay the confirmed request');
+  assert.equal(f.find('运行',taskCard(f)).disabled,true);
+  await f.click('记录');
+  assert.match(f.text(),/原步骤/);
+  assert.match(f.text(),/webflow:original-123/);
+  await f.click('查询原请求');
+  assert.deepEqual(reads(host).map(x=>x.args.clientRequestId),[saved.clientRequestId]);
   assert.equal(host.store.get('webflow.pending.v1').clientRequestId,saved.clientRequestId);
-  assert.deepEqual(host.store.get('webflow.pending.v1').params,params);
-  assert.deepEqual(f.errors,[]);
-});
-
-test('close and recreate the React root restores the original record and queries real SDK data only',async t=>{
-  const host=sdk(),lost=deferred();host.start=()=>lost.promise;
-  let f=await mount(t,host);await prepare(f);await f.click('确认手动运行');
-  const id=starts(host)[0].args.clientRequestId;
-  await f.close();host.read=async()=>complete(id);
-  f=await mount(t,host);await f.click('记录');
-  assert.ok(f.text().includes(id));assert.equal(f.document.querySelector('pre'),null,'storage summary cannot disclose a result');
-  await f.click('查询原请求');
-  assert.equal(starts(host).length,1);assert.match(f.text(),/run-original/);assert.match(f.text(),/result-original/);
-  assert.match(f.document.querySelector('pre')?.textContent||'',/真实 SDK 回包内容/);
-  assert.equal(host.store.get('webflow.pending.v1'),null);
-});
-
-test('timeout, missing record and UNKNOWN keep the original ID fenced across reopen',async t=>{
-  const host=sdk();host.start=async()=>{throw problem('E_TIMEOUT');};
-  let f=await mount(t,host);await prepare(f);await f.click('确认手动运行');
-  const id=starts(host)[0].args.clientRequestId;
-  host.read=async()=>{throw problem('E_TIMEOUT');};await f.click('查询原请求');
-  assert.ok(f.text().includes(id));await f.close();
-  host.read=async()=>({clientRequestId:id,state:'unknown',semantic:'UNKNOWN'});
-  f=await mount(t,host);await f.click('记录');await f.click('查询原请求');await f.tick();
-  await f.click('脚本');assert.equal(f.find('运行',taskCard(f)).disabled,true);
-  assert.equal(starts(host).length,1);assert.equal(host.store.get('webflow.pending.v1').clientRequestId,id);
-});
-
-test('save failure never dispatches and does not present a runnable confirmation',async t=>{
-  const host=sdk();host.failSave=true;const f=await mount(t,host);await prepare(f);
-  assert.equal(starts(host).length,0);assert.match(f.text(),/E_QUOTA/);
-  assert.equal(f.document.querySelectorAll('button').length>0,true);
-  assert.equal([...f.document.querySelectorAll('button')].some(b=>b.textContent==='确认手动运行'&&!b.disabled),false);
-});
-
-test('preparation CAS conflict or mismatched readback never enables execution',async t=>{
-  for(const failure of ['cas','readback']){
-    const host=sdk();
-    if(failure==='cas')host.beforeSet=args=>{
-      if(args.key==='webflow.pending.v1')host.store.set(args.key,{clientRequestId:'webflow:other-original',taskId:host.pins[0].taskId,version:host.pins[0].version});
-    };
-    else host.afterSet=args=>{
-      if(args.key==='webflow.pending.v1')host.store.set(args.key,{...args.value,clientRequestId:'webflow:different-readback'});
-    };
-    const f=await mount(t,host);await prepare(f);
-    assert.equal(starts(host).length,0,failure+' cannot submit');
-    assert.equal([...f.document.querySelectorAll('button')].some(b=>b.textContent==='确认手动运行'&&!b.disabled),false);
-    assert.match(f.text(),failure==='cas'?/E_CONFLICT/:/保存后读回不一致/);
-    assert.ok(host.store.get('webflow.pending.v1'),'the conflicting original is retained');
-    await f.close();
-  }
-});
-
-test('Stop before start ACK ignores late start/read callbacks and never enables another run',async t=>{
-  const host=sdk(),ack=deferred(),read=deferred();host.start=()=>ack.promise;host.read=()=>read.promise;
-  const f=await mount(t,host);await prepare(f);await f.click('确认手动运行');
-  const id=starts(host)[0].args.clientRequestId;await f.click('查询原请求');await f.click('停止原请求');
-  await f.flush(()=>{ack.resolve(complete(id));read.resolve(complete(id));});
-  assert.equal(f.document.querySelector('pre'),null);assert.match(f.text(),/stopping|正在停止/);
-  assert.equal(host.store.get('webflow.pending.v1').clientRequestId,id);assert.equal(starts(host).length,1);
-});
-
-test('completed Result while retirement is held stays visible but cannot start B or a new step',async t=>{
-  const host=sdk();host.start=async id=>complete(id,'retiring');
-  const f=await mount(t,host);await prepare(f);await f.click('确认手动运行');
-  assert.match(f.text(),/retiring/);assert.match(f.document.querySelector('pre')?.textContent||'',/真实 SDK/);
-  assert.ok(host.store.get('webflow.pending.v1'));assert.equal(f.find('运行',taskCard(f)).disabled,true);
-  assert.equal(starts(host).length,1);await f.tick();assert.equal(starts(host).length,1);
-});
-
-test('revoked read clears previously displayed authoritative data and leaves recovery fenced',async t=>{
-  const host=sdk();host.start=async id=>complete(id,'retiring');
-  const f=await mount(t,host);await prepare(f);await f.click('确认手动运行');
-  assert.ok(f.document.querySelector('pre'));
-  host.read=async()=>{throw problem('E_PERMISSION');};await f.click('查询原请求');
-  assert.equal(f.document.querySelector('pre'),null);assert.match(f.text(),/E_PERMISSION/);
-  assert.equal(starts(host).length,1);assert.ok(host.store.get('webflow.pending.v1'));
-});
-
-test('a malformed or unreadable saved locator prevents any fresh admission',async t=>{
-  const host=sdk();host.store.set('webflow.pending.v1',{clientRequestId:'bad/id',taskId:'baidu.search.top3'});
-  const f=await mount(t,host);await f.click('脚本');assert.equal(f.find('运行',taskCard(f)).disabled,true);
-  assert.equal(starts(host).length,0);assert.match(f.text(),/原步骤|恢复/);
-});
-
-test('saved confirmation survives tab navigation and uses the frozen input and six-field installation',async t=>{
-  const host=sdk(),f=await mount(t,host);await prepare(f);
-  await f.click('记录');await f.click('确认手动运行');
-  assert.equal(starts(host).length,1);assert.equal(starts(host)[0].args.params.query,'OpenDesk Browser');
-  assert.deepEqual(starts(host)[0].args.task,host.pins[0]);
-});
-
-test('legacy UNKNOWN summary restores a query-only locator and never renders stored result bodies',async t=>{
-  const host=sdk();host.store.set('webflow.recent.v1',[{clientRequestId:'webflow:legacy',
-    taskId:host.pins[0].taskId,version:host.pins[0].version,state:'unknown',retirementState:'unknown',
-    resultPersisted:true,value:{secret:'untrusted summary'},result:complete('webflow:legacy').result}]);
-  const f=await mount(t,host);await f.click('脚本');assert.equal(f.find('运行',taskCard(f)).disabled,true);
-  await f.click('记录');await f.click('查询原请求');
-  assert.equal(host.store.get('webflow.pending.v1').clientRequestId,'webflow:legacy');
-  assert.equal(starts(host).length,0);assert.equal(f.document.querySelector('pre'),null);
-  assert.ok(!f.text().includes('untrusted summary'));
-});
-
-test('failed and stopped durable Results are displayed and release only with retirement acknowledgement',async t=>{
-  const host=sdk();host.start=async id=>({...complete(id),state:'stopped',value:null,
-    result:{...complete(id).result,state:'stopped',outcome:{ok:false,error:{code:'E_CANCELLED'}}}});
-  const f=await mount(t,host);await prepare(f);await f.click('确认手动运行');
-  assert.match(f.document.querySelector('pre')?.textContent||'',/E_CANCELLED/);
-  assert.equal(host.store.get('webflow.pending.v1'),null);assert.equal(starts(host).length,1);
-});
-
-test('mismatching original request or Result IDs cannot disclose data or remove the pending fence',async t=>{
-  const host=sdk();host.start=async id=>({...complete(id),clientRequestId:'other-request'});
-  const f=await mount(t,host);await prepare(f);await f.click('确认手动运行');
-  assert.equal(f.document.querySelector('pre'),null);assert.ok(host.store.get('webflow.pending.v1'));
-  const id=starts(host)[0].args.clientRequestId;
-  host.read=async()=>({...complete(id),result:{...complete(id).result,resultId:'other-result'}});
-  await f.click('查询原请求');assert.equal(f.document.querySelector('pre'),null);
-  assert.ok(host.store.get('webflow.pending.v1'));assert.equal(starts(host).length,1);
-});
-
-test('reinstalled Task cannot use a previously saved confirmation to gain a new admission',async t=>{
-  const host=sdk(),f=await mount(t,host);await prepare(f);
-  host.pins[0]={...host.pins[0],installationId:'new-installation',generation:2};
-  await f.click('刷新');await f.click('确认手动运行');
-  assert.equal(starts(host).length,0);assert.ok(host.store.get('webflow.pending.v1'));
-  assert.match(f.text(),/安装身份发生变化/);
-});
-
-test('late callbacks from a closed UI cannot disclose into its replacement',async t=>{
-  const host=sdk(),ack=deferred();host.start=()=>ack.promise;
-  let f=await mount(t,host);await prepare(f);await f.click('确认手动运行');
-  const id=starts(host)[0].args.clientRequestId;await f.close();
-  f=await mount(t,host);await f.flush(()=>ack.resolve(complete(id)));
-  assert.equal(f.document.querySelector('pre'),null);assert.ok(f.text().includes(id));assert.equal(starts(host).length,1);
-});
-
-test('late Stop ACK cannot overwrite the next explicitly started step after original release is queried',async t=>{
-  const host=sdk(),lateStop=deferred();host.stop=()=>lateStop.promise;
-  const f=await mount(t,host);await prepare(f);await f.click('确认手动运行');
-  const id=starts(host)[0].args.clientRequestId;
-  await f.click('停止原请求');host.read=async()=>complete(id);await f.click('查询原请求');
-  await prepare(f);await f.click('确认手动运行');
-  const next=starts(host)[1].args.clientRequestId;assert.notEqual(next,id);
-  await f.flush(()=>lateStop.resolve({clientRequestId:id,state:'stopped'}));
-  const activeId=f.document.querySelector('section .wf-mono')?.textContent;
-  assert.equal(activeId,next);assert.equal(host.store.get('webflow.pending.v1').clientRequestId,next);
-  assert.equal(starts(host).length,2,'only two separately confirmed manual actions');
-});
-
-test('pending storage read failure blocks admission and reports the recovery problem',async t=>{
-  const host=sdk(),original=host.request;host.request=async function(name,args){
-    if(name==='storage.get'&&args.key==='webflow.pending.v1')throw problem('E_STORAGE');
-    return original.call(this,name,args);
-  };
-  const f=await mount(t,host);await f.click('脚本');
-  assert.equal(f.find('运行',taskCard(f)).disabled,true);assert.match(f.text(),/E_STORAGE/);assert.equal(starts(host).length,0);
-});
-
-test('an old held-summary storage read cannot overwrite a newer released observation',async t=>{
-  const host=sdk(),oldGet=deferred(),entered=deferred();let hold=true;
-  host.beforeGet=async args=>{if(hold&&args.key==='webflow.recent.v1'&&args.withEtag){hold=false;entered.resolve();await oldGet.promise;}};
-  host.start=async id=>complete(id,'retiring');const f=await mount(t,host);await prepare(f);await f.click('确认手动运行');
-  await entered.promise;const id=starts(host)[0].args.clientRequestId;
-  host.read=async()=>complete(id);await f.click('查询原请求');await f.flush(()=>oldGet.resolve());
-  assert.equal(host.store.get('webflow.recent.v1')[0].retirementState,'released');
-  await f.close();const replacement=await mount(t,host);await replacement.click('脚本');
-  assert.equal(replacement.find('运行',taskCard(replacement)).disabled,false);
-});
-
-test('a committed pending clear with a lost ACK is reconciled idempotently',async t=>{
-  const host=sdk();let lose=true;
-  host.afterSet=async args=>{if(lose&&args.key==='webflow.pending.v1'&&args.value===null){lose=false;throw problem('E_TIMEOUT');}};
-  host.start=async id=>complete(id);const f=await mount(t,host);await prepare(f);await f.click('确认手动运行');
-  const id=starts(host)[0].args.clientRequestId;assert.equal(host.store.get('webflow.pending.v1'),null);
-  host.read=async()=>complete(id);await f.click('查询原请求');
-  assert.equal(f.find('运行',taskCard(f)).disabled,false);assert.equal(starts(host).length,1);
-});
-
-test('Stop during pending clear does not permanently desynchronize the original locator',async t=>{
-  const host=sdk(),clear=deferred(),entered=deferred();let hold=true;
-  host.beforeSet=async args=>{if(hold&&args.key==='webflow.pending.v1'&&args.value===null){hold=false;entered.resolve();await clear.promise;}};
-  host.start=async id=>complete(id);const f=await mount(t,host);await prepare(f);await f.click('确认手动运行');
-  await entered.promise;const id=starts(host)[0].args.clientRequestId;
-  await f.click('停止原请求');await f.flush(()=>clear.resolve());
-  host.read=async()=>complete(id);await f.click('查询原请求');
-  assert.equal(f.find('运行',taskCard(f)).disabled,false);assert.equal(starts(host).length,1);
-});
-
-test('querying a locally staged step preserves confirmation and local cancellation creates zero Runs',async t=>{
-  const host=sdk(),f=await mount(t,host);await prepare(f);await f.click('记录');await f.click('查询原请求');
-  assert.equal(f.find('确认手动运行').disabled,false);
-  assert.match(f.text(),/百度搜索/);assert.ok(f.text().includes(config.delegatedTasks[0].version));assert.match(f.text(),/https:\/\/www.baidu.com/);
-  await f.click('取消未运行步骤');assert.equal(host.store.get('webflow.pending.v1'),null);assert.equal(starts(host).length,0);
-  assert.equal(host.calls.filter(c=>c.name==='tasks.stop').length,0,'no platform request was dispatched');
-});
-
-test('an affirmative pre-submit cancellation fence stays settled after reopen without pretending retirement',async t=>{
-  const host=sdk();host.start=async()=>{throw problem('E_TIMEOUT');};
-  let f=await mount(t,host);await prepare(f);await f.click('确认手动运行');
-  const id=starts(host)[0].args.clientRequestId;
-  host.read=async()=>({clientRequestId:id,state:'cancelled',semantic:'NOT_SUBMITTED_FENCED',runId:null,resultId:null});
-  await f.click('查询原请求');assert.equal(host.store.get('webflow.pending.v1'),null);await f.close();
-  f=await mount(t,host);await f.click('脚本');assert.equal(f.find('运行',taskCard(f)).disabled,false);
-  assert.notEqual(host.store.get('webflow.recent.v1')[0].retirementState,'released');
-});
-
-test('a revoked re-query replaces the old released-success notice with the current failure',async t=>{
-  const host=sdk();host.start=async id=>complete(id);const f=await mount(t,host);
-  await prepare(f);await f.click('确认手动运行');assert.match(f.text(),/原请求已查询，资源已释放/);
-  host.read=async()=>{throw problem('E_PERMISSION');};await f.click('查询原请求');
-  assert.match(f.text(),/E_PERMISSION/);assert.ok(!f.text().includes('原请求已查询，资源已释放'));
-  assert.equal(f.document.querySelector('pre'),null);assert.equal(starts(host).length,1);
-});
-
-test('release of A cannot clear a different concurrently saved pending locator B',async t=>{
-  const host=sdk();host.start=async id=>complete(id,'retiring');const f=await mount(t,host);
-  await prepare(f);await f.click('确认手动运行');const id=starts(host)[0].args.clientRequestId;
-  const other={clientRequestId:'webflow:other-step',taskId:host.pins[0].taskId,version:host.pins[0].version};
-  host.store.set('webflow.pending.v1',other);host.read=async()=>complete(id);
-  await f.click('查询原请求');assert.deepEqual(host.store.get('webflow.pending.v1'),other);
-  assert.match(f.text(),/E_CONFLICT/);assert.equal(starts(host).length,1);
-});
-
-test('a failed local-only cancellation keeps an explicit same-step cancellation retry and never starts or stops a Task',async t=>{
-  const host=sdk(),f=await mount(t,host);await prepare(f);host.failSave=true;
-  await f.click('取消未运行步骤');assert.match(f.text(),/E_QUOTA/);
-  assert.equal(f.find('重试取消未运行步骤').disabled,false);
-  host.failSave=false;await f.click('重试取消未运行步骤');
-  assert.equal(host.store.get('webflow.pending.v1'),null);assert.equal(starts(host).length,0);
-  assert.equal(host.calls.filter(c=>c.name==='tasks.stop').length,0);
-});
-
-test('Stop interrupting locator restoration still permits same-ID query after its storage write commits',async t=>{
-  const host=sdk(),write=deferred(),entered=deferred();let hold=true;
-  const id='webflow:legacy-stopping';host.store.set('webflow.recent.v1',[{clientRequestId:id,
-    taskId:host.pins[0].taskId,version:host.pins[0].version,state:'unknown',retirementState:'unknown'}]);
-  host.beforeSet=async args=>{if(hold&&args.key==='webflow.pending.v1'&&args.value?.clientRequestId===id){hold=false;entered.resolve();await write.promise;}};
-  const f=await mount(t,host);await f.click('记录');await f.click('查询原请求');await entered.promise;
-  await f.click('停止原请求');await f.flush(()=>write.resolve());
-  host.read=async()=>complete(id);await f.click('查询原请求');
-  assert.ok(f.document.querySelector('pre'));assert.equal(host.store.get('webflow.pending.v1'),null);
   assert.equal(starts(host).length,0);
 });
 
-test('preparation failure keeps a never-submitted cancellation path before a write and after lost save ACK',async t=>{
-  for(const afterCommit of [false,true]){
-    const host=sdk();
-    if(afterCommit){let fail=true;host.afterSet=async args=>{
-      if(fail&&args.key==='webflow.pending.v1'&&args.value){fail=false;throw problem('E_TIMEOUT');}
-    };}else host.failSave=true;
-    const f=await mount(t,host);await prepare(f);assert.equal(starts(host).length,0);
-    assert.equal(f.find('重试取消未运行步骤').disabled,false);
-    host.failSave=false;await f.click('重试取消未运行步骤');
-    assert.equal(host.store.get('webflow.pending.v1')??null,null);assert.equal(starts(host).length,0);
-    assert.equal(host.calls.filter(c=>c.name==='tasks.stop').length,0);await f.close();
-  }
+test('a completed-looking legacy result without confirmed resource release retains its ID',async t=>{
+  const host=sdk(),saved=pinned(host);host.store.set('webflow.pending.v1',saved);
+  host.read=async()=>complete(saved.clientRequestId,'pending');
+  const f=await mount(t,host);await f.click('记录');await f.click('查询原请求');
+  assert.equal(host.store.get('webflow.pending.v1').clientRequestId,saved.clientRequestId);
+  assert.equal(starts(host).length,0);
+  assert.match(f.text(),/资源释放/);
 });
 
-test('an unread legacy history with empty pending cannot authorize a new step',async t=>{
-  const host=sdk(),original=host.request;
-  host.store.set('webflow.recent.v1',[{clientRequestId:'webflow:unread-unknown',taskId:host.pins[0].taskId,
-    version:host.pins[0].version,state:'unknown',retirementState:'unknown'}]);
-  host.request=async function(name,args){if(name==='storage.get'&&args.key==='webflow.recent.v1')throw problem('E_STORAGE');
-    return original.call(this,name,args);};
-  const f=await mount(t,host);await f.click('脚本');assert.equal(f.find('运行',taskCard(f)).disabled,true);
-  assert.equal(starts(host).length,0);assert.match(f.text(),/E_STORAGE/);
+test('only matching durable result with retirement released can clear the legacy pending ID',async t=>{
+  const host=sdk(),saved=pinned(host);host.store.set('webflow.pending.v1',saved);
+  host.read=async()=>complete(saved.clientRequestId);
+  const f=await mount(t,host);await f.click('记录');await f.click('查询原请求');
+  assert.equal(host.store.get('webflow.pending.v1'),null);
+  assert.equal(starts(host).length,0);
+  assert.ok(host.store.has('webflow.recent.v1'));
 });
 
-test('a recovered query merges against current stored history after a temporary initial read failure',async t=>{
-  const host=sdk(),id='webflow:restore-with-history',original=host.request;let fail=true;
-  const older={clientRequestId:'webflow:older-record',taskId:host.pins[0].taskId,
-    version:host.pins[0].version,state:'completed',retirementState:'released'};
-  host.store.set('webflow.pending.v1',{clientRequestId:id,taskId:host.pins[0].taskId,version:host.pins[0].version});
-  host.store.set('webflow.recent.v1',[older]);
-  host.request=async function(name,args){if(fail&&name==='storage.get'&&args.key==='webflow.recent.v1'){
-    fail=false;throw problem('E_STORAGE');}return original.call(this,name,args);};
-  host.read=async()=>complete(id);const f=await mount(t,host);await f.click('记录');await f.click('查询原请求');
-  assert.ok(host.store.get('webflow.recent.v1').some(row=>row.clientRequestId===older.clientRequestId));
-  assert.equal(starts(host).length,0);assert.ok(f.document.querySelector('pre'));
+test('mismatched request IDs must not clear the original legacy recovery locator',async t=>{
+  const host=sdk(),saved=pinned(host);host.store.set('webflow.pending.v1',saved);
+  host.read=async()=>complete('webflow:different-id');
+  const f=await mount(t,host);await f.click('记录');await f.click('查询原请求');
+  assert.equal(host.store.get('webflow.pending.v1').clientRequestId,saved.clientRequestId);
+  assert.equal(starts(host).length,0);
+  assert.match(f.text(),/原请求未确认/);
 });
 
-
-test('P0 manual admitted Run updates the same R1.2 notification only after original Result readback',async t=>{
-  const host=sdk(),events=[],handles=[];
-  host.notify={open(options){
-    events.push({action:'open',options});
-    const handle={ready:Promise.resolve({status:'accepted'}),
-      update(next){events.push({action:'update',options:next});return Promise.resolve({status:'accepted'});},
-      dismiss(){events.push({action:'dismiss'});return Promise.resolve({status:'accepted'});}};
-    handles.push(handle);return handle;
-  }};
-  host.start=async id=>({clientRequestId:id,taskId:host.pins[0].taskId,
-    runId:'run-original',state:'running',retirementState:'running'});
-  host.read=async id=>complete(id);
-  const f=await mount(t,host);await prepare(f);
-  assert.equal(events.length,0,'preparation/installation metadata must not notify a Run');
-  await f.click('确认手动运行');
-  assert.equal(starts(host).length,1);
-  assert.equal(events.filter(e=>e.action==='open').length,1);
-  assert.match(events[0].options.message,/正在执行/);
-  await f.tick();
-  await f.flush();
-  assert.equal(events.filter(e=>e.action==='open').length,1,'same original request reuses one handle');
-  assert.equal(events.filter(e=>e.action==='update').length,1);
-  assert.match(events.find(e=>e.action==='update').options.message,/仅脚本执行/);
-  assert.equal(host.calls.filter(c=>c.name==='tasks.start').length,1);
-  await f.click('记录');
-  assert.match(f.text(),/run-original/);
-  assert.match(f.text(),/result-original/);
-  await f.close();
-  assert.equal(events.filter(e=>e.action==='dismiss').length,1,'unmount does not leave an old handle alive');
+test('a failed legacy read is UNKNOWN; only the old ID can be retried for observation',async t=>{
+  const host=sdk(),saved=pinned(host);host.store.set('webflow.pending.v1',saved);
+  host.read=async()=>{throw problem('E_TRANSPORT');};
+  const f=await mount(t,host);await f.click('记录');await f.click('查询原请求');
+  assert.equal(host.store.get('webflow.pending.v1').clientRequestId,saved.clientRequestId);
+  assert.equal(starts(host).length,0);
 });
 
-test('P0 R1.2 unavailable degrades to original durable history, not another Task execution',async t=>{
-  const host=sdk();let notifications=0;
-  host.notify={open(){notifications++;throw Error('Host unavailable');}};
-  host.start=async id=>complete(id);
-  const f=await mount(t,host);await prepare(f);await f.click('确认手动运行');
-  assert.equal(notifications,1,'no retry on failed notification Host');
-  assert.equal(starts(host).length,1);
-  assert.match(f.text(),/run-original/);
-  await f.click('记录');
-  assert.match(f.text(),/查询原请求/);
-  await f.close();
+test('Stop requests the original ID only and cannot imply side effects were undone',async t=>{
+  const host=sdk(),saved=pinned(host);host.store.set('webflow.pending.v1',saved);
+  const f=await mount(t,host);await f.click('记录');await f.click('停止原请求');
+  assert.deepEqual(stops(host).map(x=>x.args.clientRequestId),[saved.clientRequestId]);
+  assert.equal(starts(host).length,0);
+  assert.equal(host.store.get('webflow.pending.v1').clientRequestId,saved.clientRequestId);
 });
 
-test('P0 trusted read permission failure downgrades one prior success Toast and never replays Run',async t=>{
-  const host=sdk(),changes=[];
-  host.notify={open(options){changes.push({op:'open',options});
-    return {ready:Promise.resolve({status:'accepted'}),
-      update(next){changes.push({op:'update',options:next});return Promise.resolve({status:'accepted'});},
-      dismiss(){changes.push({op:'dismiss'});return Promise.resolve({status:'accepted'});}};}};
-  host.start=async id=>complete(id);
-  const f=await mount(t,host);await prepare(f);await f.click('确认手动运行');
-  assert.equal(changes.filter(x=>x.op==='open').length,1);
-  assert.match(changes[0].options.message,/脚本执行完成/);
-  host.read=async()=>{throw problem('E_PERMISSION');};
+test('corrupt saved locator refuses fresh admission rather than minting a replacement ID',async t=>{
+  const host=sdk();host.store.set('webflow.pending.v1',{foo:'not a locator'});
+  const f=await mount(t,host);await f.click('脚本');
+  assert.equal(f.find('运行',taskCard(f)).disabled,true);
+  assert.equal(configureCalls(host).length,0);
+  assert.equal(starts(host).length,0);
+  assert.match(f.text(),/恢复记录损坏|不能新建请求/);
+});
+
+test('a legacy UNKNOWN history summary without pending key remains query-only',async t=>{
+  const host=sdk(),saved=pinned(host);
+  host.store.set('webflow.recent.v1',[{...saved,state:'unknown',retirementState:'unknown',delivery:'success'}]);
+  const f=await mount(t,host);await f.click('记录');
+  assert.match(f.text(),/webflow:original-123/);
   await f.click('查询原请求');
-  assert.equal(changes.filter(x=>x.op==='open').length,1);
-  const warning=changes.filter(x=>x.op==='update').at(-1);
-  assert.equal(warning.options.type,'warning');
-  assert.match(warning.options.message,/结果未确认/);
-  assert.match(f.text(),/E_PERMISSION/);
-  assert.equal(starts(host).length,1,'permission failure never resubmits Task');
-  await f.close();
+  assert.equal(starts(host).length,0);
 });
 
-test('script rows keep separate parameter drafts and expose defaults without an implicit run',async t=>{
-  const host=sdk(),f=await mount(t,host);
-  await f.click('脚本');
-  const card=taskCard(f);
-  assert.match(card.querySelector('.wf-task-secondary').textContent,/参数 3 项.*手动 · 双阶段确认/);
-  assert.equal(card.querySelectorAll('.wf-shortcut').length,2);
-  await f.click('百度搜索 · 前三条自然结果',card);
-  assert.equal(card.querySelectorAll('.wf-param-row').length,3);
-  assert.match(card.querySelector('.wf-param-fixed').textContent,/3 条/);
-  assert.equal(f.document.getElementById('wf-show-execution-tab').checked,true);
-  await f.input('百度参数草稿');
-  await f.click('Google 搜索 · 前三条自然结果');
-  await f.click('百度搜索 · 前三条自然结果');
-  assert.equal(f.document.getElementById('wf-query').value,'百度参数草稿');
-  assert.equal(starts(host).length,0,'opening, switching and editing cannot start any task');
-});
-
-test('confirmed preference readback uses R1.2 Toast and does not leave a legacy 知道了 banner',async t=>{
-  const host=sdk(),open=[],dismisses=[];
-  host.notify={open(options){
-    open.push(options);
-    return {ready:Promise.resolve({status:'accepted'}),
-      update(){return Promise.resolve({status:'accepted'});},
-      dismiss(){dismisses.push(true);return Promise.resolve({status:'accepted'});}};
-  }};
-  const f=await mount(t,host);
-  await f.click('脚本');
-  await f.click('收藏 百度搜索 · 前三条自然结果',taskCard(f));
-  assert.equal(open.length,1,'one verified save uses exactly one Host Toast');
-  assert.equal(open[0].message,'偏好已保存并读回。');
-  assert.equal(open[0].type,'success');
-  assert.equal(open[0].position,'bottom-right');
-  assert.doesNotMatch(f.text(),/知道了|偏好已保存并读回。/,'no redundant in-content success banner');
-  assert.equal(starts(host).length,0,'feedback cannot run a Task');
-  await f.close();
-  assert.equal(dismisses.length,1,'closed tool retires its own Toast handle');
-});
-
-test('old or rejected R1.2 Host shows a short non-blocking fallback, never a fake save or retry',async t=>{
-  for(const mode of ['missing','rejected','throw']){
-    const host=sdk(),calls=[];
-    if(mode==='rejected')host.notify={open(options){
-      calls.push(options);
-      return {ready:Promise.resolve({status:'rejected',reason:'unavailable'}),
-        dismiss(){return Promise.resolve({status:'rejected'});}};
-    }};
-    if(mode==='throw')host.notify={open(){throw Error('host unavailable');}};
-    const f=await mount(t,host);
-    await f.click('脚本');
-    await f.click('收藏 百度搜索 · 前三条自然结果',taskCard(f));
-    await f.flush();
-    assert.match(f.text(),/偏好已保存并读回。/);
-    assert.equal(f.document.querySelector('[data-wf-feedback="fallback"]')?.textContent,
-      '偏好已保存并读回。');
-    assert.doesNotMatch(f.text(),/知道了/,'legacy fallback should not demand acknowledgement');
-    assert.equal(starts(host).length,0);
-    await f.tick();
-    assert.equal(f.document.querySelector('[data-wf-feedback="fallback"]'),null,
-      'fallback disappears without a confirmation button');
-    if(mode==='rejected')assert.equal(calls.length,1);
-    await f.close();
-  }
-});
-
-test('failed preference readback never sends a success Toast',async t=>{
-  const host=sdk(),events=[];
-  host.notify={open(options){events.push(options);
-    return {ready:Promise.resolve({status:'accepted'}),
-      dismiss(){return Promise.resolve({status:'accepted'});}};
-  }};
-  host.failSave=true;
-  const f=await mount(t,host);
-  await f.click('脚本');
-  await f.click('收藏 百度搜索 · 前三条自然结果',taskCard(f));
-  assert.equal(events.length,0);
-  assert.match(f.text(),/偏好未确认保存/);
+test('missing installed metadata and permission denial cannot masquerade as a valid Task',async t=>{
+  const host=sdk();host.taskRead=async()=>{throw problem('E_PERMISSION');};
+  const f=await mount(t,host);await f.click('脚本');
+  assert.equal(f.find('运行',taskCard(f)).disabled,true);
+  assert.equal(configureCalls(host).length,0);
   assert.equal(starts(host).length,0);
 });
