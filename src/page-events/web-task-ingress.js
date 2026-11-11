@@ -242,9 +242,11 @@ export function createWebTaskIngress({api,ledger,loadFoundation,ensureRunner,ver
         error:{code:error.code||'E_WEB_TASK_UNKNOWN',message:error.message}});
       throw error;
     }
-    await ledger.markWebTaskDelivery(message.requestId,'delivered');
-    if(isChatGPT)await ledger.recordWebTaskObservation(message.requestId,{delivery:'confirmed',
-      aiReplyObserved:reply.data.aiReplyObserved===true,...(observedMessageProof??{})});
+    if(isChatGPT)await ledger.confirmWebTaskDelivery(message.requestId,{
+      source:row.source,runId:durable.runId,resultId:durable.resultId,
+      aiReplyObserved:reply.data.aiReplyObserved===true,...(observedMessageProof??{})
+    });
+    else await ledger.markWebTaskDelivery(message.requestId,'delivered');
     return {requestId:message.requestId,state:'completed',runId:durable.runId,resultId:durable.resultId};
   }
   function receiptFor(row,run){

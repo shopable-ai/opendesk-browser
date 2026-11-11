@@ -584,7 +584,7 @@ export function createChatGPTBridgeTriggerLedger({storage,revocationStorage,cloc
       requireRequestId(requestId);
       if(!plain(observation))throw fail('E_BRIDGE_SCHEMA','网页观察必须为受限对象');
       const patch={};
-      for(const key of ['execution','persistence','release','delivery','aiReplyObserved','runId','resultId','messageId','contentSha256','error']){
+      for(const key of ['execution','persistence','release','delivery','aiReplyObserved','runId','resultId','error']){
         if(!Object.hasOwn(observation,key))continue;
         const value=observation[key];
         if(key==='error'){
@@ -592,8 +592,6 @@ export function createChatGPTBridgeTriggerLedger({storage,revocationStorage,cloc
             Object.entries(value).some(([field,text])=>typeof text!=='string'||text.length>(field==='code'?128:2048))))
             throw fail('E_BRIDGE_SCHEMA','网页观察错误对象不合法或超限');
         }else if(key==='aiReplyObserved'?typeof value!=='boolean':
-          key==='messageId'?(typeof value!=='string'||!/^[A-Za-z0-9._:-]{8,128}$/u.test(value)):
-          key==='contentSha256'?(typeof value!=='string'||!/^[a-f0-9]{64}$/u.test(value)):
           typeof value!=='string'||!value||value.length>128){
           throw fail('E_BRIDGE_SCHEMA','网页观察字段不合法或超限');
         }
@@ -605,6 +603,34 @@ export function createChatGPTBridgeTriggerLedger({storage,revocationStorage,cloc
         row.webObservation={...row.webObservation,...patch};
         await save(rows);
         return {requestId,webObservation:structuredClone(row.webObservation)};
+      });
+    },
+    confirmWebTaskDelivery(requestId,{source,runId,resultId,aiReplyObserved,messageId,contentSha256}={}){
+      requireRequestId(requestId);requireSource(source);
+      const hasId=messageId!==undefined,hasSha=contentSha256!==undefined;
+      if(typeof runId!=='string'||!runId||runId.length>128||
+        typeof resultId!=='string'||!resultId||resultId.length>128||
+        typeof aiReplyObserved!=='boolean'||hasId!==hasSha||
+        hasId&&(typeof messageId!=='string'||!/^[A-Za-z0-9._:-]{8,128}$/u.test(messageId)||
+          typeof contentSha256!=='string'||!/^[a-f0-9]{64}$/u.test(contentSha256)))
+        throw fail('E_CHAT_DELIVERY_PROOF','原消息回执缺少匹配的身份或哈希');
+      return sequence(async()=>{
+        const rows=await load(),row=rows[requestId],observation=row?.webObservation;
+        if(row?.site?.adapter!=='chatgpt'||row.status!=='consumed'||
+          !row.controllerSubmitted||row.webDelivery!=='dispatching'||
+          !sameSource(row.source,source)||observation?.execution!=='completed'||
+          observation.persistence!=='verified'||observation.release!=='released'||
+          observation.runId!==runId||observation.resultId!==resultId||
+          observation.delivery==='confirmed')
+          throw fail('E_BRIDGE_REPLAY','原交付意图、Run/Result 或来源身份无法确认');
+        await checkAuto(row);
+        // Single original Ledger write: delivered never exists without its
+        // matching receipt. Unknown persistence cannot authorize re-sending.
+        row.webDelivery='delivered';
+        row.webObservation={...observation,delivery:'confirmed',aiReplyObserved,
+          ...(hasId?{messageId,contentSha256}:{})};
+        await save(rows);
+        return {requestId,delivery:'delivered'};
       });
     },
     armWebTask(requestId,source){

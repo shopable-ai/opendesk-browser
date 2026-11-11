@@ -17,7 +17,12 @@ function fixture(){
   let serial=0,replyChecks=0,taskChecks=0;
   const state={deliveryError:false,replyValid:true,sourceValid:true,ensures:0,resultDenied:false,taskEpoch:0};
   const storage={get:async key=>{state.onStorageRead?.();return {[key]:structuredClone(values[key])};},
-    set:async next=>{Object.assign(values,structuredClone(next));state.onStorageWrite?.(next);}};
+    set:async next=>{
+      if(state.failDeliveryReceiptWrite&&Object.values(next[CHATGPT_BRIDGE_LEDGER_KEY]??{})
+        .some(row=>row.webDelivery==='delivered'))
+        throw Object.assign(new Error('simulated atomic receipt write failure'),{code:'E_TEST_STORAGE'});
+      Object.assign(values,structuredClone(next));state.onStorageWrite?.(next);
+    }};
   const id='test-extension',getURL=path=>'chrome-extension://'+id+'/'+path;
   const page={id,frameId:0,documentId:source.documentId,url:source.url,tab:{id:4,url:source.url}};
   const owner={id,frameId:0,documentId:'original-offscreen',url:getURL('cloud-control/runner.html')};
@@ -444,4 +449,46 @@ test('mismatching A message identity or content hash stays UNKNOWN and never res
     await h.handle('settle',{requestId:row.requestId});
     assert.equal(h.sent.filter(item=>item.message.kind==='deliver').length,1);
   }
+});
+
+test('original A terminal status and durable message proof persist in one Ledger write',async()=>{
+  const h=fixture();await h.approve();const row=await h.completed();
+  let commits=0;
+  h.state.deliveryReplyFactory=async message=>({ok:true,data:{
+    sent:true,userObserved:true,aiReplyObserved:false,messageId:'user-message-0001',
+    contentSha256:await digestUtf8(message.text)
+  }});
+  h.state.onStorageWrite=next=>{
+    const current=next[CHATGPT_BRIDGE_LEDGER_KEY]?.[row.requestId];
+    if(current?.webDelivery==='delivered'){
+      commits++;
+      assert.equal(current.webObservation.delivery,'confirmed');
+      assert.equal(current.webObservation.messageId,'user-message-0001');
+      assert.match(current.webObservation.contentSha256,/^[a-f0-9]{64}$/);
+    }
+  };
+  await h.handle('settle',{requestId:row.requestId});
+  assert.equal(commits,1,'one atomic terminal receipt write');
+  const persisted=h.values[CHATGPT_BRIDGE_LEDGER_KEY][row.requestId];
+  assert.equal(persisted.webObservation.messageId,'user-message-0001');
+  assert.equal(persisted.webDelivery,'delivered');
+  assert.equal(h.sent.filter(item=>item.message.kind==='deliver').length,1);
+});
+
+test('atomic A receipt storage failure never marks delivered or sends a second time',async()=>{
+  const h=fixture();await h.approve();const row=await h.completed();
+  h.state.deliveryReplyFactory=async message=>({ok:true,data:{
+    sent:true,userObserved:true,aiReplyObserved:false,messageId:'user-message-0001',
+    contentSha256:await digestUtf8(message.text)
+  }});
+  h.state.failDeliveryReceiptWrite=true;
+  await assert.rejects(h.handle('settle',{requestId:row.requestId}),{code:'E_TEST_STORAGE'});
+  const saved=h.values[CHATGPT_BRIDGE_LEDGER_KEY][row.requestId];
+  assert.equal(saved.webDelivery,'dispatching');
+  assert.notEqual(saved.webObservation?.delivery,'confirmed');
+  h.state.failDeliveryReceiptWrite=false;h.restart();
+  await h.handle('settle',{requestId:row.requestId});
+  assert.equal(h.sent.filter(item=>item.message.kind==='deliver').length,1);
+  const [rowRead]=await h.handle('history',{source},h.panel);
+  assert.equal(rowRead.receipt.delivery,'unknown');
 });
