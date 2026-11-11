@@ -931,7 +931,7 @@ export function createChatGPTFilesController({api,files,readAnswer=readChatGPTEd
           await restore();
           const s=selectedProject(message);
           stopProjectSource(s);
-          s.message='任务已停止；已派发副作用仍以原真实回执结算，不会重放。';
+          s.message='停止请求已接收；已阻止后续文件操作；已派发副作用仍以原真实回执结算，不会重放。';
           await persist();
           return {...taskRef(s),...await trustedProjection(s)};
         });
