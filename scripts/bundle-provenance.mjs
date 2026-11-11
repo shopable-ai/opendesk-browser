@@ -127,7 +127,10 @@ const compiledChatGPTFilesInputs=Object.freeze({
   'projects/webflow/trusted/chatgpt-conversation-route.js':'8e28adedd8cc2b49ff34897c0857d33cf2478c87',
   // Reviewed pure result validation/formatting, including strict string IDs.
   // Its existing Host consumers alone may compile it; no Content/Native entry.
-  'projects/webflow/src/chatgpt-conversation-result.js':'25581b6c905b5f8d6fd2bb7d7939c7ca8bfbd270'
+  'projects/webflow/src/chatgpt-conversation-result.js':'25581b6c905b5f8d6fd2bb7d7939c7ca8bfbd270',
+  // Fixed-compiled ChatGPT Task 0.2.0 business-result registry: immutable
+  // release identity, retained B provenance and no dynamic package validators.
+  'projects/webflow/trusted/chatgpt-result-adapter.js':'1a6aa119b694c99afb9018af203000a87b86982e'
 });
 const chatGPTFilesTargets=Object.freeze({
   'chatgpt-files-service.js':['native-agent/transport.js'],
@@ -141,7 +144,8 @@ const chatGPTFilesTargets=Object.freeze({
   'chatgpt-files.html':['native-agent/settings.js'],
   'chatgpt-project-runtime-ui.js':['native-agent/settings.js'],
   'chatgpt-conversation-route.js':['sw.js','ui/tool-shell.js','agents/chatgpt-fixed-bridge.js'],
-  'chatgpt-conversation-result.js':['sw.js','ui/tool-shell.js']
+  'chatgpt-conversation-result.js':['sw.js','ui/tool-shell.js'],
+  'chatgpt-result-adapter.js':['sw.js','ui/tool-shell.js']
 });
 function reviewedCompiledChatGPTFiles(target,path,root){
   if(!Object.hasOwn(compiledChatGPTFilesInputs,path)||
