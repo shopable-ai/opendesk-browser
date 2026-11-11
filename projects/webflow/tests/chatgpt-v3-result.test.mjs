@@ -43,7 +43,7 @@ function snapshot(phase,value=phase==='prepare'?draft():reply()){
     ...(phase==='prepare'?{retainedTarget:{tabId:58,documentId:'document-retained-001',
       origin:'https://chatgpt.com',url:origin}}:{retainedFrom:{runId:prepareIds.prepareRunId,
       requestId:prepareIds.prepareRequestId}})},
-    results:[]},
+    },
     results:[{tag:'controller-result',runId:phase==='prepare'?prepareIds.prepareRunId:'run-submit-0001',
       resultId:'result-0001',state:'completed',sourceKind:'saved',revision,
       outcome:{ok:true,valueWire:encodeValue(value)}}],
@@ -66,11 +66,12 @@ test('0.3 PREPARE verifies only retained unsent original owned B',()=>{
   const found=verify('prepare');
   assert.equal(found.value.conversationUrl,null);
   assert.equal(found.value.status,'draft-prepared');
+  assert.equal(verify('prepare',draft(),{run:{retainedContinuation:{runId:'run-submit-0001',requestId:'request-submit-0001'}}}).value.status,'draft-prepared');
   for(const patch of [
     {retainedTarget:null},
     {retainedTarget:{...snapshot('prepare').run.retainedTarget,tabId:59}},
     {target:{...snapshot('prepare').run.target,mode:'borrowed'}},
-    {retainedContinuation:{runId:'run-duplicated'}}
+    {retainedFrom:{runId:'run-incorrect',requestId:'request-incorrect'}}
   ])assert.throws(()=>verify('prepare',draft(),{run:patch}),{code:'E_BRIDGE_RESULT'});
 });
 test('0.3 SUBMIT validates original borrowed B and exact PREPARE Run identity',()=>{
