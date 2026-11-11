@@ -1,3 +1,12 @@
+## Web Flow R2 通知旧横幅清理与正式包缺口（2026-11-11，OD-AI-WORKFLOW-BRIDGE）
+
+**用户现场现象：** Web Flow 偏好保存后仍展示「偏好已保存并读回。」「知道了」横幅，且未观察到新的任务 Toast。已读 GitHub main 核对出两个不同问题，不能将偏好保存提示当成任务通知验证：(1) 应用 main.js 仍保留旧 setNotice 成功横幅；(2) 正式 `projects/webflow/webflow.opendesk-tool.json` 仍是 **0.3.26**，其中 js 不含 `createTaskNoticePublisher`，而最新配置已为 **0.3.27**；仓库工作流在普通 push 上只验证候选，正式包写回需要经同源校验的显式发布。
+
+**本轮源码修复（main）：** `projects/webflow/src/ui/main.js` 已将「偏好已保存并读回」及「未运行步骤已取消」等短回执改用原 `OpenDeskTool.ui.notify.open`（Host 接受才算通知通道有效），没有新 Host / 执行权限；旧 Host 缺失、拒绝或调用失败时只给 4.5 秒可消失的原工具正文回退，不出现「知道了」按钮。长时间操作/UNKNOWN 仍在原业务状态和恢复入口，不替换为短 Toast；其旧信息横幅改用关闭图标而不是确认按钮。新增定向测试验证真实保存读回后才发通知、旧 Host 回退、失败零成功通知，源码 V8 语法解析通过。提交：`92139db13c79c9325d1d4d8ea11e5e2fcd00aa09`、`a39ac2d46d7116420f92dda67bad520ea18c009e`。
+
+**未完成及证据边界：** `SOURCE_IMPLEMENTED=main 已提交`；`NODE_TESTED=新增完整定向 CI 尚无最终通过回执`；`PACKAGE_READY=NO`（正式 0.3.26 仍旧源码，不能拿 tool.config 0.3.27 替代）；`CHROME_TESTED=NOT_TESTED`；`BUSINESS_ACCEPTED=NOT_ACCEPTED`。CodexPro 本地连接本轮返回 UNAVAILABLE。原 Web Flow R2 执行状态通知源码与可信 CurrentTask 已有接线，本轮不复制其业务。**唯一下一步：** 按原 packager 检查本轮改动的 Node 回归、构建同源候选/晋升唯一正式包，并经现有 Side Panel「扩展」安装更新；分别实测偏好保存 Toast 与一个真实获准 Task 的 RUNNING→Run/Result 核验→回传/失败/UNKNOWN。核对实际安装版本、授权代次、Host R1.2 支持及通知像素可见性；不可自动重放旧 UNKNOWN，不触碰并行 watcher/dist。
+
+---
 ## Web Flow「运行」共享「我的」可信抽屉（2026-11-11；设计交接）
 
 **原始目标：** Web Flow 的脚本列表 ▶ 在当前 Side Panel/app.html 右侧打开「我的」现成可信 TaskRunSheet，用同一 Schema/表单/JSON、TaskWorkbench 与 RunHost 执行。保留原列表 hover 图标；Web Flow 来源先持久“保存并核对”，再由第二次明确用户点击确认执行一次；旧 UNKNOWN 不重跑。固定检索词 OD-AI-WORKFLOW-BRIDGE。
