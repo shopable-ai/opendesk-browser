@@ -2976,3 +2976,21 @@ page 业务已被并行 owner 迁至 projects/webflow/trusted/chatgpt-bridge-pag
 **Codex 下一步唯一任务：** 基于最新 main 核对增量已落地，执行 WebFlow 文件专属 Node 回归/构建，再在真实 Chrome 用隔离授权项目验收：网页全状态无浮窗、官网自然发送、文件授权/读取/审阅/写入读回、设置页面原任务状态/Stop/撤权/UNKNOWN、关闭与重开侧栏、原网页 Task 回归。任何实测缺陷只修本轮责任范围，不重做其他 owner 工作。
 
 **本轮最新实际 CI 证据（2026-11-11）：** `main` 上最终测试代码提交 [80447bb](https://github.com/shopable-ai/opendesk-browser/commit/80447bbcd5fb795fa38646d28ca4f4f26663ebcf)；[专项 Actions 42872904587](https://github.com/shopable-ai/opendesk-browser/actions/runs/42872904587) 的 `headless-contract` 真正执行 Node 22 + `node --check` + 7 组文件安全回归，**204 PASS / 0 FAIL / 0 skipped**。这仅验证本轮固定模块/可信控制器/测试夹具，不代表完整 WebFlow/App CI 或 WXT 生产包通过；后者当时受到并行 Task 版本、Provenance 固定源等其他 owner 问题影响，不能掩盖。PACKAGE/CHROME/Native/BUSINESS 仍 **NOT_TESTED**。
+
+### 2026-11-11 · 项目文件浮窗溯源与可信 Stop 语义修复增量（OD-AI-WORKFLOW-BRIDGE）
+
+**原始目标未改变：** 用户正常使用 ChatGPT 时，不再出现 WebFlow 注入的「项目文件 · 需核对状态／停止项目任务／展开」窗口；原文件任务发现、执行、审阅、结果、Stop 和 UNKNOWN 防重放必须保留。不要再次开发旧窗口，不重写 Runner/Authority/Native/账本。
+
+**已确认的准确原码来源：** 在旧提交 `4af4ca84a3703dfdf2ebf00446a88d3e75ee3147` 的 `projects/webflow/trusted/chatgpt-file-intent-page.js`，第 50 行创建「展开」，第 69 行创建「停止项目任务」，第 95 行把悬浮 DOM `append(root)` 注入网站，第 130 行计算「项目文件 · 需核对状态」标题。随后提交 `d5a5c7afeae546b3a68045e83335b976e8bdf7ac` 已将该文件替换为无 DOM 的 Headless adapter，现有 `main` 继续保留它。独立旧 `legacy-chatgpt-panel.js` 的默认挂载参数为 `showLegacyPanel=false`，不是这组精确文字的生成者。
+
+**正式入口与控制面：** `manifest.json` 注册 `https://chatgpt.com/*` 的 `agents/chatgpt-fixed-bridge.js`，由 `src/entrypoints/chatgpt-fixed-bridge.js` 启动唯一网页消息桥接并组合 Headless file adapter。可信 Stop/Status/Review 由现有 `chatgpt-files-controller.js`、`chatgpt-project-runtime-ui.js` 和 `native-agent/settings.html#chatgpt-files-controls` 处理，Web Flow Side Panel `AutoSettings.tsx` 只链接到同一个可信设置页。用户无需通过网页悬浮 UI 管理任务；关闭 Side Panel 不授予也不取消后台任务许可。
+
+**本轮实际最小修复（main）：** `trusted/chatgpt-project-runtime-ui.js` 的 Stop 首次回执及任务账本变化后的二次查询从「原文件任务已停止」改为「停止请求已接收；后续文件操作已阻止；当前阶段以真实 phase 为准；已派发副作用以真实回执结算，不能视作撤回」。`trusted/chatgpt-files-controller.js` 的可信 Stop 消息采用同一准确语义。`tests/chatgpt-project-runtime-ui.test.mjs` 两组原有 Stop / reconcile 回归改为断言不再误称写入撤回。其他文件执行/Authority/Native 实现未修改；本轮只做上述行为语义缺口和文档增量。
+
+**明确区分源码、CI、发行与安装：** 只读核查时 `main` HEAD 是 `d246f723eef39d021bcb2d396ec87aef49df0e06`；源码中 Headless 已存在。历史 [Actions 42872904587](https://github.com/shopable-ai/opendesk-browser/actions/runs/42872904587) 对 `80447bbcd5fb795fa38646d28ca4f4f26663ebcf` 真实取得 **204 PASS / 0 FAIL / 0 skipped**，只证明当时的专项 Node 安全回归。较新的 [Web Flow 包 42983420751](https://github.com/shopable-ai/opendesk-browser/actions/runs/42983420751) 在 Chromium hover-only「取消收藏 Google 搜索」按钮隐藏时失败，候选 Node 检查通过但未完成正式晋升；[App CI 42983468499](https://github.com/shopable-ai/opendesk-browser/actions/runs/42983468499) 在并行 owner 的 `src/ui/react/tabs/my-sections.tsx:56` 发生 esbuild 语法错误而失败，不能越界重写该项目。
+
+`projects/webflow/tool.config.json` 为 **0.3.27**，仓库唯一正式 `projects/webflow/webflow.opendesk-tool.json` 为 **0.3.26**，缺少同源晋升成功证明。但 **Sidebar JSON 版本与 Chrome 固定内容脚本版本是两条独立交付链**：更新应用 JSON 无法替代构建/安装 `agents/chatgpt-fixed-bridge.js`；需要核对实际扩展 ID、加载路径、bundle SHA、活动 ChatGPT tab/document、旧扩展或注入脚本、watcher/开发包/正式包。没有实际安装事实时，旧构建残留和重复注入只列待验证假设，不写成最终根因。
+
+**当前状态与阻塞：** 本次会话 GitHub 可读写；本机 CodexPro `UNAVAILABLE`、OpenDesk 桌面浏览器 `429/UNAVAILABLE`，不能核对实际加载版本、重新构建、操作真实 Chrome 或配对 Native。此次修复的回归/Build 只按对应新 SHA 的实际 CI 记录，不继承之前 204/204 作为新结果。`SOURCE=修复已提交`、`HISTORICAL_NODE=204/204`、`CURRENT_NODE=待核对本轮 SHA`、`PACKAGE=正式包版本不一致`、`CHROME_INSTALLED=NOT_TESTED`、`NATIVE_FILE=NOT_TESTED`、`BUSINESS=NOT_TESTED`。P0 用户现场窗口是否消失未得到证明，不能标记 PRODUCT_DONE。
+
+**下一步唯一执行路径（本地 Codex）：** 先只读读取 `AGENTS.md` 和原计划、确认 main 最新 SHA 与并行工作区/锁；按历史旧源码精确字符串及当前入口查目标网页是否仍加载旧脚本，导出实际扩展 ID/unpacked 路径/content bundle hash/多个扩展实例和旧 tab 的证据；使用仓库已有构建、同源校验、包晋升、安装审阅，不覆盖其他 owner 的构建或数据；执行文件专项 Node 检查及受影响的最低限度编译。在真实隔离 Chrome/Native 已授权测试项目检查：新建普通 ChatGPT、刷新、空闲/运行/完成/失败/UNKNOWN/撤权均无浮窗；合法文件任务完整识别与授权、SHA 读写、可信 Stop/审阅/结果回执；关闭/重开 Side Panel 持久状态与后台继续、旧 UNKNOWN 仅查询不自动重放；逐项记录截图、安装身份、Run/Result、磁盘独立读回及失败。任何无现场证据的项目保留 NOT_TESTED，不自动重试有未知副作用的旧操作。
