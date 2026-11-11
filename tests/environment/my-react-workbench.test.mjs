@@ -299,6 +299,27 @@ test('unresolved pre-v1 Web Flow history without pending key fences My and share
   }finally{if(root)await React.act(async()=>root.unmount());f.dispose();}
 });
 
+
+test('My shared Sheet visibly blocks a Web Flow outstanding preparation before any Run click',async()=>{
+  const f=await fixture();let root;
+  try{
+    root=await f.mount();
+    const pin={taskId:'test.task',version:'1.0.0',manifestHash:'a'.repeat(64),contentHash:'b'.repeat(64)};
+    await React.act(async()=>{assert.equal(await f.workbench.openTaskRunSheet('test.task',{expectedPin:pin}),true);await tick();});
+    const identity={...f.view.data.taskRows.identity};
+    await React.act(async()=>{assert.equal(await f.view.actions.taskRunSheetPrepare(native(),identity),true);await tick();});
+    await React.act(async()=>{
+      f.view.actions.taskRunSheetClose();
+      assert.equal(f.view.actions.taskRunSheetOpen(native(),'test.task'),true);
+      await tick();
+    });
+    assert.equal(f.view.data.taskSheetRequest.source,'my');
+    assert.equal(f.view.field('task-run').disabled,true,'the shared My run action must visibly block');
+    assert.match(f.view.data.taskRunBlockedReason,/Web Flow 有尚未释放/);
+    assert.equal(f.state.starts.length,0);
+  }finally{if(root)await React.act(async()=>root.unmount());f.dispose();}
+});
+
 test('JSON editing uses original typed validation and preserves the editor draft across task selection',async()=>{
   const f=await fixture({twoTasks:true});let root;
   try{

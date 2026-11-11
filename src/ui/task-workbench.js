@@ -344,9 +344,11 @@ export function createTaskWorkbench({client,host,currentPageTarget,api=globalThi
     ui('task-current-site').text=siteMessage;
     ui('task-current-site').dataset.state=siteState;
     ui('task-current-site').title=origin || '';
-    ui('task-run').disabled=working||running||!!host.currentRun||!available||!siteAvailable||
-      !taskMatchesView(row,info,origin);
+    const otherPreparedTask=!settled(prepared)&&myView.data.taskSheetRequest?.source!=='webflow';
+    ui('task-run').disabled=working||running||!!host.currentRun||otherPreparedTask||
+      !available||!siteAvailable||!taskMatchesView(row,info,origin);
     myView.data.taskRunBlockedReason=working?'正在处理任务，请稍候':running||host.currentRun?'已有任务正在运行，请先停止或等待完成':
+      otherPreparedTask?'Web Flow 有尚未释放的准备或执行身份，请先核对原步骤，不能从「我的」另起任务':
       !row?'请先选择任务':!row.enabled?'此任务已停用，请在「更多操作」中启用':
       !available?'此固定版本当前不可运行，请在任务目录核查状态':!siteAvailable?siteMessage:
       !taskMatchesView(row,info,origin)?'此任务不在当前筛选结果中，请重新选择':'';
@@ -726,7 +728,7 @@ export function createTaskWorkbench({client,host,currentPageTarget,api=globalThi
     }
     myView.data.taskSheetRequest={requestId:++sheetCounter,source,trigger,
       identity:Object.fromEntries(pinFields.map(k=>[k,row[k]])),title:info.manifest.title};
-    myView.publish();return true;
+    update();return true;
   }
   async function prepareSheet(event,expected){
     if(!event?.isTrusted||disposed||!preparationLoaded||preparationBusy||running||working||host.currentRun||
@@ -1179,7 +1181,7 @@ export function createTaskWorkbench({client,host,currentPageTarget,api=globalThi
   registerAction('taskCatalogListChange',()=>selectCandidate(catalogList.value));
   registerAction('taskRunClick',(event,expected)=>run(event,null,expected));
   registerAction('taskRunSheetOpen',(event,taskId,trigger)=>event?.isTrusted&&openSheet(taskId,'my',trigger));
-  registerAction('taskRunSheetClose',()=>{myView.data.taskSheetRequest=null;myView.publish();});
+  registerAction('taskRunSheetClose',()=>{myView.data.taskSheetRequest=null;update();});
   registerAction('taskRunSheetPrepare',prepareSheet);
   registerAction('taskRunSheetConfirm',confirmSheet);
   registerAction('taskRunSheetCancel',cancelSheet);
