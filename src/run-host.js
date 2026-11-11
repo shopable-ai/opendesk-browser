@@ -52,7 +52,7 @@ export function createRunHost({api = globalThis.chrome, client: suppliedClient, 
     return startScraping(request);
   }
   async function startController(request) {
-    const {profile, appId, scriptId, revision, contentHash, source, params, target, networkOrigins = [], expectedTaskGeneration, expectedTaskInstallationId, taskDelegation, taskDelegationStep, cloudRequestId, scheduledFireId, expectedScheduleOwner,
+    const {profile, appId, scriptId, revision, contentHash, source, params, target, networkOrigins = [], expectedTaskGeneration, expectedTaskInstallationId, taskDelegation, taskDelegationStep, cloudRequestId, scheduledFireId, expectedScheduleOwner, retainedFrom,
       deadlineAt = clock.now() + 30000, requestId = crypto.randomUUID()} = request;
     const appService = profile === 'app-service';
     if (appService && Object.keys(request).some(key =>
@@ -74,6 +74,7 @@ export function createRunHost({api = globalThis.chrome, client: suppliedClient, 
       ...(expectedTaskInstallationId!==undefined?{expectedTaskInstallationId}:{}),
       ...(taskDelegation?{taskDelegation:structuredClone(taskDelegation)}:{}),
       ...(taskDelegationStep?{taskDelegationStep:structuredClone(taskDelegationStep)}:{}),
+      ...(retainedFrom!==undefined?{retainedFrom:structuredClone(retainedFrom)}:{}),
       ...(cloudRequestId?{cloudRequestId}:{}),
       ...(scheduledFireId?{scheduledFireId}:{}),
       ...(expectedScheduleOwner!==undefined?{expectedScheduleOwner}:{})};
