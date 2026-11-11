@@ -39,7 +39,8 @@ export function sidebarToolRequestTimeout(operation,toolId){
  // Reusing authorization does not shorten a first-use Chrome permission or
  // native Save As dialog to the ordinary RPC budget.
  if(operation==='browser.bookmarks.createOwned'||operation==='browser.downloads.download')return 120000;
- if(toolId==='web-markdown-clipper'&&operation.startsWith('clipNotes.'))
+ if(toolId==='web-markdown-clipper'&&operation==='clip.region')return 110000;
+  if(toolId==='web-markdown-clipper'&&operation.startsWith('clipNotes.'))
    return ['clipNotes.save','clipNotes.edit','clipNotes.remove','clipNotes.backup'].includes(operation)?60000:30000;
  return (toolId==='adblock'&&ADBLOCK_CONFIRM_OPERATIONS.includes(operation))||
    (toolId==='stay-focus'&&operation.startsWith('focus.')&&operation!=='focus.status')||

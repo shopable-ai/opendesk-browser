@@ -1040,5 +1040,12 @@
   "apProxyServersHelp": "这里集中管理代理；侧栏负责高频选择。",
   "apManagementCenter": "管理中心",
   "apProxySavedNotice": "代理配置已保存，未自动应用。",
-  "apProxyDeletedNotice": "代理配置已删除。"
+  "apProxyDeletedNotice": "代理配置已删除。",
+  "diagWorkbenchTitle": "检查你关心的网站",
+  "diagModelVerification": "AI 登录与模型功能",
+  "diagEvidenceBoundary": "Chrome 代理设置、网站 HTTP 可达、账号登录与模型能力需要分别核验；选择线路不会自动应用代理。",
+  "diagProductionUnavailable": "正式运行时尚未接入网站 HTTP 检测、收藏和使用统计；相关操作暂不可用，不会发送测试请求或生成模拟成功结果。",
+  "diagSitesLive": "当前配置的 HTTP 结果",
+  "diagSpeedNotConnected": "尚未接入真实 HTTP 耗时与下载吞吐测速，不能据此推断代理线路质量。",
+  "apSwitchToRulesMode": "切换到按规则"
 }

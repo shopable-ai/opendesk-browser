@@ -1040,5 +1040,12 @@
   "apProxyServersHelp": "在此集中管理代理；側欄用於常用選擇。",
   "apManagementCenter": "管理中心",
   "apProxySavedNotice": "代理設定已儲存，未自動套用。",
-  "apProxyDeletedNotice": "代理設定已刪除。"
+  "apProxyDeletedNotice": "代理設定已刪除。",
+  "diagWorkbenchTitle": "檢查你關心的網站",
+  "diagModelVerification": "AI 登入與模型功能",
+  "diagEvidenceBoundary": "Chrome 代理設定、網站 HTTP 可達、帳號登入與模型能力需要分別驗證；選擇線路不會自動套用代理。",
+  "diagProductionUnavailable": "正式執行環境尚未接入網站 HTTP 檢測、收藏及使用統計；相關操作暫不可用，不會傳送測試請求或產生模擬成功結果。",
+  "diagSitesLive": "目前設定的 HTTP 結果",
+  "diagSpeedNotConnected": "尚未接入真實 HTTP 耗時與下載吞吐測速，不能據此推斷代理線路品質。",
+  "apSwitchToRulesMode": "切換至按規則模式"
 }

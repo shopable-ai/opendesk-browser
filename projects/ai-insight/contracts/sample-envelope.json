@@ -1,0 +1,140 @@
+{
+  "schemaVersion": 1,
+  "scopeId": "scope_demo_local",
+  "records": {
+    "problems": [
+      {
+        "id": "prob_bug",
+        "scopeId": "scope_demo_local",
+        "schemaVersion": 1,
+        "createdAt": "2026-11-11T00:00:00.000Z",
+        "updatedAt": "2026-11-11T00:40:00.000Z",
+        "title": "修复保存失败",
+        "status": "NEEDS_VERIFICATION",
+        "revision": 1,
+        "acceptanceCriteria": [
+          "保存并刷新后结果一致"
+        ]
+      }
+    ],
+    "conversations": [
+      {
+        "id": "conv_a",
+        "scopeId": "scope_demo_local",
+        "schemaVersion": 1,
+        "createdAt": "2026-11-11T00:00:00.000Z",
+        "updatedAt": "2026-11-11T00:40:00.000Z",
+        "origin": "https://chatgpt.com",
+        "provider": "ChatGPT",
+        "accountId": "account_demo_1",
+        "externalConversationId": null,
+        "coverage": "FULL"
+      }
+    ],
+    "conversationLinks": [
+      {
+        "id": "link_a",
+        "scopeId": "scope_demo_local",
+        "schemaVersion": 1,
+        "createdAt": "2026-11-11T00:00:00.000Z",
+        "updatedAt": "2026-11-11T00:00:00.000Z",
+        "problemId": "prob_bug",
+        "conversationId": "conv_a",
+        "status": "CONFIRMED",
+        "decisionSource": "USER",
+        "supportingEvidenceIds": [],
+        "opposingEvidenceIds": [],
+        "confidence": 1,
+        "revision": 1
+      }
+    ],
+    "executions": [
+      {
+        "id": "exec_a",
+        "scopeId": "scope_demo_local",
+        "schemaVersion": 1,
+        "createdAt": "2026-11-11T00:00:00.000Z",
+        "updatedAt": "2026-11-11T00:40:00.000Z",
+        "conversationId": "conv_a",
+        "turnId": "turn_a",
+        "generationId": "gen_a",
+        "status": "COMPLETION_OBSERVED",
+        "startObservedAt": "2026-11-11T00:00:00.000Z",
+        "endObservedAt": "2026-11-11T00:40:00.000Z",
+        "coverage": "FULL",
+        "rightCensored": false
+      }
+    ],
+    "outcomes": [
+      {
+        "id": "outcome_bug",
+        "scopeId": "scope_demo_local",
+        "schemaVersion": 1,
+        "createdAt": "2026-11-11T00:40:00.000Z",
+        "updatedAt": "2026-11-11T00:40:00.000Z",
+        "problemIds": [
+          "prob_bug"
+        ],
+        "state": "NEEDS_VERIFICATION",
+        "evidenceIds": [],
+        "acceptanceVersion": 1
+      }
+    ]
+  },
+  "events": [
+    {
+      "eventId": "evt_submit_a",
+      "dedupeKey": "conv_a/gen_a/submitted",
+      "scopeId": "scope_demo_local",
+      "accountId": "account_demo_1",
+      "origin": "https://chatgpt.com",
+      "conversationId": "conv_a",
+      "executionId": "exec_a",
+      "generationId": "gen_a",
+      "eventType": "SUBMITTED_OBSERVED",
+      "observedAt": "2026-11-11T00:00:00.000Z",
+      "adapterVersion": "chatgpt-demo-0.1",
+      "consentRevision": 1,
+      "observationEpochId": "epoch_demo_1",
+      "monotonicTickMs": 0,
+      "coverage": "FULL",
+      "siteVisibility": "VISIBLE",
+      "eventEvidenceIds": []
+    },
+    {
+      "eventId": "evt_complete_a",
+      "dedupeKey": "conv_a/gen_a/complete",
+      "scopeId": "scope_demo_local",
+      "accountId": "account_demo_1",
+      "origin": "https://chatgpt.com",
+      "conversationId": "conv_a",
+      "executionId": "exec_a",
+      "generationId": "gen_a",
+      "eventType": "COMPLETION_OBSERVED",
+      "observedAt": "2026-11-11T00:40:00.000Z",
+      "adapterVersion": "chatgpt-demo-0.1",
+      "consentRevision": 1,
+      "observationEpochId": "epoch_demo_1",
+      "monotonicTickMs": 2400000,
+      "coverage": "FULL",
+      "siteVisibility": "VISIBLE",
+      "eventEvidenceIds": []
+    }
+  ],
+  "consent": [
+    {
+      "id": "consent_a",
+      "scopeId": "scope_demo_local",
+      "schemaVersion": 1,
+      "createdAt": "2026-11-11T00:00:00.000Z",
+      "updatedAt": "2026-11-11T00:00:00.000Z",
+      "origin": "https://chatgpt.com",
+      "accountId": "account_demo_1",
+      "metadata": true,
+      "body": false,
+      "state": "GRANTED",
+      "revision": 1,
+      "expiresAt": null
+    }
+  ]
+}

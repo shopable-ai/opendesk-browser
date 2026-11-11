@@ -149,6 +149,30 @@
   }
   :scope .optionsLoading .managementLoadingState > * { margin:0; }
   :scope .optionsLoading .managementLoadingState .notice { max-width:100%; }
+  /* R2: the full PC surface restores the preview's spacious diagnostic cards.
+   * Sidebar retains its existing compact values in sidebar-settings.css. */
+  :scope .options .diagnosticLead {
+    padding:21px 23px; margin-bottom:14px; border-radius:12px;
+  }
+  :scope .options .diagnosticLead h2 { font-size:22px; line-height:1.38; }
+  :scope .options .diagnosticMetrics {
+    grid-template-columns:repeat(4,minmax(0,1fr)); gap:10px;
+  }
+  :scope .options .diagnosticMetrics > div { padding:14px; }
+  :scope .options .diagnosticOverview {
+    grid-template-columns:repeat(2,minmax(0,1fr)); gap:13px;
+  }
+  :scope .options .diagnosticFeature { padding:19px; border-radius:11px; }
+  :scope .options .diagnosticSite { padding:14px; border-radius:10px; }
+  @media(max-width:1150px) {
+    :scope .options .diagnosticMetrics { grid-template-columns:repeat(2,minmax(0,1fr)); }
+  }
+  @media(max-width:720px) {
+    :scope .options .diagnosticOverview { grid-template-columns:minmax(0,1fr); }
+  }
+  @media(max-width:359px) {
+    :scope .options .diagnosticMetrics { grid-template-columns:minmax(0,1fr); }
+  }
   :scope .options .proxyEditorForm .editorHead { padding:20px 22px; }
   :scope .options .proxyEditorFields { padding:0 22px 20px; gap:14px; }
   :scope .options .proxyEditorForm .editorActions { padding:14px 22px; justify-content:flex-end; }

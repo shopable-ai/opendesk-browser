@@ -3,7 +3,7 @@
 - 任务 ID：`OD-WEB-MARKDOWN-CLIPPER-REGION-PICK-R1`
 - 仓库：`shopable-ai/opendesk-browser`；唯一分支：`main`
 - 业务目录：`projects/web-markdown-clipper/`
-- 状态：**DESIGN_ONLY / NOT_IMPLEMENTED / CHROME_NOT_TESTED**
+- R1 状态（设计档案）：**DESIGN_ONLY（2026-11-11 需求冻结时）**。R2 已做源码差量接线，参见 [R2 证据与阻塞](region-picker-r2-acceptance.zh-CN.md)；不以此历史行断言最新源码未实现。**R2 当前无正式候选包晋升 / 无真实 Chrome 验收**。
 - 现有安装配置核查：`tool.config.json` 与 `web-markdown-clipper.opendesk-tool.json` 均为 `1.2.10`；该版本不代表本 R1 功能已交付。
 - 此文档只冻结新增功能的目标、边界和验收，不授权声称「预览已实现 / 正式功能可用 / Chrome 已通过」。
 

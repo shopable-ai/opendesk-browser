@@ -1040,5 +1040,12 @@
   "apProxyServersHelp": "Manage proxies here and choose them from the side panel.",
   "apManagementCenter": "Management",
   "apProxySavedNotice": "Proxy saved. Not automatically applied.",
-  "apProxyDeletedNotice": "Proxy deleted."
+  "apProxyDeletedNotice": "Proxy deleted.",
+  "diagWorkbenchTitle": "Check the sites you care about",
+  "diagModelVerification": "AI sign-in and model features",
+  "diagEvidenceBoundary": "Chrome proxy settings, HTTP reachability, sign-in and model features require separate verification. Selecting a route does not apply it.",
+  "diagProductionUnavailable": "HTTP site checks, favorites and usage statistics are not connected in the installed runtime. These actions are unavailable; no test requests or simulated success results are generated.",
+  "diagSitesLive": "HTTP results for current settings",
+  "diagSpeedNotConnected": "Real HTTP timing and download throughput tests are not connected. Do not infer proxy quality from these values.",
+  "apSwitchToRulesMode": "Switch to rules mode"
 }
