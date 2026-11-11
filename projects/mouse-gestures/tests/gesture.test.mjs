@@ -2,7 +2,7 @@ import assert from 'node:assert/strict';
 import test from 'node:test';
 import {GESTURE_LIMITS, mountBackGesture} from '../src/page/gesture.js';
 
-function fixture({historyLength=3,selection=false}={}) {
+function fixture({historyLength=3,selection=false,authorizeGesture=()=>true}={}) {
   const subscribers = new Map(), disposers = [];
   const host = {style:{values:new Map(),setProperty(name,value){this.values.set(name,value);}}};
   const createNode = () => ({style:{},attributes:new Map(),children:[],
@@ -17,7 +17,7 @@ function fixture({historyLength=3,selection=false}={}) {
       disposers.push(()=>all.delete(callback));},
     onDispose(fn){disposers.push(fn);},
     destroy(){if(stopped)return;stopped=true;for(const fn of disposers.reverse())fn();}};
-  const api=mountBackGesture({ui,doc,win,navigateBack(){back++;}});
+  const api=mountBackGesture({ui,doc,win,authorizeGesture,navigateBack(){back++;}});
   const target={closest:()=>false};
   function dispatch(type, options={}) {
     const key=(['blur'].includes(type)?'win:':'doc:')+type;
@@ -39,7 +39,7 @@ const rightUp = (f, x=120, y=100) => f.dispatch('mouseup',{clientX:x,clientY:y})
 test('real right-left gesture executes one current-document history back', () => {
   const f=fixture();rightDown(f);moveLeft(f);const up=rightUp(f);
   assert.equal(f.backCount(),1);assert.equal(up.prevented,true);
-  const menu=f.dispatch('contextmenu');assert.equal(menu.prevented,true);
+  const menu=f.dispatch('contextmenu',{clientX:120,clientY:100});assert.equal(menu.prevented,true);
   assert.equal(f.host.style.values.get('display'),'none');
   assert.equal(f.api.isActive(),true);
   rightUp(f);assert.equal(f.backCount(),1);
@@ -102,4 +102,59 @@ test('module disable/dispose clears all listeners and trace resources', () => {
 test('hidden document cancels pending gesture', () => {
   const f=fixture();rightDown(f);moveLeft(f);f.doc.visibilityState='hidden';
   f.dispatch('visibilitychange');rightUp(f);assert.equal(f.backCount(),0);
+});
+
+
+test('menu emitted before movement is preserved and current gesture is abandoned (Mac timing)',()=>{
+  const f=fixture();rightDown(f);
+  assert.equal(f.dispatch('contextmenu').prevented,false);
+  moveLeft(f);rightUp(f);assert.equal(f.backCount(),0);
+  rightDown(f);moveLeft(f);rightUp(f);assert.equal(f.backCount(),1);
+});
+
+test('release guard intercepts only matching mouse menu, never keyboard or unrelated target',()=>{
+  const f=fixture();rightDown(f);moveLeft(f);rightUp(f);
+  assert.equal(f.dispatch('contextmenu',{button:0,clientX:120}).prevented,false);
+  assert.equal(f.dispatch('contextmenu',{clientX:120,target:{closest:()=>false}}).prevented,false);
+  assert.equal(f.dispatch('contextmenu',{clientX:200}).prevented,false);
+  assert.equal(f.dispatch('contextmenu',{clientX:120}).prevented,true);
+  assert.equal(f.dispatch('contextmenu',{clientX:120}).prevented,false);
+});
+
+test('12px intent suppresses matching menu but does not execute 56px action',()=>{
+  const f=fixture();rightDown(f);moveLeft(f,182);rightUp(f,182);
+  assert.equal(f.backCount(),0);
+  assert.equal(f.dispatch('contextmenu',{clientX:182}).prevented,true);
+});
+
+test('backtracking beyond 12px invalidates recognized movement without crossing origin',()=>{
+  const f=fixture();rightDown(f);moveLeft(f,100);moveLeft(f,126);rightUp(f,126);
+  assert.equal(f.backCount(),0);
+});
+
+test('Alt/Option plus left-button is a selectable fallback, without stealing right clicks',()=>{
+  const f=fixture();f.api.setOptions({trigger:'alt-left'});
+  rightDown(f);moveLeft(f);rightUp(f);assert.equal(f.backCount(),0);
+  const alt={button:0,buttons:1,altKey:true};
+  f.dispatch('mousedown',alt);
+  f.dispatch('mousemove',{...alt,clientX:120});
+  f.dispatch('mouseup',{...alt,clientX:120});
+  assert.equal(f.backCount(),1);
+  assert.equal(f.dispatch('contextmenu').prevented,false);
+});
+
+test('visual feedback can be disabled without disabling the gesture',()=>{
+  const f=fixture();f.api.setOptions({showTrace:false});
+  rightDown(f);moveLeft(f);assert.equal(f.host.style.values.get('display'),'none');
+  rightUp(f);assert.equal(f.backCount(),1);
+});
+
+test('stop/disposal or newer gesture revokes an asynchronous action decision',async()=>{
+  let resolve;
+  const f=fixture({authorizeGesture:()=>new Promise(r=>{resolve=r;})});
+  rightDown(f);moveLeft(f);rightUp(f);
+  rightDown(f);resolve(true);await Promise.resolve();await Promise.resolve();
+  assert.equal(f.backCount(),0);
+  f.api.setEnabled(false);moveLeft(f);rightUp(f);
+  assert.equal(f.backCount(),0);
 });
