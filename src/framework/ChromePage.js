@@ -160,6 +160,14 @@ export class ChromePage {
     requireValue(typeof fullPage === 'boolean', 'E_ARGUMENT_TYPE'); requireValue(!fullPage, 'E_FULL_PAGE_UNSUPPORTED');
     return dispatch(this, 'screenshot', [{format, fullPage: false}], {kind: 'browser'});
   }
+  // This opaque reference is resolved only by the original trusted Host.
+  // No file bytes or filesystem paths may enter the Controller task envelope.
+  uploadAsset(css, assetId) {
+    selector(css);
+    requireValue(typeof assetId === 'string' && assetId.length > 0 && assetId.length <= 128 &&
+      /^[A-Za-z0-9._:-]+$/.test(assetId), 'E_MEDIA_ID');
+    return dispatch(this, 'uploadFromAsset', [css, assetId], {kind: 'browser'});
+  }
   async uploadFile(css, value, metadata = {}) {
     selector(css);
     const media = normalizeUploadMetadata(metadata);
