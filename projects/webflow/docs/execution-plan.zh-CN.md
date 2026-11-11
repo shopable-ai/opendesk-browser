@@ -1,3 +1,15 @@
+## R6 · ChatGPT A→B→A 单次授权自动工作流 · T03 回执基础增量（2026-11-11；OD-WEBFLOW-A2B2A-AUTH-ONCE-R6）
+
+**原始目标（仍未完成）：** 在真实 ChatGPT A 由用户按持续授权范围发起任务 → 通过原 GitHub 网络能力冻结 Issue #76 → 原 Controller 调用已安装 0.2.0 `send:true` 创建唯一 B → 核验完整 Run/Result → 向冻结的 A 自动送达且仅送达一条消息；同范围后续 A2 无重复授权，刷新及 ACK 丢失不重放。
+
+**本轮实际源码提交：** [`3b4618a3`](https://github.com/shopable-ai/opendesk-browser/commit/3b4618a3fda2f1c034d7bdbf4349f8725d904d9d)；原 `chatgpt-bridge-page.js` 返回真实 `data-message-id` 与输入正文 SHA-256（仅在官方消息 ID 可确认时）；原 `web-task-ingress.js` 独立复算原 Controller 发送正文哈希；原 Trigger Ledger `recordWebTaskObservation` 持久允许严格的消息 ID/哈希；新增匹配与伪造哈希/消息 ID 的定向测试，保留 UNKNOWN 不重试；`bundle-provenance.mjs` 按审核后精确 Blob 重 pin。没有复制 ChatGPT DOM 发送代码、没有重建 Runner/Host/数据库，也没有修改 0.3。
+
+**证据等级：** SOURCE=PASS（已进入 main）；V8 源码语法预检=PASS、纯 Ledger 回执校验 1 接受+4 拒绝 PASS；NODE=NOT_TESTED（本机 CodexPro UNAVAILABLE）；CI=QUEUED（与该提交绑定的 Web Flow / Bridge Actions）；CHROME=BLOCKED（Desktop/Code 本机会话终止）；BUSINESS=NOT_DONE。本轮没有真实新 A/B、Run、Result、A 新消息和持久工作流回执，不可把现有单任务交付回执当成独立 A→B→A 验收。
+
+**仅剩关键生产接线：** T03 仍须把独立 `deliveryKey` 从原持久事务与授权范围贯穿到 ChatGPT 第一方受控交付/只读 `readA`；T01/T02 仍须把实际 Issue → 0.2.0 原 Controller → 完整 Result 接入原 `serial-two-step-run`；V2 逐候选批准仍须按显式审阅范围改为持续授权而不沿用旧 V1。优先运行定向 Node、按真实安装/权限/身份完成 Chrome 核验，不重复开发现有模块。
+
+---
+
 ## R5 · 网页辅助面板「工具设置」滑块闭环（2026-11-11；OD-WEBFLOW-PAGE-PANEL-SETTINGS-R5）
 
 **唯一产品目标：** 在「扩展 → Web Flow → 右上角齿轮 → 网页显示」用默认关闭的独立滑块控制 `https://chatgpt.com` 的 WebFlow 页面辅助区。开启实际挂载、关闭实际卸载；已存状态在 SPA/新标签/扩展重载复用，任何可见/隐藏操作均不得改变 Controller、Headless 文件处理、Stop、UNKNOWN、授权、Run/Result。
