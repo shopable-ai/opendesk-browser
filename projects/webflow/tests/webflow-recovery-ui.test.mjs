@@ -508,6 +508,62 @@ test('the step ID is durably read back before the direct manual start; duplicate
   assert.equal(starts(host).length,1);
 });
 
+test('unchecking the execution tab persists false, cancels locally and dispatches the confirmed params once across reopen',async t=>{
+  const host=sdk(),ack=deferred();host.start=()=>ack.promise;
+  let f=await mount(t,host);
+  const params={query:'OpenDesk Browser',limit:3,showExecutionTab:false};
+  const prepareBackground=async()=>{
+    await f.click('脚本');await f.click('运行',taskCard(f));await f.input(params.query);
+    const checkbox=f.document.getElementById('wf-show-execution-tab');
+    assert.equal(checkbox.checked,true,'execution tab defaults to visible');
+    await f.flush(()=>{
+      // Linkedom does not perform the browser checkbox click default action.
+      checkbox.checked=false;
+      checkbox.dispatchEvent(new f.window.Event('click',{bubbles:true}));
+    });
+    assert.equal(f.document.getElementById('wf-show-execution-tab').checked,false);
+    assert.match(taskCard(f).textContent,/关闭/);
+    assert.match(taskCard(f).textContent,/最多 3 条/);
+    const before=host.calls.length;
+    await f.click('保存运行步骤',taskCard(f));
+    const saved=host.store.get('webflow.pending.v1');
+    assert.deepEqual(saved.params,params);
+    assert.equal(saved.params.showExecutionTab,false,'persist a boolean, not a missing or coerced value');
+    const calls=host.calls.slice(before),write=calls.findIndex(c=>c.name==='storage.set');
+    assert.ok(write>=0&&calls.slice(write+1).some(c=>c.name==='storage.get'&&
+      c.args.key==='webflow.pending.v1'&&!c.args.withEtag),'saved step is read back before confirmation');
+    await f.click('记录');
+    assert.match(f.text(),/已保存参数：OpenDesk Browser/);
+    assert.match(f.text(),/后台执行：不切到执行标签页/);
+    assert.doesNotMatch(f.text(),/前台执行：显示执行标签页/);
+    assert.equal(f.find('确认手动运行').disabled,false);
+    assert.equal(starts(host).length,0,'saving and displaying confirmation never dispatch');
+    return saved;
+  };
+  await prepareBackground();await f.click('取消未运行步骤');
+  assert.equal(host.store.get('webflow.pending.v1'),null);
+  assert.equal(starts(host).length,0,'cancelling never starts a task');
+  assert.equal(host.calls.filter(c=>c.name==='tasks.stop').length,0,'local cancellation needs no platform stop');
+  await f.close();f=await mount(t,host);
+  const saved=await prepareBackground();
+  await f.duplicateClick('确认手动运行');
+  assert.deepEqual(starts(host).map(c=>c.args),[{
+    clientRequestId:saved.clientRequestId,task:saved.task,params
+  }]);
+  await f.flush(()=>ack.resolve({clientRequestId:saved.clientRequestId,state:'unknown',semantic:'UNKNOWN'}));
+  await f.close();
+  const beforeReopen=host.calls.length;
+  f=await mount(t,host);await f.click('记录');await f.click('查询原请求');
+  const recoveryCalls=host.calls.slice(beforeReopen);
+  assert.ok(recoveryCalls.some(c=>c.name==='tasks.read'&&c.args.clientRequestId===saved.clientRequestId));
+  assert.ok(recoveryCalls.filter(c=>c.name.startsWith('tasks.')).every(c=>c.name==='tasks.read'),
+    'recovery only queries tasks; local recovery summaries may still be persisted');
+  assert.equal(starts(host).length,1,'reopening cannot replay the confirmed request');
+  assert.equal(host.store.get('webflow.pending.v1').clientRequestId,saved.clientRequestId);
+  assert.deepEqual(host.store.get('webflow.pending.v1').params,params);
+  assert.deepEqual(f.errors,[]);
+});
+
 test('close and recreate the React root restores the original record and queries real SDK data only',async t=>{
   const host=sdk(),lost=deferred();host.start=()=>lost.promise;
   let f=await mount(t,host);await prepare(f);await f.click('确认手动运行');

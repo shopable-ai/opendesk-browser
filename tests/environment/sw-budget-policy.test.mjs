@@ -51,7 +51,8 @@ test('SW and ordinary entry byte gates enforce exact boundaries in both modes wi
   for(const mode of ['production','development']){
     for(const [entry,target,limit] of [
       [{name:'background',type:'background'},'sw.js',2*1024*1024],
-      [{name:'page-agent',type:'unlisted-script'},'agents/page-agent.js',512*1024]
+      [{name:'page-agent',type:'unlisted-script'},'agents/page-agent.js',512*1024],
+      [{name:'settings',type:'unlisted-script'},'native-agent/settings.js',576*1024]
     ]){
       const build={mode,build:{lib:{},rollupOptions:{},terserOptions:{},sourcemap:false},plugins:[]};
       config.hooks['vite:build:extendConfig']([entry],build);
@@ -62,5 +63,13 @@ test('SW and ordinary entry byte gates enforce exact boundaries in both modes wi
       await assert.doesNotReject(enforce(limit));
       await assert.rejects(enforce(limit+1),{target,budgetBytes:limit});
     }
+  }
+});
+
+test('React Workspace allowance applies only to the exact settings entry',()=>{
+  for(const mode of ['production','development']){
+    assert.equal(entryByteBudget('native-agent/settings.js',mode),576*1024);
+    for(const path of ['settings.js','native-agent/settings-copy.js','native-agent/transport.js'])
+      assert.equal(entryByteBudget(path,mode),512*1024);
   }
 });

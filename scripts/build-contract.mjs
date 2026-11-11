@@ -62,6 +62,10 @@ export const PACKAGE_ENTRIES = Object.freeze({
 // rather than repeatedly tuning the previous 516 KiB cap for small additions.
 // WXT and package verification consume this same limit; all source/CSP checks remain.
 export const SIDEBAR_TOOL_HOST_BYTES=1024*1024;
+// The trusted settings entry now embeds the existing React Workspace. Its
+// measured 530,465 B bundle exceeds the ordinary 512 KiB engineering budget.
+// Give only this exact entry 576 KiB; retain the fixed-source/CSP gates.
+export const SETTINGS_WORKSPACE_BYTES=576*1024;
 export const BUILD_POLICY = Object.freeze({productionBytes: 512 * 1024, fixedEntryReviewBytes: 320 * 1024, toolShellProductionBytes: 3 * 1024 * 1024, toolShellDevelopmentBytes: 3 * 1024 * 1024, toolShellReviewBytes: 2 * 1024 * 1024, serviceWorkerProductionBytes: 2 * 1024 * 1024, serviceWorkerReviewBytes: 512 * 1024, developmentBytes: 2 * 1024 * 1024, splitChunks: false, runtimeChunk: false, formats: ['iife'], sourcemap: {production: false, development: true}});
 // Existing reader/CLI limits, shared by the build and package verifier. These
 // are separate from the unchanged generated-entry budget above.
@@ -73,6 +77,7 @@ export function entryByteBudget(target, mode='production') {
   // connection/status code still runs through the identical security checks.
   if(target==='ui/tool-shell.js')return mode==='development'?BUILD_POLICY.toolShellDevelopmentBytes:BUILD_POLICY.toolShellProductionBytes;
   if(target==='ui/sidebar-tool-host.js')return SIDEBAR_TOOL_HOST_BYTES;
+  if(target==='native-agent/settings.js')return SETTINGS_WORKSPACE_BYTES;
   return BUILD_POLICY.productionBytes;
 }
 export const FIXED_OUTPUTS = Object.freeze(Object.fromEntries(Object.keys(PACKAGE_ENTRIES).filter(name => name !== 'sw').map(name => [name.split('/').at(-1), name + '.js'])));

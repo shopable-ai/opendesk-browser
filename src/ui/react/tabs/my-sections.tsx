@@ -52,7 +52,7 @@ export function MyTaskParams({view}){
         {fixed&&<span>固定值：{displayValue(rule.enum[0])}</span>}
         {Object.hasOwn(rule,'default')&&<span>默认：{displayValue(rule.default)}</span>}
       </div>
-      {help&&<p id={help} className="od-field-help">{rule.description}</p>
+      {help&&<p id={help} className="od-field-help">{rule.description}</p>}
       {error&&<p id={id+'-error'} className="od-field-help task-param-error" role="alert">{error}</p>}
     </div>;
   });

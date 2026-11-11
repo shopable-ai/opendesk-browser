@@ -133,6 +133,8 @@ try{
       'return {x:b.left+b.width/2,y:b.top+b.height/2,width:b.width,height:b.height}})()');
     assert.ok(coords.width>0&&coords.height>0,'Target hidden: '+selector);
     await cdp('Input.dispatchMouseEvent',{
+      type:'mouseMoved',x:coords.x,y:coords.y});
+    await cdp('Input.dispatchMouseEvent',{
       type:'mousePressed',button:'left',clickCount:1,x:coords.x,y:coords.y});
     await cdp('Input.dispatchMouseEvent',{
       type:'mouseReleased',button:'left',clickCount:1,x:coords.x,y:coords.y});
@@ -247,8 +249,11 @@ try{
     await eventually('!!document.querySelector(".wf-empty")','no installation needs attention');
     await filterBy(1);
     const nameOrder=await evaluate('[...document.querySelectorAll(".wf-task-name")].map(e=>e.dataset.wfTaskName)');
-    const favorite='[data-wf-task-name="'+nameOrder[1]+'"]';
-    await click('.wf-task-row:nth-child(2) button[aria-pressed]');
+    const favoriteMenu='[data-wf-menu="'+nameOrder[1]+'"]';
+    await click(favoriteMenu);
+    await eventually('!!document.querySelector(".wf-menu")','favorite menu opens');
+    assert.equal(await evaluate('document.querySelector(".wf-menu button:nth-child(2)").textContent'),'收藏脚本');
+    await click('.wf-menu button:nth-child(2)');
     await eventually('document.querySelector(".wf-task-name").dataset.wfTaskName==='+JSON.stringify(nameOrder[1]),'favorite sorts first');
     await filterBy(4);
     await eventually('document.querySelectorAll(".wf-task-row").length===1','favorite filter');
@@ -280,7 +285,18 @@ try{
     await eventually('!!document.querySelector(".wf-menu")','Enter opens more menu');
     await click('.wf-menu button');
     await eventually('!!document.querySelector(".wf-task-detail")','menu opens task details');
-    assert.ok(await evaluate('document.querySelectorAll(".wf-task-detail .wf-mono").length>=3'));
+    assert.equal(await evaluate('document.querySelectorAll(".wf-task-detail .wf-param-row").length'),3,
+      'Parameter configuration retains all three fields');
+    assert.equal(await evaluate('document.querySelector("#wf-query").maxLength'),120);
+    assert.equal(await evaluate('document.querySelector("#wf-query").getAttribute("aria-required")'),'true');
+    assert.equal(await evaluate('document.querySelector(".wf-param-fixed").textContent'),'最多 3 条');
+    assert.equal(await evaluate('document.querySelector("#wf-show-execution-tab").checked'),true);
+    assert.equal(await evaluate('document.querySelector(".wf-technical").open'),false,
+      'Technical identity starts collapsed');
+    await click('.wf-technical summary');
+    await eventually('document.querySelector(".wf-technical").open','technical identity expands');
+    assert.ok(await evaluate('[...document.querySelectorAll(".wf-task-detail .wf-technical .wf-mono")].filter(e=>e.getBoundingClientRect().width>0&&e.getBoundingClientRect().height>0).length>=3'),
+      'Expanded technical identity remains visible');
     await assertLayout(width,'Long task identity');
     await screenshot('details-'+width);
     await click('[data-page="history"]');
@@ -288,15 +304,17 @@ try{
     await assertLayout(width,'Empty history');
     // Restore preferences through existing UI so each width starts identically.
     await click('[data-page="scripts"]');
-    const favoriteButton=await evaluate('document.querySelector('+JSON.stringify(favorite)+').closest(".wf-task-row").querySelector("button[aria-pressed]").getAttribute("aria-label")');
-    await click('button[aria-label='+JSON.stringify(favoriteButton)+']');
+    await click(favoriteMenu);
+    await eventually('!!document.querySelector(".wf-menu")','remove favorite menu opens');
+    assert.equal(await evaluate('document.querySelector(".wf-menu button:nth-child(2)").textContent'),'取消收藏');
+    await click('.wf-menu button:nth-child(2)');
     await eventually('document.querySelectorAll("button[aria-pressed=true]").length===0','favorite removed');
     await click('#wf-filter-toggle');
     await selectSort('favorite');
     await eventually('document.querySelector("select").value==="favorite"','restore favorite sort');
     await key('Escape','Escape',27);
     await click('[data-page="overview"]');
-    await click('.wf-head-actions button[aria-label="应用设置"]');
+    await click('.wf-head-actions button[aria-label="应用偏好"]');
     await eventually('!!document.querySelector(".wf-select")','settings available');
     await assertLayout(width,'Settings');
     await screenshot('settings-'+width);
