@@ -4,6 +4,8 @@
 
 **本轮源码修复（main）：** `projects/webflow/src/ui/main.js` 已将「偏好已保存并读回」及「未运行步骤已取消」等短回执改用原 `OpenDeskTool.ui.notify.open`（Host 接受才算通知通道有效），没有新 Host / 执行权限；旧 Host 缺失、拒绝或调用失败时只给 4.5 秒可消失的原工具正文回退，不出现「知道了」按钮。长时间操作/UNKNOWN 仍在原业务状态和恢复入口，不替换为短 Toast；其旧信息横幅改用关闭图标而不是确认按钮。新增定向测试验证真实保存读回后才发通知、旧 Host 回退、失败零成功通知，源码 V8 语法解析通过。提交：`92139db13c79c9325d1d4d8ea11e5e2fcd00aa09`、`a39ac2d46d7116420f92dda67bad520ea18c009e`。
 
+**本轮相关 CI 阻塞与最小修复：** 提交 `a39ac2d4` 的 [Web Flow 包工作流 42983001376](https://github.com/shopable-ai/opendesk-browser/actions/runs/42983001376) 中，定向 Node 源码与正式候选构建已通过，随后 Chromium UI fixture 失败于 `webflow-compact-browser.mjs:251` 的「第二行收藏按钮 hidden」；真实产品 CSS 已把脚本行快捷操作改为 hover/focus 显示，测试在未触发鼠标悬停时直接点击隐藏元素。此失败属于测试驱动未适配已存在交互，不是 R2 Toast 运行失败；已在 `5132f6aabe486f9ff118c4d716975e112d0e3f18` 的测试夹具中先使用 CDP 真鼠标悬停、等待收藏按钮出现再点击，未放宽产品 UI/运行权限。后续包工作流 [42983238360](https://github.com/shopable-ai/opendesk-browser/actions/runs/42983238360) 仍须等待完整结果，不能提前宣称通过。
+
 **未完成及证据边界：** `SOURCE_IMPLEMENTED=main 已提交`；`NODE_TESTED=新增完整定向 CI 尚无最终通过回执`；`PACKAGE_READY=NO`（正式 0.3.26 仍旧源码，不能拿 tool.config 0.3.27 替代）；`CHROME_TESTED=NOT_TESTED`；`BUSINESS_ACCEPTED=NOT_ACCEPTED`。CodexPro 本地连接本轮返回 UNAVAILABLE。原 Web Flow R2 执行状态通知源码与可信 CurrentTask 已有接线，本轮不复制其业务。**唯一下一步：** 按原 packager 检查本轮改动的 Node 回归、构建同源候选/晋升唯一正式包，并经现有 Side Panel「扩展」安装更新；分别实测偏好保存 Toast 与一个真实获准 Task 的 RUNNING→Run/Result 核验→回传/失败/UNKNOWN。核对实际安装版本、授权代次、Host R1.2 支持及通知像素可见性；不可自动重放旧 UNKNOWN，不触碰并行 watcher/dist。
 
 ---
