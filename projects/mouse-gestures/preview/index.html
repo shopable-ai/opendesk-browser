@@ -1,0 +1,687 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="color-scheme" content="light dark">
+<meta name="od-preview-kind" content="DESIGN_REVIEW_ONLY_NO_CHROME_AUTHORITY">
+<title>Mouse Gestures · OpenDesk 交互预览 R2</title>
+<!--
+OD-MOUSE-GESTURES-R2-INTERACTIVE-PREVIEW
+Standalone design review ONLY, not the production Host, React components or a gesture engine.
+Token snapshot mapped from src/ui/design-tokens.css (2026-11-11).
+Component roles modeled after src/ui/design-system.css; layout follows R27, Sidebar R20, R25 patterns.
+No network, Chrome API, host SDK, extension installation, persistence or real browser actions.
+The single mock state in this file is transient in-memory data.
+Production responsibilities: Page gesture.js (R1); trusted Host/installer (permissions);
+PC full rules UI; Side Panel site/global quick controls; managed Page UI (ephemeral feedback).
+-->
+<style>
+:root {
+  --od-ink:#1b2c49;--od-sub:#5b6e86;--od-line:#dfe6ef;--od-brand:#365eda;
+  --od-paper:#fff;--od-bg:#fff;--od-input-border:#7f8da1;--od-accent-ink:var(--od-brand);
+  --od-focus:var(--od-brand);--od-muted:#f5f7fb;--od-positive:#117a5d;
+  --od-warning:#80510d;--od-warning-bg:#fff9ec;--od-warning-border:#dcc58a;
+  --od-warning-ink:#76501b;--od-negative:#ae3d4b;--od-negative-bg:#fff0f1;
+  --od-on-brand:#fff;--od-action-bg:var(--od-muted);--od-action-border:var(--od-input-border);
+  --od-action-ink:var(--od-ink);--space-1:4px;--space-2:8px;--space-3:12px;--space-4:16px;
+  --radius-control:8px;--radius-surface:12px;--radius-pill:999px;--od-icon-size:34px;
+  --od-body-size:13px;--od-note-size:12px;--od-meta-size:11px;
+  color-scheme:light;font-family:-apple-system,BlinkMacSystemFont,"SF Pro Text","PingFang SC",system-ui,sans-serif;
+  background:var(--od-bg);color:var(--od-ink);font-size:13px;line-height:1.5
+}
+:root[data-theme="dark"] {
+  --od-ink:#e9eef7;--od-sub:#b3c1d3;--od-line:#374457;--od-brand:#3566ba;
+  --od-paper:#151c28;--od-bg:#101722;--od-input-border:#6d809b;
+  --od-accent-ink:#9dc1ff;--od-focus:#9dc1ff;--od-muted:#222d3e;
+  --od-positive:#a1f3cc;--od-warning:#ffd08a;--od-warning-bg:#392d21;
+  --od-warning-border:#8b6841;--od-warning-ink:#f6dca8;
+  --od-negative:#ff9ea6;--od-negative-bg:#442632;--od-action-bg:var(--od-muted);
+  color-scheme:dark
+}
+*{box-sizing:border-box}
+[hidden]{display:none!important}
+html,body{margin:0;min-width:0;min-height:100%;background:var(--od-bg);color:var(--od-ink)}
+button,input,select,textarea{font:inherit}
+button{cursor:pointer}
+button:disabled{cursor:not-allowed;opacity:.48}
+:focus-visible{outline:2px solid var(--od-focus);outline-offset:2px}
+h1,h2,h3,p{margin:0}
+h1,h2,h3{letter-spacing:-.015em}
+small,.od-note{color:var(--od-sub);font-size:var(--od-note-size);line-height:1.55}
+.od-meta{font-size:var(--od-meta-size);color:var(--od-sub)}
+.row{display:flex;align-items:center;gap:var(--space-2);min-width:0}
+.wrap{flex-wrap:wrap}
+.grow{flex:1;min-width:0}
+.stack{display:grid;gap:var(--space-2);min-width:0}
+.stack-large{display:grid;gap:var(--space-4);min-width:0}
+.od-surface{background:var(--od-paper);border:1px solid var(--od-line);border-radius:var(--radius-surface);min-width:0}
+.od-surface--padded{padding:var(--space-3)}
+.od-collection{margin:0;padding:0;list-style:none;overflow:hidden;background:var(--od-paper);border:1px solid var(--od-line);border-radius:var(--radius-surface)}
+.od-collection-row+.od-collection-row{border-top:1px solid var(--od-line)}
+.od-button{display:inline-flex;align-items:center;justify-content:center;gap:var(--space-1);min-height:36px;padding:var(--space-2) var(--space-3);border:1px solid var(--od-brand);border-radius:var(--radius-control);background:var(--od-brand);color:var(--od-on-brand);font-weight:650;text-align:center}
+.od-button:hover:not(:disabled){filter:brightness(.97)}
+.od-button--secondary{background:var(--od-action-bg);border-color:var(--od-action-border);color:var(--od-action-ink)}
+.od-button--quiet{background:transparent;border-color:transparent;color:var(--od-ink)}
+.od-button--danger{background:var(--od-negative-bg);border-color:var(--od-negative);color:var(--od-negative)}
+.od-icon-button{display:inline-grid;place-items:center;flex:none;width:var(--od-icon-size);height:var(--od-icon-size);padding:0;border:1px solid transparent;border-radius:var(--radius-control);background:transparent;color:var(--od-sub);font-size:17px}
+.od-icon-button:hover:not(:disabled){background:var(--od-muted);color:var(--od-accent-ink)}
+.od-field{min-width:0;width:100%;min-height:36px;padding:var(--space-2) var(--space-3);border:1px solid var(--od-input-border);border-radius:var(--radius-control);background:var(--od-paper);color:var(--od-ink)}
+.od-field:disabled{opacity:.6;background:var(--od-muted)}
+.od-field[aria-invalid="true"]{border-color:var(--od-negative)}
+.od-field-label{display:block;font-size:var(--od-note-size);font-weight:650;margin-bottom:var(--space-1)}
+.od-field-help{margin-top:var(--space-1);font-size:var(--od-note-size);color:var(--od-sub)}
+.od-field-error{font-size:var(--od-note-size);color:var(--od-negative);margin-top:var(--space-2)}
+.od-alert{padding:var(--space-3);border:1px solid var(--od-line);border-radius:var(--radius-control);background:var(--od-muted)}
+.od-alert--warning{background:var(--od-warning-bg);color:var(--od-warning-ink);border-color:var(--od-warning-border)}
+.od-alert--error{background:var(--od-negative-bg);color:var(--od-negative);border-color:var(--od-negative)}
+.tag{display:inline-flex;align-items:center;gap:4px;padding:2px 8px;border:1px solid var(--od-line);border-radius:var(--radius-pill);font-size:11px;color:var(--od-sub);white-space:normal}
+.tag.good{color:var(--od-positive)}
+.tag.warn{color:var(--od-warning)}
+.switch{position:relative;display:inline-flex;flex:none;align-items:center;width:38px;height:23px}
+.switch input{position:absolute;inset:0;opacity:0;cursor:pointer;margin:0}
+.switch .track{height:22px;width:38px;border-radius:99px;background:var(--od-input-border);transition:background .15s}
+.switch .track:after{content:"";display:block;width:18px;height:18px;background:white;border-radius:99px;transform:translate(2px,2px);box-shadow:0 1px 2px #0003;transition:transform .15s}
+.switch input:checked+.track{background:var(--od-brand)}
+.switch input:checked+.track:after{transform:translate(18px,2px)}
+.switch input:focus-visible+.track{outline:2px solid var(--od-focus);outline-offset:3px}
+.switch input:disabled+.track{opacity:.5;cursor:not-allowed}
+.segmented{display:inline-flex;flex-wrap:wrap;gap:4px;padding:4px;background:var(--od-muted);border-radius:var(--radius-control)}
+.segmented button{min-height:34px;padding:6px 12px;border:0;border-radius:6px;background:transparent;color:var(--od-sub);font-weight:600}
+.segmented button[aria-pressed="true"]{background:var(--od-paper);color:var(--od-accent-ink);box-shadow:0 1px 3px #0001}
+.preview-header{display:flex;align-items:center;justify-content:space-between;gap:var(--space-3);flex-wrap:wrap;padding:12px clamp(12px,3vw,32px);border-bottom:1px solid var(--od-line);background:var(--od-paper)}
+.brand{display:flex;align-items:center;gap:var(--space-3);min-width:0}
+.brand-icon{display:grid;place-items:center;width:36px;height:36px;border-radius:10px;background:var(--od-brand);color:var(--od-on-brand);font-weight:800;font-size:20px}
+.brand h1{font-size:15px}
+.preview-controls{display:flex;align-items:center;gap:var(--space-2);flex-wrap:wrap}
+.mock-ribbon{display:flex;justify-content:center;align-items:center;gap:var(--space-2);padding:8px 12px;background:var(--od-warning-bg);border-bottom:1px solid var(--od-warning-border);color:var(--od-warning-ink);font-size:12px;text-align:center}
+.preview-body{padding:clamp(12px,2.2vw,28px);max-width:1480px;margin:auto;min-width:0}
+.section-caption{font-size:11px;letter-spacing:.08em;color:var(--od-sub);font-weight:700}
+.pc-shell{display:grid;grid-template-columns:216px minmax(0,1fr);max-width:1240px;min-height:690px;margin:0 auto;border:1px solid var(--od-line);border-radius:var(--radius-surface);overflow:hidden;background:var(--od-paper);box-shadow:0 8px 30px #1324470b}
+.pc-nav{padding:var(--space-4) var(--space-3);background:var(--od-muted);border-right:1px solid var(--od-line)}
+.pc-nav h2{font-size:13px;margin:0 8px 12px}
+.pc-nav button{display:flex;align-items:center;gap:8px;width:100%;min-height:39px;padding:8px 12px;border:0;border-radius:8px;background:transparent;color:var(--od-sub);font-weight:600;text-align:left}
+.pc-nav button:hover{background:var(--od-paper)}
+.pc-nav button[aria-current="page"]{background:var(--od-paper);color:var(--od-accent-ink)}
+.pc-nav .nav-icon{width:19px;text-align:center;font-size:15px}
+.pc-nav .nav-foot{border-top:1px solid var(--od-line);margin-top:20px;padding:14px 8px 0}
+.pc-main{padding:24px;min-width:0;background:var(--od-paper)}
+.pc-main h2{font-size:22px;font-weight:720;margin:0}
+.pc-heading{display:flex;align-items:flex-start;justify-content:space-between;gap:12px;flex-wrap:wrap;margin-bottom:20px}
+.pc-heading p{margin-top:5px;max-width:600px}
+.panel-toolbar{display:flex;gap:var(--space-2);flex-wrap:wrap;align-items:center;margin:0 0 12px}
+.panel-toolbar .search{width:240px;max-width:100%}
+.rule-row{display:grid;grid-template-columns:58px minmax(0,1fr) auto;gap:12px;align-items:center;min-height:77px;padding:11px 13px}
+.gesture-icon{display:grid;place-items:center;width:48px;height:48px;border:1px solid var(--od-line);border-radius:9px;background:var(--od-muted);color:var(--od-accent-ink);font-size:19px;font-weight:750}
+.gesture-icon small{font-size:10px;color:inherit}
+.rule-main{min-width:0}
+.rule-main strong{font-size:13px;font-weight:690;overflow-wrap:anywhere}
+.rule-main p{font-size:12px;color:var(--od-sub);margin-top:4px;overflow-wrap:anywhere}
+.rule-actions{display:flex;align-items:center;gap:3px;min-width:0}
+.rule-row:hover{background:var(--od-muted)}
+.rule-row .subaction{color:var(--od-sub)}
+.setting-row{display:flex;align-items:center;justify-content:space-between;gap:12px;min-height:66px;padding:12px}
+.setting-row+.setting-row{border-top:1px solid var(--od-line)}
+.setting-row>div:first-child{min-width:0}
+.setting-row strong{font-size:13px}
+.setting-row p{margin-top:4px}
+.setting-row select{max-width:160px}
+.empty{padding:38px 15px;text-align:center}
+.empty strong{display:block;margin-bottom:8px}
+.side-top{display:flex;justify-content:space-between;align-items:center;gap:12px;max-width:640px;margin:0 auto 12px}
+.side-stage{display:grid;place-items:start center}
+.side-frame{width:var(--demo-side-width,360px);max-width:100%;height:675px;display:flex;flex-direction:column;border:1px solid var(--od-line);border-radius:var(--radius-surface);background:var(--od-paper);overflow:hidden;box-shadow:0 9px 34px #17294f12}
+.side-host{display:flex;align-items:center;gap:9px;min-height:46px;padding:6px 12px;border-bottom:1px solid var(--od-line)}
+.side-host strong{font-size:12px}
+.side-content{flex:1;min-height:0;overflow-y:auto;padding:12px;display:grid;align-content:start;gap:16px}
+.side-title{font-size:12px;color:var(--od-sub);font-weight:650}
+.side-item{display:flex;align-items:center;justify-content:space-between;gap:8px;min-height:42px}
+.side-item strong{font-weight:650}
+.side-item .od-note{overflow-wrap:anywhere}
+.side-collection .rule-row{grid-template-columns:40px minmax(0,1fr);padding:9px;min-height:57px;gap:8px}
+.side-collection .gesture-icon{width:37px;height:37px;font-size:14px}
+.side-collection .rule-main strong{font-size:12px}
+.side-footer{padding:12px;border-top:1px solid var(--od-line)}
+.side-footer .od-button{width:100%}
+.side-status{display:flex;align-items:center;gap:8px;padding:10px;background:var(--od-muted);border-radius:8px;min-width:0}
+.web-wrap{display:grid;grid-template-columns:minmax(0,1fr) 262px;gap:16px;max-width:1080px;margin:auto}
+.web-demo{position:relative;min-height:530px;border:1px solid var(--od-line);border-radius:var(--radius-surface);overflow:hidden;background:var(--od-paper);touch-action:pan-y}
+.fake-site-head{display:flex;align-items:center;gap:8px;padding:12px 16px;border-bottom:1px solid var(--od-line);font-size:12px}
+.fake-url{padding:6px 11px;background:var(--od-muted);border-radius:6px;color:var(--od-sub);flex:1;min-width:0}
+.fake-article{max-width:560px;padding:42px 32px}
+.fake-article h2{font-size:29px;line-height:1.25;max-width:410px}
+.fake-article p{margin:15px 0;max-width:490px;line-height:1.75}
+.fake-article .fake-lines{height:9px;background:var(--od-muted);border-radius:4px;margin:12px 0;width:95%}
+.fake-article .fake-lines:nth-child(odd){width:73%}
+.demo-trace{position:absolute;inset:0;pointer-events:none;width:100%;height:100%;z-index:4;overflow:visible}
+.demo-trace polyline{fill:none;stroke:var(--trail-color,var(--od-brand));stroke-width:var(--trail-width,4);stroke-linejoin:round;stroke-linecap:round}
+.web-feedback{position:absolute;top:83px;left:50%;transform:translateX(-50%);min-width:150px;max-width:90%;padding:10px 18px;border:1px solid var(--od-line);border-radius:9px;background:var(--od-paper);box-shadow:0 9px 28px #0002;text-align:center;z-index:5;pointer-events:none}
+.web-feedback strong{display:block;font-size:15px}
+.web-feedback small{display:block;margin-top:4px}
+.web-tools{display:grid;gap:12px;align-content:start}
+.web-tools .od-button{width:100%}
+.demo-button-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.demo-button-grid button{min-width:0}
+.overlay{position:fixed;inset:0;z-index:30;display:flex;background:#101b3080}
+.editor-overlay{justify-content:flex-end}
+.drawer{width:min(460px,100vw);height:100%;background:var(--od-paper);display:flex;flex-direction:column;box-shadow:-8px 0 36px #0002}
+.dialog-heading{display:flex;align-items:center;gap:12px;justify-content:space-between;padding:15px 18px;border-bottom:1px solid var(--od-line)}
+.dialog-heading h2{font-size:17px}
+.drawer-content{flex:1;min-height:0;overflow-y:auto;padding:18px;display:grid;align-content:start;gap:16px}
+.dialog-footer{display:flex;gap:8px;justify-content:flex-end;flex-wrap:wrap;padding:14px 18px;border-top:1px solid var(--od-line)}
+.record-pad{position:relative;display:grid;place-items:center;height:122px;border:1px dashed var(--od-input-border);border-radius:9px;background:var(--od-muted);user-select:none;touch-action:none;cursor:crosshair}
+.record-pad svg{position:absolute;inset:0;width:100%;height:100%;pointer-events:none}
+.record-pad path{fill:none;stroke:var(--od-brand);stroke-width:4;stroke-linecap:round;stroke-linejoin:round}
+.dir-pad{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:8px}
+.dir-pad button{padding:6px}
+.pattern{display:inline-flex;min-height:36px;align-items:center;gap:6px;padding:6px 10px;border:1px solid var(--od-line);border-radius:8px;background:var(--od-muted);font-size:19px;letter-spacing:.13em;font-weight:750}
+.confirm-overlay{align-items:center;justify-content:center;padding:16px;z-index:40}
+.confirm-dialog{width:min(440px,100%);padding:20px;background:var(--od-paper);border-radius:12px;box-shadow:0 14px 52px #0003}
+.confirm-dialog h2{font-size:17px;margin-bottom:8px}
+.confirm-dialog p{font-size:13px;color:var(--od-sub);line-height:1.65}
+.confirm-dialog .row{justify-content:flex-end;flex-wrap:wrap;margin-top:20px}
+.toast{position:fixed;z-index:60;right:16px;bottom:16px;max-width:min(420px,calc(100vw - 32px));padding:11px 15px;border:1px solid var(--od-line);border-radius:8px;background:var(--od-paper);box-shadow:0 8px 30px #0002;overflow-wrap:anywhere}
+.toast[data-kind="error"]{border-color:var(--od-negative);color:var(--od-negative)}
+.preview-foot{max-width:1240px;margin:20px auto 0;color:var(--od-sub);font-size:11px}
+.preview-foot details{border-top:1px solid var(--od-line);padding:12px}
+.preview-foot summary{cursor:pointer}
+.preview-foot p{margin:8px 0}
+@media(max-width:900px){.pc-shell{grid-template-columns:172px minmax(0,1fr)}.pc-main{padding:16px}.web-wrap{grid-template-columns:minmax(0,1fr)}}
+@media(max-width:620px){.preview-header{align-items:flex-start}.pc-shell{display:block}.pc-nav{display:flex;flex-wrap:wrap;gap:4px;border-right:0;border-bottom:1px solid var(--od-line)}.pc-nav h2,.pc-nav .nav-foot{display:none}.pc-nav button{width:auto}.pc-main{padding:12px}.rule-row{grid-template-columns:42px minmax(0,1fr);gap:8px}.rule-row .gesture-icon{width:38px;height:38px}.rule-actions{grid-column:2;justify-content:flex-start}.fake-article{padding:35px 18px}.fake-article h2{font-size:23px}}
+@media(prefers-reduced-motion:reduce){*,*::before,*::after{transition:none!important;scroll-behavior:auto!important}}
+</style>
+</head>
+<body>
+<header class="preview-header">
+  <div class="brand"><div class="brand-icon" aria-hidden="true">↶</div><div><h1>Mouse Gestures <span class="od-meta">/ R2 交互预览</span></h1><div class="od-note">OpenDesk Browser · 正式视觉规范映射</div></div></div>
+  <div class="preview-controls">
+    <div class="segmented" role="group" aria-label="切换产品视图">
+      <button type="button" data-view="pc" aria-pressed="true">PC 管理</button>
+      <button type="button" data-view="side" aria-pressed="false">Side Panel</button>
+      <button type="button" data-view="web" aria-pressed="false">网页反馈</button>
+    </div>
+    <label for="scenario" class="od-meta">演示场景</label>
+    <select id="scenario" class="od-field" style="width:auto" aria-label="选择演示场景">
+      <option value="normal">正常</option><option value="saveFail">保存失败</option><option value="noPermission">无网站权限</option><option value="empty">空规则列表</option>
+    </select>
+    <button type="button" id="theme" class="od-icon-button" title="切换浅色/深色" aria-label="切换浅色/深色">☾</button>
+    <button type="button" data-cmd="reset-demo" class="od-button od-button--secondary">重置演示数据</button>
+  </div>
+</header>
+<div class="mock-ribbon" role="note"><strong>离线 Mock</strong> · 只模拟产品交互；不会获取 Chrome 权限、注入网页或执行真实导航、标签操作。</div>
+<main class="preview-body">
+  <section id="view-pc" aria-label="PC 完整管理界面">
+    <div class="pc-shell">
+      <nav class="pc-nav" aria-label="PC 管理栏目"><h2>鼠标手势</h2>
+        <button type="button" data-page="rules" aria-current="page"><span class="nav-icon">⌁</span>手势规则</button>
+        <button type="button" data-page="sites"><span class="nav-icon">◎</span>网站管理</button>
+        <button type="button" data-page="appearance"><span class="nav-icon">◉</span>外观反馈</button>
+        <button type="button" data-page="advanced"><span class="nav-icon">◇</span>高级手势</button>
+        <button type="button" data-page="backup"><span class="nav-icon">⇄</span>导入备份</button>
+        <div class="nav-foot"><div class="od-meta">产品阶段</div><div class="od-note">网页后退：技术试点<br>其余动作：交互设计</div></div>
+      </nav>
+      <div id="pc-content" class="pc-main"></div>
+    </div>
+  </section>
+  <section id="view-side" aria-label="Side Panel 快捷设置" hidden>
+    <div class="side-top"><div><div class="section-caption">SIDEBAR PREVIEW</div><div class="od-note">切换宽度检查紧凑布局</div></div>
+      <label class="row od-meta" for="side-width">宽度
+        <select id="side-width" class="od-field" style="width:90px"><option>320</option><option selected>360</option><option>400</option><option>440</option></select>
+      </label>
+    </div>
+    <div class="side-stage"><div id="side-frame" class="side-frame">
+      <div class="side-host"><span class="brand-icon" style="width:26px;height:26px;font-size:14px" aria-hidden="true">↶</span><strong class="grow">鼠标手势</strong><span class="tag">快捷设置</span></div>
+      <div id="side-content" class="side-content"></div>
+      <div class="side-footer"><button class="od-button od-button--secondary" type="button" data-cmd="open-full">打开完整管理 ↗</button></div>
+    </div></div>
+  </section>
+  <section id="view-web" aria-label="网页手势视觉反馈演示" hidden>
+    <div class="pc-heading" style="max-width:1080px;margin:0 auto 16px"><div><div class="section-caption">PAGE FEEDBACK</div><h2 style="margin:5px 0 4px">网页轨迹反馈</h2><p class="od-note">在模拟网页的非交互区域按住鼠标左键拖动；真正产品由独立 Page 模块负责右键手势。</p></div></div>
+    <div class="web-wrap">
+      <div class="web-demo" id="web-demo" aria-label="仅供左键绘制轨迹的模拟网页">
+        <div class="fake-site-head"><span aria-hidden="true">◉</span><span class="fake-url">https://docs.example.com/guide</span><span class="tag">模拟网页</span></div>
+        <article class="fake-article"><div class="od-meta">PRODUCT GUIDE / 01</div><h2>让常用浏览操作，跟着手势走。</h2>
+          <p class="od-note">这是一块独立的演示区域，不是注入目标网页的常驻管理面板。拖动空白位置即可观看轨迹反馈。</p>
+          <div class="fake-lines"></div><div class="fake-lines"></div><div class="fake-lines"></div>
+          <div class="row wrap" style="margin-top:24px"><a href="#web-demo" style="color:var(--od-accent-ink)" id="fake-link">示例链接（仅页内）</a><input class="od-field" style="max-width:170px" aria-label="示例输入框，不应启动手势" placeholder="这里可正常输入"></div>
+        </article>
+        <svg class="demo-trace" id="web-trace" aria-hidden="true"><polyline id="web-path" points=""></polyline></svg>
+        <div id="web-feedback" class="web-feedback" hidden><strong id="feedback-title"></strong><small id="feedback-sub"></small></div>
+      </div>
+      <aside class="web-tools">
+        <div class="od-surface od-surface--padded stack"><strong>试一试</strong><p class="od-note">所有按钮只演示反馈，不会触发浏览器 API。</p>
+          <div class="demo-button-grid"><button type="button" class="od-button od-button--secondary" data-demo="L">← 返回</button><button type="button" class="od-button od-button--secondary" data-demo="R">→ 前进</button><button type="button" class="od-button od-button--secondary" data-demo="UD">↑↓ 刷新</button><button type="button" class="od-button od-button--secondary" data-demo="cancel">取消</button></div>
+          <div class="demo-button-grid"><button type="button" class="od-button od-button--secondary" data-demo="conflict">冲突反馈</button><button type="button" class="od-button od-button--secondary" data-demo="noPermission">无权限反馈</button></div>
+        </div>
+        <div class="od-surface od-surface--padded stack"><strong>演示状态</strong><div id="web-last" class="od-note" role="status" aria-live="polite">尚未演示</div><span class="tag">轨迹自动消失 · 不阻挡点击</span></div>
+      </aside>
+    </div>
+  </section>
+  <footer class="preview-foot">
+    <details><summary>预览到正式产品：职责与设计来源</summary>
+      <p>样式语义来源：<code>src/ui/design-tokens.css</code>、<code>src/ui/design-system.css</code>；布局参考 R27、Sidebar R20、R25，以及 AI Scroll Navigation / Reading TOC 的预览。此文件内联的是必要的独立演示样式，不代表运行了宿主正式组件。</p>
+      <p>正式接入：Page 内核由 <code>src/page/gesture.js</code> 与 R1 负责；已安装工具沿用 <code>tool.config.json</code>、现有 Host/SDK/权限及生命周期；可信 PC 页面负责规则编辑，Side Panel 负责快捷状态，Page UI 仅显示短暂轨迹和结果。此处配置模型只是待评审草案，不是生产数据格式。</p>
+      <p>当前只有“右键向左返回”技术试点；前进、刷新、标签页动作、超级拖拽、滚轮和摇杆均为未验收规划功能。无网络、无持久化、无对正式配置的写入。</p>
+    </details>
+  </footer>
+</main>
+<div id="editor-overlay" class="overlay editor-overlay" hidden>
+  <section id="editor-dialog" class="drawer" role="dialog" aria-modal="true" aria-labelledby="editor-title" tabindex="-1">
+    <header class="dialog-heading"><div><div class="od-meta">GESTURE EDITOR / MOCK</div><h2 id="editor-title">编辑手势</h2></div><button type="button" id="close-editor" class="od-icon-button" aria-label="关闭编辑抽屉" title="关闭">×</button></header>
+    <div class="drawer-content">
+      <div><label class="od-field-label" for="edit-name">规则名称</label><input id="edit-name" class="od-field" maxlength="60" placeholder="例如：返回上一页"></div>
+      <div><label class="od-field-label" for="edit-site">生效范围</label><select id="edit-site" class="od-field"></select><p class="od-field-help">本站规则优先于全局规则；同范围相同轨迹不可重复绑定。</p></div>
+      <div><div class="od-field-label">手势轨迹</div><div class="row wrap" style="margin-bottom:8px"><span id="edit-pattern" class="pattern" aria-live="polite">—</span><button class="od-button od-button--quiet" type="button" id="clear-pattern">清除</button></div>
+        <div id="record-pad" class="record-pad" tabindex="0" aria-label="按住鼠标左键绘制手势录制区"><span class="od-note" id="record-hint">在此左键拖动录制轨迹</span><svg aria-hidden="true"><path id="record-trace" d=""></path></svg></div>
+        <div class="dir-pad" style="margin-top:8px"><button class="od-button od-button--secondary" data-dir="U" type="button">↑ 上</button><button class="od-button od-button--secondary" data-dir="D" type="button">↓ 下</button><button class="od-button od-button--secondary" data-dir="L" type="button">← 左</button><button class="od-button od-button--secondary" data-dir="R" type="button">→ 右</button></div>
+        <p class="od-field-help">可拖动画轨迹，或点击方向组合（最多四段）。仅用于编辑规则 Mock。</p>
+      </div>
+      <div><label class="od-field-label" for="edit-action">匹配动作</label><select id="edit-action" class="od-field"></select><p id="action-stage" class="od-field-help"></p></div>
+      <label class="row" for="edit-enabled"><span class="grow"><strong>启用这条规则</strong><span class="od-note" style="display:block">保存后同步至两个预览视图</span></span><span class="switch"><input id="edit-enabled" type="checkbox" role="switch" aria-label="启用这条规则"><span class="track"></span></span></label>
+      <div id="edit-error" class="od-alert od-alert--error" role="alert" hidden></div>
+    </div>
+    <footer class="dialog-footer"><button class="od-button od-button--secondary" type="button" id="cancel-editor">取消</button><button class="od-button" type="button" id="save-editor">保存规则</button></footer>
+  </section>
+</div>
+<div id="confirm-overlay" class="overlay confirm-overlay" hidden>
+  <section id="confirm-dialog" class="confirm-dialog" role="alertdialog" aria-modal="true" aria-labelledby="confirm-title" aria-describedby="confirm-text" tabindex="-1">
+    <h2 id="confirm-title"></h2><p id="confirm-text"></p>
+    <div class="row"><button type="button" class="od-button od-button--secondary" id="confirm-cancel">取消</button><button type="button" class="od-button od-button--danger" id="confirm-do">确认</button></div>
+  </section>
+</div>
+<div id="toast" class="toast" role="status" aria-live="polite" hidden></div>
+<script>
+(function(){
+'use strict';
+/* Product prototype: only local, ephemeral configuration. No chrome.*, fetch, storage or navigation. */
+const $=id=>document.getElementById(id);
+const clone=value=>JSON.parse(JSON.stringify(value));
+const esc=value=>String(value).replace(/[&<>"']/g,ch=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[ch]));
+const icons={U:'↑',D:'↓',L:'←',R:'→'};
+const actions={back:['返回上一页','技术试点：仅真实右键左划返回'],forward:['前进','规划中：未接入'],refresh:['刷新页面','规划中：未接入'],newtab:['新建标签页','规划中：未接入'],closetab:['关闭标签页','规划中：未接入'],scrolltop:['滚动到顶部','规划中：未接入']};
+const defaults=()=>({global:true,sites:[{domain:'docs.example.com',mode:'inherit'},{domain:'work.example.org',mode:'on'},{domain:'shop.example.net',mode:'off'}],
+ rules:[{id:'r1',name:'返回上一页',pattern:'L',action:'back',site:'',enabled:true},
+ {id:'r2',name:'前进',pattern:'R',action:'forward',site:'',enabled:true},
+ {id:'r3',name:'刷新页面',pattern:'UD',action:'refresh',site:'',enabled:true},
+ {id:'r4',name:'打开新标签页',pattern:'DR',action:'newtab',site:'',enabled:false},
+ {id:'r5',name:'工作站快捷刷新',pattern:'L',action:'refresh',site:'work.example.org',enabled:true}],
+ appearance:{color:'#365eda',width:4,threshold:56,feedback:true}});
+let state=defaults(),view='pc',page='rules',scenario='normal',currentSite='docs.example.com',filter='all',query='',theme='light';
+let draft=null,original=null,returnFocus=null,confirmTask=null,returnConfirmFocus=null,importCandidate=null;
+let toastTimer=null,traceTimer=null,webDrawing=null,recording=null,uid=0;
+const siteEffective=domain=>state.global && scenario!=='noPermission' && (state.sites.find(s=>s.domain===domain)?.mode!=='off');
+const shownRules=()=>scenario==='empty'?[]:state.rules;
+const orderedRules=domain=>shownRules().filter(r=>r.enabled && (!r.site || r.site===domain))
+ .sort((a,b)=>Number(Boolean(b.site))-Number(Boolean(a.site)));
+const labelSeq=pattern=>pattern.split('').map(ch=>icons[ch]||'?').join('');
+const modeText=mode=>({inherit:'跟随全局',on:'本站已启用',off:'本站已停用'}[mode]||'未知');
+function toast(message,kind='info'){
+ const el=$('toast');el.textContent=message;el.dataset.kind=kind;el.hidden=false;
+ clearTimeout(toastTimer);toastTimer=setTimeout(()=>{el.hidden=true},3200);
+}
+function apply(mutator){
+ if(scenario==='saveFail'){toast('模拟保存失败：数据未修改。请切回“正常”后重试。','error');return false}
+ const next=clone(state);mutator(next);state=next;renderAll();toast('演示配置已更新（仅内存，不写入正式应用）');return true;
+}
+function switchView(next){view=next;for(const name of ['pc','side','web']){$('view-'+name).hidden=name!==view}
+ document.querySelectorAll('[data-view]').forEach(b=>b.setAttribute('aria-pressed',String(b.dataset.view===view)));
+ renderAll();
+}
+function gotoPage(next){page=next;switchView('pc')}
+function heading(title,subtitle,buttons=''){return '<div class="pc-heading"><div><div class="section-caption">MOUSE GESTURES / 仅交互预览</div><h2>'+title+'</h2><p class="od-note">'+subtitle+'</p></div><div class="row wrap">'+buttons+'</div></div>'}
+function btn(action,label,kind='secondary'){return '<button type="button" class="od-button od-button--'+kind+'" data-cmd="'+action+'">'+label+'</button>'}
+function sw(id,checked,label,disabled=false){return '<span class="switch"><input type="checkbox" id="'+esc(id)+'" role="switch" aria-label="'+esc(label)+'" '+(checked?'checked':'')+' '+(disabled?'disabled':'')+'><span class="track"></span></span>'}
+function renderPC(){
+ document.querySelectorAll('[data-page]').forEach(b=>b.setAttribute('aria-current',b.dataset.page===page?'page':'false'));
+ if(page==='rules'){
+  const rows=shownRules().filter(r=>(filter==='all'||(filter==='enabled')===r.enabled)&&
+   (r.name+' '+r.pattern+' '+actions[r.action][0]+' '+r.site).toLowerCase().includes(query.toLowerCase()));
+  $('pc-content').innerHTML=heading('手势规则','维护轨迹、动作和生效范围。网站专属规则覆盖相同方向的全局规则。',btn('new-rule','＋ 新建手势','primary')+btn('restore-rules','恢复默认手势'))+
+   '<div class="panel-toolbar"><input id="search-rule" class="od-field search" placeholder="搜索名称、轨迹、动作或网站" aria-label="搜索规则" value="'+esc(query)+'">'+
+   '<div class="segmented" role="group" aria-label="筛选规则">'+['all','enabled','disabled'].map((v,i)=>'<button type="button" data-filter="'+v+'" aria-pressed="'+(filter===v)+'">'+['全部','已启用','已停用'][i]+'</button>').join('')+'</div>'+
+   '<span class="od-note">'+rows.length+' 条规则</span><span class="grow"></span>'+
+   '<span class="row">'+sw('pc-global',state.global,'全局启用鼠标手势')+'<label for="pc-global" class="od-note">全局启用</label></span></div>'+
+   (rows.length?'<ul class="od-collection">'+rows.map(r=>'<li class="od-collection-row rule-row">'+
+    '<div class="gesture-icon" aria-label="手势 '+esc(labelSeq(r.pattern))+'">'+esc(labelSeq(r.pattern))+'</div>'+
+    '<div class="rule-main"><div class="row wrap"><strong>'+esc(r.name)+'</strong>'+(r.site?'<span class="tag">仅 '+esc(r.site)+'</span>':'<span class="tag">全局</span>')+
+    (r.enabled?'<span class="tag good">已启用</span>':'<span class="tag">已停用</span>')+'</div>'+
+    '<p>'+esc(actions[r.action][0])+' · '+esc(actions[r.action][1])+'</p></div>'+
+    '<div class="rule-actions">'+sw('rule-'+r.id,r.enabled,'切换 '+r.name)+'<button class="od-icon-button" title="编辑 '+esc(r.name)+'" aria-label="编辑 '+esc(r.name)+'" data-edit="'+esc(r.id)+'">✎</button>'+
+    '<button class="od-icon-button" title="删除 '+esc(r.name)+'" aria-label="删除 '+esc(r.name)+'" data-delete="'+esc(r.id)+'">×</button></div></li>').join('')+'</ul>':
+    '<div class="od-surface empty"><strong>没有符合条件的手势</strong><p class="od-note">'+(scenario==='empty'?'当前为空状态演示，切回正常可恢复列表。':'可清空搜索或创建一条新规则。')+'</p>'+
+    btn('new-rule','新建手势')+'</div>');
+ }else if(page==='sites'){
+  $('pc-content').innerHTML=heading('网站管理','为特定站点设置例外。全局关闭时，单个网站不能绕过全局总开关。')+
+   '<div class="panel-toolbar"><input id="new-domain" class="od-field search" aria-label="新网站域名" placeholder="例如：news.example.com" maxlength="120">'+btn('add-site','＋ 添加网站','primary')+'</div>'+
+   '<div class="od-collection">'+state.sites.map(s=>'<div class="setting-row"><div><strong>'+esc(s.domain)+'</strong><p class="od-note">'+modeText(s.mode)+' · '+state.rules.filter(r=>r.site===s.domain).length+' 条专属规则</p></div>'+
+   '<div class="row wrap"><label class="od-meta" for="site-mode-'+esc(s.domain)+'">例外规则</label><select class="od-field" id="site-mode-'+esc(s.domain)+'" data-site-mode="'+esc(s.domain)+'" aria-label="'+esc(s.domain)+' 网站模式">'+
+   [['inherit','跟随全局'],['on','本站启用'],['off','本站停用']].map(pair=>'<option value="'+pair[0]+'" '+(pair[0]===s.mode?'selected':'')+'>'+pair[1]+'</option>').join('')+
+   '</select><button class="od-icon-button" type="button" data-remove-site="'+esc(s.domain)+'" aria-label="移除 '+esc(s.domain)+' 网站例外" title="移除网站例外">×</button></div></div>').join('')+'</div>'+
+   '<p class="od-note" style="margin-top:12px">本站独立手势请在「手势规则 → 新建或编辑 → 生效范围」中管理。域名和权限均为虚构演示。</p>';
+ }else if(page==='appearance'){
+  const a=state.appearance;
+  $('pc-content').innerHTML=heading('外观反馈','调整轨迹样式与识别体验；这些数值仅影响本页面的模拟演示。')+
+   '<div class="od-surface" style="max-width:700px"><div class="setting-row"><div><strong>轨迹颜色</strong><p class="od-note">按您的偏好设置手势轨迹，不修改 OpenDesk 品牌主题</p></div><input id="trail-color" type="color" aria-label="轨迹颜色" value="'+esc(a.color)+'" style="width:50px;height:36px;border:1px solid var(--od-line);border-radius:8px;background:var(--od-paper)"></div>'+
+   '<div class="setting-row"><div><strong>轨迹粗细</strong><p class="od-note">当前 '+a.width+'px</p></div><input type="range" id="trail-width" min="2" max="9" value="'+a.width+'" aria-label="轨迹粗细" style="width:170px;max-width:45%"></div>'+
+   '<div class="setting-row"><div><strong>识别距离</strong><p class="od-note">当前 '+a.threshold+'px，仅模拟左键轨迹</p></div><input type="range" id="trail-threshold" min="24" max="110" step="2" value="'+a.threshold+'" aria-label="识别距离" style="width:170px;max-width:45%"></div>'+
+   '<div class="setting-row"><div><strong>识别结果提示</strong><p class="od-note">完成后展示短暂反馈，并自动消失</p></div>'+sw('trail-feedback',a.feedback,'显示轨迹识别反馈')+'</div></div>'+
+   '<div class="row wrap" style="margin-top:16px">'+btn('open-web','在网页演示中查看效果','primary')+'</div>';
+ }else if(page==='advanced'){
+  $('pc-content').innerHTML=heading('高级手势','下面是未来产品规划，不代表已经取得 Chrome 权限或实现执行链路。')+
+   '<div class="stack-large">'+[['超级拖拽','拖拽文字和链接后匹配动作'],['滚轮手势','组合右键与滚轮的操作'],['摇杆手势','组合按键触发快速操作'],['标签页控制','关闭、新建、切换等高权限动作']].map(x=>
+   '<div class="od-surface od-surface--padded row wrap"><div class="grow"><strong>'+x[0]+'</strong><p class="od-note" style="margin-top:4px">'+x[1]+'</p></div><span class="tag warn">规划中 · 未验收</span><button class="od-button od-button--secondary" type="button" data-plan="'+x[0]+'">查看设计边界</button></div>').join('')+'</div>';
+ }else if(page==='backup'){
+  $('pc-content').innerHTML=heading('导入备份','导出本次临时演示配置；导入只覆盖预览内存，不影响任何正式安装数据。')+
+   '<div class="stack-large" style="max-width:730px"><div class="od-surface od-surface--padded stack"><strong>导出演示配置</strong><p class="od-note">下载 JSON，可再次粘贴到下方模拟导入。</p><div class="row wrap">'+btn('export','下载 JSON','primary')+btn('copy-export','复制 JSON')+'</div></div>'+
+   '<div class="od-surface od-surface--padded stack"><strong>导入配置 · 两步确认</strong><label class="od-field-label" for="import-json">粘贴 JSON</label><textarea class="od-field" id="import-json" rows="7" placeholder="粘贴 Mouse Gestures 演示配置 JSON" aria-label="导入 JSON 内容"></textarea><div class="row wrap">'+btn('validate-import','校验并预览','primary')+btn('clear-import','清空输入')+'</div><div id="import-result" class="od-note" role="status" aria-live="polite">尚未读取文件。支持本页面导出的 JSON 格式。</div></div></div>';
+ }
+}
+function renderSide(){
+ const effective=siteEffective(currentSite),site=state.sites.find(s=>s.domain===currentSite);
+ const common=orderedRules(currentSite).slice(0,4);
+ $('side-content').innerHTML=
+ '<div class="side-item"><div><div class="side-title">全局手势</div><div class="od-note">主开关控制全部网站</div></div>'+sw('side-global',state.global,'全局启用鼠标手势')+'</div>'+
+ '<div class="stack"><label class="od-field-label" for="current-site">当前网站（模拟）</label><select class="od-field" id="current-site">'+
+ state.sites.map(s=>'<option value="'+esc(s.domain)+'" '+(s.domain===currentSite?'selected':'')+'>'+esc(s.domain)+'</option>').join('')+'</select>'+
+ '<div class="side-item"><div class="grow"><strong>在此网站启用</strong><div class="od-note">'+modeText(site?.mode||'inherit')+'</div></div>'+sw('side-site',site?.mode!=='off','在当前网站启用鼠标手势')+'</div>'+
+ '<div class="side-status"><span aria-hidden="true">'+(scenario==='noPermission'?'!':effective?'●':'○')+'</span><div class="grow"><strong>'+(
+ scenario==='noPermission'?'模拟：缺少网站权限':!state.global?'全局已关闭':!effective?'本站已停用':'本站规则可生效（模拟）')+
+ '</strong><div class="od-note">'+(scenario==='noPermission'?'请在正式宿主权限流程中授权，本预览不会请求权限。':'该状态只代表 Mock 配置，不代表真实浏览器注入。')+'</div></div></div>'+
+ '<button type="button" class="od-button od-button--quiet" data-cmd="site-inherit" style="justify-content:flex-start">恢复此网站跟随全局</button></div>'+
+ '<section class="stack"><div class="side-item"><strong>常用手势</strong><span class="od-meta">'+common.length+' 条</span></div>'+
+ (common.length?'<ul class="od-collection side-collection">'+common.map(r=>'<li class="od-collection-row rule-row"><div class="gesture-icon">'+esc(labelSeq(r.pattern))+'</div><div class="rule-main"><strong>'+esc(r.name)+'</strong><p>'+esc(actions[r.action][0])+(r.site?' · 本站优先':'')+'</p></div></li>').join('')+'</ul>':
+ '<div class="od-surface od-surface--padded od-note">暂无适用手势，请到完整管理页添加或启用。</div>')+'</section>'+
+ '<div class="od-note">演示不会向网页安装脚本；具体权限由 OpenDesk Host 与原安装器核验。</div>';
+}
+function renderAll(){
+ if(view==='pc')renderPC();
+ if(view==='side')renderSide();
+ $('side-frame').style.setProperty('--demo-side-width',$('side-width').value+'px');
+ $('web-demo').style.setProperty('--trail-color',state.appearance.color);
+ $('web-demo').style.setProperty('--trail-width',state.appearance.width);
+}
+function openEditor(id){
+ const rule=id?state.rules.find(r=>r.id===id):null;
+ original=rule?clone(rule):{id:'',name:'',pattern:'',action:'back',site:'',enabled:true};
+ draft=clone(original);returnFocus=document.activeElement;
+ $('editor-title').textContent=id?'编辑手势':'新建手势';
+ $('edit-site').innerHTML='<option value="">所有网站（全局）</option>'+
+ state.sites.map(s=>'<option value="'+esc(s.domain)+'">'+esc(s.domain)+'</option>').join('');
+ $('edit-action').innerHTML=Object.keys(actions).map(k=>'<option value="'+k+'">'+esc(actions[k][0])+'</option>').join('');
+ $('edit-name').value=draft.name;$('edit-site').value=draft.site;$('edit-action').value=draft.action;
+ $('edit-enabled').checked=draft.enabled;$('edit-error').hidden=true;$('record-trace').setAttribute('d','');
+ updateDraftUI();$('editor-overlay').hidden=false;$('edit-name').focus();
+}
+function updateDraftUI(){
+ if(!draft)return;
+ $('edit-pattern').textContent=draft.pattern?labelSeq(draft.pattern):'—';
+ $('action-stage').textContent=actions[draft.action]?.[1]||'未选择动作';
+}
+function isDirty(){return draft&&JSON.stringify(draft)!==JSON.stringify(original)}
+function closeEditor(force=false){
+ if(!force&&isDirty()){
+  openConfirm('放弃未保存的修改？','关闭后编辑内容将丢失。演示配置不会改变。','放弃修改',()=>{
+   $('editor-overlay').hidden=true;draft=null;original=null;restoreFocus(returnFocus);
+  });return;
+ }
+ $('editor-overlay').hidden=true;draft=null;original=null;restoreFocus(returnFocus);
+}
+function restoreFocus(el){if(el&&document.contains(el)&&!el.closest('[hidden]'))el.focus()}
+function sameScopeConflict(rules,candidate){
+ return rules.find(r=>r.id!==candidate.id&&r.enabled&&candidate.enabled&&r.pattern===candidate.pattern&&r.site===candidate.site);
+}
+function saveEditor(){
+ draft.name=$('edit-name').value.trim();draft.site=$('edit-site').value;draft.action=$('edit-action').value;draft.enabled=$('edit-enabled').checked;
+ const error=$('edit-error');error.hidden=false;
+ if(!draft.name||!draft.pattern){error.textContent='请输入规则名称，并至少录入一段方向轨迹。';return}
+ if(!/^[UDLR]{1,4}$/.test(draft.pattern)||!actions[draft.action]){error.textContent='轨迹或动作无效。';return}
+ const clash=sameScopeConflict(state.rules,draft);
+ if(clash){error.textContent='手势冲突：当前范围的“'+clash.name+'”已经绑定 '+labelSeq(draft.pattern)+'。请修改轨迹、关闭其中一条规则或更换网站范围。';return}
+ error.hidden=true;
+ const success=apply(next=>{
+  if(draft.id){const idx=next.rules.findIndex(r=>r.id===draft.id);if(idx<0)throw Error('规则已不存在');next.rules[idx]=clone(draft)}
+  else{next.rules.push({...clone(draft),id:'local-'+(++uid)})}
+ });
+ if(success)closeEditor(true);
+ else{error.hidden=false;error.textContent='模拟保存失败，未写入任何配置。请更换演示场景重试。'}
+}
+function openConfirm(title,body,label,run){
+ returnConfirmFocus=document.activeElement;confirmTask=run;$('confirm-title').textContent=title;
+ $('confirm-text').textContent=body;$('confirm-do').textContent=label;$('confirm-overlay').hidden=false;$('confirm-cancel').focus();
+}
+function closeConfirm(){confirmTask=null;$('confirm-overlay').hidden=true;restoreFocus(returnConfirmFocus)}
+function confirmNow(){
+ const run=confirmTask;closeConfirm();if(run)run();
+}
+function removeRule(id){const rule=state.rules.find(r=>r.id===id);if(!rule)return;
+ openConfirm('删除手势规则？','将从演示配置中删除“'+rule.name+'”。本操作不会影响真实扩展。','删除规则',()=>apply(next=>{next.rules=next.rules.filter(r=>r.id!==id)}));
+}
+function restoreRules(){
+ openConfirm('恢复默认手势？','此操作将替换当前演示中的全部手势规则，网站与外观设置保持不变。','恢复默认',()=>apply(next=>{next.rules=defaults().rules}));
+}
+function resetDemo(){
+ openConfirm('重置全部演示数据？','这会清空本页面的修改并恢复默认演示。不会修改正式 OpenDesk 数据。','重置演示',()=>{
+  state=defaults();scenario='normal';$('scenario').value=scenario;filter='all';query='';currentSite='docs.example.com';importCandidate=null;
+  renderAll();switchView('pc');gotoPage('rules');toast('演示数据已重置');
+ });
+}
+function validDomain(value){return /^[a-z0-9](?:[a-z0-9-]{0,61}[a-z0-9])?(?:\.[a-z0-9](?:[a-z0-9-]{0,61}[a-z0-9])?)+$/i.test(value)&&value.length<=120}
+function addSite(){
+ const input=$('new-domain');const domain=input.value.trim().toLowerCase();
+ if(!validDomain(domain)){toast('请输入有效网站域名，例如 news.example.com。','error');input.focus();return}
+ if(state.sites.some(s=>s.domain===domain)){toast('此网站已经在列表中。','error');return}
+ apply(next=>{next.sites.push({domain,mode:'inherit'})});
+}
+function removeSite(domain){
+ openConfirm('移除网站例外？','将移除 '+domain+' 的网站设置及其专属手势规则。','移除网站',()=>{
+  const ok=apply(next=>{next.sites=next.sites.filter(s=>s.domain!==domain);next.rules=next.rules.filter(r=>r.site!==domain)});
+  if(ok&&currentSite===domain)currentSite=state.sites[0]?.domain||'';renderAll();
+ });
+}
+function exportData(){return JSON.stringify({format:'opendesk.mouse-gestures.preview.v1',config:state},null,2)}
+function downloadJson(){
+ const blob=new Blob([exportData()],{type:'application/json;charset=utf-8'});
+ const url=URL.createObjectURL(blob);const a=document.createElement('a');a.href=url;a.download='mouse-gestures-preview.json';
+ document.body.append(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(url),1000);
+ toast('演示配置 JSON 已触发下载（不包含正式扩展数据）');
+}
+function validateConfig(raw){
+ if(raw.length>100000)throw Error('JSON 太大，限制为 100KB。');
+ let data;try{data=JSON.parse(raw)}catch{throw Error('JSON 格式无效，请检查语法。')}
+ if(!data||data.format!=='opendesk.mouse-gestures.preview.v1'||!data.config||typeof data.config!=='object')throw Error('这不是本预览导出的配置格式。');
+ const c=data.config;
+ if(typeof c.global!=='boolean'||!Array.isArray(c.sites)||!Array.isArray(c.rules)||!c.appearance)throw Error('配置结构不完整。');
+ if(c.sites.length>100||c.rules.length>200)throw Error('配置条目超过演示上限。');
+ const domains=new Set(),ids=new Set();
+ for(const s of c.sites){if(!s||!validDomain(s.domain)||!['inherit','on','off'].includes(s.mode)||domains.has(s.domain))throw Error('网站域名或模式无效、重复。');domains.add(s.domain)}
+ for(const r of c.rules){
+  if(!r||typeof r.id!=='string'||r.id.length>100||ids.has(r.id)||typeof r.name!=='string'||!r.name.trim()||r.name.length>60||
+   !/^[UDLR]{1,4}$/.test(r.pattern)||!actions[r.action]||typeof r.enabled!=='boolean'||typeof r.site!=='string'||(r.site&&!domains.has(r.site)))throw Error('规则字段无效，或规则对应的网站不存在。');
+  ids.add(r.id);
+ }
+ for(const r of c.rules){if(sameScopeConflict(c.rules,r))throw Error('导入配置中存在同范围、同轨迹的启用规则冲突。')}
+ const a=c.appearance;if(!/^#[0-9a-f]{6}$/i.test(a.color)||!Number.isInteger(a.width)||a.width<2||a.width>9||
+ !Number.isInteger(a.threshold)||a.threshold<24||a.threshold>110||typeof a.feedback!=='boolean')throw Error('外观配置字段无效。');
+ return {global:c.global,sites:c.sites.map(s=>({domain:s.domain,mode:s.mode})),
+ rules:c.rules.map(r=>({id:r.id,name:r.name.trim(),pattern:r.pattern,action:r.action,site:r.site,enabled:r.enabled})),
+ appearance:{color:a.color,width:a.width,threshold:a.threshold,feedback:a.feedback}};
+}
+function validateImport(){
+ const target=$('import-result');try{
+  importCandidate=validateConfig($('import-json').value);
+  target.textContent='校验通过：'+importCandidate.rules.length+' 条规则、'+importCandidate.sites.length+' 个站点；不会接触真实浏览器配置。';
+  target.style.color='var(--od-positive)';
+  openConfirm('确认导入演示配置？','将替换本页内存中的 '+state.rules.length+' 条规则及网站、外观设置。','确认导入',()=>{
+   const ok=apply(next=>Object.assign(next,clone(importCandidate)));
+   if(ok){currentSite=state.sites[0]?.domain||'';renderAll();toast('已导入到演示内存')}
+  });
+ }catch(e){importCandidate=null;target.textContent=e.message;target.style.color='var(--od-negative)';toast('导入校验失败：'+e.message,'error')}
+}
+function drawPath(points){
+ const p=$('web-path');p.setAttribute('points',points.map(v=>v[0].toFixed(1)+','+v[1].toFixed(1)).join(' '));
+}
+function clearTrace(){clearTimeout(traceTimer);$('web-path').setAttribute('points','');$('web-feedback').hidden=true;webDrawing=null}
+function feedback(title,subtitle,kind='info'){
+ $('web-last').textContent=title+(subtitle?' · '+subtitle:'');
+ if(state.appearance.feedback){
+  $('feedback-title').textContent=title;$('feedback-sub').textContent=subtitle;
+  $('web-feedback').hidden=false;
+ }
+ clearTimeout(traceTimer);traceTimer=setTimeout(clearTrace,1700);
+}
+function detect(points){
+ if(points.length<2)return '';
+ const threshold=Math.max(18,state.appearance.threshold/2),out=[];
+ let pivot=points[0];
+ for(let i=1;i<points.length;i++){
+  const dx=points[i][0]-pivot[0],dy=points[i][1]-pivot[1];
+  if(Math.max(Math.abs(dx),Math.abs(dy))<threshold)continue;
+  const dir=Math.abs(dx)>Math.abs(dy)?(dx>0?'R':'L'):(dy>0?'D':'U');
+  if(out[out.length-1]!==dir&&out.length<4)out.push(dir);
+  pivot=points[i];
+ }
+ return out.join('');
+}
+function simulatePattern(seq,override){
+ clearTrace();const box=$('web-demo').getBoundingClientRect(),cx=box.width*.52,cy=box.height*.55,step=Math.min(100,box.width*.18);
+ const points=[[cx,cy]];let x=cx,y=cy;
+ for(const ch of seq){for(let i=0;i<9;i++){x+=ch==='R'?step/9:ch==='L'?-step/9:0;y+=ch==='D'?step/9:ch==='U'?-step/9:0;points.push([x,y])}}
+ drawPath(points);finishDemo(seq,override);
+}
+function finishDemo(seq,override){
+ const access=siteEffective('docs.example.com');
+ if(override==='cancel'||!seq){feedback('手势已取消','没有执行任何动作');return}
+ if(override==='conflict'){feedback('规则冲突','模拟场景：该轨迹存在重叠绑定');return}
+ if(override==='noPermission'||scenario==='noPermission'){feedback('无网站权限','本预览不请求权限');return}
+ if(!access){feedback('当前网站不可用','全局或本站开关已关闭');return}
+ const rule=orderedRules('docs.example.com').find(r=>r.pattern===seq);
+ if(!rule){feedback('未匹配手势',labelSeq(seq)+' · 请在管理页设置绑定');return}
+ feedback('识别：'+labelSeq(seq)+' · '+rule.name,'模拟动作：'+actions[rule.action][0]+'（不执行）');
+}
+const web=$('web-demo');
+web.addEventListener('pointerdown',e=>{
+ if(e.button!==0||e.target.closest('input,textarea,button,a,select'))return;
+ clearTrace();const b=web.getBoundingClientRect();
+ webDrawing={id:e.pointerId,points:[[e.clientX-b.left,e.clientY-b.top]]};
+ try{web.setPointerCapture(e.pointerId)}catch{}drawPath(webDrawing.points);
+});
+web.addEventListener('pointermove',e=>{
+ if(!webDrawing||webDrawing.id!==e.pointerId)return;
+ const b=web.getBoundingClientRect();webDrawing.points.push([e.clientX-b.left,e.clientY-b.top]);
+ if(webDrawing.points.length>150)webDrawing.points.shift();drawPath(webDrawing.points);
+});
+web.addEventListener('pointerup',e=>{
+ if(!webDrawing||webDrawing.id!==e.pointerId)return;
+ const seq=detect(webDrawing.points);webDrawing=null;finishDemo(seq);
+});
+web.addEventListener('pointercancel',()=>{if(webDrawing){clearTrace();feedback('手势已取消','指针操作已取消')}});
+const record=$('record-pad');
+record.addEventListener('pointerdown',e=>{
+ if(e.button!==0||!draft)return;
+ const b=record.getBoundingClientRect();recording={id:e.pointerId,points:[[e.clientX-b.left,e.clientY-b.top]]};
+ try{record.setPointerCapture(e.pointerId)}catch{}$('record-trace').setAttribute('d','');
+});
+record.addEventListener('pointermove',e=>{
+ if(!recording||recording.id!==e.pointerId)return;
+ const b=record.getBoundingClientRect();recording.points.push([e.clientX-b.left,e.clientY-b.top]);
+ $('record-trace').setAttribute('d',recording.points.map((p,i)=>(i?'L':'M')+p.join(' ')).join(' '));
+});
+record.addEventListener('pointerup',e=>{
+ if(!recording||recording.id!==e.pointerId)return;
+ const seq=detect(recording.points);recording=null;if(seq)draft.pattern=seq;
+ $('record-hint').textContent=seq?'已录制 '+labelSeq(seq):'距离不足，尝试更长的轨迹';
+ updateDraftUI();setTimeout(()=>$('record-trace').setAttribute('d',''),750);
+});
+record.addEventListener('pointercancel',()=>{recording=null;$('record-trace').setAttribute('d','')});
+function trap(event,root){
+ const items=[...root.querySelectorAll('button:not(:disabled),input:not(:disabled),textarea:not(:disabled),select:not(:disabled),[tabindex="0"]')].filter(el=>el.getClientRects().length>0);
+ if(!items.length)return;
+ if(event.shiftKey&&document.activeElement===items[0]){event.preventDefault();items[items.length-1].focus()}
+ else if(!event.shiftKey&&document.activeElement===items[items.length-1]){event.preventDefault();items[0].focus()}
+}
+document.addEventListener('keydown',e=>{
+ if(e.key==='Escape'){
+  if(!$('confirm-overlay').hidden){e.preventDefault();closeConfirm();return}
+  if(!$('editor-overlay').hidden){e.preventDefault();recording=null;closeEditor();return}
+  if(webDrawing){e.preventDefault();clearTrace();feedback('手势已取消','按 Esc 取消')}
+  return;
+ }
+ if(e.key==='Tab'){
+  if(!$('confirm-overlay').hidden)trap(e,$('confirm-dialog'));
+  else if(!$('editor-overlay').hidden)trap(e,$('editor-dialog'));
+ }
+});
+document.addEventListener('click',e=>{
+ const target=e.target.closest('button');if(!target||target.disabled)return;
+ if(target.dataset.view){switchView(target.dataset.view);return}
+ if(target.dataset.page){page=target.dataset.page;renderAll();return}
+ if(target.dataset.filter){filter=target.dataset.filter;renderAll();$('search-rule')?.focus();return}
+ if(target.dataset.edit){openEditor(target.dataset.edit);return}
+ if(target.dataset.delete){removeRule(target.dataset.delete);return}
+ if(target.dataset.removeSite){removeSite(target.dataset.removeSite);return}
+ if(target.dataset.dir&&draft){draft.pattern=(draft.pattern+target.dataset.dir).slice(0,4);updateDraftUI();return}
+ if(target.dataset.demo){
+  if(target.dataset.demo==='cancel'){clearTrace();feedback('手势已取消','没有执行任何动作')}
+  else if(target.dataset.demo==='conflict')simulatePattern('L','conflict');
+  else if(target.dataset.demo==='noPermission')simulatePattern('L','noPermission');
+  else simulatePattern(target.dataset.demo);
+  return;
+ }
+ if(target.dataset.plan){toast(target.dataset.plan+'：目前只有交互规划，正式 API 和权限均未验收。');return}
+ const cmd=target.dataset.cmd;
+ if(cmd==='new-rule')openEditor();
+ if(cmd==='restore-rules')restoreRules();
+ if(cmd==='reset-demo')resetDemo();
+ if(cmd==='open-full'){page='rules';switchView('pc')}
+ if(cmd==='open-web')switchView('web');
+ if(cmd==='add-site')addSite();
+ if(cmd==='site-inherit'){apply(next=>{const s=next.sites.find(s=>s.domain===currentSite);if(s)s.mode='inherit'})}
+ if(cmd==='export')downloadJson();
+ if(cmd==='copy-export'){
+  const txt=exportData();if(navigator.clipboard?.writeText)navigator.clipboard.writeText(txt).then(()=>toast('JSON 已复制')).catch(()=>toast('本地文件环境不支持剪贴板，请使用下载 JSON。','error'));
+  else toast('当前浏览器不提供剪贴板权限，请使用下载 JSON。','error');
+ }
+ if(cmd==='validate-import')validateImport();
+ if(cmd==='clear-import'){$('import-json').value='';importCandidate=null;$('import-result').textContent='已清空，请重新粘贴 JSON。'}
+});
+document.addEventListener('input',e=>{
+ const t=e.target;
+ if(t.id==='search-rule'){const pos=t.selectionStart;query=t.value;renderPC();const n=$('search-rule');n.focus();try{n.setSelectionRange(pos,pos)}catch{}}
+ if(t.id==='edit-name'&&draft)draft.name=t.value;
+ if(t.id==='trail-color')apply(next=>{next.appearance.color=t.value});
+ if(t.id==='trail-width')apply(next=>{next.appearance.width=Number(t.value)});
+ if(t.id==='trail-threshold')apply(next=>{next.appearance.threshold=Number(t.value)});
+});
+document.addEventListener('change',e=>{
+ const t=e.target;
+ if(t.id==='scenario'){scenario=t.value;renderAll();toast('已切换演示场景：'+t.selectedOptions[0].textContent);return}
+ if(t.id==='side-width'){$('side-frame').style.setProperty('--demo-side-width',t.value+'px');return}
+ if(t.id==='current-site'){currentSite=t.value;renderAll();return}
+ if(t.id==='pc-global'||t.id==='side-global'){const checked=t.checked;apply(next=>{next.global=checked});renderAll();return}
+ if(t.id==='side-site'){const checked=t.checked;apply(next=>{const s=next.sites.find(s=>s.domain===currentSite);if(s)s.mode=checked?'on':'off'});renderAll();return}
+ if(t.id==='trail-feedback'){apply(next=>{next.appearance.feedback=t.checked});return}
+ if(t.dataset.siteMode){const mode=t.value,domain=t.dataset.siteMode;apply(next=>{const s=next.sites.find(s=>s.domain===domain);if(s)s.mode=mode});return}
+ if(t.id.startsWith('rule-')){const id=t.id.slice(5),checked=t.checked;
+  const rule=state.rules.find(r=>r.id===id);
+  if(checked&&rule&&sameScopeConflict(state.rules,{...rule,enabled:true})){toast('手势冲突：与另一条同范围已启用手势重复。','error');renderAll();return}
+  apply(next=>{const r=next.rules.find(x=>x.id===id);if(r)r.enabled=checked});return;
+ }
+ if(draft&&t.id==='edit-site')draft.site=t.value;
+ if(draft&&t.id==='edit-action'){draft.action=t.value;updateDraftUI()}
+ if(draft&&t.id==='edit-enabled')draft.enabled=t.checked;
+});
+$('theme').addEventListener('click',()=>{
+ theme=theme==='light'?'dark':'light';document.documentElement.dataset.theme=theme;
+ $('theme').textContent=theme==='light'?'☾':'☀';$('theme').setAttribute('aria-label','切换到'+(theme==='light'?'深色':'浅色')+'主题');
+});
+$('close-editor').addEventListener('click',()=>closeEditor());
+$('cancel-editor').addEventListener('click',()=>closeEditor());
+$('save-editor').addEventListener('click',saveEditor);
+$('clear-pattern').addEventListener('click',()=>{if(draft)draft.pattern='';updateDraftUI()});
+$('confirm-cancel').addEventListener('click',closeConfirm);
+$('confirm-do').addEventListener('click',confirmNow);
+renderAll();
+})();
+</script>
+</body>
+</html>
