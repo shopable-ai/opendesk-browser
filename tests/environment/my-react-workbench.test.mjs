@@ -190,10 +190,10 @@ test('row parameter action selects its own task, opens the one Sheet and retains
 test('shared TaskRunSheet restores the My bottom drawer and distinct cancel/prepare actions',async()=>{
   // Layout contract only; linkedom cannot verify Chromium dialog geometry or focus.
   const css=await readFile('src/ui/tool-shell.css','utf8');
-  const sheetRule=css.match(/\\.task-params-sheet\\{([^}]*)\\}/)?.[1]||'';
+  const sheetRule=css.match(/\.task-params-sheet\{([^}]*)\}/)?.[1]||'';
   assert.match(sheetRule,/inset:auto 0 0/,'the original My drawer must anchor to the bottom');
   assert.match(sheetRule,/width:100%/,'the shared drawer uses the host width');
-  assert.match(sheetRule,/max-height:calc\\(100dvh - var\\(--space-4\\)\\)/);
+  assert.match(sheetRule,/max-height:calc\(100dvh - var\(--space-4\)\)/);
   assert.doesNotMatch(sheetRule,/height:100dvh/,'the right-side full-height regression must not recur');
   const f=await fixture();let root;
   try{
