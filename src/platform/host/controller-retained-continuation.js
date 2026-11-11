@@ -20,7 +20,10 @@ export function assertRetainedControllerContinuation({
     previous.namespace===host?.namespace&&samePrincipal&&
     previous.browserSessionIncarnation===session&&
     original?.browserSessionIncarnation===session&&
-    previous.sourceKind==='saved'&&previous.targetDisposition===RETAIN_ON_SUCCESS&&
+    previous.sourceKind==='saved'&&previous.tombstoned!==true&&
+    !previous.retainedContinuation&&
+    Number.isSafeInteger(previous.runRevision)&&previous.runRevision>=1&&
+    previous.targetDisposition===RETAIN_ON_SUCCESS&&
     previous.selection?.mode==='owned'&&original?.mode==='owned'&&
     previous.state==='completed'&&previous.retirementState==='released'&&
     previous.workerRetired===true&&
