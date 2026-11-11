@@ -78,9 +78,12 @@ test('0.3 SUBMIT validates original borrowed B and exact PREPARE Run identity',(
   const found=verify('submit');
   assert.equal(found.value.conversationUrl,origin+'c/'+id);
   assert.equal(found.value.replyText,'The real B reply');
+  const publicRun=snapshot('submit');delete publicRun.run.selection;
+  assert.equal(verifyChatGPTTaskDurableResult(publicRun,'run-submit-0001',
+    install(),req('submit')).value.replyText,'The real B reply');
   for(const patch of [
     {retainedFrom:{...prepareIds,runId:'other-run-0001'}},
-    {selection:{...snapshot('submit').run.selection,tabId:59}},
+    {target:{...snapshot('submit').run.target,tabId:59}},
     {target:{...snapshot('submit').run.target,mode:'owned'}},
     {target:{...snapshot('submit').run.target,url:'https://chatgpt.com/c/aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa'}},
     {target:{...snapshot('submit').run.target,documentId:'replaced-document'}},
