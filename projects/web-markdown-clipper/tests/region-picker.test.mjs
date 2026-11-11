@@ -98,3 +98,17 @@ test('interactive input and password regions are not selectable',()=>{
  input.setAttribute('type','password');form.append(input);a.append(form);
  assert.deepEqual(regionCandidates(input,doc,win),[]);
 });
+
+test('Enter on a focused link uses current response and suppresses page navigation',async()=>{
+ const {doc,win,p,a,event}=fixture();let captured=null;
+ const anchor=doc.createElement('a');anchor.textContent='Read link';p.append(anchor);
+ doc.activeElement=anchor;
+ const pick=beginRegionPick({doc,win,extract:node=>{captured=node;return '# keyboard\n';}});
+ await doc.fire('mousemove',event(anchor));
+ const enter=event(anchor,{key:'Enter'});
+ await doc.fire('keydown',enter);
+ const result=await pick.promise;
+ assert.equal(result.markdown,'# keyboard\n');
+ assert.equal(captured,a);
+ assert.equal(enter.defaultPrevented,true);
+});
