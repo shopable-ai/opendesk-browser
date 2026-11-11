@@ -34,7 +34,7 @@ dialog{width:min(92vw,430px);border:1px solid var(--od-line);border-radius:12px;
 .fake-chat .fake-prompt{align-self:flex-end}
 .fake-response{align-self:flex-start;max-width:510px;background:var(--od-paper);border:1px solid var(--od-line);border-radius:10px;padding:14px}
 .site-composer{display:flex;justify-content:space-between;align-items:center;gap:12px;margin:12px 24px 18px;padding:13px;border:1px solid var(--od-line);border-radius:10px;background:var(--od-muted);color:var(--od-sub)}
-.site-dock{position:absolute;top:12px;right:12px;z-index:3;width:min(360px,calc(100% - 24px));display:grid;justify-items:end;gap:8px;pointer-events:none}
+.site-dock{position:absolute;top:82px;right:12px;z-index:3;width:min(360px,calc(100% - 24px));display:grid;justify-items:end;gap:8px;pointer-events:none}
 .site-dock>*{pointer-events:auto}
 .site-chip{min-height:36px;text-align:left;display:flex;align-items:center;justify-content:space-between;gap:12px;width:min(100%,360px);border-color:var(--od-brand);background:var(--od-paper);box-shadow:0 5px 16px #19233b26}
 .site-chip span:first-child{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
@@ -43,7 +43,7 @@ dialog{width:min(92vw,430px);border:1px solid var(--od-line);border-radius:12px;
 .site-mini .row{margin-top:8px}
 .site-mini button{font-size:12px;min-height:32px}
 .site-mini .item{padding:9px}
-@media(max-width:760px){.site-app{grid-template-columns:minmax(0,1fr)}.site-sidebar{display:none}.site-identity{padding-top:58px}.site-main .fake-chat{padding-top:18px;min-height:370px}}
+@media(max-width:760px){.site-app{grid-template-columns:minmax(0,1fr)}.site-sidebar{display:none}.site-identity{padding-top:12px;padding-bottom:12px}.site-dock{top:116px}.site-main .fake-chat{padding-top:96px;min-height:370px}}
 @media(max-width:390px){.site-identity label{width:100%}.site-composer{margin:10px 10px 14px}.site-dock{left:8px;right:8px;width:auto}.site-chip{width:100%}.site-mini{max-height:60vh}}
 </style>
 </head>
