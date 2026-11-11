@@ -37,6 +37,17 @@ function resultProof(proof,run){
   // The persistent projection retains references, never full page/AI text.
   return copy({runId:proof.runId,resultId:proof.resultId,resultRef:proof.resultRef});
 }
+function prepareDeliveryIntent(intent,run){
+  if(!plain(intent)||!SHA.test(intent.contentSha256)||
+    intent.deliveryKey!==run.input.deliveryKey||
+    !plain(intent.source)||canonical(intent.source)!==canonical(run.input.source)||
+    intent.authorizationRef!==run.input.authorizationRef||
+    !run.bProof||intent.bRunId!==run.bProof.runId||
+    intent.bResultId!==run.bProof.resultId)fail('E_SERIAL_A_INTENT');
+  return copy({contentSha256:intent.contentSha256,deliveryKey:intent.deliveryKey,
+    authorizationRef:intent.authorizationRef,bRunId:intent.bRunId,
+    bResultId:intent.bResultId});
+}
 function deliveryProof(proof,run){
   if(!plain(proof)||proof.verified!==true||proof.deliveryKey!==run.input.deliveryKey||
     !plain(proof.source)||canonical(proof.source)!==canonical(run.input.source)||
@@ -46,6 +57,7 @@ function deliveryProof(proof,run){
     !validId(proof.messageId)||!plain(proof.deliveryRef)||
     !validKind(proof.deliveryRef.kind)||!validId(proof.deliveryRef.id)||
     !SHA.test(proof.deliveryRef.sha256)||proof.contentSha256!==proof.deliveryRef.sha256||
+    !run.aIntent||proof.contentSha256!==run.aIntent.contentSha256||
     (proof.deliveryRef.kind==='message'&&proof.deliveryRef.id!==proof.messageId))
     fail('E_SERIAL_A_PROOF');
   // The site adapter must independently inspect the real source A message.
@@ -57,9 +69,9 @@ function deliveryProof(proof,run){
 }
 
 export function createSerialTwoStepRun({storage,namespace,assertOwner,authorize,
-  dispatchB,readB,deliverA,readA,clock=Date.now}={}){
+  dispatchB,readB,prepareA,deliverA,readA,clock=Date.now}={}){
   if(!storage?.transaction||!validId(namespace)||
-    [assertOwner,authorize,dispatchB,readB,deliverA,readA,clock].some(fn=>typeof fn!=='function'))
+    [assertOwner,authorize,dispatchB,readB,prepareA,deliverA,readA,clock].some(fn=>typeof fn!=='function'))
     fail('E_SERIAL_WORKFLOW_OWNER');
   const key=id=>{if(!validId(id))fail('E_SERIAL_WORKFLOW_ID');return scopedKey(namespace,id);};
   const getRaw=id=>storage.transaction(['frameworkKV'],'readonly',tx=>tx.get('frameworkKV',key(id)));
@@ -88,7 +100,7 @@ export function createSerialTwoStepRun({storage,namespace,assertOwner,authorize,
         await tx.put('frameworkKV',deliveryIndex,value.workflowId);
       if(previous)return copy(previous);
       const record={version:1,workflowId:value.workflowId,input:value,inputFrozen:frozen,
-        phase:'PREPARED',revision:1,bRunId:null,bProof:null,aProof:null,createdAt:clock()};
+        phase:'PREPARED',revision:1,bRunId:null,bProof:null,aIntent:null,aProof:null,createdAt:clock()};
       await tx.put('frameworkKV',k,record);return copy(record);
     });
   }
@@ -134,7 +146,14 @@ export function createSerialTwoStepRun({storage,namespace,assertOwner,authorize,
     if(run.phase==='B_VERIFIED'){
       if(clock()>=run.input.deadlineAt||await authorize(copy(run),'deliver-a')!==true)
         return hold('B_VERIFIED','E_SERIAL_WORKFLOW_AUTH',run);
-      try{run=await move(run,'B_VERIFIED','A_INTENT_RECORDED');}
+      // Only trusted read-only business formatting can determine the A bytes.
+      // Persist the exact text hash with the one-use intent BEFORE any click.
+      let intent;
+      try{intent=prepareDeliveryIntent(await prepareA(copy(run)),run);}
+      catch{return hold('B_VERIFIED','E_SERIAL_A_PREPARE_UNKNOWN',run);}
+      if(clock()>=run.input.deadlineAt||await authorize(copy(run),'deliver-a')!==true)
+        return hold('B_VERIFIED','E_SERIAL_WORKFLOW_AUTH',run);
+      try{run=await move(run,'B_VERIFIED','A_INTENT_RECORDED',{aIntent:intent});}
       catch(e){if(e?.code==='E_SERIAL_WORKFLOW_STALE')return hold('STALE','READ_ORIGINAL',run);throw e;}
       // The site-specific trusted delivery adapter must reuse the ORIGINAL
       // source A and its existing one-use send/admission safeguards.

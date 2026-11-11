@@ -17,13 +17,19 @@ function storage(){
   }};
 }
 function harness(options={}){
-  const data=storage(),stats={dispatch:0,deliver:0,readB:0,readA:0};
+  const data=storage(),stats={dispatch:0,prepareA:0,deliver:0,readB:0,readA:0};
   let authorized=true,owner=true,completedB=true,completedA=true;
   const make=()=>createSerialTwoStepRun({storage:data,namespace:'webflow-chat-01',
     assertOwner:()=>owner,authorize:()=>authorized,
     dispatchB:async()=>{stats.dispatch++;if(options.dispatchUnknown)throw Error('lost ack');return {runId:'run-00000001'};},
     readB:async()=>{stats.readB++;return completedB?{verified:true,operationKey:'wf-task-0001',
       runId:'run-00000001',resultId:'result-000001',resultRef:{kind:'durable-result',id:'result-000001',sha256:SHA}}:null;},
+    prepareA:async run=>{stats.prepareA++;
+      if(options.prepareUnknown)throw Error('cannot format original B');
+      const intent={deliveryKey:run.input.deliveryKey,
+        source:structuredClone(run.input.source),authorizationRef:run.input.authorizationRef,
+        bRunId:run.bProof.runId,bResultId:run.bProof.resultId,contentSha256:SHA};
+      return options.mutateIntent?.(intent)??intent;},
     deliverA:async()=>{stats.deliver++;if(options.deliveryUnknown)throw Error('lost ack');},
     readA:async run=>{stats.readA++;if(!completedA)return null;
       const proof={verified:true,deliveryKey:run.input.deliveryKey,
@@ -131,6 +137,40 @@ test('readA rejects mismatched A source, authorization, B result or observed con
     assert.equal(saved.phase,'A_INTENT_RECORDED');
     assert.equal(saved.aProof,null);
     assert.equal(h.stats.deliver,1);
+  }
+});
+
+test('A expected body SHA is frozen before delivery and required for DONE',async()=>{
+  const h=harness(),i=input(),w=h.make();await w.start(i);await toBVerified(w,i.workflowId);
+  assert.equal((await w.advance(i.workflowId)).phase,'A_INTENT_RECORDED');
+  const saved=await w.get(i.workflowId);
+  assert.equal(saved.aIntent.contentSha256,SHA);
+  assert.equal(saved.aIntent.bResultId,'result-000001');
+  assert.equal(h.stats.prepareA,1);assert.equal(h.stats.deliver,1);
+  assert.equal((await w.advance(i.workflowId)).phase,'DONE');
+  assert.equal((await w.get(i.workflowId)).aProof.contentSha256,SHA);
+});
+test('forged matching readback digest cannot bypass frozen send intent',async()=>{
+  const wrong='b'.repeat(64);
+  const h=harness({mutateAProof:proof=>({...proof,contentSha256:wrong,
+    deliveryRef:{...proof.deliveryRef,sha256:wrong}})}),i=input(),w=h.make();
+  await w.start(i);await toBVerified(w,i.workflowId);
+  await w.advance(i.workflowId);
+  await assert.rejects(w.advance(i.workflowId),{code:'E_SERIAL_A_PROOF'});
+  assert.equal((await w.get(i.workflowId)).phase,'A_INTENT_RECORDED');
+  assert.equal(h.stats.deliver,1);
+});
+test('unavailable or drifted A preparation cannot record a click intent',async()=>{
+  for(const options of [
+    {prepareUnknown:true},
+    {mutateIntent:p=>({...p,source:{...p.source,documentId:'other-document'}})},
+    {mutateIntent:p=>({...p,contentSha256:'bad'})}
+  ]){
+    const h=harness(options),i=input(),w=h.make();await w.start(i);
+    await toBVerified(w,i.workflowId);
+    assert.equal((await w.advance(i.workflowId)).reason,'E_SERIAL_A_PREPARE_UNKNOWN');
+    assert.equal((await w.get(i.workflowId)).phase,'B_VERIFIED');
+    assert.equal(h.stats.deliver,0);
   }
 });
 
