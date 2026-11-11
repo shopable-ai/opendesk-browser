@@ -53,22 +53,24 @@ async function mount(t,host=sdk()){
   Object.assign(globalThis,{window,document,IS_REACT_ACT_ENVIRONMENT:true});
   const errors=[],roots=[];
   const runtime={...React,createRoot(node){const root=createRoot(node,{onUncaughtError:e=>errors.push(e)});roots.push(root);return root;}};
-  const timers=new Map();let timerId=0;
+  const timers=new Map(),intervals=new Map();let timerId=0;
   const sdkTool={root:document.getElementById('root'),request:host.request.bind(host)};
   if(host.notify)sdkTool.ui={notify:host.notify};
   host.editStates=[];
   sdkTool.setState=value=>{host.editStates.push(structuredClone(value));return true;};
   if(host.withNavigation){
     host.navigation=[];
-    sdkTool.navigationFeatures={headerActions:true};
+    sdkTool.navigationFeatures={headerActions:true,settingsPage:host.settingsFeature===true};
     sdkTool.setNavigation=value=>{host.navigation.push(value);return !(host.rejectHeaderActions&&'headerActions' in value);};
   }
   const context=vm.createContext({OpenDeskPageReact:runtime,OpenDeskTool:sdkTool,
-    crypto:globalThis.crypto,URL,console,queueMicrotask,addEventListener(){},
-    setTimeout(fn){timers.set(++timerId,fn);return timerId;},clearTimeout(id){timers.delete(id);}});
+    crypto:globalThis.crypto,URL,console,queueMicrotask,addEventListener(){},removeEventListener(){},
+    setTimeout(fn){timers.set(++timerId,fn);return timerId;},clearTimeout(id){timers.delete(id);},
+    setInterval(fn){intervals.set(++timerId,fn);return timerId;},
+    clearInterval(id){intervals.delete(id);}});
   await React.act(async()=>{vm.runInContext(source('model.js'),context);vm.runInContext(source('main.js'),context);});
   let closed=false;
-  const close=async()=>{if(closed)return;closed=true;await React.act(async()=>roots.forEach(r=>r.unmount()));timers.clear();};
+  const close=async()=>{if(closed)return;closed=true;await React.act(async()=>roots.forEach(r=>r.unmount()));timers.clear();intervals.clear();};
   t.after(close);
   const find=(label,scope=document)=>{
     // The compact UI uses descriptive accessible names for icon-only actions;
@@ -113,6 +115,35 @@ const complete=(id,retirementState='released')=>({
 });
 const changedPage=f=>f.document.getElementById('root').dispatchEvent(
   new f.window.Event('opendesk-page-changed'));
+
+test('R1.5 Host settings gear navigates into Web Flow own webpage display switch',async t=>{
+  const host=sdk();host.withNavigation=true;host.settingsFeature=true;
+  const f=await mount(t,host);
+  assert.equal(host.navigation.at(-1)?.settingsPage,'settings');
+  assert.equal(host.navigation.at(-1)?.headerActions?.length,1,'do not duplicate the gear action');
+  const event=new f.window.Event('opendesk-tool-navigation');
+  event.detail={action:'settings',page:'settings'};
+  await f.flush(()=>f.document.getElementById('root').dispatchEvent(event));
+  assert.match(f.text(),/网页显示/);
+  assert.match(f.text(),/显示网页辅助面板/);
+  const slider=f.document.querySelector('.wf-switch-native input[role="switch"]');
+  assert.ok(slider,'native accessible fallback when shared UI is unavailable in older runtime');
+  assert.equal(slider.disabled,false);
+  assert.equal(slider.checked,false);
+  assert.equal(host.store.has('webflow.pagePanelVisible.v1'),false,'navigating never writes or dispatches');
+  assert.equal(starts(host).length,0);
+  assert.deepEqual(f.errors,[]);
+});
+
+test('older Host retains one preference header fallback without claiming settingsPage support',async t=>{
+  const host=sdk();host.withNavigation=true;host.settingsFeature=false;
+  const f=await mount(t,host);
+  const current=host.navigation.at(-1);
+  assert.equal(Object.hasOwn(current,'settingsPage'),false);
+  assert.deepEqual(current.headerActions.map(x=>x.id),['help','settings']);
+  assert.equal(starts(host).length,0);
+  assert.deepEqual(f.errors,[]);
+});
 
 test('clicking ▶ opens only the Host TaskRunSheet; no inline editor, save, or start',async t=>{
   const host=sdk(),f=await mount(t,host);

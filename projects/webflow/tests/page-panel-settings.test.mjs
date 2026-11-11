@@ -44,6 +44,8 @@ function fixture(extra={}){
 test('settings entry uses R1.5 Host gear with safe header fallback and independent CAS storage',()=>{
   assert.ok(source.includes("tool.navigationFeatures?.settingsPage===true"));
   assert.ok(source.includes("settingsPage:'settings'"));
+  assert.ok(source.includes('global.OpenDeskSidebarUI?.Switch'),'must prefer existing shared OpenDesk Switch');
+  assert.ok(source.includes('h(SharedSwitch,{'),'real Host uses shared React-Aria Switch');
   assert.ok(source.includes("info?.action==='settings'&&info.page==='settings'"));
   assert.ok(source.includes("request('storage.set',{key:pagePanelKey,value:visible,ifMatch:previous.etag})"));
   assert.ok(source.includes("request('storage.get',{key:pagePanelKey,withEtag:true})"));
