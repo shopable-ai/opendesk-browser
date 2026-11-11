@@ -248,6 +248,14 @@ try{
     await filterBy(1);
     const nameOrder=await evaluate('[...document.querySelectorAll(".wf-task-name")].map(e=>e.dataset.wfTaskName)');
     const favorite='[data-wf-task-name="'+nameOrder[1]+'"]';
+    // The row's shortcut actions are intentionally hidden until a real pointer
+    // hover or keyboard focus. The native fixture must reveal them first.
+    const hoverPoint=await evaluate('(()=>{const row=document.querySelector(".wf-task-row:nth-child(2)");'+
+      'row.scrollIntoView({block:"nearest"});const b=row.querySelector(".wf-task-name").getBoundingClientRect();'+
+      'return {x:b.left+b.width/2,y:b.top+b.height/2}})()');
+    await cdp('Input.dispatchMouseEvent',{type:'mouseMoved',x:hoverPoint.x,y:hoverPoint.y});
+    await eventually('(()=>{const el=document.querySelector(".wf-task-row:nth-child(2) button[aria-pressed]");'+
+      'return el&&el.getBoundingClientRect().width>0})()','favorite appears after native hover');
     await click('.wf-task-row:nth-child(2) button[aria-pressed]');
     await eventually('document.querySelector(".wf-task-name").dataset.wfTaskName==='+JSON.stringify(nameOrder[1]),'favorite sorts first');
     await filterBy(4);
