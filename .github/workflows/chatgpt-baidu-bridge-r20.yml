@@ -29,6 +29,7 @@ on:
       - 'projects/webflow/tests/chatgpt-draft-task.test.mjs'
       - 'projects/webflow/src/tasks/chatgpt-conversation-create-v0.2.js'
       - 'projects/webflow/src/tasks/chatgpt-conversation-create-v0.3.js'
+      - 'projects/webflow/tasks/chatgpt.conversation.create.0.3.0.opendesk-task.json'
       - 'projects/webflow/tasks/chatgpt.conversation.create.0.2.0.opendesk-task.json'
       - 'projects/webflow/tests/chatgpt-send-task.test.mjs'
       - 'projects/webflow/tests/chatgpt-continuation-task.test.mjs'
