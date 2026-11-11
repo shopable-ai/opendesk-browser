@@ -274,6 +274,31 @@ test('My entry cannot bypass a Web Flow ready identity in the same TaskWorkbench
   }finally{if(root)await React.act(async()=>root.unmount());f.dispose();}
 });
 
+
+test('unresolved pre-v1 Web Flow history without pending key fences My and shared prepare',async()=>{
+  const f=await fixture();let root;
+  try{
+    root=await f.mount();
+    const namespace='opendesk.sidebar-tools.data.v1:webflow';
+    const original={clientRequestId:'webflow:legacy-unknown',
+      taskId:'test.task',version:'1.0.0',state:'unknown',retirementState:'unknown',at:Date.now()};
+    f.state.localStore.set(namespace,{'webflow.recent.v1':[original]});
+    const identity={...f.view.data.taskRows.identity};
+    await React.act(async()=>{f.view.actions.taskRunClick(native(),identity);await tick();await tick();});
+    assert.equal(f.state.starts.length,0,'My cannot bypass an unreleased legacy summary');
+    const pin={taskId:'test.task',version:'1.0.0',manifestHash:'a'.repeat(64),contentHash:'b'.repeat(64)};
+    await React.act(async()=>{assert.equal(await f.workbench.openTaskRunSheet('test.task',{expectedPin:pin}),true);await tick();});
+    await React.act(async()=>{
+      assert.equal(await f.view.actions.taskRunSheetPrepare(native(),identity),false);await tick();
+    });
+    assert.equal(f.state.starts.length,0);
+    assert.equal(f.state.localStore.has('opendesk.shared-task-run-sheet.webflow.v1'),false,
+      'legacy history needs original-request reconciliation, never a new preparation');
+    assert.equal(f.state.localStore.get(namespace)['webflow.recent.v1'][0].clientRequestId,
+      original.clientRequestId,'the original evidence must remain untouched');
+  }finally{if(root)await React.act(async()=>root.unmount());f.dispose();}
+});
+
 test('JSON editing uses original typed validation and preserves the editor draft across task selection',async()=>{
   const f=await fixture({twoTasks:true});let root;
   try{

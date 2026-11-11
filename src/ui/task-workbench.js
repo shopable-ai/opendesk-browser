@@ -693,8 +693,20 @@ export function createTaskWorkbench({client,host,currentPageTarget,api=globalThi
   }
   async function hasLegacyPending(){
     if(!api.storage?.local)throw prepError('E_STORAGE_UNAVAILABLE','无法读取旧请求');
+    // Match Web Flow's own legacy recovery rule: older versions may have
+    // persisted an unresolved summary without a webflow.pending.v1 locator.
+    // It is not an execution result, but it MUST prevent a new admission
+    // until the original request has been reconciled in Web Flow.
     const key=sidebarToolStorageKey('webflow'),v=(await api.storage.local.get(key))[key];
-    return Boolean(v&&typeof v==='object'&&v['webflow.pending.v1']);
+    if(!v)return false;
+    if(typeof v!=='object'||Array.isArray(v))
+      throw prepError('E_PENDING_LEGACY','旧 Web Flow 数据不可读；不能确定原请求是否释放');
+    if(v['webflow.pending.v1']!=null)return true;
+    const records=v['webflow.recent.v1'];
+    if(records==null)return false;
+    if(!Array.isArray(records))throw prepError('E_PENDING_LEGACY','旧请求历史不可读；禁止新执行');
+    return records.some(record=>!record||typeof record!=='object'||
+      record.retirementState!=='released'&&record.notSubmittedFenced!==true);
   }
   function openSheet(taskId,source,trigger){
     const row=installed.find(r=>r.taskId===taskId),info=candidateFor(row);
