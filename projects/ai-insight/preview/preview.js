@@ -11,7 +11,7 @@
  let panelView='current',siteExpanded=false,siteShown=true,siteConversation='conv_a';
  const p=()=>s.problems.find(x=>x.id===active)||s.problems[0]||null;
  const summary=()=>{const x=p(); if(!x)return '<div class="empty">当前没有问题</div>';
-   return '<div class="row between"><div><span class="hint">'+E(x.id)+'</span><h2>'+E(x.title)+'</h2></div>'+tag(x.status,x.status==='EVIDENCE_VERIFIED'?'good':'warn')+'</div><hr class="divide"><p class="note">有效结论：'+E(x.result)+'</p><p class="note mt">下一步：'+E(x.next)+'</p><div class="row mt">'+B('查看恢复摘要','tab','restore')+B('查看验收','tab','outcomes')+'</div>';
+   return '<div class="row between"><div><span class="hint">'+E(x.id)+'</span><h2>'+E(x.title)+'</h2></div>'+tag(x.status,x.status==='EVIDENCE_VERIFIED'?'good':'warn')+'</div><hr class="divide"><p class="note">已记录线索（来源待核对）：'+E(x.result)+'</p><p class="note mt">下一步：'+E(x.next)+'</p><div class="row mt">'+B('查看恢复摘要','tab','restore')+B('查看验收','tab','outcomes')+'</div>';
  };
  const stat=()=>{const x=p();if(!x)return '';const m=C.problemMetrics(s,x.id);
    return '<div class="stat-grid"><div class="surface stat"><strong>'+m.conversationCount+'</strong><span>对话（已确认）</span></div><div class="surface stat"><strong>'+m.platformCount+'</strong><span>AI 平台</span></div><div class="surface stat"><strong>'+fmt(m.sumMs)+'</strong><span>已知执行时长总和</span></div><div class="surface stat"><strong>'+fmt(m.unionMs)+'</strong><span>并行区间并集</span></div></div><p class="note mt">完整样本 '+m.exactSampleCount+'/'+m.executionCount+'（已发现请求），未知 '+m.unknownSampleCount+'；样本内完整率 '+(m.coverage===null?'无数据':Math.round(m.coverage*100)+'%')+'。不估计人工工时。</p>';
@@ -25,7 +25,7 @@
  const outcome=()=>{const x=p();if(!x)return '';if(x.id!=='prob_bug')return '<p class="note">新问题暂无独立成果与验收记录。</p>';
    const o=s.outcome;return '<div class="item"><div class="row between"><strong>'+E(o.state)+'</strong>'+tag(o.state==='EVIDENCE_VERIFIED'?'模拟证据':'尚无独立验收',o.state==='EVIDENCE_VERIFIED'?'good':'warn')+'</div><p class="note">'+E(o.aiClaim)+'。用户确认不等于测试证明。</p></div><div class="list mt">'+s.evidence.filter(e=>e.validFor.includes(x.id)).map(e=>'<div class="item"><strong>'+E(e.label)+'</strong><span class="hint">'+E(e.kind)+' · DEMO</span></div>').join('')+'</div><div class="row mt">'+B('标记待验收','outcome','NEEDS_VERIFICATION')+B('用户确认','outcome','USER_CONFIRMED','primary')+B('记录模拟测试通过','demo-test')+B('重新开启','outcome','REOPENED')+'</div>';
  };
- const restore=()=>{const x=p();if(!x)return '';return '<div><strong>目标与验收</strong><p class="note">'+(x.id==='prob_bug'?'修复保存失败；保存→刷新→读取结果一致。':'尚待用户明确填写目标和验收条件。')+'</p></div><div><strong>当前有效结论</strong><p class="note">'+E(x.result)+'</p></div><div><strong>待验收</strong><p class="note">检查真实页面回执，不把 AI 自述当测试成功。</p></div><div><strong>下一步</strong><p class="note">'+E(x.next)+'</p></div>';};
+ const restore=()=>{const x=p();if(!x)return '';return '<div><strong>目标与验收</strong><p class="note">'+(x.id==='prob_bug'?'修复保存失败；保存→刷新→读取结果一致。':'尚待用户明确填写目标和验收条件。')+'</p></div><div><strong>工作线索（来源待核对）</strong><p class="note">'+E(x.result)+'</p></div><div><strong>待验收</strong><p class="note">检查真实页面回执，不把 AI 自述当测试成功。</p></div><div><strong>下一步</strong><p class="note">'+E(x.next)+'</p></div>';};
  const weekly=()=>{const x=p();if(!x)return '';return '<p class="note">北极星候选：每周经确认、有可追溯证据的有效问题推进数。不能用提问越多、并发越多或工作越久作为成功指标。</p><div class="item mt"><strong>'+(s.outcome.state==='EVIDENCE_VERIFIED'&&x.id==='prob_bug'?1:0)+' 项模拟有证据推进</strong><p class="note">真实用户注意力：不可观测；真实产出改善：尚未研究验证。</p></div>'; };
  const privacy=()=>s.grants.map(g=>'<div class="item"><div class="row between"><strong>'+E(g.origin)+'</strong>'+tag(g.metadata?'元数据 ON':'已撤销',g.metadata?'good':'bad')+'</div><p class="note">'+E(g.accountId)+' · 正文 OFF · consent v'+g.revision+'</p>'+B(g.metadata?'撤销模拟授权':'重新允许（模拟）',g.metadata?'revoke':'grant',g.origin)+'</div>').join('');
 
@@ -67,6 +67,7 @@
  const siteMini=()=>{
    const x=p(),c=siteConv(),g=siteGrant(),m=x?C.problemMetrics(s,x.id):null;
    if(s.mode==='empty')return '<h2>暂无观察数据</h2><p class="note mt">这里没有历史聊天读取；可以手动创建问题。</p>'+B('手动创建问题','new','','primary');
+   if(!g?.metadata||s.mode==='privacy')return '<h2>此站点未授权或观察已暂停</h2><p class="note mt">不会读取站点对话；已有手动工作记录请在 Side Panel 或 PC 管理。</p><div class="row">'+B('Side Panel','surface','panel')+B('PC 授权管理','tab','privacy')+(g?B('模拟重新授权','site-regrant',g.origin):'')+'</div>';
    if(!x)return '<h2>没有当前问题</h2>'+B('手动创建问题','new','','primary');
    const allowed=Boolean(g?.metadata)&&s.mode!=='privacy';
    const linked=s.links.find(l=>l.problemId===x.id&&l.conversationId===siteConversation&&l.status==='CONFIRMED');
@@ -81,7 +82,7 @@
       '<p class="note mt">模拟会话：'+E(c?.platform||'未知')+' · '+E(c?.label||'无身份')+'</p>'+
       '<p class="note">执行：'+E(siteObservation())+'。不是服务端权威回执。</p>'+
       '<p class="note">已确认 '+(m?.conversationCount??0)+' 对话 / '+(m?.platformCount??0)+' 平台；完整 '+(m?.exactSampleCount??0)+'，未知 '+(m?.unknownSampleCount??0)+'</p>'+
-      '<div class="item mt"><strong>当前有效结论</strong><p class="note">'+E(x.result)+'</p><strong>下一步</strong><p class="note">'+E(x.next)+'</p></div>'+
+      '<div class="item mt"><strong>工作线索（来源待核对）</strong><p class="note">'+E(x.result)+'</p><strong>下一步</strong><p class="note">'+E(x.next)+'</p></div>'+
       '<div class="mt">'+action+'</div>'+validation+
       '<hr class="divide"><div class="row">'+B('Side Panel','surface','panel','primary')+B('PC 问题详情','tab','problems')+B('收起','site-expand')+'</div>'+
       '<div class="row">'+(g?.metadata?B('暂停观察（模拟撤权）','site-pause',g.origin,'danger'):g?B('模拟重新授权','site-regrant',g.origin):tag('站点未授权','warn'))+B('隐藏提示','site-visibility')+'</div>'+
@@ -124,7 +125,7 @@
    $$('#panel-current > section, #panel-current > details').forEach(el=>el.hidden=blocked);
    const c=siteConv();$('#site-conversation').value=siteConversation;
    $('#site-context-label').textContent=(c?.platform||'未知')+' · '+(c?.label||'未知');
-   $('#site-chip-label').textContent=s.mode==='privacy'?'◈ AI Insight · 观察已暂停':'◈ '+(p()?.title||'尚未创建问题')+' · '+stateLabel(p())+' · '+siteObservation();
+   $('#site-chip-label').textContent=(s.mode==='privacy'||!siteGrant()?.metadata)?'◈ AI Insight · '+siteObservation():'◈ '+(p()?.title||'尚未创建问题')+' · '+stateLabel(p())+' · '+siteObservation();
    $('#site-chip').setAttribute('aria-expanded',String(siteExpanded&&siteShown));
    $('#site-dock').hidden=!siteShown;$('#site-hidden-note').hidden=siteShown;
    $('#site-mini').hidden=!siteExpanded||!siteShown;
