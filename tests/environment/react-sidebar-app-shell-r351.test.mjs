@@ -43,7 +43,10 @@ test('R37 empty entry is populated entirely by the single React shell',async()=>
   assert.match(shell,/export function SidebarAppShell\(/);
   assert.match(shell,/<CloudConnectionPage model=\{cloudModel\}/);
   assert.match(root,/cloudPageMounted:true,cloudOverviewMounted:true/);
-  assert.match(shell,/<ExtensionCenterPage \{\.\.\.extensionProps\}\/>/);
+  assert.match(shell,/<ExtensionCenterPage \{\.\.\.extensionProps\}[\s\S]*?updateCenter=/,
+    'update center is composed into the existing trusted ExtensionCenterPage');
+  assert.match(shell,/updateCount=\{updateNotice\.state\.verified/,
+    'navigation count comes from the same verified update controller');
   assert.doesNotMatch(shell,/createRoot\(|createPortal\(|chrome\.|browser\.|client\.request\(/);
   for(const path of ['src/ui/react/app-shell.tsx','src/ui/react/tabs/navigation.tsx','src/ui/react/tabs/cloud.tsx']){
     const parsed=await transform(await read(path),{loader:'tsx',jsx:'transform',target:'es2022'});
