@@ -1,6 +1,6 @@
 # Web Flow「运行」复用「我的」抽屉 · 专项实现附录（2026-11-11）
 
-> 固定检索词：OD-AI-WORKFLOW-BRIDGE。本文是实施附录，唯一需求源仍是 [product-contract.zh-CN.md](product-contract.zh-CN.md)、唯一进度源仍是 [execution-plan.zh-CN.md](execution-plan.zh-CN.md)。**当前 DESIGN_ONLY / NOT_IMPLEMENTED / NOT_TESTED**。可点击演示见 [preview/index.html](../preview/index.html)。
+> 固定检索词：OD-AI-WORKFLOW-BRIDGE。本文是实施附录，唯一需求源仍是 [product-contract.zh-CN.md](product-contract.zh-CN.md)、唯一进度源仍是 [execution-plan.zh-CN.md](execution-plan.zh-CN.md)。**当前 SOURCE_IMPLEMENTED / CI_PENDING / INSTALLED_CHROME_NOT_TESTED**（以本节第 7 条为准）。可点击演示见 [preview/index.html](../preview/index.html)。
 
 ## 1. 最终用户操作（最高优先级）
 
@@ -8,7 +8,9 @@
 
 保留现有脚本列表、收藏/▶/更多和 hover/focus 布局，不再重新设计整个列表。脚本列表只显示异常提示，运行记录负责状态与高级诊断。Side Panel 和 app.html 都应生效，不以切换去「我的」替代最终体验。
 
-## 2. 真实源码与缺口
+## 2. 设计前的源码基线及当前实现
+
+以下四段记录的是抽取共享组件**以前的历史基线**，不是当前 main 的运行状态。
 
 - 「我的」：`src/ui/react/tabs/tasks.tsx` 的 `openParameters()`；`src/ui/react/tabs/my-page.tsx` 的 `MyTaskWorkspace` 使用 `<dialog id="task-parameters-sheet" class="task-params-sheet">`，包含表单/JSON、关闭保留草稿、焦点和 IME；`my-sections.tsx` 的 `MyTaskParams` 渲染真实 Schema 字段。
 - 可信运行控制器：`src/ui/task-workbench.js` 的 `taskRunClick → run()` 校验 `paramsSchema`、version / manifestHash / installationId / generation / 真实网页 / Chrome 权限，调用**唯一原 RunHost**。不复制这个执行方法。
@@ -16,6 +18,8 @@
 - 公开 SDK 的 `tasks.open({taskId})` **仅做任务管理/安装审阅导航**，`src/ui/sidebar-tools.js` 严格仅接受 taskId 并可暂停工具，不会打开「我的」运行抽屉。不要冒充已有可复用运行入口。
 - `projects/webflow/tool.config.json` 当前是 0.3.27，百度 1.1.5、Google 1.0.3；所查根正式 JSON 仍为 0.3.26。源码、正式包和当前已安装页面必须分别核对。
 - 两个搜索 Task 当前真实 Schema 均为：`query` 必填 1–120 字；`limit` 整数固定枚举 3；`showExecutionTab` 可选布尔，默认 true。**通用组件应从 Task Authority/manifest 取得参数，不在框架硬编码百度字段。**
+
+**当前 main 已有的源码接线：** `src/ui/react/tabs/task-run-sheet.tsx` 是唯一可信抽屉；`SidebarAppShell` 在 Side Panel 与 app.html 的唯一 React Root 统一挂载；`src/ui/sidebar-tools.js` 的 `tasks.configure({taskId})` 仅在可信宿主核对真实点击、已安装 App、包 hash、撤权代次、固定 delegatedTask 和当前 session 后打开抽屉，不发送 Run。它冻结来源应用 `toolId/version/packageHash/revocationEpoch`；`src/ui/task-workbench.js` 从 Task Authority 读取真实 Task Schema/安装身份，保存准备到可信存储并读回，同一准备经第二次确认进入原 `run() → RunHost`，不存在第二 Runner。旧沙箱内 `prepare()/run()/tasks.start` 新执行路径已移除，旧 `webflow.pending.v1` 与历史记录仍只读查询/停止。**实现不等于已安装 Chrome 验收。**
 
 ## 3. 正确的双阶段交互
 
@@ -39,7 +43,7 @@ Web Flow 脚本列表：[收藏] [▶] [⋯]
 | --- | --- | --- |
 | 共享可信 UI | 从 `MyTaskWorkspace` 提取 `TaskRunSheet`（如 `src/ui/react/tabs/task-run-sheet.tsx`），仍在唯一 `SidebarAppShell` React root，用同一个 `MyTaskParams` / MyControl / Tokens；「我的」和 Web Flow 两处消费 | 在 Web Flow iframe 内复制 My 的 JSX/DOM，或创建第二 React 根 |
 | 唯一控制器 | 原 `TaskWorkbench` 提供可信任务选择、Schema 校验、保存/读回准备、再次检查身份、一次性执行。冻结参数摘要/固定安装 pin/可信网页目标/source epoch | 复制 RunHost、另造执行账本、仅用按钮 disabled 防重 |
-| UI-only 打开动作 | 先核对公开 SDK 是否已有适用入口；若确实缺口，公共 owner 最小增加类似 `tasks.configure({taskId})`（**拟议 API，尚未实现**），经原 `tasks.open` 能力范围、已安装精确 pin、真实用户手势、工具身份与撤权检查后，Host 开共享抽屉，**不执行** | 改写现有 `tasks.open` 管理语义、沙箱传 JS/任意 URL/tabId、虚构受信任点击 |
+| UI-only 打开动作 | 先核对公开 SDK 是否已有适用入口；若确实缺口，公共 owner 最小增加通用 `tasks.configure({taskId})`（**已写入正式 Host + 公开 SDK 文档，待定向 CI / Chrome 验收**），经原 `tasks.open` 能力范围、已安装精确 pin、真实用户手势、工具身份与撤权检查后，Host 开共享抽屉，**不执行** | 改写现有 `tasks.open` 管理语义、沙箱传 JS/任意 URL/tabId、虚构受信任点击 |
 | 呈现宿主 | 抽屉覆盖在现有侧栏/PC 工具 Host 右侧，不销毁、导航或重复挂载 Web Flow；`app.html` 也能挂同一可信 overlay | 强制跳「我的」作为最终方案；依赖隐藏的 My Tab dialog 可见 |
 | Web Flow UI | 只调用可信抽屉打开入口，复用普通脚本列表；遗留请求保留只读核对/安全取消 | 二次派发已改走 My 的请求、丢弃旧 pending、把原请求 ID/Hash 常驻脚本 Tab |
 
@@ -69,4 +73,11 @@ Web Flow 脚本列表：[收藏] [▶] [⋯]
 
 ## 7. 当前完成状态
 
-仅完成架构发现、设计以及离线交互演示；**共享 TaskRunSheet 抽取、可信 Host 打开入口、准备持久化、RunHost 真实接线、浏览器和安装验证均未实施**。与并行开发有冲突时只停止冲突部分，不重复执行历史 Web Flow 任务或其他 owner 的改动。
+- **SOURCE_IMPLEMENTED：** 已提交正式 `main` 代码，共享可信抽屉、Host UI-only 打开、工作台两阶段持久准备、精确 Task + 来源应用包/撤权代次快照、二次授权核对与唯一原 RunHost。防重复、My 入口占用、历史 UNKNOWN/无 pending 的旧摘要围栏已增加相应定向测试。参考提交 `38a9aea`、`83231f81`、`ed28c04c`、`e32bcad8`、`eee5e410`、`9cd70776`。
+- **SOURCE_PARSED：** 核对过当时的 Web Flow `main.js/model.js`、可信 `task-workbench.js/sidebar-tools.js` 的 V8 语法。静态解析并不证明 Runtime 业务成功。
+- **CI_PENDING：** `.github/workflows/webflow-package.yml` 已加入 `my-react-workbench.test.mjs`、Web Flow UI 与 Chromium 模拟 SDK 的新入口断言；新版本仍以 GitHub Actions 实际结束结果为准。旧版 CI 的 `wf-query` 测试确实失败过，不能混报为通过。
+- **PACKAGE_READY=NOT_VERIFIED：** Web Flow `tool.config.json` 与正式 `webflow.opendesk-tool.json` 当前已保持 0.3.30 同源 JS/CSS/HTML/依赖代码，但尚无该版本通过原 build/promote 流程的最终 CI 回执。
+- **CHROME_TESTED=NOT_TESTED / BUSINESS_ACCEPTED=NO：** 本轮无法核对真实已安装扩展的版本、授权代次和 Side Panel/PC 像素交互；未实际运行百度脚本，不提供虚构 Run/Result/业务成功。禁止自动重放历史 `webflow:fcd2a5b4-c77e-430e-ae7b-1cd2b5e68caa`。
+- **最小剩余操作：** 得到并修复 Web Flow 定向 CI 失败（若有）；经原 packager 校验正式同源包；明确核对 Chrome 实际安装版本；用户在真实百度页面点击 Web Flow ▶，验证仅打开与「我的」同一个右侧 Sheet，保存不运行、确认一次仅产生一个原 Run，并独立读回 Result/释放状态。离线 Chromium 模拟 SDK 不代替安装验收。
+
+与并行开发发生文件冲突时，只处理本目标的独立增量，不覆盖其他 owner、日常 watcher、dist 与历史请求。
