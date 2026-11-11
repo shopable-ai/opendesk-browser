@@ -173,7 +173,7 @@ class SidebarNode{
 }
 async function sidebarFixture({navigation=false,rejectActions=false,settingsPage=false,rejectSettings=false,snapshotError=null,snapshotValue}={}){
  const fields=['blockedOrigins','disabledPages','hiddenSites','hiddenPages'];
- const nodes=Object.fromEntries(['toc-source','toc-list','toc-empty','toc-error','toc-overview-more','toc-refresh','toc-settings','toc-settings-error','toc-settings-open','toc-settings-back','toc-free-view'].map(id=>[id,new SidebarNode(id==='toc-source'?'select':'div')]));
+ const nodes=Object.fromEntries(['toc-source','toc-list','toc-empty','toc-error','toc-overview-more','toc-refresh','toc-settings','toc-settings-error','toc-settings-recover','toc-settings-open','toc-settings-back','toc-free-view'].map(id=>[id,new SidebarNode(id==='toc-source'?'select':'div')]));
  const modes=['top','focus','full','ai'].map(mode=>{const n=new SidebarNode('button');n.dataset.tocMode=mode;return n;});
  const inputs=fields.map(field=>{const n=new SidebarNode('input');n.dataset.tocSetting=field;return n;});
  nodes['toc-settings'].append(...inputs);
@@ -182,6 +182,8 @@ async function sidebarFixture({navigation=false,rejectActions=false,settingsPage
  const requests=[],store=storage({preferences:{blockedOrigins:[],disabledPages:[],hiddenSites:[],hiddenPages:[],custom:'preserve'},legacyMigration:{version:1}});
  const data={url:'https://example.org/article?x=1',items:[{id:'h-1',sourceId:'s-1',label:'Article',depth:0,topId:'h-1'}],sources:[{id:'s-1',label:'Article'}],activeId:'h-1'};
  let conflict=false,quota=false,unconfirmed=false,saveGate=null,releaseSave=null,localeChange=null;
+ let readGate=null,releaseReads=null,readError=null;
+ let unknownWrite=false,lateWrite=null,completeLateWrite=null;
  const states=[],navigations=[];
  const request=async(name,payload)=>{
   requests.push({name,payload});
@@ -189,9 +191,19 @@ async function sidebarFixture({navigation=false,rejectActions=false,settingsPage
    if(payload.operation==='toc.snapshot'&&snapshotError)throw snapshotError;
    return payload.operation==='toc.snapshot'?(snapshotValue===undefined?data:snapshotValue):{ok:true};
   }
-  if(name==='storage.get')return store.get(payload);
+  if(name==='storage.get'){
+   if(lateWrite)await lateWrite;
+   if(readGate)await readGate;
+   if(readError)throw readError;
+   return store.get(payload);
+  }
   if(name==='storage.set'){
    if(saveGate)await saveGate;
+   if(unknownWrite){
+    unknownWrite=false;
+    lateWrite=new Promise(resolve=>{completeLateWrite=async()=>{await store.set(payload);lateWrite=null;resolve();};});
+    throw Object.assign(Error('Write outcome unknown'),{code:'E_OUTCOME_UNKNOWN'});
+   }
    if(unconfirmed)return {saved:false};
    if(quota)throw Object.assign(Error('Full'),{code:'E_STORAGE_QUOTA'});
    if(conflict){conflict=false;const before=await store.get({key:'preferences'});
@@ -213,7 +225,10 @@ async function sidebarFixture({navigation=false,rejectActions=false,settingsPage
   async runTimers(){const pending=[...timers];for(const [id,{fn,ms}] of pending){timers.delete(id);now+=ms;fn();}await tick();await tick();},
   conflict(){conflict=true;},quota(){quota=true;},
   unconfirmed(){unconfirmed=true;},holdSave(){saveGate=new Promise(resolve=>{releaseSave=resolve;});},
-  releaseSave(){releaseSave();saveGate=null;},changeLocale(next){localeChange(next);}};
+  releaseSave(){releaseSave();saveGate=null;},changeLocale(next){localeChange(next);},
+  holdReads(){readGate=new Promise(resolve=>{releaseReads=resolve;});},
+  releaseReads(){releaseReads();readGate=null;},failReads(error){readError=error;},
+  unknownWrite(){unknownWrite=true;},async completeLateWrite(){await completeLateWrite();}};
 }
 for(const code of ['E_APP_PAGE_OWNER','E_PAGE_INSTALLATION']){
  test(`sidebar ${code} shows localized installation repair instructions`,async()=>{
@@ -558,4 +573,108 @@ test('failed or unconfirmed settings saves retain dirty protection after busy en
   assert.equal(f.states.length,count);assert.equal(f.states.at(-1).dirty,true);
   f.window.fire('pagehide');
  }
+});
+
+test('confirmed save releases navigation before its follow-up settings read finishes',async()=>{
+ const f=await sidebarFixture();f.nodes['toc-settings-open'].fire('click');
+ f.holdSave();f.inputs[2].checked=false;
+ f.nodes['toc-settings'].fire('change',{target:f.inputs[2]});await tick();
+ f.holdReads();f.releaseSave();await tick();await tick();
+ assert.deepEqual(f.states.at(-1),{dirty:false,busy:false});
+ f.nodes['toc-settings-back'].fire('click');assert.equal(f.nodes['toc-settings'].hidden,true);
+ f.releaseReads();await tick();f.window.fire('pagehide');
+});
+
+test('settings switches stay disabled until current preferences can be read',async()=>{
+ const f=await sidebarFixture({snapshotError:Object.assign(Error('Page loading'),{code:'E_DOCUMENT_UNRESOLVED'})});
+ f.nodes['toc-settings-open'].fire('click');
+ assert.ok(f.inputs.every(input=>input.disabled));
+ assert.deepEqual(f.states,[]);
+ f.nodes['toc-settings-back'].fire('click');assert.equal(f.nodes['toc-settings'].hidden,true);
+ f.setSnapshotError(null);await f.runTimers();
+ assert.ok(f.inputs.every(input=>!input.disabled));f.window.fire('pagehide');
+});
+
+for(const failure of ['quota','unconfirmed'])test('settings read-back recovers '+failure+' without replaying a write',async()=>{
+ const f=await sidebarFixture();f.nodes['toc-settings-open'].fire('click');
+ f[failure]();f.inputs[2].checked=false;
+ f.nodes['toc-settings'].fire('change',{target:f.inputs[2]});await tick();await tick();
+ const writes=f.requests.filter(row=>row.name==='storage.set').length;
+ assert.equal(f.nodes['toc-settings-recover'].hidden,false);
+ assert.equal(f.inputs[2].disabled,true);
+ f.nodes['toc-settings-recover'].fire('click');await tick();await tick();
+ assert.deepEqual(f.states.at(-1),{dirty:false,busy:false});
+ assert.equal(f.inputs[2].checked,true);assert.equal(f.inputs[2].disabled,false);
+ assert.equal(f.nodes['toc-settings-recover'].hidden,true);
+ assert.equal(f.nodes['toc-settings-error'].hidden,true);
+ assert.equal(f.requests.filter(row=>row.name==='storage.set').length,writes);
+ f.nodes['toc-settings-back'].fire('click');assert.equal(f.nodes['toc-settings'].hidden,true);
+ f.window.fire('pagehide');
+});
+
+test('failed recovery retains the settings guard and can be retried with reads only',async()=>{
+ const f=await sidebarFixture();f.unconfirmed();f.inputs[2].checked=false;
+ f.nodes['toc-settings'].fire('change',{target:f.inputs[2]});await tick();await tick();
+ f.failReads(Error('Read unavailable'));
+ f.nodes['toc-settings-recover'].fire('click');await tick();await tick();
+ assert.deepEqual(f.states.at(-1),{dirty:true,busy:false});
+ assert.equal(f.nodes['toc-settings-recover'].hidden,false);
+ assert.equal(f.nodes['toc-settings-recover'].disabled,false);
+ assert.match(f.nodes['toc-settings-error'].textContent,/Read unavailable/);
+ f.failReads(null);f.nodes['toc-settings-recover'].fire('click');await tick();await tick();
+ assert.deepEqual(f.states.at(-1),{dirty:false,busy:false});
+ assert.equal(f.requests.filter(row=>row.name==='storage.set').length,1);
+ f.window.fire('pagehide');
+});
+
+test('background outline polls cannot retire an explicit settings recovery read',async()=>{
+ const f=await sidebarFixture();f.unconfirmed();f.inputs[2].checked=false;
+ f.nodes['toc-settings'].fire('change',{target:f.inputs[2]});await tick();await tick();
+ f.holdReads();f.nodes['toc-settings-recover'].fire('click');await tick();
+ await f.runTimers();
+ f.releaseReads();await tick();await tick();
+ assert.deepEqual(f.states.at(-1),{dirty:false,busy:false});
+ assert.equal(f.requests.filter(row=>row.name==='storage.set').length,1);
+ f.window.fire('pagehide');
+});
+
+test('unknown write is reconciled after its original queued mutation settles without replay',async()=>{
+ const f=await sidebarFixture();f.unknownWrite();f.inputs[2].checked=false;
+ f.nodes['toc-settings'].fire('change',{target:f.inputs[2]});await tick();await tick();
+ assert.deepEqual(f.states.at(-1),{dirty:true,busy:false});
+ f.nodes['toc-settings-recover'].fire('click');await tick();
+ assert.deepEqual(f.states.at(-1),{dirty:true,busy:false});
+ await f.completeLateWrite();await tick();await tick();
+ assert.deepEqual(f.states.at(-1),{dirty:false,busy:false});
+ assert.equal(f.inputs[2].checked,false);
+ assert.deepEqual(f.store.values.preferences.hiddenSites,['https://example.org']);
+ assert.equal(f.requests.filter(row=>row.name==='storage.set').length,1);
+ f.window.fire('pagehide');
+});
+
+test('page changes invalidate an old recovery read and allow another read for the new page',async()=>{
+ const f=await sidebarFixture();f.unconfirmed();f.inputs[2].checked=false;
+ f.nodes['toc-settings'].fire('change',{target:f.inputs[2]});await tick();await tick();
+ f.holdReads();f.nodes['toc-settings-recover'].fire('click');await tick();
+ f.setSnapshotValue({url:'https://new.example/other',items:[],sources:[]});
+ f.root.fire('opendesk-page-changed');await tick();await tick();
+ f.releaseReads();await tick();await tick();
+ assert.deepEqual(f.states.at(-1),{dirty:true,busy:false});
+ assert.equal(f.nodes['toc-settings-recover'].disabled,false);
+ assert.match(f.nodes['toc-settings-error'].textContent,/page changed/i);
+ f.nodes['toc-settings-recover'].fire('click');await tick();await tick();
+ assert.deepEqual(f.states.at(-1),{dirty:false,busy:false});
+ assert.equal(f.inputs[2].checked,true);
+ assert.equal(f.requests.filter(row=>row.name==='storage.set').length,1);
+ f.window.fire('pagehide');
+});
+
+test('closing the instance while recovery reads cannot deliver a late clean state',async()=>{
+ const f=await sidebarFixture();f.unconfirmed();f.inputs[2].checked=false;
+ f.nodes['toc-settings'].fire('change',{target:f.inputs[2]});await tick();await tick();
+ f.holdReads();f.nodes['toc-settings-recover'].fire('click');await tick();
+ const count=f.states.length;f.window.fire('pagehide');
+ f.releaseReads();await tick();await tick();
+ assert.equal(f.states.length,count);
+ assert.equal(f.requests.filter(row=>row.name==='storage.set').length,1);
 });

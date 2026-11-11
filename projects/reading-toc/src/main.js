@@ -223,16 +223,22 @@ globalThis.OpenDeskTool.onLocaleChange?.(next=>{
 // App-owned site/page controls. Each change merges just one list membership
 // against the latest ETag; capacity/unknown failures preserve all existing data.
 const settings=root.querySelector('#toc-settings'),settingsError=root.querySelector('#toc-settings-error');
+const settingsRecover=root.querySelector('#toc-settings-recover');
 const settingsOpen=root.querySelector('#toc-settings-open'),settingsBack=root.querySelector('#toc-settings-back');
 let settingsIdentity=null,settingsBusy=false,settingsDirty=false,settingsToken=0,settingsPage=false;
+let settingsChecking=false;
 const settingFields=['blockedOrigins','disabledPages','hiddenSites','hiddenPages'];
 const settingsLabels=['本站启用目录','本页启用目录','本站显示悬浮目录','本页显示悬浮目录'];
+// A click before the target/preferences are ready cannot be saved. Prevent
+// the Bridge's real-input dirty signal from creating a draft with no action.
+for(const input of settings?.querySelectorAll('input')||[])input.disabled=true;
 function settingsLanguage(){
  const en=String(locale).startsWith('en');
  const label=en?'Site and page settings':'网站与页面设置';
  settings?.setAttribute('aria-label',label);
  if(settingsOpen){settingsOpen.title=label;settingsOpen.setAttribute('aria-label',label);}
  settingsBack?.setAttribute('aria-label',en?'Back to contents':'返回目录');
+ if(settingsRecover)settingsRecover.textContent=en?'Check saved settings':'重新核对设置';
  const index=settings?.querySelector('[data-settings-group="index"]');
  const overlay=settings?.querySelector('[data-settings-group="overlay"]');
  if(index)index.textContent=en?'Contents indexing':'目录索引';
@@ -283,25 +289,53 @@ function onNavigation({detail}){
 settingsOpen?.addEventListener('click',()=>showSettings(true));
 settingsBack?.addEventListener('click',()=>showSettings(false));
 root.addEventListener('opendesk-tool-navigation',onNavigation);
-async function loadSettings(snapshot){
- if(!settings||settingsBusy||stale||!snapshot?.url)return;
+async function loadSettings(snapshot,{reconcile=false}={}){
+ if(!settings||settingsBusy||!reconcile&&(settingsChecking||stale||!snapshot?.url))return;
  const token=++settingsToken;
- const url=new URL(snapshot.url);url.hash='';
- const identity={origin:url.origin,page:url.origin+url.pathname};
  try{
   const stored=await request('storage.get',{key:'preferences',withEtag:true});
-  if(closed||settingsBusy||token!==settingsToken)return;
+  if(closed||settingsBusy)return;
+  if(token!==settingsToken){
+   if(reconcile&&settingsError){settingsError.hidden=false;settingsError.textContent=
+    String(locale).startsWith('en')?'The page changed. Check saved settings again.':'页面已变化，请重新核对设置。';}
+   return;
+  }
+  const value=stored.value??{};
+  if(typeof stored.etag!=='string'||!stored.etag||typeof value!=='object'||Array.isArray(value)||
+    settingFields.some(field=>value[field]!==undefined&&(!Array.isArray(value[field])||
+     value[field].some(item=>typeof item!=='string'))))throw Error('Invalid saved settings');
+  if(reconcile){
+   // This read follows the Host's original write queue. It never repeats a
+   // mutation; only a current, authoritative read can retire the unknown state.
+   settingsDirty=false;setState({dirty:false,busy:false});
+   if(settingsRecover)settingsRecover.hidden=true;
+   if(settingsError){settingsError.hidden=true;settingsError.textContent='';}
+  }
+  if(stale||!snapshot?.url)return;
+  const url=new URL(snapshot.url);
+  const identity={origin:url.origin,page:url.origin+url.pathname};
   settingsIdentity=identity;paintSettingsNavigation();
   for(const input of settings.querySelectorAll('input[data-toc-setting]')){
    const field=input.dataset.tocSetting;
-   input.checked=!(stored.value?.[field]||[]).includes(field.endsWith('Origins')||field==='hiddenSites'?identity.origin:identity.page);
-   input.disabled=false;
+   input.checked=!(value[field]||[]).includes(field.endsWith('Origins')||field==='hiddenSites'?identity.origin:identity.page);
+   input.disabled=settingsDirty;
   }
- }catch{if(token===settingsToken){settingsIdentity=null;paintSettingsNavigation();}}
+ }catch(error){if(!closed&&token===settingsToken){
+  settingsIdentity=null;paintSettingsNavigation();
+  for(const input of settings.querySelectorAll('input'))input.disabled=true;
+  if(reconcile&&settingsError){settingsError.hidden=false;settingsError.textContent=
+   (String(locale).startsWith('en')?'Could not check saved settings: ':'设置核对失败：')+String(error?.message||error).slice(0,150);}
+ }}
 }
+settingsRecover?.addEventListener('click',async()=>{
+ if(closed||settingsBusy||settingsChecking||!settingsDirty)return;
+ settingsChecking=true;settingsRecover.disabled=true;
+ try{await loadSettings(data,{reconcile:true});}
+ finally{settingsChecking=false;settingsRecover.disabled=false;}
+});
 settings?.addEventListener('change',async event=>{
  const input=event.target,field=input.dataset?.tocSetting;
- if(!settingFields.includes(field)||!settingsIdentity||settingsBusy)return;
+ if(!settingFields.includes(field)||!settingsIdentity||settingsBusy||settingsDirty)return;
  const identity=settingsIdentity,target=field==='blockedOrigins'||field==='hiddenSites'?identity.origin:identity.page;
  const excluded=!input.checked;settingsBusy=true;settingsDirty=true;settingsToken++;
  let saved=false;
@@ -328,9 +362,13 @@ settings?.addEventListener('change',async event=>{
   if(settingsError){settingsError.hidden=false;settingsError.textContent=(String(locale).startsWith('en')?'Settings were not saved: ':'设置未保存：')+String(error?.message||error).slice(0,150);}
  }
  finally{
-  settingsBusy=false;
-  try{if(!closed){await loadSettings(data);requestRefresh();}}
-  finally{settingsDirty=!saved;setState({dirty:settingsDirty,busy:false});}
+  settingsBusy=false;settingsDirty=!saved;
+  if(!closed){
+   // A follow-up display read must not keep a confirmed save busy.
+   setState({dirty:settingsDirty,busy:false});
+   if(settingsRecover)settingsRecover.hidden=!settingsDirty;
+   void loadSettings(data);requestRefresh();
+  }
  }
 });
 settingsLanguage();
