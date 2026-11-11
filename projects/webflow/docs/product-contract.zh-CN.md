@@ -1,3 +1,15 @@
+## 统一脚本导入与 Web Flow 添加入口 · R1（OD-UNIFIED-TASK-IMPORT-R1；2026-11-11）
+
+**用户目标：**「我的」负责本地自动化任务的导入、草稿、固定版本候选、验证、安装、启停和历史；Web Flow →「脚本」只消费应用已获审阅许可的固定 Controller Task，提供从已有任务、顶部开发、Codex 辅助、已有文件进入正确流程的单个添加入口。一个固定任务只安装一次；既有 TaskWorkbench/RunHost/TaskRunSheet/Authority 及持久化结果是唯一可信执行体系，不复制安装器或任务数据库。
+
+**R1 最小范围：** 现有 `readFile(fileOverride)` 是唯一文件读取/类型路由；「我的 → 添加任务」与全页任务目录的拖放/文件选择共用它，单文件明确受理，多文件拒绝并解释；JS 仅进入未保存开发草稿，Task Package JSON 只生成待验证候选，Program Draft JSON 按既有 Draft 校验；Sidebar Tool、Page USER_SCRIPT、Markdown 和 ZIP 不交由 Controller Installer。沙箱 Web Flow 不接受任意用户输入的代码/Task ID/文件冒充授权；当前只能展示已声明固定 pin 的真实状态，合法导航不足时提供明确人工入口，Codex 提示词仅是可编辑文本，不等于启动本地进程。
+
+**状态与权限栅栏：** 导入 ≠ 验证 ≠ 安装 ≠ 固定委托 ≠ 触发批准 ≠ 执行完成 ≠ 业务成功。任务安装/哈希/代际/撤销与网站范围由可信 Host 实时校验，Web Flow 只用已有 `tasks.open` / `tasks.configure` 能力；未证明的全局 Task Picker、动态跨应用授权、受限文件导入导航不伪装为已有公共 SDK。R2 另行设计动态关联，R3 再考虑 ZIP/仓库及 AI 高级导入。
+
+**验收：** 对文件类型/大小/格式、多文件、重复回调、点击与拖放、Escape/焦点、权限撤销、同一 TaskRunSheet/UNKNOWN 不重放建立定向证据；SOURCE、NODE、PACKAGE、CHROMIUM、CHROME_NATIVE、INSTALL、BUSINESS、RELEASE 分开报告。此段是 R1 设计基线，不证明实现或装机完成；实际状态只以执行计划为准。
+
+---
+
 ## R5 · WebFlow 网页辅助面板齿轮控制（OD-WEBFLOW-PAGE-PANEL-SETTINGS-R5；2026-11-11）
 
 **真实目标：** 扩展 → Web Flow → 右上角现有「工具设置」齿轮 → 网页显示 →「显示网页辅助面板」。用户独立控制 `https://chatgpt.com` 内 WebFlow 辅助区，初始关闭，开启挂载、关闭物理卸载，已存偏好在新标签/刷新/SPA/重载恢复；不能与文件处理开关、自动运行、工具启停混淆。
