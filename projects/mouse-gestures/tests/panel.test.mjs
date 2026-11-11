@@ -15,7 +15,7 @@ function storeFixture(){
       if(fail)throw Error('E_STORAGE');
       if(conflictOnce){conflictOnce=false;revision++;
         const e=Error('stale');e.code='E_STORAGE_CONFLICT';throw e;}
-      if(payload.ifMatch!=='v'+revision)throw Error('CAS mismatch');
+      if(payload.ifMatch!==('v'+revision))throw Error('CAS mismatch');
       value=payload.value;revision++;return {saved:true};
     }
     if(op==='page.request')throw Error('E_PAGE_AUTHORIZATION');
