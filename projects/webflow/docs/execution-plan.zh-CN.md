@@ -16,7 +16,7 @@
 
 **未完成的第一真实依赖（P1）：** 0.3.0 只是未注册/未安装候选，现有 `web-task-ingress.claim()` 仍创建 owned 新页，`withControllerAdmission()` 现有持续候选严格要求 owned；原消费者未绑定 PREPARE Run/原 B 与独立 APPROVE_SEND，未建可信发送 Run。需先由可信 WebFlow 真实消费者把一次 PREPARE 的 `retainedTarget` + 受信草稿 SHA、原 A、账号/Profile、安装精确身份和批准绑定到新提交 Run 的 `retainedFrom + borrowed`；Controller 原子一次性栅栏已存在，禁止复制。必须保证 PREPARE 阶段不提前向 A 当作最终业务成功交付。之后才能审查并注册 0.3.0 安装身份与双阶段固定编译 Result Adapter，在原宿主真实 Run/Result 与 A 一次性回填之间闭合。
 
-**证据等级（本任务，不可继承其他功能的绿灯）：** SOURCE=PARTIAL（Task 候选已提交，实际消费者未接）/ NODE_TEST=NOT_CONFIRMED（CI 排队）/ PACKAGE=CANDIDATE_ONLY（哈希已核对，不是已安装正式版本）/ CHROME=NOT_TESTED / BUSINESS=NOT_TESTED。下一动作：实现可信 WebFlow 原 B 续接消费者 + APPPROVE_SEND 独立授权，版本与账号身份守恒，完成原定向 Node/发布审阅；没有真实 Chrome 授权不得发送。
+**证据等级（本任务，不可继承其他功能的绿灯）：** SOURCE=PARTIAL（Task 候选已提交，实际消费者未接）/ NODE_TEST=NOT_CONFIRMED（CI 排队）/ PACKAGE=CANDIDATE_ONLY（哈希已核对，不是已安装正式版本）/ CHROME=NOT_TESTED / BUSINESS=NOT_TESTED。下一动作：实现可信 WebFlow 原 B 续接消费者 + APPROVE_SEND 独立授权，版本与账号身份守恒，完成原定向 Node/发布审阅；没有真实 Chrome 授权不得发送。
 
 ---
 
