@@ -1,0 +1,38 @@
+{
+  "reason": "Shared tools.tsx preinstall UI changed concurrently after prior tests; retest only affected UI suites",
+  "head": "3c1f40eab4c9fc982d909b16095121e73a4bf0a7",
+  "beforeSha256": {
+    "src/ui/react/tabs/tools.tsx": "3b50d30f448b0ecf00114844d38fbed33f7dc5410890e9e5bc50cd58e0be4f94",
+    "src/ui/react/app-shell.tsx": "e90f7331411e5012ce5087cd27eb151cc8b4f765303f273516085d6dd3d34247",
+    "src/ui/extension-center-localization.js": "33188e46c5dc5ddcde7d0825b0edf20005e6ad9161e30f67afed5406d8aabb4f",
+    "src/ui/extension-center.css": "6b0884b69442009ce6f35168acfc6c20b07db4d50e8d45adfd63c84b31e46f66",
+    "tests/environment/extension-center-r47-interaction.test.mjs": "39bc11249b7c04cc14f23f85b83cf188729d3bd94b5bad98caf84932fd29bc6c",
+    "tests/environment/extension-center-react-page.test.mjs": "63f01b6b25171851ad375253615357c8bbf000cc1fc09b1b1d96e6cbde4d45c8"
+  },
+  "results": [
+    {
+      "name": "extension-center-r47-interaction",
+      "exitCode": 0,
+      "seconds": 5.261,
+      "timedOut": false,
+      "log": "extension-center-r47-interaction-parallel-recheck.log"
+    },
+    {
+      "name": "extension-center-react-page",
+      "exitCode": 0,
+      "seconds": 34.91,
+      "timedOut": false,
+      "log": "extension-center-react-page-parallel-recheck.log"
+    }
+  ],
+  "installedExtension": false,
+  "afterSha256": {
+    "src/ui/react/tabs/tools.tsx": "3b50d30f448b0ecf00114844d38fbed33f7dc5410890e9e5bc50cd58e0be4f94",
+    "src/ui/react/app-shell.tsx": "e90f7331411e5012ce5087cd27eb151cc8b4f765303f273516085d6dd3d34247",
+    "src/ui/extension-center-localization.js": "33188e46c5dc5ddcde7d0825b0edf20005e6ad9161e30f67afed5406d8aabb4f",
+    "src/ui/extension-center.css": "6b0884b69442009ce6f35168acfc6c20b07db4d50e8d45adfd63c84b31e46f66",
+    "tests/environment/extension-center-r47-interaction.test.mjs": "39bc11249b7c04cc14f23f85b83cf188729d3bd94b5bad98caf84932fd29bc6c",
+    "tests/environment/extension-center-react-page.test.mjs": "63f01b6b25171851ad375253615357c8bbf000cc1fc09b1b1d96e6cbde4d45c8"
+  },
+  "sourceStableDuringRun": true
+}

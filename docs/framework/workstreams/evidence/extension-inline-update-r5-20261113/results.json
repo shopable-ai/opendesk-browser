@@ -65,14 +65,41 @@
   ],
   "check": {
     "command": "npm run check",
+    "reason": "Concurrent shared UI input changed after earlier check; validate latest workspace syntax and source contracts",
     "exitCode": 0,
-    "seconds": 52.88
+    "timedOut": false,
+    "seconds": 62.724,
+    "log": "check-closure.log"
   },
   "build": {
     "command": "npm run build",
     "cwd": "/Users/shopme/Documents/workspace/opendesk-browser/artifacts/extension-inline-update-r5/20261113/build-source",
-    "exitCode": 1,
-    "seconds": 80.14
+    "reason": "Concurrent AI Proxy owner changed source-lock; current verifyTrustedAIProxySources now passes",
+    "sourceSha256": {
+      "src/ui/react/tabs/tools.tsx": "3b50d30f448b0ecf00114844d38fbed33f7dc5410890e9e5bc50cd58e0be4f94",
+      "projects/ai-proxy/trusted/source-lock.json": "749d66e9f12b1fa95ca1dfd22074aeabb09c5146f363ba647153c1423a05d848",
+      "projects/ai-proxy/src/service.ts": "28d5d993bcbd43d99a43e748cdbedaf46bae39881ecc311a8276e26edfa7c221",
+      "scripts/bundle-provenance.mjs": "f61a6c709bc857cdeb19a993882fd67067f3baa72bb74f74e412c87103ed835c"
+    },
+    "productionRuntimeVerified": false,
+    "exitCode": 0,
+    "timedOut": false,
+    "seconds": 79.994,
+    "log": "build-after-lock-update.log",
+    "sourceStillMatchesCurrent": {
+      "src/ui/react/tabs/tools.tsx": true,
+      "projects/ai-proxy/trusted/source-lock.json": true,
+      "projects/ai-proxy/src/service.ts": true,
+      "scripts/bundle-provenance.mjs": true
+    },
+    "attemptId": "e5be5f15-af08-4ddc-a27e-818c6983ab35",
+    "status": "passed",
+    "packageHash": "8cbcc710aaa60f77f6992dd14e4b24a63b7388872fa9a5518391a3550d1af2cf",
+    "assets": 131,
+    "sourceDriftDuringBuild": [],
+    "fullReceipt": "/Users/shopme/Documents/workspace/opendesk-browser/artifacts/extension-inline-update-r5/20261113/build-recheck-evidence/build-production.json",
+    "fullReceiptSha256": "bf5a532c144cff5f8680f6761db7dc0cdf7b586b2ee90d9ce68f570434a5149e",
+    "productionLoadedIntoChrome": false
   },
   "buildClassification": "B: concurrent AI Proxy trusted-source pin mismatch; gate retained",
   "initialInteractionClassification": "C: old toolbar adjacency/history ID/updateVerified preview assertions; DOM object diff consumed 113 seconds, not a deadlock",
@@ -155,9 +182,109 @@
     "f41b40e0e25f24ed9a50dc95acac4c311560e0c2",
     "987cd1df4e3eecd18afd5cb16bd4a3d8497413c7"
   ],
-  "buildBlockerInputsStillMatchSnapshot": [
-    "projects/ai-proxy/src/service.ts",
-    "scripts/bundle-provenance.mjs",
-    "projects/ai-proxy/app.ci.json"
-  ]
+  "historicalBuildFailure": {
+    "command": "npm run build",
+    "cwd": "/Users/shopme/Documents/workspace/opendesk-browser/artifacts/extension-inline-update-r5/20261113/build-source",
+    "exitCode": 1,
+    "seconds": 80.14
+  },
+  "checkBeforeClosure": {
+    "command": "npm run check",
+    "exitCode": 0,
+    "seconds": 52.88
+  },
+  "parallelUiRecheck": {
+    "reason": "Shared tools.tsx preinstall UI changed concurrently after prior tests; retest only affected UI suites",
+    "head": "3c1f40eab4c9fc982d909b16095121e73a4bf0a7",
+    "beforeSha256": {
+      "src/ui/react/tabs/tools.tsx": "3b50d30f448b0ecf00114844d38fbed33f7dc5410890e9e5bc50cd58e0be4f94",
+      "src/ui/react/app-shell.tsx": "e90f7331411e5012ce5087cd27eb151cc8b4f765303f273516085d6dd3d34247",
+      "src/ui/extension-center-localization.js": "33188e46c5dc5ddcde7d0825b0edf20005e6ad9161e30f67afed5406d8aabb4f",
+      "src/ui/extension-center.css": "6b0884b69442009ce6f35168acfc6c20b07db4d50e8d45adfd63c84b31e46f66",
+      "tests/environment/extension-center-r47-interaction.test.mjs": "39bc11249b7c04cc14f23f85b83cf188729d3bd94b5bad98caf84932fd29bc6c",
+      "tests/environment/extension-center-react-page.test.mjs": "63f01b6b25171851ad375253615357c8bbf000cc1fc09b1b1d96e6cbde4d45c8"
+    },
+    "results": [
+      {
+        "name": "extension-center-r47-interaction",
+        "exitCode": 0,
+        "seconds": 5.261,
+        "timedOut": false,
+        "log": "extension-center-r47-interaction-parallel-recheck.log"
+      },
+      {
+        "name": "extension-center-react-page",
+        "exitCode": 0,
+        "seconds": 34.91,
+        "timedOut": false,
+        "log": "extension-center-react-page-parallel-recheck.log"
+      }
+    ],
+    "installedExtension": false,
+    "afterSha256": {
+      "src/ui/react/tabs/tools.tsx": "3b50d30f448b0ecf00114844d38fbed33f7dc5410890e9e5bc50cd58e0be4f94",
+      "src/ui/react/app-shell.tsx": "e90f7331411e5012ce5087cd27eb151cc8b4f765303f273516085d6dd3d34247",
+      "src/ui/extension-center-localization.js": "33188e46c5dc5ddcde7d0825b0edf20005e6ad9161e30f67afed5406d8aabb4f",
+      "src/ui/extension-center.css": "6b0884b69442009ce6f35168acfc6c20b07db4d50e8d45adfd63c84b31e46f66",
+      "tests/environment/extension-center-r47-interaction.test.mjs": "39bc11249b7c04cc14f23f85b83cf188729d3bd94b5bad98caf84932fd29bc6c",
+      "tests/environment/extension-center-react-page.test.mjs": "63f01b6b25171851ad375253615357c8bbf000cc1fc09b1b1d96e6cbde4d45c8"
+    },
+    "sourceStableDuringRun": true
+  },
+  "chromeClosureEvidence": "chrome-closure.json",
+  "currentBuildBlocker": null,
+  "currentRuntimeBlocker": "D: Real Chrome explicitly defers safe refresh due existing tasks/native requests/unknown effects; old separate update center still rendered",
+  "pushDecision": "User explicitly chose keep local commit and do not push; no push performed",
+  "remoteAtClosure": "90938be4bc87983c8f245c269bb1a7a04c28b01c",
+  "productScores": {
+    "用户体验": "NOT_TESTED",
+    "信息架构与避免过度设计": "NOT_TESTED",
+    "视觉与无障碍": "NOT_TESTED",
+    "更新状态与生命周期": "NOT_TESTED",
+    "安装权限与供应链安全": "NOT_TESTED",
+    "工程质量及回归测试": "NOT_TESTED"
+  },
+  "compositeScore": "NOT_TESTED",
+  "coreFileComparisonAtClosure": {
+    "src/ui/extension-center-model.js": {
+      "initialSha256": "4981bf299d663837788e6a3378fd97b26c0a70d47e69ee0f3d08cdfcffc7f663",
+      "currentSha256": "4981bf299d663837788e6a3378fd97b26c0a70d47e69ee0f3d08cdfcffc7f663",
+      "unchangedSinceStart": true
+    },
+    "src/ui/extension-center.js": {
+      "initialSha256": "7958f1202829edc1001ab8622ed206fab3e1044994eb6e537030e8609ce63690",
+      "currentSha256": "7958f1202829edc1001ab8622ed206fab3e1044994eb6e537030e8609ce63690",
+      "unchangedSinceStart": true
+    },
+    "src/ui/react/tabs/tools.tsx": {
+      "initialSha256": "4ed431ab9a490c31ab57488cf34afba255f8a76cfaa6c50d0ec9d9eb2ecc4749",
+      "currentSha256": "3b50d30f448b0ecf00114844d38fbed33f7dc5410890e9e5bc50cd58e0be4f94",
+      "unchangedSinceStart": false
+    },
+    "src/ui/react/app-shell.tsx": {
+      "initialSha256": "e90f7331411e5012ce5087cd27eb151cc8b4f765303f273516085d6dd3d34247",
+      "currentSha256": "e90f7331411e5012ce5087cd27eb151cc8b4f765303f273516085d6dd3d34247",
+      "unchangedSinceStart": true
+    },
+    "src/ui/react/components/update-notice.tsx": {
+      "initialSha256": "a1dae389cf8e4215fd75c4c7e991d9bfddb122b2aba4166e386e5124c2a236cf",
+      "currentSha256": "a1dae389cf8e4215fd75c4c7e991d9bfddb122b2aba4166e386e5124c2a236cf",
+      "unchangedSinceStart": true
+    },
+    "src/ui/tool-shell.js": {
+      "initialSha256": "9eb5a556ac66818b9238bef4ba53ef1afc5347ec5b0a84d8a459e0a90cb070bf",
+      "currentSha256": "9eb5a556ac66818b9238bef4ba53ef1afc5347ec5b0a84d8a459e0a90cb070bf",
+      "unchangedSinceStart": true
+    },
+    "src/platform/chrome/update-notice-service.js": {
+      "initialSha256": "7bcb788b83f91b6a860a974b9e88e908cb44c7147ca05c65641801ea4d50dbc9",
+      "currentSha256": "7bcb788b83f91b6a860a974b9e88e908cb44c7147ca05c65641801ea4d50dbc9",
+      "unchangedSinceStart": true
+    },
+    "src/platform/chrome/update-notice-state.js": {
+      "initialSha256": "fbc7e797043c8fcc455da45241c4a35eaeb6a489153a5ef0551456dd85713dec",
+      "currentSha256": "fbc7e797043c8fcc455da45241c4a35eaeb6a489153a5ef0551456dd85713dec",
+      "unchangedSinceStart": true
+    }
+  }
 }

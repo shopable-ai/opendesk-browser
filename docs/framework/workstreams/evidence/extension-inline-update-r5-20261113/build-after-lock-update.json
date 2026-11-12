@@ -1,0 +1,30 @@
+{
+  "command": "npm run build",
+  "cwd": "/Users/shopme/Documents/workspace/opendesk-browser/artifacts/extension-inline-update-r5/20261113/build-source",
+  "reason": "Concurrent AI Proxy owner changed source-lock; current verifyTrustedAIProxySources now passes",
+  "sourceSha256": {
+    "src/ui/react/tabs/tools.tsx": "3b50d30f448b0ecf00114844d38fbed33f7dc5410890e9e5bc50cd58e0be4f94",
+    "projects/ai-proxy/trusted/source-lock.json": "749d66e9f12b1fa95ca1dfd22074aeabb09c5146f363ba647153c1423a05d848",
+    "projects/ai-proxy/src/service.ts": "28d5d993bcbd43d99a43e748cdbedaf46bae39881ecc311a8276e26edfa7c221",
+    "scripts/bundle-provenance.mjs": "f61a6c709bc857cdeb19a993882fd67067f3baa72bb74f74e412c87103ed835c"
+  },
+  "productionRuntimeVerified": false,
+  "exitCode": 0,
+  "timedOut": false,
+  "seconds": 79.994,
+  "log": "build-after-lock-update.log",
+  "sourceStillMatchesCurrent": {
+    "src/ui/react/tabs/tools.tsx": true,
+    "projects/ai-proxy/trusted/source-lock.json": true,
+    "projects/ai-proxy/src/service.ts": true,
+    "scripts/bundle-provenance.mjs": true
+  },
+  "attemptId": "e5be5f15-af08-4ddc-a27e-818c6983ab35",
+  "status": "passed",
+  "packageHash": "8cbcc710aaa60f77f6992dd14e4b24a63b7388872fa9a5518391a3550d1af2cf",
+  "assets": 131,
+  "sourceDriftDuringBuild": [],
+  "fullReceipt": "/Users/shopme/Documents/workspace/opendesk-browser/artifacts/extension-inline-update-r5/20261113/build-recheck-evidence/build-production.json",
+  "fullReceiptSha256": "bf5a532c144cff5f8680f6761db7dc0cdf7b586b2ee90d9ce68f570434a5149e",
+  "productionLoadedIntoChrome": false
+}
