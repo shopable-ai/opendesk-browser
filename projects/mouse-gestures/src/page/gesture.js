@@ -10,10 +10,14 @@ const EXCLUDED_TARGETS='input,textarea,select,option,button,a,[contenteditable],
 const NS='http://www.w3.org/2000/svg';
 const cssName=name=>name.replace(/[A-Z]/g,c=>'-'+c.toLowerCase());
 
-function excluded(event,win,trigger){
+function modified(event,trigger){
   if(event.ctrlKey||event.metaKey||event.shiftKey)return true;
   if(trigger===GESTURE_TRIGGERS.RIGHT&&event.altKey)return true;
   if(trigger===GESTURE_TRIGGERS.ALT_LEFT&&!event.altKey)return true;
+  return false;
+}
+function excluded(event,win,trigger){
+  if(modified(event,trigger))return true;
   if(win.getSelection?.()?.isCollapsed===false)return true;
   const path=typeof event.composedPath==='function'?event.composedPath():[event.target];
   return path.some(node=>typeof node?.closest==='function'&&node.closest(EXCLUDED_TARGETS));
@@ -26,7 +30,7 @@ function sameRelease(event,release){
     event.target===release.target&&Number.isFinite(event.clientX)&&
     Number.isFinite(event.clientY)&&
     Math.hypot(event.clientX-release.x,event.clientY-release.y)<=GESTURE_LIMITS.menuMatchPx&&
-    Date.now()-release.at<=GESTURE_LIMITS.menuGuardMs;
+    Date.now()-release.at>=0&&Date.now()-release.at<=GESTURE_LIMITS.menuGuardMs;
 }
 function pageBottom(doc){
   return Math.max(0,doc.scrollingElement?.scrollHeight||0,
@@ -152,32 +156,41 @@ export function mountGestures({ui,doc=globalThis.document,win=doc.defaultView,
   ui.on(doc,'mousemove',event=>{
     if(!session||session.stage==='canceled')return;
     if(!alive()||event.isTrusted!==true||(event.buttons&buttonMask(activeTrigger))===0)return reset();
-    if(activeTrigger===GESTURE_TRIGGERS.ALT_LEFT&&!event.altKey)return reset();
+    if(modified(event,activeTrigger))return reset();
     updateGestureTrack(session,event.clientX,event.clientY);
     if(session.intent)scheduleRender();
   },true);
   ui.on(doc,'mouseup',event=>{
     if(!session||event.button!==session.button)return;
     const s=session;
-    const trusted=event.isTrusted===true&&alive()&&
-      (activeTrigger!==GESTURE_TRIGGERS.ALT_LEFT||event.altKey);
+    const trusted=event.isTrusted===true&&alive()&&!modified(event,activeTrigger);
     if(trusted&&s.stage!=='canceled')
       updateGestureTrack(s,event.clientX,event.clientY);
     const selected=gestureOutcome(s,mappings);
     const chosen=trusted&&s.stage!=='canceled'?selected.action:null;
-    const suppress=trusted&&s.intent;
+    const suppress=trusted&&(s.intent||
+      (activeTrigger===GESTURE_TRIGGERS.RIGHT&&activeMenuPolicy===GESTURE_MENU_POLICIES.GESTURE_FIRST));
     reset();
     if(suppress){
       releaseGuard={button:event.button,target:event.target,x:event.clientX,y:event.clientY,
         at:Date.now(),kind:activeTrigger===GESTURE_TRIGGERS.RIGHT?'menu':'click'};
-      event.preventDefault();
+      if(s.intent)event.preventDefault();
     }
     if(chosen)finish(chosen,epoch);
   },true);
   ui.on(doc,'contextmenu',event=>{
     if(event.isTrusted!==true||event.button!==2)return; // Keyboard menus remain untouched.
     if(activeTrigger!==GESTURE_TRIGGERS.RIGHT)return;
+    if(!alive()||excluded(event,win,activeTrigger)){
+      if(session)reset();
+      return;
+    }
     if(session){
+      if(event.target!==session.target||!Number.isFinite(event.clientX)||
+        !Number.isFinite(event.clientY)||
+        Math.hypot(event.clientX-session.lastX,event.clientY-session.lastY)>GESTURE_LIMITS.menuMatchPx){
+        reset();return;
+      }
       // On macOS the native menu may arrive before the first move. Gesture-first
       // deliberately suppresses it only after an eligible trusted right press.
       // Plain right-click on non-excluded background then has NO native menu;

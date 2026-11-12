@@ -84,37 +84,71 @@
   }
   async function persist(changes){
     if(closed||busy)return;
-    const turn=++revision;
+    const turn=++revision,active=()=>!closed&&turn===revision;
+    const baseline=current;
     controlsDisabled(true);busy=true;
     tool.setState?.({busy:true,dirty:true});showError('');
-    let written=false;
+    let written=false,conflict=false;
     try{
       for(let attempt=0;attempt<3;attempt++){
         const before=await readSettings();
-        if(closed)return;
+        if(!active())return;
+        const latest=parse(before);
+        const overlaps=Object.keys(changes).some(field=>field==='gestureMappings'?
+          Object.keys(changes.gestureMappings).some(key=>
+            latest.gestureMappings[key]!==baseline.gestureMappings[key]):
+          latest[field]!==baseline[field]);
+        if(overlaps){conflict=true;break;}
+        const value={...(before.value||{}),...changes};
+        if(changes.gestureMappings){
+          value.gestureMappings={...cleanMappings(before.value?.gestureMappings)};
+          for(const [key,action] of Object.entries(changes.gestureMappings)){
+            if(action===undefined)delete value.gestureMappings[key];
+            else value.gestureMappings[key]=action;
+          }
+        }
         try{
-          const value={...(before.value||{}),...(typeof changes==='function'?changes(before.value||{}):changes)};
           const receipt=await request('storage.set',{key,value,ifMatch:before.etag});
+          if(!active())return;
           if(receipt?.saved!==true)throw Error('E_GESTURE_SAVE_UNKNOWN');
           written=true;break;
         }catch(err){
-          if(err?.code!=='E_STORAGE_CONFLICT'||attempt===2)throw err;
+          if(!active())return;
+          if(err?.code!=='E_STORAGE_CONFLICT')throw err;
+          if(attempt===2){conflict=true;break;}
         }
       }
-      if(closed)return;
+      if(!active())return;
       // Best effort; existing Page Authority re-reads the shared settings.
-      void request('page.request',{operation:'gesture.refresh',payload:{}}).catch(()=>{});
+      if(written)void request('page.request',{operation:'gesture.refresh',payload:{}}).catch(()=>{});
     }catch{
-      if(!closed)showError('设置保存未确认；已保留原设置，请重试');
+      // A missing receipt does not prove that storage kept the old value.
+      if(!active())return;
     }finally{
-      if(!closed){
-        busy=false;tool.setState?.({busy:false,dirty:false});
+      if(active()){
         let readable=false;
         try{
           const confirmed=await readSettings();
-          if(!closed){current=parse(confirmed);readable=true;if(written)showError('');}
-        }catch{if(!closed)showError('无法确认设置状态，请重新打开此页面');}
-        if(!closed&&turn===revision){apply();controlsDisabled(!readable);}
+          if(!active())return;
+          current=parse(confirmed);readable=true;
+          showError(conflict?'设置冲突，未覆盖并发修改；已读取最新设置，请核对后重试':
+            written?'':'设置保存未确认：写入结果未知；已读取最新设置，请核对后再操作');
+        }catch{
+          if(!active())return;
+          current={...current,enabled:false};
+          showError(written?'设置已保存，但无法读取最新状态，请重新打开此页面':
+            conflict?'设置冲突，无法读取最新状态，请重新打开此页面':
+            '设置保存未确认：写入结果未知；无法读取最新状态，请重新打开此页面');
+        }finally{
+          if(active()){
+            apply();controlsDisabled(!readable);
+            if(written&&readable){
+              hint.textContent+=' · 设置已保存';
+              try{tool.ui?.notify?.({message:'设置已保存',type:'success'});}catch{}
+            }
+            busy=false;tool.setState?.({busy:false,dirty:false});
+          }
+        }
       }
     }
   }
@@ -129,11 +163,7 @@
     if(!comboControl||!comboKeys.has(comboControl.value))return;
     const key=comboControl.value,action=comboActionControl.value;
     if(action!=='none'&&!validActions.has(action))return;
-    void persist(old=>{
-      const map=cleanMappings(old.gestureMappings);
-      if(action==='none')delete map[key];else map[key]=action;
-      return {gestureMappings:map};
-    });
+    void persist({gestureMappings:{[key]:action==='none'?undefined:action}});
   });
   root.addEventListener('opendesk-page-changed',()=>void refresh());
   window.addEventListener('focus',()=>void refresh());

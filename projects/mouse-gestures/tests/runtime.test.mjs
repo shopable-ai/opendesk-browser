@@ -103,3 +103,51 @@ test('Page runtime passes user-selected gesture-first without changing authority
   f.revoke();await assert.rejects(f.runtime.readPolicy(),/E_PAGE_AUTHORIZATION/);
   assert.equal(f.runtime.isActive(),false);
 });
+
+async function overlappingRead(f){
+  const get=f.bridge.storage.get;
+  let entered,release;
+  const started=new Promise(resolve=>{entered=resolve;});
+  const pending=new Promise(resolve=>{release=resolve;});
+  let first=true;
+  f.bridge.storage.get=async args=>{
+    const saved=await get(args);
+    if(first){first=false;entered();await pending;}
+    return saved;
+  };
+  const approval=f.state.authorize();
+  await started;
+  return {approval,release};
+}
+
+test('an overlapping enabled poll does not falsely deny a pending gesture authorization',async()=>{
+  const f=runtimeFixture();await f.runtime.ready;
+  const {approval,release}=await overlappingRead(f);
+  assert.equal(await f.runtime.readPolicy(),true);
+  release();assert.equal(await approval,true);
+  f.ui.destroy();
+});
+
+test('an overlapping OFF read supersedes older ON authorization without re-enabling',async()=>{
+  const f=runtimeFixture();await f.runtime.ready;
+  const {approval,release}=await overlappingRead(f);
+  f.setEnabled(false);assert.equal(await f.runtime.readPolicy(),false);
+  release();assert.equal(await approval,false);
+  assert.equal(f.runtime.isActive(),false);
+  f.ui.destroy();
+});
+
+test('disposal or revocation wins over an overlapping enabled authorization',async()=>{
+  for(const revoke of [false,true]){
+    const f=runtimeFixture();await f.runtime.ready;
+    const {approval,release}=await overlappingRead(f);
+    if(revoke){
+      f.revoke();await assert.rejects(f.runtime.readPolicy(),/E_PAGE_AUTHORIZATION/);
+    }else{
+      assert.equal(await f.runtime.readPolicy(),true);f.ui.destroy();
+    }
+    release();assert.equal(await approval,false);
+    assert.equal(f.runtime.isActive(),false);
+    assert.equal(f.timeouts.size,0);
+  }
+});

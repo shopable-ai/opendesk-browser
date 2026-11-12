@@ -1,6 +1,6 @@
 # Mouse Gestures · 独立方向箭头与双段组合识别（0.3.1 / Page revision 5）
 
-> 源码候选：DIRECTION_ARROWS_SOURCE_WIRED。本版本尚未获得正式 OpenDesk 安装的真实 macOS Chrome 原生右键菜单、权限撤销和同一候选包身份验收证据；不得标记为已发布生产 PASS。历史 0.2.1 验证仅作为基线。
+> 2026-11-12 本地验收：83/83 Node PASS；Page 开发构建、生产组合包、正式 JSON 同源校验 PASS；ego 独立预览 7 条操作反馈符合预期。正式候选已由 0.2.1 / revision 2 晋升为 0.3.1 / revision 5。真实 macOS / Windows Chrome 安装、原生菜单及撤权仍为 NOT_TESTED，**正式验收未通过**。见[本轮完整报告](docs/final-acceptance-r5.zh-CN.md)。
 
 ## R5 · 按下右键即弹原生菜单的兼容修复
 
@@ -14,7 +14,7 @@
 
 [原始目标、事件时序取舍、专家复核量表与 P01–B01 测试矩阵](docs/right-click-menu-r5.zh-CN.md)。
 
-**当前状态：SOURCE_CANDIDATE；本机 Node 全套、正式打包、真实 Chrome macOS/Windows 均无本轮完整验收回执，保持 NOT_TESTED。**
+**当前状态：NODE_PASS / PACKAGE_PASS / INSTALL_NOT_TESTED / NATIVE_CHROME_NOT_TESTED。** 下方旧验证数字及 0.2.1 包说明保留为历史记录，不代表当前候选状态；当前包身份和剩余门禁以本轮完整报告为准。
 
 ---
 

@@ -9,14 +9,20 @@ export function createMouseGestureRuntime({ui,bridge=globalThis.OpenDeskAppPage,
   doc=globalThis.document,win=doc.defaultView,mount=mountGestures}={}){
   if(!bridge?.readContext||!bridge?.storage?.get||!bridge?.onRequest)
     throw Error('E_MOUSE_GESTURES_BRIDGE');
-  let disposed=false,timer=0,version=0,unsubscribe=null;
+  let disposed=false,timer=0,version=0,unsubscribe=null,latestRead=null;
   const gesture=mount({ui,doc,win,enabled:false,authorizeGesture:()=>readPolicy()});
-  async function readPolicy(){
+  function readPolicy(){
     const requested=++version;
+    latestRead=loadPolicy(requested);
+    return latestRead;
+  }
+  async function loadPolicy(requested){
     try{
       await bridge.readContext();
       const saved=await bridge.storage.get({key:POLICY_KEY,withEtag:true});
-      if(disposed||requested!==version||!ui.active())return false;
+      if(disposed||!ui.active())return false;
+      // A newer authenticated read decides policy; supersession is not denial.
+      if(requested!==version)return latestRead;
       // No stored preferences means a newly installed, authorized app is ON.
       // Only an explicit user setting "enabled:false" disables gestures.
       // Failed reads or malformed data still fail closed in the catch branch.

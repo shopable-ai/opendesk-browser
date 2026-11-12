@@ -246,3 +246,51 @@ test('switching menu policy while dragging cancels the in-progress gesture', () 
   rightDown(f);
   assert.equal(f.dispatch('contextmenu').prevented,false);
 });
+
+test('gesture-first suppresses a plain click menu emitted after release', () => {
+  const f=fixture();f.api.setOptions({menuPolicy:'gesture-first'});
+  rightDown(f);rightUp(f,200,100);
+  assert.equal(f.dispatch('contextmenu').prevented,true);
+  assert.equal(f.backCount(),0);
+});
+
+test('a menu during a held gesture must match its target and current position', () => {
+  for(const options of [{target:{closest:()=>false}},{clientX:240}]){
+    const f=fixture();f.api.setOptions({menuPolicy:'gesture-first'});rightDown(f);
+    assert.equal(f.dispatch('contextmenu',options).prevented,false);
+    moveLeft(f);rightUp(f);assert.equal(f.backCount(),0);
+  }
+});
+
+test('Shift or an excluded menu cancels even after an eligible right press', () => {
+  for(const options of [{shiftKey:true},{ctrlKey:true},{target:{closest:()=>true}}]){
+    const f=fixture();f.api.setOptions({menuPolicy:'gesture-first'});rightDown(f);
+    assert.equal(f.dispatch('contextmenu',options).prevented,false);
+    moveLeft(f);rightUp(f);assert.equal(f.backCount(),0);
+  }
+});
+
+test('release guards preserve modifier and excluded menus without consuming the match', () => {
+  const f=fixture();rightDown(f);moveLeft(f);rightUp(f);
+  assert.equal(f.dispatch('contextmenu',{clientX:120,shiftKey:true}).prevented,false);
+  assert.equal(f.dispatch('contextmenu',{clientX:120,ctrlKey:true}).prevented,false);
+  assert.equal(f.dispatch('contextmenu',{clientX:120}).prevented,true);
+});
+
+test('modifier changes during movement or release cancel the gesture', () => {
+  for(const type of ['mousemove','mouseup'])for(const modifier of ['shiftKey','ctrlKey','metaKey','altKey']){
+    const f=fixture();rightDown(f);moveLeft(f);
+    f.dispatch(type,{clientX:120,[modifier]:true});rightUp(f);
+    assert.equal(f.backCount(),0,type+' '+modifier);
+  }
+});
+
+test('release menu matching includes the exact distance and time limits', t => {
+  let now=1000;t.mock.method(Date,'now',()=>now);
+  const f=fixture();rightDown(f);moveLeft(f);rightUp(f);
+  assert.equal(f.dispatch('contextmenu',{clientX:137}).prevented,false);
+  now=1450;
+  assert.equal(f.dispatch('contextmenu',{clientX:136}).prevented,true);
+  rightDown(f);moveLeft(f);rightUp(f);now+=451;
+  assert.equal(f.dispatch('contextmenu',{clientX:120}).prevented,false);
+});

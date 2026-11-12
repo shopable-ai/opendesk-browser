@@ -6,24 +6,38 @@ const panelSource=await fs.readFile(new URL('../src/main.js',import.meta.url),'u
 const tick=()=>new Promise(resolve=>setImmediate(resolve));
 
 function storeFixture(){
-  let value=null,revision=1,fail=false,conflictOnce=false;
+  let value=null,revision=1,fail=false,conflictOnce=false,concurrent=null,lostReceipt=false;
+  const reads=[];
   const actions=[];
   const request=async (op,payload)=>{
     actions.push({op,payload});
-    if(op==='storage.get')return {value:value===null?null:{...value},etag:'v'+revision};
+    if(op==='storage.get'){
+      const snapshot={value:value===null?null:structuredClone(value),etag:'v'+revision};
+      return reads.length?reads.shift()(snapshot):snapshot;
+    }
     if(op==='storage.set'){
       if(fail)throw Error('E_STORAGE');
-      if(conflictOnce){conflictOnce=false;revision++;
+      if(conflictOnce){conflictOnce=false;if(concurrent)value=structuredClone(concurrent);revision++;
         const e=Error('stale');e.code='E_STORAGE_CONFLICT';throw e;}
       if(payload.ifMatch!==('v'+revision))throw Error('CAS mismatch');
-      value=payload.value;revision++;return {saved:true};
+      value=payload.value;revision++;
+      if(lostReceipt)throw Error('E_RECEIPT_LOST');
+      return {saved:true};
     }
     if(op==='page.request')throw Error('E_PAGE_AUTHORIZATION');
     throw Error('UNEXPECTED_OP');
   };
-  return {request,actions,read:()=>value,fail(){fail=true;},conflict(){conflictOnce=true;}};
+  return {request,actions,read:()=>value,fail(){fail=true;},conflict(next=null){conflictOnce=true;concurrent=next;},
+    loseReceipt(){lostReceipt=true;},
+    readNext(fn){reads.push(fn);},
+    deferRead(){
+      let resolve,reject;
+      const promise=new Promise((yes,no)=>{resolve=yes;reject=no;});
+      reads.push(snapshot=>promise.then(()=>snapshot));
+      return {resolve,reject};
+    }};
 }
-function panel(store){
+function panel(store,ui){
   const listeners=new Map(),windowHandlers=new Map(),states=[];
   const toggle={checked:true,disabled:true,attributes:new Map(),
     addEventListener(type,fn){listeners.set('enabled:'+type,fn);},
@@ -41,7 +55,7 @@ function panel(store){
   const root={querySelector(id){return elements.get(id)||null;},
     addEventListener(type,fn){listeners.set('root:'+type,fn);}};
   const window={addEventListener(type,fn){windowHandlers.set(type,fn);}};
-  const tool={root,request:store.request,setState(state){states.push(state);}};
+  const tool={root,ui,request:store.request,setState(state){states.push(state);}};
   vm.runInNewContext(panelSource,{globalThis:{OpenDeskTool:tool},window});
   const flush=async()=>{await tick();await tick();};
   return {toggle,trigger,trace,menuPolicy,menuHelp,combo,comboAction,hint,error,states,windowHandlers,
@@ -163,6 +177,142 @@ test('menu policy is explicit, CAS-persisted and read back after reopening',asyn
   assert.equal(second.menuPolicy.value,'gesture-first');
   await second.changeMenuPolicy('native-first');
   assert.equal(store.read().menuPolicy,'native-first');
-  assert.match(second.menuHelp.textContent,/原生菜单/);
+  assert.match(second.menuHelp.textContent,/保留.*右键菜单/);
   second.close();
+});
+
+
+test('persist remains busy through final readback and focus cannot clear later revocation',async()=>{
+  const store=storeFixture(),one=panel(store);await tick();
+  store.readNext(snapshot=>snapshot);
+  const pending=store.deferRead();
+  await one.change(false);
+  assert.equal(one.states.at(-1).busy,true);
+  const count=store.actions.length;
+  one.windowHandlers.get('focus')();await tick();
+  assert.equal(store.actions.length,count,'focus must not race final readback');
+  pending.resolve();await tick();await tick();
+  assert.equal(one.states.at(-1).busy,false);
+  store.readNext(()=>{throw Error('E_PERMISSION_REVOKED');});
+  await one.reload();
+  assert.match(one.error.textContent,/权限/);
+  assert.equal(one.toggle.checked,false);
+  assert.equal(one.toggle.disabled,true);
+  one.close();
+});
+
+test('closed panel ignores deferred persist readback and does not publish idle state',async()=>{
+  const store=storeFixture(),one=panel(store);await tick();
+  store.readNext(snapshot=>snapshot);const pending=store.deferRead();
+  await one.change(false);one.close();const states=one.states.length;
+  pending.resolve();await tick();await tick();
+  assert.equal(one.states.at(-1).busy,true);
+  assert.equal(one.states.length,states);
+  assert.equal(one.toggle.disabled,true);
+});
+
+test('CAS conflict preserves concurrently changed scalar field and reads latest value',async()=>{
+  const store=storeFixture(),one=panel(store);await tick();
+  store.conflict({trigger:'alt-left',enabled:false});
+  await one.change(false);
+  assert.equal(store.actions.filter(x=>x.op==='storage.set').length,1);
+  assert.equal(store.read().trigger,'alt-left');
+  assert.equal(one.toggle.checked,false);
+  assert.match(one.error.textContent,/冲突/);
+  one.close();
+});
+
+test('CAS conflict does not overwrite the same mapping key',async()=>{
+  const store=storeFixture(),one=panel(store);await tick();
+  store.conflict({gestureMappings:{'left-down':'right'}});
+  await one.changeComboAction('up');
+  assert.equal(store.read().gestureMappings['left-down'],'right');
+  assert.equal(one.comboAction.value,'right');
+  assert.equal(store.actions.filter(x=>x.op==='storage.set').length,1);
+  assert.match(one.error.textContent,/冲突/);
+  assert.equal(one.comboAction.disabled,false);
+  one.close();
+});
+
+test('CAS conflict merges different mapping keys and unrelated scalar fields',async()=>{
+  const store=storeFixture(),one=panel(store);await tick();
+  store.conflict({enabled:false,gestureMappings:{'up-right':'left'}});
+  await one.changeComboAction('up');
+  assert.deepEqual(JSON.parse(JSON.stringify(store.read())),{
+    enabled:false,gestureMappings:{'up-right':'left','left-down':'up'}});
+  assert.equal(one.toggle.checked,false);
+  assert.equal(one.error.hidden,true);
+  one.close();
+});
+
+test('lost successful receipt reports unknown write and the latest readback truth',async()=>{
+  const store=storeFixture(),one=panel(store);await tick();store.loseReceipt();
+  await one.change(false);
+  assert.equal(store.read().enabled,false);
+  assert.equal(one.toggle.checked,false);
+  assert.match(one.error.textContent,/写入结果未知/);
+  assert.match(one.error.textContent,/已读取最新设置/);
+  assert.doesNotMatch(one.error.textContent,/保留原设置/);
+  assert.equal(store.actions.filter(x=>x.op==='storage.set').length,1);
+  one.close();
+});
+
+
+test('a stale refresh cannot replace a newer permission failure',async()=>{
+  const store=storeFixture(),pending=store.deferRead(),one=panel(store);
+  await tick();
+  store.readNext(()=>{throw Error('E_PERMISSION_REVOKED');});
+  await one.reload();
+  const message=one.error.textContent;
+  pending.resolve();await tick();await tick();
+  assert.match(message,/权限/);
+  assert.equal(one.error.textContent,message);
+  assert.equal(one.toggle.checked,false);
+  assert.equal(one.toggle.disabled,true);
+  one.close();
+});
+
+test('lost receipt with failed readback stays unknown and fail closed',async()=>{
+  const store=storeFixture(),one=panel(store);await tick();store.loseReceipt();
+  store.readNext(snapshot=>snapshot);
+  store.readNext(()=>{throw Error('E_PERMISSION_REVOKED');});
+  await one.change(false);
+  assert.equal(store.read().enabled,false);
+  assert.match(one.error.textContent,/写入结果未知/);
+  assert.match(one.error.textContent,/无法读取最新状态/);
+  assert.doesNotMatch(one.error.textContent,/保留原设置/);
+  assert.equal(one.toggle.checked,false);
+  assert.equal(one.toggle.disabled,true);
+  assert.equal(one.states.at(-1).busy,false);
+  one.close();
+});
+
+test('saving an unrelated scalar preserves concurrent mapping changes',async()=>{
+  const store=storeFixture(),one=panel(store);await tick();
+  store.conflict({gestureMappings:{'left-down':'right'}});
+  await one.changeTrace(false);
+  assert.equal(store.read().showTrace,false);
+  assert.equal(store.read().gestureMappings['left-down'],'right');
+  assert.equal(one.error.hidden,true);
+  one.close();
+});
+
+test('save feedback uses public notify only after final readback, with nearby fallback',async()=>{
+  const notifications=[],store=storeFixture();
+  const one=panel(store,{notify(options){notifications.push(options);return true;}});
+  await tick();store.readNext(snapshot=>snapshot);const pending=store.deferRead();
+  await one.change(false);
+  assert.equal(notifications.length,0);
+  pending.resolve();await tick();await tick();
+  assert.equal(notifications.length,1);
+  assert.equal(notifications[0].message,'设置已保存');
+  assert.match(one.hint.textContent,/设置已保存/);
+  store.loseReceipt();await one.change(true);
+  assert.equal(notifications.length,1,'unknown writes must not claim success');
+  assert.doesNotMatch(one.hint.textContent,/设置已保存/);
+  one.close();
+  // A host without notify still retains its nearby confirmed-save status.
+  const plain=storeFixture(),two=panel(plain);await tick();await two.change(false);
+  assert.match(two.hint.textContent,/设置已保存/);
+  two.close();
 });
