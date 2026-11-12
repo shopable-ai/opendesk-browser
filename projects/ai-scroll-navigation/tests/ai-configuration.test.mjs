@@ -132,7 +132,11 @@ for(const [request,field,value] of [
   ['enable Go to conversation top','conversationTop',true],
   ['会話の末尾へをオンにする','conversationBottom',true],
   ['关闭按对话轮次翻页','turnPaging',false],
-  ['enable Previous/next question','turnPaging',true]
+  ['enable Previous/next question','turnPaging',true],
+  ['开启显示轮次数字','showTurnCount',true],
+  ['關閉顯示輪次數字','showTurnCount',false],
+  ['enable turn count','showTurnCount',true],
+  ['ターン数を表示をオンにする','showTurnCount',true]
 ])test(`real localized control name: ${request}`,()=>{
   assert.deepEqual(validate({request,proposal:navigation({[field]:value}),snapshot}).navigation,
     {...flags,[field]:value});

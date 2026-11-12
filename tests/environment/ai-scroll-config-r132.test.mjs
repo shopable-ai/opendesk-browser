@@ -58,9 +58,18 @@ test('navigation is optional in v1 and explicit booleans normalize without chang
     {...legacy,navigation:{...legacyNavigation,regionTop:false}});
   assert.deepEqual(normalizeScrollConfig({...legacy,navigation:{...legacyNavigation}}),
     {...legacy,navigation:legacyNavigation});
+  assert.deepEqual(normalizeScrollConfig({...legacy,navigation}),{...legacy,navigation},
+    'existing six-key snapshot stays six-key');
+  const withCount={...navigation,showTurnCount:false};
+  assert.deepEqual(normalizeScrollConfig({...legacy,navigation:withCount}),
+    {...legacy,navigation:withCount},'new seventh setting defaults off');
+  assert.equal(normalizeScrollConfig({...legacy,navigation:{showTurnCount:true}})
+    .navigation.showTurnCount,true);
+  assert.equal(Object.keys(normalizeScrollConfig({...legacy,navigation:{showTurnCount:true}})
+    .navigation).length,7);
   const disabled=Object.fromEntries(Object.keys(navigation).map(key=>[key,false]));
   assert.deepEqual(normalizeScrollConfig({...legacy,navigation:disabled}),{...legacy,navigation:disabled});
-  for(const invalid of [null,[],true,{regionTop:0},{floatingTop:'false'},{unknown:true}])
+  for(const invalid of [null,[],true,{regionTop:0},{floatingTop:'false'},{showTurnCount:'false'},{unknown:true}])
     check(()=>normalizeScrollConfig({...legacy,navigation:invalid}));
   check(()=>normalizeScrollConfig({...legacy,unknown:true}));
 });

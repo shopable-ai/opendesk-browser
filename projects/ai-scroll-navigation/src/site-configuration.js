@@ -623,7 +623,8 @@ export function installVisualSiteConfiguration({doc,win,owner,api,onChange}){
 // It never mounts website settings,
 // never grants a site Origin, and never writes rule storage from the webpage.
 const NAVIGATION_PENDING=Object.freeze({regionTop:false,regionBottom:false,
-  conversationTop:false,conversationBottom:false,floatingTop:false,turnPaging:false});
+  conversationTop:false,conversationBottom:false,floatingTop:false,
+  turnPaging:false,showTurnCount:false});
 export function installScrollSiteRuntime({doc,win,owner,api,onChange}){
   let current={version:1,sites:[]},loaded=false,disposed=false,flight=null,picking=null;
   let block=null,move=null,keyHandler=null,releaseClick=null,pickDone=null;
