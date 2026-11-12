@@ -71,6 +71,8 @@ jobs:
           npm run build --prefix projects/cookie-editor
           npm run stage:candidate --prefix projects/cookie-editor
           node scripts/build-sidebar-tool.mjs projects/cookie-editor             --promote-from artifacts/sidebar-tools/cookie-editor/candidate.opendesk-tool.json
+      - name: R2 navigation and Cookie export receipt regressions
+        run: node --test tests/environment/cookie-editor-navigation-export-r2.test.mjs tests/environment/current-page-target.test.mjs
       - name: R2.4 trusted vault and canonical background-switch regressions
         run: |
           node --check projects/cookie-editor/trusted/account-contract.js
