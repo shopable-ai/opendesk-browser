@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import {createSession} from '../src/model.js';
+import {createSession} from '../src/mini-chat/model.js';
 import {taskRequest,verifiedResult} from '../src/contract.js';
 const id='71811b88-050a-4e7a-9dfa-00b10b906fe8';
 const good={trust:'host-verified',requestId:id,runId:'controller-run-01',resultId:'controller-result-01',
@@ -8,10 +8,10 @@ const good={trust:'host-verified',requestId:id,runId:'controller-run-01',resultI
   assistantMessageRef:'native-assistant-01',replyText:'真实回答',
   conversationUrl:'https://chatgpt.com/c/11111111-2222-4333-8444-555555555555'};
 test('prompt and request are bounded; UI protocol does not embed Task installation',()=>{
-  assert.deepEqual(taskRequest({requestId:id,prompt:'测试'}),{protocol:'subagent.minichat.request.v1',requestId:id,prompt:'测试'});
-  assert.throws(()=>taskRequest({requestId:id,prompt:''}),{code:'E_MINICHAT_PROMPT'});
-  assert.throws(()=>taskRequest({requestId:id,prompt:'a'.repeat(3001)}),{code:'E_MINICHAT_PROMPT'});
-  assert.throws(()=>taskRequest({requestId:'fake',prompt:'测试'}),{code:'E_MINICHAT_ID'});
+  assert.deepEqual(taskRequest({requestId:id,prompt:'测试'}),{protocol:'subagent.task.request.v1',requestId:id,prompt:'测试'});
+  assert.throws(()=>taskRequest({requestId:id,prompt:''}),{code:'E_SUBAGENT_PROMPT'});
+  assert.throws(()=>taskRequest({requestId:id,prompt:'a'.repeat(3001)}),{code:'E_SUBAGENT_PROMPT'});
+  assert.throws(()=>taskRequest({requestId:'fake',prompt:'测试'}),{code:'E_SUBAGENT_ID'});
 });
 test('no trusted bridge means no dispatch',async()=>{
   const session=createSession();
@@ -43,7 +43,7 @@ test('wrong request and insufficient proof cannot display a forged success',asyn
   for(const delta of [{requestId:'different'}, {trust:'untrusted'}, {runId:null},
     {conversationUrl:'https://evil.example/c/11111111-2222-4333-8444-555555555555'},
     {status:'draft-prepared'}, {send:false}, {replyText:''}]){
-    assert.throws(()=>verifiedResult({...good,...delta},id),{code:'E_MINICHAT_RESULT'});
+    assert.throws(()=>verifiedResult({...good,...delta},id),{code:'E_SUBAGENT_RESULT'});
   }
   assert.equal(verifiedResult(good,id).answer,'真实回答');
 });
@@ -74,4 +74,15 @@ test('concurrent read calls share one in-flight trusted query',async()=>{
   const a=session.read(),b=session.read();assert.equal(reads,1);
   resolveRead(good);await Promise.all([a,b]);
   assert.equal(session.snapshot.status,'completed');
+});
+
+test('standalone Subagent project identity is not bound to Mini Chat demo name',async()=>{
+  const {readFile}=await import('node:fs/promises');
+  const file=new URL('../package.json',import.meta.url);
+  const pkg=JSON.parse(await readFile(file,'utf8'));
+  assert.equal(pkg.name,'@opendesk/subagent');
+  assert.equal(pkg.opendesk.id,'opendesk.subagent');
+  assert.equal(pkg.opendesk.runtimeKind,'page-userscript');
+  assert.equal(pkg.opendesk.entry,'src/main.js');
+  assert.deepEqual(pkg.opendesk.pageRules.matches,['https://chatgpt.com/*']);
 });

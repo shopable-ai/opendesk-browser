@@ -1,3 +1,12 @@
+# R3 · 正式命名纠偏（2026-11-12，最新用户要求）
+
+**最终产品名称改为 Subagent，正式业务目录改为 `projects/subagent/`，稳定项目 ID 为 `opendesk.subagent`。**
+前期的 **Mini Chat** 仅是 `src/mini-chat/` 内的单次 A→B→A 可行性 Demo，不能再用 `subagent-mini-chat` 命名整个扩展或未来产品。
+原 `projects/subagent-mini-chat/` 的开发底座已按用户要求原位迁移，不保留第二套副本；WebFlow 独立任务源码、Host/Controller 权限系统保持各自 owner，不被 Subagent 接管。
+本次只是产品命名、目录/源码身份迁移与定向 Node 验证，**不代表 WebFlow 可信连接、正式安装或真实 Chrome A→B→A 已完成**。以下 R2/R1 记录保留历史，不再作为当前目录和正式产品名称依据。
+
+---
+
 # R2 补充结论：Subagent 独立产品 + 已安装 WebFlow/Controller Task + 最小公共 Framework（2026-11-12）
 
 > **本节是最新的架构纠偏，优先于下方 R1 中不准确的“WebFlow Subagent”产品归属用语；下方 R1 作为研究历史保留。** 它不构成方案 A 已完成或跨职责接口已支持的声明。

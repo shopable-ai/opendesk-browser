@@ -1,4 +1,4 @@
-import {taskPrompt,taskRequest,verifiedResult} from './contract.js';
+import {taskPrompt,taskRequest,verifiedResult} from '../contract.js';
 
 // Deliberately inject a trusted, host-owned transport. A USER_SCRIPT MUST NOT
 // implement it with window.postMessage, custom events or a page-provided object.
