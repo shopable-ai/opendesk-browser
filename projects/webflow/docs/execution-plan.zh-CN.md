@@ -12,6 +12,8 @@
 
 **原 CI 范围内的独立历史阻断（2026-11-13）：** [Bridge CI 43262522560](https://github.com/shopable-ai/opendesk-browser/actions/runs/43262522560) 的 R10 授权 12/12、精确来源 2/2、原 ingress 70/70、原 serial 17/17、retained-target 5/5 全部 PASS，但原宽范围 ChatGPT 0.3 回归 131 项中 2 项 FAIL：`chatgpt-b-prepare-stage.test.mjs` 的 PREPARE 证据不匹配、`chatgpt-v3-result.test.mjs` 的 SUBMIT 异常断言未触发，129/131 PASS；这两个 0.3 文件及其业务代码本次均未修改。为不将其失败伪装成 R10 失败，也不删除历史回归，保留旧 `contract-and-build` 全范围失败，**另增独立 R10 定向测试/production build job**，前者仍显示 0.3 阻断，后者独立确认 0.2/百度/Google/来源/构建。没有触碰历史 0.3 Task/权限/发送逻辑。
 
+**R10 兼容性回归独立状态：** [CI 43263066603](https://github.com/shopable-ai/opendesk-browser/actions/runs/43263066603) R10 授权/精确 pin/原 ingress **12+2+70 均 PASS**，original serial 与 0.2.0 Task **63/63 PASS**；其余旧百度检查 **17/30 FAIL**（本轮未修改百度包或 Task），导致生产 build 仍被跳过。为防止旧业务失败掩盖生产编译证据，R10 专项 job 后续将旧百度与 Google 分步报告，并在其失败后仍**尝试执行生产 build**（失败不被隐藏）；只有 build 成功才运行 package verify，前序失败仍保持整个 job 为失败。CI 的后续完成结果仍须单独读回，不能提前记 BUILD_PASS。
+
 **唯一后续操作：** 在 R10 解耦和回归通过后，恢复 R9 尚缺的 `IssueAdapter.read → serial-two-step-run.dispatchB/readB → 原 ChatGPT 0.2.0 Controller/RunHost → prepareA/deliverA/readA` 生产组合，逐步确认原 A 身份/权限、安装 pin、真实 B Result 和 A 官方消息 ID+正文 SHA；UNKNOWN 只能只读核验，绝不再次提交。
 
 ---
