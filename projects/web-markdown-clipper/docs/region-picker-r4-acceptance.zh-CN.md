@@ -55,3 +55,16 @@ GitHub Actions 具体证据：
 ## 五、下一次最小续接点（不是新任务/R5）
 
 在允许执行的现有 Mac `main` 工作区读取最新 HEAD 和未提交差异，保护并行修改后，仅核对本轮已修的构建来源是否通过，按新 CI 日志修确有证据的剩余阻断。然后运行 Clipper/Host/预览真实测试并记录退出码；共享 AI Proxy pins 与 UI Preview lock 需原 owner 审阅。全部门禁通过后，才按原打包器合同提升高于 1.2.10 的版本、产生候选、验证 SHA256、晋升并逐字节检查；在真实用户 Chrome 同 ID 原位升级，实测单条长回答→Markdown→复制/下载→保存→关闭重开→搜索/全文读回，并核对原有摘录。取得截图、正文 SHA256、安装回执、版本与 5 角色平均分 ≥95 后才可写 **YES / R4 CLOSED**。
+
+## 五、R4 续接实证：修复 Native Settings Workspace 来源边界（2026-11-12）
+
+- 本轮继续任务 `OD-WEB-MARKDOWN-CLIPPER-REGION-PICK-R4-LOCAL-RELEASE-ACCEPTANCE`，执行基线 GitHub `main=f590505b84e13b0ac2d7789db7c4bedfb62d21aa`；本轮实际源码提交 `3e1a68431a71e2c449c9cbf29da2d9c405fe1f2f`。该提交通过带预期 HEAD 的非强制前进引用更新写入唯一 `main`，并从远端读回两份修改文件。
+- 新取得失败日志：App CI `43219105290` / Clipper Job `131186337612` 在提交 `cfc6e232` 上实际执行 `node scripts/app-ci.mjs build web-markdown-clipper`，`npm run build` 子进程因 `[opendesk-fixed-settings] Historical/user/vendor code cannot enter a privileged fixed bundle: projects/webflow/src/task-intent-contract.js` 失败，退出码 `1`。证明前轮修复并未完成全工程构建。
+- 静态依赖追溯：固定 `src/entrypoints/settings.js` 引入 Native Workspace，沿 `src/ui/react/workspace/main.tsx` → `src/native-agent/workspace.js` → `workspace-chat-edit-ui.js` → `workspace-chatgpt.js` → `chatgpt-task-request.js` 间接引入 WebFlow 纯结构校验器；同一 Workspace 读取器引入 `projects/webflow/trusted/chatgpt-conversation-route.js`（只拒绝冲突路由，不产生 Task 授权）。两份内容已有精确 Git Blob SHA-1 锁：`50a7ec4bd3d8707ba53724efdc378cd98c2404d6` 与 `8e28adedd8cc2b49ff34897c0857d33cf2478c87`。
+- 修复范围**仅两文件**：`scripts/bundle-provenance.mjs` 为上述**两份**固定字节源码在**唯一新增输出** `native-agent/settings.js` 精确准入；`tests/environment/bundle-provenance.test.mjs` 更新 WebFlow 解析器正反目标列表，并添加 deny-only route 的允许/禁止目标检查。未添加通配允许、未改变哈希、安全扫描、权限、安装器、Clipper ID、存储或业务 UI。
+- GitHub 新提交触发 CI：`43226868275` 的 `audit` Job `131212185601` **FAIL，退出码 1**；实际错误主要为共享 `projects/ai-proxy/src/Settings.tsx` 可信哈希过期、Bookmark 旧目录测试路径及 Reading TOC 等其他来源差异；本次新增的两个 `describeBundle` 测试也被前置的 AI Proxy 来源校验阻断，**不能标为 PASS**。另一工作流 `43226868689` / Job `131212186890` 同样 **FAIL**，原因含上述跨工具问题；未擅自将其归因于 Clipper 或放宽安全检查。
+- 新 App CI `43226868089`（基于本轮提交）当时 `discover` 和 `ci-contract` 已成功，但 `app-validate (web-markdown-clipper)` Job `131212628757` 仍为 **QUEUED / NOT_TESTED**，后续必须读回真实结果，不能把队列等于成功。
+- 本机 CodexPro `UNAVAILABLE / Connection failed`；OpenDesk Desktop 与本机文件接口均 `UNAVAILABLE / MCP SSE probe 429`。没有用户工作区 `git status`、真正本机 Node、用户 Chrome 同 ID 原位升级或长回答保存读回证据。
+- 正式工具配置及正式包依旧 `web-markdown-clipper@1.2.10`；旧正式包 HTML 尚只有四种模式。新候选构建、`--promote-from`、`--check-project`、正式新包 SHA256、Chrome 回执与 Markdown 正文哈希均为 **N/A**；**RELEASE_BLOCKED / REAL_CHROME_NOT_TESTED**。
+- 评分保守沿用 R4 静态阶段：UX 68、架构 78、Markdown 63、安全 76、QA 43，算术平均 `65.6/100`，不是新的独立外部专家评级。多轮隔离、取消/导航竞态、150KB/160KB 字节边界依然缺真实 Chrome 验收。
+- 下一有效续接：先读 `43226868089` 的 Clipper Job 实际结果；仅根据当前 SHA 的实测故障做差量修复，并让共享来源锁对应 App owner 审阅。完全门禁可证后才提升版本、构建候选/核验/晋升，并在用户真实 Chrome 验证原位升级、旧摘录保留、长回答 Markdown 保存及关闭重开读回。**禁止本轮提前关闭 R4**。
