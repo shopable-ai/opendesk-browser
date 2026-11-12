@@ -38,6 +38,13 @@
 /* Exactly one pinned desktop menu follows the last pointer/focus interaction.
    Pointer exit does not clear it; touch still exposes all menu targets. */
 .ec-row--action-visible .ec-row-actions{opacity:1;pointer-events:auto}
+.ec-row--has-update .ec-row-main{padding-right:130px}
+.ec-row--has-update .ec-row-actions{opacity:1;pointer-events:auto;gap:4px}
+.ec-row-update{flex:none;min-width:48px;min-height:34px;padding:5px 8px;
+  border:1px solid var(--od-focus);border-radius:var(--radius-control);
+  background:var(--od-paper);color:var(--od-accent-ink);font-size:12px;font-weight:650;cursor:pointer}
+.ec-row-update:disabled{opacity:.55;cursor:default}
+.ec-update-error{margin:0;padding:0 12px 8px;color:var(--od-negative);font-size:11px;overflow-wrap:anywhere}
 /* Actions cover the row; neither visible nor hidden menus reserve a column. */
 .ec-row-actions:empty{display:none}
 .ec-glyph{display:grid;place-items:center;width:29px;height:29px;border-radius:var(--radius-control);background:color-mix(in srgb,var(--od-accent-ink) 8%,var(--od-paper));color:var(--od-accent-ink)}
@@ -114,6 +121,8 @@
 @media(hover:none),(pointer:coarse){
   .ec-row-actions{opacity:1;pointer-events:auto}
   .ec-row-more{width:44px;min-width:44px;min-height:44px}
+  .ec-row-update{min-height:44px}
+  .ec-row--has-update .ec-row-main{padding-right:142px}
   .ec-toolbar .ec-icon{width:44px;min-width:44px;min-height:44px}
   .ec-more button{min-width:44px;min-height:44px}
 }
@@ -129,6 +138,9 @@
   .ec-name{flex:1 1 70px;max-width:100%;min-height:18px}
   .ec-description{white-space:normal;display:-webkit-box;-webkit-box-orient:vertical;-webkit-line-clamp:2}
   .ec-row-actions{right:6px}
+  .ec-row--has-update{min-height:106px}
+  .ec-row--has-update .ec-row-main{min-height:106px;padding-right:6px;padding-bottom:54px}
+  .ec-row--has-update .ec-row-actions{top:auto;bottom:3px;transform:none}
   .ec-more{right:0;max-width:calc(100vw - 20px)}
 }
 @media(pointer:coarse){.ec-name,.ec-detail-back,.ec-detail-actions button{min-height:44px;min-width:44px}}
