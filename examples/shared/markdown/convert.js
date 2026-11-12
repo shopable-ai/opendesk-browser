@@ -164,9 +164,12 @@ export function domToMarkdown(root,base){
   // Do not squeeze the final document: that also changes blank lines inside code fences.
   const text=renderBlock(root,state).trim();
   if(!text)throw new Error('未找到可剪藏的文字');
-  if(new TextEncoder().encode(text).length>CLIP_MAX_BYTES)
+  const markdown=text+'\n';
+  // Include the final newline in the UTF-8 extraction budget. Otherwise a
+  // 150,000-byte body could leak a 150,001-byte response across the Host.
+  if(new TextEncoder().encode(markdown).byteLength>CLIP_MAX_BYTES)
     throw new Error('正文超过 150 KB，请选择范围缩小剪藏');
-  return text+'\n';
+  return markdown;
 }
 export function chooseArticle(doc){
   const candidates=[...doc.querySelectorAll('article,[role="main"],main,[itemprop="articleBody"],.article-content,.post-content')]

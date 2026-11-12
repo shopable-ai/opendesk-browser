@@ -53,9 +53,9 @@ test('formatted selection survives save, persisted read and edit without flatten
  assert.equal((await f.run('clipNotes.get',{id:saved.id})).item.body,body+'\nMore text\n');
 });
 
-test('10 KB, 50 KB, 100 KB and 150,000-byte markdown save and re-open exactly',async()=>{
+test('10 KB through 160,000 UTF-8 bytes save and re-open exactly',async()=>{
  const f=fixture();
- for(const [i,n] of [10000,50000,100000,149999,150000].entries()){
+ for(const [i,n] of [10000,50000,100000,149999,150000,160000].entries()){
   const body=makeBody(n);assert.equal(bytes(body),n);
   const written=await f.run('clipNotes.save',note(body));
   const read=await f.run('clipNotes.get',{id:written.id});
@@ -65,7 +65,7 @@ test('10 KB, 50 KB, 100 KB and 150,000-byte markdown save and re-open exactly',a
   assert.equal(read.item.updatedAt,iso);
  }
  const library=await f.run('clipNotes.list',{query:'中',offset:0});
- assert.equal(library.total,5);
+ assert.equal(library.total,6);
  assert.equal(library.limits.bodyBytes,160000);
  assert.equal(library.limits.totalBytes,4194304);
  assert.ok(library.items.every(row=>!('body' in row)&&row.excerpt.length<=180));

@@ -656,7 +656,9 @@ export function reviewedCompiledExtensionSettings(target,path,root){
 // R1.8 source review: the shared converter only corrects nested-list
 // Markdown indentation; URL filtering and secret redaction are unchanged.
 const sharedMarkdownInputs=Object.freeze({
-  'examples/shared/markdown/convert.js':'58516382e28fc03b89b58371f9b905d89e05ae27',
+  // R4 review: 150,000-byte extraction budget covers the final UTF-8 newline;
+  // the Markdown grammar and URL filtering remain identical.
+  'examples/shared/markdown/convert.js':'53687ae72643aa751c1ad0d5becf2401ada09bd0',
   'examples/shared/markdown/selection.js':'747d1afe2cee9a745552a3a7ceb699d1af83b35b'
 });
 function reviewedCompiledSharedMarkdown(target,path,root){

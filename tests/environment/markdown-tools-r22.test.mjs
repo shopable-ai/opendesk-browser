@@ -170,6 +170,17 @@ test('R22 selected DocumentFragment is supported and oversized content fails clo
  assert.throws(()=>domToMarkdown(E('P',[T('x'.repeat(CLIP_MAX_BYTES+1))]),'https://example.com'),/过大/);
  assert.throws(()=>chooseArticle({querySelectorAll:()=>[]}),/无法可靠识别/);
 });
+test('R4 region Markdown final-output cap counts UTF-8 bytes including newline',()=>{
+ const exact='中'.repeat(49999)+'ab'; // 149,999 UTF-8 bytes + final newline
+ const result=domToMarkdown(E('P',[T(exact)]),'https://example.com/answer');
+ assert.equal(result,exact+'\n','no silent truncation of the selected DOM');
+ assert.equal(new TextEncoder().encode(result).byteLength,CLIP_MAX_BYTES);
+ for(const oversized of [exact+'c','中'.repeat(50000),'x'.repeat(CLIP_MAX_BYTES)]){
+  assert.throws(()=>domToMarkdown(E('P',[T(oversized)]),'https://example.com/answer'),
+    /150 KB/,'must fail closed above the exact final UTF-8 byte limit');
+ }
+});
+
 test('R22 fixed release inclusion and trusted-site wiring are explicit',async()=>{
  const [publicScript,verify,entry,host,html,sandbox]=await Promise.all([
   readFile('scripts/prepare-public.mjs','utf8'),readFile('scripts/verify-package.mjs','utf8'),

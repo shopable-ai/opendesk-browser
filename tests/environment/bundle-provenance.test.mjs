@@ -560,7 +560,7 @@ test('R1.3 pinned shared Markdown converter can only enter the existing Page Rel
     modules:{[resolve(root,path)]:{renderedLength:20,originalLength:40}}},root,lock:{packages:{}}});
   const row=make('agents/page-relay.js');
   assert.equal(row.modules[0].path,path);
-  assert.equal(row.modules[0].reviewedFirstPartyBlob,'58516382e28fc03b89b58371f9b905d89e05ae27');
+  assert.equal(row.modules[0].reviewedFirstPartyBlob,'53687ae72643aa751c1ad0d5becf2401ada09bd0');
   for(const target of ['sw.js','ui/tool-shell.js','ui/sidebar-tool-host.js','scripting/sandbox/worker-runtime.js'])
     assert.throws(()=>make(target),/cannot enter a privileged fixed bundle/,
       'shared converter must not cross the Page Relay boundary: '+target);
