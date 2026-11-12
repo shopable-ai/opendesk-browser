@@ -8,7 +8,7 @@
 
 **仍未完成：** 专用 GitHub Issue 读取和冻结输入仍未与该业务配方的原事务正式接线；原 ChatGPT 0.2.0 的实际安装、创建唯一 B、获取完整真实 Result 与 `deliveryKey` 原 A 单次发送并读回仍无同轮生产证据。通用 ingress 仍包含历史 ChatGPT background/delivery 分支，属于本轮范围之外的站点适配残留。不能标记整套 A→B→A 为 DONE。
 
-**验证计划与当前证据：** 新定向测试和源白名单回归已写入原 CI；实际 Node/production build/verify 以对应 GitHub Actions run 的结论为准，未观察到通过前均记 `NOT_VERIFIED`。本机 CodexPro `UNAVAILABLE`；原生 Chrome `CHROME_NOT_TESTED`，业务闭环 `BUSINESS_NOT_DONE`。若 CI 失败只做定向修复，不将 Mock PASS 宣称为 Chrome PASS。
+**验证计划与当前证据：** 首次 [Bridge CI 43261054860](https://github.com/shopable-ai/opendesk-browser/actions/runs/43261054860) 的 12 项授权测试有 1 项测试夹具误调用，已在 `729dac18` 只修测试；随后 [Bridge CI 43261702132](https://github.com/shopable-ai/opendesk-browser/actions/runs/43261702132) 授权 **12/12 PASS**，新 R10 专用 Blob pin 和通用 ingress 拒绝用例 PASS。该工作流把全仓 `bundle-provenance.test.mjs` 的 8 项不相关 AI Proxy/Bookmark/Time Review/TOC 失败混入 R10 阻断；本轮把 CI 改为**只运行两项受影响精确 pin 用例**加完整原 `web-task-ingress.test.mjs`，不改其它项目 pin，不伪称全仓 provenance PASS。这个新 CI 的真实结果和后续生产 build/verify 以本次提交对应 run 为准；本机 CodexPro `UNAVAILABLE`，原生 Chrome `CHROME_NOT_TESTED`，完整业务 `BUSINESS_NOT_DONE`。
 
 **唯一后续操作：** 在 R10 解耦和回归通过后，恢复 R9 尚缺的 `IssueAdapter.read → serial-two-step-run.dispatchB/readB → 原 ChatGPT 0.2.0 Controller/RunHost → prepareA/deliverA/readA` 生产组合，逐步确认原 A 身份/权限、安装 pin、真实 B Result 和 A 官方消息 ID+正文 SHA；UNKNOWN 只能只读核验，绝不再次提交。
 
