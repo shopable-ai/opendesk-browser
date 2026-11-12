@@ -139,7 +139,11 @@ test('explicit floatingTop off saves through original controller, etag and readb
   assert.deepEqual(write.payload,{programId:id,manifestHash:'a'.repeat(64),installationId:'installation-r8',
     expectedGeneration:3,etag:'initial',navigation:{...navigation,floatingTop:false}});
   assert.equal(f.saved().value.navigation.floatingTop,false);
-  const at=f.requests.indexOf(write);assert.equal(f.requests[at+1].method,'readScrollSiteConfig');
+  const at=f.requests.indexOf(write);
+  for(let attempt=0;attempt<8&&!f.requests.slice(at+1).some(row=>row.method==='readScrollSiteConfig');attempt++)
+    await tick();
+  assert.ok(f.requests.slice(at+1).some(row=>row.method==='readScrollSiteConfig'),
+    'committed change must be followed by an explicit trusted readback');
   assert.match(log(f),/saved-1/);assert.match(log(f),/悬浮回顶/);
   assert.equal(element(f,'#scroll-ai-input').value,'');
   assert.ok(lease.checks>=1);assert.equal(lease.releases,1);
