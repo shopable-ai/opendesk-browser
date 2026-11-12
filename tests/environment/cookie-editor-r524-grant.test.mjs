@@ -23,7 +23,7 @@ test('R2.8 trusted Host shows one compact first-use consent above the existing C
   assert.match(view,/view\.dispatch\('sidebar-tool-cookie-site-toggle','click',event\.nativeEvent\)/);
   assert.equal((view.match(/id="sidebar-tool-cookie-site-toggle"/g)||[]).length,1,
     'retain exactly one original trusted Chrome/Host permission action');
-  assert.match(host,/frameRoot\.hidden=\(show&&!trustedInline&&!\(appSettings&&toolNavigation\.page===toolNavigation\.settingsPage\)\)\|\|!\(frame\|\|nativeUI\)\|\|legacyAdblock;/,
+  assert.match(host,/frameRoot\.hidden=\(show&&!trustedInline&&!\(appSettings&&toolNavigation\.page===toolNavigation\.settingsPage\)\)\|\|\s*!\(frame\|\|nativeUI\)\|\|legacyAdblock;/,
     'missing Cookie grant must not hide the original iframe on its settings page');
   assert.match(host,/needsAuthorization,hasOrigin:Boolean\(origin\),settingsOpen:show/);
   assert.match(host,/sidebarToolEnabled\(enableRecords,tool\.id\)&&!readOnlyPreview/);
