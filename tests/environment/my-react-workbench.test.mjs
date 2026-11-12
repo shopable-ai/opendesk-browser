@@ -169,7 +169,8 @@ test('row parameter action selects its own task, opens the one Sheet and retains
   try{
     root=await f.mount();
     const rows=[...f.doc.querySelectorAll('.task-card-group')];
-    assert.equal(rows.filter(row=>row.classList.contains('task-card-group--action-visible')).length,1);
+    assert.equal(rows.filter(row=>row.classList.contains('selected')).length,1);
+    assert.equal(rows[0].classList.contains('selected'),true);
     assert.equal(rows[0].querySelector('.task-card-manage').getAttribute('aria-haspopup'),'menu');
     await f.fire(rows[0].querySelector('.task-card-run'),'click',{isTrusted:true});
     assert.equal(f.doc.getElementById('task-param-name').getAttribute('data-slot'),'input');
@@ -442,16 +443,35 @@ test('numeric boundaries, unbounded long strings and invalid values retain the o
     decimal:{type:'number',title:'小数',minimum:-1,maximum:1,default:0},
     notes:{type:'string',title:'长说明'}},required:['whole'],additionalProperties:false}});let root;
   try{
-    root=await f.mount();assert.equal(f.doc.getElementById('task-param-notes').tagName,'TEXTAREA');
+    root=await f.mount();assert.equal(f.doc.getElementById('task-param-notes').tagName,'INPUT');
+    assert.equal(f.doc.getElementById('task-param-notes').hasAttribute('maxlength'),false);
+    // No schema maxLength; the original validator still applies its 1024-character default.
+    const longNotes='长说明 "quoted" '.repeat(60);
     assert.equal(f.doc.getElementById('task-param-whole').getAttribute('step'),'1');
     assert.equal(f.doc.getElementById('task-param-decimal').getAttribute('step'),'any');
     for(const [whole,decimal]of [['0','-1'],['2','1']]){
       await f.input('task-param-whole',whole);await f.input('task-param-decimal',decimal);
-      await f.input('task-param-notes','第一行\n第二行');
+      await f.input('task-param-notes',longNotes);
       await React.act(async()=>f.view.actions.taskParamsModeChange('json'));
-      assert.deepEqual(JSON.parse(f.view.field('task-params-json').value),{whole:Number(whole),decimal:Number(decimal),notes:'第一行\n第二行'});
+      assert.deepEqual(JSON.parse(f.view.field('task-params-json').value),{whole:Number(whole),decimal:Number(decimal),notes:longNotes});
       await React.act(async()=>f.view.actions.taskParamsModeChange('form'));
+      assert.equal(f.view.data.taskParamsMode,'form');
+      assert.equal(f.doc.getElementById('task-param-notes').value,longNotes);
     }
+    const pasted='\r\n第二行\n第三行 "原文"',notes=f.doc.getElementById('task-param-notes');
+    const paste=await f.fire(notes,'paste',{clipboardData:{getData:type=>type==='text/plain'?pasted:''}});
+    assert.equal(paste.defaultPrevented,true,'prevent native single-line paste from stripping newlines');
+    assert.equal(f.view.data.taskParamsMode,'json');
+    const multilineParams={whole:2,decimal:1,notes:longNotes+pasted};
+    assert.deepEqual(JSON.parse(f.view.field('task-params-json').value),multilineParams);
+    await React.act(async()=>f.view.actions.taskParamsModeChange('form'));
+    assert.equal(f.view.data.taskParamsMode,'json','multiline text must not return to a lossy single-line input');
+    assert.deepEqual(JSON.parse(f.view.field('task-params-json').value),multilineParams);
+    assert.match(f.view.field('task-status').text,/E_PARAMS/);
+    await f.input('task-params-json',JSON.stringify({...multilineParams,notes:longNotes}));
+    await React.act(async()=>f.view.actions.taskParamsModeChange('form'));
+    assert.equal(f.view.data.taskParamsMode,'form');
+    assert.equal(f.doc.getElementById('task-param-notes').value,longNotes);
     for(const [name,value]of [['whole','1.5'],['whole','3'],['decimal','1.1']]){
       await f.input('task-param-whole','0');await f.input('task-param-decimal','0');await f.input('task-param-'+name,value);
       await React.act(async()=>{assert.equal(f.view.actions.taskRunClick(native(),{...f.view.data.taskRows.identity}),false);});
