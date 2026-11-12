@@ -99,7 +99,7 @@ test('installation generation changed during review never receives authorization
   assert.equal(h.rows.size,0);
 });
 test('one business recipe cannot accept a wider repository, Task or Provider scope',async()=>{
-  const h=harness(),pin=installation();
+  const h=harness(),pin=installation;
   for(const bad of [
     {...pin(),version:'0.3.0'},
     {...pin(),scriptId:'task:google.search.top3:1.0.3'},
