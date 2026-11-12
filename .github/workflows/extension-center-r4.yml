@@ -28,6 +28,12 @@ on:
       - 'prototypes/sidebar/extension-center-r47-frequency-first-preview.html'
       - 'src/ui/tool.html'
       - 'src/ui/tool-shell.js'
+      - 'src/platform/chrome/update-notice-service.js'
+      - 'src/platform/chrome/update-notice-state.js'
+      - 'tests/environment/extension-inline-update-r4.test.mjs'
+      - 'tests/environment/update-notice-service.test.mjs'
+      - 'tests/environment/update-notice-state.test.mjs'
+      - 'tests/environment/extension-center-react-page.test.mjs'
       - 'src/ui/sidebar-tools.js'
       - 'src/ui/sidebar-tools/installation.js'
       - 'src/ui/sidebar-tools/lifecycle.js'
@@ -67,6 +73,21 @@ jobs:
         run: git rev-parse HEAD
       - name: Install pinned toolchain
         run: npm ci --ignore-scripts --no-audit --no-fund
+      - name: R5 inline update regressions (each result retained)
+        run: |
+          set +e
+          node --test tests/environment/extension-inline-update-r4.test.mjs
+          rc_inline=$?
+          node --test tests/environment/update-notice-service.test.mjs
+          rc_service=$?
+          node --test tests/environment/update-notice-state.test.mjs
+          rc_state=$?
+          node --test tests/environment/extension-center-r47-interaction.test.mjs
+          rc_interaction=$?
+          node --test tests/environment/extension-center-react-page.test.mjs
+          rc_react=$?
+          printf 'R5_EXIT_CODES inline=%s service=%s state=%s interaction=%s react=%s\\n' "$rc_inline" "$rc_service" "$rc_state" "$rc_interaction" "$rc_react"
+          test "$rc_inline:$rc_service:$rc_state:$rc_interaction:$rc_react" = "0:0:0:0:0"
       - name: R33.3 React TSX, DOM ownership and inherited Host guardrails
         run: node --test tests/environment/react-sidebar-r333.test.mjs tests/environment/react-sidebar-render-r3331.test.mjs tests/environment/react-dom-input-csp-r3331.test.mjs tests/environment/verify-package-react-constructor.test.mjs
       - name: Real Chromium React toolbar, rows, portal and event smoke (source UI simulation)

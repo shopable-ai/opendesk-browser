@@ -424,4 +424,6 @@ T06：Node 定向、npm run check、npm run build、Chrome for Testing、真实 
 
 - **PC 应用页面补充围栏：** `app.html` 的历史审阅链接必须先按原生点击栈开启 Side Panel；真实 Side Panel 接收到该内部导航后，在展示原 Installer 前再次使用同一 Worker `fresh:true` 过滤已安装、未忽略、版本/SHA/来源一致的可信候选。普通 Marketplace 安装导航不受此专用围栏影响。此增量仍是 SOURCE_PATCHED / Chrome NOT_TESTED。
 
+- **R5 定向 CI 追踪：** 在既有 `.github/workflows/extension-center-r4.yml` 的 `npm ci` 后增加唯一 R5 定向步骤，依次运行 5 个指定 Node 测试文件，保留 `R5_EXIT_CODES` 各组退出码；同时更新该工作流的路径触发集合以包括 Worker/测试文件。其 GitHub Runner 结果仍要以对应 HEAD 与实际作业日志为准，不等同于真实 Mac Chrome 安装事务。新增 CI 接线属于测试覆盖，不是第二个安装或更新系统。
+
 **当前产品最终结论：BLOCKED（缺少本机验证/构建及真实 Chrome 事务证据）；代码提交只代表源码修复和可执行回归用例已增加。**
