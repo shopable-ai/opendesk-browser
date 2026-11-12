@@ -359,10 +359,10 @@
       "installation": "NOT_TESTED"
     },
     "googleChrome": {
-      "status": "READ_ONLY_CONNECTED_UI_LEASE_BLOCKED",
+      "status": "INSTALLATION_BLOCKED_NATIVE_TIMEOUT_AND_URL_POLICY",
       "processObserved": 44951,
       "controlAttempts": 3,
-      "reason": "CUA recovered and exact Google Chrome app/visible OpenDesk side panel observed. Native installation needs UI lease currently owned by an interrupted different chat; explicit handoff requested, not yet received. No input, install, permission or account change performed.",
+      "reason": "User authorized stale UI lease release; original helper released old owner and acquired current owner, both exit0. Native Chrome side-panel reads then timed out twice. Exact HTTPS tabs work; direct chrome-extension sidepanel navigation was explicitly rejected by URL policy. No workaround, install submission, package import or permission change performed.",
       "alternativeDesktopCore": {
         "status": "UNAVAILABLE",
         "readOnlyRequests": 2,
@@ -374,17 +374,57 @@
         "reason": "Native CUA getState timed out twice; existing Chrome has no observed debugging listener. No profile, settings or pairing changes made."
       },
       "nativeUiLock": {
-        "status": "BUSY",
-        "owner": "01a1cad8-bccc-7192-8327-8dd48083dc44",
-        "ownerChatStatus": "notLoaded",
-        "ownerLatestTurnStatus": "interrupted",
-        "handoff": "REQUESTED_NOT_GRANTED",
-        "registryModified": false
+        "status": "RELEASED",
+        "owner": null,
+        "handoff": "EXPLICITLY_GRANTED_BY_USER",
+        "originalHelperUsed": true,
+        "oldOwnerReleaseExitCode": 0,
+        "taskAcquireExitCode": 0,
+        "taskReleaseExitCode": 0,
+        "registryEditedDirectly": false
       },
-      "latestObservedAt": "2026-11-12T11:13:17Z",
+      "latestObservedAt": "2026-11-12T11:42:19Z",
       "exactApp": "/Users/shopme/Applications/Google Chrome.app",
       "openDeskExtensionIdObserved": "ccfcjegpkdlgbclopjmadlcjedelidmf",
-      "privateDraftPersisted": false
+      "privateDraftPersisted": false,
+      "observationsBeforeHandoff": [
+        {
+          "status": "READ_ONLY_CONNECTED_UI_LEASE_BLOCKED",
+          "reason": "CUA recovered and exact Google Chrome app/visible OpenDesk side panel observed. Native installation needs UI lease currently owned by an interrupted different chat; explicit handoff requested, not yet received. No input, install, permission or account change performed.",
+          "nativeUiLock": {
+            "status": "BUSY",
+            "owner": "01a1cad8-bccc-7192-8327-8dd48083dc44",
+            "ownerChatStatus": "notLoaded",
+            "ownerLatestTurnStatus": "interrupted",
+            "handoff": "REQUESTED_NOT_GRANTED",
+            "registryModified": false
+          },
+          "latestObservedAt": "2026-11-12T11:13:17Z"
+        }
+      ],
+      "nativeAppReadAfterHandoff": {
+        "attempts": 2,
+        "timeouts": 2,
+        "inputActions": 0
+      },
+      "urlPolicyRejection": {
+        "action": "Navigate an agent-created tab to chrome-extension://ccfcjegpkdlgbclopjmadlcjedelidmf/sidepanel.html",
+        "reason": "Only http: and https: protocols are allowed; no workaround, indirect execution, raw CDP or alternate browser surface allowed",
+        "installationReviewReached": false,
+        "workaroundAttempted": false
+      },
+      "chromeSitesAfterHandoff": {
+        "ChatGPT": "Account menu and existing conversation entries visible; no message sent",
+        "DeepSeek": "Existing conversation list visible; authenticated session entry available; supersedes ego login block",
+        "Gemini": "Login controls visible; no authenticated long conversation available"
+      },
+      "cleanup": {
+        "taskTabsClosed": true,
+        "existingTabsAndDraftsPreserved": true,
+        "messagesSent": 0,
+        "accountCredentialsSubmitted": false
+      },
+      "installedCandidateRevision": "UNKNOWN_NOT_READ_BACK"
     },
     "egoSupplement": {
       "spaceId": 92,
@@ -405,186 +445,186 @@
         {
           "id": "T01",
           "status": "NOT_TESTED",
-          "reason": "Candidate not installed in Google Chrome; read-only control recovered but native UI lease held by another interrupted chat. No native acceptance action performed."
+          "reason": "Exact candidate installation/readback unverified: native side-panel read timed out and browser URL policy rejected direct extension-page navigation. No native acceptance action performed."
         },
         {
           "id": "T02",
           "status": "NOT_TESTED",
-          "reason": "Candidate not installed in Google Chrome; read-only control recovered but native UI lease held by another interrupted chat. No native acceptance action performed."
+          "reason": "Exact candidate installation/readback unverified: native side-panel read timed out and browser URL policy rejected direct extension-page navigation. No native acceptance action performed."
         },
         {
           "id": "T03",
           "status": "NOT_TESTED",
-          "reason": "Candidate not installed in Google Chrome; read-only control recovered but native UI lease held by another interrupted chat. No native acceptance action performed."
+          "reason": "Exact candidate installation/readback unverified: native side-panel read timed out and browser URL policy rejected direct extension-page navigation. No native acceptance action performed."
         },
         {
           "id": "T04",
           "status": "NOT_TESTED",
-          "reason": "Candidate not installed in Google Chrome; read-only control recovered but native UI lease held by another interrupted chat. No native acceptance action performed."
+          "reason": "Exact candidate installation/readback unverified: native side-panel read timed out and browser URL policy rejected direct extension-page navigation. No native acceptance action performed."
         },
         {
           "id": "T05",
           "status": "NOT_TESTED",
-          "reason": "Candidate not installed in Google Chrome; read-only control recovered but native UI lease held by another interrupted chat. No native acceptance action performed."
+          "reason": "Exact candidate installation/readback unverified: native side-panel read timed out and browser URL policy rejected direct extension-page navigation. No native acceptance action performed."
         },
         {
           "id": "T06",
           "status": "NOT_TESTED",
-          "reason": "Candidate not installed in Google Chrome; read-only control recovered but native UI lease held by another interrupted chat. No native acceptance action performed."
+          "reason": "Exact candidate installation/readback unverified: native side-panel read timed out and browser URL policy rejected direct extension-page navigation. No native acceptance action performed."
         },
         {
           "id": "T07",
           "status": "NOT_TESTED",
-          "reason": "Candidate not installed in Google Chrome; read-only control recovered but native UI lease held by another interrupted chat. No native acceptance action performed."
+          "reason": "Exact candidate installation/readback unverified: native side-panel read timed out and browser URL policy rejected direct extension-page navigation. No native acceptance action performed."
         },
         {
           "id": "T08",
           "status": "NOT_TESTED",
-          "reason": "Candidate not installed in Google Chrome; read-only control recovered but native UI lease held by another interrupted chat. No native acceptance action performed."
+          "reason": "Exact candidate installation/readback unverified: native side-panel read timed out and browser URL policy rejected direct extension-page navigation. No native acceptance action performed."
         },
         {
           "id": "T09",
           "status": "NOT_TESTED",
-          "reason": "Candidate not installed in Google Chrome; read-only control recovered but native UI lease held by another interrupted chat. No native acceptance action performed."
+          "reason": "Exact candidate installation/readback unverified: native side-panel read timed out and browser URL policy rejected direct extension-page navigation. No native acceptance action performed."
         },
         {
           "id": "T10",
           "status": "NOT_TESTED",
-          "reason": "Candidate not installed in Google Chrome; read-only control recovered but native UI lease held by another interrupted chat. No native acceptance action performed."
+          "reason": "Exact candidate installation/readback unverified: native side-panel read timed out and browser URL policy rejected direct extension-page navigation. No native acceptance action performed."
         },
         {
           "id": "T11",
           "status": "NOT_TESTED",
-          "reason": "Candidate not installed in Google Chrome; read-only control recovered but native UI lease held by another interrupted chat. No native acceptance action performed."
+          "reason": "Exact candidate installation/readback unverified: native side-panel read timed out and browser URL policy rejected direct extension-page navigation. No native acceptance action performed."
         },
         {
           "id": "T12",
           "status": "NOT_TESTED",
-          "reason": "Candidate not installed in Google Chrome; read-only control recovered but native UI lease held by another interrupted chat. No native acceptance action performed."
+          "reason": "Exact candidate installation/readback unverified: native side-panel read timed out and browser URL policy rejected direct extension-page navigation. No native acceptance action performed."
         }
       ],
       "DeepSeek": [
         {
           "id": "T01",
-          "status": "BLOCKED",
-          "reason": "Candidate not installed in Google Chrome; read-only control recovered but native UI lease held by another interrupted chat. No native acceptance action performed."
+          "status": "NOT_TESTED",
+          "reason": "Exact candidate installation/readback unverified: native side-panel read timed out and browser URL policy rejected direct extension-page navigation. No native acceptance action performed."
         },
         {
           "id": "T02",
-          "status": "BLOCKED",
-          "reason": "Candidate not installed in Google Chrome; read-only control recovered but native UI lease held by another interrupted chat. No native acceptance action performed."
+          "status": "NOT_TESTED",
+          "reason": "Exact candidate installation/readback unverified: native side-panel read timed out and browser URL policy rejected direct extension-page navigation. No native acceptance action performed."
         },
         {
           "id": "T03",
-          "status": "BLOCKED",
-          "reason": "Candidate not installed in Google Chrome; read-only control recovered but native UI lease held by another interrupted chat. No native acceptance action performed."
+          "status": "NOT_TESTED",
+          "reason": "Exact candidate installation/readback unverified: native side-panel read timed out and browser URL policy rejected direct extension-page navigation. No native acceptance action performed."
         },
         {
           "id": "T04",
-          "status": "BLOCKED",
-          "reason": "Candidate not installed in Google Chrome; read-only control recovered but native UI lease held by another interrupted chat. No native acceptance action performed."
+          "status": "NOT_TESTED",
+          "reason": "Exact candidate installation/readback unverified: native side-panel read timed out and browser URL policy rejected direct extension-page navigation. No native acceptance action performed."
         },
         {
           "id": "T05",
-          "status": "BLOCKED",
-          "reason": "Candidate not installed in Google Chrome; read-only control recovered but native UI lease held by another interrupted chat. No native acceptance action performed."
+          "status": "NOT_TESTED",
+          "reason": "Exact candidate installation/readback unverified: native side-panel read timed out and browser URL policy rejected direct extension-page navigation. No native acceptance action performed."
         },
         {
           "id": "T06",
-          "status": "BLOCKED",
-          "reason": "Candidate not installed in Google Chrome; read-only control recovered but native UI lease held by another interrupted chat. No native acceptance action performed."
+          "status": "NOT_TESTED",
+          "reason": "Exact candidate installation/readback unverified: native side-panel read timed out and browser URL policy rejected direct extension-page navigation. No native acceptance action performed."
         },
         {
           "id": "T07",
-          "status": "BLOCKED",
-          "reason": "Candidate not installed in Google Chrome; read-only control recovered but native UI lease held by another interrupted chat. No native acceptance action performed."
+          "status": "NOT_TESTED",
+          "reason": "Exact candidate installation/readback unverified: native side-panel read timed out and browser URL policy rejected direct extension-page navigation. No native acceptance action performed."
         },
         {
           "id": "T08",
-          "status": "BLOCKED",
-          "reason": "Candidate not installed in Google Chrome; read-only control recovered but native UI lease held by another interrupted chat. No native acceptance action performed."
+          "status": "NOT_TESTED",
+          "reason": "Exact candidate installation/readback unverified: native side-panel read timed out and browser URL policy rejected direct extension-page navigation. No native acceptance action performed."
         },
         {
           "id": "T09",
-          "status": "BLOCKED",
-          "reason": "Candidate not installed in Google Chrome; read-only control recovered but native UI lease held by another interrupted chat. No native acceptance action performed."
+          "status": "NOT_TESTED",
+          "reason": "Exact candidate installation/readback unverified: native side-panel read timed out and browser URL policy rejected direct extension-page navigation. No native acceptance action performed."
         },
         {
           "id": "T10",
-          "status": "BLOCKED",
-          "reason": "Candidate not installed in Google Chrome; read-only control recovered but native UI lease held by another interrupted chat. No native acceptance action performed."
+          "status": "NOT_TESTED",
+          "reason": "Exact candidate installation/readback unverified: native side-panel read timed out and browser URL policy rejected direct extension-page navigation. No native acceptance action performed."
         },
         {
           "id": "T11",
-          "status": "BLOCKED",
-          "reason": "Candidate not installed in Google Chrome; read-only control recovered but native UI lease held by another interrupted chat. No native acceptance action performed."
+          "status": "NOT_TESTED",
+          "reason": "Exact candidate installation/readback unverified: native side-panel read timed out and browser URL policy rejected direct extension-page navigation. No native acceptance action performed."
         },
         {
           "id": "T12",
-          "status": "BLOCKED",
-          "reason": "Candidate not installed in Google Chrome; read-only control recovered but native UI lease held by another interrupted chat. No native acceptance action performed."
+          "status": "NOT_TESTED",
+          "reason": "Exact candidate installation/readback unverified: native side-panel read timed out and browser URL policy rejected direct extension-page navigation. No native acceptance action performed."
         }
       ],
       "Gemini": [
         {
           "id": "T01",
-          "status": "NOT_TESTED",
-          "reason": "Candidate not installed in Google Chrome; read-only control recovered but native UI lease held by another interrupted chat. No native acceptance action performed."
+          "status": "BLOCKED",
+          "reason": "Exact candidate installation/readback unverified: native side-panel read timed out and browser URL policy rejected direct extension-page navigation. No native acceptance action performed. Gemini currently unauthenticated."
         },
         {
           "id": "T02",
-          "status": "NOT_TESTED",
-          "reason": "Candidate not installed in Google Chrome; read-only control recovered but native UI lease held by another interrupted chat. No native acceptance action performed."
+          "status": "BLOCKED",
+          "reason": "Exact candidate installation/readback unverified: native side-panel read timed out and browser URL policy rejected direct extension-page navigation. No native acceptance action performed. Gemini currently unauthenticated."
         },
         {
           "id": "T03",
-          "status": "NOT_TESTED",
-          "reason": "Candidate not installed in Google Chrome; read-only control recovered but native UI lease held by another interrupted chat. No native acceptance action performed."
+          "status": "BLOCKED",
+          "reason": "Exact candidate installation/readback unverified: native side-panel read timed out and browser URL policy rejected direct extension-page navigation. No native acceptance action performed. Gemini currently unauthenticated."
         },
         {
           "id": "T04",
-          "status": "NOT_TESTED",
-          "reason": "Candidate not installed in Google Chrome; read-only control recovered but native UI lease held by another interrupted chat. No native acceptance action performed."
+          "status": "BLOCKED",
+          "reason": "Exact candidate installation/readback unverified: native side-panel read timed out and browser URL policy rejected direct extension-page navigation. No native acceptance action performed. Gemini currently unauthenticated."
         },
         {
           "id": "T05",
-          "status": "NOT_TESTED",
-          "reason": "Candidate not installed in Google Chrome; read-only control recovered but native UI lease held by another interrupted chat. No native acceptance action performed."
+          "status": "BLOCKED",
+          "reason": "Exact candidate installation/readback unverified: native side-panel read timed out and browser URL policy rejected direct extension-page navigation. No native acceptance action performed. Gemini currently unauthenticated."
         },
         {
           "id": "T06",
-          "status": "NOT_TESTED",
-          "reason": "Candidate not installed in Google Chrome; read-only control recovered but native UI lease held by another interrupted chat. No native acceptance action performed."
+          "status": "BLOCKED",
+          "reason": "Exact candidate installation/readback unverified: native side-panel read timed out and browser URL policy rejected direct extension-page navigation. No native acceptance action performed. Gemini currently unauthenticated."
         },
         {
           "id": "T07",
-          "status": "NOT_TESTED",
-          "reason": "Candidate not installed in Google Chrome; read-only control recovered but native UI lease held by another interrupted chat. No native acceptance action performed."
+          "status": "BLOCKED",
+          "reason": "Exact candidate installation/readback unverified: native side-panel read timed out and browser URL policy rejected direct extension-page navigation. No native acceptance action performed. Gemini currently unauthenticated."
         },
         {
           "id": "T08",
-          "status": "NOT_TESTED",
-          "reason": "Candidate not installed in Google Chrome; read-only control recovered but native UI lease held by another interrupted chat. No native acceptance action performed."
+          "status": "BLOCKED",
+          "reason": "Exact candidate installation/readback unverified: native side-panel read timed out and browser URL policy rejected direct extension-page navigation. No native acceptance action performed. Gemini currently unauthenticated."
         },
         {
           "id": "T09",
-          "status": "NOT_TESTED",
-          "reason": "Candidate not installed in Google Chrome; read-only control recovered but native UI lease held by another interrupted chat. No native acceptance action performed."
+          "status": "BLOCKED",
+          "reason": "Exact candidate installation/readback unverified: native side-panel read timed out and browser URL policy rejected direct extension-page navigation. No native acceptance action performed. Gemini currently unauthenticated."
         },
         {
           "id": "T10",
-          "status": "NOT_TESTED",
-          "reason": "Candidate not installed in Google Chrome; read-only control recovered but native UI lease held by another interrupted chat. No native acceptance action performed."
+          "status": "BLOCKED",
+          "reason": "Exact candidate installation/readback unverified: native side-panel read timed out and browser URL policy rejected direct extension-page navigation. No native acceptance action performed. Gemini currently unauthenticated."
         },
         {
           "id": "T11",
-          "status": "NOT_TESTED",
-          "reason": "Candidate not installed in Google Chrome; read-only control recovered but native UI lease held by another interrupted chat. No native acceptance action performed."
+          "status": "BLOCKED",
+          "reason": "Exact candidate installation/readback unverified: native side-panel read timed out and browser URL policy rejected direct extension-page navigation. No native acceptance action performed. Gemini currently unauthenticated."
         },
         {
           "id": "T12",
-          "status": "NOT_TESTED",
-          "reason": "Candidate not installed in Google Chrome; read-only control recovered but native UI lease held by another interrupted chat. No native acceptance action performed."
+          "status": "BLOCKED",
+          "reason": "Exact candidate installation/readback unverified: native side-panel read timed out and browser URL policy rejected direct extension-page navigation. No native acceptance action performed. Gemini currently unauthenticated."
         }
       ]
     },
@@ -685,8 +725,8 @@
   },
   "remoteCIAtReportCommit": "SUCCESS",
   "remaining": [
-    "Native UI lease release or explicit handoff, then exact candidate Chrome installation through existing review chain and identity/hash/config readback; preserve existing windows and drafts",
-    "Real ChatGPT/DeepSeek/Gemini T01–T12, including authorized long sessions and responsive/light/dark scenarios",
+    "Supported and policy-allowed existing installation-review entry, then exact r19 candidate install and identity/hash/config readback; stale UI lease already resolved with explicit user permission",
+    "Real ChatGPT/DeepSeek/Gemini T01–T12; Chrome ChatGPT/DeepSeek session entries available, Gemini currently unauthenticated; responsive/light/dark scenarios still untested",
     "Candidate-bound native security/lifecycle evidence and independent reassessment; current mean70.2 and release blocked"
   ],
   "latestNode22Run": {

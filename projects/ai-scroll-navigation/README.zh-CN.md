@@ -6,7 +6,7 @@ R4.2 的轮次模型、唯一 Dock、默认隐藏数字与独立设置保持原�
 
 [GitHub CI #901](https://github.com/shopable-ai/opendesk-browser/actions/runs/43203021134) 已 SUCCESS；原工作流受影响测试在 Node 22.23.4 下 **816 PASS / 0 FAIL / 0 SKIP，退出 0**（执行次数含原有重复发现与子测试，不是独立用例数）；正式包生成后定向复验 **216 PASS / 0 FAIL / 0 SKIP，退出 0**。项目验证与原 Program Builder / Page 打包器通过，唯一正式 JSON 更新为 **0.4.16/r19**，三个 HTTPS 站点范围不变，Node 22 构建与候选包逐字节一致；已下载远端CI制品核对正式JSON字节及release record相同。
 
-**交付尚未完成：** 新候选未安装，三站 T01–T12 无原生 PASS。原生 Chrome 控制两次初始化超时；ego 仅补充观察到 ChatGPT 首页、DeepSeek 登录页、Gemini 空会话，现有 HTML 的模拟交互不能替代真实验收。官方目录继续 **blocked**。旧节中的 r18 和本机 r20261112 均为历史记录，不能作为当前 r19 的安装证明。
+**交付尚未完成：** 新候选安装与读回未完成，三站 T01–T12 无原生 PASS。用户已授权清理遗留 UI 锁，本任务取得并在结束时释放锁；真实 Chrome 网页已确认 ChatGPT、DeepSeek 有登录会话入口，Gemini 未登录。安装仍受原生侧栏读取超时及浏览器禁止直接打开 `chrome-extension:` 页面限制，未绕过安全策略。现有 HTML 的模拟交互不能替代真实验收。官方目录继续 **blocked**。旧节中的 r18 和本机 r20261112 均为历史记录，不能作为当前 r19 的安装证明。
 
 完整原因、测试回执、包哈希、矩阵及独立评分见 [R4.3 交付记录](evidence/r43-ci-fix-20261112.md) 与 [结构化证据](evidence/r43-ci-fix-20261112.json)。
 
