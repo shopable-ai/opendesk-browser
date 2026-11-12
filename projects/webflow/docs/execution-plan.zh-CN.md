@@ -10,6 +10,8 @@
 
 **验证计划与当前证据：** 首次 [Bridge CI 43261054860](https://github.com/shopable-ai/opendesk-browser/actions/runs/43261054860) 的 12 项授权测试有 1 项测试夹具误调用，已在 `729dac18` 只修测试；随后 [Bridge CI 43261702132](https://github.com/shopable-ai/opendesk-browser/actions/runs/43261702132) 授权 **12/12 PASS**，新 R10 专用 Blob pin 和通用 ingress 拒绝用例 PASS。该工作流把全仓 `bundle-provenance.test.mjs` 的 8 项不相关 AI Proxy/Bookmark/Time Review/TOC 失败混入 R10 阻断；本轮把 CI 改为**只运行两项受影响精确 pin 用例**加完整原 `web-task-ingress.test.mjs`，不改其它项目 pin，不伪称全仓 provenance PASS。这个新 CI 的真实结果和后续生产 build/verify 以本次提交对应 run 为准；本机 CodexPro `UNAVAILABLE`，原生 Chrome `CHROME_NOT_TESTED`，完整业务 `BUSINESS_NOT_DONE`。
 
+**原 CI 范围内的独立历史阻断（2026-11-13）：** [Bridge CI 43262522560](https://github.com/shopable-ai/opendesk-browser/actions/runs/43262522560) 的 R10 授权 12/12、精确来源 2/2、原 ingress 70/70、原 serial 17/17、retained-target 5/5 全部 PASS，但原宽范围 ChatGPT 0.3 回归 131 项中 2 项 FAIL：`chatgpt-b-prepare-stage.test.mjs` 的 PREPARE 证据不匹配、`chatgpt-v3-result.test.mjs` 的 SUBMIT 异常断言未触发，129/131 PASS；这两个 0.3 文件及其业务代码本次均未修改。为不将其失败伪装成 R10 失败，也不删除历史回归，保留旧 `contract-and-build` 全范围失败，**另增独立 R10 定向测试/production build job**，前者仍显示 0.3 阻断，后者独立确认 0.2/百度/Google/来源/构建。没有触碰历史 0.3 Task/权限/发送逻辑。
+
 **唯一后续操作：** 在 R10 解耦和回归通过后，恢复 R9 尚缺的 `IssueAdapter.read → serial-two-step-run.dispatchB/readB → 原 ChatGPT 0.2.0 Controller/RunHost → prepareA/deliverA/readA` 生产组合，逐步确认原 A 身份/权限、安装 pin、真实 B Result 和 A 官方消息 ID+正文 SHA；UNKNOWN 只能只读核验，绝不再次提交。
 
 ---
