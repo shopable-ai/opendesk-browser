@@ -9,6 +9,7 @@ import {WEBFLOW_AUTO_GRANTS_KEY,LEGACY_AUTO_SOURCE_ORIGIN,normalizeAutoScope,pre
 import {WEB_TASK_PROTOCOL} from '../page-events/web-task-contract.js';
 import {registeredSiteRegistry} from '../page-events/site-catalog.js';
 import {permissionPattern} from '../environment.js';
+import {issueWorkflowScope} from '../../projects/webflow/trusted/issue-workflow-authorization.js';
 
 // This is a locator for the existing verified Host, never an authorization.
 // Chrome can retain more than one Side Panel document in the same window.
@@ -719,6 +720,35 @@ export function createChatGPTFixedBridgeHost({api=chrome,client,host,
     }
     return profiles;
   };
+  // A standalone capability bundle, not an upgrade of a Task V1/V2 grant.
+  const preparedIssueReviews=new WeakMap();
+  const readIssueWorkflowScope=async()=>profileGate({kind:'workflow-auth-read'});
+  const prepareIssueWorkflow=async()=>{
+    trustedSettings();
+    const installed=await resolveSelection('chatgpt.conversation.create');
+    if(installed.version!=='0.2.0')
+      throw fail('E_ISSUE_WORKFLOW_INSTALLATION','需要已安装且受审的 ChatGPT 0.2.0；不会自动替换版本');
+    const review=freezeReview(issueWorkflowScope(installationOf(installed)));
+    preparedIssueReviews.set(review,JSON.stringify(review));
+    return review;
+  };
+  const approveIssueWorkflow=async(review,event)=>{
+    if(!event)throw fail('E_WEBFLOW_GESTURE','缺少可信用户手势');
+    trustedSettings(event);
+    const recorded=review&&preparedIssueReviews.get(review);
+    if(!recorded||recorded!==JSON.stringify(review))
+      throw fail('E_ISSUE_WORKFLOW_SCOPE','审核对象已变化，请重新准备');
+    preparedIssueReviews.delete(review); // no approval retries after unknown result
+    const installed=await resolveSelection('chatgpt.conversation.create');
+    if(JSON.stringify(issueWorkflowScope(installationOf(installed)))!==recorded)
+      throw fail('E_ISSUE_WORKFLOW_INSTALLATION','安装身份已变化，不能沿用审核');
+    return profileGate({kind:'workflow-auth-approve',installation:JSON.parse(recorded).installation});
+  };
+  const revokeIssueWorkflow=async event=>{
+    if(!event)throw fail('E_WEBFLOW_GESTURE','缺少可信用户手势');
+    trustedSettings(event);
+    return profileGate({kind:'workflow-auth-revoke'});
+  };
   const prepareAutoGrant=async(value,{checkPermissions}={})=>{
     trustedSettings();const epoch=captureEpoch(true);
     const scope=normalizeAutoScope(value),sourceOrigin=scope.sourceOrigin;
@@ -1160,7 +1190,7 @@ export function createChatGPTFixedBridgeHost({api=chrome,client,host,
     }finally{await returnToSource();delivery=null;if(operation===active)operation=null;busy=false;}
   }
   return Object.freeze({handle,cancel,checkDelivery,listTasks,prepareTask,adoptTask,authorizeTask,approveConversationTask,preapproveNextTask,bindPreapprovedTask,showExecutionPage,
-    readBridgeState,refreshBridge,activateBackgroundRun,subscribeBridgeContext(listener){bridgeSubscribers.add(listener);return ()=>bridgeSubscribers.delete(listener);},controlBridge,readAutoSettings,prepareAutoGrant,approveAutoTask,setAutoEnabled,revokeAutoTask,admitAutoTask,dispose(){
+    readBridgeState,refreshBridge,activateBackgroundRun,readIssueWorkflowScope,prepareIssueWorkflow,approveIssueWorkflow,revokeIssueWorkflow,subscribeBridgeContext(listener){bridgeSubscribers.add(listener);return ()=>bridgeSubscribers.delete(listener);},controlBridge,readAutoSettings,prepareAutoGrant,approveAutoTask,setAutoEnabled,revokeAutoTask,admitAutoTask,dispose(){
     disposed=true;invalidate();delivery=null;
     bridgeContextChanged();bridgeSubscribers.clear();for(const [event,listener] of contextEvents)event?.removeListener(listener);
     unsubscribeTasks?.();unsubscribeConnection?.();api.permissions?.onRemoved?.removeListener(invalidate);
