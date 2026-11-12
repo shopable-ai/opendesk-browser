@@ -5,6 +5,7 @@ export const GESTURE_LIMITS=Object.freeze({
   ...SEGMENT_LIMITS,jitterPx:8,menuMatchPx:16,menuGuardMs:450
 });
 export const GESTURE_TRIGGERS=Object.freeze({RIGHT:'right',ALT_LEFT:'alt-left'});
+export const GESTURE_MENU_POLICIES=Object.freeze({NATIVE_FIRST:'native-first',GESTURE_FIRST:'gesture-first'});
 const EXCLUDED_TARGETS='input,textarea,select,option,button,a,[contenteditable],[role="textbox"],[role="slider"],[draggable="true"],canvas,video';
 const NS='http://www.w3.org/2000/svg';
 const cssName=name=>name.replace(/[A-Z]/g,c=>'-'+c.toLowerCase());
@@ -33,13 +34,16 @@ function pageBottom(doc){
 }
 
 export function mountGestures({ui,doc=globalThis.document,win=doc.defaultView,
-  enabled=true,trigger=GESTURE_TRIGGERS.RIGHT,showTrace=true,gestureMappings={},authorizeGesture=()=>true,
+  enabled=true,trigger=GESTURE_TRIGGERS.RIGHT,menuPolicy=GESTURE_MENU_POLICIES.NATIVE_FIRST,
+  showTrace=true,gestureMappings={},authorizeGesture=()=>true,
   navigateBack=()=>win.history.back(),navigateForward=()=>win.history.forward(),
   reloadPage=()=>win.location.reload(),scrollBottom=()=>win.scrollTo(0,pageBottom(doc))}={}){
   if(!ui?.on||!ui?.onDispose||!ui?.host||!ui?.content||!doc?.createElementNS||!win||
     typeof authorizeGesture!=='function')throw Error('E_GESTURE_CONTEXT');
   let disposed=false,allowed=enabled===true;
   let activeTrigger=trigger===GESTURE_TRIGGERS.ALT_LEFT?trigger:GESTURE_TRIGGERS.RIGHT;
+  let activeMenuPolicy=menuPolicy===GESTURE_MENU_POLICIES.GESTURE_FIRST?
+    GESTURE_MENU_POLICIES.GESTURE_FIRST:GESTURE_MENU_POLICIES.NATIVE_FIRST;
   let displayTrace=showTrace!==false,mappings=normalizeGestureMappings(gestureMappings);
   let session=null,releaseGuard=null,epoch=0,frame=null;
   const host=ui.host;
@@ -174,9 +178,15 @@ export function mountGestures({ui,doc=globalThis.document,win=doc.defaultView,
     if(event.isTrusted!==true||event.button!==2)return; // Keyboard menus remain untouched.
     if(activeTrigger!==GESTURE_TRIGGERS.RIGHT)return;
     if(session){
-      if(session.intent){event.preventDefault();event.stopPropagation();return;}
-      // Some platforms dispatch contextmenu before movement. Once committed
-      // to the native menu, a USER_SCRIPT cannot dismiss it reliably.
+      // On macOS the native menu may arrive before the first move. Gesture-first
+      // deliberately suppresses it only after an eligible trusted right press.
+      // Plain right-click on non-excluded background then has NO native menu;
+      // the explicit setting warns users and Shift+right-click bypasses it.
+      if(session.intent||activeMenuPolicy===GESTURE_MENU_POLICIES.GESTURE_FIRST){
+        event.preventDefault();event.stopPropagation();return;
+      }
+      // Native-first protects ordinary right-click and sacrifices this gesture
+      // if the platform commits to a menu before movement.
       reset();return;
     }
     if(releaseGuard?.kind==='menu'&&sameRelease(event,releaseGuard)){
@@ -205,11 +215,14 @@ export function mountGestures({ui,doc=globalThis.document,win=doc.defaultView,
     setOptions(next={}){
       if(disposed)return;
       const requested=next.trigger===GESTURE_TRIGGERS.ALT_LEFT?GESTURE_TRIGGERS.ALT_LEFT:GESTURE_TRIGGERS.RIGHT;
+      const requestedMenuPolicy=next.menuPolicy===GESTURE_MENU_POLICIES.GESTURE_FIRST?
+        GESTURE_MENU_POLICIES.GESTURE_FIRST:GESTURE_MENU_POLICIES.NATIVE_FIRST;
       const visible=next.showTrace!==false;
       const nextMappings=normalizeGestureMappings(next.gestureMappings??mappings);
-      if(requested!==activeTrigger||visible!==displayTrace||
+      if(requested!==activeTrigger||requestedMenuPolicy!==activeMenuPolicy||visible!==displayTrace||
         JSON.stringify(nextMappings)!==JSON.stringify(mappings))reset();
-      activeTrigger=requested;displayTrace=visible;mappings=nextMappings;
+      activeTrigger=requested;activeMenuPolicy=requestedMenuPolicy;
+      displayTrace=visible;mappings=nextMappings;
     }
   });
 }

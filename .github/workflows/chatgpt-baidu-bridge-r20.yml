@@ -51,6 +51,10 @@ on:
       - 'projects/webflow/trusted/chatgpt-result-adapter.js'
       - 'projects/webflow/trusted/chat-handoff-receipt.js'
       - 'projects/webflow/trusted/serial-two-step-run.js'
+      - 'projects/webflow/trusted/issue-workflow-authorization.js'
+      - 'projects/webflow/tests/issue-workflow-authorization.test.mjs'
+      - 'projects/webflow/trusted/AutoSettings.tsx'
+      - 'src/ui/tool-shell.js'
       - 'projects/webflow/tests/serial-two-step-run.test.mjs'
       - 'projects/webflow/tests/chat-handoff-receipt.test.mjs'
       - 'projects/webflow/tests/github-issue-input.test.mjs'
@@ -141,6 +145,8 @@ jobs:
           node --check projects/webflow/src/github-issue-input.js
           node --check projects/webflow/trusted/chatgpt-result-adapter.js
           node --check projects/webflow/trusted/chat-handoff-receipt.js
+          node --check projects/webflow/trusted/issue-workflow-authorization.js
+          node --check projects/webflow/tests/issue-workflow-authorization.test.mjs
           node --check projects/webflow/tests/chatgpt-create-result.test.mjs
           node --check projects/webflow/trusted/md-run-ledger.js
           node --check projects/webflow/tests/md-run-ledger.test.mjs
@@ -156,6 +162,8 @@ jobs:
           node --check src/page-events/web-task-ingress.js
           node --check projects/webflow/tests/task-v2-live-ledger.test.mjs
           node --check tests/environment/chatgpt-baidu-bridge-r20.test.mjs
+      - name: Workflow-wide one-time reviewed GitHub A2B2A scope and revocation (Node, not Chrome)
+        run: node --test projects/webflow/tests/issue-workflow-authorization.test.mjs
       - name: WebFlow two-step operation fences (Node, not Chrome)
         run: node --test projects/webflow/tests/serial-two-step-run.test.mjs
       - name: One-shot retained-target continuation provenance (Node, not Chrome)

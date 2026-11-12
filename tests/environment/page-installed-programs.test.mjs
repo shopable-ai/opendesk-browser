@@ -1045,7 +1045,7 @@ async function scrollConfigFixture(options={}){
     anchorSelector:'',enabled:true};
   return {f,installed,message,site};
 }
-const navigationFlags={regionTop:true,regionBottom:false,conversationTop:true,conversationBottom:false,floatingTop:true};
+const navigationFlags={regionTop:true,regionBottom:false,conversationTop:true,conversationBottom:false,floatingTop:true,turnPaging:true};
 const scrollHostRequest=installed=>({programId:installed.programId,manifestHash:installed.manifestHash,
   installationId:installed.authorization.installationId,expectedGeneration:installed.authorization.generation});
 async function savedScrollHostFixture(){
@@ -1065,7 +1065,8 @@ test('US-06 frozen Page writer omitting navigation preserves current flags while
   assert.deepEqual(await f.service.readScrollSiteConfig(request,{}),updated);
   const explicit=await f.service.handleBoot({...message,operation:'write',etag:updated.etag,
     value:{...legacyValue,navigation:{}}},f.sender);
-  assert.deepEqual(explicit.value.navigation,Object.fromEntries(Object.keys(navigationFlags).map(key=>[key,true])));
+  assert.deepEqual(explicit.value.navigation,Object.fromEntries(Object.keys(navigationFlags)
+    .filter(key=>key!=='turnPaging').map(key=>[key,true])));
   const fromUI=await f.service.saveScrollNavigationSettings({...request,etag:explicit.etag,navigation:navigationFlags},{});
   assert.deepEqual(fromUI.value,{...legacyValue,navigation:navigationFlags});
 });

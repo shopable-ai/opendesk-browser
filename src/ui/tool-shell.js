@@ -209,7 +209,11 @@ const webflowAuto=Object.freeze({
   prepareAutoGrant:selection=>fixedPageChatBridge.prepareAutoGrant(selection),
   approveAutoTask:(review,event)=>fixedPageChatBridge.approveAutoTask(review,event),
   setAutoEnabled:(enabled,event)=>fixedPageChatBridge.setAutoEnabled(enabled,event),
-  revokeAutoTask:(taskId,event)=>fixedPageChatBridge.revokeAutoTask(taskId,event)
+  revokeAutoTask:(taskId,event)=>fixedPageChatBridge.revokeAutoTask(taskId,event),
+  readIssueWorkflowScope:()=>fixedPageChatBridge.readIssueWorkflowScope(),
+  prepareIssueWorkflow:()=>fixedPageChatBridge.prepareIssueWorkflow(),
+  approveIssueWorkflow:(review,event)=>fixedPageChatBridge.approveIssueWorkflow(review,event),
+  revokeIssueWorkflow:event=>fixedPageChatBridge.revokeIssueWorkflow(event)
 });
 extensionList=mountSidebarApp(document,{debugEnabled,developerView,myView,toolView,providerSettings,
   nativeConnection,localeController,webflowAuto,

@@ -23,12 +23,12 @@ const SCROLL_BUILTINS=[
 const SCROLL_FLAGS=[
   ['regionTop','regionTop'],['regionBottom','regionBottom'],
   ['conversationTop','conversationTop'],['conversationBottom','conversationBottom'],
-  ['floatingTop','floatingTop']
+  ['turnPaging','turnPaging'],['floatingTop','floatingTop']
 ];
 const SCROLL_FLAG_GROUPS=[
   ['longReply',SCROLL_FLAGS.slice(0,2)],
-  ['conversation',SCROLL_FLAGS.slice(2,4)],
-  ['floatingNavigation',SCROLL_FLAGS.slice(4)]
+  ['conversation',SCROLL_FLAGS.slice(2,5)],
+  ['floatingNavigation',SCROLL_FLAGS.slice(5)]
 ];
 function scrollOrigin(value){
   try{
@@ -57,6 +57,9 @@ const errorDetail=error=>error?.scrollMessage||String(error?.message||error);
 const readErrorDetail=error=>error?.scrollMessage||error?.code||errorDetail(error);
 export function ScrollSiteManager({model,pageControl,title,detail,onNavigation,PageControl,Diagnostics}){
   const locale=model.locale||'zh-CN';
+  const availableFlags=SCROLL_FLAGS.filter(([name])=>name!=='turnPaging'||model.turnPagingSupported);
+  const availableGroups=SCROLL_FLAG_GROUPS.map(([name,flags])=>[name,
+    flags.filter(([key])=>key!=='turnPaging'||model.turnPagingSupported)]);
   const t=(key,params)=>scrollNavigationText(locale,key,params);
   const resumed=model.resumeDraft||null;
   const [snapshot,setSnapshot]=React.useState(null);
@@ -280,7 +283,7 @@ export function ScrollSiteManager({model,pageControl,title,detail,onNavigation,P
   };
   const toggleNavigation=async(key,value,event)=>{
     if(inFlight.current||loading||!snapshot||needsReconcile)return;
-    const navigation=Object.fromEntries(SCROLL_FLAGS.map(([name])=>
+    const navigation=Object.fromEntries(availableFlags.map(([name])=>
       [name,name===key?value:snapshot.value.navigation?.[name]!==false]));
     inFlight.current=true;setBusy(true);setError('');setNotice('');
     try{
@@ -407,7 +410,7 @@ export function ScrollSiteManager({model,pageControl,title,detail,onNavigation,P
     </div>}
     {view==='settings'&&<div className="ec-scroll-subview">
       {!snapshot?<p role="status">{loading?t('readingNavigation'):t('navigationUnread')}</p>:
-        <div className="ec-scroll-flags">{SCROLL_FLAG_GROUPS.map(([group,flags])=><div role="group" aria-label={t(group)} key={group}>
+        <div className="ec-scroll-flags">{availableGroups.map(([group,flags])=><div role="group" aria-label={t(group)} key={group}>
           <h3 className="ec-scroll-flag-group">{t(group)}</h3>
           {flags.map(([key,label])=><div key={key} className="ec-scroll-flag"
             onPointerDownCapture={captureNavigation} onPointerUpCapture={captureNavigation}

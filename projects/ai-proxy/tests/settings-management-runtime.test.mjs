@@ -17,7 +17,7 @@ const headerActions=await bundle('../src/domain/header-actions.ts');
 const {translate}=await bundle('../src/i18n/locale.ts');
 const settingsCode=(await transform(await readFile(new URL('../src/Settings.tsx',import.meta.url),'utf8'),{loader:'tsx',format:'cjs',jsx:'automatic'})).code;
 const statusCode=(await transform(await readFile(new URL('../src/ui/Status.tsx',import.meta.url),'utf8'),{loader:'tsx',format:'cjs',jsx:'automatic'})).code;
-function render(locale,runtime,{config={...domain.freshConfig(),selection:{mode:'direct'}},route='#/rules',stateOverride}={}){
+function render(locale,runtime,{config={...domain.freshConfig(),selection:{mode:'direct'}},route='#/rules',stateOverride,presentation='management'}={}){
  const hooks={...React,useState:initial=>[typeof initial==='function'?initial():initial,()=>{}],useRef:initial=>({current:initial}),useEffect(){}};
  const i18n={useI18n:()=>({locale,t:(key,params)=>translate(locale,key,params)})};
  const statusModule={exports:{}};
@@ -36,9 +36,10 @@ function render(locale,runtime,{config={...domain.freshConfig(),selection:{mode:
   if(name==='./environment')return {getEnvironment:()=>({navigation:{getRoute:()=>route},isDraftDirty:()=>false})};
   if(name==='./ui/useProxy')return {useProxy:()=>({state:stateOverride===undefined?{config,runtime}:stateOverride,busy:false,error:'',act:()=>assert.fail('render mutated proxy state')})};
   if(name==='@opendesk/ui')return {Button:({children,variant,...props})=>React.createElement('button',props,children)};
+  if(name==='./ui/FormField')return {FormField:({id,label,className,children})=>React.createElement('div',{className},React.createElement('label',{htmlFor:id},label),typeof children==='function'?children({id}):children)};
   return new Proxy({},{get:()=>()=>null});
  }});
- return load(renderToStaticMarkup(React.createElement(module.exports.default,{presentation:'management'})));
+ return load(renderToStaticMarkup(React.createElement(module.exports.default,{presentation})));
 }
 
 test('management summary labels saved Direct as a selection independently from confirmed Rules, system, errors and unknown runtime',()=>{
@@ -96,4 +97,62 @@ test('PC initial state retains workbench identity and honest loading/retry inste
  assert.equal($('.managementLoadingState[role="status"]').length,1);
  assert.match($('.managementLoadingState').text(),/读取|正在|状态/);
  assert.ok($('.managementLoadingState button').length);
+});
+
+test('real PC proxy editor matches preview reading order, while retaining native business actions',()=>{
+ const config=domain.freshConfig();
+ const runtime={state:'disabled',control:'controllable_by_this_extension',canStop:false,
+  desired:config.selection,managedIntent:false,applied:false,pendingChanges:false,
+  activeSelection:null,browserMode:'system',proxyError:null};
+ const $=render('zh-CN',runtime,{config,route:'#/profiles'});
+ const dialog=$('.proxyEditorDialog');
+ assert.equal(dialog.length,1);
+ const fields=dialog.find('.proxyEditorFields');
+ assert.equal(fields.children('.proxyNameField').length,1,'name is the first editable field');
+ const children=fields.children().toArray();
+ const indexOf=selector=>children.findIndex(el=>$(el).is(selector));
+ assert.ok(indexOf('.proxyEditorIntro')<indexOf('.proxyNameField'));
+ assert.ok(indexOf('.proxyNameField')<indexOf('.proxyPrimaryFields'));
+ assert.ok(indexOf('.proxyPrimaryFields')<indexOf('.proxyAuthDetails'));
+ assert.deepEqual(fields.find('.proxyPrimaryFields').children().map((_,el)=>$(el).attr('class')).get(),
+  ['proxySchemeField','proxyHostField','proxyPortField'],'three PC connection controls read protocol → address → port');
+ assert.equal(dialog.find('.proxyAuthDetails').length,1,'real optional auth interface remains present');
+ assert.equal(dialog.find('.editorActions [type="submit"]').length,2,'real save and save-another actions remain');
+ assert.equal(dialog.find('.editorActions [data-add-another="true"]').length,1);
+ assert.equal(dialog.find('.editorActions button[type="button"]').length,1,'cancel is not a submit action');
+ assert.equal(dialog.find('.editorHead button[type="button"]').length,1,'close is not a submit action');
+});
+
+test('shared editor keeps the compact Side Panel field order without cloning business controls',()=>{
+ const config=domain.freshConfig();
+ const runtime={state:'disabled',control:'controllable_by_this_extension',canStop:false,
+  desired:config.selection,managedIntent:false,applied:false,pendingChanges:false,
+  activeSelection:null,browserMode:'system',proxyError:null};
+ const $=render('zh-CN',runtime,{config,route:'#/profiles',presentation:'sidebar'});
+ const fields=$('.proxyEditorDialog .proxyEditorFields'), children=fields.children().toArray();
+ const indexOf=selector=>children.findIndex(el=>$(el).is(selector));
+ assert.ok(indexOf('.proxyPrimaryFields')<indexOf('.proxyNameField'),
+  'Side Panel still places connection before the optional name field');
+ assert.deepEqual(fields.find('.proxyPrimaryFields').children().map((_,el)=>$(el).attr('class')).get(),
+  ['proxyHostField','proxySchemeField','proxyPortField'],
+  'Side Panel retains host → protocol → port');
+ assert.equal(fields.find('.proxyNameField').length,1,'only one name editor is mounted');
+});
+
+test('PC website rules expose preview-style route/priority columns while Side Panel stays compact',()=>{
+ const base=domain.freshConfig();
+ const config={...base,rules:[{id:'rule-1',domain:'chat.example',includeSubdomains:true,
+  priority:20,enabled:true,action:'direct'}]};
+ const runtime={state:'disabled',control:'controllable_by_this_extension',canStop:false,
+  desired:config.selection,managedIntent:false,applied:false,pendingChanges:false,
+  activeSelection:null,browserMode:'system',proxyError:null};
+ const pc=render('zh-CN',runtime,{config,route:'#/rules'});
+ assert.equal(pc('.managementRulesHeader').length,1);
+ assert.equal(pc('.ruleRecord .managementRuleTarget').text(),translate('zh-CN','directConnection2'));
+ assert.equal(pc('.ruleRecord .managementRulePriority').text(),'20');
+ assert.match(pc('.ruleRecordText small').text(),/子域/);
+ const side=render('zh-CN',runtime,{config,route:'#/rules',presentation:'sidebar'});
+ assert.equal(side('.managementRulesHeader').length,0);
+ assert.equal(side('.managementRuleTarget,.managementRulePriority').length,0);
+ assert.match(side('.ruleRecordText small').text(),/20/);
 });

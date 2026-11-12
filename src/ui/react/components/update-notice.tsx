@@ -170,7 +170,7 @@ export function UpdateNoticeSlot({surface='sidebar',controller,onOpenReview=()=>
       aria-label={'更新中心'+(count?'，'+count+' 项扩展待更新':'')}
       aria-haspopup="dialog" aria-expanded={opened} aria-controls="od-update-panel"
       onClick={()=>{setOpened(!opened);if(!opened)void refresh();}}>
-      <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20 7v5h-5M4 17v-5h5M5 9a8 8 0 0 1 14-2l1 1M19 15a8 8 0 0 1-14 2l-1-1"/></svg>
+      <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><path d="m7 10 5 5 5-5"/><path d="M12 15V3"/></svg>
       <span className="od-update-trigger-label">{surface==='app'?'更新中心':'更新'}</span>
       {count>0&&<span className="od-update-trigger-count" aria-hidden="true">{count>9?'9+':count}</span>}
     </button>

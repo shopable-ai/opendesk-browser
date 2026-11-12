@@ -29,6 +29,10 @@ export type WebflowAutoController={
  approveAutoTask:(review:WebflowAutoReview,nativeEvent:Event)=>Promise<WebflowAutoSnapshot>;
  setAutoEnabled:(enabled:boolean,nativeEvent:Event)=>Promise<WebflowAutoSnapshot>;
  revokeAutoTask:(taskId:string,nativeEvent:Event)=>Promise<WebflowAutoSnapshot>;
+ readIssueWorkflowScope?:()=>Promise<any>;
+ prepareIssueWorkflow?:()=>Promise<any>;
+ approveIssueWorkflow?:(review:any,nativeEvent:Event)=>Promise<any>;
+ revokeIssueWorkflow?:(nativeEvent:Event)=>Promise<any>;
 };
 
 // Fixed shell composition only. Display facts come from the installed-tool
@@ -81,6 +85,62 @@ function ScopeSummary({scope,parameterPolicy=scope.parameterPolicy}:{scope:Webfl
    <pre className="od-result od-technical" style={{whiteSpace:'pre-wrap'}}>{JSON.stringify(scope.installation,null,2)}</pre>
   </details>
  </div>;
+}
+
+
+// Fixed trusted capability review; installed sandbox UI cannot call these methods.
+function IssueWorkflowAuthorization({controller}:{controller:WebflowAutoController}){
+ const [current,setCurrent]=React.useState<any>(undefined),[review,setReview]=React.useState<any>(null);
+ const [working,setWorking]=React.useState(false),[error,setError]=React.useState('');
+ const read=React.useCallback(async()=>{
+  if(!controller.readIssueWorkflowScope)return;
+  try{setCurrent(await controller.readIssueWorkflowScope());setError('');}
+  catch(e){setError(String((e as Error)?.message||e));setCurrent(undefined);}
+ },[controller]);
+ React.useEffect(()=>{void read();},[read]);
+ if(!controller.prepareIssueWorkflow||!controller.approveIssueWorkflow)return null;
+ const prepare=async()=>{
+  setWorking(true);setError('');setReview(null);
+  try{setReview(await controller.prepareIssueWorkflow?.());}
+  catch(e){setError(String((e as Error)?.message||e));}
+  finally{setWorking(false);}
+ };
+ const approve=async(event:Event)=>{
+  if(!review||!event?.isTrusted||working)return;
+  setWorking(true);setError('');const approved=review;setReview(null);
+  try{setCurrent(await controller.approveIssueWorkflow?.(approved,event));}
+  catch(e){setError(String((e as Error)?.message||e)+'；先查询原授权，不重复点击。');}
+  finally{setWorking(false);}
+ };
+ const revoke=async(event:Event)=>{
+  if(!event?.isTrusted||working)return;
+  setWorking(true);setReview(null);setError('');
+  try{setCurrent(await controller.revokeIssueWorkflow?.(event));}
+  catch(e){setError(String((e as Error)?.message||e)+'；请查询原授权确认撤销是否生效。');}
+  finally{setWorking(false);}
+ };
+ return <details className="od-disclosure od-disclosure--flat" id="webflow-issue-workflow-authorization">
+  <summary>GitHub Issue → ChatGPT 对话接力 · 工作流授权</summary>
+  <div className="od-stack">
+   <p className="od-field-help">此授权独立于普通任务范围：允许读取 shopable-ai/opendesk-browser 的公开 Issue，调用已安装 ChatGPT Task 0.2.0（send:true），读取其完整持久 Result，并仅向发起任务的原 ChatGPT 对话回传一次。Issue 编号与分析目标可变化；仓库、安装身份、执行能力及目标网站不可变化。V1/V2 任务授权不会自动继承。</p>
+   <p role="status" className="od-note">当前授权：{current===undefined?'尚未核实':current===null?'尚未批准':current.state==='active'?'已批准（运行仍核验来源、安装及权限）':'已撤销'}</p>
+   {current?.grantId&&<p className="od-technical">授权引用：{current.grantId} · epoch {current.epoch}</p>}
+   <div className="od-toolbar">
+    <Button disabled={working} onClick={()=>void read()}>查询原授权</Button>
+    <Button disabled={working} onClick={()=>void prepare()}>准备审阅</Button>
+    <Button variant="danger" disabled={working||!current||current.state==='revoked'||!controller.revokeIssueWorkflow}
+     onClick={event=>void revoke(event.nativeEvent)}>撤销工作流授权</Button>
+   </div>
+   {review&&<section className="od-surface od-surface--padded od-stack" aria-label="工作流授权审阅">
+    <strong>审阅四项固定能力</strong>
+    <pre className="od-result od-technical" style={{whiteSpace:'pre-wrap',overflowWrap:'anywhere'}}>{JSON.stringify(review,null,2)}</pre>
+    <p className="od-field-help">批准后同范围的新任务不需要再次授权，但每次仍会绑定原 A 标签、账号、Document 和独立操作身份。草稿占用、撤权、结果 UNKNOWN 或网站身份变化将阻断实际发送，不会补发。</p>
+    <Button variant="primary" disabled={working} onClick={event=>void approve(event.nativeEvent)}>批准此工作流范围</Button>
+    <Button variant="quiet" disabled={working} onClick={()=>setReview(null)}>取消</Button>
+   </section>}
+   {error&&<p role="alert" className="od-field-error">{error}</p>}
+  </div>
+ </details>;
 }
 
 function ScopeSection({compact,children}){
@@ -522,6 +582,7 @@ export function WebflowAutoSettings({webflowAuto=null,compact=false,noticeView=n
   <div id={compact?'webflow-runtime-scope':undefined} role={compact?'tabpanel':undefined}
    aria-labelledby={compact?'webflow-runtime-tab-scope':undefined} hidden={compact&&tab!=='scope'} tabIndex={compact?0:undefined}>
   <ScopeSection compact={compact}>
+   {webflowAuto&&<IssueWorkflowAuthorization controller={webflowAuto}/>}
    <Button id="webflow-auto-refresh" disabled={busy||!webflowAuto?.readAutoSettings} onClick={refresh}>刷新授权状态</Button>
   {compact?<details className="od-disclosure od-disclosure--flat"><summary>授权规则与数据去向</summary>{scopeRules}</details>:scopeRules}
   {!webflowAuto&&<p role="status" className="od-note">自动准入设置暂不可用。</p>}

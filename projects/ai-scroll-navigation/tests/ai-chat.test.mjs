@@ -10,7 +10,7 @@ import {SIDEBAR_TOOL_ENABLE_STORE} from '../../../src/ui/sidebar-tools/lifecycle
 // Only transport/provider leases and persisted backend state are simulated.
 // Synthetic isTrusted tests controller guards, not native Chrome activation.
 const id='opendesk.ai-scroll-navigation';
-const navigation={regionTop:true,regionBottom:true,conversationTop:true,conversationBottom:true,floatingTop:true};
+const navigation={regionTop:true,regionBottom:true,conversationTop:true,conversationBottom:true,floatingTop:true,turnPaging:true};
 const site={origin:'https://chatgpt.com',pathScope:'/',mainSelector:'main',
   scrollSelector:'#conversation',messageSelector:'article',anchorSelector:'',enabled:true};
 const proposal=(patch={floatingTop:false})=>({type:'navigation',message:'已提议关闭悬浮回顶',patch});
@@ -26,7 +26,7 @@ const candidateProposal={type:'site-candidate',candidateId:'candidate-1',message
 
 async function fixture(t,options={}){
   const {doc,state,adapter}=createExtensionCenterDOM(t);
-  const installed={programId:id,title:'AI 对话滚动导航',revision:8,
+  const installed={programId:id,title:'AI 对话滚动导航',version:'0.4.15',revision:8,
     manifestHash:'a'.repeat(64),sourceHash:'b'.repeat(64),enabled:true,nativeState:'registered',
     authorization:{status:'active',generation:3,installationId:'installation-r8'},
     pageRules:{matches:['https://chatgpt.com/*'],excludeMatches:[],runAt:'document_idle',allFrames:false,world:'USER_SCRIPT'}};
@@ -139,12 +139,16 @@ test('explicit floatingTop off saves through original controller, etag and readb
   assert.deepEqual(write.payload,{programId:id,manifestHash:'a'.repeat(64),installationId:'installation-r8',
     expectedGeneration:3,etag:'initial',navigation:{...navigation,floatingTop:false}});
   assert.equal(f.saved().value.navigation.floatingTop,false);
-  const at=f.requests.indexOf(write);assert.equal(f.requests[at+1].method,'readScrollSiteConfig');
+  const at=f.requests.indexOf(write);
+  for(let attempt=0;attempt<8&&!f.requests.slice(at+1).some(row=>row.method==='readScrollSiteConfig');attempt++)
+    await tick();
+  assert.ok(f.requests.slice(at+1).some(row=>row.method==='readScrollSiteConfig'),
+    'committed change must be followed by an explicit trusted readback');
   assert.match(log(f),/saved-1/);assert.match(log(f),/悬浮回顶/);
   assert.equal(element(f,'#scroll-ai-input').value,'');
   assert.ok(lease.checks>=1);assert.equal(lease.releases,1);
   await click(f,'#scroll-settings');
-  const flag=[...f.doc.querySelectorAll('[role="switch"]')].at(-1);
+  const flag=[...f.doc.querySelectorAll('[role="switch"]')].find(node=>node.getAttribute('aria-label')==='滚动后悬浮回顶');
   assert.ok(flag);assert.equal(flag.checked,false);
 });
 

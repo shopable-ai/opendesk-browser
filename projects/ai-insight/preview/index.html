@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
 <meta name="od-preview-kind" content="DESIGN_REVIEW_ONLY_NOT_SOURCE_PARITY">
-<title>OpenDesk AI Insight R5 · 可点击原型</title>
+<title>OpenDesk AI Insight R5.5 · 三端可点击原型</title>
 <style>
 :root{--od-ink:#1b2c49;--od-sub:#53647e;--od-line:#dfe6ef;--od-brand:#365eda;--od-paper:#fff;--od-bg:#f5f7fb;--od-muted:#edf2fa;--od-positive:#117a5d;--od-negative:#ae3d4b;--od-warning:#80510d;--od-focus:#365eda;color-scheme:light;font:13px/1.55 -apple-system,BlinkMacSystemFont,"SF Pro Text","PingFang SC",system-ui,sans-serif}
 :root[data-theme=dark]{--od-ink:#e9eef7;--od-sub:#b3c1d3;--od-line:#374457;--od-brand:#9dc1ff;--od-paper:#151c28;--od-bg:#101722;--od-muted:#222d3e;--od-positive:#a1f3cc;--od-negative:#ff9ea6;--od-warning:#ffd08a;--od-focus:#9dc1ff;color-scheme:dark}
@@ -13,10 +13,42 @@ dialog{width:min(92vw,430px);border:1px solid var(--od-line);border-radius:12px;
 @media(max-width:740px){.pc-layout{display:block}.pc-nav{position:static;display:flex;overflow-x:auto;gap:4px;margin-bottom:12px}.pc-nav button{flex:0 0 auto;width:auto;white-space:nowrap}.stat-grid{grid-template-columns:repeat(2,minmax(0,1fr))}.timeline-row{grid-template-columns:85px minmax(0,1fr) 60px;gap:5px}.ticks{margin-left:90px;margin-right:65px}}
 @media(max-width:390px){.stat strong{font-size:18px}.stat{padding:10px}.panel{width:100%;border-left:0;border-right:0;border-radius:0}}
 @media(prefers-reduced-motion:reduce){*{scroll-behavior:auto!important;transition:none!important}}
+
+/* R5.5: demo only. Never inject these stylesheet rules into an actual provider page. */
+.prototype-feedback{max-width:1200px;margin:8px auto;padding:5px 12px;color:var(--od-sub);font-size:12px}
+.panel-tabs{padding:8px 12px;border-bottom:1px solid var(--od-line)}
+.panel-tabs button{flex:1}
+.panel-scroll{min-height:330px;max-height:58vh}
+.panel-footer{position:sticky;bottom:0;background:var(--od-paper);border-top:1px solid var(--od-line);padding:12px;z-index:2}
+.fold>summary{cursor:pointer;padding:12px 14px;font-weight:600;list-style-position:inside}
+.fold[open]>summary{border-bottom:1px solid var(--od-line)}
+.site{max-width:1120px;margin:16px auto}
+.site-app{display:grid;grid-template-columns:180px minmax(0,1fr);overflow:hidden;min-height:570px}
+.site-sidebar{border-right:1px solid var(--od-line);padding:16px;background:var(--od-muted)}
+.site-sidebar .item{background:var(--od-paper);color:var(--od-sub)}
+.site-main{position:relative;min-width:0;display:flex;flex-direction:column}
+.site-identity{min-height:70px;border-bottom:1px solid var(--od-line);padding:12px 14px;gap:12px;padding-right:22px}
+.site-identity label{display:flex;gap:7px;align-items:center;flex-wrap:wrap}
+.site-identity select{max-width:210px}
+.site-main .fake-chat{display:flex;flex:1;flex-direction:column;justify-content:center;align-items:stretch;gap:14px;text-align:left;padding:90px min(7%,45px) 25px;min-height:350px}
+.fake-chat .fake-prompt{align-self:flex-end}
+.fake-response{align-self:flex-start;max-width:510px;background:var(--od-paper);border:1px solid var(--od-line);border-radius:10px;padding:14px}
+.site-composer{display:flex;justify-content:space-between;align-items:center;gap:12px;margin:12px 24px 18px;padding:13px;border:1px solid var(--od-line);border-radius:10px;background:var(--od-muted);color:var(--od-sub)}
+.site-dock{position:absolute;top:82px;right:12px;z-index:3;width:min(360px,calc(100% - 24px));display:grid;justify-items:end;gap:8px;pointer-events:none}
+.site-dock>*{pointer-events:auto}
+.site-chip{min-height:36px;text-align:left;display:flex;align-items:center;justify-content:space-between;gap:12px;width:min(100%,360px);border-color:var(--od-brand);background:var(--od-paper);box-shadow:0 5px 16px #19233b26}
+.site-chip span:first-child{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.site-mini{width:100%;box-shadow:0 15px 38px #10182733;max-height:min(40vh,280px);overflow:auto;overflow-wrap:anywhere}
+.site-mini h2{font-size:14px}
+.site-mini .row{margin-top:8px}
+.site-mini button{font-size:12px;min-height:32px}
+.site-mini .item{padding:9px}
+@media(max-width:760px){.site-app{grid-template-columns:minmax(0,1fr)}.site-sidebar{display:none}.site-identity{padding-top:12px;padding-bottom:12px}.site-dock{top:116px}.site-main .fake-chat{padding-top:96px;min-height:370px}}
+@media(max-width:390px){.site-identity label{width:100%}.site-composer{margin:10px 10px 14px}.site-dock{left:8px;right:8px;width:auto}.site-chip{width:100%}.site-mini{max-height:60vh}}
 </style>
 </head>
 <body>
-<header class="top"><div class="row"><strong>◈ OpenDesk AI Insight</strong><span class="badge">R5 原型</span></div><div class="row"><span class="demo">全部为模拟数据 · 无网站访问</span><button type="button" data-act="theme" id="theme-btn">切换暗色</button></div></header>
+<header class="top"><div class="row"><strong>◈ OpenDesk AI Insight</strong><span class="badge">R5.5 设计预览</span></div><div class="row"><span class="demo">全部为模拟数据 · 无网站访问</span><button type="button" data-act="theme" id="theme-btn">切换暗色</button></div></header>
 <div class="controls" aria-label="原型设置">
  <span class="hint">呈现端</span>
  <button type="button" data-act="surface" data-val="pc">PC 工作台</button>
@@ -25,8 +57,10 @@ dialog{width:min(92vw,430px);border:1px solid var(--od-line);border-radius:12px;
  <span class="hint">模拟场景</span>
  <select id="scenario" aria-label="模拟数据场景"><option value="normal">正常</option><option value="empty">无数据</option><option value="partial">部分数据</option><option value="error">观察错误</option><option value="privacy">隐私关闭</option></select>
  <button type="button" data-act="reset">重置演示</button>
+ <button type="button" data-act="site-visibility" id="site-visibility-btn">隐藏网页提示</button>
 </div>
-<div id="live" class="sr" role="status" aria-live="polite"></div>
+<div id="feedback" class="prototype-feedback" role="status" aria-live="polite">预览仅使用脱敏内存数据；无真实站点访问与自动发送。</div>
+<div id="live" class="sr" aria-live="polite"></div>
 <section id="pc" class="pc-layout" aria-label="PC 工作台">
  <nav class="pc-nav surface" aria-label="工作台页面">
    <button data-act="tab" data-val="problems" type="button">问题中心</button>
@@ -43,6 +77,7 @@ dialog{width:min(92vw,430px);border:1px solid var(--od-line);border-radius:12px;
     <section class="surface pad"><div id="pc-summary"></div></section>
     <div id="pc-stats"></div>
     <section class="surface pad"><h2>跨 AI 关联候选</h2><p class="note">系统只提出候选，不能根据相似标题自动合并。</p><div id="pc-candidates" class="list mt"></div></section>
+    <section class="surface pad"><h2>当前问题的工作链</h2><p class="note">Problem → Attempt（演示阶段）→ Conversation / Execution → Evidence / Outcome。没有来源时明确标为未知。</p><div id="pc-drill" class="stage mt"></div></section>
     <section class="surface pad"><h2>已确认的关联对话</h2><div id="pc-links" class="list mt"></div></section>
     <section class="surface pad"><h2>全部问题</h2><div id="pc-problems" class="list mt"></div></section>
    </div>
@@ -55,11 +90,31 @@ dialog{width:min(92vw,430px);border:1px solid var(--od-line);border-radius:12px;
 </section>
 <section id="panel" class="panel surface" aria-label="Side Panel" hidden>
  <header class="panel-head row between"><strong>◈ AI Insight</strong><div class="row"><button data-act="new" type="button">＋ 问题</button><button data-act="surface" data-val="pc" type="button">PC</button></div></header>
- <div class="panel-scroll stack"><div id="panel-message"></div><section class="surface pad"><h2>当前问题与下一步</h2><div id="panel-summary"></div></section><section class="surface pad"><h2>关联候选</h2><div id="panel-candidates" class="list mt"></div></section><section class="surface pad"><h2>关联对话</h2><div id="panel-links" class="list mt"></div></section><section class="surface pad"><h2>执行区间</h2><div id="panel-metrics"></div></section><section class="surface pad"><h2>成果验收</h2><div id="panel-outcome"></div></section><section class="surface pad"><h2>授权控制</h2><div id="panel-privacy" class="list mt"></div></section></div>
+ <div class="panel-tabs row" aria-label="侧栏视图"><button type="button" data-act="panel-view" data-val="current">当前问题</button><button type="button" data-act="panel-view" data-val="all">全部问题</button></div>
+ <div id="panel-current" class="panel-scroll stack">
+  <div id="panel-message"></div>
+  <section class="surface pad"><h2>当前在解决什么</h2><div id="panel-summary" class="mt"></div></section>
+  <section class="surface pad"><h2>观察与待办</h2><div id="panel-focus" class="mt"></div></section>
+  <details class="surface fold"><summary>关联候选与已确认对话</summary><div class="pad stack"><div id="panel-candidates" class="list"></div><div id="panel-links" class="list"></div></div></details>
+  <details class="surface fold"><summary>请求时间与观察缺口</summary><div id="panel-metrics" class="pad"></div></details>
+  <details class="surface fold"><summary>成果验收与重新开启</summary><div id="panel-outcome" class="pad"></div></details>
+  <details class="surface fold"><summary>按站点管理授权</summary><div id="panel-privacy" class="pad list"></div></details>
+ </div>
+ <div id="panel-all" class="panel-scroll stack" hidden><p class="note">选择要继续的问题；这里只显示当前内存演示状态。</p><div id="panel-problems" class="list"></div></div>
+ <footer class="panel-footer"><div id="panel-next" class="note"></div><div class="row mt"><button type="button" data-act="tab" data-val="restore" class="primary">继续工作摘要</button><button type="button" data-act="tab" data-val="outcomes">成果验收</button></div></footer>
 </section>
-<section id="site" class="site" aria-label="网页轻提示" hidden>
- <div class="surface"><header class="pad"><strong>受控 AI 网页模拟</strong><p class="hint">不注入实际 ChatGPT / Claude 页面</p></header><div class="fake-chat"><h2>示例 AI 对话 A</h2><div class="fake-prompt">请修复浏览器扩展保存失败，并提供可复现的验收步骤。</div><p class="note">这里的回复和运行状态均为演示。</p></div><div class="site-strip"><div><strong>◈ 当前问题</strong><div id="site-summary" class="note"></div></div><button data-act="surface" data-val="panel" class="primary" type="button">打开 Side Panel</button></div></div>
- <p class="note mt">正式网页提示须避让输入框与网站操作区；此界面不代表真实 Content Script。</p>
+<section id="site" class="site" aria-label="目标 AI 网页轻提示模拟" hidden>
+ <div class="surface site-app">
+  <aside class="site-sidebar"><strong>模拟 AI 导航</strong><p class="note mt">侧栏与对话只模拟布局，不读取任何真实聊天。</p><div class="item mt">最近聊天</div><div class="item mt">项目对话</div></aside>
+  <div class="site-main">
+   <header class="site-identity row between"><div><strong>AI 网站模拟</strong><p class="hint">用于测试定位与状态，不是正式 Content Script</p></div><label class="hint" for="site-conversation">模拟当前对话 <select id="site-conversation"><option value="conv_a">ChatGPT A</option><option value="conv_b">Claude B</option><option value="conv_c">ChatGPT C</option><option value="conv_x">Gemini X（相似但不同）</option></select></label></header>
+   <div class="fake-chat"><div class="fake-prompt">请修复浏览器扩展保存失败，并提供可复现的验收步骤。</div><div class="fake-response"><strong id="site-context-label">ChatGPT · 对话 A</strong><p class="note mt">AI 回复内容为脱敏模拟。本页面的按钮不会向 AI 网站发送请求。</p><p class="note mt">单次观察“完成”与真正修复 Bug 是两件不同的事。</p></div></div>
+   <div class="site-composer" aria-label="AI 网站原生输入区模拟"><span class="muted">向 AI 发送消息…（模拟输入区，禁止发送）</span><button disabled type="button">发送</button></div>
+   <div id="site-dock" class="site-dock"><button type="button" class="site-chip" id="site-chip" data-act="site-expand" aria-expanded="false" aria-controls="site-mini"><span id="site-chip-label">◈ AI Insight · 当前问题 · 观察未知</span><span aria-hidden="true">⌄</span></button><div id="site-mini" class="site-mini surface pad" hidden></div></div>
+  </div>
+ </div>
+ <p id="site-hidden-note" class="note mt" hidden>网页提示已隐藏；上方「显示网页提示」可以恢复。隐藏提示并不撤销站点观察授权。</p>
+ <p class="note mt">正式站点必须避让输入框、发送/停止/附件按钮，遇到布局冲突时不应显示浮层。此处只展示受控布局，不代表真实站点兼容已通过。</p>
 </section>
 <dialog id="create-dialog" aria-labelledby="create-title"><form id="create-form"><h2 id="create-title">创建真实问题（模拟）</h2><p class="note mt">仅创建本地内存对象，不自动读取私人聊天。</p><label for="new-name">问题名称 *</label><input id="new-name" name="name" maxlength="120" required placeholder="例如：修复页面按钮失效"><div class="dialog-actions"><button type="button" data-act="cancel">取消</button><button type="submit" class="primary">创建</button></div></form></dialog>
 <dialog id="delete-dialog" aria-labelledby="delete-title"><h2 id="delete-title">删除模拟问题？</h2><p class="note mt">清理该 Problem 的关联、独占派生记录和演示证据。共享数据仍按其他 Problem 的归属保留。</p><div class="dialog-actions"><button type="button" data-act="cancel">取消</button><button type="button" data-act="confirm-delete" class="danger">确认删除</button></div></dialog>

@@ -857,6 +857,10 @@ export function createExtensionCenter({api,client,doc,sidebarTools,taskWorkbench
         sites:page?.pageRules?.matches||(row.kind==='page'?row.release?.sites:[])||[],
         scrollManager:row.kind==='page'&&row.installed&&row.id===SCROLL_CONFIG_PROGRAM_ID?(()=>{
           const pinned=pageIdentity(row);
+          const versionParts=String(row.record?.installed?.version||'').split('.').map(Number);
+          const supportsTurnPaging=versionParts.length===3&&versionParts.every(Number.isSafeInteger)&&
+            (versionParts[0]>0||versionParts[1]>4||
+              versionParts[1]===4&&versionParts[2]>=15);
           const request={programId:pinned.programId,manifestHash:pinned.manifestHash,
             installationId:pinned.installationId,expectedGeneration:pinned.expectedGeneration};
           const ensure=()=>{
@@ -909,7 +913,7 @@ export function createExtensionCenter({api,client,doc,sidebarTools,taskWorkbench
             }catch(error){scrollWriteUnknown=true;throw unknown(error);}
           };
           return {
-            locale:language(),
+            locale:language(),turnPagingSupported:supportsTurnPaging,
             identityKey:pinned.installationId+':'+pinned.manifestHash+':'+pinned.expectedGeneration,
             createConversation:()=>{
               ensure();
@@ -970,8 +974,12 @@ export function createExtensionCenter({api,client,doc,sidebarTools,taskWorkbench
             async onSaveNavigation(navigation,etag,event,authorization=null){
               if(event?.isTrusted!==true)throw scrollError('navigationGesture','E_GESTURE');
               ensure();
+              const flagCount=Object.keys(navigation||{}).length;
+              if(flagCount!==5&&!(supportsTurnPaging&&flagCount===6))
+                throw scrollError('navigationGesture','E_CONFIG_SCHEMA');
               return mutate('saveScrollNavigationSettings',{...request,etag,navigation},value=>
-                Object.keys(navigation).length===5&&Object.entries(navigation).every(([key,flag])=>
+                Object.keys(value.navigation||{}).length===flagCount&&
+                Object.entries(navigation).every(([key,flag])=>
                   typeof flag==='boolean'&&value.navigation?.[key]===flag),authorization);
             },
             onDraftChange(draft,editKey){

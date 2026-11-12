@@ -1,7 +1,7 @@
 // One standalone conversation dock per installed Page Program.
 // Conversation top and floating top share one physical button.
 import {findSiteConversation} from './site-adapters.js';
-import {jumpConversationEdge} from './conversation.js';
+import {jumpConversationEdge,findConversationPages,currentConversationPageIndex,jumpConversationPage} from './conversation.js';
 import {scrollConfiguredEdge} from './site-configuration.js';
 
 const OWN='data-opendesk-ai-scroll-navigation';
@@ -105,6 +105,7 @@ export function installFloatingNavigation({doc,win,owner,resolveConversation=nul
     const floating=next.scroller.scrollTop>Math.max(320,Math.min(win.innerHeight,next.scroller.clientHeight)*.65);
     return {top:flags.conversationTop!==false||(flags.floatingTop!==false&&floating),
       bottom:flags.conversationBottom!==false,
+      paging:flags.turnPaging!==false,
       topKey:floating&&flags.floatingTop!==false?'floatingTop':'conversationTop'};
   };
   function click(direction,event) {
@@ -119,9 +120,18 @@ export function installFloatingNavigation({doc,win,owner,resolveConversation=nul
     }
     // Invalidate stale buttons before navigation/React reconciliation finishes.
     const next=context();
-    if (!next||!enabled(next)[direction]||next.main!==binding.main||next.scroller!==binding.scroller) return;
-    if(next.custom)scrollConfiguredEdge(next,direction,doc,win);
-    else jumpConversationEdge(next.main,next.selector,direction,doc,win);
+    if (!next||next.main!==binding.main||next.scroller!==binding.scroller) return;
+    const intent=enabled(next);
+    if(direction==='previous'||direction==='next') {
+      if(!intent.paging)return;
+      const paging=findConversationPages(next,doc,win);
+      if(!paging)return;
+      jumpConversationPage(paging,direction,doc,win);
+    }else{
+      if(!intent[direction])return;
+      if(next.custom)scrollConfiguredEdge(next,direction,doc,win);
+      else jumpConversationEdge(next.main,next.selector,direction,doc,win);
+    }
     schedule();
   }
   function prepare() {
@@ -145,7 +155,13 @@ export function installFloatingNavigation({doc,win,owner,resolveConversation=nul
       button:disabled{opacity:.48;cursor:default}
       button:focus-visible{outline:3px solid #4c82ff;outline-offset:2px}
       svg{width:20px;height:20px;fill:none;stroke:currentColor;stroke-width:1.7;
-        stroke-linecap:round;stroke-linejoin:round}`;
+        stroke-linecap:round;stroke-linejoin:round}
+      .counter{width:42px;min-height:28px;display:grid;place-items:center;pointer-events:none;
+        box-sizing:border-box;border:1px solid #b8c2d44d;border-radius:9px;
+        font:650 11px/1.2 system-ui,sans-serif;font-variant-numeric:tabular-nums;
+        color:#2b3b51;background:#ffffffed;white-space:nowrap}
+      :host(.dark) .counter{background:#303239ef;color:#f3f4f8;border-color:#ffffff30}
+      .stack.compact .counter{width:48px;min-height:42px}`;
     const stack=doc.createElement('div');
     stack.className='stack';
     const make=(direction,label,pathData)=>{
@@ -159,11 +175,20 @@ export function installFloatingNavigation({doc,win,owner,resolveConversation=nul
       owner.on(button,'click',event=>click(direction,event));
       return button;
     };
+    const counter=doc.createElement('span');
+    counter.className='counter';
+    counter.setAttribute('role','status');
+    counter.setAttribute('aria-live','off');
     buttons={
       stack,
       top:make('top','回到对话顶部','M17 11l-5-5-5 5m10 7-5-5-5 5'),
+      previous:make('previous','上一轮提问','M5 15l7-7 7 7'),
+      counter,
+      next:make('next','下一轮提问','M5 9l7 7 7-7'),
       bottom:make('bottom','跳到对话底部','M7 6l5 5 5-5M7 13l5 5 5-5')
     };
+    buttons.previous.dataset.scrollNavKey='turnPrevious';
+    buttons.next.dataset.scrollNavKey='turnNext';
     shadow.append(style,stack);
   }
   function refresh() {
@@ -194,11 +219,16 @@ export function installFloatingNavigation({doc,win,owner,resolveConversation=nul
       host?.remove();binding=null;return;
     }
     const directions=enabled(next);
-    if(!directions.top&&!directions.bottom){host?.remove();binding=null;return;}
+    const paging=directions.paging?findConversationPages(next,doc,win):null;
+    const currentPage=paging?currentConversationPageIndex(paging,doc,win):-1;
+    const canPage=currentPage>=0;
+    if(!directions.top&&!directions.bottom&&!canPage){host?.remove();binding=null;return;}
     prepare();
-    // At most two physical controls; configured modes share the top key.
-    // A native back-to-top remains an obstacle to position around.
-    const options=[...(directions.top?[buttons.top]:[]),...(directions.bottom?[buttons.bottom]:[])];
+    // Reuse one dock: whole-conversation edges bracket the optional question
+    // pager. No page nodes are persisted beyond this synchronous refresh.
+    const options=[...(directions.top?[buttons.top]:[]),
+      ...(canPage?[buttons.previous,buttons.counter,buttons.next]:[]),
+      ...(directions.bottom?[buttons.bottom]:[])];
     if (options.length!==buttons.stack.children.length||
         options.some((button,index)=>buttons.stack.children[index]!==button))
       buttons.stack.replaceChildren(...options);
@@ -210,11 +240,22 @@ export function installFloatingNavigation({doc,win,owner,resolveConversation=nul
     buttons.bottom.dataset.scrollNavKey='conversationBottom';
     buttons.top.disabled=scroller.scrollTop<=2;
     buttons.bottom.disabled=scroller.scrollTop>=max-2;
+    if(canPage){
+      buttons.previous.disabled=currentPage===0;
+      buttons.next.disabled=currentPage===paging.pages.length-1;
+      buttons.counter.textContent=(currentPage+1)+'/'+paging.pages.length;
+      buttons.counter.setAttribute('aria-label',
+        '当前第'+(currentPage+1)+'轮，共'+paging.pages.length+'轮已加载对话');
+      buttons.counter.title='仅统计当前已加载且可识别的用户提问';
+    }
     const rect=next.main.getBoundingClientRect();
     const compact=win.innerWidth<600;
     buttons.stack.classList.toggle('compact',compact);
-    const count=options.length,width=compact?count*SIZE+(count-1)*GAP:SIZE;
-    const height=compact?SIZE:count*SIZE+(count-1)*GAP;
+    const count=options.length;
+    const extent=options.reduce((n,item)=>n+(item===buttons.counter?(compact?48:28):SIZE),0)
+      +Math.max(0,count-1)*GAP;
+    const width=compact?extent:SIZE;
+    const height=compact?SIZE:extent;
     // The transcript content can extend far above/below the screen. Anchor to
     // its visible scroll port, never to moving message boxes or document edges.
     const viewport=win.visualViewport;

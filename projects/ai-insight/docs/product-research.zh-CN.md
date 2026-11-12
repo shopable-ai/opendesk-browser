@@ -306,3 +306,8 @@ R4 评估三条路线（主观加权评估、非用户调研）：A 统计+提�
 按原始目标差量执行了 T01–T04 的可独立部分：19 个对象定义的候选 Schema、Problem 关系/审计/拆分与 Execution 计算纯核心、24 项 Node 测试源码、非私密事件 fixture，以及共享模型的 PC/Side Panel/网页轻提示交互预览。GitHub 读回后连接器隔离 JS 检查 21/21 PASS；不代表本机 Node 或真实 Chrome。权威技术口径见 [数据合同](data-contract-r5.zh-CN.md)，精确证据等级、环境阻塞、专家自评与下一轮最小动作见 [R5 验收](r5-acceptance.zh-CN.md)。
 
 剩余阻塞：本机 Codex/工作区连接、完整 JSON Schema Validator、预览逐按钮 Chrome 证据、两个已授权 AI 站点事件探针、正式权限撤销与删除链验证。**R5 不是生产已交付。**
+
+
+## 13. R5.5 续接索引（2026-11-12）
+
+本文件保留 R4 16 项研究领域和原始产品定位，不复制 R5.5 的指标表。**新决策唯一入口**：[R5.5 指标、功能树与三端交互设计](metrics-and-experience-r55.zh-CN.md)，对应现有 [三端预览](../preview/index.html) 与 [定向测试源码](../tests/insight-preview-r55.test.mjs)。最新实际交付、未测边界与本机运行命令以 [项目 README](../README.zh-CN.md) 为准。R5 JSON Schema v1、计时公式及旧测试保持原所有权，R5.5 不重造。

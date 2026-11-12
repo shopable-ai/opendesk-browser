@@ -2,7 +2,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import {scrollConversationPolicy,buildScrollAIContext,validateScrollAIProposal as validate} from '../trusted/ai-configuration.js';
 
-const flags={regionTop:true,regionBottom:false,conversationTop:true,conversationBottom:false,floatingTop:true};
+const flags={regionTop:true,regionBottom:false,conversationTop:true,conversationBottom:false,floatingTop:true,turnPaging:true};
 const rule={origin:'https://example.com',pathScope:'/chat',mainSelector:'#chat',scrollSelector:'#scroll',
   messageSelector:'.message',anchorSelector:'',enabled:true};
 const snapshot={value:{version:1,sites:[rule],navigation:flags},etag:'7'};
@@ -130,7 +130,9 @@ for(const [request,field,value] of [
   ['关闭回到回复顶部','regionTop',false],
   ['開啟跳到回覆底端','regionBottom',true],
   ['enable Go to conversation top','conversationTop',true],
-  ['会話の末尾へをオンにする','conversationBottom',true]
+  ['会話の末尾へをオンにする','conversationBottom',true],
+  ['关闭按对话轮次翻页','turnPaging',false],
+  ['enable Previous/next question','turnPaging',true]
 ])test(`real localized control name: ${request}`,()=>{
   assert.deepEqual(validate({request,proposal:navigation({[field]:value}),snapshot}).navigation,
     {...flags,[field]:value});

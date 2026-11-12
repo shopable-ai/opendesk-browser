@@ -4,6 +4,8 @@
   const root=tool?.root,request=tool?.request;
   const toggle=root?.querySelector('#gesture-enabled');
   const triggerControl=root?.querySelector('#gesture-trigger');
+  const menuControl=root?.querySelector('#gesture-menu-policy');
+  const menuHelp=root?.querySelector('#gesture-menu-help');
   const traceControl=root?.querySelector('#gesture-trace');
   const comboControl=root?.querySelector('#gesture-combo');
   const comboActionControl=root?.querySelector('#gesture-combo-action');
@@ -13,7 +15,8 @@
     typeof request!=='function')throw Error('E_MOUSE_GESTURES_TOOL_CONTEXT');
   const key='preferences';
   let closed=false,busy=false,revision=0;
-  let current={enabled:true,trigger:'right',showTrace:true,gestureMappings:{}};
+  let current={enabled:true,trigger:'right',menuPolicy:'native-first',
+    showTrace:true,gestureMappings:{}};
   const comboKeys=new Set(['left-up','left-down','right-up','right-down',
     'up-left','up-right','down-left','down-right']);
   const validActions=new Set(['left','right','up','down']);
@@ -26,6 +29,7 @@
   const showError=message=>{error.textContent=message;error.hidden=!message;};
   const controlsDisabled=disabled=>{
     toggle.disabled=disabled;triggerControl.disabled=disabled;traceControl.disabled=disabled;
+    if(menuControl)menuControl.disabled=disabled;
     if(comboControl)comboControl.disabled=disabled;
     if(comboActionControl)comboActionControl.disabled=disabled;
   };
@@ -33,6 +37,10 @@
     toggle.checked=current.enabled;
     toggle.setAttribute('aria-checked',String(current.enabled));
     triggerControl.value=current.trigger;
+    if(menuControl)menuControl.value=current.menuPolicy;
+    if(menuHelp)menuHelp.textContent=current.menuPolicy==='gesture-first'?
+      '手势优先会拦截已授权网页空白处的普通右键菜单。按住 Shift 再右键可使用原生菜单；链接、输入框等排除区域仍保留原生菜单。':
+      '默认保留普通右键菜单。若 macOS 在拖动前就弹出菜单，手势可能无法开始；可改用 Option / Alt + 左键或手动启用手势优先。';
     traceControl.checked=current.showTrace;
     if(comboControl&&comboActionControl)
       comboActionControl.value=current.gestureMappings[comboControl.value]||'none';
@@ -53,6 +61,7 @@
     // Authorized new installations start enabled without writing on first read.
     enabled:saved?.value?.enabled!==false,
     trigger:saved?.value?.trigger==='alt-left'?'alt-left':'right',
+    menuPolicy:saved?.value?.menuPolicy==='gesture-first'?'gesture-first':'native-first',
     showTrace:saved?.value?.showTrace!==false,
     gestureMappings:cleanMappings(saved?.value?.gestureMappings)
   });
@@ -111,6 +120,7 @@
   }
   toggle.addEventListener('change',()=>void persist({enabled:toggle.checked}));
   triggerControl.addEventListener('change',()=>void persist({trigger:triggerControl.value}));
+  menuControl?.addEventListener('change',()=>void persist({menuPolicy:menuControl.value}));
   traceControl.addEventListener('change',()=>void persist({showTrace:traceControl.checked}));
   comboControl?.addEventListener('change',()=>{
     if(comboActionControl)comboActionControl.value=current.gestureMappings[comboControl.value]||'none';

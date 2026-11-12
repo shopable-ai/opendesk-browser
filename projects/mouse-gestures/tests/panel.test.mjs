@@ -30,21 +30,25 @@ function panel(store){
     setAttribute(k,v){this.attributes.set(k,v);}};
   const trigger={value:'right',disabled:true,addEventListener(type,fn){listeners.set('trigger:'+type,fn);}};
   const trace={checked:true,disabled:true,addEventListener(type,fn){listeners.set('trace:'+type,fn);}};
+  const menuPolicy={value:'native-first',disabled:true,addEventListener(type,fn){listeners.set('menuPolicy:'+type,fn);}};
+  const menuHelp={textContent:''};
   const combo={value:'left-down',disabled:true,addEventListener(type,fn){listeners.set('combo:'+type,fn);}};
   const comboAction={value:'none',disabled:true,addEventListener(type,fn){listeners.set('comboAction:'+type,fn);}};
   const hint={textContent:''},error={textContent:'',hidden:true};
   const elements=new Map([['#gesture-enabled',toggle],['#gesture-trigger',trigger],
-    ['#gesture-trace',trace],['#gesture-combo',combo],['#gesture-combo-action',comboAction],['#gesture-help',hint],['#gesture-error',error]]);
+    ['#gesture-trace',trace],['#gesture-menu-policy',menuPolicy],['#gesture-menu-help',menuHelp],
+    ['#gesture-combo',combo],['#gesture-combo-action',comboAction],['#gesture-help',hint],['#gesture-error',error]]);
   const root={querySelector(id){return elements.get(id)||null;},
     addEventListener(type,fn){listeners.set('root:'+type,fn);}};
   const window={addEventListener(type,fn){windowHandlers.set(type,fn);}};
   const tool={root,request:store.request,setState(state){states.push(state);}};
   vm.runInNewContext(panelSource,{globalThis:{OpenDeskTool:tool},window});
   const flush=async()=>{await tick();await tick();};
-  return {toggle,trigger,trace,combo,comboAction,hint,error,states,windowHandlers,
+  return {toggle,trigger,trace,menuPolicy,menuHelp,combo,comboAction,hint,error,states,windowHandlers,
     async change(value){toggle.checked=value;listeners.get('enabled:change')();await flush();},
     async changeTrigger(value){trigger.value=value;listeners.get('trigger:change')();await flush();},
     async changeTrace(value){trace.checked=value;listeners.get('trace:change')();await flush();},
+    async changeMenuPolicy(value){menuPolicy.value=value;listeners.get('menuPolicy:change')();await flush();},
     async changeCombo(value){combo.value=value;listeners.get('combo:change')();await flush();},
     async changeComboAction(value){comboAction.value=value;listeners.get('comboAction:change')();await flush();},
     async reload(){listeners.get('root:opendesk-page-changed')();await flush();},
@@ -145,4 +149,20 @@ test('Side Panel only saves explicitly assigned two-segment mappings via CAS',as
   assert.deepEqual(JSON.parse(JSON.stringify(store.read().gestureMappings)),{'up-right':'right'});
   assert.equal(one.toggle.checked,true);
   one.close();
+});
+
+test('menu policy is explicit, CAS-persisted and read back after reopening',async()=>{
+  const store=storeFixture(),one=panel(store);await tick();
+  assert.equal(one.menuPolicy.value,'native-first');
+  assert.equal(store.read(),null,'native-first default requires no background write');
+  await one.changeMenuPolicy('gesture-first');
+  assert.equal(store.read().menuPolicy,'gesture-first');
+  assert.match(one.menuHelp.textContent,/Shift/);
+  one.close();
+  const second=panel(store);await tick();
+  assert.equal(second.menuPolicy.value,'gesture-first');
+  await second.changeMenuPolicy('native-first');
+  assert.equal(store.read().menuPolicy,'native-first');
+  assert.match(second.menuHelp.textContent,/原生菜单/);
+  second.close();
 });

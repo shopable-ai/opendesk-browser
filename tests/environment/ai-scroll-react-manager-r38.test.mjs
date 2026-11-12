@@ -15,7 +15,7 @@ const sample={
 };
 async function fixture(t,options={}){
   const {doc,state,adapter}=createExtensionCenterDOM(t);
-  const installed={programId:id,title:'AI 对话滚动导航',revision:8,
+  const installed={programId:id,title:'AI 对话滚动导航',version:'0.4.15',revision:8,
     manifestHash:'a'.repeat(64),sourceHash:'b'.repeat(64),enabled:true,
     nativeState:'registered',authorization:{
       status:'active',generation:3,installationId:'installation-r8'},
@@ -290,7 +290,7 @@ test('R4.0 navigation settings persist through the existing CAS config and prese
   await tick();
   const manager=f.state.detailModel.scrollManager;
   const navigation={regionTop:false,regionBottom:true,conversationTop:false,
-    conversationBottom:true,floatingTop:false};
+    conversationBottom:true,floatingTop:false,turnPaging:true};
   await assert.rejects(()=>manager.onSaveNavigation(navigation,'existing',{isTrusted:false}),{code:'E_GESTURE'});
   const result=await manager.onSaveNavigation(navigation,'existing',{isTrusted:true});
   assert.deepEqual(result.value.sites,[sample]);
@@ -299,7 +299,7 @@ test('R4.0 navigation settings persist through the existing CAS config and prese
   assert.equal(write.payload.etag,'existing');
   assert.equal(write.payload.target,undefined,'global preferences do not claim a page document');
   f.doc.querySelector('button[aria-label="导航设置"]').dispatch('click');await tick();
-  assert.equal(f.doc.querySelectorAll('[role="switch"]').length,5);
+  assert.equal(f.doc.querySelectorAll('[role="switch"]').length,6);
   assert.equal(f.doc.querySelectorAll('[role="switch"]:disabled').length,0);
   [...f.doc.querySelectorAll('button')].find(b=>b.textContent==='权限与技术信息').dispatch('click');await tick();
   assert.equal(f.doc.querySelector('.ec-scroll-site-manager').dataset.view,'management');
@@ -363,7 +363,7 @@ test('R4.0 failed first read is unknown state rather than an empty list or selec
   assert.equal(f.doc.querySelectorAll('[role="switch"]').length,0);
   unavailable=false;
   [...f.doc.querySelectorAll('button')].find(b=>b.textContent==='重新读取核对').dispatch('click');await tick();
-  assert.equal(f.doc.querySelectorAll('[role="switch"]').length,5);
+  assert.equal(f.doc.querySelectorAll('[role="switch"]').length,6);
 });
 
 test('R4.0 cross-site removal and disabling do not request new execution permission',async t=>{
@@ -705,4 +705,24 @@ test('AI Scroll preserves a user-supplied title when the UI language changes',as
   assert.equal(f.state.detailModel.title,title);
   assert.ok(f.doc.querySelector('.ec-detail-head').textContent.includes(title));
   assert.equal(f.doc.querySelector('自定义'),null);
+});
+
+test('R4.1 legacy 0.4.14 installed Page retains five navigation settings without unsafe sixth-key writes',async t=>{
+  const flags={regionTop:true,regionBottom:true,conversationTop:true,conversationBottom:true,floatingTop:true};
+  const f=await fixture(t,{installed:{version:'0.4.14'},
+    saved:{value:{version:1,sites:[sample],navigation:flags},etag:'legacy'}});
+  await tick();
+  assert.equal(f.state.detailModel.scrollManager.turnPagingSupported,false);
+  f.doc.querySelector('button[aria-label="导航设置"]').dispatch('click');await tick();
+  assert.equal(f.doc.querySelectorAll('[role="switch"]').length,5);
+  const manager=f.state.detailModel.scrollManager;
+  const writes=()=>f.requests.filter(req=>req.method==='saveScrollNavigationSettings');
+  await assert.rejects(
+    ()=>manager.onSaveNavigation({...flags,turnPaging:false},'legacy',{isTrusted:true}),
+    {code:'E_CONFIG_SCHEMA'});
+  assert.equal(writes().length,0,'new six-key setting must be blocked before legacy host write');
+  const saved=await manager.onSaveNavigation({...flags,floatingTop:false},'legacy',{isTrusted:true});
+  assert.equal(saved.value.navigation.floatingTop,false);
+  assert.equal(Object.hasOwn(saved.value.navigation,'turnPaging'),false);
+  assert.equal(writes().length,1);
 });

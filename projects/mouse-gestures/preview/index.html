@@ -191,7 +191,15 @@
                 <option value="alt-left">Option / Alt + 左键拖动</option>
               </select>
             </div>
-            <p class="od-note">若系统原生菜单先弹出，可选 Option / Alt + 左键。</p>
+            <p class="od-note">正式网页若先出现原生菜单，可切换 Option / Alt + 左键，或主动启用手势优先。</p>
+            <div class="mock-pref-row">
+              <label for="mock-menu-policy">网页右键菜单</label>
+              <select id="mock-menu-policy" aria-describedby="mock-menu-note">
+                <option value="native-first">原生菜单优先（默认）</option>
+                <option value="gesture-first">手势优先（需主动启用）</option>
+              </select>
+            </div>
+            <p id="mock-menu-note" class="od-note">正式网页默认保留普通右键菜单；练习区为独立沙盒，右键拖动时始终拦截此区域的菜单。</p>
             <label class="mock-trace-option"><input id="mock-trace" type="checkbox" checked>显示轨迹与动作提示</label>
             <div class="mock-combo-setting">
               <span class="mock-combo-title">组合手势动作（仅模拟保存）</span>
@@ -226,8 +234,8 @@
     </div>
     <section class="practice" aria-label="网页手势反馈演示">
       <h2>网页手势效果模拟</h2>
-      <p class="od-note">按住<strong>左键</strong>绘制单段或直角组合。每段只显示一个带圆角方块的方向箭头；不会执行网页操作。</p>
-      <div id="practice-pad" class="practice-pad" tabindex="0" aria-label="手势练习区域">
+      <p class="od-note">默认按住<strong>右键拖动</strong>练习，也可在操作偏好中切换 Option / Alt + 左键。练习区不会执行网页操作，单击右键也不弹原生菜单。</p>
+      <div id="practice-pad" class="practice-pad" tabindex="0" aria-label="右键或 Option 加左键手势练习区域">
         <span class="practice-label">在此拖动体验</span>
         <svg viewBox="0 0 330 140" preserveAspectRatio="none" aria-hidden="true"><path id="practice-line" d="" stroke="#2586ef" stroke-width="4" stroke-linecap="round" stroke-linejoin="round" fill="none"/></svg>
         <span id="practice-arrow-one" class="practice-arrow-badge" aria-hidden="true" hidden></span>
@@ -236,13 +244,14 @@
       </div>
       <p id="practice-status" class="od-note" role="status">等待拖动（仅模拟）</p>
     </section>
-    <p class="preview-caption">交互模拟 · 默认开启；设置只影响本页内存，刷新重置。不请求权限、不调用 Chrome API、不写正式配置。原生菜单和真实安装须在 Chrome 验收。</p>
+    <p class="preview-caption">交互模拟 · 本页练习画布单独拦截右键菜单；网页其他区域仍保留浏览器默认行为。正式扩展的菜单模式、安装授权和跨系统表现必须在真实 Chrome 验收；此处不请求权限也不写正式配置。</p>
   </div>
   <script>
     (() => {
       'use strict';
       const by=id=>document.getElementById(id);
       const toggle=by('gesture-enabled'),trigger=by('mock-trigger'),trace=by('mock-trace');
+      const menuPolicy=by('mock-menu-policy'),menuNote=by('mock-menu-note');
       const back=by('back'),panel=by('gesture-panel'),list=by('extension-list');
       const reopen=by('reopen'),title=by('host-title'),hint=by('gesture-hint');
       const pad=by('practice-pad'),line=by('practice-line');
@@ -355,18 +364,24 @@ function gestureOutcome(track,mappings={}){
       const badges=[by('practice-arrow-one'),by('practice-arrow-two')];
       const combo=by('mock-combo'),comboAction=by('mock-combo-action');
       const actionNames={left:'后退',right:'前进',up:'刷新',down:'到底'};
-      let track=null,mappings={};
+      let track=null,mappings={},activePointerId=null,activeButton=null;
       function hideDraw(){
         line.setAttribute('d','');feedback.hidden=true;
         for(const badge of badges)badge.hidden=true;
       }
-      const clear=message=>{track=null;hideDraw();status.textContent=message;};
+      const clear=message=>{
+        track=null;activePointerId=null;activeButton=null;
+        hideDraw();status.textContent=message;
+      };
       function sync(){
         toggle.setAttribute('aria-checked',String(toggle.checked));
         hint.textContent=trigger.value==='alt-left'?
           'Option / Alt + 左键拖动，松开执行 · Esc 取消':
           '右键拖动，松开执行 · Esc 取消';
-        if(!toggle.checked)clear('手势已关闭（模拟）');
+        menuNote.textContent=menuPolicy.value==='gesture-first'?
+          '正式网页手势优先会拦截部分普通右键；Shift + 右键可打开原生菜单。练习区始终独立拦截右键。':
+          '正式网页默认保留普通右键。练习区为演示沙盒，始终独立拦截右键，方便体验手势。';
+        clear(toggle.checked?'等待拖动（仅模拟）':'手势已关闭（模拟）');
       }
       const local=event=>{
         const r=pad.getBoundingClientRect();
@@ -407,6 +422,7 @@ function gestureOutcome(track,mappings={}){
       }
       toggle.addEventListener('change',sync);
       trigger.addEventListener('change',sync);
+      menuPolicy.addEventListener('change',sync);
       trace.addEventListener('change',()=>update());
       combo.addEventListener('change',()=>{comboAction.value=mappings[combo.value]||'none';});
       comboAction.addEventListener('change',()=>{
@@ -415,18 +431,34 @@ function gestureOutcome(track,mappings={}){
         else if(DIRECTIONS.includes(comboAction.value))mappings[combo.value]=comboAction.value;
         mappings=normalizeGestureMappings(mappings);update();
       });
+      // The practice pad is an intentionally isolated mouse-training surface.
+      // Blocking its right-click menu is safe here, but NOT a substitute for
+      // the formal extension's opt-in gesture-first policy.
+      pad.addEventListener('contextmenu',event=>{
+        if(!toggle.checked||trigger.value!=='right'||event.button!==2)return;
+        event.preventDefault();
+        event.stopPropagation();
+      });
       pad.addEventListener('pointerdown',event=>{
-        if(!toggle.checked||event.button!==0)return;
-        const [x,y]=local(event);track=createGestureTrack(x,y);
+        if(!toggle.checked||track||(event.pointerType&&event.pointerType!=='mouse'))return;
+        const right=trigger.value==='right';
+        if(event.button!==(right?2:0)||(!right&&!event.altKey))return;
+        const [x,y]=local(event);
+        track=createGestureTrack(x,y);
+        activePointerId=event.pointerId;
+        activeButton=event.button;
+        if(right)event.preventDefault();
         pad.setPointerCapture?.(event.pointerId);
         status.textContent='移动超过 12px 开始预览';
       });
       pad.addEventListener('pointermove',event=>{
-        if(!track||(event.buttons&1)===0)return;
+        if(!track||event.pointerId!==activePointerId)return;
+        if((event.buttons&(activeButton===2?2:1))===0||
+           (activeButton===0&&!event.altKey)){clear('按键或修饰键已释放，模拟取消');return;}
         const [x,y]=local(event);updateGestureTrack(track,x,y);update();
       });
       pad.addEventListener('pointerup',event=>{
-        if(!track)return;
+        if(!track||event.pointerId!==activePointerId||event.button!==activeButton)return;
         const [x,y]=local(event);updateGestureTrack(track,x,y);
         const outcome=gestureOutcome(track,mappings);
         const sequence=pretty(track.segments);
@@ -435,8 +467,15 @@ function gestureOutcome(track,mappings={}){
           '手势未完成或无效，不执行';
         clear(summary);
       });
-      pad.addEventListener('pointercancel',()=>clear('模拟已取消'));
-      pad.addEventListener('keydown',event=>{if(event.key==='Escape'){clear('Esc 已取消');event.preventDefault();}});
+      pad.addEventListener('pointercancel',event=>{
+        if(track&&event.pointerId===activePointerId)clear('模拟已取消');
+      });
+      pad.addEventListener('lostpointercapture',event=>{
+        if(track&&event.pointerId===activePointerId)clear('鼠标捕获结束，模拟取消');
+      });
+      document.addEventListener('keydown',event=>{
+        if(event.key==='Escape'&&track){clear('Esc 已取消');event.preventDefault();}
+      },true);
       back.addEventListener('click',()=>{
         panel.hidden=true;list.hidden=false;back.hidden=true;
         title.textContent='扩展';reopen.focus();
