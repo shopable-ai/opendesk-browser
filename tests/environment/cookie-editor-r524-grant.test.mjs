@@ -23,8 +23,8 @@ test('R2.8 trusted Host shows one compact first-use consent above the existing C
   assert.match(view,/view\.dispatch\('sidebar-tool-cookie-site-toggle','click',event\.nativeEvent\)/);
   assert.equal((view.match(/id="sidebar-tool-cookie-site-toggle"/g)||[]).length,1,
     'retain exactly one original trusted Chrome/Host permission action');
-  assert.match(host,/frameRoot\.hidden=\(show&&!trustedInline\)\|\|!\(frame\|\|nativeUI\)\|\|legacyAdblock;/,
-    'missing Cookie grant must no longer hide the whole iframe');
+  assert.match(host,/frameRoot\.hidden=\(show&&!trustedInline&&!\(appSettings&&toolNavigation\.page===toolNavigation\.settingsPage\)\)\|\|!\(frame\|\|nativeUI\)\|\|legacyAdblock;/,
+    'missing Cookie grant must not hide the original iframe on its settings page');
   assert.match(host,/needsAuthorization,hasOrigin:Boolean\(origin\),settingsOpen:show/);
   assert.match(host,/sidebarToolEnabled\(enableRecords,tool\.id\)&&!readOnlyPreview/);
   assert.match(host,/data-cookie-grant-only="true"/);
@@ -117,7 +117,7 @@ test('R5.38 Cookie Editor keeps infrequent app stop out of its toolbar',async()=
   assert.ok(shared.indexOf('!cookieFirstUse&&<CookieSettings')<
     shared.indexOf('className="sidebar-tool-management"'),
     'permissions appear before the single common application management switch');
-  assert.match(center,/add\(row.enabled\?'停用应用':'启用应用'/);
+  assert.match(center,/add\(row.enabled\?t\('disableApp'\):t\('enableApp'\)/);
   assert.match(center,/sidebarTools\.toggleEnabled\(row\.id,event\)/);
   assert.doesNotMatch(app,/>停用工具<|>停用应用</);
 });
