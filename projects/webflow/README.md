@@ -1,5 +1,50 @@
 # Web Flow
 
+## 架构硬约束：WebFlow 只编排固定任务（跨对话接续必须遵守）
+
+> **长期产品原则，不是 R8/R9 某一轮的临时方案。** WebFlow 负责「什么时候触发哪个**已安装、已批准、版本固定的 Task／业务适配器**，以及怎样交接、恢复和展示结果」；具体网站操作由各自 Task／受审站点适配器完成。OpenDesk Browser Framework 仅提供通用 SDK、Installer、Authority、Controller、RunHost、Durable Result 与通用权限/生命周期。**业务脚本不是 WebFlow 内核，WebFlow 也不是第二套 Controller。**
+
+### 三层归属与可执行边界
+
+| 层 | 允许负责 | 不允许负责 |
+| --- | --- | --- |
+| Browser Framework / 可信宿主 | 独立安装与版本校验、网站及文档身份、授权、一次性执行栅栏、Controller/Run/Result、必要的通用 Host→Task 委托接口 | 在通用 `web-task-ingress`、Controller 或 SDK 中硬编码 GitHub Issue、ChatGPT 分析流程、特定 Task 版本和业务步骤 |
+| WebFlow 通用编排 | 用户明确请求 → **固定工作流定义/已安装脚本引用** → 步骤依赖、`workflowId`、`operationKey`、`deliveryKey`、持久状态、UNKNOWN 只读恢复、结果引用与展示 | 在通用状态机/列表/权限内核中直接处理 GitHub API 响应、ChatGPT DOM 点击、百度/Google 搜索细节、某个仓库或具体账号 |
+| 固定业务 Task／业务工作流定义／受审站点适配器 | 各自拥有输入 Schema、站点行为、参数/输出校验、Task ID+版本+manifest/content SHA，具体领域步骤与必要范围授权；通过原可信合同执行 | 自建 Runner/Authority/Installer、跨越执行世界提权、拿沙箱代码冒充可信 Host、把网页或 AI 返回文本当作安装/执行授权 |
+
+**固定脚本与工作流不是同一概念：** 一条 A→B→A 业务流程可对应一个**版本固定的工作流配方（Recipe）**，该配方按步骤**引用多个已安装 Task/受审适配器**；不要求把 GitHub 网络读取、ChatGPT 创建 B、回传 A 塞进一个万能 Controller Task。每次有副作用的网站操作仍由对应 Task 或受审第一方站点适配器在其原执行世界完成，WebFlow 只编排调用顺序、关联持久证据。若某一步只有已审阅的受权网络适配器、尚无已安装 Task，必须如实标明适配器身份和能力，不能虚称已触发固定脚本。
+
+**A→B→A 应有的数据流（目标，尚未全链完成）：**
+
+```text
+ChatGPT 原 A 的明确请求（来源身份/用户意图）
+  → WebFlow 选择已审阅固定业务配方 + 复核持续授权
+  → Issue 读取 Task/受权专用适配器 → 冻结 Issue URL、版本、SHA
+  → 原 Task Catalog/Authority 校验 chatgpt.conversation.create@0.2.0 的安装和权限
+  → 原 Controller/RunHost 单次执行该 Task（send:true）创建唯一 B
+  → 原 Durable Result + B 专用校验适配器验证完整回复
+  → 原可信 ChatGPT A 交付适配器单次发送、官方消息 ID/正文 SHA 读回
+  → WebFlow 通用事务 DONE；未知结果只查原 Run/Result/交付回执
+```
+
+**每条箭头都是受控接口，不是 WebFlow 内核直接抓网页或点击发送。** 站点账户/Profile、页面 Document、安装身份、能力、撤权和不可逆操作记录必须在可信边界复核，不能因配方已被批准而绕过原 Controller 或站点安全检查。普通 AI 回复中出现 Task 名称、Issue 编号或 JSON 只属于**请求数据**；必须由可信调用链审阅/授权才可执行。
+
+### 当前已核实的耦合风险（整改对象，不等于已经修复）
+
+- **P0，通用入口被业务反向依赖：** `src/page-events/web-task-ingress.js` 直接导入 `projects/webflow/trusted/issue-workflow-authorization.js`，并提供 `workflow-auth-*` 的 GitHub→ChatGPT 专用分支；`src/native-agent/chatgpt-fixed-bridge-host.js`、`src/ui/tool-shell.js` 也接有对应业务审核方法。这些是当前真实可信代码，但不应长期成为 WebFlow 通用引擎或所有任务的内置类型。重构时优先通过**原有受审 Host 的最小、固定能力委托/注册边界**隔离，不能为解耦而开放任意网页/沙箱调用特权。
+- **P0，流程和授权与单个场景绑定：** `issue-workflow-authorization.js` 固定 `shopable-ai/opendesk-browser`、`chatgpt.conversation.create@0.2.0` 和站点范围；这属于专用业务配方及其授权数据，不能升级为全体 WebFlow 共享规则。移走业务判断时保留已有授权记录、epoch、撤权及安全回退语义，不能自动向其他仓库、Task 或 Provider 扩权。
+- **P1，专用流程在通用命名下：** `projects/webflow/trusted/md-workflow-engine.js` 固定 ChatGPT Task/URL。通用推进算法应保持 Task/adapter 无关，ChatGPT 专属验证和 prompt 生成留在独立 Adapter/Recipe，避免新增站点时复制状态机。
+- **P1，固定 UI 数据不是动态任务授权：** `src/ui/main.js` 的 `PINNED` 与 `tool.config.json` 的 `delegatedTasks` 当前声明百度 1.1.5、Google 1.0.3；它们是**经审阅固定委托**，不能被用户输入的任意 taskId 替换。`chatgpt.conversation.create@0.2.0` 有自己的已安装 Task 包，但**当前不在 WebFlow Sidebar Tool 的这两项 delegatedTasks 中**；走其他第一方可信消费者时也须证明实际安装、Task pin 与独立授权。之后新增固定脚本只能经原审阅/安装/授权入口，不能在 WebFlow UI 里伪造已委托状态。
+- **正确保留：** `projects/webflow/trusted/serial-two-step-run.js` 通过 `dispatchB/readB/prepareA/deliverA/readA` 注入业务回调，保留通用持久状态/副作用围栏的方向正确；不要复制另一个引擎。现有 `projects/webflow/src/github-issue-input.js`、`chat-handoff-receipt.js`、ChatGPT 0.2.0 Task 和官方 A 消息读回属于可复用业务组件，不因重构重新开发。
+
+### 下一轮实施与验收顺序
+
+先核对实时 `main` 和原生产调用方，画出「用户触发 → 固定配方/Task 引用 → 原 Authority/Controller → 站点适配器 → Durable Result → WebFlow 恢复」的**现状调用图**，标出哪些边还不存在。只处理有证据的上述 P0/P1 耦合，优先**提取专用业务配方/授权 Adapter，复用现有 Task/Host 公共合同**；只有确实缺少通用 SDK 能力才以可复现用例申请最小通用接口，禁止发明动态 Task API 或复制 Runner。通过定向测试证明：替换业务配方不需修改 WebFlow 状态机/通用 SW；未安装/改版本/撤权、UNKNOWN/重启不能重复发送；跨 Provider/仓库不能继承原授权；固定扩展安全来源 pin 仍严格生效。
+
+**判定分开：** 本节是架构审计与不可漂移的归属约束；不表示业务耦合已重构、A→B→A 已运行或新包已安装。后续实施进度只写回[执行计划](docs/execution-plan.zh-CN.md)，原脚本如何安装/委托只按[脚本指南](docs/script-development-installation-guide.zh-CN.md)。
+
+---
+
 **概览最终核验 R4（2026-11-12）：** 正式包已按当前源码晋升为 **0.3.33**，修正原请求已释放后首页仍提示待核对、恢复数据读取失败却显示正常的两处状态文案；请求详情、权限和 UNKNOWN 防重放保持原入口。指定五文件 Node 回归 **162/162 PASS**，正式包同源检查通过。真实 Chrome 扩展页面访问被浏览器安全策略拒绝，**CHROME_NOT_TESTED，R4 未完成最终验收**；源码、安装包和实际安装状态须分别核对。
 
 **统一脚本导入与添加入口 R1（2026-11-11；`OD-UNIFIED-TASK-IMPORT-R1`）：**「我的」与全页任务目录新增文件拖放、键盘选择及统一可信文件校验；Web Flow → 脚本正式源码新增 `+` 四路径向导，复用现有固定任务状态，不引入任意 Task 动态授权、Runner 或第二套安装器。JavaScript 仅进入开发草稿，Task Package 仅进入待验证候选；当前 Web Flow 沙箱缺少通用受控宿主“开发/文件导入”导航接口，对这两条路径仅显示真实手动操作。**源码已提交不等于安装包已更新**：正式包基线仍是 0.3.32，本轮 Node/Chromium/打包/真实 Chrome 安装以[执行计划](docs/execution-plan.zh-CN.md)的最新实证为准，不能沿用历史通过记录。
@@ -186,12 +231,13 @@ v0.3.6 同步沙箱中的百度固定任务为已验证的 1.1.2，解决升级�
 
 ## 应用与框架的分工
 
-**Web Flow 是框架的业务消费者。** 本项目承载工作流的业务规则、任务衔接、上下文交接与结果展示；OpenDesk Browser 保持通用浏览器能力、执行授权、生命周期、安装和存储职责。
+**WebFlow 是 OpenDesk Browser Framework 的业务消费者，同时在产品层承担通用工作流编排职责。** WebFlow 内核只维护任务引用、依赖、身份、交接与恢复；GitHub、ChatGPT、百度/Google 等领域业务归已审阅的固定任务、业务配方和站点适配器。OpenDesk Browser 提供通用浏览器能力、安装授权、Controller/RunHost、生命周期与存储；既有第一方站点适配器是明确隔离、受来源 pin 保护的业务边界，不应演化成通用 Framework 的业务分支。
 
 | 所属 | 负责内容 | 边界 |
 | --- | --- | --- |
-| 本项目 Web Flow | 工作流定义与参数、步骤依赖、结果整理、交接包、恢复决策、应用界面与业务测试 | 新增业务实现归本目录；经公开 API 调用执行能力 |
+| 本项目 WebFlow 编排层 | 固定工作流引用/Task ID、依赖与输入输出契约、持久步骤/副作用键、结果交接、恢复与 UI | 不内置具体 GitHub 仓库、ChatGPT/百度等站点执行逻辑；不直接调用 DOM 或替代原 Task Runner |
 | Browser Framework / SDK | 站点与安装权限、Task Catalog、Authority、RunHost、Controller、Page Session、Durable Result、通用存储/调度 | 不加入仅服务于 Web Flow 的站点选择或业务判断；公共缺口按原流程证明后最小补齐 |
+| 已安装固定 Task／业务配方／站点 Adapter | 明确的 Task 版本与 Schema、单站网页动作、GitHub 读取/ChatGPT 对话等专用处理、业务结果验证 | 经原安装与权限合同，结果通过受信宿主返回；不自行拥有 Runner、Authority、通用状态机 |
 | AI Send Queue | 既有 ChatGPT 单页面消息 FIFO 与发送状态机 | 保留原 owner 和安装身份，不复制一份到本项目 |
 | 计算接力与既有 Bridge | 已有可行性样例、原聊天可信交付接线 | 先复用和核验；实际提取业务源码时同步消费者、构建来源与测试，不能只搬文件 |
 
