@@ -216,12 +216,8 @@ const webflowAuto=Object.freeze({
   approveIssueWorkflow:(review,event)=>fixedPageChatBridge.approveIssueWorkflow(review,event),
   revokeIssueWorkflow:event=>fixedPageChatBridge.revokeIssueWorkflow(event)
 });
-extensionList=mountSidebarApp(document,{debugEnabled,developerView,myView,toolView,providerSettings,
-  nativeConnection,localeController,webflowAuto,
-  openNativeSettings:()=>chrome.tabs.create({url:chrome.runtime.getURL('native-agent/settings.html')}),
-  onNavigate:view=>reactNavigationRequest?.(view)??false,
-  // Release identity is rechecked against the official Catalog before original Installer review.
-  onOpenUpdateReview:row=>{
+// One shared source-pinned path for list actions, detail and historical review.
+const openTrustedUpdateReview=row=>{
     if(shellClosed||!row||row.kind!=='sidebar-tool'||row.ignoredAt!==null||
        !['available','review_required'].includes(row.status))return false;
     if(hostUrl.pathname===APP_DOCUMENT_PATHNAME){
@@ -253,7 +249,12 @@ extensionList=mountSidebarApp(document,{debugEnabled,developerView,myView,toolVi
       return sidebarTools.openOfficialReview(row.id,
         {id:row.source,version:row.version,sha256:row.sha256})===true;
     })();
-  },
+  };
+extensionList=mountSidebarApp(document,{debugEnabled,developerView,myView,toolView,providerSettings,
+  nativeConnection,localeController,webflowAuto,
+  openNativeSettings:()=>chrome.tabs.create({url:chrome.runtime.getURL('native-agent/settings.html')}),
+  onNavigate:view=>reactNavigationRequest?.(view)??false,
+  onOpenUpdateReview:openTrustedUpdateReview,
   onStopAppDebug:()=>void stopPanelDevelopment()});
 const taskWorkbench = createTaskWorkbench({client:foundationClient,host:scriptEditor.host,currentPageTarget,
   importDraft:sourceUtf8=>scriptEditor.importDraft(sourceUtf8),executionSource:scriptEditor.executionSource,
@@ -393,6 +394,7 @@ workflowView=createWorkflowView({api:chrome,client:foundationClient,host:scriptE
 extensionList.connectWorkflowPage(workflowView);
 // app.html owns only ToolHost; the Side Panel alone renders the list nodes.
 const extensionCenter=hostUrl.pathname===APP_DOCUMENT_PATHNAME?null:createExtensionCenter({api:chrome,client:foundationClient,doc:document,sidebarTools,taskWorkbench,currentPageTarget,localeController,toolLocaleService,extensionList,
+  openTrustedUpdateReview,
   notify:(message,options)=>toolView.showToast(message,options),
   createScrollConversation:identity=>createBusinessConversation({api:chrome,providerRuntime,hostInstanceId,
     consumerId:'scroll-navigation',policy:scrollConversationPolicy,...identity}),
