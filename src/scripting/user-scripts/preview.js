@@ -469,7 +469,9 @@ export function createPageScriptPreview({api, storage, assertHost, dependencies,
           return {state:'retiring'};
         });
         dispatched=true;
-        const results=await native.execute({target:{tabId:row.tabId,documentIds:[row.documentId]},
+        // Fixed disposal controls must not wait for load, including when a new
+        // idle installation retires a previous document_end generation.
+        const results=await native.execute({injectImmediately:true,target:{tabId:row.tabId,documentIds:[row.documentId]},
           world:'USER_SCRIPT',worldId:row.worldId,js:[{code:managedUIRetireSource(r.receiptNonce,requestNonce)}]});
         const result=results?.[0],receipt=result?.result;
         invariant(Array.isArray(results)&&results.length===1&&result.frameId===0&&
@@ -488,9 +490,13 @@ export function createPageScriptPreview({api, storage, assertHost, dependencies,
     }
     return {scope:'managed-ui-only',state:unknown?'unknown':'retired',records:Math.max(records.length,executions.length)};
   }
-  async function executeInstalled({candidate,resolution,target,installation},authorize,dispatch) {
+  async function executeInstalled({candidate,resolution,target,installation,runAtReached=false},authorize,dispatch) {
     invariant(!active&&typeof admission.reserveInstalled==='function','E_OWNER','页面执行入口正忙');
     const t=freezeTarget(target);
+    // Only the broker's proven automatic bootstrap selects early DOM-ready timing.
+    // A bootstrap at document_end is otherwise delayed again by execute's idle default.
+    // Manual runs have not proven DOM readiness and retain conservative idle timing.
+    const injectImmediately=runAtReached===true&&installation.pageRules.runAt==='document_end';
     active=true;let dispatched=false,confirmed=false,reserved=false,installedWorld;
     const receiptNonce=crypto.randomUUID();
     try {
@@ -528,7 +534,7 @@ export function createPageScriptPreview({api, storage, assertHost, dependencies,
       const script=await compileLockedPageSource({sourceUtf8:candidate.sourceUtf8,
         entryFormat:candidate.manifest.entryFormat,entries:resolution.entries,
         importSourceUrl:candidate.manifest.sourceProfile.importSourceUrl,receiptNonce,builtinSource,jqueryCode,frameworkSource,optionalSources});
-      const native=await nativeAPI(),worldId=await worlds.allocate(native,t);
+      const native=await nativeAPI(),worldId=await worlds.allocate(native,t,{injectImmediately});
       await admission.reserveInstalled({nonce:receiptNonce,tabId:t.tabId,documentId:t.documentId,
         sourceHash:script.sourceHash},installation);reserved=true;
       invariant(script.sourceHash===installation.sourceHash,'E_SOURCE_HASH','安装源码已变化');
@@ -581,6 +587,7 @@ export function createPageScriptPreview({api, storage, assertHost, dependencies,
       const pending=await dispatch(receiptNonce,()=>{
         dispatched=true;
         return native.execute({target:{tabId:t.tabId,documentIds:[t.documentId]},
+          ...(injectImmediately?{injectImmediately:true}:{}),
           world:'USER_SCRIPT',worldId,js});
       });
       const results=await pending.completion;

@@ -18,11 +18,11 @@ const rules=()=>({matches:['https://example.com/*'],excludeMatches:[],
 const tool=()=>({format:'opendesk.sidebar-tool.v2',id:'page-fixture',version:'1.1.0',
   title:'Page fixture',description:'Embedded Page package',capabilities:['page.module'],
   html:'<p>Fixture</p>',css:'',js:'void 0;',requires:{browserSdk:'1.0.0'},contributes:{contextMenus:[]}});
-async function fixture(){
+async function fixture(runAt='document_idle'){
   const parent=tool(),sourceUtf8='document.documentElement.dataset.fixture = "ready";';
   const payload={format:'opendesk.page-install.v1',programId:'app.'+parent.id,version:parent.version,
     title:parent.title,revision:1,entryFormat:'classic-userscript',sourceUtf8,
-    sourceHash:await digestUtf8(sourceUtf8),pageRules:rules()};
+    sourceHash:await digestUtf8(sourceUtf8),pageRules:{...rules(),runAt}};
   parent.pageModule={...payload,packageHash:await digest(payload)};
   return parent;
 }
@@ -66,6 +66,14 @@ test('embedded full Page package survives admission and canonical storage reorde
   assert.equal(serializeSidebarToolPackage(pkg),serializeSidebarToolPackage(reverse(pkg)));
   assert.equal(await sidebarToolPackageHash(pkg),await sidebarToolPackageHash(reverse(pkg)));
   assert.deepEqual(JSON.parse(serializeSidebarToolPackage(pkg)).pageModule,pkg.pageModule);
+});
+
+test('document_end companion packages retain their fixed timing through shape and hash admission',async()=>{
+  const pkg=await fixture('document_end');
+  assert.equal(validateSidebarToolPackage(pkg).pageModule.pageRules.runAt,'document_end');
+  assert.deepEqual((await verifySidebarToolBackground(pkg)).pageModule,pkg.pageModule);
+  assert.equal(await sidebarToolPackageHash(pkg),await sidebarToolPackageHash(reverse(pkg)));
+  assert.equal(JSON.parse(serializeSidebarToolPackage(pkg)).pageModule.pageRules.runAt,'document_end');
 });
 
 test('shape admission rejects missing/unknown fields, foreign identity/version, invalid rules and hashes',async()=>{

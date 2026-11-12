@@ -83,7 +83,7 @@ export async function loadOfficialPagePackage(release,{api=globalThis.chrome,fet
     pkg.sourceHash!==actual.sourceHash||pkg.packageHash!==actual.packageHash||
     !same(pkg.pageRules.matches,actual.sites)||pkg.pageRules.excludeMatches.length!==0||
     pkg.pageRules.world!=='USER_SCRIPT'||pkg.pageRules.allFrames!==false||
-    pkg.pageRules.runAt!=='document_idle')
+    !['document_end','document_idle'].includes(pkg.pageRules.runAt))
     throw error('E_PAGE_PACKAGE_IDENTITY','官方 Page 安装包身份或网站授权范围不符合发行合同');
   return {pkg,release:actual};
 }

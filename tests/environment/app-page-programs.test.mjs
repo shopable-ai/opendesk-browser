@@ -53,6 +53,8 @@ function fixture(){
       register:async scripts=>{f.registerCalls++;scripts.forEach(row=>f.native.set(row.id,structuredClone(row)));},
       unregister:async filter=>{f.unregisterCalls++;if(!f.access)throw Error('toggle disabled');filter.ids.forEach(id=>f.native.delete(id));},
       execute:async input=>{
+        if(f.requireImmediate&&f.tabStatus==='loading')
+          assert.equal(input.injectImmediately,true,'DOM-ready companions and fixed requests must not wait for idle');
         if(input.worldId===PAGE_BOOT_WORLD)return [{frameId:0,documentId:target.documentId,result:f.marker?f.token:null}];
         const code=input.js.at(-1).code,probe=code.includes('__opendesk_probe_');
         if(!probe){
@@ -144,6 +146,27 @@ test('app preflight and verify are read-only; import uses Page proof and native 
   f.native.clear();await fails(()=>f.service.verifyAppPage(f.owner,{}),'E_PAGE_INSTALLATION');
   assert.equal(f.native.size,0,'verification does not repair missing native state');
 });
+
+test('document_end companions keep the original authenticated storage bridge and revocation fence',async()=>{
+  const f=await appFixture({runAt:'document_end'});
+  await f.installApp();f.tabStatus='loading';f.requireImmediate=true;
+  assert.equal((await f.bootApp()).state,'completed');
+  assert.equal(f.native.get(f.appRow().nativeId).runAt,'document_end');
+  const saved=await f.bridge('storage.get',{key:'preferences',withEtag:true});
+  assert.equal(saved.value,null);assert.match(saved.etag,/^[a-f0-9]{64}$/);
+  const request={...f.owner,target:f.target,operation:'gesture.refresh',payload:{}};
+  assert.deepEqual(await f.service.requestAppPage(request,{}),{operation:'gesture.refresh',payload:{}});
+  const execute=f.api.userScripts.execute,previousCalls=f.executeCalls;
+  f.api.userScripts.execute=async input=>{
+    const result=await execute(input);
+    f.local[TOOL_REVOCATION_EPOCHS_STORE]={[f.tool.id]:'revoked-epoch'};
+    return result;
+  };
+  await fails(()=>f.service.requestAppPage(request,{}),'E_APP_PAGE_OWNER');
+  assert.equal(f.executeCalls,previousCalls+1,'a late response after revocation must not replay the request');
+  await fails(()=>f.bridge('storage.get',{key:'preferences',withEtag:true}),'E_APP_PAGE_OWNER');
+});
+
 async function seedAppCandidate(f){
   const pkg=f.tool.pageModule;
   await f.dependencies.importPageCandidate({programId:pkg.programId,revision:pkg.revision,

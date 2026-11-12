@@ -3,22 +3,25 @@ import {mountGestures} from './gesture.js';
 const POLICY_KEY='preferences';
 const POLICY_POLL_MS=1200;
 
-// App-owned policy. Bridge and storage calls are both bound to the installed
-// parent tool and current document by the existing Page Authority.
+// App-owned policy. Each storage read already checks the installed parent,
+// current document and live Page Authority before returning its value.
 export function createMouseGestureRuntime({ui,bridge=globalThis.OpenDeskAppPage,
   doc=globalThis.document,win=doc.defaultView,mount=mountGestures}={}){
-  if(!bridge?.readContext||!bridge?.storage?.get||!bridge?.onRequest)
+  if(!bridge?.storage?.get||!bridge?.onRequest)
     throw Error('E_MOUSE_GESTURES_BRIDGE');
-  let disposed=false,timer=0,version=0,unsubscribe=null,latestRead=null;
+  let disposed=false,timer=0,version=0,unsubscribe=null,latestRead=null,activePolicyReads=0;
   const gesture=mount({ui,doc,win,enabled:false,authorizeGesture:()=>readPolicy()});
   function readPolicy(){
+    if(disposed||!ui.active())return Promise.resolve(false);
     const requested=++version;
+    activePolicyReads++;
     latestRead=loadPolicy(requested);
     return latestRead;
   }
   async function loadPolicy(requested){
     try{
-      await bridge.readContext();
+      // readContext would repeat the same authority round trip and load unused
+      // locale/catalog/data. Never replace this fresh read with a cached grant.
       const saved=await bridge.storage.get({key:POLICY_KEY,withEtag:true});
       if(disposed||!ui.active())return false;
       // A newer authenticated read decides policy; supersession is not denial.
@@ -44,10 +47,16 @@ export function createMouseGestureRuntime({ui,bridge=globalThis.OpenDeskAppPage,
     }catch(error){
       if(!disposed){gesture.setEnabled(false);ui.destroy();}
       throw error;
+    }finally{
+      activePolicyReads--;
     }
   }
   const poll=async()=>{
-    try{await readPolicy();}
+    if(disposed)return;
+    // A background refresh must not supersede a pending gesture's fresh read
+    // and make it wait for another round trip. Explicit actions/refreshes still
+    // start their own read, so a poll's older ON snapshot cannot authorize them.
+    try{if(activePolicyReads===0)await readPolicy();}
     catch{return;} // Authority/storage failure has already disposed the module.
     if(!disposed)timer=win.setTimeout(()=>{timer=0;void poll();},POLICY_POLL_MS);
   };

@@ -247,10 +247,14 @@ test('only trusted exact document absence closes a record; cached or unobservabl
     assert.equal(result.managedCleanup.state,kind==='gone'?'retired':'unknown');assert.equal(f.calls.length,count);
   }
 });
-test('late main cannot mount new UI after disable and never restores old grant success',async t=>{
-  const f=fixture();t.after(f.dispose);await f.install('await new Promise(r=>globalThis.finishMain=r);createPageUI({id:"late"});');
+test('late main cannot mount new UI after disable and never restores old grant success',{timeout:3000},async t=>{
+  const f=fixture();t.after(f.dispose);
+  const ready=new Promise(resolve=>f.doc.defaultView.addEventListener('test-main-ready',resolve,{once:true}));
+  await f.install('await new Promise(r=>{globalThis.finishMain=r;document.defaultView.dispatchEvent(new Event("test-main-ready"));});createPageUI({id:"late"});');
   const running=f.boot();const rejected=assert.rejects(running,error=>['E_PERMISSION','E_PAGE_SCRIPT_EXECUTION'].includes(error.code));
-  for(let n=0;n<100&&!f.doc.querySelectorAll().length;n++)await new Promise(resolve=>setImmediate(resolve));
+  // Wait for this fixture's actual suspended main, not an arbitrary number of
+  // event-loop turns that can expire before crypto/storage work completes.
+  await Promise.race([ready,running]);
   assert.equal(f.doc.querySelectorAll().length,1);await f.disable();
   assert.equal(f.doc.querySelectorAll().length,0);vm.runInContext('finishMain()',f.context());await rejected;
   assert.equal(f.doc.querySelectorAll().length,0);

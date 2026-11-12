@@ -4,7 +4,9 @@
 
 ## 包与构建
 
-在原 v2 `tool.config.json` 中声明 `page.module` 与 `pageModule: {"revision": 1}`。同目录 `package.json` 使用现有 `opendesk.project.v1` 的 `page-userscript` 项目，ID 为 `app.<工具 ID>`，版本与工具一致，入口指向项目内 ESM。网页规则仍只支持已审阅的 `matches` / `excludeMatches`、顶层、`document_idle`、`USER_SCRIPT`。
+在原 v2 `tool.config.json` 中声明 `page.module` 与 `pageModule: {"revision": 1}`。同目录 `package.json` 使用现有 `opendesk.project.v1` 的 `page-userscript` 项目，ID 为 `app.<工具 ID>`，版本与工具一致，入口指向项目内 ESM。网页规则支持已审阅的 `matches` / `excludeMatches`、顶层、`USER_SCRIPT`；`runAt` 默认为 `document_idle`，需要 DOM 完成后尽早可用的模块可以声明 `document_end`。正式安装暂不支持 `document_start`。
+
+`document_end` 的固定 bootstrap 在 DOM 完成时触发；通过原安装、权限、文档和源码校验后，框架的世界隔离探测与实际模块注入均使用 Chrome `userScripts.execute({injectImmediately:true})`，避免后续步骤重新等待默认 idle。它不跳过校验，也不保证早于页面 load 完成。更改 `runAt` 属原安装 scope 的执行时机变化，沿原更新审阅处理，不直接改写旧安装记录。旧 `document_idle` 包保持原时机。此能力需要包含相应通用启动修复的 Browser；仅更新工具 JSON 不能替换旧 Browser 的固定代码。
 
 原 `scripts/build-sidebar-tool.mjs` 调用原项目编译器及 Page 安装包构建器，将完整 `opendesk.page-install.v1` 嵌入工具包 `pageModule` 字段。无需另发第二个 Page JSON。源码、规则、版本与摘要都受原候选、晋升和同源检查约束。
 
@@ -35,6 +37,8 @@ await bridge.storage.set({key: 'preferences', value: {...value, hiddenSites: []}
 ```
 
 私有存储需要同时声明 `storage.local`，与 Sidebar 的 `storage.get/set` 使用同一命名空间、锁和 CAS 令牌。限额仍为单项 8 KiB、总计 32 KiB、32 个键；冲突时重读并重新应用本次字段变更，不覆盖其他窗口的新值。API 不允许读取宿主或其他应用的存储。
+
+每次 `storage.get` 本身核对当前真实文档、父应用安装身份和有效授权，并在返回前再次检查。只需要某项私有设置的操作可以直接调用它，不必先调用 `readContext`；后者用于确实需要语言、目录或完整数据的场景。不能把旧读取结果当作新的操作授权，撤权、停用及文档变化的拒绝仍须处理。
 
 `onRequest` 的处理器可以等待自己的 `storage.set` 完成后再返回；宿主不跨请求派发持有同一工具存储锁。应用仍须检查回执，未知写入不自动重放。
 
