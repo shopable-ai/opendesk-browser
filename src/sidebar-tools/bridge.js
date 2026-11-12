@@ -538,6 +538,11 @@ export function initSidebarToolSandbox() {
         root.dispatchEvent(new Event('opendesk-page-changed'));
       return;
     }
+    if (message.kind==='cookie-path-changed') {
+      if(message.instance===instance&&message.toolId===toolId&&toolId==='cookie-editor')
+        root.dispatchEvent(new Event('opendesk-cookie-path-changed'));
+      return;
+    }
     if(message.kind==='locale-changed'){
       if(message.instance===instance&&message.toolId===toolId){
         const next=acceptedLocale(message.locale);

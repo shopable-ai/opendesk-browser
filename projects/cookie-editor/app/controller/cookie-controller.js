@@ -45,17 +45,44 @@ export function createCookieController({adapter,onChange=()=>{}}){
     message='',messageType='info',importPlan=null,clearPlan=null;
   let importRevision=0,clearRevision=0,valueRevision=0,importOutcome=null;
   let syncStale=false,syncPending=null,syncGeneration=0,effectPending=false;
+  let navigationPending=false,navigationQueued=false,verifiedScope=null;
+  const exportDiagnostics=[];
   let changes=[],changeRevision=0;
   const current=(ticket,at)=>!closed&&epoch===ticket&&target?.url===at.url;
   const snapshot=()=>({epoch,busy,target:target?{...target}:null,rows:structuredClone(rows),
-    phase,problem,message,messageType,syncStale,importOutcome,changes:structuredClone(changes)});
+    phase,problem,message,messageType,syncStale,navigationPending,
+    exportDiagnostics:structuredClone(exportDiagnostics),
+    importOutcome,changes:structuredClone(changes)});
   const notify=()=>{if(!closed)onChange(snapshot());};
   function report(text='',type='info'){message=text;messageType=type;notify();}
+  // Session-only fixed-field diagnostics: no Cookie values, URLs, exported
+  // bytes, raw error text or arbitrary Host objects can enter the ledger.
+  function recordExport(operation,stage,code='OK',outcomeUnknown=false){
+    exportDiagnostics.push({time:new Date().toISOString(),
+      operation:['copy','download','diagnostics'].includes(operation)?operation:'unknown',
+      stage:['intent','read','format','clipboard','download','receipt','done'].includes(stage)?stage:'unknown',
+      code:safeCode({code},code==='OK'?'OK':'E_COOKIE_EXPORT'),
+      outcomeUnknown:outcomeUnknown===true});
+    if(exportDiagnostics.length>10)exportDiagnostics.shift();
+    notify();
+  }
+  const exportDiagnosticText=()=>JSON.stringify({kind:'opendesk.cookie-export-diagnostic.v1',
+    operations:exportDiagnostics},null,2);
+  async function readScope(at){
+    const store=await adapter.getStore(at);
+    const partition=await adapter.getPartition(at);
+    if(typeof store?.storeId!=='string'||!store.storeId||
+       typeof partition?.partitionKey?.topLevelSite!=='string'||
+       !partition.partitionKey.topLevelSite)throw failure('E_COOKIE_SCOPE');
+    return JSON.stringify([store.storeId,partition.partitionKey.topLevelSite,
+      partition.partitionKey.hasCrossSiteAncestor===true]);
+  }
   function invalidate(text='网站或权限已改变，先刷新并核对 Cookie。'){
     // Reads and write preflights are safe to restart. Only a dispatched native
     // write or export can have an unknown side effect after invalidation.
     const uncertain=effectPending;
     retireSync();syncStale=false;changes=[];
+    navigationPending=false;navigationQueued=false;verifiedScope=null;
     epoch++;valueRevision++;busy=false;target=null;rows=[];phase='idle';problem=null;
     importPlan=null;importOutcome=null;
     clearPlan=null;
@@ -72,9 +99,12 @@ export function createCookieController({adapter,onChange=()=>{}}){
     phase='blocked';problem=error.code;notify();
     return true;
   }
-  const lock=()=>{if(closed||busy||!target||phase!=='ready')return null;
+  const lock=()=>{if(closed||busy||navigationPending||!target||phase!=='ready')return null;
     retireSync();busy=true;valueRevision++;const at=target,ticket=epoch;notify();return {at,ticket};};
-  const unlock=guard=>{if(current(guard.ticket,guard.at)){busy=false;effectPending=false;notify();}};
+  const unlock=guard=>{if(current(guard.ticket,guard.at)){
+    busy=false;effectPending=false;notify();
+    if(navigationQueued)void syncNavigation();
+  }};
   const verifiedRead=guard=>current(guard.ticket,guard.at);
   async function load(input='',{preserveMessage=false}={}){
     if(closed||busy)return;
@@ -82,6 +112,7 @@ export function createCookieController({adapter,onChange=()=>{}}){
     // events alone must not erase an unconfirmed write/export outcome.
     effectPending=false;
     retireSync();syncStale=false;changes=[];
+    navigationPending=false;navigationQueued=false;verifiedScope=null;
     const ticket=++epoch;valueRevision++;rows=[];target=null;phase='loading';problem=null;
     importPlan=null;importOutcome=null;
     clearPlan=null;busy=true;
@@ -104,10 +135,16 @@ export function createCookieController({adapter,onChange=()=>{}}){
         report('当前网站的 Cookie 读取权限未就绪。');
         return;
       }
+      const beforeScope=await readScope(at);
+      if(!current(ticket,at))return;
       const found=await adapter.list(at,{isCurrent:()=>current(ticket,at)});
       if(!current(ticket,at)||found===null)return;
+      const scope=await readScope(at);
+      if(!current(ticket,at))return;
+      if(scope!==beforeScope)throw failure('E_COOKIE_SCOPE');
       // SDK Adapter already strips values. Never copy the returned raw payload
       // into a log, diagnostic store or React component state.
+      verifiedScope=scope;
       rows=found.map(row=>({...row,id:key(row)}));
       phase='ready';problem=null;if(!preserveMessage)message='';
       notify();
@@ -134,7 +171,7 @@ export function createCookieController({adapter,onChange=()=>{}}){
   function getRow(id){const row=rows.find(row=>row.id===id);return row?structuredClone(row):null;}
   async function readValue(id){
     const row=getRow(id),at=target,ticket=epoch;
-    if(closed||busy||phase!=='ready'||!row||!at)return null;
+    if(closed||busy||navigationPending||phase!=='ready'||!row||!at)return null;
     const revision=++valueRevision;
     try{
       const value=await adapter.readValue(at,row);
@@ -289,19 +326,25 @@ export function createCookieController({adapter,onChange=()=>{}}){
   }
   async function exportTo({format='json',metadata=false,method='download'}={}){
     const guard=lock();if(!guard)return false;
-    let plaintext='',done=false,exportRef=null;
+    let plaintext='',done=false,exportRef=null,stage='intent';
     try{
       if(!['copy','download'].includes(method))throw Error('E_COOKIE_EXPORT');
       const intent=await adapter.beginExportIntent(guard.at,method);
       if(intent?.authorized!==true||!Number.isSafeInteger(intent.ref)||intent.ref<1)
         throw failure('E_COOKIE_EXPORT');
       exportRef=intent.ref;
-      if(!verifiedRead(guard))return false;
+      if(!verifiedRead(guard)){
+        recordExport(method,stage,'E_DOCUMENT_CHANGED');return false;
+      }
       if(metadata&&format!=='json')throw Error('E_COOKIE_EXPORT');
+      stage='read';
       const records=await adapter.list(guard.at,{
         includeValues:!metadata,isCurrent:()=>verifiedRead(guard)});
-      if(!verifiedRead(guard))return false;
+      if(!verifiedRead(guard)){
+        recordExport(method,stage,'E_DOCUMENT_CHANGED');return false;
+      }
       if(!Array.isArray(records)||!records.length)throw Error('E_COOKIE_EXPORT');
+      stage='format';
       if(metadata){
         const safe=records.map(({valueRedacted,...row})=>row);
         plaintext=JSON.stringify({kind:'opendesk.cookie-metadata.v1',
@@ -314,6 +357,7 @@ export function createCookieController({adapter,onChange=()=>{}}){
       }
       if(!bounded(plaintext,150000))throw failure('E_LIMIT');
       const suffix=format==='json'?'json':'txt';
+      stage=method==='copy'?'clipboard':'download';
       effectPending=true;
       if(method==='copy'){
         if((await adapter.copy(plaintext))?.copied!==true)throw badReceipt();
@@ -322,20 +366,61 @@ export function createCookieController({adapter,onChange=()=>{}}){
           (metadata?'-cookie-metadata.json':'-chrome-cookies.'+suffix)))?.started!==true)throw badReceipt();
       }
       else throw Error('E_COOKIE_EXPORT');
-      if(!verifiedRead(guard))return false;
-      done=true;report(metadata?'已导出 Cookie 元数据（不含值）。':
+      stage='receipt';
+      if(!verifiedRead(guard)){
+        recordExport(method,stage,'E_OUTCOME_UNKNOWN',true);
+        return false;
+      }
+      done=true;recordExport(method,'done');
+      report(metadata?'已导出 Cookie 元数据（不含值）。':
         method==='copy'?'已复制 Cookie。':'Cookie 文件下载已发起。','success');
-    }catch(error){if(verifiedRead(guard)){
-      if(rejectLostAccess(error))return false;
-      report('导出失败或被拒绝'+formatCode(error,'E_COOKIE_EXPORT')+
-        '；'+exportFailureHelp(error),'error');
-    }
+    }catch(error){
+      const code=safeCode(error,'E_COOKIE_EXPORT');
+      recordExport(method,stage,code,code==='E_OUTCOME_UNKNOWN');
+      if(verifiedRead(guard)){
+        if(rejectLostAccess(error))return false;
+        report('导出失败或被拒绝'+formatCode(error,'E_COOKIE_EXPORT')+
+          '；'+exportFailureHelp(error),'error');
+      }
     }finally{
       plaintext='';
       if(exportRef!==null)void adapter.finishExportIntent(exportRef).catch(()=>{});
       unlock(guard);
     }
     return done;
+  }
+  async function copyExportDiagnostics(){
+    if(exportDiagnostics.length===0)return false;
+    const guard=lock();if(!guard)return false;
+    let exportRef=null,stage='intent',copied=false;
+    try{
+      const intent=await adapter.beginExportIntent(guard.at,'copy');
+      if(intent?.authorized!==true||!Number.isSafeInteger(intent.ref)||intent.ref<1)
+        throw failure('E_COOKIE_EXPORT');
+      exportRef=intent.ref;
+      if(!verifiedRead(guard))return false;
+      stage='clipboard';effectPending=true;
+      const receipt=await adapter.copy(exportDiagnosticText());
+      if(receipt?.copied!==true)throw badReceipt();
+      stage='receipt';
+      if(!verifiedRead(guard)){
+        recordExport('diagnostics',stage,'E_OUTCOME_UNKNOWN',true);return false;
+      }
+      copied=true;recordExport('diagnostics','done');
+      report('脱敏操作诊断已复制。','success');
+    }catch(error){
+      const code=safeCode(error,'E_COOKIE_EXPORT');
+      recordExport('diagnostics',stage,code,code==='E_OUTCOME_UNKNOWN');
+      if(verifiedRead(guard)){
+        if(rejectLostAccess(error))return false;
+        report('脱敏诊断复制未确认'+formatCode(error,'E_COOKIE_EXPORT')+
+          '；可手动选择诊断文本复制。','error');
+      }
+    }finally{
+      if(exportRef!==null)void adapter.finishExportIntent(exportRef).catch(()=>{});
+      unlock(guard);
+    }
+    return copied;
   }
   async function previewImport(source,format='auto',overwrite=false,{allSites=false}={}){
     const guard=lock();if(!guard)return null;
@@ -531,7 +616,7 @@ export function createCookieController({adapter,onChange=()=>{}}){
   // Passive list refresh uses the public SDK and returns metadata only. It must
   // never erase a live editor, re-read Cookie values or trigger a write.
   async function syncMetadata({canApply=()=>true,events=[]}={}){
-    if(closed||busy||phase!=='ready'||!target||!canApply()||
+    if(closed||busy||navigationPending||phase!=='ready'||!target||!canApply()||
       syncPending?.ticket===epoch)return false;
     const at=target,ticket=epoch,token={ticket,generation:syncGeneration},markRevision=changeRevision;
     syncPending=token;
@@ -540,6 +625,14 @@ export function createCookieController({adapter,onChange=()=>{}}){
     try{
       const found=await adapter.list(at,{isCurrent:safe});
       if(found===null||!safe())return false;
+      // Store/Partition may change without a navigation event. A changed
+      // security scope must never inherit metadata from the old scope.
+      const scope=await readScope(at);
+      if(!safe())return false;
+      if(scope!==verifiedScope){
+        invalidate('Cookie Store 或 Partition 已变化，请重新核验权限。');
+        phase='blocked';problem='E_COOKIE_SCOPE';notify();return false;
+      }
       // Even unchanged metadata can accompany a changed Cookie value.
       // Retire sensitive reads started before this accepted refresh.
       valueRevision++;
@@ -565,9 +658,79 @@ export function createCookieController({adapter,onChange=()=>{}}){
       return false;
     }finally{if(syncPending===token)syncPending=null;}
   }
+  // The Host has already verified a same-document, same-Origin path transition.
+  // Keep redacted rows mounted while SDK rechecks grant, Store and Partition;
+  // never expose stale credentials or accept overlapping sensitive actions.
+  async function syncNavigation(){
+    if(closed||phase!=='ready'||!target)return false;
+    navigationQueued=true;
+    if(busy||navigationPending)return false;
+    navigationPending=true;retireSync();valueRevision++;
+    importPlan=null;clearPlan=null;notify();
+    let applied=false;
+    try{
+      while(navigationQueued&&!closed&&phase==='ready'&&!busy){
+        navigationQueued=false;
+        const at=target,ticket=epoch;
+        const live=()=>current(ticket,at)&&navigationPending;
+        const resolved=await adapter.targetFor();
+        if(!live())return false;
+        const next=resolved.target;
+        if(!next||next.origin!==at.origin){
+          invalidate('网站已变化，请重新核对 Cookie 授权。');return false;
+        }
+        const permission=await adapter.checkRead(next);
+        if(!live())return false;
+        if(!permission.callableNow){
+          invalidate('Cookie 授权已变化，请手动检查。');
+          phase='blocked';problem=permission.reasonCode||'E_PERMISSION_REQUIRED';notify();
+          return false;
+        }
+        const scope=await readScope(next);
+        if(!live())return false;
+        if(scope!==verifiedScope){
+          invalidate('Cookie Store 或 Partition 已变化，请重新授权读取。');
+          phase='blocked';problem='E_COOKIE_SCOPE';notify();return false;
+        }
+        const found=await adapter.list(next,{isCurrent:()=>live()&&!navigationQueued});
+        if(!live())return false;
+        if(navigationQueued)continue;
+        if(found===null)throw failure('E_COOKIE_READ');
+        const afterScope=await readScope(next);
+        if(!live())return false;
+        if(afterScope!==scope){
+          invalidate('读取期间 Cookie Store 或 Partition 已变化。');
+          phase='blocked';problem='E_COOKIE_SCOPE';notify();return false;
+        }
+        const latest=await adapter.targetFor();
+        if(!live())return false;
+        if(navigationQueued||latest.target?.url!==next.url){
+          navigationQueued=true;continue;
+        }
+        // Publish the normalized URL and metadata together. Do not reset
+        // search, filters, pagination, scroll or independent UI drafts.
+        if(at.url!==next.url){epoch++;target=next;changes=[];}
+        const updated=found.map(row=>({...row,id:key(row)}));
+        if(JSON.stringify(rows)!==JSON.stringify(updated))rows=updated;
+        syncStale=false;problem=null;
+        applied=true;notify();
+      }
+    }catch(error){
+      if(!closed&&navigationPending&&phase==='ready'){
+        if(!rejectLostAccess(error)){
+          invalidate('路径切换后的 Cookie 范围无法核验；请手动刷新。');
+          phase='blocked';problem=safeCode(error,'E_COOKIE_READ');notify();
+        }
+      }
+    }finally{
+      if(navigationPending){navigationPending=false;notify();}
+    }
+    return applied;
+  }
   function clearChanges(){changeRevision++;changes=[];notify();}
   function dispose(){
     retireSync();syncStale=false;changes=[];
+    navigationPending=false;navigationQueued=false;verifiedScope=null;
     epoch++;closed=true;busy=false;rows=[];target=null;importPlan=null;importOutcome=null;
     clearPlan=null;effectPending=false;
   }
@@ -575,6 +738,7 @@ export function createCookieController({adapter,onChange=()=>{}}){
   // dispatch a React setState from within App's first render.
   return {snapshot,load,invalidate,getRow,readValue,save,remove,
     previewClear,executeClear,discardClear,previewImport,executeImport,
-    discardImport,dismissImportReport,exportTo,syncMetadata,clearChanges,
+    discardImport,dismissImportReport,exportTo,copyExportDiagnostics,exportDiagnosticText,
+    syncMetadata,syncNavigation,clearChanges,
     observationAccessLost:rejectLostAccess,dispose};
 }

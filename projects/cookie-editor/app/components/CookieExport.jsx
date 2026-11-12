@@ -31,7 +31,12 @@ export default function CookieExport({controller,disabled=false,onClose,onDelive
       // A false/unknown Host receipt is never success and is never replayed.
       const success=await controller.exportTo({format,metadata,method});
       if(success)onDelivered?.(method);
-      else setMessage(controller.snapshot().message||'导出失败，请检查授权或格式');
+      else{
+        const last=controller.snapshot().exportDiagnostics?.at(-1);
+        setMessage(last?.outcomeUnknown
+          ?'结果未确认（E_OUTCOME_UNKNOWN），请先核对剪贴板或下载记录，勿自动重试。'
+          :'导出未完成（'+(last?.code||'E_COOKIE_EXPORT')+'），请检查授权或格式。');
+      }
     }catch{
       setMessage('导出未完成，请检查授权后手动重试。');
     }finally{

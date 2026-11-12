@@ -76,6 +76,7 @@ export default function CookieEditorApp({request,hostRoot,setState,previewMode=f
   const setConfirmation=value=>{syncGate.current.confirmation=value;updateConfirmation(value);};
   const [status,setStatus]=React.useState('');
   const [importNotice,setImportNotice]=React.useState(null);
+  const [diagnosticCopyNotice,setDiagnosticCopyNotice]=React.useState('');
   const [working,updateWorking]=React.useState(false);
   const setWorking=value=>{syncGate.current.working=value;updateWorking(value);};
   const clearScopeInFlight=React.useRef(false);
@@ -116,7 +117,7 @@ export default function CookieEditorApp({request,hostRoot,setState,previewMode=f
     return ()=>window.clearTimeout(timer);
   },[accountNotice]);
   const snapshot=view||controller.snapshot();
-  const busy=Boolean(snapshot.busy||working);
+  const busy=Boolean(snapshot.busy||snapshot.navigationPending||working);
   const locked=busy||accountBusy||serviceBusy||Boolean(confirmation);
   const scrubSensitive=()=>{
     // Invalidate DOM secrets synchronously on permission changes and navigation,
@@ -176,12 +177,30 @@ export default function CookieEditorApp({request,hostRoot,setState,previewMode=f
   React.useEffect(()=>{
     const grant=()=>invalidate('授权已改变，敏感值和旧列表已清除。');
     const page=()=>invalidate('当前网站已切换，旧数据已清除。',true);
+    const path=()=>{
+      if(modeRef.current!=='browser')return;
+      // A real path transition can change which Cookie paths match. Keep
+      // list/search/pagination, but never expose an old live value or allow
+      // an import/editor preflight to act on the new path implicitly.
+      scrubSensitive();
+      const gate=syncGate.current;
+      if(gate.selected!==null||gate.panel==='import'){
+        const hadDraft=gate.dirty;
+        finishImportIntent(activeImportRef.current);
+        setSelected(null);setPanel(null);setDirty(false);
+        if(hadDraft)setStatus('页面路径已变化，未保存的 Cookie 草稿已清除；列表将静默重新核验。');
+      }
+      if(!exportPending.current)setExportOpen(false);
+      void controller.syncNavigation();
+    };
     hostRoot.addEventListener('opendesk-cookie-grants-changed',grant);
     hostRoot.addEventListener('opendesk-page-changed',page);
+    hostRoot.addEventListener('opendesk-cookie-path-changed',path);
     void controller.load();
     return ()=>{
       hostRoot.removeEventListener('opendesk-cookie-grants-changed',grant);
       hostRoot.removeEventListener('opendesk-page-changed',page);
+      hostRoot.removeEventListener('opendesk-cookie-path-changed',path);
       scrubSensitive();
       controller.dispose();
     };
@@ -853,7 +872,7 @@ export default function CookieEditorApp({request,hostRoot,setState,previewMode=f
   return <main className="cookie-editor-react od-page" onKeyDown={onKeyDown}>
     {mode==='browser'&&snapshot.phase==='ready'&&<CookieSiteBar
       site={target?.hostname||''} syncStale={snapshot.syncStale}
-      busy={locked} onRefresh={()=>guarded(refresh)}/>}
+      loading={snapshot.navigationPending} busy={locked} onRefresh={()=>guarded(refresh)}/>}
     {mode==='browser'&&!(section==='accounts'&&accountRoute==='auto')&&
       <nav className="cookie-product-tabs" role="tablist" aria-label="Cookie Editor 页面"
         onKeyDown={onProductTabKey}>
@@ -1061,11 +1080,27 @@ export default function CookieEditorApp({request,hostRoot,setState,previewMode=f
           setPanel(null);
         }}/>}
     {mode==='browser'&&snapshot.phase==='ready'&&snapshot.message&&
+      !(exportOpen&&/^导出失败或被拒绝/.test(snapshot.message))&&
       ['error','warning'].includes(snapshot.messageType)&&
       <p role={snapshot.messageType==='error'?'alert':'status'}
         className={'cookie-message od-alert '+(snapshot.messageType==='error'?'od-alert--error':'od-alert--warning')}>
       {snapshot.message}</p>}
     {status&&<p role="alert" className="cookie-message od-alert od-alert--error">{status}</p>}
+    {mode==='browser'&&snapshot.exportDiagnostics?.length>0&&
+      <details className="od-surface cookie-export-diagnostics">
+        <summary>复制／导出诊断（最近 {snapshot.exportDiagnostics.length} 条）</summary>
+        <p>仅记录操作阶段、错误代码和结果状态，不包含 Cookie 值或 URL。</p>
+        <textarea className="od-field" readOnly rows={5} aria-label="脱敏操作诊断"
+          value={controller.exportDiagnosticText()}/>
+        <button type="button" className="od-button od-button--secondary"
+          disabled={!cookieReady||locked}
+          onClick={async()=>{
+            setDiagnosticCopyNotice('');
+            const result=await controller.copyExportDiagnostics();
+            setDiagnosticCopyNotice(result?'已复制脱敏诊断。':'复制未确认；可手动全选文本复制。');
+          }}>复制脱敏诊断</button>
+        {diagnosticCopyNotice&&<span role="status">{diagnosticCopyNotice}</span>}
+      </details>}
     {section==='accounts'&&accountNotice?.kind==='success'&&<div
       role="status" className="cookie-import-toast">{accountNotice.text}</div>}
     {panel!=='import'&&importNotice&&<div

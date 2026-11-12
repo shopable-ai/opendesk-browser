@@ -148,14 +148,25 @@ export function createCurrentPageTarget({api = globalThis.chrome} = {}) {
       if (tab?.windowId !== windowId || (!tab.active && tabId !== state.tabId)) return;
       const navigated = ['url', 'pendingUrl', 'status'].some(key => Object.hasOwn(change || {}, key));
       // Metadata alone neither cancels convergence nor grants it a new budget.
-      if (navigated || Object.hasOwn(change || {}, 'title'))
-        void refresh({retryNavigation:navigated, preserveRetry:!navigated});
+      if (navigated || Object.hasOwn(change || {}, 'title')) {
+        // Title and URL-only changes may be SPA presentation updates. They
+        // must not introduce a synthetic "resolving" gap while Chrome still
+        // reports the SAME active document. The final observation is emitted
+        // and its document identity stays authoritative. Loading/pendingUrl
+        // still invalidates immediately, as does onBeforeNavigate.
+        const urlOnly=Object.hasOwn(change || {}, 'url') &&
+          !Object.hasOwn(change || {}, 'pendingUrl') &&
+          !Object.hasOwn(change || {}, 'status');
+        void refresh({retryNavigation:navigated,preserveRetry:!navigated,
+          quiet:!navigated||urlOnly});
+      }
     });
     listen(api.tabs?.onRemoved, (tabId, info) => {
       if (info?.windowId === windowId || tabId === state.tabId) void refresh();
     });
-    const navigation = details => {
-      if (details?.frameId === 0 && details.tabId === observedTabId) void refresh({retryNavigation:true});
+    const navigation = (details, quiet = false) => {
+      if (details?.frameId === 0 && details.tabId === observedTabId)
+        void refresh({retryNavigation:true,quiet});
     };
     listen(api.webNavigation?.onBeforeNavigate, details => {
       if (details?.frameId !== 0 || details.tabId !== observedTabId) return;
@@ -168,8 +179,10 @@ export function createCurrentPageTarget({api = globalThis.chrome} = {}) {
     listen(api.webNavigation?.onErrorOccurred, details => {
       if (details?.frameId === 0 && details.tabId === observedTabId) void refresh();
     });
-    listen(api.webNavigation?.onHistoryStateUpdated, navigation);
-    listen(api.webNavigation?.onReferenceFragmentUpdated, navigation);
+    // Same-document History API and fragment changes are verified quietly.
+    // Full-document navigation retains onBeforeNavigate/loading invalidation.
+    listen(api.webNavigation?.onHistoryStateUpdated, details=>navigation(details,true));
+    listen(api.webNavigation?.onReferenceFragmentUpdated, details=>navigation(details,true));
     listen(api.windows?.onRemoved, removedWindowId => {
       if (removedWindowId !== windowId) return;
       cancelRetry();

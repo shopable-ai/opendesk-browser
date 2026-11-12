@@ -50,6 +50,7 @@ import {COOKIE_ACCOUNT_PROTOCOL,COOKIE_ACCOUNT_OPERATIONS,COOKIE_ACCOUNT_SHARE_F
 import {presentCookieServiceState} from '../../projects/cookie-editor/trusted/service-view.js';
 import {createCookieClearIntentGate} from './sidebar-tools/cookie-clear-intent.js';
 import {createCookieExportIntentGate} from './sidebar-tools/cookie-export-intent.js';
+import {classifyCookiePageTransition} from './sidebar-tools/cookie-page-transition.js';
 import {resumeDefaultPagePreinstall} from '../scripting/user-scripts/default-preinstall.js';
 import {resumeDefaultPreinstall,DEFAULT_PREINSTALL_STORE} from '../sidebar-tools/default-preinstall.js';
 import {installReviewedSidebarTool,admittedSidebarToolPackages,sameSidebarToolPackage,admitsInstalledSidebarTool,compareToolVersions,
@@ -5804,12 +5805,19 @@ function createSidebarToolsController({api=globalThis.chrome,doc=globalThis.docu
     // resolving/unavailable and same-URL reloads must still revoke pending work.
     const pageKey=()=>JSON.stringify(['status','windowId','tabId','frameId','documentId','url','origin','title','reason']
       .map(key=>currentPageTarget.snapshot?.[key]??null));
-    let previousPage=pageKey();
+    let previousPage=pageKey(),previousCookiePage={...currentPageTarget.snapshot};
     const unsubscribe=currentPageTarget.subscribe(()=>{
       render();
-      const nextPage=pageKey();
+      const nextPage=pageKey(),nextCookiePage={...currentPageTarget.snapshot};
+      const priorCookiePage=previousCookiePage;
+      previousCookiePage=nextCookiePage;
       if(nextPage===previousPage)return;
       previousPage=nextPage;
+      // Only Cookie Editor filters visual changes: the other tools retain
+      // the existing page-changed contract. Document/Origin/tab fail closed.
+      const cookieTransition=isCookieTool(active)?
+        classifyCookiePageTransition(priorCookiePage,nextCookiePage):null;
+      if(cookieTransition==='ignore')return;
       // Only signal invalidation; the tool re-reads through its admitted Host request.
       if(nativeUI?.kind==='ai-proxy')
         frameRoot.dispatchEvent(new Event('opendesk-page-changed'));
@@ -5818,10 +5826,15 @@ function createSidebarToolsController({api=globalThis.chrome,doc=globalThis.docu
        cookieImportGate.revoke();
        cookieWriteGate.revoke();
        cookieClearGate.revoke();
-       cookieExportGate.revoke();
-       // The React sandbox independently re-reads its current site after navigation.
+       // A same-document path change does not revoke an already admitted
+       // export click; the Host still checks Origin, grant epoch and receipt.
+       if(cookieTransition!=='sync')cookieExportGate.revoke();
+       // Cookie Editor reconciles the same-document path without clearing UI.
+       // Every other tool continues receiving its original page-changed.
       if(frame&&active&&instance)frame.contentWindow?.postMessage({
-        protocol:SIDEBAR_TOOL_PROTOCOL,kind:'page-changed',instance,toolId:active.id
+        protocol:SIDEBAR_TOOL_PROTOCOL,
+        kind:cookieTransition==='sync'?'cookie-path-changed':'page-changed',
+        instance,toolId:active.id
       },'*');
     });
     listeners.push(unsubscribe);

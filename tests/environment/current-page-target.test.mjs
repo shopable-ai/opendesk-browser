@@ -455,3 +455,42 @@ test('a disposed Sidebar cannot capture or finish an in-flight candidate validat
   await tick(); target.dispose(); release(); await validation;
   assert.throws(()=>target.capture(),{code:'E_HOST_CLOSED'});
 });
+
+test('title and same-document SPA path/hash updates never emit a synthetic resolving gap',async()=>{
+  const {api,state}=fixture();
+  const target=createCurrentPageTarget({api});await target.ready;
+  const states=[];
+  const unsubscribe=target.subscribe(value=>states.push(value.status));
+  state.title='New title';
+  api.tabs.onUpdated.emit(11,{title:state.title},{windowId:7,active:true});
+  await tick();
+  assert.deepEqual(states,['available','available']);
+  state.url='https://example.com/b?step=2';
+  api.webNavigation.onHistoryStateUpdated.emit({tabId:11,frameId:0});
+  await tick();
+  assert.equal(target.snapshot.url,state.url);
+  state.url='https://example.com/b?step=2#jump';
+  api.webNavigation.onReferenceFragmentUpdated.emit({tabId:11,frameId:0});
+  await tick();
+  api.tabs.onUpdated.emit(11,{url:state.url},{windowId:7,active:true});
+  await tick();
+  assert.ok(states.every(status=>status==='available'),JSON.stringify(states));
+  assert.equal(target.snapshot.documentId,'doc-a');
+  unsubscribe();target.dispose();
+});
+test('document replacement still revokes current page immediately',async()=>{
+  const {api,state}=fixture();
+  const target=createCurrentPageTarget({api});await target.ready;
+  const observed=[];
+  const unsubscribe=target.subscribe(value=>observed.push(value.status));
+  api.webNavigation.onBeforeNavigate.emit({tabId:11,frameId:0});
+  assert.equal(target.snapshot.status,'unavailable');
+  state.url='https://other.example/';state.documentId='doc-b';state.status='loading';
+  api.tabs.onUpdated.emit(11,{status:'loading',url:state.url},{windowId:7,active:true});
+  await tick();
+  state.status='complete';api.webNavigation.onCompleted.emit({tabId:11,frameId:0});
+  await tick();
+  assert.equal(target.snapshot.origin,'https://other.example');
+  assert.ok(observed.includes('unavailable'));
+  unsubscribe();target.dispose();
+});

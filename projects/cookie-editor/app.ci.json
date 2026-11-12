@@ -12,6 +12,7 @@
     "tests/environment/cookie-editor-react-build.test.mjs",
     "tests/environment/cookie-editor-react-domain.test.mjs",
     "tests/environment/cookie-editor-react-controller.test.mjs",
+    "tests/environment/cookie-editor-navigation-export-r2.test.mjs",
     "tests/environment/cookie-editor-react-source.test.mjs",
     "tests/environment/cookie-editor-react-design.test.mjs",
     "tests/environment/cookie-editor-ui.test.mjs",
