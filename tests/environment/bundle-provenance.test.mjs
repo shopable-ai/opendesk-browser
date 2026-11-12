@@ -79,7 +79,7 @@ test('Subagent Result projection admits only three exact SW blobs and rejects ot
 
 test('A2B2A capability grant source is pinned to the original SW and trusted Side Panel only',async t=>{
   const path='projects/webflow/trusted/issue-workflow-authorization.js';
-  const pinned='e26ae6bcf44d1994801faa4fc9a7408964702adc';
+  const pinned='cd62e8cbfc0f50c40f2477d603e207a07b66ad3a';
   const allowed=target=>describeBundle({chunk:{fileName:target,
     modules:{[resolve(path)]:{renderedLength:1,originalLength:1}}},
     lock:{packages:{}}});
@@ -97,6 +97,32 @@ test('A2B2A capability grant source is pinned to the original SW and trusted Sid
   assert.equal(describeBundle(candidate).modules[0].reviewedFirstPartyBlob,pinned);
   await writeFile(file,Buffer.concat([bytes,Buffer.from('\n// unreviewed change')]));
   assert.throws(()=>describeBundle(candidate),/Trusted Web Flow source changed/);
+});
+
+test('R10 reviewed Issue business grant adapter only enters the original SW',async t=>{
+  const path='projects/webflow/trusted/issue-workflow-auth-host.js';
+  const pinned='9d98371cc66ff965e777b4292eb5dfd2bf1a3e08';
+  const modules=modulePath=>({[resolve(modulePath)]:{renderedLength:1,originalLength:1}});
+  const described=target=>describeBundle({chunk:{fileName:target,modules:modules(path)},
+    lock:{packages:{}}});
+  assert.equal(described('sw.js').modules[0].reviewedFirstPartyBlob,pinned);
+  for(const target of ['ui/tool-shell.js','agents/chatgpt-fixed-bridge.js',
+    'agents/web-task-content.js','agents/page-relay.js','native-agent/settings.js',
+    'scripting/sandbox/worker-runtime.js'])
+    assert.throws(()=>described(target),/cannot enter a privileged fixed bundle/);
+  const root=await realpath(await mkdtemp(join(tmpdir(),'webflow-auth-host-pin-')));
+  t.after(()=>rm(root,{recursive:true,force:true}));
+  const file=join(root,path),bytes=await readFile(resolve(path));
+  await mkdir(dirname(file),{recursive:true});await writeFile(file,bytes);
+  const candidate={chunk:{fileName:'sw.js',modules:{[file]:{renderedLength:1,originalLength:1}}},
+    root,lock:{packages:{}}};
+  assert.equal(describeBundle(candidate).modules[0].reviewedFirstPartyBlob,pinned);
+  await writeFile(file,Buffer.concat([bytes,Buffer.from('\n// unauthorized change')]));
+  assert.throws(()=>describeBundle(candidate),/Trusted Web Flow source changed/);
+  const unlisted=join(root,'projects/webflow/trusted/other-business-adapter.js');
+  await writeFile(unlisted,'export const grants=true;\n');
+  assert.throws(()=>describeBundle({chunk:{fileName:'sw.js',modules:modules(unlisted)},
+    root,lock:{packages:{}}}),/cannot enter a privileged fixed bundle/);
 });
 
 test('reviewed WebFlow task intent parser retains five exact fixed admissions',()=>{

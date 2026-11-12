@@ -8,6 +8,18 @@ export const ISSUE_WORKFLOW_CAPABILITIES=Object.freeze([
   'github.issue.read','chatgpt.conversation.create.send',
   'controller.result.read','chatgpt.source-a.send'
 ]);
+// R10 immutable business recipe identity, NOT a framework-wide grant.
+// Keep the persisted v1 scope byte-compatible with existing approvals.
+export const ISSUE_WORKFLOW_RECIPE=Object.freeze({
+  id:'github-public-issue-to-chatgpt-original-a',version:'1.0.0',
+  sourceOrigin:'https://chatgpt.com',githubRepo:'shopable-ai/opendesk-browser',
+  githubApiOrigin:'https://api.github.com',
+  taskId:'chatgpt.conversation.create',taskVersion:'0.2.0',
+  taskScriptId:'task:chatgpt.conversation.create:0.2.0',taskRevision:1,
+  taskTargetUrl:'https://chatgpt.com/',
+  parameterPolicy:'same-public-repo-variable-issue-and-objective-v1',
+  capabilities:ISSUE_WORKFLOW_CAPABILITIES
+});
 const ID=/^[A-Za-z0-9._:-]{8,128}$/u;
 const SHA=/^[a-f0-9]{64}$/u;
 const fail=code=>{throw Object.assign(new Error(code),{code});};
@@ -15,27 +27,28 @@ const plain=x=>x&&typeof x==='object'&&!Array.isArray(x)&&Object.getPrototypeOf(
 const PIN_KEYS=['version','manifestHash','contentHash','scriptId','revision','installationId','generation'];
 const clone=x=>structuredClone(x);
 export function issueWorkflowScope(installation){
+  const recipe=ISSUE_WORKFLOW_RECIPE;
   if(!plain(installation)||Object.keys(installation).sort().join(',')!==PIN_KEYS.slice().sort().join(',')||
-    installation.version!=='0.2.0'||
-    installation.scriptId!=='task:chatgpt.conversation.create:0.2.0'||
-    installation.revision!==1||
+    installation.version!==recipe.taskVersion||
+    installation.scriptId!==recipe.taskScriptId||
+    installation.revision!==recipe.taskRevision||
     !SHA.test(installation.manifestHash)||!SHA.test(installation.contentHash)||
     !ID.test(installation.installationId)||
     !Number.isSafeInteger(installation.generation)||installation.generation<1)
     fail('E_ISSUE_WORKFLOW_INSTALLATION');
   return {
-    sourceOrigin:'https://chatgpt.com',
-    githubRepo:'shopable-ai/opendesk-browser',
-    githubApiOrigin:'https://api.github.com',
-    taskId:'chatgpt.conversation.create',
-    taskVersion:'0.2.0',
-    taskTargetUrl:'https://chatgpt.com/',
+    sourceOrigin:recipe.sourceOrigin,
+    githubRepo:recipe.githubRepo,
+    githubApiOrigin:recipe.githubApiOrigin,
+    taskId:recipe.taskId,
+    taskVersion:recipe.taskVersion,
+    taskTargetUrl:recipe.taskTargetUrl,
     send:true,readFullBResult:true,deliverOriginalA:true,
     installation:clone(installation),
-    capabilities:[...ISSUE_WORKFLOW_CAPABILITIES],
+    capabilities:[...recipe.capabilities],
     // Review permits changing public Issue number and analysis objective,
     // never the GitHub repository, Task pin, send permission or destination.
-    parameterPolicy:'same-public-repo-variable-issue-and-objective-v1'
+    parameterPolicy:recipe.parameterPolicy
   };
 }
 const canonical=x=>JSON.stringify(x,(_key,v)=>v&&typeof v==='object'&&!Array.isArray(v)?

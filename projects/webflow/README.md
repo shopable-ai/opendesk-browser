@@ -29,19 +29,27 @@ ChatGPT 原 A 的明确请求（来源身份/用户意图）
 
 **每条箭头都是受控接口，不是 WebFlow 内核直接抓网页或点击发送。** 站点账户/Profile、页面 Document、安装身份、能力、撤权和不可逆操作记录必须在可信边界复核，不能因配方已被批准而绕过原 Controller 或站点安全检查。普通 AI 回复中出现 Task 名称、Issue 编号或 JSON 只属于**请求数据**；必须由可信调用链审阅/授权才可执行。
 
-### 当前已核实的耦合风险（整改对象，不等于已经修复）
+### R10 实际依赖边界与剩余风险（2026-11-13；`OD-WEBFLOW-FIXED-TASK-DECOUPLING-R10`）
 
-- **P0，通用入口被业务反向依赖：** `src/page-events/web-task-ingress.js` 直接导入 `projects/webflow/trusted/issue-workflow-authorization.js`，并提供 `workflow-auth-*` 的 GitHub→ChatGPT 专用分支；`src/native-agent/chatgpt-fixed-bridge-host.js`、`src/ui/tool-shell.js` 也接有对应业务审核方法。这些是当前真实可信代码，但不应长期成为 WebFlow 通用引擎或所有任务的内置类型。重构时优先通过**原有受审 Host 的最小、固定能力委托/注册边界**隔离，不能为解耦而开放任意网页/沙箱调用特权。
-- **P0，流程和授权与单个场景绑定：** `issue-workflow-authorization.js` 固定 `shopable-ai/opendesk-browser`、`chatgpt.conversation.create@0.2.0` 和站点范围；这属于专用业务配方及其授权数据，不能升级为全体 WebFlow 共享规则。移走业务判断时保留已有授权记录、epoch、撤权及安全回退语义，不能自动向其他仓库、Task 或 Provider 扩权。
-- **P1，专用流程在通用命名下：** `projects/webflow/trusted/md-workflow-engine.js` 固定 ChatGPT Task/URL。通用推进算法应保持 Task/adapter 无关，ChatGPT 专属验证和 prompt 生成留在独立 Adapter/Recipe，避免新增站点时复制状态机。
-- **P1，固定 UI 数据不是动态任务授权：** `src/ui/main.js` 的 `PINNED` 与 `tool.config.json` 的 `delegatedTasks` 当前声明百度 1.1.5、Google 1.0.3；它们是**经审阅固定委托**，不能被用户输入的任意 taskId 替换。`chatgpt.conversation.create@0.2.0` 有自己的已安装 Task 包，但**当前不在 WebFlow Sidebar Tool 的这两项 delegatedTasks 中**；走其他第一方可信消费者时也须证明实际安装、Task pin 与独立授权。之后新增固定脚本只能经原审阅/安装/授权入口，不能在 WebFlow UI 里伪造已委托状态。
-- **正确保留：** `projects/webflow/trusted/serial-two-step-run.js` 通过 `dispatchB/readB/prepareA/deliverA/readA` 注入业务回调，保留通用持久状态/副作用围栏的方向正确；不要复制另一个引擎。现有 `projects/webflow/src/github-issue-input.js`、`chat-handoff-receipt.js`、ChatGPT 0.2.0 Task 和官方 A 消息读回属于可复用业务组件，不因重构重新开发。
+**已隔离的真实调用：** 普通网页请求仍使用 `src/sw.js → createWebTaskIngress → 原 Trigger Ledger/Authority/Controller/Run/Result`。固定 GitHub Issue 工作流授权则由 **SW 编译期注册** 的 `projects/webflow/trusted/issue-workflow-auth-host.js` 独立接收精确 `workflow-auth-read/approve/revoke` 三个消息，经原 ingress 的同一可信 Side Panel 身份核验，再调用原 `foundation.authority.resolveInstalledTask` 与原 `frameworkKV` 事务。通用 `web-task-ingress.js` **不再导入/处理** GitHub Issue 授权规则；任何其他任务都不能继承该业务授权。此注册仅限代码审阅后编译入 SW，不存在沙箱或 AI 输出动态注册 Host 能力。
 
-### 下一轮实施与验收顺序
+```text
+WebFlow 通用网站意图 → SW → web-task-ingress → 原 RunHost/Controller/Result
+                                      (原 Task Catalog/Authority)
+GitHub→ChatGPT 授权 UI → 原可信 Side Panel Host
+                       → SW 受审 business handler registry
+                       → issue-workflow-auth-host (业务审批适配器)
+                       → 原 Side Panel 文档验证 + 已安装 Task pin/权限复核
+                       → 旧 frameworkKV 授权记录（原 key/epoch/撤销）
+```
 
-先核对实时 `main` 和原生产调用方，画出「用户触发 → 固定配方/Task 引用 → 原 Authority/Controller → 站点适配器 → Durable Result → WebFlow 恢复」的**现状调用图**，标出哪些边还不存在。只处理有证据的上述 P0/P1 耦合，优先**提取专用业务配方/授权 Adapter，复用现有 Task/Host 公共合同**；只有确实缺少通用 SDK 能力才以可复现用例申请最小通用接口，禁止发明动态 Task API 或复制 Runner。通过定向测试证明：替换业务配方不需修改 WebFlow 状态机/通用 SW；未安装/改版本/撤权、UNKNOWN/重启不能重复发送；跨 Provider/仓库不能继承原授权；固定扩展安全来源 pin 仍严格生效。
+**固定配方与安装引用：** `issue-workflow-authorization.js` 新增只读 `ISSUE_WORKFLOW_RECIPE`，声明唯一仓库、GitHub API 来源、ChatGPT 0.2.0 Task ID/版本/Script 修订/目标和四项业务能力；`issueWorkflowScope()` 仍投影**完全相同的 v1 授权字段**，不修改原授权记录、不自动升级。执行前仍必须通过原 Task Catalog/Authority 核对 **manifestHash、contentHash、installationId、generation、siteOrigins、Chrome 权限**。该配方不是任意 Task 的通用 API，也不意味着 GitHub Issue 读取、B 调用与 A 交付已经正式接线。
 
-**判定分开：** 本节是架构审计与不可漂移的归属约束；不表示业务耦合已重构、A→B→A 已运行或新包已安装。后续实施进度只写回[执行计划](docs/execution-plan.zh-CN.md)，原脚本如何安装/委托只按[脚本指南](docs/script-development-installation-guide.zh-CN.md)。
+**受信边界保持不变：** `chatgpt-fixed-bridge-host.js` 的原生手势/冻结审阅、`tool-shell.js` 与 `AutoSettings.tsx` 的原 UI 映射保留为**明确命名的第一方业务入口**；`serial-two-step-run.js`、`md-workflow-engine.js`、原 V1/V2、0.2.0 Task、Authority/Controller/RunHost 与持久 Run/Result 均未重做。后者 `md-workflow-engine.js` 是历史 **Markdown 专用**编排，不是 WebFlow 通用状态机；仍绑定 ChatGPT 0.2.0，若未来要改成其他业务配方，应由该专用适配层单独调整，不得复制通用引擎。
+
+**尚存耦合/缺口：** 原 `web-task-ingress.js` 的 ChatGPT background/settle/delivery 和 `chatgpt-fixed-bridge-host.js` 的 ChatGPT UI 方法仍属第一方站点专用路径；本轮只拆 GitHub→ChatGPT 的 **通用 ingress 授权混入**，不假装所有站点适配均已抽象完毕。Sidebar `tool.config.json` 仍只固定委托百度 1.1.5 和 Google 1.0.3，ChatGPT 0.2.0 的资源存在不意味着已经安装/委托给 Sidebar。Issue 获取 → 创建唯一 B（send:true）→ 验证完整 B → 原 A 以 deliveryKey 单次送达的 **R9 生产闭环仍未完成**；任何 UNKNOWN 均保持原单次围栏，只读原 Run/Result/消息回执。
+
+**R10 验证边界（同源码候选 `4f85cd20`）：** [正式 CI](https://github.com/shopable-ai/opendesk-browser/actions/runs/43263417411) 的授权 12/12、精确 Blob pin 2/2、ingress 70/70 和两步事务/0.2.0 兼容 63/63 全部通过；**production build / package verify 真实 PASS**。Google 专项 PASS；旧百度测试 17/30 FAIL，原广域 0.3.0 测试 2/131 FAIL，故整个 CI **FAIL**，不能宣称全量兼容通过。本机 CodexPro 未连接，`CHROME_NOT_TESTED`、`R9_BUSINESS_NOT_DONE`。独立结论及精确回执在[原执行计划](docs/execution-plan.zh-CN.md)中登记。
 
 ---
 

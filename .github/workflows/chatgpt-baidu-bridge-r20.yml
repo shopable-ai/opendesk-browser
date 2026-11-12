@@ -52,6 +52,10 @@ on:
       - 'projects/webflow/trusted/chat-handoff-receipt.js'
       - 'projects/webflow/trusted/serial-two-step-run.js'
       - 'projects/webflow/trusted/issue-workflow-authorization.js'
+      - 'projects/webflow/trusted/issue-workflow-auth-host.js'
+      - 'projects/webflow/tests/issue-workflow-auth-host.test.mjs'
+      - 'src/sw.js'
+      - 'tests/environment/bundle-provenance.test.mjs'
       - 'projects/webflow/tests/issue-workflow-authorization.test.mjs'
       - 'projects/webflow/trusted/AutoSettings.tsx'
       - 'src/ui/tool-shell.js'
@@ -146,6 +150,9 @@ jobs:
           node --check projects/webflow/trusted/chatgpt-result-adapter.js
           node --check projects/webflow/trusted/chat-handoff-receipt.js
           node --check projects/webflow/trusted/issue-workflow-authorization.js
+          node --check projects/webflow/trusted/issue-workflow-auth-host.js
+          node --check projects/webflow/tests/issue-workflow-auth-host.test.mjs
+          node --check src/sw.js
           node --check projects/webflow/tests/issue-workflow-authorization.test.mjs
           node --check projects/webflow/tests/chatgpt-create-result.test.mjs
           node --check projects/webflow/trusted/md-run-ledger.js
@@ -163,7 +170,14 @@ jobs:
           node --check projects/webflow/tests/task-v2-live-ledger.test.mjs
           node --check tests/environment/chatgpt-baidu-bridge-r20.test.mjs
       - name: Workflow-wide one-time reviewed GitHub A2B2A scope and revocation (Node, not Chrome)
-        run: node --test projects/webflow/tests/issue-workflow-authorization.test.mjs
+        run: node --test projects/webflow/tests/issue-workflow-authorization.test.mjs projects/webflow/tests/issue-workflow-auth-host.test.mjs
+      - name: WebFlow R10 exact source admission and original ingress regression (Node, not Chrome)
+        run: |
+          # The full cross-project provenance suite currently has unrelated
+          # AI Proxy / Bookmark / Time Review / TOC baseline failures; never
+          # loosen those safety pins or mask a failure of this workflow's pins.
+          node --test --test-name-pattern='A2B2A capability grant source is pinned|R10 reviewed Issue business grant adapter' tests/environment/bundle-provenance.test.mjs
+          node --test tests/environment/web-task-ingress.test.mjs
       - name: WebFlow two-step operation fences (Node, not Chrome)
         run: node --test projects/webflow/tests/serial-two-step-run.test.mjs
       - name: One-shot retained-target continuation provenance (Node, not Chrome)
@@ -216,4 +230,39 @@ jobs:
       - name: Production extension build (not native Chrome)
         run: npm run build
       - name: Verify production package contract
+        run: node scripts/verify-package.mjs dist/production
+
+  # Independent R10 gate: preserve the historic broad bridge matrix even
+  # when an unchanged ChatGPT 0.3 PREPARE/SUBMIT test currently fails.
+  # Never use continue-on-error to hide a broken R10 grant or trusted source.
+  r10-reviewed-fixed-task-build:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+      - run: npm ci --ignore-scripts --no-audit --no-fund
+      - name: R10 exact business authority and original ingress contracts
+        run: |
+          node --test projects/webflow/tests/issue-workflow-authorization.test.mjs projects/webflow/tests/issue-workflow-auth-host.test.mjs
+          node --test --test-name-pattern='A2B2A capability grant source is pinned|R10 reviewed Issue business grant adapter' tests/environment/bundle-provenance.test.mjs
+          node --test tests/environment/web-task-ingress.test.mjs
+      - name: Original serial two-step no replay and ChatGPT 0.2.0 compatible Tasks
+        run: node --test projects/webflow/tests/serial-two-step-run.test.mjs projects/webflow/tests/chatgpt-send-task.test.mjs projects/webflow/tests/chatgpt-create-result.test.mjs projects/webflow/tests/chat-handoff-receipt.test.mjs tests/environment/task-builtin-initialization.test.mjs
+      - name: Legacy Baidu business regression (record failures independently)
+        run: node --test tests/environment/baidu-search-top3-r1.test.mjs
+      - name: Legacy Google business regression (not blocked by Baidu)
+        if: ${{ always() }}
+        run: node --test examples/tasks/tests/google-search-actions.test.mjs
+      - name: Original trusted fixed entry production build (not native Chrome)
+        id: r10_build
+        if: ${{ always() }}
+        run: npm run build
+      - name: Verify production package contract (not native Chrome)
+        if: ${{ always() && steps.r10_build.outcome == 'success' }}
         run: node scripts/verify-package.mjs dist/production
