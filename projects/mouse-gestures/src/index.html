@@ -13,48 +13,58 @@
     <li class="mg-item"><span class="mg-arrow" role="img" aria-label="向下">↓</span><span>到底</span></li>
   </ul>
   <p id="gesture-help" class="mg-hint" role="status" aria-live="polite">右键拖动，松开执行 · Esc 取消</p>
-  <details class="mg-preferences">
-    <summary>操作偏好</summary>
-    <div class="mg-preference-row">
-      <label for="gesture-trigger">触发方式</label>
-      <select id="gesture-trigger" disabled>
-        <option value="right">右键拖动（默认）</option>
-        <option value="alt-left">Option / Alt + 左键拖动</option>
-      </select>
-    </div>
-    <div class="mg-preference-row">
-      <label for="gesture-menu-policy">网页右键菜单</label>
-      <select id="gesture-menu-policy" aria-describedby="gesture-menu-help" disabled>
-        <option value="native-first">原生菜单优先（默认）</option>
-        <option value="gesture-first">手势优先（需主动启用）</option>
-      </select>
-    </div>
-    <p id="gesture-menu-help" class="mg-note">默认保留普通右键菜单。若 macOS 在拖动前就弹出菜单，手势可能无法开始；可改用 Option / Alt + 左键或手动启用手势优先。</p>
-    <label class="mg-trace-option" for="gesture-trace"><input id="gesture-trace" type="checkbox" checked disabled>显示轨迹与动作提示</label>
-    <div class="mg-combo-setting">
-      <span class="mg-combo-title">组合手势动作</span>
+  <details class="mg-config">
+    <summary><span>自定义组合</span><span id="gesture-combo-summary" class="mg-config-meta">未配置</span></summary>
+    <div class="mg-config-body">
+      <p class="mg-note">支持八种直角双段手势；只有完整画出两段、且已设置动作才执行。</p>
       <div class="mg-combo-fields">
         <label for="gesture-combo">方向组合</label>
         <select id="gesture-combo" disabled>
-          <option value="left-down">先向左，再向下</option>
-          <option value="left-up">先向左，再向上</option>
-          <option value="right-down">先向右，再向下</option>
-          <option value="right-up">先向右，再向上</option>
-          <option value="up-right">先向上，再向右</option>
-          <option value="up-left">先向上，再向左</option>
-          <option value="down-right">先向下，再向右</option>
-          <option value="down-left">先向下，再向左</option>
+          <option value="left-down">← ↓　左后下</option>
+          <option value="left-up">← ↑　左后上</option>
+          <option value="right-down">→ ↓　右后下</option>
+          <option value="right-up">→ ↑　右后上</option>
+          <option value="up-right">↑ →　上后右</option>
+          <option value="up-left">↑ ←　上后左</option>
+          <option value="down-right">↓ →　下后右</option>
+          <option value="down-left">↓ ←　下后左</option>
         </select>
         <label for="gesture-combo-action">执行动作</label>
         <select id="gesture-combo-action" disabled>
-          <option value="none">未配置（不执行）</option>
+          <option value="none">不执行（默认）</option>
           <option value="left">后退</option>
           <option value="right">前进</option>
           <option value="up">刷新</option>
           <option value="down">滚动到底部</option>
         </select>
       </div>
-      <p class="mg-note">只有完成两段并松开，才执行已保存的动作。</p>
+    </div>
+  </details>
+  <details class="mg-config">
+    <summary><span>兼容与显示</span><span id="gesture-compat-summary" class="mg-config-meta">原生菜单优先</span></summary>
+    <div class="mg-config-body">
+      <p class="mg-note">通常无需更改。若 macOS 先弹出右键菜单，本次手势会取消，普通右键菜单仍然保留。</p>
+      <div class="mg-preference-row">
+        <label for="gesture-trigger">触发方式</label>
+        <select id="gesture-trigger" disabled>
+          <option value="right">右键拖动（默认）</option>
+          <option value="alt-left">Option / Alt + 左键</option>
+        </select>
+      </div>
+      <p class="mg-note">两种触发方式二选一，切换到 Option / Alt + 左键后不再通过右键触发。</p>
+      <label class="mg-trace-option" for="gesture-trace"><input id="gesture-trace" type="checkbox" checked disabled>显示手势轨迹与方向箭头</label>
+      <details class="mg-risk-option">
+        <summary>高级：右键菜单兼容</summary>
+        <p class="mg-note">默认不影响普通右键。手势优先会拦截部分普通右键菜单，只在确有需要时使用。</p>
+        <div class="mg-preference-row">
+          <label for="gesture-menu-policy">菜单处理方式</label>
+          <select id="gesture-menu-policy" aria-describedby="gesture-menu-help" disabled>
+            <option value="native-first">保留原生菜单（默认）</option>
+            <option value="gesture-first">手势优先（影响普通右键）</option>
+          </select>
+        </div>
+        <p id="gesture-menu-help" class="mg-note">保留普通右键菜单。若菜单抢先出现，本次手势安全取消。</p>
+      </details>
     </div>
   </details>
   <p id="gesture-error" class="mg-error" role="alert" hidden></p>
