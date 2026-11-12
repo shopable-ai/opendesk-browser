@@ -36,6 +36,13 @@
   @media(max-width:670px){body{padding:8px}.demo{grid-template-columns:minmax(0,1fr)}.panel{width:100%;max-width:400px;margin:auto}.notes{max-width:400px;margin:auto}}
 
 /* R3: keep the verified inline update action always visible. */
+.demo{grid-template-columns:minmax(0,var(--preview-width,360px)) minmax(210px,1fr)}
+.panel{container-type:inline-size}
+@container (max-width:330px){
+  .ec-row--trusted-update .ec-row-main{padding-right:112px}
+  .ec-row--trusted-update .ec-type{display:none}
+  .demo-inline-update{min-width:44px;padding:4px 5px}
+}
 .ec-row--trusted-update .ec-row-main{padding-right:126px}
 .ec-row--trusted-update .ec-row-actions{opacity:1;pointer-events:auto;gap:2px}
 .demo-inline-update{min-height:30px;min-width:49px;padding:4px 7px;border:1px solid var(--od-focus);border-radius:7px;background:color-mix(in srgb,var(--od-focus) 8%,var(--od-paper));color:var(--od-accent-ink);font-size:12px;font-weight:650;white-space:nowrap}
@@ -126,6 +133,13 @@
       <button class="od-button od-button--secondary" data-update-count="1" aria-pressed="false" type="button">1 项</button>
       <button class="od-button od-button--secondary" data-update-count="3" aria-pressed="true" type="button">3 项</button>
       <button class="od-button od-button--secondary" data-update-count="10" aria-pressed="false" type="button">10 项</button>
+    </div>
+    <h2>Side Panel 预览宽度</h2>
+    <div class="demo-update-counts" role="group" aria-label="模拟 Side Panel 宽度">
+      <button class="od-button od-button--secondary" data-preview-width="280" type="button" aria-pressed="false">280px</button>
+      <button class="od-button od-button--secondary" data-preview-width="320" type="button" aria-pressed="false">320px</button>
+      <button class="od-button od-button--secondary" data-preview-width="360" type="button" aria-pressed="true">360px</button>
+      <button class="od-button od-button--secondary" data-preview-width="420" type="button" aria-pressed="false">420px</button>
     </div>
     <p>只将已核验的更新行排到默认列表前面并显示「更新／审阅」。没有额外“更新中心”、下载图标、“系统内置”或“待审阅更新”分组标题。旧版详情、筛选及管理菜单仍保留。</p>
     <p><strong>SIMULATED_PREVIEW：</strong>演示候选并非真实发布版本；没有安装授权、网页发现或 Chrome 安装结果。</p>
@@ -697,6 +711,13 @@ function selectInlineCount(n){
 }
 document.querySelectorAll('[data-update-count]').forEach(b=>
   b.addEventListener('click',()=>selectInlineCount(Number(b.dataset.updateCount))));
+document.querySelectorAll('[data-preview-width]').forEach(b=>b.addEventListener('click',()=>{
+  const w=Number(b.dataset.previewWidth);
+  document.querySelector('.demo').style.setProperty('--preview-width',w+'px');
+  document.querySelectorAll('[data-preview-width]').forEach(item=>
+    item.setAttribute('aria-pressed',String(Number(item.dataset.previewWidth)===w)));
+  say('预览宽度 '+w+'px。可在浏览器再以 200% 缩放检查。');
+}));
 document.querySelectorAll('[data-scenario]').forEach(b=>b.addEventListener('click',()=>{
  items=initial.map(x=>({...x}));
  scenario=['cookie','update'].includes(b.dataset.scenario)?'normal':b.dataset.scenario;
