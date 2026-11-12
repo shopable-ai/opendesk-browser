@@ -1,0 +1,22 @@
+{
+  "name": "@opendesk/subagent-mini-chat",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "独立的 ChatGPT A 页面 Mini Chat，使用 WebFlow 已审阅 Controller Task；可信调用不可用时拒绝执行",
+  "scripts": {"test": "node --test tests/*.test.mjs"},
+  "opendesk": {
+    "format": "opendesk.project.v1",
+    "id": "opendesk.subagent-mini-chat",
+    "runtimeKind": "page-userscript",
+    "sourceFormat": "esm",
+    "entry": "src/main.js",
+    "pageRules": {
+      "matches": ["https://chatgpt.com/*"],
+      "excludeMatches": [],
+      "runAt": "document_idle",
+      "allFrames": false,
+      "world": "USER_SCRIPT"
+    }
+  }
+}
