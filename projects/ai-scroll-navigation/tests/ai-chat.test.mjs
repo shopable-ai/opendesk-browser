@@ -10,7 +10,7 @@ import {SIDEBAR_TOOL_ENABLE_STORE} from '../../../src/ui/sidebar-tools/lifecycle
 // Only transport/provider leases and persisted backend state are simulated.
 // Synthetic isTrusted tests controller guards, not native Chrome activation.
 const id='opendesk.ai-scroll-navigation';
-const navigation={regionTop:true,regionBottom:true,conversationTop:true,conversationBottom:true,floatingTop:true};
+const navigation={regionTop:true,regionBottom:true,conversationTop:true,conversationBottom:true,floatingTop:true,turnPaging:true};
 const site={origin:'https://chatgpt.com',pathScope:'/',mainSelector:'main',
   scrollSelector:'#conversation',messageSelector:'article',anchorSelector:'',enabled:true};
 const proposal=(patch={floatingTop:false})=>({type:'navigation',message:'已提议关闭悬浮回顶',patch});
@@ -144,7 +144,7 @@ test('explicit floatingTop off saves through original controller, etag and readb
   assert.equal(element(f,'#scroll-ai-input').value,'');
   assert.ok(lease.checks>=1);assert.equal(lease.releases,1);
   await click(f,'#scroll-settings');
-  const flag=[...f.doc.querySelectorAll('[role="switch"]')].at(-1);
+  const flag=[...f.doc.querySelectorAll('[role="switch"]')].find(node=>node.getAttribute('aria-label')==='滚动后悬浮回顶');
   assert.ok(flag);assert.equal(flag.checked,false);
 });
 
