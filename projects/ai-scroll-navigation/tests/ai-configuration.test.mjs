@@ -2,7 +2,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import {scrollConversationPolicy,buildScrollAIContext,validateScrollAIProposal as validate} from '../trusted/ai-configuration.js';
 
-const flags={regionTop:true,regionBottom:false,conversationTop:true,conversationBottom:false,floatingTop:true};
+const flags={regionTop:true,regionBottom:false,conversationTop:true,conversationBottom:false,floatingTop:true,turnPaging:true};
 const rule={origin:'https://example.com',pathScope:'/chat',mainSelector:'#chat',scrollSelector:'#scroll',
   messageSelector:'.message',anchorSelector:'',enabled:true};
 const snapshot={value:{version:1,sites:[rule],navigation:flags},etag:'7'};
