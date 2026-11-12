@@ -61,6 +61,11 @@ test('active current-page subscription notifies trusted portal once per transiti
  const listeners=[];
  new Function('currentPageTarget','frameRoot','listeners',`
  const render=()=>{},stopVideoSVIPWatch=()=>{},videoDownloader={invalidate(){}},cookieImportGate={revoke(){}},cookieWriteGate=cookieImportGate,cookieClearGate=cookieImportGate,cookieExportGate=cookieImportGate;
+ // Keep this AI Proxy fixture on the original non-Cookie path. The production
+ // closure now checks Cookie capabilities before deciding whether to suppress
+ // same-document path changes; no Cookie classifier should run here.
+ const isCookieTool=tool=>Array.isArray(tool?.capabilities)&&tool.capabilities.some(cap=>cap.startsWith('browser.cookies.'));
+ const classifyCookiePageTransition=()=>{throw Error('AI Proxy must not invoke Cookie page classifier');};
  let videoShortcutSession=null,frame=null,active={id:'ai-proxy'},instance='session',nativeUI={kind:'ai-proxy'};
  ${host.slice(start,end)}
  `)(target,root,listeners);
