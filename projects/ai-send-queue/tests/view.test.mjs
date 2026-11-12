@@ -440,21 +440,20 @@ test('expanded list shows all 20 items and retains scroll position after state c
   assert.equal(root.children[0].scrollTop,186);
 });
 
-test('compact row keeps secondary actions in an accessible toggle',()=>{
+test('each queue row retains direct icon actions without an overflow menu',()=>{
   const h=fixture();assert.equal(h.view.place(h.snap),true);h.view.render();
-  const click=h.ui('list').listeners.find(x=>x.event==='click').callback;
   const first=()=>panel(h).querySelectorAll('[data-id-row]')[0];
-  const buttons=first().querySelectorAll('button');
-  assert.equal(buttons.filter(b=>['pause','menu'].includes(b.dataset.action)).length,2);
-  assert.equal(first().children.find(n=>n.className==='sq-details').hidden,true);
-  const menu=buttons.find(b=>b.dataset.action==='menu');
-  assert.equal(menu.getAttribute('aria-expanded'),'false');
-  click({target:{closest:()=>menu},stopPropagation(){}});
-  assert.equal(first().children.find(n=>n.className==='sq-details').hidden,false);
-  assert.equal(first().querySelectorAll('button').find(b=>b.dataset.action==='menu').getAttribute('aria-expanded'),'true');
-  const close=first().querySelectorAll('button').find(b=>b.dataset.action==='menu');
-  click({target:{closest:()=>close},stopPropagation(){}});
-  assert.equal(first().children.find(n=>n.className==='sq-details').hidden,true);
+  const actions=()=>first().querySelectorAll('button').map(node=>node.dataset.action);
+  assert.deepEqual(actions(),['pause','now','edit','remove']);
+  assert.equal(first().querySelectorAll('.sq-details').length,0);
+  for(const action of ['pause','now','edit','remove']){
+    const control=first().querySelectorAll('button').find(node=>node.dataset.action===action);
+    assert.ok(control.title,action);
+    assert.equal(control.getAttribute('aria-label'),control.title);
+  }
+  h.state({items:[{id:'q1',text:'queued text',state:'paused'}]});h.view.render();
+  assert.deepEqual(actions(),['resume','now','edit','remove']);
+  assert.equal(first().querySelectorAll('button').find(node=>node.dataset.action==='now').disabled,true);
 });
 
 test('expanded rows have viewport-sized scrolling and keep the old native composer untouched',async()=>{

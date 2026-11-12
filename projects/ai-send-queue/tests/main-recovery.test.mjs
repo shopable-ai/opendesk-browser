@@ -47,7 +47,13 @@ function fixture({preflight={ok:true},clear={ok:false,needsRecovery:true,text:'p
     wait(){},
     resume(){calls.resumes++;return true;},
     reclaimPrepared(){calls.reclaimPrepared=(calls.reclaimPrepared||0)+1;return reclaimPrepared;},
-    uncertain(...args){calls.uncertain=args;},
+    uncertain(...args){
+       calls.uncertain=args;
+       const item=state.items.find(x=>x.id===args[0]);
+       if(!item||state.inFlight)return false;
+       item.state='unknown';state.phase='unknown';state.inFlight={id:item.id,phase:'unknown'};
+       return true;
+     },
     remove(id){calls.removed.push(id);return removeResult;},
     requestNow(){calls.now++;return {ok:true};},
     tick(options){calls.ticks++;calls.canSubmit=options?.canSubmit;calls.tickOptions.push({...options});calls.onTick?.();}};
@@ -388,7 +394,8 @@ test('clear microtask rollback cannot enqueue the same transfer twice',async()=>
   await Promise.resolve().then(()=>{h.snap.draft='private draft';});
   assert.equal(h.enqueue(),false);assert.equal(h.actions.sendNow('q2'),false);
   h.poll();assert.equal(h.calls.enqueued,1);assert.equal(h.calls.canSubmit,false);
-  assert.equal(h.calls.recovery.text,'private draft');
+  assert.equal(h.calls.recovery,null,'the copy is already retained as an unknown queue row');
+  assert.equal(h.state.phase,'unknown');
 });
 
 test('reclaim waits for independent poll and retains backup through later clearing',async()=>{
@@ -501,8 +508,8 @@ for(const change of ['restored text','different text','history']){
     const draft=h.snap.draft;
     h.enqueue();h.poll();
     assert.equal(h.calls.enqueued,1);assert.equal(h.calls.clear,1);
-    assert.equal(h.snap.draft,draft);assert.equal(h.calls.recovery.text,'private draft');
-    assert.equal(h.calls.uncertain[0],'q2');assert.equal(h.calls.canSubmit,false);
+    assert.equal(h.snap.draft,draft);assert.equal(h.calls.recovery,null);
+    assert.equal(h.calls.uncertain[0],'q2');assert.equal(h.state.phase,'unknown');
     assert.equal(h.state.items[0].text,'private draft');
   });
 }
@@ -518,7 +525,7 @@ for(const outcome of ['trusted edit','canceled','unchanged','untrusted input']){
     h.enqueue();h.poll();
     assert.equal(h.calls.enqueued,outcome==='trusted edit'?2:1);
     assert.equal(h.calls.clear,outcome==='trusted edit'?2:1);
-    assert.equal(h.calls.recovery?.text,outcome==='trusted edit'?undefined:'private draft');
+    assert.equal(h.calls.recovery,null,'retained queue text must not be presented as missing');
   });
 }
 

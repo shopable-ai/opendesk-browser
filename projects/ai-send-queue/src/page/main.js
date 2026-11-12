@@ -140,10 +140,19 @@ export default async function main({assets}={}) {
       return false;
     }
     function recover(transfer,reason){
-      offerRecovery(transfer.text,reason);
-      if(transfer.id)engine.uncertain(transfer.id,reason,transfer.before);
+      // An acknowledged enqueue already has a queue-owned copy. Mark that row
+      // uncertain instead of showing a misleading duplicate recovery overlay.
+      const retained=transfer.kind==='enqueue'&&!!transfer.id&&
+        engine.view().items.some(item=>item.id===transfer.id&&item.text===transfer.text);
+      const marked=retained&&engine.uncertain(transfer.id,reason,transfer.before)===true;
+      if(marked)notify('原文仍在队列中，此条已暂停自动发送；请核对原对话，不会自动重发');
+      else{
+        offerRecovery(transfer.text,reason);
+        if(transfer.id)engine.uncertain(transfer.id,reason,transfer.before);
+      }
       engine.wait(reason);
-      checkpoint();
+      // Storage failure still requires a separately recoverable copy.
+      if(!checkpoint()&&marked)offerRecovery(transfer.text,'队列备份保存未确认，请复制原文并核对原对话');
     }
     function observeProvenance(snap){
       if(!provenance)return;
@@ -251,7 +260,7 @@ export default async function main({assets}={}) {
       enqueue(){
         if(blocked())return false;
         if(cachedDraft||view?.hasRecovery()){
-          notify('请先复制上一条未入队的原草稿，再继续操作');return;
+          notify('请先核对并处理上一次草稿交接的备份，再继续操作');return;
         }
         // A flight can still own the text it placed in the native editor.
         // Wait for exact admission before clearing it through either entry.
@@ -372,7 +381,7 @@ export default async function main({assets}={}) {
       sendNow(id){
         if(blocked())return false;
         if(view?.hasRecovery()){
-          notify('请先复制未入队的原草稿，再强制发送');return false;
+          notify('请先核对并处理草稿交接的备份，再提前发送');return false;
         }
         const result=engine.requestNow(id);
         if(!result.ok)notify(result.reason||'当前状态不能强制发送');
@@ -459,7 +468,8 @@ export default async function main({assets}={}) {
         const flight=engine.view().inFlight;
         // Even a failed UI round must reconcile late admission and existing deadlines.
         const ticked=attempt(()=>{
-          const canSubmit=!checkFailed&&placed&&!pending&&!recovery&&checkpoint();
+          const canSubmit=!checkFailed&&placed&&!pending&&!recovery&&
+            engine.view().phase!=='unknown'&&checkpoint();
           const submitBlockReason=checkFailed?'本轮队列检查异常':!placed?'队列控件尚未安全显示':
             pending?'草稿交接尚未确认':recovery?'恢复草稿尚待核对':'队列缓存未保存';
           engine.tick({canSubmit,submitBlockReason});

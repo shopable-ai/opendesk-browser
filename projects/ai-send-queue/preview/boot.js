@@ -11,8 +11,8 @@ async function checked(input){
   return new TextDecoder().decode(bytes);
 }
 function moduleURL(source){const url=URL.createObjectURL(new Blob([source],{type:'text/javascript'}));blobs.push(url);return url;}
-const ICON={pause:'<path d="M8 5v14M16 5v14"/>',resume:'<path d="M8 5l11 7-11 7V5Z"/>',now:'<path d="M12 19V5m-6 6 6-6 6 6M4 20h16"/>',edit:'<path d="M12 20h9M16.5 3.5a2.12 2.12 0 0 1 3 3L8.2 17.8l-4.2 1.2 1.2-4.2Z"/>',remove:'<path d="M18 6 6 18M6 6l12 12"/>',menu:'<circle cx="5" cy="12" r="1.2"/><circle cx="12" cy="12" r="1.2"/><circle cx="19" cy="12" r="1.2"/>'};
-let model,frameRoot,size=34,stamp=0,artworkLoaded=false,artworkError=false,openMenuId=null,expandedScrollTop=0;
+const ICON={pause:'<path d="M8 5v14M16 5v14"/>',resume:'<path d="M8 5l11 7-11 7V5Z"/>',now:'<path d="M12 19V5m-6 6 6-6 6 6M4 20h16"/>',edit:'<path d="M12 20h9M16.5 3.5a2.12 2.12 0 0 1 3 3L8.2 17.8l-4.2 1.2 1.2-4.2Z"/>',remove:'<path d="M18 6 6 18M6 6l12 12"/>',status:'<circle cx="12" cy="12" r="9"/><path d="M12 7v6m0 4h.01"/>'};
+let model,frameRoot,size=34,stamp=0,artworkLoaded=false,artworkError=false,expandedScrollTop=0;
 function toast(text){$('toast').textContent=text;$('toast').hidden=false;const id=++stamp;setTimeout(()=>{if(stamp===id)$('toast').hidden=true;},2500);}
 function select(id,value){for(const b of $(id).querySelectorAll('button')){b.classList.toggle('active',b.dataset.value===String(value));b.setAttribute('aria-pressed',String(b.dataset.value===String(value)));}}
 function refreshSidebar(){frameRoot?.dispatchEvent(new Event('opendesk-page-changed'));}
@@ -20,45 +20,38 @@ function render(){
   if(!model)return;
   const state=model.engine.view(),items=state.items,rows=$('rows'),panel=$('queue');
   if(panel.classList.contains('sq-expanded'))expandedScrollTop=rows.scrollTop;
-  if(openMenuId&&!items.some(item=>item.id===openMenuId))openMenuId=null;
-  if(!state.expanded&&!items.slice(0,3).some(item=>item.id===openMenuId))openMenuId=null;
   panel.hidden=false;panel.classList.toggle('sq-empty',!items.length);
   panel.classList.toggle('sq-expanded',!!state.expanded);
-  $('queue-summary').hidden=!items.length;
-  $('queue-count').textContent='共 '+items.length+' 条';
-  const paused=items.filter(item=>item.state==='paused').length;
-  const unknown=items.filter(item=>item.state==='unknown').length;
-  const processing=items.filter(item=>item.state==='sending'||item.state==='waiting').length;
-  const queueText=['待发 '+(items.length-paused-unknown-processing)];
-  if(processing)queueText.push('处理中 '+processing);
-  if(paused)queueText.push('暂停 '+paused);
-  if(unknown)queueText.push('待核对 '+unknown);
-  $('queue-detail').textContent=queueText.join(' · ');
-  panel.setAttribute('aria-label','发送队列，共 '+items.length+' 条，'+queueText.join(' · '));
+  panel.setAttribute('aria-label',items.length?'发送队列，共 '+items.length+' 条':'发送队列，暂无待发送消息');
   rows.replaceChildren();
-  if(!items.length){openMenuId=null;expandedScrollTop=0;const cue=document.createElement('span');cue.className='sq-empty-mark';cue.textContent='···';rows.append(cue);}
+  if(!items.length){expandedScrollTop=0;const cue=document.createElement('span');cue.className='sq-empty-mark';cue.textContent='···';rows.append(cue);}
   const shown=state.expanded?items:items.slice(0,3);
   shown.forEach((item,i)=>{
-    const open=openMenuId===item.id;
+    const uncertain=item.state==='unknown'||
+      (state.inFlight?.id===item.id&&state.inFlight.phase==='unknown');
     const row=document.createElement('div');
-    row.className='sq-row'+(item.state==='paused'?' sq-paused':'')+(item.state==='unknown'?' sq-unknown':'')+(open?' sq-open':'');
+    row.className='sq-row'+(item.state==='paused'?' sq-paused':'')+(uncertain?' sq-unknown':'');
     row.dataset.id=item.id;row.tabIndex=0;row.setAttribute('role','listitem');row.title='Alt + 上下方向键调整顺序';
-    const n=document.createElement('span');n.className='sq-index';n.textContent=i+1;
+    const n=document.createElement(uncertain?'button':'span');n.className='sq-index'+(uncertain?' sq-action sq-warning':'');
+    if(uncertain){
+      n.type='button';n.dataset.action='status';n.dataset.id=item.id;
+      n.title='发送结果未知 · 请核对原对话；不会自动重发';
+      n.setAttribute('aria-label',n.title);
+      n.innerHTML='<svg viewBox="0 0 24 24" aria-hidden="true">'+ICON.status+'</svg>';
+    }else n.textContent=i+1;
     const text=document.createElement('span');text.className='sq-text';text.textContent=item.text;text.title=item.text;
     const ops=document.createElement('div');ops.className='sq-ops';
-    const details=document.createElement('div');details.className='sq-details';details.id='sq-actions-'+item.id;details.hidden=!open;
-    details.setAttribute('role','group');details.setAttribute('aria-label','第 '+(i+1)+' 条消息的其他操作');
-    for(const [action,label] of [[item.state==='paused'?'resume':'pause',item.state==='paused'?'恢复此条':'暂停此条'],['menu','更多操作'],['now','模拟提前发送'],['edit','取回原生输入框编辑'],['remove','删除队列消息']]){
+    for(const [action,label] of [[item.state==='paused'?'resume':'pause',item.state==='paused'?'恢复此条':'暂停此条'],
+      ['now','模拟提前发送'],['edit','取回原生输入框编辑'],['remove','删除队列消息']]){
       const b=document.createElement('button');b.type='button';b.className='sq-action';b.dataset.action=action;b.dataset.id=item.id;b.title=label;b.setAttribute('aria-label',label);
       b.innerHTML='<svg viewBox="0 0 24 24" aria-hidden="true">'+ICON[action]+'</svg>';
-      if(action==='menu'){b.setAttribute('aria-expanded',String(open));b.setAttribute('aria-controls',details.id);if(open)b.className+=' sq-menu-open';ops.append(b);continue;}
-      b.disabled=state.phase==='unknown'||!['queued','paused'].includes(item.state)||(action==='now'&&item.state==='paused');
-      if(['now','edit','remove'].includes(action)){b.className+=' sq-detail-action';const span=document.createElement('span');span.textContent=label;b.append(span);details.append(b);}
-      else ops.append(b);
+      if(((item.state==='sending'||uncertain||state.inFlight?.id===item.id)&&
+        action!=='remove'&&!(uncertain&&action==='edit'))||
+        (item.state==='paused'&&action==='now'))b.disabled=true;
+      ops.append(b);
     }
-    row.append(n,text,ops,details);
+    row.append(n,text,ops);
     row.addEventListener('keydown',e=>{
-      if(e.key==='Escape'&&openMenuId){e.preventDefault();openMenuId=null;render();return;}
       if(e.altKey&&['ArrowUp','ArrowDown'].includes(e.key)){
         e.preventDefault();model.command('move',item.id,i+(e.key==='ArrowUp'?-1:1));refreshSidebar();
         $('rows').querySelector('[data-id="'+item.id+'"]')?.focus();
@@ -92,7 +85,7 @@ async function start(){
   const {createQueueEngine}=await import(moduleURL(input['src/page/engine.js']));
   const {createSendQueueRemote}=await import(moduleURL(input['src/page/remote.js'].replace("'../shared/queue-contract.js'",JSON.stringify(contractURL))));
   const {createPreviewModel}=await import(moduleURL(input['preview/model.js']));
-  const reset=()=>{openMenuId=null;expandedScrollTop=0;model=createPreviewModel({createQueueEngine,createSendQueueRemote,changed:render});render();refreshSidebar();};
+  const reset=()=>{expandedScrollTop=0;model=createPreviewModel({createQueueEngine,createSendQueueRemote,changed:render});render();refreshSidebar();};
   reset();
   const frame=$('sidebar-frame'),doc=frame.contentDocument;
   doc.open();doc.write('<!doctype html><html lang="zh-CN"><head><meta charset="utf-8"></head><body style="margin:0;background:var(--od-paper)"><div id="tool-root">'+input['src/sidebar/root.html']+'</div></body></html>');doc.close();
@@ -104,7 +97,7 @@ async function start(){
   $('source-status').textContent='模拟 Host / 单一 Page owner · 正式 React 构建 '+manifest.buildId+' · 来源 SHA 已核对';
   $('blue').onclick=()=>{model.setDraft($('draft').value);if(!model.enqueue())toast('请输入有效草稿，队列最多 20 条 / 每条 8192 字符');refreshSidebar();};
   $('draft').oninput=()=>model.setDraft($('draft').value);
-  $('rows').onclick=e=>{const b=e.target.closest('button[data-action]');if(!b)return;if(b.dataset.action==='menu'){openMenuId=openMenuId===b.dataset.id?null:b.dataset.id;render();return;}const result=model.command(b.dataset.action,b.dataset.id);if(result.effect!=='applied')toast('操作未生效：请检查草稿、回复状态或 unknown');refreshSidebar();};
+  $('rows').onclick=e=>{const b=e.target.closest('button[data-action]');if(!b)return;if(b.dataset.action==='status'){toast('发送结果未知：请核对原对话，不会自动重发');return;}const result=model.command(b.dataset.action,b.dataset.id);if(result.effect!=='applied')toast('操作未生效：请检查草稿、回复状态或 unknown');refreshSidebar();};
   $('more').onclick=()=>model.engine.toggleExpanded();
   $('finish').onclick=()=>{model.finish();refreshSidebar();};
   $('unknown').onclick=()=>{if(!model.unknown())toast('当前没有可模拟 unknown 的待发送消息');refreshSidebar();};

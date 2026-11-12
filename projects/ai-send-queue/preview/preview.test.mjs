@@ -42,3 +42,16 @@ test('preview pins existing official build and runtime without invoking a compil
   assert.match(boot,/SOURCE_PARITY_NOT_VERIFIED/);
  }finally{await rm(dir,{recursive:true,force:true});}
 });
+
+test('preview keeps production row actions visible and omits the extra summary header',async()=>{
+  const boot=await readFile(new URL('./boot.js',import.meta.url),'utf8');
+  const html=await readFile(new URL('./index.html',import.meta.url),'utf8');
+  const view=await readFile(new URL('../src/page/view.js',import.meta.url),'utf8');
+  assert.doesNotMatch(boot,/openMenuId|queue-summary|sq-details/);
+  assert.doesNotMatch(html,/id="queue-summary"|sq-detail-action/);
+  assert.doesNotMatch(view,/openMenuId|sq-details/);
+  for(const action of ['pause','now','edit','remove']){
+    assert.match(boot,new RegExp("'"+action+"'"));
+    assert.match(view,new RegExp("'"+action+"'"));
+  }
+});
