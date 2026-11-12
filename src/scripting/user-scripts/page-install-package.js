@@ -44,7 +44,8 @@ export async function validatePageInstallPackage(value){
   invariant(parsed.requires.length===0,'E_DEPENDENCY_LOCK','离线安装包不接受外部 @require；请先闭合依赖');
   const admission=assertUserScriptExecutable(parsed,{entryFormat:snapshot.entryFormat,phase:'preview',dependenciesLocked:true});
   snapshot.pageRules=resolvePageProgramRules(parsed,admission,snapshot.pageRules);
-  invariant(snapshot.pageRules.world==='USER_SCRIPT'&&!snapshot.pageRules.allFrames&&snapshot.pageRules.runAt==='document_idle',
-    'E_PAGE_RULES','离线安装仅支持顶层 document_idle / USER_SCRIPT');
+  invariant(snapshot.pageRules.world==='USER_SCRIPT'&&!snapshot.pageRules.allFrames&&
+    ['document_end','document_idle'].includes(snapshot.pageRules.runAt),
+    'E_PAGE_RULES','离线安装仅支持顶层 document_end 或 document_idle / USER_SCRIPT');
   return freeze(snapshot);
 }

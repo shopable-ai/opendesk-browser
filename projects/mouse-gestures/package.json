@@ -1,6 +1,6 @@
 {
   "name": "@opendesk-apps/mouse-gestures",
-  "version": "0.3.1",
+  "version": "0.3.2",
   "private": true,
   "type": "module",
   "description": "Mouse Gestures 方向箭头与双段组合网页手势",
@@ -13,7 +13,7 @@
     "pageRules": {
       "matches": ["http://*/*", "https://*/*"],
       "excludeMatches": [],
-      "runAt": "document_idle",
+      "runAt": "document_end",
       "allFrames": false,
       "world": "USER_SCRIPT"
     }

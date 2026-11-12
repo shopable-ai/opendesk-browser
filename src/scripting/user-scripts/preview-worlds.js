@@ -77,15 +77,15 @@ export function createPreviewWorlds({api,storage}) {
       await api.storage.session.set({[LEDGER]:rows});
       return worldId;
   }
-  async function probe(native, target, code, expected, worldId) {
+  async function probe(native, target, code, expected, worldId, injectImmediately) {
     const receipt = await native.execute({target:{tabId:target.tabId,documentIds:[target.documentId]},
-      ...(target.frameId>0?{injectImmediately:true}:{}),
+      ...(target.frameId>0||injectImmediately===true?{injectImmediately:true}:{}),
       world:'USER_SCRIPT', ...(worldId ? {worldId} : {}), js:[{code}]});
     invariant(Array.isArray(receipt) && receipt.length === 1 && receipt[0].frameId === (target.frameId ?? 0) &&
       receipt[0].documentId === target.documentId && receipt[0].error === undefined && receipt[0].result === expected,
       'E_WORLD_ISOLATION', '浏览器未确认独立脚本世界；请刷新网页后重试，未注入依赖或用户代码');
   }
-  async function allocate(native, target) {
+  async function allocate(native, target, {injectImmediately=false}={}) {
     return ordered(async () => {
     invariant(typeof native.configureWorld === 'function' && typeof native.getWorldConfigurations === 'function' &&
       typeof native.resetWorldConfiguration === 'function', 'E_WORLD_ISOLATION', '浏览器缺少独立世界配置与对账能力');
@@ -109,11 +109,11 @@ export function createPreviewWorlds({api,storage}) {
     await native.configureWorld({worldId,csp:PAGE_WORLD_CSP,messaging:false});
     // Random global lexical bindings cannot be deleted, have no getter, and do
     // not depend on mutable Object/Reflect builtins in the default world.
-    await probe(native, target, 'const ' + marker + ' = ' + JSON.stringify(reserved) + ';\n' + JSON.stringify(reserved), reserved);
+    await probe(native, target, 'const ' + marker + ' = ' + JSON.stringify(reserved) + ';\n' + JSON.stringify(reserved), reserved,undefined,injectImmediately);
     // Verify the engine retains a global lexical binding across injections;
     // otherwise a temporary wrapper could produce a false isolation result.
-    await probe(native, target, marker, reserved);
-    await probe(native, target, 'typeof ' + marker + " === 'undefined' ? " + JSON.stringify(isolated) + ' : ' + JSON.stringify(reserved), isolated, worldId);
+    await probe(native, target, marker, reserved,undefined,injectImmediately);
+    await probe(native, target, 'typeof ' + marker + " === 'undefined' ? " + JSON.stringify(isolated) + ' : ' + JSON.stringify(reserved), isolated, worldId,injectImmediately);
     return worldId;
     });
   }

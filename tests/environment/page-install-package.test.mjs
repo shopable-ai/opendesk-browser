@@ -70,6 +70,18 @@ test('package validates frozen data, source and package hashes, with frame budge
   await assert.rejects(validatePageInstallPackage(await packageFor({pageRules:{...rules,allFrames:true}})));
 });
 
+test('document_end offline packages preserve reviewed timing without executing source during import',async()=>{
+  const sourceUtf8=source.replace('document-idle','document-end');
+  const pkg=await packageFor({sourceUtf8,sourceHash:await digestUtf8(sourceUtf8),
+    pageRules:{...rules,runAt:'document_end'}});
+  assert.equal((await validatePageInstallPackage(pkg)).pageRules.runAt,'document_end');
+  const f=fixture(),installed=await f.import(pkg);
+  assert.equal(installed.pageRules.runAt,'document_end');
+  assert.equal(installed.authorization.scope.pageRules.runAt,'document_end');
+  assert.equal(f.native.get(installed.nativeId).runAt,'document_end');
+  assert.equal(f.executes,0);assert.equal(f.previews,0);
+});
+
 test('external requires, invalid frame hashes and unsupported timing cannot import',async()=>{
   const external=source.replace('// @match','// @require https://example.com/fixed.js\n// @match');
   await assert.rejects(validatePageInstallPackage(await packageFor({sourceUtf8:external,sourceHash:await digestUtf8(external)})),{code:'E_DEPENDENCY_LOCK'});

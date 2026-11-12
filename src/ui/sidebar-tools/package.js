@@ -58,8 +58,8 @@ function normalizePageModule(value,tool){
      !['sourceHash','packageHash'].every(key=>typeof value[key]==='string'&&/^[a-f0-9]{64}$/.test(value[key])))
     fail('Page 模块必须是绑定当前应用 ID 和版本的完整安装包','E_TOOL_PAGE_MODULE');
   const pageRules=validatePageProgramRules(value.pageRules);
-  if(pageRules.allFrames||pageRules.runAt!=='document_idle')
-    fail('Page 模块只支持顶层 document_idle / USER_SCRIPT','E_TOOL_PAGE_MODULE');
+  if(pageRules.allFrames||!['document_end','document_idle'].includes(pageRules.runAt))
+    fail('Page 模块只支持顶层 document_end 或 document_idle / USER_SCRIPT','E_TOOL_PAGE_MODULE');
   // Canonical encoding rejects cyclic/non-JSON data before cloning or hashing.
   const normalized={...value,pageRules};
   const encoded=canonical(normalized);

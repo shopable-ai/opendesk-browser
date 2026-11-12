@@ -240,7 +240,8 @@ export function createInstalledPagePrograms({api,storage,assertHost,dependencies
     const compiled=await preparePageProgramRegistration({candidate,sourceUtf8:candidate.sourceUtf8,
       dependencyResolution:resolution,jqueryCode,frameworkSource,optionalSources,authority:{assertAvailable:async()=>({...identity(candidate),status:'Available',...proof,installationEnabled:true})}});
     invariant(compiled.allFrames===false,'E_PAGE_FRAME_SCOPE','本轮正式安装只支持顶层文档；请添加 @noframes');
-    invariant(compiled.runAt==='document_idle','E_PAGE_RUN_AT','正式安装仅支持 @run-at document-idle；早期时序尚未验收');
+    invariant(['document_end','document_idle'].includes(compiled.runAt),'E_PAGE_RUN_AT',
+      '正式安装仅支持 @run-at document-end 或 document-idle；document-start 尚未开放');
     return {compiled,optionalSources,frameworkSource,jqueryCode};
   }
   async function assertAppParent(row,{requireEnabled=row.enabled!==false}={}){
@@ -824,6 +825,7 @@ export function createInstalledPagePrograms({api,storage,assertHost,dependencies
     // it neither creates a marker nor replays the automatic bootstrap.
     if(source!=='manual'){
       const probe=await native.execute({target:{tabId:tab.id,documentIds:[frame.documentId]},world:'USER_SCRIPT',
+        ...(row.pageRules.runAt==='document_end'?{injectImmediately:true}:{}),
         worldId:PAGE_BOOT_WORLD,js:[{code:'typeof '+desired.marker+' === "string" ? '+desired.marker+' : null'}]});
       invariant(probe.length===1&&probe[0]?.frameId===0&&probe[0]?.documentId===frame.documentId&&
         probe[0].error===undefined&&probe[0].result===row.token,PAGE_PERMISSION_ERROR,'缺少匹配文档的真实安装引导标记');
@@ -883,7 +885,7 @@ export function createInstalledPagePrograms({api,storage,assertHost,dependencies
       return {completion};
     });
     let result,error;
-    try{result=await preview.executeInstalled({...desired,target:{tabId:tab.id,frameId:0,documentId:frame.documentId,
+    try{result=await preview.executeInstalled({...desired,runAtReached:source==='page_auto',target:{tabId:tab.id,frameId:0,documentId:frame.documentId,
       expectedUrl:frame.url,expectedWindowId:tab.windowId},installation:{...row,executionKey}},authorize,dispatch);}
     catch(e){error={code:e.code||PAGE_UNKNOWN_ERROR,message:String(e.message||e),...(e.effectConfirmed?{effectConfirmed:true}:{}),
       ...(e.pageAccessLost?{pageAccessLost:true}:{})};}
@@ -1690,6 +1692,7 @@ export function createInstalledPagePrograms({api,storage,assertHost,dependencies
     await appExecution(row,execution.executionKey,execution.receiptNonce,request.target);
     let results;
     try{results=await (await nativeAPI()).execute({target:{tabId:request.target.tabId,documentIds:[request.target.documentId]},
+      ...(row.pageRules.runAt==='document_end'?{injectImmediately:true}:{}),
       world:'USER_SCRIPT',worldId:execution.managedUI.worldId,
       js:[{code:appPageDispatchSource(execution.receiptNonce,request.operation,request.payload)}]});}
     catch(cause){throw new FoundationError(PAGE_UNKNOWN_ERROR,'Companion request outcome unknown; do not replay: '+String(cause.message||cause));}

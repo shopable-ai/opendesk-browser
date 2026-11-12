@@ -34,7 +34,7 @@ function fixture(){
   }};
   const f={builtinSource:fakeBuiltinSource,granted:true,access:true,registerCalls:0,executeCalls:0,previewCalls:0,permissionRequests:[],marker:true,native:new Map(),worlds:[],executionError:null,beforeExecute:null,
     tabReads:0,tabStatus:'complete',framesGone:false,exactDocumentGone:false,documentLifecycle:'active',session:'session',nativeReads:0,unregisterCalls:0,
-    sourceCalls:0,retirementError:null};
+    sourceCalls:0,retirementError:null,injections:[]};
   const sessions={},contexts=new Map();
   const assertHost=async()=>{assert.ok(db.get('commandJournal').get('host:host').active);return structuredClone(host);};
   const target={tabId:1,frameId:0,documentId:'web-document',expectedUrl:'https://example.com/demo',expectedWindowId:1};
@@ -57,8 +57,12 @@ function fixture(){
       register:async scripts=>{f.registerCalls++;scripts.forEach(row=>f.native.set(row.id,structuredClone(row)));},
       unregister:async filter=>{f.unregisterCalls++;if(!f.access)throw Error('toggle disabled');filter.ids.forEach(id=>f.native.delete(id));},
       execute:async input=>{
-        if(input.worldId===PAGE_BOOT_WORLD)return [{frameId:0,documentId:target.documentId,result:f.marker?f.token:null}];
         const code=input.js.at(-1).code,probe=code.includes('__opendesk_probe_');
+        f.injections.push({stage:input.worldId===PAGE_BOOT_WORLD?'bootstrap':probe?'probe':'source',
+          target:structuredClone(input.target),injectImmediately:input.injectImmediately});
+        if(f.requireImmediate&&f.tabStatus==='loading')
+          assert.equal(input.injectImmediately,true,'an approved document_end injection must not fall back to document_idle');
+        if(input.worldId===PAGE_BOOT_WORLD)return [{frameId:0,documentId:target.documentId,result:f.marker?f.token:null}];
         if(!probe){
           f.executeCalls++;
           if(code.includes('const __opendeskManagedUIRegistryV1='))f.sourceCalls++;
@@ -734,10 +738,67 @@ test('idle auto execution accepts an exact loading document while explicit devel
   const f=fixture();await f.install();f.tabStatus='loading';
   assert.equal((await f.service.handleBoot(f.message(),f.sender)).state,'completed');
   assert.equal(f.executeCalls,1);assert.equal(f.installation().lastExecution.result.resultText,'42');
+  assert.equal(f.injections.length,5);
+  assert.ok(f.injections.every(value=>value.injectImmediately===undefined),'existing idle timing must remain unchanged');
 });
 
-test('early run-at installs are rejected before saving a persistent grant or registering a bootstrap',async()=>{
-  for(const timing of ['document-start','document-end']){
+test('document_end executes once while loading without an idle wait at any native injection',async()=>{
+  const f=fixture(),candidate=await f.prepare('document-end');
+  const installed=await f.service.installPageProgram({programId:'script',revision:1,
+    manifestHash:candidate.manifestHash,expectedInstalledManifestHash:null},{});
+  assert.equal(f.native.get(installed.nativeId).runAt,'document_end');
+  assert.equal(pageInstallScopeDelta(pageInstallScope({...installed.pageRules,runAt:'document_idle'}),
+    pageInstallScope(installed.pageRules)).changedExecution,true,'timing changes require the original installation review');
+  f.tabStatus='loading';f.requireImmediate=true;
+  assert.equal((await f.service.handleBoot(f.message(),f.sender)).state,'completed');
+  assert.deepEqual(f.injections.map(value=>value.stage),['bootstrap','probe','probe','probe','source']);
+  for(const injection of f.injections){
+    assert.equal(injection.injectImmediately,true);
+    assert.deepEqual(injection.target,{tabId:1,documentIds:['web-document']});
+  }
+  assert.equal(f.sourceCalls,1);
+  await fails(()=>f.service.handleBoot(f.message(),f.sender),'E_REQUEST_CONFLICT');
+  assert.equal(f.sourceCalls,1,'a repeated early bootstrap cannot replay source');
+  f.retireHook=f.previewExecutor.retireInstalled;
+  const row=f.installation();
+  const disabled=await f.service.setInstalledPageEnabled({programId:row.programId,manifestHash:row.manifestHash,
+    installationId:row.authorization.installationId,expectedGeneration:row.authorization.generation,enabled:false},{});
+  assert.equal(disabled.managedCleanup.state,'retired','disable must finish fixed cleanup while the document is loading');
+  assert.equal(f.injections.at(-1).injectImmediately,true);
+  assert.equal(f.sourceCalls,1,'retirement never replays the user program');
+});
+
+test('document_end dispatch still rejects permission loss and exact document replacement',async()=>{
+  for(const changed of ['permission','document']){
+    const f=fixture(),candidate=await f.prepare('document-end');
+    await f.service.installPageProgram({programId:'script',revision:1,
+      manifestHash:candidate.manifestHash,expectedInstalledManifestHash:null},{});
+    f.tabStatus='loading';f.requireImmediate=true;
+    f.beforeExecute=async()=>{
+      if(changed==='permission')f.granted=false;
+      else f.target.documentId='replacement-document';
+    };
+    await fails(()=>f.service.handleBoot(f.message(),f.sender),changed==='permission'?'E_PERMISSION':'E_DOCUMENT_STALE');
+    assert.equal(f.sourceCalls,0);assert.equal(f.executeCalls,0);
+  }
+});
+
+test('document_end manual runs keep conservative timing before the automatic bootstrap arrives',async()=>{
+  const f=fixture(),candidate=await f.prepare('document-end');
+  const installed=await f.service.installPageProgram({programId:'script',revision:1,
+    manifestHash:candidate.manifestHash,expectedInstalledManifestHash:null},{});
+  f.marker=false;f.tabStatus='loading';
+  const result=await f.service.runInstalledPageProgram({programId:installed.programId,
+    manifestHash:installed.manifestHash,installationId:installed.authorization.installationId,
+    expectedGeneration:installed.authorization.generation,target:f.target},{documentId:'tool-document'});
+  assert.equal(result.state,'completed');
+  assert.deepEqual(f.injections.map(value=>value.stage),['probe','probe','probe','source']);
+  assert.ok(f.injections.every(value=>value.injectImmediately===undefined),
+    'an explicit run must not claim that an automatic document_end bootstrap already fired');
+});
+
+test('document_start installs are rejected before saving a persistent grant or registering a bootstrap',async()=>{
+  for(const timing of ['document-start']){
     const f=fixture(),candidate=await f.prepare(timing);
     await fails(()=>f.service.installPageProgram({programId:'script',revision:1,manifestHash:candidate.manifestHash,expectedInstalledManifestHash:null},{}),'E_PAGE_RUN_AT');
     assert.equal(f.installation(),undefined);assert.equal(f.native.size,0);

@@ -3,6 +3,7 @@ import assert from 'node:assert/strict';
 import {readFile,mkdtemp,mkdir,writeFile,rm} from 'node:fs/promises';
 import {tmpdir} from 'node:os';
 import {join} from 'node:path';
+import {digest,digestUtf8} from '../../src/platform/protocol.js';
 import {
   createOfficialPageResources,officialPageInputs,readOfficialPageSources,writeOfficialPageResources
 } from '../../scripts/build-official-pages.mjs';
@@ -111,4 +112,29 @@ test('R1.2.4 extension-origin catalog fetch never authorizes a blocked install',
   await assert.rejects(loadOfficialPagePackage(catalog.apps[1],{api,fetcher}),
     {code:'E_PAGE_RELEASE_CHANGED'});
   assert.equal(requests.length,2,'blocked candidates only read catalog, never package bytes');
+});
+
+test('document_end official Page builder and loader preserve catalog identity and byte integrity',async t=>{
+  const root=await mkdtemp(join(tmpdir(),'official-dom-ready-'));
+  t.after(()=>rm(root,{recursive:true,force:true}));
+  const source=clone(await readOfficialPageSources()),base=source.programs[0];
+  base.publication='approved';delete base.blockedReason;
+  await mkdir(join(root,'official-pages'),{recursive:true});
+  await mkdir(join(root,base.project),{recursive:true});
+  await writeFile(join(root,OFFICIAL_PAGE_SOURCE_PATH),JSON.stringify(source));
+  const sourceUtf8='async function main(){return "DOM ready";}';
+  const payload={format:'opendesk.page-install.v1',programId:base.programId,version:base.version,
+    title:base.title,revision:base.revision,entryFormat:'async-main',sourceUtf8,
+    sourceHash:await digestUtf8(sourceUtf8),pageRules:{matches:base.sites,excludeMatches:[],
+      runAt:'document_end',allFrames:false,world:'USER_SCRIPT'}};
+  const pkg={...payload,packageHash:await digest(payload)},bytes=JSON.stringify(pkg);
+  await writeFile(join(root,base.project,base.packageFile),bytes);
+  const {catalog,resources}=await createOfficialPageResources({root}),release=catalog.apps[0];
+  assert.equal(release.status,'available');
+  assert.equal(release.packageHash,pkg.packageHash);
+  const api={runtime:{getURL:path=>'chrome-extension://fixture/'+path}};
+  const fetcher=async url=>new Response(resources.get(new URL(url).pathname.slice(1)));
+  assert.deepEqual((await loadOfficialPagePackage(release,{api,fetcher})).pkg,pkg);
+  resources.set(release.packagePath,bytes+' ');
+  await assert.rejects(loadOfficialPagePackage(release,{api,fetcher}),{code:'E_PAGE_PACKAGE_INTEGRITY'});
 });

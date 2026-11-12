@@ -12,6 +12,12 @@
 4. **大型第三方 JS 与真实边界**：按公开项目构建预算、锁定资源许可、世界及生命周期设计评估，不保证几 MB 的 XMind 类 Runtime 能被普通 USER_SCRIPT 直接嵌入。现有 [AI 回复思维导图项目事实](../../projects/ai-reply-mindmap/README.zh-CN.md) 记录 `E_XMIND_RUNTIME_UNAVAILABLE`、资源大小/许可和隔离问题；这是项目证据，不代表全部第三方库均不支持。没有已验证的公共缺口先记 `SDK_GAP_NOT_PROVEN`，无法安全执行的特权请求记 `BLOCKED`，不要要求普通作者改 Host。
 5. **证据**：公开规范支持 ≠ 本候选运行成功；SOURCE_WIRED/Node PASS/Browser Native/正式安装与网站自动运行须独立验证。没有最终安装证据记 `NOT_TESTED`，不能虚构 API 或已批准的权限。
 
+## 已安装 Page 的启动时机
+
+顶层 `USER_SCRIPT` 的正式安装支持 `pageRules.runAt: "document_idle"`（默认）或 `"document_end"`。`document_end` 适用于 DOM 完成后就需要响应输入的增强；它通过原固定 bootstrap、安装身份、站点权限、精确文档和世界隔离校验，再尽早注入已锁定源码。框架不会在后续探测或执行步骤重新等待默认 idle。`document_start` 和任意子帧自动注入仍不在该合同内。
+
+修改启动时机沿原 scope 差异审阅，不能替换未更新的固定 Browser 代码或改写现有授权记录。立即注入是尽早调度，不是浏览器加载时间保证；扩展唤醒、其他已安装模块及页面主线程仍可能影响到达时间。已安装模块的固定受管清理不等待页面 idle；仍绑定原文档、世界和清理 nonce，回执未知时保留原栅栏。公开 Chrome 语义见 [userScripts.execute](https://developer.chrome.com/docs/extensions/reference/api/userScripts#method-execute) 和 [run_at](https://developer.chrome.com/docs/extensions/develop/concepts/content-scripts#run_time)。
+
 ## 已安装 Page 的固定 Task 审批请求
 
 Page 项目可使用 `@opendesk/tasks`，但必须在 `opendesk.delegatedTasks` 声明最多八项固定 `{taskId,version,manifestHash,contentHash,targetUrl}`。Task ID 不得重复，版本为三段正式版本，两个 hash 必须是实际不可变任务包的 SHA-256；`targetUrl` 必须是无账户信息、无 fragment 的规范化 HTTP(S) URL。目标 Task 仍须通过原安装器安装并启用，版本、源码、Manifest、安装 ID 和授权代次在请求及审批时重新核对；声明不会安装 Task 或授予其执行权限。

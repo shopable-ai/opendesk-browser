@@ -1,4 +1,23 @@
-# Mouse Gestures · 独立方向箭头与双段组合识别（0.3.1 / Page revision 5）
+# Mouse Gestures · 独立方向箭头与双段组合识别（0.3.2 / Page revision 6）
+
+## 当前增量：动作响应与页面启动延迟
+
+目标是减少“松开鼠标后才开始执行动作”的等待，以及页面打开后手势首次可用的等待。2026-11-12 本轮在 `main` 基线 `e0d8e5a233ec1b2f43bea2a27db5708090688971` 上完成差量修复：
+
+- **动作路径**：`mouseup → 新鲜 storage.get → 动作`。删除未使用的 `readContext`，每次初始化/授权的跨桥请求由两次降为一次；读取自身的安装身份、文档和撤权校验保留，不缓存授权。
+- **轮询让位**：只要仍有策略读取未完成，后台轮询就不再发起会延后手势的额外读取。用户显式刷新和每次新手势仍独立读取，不能复用旧 ON 快照。
+- **启动路径**：项目改为 `document_end`。框架通用支持 DOM 完成后的自动启动，并让 bootstrap 探测、独立世界探测、源码执行接续尽早注入；已运行模块的请求和固定清理不再额外等待 idle。旧 idle 包、手动运行和原权限审阅仍沿原合同。
+- **原手感保护**：12px 意图/56px 识别阈值、450ms 右键关联保护、方向/组合、rAF 轨迹、Esc、失焦、停用及迟到动作取消均保留。450ms 不是动作等待时间。
+
+**验证**：项目 88/88 Node PASS；五个框架合同文件 213 项通过；清理文件初次出现固定事件循环次数等待不足，改为等待测试 main 的实际就绪信号后 45/45 通过，原失败日志保留。候选构建、原打包器晋升、`--check-project` 均通过；这不是用户 Chrome 的真实耗时或安装结果。
+
+**交付**：唯一包 `mouse-gestures.opendesk-tool.json`，0.3.2 / Page revision 6，56,840 字节，SHA-256 `a0dccb7ebea18c856998b785845c92a8a955a52a43aa40b6ca991dc88109d772`。新包包含本轮开始时已在 main 的精简设置 UI，没有重做界面。当前 `PACKAGE_READY / INSTALL_NOT_TESTED / CHROME_LATENCY_NOT_TESTED`；改动尚未推送远端。
+
+**生效顺序**：先让 Browser 固定框架包含本轮通用启动修复，再经原“扩展”审阅链更新手势包。只更新 JSON 不能替换旧 Browser 的启动代码。`runAt` 变化由原 scope 差异审阅处理，不改写旧授权；已保存设置沿原同 ID 存储保留。
+
+完整修改、原始测试日志索引、包身份及本机下一步见[延迟优化工作记录](../../docs/framework/workstreams/mouse-gestures-latency.md)。下面的 R5/0.3.1 记录是历史证据，不覆盖本节当前状态。
+
+## 历史：0.3.1 与设置 UI 增量
 
 > **2026-11-12 UI 精简增量（仅源码与独立预览，尚未进入安装包）**：Side Panel 移除“操作偏好”混合表单，拆分为折叠的“自定义组合”和“兼容与显示”，菜单优先级降至带后果说明的高级项；默认四方向及开关直接可见。保留 `enabled/trigger/menuPolicy/showTrace/gestureMappings` 及既有保存/撤权/手势识别逻辑。对应提交：`37679ee70aa40cc139de048490aef37dbb9fddc9`（连同此前三个 UI 提交）。**下述 0.3.1/revision 5 包是 UI 修改前的已构建候选**：本次没有 Mac 本机 Node/打包/真实 Chrome 回执，正式包仍是旧界面；必须在本机核对其他 Agent 修改、定向测试，通过后按原打包器规则调整发布版本、构建、晋升与读回，不能直接同版本静默覆盖。正式安装及物理鼠标验收仍为 NOT_TESTED。
 
@@ -16,7 +35,7 @@
 
 [原始目标、事件时序取舍、专家复核量表与 P01–B01 测试矩阵](docs/right-click-menu-r5.zh-CN.md)。
 
-**当前状态：NODE_PASS / PACKAGE_PASS / INSTALL_NOT_TESTED / NATIVE_CHROME_NOT_TESTED。** 下方旧验证数字及 0.2.1 包说明保留为历史记录，不代表当前候选状态；当前包身份和剩余门禁以本轮完整报告为准。
+**R5 当时状态：NODE_PASS / PACKAGE_PASS / INSTALL_NOT_TESTED / NATIVE_CHROME_NOT_TESTED。** 下方旧验证数字及 0.2.1 包说明保留为历史记录，不代表当前候选状态；当前包身份和剩余验证以顶部延迟优化记录为准。
 
 ---
 
@@ -59,7 +78,7 @@ node --check projects/mouse-gestures/src/main.js
 - **默认原生菜单保护**：contextmenu 如果在移动前到达（常见于 Mac），保留原生菜单并放弃该次手势，不假设网页脚本能事后关闭菜单。用户明确启用手势优先后，才在可处理的可信右键会话中拦截提前到达的菜单；此模式会牺牲可手势区域的普通右键菜单，Shift + 右键可回退原生菜单。移动达到意图阈值而菜单尚未出现时，拦截后续与该次右键会话关联的菜单事件；释放后拦截需匹配按键、元素、位置（16px 内）和最多 450ms 的窗口，不拦截键盘菜单及其他目标。
 - **替代方式**：在 Side Panel 的折叠「操作偏好」中，可将触发方式改为 Option/Alt + 左键拖动，作为 Mac 原生菜单提前触发时的保守替代。该方式不能保证所有网页不劫持组合键；仍需真实验收。也可关闭「显示轨迹与动作提示」，不影响方向识别。
 - 轨迹绘制复用受管 Page UI Shadow DOM 的 SVG，pointer-events:none，仅在意图阈值后显示。灰色候选轨迹、蓝色已识别动作及橙色无效反馈均不拦截网页点击；松开、取消或撤权清空路径与监听器。requestAnimationFrame 可用时合并绘图，点数上限 80。
-- 偏好沿用父工具私有 storage.local 与 ETag/CAS，跨 Side Panel 和 Page 使用既有 OpenDeskAppPage / Page Authority；不增加权限、第二套安装器或直接改 Browser Host。Page 在执行前重新读设置与身份；1200ms 同步不是跨标签实时广播。
+- 偏好沿用父工具私有 storage.local 与 ETag/CAS，跨 Side Panel 和 Page 使用既有 OpenDeskAppPage / Page Authority；不增加权限或第二套安装器。Page 在执行前通过一次有身份及授权校验的 storage.get 重读设置；1200ms 同步不是跨标签实时广播，有读取未完成时后台轮询让位。本轮 Browser 变更仅为通用 DOM-ready 启动合同，业务仍在本项目。
 - preview/index.html 是独立单文件、无权限的 Side Panel 模拟和右键 / Option + 左键拖动练习区。练习不会导航、读写真实设置或证明原生右键菜单可用。
 
 ## 定向验证及待办

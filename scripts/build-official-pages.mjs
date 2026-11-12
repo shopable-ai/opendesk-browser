@@ -29,7 +29,7 @@ function exactScope(pkg,row){
   return pkg.programId===row.programId&&pkg.version===row.version&&
     pkg.revision===row.revision&&pkg.title===row.title&&
     same(pkg.pageRules.matches,row.sites)&&pkg.pageRules.excludeMatches.length===0&&
-    pkg.pageRules.runAt==='document_idle'&&pkg.pageRules.world==='USER_SCRIPT'&&
+    ['document_end','document_idle'].includes(pkg.pageRules.runAt)&&pkg.pageRules.world==='USER_SCRIPT'&&
     pkg.pageRules.allFrames===false;
 }
 async function approvedFile(root,row){
