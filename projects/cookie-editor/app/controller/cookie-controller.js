@@ -716,6 +716,12 @@ export function createCookieController({adapter,onChange=()=>{}}){
         applied=true;notify();
       }
     }catch(error){
+      // A newer verified same-document Path event may make an older SDK
+      // request fail with E_DOCUMENT_CHANGED. Drain the queued destination
+      // instead of briefly clearing the list for that retired request.
+      // Genuine grant/Store/Partition revocation always remains fail-closed.
+      if(navigationQueued&&safeCode(error,'E_COOKIE_READ')==='E_DOCUMENT_CHANGED')
+        return false;
       if(!closed&&navigationPending&&phase==='ready'){
         if(!rejectLostAccess(error)){
           invalidate('路径切换后的 Cookie 范围无法核验；请手动刷新。');
@@ -724,6 +730,7 @@ export function createCookieController({adapter,onChange=()=>{}}){
       }
     }finally{
       if(navigationPending){navigationPending=false;notify();}
+      if(navigationQueued&&!closed&&phase==='ready')void syncNavigation();
     }
     return applied;
   }

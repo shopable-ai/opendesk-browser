@@ -104,6 +104,26 @@ test('rapid path events coalesce; late results cannot repopulate an invalidated 
   assert.equal(f.controller.snapshot().navigationPending,false);
   f.controller.dispose();
 });
+test('queued SPA path navigation retires stale E_DOCUMENT_CHANGED without clearing rows',async()=>{
+  const f=fixture();await f.controller.load();
+  const start=f.observed.length;
+  const started=deferred(),release=deferred(),original=f.adapter.list;
+  f.page(origin+'/b');
+  f.adapter.list=async()=>{started.resolve();await release.promise;
+    throw Object.assign(Error('OLD_URL_ONLY'),{code:'E_DOCUMENT_CHANGED'});};
+  const first=f.controller.syncNavigation();await started.promise;
+  f.page(origin+'/c');
+  void f.controller.syncNavigation();
+  f.adapter.list=original;release.resolve();
+  await first;
+  await new Promise(resolve=>setImmediate(resolve));
+  const result=f.controller.snapshot();
+  assert.equal(result.phase,'ready');
+  assert.equal(result.target?.url,origin+'/c');
+  assert.ok(result.rows.length>0);
+  assert.ok(f.observed.slice(start).every(s=>s.phase==='ready'&&s.rows.length>0));
+  f.controller.dispose();
+});
 test('unknown Clipboard outcome is not replayed; ten sanitized diagnostics survive success',async()=>{
   const f=fixture();await f.controller.load();
   f.copyResult(Object.assign(Error('PRIVATE_BROWSER_DETAIL'),{code:'E_OUTCOME_UNKNOWN'}));
