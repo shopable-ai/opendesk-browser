@@ -641,6 +641,23 @@ Promise.resolve(chrome.tabs.getCurrent?.()).then(async tab => {
           }
           if(request.action==='review'){
             if(request.source!=='built-in')return changed('外部市场不能要求安装内置官方发行。');
+            // A PC app.html update is not a generic Marketplace installation.
+            // After the native Side Panel has opened on the original gesture,
+            // revalidate its installed update against the live Worker state.
+            if(new URL(request.sourceUrl).pathname===APP_DOCUMENT_PATHNAME){
+              const proof=await chrome.runtime.sendMessage({protocol:UPDATE_NOTICE_PROTOCOL,
+                kind:'list',fresh:true});
+              const candidates=proof?.ok===true&&proof.data?.verified===true&&
+                Array.isArray(proof.data.records)?proof.data.records.filter(row=>
+                  row.kind==='sidebar-tool'&&row.id===request.toolId&&
+                  row.source===request.marketId&&row.version===request.releaseVersion&&
+                  row.sha256===request.sha256&&row.ignoredAt===null&&
+                  row.requiresReview===true&&typeof row.fromVersion==='string'&&
+                  ['available','review_required'].includes(row.status)&&
+                  (row.status==='review_required')===(row.newCapabilities?.length>0)):[];
+              if(candidates.length!==1)
+                return changed('已安装更新候选或可信来源已变化，请重新打开更新记录。');
+            }
             if(!sidebarTools.canPresentMarketReview())return blocked('已有草稿或其他安装审阅，请完成后重新发起。');
             if(taskWorkbench.navigate('tools')===false)return blocked('当前工作区拒绝导航，草稿已保留。');
             return sidebarTools.openOfficialReview(request.toolId,

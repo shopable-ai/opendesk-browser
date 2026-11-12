@@ -421,4 +421,7 @@ T06：Node 定向、npm run check、npm run build、Chrome for Testing、真实 
 - **执行环境：** 当前 ChatGPT 会话的本机 CodexPro 与 OpenDesk Mac 本地桥连接不可用；本轮不能运行列明的 5 组定向 Node、`npm run check`、`npm run build`、Chromium/Chrome、280–420px 与 200% 视觉测试。新测试为 SOURCE_ADDED / NOT_TESTED，而不是 PASS。此前 R4 32/32 的历史 CI 不涵盖新加的 `extension-inline-update-r4.test.mjs`，不能代替此次运行。
 - **真实安装证据：** Installer 打开、旧版→新版真实安装、新版本与来源读回、取消、权限拒绝、同版本不同 SHA、事务中断和 `E_OUTCOME_UNKNOWN` 的真实 Chrome 逐项验证：**NOT_TESTED**。不得宣称已经发布或取得 95 分以上实机验收。后续在可用本机执行环境从此提交差量测试开始，只修复可复现的新问题；不要再执行 R3/R4 已提交的架构重做。
 
+
+- **PC 应用页面补充围栏：** `app.html` 的历史审阅链接必须先按原生点击栈开启 Side Panel；真实 Side Panel 接收到该内部导航后，在展示原 Installer 前再次使用同一 Worker `fresh:true` 过滤已安装、未忽略、版本/SHA/来源一致的可信候选。普通 Marketplace 安装导航不受此专用围栏影响。此增量仍是 SOURCE_PATCHED / Chrome NOT_TESTED。
+
 **当前产品最终结论：BLOCKED（缺少本机验证/构建及真实 Chrome 事务证据）；代码提交只代表源码修复和可执行回归用例已增加。**
