@@ -32,6 +32,13 @@
 4. 用同一 requestId + 原 A tab/document/URL + 原 B tab/document/URL + Run/Result ID 交叉验证；刷新、旧结果、权限撤销和任何发送 UNKNOWN 只能查原记录，不得补发、新建 B 或偷偷发 A 官方消息。
 5. 离线模拟先测安全回归；必须另外取证真实 Chrome/Task 安装、真实 B 的单次原生发送、完整回答和原 A UI 展示，才能声明第一阶段完成。
 
+## R2 差量核对（2026-11-12；源代码层）
+
+- **T01 = SDK_GAP_CONFIRMED（当前公开 Page v1）**：`docs/api/page-userscript.zh-CN.md` 未开放 Task 启动或 Durable Result 读取；`src/main.js` 调用 `renderMiniChat(ui)` 而未传入 transport；`src/page-events/content-bridge.js` 的网页 `CustomEvent` 仅可传受限查询/候选数据，不能证明安装者身份、用户审批或授予 `tasks.run`。不能通过让 Page 伪造事件来修复。
+- **T02/T03 = 脚本已有、执行入口未接线**：`projects/webflow/src/tasks/chatgpt-conversation-create-v0.2.js` 实现新 B、原生草稿核对和一次 `send:true`；但 `projects/webflow/tool.config.json` 当前委派任务只有百度/Google，不能宣称这个 ChatGPT Task 已获 Subagent 委派或当前 Chrome 已安装。脚本 0.3.0 是另一条受审 PREPARE/SUBMIT 路线，未经授权不得替换。
+- **T04/T05 = 完整业务回填未接通**：`projects/webflow/src/chatgpt-conversation-result.js` 的 `replyPreview` 最多 500 字；真正完整的 `replyText` 在原 Durable Result，Subagent 只能经受信 Host 读取后显示。Subagent `verifiedResult` 已补齐标准 UUID 形式 B 链接、不同原生消息身份、64 KiB **UTF-8 字节**上限的校验与定向回归（提交 `6cefbe14`、`501682ab`），**未证明真实结果投递**。
+- **下一条必须完成的用户操作**：先由 Browser Framework owner 证明或提供通用的 Page/受审 Content → 固定已安装 Controller Task **用户确认启动 + 同 requestId 只读结果恢复**，绑定原 A/B 文档、Task 安装 pin、权限和 Run/Result；禁止在 Framework 加 `subagent`/ChatGPT 专属分支。之后 Subagent 只提供 transport，WebFlow 原 Task 保持 owner。真实 Chrome 安装、发送、A 回显仍是 `NOT_TESTED`；没有证据不能提升业务状态。
+
 ## 测试与验收
 
 在仓库根目录运行：`node --test projects/subagent/tests/*.test.mjs`。此命令只测试纯本地合同/状态，**没有**真实 WebFlow 调用和 Chrome 证据。
