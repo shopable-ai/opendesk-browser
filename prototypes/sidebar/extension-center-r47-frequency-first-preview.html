@@ -34,6 +34,22 @@
   .demo-install-overlay #sidebar-tool-preview-capabilities,
   .demo-install-overlay #sidebar-tool-update-capabilities{white-space:pre-wrap}
   @media(max-width:670px){body{padding:8px}.demo{grid-template-columns:minmax(0,1fr)}.panel{width:100%;max-width:400px;margin:auto}.notes{max-width:400px;margin:auto}}
+
+/* R3: keep the verified inline update action always visible. */
+.ec-row--trusted-update .ec-row-main{padding-right:126px}
+.ec-row--trusted-update .ec-row-actions{opacity:1;pointer-events:auto;gap:2px}
+.demo-inline-update{min-height:30px;min-width:49px;padding:4px 7px;border:1px solid var(--od-focus);border-radius:7px;background:color-mix(in srgb,var(--od-focus) 8%,var(--od-paper));color:var(--od-accent-ink);font-size:12px;font-weight:650;white-space:nowrap}
+.demo-inline-update:hover{background:color-mix(in srgb,var(--od-focus) 15%,var(--od-paper))}
+.demo-inline-update--permission{border-color:var(--od-warning-border);background:var(--od-warning-bg);color:var(--od-warning-ink)}
+.demo-update-counts{display:flex;flex-wrap:wrap;gap:5px}
+.demo-update-counts button[aria-pressed="true"]{border-color:var(--od-focus);color:var(--od-accent-ink);background:var(--od-muted)}
+.demo-update-record-dialog{width:min(92vw,360px);max-height:85vh;overflow:auto;padding:18px;border:1px solid var(--od-line);border-radius:12px;background:var(--od-paper);color:var(--od-ink);box-shadow:0 15px 40px #101a2a35}
+.demo-update-record-dialog::backdrop{background:#12223b70}
+.demo-update-record-dialog h2{font-size:15px;margin:0 0 10px}
+.demo-update-record-dialog p{font-size:12px;color:var(--od-sub);line-height:1.55}
+.demo-update-record-dialog select{width:100%;max-width:100%;margin:6px 0 12px}
+.demo-update-record-dialog .od-button{width:100%}
+@media(max-width:330px){.ec-row--trusted-update .ec-row-main{padding-right:112px}.ec-row--trusted-update .ec-type{display:none}.demo-inline-update{min-width:44px;padding:4px 5px}}
 </style>
 </head>
 <body>
@@ -80,6 +96,7 @@
                   <div class="ec-menu-separator">
                     <button id="preview-import" class="ec-menu-action" type="button">导入扩展…</button>
                     <button id="preview-reload" class="ec-menu-action" type="button">刷新扩展</button>
+                     <button id="preview-update-records" class="ec-menu-action" type="button">更新记录与提醒设置…</button>
                   </div>
                 </div>
               </div>
@@ -101,8 +118,17 @@
     </main>
   </div>
   <aside class="notes">
-    <h1>扩展列表 · R5.1</h1>
+    <h1>扩展列表 · R5.1 / 原位更新 R3</h1>
     <p>本页面复用正式 <code>tool-shell.css</code>、设计 Tokens、组件 CSS 和 Extension Center CSS；顶栏工具条 DOM 来自正式 <code>tool.html</code>，交互数据完全模拟。</p>
+    <h2>R3 最小原位更新 · 默认 3 项</h2>
+    <div class="demo-update-counts" role="group" aria-label="切换模拟更新数量">
+      <button class="od-button od-button--secondary" data-update-count="0" aria-pressed="false" type="button">0 项</button>
+      <button class="od-button od-button--secondary" data-update-count="1" aria-pressed="false" type="button">1 项</button>
+      <button class="od-button od-button--secondary" data-update-count="3" aria-pressed="true" type="button">3 项</button>
+      <button class="od-button od-button--secondary" data-update-count="10" aria-pressed="false" type="button">10 项</button>
+    </div>
+    <p>只将已核验的更新行排到默认列表前面并显示「更新／审阅」。没有额外“更新中心”、下载图标、“系统内置”或“待审阅更新”分组标题。旧版详情、筛选及管理菜单仍保留。</p>
+    <p><strong>SIMULATED_PREVIEW：</strong>演示候选并非真实发布版本；没有安装授权、网页发现或 Chrome 安装结果。</p>
     <h2>测试典型状态</h2>
     <button class="od-button od-button--secondary" type="button" data-scenario="normal">默认列表</button>
     <button class="od-button od-button--secondary" type="button" data-scenario="cookie">Cookie Editor 卸载/重装</button>
@@ -132,6 +158,19 @@
   </aside>
 </div>
 <div id="demo-context-menu" class="ec-context-menu" role="menu" hidden></div>
+<dialog id="preview-update-record-dialog" class="demo-update-record-dialog" aria-labelledby="preview-update-record-title">
+  <h2 id="preview-update-record-title">更新记录与提醒设置</h2>
+  <p>仅来自可信安装回执的记录才能显示“已更新”。此处无真实安装历史。</p>
+  <div class="od-result" role="status">暂无可显示的演示记录</div>
+  <label for="preview-update-notice-mode">提醒方式</label>
+  <select id="preview-update-notice-mode">
+    <option value="toast+inbox">网页提醒 + 数字角标</option>
+    <option value="inbox-only">仅数字角标</option>
+    <option value="silent">静默（仍可手动更新）</option>
+  </select>
+  <p>OpenDesk 扩展本体由 Chrome 管理。离线与未知结果不代表“已是最新版”。</p>
+  <button id="preview-update-record-close" class="od-button od-button--secondary" type="button">关闭</button>
+</dialog>
 <!-- R5.4: presentation-only mirror of the existing ToolHost import sheet.
      Formal installer, permission authority, package parser and native receipts are NOT simulated as successful. -->
 <div id="demo-install-overlay" class="od-import-overlay demo-install-overlay" hidden>
@@ -217,8 +256,12 @@ let settingsMode=false,confirmUninstall=false,installReview=false;
 const el=(tag,cls='',text)=>{const n=document.createElement(tag);if(cls)n.className=cls;if(text!==undefined)n.textContent=String(text);return n;};
 const btn=(text,callback,cls='')=>{const b=el('button',cls,text);b.type='button';b.addEventListener('click',callback);return b;};
 const primary=row=>row.installed&&row.kind==='app'&&row.enabled===true&&row.known?'打开':null;
+// Display-only mock for a verified Worker candidate; legacy row.update is insufficient.
+function canOfferUpdate(row){return row.kind==='app'&&row.installed===true&&row.known===true&&
+  row.enabled===true&&row.update===true&&row.updateVerified===true&&
+  typeof row.version==='string'&&typeof row.releaseVersion==='string'&&row.version!==row.releaseVersion;}
 const label=row=>row.kind==='page'?'网页增强':'应用';
-const visible=()=>items.filter(row=>{
+const visible=()=>{const result=items.filter(row=>{
  if(scenario==='empty')return false;
  if(scenario==='disabled'&&row.id!=='prompt')return false;
  if(scenario==='page'&&row.kind!=='page')return false;
@@ -229,8 +272,12 @@ const visible=()=>items.filter(row=>{
  if(scope==='available'?row.installed&&!row.update:!row.installed)return false;
  return [row.title,row.description,row.id].some(text=>text.toLowerCase().includes($('preview-search').value.trim().toLowerCase()));
 });
+ return scenario==='inline-updates'&&kind==='all'&&scope==='smart'&&
+  !$('preview-search').value.trim()?
+  result.sort((a,b)=>Number(canOfferUpdate(b))-Number(canOfferUpdate(a))):result;
+};
 function status(row){
- const reason=scenario==='busy'&&row.id==='notes'?'处理中':row.cleanupPending?'卸载清理待恢复':!row.installed?'可安装':!row.known?'状态待核对':!row.enabled?'已停用':row.update?'可更新':
+ const reason=scenario==='busy'&&row.id==='notes'?'处理中':row.cleanupPending?'卸载清理待恢复':!row.installed?'可安装':!row.known?'状态待核对':!row.enabled?'已停用':canOfferUpdate(row)?'v'+row.version+' → v'+row.releaseVersion+(row.newCapabilities?' · 需授权':''):row.update?'候选待核对':
   row.authorization==='suspended'?'网站访问受限':'';
  return reason?reason+' · '+row.description:row.description;
 }
@@ -378,7 +425,15 @@ function render(){
  line.append(name,el('span','ec-type',label(row)));
    copy.append(line,el('span','ec-description',status(row)));main.append(glyph,copy);
    const actions=el('span','ec-row-actions');
-   if(primary(row)){const primaryButton=btn('打开',()=>open(row),'ec-action od-button od-button--secondary');
+   if(canOfferUpdate(row)){
+     li.classList.add('ec-row--trusted-update');
+     const update=btn(row.newCapabilities?'审阅':'更新',()=>openRowUpdateReview(row),
+       'demo-inline-update'+(row.newCapabilities?' demo-inline-update--permission':''));
+     update.setAttribute('aria-label','审阅更新：'+row.title+'（仅模拟）');
+     update.dataset.extensionKey=li.dataset.extensionId;update.dataset.extensionAction='update';
+     actions.append(update);
+   }
+   if(primary(row)&&!canOfferUpdate(row)){const primaryButton=btn('打开',()=>open(row),'ec-action od-button od-button--secondary');
      primaryButton.dataset.extensionKey=li.dataset.extensionId;primaryButton.dataset.extensionAction='primary';primaryButton.disabled=blocked;actions.append(primaryButton);}
    if(row.installed){
      const more=btn('⋮',()=>openMenu(row,more),'ec-row-more od-icon-button');
@@ -466,6 +521,19 @@ const reviewCases={
   source:'模拟官方入口 · 不执行真实来源验证',file:'bookmark-manager.opendesk-tool.json',blocked:true
  }
 };
+function openRowUpdateReview(row){
+  if(!canOfferUpdate(row))return;
+  reviewCases.inline={
+    title:row.title,version:'v'+row.releaseVersion,previous:'v'+row.version,description:row.description,
+    impact:'此处仅预览原 Installer 审阅；正式更新必须确认来源、当前版本及真实回执。',
+    permissionSummary:row.newCapabilities?'新增能力，必须逐项审阅':'未显示新增能力，仍必须核验来源与权限',
+    capabilities:'真实能力列表由原可信安装器提供；此预览不声明真实授权。',
+    delta:row.newCapabilities?'模拟权限变更：需确认':'',
+    warning:row.newCapabilities?'新增权限不得跳过确认':'',
+    source:'模拟候选，不代表真实可信发行',file:row.id+'.opendesk-tool.json'
+  };
+  openReview('inline');
+}
 let reviewScenario='update',reviewReturnFocus=null,reviewWasInert=false;
 const overlay=$('demo-install-overlay'),reviewDialog=$('sidebar-tool-import'),demoRoot=document.querySelector('.demo');
 function renderReview(key){
@@ -523,6 +591,15 @@ function closeReview(){
  target?.focus?.({preventScroll:true});
 }
 $('preview-import').addEventListener('click',()=>openReview('import'));
+const updateRecordDialog=$('preview-update-record-dialog');
+$('preview-update-records').addEventListener('click',()=>{
+  closeGlobalMenu();updateRecordDialog.showModal();
+  $('preview-update-record-close').focus({preventScroll:true});
+});
+$('preview-update-record-close').addEventListener('click',()=>updateRecordDialog.close());
+updateRecordDialog.addEventListener('close',()=>$('preview-more').focus({preventScroll:true}));
+$('preview-update-notice-mode').addEventListener('change',()=>say(
+  '模拟提醒偏好：'+$('preview-update-notice-mode').selectedOptions[0].text+'；未保存真实设置。'));
 $('sidebar-tool-import-close').addEventListener('click',closeReview);
 $('demo-install-backdrop').addEventListener('click',closeReview);
 document.querySelectorAll('[data-install-scenario]').forEach(button=>{
@@ -591,13 +668,42 @@ document.addEventListener('keydown',event=>{
 $('preview-back').addEventListener('click',()=>{selected=null;settingsMode=false;confirmUninstall=false;installReview=false;render();$('preview-search').focus();});
 $('preview-market').addEventListener('click',()=>say('正式应用市场只负责固定包审阅与安装；本页面不会安装。'));
 $('preview-reload').addEventListener('click',()=>{closeGlobalMenu();render();say('仅模拟重新读取目录；当前搜索、筛选、详情和模拟启停状态保持不变。');});
+const mockUpdates=[
+  ['ai-proxy','AI Proxy','1.2.0','1.2.1',false],
+  ['web-markdown-clipper','网页剪藏','0.7.1','0.8.0',true],
+  ['bookmark-manager','书签管理','1.0.2','1.0.3',false],
+  ['quick-notes','Quick Notes','1.1.0','1.1.1',false],
+  ['reading-toc','Reading TOC','2.0.0','2.0.1',false],
+  ['scrapyjs','ScrapyJS','0.5.1','0.5.2',false],
+  ['time-review','时间回顾','1.0.1','1.0.2',false],
+  ['mouse-gestures','鼠标手势','0.3.0','0.3.1',false],
+  ['stay-focus','Stay Focus','1.0.0','1.0.1',false]
+];
+function selectInlineCount(n){
+  items=initial.map(x=>({...x}));scenario='inline-updates';
+  if(n>0){
+    Object.assign(items.find(row=>row.id==='cookie-editor'),
+      {version:'2.0.6',releaseVersion:'2.0.11',update:true,updateVerified:true});
+    for(const [id,title,version,releaseVersion,newCapabilities] of mockUpdates.slice(0,n-1))
+      items.push({id,title,kind:'app',installed:true,enabled:true,known:true,update:true,
+        updateVerified:true,version,releaseVersion,newCapabilities,
+        description:'已安装扩展（仅模拟）'});
+  }
+  kind='all';scope='smart';selected=null;settingsMode=false;confirmUninstall=false;installReview=false;
+  $('preview-search').value='';
+  document.querySelectorAll('[data-update-count]').forEach(b=>
+    b.setAttribute('aria-pressed',String(Number(b.dataset.updateCount)===n)));
+  render();say('模拟 '+n+' 项更新候选，未联网、未安装或写入来源记录。');
+}
+document.querySelectorAll('[data-update-count]').forEach(b=>
+  b.addEventListener('click',()=>selectInlineCount(Number(b.dataset.updateCount))));
 document.querySelectorAll('[data-scenario]').forEach(b=>b.addEventListener('click',()=>{
  items=initial.map(x=>({...x}));
  scenario=['cookie','update'].includes(b.dataset.scenario)?'normal':b.dataset.scenario;
  if(b.dataset.scenario==='update'){
    // The explicit old-version scenario is NOT today's verified local install.
    const cookie=items.find(x=>x.id==='cookie-editor');
-   cookie.version='2.0.6';cookie.update=true;cookie.releaseVersion='2.0.11';
+   cookie.version='2.0.6';cookie.update=true;cookie.updateVerified=true;cookie.releaseVersion='2.0.11';
  }
  selected=['cookie','update'].includes(b.dataset.scenario)?'cookie-editor':null;
  settingsMode=b.dataset.scenario==='cookie';confirmUninstall=false;installReview=false;
@@ -617,8 +723,7 @@ document.addEventListener('keydown',e=>{
   e.preventDefault();rows[next]?.focus();
  }else if(e.key==='Tab')closeMenu(false);
 });
-render();
-openReview('update');
+selectInlineCount(3);
 </script>
 </body>
 </html>
