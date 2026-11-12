@@ -14,6 +14,9 @@ import {FoundationError} from '../platform/protocol.js';
 const fail=(code,message)=>new FoundationError(code,message);
 const pinKeys=['version','manifestHash','contentHash','scriptId','revision','installationId','generation'];
 const sameSource=(a,b)=>a?.tabId===b?.tabId&&a?.documentId===b?.documentId&&a?.url===b?.url;
+// Compare only the reviewed, normalized task arguments; property insertion order is not authority.
+const canonical=value=>JSON.stringify(value,(_key,item)=>item&&typeof item==='object'&&!Array.isArray(item)?
+  Object.fromEntries(Object.keys(item).sort().map(key=>[key,item[key]])):item);
 // Only confirmed mismatches retire a queued candidate. Browser/read failures,
 // incomplete replies and unavailable resources retain the original row.
 const invalidCandidateCodes=new Set(['E_BRIDGE_CONTEXT','E_CHAT_TURN','E_CHAT_REQUEST_MARKER','E_CHAT_ROUTE']);
