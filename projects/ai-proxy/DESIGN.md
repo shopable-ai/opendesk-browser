@@ -1,5 +1,36 @@
 # AI Proxy 交互预览 · PC R16 优化与源码落实
 
+## 2026-11-12：ZeroOmega 多服务器对照与代理认证能力决策（设计已审计，功能未接线）
+
+**原始目标：** 判断是否应仿照 ZeroOmega，在同一代理情景模式中使用表格配置多台代理服务器；明确 Chrome 扩展用户名/密码认证的真实边界；避免将离线预览功能当作正式代理连接能力。采用「少量必要差量」，不重做 AI Proxy 七区和四种连接模式。
+
+### 事实与现状（2026-11-12 main 源码核查）
+
+1. **两个“协议”不是同一概念：** 节点的 HTTP/HTTPS/SOCKS4/SOCKS5 是“连接代理服务器的协议”；ZeroOmega 表格的 HTTP 网站 / HTTPS 网站是“请求 URL 的协议”。Chrome `chrome.proxy.ProxyRules` 能设置 `singleProxy`，或按请求协议用 `proxyForHttp`、`proxyForHttps`、`fallbackProxy` 分别指向代理服务器。不能因为已有多节点列表就声称已经支持按请求协议分流。参考：https://developer.chrome.com/docs/extensions/reference/api/proxy 。
+2. 当前 `src/domain/types.ts` 已有 `endpoints[]`、`profiles[]`、`rules[]`，**多台代理的保存与列表管理已经存在**；不增加第二份节点池，不让用户在添加节点弹窗重复配置 HTTP/HTTPS 网站请求映射。
+3. 现有正式 `src/Settings.tsx` 对填写账号密码的保存直接返回“代理认证尚未接入”；`src/service.ts` 的 `SET_CREDENTIAL` 返回 `E_NOT_CONNECTED`，`src/domain/managed-config.ts` 拒绝含 `credentialRef` 的已管理路由。**正式产品尚未具备认证代理连接能力**，不以 `preview/preview.html` 的模拟“已保存”替代。
+4. 当前 `src/domain/managed-config.ts` 的 `profile` 只能指向单一 endpoint；`rules` 公开转换只接受最多 16 条符合约束、**全部指向同一 endpoint**、默认直连的规则。已有网站规则列表不等于允许多个不同节点同时受控路由。
+5. Chrome MV3 可通过 `webRequest.onAuthRequired` 对 HTTP(S) 代理的 **407 代理认证挑战** 提供凭据，但需官方权限、真实绑定与受控测试；浏览器原生 SOCKS4/SOCKS5 不支持这种用户名/密码认证。参考：https://developer.chrome.com/docs/extensions/reference/api/webRequest 。不把 HTTP 网站的 401 登录误判为代理认证。
+
+### UI 决策：保持简洁，按需渐进
+
+- **默认：** 维持现有「我的代理」多节点列表以及「添加/编辑代理」三行布局：名称；代理连接协议＋服务器地址＋端口；用户名＋密码（可选字段）。不要在每个节点弹窗里放 ZeroOmega 全表格，不增第五个一级模式。
+- **认证状态：** 正式版仍未接线时必须明确“认证尚未支持”，对无认证节点正常保存；不能伪造账号密码保存/启用成功。SOCKS4/5 认证字段禁用并说明原因。未来只有真实认证链通过后，才开放 HTTP/HTTPS 输入与持久化认证引用。
+- **可选高级项（P2，当前只设计）：** PC「代理与配置」内可折叠「按网址请求协议使用不同代理」。开关默认关闭。开启后只显示两行「HTTP 请求 → 已保存节点」「HTTPS 请求 → 已保存节点」，其他请求采用清晰的默认/直连语义；用 `Chrome 请求协议` 文案区别代理节点的 `连接协议`。不默认增加 FTP 行，不做轮换、自动测速、任意脚本或多级规则编辑器。
+- **受控状态：** 配置选择与真实应用分离；未经审批的高级功能绝不展示为可点击、可成功应用；控制权未知、权限未授予、代理冲突或回执未知时不得自动重放 APPLY，也不得假称切换成功。旧四模式、七区、历史导入/备份继续兼容。
+
+### 分阶段实施与验收门槛
+
+**P0 · 现在：** 保持已可用的节点列表与默认单节点，确保正式 UI 清晰暴露认证暂不可用和「多节点分流未接线」的真实边界；不得为模仿 ZeroOmega 添加空表格。以现有 `Settings.tsx` 认证错误/提示和 `managed-config.ts` 约束为源核对，任何 UI 演示单独标“模拟”。
+
+**P1 · HTTP(S) 代理认证（独立任务）：** 经权限/可信 Host/公开 SDK owner 审阅后设计最小认证合同；`storage.session` /等价受控短期凭据存储，非秘密配置只保留不可逆引用；只应答确认为代理挑战（`isProxy`/407）的请求，按**当前已确认应用的代理 host、port、协议与 generation** 精确匹配，不向目标网站 401、其他代理、旧会话或第三方沙箱发凭据。限制失败重试、防 407 循环；取消、停止、撤权、扩展重启或来源变更时清理；禁止日志/导出/回填密码。前后端同时支持后再开放表单。
+
+**P2 · 按请求协议的多服务器分流（需求明确时才实施）：** 在既有 Config/Service/Host 受审合同增加指定节点引用的 `HTTP/HTTPS/default` 路由；不用旁路自行执行 chrome.proxy，也不将 ZeroOmega 的整套配置模型直接复制。验证路由决策、默认回退、直连、不同端点与选中/应用差异，再决定是否上线折叠区。只有明确的特权 owner 授权和真实 Chrome 验证后才宣称正式支持。
+
+**关键验收：** (A) 默认一台节点的现有保存/选择/应用不回归；(B) HTTP 网址与 HTTPS 网址的代理连接协议不混淆；(C) 填认证的 HTTP/HTTPS 必须是真实 407/受控服务端测试通过而非只通过预览；(D) 401 不是 407、跨节点/错端口/错误凭据/重复挑战/撤权都不泄露认证；(E) 两个请求协议走不同端点时须真实观测并回读，绝不以仅保存为成功；(F) 无关的 SOCKS 无认证、网站规则、PAC 与旧存储不受影响。
+
+**当前状态：`DESIGN_DECIDED / P1_P2_NOT_IMPLEMENTED / CHROME_REAL_AUTH_NOT_TESTED`。** 本节不修改代理业务代码、不升级正式工具 JSON，不产生真实代理流量；不是新一套权威框架规范，也不沿用旧专家评分冒充该能力的实现验收。
+
 ## 2026-11-09：R18「我的代理」切换方式纠偏（独立交互预览，PC 不变）
 
 **仓库已归档可点击 R18 文件**：[`preview/ai-proxy-interactive-preview-r18.html`](preview/ai-proxy-interactive-preview-r18.html)，并从 `preview/index.html` 增加入口。上一版聊天交付的独立 R17 HTML 当时没有保存到仓库；仓库 `preview.html` 仍是未按这版重新编译的 React 同源预览，不得将 R18 独立设计稿覆盖该生成文件。
