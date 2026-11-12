@@ -43,5 +43,75 @@
   "negativeInstallPaths": "NOT_TESTED; cancelling an empty import view does not count as cancelling Installer review",
   "visualAndFocusMatrix": "NOT_TESTED for target R5 runtime",
   "classification": "D: target runtime revision not applied due existing execution/unknown-effect safety fence",
-  "nextRequiredOperation": "Settle existing tasks/native requests/unknown effects through their owners, allow original safe refresh, verify R5 runtime, then perform trusted old-to-new update via original list and Installer"
+  "nextRequiredOperation": "Settle existing tasks/native requests/unknown effects through their owners, allow original safe refresh, verify R5 runtime, then perform trusted old-to-new update via original list and Installer",
+  "continuation20261113": {
+    "observedAt": "2026-11-12T17:52:35.253950+00:00",
+    "observationType": "Actual daily Google Chrome native CUA AX; debug then restored Extensions tab",
+    "appPath": "/Users/shopme/Applications/Google Chrome.app",
+    "extensionId": "ccfcjegpkdlgbclopjmadlcjedelidmf",
+    "loadedPathFromPriorVerifiedMetadata": "/Users/shopme/Documents/workspace/opendesk-browser/dist/development",
+    "configuredServeOwner": {
+      "pid": 35698,
+      "token": "0d9e6574-8fc4-4852-981c-339ec8dc821b",
+      "kind": "development",
+      "root": "/Users/shopme/Documents/workspace/opendesk-browser",
+      "startedAt": "2026-11-12T17:32:13.229Z"
+    },
+    "sidePanelUrl": "chrome-extension://ccfcjegpkdlgbclopjmadlcjedelidmf/sidepanel.html?hostInstanceId=4e1ac659-b311-419e-b5ca-e978c5740f4e",
+    "list": {
+      "extensions": 20,
+      "actionBadge": 6,
+      "tabBadge": 6,
+      "separateUpdateCenterVisible": true,
+      "inlineButtonsObserved": false
+    },
+    "debug": {
+      "revision": "e3fd4b6bccf7fe3e57fc063e284103b0763d0b0abebc45288795150461ecb2b8",
+      "status": "源码已编译；任务、原生请求或未知结果仍未释放，自动刷新已延后。",
+      "executionSlot": "繁忙 / 未就绪",
+      "approvedTasks": 1,
+      "cloudRequests": 10
+    },
+    "forcedReload": false,
+    "tasksCancelled": false,
+    "registryWrittenByTest": false,
+    "installerOpenedByTest": false,
+    "realUpdate": "NOT_TESTED",
+    "versionSourceShaReadback": "NOT_TESTED",
+    "negativeInstallPaths": "NOT_TESTED",
+    "visualMatrix": "NOT_TESTED for R5 runtime",
+    "classification": "D: daily Chrome has not applied target R5 runtime; original safety fence retained",
+    "resources": {
+      "nativeUiLock": "Acquired and released",
+      "egoTaskSpace111": "Finished keep=[]; production Marketplace not replaced by Ego proof",
+      "cuaGeneralInventory": "Timed out; direct app binding succeeded",
+      "desktopConnector": "UNAVAILABLE: MCP SSE probe HTTP 429"
+    },
+    "egoObservations": {
+      "uaMajor": 156,
+      "extensionPageLoaded": true,
+      "bareAppRoute": "Correctly rejected without toolId",
+      "openPanelFromCatalog": "Action receipt only; no installed update evidence"
+    },
+    "productionCandidateChannel": {
+      "schema": "opendesk.market.channel.v1",
+      "mode": "production",
+      "protocol": "opendesk.market.intent.v1",
+      "enabled": false,
+      "origin": null,
+      "extensionId": null,
+      "acquireUrl": null,
+      "verifiedAt": null
+    },
+    "devChannel": {
+      "schema": "opendesk.market.channel.v1",
+      "mode": "development",
+      "protocol": "opendesk.market.intent.v1",
+      "enabled": true,
+      "origin": "http://127.0.0.1:43132",
+      "extensionId": "ccfcjegpkdlgbclopjmadlcjedelidmf",
+      "acquireUrl": null,
+      "verifiedAt": null
+    }
+  }
 }

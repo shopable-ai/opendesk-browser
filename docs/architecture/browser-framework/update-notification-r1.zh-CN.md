@@ -459,3 +459,17 @@ React 专项首次 exit 0 但 18 项全部因缺少 `OPENDESK_PLAYWRIGHT_MODULE`
 独立 verifier 已只读核对两测试最终 diff 与原始日志：测试维护 PASS，未发现 R5 新增产品回归；指出的开发目录时点问题已按新读回纠正。该审查没有重跑或提升实机证据，六个产品分数仍为 NOT_TESTED。[独立审查记录](../../framework/workstreams/evidence/extension-inline-update-r5-20261113/independent-review.json)。
 
 用户已明确选择保留本轮本地提交、暂不推送。远程 `main` 收尾实读仍为 `90938be4bc87983c8f245c269bb1a7a04c28b01c`；本任务未执行 push，保留四个既有本地提交及其他工作区改动。
+
+### R5 2026-11-13：接续复核与当前运行边界
+
+本次接续从 `main@3c1f40eab4c9fc982d909b16095121e73a4bf0a7` 开始；期间另一 owner 提交了 `4870c4184bec2a70b094d59ed26e6f97278ace68` 的收尾证据，已读回并保留。远程仍为 `90938be4bc87983c8f245c269bb1a7a04c28b01c`。`f5601edc`、`3a87b6c`、`a3afa07d` 均已存在；`a3afa07d..HEAD` 的八个 R5 核心文件与原 CI 接线无提交差量，仅两份专项测试已有前述维护。工作区的预装提示、AI Proxy、Cookie Editor、Page/Host 等并行修改均未覆盖；本次没有产品源码改动。
+
+**当前专项结果。** 五组最终为 4/4、15/15、12/12、59/59、18/18，均 exit 0、0 skipped。首次 React 因执行者误用 `OPENDESK_CHROME_EXECUTABLE` 而启动失败；改为测试实际读取的 `OPENDESK_CHROMIUM_EXECUTABLE` 后正常执行，没有修改产品或断言。并行 CSS/i18n 在初次测试期间变化后，仅复验两组 UI：4.856 秒与 24.344 秒，八项关联输入前后摘要一致。最新 `npm run check` exit 0，1430 个文件及原安全合同通过。测试浏览器仍为独立 CFT 155 夹具，不是实际安装事务。完整命令、退出码、输入指纹与本机日志摘要见原记录的 `continuation20261113` 字段；完整原始日志仅保留本机忽略目录 `artifacts/extension-inline-update-r5/20261113-resume/`，见[接续证据索引](../../framework/workstreams/evidence/extension-inline-update-r5-20261113/results.json)。独立 verifier 未发现两份测试维护删除原安全断言，同时明确指出 Installer 替身不能证明真实更新链。
+
+**构建必须区分输入与产物。** 先前 production 构建的原回执仍为 exit 0、包哈希 `8cbcc710aaa60f77f6992dd14e4b24a63b7388872fa9a5518391a3550d1af2cf`。本次逐项比较其 804 个输入，当前 `src/sidebar-tools/bridge.js`、`src/ui/sidebar-tools.js`、`src/ui/extension-center-localization.js`、`src/ui/extension-center.css` 已有后续并行变化，不能将该回执提升为当前整个工作区 BUILD_PASS。另建自有快照时，复制忽略的项目预览生成物触发 ENOSPC，尚未启动 npm 构建；已删除本任务新建的半成品，未清理其他 owner 资源。当前原命令 `npm run build` 实际 exit 1，原因是 `43120` 输出守卫 `EADDRINUSE`；现有开发 writer PID `35698`、`dist/development` 和共享 production 输出保持原状。这些均为 D 类执行环境问题，不是已复现的 R5 产品缺陷，也没有放宽来源锁。[实际构建退出日志](../../framework/workstreams/evidence/extension-inline-update-r5-20261113/results.json)。
+
+**实机再次读回。** 通过精确 app 路径绑定日常 Chrome 并取得/释放原 UI 锁；实际 Side Panel 仍有 20 个扩展、Action/Tab 角标 6 和旧独立更新中心，没有观察到 R5 行内按钮。调试再次显示 revision `e3fd4b6bccf7fe3e57fc063e284103b0763d0b0abebc45288795150461ecb2b8`、执行槽“繁忙 / 未就绪”，以及“源码已编译；任务、原生请求或未知结果仍未释放，自动刷新已延后。”。已返回扩展列表；未强制刷新、取消任务、写 Registry 或修改配对。[本次实机等效 AX 记录](../../framework/workstreams/evidence/extension-inline-update-r5-20261113/chrome-closure.json)。通用 CUA inventory 超时后，直接 app 绑定成功；Desktop Tunnel 的 HTTP 429 不作为产品故障。ego TaskSpace 111 已释放，其目录页与打开侧栏动作不计为真实 Chrome 更新验收。
+
+Prompt Shortcuts 的合法历史版本页已确认存在：`http://127.0.0.1:43132/apps/opendesk/prompt-shortcuts/versions/1.1.20/`。页面原按钮可经固定版本 intent、descriptor/包摘要核验及原 Installer 建立真实市场来源；不得手动补写来源或绕过降级保护。两版原件与 descriptor 摘要再次一致。不过 `43132` 当前未监听，日常开发通道虽已配置该 Origin，R5 尚未安全应用；现有独立 production 候选的市场通道为 `enabled:false`，也不能直接冒充可执行此历史版本安装链的新候选。
+
+**结论仍为 BLOCKED。** 本次未打开目标 Installer、未执行真实更新，版本/来源/SHA 读回、取消/权限拒绝/冲突/事务中断/UNKNOWN 及同候选视觉焦点矩阵均为 NOT_TESTED。六个实际产品维度全部 NOT_TESTED，不编造百分数或综合平均。下一条必要操作仍是由相关 owner 结清现有活动和未知效果，让原安全刷新正常应用 R5；核实运行 revision 后，恢复原合法市场入口并执行一次旧版→新版的列表安装闭环。本轮只提交接续证据；未推送现有包含其他任务提交的本地主分支链。
