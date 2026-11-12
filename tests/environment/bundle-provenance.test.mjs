@@ -33,16 +33,16 @@ test('A2B2A capability grant source is pinned to the original SW and trusted Sid
   assert.throws(()=>describeBundle(candidate),/Trusted Web Flow source changed/);
 });
 
-test('reviewed WebFlow task intent parser permits four exact fixed entries and denies other worlds',()=>{
+test('reviewed WebFlow task intent parser permits five exact fixed entries and denies other worlds',()=>{
   const path='projects/webflow/src/task-intent-contract.js';
   const modules={[resolve(path)]:{renderedLength:1,originalLength:1}};
   for(const target of ['sw.js','ui/tool-shell.js','agents/web-task-content.js',
-    'agents/chatgpt-fixed-bridge.js']){
+    'agents/chatgpt-fixed-bridge.js','native-agent/settings.js']){
     const result=describeBundle({chunk:{fileName:target,modules},lock:{packages:{}}});
     assert.equal(result.modules[0].reviewedFirstPartyBlob,'50a7ec4bd3d8707ba53724efdc378cd98c2404d6');
   }
-  for(const target of ['native-agent/settings.js',
-    'agents/page-relay.js','ui/sidebar-tool-host.js']){
+  for(const target of ['native-agent/transport.js','agents/page-relay.js',
+    'ui/sidebar-tool-host.js','scripting/sandbox/worker-runtime.js']){
     assert.throws(()=>describeBundle({chunk:{fileName:target,modules},lock:{packages:{}}}),
       /cannot enter a privileged fixed bundle/);
   }
@@ -64,6 +64,18 @@ test('reviewed WebFlow intent source pin rejects mutated and symlinked content',
   await rm(file);
   await symlink(resolve(path),file);
   assert.throws(()=>describeBundle(input),/Trusted Web Flow source must not be a symlink/);
+});
+
+test('reviewed ChatGPT route guard enters Native Settings Workspace only as pinned deny-only source',()=>{
+  const path='projects/webflow/trusted/chatgpt-conversation-route.js';
+  const modules={[resolve(path)]:{renderedLength:1,originalLength:1}};
+  const make=target=>describeBundle({chunk:{fileName:target,modules},lock:{packages:{}}});
+  for(const target of ['sw.js','ui/tool-shell.js','agents/chatgpt-fixed-bridge.js',
+    'native-agent/settings.js'])
+    assert.equal(make(target).modules[0].reviewedFirstPartyBlob,'8e28adedd8cc2b49ff34897c0857d33cf2478c87');
+  for(const target of ['native-agent/transport.js','agents/page-relay.js',
+    'ui/sidebar-tool-host.js','scripting/sandbox/worker-runtime.js'])
+    assert.throws(()=>make(target),/cannot enter a privileged fixed bundle/);
 });
 
 test('reviewed app display routes enter only the fixed tool shell',()=>{

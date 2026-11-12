@@ -47,8 +47,9 @@ const compiledWebFlowInputs=Object.freeze({
   // Reviewed bounded keyword policy shared by the ledger and compiled controls.
   'projects/webflow/src/authorization-policy.js':'bb508189bdbbfe403707febbb36bb49d07d476c7',
   // R0 reviewed: structural WebFlow V1/V2 candidate parser, not DOM, Host or Authority.
-  // Pure schema parser also enters the fixed ChatGPT Content bridge through the reviewed
-  // chatgpt-task-request import; keep exact blob pin and per-target admission.
+  // Pure schema parser also enters the fixed ChatGPT Content bridge and the
+  // Native Settings Workspace reader through reviewed chatgpt-task-request imports.
+  // Neither site display nor Workspace parsing grants Task execution.
   'projects/webflow/src/task-intent-contract.js':'50a7ec4bd3d8707ba53724efdc378cd98c2404d6',
   // Reviewed fixed ChatGPT site adapter/retired UI, only in the isolated fixed Content entry.
   // 2026-11-09 reviewed UNKNOWN diagnostics and before-click cancellation;
@@ -83,7 +84,7 @@ function reviewedCompiledWebFlow(target,path,root){
   const allowed=path==='projects/webflow/trusted/issue-workflow-authorization.js'?
     ['sw.js','ui/tool-shell.js'].includes(target):
     taskIntent?['sw.js','ui/tool-shell.js','agents/web-task-content.js',
-      'agents/chatgpt-fixed-bridge.js'].includes(target):
+      'agents/chatgpt-fixed-bridge.js','native-agent/settings.js'].includes(target):
     path==='projects/webflow/trusted/task-run-recovery.js'?target==='sw.js':siteAdapter?target==='agents/chatgpt-fixed-bridge.js':
     path.startsWith('projects/webflow/trusted/')||path==='projects/webflow/src/ui/app-page-routes.js'?target==='ui/tool-shell.js':
       ['sw.js','ui/tool-shell.js','agents/chatgpt-fixed-bridge.js'].includes(target);
@@ -172,7 +173,7 @@ const chatGPTFilesTargets=Object.freeze({
   'chatgpt-files-config.js':['native-agent/transport.js','agents/chatgpt-fixed-bridge.js'],
   'chatgpt-files.html':['native-agent/settings.js'],
   'chatgpt-project-runtime-ui.js':['native-agent/settings.js'],
-  'chatgpt-conversation-route.js':['sw.js','ui/tool-shell.js','agents/chatgpt-fixed-bridge.js'],
+  'chatgpt-conversation-route.js':['sw.js','ui/tool-shell.js','agents/chatgpt-fixed-bridge.js','native-agent/settings.js'],
   'chatgpt-conversation-result.js':['sw.js','ui/tool-shell.js'],
   'chatgpt-result-adapter.js':['sw.js','ui/tool-shell.js'],
   'chatgpt-conversation-result-v0.3.js':['sw.js','ui/tool-shell.js'],
