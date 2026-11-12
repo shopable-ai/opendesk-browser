@@ -682,7 +682,72 @@ details{min-width:0}.od-disclosure{border:1px solid var(--od-line);border-radius
     else if(view==='settings'||view==='sites'||view==='builtin'){e.preventDefault();show('home');}
   });
   document.querySelectorAll('dialog').forEach(d=>d.addEventListener('click',e=>{if(e.target===d)d.close()}));
-  renderBuiltins();updateHome();renderSites();
+  // The target-page mock is an offline visual test, not a Chrome Page authority.
+  const examples=[
+    ['为什么需要对话轮次导航？','长对话包含多次提问与回答。仅靠滚动条，很难回到之前讨论的问题。'],
+    ['一次提问和一条回复算几页？','一轮提问及对应的回复算一页。长回复不按屏幕高度拆成多页。'],
+    ['怎样区分整段对话与逐轮翻页？','整段对话顶部、底部是大跨度跳转；上一轮、下一轮定位到邻近用户提问的起点。'],
+    ['用户自然滚动时怎样更新页码？','随着当前阅读位置变化，显示第几轮；总数只包含当前已加载且识别成功的轮次。'],
+    ['回复还在持续生成时怎么办？','流式回复仍归属于当前轮；只有新提问出现，才增加轮次数量。'],
+    ['网站结构变化或者无法识别呢？','不猜测角色和页码。原有的导航按其适配能力独立工作。']
+  ];
+  const simScroll=$('sim-scroll'),simTurns=$('sim-turns');
+  function createSimTurn(question,answer){
+    const article=document.createElement('article');article.className='sim-turn';
+    const user=document.createElement('p');user.className='sim-user';user.textContent=question;
+    const reply=document.createElement('div');reply.className='sim-ai';
+    const p=document.createElement('p');p.textContent=answer;
+    const p2=document.createElement('p');p2.textContent='这是一段用于滚动测试的回答内容。您可以继续向下阅读，或者通过轮次导航直接跳转。';
+    reply.append(p,p2);article.append(user,reply);return article;
+  }
+  for(const [question,answer] of examples)simTurns.append(createSimTurn(question,answer));
+  const simRows=()=>[...simTurns.children];
+  function simIndex(){
+    const rows=simRows();
+    if(simScroll.scrollTop>=simScroll.scrollHeight-simScroll.clientHeight-2)return rows.length-1;
+    const line=simScroll.scrollTop+Math.min(140,simScroll.clientHeight*.18);
+    let current=0;
+    for(const [index,row] of rows.entries())if(row.offsetTop<=line)current=index;else break;
+    return current;
+  }
+  function renderSim(){
+    $('sim-site-name').textContent=({chatgpt:'ChatGPT',deepseek:'DeepSeek',gemini:'Gemini',
+      new:'自定义网站',pending:'自定义网站',broken:'结构变化网站',internal:'Chrome 内部页面'}[scenario]||'AI')+' 对话页';
+    const active=enabled&&['chatgpt','deepseek','gemini'].includes(scenario);
+    const paging=active&&$('flag-turn-paging').checked;
+    const top=active&&document.querySelector('[data-flag="conversationTop"]').checked;
+    const bottom=active&&document.querySelector('[data-flag="conversationBottom"]').checked;
+    $('sim-first').hidden=!top;$('sim-last').hidden=!bottom;
+    for(const id of ['sim-prev','sim-count','sim-next'])$(id).hidden=!paging;
+    $('sim-dock').hidden=!active||(!paging&&!top&&!bottom);
+    $('sim-unavailable').hidden=active;
+    $('sim-unavailable').textContent=!enabled?'自动运行已停用':scenario==='broken'
+      ?'结构变化：无法识别轮次，不显示未经验证的页码':'当前页面未获得可靠适配或授权';
+    const index=simIndex(),length=simRows().length;
+    $('sim-count').textContent=(index+1)+'/'+length;
+    $('sim-count').setAttribute('aria-label','当前第'+(index+1)+'轮，共'+length+'轮');
+    $('sim-prev').disabled=index===0;$('sim-next').disabled=index===length-1;
+    $('sim-first').disabled=simScroll.scrollTop<=2;
+    $('sim-last').disabled=simScroll.scrollTop>=simScroll.scrollHeight-simScroll.clientHeight-2;
+  }
+  function simJump(index){
+    const target=simRows()[index];if(!target)return;
+    simScroll.scrollTop=Math.max(0,target.offsetTop-8);renderSim();
+  }
+  $('sim-first').onclick=()=>{simScroll.scrollTop=0;renderSim();};
+  $('sim-last').onclick=()=>{simScroll.scrollTop=simScroll.scrollHeight;renderSim();};
+  $('sim-prev').onclick=()=>simJump(simIndex()-1);
+  $('sim-next').onclick=()=>simJump(simIndex()+1);
+  $('sim-add').onclick=()=>{
+    const number=simRows().length+1;
+    simTurns.append(createSimTurn('补充问题 '+number,'这是一轮新增的模拟提问与回答，不会发送给任何 AI。'));
+    simJump(number-1);
+  };
+  simScroll.addEventListener('scroll',renderSim,{passive:true});
+  $('review-site').addEventListener('change',()=>{simScroll.scrollTop=0;renderSim();});
+  $('home-enabled').addEventListener('change',renderSim);
+  document.querySelectorAll('[data-flag]').forEach(el=>el.addEventListener('change',renderSim));
+  renderBuiltins();updateHome();renderSites();renderSim();
 })();
 </script>
 </body>
