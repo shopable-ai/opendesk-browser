@@ -103,6 +103,22 @@ test('three distinct releases aggregate to one claim but require separate review
   assert.equal(Object.values(next.records).filter(row=>row.impressionCount===1).length,3);
 });
 
+test('active-document tool scope claims only related updates and keeps global Badge',()=>{
+  const a=release('prompt-shortcuts'),b=release('reading-toc'),c=release('webflow');
+  const initial=prepare(100000,[a,b,c]);
+  const candidate=claimUpdateToast(initial,{now:100010,tabId:21,
+    documentId:'document-21-same-frame',token:token(14),
+    allowedToolIds:['reading-toc']});
+  assert.deepEqual(candidate.claim.releaseKeys,[b.key]);
+  assert.equal(candidate.state.records[a.key].claim,null);
+  assert.equal(candidate.state.records[c.key].claim,null);
+  assert.equal(updateNoticeSnapshot(candidate.state).badgeCount,3,
+    'a website-specific toast never changes the global update inventory');
+  assert.equal(claimUpdateToast(initial,{now:100010,tabId:21,
+    documentId:'document-21-same-frame',token:token(15),
+    allowedToolIds:[]}),null);
+});
+
 test('per-tool inbox-only preference and global silence fence new web claims',()=>{
   const item=release();
   const initial=prepare();

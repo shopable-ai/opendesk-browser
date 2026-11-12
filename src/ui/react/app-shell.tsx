@@ -3,6 +3,7 @@ import * as React from 'react';
 import {SidebarNavigation} from './tabs/navigation.tsx';
 import {translateSidebarNavigation} from '../../i18n/sidebar-navigation.js';
 import {ExtensionCenterPage} from './tabs/tools.tsx';
+import {projectTrustedInlineUpdates} from '../extension-center-model.js';
 import {CloudConnectionPage} from './tabs/cloud.tsx';
 import {DeveloperPage,DeveloperDock} from './tabs/develop.tsx';
 import {MyTasksPage,MyTasksDock} from './tabs/my-page.tsx';
@@ -32,9 +33,55 @@ export function SidebarAppShell({
   browserHistoryModel=null,browserHistoryActions=null,localeController=null
 }){
   // The existing trusted preference owner drives the entire React shell without remounts.
-  const updateNotice=useUpdateNoticeController(()=>{
-    if(pageSurface!=='app')onNavigate('tools');
+  const updateNotice=useUpdateNoticeController(snapshot=>{
+    // Website "查看更新" navigates to the existing list, not an obsolete icon.
+    if(pageSurface!=='app'&&onNavigate('tools')!==false){
+      const item=snapshot?.records?.find(row=>row.kind==='sidebar-tool'&&
+        row.viewedAt===snapshot.openRequestedAt);
+      if(item)requestAnimationFrame(()=>{
+        const key='app:'+item.id;
+        const buttons=[...document.querySelectorAll('#extension-center-list [data-extension-key]')];
+        const target=buttons.find(node=>node.dataset.extensionKey===key&&
+          node.dataset.extensionAction==='update')||
+          buttons.find(node=>node.dataset.extensionKey===key&&node.dataset.extensionAction==='main');
+        target?.scrollIntoView?.({block:'nearest'});
+        target?.focus?.({preventScroll:true});
+      });
+    }
   });
+  const [appMoreOpen,setAppMoreOpen]=React.useState(false);
+  const openUpdateHistory=()=>{
+    updateNotice.setFilter('history');updateNotice.setOpened(true);
+    void updateNotice.refresh();
+  };
+  React.useEffect(()=>{
+    if(!appMoreOpen)return;
+    const onKey=event=>{
+      if(event.key==='Escape'){
+        event.preventDefault();setAppMoreOpen(false);
+        document.getElementById('od-app-more')?.focus({preventScroll:true});
+      }
+    };
+    document.addEventListener('keydown',onKey);
+    return ()=>document.removeEventListener('keydown',onKey);
+  },[appMoreOpen]);
+  // Release eligibility comes from the Worker, then matches the Controller's
+  // source-pinned installed row. Only a projection can be reordered.
+  const controls=extensionProps.toolbarModel||{};
+  const list=extensionProps.rowsModel||{rows:[]};
+  const defaultOrder=pageSurface!=='app'&&controls.scope==='smart'&&
+    controls.kind==='all'&&!(controls.query||'').trim()&&
+    !list.busy&&!list.pendingKey&&
+    !document.activeElement?.closest?.('#extension-center-list');
+  const inlineRows=projectTrustedInlineUpdates(list.rows||[],updateNotice.state,
+    {promote:Boolean(defaultOrder)});
+  const inlineRowsModel={...list,rows:inlineRows,
+    onInlineUpdate:(record,event)=>event?.isTrusted===true?onOpenUpdateReview(record):false};
+  const inlineToolbarModel={...controls,
+    onUpdateHistory:event=>{
+      if(event?.isTrusted!==true)return;
+      controls.onCloseMenu?.(false);openUpdateHistory();
+    }};
   const uiLocale=React.useSyncExternalStore(localeController?.subscribe??subscribeEmptyTool,
     localeController?.getLocale??defaultUiLocale,localeController?.getLocale??defaultUiLocale);
   React.useEffect(()=>{document.documentElement.lang=uiLocale;},[uiLocale]);
@@ -61,7 +108,17 @@ export function SidebarAppShell({
     <div id="workbench-tools" className="od-page" data-workbench-page="tools">
       <section id="sidebar-tools" className="sidebar-tools" aria-label="当前已安装应用">
         <div className="od-app-update-entry">
-          <UpdateNoticeSlot controller={updateNotice} surface="app" onOpenReview={onOpenUpdateReview}/>
+          <button id="od-app-more" type="button" aria-label="更多工具设置"
+            aria-haspopup="menu" aria-expanded={appMoreOpen}
+            onClick={()=>setAppMoreOpen(value=>!value)}>⋯</button>
+          {appMoreOpen&&<div className="od-app-more-menu" role="menu" aria-label="工具设置">
+            <button type="button" role="menuitem" onClick={()=>{
+              setAppMoreOpen(false);openUpdateHistory();
+            }}>更新记录与提醒设置…</button>
+          </div>}
+          <UpdateNoticeSlot controller={updateNotice} surface="app"
+            showTrigger={false} returnFocusSelector="#od-app-more"
+            onOpenReview={onOpenUpdateReview}/>
         </div>
         {toolView&&<ToolHost view={toolView} active trustedControls={null} showListBack={false}/>}
       </section>
@@ -99,7 +156,9 @@ export function SidebarAppShell({
             </p>}
             <section id="extension-center" aria-label="扩展管理">
               <ExtensionCenterPage {...extensionProps}
+                rowsModel={inlineRowsModel} toolbarModel={inlineToolbarModel}
                 updateCenter={<UpdateNoticeSlot controller={updateNotice}
+                  showTrigger={false} returnFocusSelector="#extension-center-more"
                   onOpenReview={onOpenUpdateReview}/>}/>
             </section>
           </div>

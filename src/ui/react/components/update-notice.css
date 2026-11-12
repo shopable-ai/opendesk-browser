@@ -55,3 +55,18 @@
 @media(prefers-reduced-motion:reduce){.od-update-panel,.od-update-trigger{transition:none!important}}
 /* Never compete with the trusted installer's permission dialog. */
 body:has([aria-modal="true"]) .od-update-panel{display:none}
+
+/* R4: history/settings uses an existing menu; no standalone update icon. */
+.od-update-slot.no-trigger{position:static}
+.od-update-slot.no-trigger .od-update-panel{top:44px;right:0;left:auto;max-width:calc(100vw - 24px)}
+.od-app-update-entry{position:relative;justify-content:flex-end}
+#od-app-more{min-width:36px;min-height:36px;border:1px solid var(--od-line);
+  border-radius:var(--radius-control);background:var(--od-paper);color:var(--od-sub);cursor:pointer}
+.od-app-more-menu{position:absolute;right:0;top:calc(100% + 4px);z-index:550;
+  width:max-content;max-width:calc(100vw - 24px);padding:5px;
+  border:1px solid var(--od-line);border-radius:var(--radius-control);
+  background:var(--od-paper);box-shadow:0 12px 32px #101a2a35}
+.od-app-more-menu button{min-height:36px;padding:7px 10px;border:0;
+  background:transparent;color:var(--od-ink);cursor:pointer}
+.od-app-update-entry .od-update-slot.no-trigger.is-app .od-update-panel{top:44px;left:auto;right:0}
+@media(pointer:coarse){#od-app-more,.od-app-more-menu button{min-width:44px;min-height:44px}}

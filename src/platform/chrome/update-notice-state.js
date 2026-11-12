@@ -126,16 +126,19 @@ export function noticeEligible(state,row,now){
   if(row.impressionCount===1&&!row.snoozeUntil)return false;
   return true;
 }
-export function claimUpdateToast(previous,{now,tabId,documentId,token}){
+export function claimUpdateToast(previous,{now,tabId,documentId,token,allowedToolIds=null}){
   const state=readUpdateNoticeState(previous);
   if(!finiteTime(now)||!Number.isSafeInteger(tabId)||tabId<0||
      typeof documentId!=='string'||documentId.length<12||
      typeof token!=='string'||!/^claim-[a-f0-9-]{24,60}$/.test(token))
     fail('E_UPDATE_CLAIM');
+  if(allowedToolIds!==null&&(!Array.isArray(allowedToolIds)||
+    allowedToolIds.some(id=>typeof id!=='string')))fail('E_UPDATE_CLAIM');
   // The single Worker serializes all claims under a shared Web Lock.
   if(Object.values(state.records).some(row=>row.claim?.expiresAt>now))return null;
   if(state.lastToastAt>0&&now-state.lastToastAt<NOTICE_DAY_MS)return null;
-  const eligible=Object.values(state.records).filter(row=>noticeEligible(state,row,now));
+  const eligible=Object.values(state.records).filter(row=>
+    (allowedToolIds===null||allowedToolIds.includes(row.id))&&noticeEligible(state,row,now));
   if(!eligible.length)return null;
   const releaseKeys=eligible.slice(0,16).map(row=>row.key);
   for(const key of releaseKeys)state.records[key].claim={

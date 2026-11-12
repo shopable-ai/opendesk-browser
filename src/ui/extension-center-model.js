@@ -229,3 +229,31 @@ export function filterExtensionEntries(entries,{query='',kind='all',scope='smart
       row.installed===true||row.queueProduct?.pageInstalled===true)&&
     (!needle||[row.title,row.description,row.id,String(row.version),EXTENSION_SEARCH_ALIASES[row.id]].some(s=>lower(s).includes(needle))));
 }
+
+// R4 read-only bridge: Worker-verified release + installed Registry identity.
+// A version-only "row.update" flag never creates an actionable button.
+export function projectTrustedInlineUpdates(rows=[],snapshot=null,{promote=false}={}){
+  const releases=new Map();
+  if(snapshot?.verified===true&&Array.isArray(snapshot.records))
+    for(const item of snapshot.records){
+      if(item?.kind!=='sidebar-tool'||!['available','review_required'].includes(item.status)||
+        item.ignoredAt!==null||item.requiresReview!==true)continue;
+      const matches=releases.get(item.id)||[];
+      matches.push(item);releases.set(item.id,matches);
+    }
+  const result=rows.map(row=>{
+    const identity=row.updateIdentity,matched=identity&&releases.get(identity.id);
+    const candidate=matched?.length===1?matched[0]:null;
+    const valid=Boolean(row.installed&&row.kind==='app'&&candidate&&
+      candidate.id===identity.id&&candidate.fromVersion===identity.fromVersion&&
+      candidate.version===identity.version&&candidate.source===identity.source&&
+      candidate.sha256===identity.sha256&&
+      (candidate.status==='review_required')===(candidate.newCapabilities?.length>0));
+    return {...row,inlineUpdate:valid?{
+      record:candidate,label:candidate.status==='review_required'?'审阅':'更新'
+    }:null};
+  });
+  // Stable display-only sort. Search, filters and the Registry retain their order.
+  if(promote)result.sort((a,b)=>Number(Boolean(b.inlineUpdate))-Number(Boolean(a.inlineUpdate)));
+  return result;
+}

@@ -1,0 +1,27 @@
+{
+  "name": "@opendesk/ai-new-chat-window",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "在不覆盖原 AI 对话的情况下，从原生新对话或项目入口打开新的浏览器窗口",
+  "scripts": {"test": "node --test tests/*.test.mjs"},
+  "opendesk": {
+    "format": "opendesk.project.v1",
+    "id": "opendesk.ai-new-chat-window",
+    "runtimeKind": "page-userscript",
+    "sourceFormat": "esm",
+    "entry": "src/main.js",
+    "pageRules": {
+      "matches": [
+        "https://chatgpt.com/*",
+        "https://claude.ai/*",
+        "https://chat.deepseek.com/*",
+        "https://gemini.google.com/*"
+      ],
+      "excludeMatches": [],
+      "runAt": "document_idle",
+      "allFrames": false,
+      "world": "USER_SCRIPT"
+    }
+  }
+}

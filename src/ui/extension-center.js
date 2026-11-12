@@ -22,7 +22,8 @@ import {SEND_QUEUE_PIN} from '../platform/host/send-queue-admission.js';
 
 // One trusted presentation. All writes and launches delegate to the existing hosts.
 export function createExtensionCenter({api,client,doc,sidebarTools,taskWorkbench,currentPageTarget,localeController=null,toolLocaleService=null,extensionList=null,
-  createScrollConversation=null,openAIProviderSettings=null,notify=null}){
+  createScrollConversation=null,openAIProviderSettings=null,notify=null,
+  openTrustedUpdateReview=null}){
   const get=id=>doc.getElementById(id);
   const list=get('extension-center-list'),search=get('extension-center-search');
   const more=get('extension-center-more'),workspace=get('workspace-content');
@@ -291,7 +292,7 @@ export function createExtensionCenter({api,client,doc,sidebarTools,taskWorkbench
         add(t('settingsAction'),()=>{backIfNeeded();sidebarTools.openSettings(row.id);},'settings');
       if(row.queueReviewRelease)
         add('联合安装 / 更新审阅…',event=>{void reviewQueueProduct(row,event);},'queue-review');
-      else if(row.update&&row.release)add(t('reviewUpdateAction'),()=>openReview(row.key),'update');
+      else if(row.update&&row.release)add(t('reviewUpdateAction'),event=>openReview(row.key,event),'update');
     }else if(row.kind==='page'){
       if(row.stateKnown!==false)add(pageActionLabel(row.record.installed),
         event=>{void togglePage(row,event);},'toggle');
@@ -400,7 +401,6 @@ export function createExtensionCenter({api,client,doc,sidebarTools,taskWorkbench
       row.kind==='page'&&row.record?.installed?.authorization?.status==='suspended'?t('siteAccessRestricted'):
       row.enabled===false?t('disabled'):
       row.pageCompanion&&row.pageCompanion.state!=='registered'?'网页发送能力未就绪':
-      row.update?t('updateAvailable'):
       row.kind==='page'&&row.record?.installed?.nativeState&&
         row.record.installed.nativeState!=='registered'?t('registrationPending'):'';
     return reason?reason+' · '+descriptionOf(row):descriptionOf(row);
@@ -433,6 +433,13 @@ export function createExtensionCenter({api,client,doc,sidebarTools,taskWorkbench
         rows:rows.map(row=>({
           key:row.key,title:titleOf(row),kind:row.kind,type:typeOf(row),
           description:rowDescription(row),installed:row.installed,stateKnown:row.stateKnown,
+          updateIdentity:row.kind==='app'&&row.installed&&appStatusKnown&&
+            row.stateKnown!==false&&row.enabled===true&&!row.queueReviewRelease&&
+            !row.queueProduct&&!row.cleanupPending&&row.update===true&&
+            sources[row.id]?.kind==='market'&&row.release?.id==='opendesk/'+row.id&&
+            /^[a-f0-9]{64}$/.test(row.release?.sha256||'')?
+            {id:row.id,fromVersion:row.version,source:row.release.id,
+              version:row.release.version,sha256:row.release.sha256}:null,
           primaryAction:resolveExtensionPrimaryAction(row)?t('open'):null
         })),
         busy:Boolean(busy||pendingKey),pendingKey,
@@ -566,10 +573,35 @@ export function createExtensionCenter({api,client,doc,sidebarTools,taskWorkbench
     });
   }
   // The original trusted review owns installation; selecting never executes tool JS.
-  function openReview(key){
+  function openReview(key,event){
     const row=find(key);if(!row||row.kind!=='app'||!row.release)return;
     if(row.queueReviewRelease)return;
     if(row.cleanupPending){message(()=>t('cleanupBeforeInstall'),'error');return;}
+    if(row.installed){
+      // Menu and details use the same fresh Worker check as the inline button.
+      // The old boolean "row.update" alone is never permission to update.
+      if(event?.isTrusted!==true||row.update!==true||!appStatusKnown||
+        sources[row.id]?.kind!=='market'||row.release.id!=='opendesk/'+row.id||
+        !/^[a-f0-9]{64}$/.test(row.release.sha256||'')){
+        message(()=>t('appReviewUnavailable'),'error');return;
+      }
+      const extra=(row.release.capabilities||[]).some(cap=>
+        !row.record?.capabilities?.includes(cap));
+      const candidate={
+        kind:'sidebar-tool',id:row.id,fromVersion:row.version,
+        version:row.release.version,sha256:row.release.sha256,
+        source:row.release.id,ignoredAt:null,
+        status:extra?'review_required':'available'
+      };
+      backIfNeeded();
+      let attempt;
+      try{attempt=openTrustedUpdateReview?.(candidate);}
+      catch(error){message(errorText(error),'error');return;}
+      void Promise.resolve(attempt).then(opened=>{
+        if(!disposed&&opened!==true)message(()=>t('appReviewUnavailable'),'error');
+      },error=>{if(!disposed)message(errorText(error),'error');});
+      return;
+    }
     backIfNeeded();
     if(sidebarTools.openOfficialReview(row.id)!==true)
       message(()=>t('appReviewUnavailable'),'error');
@@ -813,7 +845,7 @@ export function createExtensionCenter({api,client,doc,sidebarTools,taskWorkbench
           }
           if(row.stateKnown!==false)
             add(t('settings'),'settings',()=>{backIfNeeded();sidebarTools.openSettings(row.id);});
-          if(row.update&&row.release&&!row.queueReviewRelease)add(t('reviewUpdate'),'update',()=>openReview(row.key));
+          if(row.update&&row.release&&!row.queueReviewRelease)add(t('reviewUpdate'),'update',event=>openReview(row.key,event));
         }
       }else if(row.kind==='page'&&!row.installed){
         if(row.release?.status==='available')add(t('reviewInstall'),'install',()=>openPageReview(row.key));

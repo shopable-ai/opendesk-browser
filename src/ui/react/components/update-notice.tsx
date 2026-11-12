@@ -103,8 +103,8 @@ export function useUpdateNoticeController(onOpenRequested=()=>{}){
       setState(next);setError('');
       if(next.openRequestedAt>0&&next.openRequestedAt!==handledOpen.current){
         handledOpen.current=next.openRequestedAt;
-        setFilter('pending');setOpened(true);
-        openRef.current?.();
+        setFilter('pending');setOpened(false);
+        openRef.current?.(next);
         void call('clear-open').catch(()=>{});
       }
     }catch(e){if(mounted.current)setError(String(e?.message||e).slice(0,160));}
@@ -135,9 +135,15 @@ export function useUpdateNoticeController(onOpenRequested=()=>{}){
   return {state,opened,setOpened,filter,setFilter,error,busy,refresh,act,saveMode};
 }
 
-export function UpdateNoticeSlot({surface='sidebar',controller,onOpenReview=()=>false}){
+export function UpdateNoticeSlot({surface='sidebar',controller,onOpenReview=()=>false,
+  showTrigger=true,returnFocusSelector=null}){
   const {state,opened,setOpened,filter,setFilter,error,busy,refresh,act,saveMode}=controller;
   const trigger=React.useRef(null),dialog=React.useRef(null);
+  const focusReturn=()=>{
+    const target=showTrigger?trigger.current:
+      returnFocusSelector?document.querySelector(returnFocusSelector):null;
+    target?.focus?.({preventScroll:true});
+  };
   React.useEffect(()=>{
     if(!opened)return;
     const before=document.activeElement;
@@ -147,13 +153,16 @@ export function UpdateNoticeSlot({surface='sidebar',controller,onOpenReview=()=>
       if(event.key!=='Escape'||event.defaultPrevented)return;
       if(document.querySelector('[aria-modal="true"]'))return;
       event.preventDefault();event.stopImmediatePropagation();
-      trigger.current?.focus({preventScroll:true});setOpened(false);
+      focusReturn();setOpened(false);
     };
     document.addEventListener('keydown',onEscape,true);
     return ()=>{
       document.removeEventListener('keydown',onEscape,true);
-      if(panel?.contains(document.activeElement)||document.activeElement===panel)
-        (trigger.current?.isConnected?trigger.current:before)?.focus?.({preventScroll:true});
+      if(panel?.contains(document.activeElement)||document.activeElement===panel){
+        const target=showTrigger&&trigger.current?.isConnected?trigger.current:
+          returnFocusSelector?document.querySelector(returnFocusSelector):before;
+        target?.focus?.({preventScroll:true});
+      }
     };
   },[opened,setOpened]);
   const records=state.records||[];
@@ -163,9 +172,10 @@ export function UpdateNoticeSlot({surface='sidebar',controller,onOpenReview=()=>
   const browsers=records.filter(row=>row.kind==='browser');
   const shown=filter==='pending'?pending:filter==='history'?history:browsers;
   const count=state.verified?state.badgeCount:0;
-  return <aside className={'od-update-slot'+(surface==='app'?' is-app':'')}
-    aria-label="OpenDesk 更新中心">
-    <button ref={trigger} className="od-update-trigger" type="button"
+  return <aside className={'od-update-slot'+(surface==='app'?' is-app':'')+
+    (!showTrigger?' no-trigger':'')}
+    aria-label="更新记录与提醒设置">
+    {showTrigger&&<button ref={trigger} className="od-update-trigger" type="button"
       title={count?'更新中心 · '+count+' 项待更新':'更新中心'}
       aria-label={'更新中心'+(count?'，'+count+' 项扩展待更新':'')}
       aria-haspopup="dialog" aria-expanded={opened} aria-controls="od-update-panel"
@@ -173,15 +183,15 @@ export function UpdateNoticeSlot({surface='sidebar',controller,onOpenReview=()=>
       <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><path d="m7 10 5 5 5-5"/><path d="M12 15V3"/></svg>
       <span className="od-update-trigger-label">{surface==='app'?'更新中心':'更新'}</span>
       {count>0&&<span className="od-update-trigger-count" aria-hidden="true">{count>9?'9+':count}</span>}
-    </button>
+    </button>}
     {opened&&<section ref={dialog} tabIndex={-1} id="od-update-panel" role="dialog"
       aria-modal="false" aria-labelledby="od-update-title"
       className="od-update-panel">
       <header className="od-update-head"><div>
-        <strong id="od-update-title">更新中心</strong>
+        <strong id="od-update-title">更新记录与提醒设置</strong>
         <span>{state.verified?state.actionableCount+' 项工具更新待处理':'正在核验发行与安装状态'}</span>
       </div><button type="button" aria-label="关闭更新中心"
-        onClick={()=>{trigger.current?.focus({preventScroll:true});setOpened(false);}}>×</button></header>
+        onClick={()=>{focusReturn();setOpened(false);}}>×</button></header>
       {error&&<p role="alert" className="od-update-error">{error}</p>}
       {!state.verified&&<p className="od-update-warning" role="status">
         更新核验尚未完成。历史记录可以查看，当前不可执行更新。

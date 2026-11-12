@@ -11,7 +11,23 @@ const LocaleManager=React.lazy(()=>import('./locale-manager.tsx'));
 
 // Sole owner of extension-center-list children. All actions delegate to the
 // trusted existing Extension Center; user packages stay in their sandbox.
-export function ExtensionRows({rows,busy,pendingKey,menuKey,onOpenRow,onMore,locale='zh-CN'}){
+export function ExtensionRows({rows,busy,pendingKey,menuKey,onOpenRow,onMore,onInlineUpdate,locale='zh-CN'}){
+  const [openingKey,setOpeningKey]=React.useState(null);
+  const [updateError,setUpdateError]=React.useState(null);
+  const review=(row,nativeEvent)=>{
+    if(nativeEvent?.isTrusted!==true||busy||openingKey||!row.inlineUpdate)return;
+    setOpeningKey(row.key);setUpdateError(null);
+    let attempted;
+    try{attempted=onInlineUpdate?.(row.inlineUpdate.record,nativeEvent);}
+    catch(error){
+      setUpdateError({key:row.key,text:String(error?.message||error).slice(0,140)});
+      setOpeningKey(null);return;
+    }
+    void Promise.resolve(attempted).then(opened=>{
+      if(opened!==true)setUpdateError({key:row.key,text:'更新审阅未开启；请核对当前来源和工具状态。'});
+    },error=>setUpdateError({key:row.key,text:'审阅未确认：'+String(error?.message||error).slice(0,120)}))
+      .finally(()=>setOpeningKey(null));
+  };
   const t=(key,params={})=>extensionCenterText(locale,key,params);
   // Distinct package IDs remain visible to people and assistive technologies
   // when two independently installed tools intentionally reuse a title.
@@ -29,7 +45,8 @@ export function ExtensionRows({rows,busy,pendingKey,menuKey,onOpenRow,onMore,loc
       ?row.key.slice(4):null;
     const accessible=t('actionTitle',{action:label,title:row.title})+(identity?' · '+t('installationId')+identity:'');
     return <li key={row.key} data-extension-id={row.key}
-      className={'ec-row od-collection-row'+(row.installed&&row.key===activeActionKey?' ec-row--action-visible':'')}
+      className={'ec-row od-collection-row'+(row.installed&&row.key===activeActionKey?' ec-row--action-visible':'')+
+        (row.inlineUpdate?' ec-row--has-update':'')}
       aria-busy={busy||pendingKey===row.key?'true':undefined}
       onPointerEnter={event=>{
         if(row.installed&&event.pointerType!=='touch')setLastInteractedKey(row.key);
@@ -63,7 +80,13 @@ export function ExtensionRows({rows,busy,pendingKey,menuKey,onOpenRow,onMore,loc
         </span>
       </button>
       <span className="ec-row-actions">
-        {row.installed&&<IconButton className="ec-row-more" disabled={busy}
+        {row.inlineUpdate&&<button type="button" className="ec-row-update"
+          data-extension-key={row.key} data-extension-action="update"
+          disabled={busy||Boolean(openingKey)}
+          title={row.inlineUpdate.label+' '+row.title+' · v'+row.inlineUpdate.record.version}
+          aria-label={row.inlineUpdate.label+' '+row.title+' 的可信更新，进入安装审阅'}
+          onClick={event=>review(row,event.nativeEvent)}>{row.inlineUpdate.label}</button>}
+        {row.installed&&<IconButton className="ec-row-more" disabled={busy||Boolean(openingKey)}
           label={t('manageTitle',{title:row.title})+(identity?' · '+t('installationId')+identity:'')} data-extension-key={row.key}
           data-extension-action="more" aria-haspopup="menu"
           aria-expanded={menuKey===row.key} aria-controls="extension-center-row-menu"
@@ -73,6 +96,7 @@ export function ExtensionRows({rows,busy,pendingKey,menuKey,onOpenRow,onMore,loc
           </svg>
         </IconButton>}
       </span>
+      {updateError?.key===row.key&&<p className="ec-update-error" role="alert">{updateError.text}</p>}
     </li>;
   });
 }
@@ -478,6 +502,8 @@ export function ExtensionToolbar({model,locale=model?.locale||model?.language||'
             onClick={event=>current.onImport?.(event.nativeEvent)}>{t('import')}</button>
           <button id="extension-center-reload" className="ec-menu-action" type="button"
             onClick={event=>current.onReload?.(event.nativeEvent)}>{t('reload')}</button>
+          <button id="extension-center-update-history" className="ec-menu-action" type="button"
+            onClick={event=>current.onUpdateHistory?.(event.nativeEvent)}>更新记录与提醒设置…</button>
         </div>
       </div>
     </div>
@@ -664,8 +690,8 @@ export function ExtensionCenterPage({
     <div ref={pageRef} id="extension-center-list-view" hidden={detailVisible||languageVisible}>
       <div className="ec-toolbar">
         <ExtensionToolbar locale={locale} model={toolbarModel}/>
-        {updateCenter}
       </div>
+      {updateCenter}
       <ExtensionDiscovery locale={locale} model={showWebDiscovery?discoveryModel:null}
         showEntry={showWebDiscovery} onDiscover={toolbarModel?.onDiscover}/>
       <input id="extension-center-file" type="file" accept=".json,application/json" hidden

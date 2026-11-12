@@ -21,6 +21,7 @@ import {createSidebarTools} from './sidebar-tools-loader.js';
 import {createPanelToolIntentReceiver} from './sidebar-tools/panel-tool-intent.js';
 import {createMarketPanelNavigationReceiver,verifyMarketPanelNavigationSource,MARKET_PANEL_NAV_PROTOCOL} from '../marketplace/panel-navigation.js';
 import {loadOfficialCatalog} from '../sidebar-tools/official-catalog.js';
+import {UPDATE_NOTICE_PROTOCOL} from '../platform/chrome/update-notice-state.js';
 import {createMarketInstallSheet} from './market-install-sheet.js';
 import {createExtensionCenter} from './extension-center.js';
 import {mountSidebarApp} from './react/main.tsx';
@@ -215,13 +216,9 @@ const webflowAuto=Object.freeze({
   approveIssueWorkflow:(review,event)=>fixedPageChatBridge.approveIssueWorkflow(review,event),
   revokeIssueWorkflow:event=>fixedPageChatBridge.revokeIssueWorkflow(event)
 });
-extensionList=mountSidebarApp(document,{debugEnabled,developerView,myView,toolView,providerSettings,
-  nativeConnection,localeController,webflowAuto,
-  openNativeSettings:()=>chrome.tabs.create({url:chrome.runtime.getURL('native-agent/settings.html')}),
-  onNavigate:view=>reactNavigationRequest?.(view)??false,
-  // Release identity is rechecked against the official Catalog before original Installer review.
-  onOpenUpdateReview:row=>{
-    if(shellClosed||!row||row.kind!=='sidebar-tool'||
+// One shared source-pinned path for list actions, detail and historical review.
+const openTrustedUpdateReview=row=>{
+    if(shellClosed||!row||row.kind!=='sidebar-tool'||row.ignoredAt!==null||
        !['available','review_required'].includes(row.status))return false;
     if(hostUrl.pathname===APP_DOCUMENT_PATHNAME){
       try{
@@ -233,6 +230,15 @@ extensionList=mountSidebarApp(document,{debugEnabled,developerView,myView,toolVi
       }catch{return false;}
     }
     return (async()=>{
+      // Fresh Worker readback, rather than trusting a projected React row.
+      const reply=await chrome.runtime.sendMessage({protocol:UPDATE_NOTICE_PROTOCOL,kind:'list'});
+      const currentRecord=reply?.ok===true&&reply?.data?.verified===true&&
+        reply.data.records?.find(item=>item.kind==='sidebar-tool'&&
+          item.id===row.id&&item.version===row.version&&
+          item.sha256===row.sha256&&item.source===row.source&&
+          item.fromVersion===row.fromVersion&&item.ignoredAt===null&&
+          ['available','review_required'].includes(item.status));
+      if(!currentRecord)return false;
       const {apps}=await loadOfficialCatalog({api:chrome});
       const current=apps.some(release=>release.toolId===row.id&&
         release.version===row.version&&release.sha256===row.sha256&&
@@ -243,7 +249,12 @@ extensionList=mountSidebarApp(document,{debugEnabled,developerView,myView,toolVi
       return sidebarTools.openOfficialReview(row.id,
         {id:row.source,version:row.version,sha256:row.sha256})===true;
     })();
-  },
+  };
+extensionList=mountSidebarApp(document,{debugEnabled,developerView,myView,toolView,providerSettings,
+  nativeConnection,localeController,webflowAuto,
+  openNativeSettings:()=>chrome.tabs.create({url:chrome.runtime.getURL('native-agent/settings.html')}),
+  onNavigate:view=>reactNavigationRequest?.(view)??false,
+  onOpenUpdateReview:openTrustedUpdateReview,
   onStopAppDebug:()=>void stopPanelDevelopment()});
 const taskWorkbench = createTaskWorkbench({client:foundationClient,host:scriptEditor.host,currentPageTarget,
   importDraft:sourceUtf8=>scriptEditor.importDraft(sourceUtf8),executionSource:scriptEditor.executionSource,
@@ -383,6 +394,7 @@ workflowView=createWorkflowView({api:chrome,client:foundationClient,host:scriptE
 extensionList.connectWorkflowPage(workflowView);
 // app.html owns only ToolHost; the Side Panel alone renders the list nodes.
 const extensionCenter=hostUrl.pathname===APP_DOCUMENT_PATHNAME?null:createExtensionCenter({api:chrome,client:foundationClient,doc:document,sidebarTools,taskWorkbench,currentPageTarget,localeController,toolLocaleService,extensionList,
+  openTrustedUpdateReview,
   notify:(message,options)=>toolView.showToast(message,options),
   createScrollConversation:identity=>createBusinessConversation({api:chrome,providerRuntime,hostInstanceId,
     consumerId:'scroll-navigation',policy:scrollConversationPolicy,...identity}),
