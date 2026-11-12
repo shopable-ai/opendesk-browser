@@ -1,3 +1,17 @@
+## 目标恢复 R1 · AI 总控与有界多子任务接力（2026-11-12；OD-AI-WORKFLOW-BRIDGE-GOAL-RECOVERY-R1）
+
+**用户恢复的上位目标：** 在 ChatGPT 总控 A 的正常完整回复中产生固定 Task 候选 → 原 WebFlow 可信入口识别/授权/执行已安装独立 Task → 新子对话 B 执行并取得真实 Durable Run/Result、完整回答及真实链接 → 将结果按授权**回填原 A 输入框（默认不发送）**、可信结果区或**单次发送** → A 结合结果生成下一轮新候选，继续派发 C 等子任务或结束。总控/子任务是动态角色，不固定只有 A/B。受限循环与未来多 Provider 都属于上位愿景；**A→B→A 是最小 M1 验收，R2/R3 的 0.3.0 同一 B 两阶段发送只是可选审稿模式，不是每项任务的强制步骤**。完整规则已更新 [唯一产品合同的「目标纠偏」](product-contract.zh-CN.md#2026-11-12--目标纠偏ai-总控与有界子任务接力od-ai-workflow-bridge-goal-recovery-r1)。
+
+**本轮已完成与不重复项：** 只更新现有权威文档，不创建第三份 GOAL，不修改旧 Task、V1/V2、Provider、RunHost、审批或测试。原有 0.2.0、0.3.0、两阶段 borrowed 方案、单次 A 回传及 R8 GitHub Issue 特例都保留为**历史/局部实现**，不可因本轮产品定位更新而视为自动验收成功或重新开发。历史合同已支持 BR-06 跨对话、BR-08 恢复及受限授权，本轮补充的是总控与多子任务的显式职责及**回传后再次决策**的上位优先级。
+
+**当前缺口（以最新源码实际证据复核）：** 还没有由此文档更新证明完整 M1 在真实 ChatGPT 已安装扩展中成功，尤其需核对旧脚本能否直接创建 B 并真实发送、观察完整结果、在原 A **填草稿但不发送**、在授权条件下单次回发、以及 A 再产出合法下一候选。过去 A→B→A R6/R8、同一 B R2/R3 的源码和 CI 结果必须按各自范围保留，不能混为总控系统完成。
+
+**唯一下一步（先审计再决定代码）：** 从实时 main 与本机状态建立最小能力矩阵：协议识别（旧 V1/V2）→已安装 ChatGPT Task 新建/发送（0.2.0 优先评估直接路径、0.3.0 作为可选审阅模式）→原 B 完整 Durable →原 A 输入框填入/可选发送→A 下一轮候选防回环。核对既有 opendesk.workflow.handoff.v2 与历史 webflow.conversation.create.v1 提议，**只有证明不可复用才新增协议**；Subagent Mini Chat 仅为可选展示/发起端。先实现/实测 M1，M2 多子任务、M3 有界多级、M4 跨 Provider 延期。禁止从旧 R3 提示词直接照单重写或复制 Runner/账本。
+
+**证据等级（本次文档纠偏本身）：** CONTRACT=UPDATED；EXECUTION_PLAN=UPDATED；SOURCE_CODE=UNCHANGED；NODE=NOT_RUN；PACKAGE=NOT_BUILT；CHROME=NOT_TESTED；BUSINESS=NOT_TESTED。不得把目标达成、设计评审或历史单任务 PASS 记作总控自动接力 PRODUCT_DONE。
+
+---
+
 ## R8 · GitHub Issue A→B→A 真实生产接线 · 本轮增量（2026-11-12；`OD-WEBFLOW-A2B2A-PRODUCTION-CLOSURE-R8`）
 
 **原始目标：** 用户在官方 ChatGPT A 中用一句自然语言请求分析 `shopable-ai/opendesk-browser` 公开 Issue → 经首次一次工作流范围授权 → 原 Controller 以已安装 0.2.0 `send:true` 创建唯一 B → 获取完整持久 Run/Result → 原 A 单次自动收到真实链接、结论和证据 → 官方 A messageId 与实际正文 SHA-256 绑定 `deliveryKey`，A2 不重复弹授权。原事务、Runner、Controller、AI DOM 发送及 R6/R7 V2 安全机制不可重建。
