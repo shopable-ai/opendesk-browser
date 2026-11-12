@@ -2,6 +2,13 @@
 
 仓库：shopable-ai/opendesk-browser。唯一分支：main。正式产品：Subagent；业务目录：projects/subagent/；项目 ID：opendesk.subagent。Mini Chat 仅是首个演示 UI；WebFlow ChatGPT 脚本归 projects/webflow/；原 Controller/Host/Authority 归公共框架。任务 ID：OD-SUBAGENT-CHAT-A2B2A-R2-TRUSTED-CLOSURE。
 
+## 最新续接快照（2026-11-12，差量执行回执）
+
+- 已从 GitHub `main` 审计真实源码，`projects/subagent/README.md` 中的 **R2 差量核对**是本轮新增证据；不要重新做项目改名、Mini Chat UI、结果校验方案或重复生成研究报告。
+- 当前 **SDK_GAP_CONFIRMED**：Page v1 公开文档无受信 `tasks.run` / Durable Result 接口，`src/main.js` 仍以空 transport 渲染；WebFlow 的网页 CustomEvent、固定文本候选是非可信数据，不能作为 Mini Chat 点击的 Task 授权。**下一个实际任务优先修复 T01 公共可信启动/只读结果接口**，由 Framework owner 落地，再接 Subagent。
+- 已提交三项限定差量：`6cefbe14`（完整回复字节上限/消息 ref/B URL 校验）、`501682ab`（对应回归）、`2fef05a`（README 实证记录）。当前项目闭环仍 **BLOCKED**；Node/CI 结果须按最新 HEAD 再取证。发起时 GitHub CI 尚排队，不能宣称通过。
+- 本轮 CodexPro 本机连接 `UNAVAILABLE`、OpenDesk Desktop `429`，因此没有真实本机命令/Chrome 安装/页面回填回执；换到本地 Codex 时先核对其实际工作区、owner 和主分支，再仅继续 T01～T05 未完成项，不把环境失败当源码失败。
+
 ## 一、原始目标（以用户实际操作为唯一业务终点）
 在 ChatGPT 当前对话 A 的 Subagent 小面板输入「请介绍 WebFlow 的三个主要优势」，点击创建任务；在原安装、网站及真实发送授权下，通过已受审 WebFlow Controller Task 创建一个不覆盖 A 的 ChatGPT 新对话 B；把任务准确填进 B、读回、只发送一次、等待真实完整回答；最后把完整正文与真实 B 对话链接显示在 **A 的 Subagent Mini Chat**。不能自动给 A 官方对话发送任何消息。仅单 A、单 B、单任务、单结果；不开发多 Provider、并发 Agent、复杂看板、模型选项和 SSE/Fetch 拦截。
 
