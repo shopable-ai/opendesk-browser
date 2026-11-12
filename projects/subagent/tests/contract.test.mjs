@@ -47,6 +47,17 @@ test('wrong request and insufficient proof cannot display a forged success',asyn
   }
   assert.equal(verifiedResult(good,id).answer,'真实回答');
 });
+test('completed B evidence requires canonical URL, distinct native messages and 64KiB UTF-8 reply',()=>{
+  assert.throws(()=>verifiedResult({...good,
+    conversationUrl:'https://chatgpt.com/c/'+'-'.repeat(36)},id),{code:'E_SUBAGENT_RESULT'});
+  assert.throws(()=>verifiedResult({...good,
+    assistantMessageRef:good.userMessageRef},id),{code:'E_SUBAGENT_RESULT'});
+  assert.throws(()=>verifiedResult({...good,replyText:'汉'.repeat(21846)},id),
+    {code:'E_SUBAGENT_RESULT'});
+  const withinLimit='汉'.repeat(21845);
+  assert.equal(verifiedResult({...good,replyText:withinLimit},id).answer,withinLimit);
+});
+
 test('invalid or mismatched host outcome stays unknown, never success',async()=>{
   const session=createSession({makeId:()=>id,transport:{
     async start(){return {accepted:true,requestId:id};},
