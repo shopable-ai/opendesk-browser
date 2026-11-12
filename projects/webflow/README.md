@@ -49,7 +49,7 @@ GitHub→ChatGPT 授权 UI → 原可信 Side Panel Host
 
 **尚存耦合/缺口：** 原 `web-task-ingress.js` 的 ChatGPT background/settle/delivery 和 `chatgpt-fixed-bridge-host.js` 的 ChatGPT UI 方法仍属第一方站点专用路径；本轮只拆 GitHub→ChatGPT 的 **通用 ingress 授权混入**，不假装所有站点适配均已抽象完毕。Sidebar `tool.config.json` 仍只固定委托百度 1.1.5 和 Google 1.0.3，ChatGPT 0.2.0 的资源存在不意味着已经安装/委托给 Sidebar。Issue 获取 → 创建唯一 B（send:true）→ 验证完整 B → 原 A 以 deliveryKey 单次送达的 **R9 生产闭环仍未完成**；任何 UNKNOWN 均保持原单次围栏，只读原 Run/Result/消息回执。
 
-**证据边界：** 新源码、定向测试及 CI 调用已纳入原 Bridge 工作流；实际 Node/production build 需以本次提交对应的 CI 结果为准；本机 CodexPro 连接失败，`CHROME_NOT_TESTED`。不能从静态解耦或测试文件存在推断 A→B→A 已可运行。完成/阻塞只在[原执行计划](docs/execution-plan.zh-CN.md)登记。
+**R10 验证边界（同源码候选 `4f85cd20`）：** [正式 CI](https://github.com/shopable-ai/opendesk-browser/actions/runs/43263417411) 的授权 12/12、精确 Blob pin 2/2、ingress 70/70 和两步事务/0.2.0 兼容 63/63 全部通过；**production build / package verify 真实 PASS**。Google 专项 PASS；旧百度测试 17/30 FAIL，原广域 0.3.0 测试 2/131 FAIL，故整个 CI **FAIL**，不能宣称全量兼容通过。本机 CodexPro 未连接，`CHROME_NOT_TESTED`、`R9_BUSINESS_NOT_DONE`。独立结论及精确回执在[原执行计划](docs/execution-plan.zh-CN.md)中登记。
 
 ---
 
