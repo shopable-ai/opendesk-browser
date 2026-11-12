@@ -1,0 +1,147 @@
+{
+  "taskId": "OD-SUBAGENT-CHAT-A2B2A-R2-TRUSTED-CLOSURE",
+  "owner": "/root/webflow_audit",
+  "recordedAt": "2026-11-12T13:28:48.795822+00:00",
+  "localHead": "f590505b84e13b0ac2d7789db7c4bedfb62d21aa",
+  "remoteMainReadOnly": "1521f9d1a90029a569e496f6d2d47193575f2cac",
+  "remoteLockBlob": "d49b6da2b8b8dfc808c833557c11f74c56fc27a0",
+  "sourceLockBefore": "d49b6da2b8b8dfc808c833557c11f74c56fc27a0",
+  "sourceLockAfter": "d4065a7461c4f173c695a03e1de1bee8d95ab9bf",
+  "inputCount": 63,
+  "changedInputCount": 8,
+  "keySetUnchanged": true,
+  "businessSourceModified": false,
+  "packageOrInstallationModified": false,
+  "reviewMode": "Internal independent source review; not external expert review or build approval",
+  "method": "Existing project source-lock review contract; actual git hash-object values matched HEAD:path and the exact remote main commit via GitHub fetch_file. No dedicated source-lock generator exists; no builder auto-approval.",
+  "authority": "Root approved only eight existing keys and evidence files; no source or target admission expansion.",
+  "rulesRead": [
+    "projects/ai-proxy/AGENTS.md",
+    "projects/ai-proxy/evidence/trusted-react-20261031/reviews.md",
+    "projects/ai-proxy/ACCEPTANCE-SINGLE-APP-SURFACES.zh-CN.md"
+  ],
+  "inputs": [
+    {
+      "path": "projects/ai-proxy/src/Settings.tsx",
+      "oldBlob": "239afdecede523dfe5c8edb4e8674e8d6667be82",
+      "newBlob": "e0d5e9125a1a9191597f390b645c51a247784f58",
+      "remoteBlob": "e0d5e9125a1a9191597f390b645c51a247784f58",
+      "latestUpstreamCommit": "45abd4d2d10079b14366816cc2cb0fd6208cbc74",
+      "latestUpstreamSubject": "ui(ai-proxy): make PC rules list show route and priority columns",
+      "review": "Existing controlled form fields extracted without changing their state handlers; management reading order/focus; rules mode button uses original SELECT action; route and priority columns."
+    },
+    {
+      "path": "projects/ai-proxy/src/i18n/locales/en.json",
+      "oldBlob": "641563aa68ff3bfe916fa11ac369957cd57fbda9",
+      "newBlob": "6dd1f6665cf7a0a1d1f9db47c099b781ad46c2a8",
+      "remoteBlob": "6dd1f6665cf7a0a1d1f9db47c099b781ad46c2a8",
+      "latestUpstreamCommit": "7f2aa3ab8a2c819c1b04c5969b7c60273d5a8169",
+      "latestUpstreamSubject": "fix(ai-proxy): align diagnostics with R2 design and disclose preview-only features",
+      "review": "Adds localized truthful unavailable/not-tested diagnostic copy and the rules-mode action label; JSON data only."
+    },
+    {
+      "path": "projects/ai-proxy/src/i18n/locales/zh-CN.json",
+      "oldBlob": "4e2d2efdb26b9990d8ac7172246ace41a24184e0",
+      "newBlob": "df03dea459d45b25f04f8c1f6ef8f59f5bdae092",
+      "remoteBlob": "df03dea459d45b25f04f8c1f6ef8f59f5bdae092",
+      "latestUpstreamCommit": "7f2aa3ab8a2c819c1b04c5969b7c60273d5a8169",
+      "latestUpstreamSubject": "fix(ai-proxy): align diagnostics with R2 design and disclose preview-only features",
+      "review": "Adds localized truthful unavailable/not-tested diagnostic copy and the rules-mode action label; JSON data only."
+    },
+    {
+      "path": "projects/ai-proxy/src/i18n/locales/zh-TW.json",
+      "oldBlob": "1f93e7905a90fa799cd3b602d8583e9d4ecc05f4",
+      "newBlob": "9222ef31061eca95d2736ef9293747902323e1a8",
+      "remoteBlob": "9222ef31061eca95d2736ef9293747902323e1a8",
+      "latestUpstreamCommit": "7f2aa3ab8a2c819c1b04c5969b7c60273d5a8169",
+      "latestUpstreamSubject": "fix(ai-proxy): align diagnostics with R2 design and disclose preview-only features",
+      "review": "Adds localized truthful unavailable/not-tested diagnostic copy and the rules-mode action label; JSON data only."
+    },
+    {
+      "path": "projects/ai-proxy/src/styles/management.css",
+      "oldBlob": "46f03bc0f597ca10b7f6e332800e749fb38414fd",
+      "newBlob": "5bd5553859f9cb287b903faf0ae00991d26925a0",
+      "remoteBlob": "5bd5553859f9cb287b903faf0ae00991d26925a0",
+      "latestUpstreamCommit": "f301ff323b182a9af1132981c58cadd1fe7aa096",
+      "latestUpstreamSubject": "style(ai-proxy): align PC rules table and narrow-width details with preview",
+      "review": "Existing management surface CSS only: diagnostic layout, navigation, rules columns, editor sizes/focus/narrow-width rules; no external imports."
+    },
+    {
+      "path": "projects/ai-proxy/src/styles/options.css",
+      "oldBlob": "762c2ba764624df824bbda5c859d4e9b30ce296f",
+      "newBlob": "b4caaf40bb3e6d25bb3e19b8e8b8f1e8f72a326a",
+      "remoteBlob": "b4caaf40bb3e6d25bb3e19b8e8b8f1e8f72a326a",
+      "latestUpstreamCommit": "7f2aa3ab8a2c819c1b04c5969b7c60273d5a8169",
+      "latestUpstreamSubject": "fix(ai-proxy): align diagnostics with R2 design and disclose preview-only features",
+      "review": "Existing diagnostics and source editor control styling; removes superseded lead styling; no external imports."
+    },
+    {
+      "path": "projects/ai-proxy/src/styles/sidebar-settings.css",
+      "oldBlob": "d99ef466e5929f52b05ba9ff46cc441f5e8bfc94",
+      "newBlob": "103f21595582f1aef6c61ed215740599519357b2",
+      "remoteBlob": "103f21595582f1aef6c61ed215740599519357b2",
+      "latestUpstreamCommit": "7f2aa3ab8a2c819c1b04c5969b7c60273d5a8169",
+      "latestUpstreamSubject": "fix(ai-proxy): align diagnostics with R2 design and disclose preview-only features",
+      "review": "Rules-mode hint layout within the existing sidebar settings layer; no external imports."
+    },
+    {
+      "path": "projects/ai-proxy/src/ui/DiagnosticsPage.tsx",
+      "oldBlob": "4e2ece51e8f6ddd995e0af0546fe9e569f5cf3fe",
+      "newBlob": "3c083d41fd9580c06ded55530812bbf8f54a9f06",
+      "remoteBlob": "3c083d41fd9580c06ded55530812bbf8f54a9f06",
+      "latestUpstreamCommit": "60ec4de57ab839be4dda207787372fc8249a1749",
+      "latestUpstreamSubject": "fix(ai-proxy): avoid zero-count claims when diagnostics are unconnected",
+      "review": "Limits simulated diagnostics to preview===true; production does not request or present simulated diagnostics/usage; original proxy controls remain; presentation updates."
+    }
+  ],
+  "validation": {
+    "status": "FAIL",
+    "command": [
+      "node",
+      "--test",
+      "--test-reporter=tap",
+      "tests/environment/bundle-provenance.test.mjs"
+    ],
+    "startedAt": "2026-11-12T13:29:23.627385+00:00",
+    "completedAt": "2026-11-12T13:29:24.866044+00:00",
+    "exitCode": 1,
+    "stdoutFile": "provenance-after-source-lock.tap",
+    "kind": "direct subprocess capture of this original run",
+    "summary": [
+      "# tests 39",
+      "# suites 0",
+      "# pass 32",
+      "# fail 7",
+      "# cancelled 0",
+      "# skipped 0",
+      "# todo 0",
+      "# duration_ms 1144.917532"
+    ],
+    "relevantSubtests": {
+      "aiProxySourceFences": "PASS (2 tests)",
+      "subagentSWPins": "PASS at prior projector blob 724c0973009d2d193d2824076dd915ebf7ecdd85",
+      "settingsNativeImportGraph": "PASS",
+      "upstreamWebFlowParserAndRouteFences": "PASS"
+    },
+    "unrelatedFailures": [
+      "Bookmark old examples CSS path missing",
+      "Bookmark old examples model path not admitted",
+      "Bookmark old examples App path yields obsolete error expectation",
+      "Bookmark old examples symlink fixture path yields obsolete error expectation",
+      "Time Review old examples service path not admitted",
+      "Reading TOC obsolete overview module path not admitted",
+      "tab-repair test expects obsolete blob 2a2dcc3c21ac74bb569c2c418c52bdd3cb430bb2; production reports 80fc351e9afc0cd94eedbc93c014cc4098f8b0b7"
+    ]
+  },
+  "upstreamProvenanceMerge": {
+    "commit": "3e1a68431a71e2c449c9cbf29da2d9c405fe1f2f",
+    "note": "Preserved upstream exact Settings parser/route admission and tests. The local generic-reader split additionally removes unnecessary Task dependencies from Native transport; no transport source admission added."
+  },
+  "laterProjectorPinReview": {
+    "path": "projects/subagent/trusted/page-task-result.js",
+    "oldBlob": "724c0973009d2d193d2824076dd915ebf7ecdd85",
+    "newBlob": "16dda6e9a439dedb340e33874f1062bdfeaf8147",
+    "review": "Root tightened authorize callback: false/undefined now reject; current original Authority returns a resolved installation object/true on success. Exact pin and its test expected pin updated without relaxing any target.",
+    "verification": "Root captures production projector regression in artifacts/subagent-r2/subagent-integrated.tap. Prior full provenance output remains unchanged historical evidence; no extra rerun performed."
+  }
+}

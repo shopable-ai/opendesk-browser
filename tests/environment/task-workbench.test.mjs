@@ -1602,7 +1602,7 @@ test('recovery keeps pending candidates reviewable and builtin installation uses
   assert.deepEqual(f.starts,[]);
 });
 
-async function sharedSheetFixture(t,{loseSaveReply=false}={}){
+async function sharedSheetFixture(t,{loseSaveReply=false,target=null}={}){
   const f=make();t.after(()=>f.ui.dispose());await f.ui.refresh();await tick();
   const request=f.client.request,calls=[];let preparation=null;
   f.client.request=async(method,args)=>{
@@ -1619,7 +1619,7 @@ async function sharedSheetFixture(t,{loseSaveReply=false}={}){
   const resolved=await request('resolveInstalledTask',{taskId:'demo.form'});
   const task=Object.fromEntries(['taskId','version','manifestHash','contentHash','installationId','generation'].map(key=>[key,resolved[key]]));
   let checks=0;
-  assert.equal(await f.ui.openTaskRunSheet({task,binding:{appId:'webflow'},assertAuthorized:async()=>{checks++;}}),true);
+  assert.equal(await f.ui.openTaskRunSheet({task,binding:{appId:'webflow'},target,assertAuthorized:async()=>{checks++;}}),true);
   return {...f,task,calls,get preparation(){return preparation;},get checks(){return checks;}};
 }
 
@@ -1641,6 +1641,105 @@ test('shared sheet opens without Run, freezes actual Schema params, confirms onc
   assert.equal(f.starts[0].requestId,f.preparation.preparationId);
   assert.deepEqual(f.starts[0].taskDelegation,{appId:'webflow'});
   assert.ok(f.checks>=3);f.host.complete({ok:true});await tick();
+});
+
+test('owned shared sheet keeps the independent destination through original approval without capturing A',async t=>{
+  const target={mode:'owned',url:'https://a.example/new'};
+  const f=await sharedSheetFixture(t,{target});
+  f.page.capture=()=>assert.fail('owned approval must never borrow the source page');
+  f.page.revalidate=()=>assert.fail('source authorization is separate from the owned destination');
+  assert.deepEqual(f.myView.data.taskRunSheet.target,target);
+  f.field('task-param-name').value='Ada';
+  f.myView.actions.taskSheetPrepareClick({isTrusted:true},f.task);
+  await tick();await tick();
+  assert.deepEqual(f.preparation.target,target);
+  assert.equal(f.starts.length,0,'saving the request does not create B');
+  f.myView.actions.taskSheetConfirmClick({isTrusted:false},f.task);
+  assert.equal(f.starts.length,0,'untrusted confirmation cannot submit');
+  f.myView.actions.taskSheetConfirmClick({isTrusted:true},f.task);
+  f.myView.actions.taskSheetConfirmClick({isTrusted:true},f.task);
+  await tick();await tick();
+  assert.equal(f.starts.length,1);
+  assert.deepEqual(f.starts[0].target,target);
+  assert.deepEqual(f.starts[0].params,{name:'Ada'});
+  assert.equal(f.starts[0].taskPreparationId,f.preparation.preparationId);
+  assert.ok(f.checks>=3,'original source authorization is checked again before submission');
+  f.host.complete({ok:true});await tick();await tick();
+});
+
+async function pageSheetFixture(t){
+  const f=make();t.after(()=>f.ui.dispose());await f.ui.refresh();await tick();
+  const original=f.client.request,resolved=await original('resolveInstalledTask',{taskId:'demo.form'});
+  const task=Object.fromEntries(['taskId','version','manifestHash','contentHash','installationId','generation'].map(key=>[key,resolved[key]]));
+  const record={requestId:'71811b88-050a-4e7a-9dfa-00b10b906fe8',
+    preparationId:'11811b88-050a-4e7a-9dfa-00b10b906fe8',task,params:{name:'Exact source input'},
+    target:{mode:'owned',url:'https://a.example/new'},state:'pending-approval',approvalAllowed:true,
+    pageBinding:{programId:'demo.page',revision:1,manifestHash:'c'.repeat(64),sourceHash:'d'.repeat(64),
+      installationId:'page-original',generation:1,tabId:9,frameId:0,documentId:'doc-9',url:'https://a.example/',windowId:7}};
+  let preparation=null;const calls=[];
+  f.client.request=async(method,args)=>{
+    calls.push({method,args:structuredClone(args)});
+    if(method==='readPageTaskRequest')return {request:structuredClone(record),preparation};
+    if(method==='listPageTaskRequests')return {requests:[structuredClone(record)]};
+    if(method==='inspectTaskRun')return {preparation};
+    if(method==='prepareTaskRun'){
+      preparation={...structuredClone(args),state:'prepared',deadlineAt:Date.now()+30000};return {preparation};
+    }
+    return original(method,args);
+  };
+  assert.equal(await f.ui.openPageTaskRequest(record.requestId),true);
+  return {...f,record,task,calls,get preparation(){return preparation;}};
+}
+
+test('Page request uses original approval sheet, locks exact input and submits owned target once',async t=>{
+  const f=await pageSheetFixture(t);
+  assert.equal(f.myView.data.taskRunSheet.source,'page');
+  assert.equal(f.myView.data.taskRunSheet.paramsLocked,true);
+  assert.deepEqual(f.myView.data.taskRunSheet.pageBinding,f.record.pageBinding);
+  assert.equal(f.starts.length,0);
+  f.field('task-param-name').value='Changed form';
+  f.field('task-params-json').value='{"name":"Changed JSON"}';
+  f.myView.actions.taskSheetPrepareClick({isTrusted:true},f.task);
+  f.myView.actions.taskSheetPrepareClick({isTrusted:true},f.task);
+  await tick();await tick();
+  assert.equal(f.calls.filter(row=>row.method==='prepareTaskRun').length,1);
+  assert.deepEqual(f.preparation.params,f.record.params);
+  assert.equal(f.preparation.pageRequestId,f.record.requestId);
+  assert.equal(f.preparation.preparationId,f.record.preparationId);
+  assert.equal(f.starts.length,0);
+  f.myView.actions.taskSheetConfirmClick({isTrusted:true},f.task);
+  f.myView.actions.taskSheetConfirmClick({isTrusted:true},f.task);
+  await tick();await tick();
+  assert.equal(f.starts.length,1);
+  assert.deepEqual(f.starts[0].target,f.record.target);
+  assert.deepEqual(f.starts[0].params,f.record.params);
+  assert.equal(f.starts[0].requestId,f.record.preparationId);
+  assert.ok(f.calls.filter(row=>row.method==='readPageTaskRequest').length>=4);
+  f.host.complete({ok:true});await tick();await tick();
+});
+
+for(const boundary of ['prepare','confirm'])test(`Page source revocation before ${boundary} never starts a Run`,async t=>{
+  const f=await pageSheetFixture(t);
+  if(boundary==='confirm'){
+    f.myView.actions.taskSheetPrepareClick({isTrusted:true},f.task);await tick();await tick();
+  }
+  f.record.approvalAllowed=false;
+  f.myView.actions[boundary==='prepare'?'taskSheetPrepareClick':'taskSheetConfirmClick']({isTrusted:true},f.task);
+  await tick();await tick();
+  assert.equal(f.starts.length,0);
+  assert.match(f.myView.data.taskRunSheet.status,/原网页|授权/);
+  if(boundary==='prepare')assert.equal(f.calls.filter(row=>row.method==='prepareTaskRun').length,0);
+});
+
+test('late Page request lookup cannot reopen a closed sheet or replace another request',async t=>{
+  const f=make();t.after(()=>f.ui.dispose());await f.ui.refresh();await tick();
+  const original=f.client.request;let release;
+  f.client.request=(method,args)=>method==='readPageTaskRequest'?new Promise(resolve=>{release=resolve;}):original(method,args);
+  const opening=f.ui.openPageTaskRequest('original-page-request');await tick();await tick();
+  f.myView.actions.taskSheetClose();
+  release({request:{requestId:'original-page-request'}});
+  assert.equal(await opening,false);
+  assert.equal(f.myView.data.taskRunSheet,null);assert.equal(f.starts.length,0);
 });
 
 test('prepared WebFlow parameters with newlines recover in JSON without changing Host bytes',async t=>{

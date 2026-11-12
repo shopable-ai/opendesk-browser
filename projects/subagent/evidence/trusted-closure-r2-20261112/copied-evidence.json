@@ -1,0 +1,140 @@
+{
+  "note": "Verbatim preserved evidence. Paths in original logs refer to the execution workspace; Git evidence paths are listed here. Baseline snapshots are reproducible with their recorded Git SHA; copies of unrelated full source trees are intentionally not included.",
+  "files": [
+    {
+      "original": "artifacts/subagent-r2/subagent-integrated.tap",
+      "saved": "node/subagent-integrated.tap",
+      "sha256": "7f1f7910ed47b9fbba475990728c38c170973f206166b45878749c93fc8e4289",
+      "bytes": 11254,
+      "kind": "verbatim-copy"
+    },
+    {
+      "original": "artifacts/subagent-r2/workbench-page.tap",
+      "saved": "node/workbench-page.tap",
+      "sha256": "85ed325ebda540be076cd52df5ca2b21db8abab231b0002a53181642cd7b3c3f",
+      "bytes": 1348,
+      "kind": "verbatim-copy"
+    },
+    {
+      "original": "artifacts/subagent-r2/page-react-workbench-verified.tap",
+      "saved": "node/page-react-workbench.tap",
+      "sha256": "673afea554dc9f025ddea347caa9bca520198d59e7d946baf3f774667430d7a0",
+      "bytes": 1448,
+      "kind": "verbatim-copy"
+    },
+    {
+      "original": "artifacts/subagent-r2/page-react-workbench-verified-inputs.json",
+      "saved": "node/page-react-workbench-inputs.json",
+      "sha256": "f28b0bbc7f2c22483f3a9505cdb6170549589a5f9499ca2e4df59193be16da4e",
+      "bytes": 1638,
+      "kind": "verbatim-copy"
+    },
+    {
+      "original": "artifacts/subagent-r2/workbench-integrated.tap",
+      "saved": "node/workbench-integrated.tap",
+      "sha256": "51801644950b5871397ab7a9e49dccf2f78ed26afd19b790a29f194fe486fa12",
+      "bytes": 54031,
+      "kind": "verbatim-copy"
+    },
+    {
+      "original": "artifacts/subagent-r2/framework-regression.tap",
+      "saved": "node/framework-regression.tap",
+      "sha256": "aed348a874be8f816c0f08a09c19bae27837dc3d58829050c184ea9db75b962e",
+      "bytes": 76489,
+      "kind": "verbatim-copy"
+    },
+    {
+      "original": "artifacts/subagent-r2/baseline-audit/workbench-comparison.json",
+      "saved": "baseline/workbench-comparison.json",
+      "sha256": "dcceac413086545b079779376771af14b534144010e8ed7c4efc4b0e775cdf70",
+      "bytes": 4065,
+      "kind": "verbatim-copy"
+    },
+    {
+      "original": "artifacts/subagent-r2/baseline-audit/baseline-inputs.json",
+      "saved": "baseline/workbench-inputs.json",
+      "sha256": "8dfb9ca899270ff2aa4f37d53db9cfb8d0d684d72f7241c07c63ac07e838a99f",
+      "bytes": 1349,
+      "kind": "verbatim-copy"
+    },
+    {
+      "original": "artifacts/subagent-r2/baseline-audit/workbench-head-baseline.tap",
+      "saved": "baseline/workbench-head.tap",
+      "sha256": "c4d556a4564f4740ed1f21890e80f8ec79d75cc8dcc424ea003f829c7083d71e",
+      "bytes": 33935,
+      "kind": "verbatim-copy"
+    },
+    {
+      "original": "artifacts/subagent-r2/framework-baseline-audit/comparison.json",
+      "saved": "baseline/framework-comparison.json",
+      "sha256": "c4cebfbe2272950fe2d17c86cf6529ca088f233fe847344b56950ae63f570f7c",
+      "bytes": 2505,
+      "kind": "verbatim-copy"
+    },
+    {
+      "original": "artifacts/subagent-r2/framework-baseline-audit/inputs.json",
+      "saved": "baseline/framework-inputs.json",
+      "sha256": "435874ba2620fd8ba0cfbd9d7579170f5a0888529bef027bd5e8602222650726",
+      "bytes": 11734,
+      "kind": "verbatim-copy"
+    },
+    {
+      "original": "artifacts/subagent-r2/framework-baseline-audit/head-three-failures.tap",
+      "saved": "baseline/framework-head-three-failures.tap",
+      "sha256": "51f18f674d7acd1986160336654e4a6443ba7bf486f1d12f751c1ddb41003123",
+      "bytes": 6380,
+      "kind": "verbatim-copy"
+    },
+    {
+      "original": "artifacts/subagent-r2/validate-integrated.log",
+      "saved": "build/validate-program.log",
+      "sha256": "0d0faf79526d12b410c246c9a18e8a3722a661a0bda2f3083912729c8d248ba0",
+      "bytes": 1403,
+      "kind": "verbatim-copy"
+    },
+    {
+      "original": "artifacts/subagent-r2/build-program-integrated.log",
+      "saved": "build/build-program.log",
+      "sha256": "d17ce56d8986b2519908e5d4054814d75767678371580840ae167538b9342e5a",
+      "bytes": 4022,
+      "kind": "verbatim-copy"
+    },
+    {
+      "original": "artifacts/subagent-r2/build-browser.log",
+      "saved": "build/browser-attempt-1.log",
+      "sha256": "2239d59ea4e9fd02f1d8c28293a516e456d196755ed74977722882f2e6ad558d",
+      "bytes": 19908,
+      "kind": "verbatim-copy"
+    },
+    {
+      "original": "artifacts/subagent-r2/build-browser-integrated.log",
+      "saved": "build/browser-attempt-2.log",
+      "sha256": "ea087d2701c493d2c4f01db02f7cc3143e9a3f81b81236ee5d416fd35960441e",
+      "bytes": 37382,
+      "kind": "verbatim-copy"
+    },
+    {
+      "original": "/workspace/scratch/405ab6bc5281/subagent-framework-r2-final-evidence.json",
+      "saved": "node/framework-final-summary.json",
+      "sha256": "f73dfd6191cb6458da73568b3a9cf88d9a0932aa2f1700b389b011a3d055ca67",
+      "bytes": 3418,
+      "kind": "verbatim-copy-of-tool-result-summary-not-TAP"
+    },
+    {
+      "original": "artifacts/subagent-r2/browser-build/build-production-failed-1794489205802-fefaa2e5-d4ce-4175-91f7-7e5a6467e298.json",
+      "saved": "build/browser-attempt-1.json",
+      "sha256": "b7fc5a6098d9386abe7394e143db8171fe972e5a37dc59cad2e5cc0f8c28bd95",
+      "bytes": 1135,
+      "kind": "explicit-extract-of-builder-diagnostic",
+      "originalSha256": "de71053deb50e4c398e0f3439081d38e5d282d02504386dc057aa71c87176b4c"
+    },
+    {
+      "original": "artifacts/subagent-r2/browser-build-integrated/build-production-failed-1794490775357-84cfb96b-8316-4c73-91e0-35b0f8350eeb.json",
+      "saved": "build/browser-attempt-2.json",
+      "sha256": "3acf4ee180ed3b038c407320d491759f937018ac3f4cb7a37b09ad822dc4ec52",
+      "bytes": 1165,
+      "kind": "explicit-extract-of-builder-diagnostic",
+      "originalSha256": "5750743f5fa465446215ade63f765a771b3a9d2e12ceb32053dba7d2dc73a68c"
+    }
+  ]
+}

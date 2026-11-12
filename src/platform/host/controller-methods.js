@@ -61,7 +61,8 @@ function originMatches(pattern, origin) {
     (url.hostname === hostname.slice(2) || url.hostname.endsWith(`.${hostname.slice(2)}`)));
 }
 function runOrigins(run) {
-  return [run.target?.allowedOrigin || run.startUrl && httpUrl(run.startUrl).origin, ...(run.networkOrigins || [])].filter(Boolean);
+  return [run.target?.allowedOrigin || run.startUrl && httpUrl(run.startUrl).origin,
+    run.pageTaskSource&&httpUrl(run.pageTaskSource.url).origin,...(run.networkOrigins || [])].filter(Boolean);
 }
 function removedRunGrant(run, patterns) {
   return runOrigins(run).some(origin => patterns.some(pattern => originMatches(pattern, origin)));
@@ -80,15 +81,18 @@ function hasNativeEffect(operation) {
 // Delegate of the unique authority. Every durable fence is ordered by its
 // injected storage transaction; the maps below only correlate live promises.
 export function controllerMethods({storage, api, session, clock, assertHost, currentHost,
-  loadBuiltin=loadBuiltinWorkerSource,emitToHost=async()=>{},cloud,scheduled,readMediaAsset,withTaskRunRecovery=work=>work()}) {
+  loadBuiltin=loadBuiltinWorkerSource,emitToHost=async()=>{},cloud,scheduled,readMediaAsset,withTaskRunRecovery=work=>work(),
+  pageTaskSource,projectPageTaskResult}) {
   const isolatedTransport=createIsolatedHttpTransport({api});
   const nativeTransport=createNativeHttpTransport({api});
   const pending = new Map(), cancellations = new Map(), navigating = new Map(), boundTargets = new Map(), creatingTabs = new Map();
   const locatorWriters = new Set();
   const tabEpochs = new Map(), frameEpochs = new Map(), permissionRemovals = [];
+  const pageSourceEpochs=new Map();
   const tx = (mode, work, names = stores) => storage.transaction([...new Set(names)], mode, work);
   const now = () => clock.now();
-  async function requireRunGrants(run,lockedDelegation) {
+  async function requireRunGrants(run,lockedDelegation,{sourceDocument=true}={}) {
+    if(sourceDocument&&run.pageTaskSource)await pageTaskSource.authorize(run.pageTaskSource);
     if(run.taskDelegation&&(!lockedDelegation||!same(run.taskDelegation,lockedDelegation)))
       await assertTaskDelegationApp(api,run.taskDelegation);
     for (const origin of runOrigins(run)) {
@@ -114,6 +118,8 @@ export function controllerMethods({storage, api, session, clock, assertHost, cur
       permissionEpoch: permissionRemovals.filter(patterns => patterns.some(pattern => originMatches(pattern, origin))).length};
   }
   function checkFence(run) {
+    if(run.pageTaskSource)checkFence({target:{...run.pageTaskSource,allowedOrigin:httpUrl(run.pageTaskSource.url).origin},
+      selection:{frameId:0},nativeFence:run.pageTaskSourceFence});
     const origin = run.target?.allowedOrigin || run.startUrl && httpUrl(run.startUrl).origin;
     if (!origin || !run.nativeFence) return;
     const current = nativeFence(run.target?.tabId ?? run.nativeTabId, origin, run.target?.frameId ?? run.selection.frameId ?? 0);
@@ -134,6 +140,7 @@ export function controllerMethods({storage, api, session, clock, assertHost, cur
     if (active) {
       checkFence(run);
       await assertRunTaskAuthorization(transaction,run);
+      if(run.pageRequestId)await assertPageRequestInTransaction(transaction,run.pageRequestId,run.namespace,{submission:true});
       await cloud?.assertActive(transaction,run);
       invariant(live.has(run.state) && !run.cancelSeq && !run.retirementId && now() < run.deadlineAt,
         now() >= run.deadlineAt ? CONTROLLER_TIMEOUT_ERROR : CANCELLED_CODE, 'Controller admission is fenced');
@@ -241,17 +248,22 @@ export function controllerMethods({storage, api, session, clock, assertHost, cur
       ...(taskInstallation?{taskInstallation}:{})};
   }
   async function snapshotControllerRun(request, sender) {
+    const host=await assertHost(sender);
+    return snapshotControllerRunInScope(request,namespace(host),transaction=>currentHost(transaction,host,sender));
+  }
+  // The Page path supplies a verified installed-source/read guard, not a
+  // fabricated Host. Result projection and revocation policy remain identical.
+  async function snapshotControllerRunInScope(request,ns,authorize) {
     fields(request, ['runId','requestId']);
     invariant(!(request.runId!==undefined&&request.requestId!==undefined),
       CONTROLLER_SCHEMA_ERROR,'Select one original Run or request ID');
     if(request.runId!==undefined)id(request.runId);
     if(request.requestId!==undefined)id(request.requestId);
     const permissionEpoch = permissionRemovals.length;
-    const host = await assertHost(sender);
     const snapshot = await tx(RUN_READ, async transaction => {
-      await currentHost(transaction, host, sender);
+      await authorize(transaction);
       const slot = await transaction.get(RUN_STORE, '@slot');
-      const runs = (await transaction.all(RUN_STORE)).filter(run=>run.tag===CONTROLLER_RUN_TAG && !run.tombstoned && run.namespace===namespace(host))
+      const runs = (await transaction.all(RUN_STORE)).filter(run=>run.tag===CONTROLLER_RUN_TAG && !run.tombstoned && run.namespace===ns)
         .sort((a,b)=>(a.createdAt || 0)-(b.createdAt || 0) || a.runId.localeCompare(b.runId));
       const matches=request.requestId===undefined?[]:
         runs.filter(row=>row.requestId===request.requestId);
@@ -261,7 +273,7 @@ export function controllerMethods({storage, api, session, clock, assertHost, cur
       if(request.runId||request.requestId)invariant(run,CONTROLLER_OWNER_ERROR);
       const results = (await transaction.all('results')).filter(value=>{
         const original=runs.find(row=>row.runId===value.runId);
-        return value.tag==='controller-result'&&value.namespace===namespace(host)&&
+        return value.tag==='controller-result'&&value.namespace===ns&&
           (!run||value.runId===run.runId)&&original?.resultId===value.resultId&&
           same(original.principal,value.principal)&&original.state===value.state;
       });
@@ -278,7 +290,7 @@ export function controllerMethods({storage, api, session, clock, assertHost, cur
       const denied = new Set();
       for (const run of deliveryRuns) {
         try {
-          invariant(!run.resultDeliveryRevoked,CONTROLLER_PERMISSION_ERROR); await requireRunGrants(run);
+          invariant(!run.resultDeliveryRevoked,CONTROLLER_PERMISSION_ERROR); await requireRunGrants(run,undefined,{sourceDocument:false});
           if(run.taskPreparationId&&run.taskDelegation&&resultRuns.has(run.runId)){
             await verifyControllerTarget({api,target:run.target,expectedUrl:run.selection.expectedUrl,
               expectedWindowId:run.selection.expectedWindowId});
@@ -289,7 +301,7 @@ export function controllerMethods({storage, api, session, clock, assertHost, cur
       }
       // Native queries are outside the IDB transaction; recheck the durable fence before delivery.
       await tx(RUN_READ,async transaction=>{
-        await currentHost(transaction,host,sender);
+        await authorize(transaction);
         for (const run of deliveryRuns) {
           const current=await transaction.get(RUN_STORE,run.runId);
           if(current?.resultDeliveryRevoked)denied.add(run.runId);
@@ -681,11 +693,184 @@ export function controllerMethods({storage, api, session, clock, assertHost, cur
     });
   }
 
+  const pageRequestKey=(ns,requestId)=>'page-task-request:'+canonical([ns,requestId]);
+  // Installation changes cannot free the one-request source slot. They revoke
+  // access to the old result; they never prove that its effects did not occur.
+  const pageSlotMatches=(a,b)=>['namespace','programId','tabId','frameId','url','windowId'].every(key=>a?.[key]===b?.[key]);
+  const pageReaderMatches=(a,b)=>['namespace','programId','revision','manifestHash','sourceHash','installationId','generation',
+    'tabId','frameId','url','windowId'].every(key=>a?.[key]===b?.[key]);
+  function pageRequestView(row,preparation=null,approvalAllowed=false){
+    return {requestId:row.requestId,preparationId:row.preparationId,task:structuredClone(row.task),
+      params:structuredClone(row.params),target:structuredClone(row.target),
+      pageBinding:Object.fromEntries(['programId','revision','manifestHash','sourceHash','installationId','generation',
+        'tabId','frameId','documentId','url','windowId'].map(key=>[key,row.pageSource[key]])),
+      state:row.authorizationRevoked?'revoked':row.sourceInvalidated?'source-stale':preparation?.state??'pending-approval',
+      approvalAllowed};
+  }
+  async function resolvePageTask(transaction,ns,pin,params,environment){
+    const {candidate,installation}=await assertInstalledTask(transaction,ns,{
+      scriptId:`task:${pin.taskId}:${pin.version}`,contentHash:pin.contentHash,
+      origin:httpUrl(pin.targetUrl).origin,params,builtinIdentity:environment});
+    invariant(installation.manifestHash===pin.manifestHash,'E_REVISION');
+    const task={taskId:installation.taskId,version:installation.version,manifestHash:installation.manifestHash,
+      contentHash:pin.contentHash,installationId:installation.authorization?.installationId,generation:installation.authorization?.generation};
+    normalizeDelegatedTask(task,true);
+    return {...task,scriptId:installation.scriptId,revision:candidate.package.manifest.program.revision,
+      manifest:structuredClone(candidate.package.manifest)};
+  }
+  async function assertPageRequestInTransaction(transaction,requestId,ns,{submission=false,reader}={}){
+    invariant(pageTaskSource,'E_PAGE_AUTHORIZATION');
+    const row=await transaction.get(COMMAND_JOURNAL,pageRequestKey(ns,requestId));
+    invariant(row?.tag==='page-task-request'&&row.namespace===ns,'E_OWNER');
+    if(reader)invariant(pageReaderMatches(row.pageSource,reader),'E_REVISION','Request belongs to another Page installation grant');
+    await pageTaskSource.inTransaction(transaction,reader??row.pageSource);
+    invariant(!row.authorizationRevoked,'E_PERMISSION','Original Page request was revoked');
+    if(submission){
+      invariant(!row.sourceInvalidated&&row.browserSessionIncarnation===session,'E_DOCUMENT_STALE','Original approval source changed');
+      invariant((pageSourceEpochs.get(row.pageSource.tabId)||0)===row.sourceEpoch,'E_DOCUMENT_STALE','Original Page navigation was fenced');
+      checkFence({target:{...row.pageSource,allowedOrigin:httpUrl(row.pageSource.url).origin},selection:{frameId:0},nativeFence:row.sourceFence});
+    }
+    return row;
+  }
+  async function pageRequestStatus(row,{sender,reader}={}){
+    const environment=builtinIdentity(await loadBuiltin({runtime:api.runtime}));
+    const host=sender?await assertHost(sender):null;
+    const authorize=async()=>{
+      if(reader)await pageTaskSource.authorize(reader);
+      return tx(RUN_READ,async transaction=>{
+        if(host)await currentHost(transaction,host,sender);
+        if(reader)await assertPageRequestInTransaction(transaction,row.requestId,row.namespace,{reader});
+        const resolved=await resolvePageTask(transaction,row.namespace,{...row.task,targetUrl:row.target.url},row.params,environment);
+        invariant(sameTaskPin(resolved,row.task)&&resolved.installationId===row.task.installationId&&resolved.generation===row.task.generation,'E_REVISION');
+        return resolved;
+      });
+    };
+    const resolvedInstallation=await authorize();
+    const savedPreparation=await tx(RUN_READ,transaction=>transaction.get(COMMAND_JOURNAL,preparationKey(row.namespace,row.preparationId)));
+    // Original Cancel may win before prepare saves any inputs. Its durable
+    // tombstone still owns this exact ID; enrich only the read projection from
+    // the original request so UI can show cancellation without reviving it.
+    const tombstone=savedPreparation?.tag==='task-run-preparation'&&savedPreparation.namespace===row.namespace&&
+      savedPreparation.preparationId===row.preparationId&&savedPreparation.state==='cancelled'&&
+      !savedPreparation.task&&!savedPreparation.pageRequestId&&!savedPreparation.runId;
+    const preparation=tombstone?{...savedPreparation,pageRequestId:row.requestId,task:row.task,params:row.params,target:row.target}:savedPreparation;
+    if(preparation)invariant(preparation.pageRequestId===row.requestId&&preparation.preparationId===row.preparationId&&
+      same(preparation.task,row.task)&&same(preparation.params,row.params)&&same(preparation.target,row.target),'E_OWNER');
+    let approvalAllowed=false;
+    if(!preparation?.runId&&(!preparation||preparation.state==='prepared'))try{
+      await pageTaskSource.authorize(row.pageSource);
+      await tx(RUN_READ,transaction=>assertPageRequestInTransaction(transaction,row.requestId,row.namespace,{submission:true}));
+      approvalAllowed=true;
+    }catch{}
+    let snapshot=null;
+    if(preparation?.runId){
+      const guard=async transaction=>{
+        if(host)await currentHost(transaction,host,sender);
+        if(reader)await assertPageRequestInTransaction(transaction,row.requestId,row.namespace,{reader});
+        const original=await transaction.get(COMMAND_JOURNAL,preparationKey(row.namespace,row.preparationId));
+        invariant(original?.pageRequestId===row.requestId&&original.runId===preparation.runId&&original.resultId===preparation.resultId,'E_OWNER');
+      };
+      snapshot=await snapshotControllerRunInScope({runId:preparation.runId},row.namespace,guard);
+      invariant(snapshot.run?.taskPreparationId===row.preparationId&&snapshot.run.resultId===preparation.resultId,'E_OWNER');
+      snapshot.runs=snapshot.runs.filter(run=>run.runId===preparation.runId);
+    }
+    await authorize();
+    const settled=preparation?await tx(RUN_READ,async transaction=>!await preparationUnresolved(transaction,preparation)):false;
+    return {request:pageRequestView(row,preparation,approvalAllowed),preparation:preparation?preparationView(preparation):null,
+      snapshot,resolvedInstallation,settled,authorize};
+  }
+  async function listPageTaskRequests(request={},sender){
+    fields(request,[]);const host=await assertHost(sender);
+    return tx(RUN_READ,async transaction=>{
+      await currentHost(transaction,host,sender);
+      const requests=(await transaction.all(COMMAND_JOURNAL)).filter(row=>row.tag==='page-task-request'&&row.namespace===namespace(host))
+        .sort((a,b)=>b.createdAt-a.createdAt).slice(0,64);
+      const result=[];
+      for(const row of requests)result.push(pageRequestView(row,await transaction.get(COMMAND_JOURNAL,preparationKey(row.namespace,row.preparationId))));
+      return {requests:result};
+    });
+  }
+  async function readPageTaskRequest(request,sender){
+    fields(request,['requestId'],['requestId']);id(request.requestId);const host=await assertHost(sender);
+    const row=await tx(RUN_READ,async transaction=>{
+      await currentHost(transaction,host,sender);
+      const row=await transaction.get(COMMAND_JOURNAL,pageRequestKey(namespace(host),request.requestId));
+      invariant(row?.tag==='page-task-request'&&row.namespace===namespace(host),'E_OWNER');return row;
+    });
+    const {authorize,...result}=await pageRequestStatus(row,{sender});return result;
+  }
+  // Called only by Installed Page's authenticated onUserScriptMessage path.
+  // This method is deliberately absent from the Host/Content RPC route table.
+  async function handlePageTaskRequest(message,source){
+    invariant(pageTaskSource,'E_PAGE_AUTHORIZATION');
+    const {operation}=message,payload=structuredClone(message.payload);
+    const sourceEpoch=pageSourceEpochs.get(source.tabId)||0;
+    invariant(['request','read','restore'].includes(operation),'E_SCHEMA');
+    fields(payload,operation==='request'?['requestId','taskId','params']:operation==='read'?['requestId']:[],
+      operation==='request'?['requestId','taskId','params']:operation==='read'?['requestId']:[]);
+    await pageTaskSource.authorize(source);
+    if(operation==='request'){
+      invariant(typeof payload.requestId==='string'&&/^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(payload.requestId),'E_SCHEMA');
+      invariant(new TextEncoder().encode(canonical(payload.params,{maxDepth:12})).byteLength<=8192,'E_BUDGET');
+      const pin=source.delegatedTasks.find(pin=>pin.taskId===payload.taskId);
+      invariant(pin,'E_PERMISSION','Task is not pinned in this installed Page');
+      await requireGrant(api,httpUrl(pin.targetUrl).origin);
+      const environment=builtinIdentity(await loadBuiltin({runtime:api.runtime}));
+      const sourceFence=nativeFence(source.tabId,httpUrl(source.url).origin,0);
+      const row=await tx(RUN_WRITE,async transaction=>{
+        await pageTaskSource.inTransaction(transaction,source);
+        invariant((pageSourceEpochs.get(source.tabId)||0)===sourceEpoch,'E_DOCUMENT_STALE');
+        const existing=await transaction.get(COMMAND_JOURNAL,pageRequestKey(source.namespace,payload.requestId));
+        if(existing){
+          invariant(existing.tag==='page-task-request'&&pageReaderMatches(existing.pageSource,source)&&
+            existing.task.taskId===payload.taskId&&same(existing.params,payload.params),'E_REQUEST_CONFLICT');return existing;
+        }
+        const rows=(await transaction.all(COMMAND_JOURNAL)).filter(row=>row.tag==='page-task-request');
+        invariant(rows.length<4096,'E_QUOTA');
+        invariant(!rows.some(row=>pageSlotMatches(row.pageSource,source)),'E_EFFECT_UNKNOWN','Restore and query the original Page request');
+        const resolved=await resolvePageTask(transaction,source.namespace,pin,payload.params,environment);
+        const task=Object.fromEntries(['taskId','version','manifestHash','contentHash','installationId','generation'].map(key=>[key,resolved[key]]));
+        const row={tag:'page-task-request',namespace:source.namespace,requestId:payload.requestId,
+          preparationId:'page:'+payload.requestId,task,params:payload.params,target:{mode:'owned',url:pin.targetUrl},
+          pageSource:structuredClone(source),sourceFence,sourceEpoch,browserSessionIncarnation:session,createdAt:now()};
+        await transaction.put(COMMAND_JOURNAL,row,pageRequestKey(source.namespace,row.requestId));return row;
+      });
+      // Hints are best effort; the original journal is discoverable after loss.
+      const hosts=await tx(RUN_READ,async transaction=>(await transaction.all(COMMAND_JOURNAL))
+        .filter(host=>host.tag==='host'&&host.active&&host.namespace===source.namespace&&host.browserSessionIncarnation===session));
+      await Promise.allSettled(hosts.map(host=>emitToHost(host.registrationId,{type:'page-task-requested',requestId:row.requestId})));
+      await pageTaskSource.authorize(source);
+      return {requestId:row.requestId,preparationId:row.preparationId,accepted:true,state:'pending-approval'};
+    }
+    const row=await tx(RUN_READ,async transaction=>{
+      await pageTaskSource.inTransaction(transaction,source);
+      if(operation==='read'){
+        id(payload.requestId);return assertPageRequestInTransaction(transaction,payload.requestId,source.namespace,{reader:source});
+      }
+      const matches=(await transaction.all(COMMAND_JOURNAL)).filter(row=>row.tag==='page-task-request'&&pageSlotMatches(row.pageSource,source));
+      invariant(matches.length<=1,'E_OWNER');
+      if(matches[0])invariant(pageReaderMatches(matches[0].pageSource,source),'E_REVISION','Original Page request has another installation grant');
+      return matches[0]??null;
+    });
+    if(!row)return {requestId:null,state:'idle'};
+    const status=await pageRequestStatus(row,{reader:source});
+    const reply={requestId:row.requestId,preparationId:row.preparationId,state:status.request.state,
+      ...(status.preparation?.runId?{runId:status.preparation.runId,resultId:status.preparation.resultId}:{}),params:structuredClone(row.params)};
+    if(status.snapshot?.run){
+      reply.state=status.snapshot.results.length?status.snapshot.run.state:'unknown';
+      if(typeof projectPageTaskResult==='function'&&status.snapshot.run.state==='completed'&&status.snapshot.results.length){
+        const {authorize,...input}=status;
+        await authorize();reply.projection=await projectPageTaskResult(input,{authorize});await authorize();
+      }
+    }
+    return reply;
+  }
+
   // Shared preparation is a commandJournal fence, never a second Run/runner.
   const preparationKey = (ns, preparationId) => `task-preparation:${canonical([ns,preparationId])}`;
   const preparationStartKey = (ns, preparationId) => `task-preparation-start:${canonical([ns,preparationId])}`;
   function preparationView(row) {
-    return structuredClone(Object.fromEntries(['preparationId','task','params','target','binding','source',
+    return structuredClone(Object.fromEntries(['preparationId','task','params','target','binding','source','pageRequestId',
       'deadlineAt','expiresAt','state','runId','resultId','operationRef'].filter(key=>row[key]!==undefined).map(key=>[key,row[key]])));
   }
   async function runDurablySettled(transaction,run){
@@ -748,31 +933,43 @@ export function controllerMethods({storage, api, session, clock, assertHost, cur
   }
   async function prepareTaskRun(request,sender) {
     request=structuredClone(request);
-    fields(request,['preparationId','task','params','target','binding'],['preparationId','task','params','target']);
+    fields(request,['preparationId','task','params','target','binding','pageRequestId'],['preparationId','task','params','target']);
     id(request.preparationId);normalizeDelegatedTask(request.task,true);selection(request.target);
-    invariant(request.target.mode==='borrowed',CONTROLLER_SCHEMA_ERROR,'Task preparation requires an exact borrowed target');
+    if(request.pageRequestId!==undefined){id(request.pageRequestId);invariant(!request.binding,'E_SCHEMA');}
     if(request.binding){
       normalizeDelegatedTask(request.binding.task,true);
       invariant(same(request.binding.task,request.task),CONTROLLER_OWNER_ERROR);
     }
     await withRecovery(request.binding,sender,(lockedAppIds=[])=>withPreparationBinding(request.binding,()=>withRunAdmissionLock(async()=>{
       const host=await assertHost(sender),environment=builtinIdentity(await loadBuiltin({runtime:api.runtime}));
-      const observed=await observeControllerTarget({api,...request.target});
-      const fence=nativeFence(request.target.tabId,observed.allowedOrigin,request.target.frameId);
+      const pageRequest=request.pageRequestId?await tx(RUN_READ,transaction=>
+        assertPageRequestInTransaction(transaction,request.pageRequestId,namespace(host),{submission:true})):null;
+      if(pageRequest){
+        invariant(pageRequest.preparationId===request.preparationId&&same(pageRequest.task,request.task)&&
+          same(pageRequest.params,request.params)&&same(pageRequest.target,request.target),'E_OWNER');
+        await pageTaskSource.authorize(pageRequest.pageSource);
+      }
+      // An owned preparation pins only the destination. Native tab creation
+      // belongs to the original one-shot Run admission after approval.
+      const observed=request.target.mode==='borrowed'?await observeControllerTarget({api,...request.target}):null;
+      const origin=observed?.allowedOrigin??httpUrl(request.target.url).origin;
+      if(request.target.mode==='owned')await requireGrant(api,origin);
+      const fence=nativeFence(request.target.tabId,origin,request.target.frameId??0);
       const key=preparationKey(namespace(host),request.preparationId);
       await tx(RUN_WRITE,async transaction=>{
         await currentHost(transaction,host,sender);
+        if(pageRequest)await assertPageRequestInTransaction(transaction,request.pageRequestId,namespace(host),{submission:true});
         const old=await transaction.get(COMMAND_JOURNAL,key);
         if(old){
           invariant(!(old.state==='cancelled'&&!old.task),CANCELLED_CODE,'Task preparation was cancelled before saving');
           invariant(old.tag==='task-run-preparation'&&same(old.principal,host.principal)&&
             same(old.task,request.task)&&same(old.params,request.params)&&same(old.target,request.target)&&
-            same(old.binding??null,request.binding??null),REQUEST_CONFLICT);
+            same(old.binding??null,request.binding??null)&&old.pageRequestId===request.pageRequestId,REQUEST_CONFLICT);
           return;
         }
         await assertPreparationSlot(transaction,namespace(host));
         const source={kind:'saved',scriptId:`task:${request.task.taskId}:${request.task.version}`,revision:1,contentHash:request.task.contentHash};
-        const installed=await assertInstalledTask(transaction,namespace(host),{...source,origin:observed.allowedOrigin,
+        const installed=await assertInstalledTask(transaction,namespace(host),{...source,origin,
           params:request.params,migrate:true,builtinIdentity:environment,
           expectedGeneration:request.task.generation,expectedInstallationId:request.task.installationId});
         invariant(installed.installation.manifestHash===request.task.manifestHash,'E_REVISION');
@@ -1032,6 +1229,11 @@ export function controllerMethods({storage, api, session, clock, assertHost, cur
     invariant(Number.isSafeInteger(request.deadlineAt) && request.deadlineAt > now(), CONTROLLER_TIMEOUT_ERROR);
     const sourceHash = frozenSource ? await digestUtf8(draftSourceUtf8) : saved.contentHash;
     const host = await assertHost(sender), requestDigest = await digest(request, wireCanonicalOptions);
+    const requestedPreparation=request.taskPreparationId?await tx(RUN_READ,transaction=>
+      transaction.get(COMMAND_JOURNAL,preparationKey(namespace(host),request.taskPreparationId))):null;
+    const pageRequest=requestedPreparation?.pageRequestId?await tx(RUN_READ,transaction=>
+      assertPageRequestInTransaction(transaction,requestedPreparation.pageRequestId,namespace(host),{submission:true})):null;
+    if(pageRequest)await pageTaskSource.authorize(pageRequest.pageSource);
     const selectedOrigin = request.target.mode === 'owned' ? httpUrl(request.target.url).origin : null;
     let observed;
     if (request.target.mode === 'borrowed') observed = await observeControllerTarget({api, ...request.target});
@@ -1131,8 +1333,15 @@ export function controllerMethods({storage, api, session, clock, assertHost, cur
       if(preparation){
         invariant(preparation.state==='prepared'&&!preparation.runId,CANCELLED_CODE);
         invariant(now()<preparation.expiresAt&&preparation.browserSessionIncarnation===session,CONTROLLER_TIMEOUT_ERROR);
-        checkFence({target:preparation.observedTarget,selection:preparation.target,nativeFence:preparation.nativeFence});
-        invariant(same(observed,preparation.observedTarget),DOC_REPLACED);
+        checkFence({target:preparation.observedTarget,selection:preparation.target,nativeFence:preparation.nativeFence,
+          startUrl:preparation.target.mode==='owned'?preparation.target.url:null});
+        if(preparation.target.mode==='borrowed')invariant(same(observed,preparation.observedTarget),DOC_REPLACED);
+        if(preparation.pageRequestId){
+          const original=await assertPageRequestInTransaction(transaction,preparation.pageRequestId,namespace(host),{submission:true});
+          invariant(pageRequest&&original.requestId===pageRequest.requestId&&original.preparationId===preparation.preparationId&&
+            same(original.task,preparation.task)&&same(original.params,preparation.params)&&same(original.target,preparation.target)&&
+            request.requestId===preparation.preparationId,'E_OWNER');
+        }
       }
       await assertPreparationSlot(transaction,namespace(host),request.taskPreparationId);
       if(delegationStepKey)invariant(step.state==='prepared'&&!step.cancelled&&
@@ -1170,6 +1379,8 @@ export function controllerMethods({storage, api, session, clock, assertHost, cur
         ...(request.taskDelegationStep?{taskDelegationStep:structuredClone(request.taskDelegationStep)}:{}),
         ...(request.retainedFrom?{retainedFrom:structuredClone(request.retainedFrom)}:{}),
         ...(preparation?{taskPreparationId:preparation.preparationId}:{}),
+        ...(pageRequest?{pageRequestId:pageRequest.requestId,pageTaskSource:structuredClone(pageRequest.pageSource),
+          pageTaskSourceFence:structuredClone(pageRequest.sourceFence)}:{}),
         ...(scheduledFire?{scheduledFireId:scheduledFire.fireId}:{}),
         opId: newId(), resultId: newId(), requestId: request.requestId, requestDigest, deadlineAt: request.deadlineAt,
         paramsWire: structuredClone(executionParamsWire), selection: structuredClone(request.target),
@@ -1867,6 +2078,38 @@ export function controllerMethods({storage, api, session, clock, assertHost, cur
       }, [RUN_STORE, COMMAND_JOURNAL]);
     }
   }
+  async function invalidatePageTaskSource({tabId,frameId=0,permissionRemoved=false,origins=[]}={}){
+    if(!permissionRemoved&&(!Number.isSafeInteger(tabId)||frameId!==0))return [];
+    // Same-document SPA events never touch unrelated Controller target epochs.
+    if(!permissionRemoved)pageSourceEpochs.set(tabId,(pageSourceEpochs.get(tabId)||0)+1);
+    const fenced=await tx(RUN_WRITE,async transaction=>{
+      const affected=new Set();
+      for(const row of await transaction.all(COMMAND_JOURNAL)){
+        if(row.tag!=='page-task-request')continue;
+        const matches=permissionRemoved?[row.pageSource.url,row.target.url].some(url=>
+          origins.some(pattern=>originMatches(pattern,httpUrl(url).origin))):row.pageSource.tabId===tabId;
+        if(!matches)continue;
+        if(permissionRemoved)row.authorizationRevoked=true;else row.sourceInvalidated=true;
+        await transaction.put(COMMAND_JOURNAL,row,pageRequestKey(row.namespace,row.requestId));affected.add(row.requestId);
+      }
+      const runs=[];
+      for(const run of await transaction.all(RUN_STORE)){
+        if(!run.pageRequestId||!affected.has(run.pageRequestId))continue;
+        if(permissionRemoved)run.resultDeliveryRevoked=true;
+        if(live.has(run.state)){
+          run.cancelSeq++;run.ownerEpoch++;run.runRevision++;run.state='stopping';
+          run.terminalReason=permissionRemoved?'E_PERMISSION':'E_DOCUMENT_STALE';runs.push(run);await lease(transaction,run);
+        }
+        await transaction.put(RUN_STORE,run,run.runId);
+      }
+      return runs;
+    },[RUN_STORE,COMMAND_JOURNAL]);
+    for(const run of fenced){
+      abortOperations(run.runId,run.terminalReason);
+      await emitToHost(run.registrationId,{type:'controller-fenced',runId:run.runId,reasonCode:run.terminalReason}).catch(()=>{});
+    }
+    return fenced.map(project);
+  }
   async function invalidateControllerTarget({tabId, frameId = 0, documentId, removed = false, permissionRemoved = false, origins = []} = {}) {
     // Synchronous event fences precede the first IDB await. Re-granting a site
     // cannot revive an operation waiting for that transaction to acquire a lock.
@@ -1882,6 +2125,7 @@ export function controllerMethods({storage, api, session, clock, assertHost, cur
         const key = canonical([tabId, frameId]); frameEpochs.set(key, (frameEpochs.get(key) || 0) + 1);
       }
     }
+    await invalidatePageTaskSource({tabId,frameId,permissionRemoved,origins});
     const runs = await tx(RUN_WRITE, async transaction => {
       const invalidated = [];
       for (const run of await transaction.all(RUN_STORE)) {
@@ -1954,6 +2198,7 @@ export function controllerMethods({storage, api, session, clock, assertHost, cur
     return result;
   }
   return Object.freeze({commitControllerScript, getControllerScript, listControllerScripts, tombstoneControllerScript, garbageCollectControllerScript,
+    handlePageTaskRequest,listPageTaskRequests,readPageTaskRequest,invalidatePageTaskSource,
     prepareDelegatedStep, inspectDelegatedStep, cancelDelegatedStep,prepareTaskRun,inspectTaskRun,cancelTaskRun,listTaskRunPreparations,
     startControllerRun, controllerOperation, stopControllerRun,
     finishControllerRun, snapshotControllerRun, retireControllerTarget, loseControllerHost, invalidateControllerTarget, invalidateAppServices, recoverControllers});

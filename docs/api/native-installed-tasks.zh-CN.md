@@ -127,3 +127,13 @@ node native-agent/cli.mjs request.get --file admission.json --request-id install
 常见拒绝：`E_SCHEMA`（pin/期限格式）、`E_REVISION`（pin 或授权代次改变）、`E_PERMISSION`（未安装、停用、站点或权限不符）、`E_PARAMS`（参数不符合合同）、`E_DOCUMENT_STALE`（精确目标改变）、`E_OWNER`（执行槽占用）、`E_PERMISSION_REQUIRED`（Chrome 网站授权缺失）。不自动重放、不自动授权。
 
 现行基础合同：[Native Agent Bridge](../architecture/browser-framework/native-agent-bridge-r1.zh-CN.md)。
+
+## 原可信 Host 的 Task 准备与独立目标
+
+`prepareTaskRun`、`inspectTaskRun` 和 `startControllerRun` 是原 Authority 面向已登记可信 Host 的内部合同，不是网页 API；这里的目标形式也不改变上述 Native `run.start` 的公开参数。普通 Content sender、Page USER_SCRIPT、网页事件和自报安装身份不能据此获得 Host 权限。
+
+原准备记录接受两种目标：`borrowed` 必须提供精确的 tab/frame/document，并固定原生观察到的 URL；`owned` 只允许 `{mode:"owned",url:"https://已授权站点/路径"}`。`owned` 准备阶段核对真实 Task 安装、版本、manifest/source 哈希、安装 ID、授权代次、参数、目标站点范围与 Chrome 网站权限，然后在既有 `commandJournal` 固定这些输入。准备与查询都不创建 Run、不创建标签页、不导航当前页。
+
+用户通过原可信审批入口批准后，Host 将准备记录中的 `source`、`params`、`target`、期限与安装身份原样交给 `startControllerRun`，并提供原 `taskPreparationId`。Authority 在原事务里重新检查授权并消费这份准备；`owned` 目标由原 Controller 的一次性创建账本建立后台标签页（`active:false`）。创建和导航仍走原 Run 的权限、停止和资源回收机制。准备后撤销再恢复网站权限，也不能使原准备重新获准提交。
+
+同一准备的双击、并发提交或回执丢失，只能读到同一个 Run；不能另建目标或自动重发。`inspectTaskRun({preparationId})` 只读原准备和原持久 Run/Result，结果缺失或执行未获确认时保持 `unknown`。终态仍需核对原 Result 与资源释放。来源 Page 使用[已安装 Page 固定任务合同](page-userscript.zh-CN.md#已安装-page-的固定-task-审批请求)，只提交待审批请求；原 Host 在 `prepareTaskRun` 中引用 `pageRequestId`，Authority 重新核验该请求的安装、来源文档和固定输入。Page 不能直接调用 Host 的准备或执行方法。

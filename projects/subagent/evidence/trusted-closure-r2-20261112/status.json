@@ -1,0 +1,309 @@
+{
+  "taskId": "OD-SUBAGENT-CHAT-A2B2A-R2-TRUSTED-CLOSURE",
+  "date": "2026-11-12",
+  "product": "Subagent",
+  "projectId": "opendesk.subagent",
+  "candidateVersion": "0.2.0",
+  "branch": "main",
+  "deliveryCommit": "The containing Git commit; exact SHA is also returned in the final task response.",
+  "stages": {
+    "SOURCE": "IMPLEMENTED_AND_WIRED",
+    "NODE": "TARGETED_PASS_WITH_RECORDED_REGRESSION_FAILURES",
+    "BUILD": "PASS",
+    "PACKAGE": {
+      "browser": "VERIFIED_BY_ORIGINAL_BUILDER",
+      "page": "BUILT_UNVERIFIED_NOT_INSTALLABLE",
+      "controllerTask": "EXISTING_IMMUTABLE_0.2.0_UNCHANGED"
+    },
+    "INSTALL": "BLOCKED_NOT_PERFORMED",
+    "CHROME_NATIVE": "NOT_TESTED",
+    "BUSINESS": "BLOCKED"
+  },
+  "approvedAndInvokedTaskThisTurn": null,
+  "declaredTask": {
+    "taskId": "chatgpt.conversation.create",
+    "version": "0.2.0",
+    "manifestHash": "0402cbea8284f87bd3cc63c73b453530be1338cd511c30671957a919678ab146",
+    "contentHash": "90d077ff17fdcf89ac0a13adf4a671edc324030165c7eefa95a4acdc531bd51c",
+    "params": {
+      "prompt": "Original user prompt",
+      "send": true
+    },
+    "target": {
+      "mode": "owned",
+      "url": "https://chatgpt.com/"
+    }
+  },
+  "browserBuild": {
+    "command": "CI=1 OPENDESK_BUILD_EVIDENCE_DIR=artifacts/subagent-r2/browser-build-delivery npm run build",
+    "exitCode": 0,
+    "attemptId": "da770127-1754-4d2b-baf8-d8f3c9159f73",
+    "status": "passed",
+    "packageHash": "0b49abaabba5aa5a3d79f591dd31f331d316788f1fa0e392765e5f4d7e99cca0",
+    "sourceInputCount": 801,
+    "sourceDriftDuringBuild": [],
+    "fixedEntryCount": 44,
+    "assetCount": 131,
+    "receipt": "build/browser-production.json",
+    "stdout": "build/browser-production.log",
+    "toolShellBytes": 2954732,
+    "originalToolShellBudget": 3145728,
+    "remainingBytes": 190996,
+    "budgetChanged": false,
+    "earlierFailedAttempts": [
+      "build/browser-attempt-1.json",
+      "build/browser-attempt-2.json",
+      "build/browser-attempt-3.json"
+    ],
+    "softReviewWarningsRetained": true,
+    "mergedUpstream": "ab7e20007790c32d890f51eeeeb31f6407a4ad83",
+    "priorPassedCandidate": "build/browser-attempt-4-passed.json",
+    "sameOutputPackageHashAsBeforeMerge": false,
+    "latestIntegratedUpstream": "54f0e7e9fa62c062c1c4e7f9a4c0db2b03b349ac",
+    "currentAll801InputsStillMatchReceipt": true,
+    "mergedUpstreams": [
+      "ab7e20007790c32d890f51eeeeb31f6407a4ad83",
+      "feeb7f0e6922707d8a137065137c162bf224e108",
+      "54f0e7e9fa62c062c1c4e7f9a4c0db2b03b349ac"
+    ],
+    "priorPassedCandidates": [
+      "build/browser-attempt-4-passed.json",
+      "build/browser-attempt-5-passed.json"
+    ]
+  },
+  "pageBuild": {
+    "command": "npm run build:program -- projects/subagent",
+    "exitCode": 0,
+    "status": "BUILT_UNVERIFIED",
+    "version": "0.2.0",
+    "sourceHash": "ecfadece5c0568979e08288af59640a7e83089322ee53598f65456f1c010fe22",
+    "buildHash": "ecfadece5c0568979e08288af59640a7e83089322ee53598f65456f1c010fe22",
+    "sourceBytes": 34327,
+    "installable": false,
+    "artifact": "build/program-artifact.json",
+    "currentSourceModulesMatchArtifact": true,
+    "promotedPackage": false
+  },
+  "node": {
+    "checks": [
+      {
+        "evidence": "node/subagent-integrated.tap",
+        "kind": "raw-TAP",
+        "totals": {
+          "tests": 48,
+          "pass": 48,
+          "fail": 0,
+          "skipped": 0,
+          "cancelled": 0
+        }
+      },
+      {
+        "evidence": "node/workbench-page.tap",
+        "kind": "raw-TAP",
+        "totals": {
+          "tests": 5,
+          "pass": 5,
+          "fail": 0,
+          "skipped": 0,
+          "cancelled": 0
+        }
+      },
+      {
+        "evidence": "node/page-react-workbench.tap",
+        "kind": "raw-TAP",
+        "totals": {
+          "tests": 5,
+          "pass": 5,
+          "fail": 0,
+          "skipped": 0,
+          "cancelled": 0
+        }
+      },
+      {
+        "evidence": "node/workbench-integrated.tap",
+        "kind": "raw-TAP",
+        "totals": {
+          "tests": 208,
+          "pass": 199,
+          "fail": 9,
+          "skipped": 0,
+          "cancelled": 0
+        }
+      },
+      {
+        "evidence": "node/framework-regression.tap",
+        "kind": "raw-TAP",
+        "totals": {
+          "tests": 288,
+          "pass": 285,
+          "fail": 3,
+          "skipped": 0,
+          "cancelled": 0
+        }
+      },
+      {
+        "evidence": "webflow-audit/provenance-after-source-lock.tap",
+        "kind": "raw-TAP",
+        "totals": {
+          "tests": 39,
+          "pass": 32,
+          "fail": 7,
+          "skipped": 0,
+          "cancelled": 0
+        }
+      },
+      {
+        "evidence": "webflow-audit/tool-shell-provenance-targeted.tap",
+        "kind": "raw-TAP",
+        "totals": {
+          "tests": 2,
+          "pass": 2,
+          "fail": 0,
+          "skipped": 0,
+          "cancelled": 0
+        }
+      },
+      {
+        "evidence": "webflow-audit/pinned-public-suffix-raw.tap",
+        "kind": "raw-TAP",
+        "totals": {
+          "tests": 5,
+          "pass": 5,
+          "fail": 0,
+          "skipped": 0,
+          "cancelled": 0
+        }
+      },
+      {
+        "evidence": "node/framework-final-summary.json",
+        "kind": "actual-tool-output-summary-not-TAP",
+        "passes": [
+          69,
+          4
+        ]
+      },
+      {
+        "evidence": "webflow-audit/prior-tool-run-summaries.json",
+        "kind": "actual-tool-output-summary-not-TAP",
+        "passes": [
+          197,
+          144
+        ],
+        "note": "Other overlapping historical subset entries are retained in the summary; do not add counts."
+      },
+      {
+        "evidence": "node/provenance-merged.log",
+        "kind": "raw-spec-stdout",
+        "totals": {
+          "tests": 5,
+          "pass": 5,
+          "fail": 0
+        },
+        "reason": "Merged exact upstream export/test and retained local provenance changes",
+        "commandRecord": "node/provenance-merged-command.json"
+      },
+      {
+        "evidence": "node/upstream-source-lock-test.tap",
+        "kind": "raw-TAP",
+        "totals": {
+          "tests": 1,
+          "pass": 1,
+          "fail": 0
+        },
+        "command": "node --test --test-reporter=tap --test-name-pattern='reviewed AI Proxy diagnostics/PC layout' tests/environment/bundle-provenance.test.mjs"
+      },
+      {
+        "evidence": "node/upstream-clipper-tests.tap",
+        "kind": "raw-TAP",
+        "totals": {
+          "tests": 2,
+          "pass": 2,
+          "fail": 0
+        },
+        "command": "node --test --test-reporter=tap --test-name-pattern='R4 region Markdown final-output cap|R1.3 pinned shared Markdown converter' tests/environment/markdown-tools-r22.test.mjs tests/environment/bundle-provenance.test.mjs"
+      }
+    ],
+    "countsOverlap": true,
+    "noAggregateUniqueTestCountClaimed": true,
+    "baselineComparisons": [
+      "baseline/workbench-final-comparison.json",
+      "baseline/framework-comparison.json"
+    ],
+    "fullRegressionGreen": false
+  },
+  "acceptance": [
+    {
+      "id": "AC01",
+      "status": "NOT_TESTED",
+      "reason": "No current-candidate native Chrome A/B installation and end-to-end execution evidence."
+    },
+    {
+      "id": "AC02",
+      "status": "NOT_TESTED",
+      "reason": "No current-candidate native Chrome A/B installation and end-to-end execution evidence."
+    },
+    {
+      "id": "AC03",
+      "status": "NOT_TESTED",
+      "reason": "No current-candidate native Chrome A/B installation and end-to-end execution evidence."
+    },
+    {
+      "id": "AC04",
+      "status": "NOT_TESTED",
+      "reason": "No current-candidate native Chrome A/B installation and end-to-end execution evidence."
+    },
+    {
+      "id": "AC05",
+      "status": "NOT_TESTED",
+      "reason": "No current-candidate native Chrome A/B installation and end-to-end execution evidence."
+    },
+    {
+      "id": "AC06",
+      "status": "NOT_TESTED",
+      "reason": "No current-candidate native Chrome A/B installation and end-to-end execution evidence."
+    },
+    {
+      "id": "AC07",
+      "status": "NOT_TESTED",
+      "reason": "No current-candidate native Chrome A/B installation and end-to-end execution evidence."
+    },
+    {
+      "id": "AC08",
+      "status": "NOT_TESTED",
+      "reason": "No current-candidate native Chrome A/B installation and end-to-end execution evidence."
+    },
+    {
+      "id": "AC09",
+      "status": "NOT_TESTED",
+      "reason": "No current-candidate native Chrome A/B installation and end-to-end execution evidence."
+    },
+    {
+      "id": "AC10",
+      "status": "NOT_TESTED",
+      "reason": "No current-candidate native Chrome A/B installation and end-to-end execution evidence."
+    }
+  ],
+  "actualTaskActionsThisTurn": {
+    "createdChatGPTB": 0,
+    "submittedTaskMessages": 0,
+    "sentToAOfficialChat": 0
+  },
+  "installedVersions": {
+    "Subagent": "UNKNOWN",
+    "ChatGPTTask": "UNKNOWN",
+    "BrowserCore": "UNKNOWN"
+  },
+  "principalExternalBlocker": {
+    "status": "REPRODUCED",
+    "reason": "Official native OpenDesk Browser Core and Code connectors return UNAVAILABLE / MCP SSE probe returned 429. CodexPro also failed to connect.",
+    "evidence": "native-status.json",
+    "next": "Restore the official channel, inspect main/workspace/watcher/UI ownership, install this same candidate with the original installers and permissions, then execute one A-to-B-to-A task and native AC01-AC10. Never replay UNKNOWN."
+  },
+  "limitations": [
+    "Actual Chrome trusted click acceptance and USER_SCRIPT sender identity untested.",
+    "No actual B, complete assistant reply, source-A display or B link opening.",
+    "MV3 suspension, native revocation, disconnect and B closure untested.",
+    "Native 320/360/400 px, light/dark, focus, IME and page obstruction untested.",
+    "Known observed expanded Node suite failures remain; baseline comparisons are evidence of their prior existence, not PASS."
+  ]
+}

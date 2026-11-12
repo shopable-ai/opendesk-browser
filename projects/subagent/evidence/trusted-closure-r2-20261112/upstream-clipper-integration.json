@@ -1,0 +1,24 @@
+{
+  "from": "feeb7f0e6922707d8a137065137c162bf224e108",
+  "upstream": "54f0e7e9fa62c062c1c4e7f9a4c0db2b03b349ac",
+  "reason": "Remote main advanced before ref update; retained the existing Clipper final UTF-8 byte-boundary fix and matching exact pin/test without changing its logic.",
+  "runtimeDelta": "Existing Markdown converter counts its final newline inside the original 150000-byte limit. No Subagent or Task change.",
+  "preservedPaths": [
+    "examples/shared/markdown/convert.js",
+    "projects/web-markdown-clipper/tests/notes.test.mjs",
+    "tests/environment/markdown-tools-r22.test.mjs",
+    "scripts/bundle-provenance.mjs",
+    "tests/environment/bundle-provenance.test.mjs"
+  ],
+  "result": {
+    "targetedTests": {
+      "tests": 2,
+      "pass": 2,
+      "fail": 0
+    },
+    "build": "PASS",
+    "attemptId": "da770127-1754-4d2b-baf8-d8f3c9159f73",
+    "packageHash": "0b49abaabba5aa5a3d79f591dd31f331d316788f1fa0e392765e5f4d7e99cca0",
+    "sourceDriftDuringBuild": []
+  }
+}

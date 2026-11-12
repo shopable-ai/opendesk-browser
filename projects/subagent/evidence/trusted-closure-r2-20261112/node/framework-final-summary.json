@@ -1,0 +1,73 @@
+{
+  "task": "OD-SUBAGENT-CHAT-A2B2A-R2-TRUSTED-CLOSURE",
+  "owner": "framework_audit",
+  "kind": "node-component-evidence-summary",
+  "nativeChromeEvidence": false,
+  "note": "Summarizes the actual captured tool stdout; this is not a fabricated full TAP transcript. The original stdout remains in the cited local exec sessions. No optional re-run was used to create this summary.",
+  "checks": [
+    {
+      "command": "node --test --test-name-pattern='Page task|installed Page task' tests/environment/page-installed-programs.test.mjs",
+      "execSession": 84723,
+      "exitCode": 0,
+      "tests": 4,
+      "pass": 4,
+      "fail": 0,
+      "durationMs": 423.156887,
+      "coverage": [
+        "Source-covered fixed pins, original install scope and actual stored execution/world binding",
+        "Wrong extension sender, frame, document, world, nonce, execution and removed native registration reject",
+        "Page runtime rejects fake isTrusted objects and synthetic Events",
+        "Pin addition or replacement requires original Page installation confirmation"
+      ]
+    },
+    {
+      "command": "node --test tests/environment/task-run-preparation.test.mjs tests/environment/program-project.test.mjs tests/environment/page-install-package.test.mjs tests/environment/page-program-library.test.mjs",
+      "execSession": 30532,
+      "exitCode": 0,
+      "tests": 69,
+      "pass": 69,
+      "fail": 0,
+      "cancelled": 0,
+      "skipped": 0,
+      "durationMs": 2196.125585,
+      "coverage": [
+        "Page intent persists in original commandJournal without Run or tab creation",
+        "Original Host approval consumes the same preparation and creates one inactive owned target",
+        "Completed reads expose only original durable identities through registered projection",
+        "Refresh, SPA round trip, late initial request and UNKNOWN do not revive execution",
+        "Source authorization is rechecked after asynchronous projection",
+        "Failure stays failed and does not invoke the success projector",
+        "Original pre-prepare cancellation tombstone remains readable and cannot be revived",
+        "Regrant, reinstall or source upgrades cannot free the source slot or disclose an old result",
+        "Original borrowed/owned preparation, App delegation, installation and permission regressions",
+        "Public project validator, emitted source metadata, offline package hashes and install review"
+      ]
+    },
+    {
+      "command": "node scripts/validate-program-project.mjs projects/subagent",
+      "exitCode": 0,
+      "status": "AUTHORING_VALID_NOT_PACKAGED",
+      "programId": "opendesk.subagent",
+      "version": "0.2.0",
+      "installable": false
+    },
+    {
+      "commands": [
+        "git diff --check",
+        "node --check src/platform/host/controller-methods.js",
+        "node --check src/scripting/user-scripts/installed-programs.js",
+        "node --check src/scripting/user-scripts/page-task-runtime.js",
+        "node --check src/scripting/user-scripts/preview.js",
+        "node --check src/platform/host/broker.js",
+        "node --check src/platform/host/authority.js"
+      ],
+      "exitCode": 0,
+      "status": "PASS"
+    }
+  ],
+  "untested": [
+    "Real Chrome USER_SCRIPT trusted click acceptance",
+    "Current extension package installation and Task approval",
+    "Actual ChatGPT A to B to A execution and complete reply display"
+  ]
+}

@@ -1,0 +1,12 @@
+{
+  "evidenceForm": "Summary of the actual prior passed candidate before merging the parallel source-review export/test. The full final merged-source receipt replaces browser-production.json.",
+  "attemptId": "2ff4d7e4-92c3-46f3-84e1-12588bd7e124",
+  "status": "passed",
+  "packageHash": "7ddfcd763c6796f7c4239f15cabe386e36bbfce37b87720e3dcbfac1281b0cd6",
+  "sourceInputCount": 801,
+  "sourceDriftDuringBuild": [],
+  "assetCount": 131,
+  "originalReceiptSha256": "a3f529c30636e5683d2d98e287bf17bf5bad44d44dba8327be548931e2ac6093",
+  "originalReceiptPath": "artifacts/subagent-r2/browser-build-verified/build-production.json",
+  "nextReason": "Main advanced with an equivalent pin review plus a newly exported build helper; preserve it and bind final build evidence to exact merged inputs."
+}

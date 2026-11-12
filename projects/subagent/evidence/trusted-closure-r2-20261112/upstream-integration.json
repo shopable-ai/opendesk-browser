@@ -1,0 +1,14 @@
+{
+  "from": "ba0a33091c1dad6c4cb00212de91498371e7dbd8",
+  "upstream": "ab7e20007790c32d890f51eeeeb31f6407a4ad83",
+  "changedUpstreamPaths": [
+    "scripts/bundle-provenance.mjs",
+    "tests/environment/bundle-provenance.test.mjs"
+  ],
+  "resolution": "Preserved exact upstream R4.2 review annotation, three identical pins, export and full test; retained every other local hunk. No branch, stash, worktree or force push.",
+  "originalBuildInputHash": "24fbdb09003aaeffbdf76df6ed19654b4f277ec84c0152ae74d5b2ae822cf47a",
+  "mergedBuildInputHash": "cadf4336930294578a16eade1eae11aaf132b2d26e9ddb73b4f6896e828f9107",
+  "originalTestHash": "032956803adb5d4869250aa9c0d6f49babb533cf39976c27eda4ef5fad471581",
+  "mergedTestHash": "298128ea22990b356ef2d7ade64ed3ffd4812c6eb78cf8a16f5f21f76e1cf171",
+  "requiresNewBuildReceipt": true
+}

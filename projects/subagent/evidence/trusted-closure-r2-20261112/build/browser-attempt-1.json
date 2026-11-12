@@ -1,0 +1,23 @@
+{
+  "status": "failed",
+  "mode": "production",
+  "attemptId": "ea59b469-aa09-4df2-a95a-ad6a7d5aa45f",
+  "packageVerified": false,
+  "error": {
+    "message": "Failed to build settings",
+    "causes": [
+      {
+        "message": "[opendesk-fixed-settings] Historical/user/vendor code cannot enter a privileged fixed bundle: projects/webflow/src/task-intent-contract.js",
+        "code": "PLUGIN_ERROR"
+      }
+    ]
+  },
+  "diagnosticErrors": [],
+  "note": "Partial failed build diagnostics only; renderedLength is pre-minification, not final module bytes.",
+  "evidenceForm": "Extract of original builder diagnostic; full raw stdout is preserved beside this file. Source inputs and bundle membership are counted and hashed below, not reproduced as unrelated prior-build snapshots.",
+  "originalDiagnosticSha256": "de71053deb50e4c398e0f3439081d38e5d282d02504386dc057aa71c87176b4c",
+  "sourceInputCount": 796,
+  "bundleCount": 33,
+  "sourceInputsSha256Canonical": "6651b2c852878295f2f37834651afa07d6f128424818ecc5eeae0d4e2c2b7f03",
+  "bundleModulesSha256Canonical": "e1cb197ed2cb731d103a6e11a724ad71c2a6a7d20dc41f0c97914ea5fb857f8a"
+}

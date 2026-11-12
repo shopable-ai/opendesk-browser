@@ -1,4 +1,4 @@
-import {chatGPTConversationId} from '../../../src/native-agent/workspace-chatgpt.js';
+import {chatGPTConversationId} from '../../../src/native-agent/workspace-chatgpt-core.js';
 import {validateRequestPath} from '../../../src/native-agent/workspace-chat-request.js';
 
 // A one-use, non-authorizing UI handoff. It never carries Native sessions,

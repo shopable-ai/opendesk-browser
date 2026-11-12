@@ -1,6 +1,6 @@
 # Page USER_SCRIPT：网页 UI、预览与清理
 
-[返回总入口](README.md)。Page 在目标网页 USER_SCRIPT 世界中使用 document/DOM；没有 Controller 的 page/Locator、持久 runId/resultId。先授予网站权限，并在 Chrome 扩展详情开启「允许用户脚本」。
+[返回总入口](README.md)。Page 在目标网页 USER_SCRIPT 世界中使用 document/DOM；没有 Controller 的直接 page/Locator 或创建 Run 权限。已安装 Page 可按下节的固定任务合同请求原工作台审批，并只读自己的原持久结果。先授予网站权限，并在 Chrome 扩展详情开启「允许用户脚本」。
 
 ## 第三方独立 Page Program：开发、自动注入与 SDK 缺口
 
@@ -11,6 +11,35 @@
 3. **试运行和正式安装不是一回事**：「开发」显式 Run/Preview 得到 `previewId/sourceHash/documentId`，核对真正的网页 DOM 与 Stop；正式自动运行必须沿 Page Candidate → Verified → Available → 用户确认 Installed/启用的既有流程，另验新文档匹配、扩展重启、停用、撤权、升级与卸载。临时 Chrome 直接脚本注入、Node/离线 HTML 预览不能冒充 Installed PASS。
 4. **大型第三方 JS 与真实边界**：按公开项目构建预算、锁定资源许可、世界及生命周期设计评估，不保证几 MB 的 XMind 类 Runtime 能被普通 USER_SCRIPT 直接嵌入。现有 [AI 回复思维导图项目事实](../../projects/ai-reply-mindmap/README.zh-CN.md) 记录 `E_XMIND_RUNTIME_UNAVAILABLE`、资源大小/许可和隔离问题；这是项目证据，不代表全部第三方库均不支持。没有已验证的公共缺口先记 `SDK_GAP_NOT_PROVEN`，无法安全执行的特权请求记 `BLOCKED`，不要要求普通作者改 Host。
 5. **证据**：公开规范支持 ≠ 本候选运行成功；SOURCE_WIRED/Node PASS/Browser Native/正式安装与网站自动运行须独立验证。没有最终安装证据记 `NOT_TESTED`，不能虚构 API 或已批准的权限。
+
+## 已安装 Page 的固定 Task 审批请求
+
+Page 项目可使用 `@opendesk/tasks`，但必须在 `opendesk.delegatedTasks` 声明最多八项固定 `{taskId,version,manifestHash,contentHash,targetUrl}`。Task ID 不得重复，版本为三段正式版本，两个 hash 必须是实际不可变任务包的 SHA-256；`targetUrl` 必须是无账户信息、无 fragment 的规范化 HTTP(S) URL。目标 Task 仍须通过原安装器安装并启用，版本、源码、Manifest、安装 ID 和授权代次在请求及审批时重新核对；声明不会安装 Task 或授予其执行权限。
+
+原项目构建器把声明写入 `@opendesk-task` 源码元数据，继续由既有 sourceHash、manifestHash 与安装包 packageHash 覆盖。原 Page 安装审阅显示目标、版本和完整哈希，并将 `page.tasks.request` 与 pins 记录在原安装 scope；新增或改变 pin 必须重新确认安装。该能力仅适用于正式已安装的 standalone Page。开发预览、普通网页、子帧和 SidebarTool companion 不会获得这个客户端。
+
+```js
+import {createPageTaskClient} from '@opendesk/tasks';
+
+const tasks=createPageTaskClient(); // 未安装或未声明时为 null。
+const original=tasks?await tasks.restore():null;
+// 有 original.requestId 时恢复原请求，只调用 read；不再次 request。
+// 没有原请求时，在真实 click/keydown 回调中分配一次 UUID：
+// await tasks.request(event,{requestId,taskId,params});
+// await tasks.read({requestId});
+```
+
+| 方法 | 合同 |
+| --- | --- |
+| `request(event,{requestId,taskId,params})` | 请求原可信工作台审批；参数需符合固定 Task schema。原生事件检查只约束 UI 操作，不提供 Host 权限。真实安装世界、执行 nonce、安装代次与文档由原 Page Authority 独立核验。ACK 的 `accepted:true` 只代表请求已持久保存。 |
+| `read({requestId})` | 仅查询来源 Page 原请求；不创建 Run、目标页或重发。返回状态、原 preparation/run/result 引用及可用的已注册项目结果 `projection`。未注册项目投影时只返回状态，不把通用返回值宣称为业务成功。 |
+| `restore()` | 同一安装、同一 tab 和精确 URL 的新合法 Page 实例只读恢复原 requestId。没有记录返回 `{requestId:null,state:'idle'}`；不创建记录，不修改原审批来源。 |
+
+客户端没有 `start`、任意 Host RPC 或任意脚本执行方法。唯一原生执行入口仍是原 TaskWorkbench 的真实用户确认；工作台展示冻结参数、固定 Task 和独立 owned 目标。只有原 A 的 document、URL、安装及授权仍有效时才能批准；SPA 离开再返回不能复活旧准备。原 Controller 使用自己的一次性创建账本建立后台目标，原 A 不被当作执行目标。
+
+请求与原准备复用 `commandJournal`。双击、并发、迟到 ACK、断线、刷新和 MV3 恢复只能查询原身份；UNKNOWN 不允许自动另建请求或目标。当前合同每个 programId 及来源 tab/精确 URL 保留一个请求，完成或取消也不自动分配下一个请求。撤权后重新授权、重装或源码升级不会释放原来源槽；新的安装身份不能读取旧结果，也不能通过分配新 ID 创建替代任务。刷新后的只读恢复不会把新 document 写回旧审批来源，未提交请求可保持 `source-stale`；停用、撤权、安装代次改变及身份不符均拒绝交付结果。
+
+结果投影由固定编译的项目适配器消费原 Authority Run/Result，并在异步读取前后重新核对来源和 Task 权限。Page payload、自报 `trust`、普通 DOM 事件、`postMessage` 或 `CustomEvent` 均不能提供可信结果。Page 只把原结果显示在自己的 UI；本合同不会向来源网站的官方输入框发送结果。源码与 Node 测试不能替代本候选的实际安装、用户审批、原生执行及网站业务验收。
 
 ## 普通 Page 源码预算
 

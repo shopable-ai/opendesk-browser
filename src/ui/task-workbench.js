@@ -60,6 +60,8 @@ export function createTaskWorkbench({client,host,currentPageTarget,api=globalThi
   let localQuery='', localFilter='all', taskManagementMode=false, pendingTaskUninstall=null;
   const parameterDrafts=new Map();
   let sharedPreparation=null,sheetAuthorization=null,sheetBusy=false,sheetSequence=0,inspectionSequence=0;
+  let sheetPageRequest=null,pageDiscovery=null;
+  const dismissedPageRequests=new Set();
   const taskIdentity=row=>{
     const info=candidateFor(row);
     return {...Object.fromEntries(['taskId','version','manifestHash','installationId','generation'].map(key=>[key,row?.[key]])),
@@ -84,7 +86,8 @@ export function createTaskWorkbench({client,host,currentPageTarget,api=globalThi
     if(!preparation.task){sheetStatus('原准备已取消，尚未提交的操作不会执行。','cancelled');return;}
     const row=installed.find(row=>sameInstallation(taskIdentity(row),preparation.task));
     const info=row&&candidateFor(row),schema=info?.manifest.paramsSchema;
-    const recoveryOnly=!row||!row.enabled||!schema;
+    const pageRequest=preparation.pageRequestId&&sheetPageRequest?.requestId===preparation.pageRequestId?sheetPageRequest:null;
+    const recoveryOnly=!row||!row.enabled||!schema||Boolean(preparation.pageRequestId&&pageRequest?.approvalAllowed!==true);
     if(row)selectSheetTask(row.taskId);
     if(schema){
       // A native single-line Input cannot display line breaks from saved runs.
@@ -102,12 +105,13 @@ export function createTaskWorkbench({client,host,currentPageTarget,api=globalThi
       ui('task-params-json').value=JSON.stringify(preparation.params,null,2);persistParams();
     }
     myView.project('taskRunSheet',{identity:{...preparation.task},title:info?.manifest.title||preparation.task.taskId,
-      source:'tool',target:preparation.target,recoveryOnly,originalParams:preparation.params,
+      source:preparation.pageRequestId?'page':'tool',target:preparation.target,recoveryOnly,originalParams:preparation.params,
+      ...(preparation.pageRequestId?{pageRequestId:preparation.pageRequestId,pageBinding:pageRequest?.pageBinding,paramsLocked:true}:{}),
       phase:preparation.state==='cancelled'?'cancelled':settled===true?'settled':preparation.state==='prepared'?'prepared':preparation.state==='unknown'?'unknown':'submitted',
       preparationId:preparation.preparationId,status:preparation.state==='cancelled'
         ?'原准备已取消；请关闭后打开新配置。'
         :settled===true?'原运行已结算并释放资源；'+(snapshot?.results?.some(result=>result.runId===snapshot.run?.runId&&result.resultId===snapshot.run?.resultId&&result.outcome)?'结果以持久回执为准。':'结果当前不可见。')+'请关闭后打开新配置。'
-        :recoveryOnly?'原安装已不可用；原参数只读，仅可查询或取消原请求，不能执行。'
+        :recoveryOnly?preparation.pageRequestId?'来源网页或任务授权已失效；原请求只读，不能再次执行。':'原安装已不可用；原参数只读，仅可查询或取消原请求，不能执行。'
         :preparation.state==='prepared'?'参数和网页身份已持久保存并读回，尚未提交网页执行。'
         :'已恢复原请求，只能查询或停止；不会自动重新运行。',busy:false,
       ...(snapshot?{snapshot,resultText:preparationResultText(snapshot)}:{})});
@@ -129,11 +133,80 @@ export function createTaskWorkbench({client,host,currentPageTarget,api=globalThi
     if(id&&preparation.preparationId!==id)return null;
     if(sequence!==sheetSequence||request!==inspectionSequence)return reply;
     sharedPreparation=preparation.state==='cancelled'||reply.settled===true?null:preparation;
-    if(show&&myView.data.taskRunSheet&&myView.data.taskRunSheet.preparationId===originalId)
+    if(show&&myView.data.taskRunSheet&&myView.data.taskRunSheet.preparationId===originalId){
+      if(preparation.pageRequestId){
+        const pageReply=await client.request('readPageTaskRequest',{requestId:preparation.pageRequestId});
+        if(disposed||sequence!==sheetSequence||request!==inspectionSequence)return reply;
+        if(pageReply?.request?.requestId!==preparation.pageRequestId||
+          pageReply.request.preparationId!==preparation.preparationId)
+          throw {code:'E_OWNER',message:'原网页请求与准备身份不匹配'};
+        bindPageApproval(pageReply.request);
+      }
       showPreparation(preparation,reply.snapshot,reply.settled);
+    }
     return reply;
   }
-  async function openTaskRunSheet({task,binding=null,preparationId=null,assertAuthorized=async()=>{},trigger=null}){
+  function samePageRequest(a,b){
+    return a?.requestId===b?.requestId&&a?.preparationId===b?.preparationId&&
+      sameInstallation(a?.task,b?.task)&&
+      ['params','target','pageBinding'].every(key=>JSON.stringify(a?.[key])===JSON.stringify(b?.[key]));
+  }
+  function bindPageApproval(request){
+    sheetPageRequest=structuredClone(request);
+    const expected=sheetPageRequest;
+    sheetAuthorization=async()=>{
+      const reply=await client.request('readPageTaskRequest',{requestId:expected.requestId});
+      if(!samePageRequest(reply?.request,expected)||reply.request.approvalAllowed!==true)
+        throw {code:'E_PAGE_AUTHORIZATION',message:'原网页或授权已变化；只能查询原请求，不能重新执行'};
+    };
+  }
+  async function openPageTaskRequest(requestId){
+    if(disposed||sheetBusy||running||working||host.currentRun)return false;
+    const sequence=++sheetSequence;
+    await client.ready;await refresh(undefined,{skipUnchanged:true});
+    const reply=await client.request('readPageTaskRequest',{requestId});
+    const request=reply?.request;
+    if(disposed||sequence!==sheetSequence)return false;
+    if(request?.requestId!==requestId||!request.preparationId||request.target?.mode!=='owned')
+      throw {code:'E_OWNER',message:'缺少原网页任务请求'};
+    const existing=await inspectPreparation(reply.preparation?.preparationId);
+    if(disposed||sequence!==sheetSequence)return false;
+    if(existing?.preparation&&existing.preparation.pageRequestId!==requestId)
+      throw {code:'E_TASK_BUSY',message:'已有原任务准备占用；请先核对原请求'};
+    bindPageApproval(request);
+    if(reply.preparation){showPreparation(reply.preparation,reply.snapshot,reply.settled);return true;}
+    const row=installed.find(row=>sameInstallation(taskIdentity(row),request.task));
+    const info=row&&candidateFor(row);
+    if(!row?.enabled||!info||request.approvalAllowed!==true)
+      throw {code:'E_PAGE_AUTHORIZATION',message:'原网页任务不可批准；请查询原请求'};
+    const params=validateTaskParams(info.manifest.paramsSchema,request.params);
+    selectSheetTask(row.taskId);
+    // Page-supplied input is untrusted data. Review the exact persisted bytes;
+    // editing a form must never silently change what the source requested.
+    myView.data.taskParamsMode='json';
+    ui('task-params-json').value=JSON.stringify(params,null,2);
+    myView.project('taskRunSheet',{identity:{...request.task},title:info.manifest.title,source:'page',
+      pageRequestId:requestId,pageBinding:request.pageBinding,preparationId:request.preparationId,
+      target:{...request.target},originalParams:params,paramsLocked:true,phase:'editing',
+      sites:info.manifest.siteOrigins,status:'来自已安装网页程序的请求；核对后仍需确认执行一次。'});
+    return true;
+  }
+  async function refreshPageTaskRequests(){
+    if(disposed||pageDiscovery||myView.data.taskRunSheet||sheetBusy||running||working||host.currentRun||
+      typeof client.subscribePageTasks!=='function')return;
+    const task=(async()=>{
+      const {requests}=await client.request('listPageTaskRequests',{});
+      if(disposed||myView.data.taskRunSheet||sheetBusy||running||working||host.currentRun)return;
+      const source=currentPageTarget?.snapshot;
+      const request=requests?.find(row=>['pending-approval','prepared'].includes(row.state)&&!dismissedPageRequests.has(row.requestId)&&
+        row.pageBinding?.tabId===source?.tabId&&row.pageBinding?.url===source?.url&&
+        row.pageBinding?.documentId===source?.documentId);
+      if(request)await openPageTaskRequest(request.requestId);
+    })();
+    pageDiscovery=task;
+    try{await task;}finally{if(pageDiscovery===task)pageDiscovery=null;}
+  }
+  async function openTaskRunSheet({task,binding=null,preparationId=null,assertAuthorized=async()=>{},trigger=null,target=null}){
     if(disposed||sheetBusy)return false;
     const sequence=++sheetSequence;
     await client.ready;await refresh(undefined,{skipUnchanged:true});await assertAuthorized();
@@ -150,18 +223,21 @@ export function createTaskWorkbench({client,host,currentPageTarget,api=globalThi
       const sameBinding=!original.binding&&!binding||Boolean(original.binding&&binding&&
         ['appId','packageHash','generation'].every(key=>original.binding[key]===binding[key])&&
         sameInstallation(original.binding.task,binding.task));
-      if(!sameInstallation(original.task,task)||!sameBinding)
+      if(!sameInstallation(original.task,task)||!sameBinding||original.pageRequestId)
         throw {code:preparationId?'E_REVISION':'E_TASK_BUSY',message:'已有其他任务或应用身份的准备占用；请从原入口查询或取消，不能确认执行'};
     }
-    sheetAuthorization=assertAuthorized;
+    sheetAuthorization=assertAuthorized;sheetPageRequest=null;
     if(previous?.preparation){showPreparation(previous.preparation,previous.snapshot,previous.settled);return true;}
     const resolved=await client.request('resolveInstalledTask',{taskId:task.taskId,purpose:'configure'});
     await assertAuthorized();
     if(disposed||sequence!==sheetSequence)return false;
     if(!sameInstallation(resolved,task))throw {code:'E_REVISION',message:'任务安装身份已变化，请刷新脚本列表'};
     selectSheetTask(task.taskId);
-    myView.project('taskRunSheet',{identity:{...task},title:resolved.manifest.title,source:binding?'tool':'my',
-      phase:'editing',binding,trigger,sites:resolved.manifest.siteOrigins,status:''});
+    if(target!==null&&(target?.mode!=='owned'||typeof target.url!=='string'||
+      Object.keys(target).some(key=>!['mode','url'].includes(key))||!/^https?:$/.test(new URL(target.url).protocol)))
+      throw {code:'E_SCHEMA',message:'独立网页目标无效'};
+    myView.project('taskRunSheet',{identity:{...task},title:resolved.manifest.title,source:binding||target?'tool':'my',
+      phase:'editing',binding,trigger,...(target?{target:{...target}}:{}),sites:resolved.manifest.siteOrigins,status:''});
     return true;
   }
   function prepareSheet(event,expected){
@@ -171,10 +247,13 @@ export function createTaskWorkbench({client,host,currentPageTarget,api=globalThi
     try{
       const row=installedRow(),info=candidateFor(row);
       if(!sameInstallation(taskIdentity(row),expected))throw {code:'E_REVISION',message:'任务安装身份已变化'};
-      params=paramsFromForm(info.manifest.paramsSchema);
-      const captured=currentPageTarget.capture();
-      target={mode:'borrowed',tabId:captured.tabId,frameId:0,documentId:captured.documentId,
-        expectedUrl:captured.url,expectedWindowId:captured.windowId};
+      params=sheet.pageRequestId?validateTaskParams(info.manifest.paramsSchema,sheet.originalParams):paramsFromForm(info.manifest.paramsSchema);
+      if(sheet.target?.mode==='owned')target={...sheet.target};
+      else{
+        const captured=currentPageTarget.capture();
+        target={mode:'borrowed',tabId:captured.tabId,frameId:0,documentId:captured.documentId,
+          expectedUrl:captured.url,expectedWindowId:captured.windowId};
+      }
     }catch(error){fail(error);sheetStatus(formatTaskError(error));return false;}
     // Allocate once before the first await. Lost persistence ACKs only inspect
     // this identity; they never mint a second request or submit a Run.
@@ -187,7 +266,7 @@ export function createTaskWorkbench({client,host,currentPageTarget,api=globalThi
       await sheetAuthorization?.();
       if(!current())return;
       await client.request('prepareTaskRun',{preparationId,task:expected,params,target,
-        ...(sheet.binding?{binding:sheet.binding}:{})});
+        ...(sheet.binding?{binding:sheet.binding}:{}),...(sheet.pageRequestId?{pageRequestId:sheet.pageRequestId}:{})});
       if(!current())return;
       const reply=await inspectPreparation(preparationId);
       if(!reply?.preparation||reply.preparation.preparationId!==preparationId)
@@ -879,7 +958,7 @@ export function createTaskWorkbench({client,host,currentPageTarget,api=globalThi
       return expectedIdentity?false:undefined;
     }
     const writeAuthorization=preparation?sheetAuthorization:null;
-    let chosen,params,site,permission,captured;
+    let chosen,params,site,permission,captured,runTarget;
     try {
       chosen=agentIntent?installed.find(row=>row.taskId===agentIntent.taskId):installedRow();
       if(!agentIntent)for(const {name}of myView.data.taskParams||[])ui('task-param-'+name).error='';
@@ -892,19 +971,24 @@ export function createTaskWorkbench({client,host,currentPageTarget,api=globalThi
       const info=candidateFor(chosen);
       if(chosen?.runtimeCurrent===false||info?.runtimeCurrent===false)throw {code:'E_BUILTIN_VERSION_UNAVAILABLE',message:'运行时已更新，请对同一固定任务重新验证并确认安装'};
       if(!chosen?.enabled||info?.stage!=='available')throw {code:'E_PERMISSION',message:'当前任务未启用或不可安装'};
-      captured=currentPageTarget.capture();
-      if(preparation){
-        if(preparation.state!=='prepared'||!sameInstallation(preparation.task,expectedIdentity)||
-          preparation.target.tabId!==captured.tabId||preparation.target.documentId!==captured.documentId||
-          preparation.target.expectedUrl!==captured.url||preparation.target.expectedWindowId!==captured.windowId)
+      if(preparation&&(preparation.state!=='prepared'||!sameInstallation(preparation.task,expectedIdentity)))
+        throw {code:'E_REVISION',message:'原准备任务身份已变化，只能查询原请求'};
+      if(preparation?.target?.mode==='owned')runTarget={...preparation.target};
+      else{
+        captured=currentPageTarget.capture();
+        if(preparation&&(preparation.target.tabId!==captured.tabId||preparation.target.documentId!==captured.documentId||
+          preparation.target.expectedUrl!==captured.url||preparation.target.expectedWindowId!==captured.windowId))
           throw {code:'E_DOCUMENT_STALE',message:'保存后的任务或目标网页已变化，请取消准备后重新核对'};
+        runTarget={mode:'borrowed',tabId:captured.tabId,frameId:0,documentId:captured.documentId,
+          expectedUrl:captured.url,expectedWindowId:captured.windowId};
       }
-      site=new URL(captured.url).origin;
+      const targetUrl=runTarget.mode==='owned'?runTarget.url:captured.url;
+      site=new URL(targetUrl).origin;
       if(!info.manifest.siteOrigins.includes(site))throw {code:'E_PERMISSION',message:'此任务不适用于当前网站'};
       params=preparation?validateTaskParams(info.manifest.paramsSchema,preparation.params):agentIntent?validateTaskParams(info.manifest.paramsSchema,agentIntent.params):
         paramsFromForm(info.manifest.paramsSchema);
       chosen={...chosen,manifestHash:info.manifestHash,title:info.manifest.title};
-      permission=requireChromePermissions({api,request:{origins:[permissionPattern(captured.url)]}});
+      permission=requireChromePermissions({api,request:{origins:[permissionPattern(targetUrl)]}});
     }catch(error){fail(error);return agentIntent?Promise.reject(error):(expectedIdentity?false:undefined);}
     const sequence=sheetSequence;
     // A reopened preparation has the same ID but owns a new sheet instance.
@@ -924,9 +1008,9 @@ export function createTaskWorkbench({client,host,currentPageTarget,api=globalThi
           throw {code:'E_REVISION',message:'原准备身份已提交、取消或变化，只能查询原请求'};
       }
       if(disposed)throw {code:'E_HOST_CLOSED',message:'Sidebar 已关闭'};
-      await currentPageTarget.revalidate(captured);
+      if(captured)await currentPageTarget.revalidate(captured);
       const resolved=await client.request('resolveInstalledTask',{taskId:chosen.taskId});
-      await currentPageTarget.revalidate(captured); // Close resolve -> start document race.
+      if(captured)await currentPageTarget.revalidate(captured); // Close resolve -> start document race.
       if(resolved.taskId!==chosen.taskId || resolved.version!==chosen.version || resolved.manifestHash!==chosen.manifestHash)
         throw {code:'E_REVISION',message:'安装的任务版本已改变，请重新选择'};
       if((resolved.generation??null)!==(chosen.generation??null)||
@@ -940,12 +1024,11 @@ export function createTaskWorkbench({client,host,currentPageTarget,api=globalThi
       if(agentIntent&&(agentStopRequested||agentIntent.signal?.aborted))
         throw {code:'E_CANCELLED',message:'已请求停止，尚未启动任务'};
       if(writeAuthorization)await writeAuthorization();
-      if(preparation)await currentPageTarget.revalidate(captured);
+      if(preparation&&captured)await currentPageTarget.revalidate(captured);
       agentStartSubmitted=Boolean(agentIntent);
       const claim=await host.start({source:{kind:'saved',scriptId:resolved.scriptId,revision:resolved.revision,
           contentHash:resolved.contentHash},params,expectedTaskGeneration:chosen.generation??null,expectedTaskInstallationId:chosen.installationId??null,
-        target:{mode:'borrowed',tabId:captured.tabId,frameId:0,documentId:captured.documentId,
-          expectedUrl:captured.url,expectedWindowId:captured.windowId},
+        target:runTarget,
         ...(preparation?{taskPreparationId:preparation.preparationId,
           requestId:preparation.preparationId,...(preparation.binding?{taskDelegation:preparation.binding}:{})}:{}),
         deadlineAt:preparation?.deadlineAt??Date.now()+(resolved.manifest.deadlineMs??30000)});
@@ -982,10 +1065,8 @@ export function createTaskWorkbench({client,host,currentPageTarget,api=globalThi
       running=false;agentStopRequested=false;agentStartSubmitted=false;
       if(disposed)return;
       renderTaskStatus();update(); // Retire the visible Stop without waiting for history RPC.
-      if(preparation&&currentSheet())await inspectPreparation(preparation.preparationId).then(reply=>{
-        if(reply&&currentSheet())
-          showPreparation(reply.preparation,reply.snapshot,reply.settled);
-      }).catch(error=>{if(currentSheet())sheetStatus(formatTaskError(error),'unknown');});
+      if(preparation&&currentSheet())await inspectPreparation(preparation.preparationId,{show:true})
+        .catch(error=>{if(currentSheet())sheetStatus(formatTaskError(error),'unknown');});
       try{
         // A proven legacy installation gains its durable identity only inside
         // first-run admission. Refresh it before the next explicit Run click.
@@ -1262,8 +1343,11 @@ export function createTaskWorkbench({client,host,currentPageTarget,api=globalThi
   registerAction('taskParametersOpen',(taskId,event,trigger)=>{
     if(!event?.isTrusted||disposed||sheetBusy)return false;
     const sequence=++sheetSequence;
+    if(sharedPreparation?.pageRequestId){
+      void openPageTaskRequest(sharedPreparation.pageRequestId).catch(fail);return false;
+    }
     if(sharedPreparation){showPreparation(sharedPreparation);return true;}
-    selectSheetTask(taskId);sheetAuthorization=null;
+    selectSheetTask(taskId);sheetAuthorization=null;sheetPageRequest=null;
     myView.project('taskRunSheet',{identity:taskIdentity(installedRow()),title:candidateFor(installedRow())?.manifest.title,
       source:'my',phase:'editing',trigger,sites:candidateFor(installedRow())?.manifest.siteOrigins,status:''});
     // Discovery is read-only. A cross-host preparation is also enforced again
@@ -1273,7 +1357,11 @@ export function createTaskWorkbench({client,host,currentPageTarget,api=globalThi
     });
     return true;
   });
-  registerAction('taskSheetClose',()=>{rememberParams();persistParams();sheetSequence++;sheetBusy=false;sheetValidation=null;myView.project('taskRunSheet',null);});
+  registerAction('taskSheetClose',()=>{
+    if(myView.data.taskRunSheet?.pageRequestId)dismissedPageRequests.add(myView.data.taskRunSheet.pageRequestId);
+    rememberParams();persistParams();sheetSequence++;sheetBusy=false;sheetValidation=null;sheetPageRequest=null;
+    myView.project('taskRunSheet',null);
+  });
   registerAction('taskSheetPrepareClick',prepareSheet);
   registerAction('taskSheetConfirmClick',(event,expected)=>{
     const sheet=myView.data.taskRunSheet;
@@ -1367,6 +1455,7 @@ export function createTaskWorkbench({client,host,currentPageTarget,api=globalThi
   registerAction('taskForkDraftClick',asyncAction(fork));
   const unsubscribePage=currentPageTarget?.subscribe(next=>{
     currentPage=next;update();renderInstalledCards();
+    void refreshPageTaskRequests().catch(fail);
   });
   const unsubscribeRun=host.subscribe(value=>{
     if(disposed)return;
@@ -1376,10 +1465,14 @@ export function createTaskWorkbench({client,host,currentPageTarget,api=globalThi
     }
     renderTaskStatus();update();
   });
-  const unsubscribeConn=client.subscribeConnection?.(state=>{if(state.connected)refresh().catch(fail);});
+  const unsubscribePageTasks=client.subscribePageTasks?.(()=>{void refreshPageTaskRequests().catch(fail);});
+  const unsubscribeConn=client.subscribeConnection?.(state=>{if(state.connected){
+    refresh().catch(fail);void refreshPageTaskRequests().catch(fail);
+  }});
   client.ready.then(async()=>{
     await restoreParams().catch(error=>console.warn('Task parameter drafts could not be restored',error));
-    if(!disposed){await refresh();await inspectPreparation().catch(error=>console.warn('Task preparation recovery unavailable',error));}
+    if(!disposed){await refresh();await inspectPreparation().catch(error=>console.warn('Task preparation recovery unavailable',error));
+      await refreshPageTaskRequests();}
   }).catch(fail);
   navigate('tasks',{initial:true});update();
   // Subscribe to cross-document refresh hints only once the instance can be
@@ -1389,7 +1482,7 @@ export function createTaskWorkbench({client,host,currentPageTarget,api=globalThi
   updates?.addEventListener?.('message',event=>{
     if(!disposed&&event.data?.type==='catalog-changed')refresh().catch(fail);
   });
-  return {navigate,showCatalogPage,refresh,myView,openTaskRunSheet,setWorkflowRunOwner(runId) {
+  return {navigate,showCatalogPage,refresh,myView,openTaskRunSheet,openPageTaskRequest,setWorkflowRunOwner(runId) {
     workflowClaimPending=runId==='pending';
     workflowRunId=runId && runId!=='pending'?runId:null;
     if(!disposed)syncRunDock();
@@ -1450,7 +1543,7 @@ export function createTaskWorkbench({client,host,currentPageTarget,api=globalThi
   },dispose() {
     if(disposed)return;disposed=true;
     permissionSequence++;permissionConsent.dispose();
-    unsubscribePage?.();unsubscribeRun?.();unsubscribeConn?.();
+    unsubscribePage?.();unsubscribeRun?.();unsubscribeConn?.();unsubscribePageTasks?.();
     for(const {remove} of listeners)remove();
     listeners.length=0;updates?.close?.();
   }};

@@ -1,0 +1,66 @@
+{
+  "taskId": "OD-SUBAGENT-CHAT-A2B2A-R2-TRUSTED-CLOSURE",
+  "evidence": "Actual read-only connector calls; sanitized status only. No tunnel URL, credentials, private session data or fabricated runtime receipt retained.",
+  "checks": [
+    {
+      "kind": "browser-core",
+      "tool": "mcp__codex_apps__opendesk_desktop_mac96_tm_browser_status",
+      "checkedAt": "2026-11-12 14:12:45 UTC",
+      "status": "UNAVAILABLE",
+      "reason": "MCP SSE probe returned 429",
+      "nativeExecution": false
+    },
+    {
+      "kind": "code-workspace",
+      "tool": "mcp__codex_apps__opendesk_code_mac96_tm_files_status",
+      "checkedAt": "2026-11-12 14:12:45 UTC",
+      "status": "UNAVAILABLE",
+      "reason": "MCP SSE probe returned 429",
+      "nativeExecution": false
+    }
+  ],
+  "codexProEarlierAttempt": {
+    "status": "UNAVAILABLE",
+    "reason": "Connection failed",
+    "currentWorkspaceOpened": false
+  },
+  "browserPluginObservation": {
+    "status": "TAB_METADATA_REACHABLE",
+    "candidateInstalled": false,
+    "tabClaimed": false,
+    "aOrBInteraction": false,
+    "limitation": "Browser tab metadata is not the OpenDesk Browser Core installation or authority."
+  },
+  "taskActions": {
+    "createdChatGPTB": 0,
+    "submittedTaskMessages": 0,
+    "sentToAOfficialChat": 0,
+    "scope": "This task's tool actions only; no claim about other agents or user activity."
+  },
+  "installation": {
+    "subagentVersion": "UNKNOWN",
+    "taskVersion": "UNKNOWN",
+    "newCandidateInstalled": false
+  },
+  "chromeNative": "NOT_TESTED",
+  "business": "BLOCKED",
+  "previousChecks": [
+    {
+      "kind": "browser-core",
+      "tool": "mcp__codex_apps__opendesk_desktop_mac96_tm_browser_status",
+      "checkedAt": "2026-11-12 13:59:17 UTC",
+      "status": "UNAVAILABLE",
+      "reason": "MCP SSE probe returned 429",
+      "nativeExecution": false
+    },
+    {
+      "kind": "code-workspace",
+      "tool": "mcp__codex_apps__opendesk_code_mac96_tm_files_status",
+      "checkedAt": "2026-11-12 13:59:17 UTC",
+      "status": "UNAVAILABLE",
+      "reason": "MCP SSE probe returned 429",
+      "nativeExecution": false
+    }
+  ],
+  "checkedAfterFinalMergedBuild": true
+}

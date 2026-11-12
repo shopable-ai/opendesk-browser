@@ -50,9 +50,12 @@ export function createPageProgramLibrary({client,currentPageTarget,api,document:
     patchDeveloperField(view,detail,{textContent:`${row.programId} · r${row.revision} · ${row.stage}\n`+
       '匹配：'+row.pageRules.matches.join('、')+'\n当前版本的网站访问：'+access+
       '\n程序能力：隔离网页 DOM；不继承扩展、其他程序或独立网页 SDK 的权限。'+
+      (row.delegatedTasks?.length?'\n固定任务（仅请求原工作台审批和读取本请求结果）：\n'+row.delegatedTasks.map(pin=>
+        `${pin.taskId} v${pin.version} · ${pin.targetUrl}\nmanifest SHA-256：${pin.manifestHash}\nsource SHA-256：${pin.contentHash}`).join('\n'):'')+
       (delta?'\n新增权限需要确认：'+[
         ...delta.addedSites.map(site=>'新增网站 '+site),
         ...(delta.addedCapabilities||[]).map(capability=>'新增程序能力 '+capability),
+        ...(delta.addedTaskDelegations||[]).map(pin=>'新增固定任务 '+pin.taskId+' v'+pin.version),
         ...delta.removedExclusions.map(site=>'不再排除 '+site),
         ...(delta.changedExecution?['运行环境或时机改变']:[])].join('；'):'')+
       '\n源码 SHA-256：'+row.sourceHash+

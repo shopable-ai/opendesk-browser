@@ -1,0 +1,22 @@
+TAP version 13
+# Subtest: original installers share only the byte-pinned Prompt Shortcuts asset identity for uninstall cleanup
+ok 1 - original installers share only the byte-pinned Prompt Shortcuts asset identity for uninstall cleanup
+  ---
+  duration_ms: 73.756374
+  type: 'test'
+  ...
+# Subtest: reviewed Scroll settings keep exact blobs and shell-only admission
+ok 2 - reviewed Scroll settings keep exact blobs and shell-only admission
+  ---
+  duration_ms: 83.232152
+  type: 'test'
+  ...
+1..2
+# tests 2
+# suites 0
+# pass 2
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 360.87502

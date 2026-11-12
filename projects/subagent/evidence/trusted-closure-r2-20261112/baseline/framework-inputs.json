@@ -1,0 +1,182 @@
+{
+  "head": "1521f9d1a90029a569e496f6d2d47193575f2cac",
+  "evidence": "NODE_DIAGNOSTIC_HEAD_OVERRIDE_ONLY",
+  "overrides": {
+    "projects/webflow/trusted/chatgpt-file-intent-gate.js": {
+      "snapshot": "sources/projects/webflow/trusted/chatgpt-file-intent-gate.js",
+      "sha256": "4e744b0e3dc8cada645d657a781426c90804177449a5e8c5f4b0abe73510789d",
+      "gitBlob": "1222d7775877b78ba5d42ecf76367f2a1ddc035b",
+      "currentFileSha256Before": "aeea5011d675bba6a923bcd397deb73c4c0562728be673ba880f03284673e5fc",
+      "currentFileSha256After": "aeea5011d675bba6a923bcd397deb73c4c0562728be673ba880f03284673e5fc"
+    },
+    "projects/webflow/trusted/chatgpt-files-controller.js": {
+      "snapshot": "sources/projects/webflow/trusted/chatgpt-files-controller.js",
+      "sha256": "32f35beb4a2d03129b58b8dc36e4a0496e3e367d8b873c391d7ba6ba8abff5f8",
+      "gitBlob": "bfdab1b8fee238e7bc81f81ada8e06c384052314",
+      "currentFileSha256Before": "05d0fd758a4ad6ed367eae9b7a1fcda949c7b66d57e1075f8dc4f399af60d3ed",
+      "currentFileSha256After": "05d0fd758a4ad6ed367eae9b7a1fcda949c7b66d57e1075f8dc4f399af60d3ed"
+    },
+    "projects/webflow/trusted/chatgpt-images.js": {
+      "snapshot": "sources/projects/webflow/trusted/chatgpt-images.js",
+      "sha256": "8b69b1973824ccaf3a16ccc01e5397cf3935ce48031998033588fd152d4425de",
+      "gitBlob": "2a0bf5ce089094f8a897627d0fc8b44f397feef8",
+      "currentFileSha256Before": "42eb7c6e713f391089459d2f732ffe38768651f873741c3a2bb89261d123f978",
+      "currentFileSha256After": "42eb7c6e713f391089459d2f732ffe38768651f873741c3a2bb89261d123f978"
+    },
+    "scripts/build-program-project.mjs": {
+      "snapshot": "sources/scripts/build-program-project.mjs",
+      "sha256": "948541a0994b6f7a6986ace2367adf98fda26d71aaad718b734d3be52abd6c1b",
+      "gitBlob": "7b4029dcfef25e52a75dad5bf28a52ee261a0c1d",
+      "currentFileSha256Before": "d62dabe57c2be3d13f3393d309a5e90d4366156648dcb56ef873d1a42126007b",
+      "currentFileSha256After": "d62dabe57c2be3d13f3393d309a5e90d4366156648dcb56ef873d1a42126007b"
+    },
+    "scripts/bundle-provenance.mjs": {
+      "snapshot": "sources/scripts/bundle-provenance.mjs",
+      "sha256": "ddedcca1898cf0eb5f80e0acf22455fe340cb603eca072d7088bde40a2ea2bf8",
+      "gitBlob": "b90d526ec29964731cab0bc8f7f83ba99d848bcf",
+      "currentFileSha256Before": "05d692afbdbbb5de47cd053180eab341885692c9229766ce70412bec6bab87ed",
+      "currentFileSha256After": "05d692afbdbbb5de47cd053180eab341885692c9229766ce70412bec6bab87ed"
+    },
+    "scripts/validate-program-project.mjs": {
+      "snapshot": "sources/scripts/validate-program-project.mjs",
+      "sha256": "aaf29816f96a9debe6308f03885373d132ad9914e9101bc99137587b4926dcdc",
+      "gitBlob": "6f5b144986f59333921ab991091bfd221530397d",
+      "currentFileSha256Before": "5a75de331e962c5f1a1935f6761d4011470c34485ec8b3b645a21911b2d2fe18",
+      "currentFileSha256After": "5a75de331e962c5f1a1935f6761d4011470c34485ec8b3b645a21911b2d2fe18"
+    },
+    "src/native-agent/workspace-chat-edit-ui.js": {
+      "snapshot": "sources/src/native-agent/workspace-chat-edit-ui.js",
+      "sha256": "f79507e8659be1db44304fdc0949ea4bd7659fe9722362d2b7d542c2ec486056",
+      "gitBlob": "80ad161bcf4cf66b978e759ac192666f1313f0d9",
+      "currentFileSha256Before": "b556ccdf8a17e16981745a8c47d219bbcd41fa3e9d15f11e3b766d6dfdbd97e0",
+      "currentFileSha256After": "b556ccdf8a17e16981745a8c47d219bbcd41fa3e9d15f11e3b766d6dfdbd97e0"
+    },
+    "src/native-agent/workspace-chatgpt.js": {
+      "snapshot": "sources/src/native-agent/workspace-chatgpt.js",
+      "sha256": "a9620a8e05b26ccbad0161aacdf02bfdebefc33ef824a0d283e29d0f2f57c006",
+      "gitBlob": "99df25544a855070f881f6b713b78f24a9b779ee",
+      "currentFileSha256Before": "966aeab2ecbfc8c596ca95711087bdc70cbd11b41d5dbc7a1febe2f380570bef",
+      "currentFileSha256After": "966aeab2ecbfc8c596ca95711087bdc70cbd11b41d5dbc7a1febe2f380570bef"
+    },
+    "src/platform/host/authority.js": {
+      "snapshot": "sources/src/platform/host/authority.js",
+      "sha256": "4e93a0a07ec48145b50ce6787b8f2bf450c261e18d1b2293038dd7f6ca102456",
+      "gitBlob": "1a5df87b013f507698fc0d5ddf85765add7b0ac7",
+      "currentFileSha256Before": "381dcd1c009e6b0e12b89d2687cfbd5357a0e65c3a89843850d8cccf81f45bdc",
+      "currentFileSha256After": "381dcd1c009e6b0e12b89d2687cfbd5357a0e65c3a89843850d8cccf81f45bdc"
+    },
+    "src/platform/host/broker.js": {
+      "snapshot": "sources/src/platform/host/broker.js",
+      "sha256": "b9df84feefd42a7fecb3aa7f800b32444f4fc74c1905d8734c3d379879a1cb51",
+      "gitBlob": "a9187b1a53c1c4b4730d6944fb9e0c3b4f78114e",
+      "currentFileSha256Before": "8984b9e7ab7eb3f90509f86ce1ae85d3f7a0180774f128c13d51ba29fb55e0d5",
+      "currentFileSha256After": "8984b9e7ab7eb3f90509f86ce1ae85d3f7a0180774f128c13d51ba29fb55e0d5"
+    },
+    "src/platform/host/client.js": {
+      "snapshot": "sources/src/platform/host/client.js",
+      "sha256": "6ea09578190b194c1635801d6f19a15299bb4f71403b2444268777387ecca0be",
+      "gitBlob": "33659ccdc378523a417d796cfb5acbacab1c5b19",
+      "currentFileSha256Before": "7349d26cfc93e4fbdfee96b3ecd8b9ac8edba479dae02959f584638371d48beb",
+      "currentFileSha256After": "7349d26cfc93e4fbdfee96b3ecd8b9ac8edba479dae02959f584638371d48beb"
+    },
+    "src/platform/host/controller-methods.js": {
+      "snapshot": "sources/src/platform/host/controller-methods.js",
+      "sha256": "128a49d005caade97a0d3aaf505a5a302a2eac0ab737fdddbb7935d551477281",
+      "gitBlob": "3ccd179892e2898bff68b706651d9fbd7ffde7e4",
+      "currentFileSha256Before": "290a8fcd75a13b3cc6ea3f078fb274baf7c9f5697c5a6b9d5967d0310a56049b",
+      "currentFileSha256After": "290a8fcd75a13b3cc6ea3f078fb274baf7c9f5697c5a6b9d5967d0310a56049b"
+    },
+    "src/scripting/user-scripts/dependency-metadata.js": {
+      "snapshot": "sources/src/scripting/user-scripts/dependency-metadata.js",
+      "sha256": "2b69128272bc6944c044b8ff07a1e4bd55499674398c3977fb572932ef484da3",
+      "gitBlob": "2ff1d13427bc8728230c04440bd3e745639407fa",
+      "currentFileSha256Before": "2b59ca3febd1ac01959314507be30df7ce1af481cadafae48b881eea64e23e91",
+      "currentFileSha256After": "2b59ca3febd1ac01959314507be30df7ce1af481cadafae48b881eea64e23e91"
+    },
+    "src/scripting/user-scripts/installed-programs.js": {
+      "snapshot": "sources/src/scripting/user-scripts/installed-programs.js",
+      "sha256": "76b9e8601aef21cdba629766dd8ce232e8d1e308b1ed1e95d1b1a6ecada8063e",
+      "gitBlob": "f5a83871133718b2799a2bde8dc97a017474a3f9",
+      "currentFileSha256Before": "2f6ffe3b617631f9fafe75402128320e8d0cf473aff3188709c421a768053f0f",
+      "currentFileSha256After": "2f6ffe3b617631f9fafe75402128320e8d0cf473aff3188709c421a768053f0f"
+    },
+    "src/scripting/user-scripts/page-install-authorization.js": {
+      "snapshot": "sources/src/scripting/user-scripts/page-install-authorization.js",
+      "sha256": "2092036c5684c1a20e62562183c00b871f6905f48874223d42ff74832bae0051",
+      "gitBlob": "533e06a52afc0e01412cac31044060eb0e7bea14",
+      "currentFileSha256Before": "c0bc81aff0681fd908d8511a8e7b78768dfda6a7a663d62e17865321612e63ed",
+      "currentFileSha256After": "c0bc81aff0681fd908d8511a8e7b78768dfda6a7a663d62e17865321612e63ed"
+    },
+    "src/scripting/user-scripts/page-install-package.js": {
+      "snapshot": "sources/src/scripting/user-scripts/page-install-package.js",
+      "sha256": "ba5c800b9329eabc5ad192ef9f78eb69bdc43bde3b65bd142cef91266cff872f",
+      "gitBlob": "e3abf1ce0bb189782015aa9078b2401227aca12c",
+      "currentFileSha256Before": "51c23f19b008ce922d22e25ccf0401d15da984d1cb4fd0e6bc0f776c84606969",
+      "currentFileSha256After": "51c23f19b008ce922d22e25ccf0401d15da984d1cb4fd0e6bc0f776c84606969"
+    },
+    "src/scripting/user-scripts/preview.js": {
+      "snapshot": "sources/src/scripting/user-scripts/preview.js",
+      "sha256": "a84fb9a0347bc0610b551168a61083ba5a0242177c417c357f1d32a5488a6318",
+      "gitBlob": "1469bc5405a495bf565bade70d22c34d1ecec1cf",
+      "currentFileSha256Before": "24e3b3e2378040811c984dbe35d0f09200b62d243597b37603b12f4373673d51",
+      "currentFileSha256After": "24e3b3e2378040811c984dbe35d0f09200b62d243597b37603b12f4373673d51"
+    },
+    "src/sw.js": {
+      "snapshot": "sources/src/sw.js",
+      "sha256": "d970cf45bb0a248ab634736961f697a6aa9904e749a90aae15b0b329cc1ac7e7",
+      "gitBlob": "e20f00d40463442874c47986c4c2f50ad7ecfb49",
+      "currentFileSha256Before": "5871264d9a069b6275206a0c20e306e265629ea6cf101af39d5a9315107ced34",
+      "currentFileSha256After": "5871264d9a069b6275206a0c20e306e265629ea6cf101af39d5a9315107ced34"
+    },
+    "src/ui/page-program-library.js": {
+      "snapshot": "sources/src/ui/page-program-library.js",
+      "sha256": "359b674aacc515fceb00b7323a7c5465ae359b724400e6609590c0a988ea75fa",
+      "gitBlob": "f6e96c0ac5712dbf854c1995413affbe2f0d1c2b",
+      "currentFileSha256Before": "bfc02b78100cb7b5b59f537be365e4a6a7adc3ab852d6aa81972955ead3dd68f",
+      "currentFileSha256After": "bfc02b78100cb7b5b59f537be365e4a6a7adc3ab852d6aa81972955ead3dd68f"
+    },
+    "src/ui/task-workbench.js": {
+      "snapshot": "sources/src/ui/task-workbench.js",
+      "sha256": "0fd85a7daa9082bfea13b406e2584acfdf8256c1ab35467c65a64e79140d0b05",
+      "gitBlob": "7c7cdba6648bc8e4b16ea616a5b0b14a2f8bfc3e",
+      "currentFileSha256Before": "5c3e7dd733d4e9ff59f743a2ffe9f4591fec766b6103e8fa9d086b80364fb853",
+      "currentFileSha256After": "5c3e7dd733d4e9ff59f743a2ffe9f4591fec766b6103e8fa9d086b80364fb853"
+    },
+    "tests/environment/page-installed-managed-lifecycle.test.mjs": {
+      "snapshot": "sources/tests/environment/page-installed-managed-lifecycle.test.mjs",
+      "sha256": "10e5e5023c74fbebd0e209d710cfd7d3b09e2dd1ceb28ba1b096970fad1048f9",
+      "gitBlob": "08cd3c1c79add9563fe3c65f5e29ccc50289e9be",
+      "currentFileSha256Before": "10e5e5023c74fbebd0e209d710cfd7d3b09e2dd1ceb28ba1b096970fad1048f9",
+      "currentFileSha256After": "10e5e5023c74fbebd0e209d710cfd7d3b09e2dd1ceb28ba1b096970fad1048f9"
+    },
+    "tests/environment/task-delegation-recovery.test.mjs": {
+      "snapshot": "sources/tests/environment/task-delegation-recovery.test.mjs",
+      "sha256": "3d1adcbfeca7f45b6f7b6b644403898f5e9e5cefa1b216b59852029c847bb05e",
+      "gitBlob": "aaf2c27ed84b0cc8d42639ffcf7dc4b49bf8f5cc",
+      "currentFileSha256Before": "3d1adcbfeca7f45b6f7b6b644403898f5e9e5cefa1b216b59852029c847bb05e",
+      "currentFileSha256After": "3d1adcbfeca7f45b6f7b6b644403898f5e9e5cefa1b216b59852029c847bb05e"
+    },
+    "tests/framework/k3-controller-authority.test.mjs": {
+      "snapshot": "sources/tests/framework/k3-controller-authority.test.mjs",
+      "sha256": "c491695bd58f2a78f06d0180fbd95954d7bd4f0cad8b0023e3a4e7260c7f0f98",
+      "gitBlob": "c327af2bc3c433de998383521b1e36db047cd187",
+      "currentFileSha256Before": "c491695bd58f2a78f06d0180fbd95954d7bd4f0cad8b0023e3a4e7260c7f0f98",
+      "currentFileSha256After": "c491695bd58f2a78f06d0180fbd95954d7bd4f0cad8b0023e3a4e7260c7f0f98"
+    }
+  },
+  "command": [
+    "node",
+    "--loader",
+    "./artifacts/subagent-r2/framework-baseline-audit/head-source-loader.mjs",
+    "--test",
+    "--test-reporter=tap",
+    "--test-concurrency=1",
+    "--test-name-pattern=^(?:late main cannot mount new UI after disable and never restores old grant success|J06 Authority: missing Result or admission journal never permits a replacement Run|controller services share run authority and storage adapter without SDK admission or extra slot)$",
+    "tests/environment/page-installed-managed-lifecycle.test.mjs",
+    "tests/environment/task-delegation-recovery.test.mjs",
+    "tests/framework/k3-controller-authority.test.mjs"
+  ],
+  "exitCode": 1,
+  "headAfter": "1521f9d1a90029a569e496f6d2d47193575f2cac",
+  "ownerFilesStable": true
+}

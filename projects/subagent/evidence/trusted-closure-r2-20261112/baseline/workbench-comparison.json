@@ -1,0 +1,99 @@
+{
+  "head": "f590505b84e13b0ac2d7789db7c4bedfb62d21aa",
+  "comparisonScope": "HEAD workbench source + HEAD tests, original module URLs, same runtime and dependency workspace",
+  "headTotal": 120,
+  "ownedTotal": 121,
+  "sameFailedNames": true,
+  "sameFailureSignatures": true,
+  "addedCases": [
+    {
+      "name": "owned shared sheet keeps the independent destination through original approval without capturing A",
+      "status": "ok"
+    }
+  ],
+  "removedCases": [],
+  "failures": [
+    {
+      "name": "compact task Add rejects Sidebar Tool packages and explains the correct import tab",
+      "ownedCase": 57,
+      "headCase": 57,
+      "sameFailure": true,
+      "code": "'ERR_ASSERTION'",
+      "error": "|-\n    The input did not match the regular expression /扩展工具包/. Input:\n    \n    'E_TASK_FILE_KIND：这是 Sidebar Tool 扩展包，请在「扩展」使用原可信安装入口\\n' +\n      '建议：请核对文件类型、真实 format 与内容，修正后重新选择；文件导入本身不会执行或安装。'"
+    },
+    {
+      "name": "catalog JS import hands source to Sidebar and never enters a view with a hidden runner",
+      "ownedCase": 58,
+      "headCase": 58,
+      "sameFailure": true,
+      "code": "'ERR_ASSERTION'",
+      "error": "|-\n    Expected values to be strictly equal:\n    \n    'draft.js' !== ''"
+    },
+    {
+      "name": "missing Sidebar refuses import with an actionable message, without losing the directory",
+      "ownedCase": 59,
+      "headCase": 59,
+      "sameFailure": true,
+      "code": "'ERR_ASSERTION'",
+      "error": "|-\n    Expected values to be strictly equal:\n    \n    'draft.js' !== ''"
+    },
+    {
+      "name": "catalog draft transport errors retain their cause instead of claiming Sidebar is missing",
+      "ownedCase": 60,
+      "headCase": 60,
+      "sameFailure": true,
+      "code": "'ERR_ASSERTION'",
+      "error": "|-\n    Expected values to be strictly equal:\n    \n    'draft.js' !== ''"
+    },
+    {
+      "name": "catalog project JSON import validates snapshots and hands frozen bytes to Sidebar without running",
+      "ownedCase": 65,
+      "headCase": 65,
+      "sameFailure": true,
+      "code": "'ERR_ASSERTION'",
+      "error": "|-\n    Expected values to be strictly equal:\n    + actual - expected\n    \n    + 'program.opendesk-draft.json'\n    - ''"
+    },
+    {
+      "name": "catalog rejects a changed project snapshot before handoff and permits reselecting the file",
+      "ownedCase": 66,
+      "headCase": 66,
+      "sameFailure": true,
+      "code": "'ERR_ASSERTION'",
+      "error": "|-\n    Expected values to be strictly equal:\n    + actual - expected\n    \n    + 'program.opendesk-draft.json'\n    - ''"
+    },
+    {
+      "name": "late cancel resolve cannot replace or unlock a newer sheet",
+      "ownedCase": 108,
+      "headCase": 107,
+      "sameFailure": true,
+      "code": "'E_TASK_BUSY'",
+      "error": "'已有其他任务或应用身份的准备占用；请从原入口查询或取消，不能确认执行'"
+    },
+    {
+      "name": "late cancel reject cannot replace or unlock a newer sheet",
+      "ownedCase": 109,
+      "headCase": 108,
+      "sameFailure": true,
+      "code": "'E_TASK_BUSY'",
+      "error": "'已有其他任务或应用身份的准备占用；请从原入口查询或取消，不能确认执行'"
+    },
+    {
+      "name": "uninstalled recovery cancels only the original preparation identity",
+      "ownedCase": 113,
+      "headCase": 112,
+      "sameFailure": true,
+      "code": "'E_REVISION'",
+      "error": "'已有其他任务或应用身份的准备占用；请从原入口查询或取消，不能确认执行'"
+    }
+  ],
+  "logs": {
+    "owned": {
+      "path": "artifacts/subagent-r2/workbench-owned.tap",
+      "sha256": "5d1a90bf500aaa6a583f783776bfc76accb395f7d5abb0296cf8d3a07a6ace01"
+    },
+    "head": {
+      "path": "artifacts/subagent-r2/baseline-audit/workbench-head-baseline.tap",
+      "sha256": "c4d556a4564f4740ed1f21890e80f8ec79d75cc8dcc424ea003f829c7083d71e"
+    }
+  }
+}

@@ -1,6 +1,7 @@
 import {canonical, invariant} from '../../platform/protocol.js';
 import {validatePageProgramRules} from './page-program-rules.js';
 import {SCROLL_CONFIG_PROGRAM_ID,SCROLL_CONFIG_MIN_REVISION} from './scroll-config-contract.js';
+import {normalizePageTaskDelegations} from './page-task-contract.js';
 
 // Installed Page v1 currently exposes only isolated DOM execution. Empty
 // network origins are intentional: a Chrome grant or public SDK never supplies
@@ -16,10 +17,11 @@ export function pageHostPermissionOrigins(matches){
     return scheme+'://'+authority.replace(/:(?:\*|[0-9]+)$/,'')+'/*';
   }))];
 }
-export function pageInstallScope(pageRules,programId='',revision=0) {
+export function pageInstallScope(pageRules,programId='',revision=0,delegatedTasks=[]) {
   const config=programId===SCROLL_CONFIG_PROGRAM_ID&&revision>=SCROLL_CONFIG_MIN_REVISION;
-  return {capabilities:config?['page.dom','page.config']:['page.dom'],
-    pageRules:structuredClone(validatePageProgramRules(pageRules)),networkOrigins:[]};
+  return {capabilities:['page.dom',...(config?['page.config']:[]),...(delegatedTasks.length?['page.tasks.request']:[])],
+    pageRules:structuredClone(validatePageProgramRules(pageRules)),networkOrigins:[],
+    ...(delegatedTasks.length?{delegatedTasks:normalizePageTaskDelegations(delegatedTasks)}:{})};
 }
 export function pageInstallScopeDelta(previous, next) {
   const before=previous?.pageRules,after=next.pageRules;
@@ -29,8 +31,10 @@ export function pageInstallScopeDelta(previous, next) {
   // wildcard rewrite is explicitly reviewed instead of guessed to be narrower.
   const changedExecution=!!before&&['runAt','allFrames','world'].some(name=>before[name]!==after[name]);
   const addedCapabilities=next.capabilities.filter(name=>name!=='page.dom'&&!previous?.capabilities?.includes(name));
-  return {requiresConfirmation:!previous||!!(addedSites.length||removedExclusions.length||changedExecution||addedCapabilities.length),
-    addedSites,removedExclusions,changedExecution,...(addedCapabilities.length?{addedCapabilities}:{})};
+  const addedTaskDelegations=(next.delegatedTasks||[]).filter(pin=>!(previous?.delegatedTasks||[]).some(old=>canonical(old)===canonical(pin)));
+  return {requiresConfirmation:!previous||!!(addedSites.length||removedExclusions.length||changedExecution||addedCapabilities.length||addedTaskDelegations.length),
+    addedSites,removedExclusions,changedExecution,...(addedCapabilities.length?{addedCapabilities}:{}),
+    ...(addedTaskDelegations.length?{addedTaskDelegations}:{})};
 }
 export function assertPageInstallAuthorization(row) {
   const grant=row.authorization;
@@ -38,7 +42,7 @@ export function assertPageInstallAuthorization(row) {
     /^[a-f0-9-]{36}$/.test(grant.installationId)&&Number.isSafeInteger(grant.generation)&&grant.generation>0&&
     ['active','disabled','suspended','needs-confirmation'].includes(grant.status)&&
     Number.isSafeInteger(grant.approvedAt)&&
-    canonical(grant.scope)===canonical(pageInstallScope(row.pageRules,row.programId,row.revision)),
+    canonical(grant.scope)===canonical(pageInstallScope(row.pageRules,row.programId,row.revision,row.delegatedTasks)),
     'E_PAGE_AUTHORIZATION','程序安装授权与固定版本的能力范围不一致');
   return grant;
 }

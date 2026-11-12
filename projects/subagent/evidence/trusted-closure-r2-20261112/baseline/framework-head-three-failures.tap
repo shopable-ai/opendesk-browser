@@ -1,0 +1,110 @@
+TAP version 13
+# (node:58) ExperimentalWarning: `--experimental-loader` may be removed in the future; instead use `register()`:
+# --import 'data:text/javascript,import { register } from "node:module"; import { pathToFileURL } from "node:url"; register("./artifacts/subagent-r2/framework-baseline-audit/head-source-loader.mjs", pathToFileURL("./")); register("./artifacts/subagent-r2/framework-baseline-audit/head-source-loader.mjs", pathToFileURL("./"));'
+# (Use `node --trace-warnings ...` to show where the warning was created)
+# BASELINE_HEAD_OVERRIDE=tests/environment/page-installed-managed-lifecycle.test.mjs
+# BASELINE_HEAD_OVERRIDE=src/scripting/user-scripts/dependency-metadata.js
+# BASELINE_HEAD_OVERRIDE=src/scripting/user-scripts/installed-programs.js
+# BASELINE_HEAD_OVERRIDE=src/scripting/user-scripts/page-install-package.js
+# BASELINE_HEAD_OVERRIDE=src/scripting/user-scripts/page-install-authorization.js
+# BASELINE_HEAD_OVERRIDE=src/scripting/user-scripts/preview.js
+# Subtest: late main cannot mount new UI after disable and never restores old grant success
+not ok 1 - late main cannot mount new UI after disable and never restores old grant success
+  ---
+  duration_ms: 61.480241
+  type: 'test'
+  location: '/workspace/scratch/405ab6bc5281/opendesk-browser/tests/environment/page-installed-managed-lifecycle.test.mjs:250:1'
+  failureType: 'testCodeFailure'
+  error: |-
+    Expected values to be strictly equal:
+    
+    0 !== 1
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: 1
+  actual: 0
+  operator: 'strictEqual'
+  stack: |-
+    TestContext.<anonymous> (file:///workspace/scratch/405ab6bc5281/opendesk-browser/tests/environment/page-installed-managed-lifecycle.test.mjs:254:10)
+    async Test.run (node:internal/test_runner/test:1409:7)
+    async startSubtestAfterBootstrap (node:internal/test_runner/harness:387:3)
+  ...
+# (node:71) ExperimentalWarning: `--experimental-loader` may be removed in the future; instead use `register()`:
+# --import 'data:text/javascript,import { register } from "node:module"; import { pathToFileURL } from "node:url"; register("./artifacts/subagent-r2/framework-baseline-audit/head-source-loader.mjs", pathToFileURL("./")); register("./artifacts/subagent-r2/framework-baseline-audit/head-source-loader.mjs", pathToFileURL("./"));'
+# (Use `node --trace-warnings ...` to show where the warning was created)
+# BASELINE_HEAD_OVERRIDE=tests/environment/task-delegation-recovery.test.mjs
+# BASELINE_HEAD_OVERRIDE=src/platform/host/authority.js
+# BASELINE_HEAD_OVERRIDE=src/platform/host/controller-methods.js
+# BASELINE_HEAD_OVERRIDE=src/scripting/user-scripts/page-install-authorization.js
+# BASELINE_HEAD_OVERRIDE=src/platform/host/client.js
+# Subtest: J06 Authority: missing Result or admission journal never permits a replacement Run
+not ok 2 - J06 Authority: missing Result or admission journal never permits a replacement Run
+  ---
+  duration_ms: 116.60755
+  type: 'test'
+  location: '/workspace/scratch/405ab6bc5281/opendesk-browser/tests/environment/task-delegation-recovery.test.mjs:475:1'
+  failureType: 'testCodeFailure'
+  error: |-
+    Expected values to be strictly deep-equal:
+    + actual - expected
+    
+      Comparison {
+    +   code: 'E_OWNER'
+    -   code: 'E_CANCELLED'
+      }
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected:
+    code: 'E_CANCELLED'
+  actual:
+  error: 'An unsettled or unreleased Controller Run owns admission'
+  stack: |-
+    invariant (file:///workspace/scratch/405ab6bc5281/opendesk-browser/src/platform/protocol.js:27:25)
+    assertPreparationSlot (file:///workspace/scratch/405ab6bc5281/opendesk-browser/src/platform/host/controller-methods.js:711:9)
+    async file:///workspace/scratch/405ab6bc5281/opendesk-browser/src/platform/host/controller-methods.js:1137:7
+    async file:///workspace/scratch/405ab6bc5281/opendesk-browser/tests/environment/task-delegation-recovery.test.mjs:208:22
+  operator: 'rejects'
+  stack: |-
+    async TestContext.<anonymous> (file:///workspace/scratch/405ab6bc5281/opendesk-browser/tests/environment/task-delegation-recovery.test.mjs:485:3)
+    async Test.run (node:internal/test_runner/test:1409:7)
+    async startSubtestAfterBootstrap (node:internal/test_runner/harness:387:3)
+  ...
+# (node:84) ExperimentalWarning: `--experimental-loader` may be removed in the future; instead use `register()`:
+# --import 'data:text/javascript,import { register } from "node:module"; import { pathToFileURL } from "node:url"; register("./artifacts/subagent-r2/framework-baseline-audit/head-source-loader.mjs", pathToFileURL("./")); register("./artifacts/subagent-r2/framework-baseline-audit/head-source-loader.mjs", pathToFileURL("./"));'
+# (Use `node --trace-warnings ...` to show where the warning was created)
+# BASELINE_HEAD_OVERRIDE=tests/framework/k3-controller-authority.test.mjs
+# BASELINE_HEAD_OVERRIDE=src/platform/host/authority.js
+# BASELINE_HEAD_OVERRIDE=src/platform/host/controller-methods.js
+# BASELINE_HEAD_OVERRIDE=src/scripting/user-scripts/page-install-authorization.js
+# BASELINE_HEAD_OVERRIDE=src/platform/host/broker.js
+# BASELINE_HEAD_OVERRIDE=src/scripting/user-scripts/preview.js
+# BASELINE_HEAD_OVERRIDE=src/scripting/user-scripts/dependency-metadata.js
+# BASELINE_HEAD_OVERRIDE=src/scripting/user-scripts/installed-programs.js
+# BASELINE_HEAD_OVERRIDE=src/scripting/user-scripts/page-install-package.js
+# BASELINE_HEAD_OVERRIDE=src/platform/host/client.js
+# Subtest: controller services share run authority and storage adapter without SDK admission or extra slot
+not ok 3 - controller services share run authority and storage adapter without SDK admission or extra slot
+  ---
+  duration_ms: 28.032745
+  type: 'test'
+  location: '/workspace/scratch/405ab6bc5281/opendesk-browser/tests/framework/k3-controller-authority.test.mjs:1335:1'
+  failureType: 'testCodeFailure'
+  error: 'Invalid Task storage scope'
+  code: 'E_CAPABILITY'
+  name: 'FoundationError'
+  stack: |-
+    invariant (file:///workspace/scratch/405ab6bc5281/opendesk-browser/src/platform/protocol.js:27:25)
+    file:///workspace/scratch/405ab6bc5281/opendesk-browser/src/platform/storage/repository.js:307:37
+    async file:///workspace/scratch/405ab6bc5281/opendesk-browser/tests/framework/k3-controller-authority.test.mjs:164:22
+  ...
+1..3
+# tests 3
+# suites 0
+# pass 0
+# fail 3
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 1713.198723

@@ -1,0 +1,10 @@
+{
+  "command": "node --test --test-name-pattern='Subagent Result projection|Settings and Native file graphs|AI Scroll R4.2 reviewed|reviewed Scroll settings|original installers share only' tests/environment/bundle-provenance.test.mjs",
+  "exitCode": 0,
+  "tests": 5,
+  "pass": 5,
+  "fail": 0,
+  "evidence": "provenance-merged.log",
+  "reporter": "actual default spec stdout; not TAP despite the scratch log original suffix",
+  "reason": "Verify merged upstream export/test and preserved local provenance consumers; no unchanged suites rerun."
+}

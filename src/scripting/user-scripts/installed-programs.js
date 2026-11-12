@@ -1,5 +1,6 @@
 import {APP_PAGE_ACTION,verifyAppPageTool,readAppPageParent,appPageStorage} from './app-page-contract.js';
 import {appPageDispatchSource} from './app-page-runtime.js';
+import {PAGE_TASK_ACTION,readPageTaskDelegations} from './page-task-contract.js';
 import {sidebarToolPackageHash} from '../../ui/sidebar-tools/package.js';
 import {readNativeUserScripts} from './native-access.js';
 import {validatePageInstallPackage} from './page-install-package.js';
@@ -173,8 +174,9 @@ function publicExecution(row){const {installationToken,...receipt}=row;return re
 // USER_SCRIPT evaluator and shared execution slot. The registered code below
 // contains no user source. A less-trusted message can only request its exact
 // persisted installation; it cannot call any Host/SDK/Controller operation.
-export function createInstalledPagePrograms({api,storage,assertHost,dependencies,preview,admission,session,clock={now:()=>Date.now()},loadBuiltin=loadBuiltinPageSource}){
+export function createInstalledPagePrograms({api,storage,assertHost,dependencies,preview,admission,session,clock={now:()=>Date.now()},loadBuiltin=loadBuiltinPageSource,onPageTask}){
   const namespace='tool:'+api.runtime.id;
+  const taskAuthorityInstance=crypto.randomUUID();
   let mutations=Promise.resolve(),executions=Promise.resolve();
   const removals=[];
   const permissionEpoch=row=>removals.filter(removed=>pageInstallAffectedByRemoval(row.pageRules,removed)).length;
@@ -392,9 +394,11 @@ export function createInstalledPagePrograms({api,storage,assertHost,dependencies
       }
       invariant(!previous?.managedCleanup||previous.managedCleanup.state==='retired',
         'E_PAGE_CLEANUP_PENDING','旧安装的受管界面清理尚未确认；请核对原网页后主动完成清理，不能覆盖恢复记录');
-      const scope=pageInstallScope(candidate.manifest.pageRules,candidate.manifest.programId,candidate.manifest.revision),delta=pageInstallScopeDelta(previous?.authorization?.scope,scope);
+      const delegatedTasks=readPageTaskDelegations(candidate.sourceUtf8);
+      const scope=pageInstallScope(candidate.manifest.pageRules,candidate.manifest.programId,candidate.manifest.revision,delegatedTasks),delta=pageInstallScopeDelta(previous?.authorization?.scope,scope);
       const parentEnabled=appOwner?(await readAppPageParent(api,appOwner,{requireEnabled:false,withState:true})).enabled:true;
       const row={tag:PAGE_INSTALL_TAG,namespace,...(appOwner?{appOwner:structuredClone(appOwner)}:{}),programId:request.programId,revision:request.revision,
+        ...(delegatedTasks.length?{delegatedTasks}:{}),
         title:request.title?.trim()??previous?.title??request.programId,
         manifestHash:candidate.manifestHash,sourceHash:candidate.manifest.sourceHash,builtinIdentity:candidate.builtinIdentity,pageRules:candidate.manifest.pageRules,enabled:parentEnabled&&(previous?.enabled??true),
         token:crypto.randomUUID().replaceAll('-',''),nativeId:PREFIX+(await digest([namespace,request.programId])).slice(0,48),
@@ -605,7 +609,7 @@ export function createInstalledPagePrograms({api,storage,assertHost,dependencies
       const granted=await api.permissions.contains({origins:pageHostPermissionOrigins(row.pageRules.matches)});
       const status=!row.enabled?'disabled':granted&&row.nativeState==='registered'&&!row.error?'active':'suspended';
       authorization={tag:'page-install-authorization-v1',installationId:crypto.randomUUID(),generation:1,status,
-        scope:pageInstallScope(row.pageRules,row.programId,row.revision),approvedAt:row.installedAt};
+        scope:pageInstallScope(row.pageRules,row.programId,row.revision,row.delegatedTasks),approvedAt:row.installedAt};
       if(status==='suspended')error={code:PAGE_PERMISSION_ERROR,message:ACCESS_CHANGED};
     }catch(cause){error={code:cause.code||'E_PAGE_AUTHORIZATION',message:'旧安装无法验证，请重新核对并安装固定版本'};}
     const next={...row,authorization,nativeState:authorization?.status==='active'?row.nativeState:'blocked',error,
@@ -774,11 +778,12 @@ export function createInstalledPagePrograms({api,storage,assertHost,dependencies
         const proof=rows.find(p=>p?.tag==='page-verification-v1'&&p.namespace===namespace&&p.candidateId===row.candidateId&&p.manifestHash===row.manifestHash);
         return {candidateId:row.candidateId,programId:row.manifest.programId,revision:row.manifest.revision,
           manifestHash:row.manifestHash,sourceHash:row.manifest.sourceHash,pageRules:row.manifest.pageRules,
+          delegatedTasks:readPageTaskDelegations(row.sourceUtf8),
           entryFormat:row.manifest.entryFormat,sourceProfile:row.manifest.sourceProfile,
           dependencyLockId:row.manifest.dependencyLockId,
           stage:proof?.status??'Candidate',installed:publicInstall(installed.find(i=>i.programId===row.manifest.programId)),
           authorizationChange:pageInstallScopeDelta(installed.find(i=>i.programId===row.manifest.programId)?.authorization?.scope,
-            pageInstallScope(row.manifest.pageRules,row.manifest.programId,row.manifest.revision))};
+            pageInstallScope(row.manifest.pageRules,row.manifest.programId,row.manifest.revision,readPageTaskDelegations(row.sourceUtf8)))};
       });return {catalog,installed:installed.map(publicInstall)};
     });
   }
@@ -1387,6 +1392,7 @@ export function createInstalledPagePrograms({api,storage,assertHost,dependencies
     return value;
   }
   function handleBoot(message,sender,source='page_auto',manualReceiptId=null,manualHostDocumentId=null){
+    if(message?.action===PAGE_TASK_ACTION)return handlePageTaskBridge(message,sender);
     if(message?.action===APP_PAGE_ACTION)return handleAppPageBridge(message,sender);
     if(message?.action==='page-config')return handlePageConfig(message,sender);
     if(message?.action===PAGE_FRAME_ACTION)return frameBoot(message,sender);
@@ -1550,6 +1556,66 @@ export function createInstalledPagePrograms({api,storage,assertHost,dependencies
       return {status:'synchronized',retired,cleanupPending};
     });
   }
+  // This validator is shared by the Page message boundary and original Host
+  // approval/Run fences. Its identity is loaded from the installed execution,
+  // never supplied as a Host or an authorization flag by a webpage.
+  async function assertPageTaskSourceInTransaction(tx,source){
+    invariant(source?.namespace===namespace&&source.browserSessionIncarnation===session,'E_PAGE_AUTHORIZATION');
+    const row=await tx.get(PAGE_STORE,key(INSTALL_KEY_KIND,namespace,source.programId));
+    const execution=await tx.get(PAGE_STORE,source.executionKey);
+    invariant(row&&active(row)&&!row.appOwner&&row.nativeState==='registered'&&!row.error&&
+      row.token===source.installationToken&&row.revision===source.revision&&
+      row.manifestHash===source.manifestHash&&row.sourceHash===source.sourceHash&&
+      row.authorization.installationId===source.installationId&&row.authorization.generation===source.generation&&
+      row.delegatedTasks?.length&&equal(row.delegatedTasks,source.delegatedTasks)&&
+      permissionEpoch(row)===(source.authorityInstance===taskAuthorityInstance?source.permissionEpoch:0)&&
+      execution?.tag==='page-execution-v1'&&execution.namespace===namespace&&
+      execution.programId===row.programId&&execution.executionKey===source.executionKey&&
+      execution.receiptNonce===source.receiptNonce&&execution.managedUI?.worldId===source.worldId&&
+      ['dispatched','completed'].includes(execution.state)&&execution.browserSessionIncarnation===session&&
+      execution.installationToken===row.token&&execution.installationId===source.installationId&&
+      execution.grantGeneration===source.generation&&execution.manifestHash===row.manifestHash&&
+      execution.sourceHash===row.sourceHash&&execution.tabId===source.tabId&&
+      execution.documentId===source.documentId&&source.frameId===0,'E_PAGE_AUTHORIZATION','Installed Page task source expired');
+    return row;
+  }
+  async function assertPageTaskSource(source){
+    const row=await read(tx=>assertPageTaskSourceInTransaction(tx,source));
+    await requireSiteGrant(row);
+    const [tab,frames,desired]=await Promise.all([api.tabs.get(source.tabId),
+      api.webNavigation.getAllFrames({tabId:source.tabId}),descriptor(row)]);
+    const frame=frames?.find(item=>item.frameId===0&&item.documentId===source.documentId);
+    invariant(frame&&!frame.errorOccurred&&(!frame.documentLifecycle||frame.documentLifecycle==='active')&&
+      !tab.incognito&&!tab.pendingUrl&&tab.url===frame.url&&frame.url===source.url&&
+      tab.windowId===source.windowId&&installedURLMatches(row,frame.url),
+      'E_DOCUMENT_STALE','Original Page task document changed');
+    invariant(equal(readPageTaskDelegations(desired.candidate.sourceUtf8),row.delegatedTasks),'E_PAGE_TASK_SCOPE');
+    const scripts=await (await nativeAPI()).getScripts({ids:[row.nativeId]});
+    invariant(scripts.length===1&&nativeEqual(scripts[0],desired.script),'E_PAGE_AUTHORIZATION','Native Page registration changed');
+    await read(tx=>assertPageTaskSourceInTransaction(tx,source));
+    return true;
+  }
+  async function handlePageTaskBridge(message,sender){
+    fields(message,['protocol','action','programId','executionKey','receiptNonce','worldId','operation','payload']);
+    invariant(message.protocol===PAGE_BOOT_PROTOCOL&&sender?.id===api.runtime.id&&sender.frameId===0&&
+      typeof sender.documentId==='string'&&Number.isSafeInteger(sender.tab?.id)&&!sender.tab.incognito&&
+      ['request','read','restore'].includes(message.operation)&&typeof onPageTask==='function',
+      'E_OWNER','Page task requests require the original installed USER_SCRIPT sender');
+    const row=await read(tx=>tx.get(PAGE_STORE,key(INSTALL_KEY_KIND,namespace,message.programId)));
+    invariant(row?.delegatedTasks?.length&&!row.appOwner,'E_PAGE_TASK_SCOPE');
+    const [tab,frames]=await Promise.all([api.tabs.get(sender.tab.id),api.webNavigation.getAllFrames({tabId:sender.tab.id})]);
+    const frame=frames?.find(item=>item.frameId===0&&item.documentId===sender.documentId);
+    invariant(frame&&httpUrl(frame.url).origin===httpUrl(sender.url).origin,'E_DOCUMENT_STALE');
+    const source={namespace,programId:row.programId,revision:row.revision,manifestHash:row.manifestHash,
+      sourceHash:row.sourceHash,installationId:row.authorization?.installationId,generation:row.authorization?.generation,
+      installationToken:row.token,executionKey:message.executionKey,receiptNonce:message.receiptNonce,worldId:message.worldId,
+      browserSessionIncarnation:session,authorityInstance:taskAuthorityInstance,permissionEpoch:permissionEpoch(row),
+      tabId:sender.tab.id,frameId:0,documentId:sender.documentId,url:frame.url,windowId:tab.windowId,
+      delegatedTasks:structuredClone(row.delegatedTasks)};
+    invariant(sender.userScriptWorldId===undefined||sender.userScriptWorldId===source.worldId,'E_PAGE_AUTHORIZATION');
+    await assertPageTaskSource(source);
+    return onPageTask({operation:message.operation,payload:structuredClone(message.payload)},source);
+  }
   async function appExecution(row,executionKey,receiptNonce,target){
     await assertAppParent(row);await requireSiteGrant(row);
     const current=await read(tx=>tx.get(PAGE_STORE,key(INSTALL_KEY_KIND,namespace,row.programId)));
@@ -1634,5 +1700,6 @@ export function createInstalledPagePrograms({api,storage,assertHost,dependencies
     return results[0].result;
   }
   return Object.freeze({prepareAppPage,importAppPage,verifyAppPage,synchronizeAppPages,requestAppPage,importPageInstallPackage,prepareScrollSitePackage,verifyPageCandidate,makePageAvailable,installPageProgram,setInstalledPageEnabled,uninstallPageProgram,
-    listPagePrograms,runInstalledPageProgram,sendQueueOperation,readScrollSiteConfig,pickScrollSiteElement,observeScrollSitePage,saveScrollSiteRule,saveScrollNavigationSettings,recoverExecutions,reconcile,observeManagedCleanup,revokePermissions,handleBoot});
+    listPagePrograms,runInstalledPageProgram,sendQueueOperation,readScrollSiteConfig,pickScrollSiteElement,observeScrollSitePage,saveScrollSiteRule,saveScrollNavigationSettings,recoverExecutions,reconcile,observeManagedCleanup,revokePermissions,handleBoot,
+    assertPageTaskSource,assertPageTaskSourceInTransaction});
 }

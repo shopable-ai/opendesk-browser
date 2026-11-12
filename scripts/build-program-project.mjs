@@ -34,6 +34,7 @@ const AUTHORING_FILE_LIMIT=32;
 const ENVELOPE_LIMIT=512000;
 const require=createRequire(import.meta.url);
 const PAGE_UI_MODULE=fileURLToPath(new URL('../src/scripting/user-scripts/page-ui.js',import.meta.url));
+const PAGE_TASKS_MODULE=fileURLToPath(new URL('../src/scripting/user-scripts/page-tasks.js',import.meta.url));
 const {SourceMapConsumer,SourceMapGenerator}=require('source-map');
 
 const fail=(code,message,details={})=>{throw projectError(code,message,details);};
@@ -87,7 +88,7 @@ async function compileWebpack(root,entry,temp,mode,{remoteAliases=new Map(),virt
     ...(framework?{externals:Object.fromEntries(Object.keys(PAGE_FRAMEWORK_IMPORTS[framework]).map(spec=>
       [spec,'globalThis.'+PAGE_FRAMEWORK_RUNTIMES[framework].global]))}:{}),
     resolve:{modules:['node_modules'],extensions:['.js','.mjs','.jsx','.vue'],symlinks:!createInputFileSystem,
-      fallback:{},restrictions:[permittedRoots],alias:{'@opendesk/ui$':PAGE_UI_MODULE}},
+      fallback:{},restrictions:[permittedRoots],alias:{'@opendesk/ui$':PAGE_UI_MODULE,'@opendesk/tasks$':PAGE_TASKS_MODULE}},
     optimization:{
       runtimeChunk:false,
       splitChunks:false,
@@ -227,6 +228,7 @@ export function pageHeader(pkg,project){
     ...(!rules.allFrames?['// @noframes']:[]),
     ...(project.framework?['// @opendesk-lib '+project.framework]:[]),
     ...(project.libraries||[]).map(id=>'// @opendesk-lib '+id),
+    ...(project.delegatedTasks||[]).map(pin=>'// @opendesk-task '+JSON.stringify(pin)),
     '// ==/UserScript==',''].join('\n');
 }
 

@@ -1,0 +1,41 @@
+TAP version 13
+# Subtest: pinned PSL raw compaction retains every rule and original licensing/source notices
+ok 1 - pinned PSL raw compaction retains every rule and original licensing/source notices
+  ---
+  duration_ms: 60.578007
+  type: 'test'
+  ...
+# {"rules":10336,"rawBytes":335478,"compactBytes":146151,"rawModuleBytes":352176,"compactModuleBytes":156527,"native":false}
+# Subtest: the original domain consumer behaves identically before and after the raw-only transform
+ok 2 - the original domain consumer behaves identically before and after the raw-only transform
+  ---
+  duration_ms: 651.173894
+  type: 'test'
+  ...
+# Subtest: PSL transform does not process other targets, paths or raw query variants
+ok 3 - PSL transform does not process other targets, paths or raw query variants
+  ---
+  duration_ms: 0.319263
+  type: 'test'
+  ...
+# Subtest: PSL raw transform rejects expressions, additional statements and substituted string content
+ok 4 - PSL raw transform rejects expressions, additional statements and substituted string content
+  ---
+  duration_ms: 59.929222
+  type: 'test'
+  ...
+# Subtest: PSL source and its parsing consumer remain byte-pinned and reject symlinks
+ok 5 - PSL source and its parsing consumer remain byte-pinned and reject symlinks
+  ---
+  duration_ms: 44.700149
+  type: 'test'
+  ...
+1..5
+# tests 5
+# suites 0
+# pass 5
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 1215.999537

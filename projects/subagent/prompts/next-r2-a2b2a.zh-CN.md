@@ -4,17 +4,19 @@
 
 ## 最新续接快照（2026-11-12，差量执行回执）
 
-- 已从 GitHub `main` 审计真实源码，`projects/subagent/README.md` 中的 **R2 差量核对**是本轮新增证据；不要重新做项目改名、Mini Chat UI、结果校验方案或重复生成研究报告。
-- 当前 **SDK_GAP_CONFIRMED**：Page v1 公开文档无受信 `tasks.run` / Durable Result 接口，`src/main.js` 仍以空 transport 渲染；WebFlow 的网页 CustomEvent、固定文本候选是非可信数据，不能作为 Mini Chat 点击的 Task 授权。**下一个实际任务优先修复 T01 公共可信启动/只读结果接口**，由 Framework owner 落地，再接 Subagent。
-- 已提交三项限定差量：`6cefbe14`（完整回复字节上限/消息 ref/B URL 校验）、`501682ab`（对应回归）、`2fef05a`（README 实证记录）。当前项目闭环仍 **BLOCKED**；Node/CI 结果须按最新 HEAD 再取证。发起时 GitHub CI 尚排队，不能宣称通过。
-- 本轮 CodexPro 本机连接 `UNAVAILABLE`、OpenDesk Desktop `429`，因此没有真实本机命令/Chrome 安装/页面回填回执；换到本地 Codex 时先核对其实际工作区、owner 和主分支，再仅继续 T01～T05 未完成项，不把环境失败当源码失败。
+- 已继续开发到源码接线候选 **Subagent 0.2.0**：正式 `@opendesk/tasks` 安装专属客户端、原 TaskWorkbench 冻结参数/独立目标审批、原 commandJournal 与 Run/Result 查询、固定 SW 全文投影、Mini Chat transport 与刷新恢复均已接线。先读 README 当前进度和 `evidence/trusted-closure-r2-20261112/`，不要重新实现这条链。
+- 使用原不可变 `chatgpt.conversation.create@0.2.0`，manifestHash `0402cbea8284f87bd3cc63c73b453530be1338cd511c30671957a919678ab146`，sourceHash `90d077ff17fdcf89ac0a13adf4a671edc324030165c7eefa95a4acdc531bd51c`。没有修改旧 Task 包，也没有把 WebFlow Sidebar 的百度/Google 委托当成此能力的授权。
+- `src/main.js` 现在从固定安装加载器取得客户端，必须先 `restore()`；没有客户端时保持禁用。`request()` 只建立待审批记录，原可信工作台的真实确认才执行。不要改成普通网页事件、公开全能 Host RPC 或自动批准。
+- 本轮 Subagent 48/48 Node 通过；其余框架、审批 UI、构建和已存在的回归失败分别有原始记录，不能把某个子集写成全仓或 Chrome PASS。读取证据身份后复用未变化检查。
+- 原 Browser production 构建及包验证已 PASS：131资源，packageHash `0b49abaabba5aa5a3d79f591dd31f331d316788f1fa0e392765e5f4d7e99cca0`，原预算/来源门禁保持、sourceDrift为空。原 Page builder 的 Subagent0.2.0为BUILT_UNVERIFIED，尚未晋升或安装。构建失败历史与实际修复全部保留，不要把已修复的pin/体积问题继续报作当前阻塞。
+- 本轮 CodexPro 本机连接失败，OpenDesk Browser Core 与 Code 通道复查仍为 `UNAVAILABLE / 429`。实际安装版本、原生 A/B 操作均未取证，业务仍 **BLOCKED / NOT_TESTED**。下一步首先恢复官方本机通道，核对工作区和共享 watcher，将同一候选经原安装与权限审阅装入真实 Chrome，再验证用户操作；不要再把 T01 描述成尚无实现，也不能把接线源码写成业务已通过。
 
 ## 一、原始目标（以用户实际操作为唯一业务终点）
 在 ChatGPT 当前对话 A 的 Subagent 小面板输入「请介绍 WebFlow 的三个主要优势」，点击创建任务；在原安装、网站及真实发送授权下，通过已受审 WebFlow Controller Task 创建一个不覆盖 A 的 ChatGPT 新对话 B；把任务准确填进 B、读回、只发送一次、等待真实完整回答；最后把完整正文与真实 B 对话链接显示在 **A 的 Subagent Mini Chat**。不能自动给 A 官方对话发送任何消息。仅单 A、单 B、单任务、单结果；不开发多 Provider、并发 Agent、复杂看板、模型选项和 SSE/Fetch 拦截。
 
 ## 二、已完成并禁止重复的工作
 - 正式重命名已提交 main，历史提交 6e0ee588：projects/subagent/、opendesk.subagent，旧 subagent-mini-chat 目录已迁移；不重新建项目/分支/工作区，也不再交 ZIP。
-- projects/subagent/src/main.js 已使用 @opendesk/ui 的 createPageUI；src/mini-chat/view.js 有 Shadow DOM 输入/按钮/状态/结果区域/B 链接；src/mini-chat/model.js 有单请求、UNKNOWN 只读和去重；src/contract.js 有 subagent.task.request.v1；存在定向测试。**目前 transport 未接通，按钮刻意禁用；此事实不等于业务已经实现。**
+- projects/subagent/src/main.js 使用 @opendesk/ui 的 createPageUI；src/mini-chat/view.js 有 Shadow DOM 输入/按钮/状态/结果区域/B 链接；src/mini-chat/model.js 有单请求、UNKNOWN 只读和恢复；src/transport.js 已接正式安装客户端。**开发预览或旧 Browser 没有新客户端时按钮仍禁用；真实安装和业务尚未验证。**
 - projects/webflow/src/tasks/chatgpt-conversation-create-v0.2.js 及冻结 0.2.0 Task 包已写 B 新建、fill、读回、经批准 send:true 单次发送、消息身份与完整回答提取；0.3.0 另有 PREPARE/SUBMIT 同一 B 脚本，但可信两阶段消费者仍未证明闭环。不可修改不可变 Task 包。
 - projects/webflow/tool.config.json 的 delegatedTasks 仅有百度/Google；ChatGPT Task 存在不等于 WebFlow Sidebar Tool 已获委托，也不等于用户 Chrome 已安装。原 WebFlow R8 是「往 A 官方消息发送」另一流程，本轮只复用公共能力，不介入 R8。
 - 早期源码/模拟测试与历史 9/9 Node 记录必须按实时 HEAD 复核；无当前真实 Chrome 安装及业务成功证据。

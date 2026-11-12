@@ -12,6 +12,7 @@ import {createPageScriptPreview} from '../../src/scripting/user-scripts/preview.
 import {canonical,digest,FoundationError} from '../../src/platform/protocol.js';
 import {JQUERY_371} from '../../src/scripting/user-scripts/packaged-dependencies.js';
 import {pageInstallScope,pageInstallScopeDelta,pageInstallAffectedByRemoval} from '../../src/scripting/user-scripts/page-install-authorization.js';
+import {readPageTaskDelegations} from '../../src/scripting/user-scripts/page-task-contract.js';
 globalThis.crypto ||= webcrypto;
 
 // Transaction/native component doubles. These are not real Chrome evidence.
@@ -65,7 +66,9 @@ function fixture(){
           if(f.executionError)throw f.executionError;
           await f.completionGate;
         }
-        const id=input.worldId||'default';if(!contexts.has(id))contexts.set(id,vm.createContext({document:{},setTimeout,clearTimeout}));
+        const id=input.worldId||'default';if(!contexts.has(id))contexts.set(id,vm.createContext({document:{},Event,setTimeout,clearTimeout,
+          chrome:{runtime:{sendMessage:async message=>{try{return {ok:true,data:await f.service.handleBoot(message,{...sender,userScriptWorldId:id})};}
+            catch(error){return {ok:false,error:{code:error.code,message:error.message}};}}}}}));
         // Optional-library receipt wiring is a component test: only vendor DOM
         // initialization is replaced, after production loader/hash validation.
         if(!probe)f.executedCode=code;
@@ -88,16 +91,19 @@ function fixture(){
     executeInstalled:executor.executeInstalled,
     get retireInstalled(){return f.retireHook||undefined;},
     executeFrame:async(_input,authorize)=>{await authorize();return {state:'frame-authorized'};}};
-  const make=()=>createInstalledPagePrograms({loadBuiltin:async()=>f.builtinSource,api,storage,assertHost,dependencies,preview,admission,session:f.session});
+  const make=()=>createInstalledPagePrograms({loadBuiltin:async()=>f.builtinSource,api,storage,assertHost,dependencies,preview,admission,session:f.session,
+    onPageTask:(message,source)=>f.onPageTask?.(message,source)});
   const nativeScripts=api.userScripts;
   Object.defineProperty(api,'userScripts',{get:()=>f.access?nativeScripts:undefined});
   f.api=api;f.previewExecutor=executor;f.service=make();f.restart=()=>{
     const restoredAdmission=createPreviewAdmission({storage,assertHost,currentHost:async()=>{},session:f.session});
     const restoredPreview={...preview,executeInstalled:createPageScriptPreview({api,storage,assertHost,dependencies,admission:restoredAdmission,loadBuiltin:async()=>f.builtinSource}).executeInstalled};
-    f.service=createInstalledPagePrograms({loadBuiltin:async()=>f.builtinSource,api,storage,assertHost,dependencies,preview:restoredPreview,admission:restoredAdmission,session:f.session});
+    f.service=createInstalledPagePrograms({loadBuiltin:async()=>f.builtinSource,api,storage,assertHost,dependencies,preview:restoredPreview,admission:restoredAdmission,session:f.session,
+      onPageTask:(message,source)=>f.onPageTask?.(message,source)});
   };f.storage=storage;f.dependencies=dependencies;f.target=target;f.sender=sender;
   f.rows=()=>[...db.get('frameworkKV').values()];
   f.snapshot=()=>structuredClone(db);f.writes=writes;
+  f.context=worldId=>contexts.get(worldId);
   f.installation=(programId='script')=>f.rows().find(row=>row.tag==='page-installed-v1'&&row.programId===programId);
   f.message=(programId='script')=>{const row=f.installation(programId);f.token=row.token;return {protocol:PAGE_BOOT_PROTOCOL,nativeId:row.nativeId,token:row.token};};
   f.navigate=documentId=>{target.documentId=documentId;sender.documentId=documentId;contexts.clear();f.tabReads=0;};
@@ -124,6 +130,75 @@ function fixture(){
   return f;
 }
 const fails=(work,code)=>assert.rejects(work,error=>error.code===code);
+
+const pageTaskPin={taskId:'reviewed.task',version:'1.0.0',manifestHash:'a'.repeat(64),contentHash:'b'.repeat(64),targetUrl:'https://example.com/new'};
+async function installedTaskPage(){
+  const f=fixture();f.taskCalls=[];
+  f.onPageTask=(message,source)=>{f.taskCalls.push({message,source});return {requestId:null,state:'idle'};};
+  const sourceUtf8='// ==UserScript==\n// @match https://example.com/*\n// @noframes\n// @run-at document-idle\n'+
+    '// @opendesk-task '+JSON.stringify(pageTaskPin)+'\n// ==/UserScript==\nasync function main(){return typeof globalThis.__opendeskPageTasksV1;}';
+  const candidate=await f.prepare('document-idle',{sourceUtf8});
+  await f.service.installPageProgram({programId:'script',revision:1,manifestHash:candidate.manifestHash,expectedInstalledManifestHash:null},{});
+  await f.service.handleBoot(f.message(),f.sender);
+  const execution=f.rows().find(row=>row.tag==='page-execution-v1'),worldId=execution.managedUI.worldId;
+  const message={protocol:PAGE_BOOT_PROTOCOL,action:'page-task',programId:'script',executionKey:execution.executionKey,
+    receiptNonce:execution.receiptNonce,worldId,operation:'restore',payload:{}};
+  return {...f,execution,worldId,taskMessage:message};
+}
+
+test('installed Page task capability binds source-covered pins, true execution world and current installation',async()=>{
+  const f=await installedTaskPage(),row=f.installation();
+  assert.deepEqual(row.delegatedTasks,[pageTaskPin]);
+  assert.deepEqual(row.authorization.scope.delegatedTasks,[pageTaskPin]);
+  assert.ok(row.authorization.scope.capabilities.includes('page.tasks.request'));
+  assert.ok(f.worlds.some(world=>world.worldId===f.worldId&&world.messaging===true));
+  assert.equal(vm.runInContext('Object.isFrozen(globalThis.__opendeskPageTasksV1)',f.context(f.worldId)),true);
+  assert.deepEqual(await vm.runInContext('globalThis.__opendeskPageTasksV1.restore()',f.context(f.worldId)),{requestId:null,state:'idle'});
+  assert.equal(f.taskCalls.length,1);
+  const source=f.taskCalls[0].source;
+  assert.equal(source.installationId,row.authorization.installationId);assert.equal(source.generation,row.authorization.generation);
+  assert.equal(source.manifestHash,row.manifestHash);assert.equal(source.sourceHash,row.sourceHash);
+  assert.equal(source.executionKey,f.execution.executionKey);assert.equal(source.documentId,f.target.documentId);
+  assert.equal(source.url,f.target.expectedUrl);assert.equal(source.worldId,f.worldId);
+  assert.equal(await f.service.assertPageTaskSource(source),true);
+});
+
+test('Page task messages cannot replace native sender, execution nonce, world, installation or approved Task scope',async()=>{
+  const f=await installedTaskPage();
+  for(const [message,sender] of [
+    [f.taskMessage,{...f.sender,id:'other-extension'}],[f.taskMessage,{...f.sender,frameId:1}],
+    [f.taskMessage,{...f.sender,documentId:'not-current'}],[f.taskMessage,{...f.sender,userScriptWorldId:'another-world'}],
+    [{...f.taskMessage,receiptNonce:'forged'},f.sender],[{...f.taskMessage,worldId:'forged'},f.sender],
+    [{...f.taskMessage,operation:'startControllerRun'},f.sender],
+    [{...f.taskMessage,executionKey:'other-execution'},f.sender]])await assert.rejects(f.service.handleBoot(message,sender));
+  assert.equal(f.taskCalls.length,0);
+  const oldNative=f.native.get(f.installation().nativeId);f.native.delete(oldNative.id);
+  await assert.rejects(f.service.handleBoot(f.taskMessage,f.sender),{code:'E_PAGE_AUTHORIZATION'});
+  f.native.set(oldNative.id,oldNative);
+  const installed=f.installation();await f.service.setInstalledPageEnabled({programId:installed.programId,
+    manifestHash:installed.manifestHash,installationId:installed.authorization.installationId,
+    expectedGeneration:installed.authorization.generation,enabled:false},{});
+  await assert.rejects(f.service.handleBoot(f.taskMessage,f.sender));assert.equal(f.taskCalls.length,0);
+});
+
+test('Page task runtime rejects fake isTrusted objects and synthetic Events; query never needs a synthetic gesture',async()=>{
+  const f=await installedTaskPage(),context=f.context(f.worldId);
+  for(const event of ['({isTrusted:true,type:"click"})','new Event("click")','Object.create(Event.prototype)']){
+    assert.throws(()=>vm.runInContext('globalThis.__opendeskPageTasksV1.request('+event+',{})',context),error=>error.code==='E_USER_GESTURE_REQUIRED');
+  }
+  assert.equal(f.taskCalls.length,0);
+  await vm.runInContext('globalThis.__opendeskPageTasksV1.restore()',context);assert.equal(f.taskCalls.length,1);
+});
+
+test('Page task pin additions and replacements require original installation confirmation and preserve old scope',()=>{
+  const rules={matches:['https://example.com/*'],excludeMatches:[],runAt:'document_idle',allFrames:false,world:'USER_SCRIPT'};
+  const plain=pageInstallScope(rules),approved=pageInstallScope(rules,'script',1,[pageTaskPin]);
+  assert.equal(pageInstallScopeDelta(plain,approved).requiresConfirmation,true);
+  assert.equal(pageInstallScopeDelta(approved,pageInstallScope(rules,'script',2,[pageTaskPin])).requiresConfirmation,false);
+  assert.equal(pageInstallScopeDelta(approved,pageInstallScope(rules,'script',2,[{...pageTaskPin,contentHash:'c'.repeat(64)}])).requiresConfirmation,true);
+  assert.deepEqual(approved.delegatedTasks,[pageTaskPin]);
+  assert.throws(()=>readPageTaskDelegations('// @opendesk-task {}'),{code:'E_PAGE_TASK_SCOPE'});
+});
 
 test('R134 document_idle bootstrap waits for the registration mutation and runs exactly once',async()=>{
   const f=fixture(),register=f.api.userScripts.register;let boot;
