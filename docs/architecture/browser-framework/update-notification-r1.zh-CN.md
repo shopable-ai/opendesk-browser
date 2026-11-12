@@ -397,3 +397,16 @@ T06：Node 定向、npm run check、npm run build、Chrome for Testing、真实 
 - **D05 验收**：Node 定向用例 + `npm run check` + 生产构建 + 280/320/360/420px 与 200% 的 Chrome 实际截图 + 安装/取消/新增权限/来源冲突/未知回执；CI 构建出现其他并行 WebFlow provenance 阻断时不得放宽来源门禁，也不能称更新功能发布通过。
 
 **验收标记**：本节为设计与执行合同，不表示正式 React 入口已经删除、远程发行发现已完成、Node/构建/真实 Chrome 已通过。六视角独立设计评分可用于方案比较，但最终产品分数须由真实验收证据支撑。
+
+## R4 2026-11-12：正式原位更新源码增量（尚未完成实机验收）
+
+> R3 最简原位更新决议不变。本节只记录已经推入 main 的正式源码差量及未闭环证据；不代表上线完成。旧 R1/R2/R2.1 的独立更新按钮或二级更新中心不是新需求。
+
+- **已接线 T01**：`extension-center.js` 只为来源与安装身份已核实的安装行提供候选身份；`extension-center-model.js` 新增 `projectTrustedInlineUpdates`，须与 Worker `verified===true`、同工具版本/来源/摘要、可审阅且未忽略状态一致才展示右侧「更新」或「审阅」；仅默认列表展示排序，不改变 Registry 原序、搜索与筛选。
+- **已接线 T02**：`tabs/tools.tsx` 行内文字按钮常显，原工具栏独立更新按钮移除；既有「⋯」加入「更新记录与提醒设置…」。原 `UpdateNoticeSlot` 状态控制器及历史/已读/忽略/稍后/提醒偏好继续复用，Side Panel 与 PC `app.html` 均改为菜单打开。网页“查看更新”转向现有扩展列表而非旧按钮；尽可能聚焦同一工具。
+- **已接线 T03（待真实安装证明）**：`tool-shell.js` 的更新回调在调用原 `sidebarTools.openOfficialReview` 前再次查询原 Worker 的可信可审阅身份及当前官方 Catalog；旧行级菜单/详情也复用该回调，保持 Installer 和安装日志/确认/权限生命周期原实现。**尚未取得真实 Chrome 单项更新、取消、新增权限拒绝与安装回执**，不可宣称这些行为完成验收。
+- **已修补 T04（安全降级）**：`update-notice-service.js` 的候选须同时满足同文档活跃工具身份证据和现有授权来源；claim 与显示/ACK 检查具体 toolId、tabId、documentId，切换标签/页面则隐藏过期 Toast。由于生产环境暂未接通可信的“当前文档活跃工具”证明接口，网页 Toast 默认不弹出，避免把全局更新误报到无关网站；Chrome Action 与 Side Panel 全局角标不因站点无关而扣减。未来若恢复网页 Toast，必须优先实测真实活跃证据和撤权回归。
+- **测试待验收**：新增 `tests/environment/extension-inline-update-r4.test.mjs` 的 0/1/3/10 投影、冲突/未核验/忽略状态负向样例；扩展了 `update-notice-service.test.mjs` 和 `update-notice-state.test.mjs` 的当前网页关联过滤测试。上述用例属于*已写测试代码*而非 PASS 回执。Node、`npm run check`、生产构建、280–420px / 200% / 明暗主题及真实 Chrome 安装验证未完成证据核实；CI 状态需按相应 main SHA 逐项读回。
+- **独立阻塞依旧**：通用可信在线发行发现与发布者签名未作为本 R4 实现；原 WebFlow provenance 构建失败应单独归因，不得放宽 bundle 来源门禁。严禁因为本节更新重新设计独立中心/第二套 Installer/批量更新。
+
+本轮相关提交至少包括：`0abac3f`（P0 关联）、`d805005`（Worker/来源投影）、`97fc19f`（行内 UI）、`eb94934`（React 连接）、`793ca9a` / `c8c2f24`（历史菜单）、`6bcb49d` / `62c6552`（共享原审阅回调）、`d926f77`（网页生命周期）、`b1230c4`（额外负向样例）。完整代码及验收进度以 GitHub 最新 main 为准，不得重复已落地差量。
