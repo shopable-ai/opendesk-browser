@@ -290,7 +290,7 @@ test('R4.0 navigation settings persist through the existing CAS config and prese
   await tick();
   const manager=f.state.detailModel.scrollManager;
   const navigation={regionTop:false,regionBottom:true,conversationTop:false,
-    conversationBottom:true,floatingTop:false};
+    conversationBottom:true,floatingTop:false,turnPaging:true};
   await assert.rejects(()=>manager.onSaveNavigation(navigation,'existing',{isTrusted:false}),{code:'E_GESTURE'});
   const result=await manager.onSaveNavigation(navigation,'existing',{isTrusted:true});
   assert.deepEqual(result.value.sites,[sample]);
@@ -299,7 +299,7 @@ test('R4.0 navigation settings persist through the existing CAS config and prese
   assert.equal(write.payload.etag,'existing');
   assert.equal(write.payload.target,undefined,'global preferences do not claim a page document');
   f.doc.querySelector('button[aria-label="导航设置"]').dispatch('click');await tick();
-  assert.equal(f.doc.querySelectorAll('[role="switch"]').length,5);
+  assert.equal(f.doc.querySelectorAll('[role="switch"]').length,6);
   assert.equal(f.doc.querySelectorAll('[role="switch"]:disabled').length,0);
   [...f.doc.querySelectorAll('button')].find(b=>b.textContent==='权限与技术信息').dispatch('click');await tick();
   assert.equal(f.doc.querySelector('.ec-scroll-site-manager').dataset.view,'management');
