@@ -248,7 +248,79 @@ export function findConversationNavigation(main, turnSelector, doc, win) {
   if (scroller !== doc.scrollingElement && scroller !== doc.documentElement &&
       (!scroller.contains(first) || !scroller.contains(last) || scroller.closest('aside')))
     return null;
-  return {scroller, main, first, last};
+  return {scroller, main, first, last, turns};
+}
+// Page through user-question rounds, not screen-height increments or assistant
+// paragraphs. Missing/contradictory role evidence fails closed rather than
+// inventing a turn count. Only previously loaded DOM is inspected.
+function conversationTurnRole(node,site) {
+  if(site==='gemini')
+    return node.localName==='user-query'?'user':node.localName==='model-response'?'assistant':null;
+  const roles=new Set();
+  const mark=(name,value)=>{
+    if(typeof value!=='string')return;
+    const clean=value.trim().toLowerCase();
+    const match=name==='data-content-search-unit-key'
+      ?/(?:^|[:._-])(user|assistant)(?:$|[:._-])/.exec(clean)
+      :/^(user|assistant)$/.exec(clean);
+    if(match)roles.add(match[1]);
+  };
+  const markers=['data-turn','data-message-author-role','data-message-role',
+    'data-conversation-role','data-role','data-content-search-unit-key'];
+  for(const name of markers)mark(name,node.getAttribute(name));
+  for(const child of node.querySelectorAll(
+    '[data-turn],[data-message-author-role],[data-message-role],' +
+    '[data-conversation-role],[data-role],[data-content-search-unit-key]')) {
+    for(const name of markers)if(child.hasAttribute(name))mark(name,child.getAttribute(name));
+    if(roles.size>1)return null;
+  }
+  // DeepSeek may mark the message kind on a directly enclosing message row.
+  if(!roles.size&&site==='deepseek') {
+    const row=node.parentElement;
+    if(row&&row.querySelectorAll('.ds-message').length===1) {
+      for(const name of ['data-role','data-message-role','data-message-author-role'])
+        mark(name,row.getAttribute(name));
+    }
+  }
+  return roles.size===1?[...roles][0]:null;
+}
+export function findConversationPages(binding,doc,win) {
+  const {main,scroller,selector,site}=binding||{};
+  if(!main?.isConnected||!scroller?.isConnected||!selector||
+      !['chatgpt','deepseek','gemini','custom'].includes(site))return null;
+  const navigation=findConversationNavigation(main,selector,doc,win);
+  if(!navigation||navigation.scroller!==scroller||navigation.turns.length>2000)return null;
+  const pages=[];
+  for(const node of navigation.turns) {
+    const role=conversationTurnRole(node,site);
+    if(!role)return null;
+    if(role==='user')pages.push({target:node});
+    else if(!pages.length)return null;
+  }
+  return pages.length>=2?{main,scroller,pages}:null;
+}
+export function currentConversationPageIndex(paging,doc,win) {
+  if(!paging?.pages?.length||!paging.scroller?.isConnected)return -1;
+  const port=viewport(paging.scroller,doc,win);
+  // Allow for the native fixed header, while never using the assistant's
+  // own nested code/editor scrollport as the reading position.
+  const line=port.top+Math.min(144,Math.max(64,port.height*0.16));
+  let index=0;
+  for(const [position,page] of paging.pages.entries()) {
+    if(!page.target?.isConnected)return -1;
+    if(page.target.getBoundingClientRect().top<=line)index=position;
+    else break;
+  }
+  return index;
+}
+export function jumpConversationPage(paging,direction,doc,win) {
+  if(!['previous','next'].includes(direction))return false;
+  const index=currentConversationPageIndex(paging,doc,win);
+  if(index<0)return false;
+  const destination=index+(direction==='next'?1:-1);
+  if(destination<0||destination>=paging.pages.length)return false;
+  return jumpRegionTop({target:paging.pages[destination].target,
+    main:paging.main,kind:'conversation'},doc,win);
 }
 export function jumpConversationEdge(main, turnSelector, direction, doc, win) {
   if (direction !== 'top' && direction !== 'bottom') return false;
