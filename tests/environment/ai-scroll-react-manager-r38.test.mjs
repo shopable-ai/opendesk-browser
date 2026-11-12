@@ -363,7 +363,7 @@ test('R4.0 failed first read is unknown state rather than an empty list or selec
   assert.equal(f.doc.querySelectorAll('[role="switch"]').length,0);
   unavailable=false;
   [...f.doc.querySelectorAll('button')].find(b=>b.textContent==='重新读取核对').dispatch('click');await tick();
-  assert.equal(f.doc.querySelectorAll('[role="switch"]').length,5);
+  assert.equal(f.doc.querySelectorAll('[role="switch"]').length,6);
 });
 
 test('R4.0 cross-site removal and disabling do not request new execution permission',async t=>{
