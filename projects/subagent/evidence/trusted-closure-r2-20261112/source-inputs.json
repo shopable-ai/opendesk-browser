@@ -1,0 +1,508 @@
+{
+  "taskId": "OD-SUBAGENT-CHAT-A2B2A-R2-TRUSTED-CLOSURE",
+  "baselineMain": "54f0e7e9fa62c062c1c4e7f9a4c0db2b03b349ac",
+  "note": "Working source identity before the delivery commit. Evidence files excluded to avoid self-referential hashes. The containing Git commit supplies the delivered source tree. No claim of installed-source identity.",
+  "files": [
+    {
+      "path": "docs/api/native-installed-tasks.zh-CN.md",
+      "role": "Existing public API or owned workstream documentation",
+      "change": "modified",
+      "bytes": 11575,
+      "sha256": "9076470adb514c31ec3013aaa50f29c0d6df9fbec3ef6d38d76fa7d178f5b7d5",
+      "gitBlob": "6593509494a21bec32e287a5651a0e78ce3a0d87",
+      "baselineGitBlob": "819dd7f4c35f49195397a083562c2a1e6f60b9bc"
+    },
+    {
+      "path": "docs/api/page-userscript.zh-CN.md",
+      "role": "Existing public API or owned workstream documentation",
+      "change": "modified",
+      "bytes": 17468,
+      "sha256": "da1916944e9947824463add797396537b5e360d32f447272c416dbe84577a050",
+      "gitBlob": "d4cb362d49c591dd19d8045679581a672106ae3d",
+      "baselineGitBlob": "76dbf44e439e8196c287e7442c92d8cef0003c8a"
+    },
+    {
+      "path": "docs/framework/workstreams/subagent-r2-trusted-closure-20261112.md",
+      "role": "Existing public API or owned workstream documentation",
+      "change": "added",
+      "bytes": 7017,
+      "sha256": "f2b6cce4d0df6e32c81f7c7f581d7fb784c18d2387e1b810e1e8c7b8a40314b2",
+      "gitBlob": "9898aa6175302215b0f3b5c755515255d42705f0",
+      "baselineGitBlob": null
+    },
+    {
+      "path": "projects/subagent/README.md",
+      "role": "Subagent product/test/documentation",
+      "change": "modified",
+      "bytes": 9054,
+      "sha256": "85689ec580cbcba8bf4785dd44891f7962990e95f1f6d29f11d116b60c84416d",
+      "gitBlob": "744a9ae68f471f54d1884f992c0bbb5ed6263b61",
+      "baselineGitBlob": "0c8fa010f2ce69b64cdd80b9e978085ae9cf6dac"
+    },
+    {
+      "path": "projects/subagent/package.json",
+      "role": "Subagent product/test/documentation",
+      "change": "modified",
+      "bytes": 1050,
+      "sha256": "e058c22decaf2f24eb37c560de6b17d2f16469372e6dc4b2f0bf593eccf659a1",
+      "gitBlob": "3a1d7e9b6c95b07713feadbd88e44b3c087a8bff",
+      "baselineGitBlob": "0b5053eb89a42d96ecbc2c16afe1ad967561ac7b"
+    },
+    {
+      "path": "projects/subagent/prompts/next-r2-a2b2a.zh-CN.md",
+      "role": "Subagent product/test/documentation",
+      "change": "modified",
+      "bytes": 10296,
+      "sha256": "8b26545d672ccbdf1de7b0a82f8cae4b5dddc52782e7b7e997ee222258c7e67e",
+      "gitBlob": "549099229b9f5d55034aaf7c39e43cf1cc300a5c",
+      "baselineGitBlob": "3a685e5dff5416a02457ebdcef321bd1eb339c45"
+    },
+    {
+      "path": "projects/subagent/src/contract.js",
+      "role": "Subagent product/test/documentation",
+      "change": "modified",
+      "bytes": 2495,
+      "sha256": "49f7b4ad041e80d1215e8f2899901abf6e2d4d68b4225f7b7d20f10165033bca",
+      "gitBlob": "c394ad1d5dfb7271ec2a23d428e7605030da7664",
+      "baselineGitBlob": "c4691aa8045f6483e856c5e8e3c24f463eb2d1a8"
+    },
+    {
+      "path": "projects/subagent/src/main.js",
+      "role": "Subagent product/test/documentation",
+      "change": "modified",
+      "bytes": 1386,
+      "sha256": "8548dbe11a2c55663ac306c916f6b9d36f7b245021e3552051546abfac7fa060",
+      "gitBlob": "469202216fdeebc4ee1f8da5bc5e90534d2e3940",
+      "baselineGitBlob": "8c23b616201658d887106ba5bccd3e3cdd6dfd12"
+    },
+    {
+      "path": "projects/subagent/src/mini-chat/model.js",
+      "role": "Subagent product/test/documentation",
+      "change": "modified",
+      "bytes": 5442,
+      "sha256": "4c14f7a1afb6f1f1b1a26981815a66c8633b2427d74a045bcae4a87f0742ba88",
+      "gitBlob": "07924f738c1cf017e09e0a796bd1ebcf4ca14458",
+      "baselineGitBlob": "0ef772be8211e2fffaaebcd7cffed5ca6d2e4a3c"
+    },
+    {
+      "path": "projects/subagent/src/mini-chat/view.js",
+      "role": "Subagent product/test/documentation",
+      "change": "modified",
+      "bytes": 4803,
+      "sha256": "99e0c8b012c23344ca4169dc60b4027726c4a37b076609b5c980a3aa50f177bd",
+      "gitBlob": "35711664f1d22d78546afafd1e6ed61f6beda730",
+      "baselineGitBlob": "620a9139cb1b2efdbd0a2413bd77837b425df1f5"
+    },
+    {
+      "path": "projects/subagent/src/transport.js",
+      "role": "Subagent product/test/documentation",
+      "change": "added",
+      "bytes": 2399,
+      "sha256": "7c90916fc0a45aa91f3ff199c50ec7bcb573a7f6f54233e861a760d931488712",
+      "gitBlob": "64282fdbf838d527f93e4b2a76def21f64627250",
+      "baselineGitBlob": null
+    },
+    {
+      "path": "projects/subagent/tests/contract.test.mjs",
+      "role": "Subagent product/test/documentation",
+      "change": "modified",
+      "bytes": 14965,
+      "sha256": "6786b692bbccadac7c47c4785d35708b2b1f1da64b79ef681a9b88a7740e26e8",
+      "gitBlob": "3a127a6dc3bc36f39a79f3029bac48b9af49235e",
+      "baselineGitBlob": "3b53e8a3d1d970b308fe363e11b37cf37160cb7f"
+    },
+    {
+      "path": "projects/subagent/tests/result.test.mjs",
+      "role": "Subagent product/test/documentation",
+      "change": "added",
+      "bytes": 13316,
+      "sha256": "e04b5c4c6a2b49a1c5d7f15ace8c1f4f979a94c9e7a42b4f3ea9e8caa71ec190",
+      "gitBlob": "b8dddf796d7194d76c02792ac0743a1fb4b6ce22",
+      "baselineGitBlob": null
+    },
+    {
+      "path": "projects/subagent/tests/transport.test.mjs",
+      "role": "Subagent product/test/documentation",
+      "change": "added",
+      "bytes": 4877,
+      "sha256": "c990e83ad7b9ba09a5aabe6c94d8fbf80fdb5c2bcd3a7f1a477b4d2983e52862",
+      "gitBlob": "a4c9a882b0195a7802e761be65ed6af5093af7b2",
+      "baselineGitBlob": null
+    },
+    {
+      "path": "projects/subagent/tests/view.test.mjs",
+      "role": "Subagent product/test/documentation",
+      "change": "added",
+      "bytes": 9428,
+      "sha256": "9d138a6dbc4e0aed1a5075ef7243c53e127d16eefdd5f434dc74af134ffd6319",
+      "gitBlob": "1e38548caa1a927561472aa3d12fdb73e96202f0",
+      "baselineGitBlob": null
+    },
+    {
+      "path": "projects/subagent/trusted/page-task-result.js",
+      "role": "Subagent product/test/documentation",
+      "change": "added",
+      "bytes": 1821,
+      "sha256": "efe72d19e9ad2129f00aef5b5f69fca3bdfecf11d83a8f683da38f6754053811",
+      "gitBlob": "16dda6e9a439dedb340e33874f1062bdfeaf8147",
+      "baselineGitBlob": null
+    },
+    {
+      "path": "projects/subagent/trusted/result.js",
+      "role": "Subagent product/test/documentation",
+      "change": "added",
+      "bytes": 5709,
+      "sha256": "95df9a6fa169f9a897235a3c9f60cfd935dc5cc776f55216de3910f078c72cd7",
+      "gitBlob": "87c598a15994af1033b866f8f1b632c4c494deaa",
+      "baselineGitBlob": null
+    },
+    {
+      "path": "projects/webflow/trusted/chatgpt-file-intent-gate.js",
+      "role": "Original generic ChatGPT helper boundary and existing consumers",
+      "change": "modified",
+      "bytes": 9089,
+      "sha256": "aeea5011d675bba6a923bcd397deb73c4c0562728be673ba880f03284673e5fc",
+      "gitBlob": "cac31e1824b7e9dcc2fdc8c2bd0078fd75d8d866",
+      "baselineGitBlob": "1222d7775877b78ba5d42ecf76367f2a1ddc035b"
+    },
+    {
+      "path": "projects/webflow/trusted/chatgpt-files-controller.js",
+      "role": "Original generic ChatGPT helper boundary and existing consumers",
+      "change": "modified",
+      "bytes": 76137,
+      "sha256": "05d0fd758a4ad6ed367eae9b7a1fcda949c7b66d57e1075f8dc4f399af60d3ed",
+      "gitBlob": "f6cc7f0a10bbc47654bf9f614a1cd768680d0f85",
+      "baselineGitBlob": "bfdab1b8fee238e7bc81f81ada8e06c384052314"
+    },
+    {
+      "path": "projects/webflow/trusted/chatgpt-images.js",
+      "role": "Original generic ChatGPT helper boundary and existing consumers",
+      "change": "modified",
+      "bytes": 19656,
+      "sha256": "42eb7c6e713f391089459d2f732ffe38768651f873741c3a2bb89261d123f978",
+      "gitBlob": "f80b8e57b541aea6f44d1c85994cc98791d42f0f",
+      "baselineGitBlob": "2a0bf5ce089094f8a897627d0fc8b44f397feef8"
+    },
+    {
+      "path": "schemas/opendesk-program-project.v1.schema.json",
+      "role": "Generic installed Page Task SDK and original installation",
+      "change": "modified",
+      "bytes": 7587,
+      "sha256": "c5f36cde4359bd3ff1a8f18c1d63aa468c02da945815edd6f48c247e503fd79f",
+      "gitBlob": "0fc912a014f922c3639e174da1f661d6162c722b",
+      "baselineGitBlob": "fd6cfd9f04da384c86530210acbcda5d6e1aad9c"
+    },
+    {
+      "path": "scripts/build-program-project.mjs",
+      "role": "Original build pipeline and precisely reviewed source/data inputs",
+      "change": "modified",
+      "bytes": 30857,
+      "sha256": "d62dabe57c2be3d13f3393d309a5e90d4366156648dcb56ef873d1a42126007b",
+      "gitBlob": "5882cbf1c4f31ab665fc3a38af2f4f95682bbbc9",
+      "baselineGitBlob": "7b4029dcfef25e52a75dad5bf28a52ee261a0c1d"
+    },
+    {
+      "path": "scripts/bundle-provenance.mjs",
+      "role": "Original build pipeline and precisely reviewed source/data inputs",
+      "change": "modified",
+      "bytes": 64547,
+      "sha256": "5d12b9b956c7c992777c848030b75e198a0ec7d1f0611d11a5fb7c811428c9ba",
+      "gitBlob": "84b9338316e8cb11cb0df7f047674b29d83451a3",
+      "baselineGitBlob": "b6dccc00c3714c7b598f4d6042706de2a71db464"
+    },
+    {
+      "path": "scripts/pinned-public-suffix-raw.mjs",
+      "role": "Original build pipeline and precisely reviewed source/data inputs",
+      "change": "added",
+      "bytes": 3387,
+      "sha256": "635593d1a60573bceb2d2c9c1fe190773e6c2f7b13eafb9c1e50c993eaa7eb63",
+      "gitBlob": "96f3e8d3d7520fc261d20cbb6ea4b408144b0411",
+      "baselineGitBlob": null
+    },
+    {
+      "path": "scripts/validate-program-project.mjs",
+      "role": "Original build pipeline and precisely reviewed source/data inputs",
+      "change": "modified",
+      "bytes": 25793,
+      "sha256": "5a75de331e962c5f1a1935f6761d4011470c34485ec8b3b645a21911b2d2fe18",
+      "gitBlob": "0515b914ce4c1017757a6c0a63a696b311553ccf",
+      "baselineGitBlob": "6f5b144986f59333921ab991091bfd221530397d"
+    },
+    {
+      "path": "src/native-agent/workspace-chat-edit-ui.js",
+      "role": "Original generic ChatGPT helper boundary and existing consumers",
+      "change": "modified",
+      "bytes": 21521,
+      "sha256": "b556ccdf8a17e16981745a8c47d219bbcd41fa3e9d15f11e3b766d6dfdbd97e0",
+      "gitBlob": "6adf367ea71826230e29ef58a5f8b14251ff602e",
+      "baselineGitBlob": "80ad161bcf4cf66b978e759ac192666f1313f0d9"
+    },
+    {
+      "path": "src/native-agent/workspace-chatgpt-core.js",
+      "role": "Original generic ChatGPT helper boundary and existing consumers",
+      "change": "added",
+      "bytes": 30564,
+      "sha256": "b5af53bcf3e9d637fad669a062d219ddcbb56ac355a6a01e7a06461d7d69b54a",
+      "gitBlob": "4cf7bf5fc6729bec78af5ad07486f32f562cd18d",
+      "baselineGitBlob": null
+    },
+    {
+      "path": "src/native-agent/workspace-chatgpt.js",
+      "role": "Original generic ChatGPT helper boundary and existing consumers",
+      "change": "modified",
+      "bytes": 2774,
+      "sha256": "966aeab2ecbfc8c596ca95711087bdc70cbd11b41d5dbc7a1febe2f380570bef",
+      "gitBlob": "8601eb1d9f2327fe767446145821d2fff858e534",
+      "baselineGitBlob": "99df25544a855070f881f6b713b78f24a9b779ee"
+    },
+    {
+      "path": "src/platform/host/authority.js",
+      "role": "Original Host/Authority/TaskWorkbench integration",
+      "change": "modified",
+      "bytes": 25867,
+      "sha256": "381dcd1c009e6b0e12b89d2687cfbd5357a0e65c3a89843850d8cccf81f45bdc",
+      "gitBlob": "f240deba86ae6cfb99598555ab5a90c100162358",
+      "baselineGitBlob": "1a5df87b013f507698fc0d5ddf85765add7b0ac7"
+    },
+    {
+      "path": "src/platform/host/broker.js",
+      "role": "Original Host/Authority/TaskWorkbench integration",
+      "change": "modified",
+      "bytes": 20435,
+      "sha256": "8984b9e7ab7eb3f90509f86ce1ae85d3f7a0180774f128c13d51ba29fb55e0d5",
+      "gitBlob": "fa9a9b069bd225c7e42593369caf80ff36e0ac71",
+      "baselineGitBlob": "a9187b1a53c1c4b4730d6944fb9e0c3b4f78114e"
+    },
+    {
+      "path": "src/platform/host/client.js",
+      "role": "Original Host/Authority/TaskWorkbench integration",
+      "change": "modified",
+      "bytes": 11224,
+      "sha256": "7349d26cfc93e4fbdfee96b3ecd8b9ac8edba479dae02959f584638371d48beb",
+      "gitBlob": "9063985cecbbdd41dabe3affa36f163488d0f5ab",
+      "baselineGitBlob": "33659ccdc378523a417d796cfb5acbacab1c5b19"
+    },
+    {
+      "path": "src/platform/host/controller-methods.js",
+      "role": "Original Host/Authority/TaskWorkbench integration",
+      "change": "modified",
+      "bytes": 155270,
+      "sha256": "290a8fcd75a13b3cc6ea3f078fb274baf7c9f5697c5a6b9d5967d0310a56049b",
+      "gitBlob": "9f488ce64e5c0d57ff7f6078e22d8230d6b3cb3e",
+      "baselineGitBlob": "3ccd179892e2898bff68b706651d9fbd7ffde7e4"
+    },
+    {
+      "path": "src/scripting/user-scripts/dependency-metadata.js",
+      "role": "Generic installed Page Task SDK and original installation",
+      "change": "modified",
+      "bytes": 23278,
+      "sha256": "2b59ca3febd1ac01959314507be30df7ce1af481cadafae48b881eea64e23e91",
+      "gitBlob": "27e8f5c055e3d220eef46f2ded673224940cf34b",
+      "baselineGitBlob": "2ff1d13427bc8728230c04440bd3e745639407fa"
+    },
+    {
+      "path": "src/scripting/user-scripts/installed-programs.js",
+      "role": "Generic installed Page Task SDK and original installation",
+      "change": "modified",
+      "bytes": 123313,
+      "sha256": "2f6ffe3b617631f9fafe75402128320e8d0cf473aff3188709c421a768053f0f",
+      "gitBlob": "2f88baa1263eccbee21ef25c4b0400f004143000",
+      "baselineGitBlob": "f5a83871133718b2799a2bde8dc97a017474a3f9"
+    },
+    {
+      "path": "src/scripting/user-scripts/page-install-authorization.js",
+      "role": "Generic installed Page Task SDK and original installation",
+      "change": "modified",
+      "bytes": 4367,
+      "sha256": "c0bc81aff0681fd908d8511a8e7b78768dfda6a7a663d62e17865321612e63ed",
+      "gitBlob": "e84f61a0b46938f7f38e13f887e889d587f170c9",
+      "baselineGitBlob": "533e06a52afc0e01412cac31044060eb0e7bea14"
+    },
+    {
+      "path": "src/scripting/user-scripts/page-install-package.js",
+      "role": "Generic installed Page Task SDK and original installation",
+      "change": "modified",
+      "bytes": 4056,
+      "sha256": "51c23f19b008ce922d22e25ccf0401d15da984d1cb4fd0e6bc0f776c84606969",
+      "gitBlob": "5c4487a9816fe7b3db3f3240e9061bca74a2d072",
+      "baselineGitBlob": "e3abf1ce0bb189782015aa9078b2401227aca12c"
+    },
+    {
+      "path": "src/scripting/user-scripts/page-task-contract.js",
+      "role": "Generic installed Page Task SDK and original installation",
+      "change": "added",
+      "bytes": 1752,
+      "sha256": "2794a60419884a782a64792a89020523ef4894fe9c79eb80b34c40574c2b1b50",
+      "gitBlob": "51273b66134aaf37ae617605b7bf91eab4ebcd0e",
+      "baselineGitBlob": null
+    },
+    {
+      "path": "src/scripting/user-scripts/page-task-runtime.js",
+      "role": "Generic installed Page Task SDK and original installation",
+      "change": "added",
+      "bytes": 1745,
+      "sha256": "9b446c39d777d6df15df8237319dc69503368a2b5189fc1dc74a898446f6c077",
+      "gitBlob": "cb1807e2f9a71ef272b48ecab23971d5a6f3135a",
+      "baselineGitBlob": null
+    },
+    {
+      "path": "src/scripting/user-scripts/page-tasks.js",
+      "role": "Generic installed Page Task SDK and original installation",
+      "change": "added",
+      "bytes": 375,
+      "sha256": "4b299bebc3d232d75c8977b8ecb3c8bb0b37cd6d97e09905fb7481b32a2d0b14",
+      "gitBlob": "cdfacddd2777ffcb107a27d396d95e32a4d731bf",
+      "baselineGitBlob": null
+    },
+    {
+      "path": "src/scripting/user-scripts/preview.js",
+      "role": "Generic installed Page Task SDK and original installation",
+      "change": "modified",
+      "bytes": 45061,
+      "sha256": "24e3b3e2378040811c984dbe35d0f09200b62d243597b37603b12f4373673d51",
+      "gitBlob": "0777c4e830c376dc22555d6c7f5f452803fe6bec",
+      "baselineGitBlob": "1469bc5405a495bf565bade70d22c34d1ecec1cf"
+    },
+    {
+      "path": "src/sw.js",
+      "role": "Original Host/Authority/TaskWorkbench integration",
+      "change": "modified",
+      "bytes": 25136,
+      "sha256": "5871264d9a069b6275206a0c20e306e265629ea6cf101af39d5a9315107ced34",
+      "gitBlob": "084de1bbb8ffa8e14e0b0d30ecaf3a7e549077c5",
+      "baselineGitBlob": "e20f00d40463442874c47986c4c2f50ad7ecfb49"
+    },
+    {
+      "path": "src/ui/page-program-library.js",
+      "role": "Generic installed Page Task SDK and original installation",
+      "change": "modified",
+      "bytes": 16184,
+      "sha256": "bfc02b78100cb7b5b59f537be365e4a6a7adc3ab852d6aa81972955ead3dd68f",
+      "gitBlob": "20232262f60ad90a0d86e4282084fab8816c9957",
+      "baselineGitBlob": "f6e96c0ac5712dbf854c1995413affbe2f0d1c2b"
+    },
+    {
+      "path": "src/ui/react/tabs/task-run-sheet.tsx",
+      "role": "Original Host/Authority/TaskWorkbench integration",
+      "change": "modified",
+      "bytes": 10499,
+      "sha256": "246c816126e2e390e2b77e6136c436324940d91c0be7c03ed2e05c8840538c71",
+      "gitBlob": "3a9e7b744166a6706ca3bda346830151804234eb",
+      "baselineGitBlob": "3dd11006f875ca16eba31570fe4a5d277ebe11d2"
+    },
+    {
+      "path": "src/ui/task-workbench.js",
+      "role": "Original Host/Authority/TaskWorkbench integration",
+      "change": "modified",
+      "bytes": 96115,
+      "sha256": "5c3e7dd733d4e9ff59f743a2ffe9f4591fec766b6103e8fa9d086b80364fb853",
+      "gitBlob": "1b1c2ab9e7abd1c3958f59cae524902ecd69c685",
+      "baselineGitBlob": "7c7cdba6648bc8e4b16ea616a5b0b14a2f8bfc3e"
+    },
+    {
+      "path": "tests/environment/bundle-provenance.test.mjs",
+      "role": "Existing framework/build/approval regression tests",
+      "change": "modified",
+      "bytes": 53794,
+      "sha256": "e9465b948896b418f4360b06bb26aecfabb6866e4af7595158e58a29fe96ef5f",
+      "gitBlob": "652fc4c0f0e163622daa038dd0659ecb4b5d1ab2",
+      "baselineGitBlob": "ec87d3d217c8d7103997b266fd02a438f919c8e5"
+    },
+    {
+      "path": "tests/environment/my-react-workbench.test.mjs",
+      "role": "Existing framework/build/approval regression tests",
+      "change": "modified",
+      "bytes": 89732,
+      "sha256": "257c0e2168d2dcbaa62667edd3f359b7e9d0213db52d330b1476148d079f5186",
+      "gitBlob": "2eef03f862f62f096ae5283d4b31b51702c56166",
+      "baselineGitBlob": "ee79a17e033e9df0342f016378fad445e8a1bb39"
+    },
+    {
+      "path": "tests/environment/page-installed-programs.test.mjs",
+      "role": "Existing framework/build/approval regression tests",
+      "change": "modified",
+      "bytes": 117360,
+      "sha256": "201f04d45f587de428ea6f1baa5d203d5b51dce1e72f06c274509eb74335c74f",
+      "gitBlob": "5d55ec15b75f86cf8f6a5dd8ca55b1932bbc96d5",
+      "baselineGitBlob": "d4c67fb45099beac00dc4ab1a08e804451c25996"
+    },
+    {
+      "path": "tests/environment/pinned-public-suffix-raw.test.mjs",
+      "role": "Existing framework/build/approval regression tests",
+      "change": "added",
+      "bytes": 7496,
+      "sha256": "4e1993069ba1195a4a2f77b7a04924f8e28572b70344257181ba04166dafc575",
+      "gitBlob": "86c99729b4158c46bd37ef4457dd4c40818c5100",
+      "baselineGitBlob": null
+    },
+    {
+      "path": "tests/environment/program-project.test.mjs",
+      "role": "Existing framework/build/approval regression tests",
+      "change": "modified",
+      "bytes": 10375,
+      "sha256": "f1e9bf2270cca1ea81002dceb0885fb3ddc1b50193bf92f869feb9a1638fd8f4",
+      "gitBlob": "074b03eacc9fbb30b5bc4f2fd32c9478c0fd416c",
+      "baselineGitBlob": "06f42ed0498bbe00947fe9fa8134dccd42c6a2de"
+    },
+    {
+      "path": "tests/environment/task-run-preparation.test.mjs",
+      "role": "Existing framework/build/approval regression tests",
+      "change": "modified",
+      "bytes": 52502,
+      "sha256": "7c0975b3546ff07e949b4f48658079a85949aae18093590cda817dcd8647b6ab",
+      "gitBlob": "df76773f22fb7dbc82b9e4acff5284aabcb46d07",
+      "baselineGitBlob": "fad3b21b034eef4f73e3266d9a89e97aceb5de7a"
+    },
+    {
+      "path": "tests/environment/task-workbench.test.mjs",
+      "role": "Existing framework/build/approval regression tests",
+      "change": "modified",
+      "bytes": 115859,
+      "sha256": "95bf26e41dd6e110dd223e58b39a12797c3274a298db470e903d3af5bb4a8df5",
+      "gitBlob": "59498a8a1bb66a5f516bcbc7e2e916e19164e07c",
+      "baselineGitBlob": "67ee566063cb5a9d8a8607df19583cbb8fca8239"
+    },
+    {
+      "path": "wxt.config.mjs",
+      "role": "Original build pipeline and precisely reviewed source/data inputs",
+      "change": "modified",
+      "bytes": 19710,
+      "sha256": "c83ef64952ac6d20091873af0c08439228953f8a9ef74b885723a590b42ec4c3",
+      "gitBlob": "6ebda739b740fe44d9f918a4b3855f622c1455ea",
+      "baselineGitBlob": "d4b306669bcbfa6aa5d64ce08d02fd27b85a63c5"
+    }
+  ],
+  "immutableWebflowTaskInputs": [
+    {
+      "path": "projects/webflow/src/tasks/chatgpt-conversation-create-v0.2.js",
+      "gitBlob": "340c64d03e2960ede5ce35d6fec78fadfd90dcd3",
+      "unchangedFromMain": true
+    },
+    {
+      "path": "projects/webflow/src/tasks/chatgpt-conversation-create-v0.3.js",
+      "gitBlob": "20724c846594191d41dca3096ec12cff6a568b5d",
+      "unchangedFromMain": true
+    },
+    {
+      "path": "projects/webflow/tasks/chatgpt.conversation.create.0.2.0.opendesk-task.json",
+      "gitBlob": "4e2ebfd8261983fdad8a73f8c3896ee6dcc504f8",
+      "unchangedFromMain": true
+    },
+    {
+      "path": "projects/webflow/tasks/chatgpt.conversation.create.0.3.0.opendesk-task.json",
+      "gitBlob": "6b5a6a9715c94f6ea92b2715f74a18d90d903f80",
+      "unchangedFromMain": true
+    }
+  ],
+  "upstreamIntegrated": [
+    {
+      "path": "projects/ai-proxy/trusted/source-lock.json",
+      "role": "Original build pipeline and precisely reviewed source/data inputs",
+      "change": "integrated-upstream-identical-bytes",
+      "bytes": 5782,
+      "sha256": "4cd59a52e597a1fa9a5cfb812387e30cfde1ca2e703e8eb0f49833984500d161",
+      "gitBlob": "d4065a7461c4f173c695a03e1de1bee8d95ab9bf",
+      "baselineGitBlob": "d4065a7461c4f173c695a03e1de1bee8d95ab9bf"
+    }
+  ]
+}

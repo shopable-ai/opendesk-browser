@@ -1,0 +1,123 @@
+{
+  "format": "opendesk.build-artifact.v1",
+  "status": "BUILT_UNVERIFIED",
+  "installable": false,
+  "runtimeKind": "page-userscript",
+  "programId": "opendesk.subagent",
+  "version": "0.2.0",
+  "sourceFormat": "esm",
+  "entryFormat": "async-main",
+  "entry": "src/main.js",
+  "buildMode": "production",
+  "buildHash": "ecfadece5c0568979e08288af59640a7e83089322ee53598f65456f1c010fe22",
+  "sourceModules": [
+    {
+      "path": "src/contract.js",
+      "bytes": 2495,
+      "sha256": "49f7b4ad041e80d1215e8f2899901abf6e2d4d68b4225f7b7d20f10165033bca"
+    },
+    {
+      "path": "src/main.js",
+      "bytes": 1386,
+      "sha256": "8548dbe11a2c55663ac306c916f6b9d36f7b245021e3552051546abfac7fa060"
+    },
+    {
+      "path": "src/mini-chat/model.js",
+      "bytes": 5442,
+      "sha256": "4c14f7a1afb6f1f1b1a26981815a66c8633b2427d74a045bcae4a87f0742ba88"
+    },
+    {
+      "path": "src/mini-chat/view.js",
+      "bytes": 4803,
+      "sha256": "99e0c8b012c23344ca4169dc60b4027726c4a37b076609b5c980a3aa50f177bd"
+    },
+    {
+      "path": "src/transport.js",
+      "bytes": 2399,
+      "sha256": "7c90916fc0a45aa91f3ff199c50ec7bcb573a7f6f54233e861a760d931488712"
+    }
+  ],
+  "sourceFiles": [
+    {
+      "path": "src/contract.js",
+      "bytes": 2495,
+      "sha256": "49f7b4ad041e80d1215e8f2899901abf6e2d4d68b4225f7b7d20f10165033bca"
+    },
+    {
+      "path": "src/main.js",
+      "bytes": 1386,
+      "sha256": "8548dbe11a2c55663ac306c916f6b9d36f7b245021e3552051546abfac7fa060"
+    },
+    {
+      "path": "src/mini-chat/model.js",
+      "bytes": 5442,
+      "sha256": "4c14f7a1afb6f1f1b1a26981815a66c8633b2427d74a045bcae4a87f0742ba88"
+    },
+    {
+      "path": "src/mini-chat/view.js",
+      "bytes": 4803,
+      "sha256": "99e0c8b012c23344ca4169dc60b4027726c4a37b076609b5c980a3aa50f177bd"
+    },
+    {
+      "path": "src/transport.js",
+      "bytes": 2399,
+      "sha256": "7c90916fc0a45aa91f3ff199c50ec7bcb573a7f6f54233e861a760d931488712"
+    }
+  ],
+  "npmPackages": [],
+  "npmDependencies": [],
+  "npmBundledModules": [],
+  "npmLockSha256": null,
+  "sourceFile": "program.js",
+  "sourceHash": "ecfadece5c0568979e08288af59640a7e83089322ee53598f65456f1c010fe22",
+  "sourceBytes": 34327,
+  "draftFile": "program.opendesk-draft.json",
+  "authoring": {
+    "files": [
+      {
+        "path": "src/contract.js",
+        "bytes": 2495,
+        "sha256": "49f7b4ad041e80d1215e8f2899901abf6e2d4d68b4225f7b7d20f10165033bca"
+      },
+      {
+        "path": "src/main.js",
+        "bytes": 1386,
+        "sha256": "8548dbe11a2c55663ac306c916f6b9d36f7b245021e3552051546abfac7fa060"
+      },
+      {
+        "path": "src/mini-chat/model.js",
+        "bytes": 5442,
+        "sha256": "4c14f7a1afb6f1f1b1a26981815a66c8633b2427d74a045bcae4a87f0742ba88"
+      },
+      {
+        "path": "src/mini-chat/view.js",
+        "bytes": 4803,
+        "sha256": "99e0c8b012c23344ca4169dc60b4027726c4a37b076609b5c980a3aa50f177bd"
+      },
+      {
+        "path": "src/transport.js",
+        "bytes": 2399,
+        "sha256": "7c90916fc0a45aa91f3ff199c50ec7bcb573a7f6f54233e861a760d931488712"
+      }
+    ],
+    "webpackModules": [
+      "src/contract.js",
+      "src/main.js",
+      "src/mini-chat/model.js",
+      "src/mini-chat/view.js",
+      "src/transport.js"
+    ],
+    "buildMode": "production",
+    "buildHash": "ecfadece5c0568979e08288af59640a7e83089322ee53598f65456f1c010fe22"
+  },
+  "pageRules": {
+    "matches": [
+      "https://chatgpt.com/*"
+    ],
+    "excludeMatches": [],
+    "runAt": "document_idle",
+    "allFrames": false,
+    "world": "USER_SCRIPT"
+  },
+  "note": "Fixed build bytes only. Not Chrome verified, Available, Installed or automatically permitted."
+}

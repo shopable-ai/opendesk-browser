@@ -1,0 +1,40 @@
+TAP version 13
+# Subtest: page request renders one locked Sheet with source, fixed version and owned target, then uses original save and confirmation
+ok 1 - page request renders one locked Sheet with source, fixed version and owned target, then uses original save and confirmation
+  ---
+  duration_ms: 1026.191245
+  type: 'test'
+  ...
+# Subtest: page request source revocation at reopen keeps the original request read-only without admission
+ok 2 - page request source revocation at reopen keeps the original request read-only without admission
+  ---
+  duration_ms: 70.231691
+  type: 'test'
+  ...
+# Subtest: page request source revocation at confirmation keeps the original request read-only without admission
+ok 3 - page request source revocation at confirmation keeps the original request read-only without admission
+  ---
+  duration_ms: 179.566473
+  type: 'test'
+  ...
+# Subtest: page request late opening lookup cannot replace a newer Sheet or start a task
+ok 4 - page request late opening lookup cannot replace a newer Sheet or start a task
+  ---
+  duration_ms: 32.779743
+  type: 'test'
+  ...
+# Subtest: page request late approval lookup during query cannot retire or unlock a reopened Sheet
+ok 5 - page request late approval lookup during query cannot retire or unlock a reopened Sheet
+  ---
+  duration_ms: 55.89701
+  type: 'test'
+  ...
+1..5
+# tests 5
+# suites 0
+# pass 5
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 1726.224515

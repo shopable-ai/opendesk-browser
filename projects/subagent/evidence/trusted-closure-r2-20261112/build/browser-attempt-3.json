@@ -1,0 +1,32 @@
+{
+  "status": "failed",
+  "mode": "production",
+  "attemptId": "e72f6e20-8998-414a-a74f-4da09554f23a",
+  "packageVerified": false,
+  "error": {
+    "message": "Failed to build tool-shell",
+    "causes": [
+      {
+        "message": "[opendesk-fixed-tool-shell] WXT entry exceeds configured byte budget: ui/tool-shell.js (3150219 > 3145728)",
+        "code": "PLUGIN_ERROR"
+      }
+    ],
+    "target": "ui/tool-shell.js",
+    "bytes": 3150219,
+    "budgetBytes": 3145728,
+    "excessBytes": 4491
+  },
+  "diagnosticErrors": [],
+  "note": "Partial failed build diagnostics only; renderedLength is pre-minification, not final module bytes.",
+  "evidenceForm": "Explicit extract of original builder diagnostic; raw stdout preserved. Final byte gate failed, no verified package.",
+  "originalDiagnosticSha256": "404046f85fab4c093d89474aebf612908291b6b2db03569d24aa2499b0d089fd",
+  "sourceInputCount": 800,
+  "bundleCount": 40,
+  "toolShell": {
+    "target": "ui/tool-shell.js",
+    "bytes": 3150219,
+    "sha256": "c22bd142df98b74676e8906a5fcb0ca48bc09761c64b95e1ac022681e7e3880e",
+    "note": "Rollup module graph; renderedLength is pre-minification characters, not final bytes or browser execution proof.",
+    "moduleCount": 508
+  }
+}

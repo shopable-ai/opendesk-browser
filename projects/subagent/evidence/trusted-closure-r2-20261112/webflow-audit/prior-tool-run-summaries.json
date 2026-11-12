@@ -1,0 +1,44 @@
+{
+  "recordedAt": "2026-11-12T13:32:24.232885+00:00",
+  "kind": "Tool-returned summaries of original executions, not raw stdout or reconstructed TAP",
+  "rawStdoutSavedAtExecution": false,
+  "rawStdoutRecoverableThroughCurrentTools": false,
+  "limitation": "These runs returned output through exec_command only. Exact raw logs were not saved and cannot now be recovered by chunk ID. No per-test transcript or invented timing is supplied.",
+  "rerunPerformedForArchiving": false,
+  "evidenceLevel": "NODE_SIMULATED_ONLY",
+  "runs": [
+    {
+      "command": "node --test tests/environment/workspace-chat-edit.test.mjs tests/environment/workspace-chat-request.test.mjs projects/webflow/tests/reply-admission.test.mjs projects/webflow/tests/chatgpt-images.test.mjs",
+      "chunkId": "a65086",
+      "tests": 197,
+      "pass": 197,
+      "fail": 0,
+      "exitCode": 0
+    },
+    {
+      "command": "node --test projects/webflow/tests/chatgpt-files.test.mjs projects/webflow/tests/chatgpt-file-intent.test.mjs",
+      "chunkId": "1aa0f5",
+      "tests": 144,
+      "pass": 144,
+      "fail": 0,
+      "exitCode": 0
+    },
+    {
+      "command": "node --test --test-name-pattern='Subagent Result projection|Settings and Native file graphs|reviewed WebFlow intent source' tests/environment/bundle-provenance.test.mjs",
+      "chunkId": "7e6cca",
+      "tests": 3,
+      "pass": 3,
+      "fail": 0,
+      "exitCode": 0
+    },
+    {
+      "command": "node --test projects/subagent/tests/result.test.mjs",
+      "chunkId": "7336c1",
+      "tests": 11,
+      "pass": 11,
+      "fail": 0,
+      "exitCode": 0
+    }
+  ],
+  "currentIntegrationEvidenceOwnedByRoot": "../subagent-integrated.tap"
+}

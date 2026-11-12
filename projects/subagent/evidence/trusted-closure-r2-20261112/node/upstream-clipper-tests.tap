@@ -1,0 +1,22 @@
+TAP version 13
+# Subtest: R1.3 pinned shared Markdown converter can only enter the existing Page Relay
+ok 1 - R1.3 pinned shared Markdown converter can only enter the existing Page Relay
+  ---
+  duration_ms: 14.411421
+  type: 'test'
+  ...
+# Subtest: R4 region Markdown final-output cap counts UTF-8 bytes including newline
+ok 2 - R4 region Markdown final-output cap counts UTF-8 bytes including newline
+  ---
+  duration_ms: 12.051337
+  type: 'test'
+  ...
+1..2
+# tests 2
+# suites 0
+# pass 2
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 301.25524

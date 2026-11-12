@@ -20,6 +20,7 @@ import {pageOptionalLibraryId,PAGE_OPTIONAL_LIBRARY_LIMIT} from '../src/scriptin
 import {BUILTIN_RUNTIME_CATALOG} from '../src/libs/runtime-contract.js';
 import {transformVueSFC} from '../src/libs/page-frameworks/vue-sfc-transform.js';
 import {PAGE_FRAME_RESOURCE_ID,PAGE_FRAME_RESOURCES_LIMITS} from '../src/scripting/user-scripts/page-frame-resources.js';
+import {normalizePageTaskDelegations} from '../src/scripting/user-scripts/page-task-contract.js';
 
 const FORMAT='opendesk.project.v1';
 const IDENTIFIER=/^[A-Za-z0-9][A-Za-z0-9._-]{0,59}$/;
@@ -91,10 +92,10 @@ function metadata(pkg,projectLabel){
 
   const shared=['format','id','runtimeKind','sourceFormat','entry','assets'];
   const allowed=p.runtimeKind==='page-userscript'
-    ?[...shared,'pageRules','framework','libraries','entryMode','remoteDependencies','pageFrames']
+    ?[...shared,'pageRules','framework','libraries','entryMode','remoteDependencies','pageFrames','delegatedTasks']
     :[...shared,'siteOrigins','permissions','paramsSchema','libraries','deadlineMs'];
   ensure(Object.keys(p).every(k=>allowed.includes(k))&&
-    allowed.filter(k=>k!=='assets'&&k!=='framework'&&k!=='entryMode'&&k!=='remoteDependencies'&&k!=='libraries'&&k!=='pageFrames'&&k!=='deadlineMs').every(k=>Object.hasOwn(p,k)),
+    allowed.filter(k=>k!=='assets'&&k!=='framework'&&k!=='entryMode'&&k!=='remoteDependencies'&&k!=='libraries'&&k!=='pageFrames'&&k!=='deadlineMs'&&k!=='delegatedTasks').every(k=>Object.hasOwn(p,k)),
     'E_PROJECT_SCHEMA','Project fields do not match the declared runtime kind',details);
 
   declaredPath(p.entry,{...details,location:'package.json#opendesk.entry'});
@@ -107,6 +108,7 @@ function metadata(pkg,projectLabel){
 
   if(p.runtimeKind==='page-userscript'){
     validatePageProgramRules(p.pageRules);
+    if(p.delegatedTasks!==undefined)normalizePageTaskDelegations(p.delegatedTasks);
     if(p.pageFrames!==undefined){
       const frameDetails={...details,location:'package.json#opendesk.pageFrames'};
       ensure(Array.isArray(p.pageFrames)&&p.pageFrames.length<=PAGE_FRAME_RESOURCES_LIMITS.count&&
@@ -316,10 +318,12 @@ export async function validateProgramProject(input,{readProjectFile}={}){
         if(p.framework&&['react','react-dom/client','react/jsx-runtime','react/jsx-dev-runtime','vue'].includes(spec))
           fail('E_PROJECT_FRAMEWORK_IMPORT',`Cannot import ${spec} for fixed ${p.framework}`,
             context(projectLabel,'validate',location));
-        if(spec==='@opendesk/ui'){
+        if(spec==='@opendesk/ui'||spec==='@opendesk/tasks'){
           ensure(p.runtimeKind==='page-userscript'&&!Object.hasOwn(rootDependencies,spec),
-            'E_PROJECT_IMPORT','@opendesk/ui is the built-in Page UI helper, not an npm dependency',
+            'E_PROJECT_IMPORT','OpenDesk Page helpers are built in, not npm dependencies',
             context(projectLabel,'validate',location));
+          if(spec==='@opendesk/tasks')ensure(p.delegatedTasks?.length,
+            'E_PAGE_TASK_SCOPE','Page tasks require fixed delegatedTasks in the reviewed project',context(projectLabel,'validate',location));
           continue;
         }
         const name=dependencyName(spec,context(projectLabel,'validate',location));

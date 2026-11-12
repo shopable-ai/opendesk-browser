@@ -1,0 +1,526 @@
+{
+  "target": "ui/tool-shell.js",
+  "entry": "src/entrypoints/tool-shell.js",
+  "localModuleCount": 390,
+  "reviewedInputCount": 116,
+  "unresolved": [],
+  "externalSpecifiers": [
+    "react",
+    "react-aria-components",
+    "react-dom",
+    "react-dom/client",
+    "wxt/utils/define-unlisted-script"
+  ],
+  "failures": [
+    {
+      "path": "projects/ai-scroll-navigation/trusted/ai-configuration.js",
+      "error": "Trusted extension settings source changed; review and re-pin before fixed build: projects/ai-scroll-navigation/trusted/ai-configuration.js",
+      "actual": "c97137a3a871fb6c19fd3594fc627fafd67d03f8",
+      "committed": "c97137a3a871fb6c19fd3594fc627fafd67d03f8",
+      "dirty": false,
+      "importers": [
+        "src/ui/tool-shell.js",
+        "projects/ai-scroll-navigation/trusted/ai-controls.tsx"
+      ]
+    },
+    {
+      "path": "projects/ai-scroll-navigation/trusted/host-localization.js",
+      "error": "Trusted extension settings source changed; review and re-pin before fixed build: projects/ai-scroll-navigation/trusted/host-localization.js",
+      "actual": "73b0b62a0d009ff3451457623739d2a1716aad03",
+      "committed": "73b0b62a0d009ff3451457623739d2a1716aad03",
+      "dirty": false,
+      "importers": [
+        "src/ui/extension-center.js",
+        "src/ui/extension-center-model.js",
+        "projects/ai-scroll-navigation/trusted/react-controls.tsx",
+        "projects/ai-scroll-navigation/trusted/ai-controls.tsx"
+      ]
+    },
+    {
+      "path": "projects/ai-scroll-navigation/trusted/react-controls.tsx",
+      "error": "Trusted extension settings source changed; review and re-pin before fixed build: projects/ai-scroll-navigation/trusted/react-controls.tsx",
+      "actual": "1261228715f9cd8f8496e190213e8b7cedb57406",
+      "committed": "1261228715f9cd8f8496e190213e8b7cedb57406",
+      "dirty": false,
+      "importers": [
+        "src/ui/react/tabs/tools.tsx"
+      ]
+    },
+    {
+      "path": "projects/prompt-shortcuts/trusted/asset-contract.js",
+      "error": "Historical/user/vendor code cannot enter a privileged fixed bundle: projects/prompt-shortcuts/trusted/asset-contract.js",
+      "actual": "86e95bff786e52efb9089f97126542430f39a716",
+      "committed": "86e95bff786e52efb9089f97126542430f39a716",
+      "dirty": false,
+      "importers": [
+        "src/ui/sidebar-tools/installation.js"
+      ]
+    }
+  ],
+  "admitted": [
+    {
+      "path": "projects/adblock/rules/domains.js",
+      "blob": "b6b2ad8bb2085018f355f046d9b2a787601039bd"
+    },
+    {
+      "path": "projects/adblock/trusted/cosmetic-policy.js",
+      "blob": "65804d9e8455fb9521f789744e4b3d276876b455"
+    },
+    {
+      "path": "projects/adblock/trusted/dnr-session.js",
+      "blob": "6cf976c7f89ab6e9aec04bf7bc92b5189e8b3cca"
+    },
+    {
+      "path": "projects/adblock/trusted/lifecycle.js",
+      "blob": "50143f14fa3a1e9434f5c79bd2df37db83c245bb"
+    },
+    {
+      "path": "projects/adblock/trusted/policy.js",
+      "blob": "1ba80150d930f51130ceb7806371f7542f35871b"
+    },
+    {
+      "path": "projects/adblock/trusted/rules.js",
+      "blob": "4bebe24f991783d6ceb14dd80aa507f8497fce61"
+    },
+    {
+      "path": "projects/ai-knowledge-answers/src/model.js",
+      "blob": "752b91ea8d98f7da10e9d8902e3629bef69df58c"
+    },
+    {
+      "path": "projects/ai-knowledge-answers/trusted/Workspace.jsx",
+      "blob": "9fa5a0e47805bfbbd092dbab7f78bb346588058b"
+    },
+    {
+      "path": "projects/ai-knowledge-answers/trusted/ai-request.js",
+      "blob": "d74df23166adc1ee10952db847cbd1202bdeb3ae"
+    },
+    {
+      "path": "projects/ai-knowledge-answers/trusted/host.js",
+      "blob": "02bdd31fdcb2292196c849bd0a4c13e9bde78c0c"
+    },
+    {
+      "path": "projects/ai-knowledge-answers/trusted/local-test-adapter.js",
+      "blob": "25c43a64db60933c61f16a569afbfd376a5f8ac5"
+    },
+    {
+      "path": "projects/ai-knowledge-answers/trusted/local-test-runtime.js",
+      "blob": "2605e9d4825f3d95140a1eaccc73c1cc62ee6cda"
+    },
+    {
+      "path": "projects/ai-knowledge-answers/trusted/multi-intent.js",
+      "blob": "82d4b49d194783e04844e36df78d757955e31378"
+    },
+    {
+      "path": "projects/ai-knowledge-answers/trusted/workspace.css",
+      "blob": "3f11650babfd3e1a490907b33e2f722bd97fa53d"
+    },
+    {
+      "path": "projects/ai-proxy/src/App.jsx",
+      "blob": "00e54b057e79405f7574b0c8bad2d588e13a3721"
+    },
+    {
+      "path": "projects/ai-proxy/src/QuickPanel.tsx",
+      "blob": "5ed9e192ba5358d6b5f2a2413d64b6d7ee723f58"
+    },
+    {
+      "path": "projects/ai-proxy/src/Settings.tsx",
+      "blob": "e0d5e9125a1a9191597f390b645c51a247784f58"
+    },
+    {
+      "path": "projects/ai-proxy/src/collector/rotation-plan.ts",
+      "blob": "b589bf2a8869fd7f269f3b735af4d37976c99ad6"
+    },
+    {
+      "path": "projects/ai-proxy/src/config/product-links.defaults.json",
+      "blob": "2e23db6f565a7dde6732cd0330185d65e2fcf39d"
+    },
+    {
+      "path": "projects/ai-proxy/src/config/product-links.demo.json",
+      "blob": "cf60d2cb7e277f21f86398242552efb5752a21c2"
+    },
+    {
+      "path": "projects/ai-proxy/src/config/public-config.ts",
+      "blob": "8b2ab58b742fd27e9416b99525424dad4a445c2a"
+    },
+    {
+      "path": "projects/ai-proxy/src/config/public-hosts.allowlist.json",
+      "blob": "fe51488c7066f6687ef680d6bfaa4f7768ef205c"
+    },
+    {
+      "path": "projects/ai-proxy/src/config/remote-config.ts",
+      "blob": "7eaf13736489115996520c25793f8280aa3b9394"
+    },
+    {
+      "path": "projects/ai-proxy/src/diagnostics/catalog.ts",
+      "blob": "70423a909f3b41a5aa4097ab261b54c048406fdf"
+    },
+    {
+      "path": "projects/ai-proxy/src/diagnostics/favorites.ts",
+      "blob": "1a7100790aa97d71753d3a59331978a1faeb9c74"
+    },
+    {
+      "path": "projects/ai-proxy/src/diagnostics/logic.ts",
+      "blob": "152573dd1ab3622fa75f06b5e2d4b93796d31290"
+    },
+    {
+      "path": "projects/ai-proxy/src/domain/config.ts",
+      "blob": "812f07b61fc34948e84245c1ef2bbbe14f8cf4bf"
+    },
+    {
+      "path": "projects/ai-proxy/src/domain/error-codes.ts",
+      "blob": "8f8d3e84713c8b2b4b1299edb2634f7e49d1e6b9"
+    },
+    {
+      "path": "projects/ai-proxy/src/domain/header-actions.ts",
+      "blob": "97b786eb9c3d378c5c7e9bc18a059cf0ffffbd2d"
+    },
+    {
+      "path": "projects/ai-proxy/src/domain/managed-config.ts",
+      "blob": "dab76f757480311cd36cdc8d5798f4b27ba5d80d"
+    },
+    {
+      "path": "projects/ai-proxy/src/domain/messages.ts",
+      "blob": "86ba498ec69bc965d6f79bf6e390137a4156e787"
+    },
+    {
+      "path": "projects/ai-proxy/src/domain/pac-starters.ts",
+      "blob": "619271c748e0f964e95881f30cd3b88dab57ee06"
+    },
+    {
+      "path": "projects/ai-proxy/src/domain/proxy-entry.ts",
+      "blob": "35b36b5b56af4ffeb194722d63dce46ec8843e8e"
+    },
+    {
+      "path": "projects/ai-proxy/src/environment.ts",
+      "blob": "a8974e2cabca289ad179b6ae118002bdc056c9a8"
+    },
+    {
+      "path": "projects/ai-proxy/src/i18n/LocaleProvider.tsx",
+      "blob": "f60fc23240354382534fb46d4d81cd9a87ac2127"
+    },
+    {
+      "path": "projects/ai-proxy/src/i18n/errors.ts",
+      "blob": "5bd55461ee679d869260c3b34e08c32415101e0d"
+    },
+    {
+      "path": "projects/ai-proxy/src/i18n/locale.ts",
+      "blob": "2f5391ea8b381753fd7eb6f2e4c0364e5856b058"
+    },
+    {
+      "path": "projects/ai-proxy/src/i18n/locales/en.json",
+      "blob": "6dd1f6665cf7a0a1d1f9db47c099b781ad46c2a8"
+    },
+    {
+      "path": "projects/ai-proxy/src/i18n/locales/zh-CN.json",
+      "blob": "df03dea459d45b25f04f8c1f6ef8f59f5bdae092"
+    },
+    {
+      "path": "projects/ai-proxy/src/i18n/locales/zh-TW.json",
+      "blob": "9222ef31061eca95d2736ef9293747902323e1a8"
+    },
+    {
+      "path": "projects/ai-proxy/src/official/messages.ts",
+      "blob": "641f9e021f7956d6c8fd39bc1dd91b78d86be60e"
+    },
+    {
+      "path": "projects/ai-proxy/src/service.ts",
+      "blob": "2c49b2f3dcdc8956faf0a7bd858837854e792fb8"
+    },
+    {
+      "path": "projects/ai-proxy/src/style.css",
+      "blob": "4398698e188510e615990d4b14c1dd4bde46d97c"
+    },
+    {
+      "path": "projects/ai-proxy/src/styles/management.css",
+      "blob": "5bd5553859f9cb287b903faf0ae00991d26925a0"
+    },
+    {
+      "path": "projects/ai-proxy/src/styles/options.css",
+      "blob": "b4caaf40bb3e6d25bb3e19b8e8b8f1e8f72a326a"
+    },
+    {
+      "path": "projects/ai-proxy/src/styles/rotation-entry.css",
+      "blob": "920483b511235b50f1dfd3c9bafb3f8ed7d6c8c9"
+    },
+    {
+      "path": "projects/ai-proxy/src/styles/sidebar-settings.css",
+      "blob": "103f21595582f1aef6c61ed215740599519357b2"
+    },
+    {
+      "path": "projects/ai-proxy/src/styles/sidepanel-r86.css",
+      "blob": "bd26430ec3c587d927218b756c2c8aeb002260e1"
+    },
+    {
+      "path": "projects/ai-proxy/src/styles/style.css",
+      "blob": "619462108d2f6b93d74e85549b16de11630a27ae"
+    },
+    {
+      "path": "projects/ai-proxy/src/subscription/download.ts",
+      "blob": "0b182b6faf289e73c9a764f80487900f14699347"
+    },
+    {
+      "path": "projects/ai-proxy/src/subscription/parser.ts",
+      "blob": "42a936d7191bb422a71fe173a822b55e591a6024"
+    },
+    {
+      "path": "projects/ai-proxy/src/ui/DiagnosticsPage.tsx",
+      "blob": "3c083d41fd9580c06ded55530812bbf8f54a9f06"
+    },
+    {
+      "path": "projects/ai-proxy/src/ui/FormField.tsx",
+      "blob": "1f9bcf20be1740c0c5df65d13ee5e7ac81428d24"
+    },
+    {
+      "path": "projects/ai-proxy/src/ui/HeaderActionsEditor.jsx",
+      "blob": "790d31cd0f20c1793d9ee4493f322eb9b5980029"
+    },
+    {
+      "path": "projects/ai-proxy/src/ui/OfficialServicePage.tsx",
+      "blob": "51d65d626e67af673b50948d9cb4b284fb05dc0b"
+    },
+    {
+      "path": "projects/ai-proxy/src/ui/OptionsShell.tsx",
+      "blob": "2fb7a857c93e93fef67106fbb0654bc28fbb2578"
+    },
+    {
+      "path": "projects/ai-proxy/src/ui/ProxyEntry.tsx",
+      "blob": "52e70ccdf8a0405adf416f66aa9dc209218ef7d4"
+    },
+    {
+      "path": "projects/ai-proxy/src/ui/ProxyIcon.tsx",
+      "blob": "9db97620b8b29c23aaf6333cd8235c311bcb8d36"
+    },
+    {
+      "path": "projects/ai-proxy/src/ui/RotationPlan.tsx",
+      "blob": "78368f323f1871e930fb68274a65d2f0b139c243"
+    },
+    {
+      "path": "projects/ai-proxy/src/ui/SourcesPage.tsx",
+      "blob": "3bae52d38b048ce8a1b3bedfaad7d03c34f3a21b"
+    },
+    {
+      "path": "projects/ai-proxy/src/ui/Status.tsx",
+      "blob": "cd266587abd9e3a3a3c78a7905f9dd4af09954db"
+    },
+    {
+      "path": "projects/ai-proxy/src/ui/SubscriptionReader.tsx",
+      "blob": "994f63468b318ab650e40d2b5026de8e11020e50"
+    },
+    {
+      "path": "projects/ai-proxy/src/ui/UsageControls.tsx",
+      "blob": "3d32edd9edf3a3c17167dd0b89e26ff105b64ffe"
+    },
+    {
+      "path": "projects/ai-proxy/src/ui/backupImport.ts",
+      "blob": "53e6cbf048126f94efb5d3456a773fc0c871320a"
+    },
+    {
+      "path": "projects/ai-proxy/src/ui/header-actions.css",
+      "blob": "309d3e1cbbb281b02710de6a5a1872ff38a6637f"
+    },
+    {
+      "path": "projects/ai-proxy/src/ui/header-actions.js",
+      "blob": "12adb769b472feb1ac9fc23d8b13a3db9dfbfd15"
+    },
+    {
+      "path": "projects/ai-proxy/src/ui/navigation.ts",
+      "blob": "be3f9da6a1fe707c5385a38a2c785ceb71375d25"
+    },
+    {
+      "path": "projects/ai-proxy/src/ui/optionsRoute.ts",
+      "blob": "09a0ed66b44fb834b7618d4b7ca07601e81ff7ba"
+    },
+    {
+      "path": "projects/ai-proxy/src/ui/useProxy.ts",
+      "blob": "af8b4dc1ed17b2dea6f0dddb2f62dcba166a5491"
+    },
+    {
+      "path": "projects/ai-proxy/src/usage/domain.ts",
+      "blob": "3730ac5455225e5451b142fba7be3403426272ab"
+    },
+    {
+      "path": "projects/ai-proxy/src/usage/ranking.ts",
+      "blob": "19a04f545c68e444f9bcfd7512e4c95f6e434fc7"
+    },
+    {
+      "path": "projects/ai-proxy/src/usage/vendor/public_suffix_list.dat",
+      "blob": "1eca38b5174fdd4b43612cd5e639dca5b06299d9"
+    },
+    {
+      "path": "projects/ai-proxy/trusted/Surface.jsx",
+      "blob": "6ccfec0ff567a7797525dd86e5eefe0d574384fa"
+    },
+    {
+      "path": "projects/ai-proxy/trusted/admission.js",
+      "blob": "031477094a6aa39720a6cc5b59aaf76f1bab15b0"
+    },
+    {
+      "path": "projects/ai-proxy/trusted/app-page-routes.js",
+      "blob": "36f1d80fb21f6b91831479c429d96396cd750dd2"
+    },
+    {
+      "path": "projects/ai-scroll-navigation/trusted/ai-controls.tsx",
+      "blob": "ba7e94499c399aba685b7c80cf004bb56e2888f0"
+    },
+    {
+      "path": "projects/ai-vip-share/trusted/host.css",
+      "blob": "634786710c463671b9c24c424725bf6c7ff4ec8e"
+    },
+    {
+      "path": "projects/ai-vip-share/trusted/lifecycle.js",
+      "blob": "123cb38a78e6176c5c1e7324e2ea457f15d2ee5d"
+    },
+    {
+      "path": "projects/ai-vip-share/trusted/policy.js",
+      "blob": "949ae514645f5691244f185b07e835e7e132cb5d"
+    },
+    {
+      "path": "projects/ai-vip-share/trusted/provider-config.js",
+      "blob": "d09c57ef4bbc96f406bb2092feb9ff9b2465cf43"
+    },
+    {
+      "path": "projects/ai-vip-share/trusted/react-controls.tsx",
+      "blob": "7f951bcaf8bc18450d03e450258a8024c3e71906"
+    },
+    {
+      "path": "projects/bookmark-manager/src/model.js",
+      "blob": "34cc7a737869ca502b4bcbbb47d2437d1b6b2bd5"
+    },
+    {
+      "path": "projects/bookmark-manager/src/react/App.jsx",
+      "blob": "f8b520988cb3ceed9e0c8739f63ccdeba3d496b5"
+    },
+    {
+      "path": "projects/bookmark-manager/src/react/navigation.js",
+      "blob": "7fc81215374c240e6eaae7e9e802872d94d5a53d"
+    },
+    {
+      "path": "projects/bookmark-manager/src/service.js",
+      "blob": "d072ace5379d0d4c8f8cda8d8d172cb60122576e"
+    },
+    {
+      "path": "projects/bookmark-manager/trusted/host.css",
+      "blob": "5bbe841558c86389994defd93f6077aa928a9cf9"
+    },
+    {
+      "path": "projects/cookie-editor/trusted/account-contract.js",
+      "blob": "081311cdc99d828e631efd2a5be1bcc20c461246"
+    },
+    {
+      "path": "projects/cookie-editor/trusted/host.css",
+      "blob": "b3d57a5df9a1f6089a3dfe97017ecdf73ea05a1f"
+    },
+    {
+      "path": "projects/prompt-shortcuts/trusted/host.css",
+      "blob": "aa08e38ebd56e34c49c1c07be5a1b6727426865b"
+    },
+    {
+      "path": "projects/reading-toc/trusted/host.css",
+      "blob": "93db2443725c8fac84dd94585d08d933766c2040"
+    },
+    {
+      "path": "projects/reading-toc/trusted/locales.generated.js",
+      "blob": "e494a458a006adeb90697aca8dd8957bc90e2ef3"
+    },
+    {
+      "path": "projects/reading-toc/trusted/policy.js",
+      "blob": "80fc351e9afc0cd94eedbc93c014cc4098f8b0b7"
+    },
+    {
+      "path": "projects/stay-focus/trusted/lifecycle.js",
+      "blob": "77afc647cf1345462751964d7c74c2ee8b0fbce2"
+    },
+    {
+      "path": "projects/stay-focus/trusted/policy.js",
+      "blob": "a62b4ec56ac2754f32f31a016f7cc35b14b1c86d"
+    },
+    {
+      "path": "projects/stay-focus/trusted/react-controls.tsx",
+      "blob": "0c14d175188a33532004be0869fd6b237f9f6fb7"
+    },
+    {
+      "path": "projects/stay-focus/trusted/rule-ownership.js",
+      "blob": "7c063535097df818cca43d76cc5fc77b3987047e"
+    },
+    {
+      "path": "projects/stay-focus/trusted/tool-host.js",
+      "blob": "58962523b7c74a49cf51059233a0d43dea7a9685"
+    },
+    {
+      "path": "projects/time-review/trusted/host.css",
+      "blob": "fe6b0d09a19dc210cf61ce45a74ec5ddb7a183a6"
+    },
+    {
+      "path": "projects/time-review/trusted/localization.js",
+      "blob": "7478e9c91f33317c8e1fe08f33d2e49c47b47818"
+    },
+    {
+      "path": "projects/time-review/trusted/model.js",
+      "blob": "ef7cb2281334b7161c39f68a768992e3527b9d5c"
+    },
+    {
+      "path": "projects/time-review/trusted/policy.js",
+      "blob": "d5127624c129bd29533f37e24eedab3216f396db"
+    },
+    {
+      "path": "projects/time-review/trusted/react-controls.tsx",
+      "blob": "2a9155f4a6c56969d1aebcd7420405b84fd4eaf4"
+    },
+    {
+      "path": "projects/web-markdown-clipper/trusted/policy.js",
+      "blob": "9cb4b8af149d25e2427ed0e187433f77a03b788f"
+    },
+    {
+      "path": "projects/webflow/src/authorization-policy.js",
+      "blob": "bb508189bdbbfe403707febbb36bb49d07d476c7"
+    },
+    {
+      "path": "projects/webflow/src/auto-grants.js",
+      "blob": "5b904ed84942f40accb5b459d4aa01341ad7a7b7"
+    },
+    {
+      "path": "projects/webflow/src/chatgpt-conversation-result-v0.3.js",
+      "blob": "53fd0ca5ae064053fc00d34ce5771800289efcc4"
+    },
+    {
+      "path": "projects/webflow/src/chatgpt-conversation-result.js",
+      "blob": "25581b6c905b5f8d6fd2bb7d7939c7ca8bfbd270"
+    },
+    {
+      "path": "projects/webflow/src/task-intent-contract.js",
+      "blob": "50a7ec4bd3d8707ba53724efdc378cd98c2404d6"
+    },
+    {
+      "path": "projects/webflow/src/ui/app-page-routes.js",
+      "blob": "04468dd893393f82482123355243d8cdad4b1fb7"
+    },
+    {
+      "path": "projects/webflow/trusted/AutoSettings.tsx",
+      "blob": "1618f0a1bffcce8174e4d623cba6c2643894de05"
+    },
+    {
+      "path": "projects/webflow/trusted/CurrentTask.tsx",
+      "blob": "aa2ecc7a76140fdf228444223b10d700207f4014"
+    },
+    {
+      "path": "projects/webflow/trusted/RuntimePanel.tsx",
+      "blob": "f418c26696933f0b9440080fd2586e47e42b870f"
+    },
+    {
+      "path": "projects/webflow/trusted/chatgpt-conversation-route.js",
+      "blob": "8e28adedd8cc2b49ff34897c0857d33cf2478c87"
+    },
+    {
+      "path": "projects/webflow/trusted/chatgpt-result-adapter-v0.3.js",
+      "blob": "9e58fafd786733db036a5995889cbff00157622e"
+    },
+    {
+      "path": "projects/webflow/trusted/chatgpt-result-adapter.js",
+      "blob": "b55e4f27e5919464515b9687f45e8ca012f97c1b"
+    },
+    {
+      "path": "projects/webflow/trusted/issue-workflow-authorization.js",
+      "blob": "e26ae6bcf44d1994801faa4fc9a7408964702adc"
+    }
+  ]
+}

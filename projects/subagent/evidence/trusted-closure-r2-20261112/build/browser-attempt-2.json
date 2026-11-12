@@ -1,0 +1,23 @@
+{
+  "status": "failed",
+  "mode": "production",
+  "attemptId": "bc70d166-8271-4752-9713-e6da4b0ae5fe",
+  "packageVerified": false,
+  "error": {
+    "message": "Failed to build tool-shell",
+    "causes": [
+      {
+        "message": "[opendesk-fixed-tool-shell] Trusted extension settings source changed; review and re-pin before fixed build: projects/ai-scroll-navigation/trusted/ai-configuration.js",
+        "code": "PLUGIN_ERROR"
+      }
+    ]
+  },
+  "diagnosticErrors": [],
+  "note": "Partial failed build diagnostics only; renderedLength is pre-minification, not final module bytes.",
+  "evidenceForm": "Extract of original builder diagnostic; full raw stdout is preserved beside this file. Source inputs and bundle membership are counted and hashed below, not reproduced as unrelated prior-build snapshots.",
+  "originalDiagnosticSha256": "5750743f5fa465446215ade63f765a771b3a9d2e12ceb32053dba7d2dc73a68c",
+  "sourceInputCount": 800,
+  "bundleCount": 39,
+  "sourceInputsSha256Canonical": "11795fae3c3f958f743562af4de88d4cf02850975ae6ee0e996c23f678c2f6ad",
+  "bundleModulesSha256Canonical": "f5755677c4c395ea54010eb3aededa85e874c5e12e64e704c51af799c64c0d85"
+}

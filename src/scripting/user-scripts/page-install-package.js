@@ -5,6 +5,7 @@ import {validatePageSource} from './page-bundle.js';
 import {describeDependencyManifest} from './dependency-manifest.js';
 import {assertUserScriptExecutable} from './dependency-metadata.js';
 import {resolvePageProgramRules} from './page-program-rules.js';
+import {readPageTaskDelegations} from './page-task-contract.js';
 
 export const PAGE_INSTALL_FORMAT='opendesk.page-install.v1';
 export const PAGE_INSTALL_INPUT_LIMIT=PAGE_FRAME_DRAFT_LIMIT;
@@ -34,6 +35,7 @@ export async function validatePageInstallPackage(value){
   const {packageHash,...payload}=snapshot;
   invariant(await digest(payload)===packageHash,'E_PAGE_PACKAGE_HASH','安装包 SHA-256 不符');
   await validatePageSource(snapshot.sourceUtf8);
+  readPageTaskDelegations(snapshot.sourceUtf8);
   const frames=await readPageFrameResources(snapshot.sourceUtf8);
   invariant(!hasUnbuiltESM(snapshot.sourceUtf8)&&frames.every(row=>!hasUnbuiltESM(row.code)),
     'E_DEPENDENCY_MODULE','离线源码及子帧必须先闭合 ESM，不能在安装后导入外部模块');

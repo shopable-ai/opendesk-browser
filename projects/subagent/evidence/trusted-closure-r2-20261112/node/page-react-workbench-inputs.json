@@ -1,0 +1,29 @@
+{
+  "command": [
+    "node",
+    "--test",
+    "--test-reporter=tap",
+    "--test-name-pattern=^page request",
+    "tests/environment/my-react-workbench.test.mjs"
+  ],
+  "exitCode": 0,
+  "inputsBefore": {
+    "tests/environment/my-react-workbench.test.mjs": "257c0e2168d2dcbaa62667edd3f359b7e9d0213db52d330b1476148d079f5186",
+    "src/ui/task-workbench.js": "5c3e7dd733d4e9ff59f743a2ffe9f4591fec766b6103e8fa9d086b80364fb853",
+    "src/ui/react/tabs/task-run-sheet.tsx": "246c816126e2e390e2b77e6136c436324940d91c0be7c03ed2e05c8840538c71",
+    "src/ui/react/tabs/my-controls.tsx": "81ccf92a7a3841e01d338b80926dbb206cc19275e237adc250f67b499c38f93c",
+    "src/ui/react/tabs/my-sections.tsx": "85d94fb7dfebb955926ecbdad83b6bc7f79d32623ea5123b4bcfa4fd7bbca60b",
+    "src/ui/my-workbench-view.js": "e218b18d6158bba57d58282e1358d0b9107989190502182b7904a37ea60add77"
+  },
+  "inputsAfter": {
+    "tests/environment/my-react-workbench.test.mjs": "257c0e2168d2dcbaa62667edd3f359b7e9d0213db52d330b1476148d079f5186",
+    "src/ui/task-workbench.js": "5c3e7dd733d4e9ff59f743a2ffe9f4591fec766b6103e8fa9d086b80364fb853",
+    "src/ui/react/tabs/task-run-sheet.tsx": "246c816126e2e390e2b77e6136c436324940d91c0be7c03ed2e05c8840538c71",
+    "src/ui/react/tabs/my-controls.tsx": "81ccf92a7a3841e01d338b80926dbb206cc19275e237adc250f67b499c38f93c",
+    "src/ui/react/tabs/my-sections.tsx": "85d94fb7dfebb955926ecbdad83b6bc7f79d32623ea5123b4bcfa4fd7bbca60b",
+    "src/ui/my-workbench-view.js": "e218b18d6158bba57d58282e1358d0b9107989190502182b7904a37ea60add77"
+  },
+  "inputsStable": true,
+  "evidence": "NODE_REACT_FIXTURE_ONLY",
+  "chromeNative": "NOT_TESTED"
+}

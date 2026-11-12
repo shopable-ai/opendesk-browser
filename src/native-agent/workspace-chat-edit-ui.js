@@ -1,5 +1,5 @@
 import {createEditContext,parseEditProposal,parseStringEnvelope,validateEditProposal,createEditReceipt,EDIT_PROTOCOL} from './workspace-ai-proposal.js';
-import {isChatGPTURL,chatGPTConversationId,readChatGPTEdit,fillChatGPTComposer} from './workspace-chatgpt.js';
+import {isChatGPTURL,chatGPTConversationId,readChatGPTEdit,fillChatGPTComposer} from './workspace-chatgpt-core.js';
 import {createFileRequestContext,parseFileRequest,formatFileResult,REQUEST_PROTOCOL} from './workspace-chat-request.js';
 import {localizeLiteral} from '../i18n/index.js';
 

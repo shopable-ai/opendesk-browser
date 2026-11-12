@@ -1,0 +1,368 @@
+TAP version 13
+# Subtest: Subagent Result projection admits only three exact SW blobs and rejects other worlds or drift
+ok 1 - Subagent Result projection admits only three exact SW blobs and rejects other worlds or drift
+  ---
+  duration_ms: 23.748626
+  type: 'test'
+  ...
+# Subtest: A2B2A capability grant source is pinned to the original SW and trusted Side Panel only
+ok 2 - A2B2A capability grant source is pinned to the original SW and trusted Side Panel only
+  ---
+  duration_ms: 69.507876
+  type: 'test'
+  ...
+# Subtest: reviewed WebFlow task intent parser permits five exact fixed entries and denies other worlds
+ok 3 - reviewed WebFlow task intent parser permits five exact fixed entries and denies other worlds
+  ---
+  duration_ms: 37.114287
+  type: 'test'
+  ...
+# Subtest: Settings and Native file graphs retain original source gates without Task-only dependencies
+ok 4 - Settings and Native file graphs retain original source gates without Task-only dependencies
+  ---
+  duration_ms: 613.289883
+  type: 'test'
+  ...
+# Subtest: reviewed WebFlow intent source pin rejects mutated and symlinked content
+ok 5 - reviewed WebFlow intent source pin rejects mutated and symlinked content
+  ---
+  duration_ms: 5.398558
+  type: 'test'
+  ...
+# Subtest: reviewed ChatGPT route guard enters Native Settings Workspace only as pinned deny-only source
+ok 6 - reviewed ChatGPT route guard enters Native Settings Workspace only as pinned deny-only source
+  ---
+  duration_ms: 22.9954
+  type: 'test'
+  ...
+# Subtest: reviewed app display routes enter only the fixed tool shell
+ok 7 - reviewed app display routes enter only the fixed tool shell
+  ---
+  duration_ms: 42.433339
+  type: 'test'
+  ...
+# Subtest: trusted AI Proxy checks nested CSS even when Rollup omits it from chunk.modules
+ok 8 - trusted AI Proxy checks nested CSS even when Rollup omits it from chunk.modules
+  ---
+  duration_ms: 50.632264
+  type: 'test'
+  ...
+# Subtest: trusted AI Proxy rejects missing CSS pins, remote imports and project escapes
+ok 9 - trusted AI Proxy rejects missing CSS pins, remote imports and project escapes
+  ---
+  duration_ms: 6.32211
+  type: 'test'
+  ...
+# Subtest: migration: unpinned projects cannot enter fixed trusted outputs
+ok 10 - migration: unpinned projects cannot enter fixed trusted outputs
+  ---
+  duration_ms: 0.936197
+  type: 'test'
+  ...
+# Subtest: fixed Bookmark CSS keeps its exact source pin after leaving the JS bundle
+not ok 11 - fixed Bookmark CSS keeps its exact source pin after leaving the JS bundle
+  ---
+  duration_ms: 7.087193
+  type: 'test'
+  location: '/workspace/scratch/405ab6bc5281/opendesk-browser/tests/environment/bundle-provenance.test.mjs:230:1'
+  failureType: 'testCodeFailure'
+  error: "ENOENT: no such file or directory, open '/workspace/scratch/405ab6bc5281/opendesk-browser/examples/sidebar-tools/bookmark-manager/src/react/style.css'"
+  code: 'ENOENT'
+  stack: |-
+    async open (node:internal/fs/promises:1345:25)
+    async readFile (node:internal/fs/promises:2003:14)
+    async TestContext.<anonymous> (file:///workspace/scratch/405ab6bc5281/opendesk-browser/tests/environment/bundle-provenance.test.mjs:238:15)
+    async Test.run (node:internal/test_runner/test:1409:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:974:7)
+  ...
+# Subtest: actual Rollup modules retain separate npm identity and zero-rendered evidence
+ok 12 - actual Rollup modules retain separate npm identity and zero-rendered evidence
+  ---
+  duration_ms: 1.072232
+  type: 'test'
+  ...
+# Subtest: independent npm implementations stay in their own outputs and raw libraries are never bundled
+ok 13 - independent npm implementations stay in their own outputs and raw libraries are never bundled
+  ---
+  duration_ms: 0.937849
+  type: 'test'
+  ...
+# Subtest: a failed oversized build preserves the offending graph separately from the last success
+ok 14 - a failed oversized build preserves the offending graph separately from the last success
+  ---
+  duration_ms: 5.271716
+  type: 'test'
+  ...
+# Subtest: partial diagnostic JSON and circular causes cannot leave a stale success marker
+ok 15 - partial diagnostic JSON and circular causes cannot leave a stale success marker
+  ---
+  duration_ms: 3.313083
+  type: 'test'
+  ...
+# Subtest: privileged entries reject historical, user project and standalone vendor modules
+ok 16 - privileged entries reject historical, user project and standalone vendor modules
+  ---
+  duration_ms: 0.441297
+  type: 'test'
+  ...
+# Subtest: Web Flow keyword policy uses exact reviewed bytes and only the original compiled targets
+ok 17 - Web Flow keyword policy uses exact reviewed bytes and only the original compiled targets
+  ---
+  duration_ms: 3.962335
+  type: 'test'
+  ...
+# Subtest: ChatGPT image files enter only their reviewed Native transport/settings entries with exact bytes
+ok 18 - ChatGPT image files enter only their reviewed Native transport/settings entries with exact bytes
+  ---
+  duration_ms: 6.240766
+  type: 'test'
+  ...
+# Subtest: receipt collection requires every fixed output and binds final verified hashes
+ok 19 - receipt collection requires every fixed output and binds final verified hashes
+  ---
+  duration_ms: 2.196584
+  type: 'test'
+  ...
+# Subtest: reviewed Time Review markup and logic can enter only the pinned existing sidebar host
+ok 20 - reviewed Time Review markup and logic can enter only the pinned existing sidebar host
+  ---
+  duration_ms: 1.118272
+  type: 'test'
+  ...
+# Subtest: a modified Time Review source must not enter privileged fixed output under the old pin
+ok 21 - a modified Time Review source must not enter privileged fixed output under the old pin
+  ---
+  duration_ms: 4.988462
+  type: 'test'
+  ...
+# Subtest: a symlink cannot substitute a pinned Time Review source in privileged output
+ok 22 - a symlink cannot substitute a pinned Time Review source in privileged output
+  ---
+  duration_ms: 2.909352
+  type: 'test'
+  ...
+# Subtest: R3.1 trusted Bookmark React compiles only four pinned first-party blobs into the existing tool-shell
+not ok 23 - R3.1 trusted Bookmark React compiles only four pinned first-party blobs into the existing tool-shell
+  ---
+  duration_ms: 0.256208
+  type: 'test'
+  location: '/workspace/scratch/405ab6bc5281/opendesk-browser/tests/environment/bundle-provenance.test.mjs:407:1'
+  failureType: 'testCodeFailure'
+  error: 'Historical/user/vendor code cannot enter a privileged fixed bundle: examples/sidebar-tools/bookmark-manager/src/model.js'
+  code: 'ERR_TEST_FAILURE'
+  stack: |-
+    file:///workspace/scratch/405ab6bc5281/opendesk-browser/scripts/bundle-provenance.mjs:878:13
+    Array.map (<anonymous>)
+    describeBundle (file:///workspace/scratch/405ab6bc5281/opendesk-browser/scripts/bundle-provenance.mjs:849:47)
+    TestContext.<anonymous> (file:///workspace/scratch/405ab6bc5281/opendesk-browser/tests/environment/bundle-provenance.test.mjs:415:18)
+    Test.runInAsyncScope (node:async_hooks:227:14)
+    Test.run (node:internal/test_runner/test:1402:25)
+    Test.processPendingSubtests (node:internal/test_runner/test:974:18)
+    Test.postRun (node:internal/test_runner/test:1542:19)
+    Test.run (node:internal/test_runner/test:1467:12)
+    async Test.processPendingSubtests (node:internal/test_runner/test:974:7)
+  ...
+# Subtest: R3.1 modified trusted Bookmark App fails at build rather than silently executing new JSX
+not ok 24 - R3.1 modified trusted Bookmark App fails at build rather than silently executing new JSX
+  ---
+  duration_ms: 2.854248
+  type: 'test'
+  location: '/workspace/scratch/405ab6bc5281/opendesk-browser/tests/environment/bundle-provenance.test.mjs:430:1'
+  failureType: 'testCodeFailure'
+  error: |-
+    The input did not match the regular expression /Trusted Bookmark React source changed/. Input:
+    
+    'Error: Historical/user/vendor code cannot enter a privileged fixed bundle: examples/sidebar-tools/bookmark-manager/src/react/App.jsx'
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected:
+  actual:
+  error: 'Historical/user/vendor code cannot enter a privileged fixed bundle: examples/sidebar-tools/bookmark-manager/src/react/App.jsx'
+  stack: |-
+    file:///workspace/scratch/405ab6bc5281/opendesk-browser/scripts/bundle-provenance.mjs:878:13
+    Array.map (<anonymous>)
+    describeBundle (file:///workspace/scratch/405ab6bc5281/opendesk-browser/scripts/bundle-provenance.mjs:849:47)
+    file:///workspace/scratch/405ab6bc5281/opendesk-browser/tests/environment/bundle-provenance.test.mjs:437:21
+    getActual (node:assert:611:5)
+    strict.throws (node:assert:759:24)
+    TestContext.<anonymous> (file:///workspace/scratch/405ab6bc5281/opendesk-browser/tests/environment/bundle-provenance.test.mjs:437:10)
+    async Test.run (node:internal/test_runner/test:1409:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:974:7)
+  operator: 'throws'
+  stack: |-
+    TestContext.<anonymous> (file:///workspace/scratch/405ab6bc5281/opendesk-browser/tests/environment/bundle-provenance.test.mjs:437:10)
+    async Test.run (node:internal/test_runner/test:1409:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:974:7)
+  ...
+# Subtest: R3.1 symlink substitution cannot bypass trusted Bookmark static pin
+not ok 25 - R3.1 symlink substitution cannot bypass trusted Bookmark static pin
+  ---
+  duration_ms: 3.04736
+  type: 'test'
+  location: '/workspace/scratch/405ab6bc5281/opendesk-browser/tests/environment/bundle-provenance.test.mjs:441:1'
+  failureType: 'testCodeFailure'
+  error: |-
+    The input did not match the regular expression /Trusted Bookmark React source must not be a symlink/. Input:
+    
+    'Error: Historical/user/vendor code cannot enter a privileged fixed bundle: examples/sidebar-tools/bookmark-manager/src/model.js'
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected:
+  actual:
+  error: 'Historical/user/vendor code cannot enter a privileged fixed bundle: examples/sidebar-tools/bookmark-manager/src/model.js'
+  stack: |-
+    file:///workspace/scratch/405ab6bc5281/opendesk-browser/scripts/bundle-provenance.mjs:878:13
+    Array.map (<anonymous>)
+    describeBundle (file:///workspace/scratch/405ab6bc5281/opendesk-browser/scripts/bundle-provenance.mjs:849:47)
+    file:///workspace/scratch/405ab6bc5281/opendesk-browser/tests/environment/bundle-provenance.test.mjs:448:21
+    getActual (node:assert:611:5)
+    strict.throws (node:assert:759:24)
+    TestContext.<anonymous> (file:///workspace/scratch/405ab6bc5281/opendesk-browser/tests/environment/bundle-provenance.test.mjs:448:10)
+    async Test.run (node:internal/test_runner/test:1409:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:974:7)
+  operator: 'throws'
+  stack: |-
+    TestContext.<anonymous> (file:///workspace/scratch/405ab6bc5281/opendesk-browser/tests/environment/bundle-provenance.test.mjs:448:10)
+    async Test.run (node:internal/test_runner/test:1409:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:974:7)
+  ...
+# Subtest: AdBlock session fence is a fixed audited source and rejects byte drift
+ok 26 - AdBlock session fence is a fixed audited source and rejects byte drift
+  ---
+  duration_ms: 2.717662
+  type: 'test'
+  ...
+# Subtest: R1.3 app-owned trusted background inputs require an exact reviewed Git blob
+not ok 27 - R1.3 app-owned trusted background inputs require an exact reviewed Git blob
+  ---
+  duration_ms: 3.064076
+  type: 'test'
+  location: '/workspace/scratch/405ab6bc5281/opendesk-browser/tests/environment/bundle-provenance.test.mjs:468:1'
+  failureType: 'testCodeFailure'
+  error: 'Historical/user/vendor code cannot enter a privileged fixed bundle: examples/sidebar-tools/time-review/trusted/service.js'
+  code: 'ERR_TEST_FAILURE'
+  stack: |-
+    file:///workspace/scratch/405ab6bc5281/opendesk-browser/scripts/bundle-provenance.mjs:878:13
+    Array.map (<anonymous>)
+    describeBundle (file:///workspace/scratch/405ab6bc5281/opendesk-browser/scripts/bundle-provenance.mjs:849:47)
+    make (file:///workspace/scratch/405ab6bc5281/opendesk-browser/tests/environment/bundle-provenance.test.mjs:475:51)
+    TestContext.<anonymous> (file:///workspace/scratch/405ab6bc5281/opendesk-browser/tests/environment/bundle-provenance.test.mjs:482:15)
+    async Test.run (node:internal/test_runner/test:1409:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:974:7)
+  ...
+# Subtest: Marketplace shares only the byte-pinned Prompt Shortcuts asset identity for uninstall cleanup
+ok 28 - Marketplace shares only the byte-pinned Prompt Shortcuts asset identity for uninstall cleanup
+  ---
+  duration_ms: 4.397983
+  type: 'test'
+  ...
+# Subtest: first-party Clipper full-text notes store is pinned exclusively to the original Sidebar Host
+ok 29 - first-party Clipper full-text notes store is pinned exclusively to the original Sidebar Host
+  ---
+  duration_ms: 2.52517
+  type: 'test'
+  ...
+# Subtest: Prompt Shortcuts OD rail bridge requires its reviewed SW blob and fixed outputs
+ok 30 - Prompt Shortcuts OD rail bridge requires its reviewed SW blob and fixed outputs
+  ---
+  duration_ms: 4.021444
+  type: 'test'
+  ...
+# Subtest: independent Scroll Page source cannot regain privileged fixed output admission
+ok 31 - independent Scroll Page source cannot regain privileged fixed output admission
+  ---
+  duration_ms: 1.239054
+  type: 'test'
+  ...
+# Subtest: removed Prompt Shortcuts site bindings cannot regain privileged output admission
+ok 32 - removed Prompt Shortcuts site bindings cannot regain privileged output admission
+  ---
+  duration_ms: 2.390817
+  type: 'test'
+  ...
+# Subtest: R1.3 pinned shared Markdown converter can only enter the existing Page Relay
+ok 33 - R1.3 pinned shared Markdown converter can only enter the existing Page Relay
+  ---
+  duration_ms: 3.260323
+  type: 'test'
+  ...
+# Subtest: R1.3 Reading TOC model, overview, placement, page and view require audited Page Relay pins
+not ok 34 - R1.3 Reading TOC model, overview, placement, page and view require audited Page Relay pins
+  ---
+  duration_ms: 0.461238
+  type: 'test'
+  location: '/workspace/scratch/405ab6bc5281/opendesk-browser/tests/environment/bundle-provenance.test.mjs:600:1'
+  failureType: 'testCodeFailure'
+  error: 'Historical/user/vendor code cannot enter a privileged fixed bundle: projects/reading-toc/trusted/overview.js'
+  code: 'ERR_TEST_FAILURE'
+  stack: |-
+    file:///workspace/scratch/405ab6bc5281/opendesk-browser/scripts/bundle-provenance.mjs:878:13
+    Array.map (<anonymous>)
+    describeBundle (file:///workspace/scratch/405ab6bc5281/opendesk-browser/scripts/bundle-provenance.mjs:849:47)
+    make (file:///workspace/scratch/405ab6bc5281/opendesk-browser/tests/environment/bundle-provenance.test.mjs:603:54)
+    TestContext.<anonymous> (file:///workspace/scratch/405ab6bc5281/opendesk-browser/tests/environment/bundle-provenance.test.mjs:606:13)
+    Test.runInAsyncScope (node:async_hooks:227:14)
+    Test.run (node:internal/test_runner/test:1402:25)
+    Test.processPendingSubtests (node:internal/test_runner/test:974:18)
+    Test.postRun (node:internal/test_runner/test:1542:19)
+    Test.run (node:internal/test_runner/test:1467:12)
+  ...
+# Subtest: Reading TOC generated locale keeps exact source, target and symlink fences
+ok 35 - Reading TOC generated locale keeps exact source, target and symlink fences
+  ---
+  duration_ms: 5.005784
+  type: 'test'
+  ...
+# Subtest: relocated trusted policies and tab repair keep exact source, target and symlink fences
+not ok 36 - relocated trusted policies and tab repair keep exact source, target and symlink fences
+  ---
+  duration_ms: 1.833514
+  type: 'test'
+  location: '/workspace/scratch/405ab6bc5281/opendesk-browser/tests/environment/bundle-provenance.test.mjs:646:1'
+  failureType: 'testCodeFailure'
+  error: |-
+    Expected values to be strictly equal:
+    + actual - expected
+    
+    + '80fc351e9afc0cd94eedbc93c014cc4098f8b0b7'
+    - '2a2dcc3c21ac74bb569c2c418c52bdd3cb430bb2'
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: '2a2dcc3c21ac74bb569c2c418c52bdd3cb430bb2'
+  actual: '80fc351e9afc0cd94eedbc93c014cc4098f8b0b7'
+  operator: 'strictEqual'
+  stack: |-
+    TestContext.<anonymous> (file:///workspace/scratch/405ab6bc5281/opendesk-browser/tests/environment/bundle-provenance.test.mjs:658:12)
+    async Test.run (node:internal/test_runner/test:1409:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:974:7)
+  ...
+# Subtest: Clipper region source is byte-pinned to Page Relay and never admitted elsewhere
+ok 37 - Clipper region source is byte-pinned to Page Relay and never admitted elsewhere
+  ---
+  duration_ms: 5.182255
+  type: 'test'
+  ...
+# Subtest: shared visible-selection helper is pinned only into existing Page Relay
+ok 38 - shared visible-selection helper is pinned only into existing Page Relay
+  ---
+  duration_ms: 3.323468
+  type: 'test'
+  ...
+# Subtest: fixed ChatGPT bridge uses src ownership without admitting independent queue code
+ok 39 - fixed ChatGPT bridge uses src ownership without admitting independent queue code
+  ---
+  duration_ms: 0.302197
+  type: 'test'
+  ...
+1..39
+# tests 39
+# suites 0
+# pass 32
+# fail 7
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 1144.917532

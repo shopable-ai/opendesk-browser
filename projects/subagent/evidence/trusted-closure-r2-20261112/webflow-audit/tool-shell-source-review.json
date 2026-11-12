@@ -1,0 +1,130 @@
+{
+  "taskId": "OD-SUBAGENT-CHAT-A2B2A-R2-TRUSTED-CLOSURE",
+  "recordedAt": "2026-11-12T13:48:56.652Z",
+  "reviewer": "/root/webflow_audit",
+  "reviewType": "Internal source-boundary review; no external expert",
+  "head": "654a732418c8993605f59cea7635a3e39e973f9e",
+  "observedRemoteMain": "156f686c503f5d97ab8afb79ef7f0c71d1f7c054",
+  "scope": [
+    "scripts/bundle-provenance.mjs",
+    "tests/environment/bundle-provenance.test.mjs"
+  ],
+  "authorization": "Root explicitly approved three committed AI Scroll blob updates and one precise target addition for existing pinned Prompt asset-contract; no application source or Task package change.",
+  "ownerRules": "Inherited root AGENTS.md. No project-specific AGENTS.md exists under AI Scroll or Prompt Shortcuts. Root alone owns Git writes and Browser builds.",
+  "reviewed": [
+    {
+      "path": "projects/ai-scroll-navigation/trusted/ai-configuration.js",
+      "oldBlob": "ecec6df2621355503c26d0e24eaae4f84db99699",
+      "newBlob": "c97137a3a871fb6c19fd3594fc627fafd67d03f8",
+      "commits": [
+        "3960d42bfc089fc955050d4689bc3e25adbd20a4",
+        "2f5db6a41172e4cd60e1228dc9fa10a38ffaf77b"
+      ],
+      "review": "Only turnPaging/showTurnCount allowed fields, strict full-clause command aliases, and a showTurnCount proposal example were added. Exact patch/intent matching and original pure validation remain. No Host, I/O, grant, origin or execution entry was added.",
+      "actualGitBlob": "c97137a3a871fb6c19fd3594fc627fafd67d03f8",
+      "headGitBlob": "c97137a3a871fb6c19fd3594fc627fafd67d03f8",
+      "remoteGitBlob": "c97137a3a871fb6c19fd3594fc627fafd67d03f8",
+      "remoteRef": "156f686c503f5d97ab8afb79ef7f0c71d1f7c054",
+      "remoteVerification": "GitHub fetch_file structuredContent.sha at this exact known commit; performed read-only before edits."
+    },
+    {
+      "path": "projects/ai-scroll-navigation/trusted/host-localization.js",
+      "oldBlob": "ea011ece7b1986e9643a4d94c797c9c9db062a1a",
+      "newBlob": "73b0b62a0d009ff3451457623739d2a1716aad03",
+      "commits": [
+        "641a90470716713120b51cfd8bddb8daa93d6372",
+        "2f5db6a41172e4cd60e1228dc9fa10a38ffaf77b"
+      ],
+      "review": "Exactly two navigation labels were added in each of four existing locale tables. Inert data only.",
+      "actualGitBlob": "73b0b62a0d009ff3451457623739d2a1716aad03",
+      "headGitBlob": "73b0b62a0d009ff3451457623739d2a1716aad03",
+      "remoteGitBlob": "73b0b62a0d009ff3451457623739d2a1716aad03",
+      "remoteRef": "156f686c503f5d97ab8afb79ef7f0c71d1f7c054",
+      "remoteVerification": "GitHub fetch_file structuredContent.sha at this exact known commit; performed read-only before edits."
+    },
+    {
+      "path": "projects/ai-scroll-navigation/trusted/react-controls.tsx",
+      "oldBlob": "455fde0f38396488adf8945b2a01835313642e30",
+      "newBlob": "1261228715f9cd8f8496e190213e8b7cedb57406",
+      "commits": [
+        "5b942a4d2f11ac3d4f3faed62153b3a8613d32d1",
+        "3e35d90b10e94c28f0fe57835950e98e14857178",
+        "2f5db6a41172e4cd60e1228dc9fa10a38ffaf77b"
+      ],
+      "review": "Two navigation flags join existing controls; supported-version model flags hide unavailable fields, and showTurnCount defaults false. The same original onSaveNavigation, exact etag, trusted captured event, inFlight/UNKNOWN fences and readback path remain. No new caller or permission.",
+      "actualGitBlob": "1261228715f9cd8f8496e190213e8b7cedb57406",
+      "headGitBlob": "1261228715f9cd8f8496e190213e8b7cedb57406",
+      "remoteGitBlob": "1261228715f9cd8f8496e190213e8b7cedb57406",
+      "remoteRef": "156f686c503f5d97ab8afb79ef7f0c71d1f7c054",
+      "remoteVerification": "GitHub fetch_file structuredContent.sha at this exact known commit; performed read-only before edits."
+    }
+  ],
+  "preciseTargetAddition": {
+    "path": "projects/prompt-shortcuts/trusted/asset-contract.js",
+    "blob": "86e95bff786e52efb9089f97126542430f39a716",
+    "sourceChanged": false,
+    "priorTargets": [
+      "agents/page-relay.js",
+      "ui/sidebar-tool-host.js",
+      "ui/marketplace.js"
+    ],
+    "addedTarget": "ui/tool-shell.js",
+    "consumption": "Original src/ui/sidebar-tools/installation.js consumes only PROMPT_ASSET_STORE in owner-scoped uninstall cleanup. Fixed shell reaches the installer via existing imports and original sidebar-tools uninstall path.",
+    "boundary": "Pending uninstall journal; re-read registry confirms no same-ID installation; original scheduler retirement; original tool then catalog locks; original user confirmation. These runtime guards are unchanged.",
+    "reviewedContent": "15 lines of constants/regex and pure data URL validation; no imports, Host, Chrome, DOM, network or storage effects.",
+    "independentReview": {
+      "reviewer": "/root/closure_audit",
+      "verdict": "No permission veto for this exact blob and single target; other files and runtime authority remain excluded.",
+      "performed": "Read-only source and HEAD inspection; no tests, build, edits or browser."
+    }
+  },
+  "graph": {
+    "before": "tool-shell-before-review.json",
+    "beforeLocalModules": 390,
+    "beforeReviewedInputs": 116,
+    "beforeFailures": 4,
+    "after": "tool-shell-after-review.json",
+    "afterLocalModules": 390,
+    "afterReviewedInputs": 120,
+    "afterFailures": [],
+    "unresolved": [],
+    "exitCode": 0,
+    "limits": "Conservative syntax graph; no app execution or bundling. Bare npm and nonliteral dynamic imports are outside this first-party source-pin check.",
+    "reproduction": "node artifacts/subagent-r2/webflow-audit/audit-tool-shell-graph.mjs",
+    "afterHead": "654a732418c8993605f59cea7635a3e39e973f9e"
+  },
+  "targetedTest": {
+    "command": "node --test --test-reporter=tap --test-name-pattern='reviewed Scroll settings|original installers share only' tests/environment/bundle-provenance.test.mjs",
+    "node": "v24.22.1",
+    "stdout": "tool-shell-provenance-targeted.tap",
+    "rawCapture": true,
+    "exitCode": 0,
+    "total": 2,
+    "pass": 2,
+    "fail": 0,
+    "skipped": 0,
+    "toolChunkId": "15765c",
+    "wallTimeSeconds": 0.398912861,
+    "coverage": "All three shell-only exact pins, denied other worlds, source mutation and symlink rejection; Prompt single target addition, denial of Host/model/Page/unknown modules and other targets."
+  },
+  "unchangedSourceStatus": "",
+  "evidenceLevels": {
+    "source": "Reviewed exact committed inputs",
+    "node": "Two changed build-boundary tests passed",
+    "browserBuild": "Root-owned; not run by this reviewer",
+    "install": "NOT_TESTED",
+    "chromeNative": "NOT_TESTED",
+    "business": "NOT_TESTED"
+  },
+  "priorFailures": "The earlier full provenance 39/32/7 result is retained unchanged. This focused 2/2 pass is not a full-suite PASS.",
+  "inputBlobs": {
+    "scripts/bundle-provenance.mjs": "76e730710574f8aadb0a29a14288c96d29bed24e",
+    "tests/environment/bundle-provenance.test.mjs": "97a9f578a0823ff627469662631a8c3ecb300794"
+  },
+  "evidenceSha256": {
+    "tool-shell-before-review.json": "cc4872478402e7dc0779f4a70ef778027a8a30164f5f659a21bd93098ab29c9d",
+    "tool-shell-after-review.json": "408485359b28f2d1927f1d9f39784aebc107fd833a3f2c320aa8c6b69f9a85aa",
+    "tool-shell-reviewed-source-diff.patch": "5adea6917726a6e6b6919122e67fba00cb600f354a3cf73c2f84924dce3408c7",
+    "tool-shell-provenance-targeted.tap": "c72e706d5bd062288395c55fd3ce78c5f9431736eb535181808224279f4bf668"
+  }
+}

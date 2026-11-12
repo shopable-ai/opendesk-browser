@@ -1,4 +1,4 @@
-import {assertChatGPTTarget,chatGPTConversationId,readChatGPTEdit,fillChatGPTComposer} from '../../../src/native-agent/workspace-chatgpt.js';
+import {assertChatGPTTarget,chatGPTConversationId,readChatGPTEdit,fillChatGPTComposer} from '../../../src/native-agent/workspace-chatgpt-core.js';
 import {parseStringEnvelope} from '../../../src/native-agent/workspace-ai-proposal.js';
 import {inspectChatGPTImagesOnPage} from './chatgpt-image-page.js';
 

@@ -1,6 +1,7 @@
 // Metadata describes source. Parsing never downloads, grants privileges or authorizes
 // execution. The trusted dependency manager must verify the actual bytes and lock.
 import {DEFAULT_PAGE_MATCH_PATTERN} from './page-program-rules.js';
+import {normalizePageTaskDelegations} from './page-task-contract.js';
 import {PAGE_OPTIONAL_LIBRARY_IDS} from '../../libs/runtime-contract.js';
 export const USER_SCRIPT_METADATA_LIMITS = Object.freeze({headerBytes:64 * 1024, requireCount:64, matchCount:128});
 // Declaration aliases only; versions, worlds and resources remain in runtime-contract.js.
@@ -15,7 +16,7 @@ const DESCRIPTIVE = new Set(['name','namespace','version','description','author'
   'icon64url','tag','antifeature','contributionurl','contributionamount']);
 const EXECUTION = new Set(['require','resource','match','exclude-match','include','exclude','run-at',
   'noframes','grant','connect','inject-into','sandbox','unwrap','top-level-await','run-in','webrequest',
-  'updateurl','downloadurl','inject-mode','world','opendesk-lib']);
+  'updateurl','downloadurl','inject-mode','world','opendesk-lib','opendesk-task']);
 const MULTILINGUAL = new Set(['name','description','antifeature']);
 const encoder = new TextEncoder();
 const err = (code, message, diagnostics = []) => Object.assign(new Error(message || code), {code,diagnostics});
@@ -273,6 +274,9 @@ export function assessUserScriptExecution(parsed, {entryFormat='async-main',phas
   const warnings = parsed.diagnostics.filter(item => item.severity === 'warning').map(item => ({...item}));
   const block = (code,message,row) => blockers.push(diagnostic('error',code,message,row));
   const warn = (code,message,row) => warnings.push(diagnostic('warning',code,message,row));
+  const tasks=parsed.directives.filter(row=>row.name==='opendesk-task');
+  if(tasks.length)try{normalizePageTaskDelegations(tasks.map(row=>JSON.parse(row.value)));}
+  catch{block('E_PAGE_TASK_SCOPE','Page task declarations require exact fixed task hashes and destination URLs',tasks[0]);}
   const packaged = parsed.directives.filter(row => row.name === 'opendesk-lib');
   if(new Set(packaged.filter(row=>['react','vue'].includes(row.value)).map(row=>row.value)).size>1)
     block('E_BUILTIN_DECLARATION','React and Vue cannot share one Page framework runtime',packaged[0]);

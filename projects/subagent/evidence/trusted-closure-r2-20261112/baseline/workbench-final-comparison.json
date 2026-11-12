@@ -1,0 +1,139 @@
+{
+  "evidence": "comparison of preserved raw TAP, no test execution or assertion edits",
+  "baselineHead": "f590505b84e13b0ac2d7789db7c4bedfb62d21aa",
+  "baselineFailureCount": 9,
+  "candidateFailureCount": 9,
+  "sameFailedNames": true,
+  "comparisons": [
+    {
+      "name": "compact task Add rejects Sidebar Tool packages and explains the correct import tab",
+      "sameFailure": true,
+      "baseline": {
+        "error": "|-\n    The input did not match the regular expression /扩展工具包/. Input:\n    \n    'E_TASK_FILE_KIND：这是 Sidebar Tool 扩展包，请在「扩展」使用原可信安装入口\\n' +\n      '建议：请核对文件类型、真实 format 与内容，修正后重新选择；文件导入本身不会执行或安装。'",
+        "code": "'ERR_ASSERTION'",
+        "operator": "'match'"
+      },
+      "candidate": {
+        "error": "|-\n    The input did not match the regular expression /扩展工具包/. Input:\n    \n    'E_TASK_FILE_KIND：这是 Sidebar Tool 扩展包，请在「扩展」使用原可信安装入口\\n' +\n      '建议：请核对文件类型、真实 format 与内容，修正后重新选择；文件导入本身不会执行或安装。'",
+        "code": "'ERR_ASSERTION'",
+        "operator": "'match'"
+      }
+    },
+    {
+      "name": "catalog JS import hands source to Sidebar and never enters a view with a hidden runner",
+      "sameFailure": true,
+      "baseline": {
+        "error": "|-\n    Expected values to be strictly equal:\n    \n    'draft.js' !== ''",
+        "code": "'ERR_ASSERTION'",
+        "operator": "'strictEqual'"
+      },
+      "candidate": {
+        "error": "|-\n    Expected values to be strictly equal:\n    \n    'draft.js' !== ''",
+        "code": "'ERR_ASSERTION'",
+        "operator": "'strictEqual'"
+      }
+    },
+    {
+      "name": "missing Sidebar refuses import with an actionable message, without losing the directory",
+      "sameFailure": true,
+      "baseline": {
+        "error": "|-\n    Expected values to be strictly equal:\n    \n    'draft.js' !== ''",
+        "code": "'ERR_ASSERTION'",
+        "operator": "'strictEqual'"
+      },
+      "candidate": {
+        "error": "|-\n    Expected values to be strictly equal:\n    \n    'draft.js' !== ''",
+        "code": "'ERR_ASSERTION'",
+        "operator": "'strictEqual'"
+      }
+    },
+    {
+      "name": "catalog draft transport errors retain their cause instead of claiming Sidebar is missing",
+      "sameFailure": true,
+      "baseline": {
+        "error": "|-\n    Expected values to be strictly equal:\n    \n    'draft.js' !== ''",
+        "code": "'ERR_ASSERTION'",
+        "operator": "'strictEqual'"
+      },
+      "candidate": {
+        "error": "|-\n    Expected values to be strictly equal:\n    \n    'draft.js' !== ''",
+        "code": "'ERR_ASSERTION'",
+        "operator": "'strictEqual'"
+      }
+    },
+    {
+      "name": "catalog project JSON import validates snapshots and hands frozen bytes to Sidebar without running",
+      "sameFailure": true,
+      "baseline": {
+        "error": "|-\n    Expected values to be strictly equal:\n    + actual - expected\n    \n    + 'program.opendesk-draft.json'\n    - ''",
+        "code": "'ERR_ASSERTION'",
+        "operator": "'strictEqual'"
+      },
+      "candidate": {
+        "error": "|-\n    Expected values to be strictly equal:\n    + actual - expected\n    \n    + 'program.opendesk-draft.json'\n    - ''",
+        "code": "'ERR_ASSERTION'",
+        "operator": "'strictEqual'"
+      }
+    },
+    {
+      "name": "catalog rejects a changed project snapshot before handoff and permits reselecting the file",
+      "sameFailure": true,
+      "baseline": {
+        "error": "|-\n    Expected values to be strictly equal:\n    + actual - expected\n    \n    + 'program.opendesk-draft.json'\n    - ''",
+        "code": "'ERR_ASSERTION'",
+        "operator": "'strictEqual'"
+      },
+      "candidate": {
+        "error": "|-\n    Expected values to be strictly equal:\n    + actual - expected\n    \n    + 'program.opendesk-draft.json'\n    - ''",
+        "code": "'ERR_ASSERTION'",
+        "operator": "'strictEqual'"
+      }
+    },
+    {
+      "name": "late cancel resolve cannot replace or unlock a newer sheet",
+      "sameFailure": true,
+      "baseline": {
+        "error": "'已有其他任务或应用身份的准备占用；请从原入口查询或取消，不能确认执行'",
+        "code": "'E_TASK_BUSY'",
+        "operator": null
+      },
+      "candidate": {
+        "error": "'已有其他任务或应用身份的准备占用；请从原入口查询或取消，不能确认执行'",
+        "code": "'E_TASK_BUSY'",
+        "operator": null
+      }
+    },
+    {
+      "name": "late cancel reject cannot replace or unlock a newer sheet",
+      "sameFailure": true,
+      "baseline": {
+        "error": "'已有其他任务或应用身份的准备占用；请从原入口查询或取消，不能确认执行'",
+        "code": "'E_TASK_BUSY'",
+        "operator": null
+      },
+      "candidate": {
+        "error": "'已有其他任务或应用身份的准备占用；请从原入口查询或取消，不能确认执行'",
+        "code": "'E_TASK_BUSY'",
+        "operator": null
+      }
+    },
+    {
+      "name": "uninstalled recovery cancels only the original preparation identity",
+      "sameFailure": true,
+      "baseline": {
+        "error": "'已有其他任务或应用身份的准备占用；请从原入口查询或取消，不能确认执行'",
+        "code": "'E_REVISION'",
+        "operator": null
+      },
+      "candidate": {
+        "error": "'已有其他任务或应用身份的准备占用；请从原入口查询或取消，不能确认执行'",
+        "code": "'E_REVISION'",
+        "operator": null
+      }
+    }
+  ],
+  "rawLogs": {
+    "baseline-audit/workbench-head-baseline.tap": "c4d556a4564f4740ed1f21890e80f8ec79d75cc8dcc424ea003f829c7083d71e",
+    "workbench-integrated.tap": "51801644950b5871397ab7a9e49dccf2f78ed26afd19b790a29f194fe486fa12"
+  }
+}

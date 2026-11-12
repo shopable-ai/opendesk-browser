@@ -1,0 +1,9 @@
+{
+  "evidenceForm": "Actual prior passed receipt summary before preserving parallel Clipper byte-boundary fix.",
+  "attemptId": "bc2541d3-78f0-4ffc-9991-52a005f24d4f",
+  "packageHash": "7ddfcd763c6796f7c4239f15cabe386e36bbfce37b87720e3dcbfac1281b0cd6",
+  "status": "passed",
+  "sourceDriftDuringBuild": [],
+  "originalReceiptSha256": "bcfa9e213662b7e50d68905ce235801319d6e885261e37b636b7cabc921ac833",
+  "originalReceiptPath": "artifacts/subagent-r2/browser-build-merged/build-production.json"
+}

@@ -1,0 +1,11 @@
+{
+  "from": "ab7e20007790c32d890f51eeeeb31f6407a4ad83",
+  "upstream": "feeb7f0e6922707d8a137065137c162bf224e108",
+  "sourceLockSameBytes": true,
+  "sourceLockBlob": "d4065a7461c4f173c695a03e1de1bee8d95ab9bf",
+  "upstreamTestPreserved": true,
+  "finalBuildInputCount": 801,
+  "currentBuildInputDrift": [],
+  "buildReusedBecause": "All 801 actual builder inputs are byte-for-byte identical to the final passed receipt. The additional upstream change is a test, not a Browser build input.",
+  "buildReceipt": "build/browser-production.json"
+}

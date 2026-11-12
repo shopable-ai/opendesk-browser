@@ -1,0 +1,298 @@
+TAP version 13
+# Subtest: prompt and request are bounded; UI protocol does not embed Task installation
+ok 1 - prompt and request are bounded; UI protocol does not embed Task installation
+  ---
+  duration_ms: 2.225608
+  type: 'test'
+  ...
+# Subtest: no trusted bridge means no dispatch
+ok 2 - no trusted bridge means no dispatch
+  ---
+  duration_ms: 0.421548
+  type: 'test'
+  ...
+# Subtest: one request and duplicate clicks do not dispatch twice
+ok 3 - one request and duplicate clicks do not dispatch twice
+  ---
+  duration_ms: 0.849876
+  type: 'test'
+  ...
+# Subtest: uncertain send is read-only; cannot create a second B
+ok 4 - uncertain send is read-only; cannot create a second B
+  ---
+  duration_ms: 0.566848
+  type: 'test'
+  ...
+# Subtest: wrong request and insufficient proof cannot display a forged success
+ok 5 - wrong request and insufficient proof cannot display a forged success
+  ---
+  duration_ms: 0.507188
+  type: 'test'
+  ...
+# Subtest: completed B evidence requires canonical URL, distinct native messages and 64KiB UTF-8 reply
+ok 6 - completed B evidence requires canonical URL, distinct native messages and 64KiB UTF-8 reply
+  ---
+  duration_ms: 0.955226
+  type: 'test'
+  ...
+# Subtest: invalid or mismatched host outcome stays unknown, never success
+ok 7 - invalid or mismatched host outcome stays unknown, never success
+  ---
+  duration_ms: 1.994588
+  type: 'test'
+  ...
+# Subtest: late accepted, invalid or rejected ACK cannot overwrite a verified terminal result
+ok 8 - late accepted, invalid or rejected ACK cannot overwrite a verified terminal result
+  ---
+  duration_ms: 0.738908
+  type: 'test'
+  ...
+# Subtest: concurrent read calls share one in-flight trusted query
+ok 9 - concurrent read calls share one in-flight trusted query
+  ---
+  duration_ms: 0.490802
+  type: 'test'
+  ...
+# Subtest: a synchronous query error releases the read slot and only queries the original request again
+ok 10 - a synchronous query error releases the read slot and only queries the original request again
+  ---
+  duration_ms: 0.650114
+  type: 'test'
+  ...
+# Subtest: dispose ignores late start and result responses and prevents any further dispatch
+ok 11 - dispose ignores late start and result responses and prevents any further dispatch
+  ---
+  duration_ms: 0.480377
+  type: 'test'
+  ...
+# Subtest: an invalid source assertion retires the session before creating a request
+ok 12 - an invalid source assertion retires the session before creating a request
+  ---
+  duration_ms: 0.378142
+  type: 'test'
+  ...
+# Subtest: source change during the first state callback prevents the start side effect
+ok 13 - source change during the first state callback prevents the start side effect
+  ---
+  duration_ms: 0.214655
+  type: 'test'
+  ...
+# Subtest: source change before a queued query prevents the query and cannot reactivate the old session
+ok 14 - source change before a queued query prevents the query and cannot reactivate the old session
+  ---
+  duration_ms: 0.260384
+  type: 'test'
+  ...
+# Subtest: source change while awaiting ACK and result prevents late publication
+ok 15 - source change while awaiting ACK and result prevents late publication
+  ---
+  duration_ms: 0.351252
+  type: 'test'
+  ...
+# Subtest: the full reply is preserved beyond a preview and a wrong request can never replace it
+ok 16 - the full reply is preserved beyond a preview and a wrong request can never replace it
+  ---
+  duration_ms: 0.510242
+  type: 'test'
+  ...
+# Subtest: a pending original-request lookup disables creation until it confirms no prior request
+ok 17 - a pending original-request lookup disables creation until it confirms no prior request
+  ---
+  duration_ms: 0.305182
+  type: 'test'
+  ...
+# Subtest: a remount after a lost ACK adopts the trusted original request without creating B2
+ok 18 - a remount after a lost ACK adopts the trusted original request without creating B2
+  ---
+  duration_ms: 0.516391
+  type: 'test'
+  ...
+# Subtest: failed, absent or malformed supplied recovery cannot be treated as proof of no prior task
+ok 19 - failed, absent or malformed supplied recovery cannot be treated as proof of no prior task
+  ---
+  duration_ms: 0.782354
+  type: 'test'
+  ...
+# Subtest: dispose or a changed source discards a late recovery response without starting or reading
+ok 20 - dispose or a changed source discards a late recovery response without starting or reading
+  ---
+  duration_ms: 0.425043
+  type: 'test'
+  ...
+# Subtest: approval phases show the original review prompt without inferring a send or completion
+ok 21 - approval phases show the original review prompt without inferring a send or completion
+  ---
+  duration_ms: 0.443211
+  type: 'test'
+  ...
+# Subtest: standalone Subagent project identity is not bound to Mini Chat demo name
+ok 22 - standalone Subagent project identity is not bound to Mini Chat demo name
+  ---
+  duration_ms: 20.568296
+  type: 'test'
+  ...
+# Subtest: production SW projection binds the Page request to the original preparation and complete Result
+ok 23 - production SW projection binds the Page request to the original preparation and complete Result
+  ---
+  duration_ms: 9.870747
+  type: 'test'
+  ...
+# Subtest: trusted reader requires original Authority callbacks and only accepts a logical ID
+ok 24 - trusted reader requires original Authority callbacks and only accepts a logical ID
+  ---
+  duration_ms: 0.796506
+  type: 'test'
+  ...
+# Subtest: logical UUID resolves the original admission ID and preserves the complete reply exactly
+ok 25 - logical UUID resolves the original admission ID and preserves the complete reply exactly
+  ---
+  duration_ms: 1.59259
+  type: 'test'
+  ...
+# Subtest: missing or wrong persisted logical/request/Run/Result binding never falls back to snapshot identities
+ok 26 - missing or wrong persisted logical/request/Run/Result binding never falls back to snapshot identities
+  ---
+  duration_ms: 6.526827
+  type: 'test'
+  ...
+# Subtest: a changed, revoked, missing or unreviewed installation cannot disclose a reply
+ok 27 - a changed, revoked, missing or unreviewed installation cannot disclose a reply
+  ---
+  duration_ms: 4.017059
+  type: 'test'
+  ...
+# Subtest: only a completed and released original owned B has an eligible durable result
+ok 28 - only a completed and released original owned B has an eligible durable result
+  ---
+  duration_ms: 2.869293
+  type: 'test'
+  ...
+# Subtest: page completion claims and preview-only data never become a full verified result
+ok 29 - page completion claims and preview-only data never become a full verified result
+  ---
+  duration_ms: 2.704443
+  type: 'test'
+  ...
+# Subtest: native message references up to the original 160-character bound are retained
+ok 30 - native message references up to the original 160-character bound are retained
+  ---
+  duration_ms: 0.507599
+  type: 'test'
+  ...
+# Subtest: authorization failure before or after the async read prevents disclosure
+ok 31 - authorization failure before or after the async read prevents disclosure
+  ---
+  duration_ms: 0.741322
+  type: 'test'
+  ...
+# Subtest: repeated, concurrent and new-reader queries are read-only and keep the same original identities
+ok 32 - repeated, concurrent and new-reader queries are read-only and keep the same original identities
+  ---
+  duration_ms: 1.554512
+  type: 'test'
+  ...
+# Subtest: a previously verified result is never served from cache after revocation
+ok 33 - a previously verified result is never served from cache after revocation
+  ---
+  duration_ms: 0.551315
+  type: 'test'
+  ...
+# Subtest: successful and rejected reads perform zero Chrome message sends or tab creation
+ok 34 - successful and rejected reads perform zero Chrome message sends or tab creation
+  ---
+  duration_ms: 0.458754
+  type: 'test'
+  ...
+# Subtest: the project pins exactly the existing immutable WebFlow 0.2 Task and owned root
+ok 35 - the project pins exactly the existing immutable WebFlow 0.2 Task and owned root
+  ---
+  duration_ms: 10.008777
+  type: 'test'
+  ...
+# Subtest: transport forwards the original event and exact input only to approval-request, never Controller
+ok 36 - transport forwards the original event and exact input only to approval-request, never Controller
+  ---
+  duration_ms: 2.787569
+  type: 'test'
+  ...
+# Subtest: read distinguishes approval, pending, failure and UNKNOWN without using a preview as completion
+ok 37 - read distinguishes approval, pending, failure and UNKNOWN without using a preview as completion
+  ---
+  duration_ms: 0.635442
+  type: 'test'
+  ...
+# Subtest: mismatched projections and failed restore never unlock or start a new request
+ok 38 - mismatched projections and failed restore never unlock or start a new request
+  ---
+  duration_ms: 1.753743
+  type: 'test'
+  ...
+# Subtest: restoration adopts only the original logical request ID and re-reads its result
+ok 39 - restoration adopts only the original logical request ID and re-reads its result
+  ---
+  duration_ms: 0.765409
+  type: 'test'
+  ...
+# Subtest: unconnected Mini Chat stays disabled and leaves the official A draft untouched
+ok 40 - unconnected Mini Chat stays disabled and leaves the official A draft untouched
+  ---
+  duration_ms: 88.852514
+  type: 'test'
+  ...
+# Subtest: click returns its managed promise; full text and B link render without HTML or A writes
+ok 41 - click returns its managed promise; full text and B link render without HTML or A writes
+  ---
+  duration_ms: 19.474521
+  type: 'test'
+  ...
+# Subtest: same-site A navigation retires old UI before a late result can paint in the new conversation
+ok 42 - same-site A navigation retires old UI before a late result can paint in the new conversation
+  ---
+  duration_ms: 14.33288
+  type: 'test'
+  ...
+# Subtest: navigation while awaiting ACK retires once and never reads or restarts the request
+ok 43 - navigation while awaiting ACK retires once and never reads or restarts the request
+  ---
+  duration_ms: 11.019065
+  type: 'test'
+  ...
+# Subtest: plain Enter and IME do not submit; the consumed Ctrl+Enter stays inside Mini Chat
+ok 44 - plain Enter and IME do not submit; the consumed Ctrl+Enter stays inside Mini Chat
+  ---
+  duration_ms: 7.681564
+  type: 'test'
+  ...
+# Subtest: restoration keeps creation disabled and displays only a fresh read of the original request
+ok 45 - restoration keeps creation disabled and displays only a fresh read of the original request
+  ---
+  duration_ms: 7.134937
+  type: 'test'
+  ...
+# Subtest: a failed restoration cannot enable creation, while explicit trusted absence can
+ok 46 - a failed restoration cannot enable creation, while explicit trusted absence can
+  ---
+  duration_ms: 27.12303
+  type: 'test'
+  ...
+# Subtest: navigation during restoration disposes the old UI and never replays a request
+ok 47 - navigation during restoration disposes the old UI and never replays a request
+  ---
+  duration_ms: 15.408953
+  type: 'test'
+  ...
+# Subtest: UI result shape preserves original message budget and rejects over-budget UTF-8 or malformed identities
+ok 48 - UI result shape preserves original message budget and rejects over-budget UTF-8 or malformed identities
+  ---
+  duration_ms: 1.992976
+  type: 'test'
+  ...
+1..48
+# tests 48
+# suites 0
+# pass 48
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 927.687862

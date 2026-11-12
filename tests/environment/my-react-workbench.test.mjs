@@ -89,7 +89,8 @@ async function fixture({twoTasks=false,paramsSchema,otherParamsSchema}={}){
     subscribeInstalledTasks(fn){installedSubscribers.add(fn);return ()=>installedSubscribers.delete(fn);},
     controller:{async snapshotControllerRun(){return structuredClone({runs:state.runs,results:state.results});}},
     async request(action,input){state.calls.push({action,input:structuredClone(input)});
-      if(['inspectTaskRun','cancelTaskRun'].includes(action)&&state.taskRunRequest)return state.taskRunRequest(action,input);
+      if(['inspectTaskRun','cancelTaskRun','prepareTaskRun'].includes(action)&&state.taskRunRequest)return state.taskRunRequest(action,input);
+      if(['readPageTaskRequest','listPageTaskRequests'].includes(action)&&state.pageTaskRequest)return state.pageTaskRequest(action,input);
       if(action==='inspectTaskRun')return null;
       if(action==='listTaskCatalog')return structuredClone({catalog:state.catalog,installed:state.installed});
       if(action==='importTaskPackage'){
@@ -283,6 +284,134 @@ test('tool request uses the same hoisted Sheet and separate parent prepare, conf
   }finally{if(root)await React.act(async()=>root.unmount());f.dispose();}
 });
 
+
+// This is a controlled Authority RPC fixture for the real Workbench and React
+// Sheet. It proves consumer behavior, not installed Page authority or native input.
+function pageRequestFixture(f,{prepared=false}={}){
+  const task={...f.view.data.taskRows.identity,contentHash:f.state.catalog[0].manifest.program.sourceHash};
+  const request={requestId:'71811b88-050a-4e7a-9dfa-00b10b906fe8',
+    preparationId:'378a9542-3ed9-4c5e-9a77-e1426c156c15',task,approvalAllowed:true,
+    params:{name:'原网页请求',count:3,accept:true,mode:'b'},
+    target:{mode:'owned',url:'https://example.com/independent'},
+    pageBinding:{programId:'opendesk.subagent',tabId:3,frameId:0,documentId:'doc-3',url:'https://example.com/form'}};
+  const preparedValue=()=>({preparationId:request.preparationId,pageRequestId:request.requestId,
+    state:'prepared',task,params:structuredClone(request.params),target:structuredClone(request.target),deadlineAt:Date.now()+30000});
+  let preparation=prepared?preparedValue():null;
+  const read=async(action,input)=>{
+    assert.equal(action,'readPageTaskRequest');assert.equal(input.requestId,request.requestId);
+    return structuredClone({request,preparation});
+  };
+  f.state.pageTaskRequest=read;
+  f.state.taskRunRequest=async(action,input)=>{
+    if(action==='prepareTaskRun'){
+      assert.equal(input.preparationId,request.preparationId);assert.equal(input.pageRequestId,request.requestId);
+      assert.deepEqual(input.params,request.params);assert.deepEqual(input.target,request.target);
+      preparation=preparedValue();
+    }else assert.equal(action,'inspectTaskRun');
+    return structuredClone({preparation});
+  };
+  return {request,read,get preparation(){return preparation;}};
+}
+
+test('page request renders one locked Sheet with source, fixed version and owned target, then uses original save and confirmation',async()=>{
+  const f=await fixture();let root;
+  try{
+    root=await f.mount();const p=pageRequestFixture(f);
+    await React.act(async()=>{assert.equal(await f.workbench.openPageTaskRequest(p.request.requestId),true);});
+    const sheet=f.doc.getElementById('task-parameters-sheet');
+    let run=f.doc.getElementById('task-run');
+    const json=f.doc.getElementById('task-params-json');
+    assert.equal(sheet.open,true);assert.equal(f.doc.querySelectorAll('#task-parameters-sheet').length,1);
+    assert.equal(f.view.data.taskRunSheet.source,'page');assert.equal(f.view.data.taskRunSheet.paramsLocked,true);
+    assert.match(sheet.textContent,/来源网页：https:\/\/example\.com\/form/);
+    assert.match(sheet.textContent,/网页程序：opendesk\.subagent · 任务版本：1\.0\.0/);
+    assert.match(sheet.textContent,/将新建独立网页：https:\/\/example\.com\/independent/);
+    assert.equal(sheet.querySelector('fieldset').hasAttribute('disabled'),true);assert.equal(json.disabled,true);
+    assert.ok([...sheet.querySelectorAll('.task-params-mode button')].every(node=>node.disabled));
+    assert.deepEqual(JSON.parse(json.value),p.request.params);
+    assert.equal(run.textContent,'保存并核对');assert.equal(f.state.starts.length,0);assert.equal(f.state.permissionCalls.length,0);
+    await f.fire(run,'click',{isTrusted:false});
+    assert.equal(f.state.calls.some(({action})=>action==='prepareTaskRun'),false);
+    // Even a changed presentation field cannot replace the original request.
+    f.view.field('task-params-json').value=JSON.stringify({...p.request.params,name:'改变的展示草稿'});
+    await f.fire(run,'click',{isTrusted:true});await React.act(async()=>{await tick();await tick();});
+    assert.equal(f.view.data.taskRunSheet.phase,'prepared');
+    // The preparing phase hides the action; query the newly rendered button.
+    run=f.doc.getElementById('task-run');assert.equal(run.textContent,'确认执行一次');
+    assert.deepEqual(p.preparation.params,p.request.params);assert.equal(f.state.starts.length,0);
+    await f.fire(run,'click',{isTrusted:false});assert.equal(f.state.starts.length,0);
+    await f.fire(run,'click',{isTrusted:true});
+    await React.act(async()=>{await tick();await tick();});
+    assert.equal(f.state.starts.length,1);assert.deepEqual(f.state.starts[0].target,p.request.target);
+    assert.deepEqual(f.state.starts[0].params,p.request.params);
+    assert.equal(f.state.starts[0].taskPreparationId,p.request.preparationId);
+    await React.act(async()=>{f.view.actions.taskSheetConfirmClick(native(),p.request.task);await tick();});
+    assert.equal(f.state.starts.length,1);
+    await React.act(async()=>{f.host.finish();await tick();await tick();});
+  }finally{if(root)await React.act(async()=>root.unmount());f.dispose();}
+});
+
+for(const revokedAt of ['reopen','confirmation'])test(`page request source revocation at ${revokedAt} keeps the original request read-only without admission`,async()=>{
+  const f=await fixture();let root;
+  try{
+    root=await f.mount();const p=pageRequestFixture(f,{prepared:true});
+    if(revokedAt==='reopen')p.request.approvalAllowed=false;
+    await React.act(async()=>{await f.workbench.openPageTaskRequest(p.request.requestId);});
+    if(revokedAt==='confirmation'){
+      const run=f.doc.getElementById('task-run');assert.equal(run.textContent,'确认执行一次');
+      p.request.approvalAllowed=false;
+      await f.fire(run,'click',{isTrusted:true});await React.act(async()=>{await tick();await tick();});
+    }
+    const sheet=f.doc.getElementById('task-parameters-sheet');
+    assert.equal(f.view.data.taskRunSheet.recoveryOnly,true);assert.equal(f.doc.getElementById('task-run'),null);
+    assert.match(sheet.textContent,/来源网页或任务授权已失效/);
+    assert.deepEqual(JSON.parse(sheet.querySelector('[aria-label="原准备参数"]').textContent),p.request.params);
+    await React.act(async()=>{f.view.actions.taskSheetConfirmClick(native(),p.request.task);await tick();});
+    assert.equal(f.state.starts.length,0);assert.equal(f.view.data.taskRunSheet.preparationId,p.request.preparationId);
+    assert.equal(f.state.calls.some(({action})=>action==='prepareTaskRun'),false);
+  }finally{if(root)await React.act(async()=>root.unmount());f.dispose();}
+});
+
+test('page request late opening lookup cannot replace a newer Sheet or start a task',async()=>{
+  const f=await fixture();let root,resolveRead,opening;
+  try{
+    root=await f.mount();const p=pageRequestFixture(f);
+    f.state.pageTaskRequest=()=>new Promise(resolve=>{resolveRead=resolve;});
+    await React.act(async()=>{opening=f.workbench.openPageTaskRequest(p.request.requestId);await tick();});
+    await React.act(async()=>{
+      f.view.actions.taskSheetClose();
+      await f.workbench.openTaskRunSheet({task:p.request.task,binding:{appId:'new-sheet'}});
+    });
+    const current=f.view.data.taskRunSheet;
+    await React.act(async()=>{resolveRead({request:p.request,preparation:null});assert.equal(await opening,false);});
+    assert.equal(f.view.data.taskRunSheet,current);assert.equal(f.view.data.taskRunSheet.source,'tool');
+    assert.equal(f.doc.getElementById('task-run').textContent,'保存并核对');
+    assert.equal(f.state.starts.length,0);assert.equal(f.state.permissionCalls.length,0);
+  }finally{resolveRead?.(null);if(root)await React.act(async()=>root.unmount());f.dispose();}
+});
+
+test('page request late approval lookup during query cannot retire or unlock a reopened Sheet',async()=>{
+  const f=await fixture();let root,resolveRead;
+  try{
+    root=await f.mount();const p=pageRequestFixture(f,{prepared:true});
+    await React.act(async()=>{await f.workbench.openPageTaskRequest(p.request.requestId);});
+    f.state.pageTaskRequest=()=>new Promise(resolve=>{resolveRead=resolve;});
+    const query=[...f.doc.querySelectorAll('#task-parameters-sheet button')].find(node=>node.textContent==='查询状态');
+    await f.fire(query,'click',{isTrusted:true});
+    assert.equal(typeof resolveRead,'function');assert.equal(f.view.data.taskRunSheet.busy,true);
+    f.state.pageTaskRequest=p.read;
+    await React.act(async()=>{
+      f.view.actions.taskSheetClose();await f.workbench.openPageTaskRequest(p.request.requestId);
+      f.view.project('taskRunSheet',{...f.view.data.taskRunSheet,busy:true,status:'新审批窗口保持原状态'});
+    });
+    const current=f.view.data.taskRunSheet;
+    await React.act(async()=>{resolveRead({request:{...p.request,approvalAllowed:false},preparation:p.preparation});await tick();await tick();});
+    assert.equal(f.view.data.taskRunSheet,current);assert.equal(f.view.data.taskRunSheet.busy,true);
+    assert.equal(f.doc.getElementById('task-run').disabled,true);
+    assert.match(f.doc.getElementById('task-parameters-sheet').textContent,/新审批窗口保持原状态/);
+    assert.equal(f.state.starts.length,0);assert.equal(f.state.permissionCalls.length,0);
+  }finally{resolveRead?.(null);if(root)await React.act(async()=>root.unmount());f.dispose();}
+});
 
 // Preparation persistence belongs to Authority, not this React fixture's local storage.
 // The six incoming legacy Sheet cases are covered at their current owners:

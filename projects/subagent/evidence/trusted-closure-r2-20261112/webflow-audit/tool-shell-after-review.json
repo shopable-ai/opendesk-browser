@@ -1,0 +1,2692 @@
+{
+  "target": "ui/tool-shell.js",
+  "entry": "src/entrypoints/tool-shell.js",
+  "head": "654a732418c8993605f59cea7635a3e39e973f9e",
+  "kind": "STATIC_LOCAL_IMPORT_GRAPH_WITH_ORIGINAL_PER_MODULE_PROVENANCE",
+  "limitations": "Conservative syntax graph; no app execution or bundling. Bare npm and nonliteral dynamic imports are outside this first-party source-pin check.",
+  "localModuleCount": 390,
+  "reviewedInputCount": 120,
+  "unresolved": [],
+  "externalSpecifiers": [
+    "react",
+    "react-aria-components",
+    "react-dom",
+    "react-dom/client",
+    "wxt/utils/define-unlisted-script"
+  ],
+  "failures": [],
+  "admitted": [
+    {
+      "path": "projects/ai-knowledge-answers/trusted/ai-request.js",
+      "renderedLength": 1,
+      "originalLength": 1,
+      "reviewedFirstPartyBlob": "d74df23166adc1ee10952db847cbd1202bdeb3ae"
+    },
+    {
+      "path": "projects/ai-proxy/trusted/admission.js",
+      "renderedLength": 1,
+      "originalLength": 1,
+      "reviewedFirstPartyBlob": "031477094a6aa39720a6cc5b59aaf76f1bab15b0"
+    },
+    {
+      "path": "projects/reading-toc/trusted/policy.js",
+      "renderedLength": 1,
+      "originalLength": 1,
+      "reviewedFirstPartyBlob": "80fc351e9afc0cd94eedbc93c014cc4098f8b0b7"
+    },
+    {
+      "path": "projects/web-markdown-clipper/trusted/policy.js",
+      "renderedLength": 1,
+      "originalLength": 1,
+      "reviewedFirstPartyBlob": "9cb4b8af149d25e2427ed0e187433f77a03b788f"
+    },
+    {
+      "path": "projects/time-review/trusted/model.js",
+      "renderedLength": 1,
+      "originalLength": 1,
+      "reviewedFirstPartyBlob": "ef7cb2281334b7161c39f68a768992e3527b9d5c"
+    },
+    {
+      "path": "projects/time-review/trusted/policy.js",
+      "renderedLength": 1,
+      "originalLength": 1,
+      "reviewedFirstPartyBlob": "d5127624c129bd29533f37e24eedab3216f396db"
+    },
+    {
+      "path": "projects/prompt-shortcuts/trusted/asset-contract.js",
+      "renderedLength": 1,
+      "originalLength": 1,
+      "reviewedFirstPartyBlob": "86e95bff786e52efb9089f97126542430f39a716"
+    },
+    {
+      "path": "projects/cookie-editor/trusted/account-contract.js",
+      "renderedLength": 1,
+      "originalLength": 1,
+      "reviewedFirstPartyBlob": "081311cdc99d828e631efd2a5be1bcc20c461246"
+    },
+    {
+      "path": "projects/stay-focus/trusted/lifecycle.js",
+      "renderedLength": 1,
+      "originalLength": 1,
+      "reviewedFirstPartyBlob": "77afc647cf1345462751964d7c74c2ee8b0fbce2"
+    },
+    {
+      "path": "projects/stay-focus/trusted/policy.js",
+      "renderedLength": 1,
+      "originalLength": 1,
+      "reviewedFirstPartyBlob": "a62b4ec56ac2754f32f31a016f7cc35b14b1c86d"
+    },
+    {
+      "path": "projects/stay-focus/trusted/rule-ownership.js",
+      "renderedLength": 1,
+      "originalLength": 1,
+      "reviewedFirstPartyBlob": "7c063535097df818cca43d76cc5fc77b3987047e"
+    },
+    {
+      "path": "projects/adblock/trusted/lifecycle.js",
+      "renderedLength": 1,
+      "originalLength": 1,
+      "reviewedFirstPartyBlob": "50143f14fa3a1e9434f5c79bd2df37db83c245bb"
+    },
+    {
+      "path": "projects/adblock/trusted/policy.js",
+      "renderedLength": 1,
+      "originalLength": 1,
+      "reviewedFirstPartyBlob": "1ba80150d930f51130ceb7806371f7542f35871b"
+    },
+    {
+      "path": "projects/adblock/trusted/rules.js",
+      "renderedLength": 1,
+      "originalLength": 1,
+      "reviewedFirstPartyBlob": "4bebe24f991783d6ceb14dd80aa507f8497fce61"
+    },
+    {
+      "path": "projects/adblock/rules/domains.js",
+      "renderedLength": 1,
+      "originalLength": 1,
+      "reviewedFirstPartyBlob": "b6b2ad8bb2085018f355f046d9b2a787601039bd"
+    },
+    {
+      "path": "projects/adblock/trusted/cosmetic-policy.js",
+      "renderedLength": 1,
+      "originalLength": 1,
+      "reviewedFirstPartyBlob": "65804d9e8455fb9521f789744e4b3d276876b455"
+    },
+    {
+      "path": "projects/adblock/trusted/dnr-session.js",
+      "renderedLength": 1,
+      "originalLength": 1,
+      "reviewedFirstPartyBlob": "6cf976c7f89ab6e9aec04bf7bc92b5189e8b3cca"
+    },
+    {
+      "path": "projects/ai-vip-share/trusted/lifecycle.js",
+      "renderedLength": 1,
+      "originalLength": 1,
+      "reviewedFirstPartyBlob": "123cb38a78e6176c5c1e7324e2ea457f15d2ee5d"
+    },
+    {
+      "path": "projects/ai-vip-share/trusted/policy.js",
+      "renderedLength": 1,
+      "originalLength": 1,
+      "reviewedFirstPartyBlob": "949ae514645f5691244f185b07e835e7e132cb5d"
+    },
+    {
+      "path": "projects/ai-vip-share/trusted/provider-config.js",
+      "renderedLength": 1,
+      "originalLength": 1,
+      "reviewedFirstPartyBlob": "d09c57ef4bbc96f406bb2092feb9ff9b2465cf43"
+    },
+    {
+      "path": "projects/ai-scroll-navigation/trusted/ai-configuration.js",
+      "renderedLength": 1,
+      "originalLength": 1,
+      "reviewedFirstPartyBlob": "c97137a3a871fb6c19fd3594fc627fafd67d03f8"
+    },
+    {
+      "path": "projects/ai-knowledge-answers/trusted/host.js",
+      "renderedLength": 1,
+      "originalLength": 1,
+      "reviewedFirstPartyBlob": "02bdd31fdcb2292196c849bd0a4c13e9bde78c0c"
+    },
+    {
+      "path": "projects/ai-knowledge-answers/src/model.js",
+      "renderedLength": 1,
+      "originalLength": 1,
+      "reviewedFirstPartyBlob": "752b91ea8d98f7da10e9d8902e3629bef69df58c"
+    },
+    {
+      "path": "projects/ai-knowledge-answers/trusted/local-test-runtime.js",
+      "renderedLength": 1,
+      "originalLength": 1,
+      "reviewedFirstPartyBlob": "2605e9d4825f3d95140a1eaccc73c1cc62ee6cda"
+    },
+    {
+      "path": "projects/ai-knowledge-answers/trusted/local-test-adapter.js",
+      "renderedLength": 1,
+      "originalLength": 1,
+      "reviewedFirstPartyBlob": "25c43a64db60933c61f16a569afbfd376a5f8ac5"
+    },
+    {
+      "path": "projects/ai-knowledge-answers/trusted/multi-intent.js",
+      "renderedLength": 1,
+      "originalLength": 1,
+      "reviewedFirstPartyBlob": "82d4b49d194783e04844e36df78d757955e31378"
+    },
+    {
+      "path": "projects/stay-focus/trusted/tool-host.js",
+      "renderedLength": 1,
+      "originalLength": 1,
+      "reviewedFirstPartyBlob": "58962523b7c74a49cf51059233a0d43dea7a9685"
+    },
+    {
+      "path": "projects/ai-scroll-navigation/trusted/host-localization.js",
+      "renderedLength": 1,
+      "originalLength": 1,
+      "reviewedFirstPartyBlob": "73b0b62a0d009ff3451457623739d2a1716aad03"
+    },
+    {
+      "path": "projects/reading-toc/trusted/locales.generated.js",
+      "renderedLength": 1,
+      "originalLength": 1,
+      "reviewedFirstPartyBlob": "e494a458a006adeb90697aca8dd8957bc90e2ef3"
+    },
+    {
+      "path": "projects/ai-scroll-navigation/trusted/react-controls.tsx",
+      "renderedLength": 1,
+      "originalLength": 1,
+      "reviewedFirstPartyBlob": "1261228715f9cd8f8496e190213e8b7cedb57406"
+    },
+    {
+      "path": "projects/ai-scroll-navigation/trusted/ai-controls.tsx",
+      "renderedLength": 1,
+      "originalLength": 1,
+      "reviewedFirstPartyBlob": "ba7e94499c399aba685b7c80cf004bb56e2888f0"
+    },
+    {
+      "path": "projects/webflow/trusted/AutoSettings.tsx",
+      "renderedLength": 1,
+      "originalLength": 1,
+      "reviewedFirstPartyBlob": "1618f0a1bffcce8174e4d623cba6c2643894de05"
+    },
+    {
+      "path": "projects/webflow/src/task-intent-contract.js",
+      "renderedLength": 1,
+      "originalLength": 1,
+      "reviewedFirstPartyBlob": "50a7ec4bd3d8707ba53724efdc378cd98c2404d6"
+    },
+    {
+      "path": "projects/webflow/trusted/CurrentTask.tsx",
+      "renderedLength": 1,
+      "originalLength": 1,
+      "reviewedFirstPartyBlob": "aa2ecc7a76140fdf228444223b10d700207f4014"
+    },
+    {
+      "path": "projects/webflow/src/authorization-policy.js",
+      "renderedLength": 1,
+      "originalLength": 1,
+      "reviewedFirstPartyBlob": "bb508189bdbbfe403707febbb36bb49d07d476c7"
+    },
+    {
+      "path": "projects/webflow/trusted/RuntimePanel.tsx",
+      "renderedLength": 1,
+      "originalLength": 1,
+      "reviewedFirstPartyBlob": "f418c26696933f0b9440080fd2586e47e42b870f"
+    },
+    {
+      "path": "projects/time-review/trusted/react-controls.tsx",
+      "renderedLength": 1,
+      "originalLength": 1,
+      "reviewedFirstPartyBlob": "2a9155f4a6c56969d1aebcd7420405b84fd4eaf4"
+    },
+    {
+      "path": "projects/time-review/trusted/localization.js",
+      "renderedLength": 1,
+      "originalLength": 1,
+      "reviewedFirstPartyBlob": "7478e9c91f33317c8e1fe08f33d2e49c47b47818"
+    },
+    {
+      "path": "projects/stay-focus/trusted/react-controls.tsx",
+      "renderedLength": 1,
+      "originalLength": 1,
+      "reviewedFirstPartyBlob": "0c14d175188a33532004be0869fd6b237f9f6fb7"
+    },
+    {
+      "path": "projects/ai-vip-share/trusted/react-controls.tsx",
+      "renderedLength": 1,
+      "originalLength": 1,
+      "reviewedFirstPartyBlob": "7f951bcaf8bc18450d03e450258a8024c3e71906"
+    },
+    {
+      "path": "projects/bookmark-manager/src/model.js",
+      "renderedLength": 1,
+      "originalLength": 1,
+      "reviewedFirstPartyBlob": "34cc7a737869ca502b4bcbbb47d2437d1b6b2bd5"
+    },
+    {
+      "path": "projects/bookmark-manager/src/service.js",
+      "renderedLength": 1,
+      "originalLength": 1,
+      "reviewedFirstPartyBlob": "d072ace5379d0d4c8f8cda8d8d172cb60122576e"
+    },
+    {
+      "path": "projects/bookmark-manager/src/react/App.jsx",
+      "renderedLength": 1,
+      "originalLength": 1,
+      "reviewedFirstPartyBlob": "f8b520988cb3ceed9e0c8739f63ccdeba3d496b5"
+    },
+    {
+      "path": "projects/bookmark-manager/src/react/navigation.js",
+      "renderedLength": 1,
+      "originalLength": 1,
+      "reviewedFirstPartyBlob": "7fc81215374c240e6eaae7e9e802872d94d5a53d"
+    },
+    {
+      "path": "projects/time-review/trusted/host.css",
+      "renderedLength": 1,
+      "originalLength": 1,
+      "reviewedFirstPartyBlob": "fe6b0d09a19dc210cf61ce45a74ec5ddb7a183a6"
+    },
+    {
+      "path": "projects/bookmark-manager/trusted/host.css",
+      "renderedLength": 1,
+      "originalLength": 1,
+      "reviewedFirstPartyBlob": "5bbe841558c86389994defd93f6077aa928a9cf9"
+    },
+    {
+      "path": "projects/cookie-editor/trusted/host.css",
+      "renderedLength": 1,
+      "originalLength": 1,
+      "reviewedFirstPartyBlob": "b3d57a5df9a1f6089a3dfe97017ecdf73ea05a1f"
+    },
+    {
+      "path": "projects/ai-vip-share/trusted/host.css",
+      "renderedLength": 1,
+      "originalLength": 1,
+      "reviewedFirstPartyBlob": "634786710c463671b9c24c424725bf6c7ff4ec8e"
+    },
+    {
+      "path": "projects/prompt-shortcuts/trusted/host.css",
+      "renderedLength": 1,
+      "originalLength": 1,
+      "reviewedFirstPartyBlob": "aa08e38ebd56e34c49c1c07be5a1b6727426865b"
+    },
+    {
+      "path": "projects/reading-toc/trusted/host.css",
+      "renderedLength": 1,
+      "originalLength": 1,
+      "reviewedFirstPartyBlob": "93db2443725c8fac84dd94585d08d933766c2040"
+    },
+    {
+      "path": "projects/ai-knowledge-answers/trusted/Workspace.jsx",
+      "renderedLength": 1,
+      "originalLength": 1,
+      "reviewedFirstPartyBlob": "9fa5a0e47805bfbbd092dbab7f78bb346588058b"
+    },
+    {
+      "path": "projects/ai-knowledge-answers/trusted/workspace.css",
+      "renderedLength": 1,
+      "originalLength": 1,
+      "reviewedFirstPartyBlob": "3f11650babfd3e1a490907b33e2f722bd97fa53d"
+    },
+    {
+      "path": "projects/ai-proxy/trusted/Surface.jsx",
+      "renderedLength": 1,
+      "originalLength": 1,
+      "reviewedFirstPartyBlob": "6ccfec0ff567a7797525dd86e5eefe0d574384fa"
+    },
+    {
+      "path": "projects/ai-proxy/src/App.jsx",
+      "renderedLength": 1,
+      "originalLength": 1,
+      "reviewedFirstPartyBlob": "00e54b057e79405f7574b0c8bad2d588e13a3721"
+    },
+    {
+      "path": "projects/ai-proxy/src/i18n/LocaleProvider.tsx",
+      "renderedLength": 1,
+      "originalLength": 1,
+      "reviewedFirstPartyBlob": "f60fc23240354382534fb46d4d81cd9a87ac2127"
+    },
+    {
+      "path": "projects/ai-proxy/src/environment.ts",
+      "renderedLength": 1,
+      "originalLength": 1,
+      "reviewedFirstPartyBlob": "a8974e2cabca289ad179b6ae118002bdc056c9a8"
+    },
+    {
+      "path": "projects/ai-proxy/src/service.ts",
+      "renderedLength": 1,
+      "originalLength": 1,
+      "reviewedFirstPartyBlob": "2c49b2f3dcdc8956faf0a7bd858837854e792fb8"
+    },
+    {
+      "path": "projects/ai-proxy/src/domain/config.ts",
+      "renderedLength": 1,
+      "originalLength": 1,
+      "reviewedFirstPartyBlob": "812f07b61fc34948e84245c1ef2bbbe14f8cf4bf"
+    },
+    {
+      "path": "projects/ai-proxy/src/domain/header-actions.ts",
+      "renderedLength": 1,
+      "originalLength": 1,
+      "reviewedFirstPartyBlob": "97b786eb9c3d378c5c7e9bc18a059cf0ffffbd2d"
+    },
+    {
+      "path": "projects/ai-proxy/src/domain/error-codes.ts",
+      "renderedLength": 1,
+      "originalLength": 1,
+      "reviewedFirstPartyBlob": "8f8d3e84713c8b2b4b1299edb2634f7e49d1e6b9"
+    },
+    {
+      "path": "projects/ai-proxy/src/diagnostics/catalog.ts",
+      "renderedLength": 1,
+      "originalLength": 1,
+      "reviewedFirstPartyBlob": "70423a909f3b41a5aa4097ab261b54c048406fdf"
+    },
+    {
+      "path": "projects/ai-proxy/src/diagnostics/favorites.ts",
+      "renderedLength": 1,
+      "originalLength": 1,
+      "reviewedFirstPartyBlob": "1a7100790aa97d71753d3a59331978a1faeb9c74"
+    },
+    {
+      "path": "projects/ai-proxy/src/domain/managed-config.ts",
+      "renderedLength": 1,
+      "originalLength": 1,
+      "reviewedFirstPartyBlob": "dab76f757480311cd36cdc8d5798f4b27ba5d80d"
+    },
+    {
+      "path": "projects/ai-proxy/src/ui/navigation.ts",
+      "renderedLength": 1,
+      "originalLength": 1,
+      "reviewedFirstPartyBlob": "be3f9da6a1fe707c5385a38a2c785ceb71375d25"
+    },
+    {
+      "path": "projects/ai-proxy/src/ui/optionsRoute.ts",
+      "renderedLength": 1,
+      "originalLength": 1,
+      "reviewedFirstPartyBlob": "09a0ed66b44fb834b7618d4b7ca07601e81ff7ba"
+    },
+    {
+      "path": "projects/ai-proxy/src/i18n/locale.ts",
+      "renderedLength": 1,
+      "originalLength": 1,
+      "reviewedFirstPartyBlob": "2f5391ea8b381753fd7eb6f2e4c0364e5856b058"
+    },
+    {
+      "path": "projects/ai-proxy/src/i18n/locales/zh-CN.json",
+      "renderedLength": 1,
+      "originalLength": 1,
+      "reviewedFirstPartyBlob": "df03dea459d45b25f04f8c1f6ef8f59f5bdae092"
+    },
+    {
+      "path": "projects/ai-proxy/src/i18n/locales/en.json",
+      "renderedLength": 1,
+      "originalLength": 1,
+      "reviewedFirstPartyBlob": "6dd1f6665cf7a0a1d1f9db47c099b781ad46c2a8"
+    },
+    {
+      "path": "projects/ai-proxy/src/i18n/locales/zh-TW.json",
+      "renderedLength": 1,
+      "originalLength": 1,
+      "reviewedFirstPartyBlob": "9222ef31061eca95d2736ef9293747902323e1a8"
+    },
+    {
+      "path": "projects/ai-proxy/src/QuickPanel.tsx",
+      "renderedLength": 1,
+      "originalLength": 1,
+      "reviewedFirstPartyBlob": "5ed9e192ba5358d6b5f2a2413d64b6d7ee723f58"
+    },
+    {
+      "path": "projects/ai-proxy/src/ui/useProxy.ts",
+      "renderedLength": 1,
+      "originalLength": 1,
+      "reviewedFirstPartyBlob": "af8b4dc1ed17b2dea6f0dddb2f62dcba166a5491"
+    },
+    {
+      "path": "projects/ai-proxy/src/i18n/errors.ts",
+      "renderedLength": 1,
+      "originalLength": 1,
+      "reviewedFirstPartyBlob": "5bd55461ee679d869260c3b34e08c32415101e0d"
+    },
+    {
+      "path": "projects/ai-proxy/src/ui/Status.tsx",
+      "renderedLength": 1,
+      "originalLength": 1,
+      "reviewedFirstPartyBlob": "cd266587abd9e3a3a3c78a7905f9dd4af09954db"
+    },
+    {
+      "path": "projects/ai-proxy/src/ui/ProxyEntry.tsx",
+      "renderedLength": 1,
+      "originalLength": 1,
+      "reviewedFirstPartyBlob": "52e70ccdf8a0405adf416f66aa9dc209218ef7d4"
+    },
+    {
+      "path": "projects/ai-proxy/src/domain/proxy-entry.ts",
+      "renderedLength": 1,
+      "originalLength": 1,
+      "reviewedFirstPartyBlob": "35b36b5b56af4ffeb194722d63dce46ec8843e8e"
+    },
+    {
+      "path": "projects/ai-proxy/src/ui/RotationPlan.tsx",
+      "renderedLength": 1,
+      "originalLength": 1,
+      "reviewedFirstPartyBlob": "78368f323f1871e930fb68274a65d2f0b139c243"
+    },
+    {
+      "path": "projects/ai-proxy/src/config/public-config.ts",
+      "renderedLength": 1,
+      "originalLength": 1,
+      "reviewedFirstPartyBlob": "8b2ab58b742fd27e9416b99525424dad4a445c2a"
+    },
+    {
+      "path": "projects/ai-proxy/src/config/product-links.defaults.json",
+      "renderedLength": 1,
+      "originalLength": 1,
+      "reviewedFirstPartyBlob": "2e23db6f565a7dde6732cd0330185d65e2fcf39d"
+    },
+    {
+      "path": "projects/ai-proxy/src/config/public-hosts.allowlist.json",
+      "renderedLength": 1,
+      "originalLength": 1,
+      "reviewedFirstPartyBlob": "fe51488c7066f6687ef680d6bfaa4f7768ef205c"
+    },
+    {
+      "path": "projects/ai-proxy/src/config/product-links.demo.json",
+      "renderedLength": 1,
+      "originalLength": 1,
+      "reviewedFirstPartyBlob": "cf60d2cb7e277f21f86398242552efb5752a21c2"
+    },
+    {
+      "path": "projects/ai-proxy/src/config/remote-config.ts",
+      "renderedLength": 1,
+      "originalLength": 1,
+      "reviewedFirstPartyBlob": "7eaf13736489115996520c25793f8280aa3b9394"
+    },
+    {
+      "path": "projects/ai-proxy/src/collector/rotation-plan.ts",
+      "renderedLength": 1,
+      "originalLength": 1,
+      "reviewedFirstPartyBlob": "b589bf2a8869fd7f269f3b735af4d37976c99ad6"
+    },
+    {
+      "path": "projects/ai-proxy/src/ui/ProxyIcon.tsx",
+      "renderedLength": 1,
+      "originalLength": 1,
+      "reviewedFirstPartyBlob": "9db97620b8b29c23aaf6333cd8235c311bcb8d36"
+    },
+    {
+      "path": "projects/ai-proxy/src/Settings.tsx",
+      "renderedLength": 1,
+      "originalLength": 1,
+      "reviewedFirstPartyBlob": "e0d5e9125a1a9191597f390b645c51a247784f58"
+    },
+    {
+      "path": "projects/ai-proxy/src/ui/OptionsShell.tsx",
+      "renderedLength": 1,
+      "originalLength": 1,
+      "reviewedFirstPartyBlob": "2fb7a857c93e93fef67106fbb0654bc28fbb2578"
+    },
+    {
+      "path": "projects/ai-proxy/src/ui/FormField.tsx",
+      "renderedLength": 1,
+      "originalLength": 1,
+      "reviewedFirstPartyBlob": "1f9bcf20be1740c0c5df65d13ee5e7ac81428d24"
+    },
+    {
+      "path": "projects/ai-proxy/src/ui/backupImport.ts",
+      "renderedLength": 1,
+      "originalLength": 1,
+      "reviewedFirstPartyBlob": "53e6cbf048126f94efb5d3456a773fc0c871320a"
+    },
+    {
+      "path": "projects/ai-proxy/src/ui/SourcesPage.tsx",
+      "renderedLength": 1,
+      "originalLength": 1,
+      "reviewedFirstPartyBlob": "3bae52d38b048ce8a1b3bedfaad7d03c34f3a21b"
+    },
+    {
+      "path": "projects/ai-proxy/src/subscription/download.ts",
+      "renderedLength": 1,
+      "originalLength": 1,
+      "reviewedFirstPartyBlob": "0b182b6faf289e73c9a764f80487900f14699347"
+    },
+    {
+      "path": "projects/ai-proxy/src/ui/OfficialServicePage.tsx",
+      "renderedLength": 1,
+      "originalLength": 1,
+      "reviewedFirstPartyBlob": "51d65d626e67af673b50948d9cb4b284fb05dc0b"
+    },
+    {
+      "path": "projects/ai-proxy/src/official/messages.ts",
+      "renderedLength": 1,
+      "originalLength": 1,
+      "reviewedFirstPartyBlob": "641f9e021f7956d6c8fd39bc1dd91b78d86be60e"
+    },
+    {
+      "path": "projects/ai-proxy/src/ui/SubscriptionReader.tsx",
+      "renderedLength": 1,
+      "originalLength": 1,
+      "reviewedFirstPartyBlob": "994f63468b318ab650e40d2b5026de8e11020e50"
+    },
+    {
+      "path": "projects/ai-proxy/src/subscription/parser.ts",
+      "renderedLength": 1,
+      "originalLength": 1,
+      "reviewedFirstPartyBlob": "42a936d7191bb422a71fe173a822b55e591a6024"
+    },
+    {
+      "path": "projects/ai-proxy/src/ui/DiagnosticsPage.tsx",
+      "renderedLength": 1,
+      "originalLength": 1,
+      "reviewedFirstPartyBlob": "3c083d41fd9580c06ded55530812bbf8f54a9f06"
+    },
+    {
+      "path": "projects/ai-proxy/src/domain/messages.ts",
+      "renderedLength": 1,
+      "originalLength": 1,
+      "reviewedFirstPartyBlob": "86ba498ec69bc965d6f79bf6e390137a4156e787"
+    },
+    {
+      "path": "projects/ai-proxy/src/diagnostics/logic.ts",
+      "renderedLength": 1,
+      "originalLength": 1,
+      "reviewedFirstPartyBlob": "152573dd1ab3622fa75f06b5e2d4b93796d31290"
+    },
+    {
+      "path": "projects/ai-proxy/src/ui/UsageControls.tsx",
+      "renderedLength": 1,
+      "originalLength": 1,
+      "reviewedFirstPartyBlob": "3d32edd9edf3a3c17167dd0b89e26ff105b64ffe"
+    },
+    {
+      "path": "projects/ai-proxy/src/usage/ranking.ts",
+      "renderedLength": 1,
+      "originalLength": 1,
+      "reviewedFirstPartyBlob": "19a04f545c68e444f9bcfd7512e4c95f6e434fc7"
+    },
+    {
+      "path": "projects/ai-proxy/src/usage/domain.ts",
+      "renderedLength": 1,
+      "originalLength": 1,
+      "reviewedFirstPartyBlob": "3730ac5455225e5451b142fba7be3403426272ab"
+    },
+    {
+      "path": "projects/ai-proxy/src/usage/vendor/public_suffix_list.dat",
+      "renderedLength": 1,
+      "originalLength": 1,
+      "reviewedFirstPartyBlob": "1eca38b5174fdd4b43612cd5e639dca5b06299d9"
+    },
+    {
+      "path": "projects/ai-proxy/src/ui/HeaderActionsEditor.jsx",
+      "renderedLength": 1,
+      "originalLength": 1,
+      "reviewedFirstPartyBlob": "790d31cd0f20c1793d9ee4493f322eb9b5980029"
+    },
+    {
+      "path": "projects/ai-proxy/src/ui/header-actions.js",
+      "renderedLength": 1,
+      "originalLength": 1,
+      "reviewedFirstPartyBlob": "12adb769b472feb1ac9fc23d8b13a3db9dfbfd15"
+    },
+    {
+      "path": "projects/ai-proxy/src/domain/pac-starters.ts",
+      "renderedLength": 1,
+      "originalLength": 1,
+      "reviewedFirstPartyBlob": "619271c748e0f964e95881f30cd3b88dab57ee06"
+    },
+    {
+      "path": "projects/ai-proxy/src/style.css",
+      "renderedLength": 1,
+      "originalLength": 1,
+      "reviewedFirstPartyBlob": "4398698e188510e615990d4b14c1dd4bde46d97c"
+    },
+    {
+      "path": "projects/ai-proxy/src/styles/style.css",
+      "renderedLength": 1,
+      "originalLength": 1,
+      "reviewedFirstPartyBlob": "619462108d2f6b93d74e85549b16de11630a27ae"
+    },
+    {
+      "path": "projects/ai-proxy/src/styles/options.css",
+      "renderedLength": 1,
+      "originalLength": 1,
+      "reviewedFirstPartyBlob": "b4caaf40bb3e6d25bb3e19b8e8b8f1e8f72a326a"
+    },
+    {
+      "path": "projects/ai-proxy/src/styles/sidepanel-r86.css",
+      "renderedLength": 1,
+      "originalLength": 1,
+      "reviewedFirstPartyBlob": "bd26430ec3c587d927218b756c2c8aeb002260e1"
+    },
+    {
+      "path": "projects/ai-proxy/src/styles/rotation-entry.css",
+      "renderedLength": 1,
+      "originalLength": 1,
+      "reviewedFirstPartyBlob": "920483b511235b50f1dfd3c9bafb3f8ed7d6c8c9"
+    },
+    {
+      "path": "projects/ai-proxy/src/styles/sidebar-settings.css",
+      "renderedLength": 1,
+      "originalLength": 1,
+      "reviewedFirstPartyBlob": "103f21595582f1aef6c61ed215740599519357b2"
+    },
+    {
+      "path": "projects/ai-proxy/src/styles/management.css",
+      "renderedLength": 1,
+      "originalLength": 1,
+      "reviewedFirstPartyBlob": "5bd5553859f9cb287b903faf0ae00991d26925a0"
+    },
+    {
+      "path": "projects/ai-proxy/src/ui/header-actions.css",
+      "renderedLength": 1,
+      "originalLength": 1,
+      "reviewedFirstPartyBlob": "309d3e1cbbb281b02710de6a5a1872ff38a6637f"
+    },
+    {
+      "path": "projects/ai-proxy/trusted/app-page-routes.js",
+      "renderedLength": 1,
+      "originalLength": 1,
+      "reviewedFirstPartyBlob": "36f1d80fb21f6b91831479c429d96396cd750dd2"
+    },
+    {
+      "path": "projects/webflow/src/ui/app-page-routes.js",
+      "renderedLength": 1,
+      "originalLength": 1,
+      "reviewedFirstPartyBlob": "04468dd893393f82482123355243d8cdad4b1fb7"
+    },
+    {
+      "path": "projects/webflow/trusted/chatgpt-conversation-route.js",
+      "renderedLength": 1,
+      "originalLength": 1,
+      "reviewedFirstPartyBlob": "8e28adedd8cc2b49ff34897c0857d33cf2478c87"
+    },
+    {
+      "path": "projects/webflow/src/auto-grants.js",
+      "renderedLength": 1,
+      "originalLength": 1,
+      "reviewedFirstPartyBlob": "5b904ed84942f40accb5b459d4aa01341ad7a7b7"
+    },
+    {
+      "path": "projects/webflow/trusted/issue-workflow-authorization.js",
+      "renderedLength": 1,
+      "originalLength": 1,
+      "reviewedFirstPartyBlob": "e26ae6bcf44d1994801faa4fc9a7408964702adc"
+    },
+    {
+      "path": "projects/webflow/trusted/chatgpt-result-adapter.js",
+      "renderedLength": 1,
+      "originalLength": 1,
+      "reviewedFirstPartyBlob": "b55e4f27e5919464515b9687f45e8ca012f97c1b"
+    },
+    {
+      "path": "projects/webflow/trusted/chatgpt-result-adapter-v0.3.js",
+      "renderedLength": 1,
+      "originalLength": 1,
+      "reviewedFirstPartyBlob": "9e58fafd786733db036a5995889cbff00157622e"
+    },
+    {
+      "path": "projects/webflow/src/chatgpt-conversation-result-v0.3.js",
+      "renderedLength": 1,
+      "originalLength": 1,
+      "reviewedFirstPartyBlob": "53fd0ca5ae064053fc00d34ce5771800289efcc4"
+    },
+    {
+      "path": "projects/webflow/src/chatgpt-conversation-result.js",
+      "renderedLength": 1,
+      "originalLength": 1,
+      "reviewedFirstPartyBlob": "25581b6c905b5f8d6fd2bb7d7939c7ca8bfbd270"
+    }
+  ],
+  "inputs": [
+    {
+      "path": "native-agent/local-project-source-contract.mjs",
+      "blob": "f0e20e26c13722e07328d64cbc687ba73db1c365",
+      "bytes": 2811
+    },
+    {
+      "path": "projects/adblock/rules/domains.js",
+      "blob": "b6b2ad8bb2085018f355f046d9b2a787601039bd",
+      "bytes": 1618
+    },
+    {
+      "path": "projects/adblock/trusted/cosmetic-policy.js",
+      "blob": "65804d9e8455fb9521f789744e4b3d276876b455",
+      "bytes": 3912
+    },
+    {
+      "path": "projects/adblock/trusted/dnr-session.js",
+      "blob": "6cf976c7f89ab6e9aec04bf7bc92b5189e8b3cca",
+      "bytes": 3039
+    },
+    {
+      "path": "projects/adblock/trusted/lifecycle.js",
+      "blob": "50143f14fa3a1e9434f5c79bd2df37db83c245bb",
+      "bytes": 3648
+    },
+    {
+      "path": "projects/adblock/trusted/policy.js",
+      "blob": "1ba80150d930f51130ceb7806371f7542f35871b",
+      "bytes": 2852
+    },
+    {
+      "path": "projects/adblock/trusted/rules.js",
+      "blob": "4bebe24f991783d6ceb14dd80aa507f8497fce61",
+      "bytes": 5933
+    },
+    {
+      "path": "projects/ai-knowledge-answers/src/model.js",
+      "blob": "752b91ea8d98f7da10e9d8902e3629bef69df58c",
+      "bytes": 9339
+    },
+    {
+      "path": "projects/ai-knowledge-answers/trusted/ai-request.js",
+      "blob": "d74df23166adc1ee10952db847cbd1202bdeb3ae",
+      "bytes": 11992
+    },
+    {
+      "path": "projects/ai-knowledge-answers/trusted/host.js",
+      "blob": "02bdd31fdcb2292196c849bd0a4c13e9bde78c0c",
+      "bytes": 9355
+    },
+    {
+      "path": "projects/ai-knowledge-answers/trusted/local-test-adapter.js",
+      "blob": "25c43a64db60933c61f16a569afbfd376a5f8ac5",
+      "bytes": 8025
+    },
+    {
+      "path": "projects/ai-knowledge-answers/trusted/local-test-runtime.js",
+      "blob": "2605e9d4825f3d95140a1eaccc73c1cc62ee6cda",
+      "bytes": 25947
+    },
+    {
+      "path": "projects/ai-knowledge-answers/trusted/multi-intent.js",
+      "blob": "82d4b49d194783e04844e36df78d757955e31378",
+      "bytes": 9995
+    },
+    {
+      "path": "projects/ai-knowledge-answers/trusted/workspace.css",
+      "blob": "3f11650babfd3e1a490907b33e2f722bd97fa53d",
+      "bytes": 7792
+    },
+    {
+      "path": "projects/ai-knowledge-answers/trusted/Workspace.jsx",
+      "blob": "9fa5a0e47805bfbbd092dbab7f78bb346588058b",
+      "bytes": 14921
+    },
+    {
+      "path": "projects/ai-proxy/src/App.jsx",
+      "blob": "00e54b057e79405f7574b0c8bad2d588e13a3721",
+      "bytes": 10074
+    },
+    {
+      "path": "projects/ai-proxy/src/collector/rotation-plan.ts",
+      "blob": "b589bf2a8869fd7f269f3b735af4d37976c99ad6",
+      "bytes": 3427
+    },
+    {
+      "path": "projects/ai-proxy/src/config/product-links.defaults.json",
+      "blob": "2e23db6f565a7dde6732cd0330185d65e2fcf39d",
+      "bytes": 170
+    },
+    {
+      "path": "projects/ai-proxy/src/config/product-links.demo.json",
+      "blob": "cf60d2cb7e277f21f86398242552efb5752a21c2",
+      "bytes": 100
+    },
+    {
+      "path": "projects/ai-proxy/src/config/public-config.ts",
+      "blob": "8b2ab58b742fd27e9416b99525424dad4a445c2a",
+      "bytes": 4477
+    },
+    {
+      "path": "projects/ai-proxy/src/config/public-hosts.allowlist.json",
+      "blob": "fe51488c7066f6687ef680d6bfaa4f7768ef205c",
+      "bytes": 3
+    },
+    {
+      "path": "projects/ai-proxy/src/config/remote-config.ts",
+      "blob": "7eaf13736489115996520c25793f8280aa3b9394",
+      "bytes": 6144
+    },
+    {
+      "path": "projects/ai-proxy/src/diagnostics/catalog.ts",
+      "blob": "70423a909f3b41a5aa4097ab261b54c048406fdf",
+      "bytes": 2783
+    },
+    {
+      "path": "projects/ai-proxy/src/diagnostics/favorites.ts",
+      "blob": "1a7100790aa97d71753d3a59331978a1faeb9c74",
+      "bytes": 2352
+    },
+    {
+      "path": "projects/ai-proxy/src/diagnostics/logic.ts",
+      "blob": "152573dd1ab3622fa75f06b5e2d4b93796d31290",
+      "bytes": 3147
+    },
+    {
+      "path": "projects/ai-proxy/src/domain/config.ts",
+      "blob": "812f07b61fc34948e84245c1ef2bbbe14f8cf4bf",
+      "bytes": 14107
+    },
+    {
+      "path": "projects/ai-proxy/src/domain/error-codes.ts",
+      "blob": "8f8d3e84713c8b2b4b1299edb2634f7e49d1e6b9",
+      "bytes": 6871
+    },
+    {
+      "path": "projects/ai-proxy/src/domain/header-actions.ts",
+      "blob": "97b786eb9c3d378c5c7e9bc18a059cf0ffffbd2d",
+      "bytes": 924
+    },
+    {
+      "path": "projects/ai-proxy/src/domain/managed-config.ts",
+      "blob": "dab76f757480311cd36cdc8d5798f4b27ba5d80d",
+      "bytes": 5374
+    },
+    {
+      "path": "projects/ai-proxy/src/domain/messages.ts",
+      "blob": "86ba498ec69bc965d6f79bf6e390137a4156e787",
+      "bytes": 2675
+    },
+    {
+      "path": "projects/ai-proxy/src/domain/pac-starters.ts",
+      "blob": "619271c748e0f964e95881f30cd3b88dab57ee06",
+      "bytes": 1139
+    },
+    {
+      "path": "projects/ai-proxy/src/domain/proxy-entry.ts",
+      "blob": "35b36b5b56af4ffeb194722d63dce46ec8843e8e",
+      "bytes": 2125
+    },
+    {
+      "path": "projects/ai-proxy/src/environment.ts",
+      "blob": "a8974e2cabca289ad179b6ae118002bdc056c9a8",
+      "bytes": 14681
+    },
+    {
+      "path": "projects/ai-proxy/src/i18n/errors.ts",
+      "blob": "5bd55461ee679d869260c3b34e08c32415101e0d",
+      "bytes": 1326
+    },
+    {
+      "path": "projects/ai-proxy/src/i18n/locale.ts",
+      "blob": "2f5391ea8b381753fd7eb6f2e4c0364e5856b058",
+      "bytes": 1918
+    },
+    {
+      "path": "projects/ai-proxy/src/i18n/LocaleProvider.tsx",
+      "blob": "f60fc23240354382534fb46d4d81cd9a87ac2127",
+      "bytes": 2799
+    },
+    {
+      "path": "projects/ai-proxy/src/i18n/locales/en.json",
+      "blob": "6dd1f6665cf7a0a1d1f9db47c099b781ad46c2a8",
+      "bytes": 78760
+    },
+    {
+      "path": "projects/ai-proxy/src/i18n/locales/zh-CN.json",
+      "blob": "df03dea459d45b25f04f8c1f6ef8f59f5bdae092",
+      "bytes": 75135
+    },
+    {
+      "path": "projects/ai-proxy/src/i18n/locales/zh-TW.json",
+      "blob": "9222ef31061eca95d2736ef9293747902323e1a8",
+      "bytes": 75556
+    },
+    {
+      "path": "projects/ai-proxy/src/official/messages.ts",
+      "blob": "641f9e021f7956d6c8fd39bc1dd91b78d86be60e",
+      "bytes": 961
+    },
+    {
+      "path": "projects/ai-proxy/src/QuickPanel.tsx",
+      "blob": "5ed9e192ba5358d6b5f2a2413d64b6d7ee723f58",
+      "bytes": 39919
+    },
+    {
+      "path": "projects/ai-proxy/src/service.ts",
+      "blob": "2c49b2f3dcdc8956faf0a7bd858837854e792fb8",
+      "bytes": 32091
+    },
+    {
+      "path": "projects/ai-proxy/src/Settings.tsx",
+      "blob": "e0d5e9125a1a9191597f390b645c51a247784f58",
+      "bytes": 71513
+    },
+    {
+      "path": "projects/ai-proxy/src/style.css",
+      "blob": "4398698e188510e615990d4b14c1dd4bde46d97c",
+      "bytes": 4880
+    },
+    {
+      "path": "projects/ai-proxy/src/styles/management.css",
+      "blob": "5bd5553859f9cb287b903faf0ae00991d26925a0",
+      "bytes": 24136
+    },
+    {
+      "path": "projects/ai-proxy/src/styles/options.css",
+      "blob": "b4caaf40bb3e6d25bb3e19b8e8b8f1e8f72a326a",
+      "bytes": 52306
+    },
+    {
+      "path": "projects/ai-proxy/src/styles/rotation-entry.css",
+      "blob": "920483b511235b50f1dfd3c9bafb3f8ed7d6c8c9",
+      "bytes": 846
+    },
+    {
+      "path": "projects/ai-proxy/src/styles/sidebar-settings.css",
+      "blob": "103f21595582f1aef6c61ed215740599519357b2",
+      "bytes": 20460
+    },
+    {
+      "path": "projects/ai-proxy/src/styles/sidepanel-r86.css",
+      "blob": "bd26430ec3c587d927218b756c2c8aeb002260e1",
+      "bytes": 17634
+    },
+    {
+      "path": "projects/ai-proxy/src/styles/style.css",
+      "blob": "619462108d2f6b93d74e85549b16de11630a27ae",
+      "bytes": 34589
+    },
+    {
+      "path": "projects/ai-proxy/src/subscription/download.ts",
+      "blob": "0b182b6faf289e73c9a764f80487900f14699347",
+      "bytes": 6114
+    },
+    {
+      "path": "projects/ai-proxy/src/subscription/parser.ts",
+      "blob": "42a936d7191bb422a71fe173a822b55e591a6024",
+      "bytes": 51339
+    },
+    {
+      "path": "projects/ai-proxy/src/ui/backupImport.ts",
+      "blob": "53e6cbf048126f94efb5d3456a773fc0c871320a",
+      "bytes": 1198
+    },
+    {
+      "path": "projects/ai-proxy/src/ui/DiagnosticsPage.tsx",
+      "blob": "3c083d41fd9580c06ded55530812bbf8f54a9f06",
+      "bytes": 23253
+    },
+    {
+      "path": "projects/ai-proxy/src/ui/FormField.tsx",
+      "blob": "1f9bcf20be1740c0c5df65d13ee5e7ac81428d24",
+      "bytes": 1101
+    },
+    {
+      "path": "projects/ai-proxy/src/ui/header-actions.css",
+      "blob": "309d3e1cbbb281b02710de6a5a1872ff38a6637f",
+      "bytes": 855
+    },
+    {
+      "path": "projects/ai-proxy/src/ui/header-actions.js",
+      "blob": "12adb769b472feb1ac9fc23d8b13a3db9dfbfd15",
+      "bytes": 5829
+    },
+    {
+      "path": "projects/ai-proxy/src/ui/HeaderActionsEditor.jsx",
+      "blob": "790d31cd0f20c1793d9ee4493f322eb9b5980029",
+      "bytes": 2125
+    },
+    {
+      "path": "projects/ai-proxy/src/ui/navigation.ts",
+      "blob": "be3f9da6a1fe707c5385a38a2c785ceb71375d25",
+      "bytes": 1887
+    },
+    {
+      "path": "projects/ai-proxy/src/ui/OfficialServicePage.tsx",
+      "blob": "51d65d626e67af673b50948d9cb4b284fb05dc0b",
+      "bytes": 10011
+    },
+    {
+      "path": "projects/ai-proxy/src/ui/optionsRoute.ts",
+      "blob": "09a0ed66b44fb834b7618d4b7ca07601e81ff7ba",
+      "bytes": 3327
+    },
+    {
+      "path": "projects/ai-proxy/src/ui/OptionsShell.tsx",
+      "blob": "2fb7a857c93e93fef67106fbb0654bc28fbb2578",
+      "bytes": 2409
+    },
+    {
+      "path": "projects/ai-proxy/src/ui/ProxyEntry.tsx",
+      "blob": "52e70ccdf8a0405adf416f66aa9dc209218ef7d4",
+      "bytes": 5425
+    },
+    {
+      "path": "projects/ai-proxy/src/ui/ProxyIcon.tsx",
+      "blob": "9db97620b8b29c23aaf6333cd8235c311bcb8d36",
+      "bytes": 2517
+    },
+    {
+      "path": "projects/ai-proxy/src/ui/RotationPlan.tsx",
+      "blob": "78368f323f1871e930fb68274a65d2f0b139c243",
+      "bytes": 8411
+    },
+    {
+      "path": "projects/ai-proxy/src/ui/SourcesPage.tsx",
+      "blob": "3bae52d38b048ce8a1b3bedfaad7d03c34f3a21b",
+      "bytes": 26891
+    },
+    {
+      "path": "projects/ai-proxy/src/ui/Status.tsx",
+      "blob": "cd266587abd9e3a3a3c78a7905f9dd4af09954db",
+      "bytes": 5619
+    },
+    {
+      "path": "projects/ai-proxy/src/ui/SubscriptionReader.tsx",
+      "blob": "994f63468b318ab650e40d2b5026de8e11020e50",
+      "bytes": 17836
+    },
+    {
+      "path": "projects/ai-proxy/src/ui/UsageControls.tsx",
+      "blob": "3d32edd9edf3a3c17167dd0b89e26ff105b64ffe",
+      "bytes": 16310
+    },
+    {
+      "path": "projects/ai-proxy/src/ui/useProxy.ts",
+      "blob": "af8b4dc1ed17b2dea6f0dddb2f62dcba166a5491",
+      "bytes": 3921
+    },
+    {
+      "path": "projects/ai-proxy/src/usage/domain.ts",
+      "blob": "3730ac5455225e5451b142fba7be3403426272ab",
+      "bytes": 3127
+    },
+    {
+      "path": "projects/ai-proxy/src/usage/ranking.ts",
+      "blob": "19a04f545c68e444f9bcfd7512e4c95f6e434fc7",
+      "bytes": 3203
+    },
+    {
+      "path": "projects/ai-proxy/src/usage/vendor/public_suffix_list.dat",
+      "blob": "1eca38b5174fdd4b43612cd5e639dca5b06299d9",
+      "bytes": 335478
+    },
+    {
+      "path": "projects/ai-proxy/trusted/admission.js",
+      "blob": "031477094a6aa39720a6cc5b59aaf76f1bab15b0",
+      "bytes": 659
+    },
+    {
+      "path": "projects/ai-proxy/trusted/app-page-routes.js",
+      "blob": "36f1d80fb21f6b91831479c429d96396cd750dd2",
+      "bytes": 372
+    },
+    {
+      "path": "projects/ai-proxy/trusted/Surface.jsx",
+      "blob": "6ccfec0ff567a7797525dd86e5eefe0d574384fa",
+      "bytes": 413
+    },
+    {
+      "path": "projects/ai-scroll-navigation/trusted/ai-configuration.js",
+      "blob": "c97137a3a871fb6c19fd3594fc627fafd67d03f8",
+      "bytes": 17409
+    },
+    {
+      "path": "projects/ai-scroll-navigation/trusted/ai-controls.tsx",
+      "blob": "ba7e94499c399aba685b7c80cf004bb56e2888f0",
+      "bytes": 8444
+    },
+    {
+      "path": "projects/ai-scroll-navigation/trusted/host-localization.js",
+      "blob": "73b0b62a0d009ff3451457623739d2a1716aad03",
+      "bytes": 51077
+    },
+    {
+      "path": "projects/ai-scroll-navigation/trusted/react-controls.tsx",
+      "blob": "1261228715f9cd8f8496e190213e8b7cedb57406",
+      "bytes": 30823
+    },
+    {
+      "path": "projects/ai-vip-share/trusted/host.css",
+      "blob": "634786710c463671b9c24c424725bf6c7ff4ec8e",
+      "bytes": 521
+    },
+    {
+      "path": "projects/ai-vip-share/trusted/lifecycle.js",
+      "blob": "123cb38a78e6176c5c1e7324e2ea457f15d2ee5d",
+      "bytes": 7028
+    },
+    {
+      "path": "projects/ai-vip-share/trusted/policy.js",
+      "blob": "949ae514645f5691244f185b07e835e7e132cb5d",
+      "bytes": 4794
+    },
+    {
+      "path": "projects/ai-vip-share/trusted/provider-config.js",
+      "blob": "d09c57ef4bbc96f406bb2092feb9ff9b2465cf43",
+      "bytes": 1323
+    },
+    {
+      "path": "projects/ai-vip-share/trusted/react-controls.tsx",
+      "blob": "7f951bcaf8bc18450d03e450258a8024c3e71906",
+      "bytes": 1379
+    },
+    {
+      "path": "projects/bookmark-manager/src/model.js",
+      "blob": "34cc7a737869ca502b4bcbbb47d2437d1b6b2bd5",
+      "bytes": 6902
+    },
+    {
+      "path": "projects/bookmark-manager/src/react/App.jsx",
+      "blob": "f8b520988cb3ceed9e0c8739f63ccdeba3d496b5",
+      "bytes": 52704
+    },
+    {
+      "path": "projects/bookmark-manager/src/react/navigation.js",
+      "blob": "7fc81215374c240e6eaae7e9e802872d94d5a53d",
+      "bytes": 585
+    },
+    {
+      "path": "projects/bookmark-manager/src/service.js",
+      "blob": "d072ace5379d0d4c8f8cda8d8d172cb60122576e",
+      "bytes": 12400
+    },
+    {
+      "path": "projects/bookmark-manager/trusted/host.css",
+      "blob": "5bbe841558c86389994defd93f6077aa928a9cf9",
+      "bytes": 1155
+    },
+    {
+      "path": "projects/cookie-editor/trusted/account-contract.js",
+      "blob": "081311cdc99d828e631efd2a5be1bcc20c461246",
+      "bytes": 3661
+    },
+    {
+      "path": "projects/cookie-editor/trusted/host.css",
+      "blob": "b3d57a5df9a1f6089a3dfe97017ecdf73ea05a1f",
+      "bytes": 2786
+    },
+    {
+      "path": "projects/prompt-shortcuts/trusted/asset-contract.js",
+      "blob": "86e95bff786e52efb9089f97126542430f39a716",
+      "bytes": 943
+    },
+    {
+      "path": "projects/prompt-shortcuts/trusted/host.css",
+      "blob": "aa08e38ebd56e34c49c1c07be5a1b6727426865b",
+      "bytes": 3228
+    },
+    {
+      "path": "projects/reading-toc/trusted/host.css",
+      "blob": "93db2443725c8fac84dd94585d08d933766c2040",
+      "bytes": 583
+    },
+    {
+      "path": "projects/reading-toc/trusted/locales.generated.js",
+      "blob": "e494a458a006adeb90697aca8dd8957bc90e2ef3",
+      "bytes": 16574
+    },
+    {
+      "path": "projects/reading-toc/trusted/policy.js",
+      "blob": "80fc351e9afc0cd94eedbc93c014cc4098f8b0b7",
+      "bytes": 9712
+    },
+    {
+      "path": "projects/stay-focus/trusted/lifecycle.js",
+      "blob": "77afc647cf1345462751964d7c74c2ee8b0fbce2",
+      "bytes": 1462
+    },
+    {
+      "path": "projects/stay-focus/trusted/policy.js",
+      "blob": "a62b4ec56ac2754f32f31a016f7cc35b14b1c86d",
+      "bytes": 4001
+    },
+    {
+      "path": "projects/stay-focus/trusted/react-controls.tsx",
+      "blob": "0c14d175188a33532004be0869fd6b237f9f6fb7",
+      "bytes": 4515
+    },
+    {
+      "path": "projects/stay-focus/trusted/rule-ownership.js",
+      "blob": "7c063535097df818cca43d76cc5fc77b3987047e",
+      "bytes": 1828
+    },
+    {
+      "path": "projects/stay-focus/trusted/tool-host.js",
+      "blob": "58962523b7c74a49cf51059233a0d43dea7a9685",
+      "bytes": 6328
+    },
+    {
+      "path": "projects/time-review/trusted/host.css",
+      "blob": "fe6b0d09a19dc210cf61ce45a74ec5ddb7a183a6",
+      "bytes": 774
+    },
+    {
+      "path": "projects/time-review/trusted/localization.js",
+      "blob": "7478e9c91f33317c8e1fe08f33d2e49c47b47818",
+      "bytes": 15469
+    },
+    {
+      "path": "projects/time-review/trusted/model.js",
+      "blob": "ef7cb2281334b7161c39f68a768992e3527b9d5c",
+      "bytes": 13837
+    },
+    {
+      "path": "projects/time-review/trusted/policy.js",
+      "blob": "d5127624c129bd29533f37e24eedab3216f396db",
+      "bytes": 3316
+    },
+    {
+      "path": "projects/time-review/trusted/react-controls.tsx",
+      "blob": "2a9155f4a6c56969d1aebcd7420405b84fd4eaf4",
+      "bytes": 6102
+    },
+    {
+      "path": "projects/web-markdown-clipper/trusted/policy.js",
+      "blob": "9cb4b8af149d25e2427ed0e187433f77a03b788f",
+      "bytes": 1237
+    },
+    {
+      "path": "projects/webflow/src/authorization-policy.js",
+      "blob": "bb508189bdbbfe403707febbb36bb49d07d476c7",
+      "bytes": 615
+    },
+    {
+      "path": "projects/webflow/src/auto-grants.js",
+      "blob": "5b904ed84942f40accb5b459d4aa01341ad7a7b7",
+      "bytes": 6165
+    },
+    {
+      "path": "projects/webflow/src/chatgpt-conversation-result-v0.3.js",
+      "blob": "53fd0ca5ae064053fc00d34ce5771800289efcc4",
+      "bytes": 3333
+    },
+    {
+      "path": "projects/webflow/src/chatgpt-conversation-result.js",
+      "blob": "25581b6c905b5f8d6fd2bb7d7939c7ca8bfbd270",
+      "bytes": 5698
+    },
+    {
+      "path": "projects/webflow/src/task-intent-contract.js",
+      "blob": "50a7ec4bd3d8707ba53724efdc378cd98c2404d6",
+      "bytes": 4116
+    },
+    {
+      "path": "projects/webflow/src/ui/app-page-routes.js",
+      "blob": "04468dd893393f82482123355243d8cdad4b1fb7",
+      "bytes": 182
+    },
+    {
+      "path": "projects/webflow/trusted/AutoSettings.tsx",
+      "blob": "1618f0a1bffcce8174e4d623cba6c2643894de05",
+      "bytes": 56010
+    },
+    {
+      "path": "projects/webflow/trusted/chatgpt-conversation-route.js",
+      "blob": "8e28adedd8cc2b49ff34897c0857d33cf2478c87",
+      "bytes": 2174
+    },
+    {
+      "path": "projects/webflow/trusted/chatgpt-result-adapter-v0.3.js",
+      "blob": "9e58fafd786733db036a5995889cbff00157622e",
+      "bytes": 3364
+    },
+    {
+      "path": "projects/webflow/trusted/chatgpt-result-adapter.js",
+      "blob": "b55e4f27e5919464515b9687f45e8ca012f97c1b",
+      "bytes": 3253
+    },
+    {
+      "path": "projects/webflow/trusted/CurrentTask.tsx",
+      "blob": "aa2ecc7a76140fdf228444223b10d700207f4014",
+      "bytes": 27479
+    },
+    {
+      "path": "projects/webflow/trusted/issue-workflow-authorization.js",
+      "blob": "e26ae6bcf44d1994801faa4fc9a7408964702adc",
+      "bytes": 4735
+    },
+    {
+      "path": "projects/webflow/trusted/RuntimePanel.tsx",
+      "blob": "f418c26696933f0b9440080fd2586e47e42b870f",
+      "bytes": 2996
+    },
+    {
+      "path": "src/analytics/contract.js",
+      "blob": "9d9cc6604b15524f382179c41947922cf634e42e",
+      "bytes": 11814
+    },
+    {
+      "path": "src/config/browser-config.js",
+      "blob": "b945140791ef89b2fafddc68f87427ec6ae94a11",
+      "bytes": 1008
+    },
+    {
+      "path": "src/config/browser-config.json",
+      "blob": "20990ed757e25c89a0ba913d0b809a97af664e01",
+      "bytes": 123
+    },
+    {
+      "path": "src/development/page.js",
+      "blob": "166ac7f73de6b76a9bacf9ac6efa822ae83b650e",
+      "bytes": 3587
+    },
+    {
+      "path": "src/entrypoints/tool-shell.js",
+      "blob": "9e4e73f7e16b686755cbd2550ce0c0a67bce9ea0",
+      "bytes": 361
+    },
+    {
+      "path": "src/environment.js",
+      "blob": "0e948f6a79be8dd1b0a7a5f2dfb9c7c808d9dce5",
+      "bytes": 13249
+    },
+    {
+      "path": "src/features/scraping/index.js",
+      "blob": "1acead32652f6e8c9453b24e97e67dbe675e8900",
+      "bytes": 708
+    },
+    {
+      "path": "src/framework/ChromePage.js",
+      "blob": "e7c19dab89578b5be180f0825213a3d7a5c7fba8",
+      "bytes": 16818
+    },
+    {
+      "path": "src/framework/context.js",
+      "blob": "61786b48173ee53cd06213e8d0e1007bebd7db90",
+      "bytes": 10735
+    },
+    {
+      "path": "src/framework/control/locator-contract.js",
+      "blob": "2fcd85fd8e154fd2d53274f420e7aa42b623b135",
+      "bytes": 7038
+    },
+    {
+      "path": "src/framework/control/result-transfer.js",
+      "blob": "7466a2729855635c7918bddd6c0f843478f58f96",
+      "bytes": 3367
+    },
+    {
+      "path": "src/framework/control/value.js",
+      "blob": "4a8e4e280d563f86ea1802fb2e033219847452bd",
+      "bytes": 4608
+    },
+    {
+      "path": "src/framework/host/managed-site-reviewed-scopes.js",
+      "blob": "e1e152a8066ee5dc2f11f89edf9dcb2f7c8db5da",
+      "bytes": 5891
+    },
+    {
+      "path": "src/framework/locator.js",
+      "blob": "d84468f971e3ab1f5927979ef7d9c0b257e50470",
+      "bytes": 4203
+    },
+    {
+      "path": "src/framework/sdk/browser-contract.js",
+      "blob": "95584c0747115bb84a4d33d3eeb5b31c6d163d1e",
+      "bytes": 47383
+    },
+    {
+      "path": "src/framework/sdk/browser-direct.generated.js",
+      "blob": "16c3ecafdf24f6539d83392a4b4157c994f7642f",
+      "bytes": 3798
+    },
+    {
+      "path": "src/framework/sdk/browser-schemas.js",
+      "blob": "a92fdd977b552ce1e28f76f1627bef1a4c63a86b",
+      "bytes": 31651
+    },
+    {
+      "path": "src/framework/sdk/browser-services.generated.js",
+      "blob": "e0e45df4aa181915fe34332e9d557651c0467be0",
+      "bytes": 3956
+    },
+    {
+      "path": "src/framework/sdk/browser.js",
+      "blob": "fd950e15e01427a48127336eb6fec24b9566707c",
+      "bytes": 4985
+    },
+    {
+      "path": "src/framework/sdk/http.js",
+      "blob": "6af6cc6eaabd2a95474a962b8bc39c30d58f2a21",
+      "bytes": 339
+    },
+    {
+      "path": "src/framework/sdk/registry.js",
+      "blob": "a61b49cff12a45197b8cefd5bd77cd2c379aaf01",
+      "bytes": 10077
+    },
+    {
+      "path": "src/framework/sdk/site-budget-observation.js",
+      "blob": "8e998a07b91673c40fd38df87bdfb7a62b81e424",
+      "bytes": 1661
+    },
+    {
+      "path": "src/framework/sdk/site-budget-v3-policy.js",
+      "blob": "43dbafe8342f4a5ef291d21ef39f9200b585850c",
+      "bytes": 11918
+    },
+    {
+      "path": "src/framework/sdk/site-budget-v3-reminders.js",
+      "blob": "e66fdaa51c53fa59f8dbbe64843fee5df6ce3910",
+      "bytes": 3093
+    },
+    {
+      "path": "src/framework/sdk/storage.js",
+      "blob": "9d616737d7b5823359fc70c038838d4b876c5378",
+      "bytes": 1060
+    },
+    {
+      "path": "src/framework/sdk/target-origins.js",
+      "blob": "32d2c6c96c132f4d8e69ef993e79cce70c4f4098",
+      "bytes": 2620
+    },
+    {
+      "path": "src/framework/workflow/compiler.js",
+      "blob": "2a7752e5363846145e3751dec4d56775ec81a44f",
+      "bytes": 5750
+    },
+    {
+      "path": "src/framework/workflow/contract.js",
+      "blob": "0942a65cb8f40350100f3ab5e802216e7d89ef8c",
+      "bytes": 8223
+    },
+    {
+      "path": "src/i18n/sidebar-navigation.js",
+      "blob": "bef1cd48793b97b34ffd1af67e9d36a3d05d4639",
+      "bytes": 2186
+    },
+    {
+      "path": "src/knowledge/policy.js",
+      "blob": "6d0b3d49b7fe7c6e72913cfefb3c0ab80362a06d",
+      "bytes": 2702
+    },
+    {
+      "path": "src/libs/identity.js",
+      "blob": "df7f3d9c04bc2015eb7124a1f0e1ec63db24ebe9",
+      "bytes": 824
+    },
+    {
+      "path": "src/libs/loader.js",
+      "blob": "f61f7cee7c95a218264a92e3251674e85e55af6f",
+      "bytes": 5897
+    },
+    {
+      "path": "src/libs/page-frameworks/contract.js",
+      "blob": "31f17cec37b6afc2e936dd9201fe598d11eb70f3",
+      "bytes": 8858
+    },
+    {
+      "path": "src/libs/runtime-contract.js",
+      "blob": "4aec4e012171071e5c8ce933c6b03f216f5782c3",
+      "bytes": 4424
+    },
+    {
+      "path": "src/marketplace/batch.js",
+      "blob": "496a4039f28e545071de09c8fc82bf5a12018a3c",
+      "bytes": 4663
+    },
+    {
+      "path": "src/marketplace/catalog.js",
+      "blob": "fb9172cbf943b32100f76adfdfef86f0c7791380",
+      "bytes": 6939
+    },
+    {
+      "path": "src/marketplace/discovery.js",
+      "blob": "2989cb6040ecfce7b394c0a1065ea08bc92b10d2",
+      "bytes": 4840
+    },
+    {
+      "path": "src/marketplace/distribution.js",
+      "blob": "6c95fc4b6894aae1060ddde0203e2a044de8634e",
+      "bytes": 4645
+    },
+    {
+      "path": "src/marketplace/external.js",
+      "blob": "aef759c312e4a6045da1da921d23500d6317e1c6",
+      "bytes": 17340
+    },
+    {
+      "path": "src/marketplace/install.js",
+      "blob": "b5d9fb56a5313b447dd7a6249fcf1518fcebefce",
+      "bytes": 15090
+    },
+    {
+      "path": "src/marketplace/intent.js",
+      "blob": "5e1d955f8d45ea80780146cee6973c48ba94a5a8",
+      "bytes": 21414
+    },
+    {
+      "path": "src/marketplace/page-install.js",
+      "blob": "5800c0ec6e92d128b1b9cc686936d13fc8c45d19",
+      "bytes": 1780
+    },
+    {
+      "path": "src/marketplace/panel-navigation.js",
+      "blob": "fe57ac5bad0ed5fdeffa15d3fa9a74012e1dc854",
+      "bytes": 14181
+    },
+    {
+      "path": "src/marketplace/panel.js",
+      "blob": "6426344707e1237ff972a1602ab636667d7e0019",
+      "bytes": 7373
+    },
+    {
+      "path": "src/marketplace/status.js",
+      "blob": "700f6d64de27981dff89022d5fd74df8b4ccf557",
+      "bytes": 5411
+    },
+    {
+      "path": "src/marketplace/store-website.js",
+      "blob": "98970ed8e17c16b7400edcc348e958073cf64189",
+      "bytes": 2295
+    },
+    {
+      "path": "src/native-agent/chatgpt-bridge-trigger-gate.js",
+      "blob": "0057408bd2dcdc079df305b9e0ab9c9e672af5aa",
+      "bytes": 67884
+    },
+    {
+      "path": "src/native-agent/chatgpt-execution-page.js",
+      "blob": "870884c9b910ba22044c82c654d00f0d6ea43cba",
+      "bytes": 5206
+    },
+    {
+      "path": "src/native-agent/chatgpt-fixed-bridge-host.js",
+      "blob": "c6a3a6283fb03cfe9c2f7ad31fbca7066c60919f",
+      "bytes": 82088
+    },
+    {
+      "path": "src/native-agent/chatgpt-task-request.js",
+      "blob": "af8406d51812c92df8ab97f727d4cc98538e3546",
+      "bytes": 5384
+    },
+    {
+      "path": "src/native-agent/host-adapter.js",
+      "blob": "bc05d64be3a70a908f9904a1ccb10e42bd5aee94",
+      "bytes": 16764
+    },
+    {
+      "path": "src/native-agent/local-project-client.js",
+      "blob": "c98f9e6aec70293b60d427add7b409cfc4affcf5",
+      "bytes": 5280
+    },
+    {
+      "path": "src/native-agent/protocol.js",
+      "blob": "47113b9da2c95704c046fcce8b2e524d9ca34ffd",
+      "bytes": 2977
+    },
+    {
+      "path": "src/native-agent/source-label.js",
+      "blob": "f6231022af2abbecd90e9378d80d44ff747f31fd",
+      "bytes": 674
+    },
+    {
+      "path": "src/native-agent/tool-development-storage.js",
+      "blob": "09c194b9e9f10e543e8a8028bbf8dbb410e6d5ed",
+      "bytes": 9614
+    },
+    {
+      "path": "src/native-agent/tool-snapshot.js",
+      "blob": "d5f7ca731a89addfecdaa9e8586584a8068e2043",
+      "bytes": 4952
+    },
+    {
+      "path": "src/native-agent/webflow-v2-entry.js",
+      "blob": "e80f78e22c21742c86be2263474dbb8bfc3f225d",
+      "bytes": 1447
+    },
+    {
+      "path": "src/native-agent/workflow-ai-client.js",
+      "blob": "5c6614d096ae0bf66b0de78dcd9613bea7e25628",
+      "bytes": 4193
+    },
+    {
+      "path": "src/native-agent/workflow-ai-protocol.js",
+      "blob": "bf152438c2fd76d3838cb7408db3e8ead7dafaa7",
+      "bytes": 1839
+    },
+    {
+      "path": "src/native-agent/workspace-chatgpt-core.js",
+      "blob": "4cf7bf5fc6729bec78af5ad07486f32f562cd18d",
+      "bytes": 30564
+    },
+    {
+      "path": "src/native-agent/workspace-chatgpt.js",
+      "blob": "8601eb1d9f2327fe767446145821d2fff858e534",
+      "bytes": 2774
+    },
+    {
+      "path": "src/page-events/site-catalog.js",
+      "blob": "c88451924ae63e14c5bded3f79702e3e23d10917",
+      "bytes": 986
+    },
+    {
+      "path": "src/page-events/site-profiles.js",
+      "blob": "9dd404a1cbcf95cf8586164206f09dd8ba28e59c",
+      "bytes": 2530
+    },
+    {
+      "path": "src/page-events/web-task-contract.js",
+      "blob": "cc7f3175b1b2e19126eed19345af1a65509a94b2",
+      "bytes": 1243
+    },
+    {
+      "path": "src/platform/chrome/browser-managed-proxy-config.js",
+      "blob": "e9ea532d0b97285ce1021404c9c4eada6a13a611",
+      "bytes": 2576
+    },
+    {
+      "path": "src/platform/chrome/browser-managed-proxy-profiles.js",
+      "blob": "1e6b60d653062fb4661ae77c90cbf08dfe5fa276",
+      "bytes": 3073
+    },
+    {
+      "path": "src/platform/chrome/browser-managed-proxy.js",
+      "blob": "db426af44dc18ce584dc6c34f9d44bc648d782be",
+      "bytes": 16173
+    },
+    {
+      "path": "src/platform/chrome/browser-managed-site-budget.js",
+      "blob": "65fa71c944b8573893c5e97978b870f060330a88",
+      "bytes": 46247
+    },
+    {
+      "path": "src/platform/chrome/browser-managed-site-policy.js",
+      "blob": "07a86c6ef30d3f0228590401a5643a1268c4fa22",
+      "bytes": 7054
+    },
+    {
+      "path": "src/platform/chrome/managed-site-lifecycle.js",
+      "blob": "2833c8f0f00932ee209330b2dbbe13bcf5c0e318",
+      "bytes": 1502
+    },
+    {
+      "path": "src/platform/chrome/managed-site-v3-policy.js",
+      "blob": "184c8bee8e8811537bd7f83d1731333965bac11e",
+      "bytes": 214
+    },
+    {
+      "path": "src/platform/chrome/managed-site-v3-rules.js",
+      "blob": "f4287fe22e6109fcdd53d46dc06b54f6bd2c185f",
+      "bytes": 3161
+    },
+    {
+      "path": "src/platform/chrome/permission-gate.js",
+      "blob": "e1b16c6d679ec80d00bb60cc1c0ab7f6e97d304e",
+      "bytes": 16624
+    },
+    {
+      "path": "src/platform/chrome/update-notice-state.js",
+      "blob": "e8b6cb4c33937c1cf52d7644100b4a3d65e95370",
+      "bytes": 11852
+    },
+    {
+      "path": "src/platform/downloads/blob-lifecycle.js",
+      "blob": "ee31b578c61cd853eb55a77730a97b112f5993c1",
+      "bytes": 2815
+    },
+    {
+      "path": "src/platform/host/client.js",
+      "blob": "9063985cecbbdd41dabe3affa36f163488d0f5ab",
+      "bytes": 11224
+    },
+    {
+      "path": "src/platform/host/local-tasks.js",
+      "blob": "a79dddc0326db19219ee3afcec1543a7a816d85d",
+      "bytes": 12544
+    },
+    {
+      "path": "src/platform/host/managed-site-authority.js",
+      "blob": "1f5f1b27d245041381ae8840c31f2b59f2175787",
+      "bytes": 2090
+    },
+    {
+      "path": "src/platform/host/managed-site-runtime-contract.js",
+      "blob": "bcdba6d000e1b9ed122596a176fe71f6707f0ed4",
+      "bytes": 1423
+    },
+    {
+      "path": "src/platform/host/send-queue-admission.js",
+      "blob": "a839de9e34ca478f14aadb271f0fa75a41b26f24",
+      "bytes": 1474
+    },
+    {
+      "path": "src/platform/local-project-site-scope.js",
+      "blob": "44b91f18a8a4e80e8dd4504be314d509f2620777",
+      "bytes": 1178
+    },
+    {
+      "path": "src/platform/page-port/codec.js",
+      "blob": "d0b4d65861517b2a49030f0a7a6ea5ff96c6b55e",
+      "bytes": 11956
+    },
+    {
+      "path": "src/platform/protocol.js",
+      "blob": "dcc156ec5823f15c28c2c7ad482048633eaf11aa",
+      "bytes": 11260
+    },
+    {
+      "path": "src/platform/schema.js",
+      "blob": "84cf46a546e4b4b9e288e78cf352db617aaef736",
+      "bytes": 43891
+    },
+    {
+      "path": "src/platform/source-budgets.js",
+      "blob": "61e923d42ebd00e9267ae6d8492c942e823b2f48",
+      "bytes": 593
+    },
+    {
+      "path": "src/platform/target/index.js",
+      "blob": "baabb53c1572f3fd8873c9c3bfd1692439325dce",
+      "bytes": 27441
+    },
+    {
+      "path": "src/platform/tasks/app-controller-contract.js",
+      "blob": "bb55a73b95fc02362842078c3a78052c397c389a",
+      "bytes": 3496
+    },
+    {
+      "path": "src/platform/tasks/builtin-releases.js",
+      "blob": "0b0b247f63b2b7f4031d6fdf3fce615cd4de49df",
+      "bytes": 5352
+    },
+    {
+      "path": "src/platform/tasks/contract.js",
+      "blob": "2a8b35d0348cf284d4cc7ae0b24ea52db6afc5d0",
+      "bytes": 11157
+    },
+    {
+      "path": "src/platform/tasks/delegation-contract.js",
+      "blob": "a70eed217d539d4e985606d2965c5c116d21ccb1",
+      "bytes": 3281
+    },
+    {
+      "path": "src/platform/tasks/schedule-contract.js",
+      "blob": "8b02d193830d785508dc2cf69ae9b9d1f25400dc",
+      "bytes": 13533
+    },
+    {
+      "path": "src/platform/tasks/schedule-time.js",
+      "blob": "48945e460c551bb2c9c5c710593591da5e7693d0",
+      "bytes": 7721
+    },
+    {
+      "path": "src/run-host.js",
+      "blob": "eaaf21caba87375d5140f3111069ca9c87c8410c",
+      "bytes": 20856
+    },
+    {
+      "path": "src/scripting/sandbox/controller.js",
+      "blob": "930670f83667016dc4a9f0073393ff0148e60c3c",
+      "bytes": 11746
+    },
+    {
+      "path": "src/scripting/user-scripts/controller-classic.js",
+      "blob": "8f5ad9011f6e5bdd900b9eed089bc4eabb8c0523",
+      "bytes": 2523
+    },
+    {
+      "path": "src/scripting/user-scripts/dependency-manifest.js",
+      "blob": "cc434312822510bd00d8e1e4a05f91c0dda4440e",
+      "bytes": 1712
+    },
+    {
+      "path": "src/scripting/user-scripts/dependency-metadata.js",
+      "blob": "27e8f5c055e3d220eef46f2ded673224940cf34b",
+      "bytes": 23278
+    },
+    {
+      "path": "src/scripting/user-scripts/execution-source.js",
+      "blob": "1fd530090c20794f56eeb91359cd9b61fb315304",
+      "bytes": 14186
+    },
+    {
+      "path": "src/scripting/user-scripts/native-access.js",
+      "blob": "aa3b4669535b2ebd6f4d10058374d78aaa174e38",
+      "bytes": 1532
+    },
+    {
+      "path": "src/scripting/user-scripts/official-page-catalog.js",
+      "blob": "ef46b21c4a7cdf9c37b33753d2e94aebfb53af0b",
+      "bytes": 5976
+    },
+    {
+      "path": "src/scripting/user-scripts/packaged-dependencies.js",
+      "blob": "37243bff5bafe8b997025c2ee0fd1f1a32c4722c",
+      "bytes": 1674
+    },
+    {
+      "path": "src/scripting/user-scripts/page-bundle.js",
+      "blob": "cecc7b45f708bcf650b03dd08a415c7300a40ed1",
+      "bytes": 4942
+    },
+    {
+      "path": "src/scripting/user-scripts/page-frame-resources.js",
+      "blob": "7a6e5dc679f9e2cc3362b97ad00df69037309992",
+      "bytes": 4617
+    },
+    {
+      "path": "src/scripting/user-scripts/page-install-authorization.js",
+      "blob": "e84f61a0b46938f7f38e13f887e889d587f170c9",
+      "bytes": 4367
+    },
+    {
+      "path": "src/scripting/user-scripts/page-install-package.js",
+      "blob": "5c4487a9816fe7b3db3f3240e9061bca74a2d072",
+      "bytes": 4056
+    },
+    {
+      "path": "src/scripting/user-scripts/page-program-contract.js",
+      "blob": "19e06d36eb7278f5f05a8baa1cfedd5adf1665ed",
+      "bytes": 7856
+    },
+    {
+      "path": "src/scripting/user-scripts/page-program-package.js",
+      "blob": "52a5aafec322d0ef5d1ceee800502a068ecacbbe",
+      "bytes": 9368
+    },
+    {
+      "path": "src/scripting/user-scripts/page-program-rules.js",
+      "blob": "7c43f4cff388a91ffd37827cb6e67b865ccd56c9",
+      "bytes": 5869
+    },
+    {
+      "path": "src/scripting/user-scripts/page-task-contract.js",
+      "blob": "51273b66134aaf37ae617605b7bf91eab4ebcd0e",
+      "bytes": 1752
+    },
+    {
+      "path": "src/scripting/user-scripts/remote-esm-contract.js",
+      "blob": "caf632dc1035c1fab9fe268726dad19c511e8f07",
+      "bytes": 6809
+    },
+    {
+      "path": "src/scripting/user-scripts/scroll-config-contract.js",
+      "blob": "7d738215057cc05a3d3f2ce9282385bb3d47da37",
+      "bytes": 6458
+    },
+    {
+      "path": "src/sidebar-tools/official-catalog.js",
+      "blob": "872d3bd8d85548aa6f8248b9e29ff5dc362ca655",
+      "bytes": 15873
+    },
+    {
+      "path": "src/sidebar-tools/official-reading-toc.js",
+      "blob": "287fe6dce254a55d7af8a3b1d1de20b772c345b4",
+      "bytes": 2243
+    },
+    {
+      "path": "src/sidebar-tools/sender.js",
+      "blob": "d6963eaed23b1d60d68aa01670ade10639c5f377",
+      "bytes": 1441
+    },
+    {
+      "path": "src/tool-document-url.js",
+      "blob": "ab6d82647fa46023a3f660907e4e5211951832d5",
+      "bytes": 2997
+    },
+    {
+      "path": "src/ui/ai/provider-https-source.js",
+      "blob": "f51e7d7dadfbfa0385cc71a0e4b47b3c90cc597a",
+      "bytes": 1610
+    },
+    {
+      "path": "src/ui/ai/provider-runtime.js",
+      "blob": "397f7e5afda0fcaa1e8ff4823f124cccfbade7da",
+      "bytes": 11559
+    },
+    {
+      "path": "src/ui/app-localization.js",
+      "blob": "a9db97a0c6c2bba71c22f998f8b8eebd63d8b0f7",
+      "bytes": 12079
+    },
+    {
+      "path": "src/ui/app-page-routes.js",
+      "blob": "173cb36bfa22625f341eb8fa54cd0cc990fde0a4",
+      "bytes": 679
+    },
+    {
+      "path": "src/ui/cloud-status-presentation.js",
+      "blob": "d04e9b37f1a7cc39299ab34d177881572d29ba9a",
+      "bytes": 12922
+    },
+    {
+      "path": "src/ui/controller-classic-readiness.js",
+      "blob": "d05df8dc924f9d277dcebbc843a93cde6d1d26ec",
+      "bytes": 2457
+    },
+    {
+      "path": "src/ui/controller-draft-run.js",
+      "blob": "a6888b2a376b8653315afeaa726f1e4815f11a99",
+      "bytes": 9213
+    },
+    {
+      "path": "src/ui/controller-esm-source.js",
+      "blob": "f4b3d81ec4fc3d2ae53e49bf41d363145d735cf5",
+      "bytes": 8246
+    },
+    {
+      "path": "src/ui/controller-results-view.js",
+      "blob": "445735cd33d2499de9cff3542c2d840dcc0af9d6",
+      "bytes": 8143
+    },
+    {
+      "path": "src/ui/controller-revision-view.js",
+      "blob": "da9b561359539b6a4245eebcd1eb95fdff9aa9bb",
+      "bytes": 9945
+    },
+    {
+      "path": "src/ui/conversation/bookmark-actions.js",
+      "blob": "a086d1801757ae2a89e483bd275cf0e267e4140c",
+      "bytes": 20455
+    },
+    {
+      "path": "src/ui/conversation/bookmark-agent-loop.js",
+      "blob": "c2dd6945ba3844700c674cb8fe4e1f68abfd3b9b",
+      "bytes": 14934
+    },
+    {
+      "path": "src/ui/conversation/bookmark-instructions.js",
+      "blob": "a0b86fba5ef9548a5a8d3e30f34668dfec73e19a",
+      "bytes": 3487
+    },
+    {
+      "path": "src/ui/conversation/draft-suggestion.js",
+      "blob": "c71e0803e0372dd3bdbf42e9eea6984c5060421d",
+      "bytes": 1078
+    },
+    {
+      "path": "src/ui/conversation/my-task-instructions.js",
+      "blob": "b11cf943fbf69e74252fb0e6c1c726bfcabe4b47",
+      "bytes": 3430
+    },
+    {
+      "path": "src/ui/conversation/prompt-actions.js",
+      "blob": "b56bbfc04d9993e9995b9a536415bea9d1d8e506",
+      "bytes": 14509
+    },
+    {
+      "path": "src/ui/conversation/prompt-controller.js",
+      "blob": "4c5ff2b7984168621046c11fee5e472fcbbd9bad",
+      "bytes": 8283
+    },
+    {
+      "path": "src/ui/conversation/provider-consumer.js",
+      "blob": "79bd5838c423b545adba1823a72bbbe5655f2e86",
+      "bytes": 18095
+    },
+    {
+      "path": "src/ui/conversation/session.js",
+      "blob": "4104e8f2d23d9078986a6631f4d2c608fdcb6431",
+      "bytes": 5841
+    },
+    {
+      "path": "src/ui/current-page-target.js",
+      "blob": "0c4c7a0698c4760271fc3d885458c468885734d5",
+      "bytes": 12530
+    },
+    {
+      "path": "src/ui/debug-workbench.js",
+      "blob": "b15ddecb69e76f349cebf3c3be146341610e43b6",
+      "bytes": 4242
+    },
+    {
+      "path": "src/ui/develop-fields.js",
+      "blob": "878041563a51d54bcbb927dab99b13b48e17267e",
+      "bytes": 14331
+    },
+    {
+      "path": "src/ui/develop-host-controls.js",
+      "blob": "0ad12a8ee507e4db7f4597db22ad0131b192c716",
+      "bytes": 12538
+    },
+    {
+      "path": "src/ui/develop-view.js",
+      "blob": "f66202bae1eb9c505332fb349733db48a17cc0b6",
+      "bytes": 3919
+    },
+    {
+      "path": "src/ui/esm-source-detector.js",
+      "blob": "78ef019329cdf68dd1ec6ec9b222d729ce677ec5",
+      "bytes": 5284
+    },
+    {
+      "path": "src/ui/extension-center-localization.js",
+      "blob": "02103179b31bd29ce97d8b5a46fe68aff53a3992",
+      "bytes": 72911
+    },
+    {
+      "path": "src/ui/extension-center-model.js",
+      "blob": "651dcc07ad4faeb89266b73a8ce9c21f7034a66a",
+      "bytes": 14887
+    },
+    {
+      "path": "src/ui/extension-center.js",
+      "blob": "1f5826dd1a48197a11aaed8e57aa228933d43626",
+      "bytes": 84532
+    },
+    {
+      "path": "src/ui/installed-page-tools.js",
+      "blob": "9f0b827119bbcc464d3c3d0bb2984da0e0f05cb0",
+      "bytes": 2007
+    },
+    {
+      "path": "src/ui/local-project-install-ui.js",
+      "blob": "478b79d41bab519508858861471e6b7ca560d810",
+      "bytes": 33411
+    },
+    {
+      "path": "src/ui/local-project-install.js",
+      "blob": "0db1b7d6489eb27e18d584a1ae14bf7704cd5540",
+      "bytes": 19288
+    },
+    {
+      "path": "src/ui/local-project-run.js",
+      "blob": "e03b492f3cbc6362db5aadb958502e7fb2dd93c4",
+      "bytes": 16074
+    },
+    {
+      "path": "src/ui/local-project.js",
+      "blob": "997bfbe899423a9a48f15d3bc702af3a782d1027",
+      "bytes": 41278
+    },
+    {
+      "path": "src/ui/locale-manager-localization.js",
+      "blob": "f1a099efed122f5afffa26e95097d16f345dba10",
+      "bytes": 29622
+    },
+    {
+      "path": "src/ui/market-install-sheet.js",
+      "blob": "7b9ee3dcb2395bf0e9887a7f5beb1e5daa8eb88b",
+      "bytes": 3935
+    },
+    {
+      "path": "src/ui/my-task-agent.js",
+      "blob": "ba0ce3404cf899f598468e6e07b2b22ce9fe2ad1",
+      "bytes": 43709
+    },
+    {
+      "path": "src/ui/my-workbench-defaults.js",
+      "blob": "268451e986d7f1df8f208df3be6aed4125caebbb",
+      "bytes": 9490
+    },
+    {
+      "path": "src/ui/my-workbench-view.js",
+      "blob": "524a413ed1d31d2062665acf70386c362624c23c",
+      "bytes": 1918
+    },
+    {
+      "path": "src/ui/page-candidate-actions.js",
+      "blob": "b777cacbf054acea882ac0d0fa8690a28fb1e75d",
+      "bytes": 3087
+    },
+    {
+      "path": "src/ui/page-candidate-source.js",
+      "blob": "51b26efd1f34a44c9634ea5c6b3d2d8512a15cd0",
+      "bytes": 6031
+    },
+    {
+      "path": "src/ui/page-component-preparer.js",
+      "blob": "adb4d91df5f99d0ceaff4dd82278319048e169f5",
+      "bytes": 8783
+    },
+    {
+      "path": "src/ui/page-component-remote.js",
+      "blob": "eeaebd8683a0172a1f217eaf1adeacc02c2c443a",
+      "bytes": 22146
+    },
+    {
+      "path": "src/ui/page-dependencies.js",
+      "blob": "78cc14192a044f8bc88ab498e8a762b056a81291",
+      "bytes": 22386
+    },
+    {
+      "path": "src/ui/page-dependency-install.js",
+      "blob": "2b341c2ddc63bb87bbc30b8c67ea03a5887d38bf",
+      "bytes": 12211
+    },
+    {
+      "path": "src/ui/page-dependency-review.js",
+      "blob": "c4315ae7485a03a0e4362efa31b8bdddce96d027",
+      "bytes": 9753
+    },
+    {
+      "path": "src/ui/page-preview-dispatch.js",
+      "blob": "fcb7f8256c7ce56c514cb7b381e0b4395bb32ce4",
+      "bytes": 6471
+    },
+    {
+      "path": "src/ui/page-preview-flow.js",
+      "blob": "30e5536afe56f81ee70ebdb51b79f4ab18c40913",
+      "bytes": 17743
+    },
+    {
+      "path": "src/ui/page-program-library.js",
+      "blob": "20232262f60ad90a0d86e4282084fab8816c9957",
+      "bytes": 16184
+    },
+    {
+      "path": "src/ui/program-source.js",
+      "blob": "f32c4434c94e78eb6debfd235988c41c921f9b2d",
+      "bytes": 11953
+    },
+    {
+      "path": "src/ui/react/app-shell.tsx",
+      "blob": "ac2bbc5864a2a125d40dd0669e616b0221fcc69b",
+      "bytes": 11944
+    },
+    {
+      "path": "src/ui/react/components/confirmation.css",
+      "blob": "fc800181235032988b65e045ea0debbfa534ebba",
+      "bytes": 552
+    },
+    {
+      "path": "src/ui/react/components/confirmation.tsx",
+      "blob": "d681354dfd0bb4db6a9e86b30ee494d82ea85baa",
+      "bytes": 4115
+    },
+    {
+      "path": "src/ui/react/components/conversation-dock.css",
+      "blob": "ec9f3c2ee9eba20571c1a2c99453755b28afd0ba",
+      "bytes": 10991
+    },
+    {
+      "path": "src/ui/react/components/conversation-frame.css",
+      "blob": "020fb1b8e626d5832c503834c84d06dac92d8d5f",
+      "bytes": 4171
+    },
+    {
+      "path": "src/ui/react/components/conversation-layout.css",
+      "blob": "c319e55404ac62170092fc95c05a3825b08095f0",
+      "bytes": 2658
+    },
+    {
+      "path": "src/ui/react/components/conversation.tsx",
+      "blob": "2cb4b43ffb5f28ec10fa0a2f8bdba085b001d44a",
+      "bytes": 21609
+    },
+    {
+      "path": "src/ui/react/components/notifications.tsx",
+      "blob": "2e61547f192c8b81a2ae72e87efecfeacc98f345",
+      "bytes": 5410
+    },
+    {
+      "path": "src/ui/react/components/provider-settings.tsx",
+      "blob": "0da970d9d4a4aa33360a0007393126aa49826e58",
+      "bytes": 17543
+    },
+    {
+      "path": "src/ui/react/components/trusted-settings.css",
+      "blob": "edd884c613a49df293476bf4a2327826972005da",
+      "bytes": 959
+    },
+    {
+      "path": "src/ui/react/components/ui/button.tsx",
+      "blob": "8d421f0197f2c5410430d41f33504d8f6c4efaec",
+      "bytes": 1333
+    },
+    {
+      "path": "src/ui/react/components/ui/input.tsx",
+      "blob": "e49422b674c6c0cc693786c654a674633067fdf0",
+      "bytes": 692
+    },
+    {
+      "path": "src/ui/react/components/ui/sidebar-shared.css",
+      "blob": "a590093737b00ea81025d640120a7c8675b51f17",
+      "bytes": 1717
+    },
+    {
+      "path": "src/ui/react/components/ui/switch.tsx",
+      "blob": "b8f12b0eb7848c40c007ecf55f26fe60e2165136",
+      "bytes": 784
+    },
+    {
+      "path": "src/ui/react/components/update-notice.css",
+      "blob": "4c08452382a929efcbcbbad86a8f8bf1c6d80e9c",
+      "bytes": 6888
+    },
+    {
+      "path": "src/ui/react/components/update-notice.tsx",
+      "blob": "db2a10ac7e933920f0155c53115ccf80332eb869",
+      "bytes": 12978
+    },
+    {
+      "path": "src/ui/react/extension-center-ownership.js",
+      "blob": "9f4b82fad8699801cdf5efa41394fdb22ec794f2",
+      "bytes": 1504
+    },
+    {
+      "path": "src/ui/react/main.tsx",
+      "blob": "02b699f01ef319c4a7babcddca5f4e6b53c2a866",
+      "bytes": 21541
+    },
+    {
+      "path": "src/ui/react/tabs/bookmark-pilot.css",
+      "blob": "fe7bea047a9e9d0678bd9dc790f1a215717d15a3",
+      "bytes": 1357
+    },
+    {
+      "path": "src/ui/react/tabs/browser-history.tsx",
+      "blob": "c956162bc7b119766c645fa4bb8c6f4f00af8a6f",
+      "bytes": 2659
+    },
+    {
+      "path": "src/ui/react/tabs/cloud-authorization.tsx",
+      "blob": "29beec431869990e144192e9b8fb5d0b917efc34",
+      "bytes": 8606
+    },
+    {
+      "path": "src/ui/react/tabs/cloud-settings.tsx",
+      "blob": "8d09bf384fcbfc3ec104bae75f5ea8dc67ec2732",
+      "bytes": 11324
+    },
+    {
+      "path": "src/ui/react/tabs/cloud.tsx",
+      "blob": "8b676124fdaf2f1ce1bfd96478be746287db19fa",
+      "bytes": 16348
+    },
+    {
+      "path": "src/ui/react/tabs/debug.tsx",
+      "blob": "95e4625d976a89f12ca1a671a68c703d3e1305d1",
+      "bytes": 3794
+    },
+    {
+      "path": "src/ui/react/tabs/develop-advanced.tsx",
+      "blob": "2198def3889b524f861479d69ab3f6c238ad0634",
+      "bytes": 12349
+    },
+    {
+      "path": "src/ui/react/tabs/develop-controls.tsx",
+      "blob": "b0e8f335580b8c8dfd24712affe72ac3ae7ef11d",
+      "bytes": 3397
+    },
+    {
+      "path": "src/ui/react/tabs/develop-dependencies.tsx",
+      "blob": "74a7e2113867bd13f55ec189e888125770dc05ff",
+      "bytes": 7926
+    },
+    {
+      "path": "src/ui/react/tabs/develop-diagnostics.tsx",
+      "blob": "5dbb407c228008015283df25ddf109814717dfae",
+      "bytes": 6683
+    },
+    {
+      "path": "src/ui/react/tabs/develop-editor.tsx",
+      "blob": "6daa8386de267705a0d2b66d5c5f44076aaabaef",
+      "bytes": 8631
+    },
+    {
+      "path": "src/ui/react/tabs/develop-execution.tsx",
+      "blob": "20fa02b771cde6fb4ceb366ae56ccacddc8d2937",
+      "bytes": 7900
+    },
+    {
+      "path": "src/ui/react/tabs/develop-local.tsx",
+      "blob": "325d975f6c86dcccf66d8a0308e4b7b332b22f5e",
+      "bytes": 7951
+    },
+    {
+      "path": "src/ui/react/tabs/develop.tsx",
+      "blob": "d185f55e999325eebf81dc0541a584abb1017ee1",
+      "bytes": 1798
+    },
+    {
+      "path": "src/ui/react/tabs/locale-manager.css",
+      "blob": "f79c2c3d3207dd605fc47f38f6a46b2f7420dfac",
+      "bytes": 7551
+    },
+    {
+      "path": "src/ui/react/tabs/locale-manager.tsx",
+      "blob": "d72b941f76526584e62847bfa4eaef196348927a",
+      "bytes": 27707
+    },
+    {
+      "path": "src/ui/react/tabs/my-agent.css",
+      "blob": "b23b9bc875cb32b9141c343ebe5289c66f894923",
+      "bytes": 2879
+    },
+    {
+      "path": "src/ui/react/tabs/my-agent.tsx",
+      "blob": "80018b2987dfddd596d4810a18ccad33012f6f16",
+      "bytes": 4469
+    },
+    {
+      "path": "src/ui/react/tabs/my-controls.tsx",
+      "blob": "2f3b48f4ee273b89084f58e9990fb23951bb55a0",
+      "bytes": 3246
+    },
+    {
+      "path": "src/ui/react/tabs/my-page.tsx",
+      "blob": "076cf3ec59c56ffdf7bfb42e2f1ff04dd7c93644",
+      "bytes": 34891
+    },
+    {
+      "path": "src/ui/react/tabs/my-sections.tsx",
+      "blob": "aa64ff079a92478cfda31a9a332b05d9db3f2a34",
+      "bytes": 11757
+    },
+    {
+      "path": "src/ui/react/tabs/navigation.tsx",
+      "blob": "ec31217dd3a4246b6ccf40fb0dc4452aab761cef",
+      "bytes": 3720
+    },
+    {
+      "path": "src/ui/react/tabs/schedule.tsx",
+      "blob": "3c32a5b2518751ee6eba066930fb60484bebb6e0",
+      "bytes": 10341
+    },
+    {
+      "path": "src/ui/react/tabs/task-catalog.tsx",
+      "blob": "605e3938bb1a68589fb5f0dc2c5f776c44667da1",
+      "bytes": 8419
+    },
+    {
+      "path": "src/ui/react/tabs/task-run-sheet.tsx",
+      "blob": "3a9e7b744166a6706ca3bda346830151804234eb",
+      "bytes": 10499
+    },
+    {
+      "path": "src/ui/react/tabs/tasks.tsx",
+      "blob": "6b31889ed439b340a18454982e43319eeb89f7b1",
+      "bytes": 5514
+    },
+    {
+      "path": "src/ui/react/tabs/tool-host.tsx",
+      "blob": "0a658a29eba9592aae10e72ab7eca34d69212365",
+      "bytes": 60782
+    },
+    {
+      "path": "src/ui/react/tabs/tools.tsx",
+      "blob": "2c744eae0743f90c5138c9f94058ccb6f996e954",
+      "bytes": 42523
+    },
+    {
+      "path": "src/ui/react/tabs/trusted-settings.tsx",
+      "blob": "c76f5442bbe7f7d1c0462383ff9f63cdabaebab6",
+      "bytes": 303
+    },
+    {
+      "path": "src/ui/react/tabs/workflow.tsx",
+      "blob": "eaaed5845a1809cd36d004debd60ad595dc2a6d2",
+      "bytes": 36464
+    },
+    {
+      "path": "src/ui/react/use-settings-effect.ts",
+      "blob": "ea25e6f83016fd40abec6f90f869e0c5f09f9225",
+      "bytes": 515
+    },
+    {
+      "path": "src/ui/resource-diagnostics.js",
+      "blob": "d54787c2bc1a7fbec1224c5e1696f334c6a27932",
+      "bytes": 2021
+    },
+    {
+      "path": "src/ui/run-artifact-download.js",
+      "blob": "728fada5577fce885e3e94c05b07d2bd25785e8f",
+      "bytes": 6593
+    },
+    {
+      "path": "src/ui/run-result-presentation.js",
+      "blob": "16f118f29f97c0769576025799cbcb62731bd731",
+      "bytes": 817
+    },
+    {
+      "path": "src/ui/run-value-format.js",
+      "blob": "39d99ff2dad1d78ff570f4b837ac53eb76a86ff2",
+      "bytes": 2251
+    },
+    {
+      "path": "src/ui/schedule-plan-presentation.js",
+      "blob": "e9be219bb3b192ade6a41af2bc8b6f006797c1c7",
+      "bytes": 5649
+    },
+    {
+      "path": "src/ui/scheduled-task-workbench.js",
+      "blob": "422cca22568e640636acb0be61003d3e63896544",
+      "bytes": 62225
+    },
+    {
+      "path": "src/ui/script-editor.js",
+      "blob": "e640a08fc4f08ccec17ed125c66300fdd6fee08a",
+      "bytes": 46957
+    },
+    {
+      "path": "src/ui/sdk-approval.js",
+      "blob": "395c047b355480335e96300e054e01d7c0fe3621",
+      "bytes": 13473
+    },
+    {
+      "path": "src/ui/send-queue-product.js",
+      "blob": "1f97d16adfe277d0e1fbc6a631e9dc12094869d4",
+      "bytes": 3202
+    },
+    {
+      "path": "src/ui/sidebar-tab-memory.js",
+      "blob": "2b1432a7482e9eac5306d61003e3ce4fb284bde6",
+      "bytes": 2106
+    },
+    {
+      "path": "src/ui/sidebar-tools-fields.js",
+      "blob": "83ab2265d834874bc73db9e206770c04e784b879",
+      "bytes": 14407
+    },
+    {
+      "path": "src/ui/sidebar-tools-loader.js",
+      "blob": "5fcb95f1e831e10daa188fa4db0d6cdd7d211a83",
+      "bytes": 401
+    },
+    {
+      "path": "src/ui/sidebar-tools-view.js",
+      "blob": "a33ca4345c375c4c331457499986d3bd1a62b738",
+      "bytes": 14185
+    },
+    {
+      "path": "src/ui/sidebar-tools/background-policy.js",
+      "blob": "5a078f638fda055937bd063ba131676a6d68d1e6",
+      "bytes": 5079
+    },
+    {
+      "path": "src/ui/sidebar-tools/development-controls.js",
+      "blob": "dd9fe256d4a7266c23dbc49c9dd1ba5379dda855",
+      "bytes": 2572
+    },
+    {
+      "path": "src/ui/sidebar-tools/development-session.js",
+      "blob": "5829a91b156893ed5aacaf29cb84fbeb48764f78",
+      "bytes": 6018
+    },
+    {
+      "path": "src/ui/sidebar-tools/development-storage.js",
+      "blob": "623d4c866af9d69196f77cce6abf0a8a5c64d7dc",
+      "bytes": 5360
+    },
+    {
+      "path": "src/ui/sidebar-tools/installation.js",
+      "blob": "590ab9bfb35da9a78a8517c152327d59ee128a94",
+      "bytes": 58330
+    },
+    {
+      "path": "src/ui/sidebar-tools/legacy-focus-upgrade.js",
+      "blob": "0a67b4b3ed0fcad0607cbf6567d02dfd20189915",
+      "bytes": 14471
+    },
+    {
+      "path": "src/ui/sidebar-tools/legacy-focus-v1-snapshot.js",
+      "blob": "cbcb73fba6cb965688d420ccc87be91bc88efbc3",
+      "bytes": 7814
+    },
+    {
+      "path": "src/ui/sidebar-tools/legacy-reading-toc-upgrade.js",
+      "blob": "60fb8191ecfa376187385610cf9430dd5d5319a9",
+      "bytes": 5644
+    },
+    {
+      "path": "src/ui/sidebar-tools/lifecycle.js",
+      "blob": "124ddcf6f33f8f817aff253055472bbf8977a4c1",
+      "bytes": 3512
+    },
+    {
+      "path": "src/ui/sidebar-tools/limits.js",
+      "blob": "c21fbb84b45a96cb048e507633aa6acbd181bd67",
+      "bytes": 305
+    },
+    {
+      "path": "src/ui/sidebar-tools/live-preview.js",
+      "blob": "76cb0434448d7816fffe9fb57193451c9b0b3355",
+      "bytes": 3949
+    },
+    {
+      "path": "src/ui/sidebar-tools/locale-packs.js",
+      "blob": "9527a70a3a256d9c6de0dfb53fc76245c6d40efd",
+      "bytes": 15569
+    },
+    {
+      "path": "src/ui/sidebar-tools/localization.js",
+      "blob": "d27d7e63201f21fa412ca7ace989a5a65d1f4eb3",
+      "bytes": 4403
+    },
+    {
+      "path": "src/ui/sidebar-tools/navigation.js",
+      "blob": "5bb0fb84f84ff5505078e1892179563bb09d857e",
+      "bytes": 5193
+    },
+    {
+      "path": "src/ui/sidebar-tools/package.js",
+      "blob": "4a829d557c756f8efdf3b7836aa398adbff58828",
+      "bytes": 20080
+    },
+    {
+      "path": "src/ui/sidebar-tools/panel-tool-intent.js",
+      "blob": "025fc970bcdf32e4e76da4ca9094a589ab8bafb8",
+      "bytes": 3559
+    },
+    {
+      "path": "src/ui/sidebar-tools/preview-session.js",
+      "blob": "9c8f3e620b62b4cb5e3100ab2d3615a5f96fe095",
+      "bytes": 5162
+    },
+    {
+      "path": "src/ui/sidebar-tools/site-grants.js",
+      "blob": "17611a518d872374aa8d65e4e6020c41cbcee618",
+      "bytes": 3275
+    },
+    {
+      "path": "src/ui/sidebar-tools/storage-state.js",
+      "blob": "e8bcfcd7cf3d0f4a81e3b729ff505ee41ef61466",
+      "bytes": 7217
+    },
+    {
+      "path": "src/ui/sidebar-tools/workspace-preview-intent.js",
+      "blob": "4885fbd555d8b68329c0fbb57ce4346f77745c82",
+      "bytes": 2596
+    },
+    {
+      "path": "src/ui/sidepanel-context.js",
+      "blob": "6ba28e1ef7e54b67dc18ed8bebe913803b3da4d7",
+      "bytes": 858
+    },
+    {
+      "path": "src/ui/site-access.js",
+      "blob": "1275a442bcb31adfbec1f34796c89a8aecf295b8",
+      "bytes": 5167
+    },
+    {
+      "path": "src/ui/static-esm-preparer.js",
+      "blob": "312304cb5c6efc0794048f940cfe6cd29b263bde",
+      "bytes": 3886
+    },
+    {
+      "path": "src/ui/task-run-diagnostics.js",
+      "blob": "f42a01167014dac9f3322b5fde9e9131d4480f03",
+      "bytes": 8118
+    },
+    {
+      "path": "src/ui/tool-shell.js",
+      "blob": "d3ef58e71c870cf71260896f7893afae870b9343",
+      "bytes": 49028
+    },
+    {
+      "path": "src/ui/tool-surface.js",
+      "blob": "3ef12c5b474b5461f24a07c161b8a0bbbaa4953c",
+      "bytes": 875
+    },
+    {
+      "path": "src/ui/trusted-bookmark-admission.js",
+      "blob": "b7d6e9741bf11a7f431b1e7208bbdbf2868bcb13",
+      "bytes": 1100
+    },
+    {
+      "path": "src/ui/user-scripts-access.js",
+      "blob": "fc24813446255ab94eb928c4c23b6c099c58e0e2",
+      "bytes": 1021
+    },
+    {
+      "path": "src/ui/workflow/agent-loop.js",
+      "blob": "0313af65104c31c41376b42e64d6043d46f28e0f",
+      "bytes": 13648
+    },
+    {
+      "path": "src/ui/workflow/ai-plan.js",
+      "blob": "479ebcda6447943771a7cf7747d34f18f83fcba9",
+      "bytes": 10277
+    },
+    {
+      "path": "src/ui/workflow/data-sharing.js",
+      "blob": "ce47ab3d8d08a21ce837c0c9761b23922dae403e",
+      "bytes": 3696
+    },
+    {
+      "path": "src/ui/workflow/direct-execution.js",
+      "blob": "ca57d4eeeb22adb6a09187c0bef5cdf1806846d4",
+      "bytes": 28944
+    },
+    {
+      "path": "src/ui/workflow/installed-task-reuse.js",
+      "blob": "d6392d768edcce5b6d714abe9b36fe798f923d72",
+      "bytes": 9349
+    },
+    {
+      "path": "src/ui/workflow/local-codex.js",
+      "blob": "5ba25e7cd87991ea82eeaffb365fa3f37d841f15",
+      "bytes": 30966
+    },
+    {
+      "path": "src/ui/workflow/observation.js",
+      "blob": "2f9c1ef67f659ab33652a80ab9d5d8d846dcfb2d",
+      "bytes": 11272
+    },
+    {
+      "path": "src/ui/workflow/provider.js",
+      "blob": "009dbdb059ec8a9b94596fc785754986e66994a9",
+      "bytes": 5819
+    },
+    {
+      "path": "src/ui/workflow/responses.js",
+      "blob": "0fc6036d514987d9b619526c68390881e728d114",
+      "bytes": 12411
+    },
+    {
+      "path": "src/ui/workflow/segment-replay.js",
+      "blob": "56591c29bb3132378b4d8827b36c6c1b3a3120f9",
+      "bytes": 15420
+    },
+    {
+      "path": "src/ui/workflow/task-review-handoff.js",
+      "blob": "0fd279d50960038d35977e3de93c8eb93f2b6277",
+      "bytes": 2901
+    },
+    {
+      "path": "src/ui/workflow/view-state.js",
+      "blob": "4038c4b2e4d8baa24555b9089314631c6e46b437",
+      "bytes": 712
+    },
+    {
+      "path": "src/ui/workflow/workflow-reuse.js",
+      "blob": "56fadf41dd4cd6e4b32f648cd2c42d6cbf75f52c",
+      "bytes": 2697
+    },
+    {
+      "path": "src/ui/workflow/workflow-ui-state.js",
+      "blob": "5ac542b98fa5c3566b18aa1687035155f1f5e272",
+      "bytes": 4684
+    },
+    {
+      "path": "src/ui/workflow/workflow-view.js",
+      "blob": "9b1ab4d3d1be528e6e63c8edd6b17fcd402bf4a4",
+      "bytes": 185058
+    }
+  ]
+}

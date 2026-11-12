@@ -50,8 +50,6 @@ const compiledWebFlowInputs=Object.freeze({
   // Pure schema parser also enters the fixed ChatGPT Content bridge and the
   // Native Settings Workspace reader through reviewed chatgpt-task-request imports.
   // Neither site display nor Workspace parsing grants Task execution.
-  // Only the six existing fixed consumers below may import this blob; the
-  // ChatGPT bridge, settings and transport retain the legacy parser re-exports.
   'projects/webflow/src/task-intent-contract.js':'50a7ec4bd3d8707ba53724efdc378cd98c2404d6',
   // Reviewed fixed ChatGPT site adapter/retired UI, only in the isolated fixed Content entry.
   // 2026-11-09 reviewed UNKNOWN diagnostics and before-click cancellation;
@@ -86,7 +84,7 @@ function reviewedCompiledWebFlow(target,path,root){
   const allowed=path==='projects/webflow/trusted/issue-workflow-authorization.js'?
     ['sw.js','ui/tool-shell.js'].includes(target):
     taskIntent?['sw.js','ui/tool-shell.js','agents/web-task-content.js',
-    'agents/chatgpt-fixed-bridge.js','native-agent/settings.js','native-agent/transport.js'].includes(target):
+      'agents/chatgpt-fixed-bridge.js','native-agent/settings.js'].includes(target):
     path==='projects/webflow/trusted/task-run-recovery.js'?target==='sw.js':siteAdapter?target==='agents/chatgpt-fixed-bridge.js':
     path.startsWith('projects/webflow/trusted/')||path==='projects/webflow/src/ui/app-page-routes.js'?target==='ui/tool-shell.js':
       ['sw.js','ui/tool-shell.js','agents/chatgpt-fixed-bridge.js'].includes(target);
@@ -95,6 +93,23 @@ function reviewedCompiledWebFlow(target,path,root){
   if(realpathSync(file)!==file)throw Error('Trusted Web Flow source must not be a symlink: '+path);
   const bytes=readFileSync(file),hash=createHash('sha1').update('blob '+bytes.length+'\0').update(bytes).digest('hex');
   if(hash!==compiledWebFlowInputs[path])throw Error('Trusted Web Flow source changed; review and re-pin before fixed build: '+path);
+  return hash;
+}
+// Subagent's original-Result projection is fixed SW code. The Page Program
+// receives only the original Authority's verified projection; package contents
+// cannot replace this adapter or import Host/Controller functionality.
+const compiledSubagentResultInputs=Object.freeze({
+  'projects/subagent/trusted/page-task-result.js':'16dda6e9a439dedb340e33874f1062bdfeaf8147',
+  'projects/subagent/trusted/result.js':'87c598a15994af1033b866f8f1b632c4c494deaa',
+  'projects/subagent/src/contract.js':'c394ad1d5dfb7271ec2a23d428e7605030da7664'
+});
+function reviewedCompiledSubagentResult(target,path,root){
+  if(target!=='sw.js'||!Object.hasOwn(compiledSubagentResultInputs,path))return null;
+  const file=resolve(root,path);
+  if(realpathSync(file)!==file)throw Error('Trusted Subagent result source must not be a symlink: '+path);
+  const bytes=readFileSync(file),hash=createHash('sha1').update('blob '+bytes.length+'\0').update(bytes).digest('hex');
+  if(hash!==compiledSubagentResultInputs[path])
+    throw Error('Trusted Subagent result source changed; review and re-pin before fixed build: '+path);
   return hash;
 }
 // The image bridge is first-party Web Flow business code over the original
@@ -122,7 +137,9 @@ function reviewedCompiledWebflowMedia(target,path,root){
 // Native transport. Exact blobs enter only the original transport/settings;
 // no installed tool, page or sandbox receives this filesystem capability.
 const compiledChatGPTImageInputs=Object.freeze({
-  'projects/webflow/trusted/chatgpt-images.js':'2a0bf5ce089094f8a897627d0fc8b44f397feef8',
+  // Reviewed import-only separation: Native image helpers use the original
+  // generic ChatGPT document reader, without importing Task admission policy.
+  'projects/webflow/trusted/chatgpt-images.js':'f80b8e57b541aea6f44d1c85994cc98791d42f0f',
   'projects/webflow/trusted/chatgpt-image-page.js':'ae234cd786494feaa4ac3d5aac708e41df174198',
   'projects/webflow/trusted/chatgpt-images-ui.js':'f68a49905b2870b7f1fd9be4691d1e26d4196ed8'
 });
@@ -140,13 +157,14 @@ function reviewedCompiledChatGPTImages(target,path,root){
 // arbitrary project files never inherit this compiled-source admission.
 const compiledChatGPTFilesInputs=Object.freeze({
   'projects/webflow/trusted/chatgpt-files-service.js':'65a9aee1d533a85bc9bbf5c529a7993859a657a5',
-  // Same reviewed Stop acknowledgement wording correction, no dispatch changes.
-  'projects/webflow/trusted/chatgpt-files-controller.js':'bfdab1b8fee238e7bc81f81ada8e06c384052314',
+  // Reviewed generic-reader import separation; Stop/dispatch behavior unchanged.
+  'projects/webflow/trusted/chatgpt-files-controller.js':'f6cc7f0a10bbc47654bf9f614a1cd768680d0f85',
   'projects/webflow/trusted/chatgpt-project-policy.js':'647fcd233f662e9239c46d348205329b39db15e9',
   'projects/webflow/trusted/chatgpt-file-intent-page.js':'5de3861f877efc97235f1831c7d6826c16ac8c80',
   'projects/webflow/trusted/chatgpt-files-settings-ui.js':'2553160d9625c694a3ea77537daa4e83aac8a558',
   'projects/webflow/trusted/chatgpt-files-ui.js':'6f19ea933b4eaf1e7f7274bb8629d55545529d5a',
-  'projects/webflow/trusted/chatgpt-file-intent-gate.js':'1222d7775877b78ba5d42ecf76367f2a1ddc035b',
+  // The file hint gate needs only the shared URL helper, never Task policy.
+  'projects/webflow/trusted/chatgpt-file-intent-gate.js':'cac31e1824b7e9dcc2fdc8c2bd0078fd75d8d866',
   'projects/webflow/trusted/chatgpt-files-config.js':'622509c3ecf38fa40b32275b705e068a49c6c530',
   'projects/webflow/trusted/chatgpt-files.html':'b8a723d99b97130a9f3fb7f75f2a9e29b34977e8',
   // Reviewed display-only correction: a Stop acknowledgement does not prove rollback.
@@ -519,9 +537,10 @@ const compiledPromptShortcutInputs=Object.freeze({
   'projects/prompt-shortcuts/trusted/rail-open.js':'3131842ad495be96fcf26c83571f7061bc66c3d7'
 });
 const promptFixedTargets=new Set(['agents/page-relay.js','ui/sidebar-tool-host.js']);
-// Installer is shared by Marketplace. Allow only the byte-pinned asset identity
-// contract there for owner-scoped uninstall cleanup, never the asset Host or UI.
-const promptAssetContractTargets=new Set([...promptFixedTargets,'ui/marketplace.js']);
+// The original installer is shared by Marketplace and the fixed tool shell.
+// Both consume only this byte-pinned, effect-free asset identity contract for
+// owner-scoped uninstall cleanup, never the asset Host or packaged tool UI.
+const promptAssetContractTargets=new Set([...promptFixedTargets,'ui/marketplace.js','ui/tool-shell.js']);
 const promptRailTargets=new Set(['sw.js','agents/page-relay.js']);
 function reviewedCompiledPromptShortcuts(target,path,root){
   const targets=path==='projects/prompt-shortcuts/trusted/asset-contract.js'?promptAssetContractTargets:
@@ -840,6 +859,7 @@ export function describeBundle({chunk,root=process.cwd(),lock}) {
     const reviewedSource=reviewedPackagedTask(chunk.fileName,path,root)||
       reviewedCompiledTimeReview(chunk.fileName,path,root)||
       reviewedCompiledWebFlow(chunk.fileName,path,root)||
+      reviewedCompiledSubagentResult(chunk.fileName,path,root)||
       reviewedCompiledWebflowMedia(chunk.fileName,path,root)||
       reviewedCompiledChatGPTImages(chunk.fileName,path,root)||
       reviewedCompiledChatGPTFiles(chunk.fileName,path,root)||

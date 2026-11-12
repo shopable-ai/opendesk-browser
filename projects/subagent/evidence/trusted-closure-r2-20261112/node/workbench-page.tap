@@ -1,0 +1,41 @@
+TAP version 13
+# Subtest: owned shared sheet keeps the independent destination through original approval without capturing A
+ok 1 - owned shared sheet keeps the independent destination through original approval without capturing A
+  ---
+  duration_ms: 28.348737
+  type: 'test'
+  ...
+# Subtest: Page request uses original approval sheet, locks exact input and submits owned target once
+ok 2 - Page request uses original approval sheet, locks exact input and submits owned target once
+  ---
+  duration_ms: 12.036574
+  type: 'test'
+  ...
+# Subtest: Page source revocation before prepare never starts a Run
+ok 3 - Page source revocation before prepare never starts a Run
+  ---
+  duration_ms: 6.039239
+  type: 'test'
+  ...
+# Subtest: Page source revocation before confirm never starts a Run
+ok 4 - Page source revocation before confirm never starts a Run
+  ---
+  duration_ms: 6.268555
+  type: 'test'
+  ...
+# TASK_WORKBENCH_EXIT_RESOURCES={"activeResources":["PipeWrap","PipeWrap"],"activeHandles":["Socket","Socket"]}
+# Subtest: late Page request lookup cannot reopen a closed sheet or replace another request
+ok 5 - late Page request lookup cannot reopen a closed sheet or replace another request
+  ---
+  duration_ms: 4.113264
+  type: 'test'
+  ...
+1..5
+# tests 5
+# suites 0
+# pass 5
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 366.871449

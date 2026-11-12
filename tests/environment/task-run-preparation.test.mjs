@@ -137,6 +137,150 @@ async function fixture(options={}) {
   return {...f,task,target,params,prepare,start,inspect,cancel,runs};
 }
 
+// Installed Page native/execution validation is tested in
+// page-installed-programs.test.mjs. Here its trusted callbacks isolate the
+// original Authority journal/admission/result behavior, never Chrome evidence.
+async function pageTaskFixture(){
+  let f,sourceValid=true,projectHook,sourceHook,projected=0;
+  const hints=[];
+  const pageTaskSource={
+    async authorize(source){
+      await this.inTransaction(null,source);
+      await sourceHook?.(source);
+      assert.equal(source.documentId,f.frames.get(2)[0].documentId,'source document changed');
+      assert.equal(source.url,f.frames.get(2)[0].url,'source URL changed');return true;
+    },
+    async inTransaction(_transaction,source){
+      if(!sourceValid||source.installationId!==f.pageSource.installationId||source.generation!==f.pageSource.generation||
+        source.programId!==f.pageSource.programId)throw Object.assign(Error('Page source revoked'),{code:'E_PAGE_AUTHORIZATION'});
+    }
+  };
+  f=await fixture({pageTaskSource,emitToHost:async(_id,event)=>{hints.push(event);},
+    projectPageTaskResult:async(input,{authorize})=>{
+      projected++;await authorize();await projectHook?.(input);
+      return {originalRunId:input.snapshot.run.runId,originalResultId:input.snapshot.run.resultId};
+    }});
+  const {installationId,generation,...fixed}=f.task;
+  f.pageSource={namespace:'tool:extension',programId:'reviewed.page',revision:1,manifestHash:'a'.repeat(64),sourceHash:'b'.repeat(64),
+    installationId:crypto.randomUUID(),generation:1,tabId:2,frameId:0,documentId:'doc-top',url:'https://a.example/page',windowId:1,
+    delegatedTasks:[{...fixed,targetUrl:'https://a.example/new'}]};
+  const requestId=crypto.randomUUID(),source=()=>({...f.pageSource,documentId:f.frames.get(2)[0].documentId});
+  const request=(id=requestId,extra={})=>f.authority.handlePageTaskRequest({operation:'request',payload:{requestId:id,taskId:f.task.taskId,params:f.params,...extra}},source());
+  const read=()=>f.authority.handlePageTaskRequest({operation:'read',payload:{requestId}},source());
+  const restore=()=>f.authority.handlePageTaskRequest({operation:'restore',payload:{}},source());
+  const hostRead=()=>f.authority.readPageTaskRequest({requestId},f.sender);
+  const prepare=async()=>{const {request:r}=await hostRead();return f.authority.prepareTaskRun({preparationId:r.preparationId,
+    pageRequestId:r.requestId,task:r.task,params:r.params,target:r.target},f.sender);};
+  const start=p=>f.start(p,{requestId:p.preparationId});
+  return {...f,requestId,request,read,restore,hostRead,preparePage:prepare,startPage:start,hints,
+    revokeSource:()=>{sourceValid=false;},source:fn=>{sourceHook=fn;},project:fn=>{projectHook=fn;},projected:()=>projected};
+}
+
+test('Page requests persist only an approval intent with real installed task pins, never a Run or Host identity',async()=>{
+  const f=await pageTaskFixture(),before=f.calls.length;
+  const [first,duplicate]=await Promise.all([f.request(),f.request()]);
+  assert.deepEqual(first,duplicate);assert.equal(first.state,'pending-approval');
+  assert.equal((await f.runs()).length,0);assert.equal(f.calls.length,before);
+  assert.equal((await f.rows('commandJournal')).filter(row=>row.tag==='page-task-request').length,1);
+  assert.ok(f.hints.some(row=>row.type==='page-task-requested'&&row.requestId===f.requestId));
+  const {request}=await f.hostRead();assert.equal(request.approvalAllowed,true);
+  assert.deepEqual(request.task,f.task);assert.deepEqual(request.params,f.params);assert.equal(request.pageBinding.documentId,'doc-top');
+  await assert.rejects(f.request(f.requestId,{params:{zero:9}}),{code:'E_REQUEST_CONFLICT'});
+  await assert.rejects(f.request(crypto.randomUUID()),{code:'E_EFFECT_UNKNOWN'});
+  await assert.rejects(f.request(crypto.randomUUID(),{taskId:'not.pinned'}),{code:'E_PERMISSION'});
+  await assert.rejects(f.authority.handlePageTaskRequest({operation:'start',payload:{}},f.pageSource),{code:'E_SCHEMA'});
+  await assert.rejects(f.authority.readPageTaskRequest({requestId:f.requestId},{...f.sender,url:f.pageSource.url}));
+  assert.equal((await f.runs()).length,0);
+});
+
+test('Page approval uses the original preparation and one owned B; complete read projects only original durable identities',async()=>{
+  const f=await pageTaskFixture();await f.request();
+  const {preparation}=await f.preparePage();assert.equal(preparation.pageRequestId,f.requestId);
+  await assert.rejects(f.start(preparation),{code:'E_OWNER'},'Page admission ID must be the original preparation ID');
+  const replies=await Promise.all([f.startPage(preparation),f.startPage(preparation)]),run=replies.find(row=>!row.duplicate);
+  assert.equal(replies[0].runId,replies[1].runId);assert.notEqual(run.target.tabId,2);
+  assert.equal(f.calls.filter(row=>row.method==='create').length,1);
+  assert.equal((await f.read()).state,'unknown');
+  await f.finish(run);await f.authority.retireControllerTarget({runId:run.runId},f.sender);
+  const calls=f.calls.length,writes=f.storage.writes.length;
+  const [a,b]=await Promise.all([f.read(),f.restore()]);
+  assert.equal(a.requestId,f.requestId);assert.deepEqual(a,b);assert.equal(a.state,'completed');
+  assert.deepEqual(a.projection,{originalRunId:run.runId,originalResultId:run.resultId});
+  assert.equal(f.calls.length,calls);assert.equal(f.storage.writes.length,writes);
+  assert.equal((await f.hostRead()).settled,true);assert.equal((await f.hostRead()).request.approvalAllowed,false);
+});
+
+test('refresh and SPA round trips only restore the original Page request and cannot revive its approval source',async()=>{
+  for(const change of ['refresh','spa-roundtrip']){
+    const f=await pageTaskFixture();await f.request();const {preparation}=await f.preparePage();
+    await f.authority.invalidatePageTaskSource({tabId:2,frameId:0,documentId:'doc-top'});
+    if(change==='refresh')f.frames.get(2)[0].documentId='new-page-document';
+    const before=f.calls.length,restored=await f.restore();
+    assert.equal(restored.requestId,f.requestId);assert.equal(restored.state,'source-stale');
+    assert.equal((await f.hostRead()).request.approvalAllowed,false);
+    await assert.rejects(f.startPage(preparation),{code:'E_DOCUMENT_STALE'});
+    await assert.rejects(f.request(crypto.randomUUID()),{code:'E_EFFECT_UNKNOWN'});
+    assert.equal(f.calls.length,before);assert.equal((await f.runs()).length,0);
+    const durable=(await f.rows('commandJournal')).find(row=>row.tag==='page-task-request');
+    assert.equal(durable.pageSource.documentId,'doc-top','recovery never rewrites the approval source');
+  }
+});
+
+test('Page read rechecks source authorization after projection and never reveals a cached success after revocation',async()=>{
+  const f=await pageTaskFixture();await f.request();const {preparation}=await f.preparePage();
+  const run=await f.startPage(preparation);await f.finish(run);await f.authority.retireControllerTarget({runId:run.runId},f.sender);
+  assert.equal((await f.read()).state,'completed');
+  f.project(()=>f.revokeSource());
+  await assert.rejects(f.read(),{code:'E_PAGE_AUTHORIZATION'});
+  await assert.rejects(f.restore(),{code:'E_PAGE_AUTHORIZATION'});
+  assert.equal(f.calls.filter(row=>row.method==='create').length,1);
+});
+
+test('Page task failures remain original failed results and never invoke the completion projector',async()=>{
+  const f=await pageTaskFixture();await f.request();const {preparation}=await f.preparePage();
+  const run=await f.startPage(preparation);await f.finish(run,'error',{error:{code:'E_CONTROL_EXECUTION',message:'fixture failure'}});await f.authority.retireControllerTarget({runId:run.runId},f.sender);
+  const result=await f.read();assert.equal(result.state,'failed');assert.equal(result.projection,undefined);assert.equal(f.projected(),0);
+  assert.equal((await f.hostRead()).settled,true);
+});
+
+test('original Cancel tombstone before Page prepare remains readable and cannot be revived by a late save',async()=>{
+  const f=await pageTaskFixture();const receipt=await f.request();
+  await f.authority.cancelTaskRun({preparationId:receipt.preparationId},f.sender);
+  const read=await f.hostRead();assert.equal(read.request.state,'cancelled');assert.equal(read.request.approvalAllowed,false);
+  assert.equal(read.preparation.pageRequestId,f.requestId);assert.equal(read.settled,true);
+  assert.equal((await f.restore()).state,'cancelled');
+  await assert.rejects(f.preparePage(),{code:'E_CANCELLED'});
+  assert.equal((await f.runs()).length,0);
+});
+
+test('refresh during the first Page request cannot land a late approvable intent after restore observed no row',async()=>{
+  const f=await pageTaskFixture();let release,entered;
+  const gate=new Promise(resolve=>{release=resolve;}),waiting=new Promise(resolve=>{entered=resolve;});
+  f.source(async source=>{if(source.documentId==='doc-top'){entered();await gate;}});
+  const pending=f.request();await waiting;
+  await f.authority.invalidatePageTaskSource({tabId:2,frameId:0});
+  f.frames.get(2)[0].documentId='replacement-document';
+  assert.deepEqual(await f.restore(),{requestId:null,state:'idle'});
+  release();await assert.rejects(pending);
+  assert.equal((await f.rows('commandJournal')).filter(row=>row.tag==='page-task-request').length,0);
+  assert.equal((await f.runs()).length,0);
+});
+
+test('Page regrant, reinstall and source upgrades cannot free the original source slot or disclose the old result',async()=>{
+  for(const change of ['regrant','reinstall','source-upgrade']){
+    const f=await pageTaskFixture();await f.request();
+    if(change==='regrant')f.pageSource.generation++;
+    if(change==='reinstall')f.pageSource.installationId=crypto.randomUUID();
+    if(change==='source-upgrade'){f.pageSource.revision++;f.pageSource.manifestHash='c'.repeat(64);f.pageSource.sourceHash='d'.repeat(64);}
+    await assert.rejects(f.restore(),{code:'E_REVISION'});
+    await assert.rejects(f.read(),{code:'E_REVISION'});
+    await assert.rejects(f.request(crypto.randomUUID()),{code:'E_EFFECT_UNKNOWN'});
+    await assert.rejects(f.request(),{code:'E_REQUEST_CONFLICT'});
+    assert.equal((await f.rows('commandJournal')).filter(row=>row.tag==='page-task-request').length,1);
+    assert.equal((await f.runs()).length,0);assert.equal(f.projected(),0);
+  }
+});
+
 test('prepare validates actual params and pins immutable inputs without creating a Run; inspection restores prepared record',async()=>{
   const f=await fixture();
   await assert.rejects(f.prepare('bad',{params:{no:'false'}}),{code:'E_PARAMS'});
@@ -148,6 +292,85 @@ test('prepare validates actual params and pins immutable inputs without creating
   assert.deepEqual(await f.prepare(),result);
   await assert.rejects(f.prepare('shared-one',{params:{zero:2}}),{code:'E_REQUEST_CONFLICT'});
   assert.equal((await f.rows('commandJournal')).filter(row=>row.tag==='task-run-preparation').length,1);
+});
+
+test('owned preparation pins the approved destination without creating or navigating a tab',async()=>{
+  const f=await fixture(),target={mode:'owned',url:'https://a.example/new'},before=structuredClone([...f.tabs]);
+  const calls=f.calls.length,result=await f.prepare('owned',{target});
+  assert.deepEqual(result.preparation.target,target);
+  assert.equal(result.preparation.state,'prepared');assert.equal((await f.runs()).length,0);
+  assert.deepEqual([...f.tabs],before);assert.equal(f.calls.length,calls);
+  assert.deepEqual(await f.prepare('owned',{target}),result);
+  assert.deepEqual(await f.inspect('owned'),result);
+  await assert.rejects(f.prepare('owned',{target:{...target,url:'https://a.example/changed'}}),{code:'E_REQUEST_CONFLICT'});
+  await assert.rejects(f.prepare('owned',{target:{...target,tabId:2}}),{code:'E_SCHEMA'});
+});
+
+test('owned prepared admission creates one inactive B and preserves A across concurrent and lost-ACK retries',async()=>{
+  const f=await fixture(),target={mode:'owned',url:'https://a.example/new'};
+  const originalA={tab:structuredClone(f.tabs.get(2)),frames:structuredClone(f.frames.get(2))};
+  const {preparation}=await f.prepare('owned',{target});
+  const replies=await Promise.all([f.start(preparation),f.start(preparation)]);
+  const run=replies.find(row=>!row.duplicate);
+  assert.equal(replies.filter(row=>row.duplicate).length,1);
+  assert.equal(replies[0].runId,replies[1].runId);
+  assert.notEqual(run.target.tabId,2);assert.equal(f.tabs.get(run.target.tabId).active,false);
+  assert.equal(f.tabs.get(run.target.tabId).url,target.url);
+  assert.deepEqual({tab:f.tabs.get(2),frames:f.frames.get(2)},originalA);
+  assert.equal(f.calls.filter(row=>row.method==='create').length,1);
+  assert.equal(f.calls.filter(row=>row.method==='update').length,1);
+  assert.equal((await f.runs()).length,1);
+  const calls=f.calls.length,recovered=await f.inspect('owned');
+  assert.equal(recovered.preparation.state,'unknown');assert.equal(recovered.preparation.runId,run.runId);
+  assert.equal(f.calls.length,calls,'unknown inspection is read-only');
+  assert.equal((await f.start(preparation)).duplicate,true);
+  assert.equal(f.calls.filter(row=>row.method==='create').length,1);
+  assert.equal((await f.runs()).length,1);
+  await assert.rejects(f.prepare('owned-b2',{target}),{code:'E_OWNER'});
+});
+
+test('owned preparation requires the original trusted Host and installed origin grant',async()=>{
+  const f=await fixture(),target={mode:'owned',url:'https://a.example/new'};
+  const pageSender={...f.sender,url:'https://a.example/page',documentId:'doc-top',tab:{id:2,incognito:false}};
+  await assert.rejects(f.authority.prepareTaskRun({preparationId:'page',task:f.task,params:f.params,target},pageSender));
+  await assert.rejects(f.prepare('wrong-site',{target:{mode:'owned',url:'https://unapproved.example/new'}}),{code:'E_PERMISSION'});
+  f.setAllowed(false);
+  await assert.rejects(f.prepare('no-browser-grant',{target}),{code:'E_PERMISSION'});
+  assert.equal((await f.runs()).length,0);
+  assert.equal(f.calls.filter(row=>row.method==='create').length,0);
+  assert.equal((await f.rows('commandJournal')).filter(row=>row.tag==='task-run-preparation').length,0);
+});
+
+test('owned prepared submission rechecks permission, immutable installation, environment and cancellation',async()=>{
+  for(const change of ['permission','permission-regranted','disable','version','environment','cancel']){
+    const f=await fixture(),{preparation}=await f.prepare('owned',{target:{mode:'owned',url:'https://a.example/new'}});
+    if(change==='permission')f.setAllowed(false);
+    if(change==='permission-regranted'){
+      await f.authority.invalidateControllerTarget({permissionRemoved:true,origins:['https://a.example/*']});
+      f.setAllowed(true);
+    }
+    if(change==='disable')await f.authority.setInstalledTaskEnabled({...f.installClaim(f.resolved),enabled:false},f.sender);
+    if(change==='version')await f.installPackage({...f.manifest,version:'1.0.1'},f.resolved);
+    if(change==='environment')f.setBuiltin(fakeBuiltinSource+'\n// changed before owned admission');
+    if(change==='cancel')await f.cancel('owned');
+    await assert.rejects(f.start(preparation),change==='permission-regranted'?{code:'E_PERMISSION'}:undefined);
+    assert.equal((await f.runs()).length,0,change);
+    assert.equal(f.calls.filter(row=>row.method==='create').length,0,change);
+  }
+});
+
+test('owned completed inspection returns the original durable Result without repeating native work',async()=>{
+  const f=await fixture(),{preparation}=await f.prepare('owned',{target:{mode:'owned',url:'https://a.example/new'}});
+  const run=await f.start(preparation);
+  await f.finish(run);await f.authority.retireControllerTarget({runId:run.runId},f.sender);
+  const calls=f.calls.length,writes=f.storage.writes.length;
+  const [first,second]=await Promise.all([f.inspect('owned'),f.inspect('owned')]);
+  assert.deepEqual(first,second);assert.equal(first.settled,true);
+  assert.equal(first.snapshot.run.runId,run.runId);assert.equal(first.snapshot.results[0].resultId,run.resultId);
+  assert.equal(first.snapshot.results[0].state,'completed');
+  assert.equal(f.calls.length,calls);assert.equal(f.storage.writes.length,writes);
+  assert.equal(f.calls.filter(row=>row.method==='create').length,1);
+  assert.deepEqual(f.tabs.get(2),{id:2,incognito:false,url:'https://a.example/page'});
 });
 
 test('a shared preparation blocks My, drafts, legacy Task admission and other hosts until explicit cancellation',async()=>{

@@ -4,6 +4,7 @@ import {PROTOCOL as FOUNDATION_PROTOCOL, projectFoundationError} from './platfor
 import {createFoundationBroker} from './platform/host/broker.js';
 import {withWebflowTaskRunRecovery} from '../projects/webflow/trusted/task-run-recovery.js';
 import {createWebflowMediaVault} from '../projects/webflow/trusted/media-vault.js';
+import {projectSubagentPageTaskResult} from '../projects/subagent/trusted/page-task-result.js';
 import {registerDownloadEvents} from './platform/downloads/events.js';
 import {PAGE_BOOT_PROTOCOL} from './scripting/user-scripts/installed-programs.js';
 import {reportBrowserCleanupError} from './platform/chrome/lifecycle-errors.js';
@@ -69,6 +70,7 @@ chrome.alarms?.onAlarm?.addListener(alarm=>{if(alarm?.name===MANAGED_PROXY_ALARM
 recoverManagedProxy();
 try{importScripts('cloud-control/cloud-host.js');}catch(e){console.warn('E_CLOUD_LOAD',e);}
 const foundation = createFoundationBroker({api:chrome, ports:hostPorts,downloadEventsAttached:true,
+  projectPageTaskResult:projectSubagentPageTaskResult,
   withTaskRunRecovery:(work,options)=>withWebflowTaskRunRecovery(chrome,work,options),
   withControllerAdmission:bridgeTriggerGate.withControllerAdmission,
   // The existing extension SW is the only trusted reader. Controller and page
@@ -255,6 +257,14 @@ chrome.webNavigation.onCommitted.addListener(details => {
   if (details.frameId === 0) foundation.then(broker => broker.cleanupPagePreviewWorlds({tabId:details.tabId,documentId:details.documentId}))
     .catch(error => console.error(`[page preview cleanup ${error.code || 'E_WORLD_ISOLATION'}] ${error.message}`));
 });
+// Same-document URL changes retire Page-origin approvals as well. Returning to
+// the old URL may recover a read-only request, but never revives its approval.
+for(const navigationEvent of [chrome.webNavigation.onHistoryStateUpdated,
+  chrome.webNavigation.onReferenceFragmentUpdated])
+  navigationEvent?.addListener(details=>{
+    if(details.frameId===0)foundation.then(broker=>broker.authority.invalidatePageTaskSource(details))
+      .catch(error=>console.error('Page Task source lifecycle',error?.code||error?.message));
+  });
 chrome.permissions.onRemoved.addListener(removed => {
   readyFoundation?.authority.cloud?.invalidate();
   invalidateSdk('permission-removed',{origins:removed.origins,permissions:removed.permissions});

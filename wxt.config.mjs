@@ -2,6 +2,7 @@ import {createSchemaSpecializer} from './scripts/scoped-schema.mjs';
 import protocolSchema from './src/platform/schema.js';
 import {recordBundle} from './scripts/bundle-provenance.mjs';
 import {transformPinnedAxiosBrowserSource} from './scripts/axios-browser-csp.mjs';
+import {transformPinnedPublicSuffixRaw} from './scripts/pinned-public-suffix-raw.mjs';
 import {transformPinnedReactPrototype,transformPinnedReactDomInputTracker,transformPinnedReactDomReplayClone,transformPinnedReactDomDevBind} from './scripts/react-dom-input-csp.mjs';
 import {defineConfig} from 'wxt';
 import {readFileSync} from 'node:fs';
@@ -245,6 +246,8 @@ export default defineConfig({
       config.plugins.push({
         name: `opendesk-fixed-${entry.name}`,
         transform(code,id) {
+          const compactRaw=transformPinnedPublicSuffixRaw(code,id,{target});
+          if(compactRaw!==null)return {code:compactRaw,map:null};
           // Sidebar already passes null; do not bundle its unused legacy default.
           // Other entries and the source compatibility API retain their default.
           if(target==='ui/tool-shell.js'&&id===resolve('src/run-host.js')) {

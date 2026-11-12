@@ -1,0 +1,844 @@
+--- projects/ai-proxy/src/Settings.tsx@239afdecede523dfe5c8edb4e8674e8d6667be82
++++ projects/ai-proxy/src/Settings.tsx@e0d5e9125a1a9191597f390b645c51a247784f58
+@@ -209,7 +209,7 @@
+     if (!dialog) return;
+     if (editorOpen && !dialog.open) {
+       dialog.showModal();
+-      dialog.querySelector<HTMLInputElement>('#ep-host')?.focus();
++      dialog.querySelector<HTMLInputElement>(presentation==='management'?'#ep-name':'#ep-host')?.focus();
+     }
+     if (!editorOpen && dialog.open) dialog.close();
+   }, [editorOpen]);
+@@ -386,7 +386,7 @@
+       setProxy(emptyEndpoint);
+       setUsername('');
+       setPassword('');
+-      editorDialog.current?.querySelector<HTMLInputElement>('#ep-host')?.focus();
++      editorDialog.current?.querySelector<HTMLInputElement>(presentation==='management'?'#ep-name':'#ep-host')?.focus();
+     } else closeEditor();
+   }
+   async function editPac(profile: Profile) {
+@@ -582,6 +582,47 @@
+     const a = document.createElement('a');a.href=href;a.download='ai-proxy-share-v2.json';a.click();
+     setTimeout(()=>URL.revokeObjectURL(href),3000);
+   }
++  // Shared real controls, separate PC/Side Panel reading order; one business state.
++  const proxyNameControl = (
++    <FormField id="ep-name" className="proxyNameField" label={t('nameOptional')}>
++          {controlProps=><ClearableInput {...controlProps} autoFocus={presentation==='management'} fieldLabel={t('name')} maxLength={80} value={proxy.name}
++             onValueChange={name=>setProxy({...proxy,name})} placeholder={t('eGMyLocalProxy')}/>}</FormField>
++  );
++  const proxySchemeControl = (
++    <div className="proxySchemeField"><label htmlFor="ep-scheme">{t('protocol')}</label>
++            <select id="ep-scheme" value={proxy.scheme}
++              onChange={e=>{
++                const scheme=e.target.value as ProxyScheme;
++                if (scheme.startsWith('socks')) { setUsername(''); setPassword(''); }
++                setProxy({...proxy,scheme});
++              }}>
++              <option value="http">HTTP</option>
++              <option value="https">HTTPS</option>
++              <option value="socks4">SOCKS4</option>
++              <option value="socks5">SOCKS5</option>
++            </select></div>
++  );
++  const proxyHostControl = (
++    <div className="proxyHostField"><label htmlFor="ep-host">{t('host')}</label>
++            <ClearableInput id="ep-host" autoFocus={presentation!=='management'} required fieldLabel={t('host')} value={proxy.host}
++               aria-describedby={addressPasteError?'ep-host-error':undefined}
++               onValueChange={host=>{setProxy({...proxy,host});setAddressPasteError(false);}}
++               onPaste={handleProxyPaste} placeholder={t('127001OrProxyExampleCom')}/>
++             <HostQuickPick value={proxy.host} onChoose={host=>{setProxy({...proxy,host});setAddressPasteError(false);}}/>
++             {addressPasteError&&<small id="ep-host-error" className="proxyEntryError" role="alert">{t('proxyPasteUnsupported')}</small>}
++           </div>
++  );
++  const proxyPortControl = (
++    <div className="proxyPortField"><label htmlFor="ep-port">{t('port')}</label>
++            <ClearableInput id="ep-port" type="number" min={1} max={65535} required fieldLabel={t('port')}
++               aria-invalid={proxy.port!==''&&!isValidProxyPort(proxy.port)}
++               aria-describedby={proxy.port!==''&&!isValidProxyPort(proxy.port)?'ep-port-error':undefined}
++               value={proxy.port} onValueChange={port=>setProxy({...proxy,port})} placeholder="7890"/>
++             <PortQuickPick scheme={proxy.scheme} value={proxy.port} onChoose={port=>setProxy({...proxy,port})}/>
++             {proxy.port!==''&&!isValidProxyPort(proxy.port)&&<small id="ep-port-error" className="proxyEntryError" role="alert">{t('errInvalidPort')}</small>}
++           </div>
++  );
++
+   return <main className={'options' + (tab==='subscriptions' ? ' sourcesOptions' : '')}>
+     <header className="optionsHead">
+       {presentation==='management'?<div className="managementIdentity">
+@@ -816,19 +857,30 @@
+             badge={config.rules.length}
+             actions={!ruleEditorOpen?<Button id="settings-rule-add" variant="primary" className="primary"
+               disabled={busy} onClick={()=>editRule()}>{t('addRule')}</Button>:undefined}/>}
++          {!ruleEditorOpen && config.selection.mode !== 'rules' && <div className="rulesModeHint">
++            <span className="hint">{t('apRuleSaveNote')}</span>
++            <Button type="button" variant="secondary" disabled={busy}
++              onClick={()=>void act({type:'SELECT',selection:{...config.selection,mode:'rules'}})}>{t('apSwitchToRulesMode')}</Button>
++          </div>}
+           <div className="rulesGrid">
+             {!ruleEditorOpen?<section className="rulesList" aria-label={t('websiteRules2')}>
+               {ruleSaved&&<p className="r86Notice" role="status">{t('apRuleSavedNotice')}</p>}
+               <p className="hint">{t('apRuleSaveNote')}</p>
++              {presentation==='management' && config.rules.length>0 && <div className="managementRulesHeader" aria-hidden="true">
++                <span/><span>{t('ruleWebsiteInput')}</span><span>{t('ruleWebsiteUse')}</span><span>{t('priority')}</span><span/>
++              </div>}
+               {config.rules.length === 0 ? <div className="sourceEmpty rulesEmpty">{t('rulesEmpty')}</div> :
+                 <div className="records">{config.rules.map(r=>{
+-              const detail=(r.action==='direct'?t('directConnection2'):endpoints.find(e=>e.id===r.endpointId)?.name || t('missingProxy2'))+' · '+t('priority')+' '+r.priority;
++              const routeName=r.action==='direct'?t('directConnection2'):endpoints.find(e=>e.id===r.endpointId)?.name || t('missingProxy2');
++               const detail=routeName+' · '+t('priority')+' '+r.priority;
+               return <article className="record ruleRecord" key={r.id} data-details-dismissed={dismissedRuleDetail===r.id||undefined}
+                 onFocusCapture={()=>setDismissedRuleDetail('')} onMouseEnter={()=>setDismissedRuleDetail('')}
+                 onKeyDown={event=>{if(event.key==='Escape'){event.preventDefault();event.stopPropagation();setDismissedRuleDetail(r.id);}}}>
+             <span className={'ruleStateIcon '+(r.enabled?'isEnabled':'')} role="img" title={t(r.enabled?'apRuleEnabled':'apRuleDisabled')} aria-label={t(r.enabled?'apRuleEnabled':'apRuleDisabled')}><ProxyIcon name={r.enabled?'selected':'pause'}/></span>
+             <div className="ruleRecordText"><strong title={r.domain+t(r.includeSubdomains?'apRuleSubdomainScope':'apRuleExactScope')}>{r.domain}{r.includeSubdomains?t('subdomains'):''}</strong>
+-            <small id={'settings-rule-detail-'+r.id} title={detail}>{detail}</small></div>
++            <small id={'settings-rule-detail-'+r.id} title={detail}>{presentation==='management'?t(r.includeSubdomains?'apRuleSubdomainScope':'apRuleExactScope'):detail}</small></div>
++             {presentation==='management'&&<><span className="managementRuleTarget" title={routeName}>{routeName}</span>
++               <span className="managementRulePriority" title={t('priority')+' '+r.priority}>{r.priority}</span></>}
+             <div className="actions"><Button className="proxyIconButton" id={'settings-rule-'+r.id} aria-describedby={'settings-rule-detail-'+r.id} disabled={busy} title={t('editNamedRule',{domain:r.domain,scope:t(r.includeSubdomains?'apRuleSubdomainScope':'apRuleExactScope')})} aria-label={t('editNamedRule',{domain:r.domain,
+               scope:t(r.includeSubdomains?'apRuleSubdomainScope':'apRuleExactScope')})} onClick={()=>editRule(r)}><ProxyIcon name="edit"/></Button>
+               <Button className="proxyIconButton quietDanger" aria-describedby={'settings-rule-detail-'+r.id} disabled={busy} title={t('deleteNamedRule',{domain:r.domain,scope:t(r.includeSubdomains?'apRuleSubdomainScope':'apRuleExactScope')})} aria-label={t('deleteNamedRule',{domain:r.domain,
+@@ -1010,41 +1062,13 @@
+           <Button type="button" className="proxyIconButton" disabled={busy} onClick={()=>void requestCloseEditor()} title={t('closeProxyEditor')} aria-label={t('closeProxyEditor')}><ProxyIcon name="close"/></Button>
+         </header>
+         <div className="proxyEditorFields">
+-        <p className="hint">{t('proxyEditorIntro')}</p>
++        <p className="hint proxyEditorIntro">{t('proxyEditorIntro')}</p>
++        {presentation==='management' && proxyNameControl}
+         <div className="proxyPrimaryFields">
+-          <div><label htmlFor="ep-host">{t('host')}</label>
+-            <ClearableInput id="ep-host" autoFocus required fieldLabel={t('host')} value={proxy.host}
+-               aria-describedby={addressPasteError?'ep-host-error':undefined}
+-               onValueChange={host=>{setProxy({...proxy,host});setAddressPasteError(false);}}
+-               onPaste={handleProxyPaste} placeholder={t('127001OrProxyExampleCom')}/>
+-             <HostQuickPick value={proxy.host} onChoose={host=>{setProxy({...proxy,host});setAddressPasteError(false);}}/>
+-             {addressPasteError&&<small id="ep-host-error" className="proxyEntryError" role="alert">{t('proxyPasteUnsupported')}</small>}
+-           </div>
+-          <div><label htmlFor="ep-scheme">{t('protocol')}</label>
+-            <select id="ep-scheme" value={proxy.scheme}
+-              onChange={e=>{
+-                const scheme=e.target.value as ProxyScheme;
+-                if (scheme.startsWith('socks')) { setUsername(''); setPassword(''); }
+-                setProxy({...proxy,scheme});
+-              }}>
+-              <option value="http">HTTP</option>
+-              <option value="https">HTTPS</option>
+-              <option value="socks4">SOCKS4</option>
+-              <option value="socks5">SOCKS5</option>
+-            </select></div>
+-          <div><label htmlFor="ep-port">{t('port')}</label>
+-            <ClearableInput id="ep-port" type="number" min={1} max={65535} required fieldLabel={t('port')}
+-               aria-invalid={proxy.port!==''&&!isValidProxyPort(proxy.port)}
+-               aria-describedby={proxy.port!==''&&!isValidProxyPort(proxy.port)?'ep-port-error':undefined}
+-               value={proxy.port} onValueChange={port=>setProxy({...proxy,port})} placeholder="7890"/>
+-             <PortQuickPick scheme={proxy.scheme} value={proxy.port} onChoose={port=>setProxy({...proxy,port})}/>
+-             {proxy.port!==''&&!isValidProxyPort(proxy.port)&&<small id="ep-port-error" className="proxyEntryError" role="alert">{t('errInvalidPort')}</small>}
+-           </div>
++          {presentation==='management' ? <>{proxySchemeControl}{proxyHostControl}{proxyPortControl}</> : <>{proxyHostControl}{proxySchemeControl}{proxyPortControl}</>}
+         </div>
+-        <p className="hint">{t('proxyEditorProtocolHelp')}</p>
+-        <FormField id="ep-name" className="proxyNameField" label={t('nameOptional')}>
+-          {controlProps=><ClearableInput {...controlProps} fieldLabel={t('name')} maxLength={80} value={proxy.name}
+-             onValueChange={name=>setProxy({...proxy,name})} placeholder={t('eGMyLocalProxy')}/>}</FormField>
++        <p className="hint proxyEditorProtocolHelp">{t('proxyEditorProtocolHelp')}</p>
++        {presentation!=='management' && proxyNameControl}
+         <details className="proxyAuthDetails">
+           <summary>{t('proxyEditorAuthOptions')}</summary>
+           <p className="notice">{t('apAuthHelp')}</p>
+--- projects/ai-proxy/src/i18n/locales/en.json@641563aa68ff3bfe916fa11ac369957cd57fbda9
++++ projects/ai-proxy/src/i18n/locales/en.json@6dd1f6665cf7a0a1d1f9db47c099b781ad46c2a8
+@@ -1040,5 +1040,12 @@
+   "apProxyServersHelp": "Manage proxies here and choose them from the side panel.",
+   "apManagementCenter": "Management",
+   "apProxySavedNotice": "Proxy saved. Not automatically applied.",
+-  "apProxyDeletedNotice": "Proxy deleted."
++  "apProxyDeletedNotice": "Proxy deleted.",
++  "diagWorkbenchTitle": "Check the sites you care about",
++  "diagModelVerification": "AI sign-in and model features",
++  "diagEvidenceBoundary": "Chrome proxy settings, HTTP reachability, sign-in and model features require separate verification. Selecting a route does not apply it.",
++  "diagProductionUnavailable": "HTTP site checks, favorites and usage statistics are not connected in the installed runtime. These actions are unavailable; no test requests or simulated success results are generated.",
++  "diagSitesLive": "HTTP results for current settings",
++  "diagSpeedNotConnected": "Real HTTP timing and download throughput tests are not connected. Do not infer proxy quality from these values.",
++  "apSwitchToRulesMode": "Switch to rules mode"
+ }
+--- projects/ai-proxy/src/i18n/locales/zh-CN.json@4e2d2efdb26b9990d8ac7172246ace41a24184e0
++++ projects/ai-proxy/src/i18n/locales/zh-CN.json@df03dea459d45b25f04f8c1f6ef8f59f5bdae092
+@@ -1040,5 +1040,12 @@
+   "apProxyServersHelp": "这里集中管理代理；侧栏负责高频选择。",
+   "apManagementCenter": "管理中心",
+   "apProxySavedNotice": "代理配置已保存，未自动应用。",
+-  "apProxyDeletedNotice": "代理配置已删除。"
++  "apProxyDeletedNotice": "代理配置已删除。",
++  "diagWorkbenchTitle": "检查你关心的网站",
++  "diagModelVerification": "AI 登录与模型功能",
++  "diagEvidenceBoundary": "Chrome 代理设置、网站 HTTP 可达、账号登录与模型能力需要分别核验；选择线路不会自动应用代理。",
++  "diagProductionUnavailable": "正式运行时尚未接入网站 HTTP 检测、收藏和使用统计；相关操作暂不可用，不会发送测试请求或生成模拟成功结果。",
++  "diagSitesLive": "当前配置的 HTTP 结果",
++  "diagSpeedNotConnected": "尚未接入真实 HTTP 耗时与下载吞吐测速，不能据此推断代理线路质量。",
++  "apSwitchToRulesMode": "切换到按规则"
+ }
+--- projects/ai-proxy/src/i18n/locales/zh-TW.json@1f93e7905a90fa799cd3b602d8583e9d4ecc05f4
++++ projects/ai-proxy/src/i18n/locales/zh-TW.json@9222ef31061eca95d2736ef9293747902323e1a8
+@@ -1040,5 +1040,12 @@
+   "apProxyServersHelp": "在此集中管理代理；側欄用於常用選擇。",
+   "apManagementCenter": "管理中心",
+   "apProxySavedNotice": "代理設定已儲存，未自動套用。",
+-  "apProxyDeletedNotice": "代理設定已刪除。"
++  "apProxyDeletedNotice": "代理設定已刪除。",
++  "diagWorkbenchTitle": "檢查你關心的網站",
++  "diagModelVerification": "AI 登入與模型功能",
++  "diagEvidenceBoundary": "Chrome 代理設定、網站 HTTP 可達、帳號登入與模型能力需要分別驗證；選擇線路不會自動套用代理。",
++  "diagProductionUnavailable": "正式執行環境尚未接入網站 HTTP 檢測、收藏及使用統計；相關操作暫不可用，不會傳送測試請求或產生模擬成功結果。",
++  "diagSitesLive": "目前設定的 HTTP 結果",
++  "diagSpeedNotConnected": "尚未接入真實 HTTP 耗時與下載吞吐測速，不能據此推斷代理線路品質。",
++  "apSwitchToRulesMode": "切換至按規則模式"
+ }
+--- projects/ai-proxy/src/styles/management.css@46f03bc0f597ca10b7f6e332800e749fb38414fd
++++ projects/ai-proxy/src/styles/management.css@5bd5553859f9cb287b903faf0ae00991d26925a0
+@@ -149,10 +149,262 @@
+   }
+   :scope .optionsLoading .managementLoadingState > * { margin:0; }
+   :scope .optionsLoading .managementLoadingState .notice { max-width:100%; }
++  /* R2: the full PC surface restores the preview's spacious diagnostic cards.
++   * Sidebar retains its existing compact values in sidebar-settings.css. */
++  :scope .options .diagnosticLead {
++    padding:21px 23px; margin-bottom:14px; border-radius:12px;
++  }
++  :scope .options .diagnosticLead h2 { font-size:22px; line-height:1.38; }
++  :scope .options .diagnosticMetrics {
++    grid-template-columns:repeat(4,minmax(0,1fr)); gap:10px;
++  }
++  :scope .options .diagnosticMetrics > div { padding:14px; }
++  :scope .options .diagnosticOverview {
++    grid-template-columns:repeat(2,minmax(0,1fr)); gap:13px;
++  }
++  :scope .options .diagnosticFeature { padding:19px; border-radius:11px; }
++  :scope .options .diagnosticSite { padding:14px; border-radius:10px; }
++  @media(max-width:1150px) {
++    :scope .options .diagnosticMetrics { grid-template-columns:repeat(2,minmax(0,1fr)); }
++  }
++  @media(max-width:720px) {
++    :scope .options .diagnosticOverview { grid-template-columns:minmax(0,1fr); }
++  }
++  @media(max-width:359px) {
++    :scope .options .diagnosticMetrics { grid-template-columns:minmax(0,1fr); }
++  }
+   :scope .options .proxyEditorForm .editorHead { padding:20px 22px; }
+   :scope .options .proxyEditorFields { padding:0 22px 20px; gap:14px; }
+   :scope .options .proxyEditorForm .editorActions { padding:14px 22px; justify-content:flex-end; }
+   :scope .options .editorActions [data-add-another] { flex-basis:auto; order:-1; margin-right:auto; }
++
++  /* R16 PC parity: the real React workbench follows preview/preview.html,
++   * without importing the preview's mock state or disturbing the Side Panel. */
++  :scope .options .managementNav { background:#f7f9fc; }
++  :scope .options .managementNav button {
++    min-height:42px; border-radius:9px; font-size:13px; line-height:1.45;
++    transition:background-color .12s,color .12s;
++  }
++  :scope .options .managementNav button:hover:not(:disabled) { background:#ecf0f7; }
++  :scope .options .managementNav button[aria-current="page"] {
++    color:#3157c7; background:#eaf0ff; font-weight:710;
++  }
++  :scope .options .managementNav button:focus-visible,
++  :scope .options :is(button,select,input,textarea,summary):focus-visible {
++    outline:2px solid var(--accent); outline-offset:2px;
++  }
++  :scope .options .panel.optionsContent { background:#fff; }
++  :scope .options .sectionHeading { align-items:flex-start; gap:12px; }
++  :scope .options .sectionHeading h2 { font-size:15px; line-height:1.4; }
++  :scope .options .sectionHeading .hint { margin-top:3px; font-size:12px; }
++  :scope .options .optionsPageHead .eyebrow { color:#8594aa; }
++  :scope .options .managementConnectionBar { background:#f8f9fc; }
++  :scope .options :is(.settingsRefresh,.settingsImport) {
++    display:inline-flex; align-items:center; justify-content:center; gap:7px;
++    min-height:36px; padding:7px 12px; border:1px solid #d5deeb;
++    border-radius:8px; background:#fff; color:#334155; font-weight:625;
++  }
++  :scope .options :is(.settingsRefresh,.settingsImport):hover:not(:disabled) {
++    background:#f6f9ff; border-color:#bdcce8;
++  }
++  :scope .options .optionsPageHead .panelHeadActions > .primary,
++  :scope .options .modeActions > .primary {
++    background:#365dd5; border-color:#365dd5; color:#fff; border-radius:8px;
++  }
++  :scope .options :is(.optionsPageHead .panelHeadActions > .primary,.modeActions > .primary):hover:not(:disabled) {
++    background:#2f50b7; border-color:#2f50b7; color:#fff;
++  }
++  :scope .options :is(.optionsModeBar,.listSection,.rulesList,.rulesDefault,.backupCard,.generalInfoCard) {
++    border:1px solid var(--line); border-radius:11px;
++  }
++  :scope .options .listSection { background:#fff; }
++  :scope .options .profileRecords {
++    display:block; container-type:inline-size; border-top:1px solid var(--line);
++  }
++  :scope .options .profileRecords .proxyRecord {
++    position:relative; grid-template-columns:34px minmax(0,1fr);
++    gap:13px; min-height:68px; padding:11px 100px 11px 9px;
++  }
++  :scope .options .profileRecords .proxyRecord .proxyRecordMain { min-width:0; overflow:hidden; }
++  :scope .options .profileRecords .proxyRecord .proxyRecordText { min-width:0; }
++  :scope .options .profileRecords .proxyRecord .proxyRecordTitle strong,
++  :scope .options .profileRecords .proxyRecord small.mono {
++    display:block; max-width:100%; overflow:hidden; white-space:nowrap;
++    text-overflow:ellipsis; overflow-wrap:normal;
++  }
++  :scope .options .profileRecords .proxyRecord .recordActions {
++    position:absolute; right:8px; top:50%; transform:translateY(-50%);
++    display:flex; align-items:center; justify-content:flex-end; flex-wrap:nowrap;
++    gap:4px; padding:4px; border:1px solid var(--line); border-radius:9px;
++    background:#fff; opacity:1; visibility:visible; pointer-events:auto;
++  }
++  :scope .options .profileRecords .recordActions > button,
++  :scope .options .profileRecords .proxySelect {
++    display:inline-grid; place-items:center; flex:none; min-width:32px;
++    width:32px; min-height:32px; height:32px; padding:5px; border-radius:7px;
++  }
++  :scope .options .profileRecords .recordActions > button:hover:not(:disabled) {
++    background:#edf2ff; color:#3157c7;
++  }
++  :scope .options .profileRecords .recordActions > .quietDanger:hover:not(:disabled) {
++    color:#bd4658; background:#fff1f3;
++  }
++  :scope .options .rulesPage .rulesList { background:#fff; }
++  :scope .options .rulesPage .ruleRecord {
++    border-bottom:1px solid var(--line); padding:12px 8px; min-height:64px;
++  }
++  :scope .options .rulesPage .ruleRecord:last-child { border-bottom:0; }
++  :scope .options .rulesPage .ruleRecord:hover { background:#fbfcfe; }
++  :scope .options .rulesPage .ruleRecord .actions { display:flex; gap:5px; }
++  :scope .options .rulesPage .managementRulesHeader,
++  :scope .options .rulesPage .ruleRecord {
++    display:grid;
++    grid-template-columns:26px minmax(0,1.6fr) minmax(95px,1fr) 70px 76px;
++    align-items:center; gap:11px;
++  }
++  :scope .options .rulesPage .managementRulesHeader {
++    min-height:34px; padding:6px 8px; border-bottom:1px solid var(--line);
++    color:#758397; font-size:11px; font-weight:650;
++  }
++  :scope .options .rulesPage .ruleRecordText { min-width:0; display:grid; gap:3px; }
++  :scope .options .rulesPage .ruleRecordText strong,
++  :scope .options .rulesPage .managementRuleTarget {
++    min-width:0; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;
++  }
++  :scope .options .rulesPage .ruleRecordText small { color:var(--muted); font-size:11px; }
++  :scope .options .rulesPage .managementRuleTarget {
++    font-size:12px; color:var(--ink); font-weight:550;
++  }
++  :scope .options .rulesPage .managementRulePriority {
++    justify-self:start; font-size:12px; font-variant-numeric:tabular-nums;
++    color:var(--muted);
++  }
++  :scope .options .rulesPage .ruleRecord .actions {
++    justify-content:flex-end; flex-wrap:nowrap; white-space:nowrap;
++  }
++  @media(max-width:680px) {
++    :scope .options .rulesPage .managementRulesHeader { display:none; }
++    :scope .options .rulesPage .ruleRecord {
++      grid-template-columns:24px minmax(0,1fr) auto; gap:5px 9px;
++    }
++    :scope .options .rulesPage .ruleRecord .ruleStateIcon { grid-row:1; }
++    :scope .options .rulesPage .ruleRecord .ruleRecordText { grid-column:2; grid-row:1; }
++    :scope .options .rulesPage .ruleRecord .managementRuleTarget {
++      grid-column:2; grid-row:2; font-size:11px;
++    }
++    :scope .options .rulesPage .ruleRecord .managementRulePriority {
++      grid-column:2; grid-row:3; font-size:11px;
++    }
++    :scope .options .rulesPage .ruleRecord .actions {
++      grid-column:3; grid-row:1 / span 3; align-self:center;
++    }
++  }
++  :scope .options .backupExport { background:#fff; }
++  :scope .options .backupCard { min-height:210px; }
++  :scope .options .generalGrid > .record { background:#fff; }
++  :scope .options .managementEmptyState { background:#fbfcfe; border-color:#cad6e5; }
++
++  /* Preview's add/edit dialog: name, protocol + host + port, optional auth.
++   * Save/ETag/unknown/credential safety remains in Settings.tsx / service.ts. */
++  :scope .options .proxyEditorDialog {
++    width:min(652px,calc(100vw - 32px)); max-width:652px;
++    max-height:calc(100dvh - 32px); border-radius:13px;
++    box-shadow:0 25px 80px #10233b45;
++  }
++  :scope .options .proxyEditorForm {
++    display:grid; grid-template-rows:auto minmax(0,1fr) auto;
++    max-height:calc(100dvh - 32px); gap:0; padding:0;
++  }
++  :scope .options .proxyEditorForm .editorHead {
++    padding:22px 26px 9px; border:0; gap:12px;
++  }
++  :scope .options .proxyEditorForm .editorHead h2 {
++    font-size:18px; font-weight:720; letter-spacing:-.025em;
++  }
++  :scope .options .proxyEditorForm .proxyEditorFields {
++    display:grid; align-content:start; min-height:0; min-width:0;
++    gap:16px; overflow:auto; overscroll-behavior:contain;
++    padding:0 26px 18px;
++  }
++  :scope .options .proxyEditorFields > * { margin:0; }
++  :scope .options .proxyEditorIntro { font-size:12px; line-height:1.65; }
++  :scope .options .proxyEditorForm :is(.proxyPrimaryFields > div,.proxyNameField,.proxyAuthFields > div) {
++    display:grid; align-content:start; gap:7px; min-width:0;
++  }
++  :scope .options .proxyPrimaryFields {
++    display:grid; grid-template-columns:120px minmax(0,1fr) 104px;
++    align-items:start; gap:12px;
++  }
++  :scope .options .proxyPrimaryFields > div,
++  :scope .options .proxyPrimaryFields > div:first-child,
++  :scope .options .proxyPrimaryFields > div:nth-child(2) {
++    grid-column:auto; grid-row:auto; min-width:0;
++  }
++  :scope .options .proxyEditorForm :is(.proxyNameField,.proxyPrimaryFields > div,.proxyAuthFields > div) > label,
++  :scope .options .proxyEditorForm .proxyNameField > label {
++    font-size:12px; font-weight:650; color:#334155;
++  }
++  :scope .options .proxyEditorForm :is(.proxyNameField,.proxyPrimaryFields,.proxyAuthFields) input,
++  :scope .options .proxyEditorForm :is(.proxyPrimaryFields,.proxyAuthFields) select {
++    min-width:0; width:100%; min-height:42px; font-size:13px;
++    border:1px solid #becada; border-radius:8px; background:#fff;
++  }
++  :scope .options .proxyEditorForm input[aria-invalid="true"] {
++    border-color:#bd4658; box-shadow:0 0 0 1px #bd465822;
++  }
++  :scope .options .proxyEditorProtocolHelp { font-size:11px; line-height:1.5; }
++  :scope .options .proxyAuthDetails {
++    padding:14px 15px; margin:0; border:1px solid #dce4ef;
++    background:#f8fafc; border-radius:10px;
++  }
++  :scope .options .proxyAuthDetails > summary {
++    padding:3px 0; color:#365375; font-size:12px; font-weight:700;
++  }
++  :scope .options .proxyAuthDetails[open] { display:grid; gap:12px; }
++  :scope .options .proxyAuthDetails :is(.notice,.proxyAuthFields,.hint) { margin:0; }
++  :scope .options .proxyAuthFields {
++    display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:12px;
++    padding-top:12px; border-top:1px solid #e0e7f0;
++  }
++  :scope .options .proxyEditorForm .editorActions {
++    display:flex; align-items:center; justify-content:flex-end; flex-wrap:wrap;
++    gap:8px; margin:0; padding:15px 26px; border-top:1px solid var(--line);
++    background:#fff;
++  }
++  :scope .options .proxyEditorForm .editorActions > button {
++    min-height:39px; border-radius:8px; padding:8px 13px; font-size:12px;
++  }
++  :scope .options .proxyEditorForm .editorActions > button.primary {
++    color:#fff; background:#365dd5; border-color:#365dd5;
++  }
++  :scope .options .proxyEditorForm .editorActions > button.primary:hover:not(:disabled) {
++    background:#2f50b7; border-color:#2f50b7;
++  }
++  @container (max-width:430px) {
++    :scope .options .profileRecords .proxyRecord {
++      grid-template-columns:30px minmax(0,1fr);
++      padding:10px 9px; gap:8px 10px;
++    }
++    :scope .options .profileRecords .proxyRecord .recordActions {
++      position:static; grid-column:2; grid-row:2; transform:none;
++      justify-self:start; width:max-content; max-width:100%;
++    }
++  }
++  @media(max-width:560px) {
++    :scope .options .proxyEditorDialog { width:calc(100vw - 20px); max-height:calc(100dvh - 20px); }
++    :scope .options .proxyEditorForm { max-height:calc(100dvh - 20px); }
++    :scope .options .proxyEditorForm .editorHead { padding:18px 17px 8px; }
++    :scope .options .proxyEditorForm .proxyEditorFields { padding:0 17px 15px; }
++    :scope .options .proxyPrimaryFields { grid-template-columns:minmax(0,1fr); gap:11px; }
++    :scope .options .proxyPrimaryFields > div { grid-column:auto; grid-row:auto; }
++    :scope .options .proxyAuthFields { grid-template-columns:minmax(0,1fr); }
++    :scope .options .proxyEditorForm .editorActions { padding:13px 17px; }
++  }
++  @media(pointer:coarse) {
++    :scope .options .profileRecords .recordActions > button,
++    :scope .options .profileRecords .proxySelect { width:36px; height:36px; min-height:36px; min-width:36px; }
++  }
++
+   @media(max-width:840px) and (min-width:721px) {
+     :scope .options .layout { grid-template-columns:175px minmax(0,1fr); }
+     :scope .options .panel.optionsContent { padding:24px 20px; }
+--- projects/ai-proxy/src/styles/options.css@762c2ba764624df824bbda5c859d4e9b30ce296f
++++ projects/ai-proxy/src/styles/options.css@b4caaf40bb3e6d25bb3e19b8e8b8f1e8f72a326a
+@@ -33,28 +33,47 @@
+   border-top: 1px solid var(--line);
+ }
+ /* R3.2 / R3.3 diagnostic page lives inside Options, never the popup. */
+-:scope .diagnosticLead { position: relative; overflow: hidden; display: grid; justify-items: start; gap: 8px;
+-  border-radius: 10px; padding: 22px 23px; margin-bottom: 14px; color: #f7f8ff;
+-  background: linear-gradient(115deg,#242b55 0%,#38477d 73%,#455795 100%); }
+-:scope .diagnosticLead .eyebrow { margin-bottom: 0; color: #d7defc; }
+-:scope .diagnosticLead h2 { font-size: 20px; color: #fff; max-width: 620px; }
+-:scope .diagnosticLead p:not(.eyebrow) { max-width: 650px; font-size: 12px; color: #e1e5fa; }
+-:scope .diagnosticEvidence { font-size: 10px; color: #e4eaff; border: 1px solid #ffffff52;
+-  border-radius: 5px; padding: 3px 8px; margin-top: 3px; }
++/* R2 preview parity: one neutral, legible diagnostic title owner. */
++:scope .diagnosticLead { position:relative; display:flex; align-items:center; justify-content:space-between;
++  gap:16px; min-width:0; padding:21px 23px; margin-bottom:14px; overflow:hidden;
++  border:1px solid #d9e3ef; border-radius:12px; background:#f3f6fb; color:var(--ink); }
++:scope .diagnosticLead::before { content:""; position:absolute; inset:0 auto 0 0; width:3px; background:var(--accent); pointer-events:none; }
++:scope .diagnosticLeadMain { display:grid; gap:8px; flex:1 1 0; min-width:0; }
++:scope .diagnosticLead h2 { max-width:750px; color:var(--ink); font-size:22px; line-height:1.38; letter-spacing:-.025em; }
++:scope .diagnosticLead p { max-width:670px; color:#475569; font-size:12px; line-height:1.6; }
++:scope .diagnosticCurrentRoute { justify-self:start; display:inline-flex; max-width:100%; min-width:0;
++  border:1px solid #cad8ee; border-radius:99px; padding:5px 10px; background:var(--surface);
++  color:#3155ab; font-size:12px; font-weight:650; line-height:1.4; overflow-wrap:anywhere; }
++:scope .diagnosticEvidence { justify-self:start; max-width:100%; overflow-wrap:anywhere;
++  font-size:11px; color:#475569; }
++:scope .diagnosticLeadState { flex:none; min-width:148px; padding:11px 14px; display:grid; gap:4px;
++  border:1px solid #d9e3ef; border-radius:9px; background:var(--surface); }
++:scope .diagnosticLeadState strong { color:#334155; font-size:18px; font-weight:750; line-height:1.35; }
++:scope .diagnosticLeadState strong::before { content:""; display:inline-block; width:7px; height:7px;
++  margin-right:8px; border-radius:50%; vertical-align:2px; background:#8593a9; }
++:scope .diagnosticLeadState small { color:#64748b; font-size:12px; line-height:1.4; }
+ :scope .diagnosticMetrics { display: grid; grid-template-columns: repeat(4,minmax(0,1fr)); gap: 9px; margin-bottom: 17px; }
+ :scope .diagnosticMetrics>div { min-width: 0; display: grid; align-content: start; gap: 5px;
+   border: 1px solid var(--line); border-radius: 9px; padding: 13px; background: var(--surface); }
+ :scope .diagnosticMetrics strong { font-size: 15px; font-weight: 700; line-height: 1.35; overflow-wrap: anywhere; }
+-:scope .diagnosticMetrics small { font-size: 10px; }
+-:scope .diagnosticTabs { display: flex; align-items: center; gap: 5px; overflow-x: auto; max-width: 100%;
+-  padding: 0 0 8px; border-bottom: 1px solid var(--line); scrollbar-width: thin; }
+-:scope .diagnosticTabs button { border: 0; border-radius: 6px; background: transparent; color: var(--muted); white-space: nowrap; padding: 8px 13px; font-size: 12px; }
+-:scope .diagnosticTabs button[aria-selected="true"] { background: var(--accentFill); color: var(--accent); font-weight: 720; }
++:scope .diagnosticMetrics small { font-size: 12px; line-height:1.45; }
++:scope .diagnosticTabs { display:flex; align-items:center; gap:4px; overflow-x:auto; max-width:100%;
++  margin:14px 0 16px; padding:4px; border:1px solid var(--line); border-radius:10px;
++  background:var(--soft); scrollbar-width:thin; }
++:scope .diagnosticTabs button { flex:1 0 96px; min-width:96px; min-height:36px; display:inline-flex;
++  align-items:center; justify-content:center; border:1px solid transparent; border-radius:7px;
++  background:transparent; color:var(--muted); white-space:normal; overflow-wrap:anywhere;
++  padding:8px 10px; font-size:12px; font-weight:650; }
++:scope .diagnosticTabs button:hover:not(:disabled):not([aria-selected="true"]) {
++  background:var(--accentFill); color:var(--accent); border-color:transparent; }
++:scope .diagnosticTabs button[aria-selected="true"] { color:var(--accent); background:var(--surface);
++  border-color:var(--line); font-weight:750; box-shadow:0 2px 7px #0000000e; }
++:scope .diagnosticTabs button:focus-visible { outline:2px solid var(--accent); outline-offset:-2px; }
+ :scope .diagnosticPanel { padding: 17px 0 0; }
+ :scope .diagnosticOverview { display: grid; grid-template-columns: repeat(2,minmax(0,1fr)); gap: 12px; }
+ :scope .diagnosticFeature { min-width: 0; padding: 18px; border: 1px solid var(--line); border-radius: 9px;
+   display: flex; flex-direction: column; align-items: flex-start; gap: 9px; background: var(--surface); }
+-:scope .diagnosticFeature>small { font-size: 10px; }
++:scope .diagnosticFeature>small { font-size: 12px; }
+ :scope .diagnosticFeature h3 { font-size: 15px; }
+ :scope .diagnosticFeature p { flex: 1; color: var(--muted); font-size: 12px; }
+ :scope .diagnosticFeature button { font-size: 11px; min-height: 33px; }
+@@ -84,7 +103,7 @@
+   border-radius: 6px; color: var(--ink); background: var(--soft); }
+ :scope .diagnosticSiteActions { display: flex; gap: 6px; justify-content: flex-end; flex-wrap: wrap; align-items: center; }
+ :scope .diagnosticSiteActions button, :scope .diagnosticSiteActions select, :scope .diagnosticSiteActions a {
+-  min-height: 32px; padding: 6px 9px; font-size: 11px; }
++  min-height: 36px; padding: 7px 11px; font-size: 12px; }
+ :scope .diagnosticSiteActions a { color: var(--accent); text-decoration: underline; text-underline-offset: 3px; }
+ :scope .diagnosticAddSite { display: grid; grid-template-columns: minmax(0,1fr) minmax(0,2fr) 76px auto;
+   align-items: end; gap: 9px; padding: 15px; background: var(--soft); border: 1px solid var(--line); border-radius: 9px; }
+@@ -98,6 +117,32 @@
+ :scope .diagnosticIssue strong { display: block; font-size: 13px; }
+ :scope .diagnosticIssue p { font-size: 12px; margin-top: 7px; color: var(--muted); }
+ :scope .diagnosticIssue .actions { margin-bottom: 0; }
++/* All diagnostic secondary actions must retain a visible control boundary. */
++:scope .diagnosticPanel button:not(.primary):not(.textAction):not(.proxyIconButton),
++:scope .diagnosticRunProgress button {
++  border:1px solid var(--line); border-radius:8px; background:var(--surface); color:var(--ink);
++  min-height:36px; padding:7px 12px; font-size:12px; font-weight:650;
++}
++:scope .diagnosticPanel button:not(.primary):not(.textAction):not(.proxyIconButton):hover:not(:disabled),
++:scope .diagnosticRunProgress button:hover:not(:disabled) {
++  border-color:var(--accent); background:var(--accentFill); color:var(--accent);
++}
++:scope .diagnosticPanel .diagnosticStopAction { color:var(--bad); }
++:scope .diagnosticPanel .diagnosticStopAction:hover:not(:disabled) {
++  color:var(--bad); background:var(--badBg); border-color:var(--bad);
++}
++:scope .diagnosticPanel :is(button,a):focus-visible { outline:2px solid var(--accent); outline-offset:2px; }
++:scope .diagnosticPanel:focus-visible { outline:2px solid var(--accent); outline-offset:2px; }
++:scope .diagnosticRuntimeNotice { margin:12px 0; padding:12px 14px; border:1px solid var(--line);
++  border-radius:9px; background:var(--soft); color:var(--ink); font-size:12px; line-height:1.6;
++  overflow-wrap:anywhere; }
++@media (max-width:550px) {
++  :scope .diagnosticLead { display:grid; gap:13px; padding:17px 15px; }
++  :scope .diagnosticLeadState { display:flex; align-items:center; justify-content:space-between;
++    gap:12px; min-width:0; }
++  :scope .diagnosticLeadState strong { font-size:16px; }
++  :scope .diagnosticTabs button { flex:0 0 auto; min-width:100px; }
++}
+ @media(max-width: 900px) {
+   :scope .diagnosticSite { grid-template-columns: minmax(0,1fr) minmax(0,1fr); }
+   :scope .diagnosticSiteActions { grid-column: 1/-1; justify-content: flex-start; }
+@@ -493,19 +538,6 @@
+ :scope .options .sourceList .records.sourceCards { gap: 12px; }
+ :scope .options .sourceList .sourceRecord { padding: 17px; }
+ :scope .options .sourceListHead h2 { font-size: 16px; }
+-:scope .options .diagnosticLead {
+-  padding: 20px 22px; margin-bottom: 18px;
+-  background: var(--accentFill);
+-  color: var(--ink);
+-  border: 1px solid var(--line);
+-}
+-:scope .options .diagnosticLead .eyebrow { color: var(--accent); }
+-:scope .options .diagnosticLead h2 { max-width: 750px; color: var(--ink); font-size: 19px; }
+-:scope .options .diagnosticLead p:not(.eyebrow) { color: var(--muted); font-size: 12px; }
+-:scope .options .diagnosticEvidence {
+-  color: var(--accent); border-color: var(--line);
+-  background: var(--surface); border-radius: 6px;
+-}
+ :scope .options .diagnosticMetrics { gap: 12px; margin-bottom: 17px; }
+ :scope .options .diagnosticMetrics>div { padding: 15px; }
+ :scope .options .diagnosticMetrics strong { overflow-wrap: normal; word-break: normal; }
+@@ -638,7 +670,9 @@
+   border-radius: 12px; background: var(--soft); scroll-margin-top: 20px; }
+ :scope .sourceEditorHead { display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 12px; margin-bottom: 15px; }
+ :scope .sourceEditorHead h2 { font-size: 15px; }
+-:scope .sourceEditorHead button { flex: none; white-space: nowrap; border: 0; background: var(--surface); min-height: 32px; padding: 6px 12px; }
++:scope .sourceEditorHead button { flex:none; white-space:normal; border:1px solid var(--line);
++  background:var(--surface); color:var(--ink); min-height:36px; padding:7px 12px; }
++:scope .sourceEditorHead button:hover:not(:disabled) { border-color:var(--accent); background:var(--accentFill); }
+ :scope .sourceForm { display: grid; gap: 13px; max-width: 650px; }
+ :scope .sourceForm label { margin-bottom: 5px; font-size: 12px; }
+ :scope .sourceForm input,:scope .sourceForm select { font-size: 12px; }
+--- projects/ai-proxy/src/styles/sidebar-settings.css@d99ef466e5929f52b05ba9ff46cc441f5e8bfc94
++++ projects/ai-proxy/src/styles/sidebar-settings.css@103f21595582f1aef6c61ed215740599519357b2
+@@ -103,6 +103,12 @@
+   :scope .options .modeActions { gap: var(--space-2); margin: 0; }
+   :scope .options .modeActions > button { min-height: 36px; }
+   :scope .options .modeActions small { flex-basis: 100%; font-size: 12px; }
++  :scope .options .rulesModeHint { display:flex; align-items:center; justify-content:space-between;
++    flex-wrap:wrap; gap:8px 14px; padding:12px 14px; border:1px solid var(--line); border-radius:9px; background:var(--soft); }
++  :scope .options .rulesModeHint .hint { flex:1 1 190px; margin:0; }
++  :scope .options .rulesModeHint button { flex:none; min-height:36px; padding:7px 12px;
++    border:1px solid var(--line); background:var(--surface); color:var(--ink); }
++  :scope .options .rulesModeHint button:hover:not(:disabled) { background:var(--accentFill); border-color:var(--accent); }
+   :scope .options .pacDetails { margin: 0; border-radius: 8px; }
+   :scope .options .pacDetails > summary { padding: 12px; gap: 8px; }
+   :scope .options .pacContent { display: grid; gap: var(--space-4); padding: var(--space-3); }
+--- projects/ai-proxy/src/ui/DiagnosticsPage.tsx@4e2ece51e8f6ddd995e0af0546fe9e569f5cf3fe
++++ projects/ai-proxy/src/ui/DiagnosticsPage.tsx@3c083d41fd9580c06ded55530812bbf8f54a9f06
+@@ -49,6 +49,8 @@
+   const panelContent = useRef<HTMLElement>(null);
+   const focusPanelAfterNavigation = useRef(false);
+   const navigation = getEnvironment().navigation;
++  // Only the isolated preview adapter has simulated diagnostics and usage state.
++  const simulatedDiagnostics = getEnvironment().preview === true;
+   const [panel, updatePanel] = useState<Panel>(() => parseDiagnosticHash(navigation.getRoute()));
+   function setPanel(next: Panel) {
+     const hash = diagnosticHash(next);
+@@ -80,11 +82,12 @@
+     setPanel(next);
+   }
+   const load = useCallback(async () => {
++    if (!simulatedDiagnostics) { setSnapshot(null); return; }
+     try {
+       const result = await request({ type: 'GET_DIAGNOSTICS' });
+       if (result.ok && result.diagnostics) setSnapshot(result.diagnostics);
+     } catch { /* Last completed evidence is kept with its revision marker. */ }
+-  }, []);
++  }, [simulatedDiagnostics]);
+   useEffect(() => { void load(); }, [load]);
+   useEffect(() => {
+     // A clock update is display-only; it must never trigger network scanning.
+@@ -140,6 +143,7 @@
+   useEffect(() => { setSnapshot(null); void load(); }, [state.config, state.runtime.control, state.runtime.applied, load]);
+ 
+   const submit = useCallback(async (command: Request): Promise<boolean> => {
++    if (!simulatedDiagnostics) { setError(t('diagProductionUnavailable')); return false; }
+     try {
+       const result = await request(command);
+       if (!result.ok) { setError(result.error.includes('Invalid public HTTPS domain')
+@@ -148,9 +152,9 @@
+       setError('');
+       return true;
+     } catch { setError(t('diagBackgroundUnavailable')); return false; }
+-  }, [t]);
++  }, [simulatedDiagnostics, t]);
+   async function test(ids: string[]) {
+-    if (running || snapshot?.activeRun || !ids.length) return;
++    if (!simulatedDiagnostics || running || snapshot?.activeRun || !ids.length) return;
+     setRunning(true);
+     setError('');
+     try { await submit({ type: 'RUN_DIAGNOSTICS', siteIds: ids }); }
+@@ -208,11 +212,19 @@
+     </div>;
+   };
+   return <>
+-    <div className="diagnosticLead">
+-      <h2>{t('checkBrowserSettingsSeparatelyFromNetworkConnectivity')}</h2>
+-      <p>{t('diagLeadExplanation')}</p>
+-      <span className="diagnosticEvidence">{t('diagEvidenceOnly')}</span>
+-    </div>
++    <header className="diagnosticLead">
++      <div className="diagnosticLeadMain">
++        <h2>{t('diagWorkbenchTitle')}</h2>
++        <p>{t(simulatedDiagnostics ? 'diagLeadExplanation' : 'diagEvidenceBoundary')}</p>
++        <span className="diagnosticCurrentRoute">{t('selected')}: {state.config.selection.mode === 'profile'
++          ? selectedProfile?.name ?? t('noProfileSelected')
++          : t(({ rules: 'popupModeRules', direct: 'popupModeDirect', system: 'popupModeSystem' } as const)[state.config.selection.mode])}</span>
++        <span className="diagnosticEvidence">{t(simulatedDiagnostics ? 'diagEvidenceOnly' : 'diagOnDemandOnly')}</span>
++      </div>
++      <div className="diagnosticLeadState" aria-label={t('diagModelVerification')}>
++        <strong>{t('notTested')}</strong><small>{t('diagModelVerification')}</small>
++      </div>
++    </header>
+     <div className="diagnosticMetrics" aria-label={t('currentDiagnosticsSummary')}>
+       <div><small>{t('proxyControl')}</small><strong>{state.runtime.control === 'controlled_by_this_extension'
+         ? t('controlledByThisExtension') : state.runtime.control === 'controlled_by_other_extensions'
+@@ -220,7 +232,7 @@
+         <small>Chrome Proxy API</small></div>
+       <div><small>{t('configurationStatus')}</small><strong>{state.runtime.applied ? t('applied') : t('notConfirmed')}</strong>
+         <small>{t('doesNotProveReachability')}</small></div>
+-      <div><small>{t('diagSitesChecked')}</small><strong>{current.length} / {AI_SITES.length}</strong>
++      <div><small>{t(simulatedDiagnostics ? 'diagSitesChecked' : 'diagSitesLive')}</small><strong>{simulatedDiagnostics ? `${current.length} / ${AI_SITES.length}` : t('notTested')}</strong>
+         <small>{current.length === 0 ? t('notTested') : t('diagCurrentRouteOnly')}</small></div>
+       <div><small>{t('diagRunStatus')}</small><strong>{locked ? t('diagRunning') : t('diagIdle')}</strong>
+         <small>{snapshot?.activeRun ? t('diagProgress', {
+@@ -250,11 +262,12 @@
+         }}
+         onClick={() => setPanel(id)}>{label}</Button>)}
+     </div>
++    {!simulatedDiagnostics && <p className="diagnosticRuntimeNotice" role="status">{t("diagProductionUnavailable")}</p>}
+     {error && <p className="notice error" role="alert">{error}</p>}
+     {locked && <div className="diagnosticRunProgress" role="status">
+       <span>{t('diagRunning')} · {snapshot?.activeRun
+         ? t('diagProgress', {done:snapshot.activeRun.completed, total:snapshot.activeRun.total}) : t('diagStarting')}</span>
+-      <Button onClick={() => void submit({ type:'CANCEL_DIAGNOSTICS' })}>{t('diagCancel')}</Button>
++      <Button variant="secondary" onClick={() => void submit({ type:'CANCEL_DIAGNOSTICS' })}>{t('diagCancel')}</Button>
+     </div>}
+     <section ref={panelContent} id="diagnostic-panel" role="tabpanel" tabIndex={0} aria-labelledby={'diagnostic-tab-' + panel} className="diagnosticPanel">
+       {panel === 'overview' && <div className="diagnosticOverview">
+@@ -264,49 +277,49 @@
+             ? selectedProfile?.name ?? t('noProfileSelected')
+             : t(({ rules: 'popupModeRules', direct: 'popupModeDirect', system: 'popupModeSystem' } as const)[state.config.selection.mode])}</h3>
+           <p>{state.runtime.applied ? t('diagProxyAppliedCaveat') : t('diagCheckProxySettings')}</p>
+-          <Button onClick={() => openPanel('proxy')}>{t('viewActualControlStatus')}</Button>
++          <Button variant="secondary" onClick={() => openPanel('proxy')}>{t('viewActualControlStatus')}</Button>
+         </article>
+         <article className="diagnosticFeature">
+           <small>{t('priorityScenario')}</small><h3>{t('aiSiteAvailability')}</h3>
+-          <p>{t('diagAiFirstFive')}</p>
++          <p>{t(simulatedDiagnostics ? 'diagAiFirstFive' : 'diagProductionUnavailable')}</p>
+           <div className="actions">
+-            <Button variant="primary" className="primary" disabled={locked} onClick={() =>
++            <Button variant="primary" className="primary" disabled={!simulatedDiagnostics || locked} onClick={() =>
+               void test(AI_SITES.slice(0, 5).map(s => s.id))}>{t('diagStartFive')}</Button>
+-            <Button onClick={() => openPanel('ai')}>{t('diagManageTests')}</Button>
++            <Button variant="secondary" onClick={() => openPanel('ai')}>{t('diagManageTests')}</Button>
+           </div>
+         </article>
+         <article className="diagnosticFeature">
+           <small>{t('customTargets')}</small><h3>{t('prioritySitesTop510')}</h3>
+-          <p>{t('diagFavoritesCount', {count: favorites.length})}</p>
+-          <UsageOverview />
+-          <Button data-testid="usage-manage" onClick={() => openPanel('top')}>{t('usageManage')}</Button>
++          <p>{simulatedDiagnostics ? t('diagFavoritesCount', {count: favorites.length}) : t('notTested')}</p>
++          {simulatedDiagnostics && <UsageOverview />}
++          <Button variant="secondary" data-testid="usage-manage" onClick={() => openPanel('top')}>{t('usageManage')}</Button>
+         </article>
+         <article className="diagnosticFeature">
+-          <small>{t('connectionSpeed')}</small><h3>{t('diagHttpTiming')}</h3>
+-          <p>{t('diagSpeedCaveat')}</p>
+-          <Button onClick={() => openPanel('speed')}>{t('diagSeeTiming')}</Button>
++          <small>{t('connectionSpeed')}</small><h3>{t(simulatedDiagnostics ? 'diagHttpTiming' : 'speedTest')}</h3>
++          <p>{t(simulatedDiagnostics ? 'diagSpeedCaveat' : 'diagSpeedNotConnected')}</p>
++          <Button variant="secondary" onClick={() => openPanel('speed')}>{t('diagSeeTiming')}</Button>
+         </article>
+       </div>}
+       {panel === 'ai' && <div className="diagnosticSection">
+         <div className="diagnosticSectionHead"><div><h3>{t('aiSiteAvailability')}</h3>
+-          <p className="hint">{t('diagAiListHelp')}</p></div>
++          <p className="hint">{t(simulatedDiagnostics ? 'diagAiListHelp' : 'diagProductionUnavailable')}</p></div>
+           <div className="actions">
+-            <Button variant="primary" className="primary" disabled={locked || selectedIds.length === 0}
++            <Button variant="primary" className="primary" disabled={!simulatedDiagnostics || locked || selectedIds.length === 0}
+               onClick={() => void test(selectedIds)}>{t('diagCheckSelected', {count:selectedIds.length})}</Button>
+           </div></div>
+         <div className="diagnosticSiteList">{AI_SITES.map(site => {
+           const favorite = favorites.some(f => f.id === site.id);
+           return <article className="diagnosticSite" key={site.id}>
+             <label className="diagnosticSiteName">
+-              <input type="checkbox" checked={selectedIds.includes(site.id)} disabled={locked}
++              <input type="checkbox" checked={selectedIds.includes(site.id)} disabled={!simulatedDiagnostics || locked}
+                 onChange={e => setSelectedIds(v => e.target.checked
+                   ? [...v, site.id] : v.filter(id => id !== site.id))} />
+               <span><strong>{site.name}</strong><small>{site.domain}</small></span>
+             </label>
+             {renderResult(site)}
+             <div className="diagnosticSiteActions">
+-              <Button disabled={locked} onClick={() => void test([site.id])}>{t('diagTestOne')}</Button>
+-              <Button disabled={saving} onClick={() => void submit(favorite
++              <Button variant="secondary" disabled={!simulatedDiagnostics || locked} onClick={() => void test([site.id])}>{t('diagTestOne')}</Button>
++              <Button variant="secondary" disabled={!simulatedDiagnostics || saving} onClick={() => void submit(favorite
+                 ? {type:'REMOVE_DIAGNOSTIC_SITE',id:site.id}
+                 : {type:'SAVE_DIAGNOSTIC_SITE',domain:site.domain,priority:'P1'})}
+                 aria-label={favorite ? t('diagRemoveFavorite') : t('diagAddFavorite')}>
+@@ -314,10 +327,10 @@
+             </div>
+           </article>;
+         })}</div>
+-        <p className="hint">{t('diagExtensionEvidence')}</p>
++        <p className="hint">{t(simulatedDiagnostics ? 'diagExtensionEvidence' : 'diagEvidenceBoundary')}</p>
+       </div>}
+       {panel === 'top' && <div className="diagnosticSection">
+-        <UsageControls favorites={snapshot?.favorites ?? []} locked={locked} saving={saving}
++        {simulatedDiagnostics ? <UsageControls favorites={snapshot?.favorites ?? []} locked={locked} saving={saving}
+           submit={submit} test={test} renderResult={renderResult}>
+           <form data-draft-scope="diagnostic-site" className="diagnosticAddSite" onSubmit={e => void save(e)}>
+             <label htmlFor="diag-add-domain">{t('diagAddDomain')}</label>
+@@ -328,12 +341,15 @@
+             <Button type="submit" disabled={saving}>{t('diagSaveSite')}</Button>
+           </form>
+           <p className="hint">{t('diagCustomManualOnly')}</p>
+-        </UsageControls>
++        </UsageControls> : <div className="diagnosticUnavailable" role="status">
++          <h3>{t('prioritySitesTop510')}</h3><p>{t('diagProductionUnavailable')}</p>
++        </div>}
+       </div>}
+ 
+       {panel === 'speed' && <div className="diagnosticSection">
+-        <h3>{t('diagHttpTiming')}</h3><p className="hint">{t('diagSpeedCaveat')}</p>
+-        <div className="diagnosticSiteList">{AI_SITES.map(site => {
++        <h3>{t(simulatedDiagnostics ? 'diagHttpTiming' : 'speedTest')}</h3>
++        <p className="hint">{t(simulatedDiagnostics ? 'diagSpeedCaveat' : 'diagSpeedNotConnected')}</p>
++        {simulatedDiagnostics ? <div className="diagnosticSiteList">{AI_SITES.map(site => {
+           const stats = snapshot?.statistics[site.id];
+           return <article className="diagnosticSite" key={site.id}>
+             <div className="diagnosticSiteName"><strong>{site.name}</strong><small>{site.domain}</small></div>
+@@ -343,10 +359,12 @@
+               <small>p50: {stats?.p50Ms === null || stats?.p50Ms === undefined ? '—' : stats.p50Ms + ' ms'}</small>
+               <small>p95: {stats?.p95Ms === null || stats?.p95Ms === undefined ? '—' : stats.p95Ms + ' ms'}</small>
+             </div>
+-            <Button disabled={locked} onClick={() => void test([site.id])}>{t('diagTestOne')}</Button>
++            <Button variant="secondary" disabled={!simulatedDiagnostics || locked} onClick={() => void test([site.id])}>{t('diagTestOne')}</Button>
+           </article>;
+-        })}</div>
+-        <p className="hint">{t('diagNoThroughput')}</p>
++        })}</div> : <div className="diagnosticUnavailable" role="status">
++          <p>{t('diagSpeedNotConnected')}</p>
++        </div>}
++        {simulatedDiagnostics && <p className="hint">{t('diagNoThroughput')}</p>}
+       </div>}
+       {panel === 'proxy' && <div className="basicDiagnostic diagnosticSection">
+         <h3>{t('basicProxyDiagnostics')}</h3>
+@@ -354,8 +372,8 @@
+         <Status status={state.runtime} />
+         <div className="actions">
+           <Button variant="primary" className="primary" disabled={busy} onClick={() => void onProbe()}>{t('probeApiIpifyOrg')}</Button>
+-          <Button disabled={busy} onClick={() => { void onRefresh(); void load(); }}>{t('refreshState')}</Button>
+-          <Button disabled={busy} onClick={() => void onStop()}>{t('stopManagingAndReleaseControl')}</Button>
++          <Button variant="secondary" disabled={busy} onClick={() => { void onRefresh(); void load(); }}>{t('refreshState')}</Button>
++          <Button variant="secondary" className="diagnosticStopAction" disabled={busy} onClick={() => void onStop()}>{t('stopManagingAndReleaseControl')}</Button>
+         </div>
+         <p className="hint">{t('theProbeTargetsApiIpifyOrgExtensionRequestsAlone')}</p>
+       </div>}
+@@ -363,10 +381,10 @@
+         <h3>{t('diagTroubleshoot')}</h3>
+         {issues.map(code => <article key={code} className="diagnosticIssue">
+           <strong>{t(diagnosisKeys[code][0])}</strong>
+-          <p>{t(diagnosisKeys[code][1])}</p>
++          <p>{!simulatedDiagnostics && code === 'limited_evidence' ? t('diagEvidenceBoundary') : t(diagnosisKeys[code][1])}</p>
+           <div className="actions">
+-            <Button onClick={onProfiles}>{t('diagCheckSettings')}</Button>
+-            <Button disabled={locked} onClick={() => void test([selectedIds[0] ?? 'chatgpt'])}>{t('diagRetest')}</Button>
++            <Button variant="secondary" onClick={onProfiles}>{t('diagCheckSettings')}</Button>
++            <Button variant="secondary" disabled={!simulatedDiagnostics || locked} onClick={() => void test([selectedIds[0] ?? "chatgpt"])}>{t('diagRetest')}</Button>
+           </div>
+         </article>)}
+       </div>}

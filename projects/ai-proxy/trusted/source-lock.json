@@ -1,7 +1,7 @@
 {
   "projects/ai-proxy/src/App.jsx": "00e54b057e79405f7574b0c8bad2d588e13a3721",
   "projects/ai-proxy/src/QuickPanel.tsx": "5ed9e192ba5358d6b5f2a2413d64b6d7ee723f58",
-  "projects/ai-proxy/src/Settings.tsx": "8df117891c0a0ef174652d704c902d6b52490062",
+  "projects/ai-proxy/src/Settings.tsx": "c749bc35c5ca47a9423befcf3d086f960de9e605",
   "projects/ai-proxy/src/adapter.js": "2b837f6cb983055889073333494780f5e5371e99",
   "projects/ai-proxy/src/collector/rotation-plan.ts": "b589bf2a8869fd7f269f3b735af4d37976c99ad6",
   "projects/ai-proxy/src/config/product-links.defaults.json": "2e23db6f565a7dde6732cd0330185d65e2fcf39d",
@@ -30,7 +30,7 @@
   "projects/ai-proxy/src/official/messages.ts": "641f9e021f7956d6c8fd39bc1dd91b78d86be60e",
   "projects/ai-proxy/src/service.ts": "2c49b2f3dcdc8956faf0a7bd858837854e792fb8",
   "projects/ai-proxy/src/style.css": "4398698e188510e615990d4b14c1dd4bde46d97c",
-  "projects/ai-proxy/src/styles/management.css": "f4ea8d39cd408bcd70b14633128c5fdb8d595a58",
+  "projects/ai-proxy/src/styles/management.css": "2ee04fc994a93c4506106f6a62ae88dd3e3caeca",
   "projects/ai-proxy/src/styles/options.css": "b4caaf40bb3e6d25bb3e19b8e8b8f1e8f72a326a",
   "projects/ai-proxy/src/styles/rotation-entry.css": "920483b511235b50f1dfd3c9bafb3f8ed7d6c8c9",
   "projects/ai-proxy/src/styles/sidebar-settings.css": "4f86a1c71e03453767b0a76a0a92d8de745cb962",

@@ -1,0 +1,98 @@
+{
+  "taskId": "OD-SUBAGENT-CHAT-A2B2A-R2-TRUSTED-CLOSURE",
+  "recordedAt": "2026-11-12T14:02:22.996Z",
+  "head": "ba0a33091c1dad6c4cb00212de91498371e7dbd8",
+  "reviewer": "/root/webflow_audit",
+  "reviewType": "Internal build-boundary review; no external expert",
+  "cause": {
+    "diagnostic": "../browser-build-final/build-production-failed-1794491476872-e918cd29-8978-4d9d-84d0-bcfee3ee0fd7.json",
+    "target": "ui/tool-shell.js",
+    "bytes": 3150219,
+    "budgetBytes": 3145728,
+    "excessBytes": 4491
+  },
+  "authorization": "Root approved only existing WXT transform wiring, one pinned raw-data helper and its boundary test; no AI Proxy business, vendor, source-lock, budget, fixed-entry or runtime-permission changes in this step.",
+  "scope": [
+    "wxt.config.mjs",
+    "scripts/pinned-public-suffix-raw.mjs",
+    "tests/environment/pinned-public-suffix-raw.test.mjs"
+  ],
+  "inputs": {
+    "wxt.config.mjs": "6ebda739b740fe44d9f918a4b3855f622c1455ea",
+    "scripts/pinned-public-suffix-raw.mjs": "96f3e8d3d7520fc261d20cbb6ea4b408144b0411",
+    "tests/environment/pinned-public-suffix-raw.test.mjs": "86c99729b4158c46bd37ef4457dd4c40818c5100"
+  },
+  "fixedInputs": {
+    "source": {
+      "path": "projects/ai-proxy/src/usage/vendor/public_suffix_list.dat",
+      "blob": "1eca38b5174fdd4b43612cd5e639dca5b06299d9"
+    },
+    "consumer": {
+      "path": "projects/ai-proxy/src/usage/domain.ts",
+      "blob": "3730ac5455225e5451b142fba7be3403426272ab"
+    },
+    "sourceLock": {
+      "path": "projects/ai-proxy/trusted/source-lock.json",
+      "blob": "d4065a7461c4f173c695a03e1de1bee8d95ab9bf",
+      "note": "Unchanged from the earlier approved eight-key review; this transform step does not update it."
+    },
+    "budget": {
+      "path": "scripts/build-contract.mjs",
+      "blob": "295445d1a05eab638b7dcbc4c1d7e7cab72cf4e7",
+      "dirty": ""
+    }
+  },
+  "transformation": {
+    "target": "ui/tool-shell.js",
+    "moduleQuery": "?raw",
+    "exactPath": "projects/ai-proxy/src/usage/vendor/public_suffix_list.dat",
+    "acceptedInput": "Acorn-validated module containing one ExportDefaultDeclaration with a string Literal exactly equal to the byte-pinned source. No eval or executable module loading.",
+    "rejected": "Raw data or original consumer drift, symlinks, different string content, expression exports, extra import/statements. Other targets, files and query variants receive no transformation.",
+    "removed": "Only empty lines and ordinary comment blocks already ignored by the original consumer.",
+    "retained": "Every effective rule in original order, complete original header including MPL, upstream source, VERSION, COMMIT and usage notices; entire copyright/license/permission/Mozilla/MPL notice blocks; ICANN and PRIVATE section markers.",
+    "sourceRetained": "Complete original vendor file remains unchanged; no second data snapshot or runtime download.",
+    "rules": 10336,
+    "rawBytes": 335478,
+    "compactBytes": 146151,
+    "rawModuleBytes": 352176,
+    "compactModuleBytes": 156527,
+    "moduleByteReduction": 195649,
+    "byteLimit": "These are raw-module measurements, not a final Browser bundle result."
+  },
+  "verification": {
+    "command": "node --test --test-reporter=tap tests/environment/pinned-public-suffix-raw.test.mjs",
+    "node": "v24.22.1",
+    "rawTap": "pinned-public-suffix-raw.tap",
+    "exitCode": 0,
+    "total": 5,
+    "pass": 5,
+    "fail": 0,
+    "skipped": 0,
+    "durationMs": 1215.999537,
+    "toolStartChunk": "b68ea7",
+    "toolCompletionChunk": "fc3d40",
+    "rawStdoutCaptured": true,
+    "behavior": "Both raw inputs were consumed by the same original domain.ts code compiled for a Node VM fixture. Every rule generated suffix and nested host cases, plus Unicode URL cases; output equality and explicit ICANN/PRIVATE/wildcard/exception/AI site/local-IP-credential rejection checks passed.",
+    "sequence": "All 10,336 raw rule tokens and their exact/wildcard/exception classes and WHATWG IDNA forms were compared item by item, not only by count."
+  },
+  "independentReview": {
+    "reviewer": "/root/closure_audit",
+    "kind": "Read-only inspection; did not run tests or build",
+    "verdict": "No veto found for execution/permission boundary, rule retention or original notice preservation.",
+    "notes": "Verified both real Git blobs, exact target/path/query, symlink/drift rejection, literal-only AST parsing, no eval/Function/VM/Host capability in helper, complete notice blocks and section retention. Test VM only executes original fixed consumer code."
+  },
+  "evidenceLevels": {
+    "source": "Implemented within approved build-only scope",
+    "node": "5/5 PASS",
+    "browserBuild": "Root-owned next formal build; not run by this reviewer",
+    "install": "NOT_TESTED",
+    "chromeNative": "NOT_TESTED",
+    "business": "NOT_TESTED"
+  },
+  "businessSourceStatus": "",
+  "note": "Existing source/provenance failures and other agents work remain intact. No full build, prior-suite rerun, commit, index mutation, Chrome interaction or package approval performed by this reviewer.",
+  "evidenceSha256": {
+    "pinned-public-suffix-raw.tap": "270cdc36de3898137c20e9b675fda8aeae5d7b6b3cc8ec535ee67a3d508fd483",
+    "pinned-public-suffix-build-diff.patch": "0612e2b611c9396c479f624da48092651aebf853b235916282c6636c537634f9"
+  }
+}

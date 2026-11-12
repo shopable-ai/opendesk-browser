@@ -1,0 +1,1374 @@
+TAP version 13
+# Subtest: row parameter action selects its own task, opens the one Sheet and retains other drafts without running
+ok 1 - row parameter action selects its own task, opens the one Sheet and retains other drafts without running
+  ---
+  duration_ms: 957.242895
+  type: 'test'
+  ...
+# Subtest: shared TaskRunSheet restores the My bottom drawer and distinct cancel/prepare actions
+ok 2 - shared TaskRunSheet restores the My bottom drawer and distinct cancel/prepare actions
+  ---
+  duration_ms: 97.449308
+  type: 'test'
+  ...
+# Subtest: tool request uses the same hoisted Sheet and separate parent prepare, confirm and unknown-cancel callbacks
+ok 3 - tool request uses the same hoisted Sheet and separate parent prepare, confirm and unknown-cancel callbacks
+  ---
+  duration_ms: 186.005484
+  type: 'test'
+  ...
+# Subtest: page request renders one locked Sheet with source, fixed version and owned target, then uses original save and confirmation
+ok 4 - page request renders one locked Sheet with source, fixed version and owned target, then uses original save and confirmation
+  ---
+  duration_ms: 201.982204
+  type: 'test'
+  ...
+# Subtest: page request source revocation at reopen keeps the original request read-only without admission
+ok 5 - page request source revocation at reopen keeps the original request read-only without admission
+  ---
+  duration_ms: 29.899086
+  type: 'test'
+  ...
+# Subtest: page request source revocation at confirmation keeps the original request read-only without admission
+ok 6 - page request source revocation at confirmation keeps the original request read-only without admission
+  ---
+  duration_ms: 55.345779
+  type: 'test'
+  ...
+# Subtest: page request late opening lookup cannot replace a newer Sheet or start a task
+ok 7 - page request late opening lookup cannot replace a newer Sheet or start a task
+  ---
+  duration_ms: 38.13507
+  type: 'test'
+  ...
+# Subtest: page request late approval lookup during query cannot retire or unlock a reopened Sheet
+ok 8 - page request late approval lookup during query cannot retire or unlock a reopened Sheet
+  ---
+  duration_ms: 46.253205
+  type: 'test'
+  ...
+# Subtest: JSON editing uses original typed validation and preserves the editor draft across task selection
+ok 9 - JSON editing uses original typed validation and preserves the editor draft across task selection
+  ---
+  duration_ms: 63.170568
+  type: 'test'
+  ...
+# Subtest: invalid JSON parameters cannot request permission or start: {
+ok 10 - invalid JSON parameters cannot request permission or start: {
+  ---
+  duration_ms: 53.537125
+  type: 'test'
+  ...
+# Subtest: invalid JSON parameters cannot request permission or start: []
+ok 11 - invalid JSON parameters cannot request permission or start: []
+  ---
+  duration_ms: 77.993595
+  type: 'test'
+  ...
+# Subtest: invalid JSON parameters cannot request permission or start: {"name":"ok","count":1.5}
+ok 12 - invalid JSON parameters cannot request permission or start: {"name":"ok","count":1.5}
+  ---
+  duration_ms: 77.421527
+  type: 'test'
+  ...
+# Subtest: invalid JSON parameters cannot request permission or start: {"name":"ok","unknown":true}
+ok 13 - invalid JSON parameters cannot request permission or start: {"name":"ok","unknown":true}
+  ---
+  duration_ms: 105.294029
+  type: 'test'
+  ...
+# Subtest: JSON omission remains omitted on switching to form until that field is edited
+ok 14 - JSON omission remains omitted on switching to form until that field is edited
+  ---
+  duration_ms: 178.236181
+  type: 'test'
+  ...
+# Subtest: Switch preserves initial omission, explicit false, required false and clearing without changing other fields
+ok 15 - Switch preserves initial omission, explicit false, required false and clearing without changing other fields
+  ---
+  duration_ms: 46.082075
+  type: 'test'
+  ...
+# Subtest: boolean enums keep select values and typed drafts across representation and task changes
+ok 16 - boolean enums keep select values and typed drafts across representation and task changes
+  ---
+  duration_ms: 46.215888
+  type: 'test'
+  ...
+# Subtest: real task schema dynamically renders and round-trips: baidu.search.top3.v1
+ok 17 - real task schema dynamically renders and round-trips: baidu.search.top3.v1
+  ---
+  duration_ms: 49.293998
+  type: 'test'
+  ...
+# Subtest: real task schema dynamically renders and round-trips: google.search.top3.v1
+ok 18 - real task schema dynamically renders and round-trips: google.search.top3.v1
+  ---
+  duration_ms: 41.328775
+  type: 'test'
+  ...
+# Subtest: real task schema dynamically renders and round-trips: form-fill.v1
+ok 19 - real task schema dynamically renders and round-trips: form-fill.v1
+  ---
+  duration_ms: 37.663775
+  type: 'test'
+  ...
+# Subtest: real task schema dynamically renders and round-trips: modern-search.v1
+ok 20 - real task schema dynamically renders and round-trips: modern-search.v1
+  ---
+  duration_ms: 43.973206
+  type: 'test'
+  ...
+# Subtest: real task schema dynamically renders and round-trips: page.read.fixed.v1
+ok 21 - real task schema dynamically renders and round-trips: page.read.fixed.v1
+  ---
+  duration_ms: 35.068288
+  type: 'test'
+  ...
+# Subtest: real task schema dynamically renders and round-trips: visible-search-navigation
+ok 22 - real task schema dynamically renders and round-trips: visible-search-navigation
+  ---
+  duration_ms: 39.967409
+  type: 'test'
+  ...
+# Subtest: numeric boundaries, unbounded long strings and invalid values retain the original schema validator
+ok 23 - numeric boundaries, unbounded long strings and invalid values retain the original schema validator
+  ---
+  duration_ms: 133.595185
+  type: 'test'
+  ...
+# Subtest: parameter Sheet retains the same input and draft after cancel button and reopening without starting
+ok 24 - parameter Sheet retains the same input and draft after cancel button and reopening without starting
+  ---
+  duration_ms: 37.789435
+  type: 'test'
+  ...
+# Subtest: parameter Sheet retains the same input and draft after close button and reopening without starting
+ok 25 - parameter Sheet retains the same input and draft after close button and reopening without starting
+  ---
+  duration_ms: 34.565355
+  type: 'test'
+  ...
+# Subtest: parameter Sheet retains the same input and draft after native cancel and reopening without starting
+ok 26 - parameter Sheet retains the same input and draft after native cancel and reopening without starting
+  ---
+  duration_ms: 44.967394
+  type: 'test'
+  ...
+# Subtest: parameter Sheet retains the same input and draft after native close and reopening without starting
+ok 27 - parameter Sheet retains the same input and draft after native close and reopening without starting
+  ---
+  duration_ms: 51.756138
+  type: 'test'
+  ...
+# Subtest: hiding My leaves the hoisted parameter Sheet visible with the same draft on return
+ok 28 - hiding My leaves the hoisted parameter Sheet visible with the same draft on return
+  ---
+  duration_ms: 85.594959
+  type: 'test'
+  ...
+# Subtest: composing Enter is prevented and cannot run or close the parameter Sheet
+ok 29 - composing Enter is prevented and cannot run or close the parameter Sheet
+  ---
+  duration_ms: 131.577239
+  type: 'test'
+  ...
+# Subtest: composing Escape is prevented and cannot run or close the parameter Sheet
+ok 30 - composing Escape is prevented and cannot run or close the parameter Sheet
+  ---
+  duration_ms: 52.118682
+  type: 'test'
+  ...
+# Subtest: an untrusted React Run click leaves the parameter Sheet open without starting
+ok 31 - an untrusted React Run click leaves the parameter Sheet open without starting
+  ---
+  duration_ms: 109.364758
+  type: 'test'
+  ...
+# Subtest: schema-invalid parameters reject trusted Run before permission and leave the Sheet open
+ok 32 - schema-invalid parameters reject trusted Run before permission and leave the Sheet open
+  ---
+  duration_ms: 50.208224
+  type: 'test'
+  ...
+# Subtest: field validation errors are associated with their inputs and editing clears only that field error
+ok 33 - field validation errors are associated with their inputs and editing clears only that field error
+  ---
+  duration_ms: 45.100407
+  type: 'test'
+  ...
+# Subtest: correcting a parameter clears its obsolete summary without clearing other field or runtime errors
+ok 34 - correcting a parameter clears its obsolete summary without clearing other field or runtime errors
+  ---
+  duration_ms: 47.438432
+  type: 'test'
+  ...
+# Subtest: disabled task shows its disabled reason despite matching the current site
+ok 35 - disabled task shows its disabled reason despite matching the current site
+  ---
+  duration_ms: 55.111823
+  type: 'test'
+  ...
+# Subtest: a busy host shows the running reason and clears it when the host finishes
+ok 36 - a busy host shows the running reason and clears it when the host finishes
+  ---
+  duration_ms: 32.614495
+  type: 'test'
+  ...
+# Subtest: trusted Run rejects stale captured taskId before permission or host start
+ok 37 - trusted Run rejects stale captured taskId before permission or host start
+  ---
+  duration_ms: 5.68873
+  type: 'test'
+  ...
+# Subtest: trusted Run rejects stale captured version before permission or host start
+ok 38 - trusted Run rejects stale captured version before permission or host start
+  ---
+  duration_ms: 5.091804
+  type: 'test'
+  ...
+# Subtest: trusted Run rejects stale captured manifestHash before permission or host start
+ok 39 - trusted Run rejects stale captured manifestHash before permission or host start
+  ---
+  duration_ms: 5.024112
+  type: 'test'
+  ...
+# Subtest: trusted Run rejects stale captured generation before permission or host start
+ok 40 - trusted Run rejects stale captured generation before permission or host start
+  ---
+  duration_ms: 5.618503
+  type: 'test'
+  ...
+# Subtest: trusted Run rejects stale captured installationId before permission or host start
+ok 41 - trusted Run rejects stale captured installationId before permission or host start
+  ---
+  duration_ms: 5.329004
+  type: 'test'
+  ...
+# Subtest: trusted explicit Run accepts the current captured identity and starts with its draft
+ok 42 - trusted explicit Run accepts the current captured identity and starts with its draft
+  ---
+  duration_ms: 6.649186
+  type: 'test'
+  ...
+# Subtest: trusted snapshot Run accepts required empty string and empty enum values allowed by the schema
+ok 43 - trusted snapshot Run accepts required empty string and empty enum values allowed by the schema
+  ---
+  duration_ms: 25.805025
+  type: 'test'
+  ...
+# Subtest: React owns the full page, reflects errors, keeps edits across tab hiding and cleans its subscription
+ok 44 - React owns the full page, reflects errors, keeps edits across tab hiding and cleans its subscription
+  ---
+  duration_ms: 244.189298
+  type: 'test'
+  ...
+# Subtest: manual task passes typed params and fixed identity, stops the owning run, then runs again and reports errors
+ok 45 - manual task passes typed params and fixed identity, stops the owning run, then runs again and reports errors
+  ---
+  duration_ms: 24.657826
+  type: 'test'
+  ...
+# Subtest: plan create, edit, explicit save, reopen, manager detour, dirty cancel and delete preserve exact identities
+ok 46 - plan create, edit, explicit save, reopen, manager detour, dirty cancel and delete preserve exact identities
+  ---
+  duration_ms: 204.184973
+  type: 'test'
+  ...
+# Subtest: identity drift and unknown save never authorize replacement or automatic replay
+ok 47 - identity drift and unknown save never authorize replacement or automatic replay
+  ---
+  duration_ms: 153.324669
+  type: 'test'
+  ...
+# Subtest: history paging deduplicates Fire identities, shows failures, and stop checks the exact current scheduled run
+ok 48 - history paging deduplicates Fire identities, shows failures, and stop checks the exact current scheduled run
+  ---
+  duration_ms: 138.432258
+  type: 'test'
+  ...
+# Subtest: tool form correction clears only its matching request summary
+ok 49 - tool form correction clears only its matching request summary
+  ---
+  duration_ms: 158.960989
+  type: 'test'
+  ...
+# Subtest: tool json correction clears only its matching request summary
+ok 50 - tool json correction clears only its matching request summary
+  ---
+  duration_ms: 102.79656
+  type: 'test'
+  ...
+# Subtest: settled and uninstalled recovery show original values without an execution control
+ok 51 - settled and uninstalled recovery show original values without an execution control
+  ---
+  duration_ms: 23.759833
+  type: 'test'
+  ...
+# Subtest: shared drawer taskSheetQueryClick publishes pending busy and fences resolve
+ok 52 - shared drawer taskSheetQueryClick publishes pending busy and fences resolve
+  ---
+  duration_ms: 47.553808
+  type: 'test'
+  ...
+# Subtest: shared drawer taskSheetQueryClick publishes pending busy and fences reject
+ok 53 - shared drawer taskSheetQueryClick publishes pending busy and fences reject
+  ---
+  duration_ms: 33.985579
+  type: 'test'
+  ...
+# Subtest: shared drawer taskSheetQueryClick publishes pending busy and fences stale
+ok 54 - shared drawer taskSheetQueryClick publishes pending busy and fences stale
+  ---
+  duration_ms: 46.438066
+  type: 'test'
+  ...
+# Subtest: shared drawer taskSheetCancelClick publishes pending busy and fences resolve
+ok 55 - shared drawer taskSheetCancelClick publishes pending busy and fences resolve
+  ---
+  duration_ms: 40.558917
+  type: 'test'
+  ...
+# Subtest: shared drawer taskSheetCancelClick publishes pending busy and fences reject
+ok 56 - shared drawer taskSheetCancelClick publishes pending busy and fences reject
+  ---
+  duration_ms: 58.85071
+  type: 'test'
+  ...
+# Subtest: shared drawer taskSheetCancelClick publishes pending busy and fences stale
+ok 57 - shared drawer taskSheetCancelClick publishes pending busy and fences stale
+  ---
+  duration_ms: 51.772262
+  type: 'test'
+  ...
+# Subtest: shared drawer rejects global preparation with different task
+ok 58 - shared drawer rejects global preparation with different task
+  ---
+  duration_ms: 17.683215
+  type: 'test'
+  ...
+# Subtest: shared drawer rejects global preparation with different appId
+ok 59 - shared drawer rejects global preparation with different appId
+  ---
+  duration_ms: 15.475396
+  type: 'test'
+  ...
+# Subtest: shared drawer rejects global preparation with different packageHash
+ok 60 - shared drawer rejects global preparation with different packageHash
+  ---
+  duration_ms: 16.806495
+  type: 'test'
+  ...
+# Subtest: shared drawer rejects global preparation with different generation
+ok 61 - shared drawer rejects global preparation with different generation
+  ---
+  duration_ms: 16.378336
+  type: 'test'
+  ...
+# Subtest: shared drawer rejects global preparation with different unbound
+ok 62 - shared drawer rejects global preparation with different unbound
+  ---
+  duration_ms: 14.656564
+  type: 'test'
+  ...
+# Subtest: shared drawer rejects explicit preparation with different task
+ok 63 - shared drawer rejects explicit preparation with different task
+  ---
+  duration_ms: 13.772112
+  type: 'test'
+  ...
+# Subtest: shared drawer rejects explicit preparation with different appId
+ok 64 - shared drawer rejects explicit preparation with different appId
+  ---
+  duration_ms: 19.178083
+  type: 'test'
+  ...
+# Subtest: shared drawer rejects explicit preparation with different packageHash
+ok 65 - shared drawer rejects explicit preparation with different packageHash
+  ---
+  duration_ms: 13.505658
+  type: 'test'
+  ...
+# Subtest: shared drawer rejects explicit preparation with different generation
+ok 66 - shared drawer rejects explicit preparation with different generation
+  ---
+  duration_ms: 13.939286
+  type: 'test'
+  ...
+# Subtest: shared drawer rejects explicit preparation with different unbound
+ok 67 - shared drawer rejects explicit preparation with different unbound
+  ---
+  duration_ms: 17.732859
+  type: 'test'
+  ...
+# Subtest: shared drawer restores the same task and App package generation across frame reopen
+ok 68 - shared drawer restores the same task and App package generation across frame reopen
+  ---
+  duration_ms: 22.611241
+  type: 'test'
+  ...
+# Subtest: form draft switches to JSON with incomplete required text and numeric ""
+ok 69 - form draft switches to JSON with incomplete required text and numeric ""
+  ---
+  duration_ms: 52.661797
+  type: 'test'
+  ...
+# Subtest: form draft switches to JSON with incomplete required text and numeric "-"
+ok 70 - form draft switches to JSON with incomplete required text and numeric "-"
+  ---
+  duration_ms: 88.482626
+  type: 'test'
+  ...
+# Subtest: form draft switches to JSON with incomplete required text and numeric "1e"
+ok 71 - form draft switches to JSON with incomplete required text and numeric "1e"
+  ---
+  duration_ms: 53.434439
+  type: 'test'
+  ...
+# Subtest: form draft switches to JSON with incomplete required text and numeric "not-a-number"
+ok 72 - form draft switches to JSON with incomplete required text and numeric "not-a-number"
+  ---
+  duration_ms: 46.638539
+  type: 'test'
+  ...
+# Subtest: form draft switches to JSON with incomplete required text and numeric "1e999"
+ok 73 - form draft switches to JSON with incomplete required text and numeric "1e999"
+  ---
+  duration_ms: 136.194533
+  type: 'test'
+  ...
+# Subtest: form draft switches to JSON with incomplete required text and numeric " "
+ok 74 - form draft switches to JSON with incomplete required text and numeric " "
+  ---
+  duration_ms: 92.221847
+  type: 'test'
+  ...
+# Subtest: form draft switch keeps numeric and boolean primitives while required text is incomplete
+ok 75 - form draft switch keeps numeric and boolean primitives while required text is incomplete
+  ---
+  duration_ms: 44.029412
+  type: 'test'
+  ...
+# Subtest: shared drawer prepared freezes boolean labels and optional clear without losing drafts
+ok 76 - shared drawer prepared freezes boolean labels and optional clear without losing drafts
+  ---
+  duration_ms: 119.962746
+  type: 'test'
+  ...
+# Subtest: shared drawer busy freezes boolean labels and optional clear without losing drafts
+ok 77 - shared drawer busy freezes boolean labels and optional clear without losing drafts
+  ---
+  duration_ms: 114.895603
+  type: 'test'
+  ...
+# Subtest: public MyControl respects props.disabled and retains a disabled field override
+ok 78 - public MyControl respects props.disabled and retains a disabled field override
+  ---
+  duration_ms: 21.620728
+  type: 'test'
+  ...
+# Subtest: R1 file picker and drag-drop route through the same trusted import, never install or run
+ok 79 - R1 file picker and drag-drop route through the same trusted import, never install or run
+  ---
+  duration_ms: 65.03778
+  type: 'test'
+  ...
+# Subtest: R1 malformed, multiple and disguised file import fail closed without Host admission
+ok 80 - R1 malformed, multiple and disguised file import fail closed without Host admission
+  ---
+  duration_ms: 6.552901
+  type: 'test'
+  ...
+# Subtest: R1 task package reaches only the existing Host candidate importer, not installer
+ok 81 - R1 task package reaches only the existing Host candidate importer, not installer
+  ---
+  duration_ms: 4.803306
+  type: 'test'
+  ...
+# Subtest: R1 valid Program Draft goes to the original authoring route and catalog JS uses same Host bridge
+ok 82 - R1 valid Program Draft goes to the original authoring route and catalog JS uses same Host bridge
+  ---
+  duration_ms: 10.390913
+  type: 'test'
+  ...
+# Subtest: R1 existing immutable Task version reports idempotent duplicate or actionable conflict
+ok 83 - R1 existing immutable Task version reports idempotent duplicate or actionable conflict
+  ---
+  duration_ms: 5.731229
+  type: 'test'
+  ...
+# Subtest: management success notification: install
+ok 84 - management success notification: install
+  ---
+  duration_ms: 44.371799
+  type: 'test'
+  ...
+# Subtest: management success notification preserves legacy fallback: install
+ok 85 - management success notification preserves legacy fallback: install
+  ---
+  duration_ms: 9.484292
+  type: 'test'
+  ...
+# Subtest: management success notification keeps unknown failure persistent: install
+ok 86 - management success notification keeps unknown failure persistent: install
+  ---
+  duration_ms: 9.220099
+  type: 'test'
+  ...
+# Subtest: management success notification ignores disposed receipt: install
+ok 87 - management success notification ignores disposed receipt: install
+  ---
+  duration_ms: 8.613742
+  type: 'test'
+  ...
+# Subtest: management success notification ignores disposed refresh: install
+ok 88 - management success notification ignores disposed refresh: install
+  ---
+  duration_ms: 10.417887
+  type: 'test'
+  ...
+# Subtest: management success notification: disable
+ok 89 - management success notification: disable
+  ---
+  duration_ms: 5.875144
+  type: 'test'
+  ...
+# Subtest: management success notification preserves legacy fallback: disable
+ok 90 - management success notification preserves legacy fallback: disable
+  ---
+  duration_ms: 3.514039
+  type: 'test'
+  ...
+# Subtest: management success notification keeps unknown failure persistent: disable
+ok 91 - management success notification keeps unknown failure persistent: disable
+  ---
+  duration_ms: 4.763917
+  type: 'test'
+  ...
+# Subtest: management success notification ignores disposed receipt: disable
+ok 92 - management success notification ignores disposed receipt: disable
+  ---
+  duration_ms: 4.465195
+  type: 'test'
+  ...
+# Subtest: management success notification ignores disposed refresh: disable
+ok 93 - management success notification ignores disposed refresh: disable
+  ---
+  duration_ms: 6.367328
+  type: 'test'
+  ...
+# Subtest: management success notification: enable
+ok 94 - management success notification: enable
+  ---
+  duration_ms: 6.772746
+  type: 'test'
+  ...
+# Subtest: management success notification preserves legacy fallback: enable
+ok 95 - management success notification preserves legacy fallback: enable
+  ---
+  duration_ms: 5.754283
+  type: 'test'
+  ...
+# Subtest: management success notification keeps unknown failure persistent: enable
+ok 96 - management success notification keeps unknown failure persistent: enable
+  ---
+  duration_ms: 3.800992
+  type: 'test'
+  ...
+# Subtest: management success notification ignores disposed receipt: enable
+ok 97 - management success notification ignores disposed receipt: enable
+  ---
+  duration_ms: 3.653939
+  type: 'test'
+  ...
+# Subtest: management success notification ignores disposed refresh: enable
+ok 98 - management success notification ignores disposed refresh: enable
+  ---
+  duration_ms: 5.177972
+  type: 'test'
+  ...
+# Subtest: management success notification: uninstall
+ok 99 - management success notification: uninstall
+  ---
+  duration_ms: 4.769175
+  type: 'test'
+  ...
+# Subtest: management success notification preserves legacy fallback: uninstall
+ok 100 - management success notification preserves legacy fallback: uninstall
+  ---
+  duration_ms: 3.544384
+  type: 'test'
+  ...
+# Subtest: management success notification keeps unknown failure persistent: uninstall
+ok 101 - management success notification keeps unknown failure persistent: uninstall
+  ---
+  duration_ms: 3.414548
+  type: 'test'
+  ...
+# Subtest: management success notification ignores disposed receipt: uninstall
+ok 102 - management success notification ignores disposed receipt: uninstall
+  ---
+  duration_ms: 4.261939
+  type: 'test'
+  ...
+# Subtest: management success notification ignores disposed refresh: uninstall
+ok 103 - management success notification ignores disposed refresh: uninstall
+  ---
+  duration_ms: 3.168195
+  type: 'test'
+  ...
+# Subtest: manual installed Run uses the reviewed duration and keeps the legacy 30 second default
+ok 104 - manual installed Run uses the reviewed duration and keeps the legacy 30 second default
+  ---
+  duration_ms: 19.415353
+  type: 'test'
+  ...
+# Subtest: ordinary Task Run returns immediately while the agent receives its exact completion
+ok 105 - ordinary Task Run returns immediately while the agent receives its exact completion
+  ---
+  duration_ms: 10.741867
+  type: 'test'
+  ...
+# Subtest: real Agent + Workbench blocks RunHost after model revocation during installed-task lookup
+ok 106 - real Agent + Workbench blocks RunHost after model revocation during installed-task lookup
+  ---
+  duration_ms: 12.911895
+  type: 'test'
+  ...
+# Subtest: real Agent + Workbench blocks RunHost after AI Stop during installed-task lookup
+ok 107 - real Agent + Workbench blocks RunHost after AI Stop during installed-task lookup
+  ---
+  duration_ms: 4.984219
+  type: 'test'
+  ...
+# Subtest: real Agent + Workbench blocks RunHost after missing model grant without an event during installed-task lookup
+ok 108 - real Agent + Workbench blocks RunHost after missing model grant without an event during installed-task lookup
+  ---
+  duration_ms: 6.082408
+  type: 'test'
+  ...
+# Subtest: real Agent + Workbench runs normally and AI Stop preserves an already submitted Host run
+ok 109 - real Agent + Workbench runs normally and AI Stop preserves an already submitted Host run
+  ---
+  duration_ms: 4.615673
+  type: 'test'
+  ...
+# Subtest: legacy first-run migration refreshes the installed identity before the next explicit Run
+ok 110 - legacy first-run migration refreshes the installed identity before the next explicit Run
+  ---
+  duration_ms: 11.777331
+  type: 'test'
+  ...
+# Subtest: Task Install requests only missing access on the trusted click and never installs after denial or close
+ok 111 - Task Install requests only missing access on the trusted click and never installs after denial or close
+  ---
+  duration_ms: 17.416294
+  type: 'test'
+  ...
+# Subtest: R25.1 fixed-version manager can focus an installed disabled Task without running it
+ok 112 - R25.1 fixed-version manager can focus an installed disabled Task without running it
+  ---
+  duration_ms: 1.248436
+  type: 'test'
+  ...
+# Subtest: entering Sidebar task views reads external installations without executing and preserves unchanged form inputs
+ok 113 - entering Sidebar task views reads external installations without executing and preserves unchanged form inputs
+  ---
+  duration_ms: 14.101613
+  type: 'test'
+  ...
+# Subtest: installed tasks default page, render schema form and freeze the exact saved version/params/target
+ok 114 - installed tasks default page, render schema form and freeze the exact saved version/params/target
+  ---
+  duration_ms: 18.479916
+  type: 'test'
+  ...
+# Subtest: installed task can be explicitly forked into an independent unsaved editor draft
+ok 115 - installed task can be explicitly forked into an independent unsaved editor draft
+  ---
+  duration_ms: 4.624205
+  type: 'test'
+  ...
+# Subtest: task Stop cannot cancel another view's in-flight draft; parameter form never navigates
+ok 116 - task Stop cannot cancel another view's in-flight draft; parameter form never navigates
+  ---
+  duration_ms: 6.070745
+  type: 'test'
+  ...
+# Subtest: installed task refuses stale target after async installed-version lookup
+ok 117 - installed task refuses stale target after async installed-version lookup
+  ---
+  duration_ms: 8.191479
+  type: 'test'
+  ...
+# Subtest: task cards retain readable selection and do not surface raw IDs as the main UI
+ok 118 - task cards retain readable selection and do not surface raw IDs as the main UI
+  ---
+  duration_ms: 620.895368
+  type: 'test'
+  ...
+# Subtest: shared Task run sheet shortens visual labels without changing accessible names or action labels
+ok 119 - shared Task run sheet shortens visual labels without changing accessible names or action labels
+  ---
+  duration_ms: 63.180401
+  type: 'test'
+  ...
+# Subtest: multiline paste preserves exact JSON parameters and prevents lossy Input switch
+ok 120 - multiline paste preserves exact JSON parameters and prevents lossy Input switch
+  ---
+  duration_ms: 14.577551
+  type: 'test'
+  ...
+# Subtest: My keeps search inside installed task management without executing or requesting permissions
+ok 121 - My keeps search inside installed task management without executing or requesting permissions
+  ---
+  duration_ms: 12.605762
+  type: 'test'
+  ...
+# Subtest: My Escape closes task management, clears filters and returns focus without Run
+ok 122 - My Escape closes task management, clears filters and returns focus without Run
+  ---
+  duration_ms: 9.259146
+  type: 'test'
+  ...
+# Subtest: My search Escape clears query first, keeps active filter and focus, then closes on second Escape
+ok 123 - My search Escape clears query first, keeps active filter and focus, then closes on second Escape
+  ---
+  duration_ms: 9.289132
+  type: 'test'
+  ...
+# Subtest: My task filters use the one installed list and never run or grant permissions
+ok 124 - My task filters use the one installed list and never run or grant permissions
+  ---
+  duration_ms: 13.449326
+  type: 'test'
+  ...
+# Subtest: opening the separate full-size catalog preserves its import and management view
+ok 125 - opening the separate full-size catalog preserves its import and management view
+  ---
+  duration_ms: 3.351342
+  type: 'test'
+  ...
+# Subtest: full-size catalog keeps its own reader after real install and re-reads the single Task Catalog state
+ok 126 - full-size catalog keeps its own reader after real install and re-reads the single Task Catalog state
+  ---
+  duration_ms: 7.94358
+  type: 'test'
+  ...
+# Subtest: R4 idle Extensions has no fixed footer and My task search import still opens the authenticated catalog
+ok 127 - R4 idle Extensions has no fixed footer and My task search import still opens the authenticated catalog
+  ---
+  duration_ms: 12.201391
+  type: 'test'
+  ...
+# Subtest: R5 result/history stay out of sight until a task has runs
+ok 128 - R5 result/history stay out of sight until a task has runs
+  ---
+  duration_ms: 6.585078
+  type: 'test'
+  ...
+# Subtest: card view retains original action identities, history and parameter form across tab changes
+ok 129 - card view retains original action identities, history and parameter form across tab changes
+  ---
+  duration_ms: 10.107128
+  type: 'test'
+  ...
+# Subtest: reopening My Tasks restores independent parameter drafts without permissions or execution
+ok 130 - reopening My Tasks restores independent parameter drafts without permissions or execution
+  ---
+  duration_ms: 7.596405
+  type: 'test'
+  ...
+# Subtest: switching between two installed tasks preserves each independent unsaved parameter input
+ok 131 - switching between two installed tasks preserves each independent unsaved parameter input
+  ---
+  duration_ms: 3.161275
+  type: 'test'
+  ...
+# Subtest: R4 accessible five production tabs support Arrow and Home/End
+ok 132 - R4 accessible five production tabs support Arrow and Home/End
+  ---
+  duration_ms: 220.257721
+  type: 'test'
+  ...
+# Subtest: R4 task selection and My management search retain React row identity; DOM focus needs Chrome
+ok 133 - R4 task selection and My management search retain React row identity; DOM focus needs Chrome
+  ---
+  duration_ms: 7.934421
+  type: 'test'
+  ...
+# Subtest: R32 visible Cloud tab selects its existing panel without execution or permission requests
+ok 134 - R32 visible Cloud tab selects its existing panel without execution or permission requests
+  ---
+  duration_ms: 32.906212
+  type: 'test'
+  ...
+# Subtest: twenty installed Task runs never request Chrome permission; revoked access stops admission
+ok 135 - twenty installed Task runs never request Chrome permission; revoked access stops admission
+  ---
+  duration_ms: 97.651647
+  type: 'test'
+  ...
+# Subtest: R6 late run start/result cannot become the newly selected task status
+ok 136 - R6 late run start/result cannot become the newly selected task status
+  ---
+  duration_ms: 10.588152
+  type: 'test'
+  ...
+# Subtest: R6 previous-version notices and results do not leak after installed upgrade
+ok 137 - R6 previous-version notices and results do not leak after installed upgrade
+  ---
+  duration_ms: 9.370615
+  type: 'test'
+  ...
+# Subtest: two extension documents share only a refresh hint and re-read authoritative installed state
+ok 138 - two extension documents share only a refresh hint and re-read authoritative installed state
+  ---
+  duration_ms: 12.830292
+  type: 'test'
+  ...
+# Subtest: catalog installation stays in the complete directory and directs running back to Sidebar
+ok 139 - catalog installation stays in the complete directory and directs running back to Sidebar
+  ---
+  duration_ms: 6.976193
+  type: 'test'
+  ...
+# Subtest: compact task Add rejects Sidebar Tool packages and explains the correct import tab
+not ok 140 - compact task Add rejects Sidebar Tool packages and explains the correct import tab
+  ---
+  duration_ms: 4.329698
+  type: 'test'
+  location: '/workspace/scratch/405ab6bc5281/opendesk-browser/tests/environment/task-workbench.test.mjs:931:1'
+  failureType: 'testCodeFailure'
+  error: |-
+    The input did not match the regular expression /扩展工具包/. Input:
+    
+    'E_TASK_FILE_KIND：这是 Sidebar Tool 扩展包，请在「扩展」使用原可信安装入口\n' +
+      '建议：请核对文件类型、真实 format 与内容，修正后重新选择；文件导入本身不会执行或安装。'
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected:
+  actual: |-
+    E_TASK_FILE_KIND：这是 Sidebar Tool 扩展包，请在「扩展」使用原可信安装入口
+    建议：请核对文件类型、真实 format 与内容，修正后重新选择；文件导入本身不会执行或安装。
+  operator: 'match'
+  stack: |-
+    TestContext.<anonymous> (file:///workspace/scratch/405ab6bc5281/opendesk-browser/tests/environment/task-workbench.test.mjs:937:10)
+    async Test.run (node:internal/test_runner/test:1409:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:974:7)
+  ...
+# Subtest: catalog JS import hands source to Sidebar and never enters a view with a hidden runner
+not ok 141 - catalog JS import hands source to Sidebar and never enters a view with a hidden runner
+  ---
+  duration_ms: 4.400936
+  type: 'test'
+  location: '/workspace/scratch/405ab6bc5281/opendesk-browser/tests/environment/task-workbench.test.mjs:943:1'
+  failureType: 'testCodeFailure'
+  error: |-
+    Expected values to be strictly equal:
+    
+    'draft.js' !== ''
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: ''
+  actual: 'draft.js'
+  operator: 'strictEqual'
+  stack: |-
+    TestContext.<anonymous> (file:///workspace/scratch/405ab6bc5281/opendesk-browser/tests/environment/task-workbench.test.mjs:954:10)
+    async Test.run (node:internal/test_runner/test:1409:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:974:7)
+  ...
+# Subtest: missing Sidebar refuses import with an actionable message, without losing the directory
+not ok 142 - missing Sidebar refuses import with an actionable message, without losing the directory
+  ---
+  duration_ms: 3.82343
+  type: 'test'
+  location: '/workspace/scratch/405ab6bc5281/opendesk-browser/tests/environment/task-workbench.test.mjs:957:1'
+  failureType: 'testCodeFailure'
+  error: |-
+    Expected values to be strictly equal:
+    
+    'draft.js' !== ''
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: ''
+  actual: 'draft.js'
+  operator: 'strictEqual'
+  stack: |-
+    TestContext.<anonymous> (file:///workspace/scratch/405ab6bc5281/opendesk-browser/tests/environment/task-workbench.test.mjs:965:42)
+    async Test.run (node:internal/test_runner/test:1409:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:974:7)
+  ...
+# Subtest: catalog draft transport errors retain their cause instead of claiming Sidebar is missing
+not ok 143 - catalog draft transport errors retain their cause instead of claiming Sidebar is missing
+  ---
+  duration_ms: 2.951748
+  type: 'test'
+  location: '/workspace/scratch/405ab6bc5281/opendesk-browser/tests/environment/task-workbench.test.mjs:968:1'
+  failureType: 'testCodeFailure'
+  error: |-
+    Expected values to be strictly equal:
+    
+    'draft.js' !== ''
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: ''
+  actual: 'draft.js'
+  operator: 'strictEqual'
+  stack: |-
+    TestContext.<anonymous> (file:///workspace/scratch/405ab6bc5281/opendesk-browser/tests/environment/task-workbench.test.mjs:975:10)
+    async Test.run (node:internal/test_runner/test:1409:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:974:7)
+  ...
+# Subtest: receiving a source-only import selects Sidebar Developer without creating a run
+ok 144 - receiving a source-only import selects Sidebar Developer without creating a run
+  ---
+  duration_ms: 3.250732
+  type: 'test'
+  ...
+# Subtest: R6.1 task-owned Stop is the sole cross-view action and names the launching task
+ok 145 - R6.1 task-owned Stop is the sole cross-view action and names the launching task
+  ---
+  duration_ms: 17.292703
+  type: 'test'
+  ...
+# Subtest: R4 draft-owned run exposes only its Stop while viewing My or Extensions
+ok 146 - R4 draft-owned run exposes only its Stop while viewing My or Extensions
+  ---
+  duration_ms: 3.764791
+  type: 'test'
+  ...
+# Subtest: R6.1 stop-only footer CSS hides all non-owner actions without hiding Stop
+ok 147 - R6.1 stop-only footer CSS hides all non-owner actions without hiding Stop
+  ---
+  duration_ms: 1.736284
+  type: 'test'
+  ...
+# Subtest: catalog project JSON import validates snapshots and hands frozen bytes to Sidebar without running
+not ok 148 - catalog project JSON import validates snapshots and hands frozen bytes to Sidebar without running
+  ---
+  duration_ms: 5.556359
+  type: 'test'
+  location: '/workspace/scratch/405ab6bc5281/opendesk-browser/tests/environment/task-workbench.test.mjs:1033:1'
+  failureType: 'testCodeFailure'
+  error: |-
+    Expected values to be strictly equal:
+    + actual - expected
+    
+    + 'program.opendesk-draft.json'
+    - ''
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: ''
+  actual: 'program.opendesk-draft.json'
+  operator: 'strictEqual'
+  stack: |-
+    TestContext.<anonymous> (file:///workspace/scratch/405ab6bc5281/opendesk-browser/tests/environment/task-workbench.test.mjs:1043:10)
+    async Test.run (node:internal/test_runner/test:1409:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:974:7)
+  ...
+# Subtest: catalog rejects a changed project snapshot before handoff and permits reselecting the file
+not ok 149 - catalog rejects a changed project snapshot before handoff and permits reselecting the file
+  ---
+  duration_ms: 5.150824
+  type: 'test'
+  location: '/workspace/scratch/405ab6bc5281/opendesk-browser/tests/environment/task-workbench.test.mjs:1046:1'
+  failureType: 'testCodeFailure'
+  error: |-
+    Expected values to be strictly equal:
+    + actual - expected
+    
+    + 'program.opendesk-draft.json'
+    - ''
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: ''
+  actual: 'program.opendesk-draft.json'
+  operator: 'strictEqual'
+  stack: |-
+    TestContext.<anonymous> (file:///workspace/scratch/405ab6bc5281/opendesk-browser/tests/environment/task-workbench.test.mjs:1055:10)
+    async Test.run (node:internal/test_runner/test:1409:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:974:7)
+  ...
+# Subtest: R8 R2 task history masks sensitive values and exposes only durable technical identifiers
+ok 150 - R8 R2 task history masks sensitive values and exposes only durable technical identifiers
+  ---
+  duration_ms: 21.074569
+  type: 'test'
+  ...
+# Subtest: R8 R2 a persisted timeout gives an actionable warning without leaking request credentials
+ok 151 - R8 R2 a persisted timeout gives an actionable warning without leaking request credentials
+  ---
+  duration_ms: 3.772132
+  type: 'test'
+  ...
+# Subtest: R8 R2 an unresolved persisted run warns before an unsafe repeat
+ok 152 - R8 R2 an unresolved persisted run warns before an unsafe repeat
+  ---
+  duration_ms: 4.377191
+  type: 'test'
+  ...
+# Subtest: R32 an in-flight task keeps its original Stop owner across Tools and Cloud navigation
+ok 153 - R32 an in-flight task keeps its original Stop owner across Tools and Cloud navigation
+  ---
+  duration_ms: 10.205061
+  type: 'test'
+  ...
+# Subtest: R14.1 pending task RunHost admission cannot borrow the Developer Stop dock
+ok 154 - R14.1 pending task RunHost admission cannot borrow the Developer Stop dock
+  ---
+  duration_ms: 12.747147
+  type: 'test'
+  ...
+# Subtest: Final R2 tool navigation refusal leaves the selected pane and tab intact
+ok 155 - Final R2 tool navigation refusal leaves the selected pane and tab intact
+  ---
+  duration_ms: 9.121257
+  type: 'test'
+  ...
+# Subtest: tool editor navigation veto retains visible panel, selected tab and keyboard focus
+ok 156 - tool editor navigation veto retains visible panel, selected tab and keyboard focus
+  ---
+  duration_ms: 17.578327
+  type: 'test'
+  ...
+# Subtest: Scheduled Tasks preserves the idle stop-only dock and never borrows scheduled Run as Developer Stop
+ok 157 - Scheduled Tasks preserves the idle stop-only dock and never borrows scheduled Run as Developer Stop
+  ---
+  duration_ms: 2.34066
+  type: 'test'
+  ...
+# Subtest: Workflow Task one-shot review handoff preselects exact candidate and runId but never verifies or installs
+ok 158 - Workflow Task one-shot review handoff preselects exact candidate and runId but never verifies or installs
+  ---
+  duration_ms: 6.628505
+  type: 'test'
+  ...
+# Subtest: Workflow Task review handoff rejects stale/wrong-hash hints without altering Task authority
+ok 159 - Workflow Task review handoff rejects stale/wrong-hash hints without altering Task authority
+  ---
+  duration_ms: 5.680447
+  type: 'test'
+  ...
+# Subtest: R6 Workflow handoff overrides an old directory default and clears a mismatched verification RunId
+ok 160 - R6 Workflow handoff overrides an old directory default and clears a mismatched verification RunId
+  ---
+  duration_ms: 10.141795
+  type: 'test'
+  ...
+# Subtest: R6 user selection during asynchronous handoff read is never overridden
+ok 161 - R6 user selection during asynchronous handoff read is never overridden
+  ---
+  duration_ms: 10.375013
+  type: 'test'
+  ...
+# Subtest: R6 Task reader reveals read-only exact frozen source and typed parameters without execution
+ok 162 - R6 Task reader reveals read-only exact frozen source and typed parameters without execution
+  ---
+  duration_ms: 5.25701
+  type: 'test'
+  ...
+# Subtest: R24 one installed management list opens focused actions and cancel protects installation
+ok 163 - R24 one installed management list opens focused actions and cancel protects installation
+  ---
+  duration_ms: 26.527592
+  type: 'test'
+  ...
+# Subtest: R23.37 formal Developer Task candidate hashes intent templates and visible readback into a new package
+ok 164 - R23.37 formal Developer Task candidate hashes intent templates and visible readback into a new package
+  ---
+  duration_ms: 6.419999
+  type: 'test'
+  ...
+# Subtest: runtime recovery exposes reverify but blocks stale verified candidate publication, install and Run
+ok 165 - runtime recovery exposes reverify but blocks stale verified candidate publication, install and Run
+  ---
+  duration_ms: 12.121949
+  type: 'test'
+  ...
+# Subtest: runtime recovery exposes reverify but blocks stale available candidate publication, install and Run
+ok 166 - runtime recovery exposes reverify but blocks stale available candidate publication, install and Run
+  ---
+  duration_ms: 11.143435
+  type: 'test'
+  ...
+# Subtest: runtime recovery requires fresh proof and explicit same-version reinstall before Run
+ok 167 - runtime recovery requires fresh proof and explicit same-version reinstall before Run
+  ---
+  duration_ms: 13.644869
+  type: 'test'
+  ...
+# Subtest: tasks.open recovery focuses disabled installations without enabling, installing or running
+ok 168 - tasks.open recovery focuses disabled installations without enabling, installing or running
+  ---
+  duration_ms: 1.201143
+  type: 'test'
+  ...
+# Subtest: tasks.open recovery uses only the original full-page directory and validates task identity
+ok 169 - tasks.open recovery uses only the original full-page directory and validates task identity
+  ---
+  duration_ms: 1.223476
+  type: 'test'
+  ...
+# Subtest: full-page recovery selects latest reviewable fixed candidate and presents builtin release without runId
+ok 170 - full-page recovery selects latest reviewable fixed candidate and presents builtin release without runId
+  ---
+  duration_ms: 3.728106
+  type: 'test'
+  ...
+# Subtest: full-page recovery treats hostile URL hints as invalid and preserves a choice made while loading
+ok 171 - full-page recovery treats hostile URL hints as invalid and preserves a choice made while loading
+  ---
+  duration_ms: 4.42979
+  type: 'test'
+  ...
+# Subtest: directory refresh exposes initialization failure details and never equates ready with installed
+ok 172 - directory refresh exposes initialization failure details and never equates ready with installed
+  ---
+  duration_ms: 3.480901
+  type: 'test'
+  ...
+# Subtest: recovery keeps pending candidates reviewable and builtin installation uses the existing permission and CAS path
+ok 173 - recovery keeps pending candidates reviewable and builtin installation uses the existing permission and CAS path
+  ---
+  duration_ms: 10.014191
+  type: 'test'
+  ...
+# Subtest: shared sheet opens without Run, freezes actual Schema params, confirms once through original Host
+ok 174 - shared sheet opens without Run, freezes actual Schema params, confirms once through original Host
+  ---
+  duration_ms: 7.830268
+  type: 'test'
+  ...
+# Subtest: owned shared sheet keeps the independent destination through original approval without capturing A
+ok 175 - owned shared sheet keeps the independent destination through original approval without capturing A
+  ---
+  duration_ms: 9.392469
+  type: 'test'
+  ...
+# Subtest: Page request uses original approval sheet, locks exact input and submits owned target once
+ok 176 - Page request uses original approval sheet, locks exact input and submits owned target once
+  ---
+  duration_ms: 10.523875
+  type: 'test'
+  ...
+# Subtest: Page source revocation before prepare never starts a Run
+ok 177 - Page source revocation before prepare never starts a Run
+  ---
+  duration_ms: 4.578406
+  type: 'test'
+  ...
+# Subtest: Page source revocation before confirm never starts a Run
+ok 178 - Page source revocation before confirm never starts a Run
+  ---
+  duration_ms: 6.201052
+  type: 'test'
+  ...
+# Subtest: late Page request lookup cannot reopen a closed sheet or replace another request
+ok 179 - late Page request lookup cannot reopen a closed sheet or replace another request
+  ---
+  duration_ms: 3.496724
+  type: 'test'
+  ...
+# Subtest: prepared WebFlow parameters with newlines recover in JSON without changing Host bytes
+ok 180 - prepared WebFlow parameters with newlines recover in JSON without changing Host bytes
+  ---
+  duration_ms: 4.964691
+  type: 'test'
+  ...
+# Subtest: shared sheet lost save acknowledgement retains same identity and only queries or cancels
+ok 181 - shared sheet lost save acknowledgement retains same identity and only queries or cancels
+  ---
+  duration_ms: 9.583047
+  type: 'test'
+  ...
+# Subtest: shared sheet rejects stale document and synthetic prepare without submitting
+ok 182 - shared sheet rejects stale document and synthetic prepare without submitting
+  ---
+  duration_ms: 7.015202
+  type: 'test'
+  ...
+# Subtest: My parameter discovery arriving after closed preserves the current UI and draft
+ok 183 - My parameter discovery arriving after closed preserves the current UI and draft
+  ---
+  duration_ms: 4.494598
+  type: 'test'
+  ...
+# Subtest: My parameter discovery arriving after new task preserves the current UI and draft
+ok 184 - My parameter discovery arriving after new task preserves the current UI and draft
+  ---
+  duration_ms: 5.60966
+  type: 'test'
+  ...
+# Subtest: same preparation query arriving after sheet close cannot reopen it
+ok 185 - same preparation query arriving after sheet close cannot reopen it
+  ---
+  duration_ms: 6.013793
+  type: 'test'
+  ...
+# Subtest: configuration resolution requests metadata while execution keeps its original resolution
+ok 186 - configuration resolution requests metadata while execution keeps its original resolution
+  ---
+  duration_ms: 5.769027
+  type: 'test'
+  ...
+# Subtest: Panel and PC instances retain separate drafts and PC waits for its own stable Tab scope
+ok 187 - Panel and PC instances retain separate drafts and PC waits for its own stable Tab scope
+  ---
+  duration_ms: 18.893682
+  type: 'test'
+  ...
+# Subtest: preparation query cannot display another request identity
+ok 188 - preparation query cannot display another request identity
+  ---
+  duration_ms: 6.201888
+  type: 'test'
+  ...
+# Subtest: late My discovery error cannot change a newly opened sheet status
+ok 189 - late My discovery error cannot change a newly opened sheet status
+  ---
+  duration_ms: 5.621338
+  type: 'test'
+  ...
+# Subtest: Authority settlement is explicit (false) and original records survive uninstall
+ok 190 - Authority settlement is explicit (false) and original records survive uninstall
+  ---
+  duration_ms: 6.38807
+  type: 'test'
+  ...
+# Subtest: Authority settlement is explicit (true) and original records survive uninstall
+ok 191 - Authority settlement is explicit (true) and original records survive uninstall
+  ---
+  duration_ms: 6.028786
+  type: 'test'
+  ...
+# Subtest: explicit original preparation lookup fails closed on a missing or different record
+ok 192 - explicit original preparation lookup fails closed on a missing or different record
+  ---
+  duration_ms: 2.768139
+  type: 'test'
+  ...
+# Subtest: late prepare resolve cannot replace or unlock a newer sheet
+ok 193 - late prepare resolve cannot replace or unlock a newer sheet
+  ---
+  duration_ms: 7.316279
+  type: 'test'
+  ...
+# Subtest: late prepare reject cannot replace or unlock a newer sheet
+ok 194 - late prepare reject cannot replace or unlock a newer sheet
+  ---
+  duration_ms: 8.071084
+  type: 'test'
+  ...
+# Subtest: late cancel resolve cannot replace or unlock a newer sheet
+not ok 195 - late cancel resolve cannot replace or unlock a newer sheet
+  ---
+  duration_ms: 10.234085
+  type: 'test'
+  location: '/workspace/scratch/405ab6bc5281/opendesk-browser/tests/environment/task-workbench.test.mjs:1915:3'
+  failureType: 'testCodeFailure'
+  error: '已有其他任务或应用身份的准备占用；请从原入口查询或取消，不能确认执行'
+  code: 'E_TASK_BUSY'
+  ...
+# Subtest: late cancel reject cannot replace or unlock a newer sheet
+not ok 196 - late cancel reject cannot replace or unlock a newer sheet
+  ---
+  duration_ms: 9.754717
+  type: 'test'
+  location: '/workspace/scratch/405ab6bc5281/opendesk-browser/tests/environment/task-workbench.test.mjs:1915:3'
+  failureType: 'testCodeFailure'
+  error: '已有其他任务或应用身份的准备占用；请从原入口查询或取消，不能确认执行'
+  code: 'E_TASK_BUSY'
+  ...
+# Subtest: settlement undefined does not depend on visible results or global slot
+ok 197 - settlement undefined does not depend on visible results or global slot
+  ---
+  duration_ms: 6.273597
+  type: 'test'
+  ...
+# Subtest: settlement false does not depend on visible results or global slot
+ok 198 - settlement false does not depend on visible results or global slot
+  ---
+  duration_ms: 6.089167
+  type: 'test'
+  ...
+# Subtest: settlement true does not depend on visible results or global slot
+ok 199 - settlement true does not depend on visible results or global slot
+  ---
+  duration_ms: 5.920191
+  type: 'test'
+  ...
+# Subtest: uninstalled recovery cancels only the original preparation identity
+not ok 200 - uninstalled recovery cancels only the original preparation identity
+  ---
+  duration_ms: 4.868987
+  type: 'test'
+  location: '/workspace/scratch/405ab6bc5281/opendesk-browser/tests/environment/task-workbench.test.mjs:1950:1'
+  failureType: 'testCodeFailure'
+  error: '已有其他任务或应用身份的准备占用；请从原入口查询或取消，不能确认执行'
+  code: 'E_REVISION'
+  ...
+# Subtest: run start failure after sheet closed cannot write a later sheet epoch
+ok 201 - run start failure after sheet closed cannot write a later sheet epoch
+  ---
+  duration_ms: 9.574614
+  type: 'test'
+  ...
+# Subtest: run start failure after sheet reopened cannot write a later sheet epoch
+ok 202 - run start failure after sheet reopened cannot write a later sheet epoch
+  ---
+  duration_ms: 9.254589
+  type: 'test'
+  ...
+# Subtest: run start receipt after sheet closed cannot write a later sheet epoch
+ok 203 - run start receipt after sheet closed cannot write a later sheet epoch
+  ---
+  duration_ms: 10.333296
+  type: 'test'
+  ...
+# Subtest: run start receipt after sheet reopened cannot write a later sheet epoch
+ok 204 - run start receipt after sheet reopened cannot write a later sheet epoch
+  ---
+  duration_ms: 10.599259
+  type: 'test'
+  ...
+# Subtest: run final lookup receipt after sheet closed cannot write a later sheet epoch
+ok 205 - run final lookup receipt after sheet closed cannot write a later sheet epoch
+  ---
+  duration_ms: 17.506928
+  type: 'test'
+  ...
+# Subtest: run final lookup receipt after sheet reopened cannot write a later sheet epoch
+ok 206 - run final lookup receipt after sheet reopened cannot write a later sheet epoch
+  ---
+  duration_ms: 11.825329
+  type: 'test'
+  ...
+# Subtest: run final lookup failure after sheet closed cannot write a later sheet epoch
+ok 207 - run final lookup failure after sheet closed cannot write a later sheet epoch
+  ---
+  duration_ms: 17.243233
+  type: 'test'
+  ...
+# TASK_WORKBENCH_EXIT_RESOURCES={"activeResources":["PipeWrap","PipeWrap"],"activeHandles":["Socket","Socket"]}
+# Subtest: run final lookup failure after sheet reopened cannot write a later sheet epoch
+ok 208 - run final lookup failure after sheet reopened cannot write a later sheet epoch
+  ---
+  duration_ms: 10.665449
+  type: 'test'
+  ...
+1..208
+# tests 208
+# suites 0
+# pass 199
+# fail 9
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 6179.790429

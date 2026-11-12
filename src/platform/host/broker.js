@@ -122,7 +122,7 @@ export async function recoverHostTab({api, storage, session, authority, consumer
 }
 
 export async function createFoundationBroker({api = chrome, ports = new Map(), clock = {now:()=>Date.now()}, indexedDB = globalThis.indexedDB,
-  templateConsumer,downloadEventsAttached=false,onToolUninstalled,withControllerAdmission,readMediaAsset,withTaskRunRecovery} = {}) {
+  templateConsumer,downloadEventsAttached=false,onToolUninstalled,withControllerAdmission,readMediaAsset,withTaskRunRecovery,projectPageTaskResult} = {}) {
   // The fixed SW package must never opt back into the legacy Template consumer
   // after its storage methods were eliminated at build time.
   if (!INCLUDE_DORMANT_TEMPLATE_RUNTIME && templateConsumer !== undefined)
@@ -143,13 +143,18 @@ export async function createFoundationBroker({api = chrome, ports = new Map(), c
     if (!port || port.registrationId !== registrationId) return;
     try { port.postMessage({protocol:PROTOCOL,registrationId,event}); } catch { /* The durable facts remain queryable. */ }
   };
-  const authority = createRunAuthority({storage,api,session,entitlement,validatePlan,clock,emitToHost,readMediaAsset,withTaskRunRecovery});
+  let installedPages;
+  const pageTaskSource={authorize:source=>installedPages.assertPageTaskSource(source),
+    inTransaction:(transaction,source)=>installedPages.assertPageTaskSourceInTransaction(transaction,source)};
+  const authority = createRunAuthority({storage,api,session,entitlement,validatePlan,clock,emitToHost,readMediaAsset,withTaskRunRecovery,
+    pageTaskSource,projectPageTaskResult});
   const downloads = createDownloadService({storage,api,clock,assertHost:authority.assertHost});
   const sdk = createSdkBroker({authority,storage,api,clock});
   const pageDependencies = createDependencyManager({api,storage,assertHost:authority.assertHost,clock});
   const pageScriptPreview = createPageScriptPreview({api,storage,assertHost:authority.assertHost,dependencies:pageDependencies,admission:authority.pagePreviewAdmission});
-  const installedPages=createInstalledPagePrograms({api,storage,assertHost:authority.assertHost,
-    dependencies:pageDependencies,preview:pageScriptPreview,admission:authority.pagePreviewAdmission,session,clock});
+  installedPages=createInstalledPagePrograms({api,storage,assertHost:authority.assertHost,
+    dependencies:pageDependencies,preview:pageScriptPreview,admission:authority.pagePreviewAdmission,session,clock,
+    onPageTask:(message,source)=>authority.handlePageTaskRequest(message,source)});
   const requestSdk = createSdkRequestHandler({sdk,authority});
   await authority.recover();
   if(!downloadEventsAttached)downloads.attach();
@@ -164,6 +169,7 @@ export async function createFoundationBroker({api = chrome, ports = new Map(), c
   await authority.schedules.reconcile();
   const authenticate = (request,sender) => authority.assertHost(sender, request.registrationId);
   const routes = {
+    ...createMethodRoutes(authority,['listPageTaskRequests','readPageTaskRequest']),
     ...createMethodRoutes(authority,['cloudStatus','cloudPair','cloudApprove','cloudRevokeResults','cloudCancelRequest','cloudStop','cloudUnpair','cloudClients','cloudClientGrant','cloudClientRevoke','cloudProgramInbox','cloudProgramFetch','cloudProgramReceived','cloudNext','cloudResolve','commitControllerScript','getControllerScript','listControllerScripts','prepareDelegatedStep','inspectDelegatedStep','cancelDelegatedStep','prepareTaskRun','inspectTaskRun','cancelTaskRun','listTaskRunPreparations','startControllerRun','controllerOperation','stopControllerRun','finishControllerRun','snapshotControllerRun','retireControllerTarget','tombstoneControllerScript','garbageCollectControllerScript','importTaskPackage','listTaskCatalog','getTaskCandidate','verifyTaskCandidate','makeTaskAvailable','installTask','setInstalledTaskEnabled','uninstallTask','resolveInstalledTask','saveSchedule','changeSchedule','listSchedules','listScheduleHistory','listDueSchedules','setScheduleFireState','grantSdk','inspectSdkGrant','revokeSdkGrant','registerHost']),
     ...createMethodRoutes(pageDependencies,['importPageCandidate','getPageCandidate']),
     ...createMethodRoutes(installedPages,['prepareAppPage','importAppPage','verifyAppPage','synchronizeAppPages','requestAppPage','importPageInstallPackage','prepareScrollSitePackage','readScrollSiteConfig','pickScrollSiteElement','observeScrollSitePage','saveScrollSiteRule','saveScrollNavigationSettings','listPagePrograms','verifyPageCandidate','makePageAvailable','installPageProgram','runInstalledPageProgram','sendQueueOperation','setInstalledPageEnabled','uninstallPageProgram']),

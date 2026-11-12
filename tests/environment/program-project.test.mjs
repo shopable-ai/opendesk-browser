@@ -4,6 +4,9 @@ import {mkdtemp,mkdir,writeFile,rm,readFile} from 'node:fs/promises';
 import {tmpdir} from 'node:os';
 import {join} from 'node:path';
 import {validateProgramProject} from '../../scripts/validate-program-project.mjs';
+import {pageHeader} from '../../scripts/build-program-project.mjs';
+import {readPageTaskDelegations} from '../../src/scripting/user-scripts/page-task-contract.js';
+import {digestUtf8} from '../../src/platform/protocol.js';
 
 const sample='examples/programs/page-heading';
 const sampleManifest=JSON.parse(await readFile(sample+'/package.json','utf8'));
@@ -19,6 +22,29 @@ async function fixture(fn) {
   } finally {await rm(root,{recursive:true,force:true});}
 }
 const rejects=code=>error=>error.code===code;
+
+test('Page task helper requires strict fixed project pins, and build metadata stays covered by source identity',async()=>{
+  await fixture(async(root,pkg)=>{
+    const pin={taskId:'reviewed.task',version:'1.0.0',manifestHash:'a'.repeat(64),contentHash:'b'.repeat(64),targetUrl:'https://example.com/'};
+    await writeFile(join(root,'src/main.js'),"import {createPageTaskClient} from '@opendesk/tasks';\nexport default function main(){return createPageTaskClient();}");
+    await assert.rejects(validateProgramProject(root),rejects('E_PAGE_TASK_SCOPE'));
+    pkg.opendesk.delegatedTasks=[pin];await writeFile(join(root,'package.json'),JSON.stringify(pkg));
+    assert.equal((await validateProgramProject(root)).status,'AUTHORING_VALID_NOT_PACKAGED');
+    const header=pageHeader(pkg,pkg.opendesk);
+    assert.deepEqual(readPageTaskDelegations(header),[pin]);
+    pkg.opendesk.delegatedTasks=[{...pin,contentHash:'c'.repeat(64)}];
+    assert.notEqual(await digestUtf8(pageHeader(pkg,pkg.opendesk)),await digestUtf8(header));
+    pkg.opendesk.delegatedTasks=[pin,pin];await writeFile(join(root,'package.json'),JSON.stringify(pkg));
+    await assert.rejects(validateProgramProject(root),rejects('E_PAGE_TASK_SCOPE'));
+    pkg.opendesk.delegatedTasks=[{...pin,targetUrl:'https://user:secret@example.com/'}];await writeFile(join(root,'package.json'),JSON.stringify(pkg));
+    await assert.rejects(validateProgramProject(root),rejects('E_PAGE_TASK_SCOPE'));
+    const schema=JSON.parse(await readFile('schemas/opendesk-program-project.v1.schema.json','utf8'));
+    const property=schema.$defs.page.allOf[1].properties.delegatedTasks;
+    assert.equal(property.maxItems,8);assert.equal(property.items.additionalProperties,false);
+    assert.deepEqual(property.items.required.slice().sort(),Object.keys(pin).sort());
+    assert.equal(schema.$defs.controller.allOf[1].properties.delegatedTasks,undefined);
+  });
+});
 
 test('multi-file ESM authoring project is a source contract, not an installed program',async()=>{
   const result=await validateProgramProject(sample);

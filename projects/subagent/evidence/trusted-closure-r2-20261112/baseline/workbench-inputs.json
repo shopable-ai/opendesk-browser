@@ -1,0 +1,31 @@
+{
+  "head": "f590505b84e13b0ac2d7789db7c4bedfb62d21aa",
+  "purpose": "Read-only baseline source/test comparison; no checkout or owner-file writes",
+  "overrides": {
+    "src/ui/task-workbench.js": {
+      "snapshot": "task-workbench.head.js",
+      "sha256": "0fd85a7daa9082bfea13b406e2584acfdf8256c1ab35467c65a64e79140d0b05",
+      "gitBlob": "7c7cdba6648bc8e4b16ea616a5b0b14a2f8bfc3e",
+      "ownerFileSha256Before": "378aaa6fe1ae4c0ad6e61a5d220c067ed913a24a34384814282e2076f1c9acb5",
+      "ownerFileSha256After": "378aaa6fe1ae4c0ad6e61a5d220c067ed913a24a34384814282e2076f1c9acb5"
+    },
+    "tests/environment/task-workbench.test.mjs": {
+      "snapshot": "task-workbench.test.head.mjs",
+      "sha256": "031831cf0303447d3cdda0c1b1ad7cd3a558d00562a4b0ad2d8bd28a143ea3ee",
+      "gitBlob": "67ee566063cb5a9d8a8607df19583cbb8fca8239",
+      "ownerFileSha256Before": "4aed87db1094380c63f1dd78b29138c3ec4987338378fdd8d512782b75dd2c83",
+      "ownerFileSha256After": "4aed87db1094380c63f1dd78b29138c3ec4987338378fdd8d512782b75dd2c83"
+    }
+  },
+  "command": [
+    "node",
+    "--loader",
+    "./artifacts/subagent-r2/baseline-audit/head-source-loader.mjs",
+    "--test",
+    "--test-reporter=tap",
+    "tests/environment/task-workbench.test.mjs"
+  ],
+  "exitCode": 1,
+  "node": "v24.22.1",
+  "headAfter": "f590505b84e13b0ac2d7789db7c4bedfb62d21aa"
+}

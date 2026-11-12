@@ -20,9 +20,13 @@
 
 ## 当前确切进度
 
-- 已有：独立 Page UI 入口、`src/mini-chat/` 的 Shadow DOM/输入/状态/回答展示，`src/contract.js` 受限的 `subagent.task.request.v1` 业务意图，单请求防重复、UNKNOWN 只读、结果身份校验及定向 Node 测试。**这些只是源码与隔离测试，不是业务通过。**
-- 正在等待：合法、通用的 Page→固定 Controller Task 委托与原 Run/Result 只读传递能力。现有 Page USER_SCRIPT 不具备 `tasks.run` 授权，网页自定义事件或 `postMessage` 不得作为可信用户触发。缺少真实受信 Bridge 时 UI 必须显示不可用，不能发送或展示虚构结果。
-- 未完成：B 的真实创建、输入、授权单发、完整回复、真实 A 页面结果展示；正式构建、安装与 Chrome 端到端验证均未通过。**不得宣布 AC01–AC10 已验收。**
+- 当前候选为 **Subagent 0.2.0**。`src/main.js` 已接入正式安装时才提供的 `@opendesk/tasks` 客户端；`src/transport.js` 只提交待审批请求、恢复和查询原请求。未安装、开发预览或旧 Browser 无此能力时仍禁用，不使用网页事件兜底。
+- Page 安装 scope 固定委托 **`chatgpt.conversation.create@0.2.0`**，同时绑定原不可变包的 manifest/source hash。原 Task 必须分别安装、启用并取得网站权限；这不是修改 WebFlow Sidebar Tool 的 delegatedTasks，也不是继承 R8 的发送授权。
+- 原 TaskWorkbench 已支持来自 Page 的冻结参数审阅和独立 owned 目标；“保存并核对”之后，真实用户“确认执行一次”才进入原 Controller。原 Page 安装、授权代次、来源 A tab/frame/document/URL 在准备、提交和读取时复核。
+- `trusted/page-task-result.js` 已注册到原 SW 的通用结果投影入口，调用 `trusted/result.js` 与既有 WebFlow Adapter，从原 Run/Result 取得完整 `replyText`。不使用 500 字预览，不调用向 A 官方聊天发送的交付路径。
+- 单请求恢复、迟到 ACK、并发读取、SPA 退役、撤权后重新授权不能另建请求，以及原审批 UI 已有本轮 Node/React fixture 证据。公共能力合同见 [Page USER_SCRIPT API](../../docs/api/page-userscript.zh-CN.md)。**源码接线和模拟测试不等于真实 Chrome 业务成功。**
+- 原 Browser production 构建及原包验证器已通过，131 个资源，packageHash `0b49abaabba5aa5a3d79f591dd31f331d316788f1fa0e392765e5f4d7e99cca0`，构建期间来源无漂移。Subagent 原 Page 构建仍为 `BUILT_UNVERIFIED / installable:false`，待原生验证和正式安装；不能把 Browser 包验证等同于 Page 已安装。
+- 未完成：当前候选的正式安装、真实 B 创建及原生单次发送、真实完整回复、A 页面回显和链接核验。OpenDesk 本机 Browser Core / Code 通道复查仍为 `UNAVAILABLE / 429`，没有本轮安装版本或 A/B Run/Result。AC01–AC10 尚无本轮真实 Chrome PASS。
 
 ## 实现顺序（避免重复）
 
@@ -32,18 +36,28 @@
 4. 用同一 requestId + 原 A tab/document/URL + 原 B tab/document/URL + Run/Result ID 交叉验证；刷新、旧结果、权限撤销和任何发送 UNKNOWN 只能查原记录，不得补发、新建 B 或偷偷发 A 官方消息。
 5. 离线模拟先测安全回归；必须另外取证真实 Chrome/Task 安装、真实 B 的单次原生发送、完整回答和原 A UI 展示，才能声明第一阶段完成。
 
-## R2 差量核对（2026-11-12；源代码层）
+## R2 起点差量核对（2026-11-12；保留历史）
 
 - **T01 = SDK_GAP_CONFIRMED（当前公开 Page v1）**：`docs/api/page-userscript.zh-CN.md` 未开放 Task 启动或 Durable Result 读取；`src/main.js` 调用 `renderMiniChat(ui)` 而未传入 transport；`src/page-events/content-bridge.js` 的网页 `CustomEvent` 仅可传受限查询/候选数据，不能证明安装者身份、用户审批或授予 `tasks.run`。不能通过让 Page 伪造事件来修复。
 - **T02/T03 = 脚本已有、执行入口未接线**：`projects/webflow/src/tasks/chatgpt-conversation-create-v0.2.js` 实现新 B、原生草稿核对和一次 `send:true`；但 `projects/webflow/tool.config.json` 当前委派任务只有百度/Google，不能宣称这个 ChatGPT Task 已获 Subagent 委派或当前 Chrome 已安装。脚本 0.3.0 是另一条受审 PREPARE/SUBMIT 路线，未经授权不得替换。
 - **T04/T05 = 完整业务回填未接通**：`projects/webflow/src/chatgpt-conversation-result.js` 的 `replyPreview` 最多 500 字；真正完整的 `replyText` 在原 Durable Result，Subagent 只能经受信 Host 读取后显示。Subagent `verifiedResult` 已补齐标准 UUID 形式 B 链接、不同原生消息身份、64 KiB **UTF-8 字节**上限的校验与定向回归（提交 `6cefbe14`、`501682ab`），**未证明真实结果投递**。
-- **下一条必须完成的用户操作**：先由 Browser Framework owner 证明或提供通用的 Page/受审 Content → 固定已安装 Controller Task **用户确认启动 + 同 requestId 只读结果恢复**，绑定原 A/B 文档、Task 安装 pin、权限和 Run/Result；禁止在 Framework 加 `subagent`/ChatGPT 专属分支。之后 Subagent 只提供 transport，WebFlow 原 Task 保持 owner。真实 Chrome 安装、发送、A 回显仍是 `NOT_TESTED`；没有证据不能提升业务状态。
+- 以上是本轮开始前的源码缺口，不是当前 transport 状态；后续实施见前面的“当前确切进度”。正式安装、原生发送及 A 回显仍是 `NOT_TESTED`，不得把历史或 Node 证据提升成业务通过。
+
+## 已接线的执行边界
+
+1. 同一 A 的 Mini Chat 在真实点击中生成一个逻辑 UUID；固定加载器在唯一 USER_SCRIPT world 中提供请求能力，普通网页不能选择 Host、安装或执行 nonce。
+2. 原 `commandJournal` 保存来源与固定 Task/参数/目标。消息 ACK 或 UI 提示丢失后只读取原记录，不另建数据库、Runner 或 Controller。
+3. 原可信 TaskRunSheet 显示来源、固定版本、只读输入和新建独立网页目标，执行依然经过原 Task 准备与一次性准入。
+4. 固定 SW 项目适配器验证原 preparation/request/run/result、Task 安装、owned B 保留身份、真实消息 ID、完成及释放状态，向合法原来源投影完整回复。
+5. 新合法 A 文档只能恢复同一请求；旧审批来源不会被新 document 替换。原来源槽在撤权、重新授权、升级和重装后仍保留；新授权不能读取旧结果，也不能自动分配替代请求。
+
+本阶段没有“重试发送”或“再建一个任务”按钮。完成或取消也不自动清空来源槽。结果只以纯文本显示在 Subagent Shadow DOM 中。
 
 ## 测试与验收
 
-在仓库根目录运行：`node --test projects/subagent/tests/*.test.mjs`。此命令只测试纯本地合同/状态，**没有**真实 WebFlow 调用和 Chrome 证据。
+在仓库根目录运行：`node --test projects/subagent/tests/*.test.mjs`。当前 48 项覆盖模型、结果消费、生产投影、transport 与紧凑 UI；此命令仍是 Node/DOM fixture，**没有**真实 ChatGPT 调用和 Chrome 证据。
 
-AC01～AC10 仍以最初 `OD-WEBFLOW-SUBAGENT-MINICHAT-A-R1` 的业务验收条件为准；分别报告 SOURCE / NODE / BUILD / PACKAGE / CHROME_NATIVE / BUSINESS，未测必须标记 `NOT_TESTED`。
+AC01～AC10 以当前 `OD-SUBAGENT-CHAT-A2B2A-R2-TRUSTED-CLOSURE` 的业务验收条件为准；分别报告 SOURCE / NODE / BUILD / PACKAGE / INSTALL / CHROME_NATIVE / BUSINESS，未测必须标记 `NOT_TESTED`。构建日志、回归失败、基线对比与完整本轮结论见 `evidence/trusted-closure-r2-20261112/`。
 
 **迁移提示：** 如本机曾手动安装旧 ID `opendesk.subagent-mini-chat`，需先在可信安装器内核对/明确卸载旧实验实例，再安装新 ID，避免同一 A 页面重复悬浮 UI；本轮不进行自动迁移或猜测本机安装状态。
 

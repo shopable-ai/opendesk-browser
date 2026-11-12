@@ -6,7 +6,7 @@ import {Button,IconButton} from '../components/ui/button.tsx';
 
 // Trusted presentation only. TaskWorkbench/Host owns selection, drafts,
 // captured installation identity, phase transitions and all execution authority.
-// taskRunSheet: null | {identity,title,source:'my'|'tool',
+// taskRunSheet: null | {identity,title,source:'my'|'tool'|'page',
 //   phase:'editing'|'preparing'|'prepared'|'submitted'|'unknown'|'cancelled'|'settled',
 //   preparationId?,status?,busy?,trigger?}
 // trigger is a trusted host DOM focus target, never sandbox request data.
@@ -30,9 +30,9 @@ export function TaskRunSheet({view}){
   const request=view.data.taskRunSheet;
   const dialog=React.useRef(null),composing=React.useRef(false),focusInvalid=React.useRef(false);
   const opening=React.useRef(null);
-  const tool=request?.source==='tool',phase=request?.phase||'editing';
+  const tool=['tool','page'].includes(request?.source),phase=request?.phase||'editing';
   const blocked=!request||request.busy||request.recoveryOnly||!(tool?['editing','prepared']:['editing']).includes(phase);
-  const fieldsDisabled=Boolean(!request||request.busy||(tool&&phase!=='editing'));
+  const fieldsDisabled=Boolean(!request||request.busy||request.paramsLocked||(tool&&phase!=='editing'));
   const action=tool?(phase==='editing'?view.actions.taskSheetPrepareClick:
     phase==='prepared'?view.actions.taskSheetConfirmClick:null):view.actions.taskRunClick;
   const result=request?.snapshot?.results?.find(result=>result.runId===request.snapshot.run?.runId&&result.resultId===request.snapshot.run?.resultId);
@@ -94,7 +94,8 @@ export function TaskRunSheet({view}){
 </header>
 <div className="task-params-sheet-content">
 {request?.sites?.length>0&&<p className="hint">适用网站：{request.sites.join('、')}</p>}
-{request?.target&&<p className="hint">已核对网页：{request.target.expectedUrl}</p>}
+{request?.pageBinding&&<p className="hint">来源网页：{request.pageBinding.url}<br/>网页程序：{request.pageBinding.programId} · 任务版本：{request.identity.version}</p>}
+{request?.target&&<p className="hint">{request.target.mode==='owned'?'将新建独立网页：':'已核对网页：'}{request.target.mode==='owned'?request.target.url:request.target.expectedUrl}</p>}
 {hasParams&&!request?.recoveryOnly&&<div className="task-params-toolbar">
 <span className="task-params-section-label">运行参数</span>
 <div className="task-params-mode od-segmented" role="group" aria-label="参数编辑方式">

@@ -1,0 +1,67 @@
+{
+  "head": "1521f9d1a90029a569e496f6d2d47193575f2cac",
+  "candidateTotals": {
+    "tests": 288,
+    "pass": 285,
+    "fail": 3
+  },
+  "headTargetedTotals": {
+    "tests": 3,
+    "pass": 0,
+    "fail": 3,
+    "skip": 0
+  },
+  "sameFailedNames": true,
+  "sameFailureSignatures": true,
+  "comparisons": [
+    {
+      "name": "late main cannot mount new UI after disable and never restores old grant success",
+      "candidateCase": 10,
+      "headCase": 1,
+      "sameFailure": true,
+      "error": "|-\n    Expected values to be strictly equal:\n    \n    0 !== 1",
+      "code": "'ERR_ASSERTION'"
+    },
+    {
+      "name": "J06 Authority: missing Result or admission journal never permits a replacement Run",
+      "candidateCase": 63,
+      "headCase": 2,
+      "sameFailure": true,
+      "error": "|-\n    Expected values to be strictly deep-equal:\n    + actual - expected\n    \n      Comparison {\n    +   code: 'E_OWNER'\n    -   code: 'E_CANCELLED'\n      }",
+      "code": "'ERR_ASSERTION'"
+    },
+    {
+      "name": "controller services share run authority and storage adapter without SDK admission or extra slot",
+      "candidateCase": 191,
+      "headCase": 3,
+      "sameFailure": true,
+      "error": "'Invalid Task storage scope'",
+      "code": "'E_CAPABILITY'"
+    }
+  ],
+  "sourceOverrideTrace": [
+    "src/platform/host/authority.js",
+    "src/platform/host/broker.js",
+    "src/platform/host/client.js",
+    "src/platform/host/controller-methods.js",
+    "src/scripting/user-scripts/dependency-metadata.js",
+    "src/scripting/user-scripts/installed-programs.js",
+    "src/scripting/user-scripts/page-install-authorization.js",
+    "src/scripting/user-scripts/page-install-package.js",
+    "src/scripting/user-scripts/preview.js",
+    "tests/environment/page-installed-managed-lifecycle.test.mjs",
+    "tests/environment/task-delegation-recovery.test.mjs",
+    "tests/framework/k3-controller-authority.test.mjs"
+  ],
+  "logs": {
+    "candidate": {
+      "path": "artifacts/subagent-r2/framework-regression.tap",
+      "sha256": "aed348a874be8f816c0f08a09c19bae27837dc3d58829050c184ea9db75b962e"
+    },
+    "baseline": {
+      "path": "artifacts/subagent-r2/framework-baseline-audit/head-three-failures.tap",
+      "sha256": "51f18f674d7acd1986160336654e4a6443ba7bf486f1d12f751c1ddb41003123"
+    }
+  },
+  "scope": "Only three selected failed cases; HEAD tests and HEAD versions of changed tracked JS/MJS were overlaid at their original module URLs. No source or assertion changes."
+}
