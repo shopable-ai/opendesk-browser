@@ -621,16 +621,19 @@ function reviewedCompiledAppOwnedBackground(target,path,root){
 // sandbox code to replace them, or admits these UI files into the SW/relay.
 // Scroll review: bounded structural observation and same-lease continuation;
 // original installed identity, exact-document save, CAS/readback and cancellation remain authoritative.
+// Reviewed 2026-11-12: AI Scroll R4.2 only adds explicit turn-paging/count
+// settings, availability-gated React toggles and four-locale labels. The count
+// remains opt-in; no new import, network authority or privileged output target.
 const compiledExtensionSettingsInputs=Object.freeze({
-  'projects/ai-scroll-navigation/trusted/ai-configuration.js':'ecec6df2621355503c26d0e24eaae4f84db99699',
+  'projects/ai-scroll-navigation/trusted/ai-configuration.js':'c97137a3a871fb6c19fd3594fc627fafd67d03f8',
   'projects/ai-scroll-navigation/trusted/ai-controls.tsx':'ba7e94499c399aba685b7c80cf004bb56e2888f0',
-  'projects/ai-scroll-navigation/trusted/react-controls.tsx':'455fde0f38396488adf8945b2a01835313642e30',
-  'projects/ai-scroll-navigation/trusted/host-localization.js':'ea011ece7b1986e9643a4d94c797c9c9db062a1a',
+  'projects/ai-scroll-navigation/trusted/react-controls.tsx':'1261228715f9cd8f8496e190213e8b7cedb57406',
+  'projects/ai-scroll-navigation/trusted/host-localization.js':'73b0b62a0d009ff3451457623739d2a1716aad03',
   'projects/time-review/trusted/react-controls.tsx':'2a9155f4a6c56969d1aebcd7420405b84fd4eaf4',
   'projects/time-review/trusted/localization.js':'7478e9c91f33317c8e1fe08f33d2e49c47b47818',
   'projects/prompt-shortcuts/trusted/host-localization.js':'8a83cf4b2fff65af0ff12656d3f4aeafe62111d4'
 });
-function reviewedCompiledExtensionSettings(target,path,root){
+export function reviewedCompiledExtensionSettings(target,path,root){
   if(!Object.hasOwn(compiledExtensionSettingsInputs,path))return null;
   // The standalone ToolHost statically uses these two inert locale tables via
   // sidebar-tools.js. UI components and business policies remain shell-only.

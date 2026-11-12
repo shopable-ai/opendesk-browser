@@ -6,10 +6,39 @@ import {join,resolve,relative,sep,dirname} from 'node:path';
 import {createHash} from 'node:crypto';
 import {readFileSync,realpathSync} from 'node:fs';
 import postcss from 'postcss';
-import {describeBundle,collectBundleEvidence,assertLibraryModuleBoundary,recordBuildFailure,trustedBookmarkStyle,verifyTrustedAIProxySources} from '../../scripts/bundle-provenance.mjs';
+import {describeBundle,collectBundleEvidence,assertLibraryModuleBoundary,recordBuildFailure,trustedBookmarkStyle,verifyTrustedAIProxySources,reviewedCompiledExtensionSettings} from '../../scripts/bundle-provenance.mjs';
 import {BUILTIN_CATALOG} from '../../src/libs/catalog.js';
 import {PACKAGE_ENTRIES} from '../../scripts/build-contract.mjs';
 const root='/repo';
+
+test('AI Scroll R4.2 reviewed settings sources admit only exact bytes to the original tool-shell',async t=>{
+  const inputs=[
+    ['projects/ai-scroll-navigation/trusted/ai-configuration.js','c97137a3a871fb6c19fd3594fc627fafd67d03f8'],
+    ['projects/ai-scroll-navigation/trusted/react-controls.tsx','1261228715f9cd8f8496e190213e8b7cedb57406'],
+    ['projects/ai-scroll-navigation/trusted/host-localization.js','73b0b62a0d009ff3451457623739d2a1716aad03']
+  ];
+  const project=await realpath(await mkdtemp(join(tmpdir(),'ai-scroll-r42-settings-pin-')));
+  t.after(()=>rm(project,{recursive:true,force:true}));
+  for(const [path,pin] of inputs){
+    assert.equal(reviewedCompiledExtensionSettings('ui/tool-shell.js',path,process.cwd()),pin);
+    for(const target of ['sw.js','ui/sidebar-tool-host.js','agents/page-relay.js',
+      'native-agent/settings.js','scripting/sandbox/worker-runtime.js']){
+      assert.equal(reviewedCompiledExtensionSettings(target,path,process.cwd()),null);
+      assert.throws(()=>describeBundle({chunk:{fileName:target,
+        modules:{[resolve(path)]:{renderedLength:1,originalLength:1}}},lock:{packages:{}}}),
+      /cannot enter a privileged fixed bundle/);
+    }
+    const file=join(project,path),bytes=await readFile(resolve(path));
+    await mkdir(dirname(file),{recursive:true});await writeFile(file,bytes);
+    assert.equal(reviewedCompiledExtensionSettings('ui/tool-shell.js',path,project),pin);
+    await writeFile(file,Buffer.concat([bytes,Buffer.from('\n// unreviewed drift')]));
+    assert.throws(()=>reviewedCompiledExtensionSettings('ui/tool-shell.js',path,project),
+      /Trusted extension settings source changed/);
+    await rm(file);await symlink(resolve(path),file);
+    assert.throws(()=>reviewedCompiledExtensionSettings('ui/tool-shell.js',path,project),
+      /must not be a symlink/);
+  }
+});
 
 test('A2B2A capability grant source is pinned to the original SW and trusted Side Panel only',async t=>{
   const path='projects/webflow/trusted/issue-workflow-authorization.js';
