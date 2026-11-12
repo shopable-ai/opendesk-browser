@@ -298,9 +298,12 @@ test('bottom can remain enabled when both top modes are disabled',()=>{
 test('question pager groups explicit user/assistant messages into rounds, tracks progress and respects settings',()=>{
   const f=fixture();f.main.scrollTop=0;
   f.first.setAttribute('data-turn','user');f.last.setAttribute('data-turn','assistant');
+  const longReply=f.doc.createElement('article');
   const secondUser=f.doc.createElement('article'),secondAnswer=f.doc.createElement('article');
+  longReply.setAttribute('data-turn','assistant');
   secondUser.setAttribute('data-turn','user');secondAnswer.setAttribute('data-turn','assistant');
-  f.main.append(secondUser,secondAnswer);
+  f.main.append(longReply,secondUser,secondAnswer);
+  f.rects.set(longReply,box(586,760,800,200));
   f.rects.set(secondUser,box(586,960,800,200));
   f.rects.set(secondAnswer,box(586,1200,800,300));
   let flags={turnPaging:true};
