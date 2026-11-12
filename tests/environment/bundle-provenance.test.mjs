@@ -134,6 +134,35 @@ test('trusted AI Proxy checks nested CSS even when Rollup omits it from chunk.mo
  assert.throws(()=>verifyTrustedAIProxySources(project),/must not be a symlink/);
 });
 
+test('reviewed AI Proxy diagnostics/PC layout keeps all eight exact source locks and rejects altered locale bytes',async t=>{
+ const changed=[
+  ['projects/ai-proxy/src/Settings.tsx','e0d5e9125a1a9191597f390b645c51a247784f58'],
+  ['projects/ai-proxy/src/i18n/locales/en.json','6dd1f6665cf7a0a1d1f9db47c099b781ad46c2a8'],
+  ['projects/ai-proxy/src/i18n/locales/zh-CN.json','df03dea459d45b25f04f8c1f6ef8f59f5bdae092'],
+  ['projects/ai-proxy/src/i18n/locales/zh-TW.json','9222ef31061eca95d2736ef9293747902323e1a8'],
+  ['projects/ai-proxy/src/styles/management.css','5bd5553859f9cb287b903faf0ae00991d26925a0'],
+  ['projects/ai-proxy/src/styles/options.css','b4caaf40bb3e6d25bb3e19b8e8b8f1e8f72a326a'],
+  ['projects/ai-proxy/src/styles/sidebar-settings.css','103f21595582f1aef6c61ed215740599519357b2'],
+  ['projects/ai-proxy/src/ui/DiagnosticsPage.tsx','3c083d41fd9580c06ded55530812bbf8f54a9f06']
+ ];
+ const locks=JSON.parse(await readFile(resolve('projects/ai-proxy/trusted/source-lock.json'),'utf8'));
+ for(const [path,pin] of changed)assert.equal(locks[path],pin,'R2 reviewed AI Proxy source changed: '+path);
+ assert.doesNotThrow(()=>verifyTrustedAIProxySources());
+ // Compile-time pins remain in charge; changing even presentation text fails
+ // closed before installing an unreviewed privileged UI bundle.
+ const project=await realpath(await mkdtemp(join(tmpdir(),'ai-proxy-r2-source-pin-')));
+ t.after(()=>rm(project,{recursive:true,force:true}));
+ for(const path of Object.keys(locks)){
+   await mkdir(join(project,path,'..'),{recursive:true});
+   await writeFile(join(project,path),await readFile(resolve(path)));
+ }
+ const locale='projects/ai-proxy/src/i18n/locales/zh-CN.json',file=join(project,locale);
+ await writeFile(file,(await readFile(file,'utf8'))+'\\n');
+ assert.throws(()=>verifyTrustedAIProxySources(project),/Trusted AI Proxy source changed/);
+ await rm(file);await symlink(resolve(locale),file);
+ assert.throws(()=>verifyTrustedAIProxySources(project),/must not be a symlink/);
+});
+
 test('trusted AI Proxy rejects missing CSS pins, remote imports and project escapes',async t=>{
  const project=await realpath(await mkdtemp(join(tmpdir(),'ai-proxy-css-closure-')));
  t.after(()=>rm(project,{recursive:true,force:true}));
