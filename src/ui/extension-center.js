@@ -971,7 +971,7 @@ export function createExtensionCenter({api,client,doc,sidebarTools,taskWorkbench
               if(event?.isTrusted!==true)throw scrollError('navigationGesture','E_GESTURE');
               ensure();
               return mutate('saveScrollNavigationSettings',{...request,etag,navigation},value=>
-                Object.keys(navigation).length===5&&Object.entries(navigation).every(([key,flag])=>
+                Object.keys(navigation).length===6&&Object.entries(navigation).every(([key,flag])=>
                   typeof flag==='boolean'&&value.navigation?.[key]===flag),authorization);
             },
             onDraftChange(draft,editKey){
