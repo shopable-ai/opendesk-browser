@@ -362,7 +362,12 @@
       "status": "BLOCKED",
       "processObserved": 44951,
       "controlAttempts": 2,
-      "reason": "Native CUA getState timed out twice; existing Chrome has no observed debugging listener. No profile, settings or pairing changes made."
+      "reason": "Native CUA getState timed out twice; existing Chrome has no observed debugging listener. No profile, settings or pairing changes made.",
+      "alternativeDesktopCore": {
+        "status": "UNAVAILABLE",
+        "readOnlyRequests": 2,
+        "error": "Official MCP tunnel returned429; no browser action performed"
+      }
     },
     "egoSupplement": {
       "spaceId": 92,
@@ -659,13 +664,13 @@
   "rawEvidence": {
     "location": "artifacts/ai-scroll-r43-20261112",
     "tracked": false,
-    "note": "Raw logs/screenshots remain local ignored artifacts; this summary is prepared for the task commit. New remote CI result will be reported after push, not preclaimed."
+    "note": "Raw logs/screenshots remain local ignored artifacts; CI901 log/hash and verified remote artifact identity are summarized here. CI artifact is archived in the linked run."
   },
-  "remoteCIAtReportCommit": "NOT_RUN_YET",
+  "remoteCIAtReportCommit": "SUCCESS",
   "remaining": [
     "Exact candidate Chrome installation through existing review chain and identity/hash/config readback",
-    "Real ChatGPT/DeepSeek/Gemini T01–T12, including authorized sessions and narrow/light/dark scenarios",
-    "Candidate-bound native security/lifecycle evidence and reassessment; release remains blocked"
+    "Real ChatGPT/DeepSeek/Gemini T01–T12, including authorized long sessions and responsive/light/dark scenarios",
+    "Candidate-bound native security/lifecycle evidence and independent reassessment; current mean70.2 and release blocked"
   ],
   "latestNode22Run": {
     "startedAt": "2026-11-12T18:36:23+0800",
@@ -1113,5 +1118,56 @@
     ],
     "publication": "BLOCKED",
     "auditBoundary": "Narrow read-only verification; no reruns or edits."
+  },
+  "remoteCI": {
+    "runId": 43203021134,
+    "runNumber": 901,
+    "url": "https://github.com/shopable-ai/opendesk-browser/actions/runs/43203021134",
+    "head": "743baab116ab27a391551bd8aa1cab8709ec6efa",
+    "jobId": 131131024378,
+    "status": "completed",
+    "conclusion": "success",
+    "counts": {
+      "tests": 816,
+      "pass": 816,
+      "fail": 0,
+      "cancelled": 0,
+      "skipped": 0,
+      "todo": 0
+    },
+    "jobExit": 0,
+    "programBuilder": "PASS",
+    "packageValidation": "PASS",
+    "artifact": {
+      "runId": 43203021134,
+      "artifactId": 13937126477,
+      "zipSha256": "d2fce81e683688c440f803e26fdd12f525d16154179c0bcb401c2676fa769887",
+      "packageFileSha256": "2fdd83ba875f3168d0ae5e15f3268df4b1a44d76c37b7e1dd90ffa213c229a64",
+      "remoteBytesEqualLocal": true,
+      "releaseRecord": {
+        "programId": "opendesk.ai-scroll-navigation",
+        "version": "0.4.16",
+        "revision": 19,
+        "sourceHash": "f3c4367e4e3fa9ba9558834693a5fd1b269f03dfad0cf1c02acab9a6ad4dc8a5",
+        "packageHash": "764a470ef84759559f35fa073707b0a1f31a1a912767bcc1528d1dd376b68530",
+        "publication": "blocked",
+        "chromeNative": "NOT_TESTED",
+        "macNative": "NOT_TESTED"
+      },
+      "files": [
+        "opendesk-browser/opendesk-browser/projects/ai-scroll-navigation/ai-scroll-navigation.opendesk-page.json",
+        "_temp/ai-scroll-release-record.json",
+        "opendesk-browser/opendesk-browser/official-pages/sources.json"
+      ]
+    },
+    "logSha256": "d2821b79e764fbe23d360126b6951414396cfa96646932a655ec94704ffaa479"
+  },
+  "fixCommit": "a90b8aa9abf5b0cba5fd3901f47caa8a70063ae2",
+  "postCIMainObserved": "13ef4aaadd85edcb9faef741bb6fb77821694b3a",
+  "documentationFollowup": {
+    "onlyDocumentationChangedAfterVerifiedInputs": true,
+    "automaticCiSkippedForDocumentationCommit": true,
+    "noTestSkipped": true,
+    "independentReviewSnapshot": "Five independent scores remain their recorded review snapshot; remote CI confirms automated gates afterward, without subjective score changes."
   }
 }

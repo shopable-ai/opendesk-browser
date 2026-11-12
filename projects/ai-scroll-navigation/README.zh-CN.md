@@ -4,7 +4,7 @@
 
 R4.2 的轮次模型、唯一 Dock、默认隐藏数字与独立设置保持原实现。本轮仅修正配置兼容、可选数字、Toast 和 Host 路由的过期测试，并显式锁定 `jsdom@26.1.0`，移除个人 npm 缓存回退。CI #888 的十项失败已逐项分类；未发现需要重写业务源码的证据。
 
-原工作流受影响测试在 Node 22.23.4 下 **816 PASS / 0 FAIL / 0 SKIP，退出 0**（执行次数含原有重复发现与子测试，不是独立用例数）；正式包生成后定向复验 **216 PASS / 0 FAIL / 0 SKIP，退出 0**。项目验证与原 Program Builder / Page 打包器通过，唯一正式 JSON 更新为 **0.4.16/r19**，三个 HTTPS 站点范围不变，Node 22 构建与候选包逐字节一致。
+[GitHub CI #901](https://github.com/shopable-ai/opendesk-browser/actions/runs/43203021134) 已 SUCCESS；原工作流受影响测试在 Node 22.23.4 下 **816 PASS / 0 FAIL / 0 SKIP，退出 0**（执行次数含原有重复发现与子测试，不是独立用例数）；正式包生成后定向复验 **216 PASS / 0 FAIL / 0 SKIP，退出 0**。项目验证与原 Program Builder / Page 打包器通过，唯一正式 JSON 更新为 **0.4.16/r19**，三个 HTTPS 站点范围不变，Node 22 构建与候选包逐字节一致；已下载远端CI制品核对正式JSON字节及release record相同。
 
 **交付尚未完成：** 新候选未安装，三站 T01–T12 无原生 PASS。原生 Chrome 控制两次初始化超时；ego 仅补充观察到 ChatGPT 首页、DeepSeek 登录页、Gemini 空会话，现有 HTML 的模拟交互不能替代真实验收。官方目录继续 **blocked**。旧节中的 r18 和本机 r20261112 均为历史记录，不能作为当前 r19 的安装证明。
 
