@@ -1,0 +1,149 @@
+{
+  "taskId": "OD-AI-PROXY-ADD-PROXY-UX-AUTH-R5",
+  "status": "WAITING_FOR_ORIGINAL_R5_ARTIFACT_NOT_ACCEPTED",
+  "observedAt": "2026-11-12T15:56:34.608037+00:00",
+  "branch": "main",
+  "baselineGitHead": "a3afa07d49930d3bc3716ad6bc64dd40bb8a3919",
+  "remoteMainObserved": "a3afa07d49930d3bc3716ad6bc64dd40bb8a3919",
+  "r5OriginalCommit": "fb49d46e564429913f692602d3d5f6a946bdfdf3",
+  "r5ObjectPresent": false,
+  "remoteFetch": "fatal: remote error: upload-pack: not our ref fb49d46e564429913f692602d3d5f6a946bdfdf3",
+  "bundleExpectedSha256": "0944c0769c8c3be7436d78a0e044ed72e15b8398a712ea12beb4bc1aa9972647",
+  "bundleFound": false,
+  "bundleHashVerification": "NOT_RUN_ARTIFACT_UNAVAILABLE",
+  "search": {
+    "completed": "rg filename searches in home Downloads Documents Desktop Workspaces .codex and /tmp, plus mdfind; no original artifact found",
+    "fallback": "Completed find search including ignored files under /Users/shopme, /Volumes and /private/tmp, excluding Library/node_modules/.git/.cache; no matching original ZIP/bundle/prompt/acceptance file found. Excluded locations are not claimed searched."
+  },
+  "productSourceChanged": false,
+  "equivalentR5": false,
+  "observedSourceDifferences": [
+    {
+      "path": "projects/ai-proxy/src/Settings.tsx",
+      "behavior": "proxyAuthDetails closed by default; presentation-dependent field order; extra save-and-add-another action"
+    },
+    {
+      "path": "projects/ai-proxy/src/Settings.tsx",
+      "behavior": "SOCKS protocol selection and SOCKS address paste clear username/password drafts"
+    },
+    {
+      "path": "projects/ai-proxy/src/Settings.tsx",
+      "behavior": "HTTP credentialRef edit guard is protocol-conditional; changing to SOCKS can bypass the ref guard; exact runtime outcome NOT_TESTED"
+    },
+    {
+      "path": "projects/ai-proxy/src/service.ts",
+      "behavior": "SET_CREDENTIAL returns E_NOT_CONNECTED; no new authentication implementation added"
+    }
+  ],
+  "baselineTests": {
+    "scope": "CURRENT_0.3.17_BASELINE_NOT_RESTORED_R5_NOT_FINAL_ACCEPTANCE",
+    "command": [
+      "node",
+      "--test",
+      "projects/ai-proxy/tests/settings-credentials.test.mjs",
+      "projects/ai-proxy/tests/service.test.mjs",
+      "projects/ai-proxy/tests/drafts.test.mjs",
+      "projects/ai-proxy/tests/settings-confirmation.test.mjs",
+      "projects/ai-proxy/tests/preview-parity-scene-contract.test.mjs"
+    ],
+    "pass": 125,
+    "fail": 0,
+    "cancelled": 0,
+    "skipped": 0,
+    "exitCode": 0,
+    "log": "/Users/shopme/Documents/workspace/opendesk-browser/artifacts/ai-proxy/add-proxy-r5-20261112/baseline.tap",
+    "logSha256": "c831d61782716fe477acac4f65144ccdcab530f49cdcccc8268952073e6e8f29",
+    "fullInputManifest": "/Users/shopme/Documents/workspace/opendesk-browser/artifacts/ai-proxy/add-proxy-r5-20261112/baseline-tests.json",
+    "inputManifestSha256": "6e4a9af1b401c703184dc1ab16a690317bdc33666d58294213fdaac281be93ec",
+    "inputsAfterMatch": true,
+    "inputFingerprint": "af55f08395ac3cfe0e3791c5bfcf6bf1a4ceb638f6e1e9e19188b28378ca7505"
+  },
+  "finalCandidate": {
+    "formed": false,
+    "pass": 0,
+    "fail": 0,
+    "blockedStages": [
+      "original R5 recovery and differential integration",
+      "same-candidate formal PC/Side Panel Chrome acceptance",
+      "six-dimension final scoring"
+    ],
+    "notRunStages": [
+      "final build and package promotion",
+      "isolated formal install and loaded identity verification",
+      "1440/430/360 add/edit theme and keyboard matrix",
+      "cross-surface state and no-auto-apply verification",
+      "real 407/401 isolation retry revocation"
+    ],
+    "caseCounts": "NOT_ENUMERATED_NO_FINAL_CANDIDATE"
+  },
+  "packageOnDisk": {
+    "version": "0.3.17",
+    "configuredVersion": "0.3.17",
+    "path": "/Users/shopme/Documents/workspace/opendesk-browser/projects/ai-proxy/ai-proxy.opendesk-tool.json",
+    "sha256": "8d156b97dc12b671b2d0ddd7ab32049df8835c9831117a4f94145f3ba5350be3",
+    "installedIdentity": "NOT_VERIFIED",
+    "modified": false
+  },
+  "browserOnDisk": {
+    "scope": "DISK_ONLY_NOT_CURRENT_INSTALLED_R5_CANDIDATE",
+    "path": "/Users/shopme/Documents/workspace/opendesk-browser/dist/development",
+    "revision": "e3fd4b6bccf7fe3e57fc063e284103b0763d0b0abebc45288795150461ecb2b8",
+    "identityFileSha256": "8a624e41dac7267520b9174cf2eeef8a5a2013f21e468898cd6acfd56b07dee1",
+    "gitCommitForBuild": "UNKNOWN",
+    "serveConnection": "NOT_VERIFIED",
+    "loadedExtensionId": "NOT_VERIFIED",
+    "modified": false
+  },
+  "sourceSha256": {
+    "projects/ai-proxy/src/Settings.tsx": "ab4ad9ecc82888eef5bea28a8ce4cf59a76c40477be86e90028d38acba721e73",
+    "projects/ai-proxy/src/service.ts": "378177ab3bb9475b58d80f128396054de1578b2f0740d3fabca67e5dd7cdc764",
+    "projects/ai-proxy/src/styles/sidebar-settings.css": "94e9fc1984778be097d976d0d5eb06e7b38b90f5522760ff83d523bb065cfe5f",
+    "projects/ai-proxy/trusted/source-lock.json": "2fd66c0d56677d19c7537d63061b8637319e08354cc5b97a5d6dba41b22dbcea",
+    "projects/ai-proxy/preview/preview.html": "c918b89a306c4f1c03a7cffacd2c77840ec5343e357d6f271049e99df91d9c4a",
+    "projects/ai-proxy/evidence/preview-to-production-r3/scene-contract.json": "50814a8cf4d15fe912d0e2688ee4ca6e4eca70f623b4f47014c5a68a17b6bf35"
+  },
+  "screenshots": [
+    {
+      "path": "/Users/shopme/Documents/workspace/opendesk-browser/artifacts/ai-proxy/add-proxy-r5-20261112/r3-reference-add-1417x711.png",
+      "pixels": {
+        "width": 1417,
+        "height": 711
+      },
+      "sha256": "14b0440288d931e41241c96f3f8e4d5d151a7b6f1572e0b61023e3cb0dca5161",
+      "scope": "R3_REFERENCE_ONLY_NOT_OFFICIAL_PC_OR_SIDE_PANEL_R5"
+    },
+    {
+      "path": "/Users/shopme/Documents/workspace/opendesk-browser/artifacts/ai-proxy/add-proxy-r5-20261112/r3-reference-edit.png",
+      "pixels": {
+        "width": 1440,
+        "height": 1000
+      },
+      "sha256": "bb6669125744c8a3f28ebdb7d1a3700570b9edae099d585c4ee6c1568beb3e95",
+      "scope": "R3_REFERENCE_ONLY_NOT_OFFICIAL_PC_OR_SIDE_PANEL_R5"
+    }
+  ],
+  "r3Baseline": "UNCHANGED; immutable old HTML hash retained; direct test has no R5 version selector",
+  "scores": {
+    "evaluation": "NOT_COMPLETED_NO_FINAL_INSTALLED_VISUAL_EVIDENCE",
+    "visualDesign": null,
+    "usability": null,
+    "interactionEfficiency": null,
+    "authenticationSafetyAndCorrectness": null,
+    "frontendEngineering": null,
+    "previewProductionConsistency": null,
+    "arithmeticMean": null
+  },
+  "git": {
+    "pushed": false,
+    "intendedCommitScope": "preflight records only; R5 implementation not restored",
+    "unrelatedDirtyPreserved": true
+  },
+  "resources": {
+    "egoTaskSpace": 98,
+    "scope": "reference HTML only; shared ego Profile not isolated Chrome",
+    "finish": "RELEASED_TASKSPACE_FINISH_CONFIRMED"
+  },
+  "nextAction": "Provide readable original ZIP/bundle path; verify exact expected bundle SHA, read README, git bundle verify, fetch bundle main, integrate missing R5 delta without downgrading 0.3.17; commit only tested task files.",
+  "remoteMainFinalObserved": "66617e66828869f4b17aaedb055289403fe61c26",
+  "remoteAdvanceScope": "perf(mouse-gestures): reduce dispatch latency and enable reviewed document_end startup; git diff a3afa07d4..origin/main -- projects/ai-proxy is empty; fetched read-only, not merged or pushed"
+}
