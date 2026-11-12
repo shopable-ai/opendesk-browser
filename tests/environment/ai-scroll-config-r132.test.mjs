@@ -52,7 +52,7 @@ test('R132 config capability is only for scoped Program revision, and upgrade ne
 test('navigation is optional in v1 and explicit booleans normalize without changing legacy payloads',()=>{
   const legacy={version:1,sites:[sample]};
   assert.deepEqual(normalizeScrollConfig(legacy),legacy);
-  const navigation={regionTop:true,regionBottom:true,conversationTop:true,conversationBottom:true,floatingTop:true};
+  const navigation={regionTop:true,regionBottom:true,conversationTop:true,conversationBottom:true,floatingTop:true,turnPaging:true};
   assert.deepEqual(normalizeScrollConfig({...legacy,navigation:{regionTop:false}}),
     {...legacy,navigation:{...navigation,regionTop:false}});
   const disabled=Object.fromEntries(Object.keys(navigation).map(key=>[key,false]));
