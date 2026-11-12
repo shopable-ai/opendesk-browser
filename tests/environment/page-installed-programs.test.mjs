@@ -1045,7 +1045,7 @@ async function scrollConfigFixture(options={}){
     anchorSelector:'',enabled:true};
   return {f,installed,message,site};
 }
-const navigationFlags={regionTop:true,regionBottom:false,conversationTop:true,conversationBottom:false,floatingTop:true};
+const navigationFlags={regionTop:true,regionBottom:false,conversationTop:true,conversationBottom:false,floatingTop:true,turnPaging:true};
 const scrollHostRequest=installed=>({programId:installed.programId,manifestHash:installed.manifestHash,
   installationId:installed.authorization.installationId,expectedGeneration:installed.authorization.generation});
 async function savedScrollHostFixture(){
