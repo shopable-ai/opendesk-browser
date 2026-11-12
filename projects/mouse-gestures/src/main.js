@@ -6,6 +6,8 @@
   const triggerControl=root?.querySelector('#gesture-trigger');
   const menuControl=root?.querySelector('#gesture-menu-policy');
   const menuHelp=root?.querySelector('#gesture-menu-help');
+  const compatSummary=root?.querySelector('#gesture-compat-summary');
+  const comboSummary=root?.querySelector('#gesture-combo-summary');
   const traceControl=root?.querySelector('#gesture-trace');
   const comboControl=root?.querySelector('#gesture-combo');
   const comboActionControl=root?.querySelector('#gesture-combo-action');
@@ -39,8 +41,15 @@
     triggerControl.value=current.trigger;
     if(menuControl)menuControl.value=current.menuPolicy;
     if(menuHelp)menuHelp.textContent=current.menuPolicy==='gesture-first'?
-      '手势优先会拦截已授权网页空白处的普通右键菜单。按住 Shift 再右键可使用原生菜单；链接、输入框等排除区域仍保留原生菜单。':
-      '默认保留普通右键菜单。若 macOS 在拖动前就弹出菜单，手势可能无法开始；可改用 Option / Alt + 左键或手动启用手势优先。';
+      '手势优先会拦截部分普通右键菜单，仅在确有需要时使用。按住 Shift 再右键可打开原生菜单；链接、输入框等排除区域仍保留菜单。':
+      '保留普通右键菜单。若 macOS 菜单抢先出现，本次手势会安全取消；可以选择 Option / Alt + 左键作为替代。';
+    if(compatSummary)compatSummary.textContent=current.menuPolicy==='gesture-first'?
+      '手势优先 · 菜单受限':current.trigger==='alt-left'?
+        'Option / Alt + 左键':'原生菜单优先';
+    if(comboSummary){
+      const count=Object.keys(current.gestureMappings).length;
+      comboSummary.textContent=count?'已配置 '+count+' 组':'未配置';
+    }
     traceControl.checked=current.showTrace;
     if(comboControl&&comboActionControl)
       comboActionControl.value=current.gestureMappings[comboControl.value]||'none';
