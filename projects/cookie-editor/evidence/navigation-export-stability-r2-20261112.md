@@ -1,6 +1,6 @@
 # OD-COOKIE-EDITOR-NAVIGATION-EXPORT-STABILITY-R2 · 差量开发与验收记录
 
-> 状态：`SOURCE_COMMITTED / CANDIDATE_BUILD_VERIFIED / CI_PARTIAL_FAIL / NATIVE_NOT_TESTED / NOT_RELEASED`  
+> 状态：`SOURCE_COMMITTED / R2_NODE_PASS_53 / CANDIDATE_BUILD_VERIFIED / CI_PARTIAL_FAIL / NATIVE_NOT_TESTED / NOT_RELEASED`  
 > 本记录只声明实际可核对的远端源码、工作流及连接结果；不将 HTML 预览视为正式 Chrome 验收。
 > 本任务唯一开发分支为 `main`，不创建临时开发分支，不覆盖其他任务修改。
 
@@ -21,8 +21,12 @@
 
 - [R4.9 React/Chromium（源提交 8361945）](https://github.com/shopable-ai/opendesk-browser/actions/runs/43219371805)：控制器回归 `64 PASS / 0 FAIL`；完整工作流 **FAIL**，被旧预览静态断言 `React.useState('serviceConnections')` 阻断。该预览断言和所引用的现行预览入口状态不一致；不是此次修改的组件代码。
 - [R5.38 首轮（8361945）](https://github.com/shopable-ai/opendesk-browser/actions/runs/43219371765)：**FAIL**，由于源码改变而发行版本仍为 2.0.68，版本门禁按设计拒绝构建。
+- [R2 专项回归（5fba6bc）](https://github.com/shopable-ai/opendesk-browser/actions/runs/43221800986)：CI 实际执行 `tests/environment/cookie-editor-navigation-export-r2.test.mjs` + `tests/environment/current-page-target.test.mjs`，**53 PASS / 0 FAIL / 0 SKIP**（Node 模拟与源码行为验证，不等于真实 Chrome）。随后受旧 R5.24 的源码格式匹配断言阻断完整工作流。
 - [R5.38 版本更新轮（abf9a21）](https://github.com/shopable-ai/opendesk-browser/actions/runs/43220051969)：React 编译及候选构建步骤通过；R2.4 既有回归 `117 PASS / 0 FAIL`；后续 `cookie-editor-r524-grant.test.mjs` 的旧源码正则匹配有 `3 PASS / 2 FAIL`，涉及权限卡片隐藏式和扩展中心开关位置，导致后续任务跳过。**此工作流总体不是 PASS，也未自动提升正式包。**
-- [App CI（版本更新轮 abf9a21）](https://github.com/shopable-ai/opendesk-browser/actions/runs/43220052094) 和 [App CI（SPA 并发补修轮 a7fad60）](https://github.com/shopable-ai/opendesk-browser/actions/runs/43220852126)：截至本记录，任务仍处于 queued，故 `tests/environment/cookie-editor-navigation-export-r2.test.mjs` **不能宣称已通过**。
+- R5.24 的旧权限卡片/本地化开关正则已通过只改测试的 `4d070c83a0971ad6294b722146fdbcefca9ff888`、`547ae35615dba99abfce13fe0cbe546654f868ee` 调整；旧预览测试仅允许固定 `/__isolated-http/config` 无凭据配置请求，见 `8ff23141051e2471382f43390a7ddf9a2e030819`。本轮业务代码未因此更改。
+- `5fba6bc3151af35bf639e0a237ae69bc16e1b4a3`：R2 专项测试已被加入 R5.38 候选工作流前置门禁。
+- [最新 R5.38 候选测试工作流](https://github.com/shopable-ai/opendesk-browser/actions/runs/43222298908) 与 [最新 App CI](https://github.com/shopable-ai/opendesk-browser/actions/runs/43222298939)：本记录时仍 queued，**不声明全部通过**。
+- [App CI（版本更新轮 abf9a21）](https://github.com/shopable-ai/opendesk-browser/actions/runs/43220052094) 和 [App CI（SPA 并发补修轮 a7fad60）](https://github.com/shopable-ai/opendesk-browser/actions/runs/43220852126)：截至早期记录 queued，随后已由独立 R5.38 前置步骤确认为 **53 PASS / 0 FAIL**；对应 App CI 全量状态仍需另行核验。
 - [R4.9（SPA 补修轮 a7fad60）](https://github.com/shopable-ai/opendesk-browser/actions/runs/43220852196)：旧预览断言仍失败，不能用此前的 64 PASS 代替该轮的全部测试。
 
 本机 Codex workspace 接入返回 `UNAVAILABLE: Connection failed`；OpenDesk Desktop Browser 接入返回 `MCP SSE probe 429`。**真实 Chrome 安装、源包一致性读回、实际装机版本、真人操作的 T1–T4 验收均为 `NOT_TESTED`**。未读取、复制或上传真实 Cookie；本轮测试代码使用虚构值。
@@ -31,18 +35,18 @@
 
 | 维度 | 代码路径 | 本轮验收 |
 | --- | --- | --- |
-| 标题 / URL 不变 | 相同 Document 下静默验证；不撤销导出 Intent | `NOT_TESTED`（独立 R2 测试在队列中） |
-| Query / Hash / SPA Path | 同文档 Path 差量同步；保留脱敏列表；排队与过期结果处理 | `NOT_TESTED` |
-| Store / Partition / Origin / Document | 新范围禁用敏感操作；不继承旧授权与原始值 | `NOT_TESTED` |
+| 标题 / URL 不变 | 相同 Document 下静默验证；不撤销导出 Intent | `NODE_PASS / CHROME_NOT_TESTED` |
+| Query / Hash / SPA Path | 同文档 Path 差量同步；保留脱敏列表；排队与过期结果处理 | `NODE_PASS / CHROME_NOT_TESTED` |
+| Store / Partition / Origin / Document | 新范围禁用敏感操作；不继承旧授权与原始值 | `NODE_PASS / CHROME_NOT_TESTED` |
 | Chrome Cookie 权限撤销 | 旧数据应立即失效；原安全流程保留 | `NOT_TESTED` |
 | 真实数据变化及 2 秒慢请求 | 保留列表并静默同步（已定位与代码接线） | `NOT_TESTED` |
-| 复制/下载与真实导航竞态 | 单次 Intent；未知回执不报成功、不自动重放 | `NOT_TESTED` |
-| 10 条诊断与脱敏复制 | 当前工具会话内存、固定字段，不记录 Cookie 值、URL 参数和明文错误 | `NOT_TESTED` |
+| 复制/下载与真实导航竞态 | 单次 Intent；未知回执不报成功、不自动重放 | `SIMULATED_NODE_PASS / CHROME_NOT_TESTED` |
+| 10 条诊断与脱敏复制 | 当前工具会话内存、固定字段，不记录 Cookie 值、URL 参数和明文错误 | `NODE_PASS / CHROME_NOT_TESTED` |
 | Side Panel / PC / 窄屏 / 重开后权限 | 需在真实浏览器操作 | `NOT_TESTED` |
 
 ## 关键未完成项
 
-1. 等当前 R2 专项 App CI 测试真正执行；查看失败栈、修复由本轮修改导致的失败，并复验。
+1. R2 的 Node 专项已 53 PASS；还需等最新候选及 App CI 全部门禁执行，特别是共享 Host 与真实浏览器场景，并修复真正由本轮导致的失败。
 2. 单独处理 R5.24 / R4.9 现行代码与旧静态测试不一致的问题；先确认测试契约，再小范围更新，不因追求绿色 CI 直接删除安全断言。
 3. 对新候选执行 canonical source/package SHA 一致性检查；不得把源码提交冒充正式发行。
 4. 接通获得授权的独立 Chrome，确定安装版本，用虚构 Cookie 实跑 20 次 SPA 导航、权限撤销、Store/Partition 切换、剪贴板未知结果与诊断脱敏。
