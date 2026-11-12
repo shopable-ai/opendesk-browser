@@ -1,0 +1,110 @@
+Excerpt of original full log: artifacts/extension-inline-update-r5/20261113/extension-center-r47-interaction.log
+✔ extension toolbar shop keeps Host feedback intact when opening a configured site (84.498167ms)
+✔ extension toolbar shop icon never opens the bundled marketplace as a public catalog (66.0105ms)
+✔ R5.11 each row has one main target and only an overflow secondary control (71.373209ms)
+✔ R4.7 stopped app has no fake Settings main; overflow enable uses the sole trusted host route (88.899833ms)
+✔ R5.5 installed Page survives loss or replacement of development candidates (63.18175ms)
+✔ R5.5 Page uninstall confirmation cancels without writes then deletes only after verified readback (96.551ms)
+✔ R5.11 overflow uninstall distinguishes same-name apps and restores focus after cancellation (83.078625ms)
+✔ R5.4.1 pending list uninstall dispatches once and a failed Host action permits a newly reviewed retry (112.551458ms)
+✔ R5.5 stale Page generation invalidates an old uninstall confirmation before a write (100.554875ms)
+✔ Page list uninstall removes a revoked installation while reporting retained cleanup (81.959916ms)
+✔ Page detail uninstall removes a revoked installation while reporting retained cleanup (69.724875ms)
+✔ Page uninstall readback survives passive installation refresh without replaying removal (62.878542ms)
+✔ R5.5 Page uninstall native-fail never fabricates success or automatically retries (43.850458ms)
+✔ R5.5 Page uninstall cleanup-unknown never fabricates success or automatically retries (39.11675ms)
+✔ R5.5 Page uninstall ack-only never fabricates success or automatically retries (41.145042ms)
+✔ R5.5 Page uninstall outcome-unknown never fabricates success or automatically retries (38.406ms)
+✔ R4.7 installed Page menu is keyboard usable, invokes original generation-bound authority and returns focus (35.822166ms)
+✔ R33.3.4 extension menu arrows stay scoped and Tab restores focus (27.084625ms)
+✔ R5.6 suspended Page offers direct restoration but cannot claim native success before readback (48.536833ms)
+✔ R5.6 suspended Page with missing Chrome permission cannot change the installed generation (49.263167ms)
+✔ R4.7 missing Page grant forbids enable; unreadable app status never fabricates primary or toggle (92.167042ms)
+✔ R5.0 uninstall from a second window retires installed details, search and old row actions (72.970584ms)
+✔ R5.1 detail retires on same-ID package replacement or Page revision change (75.2015ms)
+✔ R5.0 catalog-offline cleanup remains recoverable only from discovery (85.380375ms)
+✔ R5.1 corrupt cleanup journal withdraws installed authority instead of hiding its unsafe entry (59.077667ms)
+✔ R4.7 context menu closes on outside click/scroll and never stays outside viewport (68.176917ms)
+✔ R4.7 async app toggle is single-flight and exposes processing without a second action (62.722833ms)
+✔ R4.7 menu detail Back restores the menu origin independent of pointer focus (39.807791ms)
+✔ R4.8 app detail matches the R4.7 preview: no duplicate Open and visible stopped status (59.799833ms)
+✔ R4.8 first paint reports loading instead of a misleading empty or install state (24.167833ms)
+✔ R4.8 background refresh restores row-menu keyboard focus (32.558708ms)
+✔ R4.8 removed Page during detail falls back to search, not hidden Back (47.695709ms)
+✔ R5.14 detail actions use shared accessible IconButton without duplicate Open (31.712417ms)
+✔ R4.9 rejected app toggle keeps an actionable error after the mandatory registry readback (118.743125ms)
+✔ R4.9 rejected Page grant remains visible after unrelated refresh (56.906625ms)
+✖ R4.8 historical reference preserves the production toolbar action contract and shell styles (113364.786375ms)
+✖ R5.1 historical Cookie Editor reference labels its snapshot version and isolated update demo (4.815834ms)
+✔ R5.0 Host false leaves a disabled App unchanged and reports unfinished draft confirmation (143.040542ms)
+✔ R5.0 failed background storage read does not replace the original Host action error (100.284625ms)
+✔ R5.0 a true Host return without matching persisted enable state is not a success (67.532125ms)
+✔ R5.0 an unconfirmed launch is visible and does not claim that the tool opened (40.532292ms)
+✔ R5.6 disabled setting with unconfirmed native unregister remains a pending result (68.985584ms)
+✔ R5.6 unknown managed UI cleanup cannot be reported as completed after disabling (46.075ms)
+✔ R5.0 Page RPC acknowledgement without Authority state change cannot be reported successful (47.196416ms)
+✔ R5.0 Page enabled setting must not masquerade as a verified native registration (54.2005ms)
+✔ R5.0 official catalog stale responses and failures must be rejected by source guards (0.819292ms)
+✔ R5.7 menu opens trusted import Host, never the global picker or language manager (38.755083ms)
+✔ R1.5 Page readback remains authoritative when unrelated Sidebar storage fails (64.528833ms)
+✔ R1.5 successful Page uninstall is confirmed while its official candidate remains (99.304ms)
+✔ R1.8 action feedback clears on detail without changing Page authority (82.386708ms)
+✔ R1.8 action feedback clears on back without changing Page authority (108.0255ms)
+✔ R1.8 detail and back retain read failures (41.990208ms)
+✔ R1.8 detail and back retain catalog failures (63.940042ms)
+✔ R1.8 navigation restores read failure masked by action on detail (111.938125ms)
+✔ R1.8 navigation restores read failure masked by action on back (78.142334ms)
+✔ R1.8 navigation restores catalog failure masked by action on detail (45.486291ms)
+✔ R1.8 navigation restores catalog failure masked by action on back (73.201542ms)
+✔ R1.8 navigation restores pageCatalog failure masked by action on detail (49.774833ms)
+✔ R1.8 navigation restores pageCatalog failure masked by action on back (75.241083ms)
+ℹ tests 59
+ℹ suites 0
+ℹ pass 57
+ℹ fail 2
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 117567.154959
+
+✖ failing tests:
+
+test at tests/environment/extension-center-r47-interaction.test.mjs:753:1
+✖ R4.8 historical reference preserves the production toolbar action contract and shell styles (113364.786375ms)
+  AssertionError [ERR_ASSERTION]: only the hidden file picker may separate the toolbar from its import host
+  + actual - expected
+  
+    HTMLElement {
+  +   Symbol(classList): [DOMTokenList [Set]],
+  -   Symbol(classList): null,
+      Symbol(dataset): null,
+      Symbol(end): [Object],
+      Symbol(next): [Attr],
+      Symbol(prev): [Object],
+      Symbol(private): null,
+      Symbol(style): null,
+  +   localName: 'aside',
+  -   localName: 'div',
+      nodeType: 1,
+      ownerDocument: <ref *1> HTMLDocument {
+        Symbol(CustomElements): [Object],
+        Symbol(DOMParser): [class DOMParser],
+        Symbol(MutationObserver): [Object],
+  
+      at toolbar (file:///Users/shopme/Documents/workspace/opendesk-browser/tests/environment/extension-center-r47-interaction.test.mjs:763:12)
+      at TestContext.<anonymous> (file:///Users/shopme/Documents/workspace/opendesk-browser/tests/environment/extension-center-r47-interaction.test.mjs:767:16)
+      at process.processTicksAndRejections (node:internal/process/task_queues:104:5)
+      at async Test.run (node:internal/test_runner/test:1313:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:897:7) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: { ownerDocument: { ownerDocument: null, localName: '#document', nodeType: 9, parentNode: null }, localName: 'aside', nodeType: 1, parentNode: { ownerDocument: [Object], localName: 'div', nodeType: 1, parentNode: [Object] } },
+    expected: { ownerDocument: { ownerDocument: null, localName: '#document', nodeType: 9, parentNode: null }, localName: 'div', nodeType: 1, parentNode: { ownerDocument: [Object], localName: 'div', nodeType: 1, parentNode: [Object] } },
+    operator: 'strictEqual',
+    diff: 'simple'
+  }
+
+test at tests/environment/extension-center-r47-interaction.test.mjs:796:1
+✖ R5.1 historical Cookie Editor reference labels its snapshot version and isolated update demo (4.815834ms)
+  AssertionError [ERR_ASSERTION]: The input did not match the regular expression /cookie\.version='2\.0\.6';cookie\.update=true;cookie\.releaseVersion='2\.0\.11'/. Input:
+[large historical preview assertion payload omitted from this excerpt]

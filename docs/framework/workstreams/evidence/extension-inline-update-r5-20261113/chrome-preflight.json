@@ -1,0 +1,54 @@
+{
+  "evidenceType": "read-only native AX + filtered extension metadata + owner coordination; no install transaction",
+  "chromeVersion": "157.0.8103.78",
+  "extensionId": "ccfcjegpkdlgbclopjmadlcjedelidmf",
+  "configuredPath": "/Users/shopme/Documents/workspace/opendesk-browser/dist/development",
+  "configuredPathExists": true,
+  "serveConnection": "NOT_VERIFIED",
+  "runtimeFingerprint": "NOT_VERIFIED",
+  "nativeDoctor": {
+    "installed": true,
+    "connected": false,
+    "socketExists": false,
+    "extensionId": "ccfcjegpkdlgbclopjmadlcjedelidmf"
+  },
+  "nativeAllowedOrigins": [
+    "chrome-extension://ccfcjegpkdlgbclopjmadlcjedelidmf/"
+  ],
+  "nativeAX": {
+    "toolbar": "打开侧边栏 · 6 项扩展待更新",
+    "sidepanel": "导入扩展; 取消导入; 选择安装包; Page 模块只支持顶层 document_idle / USER_SCRIPT",
+    "url": "chrome-extension://ccfcjegpkdlgbclopjmadlcjedelidmf/sidepanel.html?hostInstanceId=4e1ac659-b311-419e-b5ca-e978c5740f4e"
+  },
+  "nativeUiOwner": "01a1d0bb-8e3f-7860-be5a-9fac77b0e052",
+  "uiAcquireResult": "native UI busy; do independent work, retry after owner releases",
+  "cuaDirectedBinding": "timed out after 30 seconds; did not retry input",
+  "egoTaskSpace": {
+    "id": 107,
+    "finished": true,
+    "extensionPageNavigation": "ERR_FILE_NOT_FOUND; not used as Chrome acceptance"
+  },
+  "installerOpenedByThisTask": false,
+  "actualUpdate": "NOT_TESTED",
+  "registrySourceVersionShaReadback": "NOT_TESTED",
+  "cancelPermissionRefusalConflictInterruptionUnknown": "NOT_TESTED",
+  "viewportThemeZoomFocusMatrix": "NOT_TESTED",
+  "pathObservations": {
+    "initialProbe": "dist/development absent during initial environment inspection",
+    "latestProbe": "dist/development exists; manifest version 0.1.0 OpenDesk Browser Developer",
+    "developmentWriter": {
+      "pid": 23096,
+      "kind": "development",
+      "startedAt": "2026-11-12T17:16:49.185Z",
+      "root": "/Users/shopme/Documents/workspace/opendesk-browser",
+      "listeningPorts": [
+        43119,
+        43120
+      ]
+    },
+    "chromeAppliedRevision": "NOT_VERIFIED",
+    "chromeServeConnection": "NOT_VERIFIED"
+  },
+  "mode": "continuous development output now present; actual Chrome applied code unverified",
+  "lastReadbackAt": "2026-11-13T01:29:47.080437+08:00"
+}

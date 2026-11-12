@@ -3,6 +3,7 @@ import assert from 'node:assert/strict';
 import {createServer} from 'node:http';
 import {build} from 'esbuild';
 import {readFile} from 'node:fs/promises';
+import {resolve} from 'node:path';
 
 // An isolated browser fixture: actual production controller + React page,
 // service doubles only. Never touches the product watcher or installed Chrome.
@@ -157,7 +158,14 @@ async function browserFixture(t,{withImportHost=false,pageId='reader'}={}){
     import {SIDEBAR_TOOL_ENABLE_STORE} from './src/ui/sidebar-tools/lifecycle.js';
     import {TOOL_CLEANUP_STORE} from './src/ui/sidebar-tools/installation.js';
     (${fixture.toString()})(${JSON.stringify({withImportHost,pageId})});`,resolveDir:process.cwd(),loader:'tsx'},bundle:true,write:false,
-    format:'esm',platform:'browser',target:'es2022',logLevel:'silent'});
+    format:'esm',platform:'browser',target:'es2022',logLevel:'silent',
+    plugins:[{name:'fixture-raw-css',setup(builder){
+      // Match Vite's raw imports used by the real shared conversation tree.
+      builder.onResolve({filter:/\.css\?raw$/},args=>({
+        path:resolve(args.resolveDir,args.path.slice(0,-4)),namespace:'fixture-raw-css'}));
+      builder.onLoad({filter:/.*/,namespace:'fixture-raw-css'},async args=>({
+        contents:await readFile(args.path,'utf8'),loader:'text'}));
+    }}]});
   const server=createServer((req,res)=>{
     res.setHeader('Content-Type',req.url==='/app.js'?'text/javascript':req.url==='/style.css'?'text/css':req.url.includes('catalog.json')?'application/json':'text/html');
     res.end(req.url==='/style.css'?css:req.url==='/app.js'?bundled.outputFiles[0].text:req.url.includes('catalog.json')?
@@ -193,6 +201,11 @@ async function clickRowMore(button){
 // native checkbox. Keep normal hit-testing and read checked state from the input.
 async function clickSwitch(control){
   await control.locator('xpath=ancestor::label[@data-slot="switch"]').click();
+}
+async function openScrollManagement(page){
+  await page.getByRole('button',{name:'导航设置',exact:true}).click();
+  await page.getByRole('button',{name:'权限与技术信息',exact:true}).click();
+  await page.locator('.ec-scroll-site-manager[data-view="management"]').waitFor();
 }
 async function chooseListUninstall(page,key){
   await clickRowMore(page.locator('[data-extension-key="'+key+'"][data-extension-action="more"]'));
@@ -522,7 +535,12 @@ for(const [programId,name] of [
     assert.equal(await page.locator('#extension-center-detail [data-ec-detail-action="toggle"]').count(),1);
     assert.equal(await page.locator('#extension-center-detail button[data-ec-detail-action="toggle"]').count(),0,
       'the master Switch replaces rather than duplicates the old toggle action');
-    assert.match(await page.locator('.ec-page-state').innerText(),/自动运行条件已就绪/);
+    const scroll=programId==='opendesk.ai-scroll-navigation';
+    if(scroll){
+      assert.equal(await page.locator('.ec-scroll-site-manager[data-view="home"]').count(),1);
+      assert.equal(await page.locator('.ec-page-state').count(),0,
+        'the compact home control omits redundant ready/off status copy');
+    }else assert.equal(await page.locator('.ec-page-state[data-state="ready"]').innerText(),'自动运行已开启');
     const before=await page.evaluate(()=>fixture.calls.filter(c=>c.action==='page-toggle').length);
     await control.evaluate(node=>node.click());
     assert.equal(await page.evaluate(()=>fixture.calls.filter(c=>c.action==='page-toggle').length),before,
@@ -532,7 +550,10 @@ for(const [programId,name] of [
     await page.waitForFunction(()=>fixture.page.installed.enabled===false&&
       fixture.state.detailModel?.busy===false);
     assert.equal(await control.isChecked(),false);
-    assert.match(await page.locator('.ec-page-state').innerText(),/原生注销已确认/);
+    if(scroll)assert.equal(await page.locator('.ec-page-state').count(),0);
+    else assert.equal(await page.locator('.ec-page-state[data-state="off"]').innerText(),'自动运行已关闭');
+    assert.equal(await page.evaluate(()=>fixture.page.installed.nativeState),'disabled',
+      'the saved off state must retain confirmed native unregistration');
     assert.equal(await page.evaluate(()=>fixture.calls.find(c=>c.action==='page-toggle').args.expectedGeneration),5);
     await control.focus();await page.keyboard.press('Space');
     await page.waitForFunction(()=>fixture.page.installed.enabled===true&&
@@ -540,10 +561,16 @@ for(const [programId,name] of [
     assert.equal(await control.isChecked(),true);
     assert.equal(await page.evaluate(()=>fixture.calls.filter(c=>c.action==='page-toggle').length),2);
     assert.equal(await control.evaluate(node=>document.activeElement===node),true);
-    assert.equal(await page.locator('.ec-page-management [data-ec-detail-action="uninstall"]').count(),1);
-    if(programId==='opendesk.ai-reply-mindmap')
+    if(!scroll){
+      assert.equal(await page.locator('.ec-page-management [data-ec-detail-action="uninstall"]').count(),1);
       assert.equal(await page.locator('.ec-site-review-details').count(),0);
-    else assert.equal(await page.locator('.ec-site-review-details summary').count(),1);
+    }else{
+      assert.equal(await page.locator('.ec-detail-head [data-ec-detail-action="uninstall"]').count(),1);
+      assert.equal(await page.getByRole('button',{name:'添加自定义网站',exact:true}).count(),1);
+      await openScrollManagement(page);
+      assert.equal(await page.locator('.ec-page-state[data-state="ready"]').innerText(),'自动运行已开启');
+      assert.match(await page.locator('.ec-scroll-diagnostics').innerText(),/fixture-page-install-1/);
+    }
     await page.evaluate(()=>fixture.dispose());
   });
 }
@@ -569,7 +596,7 @@ test('R1.5 explicit recovery reaches the original Page Host: '+nativeState,optio
     await fixture.controller.refresh();
   },nativeState);
   await page.locator('[data-extension-key="page:opendesk.ai-scroll-navigation"][data-extension-action="main"]').click();
-  await page.getByRole('button',{name:'尝试恢复原有授权与注册',exact:true}).click();
+  await page.getByRole('button',{name:'恢复自动运行',exact:true}).click();
   await page.waitForFunction(()=>fixture.calls.some(call=>call.action==='page-toggle')&&!fixture.state.detailModel.busy);
   const calls=await page.evaluate(()=>fixture.calls.filter(call=>call.action==='page-toggle'));
   assert.equal(calls.length,1);
@@ -589,10 +616,12 @@ test('R1.5 background refresh preserves focus after trusted Switch mouse and Spa
   await page.waitForFunction(()=>fixture.page.installed.enabled===true&&!fixture.state.detailModel.busy);
   assert.equal(await control.isChecked(),true);
   assert.equal(await page.evaluate(()=>fixture.calls.filter(c=>c.action==='page-toggle').length),2);
-  const summary=page.locator('.ec-page-diagnostics summary');
-  await summary.focus();
+  await openScrollManagement(page);
+  assert.equal(await page.locator('.ec-scroll-diagnostics').isVisible(),true);
+  const refresh=page.getByRole('button',{name:'重新检查',exact:true});
+  await refresh.focus();
   await page.evaluate(()=>fixture.controller.refresh());
-  assert.equal(await summary.evaluate(node=>document.activeElement===node),true);
+  assert.equal(await refresh.evaluate(node=>document.activeElement===node),true);
 });
 
 test('R1.5 recovery ACK with superseded readback cannot confirm cached enabled state',options,async t=>{
@@ -605,7 +634,7 @@ test('R1.5 recovery ACK with superseded readback cannot confirm cached enabled s
       :request(method,args);
   });
   await page.locator('[data-extension-key="page:opendesk.ai-scroll-navigation"][data-extension-action="main"]').click();
-  await page.getByRole('button',{name:'尝试恢复原有授权与注册',exact:true}).click();
+  await page.getByRole('button',{name:'恢复自动运行',exact:true}).click();
   await page.waitForFunction(()=>fixture.reads?.length===1);
   await page.evaluate(()=>{void fixture.controller.refresh();});
   await page.waitForFunction(()=>fixture.reads.length===2);

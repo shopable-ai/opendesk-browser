@@ -1,0 +1,9 @@
+Command: npm run build
+Mode: production; isolated source/dependency snapshot; live dist unchanged
+Exit code: 1
+ ERROR  [opendesk-fixed-tool-shell] Trusted AI Proxy source changed; review and re-pin: projects/ai-proxy/src/service.ts
+FAILED_BUILD_DIAGNOSTIC=/Users/shopme/Documents/workspace/opendesk-browser/artifacts/extension-inline-update-r5/20261113/build-evidence/build-production-failed-1794503993260-4d3a5e2b-746f-4e67-9089-4e9c38e8c41b.json
+Error: Failed to build tool-shell
+  [cause]: [opendesk-fixed-tool-shell] Trusted AI Proxy source changed; review and re-pin: projects/ai-proxy/src/service.ts
+    code: 'PLUGIN_ERROR',
+Node.js v24.16.0

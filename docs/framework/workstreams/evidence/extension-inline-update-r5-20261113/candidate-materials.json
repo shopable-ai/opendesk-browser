@@ -1,0 +1,16 @@
+[
+  {
+    "version": "1.1.20",
+    "package": "dist/app-market-public/releases/opendesk/prompt-shortcuts/1.1.20/package.opendesk-tool.json",
+    "bytes": 143868,
+    "sha256": "e93e1bde0a9fb7953fafbba1f1a71266890706f412f47f6209389c7b4afbf5ef",
+    "descriptor": "dist/app-market-public/releases/opendesk/prompt-shortcuts/1.1.20/descriptor.json"
+  },
+  {
+    "version": "1.1.21",
+    "package": "dist/app-market-public/releases/opendesk/prompt-shortcuts/1.1.21/package.opendesk-tool.json",
+    "bytes": 144417,
+    "sha256": "1497236d8e79117077b447fbe930182a1aec1c5e29cf14ae4d9a7dd02ee445d2",
+    "descriptor": "dist/app-market-public/releases/opendesk/prompt-shortcuts/1.1.21/descriptor.json"
+  }
+]

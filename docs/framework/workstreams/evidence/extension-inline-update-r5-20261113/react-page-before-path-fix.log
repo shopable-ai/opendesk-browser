@@ -1,0 +1,111 @@
+✔ React page preserves list, search/filter, detail identity and native Page actions (2692.754708ms)
+✔ The last hovered or focused installed row keeps the only desktop More button (1767.621ms)
+✔ React row menu preserves native gestures, keyboard/outside close, pending and disposal (2477.125958ms)
+✔ R5.11 App overflow opens one modal; cancel/Escape preserve state, confirm binds native gesture and persists removal (2297.944667ms)
+✔ R5.11 Page overflow opens one confirmation; fixed generation is passed to original authority and read back (1707.860375ms)
+✔ R5.6 changes to Page installation identity invalidate the opened list dialog before dispatch (1549.0875ms)
+✔ React orphaned cleanup recovery retains trusted native events while catalog is unavailable (1478.86175ms)
+✔ Extension tab accepts a native file drag and forwards only files to its trusted installer (1210.704791ms)
+✔ R5.7 real ExtensionCenter Controller + React ToolHost preserve ImportSheet-first flow (1494.9945ms)
+✖ R1.4 production React master Switch and trusted Page readback: AI 对话滚动导航 (6632.985833ms)
+✖ R1.4 production React master Switch and trusted Page readback: AI 回复思维导图 (2348.992708ms)
+✔ R1.4 master Switch never displays a Host acknowledgment as saved state (2510.050417ms)
+✖ R1.5 explicit recovery reaches the original Page Host: unregistered (6801.512208ms)
+✖ R1.5 explicit recovery reaches the original Page Host: pending (6466.996417ms)
+✖ R1.5 explicit recovery reaches the original Page Host: registered (6746.881916ms)
+✖ R1.5 background refresh preserves focus after trusted Switch mouse and Space actions (6852.261458ms)
+✖ R1.5 recovery ACK with superseded readback cannot confirm cached enabled state (6439.061ms)
+✔ R1.5 uninstall ACK with superseded readback cannot confirm a cached absent row (1568.235875ms)
+ℹ tests 18
+ℹ suites 0
+ℹ pass 11
+ℹ fail 7
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 63135.643209
+
+✖ failing tests:
+
+test at tests/environment/extension-center-react-page.test.mjs:524:3
+✖ R1.4 production React master Switch and trusted Page readback: AI 对话滚动导航 (6632.985833ms)
+  locator.innerText: Timeout 5000ms exceeded.
+  Call log:
+  [2m  - waiting for locator('.ec-page-state')[22m
+  
+      at TestContext.<anonymous> (/Users/shopme/Documents/workspace/opendesk-browser/tests/environment/extension-center-react-page.test.mjs:533:55) {
+    name: 'TimeoutError',
+    log: [ "  - waiting for locator('.ec-page-state')" ]
+  }
+
+test at tests/environment/extension-center-react-page.test.mjs:524:3
+✖ R1.4 production React master Switch and trusted Page readback: AI 回复思维导图 (2348.992708ms)
+  AssertionError [ERR_ASSERTION]: The input did not match the regular expression /自动运行条件已就绪/. Input:
+  
+  '自动运行已开启'
+  
+      at TestContext.<anonymous> (file:///Users/shopme/Documents/workspace/opendesk-browser/tests/environment/extension-center-react-page.test.mjs:533:12)
+      at async Test.run (node:internal/test_runner/test:1313:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:897:7) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: '自动运行已开启',
+    expected: /自动运行条件已就绪/,
+    operator: 'match',
+    diff: 'simple'
+  }
+
+test at tests/environment/extension-center-react-page.test.mjs:572:1
+✖ R1.5 explicit recovery reaches the original Page Host: unregistered (6801.512208ms)
+  locator.click: Timeout 5000ms exceeded.
+  Call log:
+  [2m  - waiting for getByRole('button', { name: '尝试恢复原有授权与注册', exact: true })[22m
+  
+      at TestContext.<anonymous> (/Users/shopme/Documents/workspace/opendesk-browser/tests/environment/extension-center-react-page.test.mjs:580:66) {
+    name: 'TimeoutError',
+    log: [ "  - waiting for getByRole('button', { name: '尝试恢复原有授权与注册', exact: true })" ]
+  }
+
+test at tests/environment/extension-center-react-page.test.mjs:572:1
+✖ R1.5 explicit recovery reaches the original Page Host: pending (6466.996417ms)
+  locator.click: Timeout 5000ms exceeded.
+  Call log:
+  [2m  - waiting for getByRole('button', { name: '尝试恢复原有授权与注册', exact: true })[22m
+  
+      at TestContext.<anonymous> (/Users/shopme/Documents/workspace/opendesk-browser/tests/environment/extension-center-react-page.test.mjs:580:66) {
+    name: 'TimeoutError',
+    log: [ "  - waiting for getByRole('button', { name: '尝试恢复原有授权与注册', exact: true })" ]
+  }
+
+test at tests/environment/extension-center-react-page.test.mjs:572:1
+✖ R1.5 explicit recovery reaches the original Page Host: registered (6746.881916ms)
+  locator.click: Timeout 5000ms exceeded.
+  Call log:
+  [2m  - waiting for getByRole('button', { name: '尝试恢复原有授权与注册', exact: true })[22m
+  
+      at TestContext.<anonymous> (/Users/shopme/Documents/workspace/opendesk-browser/tests/environment/extension-center-react-page.test.mjs:580:66) {
+    name: 'TimeoutError',
+    log: [ "  - waiting for getByRole('button', { name: '尝试恢复原有授权与注册', exact: true })" ]
+  }
+
+test at tests/environment/extension-center-react-page.test.mjs:589:1
+✖ R1.5 background refresh preserves focus after trusted Switch mouse and Space actions (6852.261458ms)
+  locator.focus: Timeout 5000ms exceeded.
+  Call log:
+  [2m  - waiting for locator('.ec-page-diagnostics summary')[22m
+  
+      at TestContext.<anonymous> (/Users/shopme/Documents/workspace/opendesk-browser/tests/environment/extension-center-react-page.test.mjs:601:17) {
+    name: 'TimeoutError',
+    log: [ "  - waiting for locator('.ec-page-diagnostics summary')" ]
+  }
+
+test at tests/environment/extension-center-react-page.test.mjs:606:1
+✖ R1.5 recovery ACK with superseded readback cannot confirm cached enabled state (6439.061ms)
+  locator.click: Timeout 5000ms exceeded.
+  Call log:
+  [2m  - waiting for getByRole('button', { name: '尝试恢复原有授权与注册', exact: true })[22m
+  
+      at TestContext.<anonymous> (/Users/shopme/Documents/workspace/opendesk-browser/tests/environment/extension-center-react-page.test.mjs:616:66) {
+    name: 'TimeoutError',
+    log: [ "  - waiting for getByRole('button', { name: '尝试恢复原有授权与注册', exact: true })" ]
+  }

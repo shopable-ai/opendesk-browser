@@ -1,0 +1,30 @@
+✔ React page preserves list, search/filter, detail identity and native Page actions (3182.467291ms)
+✔ The last hovered or focused installed row keeps the only desktop More button (1680.688709ms)
+✔ React row menu preserves native gestures, keyboard/outside close, pending and disposal (2610.349833ms)
+✔ R5.11 App overflow opens one modal; cancel/Escape preserve state, confirm binds native gesture and persists removal (1979.814416ms)
+✔ R5.11 Page overflow opens one confirmation; fixed generation is passed to original authority and read back (2661.242042ms)
+✔ R5.6 changes to Page installation identity invalidate the opened list dialog before dispatch (2095.264375ms)
+✔ React orphaned cleanup recovery retains trusted native events while catalog is unavailable (1879.393791ms)
+✔ Extension tab accepts a native file drag and forwards only files to its trusted installer (1299.309833ms)
+✔ R5.7 real ExtensionCenter Controller + React ToolHost preserve ImportSheet-first flow (2029.16625ms)
+✔ R1.4 production React master Switch and trusted Page readback: AI 对话滚动导航 (2162.4965ms)
+✔ R1.4 production React master Switch and trusted Page readback: AI 回复思维导图 (2029.882042ms)
+✔ R1.4 master Switch never displays a Host acknowledgment as saved state (1816.632458ms)
+✔ R1.5 explicit recovery reaches the original Page Host: unregistered (1696.563875ms)
+✔ R1.5 explicit recovery reaches the original Page Host: pending (2252.14125ms)
+✔ R1.5 explicit recovery reaches the original Page Host: registered (1900.544292ms)
+✔ R1.5 background refresh preserves focus after trusted Switch mouse and Space actions (2679.791875ms)
+✔ R1.5 recovery ACK with superseded readback cannot confirm cached enabled state (1852.558125ms)
+✔ R1.5 uninstall ACK with superseded readback cannot confirm a cached absent row (1675.267666ms)
+ℹ tests 18
+ℹ suites 0
+ℹ pass 18
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 37656.173542
+
+COMMAND_EXIT_CODE=0
+WALL_TIME_SECONDS=37.859
+PROCESS_GROUP_LIMIT_SECONDS=180

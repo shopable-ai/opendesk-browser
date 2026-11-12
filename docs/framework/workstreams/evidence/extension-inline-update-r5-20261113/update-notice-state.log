@@ -1,0 +1,20 @@
+✔ update notice storage is profile-scoped, bounded and fail closed (1.672542ms)
+✔ three competing tabs: at most one claim; visible ACK increments once (0.686709ms)
+✔ first explicit snooze permits a single second toast after 24h (0.280583ms)
+✔ closing, viewing and ignoring do not uninstall and do not repeat this version (0.316875ms)
+✔ three distinct releases aggregate to one claim but require separate review (0.249125ms)
+✔ active-document tool scope claims only related updates and keeps global Badge (0.9785ms)
+✔ per-tool inbox-only preference and global silence fence new web claims (0.334125ms)
+✔ unknown or applied never prompts; real applied state retains history (0.170834ms)
+✔ same semantic version with different package fingerprint is rejected (1.027375ms)
+✔ invalid claim ownership and unknown action fail closed (0.38425ms)
+✔ badge counts reflect distinct actionable tools, not unread notices or browser apply (0.960958ms)
+✔ per-tool silent hides only that tool badge, with history still queryable (0.113875ms)
+ℹ tests 12
+ℹ suites 0
+ℹ pass 12
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 59.961958

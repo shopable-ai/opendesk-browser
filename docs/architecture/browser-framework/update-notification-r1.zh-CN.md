@@ -426,4 +426,32 @@ T06：Node 定向、npm run check、npm run build、Chrome for Testing、真实 
 
 - **R5 定向 CI 追踪：** 在既有 `.github/workflows/extension-center-r4.yml` 的 `npm ci` 后增加唯一 R5 定向步骤，依次运行 5 个指定 Node 测试文件，保留 `R5_EXIT_CODES` 各组退出码；同时更新该工作流的路径触发集合以包括 Worker/测试文件。其 GitHub Runner 结果仍要以对应 HEAD 与实际作业日志为准，不等同于真实 Mac Chrome 安装事务。新增 CI 接线属于测试覆盖，不是第二个安装或更新系统。
 
-**当前产品最终结论：BLOCKED（缺少本机验证/构建及真实 Chrome 事务证据）；代码提交只代表源码修复和可执行回归用例已增加。**
+**2026-11-12 历史结论：BLOCKED（当时缺少本机验证/构建及真实 Chrome 事务证据）；后续状态见下方本机复测记录。**
+
+
+### R5 2026-11-13：本机专项复测与真实 Chrome 入口阻塞
+
+任务仍为 `OD-EXTENSION-INLINE-UPDATE-R5-FINAL-CLOSURE`。本轮复用现有行内更新、Worker 和原 Installer；未修改产品源码、权限、官方来源、SHA 门禁或 Registry。目标仍是从已有扩展列表完成一次可信旧版→新版真实安装，并读回真实结果。
+
+**差量与环境。** 本轮开始为 `main@730d9b4e037e200c9c4e486b6ebe654a7388a5a3`，远程 `main` 实读为 `90938be4bc87983c8f245c269bb1a7a04c28b01c`。`f5601edc`、`3a87b6c`、`a3afa07d` 均已在 HEAD；`a3afa07d..HEAD` 中列明的八个 R5 核心文件、五组测试及原 CI 接线没有提交差量。开始时工作区有 76 条未提交/未跟踪路径，另有并行修改，包括 `tools.tsx`/`app-shell.tsx` 的预装提示接线，均保留。本机 Node `v24.16.0`、npm `11.13.0`；不能将此次 Node 24 结果冒称 CI 的 Node 22 结果。
+
+**测试故障归因与最小维护。** 首次交互专项 59 项中 57 PASS、2 FAIL，正常 exit 1，约 117.65 秒。第 36 项的 DOM 节点相等断言失败后，用约 113 秒展开整个循环 DOM 差异；本机并未发生测试死锁、异步资源悬挂或 Runner shutdown。历史预览断言还遗漏了原 Root 已有的共享更新记录 aside、历史/生产菜单 ID 对应关系和 `updateVerified=true`。按现行原位更新合同修正这些 C 类断言，仍明确检查单一 Root/挂载、无独立更新按钮及可信标记，改用布尔身份比较以避免巨大失败输出；原测试全部保留。修后 59/59 PASS，exit 0，6.281 秒。
+
+React 专项首次 exit 0 但 18 项全部因缺少 `OPENDESK_PLAYWRIGHT_MODULE` 而跳过，记录为 NOT_TESTED。随后使用本机既有 Playwright 和 CFT 155.0.8059.39 显式执行，发现夹具不处理生产组件已有的 `css?raw` 导入。仅在该测试的内存构建中补齐 Vite 等价的原始 CSS 文本导入；不改产品资源加载或 CSP。修后已实际执行到 18 项，其中 7 项使用旧 Page 详情文案、恢复按钮或诊断入口。核对现行组件与文案后，测试通过当前紧凑状态、导航设置管理页及“恢复自动运行”按钮继续验证相同用户操作，保留伪点击不得派发、原代际、单次恢复、ACK 不算读回、过期读回失败和刷新焦点断言；未修改产品以迎合旧选择器。最终 **18/18 PASS、0 skipped、exit 0，37.859 秒**，详见修后日志。此专项是生产 Controller/React 加服务替身的独立 headless UI 夹具，**不是真实已安装扩展验收**。
+
+本轮退出码、原始失败与修后日志见[证据索引](../../framework/workstreams/evidence/extension-inline-update-r5-20261113/results.json)。五组最终结果为投影 4/4、通知服务 15/15、通知状态 12/12、交互 59/59、React 页面 18/18，合计 108 项均为本次本机 exit 0、0 skipped；覆盖 0/1/3/10 候选、排序/筛选、能力审阅、Worker fresh 核验、并发身份/来源漂移、同版本不同 SHA、关联 Toast 与全局 Badge。取消/未知不成功与不重放、旧安装动作等证据只按实际 Node/夹具范围报告，不能替代 Chrome 安装事务。
+
+**检查与构建。** `npm run check` 在测试夹具修复后再次 exit 0，1430 个源码/测试/构建文件语法及原 CSP、SDK/构建合同检查通过；最终 UI 路径断言调整后，两份测试另经 `node --check` 和 `git diff --check` 验证。测试文件不属于产品构建输入，故未在相同产品输入上重复已归因失败的构建。由于其他任务正在使用仓库 `dist/production`，本轮在忽略的 `artifacts/extension-inline-update-r5/20261113/build-source` 冻结源码与本地依赖副本，用原 `npm run build`、原来源保护和独立输出守卫执行 production 构建；没有分支、Git worktree，也没有覆盖共享输出。最初快照依赖符号链接被来源门禁拒绝、遗漏 `native-agent` 根目录导致解析失败，均归 D 类快照环境问题并在快照内修复；最终实际构建 exit 1：`Trusted AI Proxy source changed; review and re-pin: projects/ai-proxy/src/service.ts`。该文件工作区 blob 为 `36279f234c4cbc1d379698767a9c71ac2620938e`，HEAD 与 `a3afa07d` 均为 `2c49b2f3dcdc8956faf0a7bd858837854e792fb8`，属于 B 类并行模块改动。未替该 owner 改码、回退或重钉指纹；没有 BUILD_PASS 或可验收的新 production 候选。[构建阻塞日志](../../framework/workstreams/evidence/extension-inline-update-r5-20261113/build-blocker.log)。
+
+**真实 Chrome 的实际观察与停止边界。** 日常 Chrome `157.0.8103.78` 可用。只读原生 AX 显示工具栏“打开侧边栏 · 6 项扩展待更新”，原 Side Panel 为未结束的“导入扩展”界面。仅过滤读取当前扩展的配置元数据，确认实际登记 ID `ccfcjegpkdlgbclopjmadlcjedelidmf`、加载路径 `/Users/shopme/Documents/workspace/opendesk-browser/dist/development`；初次检查此路径缺失；独立复核时并行 owner 已恢复该目录，manifest 为 `0.1.0 / OpenDesk Browser Developer`，原开发 writer PID `23096`（UTC `2026-11-12T17:16:49.185Z` 启动）监听 `43119/43120`。当前属于持续开发输出，服务监听不证明 Chrome 已连接或应用新 revision；运行代码指纹与 Chrome serve 连接仍未核实。`opendesk browser doctor` 的本地 ID 及 Native manifest `allowed_origins` 均匹配此 ID，但 `connected:false`、`socketExists:false`；这不证明 Native 握手在线，也不单独证明安装器受 Native 阻断。
+
+原生 UI 锁属于另一对话 `01a1d0bb-8e3f-7860-be5a-9fac77b0e052`，本任务申请返回 busy；定向 CUA 绑定亦超时。未取消他人的导入、未争抢焦点/剪贴板、未重载扩展或改 Native 配对。ego TaskSpace 107 完成可用性检查后已释放；其中扩展页导航 `ERR_FILE_NOT_FOUND`，不作为 Chrome 替代证据。[Chrome 预检记录](../../framework/workstreams/evidence/extension-inline-update-r5-20261113/chrome-preflight.json)。
+
+已找到合法候选材料：Prompt Shortcuts `1.1.20`（143868 字节，SHA-256 `e93e1bde0a9fb7953fafbba1f1a71266890706f412f47f6209389c7b4afbf5ef`）→`1.1.21`（144417 字节，SHA-256 `1497236d8e79117077b447fbe930182a1aec1c5e29cf14ae4d9a7dd02ee445d2`）。本机发行 descriptor 与包原件摘要一致，旧版同时绑定已提交的官方历史发行快照；仅有材料，不证明旧版已通过官方入口安装或运行目录已包含新版。后续必须经原官方审阅链建立/核实旧版来源回执，不直接写 Registry 或模拟安装来源。[候选原件记录](../../framework/workstreams/evidence/extension-inline-update-r5-20261113/candidate-materials.json)。通用在线发行发现/发布者签名不扩入本轮；`987cd1df4` 的缺失 AI Proxy bundle 属于另一任务，不能列为本任务必需资源。
+
+**实机结果与六视角评分。** 本任务未点击真实更新，Installer 打开、实际安装事务、新版本/来源/SHA 读回、取消/拒绝新增权限/来源冲突/版本冲突/事务中断/UNKNOWN，以及 280/320/360/420px、200%、明暗主题、长名称、菜单/焦点和网页关联 Toast 的真实扩展矩阵均为 NOT_TESTED。用户体验、信息架构、视觉与无障碍、更新状态与生命周期、安装权限与供应链、工程质量及回归六个产品视角均缺少本候选实机证据，因此实际产品评分为 NOT_TESTED，不给出虚构百分数，也不计算综合平均或宣称达到 95/90 门槛。
+
+**本轮产品结论仍为 BLOCKED。** 当前下一条实际用户操作是：在并行 owner 解除可信构建门禁并释放 Chrome 维护窗口、核实实际运行 revision 后，用上述可信版本材料经原扩展列表执行并取证一次真实更新。源码/夹具通过不自动进入 PASS；不重做 R3/R4、不放宽门禁、不补造来源、不自动重放安装事务。
+
+
+独立 verifier 已只读核对两测试最终 diff 与原始日志：测试维护 PASS，未发现 R5 新增产品回归；指出的开发目录时点问题已按新读回纠正。该审查没有重跑或提升实机证据，六个产品分数仍为 NOT_TESTED。[独立审查记录](../../framework/workstreams/evidence/extension-inline-update-r5-20261113/independent-review.json)。

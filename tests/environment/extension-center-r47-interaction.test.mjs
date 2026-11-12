@@ -759,9 +759,22 @@ test('R4.8 historical reference preserves the production toolbar action contract
     const doc=parseHTML(source).document;
     const element=doc.querySelector('.ec-toolbar'),host=doc.getElementById(hostId);
     assert.ok(element&&host,'toolbar and import host must exist');
-    const next=element.nextElementSibling;
-    assert.equal(next?.matches('input[type="file"][hidden]')?next.nextElementSibling:next,host,
-      'only the hidden file picker may separate the toolbar from its import host');
+    assert.ok(element.parentElement===host.parentElement,
+      'toolbar and import host must retain the same DOM owner');
+    let next=element.nextElementSibling;
+    if(hostId==='extension-center-import-host'){
+      // The original React Root owns the shared history/settings slot;
+      // the historical preview predates it. No independent update trigger.
+      assert.ok(next?.matches('aside.od-update-slot.no-trigger[aria-label="更新记录与提醒设置"]'),
+        'production retains the shared update slot before the import host');
+      assert.equal(doc.querySelectorAll('#extension-center .od-update-slot').length,1);
+      assert.ok(!next.querySelector('.od-update-trigger'),'no independent update trigger');
+      assert.ok(!next.querySelector('#od-update-panel'),'history is closed on first paint');
+      next=next.nextElementSibling;
+    }
+    if(next?.matches('input[type="file"][hidden]'))next=next.nextElementSibling;
+    assert.ok(next===host,
+      'only the shared production update slot and hidden file picker may precede the import host');
     return element.outerHTML;
   };
   const formal=toolbar(html,'extension-center-import-host');
@@ -772,7 +785,9 @@ test('R4.8 historical reference preserves the production toolbar action contract
   // move into More. Its locale control is not the current manager contract.
   const controls=source=>[...source.matchAll(/\bid="([^"]+)"/g)].map(match=>match[1])
     .filter(id=>!['extension-center-language','extension-center-language-settings'].includes(id)).sort();
-  assert.deepEqual(controls(demo.replaceAll('preview-','extension-center-')),controls(formal));
+  // The same More-menu history/settings action has a different historical ID.
+  assert.deepEqual(controls(demo.replaceAll('preview-','extension-center-')
+    .replaceAll('extension-center-update-records','extension-center-update-history')),controls(formal));
   for(const attribute of ['data-ec-kind','data-ec-scope','aria-controls']){
     const values=source=>[...source.matchAll(new RegExp(attribute+'="([^"]+)"','g'))]
       .map(match=>match[1].replaceAll('preview-','extension-center-')).sort();
@@ -806,7 +821,7 @@ test('R5.1 historical Cookie Editor reference labels its snapshot version and is
   assert.ok(preview.includes('历史候选 v2.0.11'),
     'historical upgrade demonstration must not be presented as the current release');
   assert.match(preview,/data-scenario="update"/);
-  assert.match(preview,/cookie\.version='2\.0\.6';cookie\.update=true;cookie\.releaseVersion='2\.0\.11'/);
+  assert.match(preview,/cookie\.version='2\.0\.6';cookie\.update=true;cookie\.updateVerified=true;cookie\.releaseVersion='2\.0\.11'/);
   assert.match(preview,/function simulateUpdate\(row\)/);
   assert.match(preview,/确认模拟原位更新/);
   assert.match(preview,/不会自动运行新版代码/);

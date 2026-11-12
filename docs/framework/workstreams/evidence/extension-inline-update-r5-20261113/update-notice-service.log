@@ -1,0 +1,23 @@
+✔ worker uses original installed/source evidence and one cross-tab claim (29.255583ms)
+✔ web Toast needs active same-tool evidence, global Badge stays intact (12.85625ms)
+✔ unknown local provenance and added capabilities fail closed (10.073333ms)
+✔ untrusted webpage or sandbox sender cannot spoof update center commands (8.404167ms)
+✔ sidepanel ignore immediately hides an already visible Toast and preserves installed tool (11.101542ms)
+✔ page View opens the original side panel on the synchronous click stack, then persists seen state (4.875958ms)
+✔ Chrome permission revocation hides persisted visible claims after Worker restart without replay (14.218083ms)
+✔ site grant removal immediately invalidates live gesture hints and hides the exact document (10.01975ms)
+✔ a rejected gesture open is consumed even when the subsequent permission check fails (4.294834ms)
+✔ revocation fences a pending gesture open before its rejection can open a fallback tab (4.429375ms)
+✔ revocation while visible ACK waits for the write lock cannot revive a live claim (4.555541ms)
+✔ Chrome Action badge survives view, follows ignore and preference, and restores after restart (6.42625ms)
+✔ unverified provenance, capability review and Chrome apply cannot fabricate actionable badge (12.794291ms)
+✔ R5 concurrent registry or source drift invalidates the in-flight inventory proof (7.603708ms)
+✔ R5 trusted review list forces a fresh installed-source comparison (7.423125ms)
+ℹ tests 15
+ℹ suites 0
+ℹ pass 15
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 302.420375
