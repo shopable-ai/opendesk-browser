@@ -1,3 +1,52 @@
+# R2 补充结论：Subagent 独立产品 + 已安装 WebFlow/Controller Task + 最小公共 Framework（2026-11-12）
+
+> **本节是最新的架构纠偏，优先于下方 R1 中不准确的“WebFlow Subagent”产品归属用语；下方 R1 作为研究历史保留。** 它不构成方案 A 已完成或跨职责接口已支持的声明。
+>
+> 任务：OD-WEBFLOW-SUBAGENT-ARCHITECTURE-BOUNDARY-R2。此前方案 A 已在另一对话实施，禁止本节触发重复开发。
+
+## 产品身份与部署选择
+
+- **产品身份：Subagent Mini Chat**，优先作为 OpenDesk Browser 内独立、可管理的组合式扩展业务（不是在 WebFlow Side Panel 中加一个大型 Subagent 面板，也不默认另造独立 Chrome Extension）。新建正式业务目录时建议 `projects/subagent-mini-chat/`，须先核对当前仓库是否已有等价项目、ID、已安装包或 owner，避免冲突。
+- **网页 UI 运行面：Page USER_SCRIPT / 受管网页增强**，用于用户在 AI 对话 A 中输入任务、查看简短状态与最终结果；不直接获得 Controller/Chrome 特权。必要的设置未来才增独立 Sidebar/PC 管理 UI，**不能**仅为“应用”命名创建空 Sidebar Tool。
+- **执行面：已有独立安装、已审核的 Controller Task**。可由 WebFlow 业务提供与维护 ChatGPT 等 Task/Provider Adapter，但 Subagent 不应导入 WebFlow 私有 UI、Runner、内部 Ledger 或仓库中某个固定网页脚本的私有函数。运行经共享 Host/Authority/RunHost/持久 Result。WebFlow 是现有业务消费者/脚本使用方，不是必须常驻的第二个“脚本服务器”。
+- **基础设施：OpenDesk Browser Framework** 仅负责通用安装身份、权限、用户激活、文档/目标校验、任务委派、结果读取/订阅、生命周期和恢复；无 Subagent 业务模型、网站 DOM 选择器、Mini Chat 状态卡片、模型提示词。
+
+源码事实（2026-11-12 `main` 静态文档与配置核对）：
+1. `docs/api/extension-development-selection.zh-CN.md` 将网页增强归 Page、自动化归 Controller、两者组合归 Combined Application；**当前无跨职责原子组合安装包**。
+2. `docs/api/page-userscript.zh-CN.md` 的普通 Page v1 主要是 `page.dom`，没有 Controller `page`、`runId/resultId`；**不得假设 Page 能直接调用 tasks.run**。
+3. `docs/api/sidebar-tools.zh-CN.md` 允许经审阅 `delegatedTasks` 的 v2 Sidebar Tool 按固定 pin 委派，但沙箱 iframe 不能直接注入普通网页。 `tasks.configure` 是 UI-only，不代表 Task 已运行。
+4. `projects/webflow/tool.config.json` 读取时的固定 `delegatedTasks` 为 Baidu / Google 两个搜索任务；**不能把 ChatGPT 创建对话任务已在 WebFlow 工具包中获准委派当成已证事实**。其它固定桥、Controller 的批准状态需逐项实证。
+5. 普通网页自己给出的 JSON、DOM 文本、`postMessage` 均是非可信输入，不能伪造安装身份、任务审批、Run/Result。
+
+## 方案优先级与何时允许改 Framework
+
+**优先 P0 — 完整复用现有公开能力：**
+先由源码和原生 Chrome 核对已有用户手势、Page UI、已安装 Task 授权、result 读取和回填入口。能用现有正式接口的全部留在 `projects/subagent-mini-chat/` 与已安装 Task，**不改 Framework**、不新增 C“网页事件桥”。
+
+**仅在出现实际 SDK 缺口时 P1 — 提议最小通用能力：**
+如果确实没有一个可授权的 Page→已安装 Task 调用/结果读取通道，独立记录 `SDK_GAP_CONFIRMED` 的证据：实际调用者、缺失接口、报错/行为、现有 API 无法满足的原因。公共能力若需要开发，应为通用的“由受信任用户操作驱动的 Page/工具→固定已安装 Controller Task 委派 + 同一请求只读结果查询/订阅”，不能是 `subagent.runChatGPT` 或 `webflow.sendToPanel`。须具备白名单任务 pin（ID、version、manifest/content SHA、installationId、generation）、来源 tool/program/Origin/tab/document、真实用户动作、原 Authority 审批、目标核验、Run/Result 关联、ACK UNKNOWN 不重放、撤权/禁用/关闭与升级后的恢复、跨应用负例。SDK 规范、测试和业务代码分离；不能跳过既有审阅体系。
+
+**最后 P2 — 必须使用固定可信适配器时：**
+如果公开 Page Runtime 技术上无法完成该类受控动作，而立刻建设通用 SDK 又不合适，可建议一个**固定受审、最薄的可信 Content/Host 接入适配器**，放在 Subagent 业务目录或其固定审阅入口，Framework 核心仅注册加载、身份校验与通用生命周期钩子；不得把 Mini Chat DOM、AI 网页选择器、结果解析等搬进通用 `src/framework/`、`src/sw.js`、全局 ToolHost。要注明它与纯 Page Program 部署合同的差异、被安装批准和升级路径，定义将来迁回公开 SDK 的触发条件与退出计划。**P2 不等于给网页脚本特权；不能借内部方法、共享私有 storage 或伪造 chrome.runtime 消息绕过权限。**
+
+若实证无法安全实现，明确 `BLOCKED`，而不是为了“做出来”假装现有接口支持。
+
+## 与方案 A 和研究 R2 的关系
+
+- 方案 A 的业务闭环保持：A 的极简 Mini Chat 输入 → 经过可信授权让唯一 B 发送一次 → 原持久结果 / 原目标页证据读回 → A 页面显示结果与 B 链接。**不自动向 A 官方对话发送消息**。
+- 架构研究优先补充**部署/安装组合决策、Page→Task 公开接口存在性审计、C 消息去重、替代路径 P0/P1/P2 的选择依据**。D/E 网络流与官方 API 研究继续保留，但不得抢占 A 的代码实施。
+- 先给正在执行 A 的对话**纠偏补丁**，只更正“Subagent 产品归属 / UI 运行时与 Task 的真实权限边界”；不让其推倒重做已完成代码。
+- 验收分源代码、单测、包、真实 Chrome、业务与多任务/多站点权限负例，按独立证据报告。架构评审均值 95+ 只表达设计论证质量，不能替代接口和产品验证。
+
+相关正式规范：
+- `docs/api/extension-development-selection.zh-CN.md`
+- `docs/api/page-userscript.zh-CN.md`
+- `docs/api/sidebar-tools.zh-CN.md`
+- `docs/api/controller.zh-CN.md`
+- `projects/webflow/tool.config.json`
+
+---
+
 # WebFlow Subagent · 技术路线、协议边界与后续阶段（设计记录 R1）
 
 - 日期：2026-11-12
