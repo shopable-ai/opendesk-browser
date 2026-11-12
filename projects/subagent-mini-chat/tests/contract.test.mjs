@@ -54,3 +54,24 @@ test('invalid or mismatched host outcome stays unknown, never success',async()=>
   await session.create('测试');await session.read();
   assert.equal(session.snapshot.status,'unknown');assert.equal(session.snapshot.answer,'');
 });
+
+test('late create ACK cannot overwrite an already verified completion',async()=>{
+  let resolveStart;
+  const session=createSession({makeId:()=>id,transport:{
+    start(){return new Promise(resolve=>{resolveStart=resolve;});},
+    async read(){return good;}}});
+  const start=session.create('测试');
+  await session.read();assert.equal(session.snapshot.status,'completed');
+  resolveStart({accepted:true,requestId:id});await start;
+  assert.equal(session.snapshot.status,'completed');
+});
+test('concurrent read calls share one in-flight trusted query',async()=>{
+  let resolveRead,reads=0;
+  const session=createSession({makeId:()=>id,transport:{
+    async start(){return {accepted:true,requestId:id};},
+    read(){reads++;return new Promise(resolve=>{resolveRead=resolve;});}}});
+  await session.create('测试');
+  const a=session.read(),b=session.read();assert.equal(reads,1);
+  resolveRead(good);await Promise.all([a,b]);
+  assert.equal(session.snapshot.status,'completed');
+});

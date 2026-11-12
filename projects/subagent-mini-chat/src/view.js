@@ -48,6 +48,9 @@ export function renderMiniChat(ui,{transport=null}={}){
     if(event.isTrusted!==true||!session.isAvailable)return;
     void session.create(input.value);
   });
+  ui.setInterval(()=>{
+    if(['running','unknown'].includes(session.snapshot.status))return session.read();
+  },1800);
   ui.onDispose(()=>session.dispose());
   return session;
 }
