@@ -576,7 +576,7 @@ test('R3.7 path editing updates old rule instead of creating a second one',async
 });
 
 test('legacy Page site writes retain navigation flags through save, deletion and readback',async()=>{
-  const api=storage(),navigation={regionTop:false,regionBottom:true,conversationTop:false,conversationBottom:true,floatingTop:false};
+  const api=storage(),navigation={regionTop:false,regionBottom:true,conversationTop:false,conversationBottom:true,floatingTop:false,turnPaging:true};
   await api.write({version:1,sites:[rule],navigation},'one');
   const f=await settings(api);
   f.click(f.el('save'));await settle();
@@ -595,7 +595,7 @@ test('formal Page consumer observes persisted flags, updates dock and restores a
   await settle();
   const controls=()=>[...f.doc.querySelector('[data-opendesk-ai-scroll-navigation="dock"]')?.shadowRoot.querySelectorAll('button')||[]];
   assert.equal(controls().length,2);
-  const navigation={regionTop:false,regionBottom:false,conversationTop:false,conversationBottom:false,floatingTop:false};
+  const navigation={regionTop:false,regionBottom:false,conversationTop:false,conversationBottom:false,floatingTop:false,turnPaging:false};
   await api.write({version:1,sites:[rule],navigation},'one');
   f.owner.flush();await settle();
   assert.equal(controls().length,0,'poll removes an existing dock after persistence');
