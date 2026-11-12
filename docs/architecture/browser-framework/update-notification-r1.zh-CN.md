@@ -473,3 +473,13 @@ React 专项首次 exit 0 但 18 项全部因缺少 `OPENDESK_PLAYWRIGHT_MODULE`
 Prompt Shortcuts 的合法历史版本页已确认存在：`http://127.0.0.1:43132/apps/opendesk/prompt-shortcuts/versions/1.1.20/`。页面原按钮可经固定版本 intent、descriptor/包摘要核验及原 Installer 建立真实市场来源；不得手动补写来源或绕过降级保护。两版原件与 descriptor 摘要再次一致。不过 `43132` 当前未监听，日常开发通道虽已配置该 Origin，R5 尚未安全应用；现有独立 production 候选的市场通道为 `enabled:false`，也不能直接冒充可执行此历史版本安装链的新候选。
 
 **结论仍为 BLOCKED。** 本次未打开目标 Installer、未执行真实更新，版本/来源/SHA 读回、取消/权限拒绝/冲突/事务中断/UNKNOWN 及同候选视觉焦点矩阵均为 NOT_TESTED。六个实际产品维度全部 NOT_TESTED，不编造百分数或综合平均。下一条必要操作仍是由相关 owner 结清现有活动和未知效果，让原安全刷新正常应用 R5；核实运行 revision 后，恢复原合法市场入口并执行一次旧版→新版的列表安装闭环。本轮只提交接续证据；未推送现有包含其他任务提交的本地主分支链。
+
+### R5 2026-11-13：真实列表已出现行内更新，安装操作仍待 UI 资源
+
+后续只读原生 CUA 观察已改变上述运行判断：日常 Chrome 的 Side Panel Host 已变为 `0fbf0041-4882-4e14-86bd-1e7cba7723b4`，真实列表不再显示独立更新中心，而是原“更新记录与提醒设置”区域及顶部六个行内候选。视频倍速 `1.2.3`、提示词快捷按钮 `1.1.21`、网页笔记 `1.1.11`、知识收件箱 `1.2.9`、Time Review `1.6.0` 显示“更新”，AI VIP Share `1.4.34` 显示“审阅”；其后为无更新的原工具行。20 个扩展、Action/Tab 角标 6 继续可见。此证据证明 R5 展示入口已出现在真实 Chrome，取代先前“仍运行旧入口”的当前判断；尚不证明精确构建指纹、Installer 事务或版本/来源/SHA 读回。
+
+当前下一条操作已收敛为点击提示词快捷按钮的行内“更新”。但原生 UI 锁仍属于 `01a1d0d8-ab7b-7572-8261-cfef6f806159`，本任务按原协调入口申请返回 `native UI busy`，未争抢、点击、强制刷新或终止其他 owner 的任务。开发 PID `35698` 已实查存活并监听 `43119/43120`；市场 `43132` 未监听，磁盘约余 209 MiB。此时安装链仍为 NOT_TESTED，不以运行进程或锁文件冒充安装证据，也不伪造来源。
+
+最新 AX 等效记录与候选列表保留在原 [Chrome 证据](../../framework/workstreams/evidence/extension-inline-update-r5-20261113/chrome-closure.json) 的 `latestInlineRuntimeObservation`；原 [结果索引](../../framework/workstreams/evidence/extension-inline-update-r5-20261113/results.json) 同步记录当前资源阻塞和下一步。其他 owner 随后修改了列表文案、UI 和测试，108 项既有 PASS 继续只绑定其已记录输入，不扩大为当前全部输入通过。本轮未改产品源码或重复测试。
+
+**目标仍未达成，状态为 BLOCKED。** 原生 UI owner 释放资源后，由本任务重新取得 UI 锁、核实已安装旧版与原来源，从已经出现的行内按钮打开原 Installer，完成真实更新和读回；取消/拒绝/冲突/UNKNOWN、视觉焦点矩阵与六维产品评分仍待相同候选实测。本记录不将“按钮已出现”提升为最终 PASS。

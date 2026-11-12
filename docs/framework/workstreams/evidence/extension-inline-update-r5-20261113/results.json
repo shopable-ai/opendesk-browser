@@ -515,5 +515,89 @@
       "src/ui/extension-center-localization.js": "be445c3da89f3beca0bc5b51b955021468b13f5c62460fb10e01e68af11bc6d5",
       "src/ui/extension-center.css": "c3f0dcdc90f8b0ce5760c6fb232a56582514fcde81afa223bdf5929cf6caa6ef"
     }
-  }
+  },
+  "latestInlineRuntimeObservation": {
+    "observedAt": "2026-11-13T02:01:00.024460+08:00",
+    "method": "Read-only native CUA AX bound to daily Google Chrome; no UI action",
+    "appPath": "/Users/shopme/Applications/Google Chrome.app",
+    "sidePanelUrl": "chrome-extension://ccfcjegpkdlgbclopjmadlcjedelidmf/sidepanel.html?hostInstanceId=0fbf0041-4882-4e14-86bd-1e7cba7723b4",
+    "runtimeChange": "R5 inline controls now visible; previous old-entry observation superseded for display only",
+    "extensions": 20,
+    "globalActionBadge": 6,
+    "extensionTabBadge": 6,
+    "separateUpdateCenterVisible": false,
+    "historySlot": "更新记录与提醒设置",
+    "topInlineCandidates": [
+      {
+        "tool": "视频倍速",
+        "action": "更新",
+        "version": "1.2.3"
+      },
+      {
+        "tool": "提示词快捷按钮",
+        "action": "更新",
+        "version": "1.1.21"
+      },
+      {
+        "tool": "网页笔记",
+        "action": "更新",
+        "version": "1.1.11"
+      },
+      {
+        "tool": "知识收件箱",
+        "action": "更新",
+        "version": "1.2.9"
+      },
+      {
+        "tool": "AI VIP Share",
+        "action": "审阅",
+        "version": "1.4.34"
+      },
+      {
+        "tool": "Time Review · 时间回顾",
+        "action": "更新",
+        "version": "1.6.0"
+      }
+    ],
+    "nativeUiOwner": "01a1d0d8-ab7b-7572-8261-cfef6f806159",
+    "uiAcquireResult": "native UI busy; do independent work, retry after owner releases",
+    "uiLockOwnedByThisTask": false,
+    "installerOpenedByThisTask": false,
+    "realUpdateExecuted": false,
+    "versionSourceShaReadback": "NOT_TESTED",
+    "negativeInstallPaths": "NOT_TESTED",
+    "candidateVisualFocusMatrix": "NOT_TESTED",
+    "currentBlockingResource": "Shared daily Chrome native UI remains owned by another task; cannot click Installer safely without handover",
+    "actionsNotPerformed": [
+      "Forced reload",
+      "Task cancellation",
+      "Registry/source mutation",
+      "Permission grants",
+      "UI lock takeover"
+    ],
+    "developmentProcess": {
+      "pid": 35698,
+      "aliveVerified": true,
+      "portsListening": [
+        43119,
+        43120
+      ]
+    },
+    "marketPort43132Listening": false,
+    "diskAvailableMiB": 209,
+    "head": "d0a099ee98b99dcf79ce97e1111636ccf01f9fc8",
+    "r5CoreSourceSha256": {
+      "src/ui/extension-center-model.js": "4981bf299d663837788e6a3378fd97b26c0a70d47e69ee0f3d08cdfcffc7f663",
+      "src/ui/extension-center.js": "009b27fedd3c47663cf401c646428403b7210ec93061b1c086a4688b40a1fd90",
+      "src/ui/react/tabs/tools.tsx": "1014c162f34cd8b5ce2626b142b6681c42aa2b189071b4f9d5b09f4819184433",
+      "src/ui/react/app-shell.tsx": "e90f7331411e5012ce5087cd27eb151cc8b4f765303f273516085d6dd3d34247",
+      "src/ui/react/components/update-notice.tsx": "a1dae389cf8e4215fd75c4c7e991d9bfddb122b2aba4166e386e5124c2a236cf",
+      "src/ui/tool-shell.js": "9eb5a556ac66818b9238bef4ba53ef1afc5347ec5b0a84d8a459e0a90cb070bf",
+      "src/platform/chrome/update-notice-service.js": "7bcb788b83f91b6a860a974b9e88e908cb44c7147ca05c65641801ea4d50dbc9",
+      "src/platform/chrome/update-notice-state.js": "fbc7e797043c8fcc455da45241c4a35eaeb6a489153a5ef0551456dd85713dec"
+    },
+    "testEvidenceLimit": "108 prior passing tests remain bound to their recorded source inputs; subsequent parallel list/UI/test edits were not rerun while shared runtime is blocked",
+    "goalConclusion": "BLOCKED; original end-to-end objective remains unachieved"
+  },
+  "latestNextRequiredOperation": "Existing native UI owner releases the shared resource; this task acquires it, captures installed old version/source, clicks the already-visible Prompt Shortcuts inline Update, and verifies the original Installer transaction and Registry/version/source/SHA readback."
 }
