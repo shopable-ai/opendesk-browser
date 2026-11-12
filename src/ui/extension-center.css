@@ -40,6 +40,8 @@
 .ec-row--action-visible .ec-row-actions{opacity:1;pointer-events:auto}
 .ec-row--has-update .ec-row-main{padding-right:130px}
 .ec-row--has-update .ec-row-actions{opacity:1;pointer-events:auto;gap:4px}
+/* Update availability does not follow the last hovered/focused menu. */
+.ec-row--has-update>.ec-row-actions{opacity:1;pointer-events:auto}
 .ec-row-update{flex:none;min-width:48px;min-height:34px;padding:5px 8px;
   border:1px solid var(--od-focus);border-radius:var(--radius-control);
   background:var(--od-paper);color:var(--od-accent-ink);font-size:12px;font-weight:650;cursor:pointer}

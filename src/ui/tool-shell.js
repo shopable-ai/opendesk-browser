@@ -218,7 +218,7 @@ const webflowAuto=Object.freeze({
 });
 // One shared source-pinned path for list actions, detail and historical review.
 const openTrustedUpdateReview=row=>{
-    if(shellClosed||!row||row.kind!=='sidebar-tool'||row.ignoredAt!==null||
+    if(shellClosed||!row||row.kind!=='sidebar-tool'||
        !['available','review_required'].includes(row.status))return false;
     if(hostUrl.pathname===APP_DOCUMENT_PATHNAME){
       try{
@@ -237,7 +237,7 @@ const openTrustedUpdateReview=row=>{
         reply.data.records?.find(item=>item.kind==='sidebar-tool'&&
           item.id===row.id&&item.version===row.version&&
           item.sha256===row.sha256&&item.source===row.source&&
-          item.fromVersion===row.fromVersion&&item.ignoredAt===null&&
+          item.fromVersion===row.fromVersion&&
           ['available','review_required'].includes(item.status));
       if(!currentRecord)return false;
       const {apps}=await loadOfficialCatalog({api:chrome});
@@ -651,7 +651,7 @@ Promise.resolve(chrome.tabs.getCurrent?.()).then(async tab => {
                 Array.isArray(proof.data.records)?proof.data.records.filter(row=>
                   row.kind==='sidebar-tool'&&row.id===request.toolId&&
                   row.source===request.marketId&&row.version===request.releaseVersion&&
-                  row.sha256===request.sha256&&row.ignoredAt===null&&
+                  row.sha256===request.sha256&&
                   row.requiresReview===true&&typeof row.fromVersion==='string'&&
                   ['available','review_required'].includes(row.status)&&
                   (row.status==='review_required')===(row.newCapabilities?.length>0)):[];

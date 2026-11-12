@@ -483,3 +483,17 @@ Prompt Shortcuts 的合法历史版本页已确认存在：`http://127.0.0.1:431
 最新 AX 等效记录与候选列表保留在原 [Chrome 证据](../../framework/workstreams/evidence/extension-inline-update-r5-20261113/chrome-closure.json) 的 `latestInlineRuntimeObservation`；原 [结果索引](../../framework/workstreams/evidence/extension-inline-update-r5-20261113/results.json) 同步记录当前资源阻塞和下一步。其他 owner 随后修改了列表文案、UI 和测试，108 项既有 PASS 继续只绑定其已记录输入，不扩大为当前全部输入通过。本轮未改产品源码或重复测试。
 
 **目标仍未达成，状态为 BLOCKED。** 原生 UI owner 释放资源后，由本任务重新取得 UI 锁、核实已安装旧版与原来源，从已经出现的行内按钮打开原 Installer，完成真实更新和读回；取消/拒绝/冲突/UNKNOWN、视觉焦点矩阵与六维产品评分仍待相同候选实测。本记录不将“按钮已出现”提升为最终 PASS。
+
+### R5 2026-11-13：待更新行入口持续可见修复
+
+最新优先级为“需要更新的扩展，在列表中，更新按钮不应该消失”。本轮从 `main@6781ad571befc8d9e65c72630786184ad86e10cc` 接续，先核对相关未提交差量，没有创建分支、worktree、PR，也没有覆盖并行 UI、Page、Cookie Editor、AI Proxy 或 Send Queue 修改。
+
+**已复现的触发条件。** 当前未提交布局差量将 `.ec-row--has-update .ec-row-actions` 原有常显属性移除，导致非最后交互行的更新按钮继承 `opacity:0 / pointer-events:none`；HEAD 原规则本身保留常显。另有既存逻辑将 `ignoredAt` 直接作为列表投影和手动审阅的拒绝条件；Worker 核验暂失效、事务 pending/UNKNOWN 时也会把入口整体移除。后两者把提醒选择或暂不可执行误当成没有更新。
+
+**最小修改。** 将更新行常显保证与布局单独声明；行内投影不再按忽略、已读、关闭或稍后过滤。仍需精确匹配已安装行的 ID、旧/新版本、官方来源及 SHA；身份不再匹配或已读回完成时撤下旧候选。核验未确认或 Worker `unknown` 的同一候选只显示禁用入口及原因，不开放审阅或重放安装。停用状态可保留同一候选的禁用展示。Side Panel、PC `app.html` 及 PC→Side Panel 接收端取消“忽略提醒即禁止手动审阅”的条件，保留 fresh Worker、Catalog、原 Installer、权限及真实回执链。提醒偏好、Toast、Badge 和通知计数语义未修改。
+
+**本轮证据。** 新回归先产生 4 项预期失败，修改后投影/真实组件 DOM 与 CSS 回归 8/8 通过（exit 0）；手动审阅路由专项 18/18 通过（exit 0），覆盖 PC/Side Panel、忽略提醒、fresh 核验与身份/来源/SHA 拒绝路径。`npm run check` exit 0，检查 1431 个文件。源组件及原 CSS 在独立 ego TaskSpace 114 中复现第二行透明、不可命中，临时修改常显属性后命中成功，读取修复后原样式也成功；非悬停、其他行焦点、搜索返回、取消后仍可见，UNKNOWN 禁用。该环境是生产组件的受限测试夹具，不是已安装 Chrome 或真实 Installer；TaskSpace 与临时服务已结束。命令、输入摘要和限制见 [按钮持续可见证据](../../framework/workstreams/evidence/extension-inline-update-r5-20261113/button-visibility.json)。
+
+较宽交互文件当前为 58/59（exit 1），失败是并行 `app-shell.tsx` 新增无 `document` 时访问 `document.activeElement` 的 SSR 路径；本任务未修改该文件。ToolShell 完整文件还有两个既存 preview 失败，专项手动更新路径通过；不以跳过或修改无关断言制造全组 PASS。未重复历史全量构建，没有启动第二个开发 writer。
+
+**实际运行边界。** 日常开发 writer PID `35698` 仍监听 `43119/43120`，沿用 `dist/development`。精确绑定 Chrome 的只读 AX 观察看到真实 Side Panel `ccfcjegpkdlgbclopjmadlcjedelidmf` 当前停在导入窗口并显示 `E_TOOL_RUNTIME_MISMATCH`；本任务没有取消其他 owner 的审阅或强制刷新。两次 `ui-acquire` 均因另一 owner 占用返回 busy。当前运行 revision 未重验，修复后的持久实机生效为 `NOT_TESTED`；真实更新未执行，版本/来源/SHA 未读回。原生取消、权限拒绝、冲突、中断/UNKNOWN、同候选完整视觉/焦点矩阵及六维评分继续 `NOT_TESTED`，不计算综合分，不宣布最终 PASS。下一条实机操作仍是取得 UI 资源后核实运行版本，从提示词快捷按钮行内入口进入原 Installer 完成更新与读回。

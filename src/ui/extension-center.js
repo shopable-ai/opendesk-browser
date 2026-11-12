@@ -434,7 +434,7 @@ export function createExtensionCenter({api,client,doc,sidebarTools,taskWorkbench
           key:row.key,title:titleOf(row),kind:row.kind,type:typeOf(row),
           description:rowDescription(row),installed:row.installed,stateKnown:row.stateKnown,
           updateIdentity:row.kind==='app'&&row.installed&&appStatusKnown&&
-            row.stateKnown!==false&&row.enabled===true&&!row.queueReviewRelease&&
+            row.stateKnown!==false&&!row.queueReviewRelease&&
             !row.queueProduct&&!row.cleanupPending&&row.update===true&&
             sources[row.id]?.kind==='market'&&row.release?.id==='opendesk/'+row.id&&
             /^[a-f0-9]{64}$/.test(row.release?.sha256||'')?

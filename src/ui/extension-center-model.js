@@ -234,10 +234,12 @@ export function filterExtensionEntries(entries,{query='',kind='all',scope='smart
 // A version-only "row.update" flag never creates an actionable button.
 export function projectTrustedInlineUpdates(rows=[],snapshot=null,{promote=false}={}){
   const releases=new Map();
-  if(snapshot?.verified===true&&Array.isArray(snapshot.records))
+  if(Array.isArray(snapshot?.records))
     for(const item of snapshot.records){
-      if(item?.kind!=='sidebar-tool'||!['available','review_required'].includes(item.status)||
-        item.ignoredAt!==null||item.requiresReview!==true)continue;
+      // Reminder preferences never decide whether a manual update exists.
+      // Unknown/unverified records may describe an entry, never authorize it.
+      if(item?.kind!=='sidebar-tool'||!['available','review_required','unknown'].includes(item.status)||
+        item.requiresReview!==true)continue;
       const matches=releases.get(item.id)||[];
       matches.push(item);releases.set(item.id,matches);
     }
@@ -248,9 +250,13 @@ export function projectTrustedInlineUpdates(rows=[],snapshot=null,{promote=false
       candidate.id===identity.id&&candidate.fromVersion===identity.fromVersion&&
       candidate.version===identity.version&&candidate.source===identity.source&&
       candidate.sha256===identity.sha256&&
-      (candidate.status==='review_required')===(candidate.newCapabilities?.length>0));
+      (candidate.status==='unknown'||
+        (candidate.status==='review_required')===(candidate.newCapabilities?.length>0)));
+    const reason=snapshot?.verified!==true?'更新状态待核验，请刷新后核对。':
+      candidate?.status==='unknown'?'更新暂不可执行，请核对安装状态；不会自动重试。':'';
     return {...row,inlineUpdate:valid?{
-      record:candidate,label:candidate.status==='review_required'?'审阅':'更新'
+      record:candidate,label:candidate.newCapabilities?.length>0?'审阅':'更新',
+      disabled:Boolean(reason),reason
     }:null};
   });
   // Stable display-only sort. Search, filters and the Registry retain their order.

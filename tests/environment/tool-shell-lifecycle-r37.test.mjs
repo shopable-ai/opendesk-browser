@@ -15,7 +15,7 @@ const bundled=await build({entryPoints:[entry],bundle:true,write:false,format:'i
 const deferred=()=>{let resolve;return {promise:new Promise(ok=>{resolve=ok;}),resolve:value=>resolve(value)};};
 const tick=()=>new Promise(ok=>setImmediate(ok));
 const eventBus=()=>{const listeners=new Set();return {listeners,addListener:f=>listeners.add(f),removeListener:f=>listeners.delete(f)};};
-function fixture({surface='panel',pendingMenu=false,lateAck=false}={}){
+function fixture({surface='panel',pendingMenu=false,lateAck=false,dependencyOverrides={}}={}){
   const tab=deferred(),context=deferred(),ready=deferred(),preview=deferred(),menu=deferred(),ack=deferred(),calls=[];
   const disposable=()=>({dispose(){},resourceSnapshot:()=>({subscriptions:0})});
   const toolView=createSidebarToolsView();
@@ -23,7 +23,7 @@ function fixture({surface='panel',pendingMenu=false,lateAck=false}={}){
   const tools={...disposable(),ready:ready.promise,setVisible:()=>true,isDirty:()=>false,
     openTool:(_id,options)=>{calls.push('openTool');options?.launchGate?.then(()=>calls.push('gate-open'),()=>calls.push('gate-reject'));return 'tool-instance';},
     openReadOnlyPreview:()=>calls.push('preview')};
-  let toolsVisibility,shellOptions;
+  let toolsVisibility,shellOptions,panelNavigation;
   const task={...disposable(),navigate:destination=>{toolsVisibility?.(destination==='tools',destination);return true;},
     connectToolsView:listener=>{toolsVisibility=listener;},showCatalogPage:()=>calls.push('catalog')};
   const dependencies={};
@@ -35,8 +35,9 @@ function fixture({surface='panel',pendingMenu=false,lateAck=false}={}){
     createSidebarTabMemory:()=>({...disposable(),record(){},restore:async()=>calls.push('restore')}),
     mountSidebarApp:(_document,options)=>{shellOptions=options;return {...disposable(),renderNavigation(){},connectWorkflowPage(){},connectMyAgent(){}};},
     MARKET_PANEL_NAV_PROTOCOL:'opendesk.market.panel-navigation.v1',
+    UPDATE_NOTICE_PROTOCOL:'opendesk.update-notice.v1',
     createSidebarTools:()=>tools,isActualSidePanelContext:()=>context.promise,
-    createMarketPanelNavigationReceiver:()=>({...disposable(),start(){}}),
+    createMarketPanelNavigationReceiver:options=>{panelNavigation=options;return {...disposable(),start(){}};},
     createPanelToolIntentReceiver:()=>({...disposable(),start(){}}),
     requestedToolId:()=>surface==='tool'||surface==='app'?'quick-notes':null,
     APP_DOCUMENT_PATHNAME:'/app.html',
@@ -64,27 +65,126 @@ function fixture({surface='panel',pendingMenu=false,lateAck=false}={}){
       createScheduledTaskHost:()=>{calls.push('schedule');return disposable();},
       createCloudHosting:()=>{calls.push('cloud');return disposable();}
     }};
+  Object.assign(dependencies,dependencyOverrides);
   vm.createContext(sandbox);vm.runInContext(bundled.outputFiles[0].text,sandbox);
   sandbox.ToolShell.initToolShell();
-  return {tab,context,ready,preview,menu,ack,calls,api,toolView,navigateTools:()=>task.navigate('tools'),
+  return {tab,context,ready,preview,menu,ack,calls,api,toolView,tools,dependencies,
+    receiveNavigation:request=>panelNavigation.onNavigate(request),navigateTools:()=>task.navigate('tools'),
     reviewUpdate:row=>shellOptions.onOpenUpdateReview(row),
     close:()=>window.dispatchEvent(new Event('pagehide'))};
 }
-test('PC update review sends the exact candidate and reports success only after review acceptance',async()=>{
+test('PC ignored update sends the exact candidate and succeeds only after review acceptance',async()=>{
   const f=fixture({surface:'app'}),messages=[];
   const protocol='opendesk.market.panel-navigation.v1';
-  let status='NAVIGATION_PENDING';
-  f.api.runtime.sendMessage=message=>{messages.push(message);return Promise.resolve({ok:true,protocol,status});};
+  let reply={ok:true,protocol,status:'NAVIGATION_PENDING'};
+  f.api.runtime.sendMessage=message=>{messages.push(message);return Promise.resolve(reply);};
   const row={kind:'sidebar-tool',status:'available',id:'quick-notes',version:'1.2.3',
-    source:'opendesk/quick-notes',sha256:'a'.repeat(64)};
+    source:'opendesk/quick-notes',sha256:'a'.repeat(64),ignoredAt:123};
   const pending=f.reviewUpdate(row);
   assert.equal(messages.length,1,'send from the original click stack');
   assert.deepEqual(JSON.parse(JSON.stringify(messages[0])),{protocol,action:'NAVIGATE',target:'review',
     toolId:row.id,version:row.version,marketId:row.source,sha256:row.sha256});
   assert.equal(await pending,false,'opening a panel is not review acceptance');
-  status='REVIEW_REQUEST_ACCEPTED';assert.equal(await f.reviewUpdate(row),true);
-  status='IDENTITY_CHANGED';assert.equal(await f.reviewUpdate(row),false);
+  reply={ok:true,protocol,status:'REVIEW_REQUEST_ACCEPTED'};assert.equal(await f.reviewUpdate(row),true);
+  for(const invalid of [
+    {ok:true,protocol,status:'IDENTITY_CHANGED'},
+    {ok:false,protocol,status:'REVIEW_REQUEST_ACCEPTED'},
+    {ok:true,protocol:'other',status:'REVIEW_REQUEST_ACCEPTED'},
+    undefined
+  ]){reply=invalid;assert.equal(await f.reviewUpdate(row),false);}
+  const before=messages.length;
   f.close();assert.equal(f.reviewUpdate(row),false,'closed owner cannot navigate');
+  assert.equal(messages.length,before,'closed owner sends no navigation');
+});
+const ignoredUpdate=()=>({kind:'sidebar-tool',status:'available',id:'quick-notes',
+  fromVersion:'1.2.2',version:'1.2.3',source:'opendesk/quick-notes',sha256:'a'.repeat(64),
+  ignoredAt:123,requiresReview:true,newCapabilities:[]});
+function updateReviewFixture(){
+  const row=ignoredUpdate(),messages=[],reviews=[],catalogReads=[];
+  let proof={ok:true,data:{verified:true,records:[{...row}]}},
+    apps=[{id:row.source,toolId:row.id,version:row.version,sha256:row.sha256}],accepted=true;
+  const f=fixture({dependencyOverrides:{
+    loadOfficialCatalog:async()=>{catalogReads.push(true);return {apps};},
+    verifyMarketPanelNavigationSource:async()=>true
+  }});
+  f.api.runtime.sendMessage=async message=>{messages.push(message);return proof;};
+  f.tools.canPresentMarketReview=()=>true;
+  f.tools.openOfficialReview=(id,candidate)=>{reviews.push({id,candidate});return accepted;};
+  return {...f,row,messages,reviews,catalogReads,
+    setProof:value=>{proof=value;},setApps:value=>{apps=value;},
+    setAccepted:value=>{accepted=value;},
+    startPanel:async()=>{f.tab.resolve(undefined);f.context.resolve(true);f.ready.resolve();await tick();}};
+}
+const assertFreshRead=f=>assert.deepEqual(JSON.parse(JSON.stringify(f.messages)),[
+  {protocol:'opendesk.update-notice.v1',kind:'list',fresh:true}
+]);
+const assertExactReview=f=>assert.deepEqual(JSON.parse(JSON.stringify(f.reviews)),[
+  {id:f.row.id,candidate:{id:f.row.source,version:f.row.version,sha256:f.row.sha256}}
+]);
+test('Side Panel manually reviews an ignored candidate only after fresh Worker and catalog checks',async()=>{
+  const f=updateReviewFixture();
+  try{
+    const pending=f.reviewUpdate(f.row);
+    assertFreshRead(f);
+    await tick();assert.equal(f.reviews.length,0,'runtime readiness still gates review');
+    assert.equal(f.catalogReads.length,1);
+    f.ready.resolve();assert.equal(await pending,true);assertExactReview(f);
+    f.setAccepted(false);assert.equal(await f.reviewUpdate(f.row),false,'review must accept');
+    const before=f.messages.length;f.close();assert.equal(f.reviewUpdate(f.row),false);
+    assert.equal(f.messages.length,before,'closed owner cannot query or open review');
+  }finally{f.close();}
+});
+const invalidUpdateProofs=[
+  ['unverified',row=>({ok:true,data:{verified:false,records:[row]}})],
+  ['failed Worker reply',row=>({ok:false,data:{verified:true,records:[row]}})],
+  ['unknown status',row=>({ok:true,data:{verified:true,records:[{...row,status:'unknown'}]}})],
+  ...['kind','id','version','fromVersion','source','sha256'].map(field=>[
+    `changed ${field}`,row=>({ok:true,data:{verified:true,records:[{...row,[field]:'changed'}]}})
+  ])
+];
+for(const [label,proof] of invalidUpdateProofs)test(`Side Panel rejects ignored candidate with ${label}`,async()=>{
+  const f=updateReviewFixture();
+  try{
+    f.setProof(proof(f.row));f.ready.resolve();
+    assert.equal(await f.reviewUpdate(f.row),false);assertFreshRead(f);
+    assert.equal(f.catalogReads.length,0,'invalid Worker proof stops before catalog');
+    assert.equal(f.reviews.length,0);
+  }finally{f.close();}
+});
+for(const field of ['toolId','version','id','sha256'])test(`Side Panel rejects catalog ${field} drift for ignored candidate`,async()=>{
+  const f=updateReviewFixture();
+  try{
+    f.setApps([{toolId:f.row.id,id:f.row.source,version:f.row.version,sha256:f.row.sha256,[field]:'changed'}]);
+    f.ready.resolve();assert.equal(await f.reviewUpdate(f.row),false);assertFreshRead(f);
+    assert.equal(f.catalogReads.length,1);assert.equal(f.reviews.length,0);
+  }finally{f.close();}
+});
+test('PC-to-Side Panel receiver accepts ignored candidates and retains fresh proof and closed fences',async()=>{
+  const f=updateReviewFixture();
+  try{
+    await f.startPanel();f.messages.length=0;
+    const request={action:'review',source:'built-in',sourceUrl:'chrome-extension://r37/app.html',
+      toolId:f.row.id,marketId:f.row.source,releaseVersion:f.row.version,sha256:f.row.sha256};
+    assert.equal((await f.receiveNavigation(request)).status,'REVIEW_REQUEST_ACCEPTED');
+    assertFreshRead(f);assertExactReview(f);
+    const rejected=[...invalidUpdateProofs.filter(([label])=>label!=='changed fromVersion'),
+      ['missing installed version',row=>({ok:true,data:{verified:true,records:[{...row,fromVersion:undefined}]}})],
+      ['duplicate identity',row=>({ok:true,data:{verified:true,records:[row,{...row}]}})],
+      ['missing review requirement',row=>({ok:true,data:{verified:true,records:[{...row,requiresReview:false}]}})]
+    ];
+    for(const [label,proof] of rejected){
+      f.setProof(proof(f.row));f.messages.length=0;
+      assert.equal((await f.receiveNavigation(request)).status,'IDENTITY_CHANGED',label);
+      assertFreshRead(f);assert.equal(f.reviews.length,1,label);
+    }
+    f.setProof({ok:true,data:{verified:true,records:[f.row]}});
+    f.setApps([]);f.messages.length=0;
+    assert.equal((await f.receiveNavigation(request)).status,'IDENTITY_CHANGED','catalog identity is checked');
+    assert.equal(f.messages.length,0);assert.equal(f.reviews.length,1);
+    f.close();
+    assert.equal((await f.receiveNavigation(request)).status,'NAVIGATION_BLOCKED');
+    assert.equal(f.messages.length,0);assert.equal(f.reviews.length,1);
+  }finally{f.close();}
 });
 test('bound app.html opens its installed ToolHost without a Side Panel list controller',async()=>{
   const f=fixture({surface:'app'});f.tab.resolve({id:2});f.context.resolve(false);f.ready.resolve();await tick();

@@ -15,7 +15,7 @@ export function ExtensionRows({rows,busy,pendingKey,menuKey,onOpenRow,onMore,onI
   const [openingKey,setOpeningKey]=React.useState(null);
   const [updateError,setUpdateError]=React.useState(null);
   const review=(row,nativeEvent)=>{
-    if(nativeEvent?.isTrusted!==true||busy||openingKey||!row.inlineUpdate)return;
+    if(nativeEvent?.isTrusted!==true||busy||openingKey||!row.inlineUpdate||row.inlineUpdate.disabled)return;
     setOpeningKey(row.key);setUpdateError(null);
     let attempted;
     try{attempted=onInlineUpdate?.(row.inlineUpdate.record,nativeEvent);}
@@ -82,8 +82,9 @@ export function ExtensionRows({rows,busy,pendingKey,menuKey,onOpenRow,onMore,onI
       <span className="ec-row-actions">
         {row.inlineUpdate&&<button type="button" className="ec-row-update"
           data-extension-key={row.key} data-extension-action="update"
-          disabled={busy||Boolean(openingKey)}
-          title={row.inlineUpdate.label+' '+row.title+' · v'+row.inlineUpdate.record.version}
+          disabled={busy||Boolean(openingKey)||row.inlineUpdate.disabled}
+          title={row.inlineUpdate.reason||row.inlineUpdate.label+' '+row.title+' · v'+row.inlineUpdate.record.version}
+          aria-description={row.inlineUpdate.reason||undefined}
           aria-label={row.inlineUpdate.label+' '+row.title+' 的可信更新，进入安装审阅'}
           onClick={event=>review(row,event.nativeEvent)}>{row.inlineUpdate.label}</button>}
         {row.installed&&<IconButton className="ec-row-more" disabled={busy||Boolean(openingKey)}

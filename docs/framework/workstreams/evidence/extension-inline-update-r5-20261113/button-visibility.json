@@ -1,0 +1,152 @@
+{
+  "taskId": "OD-EXTENSION-INLINE-UPDATE-R5-FINAL-CLOSURE",
+  "scope": "Persistent inline Update/Review entry; development fix, not final native acceptance",
+  "observedAt": "2026-11-13T02:20:47+08:00",
+  "baseHead": "6781ad571befc8d9e65c72630786184ad86e10cc",
+  "rootCauses": [
+    {
+      "trigger": "Hover/focus moves to another row",
+      "finding": "The pre-fix uncommitted layout edit removed always-visible opacity/pointer-events. HEAD retained them. A non-active update row inherited opacity:0 / pointer-events:none."
+    },
+    {
+      "trigger": "Ignore this version",
+      "finding": "Projection and three manual review gates treated reminder ignore as update ineligibility."
+    },
+    {
+      "trigger": "Worker verification unavailable / transaction pending or unknown / tool disabled",
+      "finding": "The same candidate was removed instead of displayed disabled. Known identity/source changes remain invalidating."
+    }
+  ],
+  "regressions": [
+    {
+      "command": "node --test tests/environment/extension-inline-update-r4.test.mjs tests/environment/extension-inline-update-visibility.test.mjs",
+      "before": {
+        "exitCode": 1,
+        "pass": 4,
+        "fail": 4
+      },
+      "after": {
+        "exitCode": 0,
+        "pass": 8,
+        "fail": 0,
+        "skipped": 0
+      },
+      "log": "/tmp/od-r5-visibility.log",
+      "kind": "Node/DOM emulation; synthetic trusted events are not native gesture evidence"
+    },
+    {
+      "command": "node --test --test-name-pattern='PC ignored|Side Panel|PC-to-Side Panel' tests/environment/tool-shell-lifecycle-r37.test.mjs",
+      "exitCode": 0,
+      "pass": 18,
+      "fail": 0,
+      "skipped": 0,
+      "log": "/tmp/od-r5-review-routing.log",
+      "kind": "Actual ToolShell in vm; Worker/catalog/Installer doubles"
+    },
+    {
+      "command": "npm run check",
+      "exitCode": 0,
+      "checkedFiles": 1431
+    },
+    {
+      "command": "node --test tests/environment/extension-center-r47-interaction.test.mjs",
+      "exitCode": 1,
+      "pass": 58,
+      "fail": 1,
+      "failure": "R4.8 historical reference preserves the production toolbar action contract and shell styles",
+      "error": "TypeError: Cannot read properties of undefined (reading 'activeElement')",
+      "classification": "Parallel app-shell.tsx addition accesses document during SSR; app-shell was not edited by this task",
+      "log": "/tmp/od-r5-interaction-readable.log"
+    },
+    {
+      "command": "node --test tests/environment/tool-shell-lifecycle-r37.test.mjs",
+      "exitCode": 1,
+      "pass": 27,
+      "fail": 2,
+      "failures": [
+        "expired preview is projected through the React view",
+        "a live preview opens and consumes its one-shot record"
+      ],
+      "control": "Unmodified HEAD test against current worktree product also failed the same two assertions (12/14, exit 1). This is not a full HEAD product baseline.",
+      "logsRoot": "/var/folders/b3/0l3tmv5j3hs83hp8l34z89p00000gp/T/tool-shell-r37-preview-_2ol47se/"
+    }
+  ],
+  "sourceBoundBrowser": {
+    "tool": "ego-browser v2.2.0",
+    "taskSpace": 114,
+    "finished": true,
+    "temporaryServerStopped": true,
+    "kind": "Production ExtensionCenterPage + projectTrustedInlineUpdates + production CSS, local HTTP fixture; no Chrome extension permissions or Installer",
+    "before": {
+      "nonActiveUpdateRow": {
+        "opacity": "0",
+        "pointerEvents": "none"
+      }
+    },
+    "temporaryStyleFix": {
+      "opacity": "1",
+      "centerHit": true
+    },
+    "after": [
+      "Both update rows visible after moving focus to ordinary row",
+      "Search second => one row, opacity 1; clearing restores both",
+      "Ignored candidates still show two entries",
+      "UNKNOWN entries remain visible and disabled with reason; no automatic action",
+      "Review cancellation returns an error with the same inline entry still available"
+    ],
+    "screenshot": "/tmp/od-r5-inline-disabled.png",
+    "limitation": "Subsequent stylesheet rewrite removed the rule after browser checks; review caught it. The exact two-line visibility rule was restored and Node/DOM 8/8 reverified with the current input hashes below. No second TaskSpace was opened."
+  },
+  "nativeChrome": {
+    "operation": "read-only AX via exact /Users/shopme/Applications/Google Chrome.app binding",
+    "extensionId": "ccfcjegpkdlgbclopjmadlcjedelidmf",
+    "hostInstanceId": "0fbf0041-4882-4e14-86bd-1e7cba7723b4",
+    "currentSurface": "Import extension dialog",
+    "observedError": "E_TOOL_RUNTIME_MISMATCH: Installer and actual Worker version/capability contracts do not match",
+    "uiAcquire": "busy on two attempts",
+    "uiOwner": "01a1d0d8-ab7b-7572-8261-cfef6f806159",
+    "installedUpdatePerformed": false,
+    "versionSourceShaReadback": "NOT_TESTED",
+    "persistentFixAppliedInChrome": "NOT_TESTED",
+    "currentRuntimeRevision": "NOT_VERIFIED"
+  },
+  "environment": {
+    "mode": "Existing continuous development writer",
+    "path": "/Users/shopme/Documents/workspace/opendesk-browser/dist/development",
+    "pid": 35698,
+    "listeningPorts": [
+      43119,
+      43120
+    ],
+    "marketPort43132": "not listening at initial check",
+    "diskAvailableMiB": 163,
+    "newBuildStarted": false,
+    "otherOwnerResourcesModified": false
+  },
+  "formalAcceptance": {
+    "status": "NOT_TESTED",
+    "negativeNativePaths": "NOT_TESTED",
+    "fullVisualFocusMatrix": "NOT_TESTED",
+    "dimensions": {
+      "用户体验": "NOT_TESTED",
+      "信息架构": "NOT_TESTED",
+      "视觉无障碍": "NOT_TESTED",
+      "生命周期": "NOT_TESTED",
+      "安装安全": "NOT_TESTED",
+      "工程质量": "NOT_TESTED"
+    },
+    "average": null
+  },
+  "worktreeInputSha256": {
+    "src/ui/extension-center-model.js": "4506cf9d253f982e4e5481b361d9ce03da1b5876c5f2bb455a18b6200baa9abe",
+    "src/ui/extension-center.js": "a74045cc80839b4e31b853a7e83ba9ad84224d0192a60c14526176f43aee388f",
+    "src/ui/extension-center.css": "5c355109ef546f05e09bbccb927b358034b1f66a5b8369d16c4bfb5637f72879",
+    "src/ui/react/tabs/tools.tsx": "f32ec8eecf549a279292564bd05d8606f06e4f69b6dbfe1bc6db8b534a1674ae",
+    "src/ui/tool-shell.js": "87cc495d63b7befc6d02a274a0017a8cb54bdec705ba171af17eeb79b83d7a45",
+    "src/ui/react/app-shell.tsx": "a1a18f1508a8b0ac31c5f5a3208a1aed62a600b87e9bcd00f303fae17a78e344",
+    "tests/environment/extension-inline-update-r4.test.mjs": "028dcdb23ab058295910175908841101cdb62180dc7d16fa2a4efe583b939c58",
+    "tests/environment/extension-inline-update-visibility.test.mjs": "a3a5944e01a1f273bd9159989b0b950d691f678487cb63631ea9d4f8acb5a21f",
+    "tests/environment/tool-shell-lifecycle-r37.test.mjs": "cf10baeb60f6a0a59011753defa4e0e2f309635c19ed288cff8e231bd7e5d720"
+  },
+  "nextNativeOperation": "Acquire UI resource, verify current applied runtime and installed Prompt Shortcuts version/source, then use existing inline Update → original Installer → confirmation → actual Registry/version/source/SHA readback; no downgrade or source fabrication."
+}

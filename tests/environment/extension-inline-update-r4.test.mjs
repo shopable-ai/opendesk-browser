@@ -27,12 +27,11 @@ test('R4 0/1/3/10 candidates map only to the matching installed tool identity',(
       'a presentation sort never mutates Registry input');
   }
 });
-test('R4 fails closed for unknown, unverified, ignored, ambiguous and source conflicts',()=>{
+test('R4 rejects ambiguous, applied and changed release identities',()=>{
   const row=makeRow('tool-one'),valid=makeCandidate('tool-one');
   const cases=[
-    {verified:false,records:[valid]},
-    state({...valid,status:'unknown'}),
-    state({...valid,ignoredAt:123}),
+    state({...valid,status:'applied'}),
+    state({...valid,requiresReview:false}),
     state({...valid,source:'opendesk/tool-other'}),
     state({...valid,sha256:'b'.repeat(64)}),
     state({...valid,fromVersion:'0.9.0'}),
@@ -42,6 +41,27 @@ test('R4 fails closed for unknown, unverified, ignored, ambiguous and source con
   ];
   for(const snapshot of cases)
     assert.equal(projectTrustedInlineUpdates([row],snapshot)[0].inlineUpdate,null);
+});
+test('reminder choices never remove a still-applicable manual update',()=>{
+  const row=makeRow('tool-one'),valid=makeCandidate('tool-one');
+  for(const preferences of [{ignoredAt:123},{viewedAt:123},{dismissedAt:123},
+    {snoozeUntil:999999},{ignoredAt:123,viewedAt:123,dismissedAt:123}]){
+    const projected=projectTrustedInlineUpdates([row],state({...valid,...preferences}))[0];
+    assert.equal(projected.inlineUpdate?.label,'更新');
+    assert.equal(projected.inlineUpdate.disabled,false);
+  }
+});
+test('temporary verification and UNKNOWN keep a visible disabled entry without permitting review',()=>{
+  const row=makeRow('tool-one'),valid=makeCandidate('tool-one','review_required');
+  for(const snapshot of [{verified:false,records:[valid]},state({...valid,status:'unknown'})]){
+    const projected=projectTrustedInlineUpdates([row],snapshot)[0];
+    assert.equal(projected.inlineUpdate?.label,'审阅');
+    assert.equal(projected.inlineUpdate.disabled,true);
+    assert.ok(projected.inlineUpdate.reason);
+  }
+  assert.equal(projectTrustedInlineUpdates([row],state(valid))[0].inlineUpdate.disabled,false);
+  assert.equal(projectTrustedInlineUpdates([{...row,updateIdentity:null}],state(valid))[0].inlineUpdate,null,
+    'a confirmed installed version/source change still invalidates the old entry');
 });
 test('R4 new capabilities ask for explicit review, ordinary update remains a separate action',()=>{
   const row=makeRow('tool-one'),safe=makeCandidate('tool-one'),
