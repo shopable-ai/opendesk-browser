@@ -106,8 +106,7 @@
       border-radius:9px; background:#2563eb; color:#fff; font:650 23px/1 system-ui,sans-serif;
       box-shadow:0 3px 9px #1e40af30; pointer-events:none; }
     .practice-arrow-badge[hidden] { display:none!important; }
-    .mock-combo-setting { margin-top:12px; padding-top:12px; border-top:1px solid var(--od-line); }
-    .mock-combo-title { display:block; margin-bottom:8px; font-weight:650; font-size:12px; }
+    .mock-combo-setting { margin-top:10px; }
     .mock-combo-setting label { display:block; margin:8px 0 4px; font-size:12px; }
     .mock-combo-setting select { width:100%; min-height:34px; border:1px solid var(--od-line); border-radius:8px;
       padding:5px 8px; color:var(--od-ink); background:var(--od-paper); }
@@ -118,13 +117,26 @@
       min-height:36px; padding:var(--space-2) var(--space-3); border-radius:var(--radius-control);
       border:1px solid var(--od-brand); background:var(--od-brand); color:var(--od-on-brand); font-weight:650; }
     .od-button--secondary { background:var(--od-muted); color:var(--od-ink); border-color:var(--od-input-border); }
-    .mock-preferences { border-top:1px solid var(--od-line); margin-top:12px; padding-top:12px; }
-    .mock-preferences summary { cursor:pointer; color:var(--od-sub); font-size:12px; font-weight:600; }
+    .mock-config { border-top:1px solid var(--od-line); margin-top:12px; }
+    .mock-config + .mock-config { margin-top:0; }
+    .mock-config>summary { display:flex; align-items:center; gap:8px; min-height:44px;
+      cursor:pointer; font-size:12px; font-weight:650; list-style:none; }
+    .mock-config>summary::-webkit-details-marker,.mock-risk-option>summary::-webkit-details-marker { display:none; }
+    .mock-config>summary:after { content:"⌄"; font-size:16px; font-weight:400;
+      color:var(--od-sub); transition:transform .12s ease; }
+    .mock-config[open]>summary:after { transform:rotate(180deg); }
+    .mock-config-meta { margin-left:auto; color:var(--od-sub); font-size:11px;
+      font-weight:400; text-align:right; }
+    .mock-config-body { padding:0 2px 14px; }
+    .mock-config-body>.od-note:first-child { margin:0 0 10px; }
     .mock-pref-row { display:flex; align-items:center; justify-content:space-between; gap:8px; margin:12px 0 6px; }
-    .mock-pref-row select { min-width:0; max-width:190px; padding:7px; border:1px solid var(--od-line);
-      border-radius:8px; background:var(--od-paper); color:var(--od-ink); font:inherit; }
-    .mock-trace-option { display:flex; align-items:center; gap:8px; min-height:38px; margin-top:6px; }
+    .mock-pref-row select { min-width:0; max-width:190px; min-height:34px; padding:5px 8px;
+      border:1px solid var(--od-line); border-radius:8px; background:var(--od-paper); color:var(--od-ink); }
+    .mock-trace-option { display:flex; align-items:center; gap:8px; min-height:38px; margin-top:12px; }
     .mock-trace-option input { accent-color:var(--od-brand); }
+    .mock-risk-option { border-top:1px solid var(--od-line); padding-top:8px; margin-top:10px; }
+    .mock-risk-option>summary { cursor:pointer; color:var(--od-sub); font-size:12px; padding:6px 0; }
+    .mock-risk-option>.od-note { margin-top:8px; }
     .extension-list { padding:var(--space-4) var(--space-3); }
     .extension-list .od-note { margin:var(--space-2) 0 var(--space-3); }
     /* Narrow browser viewports represent the actual panel width, without an extra gutter. */
@@ -182,47 +194,59 @@
             <li class="od-collection-row"><span class="gesture-arrow" role="img" aria-label="向下">↓</span><span class="gesture-label">到底</span></li>
           </ul>
           <p id="gesture-hint" class="hint">右键拖动，松开执行 · Esc 取消</p>
-          <details class="mock-preferences">
-            <summary>操作偏好</summary>
-            <div class="mock-pref-row">
-              <label for="mock-trigger">触发方式</label>
-              <select id="mock-trigger">
-                <option value="right">右键拖动（默认）</option>
-                <option value="alt-left">Option / Alt + 左键拖动</option>
-              </select>
+          <details class="mock-config">
+            <summary><span>自定义组合</span><span id="mock-combo-count" class="mock-config-meta">未配置</span></summary>
+            <div class="mock-config-body">
+              <p class="od-note">八种直角双段组合可选；完整画出两段且配置了动作才会执行。</p>
+              <div class="mock-combo-setting">
+                <label for="mock-combo">方向组合</label>
+                <select id="mock-combo">
+                  <option value="left-down">← ↓　先左后下</option>
+                  <option value="left-up">← ↑　先左后上</option>
+                  <option value="right-down">→ ↓　先右后下</option>
+                  <option value="right-up">→ ↑　先右后上</option>
+                  <option value="up-right">↑ →　先上后右</option>
+                  <option value="up-left">↑ ←　先上后左</option>
+                  <option value="down-right">↓ →　先下后右</option>
+                  <option value="down-left">↓ ←　先下后左</option>
+                </select>
+                <label for="mock-combo-action">执行动作</label>
+                <select id="mock-combo-action">
+                  <option value="none">不执行（默认）</option>
+                  <option value="left">后退</option>
+                  <option value="right">前进</option>
+                  <option value="up">刷新</option>
+                  <option value="down">滚动到底部</option>
+                </select>
+              </div>
+              <p class="od-note">仅模拟当前页面中的配置，不写入正式扩展。</p>
             </div>
-            <p class="od-note">正式网页若先出现原生菜单，可切换 Option / Alt + 左键，或主动启用手势优先。</p>
-            <div class="mock-pref-row">
-              <label for="mock-menu-policy">网页右键菜单</label>
-              <select id="mock-menu-policy" aria-describedby="mock-menu-note">
-                <option value="native-first">原生菜单优先（默认）</option>
-                <option value="gesture-first">手势优先（需主动启用）</option>
-              </select>
-            </div>
-            <p id="mock-menu-note" class="od-note">正式网页默认保留普通右键菜单；练习区为独立沙盒，右键拖动时始终拦截此区域的菜单。</p>
-            <label class="mock-trace-option"><input id="mock-trace" type="checkbox" checked>显示轨迹与动作提示</label>
-            <div class="mock-combo-setting">
-              <span class="mock-combo-title">组合手势动作（仅模拟保存）</span>
-              <label for="mock-combo">方向组合</label>
-              <select id="mock-combo">
-                <option value="left-down">先向左，再向下</option>
-                <option value="left-up">先向左，再向上</option>
-                <option value="right-down">先向右，再向下</option>
-                <option value="right-up">先向右，再向上</option>
-                <option value="up-right">先向上，再向右</option>
-                <option value="up-left">先向上，再向左</option>
-                <option value="down-right">先向下，再向右</option>
-                <option value="down-left">先向下，再向左</option>
-              </select>
-              <label for="mock-combo-action">执行动作</label>
-              <select id="mock-combo-action">
-                <option value="none">未配置（不执行）</option>
-                <option value="left">后退</option>
-                <option value="right">前进</option>
-                <option value="up">刷新</option>
-                <option value="down">滚动到底部</option>
-              </select>
-              <p class="od-note">组合默认不执行，配置仅保留在当前预览页面。</p>
+          </details>
+          <details class="mock-config">
+            <summary><span>兼容与显示</span><span id="mock-compat-status" class="mock-config-meta">原生菜单优先</span></summary>
+            <div class="mock-config-body">
+              <p class="od-note">通常无需更改。若 macOS 先弹出右键菜单，本次手势会取消，普通右键菜单仍保留。</p>
+              <div class="mock-pref-row">
+                <label for="mock-trigger">触发方式</label>
+                <select id="mock-trigger">
+                  <option value="right">右键拖动（默认）</option>
+                  <option value="alt-left">Option / Alt + 左键</option>
+                </select>
+              </div>
+              <p class="od-note">二选一：切换到 Option / Alt + 左键后，不再通过右键触发。</p>
+              <label class="mock-trace-option"><input id="mock-trace" type="checkbox" checked>显示手势轨迹与方向箭头</label>
+              <details class="mock-risk-option">
+                <summary>高级：右键菜单兼容</summary>
+                <p class="od-note">手势优先会拦截部分普通右键菜单，仅在确有需要时使用。</p>
+                <div class="mock-pref-row">
+                  <label for="mock-menu-policy">菜单处理方式</label>
+                  <select id="mock-menu-policy" aria-describedby="mock-menu-note">
+                    <option value="native-first">保留原生菜单（默认）</option>
+                    <option value="gesture-first">手势优先（影响普通右键）</option>
+                  </select>
+                </div>
+                <p id="mock-menu-note" class="od-note">练习区为独立模拟，右键菜单处理不能代表正式 Chrome。</p>
+              </details>
             </div>
           </details>
         </section>
@@ -234,7 +258,7 @@
     </div>
     <section class="practice" aria-label="网页手势反馈演示">
       <h2>网页手势效果模拟</h2>
-      <p class="od-note">默认按住<strong>右键拖动</strong>练习，也可在操作偏好中切换 Option / Alt + 左键。练习区不会执行网页操作，单击右键也不弹原生菜单。</p>
+      <p class="od-note">默认按住<strong>右键拖动</strong>练习；如需备用操作，可在「兼容与显示」中选择 Option / Alt + 左键。练习区只模拟识别与动作，不会导航，也不代表真实右键菜单效果。</p>
       <div id="practice-pad" class="practice-pad" tabindex="0" aria-label="右键或 Option 加左键手势练习区域">
         <span class="practice-label">在此拖动体验</span>
         <svg viewBox="0 0 330 140" preserveAspectRatio="none" aria-hidden="true"><path id="practice-line" d="" stroke="#2586ef" stroke-width="4" stroke-linecap="round" stroke-linejoin="round" fill="none"/></svg>
@@ -373,8 +397,16 @@ function gestureOutcome(track,mappings={}){
         track=null;activePointerId=null;activeButton=null;
         hideDraw();status.textContent=message;
       };
+      function updateSummaries(){
+        const count=Object.keys(mappings).length;
+        by('mock-combo-count').textContent=count?'已配置 '+count+' 组':'未配置';
+        by('mock-compat-status').textContent=menuPolicy.value==='gesture-first'?
+          '手势优先 · 菜单受限':trigger.value==='alt-left'?
+          'Option / Alt + 左键':'原生菜单优先';
+      }
       function sync(){
         toggle.setAttribute('aria-checked',String(toggle.checked));
+        updateSummaries();
         hint.textContent=trigger.value==='alt-left'?
           'Option / Alt + 左键拖动，松开执行 · Esc 取消':
           '右键拖动，松开执行 · Esc 取消';
@@ -429,7 +461,7 @@ function gestureOutcome(track,mappings={}){
         if(!COMBO_KEYS.includes(combo.value))return;
         if(comboAction.value==='none')delete mappings[combo.value];
         else if(DIRECTIONS.includes(comboAction.value))mappings[combo.value]=comboAction.value;
-        mappings=normalizeGestureMappings(mappings);update();
+        mappings=normalizeGestureMappings(mappings);updateSummaries();update();
       });
       // The practice pad is an intentionally isolated mouse-training surface.
       // Blocking its right-click menu is safe here, but NOT a substitute for
