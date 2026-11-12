@@ -23,12 +23,12 @@ const SCROLL_BUILTINS=[
 const SCROLL_FLAGS=[
   ['regionTop','regionTop'],['regionBottom','regionBottom'],
   ['conversationTop','conversationTop'],['conversationBottom','conversationBottom'],
-  ['floatingTop','floatingTop']
+  ['turnPaging','turnPaging'],['floatingTop','floatingTop']
 ];
 const SCROLL_FLAG_GROUPS=[
   ['longReply',SCROLL_FLAGS.slice(0,2)],
-  ['conversation',SCROLL_FLAGS.slice(2,4)],
-  ['floatingNavigation',SCROLL_FLAGS.slice(4)]
+  ['conversation',SCROLL_FLAGS.slice(2,5)],
+  ['floatingNavigation',SCROLL_FLAGS.slice(5)]
 ];
 function scrollOrigin(value){
   try{
