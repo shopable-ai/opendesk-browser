@@ -509,7 +509,11 @@ test('R3.2 market and account invite share one formal App but never create produ
  // The anonymous choice is a labelled radio, not just explanatory copy.
  assert.match(experiences,/checked=\{recipientType==='anonymous'\} onChange=\{\(\)=>updateType\('anonymous'\)\}\/>\s*<span>匿名链接<\/span>/);
  assert.match(experiences,/return props\.previewOnly\?<CookieAccountShareDemo[^:]+:<CookieAccountShareLive/);
- for(const src of [preview,experiences])assert.doesNotMatch(src,
+ // The isolated HTTP preview may fetch one local, credential-free fixture
+ // configuration. Never generalize this exception to Cookie/production I/O.
+ const fixtureConfig="fetch('/__isolated-http/config',{signal:controller.signal,credentials:'omit',redirect:'error'})";
+ assert.equal(preview.split(fixtureConfig).length-1,1,'only the isolated preview config read is allowlisted');
+ for(const src of [preview.replace(fixtureConfig,''),experiences])assert.doesNotMatch(src,
   /chrome\.|document\.cookie|localStorage|sessionStorage|\bfetch\s*\(|XMLHttpRequest/);
  assert.match(stylesheet,/\.cookie-market-resource/);
  assert.match(stylesheet,/\.cookie-share-demo-code/);
