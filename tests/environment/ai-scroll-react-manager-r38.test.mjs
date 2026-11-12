@@ -706,3 +706,23 @@ test('AI Scroll preserves a user-supplied title when the UI language changes',as
   assert.ok(f.doc.querySelector('.ec-detail-head').textContent.includes(title));
   assert.equal(f.doc.querySelector('自定义'),null);
 });
+
+test('R4.1 legacy 0.4.14 installed Page retains five navigation settings without unsafe sixth-key writes',async t=>{
+  const flags={regionTop:true,regionBottom:true,conversationTop:true,conversationBottom:true,floatingTop:true};
+  const f=await fixture(t,{installed:{version:'0.4.14'},
+    saved:{value:{version:1,sites:[sample],navigation:flags},etag:'legacy'}});
+  await tick();
+  assert.equal(f.state.detailModel.scrollManager.turnPagingSupported,false);
+  f.doc.querySelector('button[aria-label="导航设置"]').dispatch('click');await tick();
+  assert.equal(f.doc.querySelectorAll('[role="switch"]').length,5);
+  const manager=f.state.detailModel.scrollManager;
+  const writes=()=>f.requests.filter(req=>req.method==='saveScrollNavigationSettings');
+  await assert.rejects(
+    ()=>manager.onSaveNavigation({...flags,turnPaging:false},'legacy',{isTrusted:true}),
+    {code:'E_CONFIG_SCHEMA'});
+  assert.equal(writes().length,0,'new six-key setting must be blocked before legacy host write');
+  const saved=await manager.onSaveNavigation({...flags,floatingTop:false},'legacy',{isTrusted:true});
+  assert.equal(saved.value.navigation.floatingTop,false);
+  assert.equal(Object.hasOwn(saved.value.navigation,'turnPaging'),false);
+  assert.equal(writes().length,1);
+});
