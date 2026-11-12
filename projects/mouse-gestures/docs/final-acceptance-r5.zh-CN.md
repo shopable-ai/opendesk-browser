@@ -130,3 +130,31 @@ C01–C11 有相应源码/Node 或预览证据，但原生列不能因此升级�
 不重新需求设计、不重写手势、不重复已完成预览/Node/构建；只有源码、候选输入变化或新缺陷才补对应回归/重新打包。实际缺陷才进入复现→最小修复→回归→同源核验。不要改无关 48/53px 宿主断言，除非它被证明直接阻塞本轮实际操作并取得平台 owner 范围。
 
 验收完成仍须：同一候选的两平台原生证据齐全、设置真实生效、生命周期 fail-closed、无未处理关键/高优先级缺陷、六维及平均 ≥95、main 最终差量与包身份可追溯。平台继续不可用时保持 NOT_TESTED 和未通过，不借重复运行 Node 维持工作，也不再次开发已完成功能。
+
+## 8. 2026-11-12 原生续验入口复查
+
+本次复查时间为北京时间 19:37，开始及编辑前 HEAD 均为 `b3689d43042e30c48800b6abe4f3a8040c180d5a`，工作分支 `main`。用户指定的源码基线 `d147707c8d4aa8636979eddc5e39bb837be6b359` 是当前 HEAD 的祖先；复查时整个 `projects/mouse-gestures/` 与该基线无差量。并行未提交内容位于 AI Proxy、构建来源脚本及根测试，本次保留，不纳入鼠标手势证据提交。
+
+### 候选与宿主身份
+
+- 正式 JSON 实读为 54,791 字节，`mouse-gestures` / `0.3.1`，Page `app.mouse-gestures` / revision `5`；文件与指定基线中的正式 JSON 逐字节一致。SHA-256 仍为 `014e6e0593eda7e7c20c8f686833dd08569c639fe853146accd5730132b004ea`。
+- 嵌入 Page 的实算源码 SHA-256 与声明 `sourceHash` 一致：`23d20743471dfac18fd3f402769989f187260ce72feeef2eb16221e62ee3efb0`；`packageHash` 声明仍为 `964f3dc49ecb6d848b081b534f82d87edb4b242e7657287e00df0e18fb57ad7d`。HTTP(S)、顶层、document_idle、USER_SCRIPT 及原两项能力未变。本次未重编译或重新执行包门禁，复用第 3 节未变候选的既有证据。
+- 存在真实 Google Chrome 主进程 PID `44951`，可执行文件为 `/Users/shopme/Applications/Google Chrome.app/Contents/MacOS/Google Chrome`。其子进程路径指示 Chrome `157.0.8103.38`；该路径信息不是实际输入或安装证明。
+- Chrome 的 Default、Profile 1、Profile 3 的 `Secure Preferences` 均记录扩展 ID `ccfcjegpkdlgbclopjmadlcjedelidmf`，加载路径为 `/Users/shopme/Documents/workspace/opendesk-browser/dist/development`。这里只提取匹配 OpenDesk 的记录，未导出个人设置或凭据。磁盘记录缺少可用于确认当前运行的 state，**不据此认定扩展已启用、当前选中 Profile、组合包已安装或站点已授权**。
+- `com.shopable.opendesk_browser.agent.json` 的 `allowed_origins` 为 `chrome-extension://ccfcjegpkdlgbclopjmadlcjedelidmf/`，与上述 ID 一致。当前 Native launcher 指向已安装的 `build-mcp-files-20261110/OpenDesk.app/Contents/MacOS/opendesk`；对该准确二进制执行只读 `browser doctor --json`，exit `1`，返回 `E_SCHEMA`，未证明实时 Native 配对成功，也未改动配对。
+- 本次仅核查已有 development 磁盘产物：`development-update.json` 待应用 revision 为 `e3fd4b6bccf7fe3e57fc063e284103b0763d0b0abebc45288795150461ecb2b8`。未获得 Side Panel 的 serve 连接、已应用 revision 或 production 验收宿主证据，不能将该记录宣称为当前运行指纹；未启动、覆盖或切换构建环境。
+
+### 阻塞实测与操作边界
+
+| 入口 | 本次实测 | 影响 |
+| --- | --- | --- |
+| CUA 原生 inventory | `cua.getState()` 20 秒超时，kernel reset | 无法取得准确窗口、标签页或原生菜单观察；未继续猜测目标 |
+| OpenDesk Desktop Mac96 | `tm_status` 返回 `McpServerError: MCP SSE probe returned 429 from openai.org`，`UNAVAILABLE` | 未恢复受支持桌面连接；429 是工具入口故障，不是鼠标手势产品缺陷 |
+| 原生 UI 协调 | `profiles.py status` 显示 owner `01a1cf3f-38b0-7dd3-b744-361b545ef27d`；本任务 `ui-acquire` exit `1`，`native UI busy; do independent work, retry after owner releases` | 安装审阅、原生菜单和全局鼠标输入未执行；未抢占、清理或释放其他 owner 的锁 |
+| Windows Chrome | 当前可调用工具及本任务既有资源中没有 Windows 目标 | 未安装同包、未观察晚发菜单；保持 NOT_TESTED |
+
+本次读取了当前 ego-browser 指南，但没有创建新的普通网页预览或把 ego 当作 Google Chrome 原生扩展验收环境。没有打开 `chrome://extensions`、注入诊断代码、使用剪贴板/全局按键、改动现有安装和权限、接管其他测试浏览器或停止任何服务。
+
+**续验结论：安装/升级及 C01–C12 原生结果仍全部 NOT_TESTED，正式验收未通过。** 没有新的产品缺陷证据，不修改源码、版本、正式 JSON 或无关 48/53px 断言；不重复 Node、语法、预览和构建。六维分数与平均 `85.33` 保留第 5 节的上次评审值，本次未重新评分或抬高分数。此轮只提交本报告的入口复查差量，不推送。
+
+下一条操作仍是：取得受支持的原生连接及不与其他 owner 冲突的 UI 操作区间后，经现有「扩展」审阅链安装/升级上述精确包，读取实际宿主/安装/授权身份，再执行两平台原生矩阵。实时连接、UI 锁及 Windows 目标在恢复时重新检查，不能将本节的瞬时状态当作永久环境结论。
