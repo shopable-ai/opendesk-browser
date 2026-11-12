@@ -62,7 +62,7 @@ test('R1.0 Inbox hides secondary filters without removing old controls',async()=
  assert.equal($('#ki-storage-usage').length,1);
 });
 test('R1.0 AI knowledge search uses human-facing citations without pretending to be generated AI',async()=>{
- const dir='examples/sidebar-tools/ai-knowledge-answers/src/';
+ const dir=officialSourceProjectPath('ai-knowledge-answers')+'/src/';
  const [html,js]=await Promise.all([read(dir+'index.html'),read(dir+'main.js')]);
  assert.doesNotMatch(html,/测试知识回答/);
  assert.match(html,/知识检索/);
@@ -109,8 +109,15 @@ test('R1.0 clipper canonical preview scenarios use the existing real SDK mock wi
   const mock=Buffer.from(tail.slice(0,end),'base64').toString('utf8');
   assert.doesNotMatch(mock,/sessionStorage\\.(?:getItem|setItem)/,
     'canonical offline preview must not inherit previous preview session state');
+  // The real canonical Clipper SDK mock now creates a region-picking demo.
+  // This fixture supplies just enough inert DOM to execute the existing mock;
+  // it does NOT pretend to verify actual content selection or a Chrome Host.
+  const element=()=>({style:{},dataset:{},children:[],
+   append(...nodes){this.children.push(...nodes);},
+   setAttribute(){},addEventListener(){}});
   const sandbox={
-   document:{documentElement:{dataset:{}},querySelector:()=>({})},
+   document:{documentElement:{dataset:{}},body:element(),createElement:element,
+    querySelector:()=>({}),addEventListener(){},removeEventListener(){}},
    window:{addEventListener(){}},parent:{postMessage(){}},
    TextEncoder,URL,location:{search:''},__opendeskPreviewScenario:scenario
   };
