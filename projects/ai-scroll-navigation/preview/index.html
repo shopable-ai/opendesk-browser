@@ -139,6 +139,37 @@ details{min-width:0}.od-disclosure{border:1px solid var(--od-line);border-radius
 .dialog::backdrop{background:#11233899}.dialog h2{font-size:15px;font-weight:650}.dialog p{font-size:12px;color:var(--od-sub);line-height:1.6;margin:9px 0 15px}.dialog-actions{display:flex;justify-content:flex-end;gap:8px}.dialog-actions button{flex:1}
 .toast{position:fixed;left:50%;bottom:16px;transform:translateX(-50%);z-index:30;background:#22324c;color:#fff;padding:10px 13px;border-radius:9px;max-width:calc(100vw - 24px);width:max-content;font-size:12px;box-shadow:0 10px 30px #0004}
 
+/* R4.1 target-site simulation only: not mounted or read by production. */
+.web-simulation{width:590px;max-width:100%;height:755px;flex:none;min-width:0;overflow:hidden;
+  display:flex;flex-direction:column;border:1px solid var(--od-line);border-radius:12px;
+  background:var(--od-paper);box-shadow:0 10px 34px #1b2c4915}
+.sim-head{min-height:52px;flex:none;padding:8px 15px;display:flex;align-items:center;gap:10px;border-bottom:1px solid var(--od-line)}
+.sim-head strong{font-size:13px}.sim-head small{display:block;color:var(--od-sub);font-size:11px}
+.sim-head .od-button{margin-left:auto}
+.sim-main{position:relative;flex:1;min-height:0;display:flex;flex-direction:column}
+.sim-scroll{position:relative;flex:1;min-height:0;overflow:auto;scrollbar-width:thin;
+  padding:10px 28px 85px 72px;background:var(--od-bg)}
+.sim-turn{min-height:214px;padding:16px 0 37px;border-bottom:1px solid var(--od-line)}
+.sim-user{margin:0 0 13px auto;max-width:88%;border-radius:14px 14px 3px 14px;
+  padding:10px 12px;background:var(--od-muted);font-size:12px;font-weight:650}
+.sim-ai{font-size:12px;line-height:1.75;max-width:91%}.sim-ai p+p{margin-top:10px}
+.sim-composer{flex:none;min-height:67px;display:flex;align-items:center;justify-content:space-between;
+  background:var(--od-paper);color:var(--od-sub);font-size:11px;padding:12px 16px 12px 70px;
+  border-top:1px solid var(--od-line)}
+.sim-dock{position:absolute;left:14px;bottom:84px;z-index:3;display:flex;align-items:center;flex-direction:column;gap:6px}
+.sim-dock button{width:40px;height:40px;display:grid;place-items:center;padding:0;
+  border:1px solid var(--od-line);border-radius:13px;background:var(--od-paper);
+  color:var(--od-ink);box-shadow:0 3px 12px #0000001b}
+.sim-dock button:hover:not(:disabled){background:var(--od-muted);border-color:var(--od-brand)}
+.sim-dock button:disabled{opacity:.4;box-shadow:none}
+.sim-dock svg{width:18px;height:18px}
+.sim-count{min-width:40px;min-height:28px;border:1px solid var(--od-line);
+  background:var(--od-paper);color:var(--od-ink);border-radius:8px;display:grid;place-items:center;
+  font-size:11px;font-weight:700;font-variant-numeric:tabular-nums}
+.sim-unavailable{position:absolute;top:16px;left:16px;right:16px;z-index:4;border:1px solid var(--od-line);
+  border-radius:10px;background:var(--od-paper);padding:12px;font-size:12px;color:var(--od-sub)}
+@media(max-width:620px){.web-simulation{height:625px}.sim-scroll{padding-left:67px;padding-right:14px}
+  .sim-composer{padding-left:66px}.sim-dock{left:9px}}
 /* R3.6 one compact editor, one Side Panel scroll, all selectors visible. */
 .compact-editor{display:grid;gap:10px;align-content:start}
 .editor-caption{font-size:12px;font-weight:750;padding-top:6px;line-height:1.3}
@@ -188,6 +219,8 @@ details{min-width:0}.od-disclosure{border:1px solid var(--od-line);border-radius
   <symbol id="i-up" viewBox="0 0 24 24"><path d="M5 14l7-7 7 7M12 7v12"/></symbol>
   <symbol id="i-down" viewBox="0 0 24 24"><path d="m5 10 7 7 7-7M12 5v12"/></symbol>
   <symbol id="i-chevron" viewBox="0 0 24 24"><path d="m9 5 7 7-7 7"/></symbol>
+  <symbol id="i-jump-top" viewBox="0 0 24 24"><path d="M5 4h14M7 14l5-5 5 5M12 9v11"/></symbol>
+  <symbol id="i-jump-bottom" viewBox="0 0 24 24"><path d="M5 20h14M7 10l5 5 5-5M12 4v11"/></symbol>
 </svg>
 <header class="review-head" aria-label="预览控制（不属于正式应用）">
   <div><strong>AI 对话滚动导航 · R4.1 交互预览</strong><small>沿用 R3.1 视觉基线 · 当前网页地址、授权及保存均为离线模拟</small></div>
@@ -309,6 +342,24 @@ details{min-width:0}.od-disclosure{border:1px solid var(--od-line);border-radius
       </form>
     </section>
   </div>
+  <section class="web-simulation" id="sim-target" aria-label="目标 AI 网站内的翻页导航（离线模拟）">
+    <header class="sim-head">
+      <div><strong id="sim-site-name">ChatGPT 对话页</strong><small>目标网页 · 离线交互预览</small></div>
+      <button type="button" id="sim-add" class="od-button od-button--secondary od-button--small">模拟新增一轮</button>
+    </header>
+    <div class="sim-main">
+      <div class="sim-scroll" id="sim-scroll" tabindex="0" aria-label="模拟 AI 对话滚动区"><div id="sim-turns"></div></div>
+      <nav class="sim-dock" id="sim-dock" aria-label="对话轮次导航">
+        <button type="button" id="sim-first" title="跳到整段对话顶部" aria-label="跳到整段对话顶部"><svg><use href="#i-jump-top"/></svg></button>
+        <button type="button" id="sim-prev" title="上一轮提问" aria-label="上一轮提问"><svg><use href="#i-up"/></svg></button>
+        <span id="sim-count" class="sim-count" role="status" aria-live="polite">1/6</span>
+        <button type="button" id="sim-next" title="下一轮提问" aria-label="下一轮提问"><svg><use href="#i-down"/></svg></button>
+        <button type="button" id="sim-last" title="跳到整段对话底部" aria-label="跳到整段对话底部"><svg><use href="#i-jump-bottom"/></svg></button>
+      </nav>
+      <p class="sim-unavailable" id="sim-unavailable" hidden role="status"></p>
+      <div class="sim-composer"><span>向 AI 继续提问…（此预览不发送）</span><span>⌘ ↵</span></div>
+    </div>
+  </section>
 </div>
 <dialog class="dialog" id="uninstall-dialog" aria-labelledby="uninstall-title"><h2 id="uninstall-title">卸载「AI 对话滚动导航」？</h2><p>卸载会停止自动运行并移除本机安装记录，不会删除网站本身的数据。此预览不会真正调用卸载。</p><div class="dialog-actions"><button class="od-button od-button--secondary" id="uninstall-cancel">取消</button><button class="od-button od-button--danger" id="uninstall-confirm">确认卸载</button></div></dialog>
 <div id="toast" class="toast" role="status" aria-live="polite" hidden></div>
