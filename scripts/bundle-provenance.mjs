@@ -50,6 +50,8 @@ const compiledWebFlowInputs=Object.freeze({
   // Pure schema parser also enters the fixed ChatGPT Content bridge and the
   // Native Settings Workspace reader through reviewed chatgpt-task-request imports.
   // Neither site display nor Workspace parsing grants Task execution.
+  // Only the six existing fixed consumers below may import this blob; the
+  // ChatGPT bridge, settings and transport retain the legacy parser re-exports.
   'projects/webflow/src/task-intent-contract.js':'50a7ec4bd3d8707ba53724efdc378cd98c2404d6',
   // Reviewed fixed ChatGPT site adapter/retired UI, only in the isolated fixed Content entry.
   // 2026-11-09 reviewed UNKNOWN diagnostics and before-click cancellation;
@@ -84,7 +86,7 @@ function reviewedCompiledWebFlow(target,path,root){
   const allowed=path==='projects/webflow/trusted/issue-workflow-authorization.js'?
     ['sw.js','ui/tool-shell.js'].includes(target):
     taskIntent?['sw.js','ui/tool-shell.js','agents/web-task-content.js',
-      'agents/chatgpt-fixed-bridge.js','native-agent/settings.js'].includes(target):
+    'agents/chatgpt-fixed-bridge.js','native-agent/settings.js','native-agent/transport.js'].includes(target):
     path==='projects/webflow/trusted/task-run-recovery.js'?target==='sw.js':siteAdapter?target==='agents/chatgpt-fixed-bridge.js':
     path.startsWith('projects/webflow/trusted/')||path==='projects/webflow/src/ui/app-page-routes.js'?target==='ui/tool-shell.js':
       ['sw.js','ui/tool-shell.js','agents/chatgpt-fixed-bridge.js'].includes(target);
@@ -673,10 +675,11 @@ function reviewedCompiledSharedMarkdown(target,path,root){
 // Only byte-reviewed first-party Clipper page/policy sources enter fixed
 // Chrome Host/Relay targets; installed/user sources are not authorized.
 const compiledWebClipperInputs=Object.freeze({
-  // R2 region-picking admission: reviewed DOM-only picker remains confined to the original Page Relay.
+  // Reviewed region selection/cancellation through the existing page.clip
+  // permission, exact document/install epoch and post-extraction grant checks.
+  // The one-shot picker and page adapter enter only the existing Page Relay.
   'projects/web-markdown-clipper/trusted/page.js':'46bb1a7b4355922fdc8e84e2be3933d8a2b33a17',
   'projects/web-markdown-clipper/trusted/region-picker.js':'c2a7b9b15c9ac7d6e132c5a1d1f5f27609d20a0a',
-  // Relocation-only parent imports; exact note/site scopes and targets stay fixed.
   'projects/web-markdown-clipper/trusted/policy.js':'9cb4b8af149d25e2427ed0e187433f77a03b788f',
   'projects/web-markdown-clipper/trusted/notes-store.js':'34547422b3a85be15cfad179e8df5993146c5b80'
 });

@@ -4,7 +4,7 @@ import {Button} from '@opendesk/ui';
 import { useI18n } from './i18n/LocaleProvider';
 import type { UiLocalePreference } from './i18n/locale';
 import { useEffect, useRef, useState } from 'react';
-import { copyableOptionsHash, optionsHash, parseOptionsHash, parseSubscriptionRoute, subscriptionRouteHash,
+import { copyableOptionsHash, diagnosticHash, optionsHash, parseOptionsHash, parseSubscriptionRoute, subscriptionRouteHash,
   type OptionsSection, type SubscriptionRoute } from './ui/optionsRoute';
 import { OptionsPageHeader, OptionsNavIcon } from './ui/OptionsShell';
 import { ProxyIcon } from './ui/ProxyIcon';
@@ -624,7 +624,7 @@ const tabs: {id:Page; name:string; caption:string}[] = [
   );
 
   return <main className={'options' + (tab==='subscriptions' ? ' sourcesOptions' : '')}>
-    <header className="optionsHead">
+    <header className={'optionsHead'+(presentation==='sidebar'&&proxyNotice?' hasProxyFeedback':'')}>
       {presentation==='management'?<div className="managementIdentity">
         <span className="managementAppIcon" aria-hidden="true">AI</span>
         <div className="managementBrandCopy">
@@ -662,6 +662,7 @@ const tabs: {id:Page; name:string; caption:string}[] = [
       </div></details>
       {presentation!=='management'&&!headerNavigation&&<Button id="settings-close" className="settingsClose proxyIconButton" disabled={busy||navigationBusy}
         title={t('apBackToPanel')} aria-label={t('apBackToPanel')} onClick={()=>onClose?.()}><ProxyIcon name="close"/></Button>}
+      {proxyNotice&&<p className="settingsProxyFeedback" role="status">{t(proxyNotice)}</p>}
       </>}
     </header>
     {presentation==='management'&&<div className="managementConnectionBar" role="status" aria-label={t('browserStatus')}>
@@ -672,7 +673,7 @@ const tabs: {id:Page; name:string; caption:string}[] = [
       <span className="managementSelectionLabel">{state.runtime.pendingChanges
         ? t('apPendingSelection')+' · '+(modes.find(item=>item.mode===config.selection.mode)?.name ?? t('unableToVerify'))
         : t('selectedModeLabel',{mode:modes.find(item=>item.mode===config.selection.mode)?.name ?? t('unableToVerify')})}</span>
-      <Button className="textAction" disabled={busy||navigationBusy} onClick={()=>navigate('diagnostic')}>{t('viewActualControlStatus')}</Button>
+      <Button className="textAction" disabled={busy||navigationBusy} onClick={()=>getEnvironment().navigate(diagnosticHash('proxy'))}>{t('viewActualControlStatus')}</Button>
     </div>}
     <div className="layout">
       {presentation==='management'&&<nav className="managementNav" aria-label={t('settingsSections')}>

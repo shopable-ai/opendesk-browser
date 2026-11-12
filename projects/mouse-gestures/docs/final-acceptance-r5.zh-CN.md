@@ -158,3 +158,37 @@ C01–C11 有相应源码/Node 或预览证据，但原生列不能因此升级�
 **续验结论：安装/升级及 C01–C12 原生结果仍全部 NOT_TESTED，正式验收未通过。** 没有新的产品缺陷证据，不修改源码、版本、正式 JSON 或无关 48/53px 断言；不重复 Node、语法、预览和构建。六维分数与平均 `85.33` 保留第 5 节的上次评审值，本次未重新评分或抬高分数。此轮只提交本报告的入口复查差量，不推送。
 
 下一条操作仍是：取得受支持的原生连接及不与其他 owner 冲突的 UI 操作区间后，经现有「扩展」审阅链安装/升级上述精确包，读取实际宿主/安装/授权身份，再执行两平台原生矩阵。实时连接、UI 锁及 Windows 目标在恢复时重新检查，不能将本节的瞬时状态当作永久环境结论。
+
+## 9. 2026-11-12 真实 Chrome 安装恢复与核心检查
+
+本轮按当前阶段先恢复核心操作；两平台完整矩阵和重新评分继续延期。以下是北京时间约 22:29 的实际运行证据，更新第 8 节的瞬时安装状态，不提升为正式验收通过。当前分支 `main`，写报告前 HEAD 为 `54f0e7e9fa62c062c1c4e7f9a4c0db2b03b349ac`。
+
+### 实际候选与环境
+
+- 使用已有 macOS Google Chrome `/Users/shopme/Applications/Google Chrome.app`、现有“您的 Chrome”Profile。扩展详情实读 ID `ccfcjegpkdlgbclopjmadlcjedelidmf`、加载目录 `dist/development`、启用状态、所有网站访问和用户脚本开关；没有更换 Profile、安装路径、ID 或权限。
+- 当前为持续开发环境。Side Panel「调试 → 本地开发服务」实际显示已连接，构建指纹 `e3fd4b6bccf7fe3e57fc063e284103b0763d0b0abebc45288795150461ecb2b8`；不是 production 验收包。
+- 恢复对象是既有正式包 `mouse-gestures` / `0.3.1`、Page `app.mouse-gestures` / revision `5`。文件 SHA-256 再次实算为 `014e6e0593eda7e7c20c8f686833dd08569c639fe853146accd5730132b004ea`，没有改包或版本。
+- README 已记录后续 UI 精简源码尚未进入该包。本轮证据仅对应上述固定包，不证明后续 UI 源码已经安装，也不重新宣称当前全部源码与该包同源。
+
+### 安装与执行恢复
+
+1. 父 Sidebar Tool 已是 `0.3.1`，但真实 Page 安装记录仍是 revision `2`、`disabled`，授权也停用，且旧受管 UI 清理为 unknown。父工具开关状态不能证明 Page 已运行。
+2. 经现有「扩展 → 导入 → 核对并恢复网页模块」审阅精确同包。首次恢复因旧模块清理未确认而拒绝，没有重复使用旧批准。只读核对原文档，确认四个仍存活的旧文档没有生成或队列操作后正常刷新；其中“Webflow调用Codex Demo”的草稿“等待测试执行。”刷新后仍在。没有发送 ChatGPT 消息。
+3. 重新走原审阅链后，Page 恢复为 revision `5`、`enabled:true`、`nativeState:registered`、授权 `active`，旧清理 `retired`。原生注册规则仍为 HTTP(S)、顶层、document_idle、USER_SCRIPT。
+4. 独立测试页最初仍无手势；随后出现本候选 `E_OWNER` 失败回执。只读执行槽显示另一 Page `app.reading-toc` revision `10` 的 outcome-unknown 记录占用原文档 `2385ECD5696A148D37E136365C5D79A9`。Chrome 按该 UUID 的 `webNavigation.getFrame` 返回 `null`；同一标签已有另一活动文档。该 ChatGPT 标签正在生成回复，因此没有关闭或刷新它。
+5. 恢复前确认 `currentRunId:null`、Page `prepared:0` / `dispatched:0`、Native ledger 仅有 `ACKNOWLEDGED:50`。通过 Chrome 自带后台管理页，仅对上述精确扩展 scope 正常 Stop Service Worker；它随即自动启动，执行既有启动恢复逻辑。没有删除注册、直接写数据库、放宽授权或重放未知操作；没有重载整个扩展、关闭浏览器或停止 watcher。
+6. 正常刷新本任务的 `http://127.0.0.1:43111/demo-form.html` 后，执行槽实读仅有 `currentRunId:null`，已无 preview 占用。Page 最后执行为 `completed` / `page-installed-evaluated`，`error:null`，tab `560070907`，document `E7EEE529DEA00658B93299B42365805B`；执行和安装的 sourceHash 均为 `23d20743471dfac18fd3f402769989f187260ce72feeef2eb16221e62ee3efb0`。
+
+### 已观察的核心行为与限制
+
+点击和菜单由 Agent 使用真实 macOS Chrome 原生接口观察；物理右键向下拖动由用户在留下的同一 Browser Test Lab 测试页操作并反馈。设置原已为 `gesture-first`，本轮没有改偏好。用户回执与 Agent 直接观察分别记录。
+
+| 操作 | 实际结果 |
+| --- | --- |
+| 手势优先，空白区域普通右击 | 原生菜单不再弹出，页面没有因单击导航或滚动 |
+| 同一空白区域 Shift + 右击 | 显示 Chrome 原生菜单；随后取消菜单，未执行菜单项 |
+| “当前网页标题”输入框右击 | 显示含剪切、复制、粘贴、全选的原生编辑菜单；未修改字段或剪贴板 |
+| 右键向下拖动、轨迹与释放后滚到底部 | USER_REPORTED_PASS：用户针对“在页面中间空白处按住右键向下拖约 150px 后松开”的检查，明确反馈“出现轨迹，松开后滚到页面底部”。当前 CUA 原生接口 `drag` 仅支持左键，本项不是 Agent 自动拖动或直接观察证据 |
+| Windows、完整生命周期及两平台矩阵 | 本阶段延期 / NOT_TESTED |
+
+结论：固定候选的真实 Chrome 安装与 Page 执行已恢复，普通右击仲裁及两项菜单保护有实际证据；用户确认右键向下拖动显示轨迹，释放后滚到页面底部，当前核心恢复目标完成。这仅覆盖上述向下手势，不推定其他方向、组合、Windows 或完整生命周期已经通过；正式验收仍未完成，原六维评分没有重新评定。本轮未改业务源码或 Browser Framework，未重复 Node/构建/打包，未推送；其他 owner 的 UI、安装器、AI Proxy 和根测试改动均保留。自建后台诊断标签与 DevTools 已关闭，测试页保留，原生 UI 锁已释放。

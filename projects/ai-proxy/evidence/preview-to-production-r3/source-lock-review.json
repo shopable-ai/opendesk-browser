@@ -1,0 +1,45 @@
+{
+  "reason": "R2 static React diagnostics and explicit SELECT plus styles/localization; no service, authorization, permissions or execution world changes",
+  "changed": [
+    {
+      "path": "projects/ai-proxy/src/Settings.tsx",
+      "old": "239afdecede523dfe5c8edb4e8674e8d6667be82",
+      "current": "d4f5ebe2a048315b3142890fe6a8aed41aa951eb"
+    },
+    {
+      "path": "projects/ai-proxy/src/i18n/locales/en.json",
+      "old": "641563aa68ff3bfe916fa11ac369957cd57fbda9",
+      "current": "6dd1f6665cf7a0a1d1f9db47c099b781ad46c2a8"
+    },
+    {
+      "path": "projects/ai-proxy/src/i18n/locales/zh-CN.json",
+      "old": "4e2d2efdb26b9990d8ac7172246ace41a24184e0",
+      "current": "df03dea459d45b25f04f8c1f6ef8f59f5bdae092"
+    },
+    {
+      "path": "projects/ai-proxy/src/i18n/locales/zh-TW.json",
+      "old": "1f93e7905a90fa799cd3b602d8583e9d4ecc05f4",
+      "current": "9222ef31061eca95d2736ef9293747902323e1a8"
+    },
+    {
+      "path": "projects/ai-proxy/src/styles/management.css",
+      "old": "46f03bc0f597ca10b7f6e332800e749fb38414fd",
+      "current": "c344d78f5d90922502b22f0a1a81b11c447a2b81"
+    },
+    {
+      "path": "projects/ai-proxy/src/styles/options.css",
+      "old": "762c2ba764624df824bbda5c859d4e9b30ce296f",
+      "current": "b4caaf40bb3e6d25bb3e19b8e8b8f1e8f72a326a"
+    },
+    {
+      "path": "projects/ai-proxy/src/styles/sidebar-settings.css",
+      "old": "d99ef466e5929f52b05ba9ff46cc441f5e8bfc94",
+      "current": "103f21595582f1aef6c61ed215740599519357b2"
+    },
+    {
+      "path": "projects/ai-proxy/src/ui/DiagnosticsPage.tsx",
+      "old": "4e2ece51e8f6ddd995e0af0546fe9e569f5cf3fe",
+      "current": "3c083d41fd9580c06ded55530812bbf8f54a9f06"
+    }
+  ]
+}

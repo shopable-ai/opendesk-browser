@@ -932,47 +932,50 @@ test('compact task Add rejects Sidebar Tool packages and explains the correct im
   const f=make();t.after(()=>f.ui.dispose());await tick();await tick();
   const text=JSON.stringify({format:'opendesk.sidebar-tool.v2',id:'demo-tool',version:'1.0.0'});
   const input=f.field('task-add-file');
+  f.get('task-add-file').value='demo-tool.opendesk-tool.json';
   input.files=[{name:'demo-tool.opendesk-tool.json',size:Buffer.byteLength(text),text:async()=>text}];
   await f.action('taskAddFileChange');
-  assert.match(f.field('task-add-status').text,/扩展工具包/);
+  assert.match(f.field('task-add-status').text,/E_TASK_FILE_KIND.*Sidebar Tool.*扩展包/);
+  assert.match(f.field('task-add-status').text,/「扩展」.*可信安装入口/);
   assert.equal(f.catalogOpens.length,0,'wrong package cannot open Task Catalog');
   assert.equal(f.starts.length,0,'wrong package cannot execute');
-  assert.equal(input.value,'','same file remains selectable after rejection');
+  assert.equal(f.get('task-add-file').value,'','the actual file input is reset for reselection');
+  assert.equal(input.files,null);
 });
 
 test('catalog JS import hands source to Sidebar and never enters a view with a hidden runner',async t=>{
   const f=make();t.after(()=>f.ui.dispose());await tick();await tick();f.ui.showCatalogPage();
   const source='async function main() { return "file draft"; }';
   const file=f.field('task-package-file');
-  file.value='draft.js';
+  f.get('task-package-file').value='draft.js';
   file.files=[{name:'draft.js',size:source.length,text:async()=>source}];
   await f.action('taskPackageFileChange');
   assert.deepEqual(f.draftMessages,[{protocol:'opendesk.sidebar.draft-import.v1',sourceUtf8:source}]);
   assert.equal(f.doc.documentElement.dataset.opendeskTab,'catalog');
   assert.equal(f.starts.length,0);assert.equal(f.permissions.length,0);
   assert.match(f.field('task-catalog-status').text,/未保存草稿/);
-  assert.equal(file.value,'');
+  assert.equal(f.get('task-package-file').value,'');assert.equal(file.files,null);
 });
 
 test('missing Sidebar refuses import with an actionable message, without losing the directory',async t=>{
   const f=make();t.after(()=>f.ui.dispose());await tick();await tick();f.ui.showCatalogPage();
   f.api.runtime.sendMessage=async()=>{throw Error('Receiving end does not exist');};
-  const file=f.field('task-package-file');file.value='draft.js';
+  const file=f.field('task-package-file');f.get('task-package-file').value='draft.js';
   file.files=[{name:'draft.js',size:1,text:async()=>'x'}];
   await f.action('taskPackageFileChange');
   assert.match(f.field('task-catalog-status').text,/同一窗口打开 Sidebar/);
   assert.equal(f.doc.documentElement.dataset.opendeskTab,'catalog');
-  assert.equal(f.starts.length,0);assert.equal(file.value,'');
+  assert.equal(f.starts.length,0);assert.equal(f.get('task-package-file').value,'');assert.equal(file.files,null);
 });
 
 test('catalog draft transport errors retain their cause instead of claiming Sidebar is missing',async t=>{
   const f=make();t.after(()=>f.ui.dispose());await tick();await tick();f.ui.showCatalogPage();
   f.api.runtime.sendMessage=async()=>{throw Error('Extension context invalidated');};
-  const file=f.field('task-package-file');file.value='draft.js';
+  const file=f.field('task-package-file');f.get('task-package-file').value='draft.js';
   file.files=[{name:'draft.js',size:1,text:async()=>'x'}];
   await f.action('taskPackageFileChange');
   assert.match(f.field('task-catalog-status').text,/E_DRAFT_TRANSPORT：Extension context invalidated/);
-  assert.equal(file.value,'');assert.equal(f.starts.length,0);
+  assert.equal(f.get('task-package-file').value,'');assert.equal(file.files,null);assert.equal(f.starts.length,0);
 });
 
 test('receiving a source-only import selects Sidebar Developer without creating a run',async t=>{
@@ -1033,26 +1036,26 @@ test('R6.1 stop-only footer CSS hides all non-owner actions without hiding Stop'
 test('catalog project JSON import validates snapshots and hands frozen bytes to Sidebar without running',async t=>{
   const f=make();t.after(()=>f.ui.dispose());await tick();await tick();f.ui.showCatalogPage();
   const draft=await programDraft(),text=JSON.stringify(draft,null,2)+'\n';
-  const file=f.field('task-package-file');file.value='program.opendesk-draft.json';
+  const file=f.field('task-package-file');f.get('task-package-file').value='program.opendesk-draft.json';
   file.files=[{name:'program.opendesk-draft.json',size:Buffer.byteLength(text),text:async()=>text}];
   await f.action('taskPackageFileChange');
   assert.deepEqual(f.draftMessages,[{protocol:'opendesk.sidebar.draft-import.v1',draft}]);
   assert.equal(f.doc.documentElement.dataset.opendeskTab,'catalog');
   assert.equal(f.starts.length,0);assert.equal(f.permissions.length,0);
   assert.match(f.field('task-catalog-status').text,/未保存草稿/);
-  assert.equal(file.value,'');
+  assert.equal(f.get('task-package-file').value,'');assert.equal(file.files,null);
 });
 
 test('catalog rejects a changed project snapshot before handoff and permits reselecting the file',async t=>{
   const f=make();t.after(()=>f.ui.dispose());await tick();await tick();f.ui.showCatalogPage();
   const draft=await programDraft();draft.authoring.files[0].sourceUtf8+='\n// altered';
   const text=JSON.stringify(draft);
-  const file=f.field('task-package-file');file.value='program.opendesk-draft.json';
+  const file=f.field('task-package-file');f.get('task-package-file').value='program.opendesk-draft.json';
   file.files=[{name:'program.opendesk-draft.json',size:Buffer.byteLength(text),text:async()=>text}];
   await f.action('taskPackageFileChange');
   assert.equal(f.draftMessages.length,0);assert.equal(f.starts.length,0);assert.equal(f.permissions.length,0);
   assert.match(f.field('task-catalog-status').text,/E_PROGRAM_HASH/);
-  assert.equal(file.value,'');
+  assert.equal(f.get('task-package-file').value,'');assert.equal(file.files,null);
 });
 
 test('R8 R2 task history masks sensitive values and exposes only durable technical identifiers',async t=>{
@@ -1827,7 +1830,7 @@ for(const operation of ['prepare','cancel'])for(const outcome of ['resolve','rej
     if(outcome==='resolve')release({});else reject(new Error('late failure'));
     await tick();await tick();
     assert.deepEqual(f.myView.data.taskRunSheet,newer);assert.equal(f.starts.length,0);
-    f.action('taskSheetClose');await f.ui.openTaskRunSheet({task:f.task});
+    f.action('taskSheetClose');await f.ui.openTaskRunSheet({task:f.task,binding:f.preparation?.binding??null});
     assert.ok(f.myView.data.taskRunSheet,'late response must not retain a stale global busy lock');
   });
 }
@@ -1853,7 +1856,7 @@ test('uninstalled recovery cancels only the original preparation identity',async
   f.myView.actions.taskSheetPrepareClick({isTrusted:true},f.task);await tick();await tick();
   const id=f.preparation.preparationId;f.action('taskSheetClose');
   f.catalogState.installed=[];f.catalogState.catalog=[];
-  await f.ui.openTaskRunSheet({task:f.task,preparationId:id});
+  await f.ui.openTaskRunSheet({task:f.task,preparationId:id,binding:f.preparation.binding});
   f.action('taskSheetCancelClick');await tick();await tick();
   assert.equal(f.myView.data.taskRunSheet.preparationId,id);
   assert.equal(f.myView.data.taskRunSheet.phase,'cancelled');

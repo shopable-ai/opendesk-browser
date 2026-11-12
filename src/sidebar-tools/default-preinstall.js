@@ -114,7 +114,7 @@ export async function resumeDefaultPreinstall({api,lockManager,fetcher=globalThi
         if(!['installed','already-installed'].includes(result.state))
           throw fail('官方预装未成功提交');
       }catch(error){
-        if(['E_OUTCOME_UNKNOWN','E_TOOL_CHANGED','E_MARKET_IDENTITY'].includes(error?.code)){
+        if(['E_OUTCOME_UNKNOWN','E_PAGE_CLEANUP_PENDING','E_TOOL_CHANGED','E_MARKET_IDENTITY'].includes(error?.code)){
           // Do not replay unknown effects or undo user changes.
           marker=await save(api,marker,{...marker,state:'attention'});
           return {state:'attention',toolId:entry.toolId};

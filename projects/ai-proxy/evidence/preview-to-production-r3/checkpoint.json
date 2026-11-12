@@ -1,0 +1,27 @@
+{
+  "task": "OD-AI-PROXY-PREVIEW-TO-PRODUCTION-R3-LOCAL-ACCEPTANCE",
+  "sourceThread": "01a1cbab-77bb-7600-9b12-9b1b17021e4a",
+  "headAtHandoff": "672be1b03913eb222e2b4073eded02020f128034",
+  "branch": "main",
+  "latestUserPriority": "Continue in a new chat; prioritize UI tests inside the actual extension and important directly related defects",
+  "nativeGoal": null,
+  "productAcceptance": "PARTIAL; not complete",
+  "localTests": {"initial": "320/325 PASS; 5 harness failures", "afterHarnessRepair": "325/325 PASS", "scope": "Before the latest locale and CSS edits"},
+  "build": {"vite": "PASS at 0.3.16 before latest locale/CSS edits", "browserProduction": "BLOCKED: fixed-chatgpt-fixed-bridge rejected projects/webflow/src/task-intent-contract.js", "isolatedOutput": "artifacts/ai-proxy-r3/source/dist/production is incomplete and MUST NOT be installed"},
+  "package": {"version": "0.3.16", "sha256": "35a2aafdebe211854415c98fb2acde15985c6aa834cd5c141642681d28c9bc8c", "bytes": 981379, "promotionAndCheck": "PASS before latest locale/CSS edits", "currentSourceMatch": "STALE; not rebuilt after latest locale/CSS edits", "installed": false, "committed": false},
+  "sourceLock": "Eight R2 blobs reviewed and repinned; latest locale and management.css edits require fresh exact git-blob hashes after review",
+  "sharedTests": {"packageSecurityTargeted": "7 PASS", "trustedSourceTargeted": "2 PASS before latest locale/CSS edits", "fullSidebarSuite": "7/8 PASS; unrelated pre-existing header 48px expectation versus 53px source"},
+  "componentRuntime": {"scope": "Actual Surface/App/environment/service, preview=false, explicit memory storage/native transport fixture; NOT installed Chrome", "matrix": "50 states: 2 surfaces x 5 widths x 5 panels; 100 top/content screenshots", "pageOverflow": "none; managementNav internal horizontal scrolling excluded", "automaticApplyStop": "none recorded", "measuredLeadBackground": "rgb(243,246,251); background-image:none", "measuredUnverifiedCard": "rgb(255,255,255)", "keyboard": "ArrowRight/End/Home/Tab/Enter and 2px visible focus observed", "native200PercentZoom": "NOT_TESTED; shortcut left width/DPR unchanged; CSS zoom alternative only", "crud": "Created HTTP proxy, edited name/SOCKS5, selected profile/four modes, saved long-domain rule without APPLY/STOP", "partialDriver": "Locale changed to English; next iteration selector failed after translated aria-label changed. Use stable #ui-locale; no three-language PASS"},
+  "latestUnverifiedProductEdits": ["Three locale diagnostic captions say capability limits instead of simulated probes", "management.css --muted #64748b -> #5f6f86 after 4.473:1 contrast failure", "management.css refresh flex:none and white-space:nowrap; temporary 320px height 53.09 -> 36px, no page overflow"],
+  "independentUxFindingsToReproduceInExtension": [
+    {"severity": "P1", "finding": "Old route active/new selection pending may show new selection beside applied status", "evidence": "independent reviewer reports memory SSR reproduction; not yet reproduced in installed extension"},
+    {"severity": "P2", "finding": "Formal PROBE still enabled though service rejects; basic STOP enabled without canStop"},
+    {"severity": "P2", "finding": "Save success feedback rendered in management but may be absent in sidebar"},
+    {"severity": "P2", "finding": "Top real-control shortcut routes to overview instead of basic diagnostics"}
+  ],
+  "independentSafetyReview": "No source security blocker in reviewed R2 delta; final QA score pending real Chrome",
+  "expertScores": "NOT_COMPLETE; no final scores or mean; five independent final perspectives not all performed",
+  "resources": {"egoTaskSpace89": "finished exactly once; task-owned p1/p2 closed", "componentServer43374": "own verified PID 24491 stopped with SIGTERM", "otherBrowsersAndWatchers": "preserved", "realTestProfile": "not launched"},
+  "git": "No commit or push in this chat; preserve all listed dirty files and evidence",
+  "next": "Inspect existing real extension Side Panel and PC settings first; reproduce important UI defects; fix original owner and only run relevant checks. Do not resume broad matrices/CI/scoring by habit. Finish package and isolated Chrome acceptance when directly needed."
+}

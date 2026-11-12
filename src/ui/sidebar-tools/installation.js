@@ -321,8 +321,10 @@ async function requestAppLifecycle(pageClient,type,payload,tool=null){
     if(result?.status!=='synchronized'||!Array.isArray(result.cleanupPending))
       throw unknownStorageOutcome(null,'应用网页模块清理');
     if(result.cleanupPending.length)
-      throw error('安装包已保存，旧网页模块尚未确认清理；请先保存相关网页中的内容并刷新这些网页，再核对安装状态',
-        'E_OUTCOME_UNKNOWN');
+      throw error((tool?'应用安装包已保存，但安装尚未完成：':'')+
+        '旧网页模块尚未确认清理。请先保存相关网页中的内容并刷新这些网页，'+
+        (tool?'再重新选择同一个安装包并确认安装。':'再重新执行本次操作。'),
+        'E_PAGE_CLEANUP_PENDING');
   }else if(type==='prepareAppPage'){
     if(result?.status!=='prepared'||result.toolId!==payload.tool.id||
        result.packageHash!==await sidebarToolPackageHash(payload.tool)||
@@ -618,7 +620,7 @@ export async function installReviewedSidebarTool({api,lockManager,candidate,base
       // may complete a missing companion after original cleanup is confirmed;
       // an existing/unknown installation must never be resubmitted.
       if(tool.pageModule){
-        await requestAppLifecycle(pageClient,'synchronizeAppPages',{toolId:tool.id});
+        await requestAppLifecycle(pageClient,'synchronizeAppPages',{toolId:tool.id},tool);
         let missing=false;
         if(repairMissingPageModule===true&&!identity){
           const snapshot=await pageClient.request('listPagePrograms',{});
@@ -831,11 +833,11 @@ export async function installReviewedSidebarTool({api,lockManager,candidate,base
         await writeVerifiedLocalValue(api,MARKET_PROVENANCE_STORE,updated,provenance,'旧市场来源清理');
       }
       if(tool.pageModule){
-        await requestAppLifecycle(pageClient,'synchronizeAppPages',{toolId:tool.id});
+        await requestAppLifecycle(pageClient,'synchronizeAppPages',{toolId:tool.id},tool);
         await requestAppLifecycle(pageClient,'importAppPage',{
           toolId:tool.id,packageHash:await sidebarToolPackageHash(tool),installEpoch:nextEpoch},tool);
       }
-      else if(existing?.pageModule)await requestAppLifecycle(pageClient,'synchronizeAppPages',{toolId:tool.id});
+      else if(existing?.pageModule)await requestAppLifecycle(pageClient,'synchronizeAppPages',{toolId:tool.id},tool);
       // Publish the scope on the same original Installer path, AFTER the
       // package, source and epoch have been read back. Any write ambiguity
       // leaves an unresolved market journal, not a fabricated success.
@@ -885,7 +887,7 @@ export async function installReviewedSidebarTool({api,lockManager,candidate,base
       // A successful registry write followed by a metadata/ack failure is
       // neither a rollback nor a second invitation to consume user approval.
       try{await writeOp('outcome-unknown',cause?.code||'write-uncertain');}catch{}
-      if(cause?.code==='E_OUTCOME_UNKNOWN')throw cause;
+      if(['E_OUTCOME_UNKNOWN','E_PAGE_CLEANUP_PENDING'].includes(cause?.code))throw cause;
       throw unknownStorageOutcome(cause,'工具安装');
     }
   }));

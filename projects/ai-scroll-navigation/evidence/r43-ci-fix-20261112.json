@@ -359,10 +359,10 @@
       "installation": "NOT_TESTED"
     },
     "googleChrome": {
-      "status": "INSTALLATION_BLOCKED_NATIVE_TIMEOUT_AND_URL_POLICY",
+      "status": "READ_ONLY_SIDEPANEL_RECOVERED_ACTIVE_UI_OWNER_BUSY",
       "processObserved": 44951,
       "controlAttempts": 3,
-      "reason": "User authorized stale UI lease release; original helper released old owner and acquired current owner, both exit0. Native Chrome side-panel reads then timed out twice. Exact HTTPS tabs work; direct chrome-extension sidepanel navigation was explicitly rejected by URL policy. No workaround, install submission, package import or permission change performed.",
+      "reason": "Exact native Chrome app read recovered the existing OpenDesk side panel and AI Scroll entry. Original helper acquisition is busy; native thread snapshots confirm another owner actively testing mouse gestures in Chrome. No installation/import/input attempted; original extension URL rejection respected.",
       "alternativeDesktopCore": {
         "status": "UNAVAILABLE",
         "readOnlyRequests": 2,
@@ -374,16 +374,19 @@
         "reason": "Native CUA getState timed out twice; existing Chrome has no observed debugging listener. No profile, settings or pairing changes made."
       },
       "nativeUiLock": {
-        "status": "RELEASED",
-        "owner": null,
-        "handoff": "EXPLICITLY_GRANTED_BY_USER",
-        "originalHelperUsed": true,
-        "oldOwnerReleaseExitCode": 0,
-        "taskAcquireExitCode": 0,
-        "taskReleaseExitCode": 0,
+        "status": "BUSY",
+        "owner": "01a1cf9c-7f36-7bd3-ac15-dab57c543f56",
+        "ownerChatStatus": "active",
+        "ownerLatestTurnStatus": "inProgress",
+        "verification": "Native wait_threads immediate snapshot and bounded 45000ms wait",
+        "latestVerifiedCursor": "e5931475-ebb2-42a1-9048-25b7cf87cdb6:6",
+        "taskAcquireExitCode": 1,
+        "taskAcquired": false,
+        "handoff": "NOT_REQUESTED_ACTIVE_OWNER_PRESERVED",
+        "oldStaleOwnerAuthorizationApplies": false,
         "registryEditedDirectly": false
       },
-      "latestObservedAt": "2026-11-12T11:42:19Z",
+      "latestObservedAt": "2026-11-12T13:42:03Z",
       "exactApp": "/Users/shopme/Applications/Google Chrome.app",
       "openDeskExtensionIdObserved": "ccfcjegpkdlgbclopjmadlcjedelidmf",
       "privateDraftPersisted": false,
@@ -424,7 +427,70 @@
         "messagesSent": 0,
         "accountCredentialsSubmitted": false
       },
-      "installedCandidateRevision": "UNKNOWN_NOT_READ_BACK"
+      "installedCandidateRevision": "UNKNOWN_NOT_READ_BACK",
+      "observationsBeforeCurrentChat": [
+        {
+          "status": "INSTALLATION_BLOCKED_NATIVE_TIMEOUT_AND_URL_POLICY",
+          "latestObservedAt": "2026-11-12T11:42:19Z",
+          "reason": "User authorized stale UI lease release; original helper released old owner and acquired current owner, both exit0. Native Chrome side-panel reads then timed out twice. Exact HTTPS tabs work; direct chrome-extension sidepanel navigation was explicitly rejected by URL policy. No workaround, install submission, package import or permission change performed.",
+          "nativeUiLock": {
+            "status": "RELEASED",
+            "owner": null,
+            "handoff": "EXPLICITLY_GRANTED_BY_USER",
+            "originalHelperUsed": true,
+            "oldOwnerReleaseExitCode": 0,
+            "taskAcquireExitCode": 0,
+            "taskReleaseExitCode": 0,
+            "registryEditedDirectly": false
+          }
+        }
+      ],
+      "currentChatObservation": {
+        "threadId": "01a1cf9e-9b6c-7de1-8353-8ccf53998ba7",
+        "goalStatus": "blocked",
+        "tokenBudget": null,
+        "mainHead": "4d48a1275598bf5f902aa0a85bd068a74578c1ef",
+        "cuaInventoryTimeouts": 1,
+        "exactNativeAppRead": "SUCCESS",
+        "existingSidePanelEntryVisible": true,
+        "directExtensionNavigationRetried": false,
+        "observedDockButtons": [
+          "conversation-top",
+          "conversation-bottom"
+        ],
+        "dockObservationBoundary": "Installed revision/configuration unknown; not an r19 T01 result or proven product failure",
+        "loadedExtensionPath": "UNKNOWN",
+        "serveConnection": "UNKNOWN",
+        "loadedBuildFingerprint": "UNKNOWN",
+        "chatgpt": "Account menu and existing long conversation visible; no message sent",
+        "deepseekAndGemini": "Not re-observed in this chat; preserve earlier observations as historical",
+        "installationReviewReached": false,
+        "packageImported": false,
+        "installSubmitted": false,
+        "inputActions": 0,
+        "newTabs": 0,
+        "privateDraftPersisted": false,
+        "verifier": {
+          "agentId": "01a1cfa0-0c1c-7cc1-a59e-d361ad78f8bd",
+          "candidateIdentityAndThreeHashesMatch": true,
+          "finalInputHashesMatched": 27,
+          "ciLogAndArtifactHashesMatch": true,
+          "artifactPackageByteIdentical": true,
+          "testsOrBuildsRerun": false,
+          "scoresReassessed": false,
+          "cachedJobRunJson": "Historical queued snapshot, not refreshed online",
+          "earlyInputSnapshot": "Pre-alias-fix snapshot; final pre-run input hashes used instead"
+        },
+        "blockedAudit": {
+          "updatedAt": "2026-11-12T13:45:26Z",
+          "consecutiveGoalTurns": 3,
+          "condition": "Same active owner holds shared native UI; supported installation action cannot proceed without external normal release",
+          "ownerState": "active / latestTurn inProgress",
+          "goalToolReturnedStatus": "blocked",
+          "candidateNativePasses": 0,
+          "noAdditionalTestsBuildsOrScores": true
+        }
+      }
     },
     "egoSupplement": {
       "spaceId": 92,
@@ -445,186 +511,186 @@
         {
           "id": "T01",
           "status": "NOT_TESTED",
-          "reason": "Exact candidate installation/readback unverified: native side-panel read timed out and browser URL policy rejected direct extension-page navigation. No native acceptance action performed."
+          "reason": "Exact r19 installation/readback remains unverified. Existing native side-panel read recovered, but original UI helper reports busy and native thread state confirms another active Chrome-testing owner; no installation or acceptance action performed."
         },
         {
           "id": "T02",
           "status": "NOT_TESTED",
-          "reason": "Exact candidate installation/readback unverified: native side-panel read timed out and browser URL policy rejected direct extension-page navigation. No native acceptance action performed."
+          "reason": "Exact r19 installation/readback remains unverified. Existing native side-panel read recovered, but original UI helper reports busy and native thread state confirms another active Chrome-testing owner; no installation or acceptance action performed."
         },
         {
           "id": "T03",
           "status": "NOT_TESTED",
-          "reason": "Exact candidate installation/readback unverified: native side-panel read timed out and browser URL policy rejected direct extension-page navigation. No native acceptance action performed."
+          "reason": "Exact r19 installation/readback remains unverified. Existing native side-panel read recovered, but original UI helper reports busy and native thread state confirms another active Chrome-testing owner; no installation or acceptance action performed."
         },
         {
           "id": "T04",
           "status": "NOT_TESTED",
-          "reason": "Exact candidate installation/readback unverified: native side-panel read timed out and browser URL policy rejected direct extension-page navigation. No native acceptance action performed."
+          "reason": "Exact r19 installation/readback remains unverified. Existing native side-panel read recovered, but original UI helper reports busy and native thread state confirms another active Chrome-testing owner; no installation or acceptance action performed."
         },
         {
           "id": "T05",
           "status": "NOT_TESTED",
-          "reason": "Exact candidate installation/readback unverified: native side-panel read timed out and browser URL policy rejected direct extension-page navigation. No native acceptance action performed."
+          "reason": "Exact r19 installation/readback remains unverified. Existing native side-panel read recovered, but original UI helper reports busy and native thread state confirms another active Chrome-testing owner; no installation or acceptance action performed."
         },
         {
           "id": "T06",
           "status": "NOT_TESTED",
-          "reason": "Exact candidate installation/readback unverified: native side-panel read timed out and browser URL policy rejected direct extension-page navigation. No native acceptance action performed."
+          "reason": "Exact r19 installation/readback remains unverified. Existing native side-panel read recovered, but original UI helper reports busy and native thread state confirms another active Chrome-testing owner; no installation or acceptance action performed."
         },
         {
           "id": "T07",
           "status": "NOT_TESTED",
-          "reason": "Exact candidate installation/readback unverified: native side-panel read timed out and browser URL policy rejected direct extension-page navigation. No native acceptance action performed."
+          "reason": "Exact r19 installation/readback remains unverified. Existing native side-panel read recovered, but original UI helper reports busy and native thread state confirms another active Chrome-testing owner; no installation or acceptance action performed."
         },
         {
           "id": "T08",
           "status": "NOT_TESTED",
-          "reason": "Exact candidate installation/readback unverified: native side-panel read timed out and browser URL policy rejected direct extension-page navigation. No native acceptance action performed."
+          "reason": "Exact r19 installation/readback remains unverified. Existing native side-panel read recovered, but original UI helper reports busy and native thread state confirms another active Chrome-testing owner; no installation or acceptance action performed."
         },
         {
           "id": "T09",
           "status": "NOT_TESTED",
-          "reason": "Exact candidate installation/readback unverified: native side-panel read timed out and browser URL policy rejected direct extension-page navigation. No native acceptance action performed."
+          "reason": "Exact r19 installation/readback remains unverified. Existing native side-panel read recovered, but original UI helper reports busy and native thread state confirms another active Chrome-testing owner; no installation or acceptance action performed."
         },
         {
           "id": "T10",
           "status": "NOT_TESTED",
-          "reason": "Exact candidate installation/readback unverified: native side-panel read timed out and browser URL policy rejected direct extension-page navigation. No native acceptance action performed."
+          "reason": "Exact r19 installation/readback remains unverified. Existing native side-panel read recovered, but original UI helper reports busy and native thread state confirms another active Chrome-testing owner; no installation or acceptance action performed."
         },
         {
           "id": "T11",
           "status": "NOT_TESTED",
-          "reason": "Exact candidate installation/readback unverified: native side-panel read timed out and browser URL policy rejected direct extension-page navigation. No native acceptance action performed."
+          "reason": "Exact r19 installation/readback remains unverified. Existing native side-panel read recovered, but original UI helper reports busy and native thread state confirms another active Chrome-testing owner; no installation or acceptance action performed."
         },
         {
           "id": "T12",
           "status": "NOT_TESTED",
-          "reason": "Exact candidate installation/readback unverified: native side-panel read timed out and browser URL policy rejected direct extension-page navigation. No native acceptance action performed."
+          "reason": "Exact r19 installation/readback remains unverified. Existing native side-panel read recovered, but original UI helper reports busy and native thread state confirms another active Chrome-testing owner; no installation or acceptance action performed."
         }
       ],
       "DeepSeek": [
         {
           "id": "T01",
           "status": "NOT_TESTED",
-          "reason": "Exact candidate installation/readback unverified: native side-panel read timed out and browser URL policy rejected direct extension-page navigation. No native acceptance action performed."
+          "reason": "Exact r19 installation/readback remains unverified. Existing native side-panel read recovered, but original UI helper reports busy and native thread state confirms another active Chrome-testing owner; no installation or acceptance action performed."
         },
         {
           "id": "T02",
           "status": "NOT_TESTED",
-          "reason": "Exact candidate installation/readback unverified: native side-panel read timed out and browser URL policy rejected direct extension-page navigation. No native acceptance action performed."
+          "reason": "Exact r19 installation/readback remains unverified. Existing native side-panel read recovered, but original UI helper reports busy and native thread state confirms another active Chrome-testing owner; no installation or acceptance action performed."
         },
         {
           "id": "T03",
           "status": "NOT_TESTED",
-          "reason": "Exact candidate installation/readback unverified: native side-panel read timed out and browser URL policy rejected direct extension-page navigation. No native acceptance action performed."
+          "reason": "Exact r19 installation/readback remains unverified. Existing native side-panel read recovered, but original UI helper reports busy and native thread state confirms another active Chrome-testing owner; no installation or acceptance action performed."
         },
         {
           "id": "T04",
           "status": "NOT_TESTED",
-          "reason": "Exact candidate installation/readback unverified: native side-panel read timed out and browser URL policy rejected direct extension-page navigation. No native acceptance action performed."
+          "reason": "Exact r19 installation/readback remains unverified. Existing native side-panel read recovered, but original UI helper reports busy and native thread state confirms another active Chrome-testing owner; no installation or acceptance action performed."
         },
         {
           "id": "T05",
           "status": "NOT_TESTED",
-          "reason": "Exact candidate installation/readback unverified: native side-panel read timed out and browser URL policy rejected direct extension-page navigation. No native acceptance action performed."
+          "reason": "Exact r19 installation/readback remains unverified. Existing native side-panel read recovered, but original UI helper reports busy and native thread state confirms another active Chrome-testing owner; no installation or acceptance action performed."
         },
         {
           "id": "T06",
           "status": "NOT_TESTED",
-          "reason": "Exact candidate installation/readback unverified: native side-panel read timed out and browser URL policy rejected direct extension-page navigation. No native acceptance action performed."
+          "reason": "Exact r19 installation/readback remains unverified. Existing native side-panel read recovered, but original UI helper reports busy and native thread state confirms another active Chrome-testing owner; no installation or acceptance action performed."
         },
         {
           "id": "T07",
           "status": "NOT_TESTED",
-          "reason": "Exact candidate installation/readback unverified: native side-panel read timed out and browser URL policy rejected direct extension-page navigation. No native acceptance action performed."
+          "reason": "Exact r19 installation/readback remains unverified. Existing native side-panel read recovered, but original UI helper reports busy and native thread state confirms another active Chrome-testing owner; no installation or acceptance action performed."
         },
         {
           "id": "T08",
           "status": "NOT_TESTED",
-          "reason": "Exact candidate installation/readback unverified: native side-panel read timed out and browser URL policy rejected direct extension-page navigation. No native acceptance action performed."
+          "reason": "Exact r19 installation/readback remains unverified. Existing native side-panel read recovered, but original UI helper reports busy and native thread state confirms another active Chrome-testing owner; no installation or acceptance action performed."
         },
         {
           "id": "T09",
           "status": "NOT_TESTED",
-          "reason": "Exact candidate installation/readback unverified: native side-panel read timed out and browser URL policy rejected direct extension-page navigation. No native acceptance action performed."
+          "reason": "Exact r19 installation/readback remains unverified. Existing native side-panel read recovered, but original UI helper reports busy and native thread state confirms another active Chrome-testing owner; no installation or acceptance action performed."
         },
         {
           "id": "T10",
           "status": "NOT_TESTED",
-          "reason": "Exact candidate installation/readback unverified: native side-panel read timed out and browser URL policy rejected direct extension-page navigation. No native acceptance action performed."
+          "reason": "Exact r19 installation/readback remains unverified. Existing native side-panel read recovered, but original UI helper reports busy and native thread state confirms another active Chrome-testing owner; no installation or acceptance action performed."
         },
         {
           "id": "T11",
           "status": "NOT_TESTED",
-          "reason": "Exact candidate installation/readback unverified: native side-panel read timed out and browser URL policy rejected direct extension-page navigation. No native acceptance action performed."
+          "reason": "Exact r19 installation/readback remains unverified. Existing native side-panel read recovered, but original UI helper reports busy and native thread state confirms another active Chrome-testing owner; no installation or acceptance action performed."
         },
         {
           "id": "T12",
           "status": "NOT_TESTED",
-          "reason": "Exact candidate installation/readback unverified: native side-panel read timed out and browser URL policy rejected direct extension-page navigation. No native acceptance action performed."
+          "reason": "Exact r19 installation/readback remains unverified. Existing native side-panel read recovered, but original UI helper reports busy and native thread state confirms another active Chrome-testing owner; no installation or acceptance action performed."
         }
       ],
       "Gemini": [
         {
           "id": "T01",
           "status": "BLOCKED",
-          "reason": "Exact candidate installation/readback unverified: native side-panel read timed out and browser URL policy rejected direct extension-page navigation. No native acceptance action performed. Gemini currently unauthenticated."
+          "reason": "Exact r19 installation/readback remains unverified. Existing native side-panel read recovered, but original UI helper reports busy and native thread state confirms another active Chrome-testing owner; no installation or acceptance action performed. Gemini was unauthenticated at last observation; not rechecked in the current chat."
         },
         {
           "id": "T02",
           "status": "BLOCKED",
-          "reason": "Exact candidate installation/readback unverified: native side-panel read timed out and browser URL policy rejected direct extension-page navigation. No native acceptance action performed. Gemini currently unauthenticated."
+          "reason": "Exact r19 installation/readback remains unverified. Existing native side-panel read recovered, but original UI helper reports busy and native thread state confirms another active Chrome-testing owner; no installation or acceptance action performed. Gemini was unauthenticated at last observation; not rechecked in the current chat."
         },
         {
           "id": "T03",
           "status": "BLOCKED",
-          "reason": "Exact candidate installation/readback unverified: native side-panel read timed out and browser URL policy rejected direct extension-page navigation. No native acceptance action performed. Gemini currently unauthenticated."
+          "reason": "Exact r19 installation/readback remains unverified. Existing native side-panel read recovered, but original UI helper reports busy and native thread state confirms another active Chrome-testing owner; no installation or acceptance action performed. Gemini was unauthenticated at last observation; not rechecked in the current chat."
         },
         {
           "id": "T04",
           "status": "BLOCKED",
-          "reason": "Exact candidate installation/readback unverified: native side-panel read timed out and browser URL policy rejected direct extension-page navigation. No native acceptance action performed. Gemini currently unauthenticated."
+          "reason": "Exact r19 installation/readback remains unverified. Existing native side-panel read recovered, but original UI helper reports busy and native thread state confirms another active Chrome-testing owner; no installation or acceptance action performed. Gemini was unauthenticated at last observation; not rechecked in the current chat."
         },
         {
           "id": "T05",
           "status": "BLOCKED",
-          "reason": "Exact candidate installation/readback unverified: native side-panel read timed out and browser URL policy rejected direct extension-page navigation. No native acceptance action performed. Gemini currently unauthenticated."
+          "reason": "Exact r19 installation/readback remains unverified. Existing native side-panel read recovered, but original UI helper reports busy and native thread state confirms another active Chrome-testing owner; no installation or acceptance action performed. Gemini was unauthenticated at last observation; not rechecked in the current chat."
         },
         {
           "id": "T06",
           "status": "BLOCKED",
-          "reason": "Exact candidate installation/readback unverified: native side-panel read timed out and browser URL policy rejected direct extension-page navigation. No native acceptance action performed. Gemini currently unauthenticated."
+          "reason": "Exact r19 installation/readback remains unverified. Existing native side-panel read recovered, but original UI helper reports busy and native thread state confirms another active Chrome-testing owner; no installation or acceptance action performed. Gemini was unauthenticated at last observation; not rechecked in the current chat."
         },
         {
           "id": "T07",
           "status": "BLOCKED",
-          "reason": "Exact candidate installation/readback unverified: native side-panel read timed out and browser URL policy rejected direct extension-page navigation. No native acceptance action performed. Gemini currently unauthenticated."
+          "reason": "Exact r19 installation/readback remains unverified. Existing native side-panel read recovered, but original UI helper reports busy and native thread state confirms another active Chrome-testing owner; no installation or acceptance action performed. Gemini was unauthenticated at last observation; not rechecked in the current chat."
         },
         {
           "id": "T08",
           "status": "BLOCKED",
-          "reason": "Exact candidate installation/readback unverified: native side-panel read timed out and browser URL policy rejected direct extension-page navigation. No native acceptance action performed. Gemini currently unauthenticated."
+          "reason": "Exact r19 installation/readback remains unverified. Existing native side-panel read recovered, but original UI helper reports busy and native thread state confirms another active Chrome-testing owner; no installation or acceptance action performed. Gemini was unauthenticated at last observation; not rechecked in the current chat."
         },
         {
           "id": "T09",
           "status": "BLOCKED",
-          "reason": "Exact candidate installation/readback unverified: native side-panel read timed out and browser URL policy rejected direct extension-page navigation. No native acceptance action performed. Gemini currently unauthenticated."
+          "reason": "Exact r19 installation/readback remains unverified. Existing native side-panel read recovered, but original UI helper reports busy and native thread state confirms another active Chrome-testing owner; no installation or acceptance action performed. Gemini was unauthenticated at last observation; not rechecked in the current chat."
         },
         {
           "id": "T10",
           "status": "BLOCKED",
-          "reason": "Exact candidate installation/readback unverified: native side-panel read timed out and browser URL policy rejected direct extension-page navigation. No native acceptance action performed. Gemini currently unauthenticated."
+          "reason": "Exact r19 installation/readback remains unverified. Existing native side-panel read recovered, but original UI helper reports busy and native thread state confirms another active Chrome-testing owner; no installation or acceptance action performed. Gemini was unauthenticated at last observation; not rechecked in the current chat."
         },
         {
           "id": "T11",
           "status": "BLOCKED",
-          "reason": "Exact candidate installation/readback unverified: native side-panel read timed out and browser URL policy rejected direct extension-page navigation. No native acceptance action performed. Gemini currently unauthenticated."
+          "reason": "Exact r19 installation/readback remains unverified. Existing native side-panel read recovered, but original UI helper reports busy and native thread state confirms another active Chrome-testing owner; no installation or acceptance action performed. Gemini was unauthenticated at last observation; not rechecked in the current chat."
         },
         {
           "id": "T12",
           "status": "BLOCKED",
-          "reason": "Exact candidate installation/readback unverified: native side-panel read timed out and browser URL policy rejected direct extension-page navigation. No native acceptance action performed. Gemini currently unauthenticated."
+          "reason": "Exact r19 installation/readback remains unverified. Existing native side-panel read recovered, but original UI helper reports busy and native thread state confirms another active Chrome-testing owner; no installation or acceptance action performed. Gemini was unauthenticated at last observation; not rechecked in the current chat."
         }
       ]
     },
@@ -725,8 +791,8 @@
   },
   "remoteCIAtReportCommit": "SUCCESS",
   "remaining": [
-    "Supported and policy-allowed existing installation-review entry, then exact r19 candidate install and identity/hash/config readback; stale UI lease already resolved with explicit user permission",
-    "Real ChatGPT/DeepSeek/Gemini T01–T12; Chrome ChatGPT/DeepSeek session entries available, Gemini currently unauthenticated; responsive/light/dark scenarios still untested",
+    "Active UI owner normal release, then existing supported Side Panel review entry: install exact r19 and read back identity/hash/config; no new-owner takeover authorized or attempted",
+    "Real ChatGPT/DeepSeek/Gemini T01–T12; current ChatGPT account/conversation visible, DeepSeek/Gemini state not rechecked in current chat; earlier Gemini login gap and all native scenarios remain unverified",
     "Candidate-bound native security/lifecycle evidence and independent reassessment; current mean70.2 and release blocked"
   ],
   "latestNode22Run": {

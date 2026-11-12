@@ -5022,8 +5022,10 @@ function createSidebarToolsController({api=globalThis.chrome,doc=globalThis.docu
       // The joint review owns the consumed approval and partial-state receipt.
       // Clearing here increments fileSelection and would silence its catch.
       if(keepReview)throw error;
-      if(['E_TOOL_CHANGED','E_OUTCOME_UNKNOWN'].includes(error?.code)){
-        clearImport();setFileError(error.message+(error.code==='E_OUTCOME_UNKNOWN'?'；请核对已安装列表与本机事务记录。本次批准已撤销，不会自动重试。':''));
+      if(['E_TOOL_CHANGED','E_OUTCOME_UNKNOWN','E_PAGE_CLEANUP_PENDING'].includes(error?.code)){
+        const recovery=error.code==='E_PAGE_CLEANUP_PENDING'?'本次安装确认已失效，不会自动重试。':
+          error.code==='E_OUTCOME_UNKNOWN'?'；请核对已安装列表与本机事务记录。本次批准已撤销，不会自动重试。':'';
+        clearImport();setFileError(error.message+recovery);
         await loadInstalled();return;
       }
       if(accepted)clearImport(); // A consumed approval cannot survive a failed list refresh.

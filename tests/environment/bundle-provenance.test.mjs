@@ -1,14 +1,15 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import {mkdtemp,writeFile,readFile,rm,mkdir,realpath,symlink} from 'node:fs/promises';
+import {mkdtemp,writeFile,readFile,rm,mkdir,realpath,symlink,readdir} from 'node:fs/promises';
 import {tmpdir} from 'node:os';
-import {join,resolve,relative,sep,dirname} from 'node:path';
+import {join,resolve,relative,sep,dirname,basename} from 'node:path';
 import {createHash} from 'node:crypto';
 import {readFileSync,realpathSync} from 'node:fs';
 import postcss from 'postcss';
+import {build} from 'esbuild';
 import {describeBundle,collectBundleEvidence,assertLibraryModuleBoundary,recordBuildFailure,trustedBookmarkStyle,verifyTrustedAIProxySources,reviewedCompiledExtensionSettings} from '../../scripts/bundle-provenance.mjs';
 import {BUILTIN_CATALOG} from '../../src/libs/catalog.js';
-import {PACKAGE_ENTRIES} from '../../scripts/build-contract.mjs';
+import {PACKAGE_ENTRIES,FIXED_OUTPUTS} from '../../scripts/build-contract.mjs';
 const root='/repo';
 
 test('AI Scroll R4.2 reviewed settings sources admit only exact bytes to the original tool-shell',async t=>{
@@ -62,18 +63,40 @@ test('A2B2A capability grant source is pinned to the original SW and trusted Sid
   assert.throws(()=>describeBundle(candidate),/Trusted Web Flow source changed/);
 });
 
-test('reviewed WebFlow task intent parser permits five exact fixed entries and denies other worlds',()=>{
+test('reviewed WebFlow task intent parser is pinned to its six fixed consumers',()=>{
   const path='projects/webflow/src/task-intent-contract.js';
   const modules={[resolve(path)]:{renderedLength:1,originalLength:1}};
   for(const target of ['sw.js','ui/tool-shell.js','agents/web-task-content.js',
-    'agents/chatgpt-fixed-bridge.js','native-agent/settings.js']){
+    'agents/chatgpt-fixed-bridge.js','native-agent/settings.js','native-agent/transport.js']){
     const result=describeBundle({chunk:{fileName:target,modules},lock:{packages:{}}});
     assert.equal(result.modules[0].reviewedFirstPartyBlob,'50a7ec4bd3d8707ba53724efdc378cd98c2404d6');
   }
-  for(const target of ['native-agent/transport.js','agents/page-relay.js',
-    'ui/sidebar-tool-host.js','scripting/sandbox/worker-runtime.js']){
+  for(const target of ['framework/sdk-main.js','scripting/sandbox/worker-runtime.js',
+    'agents/page-relay.js','ui/sidebar-tool-host.js']){
     assert.throws(()=>describeBundle({chunk:{fileName:target,modules},lock:{packages:{}}}),
       /cannot enter a privileged fixed bundle/);
+  }
+});
+
+test('actual fixed entry graphs retain every reviewed WebFlow intent consumer',async()=>{
+  const entries=(await readdir('src/entrypoints')).filter(path=>path.endsWith('.js'))
+    .map(path=>'src/entrypoints/'+path);
+  const {metafile}=await build({entryPoints:entries,bundle:true,write:false,metafile:true,
+    outdir:join(tmpdir(),'opendesk-intent-graph'),treeShaking:false,format:'iife',platform:'browser',
+    loader:{'.html':'text','.dat':'text'},
+    alias:{'@opendesk/ui':resolve('src/ui/react/components/ui/button.tsx')},logLevel:'silent'});
+  const path='projects/webflow/src/task-intent-contract.js';
+  const consumers=Object.values(metafile.outputs).filter(output=>output.inputs[path]);
+  assert.deepEqual(consumers.map(output=>basename(output.entryPoint,'.js')).sort(),
+    ['background','chatgpt-fixed-bridge','settings','tool-shell','transport','web-task-content']);
+  for(const output of consumers){
+    const name=basename(output.entryPoint,'.js');
+    const target=name==='background'?'sw.js':FIXED_OUTPUTS[name];
+    assert.ok(target,'approved output for '+name);
+    const record=describeBundle({chunk:{fileName:target,modules:{[resolve(path)]:{
+      renderedLength:output.inputs[path].bytesInOutput,originalLength:metafile.inputs[path].bytes
+    }}},lock:{packages:{}}});
+    assert.equal(record.modules[0].reviewedFirstPartyBlob,'50a7ec4bd3d8707ba53724efdc378cd98c2404d6');
   }
 });
 
@@ -85,14 +108,16 @@ test('reviewed WebFlow intent source pin rejects mutated and symlinked content',
   await mkdir(dirname(file),{recursive:true});
   const bytes=await readFile(resolve(path));
   await writeFile(file,bytes);
-  const input={chunk:{fileName:'sw.js',modules:{[file]:{renderedLength:1,originalLength:1}}},
-    root,lock:{packages:{}}};
-  assert.equal(describeBundle(input).modules[0].reviewedFirstPartyBlob,'50a7ec4bd3d8707ba53724efdc378cd98c2404d6');
+  const inputs=['sw.js','agents/chatgpt-fixed-bridge.js'].map(fileName=>({
+    chunk:{fileName,modules:{[file]:{renderedLength:1,originalLength:1}}},root,lock:{packages:{}}
+  }));
+  for(const input of inputs)
+    assert.equal(describeBundle(input).modules[0].reviewedFirstPartyBlob,'50a7ec4bd3d8707ba53724efdc378cd98c2404d6');
   await writeFile(file,Buffer.concat([bytes,Buffer.from('\n// drift')]));
-  assert.throws(()=>describeBundle(input),/Trusted Web Flow source changed/);
+  for(const input of inputs)assert.throws(()=>describeBundle(input),/Trusted Web Flow source changed/);
   await rm(file);
   await symlink(resolve(path),file);
-  assert.throws(()=>describeBundle(input),/Trusted Web Flow source must not be a symlink/);
+  for(const input of inputs)assert.throws(()=>describeBundle(input),/Trusted Web Flow source must not be a symlink/);
 });
 
 test('reviewed ChatGPT route guard enters Native Settings Workspace only as pinned deny-only source',()=>{
@@ -136,17 +161,17 @@ test('trusted AI Proxy checks nested CSS even when Rollup omits it from chunk.mo
 
 test('reviewed AI Proxy diagnostics/PC layout keeps all eight exact source locks and rejects altered locale bytes',async t=>{
  const changed=[
-  ['projects/ai-proxy/src/Settings.tsx','e0d5e9125a1a9191597f390b645c51a247784f58'],
-  ['projects/ai-proxy/src/i18n/locales/en.json','6dd1f6665cf7a0a1d1f9db47c099b781ad46c2a8'],
-  ['projects/ai-proxy/src/i18n/locales/zh-CN.json','df03dea459d45b25f04f8c1f6ef8f59f5bdae092'],
-  ['projects/ai-proxy/src/i18n/locales/zh-TW.json','9222ef31061eca95d2736ef9293747902323e1a8'],
-  ['projects/ai-proxy/src/styles/management.css','5bd5553859f9cb287b903faf0ae00991d26925a0'],
+  ['projects/ai-proxy/src/Settings.tsx','8df117891c0a0ef174652d704c902d6b52490062'],
+  ['projects/ai-proxy/src/i18n/locales/en.json','c424f3e122eb90c2a01cd0092d502c881350c2f5'],
+  ['projects/ai-proxy/src/i18n/locales/zh-CN.json','2889bd4e57509b6f13e6d31d4bf42c5e593009c9'],
+  ['projects/ai-proxy/src/i18n/locales/zh-TW.json','27e954916cc032b3f76c8210806a1a6e4668e0c8'],
+  ['projects/ai-proxy/src/styles/management.css','f4ea8d39cd408bcd70b14633128c5fdb8d595a58'],
   ['projects/ai-proxy/src/styles/options.css','b4caaf40bb3e6d25bb3e19b8e8b8f1e8f72a326a'],
-  ['projects/ai-proxy/src/styles/sidebar-settings.css','103f21595582f1aef6c61ed215740599519357b2'],
-  ['projects/ai-proxy/src/ui/DiagnosticsPage.tsx','3c083d41fd9580c06ded55530812bbf8f54a9f06']
+  ['projects/ai-proxy/src/styles/sidebar-settings.css','4f86a1c71e03453767b0a76a0a92d8de745cb962'],
+  ['projects/ai-proxy/src/ui/DiagnosticsPage.tsx','97538e5a13569339c44a016951b507cdc686ee9a']
  ];
  const locks=JSON.parse(await readFile(resolve('projects/ai-proxy/trusted/source-lock.json'),'utf8'));
- for(const [path,pin] of changed)assert.equal(locks[path],pin,'R2 reviewed AI Proxy source changed: '+path);
+ for(const [path,pin] of changed)assert.equal(locks[path],pin,'Current reviewed AI Proxy source changed: '+path);
  assert.doesNotThrow(()=>verifyTrustedAIProxySources());
  // Compile-time pins remain in charge; changing even presentation text fails
  // closed before installing an unreviewed privileged UI bundle.
@@ -491,6 +516,43 @@ test('Marketplace shares only the byte-pinned Prompt Shortcuts asset identity fo
   await mkdir(join(root,'projects/prompt-shortcuts/trusted'),{recursive:true});
   await writeFile(join(root,path),(await readFile(resolve(path),'utf8'))+'\n// unsigned change\n');
   assert.throws(()=>make('ui/marketplace.js',root),/Trusted Prompt Shortcuts source changed/);
+});
+
+test('fixed Clipper relay and marketplace admit their reviewed capture dependency graphs',async()=>{
+  for(const [entry,target,required] of [
+    ['src/entrypoints/page-relay.js','agents/page-relay.js',['page.js','policy.js','region-picker.js']],
+    ['src/entrypoints/marketplace.js','ui/marketplace.js',['policy.js']]
+  ]){
+    const {metafile}=await build({entryPoints:[entry],bundle:true,write:false,metafile:true,
+      format:'iife',platform:'browser',logLevel:'silent'});
+    const prefix='projects/web-markdown-clipper/trusted/';
+    const paths=Object.keys(metafile.inputs).filter(path=>path.startsWith(prefix));
+    for(const name of required)assert.ok(paths.includes(prefix+name),target+' consumes '+name);
+    const record=describeBundle({chunk:{fileName:target,modules:Object.fromEntries(paths.map(path=>[
+      resolve(path),{renderedLength:1,originalLength:metafile.inputs[path].bytes}
+    ]))},lock:{packages:{}}});
+    assert.ok(record.modules.every(row=>/^[0-9a-f]{40}$/.test(row.reviewedFirstPartyBlob)));
+  }
+});
+
+test('Clipper region picker retains exact source, target and symlink fences',async ctx=>{
+  const path='projects/web-markdown-clipper/trusted/region-picker.js';
+  const pin='c2a7b9b15c9ac7d6e132c5a1d1f5f27609d20a0a';
+  const make=(target,root=process.cwd())=>describeBundle({chunk:{fileName:target,
+    modules:{[resolve(root,path)]:{renderedLength:1,originalLength:1}}},root,lock:{packages:{}}});
+  assert.equal(make('agents/page-relay.js').modules[0].reviewedFirstPartyBlob,pin);
+  for(const target of ['sw.js','ui/marketplace.js','ui/tool-shell.js','ui/sidebar-tool-host.js',
+    'agents/chatgpt-fixed-bridge.js','scripting/sandbox/worker-runtime.js'])
+    assert.throws(()=>make(target),/cannot enter a privileged fixed bundle/);
+  const root=await realpath(await mkdtemp(join(tmpdir(),'clip-region-pin-')));
+  ctx.after(()=>rm(root,{recursive:true,force:true}));
+  const file=resolve(root,path),bytes=await readFile(path);
+  await mkdir(dirname(file),{recursive:true});await writeFile(file,bytes);
+  assert.equal(make('agents/page-relay.js',root).modules[0].reviewedFirstPartyBlob,pin);
+  await writeFile(file,Buffer.concat([bytes,Buffer.from('\n// unreviewed drift')]));
+  assert.throws(()=>make('agents/page-relay.js',root),/Trusted Web Clipper source changed/);
+  await rm(file);await symlink(resolve(path),file);
+  assert.throws(()=>make('agents/page-relay.js',root),/must not be a symlink/);
 });
 
 test('first-party Clipper full-text notes store is pinned exclusively to the original Sidebar Host',async ctx=>{

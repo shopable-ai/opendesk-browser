@@ -1,0 +1,1580 @@
+{
+  "scope": "FORMAL_REACT_COMPONENT_FIXTURE_NOT_INSTALLED_CHROME",
+  "keys": [
+    {
+      "key": "ArrowRight",
+      "activeId": "diagnostic-tab-ai",
+      "activeRole": "tab",
+      "selected": "diagnostic-tab-ai",
+      "focusVisible": true,
+      "outline": "rgb(54, 93, 213) solid 2px",
+      "calls": [
+        "storage.get",
+        "storage.get",
+        "storage.get",
+        "storage.get",
+        "storage.get",
+        "storage.get",
+        "storage.get",
+        "storage.get"
+      ]
+    },
+    {
+      "key": "End",
+      "activeId": "diagnostic-tab-proxy",
+      "activeRole": "tab",
+      "selected": "diagnostic-tab-proxy",
+      "focusVisible": true,
+      "outline": "rgb(54, 93, 213) solid 2px",
+      "calls": [
+        "storage.get",
+        "storage.get",
+        "storage.get",
+        "storage.get",
+        "storage.get",
+        "storage.get",
+        "storage.get",
+        "storage.get"
+      ]
+    },
+    {
+      "key": "Home",
+      "activeId": "diagnostic-tab-overview",
+      "activeRole": "tab",
+      "selected": "diagnostic-tab-overview",
+      "focusVisible": true,
+      "outline": "rgb(54, 93, 213) solid 2px",
+      "calls": [
+        "storage.get",
+        "storage.get",
+        "storage.get",
+        "storage.get",
+        "storage.get",
+        "storage.get",
+        "storage.get",
+        "storage.get"
+      ]
+    },
+    {
+      "key": "Tab",
+      "activeId": "diagnostic-panel",
+      "activeRole": "tabpanel",
+      "selected": "diagnostic-tab-overview",
+      "focusVisible": true,
+      "outline": "rgb(54, 93, 213) solid 2px",
+      "calls": [
+        "storage.get",
+        "storage.get",
+        "storage.get",
+        "storage.get",
+        "storage.get",
+        "storage.get",
+        "storage.get",
+        "storage.get"
+      ]
+    },
+    {
+      "key": "Enter",
+      "activeId": "diagnostic-tab-ai",
+      "selected": "diagnostic-tab-ai",
+      "calls": [
+        "storage.get",
+        "storage.get",
+        "storage.get",
+        "storage.get",
+        "storage.get",
+        "storage.get",
+        "storage.get",
+        "storage.get"
+      ]
+    }
+  ],
+  "contrast": {
+    "rows": [
+      {
+        "text": "AI",
+        "class": "managementAppIcon",
+        "fontSize": "12px",
+        "fontWeight": "800",
+        "color": "rgb(255, 255, 255)",
+        "background": [
+          30,
+          41,
+          59,
+          1
+        ],
+        "ratio": 14.629,
+        "target": 4.5,
+        "pass": true
+      },
+      {
+        "text": "AI Proxy",
+        "class": "managementTitle",
+        "fontSize": "16px",
+        "fontWeight": "680",
+        "color": "rgb(30, 41, 59)",
+        "background": [
+          255,
+          255,
+          255,
+          1
+        ],
+        "ratio": 14.629,
+        "target": 4.5,
+        "pass": true
+      },
+      {
+        "text": "设置",
+        "class": "",
+        "fontSize": "11px",
+        "fontWeight": "400",
+        "color": "rgb(100, 116, 139)",
+        "background": [
+          255,
+          255,
+          255,
+          1
+        ],
+        "ratio": 4.759,
+        "target": 4.5,
+        "pass": true
+      },
+      {
+        "text": "·",
+        "class": "",
+        "fontSize": "11px",
+        "fontWeight": "400",
+        "color": "rgb(100, 116, 139)",
+        "background": [
+          255,
+          255,
+          255,
+          1
+        ],
+        "ratio": 4.759,
+        "target": 4.5,
+        "pass": true
+      },
+      {
+        "text": "浏览器代理管理器",
+        "class": "",
+        "fontSize": "11px",
+        "fontWeight": "400",
+        "color": "rgb(100, 116, 139)",
+        "background": [
+          255,
+          255,
+          255,
+          1
+        ],
+        "ratio": 4.759,
+        "target": 4.5,
+        "pass": true
+      },
+      {
+        "text": "刷新状态",
+        "class": "od-button od-button--secondary settingsRefresh",
+        "fontSize": "13px",
+        "fontWeight": "600",
+        "color": "rgb(30, 41, 59)",
+        "background": [
+          255,
+          255,
+          255,
+          1
+        ],
+        "ratio": 14.629,
+        "target": 4.5,
+        "pass": true
+      },
+      {
+        "text": "浏览器状态",
+        "class": "managementConnectionLabel",
+        "fontSize": "12px",
+        "fontWeight": "600",
+        "color": "rgb(100, 116, 139)",
+        "background": [
+          246,
+          248,
+          251,
+          1
+        ],
+        "ratio": 4.473,
+        "target": 4.5,
+        "pass": false
+      },
+      {
+        "text": "尚未管理浏览器代理",
+        "class": "controlChip ",
+        "fontSize": "11px",
+        "fontWeight": "700",
+        "color": "rgb(100, 116, 139)",
+        "background": [
+          246,
+          248,
+          251,
+          1
+        ],
+        "ratio": 4.473,
+        "target": 4.5,
+        "pass": false
+      },
+      {
+        "text": "待应用选择 · 指定代理",
+        "class": "managementSelectionLabel",
+        "fontSize": "12px",
+        "fontWeight": "600",
+        "color": "rgb(100, 116, 139)",
+        "background": [
+          246,
+          248,
+          251,
+          1
+        ],
+        "ratio": 4.473,
+        "target": 4.5,
+        "pass": false
+      },
+      {
+        "text": "查看真实控制状态 →",
+        "class": "od-button od-button--secondary textAction",
+        "fontSize": "11px",
+        "fontWeight": "600",
+        "color": "rgb(54, 93, 213)",
+        "background": [
+          246,
+          248,
+          251,
+          1
+        ],
+        "ratio": 5.359,
+        "target": 4.5,
+        "pass": true
+      },
+      {
+        "text": "管理中心",
+        "class": "managementNavLabel",
+        "fontSize": "10px",
+        "fontWeight": "750",
+        "color": "rgb(100, 116, 139)",
+        "background": [
+          246,
+          248,
+          251,
+          1
+        ],
+        "ratio": 4.473,
+        "target": 4.5,
+        "pass": false
+      },
+      {
+        "text": "代理配置",
+        "class": "",
+        "fontSize": "13px",
+        "fontWeight": "550",
+        "color": "rgb(100, 116, 139)",
+        "background": [
+          246,
+          248,
+          251,
+          1
+        ],
+        "ratio": 4.473,
+        "target": 4.5,
+        "pass": false
+      },
+      {
+        "text": "网站规则",
+        "class": "",
+        "fontSize": "13px",
+        "fontWeight": "550",
+        "color": "rgb(100, 116, 139)",
+        "background": [
+          246,
+          248,
+          251,
+          1
+        ],
+        "ratio": 4.473,
+        "target": 4.5,
+        "pass": false
+      },
+      {
+        "text": "订阅管理",
+        "class": "",
+        "fontSize": "13px",
+        "fontWeight": "550",
+        "color": "rgb(100, 116, 139)",
+        "background": [
+          246,
+          248,
+          251,
+          1
+        ],
+        "ratio": 4.473,
+        "target": 4.5,
+        "pass": false
+      },
+      {
+        "text": "导入备份",
+        "class": "",
+        "fontSize": "13px",
+        "fontWeight": "550",
+        "color": "rgb(100, 116, 139)",
+        "background": [
+          246,
+          248,
+          251,
+          1
+        ],
+        "ratio": 4.473,
+        "target": 4.5,
+        "pass": false
+      },
+      {
+        "text": "网络诊断",
+        "class": "",
+        "fontSize": "13px",
+        "fontWeight": "710",
+        "color": "rgb(54, 93, 213)",
+        "background": [
+          237,
+          242,
+          255,
+          1
+        ],
+        "ratio": 5.089,
+        "target": 4.5,
+        "pass": true
+      },
+      {
+        "text": "通用设置",
+        "class": "",
+        "fontSize": "13px",
+        "fontWeight": "550",
+        "color": "rgb(100, 116, 139)",
+        "background": [
+          246,
+          248,
+          251,
+          1
+        ],
+        "ratio": 4.473,
+        "target": 4.5,
+        "pass": false
+      },
+      {
+        "text": "官方网络",
+        "class": "",
+        "fontSize": "13px",
+        "fontWeight": "550",
+        "color": "rgb(100, 116, 139)",
+        "background": [
+          246,
+          248,
+          251,
+          1
+        ],
+        "ratio": 4.473,
+        "target": 4.5,
+        "pass": false
+      },
+      {
+        "text": "设置",
+        "class": "eyebrow",
+        "fontSize": "10px",
+        "fontWeight": "700",
+        "color": "rgb(100, 116, 139)",
+        "background": [
+          255,
+          255,
+          255,
+          1
+        ],
+        "ratio": 4.759,
+        "target": 4.5,
+        "pass": true
+      },
+      {
+        "text": "网络诊断",
+        "class": "",
+        "fontSize": "24px",
+        "fontWeight": "680",
+        "color": "rgb(30, 41, 59)",
+        "background": [
+          255,
+          255,
+          255,
+          1
+        ],
+        "ratio": 14.629,
+        "target": 3,
+        "pass": true
+      },
+      {
+        "text": "状态、能力边界与故障说明",
+        "class": "hint",
+        "fontSize": "12.5px",
+        "fontWeight": "400",
+        "color": "rgb(100, 116, 139)",
+        "background": [
+          255,
+          255,
+          255,
+          1
+        ],
+        "ratio": 4.759,
+        "target": 4.5,
+        "pass": true
+      },
+      {
+        "text": "检查你关心的网站",
+        "class": "",
+        "fontSize": "22px",
+        "fontWeight": "680",
+        "color": "rgb(30, 41, 59)",
+        "background": [
+          243,
+          246,
+          251,
+          1
+        ],
+        "ratio": 13.505,
+        "target": 4.5,
+        "pass": true
+      },
+      {
+        "text": "Chrome 代理设置、网站 HTTP 可达、账号登录与模型能力需要分别核验；选择线路不会自动应用代理。",
+        "class": "",
+        "fontSize": "12px",
+        "fontWeight": "400",
+        "color": "rgb(71, 85, 105)",
+        "background": [
+          243,
+          246,
+          251,
+          1
+        ],
+        "ratio": 6.995,
+        "target": 4.5,
+        "pass": true
+      },
+      {
+        "text": "已选择",
+        "class": "diagnosticCurrentRoute",
+        "fontSize": "12px",
+        "fontWeight": "650",
+        "color": "rgb(49, 85, 171)",
+        "background": [
+          255,
+          255,
+          255,
+          1
+        ],
+        "ratio": 6.958,
+        "target": 4.5,
+        "pass": true
+      },
+      {
+        "text": ":",
+        "class": "diagnosticCurrentRoute",
+        "fontSize": "12px",
+        "fontWeight": "650",
+        "color": "rgb(49, 85, 171)",
+        "background": [
+          255,
+          255,
+          255,
+          1
+        ],
+        "ratio": 6.958,
+        "target": 4.5,
+        "pass": true
+      },
+      {
+        "text": "尚未选择配置",
+        "class": "diagnosticCurrentRoute",
+        "fontSize": "12px",
+        "fontWeight": "650",
+        "color": "rgb(49, 85, 171)",
+        "background": [
+          255,
+          255,
+          255,
+          1
+        ],
+        "ratio": 6.958,
+        "target": 4.5,
+        "pass": true
+      },
+      {
+        "text": "不会自动后台检测",
+        "class": "diagnosticEvidence",
+        "fontSize": "12px",
+        "fontWeight": "400",
+        "color": "rgb(71, 85, 105)",
+        "background": [
+          243,
+          246,
+          251,
+          1
+        ],
+        "ratio": 6.995,
+        "target": 4.5,
+        "pass": true
+      },
+      {
+        "text": "尚未测试",
+        "class": "",
+        "fontSize": "18px",
+        "fontWeight": "750",
+        "color": "rgb(51, 65, 85)",
+        "background": [
+          255,
+          255,
+          255,
+          1
+        ],
+        "ratio": 10.355,
+        "target": 4.5,
+        "pass": true
+      },
+      {
+        "text": "AI 登录与模型功能",
+        "class": "",
+        "fontSize": "12px",
+        "fontWeight": "400",
+        "color": "rgb(100, 116, 139)",
+        "background": [
+          255,
+          255,
+          255,
+          1
+        ],
+        "ratio": 4.759,
+        "target": 4.5,
+        "pass": true
+      },
+      {
+        "text": "浏览器控制权",
+        "class": "",
+        "fontSize": "12px",
+        "fontWeight": "400",
+        "color": "rgb(100, 116, 139)",
+        "background": [
+          255,
+          255,
+          255,
+          1
+        ],
+        "ratio": 4.759,
+        "target": 4.5,
+        "pass": true
+      },
+      {
+        "text": "未确认接管",
+        "class": "",
+        "fontSize": "15px",
+        "fontWeight": "700",
+        "color": "rgb(30, 41, 59)",
+        "background": [
+          255,
+          255,
+          255,
+          1
+        ],
+        "ratio": 14.629,
+        "target": 4.5,
+        "pass": true
+      },
+      {
+        "text": "Chrome Proxy API",
+        "class": "",
+        "fontSize": "12px",
+        "fontWeight": "400",
+        "color": "rgb(100, 116, 139)",
+        "background": [
+          255,
+          255,
+          255,
+          1
+        ],
+        "ratio": 4.759,
+        "target": 4.5,
+        "pass": true
+      },
+      {
+        "text": "配置应用状态",
+        "class": "",
+        "fontSize": "12px",
+        "fontWeight": "400",
+        "color": "rgb(100, 116, 139)",
+        "background": [
+          255,
+          255,
+          255,
+          1
+        ],
+        "ratio": 4.759,
+        "target": 4.5,
+        "pass": true
+      },
+      {
+        "text": "未确认应用",
+        "class": "",
+        "fontSize": "15px",
+        "fontWeight": "700",
+        "color": "rgb(30, 41, 59)",
+        "background": [
+          255,
+          255,
+          255,
+          1
+        ],
+        "ratio": 14.629,
+        "target": 4.5,
+        "pass": true
+      },
+      {
+        "text": "不等于网络可达",
+        "class": "",
+        "fontSize": "12px",
+        "fontWeight": "400",
+        "color": "rgb(100, 116, 139)",
+        "background": [
+          255,
+          255,
+          255,
+          1
+        ],
+        "ratio": 4.759,
+        "target": 4.5,
+        "pass": true
+      },
+      {
+        "text": "当前配置的 HTTP 结果",
+        "class": "",
+        "fontSize": "12px",
+        "fontWeight": "400",
+        "color": "rgb(100, 116, 139)",
+        "background": [
+          255,
+          255,
+          255,
+          1
+        ],
+        "ratio": 4.759,
+        "target": 4.5,
+        "pass": true
+      },
+      {
+        "text": "尚未测试",
+        "class": "",
+        "fontSize": "15px",
+        "fontWeight": "700",
+        "color": "rgb(30, 41, 59)",
+        "background": [
+          255,
+          255,
+          255,
+          1
+        ],
+        "ratio": 14.629,
+        "target": 4.5,
+        "pass": true
+      },
+      {
+        "text": "尚未测试",
+        "class": "",
+        "fontSize": "12px",
+        "fontWeight": "400",
+        "color": "rgb(100, 116, 139)",
+        "background": [
+          255,
+          255,
+          255,
+          1
+        ],
+        "ratio": 4.759,
+        "target": 4.5,
+        "pass": true
+      },
+      {
+        "text": "检测任务",
+        "class": "",
+        "fontSize": "12px",
+        "fontWeight": "400",
+        "color": "rgb(100, 116, 139)",
+        "background": [
+          255,
+          255,
+          255,
+          1
+        ],
+        "ratio": 4.759,
+        "target": 4.5,
+        "pass": true
+      },
+      {
+        "text": "未运行",
+        "class": "",
+        "fontSize": "15px",
+        "fontWeight": "700",
+        "color": "rgb(30, 41, 59)",
+        "background": [
+          255,
+          255,
+          255,
+          1
+        ],
+        "ratio": 14.629,
+        "target": 4.5,
+        "pass": true
+      },
+      {
+        "text": "不会自动后台检测",
+        "class": "",
+        "fontSize": "12px",
+        "fontWeight": "400",
+        "color": "rgb(100, 116, 139)",
+        "background": [
+          255,
+          255,
+          255,
+          1
+        ],
+        "ratio": 4.759,
+        "target": 4.5,
+        "pass": true
+      },
+      {
+        "text": "概览",
+        "class": "od-button od-button--secondary",
+        "fontSize": "12px",
+        "fontWeight": "650",
+        "color": "rgb(100, 116, 139)",
+        "background": [
+          246,
+          248,
+          251,
+          1
+        ],
+        "ratio": 4.473,
+        "target": 4.5,
+        "pass": false
+      },
+      {
+        "text": "AI 网站",
+        "class": "od-button od-button--secondary",
+        "fontSize": "12px",
+        "fontWeight": "750",
+        "color": "rgb(54, 93, 213)",
+        "background": [
+          255,
+          255,
+          255,
+          1
+        ],
+        "ratio": 5.701,
+        "target": 4.5,
+        "pass": true
+      },
+      {
+        "text": "关键网站",
+        "class": "od-button od-button--secondary",
+        "fontSize": "12px",
+        "fontWeight": "650",
+        "color": "rgb(100, 116, 139)",
+        "background": [
+          246,
+          248,
+          251,
+          1
+        ],
+        "ratio": 4.473,
+        "target": 4.5,
+        "pass": false
+      },
+      {
+        "text": "测速",
+        "class": "od-button od-button--secondary",
+        "fontSize": "12px",
+        "fontWeight": "650",
+        "color": "rgb(100, 116, 139)",
+        "background": [
+          246,
+          248,
+          251,
+          1
+        ],
+        "ratio": 4.473,
+        "target": 4.5,
+        "pass": false
+      },
+      {
+        "text": "基础诊断",
+        "class": "od-button od-button--secondary",
+        "fontSize": "12px",
+        "fontWeight": "650",
+        "color": "rgb(100, 116, 139)",
+        "background": [
+          246,
+          248,
+          251,
+          1
+        ],
+        "ratio": 4.473,
+        "target": 4.5,
+        "pass": false
+      },
+      {
+        "text": "正式运行时尚未接入网站 HTTP 检测、收藏和使用统计；相关操作暂不可用，不会发送测试请求或生成模拟成功结果。",
+        "class": "diagnosticRuntimeNotice",
+        "fontSize": "12px",
+        "fontWeight": "400",
+        "color": "rgb(30, 41, 59)",
+        "background": [
+          246,
+          248,
+          251,
+          1
+        ],
+        "ratio": 13.75,
+        "target": 4.5,
+        "pass": true
+      },
+      {
+        "text": "AI 网站可用性",
+        "class": "",
+        "fontSize": "15px",
+        "fontWeight": "650",
+        "color": "rgb(30, 41, 59)",
+        "background": [
+          255,
+          255,
+          255,
+          1
+        ],
+        "ratio": 14.629,
+        "target": 4.5,
+        "pass": true
+      },
+      {
+        "text": "正式运行时尚未接入网站 HTTP 检测、收藏和使用统计；相关操作暂不可用，不会发送测试请求或生成模拟成功结果。",
+        "class": "hint",
+        "fontSize": "12px",
+        "fontWeight": "400",
+        "color": "rgb(100, 116, 139)",
+        "background": [
+          255,
+          255,
+          255,
+          1
+        ],
+        "ratio": 4.759,
+        "target": 4.5,
+        "pass": true
+      },
+      {
+        "text": "ChatGPT",
+        "class": "",
+        "fontSize": "13px",
+        "fontWeight": "900",
+        "color": "rgb(30, 41, 59)",
+        "background": [
+          255,
+          255,
+          255,
+          1
+        ],
+        "ratio": 14.629,
+        "target": 4.5,
+        "pass": true
+      },
+      {
+        "text": "chatgpt.com",
+        "class": "",
+        "fontSize": "12px",
+        "fontWeight": "600",
+        "color": "rgb(100, 116, 139)",
+        "background": [
+          255,
+          255,
+          255,
+          1
+        ],
+        "ratio": 4.759,
+        "target": 4.5,
+        "pass": true
+      },
+      {
+        "text": "尚未测试",
+        "class": "subtleTag",
+        "fontSize": "11px",
+        "fontWeight": "650",
+        "color": "rgb(54, 93, 213)",
+        "background": [
+          237,
+          242,
+          255,
+          1
+        ],
+        "ratio": 5.089,
+        "target": 4.5,
+        "pass": true
+      },
+      {
+        "text": "Claude",
+        "class": "",
+        "fontSize": "13px",
+        "fontWeight": "900",
+        "color": "rgb(30, 41, 59)",
+        "background": [
+          255,
+          255,
+          255,
+          1
+        ],
+        "ratio": 14.629,
+        "target": 4.5,
+        "pass": true
+      },
+      {
+        "text": "claude.ai",
+        "class": "",
+        "fontSize": "12px",
+        "fontWeight": "600",
+        "color": "rgb(100, 116, 139)",
+        "background": [
+          255,
+          255,
+          255,
+          1
+        ],
+        "ratio": 4.759,
+        "target": 4.5,
+        "pass": true
+      },
+      {
+        "text": "尚未测试",
+        "class": "subtleTag",
+        "fontSize": "11px",
+        "fontWeight": "650",
+        "color": "rgb(54, 93, 213)",
+        "background": [
+          237,
+          242,
+          255,
+          1
+        ],
+        "ratio": 5.089,
+        "target": 4.5,
+        "pass": true
+      },
+      {
+        "text": "Gemini",
+        "class": "",
+        "fontSize": "13px",
+        "fontWeight": "900",
+        "color": "rgb(30, 41, 59)",
+        "background": [
+          255,
+          255,
+          255,
+          1
+        ],
+        "ratio": 14.629,
+        "target": 4.5,
+        "pass": true
+      },
+      {
+        "text": "gemini.google.com",
+        "class": "",
+        "fontSize": "12px",
+        "fontWeight": "600",
+        "color": "rgb(100, 116, 139)",
+        "background": [
+          255,
+          255,
+          255,
+          1
+        ],
+        "ratio": 4.759,
+        "target": 4.5,
+        "pass": true
+      },
+      {
+        "text": "尚未测试",
+        "class": "subtleTag",
+        "fontSize": "11px",
+        "fontWeight": "650",
+        "color": "rgb(54, 93, 213)",
+        "background": [
+          237,
+          242,
+          255,
+          1
+        ],
+        "ratio": 5.089,
+        "target": 4.5,
+        "pass": true
+      },
+      {
+        "text": "Perplexity",
+        "class": "",
+        "fontSize": "13px",
+        "fontWeight": "900",
+        "color": "rgb(30, 41, 59)",
+        "background": [
+          255,
+          255,
+          255,
+          1
+        ],
+        "ratio": 14.629,
+        "target": 4.5,
+        "pass": true
+      },
+      {
+        "text": "perplexity.ai",
+        "class": "",
+        "fontSize": "12px",
+        "fontWeight": "600",
+        "color": "rgb(100, 116, 139)",
+        "background": [
+          255,
+          255,
+          255,
+          1
+        ],
+        "ratio": 4.759,
+        "target": 4.5,
+        "pass": true
+      },
+      {
+        "text": "尚未测试",
+        "class": "subtleTag",
+        "fontSize": "11px",
+        "fontWeight": "650",
+        "color": "rgb(54, 93, 213)",
+        "background": [
+          237,
+          242,
+          255,
+          1
+        ],
+        "ratio": 5.089,
+        "target": 4.5,
+        "pass": true
+      },
+      {
+        "text": "Grok",
+        "class": "",
+        "fontSize": "13px",
+        "fontWeight": "900",
+        "color": "rgb(30, 41, 59)",
+        "background": [
+          255,
+          255,
+          255,
+          1
+        ],
+        "ratio": 14.629,
+        "target": 4.5,
+        "pass": true
+      },
+      {
+        "text": "grok.com",
+        "class": "",
+        "fontSize": "12px",
+        "fontWeight": "600",
+        "color": "rgb(100, 116, 139)",
+        "background": [
+          255,
+          255,
+          255,
+          1
+        ],
+        "ratio": 4.759,
+        "target": 4.5,
+        "pass": true
+      },
+      {
+        "text": "尚未测试",
+        "class": "subtleTag",
+        "fontSize": "11px",
+        "fontWeight": "650",
+        "color": "rgb(54, 93, 213)",
+        "background": [
+          237,
+          242,
+          255,
+          1
+        ],
+        "ratio": 5.089,
+        "target": 4.5,
+        "pass": true
+      },
+      {
+        "text": "Microsoft Copilot",
+        "class": "",
+        "fontSize": "13px",
+        "fontWeight": "900",
+        "color": "rgb(30, 41, 59)",
+        "background": [
+          255,
+          255,
+          255,
+          1
+        ],
+        "ratio": 14.629,
+        "target": 4.5,
+        "pass": true
+      },
+      {
+        "text": "copilot.microsoft.com",
+        "class": "",
+        "fontSize": "12px",
+        "fontWeight": "600",
+        "color": "rgb(100, 116, 139)",
+        "background": [
+          255,
+          255,
+          255,
+          1
+        ],
+        "ratio": 4.759,
+        "target": 4.5,
+        "pass": true
+      },
+      {
+        "text": "尚未测试",
+        "class": "subtleTag",
+        "fontSize": "11px",
+        "fontWeight": "650",
+        "color": "rgb(54, 93, 213)",
+        "background": [
+          237,
+          242,
+          255,
+          1
+        ],
+        "ratio": 5.089,
+        "target": 4.5,
+        "pass": true
+      },
+      {
+        "text": "DeepSeek",
+        "class": "",
+        "fontSize": "13px",
+        "fontWeight": "900",
+        "color": "rgb(30, 41, 59)",
+        "background": [
+          255,
+          255,
+          255,
+          1
+        ],
+        "ratio": 14.629,
+        "target": 4.5,
+        "pass": true
+      },
+      {
+        "text": "chat.deepseek.com",
+        "class": "",
+        "fontSize": "12px",
+        "fontWeight": "600",
+        "color": "rgb(100, 116, 139)",
+        "background": [
+          255,
+          255,
+          255,
+          1
+        ],
+        "ratio": 4.759,
+        "target": 4.5,
+        "pass": true
+      },
+      {
+        "text": "尚未测试",
+        "class": "subtleTag",
+        "fontSize": "11px",
+        "fontWeight": "650",
+        "color": "rgb(54, 93, 213)",
+        "background": [
+          237,
+          242,
+          255,
+          1
+        ],
+        "ratio": 5.089,
+        "target": 4.5,
+        "pass": true
+      },
+      {
+        "text": "Poe",
+        "class": "",
+        "fontSize": "13px",
+        "fontWeight": "900",
+        "color": "rgb(30, 41, 59)",
+        "background": [
+          255,
+          255,
+          255,
+          1
+        ],
+        "ratio": 14.629,
+        "target": 4.5,
+        "pass": true
+      },
+      {
+        "text": "poe.com",
+        "class": "",
+        "fontSize": "12px",
+        "fontWeight": "600",
+        "color": "rgb(100, 116, 139)",
+        "background": [
+          255,
+          255,
+          255,
+          1
+        ],
+        "ratio": 4.759,
+        "target": 4.5,
+        "pass": true
+      },
+      {
+        "text": "尚未测试",
+        "class": "subtleTag",
+        "fontSize": "11px",
+        "fontWeight": "650",
+        "color": "rgb(54, 93, 213)",
+        "background": [
+          237,
+          242,
+          255,
+          1
+        ],
+        "ratio": 5.089,
+        "target": 4.5,
+        "pass": true
+      },
+      {
+        "text": "Hugging Face",
+        "class": "",
+        "fontSize": "13px",
+        "fontWeight": "900",
+        "color": "rgb(30, 41, 59)",
+        "background": [
+          255,
+          255,
+          255,
+          1
+        ],
+        "ratio": 14.629,
+        "target": 4.5,
+        "pass": true
+      },
+      {
+        "text": "huggingface.co",
+        "class": "",
+        "fontSize": "12px",
+        "fontWeight": "600",
+        "color": "rgb(100, 116, 139)",
+        "background": [
+          255,
+          255,
+          255,
+          1
+        ],
+        "ratio": 4.759,
+        "target": 4.5,
+        "pass": true
+      },
+      {
+        "text": "尚未测试",
+        "class": "subtleTag",
+        "fontSize": "11px",
+        "fontWeight": "650",
+        "color": "rgb(54, 93, 213)",
+        "background": [
+          237,
+          242,
+          255,
+          1
+        ],
+        "ratio": 5.089,
+        "target": 4.5,
+        "pass": true
+      },
+      {
+        "text": "Chrome 代理设置、网站 HTTP 可达、账号登录与模型能力需要分别核验；选择线路不会自动应用代理。",
+        "class": "hint",
+        "fontSize": "12px",
+        "fontWeight": "400",
+        "color": "rgb(100, 116, 139)",
+        "background": [
+          255,
+          255,
+          255,
+          1
+        ],
+        "ratio": 4.759,
+        "target": 4.5,
+        "pass": true
+      }
+    ],
+    "minimum": 4.473,
+    "failures": [
+      {
+        "text": "浏览器状态",
+        "class": "managementConnectionLabel",
+        "fontSize": "12px",
+        "fontWeight": "600",
+        "color": "rgb(100, 116, 139)",
+        "background": [
+          246,
+          248,
+          251,
+          1
+        ],
+        "ratio": 4.473,
+        "target": 4.5,
+        "pass": false
+      },
+      {
+        "text": "尚未管理浏览器代理",
+        "class": "controlChip ",
+        "fontSize": "11px",
+        "fontWeight": "700",
+        "color": "rgb(100, 116, 139)",
+        "background": [
+          246,
+          248,
+          251,
+          1
+        ],
+        "ratio": 4.473,
+        "target": 4.5,
+        "pass": false
+      },
+      {
+        "text": "待应用选择 · 指定代理",
+        "class": "managementSelectionLabel",
+        "fontSize": "12px",
+        "fontWeight": "600",
+        "color": "rgb(100, 116, 139)",
+        "background": [
+          246,
+          248,
+          251,
+          1
+        ],
+        "ratio": 4.473,
+        "target": 4.5,
+        "pass": false
+      },
+      {
+        "text": "管理中心",
+        "class": "managementNavLabel",
+        "fontSize": "10px",
+        "fontWeight": "750",
+        "color": "rgb(100, 116, 139)",
+        "background": [
+          246,
+          248,
+          251,
+          1
+        ],
+        "ratio": 4.473,
+        "target": 4.5,
+        "pass": false
+      },
+      {
+        "text": "代理配置",
+        "class": "",
+        "fontSize": "13px",
+        "fontWeight": "550",
+        "color": "rgb(100, 116, 139)",
+        "background": [
+          246,
+          248,
+          251,
+          1
+        ],
+        "ratio": 4.473,
+        "target": 4.5,
+        "pass": false
+      },
+      {
+        "text": "网站规则",
+        "class": "",
+        "fontSize": "13px",
+        "fontWeight": "550",
+        "color": "rgb(100, 116, 139)",
+        "background": [
+          246,
+          248,
+          251,
+          1
+        ],
+        "ratio": 4.473,
+        "target": 4.5,
+        "pass": false
+      },
+      {
+        "text": "订阅管理",
+        "class": "",
+        "fontSize": "13px",
+        "fontWeight": "550",
+        "color": "rgb(100, 116, 139)",
+        "background": [
+          246,
+          248,
+          251,
+          1
+        ],
+        "ratio": 4.473,
+        "target": 4.5,
+        "pass": false
+      },
+      {
+        "text": "导入备份",
+        "class": "",
+        "fontSize": "13px",
+        "fontWeight": "550",
+        "color": "rgb(100, 116, 139)",
+        "background": [
+          246,
+          248,
+          251,
+          1
+        ],
+        "ratio": 4.473,
+        "target": 4.5,
+        "pass": false
+      },
+      {
+        "text": "通用设置",
+        "class": "",
+        "fontSize": "13px",
+        "fontWeight": "550",
+        "color": "rgb(100, 116, 139)",
+        "background": [
+          246,
+          248,
+          251,
+          1
+        ],
+        "ratio": 4.473,
+        "target": 4.5,
+        "pass": false
+      },
+      {
+        "text": "官方网络",
+        "class": "",
+        "fontSize": "13px",
+        "fontWeight": "550",
+        "color": "rgb(100, 116, 139)",
+        "background": [
+          246,
+          248,
+          251,
+          1
+        ],
+        "ratio": 4.473,
+        "target": 4.5,
+        "pass": false
+      },
+      {
+        "text": "概览",
+        "class": "od-button od-button--secondary",
+        "fontSize": "12px",
+        "fontWeight": "650",
+        "color": "rgb(100, 116, 139)",
+        "background": [
+          246,
+          248,
+          251,
+          1
+        ],
+        "ratio": 4.473,
+        "target": 4.5,
+        "pass": false
+      },
+      {
+        "text": "关键网站",
+        "class": "od-button od-button--secondary",
+        "fontSize": "12px",
+        "fontWeight": "650",
+        "color": "rgb(100, 116, 139)",
+        "background": [
+          246,
+          248,
+          251,
+          1
+        ],
+        "ratio": 4.473,
+        "target": 4.5,
+        "pass": false
+      },
+      {
+        "text": "测速",
+        "class": "od-button od-button--secondary",
+        "fontSize": "12px",
+        "fontWeight": "650",
+        "color": "rgb(100, 116, 139)",
+        "background": [
+          246,
+          248,
+          251,
+          1
+        ],
+        "ratio": 4.473,
+        "target": 4.5,
+        "pass": false
+      },
+      {
+        "text": "基础诊断",
+        "class": "od-button od-button--secondary",
+        "fontSize": "12px",
+        "fontWeight": "650",
+        "color": "rgb(100, 116, 139)",
+        "background": [
+          246,
+          248,
+          251,
+          1
+        ],
+        "ratio": 4.473,
+        "target": 4.5,
+        "pass": false
+      }
+    ],
+    "limitations": "Opaque DOM text only; disabled, opacity, images excluded; no blanket WCAG certification"
+  },
+  "zoom": {
+    "before": {
+      "width": 1417,
+      "dpr": 2,
+      "scale": 1
+    },
+    "after": {
+      "width": 1417,
+      "dpr": 2,
+      "scale": 1
+    },
+    "native200Verified": false,
+    "alternative": "CSS zoom:2 only; does not prove real Chrome browser zoom"
+  },
+  "calls": [
+    "storage.get",
+    "storage.get",
+    "storage.get",
+    "storage.get",
+    "storage.get",
+    "storage.get",
+    "storage.get",
+    "storage.get"
+  ]
+}

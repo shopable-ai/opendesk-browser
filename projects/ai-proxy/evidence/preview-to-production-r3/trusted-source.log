@@ -1,0 +1,10 @@
+✔ trusted AI Proxy checks nested CSS even when Rollup omits it from chunk.modules (51.363834ms)
+✔ trusted AI Proxy rejects missing CSS pins, remote imports and project escapes (31.989917ms)
+ℹ tests 2
+ℹ suites 0
+ℹ pass 2
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 141.161708

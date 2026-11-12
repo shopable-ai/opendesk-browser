@@ -16,6 +16,8 @@ import {SIDEBAR_TOOL_STORE} from '../../src/ui/sidebar-tools/package.js';
 import {TOOL_REVOCATION_EPOCHS_STORE} from '../../src/ui/sidebar-tools/lifecycle.js';
 import {readTaskDelegationApp} from '../../src/platform/tasks/delegation-installation.js';
 import {withWebflowTaskRunRecovery} from '../../projects/webflow/trusted/task-run-recovery.js';
+import {createTaskWorkbench} from '../../src/ui/task-workbench.js';
+import {createDeveloperView} from '../../src/ui/develop-view.js';
 function authoritySerialStore() {
   let rows = new Map(), tail = Promise.resolve(); const writes = [];
   return {writes, transaction(names, mode, body) {
@@ -165,6 +167,133 @@ test('a shared preparation blocks My, drafts, legacy Task admission and other ho
   assert.equal((await f.inspect()).preparation,null);
   await assert.rejects(f.start((await f.inspect('shared-one')).preparation),{code:'E_CANCELLED'});
   assert.equal((await f.prepare('another')).preparation.state,'prepared');
+});
+
+test('My React double Run for valid task B cannot replace bound task A while discovery is pending', {timeout:10000}, async t=>{
+  const f=await boundFixture();
+  const b=await f.installPackage({...f.manifest,taskId:'authorization.second',title:'Second installed task'});
+  const {preparation}=await f.prepare('original-A',{binding:f.binding});
+  const React=await import('react'),{parseHTML}=await import('linkedom');
+  const {build}=await import('esbuild'),{mkdtemp,rm}=await import('node:fs/promises');
+  const temp=await mkdtemp(new URL('../../artifacts/r4-sheet-react-',import.meta.url));
+  const {document,window}=parseHTML('<html><body><div id="mount"></div></body></html>');
+  document.oninput=null;
+  const dialogPrototype=Object.getPrototypeOf(document.createElement('dialog'));
+  Object.defineProperty(dialogPrototype,'open',{configurable:true,get(){return this.hasAttribute('open');}});
+  dialogPrototype.showModal=function(){this.setAttribute('open','');};
+  dialogPrototype.close=function(){
+    if(!this.open)return;
+    this.removeAttribute('open');
+    // Native close dispatches after the synchronous close/reopen transition.
+    queueMicrotask(()=>this.dispatchEvent(new window.Event('close')));
+  };
+  const globals={window,document,HTMLElement:window.HTMLElement,SVGElement:window.SVGElement,IS_REACT_ACT_ENVIRONMENT:true};
+  const previous=Object.fromEntries(Object.keys(globals).map(key=>[key,Object.getOwnPropertyDescriptor(globalThis,key)]));
+  let root;
+  t.after(async()=>{
+    if(root)await React.act(async()=>root.unmount());
+    for(const [key,descriptor]of Object.entries(previous)){
+      if(descriptor)Object.defineProperty(globalThis,key,descriptor);else delete globalThis[key];
+    }
+    await rm(temp,{recursive:true,force:true});
+  });
+  // The real React handler closes the My sheet after synchronous acceptance;
+  // linkedom supplies events/dialog lifecycle, not native Chrome user gestures.
+  await build({entryPoints:['src/ui/react/tabs/task-run-sheet.tsx'],bundle:true,packages:'external',platform:'node',
+    format:'esm',outfile:temp+'/sheet.mjs',logLevel:'silent'});
+  const {TaskRunSheet}=await import(temp+'/sheet.mjs');
+  Object.assign(globalThis,globals);
+  const {createRoot}=await import('react-dom/client');
+  const originalRuns=await f.rows('runs'),writeOffset=f.storage.writes.length;
+  let releaseDiscovery,discoveryEntered,admissionFinished,workers=0,discoveryReleased=false;
+  const discoveryGate=new Promise(resolve=>{releaseDiscovery=()=>{discoveryReleased=true;resolve();};});
+  const entered=new Promise(resolve=>{discoveryEntered=resolve;});
+  const admitted=new Promise(resolve=>{admissionFinished=resolve;});
+  const admissions=[],discoveries=[];
+  // Only delay delivery: every discovery and admission uses the original real
+  // Authority. In particular, this adapter never manufactures an E_OWNER.
+  const client={ready:Promise.resolve(),async request(method,args){
+    const reply=await f.authority[method](args,f.sender);
+    if(method==='inspectTaskRun'){
+      discoveries.push(reply);discoveryEntered();await discoveryGate;
+    }
+    return reply;
+  }};
+  client.controller=Object.fromEntries(['startControllerRun','finishControllerRun','snapshotControllerRun','retireControllerTarget']
+    .map(method=>[method,async request=>{
+      if(method!=='startControllerRun')return f.authority[method](request,f.sender);
+      const attempt={request};admissions.push(attempt);
+      try{return await f.authority.startControllerRun(request,f.sender);}
+      catch(error){attempt.code=error.code;attempt.message=error.message;throw error;}
+      finally{admissionFinished();}
+    }]));
+  const host=createRunHost({api:f.api,client,document:null,templateModuleFactory:null,
+    controllerFactory:()=>{workers++;throw Error('Blocked task must not create a Worker');}});
+  f.api.runtime.sendMessage=async()=>({ok:true}); // Workbench usage telemetry only.
+  const developerView=createDeveloperView();
+  const page={status:'available',tabId:2,windowId:1,documentId:'doc-top',url:'https://a.example/page'};
+  Object.assign(f.tabs.get(2),{windowId:page.windowId,active:true});
+  f.api.tabs.query=async()=>[f.tabs.get(page.tabId)];
+  const workbench=createTaskWorkbench({client,host,api:f.api,document,developerView,
+    currentPageTarget:{snapshot:page,capture:()=>page,revalidate:async()=>true,
+      subscribe:fn=>{fn(page);return()=>{};}}});
+  t.after(async()=>{releaseDiscovery();workbench.dispose();developerView.dispose();await host.dispose();});
+  const {myView}=workbench,event={isTrusted:true};
+  root=createRoot(document.getElementById('mount'));
+  await React.act(async()=>root.render(React.createElement(TaskRunSheet,{view:myView})));
+  await entered; // Startup recovery is genuinely pending, not an empty stub.
+  assert.equal(discoveries[0].preparation.preparationId,preparation.preparationId);
+  await React.act(async()=>{assert.equal(myView.actions.taskParametersOpen(b.taskId,event),true);});
+  const identity=myView.data.taskRunSheet.identity;
+  assert.equal(identity.taskId,b.taskId);
+  assert.equal(identity.installationId,b.installationId);
+  assert.equal(identity.generation,b.generation);
+  await React.act(async()=>{
+    myView.actions.taskParamsModeChange('json');
+    myView.field('task-params-json').value=JSON.stringify({no:true,zero:7});
+    myView.actions.taskParamsFormInput();
+  });
+  assert.equal(myView.field('task-run').disabled,false,'B must reach admission, not fail an unrelated UI guard');
+  const button=document.getElementById('task-run');
+  await React.act(async()=>{
+    for(let i=0;i<2;i++){
+      const click=new window.Event('click',{bubbles:true,cancelable:true});
+      Object.defineProperty(click,'isTrusted',{value:true});button.dispatchEvent(click);
+    }
+    await admitted;await new Promise(resolve=>setImmediate(resolve));
+  });
+  assert.equal(myView.data.taskRunSheet,null,'the real My React handler closes the accepted editor');
+  assert.equal(discoveryReleased,false);
+  assert.equal(admissions.length,1,'double-click coalesces to one real admission attempt');
+  assert.equal(admissions[0].code,'E_OWNER',admissions[0].message);
+  assert.match(admissions[0].message,/An unresolved Task preparation owns admission/);
+  assert.equal(admissions[0].request.source.scriptId,b.scriptId);
+  assert.deepEqual(admissions[0].request.paramsWire,encodeValue({no:true,zero:7}));
+  assert.equal(workers,0);
+  assert.deepEqual(await f.rows('runs'),originalRuns,'neither A nor B gains a durable Run');
+  assert.deepEqual((await f.inspect('original-A')).preparation,preparation,'A identity, params and target remain pinned');
+  await React.act(async()=>{releaseDiscovery();await new Promise(resolve=>setImmediate(resolve));});
+  assert.equal(myView.data.taskRunSheet,null,'late discovery cannot revive the closed sheet');
+  await React.act(async()=>{
+    assert.equal(myView.actions.taskParametersOpen(b.taskId,event),true);
+    await new Promise(resolve=>setImmediate(resolve));
+  });
+  assert.equal(myView.data.taskRunSheet.preparationId,preparation.preparationId);
+  assert.deepEqual(myView.data.taskRunSheet.identity,preparation.task);
+  assert.deepEqual(myView.data.taskRunSheet.originalParams,preparation.params);
+  assert.equal(myView.data.taskRunSheet.phase,'prepared');
+  assert.equal(admissions.length,1,'discovery delivery must not auto-execute either task');
+  assert.equal(workers,0);
+  assert.deepEqual(await f.rows('runs'),originalRuns);
+  assert.deepEqual((await f.inspect('original-A')).preparation,preparation);
+  assert.equal(f.storage.writes.slice(writeOffset).filter(row=>row.value.tag==='controller-run').length,0);
+  // A positive control pins the refusal to A's outstanding preparation, rather
+  // than an invalid B package, Schema, target or sender sharing E_OWNER.
+  await f.cancel('original-A');
+  const admittedB=await f.authority.startControllerRun({...admissions[0].request,requestId:crypto.randomUUID()},f.sender);
+  assert.equal(admittedB.revision.scriptId,b.scriptId);
+  assert.equal((await f.rows('runs')).length,originalRuns.length+1);
+  await f.finish(admittedB);await f.authority.retireControllerTarget({runId:admittedB.runId},f.sender);
 });
 
 test('atomic preparation admission permits only one durable Run across retries and new request IDs',async()=>{

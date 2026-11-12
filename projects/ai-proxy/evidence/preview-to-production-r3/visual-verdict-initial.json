@@ -1,0 +1,10 @@
+{
+  "scope": "formal React component fixture; not an installed extension",
+  "preview": false,
+  "nativeTransport": "explicit memory fixture; real proxy operations reject",
+  "findings": [
+    {"severity": "low", "owner": "src/i18n/locales/", "issue": "Formal diagnostics caption still says simulated probes despite production diagnostics being unavailable", "repair": "Describe status, capability limits and troubleshooting in all three languages"}
+  ],
+  "layout": "pending exact-width matrix",
+  "chromeInstallation": "BLOCKED by unrelated production source protection"
+}

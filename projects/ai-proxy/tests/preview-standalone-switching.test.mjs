@@ -40,8 +40,11 @@ function harness(file, t) {
   };
   const messages = [];
   element('pc-preview-frame').contentWindow = {postMessage(data) { messages.push(data); }};
-  const window = {addEventListener(type, handler) { listeners['window:' + type] = handler; }};
-  const context = vm.createContext({document, window, URL, console, clearTimeout,
+  const location = new URL('../preview/' + file, import.meta.url);
+  // pushState updates the URL without dispatching hashchange, as in a browser.
+  const history = {pushState(_state, _unused, url) { location.href = new URL(url, location).href; }};
+  const window = {location, history, addEventListener(type, handler) { listeners['window:' + type] = handler; }};
+  const context = vm.createContext({document, window, location, history, URL, console, clearTimeout,
     setTimeout(callback, delay) { const timer = setTimeout(callback, delay); timers.add(timer); return timer; }});
   t.after(() => { for (const timer of timers) clearTimeout(timer); });
   const inspect = '\nglobalThis.inspectPreview = {state:()=>s};\n';

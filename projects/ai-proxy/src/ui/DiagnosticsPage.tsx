@@ -9,7 +9,7 @@ import type { ViewState } from '../domain/types';
 import { AI_SITES } from '../diagnostics/catalog';
 import { diagnosisCodes, observationIsCurrent, type DiagnosisCode } from '../diagnostics/logic';
 import type { CheckKind, DiagnosticSite, DiagnosticsSnapshot, HttpObservation, SitePriority } from '../diagnostics/types';
-import { Status } from './Status';
+import { Status, statusLabelKey } from './Status';
 import { ClearableInput } from './ProxyEntry';
 import { UsageControls, UsageOverview } from './UsageControls';
 import { diagnosticHash, parseDiagnosticHash, type DiagnosticSection } from './optionsRoute';
@@ -37,7 +37,7 @@ const diagnosisKeys: Record<DiagnosisCode, [TranslationKey, TranslationKey]> = {
 function latestFor(siteId: string, data: DiagnosticsSnapshot | null): HttpObservation | null {
   return data?.observations.find(v => v.siteId === siteId) ?? null;
 }
-export function DiagnosticsPage({ state, busy, onRefresh, onProbe, onStop, onProfiles }: {
+export function DiagnosticsPage({ state, busy, onRefresh, onStop, onProfiles }: {
   state: ViewState;
   busy: boolean;
   onRefresh: () => Promise<unknown>;
@@ -183,6 +183,13 @@ export function DiagnosticsPage({ state, busy, onRefresh, onProbe, onStop, onPro
     });
   }, [snapshot, now]);
   const selectedProfile = state.config.profiles.find(v => v.id === state.config.selection.profileId);
+  const modeKeys = { system: 'popupModeSystem', direct: 'popupModeDirect',
+    profile: 'useAProfile', rules: 'popupModeRules' } as const;
+  const activeSelection = state.runtime.activeSelection;
+  // Only the selection is retained, not historical profile names or endpoints.
+  const activeLabel = activeSelection ? t(modeKeys[activeSelection.mode]) +
+    (activeSelection.mode === 'profile' && activeSelection.profileId ? ` (${activeSelection.profileId})` : '') : null;
+  const selectionApplied = state.runtime.applied && !state.runtime.pendingChanges;
   const localEndpoint = selectedProfile?.kind === 'endpoint' &&
     state.config.endpoints.some(e => e.id === selectedProfile.endpointId &&
       (e.host === '127.0.0.1' || e.host === 'localhost' || e.host === '::1'));
@@ -191,7 +198,7 @@ export function DiagnosticsPage({ state, busy, onRefresh, onProbe, onStop, onPro
     managedIntent: state.runtime.managedIntent,
     credentialRequired: state.runtime.credentialRequired,
     // Never blame the desired local client when Chrome did not apply that route.
-    localEndpoint: state.runtime.applied && !!localEndpoint, results: current
+    localEndpoint: selectionApplied && !!localEndpoint, results: current
   });
   const locked = running || !!snapshot?.activeRun;
   const latestObservation = (id: string) => latestFor(id, snapshot);
@@ -225,12 +232,15 @@ export function DiagnosticsPage({ state, busy, onRefresh, onProbe, onStop, onPro
         <strong>{t('notTested')}</strong><small>{t('diagModelVerification')}</small>
       </div>
     </header>
+    <p className="diagnosticActiveRoute">{activeLabel
+      ? t('chromeStillUsingLastConfirmedMode', {mode: activeLabel})
+      : t('chromeSettingsAreUnverifiedTheActualWebsiteRouteCannot')}</p>
     <div className="diagnosticMetrics" aria-label={t('currentDiagnosticsSummary')}>
       <div><small>{t('proxyControl')}</small><strong>{state.runtime.control === 'controlled_by_this_extension'
         ? t('controlledByThisExtension') : state.runtime.control === 'controlled_by_other_extensions'
           ? t('controlledByAnotherExtension2') : t('controlNotConfirmed')}</strong>
         <small>Chrome Proxy API</small></div>
-      <div><small>{t('configurationStatus')}</small><strong>{state.runtime.applied ? t('applied') : t('notConfirmed')}</strong>
+      <div><small>{t('configurationStatus')}</small><strong>{t(statusLabelKey(state.runtime))}</strong>
         <small>{t('doesNotProveReachability')}</small></div>
       <div><small>{t(simulatedDiagnostics ? 'diagSitesChecked' : 'diagSitesLive')}</small><strong>{simulatedDiagnostics ? `${current.length} / ${AI_SITES.length}` : t('notTested')}</strong>
         <small>{current.length === 0 ? t('notTested') : t('diagCurrentRouteOnly')}</small></div>
@@ -276,7 +286,8 @@ export function DiagnosticsPage({ state, busy, onRefresh, onProbe, onStop, onPro
           <h3>{state.config.selection.mode === 'profile'
             ? selectedProfile?.name ?? t('noProfileSelected')
             : t(({ rules: 'popupModeRules', direct: 'popupModeDirect', system: 'popupModeSystem' } as const)[state.config.selection.mode])}</h3>
-          <p>{state.runtime.applied ? t('diagProxyAppliedCaveat') : t('diagCheckProxySettings')}</p>
+          <p>{t(statusLabelKey(state.runtime))}</p>
+          <p>{selectionApplied ? t('diagProxyAppliedCaveat') : t('diagCheckProxySettings')}</p>
           <Button variant="secondary" onClick={() => openPanel('proxy')}>{t('viewActualControlStatus')}</Button>
         </article>
         <article className="diagnosticFeature">
@@ -371,11 +382,11 @@ export function DiagnosticsPage({ state, busy, onRefresh, onProbe, onStop, onPro
         <p className="hint">{t('theseValuesComeFromRealChromeApisExtensionOnly')}</p>
         <Status status={state.runtime} />
         <div className="actions">
-          <Button variant="primary" className="primary" disabled={busy} onClick={() => void onProbe()}>{t('probeApiIpifyOrg')}</Button>
+          <Button variant="primary" className="primary" disabled aria-describedby="diagnostic-probe-unavailable">{t('probeApiIpifyOrg')}</Button>
           <Button variant="secondary" disabled={busy} onClick={() => { void onRefresh(); void load(); }}>{t('refreshState')}</Button>
-          <Button variant="secondary" className="diagnosticStopAction" disabled={busy} onClick={() => void onStop()}>{t('stopManagingAndReleaseControl')}</Button>
+          <Button variant="secondary" className="diagnosticStopAction" disabled={busy || !(state.runtime.canStop || state.runtime.stopFinalizationPending)} onClick={() => void onStop()}>{t(state.runtime.stopFinalizationPending ? 'apFinishStop' : 'stopManagingAndReleaseControl')}</Button>
         </div>
-        <p className="hint">{t('theProbeTargetsApiIpifyOrgExtensionRequestsAlone')}</p>
+        <p id="diagnostic-probe-unavailable" className="hint">{t('theProbeTargetsApiIpifyOrgExtensionRequestsAlone')}</p>
       </div>}
       {(panel === 'proxy' || panel === 'overview') && <div className="diagnosticIssues">
         <h3>{t('diagTroubleshoot')}</h3>

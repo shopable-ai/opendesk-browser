@@ -71,18 +71,37 @@ test('lost or foreign Page receipts cannot turn a committed parent into reported
     assert.equal(env.events.filter(([type])=>type==='importAppPage').length,1);
   }
 });
-test('pending old Page cleanup names the recovery action without replaying installation',async()=>{
+for(const marketReview of [false,true])
+test('pending old Page cleanup names the recovery action without replaying installation; market='+marketReview,async()=>{
   const env=environment(),candidate=await tool(),client=pageClient(env,candidate),request=client.request;
   client.request=async(type,payload)=>type==='synchronizeAppPages'
     ?{status:'synchronized',retired:[],cleanupPending:[candidate.pageModule.programId]}:request(type,payload);
-  await assert.rejects(installReviewedSidebarTool({...env,candidate,reviewApproved:true,pageClient:client}),error=>{
-    assert.equal(error.code,'E_OUTCOME_UNKNOWN');
+  const operationId=crypto.randomUUID(),market=marketReview?{marketId:'opendesk/'+candidate.id,
+    sha256:await sidebarToolPackageHash(candidate),operationId}:null;
+  await assert.rejects(installReviewedSidebarTool({...env,candidate,reviewApproved:true,pageClient:client,market}),error=>{
+    assert.equal(error.code,'E_PAGE_CLEANUP_PENDING');
+    assert.match(error.message,/应用安装包已保存.*安装尚未完成/);
+    assert.match(error.message,/重新选择同一个安装包.*确认安装/);
     assert.match(error.message,/旧网页模块.*清理/);
     assert.match(error.message,/保存.*刷新/);
     return true;
   });
   assert.deepEqual(env.values[SIDEBAR_TOOL_STORE],[candidate],'the committed parent is retained');
   assert.equal(env.events.filter(([type])=>type==='importAppPage').length,0,'cleanup must finish before import');
+  if(marketReview)assert.equal(env.values[MARKET_OPERATIONS_STORE][operationId].state,'outcome-unknown');
+});
+
+for(const [name,receipt] of [['missing',undefined],['null',null],['empty',{}],
+  ['wrong status',{status:'pending',cleanupPending:[]}],
+  ['missing cleanup list',{status:'synchronized'}],
+  ['non-array cleanup list',{status:'synchronized',cleanupPending:{}}]])
+test('combined install keeps '+name+' synchronization receipt unknown without importing',async()=>{
+  const env=environment(),candidate=await tool(),client=pageClient(env,candidate),request=client.request;
+  client.request=async(type,payload)=>type==='synchronizeAppPages'?receipt:request(type,payload);
+  await assert.rejects(installReviewedSidebarTool({...env,candidate,reviewApproved:true,pageClient:client}),
+    {code:'E_OUTCOME_UNKNOWN'});
+  assert.deepEqual(env.values[SIDEBAR_TOOL_STORE],[candidate]);
+  assert.equal(env.events.filter(([type])=>type==='importAppPage').length,0);
 });
 test('market recovery reads the companion identity and never repeats an unknown native install',async()=>{
   const env=environment(),candidate=await tool(),operationId=crypto.randomUUID();
@@ -167,9 +186,22 @@ test('identical compound repair verifies an existing '+state+' companion without
 test('identical compound repair waits for old managed cleanup before querying or importing',async()=>{
   const f=await identicalCompound({cleanupPending:['app.composite-fixture']});
   await assert.rejects(f.install({repairMissingPageModule:true}),error=>{
-    assert.equal(error.code,'E_OUTCOME_UNKNOWN');assert.match(error.message,/保存.*刷新/);return true;
+    assert.equal(error.code,'E_PAGE_CLEANUP_PENDING');assert.match(error.message,/保存.*刷新/);return true;
   });
   assert.deepEqual(f.operations(),['prepareAppPage','synchronizeAppPages']);
+  f.assertParentUnchanged();
+});
+test('pending compound cleanup requires a fresh same-package review before repairing the missing companion',async()=>{
+  const cleanupPending=['app.composite-fixture'],f=await identicalCompound({cleanupPending});
+  await assert.rejects(f.install({repairMissingPageModule:true}),{code:'E_PAGE_CLEANUP_PENDING'});
+  assert.deepEqual(f.operations(),['prepareAppPage','synchronizeAppPages']);
+  f.assertParentUnchanged();
+  cleanupPending.length=0; // A later synchronization now confirms old-document cleanup.
+  await assert.rejects(f.install({repairMissingPageModule:true,reviewApproved:false}),{code:'E_REVIEW_REQUIRED'});
+  assert.deepEqual(f.operations(),['prepareAppPage','synchronizeAppPages']);
+  assert.equal((await f.install({repairMissingPageModule:true})).state,'already-installed');
+  assert.deepEqual(f.operations(),['prepareAppPage','synchronizeAppPages',
+    'prepareAppPage','synchronizeAppPages','listPagePrograms','importAppPage']);
   f.assertParentUnchanged();
 });
 for(const [name,queryResult] of [['null response',null],['missing installed',{}],['non-array installed',{installed:{}}],

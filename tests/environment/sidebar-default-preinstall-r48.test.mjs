@@ -75,6 +75,32 @@ test('R4.8 old profile, existing choices and update events never trigger automat
   assert.deepEqual(f.storage.get(SIDEBAR_TOOL_STORE),[]);
   assert.equal((await resumeDefaultPreinstall(f.options)).state,'skipped-existing');
 });
+test('pending companion cleanup persists preinstall attention without retrying the package',async t=>{
+  t.mock.method(globalThis,'fetch',officialFixtureFetch);
+  const f=browser();
+  await registerDefaultPreinstall({...f.options,reason:'install'});
+  const calls=[];let candidate;
+  const pageClient={async request(type,payload){
+    calls.push(type);
+    if(type==='prepareAppPage'){
+      candidate=payload.tool;
+      return {status:'prepared',toolId:candidate.id,packageHash:await sidebarToolPackageHash(candidate),
+        programId:candidate.pageModule.programId,sourceHash:candidate.pageModule.sourceHash};
+    }
+    if(type==='synchronizeAppPages')return {status:'synchronized',retired:[],
+      cleanupPending:[candidate.pageModule.programId]};
+    assert.fail('preinstall must not import before cleanup: '+type);
+  }};
+  const options={...f.options,pageClient};
+  assert.deepEqual(await resumeDefaultPreinstall(options),{state:'attention',toolId:candidate.id});
+  assert.equal(f.storage.get(DEFAULT_PREINSTALL_STORE).state,'attention');
+  assert.deepEqual(f.storage.get(SIDEBAR_TOOL_STORE),[candidate]);
+  assert.equal(Object.values(f.storage.get(MARKET_OPERATIONS_STORE))[0].state,'outcome-unknown');
+  const writes=f.writes.length;
+  assert.equal((await resumeDefaultPreinstall(options)).state,'attention');
+  assert.equal(f.writes.length,writes);
+  assert.deepEqual(calls,['prepareAppPage','synchronizeAppPages']);
+});
 test('R4.8 a newer bundled Reading TOC never silently replaces an existing 1.0.9 installation',async()=>{
   const fixtures=await officialFixtures();
   // Existing user state is preserved regardless of whether first-install intent

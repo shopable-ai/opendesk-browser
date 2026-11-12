@@ -5,7 +5,7 @@
    * tokens and all Framework/Host surfaces remain untouched. */
   :scope.proxy-management {
     --bg:#f2f5fa; --soft:#f6f8fb; --ink:#1e293b;
-    --muted:#64748b; --line:#e2e8f0;
+    --muted:#5f6f86; --line:#e2e8f0;
     --accent:#365dd5; --accentFill:#edf2ff; --primaryFill:#365dd5;
     background:var(--bg);
     font-family:-apple-system,BlinkMacSystemFont,"SF Pro Text","PingFang SC","Microsoft YaHei",system-ui,sans-serif;
@@ -13,7 +13,7 @@
   :scope .options { max-width:1280px; margin:0 auto; }
   :scope .options .optionsHead { min-height:64px; padding:12px 24px; justify-content:space-between; }
   :scope .managementTitle { margin:0; font-size:16px; line-height:1.5; }
-  :scope .options .settingsRefresh { display:inline-flex; align-items:center; gap:8px; min-height:36px; }
+  :scope .options .settingsRefresh { display:inline-flex; align-items:center; gap:8px; min-height:36px; flex:none; white-space:nowrap; }
   :scope .options .layout { display:grid; grid-template-columns:215px minmax(0,1fr); align-items:stretch; gap:0; background:var(--soft); }
   :scope .managementNav { display:grid; align-content:start; gap:4px; position:sticky; top:64px; padding:24px 13px; }
   :scope .managementNav button { display:flex; align-items:center; justify-content:flex-start; gap:10px; position:relative; width:100%; min-height:44px; padding:10px 12px; border:0; background:transparent; color:var(--muted); text-align:left; }

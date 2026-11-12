@@ -1,0 +1,15 @@
+✔ tool contract is independent of Task v1 and is closed by default (1.489875ms)
+✔ tool packer rejects traversal, symlink escape and duplicate assets, and accepts large images (11.994833ms)
+✔ native tool directory packs JS/CSS/HTML into a portable JSON (4.785625ms)
+✔ tool packer embeds a declared local image in HTML and CSS (2.662375ms)
+✔ portable Sidebar Tool builds to candidate first and only explicit verified promotion updates one project JSON (12.594416ms)
+✔ promotion rejects same-version changed bytes and downgrade while retaining the approved release (25.75525ms)
+✔ new sandbox uses isolated Chrome MV3 resource and a narrow host message protocol (550.1735ms)
+ℹ tests 7
+ℹ suites 0
+ℹ pass 7
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 805.85

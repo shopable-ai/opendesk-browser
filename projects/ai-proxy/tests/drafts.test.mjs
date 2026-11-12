@@ -95,7 +95,7 @@ test('host, port and local quick picks mark their owning form without a change e
 });
 test('host confirmation arriving after a successful save cannot reopen a hidden proxy draft',async()=>{
  for(const dirty of [false,true]){
-  const {env}=fixture();const values=[];let accept,saveDone;const dialog={open:true};
+  const {env}=fixture();const values=[],notices=[];let accept,saveDone;const dialog={open:true};
   try{
    if(dirty)env.setDraftDirty(true,'settings-proxy');
    env.setConfirmHandler(()=>new Promise(resolve=>accept=resolve));
@@ -106,12 +106,14 @@ test('host confirmation arriving after a successful save cannot reopen a hidden 
    const save=await handler('../src/Settings.tsx','  async function saveProxy(','  async function editPac(',{
     getEnvironment:()=>env,editingId:'a',endpoints:[{id:'a'}],locale:'en',username:'',password:'',
     proxy:{name:'A',scheme:'https',host:'proxy.example.com',port:'443'},isValidProxyPort:()=>true,
+    setProxyNotice:value=>notices.push(value),
     act:()=>new Promise(resolve=>saveDone=resolve),closeEditor:()=>{dialog.open=false;}
    });
    const saving=save({preventDefault(){},nativeEvent:{}});
    const choosing=tree.props.children[0][0].props.onClick({currentTarget:target});
    saveDone(true);await saving;accept(true);await choosing;
    assert.deepEqual(values,[]);assert.equal(env.isDraftDirty('settings-proxy'),false);
+   assert.deepEqual(notices,['','apProxySavedNotice']);
   }finally{env.dispose();}
  }
  const {env}=fixture();const values=[];
@@ -351,11 +353,12 @@ test('host state updates cannot clear tracked drafts; controls outside draft for
 test('Settings atomic proxy commit refusal retains the original draft without a second write',async()=>{
  const {env}=fixture();
  try{
-  env.setDraftDirty(true,'settings-proxy');const calls=[];
+  env.setDraftDirty(true,'settings-proxy');const calls=[],notices=[];
   const save=await handler('../src/Settings.tsx','  async function saveProxy(','  async function savePac(',{
    getEnvironment:()=>env,editingId:'',username:'',password:'',endpoints:[],locale:'en',
    proxy:{name:'draft',scheme:'https',host:'proxy.example.com',port:'443'},
    isValidProxyPort:()=>true,crypto:{randomUUID:()=> 'new'},
+   setProxyNotice:value=>notices.push(value),
    act:async m=>{calls.push(JSON.parse(JSON.stringify(m)));return false;},
    closeEditor:()=>assert.fail('refused atomic save closed the draft')
   });
@@ -363,6 +366,7 @@ test('Settings atomic proxy commit refusal retains the original draft without a 
   assert.deepEqual(calls,[{type:'SAVE_ENDPOINT',draftScope:'settings-proxy',createProfile:true,endpoint:{
    id:'new',name:'draft',scheme:'https',host:'proxy.example.com',port:443,sourceId:'manual'
   }}]);assert.equal(env.isDraftDirty('settings-proxy'),true);
+  assert.deepEqual(notices,['']);
  }finally{env.dispose();}
 });
 test('QuickPanel failed final selection retains the completed endpoint draft for review',async()=>{

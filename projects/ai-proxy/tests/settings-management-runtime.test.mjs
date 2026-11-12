@@ -17,7 +17,7 @@ const headerActions=await bundle('../src/domain/header-actions.ts');
 const {translate}=await bundle('../src/i18n/locale.ts');
 const settingsCode=(await transform(await readFile(new URL('../src/Settings.tsx',import.meta.url),'utf8'),{loader:'tsx',format:'cjs',jsx:'automatic'})).code;
 const statusCode=(await transform(await readFile(new URL('../src/ui/Status.tsx',import.meta.url),'utf8'),{loader:'tsx',format:'cjs',jsx:'automatic'})).code;
-function render(locale,runtime,{config={...domain.freshConfig(),selection:{mode:'direct'}},route='#/rules',stateOverride,presentation='management'}={}){
+function render(locale,runtime,{config={...domain.freshConfig(),selection:{mode:'direct'}},route='#/rules',stateOverride,presentation='management',onNavigate=()=>{},buttons=[]}={}){
  const hooks={...React,useState:initial=>[typeof initial==='function'?initial():initial,()=>{}],useRef:initial=>({current:initial}),useEffect(){}};
  const i18n={useI18n:()=>({locale,t:(key,params)=>translate(locale,key,params)})};
  const statusModule={exports:{}};
@@ -33,9 +33,9 @@ function render(locale,runtime,{config={...domain.freshConfig(),selection:{mode:
   if(name==='./domain/header-actions')return headerActions;
   if(name==='./domain/config')return domain;if(name==='./ui/optionsRoute')return routes;
   if(name==='./ui/Status')return statusModule.exports;
-  if(name==='./environment')return {getEnvironment:()=>({navigation:{getRoute:()=>route},isDraftDirty:()=>false})};
+  if(name==='./environment')return {getEnvironment:()=>({navigation:{getRoute:()=>route},navigate:onNavigate,isDraftDirty:()=>false})};
   if(name==='./ui/useProxy')return {useProxy:()=>({state:stateOverride===undefined?{config,runtime}:stateOverride,busy:false,error:'',act:()=>assert.fail('render mutated proxy state')})};
-  if(name==='@opendesk/ui')return {Button:({children,variant,...props})=>React.createElement('button',props,children)};
+  if(name==='@opendesk/ui')return {Button:({children,variant,...props})=>{buttons.push({children,...props});return React.createElement('button',props,children);}};
   if(name==='./ui/FormField')return {FormField:({id,label,className,children})=>React.createElement('div',{className},React.createElement('label',{htmlFor:id},label),typeof children==='function'?children({id}):children)};
   return new Proxy({},{get:()=>()=>null});
  }});
@@ -61,6 +61,16 @@ test('management summary labels saved Direct as a selection independently from c
   assert.equal(bar.find('.controlChip').hasClass('isApplied'),!pending);
   assert.doesNotMatch(bar.text(),/\b(?:IP|exit|reachable|connected)\b/i);
  }
+});
+
+test('the management control-status shortcut uses guarded navigation directly to basic proxy diagnostics',()=>{
+ const buttons=[],visited=[];
+ render('zh-CN',{desired:{mode:'direct'},control:'controllable_by_this_extension',applied:false,pendingChanges:true},
+  {buttons,onNavigate:route=>visited.push(route)});
+ const shortcut=buttons.find(button=>button.children===translate('zh-CN','viewActualControlStatus'));
+ assert.ok(shortcut);
+ shortcut.onClick();
+ assert.deepEqual(visited,['#/diagnostic/proxy']);
 });
 
 test('the real PC proxy table distinguishes saved choice, browser-applied identity and empty states',()=>{

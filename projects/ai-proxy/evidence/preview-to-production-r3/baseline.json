@@ -1,0 +1,85 @@
+{
+  "task": "OD-AI-PROXY-PREVIEW-TO-PRODUCTION-R3-LOCAL-ACCEPTANCE",
+  "startedAt": "2026-11-11T17:36:26.633Z",
+  "branch": "main",
+  "head": "672be1b03913eb222e2b4073eded02020f128034",
+  "r2Commits": [
+    {
+      "sha": "7f2aa3ab8",
+      "included": true
+    },
+    {
+      "sha": "f6204ce28",
+      "included": true
+    },
+    {
+      "sha": "60ec4de57",
+      "included": true
+    }
+  ],
+  "initialGitStatus": "clean",
+  "headChange": "merge 672be1b03; no AI Proxy changes after 60ec4de57",
+  "oldPackage": {
+    "version": "0.3.15",
+    "sha256": "378343fd9cd4efd76251fc15e60313aff6684a4ad46a0773c9646e05a489e809",
+    "bytes": 973457
+  },
+  "r2BuiltBaseline": {
+    "version": "0.3.15",
+    "sha256": "4237080a0c7bad349266e7773c4198ae816cc80fc10cf4d86562c9af16af88d3",
+    "bytes": 981379,
+    "sameBytes": false
+  },
+  "capabilities": [
+    "storage.local",
+    "currentPage.read",
+    "browser.proxy.managed"
+  ],
+  "ci": [
+    {
+      "id": 43065081344,
+      "name": "Native Agent R1 components and package",
+      "sha": "60ec4de57ab839be4dda207787372fc8249a1749",
+      "status": "queued",
+      "conclusion": null,
+      "url": "https://github.com/shopable-ai/opendesk-browser/actions/runs/43065081344"
+    },
+    {
+      "id": 43065081216,
+      "name": "Site access targeted checks",
+      "sha": "60ec4de57ab839be4dda207787372fc8249a1749",
+      "status": "queued",
+      "conclusion": null,
+      "url": "https://github.com/shopable-ai/opendesk-browser/actions/runs/43065081216"
+    },
+    {
+      "id": 43065081090,
+      "name": "Page userscript dependencies and package",
+      "sha": "60ec4de57ab839be4dda207787372fc8249a1749",
+      "status": "queued",
+      "conclusion": null,
+      "url": "https://github.com/shopable-ai/opendesk-browser/actions/runs/43065081090"
+    },
+    {
+      "id": 43065080984,
+      "name": "OpenDesk App CI (discovered projects, shared gates)",
+      "sha": "60ec4de57ab839be4dda207787372fc8249a1749",
+      "status": "queued",
+      "conclusion": null,
+      "url": "https://github.com/shopable-ai/opendesk-browser/actions/runs/43065080984"
+    },
+    {
+      "id": 43065080959,
+      "name": "Cleanup merged short-lived OpenDesk branches",
+      "sha": "60ec4de57ab839be4dda207787372fc8249a1749",
+      "status": "pending",
+      "conclusion": null,
+      "url": "https://github.com/shopable-ai/opendesk-browser/actions/runs/43065080959"
+    }
+  ],
+  "safety": {
+    "dailyProfileTouched": false,
+    "frameworkWrites": [],
+    "newPermissions": []
+  }
+}

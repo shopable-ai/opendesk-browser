@@ -3327,15 +3327,66 @@ test('R18.1 conditional writes atomically reject a stale full-array replacement'
   assert.equal(f.store.get(sidebarToolStorageKey(sample.id)).notes[0].text,'甲');
 });
 
-test('page.request quietly recovers an exhausted loading snapshot before exact-document dispatch',async t=>{
+async function compoundToolFixture(){
   const {digest,digestUtf8}=await import('../../src/platform/protocol.js');
   const sourceUtf8='void 0;',page={format:'opendesk.page-install.v1',programId:'app.target-fixture',
     version:'1.0.0',title:'Target fixture',revision:1,entryFormat:'classic-userscript',sourceUtf8,
     sourceHash:await digestUtf8(sourceUtf8),pageRules:{matches:['https://article.example/*'],
       excludeMatches:[],runAt:'document_idle',allFrames:false,world:'USER_SCRIPT'}};
-  const tool={format:'opendesk.sidebar-tool.v2',id:'target-fixture',version:'1.0.0',title:'Target fixture',
+  return {format:'opendesk.sidebar-tool.v2',id:'target-fixture',version:'1.0.0',title:'Target fixture',
     description:'Page target recovery',capabilities:['page.module'],html:'<p>Fixture</p>',css:'',js:'void 0;',
     requires:{browserSdk:'1.0.0'},contributes:{contextMenus:[]},pageModule:{...page,packageHash:await digest(page)}};
+}
+
+test('compound file import with pending cleanup consumes review and shows recovery without replay',async t=>{
+  const tool=await compoundToolFixture(),calls=[],writes=[];
+  const f=await hostFixture(t,{store:new Map(),startTool:false,
+    chromePermissions:{contains:async()=>true,request:async()=>true},
+    getHook(key){calls.push(['read',key]);},
+    setHook(rows){writes.push(structuredClone(rows));},
+    foundationClient:{async request(type,payload){
+      calls.push([type,payload]);
+      if(type==='prepareAppPage')return {status:'prepared',toolId:tool.id,
+        packageHash:await sidebarToolPackageHash(tool),programId:tool.pageModule.programId,
+        sourceHash:tool.pageModule.sourceHash};
+      if(type==='synchronizeAppPages')return {status:'synchronized',retired:[],
+        cleanupPending:[tool.pageModule.programId]};
+      assert.fail('pending cleanup cannot query or import a companion: '+type);
+    }}});
+  f.host.openImport();
+  const text=JSON.stringify(tool);
+  f.selectFile({name:'target-fixture.opendesk-tool.json',size:Buffer.byteLength(text),text:async()=>text});
+  await settle(()=>!f.elements['sidebar-tool-preview'].hidden&&!f.elements['sidebar-tool-install'].disabled);
+  f.emit(f.elements['sidebar-tool-install'],'click',{isTrusted:true});
+  await settle(()=>!f.elements['sidebar-tool-file-error'].hidden&&
+    /旧网页模块/.test(f.elements['sidebar-tool-file-error'].textContent));
+  const message=f.elements['sidebar-tool-file-error'].textContent;
+  assert.match(message,/应用安装包已保存.*安装尚未完成/);
+  assert.match(message,/保存.*刷新/);
+  assert.match(message,/重新选择同一个安装包.*确认安装/);
+  assert.match(message,/本次安装确认已失效，不会自动重试/);
+  assert.doesNotMatch(message,/本机事务记录/);
+  assert.equal(f.elements['sidebar-tool-preview'].hidden,true);
+  assert.equal(f.elements['sidebar-tool-install'].disabled,true);
+  assert.equal(f.elements['sidebar-tool-file'].value,'');
+  assert.deepEqual(f.store.get(SIDEBAR_TOOL_STORE),[tool]);
+  assert.equal(f.elements['sidebar-tool-frame'].children.length,0);
+  assert.equal(f.view.getSnapshot().toasts.some(row=>row.type==='success'),false);
+  assert.deepEqual(calls.filter(([type])=>type!=='read').map(([type])=>type),
+    ['prepareAppPage','synchronizeAppPages']);
+  await settle(()=>!f.elements['sidebar-tool-file'].disabled);
+  const before=structuredClone([...f.store]),writeCount=writes.length;
+  f.emit(f.elements['sidebar-tool-install'],'click',{isTrusted:true});
+  f.emit(f.elements['sidebar-tool-install'],'click',{isTrusted:true});
+  await pause();await pause();
+  assert.equal(writes.length,writeCount,'consumed confirmation cannot write again');
+  assert.deepEqual([...f.store],before);
+  assert.equal(calls.filter(([type])=>type==='importAppPage').length,0);
+  assert.equal(calls.filter(([type])=>type==='synchronizeAppPages').length,1);
+});
+
+test('page.request quietly recovers an exhausted loading snapshot before exact-document dispatch',async t=>{
+  const tool=await compoundToolFixture();
   const tab={id:7,windowId:1,active:true,status:'loading',url:'https://article.example/read'};
   let queries=0;const dispatches=[];
   const target=createCurrentPageTarget({api:{windows:{getCurrent:async()=>({id:1})},
@@ -3887,7 +3938,8 @@ test('R4.5 missing official resources and a cancelled in-flight preview never in
 
 for(const failReadback of [false,true])test('R4.5 lost registry acknowledgement revokes approval without replay; readback failure='+failReadback,async t=>{
   const f=await hostFixture(t,{store:new Map(),startTool:false});
-  const release=(await officialFixtures()).catalog.apps[0];
+  // Keep this storage-ack regression independent of catalog ordering and Page preflight.
+  const release=(await officialFixtures()).catalog.apps.find(row=>row.toolId==='quick-notes');
   f.host.openOfficialReview(release.toolId);
   await settle(()=>!f.elements['sidebar-tool-preview'].hidden);
   const set=f.api.storage.local.set,get=f.api.storage.local.get;let registryWrites=0,unreadable=false;

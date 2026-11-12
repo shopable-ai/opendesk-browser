@@ -1,0 +1,10 @@
+{
+  "status": "PROJECT_PACKAGE_PROMOTED",
+  "output": "/Users/shopme/Documents/workspace/opendesk-browser/projects/ai-proxy/ai-proxy.opendesk-tool.json",
+  "id": "ai-proxy",
+  "version": "0.3.16",
+  "bytes": 981379,
+  "sha256": "35a2aafdebe211854415c98fb2acde15985c6aa834cd5c141642681d28c9bc8c",
+  "validated": true,
+  "installed": false
+}
