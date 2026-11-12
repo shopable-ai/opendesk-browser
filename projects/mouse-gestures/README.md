@@ -1,5 +1,7 @@
 # Mouse Gestures · 独立方向箭头与双段组合识别（0.3.1 / Page revision 5）
 
+> **2026-11-12 UI 精简增量（仅源码与独立预览，尚未进入安装包）**：Side Panel 移除“操作偏好”混合表单，拆分为折叠的“自定义组合”和“兼容与显示”，菜单优先级降至带后果说明的高级项；默认四方向及开关直接可见。保留 `enabled/trigger/menuPolicy/showTrace/gestureMappings` 及既有保存/撤权/手势识别逻辑。对应提交：`37679ee70aa40cc139de048490aef37dbb9fddc9`（连同此前三个 UI 提交）。**下述 0.3.1/revision 5 包是 UI 修改前的已构建候选**：本次没有 Mac 本机 Node/打包/真实 Chrome 回执，正式包仍是旧界面；必须在本机核对其他 Agent 修改、定向测试，通过后按原打包器规则调整发布版本、构建、晋升与读回，不能直接同版本静默覆盖。正式安装及物理鼠标验收仍为 NOT_TESTED。
+
 > 2026-11-12 本地验收：83/83 Node PASS；Page 开发构建、生产组合包、正式 JSON 同源校验 PASS；ego 独立预览 7 条操作反馈符合预期。正式候选已由 0.2.1 / revision 2 晋升为 0.3.1 / revision 5。真实 macOS / Windows Chrome 安装、原生菜单及撤权仍为 NOT_TESTED，**正式验收未通过**。见[本轮完整报告](docs/final-acceptance-r5.zh-CN.md)。
 
 ## R5 · 按下右键即弹原生菜单的兼容修复
