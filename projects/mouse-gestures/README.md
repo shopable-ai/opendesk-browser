@@ -1,6 +1,14 @@
-# Mouse Gestures · 独立方向箭头与双段组合识别（0.3.2 / Page revision 6）
+# Mouse Gestures · 独立方向箭头与双段组合识别（0.3.3 / Page revision 7）
 
-## 当前增量：动作响应与页面启动延迟
+## 当前安装包（2026-11-13）
+
+按用户要求重新编译并升版：工具与 Page 版本由 `0.3.2` 升至 `0.3.3`，Page revision 由 `6` 升至 `7`。沿用原打包器生成候选、验证并晋升；权限、网页范围及执行时机不变，包内业务代码除版本信息外与上一版一致。
+
+唯一可导入包：[`mouse-gestures.opendesk-tool.json`](mouse-gestures.opendesk-tool.json)，56,840 字节，SHA-256 `9935ef955f7372f5f422d2b5a099f5a63bcab8c9b84814e5e66d507ba586bd64`。
+
+候选身份、Page 摘要与源码一致性校验通过。项目与公共工具包检查合计 95/96 通过；唯一失败是未改动的宿主 UI 旧断言（要求 48px，现有样式为 53px），与本次安装包无关，未修改宿主。原始日志：`artifacts/sidebar-tools/mouse-gestures/package-tests.log`。本次状态为 `PACKAGE_READY / INSTALL_NOT_TESTED / CHROME_LATENCY_NOT_TESTED`；新 JSON 需经原「扩展」安装审阅链更新，不代表当前运行版本已更新。
+
+## 上轮 0.3.2 增量：动作响应与页面启动延迟
 
 目标是减少“松开鼠标后才开始执行动作”的等待，以及页面打开后手势首次可用的等待。2026-11-12 本轮在 `main` 基线 `e0d8e5a233ec1b2f43bea2a27db5708090688971` 上完成差量修复：
 
