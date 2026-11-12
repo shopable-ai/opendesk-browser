@@ -302,6 +302,8 @@ export function findConversationPages(binding,doc,win) {
 export function currentConversationPageIndex(paging,doc,win) {
   if(!paging?.pages?.length||!paging.scroller?.isConnected)return -1;
   const port=viewport(paging.scroller,doc,win);
+  if(paging.scroller.scrollTop>=paging.scroller.scrollHeight-paging.scroller.clientHeight-2)
+    return paging.pages.length-1;
   // Allow for the native fixed header, while never using the assistant's
   // own nested code/editor scrollport as the reading position.
   const line=port.top+Math.min(144,Math.max(64,port.height*0.16));
