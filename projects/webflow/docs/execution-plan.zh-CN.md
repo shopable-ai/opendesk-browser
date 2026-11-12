@@ -1,3 +1,17 @@
+## R8 · GitHub Issue A→B→A 真实生产接线 · 本轮增量（2026-11-12；`OD-WEBFLOW-A2B2A-PRODUCTION-CLOSURE-R8`）
+
+**原始目标：** 用户在官方 ChatGPT A 中用一句自然语言请求分析 `shopable-ai/opendesk-browser` 公开 Issue → 经首次一次工作流范围授权 → 原 Controller 以已安装 0.2.0 `send:true` 创建唯一 B → 获取完整持久 Run/Result → 原 A 单次自动收到真实链接、结论和证据 → 官方 A messageId 与实际正文 SHA-256 绑定 `deliveryKey`，A2 不重复弹授权。原事务、Runner、Controller、AI DOM 发送及 R6/R7 V2 安全机制不可重建。
+
+**截至本轮最新 main 的新增提交（不要在后续对话重复开发）：** `1c06fe80` 新增原 Foundation `frameworkKV` 中的单独工作流授权策略（固定四项能力、公开 GitHub 单仓库、ChatGPT 0.2.0 安装 pin、撤销/代次）；`1dbb615e` 将审阅/批准/撤销接口接入原 SW `web-task-ingress`、可信 Side Panel Host 与 `webflowAuto`；`dbf5e331` 在原 `AutoSettings.tsx` 添加可信审阅 UI；`2c1afd48` 同步原 UI Blob pin 与原 Bridge CI Node 定向测试；`3cbb271c` 新增既有 SW ingress 入口的 Side Panel 真身份 / Task pin / 重启读回 / 撤销回归；`d85d7b03` 为新共享能力源添加**仅 `sw.js`、`ui/tool-shell.js`** 两目标的精确 Blob 白名单；`e73499da` 在原 provenance 测试加白名单、篡改拒绝回归。以上为新增源码与提交事实，不是已通过完整构建或浏览器业务。
+
+**当前语义结论：** `AUTH_SCOPE_STORAGE=SOURCE_IMPLEMENTED`；工作流四项能力的审阅记录、精确 pin 和独立撤销入口已接入真实可信侧栏代码，旧 V1/V2 授权不自动继承。**但工作流本身仍 `NOT_DONE`**：AUTH 运行边界未被正式 A→B→A 编排消费；T01 尚未通过自然语言触发并经原网络能力冻结真实 Issue；T02 尚未正式调用原 Controller 只读 B Result；T03 已有发送前 SHA 冻结和 A 只读证据基础，但独立 `deliveryKey` 的受控原生发送仍未接线。不可因 UI 可批准或纯 Ledger 检查通过就声称一次授权后能自动执行。
+
+**本轮验证等级：** AUTH 模块实际源码在隔离 V8 执行 `6/6`；新增 SW ingress + provenance 用例已经写入现有测试；原 Bridge CI 有定向 Node 声明、构建及精确 pin 检查，但截至本次 GitHub 回读仍为 queued/in_progress，**NODE=NOT_TESTED、BUILD=NOT_TESTED、CHROME=BLOCKED、BUSINESS=NOT_DONE**。本机 CodexPro `UNAVAILABLE`、OpenDesk Desktop/Code `Session terminated`，不能将其他容器 Node 或模拟记成用户 Mac/Chrome 验收。
+
+**下一项唯一主线：** 从实时 `main` 查差量及测试状态，优先修复 AUTH 相关 CI 真实失败（如有），随后将现有 `serial-two-step-run` 的 `dispatchB/readB/prepareA/deliverA/readA` 连接到原 Controller/可信 Host；发送 B、发送 A 的不可逆意图先持久化，UNKNOWN 只查原记录；取得真实 A/B/Issue/Run/Result/授权/官方 A messageId 的同轮证据之后才标 DONE。不要重复研发 R6 消息回执、R7 V2 授权或本轮 AUTH 策略。
+
+---
+
 ## R0 · Provider 命名与通用解析边界（2026-11-11；`OD-WEBFLOW-PROVIDER-BOUNDARY-REFACTOR-R0`）
 
 **原始目标：** OpenDesk WebFlow 日后支持多个 AI 网站，但不为新 Provider 复制工作流内核；本轮是 R2 前定向重构，只将通用 WebFlow V1/V2 意图解析从 ChatGPT 模块提取，保留旧入口兼容，不实现新的发送/回填。文件审计与保护边界见 [Provider R0 审计](provider-boundary-r0.zh-CN.md)。
