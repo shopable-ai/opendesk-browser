@@ -11,6 +11,28 @@ import {BUILTIN_CATALOG} from '../../src/libs/catalog.js';
 import {PACKAGE_ENTRIES} from '../../scripts/build-contract.mjs';
 const root='/repo';
 
+test('A2B2A capability grant source is pinned to the original SW and trusted Side Panel only',async t=>{
+  const path='projects/webflow/trusted/issue-workflow-authorization.js';
+  const pinned='e26ae6bcf44d1994801faa4fc9a7408964702adc';
+  const allowed=target=>describeBundle({chunk:{fileName:target,
+    modules:{[resolve(path)]:{renderedLength:1,originalLength:1}}},
+    lock:{packages:{}}});
+  for(const target of ['sw.js','ui/tool-shell.js'])
+    assert.equal(allowed(target).modules[0].reviewedFirstPartyBlob,pinned);
+  for(const target of ['agents/chatgpt-fixed-bridge.js','agents/web-task-content.js',
+    'native-agent/settings.js','ui/sidebar-tool-host.js','scripting/sandbox/worker-runtime.js'])
+    assert.throws(()=>allowed(target),/cannot enter a privileged fixed bundle/);
+  const root=await realpath(await mkdtemp(join(tmpdir(),'webflow-issue-scope-pin-')));
+  t.after(()=>rm(root,{recursive:true,force:true}));
+  const file=join(root,path),bytes=await readFile(resolve(path));
+  await mkdir(dirname(file),{recursive:true});await writeFile(file,bytes);
+  const candidate={chunk:{fileName:'sw.js',modules:{[file]:{renderedLength:1,originalLength:1}}},
+    root,lock:{packages:{}}};
+  assert.equal(describeBundle(candidate).modules[0].reviewedFirstPartyBlob,pinned);
+  await writeFile(file,Buffer.concat([bytes,Buffer.from('\n// unreviewed change')]));
+  assert.throws(()=>describeBundle(candidate),/Trusted Web Flow source changed/);
+});
+
 test('reviewed WebFlow task intent parser is pinned to only original three fixed entries',()=>{
   const path='projects/webflow/src/task-intent-contract.js';
   const modules={[resolve(path)]:{renderedLength:1,originalLength:1}};
