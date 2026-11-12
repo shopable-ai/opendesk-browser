@@ -315,8 +315,8 @@
   "protocol": "Protocol",
   "host": "Host",
   "port": "Port",
-  "proxyUsernameOptional": "Proxy username (optional)",
-  "sessionPasswordNotBackedUp": "Password (authentication not connected)",
+  "proxyUsernameOptional": "Username (optional)",
+  "sessionPasswordNotBackedUp": "Password (optional)",
   "httpSPasswordsAreSessionOnlyChangesToHost": "Proxy credentials cannot be saved or used yet. Unauthenticated proxies can be added; use a local client for routes requiring authentication.",
   "chromeModeLabel": " · Chrome mode:",
   "pendingRoutingAdvice": "To change the route, select Apply selection. To release control, select Stop managing proxy.",
@@ -1047,5 +1047,9 @@
   "diagProductionUnavailable": "HTTP site checks, favorites and usage statistics are not connected in the installed runtime. These actions are unavailable; no test requests or simulated success results are generated.",
   "diagSitesLive": "HTTP results for current settings",
   "diagSpeedNotConnected": "Real HTTP timing and download throughput tests are not connected. Do not infer proxy quality from these values.",
-  "apSwitchToRulesMode": "Switch to rules mode"
+  "apSwitchToRulesMode": "Switch to rules mode",
+  "proxyConfigName": "Configuration name (optional)",
+  "proxyServerAddress": "Server address",
+  "proxyEditorSave": "Save",
+  "proxyEditorAuthHelp": "Saving does not apply the proxy. Authentication is not connected; leave credentials empty to save."
 }

@@ -8,23 +8,22 @@ import { copyableOptionsHash, diagnosticHash, optionsHash, parseOptionsHash, par
   type OptionsSection, type SubscriptionRoute } from './ui/optionsRoute';
 import { OptionsPageHeader, OptionsNavIcon } from './ui/OptionsShell';
 import { ProxyIcon } from './ui/ProxyIcon';
-import { FormField } from './ui/FormField';
 import { BACKUP_MAX_BYTES, BackupImportValidationError, parseBackupForImport } from './ui/backupImport';
 import { Status, statusLabelKey, statusTone } from './ui/Status';
-import { ClearableInput, HostQuickPick, PortQuickPick } from './ui/ProxyEntry';
-import { isValidProxyPort, parseProxyAddressPaste } from './domain/proxy-entry';
+import { ProxyEditor } from './ui/ProxyEditor';
+import { FormField } from './ui/FormField';
+import { ClearableInput } from './ui/ProxyEntry';
 import { SourcesPage } from './ui/SourcesPage';
 import { RotationSettings } from './ui/RotationPlan';
 import { DiagnosticsPage } from './ui/DiagnosticsPage';
 import { OfficialServicePage } from './ui/OfficialServicePage';
 import { HeaderActionsEditor } from './ui/HeaderActionsEditor';
 import { useProxy } from './ui/useProxy';
-import type { Profile, ProxyEndpoint, ProxyScheme, RouteMode, SiteRule } from './domain/types';
+import type { Profile, ProxyEndpoint, RouteMode, SiteRule } from './domain/types';
 import { createPacStarter, type PacStarterMode } from './domain/pac-starters';
 import { normalizeRuleSiteInput, priorityForSiteQuickRule } from './domain/config';
 
 type Page = OptionsSection;
-const emptyEndpoint = {name:'', scheme:'http' as ProxyScheme,host:'',port:''};
 
 export default function App({onClose,navigationBusy=false,presentation='sidebar',headerNavigation=false,headerActionsStore}:{headerActionsStore?:any;onClose?:()=>void;navigationBusy?:boolean;presentation?:'sidebar'|'management';headerNavigation?:boolean}={}) {
   const { t, preference, setPreference } = useI18n();
@@ -46,6 +45,7 @@ const tabs: {id:Page; name:string; caption:string}[] = [
   const {state, busy, error, setError, setErrorKey, clearErrorKey, act, refresh} = useProxy();
   const navigation = getEnvironment().navigation;
   const confirmationRequest=useRef<AbortController|null>(null);
+  const editorGeneration=useRef(0);
   const mounted=useRef(true),latestEtag=useRef(state?.configEtag);
   latestEtag.current=state?.configEtag;
   useEffect(()=>{mounted.current=true;return()=>{mounted.current=false;confirmationRequest.current?.abort();};},[]);
@@ -54,23 +54,16 @@ const tabs: {id:Page; name:string; caption:string}[] = [
     const controller=new AbortController();confirmationRequest.current=controller;
     const environment=getEnvironment(),draftVersion=environment.getDraftVersion?.();
     const etag=latestEtag.current,generation=editorGeneration.current;
-    const dialog=editorDialog.current,focus=document.activeElement as HTMLElement|null;
-    const suspended=Boolean(dialog?.open);
-    if(suspended){editorSuspended.current=true;dialog!.close();}
     let approved=false;
     try {
       const accepted=await environment.confirm(text,{signal:controller.signal});
       approved=accepted===true&&mounted.current&&!controller.signal.aborted&&
-        generation===editorGeneration.current&&etag===latestEtag.current&&draftVersion===environment.getDraftVersion?.();
+        getEnvironment()===environment&&generation===editorGeneration.current&&
+        etag===latestEtag.current&&draftVersion===environment.getDraftVersion?.();
       return approved;
     } catch { return false; }
     finally {
       if(confirmationRequest.current===controller)confirmationRequest.current=null;
-      if(suspended&&mounted.current&&generation===editorGeneration.current){
-        if(dialog?.isConnected&&!dialog.open){try{dialog.showModal();if(focus?.isConnected)focus.focus();}catch{/* Detached dialogs cannot be restored. */}}
-        // Keep the flag through queued native close events; onClose also checks open.
-        editorSuspended.current=false;
-      }
     }
   }
   const [locationHash,setLocationHash] = useState(() => navigation.getRoute());
@@ -162,12 +155,6 @@ const tabs: {id:Page; name:string; caption:string}[] = [
       if (isCurrentRequest()) setCopiedPageLink(true);
     } catch { if (isCurrentRequest()) setPageLinkCopyFailed(true); }
   }
-  const [editingId,setEditingId] = useState('');
-  const [proxy,setProxy] = useState(emptyEndpoint);
-  const [username,setUsername] = useState('');
-  const [password,setPassword] = useState('');
-  const { locale } = useI18n();
-  const [addressPasteError,setAddressPasteError] = useState(false);
   const [pacName,setPacName] = useState('');
   const [pacText,setPacText] = useState('');
   const [pacStarterMode,setPacStarterMode] = useState<PacStarterMode>('site');
@@ -199,81 +186,29 @@ const tabs: {id:Page; name:string; caption:string}[] = [
   const backupReadGeneration = useRef(0);
   useEffect(()=>()=>{backupReadGeneration.current++;},[]);
   const [editorOpen,setEditorOpen] = useState(false);
-  const editorDialog = useRef<HTMLDialogElement>(null);
-  const editorGeneration=useRef(0),editorSuspended=useRef(false);
-  const editorReturnFocus = useRef<HTMLElement | null>(null);
+  const [editingEndpoint,setEditingEndpoint]=useState<ProxyEndpoint|undefined>();
+  const [proxyOpeningEtag,setProxyOpeningEtag]=useState('');
   const deepLinkedEditor = useRef(false);
   const editorOriginHash = useRef<string | null>(null);
-  useEffect(() => {
-    const dialog = editorDialog.current;
-    if (!dialog) return;
-    if (editorOpen && !dialog.open) {
-      dialog.showModal();
-      dialog.querySelector<HTMLInputElement>(presentation==='management'?'#ep-name':'#ep-host')?.focus();
-    }
-    if (!editorOpen && dialog.open) dialog.close();
-  }, [editorOpen]);
-  function closeEditor() {
+  function closeEditor(saved=false) {
     editorGeneration.current++;
-    getEnvironment().setDraftDirty(false,'settings-proxy');
-    // Validation errors belong to this editor, not to a different Options page.
-    setError('');
     setEditorOpen(false);
-    setEditingId('');
-    setProxy(emptyEndpoint);
-    setUsername('');
-    setPassword('');
-    setAddressPasteError(false);
+    setEditingEndpoint(undefined);
+    if(saved)setProxyNotice('apProxySavedNotice');
     deepLinkedEditor.current = false;
     editorOriginHash.current = null;
     if (navigation.getRoute() === '#/profiles/add') {
       navigation.navigate(optionsHash('profiles'), { force: true, replace: true });
     }
   }
-  async function requestCloseEditor() {
-    if (busy) return;
-    const environment = getEnvironment();
-    const revision = environment.getDraftRevision('settings-proxy');
-    const generation=editorGeneration.current;
-    if (environment.isDraftDirty('settings-proxy') &&
-      !await confirmIntent(t('apDiscardProxyDraft'))) return;
-    if (!mounted.current||generation!==editorGeneration.current||!environment.setDraftDirty(false,'settings-proxy',revision)) return;
-    closeEditor();
-  }
   function openEditor(endpoint?: ProxyEndpoint) {
-    setProxyNotice('');
+    if(editorOpen)return;
     editorGeneration.current++;
-    setError('');
-    getEnvironment().beginDraft('settings-proxy',state?.configEtag);
+    setProxyNotice('');
     editorOriginHash.current = navigation.getRoute();
-    editorReturnFocus.current = document.activeElement instanceof HTMLElement ? document.activeElement : null;
-    setEditingId(endpoint?.id ?? '');
-    setProxy(endpoint ? {name:endpoint.name,scheme:endpoint.scheme,host:endpoint.host,port:String(endpoint.port)} : emptyEndpoint);
-    // Never expose session credentials in an edit form or export.
-    setUsername('');
-    setPassword('');
-    setAddressPasteError(false);
+    setEditingEndpoint(endpoint);
+    setProxyOpeningEtag(state.configEtag);
     setEditorOpen(true);
-  }
-  function handleProxyPaste(event: React.ClipboardEvent<HTMLInputElement>) {
-    const text = event.clipboardData.getData('text').trim();
-    if (!text.includes(':')) return;
-    const parsed = parseProxyAddressPaste(text);
-    if (parsed) {
-      event.preventDefault();
-      getEnvironment().setDraftDirty(true,'settings-proxy');
-      setProxy(previous => ({...previous,...parsed}));
-      if (parsed.scheme === 'socks4' || parsed.scheme === 'socks5') {
-        // A pasted SOCKS URI changes the draft protocol. Chrome cannot use
-        // HTTP session credentials on SOCKS, so discard only the auth draft.
-        setUsername('');
-        setPassword('');
-      }
-      setAddressPasteError(false);
-    } else if (text.includes('://') || /^\[/.test(text) || /:\d/.test(text)) {
-      event.preventDefault();
-      setAddressPasteError(true);
-    }
   }
   useEffect(() => {
     if (!state) return;
@@ -344,50 +279,6 @@ const tabs: {id:Page; name:string; caption:string}[] = [
     if(config.selection.mode==='profile' && selectedProfile?.kind==='pac-inline' &&
       !await confirmIntent(t('chromeWillRunYourLocalPacScriptAndChange')))return;
     await act({type:'APPLY',approvedPac:selectedProfile?.kind==='pac-inline'});
-  }
-  async function saveProxy(event: React.FormEvent) {
-    event.preventDefault();
-    setProxyNotice('');
-    const draftRevision=getEnvironment().getDraftRevision('settings-proxy');
-    const saveAnother = !editingId && (event.nativeEvent as SubmitEvent).submitter
-      ?.getAttribute('data-add-another') === 'true';
-    if ((username && !password) || (!username && password)) {
-      setErrorKey('enterBothAUsernameAndPasswordTheProxyWas');
-      return;
-    }
-    if ((proxy.scheme === 'socks4' || proxy.scheme === 'socks5') && (username || password)) {
-      setErrorKey('chromeDoesNotSupportSocksUsernamePasswordAuthenticationHere');
-      return;
-    }
-    const existing = endpoints.find(p => p.id === editingId);
-    const httpAuth = proxy.scheme === 'http' || proxy.scheme === 'https';
-    // SET_CREDENTIAL is not wired. Reject before any write rather than leave
-    // a saved endpoint pointing at credentials that were never stored.
-    if (username || password || (httpAuth && existing?.credentialRef)) {
-      setError({
-        'zh-CN': '代理认证尚未接入，代理未保存。全部输入已保留。',
-        'zh-TW': '代理認證尚未接入，代理未儲存。全部輸入已保留。',
-        en: 'Proxy authentication is not connected yet. The proxy was not saved. All inputs have been kept.'
-      }[locale]);
-      return;
-    }
-    if (!isValidProxyPort(proxy.port)) { setErrorKey('errInvalidPort'); return; }
-    const displayName = proxy.name.trim() || (proxy.scheme.toUpperCase() + ' · ' + proxy.host.trim() + ':' + proxy.port);
-    const id = editingId || crypto.randomUUID();
-    const result = await act({type:'SAVE_ENDPOINT', draftScope:'settings-proxy', createProfile:!existing, endpoint:{
-      id,name:displayName,scheme:proxy.scheme,host:proxy.host,port:Number(proxy.port),
-      sourceId:'manual'
-    }});
-    if (!result) return;
-    if(!getEnvironment().setDraftDirty(false,'settings-proxy',draftRevision))return;
-    setProxyNotice('apProxySavedNotice');
-    if (saveAnother) {
-      setEditingId('');
-      setProxy(emptyEndpoint);
-      setUsername('');
-      setPassword('');
-      editorDialog.current?.querySelector<HTMLInputElement>(presentation==='management'?'#ep-name':'#ep-host')?.focus();
-    } else closeEditor();
   }
   async function editPac(profile: Profile) {
     if (profile.kind !== 'pac-inline') return;
@@ -582,47 +473,6 @@ const tabs: {id:Page; name:string; caption:string}[] = [
     const a = document.createElement('a');a.href=href;a.download='ai-proxy-share-v2.json';a.click();
     setTimeout(()=>URL.revokeObjectURL(href),3000);
   }
-  // Shared real controls, separate PC/Side Panel reading order; one business state.
-  const proxyNameControl = (
-    <FormField id="ep-name" className="proxyNameField" label={t('nameOptional')}>
-          {controlProps=><ClearableInput {...controlProps} autoFocus={presentation==='management'} fieldLabel={t('name')} maxLength={80} value={proxy.name}
-             onValueChange={name=>setProxy({...proxy,name})} placeholder={t('eGMyLocalProxy')}/>}</FormField>
-  );
-  const proxySchemeControl = (
-    <div className="proxySchemeField"><label htmlFor="ep-scheme">{t('protocol')}</label>
-            <select id="ep-scheme" value={proxy.scheme}
-              onChange={e=>{
-                const scheme=e.target.value as ProxyScheme;
-                if (scheme.startsWith('socks')) { setUsername(''); setPassword(''); }
-                setProxy({...proxy,scheme});
-              }}>
-              <option value="http">HTTP</option>
-              <option value="https">HTTPS</option>
-              <option value="socks4">SOCKS4</option>
-              <option value="socks5">SOCKS5</option>
-            </select></div>
-  );
-  const proxyHostControl = (
-    <div className="proxyHostField"><label htmlFor="ep-host">{t('host')}</label>
-            <ClearableInput id="ep-host" autoFocus={presentation!=='management'} required fieldLabel={t('host')} value={proxy.host}
-               aria-describedby={addressPasteError?'ep-host-error':undefined}
-               onValueChange={host=>{setProxy({...proxy,host});setAddressPasteError(false);}}
-               onPaste={handleProxyPaste} placeholder={t('127001OrProxyExampleCom')}/>
-             <HostQuickPick value={proxy.host} onChoose={host=>{setProxy({...proxy,host});setAddressPasteError(false);}}/>
-             {addressPasteError&&<small id="ep-host-error" className="proxyEntryError" role="alert">{t('proxyPasteUnsupported')}</small>}
-           </div>
-  );
-  const proxyPortControl = (
-    <div className="proxyPortField"><label htmlFor="ep-port">{t('port')}</label>
-            <ClearableInput id="ep-port" type="number" min={1} max={65535} required fieldLabel={t('port')}
-               aria-invalid={proxy.port!==''&&!isValidProxyPort(proxy.port)}
-               aria-describedby={proxy.port!==''&&!isValidProxyPort(proxy.port)?'ep-port-error':undefined}
-               value={proxy.port} onValueChange={port=>setProxy({...proxy,port})} placeholder="7890"/>
-             <PortQuickPick scheme={proxy.scheme} value={proxy.port} onChoose={port=>setProxy({...proxy,port})}/>
-             {proxy.port!==''&&!isValidProxyPort(proxy.port)&&<small id="ep-port-error" className="proxyEntryError" role="alert">{t('errInvalidPort')}</small>}
-           </div>
-  );
-
   return <main className={'options' + (tab==='subscriptions' ? ' sourcesOptions' : '')}>
     <header className={'optionsHead'+(presentation==='sidebar'&&proxyNotice?' hasProxyFeedback':'')}>
       {presentation==='management'?<div className="managementIdentity">
@@ -1047,51 +897,7 @@ const tabs: {id:Page; name:string; caption:string}[] = [
           chromeApplied={state.runtime.applied} />}
       </section>
     </div>
-    <dialog className="proxyEditorDialog" ref={editorDialog}
-      aria-labelledby="proxy-editor-title"
-      onCancel={e=>{e.preventDefault();void requestCloseEditor();}}
-      onClose={event=>{
-        // A queued close event from the previous opening must not dismiss a
-        // dialog that the user has already reopened.
-        if (event.currentTarget.open||editorSuspended.current) return;
-        if(editorOpen)closeEditor();
-        editorReturnFocus.current?.focus();
-      }}>
-      <form onSubmit={e=>void saveProxy(e)} data-draft-scope="settings-proxy" className="proxyEditorForm">
-        <header className="editorHead"><div><p className="eyebrow">{t('localProxyConfiguration')}</p>
-          <h2 id="proxy-editor-title">{editingId?t('editProxy'):t('addProxy')}</h2></div>
-          <Button type="button" className="proxyIconButton" disabled={busy} onClick={()=>void requestCloseEditor()} title={t('closeProxyEditor')} aria-label={t('closeProxyEditor')}><ProxyIcon name="close"/></Button>
-        </header>
-        <div className="proxyEditorFields">
-        <p className="hint proxyEditorIntro">{t('proxyEditorIntro')}</p>
-        {presentation==='management' && proxyNameControl}
-        <div className="proxyPrimaryFields">
-          {presentation==='management' ? <>{proxySchemeControl}{proxyHostControl}{proxyPortControl}</> : <>{proxyHostControl}{proxySchemeControl}{proxyPortControl}</>}
-        </div>
-        <p className="hint proxyEditorProtocolHelp">{t('proxyEditorProtocolHelp')}</p>
-        {presentation!=='management' && proxyNameControl}
-        <details className="proxyAuthDetails">
-          <summary>{t('proxyEditorAuthOptions')}</summary>
-          <p className="notice">{t('apAuthHelp')}</p>
-          <div className="proxyAuthFields">
-            <div><label htmlFor="ep-username">{t('proxyUsernameOptional')}</label>
-              <ClearableInput id="ep-username" autoComplete="off" fieldLabel={t('proxyUsernameOptional')} value={username}
-                 onValueChange={setUsername} disabled={proxy.scheme.startsWith('socks')}/></div>
-            <div><label htmlFor="ep-password">{t('sessionPasswordNotBackedUp')}</label>
-              <ClearableInput id="ep-password" type="password" revealPassword autoComplete="new-password" fieldLabel={t('sessionPasswordNotBackedUp')} value={password}
-                 onValueChange={setPassword} disabled={proxy.scheme.startsWith('socks')}/></div>
-          </div>
-          <p className="hint">{t('httpSPasswordsAreSessionOnlyChangesToHost')}</p>
-        </details>
-        {error&&<p className="notice error" role="alert">{error}</p>}
-        </div>
-        <footer className="editorActions">
-          <Button type="button" disabled={busy} onClick={()=>void requestCloseEditor()}>{t('cancel')}</Button>
-          <Button variant="primary" className="primary" disabled={busy} type="submit">{editingId?t('saveChanges'):t('saveProxy')}</Button>
-          {!editingId&&<Button type="submit" data-add-another="true" disabled={busy}>{t('proxySaveAndAddAnother')}</Button>}
-        </footer>
-      </form>
-    </dialog>
+    {editorOpen && <ProxyEditor endpoint={editingEndpoint} openingEtag={proxyOpeningEtag} onClose={closeEditor}/>}
   </main>;
 }
 

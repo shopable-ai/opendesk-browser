@@ -6,23 +6,26 @@ import {readFile,writeFile,mkdir} from 'node:fs/promises';
 import {resolve,join} from 'node:path';
 import {createHash} from 'node:crypto';
 import {serializeSidebarToolPackage} from '../../../src/ui/sidebar-tools/package.js';
-const usage='Usage: sidebar-core-chrome.mjs <fresh-owned-output-directory> [--phase panel|review|mounted|core] [--close]';
+const usage='Usage: sidebar-core-chrome.mjs <fresh-owned-output-directory> [--phase panel|review|mounted|core|ui] [--package path] [--static] [--reference path] [--close]';
 if(process.argv.includes('--help')){console.log(usage+'\nDefault: panel, held for leader. Ctrl-C closes owned Chrome. Run after React + Shared UI Preview is stable.');process.exit(0);}
 if(!process.argv[2]||process.argv[2].startsWith('--'))throw Error(usage);
-let phase='panel',keepOpen=true;
+let phase='panel',keepOpen=true,importFile=null,staticBuild=false,referenceFile=null;
 const options=process.argv.slice(3);
 for(let i=0;i<options.length;i++){
  if(options[i]==='--phase')phase=options[++i];
+ else if(options[i]==='--package')importFile=resolve(options[++i]);
+ else if(options[i]==='--static')staticBuild=true;
+ else if(options[i]==='--reference')referenceFile=resolve(options[++i]);
  else if(options[i]==='--close')keepOpen=false;
  else throw Error('Unknown option '+options[i]+'; '+usage);
 }
-if(!['panel','review','mounted','core'].includes(phase))throw Error('Invalid phase '+phase);
+if(!['panel','review','mounted','core','ui'].includes(phase))throw Error('Invalid phase '+phase);
 let stopping=false,releaseHold;
 const stop=()=>{stopping=true;releaseHold?.();};
 process.on('SIGINT',stop);process.on('SIGTERM',stop);
 const out=resolve(process.argv[2]);
 const extension=resolve(process.env.AI_PROXY_EXTENSION||'dist/development');
-const file=resolve('projects/ai-proxy/ai-proxy.opendesk-tool.json');
+const file=importFile||resolve('projects/ai-proxy/ai-proxy.opendesk-tool.json');
 const chrome=process.env.CHROME_BIN||resolve('tests/.cache/m5-browsers/155.0.8059.39/chrome-mac-arm64/Google Chrome for Testing.app/Contents/MacOS/Google Chrome for Testing');
 await mkdir(out,{recursive:true});
 const report={startedAt:new Date().toISOString(),mode:'DEVELOPMENT_CONNECTION_UNVERIFIED',phase,keepOpen,serveConnected:false,extension,profile:join(out,'profile'),sdkMock:false,installation:'NOT_TESTED',core:'NOT_TESTED',steps:[],traffic:[],errors:[]};
@@ -42,24 +45,35 @@ async function click(s,selector){
  const key=isCheck?{key:' ',code:'Space',windowsVirtualKeyCode:32,text:' '}:{key:'Enter',code:'Enter',windowsVirtualKeyCode:13,text:'\r'};
  await call('Input.dispatchKeyEvent',{type:'keyDown',...key},s);await call('Input.dispatchKeyEvent',{type:'keyUp',key:key.key,code:key.code,windowsVirtualKeyCode:key.windowsVirtualKeyCode},s);
 }
-async function fill(selector,value){await until(()=>ev(frame,`(()=>{const e=document.querySelector(${JSON.stringify(selector)});if(!e||!e.getClientRects().length)return false;e.focus();return document.activeElement===e})()`),'field '+selector);await call('Input.dispatchKeyEvent',{type:'keyDown',key:'a',code:'KeyA',modifiers:4,windowsVirtualKeyCode:65},frame);await call('Input.dispatchKeyEvent',{type:'keyUp',key:'a',code:'KeyA',modifiers:4,windowsVirtualKeyCode:65},frame);await call('Input.insertText',{text:value},frame);}
+async function fill(selector,value,s=frame){await until(()=>ev(s,`(()=>{const e=document.querySelector(${JSON.stringify(selector)});if(!e||!e.getClientRects().length)return false;e.focus();return document.activeElement===e})()`),'field '+selector);await call('Input.dispatchKeyEvent',{type:'keyDown',key:'a',code:'KeyA',modifiers:4,windowsVirtualKeyCode:65},s);await call('Input.dispatchKeyEvent',{type:'keyUp',key:'a',code:'KeyA',modifiers:4,windowsVirtualKeyCode:65},s);await call('Input.insertText',{text:value},s);}
 async function native(){return ev(worker,`chrome.proxy.settings.get({incognito:false}).then(r=>({level:r.levelOfControl,mode:r.value?.mode,pacSha:r.value?.pacScript?.data||null}))`);}
-async function screenshot(name){const r=await call('Page.captureScreenshot',{format:'png'},host);await writeFile(join(out,name+'.png'),Buffer.from(r.data,'base64'));}
-async function key(key,code=key,extra={}){await call('Input.dispatchKeyEvent',{type:'keyDown',key,code,...extra},host);await call('Input.dispatchKeyEvent',{type:'keyUp',key,code,...extra},host);}
-async function choose(selector,value){
- const index=await ev(host,`(()=>{const e=document.querySelector(${JSON.stringify(selector)});e.focus();return [...e.options].findIndex(o=>o.value===${JSON.stringify(value)})})()`);
- assert(index>=0);await key('Home','Home');for(let i=0;i<index;i++)await key('ArrowDown','ArrowDown');await key('Tab','Tab',{windowsVirtualKeyCode:9});
- assert.equal(await ev(host,`document.querySelector(${JSON.stringify(selector)}).value`),value);
+async function screenshot(name,s=host){const r=await call('Page.captureScreenshot',{format:'png',captureBeyondViewport:false},s);await writeFile(join(out,name+'.png'),Buffer.from(r.data,'base64'));}
+async function key(key,code=key,extra={},s=host){await call('Input.dispatchKeyEvent',{type:'keyDown',key,code,...extra},s);await call('Input.dispatchKeyEvent',{type:'keyUp',key,code,...extra},s);}
+async function choose(selector,value,s=host){
+ // Equivalent to browser automation selectOption: exercise the real control's
+ // input/change handlers, without writing application state or installation data.
+ await until(()=>ev(s,`(()=>{const e=document.querySelector(${JSON.stringify(selector)});if(!e||e.disabled||!e.getClientRects().length)return false;if(![...e.options].some(o=>o.value===${JSON.stringify(value)}))throw Error('Missing option');e.focus();Object.getOwnPropertyDescriptor(HTMLSelectElement.prototype,'value').set.call(e,${JSON.stringify(value)});e.dispatchEvent(new Event('input',{bubbles:true}));e.dispatchEvent(new Event('change',{bubbles:true}));return true})()`),'select '+selector);
+ await until(()=>ev(s,`document.querySelector(${JSON.stringify(selector)}).value===${JSON.stringify(value)}`),'selected '+value);
 }
-async function textButton(text,scope='.proxy-app'){
- const point=await until(()=>ev(host,`(()=>{const e=[...document.querySelectorAll(${JSON.stringify(scope+' button')})].find(e=>e.textContent.trim()===${JSON.stringify(text)}&&!e.disabled&&e.getClientRects().length);if(!e)return;e.scrollIntoView({block:'center'});const r=e.getBoundingClientRect();return {x:r.x+r.width/2,y:r.y+r.height/2}})()`),'button '+text);
- await call('Input.dispatchMouseEvent',{type:'mousePressed',button:'left',clickCount:1,...point},host);await call('Input.dispatchMouseEvent',{type:'mouseReleased',button:'left',clickCount:1,...point},host);
+async function textButton(text,scope='.proxy-app',s=host){
+ const point=await until(()=>ev(s,`(()=>{const e=[...document.querySelectorAll(${JSON.stringify(scope+' button')})].find(e=>e.textContent.trim()===${JSON.stringify(text)}&&!e.disabled&&e.getClientRects().length);if(!e)return;e.scrollIntoView({block:'center'});const r=e.getBoundingClientRect();return {x:r.x+r.width/2,y:r.y+r.height/2}})()`),'button '+text);
+ await call('Input.dispatchMouseEvent',{type:'mousePressed',button:'left',clickCount:1,...point},s);await call('Input.dispatchMouseEvent',{type:'mouseReleased',button:'left',clickCount:1,...point},s);
 }
 // DetailActions uses IconButton.label = action label + product title.
 const installEntry='#extension-center-detail button[data-ec-detail-action="install"][aria-label="审阅并安装「AI Proxy」"]';
 async function openOfficialReview(){
+ if(importFile){
+  if(!await ev(host,'!!document.querySelector("#extension-center-import")?.getClientRects().length'))await click(host,'#extension-center-more');
+  await click(host,'#extension-center-import');
+  await call('DOM.enable',{},host);
+  const root=(await call('DOM.getDocument',{depth:1},host)).root;
+  const input=await call('DOM.querySelector',{nodeId:root.nodeId,selector:'#sidebar-tool-file'},host);
+  assert(input.nodeId,'existing product package input');
+  await call('DOM.setFileInputFiles',{nodeId:input.nodeId,files:[file]},host);
+ }else{
  await click(host,row);
  if(!await ev(host,'!!document.querySelector("#sidebar-tool-preview")?.getClientRects().length'))await click(host,installEntry);
+ }
  await until(()=>ev(host,'!!document.querySelector("#sidebar-tool-preview")?.getClientRects().length&&!document.querySelector("#sidebar-tool-install")?.disabled'),'official review');
  report.installReview=await ev(host,'document.querySelector("#sidebar-tool-preview")?.innerText');
 }
@@ -69,12 +83,14 @@ async function storedConfig(){return ev(worker,`chrome.storage.local.get(null).t
 try{
  workflow:{
  const catalog=JSON.parse(await readFile(join(extension,'official-tools/catalog.json'),'utf8'));
- const release=catalog.apps.find(row=>row.toolId==='ai-proxy');assert(release,'development official release');
- const packageBytes=await readFile(join(extension,release.packagePath));
- assert.equal(sha(packageBytes),release.sha256,'development release hash');
- const pkg=JSON.parse(packageBytes);report.package={id:pkg.id,version:pkg.version,sha256:sha(packageBytes),path:join(extension,release.packagePath)};
+ const release=catalog.apps.find(row=>row.toolId==='ai-proxy');assert(importFile||release,'development official release or explicit local review package');
+ const packagePath=importFile||join(extension,release.packagePath);
+ const packageBytes=await readFile(packagePath);
+ if(!importFile)assert.equal(sha(packageBytes),release.sha256,'development release hash');
+ const pkg=JSON.parse(packageBytes);report.package={id:pkg.id,version:pkg.version,sha256:sha(packageBytes),path:packagePath,source:importFile?'LOCAL_REVIEW':'OFFICIAL_CATALOG'};
  report.formalPackage={path:file,sha256:sha(await readFile(file)),matchesDevelopment:sha(await readFile(file))===sha(packageBytes)};
- const update=JSON.parse(await readFile(join(extension,'development-update.json'),'utf8'));report.build=update;
+ report.build=staticBuild?{mode:'STATIC_CANDIDATE',serveConnected:false}:
+  JSON.parse(await readFile(join(extension,'development-update.json'),'utf8'));
  report.hostServiceWorkerSha256=sha(await readFile(join(extension,'sw.js')));
  // A fresh owned Profile prevents stale endpoints and mixed installation evidence.
  try{await readFile(join(report.profile,'DevToolsActivePort'));throw Error('Profile already used; choose a fresh output directory');}catch(e){if(e.code!=='ENOENT')throw e;}
@@ -99,21 +115,27 @@ try{
  const context=await until(()=>ev(boot,'chrome.runtime.getContexts({contextTypes:["SIDE_PANEL"]}).then(xs=>xs.find(x=>x.documentUrl.includes("hostInstanceId")))'),'genuine SIDE_PANEL');report.sidePanelContext=context.contextType;report.sidePanel=context;
  const panel=await until(async()=>(await call('Target.getTargets')).targetInfos.find(t=>t.url===context.documentUrl),'panel target');report.sidePanelTargetId=panel.targetId;host=await attach(panel.targetId);frame=host;await call('Page.enable',{},host);
  await until(()=>ev(host,'!!document.querySelector("#extension-center-more")&&!document.querySelector("#tab-tools")?.disabled'),'extension center');await click(host,'#tab-tools');
- report.developmentStatus=await until(()=>ev(host,'[...document.querySelectorAll("body *")].filter(e=>e.childElementCount===0).map(e=>e.textContent).find(x=>x.includes("开发服务已连接"))'),'serve connection');report.serveConnected=true;report.mode='CONTINUOUS_DEVELOPMENT';
+ if(staticBuild){report.mode='STATIC_CANDIDATE';report.serveConnected=false;}
+ else{report.developmentStatus=await until(()=>ev(host,'[...document.querySelectorAll("body *")].filter(e=>e.childElementCount===0).map(e=>e.textContent).find(x=>x.includes("开发服务已连接"))'),'serve connection');report.serveConnected=true;report.mode='CONTINUOUS_DEVELOPMENT';}
  report.trustedUI=await observeMount();
  await step('REAL_SIDE_PANEL_READY',{extensionId,extension,loadedExtension:report.loadedExtension,extensionPathEvidence:report.extensionPathEvidence,serveConnected:report.serveConnected,developmentStatus:report.developmentStatus,sidePanel:report.sidePanel,cdp:report.cdp,trustedUI:report.trustedUI});
  if(phase==='panel')break workflow;
- await click(host,'#extension-center-more');await click(host,'[data-ec-scope="available"]');
+ if(!importFile){await click(host,'#extension-center-more');await click(host,'[data-ec-scope="available"]');}
  await openOfficialReview();await step('OFFICIAL_REVIEW_VISIBLE',{review:report.installReview});
  if(phase==='review')break workflow;
  await click(host,'#sidebar-tool-import-close');assert.equal(await ev(worker,'chrome.storage.local.get("opendesk.sidebar-tools.installed.v1").then(x=>(x["opendesk.sidebar-tools.installed.v1"]||[]).some(t=>t.id==="ai-proxy"))'),false);await step('INSTALL_CANCEL_HAS_NO_RECORD');
  await openOfficialReview();await click(host,'#sidebar-tool-install');
  const installed=await until(()=>ev(worker,'chrome.storage.local.get("opendesk.sidebar-tools.installed.v1").then(x=>(x["opendesk.sidebar-tools.installed.v1"]||[]).find(t=>t.id==="ai-proxy"&&t.version==='+JSON.stringify(pkg.version)+'))'),'durable official install');
- assert.equal(sha(Buffer.from(serializeSidebarToolPackage(installed))),report.package.sha256);report.installation='PASS';await step('INSTALLED_OFFICIAL_CURRENT_BYTES');
+ assert.equal(sha(Buffer.from(serializeSidebarToolPackage(installed))),report.package.sha256);report.installation='PASS';await step(importFile?'INSTALLED_LOCAL_REVIEW_CURRENT_BYTES':'INSTALLED_OFFICIAL_CURRENT_BYTES');
  await click(host,'#extension-center-more');await click(host,'[data-ec-scope="smart"]');
  await click(host,row);await until(()=>ev(host,'!!document.querySelector("[data-ai-proxy-trusted=true] #proxy-ready")'),'trusted full UI ready');assert.equal(await ev(host,'document.querySelectorAll("[data-ai-proxy-trusted=true] iframe").length'),0);report.trustedUI=await observeMount();assert.equal(report.trustedUI.rootCount,1);
  await step('TRUSTED_SINGLE_ROOT_READY',{trustedUI:report.trustedUI});
  if(phase==='mounted'){await screenshot('mounted');break workflow;}
+ if(phase==='ui'){
+  const {auditUI}=await import('./ui-alignment-chrome.mjs');
+  report.ui=await auditUI({call,attach,ev,host,worker,extensionId,out,until,click,fill,key,choose,textButton,screenshot,native,referenceFile});
+  await step('UI_AUDIT_COMPLETE',{result:report.ui.status});break workflow;
+ }
  const baseline=await native();report.baseline=baseline;await screenshot('01-main');
  await click(host,'.proxy-app button[aria-label="打开设置"]');await until(()=>ev(host,'!!document.querySelector(".options nav [data-page=profiles]")'),'settings seven sections');
  await textButton('＋ 添加代理');await fill('#ep-host','first-entry.example.com');assert.equal(await ev(host,'document.querySelector("#ep-host").value'),'first-entry.example.com');await fill('#ep-port','8443');await choose('#ep-scheme','https');await fill('#ep-name','Sidebar core proxy');await click(host,'.proxyEditorForm button[type=submit]:not([data-add-another])');

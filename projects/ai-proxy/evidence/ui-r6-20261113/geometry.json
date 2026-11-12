@@ -1,0 +1,2380 @@
+{
+  "reference": {
+    "viewport": [
+      1440,
+      1000
+    ],
+    "elements": [
+      {
+        "sel": "dialog[open],.modal--proxy",
+        "rect": {
+          "x": 440,
+          "y": 276.296875,
+          "width": 560,
+          "height": 447.40625
+        },
+        "style": {
+          "padding": "24px 28px 22px",
+          "borderRadius": "16px",
+          "fontSize": "13px",
+          "lineHeight": "19.24px",
+          "gap": "normal",
+          "backgroundColor": "rgb(255, 255, 255)",
+          "color": "rgb(30, 41, 59)"
+        }
+      },
+      {
+        "sel": "#ep-name,input[name=name]",
+        "rect": {
+          "x": 469,
+          "y": 381.4921875,
+          "width": 502,
+          "height": 42
+        },
+        "style": {
+          "padding": "9px 11px",
+          "borderRadius": "8px",
+          "fontSize": "13.5px",
+          "lineHeight": "19.575px",
+          "gap": "normal",
+          "backgroundColor": "rgb(255, 255, 255)",
+          "color": "rgb(38, 51, 70)"
+        }
+      },
+      {
+        "sel": "#ep-scheme,select[name=scheme]",
+        "rect": {
+          "x": 469,
+          "y": 465.6875,
+          "width": 114,
+          "height": 42
+        },
+        "style": {
+          "padding": "9px 11px",
+          "borderRadius": "8px",
+          "fontSize": "13.5px",
+          "lineHeight": "normal",
+          "gap": "normal",
+          "backgroundColor": "rgb(255, 255, 255)",
+          "color": "rgb(38, 51, 70)"
+        }
+      },
+      {
+        "sel": "#ep-host,input[name=host]",
+        "rect": {
+          "x": 594,
+          "y": 465.6875,
+          "width": 271,
+          "height": 42
+        },
+        "style": {
+          "padding": "9px 11px",
+          "borderRadius": "8px",
+          "fontSize": "13.5px",
+          "lineHeight": "19.575px",
+          "gap": "normal",
+          "backgroundColor": "rgb(255, 255, 255)",
+          "color": "rgb(38, 51, 70)"
+        }
+      },
+      {
+        "sel": "#ep-port,input[name=port]",
+        "rect": {
+          "x": 876,
+          "y": 465.6875,
+          "width": 95,
+          "height": 42
+        },
+        "style": {
+          "padding": "9px 11px",
+          "borderRadius": "8px",
+          "fontSize": "13.5px",
+          "lineHeight": "19.575px",
+          "gap": "normal",
+          "backgroundColor": "rgb(255, 255, 255)",
+          "color": "rgb(38, 51, 70)"
+        }
+      }
+    ]
+  },
+  "before": {
+    "viewport": [
+      1440,
+      1000
+    ],
+    "elements": [
+      {
+        "sel": "dialog[open],.modal--proxy",
+        "rect": {
+          "x": 440,
+          "y": 292.8984375,
+          "width": 560,
+          "height": 414.1953125
+        },
+        "style": {
+          "padding": "0px",
+          "borderRadius": "12px",
+          "fontSize": "13px",
+          "lineHeight": "19.5px",
+          "gap": "normal",
+          "backgroundColor": "rgb(255, 255, 255)",
+          "color": "rgb(27, 44, 73)"
+        }
+      },
+      {
+        "sel": "#ep-name,input[name=name]",
+        "rect": {
+          "x": 463,
+          "y": 393.8984375,
+          "width": 514,
+          "height": 40
+        },
+        "style": {
+          "padding": "8px 35px 8px 10px",
+          "borderRadius": "8px",
+          "fontSize": "13px",
+          "lineHeight": "19.5px",
+          "gap": "normal",
+          "backgroundColor": "rgb(255, 255, 255)",
+          "color": "rgb(27, 44, 73)"
+        }
+      },
+      {
+        "sel": "#ep-scheme,select[name=scheme]",
+        "rect": {
+          "x": 463,
+          "y": 473.8984375,
+          "width": 96,
+          "height": 40
+        },
+        "style": {
+          "padding": "8px 20px 8px 8px",
+          "borderRadius": "8px",
+          "fontSize": "13px",
+          "lineHeight": "normal",
+          "gap": "normal",
+          "backgroundColor": "rgb(255, 255, 255)",
+          "color": "rgb(27, 44, 73)"
+        }
+      },
+      {
+        "sel": "#ep-host,input[name=host]",
+        "rect": {
+          "x": 567,
+          "y": 473.8984375,
+          "width": 322,
+          "height": 40
+        },
+        "style": {
+          "padding": "8px 35px 8px 10px",
+          "borderRadius": "8px",
+          "fontSize": "13px",
+          "lineHeight": "19.5px",
+          "gap": "normal",
+          "backgroundColor": "rgb(255, 255, 255)",
+          "color": "rgb(27, 44, 73)"
+        }
+      },
+      {
+        "sel": "#ep-port,input[name=port]",
+        "rect": {
+          "x": 897,
+          "y": 473.8984375,
+          "width": 80,
+          "height": 40
+        },
+        "style": {
+          "padding": "8px 35px 8px 10px",
+          "borderRadius": "8px",
+          "fontSize": "13px",
+          "lineHeight": "19.5px",
+          "gap": "normal",
+          "backgroundColor": "rgb(255, 255, 255)",
+          "color": "rgb(27, 44, 73)"
+        }
+      }
+    ]
+  },
+  "after": {
+    "url": "chrome-extension://ddlligkamjbhkgodfmfioajokfbmnaip/app.html?hostInstanceId=89d7ed01-23d1-44b3-bac0-de303658b7ec&toolId=ai-proxy&view=settings&section=profiles",
+    "viewport": [
+      1440,
+      1000
+    ],
+    "overflow": false,
+    "app": {
+      "x": 0,
+      "y": 47.5,
+      "width": 1440,
+      "height": 952.5
+    },
+    "modal": {
+      "rect": {
+        "x": 440,
+        "y": 271.3984375,
+        "width": 560,
+        "height": 457.1953125
+      },
+      "style": {
+        "display": "block",
+        "gridTemplateColumns": "none",
+        "gap": "normal",
+        "padding": "0px",
+        "fontSize": "13px",
+        "lineHeight": "19.5px",
+        "borderRadius": "16px",
+        "backgroundColor": "rgb(255, 255, 255)",
+        "color": "rgb(27, 44, 73)"
+      }
+    },
+    "fields": [
+      {
+        "tag": "BUTTON",
+        "id": "",
+        "type": "button",
+        "text": "",
+        "aria": "关闭代理编辑",
+        "rect": {
+          "x": 937,
+          "y": 296.3984375,
+          "width": 34,
+          "height": 34
+        },
+        "style": {
+          "display": "flex",
+          "gridTemplateColumns": "none",
+          "gap": "normal",
+          "padding": "0px",
+          "fontSize": "13px",
+          "lineHeight": "17.55px",
+          "borderRadius": "8px",
+          "backgroundColor": "rgba(0, 0, 0, 0)",
+          "color": "rgb(95, 111, 134)"
+        }
+      },
+      {
+        "tag": "LABEL",
+        "id": "",
+        "text": "配置名称（可选）",
+        "aria": null,
+        "rect": {
+          "x": 469,
+          "y": 354.3984375,
+          "width": 502,
+          "height": 18
+        },
+        "style": {
+          "display": "block",
+          "gridTemplateColumns": "none",
+          "gap": "normal",
+          "padding": "0px",
+          "fontSize": "12px",
+          "lineHeight": "18px",
+          "borderRadius": "0px",
+          "backgroundColor": "rgba(0, 0, 0, 0)",
+          "color": "rgb(27, 44, 73)"
+        }
+      },
+      {
+        "tag": "INPUT",
+        "id": "ep-name",
+        "type": "text",
+        "aria": null,
+        "rect": {
+          "x": 469,
+          "y": 379.3984375,
+          "width": 502,
+          "height": 42
+        },
+        "style": {
+          "display": "block",
+          "gridTemplateColumns": "none",
+          "gap": "normal",
+          "padding": "8px 10px",
+          "fontSize": "13.5px",
+          "lineHeight": "20.25px",
+          "borderRadius": "8px",
+          "backgroundColor": "rgb(255, 255, 255)",
+          "color": "rgb(27, 44, 73)"
+        }
+      },
+      {
+        "tag": "LABEL",
+        "id": "",
+        "text": "协议",
+        "aria": null,
+        "rect": {
+          "x": 469,
+          "y": 440.3984375,
+          "width": 114,
+          "height": 18
+        },
+        "style": {
+          "display": "block",
+          "gridTemplateColumns": "none",
+          "gap": "normal",
+          "padding": "0px",
+          "fontSize": "12px",
+          "lineHeight": "18px",
+          "borderRadius": "0px",
+          "backgroundColor": "rgba(0, 0, 0, 0)",
+          "color": "rgb(27, 44, 73)"
+        }
+      },
+      {
+        "tag": "SELECT",
+        "id": "ep-scheme",
+        "type": "select-one",
+        "aria": null,
+        "rect": {
+          "x": 469,
+          "y": 465.3984375,
+          "width": 114,
+          "height": 42
+        },
+        "style": {
+          "display": "block",
+          "gridTemplateColumns": "none",
+          "gap": "normal",
+          "padding": "8px 20px 8px 8px",
+          "fontSize": "13.5px",
+          "lineHeight": "normal",
+          "borderRadius": "8px",
+          "backgroundColor": "rgb(255, 255, 255)",
+          "color": "rgb(27, 44, 73)"
+        }
+      },
+      {
+        "tag": "LABEL",
+        "id": "",
+        "text": "服务器地址",
+        "aria": null,
+        "rect": {
+          "x": 594,
+          "y": 440.3984375,
+          "width": 271,
+          "height": 18
+        },
+        "style": {
+          "display": "block",
+          "gridTemplateColumns": "none",
+          "gap": "normal",
+          "padding": "0px",
+          "fontSize": "12px",
+          "lineHeight": "18px",
+          "borderRadius": "0px",
+          "backgroundColor": "rgba(0, 0, 0, 0)",
+          "color": "rgb(27, 44, 73)"
+        }
+      },
+      {
+        "tag": "INPUT",
+        "id": "ep-host",
+        "type": "text",
+        "aria": null,
+        "rect": {
+          "x": 594,
+          "y": 465.3984375,
+          "width": 271,
+          "height": 42
+        },
+        "style": {
+          "display": "block",
+          "gridTemplateColumns": "none",
+          "gap": "normal",
+          "padding": "8px 10px",
+          "fontSize": "13.5px",
+          "lineHeight": "20.25px",
+          "borderRadius": "8px",
+          "backgroundColor": "rgb(255, 255, 255)",
+          "color": "rgb(27, 44, 73)"
+        }
+      },
+      {
+        "tag": "LABEL",
+        "id": "",
+        "text": "端口",
+        "aria": null,
+        "rect": {
+          "x": 876,
+          "y": 440.3984375,
+          "width": 95,
+          "height": 18
+        },
+        "style": {
+          "display": "block",
+          "gridTemplateColumns": "none",
+          "gap": "normal",
+          "padding": "0px",
+          "fontSize": "12px",
+          "lineHeight": "18px",
+          "borderRadius": "0px",
+          "backgroundColor": "rgba(0, 0, 0, 0)",
+          "color": "rgb(27, 44, 73)"
+        }
+      },
+      {
+        "tag": "INPUT",
+        "id": "ep-port",
+        "type": "number",
+        "aria": null,
+        "rect": {
+          "x": 876,
+          "y": 465.3984375,
+          "width": 95,
+          "height": 42
+        },
+        "style": {
+          "display": "block",
+          "gridTemplateColumns": "none",
+          "gap": "normal",
+          "padding": "8px 10px",
+          "fontSize": "13.5px",
+          "lineHeight": "20.25px",
+          "borderRadius": "8px",
+          "backgroundColor": "rgb(255, 255, 255)",
+          "color": "rgb(27, 44, 73)"
+        }
+      },
+      {
+        "tag": "LABEL",
+        "id": "",
+        "text": "用户名（可选）",
+        "aria": null,
+        "rect": {
+          "x": 469,
+          "y": 526.3984375,
+          "width": 245.5,
+          "height": 18
+        },
+        "style": {
+          "display": "block",
+          "gridTemplateColumns": "none",
+          "gap": "normal",
+          "padding": "0px",
+          "fontSize": "12px",
+          "lineHeight": "18px",
+          "borderRadius": "0px",
+          "backgroundColor": "rgba(0, 0, 0, 0)",
+          "color": "rgb(27, 44, 73)"
+        }
+      },
+      {
+        "tag": "INPUT",
+        "id": "ep-username",
+        "type": "text",
+        "aria": null,
+        "rect": {
+          "x": 469,
+          "y": 551.3984375,
+          "width": 245.5,
+          "height": 42
+        },
+        "style": {
+          "display": "block",
+          "gridTemplateColumns": "none",
+          "gap": "normal",
+          "padding": "8px 10px",
+          "fontSize": "13.5px",
+          "lineHeight": "20.25px",
+          "borderRadius": "8px",
+          "backgroundColor": "rgb(255, 255, 255)",
+          "color": "rgb(27, 44, 73)"
+        }
+      },
+      {
+        "tag": "LABEL",
+        "id": "",
+        "text": "密码（可选）",
+        "aria": null,
+        "rect": {
+          "x": 725.5,
+          "y": 526.3984375,
+          "width": 245.5,
+          "height": 18
+        },
+        "style": {
+          "display": "block",
+          "gridTemplateColumns": "none",
+          "gap": "normal",
+          "padding": "0px",
+          "fontSize": "12px",
+          "lineHeight": "18px",
+          "borderRadius": "0px",
+          "backgroundColor": "rgba(0, 0, 0, 0)",
+          "color": "rgb(27, 44, 73)"
+        }
+      },
+      {
+        "tag": "INPUT",
+        "id": "ep-password",
+        "type": "password",
+        "aria": null,
+        "rect": {
+          "x": 725.5,
+          "y": 551.3984375,
+          "width": 245.5,
+          "height": 42
+        },
+        "style": {
+          "display": "block",
+          "gridTemplateColumns": "none",
+          "gap": "normal",
+          "padding": "8px 35px 8px 10px",
+          "fontSize": "13.5px",
+          "lineHeight": "20.25px",
+          "borderRadius": "8px",
+          "backgroundColor": "rgb(255, 255, 255)",
+          "color": "rgb(27, 44, 73)"
+        }
+      },
+      {
+        "tag": "BUTTON",
+        "id": "",
+        "type": "button",
+        "text": "",
+        "aria": "显示密码",
+        "rect": {
+          "x": 942,
+          "y": 559.8984375,
+          "width": 25,
+          "height": 25
+        },
+        "style": {
+          "display": "grid",
+          "gridTemplateColumns": "16px",
+          "gap": "normal",
+          "padding": "0px",
+          "fontSize": "13px",
+          "lineHeight": "17.55px",
+          "borderRadius": "6px",
+          "backgroundColor": "rgba(0, 0, 0, 0)",
+          "color": "rgb(95, 111, 134)"
+        }
+      },
+      {
+        "tag": "BUTTON",
+        "id": "",
+        "type": "button",
+        "text": "取消",
+        "aria": null,
+        "rect": {
+          "x": 837,
+          "y": 665.59375,
+          "width": 62,
+          "height": 40
+        },
+        "style": {
+          "display": "block",
+          "gridTemplateColumns": "none",
+          "gap": "normal",
+          "padding": "9px 17px",
+          "fontSize": "13px",
+          "lineHeight": "17.55px",
+          "borderRadius": "8px",
+          "backgroundColor": "rgb(255, 255, 255)",
+          "color": "rgb(30, 41, 59)"
+        }
+      },
+      {
+        "tag": "BUTTON",
+        "id": "",
+        "type": "submit",
+        "text": "保存",
+        "aria": null,
+        "rect": {
+          "x": 909,
+          "y": 665.59375,
+          "width": 62,
+          "height": 40
+        },
+        "style": {
+          "display": "block",
+          "gridTemplateColumns": "none",
+          "gap": "normal",
+          "padding": "9px 17px",
+          "fontSize": "13px",
+          "lineHeight": "17.55px",
+          "borderRadius": "8px",
+          "backgroundColor": "rgb(54, 93, 213)",
+          "color": "rgb(255, 255, 255)"
+        }
+      }
+    ]
+  },
+  "narrowAfter": {
+    "side-add-light-430": {
+      "url": "chrome-extension://ddlligkamjbhkgodfmfioajokfbmnaip/sidepanel.html?hostInstanceId=209697ed-707e-4f76-ab44-392cb783541c",
+      "viewport": [
+        430,
+        1000
+      ],
+      "overflow": false,
+      "app": {
+        "x": 0,
+        "y": 94,
+        "width": 430,
+        "height": 906
+      },
+      "modal": {
+        "rect": {
+          "x": 12,
+          "y": 277.3984375,
+          "width": 406,
+          "height": 445.1953125
+        },
+        "style": {
+          "display": "block",
+          "gridTemplateColumns": "none",
+          "gap": "normal",
+          "padding": "0px",
+          "fontSize": "13px",
+          "lineHeight": "19.5px",
+          "borderRadius": "16px",
+          "backgroundColor": "rgb(255, 255, 255)",
+          "color": "rgb(27, 44, 73)"
+        }
+      },
+      "fields": [
+        {
+          "tag": "BUTTON",
+          "id": "",
+          "type": "button",
+          "text": "",
+          "aria": "关闭代理编辑",
+          "rect": {
+            "x": 367,
+            "y": 296.3984375,
+            "width": 34,
+            "height": 34
+          },
+          "style": {
+            "display": "flex",
+            "gridTemplateColumns": "none",
+            "gap": "normal",
+            "padding": "0px",
+            "fontSize": "13px",
+            "lineHeight": "17.55px",
+            "borderRadius": "8px",
+            "backgroundColor": "rgba(0, 0, 0, 0)",
+            "color": "rgb(91, 110, 134)"
+          }
+        },
+        {
+          "tag": "LABEL",
+          "id": "",
+          "text": "配置名称（可选）",
+          "aria": null,
+          "rect": {
+            "x": 29,
+            "y": 348.3984375,
+            "width": 372,
+            "height": 18
+          },
+          "style": {
+            "display": "block",
+            "gridTemplateColumns": "none",
+            "gap": "normal",
+            "padding": "0px",
+            "fontSize": "12px",
+            "lineHeight": "18px",
+            "borderRadius": "0px",
+            "backgroundColor": "rgba(0, 0, 0, 0)",
+            "color": "rgb(27, 44, 73)"
+          }
+        },
+        {
+          "tag": "INPUT",
+          "id": "ep-name",
+          "type": "text",
+          "aria": null,
+          "rect": {
+            "x": 29,
+            "y": 373.3984375,
+            "width": 372,
+            "height": 42
+          },
+          "style": {
+            "display": "block",
+            "gridTemplateColumns": "none",
+            "gap": "normal",
+            "padding": "8px 10px",
+            "fontSize": "13.5px",
+            "lineHeight": "20.25px",
+            "borderRadius": "8px",
+            "backgroundColor": "rgb(255, 255, 255)",
+            "color": "rgb(27, 44, 73)"
+          }
+        },
+        {
+          "tag": "LABEL",
+          "id": "",
+          "text": "协议",
+          "aria": null,
+          "rect": {
+            "x": 29,
+            "y": 434.3984375,
+            "width": 104,
+            "height": 18
+          },
+          "style": {
+            "display": "block",
+            "gridTemplateColumns": "none",
+            "gap": "normal",
+            "padding": "0px",
+            "fontSize": "12px",
+            "lineHeight": "18px",
+            "borderRadius": "0px",
+            "backgroundColor": "rgba(0, 0, 0, 0)",
+            "color": "rgb(27, 44, 73)"
+          }
+        },
+        {
+          "tag": "SELECT",
+          "id": "ep-scheme",
+          "type": "select-one",
+          "aria": null,
+          "rect": {
+            "x": 29,
+            "y": 459.3984375,
+            "width": 104,
+            "height": 42
+          },
+          "style": {
+            "display": "block",
+            "gridTemplateColumns": "none",
+            "gap": "normal",
+            "padding": "8px 20px 8px 8px",
+            "fontSize": "13.5px",
+            "lineHeight": "normal",
+            "borderRadius": "8px",
+            "backgroundColor": "rgb(255, 255, 255)",
+            "color": "rgb(27, 44, 73)"
+          }
+        },
+        {
+          "tag": "LABEL",
+          "id": "",
+          "text": "服务器地址",
+          "aria": null,
+          "rect": {
+            "x": 141,
+            "y": 434.3984375,
+            "width": 172,
+            "height": 18
+          },
+          "style": {
+            "display": "block",
+            "gridTemplateColumns": "none",
+            "gap": "normal",
+            "padding": "0px",
+            "fontSize": "12px",
+            "lineHeight": "18px",
+            "borderRadius": "0px",
+            "backgroundColor": "rgba(0, 0, 0, 0)",
+            "color": "rgb(27, 44, 73)"
+          }
+        },
+        {
+          "tag": "INPUT",
+          "id": "ep-host",
+          "type": "text",
+          "aria": null,
+          "rect": {
+            "x": 141,
+            "y": 459.3984375,
+            "width": 172,
+            "height": 42
+          },
+          "style": {
+            "display": "block",
+            "gridTemplateColumns": "none",
+            "gap": "normal",
+            "padding": "8px 10px",
+            "fontSize": "13.5px",
+            "lineHeight": "20.25px",
+            "borderRadius": "8px",
+            "backgroundColor": "rgb(255, 255, 255)",
+            "color": "rgb(27, 44, 73)"
+          }
+        },
+        {
+          "tag": "LABEL",
+          "id": "",
+          "text": "端口",
+          "aria": null,
+          "rect": {
+            "x": 321,
+            "y": 434.3984375,
+            "width": 80,
+            "height": 18
+          },
+          "style": {
+            "display": "block",
+            "gridTemplateColumns": "none",
+            "gap": "normal",
+            "padding": "0px",
+            "fontSize": "12px",
+            "lineHeight": "18px",
+            "borderRadius": "0px",
+            "backgroundColor": "rgba(0, 0, 0, 0)",
+            "color": "rgb(27, 44, 73)"
+          }
+        },
+        {
+          "tag": "INPUT",
+          "id": "ep-port",
+          "type": "number",
+          "aria": null,
+          "rect": {
+            "x": 321,
+            "y": 459.3984375,
+            "width": 80,
+            "height": 42
+          },
+          "style": {
+            "display": "block",
+            "gridTemplateColumns": "none",
+            "gap": "normal",
+            "padding": "8px 10px",
+            "fontSize": "13.5px",
+            "lineHeight": "20.25px",
+            "borderRadius": "8px",
+            "backgroundColor": "rgb(255, 255, 255)",
+            "color": "rgb(27, 44, 73)"
+          }
+        },
+        {
+          "tag": "LABEL",
+          "id": "",
+          "text": "用户名（可选）",
+          "aria": null,
+          "rect": {
+            "x": 29,
+            "y": 520.3984375,
+            "width": 180.5,
+            "height": 18
+          },
+          "style": {
+            "display": "block",
+            "gridTemplateColumns": "none",
+            "gap": "normal",
+            "padding": "0px",
+            "fontSize": "12px",
+            "lineHeight": "18px",
+            "borderRadius": "0px",
+            "backgroundColor": "rgba(0, 0, 0, 0)",
+            "color": "rgb(27, 44, 73)"
+          }
+        },
+        {
+          "tag": "INPUT",
+          "id": "ep-username",
+          "type": "text",
+          "aria": null,
+          "rect": {
+            "x": 29,
+            "y": 545.3984375,
+            "width": 180.5,
+            "height": 42
+          },
+          "style": {
+            "display": "block",
+            "gridTemplateColumns": "none",
+            "gap": "normal",
+            "padding": "8px 10px",
+            "fontSize": "13.5px",
+            "lineHeight": "20.25px",
+            "borderRadius": "8px",
+            "backgroundColor": "rgb(255, 255, 255)",
+            "color": "rgb(27, 44, 73)"
+          }
+        },
+        {
+          "tag": "LABEL",
+          "id": "",
+          "text": "密码（可选）",
+          "aria": null,
+          "rect": {
+            "x": 220.5,
+            "y": 520.3984375,
+            "width": 180.5,
+            "height": 18
+          },
+          "style": {
+            "display": "block",
+            "gridTemplateColumns": "none",
+            "gap": "normal",
+            "padding": "0px",
+            "fontSize": "12px",
+            "lineHeight": "18px",
+            "borderRadius": "0px",
+            "backgroundColor": "rgba(0, 0, 0, 0)",
+            "color": "rgb(27, 44, 73)"
+          }
+        },
+        {
+          "tag": "INPUT",
+          "id": "ep-password",
+          "type": "password",
+          "aria": null,
+          "rect": {
+            "x": 220.5,
+            "y": 545.3984375,
+            "width": 180.5,
+            "height": 42
+          },
+          "style": {
+            "display": "block",
+            "gridTemplateColumns": "none",
+            "gap": "normal",
+            "padding": "8px 35px 8px 10px",
+            "fontSize": "13.5px",
+            "lineHeight": "20.25px",
+            "borderRadius": "8px",
+            "backgroundColor": "rgb(255, 255, 255)",
+            "color": "rgb(27, 44, 73)"
+          }
+        },
+        {
+          "tag": "BUTTON",
+          "id": "",
+          "type": "button",
+          "text": "",
+          "aria": "显示密码",
+          "rect": {
+            "x": 372,
+            "y": 553.8984375,
+            "width": 25,
+            "height": 25
+          },
+          "style": {
+            "display": "grid",
+            "gridTemplateColumns": "16px",
+            "gap": "normal",
+            "padding": "0px",
+            "fontSize": "13px",
+            "lineHeight": "17.55px",
+            "borderRadius": "6px",
+            "backgroundColor": "rgba(0, 0, 0, 0)",
+            "color": "rgb(91, 110, 134)"
+          }
+        },
+        {
+          "tag": "BUTTON",
+          "id": "",
+          "type": "button",
+          "text": "取消",
+          "aria": null,
+          "rect": {
+            "x": 267,
+            "y": 659.59375,
+            "width": 62,
+            "height": 40
+          },
+          "style": {
+            "display": "block",
+            "gridTemplateColumns": "none",
+            "gap": "normal",
+            "padding": "9px 17px",
+            "fontSize": "13px",
+            "lineHeight": "17.55px",
+            "borderRadius": "8px",
+            "backgroundColor": "rgb(255, 255, 255)",
+            "color": "rgb(27, 44, 73)"
+          }
+        },
+        {
+          "tag": "BUTTON",
+          "id": "",
+          "type": "submit",
+          "text": "保存",
+          "aria": null,
+          "rect": {
+            "x": 339,
+            "y": 659.59375,
+            "width": 62,
+            "height": 40
+          },
+          "style": {
+            "display": "block",
+            "gridTemplateColumns": "none",
+            "gap": "normal",
+            "padding": "9px 17px",
+            "fontSize": "13px",
+            "lineHeight": "17.55px",
+            "borderRadius": "8px",
+            "backgroundColor": "rgb(54, 94, 218)",
+            "color": "rgb(255, 255, 255)"
+          }
+        }
+      ]
+    },
+    "side-add-light-360": {
+      "url": "chrome-extension://ddlligkamjbhkgodfmfioajokfbmnaip/sidepanel.html?hostInstanceId=209697ed-707e-4f76-ab44-392cb783541c",
+      "viewport": [
+        360,
+        1000
+      ],
+      "overflow": false,
+      "app": {
+        "x": 0,
+        "y": 94,
+        "width": 360,
+        "height": 906
+      },
+      "modal": {
+        "rect": {
+          "x": 12,
+          "y": 267.8046875,
+          "width": 336,
+          "height": 464.390625
+        },
+        "style": {
+          "display": "block",
+          "gridTemplateColumns": "none",
+          "gap": "normal",
+          "padding": "0px",
+          "fontSize": "13px",
+          "lineHeight": "19.5px",
+          "borderRadius": "16px",
+          "backgroundColor": "rgb(255, 255, 255)",
+          "color": "rgb(27, 44, 73)"
+        }
+      },
+      "fields": [
+        {
+          "tag": "BUTTON",
+          "id": "",
+          "type": "button",
+          "text": "",
+          "aria": "关闭代理编辑",
+          "rect": {
+            "x": 297,
+            "y": 286.8046875,
+            "width": 34,
+            "height": 34
+          },
+          "style": {
+            "display": "flex",
+            "gridTemplateColumns": "none",
+            "gap": "normal",
+            "padding": "0px",
+            "fontSize": "13px",
+            "lineHeight": "17.55px",
+            "borderRadius": "8px",
+            "backgroundColor": "rgba(0, 0, 0, 0)",
+            "color": "rgb(91, 110, 134)"
+          }
+        },
+        {
+          "tag": "LABEL",
+          "id": "",
+          "text": "配置名称（可选）",
+          "aria": null,
+          "rect": {
+            "x": 29,
+            "y": 338.8046875,
+            "width": 302,
+            "height": 18
+          },
+          "style": {
+            "display": "block",
+            "gridTemplateColumns": "none",
+            "gap": "normal",
+            "padding": "0px",
+            "fontSize": "12px",
+            "lineHeight": "18px",
+            "borderRadius": "0px",
+            "backgroundColor": "rgba(0, 0, 0, 0)",
+            "color": "rgb(27, 44, 73)"
+          }
+        },
+        {
+          "tag": "INPUT",
+          "id": "ep-name",
+          "type": "text",
+          "aria": null,
+          "rect": {
+            "x": 29,
+            "y": 363.8046875,
+            "width": 302,
+            "height": 42
+          },
+          "style": {
+            "display": "block",
+            "gridTemplateColumns": "none",
+            "gap": "normal",
+            "padding": "8px 10px",
+            "fontSize": "13.5px",
+            "lineHeight": "20.25px",
+            "borderRadius": "8px",
+            "backgroundColor": "rgb(255, 255, 255)",
+            "color": "rgb(27, 44, 73)"
+          }
+        },
+        {
+          "tag": "LABEL",
+          "id": "",
+          "text": "协议",
+          "aria": null,
+          "rect": {
+            "x": 29,
+            "y": 424.8046875,
+            "width": 104,
+            "height": 18
+          },
+          "style": {
+            "display": "block",
+            "gridTemplateColumns": "none",
+            "gap": "normal",
+            "padding": "0px",
+            "fontSize": "12px",
+            "lineHeight": "18px",
+            "borderRadius": "0px",
+            "backgroundColor": "rgba(0, 0, 0, 0)",
+            "color": "rgb(27, 44, 73)"
+          }
+        },
+        {
+          "tag": "SELECT",
+          "id": "ep-scheme",
+          "type": "select-one",
+          "aria": null,
+          "rect": {
+            "x": 29,
+            "y": 449.8046875,
+            "width": 104,
+            "height": 42
+          },
+          "style": {
+            "display": "block",
+            "gridTemplateColumns": "none",
+            "gap": "normal",
+            "padding": "8px 20px 8px 8px",
+            "fontSize": "13.5px",
+            "lineHeight": "normal",
+            "borderRadius": "8px",
+            "backgroundColor": "rgb(255, 255, 255)",
+            "color": "rgb(27, 44, 73)"
+          }
+        },
+        {
+          "tag": "LABEL",
+          "id": "",
+          "text": "服务器地址",
+          "aria": null,
+          "rect": {
+            "x": 141,
+            "y": 424.8046875,
+            "width": 102,
+            "height": 18
+          },
+          "style": {
+            "display": "block",
+            "gridTemplateColumns": "none",
+            "gap": "normal",
+            "padding": "0px",
+            "fontSize": "12px",
+            "lineHeight": "18px",
+            "borderRadius": "0px",
+            "backgroundColor": "rgba(0, 0, 0, 0)",
+            "color": "rgb(27, 44, 73)"
+          }
+        },
+        {
+          "tag": "INPUT",
+          "id": "ep-host",
+          "type": "text",
+          "aria": null,
+          "rect": {
+            "x": 141,
+            "y": 449.8046875,
+            "width": 102,
+            "height": 42
+          },
+          "style": {
+            "display": "block",
+            "gridTemplateColumns": "none",
+            "gap": "normal",
+            "padding": "8px 10px",
+            "fontSize": "13.5px",
+            "lineHeight": "20.25px",
+            "borderRadius": "8px",
+            "backgroundColor": "rgb(255, 255, 255)",
+            "color": "rgb(27, 44, 73)"
+          }
+        },
+        {
+          "tag": "LABEL",
+          "id": "",
+          "text": "端口",
+          "aria": null,
+          "rect": {
+            "x": 251,
+            "y": 424.8046875,
+            "width": 80,
+            "height": 18
+          },
+          "style": {
+            "display": "block",
+            "gridTemplateColumns": "none",
+            "gap": "normal",
+            "padding": "0px",
+            "fontSize": "12px",
+            "lineHeight": "18px",
+            "borderRadius": "0px",
+            "backgroundColor": "rgba(0, 0, 0, 0)",
+            "color": "rgb(27, 44, 73)"
+          }
+        },
+        {
+          "tag": "INPUT",
+          "id": "ep-port",
+          "type": "number",
+          "aria": null,
+          "rect": {
+            "x": 251,
+            "y": 449.8046875,
+            "width": 80,
+            "height": 42
+          },
+          "style": {
+            "display": "block",
+            "gridTemplateColumns": "none",
+            "gap": "normal",
+            "padding": "8px 10px",
+            "fontSize": "13.5px",
+            "lineHeight": "20.25px",
+            "borderRadius": "8px",
+            "backgroundColor": "rgb(255, 255, 255)",
+            "color": "rgb(27, 44, 73)"
+          }
+        },
+        {
+          "tag": "LABEL",
+          "id": "",
+          "text": "用户名（可选）",
+          "aria": null,
+          "rect": {
+            "x": 29,
+            "y": 510.8046875,
+            "width": 145.5,
+            "height": 18
+          },
+          "style": {
+            "display": "block",
+            "gridTemplateColumns": "none",
+            "gap": "normal",
+            "padding": "0px",
+            "fontSize": "12px",
+            "lineHeight": "18px",
+            "borderRadius": "0px",
+            "backgroundColor": "rgba(0, 0, 0, 0)",
+            "color": "rgb(27, 44, 73)"
+          }
+        },
+        {
+          "tag": "INPUT",
+          "id": "ep-username",
+          "type": "text",
+          "aria": null,
+          "rect": {
+            "x": 29,
+            "y": 535.8046875,
+            "width": 145.5,
+            "height": 42
+          },
+          "style": {
+            "display": "block",
+            "gridTemplateColumns": "none",
+            "gap": "normal",
+            "padding": "8px 10px",
+            "fontSize": "13.5px",
+            "lineHeight": "20.25px",
+            "borderRadius": "8px",
+            "backgroundColor": "rgb(255, 255, 255)",
+            "color": "rgb(27, 44, 73)"
+          }
+        },
+        {
+          "tag": "LABEL",
+          "id": "",
+          "text": "密码（可选）",
+          "aria": null,
+          "rect": {
+            "x": 185.5,
+            "y": 510.8046875,
+            "width": 145.5,
+            "height": 18
+          },
+          "style": {
+            "display": "block",
+            "gridTemplateColumns": "none",
+            "gap": "normal",
+            "padding": "0px",
+            "fontSize": "12px",
+            "lineHeight": "18px",
+            "borderRadius": "0px",
+            "backgroundColor": "rgba(0, 0, 0, 0)",
+            "color": "rgb(27, 44, 73)"
+          }
+        },
+        {
+          "tag": "INPUT",
+          "id": "ep-password",
+          "type": "password",
+          "aria": null,
+          "rect": {
+            "x": 185.5,
+            "y": 535.8046875,
+            "width": 145.5,
+            "height": 42
+          },
+          "style": {
+            "display": "block",
+            "gridTemplateColumns": "none",
+            "gap": "normal",
+            "padding": "8px 35px 8px 10px",
+            "fontSize": "13.5px",
+            "lineHeight": "20.25px",
+            "borderRadius": "8px",
+            "backgroundColor": "rgb(255, 255, 255)",
+            "color": "rgb(27, 44, 73)"
+          }
+        },
+        {
+          "tag": "BUTTON",
+          "id": "",
+          "type": "button",
+          "text": "",
+          "aria": "显示密码",
+          "rect": {
+            "x": 302,
+            "y": 544.3046875,
+            "width": 25,
+            "height": 25
+          },
+          "style": {
+            "display": "grid",
+            "gridTemplateColumns": "16px",
+            "gap": "normal",
+            "padding": "0px",
+            "fontSize": "13px",
+            "lineHeight": "17.55px",
+            "borderRadius": "6px",
+            "backgroundColor": "rgba(0, 0, 0, 0)",
+            "color": "rgb(91, 110, 134)"
+          }
+        },
+        {
+          "tag": "BUTTON",
+          "id": "",
+          "type": "button",
+          "text": "取消",
+          "aria": null,
+          "rect": {
+            "x": 197,
+            "y": 669.1953125,
+            "width": 62,
+            "height": 40
+          },
+          "style": {
+            "display": "block",
+            "gridTemplateColumns": "none",
+            "gap": "normal",
+            "padding": "9px 17px",
+            "fontSize": "13px",
+            "lineHeight": "17.55px",
+            "borderRadius": "8px",
+            "backgroundColor": "rgb(255, 255, 255)",
+            "color": "rgb(27, 44, 73)"
+          }
+        },
+        {
+          "tag": "BUTTON",
+          "id": "",
+          "type": "submit",
+          "text": "保存",
+          "aria": null,
+          "rect": {
+            "x": 269,
+            "y": 669.1953125,
+            "width": 62,
+            "height": 40
+          },
+          "style": {
+            "display": "block",
+            "gridTemplateColumns": "none",
+            "gap": "normal",
+            "padding": "9px 17px",
+            "fontSize": "13px",
+            "lineHeight": "17.55px",
+            "borderRadius": "8px",
+            "backgroundColor": "rgb(54, 94, 218)",
+            "color": "rgb(255, 255, 255)"
+          }
+        }
+      ]
+    },
+    "side-edit-light-360": {
+      "url": "chrome-extension://ddlligkamjbhkgodfmfioajokfbmnaip/sidepanel.html?hostInstanceId=209697ed-707e-4f76-ab44-392cb783541c",
+      "viewport": [
+        360,
+        1000
+      ],
+      "overflow": false,
+      "app": {
+        "x": 0,
+        "y": 94,
+        "width": 360,
+        "height": 906
+      },
+      "modal": {
+        "rect": {
+          "x": 12,
+          "y": 267.8046875,
+          "width": 336,
+          "height": 464.390625
+        },
+        "style": {
+          "display": "block",
+          "gridTemplateColumns": "none",
+          "gap": "normal",
+          "padding": "0px",
+          "fontSize": "13px",
+          "lineHeight": "19.5px",
+          "borderRadius": "16px",
+          "backgroundColor": "rgb(255, 255, 255)",
+          "color": "rgb(27, 44, 73)"
+        }
+      },
+      "fields": [
+        {
+          "tag": "BUTTON",
+          "id": "",
+          "type": "button",
+          "text": "",
+          "aria": "关闭代理编辑",
+          "rect": {
+            "x": 297,
+            "y": 286.8046875,
+            "width": 34,
+            "height": 34
+          },
+          "style": {
+            "display": "flex",
+            "gridTemplateColumns": "none",
+            "gap": "normal",
+            "padding": "0px",
+            "fontSize": "13px",
+            "lineHeight": "17.55px",
+            "borderRadius": "8px",
+            "backgroundColor": "rgba(0, 0, 0, 0)",
+            "color": "rgb(91, 110, 134)"
+          }
+        },
+        {
+          "tag": "LABEL",
+          "id": "",
+          "text": "配置名称（可选）",
+          "aria": null,
+          "rect": {
+            "x": 29,
+            "y": 338.8046875,
+            "width": 302,
+            "height": 18
+          },
+          "style": {
+            "display": "block",
+            "gridTemplateColumns": "none",
+            "gap": "normal",
+            "padding": "0px",
+            "fontSize": "12px",
+            "lineHeight": "18px",
+            "borderRadius": "0px",
+            "backgroundColor": "rgba(0, 0, 0, 0)",
+            "color": "rgb(27, 44, 73)"
+          }
+        },
+        {
+          "tag": "INPUT",
+          "id": "ep-name",
+          "type": "text",
+          "aria": null,
+          "rect": {
+            "x": 29,
+            "y": 363.8046875,
+            "width": 302,
+            "height": 42
+          },
+          "style": {
+            "display": "block",
+            "gridTemplateColumns": "none",
+            "gap": "normal",
+            "padding": "8px 35px 8px 10px",
+            "fontSize": "13.5px",
+            "lineHeight": "20.25px",
+            "borderRadius": "8px",
+            "backgroundColor": "rgb(255, 255, 255)",
+            "color": "rgb(27, 44, 73)"
+          }
+        },
+        {
+          "tag": "BUTTON",
+          "id": "",
+          "type": "button",
+          "text": "×",
+          "aria": "清除名称",
+          "rect": {
+            "x": 301,
+            "y": 372.3046875,
+            "width": 25,
+            "height": 25
+          },
+          "style": {
+            "display": "grid",
+            "gridTemplateColumns": "10.75px",
+            "gap": "normal",
+            "padding": "0px",
+            "fontSize": "17px",
+            "lineHeight": "17px",
+            "borderRadius": "6px",
+            "backgroundColor": "rgba(0, 0, 0, 0)",
+            "color": "rgb(91, 110, 134)"
+          }
+        },
+        {
+          "tag": "LABEL",
+          "id": "",
+          "text": "协议",
+          "aria": null,
+          "rect": {
+            "x": 29,
+            "y": 424.8046875,
+            "width": 104,
+            "height": 18
+          },
+          "style": {
+            "display": "block",
+            "gridTemplateColumns": "none",
+            "gap": "normal",
+            "padding": "0px",
+            "fontSize": "12px",
+            "lineHeight": "18px",
+            "borderRadius": "0px",
+            "backgroundColor": "rgba(0, 0, 0, 0)",
+            "color": "rgb(27, 44, 73)"
+          }
+        },
+        {
+          "tag": "SELECT",
+          "id": "ep-scheme",
+          "type": "select-one",
+          "aria": null,
+          "rect": {
+            "x": 29,
+            "y": 449.8046875,
+            "width": 104,
+            "height": 42
+          },
+          "style": {
+            "display": "block",
+            "gridTemplateColumns": "none",
+            "gap": "normal",
+            "padding": "8px 20px 8px 8px",
+            "fontSize": "13.5px",
+            "lineHeight": "normal",
+            "borderRadius": "8px",
+            "backgroundColor": "rgb(255, 255, 255)",
+            "color": "rgb(27, 44, 73)"
+          }
+        },
+        {
+          "tag": "LABEL",
+          "id": "",
+          "text": "服务器地址",
+          "aria": null,
+          "rect": {
+            "x": 141,
+            "y": 424.8046875,
+            "width": 102,
+            "height": 18
+          },
+          "style": {
+            "display": "block",
+            "gridTemplateColumns": "none",
+            "gap": "normal",
+            "padding": "0px",
+            "fontSize": "12px",
+            "lineHeight": "18px",
+            "borderRadius": "0px",
+            "backgroundColor": "rgba(0, 0, 0, 0)",
+            "color": "rgb(27, 44, 73)"
+          }
+        },
+        {
+          "tag": "INPUT",
+          "id": "ep-host",
+          "type": "text",
+          "aria": null,
+          "rect": {
+            "x": 141,
+            "y": 449.8046875,
+            "width": 102,
+            "height": 42
+          },
+          "style": {
+            "display": "block",
+            "gridTemplateColumns": "none",
+            "gap": "normal",
+            "padding": "8px 35px 8px 10px",
+            "fontSize": "13.5px",
+            "lineHeight": "20.25px",
+            "borderRadius": "8px",
+            "backgroundColor": "rgb(255, 255, 255)",
+            "color": "rgb(27, 44, 73)"
+          }
+        },
+        {
+          "tag": "BUTTON",
+          "id": "",
+          "type": "button",
+          "text": "×",
+          "aria": "清除主机",
+          "rect": {
+            "x": 213,
+            "y": 458.3046875,
+            "width": 25,
+            "height": 25
+          },
+          "style": {
+            "display": "grid",
+            "gridTemplateColumns": "10.75px",
+            "gap": "normal",
+            "padding": "0px",
+            "fontSize": "17px",
+            "lineHeight": "17px",
+            "borderRadius": "6px",
+            "backgroundColor": "rgba(0, 0, 0, 0)",
+            "color": "rgb(91, 110, 134)"
+          }
+        },
+        {
+          "tag": "LABEL",
+          "id": "",
+          "text": "端口",
+          "aria": null,
+          "rect": {
+            "x": 251,
+            "y": 424.8046875,
+            "width": 80,
+            "height": 18
+          },
+          "style": {
+            "display": "block",
+            "gridTemplateColumns": "none",
+            "gap": "normal",
+            "padding": "0px",
+            "fontSize": "12px",
+            "lineHeight": "18px",
+            "borderRadius": "0px",
+            "backgroundColor": "rgba(0, 0, 0, 0)",
+            "color": "rgb(27, 44, 73)"
+          }
+        },
+        {
+          "tag": "INPUT",
+          "id": "ep-port",
+          "type": "number",
+          "aria": null,
+          "rect": {
+            "x": 251,
+            "y": 449.8046875,
+            "width": 80,
+            "height": 42
+          },
+          "style": {
+            "display": "block",
+            "gridTemplateColumns": "none",
+            "gap": "normal",
+            "padding": "8px 35px 8px 10px",
+            "fontSize": "13.5px",
+            "lineHeight": "20.25px",
+            "borderRadius": "8px",
+            "backgroundColor": "rgb(255, 255, 255)",
+            "color": "rgb(27, 44, 73)"
+          }
+        },
+        {
+          "tag": "BUTTON",
+          "id": "",
+          "type": "button",
+          "text": "×",
+          "aria": "清除端口",
+          "rect": {
+            "x": 301,
+            "y": 458.3046875,
+            "width": 25,
+            "height": 25
+          },
+          "style": {
+            "display": "grid",
+            "gridTemplateColumns": "10.75px",
+            "gap": "normal",
+            "padding": "0px",
+            "fontSize": "17px",
+            "lineHeight": "17px",
+            "borderRadius": "6px",
+            "backgroundColor": "rgba(0, 0, 0, 0)",
+            "color": "rgb(91, 110, 134)"
+          }
+        },
+        {
+          "tag": "LABEL",
+          "id": "",
+          "text": "用户名（可选）",
+          "aria": null,
+          "rect": {
+            "x": 29,
+            "y": 510.8046875,
+            "width": 145.5,
+            "height": 18
+          },
+          "style": {
+            "display": "block",
+            "gridTemplateColumns": "none",
+            "gap": "normal",
+            "padding": "0px",
+            "fontSize": "12px",
+            "lineHeight": "18px",
+            "borderRadius": "0px",
+            "backgroundColor": "rgba(0, 0, 0, 0)",
+            "color": "rgb(27, 44, 73)"
+          }
+        },
+        {
+          "tag": "INPUT",
+          "id": "ep-username",
+          "type": "text",
+          "aria": null,
+          "rect": {
+            "x": 29,
+            "y": 535.8046875,
+            "width": 145.5,
+            "height": 42
+          },
+          "style": {
+            "display": "block",
+            "gridTemplateColumns": "none",
+            "gap": "normal",
+            "padding": "8px 10px",
+            "fontSize": "13.5px",
+            "lineHeight": "20.25px",
+            "borderRadius": "8px",
+            "backgroundColor": "rgb(255, 255, 255)",
+            "color": "rgb(27, 44, 73)"
+          }
+        },
+        {
+          "tag": "LABEL",
+          "id": "",
+          "text": "密码（可选）",
+          "aria": null,
+          "rect": {
+            "x": 185.5,
+            "y": 510.8046875,
+            "width": 145.5,
+            "height": 18
+          },
+          "style": {
+            "display": "block",
+            "gridTemplateColumns": "none",
+            "gap": "normal",
+            "padding": "0px",
+            "fontSize": "12px",
+            "lineHeight": "18px",
+            "borderRadius": "0px",
+            "backgroundColor": "rgba(0, 0, 0, 0)",
+            "color": "rgb(27, 44, 73)"
+          }
+        },
+        {
+          "tag": "INPUT",
+          "id": "ep-password",
+          "type": "password",
+          "aria": null,
+          "rect": {
+            "x": 185.5,
+            "y": 535.8046875,
+            "width": 145.5,
+            "height": 42
+          },
+          "style": {
+            "display": "block",
+            "gridTemplateColumns": "none",
+            "gap": "normal",
+            "padding": "8px 35px 8px 10px",
+            "fontSize": "13.5px",
+            "lineHeight": "20.25px",
+            "borderRadius": "8px",
+            "backgroundColor": "rgb(255, 255, 255)",
+            "color": "rgb(27, 44, 73)"
+          }
+        },
+        {
+          "tag": "BUTTON",
+          "id": "",
+          "type": "button",
+          "text": "",
+          "aria": "显示密码",
+          "rect": {
+            "x": 302,
+            "y": 544.3046875,
+            "width": 25,
+            "height": 25
+          },
+          "style": {
+            "display": "grid",
+            "gridTemplateColumns": "16px",
+            "gap": "normal",
+            "padding": "0px",
+            "fontSize": "13px",
+            "lineHeight": "17.55px",
+            "borderRadius": "6px",
+            "backgroundColor": "rgba(0, 0, 0, 0)",
+            "color": "rgb(91, 110, 134)"
+          }
+        },
+        {
+          "tag": "BUTTON",
+          "id": "",
+          "type": "button",
+          "text": "取消",
+          "aria": null,
+          "rect": {
+            "x": 197,
+            "y": 669.1953125,
+            "width": 62,
+            "height": 40
+          },
+          "style": {
+            "display": "block",
+            "gridTemplateColumns": "none",
+            "gap": "normal",
+            "padding": "9px 17px",
+            "fontSize": "13px",
+            "lineHeight": "17.55px",
+            "borderRadius": "8px",
+            "backgroundColor": "rgb(255, 255, 255)",
+            "color": "rgb(27, 44, 73)"
+          }
+        },
+        {
+          "tag": "BUTTON",
+          "id": "",
+          "type": "submit",
+          "text": "保存",
+          "aria": null,
+          "rect": {
+            "x": 269,
+            "y": 669.1953125,
+            "width": 62,
+            "height": 40
+          },
+          "style": {
+            "display": "block",
+            "gridTemplateColumns": "none",
+            "gap": "normal",
+            "padding": "9px 17px",
+            "fontSize": "13px",
+            "lineHeight": "17.55px",
+            "borderRadius": "8px",
+            "backgroundColor": "rgb(54, 94, 218)",
+            "color": "rgb(255, 255, 255)"
+          }
+        }
+      ]
+    },
+    "side-edit-dark-360": {
+      "url": "chrome-extension://ddlligkamjbhkgodfmfioajokfbmnaip/sidepanel.html?hostInstanceId=209697ed-707e-4f76-ab44-392cb783541c",
+      "viewport": [
+        360,
+        1000
+      ],
+      "overflow": false,
+      "app": {
+        "x": 0,
+        "y": 94,
+        "width": 360,
+        "height": 906
+      },
+      "modal": {
+        "rect": {
+          "x": 12,
+          "y": 267.8046875,
+          "width": 336,
+          "height": 464.390625
+        },
+        "style": {
+          "display": "block",
+          "gridTemplateColumns": "none",
+          "gap": "normal",
+          "padding": "0px",
+          "fontSize": "13px",
+          "lineHeight": "19.5px",
+          "borderRadius": "16px",
+          "backgroundColor": "rgb(21, 28, 40)",
+          "color": "rgb(233, 238, 247)"
+        }
+      },
+      "fields": [
+        {
+          "tag": "BUTTON",
+          "id": "",
+          "type": "button",
+          "text": "",
+          "aria": "关闭代理编辑",
+          "rect": {
+            "x": 297,
+            "y": 286.8046875,
+            "width": 34,
+            "height": 34
+          },
+          "style": {
+            "display": "flex",
+            "gridTemplateColumns": "none",
+            "gap": "normal",
+            "padding": "0px",
+            "fontSize": "13px",
+            "lineHeight": "17.55px",
+            "borderRadius": "8px",
+            "backgroundColor": "rgba(0, 0, 0, 0)",
+            "color": "rgb(179, 193, 211)"
+          }
+        },
+        {
+          "tag": "LABEL",
+          "id": "",
+          "text": "配置名称（可选）",
+          "aria": null,
+          "rect": {
+            "x": 29,
+            "y": 338.8046875,
+            "width": 302,
+            "height": 18
+          },
+          "style": {
+            "display": "block",
+            "gridTemplateColumns": "none",
+            "gap": "normal",
+            "padding": "0px",
+            "fontSize": "12px",
+            "lineHeight": "18px",
+            "borderRadius": "0px",
+            "backgroundColor": "rgba(0, 0, 0, 0)",
+            "color": "rgb(233, 238, 247)"
+          }
+        },
+        {
+          "tag": "INPUT",
+          "id": "ep-name",
+          "type": "text",
+          "aria": null,
+          "rect": {
+            "x": 29,
+            "y": 363.8046875,
+            "width": 302,
+            "height": 42
+          },
+          "style": {
+            "display": "block",
+            "gridTemplateColumns": "none",
+            "gap": "normal",
+            "padding": "8px 35px 8px 10px",
+            "fontSize": "13.5px",
+            "lineHeight": "20.25px",
+            "borderRadius": "8px",
+            "backgroundColor": "rgb(21, 28, 40)",
+            "color": "rgb(233, 238, 247)"
+          }
+        },
+        {
+          "tag": "BUTTON",
+          "id": "",
+          "type": "button",
+          "text": "×",
+          "aria": "清除名称",
+          "rect": {
+            "x": 301,
+            "y": 372.3046875,
+            "width": 25,
+            "height": 25
+          },
+          "style": {
+            "display": "grid",
+            "gridTemplateColumns": "10.75px",
+            "gap": "normal",
+            "padding": "0px",
+            "fontSize": "17px",
+            "lineHeight": "17px",
+            "borderRadius": "6px",
+            "backgroundColor": "rgba(0, 0, 0, 0)",
+            "color": "rgb(179, 193, 211)"
+          }
+        },
+        {
+          "tag": "LABEL",
+          "id": "",
+          "text": "协议",
+          "aria": null,
+          "rect": {
+            "x": 29,
+            "y": 424.8046875,
+            "width": 104,
+            "height": 18
+          },
+          "style": {
+            "display": "block",
+            "gridTemplateColumns": "none",
+            "gap": "normal",
+            "padding": "0px",
+            "fontSize": "12px",
+            "lineHeight": "18px",
+            "borderRadius": "0px",
+            "backgroundColor": "rgba(0, 0, 0, 0)",
+            "color": "rgb(233, 238, 247)"
+          }
+        },
+        {
+          "tag": "SELECT",
+          "id": "ep-scheme",
+          "type": "select-one",
+          "aria": null,
+          "rect": {
+            "x": 29,
+            "y": 449.8046875,
+            "width": 104,
+            "height": 42
+          },
+          "style": {
+            "display": "block",
+            "gridTemplateColumns": "none",
+            "gap": "normal",
+            "padding": "8px 20px 8px 8px",
+            "fontSize": "13.5px",
+            "lineHeight": "normal",
+            "borderRadius": "8px",
+            "backgroundColor": "rgb(21, 28, 40)",
+            "color": "rgb(233, 238, 247)"
+          }
+        },
+        {
+          "tag": "LABEL",
+          "id": "",
+          "text": "服务器地址",
+          "aria": null,
+          "rect": {
+            "x": 141,
+            "y": 424.8046875,
+            "width": 102,
+            "height": 18
+          },
+          "style": {
+            "display": "block",
+            "gridTemplateColumns": "none",
+            "gap": "normal",
+            "padding": "0px",
+            "fontSize": "12px",
+            "lineHeight": "18px",
+            "borderRadius": "0px",
+            "backgroundColor": "rgba(0, 0, 0, 0)",
+            "color": "rgb(233, 238, 247)"
+          }
+        },
+        {
+          "tag": "INPUT",
+          "id": "ep-host",
+          "type": "text",
+          "aria": null,
+          "rect": {
+            "x": 141,
+            "y": 449.8046875,
+            "width": 102,
+            "height": 42
+          },
+          "style": {
+            "display": "block",
+            "gridTemplateColumns": "none",
+            "gap": "normal",
+            "padding": "8px 35px 8px 10px",
+            "fontSize": "13.5px",
+            "lineHeight": "20.25px",
+            "borderRadius": "8px",
+            "backgroundColor": "rgb(21, 28, 40)",
+            "color": "rgb(233, 238, 247)"
+          }
+        },
+        {
+          "tag": "BUTTON",
+          "id": "",
+          "type": "button",
+          "text": "×",
+          "aria": "清除主机",
+          "rect": {
+            "x": 213,
+            "y": 458.3046875,
+            "width": 25,
+            "height": 25
+          },
+          "style": {
+            "display": "grid",
+            "gridTemplateColumns": "10.75px",
+            "gap": "normal",
+            "padding": "0px",
+            "fontSize": "17px",
+            "lineHeight": "17px",
+            "borderRadius": "6px",
+            "backgroundColor": "rgba(0, 0, 0, 0)",
+            "color": "rgb(179, 193, 211)"
+          }
+        },
+        {
+          "tag": "LABEL",
+          "id": "",
+          "text": "端口",
+          "aria": null,
+          "rect": {
+            "x": 251,
+            "y": 424.8046875,
+            "width": 80,
+            "height": 18
+          },
+          "style": {
+            "display": "block",
+            "gridTemplateColumns": "none",
+            "gap": "normal",
+            "padding": "0px",
+            "fontSize": "12px",
+            "lineHeight": "18px",
+            "borderRadius": "0px",
+            "backgroundColor": "rgba(0, 0, 0, 0)",
+            "color": "rgb(233, 238, 247)"
+          }
+        },
+        {
+          "tag": "INPUT",
+          "id": "ep-port",
+          "type": "number",
+          "aria": null,
+          "rect": {
+            "x": 251,
+            "y": 449.8046875,
+            "width": 80,
+            "height": 42
+          },
+          "style": {
+            "display": "block",
+            "gridTemplateColumns": "none",
+            "gap": "normal",
+            "padding": "8px 35px 8px 10px",
+            "fontSize": "13.5px",
+            "lineHeight": "20.25px",
+            "borderRadius": "8px",
+            "backgroundColor": "rgb(21, 28, 40)",
+            "color": "rgb(233, 238, 247)"
+          }
+        },
+        {
+          "tag": "BUTTON",
+          "id": "",
+          "type": "button",
+          "text": "×",
+          "aria": "清除端口",
+          "rect": {
+            "x": 301,
+            "y": 458.3046875,
+            "width": 25,
+            "height": 25
+          },
+          "style": {
+            "display": "grid",
+            "gridTemplateColumns": "10.75px",
+            "gap": "normal",
+            "padding": "0px",
+            "fontSize": "17px",
+            "lineHeight": "17px",
+            "borderRadius": "6px",
+            "backgroundColor": "rgba(0, 0, 0, 0)",
+            "color": "rgb(179, 193, 211)"
+          }
+        },
+        {
+          "tag": "LABEL",
+          "id": "",
+          "text": "用户名（可选）",
+          "aria": null,
+          "rect": {
+            "x": 29,
+            "y": 510.8046875,
+            "width": 145.5,
+            "height": 18
+          },
+          "style": {
+            "display": "block",
+            "gridTemplateColumns": "none",
+            "gap": "normal",
+            "padding": "0px",
+            "fontSize": "12px",
+            "lineHeight": "18px",
+            "borderRadius": "0px",
+            "backgroundColor": "rgba(0, 0, 0, 0)",
+            "color": "rgb(233, 238, 247)"
+          }
+        },
+        {
+          "tag": "INPUT",
+          "id": "ep-username",
+          "type": "text",
+          "aria": null,
+          "rect": {
+            "x": 29,
+            "y": 535.8046875,
+            "width": 145.5,
+            "height": 42
+          },
+          "style": {
+            "display": "block",
+            "gridTemplateColumns": "none",
+            "gap": "normal",
+            "padding": "8px 10px",
+            "fontSize": "13.5px",
+            "lineHeight": "20.25px",
+            "borderRadius": "8px",
+            "backgroundColor": "rgb(21, 28, 40)",
+            "color": "rgb(233, 238, 247)"
+          }
+        },
+        {
+          "tag": "LABEL",
+          "id": "",
+          "text": "密码（可选）",
+          "aria": null,
+          "rect": {
+            "x": 185.5,
+            "y": 510.8046875,
+            "width": 145.5,
+            "height": 18
+          },
+          "style": {
+            "display": "block",
+            "gridTemplateColumns": "none",
+            "gap": "normal",
+            "padding": "0px",
+            "fontSize": "12px",
+            "lineHeight": "18px",
+            "borderRadius": "0px",
+            "backgroundColor": "rgba(0, 0, 0, 0)",
+            "color": "rgb(233, 238, 247)"
+          }
+        },
+        {
+          "tag": "INPUT",
+          "id": "ep-password",
+          "type": "password",
+          "aria": null,
+          "rect": {
+            "x": 185.5,
+            "y": 535.8046875,
+            "width": 145.5,
+            "height": 42
+          },
+          "style": {
+            "display": "block",
+            "gridTemplateColumns": "none",
+            "gap": "normal",
+            "padding": "8px 35px 8px 10px",
+            "fontSize": "13.5px",
+            "lineHeight": "20.25px",
+            "borderRadius": "8px",
+            "backgroundColor": "rgb(21, 28, 40)",
+            "color": "rgb(233, 238, 247)"
+          }
+        },
+        {
+          "tag": "BUTTON",
+          "id": "",
+          "type": "button",
+          "text": "",
+          "aria": "显示密码",
+          "rect": {
+            "x": 302,
+            "y": 544.3046875,
+            "width": 25,
+            "height": 25
+          },
+          "style": {
+            "display": "grid",
+            "gridTemplateColumns": "16px",
+            "gap": "normal",
+            "padding": "0px",
+            "fontSize": "13px",
+            "lineHeight": "17.55px",
+            "borderRadius": "6px",
+            "backgroundColor": "rgba(0, 0, 0, 0)",
+            "color": "rgb(179, 193, 211)"
+          }
+        },
+        {
+          "tag": "BUTTON",
+          "id": "",
+          "type": "button",
+          "text": "取消",
+          "aria": null,
+          "rect": {
+            "x": 197,
+            "y": 669.1953125,
+            "width": 62,
+            "height": 40
+          },
+          "style": {
+            "display": "block",
+            "gridTemplateColumns": "none",
+            "gap": "normal",
+            "padding": "9px 17px",
+            "fontSize": "13px",
+            "lineHeight": "17.55px",
+            "borderRadius": "8px",
+            "backgroundColor": "color(srgb 0.0936471 0.135922 0.208392)",
+            "color": "rgb(233, 238, 247)"
+          }
+        },
+        {
+          "tag": "BUTTON",
+          "id": "",
+          "type": "submit",
+          "text": "保存",
+          "aria": null,
+          "rect": {
+            "x": 269,
+            "y": 669.1953125,
+            "width": 62,
+            "height": 40
+          },
+          "style": {
+            "display": "block",
+            "gridTemplateColumns": "none",
+            "gap": "normal",
+            "padding": "9px 17px",
+            "fontSize": "13px",
+            "lineHeight": "17.55px",
+            "borderRadius": "8px",
+            "backgroundColor": "rgb(53, 102, 186)",
+            "color": "rgb(255, 255, 255)"
+          }
+        }
+      ]
+    }
+  },
+  "interpretation": "Raw same-viewport screenshots are retained. Composites only crop and juxtapose pixels, with captions. Preview chrome and simulated applied status are not product requirements. Frozen narrow stacking is superseded by the explicit three-row requirement."
+}

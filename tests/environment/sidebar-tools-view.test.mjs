@@ -646,6 +646,9 @@ test('real sidebar controller initializes with React DOM runtime, reaches ready 
     marketId:release.id,version:release.version,sha256:release.sha256}});
   const storageListeners = new Set(), pageListeners = new Set(), localeListeners = new Set();
   const reads = [], fetched = [], toolActivity = [];
+  let releaseOptionalCatalog;
+  const optionalCatalog = new Promise(resolve => {releaseOptionalCatalog = resolve;});
+  t.after(() => releaseOptionalCatalog(new Response('offline fixture', {status:404})));
   const api = {runtime: {
     getURL: path => 'chrome-extension://test/' + path,
     sendMessage() {assert.fail('an untrusted Cookie click cannot request authority');}
@@ -681,7 +684,7 @@ test('real sidebar controller initializes with React DOM runtime, reaches ready 
     lockManager: {request: (_name, work) => Promise.resolve().then(work)},
     fetcher: async url => {
       fetched.push(url);
-      if(url===OFFICIAL_FOCUS_LATEST_URL)return new Response('offline fixture', {status: 404});
+      if(url===OFFICIAL_FOCUS_LATEST_URL)return optionalCatalog;
       assert.equal(url, api.runtime.getURL('official-tools/catalog.json'));
       return new Response(JSON.stringify(catalog));
     },
@@ -703,7 +706,10 @@ test('real sidebar controller initializes with React DOM runtime, reaches ready 
     root.render(React.createElement(ToolHost, {view}));
     await nextTick();
   });
-  await React.act(async () => {await facade.ready;});
+  const readyWithoutCatalog = await Promise.race([facade.ready.then(() => true),new Promise(resolve => setTimeout(() => resolve(false),100))]);
+  assert.equal(readyWithoutCatalog,true,'installed Host readiness cannot wait for optional remote catalog');
+  releaseOptionalCatalog(new Response('offline fixture',{status:404}));
+  await React.act(async () => {await facade.ready;await nextTick();});
   assert.equal(view.resourceSnapshot().controllers, 1);
   assert.equal(view.resourceSnapshot().subscriptions, 1);
   for (const node of Object.values(view.runtime)) {

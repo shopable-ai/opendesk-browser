@@ -4,9 +4,9 @@ import {readFile} from 'node:fs/promises';
 import {transform} from 'esbuild';
 import {runInNewContext} from 'node:vm';
 
-const source=await readFile(new URL('../src/Settings.tsx',import.meta.url),'utf8');
+const source=await readFile(new URL('../src/ui/ProxyEditor.tsx',import.meta.url),'utf8');
 const start=source.indexOf('  async function confirmIntent(');
-const code=(await transform(source.slice(start,source.indexOf('  const [locationHash',start)),{loader:'tsx'})).code;
+const code=(await transform(source.slice(start,source.indexOf('  function closeEditor(',start)),{loader:'tsx'})).code;
 function fixture(){
  let resolve,reject,calls=0,revision=1,focused=0;
  const env={getDraftVersion:()=>revision,confirm(_text,{signal}){

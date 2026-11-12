@@ -1,0 +1,425 @@
+{
+  "startedAt": "2026-11-12T19:37:38.977Z",
+  "mode": "STATIC_CANDIDATE",
+  "phase": "ui",
+  "keepOpen": false,
+  "serveConnected": false,
+  "extension": "/Users/shopme/Documents/workspace/opendesk-browser/artifacts/ai-proxy/r6-20261113/source-snapshot/dist/production",
+  "profile": "/Users/shopme/Documents/workspace/opendesk-browser/artifacts/ai-proxy/r6-20261113/final-verified/profile",
+  "sdkMock": false,
+  "installation": "PASS",
+  "core": "NOT_TESTED",
+  "steps": [
+    {
+      "name": "REAL_SIDE_PANEL_READY",
+      "at": "2026-11-12T19:37:41.003Z",
+      "extensionId": "ddlligkamjbhkgodfmfioajokfbmnaip",
+      "extension": "/Users/shopme/Documents/workspace/opendesk-browser/artifacts/ai-proxy/r6-20261113/source-snapshot/dist/production",
+      "loadedExtension": {
+        "id": "ddlligkamjbhkgodfmfioajokfbmnaip",
+        "url": "chrome-extension://ddlligkamjbhkgodfmfioajokfbmnaip/",
+        "manifest": {
+          "action": {
+            "default_title": "打开 OpenDesk Browser"
+          },
+          "background": {
+            "service_worker": "sw.js"
+          },
+          "content_scripts": [
+            {
+              "all_frames": false,
+              "js": [
+                "agents/chatgpt-fixed-bridge.js"
+              ],
+              "matches": [
+                "https://chatgpt.com/*"
+              ],
+              "run_at": "document_idle",
+              "world": "ISOLATED"
+            },
+            {
+              "all_frames": true,
+              "js": [
+                "agents/page-relay.js"
+              ],
+              "matches": [
+                "http://*/*",
+                "https://*/*"
+              ],
+              "run_at": "document_start",
+              "world": "ISOLATED"
+            },
+            {
+              "all_frames": true,
+              "js": [
+                "framework/sdk-main.js"
+              ],
+              "matches": [
+                "http://*/*",
+                "https://*/*"
+              ],
+              "run_at": "document_start",
+              "world": "MAIN"
+            }
+          ],
+          "content_security_policy": {
+            "extension_pages": "script-src 'self'; object-src 'self'",
+            "sandbox": "sandbox allow-scripts; default-src 'none'; script-src 'self' 'unsafe-eval' blob:; worker-src blob:; connect-src 'none'; child-src 'none'; img-src 'self' data: blob:; style-src 'self' 'unsafe-inline'; base-uri 'none'; form-action 'none'"
+          },
+          "description": "OpenDesk Browser 浏览器自动化框架。",
+          "host_permissions": [
+            "<all_urls>"
+          ],
+          "incognito": "not_allowed",
+          "manifest_version": 3,
+          "minimum_chrome_version": "138",
+          "name": "OpenDesk Browser",
+          "optional_permissions": [
+            "bookmarks",
+            "history",
+            "contextMenus",
+            "clipboardRead",
+            "clipboardWrite",
+            "tabGroups",
+            "webRequest",
+            "nativeMessaging",
+            "idle"
+          ],
+          "options_ui": {
+            "open_in_tab": true,
+            "page": "native-agent/settings.html"
+          },
+          "permissions": [
+            "storage",
+            "scripting",
+            "sidePanel",
+            "activeTab",
+            "downloads",
+            "tabs",
+            "webNavigation",
+            "debugger",
+            "userScripts",
+            "cookies",
+            "notifications",
+            "unlimitedStorage",
+            "alarms",
+            "offscreen",
+            "proxy",
+            "declarativeNetRequestWithHostAccess"
+          ],
+          "sandbox": {
+            "pages": [
+              "scripting/sandbox/sandbox.html",
+              "sidebar-tools/sandbox.html"
+            ]
+          },
+          "short_name": "OD",
+          "side_panel": {
+            "default_path": "sidepanel.html"
+          },
+          "version": "0.1.0",
+          "web_accessible_resources": [
+            {
+              "matches": [
+                "http://*/*",
+                "https://*/*"
+              ],
+              "resources": [
+                "framework/sdk-main.js"
+              ]
+            },
+            {
+              "matches": [
+                "http://*/*",
+                "https://*/*"
+              ],
+              "resources": [
+                "stay-focus/blocked-quota.html",
+                "stay-focus/blocked-schedule.html",
+                "stay-focus/blocked-session.html",
+                "stay-focus/blocked-always.html"
+              ]
+            },
+            {
+              "matches": [
+                "http://*/*",
+                "https://*/*"
+              ],
+              "resources": [
+                "managed-site/blocked-quota.html",
+                "managed-site/blocked-schedule.html",
+                "managed-site/blocked-session.html",
+                "managed-site/blocked-always.html"
+              ]
+            }
+          ]
+        }
+      },
+      "extensionPathEvidence": {
+        "launchArgument": "/Users/shopme/Documents/workspace/opendesk-browser/artifacts/ai-proxy/r6-20261113/source-snapshot/dist/production",
+        "loadedBytesMatch": true,
+        "chromeReportedFilesystemPath": "NOT_AVAILABLE"
+      },
+      "serveConnected": false,
+      "sidePanel": {
+        "contextId": "4f89644a-327e-488d-beeb-0411cbbd18a6",
+        "contextType": "SIDE_PANEL",
+        "documentId": "EC4CA4D18ECCDAE2A95888367522C495",
+        "documentOrigin": "chrome-extension://ddlligkamjbhkgodfmfioajokfbmnaip",
+        "documentUrl": "chrome-extension://ddlligkamjbhkgodfmfioajokfbmnaip/sidepanel.html?hostInstanceId=209697ed-707e-4f76-ab44-392cb783541c",
+        "frameId": 0,
+        "incognito": false,
+        "tabId": -1,
+        "windowId": -1
+      },
+      "cdp": {
+        "http": "http://127.0.0.1:54644",
+        "webSocket": "ws://127.0.0.1:54644/devtools/browser/0bf5d277-8c2c-4ea8-8676-01d379b61156"
+      },
+      "trustedUI": {
+        "url": "chrome-extension://ddlligkamjbhkgodfmfioajokfbmnaip/sidepanel.html?hostInstanceId=209697ed-707e-4f76-ab44-392cb783541c",
+        "rootCount": 0,
+        "ready": false,
+        "iframeCount": 0
+      }
+    },
+    {
+      "name": "OFFICIAL_REVIEW_VISIBLE",
+      "at": "2026-11-12T19:37:41.203Z",
+      "review": "AI Proxy\nv0.3.20\n\n浏览器网络代理管理：配置、规则与选择独立保存，公开受管服务的有限路由需明确审阅。四模式与七区保留，认证/PAC/订阅联网等能力待接入。\n\n安装所需权限 · 请核对\n\n保存此工具的数据、读取当前网页标题和地址、经可信确认管理浏览器级独占代理；直连、单个公网或本机端点、有限网站规则\n\n本地安装包 · 请确认文件来源可信\n\n技术详情 · 文件与校验信息"
+    },
+    {
+      "name": "INSTALL_CANCEL_HAS_NO_RECORD",
+      "at": "2026-11-12T19:37:41.213Z"
+    },
+    {
+      "name": "INSTALLED_LOCAL_REVIEW_CURRENT_BYTES",
+      "at": "2026-11-12T19:37:41.514Z"
+    },
+    {
+      "name": "TRUSTED_SINGLE_ROOT_READY",
+      "at": "2026-11-12T19:37:41.860Z",
+      "trustedUI": {
+        "url": "chrome-extension://ddlligkamjbhkgodfmfioajokfbmnaip/sidepanel.html?hostInstanceId=209697ed-707e-4f76-ab44-392cb783541c",
+        "rootCount": 1,
+        "ready": true,
+        "iframeCount": 0
+      }
+    },
+    {
+      "name": "UI_AUDIT_COMPLETE",
+      "at": "2026-11-12T19:37:58.140Z",
+      "result": "PASS"
+    }
+  ],
+  "traffic": [],
+  "errors": [],
+  "package": {
+    "id": "ai-proxy",
+    "version": "0.3.20",
+    "sha256": "197a86a6d2c26cbcfeaedd765f2062e3a343487b57e5b4e3864b1d202b43374a",
+    "path": "/Users/shopme/Documents/workspace/opendesk-browser/artifacts/ai-proxy/r6-20261113/final-candidate.opendesk-tool.json",
+    "source": "LOCAL_REVIEW"
+  },
+  "formalPackage": {
+    "path": "/Users/shopme/Documents/workspace/opendesk-browser/artifacts/ai-proxy/r6-20261113/final-candidate.opendesk-tool.json",
+    "sha256": "197a86a6d2c26cbcfeaedd765f2062e3a343487b57e5b4e3864b1d202b43374a",
+    "matchesDevelopment": true
+  },
+  "build": {
+    "mode": "STATIC_CANDIDATE",
+    "serveConnected": false
+  },
+  "hostServiceWorkerSha256": "0d5f92f7de4a67dcad0154b079030f2e1b38da9072a9bb792c7ae1a870de8cef",
+  "chromePid": 732,
+  "chromeLog": "\nDevTools listening on ws://127.0.0.1:54644/devtools/browser/0bf5d277-8c2c-4ea8-8676-01d379b61156\n",
+  "cdp": {
+    "http": "http://127.0.0.1:54644",
+    "webSocket": "ws://127.0.0.1:54644/devtools/browser/0bf5d277-8c2c-4ea8-8676-01d379b61156"
+  },
+  "chrome": {
+    "protocolVersion": "1.3",
+    "product": "Chrome/155.0.8059.39",
+    "revision": "@3ff7ac5a9224be9156d7f8703a06e22890aafd34",
+    "userAgent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/155.0.0.0 Safari/537.36",
+    "jsVersion": "15.5.35.20"
+  },
+  "extensionId": "ddlligkamjbhkgodfmfioajokfbmnaip",
+  "loadedExtension": {
+    "id": "ddlligkamjbhkgodfmfioajokfbmnaip",
+    "url": "chrome-extension://ddlligkamjbhkgodfmfioajokfbmnaip/",
+    "manifest": {
+      "action": {
+        "default_title": "打开 OpenDesk Browser"
+      },
+      "background": {
+        "service_worker": "sw.js"
+      },
+      "content_scripts": [
+        {
+          "all_frames": false,
+          "js": [
+            "agents/chatgpt-fixed-bridge.js"
+          ],
+          "matches": [
+            "https://chatgpt.com/*"
+          ],
+          "run_at": "document_idle",
+          "world": "ISOLATED"
+        },
+        {
+          "all_frames": true,
+          "js": [
+            "agents/page-relay.js"
+          ],
+          "matches": [
+            "http://*/*",
+            "https://*/*"
+          ],
+          "run_at": "document_start",
+          "world": "ISOLATED"
+        },
+        {
+          "all_frames": true,
+          "js": [
+            "framework/sdk-main.js"
+          ],
+          "matches": [
+            "http://*/*",
+            "https://*/*"
+          ],
+          "run_at": "document_start",
+          "world": "MAIN"
+        }
+      ],
+      "content_security_policy": {
+        "extension_pages": "script-src 'self'; object-src 'self'",
+        "sandbox": "sandbox allow-scripts; default-src 'none'; script-src 'self' 'unsafe-eval' blob:; worker-src blob:; connect-src 'none'; child-src 'none'; img-src 'self' data: blob:; style-src 'self' 'unsafe-inline'; base-uri 'none'; form-action 'none'"
+      },
+      "description": "OpenDesk Browser 浏览器自动化框架。",
+      "host_permissions": [
+        "<all_urls>"
+      ],
+      "incognito": "not_allowed",
+      "manifest_version": 3,
+      "minimum_chrome_version": "138",
+      "name": "OpenDesk Browser",
+      "optional_permissions": [
+        "bookmarks",
+        "history",
+        "contextMenus",
+        "clipboardRead",
+        "clipboardWrite",
+        "tabGroups",
+        "webRequest",
+        "nativeMessaging",
+        "idle"
+      ],
+      "options_ui": {
+        "open_in_tab": true,
+        "page": "native-agent/settings.html"
+      },
+      "permissions": [
+        "storage",
+        "scripting",
+        "sidePanel",
+        "activeTab",
+        "downloads",
+        "tabs",
+        "webNavigation",
+        "debugger",
+        "userScripts",
+        "cookies",
+        "notifications",
+        "unlimitedStorage",
+        "alarms",
+        "offscreen",
+        "proxy",
+        "declarativeNetRequestWithHostAccess"
+      ],
+      "sandbox": {
+        "pages": [
+          "scripting/sandbox/sandbox.html",
+          "sidebar-tools/sandbox.html"
+        ]
+      },
+      "short_name": "OD",
+      "side_panel": {
+        "default_path": "sidepanel.html"
+      },
+      "version": "0.1.0",
+      "web_accessible_resources": [
+        {
+          "matches": [
+            "http://*/*",
+            "https://*/*"
+          ],
+          "resources": [
+            "framework/sdk-main.js"
+          ]
+        },
+        {
+          "matches": [
+            "http://*/*",
+            "https://*/*"
+          ],
+          "resources": [
+            "stay-focus/blocked-quota.html",
+            "stay-focus/blocked-schedule.html",
+            "stay-focus/blocked-session.html",
+            "stay-focus/blocked-always.html"
+          ]
+        },
+        {
+          "matches": [
+            "http://*/*",
+            "https://*/*"
+          ],
+          "resources": [
+            "managed-site/blocked-quota.html",
+            "managed-site/blocked-schedule.html",
+            "managed-site/blocked-session.html",
+            "managed-site/blocked-always.html"
+          ]
+        }
+      ]
+    }
+  },
+  "extensionPathEvidence": {
+    "launchArgument": "/Users/shopme/Documents/workspace/opendesk-browser/artifacts/ai-proxy/r6-20261113/source-snapshot/dist/production",
+    "loadedBytesMatch": true,
+    "chromeReportedFilesystemPath": "NOT_AVAILABLE"
+  },
+  "loadedServiceWorkerSha256": "0d5f92f7de4a67dcad0154b079030f2e1b38da9072a9bb792c7ae1a870de8cef",
+  "sidePanelContext": "SIDE_PANEL",
+  "sidePanel": {
+    "contextId": "4f89644a-327e-488d-beeb-0411cbbd18a6",
+    "contextType": "SIDE_PANEL",
+    "documentId": "EC4CA4D18ECCDAE2A95888367522C495",
+    "documentOrigin": "chrome-extension://ddlligkamjbhkgodfmfioajokfbmnaip",
+    "documentUrl": "chrome-extension://ddlligkamjbhkgodfmfioajokfbmnaip/sidepanel.html?hostInstanceId=209697ed-707e-4f76-ab44-392cb783541c",
+    "frameId": 0,
+    "incognito": false,
+    "tabId": -1,
+    "windowId": -1
+  },
+  "sidePanelTargetId": "F2B71A195FD212F20878F81309871FBE",
+  "trustedUI": {
+    "url": "chrome-extension://ddlligkamjbhkgodfmfioajokfbmnaip/sidepanel.html?hostInstanceId=209697ed-707e-4f76-ab44-392cb783541c",
+    "rootCount": 1,
+    "ready": true,
+    "iframeCount": 0
+  },
+  "installReview": "AI Proxy\nv0.3.20\n\n浏览器网络代理管理：配置、规则与选择独立保存，公开受管服务的有限路由需明确审阅。四模式与七区保留，认证/PAC/订阅联网等能力待接入。\n\n安装所需权限 · 请核对\n\n保存此工具的数据、读取当前网页标题和地址、经可信确认管理浏览器级独占代理；直连、单个公网或本机端点、有限网站规则\n\n本地安装包 · 请确认文件来源可信\n\n技术详情 · 文件与校验信息",
+  "ui": {
+    "status": "PASS",
+    "sceneCount": 60,
+    "checkCount": 143,
+    "loadedToolShellSha256": "11801188d1cf20f68ec3740a2b0aee6155e734b54c7115fbe94dfe6c7bf7de16",
+    "details": "ui-audit.json"
+  },
+  "phaseResult": "READY",
+  "heldOpen": false,
+  "resourcesReleased": true,
+  "finishedAt": "2026-11-12T19:37:58.270Z"
+}

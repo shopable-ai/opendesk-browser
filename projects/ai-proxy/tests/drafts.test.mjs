@@ -95,7 +95,7 @@ test('host, port and local quick picks mark their owning form without a change e
 });
 test('host confirmation arriving after a successful save cannot reopen a hidden proxy draft',async()=>{
  for(const dirty of [false,true]){
-  const {env}=fixture();const values=[],notices=[];let accept,saveDone;const dialog={open:true};
+  const {env}=fixture();const values=[],closed=[];let accept,saveDone;const dialog={open:true};
   try{
    if(dirty)env.setDraftDirty(true,'settings-proxy');
    env.setConfirmHandler(()=>new Promise(resolve=>accept=resolve));
@@ -103,17 +103,16 @@ test('host confirmation arriving after a successful save cannot reopen a hidden 
    target.closest=selector=>selector==='dialog'?dialog:closest(selector);
    const {HostQuickPick}=await loadUI('../src/ui/ProxyEntry.tsx',env);
    const tree=HostQuickPick({value:'proxy.example.com',onChoose:value=>values.push(value)});
-   const save=await handler('../src/Settings.tsx','  async function saveProxy(','  async function editPac(',{
+   const save=await handler('../src/ui/ProxyEditor.tsx','  async function saveProxy(','  // One form and reading order',{
     getEnvironment:()=>env,editingId:'a',endpoints:[{id:'a'}],locale:'en',username:'',password:'',
     proxy:{name:'A',scheme:'https',host:'proxy.example.com',port:'443'},isValidProxyPort:()=>true,
-    setProxyNotice:value=>notices.push(value),
-    act:()=>new Promise(resolve=>saveDone=resolve),closeEditor:()=>{dialog.open=false;}
+    act:()=>new Promise(resolve=>saveDone=resolve),closeEditor:saved=>{closed.push(saved);dialog.open=false;}
    });
    const saving=save({preventDefault(){},nativeEvent:{}});
    const choosing=tree.props.children[0][0].props.onClick({currentTarget:target});
    saveDone(true);await saving;accept(true);await choosing;
    assert.deepEqual(values,[]);assert.equal(env.isDraftDirty('settings-proxy'),false);
-   assert.deepEqual(notices,['','apProxySavedNotice']);
+   assert.deepEqual(closed,[true]);
   }finally{env.dispose();}
  }
  const {env}=fixture();const values=[];
@@ -132,7 +131,13 @@ async function handler(file,start,end,context){
  const slice=source.slice(source.indexOf(start),source.indexOf(end,source.indexOf(start)));
  assert.ok(slice.startsWith(start));
  const {code}=await transform(slice,{loader:'tsx'});
- const additions=file.endsWith('Settings.tsx')?{
+ const additions=file.endsWith('ProxyEditor.tsx')?{
+  environment:context.getEnvironment(),busy:false,state:{},endpoint:undefined,
+  draftEtag:'opened',draftId:{current:''},setSubmitting(){},
+  saving:{current:false},confirmationRequest:{current:null},closed:{current:false},
+  editorGeneration:{current:0},mounted:{current:true},
+  confirmIntent:(text)=>context.getEnvironment().confirm(text)
+ }:file.endsWith('Settings.tsx')?{
   state:{configEtag:"original"},editorGeneration:{current:0},mounted:{current:true},latestEtag:{current:undefined},stageBackup(){},
   confirmIntent:(text)=>context.getEnvironment().confirm(text)
  }:{};
@@ -187,12 +192,12 @@ test('implicit proxy close preserves a declined or newer draft and clears no sib
  const {env}=fixture();let closes=0;
  try{
   env.setDraftDirty(true,'settings-proxy');env.setDraftDirty(true,'settings-pac');
-  const busyClose=await handler('../src/Settings.tsx','  async function requestCloseEditor(','  function openEditor(',{
+  const busyClose=await handler('../src/ui/ProxyEditor.tsx','  async function requestCloseEditor(','  function handleProxyPaste(',{
    busy:true,getEnvironment:()=>env,t:key=>key,closeEditor:()=>closes++
   });
   env.setConfirmHandler(()=>assert.fail('busy editor must not start leaving'));
   await busyClose();assert.equal(closes,0);assert.equal(env.isDraftDirty('settings-proxy'),true);
-  const close=await handler('../src/Settings.tsx','  async function requestCloseEditor(','  function openEditor(',{
+  const close=await handler('../src/ui/ProxyEditor.tsx','  async function requestCloseEditor(','  function handleProxyPaste(',{
    busy:false,getEnvironment:()=>env,t:key=>key,closeEditor:()=>closes++
   });
   env.setConfirmHandler(async()=>false);
@@ -311,12 +316,12 @@ test('backup cleanup, late failure and prepared candidate stay inside their orig
   }finally{current.dispose();}
  }
 });
-test('successful parsed paste marks QuickPanel and Settings drafts even with prevented default input',async()=>{
- for(const [file,scope,setter] of [['QuickPanel.tsx','quick-server','setServer'],['Settings.tsx','settings-proxy','setProxy']]){
+test('successful parsed paste marks the shared editor draft even with prevented default input',async()=>{
+ for(const [file,scope,setter] of [['ui/ProxyEditor.tsx','settings-proxy','setProxy']]){
   const {env}=fixture();
   try{
    const updates=[];let prevented=false;
-   const paste=await handler('../src/'+file,'  function handleProxyPaste(','  '+(file==='QuickPanel.tsx'?'async function saveProxy(':'useEffect(() => {'),{
+   const paste=await handler('../src/'+file,'  function handleProxyPaste(','  async function saveProxy(',{
     getEnvironment:()=>env,parseProxyAddressPaste:()=>({scheme:'https',host:'proxy.example.com',port:'443'}),
     [setter]:value=>updates.push(value({})),setAddressPasteError(){},setUsername(){},setPassword(){}
    });
@@ -353,12 +358,11 @@ test('host state updates cannot clear tracked drafts; controls outside draft for
 test('Settings atomic proxy commit refusal retains the original draft without a second write',async()=>{
  const {env}=fixture();
  try{
-  env.setDraftDirty(true,'settings-proxy');const calls=[],notices=[];
-  const save=await handler('../src/Settings.tsx','  async function saveProxy(','  async function savePac(',{
+  env.setDraftDirty(true,'settings-proxy');const calls=[];
+  const save=await handler('../src/ui/ProxyEditor.tsx','  async function saveProxy(','  // One form and reading order',{
    getEnvironment:()=>env,editingId:'',username:'',password:'',endpoints:[],locale:'en',
    proxy:{name:'draft',scheme:'https',host:'proxy.example.com',port:'443'},
    isValidProxyPort:()=>true,crypto:{randomUUID:()=> 'new'},
-   setProxyNotice:value=>notices.push(value),
    act:async m=>{calls.push(JSON.parse(JSON.stringify(m)));return false;},
    closeEditor:()=>assert.fail('refused atomic save closed the draft')
   });
@@ -366,22 +370,21 @@ test('Settings atomic proxy commit refusal retains the original draft without a 
   assert.deepEqual(calls,[{type:'SAVE_ENDPOINT',draftScope:'settings-proxy',createProfile:true,endpoint:{
    id:'new',name:'draft',scheme:'https',host:'proxy.example.com',port:443,sourceId:'manual'
   }}]);assert.equal(env.isDraftDirty('settings-proxy'),true);
-  assert.deepEqual(notices,['']);
  }finally{env.dispose();}
 });
-test('QuickPanel failed final selection retains the completed endpoint draft for review',async()=>{
+test('QuickPanel local-client failed final selection retains the completed local draft for review',async()=>{
  const {env}=fixture();
  try{
-  env.setDraftDirty(true,'quick-server');const calls=[];
+  env.setDraftDirty(true,'quick-local');const calls=[];
   const save=await handler('../src/QuickPanel.tsx','  async function saveProxy(','  async function saveSiteRule(',{
-   getEnvironment:()=>env,addKind:'server',entryBusy:false,savingRef:{current:false},
-   server:{name:'draft',scheme:'https',host:'proxy.example.com',port:'443'},
+   getEnvironment:()=>env,addKind:'local',entryBusy:false,savingRef:{current:false},
+   local:{name:'draft',scheme:'http',port:'7890'},t:key=>key,
    isValidProxyPort:()=>true,crypto:{randomUUID:()=> 'new'},setAddedAnother(){},setSaving(){},setEntryFocusRequest(){},
    act:async m=>{calls.push(m.type);return m.type!=='SELECT';},
-   setServer:()=>assert.fail('partial save reset inputs'),closeAdd:()=>assert.fail('partial save closed editor')
+   setLocal:()=>assert.fail('partial save reset inputs'),closeAdd:()=>assert.fail('partial save closed editor')
   });
   await save({preventDefault(){},nativeEvent:{}});
-  assert.deepEqual(calls,['SAVE_ENDPOINT','SELECT']);assert.equal(env.isDraftDirty('quick-server'),true);
+  assert.deepEqual(calls,['SAVE_LOCAL_CLIENT','SELECT']);assert.equal(env.isDraftDirty('quick-local'),true);
  }finally{env.dispose();}
 });
 test('PAC save acknowledges only its form and does not release a rotation draft',async()=>{
@@ -440,26 +443,35 @@ test('late backup completion and QuickPanel cancel/reopen preserve newer and sib
   await importBackup();
   observed.backup={value:backupValue,dirty:env.isDraftDirty('settings-backup')};
 
-  // Opening another kind must retain both owners, including after Cancel/Back.
-  const context={getEnvironment:()=>env,state:{configEtag:'quick-initial'},addKind:null,server:{host:'keep.example.com'},local:{port:'7890'},
-   emptyServer:{host:''},emptyLocal:{port:''},entryOrigin:{current:'header'},returnTarget:{current:'header'},returnFocus:{current:false},
-   setAddedAnother(){},setSavedHint(){},setAddressPasteError(){},setError(){}};
-  for(const [name,key] of [['setAddKind','addKind'],['setServer','server'],['setLocal','local']])context[name]=value=>{context[key]=value;};
+  // The server entry mounts the shared owner; local cancellation preserves
+  // its independent draft and never creates a removed quick-server scope.
+  class Element {}
+  const origin=new Element();
+  const context={getEnvironment:()=>env,state:{configEtag:'quick-initial'},addKind:null,local:{port:'7890'},
+   document:{activeElement:origin},HTMLElement:Element,proxyEditorOrigin:{current:null},proxyEditorOpen:false,
+   entryOrigin:{current:'header'},returnTarget:{current:'header'},returnFocus:{current:false},
+   setAddedAnother(){},setSavedHint(){},setError(){}};
+  for(const [name,key] of [['setAddKind','addKind'],['setLocal','local'],['setProxyEditorOpen','proxyEditorOpen'],['setProxyEditorEtag','proxyEditorEtag']])context[name]=value=>{context[key]=value;};
   const begin=await handler('../src/QuickPanel.tsx','  function beginAdd(','  function closeAdd(',context);
   const close=await handler('../src/QuickPanel.tsx','  function closeAdd(','  async function readSite(',context);
-  begin('server');env.markDraftFrom(scopedTarget('quick-'+context.addKind));
-  begin('local');env.markDraftFrom(scopedTarget('quick-'+context.addKind));
-  close();
-  observed.afterCancel={kind:context.addKind,serverDirty:env.isDraftDirty('quick-server'),localDirty:env.isDraftDirty('quick-local')};
-  begin('server');observed.serverAfterReopen=context.server.host;
-  begin('local');observed.localAfterSwitch=context.local.port;
-  // A successful server save may dismiss the editor, but cannot release local's owner.
-  env.setDraftDirty(false,'quick-server',env.getDraftRevision('quick-server'));
-  begin('server');close(true);
-  observed.afterSave={kind:context.addKind,localValue:context.local.port,localDirty:env.isDraftDirty('quick-local')};
+  begin('server');assert.equal(context.proxyEditorOpen,true);assert.equal(context.proxyEditorOrigin.current,origin);
+  assert.equal(context.proxyEditorEtag,'quick-initial');
+  assert.equal(env.isDraftDirty('quick-server'),false);
+  env.beginDraft('settings-proxy');env.setDraftDirty(true,'settings-proxy');
+  begin('local');env.markDraftFrom(scopedTarget('quick-local'));close();
+  observed.afterCancel={kind:context.addKind,serverDirty:env.isDraftDirty('settings-proxy'),localDirty:env.isDraftDirty('quick-local')};
+  begin('server');observed.localAfterReopen=context.local.port;
+  const save=await handler('../src/ui/ProxyEditor.tsx','  async function saveProxy(','  // One form and reading order',{
+   getEnvironment:()=>env,editingId:'',username:'',password:'',endpoints:[],locale:'en',
+   proxy:{name:'Server',scheme:'https',host:'proxy.example',port:'443'},isValidProxyPort:()=>true,
+   crypto:{randomUUID:()=> 'new'},act:async message=>{assert.equal(message.type,'SAVE_ENDPOINT');return true;},
+   closeEditor:saved=>{assert.equal(saved,true);context.proxyEditorOpen=false;}
+  });
+  await save({preventDefault(){}});
+  observed.afterSave={open:context.proxyEditorOpen,serverDirty:env.isDraftDirty('settings-proxy'),localValue:context.local.port,localDirty:env.isDraftDirty('quick-local')};
   assert.deepEqual(observed,{
    backup:{value:'new backup',dirty:true},afterCancel:{kind:null,serverDirty:true,localDirty:true},
-   serverAfterReopen:'keep.example.com',localAfterSwitch:'7890',afterSave:{kind:null,localValue:'7890',localDirty:true}
+   localAfterReopen:'7890',afterSave:{open:false,serverDirty:false,localValue:'7890',localDirty:true}
   });
  }finally{env.dispose();}
 });
@@ -522,4 +534,26 @@ test('a late current-site save keeps newer rule draft open',async()=>{
   });
   await save({preventDefault(){}});assert.equal(env.isDraftDirty('quick-rule'),true);
  }finally{env.dispose();}
+});
+
+
+test('late local-client completion retains newer local input and sibling drafts without applying',async()=>{
+ for(const keepAdding of [false,true]){
+  const {env}=fixture();const calls=[],saving={current:false};
+  try{
+   env.setDraftDirty(true,'quick-local');env.setDraftDirty(true,'settings-proxy');
+   const save=await handler('../src/QuickPanel.tsx','  async function saveProxy(','  async function saveSiteRule(',{
+    getEnvironment:()=>env,addKind:'local',entryBusy:false,savingRef:saving,
+    local:{name:'Local',scheme:'http',port:'7890'},t:key=>key,isValidProxyPort:()=>true,crypto:{randomUUID:()=> 'local'},
+    setAddedAnother(){},setSaving(){},setEntryFocusRequest(){},
+    act:async message=>{calls.push(message.type);if(keepAdding||message.type==='SELECT')env.setDraftDirty(true,'quick-local');return true;},
+    setLocal:()=>assert.fail('late save reset newer local inputs'),setNameExpanded:()=>assert.fail('late save changed the editor'),
+    closeAdd:()=>assert.fail('late save closed newer local inputs'),setSavedHint:()=>assert.fail('late save announced newer input saved')
+   });
+   await save({preventDefault(){},nativeEvent:{submitter:{getAttribute:()=>String(keepAdding)}}});
+   assert.deepEqual(calls,keepAdding?['SAVE_LOCAL_CLIENT']:['SAVE_LOCAL_CLIENT','SELECT']);
+   assert.equal(env.isDraftDirty('quick-local'),true);assert.equal(env.isDraftDirty('settings-proxy'),true);
+   assert.equal(saving.current,false);
+  }finally{env.dispose();}
+ }
 });

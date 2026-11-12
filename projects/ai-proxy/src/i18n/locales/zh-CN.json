@@ -315,8 +315,8 @@
   "protocol": "协议",
   "host": "主机",
   "port": "端口",
-  "proxyUsernameOptional": "代理用户名（可选）",
-  "sessionPasswordNotBackedUp": "密码（认证尚未接入）",
+  "proxyUsernameOptional": "用户名（可选）",
+  "sessionPasswordNotBackedUp": "密码（可选）",
   "httpSPasswordsAreSessionOnlyChangesToHost": "当前不能保存或使用代理凭证。无需认证的代理可正常添加；需认证的线路可通过本地客户端接入。",
   "chromeModeLabel": " · Chrome 模式：",
   "pendingRoutingAdvice": "如需切换，请明确点击「应用选择」；如需释放代理，请点击「停止管理」。",
@@ -1047,5 +1047,9 @@
   "diagProductionUnavailable": "正式运行时尚未接入网站 HTTP 检测、收藏和使用统计；相关操作暂不可用，不会发送测试请求或生成模拟成功结果。",
   "diagSitesLive": "当前配置的 HTTP 结果",
   "diagSpeedNotConnected": "尚未接入真实 HTTP 耗时与下载吞吐测速，不能据此推断代理线路质量。",
-  "apSwitchToRulesMode": "切换到按规则"
+  "apSwitchToRulesMode": "切换到按规则",
+  "proxyConfigName": "配置名称（可选）",
+  "proxyServerAddress": "服务器地址",
+  "proxyEditorSave": "保存",
+  "proxyEditorAuthHelp": "保存不会应用代理。认证尚未接入，填写账号或密码时无法保存。"
 }

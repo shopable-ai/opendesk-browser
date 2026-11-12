@@ -1,0 +1,33 @@
+✔ editor yields its native modal synchronously; cancel/rejection restores it and single pending blocks reentry (1.7345ms)
+✔ only a live unchanged editor accepts; revision/ETag changes preserve the editor and draft (1.439209ms)
+✔ authenticated add/edit reject before writes or draft resets in every locale (4.883125ms)
+✔ partial credentials and SOCKS authentication retain existing validation with no effects (1.030666ms)
+✔ editing an existing HTTP credential reference also rejects before changing the endpoint (0.3345ms)
+✔ unauthenticated add/edit in all four protocols commit once and close after saving (2.251875ms)
+✔ cancelled or failed endpoint writes keep the draft and do not save a profile (0.727084ms)
+✔ late save completion does not clear or close a newer draft (0.350083ms)
+✔ shared three-row editor preserves R5 fields, locks duplicate saves and closes exactly once (2.607375ms)
+✔ R5 credentials survive protocol changes, refused saves and background refresh (1.605ms)
+✔ native close and Escape keep drafts on cancel or rejected confirmation; accept closes once (2.975583ms)
+✔ late save or discard cannot clear newer input, a new generation or replacement environment (8.388459ms)
+✔ shared editor remains visible and cancellable while its independent state read is unavailable (0.696875ms)
+✔ Settings pairs the original endpoint and opening ETag; refreshed environment rejects stale edits without a write (7.087542ms)
+✔ pending save disables every real input and repeated submissions store one endpoint and profile (1.506458ms)
+✔ external revision during a successful add cannot make its retry create another endpoint or profile (2.277833ms)
+✔ exact reviewed normalized package and independently installed identity admit static UI (2.105417ms)
+✔ AI Proxy admission rejects absent, duplicate, altered and invalid installations or missing capability (0.556459ms)
+✔ AI Proxy admission ignores Catalog, source records and fixed version for actual local installs (0.407125ms)
+✔ AI Proxy admission enforces enable state and exact epoch including initial null (0.596833ms)
+✔ trusted host accepts current-page read and checks admission on every request without replay (1.375791ms)
+✔ actual portal bridge receives root, emits no URL payload, and removes page listener on disposal (1.176583ms)
+✔ active current-page subscription notifies trusted portal once per transition and unsubscribes (0.412ms)
+✔ trusted release version is the requested 0.3.12 (0.066292ms)
+✔ existing Host permission guard rejects currentPage.info without currentPage.read (0.234958ms)
+ℹ tests 25
+ℹ suites 0
+ℹ pass 25
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 108.976125

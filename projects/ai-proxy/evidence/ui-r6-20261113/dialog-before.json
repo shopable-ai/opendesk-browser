@@ -1,0 +1,198 @@
+{
+  "reference": {
+    "viewport": [
+      1440,
+      1000
+    ],
+    "elements": [
+      {
+        "sel": "dialog[open],.modal--proxy",
+        "rect": {
+          "x": 440,
+          "y": 276.296875,
+          "width": 560,
+          "height": 447.40625
+        },
+        "style": {
+          "padding": "24px 28px 22px",
+          "borderRadius": "16px",
+          "fontSize": "13px",
+          "lineHeight": "19.24px",
+          "gap": "normal",
+          "backgroundColor": "rgb(255, 255, 255)",
+          "color": "rgb(30, 41, 59)"
+        }
+      },
+      {
+        "sel": "#ep-name,input[name=name]",
+        "rect": {
+          "x": 469,
+          "y": 381.4921875,
+          "width": 502,
+          "height": 42
+        },
+        "style": {
+          "padding": "9px 11px",
+          "borderRadius": "8px",
+          "fontSize": "13.5px",
+          "lineHeight": "19.575px",
+          "gap": "normal",
+          "backgroundColor": "rgb(255, 255, 255)",
+          "color": "rgb(38, 51, 70)"
+        }
+      },
+      {
+        "sel": "#ep-scheme,select[name=scheme]",
+        "rect": {
+          "x": 469,
+          "y": 465.6875,
+          "width": 114,
+          "height": 42
+        },
+        "style": {
+          "padding": "9px 11px",
+          "borderRadius": "8px",
+          "fontSize": "13.5px",
+          "lineHeight": "normal",
+          "gap": "normal",
+          "backgroundColor": "rgb(255, 255, 255)",
+          "color": "rgb(38, 51, 70)"
+        }
+      },
+      {
+        "sel": "#ep-host,input[name=host]",
+        "rect": {
+          "x": 594,
+          "y": 465.6875,
+          "width": 271,
+          "height": 42
+        },
+        "style": {
+          "padding": "9px 11px",
+          "borderRadius": "8px",
+          "fontSize": "13.5px",
+          "lineHeight": "19.575px",
+          "gap": "normal",
+          "backgroundColor": "rgb(255, 255, 255)",
+          "color": "rgb(38, 51, 70)"
+        }
+      },
+      {
+        "sel": "#ep-port,input[name=port]",
+        "rect": {
+          "x": 876,
+          "y": 465.6875,
+          "width": 95,
+          "height": 42
+        },
+        "style": {
+          "padding": "9px 11px",
+          "borderRadius": "8px",
+          "fontSize": "13.5px",
+          "lineHeight": "19.575px",
+          "gap": "normal",
+          "backgroundColor": "rgb(255, 255, 255)",
+          "color": "rgb(38, 51, 70)"
+        }
+      }
+    ]
+  },
+  "actual": {
+    "viewport": [
+      1440,
+      1000
+    ],
+    "elements": [
+      {
+        "sel": "dialog[open],.modal--proxy",
+        "rect": {
+          "x": 440,
+          "y": 292.8984375,
+          "width": 560,
+          "height": 414.1953125
+        },
+        "style": {
+          "padding": "0px",
+          "borderRadius": "12px",
+          "fontSize": "13px",
+          "lineHeight": "19.5px",
+          "gap": "normal",
+          "backgroundColor": "rgb(255, 255, 255)",
+          "color": "rgb(27, 44, 73)"
+        }
+      },
+      {
+        "sel": "#ep-name,input[name=name]",
+        "rect": {
+          "x": 463,
+          "y": 393.8984375,
+          "width": 514,
+          "height": 40
+        },
+        "style": {
+          "padding": "8px 35px 8px 10px",
+          "borderRadius": "8px",
+          "fontSize": "13px",
+          "lineHeight": "19.5px",
+          "gap": "normal",
+          "backgroundColor": "rgb(255, 255, 255)",
+          "color": "rgb(27, 44, 73)"
+        }
+      },
+      {
+        "sel": "#ep-scheme,select[name=scheme]",
+        "rect": {
+          "x": 463,
+          "y": 473.8984375,
+          "width": 96,
+          "height": 40
+        },
+        "style": {
+          "padding": "8px 20px 8px 8px",
+          "borderRadius": "8px",
+          "fontSize": "13px",
+          "lineHeight": "normal",
+          "gap": "normal",
+          "backgroundColor": "rgb(255, 255, 255)",
+          "color": "rgb(27, 44, 73)"
+        }
+      },
+      {
+        "sel": "#ep-host,input[name=host]",
+        "rect": {
+          "x": 567,
+          "y": 473.8984375,
+          "width": 322,
+          "height": 40
+        },
+        "style": {
+          "padding": "8px 35px 8px 10px",
+          "borderRadius": "8px",
+          "fontSize": "13px",
+          "lineHeight": "19.5px",
+          "gap": "normal",
+          "backgroundColor": "rgb(255, 255, 255)",
+          "color": "rgb(27, 44, 73)"
+        }
+      },
+      {
+        "sel": "#ep-port,input[name=port]",
+        "rect": {
+          "x": 897,
+          "y": 473.8984375,
+          "width": 80,
+          "height": 40
+        },
+        "style": {
+          "padding": "8px 35px 8px 10px",
+          "borderRadius": "8px",
+          "fontSize": "13px",
+          "lineHeight": "19.5px",
+          "gap": "normal",
+          "backgroundColor": "rgb(255, 255, 255)",
+          "color": "rgb(27, 44, 73)"
+        }
+      }
+    ]
+  }
+}

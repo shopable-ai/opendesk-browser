@@ -306,8 +306,11 @@ export function createProxyService({ load, save, status, validateApply, apply, s
           const old = c.endpoints.find(row => row.id === e.id);
           if (c.sources.some(source => (source.id === e.sourceId || source.id === old?.sourceId) && source.kind === 'local-client'))
             throw new Error('本地客户端入口请在第三方订阅页面编辑');
-          // Session references are bound to an exact proxy authority.
-          if (old?.credentialRef && (old.host !== e.host || old.port !== e.port || old.scheme !== e.scheme)) delete e.credentialRef;
+          // Authentication is not connected: preserve existing exact-authority
+          // bindings, but never mint, replace or silently discard a session ref.
+          if (e.credentialRef !== old?.credentialRef ||
+              (old?.credentialRef && (old.host !== e.host || old.port !== e.port || old.scheme !== e.scheme)))
+            fail('E_NOT_CONNECTED', 'E_NOT_CONNECTED: authentication and network probes are not connected');
           c.endpoints = upsert(c.endpoints, e);
           c.profiles = c.profiles.map(p => p.kind === 'endpoint' && p.id === 'profile-' + e.id && p.endpointId === e.id ? { ...p, name: e.name } : p);
           if (message.createProfile && !old) {

@@ -25,7 +25,7 @@ function fixture({locale='en',OptionsPageHeader,headerNavigation=false,route='#/
   const nodes=new Map();
   const node=id=>nodes.get(id)||(()=>{const value={id,isConnected:true,focus(){focus.push(id);},scrollIntoView(){scroll.push(id);}};nodes.set(id,value);return value;})();
   let eventStack=null,onNavigate=null;
-  const env={navigation:{getRoute:()=>route,subscribe:()=>()=>{}},navigate(target){calls.push({navigate:target});onNavigate?.(target);},
+  const env={navigation:{getRoute:()=>route,subscribe:()=>()=>{},navigate(target,options){route=target;calls.push({navigate:target,...options});}},navigate(target){calls.push({navigate:target});onNavigate?.(target);},
     hasDrafts:()=>drafts.size>0,getDraftVersion:()=>revision,
     isDraftDirty:key=>drafts.has(key),getDraftRevision:key=>drafts.get(key)??0,
     beginDraft(key,etag=state.configEtag){if(!draftBases.has(key))draftBases.set(key,etag);},
@@ -48,6 +48,8 @@ function fixture({locale='en',OptionsPageHeader,headerNavigation=false,route='#/
       if(name==='@opendesk/ui')return {Button};
       if(name==='./environment')return {getEnvironment:()=>env};
       if(name==='./i18n/LocaleProvider')return {useI18n:()=>({t:(key,params)=>['ruleCount','apRuleEnabled','apRuleDisabled','editNamedRule','deleteNamedRule','confirmDeleteRule','apRuleExactScope','apRuleSubdomainScope'].includes(key)||(OptionsPageHeader&&key==='websiteRules2')?translate(locale,key,params):key,locale})};
+      if(name==='./ui/ProxyEditor')return {ProxyEditor:({endpoint,onClose})=>React.createElement('section',{'data-proxy-editor':endpoint?.id??'new'},
+        React.createElement('button',{onClick:()=>onClose(false)},'proxy-cancel'),React.createElement('button',{onClick:()=>onClose(true)},'proxy-save'))};
       if(name==='./ui/useProxy')return {useProxy:()=>({
         state,busy:operationBusy,error:errorKey,
         setError(){errorKey='';},
@@ -433,4 +435,28 @@ test('empty backup accepts a validated read without confirmation; invalid files 
  await f.chooseBackup({size:3,text:async()=>'{bad'});
  assert.equal(f.all(n=>n.props.id==='backup-replace-candidate').length,0);
  assert.equal(backupText(f),JSON.stringify(domain.freshConfig()));
+});
+
+
+test('Settings mounts one shared proxy editor with edit identity and owns save feedback and add deep-link exit',async()=>{
+  const f=fixture({route:'#/profiles'});
+  assert.equal(f.all(n=>n.props['data-proxy-editor']).length,0);
+  await f.click('addProxy2');
+  assert.deepEqual(f.all(n=>n.props['data-proxy-editor']).map(n=>n.props['data-proxy-editor']),['new']);
+  await f.click('proxy-cancel');assert.equal(f.all(n=>n.props['data-proxy-editor']).length,0);
+  assert.equal(f.all(n=>n.props.role==='status'&&f.text(n)==='apProxySavedNotice').length,0);
+  f.all(n=>n.props.id==='settings-proxy-proxy')[0].props.onClick();f.render();
+  assert.deepEqual(f.all(n=>n.props['data-proxy-editor']).map(n=>n.props['data-proxy-editor']),['proxy']);
+  await f.click('proxy-save');
+  assert.equal(f.all(n=>n.props['data-proxy-editor']).length,0);
+  assert.ok(f.all(n=>n.props.role==='status'&&f.text(n)==='apProxySavedNotice').length);
+  assert.equal(f.calls.some(c=>c.type),false,'the parent does not save/select/apply a second time');
+  for(const action of ['proxy-cancel','proxy-save']){
+    const linked=fixture({route:'#/profiles/add'});
+    assert.equal(linked.all(n=>n.props['data-proxy-editor']).length,1);
+    await linked.click(action);
+    assert.equal(linked.env.navigation.getRoute(),'#/profiles');
+    assert.ok(linked.calls.some(c=>c.navigate==='#/profiles'&&c.force&&c.replace));
+    assert.equal(linked.all(n=>n.props['data-proxy-editor']).length,0);
+  }
 });

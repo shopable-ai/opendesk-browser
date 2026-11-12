@@ -5767,9 +5767,11 @@ function createSidebarToolsController({api=globalThis.chrome,doc=globalThis.docu
   const captureSitesReady=api.storage.local.get(CAPTURE_SITE_STORE).then(saved=>{
     if(disposed)return;captureGrants=saved[CAPTURE_SITE_STORE];render();
   }).catch(error=>notice('知识保存授权读取失败：'+error.message,true));
-  const officialReady=loadOfficial();
-  const preinstallReady=runDefaultPreinstall();
-  const ready=Promise.all([enableReady,installedReady,sitesReady,menuReady,tocVisibilityReady,tocPagesReady,clipSitesReady,captureSitesReady,officialReady,preinstallReady]);
+  // Optional discovery/preinstallation may wait for the network. Existing
+  // installed apps need only local admission state; later results render normally.
+  void loadOfficial();
+  void runDefaultPreinstall();
+  const ready=Promise.all([enableReady,installedReady,sitesReady,menuReady,tocVisibilityReady,tocPagesReady,clipSitesReady,captureSitesReady]);
   const menuPermissionsChanged=(details,removed=false)=>{
     menuStatusKey='';cookieChromeKey='';cookieChromeState=null;
     if(removed&&active?.id===MEDIA_ID)videoDownloader.invalidate();

@@ -1,0 +1,28 @@
+✖ real sidebar controller initializes with React DOM runtime, reaches ready and releases Cookie click bindings (208.27975ms)
+ℹ tests 1
+ℹ suites 0
+ℹ pass 0
+ℹ fail 1
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 596.802959
+
+✖ failing tests:
+
+test at tests/environment/sidebar-tools-view.test.mjs:619:1
+✖ real sidebar controller initializes with React DOM runtime, reaches ready and releases Cookie click bindings (208.27975ms)
+  AssertionError [ERR_ASSERTION]: installed Host readiness cannot wait for optional remote catalog
+
+  false !== true
+
+      at TestContext.<anonymous> (file:///Users/shopme/Documents/workspace/opendesk-browser/tests/environment/sidebar-tools-view.test.mjs:710:10)
+      at async Test.run (node:internal/test_runner/test:1313:7)
+      at async startSubtestAfterBootstrap (node:internal/test_runner/harness:385:3) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: false,
+    expected: true,
+    operator: 'strictEqual',
+    diff: 'simple'
+  }

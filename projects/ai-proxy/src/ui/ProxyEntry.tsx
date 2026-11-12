@@ -19,14 +19,14 @@ export function ClearableInput({ value, onValueChange, fieldLabel, revealPasswor
   const ref = useRef<HTMLInputElement>(null);
   const [revealed, setRevealed] = useState(false);
   useEffect(() => { if (!value || props.disabled) setRevealed(false); }, [value, props.disabled]);
-  const canReveal = revealPassword && props.type === 'password' && !props.disabled && value !== '';
+  const canReveal = revealPassword && props.type === 'password' && !props.disabled;
   const revealLabel = revealed ? t('hidePassword') : t('showPassword');
   return <span className={'fieldWithClear' + (className ? ' ' + className : '')}>
     <input {...props} ref={ref} type={canReveal && revealed ? 'text' : props.type}
-      style={canReveal ? {...props.style, paddingRight:66} : props.style}
+      style={{...props.style, paddingRight:canReveal ? (value ? 66 : 35) : (value ? 35 : 10)}}
       value={value} onChange={event => onValueChange(event.target.value)} />
     {canReveal && <Button type="button" className="fieldReveal"
-      style={{right:35}} aria-label={revealLabel} title={revealLabel}
+      style={{right:value ? 35 : 4}} aria-label={revealLabel} title={revealLabel}
       onMouseDown={event=>event.preventDefault()} onClick={()=>{setRevealed(previous=>!previous);ref.current?.focus();}}>
       <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor"
         strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">

@@ -4,28 +4,20 @@ import {Button} from '@opendesk/ui';
 import { useEffect, useMemo, useRef, useState, type FormEvent } from 'react';
 import { useI18n } from './i18n/LocaleProvider';
 import { freshConfig, normalizeRuleSiteInput, priorityForSiteQuickRule } from './domain/config';
-import type { Profile, ProxyScheme, RouteMode, SiteRule } from './domain/types';
+import type { Profile, RouteMode, SiteRule } from './domain/types';
 import { useProxy } from './ui/useProxy';
 import { Status } from './ui/Status';
 import { ClearableInput } from './ui/ProxyEntry';
-import { isValidProxyPort, parseProxyAddressPaste } from './domain/proxy-entry';
+import { isValidProxyPort } from './domain/proxy-entry';
+import { ProxyEditor } from './ui/ProxyEditor';
 import { optionsUrl } from './ui/optionsRoute';
 import { RotationEntry } from './ui/RotationPlan';
 import { ProxyIcon as SideIcon } from './ui/ProxyIcon';
 
 
-type AddKind = 'server' | 'local';
+type AddKind = 'local';
 type RouteTarget = 'endpoint' | 'direct';
-const emptyServer = { name:'', scheme:'http' as ProxyScheme, host:'', port:'' };
 const emptyLocal = { name:'', scheme:'http' as 'http' | 'socks5', port:'' };
-
-function defaultServerName(scheme:ProxyScheme,host:string,port:string) {
-  const prefix=scheme.toUpperCase()+' · ';
-  const suffix=':'+port;
-  const hostBudget=80-prefix.length-suffix.length;
-  const shortHost=host.length>hostBudget?host.slice(0,hostBudget-1)+'…':host;
-  return prefix+shortHost+suffix;
-}
 
 export default function App({headerNavigation=false,settingsFallback=false}:{headerNavigation?:boolean;settingsFallback?:boolean}={}) {
   const { t } = useI18n();
@@ -50,8 +42,9 @@ export default function App({headerNavigation=false,settingsFallback=false}:{hea
   const [siteError,setSiteError] = useState(false);
   const [siteEditorOpen,setSiteEditorOpen] = useState(false);
   const [addKind,setAddKind] = useState<AddKind | null>(null);
-  const [server,setServer] = useState(emptyServer);
-  const [addressPasteError,setAddressPasteError] = useState(false);
+  const [proxyEditorOpen,setProxyEditorOpen] = useState(false);
+  const [proxyEditorEtag,setProxyEditorEtag] = useState('');
+  const proxyEditorOrigin=useRef<HTMLElement|null>(null);
   const [local,setLocal] = useState(emptyLocal);
   const [savedHint,setSavedHint] = useState(false);
   const [ruleHint,setRuleHint] = useState(false);
@@ -61,7 +54,7 @@ export default function App({headerNavigation=false,settingsFallback=false}:{hea
   const [saving,setSaving] = useState(false);
   const savingRef = useRef(false);
   const [entryFocusRequest,setEntryFocusRequest] = useState(0);
-  const [nameExpanded,setNameExpanded] = useState({server:false,local:false});
+  const [nameExpanded,setNameExpanded] = useState({local:false});
   const entryBusy = busy || saving;
   const addButton = useRef<HTMLButtonElement>(null);
   const fallbackAddButton = useRef<HTMLButtonElement>(null);
@@ -85,14 +78,19 @@ export default function App({headerNavigation=false,settingsFallback=false}:{hea
     }
   },[addKind]);
   useEffect(() => {
-    if (addKind) document.getElementById(addKind==='server'?'quick-host':'quick-port')?.focus();
+    if (addKind) document.getElementById('quick-port')?.focus();
   },[addKind,entryFocusRequest]);
-  function beginAdd(kind:AddKind, origin:'header'|'primary'|'local'='header') {
+  function beginAdd(kind:'server'|'local', origin:'header'|'primary'|'local'='header') {
+    if(kind==='server'){
+      if(!state)return;
+      setProxyEditorEtag(state.configEtag);
+      proxyEditorOrigin.current=document.activeElement instanceof HTMLElement?document.activeElement:null;
+      setSavedHint(false);setError('');setProxyEditorOpen(true);return;
+    }
     getEnvironment().beginDraft('quick-'+kind,state?.configEtag);
     entryOrigin.current = origin;
     setAddedAnother(false);
     setSavedHint(false);
-    setAddressPasteError(false);
     setError('');
     setAddKind(kind);
   }
@@ -153,26 +151,12 @@ export default function App({headerNavigation=false,settingsFallback=false}:{hea
   const orderedProfiles = [...profiles].sort((a,b)=>priority(a)-priority(b));
   const visibleProfiles = orderedProfiles.slice(0,4);
 
-  function handleProxyPaste(event: React.ClipboardEvent<HTMLInputElement>) {
-    const text = event.clipboardData.getData('text').trim();
-    if (!text.includes(':')) return;
-    const parsed = parseProxyAddressPaste(text);
-    if (parsed) {
-      event.preventDefault();
-      getEnvironment().setDraftDirty(true,'quick-server');
-      setServer(previous => ({...previous,...parsed}));
-      setAddressPasteError(false);
-    } else if (text.includes('://') || /^\[/.test(text) || /:\d/.test(text)) {
-      event.preventDefault();
-      setAddressPasteError(true);
-    }
-  }
   async function saveProxy(event:FormEvent<HTMLFormElement>) {
     event.preventDefault();
     const draftRevision=getEnvironment().getDraftRevision('quick-'+addKind);
     if (!addKind || entryBusy || savingRef.current) return;
     setAddedAnother(false);
-    if (!isValidProxyPort(addKind === 'server' ? server.port : local.port)) {
+    if (!isValidProxyPort(local.port)) {
       setErrorKey('errInvalidPort');
       return;
     }
@@ -184,30 +168,20 @@ export default function App({headerNavigation=false,settingsFallback=false}:{hea
         ?.getAttribute('data-add-another')==='true';
       const id = crypto.randomUUID();
       let name = '';
-      if (addKind==='server') {
-        name = server.name.trim() || defaultServerName(server.scheme,server.host.trim(),server.port);
-        if (!await act({type:'SAVE_ENDPOINT',draftScope:'quick-'+addKind,createProfile:true,endpoint:{
-          id,name,scheme:server.scheme,host:server.host.trim(),
-          port:Number(server.port),sourceId:'manual'
-        }})) return;
-      } else {
-        name = local.name.trim() || (local.scheme==='http'?t('localHttp'):t('localSocks5'));
-        if (!await act({type:'SAVE_LOCAL_CLIENT',draftScope:'quick-'+addKind,client:{
-          id,name,scheme:local.scheme,port:Number(local.port)
-        }})) return;
-      }
+      name = local.name.trim() || (local.scheme==='http'?t('localHttp'):t('localSocks5'));
+      if (!await act({type:'SAVE_LOCAL_CLIENT',draftScope:'quick-'+addKind,client:{
+        id,name,scheme:local.scheme,port:Number(local.port)
+      }})) return;
       if (!keepAdding) {
         if (!await act({type:'SELECT',draftScope:'quick-'+addKind,selection:{mode:'profile',profileId:'profile-'+id}})) return;
         if(!getEnvironment().setDraftDirty(false,'quick-'+addKind,draftRevision))return;
-        if (addKind==='server') setServer(emptyServer);
-        else setLocal(emptyLocal);
+        setLocal(emptyLocal);
         setNameExpanded(previous=>({...previous,[addKind]:false}));
         closeAdd(true);
         setSavedHint(true);
       } else {
         if(!getEnvironment().setDraftDirty(false,'quick-'+addKind,draftRevision))return;
-        if (addKind==='server') {setServer(emptyServer);setAddressPasteError(false);}
-        else setLocal(emptyLocal);
+        setLocal(emptyLocal);
         setNameExpanded(previous=>({...previous,[addKind]:false}));
         setAddedAnother(true);
       }
@@ -380,43 +354,7 @@ export default function App({headerNavigation=false,settingsFallback=false}:{hea
       <Button className="ruleClose" variant="quiet" disabled={entryBusy} aria-label={t('closeProxyEditor')} title={t('closeProxyEditor')} onClick={()=>closeAdd()}><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" aria-hidden="true"><path d="m6 6 12 12M18 6 6 18"/></svg></Button>
     </header>
     <section className="quickSetupBody">
-      <div className="sideAddKind" role="group" aria-label={t('sideAddProxyKind')}>
-        <Button type="button" aria-pressed={addKind==='server'}
-          className={addKind==='server'?'active':''} disabled={entryBusy}
-          onClick={()=>{setAddedAnother(false);setError('');setAddKind('server');}}>{t('sideAddProxyServer')}</Button>
-        <Button type="button" aria-pressed={addKind==='local'}
-          className={addKind==='local'?'active':''} disabled={entryBusy}
-          onClick={()=>{setAddedAnother(false);setError('');setAddKind('local');}}>{t('sideAddLocalGateway')}</Button>
-      </div>
       <form data-draft-scope={'quick-'+addKind} className="quickSetupForm sideAddForm" aria-busy={entryBusy} onSubmit={e=>void saveProxy(e)}>
-        {addKind==='server'?<>
-          <div><label htmlFor="quick-host">{t('host')}</label>
-            <ClearableInput required disabled={entryBusy} id="quick-host" fieldLabel={t('host')}
-              value={server.host} placeholder={t('127001OrProxyExampleCom')} autoComplete="off" spellCheck={false}
-              aria-invalid={addressPasteError} aria-describedby={addressPasteError?'quick-host-error':'quick-host-hint'}
-              onValueChange={host=>{setServer({...server,host});setAddressPasteError(false);}} onPaste={handleProxyPaste}/>
-            {addressPasteError
-              ? <small id="quick-host-error" className="proxyEntryError" role="alert">{t('proxyPasteUnsupported')}</small>
-              : <small id="quick-host-hint" className="sideAddFieldHint">{t('sideProxyPasteHint')}</small>}
-          </div>
-          <div className="sideAddTwo">
-            <div><label htmlFor="quick-protocol">{t('protocol')}</label>
-              <select id="quick-protocol" value={server.scheme} disabled={entryBusy}
-                onChange={e=>setServer({...server,scheme:e.target.value as ProxyScheme})}>
-                <option value="http">HTTP</option><option value="https">HTTPS</option>
-                <option value="socks4">SOCKS4</option><option value="socks5">SOCKS5</option>
-              </select></div>
-            <div><label htmlFor="quick-port">{t('port')}</label>
-              <ClearableInput id="quick-port" required disabled={entryBusy} type="number" inputMode="numeric"
-                min={1} max={65535} fieldLabel={t('port')} placeholder="8080"
-                value={server.port} onValueChange={port=>setServer({...server,port})}
-                aria-invalid={server.port!==''&&!isValidProxyPort(server.port)}
-                aria-describedby={server.port!==''&&!isValidProxyPort(server.port)?'quick-port-error':undefined}/>
-              {server.port!==''&&!isValidProxyPort(server.port)&&
-                <small id="quick-port-error" role="alert" className="proxyEntryError">{t('errInvalidPort')}</small>}
-            </div>
-          </div>
-        </>:<>
           <p className="sideAddFixedHost">{t('fixedAddress')} <strong className="mono">127.0.0.1</strong></p>
           <div className="sideAddTwo">
             <div><label htmlFor="quick-protocol">{t('proxyType')}</label>
@@ -435,19 +373,18 @@ export default function App({headerNavigation=false,settingsFallback=false}:{hea
             </div>
           </div>
           <p id="quick-local-hint" className="hint">{t('sideLocalPortHint')}</p>
-        </>}
         <details className="sideAddOptional" key={addKind} open={nameExpanded[addKind]}
           onToggle={event=>{const open=event.currentTarget.open;setNameExpanded(previous=>previous[addKind]===open?previous:{...previous,[addKind]:open});}}>
           <summary>{t('nameOptional')}
-            {(addKind==='server'?server.name:local.name)&&
-              <span className="sideAddOptionalValue">{addKind==='server'?server.name:local.name}</span>}
+            {local.name&&
+              <span className="sideAddOptionalValue">{local.name}</span>}
           </summary>
           <div className="sideAddOptionalBody">
             <label htmlFor="quick-name" className="sideAddVisuallyHidden">{t('nameOptional')}</label>
             <ClearableInput id="quick-name" disabled={entryBusy} maxLength={80} fieldLabel={t('name')}
-              value={addKind==='server'?server.name:local.name}
-              onValueChange={name=>addKind==='server'?setServer({...server,name}):setLocal({...local,name})}
-              placeholder={addKind==='server'?t('eGMyLocalProxy'):t('eGMihomo')}/>
+              value={local.name}
+              onValueChange={name=>setLocal({...local,name})}
+              placeholder={t('eGMihomo')}/>
           </div>
         </details>
         {addedAnother&&<p role="status" className="popupSavedHint">{t('sideProxySavedAddAnother')}</p>}
@@ -459,7 +396,7 @@ export default function App({headerNavigation=false,settingsFallback=false}:{hea
         <p className="hint sideAddSaveHint">{t('sideAddSaveHint')}</p>
         <details className="sideAddHelp">
           <summary>{t('sideAddHelpLabel')}</summary>
-          <p className="hint">{addKind==='server'?t('sideProxyProtocolLimit'):t('sideLocalProtocolHelp')}</p>
+          <p className="hint">{t('sideLocalProtocolHelp')}</p>
           <Button type="button" className="textAction" disabled={entryBusy} onClick={()=>void openOptions('profiles',false,'add')}>
             {t('sideAdvancedProxyEditor')}</Button>
         </details>
@@ -644,5 +581,9 @@ export default function App({headerNavigation=false,settingsFallback=false}:{hea
       <details className="quickAdvanced"><summary>{t('apAdvancedProxy')}</summary><p className="hint">{t('apAdvancedHelp')}</p><Button className="textAction" disabled={busy} onClick={()=>void openOptions('profiles')}>{t('apManageAdvanced')} <SideIcon name="open"/></Button></details>
       <p className="r86Legal">{t('managesBrowserProxySettingsOnlyNotADeviceWide')}</p>
     </div>
+    {proxyEditorOpen&&<div className="options proxyQuickEditor"><ProxyEditor openingEtag={proxyEditorEtag} onClose={saved=>{
+      setProxyEditorOpen(false);if(saved)setSavedHint(true);
+      requestAnimationFrame(()=>proxyEditorOrigin.current?.isConnected&&proxyEditorOrigin.current.focus({preventScroll:true}));
+    }}/></div>}
   </main>;
 }

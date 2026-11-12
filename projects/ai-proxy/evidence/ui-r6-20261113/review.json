@@ -1,0 +1,73 @@
+{
+  "method": "单模型多视角评审；两个独立 AI 实例，继承同一父任务模型",
+  "version": "0.3.20",
+  "packageSha256": "197a86a6d2c26cbcfeaedd765f2062e3a343487b57e5b4e3864b1d202b43374a",
+  "reviewers": {
+    "visual": "Carver / 01a1d0f9-529b-7621-b0da-577ac100f6b4",
+    "source": "McClintock / 01a1d122-a9bb-7903-96e9-41ca3bc63efd"
+  },
+  "dimensions": [
+    {
+      "name": "视觉设计",
+      "score": 94,
+      "basis": "最终 PC / Side Panel 浅深主题截图；诊断首卡和窄屏协议已修复；dark 导航仍稍弱"
+    },
+    {
+      "name": "产品易用性",
+      "score": 93,
+      "basis": "保存/选择/应用及能力边界清晰；规则提示和诊断信息仍偏密"
+    },
+    {
+      "name": "交互效率",
+      "score": 96,
+      "basis": "最终143条真实浏览器检查；双向Tab、焦点返回、草稿保护、Enter连按单条保存"
+    },
+    {
+      "name": "认证安全与业务正确性",
+      "score": 96,
+      "basis": "独立旧快照/重复新增复现已关闭；凭据拒绝、引用保护和保存不应用定向回归"
+    },
+    {
+      "name": "前端工程质量",
+      "score": 96,
+      "basis": "共享表单、原CSS owner、固定ETag/稳定ID、生命周期和键盘局部处理；LSP未执行"
+    },
+    {
+      "name": "预览与正式UI一致性",
+      "score": 95,
+      "basis": "R16/R18主要结构、尺寸与组件一致；真实业务和最新三行要求不计为差异，页脚/留白有轻微偏差"
+    }
+  ],
+  "average": 95,
+  "formula": "(94+93+96+96+96+95)/6",
+  "allAtLeast90": true,
+  "finalEvidence": {
+    "scenes": 60,
+    "checks": 143,
+    "status": "PASS",
+    "consoleErrors": 0,
+    "ui": "ui-audit.json",
+    "images": "screenshots/"
+  },
+  "closed": [
+    "旧快照覆盖新配置",
+    "保存期间重复新增",
+    "Tab焦点移出dialog",
+    "360px SOCKS5末字符裁切",
+    "dark诊断首卡浅底浅字"
+  ],
+  "remaining": [
+    "PC dark导航对比偏弱",
+    "规则提示重复、诊断信息偏密",
+    "360px长地址需在输入框内横向核对",
+    "页脚分隔线/留白与参考略有差异"
+  ],
+  "notTested": [
+    "受控真实407代理认证",
+    "真实远端可达性",
+    "完整LSP类型诊断",
+    "全仓CI",
+    "其他Chrome版本",
+    "日常Chrome更新或发布"
+  ]
+}

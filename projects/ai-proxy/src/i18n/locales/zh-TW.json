@@ -315,8 +315,8 @@
   "protocol": "協議",
   "host": "主機",
   "port": "連線埠",
-  "proxyUsernameOptional": "代理使用者名稱（可選）",
-  "sessionPasswordNotBackedUp": "密碼（認證尚未接入）",
+  "proxyUsernameOptional": "使用者名稱（選填）",
+  "sessionPasswordNotBackedUp": "密碼（選填）",
   "httpSPasswordsAreSessionOnlyChangesToHost": "目前無法儲存或使用代理憑證。無需認證的代理可正常新增；需認證的線路可透過本機用戶端接入。",
   "chromeModeLabel": " · Chrome 模式：",
   "pendingRoutingAdvice": "如需切換，請明確點選「套用選擇」；如需釋放代理，請點選「停止管理」。",
@@ -1047,5 +1047,9 @@
   "diagProductionUnavailable": "正式執行環境尚未接入網站 HTTP 檢測、收藏及使用統計；相關操作暫不可用，不會傳送測試請求或產生模擬成功結果。",
   "diagSitesLive": "目前設定的 HTTP 結果",
   "diagSpeedNotConnected": "尚未接入真實 HTTP 耗時與下載吞吐測速，不能據此推斷代理線路品質。",
-  "apSwitchToRulesMode": "切換至按規則模式"
+  "apSwitchToRulesMode": "切換至按規則模式",
+  "proxyConfigName": "設定名稱（選填）",
+  "proxyServerAddress": "伺服器位址",
+  "proxyEditorSave": "儲存",
+  "proxyEditorAuthHelp": "儲存不會套用代理。認證尚未接入，填寫帳號或密碼時無法儲存。"
 }

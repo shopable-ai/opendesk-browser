@@ -201,17 +201,20 @@
   :scope .options .serviceNote p, :scope .options .serviceNote button { font-size: 12px; }
   :scope .options :where(.hint,small,.summaryAction) { overflow-wrap: anywhere; }
   :scope .options .proxyEditorDialog {
-    width: calc(100% - 24px); max-height: calc(100dvh - 24px);
-    padding: 0; border-radius: 12px; overflow: hidden;
+    width: min(560px,calc(100% - 24px)); max-width: 560px; max-height: calc(100dvh - 24px);
+    --proxy-editor-gutter: 28px; --proxy-protocol-width: 114px; --proxy-port-width: 95px;
+    padding: 0; border-radius: 16px; overflow: hidden;
+    box-shadow: 0 24px 80px #10233b38;
+    background: var(--od-paper); color: var(--od-ink); border: 1px solid var(--od-line);
   }
   /* Parent gaps own vertical rhythm; legacy child margins must not add to it. */
   :scope .options :is(.optionsModeBar,.rulesDefault) > *,
   :scope .options :is(.proxyEditorForm,.proxyEditorFields,.rulesEditorFields,.ruleInputFields) > * { margin: 0; }
   :scope .options .proxyEditorForm { display: grid; grid-template-rows: auto minmax(0,1fr) auto; max-height: calc(100dvh - 24px); gap: 0; padding: 0; }
-  :scope .options .proxyEditorFields { display: grid; gap: var(--space-3); min-width: 0; min-height: 0; overflow: auto; overscroll-behavior: contain; padding: 0 var(--space-4) var(--space-4); }
+  :scope .options .proxyEditorFields { display: grid; gap: 19px; min-width: 0; min-height: 0; overflow: auto; overscroll-behavior: contain; padding: 0 var(--proxy-editor-gutter) 24px; }
   :scope .options .proxyEditorForm .eyebrow { display: none; }
-  :scope .options .proxyEditorForm .editorHead { display: flex; align-items: center; justify-content: space-between; gap: var(--space-2); padding: var(--space-4); border: 0; }
-  :scope .options .proxyEditorForm :is(.proxyPrimaryFields > div,.proxyNameField,.proxyAuthFields > div) { display: grid; align-content: start; gap: var(--space-2); }
+  :scope .options .proxyEditorForm .editorHead { display: flex; align-items: center; justify-content: space-between; gap: 8px; padding: 24px var(--proxy-editor-gutter); border: 0; }
+  :scope .options .proxyEditorForm :is(.proxyPrimaryFields > div,.proxyNameField,.proxyAuthFields > div) { display: grid; align-content: start; gap: 7px; min-width: 0; }
   :scope .options .proxyEditorForm label, :scope .options .rulesEditorFields label { margin: 0; }
   :scope .options .ruleInputFields > div:has(>label) { display: grid; gap: var(--space-2); }
   :scope .options .ruleInputFields > div > .hint { margin: 0; }
@@ -220,18 +223,32 @@
   :scope .options .proxyFormField > *, :scope .options .pacStarterFields > div > * { margin: 0; }
   :scope .options .proxyEditorForm :is(.hint,.proxyEntryError) { margin: 0; }
   :scope .options .proxyEditorForm .proxyQuickPicks { margin: 0; gap: var(--space-1); }
-  :scope .options .proxyEditorForm .proxyAuthDetails { padding: var(--space-3); }
-  :scope .options .proxyEditorForm .proxyAuthDetails[open] { display: grid; gap: var(--space-3); }
-  :scope .options .proxyAuthDetails > :is(.notice,.proxyAuthFields) { margin: 0; }
-  :scope .options .proxyEditorForm .editorActions { display: flex; gap: var(--space-2); margin: 0; padding: var(--space-3) var(--space-4); border: 0; border-top: 1px solid var(--line); background: var(--surface); }
+  :scope .options .proxyEditorForm .editorActions {
+    display: flex; justify-content: flex-end; align-items: center; flex-wrap: wrap;
+    gap: 10px; margin: 0; padding: 18px var(--proxy-editor-gutter) 22px;
+    border: 0; border-top: 1px solid var(--od-line); background: var(--od-paper);
+  }
+  :scope .options .proxyEditorForm .proxyAuthHelp { flex-basis: 100%; color: var(--od-sub); font-size: 12px; line-height: 1.6; }
+  :scope .options .proxyPrimaryFields { display: grid; grid-template-columns: var(--proxy-protocol-width) minmax(0,1fr) var(--proxy-port-width); gap: 11px; }
+  :scope .options .proxyPrimaryFields > div { grid-column: auto; grid-row: auto; min-width: 0; }
+  :scope .options .proxyAuthFields { display: grid; grid-template-columns: repeat(2,minmax(0,1fr)); gap: 11px; }
+  :scope .options .proxyEditorForm label { font-size: 12px; font-weight: 600; color: var(--od-ink); }
+  :scope .options .proxyEditorForm :is(input,select) {
+    min-width: 0; width: 100%; height: 42px; min-height: 42px; font-size: 13.5px;
+    border: 1px solid var(--od-input-border); border-radius: 8px;
+    background: var(--od-paper); color: var(--od-ink);
+  }
+  :scope .options .proxyEditorForm select { padding-inline: 8px 20px; }
+  :scope .options .proxyEditorForm input[aria-invalid="true"] { border-color: var(--od-negative); }
+  :scope .options .proxyEditorForm .editorActions > button { min-height: 40px; padding: 9px 17px; }
+  :scope .options .proxyEditorForm .editorHead h2 { font-size: 18px; line-height: 1.5; }
+  :scope .options .proxyEditorDialog::backdrop { background: #263b537a; }
+  @media(max-width:560px) {
+    :scope .options .proxyEditorDialog { --proxy-editor-gutter:16px; --proxy-protocol-width:104px; --proxy-port-width:80px; }
+    :scope .options .proxyPrimaryFields { gap:8px; }
+    :scope .options .proxyEditorForm .editorHead { padding-block:18px; }
+  }
 
-  :scope .options .editorActions [data-add-another] { flex-basis: 100%; border-color: transparent; color: var(--accent); background: transparent; }
-  :scope .options .proxyPrimaryFields { grid-template-columns: repeat(2,minmax(0,1fr)); gap: var(--space-3); }
-  :scope .options .proxyPrimaryFields > div { grid-column: auto; grid-row: auto; }
-  :scope .options .proxyPrimaryFields > div:first-child { grid-column: 1/-1; }
-  :scope .options .proxyAuthFields { grid-template-columns: minmax(0,1fr); }
-  :scope .options .editorActions { flex-wrap: wrap; gap: 8px; }
-  :scope .options .editorActions button { min-height: 36px; }
 }
 
 /* Current-site context and its editor use the same form surface and tokens. */

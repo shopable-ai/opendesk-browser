@@ -105,6 +105,72 @@ test('adding an endpoint and its generated profile is one conditional storage co
   assert.equal(f.stored().profiles.length,1);
 });
 
+for (const scheme of ['http', 'https', 'socks4', 'socks5']) {
+  test(`${scheme} credential-free endpoints save, edit and reopen without applying`, async () => {
+    const f = fixture({ config: empty() });
+    const added = { ...endpoint, scheme };
+    await ok(f.service, { type: 'SAVE_ENDPOINT', endpoint: added, createProfile: true });
+    const edited = { ...added, host: 'changed.example.com', port: 8081,
+      scheme: scheme === 'http' ? 'https' : 'http' };
+    await ok(f.service, { type: 'SAVE_ENDPOINT', endpoint: edited });
+    assert.deepEqual(f.stored().endpoints, [edited]);
+    const reopened = fixture({ config: f.stored() });
+    assert.deepEqual((await ok(reopened.service, { type: 'GET_STATE' })).state.config.endpoints, [edited]);
+    assert.deepEqual((await ok(f.service, { type: 'EXPORT' })).share.endpoints, [edited]);
+    assert.equal(operations(f, 'save').length, 2);
+    assert.equal(operations(f, 'apply').length, 0);
+    assert.equal(operations(f, 'stop').length, 0);
+  });
+
+  test(`${scheme} existing credential binding cannot be dropped, rebound or replaced`, async () => {
+    const bound = { ...endpoint, scheme, credentialRef: 'session-a' };
+    const { credentialRef: _ref, ...withoutRef } = bound;
+    for (const draft of [
+      { ...bound, host: 'changed.example.com' },
+      { ...bound, port: 8081 },
+      { ...bound, scheme: scheme === 'http' ? 'https' : 'http' },
+      { ...withoutRef, name: 'Edited without ref' },
+      { ...bound, credentialRef: 'forged-session' }
+    ]) {
+      const config = { ...populated(), endpoints: [bound] };
+      const f = fixture({ config });
+      const result = await f.service.request({ type: 'SAVE_ENDPOINT', endpoint: draft, createProfile: true });
+      assert.equal(result.ok, false, `must reject ${JSON.stringify(draft)}`);
+      assert.equal(result.errorCode, 'E_NOT_CONNECTED');
+      assert.deepEqual(f.stored(), config);
+      assert.equal(operations(f, 'save').length, 0);
+      assert.equal(operations(f, 'apply').length, 0);
+      assert.equal(operations(f, 'stop').length, 0);
+      assert.deepEqual((await ok(f.service, { type: 'GET_STATE' })).state.config.endpoints, [bound]);
+    }
+    const f = fixture({ config: { ...populated(), endpoints: [bound] } });
+    const renamed = { ...bound, name: 'Renamed' };
+    await ok(f.service, { type: 'SAVE_ENDPOINT', endpoint: renamed });
+    assert.deepEqual(f.stored().endpoints, [renamed]);
+    assert.equal((await ok(f.service, { type: 'EXPORT' })).share.endpoints[0].credentialRef, undefined);
+  });
+
+  test(`${scheme} refuses forged references and never exposes submitted passwords`, async () => {
+    const secret = 'password-must-not-escape';
+    for (const draft of [
+      { ...endpoint, scheme, credentialRef: 'forged-session' },
+      { ...endpoint, scheme, username: 'user', password: secret },
+      { ...endpoint, scheme, host: `user:${secret}@proxy.example.com` }
+    ]) {
+      for (const config of [empty(), populated()]) {
+        const f = fixture({ config });
+        const result = await f.service.request({ type: 'SAVE_ENDPOINT', endpoint: draft, createProfile: true });
+        assert.equal(result.ok, false);
+        assert.deepEqual(f.stored(), config);
+        assert.equal(operations(f, 'save').length, 0);
+        const state = await ok(f.service, { type: 'GET_STATE' });
+        const exported = await ok(f.service, { type: 'EXPORT' });
+        assert.equal(JSON.stringify([result, state, exported, f.stored(), f.calls]).includes(secret), false);
+      }
+    }
+  });
+}
+
 test('closing a UI service drops queued operations and late diagnostic notifications without releasing the route', async () => {
   const f = fixture({preview:true});
   let notifications=0;
@@ -278,7 +344,10 @@ test('v1 migration retains safe proxies/rules; export removes PAC, credential re
   const migrated = await ok(f.service, { type: 'IMPORT', config: v1 });
   assert.equal(migrated.state.config.rules[0].endpointId, 'a');
   assert.equal(migrated.state.config.endpoints[0].scheme, 'http');
-  await ok(f.service, { type: 'SAVE_ENDPOINT', endpoint: { ...endpoint, credentialRef: 'session-a' } });
+  // A previously stored reference is readable/exportable; SAVE_ENDPOINT cannot mint one.
+  const withCredential = f.stored();
+  withCredential.endpoints[0].credentialRef = 'session-a';
+  f.replace(withCredential);
   await ok(f.service, { type: 'SAVE_PROFILE', profile: { id: 'pac', name: 'Private PAC', kind: 'pac-inline', sourceId: 'manual', pacText: 'function FindProxyForURL(url,host){return "DIRECT";}' } });
   await ok(f.service, { type: 'SAVE_SUBSCRIPTION', source: { id: 'sub', displayName: 'Private provider', kind: 'subscription', originHost: 'provider.com', trustedByUser: true, format: 'auto', syncStatus: 'not-synced' } });
   const before = f.stored();
