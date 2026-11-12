@@ -4,7 +4,7 @@
 
 ## 所有权和技术边界
 
-- **Subagent Mini Chat**：本目录独立 `page-userscript`，只拥有 Shadow DOM 页面 UI、用户输入、一次请求状态、回答及 B 链接；不能替代 WebFlow 或 Controller。其代码按 OpenDesk Page Program 标准开发，不直接进入 `projects/webflow/src/ui` 或框架 Host。
+- **Subagent Mini Chat**：本目录独立 `page-userscript`，只拥有 Shadow DOM 页面 UI、用户输入、一次请求状态、回答及 B 链接；UI 仅发送与运行时安装版本无关的业务意图 `subagent.minichat.request.v1`，由可信适配器解析已审阅脚本身份；不能替代 WebFlow 或 Controller。其代码按 OpenDesk Page Program 标准开发，不直接进入 `projects/webflow/src/ui` 或框架 Host。
 - **WebFlow 脚本**：复用 `projects/webflow/src/tasks/chatgpt-conversation-create-v0.2.js` 与已冻结的 `projects/webflow/tasks/chatgpt.conversation.create.0.2.0.opendesk-task.json`。`send:true` 在一个经单独审核的 Controller Run 内完成 B 原生发送和回答提取；不复制脚本，不修改旧固定版本或独立授权。
 - **可信执行**：现有 Controller / Host / Authority 负责固定安装版本、权限、原生副作用、Run/Result、UNKNOWN 不重放。不能在 Page USER_SCRIPT 中通过 `postMessage`、CustomEvent、DOM、网站 global、Cookie 或模拟 `chrome.runtime` 冒充可信任务入口。
 

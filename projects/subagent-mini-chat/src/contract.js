@@ -1,8 +1,7 @@
 // UI-only contract. Nothing in a Page USER_SCRIPT can grant Controller authority.
 // The trusted transport must come from a reviewed extension capability, not a page global/event.
 export const MAX_PROMPT=3000;
-export const TASK_ID='chatgpt.conversation.create';
-export const TASK_VERSION='0.2.0';
+export const REQUEST_PROTOCOL='subagent.minichat.request.v1';
 const UUID=/^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
 const REF=/^[a-zA-Z0-9._:-]{8,128}$/;
 const CHAT_URL=/^https:\/\/chatgpt\.com\/c\/([a-f0-9-]{36})$/i;
@@ -14,8 +13,7 @@ export function taskPrompt(value){
 }
 export function taskRequest({requestId,prompt}){
   if(typeof requestId!=='string'||!UUID.test(requestId))throw fail('E_MINICHAT_ID','请求身份无效');
-  return Object.freeze({requestId,taskId:TASK_ID,taskVersion:TASK_VERSION,
-    params:Object.freeze({prompt:taskPrompt(prompt),send:true})});
+  return Object.freeze({protocol:REQUEST_PROTOCOL,requestId,prompt:taskPrompt(prompt)});
 }
 // Validates a normalized HOST-VERIFIED result. It cannot authenticate arbitrary
 // website data. Call this ONLY after the trusted transport verifies Run/Result.

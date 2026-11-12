@@ -7,8 +7,8 @@ const good={trust:'host-verified',requestId:id,runId:'controller-run-01',resultI
   outcome:'completed',send:true,status:'reply-complete',userMessageRef:'native-user-01',
   assistantMessageRef:'native-assistant-01',replyText:'真实回答',
   conversationUrl:'https://chatgpt.com/c/11111111-2222-4333-8444-555555555555'};
-test('prompt and request are strictly bounded; task is fixed',()=>{
-  assert.deepEqual(taskRequest({requestId:id,prompt:'测试'}).params,{prompt:'测试',send:true});
+test('prompt and request are bounded; UI protocol does not embed Task installation',()=>{
+  assert.deepEqual(taskRequest({requestId:id,prompt:'测试'}),{protocol:'subagent.minichat.request.v1',requestId:id,prompt:'测试'});
   assert.throws(()=>taskRequest({requestId:id,prompt:''}),{code:'E_MINICHAT_PROMPT'});
   assert.throws(()=>taskRequest({requestId:id,prompt:'a'.repeat(3001)}),{code:'E_MINICHAT_PROMPT'});
   assert.throws(()=>taskRequest({requestId:'fake',prompt:'测试'}),{code:'E_MINICHAT_ID'});
