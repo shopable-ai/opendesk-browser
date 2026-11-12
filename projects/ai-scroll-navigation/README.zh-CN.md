@@ -4,7 +4,7 @@
 
 **解决的问题：** 长对话中难以直接找到某次用户提问。把一条用户提问及随后 AI 回复视为同一“轮”，在原左下角导航中加入 `上一轮 ↑ · 当前轮次 i/n · 下一轮 ↓`，原“整段对话顶部/底部”按钮保留。长回复不按屏幕高度拆页。页数仅统计当前 DOM 已加载且能确认提问边界的轮次，不代表服务端历史消息总数。
 
-**已实现的源码变更：** `src/conversation.js` 提供角色验证、轮次定位和相邻跳转；`src/floating-navigation.js` 复用唯一悬浮 Dock 并跟随滚动位置更新页码；`src/site-configuration.js` 与 `trusted/react-controls.tsx`、`trusted/ai-configuration.js` 配合原可信配置保存体系增加 `turnPaging`（默认开，关闭后仍能按原设置使用顶部/底部导航）；`src/scripting/user-scripts/scroll-config-contract.js` 保持配置版本 1 并兼容旧五开关快照。ChatGPT、DeepSeek、Gemini 使用各自既有适配，**任意站点未能可靠确认用户/AI 角色时不显示伪造页码**。自定义站点需要明确消息节点和可判定角色，不能仅凭 CSS 推断用户提问。保留原安装授权、安全边界与站点范围。
+**已实现的源码变更：** `src/conversation.js` 提供角色验证、轮次定位和相邻跳转；`src/floating-navigation.js` 复用唯一悬浮 Dock 并跟随滚动位置更新页码；`src/site-configuration.js` 与 `trusted/react-controls.tsx`、`trusted/ai-configuration.js` 配合原可信配置保存体系增加 `turnPaging`（默认开，关闭后仍能按原设置使用顶部/底部导航）；`src/scripting/user-scripts/scroll-config-contract.js` 保持配置版本 1：旧 `0.4.14` Page 的五项设置在读取、写入时继续保留五字段，不会自动扩成六字段；只有确认安装版本至少为 `0.4.15` 后，设置页才呈现第六项，可信 Host 也才允许其六字段保存。ChatGPT、DeepSeek、Gemini 使用各自既有适配，**任意站点未能可靠确认用户/AI 角色时不显示伪造页码**。自定义站点需要明确消息节点和可判定角色，不能仅凭 CSS 推断用户提问。保留原安装授权、安全边界与站点范围。
 
 **可点击预览：** `preview/index.html` 增加目标 AI 网页模拟对话，能体验顶部/上一轮/当前轮次/下一轮/底部、手动滚动、模拟新增轮次、启停设置及站点不支持状态。预览中的模拟网页只是展示与交互验证，不读取真实 AI 网站，不具有正式扩展授权，也不能证明源码已部署。
 
