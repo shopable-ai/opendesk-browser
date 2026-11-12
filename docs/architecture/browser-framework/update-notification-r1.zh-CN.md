@@ -291,3 +291,60 @@ toast+inbox 两者均有；全局静默优先于每工具偏好。
 用户查看详情不是安装成功；新增权限仍由原 Installer 授权。
 验收边界：Node、npm run check、生产构建和实际 Chrome/Native 验收分别报告，不互相代替。
 **注意：本节取代上方 R1 的固定底部通知条入口建议；旧 R1 文字为历史设计背景。**
+
+## R2.1 2026-11-12：更新中心子页与工具关联网页提醒
+
+**性质：确定后续实现范围、证据与防重复开发约束；不是宣布下列业务已实现或 Chrome 验收通过。** 既有 R1 文档的底部永久更新条设计已被 R2 的角标与更新中心替代；临时网页 Toast 不等于原永久更新文字。
+
+### 已实施
+
+- 既有代码提交 c9e020c、React 回归 850c6be；Chrome Action Badge、Side Panel 角标、Worker 更新状态、React 更新入口及原可信审阅器已存在。
+- 2026-11-12 提交 d23e37c800eef2952bb1c05db382adb1fe154fe2：仅将更新按钮原循环箭头替换为下载箭头与托盘 SVG，GitHub 源码读回已核实；未改行为，也未取得真实 Chrome 的构建/外观验收证据。
+- 原 OpenDeskTool.ui.notify / ui.notify.open/update/dismiss 为已安装 Sidebar Tool 在自己的 Side Panel 或 PC Host 显示纯文本通知的既有 R1.2 API。页面临时更新 Toast 由原可信 Worker 注入，与此 API 不是同一职责。不可将普通工具 Toast 当成可信发行事件、安装成功回执或网页注入权限。
+- 旧 Prompt Shortcuts preview/update-notification-demo.js 的底部演示条只属于 Mock；现有 src/platform/chrome/update-notice-page.js 是可关闭的临时网页通知，不能因清除旧永久文字而删除。
+
+### UI 交互选型（仍待代码实现）
+
+- **Side Panel：现有「扩展」Tab 内二级子页面**，点击「更新中心」后进入完整内容区，「← 返回扩展」返回原列表。保留一级导航和原 ToolHost/草稿、未决操作与焦点返回合同，不创建新一级 Tab 或第二 React Root。
+- 更新中心正文：待更新、历史、OpenDesk 本体、提醒设置。显示名称、版本、可信来源、逐版本更新说明（没有则明说未提供）、新增能力/权限与状态。来源不可验证/离线时不能报告「已是最新版」。
+- **PC app.html：复用同一 UpdateCenterPage 内容和控制器**；按既有宽屏布局决定是否呈现在工作区或右侧抽屉，但绝不新建并列更新源和安装器。下拉浮层不适合长列表和 280–420px 的 Side Panel；原权限审阅弹窗仍由原 Installer 独占。
+- 「更新中心」入口是导航，「检查更新」才是执行检查的次级操作。0 项或静默时入口仍可打开历史/设置。安装按钮只进入原可信安装器；查看/标记已读不能扣减待处理数。HTML Mock 用于体验测试，不充当真实安装或网页通知证据。
+- 当前 src/ui/react/components/update-notice.tsx 的 UpdateNoticeSlot 仍以 position:absolute 的非模态浮层实现，**二级子页面尚未实施**。
+
+### 网页更新提醒的 P0 真实缺口（待修复）
+
+当前 src/platform/chrome/update-notice-service.js 的 siteAllowed(origin) 只检查 ChatGPT、DeepSeek、Gemini 等白名单、Chrome Host 权限，以及 reading-toc 或 prompt-shortcuts 中任一个已被允许；而 checkToast() 通过 claimUpdateToast() 从**全部**待处理 Sidebar Tool 发行中选择候选，没有把每个候选 toolId 与当前网站实际运行/获准的同一个工具身份绑定。
+
+因此，现有源码存在**相关网站上展示无关工具更新**的风险。来源白名单并不等于工具与页面相关；尚未取得此问题在 Chrome 发生的实机证明，不能将风险说成实机已复现。
+
+必须满足的补丁验收：
+1. 全局 badgeCount 仍显示所有有效待处理工具；网页 PageToastCandidates = 可信待处理候选 ∩ 与当前页面真正相关、已安装、已启用、已获准并在当前 document 运行的 toolId。不能因为阅读目录获准就显示另一个工具的更新。
+2. 只有 Side Panel/PC 界面的工具仅在更新中心与角标提示；无网站权限、工具停用/卸载、实例不活跃、来源未知、隐身或敏感页面禁止网页 Toast。
+3. claim / ACK / view / snooze / ignore / Worker 恢复与撤权隐藏均需重新绑定 releaseKey、toolId、tabId、documentId、可信授权和活跃实例。原网页、Tool DOM 或工具自身的 ui.notify 不能声明「官方发行」或伪造安装完成。
+4. 仍复用既有跨标签 Web Lock、30 秒租约、同候选默认一次/显式稍后 24 小时最多第二次、Profile 同时最多一个 Toast 和全局频控；同一网页多个真实相关工具可聚合提示，但逐个独立安装审阅。
+5. 优先补无关工具、权限撤销、跨页面导航、运行停止、同页多个相关工具以及多标签的负向测试；测试通过前不得宣称相关网页通知已合格。
+
+### 工具生命周期：检查与提示分开
+
+业务阶段：已安装 → 已启用 → 当前站点授权/活跃工具实例 → 读取可信更新快照 → 同一 toolId 的可信候选 → 用户提醒偏好/安全页面/频控 → 原 Worker claim → 真正渲染与可见 ACK → 查看/忽略/稍后 → 原可信安装审阅 → 真实安装与来源回执。
+
+安装、工具启动、网页首次激活、Worker 恢复和用户打开更新中心是「核对快照」的契机；不要每次工具运行或标签切换都向服务器发 HTTP。过期时只能由原 Worker 按统一节流合并刷新；检查不必展示，展示不等于许可，点击安装也不等于确认完成。工具是否有更新不能改变旧版的合法运行状态。
+
+页面切换、工具禁用/停用/卸载、站点撤权或用户切换静默时，应立刻重新判断并移除不再适合的 Toast；输入、IME、全屏、支付、敏感表单和正在执行重要操作时不抢焦点，退化为侧栏静态更新。
+
+### 发行来源与远程更新仍未闭环
+
+目前 loadOfficialCatalog() 主要读取**随 OpenDesk Browser 扩展打包**的官方发行目录；已有市场网站、有限的网页安装审阅交接和本机安装测试不等于旧 Browser 能及时发现服务器新发布的所有工具版本。Stay Focus 特例远程签名公钥仍为未配置，不构成通用在线市场更新源。
+
+下一阶段先审计现有 build-official-tools、build-market-site、official-catalog、市场来源锁与安装器，尽量由原市场/CDN 提供签名的不可变发行 metadata（publisher、toolId、version、包 sha256、字节长度、能力增量、兼容性、可选真实变更日志、发布/撤回状态）。可信 Worker 验签、防回滚、来源校验后只产生可审阅候选；原 Installer 才能校验包、确认权限、安装并核对回执。不建立第二套 Registry/Installer/权限系统，不让网页传递任意下载 URL 执行。正式来源/密钥/部署未就绪时标为 BLOCKED，不能将 Mock 或本机 HTTP 演示充当上线。
+
+### 唯一剩余执行顺序与验收
+
+T01 已完成：只替换循环箭头（d23e37c）。
+T02 P0：补无关工具不得网页误弹的回归用例，并最小修复候选与当前活跃工具身份匹配。
+T03：先将已有交互预览改为「扩展 → 更新中心」二级页面，确认后增量接入现有 React 根，不重写 Toolbox/Installer。
+T04：补空态、离线态、实际变更说明、OpenDesk 本体命名和生命周期节流与撤权隐藏。
+T05：独立可信在线发行发现与原安装器闭环；生产来源前提缺失则 BLOCKED。
+T06：Node 定向、npm run check、npm run build、Chrome for Testing、真实 Chrome 的截图与行为分层验收。六视角独立百分制，各项≥90 且算术平均≥95 才达到目标；没有真实 Chrome 证据不能评分代替验收。
+
+跨对话严禁重复编写 Badge、UpdateNoticeStore、原通用 ToolToast、OpenDeskTool.ui.notify、网页 Toast、官方 Catalog、安装器或另设新通知数据库。只处理明确剩余问题并保留 main 的并行开发变更。
