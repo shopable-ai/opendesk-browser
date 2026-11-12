@@ -87,7 +87,7 @@ async function fixture(t,{receiveDraft,requestPage,installed=[],permissionGrante
     const file={name,size:size??Buffer.byteLength(content),text:text||(()=>Promise.resolve(content))};
     view.dispatch('sidebar-tool-file','change',{target:{files:[file]}});return file;
   }
-  return {doc,get,event,select,host,store,writes,received,requests,
+  return {doc,get,event,select,host,store,writes,received,requests,view,
     drop:files=>view.dispatch('sidebar-tool-file','drop',{dataTransfer:{files}})};
 }
 async function installPackage(){
@@ -157,7 +157,14 @@ for(const mode of ['stale','unknown','disabled'])test(`AI Scroll install handles
   f.event('sidebar-tool-install','click',{trusted:true});
   await settle(()=>f.get('sidebar-tool-import').hidden||f.get('page-install-import-status').attributes['data-state']==='pending-review');
   assert.equal(calls,1);
-  if(mode==='disabled')assert.match(f.get('sidebar-tool-status').textContent,/原有停用状态已保留/);
+  if(mode==='disabled'){
+    const toast=f.view.getSnapshot().toast;
+    assert.equal(toast.type,'success');
+    assert.match(toast.message,/已更新网页增强/);
+    assert.match(toast.caption,/原有停用状态已保留/);
+    assert.doesNotMatch(toast.caption,/打开或刷新/);
+    assert.equal(f.get('sidebar-tool-status').textContent,'');
+  }
   else{
     assert.equal(f.get('sidebar-tool-import').hidden,false);
     assert.equal(f.get('sidebar-tool-install').disabled,true);

@@ -117,7 +117,7 @@ async function fixture(t,{receiveDraft,requestPage,installed=[]}={}){
     const file={name,size:size??Buffer.byteLength(content),text:text||(()=>Promise.resolve(content))};
     view.dispatch('sidebar-tool-file','change',{target:{files:[file]}});return file;
   }
-  return {doc,get,event,select,host,store,writes,received,requests,
+  return {doc,get,event,select,host,store,writes,received,requests,view,
     drop:files=>view.dispatch('sidebar-tool-file','drop',{dataTransfer:{files}})};
 }
 function unchanged(f){
@@ -161,7 +161,11 @@ test('Page install reviews permissions and calls the existing Authority only aft
   await settle(()=>f.get('sidebar-tool-import').hidden);
   assert.equal(calls,1);
   assert.equal(f.doc.documentElement.dataset.opendeskTab,'tools');unchangedAuthoring(f);
-  assert.match(f.get('sidebar-tool-status').textContent,/已安装网页增强.*打开或刷新/);
+  const toast=f.view.getSnapshot().toast;
+  assert.equal(toast.type,'success');
+  assert.match(toast.message,/已安装网页增强/);
+  assert.match(toast.caption,/打开或刷新/);
+  assert.equal(f.get('sidebar-tool-status').textContent,'');
   assert.equal(f.get('page-install-import-status').hidden,true);
   assert.equal(f.get('sidebar-tool-install').disabled,true);
   assert.equal(f.requests.filter(r=>r.operation==='listPagePrograms').length,2,
@@ -199,7 +203,11 @@ test('same identity review carries the existing installation CAS and keeps the o
   assert.match(f.get('sidebar-tool-update-versions').textContent,/r1.*r1/);
   f.event('sidebar-tool-install','click',{trusted:true});
   await settle(()=>f.get('sidebar-tool-import').hidden);
-  assert.match(f.get('sidebar-tool-status').textContent,/已更新网页增强/);
+  const toast=f.view.getSnapshot().toast;
+  assert.equal(toast.type,'success');
+  assert.match(toast.message,/已更新网页增强/);
+  assert.match(toast.caption,/打开或刷新/);
+  assert.equal(f.get('sidebar-tool-status').textContent,'');
   assert.equal(f.get('page-install-import-receipt').hidden,true);
 });
 
@@ -413,7 +421,12 @@ test('disabled Page update confirms fixed installation without claiming automati
   f.select(pkg);await settle(()=>!f.get('sidebar-tool-preview').hidden);
   f.event('sidebar-tool-install','click',{trusted:true});
   await settle(()=>f.get('sidebar-tool-import').hidden);
-  assert.match(f.get('sidebar-tool-status').textContent,/已更新网页增强.*停用状态已保留/);
+  const toast=f.view.getSnapshot().toast;
+  assert.equal(toast.type,'success');
+  assert.match(toast.message,/已更新网页增强/);
+  assert.match(toast.caption,/停用状态已保留/);
+  assert.doesNotMatch(toast.caption,/打开或刷新/);
+  assert.equal(f.get('sidebar-tool-status').textContent,'');
   assert.equal(f.get('page-install-import-receipt').hidden,true);
   assert.equal(f.get('sidebar-tool-install').disabled,true);
   unchangedAuthoring(f);

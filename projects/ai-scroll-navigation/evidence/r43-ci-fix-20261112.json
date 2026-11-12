@@ -1,0 +1,1117 @@
+{
+  "taskId": "OD-AI-SCROLL-R43-CI-FIX-NATIVE-ACCEPTANCE",
+  "status": "PARTIAL_NATIVE_ACCEPTANCE_BLOCKED",
+  "observedDate": "2026-11-12",
+  "branch": "main",
+  "auditInitialHead": "55ee223057e7623705e7ac2a9841a0ef648e421c",
+  "reportBaseHead": "298adfde895842012ce2e4efd816b9b735c81458",
+  "r42Commit": "2f5db6a41172e4cd60e1228dc9fa10a38ffaf77b",
+  "preR42Baseline": "b8d705699cdca07da6f6c4ff92ea44e56cb17d54",
+  "originalCI": {
+    "url": "https://github.com/shopable-ai/opendesk-browser/actions/runs/43191757297",
+    "run": 888,
+    "tests": 805,
+    "pass": 795,
+    "fail": 10,
+    "skip": 0,
+    "exit": 1,
+    "builder": "SKIPPED",
+    "logSha256": "81a5bbfc82a49129df24ab250cbcd4b73c3a106c9457b78954a2822c11ce164b"
+  },
+  "ciFailures": [
+    {
+      "ciNumber": "58",
+      "kind": "pre-existing stale assertion",
+      "file": "projects/ai-scroll-navigation/tests/ai-configuration.test.mjs",
+      "reason": "Absent snapshot already produces legacy five fields before R4.2; old expected value silently added turnPaging.",
+      "repair": "Expect legacy five-field fallback; add five/six/seven saved snapshot preservation including explicitly disabled paging."
+    },
+    {
+      "ciNumber": "291",
+      "kind": "R4.2 stale assertion",
+      "file": "projects/ai-scroll-navigation/tests/runtime-reliability.test.mjs",
+      "reason": "Pending fail-closed runtime now returns seven flags including showTurnCount:false.",
+      "repair": "Assert all seven disabled flags; do not change runtime."
+    },
+    {
+      "ciNumber": "493",
+      "kind": "R4.2 stale assertion",
+      "file": "tests/environment/ai-scroll-navigation.test.mjs",
+      "reason": "Old Dock assertion required counter unconditionally.",
+      "repair": "Assert optional counter wiring; original floating-navigation behavior test proves hidden-count previous/next user-prompt jumps."
+    },
+    {
+      "ciNumber": "site-observation file",
+      "kind": "pre-existing undeclared test dependency",
+      "file": "projects/ai-scroll-navigation/tests/site-observation.test.mjs",
+      "reason": "jsdom was not declared; personal ~/.npm/_npx cache fallback failed on clean CI.",
+      "repair": "Pin jsdom26.1.0 and lock dependencies, import directly. Release privacy traps only after all observation/no-mutation assertions before jsdom.close teardown."
+    },
+    {
+      "ciNumber": "406",
+      "kind": "pre-existing stale receipt assertion",
+      "file": "tests/environment/ai-scroll-install-ui-r134.test.mjs",
+      "reason": "Success receipts moved from inline status to shared Toast in 04ea1bce6d, before R4.2.",
+      "repair": "Read actual Toast type/message/caption; preserve disabled warning and no open/refresh claim."
+    },
+    {
+      "ciNumber": "598",
+      "kind": "pre-existing stale localized-label assertion",
+      "file": "tests/environment/extension-center-official-pages-r124.test.mjs",
+      "reason": "reviewInstall localized in 6fadef04cf before R4.2; literal Chinese source match obsolete.",
+      "repair": "Verify localized action and original Authority routing."
+    },
+    {
+      "ciNumber": "601",
+      "kind": "pre-existing stale receipt assertion",
+      "file": "tests/environment/extension-center-page-import.test.mjs",
+      "reason": "Shared Toast success receipt since 04ea1bce6d.",
+      "repair": "Assert visible Toast after trusted confirmation; preserve Authority call count and durable readback."
+    },
+    {
+      "ciNumber": "603",
+      "kind": "pre-existing stale receipt assertion",
+      "file": "tests/environment/extension-center-page-import.test.mjs",
+      "reason": "Shared Toast update receipt since 04ea1bce6d.",
+      "repair": "Read real update Toast; preserve identity/CAS and no second receipt."
+    },
+    {
+      "ciNumber": "617",
+      "kind": "pre-existing stale receipt assertion",
+      "file": "tests/environment/extension-center-page-import.test.mjs",
+      "reason": "Shared Toast disabled update receipt since 04ea1bce6d.",
+      "repair": "Assert disabled caption and absence of automatic-execution instructions; preserve original lifecycle checks."
+    },
+    {
+      "ciNumber": "643",
+      "kind": "pre-existing route-order assertion",
+      "file": "tests/environment/page-install-package.test.mjs",
+      "reason": "88e1abaa22 inserted app methods before importPageInstallPackage, not removing its authenticated route.",
+      "repair": "Assert membership regardless position, Host authentication before dispatch and sender forwarding."
+    }
+  ],
+  "testRuns": [
+    {
+      "log": "config-baseline.tap",
+      "tests": 273,
+      "pass": 272,
+      "fail": 1,
+      "cancelled": 0,
+      "skipped": 0,
+      "todo": 0,
+      "exitCode": 1,
+      "sha256": "2690cb12179076f41296fea607813b9bf8a05d0f2f173b139c0fdc0e45d88e9d",
+      "exitReceipt": "tool execution returned exit 1; no companion exit file"
+    },
+    {
+      "log": "config-environment-fixed-final.tap",
+      "tests": 139,
+      "pass": 139,
+      "fail": 0,
+      "cancelled": 0,
+      "skipped": 0,
+      "todo": 0,
+      "exitCode": 0,
+      "sha256": "da254bdb75bb8017abe9897ce1cbb2ec04b2ca5dda28feec8e8106da538c644b"
+    },
+    {
+      "log": "config-environment-fixed.tap",
+      "tests": 139,
+      "pass": 138,
+      "fail": 1,
+      "cancelled": 0,
+      "skipped": 0,
+      "todo": 0,
+      "exitCode": 1,
+      "sha256": "03e09aa90516c8ba7d2d76c3a4b767e69a7dcaf3262fdfda1e34de088127b094",
+      "exitReceipt": "tool execution returned exit 1; no companion exit file"
+    },
+    {
+      "log": "config-review-fixed.tap",
+      "tests": 128,
+      "pass": 128,
+      "fail": 0,
+      "cancelled": 0,
+      "skipped": 0,
+      "todo": 0,
+      "exitCode": 0,
+      "sha256": "3e5b964479f8eb8cf69095c95dbb71c1eb245bed01373272a509a5676bfe5fd1"
+    },
+    {
+      "log": "final-package-integration.tap",
+      "tests": 216,
+      "pass": 216,
+      "fail": 0,
+      "cancelled": 0,
+      "skipped": 0,
+      "todo": 0,
+      "exitCode": 0,
+      "sha256": "2dc4946fcf409138e2131c7177f8fd4ec943e19e473ceaa485a2dd8bd3d4f51e"
+    },
+    {
+      "log": "install-assertions-ai-scroll-install-ui-r134.tap",
+      "tests": 10,
+      "pass": 10,
+      "fail": 0,
+      "cancelled": 0,
+      "skipped": 0,
+      "todo": 0,
+      "exitCode": 0,
+      "sha256": "5cb606190600bd106fef608bdb142b03705b5125f546496efa6708044e7dd1c2"
+    },
+    {
+      "log": "install-assertions-extension-center-official-pages-r124.tap",
+      "tests": 6,
+      "pass": 6,
+      "fail": 0,
+      "cancelled": 0,
+      "skipped": 0,
+      "todo": 0,
+      "exitCode": 0,
+      "sha256": "b0309be3f78a66c16468291ca2b4a9adc47b596dd47e98a17becd07b0cc04d1b"
+    },
+    {
+      "log": "install-assertions-extension-center-page-import.tap",
+      "tests": 42,
+      "pass": 42,
+      "fail": 0,
+      "cancelled": 0,
+      "skipped": 0,
+      "todo": 0,
+      "exitCode": 0,
+      "sha256": "2127e64d39350284ff616c346dae7ac869a8703d2961fa65c90207cd109eae3f"
+    },
+    {
+      "log": "install-assertions-page-install-package.tap",
+      "tests": 12,
+      "pass": 12,
+      "fail": 0,
+      "cancelled": 0,
+      "skipped": 0,
+      "todo": 0,
+      "exitCode": 0,
+      "sha256": "44678e605914739a223b49fafdf761de9b82ac8a43ddf0feea1bb326996937de"
+    },
+    {
+      "log": "navigation-sidecar-baseline.tap",
+      "tests": 30,
+      "pass": 29,
+      "fail": 1,
+      "cancelled": 0,
+      "skipped": 0,
+      "todo": 0,
+      "exitCode": 1,
+      "sha256": "2281532877b7a8aa38956995a06f49789b41465013470b79303139dff4888ff2"
+    },
+    {
+      "log": "navigation-sidecar-environment.tap",
+      "tests": 85,
+      "pass": 85,
+      "fail": 0,
+      "cancelled": 0,
+      "skipped": 0,
+      "todo": 0,
+      "exitCode": 0,
+      "sha256": "85569762cf5d474a6fef2aea5cc06228996bbc535866dc0330cecc7be671a755"
+    },
+    {
+      "log": "navigation-sidecar-floating-navigation.tap",
+      "tests": 23,
+      "pass": 23,
+      "fail": 0,
+      "cancelled": 0,
+      "skipped": 0,
+      "todo": 0,
+      "exitCode": 0,
+      "sha256": "d3b178ce8c0c6fc09092a83626c745482acb0a5e6940cbe325e84d806c05d30b"
+    },
+    {
+      "log": "navigation-sidecar-runtime-reliability.tap",
+      "tests": 7,
+      "pass": 7,
+      "fail": 0,
+      "cancelled": 0,
+      "skipped": 0,
+      "todo": 0,
+      "exitCode": 0,
+      "sha256": "ed848009b697feabcf6ddb51f1623452b9b0572f08ba8bdc24e2341582eae807"
+    },
+    {
+      "log": "workflow-affected.tap",
+      "tests": 816,
+      "pass": 816,
+      "fail": 0,
+      "cancelled": 0,
+      "skipped": 0,
+      "todo": 0,
+      "exitCode": 0,
+      "sha256": "1740e59eb41d695eda27f2558cc26f66ef27e1f3c137fa174eeba3c88d816610"
+    },
+    {
+      "log": "workflow-node22-final.tap",
+      "tests": 816,
+      "pass": 816,
+      "fail": 0,
+      "cancelled": 0,
+      "skipped": 0,
+      "todo": 0,
+      "exitCode": 0,
+      "sha256": "cf1e3520bd2956364e86ba7d71a839850c76b9a7a05767f693290b732c75a9c6"
+    },
+    {
+      "log": "workflow-node22.tap",
+      "tests": 816,
+      "pass": 816,
+      "fail": 0,
+      "cancelled": 0,
+      "skipped": 0,
+      "todo": 0,
+      "exitCode": 0,
+      "sha256": "b1cdfe395d2f1f794e2a32d3db1d7d9ba7baa448fc8fbf901275fa8cadb836c3"
+    }
+  ],
+  "countingNote": "Node execution totals include 805 top-level and 11 nested tests. Existing wrapper imports duplicate 82 conversation cases. Runs overlap and are not additive independent coverage.",
+  "cleanDependencyProof": {
+    "node": "v22.23.4",
+    "jsdom": "26.1.0",
+    "resolved": "/private/var/folders/b3/0l3tmv5j3hs83hp8l34z89p00000gp/T/od-ai-scroll-r43-ci-8TuGbn/node_modules/jsdom/lib/api.js",
+    "content": "locked dependency",
+    "cacheFallback": false,
+    "exit": 0
+  },
+  "cleanNpmCi": {
+    "initialExit": 1,
+    "initialReason": "npm --prefix invocation did not select isolated temporary lockfile; retry used cwd",
+    "retryExit": 0,
+    "emptyTaskCache": true,
+    "packagesAdded": 356
+  },
+  "projectValidation": {
+    "status": "AUTHORING_VALID_NOT_PACKAGED",
+    "exit": 0
+  },
+  "build": {
+    "programBuilderExit": 0,
+    "pagePackageExit": 0,
+    "node22ByteIdentity": {
+      "node22": "v22.23.4",
+      "byteIdentical": true,
+      "programId": "opendesk.ai-scroll-navigation",
+      "version": "0.4.16",
+      "revision": 19,
+      "fileSha256": "2fdd83ba875f3168d0ae5e15f3268df4b1a44d76c37b7e1dd90ffa213c229a64"
+    },
+    "artifactStatus": "BUILT_UNVERIFIED",
+    "note": "Built/validated package; installed/native acceptance is separate."
+  },
+  "package": {
+    "programId": "opendesk.ai-scroll-navigation",
+    "version": "0.4.16",
+    "revision": 19,
+    "sourceHash": "f3c4367e4e3fa9ba9558834693a5fd1b269f03dfad0cf1c02acab9a6ad4dc8a5",
+    "packageHash": "764a470ef84759559f35fa073707b0a1f31a1a912767bcc1528d1dd376b68530",
+    "fileSha256": "2fdd83ba875f3168d0ae5e15f3268df4b1a44d76c37b7e1dd90ffa213c229a64",
+    "pageRules": {
+      "matches": [
+        "https://chatgpt.com/*",
+        "https://chat.deepseek.com/*",
+        "https://gemini.google.com/*"
+      ],
+      "excludeMatches": [],
+      "runAt": "document_idle",
+      "allFrames": false,
+      "world": "USER_SCRIPT"
+    },
+    "previous": {
+      "version": "0.4.14",
+      "revision": 18
+    },
+    "publication": "blocked",
+    "chromeNative": "NOT_TESTED",
+    "installation": "NOT_TESTED"
+  },
+  "native": {
+    "taskId": "OD-AI-SCROLL-R43-CI-FIX-NATIVE-ACCEPTANCE",
+    "candidate": {
+      "programId": "opendesk.ai-scroll-navigation",
+      "version": "0.4.16",
+      "revision": 19,
+      "sourceHash": "f3c4367e4e3fa9ba9558834693a5fd1b269f03dfad0cf1c02acab9a6ad4dc8a5",
+      "packageHash": "764a470ef84759559f35fa073707b0a1f31a1a912767bcc1528d1dd376b68530",
+      "fileSha256": "2fdd83ba875f3168d0ae5e15f3268df4b1a44d76c37b7e1dd90ffa213c229a64",
+      "pageRules": {
+        "matches": [
+          "https://chatgpt.com/*",
+          "https://chat.deepseek.com/*",
+          "https://gemini.google.com/*"
+        ],
+        "excludeMatches": [],
+        "runAt": "document_idle",
+        "allFrames": false,
+        "world": "USER_SCRIPT"
+      },
+      "previous": {
+        "version": "0.4.14",
+        "revision": 18
+      },
+      "publication": "blocked",
+      "chromeNative": "NOT_TESTED",
+      "installation": "NOT_TESTED"
+    },
+    "googleChrome": {
+      "status": "BLOCKED",
+      "processObserved": 44951,
+      "controlAttempts": 2,
+      "reason": "Native CUA getState timed out twice; existing Chrome has no observed debugging listener. No profile, settings or pairing changes made."
+    },
+    "egoSupplement": {
+      "spaceId": 92,
+      "extensionId": "ccfcjegpkdlgbclopjmadlcjedelidmf",
+      "status": "OBSERVATION_ONLY",
+      "installedRevision": 20261112,
+      "managedCleanup": "retired",
+      "newCandidateInstalled": false,
+      "sites": {
+        "ChatGPT": "Authenticated homepage observed; new candidate not installed",
+        "DeepSeek": "Redirected to /sign_in; login unavailable",
+        "Gemini": "Empty prompt home; no existing long conversation exposed"
+      }
+    },
+    "installation": "NOT_TESTED",
+    "nativeMatrix": {
+      "ChatGPT": [
+        {
+          "id": "T01",
+          "status": "NOT_TESTED",
+          "reason": "Candidate not installed in Google Chrome; control unavailable"
+        },
+        {
+          "id": "T02",
+          "status": "NOT_TESTED",
+          "reason": "Candidate not installed in Google Chrome; control unavailable"
+        },
+        {
+          "id": "T03",
+          "status": "NOT_TESTED",
+          "reason": "Candidate not installed in Google Chrome; control unavailable"
+        },
+        {
+          "id": "T04",
+          "status": "NOT_TESTED",
+          "reason": "Candidate not installed in Google Chrome; control unavailable"
+        },
+        {
+          "id": "T05",
+          "status": "NOT_TESTED",
+          "reason": "Candidate not installed in Google Chrome; control unavailable"
+        },
+        {
+          "id": "T06",
+          "status": "NOT_TESTED",
+          "reason": "Candidate not installed in Google Chrome; control unavailable"
+        },
+        {
+          "id": "T07",
+          "status": "NOT_TESTED",
+          "reason": "Candidate not installed in Google Chrome; control unavailable"
+        },
+        {
+          "id": "T08",
+          "status": "NOT_TESTED",
+          "reason": "Candidate not installed in Google Chrome; control unavailable"
+        },
+        {
+          "id": "T09",
+          "status": "NOT_TESTED",
+          "reason": "Candidate not installed in Google Chrome; control unavailable"
+        },
+        {
+          "id": "T10",
+          "status": "NOT_TESTED",
+          "reason": "Candidate not installed in Google Chrome; control unavailable"
+        },
+        {
+          "id": "T11",
+          "status": "NOT_TESTED",
+          "reason": "Candidate not installed in Google Chrome; control unavailable"
+        },
+        {
+          "id": "T12",
+          "status": "NOT_TESTED",
+          "reason": "Candidate not installed in Google Chrome; control unavailable"
+        }
+      ],
+      "DeepSeek": [
+        {
+          "id": "T01",
+          "status": "BLOCKED",
+          "reason": "No logged-in site conversation; Chrome control and candidate install unavailable"
+        },
+        {
+          "id": "T02",
+          "status": "BLOCKED",
+          "reason": "No logged-in site conversation; Chrome control and candidate install unavailable"
+        },
+        {
+          "id": "T03",
+          "status": "BLOCKED",
+          "reason": "No logged-in site conversation; Chrome control and candidate install unavailable"
+        },
+        {
+          "id": "T04",
+          "status": "BLOCKED",
+          "reason": "No logged-in site conversation; Chrome control and candidate install unavailable"
+        },
+        {
+          "id": "T05",
+          "status": "BLOCKED",
+          "reason": "No logged-in site conversation; Chrome control and candidate install unavailable"
+        },
+        {
+          "id": "T06",
+          "status": "BLOCKED",
+          "reason": "No logged-in site conversation; Chrome control and candidate install unavailable"
+        },
+        {
+          "id": "T07",
+          "status": "BLOCKED",
+          "reason": "No logged-in site conversation; Chrome control and candidate install unavailable"
+        },
+        {
+          "id": "T08",
+          "status": "BLOCKED",
+          "reason": "No logged-in site conversation; Chrome control and candidate install unavailable"
+        },
+        {
+          "id": "T09",
+          "status": "BLOCKED",
+          "reason": "No logged-in site conversation; Chrome control and candidate install unavailable"
+        },
+        {
+          "id": "T10",
+          "status": "BLOCKED",
+          "reason": "No logged-in site conversation; Chrome control and candidate install unavailable"
+        },
+        {
+          "id": "T11",
+          "status": "BLOCKED",
+          "reason": "No logged-in site conversation; Chrome control and candidate install unavailable"
+        },
+        {
+          "id": "T12",
+          "status": "BLOCKED",
+          "reason": "No logged-in site conversation; Chrome control and candidate install unavailable"
+        }
+      ],
+      "Gemini": [
+        {
+          "id": "T01",
+          "status": "NOT_TESTED",
+          "reason": "Candidate not installed in Google Chrome; control unavailable"
+        },
+        {
+          "id": "T02",
+          "status": "NOT_TESTED",
+          "reason": "Candidate not installed in Google Chrome; control unavailable"
+        },
+        {
+          "id": "T03",
+          "status": "NOT_TESTED",
+          "reason": "Candidate not installed in Google Chrome; control unavailable"
+        },
+        {
+          "id": "T04",
+          "status": "NOT_TESTED",
+          "reason": "Candidate not installed in Google Chrome; control unavailable"
+        },
+        {
+          "id": "T05",
+          "status": "NOT_TESTED",
+          "reason": "Candidate not installed in Google Chrome; control unavailable"
+        },
+        {
+          "id": "T06",
+          "status": "NOT_TESTED",
+          "reason": "Candidate not installed in Google Chrome; control unavailable"
+        },
+        {
+          "id": "T07",
+          "status": "NOT_TESTED",
+          "reason": "Candidate not installed in Google Chrome; control unavailable"
+        },
+        {
+          "id": "T08",
+          "status": "NOT_TESTED",
+          "reason": "Candidate not installed in Google Chrome; control unavailable"
+        },
+        {
+          "id": "T09",
+          "status": "NOT_TESTED",
+          "reason": "Candidate not installed in Google Chrome; control unavailable"
+        },
+        {
+          "id": "T10",
+          "status": "NOT_TESTED",
+          "reason": "Candidate not installed in Google Chrome; control unavailable"
+        },
+        {
+          "id": "T11",
+          "status": "NOT_TESTED",
+          "reason": "Candidate not installed in Google Chrome; control unavailable"
+        },
+        {
+          "id": "T12",
+          "status": "NOT_TESTED",
+          "reason": "Candidate not installed in Google Chrome; control unavailable"
+        }
+      ]
+    },
+    "preview": {
+      "existingFile": "projects/ai-scroll-navigation/preview/index.html",
+      "status": "PASS_OFFLINE_ONLY",
+      "checks": [
+        {
+          "step": "default",
+          "state": {
+            "buttons": 4,
+            "countHidden": true,
+            "countWidth": 0,
+            "text": "1/6",
+            "scroll": 0,
+            "prevDisabled": true,
+            "nextDisabled": false,
+            "docks": 1
+          }
+        },
+        {
+          "step": "hidden-next",
+          "state": {
+            "buttons": 4,
+            "countHidden": true,
+            "countWidth": 0,
+            "text": "2/6",
+            "scroll": 216,
+            "prevDisabled": false,
+            "nextDisabled": false,
+            "docks": 1
+          }
+        },
+        {
+          "step": "count-on",
+          "state": {
+            "buttons": 4,
+            "countHidden": false,
+            "countWidth": 40,
+            "text": "2/6",
+            "scroll": 216,
+            "prevDisabled": false,
+            "nextDisabled": false,
+            "docks": 1
+          }
+        },
+        {
+          "step": "count-off",
+          "state": {
+            "buttons": 4,
+            "countHidden": true,
+            "countWidth": 0,
+            "text": "2/6",
+            "scroll": 216,
+            "prevDisabled": false,
+            "nextDisabled": false,
+            "docks": 1
+          }
+        },
+        {
+          "step": "hidden-previous",
+          "state": {
+            "buttons": 4,
+            "countHidden": true,
+            "countWidth": 0,
+            "text": "1/6",
+            "scroll": 2,
+            "prevDisabled": true,
+            "nextDisabled": false,
+            "docks": 1
+          }
+        }
+      ],
+      "notNativeEvidence": true
+    },
+    "publication": "blocked"
+  },
+  "runtimeProvenance": {
+    "runtime": "v24.16.0",
+    "execPath": "/Users/shopme/.nvm/versions/node/v24.16.0/bin/node",
+    "originalTestLog": "workflow-affected.tap",
+    "originalTestExit": 0,
+    "logSha256": "1740e59eb41d695eda27f2558cc26f66ef27e1f3c137fa174eeba3c88d816610",
+    "note": "Default node executable used for original local affected-suite invocation; version captured separately during same task. Node22 authoritative parity run is workflow-node22.tap. No suite rerun to add metadata."
+  },
+  "scope": {
+    "featureSourceChanges": false,
+    "newDock": false,
+    "newPreview": false,
+    "parallelWorkPreserved": true,
+    "watchersReplaced": false,
+    "browserProfilesModified": false
+  },
+  "rawEvidence": {
+    "location": "artifacts/ai-scroll-r43-20261112",
+    "tracked": false,
+    "note": "Raw logs/screenshots remain local ignored artifacts; this summary is prepared for the task commit. New remote CI result will be reported after push, not preclaimed."
+  },
+  "remoteCIAtReportCommit": "NOT_RUN_YET",
+  "remaining": [
+    "Exact candidate Chrome installation through existing review chain and identity/hash/config readback",
+    "Real ChatGPT/DeepSeek/Gemini T01–T12, including authorized sessions and narrow/light/dark scenarios",
+    "Candidate-bound native security/lifecycle evidence and reassessment; release remains blocked"
+  ],
+  "latestNode22Run": {
+    "startedAt": "2026-11-12T18:36:23+0800",
+    "cwd": "/Users/shopme/Documents/workspace/opendesk-browser",
+    "node": "v22.23.4",
+    "npm": "11.13.0",
+    "sourceCommand": "node --test tests/environment/ai-scroll-navigation.test.mjs tests/environment/page-installed-programs.test.mjs tests/environment/extension-center-page-import.test.mjs tests/environment/ai-scroll-config-r132.test.mjs tests/environment/ai-scroll-site-upgrade-r133.test.mjs tests/environment/ai-scroll-release-r134.test.mjs tests/environment/page-program-library.test.mjs tests/environment/page-install-package.test.mjs tests/environment/extension-center-official-pages-r124.test.mjs tests/environment/ai-scroll-install-ui-r134.test.mjs tests/environment/ai-scroll-site-detail-ui-r134.test.mjs tests/environment/ai-scroll-react-manager-r38.test.mjs projects/ai-scroll-navigation/tests/*.test.mjs",
+    "command": [
+      "/Users/shopme/.nvm/versions/node/v22.23.4/bin/node",
+      "--test",
+      "--test-reporter=tap",
+      "tests/environment/ai-scroll-navigation.test.mjs",
+      "tests/environment/page-installed-programs.test.mjs",
+      "tests/environment/extension-center-page-import.test.mjs",
+      "tests/environment/ai-scroll-config-r132.test.mjs",
+      "tests/environment/ai-scroll-site-upgrade-r133.test.mjs",
+      "tests/environment/ai-scroll-release-r134.test.mjs",
+      "tests/environment/page-program-library.test.mjs",
+      "tests/environment/page-install-package.test.mjs",
+      "tests/environment/extension-center-official-pages-r124.test.mjs",
+      "tests/environment/ai-scroll-install-ui-r134.test.mjs",
+      "tests/environment/ai-scroll-site-detail-ui-r134.test.mjs",
+      "tests/environment/ai-scroll-react-manager-r38.test.mjs",
+      "projects/ai-scroll-navigation/tests/ai-chat.test.mjs",
+      "projects/ai-scroll-navigation/tests/ai-configuration.test.mjs",
+      "projects/ai-scroll-navigation/tests/conversation.test.mjs",
+      "projects/ai-scroll-navigation/tests/floating-navigation.test.mjs",
+      "projects/ai-scroll-navigation/tests/localization.test.mjs",
+      "projects/ai-scroll-navigation/tests/runtime-reliability.test.mjs",
+      "projects/ai-scroll-navigation/tests/site-configuration.test.mjs",
+      "projects/ai-scroll-navigation/tests/site-observation.test.mjs"
+    ],
+    "head": "298adfde895842012ce2e4efd816b9b735c81458",
+    "inputHashes": {
+      "tests/environment/ai-scroll-navigation.test.mjs": "2a9d42b7109a212dfcb320f392e007bf91774b8a5f1bad405e55d55c281bd6d3",
+      "tests/environment/page-installed-programs.test.mjs": "77f843197eb8cb4fe1087c7423906465f35db0018015b0fdf6e378bdd9eca7a5",
+      "tests/environment/extension-center-page-import.test.mjs": "46eccb3ee4ec47e36d4ced0f226073b8a3918117b8e6d61cbe08ab46b1c11e6f",
+      "tests/environment/ai-scroll-config-r132.test.mjs": "99735ebd3373214f9df37a065028f93f73c133e2299751c31467f36447863a6a",
+      "tests/environment/ai-scroll-site-upgrade-r133.test.mjs": "e1ddb365e2c02e39bea1c1c9cd2a2269de9be6ba1511012507e7595a2c602001",
+      "tests/environment/ai-scroll-release-r134.test.mjs": "6e1fd4b620c87897be46f798f304d6b11f35e895a9b1ef1c3a5fbdb9e96c3ae8",
+      "tests/environment/page-program-library.test.mjs": "217f31f10c2468b6318c37f86ca38e5609bb937c76431bd9b9381a5bc1c915bf",
+      "tests/environment/page-install-package.test.mjs": "4a891f857b7b3abe235034898b1fcf9e63947e33c58eec4d1377e60b792c6422",
+      "tests/environment/extension-center-official-pages-r124.test.mjs": "ff4d64b5864de002345450cfbec414696fee2cd0837e660246fc9e7581cecc0a",
+      "tests/environment/ai-scroll-install-ui-r134.test.mjs": "fc543202e8e902316e3fe22fe5116de72efe375e75154904d2e02eba4d6ee921",
+      "tests/environment/ai-scroll-site-detail-ui-r134.test.mjs": "943d2c43acabb14badb38dd876a5559d9e421e1a65a970a4c45037520f310e38",
+      "tests/environment/ai-scroll-react-manager-r38.test.mjs": "b2364643cb50d6cdca6408b460c13a6d4720eb19e9887ce5a7731997cc43606c",
+      "projects/ai-scroll-navigation/tests/ai-chat.test.mjs": "56a7bea184c7a0276ffaab342ae0e9449c487ee7ce8a7f729a86971d661b3743",
+      "projects/ai-scroll-navigation/tests/ai-configuration.test.mjs": "a8d73bce4be272331996bc7f9d31bf6e9f91642bbe9d9d2fb30768a7e1c4616e",
+      "projects/ai-scroll-navigation/tests/conversation.test.mjs": "22a4dd8bdaacaa2e1824157ff149517685eadaff12d16d5a8e8a3d12586cc5fd",
+      "projects/ai-scroll-navigation/tests/floating-navigation.test.mjs": "e1a2a0d7ada774279a909495e53b53974d1a5a61ae495c51c55196e773a83626",
+      "projects/ai-scroll-navigation/tests/localization.test.mjs": "bf9d7c0379cdf606f06b86ff9093c4a751745cf26dd97aa7a86e3f9b70d68c38",
+      "projects/ai-scroll-navigation/tests/runtime-reliability.test.mjs": "b2faa01744233319e3d321af328aa654b3873e0ee99243cda1cdc1cad95b3dc1",
+      "projects/ai-scroll-navigation/tests/site-configuration.test.mjs": "36967af766d2571363c24ccbcb779cb735a9bfa03c560d5d3d75cca21afe5bb6",
+      "projects/ai-scroll-navigation/tests/site-observation.test.mjs": "a2aef2146896c1d15323c4f74845259ee5a6abf74ffa46dfcff2e39b5a490129",
+      "package.json": "c3465df8c57461ee842026ef7c266923b24f7d8a9e3900e2203d3a91a697a26e",
+      "package-lock.json": "aec02708c6fb888b365e8fbd37fb7e16e2e320e48c693ac07d924842488f4d20",
+      "projects/ai-scroll-navigation/src/conversation.js": "5e42d3913382f58b9aec27c77564ec72d34fa87475ee51a574d65354566df07a",
+      "projects/ai-scroll-navigation/src/site-adapters.js": "91d285494dc45f28dccf1f88fef675a2de37f66aabb17c14ed6d93345a62ecb0",
+      "projects/ai-scroll-navigation/src/floating-navigation.js": "2f029a332e01cb4771fcaa58768fa5cfed13ec1bde7b404c0ce4f16de2630134",
+      "projects/ai-scroll-navigation/src/main.js": "ca65eb7508c945ca9d0e2c679f2bf277c0125e023c60fda61ee15aa3d1fbf9ed",
+      "projects/ai-scroll-navigation/src/site-configuration.js": "3fc032b70d14c50f7ebf13f80bd0c8ee3a4112fb7ca1b194561436ac18bcdae7"
+    },
+    "dependencyInstall": "repository npm install from current lock; separate empty-cache npm-ci proof recorded",
+    "log": "workflow-node22-final.tap"
+  },
+  "reviewFollowup": {
+    "testAliasingFixed": true,
+    "targetedPass": 128,
+    "fullWorkflowPass": 816,
+    "nativeGapUnchanged": true
+  },
+  "independentReviews": [
+    {
+      "taskId": "OD-AI-SCROLL-R43-CI-FIX-NATIVE-ACCEPTANCE",
+      "scope": "PRODUCT",
+      "score": 65,
+      "agentId": "01a1cf4e-6bd6-7813-a716-7b339604fb74",
+      "verdict": "CI repair and candidate delivery supported; native product acceptance incomplete; release blocked",
+      "evidence": [
+        "workflow-node22.tap:4901; exit0",
+        "clean-dependency-proof.json:2",
+        "package-verification.json:3,23",
+        "preview-checks.json default4/no width, navigation and toggles",
+        "R4.2 feature source has no task diff"
+      ],
+      "deductions": [
+        {
+          "points": 20,
+          "reason": "36 three-site T01–T12 cases have no native PASS"
+        },
+        {
+          "points": 10,
+          "reason": "Four-button/native conversation behavior not verified on this candidate"
+        },
+        {
+          "points": 5,
+          "reason": "Final candidate installation/readback absent"
+        }
+      ],
+      "recommendations": [
+        "Restore supported Chrome control and authenticated existing conversations",
+        "Install exact candidate through existing review chain and capture identity/hash readback",
+        "Complete three-site T01–T12; keep blocked until evidence exists",
+        "Record runtime provenance for second workflow log"
+      ],
+      "summaryOfIndependentResponse": true
+    },
+    {
+      "task": "OD-AI-SCROLL-R43-CI-FIX-NATIVE-ACCEPTANCE",
+      "scope": "UI/UX",
+      "score": 68,
+      "verdict": "CI修复有证据；原生验收未完成，发行保持BLOCKED",
+      "evidenceBase": "artifacts/ai-scroll-r43-20261112/",
+      "confirmed": [
+        {
+          "result": "计数默认关闭；源码按条件挂载数字节点，无占位；离线记录显示开关不影响翻页。",
+          "evidence": [
+            "projects/ai-scroll-navigation/src/floating-navigation.js:109",
+            "projects/ai-scroll-navigation/src/floating-navigation.js:230",
+            "preview-checks.json:3",
+            "preview-checks.json:16",
+            "preview-checks.json:29",
+            "preview-checks.json:42"
+          ]
+        },
+        {
+          "result": "具备原生button、可访问名称、可见焦点及首末轮禁用状态；这些是源码证据。",
+          "evidence": [
+            "projects/ai-scroll-navigation/src/floating-navigation.js:157",
+            "projects/ai-scroll-navigation/src/floating-navigation.js:170",
+            "projects/ai-scroll-navigation/src/floating-navigation.js:245"
+          ]
+        },
+        {
+          "result": "Node22记录816通过、0失败、0跳过、退出0；jsdom精确锁定26.1.0。AI Scroll功能源码无当前diff。",
+          "evidence": [
+            "workflow-node22.tap:4901",
+            "workflow-node22.exit:1",
+            "package.json:54",
+            "package-lock.json:4149"
+          ]
+        },
+        {
+          "result": "候选为0.4.16/r19；包记录明确未安装、Chrome未验证。",
+          "evidence": [
+            "package-verification.json:3",
+            "package-verification.json:23"
+          ]
+        }
+      ],
+      "deductions": [
+        {
+          "points": 22,
+          "severity": "HIGH",
+          "gap": "最终候选未安装；三站T01–T12共36项无原生PASS。CUA两次失败和Ego观察不能证明交付后的真实体验。",
+          "evidence": [
+            "native-status.json:29",
+            "native-status.json:41",
+            "native-status.json:49"
+          ],
+          "fix": "后续验收恢复受支持的Chrome控制，安装并读回同一候选身份，逐站完成T01–T12并保存实际操作回执。"
+        },
+        {
+          "points": 7,
+          "severity": "MEDIUM",
+          "gap": "缺少最终安装候选的Tab顺序、Enter/Space激活、焦点连续性及屏幕阅读器验证。模拟visualViewport测试不等于键盘操作验收。",
+          "evidence": [
+            "projects/ai-scroll-navigation/tests/floating-navigation.test.mjs:25",
+            "projects/ai-scroll-navigation/tests/floating-navigation.test.mjs:256",
+            "native-status.json:239"
+          ],
+          "fix": "在原生验收中记录完整键盘路径、计数开关前后焦点及可访问树结果。"
+        },
+        {
+          "points": 3,
+          "severity": "MEDIUM",
+          "gap": "320深色、360浅色截图仅证明离线设置面板外观；预览明确不保证源码一致，不能证明真实站点窄屏、缩放或软键盘下无遮挡。",
+          "evidence": [
+            "preview-320-dark.png",
+            "preview-360-light.png",
+            "projects/ai-scroll-navigation/preview/index.html:6",
+            "projects/ai-scroll-navigation/tests/floating-navigation.test.mjs:214"
+          ],
+          "fix": "对同一安装候选补充320/360宽度、放大及软键盘场景，记录Dock边界、焦点可见性和点击可达性。"
+        }
+      ],
+      "uncertainty": "用户报告Node24同为816通过；指定目录未找到独立Node24日志，未将其作为本次独立核实结果。",
+      "reviewStatus": "只读审查结束；未运行浏览器或测试，未修改文件、提交或切换分支。"
+    },
+    {
+      "taskId": "OD-AI-SCROLL-R43-CI-FIX-NATIVE-ACCEPTANCE",
+      "scope": "ARCHITECTURE",
+      "score": 72,
+      "architecturalStatus": "CLEAR",
+      "releaseStatus": "BLOCKED",
+      "summary": "架构复用与配置边界符合要求，未发现本轮新增架构阻塞。CI 修复已有 Node22 证据；候选未安装、三站原生验收未完成，不能认定完整交付或 native PASS。",
+      "findings": [
+        {
+          "result": "唯一 Dock 复用成立：分页按钮与可选计数共用原控件树，数字隐藏不关闭分页。",
+          "evidence": [
+            "projects/ai-scroll-navigation/src/floating-navigation.js:214",
+            "projects/ai-scroll-navigation/src/floating-navigation.js:223",
+            "projects/ai-scroll-navigation/src/floating-navigation.js:230"
+          ]
+        },
+        {
+          "result": "分页和计数使用同一用户提问轮次模型；角色不明确时拒绝推断。",
+          "evidence": [
+            "projects/ai-scroll-navigation/src/conversation.js:287",
+            "projects/ai-scroll-navigation/src/conversation.js:295",
+            "projects/ai-scroll-navigation/src/floating-navigation.js:248"
+          ]
+        },
+        {
+          "result": "配置继续使用原规范化合同；AI patch 仅接受明确请求的布尔字段，保留未请求配置。新测试覆盖五、六、七字段快照。",
+          "evidence": [
+            "src/scripting/user-scripts/scroll-config-contract.js:63",
+            "projects/ai-scroll-navigation/trusted/ai-configuration.js:199",
+            "projects/ai-scroll-navigation/tests/ai-configuration.test.mjs:40"
+          ]
+        },
+        {
+          "result": "当前 AI Scroll diff 未修改功能源码；测试直接导入锁定的开发依赖 jsdom，隐私读取陷阱仅在观察断言结束后解除，未见为通过 CI 放宽产品边界。",
+          "evidence": [
+            "package.json:54",
+            "package-lock.json:4149",
+            "projects/ai-scroll-navigation/tests/site-observation.test.mjs:3",
+            "projects/ai-scroll-navigation/tests/site-observation.test.mjs:78",
+            "projects/ai-scroll-navigation/tests/site-observation.test.mjs:90"
+          ]
+        }
+      ],
+      "validation": {
+        "node22": {
+          "result": "816 pass / 0 fail / 0 skip；exit 0",
+          "evidence": [
+            "artifacts/ai-scroll-r43-20261112/workflow-node22.tap:4901",
+            "artifacts/ai-scroll-r43-20261112/workflow-node22.exit:1"
+          ]
+        },
+        "node24": "用户报告通过；指定目录未发现对应 TAP/exit，未独立核实。",
+        "package": {
+          "result": "0.4.16/r19 的身份、哈希及构建成功回执已记录；安装仍为 NOT_TESTED。",
+          "evidence": [
+            "artifacts/ai-scroll-r43-20261112/package-verification.json:2",
+            "artifacts/ai-scroll-r43-20261112/package-verification.json:23",
+            "artifacts/ai-scroll-r43-20261112/page-package-build.exit:1"
+          ]
+        }
+      },
+      "deductions": [
+        {
+          "points": 25,
+          "reason": "候选未安装，Chrome 控制两次失败；三站 T01–T12 全部 NOT_TESTED/BLOCKED。Ego 离线预览不能证明实际站点布局、SPA 生命周期及安装后配置链。",
+          "evidence": [
+            "artifacts/ai-scroll-r43-20261112/native-status.json:29",
+            "artifacts/ai-scroll-r43-20261112/native-status.json:49",
+            "artifacts/ai-scroll-r43-20261112/native-status.json:112",
+            "artifacts/ai-scroll-r43-20261112/native-status.json:174",
+            "artifacts/ai-scroll-r43-20261112/native-status.json:307"
+          ]
+        },
+        {
+          "points": 3,
+          "reason": "Node24 完整通过声明缺少本次可定位证据；现有工作流只声明 Node22。",
+          "evidence": [
+            ".github/workflows/ai-scroll-navigation-r131.yml:35",
+            "artifacts/ai-scroll-r43-20261112/clean-dependency-proof.json:2"
+          ]
+        }
+      ],
+      "rootCause": "CI 侧是断言漂移及测试对本机缓存依赖的隐式假设；剩余交付缺口是原生控制、候选安装和真实会话条件不足，未证实为架构缺陷。",
+      "actionableFixes": [
+        "后续补存 Node24 对应命令、版本、完整 TAP、exit 及输入指纹；已有记录可直接归档，无需重复运行。",
+        "原生条件恢复后，通过现有 Authority 安装同一哈希候选，完成三站 T01–T12，并绑定安装身份、实际运行版本和逐项回执。",
+        "验收完成前继续保持 publication=blocked；沿用现有 Dock、轮次模型和配置合同。"
+      ],
+      "tradeoff": "锁定 jsdom 增加开发依赖树，但消除缓存偶然性；保留功能源码避免扩大 CI 修复范围，但不能替代真实 Chrome 验收。",
+      "reviewBoundary": "仅只读检查 diff、源码与现有证据；未运行浏览器或测试，未修改文件、提交或切换分支。"
+    },
+    {
+      "task": "OD-AI-SCROLL-R43-CI-FIX-NATIVE-ACCEPTANCE",
+      "scope": "TESTING",
+      "score": 72,
+      "verdict": "CI repairs supported; native acceptance incomplete; release remains blocked.",
+      "confidence": "high",
+      "findings": [
+        {
+          "result": "All ten original failures map to scoped repairs; no removed security assertions or new skips found.",
+          "evidence": [
+            "artifacts/ai-scroll-r43-20261112/ci888-full.log:566,2003,2301,2763,3301,4523,6127,6155,6255,6482",
+            "projects/ai-scroll-navigation/tests/site-observation.test.mjs:78-100",
+            "tests/environment/page-install-package.test.mjs:225-230"
+          ],
+          "assessment": "Seven-flag fail-closed expectations, legacy configuration preservation, Toast receipts and route membership reflect current behavior. Privacy traps remain active through observation and are removed only before jsdom cleanup. AI-scroll feature source has no current diff."
+        },
+        {
+          "result": "Both recorded workflow test runs report 816 passed, zero failed/skipped, exit 0.",
+          "evidence": [
+            "artifacts/ai-scroll-r43-20261112/workflow-node22.tap:4901-4907",
+            "artifacts/ai-scroll-r43-20261112/workflow-affected.tap:4901-4907",
+            "artifacts/ai-scroll-r43-20261112/test-runs.json:116-134"
+          ],
+          "assessment": "Each contains 805 top-level results plus 11 nested results. There are 722 distinct top-level names: 82 conversation cases execute twice through direct discovery and wrapper import; two distinct locale-catalog cases also share a name. Thus 816 is an execution count, not independent coverage.",
+          "evidenceAdditional": [
+            ".github/workflows/ai-scroll-navigation-r131.yml:43",
+            "tests/environment/ai-scroll-navigation.test.mjs:3",
+            "projects/ai-scroll-navigation/tests/localization.test.mjs:17"
+          ]
+        },
+        {
+          "result": "Explicit jsdom dependency and clean-install evidence materially improve reproducibility.",
+          "evidence": [
+            "package.json:54",
+            "package-lock.json:4149-4178",
+            "artifacts/ai-scroll-r43-20261112/clean-dependency-proof.json:2-7",
+            "artifacts/ai-scroll-r43-20261112/clean-npm-ci-retry.log:3"
+          ],
+          "assessment": "Node v22.23.4 resolves locked jsdom 26.1.0 without cache fallback. Initial npm-ci failure is preserved. TAP and run summaries do not independently bind both Node versions, exact commands, input hashes and clean-install directory to the full runs."
+        },
+        {
+          "result": "Final package identity matches evidence; native coverage is absent.",
+          "evidence": [
+            "artifacts/ai-scroll-r43-20261112/package-verification.json:2-25",
+            "artifacts/ai-scroll-r43-20261112/native-status.json:29-54",
+            "artifacts/ai-scroll-r43-20261112/native-status.json:112-235",
+            "artifacts/ai-scroll-r43-20261112/preview-checks.json:3-64"
+          ],
+          "assessment": "Candidate and delivered package bytes match the recorded SHA256 for 0.4.16/r19. No installation or native PASS exists across 36 site/scenario cells. Offline counter/paging observations cannot close that gap."
+        }
+      ],
+      "deductions": [
+        {
+          "points": 22,
+          "gap": "Required native installation and three-site T01-T12 evidence missing.",
+          "fix": "In a separately authorized acceptance run, install this exact candidate, verify running identity and record each scenario; retain release blocking until satisfied."
+        },
+        {
+          "points": 3,
+          "gap": "Full-run reproducibility provenance incomplete.",
+          "fix": "Capture Node/npm versions, command, cwd, input hashes and dependency-install linkage alongside each run."
+        },
+        {
+          "points": 2,
+          "gap": "Duplicated discovery obscures independent coverage.",
+          "fix": "Report execution and deduplicated counts separately; remove redundant wrapper discovery while retaining project-owned tests."
+        },
+        {
+          "points": 1,
+          "gap": "Updated source regex assertions remain formatting-sensitive and cannot prove runtime authorization.",
+          "fix": "Prefer existing pager behavior coverage and targeted authenticated-route rejection tests over exact source spellings.",
+          "evidence": [
+            "tests/environment/ai-scroll-navigation.test.mjs:28-35",
+            "tests/environment/page-install-package.test.mjs:225-230",
+            "projects/ai-scroll-navigation/tests/floating-navigation.test.mjs:309-339"
+          ]
+        }
+      ],
+      "reviewBoundary": "Read-only inspection completed on main. No tests, browsers, edits, commits or branches performed. Unrelated parallel diffs excluded."
+    },
+    {
+      "task": "OD-AI-SCROLL-R43-CI-FIX-NATIVE-ACCEPTANCE",
+      "lane": "SECURITY/COMPATIBILITY",
+      "scope": "Narrow re-review of snapshot aliasing assertion fix",
+      "originalScore": 72,
+      "updatedScore": 74,
+      "scoreChange": 2,
+      "verdict": "REQUEST CHANGES",
+      "resolved": {
+        "severity": "MEDIUM",
+        "finding": "Aliased immutability assertion",
+        "result": "Fixed. structuredClone captures an independent baseline before validation; expected navigation derives from the clone, and the complete original baseline is compared afterward.",
+        "evidence": [
+          "projects/ai-scroll-navigation/tests/ai-configuration.test.mjs:44",
+          "projects/ai-scroll-navigation/tests/ai-configuration.test.mjs:46",
+          "projects/ai-scroll-navigation/tests/ai-configuration.test.mjs:47"
+        ]
+      },
+      "recordedValidation": {
+        "tests": 128,
+        "pass": 128,
+        "fail": 0,
+        "skipped": 0,
+        "exit": 0,
+        "evidence": [
+          "artifacts/ai-scroll-r43-20261112/config-review-fixed.tap:771",
+          "artifacts/ai-scroll-r43-20261112/config-review-fixed.exit:1"
+        ],
+        "independentlyRerun": false
+      },
+      "remainingDeduction": {
+        "points": 26,
+        "severity": "HIGH",
+        "type": "EVIDENCE_GAP",
+        "reason": "Final-candidate native installation security and three-site T01–T12 acceptance remain unverified.",
+        "evidence": [
+          "artifacts/ai-scroll-r43-20261112/native-status.json:26",
+          "artifacts/ai-scroll-r43-20261112/native-status.json:30",
+          "artifacts/ai-scroll-r43-20261112/native-status.json:41",
+          "artifacts/ai-scroll-r43-20261112/native-status.json:49"
+        ],
+        "action": "Restore supported Chrome control and suitable site sessions, then complete the already-authorized exact-candidate installation security checks and three-site matrix. Missing control/session is the blocker; additional authorization is unnecessary."
+      },
+      "release": "BLOCKED",
+      "nativeSecurity": "NOT_TESTED",
+      "reviewLimits": "Read-only inspection; no tests, browsers, diagnostics, edits, commits or branch operations. Prior review conclusions otherwise unchanged."
+    }
+  ],
+  "scores": {
+    "product": 65,
+    "ux": 68,
+    "architecture": 72,
+    "testing": 72,
+    "security": 74,
+    "sum": 351,
+    "mean": 70.2,
+    "target": 95,
+    "targetMet": false,
+    "note": "Independent snapshot scores preserved; security independently confirmed aliasing fix and revised72 to74. Latest provenance improvements are recorded without leader-inflated rescoring."
+  },
+  "adversarialAudit": {
+    "verdict": "REJECT",
+    "scope": "Final native acceptance",
+    "documentationFindings": "CLOSED",
+    "verified": {
+      "report": "Markdown exists and identifies a precommit snapshot.",
+      "security": "Archived independent re-review confirms clone fix and score 74.",
+      "scores": [
+        65,
+        68,
+        72,
+        72,
+        74
+      ],
+      "sum": 351,
+      "mean": 70.2,
+      "commitWording": "JSON now says prepared for task commit; no completed commit claimed."
+    },
+    "findings": [
+      {
+        "severity": "HIGH",
+        "finding": "Exact candidate installation and all 36 native acceptance cases remain unverified.",
+        "requiredAction": "Complete already-authorized installation/readback and three-site T01–T12 when supported control and suitable sessions are available. No new permission required."
+      }
+    ],
+    "publication": "BLOCKED",
+    "auditBoundary": "Narrow read-only verification; no reruns or edits."
+  }
+}

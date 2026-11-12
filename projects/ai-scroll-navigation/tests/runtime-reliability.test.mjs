@@ -6,7 +6,7 @@ import {installScrollSiteRuntime,resolveConfiguredConversation} from '../src/sit
 import {installFloatingNavigation} from '../src/floating-navigation.js';
 
 const flags=Object.freeze({regionTop:false,regionBottom:false,
-  conversationTop:false,conversationBottom:false,floatingTop:false,turnPaging:false});
+  conversationTop:false,conversationBottom:false,floatingTop:false,turnPaging:false,showTurnCount:false});
 const settle=()=>new Promise(resolve=>setImmediate(resolve));
 function fixture(){
   const {document:doc,window}=parseHTML('<html><body><main id="thread" data-ready="yes"><article data-testid="conversation-turn-1">First</article><article data-testid="conversation-turn-2">Last</article></main></body></html>');
@@ -86,7 +86,7 @@ test('initial '+failure+' read stays off; recover persisted '+stored+' snapshot'
     'only successful legacy read enables defaults; stored all-off remains off');
 });
 
-test('all five runtime flags stay false until a successful read, including no bridge',async t=>{
+test('all seven runtime flags stay false until a successful read, including no bridge',async t=>{
   const f=fixture();t.after(()=>f.owner.dispose());
   const runtime=installScrollSiteRuntime({...f,api:null});
   assert.deepEqual(runtime.navigation(),flags);

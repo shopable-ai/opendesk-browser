@@ -1,21 +1,9 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import {createRequire} from 'node:module';
-import {globSync} from 'node:fs';
-import {homedir} from 'node:os';
-import {join,dirname} from 'node:path';
+import {JSDOM} from 'jsdom';
 import {observeScrollSiteStructure,resolveConfiguredConversation,
   installScrollSiteRuntime,installVisualSiteConfiguration} from '../src/site-configuration.js';
 
-// Same JSDOM resolution as the existing project-owned Page inspection tests.
-const require=createRequire(import.meta.url);
-let JSDOM;
-try{({JSDOM}=require('jsdom'));}
-catch(error){
-  const cached=globSync(join(homedir(),'.npm/_npx/*/node_modules/jsdom/package.json'))[0];
-  if(!cached)throw error;
-  ({JSDOM}=require(dirname(cached)));
-}
 const transcript='<main><article>Private first reply</article><article>Private last reply</article></main>';
 const noStructure={state:'unavailable',reason:'NO_STRUCTURE'};
 function fixture(html=transcript,url='https://example.test/private-thread?token=secret'){
@@ -89,7 +77,7 @@ test('observation reads no personal content or field values and causes no DOM mu
   for(const article of main.children)article.setAttribute('data-message-id','Private message identifier');
   for(const target of [f.doc,...f.doc.querySelectorAll('*')]){
     for(const key of ['textContent','innerText','innerHTML','outerHTML'])
-      Object.defineProperty(target,key,{get(){throw Error('forbidden content read '+key);}});
+      Object.defineProperty(target,key,{configurable:true,get(){throw Error('forbidden content read '+key);}});
   }
   Object.defineProperty(f.doc,'title',{get(){throw Error('forbidden title read');}});
   for(const node of f.doc.querySelectorAll('input,textarea,[contenteditable]'))
@@ -105,7 +93,11 @@ test('observation reads no personal content or field values and causes no DOM mu
   assert.equal(main.scrollTop,before);
   await Promise.resolve();
   assert.deepEqual(mutations,[]);
-  observer.disconnect();f.win.close();
+  observer.disconnect();
+  // JSDOM clears body.innerHTML on close; release read traps after observation.
+  for(const target of [f.doc,...f.doc.querySelectorAll('*')])
+    for(const key of ['textContent','innerText','innerHTML','outerHTML'])delete target[key];
+  f.win.close();
 });
 
 test('empty homepages and generic lists have no inferred application defaults',()=>{

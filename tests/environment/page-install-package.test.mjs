@@ -224,5 +224,8 @@ test('CLI validates draft and preserves actual compiled async-main bytes and sou
 
 test('RPC is on the existing authenticated Host route',async()=>{
   const broker=await readFile(new URL('../../src/platform/host/broker.js',import.meta.url),'utf8');
-  assert.match(broker,/createMethodRoutes\(installedPages,\['importPageInstallPackage'/);
+  assert.match(broker,/createMethodRoutes\(installedPages,\[[^\]]*'importPageInstallPackage'[^\]]*\]\)/);
+  assert.match(broker,/const authenticate = \(request,sender\) => authority\.assertHost\(sender, request\.registrationId\)/);
+  assert.match(broker,/if \(message\.type !== 'registerHost'\) await authenticate\(message,sender\)/);
+  assert.match(broker,/return route\(p,sender\)/);
 });

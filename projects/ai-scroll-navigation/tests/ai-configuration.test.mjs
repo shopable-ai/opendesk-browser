@@ -33,7 +33,19 @@ test('independent flags preserve every unrequested baseline value',()=>{
     proposal:navigation({regionTop:false,conversationBottom:true})});
   assert.deepEqual(result.navigation,{...flags,regionTop:false,conversationBottom:true});
   assert.deepEqual(validate({request:'关闭悬浮回顶',proposal:navigation({floatingTop:false})}).navigation,
-    {...Object.fromEntries(Object.keys(flags).map(key=>[key,true])),floatingTop:false});
+    {...Object.fromEntries(Object.keys(flags).filter(key=>key!=='turnPaging').map(key=>[key,true])),floatingTop:false},
+    'an absent snapshot uses the legacy five-field shape, without silently adding capabilities');
+});
+
+test('AI edits retain five, six and seven saved navigation fields without disabling paging',()=>{
+  const five=Object.fromEntries(Object.entries(flags).filter(([key])=>key!=='turnPaging'));
+  for(const saved of [five,flags,{...flags,showTurnCount:false},{...flags,turnPaging:false,showTurnCount:true}]){
+    const baseline={value:{version:1,sites:[rule],navigation:saved},etag:'legacy'};
+    const before=structuredClone(baseline);
+    const result=validate({request:'关闭悬浮回顶',proposal:navigation({floatingTop:false}),snapshot:baseline});
+    assert.deepEqual(result.navigation,{...before.value.navigation,floatingTop:false});
+    assert.deepEqual(baseline,before,'validation must not mutate the saved snapshot');
+  }
 });
 for(const request of [
   '如何关闭悬浮回顶','关闭悬浮回顶吗？','不要关闭悬浮回顶','不能关闭悬浮回顶',

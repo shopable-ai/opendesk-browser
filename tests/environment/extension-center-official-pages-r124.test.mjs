@@ -78,7 +78,7 @@ test('R1.2.4 Page discovery controls route through the original authority review
   const center=await readFile('src/ui/extension-center.js','utf8');
   const host=await readFile('src/ui/sidebar-tools.js','utf8');
   assert.match(center,/row\.kind==='page'&&!row\.installed/);
-  assert.match(center,/row\.release\?\.status==='available'\)add\('审阅并安装'/);
+  assert.match(center,/row\.release\?\.status==='available'\)add\(t\('reviewInstall'\)/);
   assert.match(center,/row\.record\?\.installed:null/);
   assert.match(center,/current\?\.installed!==false\|\|current\?\.release!==row\.release/);
   assert.match(host,/loadOfficialPagePackage\(release,\{api,fetcher\}\)/);
