@@ -22,7 +22,8 @@ function event(){
   return {addListener(fn){listeners.add(fn);},removeListener(fn){listeners.delete(fn);},
     emit(...args){for(const fn of listeners)fn(...args);}};
 }
-async function fixture({provenance=true,capabilities=[],toolId='prompt-shortcuts',savedNotice=null}={}){
+async function fixture({provenance=true,capabilities=[],toolId='prompt-shortcuts',
+  savedNotice=null,activeToolIds=null}={}){
   // Use real reviewed legacy page.toc / current page.prompts packages:
   // the package is validated and its ACTUAL installed digest is used as provenance.
   const packagePath=toolId==='reading-toc'?'../fixtures/reading-toc-reviewed-1.0.15.opendesk-tool.json':
@@ -87,7 +88,9 @@ async function fixture({provenance=true,capabilities=[],toolId='prompt-shortcuts
     const result=queue.then(fn);queue=result.catch(()=>{});return result;
   }};
   const service=installUpdateNoticeService({api,loadCatalog:async()=>({apps:[release]}),
-    loadInstalled:async()=>[tool],lockManager,now:()=>time});
+    loadInstalled:async()=>[tool],lockManager,now:()=>time,
+    // Test-only trusted document attestation; production fails closed without it.
+    getActiveDocumentTools:async()=>activeToolIds??[tool.id]});
   async function send(message,sender=source()){
     return new Promise(resolve=>onMessage.emit({protocol:UPDATE_NOTICE_PROTOCOL,...message},sender,resolve));
   }
@@ -128,6 +131,17 @@ test('worker uses original installed/source evidence and one cross-tab claim',as
   f.at(100000+NOTICE_DAY_MS*4);
   await f.service.checkToast();
   assert.equal(f.views.length,2,'third toast must never be shown');
+});
+
+test('web Toast needs active same-tool evidence, global Badge stays intact',async()=>{
+  for(const activeToolIds of [[],['reading-toc']]){
+    const f=await fixture({activeToolIds});await f.settled();
+    const list=await f.service.replyList();
+    assert.equal(list.verified,true);
+    assert.equal(list.badgeCount,1,'site relation must not reduce global Badge');
+    await f.service.checkToast();
+    assert.equal(f.views.length,0,'unrelated or inactive tool cannot receive a webpage Toast');
+  }
 });
 
 test('unknown local provenance and added capabilities fail closed',async()=>{

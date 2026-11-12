@@ -29,7 +29,10 @@ const errorText=error=>String(error?.code||error?.message||'E_UPDATE_UNKNOWN').s
 
 export function installUpdateNoticeService({api=globalThis.chrome,now=()=>Date.now(),
   lockManager=globalThis.navigator?.locks,development=false,loadCatalog=loadOfficialCatalog,
-  loadInstalled=getInstalledSidebarTools}={}){
+  loadInstalled=getInstalledSidebarTools,
+  // Only the trusted framework may attest an active tool in an exact document.
+  // Without a live attestor page Toast fails closed; the global Badge is unaffected.
+  getActiveDocumentTools=async()=>[]}={}){
   if(!api?.runtime?.onMessage||!api?.storage?.local||!api?.runtime?.getURL)
     throw fail('E_UPDATE_HOST');
   let writeUnknown=false,verifiedInventory=false,lastInventoryAt=0,lastError=null;
@@ -103,25 +106,24 @@ export function installUpdateNoticeService({api=globalThis.chrome,now=()=>Date.n
         source.origin===new URL(sender.tab.url).origin;
     }catch{return false;}
   }
-  async function siteAllowed(origin,installed=null,enabled=null){
-    if(!safeOrigins.has(origin))return false;
-    if(await api.permissions.contains({origins:[origin+'/*']})!==true)return false;
+  async function authorizedSiteToolIds(origin,installed=null,enabled=null){
+    if(!safeOrigins.has(origin))return [];
+    if(await api.permissions.contains({origins:[origin+'/*']})!==true)return [];
     const [rows,values,sites]=await Promise.all([
       installed?Promise.resolve(installed):loadInstalled(api),
       enabled?Promise.resolve(enabled):api.storage.local.get(SIDEBAR_TOOL_ENABLE_STORE),
       api.storage.local.get([READING_TOC_SITE_STORE,PROMPT_SITE_STORE])
     ]);
     const records=enabled||requireToolEnableRecords(values[SIDEBAR_TOOL_ENABLE_STORE]);
-    // An already granted, enabled installed tool is the site authority;
-    // a broad Chrome <all_urls> permission by itself is insufficient.
+    const ids=[];
     const reader=rows.find(row=>row.id==='reading-toc'&&row.capabilities?.includes('page.toc'));
     if(reader&&sidebarToolEnabled(records,reader.id)&&
-       tocSiteAllowed(sites[READING_TOC_SITE_STORE],reader.id,origin))return true;
-    // Only the framework-known fixed ChatGPT grant is recognized here.
-    // Dynamic site choices belong to the original tool/Page authority and
-    // may not be inferred from a user package, model or arbitrary DOM.
+       tocSiteAllowed(sites[READING_TOC_SITE_STORE],reader.id,origin))ids.push(reader.id);
+    // A fixed origin grant does not prove that a tool is active in this document.
     const prompt=rows.find(row=>row.id===PROMPT_ID&&row.capabilities?.includes('page.prompts'));
-    return Boolean(prompt&&sidebarToolEnabled(records,PROMPT_ID)&&origin==='https://chatgpt.com');
+    if(prompt&&sidebarToolEnabled(records,PROMPT_ID)&&origin==='https://chatgpt.com')
+      ids.push(prompt.id);
+    return ids;
   }
   function isPublishedSource(tool,record,hash){
     return record?.marketId==='opendesk/'+tool.id&&record.version===tool.version&&record.sha256===hash;
@@ -233,24 +235,39 @@ export function installUpdateNoticeService({api=globalThis.chrome,now=()=>Date.n
     if(!tab||!Number.isSafeInteger(tab.id)||tab.incognito||!tab.active||!tab.url)return null;
     let origin;
     try{origin=new URL(tab.url).origin;}catch{return null;}
-    if(!safeOrigins.has(origin)||!await siteAllowed(origin))return null;
+    if(!safeOrigins.has(origin))return null;
+    const authorized=await authorizedSiteToolIds(origin);
+    if(!authorized.length)return null;
     const frame=await api.webNavigation.getFrame({tabId:tab.id,frameId:0}).catch(()=>null);
     if(!frame||typeof frame.documentId!=='string'||!frame.documentId||
        frame.documentLifecycle!=='active'||frame.url!==tab.url||
        frame.errorOccurred||!tab.active)return null;
-    return {tabId:tab.id,documentId:frame.documentId,origin};
+    // A page URL or DOM marker is not a live same-document tool attestation.
+    // The trusted callback is intentionally unbound in production until that
+    // binding exists; page Toast must not guess which tool is running.
+    let active=[];
+    try{active=await getActiveDocumentTools({
+      tabId:tab.id,documentId:frame.documentId,origin
+    });}catch{/* No attestation means no page notification. */}
+    const toolIds=Array.isArray(active)?[...new Set(active.filter(id=>authorized.includes(id)))]:[];
+    if(!toolIds.length)return null;
+    return {tabId:tab.id,documentId:frame.documentId,origin,toolIds};
   }
   async function hideIneligibleClaims(){
     // Persisted leases also identify a visible toast after the Worker restarts.
     // Hiding never resets impressions or retries an ambiguous write.
-    const claims=new Map(Object.values((await read()).records)
-      .filter(row=>row.claim).map(row=>[row.claim.token,row.claim]));
-    for(const [token,claim] of claims){
+    const claims=new Map();
+    for(const row of Object.values((await read()).records))if(row.claim){
+      const group=claims.get(row.claim.token)||{claim:row.claim,ids:[]};
+      group.ids.push(row.id);claims.set(row.claim.token,group);
+    }
+    for(const [token,{claim,ids}] of claims){
       let allowed=false;
       try{
-        const tab=await api.tabs.get(claim.tabId);
-        allowed=!tab.incognito&&await siteAllowed(new URL(tab.url).origin);
-      }catch{/* Missing tab, permission or grant is not authority to keep UI. */}
+        const target=await eligibleTab(await api.tabs.get(claim.tabId));
+        allowed=target?.documentId===claim.documentId&&
+          ids.every(id=>target.toolIds.includes(id));
+      }catch{/* Missing tab, permission, document or active tool fails closed. */}
       if(allowed)continue;
       liveClaims.delete(token);
       try{await api.tabs.sendMessage(claim.tabId,{protocol:UPDATE_NOTICE_PROTOCOL,
@@ -285,7 +302,8 @@ export function installUpdateNoticeService({api=globalThis.chrome,now=()=>Date.n
         let result;
         try{
           result=await mutate(state=>{
-            const claimed=claimUpdateToast(state,{now:now(),...target,token});
+            const claimed=claimUpdateToast(state,{now:now(),...target,token,
+              allowedToolIds:target.toolIds});
             return claimed?.state||null;
           });
         }catch{return;}
@@ -297,7 +315,8 @@ export function installUpdateNoticeService({api=globalThis.chrome,now=()=>Date.n
         try{
           const current=await eligibleTab(await api.tabs.get(target.tabId));
           if(revision!==authorityRevision||current?.documentId!==target.documentId||
-             current.origin!==target.origin){await releaseClaim(token);return;}
+             current.origin!==target.origin||
+             rows.some(row=>!current?.toolIds?.includes(row.id))){await releaseClaim(token);return;}
           const injected=await api.scripting.executeScript({target:{tabId:target.tabId,
             documentIds:[target.documentId]},
             world:'ISOLATED',func:showTrustedUpdateToast,args:[{
@@ -391,6 +410,11 @@ export function installUpdateNoticeService({api=globalThis.chrome,now=()=>Date.n
       // before accepting any message from an isolated content-script world.
       const target=await eligibleTab(sender.tab);
       if(!target||target.documentId!==sender.documentId)throw fail('E_UPDATE_SITE_REVOKED');
+      const claims=Object.values((await read()).records).filter(row=>
+        row.claim?.token===message.token&&row.claim.tabId===sender.tab.id&&
+        row.claim.documentId===sender.documentId);
+      if(!claims.length)throw fail('E_UPDATE_CLAIM_STALE');
+      if(claims.some(row=>!target.toolIds.includes(row.id)))throw fail('E_UPDATE_SITE_REVOKED');
       requireCurrentAuthority();
       if(message.kind==='page-visible'){
         const result=await mutate(state=>{
