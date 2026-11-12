@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import {createIssueWorkflowAuthority,issueWorkflowScope} from '../trusted/issue-workflow-authorization.js';
+import {createIssueWorkflowAuthority,issueWorkflowScope,ISSUE_WORKFLOW_RECIPE} from '../trusted/issue-workflow-authorization.js';
 const pin=()=>({version:'0.2.0',manifestHash:'a'.repeat(64),contentHash:'b'.repeat(64),
  scriptId:'task:chatgpt.conversation.create:0.2.0',revision:1,
  installationId:'installed-0001',generation:1});
@@ -65,4 +65,16 @@ test('corrupt persistent grant is never interpreted as an active grant',async()=
  const h=harness(),auth=h.make();await auth.approve(issueWorkflowScope(pin()));
  const [k]=h.data.keys();h.data.set(k,{enabled:true,grantId:'legacy'});
  await assert.rejects(h.make().read(),{code:'E_ISSUE_WORKFLOW_STORAGE'});
+});
+
+test('R10 recipe is immutable and projects the original v1 persisted scope without upgrading grants',()=>{
+ const scope=issueWorkflowScope(pin());
+ assert.equal(ISSUE_WORKFLOW_RECIPE.id,'github-public-issue-to-chatgpt-original-a');
+ assert.equal(ISSUE_WORKFLOW_RECIPE.taskVersion,scope.taskVersion);
+ assert.equal(ISSUE_WORKFLOW_RECIPE.githubRepo,scope.githubRepo);
+ assert.equal(Object.isFrozen(ISSUE_WORKFLOW_RECIPE),true);
+ assert.deepEqual(Object.keys(scope).sort(),[
+  'sourceOrigin','githubRepo','githubApiOrigin','taskId','taskVersion',
+  'taskTargetUrl','send','readFullBResult','deliverOriginalA',
+  'installation','capabilities','parameterPolicy'].sort());
 });

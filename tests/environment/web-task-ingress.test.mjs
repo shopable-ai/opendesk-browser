@@ -413,3 +413,8 @@ for(const [name,mutate] of [
   await assert.rejects(h.handle('profiles-save',{profiles:[]},mutate(h)));
   assert.deepEqual(h.data[SITE_PROFILES_KEY],before);
 });
+
+test('R10 generic web task ingress does not grant GitHub Issue workflow privileges',async()=>{
+ const h=harness();
+ await assert.rejects(h.handle('workflow-auth-read',{},h.panel),{code:'E_WEB_TASK_PROTOCOL'});
+});

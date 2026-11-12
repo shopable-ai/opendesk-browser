@@ -9,8 +9,6 @@ import {registeredSiteRegistry,loadSiteProfiles} from './site-catalog.js';
 import {SITE_PROFILES_KEY,WEB_TASK_PROTOCOL,validWebTaskSource} from './web-task-contract.js';
 import {CHATGPT_TASK_PROFILE} from './web-task-contract.js';
 import {createChatGPTBackgroundAdapter} from '../native-agent/chatgpt-background-adapter.js';
-import {createIssueWorkflowAuthority,issueWorkflowScope} from '../../projects/webflow/trusted/issue-workflow-authorization.js';
-import {REVIEWED_BUILTIN_TASK_RELEASES} from '../platform/tasks/builtin-releases.js';
 import {activateWebFlowExecutionTarget} from '../native-agent/webflow-execution-view.js';
 import {isReviewedBPrepare,attestReviewedBPrepare} from '../../projects/webflow/trusted/chatgpt-b-prepare-stage.js';
 
@@ -438,41 +436,8 @@ export function createWebTaskIngress({api,ledger,loadFoundation,ensureRunner,ver
     if(!sameProfiles(saved,profiles))throw fail('E_WEB_TASK_UNKNOWN','网站登记写入回执未知');
     return {profiles:saved};
   }
-  // First-party workflow grant: the original verified Side Panel and
-  // transactional Foundation remain the only write owner.
-  async function issueWorkflowAuthorization(message,sender){
-    const actual=await settingsSender(sender),broker=await loadFoundation();
-    const authority=createIssueWorkflowAuthority({storage:broker.storage,
-      namespace:'tool:'+api.runtime.id});
-    if(message.kind==='workflow-auth-read')return authority.read();
-    if(message.kind==='workflow-auth-revoke')return authority.revoke();
-    if(message.kind!=='workflow-auth-approve')
-      throw fail('E_ISSUE_WORKFLOW_SCOPE','未知工作流授权操作');
-    const reviewed=issueWorkflowScope(message.installation),pin=reviewed.installation;
-    const current=await broker.authority.resolveInstalledTask({taskId:reviewed.taskId},actual);
-    const immutable=REVIEWED_BUILTIN_TASK_RELEASES.find(row=>
-      row.taskId===reviewed.taskId&&row.version===reviewed.taskVersion);
-    const samePin=item=>item?.taskId===reviewed.taskId&&
-      ['version','manifestHash','contentHash','scriptId','revision',
-        'installationId','generation'].every(key=>item[key]===pin[key]);
-    if(!immutable||!samePin(current)||
-      current.manifestHash!==immutable.manifestHash||
-      current.contentHash!==immutable.sourceHash||
-      current.manifest?.targetDisposition!=='retain-on-success'||
-      current.manifest?.siteOrigins?.length!==1||
-      current.manifest.siteOrigins[0]!=='https://chatgpt.com')
-      throw fail('E_ISSUE_WORKFLOW_INSTALLATION','仅允许审阅版 ChatGPT 0.2.0 的当前安装身份');
-    if(!await api.permissions.contains({origins:['https://chatgpt.com/*','https://api.github.com/*']}))
-      throw fail('E_ISSUE_WORKFLOW_PERMISSION','缺少 GitHub 或 ChatGPT 网站权限，不会保存授权');
-    await settingsSender(sender);
-    if(!samePin(await broker.authority.resolveInstalledTask({taskId:reviewed.taskId},actual)))
-      throw fail('E_ISSUE_WORKFLOW_INSTALLATION','审核期间安装身份改变');
-    return authority.approve(reviewed);
-  }
   async function handle(message,sender){
     if(message?.protocol!==WEB_TASK_PROTOCOL)throw fail('E_WEB_TASK_PROTOCOL','未知网页任务协议');
-    if(['workflow-auth-read','workflow-auth-approve','workflow-auth-revoke'].includes(message.kind))
-      return issueWorkflowAuthorization(message,sender);
     if(message.kind==='site-profile'){
       const source=await captureSource(sender);return {profile:await profileFor(source.url)};
     }
@@ -489,5 +454,8 @@ export function createWebTaskIngress({api,ledger,loadFoundation,ensureRunner,ver
     }
     throw fail('E_WEB_TASK_PROTOCOL','未知网页任务操作');
   }
-  return Object.freeze({handle,handleChatGPT,verifySubmission});
+  // Exposed only to the statically composed first-party business adapter.
+  // It verifies the SAME trusted Side Panel sender used by profile management;
+  // it does not expose Authority, Controller or a sandbox-callable capability.
+  return Object.freeze({handle,handleChatGPT,verifySubmission,verifySettingsSender:settingsSender});
 }

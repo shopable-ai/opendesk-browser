@@ -43,7 +43,9 @@ const compiledWebFlowInputs=Object.freeze({
   'projects/webflow/src/auto-grants.js':'5b904ed84942f40accb5b459d4aa01341ad7a7b7',
   // Reviewed workflow capability bundle: shared only by the original SW
   // transaction owner and its trusted Side Panel review Host.
-  'projects/webflow/trusted/issue-workflow-authorization.js':'e26ae6bcf44d1994801faa4fc9a7408964702adc',
+  'projects/webflow/trusted/issue-workflow-authorization.js':'cd62e8cbfc0f50c40f2477d603e207a07b66ad3a',
+  // R10: only the audited SW composition may import the business grant adapter.
+  'projects/webflow/trusted/issue-workflow-auth-host.js':'9d98371cc66ff965e777b4292eb5dfd2bf1a3e08',
   // Reviewed bounded keyword policy shared by the ledger and compiled controls.
   'projects/webflow/src/authorization-policy.js':'bb508189bdbbfe403707febbb36bb49d07d476c7',
   // R0 reviewed: structural WebFlow V1/V2 candidate parser, not DOM, Host or Authority.
@@ -81,7 +83,8 @@ function reviewedCompiledWebFlow(target,path,root){
     path==='projects/webflow/trusted/legacy-chatgpt-panel.js'||
     path==='projects/webflow/trusted/page-panel-ui.js';
   const taskIntent=path==='projects/webflow/src/task-intent-contract.js';
-  const allowed=path==='projects/webflow/trusted/issue-workflow-authorization.js'?
+  const allowed=path==='projects/webflow/trusted/issue-workflow-auth-host.js'?target==='sw.js':
+    path==='projects/webflow/trusted/issue-workflow-authorization.js'?
     ['sw.js','ui/tool-shell.js'].includes(target):
     taskIntent?['sw.js','ui/tool-shell.js','agents/web-task-content.js',
       'agents/chatgpt-fixed-bridge.js','native-agent/settings.js'].includes(target):

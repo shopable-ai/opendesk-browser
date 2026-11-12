@@ -24,6 +24,7 @@ import {installGlobalVideoSpeedService} from '../projects/video-speed-controller
 import {installUpdateNoticeService} from './platform/chrome/update-notice-service.js';
 import {handleSidebarToolRuntimeQuery} from './sidebar-tools/runtime-compatibility.js';
 import {createWebTaskIngress} from './page-events/web-task-ingress.js';
+import {createIssueWorkflowAuthorizationHost} from '../projects/webflow/trusted/issue-workflow-auth-host.js';
 import {createSiteContentRegistration} from './page-events/content-script-registration.js';
 import {loadSiteProfiles,SITE_ADAPTER_VERSIONS} from './page-events/site-catalog.js';
 import {WEB_TASK_PROTOCOL,WEB_TASK_INTENT_PROTOCOL,SITE_PROFILES_KEY} from './page-events/web-task-contract.js';
@@ -189,6 +190,12 @@ const cloudRunnerLifecycle=createCloudRunnerLifecycle({api:chrome,
 const ensureCloudRunner=broker=>cloudRunnerLifecycle.reconcile(broker);
 webTaskIngress=createWebTaskIngress({api:chrome,ledger:bridgeTriggerGate,
   loadFoundation:()=>foundation,ensureRunner:async()=>ensureCloudRunner(await foundation)});
+// Compile-time first-party business registration. No sandbox or AI-provided
+// registry entry can acquire the SW's privileged approval boundary.
+const reviewedWebTaskBusinessHandlers=Object.freeze([
+  createIssueWorkflowAuthorizationHost({api:chrome,loadFoundation:()=>foundation,
+    requireSettingsSender:sender=>webTaskIngress.verifySettingsSender(sender)})
+]);
 const siteContentRegistration=createSiteContentRegistration({api:chrome,
   profiles:()=>loadSiteProfiles(chrome),adapterIds:Object.keys(SITE_ADAPTER_VERSIONS),protocolIds:[WEB_TASK_INTENT_PROTOCOL]});
 const reconcileSiteContent=()=>void siteContentRegistration.reconcile().catch(error=>
@@ -203,7 +210,9 @@ chrome.runtime.onMessage.addListener((message,sender,reply)=>{
   if(message?.protocol===WEB_TASK_PROTOCOL&&message.kind==='stop-owned')return false;
   if(message?.protocol!==WEB_TASK_PROTOCOL&&!chat)return false;
   pendingFoundation++;
-  Promise.resolve().then(()=>chat?webTaskIngress.handleChatGPT(message,sender):webTaskIngress.handle(message,sender)).then(data=>reply({ok:true,data}),
+  const business=reviewedWebTaskBusinessHandlers.find(handler=>handler.accepts(message));
+  Promise.resolve().then(()=>chat?webTaskIngress.handleChatGPT(message,sender):
+    business?business.handle(message,sender):webTaskIngress.handle(message,sender)).then(data=>reply({ok:true,data}),
     error=>reply({ok:false,error:{code:error.code||'E_WEB_TASK_UNKNOWN',message:error.message}}))
     .finally(()=>pendingFoundation--);
   return true;

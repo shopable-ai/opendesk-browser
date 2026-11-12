@@ -1,3 +1,19 @@
+## R10 · WebFlow 只编排固定 Task 的第一方业务授权解耦（2026-11-13；`OD-WEBFLOW-FIXED-TASK-DECOUPLING-R10`）
+
+**原始目标：** 用户在 ChatGPT 原 A 用自然语言指定公开 Issue → 由已审阅业务配方关联并核验已安装 Task/站点适配器 → 原 Authority/Controller/RunHost 完成唯一 B、原 Durable Result、原 A 单次可信交付；WebFlow 核心仅持久编排、恢复和 UNKNOWN 防重放，替换网站不得修改通用状态机。R10 是可信权限边界的**最小差量解耦**，不是重写 R9 A→B→A。
+
+**已提交的代码范围（以本卡对应提交核验）：** `web-task-ingress.js` 删除专用 `issue-workflow-authorization.js` import、审批处理与业务消息分支，仅向 SW 第一方组合提供原可信 Side Panel 身份验证器；`src/sw.js` 静态注册精确业务 Handler；新增受审 `issue-workflow-auth-host.js` 承接原 `workflow-auth-read/approve/revoke`，仍从旧 Foundation 读取安装身份、权限、授权 epoch 和 frameworkKV 事务；`issue-workflow-authorization.js` 增加不可变固定配方常量，原 scope 字段保持兼容。同步旧 `bundle-provenance.mjs` 精确 Blob pin（新增 Handler **仅 sw.js**），在原 Bridge CI 增加 Handler 及隔离/白名单/通用 ingress 回归。更新原 README，不创建第二套计划。
+
+**保持不动：** 原安装器、Task Catalog、百度 1.1.5/Google 1.0.3、ChatGPT 0.2.0 Task、V1/V2、R6/R7/R8 安全门、原 Side Panel 审阅 UI、`serial-two-step-run.js`、MD 专用 `md-workflow-engine.js`、Controller/RunHost/Durable Result、A 官方 messageId/SHA 读回。没有开放任意 JS、任意任务名、跨 Provider 的动态 Host 调用。
+
+**仍未完成：** 专用 GitHub Issue 读取和冻结输入仍未与该业务配方的原事务正式接线；原 ChatGPT 0.2.0 的实际安装、创建唯一 B、获取完整真实 Result 与 `deliveryKey` 原 A 单次发送并读回仍无同轮生产证据。通用 ingress 仍包含历史 ChatGPT background/delivery 分支，属于本轮范围之外的站点适配残留。不能标记整套 A→B→A 为 DONE。
+
+**验证计划与当前证据：** 新定向测试和源白名单回归已写入原 CI；实际 Node/production build/verify 以对应 GitHub Actions run 的结论为准，未观察到通过前均记 `NOT_VERIFIED`。本机 CodexPro `UNAVAILABLE`；原生 Chrome `CHROME_NOT_TESTED`，业务闭环 `BUSINESS_NOT_DONE`。若 CI 失败只做定向修复，不将 Mock PASS 宣称为 Chrome PASS。
+
+**唯一后续操作：** 在 R10 解耦和回归通过后，恢复 R9 尚缺的 `IssueAdapter.read → serial-two-step-run.dispatchB/readB → 原 ChatGPT 0.2.0 Controller/RunHost → prepareA/deliverA/readA` 生产组合，逐步确认原 A 身份/权限、安装 pin、真实 B Result 和 A 官方消息 ID+正文 SHA；UNKNOWN 只能只读核验，绝不再次提交。
+
+---
+
 ## 目标恢复 R1 · AI 总控与有界多子任务接力（2026-11-12；OD-AI-WORKFLOW-BRIDGE-GOAL-RECOVERY-R1）
 
 **用户恢复的上位目标：** 在 ChatGPT 总控 A 的正常完整回复中产生固定 Task 候选 → 原 WebFlow 可信入口识别/授权/执行已安装独立 Task → 新子对话 B 执行并取得真实 Durable Run/Result、完整回答及真实链接 → 将结果按授权**回填原 A 输入框（默认不发送）**、可信结果区或**单次发送** → A 结合结果生成下一轮新候选，继续派发 C 等子任务或结束。总控/子任务是动态角色，不固定只有 A/B。受限循环与未来多 Provider 都属于上位愿景；**A→B→A 是最小 M1 验收，R2/R3 的 0.3.0 同一 B 两阶段发送只是可选审稿模式，不是每项任务的强制步骤**。完整规则已更新 [唯一产品合同的「目标纠偏」](product-contract.zh-CN.md#2026-11-12--目标纠偏ai-总控与有界子任务接力od-ai-workflow-bridge-goal-recovery-r1)。
