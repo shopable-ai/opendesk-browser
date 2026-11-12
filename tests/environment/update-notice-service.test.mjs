@@ -341,3 +341,47 @@ test('unverified provenance, capability review and Chrome apply cannot fabricate
   assert.equal(list.actionableCount,1);
   assert.equal(browser.badgeWrites.at(-1),'1','Chrome apply alone adds no installer task');
 });
+
+// R5: a concurrent installation/source change is not a successful readback.
+// The first observed inventory must be rejected, never promoted to a verified badge.
+test('R5 concurrent registry or source drift invalidates the in-flight inventory proof',async()=>{
+  const f=await fixture();await f.settled();
+  assert.equal((await f.service.replyList()).actionableCount,1);
+  const read=f.api.storage.local.get.bind(f.api.storage.local);
+  let injected=false;
+  f.api.storage.local.get=async keys=>{
+    if(!injected&&Array.isArray(keys)&&keys.length===3&&
+      keys.includes(SIDEBAR_TOOL_STORE)&&
+      keys.includes(MARKET_PROVENANCE_STORE)&&
+      keys.includes(SIDEBAR_TOOL_ENABLE_STORE)){
+      injected=true;
+      // Simulate a concurrent source owner replacing its record after the
+      // inventory snapshot but before the final no-write commit fence.
+      f.store[MARKET_PROVENANCE_STORE]={};
+    }
+    return read(keys);
+  };
+  assert.equal(await f.service.reconcile(),false);
+  assert.equal(injected,true);
+  await f.service.syncBadge();
+  assert.equal(f.badgeWrites.at(-1),'','a raced identity cannot retain a trusted badge');
+  const rechecked=await f.service.replyList();
+  assert.equal(rechecked.actionableCount,0);
+  assert.equal(rechecked.records.find(row=>row.id===f.tool.id).status,'unknown');
+});
+
+// R5: the review button's Worker query cannot rely on the 5-minute read cache.
+// Model the interval before the normal storage.onChanged invalidation is delivered.
+test('R5 trusted review list forces a fresh installed-source comparison',async()=>{
+  const f=await fixture();await f.settled();
+  f.store[MARKET_PROVENANCE_STORE]={};
+  assert.equal((await f.service.replyList()).actionableCount,1,
+    'ordinary passive list may still be cached before its invalidation event');
+  const sender={id:extensionId,
+    url:'chrome-extension://'+extensionId+'/sidepanel.html',frameId:0};
+  const result=await f.send({kind:'list',fresh:true},sender);
+  assert.equal(result.ok,true);
+  assert.equal(result.data.verified,true);
+  assert.equal(result.data.actionableCount,0);
+  assert.equal(result.data.records.find(row=>row.id===f.tool.id).status,'unknown');
+});

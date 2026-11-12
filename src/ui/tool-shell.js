@@ -231,7 +231,8 @@ const openTrustedUpdateReview=row=>{
     }
     return (async()=>{
       // Fresh Worker readback, rather than trusting a projected React row.
-      const reply=await chrome.runtime.sendMessage({protocol:UPDATE_NOTICE_PROTOCOL,kind:'list'});
+      const reply=await chrome.runtime.sendMessage({protocol:UPDATE_NOTICE_PROTOCOL,
+        kind:'list',fresh:true});
       const currentRecord=reply?.ok===true&&reply?.data?.verified===true&&
         reply.data.records?.find(item=>item.kind==='sidebar-tool'&&
           item.id===row.id&&item.version===row.version&&

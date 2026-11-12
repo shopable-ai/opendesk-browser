@@ -188,7 +188,9 @@ export function installUpdateNoticeService({api=globalThis.chrome,now=()=>Date.n
           if(JSON.stringify(current[SIDEBAR_TOOL_STORE])!==JSON.stringify(observed.registry)||
              JSON.stringify(current[MARKET_PROVENANCE_STORE])!==JSON.stringify(observed.provenance)||
              JSON.stringify(current[SIDEBAR_TOOL_ENABLE_STORE])!==JSON.stringify(observed.enable))
-            return null;
+            // A concurrent identity change is NOT a successful verification.
+            // Returning null here allowed the stale candidate to stay verified.
+            throw fail('E_UPDATE_INVENTORY_CHANGED','安装身份在核验期间变化，请重新检查更新');
           const time=now(),active=new Set(observed.candidates.map(row=>row.key));
           let next=state,dirty=false;
           for(const candidate of observed.candidates){
@@ -329,8 +331,10 @@ export function installUpdateNoticeService({api=globalThis.chrome,now=()=>Date.n
     })().finally(()=>{kicking=null;});
     return kicking;
   }
-  async function replyList(){
-    const verified=await ensureInventory();
+  async function replyList({fresh=false}={}){
+    // An actual review click must re-read the installed/source identity now.
+    // Passive badge/panel refreshes may use the existing bounded cache.
+    const verified=fresh?await reconcile():await ensureInventory();
     const value=updateNoticeSnapshot(await read());
     const trusted=verified===true&&!writeUnknown;
     return {...value,verified:trusted,
@@ -358,7 +362,10 @@ export function installUpdateNoticeService({api=globalThis.chrome,now=()=>Date.n
     const ui=trustedUi(sender),page=trustedPage(sender);
     if(!ui&&!page)throw fail('E_UPDATE_SENDER');
     if(ui){
-      if(message.kind==='list')return replyList();
+      if(message.kind==='list'){
+        if(message.fresh!==undefined&&message.fresh!==true)throw fail('E_UPDATE_OPERATION');
+        return replyList({fresh:message.fresh===true});
+      }
       if(message.kind==='set-mode'){
         if(typeof message.mode!=='string'||(message.toolId!==null&&message.toolId!==undefined&&
           typeof message.toolId!=='string'))throw fail('E_UPDATE_PREFERENCE');

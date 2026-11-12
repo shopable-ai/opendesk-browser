@@ -410,3 +410,15 @@ T06：Node 定向、npm run check、npm run build、Chrome for Testing、真实 
 - **独立阻塞依旧**：通用可信在线发行发现与发布者签名未作为本 R4 实现；原 WebFlow provenance 构建失败应单独归因，不得放宽 bundle 来源门禁。严禁因为本节更新重新设计独立中心/第二套 Installer/批量更新。
 
 本轮相关提交至少包括：`0abac3f`（P0 关联）、`d805005`（Worker/来源投影）、`97fc19f`（行内 UI）、`eb94934`（React 连接）、`793ca9a` / `c8c2f24`（历史菜单）、`6bcb49d` / `62c6552`（共享原审阅回调）、`d926f77`（网页生命周期）、`b1230c4`（额外负向样例）。完整代码及验收进度以 GitHub 最新 main 为准，不得重复已落地差量。
+
+## R5 2026-11-12：真实验收接续、当前阻塞与差量核验
+
+**任务 ID：** `OD-EXTENSION-INLINE-UPDATE-R5-FINAL-CLOSURE`。仍坚持 R3 原位更新，不重新开发独立更新中心。最终合格条件是旧版真实安装 → 行内更新/审阅 → 原 Installer 用户确认 → 真实 Registry/来源/版本读回；取消、拒绝及 UNKNOWN 不能被宣告成功。
+
+- **远程检查基准：** `main` 在本轮检查时为 `ee9933f5140ad93abee1e3fafb93d355a77d9d0f`，相对上一轮记录 `54f0e7e9` 前进 9 次提交；检查时的 R4 原位更新核心源文件没有出现在这一段新增差量中。之后仍必须按实际最新 HEAD 验证。
+- **审计定位与最小修复：** `update-notice-service.js` 的普通列表查询允许使用 5 分钟内缓存，原 `tool-shell.js` 点击更新亦使用普通列表查询；R5 为可信审阅点击增加 `fresh:true`，由已有 Worker 强制重新协调 Catalog、Registry 和来源。原 `reconcile()` 检测核对期间 Registry、来源或启停状态变化时返回 `null`，但外层仍可能将本轮标为 verified；R5 改为明确核验失败、全局 Badge 安全降级。增加两个相应 Node 回归用例；未重造任何安装/通知系统。
+- **GitHub CI 最新审计：** 在 `ee9933f5140ad93abee1e3fafb93d355a77d9d0f` 上，App CI [43244259824](https://github.com/shopable-ai/opendesk-browser/actions/runs/43244259824) 的 `webflow` 作业失败，涉及恢复锁及任务恢复测试；[43244259780](https://github.com/shopable-ai/opendesk-browser/actions/runs/43244259780) 的 Site access 失败涉及 debugger 授权断言、编辑器与侧栏布局；[43244259841](https://github.com/shopable-ai/opendesk-browser/actions/runs/43244259841) 的 axiosx HTTP 失败涉及兼容合同；[43244259782](https://github.com/shopable-ai/opendesk-browser/actions/runs/43244259782) 的 Page userscript 失败涉及独立页面脚本/侧栏回归。未在上述失败中看到可直接归因于本 R5 行内更新改动的栈，但它们证明全局 CI 不绿。
+- **执行环境：** 当前 ChatGPT 会话的本机 CodexPro 与 OpenDesk Mac 本地桥连接不可用；本轮不能运行列明的 5 组定向 Node、`npm run check`、`npm run build`、Chromium/Chrome、280–420px 与 200% 视觉测试。新测试为 SOURCE_ADDED / NOT_TESTED，而不是 PASS。此前 R4 32/32 的历史 CI 不涵盖新加的 `extension-inline-update-r4.test.mjs`，不能代替此次运行。
+- **真实安装证据：** Installer 打开、旧版→新版真实安装、新版本与来源读回、取消、权限拒绝、同版本不同 SHA、事务中断和 `E_OUTCOME_UNKNOWN` 的真实 Chrome 逐项验证：**NOT_TESTED**。不得宣称已经发布或取得 95 分以上实机验收。后续在可用本机执行环境从此提交差量测试开始，只修复可复现的新问题；不要再执行 R3/R4 已提交的架构重做。
+
+**当前产品最终结论：BLOCKED（缺少本机验证/构建及真实 Chrome 事务证据）；代码提交只代表源码修复和可执行回归用例已增加。**
