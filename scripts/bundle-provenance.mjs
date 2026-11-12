@@ -41,6 +41,9 @@ const compiledWebFlowInputs=Object.freeze({
   // Reviewed original shared-sheet lock/UNKNOWN guard; no migration or replay.
   'projects/webflow/trusted/task-run-recovery.js':'21bac4fbeb97923ddfc50f2ceb6fddd229f64496',
   'projects/webflow/src/auto-grants.js':'5b904ed84942f40accb5b459d4aa01341ad7a7b7',
+  // Reviewed workflow capability bundle: shared only by the original SW
+  // transaction owner and its trusted Side Panel review Host.
+  'projects/webflow/trusted/issue-workflow-authorization.js':'e26ae6bcf44d1994801faa4fc9a7408964702adc',
   // Reviewed bounded keyword policy shared by the ledger and compiled controls.
   'projects/webflow/src/authorization-policy.js':'bb508189bdbbfe403707febbb36bb49d07d476c7',
   // R0 reviewed: structural WebFlow V1/V2 candidate parser, not DOM, Host or Authority.
@@ -76,7 +79,9 @@ function reviewedCompiledWebFlow(target,path,root){
     path==='projects/webflow/trusted/legacy-chatgpt-panel.js'||
     path==='projects/webflow/trusted/page-panel-ui.js';
   const taskIntent=path==='projects/webflow/src/task-intent-contract.js';
-  const allowed=taskIntent?['sw.js','ui/tool-shell.js','agents/web-task-content.js'].includes(target):
+  const allowed=path==='projects/webflow/trusted/issue-workflow-authorization.js'?
+    ['sw.js','ui/tool-shell.js'].includes(target):
+    taskIntent?['sw.js','ui/tool-shell.js','agents/web-task-content.js'].includes(target):
     path==='projects/webflow/trusted/task-run-recovery.js'?target==='sw.js':siteAdapter?target==='agents/chatgpt-fixed-bridge.js':
     path.startsWith('projects/webflow/trusted/')||path==='projects/webflow/src/ui/app-page-routes.js'?target==='ui/tool-shell.js':
       ['sw.js','ui/tool-shell.js','agents/chatgpt-fixed-bridge.js'].includes(target);

@@ -726,3 +726,43 @@ test('R4.1 legacy 0.4.14 installed Page retains five navigation settings without
   assert.equal(Object.hasOwn(saved.value.navigation,'turnPaging'),false);
   assert.equal(writes().length,1);
 });
+
+test('R4.2 seven-key count is off by default and saves with the original trusted CAS/readback',async t=>{
+  const flags={regionTop:true,regionBottom:true,conversationTop:true,conversationBottom:true,
+    floatingTop:true,turnPaging:true};
+  const f=await fixture(t,{installed:{version:'0.4.16'},
+    saved:{value:{version:1,sites:[sample],navigation:flags},etag:'before-count'}});
+  await tick();
+  const manager=f.state.detailModel.scrollManager;
+  assert.equal(manager.showTurnCountSupported,true);
+  f.doc.querySelector('button[aria-label="导航设置"]').dispatch('click');await tick();
+  const switches=[...f.doc.querySelectorAll('[role="switch"]')];
+  assert.equal(switches.length,7);
+  const count=switches.find(node=>node.getAttribute('aria-label')==='显示轮次数字');
+  assert.ok(count,'the seventh switch must be available only after upgrade');
+  assert.ok(count.checked===false||count.getAttribute('aria-checked')==='false');
+  const result=await manager.onSaveNavigation({...flags,showTurnCount:true},'before-count',{isTrusted:true});
+  assert.deepEqual(result.value.sites,[sample]);
+  assert.equal(result.value.navigation.showTurnCount,true);
+  assert.equal(f.requests.filter(r=>r.method==='saveScrollNavigationSettings').length,1);
+  assert.equal(f.requests.at(-1).method,'readScrollSiteConfig','saved values require trusted reread');
+});
+
+test('R4.2 0.4.15 Page remains six-key and rejects any uninstalled seventh switch',async t=>{
+  const flags={regionTop:true,regionBottom:true,conversationTop:true,conversationBottom:true,
+    floatingTop:true,turnPaging:true};
+  const f=await fixture(t,{installed:{version:'0.4.15'},
+    saved:{value:{version:1,sites:[sample],navigation:flags},etag:'legacy-six'}});
+  await tick();
+  const manager=f.state.detailModel.scrollManager;
+  assert.equal(manager.turnPagingSupported,true);
+  assert.equal(manager.showTurnCountSupported,false);
+  f.doc.querySelector('button[aria-label="导航设置"]').dispatch('click');await tick();
+  assert.equal(f.doc.querySelectorAll('[role="switch"]').length,6);
+  await assert.rejects(
+    ()=>manager.onSaveNavigation({...flags,showTurnCount:true},'legacy-six',{isTrusted:true}),
+    {code:'E_CONFIG_SCHEMA'});
+  assert.equal(f.requests.filter(r=>r.method==='saveScrollNavigationSettings').length,0);
+  const result=await manager.onSaveNavigation({...flags,turnPaging:false},'legacy-six',{isTrusted:true});
+  assert.equal(Object.hasOwn(result.value.navigation,'showTurnCount'),false);
+});

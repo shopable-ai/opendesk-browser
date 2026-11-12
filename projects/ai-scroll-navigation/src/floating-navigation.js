@@ -106,6 +106,7 @@ export function installFloatingNavigation({doc,win,owner,resolveConversation=nul
     return {top:flags.conversationTop!==false||(flags.floatingTop!==false&&floating),
       bottom:flags.conversationBottom!==false,
       paging:flags.turnPaging!==false,
+      showTurnCount:flags.showTurnCount===true,
       topKey:floating&&flags.floatingTop!==false?'floatingTop':'conversationTop'};
   };
   function click(direction,event) {
@@ -227,7 +228,7 @@ export function installFloatingNavigation({doc,win,owner,resolveConversation=nul
     // Reuse one dock: whole-conversation edges bracket the optional question
     // pager. No page nodes are persisted beyond this synchronous refresh.
     const options=[...(directions.top?[buttons.top]:[]),
-      ...(canPage?[buttons.previous,buttons.counter,buttons.next]:[]),
+      ...(canPage?[buttons.previous,...(directions.showTurnCount?[buttons.counter]:[]),buttons.next]:[]),
       ...(directions.bottom?[buttons.bottom]:[])];
     if (options.length!==buttons.stack.children.length||
         options.some((button,index)=>buttons.stack.children[index]!==button))
@@ -243,10 +244,12 @@ export function installFloatingNavigation({doc,win,owner,resolveConversation=nul
     if(canPage){
       buttons.previous.disabled=currentPage===0;
       buttons.next.disabled=currentPage===paging.pages.length-1;
-      buttons.counter.textContent=(currentPage+1)+'/'+paging.pages.length;
-      buttons.counter.setAttribute('aria-label',
-        '当前第'+(currentPage+1)+'轮，共'+paging.pages.length+'轮已加载对话');
-      buttons.counter.title='仅统计当前已加载且可识别的用户提问';
+      if(directions.showTurnCount){
+        buttons.counter.textContent=(currentPage+1)+'/'+paging.pages.length;
+        buttons.counter.setAttribute('aria-label',
+          '当前第'+(currentPage+1)+'轮，共'+paging.pages.length+'轮已加载对话');
+        buttons.counter.title='仅统计当前已加载且可识别的用户提问';
+      }
     }
     const rect=next.main.getBoundingClientRect();
     const compact=win.innerWidth<600;

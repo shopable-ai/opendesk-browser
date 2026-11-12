@@ -23,12 +23,13 @@ const SCROLL_BUILTINS=[
 const SCROLL_FLAGS=[
   ['regionTop','regionTop'],['regionBottom','regionBottom'],
   ['conversationTop','conversationTop'],['conversationBottom','conversationBottom'],
-  ['turnPaging','turnPaging'],['floatingTop','floatingTop']
+  ['turnPaging','turnPaging'],['showTurnCount','showTurnCount'],
+  ['floatingTop','floatingTop']
 ];
 const SCROLL_FLAG_GROUPS=[
   ['longReply',SCROLL_FLAGS.slice(0,2)],
-  ['conversation',SCROLL_FLAGS.slice(2,5)],
-  ['floatingNavigation',SCROLL_FLAGS.slice(5)]
+  ['conversation',SCROLL_FLAGS.slice(2,6)],
+  ['floatingNavigation',SCROLL_FLAGS.slice(6)]
 ];
 function scrollOrigin(value){
   try{
@@ -57,9 +58,11 @@ const errorDetail=error=>error?.scrollMessage||String(error?.message||error);
 const readErrorDetail=error=>error?.scrollMessage||error?.code||errorDetail(error);
 export function ScrollSiteManager({model,pageControl,title,detail,onNavigation,PageControl,Diagnostics}){
   const locale=model.locale||'zh-CN';
-  const availableFlags=SCROLL_FLAGS.filter(([name])=>name!=='turnPaging'||model.turnPagingSupported);
+  const canShowFlag=key=>(key!=='turnPaging'||model.turnPagingSupported)&&
+    (key!=='showTurnCount'||model.showTurnCountSupported);
+  const availableFlags=SCROLL_FLAGS.filter(([name])=>canShowFlag(name));
   const availableGroups=SCROLL_FLAG_GROUPS.map(([name,flags])=>[name,
-    flags.filter(([key])=>key!=='turnPaging'||model.turnPagingSupported)]);
+    flags.filter(([key])=>canShowFlag(key))]);
   const t=(key,params)=>scrollNavigationText(locale,key,params);
   const resumed=model.resumeDraft||null;
   const [snapshot,setSnapshot]=React.useState(null);
@@ -284,7 +287,8 @@ export function ScrollSiteManager({model,pageControl,title,detail,onNavigation,P
   const toggleNavigation=async(key,value,event)=>{
     if(inFlight.current||loading||!snapshot||needsReconcile)return;
     const navigation=Object.fromEntries(availableFlags.map(([name])=>
-      [name,name===key?value:snapshot.value.navigation?.[name]!==false]));
+      [name,name===key?value:name==='showTurnCount'?
+        snapshot.value.navigation?.[name]===true:snapshot.value.navigation?.[name]!==false]));
     inFlight.current=true;setBusy(true);setError('');setNotice('');
     try{
       const result=await ref.current.onSaveNavigation(navigation,snapshot.etag,event.nativeEvent||event);
@@ -416,7 +420,8 @@ export function ScrollSiteManager({model,pageControl,title,detail,onNavigation,P
             onPointerDownCapture={captureNavigation} onPointerUpCapture={captureNavigation}
             onKeyDownCapture={captureNavigation} onKeyUpCapture={captureNavigation} onClickCapture={captureNavigation}
             onBlurCapture={()=>{navigationGesture.current=null;}}><span>{t(label)}</span><Switch
-              isSelected={snapshot.value.navigation?.[key]!==false} isDisabled={writesDisabled}
+              isSelected={key==='showTurnCount'?snapshot.value.navigation?.[key]===true:
+                snapshot.value.navigation?.[key]!==false} isDisabled={writesDisabled}
               aria-label={t(label)} onChange={value=>{
                 const event=navigationGesture.current;navigationGesture.current=null;
                 if(event?.isTrusted===true)void toggleNavigation(key,value,event);

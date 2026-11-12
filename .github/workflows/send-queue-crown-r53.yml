@@ -19,6 +19,10 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: '22'
+      - name: Install pinned dependencies and build this tool before package assertions
+        run: |
+          npm ci --ignore-scripts --no-audit --no-fund
+          npm run --prefix projects/ai-send-queue build
       - name: Verify Send Queue core and crown tests
         run: |
           node --check projects/ai-send-queue/scripts/crown-r53-chromium.mjs

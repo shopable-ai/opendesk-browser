@@ -6,6 +6,7 @@ import {createChatGPTBridgeTriggerLedger,CHATGPT_BRIDGE_LEDGER_KEY,CHATGPT_BRIDG
 import {WEB_TASK_PROTOCOL} from '../../../src/page-events/web-task-contract.js';
 import {encodeValue} from '../../../src/platform/page-port/codec.js';
 import {digestUtf8} from '../../../src/platform/protocol.js';
+import {REVIEWED_BUILTIN_TASK_RELEASES} from '../../../src/platform/tasks/builtin-releases.js';
 
 const source={tabId:4,documentId:'chat-document',url:'https://chatgpt.com/c/background-test'};
 const scope={taskId:'baidu.search.top3',args:{query:'OpenDesk Browser',limit:3},targetUrl:'https://www.baidu.com/',
@@ -13,7 +14,7 @@ const scope={taskId:'baidu.search.top3',args:{query:'OpenDesk Browser',limit:3},
     manifestHash:'a'.repeat(64),contentHash:'b'.repeat(64),installationId:'install-one',generation:1}};
 const event=()=>({addListener(){}});
 function fixture(){
-  const values={},sent=[],runs=[],results=[];
+  const values={},sent=[],runs=[],results=[],framework=new Map();
   let serial=0,replyChecks=0,taskChecks=0;
   const state={deliveryError:false,replyValid:true,sourceValid:true,ensures:0,resultDenied:false,taskEpoch:0};
   const storage={get:async key=>{state.onStorageRead?.();return {[key]:structuredClone(values[key])};},
@@ -44,11 +45,13 @@ function fixture(){
       documentId:source.documentId,url:source.url,documentLifecycle:'active'})}};
   const newLedger=()=>createChatGPTBridgeTriggerLedger({storage,generateId:()=>`11111111-1111-4111-8111-${String(++serial).padStart(12,'0')}`});
   let ledger=newLedger();
-  const broker={storage:{transaction:async(stores,mode,read)=>read({get:async()=>null,
+  const broker={storage:{transaction:async(stores,mode,read)=>read({
+    get:async(_store,key)=>stores.includes('frameworkKV')?structuredClone(framework.get(key)):null,
+    put:async(_store,key,value)=>{if(!stores.includes('frameworkKV'))throw Error('incorrect store');framework.set(key,structuredClone(value));},
     all:async name=>structuredClone(name==='runs'?runs:results)})},authority:{captureInstalledTaskFence:()=>{
       const ticket=state.taskEpoch;
       return ()=>{if(ticket!==state.taskEpoch)throw Object.assign(Error('installation changed'),{code:'E_REVISION'});};
-    },resolveInstalledTask:async()=>({taskId:scope.taskId,...scope.installation,manifest:{deadlineMs:120000}}),
+    },resolveInstalledTask:async()=>state.issueInstalled||({taskId:scope.taskId,...scope.installation,manifest:{deadlineMs:120000}}),
     snapshotControllerRun:async({runId})=>{
       await state.onSnapshot?.();
       return {run:structuredClone(runs.find(row=>row.runId===runId)),results:state.resultDenied?[]:structuredClone(results),
@@ -85,6 +88,36 @@ function fixture(){
     get replyChecks(){return replyChecks;},get taskChecks(){return taskChecks;},
     approve:async()=>{await ledger.approveAuto(scope);await ledger.setAutoEnabled(true);}};
 }
+test('original SW grants fixed Issue workflow once and recovers the same scope after restart',async()=>{
+ const h=fixture();
+ const release=REVIEWED_BUILTIN_TASK_RELEASES.find(row=>
+   row.taskId==='chatgpt.conversation.create'&&row.version==='0.2.0');
+ assert.ok(release);
+ const installation={version:'0.2.0',manifestHash:release.manifestHash,
+   contentHash:release.sourceHash,scriptId:'task:chatgpt.conversation.create:0.2.0',
+   revision:1,installationId:'issue-installation-001',generation:1};
+ h.state.issueInstalled={taskId:'chatgpt.conversation.create',...installation,
+   manifest:{targetDisposition:'retain-on-success',siteOrigins:['https://chatgpt.com']}};
+ assert.equal(await h.handle('workflow-auth-read',{},h.panel),null);
+ await assert.rejects(h.handle('workflow-auth-approve',{installation},h.page));
+ const active=await h.handle('workflow-auth-approve',{installation},h.panel);
+ assert.equal(active.state,'active');
+ assert.equal(active.scope.send,true);
+ assert.deepEqual(active.scope.capabilities,['github.issue.read','chatgpt.conversation.create.send',
+   'controller.result.read','chatgpt.source-a.send']);
+ assert.equal(active.scope.githubRepo,'shopable-ai/opendesk-browser');
+ h.restart();
+ const same=await h.handle('workflow-auth-read',{},h.panel);
+ assert.equal(same.grantId,active.grantId);
+ assert.equal(same.epoch,active.epoch);
+ await assert.rejects(h.handle('workflow-auth-approve',
+   {installation:{...installation,generation:2}},h.panel),
+   {code:'E_ISSUE_WORKFLOW_INSTALLATION'});
+ const revoked=await h.handle('workflow-auth-revoke',{},h.panel);
+ assert.equal(revoked.state,'revoked');
+ assert.equal((await h.handle('workflow-auth-read',{},h.panel)).state,'revoked');
+ await assert.rejects(h.handle('workflow-auth-revoke',{},h.page));
+});
 test('fresh complete ChatGPT reply is owned by existing background queue without a Side Panel',async()=>{
   const h=fixture();await h.approve();const row=await h.admit();
   assert.equal(row.executionOwner,'background');assert.equal(await h.handle('claim'),null);

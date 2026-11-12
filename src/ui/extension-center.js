@@ -861,6 +861,9 @@ export function createExtensionCenter({api,client,doc,sidebarTools,taskWorkbench
           const supportsTurnPaging=versionParts.length===3&&versionParts.every(Number.isSafeInteger)&&
             (versionParts[0]>0||versionParts[1]>4||
               versionParts[1]===4&&versionParts[2]>=15);
+          const supportsTurnCount=supportsTurnPaging&&
+            (versionParts[0]>0||versionParts[1]>4||
+              versionParts[1]===4&&versionParts[2]>=16);
           const request={programId:pinned.programId,manifestHash:pinned.manifestHash,
             installationId:pinned.installationId,expectedGeneration:pinned.expectedGeneration};
           const ensure=()=>{
@@ -914,6 +917,7 @@ export function createExtensionCenter({api,client,doc,sidebarTools,taskWorkbench
           };
           return {
             locale:language(),turnPagingSupported:supportsTurnPaging,
+            showTurnCountSupported:supportsTurnCount,
             identityKey:pinned.installationId+':'+pinned.manifestHash+':'+pinned.expectedGeneration,
             createConversation:()=>{
               ensure();
@@ -975,7 +979,8 @@ export function createExtensionCenter({api,client,doc,sidebarTools,taskWorkbench
               if(event?.isTrusted!==true)throw scrollError('navigationGesture','E_GESTURE');
               ensure();
               const flagCount=Object.keys(navigation||{}).length;
-              if(flagCount!==5&&!(supportsTurnPaging&&flagCount===6))
+              if(flagCount!==5&&!(supportsTurnPaging&&flagCount===6)&&
+                !(supportsTurnCount&&flagCount===7))
                 throw scrollError('navigationGesture','E_CONFIG_SCHEMA');
               return mutate('saveScrollNavigationSettings',{...request,etag,navigation},value=>
                 Object.keys(value.navigation||{}).length===flagCount&&

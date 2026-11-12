@@ -163,13 +163,15 @@ details{min-width:0}.od-disclosure{border:1px solid var(--od-line);border-radius
 .sim-dock button:hover:not(:disabled){background:var(--od-muted);border-color:var(--od-brand)}
 .sim-dock button:disabled{opacity:.4;box-shadow:none}
 .sim-dock svg{width:18px;height:18px}
+.sim-dock [hidden]{display:none!important}
 .sim-count{min-width:40px;min-height:28px;border:1px solid var(--od-line);
   background:var(--od-paper);color:var(--od-ink);border-radius:8px;display:grid;place-items:center;
   font-size:11px;font-weight:700;font-variant-numeric:tabular-nums}
 .sim-unavailable{position:absolute;top:16px;left:16px;right:16px;z-index:4;border:1px solid var(--od-line);
   border-radius:10px;background:var(--od-paper);padding:12px;font-size:12px;color:var(--od-sub)}
 @media(max-width:620px){.web-simulation{height:625px}.sim-scroll{padding-left:67px;padding-right:14px}
-  .sim-composer{padding-left:66px}.sim-dock{left:9px}}
+  .sim-composer{padding-left:66px}.sim-dock{left:9px;flex-direction:row}
+  .sim-count{min-height:40px;min-width:48px}}
 /* R3.6 one compact editor, one Side Panel scroll, all selectors visible. */
 .compact-editor{display:grid;gap:10px;align-content:start}
 .editor-caption{font-size:12px;font-weight:750;padding-top:6px;line-height:1.3}
@@ -314,6 +316,7 @@ details{min-width:0}.od-disclosure{border:1px solid var(--od-line);border-radius
           <label class="setting-row"><span>回到对话顶部</span><input type="checkbox" class="switch" role="switch" data-flag="conversationTop" checked aria-label="回到对话顶部"></label>
           <label class="setting-row"><span>跳到对话底部</span><input type="checkbox" class="switch" role="switch" data-flag="conversationBottom" checked aria-label="跳到对话底部"></label>
           <label class="setting-row"><span>按对话轮次翻页</span><input id="flag-turn-paging" type="checkbox" class="switch" role="switch" data-flag="turnPaging" checked aria-label="按对话轮次翻页"></label>
+          <label class="setting-row"><span>显示轮次数字</span><input id="flag-show-turn-count" type="checkbox" class="switch" role="switch" data-flag="showTurnCount" aria-label="显示轮次数字"></label>
           <div class="group-label">悬浮导航</div>
           <label class="setting-row"><span>滚动后悬浮回顶</span><input type="checkbox" class="switch" role="switch" data-flag="floatingTop" checked aria-label="滚动后悬浮回顶"></label>
         </div><p class="od-note">所有网站共用一组导航设置。轮次翻页仅在可靠识别用户提问边界时显示；此页仅模拟状态，未写入可信 Host。</p>
@@ -352,7 +355,7 @@ details{min-width:0}.od-disclosure{border:1px solid var(--od-line);border-radius
       <nav class="sim-dock" id="sim-dock" aria-label="对话轮次导航">
         <button type="button" id="sim-first" title="跳到整段对话顶部" aria-label="跳到整段对话顶部"><svg><use href="#i-jump-top"/></svg></button>
         <button type="button" id="sim-prev" title="上一轮提问" aria-label="上一轮提问"><svg><use href="#i-up"/></svg></button>
-        <span id="sim-count" class="sim-count" role="status" aria-live="polite">1/6</span>
+        <span id="sim-count" class="sim-count" role="status" aria-live="off" hidden>1/6</span>
         <button type="button" id="sim-next" title="下一轮提问" aria-label="下一轮提问"><svg><use href="#i-down"/></svg></button>
         <button type="button" id="sim-last" title="跳到整段对话底部" aria-label="跳到整段对话底部"><svg><use href="#i-jump-bottom"/></svg></button>
       </nav>
@@ -667,7 +670,7 @@ details{min-width:0}.od-disclosure{border:1px solid var(--od-line);border-radius
   $('adapt-save').onclick=savePreviewRule;
   $('home-settings').onclick=()=>show('settings','settings-back');$('settings-back').onclick=()=>show('home','home-settings');
   $('home-enabled').onchange=e=>{enabled=e.target.checked;updateHome();toast('仅修改预览总开关，未调用真实 Authority');};
-  document.querySelectorAll('[data-flag]').forEach(input=>input.addEventListener('change',()=>toast('六项全局导航开关仅修改预览内存，尚未写入可信配置')));
+  document.querySelectorAll('[data-flag]').forEach(input=>input.addEventListener('change',()=>toast('全局导航开关仅修改预览内存，尚未写入可信配置')));
   $('home-uninstall').onclick=()=>{$('uninstall-dialog').showModal();$('uninstall-cancel').focus()};
   $('uninstall-cancel').onclick=()=>$('uninstall-dialog').close();
   $('uninstall-confirm').onclick=()=>{$('uninstall-dialog').close();toast('仅演示卸载确认；没有调用原 Installer / Authority')};
@@ -718,7 +721,8 @@ details{min-width:0}.od-disclosure{border:1px solid var(--od-line);border-radius
     const top=active&&document.querySelector('[data-flag="conversationTop"]').checked;
     const bottom=active&&document.querySelector('[data-flag="conversationBottom"]').checked;
     $('sim-first').hidden=!top;$('sim-last').hidden=!bottom;
-    for(const id of ['sim-prev','sim-count','sim-next'])$(id).hidden=!paging;
+    for(const id of ['sim-prev','sim-next'])$(id).hidden=!paging;
+    $('sim-count').hidden=!paging||!$('flag-show-turn-count').checked;
     $('sim-dock').hidden=!active||(!paging&&!top&&!bottom);
     $('sim-unavailable').hidden=active;
     $('sim-unavailable').textContent=!enabled?'自动运行已停用':scenario==='broken'

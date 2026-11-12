@@ -751,17 +751,20 @@ Web Flow 当前仅有安装包中已审阅的固定 delegatedTasks；不得自�
         h('p',{className:'wf-sub'},'查询不创建执行。UNKNOWN、缺失记录或资源未释放时，保留原步骤，只能查询或停止。'))});
     };
     function overview(){
+      const needsReview=Boolean(active&&!M.released(active));
+      const reviewRecords=needsReview||!recoveryReady;
       return h('div',{className:'wf-stack wf-overview'},
         h(Card,{children:h('div',{className:'wf-stack'},
           h('div',{className:'wf-line wf-between'},
             h('div',{className:'wf-grow'},
-              h('strong',null,active?'有一项运行需要核对':loading?'正在检查脚本状态':
+              h('strong',null,needsReview?'有一项运行需要核对':!recoveryReady?'运行记录尚未核对':loading?'正在检查脚本状态':
                 summary.attention?'有 '+summary.attention+' 个脚本需要检查':'当前没有待处理异常'),
-              h('p',{className:'wf-sub'},active?'上次运行结果尚未确认，不会自动重新执行':
+              h('p',{className:'wf-sub'},needsReview?'上次运行结果尚未确认，不会自动重新执行':
+                !recoveryReady?'请查看记录中的提示；不会自动重新执行。':
                 loading?'正在读取脚本安装状态。':summary.attention?'请检查脚本的安装、版本和权限。':
                 '已审阅脚本可按批准范围使用。')),
-            (active||!loading&&summary.attention>0)&&Btn(active?'查看记录':'查看脚本',
-              ()=>setTab(active?'history':'scripts'),{quiet:true})),
+            (reviewRecords||!loading&&summary.attention>0)&&Btn(reviewRecords?'查看记录':'查看脚本',
+              ()=>setTab(reviewRecords?'history':'scripts'),{quiet:true})),
           h('p',{className:'wf-sub'},'固定脚本共 '+summary.fixed+' 个'),
           h('div',{className:'wf-metrics','aria-label':'脚本概况'},
             ...[['已安装',loading?'…':summary.installed??'待核对'],['可运行',loading?'…':summary.available],

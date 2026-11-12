@@ -486,7 +486,8 @@ test('real adapters block microtask clear rollback and preserve FIFO without a s
   const h=await fixture({busy:true});h.editor.value='A';assert.equal(h.actions.enqueue(),true);
   await Promise.resolve().then(()=>{h.editor.value='A';});
   rejectBoth(h);h.poll();
-  assert.equal(h.recovery.text,'A');assert.equal(h.clears,1);
+  assert.equal(h.recovery,null,'queued copy is retained; do not show a second not-enqueued overlay');
+  assert.equal(h.clears,1);
   assert.deepEqual(Array.from(h.engine.view().items,x=>x.text),['A']);
   assert.equal(h.engine.view().items[0].state,'unknown');assert.deepEqual(h.sent,[]);
 });
@@ -537,7 +538,7 @@ for(const entrance of ['crown','shortcut']){
     if(entrance==='crown')h.actions.enqueue();else h.key();
     h.finishReply();h.step(10000);h.step(20000);h.step(30000);
     assert.equal(h.editor.value,text);assert.equal(h.clears,1);
-    assert.equal(h.recovery.text,text);
+    assert.equal(h.recovery,null,'already-queued text must not create a second recovery copy');
     assert.deepEqual(Array.from(h.engine.view().items,x=>x.text),[text]);
     assert.equal(h.engine.view().items[0].state,'unknown');assert.deepEqual(h.sent,[]);
   });
@@ -570,21 +571,21 @@ for(const acknowledged of [false,true]){
     queue(h,'next');h.step(10000);assert.deepEqual(h.sent,[]);
     finishAndClickNext(h,11000);assert.deepEqual(h.sent,['next']);
   });
-  test(`ambiguous history during ${acknowledged?'post-ack':'pending'} enqueue retains the unique long copy`,async()=>{
+  test(`ambiguous history during ${acknowledged?'post-ack':'pending'} enqueue retains the queued long copy without duplicate recovery`,async()=>{
     const h=await fixture({busy:true}),text=longBody();
     h.edit(text);h.actions.enqueue();if(acknowledged)h.poll();
     h.admit(text+' different');h.poll();h.finishReply();h.step(10000);h.step(20000);
-    assert.equal(h.recovery.text,text);assert.equal(h.editor.value,'');
+    assert.equal(h.recovery,null);assert.equal(h.editor.value,'');
     assert.deepEqual(Array.from(h.engine.view().items,x=>x.text),[text]);
     assert.equal(h.engine.view().items[0].state,'unknown');assert.deepEqual(h.sent,[]);
   });
 }
 
 for(const edit of [{trusted:false},{canceled:true},{unchanged:true}]){
-  test(`non-authorizing edit cannot excuse restoration: ${JSON.stringify(edit)}`,async()=>{
+  test(`non-authorizing edit cannot bypass unknown protection: ${JSON.stringify(edit)}`,async()=>{
     const h=await fixture({busy:true}),text=longBody();queue(h,text);
     h.edit(text,edit);h.editor.value=text;h.actions.enqueue();h.poll();
-    assert.equal(h.clears,1);assert.equal(h.recovery.text,text);
+    assert.equal(h.clears,1);assert.equal(h.recovery,null);
     assert.deepEqual(Array.from(h.engine.view().items,x=>x.text),[text]);
     assert.deepEqual(h.sent,[]);
   });
@@ -626,7 +627,7 @@ test('a newly observed native assistant cannot later be silently replaced',async
   assert.equal(h.recovery,null);
   const replacement={...reply};h.assistants[0]=replacement;h.history[1]=replacement;
   h.poll();h.finishReply();h.step(10000);h.step(20000);
-  assert.equal(h.recovery.text,'A');assert.deepEqual(h.sent,[]);
+  assert.equal(h.recovery,null);assert.deepEqual(h.sent,[]);
   assert.equal(h.engine.view().items[0].state,'unknown');
 });
 
@@ -637,7 +638,7 @@ test('another item dispatch cannot release the latest queued draft provenance',a
   h.editor.value='B';h.actions.enqueue();h.poll();
   assert.deepEqual(Array.from(h.engine.view().items,x=>x.text),['B']);
   assert.equal(h.engine.view().items[0].state,'unknown');
-  assert.equal(h.editor.value,'B');assert.equal(h.recovery.text,'B');
+  assert.equal(h.editor.value,'B');assert.equal(h.recovery,null);
   finishAndClickNext(h,4000);h.step(20000);
   assert.deepEqual(h.sent,['A']);
 });

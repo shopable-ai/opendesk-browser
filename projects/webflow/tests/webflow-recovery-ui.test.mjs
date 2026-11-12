@@ -225,6 +225,39 @@ test('overview shows normal state and verified counts without development action
   assert.equal(host.calls.some(c=>c.name==='storage.set'),false);
 });
 
+test('overview clears the review reminder after the original request is released without losing its details',async t=>{
+  const host=sdk(),id=legacy(host);host.read=async()=>complete(id);
+  const f=await mount(t,host);
+  await f.click('查看记录');await f.click('查询原请求');
+  assert.equal(host.store.get('webflow.pending.v1'),null);
+  await f.click('概览');
+  assert.match(f.text(),/当前没有待处理异常/);
+  assert.doesNotMatch(f.text(),/有一项运行需要核对|上次运行结果尚未确认|webflow:/);
+  await f.click('记录');
+  assert.match(f.text(),/run-original/);assert.match(f.text(),/result-original/);
+  assert.ok(f.document.querySelector('pre'));
+  assert.equal(starts(host).length,0);
+});
+
+test('overview does not claim a healthy recovery state when stored requests cannot be read safely',async t=>{
+  for(const failure of ['unreadable','malformed']){
+    const host=sdk();
+    if(failure==='unreadable')host.beforeGet=async args=>{
+      if(args.key==='webflow.pending.v1')throw problem('E_STORAGE');
+    };
+    else host.store.set('webflow.pending.v1',{clientRequestId:'webflow:invalid',taskId:'unapproved'});
+    const before=structuredClone([...host.store]),f=await mount(t,host);
+    assert.match(f.text(),/运行记录尚未核对/);
+    assert.doesNotMatch(f.text(),/当前没有待处理异常/);
+    await f.click('查看记录');
+    assert.equal(f.document.querySelector('main').getAttribute('aria-label'),'记录');
+    assert.deepEqual([...host.store],before);
+    assert.equal(host.calls.some(c=>c.name==='storage.set'||c.name==='tasks.configure'||
+      c.name==='tasks.read'&&c.args.clientRequestId),false);
+    await f.close();
+  }
+});
+
 test('overview separates missing and installed runtime failures and links to scripts',async t=>{
   const host=sdk();
   host.taskRead=async id=>{
