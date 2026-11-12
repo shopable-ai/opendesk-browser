@@ -68,3 +68,10 @@ GitHub Actions 具体证据：
 - 正式工具配置及正式包依旧 `web-markdown-clipper@1.2.10`；旧正式包 HTML 尚只有四种模式。新候选构建、`--promote-from`、`--check-project`、正式新包 SHA256、Chrome 回执与 Markdown 正文哈希均为 **N/A**；**RELEASE_BLOCKED / REAL_CHROME_NOT_TESTED**。
 - 评分保守沿用 R4 静态阶段：UX 68、架构 78、Markdown 63、安全 76、QA 43，算术平均 `65.6/100`，不是新的独立外部专家评级。多轮隔离、取消/导航竞态、150KB/160KB 字节边界依然缺真实 Chrome 验收。
 - 下一有效续接：先读 `43226868089` 的 Clipper Job 实际结果；仅根据当前 SHA 的实测故障做差量修复，并让共享来源锁对应 App owner 审阅。完全门禁可证后才提升版本、构建候选/核验/晋升，并在用户真实 Chrome 验证原位升级、旧摘录保留、长回答 Markdown 保存及关闭重开读回。**禁止本轮提前关闭 R4**。
+
+### R4 续接 CI 完成结果（Run 43226868089）
+
+- 真实 App CI 的 `app-validate (web-markdown-clipper)` Job `131212628757` **completed/failure**；`Compile App and build a source-identical, unpromoted candidate` 步骤 **failure**，底层 `npm run build` 退出码 `1`；后续 Node/Browser 步骤 skipped。
+- 在该提交 `3e1a68431a71e2c449c9cbf29da2d9c405fe1f2f` 的构建日志里，WXT **第 34/44 个 settings 目标已越过**，未再触发先前 WebFlow parser/route 来源拒绝；**第 40/44 个 tool-shell** 报 `Trusted extension settings source changed; review and re-pin before fixed build: projects/ai-scroll-navigation/trusted/ai-configuration.js`，导致本轮首次可见构建失败。
+- 核查当前远端：`scripts/bundle-provenance.mjs` 对上述 AI Scroll 来源使用 reviewed Git Blob SHA-1 `ecec6df2621355503c26d0e24eaae4f84db99699`，而该源 Git Blob SHA-1 实际为 `c97137a3a871fb6c19fd3594fc627fafd67d03f8`；这是**独立 App 的来源锁差异**。需其所属代码 owner 审阅改动、负向校验及相关门禁后再处理，不得在 Clipper R4 中自动替换哈希或放宽全局权限。
+- 因全构建仍未通过，不能将 settings 阶段通过上升为 Clipper App CI PASS；没有候选包、晋升、真实 Chrome、正文哈希或旧摘录保留的新证据。发布状态保持 **PARTIAL / RELEASE_BLOCKED / REAL_CHROME_NOT_TESTED**，专家阶段均分仍是 `65.6/100`，未达到验收线。
