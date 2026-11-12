@@ -294,3 +294,46 @@ test('bottom can remain enabled when both top modes are disabled',()=>{
   f.owner.click(controls[0]);assert.equal(f.main.scrollTop,f.main.scrollHeight-f.main.clientHeight);
   f.owner.dispose();
 });
+
+test('question pager groups explicit user/assistant messages into rounds, tracks progress and respects settings',()=>{
+  const f=fixture();f.main.scrollTop=0;
+  f.first.setAttribute('data-turn','user');f.last.setAttribute('data-turn','assistant');
+  const secondUser=f.doc.createElement('article'),secondAnswer=f.doc.createElement('article');
+  secondUser.setAttribute('data-turn','user');secondAnswer.setAttribute('data-turn','assistant');
+  f.main.append(secondUser,secondAnswer);
+  f.rects.set(secondUser,box(586,960,800,200));
+  f.rects.set(secondAnswer,box(586,1200,800,300));
+  let flags={turnPaging:true};
+  const {dock,host}=f.mount(()=>flags);
+  const controls=()=>[...host.shadowRoot.querySelectorAll('button')];
+  assert.equal(controls().length,4,'two edge buttons plus previous and next');
+  assert.equal(host.shadowRoot.querySelector('.counter').textContent,'1/2');
+  const previous=controls().find(b=>b.dataset.scrollNavKey==='turnPrevious');
+  const next=controls().find(b=>b.dataset.scrollNavKey==='turnNext');
+  assert.equal(previous.disabled,true);assert.equal(next.disabled,false);
+  f.owner.click(next,false);assert.equal(f.main.scrollTop,0,'untrusted click cannot page');
+  f.owner.click(previous);assert.equal(f.main.scrollTop,0,'first round has no predecessor');
+  f.owner.click(next);assert.equal(f.main.scrollTop,948,'next page targets user prompt, not assistant text');
+  f.rects.set(f.first,box(586,-868,800,400));
+  f.rects.set(f.last,box(870,-448,550,300));
+  f.rects.set(secondUser,box(586,12,800,200));
+  f.rects.set(secondAnswer,box(586,252,800,300));
+  dock.refresh();
+  assert.equal(host.shadowRoot.querySelector('.counter').textContent,'2/2');
+  assert.equal(next.disabled,true,'last round has no successor');
+  flags={turnPaging:false};
+  f.owner.click(previous);assert.equal(f.main.scrollTop,948,'disabled intent rejects stale control before refresh');
+  dock.refresh();
+  assert.equal(controls().length,2,'disabling the pager preserves existing edge buttons');
+  flags={turnPaging:true};secondUser.removeAttribute('data-turn');dock.refresh();
+  assert.equal(controls().length,2,'ambiguous author roles do not fabricate a round count');
+  f.owner.dispose();
+});
+
+test('question pager can operate with both whole-conversation edge buttons disabled',()=>{
+  const f=fixture();f.first.setAttribute('data-turn','user');f.last.setAttribute('data-turn','user');
+  const {host}=f.mount(()=>({turnPaging:true,conversationTop:false,conversationBottom:false,floatingTop:false}));
+  assert.equal(host.shadowRoot.querySelectorAll('button').length,2);
+  assert.equal(host.shadowRoot.querySelector('.counter').textContent,'1/2');
+  f.owner.dispose();
+});
