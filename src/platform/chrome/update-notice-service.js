@@ -497,9 +497,14 @@ export function installUpdateNoticeService({api=globalThis.chrome,now=()=>Date.n
     void reconcile().then(ok=>{if(ok)void checkToast();});
   });
   api.permissions?.onRemoved?.addListener(invalidateSiteClaims);
-  api.tabs.onActivated?.addListener(()=>{void checkToast();});
+  // Tab switches and document navigation revoke a page claim that is no longer
+  // active in this exact document. No polling or new release discovery is added.
+  api.tabs.onActivated?.addListener(()=>{
+    void hideIneligibleClaims().then(()=>checkToast()).catch(()=>{});
+  });
   api.tabs.onUpdated?.addListener((_tabId,change)=>{
-    if(change.status==='complete'||change.url)void checkToast();
+    if(change.status==='complete'||change.url)
+      void hideIneligibleClaims().then(()=>checkToast()).catch(()=>{});
   });
   api.runtime.onStartup?.addListener(()=>{void reconcile().then(ok=>{if(ok)void checkToast();});});
   void syncBadge(); // Clear any previous badge until the inventory is verified.
