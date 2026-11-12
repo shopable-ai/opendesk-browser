@@ -130,7 +130,9 @@ for(const [request,field,value] of [
   ['关闭回到回复顶部','regionTop',false],
   ['開啟跳到回覆底端','regionBottom',true],
   ['enable Go to conversation top','conversationTop',true],
-  ['会話の末尾へをオンにする','conversationBottom',true]
+  ['会話の末尾へをオンにする','conversationBottom',true],
+  ['关闭按对话轮次翻页','turnPaging',false],
+  ['enable Previous/next question','turnPaging',true]
 ])test(`real localized control name: ${request}`,()=>{
   assert.deepEqual(validate({request,proposal:navigation({[field]:value}),snapshot}).navigation,
     {...flags,[field]:value});
