@@ -1,0 +1,243 @@
+{
+  "schema": "opendesk.ai-proxy.preview-production-parity.v1",
+  "taskId": "OD-UI-PREVIEW-PRODUCTION-PARITY-R3",
+  "purpose": "Freeze approved R18 Side Panel + R16 PC HTML and map it to production scenes without granting preview mock authority",
+  "evidenceLevel": "DESIGN_SOURCE_CONTRACT_ONLY_NOT_COMPONENT_OR_INSTALLED_ACCEPTANCE",
+  "design": {
+    "path": "projects/ai-proxy/preview/preview.html",
+    "sha256": "c918b89a306c4f1c03a7cffacd2c77840ec5343e357d6f271049e99df91d9c4a",
+    "bytes": 130890,
+    "immutable": true
+  },
+  "comparison": {
+    "locale": "zh-CN",
+    "theme": "light",
+    "pcViewport": {
+      "width": 1440,
+      "height": 900
+    },
+    "sidePanelViewport": "MEASURE_ACTUAL_CONTENT_VIEWPORT",
+    "sameMockStateRequired": true,
+    "ignoreOnly": [
+      "preview diagnostics/scene selectors outside AI Proxy business UI",
+      "OpenDesk host-only shell"
+    ],
+    "capture": [
+      "screenshot",
+      "DOM rect",
+      "computed style",
+      "interaction receipt",
+      "source/build/install identity"
+    ]
+  },
+  "routeMap": [
+    {
+      "preview": "proxies",
+      "production": "profiles"
+    },
+    {
+      "preview": "rules",
+      "production": "rules"
+    },
+    {
+      "preview": "thirdparty",
+      "production": "subscriptions"
+    },
+    {
+      "preview": "import",
+      "production": "backup"
+    },
+    {
+      "preview": "diagnostics",
+      "production": "diagnostic"
+    },
+    {
+      "preview": "general",
+      "production": "general"
+    },
+    {
+      "preview": "official",
+      "production": "official"
+    }
+  ],
+  "scenes": [
+    {
+      "id": "PC-01-PROFILES",
+      "kind": "profiles",
+      "previewRoute": "#options/proxies",
+      "productionSection": "profiles",
+      "name": "代理配置与四模式",
+      "assertion": "已选择与已应用分别展示；代理列表操作和运行状态可读",
+      "status": "NOT_TESTED",
+      "evidence": null
+    },
+    {
+      "id": "PC-02-ADD",
+      "kind": "modal",
+      "previewRoute": "#options/proxies",
+      "productionSection": "profiles",
+      "name": "添加代理",
+      "assertion": "名称、协议、地址、端口、可选凭据；字段顺序、错误、取消和保存回执",
+      "status": "NOT_TESTED",
+      "evidence": null
+    },
+    {
+      "id": "PC-03-EDIT",
+      "kind": "modal",
+      "previewRoute": "#options/proxies",
+      "productionSection": "profiles",
+      "name": "编辑代理",
+      "assertion": "回显、保存、取消、焦点恢复，失败保留草稿",
+      "status": "NOT_TESTED",
+      "evidence": null
+    },
+    {
+      "id": "PC-04-RULES",
+      "kind": "rules",
+      "previewRoute": "#options/rules",
+      "productionSection": "rules",
+      "name": "网站规则",
+      "assertion": "列表、默认路由、编辑、保存、删除确认与回读",
+      "status": "NOT_TESTED",
+      "evidence": null
+    },
+    {
+      "id": "PC-05-SUBSCRIPTIONS",
+      "kind": "subscriptions",
+      "previewRoute": "#options/thirdparty",
+      "productionSection": "subscriptions",
+      "name": "订阅管理",
+      "assertion": "本地来源配置与未接入在线订阅的真实状态",
+      "status": "NOT_TESTED",
+      "evidence": null
+    },
+    {
+      "id": "PC-06-BACKUP",
+      "kind": "backup",
+      "previewRoute": "#options/import",
+      "productionSection": "backup",
+      "name": "导入备份",
+      "assertion": "导入确认、非法数据拒绝、导出和原配置保护",
+      "status": "NOT_TESTED",
+      "evidence": null
+    },
+    {
+      "id": "PC-07-DIAGNOSTIC",
+      "kind": "diagnostic",
+      "previewRoute": "#options/diagnostics",
+      "productionSection": "diagnostic",
+      "name": "网络诊断",
+      "assertion": "五个子栏目及真实未验证/受限能力表述",
+      "status": "NOT_TESTED",
+      "evidence": null
+    },
+    {
+      "id": "PC-08-GENERAL",
+      "kind": "general",
+      "previewRoute": "#options/general",
+      "productionSection": "general",
+      "name": "通用设置",
+      "assertion": "语言与快捷操作保存/读回，不误触代理",
+      "status": "NOT_TESTED",
+      "evidence": null
+    },
+    {
+      "id": "PC-09-OFFICIAL",
+      "kind": "official",
+      "previewRoute": "#options/official",
+      "productionSection": "official",
+      "name": "官方网络",
+      "assertion": "未接线认证和服务必须明确说明",
+      "status": "NOT_TESTED",
+      "evidence": null
+    },
+    {
+      "id": "SIDE-01-QUICK",
+      "kind": "side",
+      "previewRoute": "#sidepanel",
+      "productionSection": "side-panel",
+      "name": "R18 紧凑侧栏",
+      "assertion": "四模式、当前网站、代理列表、状态及原侧栏导航",
+      "status": "NOT_TESTED",
+      "evidence": null
+    },
+    {
+      "id": "CROSS-01-STATE",
+      "kind": "cross",
+      "previewRoute": "#options/proxies",
+      "productionSection": "profiles",
+      "name": "PC→侧栏状态回读",
+      "assertion": "同一安装身份，保存不自动应用、ETag/unknown保护",
+      "status": "NOT_TESTED",
+      "evidence": null
+    },
+    {
+      "id": "ERR-01-FORMS",
+      "kind": "error",
+      "previewRoute": "#options/proxies",
+      "productionSection": "profiles",
+      "name": "异常与恢复",
+      "assertion": "输入错误、取消、冲突、拒绝和未知结果不伪报成功",
+      "status": "NOT_TESTED",
+      "evidence": null
+    }
+  ],
+  "knownDifferences": [
+    {
+      "id": "R3-DIFF-001",
+      "kind": "BEHAVIOR",
+      "status": "OPEN_REQUIRES_REAL_UI_REVIEW",
+      "preview": "proxy name required; max 48 characters",
+      "production": "Settings proxy name optional; blank auto-names",
+      "owner": "projects/ai-proxy/src/Settings.tsx",
+      "resolution": "NOT_DECIDED"
+    },
+    {
+      "id": "R3-DIFF-002",
+      "kind": "FEATURE_BOUNDARY",
+      "status": "ALLOWED_WITH_VISIBLE_EXPLANATION",
+      "preview": "HTTP/HTTPS authentication shown as offline mock",
+      "production": "SET_CREDENTIAL not connected; must reject without claiming save",
+      "owner": "projects/ai-proxy/src/service.ts",
+      "resolution": "NO_MOCK_SUCCESS"
+    },
+    {
+      "id": "R3-DIFF-003",
+      "kind": "EVIDENCE_MISMATCH",
+      "status": "REVIEW_REQUIRED",
+      "preview": "Current committed design SHA-256 c918b89...",
+      "production": "Older R3 expert-ui.md names different design SHA-256 0260b83...",
+      "owner": "projects/ai-proxy/evidence/preview-to-production-r3/expert-ui.md",
+      "resolution": "Recheck visual evidence identity before declaring parity"
+    }
+  ],
+  "sourcePreview": {
+    "command": "node projects/ai-proxy/scripts/stage-preview.mjs --current-sources --view settings",
+    "defaultOutput": "projects/ai-proxy/.opendesk-preview/source-<uuid>/preview.html",
+    "forbidOverwriteApprovedHTML": true,
+    "simulationOnly": true
+  },
+  "gates": {
+    "DESIGN_BASELINE_READY": {
+      "status": "NOT_TESTED",
+      "evidence": null
+    },
+    "SOURCE_PARITY_PASS": {
+      "status": "NOT_TESTED",
+      "evidence": null
+    },
+    "BUILD_PASS": {
+      "status": "NOT_TESTED",
+      "evidence": null
+    },
+    "INSTALLED_PARITY_PASS": {
+      "status": "NOT_TESTED",
+      "evidence": null
+    },
+    "ACCEPTED": {
+      "status": "NOT_TESTED",
+      "evidence": null
+    }
+  },
+  "note": "Each PASS requires run-specific evidence and frozen identity. Historical 0.3.12/0.3.16 fixture screenshots and a candidate 0.3.17 package cannot substitute for installed 0.3.17 Chrome acceptance."
+}
