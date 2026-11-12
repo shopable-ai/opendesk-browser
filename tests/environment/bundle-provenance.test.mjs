@@ -33,14 +33,15 @@ test('A2B2A capability grant source is pinned to the original SW and trusted Sid
   assert.throws(()=>describeBundle(candidate),/Trusted Web Flow source changed/);
 });
 
-test('reviewed WebFlow task intent parser is pinned to only original three fixed entries',()=>{
+test('reviewed WebFlow task intent parser permits four exact fixed entries and denies other worlds',()=>{
   const path='projects/webflow/src/task-intent-contract.js';
   const modules={[resolve(path)]:{renderedLength:1,originalLength:1}};
-  for(const target of ['sw.js','ui/tool-shell.js','agents/web-task-content.js']){
+  for(const target of ['sw.js','ui/tool-shell.js','agents/web-task-content.js',
+    'agents/chatgpt-fixed-bridge.js']){
     const result=describeBundle({chunk:{fileName:target,modules},lock:{packages:{}}});
     assert.equal(result.modules[0].reviewedFirstPartyBlob,'50a7ec4bd3d8707ba53724efdc378cd98c2404d6');
   }
-  for(const target of ['agents/chatgpt-fixed-bridge.js','native-agent/settings.js',
+  for(const target of ['native-agent/settings.js',
     'agents/page-relay.js','ui/sidebar-tool-host.js']){
     assert.throws(()=>describeBundle({chunk:{fileName:target,modules},lock:{packages:{}}}),
       /cannot enter a privileged fixed bundle/);

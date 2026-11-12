@@ -47,7 +47,8 @@ const compiledWebFlowInputs=Object.freeze({
   // Reviewed bounded keyword policy shared by the ledger and compiled controls.
   'projects/webflow/src/authorization-policy.js':'bb508189bdbbfe403707febbb36bb49d07d476c7',
   // R0 reviewed: structural WebFlow V1/V2 candidate parser, not DOM, Host or Authority.
-  // Only the original SW, trusted shell and generic content observer may import this blob.
+  // Pure schema parser also enters the fixed ChatGPT Content bridge through the reviewed
+  // chatgpt-task-request import; keep exact blob pin and per-target admission.
   'projects/webflow/src/task-intent-contract.js':'50a7ec4bd3d8707ba53724efdc378cd98c2404d6',
   // Reviewed fixed ChatGPT site adapter/retired UI, only in the isolated fixed Content entry.
   // 2026-11-09 reviewed UNKNOWN diagnostics and before-click cancellation;
@@ -81,7 +82,8 @@ function reviewedCompiledWebFlow(target,path,root){
   const taskIntent=path==='projects/webflow/src/task-intent-contract.js';
   const allowed=path==='projects/webflow/trusted/issue-workflow-authorization.js'?
     ['sw.js','ui/tool-shell.js'].includes(target):
-    taskIntent?['sw.js','ui/tool-shell.js','agents/web-task-content.js'].includes(target):
+    taskIntent?['sw.js','ui/tool-shell.js','agents/web-task-content.js',
+      'agents/chatgpt-fixed-bridge.js'].includes(target):
     path==='projects/webflow/trusted/task-run-recovery.js'?target==='sw.js':siteAdapter?target==='agents/chatgpt-fixed-bridge.js':
     path.startsWith('projects/webflow/trusted/')||path==='projects/webflow/src/ui/app-page-routes.js'?target==='ui/tool-shell.js':
       ['sw.js','ui/tool-shell.js','agents/chatgpt-fixed-bridge.js'].includes(target);
