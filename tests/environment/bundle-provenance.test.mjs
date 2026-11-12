@@ -555,7 +555,7 @@ test('Reading TOC generated locale keeps exact source, target and symlink fences
 test('relocated trusted policies and tab repair keep exact source, target and symlink fences',async ctx=>{
   const cases=[
     ['projects/reading-toc/trusted/policy.js','sw.js','2a2dcc3c21ac74bb569c2c418c52bdd3cb430bb2'],
-    ['projects/web-markdown-clipper/trusted/policy.js','sw.js','30b4c35933a813e394eb9173c034b1a21927f6d1'],
+    ['projects/web-markdown-clipper/trusted/policy.js','sw.js','9cb4b8af149d25e2427ed0e187433f77a03b788f'],
     ['projects/reading-toc/trusted/existing-tabs.js','sidebar-tools/preinstall-intent.js','e82a3e3b43debfff756180ccf1da110b7dfd8172']
   ];
   const tmp=await realpath(await mkdtemp(join(tmpdir(),'relocated-trusted-source-')));
@@ -574,6 +574,30 @@ test('relocated trusted policies and tab repair keep exact source, target and sy
     assert.throws(()=>make(target,tmp),/Trusted .* source changed/);
     await rm(file);await symlink(resolve(path),file);
     assert.throws(()=>make(target,tmp),/must not be a symlink/);
+  }
+});
+
+test('Clipper region source is byte-pinned to Page Relay and never admitted elsewhere',async t=>{
+  const inputs=[
+    ['projects/web-markdown-clipper/trusted/page.js','46bb1a7b4355922fdc8e84e2be3933d8a2b33a17'],
+    ['projects/web-markdown-clipper/trusted/region-picker.js','c2a7b9b15c9ac7d6e132c5a1d1f5f27609d20a0a']
+  ];
+  const project=await realpath(await mkdtemp(join(tmpdir(),'clipper-region-provenance-')));
+  t.after(()=>rm(project,{recursive:true,force:true}));
+  for(const [path,pin] of inputs){
+    const make=(target,root=process.cwd())=>describeBundle({root,lock:{packages:{}},
+      chunk:{fileName:target,modules:{[resolve(root,path)]:{renderedLength:1,originalLength:1}}}});
+    assert.equal(make('agents/page-relay.js').modules[0].reviewedFirstPartyBlob,pin);
+    for(const target of ['sw.js','ui/tool-shell.js','ui/sidebar-tool-host.js',
+      'agents/chatgpt-fixed-bridge.js','scripting/sandbox/worker-runtime.js'])
+      assert.throws(()=>make(target),/cannot enter a privileged fixed bundle/);
+    const file=resolve(project,path),bytes=await readFile(path);
+    await mkdir(dirname(file),{recursive:true});await writeFile(file,bytes);
+    assert.equal(make('agents/page-relay.js',project).modules[0].reviewedFirstPartyBlob,pin);
+    await writeFile(file,Buffer.concat([bytes,Buffer.from('\n// unreviewed drift')]));
+    assert.throws(()=>make('agents/page-relay.js',project),/Trusted Web Clipper source changed/);
+    await rm(file);await symlink(resolve(path),file);
+    assert.throws(()=>make('agents/page-relay.js',project),/must not be a symlink/);
   }
 });
 
