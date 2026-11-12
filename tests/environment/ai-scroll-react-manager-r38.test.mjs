@@ -15,7 +15,7 @@ const sample={
 };
 async function fixture(t,options={}){
   const {doc,state,adapter}=createExtensionCenterDOM(t);
-  const installed={programId:id,title:'AI 对话滚动导航',revision:8,
+  const installed={programId:id,title:'AI 对话滚动导航',version:'0.4.15',revision:8,
     manifestHash:'a'.repeat(64),sourceHash:'b'.repeat(64),enabled:true,
     nativeState:'registered',authorization:{
       status:'active',generation:3,installationId:'installation-r8'},
