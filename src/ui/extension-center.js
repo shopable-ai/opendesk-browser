@@ -400,7 +400,6 @@ export function createExtensionCenter({api,client,doc,sidebarTools,taskWorkbench
       row.kind==='page'&&row.record?.installed?.authorization?.status==='suspended'?t('siteAccessRestricted'):
       row.enabled===false?t('disabled'):
       row.pageCompanion&&row.pageCompanion.state!=='registered'?'网页发送能力未就绪':
-      row.update?t('updateAvailable'):
       row.kind==='page'&&row.record?.installed?.nativeState&&
         row.record.installed.nativeState!=='registered'?t('registrationPending'):'';
     return reason?reason+' · '+descriptionOf(row):descriptionOf(row);
@@ -433,6 +432,13 @@ export function createExtensionCenter({api,client,doc,sidebarTools,taskWorkbench
         rows:rows.map(row=>({
           key:row.key,title:titleOf(row),kind:row.kind,type:typeOf(row),
           description:rowDescription(row),installed:row.installed,stateKnown:row.stateKnown,
+          updateIdentity:row.kind==='app'&&row.installed&&appStatusKnown&&
+            row.stateKnown!==false&&row.enabled===true&&!row.queueReviewRelease&&
+            !row.queueProduct&&!row.cleanupPending&&row.update===true&&
+            sources[row.id]?.kind==='market'&&row.release?.id==='opendesk/'+row.id&&
+            /^[a-f0-9]{64}$/.test(row.release?.sha256||'')?
+            {id:row.id,fromVersion:row.version,source:row.release.id,
+              version:row.release.version,sha256:row.release.sha256}:null,
           primaryAction:resolveExtensionPrimaryAction(row)?t('open'):null
         })),
         busy:Boolean(busy||pendingKey),pendingKey,
