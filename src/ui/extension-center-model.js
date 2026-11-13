@@ -225,6 +225,16 @@ export function filterExtensionEntries(entries,{query='',kind='all',scope='smart
     (!needle||[row.title,row.description,row.id,String(row.version),EXTENSION_SEARCH_ALIASES[row.id]].some(s=>lower(s).includes(needle))));
 }
 
+// Per-extension local keys avoid read/modify/write races between the PC page and Side Panel.
+export const EXTENSION_CENTER_PIN_STORAGE_PREFIX='opendesk.extension-center.pin.v1:';
+export const extensionCenterPinStorageKey=key=>EXTENSION_CENTER_PIN_STORAGE_PREFIX+key;
+export function prioritizePinnedExtensionEntries(rows=[],pinnedKeys=[]){
+  const pinned=pinnedKeys instanceof Set?pinnedKeys:new Set(Array.isArray(pinnedKeys)?pinnedKeys:[]);
+  return rows.map((row,index)=>({row:{...row,pinned:row?.installed===true&&pinned.has(row.key)},index}))
+    .sort((a,b)=>Number(b.row.pinned)-Number(a.row.pinned)||a.index-b.index)
+    .map(item=>item.row);
+}
+
 // R4 read-only bridge: Worker-verified release + installed Registry identity.
 // A version-only "row.update" flag never creates an actionable button.
 export function projectTrustedInlineUpdates(rows=[],snapshot=null,{promote=false}={}){

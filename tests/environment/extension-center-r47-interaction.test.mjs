@@ -6,6 +6,8 @@ import assert from 'node:assert/strict';
 import {readFile} from 'node:fs/promises';
 import {createExtensionCenter} from '../../src/ui/extension-center.js';
 import {OFFICIAL_STORE_WEBSITE} from '../../src/marketplace/store-website.js';
+import {extensionCenterPinStorageKey,prioritizePinnedExtensionEntries} from '../../src/ui/extension-center-model.js';
+import {extensionCenterText} from '../../src/ui/extension-center-localization.js';
 import {SIDEBAR_TOOL_FORMAT,SIDEBAR_TOOL_STORE} from '../../src/ui/sidebar-tools/package.js';
 import {SIDEBAR_TOOL_ENABLE_STORE} from '../../src/ui/sidebar-tools/lifecycle.js';
 import {TOOL_CLEANUP_STORE} from '../../src/ui/sidebar-tools/installation.js';
@@ -50,6 +52,15 @@ function fixture(t,{disabled=false,readError=false,installedRows=[app],cleanupRo
       local:{async get(keys){
         if(corrupt)throw Error('storage unavailable');
         return Object.fromEntries((Array.isArray(keys)?keys:[keys]).map(k=>[k,structuredClone(store.get(k))]));
+      },async set(values){
+        if(corrupt)throw Error('storage unavailable');
+        const changed={};
+        for(const [key,value] of Object.entries(values)){
+          const oldValue=store.has(key)?structuredClone(store.get(key)):undefined;
+          store.set(key,structuredClone(value));
+          changed[key]={oldValue,newValue:structuredClone(value)};
+        }
+        for(const cb of changes)cb(changed,'local');
       }}
     }
   };
@@ -134,8 +145,9 @@ function fixture(t,{disabled=false,readError=false,installedRows=[app],cleanupRo
     setPageCatalog:value=>{pageCandidates=value;},setPageUninstallMode:value=>{pageUninstallMode=value;},
     setPageCleanupPending:value=>{pageCleanupPending=value;},
     setPageAckOnly:value=>{pageAckOnly=value;},
-    setAllowed:value=>{allowed=value;},emitStorage:()=>{
-      for(const cb of changes)cb({[SIDEBAR_TOOL_ENABLE_STORE]:{oldValue:null,newValue:{}}},'local');
+    setAllowed:value=>{allowed=value;},emitStorage:payload=>{
+      const changed=payload??{[SIDEBAR_TOOL_ENABLE_STORE]:{oldValue:null,newValue:{}}};
+      for(const cb of changes)cb(changed,'local');
     }};
 }
 
@@ -1318,4 +1330,95 @@ test('R1.8 navigation restores '+failure+' failure masked by action on '+transit
   else f.button('page:reader','main').dispatch('click');
   assert.equal(f.state.statusModel.state,'error');
   assert.match(f.state.statusModel.text,failure==='read'?/读取失败/:new RegExp('R18 masked '+failure));
+});
+
+
+test('pinned extension projection promotes installed rows only and preserves the original order within each group',()=>{
+  const rows=[
+    {key:'app:alpha',installed:true},
+    {key:'app:webflow',installed:true},
+    {key:'app:candidate',installed:false}
+  ];
+  const ordered=prioritizePinnedExtensionEntries(rows,new Set(['app:webflow','app:candidate']));
+  assert.deepEqual(ordered.map(row=>[row.key,row.pinned]),[
+    ['app:webflow',true],['app:alpha',false],['app:candidate',false]
+  ]);
+  assert.equal(rows[0].pinned,undefined,'projection must not mutate the registry rows');
+});
+
+test('pin controls have explicit labels in all supported Extension Center locales',()=>{
+  const expected={
+    'zh-CN':['置顶','取消置顶','已置顶'],
+    en:['Pin to top','Remove from top','Pinned'],
+    ja:['上部に固定','固定を解除','固定済み'],
+    'zh-TW':['置頂','取消置頂','已置頂']
+  };
+  for(const [locale,labels] of Object.entries(expected)){
+    assert.equal(extensionCenterText(locale,'pinAction'),labels[0]);
+    assert.equal(extensionCenterText(locale,'unpinAction'),labels[1]);
+    assert.equal(extensionCenterText(locale,'pinned'),labels[2]);
+  }
+});
+
+test('installed extension pin/unpin persists, reorders the list, and does not invoke lifecycle operations',async t=>{
+  const alpha={...app,id:'alpha',title:'Alpha'};
+  const webflow={...app,id:'webflow',title:'WebFlow'};
+  const f=fixture(t,{installedRows:[alpha,webflow]});
+  await f.ui.refresh();
+  const order=()=>[...f.list.querySelectorAll('li[data-extension-id]')].map(node=>node.dataset.extensionId);
+  assert.deepEqual(order(),['app:alpha','app:webflow']);
+  const installedBefore=structuredClone(f.store.get(SIDEBAR_TOOL_STORE));
+  const pinKey=extensionCenterPinStorageKey('app:webflow');
+  f.button('app:webflow','more').dispatch('click');
+  const pin=f.menuItem('置顶');
+  assert.ok(pin,'installed extension overflow menu exposes Pin to top');
+  pin.dispatch('click');
+  await settle(()=>f.store.get(pinKey)===true&&order()[0]==='app:webflow'&&
+    Boolean(f.list.querySelector('li[data-extension-id="app:webflow"] .ec-pin-indicator')));
+  const indicator=f.list.querySelector('li[data-extension-id="app:webflow"] .ec-pin-indicator');
+  assert.equal(indicator.getAttribute('aria-label'),'已置顶');
+  assert.equal(f.list.querySelector('li[data-extension-id="app:webflow"]').getAttribute('data-pinned'),'true');
+  f.button('app:webflow','more').dispatch('click');
+  const unpin=f.menuItem('取消置顶');
+  assert.ok(unpin,'the same menu changes to Remove from top');
+  unpin.dispatch('click');
+  await settle(()=>f.store.get(pinKey)===false&&order()[0]==='app:alpha'&&
+    !f.list.querySelector('li[data-extension-id="app:webflow"] .ec-pin-indicator'));
+  assert.deepEqual(f.store.get(SIDEBAR_TOOL_STORE),installedBefore,'pinning never rewrites installed package records');
+  assert.equal(f.invocations.length,0,'pinning never opens, enables, disables or launches an extension');
+  assert.equal(f.writes.length,0,'pinning never calls the Page Authority');
+  assert.equal(f.uninstalls.length,0,'pinning never invokes uninstall');
+});
+
+test('stored pins are restored on refresh and external local changes synchronize the current list',async t=>{
+  const alpha={...app,id:'alpha',title:'Alpha'};
+  const webflow={...app,id:'webflow',title:'WebFlow'};
+  const f=fixture(t,{installedRows:[alpha,webflow]});
+  const order=()=>[...f.list.querySelectorAll('li[data-extension-id]')].map(node=>node.dataset.extensionId);
+  const pinKey=extensionCenterPinStorageKey('app:webflow');
+  f.store.set(pinKey,true);
+  await f.ui.refresh();
+  assert.equal(order()[0],'app:webflow','persisted state is restored before the list refresh completes');
+  assert.ok(f.list.querySelector('li[data-extension-id="app:webflow"] .ec-pin-indicator'));
+  f.store.set(pinKey,false);
+  f.emitStorage({[pinKey]:{oldValue:true,newValue:false}});
+  await settle(()=>order()[0]==='app:alpha'&&
+    !f.list.querySelector('li[data-extension-id="app:webflow"] .ec-pin-indicator'));
+  assert.equal(f.store.get(SIDEBAR_TOOL_STORE).length,2);
+  assert.equal(f.invocations.length,0);
+});
+
+test('failed pin persistence never reports a successful pin',async t=>{
+  const webflow={...app,id:'webflow',title:'WebFlow'};
+  const f=fixture(t,{installedRows:[webflow]});
+  await f.ui.refresh();
+  const pinKey=extensionCenterPinStorageKey('app:webflow');
+  f.button('app:webflow','more').dispatch('click');
+  const pin=f.menuItem('置顶');
+  assert.ok(pin);
+  f.setCorrupt(true);
+  pin.dispatch('click');
+  await settle(()=>f.state.statusModel.state==='error'&&f.state.statusModel.text.includes('置顶状态保存失败'));
+  assert.equal(f.store.get(pinKey),undefined);
+  assert.notEqual(f.state.statusModel.state,'success');
 });
