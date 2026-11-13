@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <meta name="od-preview-kind" content="DESIGN_REVIEW_ONLY_NOT_SOURCE_PARITY">
 <meta name="od-preview-inherits" content="projects/ai-scroll-navigation/preview/index.html@R3.8">
-<title>AI 对话滚动导航 · R4.1 交互预览</title>
+<title>AI 对话滚动导航 · R4.3 紧凑导航交互预览</title>
 <style>
 /* Inherit the R3.1 visual contract and the official OpenDesk semantic tokens.
  * Design review only; no Chrome authority, page.config, SDK or React is executed. */
@@ -156,22 +156,27 @@ details{min-width:0}.od-disclosure{border:1px solid var(--od-line);border-radius
 .sim-composer{flex:none;min-height:67px;display:flex;align-items:center;justify-content:space-between;
   background:var(--od-paper);color:var(--od-sub);font-size:11px;padding:12px 16px 12px 70px;
   border-top:1px solid var(--od-line)}
-.sim-dock{position:absolute;left:14px;bottom:84px;z-index:3;display:flex;align-items:center;flex-direction:column;gap:6px}
-.sim-dock button{width:40px;height:40px;display:grid;place-items:center;padding:0;
-  border:1px solid var(--od-line);border-radius:13px;background:var(--od-paper);
-  color:var(--od-ink);box-shadow:0 3px 12px #0000001b}
+.sim-dock{position:absolute;left:14px;bottom:84px;z-index:3;display:flex;align-items:center;flex-direction:column;gap:3px}
+.sim-dock button{width:42px;height:42px;display:grid;place-items:center;padding:0;
+  border:1px solid #b8c2d44d;border-radius:14px;background:#ffffffed;
+  color:#2b3b51;box-shadow:0 4px 18px #0002}
+.sim-dock #sim-prev,.sim-dock #sim-next{height:28px;border-radius:9px;box-shadow:0 2px 8px #0001}
+.sim-dock #sim-prev svg,.sim-dock #sim-next svg{width:17px;height:17px}
+:root[data-theme="dark"] .sim-dock button{background:#303239ef;color:#f3f4f8;border-color:#ffffff30}
 .sim-dock button:hover:not(:disabled){background:var(--od-muted);border-color:var(--od-brand)}
-.sim-dock button:disabled{opacity:.4;box-shadow:none}
-.sim-dock svg{width:18px;height:18px}
+.sim-dock button:disabled{opacity:.48;box-shadow:none}
+.sim-dock svg{width:20px;height:20px}
 .sim-dock [hidden]{display:none!important}
-.sim-count{min-width:40px;min-height:28px;border:1px solid var(--od-line);
+.sim-count{min-width:42px;min-height:28px;border:1px solid var(--od-line);
   background:var(--od-paper);color:var(--od-ink);border-radius:8px;display:grid;place-items:center;
   font-size:11px;font-weight:700;font-variant-numeric:tabular-nums}
 .sim-unavailable{position:absolute;top:16px;left:16px;right:16px;z-index:4;border:1px solid var(--od-line);
   border-radius:10px;background:var(--od-paper);padding:12px;font-size:12px;color:var(--od-sub)}
 @media(max-width:620px){.web-simulation{height:625px}.sim-scroll{padding-left:67px;padding-right:14px}
   .sim-composer{padding-left:66px}.sim-dock{left:9px;flex-direction:row}
-  .sim-count{min-height:40px;min-width:48px}}
+  .sim-count{min-height:42px;min-width:48px}
+  .sim-dock{gap:6px}
+  .sim-dock #sim-prev,.sim-dock #sim-next{height:42px;border-radius:14px}}
 /* R3.6 one compact editor, one Side Panel scroll, all selectors visible. */
 .compact-editor{display:grid;gap:10px;align-content:start}
 .editor-caption{font-size:12px;font-weight:750;padding-top:6px;line-height:1.3}
@@ -218,14 +223,14 @@ details{min-width:0}.od-disclosure{border:1px solid var(--od-line);border-radius
   <symbol id="i-list" viewBox="0 0 24 24"><path d="M9 6h12M9 12h12M9 18h12M4 6h.01M4 12h.01M4 18h.01"/></symbol>
   <symbol id="i-target" viewBox="0 0 24 24"><circle cx="12" cy="12" r="8"/><circle cx="12" cy="12" r="3"/><path d="M12 1v3m0 16v3M1 12h3m16 0h3"/></symbol>
   <symbol id="i-edit" viewBox="0 0 24 24"><path d="m15 5 4 4M4 20l4.5-1 11-11-3.5-3.5-11 11L4 20Z"/></symbol>
-  <symbol id="i-up" viewBox="0 0 24 24"><path d="M5 14l7-7 7 7M12 7v12"/></symbol>
-  <symbol id="i-down" viewBox="0 0 24 24"><path d="m5 10 7 7 7-7M12 5v12"/></symbol>
+  <symbol id="i-up" viewBox="0 0 24 24"><path d="M5 15l7-7 7 7"/></symbol>
+  <symbol id="i-down" viewBox="0 0 24 24"><path d="M5 9l7 7 7-7"/></symbol>
   <symbol id="i-chevron" viewBox="0 0 24 24"><path d="m9 5 7 7-7 7"/></symbol>
-  <symbol id="i-jump-top" viewBox="0 0 24 24"><path d="M5 4h14M7 14l5-5 5 5M12 9v11"/></symbol>
-  <symbol id="i-jump-bottom" viewBox="0 0 24 24"><path d="M5 20h14M7 10l5 5 5-5M12 4v11"/></symbol>
+  <symbol id="i-jump-top" viewBox="0 0 24 24"><path d="M17 11l-5-5-5 5m10 7-5-5-5 5"/></symbol>
+  <symbol id="i-jump-bottom" viewBox="0 0 24 24"><path d="M7 6l5 5 5-5M7 13l5 5 5-5"/></symbol>
 </svg>
 <header class="review-head" aria-label="预览控制（不属于正式应用）">
-  <div><strong>AI 对话滚动导航 · R4.1 交互预览</strong><small>沿用 R3.1 视觉基线 · 当前网页地址、授权及保存均为离线模拟</small></div>
+  <div><strong>AI 对话滚动导航 · R4.3 紧凑导航交互预览</strong><small>沿用 R3.1 视觉基线 · 当前网页地址、授权及保存均为离线模拟</small></div>
   <div class="review-controls">
     <label>宽度 <select id="review-width" aria-label="Side Panel 宽度"><option>320</option><option selected>360</option><option>400</option><option>440</option><option>520</option></select></label>
     <label>当前网页 <select id="review-site" aria-label="模拟活动网页"><option value="chatgpt">ChatGPT · 内置</option><option value="deepseek">DeepSeek · 内置</option><option value="gemini">Gemini · 内置</option><option value="new">example.ai · 未授权</option><option value="pending">example.ai · 已授权</option><option value="broken">example.ai · 结构变化</option><option value="internal">Chrome 内部页</option></select></label>
@@ -733,6 +738,11 @@ details{min-width:0}.od-disclosure{border:1px solid var(--od-line);border-radius
     $('sim-prev').disabled=index===0;$('sim-next').disabled=index===length-1;
     $('sim-first').disabled=simScroll.scrollTop<=2;
     $('sim-last').disabled=simScroll.scrollTop>=simScroll.scrollHeight-simScroll.clientHeight-2;
+    // Boundary hints reflect the individual target, not a dock-wide disabled flag.
+    $('sim-prev').title=index===0?'已经是第一轮':'上一轮提问';
+    $('sim-next').title=index===length-1?'已经是最后一轮':'下一轮提问';
+    $('sim-first').title=$('sim-first').disabled?'已在对话顶部':'回到对话顶部';
+    $('sim-last').title=$('sim-last').disabled?'已在对话底部':'跳到对话底部';
   }
   function simJump(index){
     const target=simRows()[index];if(!target)return;
