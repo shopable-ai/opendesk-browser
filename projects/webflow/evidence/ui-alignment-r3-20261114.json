@@ -1,6 +1,6 @@
 {
   "scope": "OD-WEBFLOW-UI-ALIGNMENT-R3",
-  "observedAt": "2026-11-13T21:38:43.808023+00:00",
+  "observedAt": "2026-11-13T21:52:08.573731+00:00",
   "result": "INCOMPLETE_FOREIGN_PREPARATION_BUSY",
   "goal": {
     "threadId": "01a1d6ae-5b46-72d0-b76e-14e2f7ae95e8",
@@ -272,9 +272,13 @@
         "dark": "Confirmed visible data-theme=dark at 360x650 DPR1, screenshot viewed. Restored system and read back combobox plus original preference-saved/readback Toast.",
         "menu": "320px menu overlays the next row and receives View details click. Details screenshot is wide after next binding reset and named accordingly; full text/runtime-stale reason and folded technical section observed.",
         "search": "Unmatched query yields 0/2; clearing restores 2/2.",
-        "keyboard": "Add opened and Escape closed in actual app; no new native focus/IME proof.",
+        "keyboard": "Focus task name, then real browser Tab moves to favorite with visible focus ring. Full native keyboard/IME and modal checks remain NOT_TESTED.",
         "records": "Original UNKNOWN clientRequestId and saved installation/manifest/content identity preserved; no second original query, stop or replay. Expanded busy reason remains visible across scripts/records.",
-        "busy": "Native play and actual app play returned same E_TASK_BUSY reason. No execution-confirm action performed."
+        "busy": "Native play and actual app play returned same E_TASK_BUSY reason. No execution-confirm action performed.",
+        "favorites": "Google favorite saved with original success Toast; reload read back favorite and placed Google first. Restored false and original order via reload.",
+        "filterSort": "Favorite filter 1/2 Google only; runnable 0/2; attention 2/2; all 2/2. Name order Baidu then Google; favorite priority Google then Baidu while starred. Restored default all/favorite sort and no stars. Search/empty/clear evidence from preceding same-candidate checks retained.",
+        "refresh": "Actual refresh read 2/2 tasks. Unchanged source readTasks uses tasks.read and readCurrentPage uses currentPage.info; no start/admission call in refresh callback. Execution counts NOT_MEASURED.",
+        "rowGeometry": "Actual default/hover/keyboard screenshots: identical row border coordinates and unchanged name/website/status pixels. Precise inner DOM metrics and content-matched reference comparison remain unverified."
       },
       "runtimeBlocker": {
         "code": "E_TASK_BUSY",
@@ -300,8 +304,8 @@
       "id": "WFUI-02",
       "result": "NOT_TESTED",
       "observed039": "Default icons visible at three actual app widths; reference row geometry from unchanged R2 source retained. Exact actual iframe hover geometry not measured.",
-      "remaining": "Installed hover/focus zero-geometry movement and precise reference alignment.",
-      "observed040": "Persistent icons visible at three actual app widths. Exact installed iframe hover/focus geometry remains unmeasured; unchanged R2 mock geometry is separate evidence."
+      "remaining": "Content-matched reference comparison and precise alignment/control/font metrics; native focus separate.",
+      "observed040": "360x650 DPR1 actual default/hover/keyboard row border y=[229,281,333] unchanged; name/website/status pixels identical; focus ring visible on favorite. Icons remain visible. Reference common alignment visually within prior 1px observation, but content-matched regional metrics not yet established."
     },
     {
       "id": "WFUI-03",
@@ -339,17 +343,16 @@
     },
     {
       "id": "WFUI-09",
-      "result": "NOT_TESTED",
+      "result": "PASS",
       "observed039": "Search/empty/clear, runnable filter, favorite persistence/default favorite ordering and refresh checked; temporary favorite restored.",
-      "remaining": "Same-candidate full filter/sort/favorite readback matrix remains unverified; prior JS evidence separate.",
-      "observed040": "Actual search unmatched 0/2 and clear 2/2 verified. Favorite persistence/filter/sorting evidence is 0.3.39 only; JS unchanged, not same-candidate full PASS."
+      "observed040": "Actual same-candidate search/clear, four filters, both sort modes, favorite save/readback across reload, restored preferences, refresh 2/2. Source refresh callback contains only tasks.read/currentPage.info; no new execution action used."
     },
     {
       "id": "WFUI-10",
       "result": "NOT_TESTED",
       "observed039": "Native Add/Help/settings/records reachable; source-specific manual directions honest; original tool enable state unchanged.",
       "remaining": "All add routes/help/return-state and positive shared-sheet draft preservation.",
-      "observed040": "Actual app preferences/tool settings, Add/Escape and records reachable. All add subroutes/help were checked on 0.3.39 only; positive shared-sheet draft preservation blocked."
+      "observed040": "App preferences/tool settings, Add/Escape and records reachable. Add shows four original routes while search 百度 stays 1/2. Subsequent subroute action failed because p2 had changed to new-tab URL, confirmed by page.info/tabs. All subroutes, help/return state and positive-sheet draft preservation remain NOT_TESTED."
     },
     {
       "id": "WFUI-11",
@@ -363,14 +366,14 @@
       "result": "NOT_TESTED",
       "observed039": "App Add Escape closes and visible focus returns; keyboard screenshot wide, not native.",
       "remaining": "Full actual keyboard/menu/modal semantics, native focus and IME.",
-      "observed040": "Actual app Add Escape closes. Full keyboard semantics, modal background protection, native focus and IME remain unverified."
+      "observed040": "Actual app Add Escape closure plus task-name focus then real browser Tab to favorite with visible ring; modal/native IME not inferred."
     },
     {
       "id": "WFUI-13",
       "result": "NOT_TESTED",
       "observed039": "Upgrade success Toast; preference-saved/readback Toast; persistent busy reason and original UNKNOWN read error.",
       "remaining": "Real cancellation and late-reply lifecycle.",
-      "observed040": "Actual update success Toast; preference-saved/readback Toast; persistent expanded E_TASK_BUSY reason. Real cancellation/late-reply proof remains unverified."
+      "observed040": "Actual update success Toast; preference-saved/readback Toast; persistent expanded E_TASK_BUSY reason. Real cancellation/late-reply proof remains unverified. Same-candidate favorite-save success Toast coexists with original busy error; unrelated error remains."
     }
   ],
   "environment": {
@@ -501,24 +504,44 @@
       "sha256": "e6b24d5736502e866a8e831268258ae736595deb270a8eb62e1c6b1e97d7970b",
       "candidate": "0.3.40",
       "nativeSidePanel": false
+    },
+    {
+      "path": "artifacts/webflow-ui-alignment-r3/continuation-row-default-360.png",
+      "sha256": "a973b767774f7f1951293b3c2a00b17cf65441a4e7fd1531ec38aa879148f392",
+      "candidate": "0.3.40",
+      "nativeSidePanel": false
+    },
+    {
+      "path": "artifacts/webflow-ui-alignment-r3/continuation-row-hover-360.png",
+      "sha256": "ca4e599dee059474bee926263fd6c9bea8ecc33d93aa78c0e29813131fc8f88e",
+      "candidate": "0.3.40",
+      "nativeSidePanel": false
+    },
+    {
+      "path": "artifacts/webflow-ui-alignment-r3/continuation-row-keyboard-360.png",
+      "sha256": "ee7f692f08d9e7f03076f3834ee62277795930b649b7d610c564a38f5019aae9",
+      "candidate": "0.3.40",
+      "nativeSidePanel": false
     }
   ],
   "notes": [
     "Actual app and native Side Panel evidence are separate. App omits native host navigation/automatic strip; prototype includes mock host tabs and three fake rows. Actual task count is two and both statuses are runtime-stale; refresh/count are retained original capabilities.",
     "Some initial app screenshots after rebind were wide; renamed *-wide. Final 360 dark image was captured after measured override. OOPIF resize requires a layout turn after viewport override; stale interim clipped capture replaced, not treated as product bug.",
     "No new JS/framework changes, full build, root CI, production, score or R11 recovery.",
-    "0.3.40 initial dark capture caught host settings during asynchronous navigation; replaced after visible scripts/dark checks. Invalid generic role locator and early hidden-select driver attempts are not product failures. Details wide screenshot is named *-wide and is not 320px evidence."
+    "0.3.40 initial dark capture caught host settings during asynchronous navigation; replaced after visible scripts/dark checks. Invalid generic role locator and early hidden-select driver attempts are not product failures. Details wide screenshot is named *-wide and is not 320px evidence.",
+    "Follow-up fills WFUI-09 same-candidate evidence and actual row hover/focus stability without new product changes. Overall positive shared-sheet chain still blocked. Initial pixel line detector used a CSS nominal color and matched no lines; corrected against decoded screenshot color with a non-empty assertion before recording final PASS."
   ],
   "cleanup": {
     "nativeUiLock": "Acquired legally for both installation segments, released after native CUA completion; not held.",
-    "ego": "TaskSpace35 retained because foreign-preparation error leaves goal incomplete. Own mock fixture p4 closed; actual p2 and catalog p3 preserved for continuation.",
+    "ego": "TaskSpace35 remains agent-owned after preparation error. Own fixture already closed; p3 absent and p2 most recently observed at chrome://newtab. No handoff, other Space takeover or browser restart.",
     "fixture": "Own PID64300 stopped via SIGTERM and absence verified; output only temporary artifacts.",
     "sharedServices": "Existing npm run dev PID61427/scripts dev PID61448 still observed; never stopped/restarted/overwritten by this task."
   },
   "next": [
     "Identify original task/owner/entry for foreign preparation; user clarification pending. Do not clear/cancel/rebind it to enable testing.",
     "Once legally reconciled, Schema form/JSON > save/readback > explicit confirm once > same preparation/request/Run/Result and targeted WFUI evidence.",
-    "Finish remaining same-candidate UI/keyboard checks after core shared sheet unblocks; do not mark goal complete from visual/Node/package results."
+    "Finish remaining same-candidate UI/keyboard checks after core shared sheet unblocks; do not mark goal complete from visual/Node/package results.",
+    "Before further app inputs, verify original app remains bound and stable in Space35; latest p2 is new-tab. Do not replay actions whose outcome is unknown."
   ],
   "deferred": [
     "Root CI/full suite",
@@ -531,5 +554,88 @@
     "branch": "main",
     "push": false,
     "scope": "Only explicit projects/webflow task files; unrelated edits preserved."
+  },
+  "followupSameCandidate": {
+    "candidate": "0.3.40",
+    "installedVersionReadback": "Top host STRONG title Web Flow · v0.3.40 after reopening original app URL in same Space35.",
+    "codeOrPackageChanged": false,
+    "runtime": "One prepare-config click, E_TASK_BUSY unchanged; no execution confirm, cancel, stop or clearing.",
+    "favorites": "Google favorite saved with original success Toast; reload read back favorite and placed Google first. Restored false and original order via reload.",
+    "filterSort": "Favorite filter 1/2 Google only; runnable 0/2; attention 2/2; all 2/2. Name order Baidu then Google; favorite priority Google then Baidu while starred. Restored default all/favorite sort and no stars. Search/empty/clear evidence from preceding same-candidate checks retained.",
+    "refresh": "Actual refresh read 2/2 tasks. Unchanged source readTasks uses tasks.read and readCurrentPage uses currentPage.info; no start/admission call in refresh callback. Execution counts NOT_MEASURED.",
+    "feedback": "Favorite success Toast and existing E_TASK_BUSY error coexist in the same actual snapshot; success did not erase unrelated error.",
+    "rowGeometry": {
+      "method": "Read-only PNG decoded pixels; no DOM measurement or image edits",
+      "candidate": "0.3.40",
+      "viewport": [
+        360,
+        650
+      ],
+      "dpr": 1,
+      "states": {
+        "default": {
+          "imageSize": [
+            360,
+            650
+          ],
+          "rowBorderLines": [
+            229,
+            281,
+            333
+          ],
+          "changedTextPixelsFromDefault": 0
+        },
+        "hover": {
+          "imageSize": [
+            360,
+            650
+          ],
+          "rowBorderLines": [
+            229,
+            281,
+            333
+          ],
+          "changedTextPixelsFromDefault": 0
+        },
+        "keyboard": {
+          "imageSize": [
+            360,
+            650
+          ],
+          "rowBorderLines": [
+            229,
+            281,
+            333
+          ],
+          "changedTextPixelsFromDefault": 0
+        }
+      },
+      "result": "PASS: identical row borders and name/website/status pixels through hover and keyboard focus; screenshot coordinate evidence, not inner DOM metrics"
+    },
+    "keyboard": "Focus task name, then real browser Tab moves to favorite with visible focus ring. Full native keyboard/IME and modal checks remain NOT_TESTED.",
+    "environment": "At continuation entry p2 was chrome://newtab and p3 was absent. Reopened the prior legitimate app URL in the same agent-owned Space35. Later p2 returned to chrome://newtab again. Cause unknown; no attribution to product or other owner, no new Space/profile or service restart. A further bounded reopen exposed Add, then page.info/tabs again confirmed new-tab URL before subroute action. Browser-owned target changes prevent reliable continuation; no broad diagnosis or service changes.",
+    "files": [
+      {
+        "path": "artifacts/webflow-ui-alignment-r3/continuation-runtime-entry.txt",
+        "sha256": "b8f2f250f24acd4284fec96c82ac0ce4f9e3236ca2c9ba39c4e670584c2c204b"
+      },
+      {
+        "path": "artifacts/webflow-ui-alignment-r3/continuation-favorite-with-error.txt",
+        "sha256": "d8aef89dada22ed270a133cad433d11cdf10d80d1e29a5f31509377a522840e5"
+      },
+      {
+        "path": "artifacts/webflow-ui-alignment-r3/continuation-favorite-reload.txt",
+        "sha256": "7393917efbae5247e298af7ec4e25ba7a25bc8715d2bee19d09540b370f51a09"
+      },
+      {
+        "path": "artifacts/webflow-ui-alignment-r3/continuation-filters-sort.json",
+        "sha256": "eccd467067d49e8e277f1ddbf1e5fd01d3602bbf8f5d2599cc68284d58cea9b6"
+      },
+      {
+        "path": "artifacts/webflow-ui-alignment-r3/continuation-row-geometry.json",
+        "sha256": "cafdf0b493c8cc487892ad24edc157b7856a95876347e1d29bfce3efe1355fc0"
+      }
+    ],
+    "addPartial": "Reopened original app in same Space; search 百度 retained at 1/2 while Add shows four existing routes and honest separate-stage note. Next route click found no target; authoritative page.info and tabs show chrome://newtab. Stop affected input; no claim for subroute or draft preservation."
   }
 }
