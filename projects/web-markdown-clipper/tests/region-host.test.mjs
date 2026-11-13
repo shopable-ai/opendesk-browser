@@ -273,6 +273,7 @@ test('unknown Page transport result cleans once without replaying start or clean
   const f=await regionFixture(t);
   let starts=0,cancels=0;
   f.api.tabs.sendMessage=async(_tab,message)=>{
+    if(message.operation==='clip.ready')return {ok:true,data:{ready:true}};
     if(message.operation==='clip.region'){starts++;throw Error('unknown start result');}
     cancels++;throw Error('unknown cleanup result');
   };
@@ -357,6 +358,7 @@ test('more than 128 successful sequential picks do not exhaust session admission
   let clock=now();Date.now=()=>clock;t.after(()=>{Date.now=now;});
   const wireIds=new Set();
   f.api.tabs.sendMessage=async(_tab,message)=>{
+    if(message.operation==='clip.ready')return {ok:true,data:{ready:true}};
     assert.equal(message.operation,'clip.region','completed picks must not need cancellation');
     assert.equal(wireIds.has(message.pickId),false);wireIds.add(message.pickId);
     return {ok:true,data:validData()};
@@ -379,6 +381,7 @@ test('an old cancelled ID cannot cancel a fresh picker after replay retention ro
   f.gate.resolve({ok:true,data:validData()});await settle(()=>f.response('old'));
   const calls=[];
   f.api.tabs.sendMessage=async(_tab,message)=>{
+    if(message.operation==='clip.ready')return {ok:true,data:{ready:true}};
     calls.push(message);return {ok:true,data:validData()};
   };
   for(let index=0;index<140;index++){
@@ -387,6 +390,7 @@ test('an old cancelled ID cannot cancel a fresh picker after replay retention ro
   }
   const pending=deferred();t.after(()=>pending.resolve({ok:false,error:'test cleanup'}));
   f.api.tabs.sendMessage=async(_tab,message)=>{
+    if(message.operation==='clip.ready')return {ok:true,data:{ready:true}};
     calls.push(message);return pending.promise;
   };
   f.ask('clip.region',{pickId:'fresh_picker'},'fresh');await settle(()=>calls.length===141);

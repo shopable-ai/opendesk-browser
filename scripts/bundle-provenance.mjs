@@ -707,15 +707,18 @@ const compiledWebClipperInputs=Object.freeze({
   // The one-shot picker and page adapter enter only the existing Page Relay.
   // 2026-11-14: cancel before SPA/background-tab reads; keyboard confirms the
   // highlighted range. Page adapter uses the existing 160,000-byte note limit.
-  'projects/web-markdown-clipper/trusted/page.js':'4601cd079d6438a6294787b7de2dfe215841b788',
+  // Read-only readiness retains sender/URL/grant/install-epoch checks; the
+  // Host prepares only the existing fixed ISOLATED relay in that exact document.
+  'projects/web-markdown-clipper/trusted/page.js':'7792562f90c2b0aa78dbc154ca35413cac91fdd4',
+  'projects/web-markdown-clipper/trusted/page-connection.js':'1ca443c6ece3520e18896cfbd3cdc0618a4e4ad5',
   'projects/web-markdown-clipper/trusted/region-picker.js':'1aff80ff37936283b6922431cb9bfd1c44d1e286',
-  'projects/web-markdown-clipper/trusted/policy.js':'9cb4b8af149d25e2427ed0e187433f77a03b788f',
+  'projects/web-markdown-clipper/trusted/policy.js':'6b2259c9731b3a818336403c91ea7a12f0a13b29',
   'projects/web-markdown-clipper/trusted/notes-store.js':'34547422b3a85be15cfad179e8df5993146c5b80'
 });
 function reviewedCompiledWebClipper(target,path,root){
   // Notes storage is the reviewed first-party Clipper-only service imported by
   // the original Sidebar Tools host; it is never a dynamic app privilege.
-  const permitted=path.endsWith('/notes-store.js')?target==='ui/sidebar-tool-host.js':
+  const permitted=(path.endsWith('/notes-store.js')||path.endsWith('/page-connection.js'))?target==='ui/sidebar-tool-host.js':
     path.endsWith('/policy.js')?(preapprovedFixedTargets.has(target)&&
       !target.startsWith('scripting/')&&!target.startsWith('libs/')):
       target==='agents/page-relay.js';

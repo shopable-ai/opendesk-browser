@@ -1254,7 +1254,6 @@ function createSidebarToolsController({api=globalThis.chrome,doc=globalThis.docu
       assertCurrent();
     };
     try{
-      await locked('tool:'+tool.id,authorize);
       await ensureClipPageConnection({api,target:session.target,toolId:tool.id,installEpoch:epoch,
         authorize:()=>locked('tool:'+tool.id,authorize)});
       assertCurrent();
