@@ -85,12 +85,52 @@ test('AI Scroll ready and off homes keep status diagnostics in management',async
       assert.equal(buttonWithText(f.doc,'重新检查'),undefined);
       assert.equal(buttonWithText(f.doc,'查看详情'),undefined);
       assert.equal(f.state.detailModel.pageControl.state,installed.enabled===false?'off':'ready');
-      const cleanup=f.doc.querySelector('.ec-page-cleanup');
-      assert.match(cleanup.textContent,/旧页面切换待核对/);
-      assert.match(cleanup.textContent,/此处仅记录旧页面状态/);
+      assert.equal(f.doc.querySelector('.ec-page-cleanup'),null,
+        'historical recovery records do not belong above normal app content');
+      f.doc.querySelector('button[aria-label="导航设置"]').dispatch('click');await tick();
+      assert.equal(f.doc.querySelector('.ec-page-cleanup'),null);
+      f.doc.querySelector('#scroll-management').dispatch('click');await tick();
+      const cleanup=f.doc.querySelector('.ec-scroll-management .ec-page-cleanup');
+      assert.ok(cleanup,'the original recovery records remain available in diagnostics');
+      assert.equal(cleanup.querySelector('summary').textContent,'页面恢复记录');
+      assert.match(cleanup.textContent,/功能正常时无需操作/);
+      assert.equal(cleanup.querySelector('.ec-page-cleanup-documents'),null);
       assertReadOnly(f.requests);
     });
   }
+});
+
+test('AI Scroll page recovery stays in diagnostics and clears only after confirmed readback',async t=>{
+  const f=await fixture(t,{installed:{managedCleanup:{state:'unknown',records:2,pendingRecords:1,
+    pendingDocuments:[{tabId:42,documentId:'old-document',tabTitle:'保留草稿的对话',state:'active'}]}}});
+  await tick();
+  assert.equal(f.doc.querySelector('.ec-page-cleanup'),null);
+  f.doc.querySelector('button[aria-label="导航设置"]').dispatch('click');await tick();
+  assert.equal(f.doc.querySelector('.ec-page-cleanup'),null);
+  f.doc.querySelector('#scroll-management').focus();
+  f.doc.querySelector('#scroll-management').dispatch('click');await tick();
+  const cleanup=f.doc.querySelector('.ec-scroll-management .ec-page-cleanup');
+  assert.ok(cleanup);
+  assert.equal(cleanup.querySelector('summary').textContent,'网页更新与恢复');
+  assert.match(cleanup.textContent,/保留草稿的对话/);
+  assert.match(cleanup.textContent,/保存.*草稿.*刷新/);
+  assert.equal(cleanup.hasAttribute('open'),false);
+  f.doc.querySelector('#scroll-refresh-state').dispatch('click');await tick();await tick();
+  assert.ok(f.doc.querySelector('.ec-page-cleanup'),'unconfirmed recheck keeps recovery evidence');
+  f.doc.querySelector('#extension-center-back').dispatch('click');await tick();
+  assert.equal(f.doc.activeElement.id,'scroll-management');
+  assert.equal(f.doc.querySelector('.ec-page-cleanup'),null);
+  f.doc.querySelector('#extension-center-back').dispatch('click');await tick();
+  f.doc.querySelector('button[aria-label="添加自定义网站"]').dispatch('click');await tick();
+  assert.equal(f.doc.querySelector('.ec-scroll-site-manager').dataset.view,'editor');
+  assert.equal(f.doc.querySelector('.ec-page-cleanup'),null);
+  f.doc.querySelector('#extension-center-back').dispatch('click');await tick();
+  f.doc.querySelector('button[aria-label="导航设置"]').dispatch('click');await tick();
+  f.doc.querySelector('#scroll-management').dispatch('click');await tick();
+  f.installed.managedCleanup={state:'retired',records:2,pendingRecords:0};
+  f.doc.querySelector('#scroll-refresh-state').dispatch('click');await tick();await tick();
+  assert.equal(f.doc.querySelector('.ec-page-cleanup'),null);
+  assertReadOnly(f.requests);
 });
 
 test('AI Scroll uncertain home opens technical details and rechecks without writes or lost focus',async t=>{
@@ -305,7 +345,7 @@ test('R4.0 navigation settings persist through the existing CAS config and prese
   f.doc.querySelector('button[aria-label="导航设置"]').dispatch('click');await tick();
   assert.equal(f.doc.querySelectorAll('[role="switch"]').length,6);
   assert.equal(f.doc.querySelectorAll('[role="switch"]:disabled').length,0);
-  [...f.doc.querySelectorAll('button')].find(b=>b.textContent==='权限与技术信息').dispatch('click');await tick();
+  f.doc.querySelector('#scroll-management').dispatch('click');await tick();
   assert.equal(f.doc.querySelector('.ec-scroll-site-manager').dataset.view,'management');
   assert.ok(f.doc.querySelector('[data-ec-detail-action="uninstall"]'));
   f.doc.querySelector('#extension-center-back').dispatch('click');await tick();

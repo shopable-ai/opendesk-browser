@@ -1,9 +1,11 @@
 import * as React from 'react';
-type ProxyIconName = 'profile' | 'rules' | 'direct' | 'system' | 'play' | 'pause' | 'settings' | 'plus' | 'link' | 'edit' | 'trash' | 'selected' | 'check' | 'circle' | 'close' | 'lock' | 'import' | 'refresh' | 'copy' | 'more' | 'open' | 'globe';
+type ProxyIconName = 'profile' | 'rules' | 'direct' | 'system' | 'play' | 'pause' | 'settings' | 'plus' | 'link' | 'edit' | 'trash' | 'selected' | 'check' | 'circle' | 'close' | 'lock' | 'import' | 'refresh' | 'copy' | 'more' | 'open' | 'globe' | 'star' | 'back';
 export function ProxyIcon({name}:{name:ProxyIconName}) {
   return <svg className="sideUiIcon" width="16" height="16" viewBox="0 0 24 24"
     fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"
     focusable="false" aria-hidden="true">
+    {name==='star'&&<path d="m12 3 2.8 5.7 6.2.9-4.5 4.4 1.1 6.2-5.6-3-5.6 3 1.1-6.2L3 9.6l6.2-.9z"/>}
+    {name==='back'&&<path d="m14 6-6 6 6 6M8 12h13"/>}
     {name==='open'&&<path d="M7 17 17 7M7 7h10v10"/>}
     {name==='profile'&&<><rect x="3" y="3" width="18" height="8" rx="2"/><rect x="3" y="13" width="18" height="8" rx="2"/><path d="M7 7h.01M7 17h.01"/></>}
     {name==='rules'&&<><path d="M6 4h7a4 4 0 0 1 0 8H9a4 4 0 0 0 0 8h9"/><circle cx="6" cy="4" r="2"/><circle cx="18" cy="20" r="2"/></>}

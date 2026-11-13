@@ -22,7 +22,7 @@
   :scope .managementNav .optionsNavIcon { flex:none; }
   :scope .managementNav button span { min-width:0; }
   :scope .managementNav .managementOptional { margin-top:0; border-radius:9px; }
-  :scope .options .panel.optionsContent { padding:28px 32px 48px; border-left:1px solid var(--line); min-height:calc(100dvh - 64px); gap:16px; }
+  :scope .options .panel.optionsContent { padding:32px 32px 48px; border-left:1px solid var(--line); min-height:calc(100dvh - 64px); gap:16px; }
   :scope .options .optionsPageHead { flex-direction:row; align-items:flex-start; justify-content:space-between; gap:20px; }
   :scope .options .panelHeadIntro { flex:1; }
   :scope .options .optionsPageHead h2 { font-size:23px; }
@@ -39,7 +39,7 @@
   :scope { background:var(--bg); }
   :scope .options {
     width:min(100% - 32px,1250px);
-    min-height:calc(100dvh - 32px);
+    min-height:0;
     margin:16px auto;
     border:1px solid var(--line);
     border-radius:12px;
@@ -61,7 +61,7 @@
   }
   :scope .managementNav button { border-radius:9px; min-height:42px; }
   :scope .managementNav button[aria-current="page"]::before { display:none; }
-  :scope .options .panel.optionsContent { border-left:0; min-height:calc(100dvh - 144px); }
+  :scope .options .panel.optionsContent { border-left:0; min-height:650px; }
   :scope .options .optionsPageHead { padding-bottom:20px; margin-bottom:6px; border-bottom:1px solid var(--line); }
   :scope .managementIdentity { display:flex; align-items:center; gap:11px; min-width:0; }
   :scope .managementAppIcon { display:grid; place-items:center; width:36px; height:36px; flex:none; border-radius:9px; background:var(--ink); color:var(--surface); font-size:12px; font-weight:800; }
@@ -76,7 +76,10 @@
   :scope .managementNav button { font-weight:500; }
   :scope .optionsModeBar .settingsRuntimeStatus { display:none; }
   :scope .options .optionsModeBar { gap:12px; padding:20px; border:1px solid var(--line); border-radius:11px; background:var(--surface); }
-  :scope .options .modeSelectionRow { display:flex; flex-wrap:wrap; align-items:center; justify-content:space-between; gap:10px 16px; }
+  :scope .options .modeSelectionRow { display:flex; flex-wrap:wrap; align-items:center; justify-content:space-between; gap:10px 16px; margin-top:4px; padding-top:11px; border-top:1px solid var(--line); }
+  :scope .managementRouteSummary { margin:0; font-size:11.5px; flex:1; }
+  :scope .options .modeActions > .primary { order:1; }
+  :scope .proxyProtocolBadge { display:grid; place-items:center; width:34px; height:34px; border-radius:8px; background:var(--soft); color:var(--muted); }
   :scope .optionsProfileSelect { display:flex; flex:1; align-items:center; flex-wrap:wrap; gap:8px; }
   :scope .optionsProfileSelect label { flex:none; font-size:12px; }
   :scope .optionsProfileSelect select { flex:1; min-width:160px; max-width:360px; }
@@ -92,7 +95,7 @@
   }
   :scope .managementNav button { font-size:13px; font-weight:550; }
   :scope .managementNav button[aria-current="page"] { font-weight:710; }
-  :scope .options .optionsPageHead .panelHeadIntro { display:grid; grid-template-columns:minmax(0,1fr) auto; gap:6px 16px; }
+  :scope .options .optionsPageHead .panelHeadIntro { display:grid; grid-template-columns:minmax(0,1fr) auto; gap:9px 16px; }
   :scope .options .optionsTitleRow { display:contents; }
   :scope .options .optionsPageHead .eyebrow { grid-column:1; grid-row:1; margin:0; }
   :scope .options .optionsPageHead h2 { grid-column:1; grid-row:2; }
@@ -137,7 +140,7 @@
     background:var(--soft); color:var(--muted);
   }
   :scope .options .profileRecords .proxyRecord .proxySelect[aria-pressed="true"] {
-    color:var(--accent); border-color:var(--accent); background:var(--accentFill);
+    color:var(--good); border-color:transparent; background:light-dark(#e8f7f0,color-mix(in srgb,var(--good) 14%,var(--surface)));
   }
   :scope .managementProtocolLetter { font-size:12px; font-weight:750; line-height:1; }
   :scope .managementRecordTag {
@@ -163,16 +166,19 @@
   :scope .options .diagnosticLead {
     padding:21px 23px; margin-bottom:14px; border-radius:12px;
   }
-  :scope .options .diagnosticLead h2 { font-size:22px; line-height:1.38; }
+  :scope .options .diagnosticLead h2 { font-size:22px; line-height:1.38; flex-basis:100%; }
+  :scope .options .diagnosticLeadMain { display:flex; flex-wrap:wrap; align-items:center; gap:8px; }
+  :scope .options .diagnosticEvidence { font-size:10px; }
   :scope .options .diagnosticMetrics {
     grid-template-columns:repeat(4,minmax(0,1fr)); gap:10px;
   }
-  :scope .options .diagnosticMetrics > div { padding:14px; }
+  :scope .options .diagnosticMetrics > div { padding:12px; gap:4px; }
+  :scope .options .diagnosticPanel { padding-top:0; }
   :scope .options .diagnosticOverview {
     grid-template-columns:repeat(2,minmax(0,1fr)); gap:13px;
   }
   :scope .options .diagnosticFeature { padding:19px; border-radius:11px; }
-  :scope .options .diagnosticOverviewRuntime .diagnosticFeaturePrimary { grid-column:1 / -1; }
+  :scope .options .diagnosticOverviewRuntime .diagnosticFeaturePrimary { grid-column:auto; }
   :scope .options .diagnosticOverviewRuntime .diagnosticFeatureSecondary { background:var(--soft); }
   :scope .options .diagnosticSite { padding:14px; border-radius:10px; }
   @media(max-width:1150px) {
@@ -207,6 +213,8 @@
   :scope .options .sectionHeading .hint { margin-top:3px; font-size:12px; }
   :scope .options .optionsPageHead .eyebrow { color:light-dark(#8594aa,var(--muted)); }
   :scope .options .managementConnectionBar { background:light-dark(#f8f9fc,var(--soft)); }
+  :scope .managementHeaderActions { display:flex; align-items:center; gap:10px; margin-left:auto; }
+  :scope .managementFreeTag, :scope .options .generalPreferences .pcMaintained { color:var(--good); background:var(--goodBg); }
   :scope .options :is(.settingsRefresh,.settingsImport) {
     display:inline-flex; align-items:center; justify-content:center; gap:7px;
     min-height:36px; padding:7px 12px; border:1px solid light-dark(#d5deeb,var(--line));
@@ -231,7 +239,7 @@
   }
   :scope .options .profileRecords .proxyRecord {
     position:relative; grid-template-columns:34px minmax(0,1fr);
-    gap:13px; min-height:68px; padding:11px 100px 11px 9px;
+    gap:13px; min-height:66px; padding:11px 168px 11px 9px;
   }
   :scope .options .profileRecords .proxyRecord .proxyRecordMain { min-width:0; overflow:hidden; }
   :scope .options .profileRecords .proxyRecord .proxyRecordText { min-width:0; }
@@ -257,25 +265,26 @@
   :scope .options .profileRecords .recordActions > .quietDanger:hover:not(:disabled) {
     color:light-dark(#bd4658,var(--bad)); background:light-dark(#fff1f3,var(--badBg));
   }
-  :scope .options .rulesPage .rulesList { background:var(--surface); }
+  :scope .options .rulesPage .rulesList { background:var(--surface); margin-top:7px; padding:0; border:0; border-top:1px solid var(--line); border-radius:0; }
+  :scope .options .rulesPage .rulesList .records { margin:0; border:0; border-radius:0; }
   :scope .options .rulesPage .ruleRecord {
-    border-bottom:1px solid var(--line); padding:12px 8px; min-height:64px;
+    border-bottom:1px solid var(--line); padding:12px 8px; min-height:58px;
   }
-  :scope .options .rulesPage .ruleRecord:last-child { border-bottom:0; }
+  :scope .options .rulesPage .rulesList .records > .ruleRecord { padding:10px 8px; margin:0; min-height:62px; }
+  :scope .options .rulesPage .ruleRecord:last-child { border-bottom:1px solid var(--line); }
   :scope .options .rulesPage .ruleRecord:hover { background:light-dark(#fbfcfe,var(--soft)); }
   :scope .options .rulesPage .ruleRecord .actions { display:flex; gap:5px; }
   :scope .options .rulesPage .managementRulesHeader,
   :scope .options .rulesPage .ruleRecord {
     display:grid;
-    grid-template-columns:44px minmax(0,1.6fr) minmax(95px,1fr) 70px 76px;
-    align-items:center; gap:11px;
+    grid-template-columns:22px minmax(0,1.45fr) minmax(90px,1fr) 53px 76px;
+    align-items:center; gap:9px;
   }
   :scope .options .rulesPage .managementRulesHeader {
-    min-height:34px; padding:6px 8px; border-bottom:1px solid var(--line);
+    min-height:34px; padding:6px 8px; border-bottom:1px solid var(--line); background:var(--surface);
     color:light-dark(#758397,var(--muted)); font-size:11px; font-weight:650;
   }
   :scope .options .rulesPage .managementRulesHeader > span:first-child { white-space:nowrap; }
-  :scope .options .rulesPage .managementRuleHelp { margin:0; padding:12px 8px; border-top:1px solid var(--line); }
   :scope .options .rulesPage .ruleRecordText { min-width:0; display:grid; gap:3px; }
   :scope .options .rulesPage .ruleRecordText strong,
   :scope .options .rulesPage .managementRuleTarget {
@@ -287,14 +296,17 @@
   }
   :scope .options .rulesPage .managementRulePriority {
     justify-self:start; font-size:12px; font-variant-numeric:tabular-nums;
-    color:var(--muted);
+    color:var(--muted); width:53px; min-height:32px; padding:5px 7px; text-align:center;
   }
   :scope .options .rulesPage .ruleRecord .actions {
     justify-content:flex-end; flex-wrap:nowrap; white-space:nowrap;
   }
-  :scope .options .rulesPage .rulesDefault { display:grid; grid-template-columns:minmax(0,1fr) auto; align-items:center; gap:12px; padding:20px; }
-  :scope .options .rulesDefault > h2 { display:block; grid-column:1 / -1; margin:0; font-size:15px; }
-  :scope .options .rulesDefault > .hint { display:block; grid-column:1 / -1; margin:0; }
+  :scope .options .rulesPage .rulesDefault { display:grid; grid-template-columns:max-content 170px 1fr max-content; align-items:center; gap:8px 12px; padding:0; border:0; }
+  :scope .options .rulesDefault > h2 { display:block; grid-column:1; grid-row:1; margin:0; font-size:12px; font-weight:500; color:var(--muted); }
+  :scope .options .rulesDefault > .hint { display:block; grid-column:3; grid-row:1; margin:0; font-size:11px; line-height:1.5; text-align:right; white-space:normal; overflow:visible; text-overflow:clip; min-width:0; }
+  :scope .options .rulesDefault .defaultRouteControl { grid-column:2; grid-row:1; }
+  :scope .options .rulesDefault .actions { grid-column:4; grid-row:1; justify-content:flex-end; }
+  :scope .options .rulesDefault .defaultRouteControl select { width:100%; }
   :scope .options .rulesDefault > .r86Notice { grid-column:1 / -1; }
   :scope .options .rulesDefault .actions { margin:0; }
   :scope .options .ruleEditorDialog:not([open]) { display:none; }
@@ -333,17 +345,34 @@
     }
   }
   :scope .options .backupExport { background:var(--surface); }
-  :scope .options .backupGrid { align-items:start; }
-  :scope .options .backupCard { min-height:210px; gap:16px; padding:22px; }
+  :scope .options .backupGrid { align-items:stretch; }
+  :scope .options .backupCard { min-height:310px; gap:8px; padding:20px; align-content:start; background:var(--surface); }
   :scope .options .backupCard h2 { margin:0; font-size:15px; }
   :scope .options .backupCard .hint { margin:0; }
-  :scope .options .backupConsequence { padding:10px 12px; border-left:3px solid var(--accent); background:var(--soft); border-radius:0 6px 6px 0; }
+  :scope .options .backupConsequence { padding:0; border:0; background:transparent; font-size:11.5px; line-height:1.5; }
   :scope .options .backupInputGroup { gap:8px; }
   :scope .options .backupInputGroup + .backupInputGroup { padding-top:16px; border-top:1px solid var(--line); }
-  :scope .options .backupInputGroup textarea { min-height:140px; }
+  :scope .options .backupInputGroup textarea { min-height:130px; }
+  :scope .options .backupCard > .actions { margin:0; gap:6px; }
+  :scope .options .backupCard button { min-height:30px; padding:6px 9px; }
+  :scope .options .backupFileDetails { border-top:0; padding-top:0; }
+  :scope .options .backupFileDetails summary { cursor:pointer; font-size:12px; color:var(--muted); }
+  :scope .options .backupCompatibility { border-top:1px solid var(--line); padding-top:16px; }
   :scope .options .generalGroupHeading { margin:0; padding:14px 0 6px; color:var(--muted); font-size:11px; font-weight:650; }
   :scope .options .generalGroupHeading:not(:first-child) { padding-top:28px; }
   :scope .options .generalGrid > .record { background:var(--surface); }
+  :scope .options .generalPreferences { padding:20px; border:1px solid var(--line); border-radius:11px; background:var(--surface); }
+  :scope .options .generalPreferences > h3 { margin:0 0 12px; font-size:15px; }
+  :scope .options .generalPreferences .record { display:flex; align-items:center; gap:12px; min-height:65px; padding:13px 2px; border:0; border-bottom:1px solid var(--line); border-radius:0; background:transparent; }
+  :scope .options .generalPreferences .record > div { flex:1; }
+  :scope .options .generalPreferences .languageRecord { flex-wrap:nowrap; display:flex; }
+  :scope .options .generalPreferences .languageRecord select { width:auto; max-width:210px; flex:none; }
+  :scope .options .generalPreferences .record:last-child { border-bottom:0; }
+  :scope .options .generalPreferences .record > svg { flex:none; width:20px; height:20px; color:var(--muted); }
+  :scope .options .generalPreferences .record strong { font-size:12px; }
+  :scope .options .generalPreferences .record small { font-size:11px; }
+  :scope .options .generalSecondary { margin-top:16px; padding:16px 20px; border:1px solid var(--line); border-radius:11px; }
+  :scope .options .generalSecondary > summary { cursor:pointer; color:var(--muted); font-size:12px; }
   :scope .options .generalGrid > .record:last-child { border-bottom:0; }
   :scope .options .officialEmpty { min-height:310px; justify-items:center; align-content:center; padding:36px; text-align:center; }
   :scope .options .officialEmptyIcon { display:grid; place-items:center; width:48px; height:48px; margin-bottom:4px; background:var(--soft); color:var(--muted); border-radius:12px; }
@@ -383,6 +412,8 @@
     :scope .options .optionsPageHead .panelHeadIntro { display:flex; flex-direction:column; }
     :scope .options .optionsTitleRow { display:flex; flex-wrap:wrap; }
     :scope .options .rulesPage .rulesDefault { grid-template-columns:minmax(0,1fr); }
+    :scope .options .rulesDefault > .hint, :scope .options .rulesDefault .defaultRouteControl,
+    :scope .options .rulesDefault .actions { grid-column:1; grid-row:auto; text-align:left; }
     :scope .options .backupGrid, :scope .options .generalGrid { grid-template-columns:1fr; }
   }
   @media(max-width:560px) {
@@ -431,4 +462,114 @@
   :scope .options .sourcesManagement .sourceList .sourceRecord > .recordActions {
     margin:0; padding:0;
   }
+  :scope .options .officialServicePanel { display:grid; gap:16px; padding:20px; border:1px solid var(--line); border-radius:11px; }
+  :scope .options .officialServicePanel .officialEmpty { min-height:0; padding:16px; gap:10px; }
+  :scope .options .officialServicePanel .officialEmptyIcon { display:none; }
+  :scope .options .officialServicePanel .officialEmpty h3 { font-size:14px; }
+  :scope .options .officialManagementSummary { grid-template-columns:repeat(4,minmax(0,1fr)); gap:10px; margin:0; border:0; }
+  :scope .options .officialManagementSummary > div { padding:13px; border:1px solid var(--line); border-radius:9px; background:var(--soft); }
+  :scope .options .diagnosticQuickSite { display:flex; justify-content:space-between; align-items:center; gap:12px; padding:8px 0; border-top:1px solid var(--line); font-size:12px; }
+  :scope .options .diagnosticEvidenceDetails { margin-top:16px; font-size:12px; color:var(--muted); }
+  :scope .options .pcPreferenceSwitch { appearance:none; position:relative; width:37px; height:21px; min-height:21px; padding:0; border:0; border-radius:99px; background:var(--line); cursor:pointer; flex:none; }
+  :scope .options .pcPreferenceSwitch::before { content:""; position:absolute; top:3px; left:3px; width:15px; height:15px; background:var(--surface); border-radius:50%; }
+  :scope .options .pcPreferenceSwitch:checked { background:var(--accent); }
+  :scope .options .pcPreferenceSwitch:checked::before { transform:translateX(16px); }
+  :scope .options .sourcesManagement .subscriptionIndexRow { display:flex; align-items:center; gap:13px; padding:12px 8px; border:0; border-bottom:1px solid var(--line); border-radius:0; background:transparent; }
+  :scope .options .sourcesManagement .subscriptionIndex { margin-top:16px; border:0; border-top:1px solid var(--line); }
+  :scope .options .sourcesManagement .subscriptionRowMain { flex:1; }
+  :scope .options .sourcesManagement .subscriptionIndexRow .recordActions { display:flex; flex-wrap:nowrap; gap:3px; }
+  @media(max-width:720px) { :scope .options .officialManagementSummary { grid-template-columns:repeat(2,minmax(0,1fr)); } }
+
+  :scope .options .pacDetails > summary { display:block; padding:20px; }
+  :scope .options .pacDetails > summary .pcPacHeading { display:flex; align-items:flex-start; justify-content:space-between; gap:16px; }
+  :scope .options .pcPacHeading > span:first-child { display:grid; gap:4px; }
+  :scope .options .pcPacHeading strong { font-size:15px; }
+  :scope .options .pcPacHeading small { font-size:12px; font-weight:400; color:var(--muted); }
+  :scope .options .pcPacHeading .summaryAction { border:1px solid var(--line); border-radius:8px; padding:7px 12px; font-size:12px; color:var(--ink); }
+  :scope .options .pcPacNotice { display:block; margin-top:16px; font-size:12px; font-weight:400; border:1px solid color-mix(in srgb,var(--accent) 15%,var(--line)); background:var(--accentFill); color:var(--accent); }
+  :scope .options .profileSecondary { padding:12px 0; font-size:12px; color:var(--muted); }
+  :scope .options .profileSecondary > summary { cursor:pointer; }
+  :scope .options .diagnosticOverviewManagement { display:grid; gap:16px; }
+  :scope .options .diagnosticOverviewCards { display:grid; grid-template-columns:minmax(0,1.1fr) minmax(0,1fr); gap:14px; }
+  :scope .options .diagnosticOverviewCards .diagnosticFeature { display:flex; flex-direction:column; align-items:stretch; padding:20px; gap:8px; }
+  :scope .options .diagnosticOverviewCards .diagnosticFeature > small { color:var(--muted); font-size:11px; }
+  :scope .options .diagnosticOverviewCards h3 { margin:0; font-size:17px; }
+  :scope .options .diagnosticOverviewCards p { margin:0; font-size:12px; color:var(--muted); }
+  :scope .options .diagnosticOverviewCards .actions { margin-top:auto; gap:8px; }
+  :scope .options .diagnosticOverviewCards button { font-size:12px; }
+  :scope .options .diagnosticHost { font-size:20px; }
+  :scope .options .diagnosticReading { display:grid; gap:3px; padding:12px; background:var(--soft); border:1px solid var(--line); border-radius:9px; }
+  :scope .options .diagnosticReading strong { font-size:16px; }
+  :scope .options .diagnosticReading small { font-size:11px; color:var(--muted); }
+  :scope .options .diagnosticAiSummary .diagnosticQuickSites { display:grid; gap:0; }
+  :scope .options .diagnosticAiSummary .diagnosticQuickSite { display:flex; align-items:center; justify-content:flex-start; gap:10px; min-width:0; padding:7px 0; border:0; border-bottom:1px solid var(--line); border-radius:0; }
+  :scope .options .diagnosticAiSummary .diagnosticQuickSite strong { font-size:11px; overflow-wrap:anywhere; }
+  :scope .options .diagnosticAiSummary .diagnosticResult { display:block; font-size:10px; margin-top:4px; }
+  :scope .options .diagnosticSiteGlyph { display:grid; place-items:center; flex:none; width:24px; height:24px; border-radius:7px; background:var(--accentFill); color:var(--accent); font-weight:700; }
+  :scope .options .diagnosticOverviewShortcuts { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:16px; }
+  :scope .options .diagnosticOverviewShortcuts article { display:flex; align-items:center; gap:12px; border:1px solid var(--line); border-radius:11px; padding:18px; }
+  :scope .options .diagnosticOverviewShortcuts article > div { flex:1; min-width:0; }
+  :scope .options .diagnosticOverviewShortcuts h3 { margin:3px 0; font-size:14px; }
+  :scope .options .diagnosticOverviewShortcuts small, :scope .options .diagnosticOverviewShortcuts p { margin:0; color:var(--muted); font-size:11px; }
+  :scope .options .diagnosticShortcutGlyph { display:grid; place-items:center; width:36px; height:36px; border-radius:10px; background:var(--soft); color:var(--accent); font-size:23px; }
+  @media(max-width:850px) { :scope .options .diagnosticOverviewCards, :scope .options .diagnosticOverviewShortcuts { grid-template-columns:1fr; } }
+  :scope .options .proxyFavorite[aria-pressed="true"] { color:var(--accent); }
+  :scope .options .proxyFavorite[aria-pressed="true"] svg { fill:currentColor; }
+  :scope .options .generalPreferences > .hint { margin:0 0 18px; font-size:12px; }
+  :scope .options .diagnosticEvidenceDetails summary { cursor:pointer; border-top:1px solid var(--line); padding:16px 0; }
+  :scope .options .diagnosticEvidenceDetails > .hint { padding-bottom:8px; }
+  :scope .options .routeTester { background:var(--surface); }
+  :scope .options .routeTester .rulesModeHint { padding:0; margin-top:0; border:0; background:transparent; }
+  :scope .options .diagnosticAiSummary .diagnosticQuickSite:last-child { border-bottom:0; }
+}
+
+/* Sources-only PC list refinements; keep sidebar and other management routes unchanged. */
+@scope (.proxy-management) {
+  :scope .options .sourcesManagement .subscriptionListHeading { justify-content:space-between; }
+  :scope .options .sourcesManagement .subscriptionListHeading > div { flex:1; min-width:0; }
+  :scope .options .sourcesManagement .subscriptionListHeading > .countTag { flex:none; margin:0; }
+  :scope .options .sourcesManagement .subscriptionIndex { border-radius:0; }
+  :scope .options .sourcesManagement .subscriptionIndexRow { min-height:66px; gap:13px; padding:10px 8px; border-radius:0; }
+  :scope .options .sourcesManagement .subscriptionRowSymbol { width:34px; height:34px; border-radius:0; background:transparent; color:var(--ink); }
+  :scope .options .sourcesManagement .subscriptionRowSymbol svg { width:18px; height:18px; }
+  :scope .options .sourcesManagement .subscriptionRowMain { gap:4px; }
+  :scope .options .sourcesManagement .subscriptionRowTitle { display:flex; align-items:center; flex-wrap:wrap; gap:7px; min-width:0; }
+  :scope .options .sourcesManagement .subscriptionRowTitle .subscriptionRowStatus { padding:2px 6px; border-radius:5px; background:var(--soft); color:var(--muted); font-size:10px; line-height:1.5; }
+  :scope .options .sourcesManagement .sourceIntegrationHelp { background:var(--soft); }
+  :scope .options .sourcesManagement .sourceIntegrationHelp .sectionHeading { margin-bottom:4px; }
+  :scope .options .sourcesManagement .sourceIntegrationHelp > .hint { margin:0; }
+  :scope .options .sourcesManagement .sourceIntegrationNotice { margin:14px 0 0; padding:11px 13px; border:1px solid color-mix(in srgb,var(--accent) 15%,var(--line)); border-radius:9px; background:var(--accentFill); color:var(--accent); font-size:12px; line-height:1.6; }
+  :scope .options .sourcesManagement .sourceIntegrationHelp > .sourceHelp { margin-top:10px; padding:0; border:0; background:transparent; }
+  :scope .options .sourcesManagement .sourceIntegrationHelp details { margin:6px 0 0; padding:0; }
+  :scope .options .sourcesManagement .sourceIntegrationHelp details > summary { padding:2px 0; }
+}
+
+/* Final diagnostic-only PC refinements; sidebar presentation keeps its existing layout. */
+@scope (.proxy-management) {
+  :scope .options .diagnosticTabGlyph { margin-right:7px; font-size:13px; }
+  :scope .options .diagnosticOverviewManagement { gap:13px; }
+  :scope .options .diagnosticOverviewCards { grid-template-columns:minmax(0,1.13fr) minmax(0,1fr); gap:13px; }
+  :scope .options .diagnosticOverviewCards .diagnosticFeature { padding:19px; }
+  :scope .options .diagnosticOverviewCards h3 { font-size:16px; letter-spacing:-.2px; }
+  :scope .options .diagnosticCardHeading { display:flex; align-items:center; justify-content:space-between; gap:8px; flex-wrap:wrap; }
+  :scope .options .diagnosticCardHeading > small { color:var(--accent); font-size:11px; font-weight:600; }
+  :scope .options .diagnosticCornerBadge { padding:4px 9px; border:1px solid var(--line); border-radius:99px; background:var(--soft); color:var(--muted); font-size:11px; line-height:1.5; }
+  :scope .options .diagnosticReading { position:relative; padding-left:31px; }
+  :scope .options .diagnosticReading::before { content:""; position:absolute; left:13px; top:24px; width:7px; height:7px; border-radius:50%; background:var(--muted); }
+  :scope .options .diagnosticReading strong { font-size:14px; }
+  :scope .options .diagnosticAiSummary .diagnosticQuickSite { padding:6px 0; }
+  :scope .options .diagnosticAiSummary .diagnosticResult { margin-top:2px; line-height:1.5; }
+  :scope .options .diagnosticAiSummary .diagnosticResult .subtleTag { display:inline; padding:0; border:0; border-radius:0; background:transparent; color:var(--muted); font-size:11px; line-height:1.5; }
+  :scope .options .diagnosticSiteGlyph { width:30px; height:30px; border:1px solid var(--line); }
+  :scope .options .diagnosticOverviewShortcuts { gap:13px; }
+  :scope .options .diagnosticOverviewShortcuts article { padding:15px; border-radius:10px; }
+  :scope .options .diagnosticOverviewShortcuts small { color:var(--accent); font-weight:600; }
+  :scope .options .diagnosticShortcutGlyph { flex:none; width:42px; height:42px; border-radius:9px; background:var(--accentFill); font-size:21px; }
+  :scope .options .diagnosticEvidenceFootnote { margin:14px 0 10px; font-size:12px; line-height:1.5; }
+  :scope .options .diagnosticEvidenceDetails { margin-top:15px; padding:13px 15px; border:1px solid var(--line); border-radius:9px; background:var(--surface); }
+  :scope .options .diagnosticEvidenceDetails summary { display:flex; align-items:center; justify-content:space-between; gap:8px; padding:0; border:0; list-style:none; color:var(--ink); font-weight:600; }
+  :scope .options .diagnosticEvidenceDetails summary::-webkit-details-marker { display:none; }
+  :scope .options .diagnosticEvidenceDetails summary > span { flex:none; color:var(--accent); font-size:11px; font-weight:500; }
+  :scope .options .diagnosticEvidenceDetails > .hint { margin:10px 0 0; padding-bottom:0; }
+  @media(max-width:850px) { :scope .options .diagnosticOverviewCards { grid-template-columns:1fr; } }
 }

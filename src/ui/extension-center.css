@@ -89,10 +89,10 @@
 .ec-message{margin:8px 2px;color:var(--od-sub);font-size:var(--od-note-size);line-height:1.5}
 .ec-message:empty{display:none}
 .ec-message[data-state=error]{color:var(--od-negative)}.ec-message[data-state=success]{color:var(--od-positive)}
-.ec-detail-back{display:inline-grid;place-items:center;width:34px;min-width:34px;height:34px;min-height:34px;padding:0;border:0;border-radius:var(--radius-control);background:transparent;color:var(--od-accent-ink);cursor:pointer}
+.ec-detail-back{display:inline-grid;place-items:center;width:var(--ec-detail-back-size);min-width:var(--ec-detail-back-size);height:var(--ec-detail-back-size);min-height:var(--ec-detail-back-size);padding:0;border:0;border-radius:var(--radius-control);background:transparent;color:var(--od-accent-ink);cursor:pointer}
 .ec-detail-back:hover{background:var(--od-muted)}
 .ec-detail-back svg{width:18px;height:18px;fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
-.ec-detail-head{display:flex;align-items:center;gap:var(--space-2);min-height:52px;padding:0 0 var(--space-3) 44px;border-bottom:1px solid var(--od-line)}
+.ec-detail-head{display:flex;align-items:center;gap:var(--space-2);min-height:52px;padding:0 0 var(--space-3) calc(var(--ec-detail-back-size) + var(--space-2));border-bottom:1px solid var(--od-line)}
 .ec-detail-head strong{font-size:15px}
 .ec-detail-copy{min-width:0;display:grid;gap:4px}
 .ec-detail-copy>.ec-type{justify-self:start}
@@ -108,10 +108,19 @@
 .ec-detail-card p{margin:0}
 /* R6.9: One grid owns the vertical rhythm in the official React detail.
    The existing back control remains mounted for loading and error states. */
-#extension-center-detail{position:relative;min-width:0}
+/* Back and cards share the shell gutter; reserve the actual hit area plus one gap. */
+#extension-center-detail{--ec-detail-back-size:var(--od-icon-size);position:relative;min-width:0}
 #extension-center-detail-body{display:grid;gap:var(--space-3);min-width:0}
 #extension-center-detail .ec-detail-back{position:absolute;top:0;left:0;z-index:1}
 #extension-center-detail .ec-detail-head .ec-glyph{flex:none}
+/* Page apps share the compact title/action header used by installed tools. */
+#extension-center-detail .ec-detail-head--page{
+  flex:none;min-height:var(--ec-detail-back-size);padding:0 0 0 calc(var(--ec-detail-back-size) + var(--space-2));border:0;gap:var(--space-2)}
+#extension-center-detail .ec-detail-head--page .ec-detail-copy{flex:1}
+#extension-center-detail .ec-detail-head--page strong{
+  display:block;font-size:12px;font-weight:600;line-height:1.5;overflow-wrap:anywhere}
+#extension-center-detail .ec-detail-head--page .ec-detail-action{
+  width:var(--od-icon-size);height:var(--od-icon-size);min-width:var(--od-icon-size);min-height:var(--od-icon-size)}
 #extension-center-detail .ec-detail-description{margin:0;line-height:1.55}
 #extension-center-detail section.ec-detail-card{display:grid;align-content:start;gap:var(--space-2);min-width:0}
 #extension-center-detail section.ec-detail-card > *{min-width:0}
@@ -156,7 +165,10 @@
   .ec-row-actions{right:6px}
   .ec-more{right:0;max-width:calc(100vw - 20px)}
 }
-@media(pointer:coarse){.ec-name,.ec-detail-back,.ec-detail-actions button{min-height:44px;min-width:44px}}
+@media(pointer:coarse){
+  #extension-center-detail{--ec-detail-back-size:44px}
+  .ec-name,.ec-detail-actions button{min-height:44px;min-width:44px}
+}
 @media(prefers-reduced-motion:reduce){.ec-context-menu{scroll-behavior:auto}.ec-row-actions{transition:none}}
 @media(prefers-color-scheme:dark){.ec-more{box-shadow:0 12px 32px #0007}}
 
@@ -391,10 +403,6 @@
 .ec-page-control .ec-page-legacy{overflow-wrap:anywhere;color:var(--od-ink)}
 .ec-page-control-actions{display:flex;flex-wrap:wrap;gap:var(--space-2);margin:0}
 .ec-page-control-actions button{min-height:38px}
-.ec-page-management .ec-detail-actions{margin:0}
-.ec-page-management-head{display:flex;justify-content:space-between;align-items:baseline;gap:var(--space-2)}
-.ec-page-management-head h3{margin:0}
-.ec-page-version{font-size:var(--od-note-size);color:var(--od-sub);white-space:nowrap}
 .ec-page-sites .ec-sites{margin:0}
 .ec-detail-description{margin:0}
 .ec-page-release-block{overflow-wrap:anywhere}
@@ -431,13 +439,6 @@
   display:flex;flex:1;flex-direction:column;min-height:0;min-width:0;overflow:hidden}
 #extension-center-detail[data-scroll-app]>#extension-center-detail-body{gap:var(--space-4)}
 #extension-center-detail[data-scroll-app]>.ec-detail-back{top:0}
-#extension-center-detail[data-scroll-app] .ec-detail-head{
-  flex:none;min-height:34px;padding:0 0 0 42px;border:0;gap:var(--space-2)}
-#extension-center-detail[data-scroll-app] .ec-detail-copy{flex:1}
-#extension-center-detail[data-scroll-app] .ec-detail-head strong{
-  display:block;font-size:12px;font-weight:600;line-height:1.5;overflow-wrap:anywhere}
-#extension-center-detail[data-scroll-app] .ec-detail-head .ec-detail-action{
-  width:var(--od-icon-size);height:var(--od-icon-size);min-width:var(--od-icon-size);min-height:var(--od-icon-size)}
 .ec-scroll-site-manager{display:flex;flex:1;flex-direction:column;min-height:0;min-width:0}
 .ec-scroll-ai-feedback{margin:0;padding:0 var(--space-2);font-size:12px;overflow-wrap:anywhere}
 .ec-scroll-content{flex:1;min-height:0;min-width:0;overflow-y:auto;overscroll-behavior:contain;
@@ -530,9 +531,7 @@
   .ec-scroll-actionbar{align-items:stretch;flex-direction:column}
 }
 @media(pointer:coarse){
-  #extension-center-detail[data-scroll-app]>.ec-detail-back{width:44px;height:44px;min-width:44px;min-height:44px}
-  #extension-center-detail[data-scroll-app] .ec-detail-head{min-height:44px;padding-left:52px}
-  #extension-center-detail[data-scroll-app] .ec-detail-head .od-icon-button{width:44px;min-width:44px;height:44px;min-height:44px}
+  #extension-center-detail .ec-detail-head--page .od-icon-button{width:44px;min-width:44px;height:44px;min-height:44px}
   .ec-scroll-title .od-icon-button,.ec-scroll-row-actions .od-icon-button{width:44px;min-width:44px;height:44px;min-height:44px}
   .ec-scroll-selector>.ec-scroll-picker{width:44px;min-width:44px;height:44px;min-height:44px}
 }

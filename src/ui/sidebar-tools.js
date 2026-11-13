@@ -66,6 +66,7 @@ import {READING_TOC_SITE_STORE,READING_TOC_TOOL_ID,READING_TOC_PROTOCOL,TOC_CAPA
   disabledTocPages,changeTocPageAllowed} from '../../projects/reading-toc/trusted/policy.js';
 import {CLIP_SITE_STORE,CLIP_CAPABILITY,CLIP_PROTOCOL,CLIP_OPERATIONS,changeClipGrant} from '../../projects/web-markdown-clipper/trusted/policy.js';
 import {CLIP_NOTES_OPERATIONS,executeClipNotes} from '../../projects/web-markdown-clipper/trusted/notes-store.js';
+import {ensureClipPageConnection} from '../../projects/web-markdown-clipper/trusted/page-connection.js';
 import {installedSiteAllowed,blockedInstalledOrigins} from './sidebar-tools/site-grants.js';
 import {VIDEO_SPEED_ID,VIDEO_SPEED_CAPABILITY,VIDEO_SPEED_OPERATIONS,VIDEO_SPEED_GLOBAL_PROTOCOL,VIDEO_SPEED_GLOBAL_STORE,VIDEO_SPEED_GLOBAL_OPERATIONS,globalVideoSpeedState} from '../../projects/video-speed-controller/trusted/policy.js';
 import {requestVideoSpeed,notifyVideoSpeed} from '../../projects/video-speed-controller/trusted/host.js';
@@ -1254,6 +1255,8 @@ function createSidebarToolsController({api=globalThis.chrome,doc=globalThis.docu
     };
     try{
       await locked('tool:'+tool.id,authorize);
+      await ensureClipPageConnection({api,target:session.target,toolId:tool.id,installEpoch:epoch,
+        authorize:()=>locked('tool:'+tool.id,authorize)});
       assertCurrent();
       session.sent=true;
       // Deliberately outside the storage/lifecycle lock: cancel must reach the
@@ -4852,7 +4855,7 @@ function createSidebarToolsController({api=globalThis.chrome,doc=globalThis.docu
     }));
     render();notice(allow?'已恢复 '+origin+' 的目录':'已停用 '+origin+' 的目录');
   }
-  async function reviewCandidate(candidate,sourceLabel,release=null,selection=fileSelection,{deferConfirmation=false}={}){
+  async function reviewCandidate(candidate,sourceLabel,release=null,selection=fileSelection,{deferConfirmation=false,expectedInstallEpoch=undefined}={}){
     const runtimeIdentity=await assertSidebarToolRuntime(api);
     if(disposed||selection!==fileSelection)return;
     requireToolRuntime(candidate);
@@ -4872,6 +4875,8 @@ function createSidebarToolsController({api=globalThis.chrome,doc=globalThis.docu
     const current=toolById(candidate.id);
     if(Boolean(previous)!==Boolean(current)||(previous&&!samePackage(previous,current)))
       throw new Error('工具安装状态已变化，请重新选择安装包');
+    if(expectedInstallEpoch!==undefined&&(revocationEpochs[candidate.id]??null)!==expectedInstallEpoch)
+      throw Object.assign(new Error('应用已在其他窗口重新安装，请重新选择安装包核对。'),{code:'E_TOOL_CHANGED'});
     pending=candidate;pendingBaseline=previous?structuredClone(previous):null;
     pendingRelease=release;pendingOperationId=release?crypto.randomUUID():null;
     pendingSourceLabel=sourceLabel;pendingBaselineEpoch=revocationEpochs[candidate.id]??null;
@@ -5302,6 +5307,30 @@ function createSidebarToolsController({api=globalThis.chrome,doc=globalThis.docu
         // presentation cannot turn those installed bytes into an invalid file.
         refreshFailed=true;
         notice('安装已完成，但界面刷新失败：'+String(error?.message||error)+'。请重新打开扩展列表核对；无需重复安装。',true);
+      }else if(error?.code==='E_OUTCOME_UNKNOWN'&&!pendingRelease){
+        cleanupReview={kind:'outcome',candidate:pending,baseline:pendingBaseline,
+          baselineEpoch:pendingBaselineEpoch,expectedEpoch:error.installationEpoch,
+          sourceLabel:pendingSourceLabel,release:null,checking:false};
+        // Keep the reviewed bytes and filename, but consume approval before any
+        // readback. The next click only prepares a new review; it cannot install.
+        fileSelection++;pending=null;pendingBaseline=null;pendingRelease=null;pendingOperationId=null;
+        pendingSourceLabel=null;pendingBaselineEpoch=undefined;
+        setFileError();
+        patchToolField(view,updatePanel,{hidden:false});
+        patchToolField(view,updateVersions,{textContent:'安装包 v'+cleanupReview.candidate.version+' 已保留 · 安装结果待核对'});
+        patchToolField(view,updateImpact,{textContent:'原有数据保留。重新核对只读取当前状态并生成新的审阅，继续安装前需要重新确认。'});
+        patchToolField(view,updateWarning,{hidden:true});
+        patchToolField(view,pageInstallStatus,{hidden:false,textContent:
+          '安装结果尚未确认。安装包已保留，无需重新选择文件。点击「重新核对安装」检查当前状态；本次确认已结束，不会自动重试。'});
+        setToolFieldAttribute(view,pageInstallStatus,'data-state','outcome-unknown');
+        patchToolField(view,pageInstallReceipt,{hidden:false,open:false});
+        patchToolField(view,pageInstallReceiptText,{textContent:[error,error.cause].filter(Boolean)
+          .map(cause=>(cause.code||'E_TOOL_INSTALL')+'：'+String(cause.message||cause)).join('\n')});
+        patchToolField(view,installButton,{textContent:'重新核对安装'});
+        view.showToast('「'+cleanupReview.candidate.title+'」安装需要核对',{
+          type:'warning',caption:'安装包已保留。请点击「重新核对安装」；不会自动重试。',position:'bottom-center'});
+        try{await loadInstalled();}catch{/* Preserve the saved review when readback is unavailable. */}
+        return;
       }else if(['E_PAGE_CLEANUP_PENDING','E_TOOL_UNINSTALL_CLEANUP'].includes(error?.code)){
         const uninstall=error.code==='E_TOOL_UNINSTALL_CLEANUP';
         cleanupReview={kind:uninstall?'uninstall':'page',candidate:pending,sourceLabel:pendingSourceLabel,release:pendingRelease,checking:false};
@@ -5358,6 +5387,7 @@ function createSidebarToolsController({api=globalThis.chrome,doc=globalThis.docu
     const recovery=cleanupReview;
     if(disposed||busy||!recovery||recovery.checking||installButton.disabled)return;
     const uninstall=recovery.kind==='uninstall';
+    const outcome=recovery.kind==='outcome';
     if(uninstall&&!event?.isTrusted)return;
     const selection=++fileSelection;
     const current=()=>!disposed&&cleanupReview===recovery&&selection===fileSelection;
@@ -5381,13 +5411,25 @@ function createSidebarToolsController({api=globalThis.chrome,doc=globalThis.docu
         if(!await loadInstalled(current))throw new Error('安装状态在读取期间变化，请重新核对。');
         if(!current())return;
         if(toolById(recovery.candidate.id))throw changed();
+      }else if(outcome){
+        const installed=toolById(recovery.candidate.id),epoch=revocationEpochs[recovery.candidate.id]??null;
+        const committed=samePackage(installed,recovery.candidate)&&
+          recovery.expectedEpoch!==undefined&&epoch===recovery.expectedEpoch;
+        const unchanged=(recovery.baseline?samePackage(installed,recovery.baseline):!installed)&&
+          epoch===recovery.baselineEpoch;
+        if(!committed&&!unchanged)throw Object.assign(new Error(
+          '应用已在其他窗口更新、重新安装或卸载，请重新选择安装包核对。'),{code:'E_TOOL_CHANGED'});
       }else if(!samePackage(toolById(recovery.candidate.id),recovery.candidate))
         throw new Error('安装包已在其他窗口更新或卸载，请重新选择文件。');
-      await reviewCandidate(recovery.candidate,recovery.sourceLabel,recovery.release,selection);
+      const expectedInstallEpoch=outcome?(revocationEpochs[recovery.candidate.id]??null):undefined;
+      await reviewCandidate(recovery.candidate,recovery.sourceLabel,recovery.release,selection,{expectedInstallEpoch});
       if(!current())return;
       cleanupReview=null;
       patchToolField(view,pageInstallStatus,{hidden:false,textContent:uninstall?
         '卸载清理已核对。请重新审阅上方安装信息，再点击「确认安装」。':
+        outcome?(toolById(recovery.candidate.id)?'当前已保存 v'+toolById(recovery.candidate.id).version+'。':'当前未安装此应用。')+
+          (recovery.candidate.pageModule?'请重新审阅并确认核对网页模块；原安装请求未自动重试。':
+            '请核对上方安装信息；原安装请求未自动重试。'):
         '核对完成。请审阅上方安装信息，再确认继续安装。'});
       setToolFieldAttribute(view,pageInstallStatus,'data-state','pending-review');
     }catch(error){
@@ -5397,7 +5439,7 @@ function createSidebarToolsController({api=globalThis.chrome,doc=globalThis.docu
       patchToolField(view,pageInstallStatus,{hidden:false,textContent:(uninstall?'无法完成卸载清理：':'无法重新核对安装：')+String(error?.message||error)+
         ' 本次安装不会自动重试。'});
       patchToolField(view,installButton,{textContent:uninstall?'恢复卸载清理':'重新核对安装',
-        disabled:uninstall&&error?.code==='E_TOOL_CHANGED'});
+        disabled:(uninstall||outcome)&&error?.code==='E_TOOL_CHANGED'});
     }finally{
       recovery.checking=false;
     }
@@ -6172,6 +6214,7 @@ function createSidebarToolsController({api=globalThis.chrome,doc=globalThis.docu
       const priorCookiePage=previousCookiePage;
       if(nextPage===previousPage)return;
       previousPage=nextPage;
+      clearClipRegions();
       // Only Cookie Editor filters visual changes: the other tools retain
       // the existing page-changed contract. Document/Origin/tab fail closed.
       let cookieTransition=active?.id==='cookie-editor'&&isCookieTool(active)?
@@ -6211,7 +6254,6 @@ function createSidebarToolsController({api=globalThis.chrome,doc=globalThis.docu
       const requested=tocLanguageSelect.value;
       patchToolField(view,tocLanguageSelect,{disabled:true});
       void toolLocaleService.setToolLocale(tool.id,requested==='follow'?null:requested).then(()=>{
-      clearClipRegions();
         if(!disposed&&active===tool)notice(toolManagementText(localeController?.getLocale?.()||'zh-CN','languageSaved')+
           (languageNames[toolLocaleContext(tool).locale]||toolLocaleContext(tool).locale)+
           toolManagementText(localeController?.getLocale?.()||'zh-CN',requested==='follow'?'languageFollowScope':'languageToolScope'));

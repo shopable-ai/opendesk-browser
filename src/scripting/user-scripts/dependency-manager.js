@@ -688,7 +688,11 @@ export function createDependencyManager({api,storage,assertHost,fetchImpl=global
   async function readStoredPageCandidate(namespace,programId,revision,transaction) {
     ensure(typeof namespace==='string'&&namespace.length>0,'E_OWNER');
     const read=transaction?work=>work(transaction):work=>storage.transaction([DEPENDENCY_STORE],'readonly',work);
-    const row=await read(async tx=>clone(await pageRow(await tx.get(DEPENDENCY_STORE,pageKey(namespace,programId,revision)),namespace)));
+    // Hash/parse the captured bytes after our standalone read has completed:
+    // keeping that transaction alive would block unrelated Authority writes.
+    // A supplied transaction remains owned/awaited by its original caller.
+    const snapshot=await read(async tx=>clone(await tx.get(DEPENDENCY_STORE,pageKey(namespace,programId,revision))));
+    const row=await pageRow(snapshot,namespace);
     if(row.manifest.compilation){
       const c=row.manifest.compilation,request={sourceUtf8:row.authorSourceUtf8,entryFormat:'async-main',
         sourceFormat:c.sourceFormat,importSourceUrl:row.manifest.sourceProfile.importSourceUrl,lockId:c.dependencyLockId};

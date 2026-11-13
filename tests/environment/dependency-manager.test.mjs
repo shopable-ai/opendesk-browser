@@ -585,6 +585,47 @@ test('R7.1 frozen Page candidate preserves program-scoped lock through storage a
 });
 
 
+test('installed candidate verification releases its read snapshot while hashing and rejects later tampering',async t=>{
+  const f=fixture(),src=packagedSource(['@name Snapshot reader']),programId='snapshot-reader';
+  await f.manager.importPageCandidate({programId,revision:1,sourceUtf8:src,entryFormat:'async-main',lockId:null,
+    pageRules:{matches:['https://example.org/*'],excludeMatches:[],runAt:'document_idle',
+      allFrames:false,world:'USER_SCRIPT'}},{});
+  const candidateKey='page-candidate:'+JSON.stringify([ns,programId,1]);
+  let entered,release,armed=true;
+  let hashing=new Promise(resolve=>{entered=resolve;}),gate=new Promise(resolve=>{release=resolve;});
+  const digest=crypto.subtle.digest.bind(crypto.subtle);
+  t.mock.method(crypto.subtle,'digest',async(...args)=>{
+    if(armed){armed=false;entered();await gate;}
+    return digest(...args);
+  });
+  const pending=f.manager.readStoredPageCandidate(ns,programId,1);
+  await hashing;
+  let committed=false;
+  const write=f.storage.transaction(['frameworkKV'],'readwrite',async tx=>{
+    const row=await tx.get('frameworkKV',candidateKey);
+    await tx.put('frameworkKV',{...row,sourceUtf8:src+'\n// changed'},candidateKey);
+  }).then(()=>{committed=true;});
+  try{
+    await new Promise(resolve=>setImmediate(resolve));
+    assert.equal(committed,true,'a slow immutable-source hash must not retain the read transaction');
+  }finally{release();await write;await pending;}
+  assert.equal((await pending).candidate.sourceUtf8,src,'validate only the captured bytes');
+  await assert.rejects(f.manager.readStoredPageCandidate(ns,programId,1),failCode('E_HASH'));
+  f.change('frameworkKV',candidateKey,row=>({...row,sourceUtf8:src}));
+  armed=true;committed=false;
+  hashing=new Promise(resolve=>{entered=resolve;});gate=new Promise(resolve=>{release=resolve;});
+  const atomic=f.storage.transaction(['frameworkKV'],'readonly',tx=>
+    f.manager.readStoredPageCandidate(ns,programId,1,tx));
+  await hashing;
+  const afterAtomic=f.storage.transaction(['frameworkKV'],'readwrite',async tx=>{
+    await tx.put('frameworkKV',{tag:'fixture'},'unrelated-authority-write');
+  }).then(()=>{committed=true;});
+  try{
+    await new Promise(resolve=>setImmediate(resolve));
+    assert.equal(committed,false,'an explicit caller transaction retains its atomic boundary');
+  }finally{release();await atomic;await afterAtomic;}
+});
+
 test('R7.3 Controller Classic: program-scoped SHA locks reuse Page assets offline with no second fetch',async()=>{
   const f=fixture(),url='https://libraries.example.org/vendor@1.2.3/classic.js';
   const library='globalThis.fixtureClassic={mix:(a,b)=>a*10+b};';

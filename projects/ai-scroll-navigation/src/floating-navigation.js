@@ -1,7 +1,7 @@
 // One standalone conversation dock per installed Page Program.
 // Conversation top and floating top share one physical button.
 import {findSiteConversation} from './site-adapters.js';
-import {jumpConversationEdge,findConversationPages,currentConversationPageIndex,conversationPageTargetIndex,jumpConversationPage} from './conversation.js';
+import {jumpConversationEdge,jumpRegionTop,findConversationPages,currentConversationPageIndex,conversationPageTargetIndex,jumpConversationPage} from './conversation.js';
 import {scrollConfiguredEdge} from './site-configuration.js';
 
 const OWN='data-opendesk-ai-scroll-navigation';
@@ -100,6 +100,8 @@ export function installFloatingNavigation({doc,win,owner,resolveConversation=nul
   let disposed=false,pending=false,observedRoot=null,observer=null,host=null,buttons=null;
   let resizeObserver=null,resizeTargets=[];
   let binding=null,lastHref=win.location.href;
+  const pageHistory={snapshot:null};
+  let landing=null;
   const coarsePointer=win.matchMedia?.('(any-pointer: coarse)');
   const context=()=>typeof resolveConversation==='function'?resolveConversation():findSiteConversation(doc,win);
   const isCurrent=()=>!disposed&&binding&&host?.isConnected&&
@@ -113,6 +115,29 @@ export function installFloatingNavigation({doc,win,owner,resolveConversation=nul
       showTurnCount:flags.showTurnCount===true,
       topKey:floating&&flags.floatingTop!==false?'floatingTop':'conversationTop'};
   };
+  function settleLanding(next,key) {
+    if(next.site!=='chatgpt'||!key||!pageHistory.snapshot?.known.has(key))return;
+    const intent=landing={key,href:win.location.href,root:doc.documentElement,
+      main:next.main,scroller:next.scroller,
+      size:[next.scroller.clientWidth,next.scroller.clientHeight,win.innerWidth,win.innerHeight]};
+    // A virtual round mounts asynchronously and may restore its own scroll
+    // anchor after our first jump. Re-align to its verified live question,
+    // at most twice; never keep chasing after user input or a route change.
+    for(const delay of [180,600])owner.setTimeout(()=>{
+      if(disposed||landing!==intent)return;
+      const current=context();
+      if(win.location.href!==intent.href||doc.documentElement!==intent.root||
+          current?.main!==intent.main||current?.scroller!==intent.scroller||
+          [intent.scroller.clientWidth,intent.scroller.clientHeight,win.innerWidth,win.innerHeight]
+            .some((value,i)=>value!==intent.size[i])||
+          !enabled(current).paging){landing=null;return;}
+      const paging=findConversationPages(current,doc,win,pageHistory);
+      const page=paging?.pages.find(page=>page.target?.getAttribute('data-content-search-unit-key')===key);
+      if(page)jumpRegionTop({target:page.target,main:current.main,kind:'conversation'},doc,win);
+      if(delay===600)landing=null;
+      refresh();
+    },delay);
+  }
   function click(direction,event) {
     event.preventDefault();
     event.stopPropagation();
@@ -133,11 +158,15 @@ export function installFloatingNavigation({doc,win,owner,resolveConversation=nul
     const next=context();
     if (!next||next.main!==binding.main||next.scroller!==binding.scroller) return;
     const intent=enabled(next);
+    landing=null;
     if(direction==='previous'||direction==='next') {
       if(!intent.paging)return;
-      const paging=findConversationPages(next,doc,win);
+      const paging=findConversationPages(next,doc,win,pageHistory);
       if(!paging)return;
-      jumpConversationPage(paging,direction,doc,win);
+      const destination=conversationPageTargetIndex(paging,direction,doc,win);
+      const page=paging.pages[destination];
+      const key=page?.remembered?page.key:page?.target?.getAttribute('data-content-search-unit-key');
+      if(jumpConversationPage(paging,direction,doc,win))settleLanding(next,key);
     }else{
       if(!intent[direction])return;
       if(next.custom)scrollConfiguredEdge(next,direction,doc,win);
@@ -253,6 +282,7 @@ export function installFloatingNavigation({doc,win,owner,resolveConversation=nul
     // Old reply-local buttons do not own the global two-key dock.
     // Only a live former global floating control may block this surface.
     if (!next||legacyFloatingPresent(doc,win)) {
+      pageHistory.snapshot=null;
       host?.remove();binding=null;return;
     }
     // One visible dock across independently installed script instances, even
@@ -264,7 +294,8 @@ export function installFloatingNavigation({doc,win,owner,resolveConversation=nul
       host?.remove();binding=null;return;
     }
     const directions=enabled(next);
-    const paging=directions.paging?findConversationPages(next,doc,win):null;
+    const paging=directions.paging?findConversationPages(next,doc,win,pageHistory):null;
+    if(!directions.paging)pageHistory.snapshot=null;
     const currentPage=paging?currentConversationPageIndex(paging,doc,win):-1;
     const canPage=currentPage>=0;
     if(!directions.top&&!directions.bottom&&!directions.paging){host?.remove();binding=null;return;}
@@ -307,8 +338,8 @@ export function installFloatingNavigation({doc,win,owner,resolveConversation=nul
       if(directions.showTurnCount){
         buttons.counter.textContent=(currentPage+1)+'/'+paging.pages.length;
         buttons.counter.setAttribute('aria-label',
-          '当前第'+(currentPage+1)+'轮，共'+paging.pages.length+'轮已加载对话');
-        buttons.counter.title='仅统计当前已加载且可识别的用户提问';
+          '当前第'+(currentPage+1)+'轮，共'+paging.pages.length+'轮已识别对话');
+        buttons.counter.title='仅统计当前会话中已加载并验证的用户提问；屏外轮次暂时卸载后保留';
       }
     }
     const rect=next.main.getBoundingClientRect();
@@ -420,20 +451,25 @@ export function installFloatingNavigation({doc,win,owner,resolveConversation=nul
   function dispose() {
     if (disposed) return;
     disposed=true;observer?.disconnect();observer=null;resizeObserver?.disconnect();
+    landing=null;
+    pageHistory.snapshot=null;
     host?.remove();binding=null;
     if (sessions.get(doc)?.dispose===dispose) sessions.delete(doc);
   }
   owner.onDispose(dispose);
   owner.on(doc,'keydown',event=>{
+    if(['ArrowUp','ArrowDown','PageUp','PageDown','Home','End',' '].includes(event.key))landing=null;
     if(event.key==='Escape'&&buttons){
       buttons.stack.classList.add('hints-dismissed');
       for(const key of ['top','previous','next','bottom'])buttons[key].classList.remove('show-hint');
     }
   });
   owner.on(doc,'pointerdown',event=>{
+    if(!event.composedPath?.().includes(host))landing=null;
     if(buttons&&!event.composedPath?.().includes(host))
       for(const key of ['top','previous','next','bottom'])buttons[key].classList.remove('show-hint');
   },true);
+  for(const type of ['wheel','touchstart'])owner.on(doc,type,()=>{landing=null;},true);
   if(coarsePointer)owner.on(coarsePointer,'change',schedule);
   for (const type of ['popstate','hashchange','pageshow','resize','scroll'])
     owner.on(win,type,schedule,type==='scroll');

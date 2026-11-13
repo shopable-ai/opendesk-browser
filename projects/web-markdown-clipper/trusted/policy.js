@@ -5,6 +5,7 @@ import {websiteOrigin,grantedOrigins,installedSiteAllowed,changeInstalledSiteAcc
 // TOC site grants never implicitly grant article/selection body access.
 export const CLIP_SITE_STORE='opendesk.sidebar-tools.clip-sites.v1';
 export const CLIP_PROTOCOL='opendesk.page-clip.v1';
+export const CLIP_READY_OPERATION='clip.ready';
 export const CLIP_CAPABILITY='page.clip';
 export const CLIP_OPERATIONS=Object.freeze(['clip.article','clip.selection','clip.link','clip.region','clip.region.cancel']);
 export function clipGrantAllowed(installed,settings,id,url,enableRecords){

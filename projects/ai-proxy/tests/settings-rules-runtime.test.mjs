@@ -18,6 +18,7 @@ const backupValidation=await bundle('../src/ui/backupImport.ts');
 const {code}=await transform(await readFile(new URL('../src/Settings.tsx',import.meta.url),'utf8'),{loader:'tsx',format:'cjs',jsx:'automatic'});
 const existing={id:'keep-id',domain:'existing.example',includeSubdomains:false,priority:42,enabled:false,action:'direct'};
 function fixture({locale='en',OptionsPageHeader,headerNavigation=false,route='#/rules',gestureGate=false,presentation='sidebar'}={}){
+  const profileFavorites={ids:[],ready:true,busy:false,error:false,toggle:()=>{}};
   const values=[],refs=[],effects=[],drafts=new Map(),draftBases=new Map(),calls=[],focus=[],scroll=[],frames=[];
   let cursor=0,refCursor=0,effectCursor=0,tree,confirmResult=true,saveResult=true,revision=0,operationBusy=false,errorKey='';
   const config={...domain.freshConfig(),rules:[{...existing}],endpoints:[{id:'proxy',name:'Proxy',scheme:'https',host:'proxy.example',port:443}]};
@@ -48,6 +49,7 @@ function fixture({locale='en',OptionsPageHeader,headerNavigation=false,route='#/
       if(name==='react')return hooks;if(name==='react/jsx-runtime')return jsx;
       if(name==='@opendesk/ui')return {Button};
       if(name==='./environment')return {getEnvironment:()=>env};
+      if(name==='./ui/ProfileFavorites')return {useProfileFavorites:()=>profileFavorites};
       if(name==='./i18n/LocaleProvider')return {useI18n:()=>({t:(key,params)=>['ruleCount','apRuleEnabled','apRuleDisabled','editNamedRule','deleteNamedRule','confirmDeleteRule','apRuleExactScope','apRuleSubdomainScope'].includes(key)||(OptionsPageHeader&&key==='websiteRules2')?translate(locale,key,params):key,locale})};
       if(name==='./ui/ProxyEditor')return {ProxyEditor:({endpoint,onClose})=>React.createElement('section',{'data-proxy-editor':endpoint?.id??'new'},
         React.createElement('button',{onClick:()=>onClose(false)},'proxy-cancel'),React.createElement('button',{onClick:()=>onClose(true)},'proxy-save'))};

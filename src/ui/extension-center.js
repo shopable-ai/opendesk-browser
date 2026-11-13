@@ -126,10 +126,22 @@ export function createExtensionCenter({api,client,doc,sidebarTools,taskWorkbench
       receipt.managedCleanup.state==='retired'||receipt.cleanupPending===true&&
       receipt.managedCleanup.scope==='managed-ui-only'&&receipt.managedCleanup.state==='unknown');
   let lastMessage=null;
-  const message=(value='',state='info',origin='action')=>{
+  const message=(value='',state='info',origin='action',{hostNotified=false}={})=>{
+    if(disposed)return;
+    // App lifecycle receipts already notify through the trusted Host. Page
+    // receipts use that same viewport; neither leaves success below the list.
+    if(origin==='action'&&state==='success'&&typeof notify==='function'){
+      try{
+        if(!hostNotified)notify(typeof value==='function'?value():value,{
+          type:'success',position:'bottom-center',timeout:5000,pauseOnInteraction:false});
+        // A different operation's success must not erase a persistent error.
+        if(lastMessage?.state==='error')return;
+        statusOrigin='action';clearActionMessage();return;
+      }catch{/* Keep the visible inline fallback when notification is unavailable. */}
+    }
     lastMessage={value,state,origin};
     statusOrigin=origin;
-    if(!disposed)extensionList.renderStatus({text:typeof value==='function'?value():value,state});
+    extensionList.renderStatus({text:typeof value==='function'?value():value,state});
   };
   function clearActionMessage(){
     if(statusOrigin!=='action')return;
@@ -281,7 +293,7 @@ export function createExtensionCenter({api,client,doc,sidebarTools,taskWorkbench
               String(operationError?.message||operationError),'error');
             else if(outcome===true&&readback&&appStatusKnown&&current?.installed&&
               sameSidebarToolPackage(current.record,row.record)&&current.enabled===!row.enabled)
-              message(()=>t('appToggleConfirmed',{state:current.enabled?t('enableVerb'):t('disableVerb')}),'success');
+              message(()=>t('appToggleConfirmed',{state:current.enabled?t('enableVerb'):t('disableVerb')}),'success','action',{hostNotified:true});
             else if(outcome===false)
               message(()=>t('toggleDeferred'),'error');
             else message(()=>t('toggleUnconfirmed'),'error');
@@ -298,7 +310,10 @@ export function createExtensionCenter({api,client,doc,sidebarTools,taskWorkbench
     }else if(row.kind==='page'){
       if(row.stateKnown!==false)add(pageActionLabel(row.record.installed),
         event=>{void togglePage(row,event);},'toggle');
-      add(t('updateImport'),()=>{backIfNeeded();sidebarTools.openImport();},'update');
+      if(row.id!==SCROLL_CONFIG_PROGRAM_ID&&row.update&&row.release?.status==='available')
+        add(row.officialReview?t('reviewOfficialRelease'):t('reviewOfficialUpdate'),
+          ()=>openPageReview(row.key),'update');
+      else add(t('updateImport'),()=>{backIfNeeded();sidebarTools.openImport();},'update');
       add(t('goDevelop'),()=>{if(taskWorkbench.navigate('develop')!==false)backIfNeeded();},'develop');
     }
     add(t('viewAction'),()=>openDetail(key,'more'),'detail');
@@ -381,7 +396,7 @@ export function createExtensionCenter({api,client,doc,sidebarTools,taskWorkbench
         t('noAutoRetry'),'error');
       else if(outcome===true&&readback&&appStatusKnown&&!find(review.key)?.installed&&
         !pendingCleanups.has(review.id))
-        message(()=>t('uninstallComplete'),'success');
+        message(()=>t('uninstallComplete'),'success','action',{hostNotified:true});
       else if(readback&&appStatusKnown&&!find(review.key)?.installed&&pendingCleanups.has(review.id))
         message(()=>t('uninstallCleanupPending'),'error');
       else if(outcome===false)
@@ -561,7 +576,7 @@ export function createExtensionCenter({api,client,doc,sidebarTools,taskWorkbench
     const content=()=>t(key)+(error?errorText(error):'');
     let shown=false;
     if(typeof notify==='function'){
-      try{notify(content(),{type,position:'bottom-right'});shown=true;}catch{/* Keep inline fallback. */}
+      try{notify(content(),{type,position:'bottom-center'});shown=true;}catch{/* Keep inline fallback. */}
     }
     if(!shown||type==='error')message(content,type);
   }
@@ -858,11 +873,6 @@ export function createExtensionCenter({api,client,doc,sidebarTools,taskWorkbench
         if(row.stateKnown!==false&&!pageControl)
           add(pageActionLabel(row.record.installed),'toggle',
             event=>{void togglePage(row,event);});
-        if(row.id!==SCROLL_CONFIG_PROGRAM_ID){
-          if(row.update&&row.release?.status==='available')
-            add(row.officialReview?t('reviewOfficialRelease'):t('reviewOfficialUpdate'),'update',()=>openPageReview(row.key));
-          else add(t('updateImport'),'update',()=>{backIfNeeded();sidebarTools.openImport();});
-        }
         add(t('uninstallPageAction'),'uninstall',event=>openUninstallReview(row,event));
         if(!pageControl)
           add(t('goDevelop'),'develop',()=>{if(taskWorkbench.navigate('develop')!==false)backIfNeeded();});
@@ -1307,7 +1317,8 @@ export function createExtensionCenter({api,client,doc,sidebarTools,taskWorkbench
         message(()=>t('pageEnablePending'),'info');
       else if(!targetEnabled&&(current.record.installed.nativeState!=='disabled'||
         current.record.installed.authorization?.status!=='disabled'||
-        current.record.installed.error))
+        current.record.installed.error||current.record.installed.managedCleanup&&
+          current.record.installed.managedCleanup.state!=='retired'))
         message(()=>t('pageDisablePending'),'info');
       else message(()=>t('pageToggleConfirmed'),'success');
     }finally{busy=false;pendingKey=null;if(!disposed){draw();if(selectedKey)renderDetail();
@@ -1327,7 +1338,7 @@ export function createExtensionCenter({api,client,doc,sidebarTools,taskWorkbench
     if(operationError)message((operationError?.code||'E_TOOL_CLEANUP')+'：'+
       String(operationError?.message||operationError),'error');
     else if(outcome?.state==='cleaned'&&readback&&!find(row.key)?.cleanupPending)
-      message(()=>t('cleanupComplete'),'success');
+      message(()=>t('cleanupComplete'),'success','action',{hostNotified:true});
     else message(()=>t('cleanupUnconfirmed'),'error');
     draw();if(selectedKey)renderDetail();
   }

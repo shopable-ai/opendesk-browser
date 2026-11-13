@@ -204,7 +204,7 @@ async function clickSwitch(control){
 }
 async function openScrollManagement(page){
   await page.getByRole('button',{name:'导航设置',exact:true}).click();
-  await page.getByRole('button',{name:'权限与技术信息',exact:true}).click();
+  await page.getByRole('button',{name:'运行状态与诊断',exact:true}).click();
   await page.locator('.ec-scroll-site-manager[data-view="management"]').waitFor();
 }
 async function chooseListUninstall(page,key){

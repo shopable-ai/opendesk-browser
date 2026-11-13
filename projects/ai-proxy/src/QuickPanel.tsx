@@ -12,6 +12,7 @@ import { isValidProxyPort } from './domain/proxy-entry';
 import { ProxyEditor } from './ui/ProxyEditor';
 import { optionsUrl } from './ui/optionsRoute';
 import { RotationEntry } from './ui/RotationPlan';
+import {useStatusDisplay} from './ui/PcPreferences';
 import { ProxyIcon as SideIcon } from './ui/ProxyIcon';
 
 
@@ -21,6 +22,7 @@ const emptyLocal = { name:'', scheme:'http' as 'http' | 'socks5', port:'' };
 
 export default function App(_props:{headerNavigation?:boolean;settingsFallback?:boolean}={}) {
   const { t } = useI18n();
+  const statusDisplay=useStatusDisplay();
   const { state, error, busy, act, refresh, setError, setErrorKey } = useProxy();
   const modes: {mode:RouteMode;name:string;description:string}[] = [
     {mode:'profile',name:t('sideModeProfile'),description:t('yourOwnProxyOrLocalPac')},
@@ -459,6 +461,9 @@ export default function App(_props:{headerNavigation?:boolean;settingsFallback?:
     ? selected?.name||t('noProfileSelected') : modes.find(m=>m.mode===config.selection.mode)?.name||compactBrowserRoute;
   const preselected = !managing && !blocked && !state.runtime.outcomeUnknown && !state.runtime.statusErrorCode &&
     !state.runtime.proxyError && config.selection.mode==='profile' && Boolean(selected);
+  const knownControl=state.runtime.control==='controlled_by_this_extension'||state.runtime.control==='controllable_by_this_extension';
+  const strandedControl=!state.runtime.managedIntent&&state.runtime.control==='controlled_by_this_extension';
+  const RuntimeContainer=!statusDisplay.show&&knownControl&&!strandedControl&&!state.runtime.credentialRequired&&state.runtime.permission!==false&&!busy&&!blocked&&!error&&!state.runtime.pendingChanges&&!state.runtime.outcomeUnknown&&!state.runtime.statusErrorCode&&!state.runtime.proxyError&&!state.runtime.stopFinalizationPending&&!cannotEnable?'details':'section';
   return <main className="popup sidepanel r86Panel" data-ui-version="R18">
     <div className="r86Scroll" ref={mainScroll}>
       <section className="r86Section" data-r86-section="modes">
@@ -480,7 +485,8 @@ export default function App(_props:{headerNavigation?:boolean;settingsFallback?:
           </Button>)}
         </div>
       </section>
-      <section className="r86Section r86Runtime" data-r86-section="status" aria-label={t('browserStatus')}>
+      <RuntimeContainer className="r86Section r86Runtime" data-r86-section="status" aria-label={t('browserStatus')}>
+        {RuntimeContainer==='details'&&<summary>{t('browserStatus')}</summary>}
         <div className="r86StatusCard">
           <div className="r86StatusCopy">
             <Status status={state.runtime} compact quiet labelOverride={idleStatusLabel}/>
@@ -512,7 +518,7 @@ export default function App(_props:{headerNavigation?:boolean;settingsFallback?:
         {canApplyPending&&state.runtime.canStop&&<Button type="button" className="r86PendingPause"
           disabled={busy} onClick={()=>void act({type:'STOP'})}>{t('r83Pause')}</Button>}
         {error&&<p className="notice error" role="alert">{error}</p>}
-      </section>
+      </RuntimeContainer>
       {savedHint&&<p className="r86Notice" role="status">{t(savedHint==='selected'?'sideProxySavedNotApplied':'apProxySavedNotice')}</p>}
       <section className="r86Section" data-r86-section="proxies" aria-label={t('quickProxySelection')}>
         <div className="r86Head">

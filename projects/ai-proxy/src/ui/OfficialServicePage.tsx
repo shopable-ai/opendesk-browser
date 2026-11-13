@@ -12,10 +12,14 @@ function money(plan:OfficialPlan,language:string):string {
   const factor=10 ** (rule.resolvedOptions().maximumFractionDigits ?? 2);
   return rule.format(plan.priceMinor / factor);
 }
-export function OfficialServicePage({onBack,chromeApplied,embedded = false}:{
+export function OfficialServicePage({onBack,chromeApplied,embedded = false,presentation = 'sidebar'}:{
   onBack:()=>void; chromeApplied:boolean; embedded?:boolean;
+  presentation?:'sidebar'|'management';
 }) {
   const {t,locale}=useI18n();
+  const management=presentation==='management';
+  const [showAccountInfo,setShowAccountInfo]=useState(false);
+  const accountInfoId=React.useId();
   const [snapshot,setSnapshot]=useState<OfficialSnapshot|null>(null);
   const [busy,setBusy]=useState(false);
   const [failure,setFailure]=useState<OfficialFailure|null>(null);
@@ -76,12 +80,49 @@ export function OfficialServicePage({onBack,chromeApplied,embedded = false}:{
   const entitlement=state?.entitlement;
   const usable=entitlement?.state==='active'||entitlement?.state==='expiring';
   const enabled=!!state?.configured&&state.availability==='online'&&!busy;
-  return <section className="officialPage" aria-labelledby="official-title">
+  return <section className={`officialPage${management?' officialManagement':''}`} aria-labelledby="official-title">
     <OptionsPageHeader className="officialHero" titleId="official-title"
-      eyebrow={t('officialOptional')} title={t('officialNetwork')}
-      description={t('officialIntro')}
-      badge={state?.configured ? t('officialProviderConfigured') : undefined}/>
-    {state?.configured && <div className="officialStateGrid" aria-label={t('officialStatusOverview')}>
+      eyebrow={t(management?'settings':'officialOptional')} title={t('officialNetwork')}
+      description={management?t('officialManagementIntro'):t('officialIntro')}
+      badge={!management&&state?.configured ? t('officialProviderConfigured') : undefined}/>
+    {management && <div className="officialSection officialServicePanel">
+      <div className="officialSectionHead">
+        <div><h3>{t('officialHeading')}</h3>
+          <p className="hint">{t('officialManagementPanelIntro')}</p></div>
+        <span className="subtleTag">{t('officialOptional')}</span>
+      </div>
+      <div className="notice">
+        {state&&!state.configured&&<strong>{t('officialNotLaunched')}</strong>}
+        <p>{state?.configured?t('officialStateSeparation'):
+          state?t('officialNoProviderDesc'):failure?failures[failure]:t('officialLoading')}</p>
+      </div>
+      <div className="officialStateGrid officialManagementSummary" aria-label={t('officialStatusOverview')}>
+        <div><small>{t('officialAccount')}</small>
+          <strong>{!state?.configured?t('officialUnverified'):
+            state.auth==='signed-in'&&account?t('officialSignedIn'):
+            state.auth==='expired'?t('officialExpiredSession'):
+            state.auth==='unknown'?t('officialUnknown'):t('officialGuest')}</strong></div>
+        <div><small>{t('officialSubscription')}</small>
+          <strong>{state?.configured&&entitlement?
+            entitlementLabels[entitlement.state]:t('officialUnverified')}</strong></div>
+        <div><small>{t('officialAvailableLines')}</small>
+          <strong>{state?.configured&&state.availability==='online'&&state.auth==='signed-in'&&usable?
+            new Intl.NumberFormat(locale).format(state.lines.filter(line=>line.availability==='available').length):'—'}</strong></div>
+        <div><small>{t('officialConnectionPermission')}</small>
+          <strong>{state&&!state.configured?t('officialPermissionNotGranted'):t('officialUnverified')}</strong></div>
+      </div>
+      <div className="officialActions">
+        <Button aria-expanded={showAccountInfo} aria-controls={accountInfoId}
+          onClick={()=>setShowAccountInfo(value=>!value)}>{t('officialAccountInfo')}</Button>
+      </div>
+      {showAccountInfo && <div id={accountInfoId} className="officialAccountInfo">
+        <p>{t('officialLoginDesc')}</p>
+        <p>{t('officialPaymentSafety')}</p>
+        <p>{t('officialStateSeparation')}</p>
+        <p>{t('officialConnectDisabled')}</p>
+      </div>}
+    </div>}
+    {state?.configured && !management && <div className="officialStateGrid" aria-label={t('officialStatusOverview')}>
       <div><small>{t('officialAccount')}</small>
         <strong>{state?.auth==='signed-in'&&account?t('officialSignedIn'):
           state?.auth==='expired'?t('officialExpiredSession'):
@@ -91,9 +132,12 @@ export function OfficialServicePage({onBack,chromeApplied,embedded = false}:{
       <div><small>{t('officialBrowserControl')}</small>
         <strong>{chromeApplied?t('officialChromeHasRoute'):t('officialNoChromeRoute')}</strong></div>
     </div>}
+    {state?.configured && management && <p className="officialCaution">
+      {t('officialBrowserControl')} · {chromeApplied?t('officialChromeHasRoute'):t('officialNoChromeRoute')}
+    </p>}
     {state?.configured && <p className="officialCaution">{t('officialStateSeparation')}</p>}
     {!state && !failure && <p role="status">{t('officialLoading')}</p>}
-    {state && !state.configured && <div className="officialEmpty">
+    {state && !state.configured && !management && <div className="officialEmpty">
       <span className="officialEmptyIcon" aria-hidden="true"><OptionsNavIcon section="official"/></span>
       <h3>{t('officialNotLaunched')}</h3>
       <p>{t('officialNoProviderDesc')}</p>
@@ -188,7 +232,8 @@ export function OfficialServicePage({onBack,chromeApplied,embedded = false}:{
     {failure && <p className="notice error" role="alert">{failures[failure]}</p>}
     <div className="officialFooter">
       <p>{t('officialFreeUnaffected')}</p>
-      {state?.configured && !embedded && <Button onClick={onBack}>{t('officialReturnFree')}</Button>}
+      {state && (state.configured||management) && !embedded &&
+        <Button onClick={onBack}>{t('officialReturnFree')}</Button>}
     </div>
   </section>;
 }

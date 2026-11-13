@@ -115,7 +115,7 @@ if(serve){
         if(!['/','/ai-proxy-preview','/ai-proxy-content','/index.html'].includes(req.url?.split('?')[0]))return next();
         try{
           const params=new URL(req.url,'http://127.0.0.1').searchParams;
-          const scenario=['success','empty','permission-denied','conflict','error','revoked','sidebar-reference'].includes(params.get('scenario'))?params.get('scenario'):'success';
+          const scenario=['success','empty','permission-denied','conflict','error','revoked','sidebar-reference','pc-reference'].includes(params.get('scenario'))?params.get('scenario'):'success';
           const view=['quick','add','settings'].includes(params.get('view'))?params.get('view'):'quick';
           const {html,frameHtml}=await documentHtml({initial:{scenario,view},watch:true,script:'<script type="module" src="/projects/ai-proxy/preview/main.jsx"></script>'});
           res.setHeader('Content-Type','text/html; charset=utf-8');res.setHeader('Cache-Control','no-store');res.end(req.url.split('?')[0]==='/ai-proxy-content'?frameHtml:html);

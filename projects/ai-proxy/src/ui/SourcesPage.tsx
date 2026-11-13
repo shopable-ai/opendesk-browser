@@ -14,6 +14,7 @@ import type { OfficialSnapshot } from '../official/contracts';
 import { SubscriptionReader } from './SubscriptionReader';
 import { ClearableInput, LocalClientQuickPreset } from './ProxyEntry';
 import { isValidProxyPort } from '../domain/proxy-entry';
+import { ProxyIcon } from './ProxyIcon';
 
 interface Props {
   config: ConfigState;
@@ -314,12 +315,23 @@ export function SourcesPage({ config, configEtag, runtime, busy, act, setError, 
           </article>;
         })}</div>}
     </section></>;
-  const helpMarkup = <><details className="sourceHelp subscriptionCliDetails">
+  const cliGuidance = <>
+      <p>{t('subscriptionCliNotice')}</p>
+      <p className="subscriptionCliCommand"><code>node --experimental-strip-types scripts/probe-subscription.mjs --report /tmp/ai-proxy-subscription-report.json</code></p>
+    </>;
+  const helpMarkup = management ? <section className="listSection sourceIntegrationHelp">
+      <div className="sectionHeading"><h2>{t('protocolSupportAndIntegrationNotes')}</h2></div>
+      <p className="hint">{t('subscriptionMetadataNotice')}</p>
+      <p className="notice sourceIntegrationNotice">{t('subscriptionIntegrationNotice')}</p>
+      <details className="sourceHelp subscriptionProtocolDetails"><summary>{t('protocol')}</summary>
+        <p>{t('chromeSupportsHttpHttpsSocks4AndUnauthenticatedSocks5Proxies')}</p>
+      </details>
+      <details className="sourceHelp subscriptionCliDetails"><summary>CLI</summary>{cliGuidance}</details>
+    </section> : <><details className="sourceHelp subscriptionCliDetails">
       <summary>{t('protocolSupportAndIntegrationNotes')}</summary>
       <p>{t('chromeSupportsHttpHttpsSocks4AndUnauthenticatedSocks5Proxies')}</p>
       <p>{t('subscriptionIntegrationNotice')}</p>
-      <p>{t('subscriptionCliNotice')}</p>
-      <p className="subscriptionCliCommand"><code>node --experimental-strip-types scripts/probe-subscription.mjs --report /tmp/ai-proxy-subscription-report.json</code></p>
+      {cliGuidance}
       <div className="actions"><Button onClick={()=>navigate('profiles')}>{t('backToProxyProfiles')}</Button>
         <Button onClick={()=>navigate('diagnostic')}>{t('openNetworkDiagnostics')}</Button></div>
     </details></>;
@@ -414,6 +426,59 @@ export function SourcesPage({ config, configEtag, runtime, busy, act, setError, 
   </div>;
 
   const showSources = !management || area === 'sources';
+  const listHeading = <div className={management ? 'sectionHeading subscriptionListHeading' : 'subscriptionIndexHead'}>
+      <div><h2 ref={listTitle} tabIndex={-1}>{t(showSources ? management ? 'savedSubscriptionSources' : 'subscriptionListHeading' : 'localProxyClients')} {(!management || !showSources) && <span className="countTag">
+        {showSources ? subscriptionsCount + (verifiedOfficial ? 1 : 0) : locals.length}</span>}</h2>
+        <p className={management ? 'hint' : undefined}>{t(showSources ? management ? 'subscriptionDetailSafety' : 'subscriptionListDescription' : 'selectInThePopupUnderUseAProfileThen')}</p></div>
+      {management && showSources && <span className="countTag">{subscriptionsCount + (verifiedOfficial ? 1 : 0)}</span>}
+      {(!management || !showSources) && <Button variant="primary" className="primary" disabled={busy || (management && !!editor)}
+        ref={showSources ? subscriptionTrigger : localTrigger}
+        onClick={() => navigateSubscription({kind:showSources ? 'new' : 'local'})}>
+        {t(showSources ? 'recordSubscriptionSource' : 'addLocalClient')}</Button>}
+    </div>;
+  const subscriptionList = <section className="subscriptionIndex" aria-label={t(management ? 'savedSubscriptionSources' : 'subscriptionListHeading')}>
+      {verifiedOfficial && <Button className="subscriptionIndexRow" type="button" data-subscription-id="official"
+        onClick={() => navigateSubscription({kind:'official'})}
+        aria-label={t('subscriptionViewNamed',{name:t('officialNetwork')})}>
+        <span className="subscriptionRowSymbol" aria-hidden="true"><SourceIcon kind="overview"/></span>
+        <span className="subscriptionRowMain"><strong>{t('officialNetwork')}</strong>
+          <small>{t('subscriptionOfficialType')} · {verifiedOfficial.planName ?? t('officialSubscription')}</small></span>
+        <span className="subscriptionRowStatus">{t(verifiedOfficial.state === 'active'
+          ? 'officialEntitlementActive' : verifiedOfficial.state === 'expiring'
+          ? 'officialEntitlementExpiring' : verifiedOfficial.state === 'expired'
+          ? 'officialEntitlementExpired' : verifiedOfficial.state === 'revoked'
+          ? 'officialEntitlementRevoked' : 'officialEntitlementUnknown')}</span>
+        <span className="subscriptionRowArrow" aria-hidden="true">›</span>
+      </Button>}
+      {subscriptions.map(source => management ? <article className="subscriptionIndexRow" key={source.id}>
+        <span className="subscriptionRowSymbol" aria-hidden="true"><ProxyIcon name="link"/></span>
+        <div className="subscriptionRowMain"><div className="subscriptionRowTitle"><strong>{publicName(source.displayName)}</strong>
+          <span className="subscriptionRowStatus">{t('notSynced')}</span></div>
+          <small>{source.originHost}</small></div>
+        <div className="recordActions" role="group" aria-label={publicName(source.displayName)}>
+          <Button type="button" className="proxyIconButton" data-subscription-id={source.id} disabled={busy}
+            title={t('subscriptionViewNamed',{name:publicName(source.displayName)})}
+            aria-label={t('subscriptionViewNamed',{name:publicName(source.displayName)})}
+            onClick={() => navigateSubscription({kind:'source',id:source.id})}><ProxyIcon name="open"/></Button>
+          <Button type="button" className="proxyIconButton quietDanger" disabled={busy || config.managed}
+            title={t('delete')+' · '+publicName(source.displayName)}
+            aria-label={t('delete')+' · '+publicName(source.displayName)}
+            onClick={() => void deleteSource(source.id,publicName(source.displayName))}><ProxyIcon name="trash"/></Button>
+        </div>
+      </article> : <Button type="button" key={source.id}
+        data-subscription-id={source.id} className="subscriptionIndexRow"
+        onClick={() => navigateSubscription({kind:'source',id:source.id})}
+        aria-label={t('subscriptionViewNamed',{name:publicName(source.displayName)})}>
+        <span className="subscriptionRowSymbol" aria-hidden="true"><SourceIcon kind="subscription"/></span>
+        <span className="subscriptionRowMain"><strong>{publicName(source.displayName)}</strong>
+          <small>{t('subscriptionThirdPartyType')} · {source.originHost}</small></span>
+        <span className="subscriptionRowStatus">{t('notSynced')}</span>
+        <span className="subscriptionRowArrow" aria-hidden="true">›</span>
+      </Button>)}
+      {!subscriptionsCount && !verifiedOfficial && <div className="sourceEmpty subscriptionIndexEmpty">
+        <p>{t('subscriptionEmptyNotice')}</p>
+      </div>}
+    </section>;
   return <div className={'sourcesPage subscriptionIndexPage' + (management ? ' sourcesManagement' : '')}>
     {management && <div className="sourcesManagementTabs" role="tablist" aria-label={t('subscriptionSourcesAndLocalClients')}>
       {(['sources','local'] as const).map(id => <Button key={id} type="button" role="tab"
@@ -431,56 +496,18 @@ export function SourcesPage({ config, configEtag, runtime, busy, act, setError, 
     </div>}
     <div id={management ? 'sources-management-panel' : undefined} role={management ? 'tabpanel' : undefined}
       aria-labelledby={management ? 'sources-tab-' + area : undefined} tabIndex={management ? 0 : undefined}>
-
-    <div className="subscriptionIndexHead">
-      <div><h2 ref={listTitle} tabIndex={-1}>{t(showSources ? 'subscriptionListHeading' : 'localProxyClients')} <span className="countTag">
-        {showSources ? subscriptionsCount + (verifiedOfficial ? 1 : 0) : locals.length}</span></h2>
-        <p>{t(showSources ? 'subscriptionListDescription' : 'selectInThePopupUnderUseAProfileThen')}</p></div>
-      <Button variant="primary" className="primary" disabled={busy || (management && !!editor)}
-        ref={showSources ? subscriptionTrigger : localTrigger}
-        onClick={() => navigateSubscription({kind:showSources ? 'new' : 'local'})}>
-        {t(showSources ? 'recordSubscriptionSource' : 'addLocalClient')}</Button>
-    </div>
-    {editorMarkup}
-    {showSources && <><section className="subscriptionIndex" aria-label={t('subscriptionListHeading')}>
-      {verifiedOfficial && <Button className="subscriptionIndexRow" type="button" data-subscription-id="official"
-        onClick={() => navigateSubscription({kind:'official'})}
-        aria-label={t('subscriptionViewNamed',{name:t('officialNetwork')})}>
-        <span className="subscriptionRowSymbol" aria-hidden="true"><SourceIcon kind="overview"/></span>
-        <span className="subscriptionRowMain"><strong>{t('officialNetwork')}</strong>
-          <small>{t('subscriptionOfficialType')} · {verifiedOfficial.planName ?? t('officialSubscription')}</small></span>
-        <span className="subscriptionRowStatus">{t(verifiedOfficial.state === 'active'
-          ? 'officialEntitlementActive' : verifiedOfficial.state === 'expiring'
-          ? 'officialEntitlementExpiring' : verifiedOfficial.state === 'expired'
-          ? 'officialEntitlementExpired' : verifiedOfficial.state === 'revoked'
-          ? 'officialEntitlementRevoked' : 'officialEntitlementUnknown')}</span>
-        <span className="subscriptionRowArrow" aria-hidden="true">›</span>
-      </Button>}
-      {subscriptions.map(source => <Button type="button" key={source.id}
-        data-subscription-id={source.id} className="subscriptionIndexRow"
-        onClick={() => navigateSubscription({kind:'source',id:source.id})}
-        aria-label={t('subscriptionViewNamed',{name:publicName(source.displayName)})}>
-        <span className="subscriptionRowSymbol" aria-hidden="true"><SourceIcon kind="subscription"/></span>
-        <span className="subscriptionRowMain"><strong>{publicName(source.displayName)}</strong>
-          <small>{t('subscriptionThirdPartyType')} · {source.originHost}</small></span>
-        <span className="subscriptionRowStatus">{t('notSynced')}</span>
-        <span className="subscriptionRowArrow" aria-hidden="true">›</span>
-      </Button>)}
-      {!subscriptionsCount && !verifiedOfficial && <div className="sourceEmpty subscriptionIndexEmpty">
-        <p>{t('subscriptionEmptyNotice')}</p>
-      </div>}
-    </section>
-    <section className="subscriptionOtherAccess">
-      {!management && <div><h3>{t('subscriptionOtherAccess')}</h3>
-        <p>{t('subscriptionOtherAccessDescription')}</p></div>}
+    {management && showSources ? <section className="listSection">{listHeading}{editorMarkup}{subscriptionList}</section>
+      : <>{listHeading}{editorMarkup}{showSources && subscriptionList}</>}
+    {showSources && !management && <section className="subscriptionOtherAccess">
+      <div><h3>{t('subscriptionOtherAccess')}</h3>
+        <p>{t('subscriptionOtherAccessDescription')}</p></div>
       <div className="subscriptionOtherActions">
         <Button type="button" onClick={() => navigateSubscription({kind:'official'})}>
           {t('subscriptionOfficialEntry')}</Button>
-        {!management && <Button type="button" onClick={() => navigateSubscription({kind:'local'})}>
-          {t('addLocalClient')}</Button>}
+        <Button type="button" onClick={() => navigateSubscription({kind:'local'})}>
+          {t('addLocalClient')}</Button>
       </div>
-    </section>
-    </>}
+    </section>}
     {management && !showSources && localListMarkup}
     {!management && !!locals.length && <details className="subscriptionLocalDetails">
       <summary>{t('savedLocalClients')} · {locals.length}</summary>

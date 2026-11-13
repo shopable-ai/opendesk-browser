@@ -680,7 +680,8 @@ export async function installReviewedSidebarTool({api,lockManager,candidate,base
         // approval even when the native/storage receipt was lost.
         if(repairAttempted||journalStarted){
           if(journalStarted)try{await writeJournal('outcome-unknown');}catch{/* Preserve uncertain writes. */}
-          throw unknownStorageOutcome(cause,'应用安装回执');
+          throw Object.assign(unknownStorageOutcome(cause,'应用安装回执'),{
+            installationEpoch:epochs[tool.id]??null});
         }
         throw cause;
       }
@@ -928,8 +929,9 @@ export async function installReviewedSidebarTool({api,lockManager,candidate,base
       // A successful registry write followed by a metadata/ack failure is
       // neither a rollback nor a second invitation to consume user approval.
       try{await writeOp('outcome-unknown',cause?.code||'write-uncertain');}catch{}
-      if(['E_OUTCOME_UNKNOWN','E_PAGE_CLEANUP_PENDING'].includes(cause?.code))throw cause;
-      throw unknownStorageOutcome(cause,'工具安装');
+      if(cause?.code==='E_PAGE_CLEANUP_PENDING')throw cause;
+      const outcome=cause?.code==='E_OUTCOME_UNKNOWN'?cause:unknownStorageOutcome(cause,'工具安装');
+      throw Object.assign(outcome,{installationEpoch:nextEpoch});
     }
   }));
 }

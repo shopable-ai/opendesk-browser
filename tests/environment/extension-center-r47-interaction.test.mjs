@@ -161,7 +161,7 @@ test('old Page diagnostics remain accessible in details without inflating instal
   const disclosure=f.doc.querySelector('.ec-page-cleanup');
   assert.ok(disclosure,'installed detail owns a persistent recovery entry');
   assert.equal(disclosure.hasAttribute('open'),false);
-  assert.equal(disclosure.querySelector('summary').textContent,'旧页面切换待核对');
+  assert.equal(disclosure.querySelector('summary').textContent,'网页更新与恢复');
   assert.match(disclosure.textContent,/保存.*草稿.*刷新/);
   assert.equal(disclosure.querySelectorAll('.ec-page-cleanup-documents li').length,1,
     'duplicate document references do not become duplicate page rows');
@@ -262,7 +262,7 @@ test('extension toolbar shop keeps Host feedback intact when opening a configure
   }else{
     assert.deepEqual(notices,[{
       message:'官方扩展商店尚未上线。',
-      options:{type:'info',position:'bottom-right'}
+      options:{type:'info',position:'bottom-center'}
     }]);
     assert.deepEqual(f.invocations.filter(row=>row[0]==='market'),[]);
   }
@@ -362,6 +362,103 @@ test('R5.5 Page uninstall confirmation cancels without writes then deletes only 
   assert.equal(f.programs.length,0);
   assert.equal(f.button('page:reader','main'),undefined);
   assert.deepEqual(f.writes,[],'uninstall never toggles an unrelated grant');
+});
+
+test('Page uninstall notifies once after readback without leaving a success region in the list',async t=>{
+  const sources=JSON.parse(await readFile('official-pages/sources.json','utf8'));
+  const catalogs=[JSON.stringify({schema:'opendesk.official-tools.releases.v1',
+    sourceRepository:sources.sourceRepository,apps:[{id:'opendesk/'+app.id,toolId:app.id,
+      kind:'sidebar-tool',installationPolicy:'optional',version:app.version,
+      packageTitle:app.title,description:app.description,capabilities:app.capabilities,
+      packagePath:'official-tools/'+app.id+'/'+app.id+'.opendesk-tool.json',
+      bytes:100,sha256:'c'.repeat(64)}]}),JSON.stringify({
+    schema:'opendesk.official-pages.releases.v1',sourceRepository:sources.sourceRepository,
+    apps:sources.programs.map(({project,packageFile,publication,...row})=>
+      ({...row,kind:'page-program',status:'blocked'}))})];
+  t.mock.method(globalThis,'fetch',async url=>String(url).startsWith('https:')?
+    new Response('offline',{status:404}):new Response(catalogs[String(url).includes('official-pages')?1:0]));
+  const notices=[];
+  const f=fixture(t,{notify:(message,options)=>notices.push({message,options})});
+  await f.ui.refresh();await settle(()=>f.state.statusModel.text==='');
+  openMenuUninstall(f,'page:reader');
+  f.doc.querySelector('[data-uninstall-cancel]').dispatch('click');
+  assert.deepEqual(notices,[],'cancellation cannot report success');
+  openMenuUninstall(f,'page:reader');
+  f.doc.querySelector('.od-uninstall-confirm').dispatch('click');
+  await settle(()=>f.uninstalls.length===1&&!f.state.uninstallModel);
+  assert.equal(f.programs.length,0);
+  assert.equal(notices.length,1);
+  assert.match(notices[0].message,/持久安装列表确认卸载/);
+  assert.deepEqual(notices[0].options,{type:'success',position:'bottom-center',
+    timeout:5000,pauseOnInteraction:false});
+  assert.notEqual(f.state.statusModel.state,'success');
+  assert.doesNotMatch(f.nodes['extension-center-status'].textContent,/持久安装列表确认卸载/);
+  assert.equal(f.nodes['extension-center-status'].hidden,true,'a clean receipt needs no separate status region');
+  await f.ui.refresh();
+  assert.equal(notices.length,1,'passive refresh must not repeat the receipt');
+});
+
+test('unavailable notification retains a visible receipt before the list',async t=>{
+  const f=fixture(t,{notify:()=>{throw Error('notification unavailable');}});
+  await f.ui.refresh();
+  openMenuUninstall(f,'page:reader');f.doc.querySelector('.od-uninstall-confirm').dispatch('click');
+  await settle(()=>f.uninstalls.length===1&&!f.state.uninstallModel);
+  assert.equal(f.state.statusModel.state,'success');
+  assert.equal(f.nodes['extension-center-status'].hidden,false);
+  assert.equal(f.nodes['extension-center-status'].parentElement.firstElementChild,
+    f.nodes['extension-center-status']);
+});
+
+for(const mode of ['ack-only','cleanup-pending','outcome-unknown'])
+test('Page uninstall '+mode+' keeps its unresolved record and never emits success',async t=>{
+  const notices=[];
+  const f=fixture(t,{notify:(message,options)=>notices.push({message,options})});
+  await f.ui.refresh();f.setPageUninstallMode(mode);
+  openMenuUninstall(f,'page:reader');
+  f.doc.querySelector('.od-uninstall-confirm').dispatch('click');
+  await settle(()=>f.uninstalls.length===1&&!f.state.uninstallModel);
+  assert.deepEqual(notices,[]);
+  assert.equal(f.nodes['extension-center-status'].hidden,false);
+  assert.match(f.nodes['extension-center-status'].textContent,/未得到完整确认|清理尚未确认|E_EFFECT_UNKNOWN/);
+  assert.equal(f.nodes['extension-center-status'].parentElement.firstElementChild,
+    f.nodes['extension-center-status'],'persistent recovery information precedes the long list');
+  assert.equal(f.uninstalls.length,1,'an uncertain result cannot replay removal');
+});
+
+test('Page success notification retains an unrelated installation read error',async t=>{
+  const notices=[];
+  const f=fixture(t,{notify:(message,options)=>notices.push({message,options})});
+  await f.ui.refresh();f.setCorrupt(true);await f.ui.refresh();
+  const error={...f.state.statusModel};
+  f.button('page:reader','main').dispatch('click');
+  f.state.detailModel.pageControl.onToggle(false,{isTrusted:true});
+  await settle(()=>f.writes.length===1&&!f.state.detailModel.busy);
+  assert.equal(notices.length,1);assert.equal(notices[0].options.type,'success');
+  assert.deepEqual(f.state.statusModel,error,'success and closing its Toast cannot clear the persistent cause');
+  assert.equal(f.nodes['extension-center-status'].hidden,false);
+});
+
+test('app receipts reuse Host notifications without duplicating them or leaving inline success',async t=>{
+  const notices=[];
+  const notify=(message,options)=>notices.push({message,options});
+  const f=fixture(t,{notify});await f.ui.refresh();
+  const toggle=f.sidebarTools.toggleEnabled;
+  f.sidebarTools.toggleEnabled=async(...args)=>{
+    const result=await toggle(...args);notify('Host toggle',{type:'success'});return result;
+  };
+  f.button('app:quick-notes','more').dispatch('click');f.menuItem('停用').dispatch('click');
+  await settle(()=>f.store.get(SIDEBAR_TOOL_ENABLE_STORE)[app.id]===false&&!f.state.rowsModel.pendingKey);
+  assert.deepEqual(notices.map(row=>row.message),['Host toggle']);
+  assert.notEqual(f.state.statusModel.state,'success');
+  assert.doesNotMatch(f.nodes['extension-center-status'].textContent,/本机安装记录确认应用停用/);
+  f.sidebarTools.uninstallFromList=async()=>{
+    f.store.set(SIDEBAR_TOOL_STORE,[]);notify('Host uninstall',{type:'success'});return true;
+  };
+  openMenuUninstall(f,'app:quick-notes');f.doc.querySelector('.od-uninstall-confirm').dispatch('click');
+  await settle(()=>!f.state.uninstallModel);
+  assert.deepEqual(notices.map(row=>row.message),['Host toggle','Host uninstall']);
+  assert.notEqual(f.state.statusModel.state,'success');
+  assert.doesNotMatch(f.nodes['extension-center-status'].textContent,/数据与授权清理已完成/);
 });
 
 test('R5.11 overflow uninstall distinguishes same-name apps and restores focus after cancellation',async t=>{
@@ -1131,7 +1228,7 @@ test('R1.5 successful Page uninstall is confirmed while its official candidate r
   f.button('page:'+row.programId,'main').dispatch('click');
   assert.ok(f.state.detailModel.pageControl.officialBlock,'the real catalog candidate is loaded');
   f.doc.getElementById('scroll-settings').dispatch('click');
-  [...f.doc.querySelectorAll('button')].find(b=>b.textContent==='权限与技术信息').dispatch('click');
+  f.doc.querySelector('#scroll-management').dispatch('click');
   await settle(()=>{const action=f.doc.querySelector('[data-ec-detail-action="uninstall"]');return action&&!action.disabled;});
   f.doc.querySelector('[data-ec-detail-action="uninstall"]').dispatch('click');
   f.doc.querySelector('.od-uninstall-confirm').dispatch('click');

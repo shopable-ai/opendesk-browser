@@ -1,0 +1,65 @@
+{
+  "workflow": "native goal; independent visual verdict (no OMX runtime activation)",
+  "candidate": "15421ff99479ad53e4edd6614485c5a4fc40a579f428ef74d4618fa86a6fd35b",
+  "reference": "277ff8df72970906370507e9d7448da3ba583cb293536cae874c1a034080a977",
+  "round": 2,
+  "reviewer": "Hume",
+  "scores": {
+    "profiles": [
+      94,
+      97,
+      95,
+      95
+    ],
+    "rules": [
+      92,
+      97,
+      94,
+      95
+    ],
+    "subscriptions": [
+      94,
+      96,
+      96,
+      95
+    ],
+    "backup": [
+      94,
+      98,
+      97,
+      97
+    ],
+    "diagnostic": [
+      89,
+      96,
+      95,
+      94
+    ],
+    "general": [
+      94,
+      98,
+      96,
+      97
+    ],
+    "official": [
+      94,
+      98,
+      97,
+      96
+    ]
+  },
+  "dimensions": [
+    "layout",
+    "controls",
+    "visible text/interaction cues",
+    "visual consistency"
+  ],
+  "verdict": "REVISE",
+  "remaining": [
+    "650px short-page layout minimum",
+    "rules table/default compact spacing and scope note",
+    "diagnostic cards up43px/leftcard wider"
+  ],
+  "ownership": "Sources self-review; cross-score pending",
+  "native": "NOT_TESTED"
+}

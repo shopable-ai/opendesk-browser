@@ -3427,14 +3427,14 @@ async function compoundToolFixture(){
     requires:{browserSdk:'1.0.0'},contributes:{contextMenus:[]},pageModule:{...page,packageHash:await digest(page)}};
 }
 
-async function pendingCompoundImport(t,{official=false,nativeRevoked=false,uninstallPending=false}={}){
+async function pendingCompoundImport(t,{official=false,nativeRevoked=false,uninstallPending=false,importError=null}={}){
   const tool=await compoundToolFixture(),calls=[],writes=[];
   const bytes=serializeSidebarToolPackage(tool),release={id:'opendesk/'+tool.id,toolId:tool.id,
     kind:'sidebar-tool',installationPolicy:'optional',version:tool.version,packageTitle:tool.title,
     description:tool.description,capabilities:tool.capabilities,
     packagePath:'official-tools/'+tool.id+'/'+tool.id+'.opendesk-tool.json',
     bytes:Buffer.byteLength(bytes),sha256:await sidebarToolPackageHash(tool)};
-  let cleanupPending=true,permissionRequests=0,importFailure=null,foreignReceipt=false;
+  let cleanupPending=true,permissionRequests=0,importFailure=importError,foreignReceipt=false;
   const store=uninstallPending?new Map([[SIDEBAR_TOOL_STORE,[]],
     [TOOL_CLEANUP_STORE,{[tool.id]:{version:tool.version,createdAt:1,pageModule:true}}],
     [sidebarToolStorageKey(tool.id),{memo:'previous installation data'}]]):new Map();
@@ -3476,9 +3476,97 @@ async function pendingCompoundImport(t,{official=false,nativeRevoked=false,unins
     (!f.elements['sidebar-tool-file-error'].hidden||!f.elements['page-install-import-status'].hidden||
       f.view.getSnapshot().toasts.some(row=>row.type==='success')));
   return {...f,tool,release,calls,writes,finishCleanup(){cleanupPending=false;},
+    finishImport(){importFailure=null;foreignReceipt=false;},
     failImport(foreign){foreignReceipt=foreign;if(!foreign)importFailure=Object.assign(Error('receipt lost'),{code:'E_EFFECT_UNKNOWN'});},
     permissions:()=>permissionRequests};
 }
+
+test('local compound unknown outcome retains the package and reason, then rechecks without replay',async t=>{
+  const f=await pendingCompoundImport(t,{nativeRevoked:true,
+    importError:Object.assign(Error('Companion native registration unverified'),{code:'E_PAGE_INSTALLATION'})});
+  const status=f.elements['page-install-import-status'];
+  assert.equal(f.view.fields['page-install-import-status'].attributes['data-state'],'outcome-unknown');
+  assert.equal(f.elements['sidebar-tool-file-error'].hidden,true,'an installation failure is not an invalid file');
+  assert.equal(f.elements['sidebar-tool-preview'].hidden,false);
+  assert.notEqual(f.elements['sidebar-tool-file'].value,'');
+  assert.match(status.textContent,/安装.*核对/);
+  assert.doesNotMatch(status.textContent,/本机事务记录/);
+  assert.match(f.elements['page-install-import-receipt-text'].textContent,/E_PAGE_INSTALLATION.*Companion native registration unverified/);
+  assert.equal(f.elements['sidebar-tool-install'].textContent,'重新核对安装');
+  const writes=f.writes.length,imports=()=>f.calls.filter(([type])=>type==='importAppPage').length;
+  assert.equal(imports(),1);
+  f.finishCleanup();f.finishImport();
+  f.emit(f.elements['sidebar-tool-install'],'click',{isTrusted:true});
+  f.emit(f.elements['sidebar-tool-install'],'click',{isTrusted:true});
+  await settle(()=>f.elements['sidebar-tool-install'].textContent==='核对并恢复网页模块');
+  assert.equal(f.writes.length,writes,'recheck cannot write');
+  assert.equal(imports(),1,'recheck cannot repeat import');
+  assert.match(status.textContent,/当前已保存 v1.0.0/);
+  f.emit(f.elements['sidebar-tool-install'],'click',{isTrusted:true});
+  await settle(()=>f.view.getSnapshot().toasts.some(row=>row.type==='success'));
+  assert.equal(imports(),2,'a missing companion needs a separate fresh confirmation');
+  assert.equal(f.writes.length,writes,'repair retains the committed package and installation epoch');
+});
+
+for(const change of ['epoch','package','uninstall'])
+test('local unknown recovery rejects a newer '+change+' without replay',async t=>{
+  const f=await pendingCompoundImport(t,{nativeRevoked:true,
+    importError:Object.assign(Error('receipt lost'),{code:'E_EFFECT_UNKNOWN'})});
+  if(change==='epoch')f.store.set(TOOL_REVOCATION_EPOCHS_STORE,{[f.tool.id]:'new-installation'});
+  else f.store.set(SIDEBAR_TOOL_STORE,change==='uninstall'?[]:[{...f.tool,description:'Changed in another window'}]);
+  const writes=f.writes.length;
+  f.emit(f.elements['sidebar-tool-install'],'click',{isTrusted:true});
+  await settle(()=>/其他窗口/.test(f.elements['page-install-import-status'].textContent));
+  assert.equal(f.elements['sidebar-tool-install'].disabled,true);
+  assert.equal(f.writes.length,writes);
+  assert.equal(f.calls.filter(([type])=>type==='importAppPage').length,1);
+});
+
+test('local unknown recovery can retry a read failure and ignores a read completed after closing',async t=>{
+  const f=await pendingCompoundImport(t,{nativeRevoked:true,
+    importError:Object.assign(Error('receipt lost'),{code:'E_EFFECT_UNKNOWN'})});
+  const get=f.api.storage.local.get;
+  let failed=false;
+  f.api.storage.local.get=async key=>{
+    if(key===SIDEBAR_TOOL_STORE&&!failed){failed=true;throw Error('storage temporarily unavailable');}
+    return get(key);
+  };
+  f.emit(f.elements['sidebar-tool-install'],'click',{isTrusted:true});
+  await settle(()=>/无法重新核对/.test(f.elements['page-install-import-status'].textContent));
+  assert.equal(f.elements['sidebar-tool-install'].disabled,false);
+  const gate=deferred(),entered=deferred();t.after(()=>gate.resolve());
+  f.api.storage.local.get=async key=>{
+    if(key===SIDEBAR_TOOL_STORE){entered.resolve();await gate.promise;}
+    return get(key);
+  };
+  f.emit(f.elements['sidebar-tool-install'],'click',{isTrusted:true});
+  await entered.promise;
+  f.emit(f.elements['sidebar-tool-import-close'],'click');
+  gate.resolve();await pause();await pause();
+  assert.equal(f.elements['sidebar-tool-import'].hidden,true);
+  assert.equal(f.elements['sidebar-tool-preview'].hidden,true);
+  assert.equal(f.calls.filter(([type])=>type==='importAppPage').length,1);
+});
+
+test('local unknown recovery rejects a same-package reinstall during asynchronous review',async t=>{
+  const f=await pendingCompoundImport(t,{nativeRevoked:true,
+    importError:Object.assign(Error('receipt lost'),{code:'E_EFFECT_UNKNOWN'})});
+  const send=f.api.runtime.sendMessage,gate=deferred(),entered=deferred();
+  t.after(()=>gate.resolve());
+  f.api.runtime.sendMessage=async message=>{
+    if(message.kind==='runtime-contract'){entered.resolve();await gate.promise;}
+    return send(message);
+  };
+  f.emit(f.elements['sidebar-tool-install'],'click',{isTrusted:true});
+  await entered.promise;
+  const next={[f.tool.id]:'new-installation-during-review'};
+  f.store.set(TOOL_REVOCATION_EPOCHS_STORE,next);
+  f.changeStorage({[TOOL_REVOCATION_EPOCHS_STORE]:{newValue:next}});
+  gate.resolve();
+  await settle(()=>/其他窗口重新安装/.test(f.elements['page-install-import-status'].textContent));
+  assert.equal(f.elements['sidebar-tool-install'].disabled,true);
+  assert.equal(f.calls.filter(([type])=>type==='importAppPage').length,1);
+});
 
 for(const official of [false,true])
 test('uninstall recovery in import retains the package and requires separate cleanup and installation clicks; official='+official,async t=>{
@@ -3754,9 +3842,11 @@ for(const foreign of [false,true])test('compound repair '+(foreign?'foreign':'lo
   f.emit(f.elements['sidebar-tool-install'],'click',{isTrusted:true});
   await settle(()=>f.elements['sidebar-tool-install'].textContent==='核对并恢复网页模块');
   f.emit(f.elements['sidebar-tool-install'],'click',{isTrusted:true});
-  await settle(()=>/本次批准已撤销/.test(f.elements['sidebar-tool-file-error'].textContent));
-  assert.equal(f.elements['sidebar-tool-install'].disabled,true);
-  f.emit(f.elements['sidebar-tool-install'],'click',{isTrusted:true});await pause();
+  await settle(()=>f.view.fields['page-install-import-status'].attributes['data-state']==='outcome-unknown');
+  assert.equal(f.elements['sidebar-tool-file-error'].hidden,true);
+  assert.equal(f.elements['sidebar-tool-install'].textContent,'重新核对安装');
+  f.emit(f.elements['sidebar-tool-install'],'click',{isTrusted:true});
+  await settle(()=>f.view.fields['page-install-import-status'].attributes['data-state']==='pending-review');
   assert.equal(f.calls.filter(([type])=>type==='importAppPage').length,1);
   assert.equal(f.view.getSnapshot().toasts.some(row=>row.type==='success'),false);
 });

@@ -47,10 +47,22 @@ test('exact latency boundaries pass; control has no 1s limit; function is pure',
   assert.equal(result.metrics.threePage.rounds, 1);
   assert.deepEqual(value, before);
 });
-test('negative differences clamp to zero without rejecting valid clock readings', () => {
-  const value = evidence();
-  value.samples[0].visibleAtMs = 3999;
-  assert.equal(evaluatePageStartup(value).pass, true);
+test('negative differences fail without clamping or mutating observations', () => {
+  for (const cohort of ['single', 'three-page']) {
+    for (const enhancement of enhancements) {
+      const value = evidence();
+      const sample = value.samples.find(s => s.cohort === cohort && s.enhancement === enhancement);
+      sample.visibleAtMs = sample.prerequisiteAtMs;
+      assert.equal(evaluatePageStartup(value).pass, true);
+      sample.visibleAtMs--;
+      const before = structuredClone(value);
+      const result = evaluatePageStartup(value);
+      assert.equal(result.pass, false);
+      assert.match(result.failures.join('\n'), /visibleAtMs must not precede prerequisiteAtMs/);
+      assert.deepEqual(value, before);
+      if (cohort === 'single') assert.equal(result.metrics.single[enhancement].count, 9);
+    }
+  }
 });
 test('nearest-rank P95 allows one outlier out of 20, but rejects two', () => {
   const value = evidence();

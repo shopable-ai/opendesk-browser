@@ -11,7 +11,7 @@ const {createNavigation} = await import(`data:text/javascript;base64,${Buffer.fr
 const translations=JSON.parse(await readFile(new URL('../src/i18n/locales/en.json',import.meta.url),'utf8'));
 const code = (await transform(await readFile(new URL('../src/ui/SourcesPage.tsx',import.meta.url),'utf8'),{loader:'tsx',format:'cjs',jsx:'automatic'})).code;
 function fixture(route={kind:'local'},quickEntry='local') {
-  const hooks=[],effects=[],drafts=new Map(),draftBases=new Map(),confirmations=[],actions=[];
+  const hooks=[],effects=[],drafts=new Map(),draftBases=new Map(),confirmations=[],actions=[],subscriptionNavigations=[];
   let cursor=0,revision=0,tree;
   const opener={isConnected:true,focus(){this.focused=true;}};
   const document={activeElement:opener,body:{},visibilityState:'visible',querySelectorAll:()=>[]};
@@ -34,12 +34,12 @@ function fixture(route={kind:'local'},quickEntry='local') {
     if(name==='../domain/proxy-entry')return {isValidProxyPort:value=>Number(value)>0&&Number(value)<=65535};
     return new Proxy({}, {get:(_,key)=>key});
   },document,HTMLElement:class {static [Symbol.hasInstance](value){return value===opener;}},window:{addEventListener(){},removeEventListener(){}},requestAnimationFrame:()=>1,cancelAnimationFrame(){},crypto:{randomUUID:()=> 'new-id'}});
-  const props={route,quickEntry,busy:false,configEtag:'sources-initial',config:{endpoints:[{id:'a',sourceId:'local',name:'First',scheme:'http',port:7891},{id:'b',sourceId:'local',name:'Second',scheme:'socks5',port:9000}],sources:[{id:'local',kind:'local-client'}],profiles:[],selection:{}},runtime:{},act:async message=>{actions.push(message);return {};},setError(){},setErrorKey(){},navigate:section=>navigation.navigate('#/'+section),navigateSubscription:route=>navigation.navigate(routes.subscriptionRouteHash(route))};
+  const props={route,quickEntry,busy:false,configEtag:'sources-initial',config:{endpoints:[{id:'a',sourceId:'local',name:'First',scheme:'http',port:7891},{id:'b',sourceId:'local',name:'Second',scheme:'socks5',port:9000}],sources:[{id:'local',kind:'local-client'}],profiles:[],selection:{}},runtime:{},act:async message=>{actions.push(message);return {};},setError(){},setErrorKey(){},navigate:section=>navigation.navigate('#/'+section),navigateSubscription:route=>{subscriptionNavigations.push(route);return navigation.navigate(routes.subscriptionRouteHash(route));}};
   function render(update={}){Object.assign(props,update);for(let n=0;n<3;n++){cursor=0;tree=module.exports.SourcesPage(props);while(effects.length)effects.shift()();}return tree;}
   function all(node){if(!node||typeof node!=='object')return [];return [node,...[node.props?.children].flat(Infinity).flatMap(all)];}
   const find=predicate=>all(tree).find(predicate);
   const field=id=>find(node=>node.props.id===id);
-  return {env,props,draftBases,navigation,confirmations,actions,opener,render,find,field,
+  return {env,props,draftBases,navigation,confirmations,actions,subscriptionNavigations,opener,render,find,field,all:(node=tree)=>all(node),
     editor:()=>find(node=>node.props.id==='source-editor'),
     cancel:()=>find(node=>node.props.children==='cancel').props.onClick(),
     change(id,value){field(id).props.onValueChange(value);env.setDraftDirty(true,'source-editor');render();}};
@@ -128,34 +128,94 @@ test('confirmed local edit cancel returns profiles; breadcrumb back uses navigat
  assert.equal(f.navigation.getRoute(),'#/profiles');assert.equal(f.editor(),undefined);
 });
 
-test('management separates sources and local clients with matching add routes; switching never writes',()=>{
+test('management groups saved sources without duplicating the Settings add action; local add and tab switching never write',()=>{
  const f=fixture({kind:'list'},null);f.render({presentation:'management'});
  const tab=id=>f.find(node=>node.props.id==='sources-tab-'+id);
  assert.equal(tab('sources').props['aria-selected'],true);
  assert.equal(f.find(node=>node.props.children==='addLocalClient'),undefined);
  assert.equal(f.find(node=>node.props.className==='subscriptionLocalDetails'),undefined);
- f.find(node=>node.props.children==='recordSubscriptionSource').props.onClick();
- assert.equal(f.navigation.getRoute(),'#/subscriptions/new');
+ assert.equal(f.find(node=>node.props.children==='recordSubscriptionSource'),undefined);
+ const panel=f.find(node=>node.type==='section'&&node.props.className==='listSection');
+ assert.ok(panel);
+ const heading=f.all(panel).find(node=>node.type==='h2');
+ assert.ok(heading);
+ assert.ok(heading.props.children.includes('savedSubscriptionSources'));
+ assert.ok(f.all(panel).find(node=>node.props.className==='subscriptionIndex'));
+ assert.equal(f.navigation.getRoute(),'#/subscriptions');
  tab('local').props.onClick();f.render();
  assert.equal(tab('local').props['aria-selected'],true);
  assert.equal(f.find(node=>node.props.className==='subscriptionIndex'),undefined);
  assert.ok(f.find(node=>node.props['aria-label']==='savedLocalClients'));
  assert.equal(f.find(node=>node.props.children==='recordSubscriptionSource'),undefined);
+ assert.equal(f.navigation.getRoute(),'#/subscriptions');
+ assert.equal(f.actions.length,0);
+ tab('sources').props.onClick();f.render();
+ assert.equal(tab('sources').props['aria-selected'],true);
+ assert.ok(f.find(node=>node.props.className==='subscriptionIndex'));
+ assert.equal(f.find(node=>node.props.children==='addLocalClient'),undefined);
+ tab('local').props.onClick();f.render();
  f.find(node=>node.props.children==='addLocalClient').props.onClick();
  assert.equal(f.navigation.getRoute(),'#/subscriptions/local');
  assert.equal(f.actions.length,0);
+ assert.equal(f.confirmations.length,0);
 });
 
 test('management source rows retain detail routing and local reader',()=>{
  const f=fixture({kind:'list'},null);
  f.props.config.sources.push({id:'sub',kind:'subscription',displayName:'Provider',originHost:'example.test',format:'auto'});
  f.render({presentation:'management'});
- f.find(node=>node.props['data-subscription-id']==='sub').props.onClick();
+ const row=f.find(node=>node.type==='article'&&node.props.className==='subscriptionIndexRow');
+ assert.equal(row.props.onClick,undefined,'only explicit controls navigate or delete');
+ const inspect=f.all(row).find(node=>node.props['data-subscription-id']==='sub');
+ assert.equal(inspect.type,'Button');assert.equal(inspect.props['aria-label'],'subscriptionViewNamed');
+ assert.equal(f.all(row).filter(node=>node.type==='Button').length,2);
+ assert.ok(f.all(row).find(node=>node.props.className==='proxyIconButton quietDanger'));
+ inspect.props.onClick();
  assert.equal(f.navigation.getRoute(),'#/subscriptions/source/sub');
+ assert.equal(f.actions.length,0);assert.equal(f.confirmations.length,0);
  f.render({route:{kind:'source',id:'sub'}});
  assert.ok(f.find(node=>node.type==='SubscriptionReader'&&node.props.source.id==='sub'));
  f.find(node=>node.props.children==='subscriptionBackToList').props.onClick();
  assert.equal(f.navigation.getRoute(),'#/subscriptions');
+});
+
+for(const outcome of ['cancel','success','conflict'])test(`management list delete ${outcome}: exact source and opening CAS ETag, navigation only after success`,async()=>{
+ const f=fixture({kind:'list'},null);
+ f.props.config.sources.push(
+  {id:'other',kind:'subscription',displayName:'Other',originHost:'other.test',format:'auto'},
+  {id:'target',kind:'subscription',displayName:'Target',originHost:'target.test',format:'auto'});
+ const before=JSON.stringify(f.props.config);
+ f.render({presentation:'management',act:async message=>{f.actions.push(message);return outcome==='conflict'?null:{};}});
+ const row=f.all().find(node=>node.type==='article'&&f.all(node).some(child=>child.props['data-subscription-id']==='target'));
+ f.all(row).find(node=>node.props.className==='proxyIconButton quietDanger').props.onClick();
+ assert.equal(f.confirmations.length,1);assert.equal(f.confirmations[0].message,'confirmDeleteSubscription');
+ assert.equal(f.actions.length,0);assert.equal(f.subscriptionNavigations.length,0);
+ // A rerender while the confirmation is pending must not replace its CAS baseline.
+ f.render({configEtag:'sources-newer'});
+ f.confirmations[0].resolve(outcome!=='cancel');await new Promise(setImmediate);
+ assert.equal(f.actions.length,outcome==='cancel'?0:1);
+ if(outcome!=='cancel')assert.deepEqual(JSON.parse(JSON.stringify(f.actions[0])),{
+  type:'DELETE_SUBSCRIPTION',id:'target',ifMatch:'sources-initial'
+ });
+ assert.deepEqual(JSON.parse(JSON.stringify(f.subscriptionNavigations)),outcome==='success'?[{kind:'list'}]:[]);
+ assert.equal(JSON.stringify(f.props.config),before,'UI does not optimistically remove sources on cancellation or a rejected operation');
+ f.render();
+ assert.ok(f.find(node=>node.props['data-subscription-id']==='other'));
+ assert.ok(f.find(node=>node.props['data-subscription-id']==='target'));
+});
+
+test('management list inspect/delete respect busy and managed guards and redact private source labels',()=>{
+ const f=fixture({kind:'list'},null);
+ f.props.config.sources.push({id:'sub',kind:'subscription',displayName:'https://example.test/sub?token=secret',originHost:'example.test',format:'auto'});
+ for(const [busy,managed] of [[false,false],[true,false],[false,true]]){
+  f.render({presentation:'management',busy,config:{...f.props.config,managed}});
+  const inspect=f.find(node=>node.props['data-subscription-id']==='sub');
+  const remove=f.find(node=>node.props.className==='proxyIconButton quietDanger');
+  assert.equal(inspect.props.disabled,busy);assert.equal(remove.props.disabled,busy||managed);
+  assert.equal(remove.props['aria-label'],'delete · subscriptionPrivateSourceName');
+  assert.ok(!JSON.stringify(f.render()).includes('token=secret'));
+ }
+ assert.equal(f.actions.length,0);assert.equal(f.confirmations.length,0);
 });
 
 test('management returns from local creation to local list and keeps inline draft visible until cancel',async()=>{

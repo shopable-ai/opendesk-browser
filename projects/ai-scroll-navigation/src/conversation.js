@@ -284,31 +284,78 @@ function conversationTurnRole(node,site) {
   }
   return roles.size===1?[...roles][0]:null;
 }
-export function findConversationPages(binding,doc,win) {
+export function findConversationPages(binding,doc,win,history=null) {
+  const forget=()=>{if(history)history.snapshot=null;return null;};
   const {main,scroller,selector,site}=binding||{};
   if(!main?.isConnected||!scroller?.isConnected||!selector||
-      !['chatgpt','deepseek','gemini','custom'].includes(site))return null;
+      !['chatgpt','deepseek','gemini','custom'].includes(site))return forget();
   const navigation=findConversationNavigation(main,selector,doc,win);
-  if(!navigation||navigation.scroller!==scroller||navigation.turns.length>2000)return null;
+  if(!navigation||navigation.scroller!==scroller||navigation.turns.length>2000)return forget();
   const pages=[];
   for(const node of navigation.turns) {
     const role=conversationTurnRole(node,site);
-    if(!role)return null;
+    if(!role)return forget();
     if(role==='user')pages.push({target:node});
-    else if(!pages.length)return null;
+    else if(!pages.length)return forget();
   }
-  return pages.length?{main,scroller,pages}:null;
+  if(!pages.length)return forget();
+  const paging={main,scroller,pages};
+  // ChatGPT virtualizes entire rounds. Keep only verified question keys and
+  // geometry in this dock's document/session, never detached message nodes or
+  // message text. This is observed history, not a server-side total.
+  if(!history)return paging;
+  if(site!=='chatgpt'||win.location?.origin!=='https://chatgpt.com') {
+    forget();return paging;
+  }
+  const port=viewport(scroller,doc,win),known=new Map();
+  for(const {target} of pages) {
+    const key=target.getAttribute('data-content-search-unit-key');
+    const top=scroller.scrollTop+target.getBoundingClientRect().top-port.top;
+    const cover=obstruction({target,main},scroller,doc,win,port);
+    if(!/^(?:fallback-)?turn-\d+:\d+:user$/.test(key||'')||known.has(key)||
+        !Number.isFinite(top)||!Number.isFinite(cover)) {
+      forget();return paging;
+    }
+    known.set(key,{key,top,cover});
+  }
+  const scope=[doc.documentElement,win.location.href,main,scroller,selector,site];
+  const size=[scroller.scrollHeight,scroller.clientHeight,scroller.clientWidth,
+    win.innerWidth,win.innerHeight];
+  const old=history.snapshot;
+  const reusable=old&&[...known.keys()].some(key=>old.known.has(key))&&
+    scope.every((value,i)=>value===old.scope[i])&&
+    size.every((value,i)=>value===old.size[i])&&[...known].every(([key,value])=>{
+      const previous=old.known.get(key);
+      return !previous||(Math.abs(previous.top-value.top)<=2&&Math.abs(previous.cover-value.cover)<=2);
+    });
+  const merged=new Map(reusable?old.known:[]);
+  for(const [key,value] of known)merged.set(key,value);
+  if(merged.size>2000){forget();return paging;}
+  history.snapshot={scope,size,known:merged};
+  const live=new Map(pages.map(page=>[page.target.getAttribute('data-content-search-unit-key'),page]));
+  paging.pages=[...merged.values()].sort((a,b)=>a.top-b.top)
+    .map(value=>live.get(value.key)||{...value,remembered:true});
+  return paging;
+}
+function questionLanding(paging,page,doc,win) {
+  const port=viewport(paging.scroller,doc,win);
+  if(page.remembered) {
+    return page.cover+GAP<port.height?page.top-page.cover-GAP:null;
+  }
+  if(!page.target?.isConnected||!paging.main.contains(page.target))return null;
+  const cover=obstruction({target:page.target,main:paging.main},paging.scroller,doc,win,port);
+  if(cover+GAP>=port.height)return null;
+  return paging.scroller.scrollTop+page.target.getBoundingClientRect().top-port.top-cover-GAP;
 }
 export function currentConversationPageIndex(paging,doc,win) {
   if(!paging?.pages?.length||!paging.scroller?.isConnected)return -1;
-  const port=viewport(paging.scroller,doc,win);
   // Count and navigate against the actual question landing, including native
   // sticky headers. A question merely entering the viewport is not yet passed.
   let index=0;
   for(const [position,page] of paging.pages.entries()) {
-    if(!page.target?.isConnected)return -1;
-    const line=port.top+GAP+obstruction({target:page.target,main:paging.main},paging.scroller,doc,win,port);
-    if(page.target.getBoundingClientRect().top<=line+2)index=position;
+    const top=questionLanding(paging,page,doc,win);
+    if(top===null)return -1;
+    if(top<=paging.scroller.scrollTop+2)index=position;
     else break;
   }
   return index;
@@ -317,19 +364,16 @@ export function conversationPageTargetIndex(paging,direction,doc,win) {
   if(!['previous','next'].includes(direction))return -1;
   const index=currentConversationPageIndex(paging,doc,win);
   if(index<0)return -1;
-  const {scroller,main,pages}=paging,port=viewport(scroller,doc,win);
+  const {scroller,pages}=paging;
   const max=Math.max(0,scroller.scrollHeight-scroller.clientHeight);
   // Going up from a long answer first returns to its own question. At that
   // question's landing, continue to the previous round. Use the same sticky
   // header allowance and clamp as the actual jump, including short final rounds.
   const step=direction==='previous'?-1:1;
   for(let candidate=index+(step>0?1:0);candidate>=0&&candidate<pages.length;candidate+=step) {
-    const target=pages[candidate].target;
-    if(!target?.isConnected||!main.contains(target))return -1;
-    const cover=obstruction({target,main},scroller,doc,win,port);
-    if(cover+GAP>=port.height)return -1;
-    const top=Math.max(0,Math.min(max,
-      scroller.scrollTop+target.getBoundingClientRect().top-port.top-cover-GAP));
+    const landing=questionLanding(paging,pages[candidate],doc,win);
+    if(landing===null)return -1;
+    const top=Math.max(0,Math.min(max,landing));
     if(step*(top-scroller.scrollTop)>2)return candidate;
   }
   return -1;
@@ -337,7 +381,9 @@ export function conversationPageTargetIndex(paging,direction,doc,win) {
 export function jumpConversationPage(paging,direction,doc,win) {
   const destination=conversationPageTargetIndex(paging,direction,doc,win);
   if(destination<0)return false;
-  return jumpRegionTop({target:paging.pages[destination].target,
+  const page=paging.pages[destination];
+  if(page.remembered)return scrollPort(paging.scroller,doc,win,questionLanding(paging,page,doc,win));
+  return jumpRegionTop({target:page.target,
     main:paging.main,kind:'conversation'},doc,win);
 }
 export function jumpConversationEdge(main, turnSelector, direction, doc, win) {

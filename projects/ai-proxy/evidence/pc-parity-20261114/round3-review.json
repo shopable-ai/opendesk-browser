@@ -1,0 +1,114 @@
+{
+  "candidate": "e61b0aaa246e03fb96e586e28e713c0df983d37642867d7071337ca602386724",
+  "reference": "277ff8df72970906370507e9d7448da3ba583cb293536cae874c1a034080a977",
+  "round": 3,
+  "verdict": "REVISE",
+  "dimensions": [
+    "layout",
+    "controls",
+    "visible text/interaction cues",
+    "visual consistency"
+  ],
+  "reviews": {
+    "Hume": {
+      "profiles": [
+        96,
+        97,
+        95,
+        96
+      ],
+      "rules": [
+        97,
+        97,
+        95,
+        96
+      ],
+      "subscriptions": [
+        97,
+        96,
+        96,
+        96
+      ],
+      "backup": [
+        97,
+        98,
+        97,
+        97
+      ],
+      "diagnostic": [
+        95,
+        96,
+        95,
+        95
+      ],
+      "general": [
+        97,
+        98,
+        96,
+        97
+      ],
+      "official": [
+        96,
+        98,
+        97,
+        96
+      ]
+    },
+    "Heisenberg": {
+      "profiles": [
+        95,
+        96,
+        97,
+        94
+      ],
+      "rules": [
+        95,
+        96,
+        97,
+        95
+      ],
+      "subscriptions": [
+        95,
+        96,
+        97,
+        95
+      ],
+      "backup": [
+        94,
+        95,
+        97,
+        94
+      ],
+      "diagnostic": [
+        94,
+        94,
+        97,
+        94
+      ],
+      "general": [
+        96,
+        97,
+        97,
+        96
+      ],
+      "official": [
+        95,
+        96,
+        98,
+        92
+      ]
+    }
+  },
+  "notes": [
+    "Sources authored by Hume; cross-score Heisenberg governs.",
+    "Official authored by Heisenberg; Hume independent, screenshot overlay obscures part.",
+    "Scores differ; resolve concrete remaining visual deductions before final acceptance."
+  ],
+  "remaining": [
+    "profiles selected green and blue PAC notice; remove duplicate applied icon",
+    "backup compact actions/file affordance and download icon",
+    "diagnostics tab/corner icons and compact cards",
+    "recapture Official without external Reading TOC overlay"
+  ],
+  "native": "NOT_TESTED"
+}

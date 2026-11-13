@@ -364,10 +364,11 @@ export function PageDiagnostics({info,locale='zh-CN'}){
   </>;
 }
 
-function DetailActions({model,disabled=false,locale='zh-CN'}){
+function DetailActions({model,actions=model.actions,disabled=false,locale='zh-CN'}){
   const t=(key,params={})=>extensionCenterText(locale,key,params);
+  if(!actions.length)return null;
   return <div className="ec-detail-actions">
-    {model.actions.map(action=>{
+    {actions.map(action=>{
       const icon=extensionActionGlyph(action.id,model.enabled??model.pageControl?.enabled);
       return icon?<IconButton key={action.id}
         className={action.id==='uninstall'?'ec-detail-action od-icon-button--danger':'ec-detail-action'}
@@ -391,17 +392,22 @@ export function ExtensionDetail({model,container,onScrollNavigation,scrollNaviga
     (target?.querySelector?.('[role="switch"]')||target)?.focus?.({preventScroll:true});
   },[model,container]);
   if(!model)return null;
+  const pageHeader=model.kind==='page';
   const managed=model.kind==='page'&&Boolean(model.pageControl);
+  const headerActions=model.scrollManager?model.actions:
+    pageHeader?model.actions.filter(action=>action.id==='uninstall'):[];
+  const bodyActions=pageHeader?model.actions.filter(action=>action.id!=='uninstall'):model.actions;
   // Render Authority/official scopes only. Never infer capabilities from titles.
   const sites=Array.isArray(model.sites)?model.sites.filter(s=>typeof s==='string'&&s.trim()):[];
   return <>
-    <div className={'ec-detail-head'+(model.scrollManager?' od-page-head':'')}>
-      {!model.scrollManager&&<span className="ec-glyph" aria-hidden="true">{model.kind==='page'?'◇':'▦'}</span>}
+    <div className={'ec-detail-head'+(pageHeader?' ec-detail-head--page od-page-head':'')}>
+      {!pageHeader&&<span className="ec-glyph" aria-hidden="true">▦</span>}
       <div className="ec-detail-copy">
         <strong id={model.scrollManager?'scroll-page-title':undefined} tabIndex={model.scrollManager?-1:undefined}
-          role={model.scrollManager?'heading':undefined} aria-level={model.scrollManager?1:undefined}
+          className={pageHeader?'od-page-title':undefined}
+          role={pageHeader?'heading':undefined} aria-level={pageHeader?1:undefined}
           title={scrollNavigation?.title?model.title+' / '+scrollNavigation.title:model.title}>
-          {scrollNavigation?.title||model.title}</strong>{!model.scrollManager&&<span className="ec-type">{model.type}</span>}
+          {scrollNavigation?.title||model.title}</strong>{!pageHeader&&<span className="ec-type">{model.type}</span>}
       </div>
       {model.scrollManager&&<div className="od-page-actions">
         {(!scrollNavigation?.view||scrollNavigation.view==='home')&&scrollNavigation?.settingsLabel&&
@@ -417,14 +423,18 @@ export function ExtensionDetail({model,container,onScrollNavigation,scrollNaviga
           disabled={!scrollNavigation} onClick={()=>scrollNavigation?.toggleAI?.()}><ConversationAiGlyph/></IconButton>
         <DetailActions locale={locale} model={model} disabled={!scrollNavigation||scrollNavigation.actionsDisabled}/>
       </div>}
+      {!model.scrollManager&&headerActions.length>0&&<div className="od-page-actions">
+        <DetailActions locale={locale} model={model} actions={headerActions}/>
+      </div>}
     </div>
     {model.description&&!model.scrollManager&&<p className="ec-detail-description">{model.description}</p>}
-    <PageCleanupDetails key={model.key} cleanup={model.oldPageCleanup} locale={locale}/>
+    {!model.scrollManager&&<PageCleanupDetails key={model.key} cleanup={model.oldPageCleanup} locale={locale}/>}
     {managed&&!model.scrollManager&&<ManagedPageControl locale={locale} control={model.pageControl} title={model.title}/>}
     {model.scrollManager&&<ScrollSiteManager key={model.scrollManager.identityKey}
       locale={locale} model={model.scrollManager} pageControl={model.pageControl} title={model.title} detail={model}
-      onNavigation={onScrollNavigation} PageControl={ManagedPageControl} Diagnostics={PageDiagnostics}/>}
-    {!managed&&!model.scrollManager&&<DetailActions locale={locale} model={model}/>}
+      onNavigation={onScrollNavigation} PageControl={ManagedPageControl} Diagnostics={PageDiagnostics}
+      CleanupDetails={PageCleanupDetails}/>}
+    {!managed&&!model.scrollManager&&<DetailActions locale={locale} model={model} actions={bodyActions}/>}
     {!managed&&<section className="ec-detail-card">
       <h3>{t('installationSource')}</h3>
       <p>{model.installationText}</p>
@@ -447,16 +457,10 @@ export function ExtensionDetail({model,container,onScrollNavigation,scrollNaviga
         <PageSiteUpgrade locale={locale} upgrade={model.siteUpgrade}/>
       </details>}
     </section>}
-    {managed&&!model.scrollManager&&<section className="ec-detail-card ec-page-management">
-      <div className="ec-page-management-head">
-        <h3>{t('management')}</h3>
-        <span className="ec-page-version">r{model.version}</span>
-      </div>
-      {model.pageControl.officialBlock&&<p className="ec-page-release-block" role="status">
+    {managed&&!model.scrollManager&&model.pageControl.officialBlock&&
+      <p className="ec-page-release-block" role="status">
         {t('releaseBlock',{reason:model.pageControl.officialBlock})}
       </p>}
-      <DetailActions locale={locale} model={model}/>
-    </section>}
     {model.kind==='page'&&!model.scrollManager&&model.pageInfo&&<details className="ec-detail-card ec-page-diagnostics">
       <summary>{t('diagnostics')}</summary>
       <p>{model.installationText} · {t('revision')}{model.version}</p>
@@ -847,6 +851,11 @@ export function ExtensionCenterPage({
   return <div className="ec-drop-surface"
     onDragEnter={onDragEnter} onDragOver={onDragOver}
     onDragLeave={onDragLeave} onDrop={onDrop}>
+    <p id="extension-center-status" className="ec-message" role="status"
+      aria-live="polite" data-state={statusModel?.state||'info'}
+      hidden={!statusModel?.text}>
+      <ExtensionStatus model={statusModel}/>
+    </p>
     <div ref={pageRef} id="extension-center-list-view" hidden={detailVisible||languageVisible||preinstallHelpVisible}>
       <div className="ec-toolbar">
         <ExtensionToolbar locale={locale} model={toolbarModel}/>
@@ -929,11 +938,6 @@ export function ExtensionCenterPage({
       </React.Suspense>
     </section>}
     {rowMenuModel&&<ExtensionRowMenu locale={locale} model={rowMenuModel}/>}
-    <p id="extension-center-status" className="ec-message" role="status"
-      aria-live="polite" data-state={statusModel?.state||'info'}
-      hidden={!statusModel?.text}>
-      <ExtensionStatus model={statusModel}/>
-    </p>
     {fileOver&&<div className="ec-file-drop-overlay" role="status" aria-live="polite">
       <strong>{t('drop')}</strong>
       <span>{t('dropNote')}</span>

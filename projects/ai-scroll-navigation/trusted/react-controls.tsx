@@ -56,7 +56,7 @@ const message=(key,parameters={})=>({key,parameters});
 const failure=key=>Object.assign(new Error(key),{scrollMessage:message(key)});
 const errorDetail=error=>error?.scrollMessage||String(error?.message||error);
 const readErrorDetail=error=>error?.scrollMessage||error?.code||errorDetail(error);
-export function ScrollSiteManager({model,pageControl,title,detail,onNavigation,PageControl,Diagnostics}){
+export function ScrollSiteManager({model,pageControl,title,detail,onNavigation,PageControl,Diagnostics,CleanupDetails}){
   const locale=model.locale||'zh-CN';
   const canShowFlag=key=>(key!=='turnPaging'||model.turnPagingSupported)&&
     (key!=='showTurnCount'||model.showTurnCountSupported);
@@ -447,6 +447,7 @@ export function ScrollSiteManager({model,pageControl,title,detail,onNavigation,P
             onClick={event=>pageControl.onRefresh?.(event.nativeEvent)}>{t('recheck')}</Button>
         </div>
       </section>}
+      {CleanupDetails&&<CleanupDetails cleanup={detail.oldPageCleanup} locale={locale}/>}
       <p>{t('installationRevision',{installation:detail.installationText,version:detail.version})}</p>
       {pageControl?.evidenceNote&&<p>{pageControl.evidenceNote}</p>}
       {detail.pageInfo&&<div className="ec-scroll-diagnostics"><Diagnostics info={detail.pageInfo} locale={locale}/></div>}

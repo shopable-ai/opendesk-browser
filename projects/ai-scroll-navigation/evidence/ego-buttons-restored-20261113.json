@@ -1,0 +1,268 @@
+{
+  "date": "2026-11-13",
+  "scope": "Restore visible navigation on the specified ChatGPT conversation in an ordinary Ego window with the final saved user configuration.",
+  "status": "CORE_BUTTON_BLOCKER_RESOLVED",
+  "baseline": {
+    "viewport": {
+      "width": 1728,
+      "height": 920
+    },
+    "dockCount": 0,
+    "replyHosts": 2,
+    "mainMatches": 1,
+    "scrollSelectorMatches": 2,
+    "customRuleEnabled": true,
+    "messageGroupRoles": [
+      "user",
+      "assistant"
+    ],
+    "diagnosis": "Program running; active custom scroll selector is ambiguous and fails the existing uniqueness check. The old message selector groups both roles."
+  },
+  "change": {
+    "kind": "user-site-configuration",
+    "entry": "Extensions → AI 对话滚动导航 → 管理自定义网站 → 编辑适配 → 保存更改",
+    "savedConfig": {
+      "version": 1,
+      "sites": [
+        {
+          "origin": "https://chatgpt.com",
+          "pathScope": "/",
+          "mainSelector": "[role=\"region\"][aria-label=\"对话\"]",
+          "scrollSelector": "[role=\"region\"][aria-label=\"对话\"]",
+          "messageSelector": "[data-content-search-unit-key]",
+          "anchorSelector": "",
+          "enabled": true
+        }
+      ],
+      "navigation": {
+        "regionTop": true,
+        "regionBottom": true,
+        "conversationTop": true,
+        "conversationBottom": true,
+        "floatingTop": true,
+        "turnPaging": true,
+        "showTurnCount": true
+      }
+    },
+    "originPathEnabledPreserved": true,
+    "navigationFlagsPreservedFromFreshBaseline": true,
+    "sourceChanged": false,
+    "storageWrittenDirectly": false,
+    "ruleDisabled": false,
+    "uniquenessOrRoleChecksRelaxed": false
+  },
+  "saveReceipt": "规则已保存并读回；实际页面运行需在目标网页确认。",
+  "saveDriver": {
+    "surface": "ordinary extension tab, not native Side Panel",
+    "initialAttempts": "E_CONFIG_UNKNOWN/schema with the extension tab active; explicit fresh read reconciled unchanged storage before a new intentional attempt.",
+    "successfulAttempt": "Target-scoped CDP trusted pointer input to the original Save button while the specified conversation remained the active HTTP(S) page. Same Host/Authority and live-DOM validation.",
+    "latePanelClosure": "p2 later disappeared; task tabs were inspected, p3 opened and config re-read unchanged. No save was replayed."
+  },
+  "verification": {
+    "refreshedWithoutEmulation": true,
+    "edges": {
+      "settledTop": {
+        "viewport": {
+          "width": 1728,
+          "height": 920
+        },
+        "top": 0,
+        "max": 28212,
+        "loadedUsers": 1,
+        "counter": "1/1",
+        "dockCount": 1,
+        "buttons": [
+          {
+            "key": "conversationTop",
+            "disabled": "true"
+          },
+          {
+            "key": "turnPrevious",
+            "disabled": "true"
+          },
+          {
+            "key": "turnNext",
+            "disabled": "true"
+          },
+          {
+            "key": "conversationBottom",
+            "disabled": "false"
+          }
+        ]
+      },
+      "settledBottom": {
+        "viewport": {
+          "width": 1728,
+          "height": 920
+        },
+        "top": 28212,
+        "max": 28212,
+        "loadedUsers": 1,
+        "counter": "1/1",
+        "dockCount": 1,
+        "buttons": [
+          {
+            "key": "floatingTop",
+            "disabled": "false"
+          },
+          {
+            "key": "turnPrevious",
+            "disabled": "false"
+          },
+          {
+            "key": "turnNext",
+            "disabled": "true"
+          },
+          {
+            "key": "conversationBottom",
+            "disabled": "true"
+          }
+        ]
+      }
+    },
+    "previous": {
+      "before": {
+        "top": 28251.5,
+        "max": 28252,
+        "users": [
+          {
+            "top": -8547.5,
+            "height": 108
+          }
+        ],
+        "counter": "1/1",
+        "previousDisabled": "false"
+      },
+      "after": {
+        "top": 19640,
+        "max": 28266,
+        "users": [
+          {
+            "top": 64,
+            "height": 108
+          }
+        ],
+        "counter": "1/1",
+        "previousDisabled": "false"
+      }
+    },
+    "final": {
+      "viewport": {
+        "width": 1728,
+        "height": 920
+      },
+      "dockCount": 1,
+      "visible": true,
+      "buttons": [
+        {
+          "key": "floatingTop",
+          "disabled": "false",
+          "insideViewport": true,
+          "uncovered": true
+        },
+        {
+          "key": "turnPrevious",
+          "disabled": "false",
+          "insideViewport": true,
+          "uncovered": true
+        },
+        {
+          "key": "turnNext",
+          "disabled": "true",
+          "insideViewport": true,
+          "uncovered": true
+        },
+        {
+          "key": "conversationBottom",
+          "disabled": "false",
+          "insideViewport": true,
+          "uncovered": true
+        }
+      ],
+      "counter": "2/2",
+      "loadedUsers": 2
+    },
+    "configPersistedUnchanged": true,
+    "counterMeaning": "Only reliably recognized user turns currently present in the DOM; observed 1/1 and later 2/2. Not a server history total.",
+    "finalNextButton": "Disabled because no later loaded question was reachable."
+  },
+  "installation": {
+    "version": "0.4.21",
+    "sourceHash": "15b5f924b997d1531cc7eb9114faa26e1759fa0c910cc8fdc8cc6bf394f09262",
+    "packageHash": "5d224e50172ae8603e47d520c7e31ca2a6afed4b867103916b5c91a8bd208c82",
+    "enabled": true,
+    "authorizationActive": true,
+    "nativeRegistered": true,
+    "error": null,
+    "reinstalledOrUpgradedThisRun": false
+  },
+  "runtime": {
+    "mode": "existing continuous development",
+    "extensionId": "ccfcjegpkdlgbclopjmadlcjedelidmf",
+    "path": "dist/development",
+    "developmentServiceInitialObservation": "connected; fingerprint cfaca4664ac3",
+    "newWriterStarted": false
+  },
+  "checks": {
+    "sourceTests": "NOT_RERUN_NO_SOURCE_CHANGE",
+    "validation": "Actual saved-rule Host/live-DOM validation and readback; ordinary-window refresh, trusted edge/previous clicks, visibility/hit checks; evidence assertions and documentation diff checks."
+  },
+  "notTested": [
+    "Complete history paging across virtualized/unmounted turns",
+    "Production acceptance",
+    "Native Side Panel layout",
+    "DeepSeek/Gemini matrix",
+    "Independent scoring"
+  ],
+  "resources": {
+    "taskSpaceId": 2,
+    "finished": true,
+    "keptPages": []
+  },
+  "artifacts": [
+    {
+      "path": "artifacts/ai-scroll-ego-visible-20261113/saved-config.json",
+      "sha256": "0f680ce9de1849e0379a0ea773284996acaac1e5fd3998835b4ab7e397d96779"
+    },
+    {
+      "path": "artifacts/ai-scroll-ego-visible-20261113/after-save.json",
+      "sha256": "36ba9f87080470ea17037c2cbacd814ec115466ce1bf15faf27edb84a003dfe3"
+    },
+    {
+      "path": "artifacts/ai-scroll-ego-visible-20261113/refresh-and-top.json",
+      "sha256": "bf5b6149bb56003145eb69ce936eba90fca70b8efa466a46b573cc0e1de86485"
+    },
+    {
+      "path": "artifacts/ai-scroll-ego-visible-20261113/edge-actions.json",
+      "sha256": "41d15e73b7be9bed9c8584490a97a4fae0d9d057ffef0b00693167bbedf1923e"
+    },
+    {
+      "path": "artifacts/ai-scroll-ego-visible-20261113/previous-action.json",
+      "sha256": "f5f692e8617775fc3087f3486a8f965d2f419f96575d71948474eda1b63916a3"
+    },
+    {
+      "path": "artifacts/ai-scroll-ego-visible-20261113/installed-public-state.json",
+      "sha256": "62b41ec54b922e7bd6652bf053da65fca8ecf7233982a848e36a18d71ce002e0"
+    },
+    {
+      "path": "artifacts/ai-scroll-ego-visible-20261113/final-state.json",
+      "sha256": "1546e2db61082064aa8387b59cc1ece81088da1e3ca23ddf3493f4046a4b4c24"
+    },
+    {
+      "path": "artifacts/ai-scroll-ego-visible-20261113/ordinary-window-after-save.png",
+      "sha256": "6e19a903385856edd78430414dfafd1ecac3168f3673316e31521a057f36210b"
+    },
+    {
+      "path": "artifacts/ai-scroll-ego-visible-20261113/refreshed-at-top.png",
+      "sha256": "c5266562a853fbd26e46613db62e0f73ff35ad40d4b6a00114f9b3937670f7fa"
+    },
+    {
+      "path": "artifacts/ai-scroll-ego-visible-20261113/refreshed-at-bottom.png",
+      "sha256": "658452df0ca88b2268ee4c2f1b527c75e30a2cdde366a398ffb920e0aea9c875"
+    },
+    {
+      "path": "artifacts/ai-scroll-ego-visible-20261113/final-navigation-visible.png",
+      "sha256": "c40e3890e96a4346ebcb50d9345c9420e15dd56a63ed01ebe7d523be0262151b"
+    }
+  ]
+}

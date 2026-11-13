@@ -37,15 +37,17 @@ const diagnosisKeys: Record<DiagnosisCode, [TranslationKey, TranslationKey]> = {
 function latestFor(siteId: string, data: DiagnosticsSnapshot | null): HttpObservation | null {
   return data?.observations.find(v => v.siteId === siteId) ?? null;
 }
-export function DiagnosticsPage({ state, busy, onRefresh, onStop, onProfiles }: {
+export function DiagnosticsPage({ state, busy, onRefresh, onStop, onProfiles, presentation = 'sidebar' }: {
   state: ViewState;
   busy: boolean;
   onRefresh: () => Promise<unknown>;
   onProbe: () => Promise<unknown>;
   onStop: () => Promise<unknown>;
   onProfiles: () => void;
+  presentation?: 'sidebar' | 'management';
 }) {
   const { t, locale } = useI18n();
+  const management = presentation === 'management';
   const panelContent = useRef<HTMLElement>(null);
   const focusPanelAfterNavigation = useRef(false);
   const navigation = getEnvironment().navigation;
@@ -62,6 +64,14 @@ export function DiagnosticsPage({ state, busy, onRefresh, onStop, onProfiles }: 
     restorePanel();
     return unsubscribe;
   }, [navigation]);
+  const [siteHost,setSiteHost]=useState('');
+  useEffect(()=>{
+    if(!management)return;
+    const env=getEnvironment();let active=true,revision=0;
+    const read=async()=>{const current=++revision;try{const info=await env.currentSite();if(active&&current===revision)setSiteHost(info.status==='available'?info.host:'');}catch{if(active&&current===revision)setSiteHost('');}};
+    void read();env.events.addEventListener('ai-proxy-page-changed',read);
+    return()=>{active=false;revision++;env.events.removeEventListener('ai-proxy-page-changed',read);};
+  },[management]);
   const [snapshot, setSnapshot] = useState<DiagnosticsSnapshot | null>(null);
   const [now, setNow] = useState(() => Date.now());
   const [selectedIds, setSelectedIds] = useState<string[]>(AI_SITES.slice(0, 5).map(s => s.id));
@@ -219,29 +229,34 @@ export function DiagnosticsPage({ state, busy, onRefresh, onStop, onProfiles }: 
     </div>;
   };
   return <>
-    <header className="diagnosticLead">
+    <header className="diagnosticLead" data-presentation={presentation}>
       <div className="diagnosticLeadMain">
-        <h2>{t('diagWorkbenchTitle')}</h2>
-        <p>{t(simulatedDiagnostics ? 'diagLeadExplanation' : 'diagEvidenceBoundary')}</p>
+        <h2>{t(management?'pcDiagLead':'diagWorkbenchTitle')}</h2>
+        {!management && <p>{t(simulatedDiagnostics ? 'diagLeadExplanation' : 'diagEvidenceBoundary')}</p>}
         <span className="diagnosticCurrentRoute">{t('selected')}: {state.config.selection.mode === 'profile'
           ? selectedProfile?.name ?? t('noProfileSelected')
           : t(({ rules: 'popupModeRules', direct: 'popupModeDirect', system: 'popupModeSystem' } as const)[state.config.selection.mode])}</span>
         <span className="diagnosticEvidence">{t(simulatedDiagnostics ? 'diagEvidenceOnly' : 'diagOnDemandOnly')}</span>
       </div>
-      <div className="diagnosticLeadState" aria-label={t(simulatedDiagnostics ? 'diagModelVerification' : 'configurationStatus')}>
-        <strong>{t(simulatedDiagnostics ? 'notTested' : statusLabelKey(state.runtime))}</strong>
-        <small>{t(simulatedDiagnostics ? 'diagModelVerification' : 'configurationStatus')}</small>
+      <div className="diagnosticLeadState" aria-label={t(management || simulatedDiagnostics ? 'diagModelVerification' : 'configurationStatus')}>
+        <strong>{t(management || simulatedDiagnostics ? 'notTested' : statusLabelKey(state.runtime))}</strong>
+        <small>{t(management || simulatedDiagnostics ? 'diagModelVerification' : 'configurationStatus')}</small>
       </div>
     </header>
-    <p className="diagnosticActiveRoute">{activeLabel
+    {(!management || panel !== 'overview') && <p className="diagnosticActiveRoute">{activeLabel
       ? t('chromeStillUsingLastConfirmedMode', {mode: activeLabel})
-      : t('chromeSettingsAreUnverifiedTheActualWebsiteRouteCannot')}</p>
+      : t('chromeSettingsAreUnverifiedTheActualWebsiteRouteCannot')}</p>}
+    {management&&(state.runtime.permission===false||state.runtime.control==='unknown'||state.runtime.credentialRequired||state.runtime.outcomeUnknown||state.runtime.proxyError)&&<Status status={state.runtime} compact/>}
     <div className="diagnosticMetrics" aria-label={t('currentDiagnosticsSummary')}>
       <div><small>{t('proxyControl')}</small><strong>{state.runtime.control === 'controlled_by_this_extension'
         ? t('controlledByThisExtension') : state.runtime.control === 'controlled_by_other_extensions'
           ? t('controlledByAnotherExtension2') : t('controlNotConfirmed')}</strong>
         <small>Chrome Proxy API</small></div>
-      <div><small>{t('configurationStatus')}</small><strong>{t(statusLabelKey(state.runtime))}</strong>
+      {management?<>
+        <div><small>{t('pcDiagFavoriteTests')}</small><strong>{simulatedDiagnostics?`${current.filter(result=>favorites.some(site=>site.id===result.siteId)).length} / ${favorites.length}`:t('notTested')}</strong></div>
+        <div><small>{t('pcDiagCurrentResponse')}</small><strong>{t('notTested')}</strong><small>{siteHost||t('notAvailable')}</small></div>
+        <div><small>{t('pcDiagModel')}</small><strong>{t('notTested')}</strong></div>
+      </>:<>      <div><small>{t('configurationStatus')}</small><strong>{t(statusLabelKey(state.runtime))}</strong>
         <small>{t('doesNotProveReachability')}</small></div>
       <div><small>{t(simulatedDiagnostics ? 'diagSitesChecked' : 'diagSitesLive')}</small><strong>{simulatedDiagnostics ? `${current.length} / ${AI_SITES.length}` : t('notTested')}</strong>
         <small>{!simulatedDiagnostics ? t('diagModelVerification') : current.length === 0 ? t('notTested') : t('diagCurrentRouteOnly')}</small></div>
@@ -249,6 +264,7 @@ export function DiagnosticsPage({ state, busy, onRefresh, onStop, onProfiles }: 
         <small>{snapshot?.activeRun ? t('diagProgress', {
           done: snapshot.activeRun.completed, total: snapshot.activeRun.total
         }) : t('diagOnDemandOnly')}</small></div>
+</>}
     </div>
     <div className="diagnosticTabs" role="tablist" aria-label={t('diagnosticCategories')}>
       {([
@@ -271,7 +287,7 @@ export function DiagnosticsPage({ state, busy, onRefresh, onStop, onProfiles }: 
           target.focus();
           target.scrollIntoView({block:'nearest',inline:'nearest'});
         }}
-        onClick={() => setPanel(id)}>{label}</Button>)}
+        onClick={() => setPanel(id)}>{management ? <><span className="diagnosticTabGlyph" aria-hidden="true">{({overview:'⌂',ai:'◉',top:'☆',speed:'↗',proxy:'≡'} as const)[id]}</span>{label}</> : label}</Button>)}
     </div>
     {!simulatedDiagnostics && <p className="diagnosticRuntimeNotice" role="status">{t("diagProductionUnavailable")}</p>}
     {error && <p className="notice error" role="alert">{error}</p>}
@@ -281,7 +297,28 @@ export function DiagnosticsPage({ state, busy, onRefresh, onStop, onProfiles }: 
       <Button variant="secondary" onClick={() => void submit({ type:'CANCEL_DIAGNOSTICS' })}>{t('diagCancel')}</Button>
     </div>}
     <section ref={panelContent} id="diagnostic-panel" role="tabpanel" tabIndex={0} aria-labelledby={'diagnostic-tab-' + panel} className="diagnosticPanel">
-      {panel === 'overview' && <div className={'diagnosticOverview' + (simulatedDiagnostics ? '' : ' diagnosticOverviewRuntime')}>
+      {panel === 'overview' && management && <div className="diagnosticOverviewManagement">
+        <div className="diagnosticOverviewCards">
+          <article className="diagnosticFeature diagnosticCurrentSite">
+            <div className="diagnosticCardHeading"><small>{t('currentWebsite')}</small><span className="diagnosticCornerBadge">{t('currentWebsite')}</span></div><h3>{t('pcDiagCurrentTitle')}</h3>
+            <strong className="diagnosticHost">{siteHost||t('notAvailable')}</strong>
+            <p>{t('selected')}: {state.config.selection.mode==='profile'?selectedProfile?.name??t('noProfileSelected'):t(modeKeys[state.config.selection.mode])}</p>
+            <div className="diagnosticReading"><strong>{t('notTested')}</strong><small>{t('diagModelVerification')}</small></div>
+            <div className="actions"><Button variant="primary" className="primary" disabled aria-describedby="current-site-check-unavailable">{t('pcDiagCheckCurrent')}</Button><Button onClick={()=>openPanel('proxy')}>{t('pcDiagProxySettings')}</Button></div>
+            <p className="hint" id="current-site-check-unavailable">{t('pcDiagCurrentUnavailable')}</p>
+          </article>
+          <article className="diagnosticFeature diagnosticAiSummary">
+            <div className="diagnosticCardHeading"><small>{t('aiSites')}</small><span className="diagnosticCornerBadge">{AI_SITES.length} · {t('aiSites')}</span></div><h3>{t('pcDiagAiTitle')}</h3><p>{t('pcDiagAiHelp')}</p>
+            <div className="diagnosticQuickSites">{AI_SITES.slice(0,3).map(site=><div className="diagnosticQuickSite" key={site.id}><span className="diagnosticSiteGlyph" aria-hidden="true">{site.name[0]}</span><div><strong>{site.name}</strong>{renderResult(site)}</div></div>)}</div>
+            <div className="actions"><Button variant="primary" className="primary" disabled={!simulatedDiagnostics||locked} onClick={()=>void test(AI_SITES.slice(0,5).map(s=>s.id))}>{t('diagStartFive')}</Button><Button onClick={()=>openPanel('ai')}>{t('pcDiagViewAll')}</Button></div>
+          </article>
+        </div>
+        <div className="diagnosticOverviewShortcuts">
+          <article><span className="diagnosticShortcutGlyph" aria-hidden="true">☆</span><div><small>{t('pcDiagFavorites')}</small><h3>{t('prioritySitesTop510')}</h3><p>{simulatedDiagnostics?t('diagFavoritesCount',{count:favorites.length}):t('notAvailable')}</p></div><Button data-testid="usage-manage" onClick={()=>openPanel('top')}>{t('pcDiagView')}</Button></article>
+          <article><span className="diagnosticShortcutGlyph" aria-hidden="true">↗</span><div><small>{t('connectionSpeed')}</small><h3>{t('pcDiagQuality')}</h3><p>{t(simulatedDiagnostics?'diagHttpTiming':'diagSpeedNotConnected')}</p></div><Button onClick={()=>openPanel('speed')}>{t('pcDiagTest')}</Button></article>
+        </div>
+      </div>}
+      {panel === 'overview' && !management && <div className={'diagnosticOverview' + (management ? ' diagnosticOverviewManagement' : simulatedDiagnostics ? '' : ' diagnosticOverviewRuntime')}>
         <article className={'diagnosticFeature' + (simulatedDiagnostics ? '' : ' diagnosticFeaturePrimary')}>
           <small>{t(simulatedDiagnostics ? 'selected' : 'proxyControl')}</small>
           <h3>{simulatedDiagnostics ? (state.config.selection.mode === 'profile'
@@ -289,12 +326,21 @@ export function DiagnosticsPage({ state, busy, onRefresh, onStop, onProfiles }: 
             : t(({ rules: 'popupModeRules', direct: 'popupModeDirect', system: 'popupModeSystem' } as const)[state.config.selection.mode]))
             : t('basicProxyDiagnostics')}</h3>
           {simulatedDiagnostics ? <p>{t(statusLabelKey(state.runtime))}</p> : <Status status={state.runtime} compact />}
+          {management && <p className="diagnosticActiveRoute">{activeLabel
+            ? t('chromeStillUsingLastConfirmedMode', {mode: activeLabel})
+            : t('chromeSettingsAreUnverifiedTheActualWebsiteRouteCannot')}</p>}
           <p>{selectionApplied ? t('diagProxyAppliedCaveat') : t('diagCheckProxySettings')}</p>
           <Button variant="secondary" onClick={() => openPanel('proxy')}>{t('viewActualControlStatus')}</Button>
         </article>
         <article className={'diagnosticFeature' + (simulatedDiagnostics ? '' : ' diagnosticFeatureSecondary')}>
           <small>{t('priorityScenario')}</small><h3>{t('aiSiteAvailability')}</h3>
           <p>{t(simulatedDiagnostics ? 'diagAiFirstFive' : 'notAvailable')}</p>
+          {management && <div className="diagnosticSiteList diagnosticQuickSites">
+            {AI_SITES.slice(0, 3).map(site => <div className="diagnosticQuickSite" key={site.id}>
+              <div className="diagnosticSiteName"><strong>{site.name}</strong></div>
+              {renderResult(site)}
+            </div>)}
+          </div>}
           <div className="actions">
             <Button variant="primary" className="primary" disabled={!simulatedDiagnostics || locked} onClick={() =>
               void test(AI_SITES.slice(0, 5).map(s => s.id))}>{t('diagStartFive')}</Button>
@@ -390,7 +436,7 @@ export function DiagnosticsPage({ state, busy, onRefresh, onStop, onProfiles }: 
         </div>
         <p id="diagnostic-probe-unavailable" className="hint">{t('theProbeTargetsApiIpifyOrgExtensionRequestsAlone')}</p>
       </div>}
-      {(panel === 'proxy' || panel === 'overview') && <div className="diagnosticIssues">
+      {(panel === 'proxy' || (panel === 'overview' && (!management || issues.some(code=>code!=='limited_evidence')))) && <div className="diagnosticIssues">
         <h3>{t('diagTroubleshoot')}</h3>
         {issues.map(code => <article key={code} className="diagnosticIssue">
           <strong>{t(diagnosisKeys[code][0])}</strong>
@@ -402,5 +448,9 @@ export function DiagnosticsPage({ state, busy, onRefresh, onStop, onProfiles }: 
         </article>)}
       </div>}
     </section>
+    {management && <><p className="hint diagnosticEvidenceFootnote">{t(simulatedDiagnostics ? 'diagLeadExplanation' : 'diagEvidenceBoundary')}</p>
+    <details className="diagnosticEvidenceDetails"><summary>{t('pcDiagEvidenceTitle')}<span>{t('pcDiagView')}</span></summary>
+      <p className="hint">{t('pcDiagEvidenceLayers')}</p>
+    </details></>}
   </>;
 }

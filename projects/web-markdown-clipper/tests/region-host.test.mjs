@@ -148,6 +148,7 @@ async function regionFixture(t,options={}){
       for(const fn of callbacks)fn();}};
   const f=await hostFixture(t,{tool,store,target,...options,configureApi(api){
     api.tabs={sendMessage(tabId,message,address){
+      if(message.operation==='clip.ready')return Promise.resolve({ok:true,data:{ready:true}});
       calls.push({tabId,message,address});
       return message.operation==='clip.region'?gate.promise:Promise.resolve({ok:true,data:{cancelled:true}});
     }};

@@ -650,11 +650,13 @@ function reviewedCompiledAppOwnedBackground(target,path,root){
 // remains opt-in; no new import, network authority or privileged output target.
 // 2026-11-13 dev unblock review: associated toggle labels, explanatory locale
 // strings and visible settings feedback only; trusted gesture checks retained.
+// 2026-11-13 recovery UI review: existing cleanup presentation moves into
+// runtime diagnostics, with four-locale labels; no new authority or output target.
 const compiledExtensionSettingsInputs=Object.freeze({
   'projects/ai-scroll-navigation/trusted/ai-configuration.js':'c97137a3a871fb6c19fd3594fc627fafd67d03f8',
   'projects/ai-scroll-navigation/trusted/ai-controls.tsx':'ba7e94499c399aba685b7c80cf004bb56e2888f0',
-  'projects/ai-scroll-navigation/trusted/react-controls.tsx':'8f6c831049008d4011decd4581dab1b553d1424d',
-  'projects/ai-scroll-navigation/trusted/host-localization.js':'975a38f5f8e238cd07bfcb5771e822ced8e739f4',
+  'projects/ai-scroll-navigation/trusted/react-controls.tsx':'dfe565119cf1e8da869785e6f6bb6dba0c471b92',
+  'projects/ai-scroll-navigation/trusted/host-localization.js':'e2d8f50cf676e4fc902202bfb24caa36de221837',
   'projects/time-review/trusted/react-controls.tsx':'2a9155f4a6c56969d1aebcd7420405b84fd4eaf4',
   'projects/time-review/trusted/localization.js':'7478e9c91f33317c8e1fe08f33d2e49c47b47818',
   'projects/prompt-shortcuts/trusted/host-localization.js':'8a83cf4b2fff65af0ff12656d3f4aeafe62111d4'

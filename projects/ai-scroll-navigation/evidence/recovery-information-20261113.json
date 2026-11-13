@@ -1,0 +1,192 @@
+{
+  "date": "2026-11-13",
+  "stage": "core-development",
+  "scope": "Navigation settings and old-page recovery presentation",
+  "changes": [
+    "Recovery removed from home, settings and site editing; retained in runtime diagnostics",
+    "Pending documents and historical-only receipts have distinct titles and guidance",
+    "Unknown cleanup after disabling remains informational rather than fully successful"
+  ],
+  "safety": "No receipt deletion, automatic retry, page refresh, permission change or installation was added",
+  "checks": {
+    "node": {
+      "passed": 138,
+      "failed": 0,
+      "skipped": 0,
+      "log": "artifacts/ai-scroll-recovery-20261113/node-tests.log"
+    },
+    "syntax": "Three changed JavaScript modules passed node --check",
+    "browser": {
+      "kind": "actual-source-components-with-service-fixture",
+      "home": true,
+      "settings": true,
+      "editor": true,
+      "sevenFlags": true,
+      "labelClickSaved": true,
+      "savedStateRetained": true,
+      "returnFocus": true,
+      "pendingDocumentsRetained": true,
+      "historyNoActionGuidance": true,
+      "retiredHidden": true,
+      "requests": [
+        "readConfig",
+        "saveNavigation",
+        "readInstalled"
+      ],
+      "browser": "Ego Lite",
+      "installedSidePanel": "NOT_TESTED",
+      "taskSpaceId": 5
+    },
+    "provenance": {
+      "passed": 2,
+      "failed": 0,
+      "skipped": 0,
+      "log": "artifacts/ai-scroll-recovery-20261113/provenance-tests.log",
+      "scope": "Exact reviewed input hashes, changed-byte/symlink rejection and original tool-shell-only output boundary"
+    },
+    "uiFollowup": {
+      "date": "2026-11-14",
+      "sourceScenario": {
+        "result": "PASS",
+        "container": {
+          "width": 360,
+          "height": 600
+        },
+        "settingsWithoutRecovery": true,
+        "sevenSwitches": true,
+        "managementReachableByScroll": true,
+        "keyboardDisclosureAndReturn": true,
+        "labelClickSaved": true,
+        "spaceKeySaved": true,
+        "returnFocus": "scroll-management",
+        "unknownRecordRetainedAfterReadOnlyRecheck": true,
+        "fixtureSettingRestored": true,
+        "artifacts": [
+          "artifacts/ai-scroll-recovery-20261113/ui-followup-result.json",
+          "artifacts/ai-scroll-recovery-20261113/ui-settings-narrow.png",
+          "artifacts/ai-scroll-recovery-20261113/ui-recovery-narrow.png"
+        ]
+      },
+      "installedSidePanel": {
+        "result": "PASS",
+        "browser": "Ego Lite",
+        "driver": "Ego TaskSpace for own page; CUA exact native element binding for Side Panel under the shared UI lock",
+        "extensionId": "ccfcjegpkdlgbclopjmadlcjedelidmf",
+        "sidePanelHostInstanceId": "9162660f-2504-4896-9b50-f3c4a455b7d7",
+        "homeWithoutRecovery": true,
+        "settingsWithoutRecovery": true,
+        "sevenSwitches": true,
+        "managementLabel": "运行状态与诊断",
+        "actualShowTurnCountSequence": [
+          true,
+          false,
+          true
+        ],
+        "actualSaveReceipt": "导航设置已保存并读回。",
+        "settingRestored": true,
+        "confirmedAfterReturning": true,
+        "readOnlyRecheck": true,
+        "cleanupState": "retired",
+        "recoveryHidden": true,
+        "returnFocus": "运行状态与诊断",
+        "devServiceConnected": true,
+        "appliedRevision": "0bbd4777bce06a567235a1cd3c2c46812b66cd639fe778817de60983831f7744",
+        "permissionChanges": 0,
+        "installs": 0,
+        "forcedReloads": 0,
+        "note": "Live native AX readback verified actual settings and developer connection. Pending/history states remain covered by the source scenario, not fabricated in installation storage."
+      },
+      "concurrentChanges": [
+        {
+          "path": "tests/environment/bundle-provenance.test.mjs",
+          "previousTestInputSha256": "88ef77fe216f647bb799588146c422067efa66c0f02e60d25733963f95e1cee4",
+          "currentSha256": "b26dbd31a9faece0dcb954fda0baa1a25933947b3a0946032d925b401129c4e6",
+          "scope": "Concurrent AI Proxy sidebar-settings.css pin change; Scroll test cases and product inputs unchanged. Original test evidence retains its actual input hash."
+        }
+      ]
+    }
+  },
+  "delivery": {
+    "owner": "Browser fixed trusted UI; Page JSON unchanged",
+    "runtime": {
+      "mode": "continuous-development",
+      "command": "npm run dev",
+      "output": "/Users/shopme/Documents/workspace/opendesk-browser/dist/development",
+      "server": "http://localhost:43119",
+      "processId": 32314,
+      "build": "PASS",
+      "service": "RUNNING",
+      "revision": "0bbd4777bce06a567235a1cd3c2c46812b66cd639fe778817de60983831f7744",
+      "toolShellHash": "acba1eaa9400977a56cbd23a3aac11e218b95952ffc1e0b7ff0df2d36b3d10ec",
+      "compiledLabelsVerified": [
+        "运行状态与诊断",
+        "网页更新与恢复",
+        "页面恢复记录"
+      ],
+      "installedNativeAppliedRevision": "0bbd4777bce06a567235a1cd3c2c46812b66cd639fe778817de60983831f7744",
+      "log": "artifacts/ai-scroll-recovery-20261113/development-service.log",
+      "note": "No live output writer existed at start; original dev lock handled its stale predecessor. First build rejected changed reviewed inputs; only the two changed trusted UI pins were updated before this successful build. No forced browser reload or installed Page update.",
+      "installedNativeUiVerification": "PASS (2026-11-14)",
+      "subsequentOutputObservation": {
+        "revision": "cb07ca14ff87a38b005415e5ba0a1410687e7ca5f018c41f7af3954552c3fd5d",
+        "toolShellHash": "ecc59a4fd453807f4d9718baaae02f2776ccfb3c4ab2abf4b29f2cec8ffa30f8",
+        "note": "Shared development watcher rebuilt parallel AI Proxy changes after native UI verification. Native applied revision above is the exact observed revision, not a claim about this later output."
+      }
+    }
+  },
+  "resources": {
+    "egoTaskSpace": 5,
+    "finished": true,
+    "keptPages": [],
+    "fixtureServer": "stopped",
+    "uiFollowup": {
+      "egoTaskSpace": 8,
+      "finished": true,
+      "keptPages": [],
+      "fixtureServer": "stopped",
+      "nativeUiLock": "released"
+    }
+  },
+  "sourceInputs": [
+    {
+      "path": "projects/ai-scroll-navigation/trusted/react-controls.tsx",
+      "sha256": "348afb7ea8dccd925898e1280012782bdd97c6bd1a72083a5e8e00f3b0b553eb"
+    },
+    {
+      "path": "projects/ai-scroll-navigation/trusted/host-localization.js",
+      "sha256": "aa1bd523cd4d063fc9600125b095ad73d37446ee53961e8f4d44415da192adf2"
+    },
+    {
+      "path": "src/ui/react/components/page-cleanup.tsx",
+      "sha256": "cd0b5fcd3a3bef7e25b17835db00c4e10e8262ffce5ba37433dc5ec4f44f9366"
+    },
+    {
+      "path": "src/ui/react/tabs/tools.tsx",
+      "sha256": "35fecaf13449c2cc6d8a502fab72d1210dafcfaf797822d7c3dbcb5ba24c4284"
+    },
+    {
+      "path": "src/ui/extension-center-localization.js",
+      "sha256": "e5a0836a409dd674c758ec66d88b0169c402d83ef1b50cc3e4896b1599c88e4a"
+    },
+    {
+      "path": "src/ui/extension-center.js",
+      "sha256": "85ea1fab23c6fc0574b4776e7f8c45d09e1e3311d25379b0acc06893e124fff8"
+    },
+    {
+      "path": "tests/environment/ai-scroll-react-manager-r38.test.mjs",
+      "sha256": "61a79246ec1516562cd71244504f41b23f2ad2ada1e91c0b5ee6a86ad4c17f54"
+    },
+    {
+      "path": "scripts/bundle-provenance.mjs",
+      "sha256": "b64310eb3973c2b25e1ac4aa0a9668b3a54ab3ec9b746b452f757c720e0cc42a"
+    },
+    {
+      "path": "tests/environment/bundle-provenance.test.mjs",
+      "sha256": "88ef77fe216f647bb799588146c422067efa66c0f02e60d25733963f95e1cee4"
+    }
+  ],
+  "notTested": [
+    "Production acceptance",
+    "Reinjection of Page code into previously opened website documents after this Browser build"
+  ]
+}

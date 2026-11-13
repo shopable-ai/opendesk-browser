@@ -1,0 +1,219 @@
+{
+  "schema": "opendesk.ai-proxy.preview-production-parity.v1",
+  "taskId": "AI-PROXY-PC-PARITY-20261114",
+  "purpose": "Pin the current approved immutable PC reference; preserve real business and security boundaries during seven-page development parity.",
+  "evidenceLevel": "DESIGN_SOURCE_CONTRACT_ONLY_NOT_COMPONENT_OR_INSTALLED_ACCEPTANCE",
+  "design": {
+    "path": "projects/ai-proxy/preview/preview.html",
+    "sha256": "277ff8df72970906370507e9d7448da3ba583cb293536cae874c1a034080a977",
+    "bytes": 133880,
+    "immutable": true
+  },
+  "comparison": {
+    "locale": "zh-CN",
+    "theme": "light",
+    "pcViewport": {
+      "width": 1440,
+      "height": 1000
+    },
+    "sidePanelViewport": "MEASURE_ACTUAL_CONTENT_VIEWPORT",
+    "sameMockStateRequired": true,
+    "ignoreOnly": [
+      "preview diagnostics/scene selectors outside AI Proxy business UI",
+      "OpenDesk host-only shell"
+    ],
+    "capture": [
+      "screenshot",
+      "DOM rect",
+      "computed style",
+      "interaction receipt",
+      "source/build/install identity"
+    ]
+  },
+  "routeMap": [
+    {
+      "preview": "proxies",
+      "production": "profiles"
+    },
+    {
+      "preview": "rules",
+      "production": "rules"
+    },
+    {
+      "preview": "thirdparty",
+      "production": "subscriptions"
+    },
+    {
+      "preview": "import",
+      "production": "backup"
+    },
+    {
+      "preview": "diagnostics",
+      "production": "diagnostic"
+    },
+    {
+      "preview": "general",
+      "production": "general"
+    },
+    {
+      "preview": "official",
+      "production": "official"
+    }
+  ],
+  "scenes": [
+    {
+      "id": "PC-01-PROFILES",
+      "kind": "profiles",
+      "previewRoute": "#options/proxies",
+      "productionSection": "profiles",
+      "name": "代理配置与四模式",
+      "assertion": "已选择与已应用分别展示；代理列表操作和运行状态可读",
+      "status": "NOT_TESTED",
+      "evidence": null
+    },
+    {
+      "id": "PC-02-ADD",
+      "kind": "modal",
+      "previewRoute": "#options/proxies",
+      "productionSection": "profiles",
+      "name": "添加代理",
+      "assertion": "名称、协议、地址、端口、可选凭据；字段顺序、错误、取消和保存回执",
+      "status": "NOT_TESTED",
+      "evidence": null
+    },
+    {
+      "id": "PC-03-EDIT",
+      "kind": "modal",
+      "previewRoute": "#options/proxies",
+      "productionSection": "profiles",
+      "name": "编辑代理",
+      "assertion": "回显、保存、取消、焦点恢复，失败保留草稿",
+      "status": "NOT_TESTED",
+      "evidence": null
+    },
+    {
+      "id": "PC-04-RULES",
+      "kind": "rules",
+      "previewRoute": "#options/rules",
+      "productionSection": "rules",
+      "name": "网站规则",
+      "assertion": "列表、默认路由、编辑、保存、删除确认与回读",
+      "status": "NOT_TESTED",
+      "evidence": null
+    },
+    {
+      "id": "PC-05-SUBSCRIPTIONS",
+      "kind": "subscriptions",
+      "previewRoute": "#options/thirdparty",
+      "productionSection": "subscriptions",
+      "name": "订阅管理",
+      "assertion": "本地来源配置与未接入在线订阅的真实状态",
+      "status": "NOT_TESTED",
+      "evidence": null
+    },
+    {
+      "id": "PC-06-BACKUP",
+      "kind": "backup",
+      "previewRoute": "#options/import",
+      "productionSection": "backup",
+      "name": "导入备份",
+      "assertion": "导入确认、非法数据拒绝、导出和原配置保护",
+      "status": "NOT_TESTED",
+      "evidence": null
+    },
+    {
+      "id": "PC-07-DIAGNOSTIC",
+      "kind": "diagnostic",
+      "previewRoute": "#options/diagnostics",
+      "productionSection": "diagnostic",
+      "name": "网络诊断",
+      "assertion": "五个子栏目及真实未验证/受限能力表述",
+      "status": "NOT_TESTED",
+      "evidence": null
+    },
+    {
+      "id": "PC-08-GENERAL",
+      "kind": "general",
+      "previewRoute": "#options/general",
+      "productionSection": "general",
+      "name": "通用设置",
+      "assertion": "语言与快捷操作保存/读回，不误触代理",
+      "status": "NOT_TESTED",
+      "evidence": null
+    },
+    {
+      "id": "PC-09-OFFICIAL",
+      "kind": "official",
+      "previewRoute": "#options/official",
+      "productionSection": "official",
+      "name": "官方网络",
+      "assertion": "未接线认证和服务必须明确说明",
+      "status": "NOT_TESTED",
+      "evidence": null
+    },
+    {
+      "id": "SIDE-01-QUICK",
+      "kind": "side",
+      "previewRoute": "#sidepanel",
+      "productionSection": "side-panel",
+      "name": "R18 紧凑侧栏",
+      "assertion": "四模式、当前网站、代理列表、状态及原侧栏导航",
+      "status": "NOT_TESTED",
+      "evidence": null
+    },
+    {
+      "id": "CROSS-01-STATE",
+      "kind": "cross",
+      "previewRoute": "#options/proxies",
+      "productionSection": "profiles",
+      "name": "PC→侧栏状态回读",
+      "assertion": "同一安装身份，保存不自动应用、ETag/unknown保护",
+      "status": "NOT_TESTED",
+      "evidence": null
+    },
+    {
+      "id": "ERR-01-FORMS",
+      "kind": "error",
+      "previewRoute": "#options/proxies",
+      "productionSection": "profiles",
+      "name": "异常与恢复",
+      "assertion": "输入错误、取消、冲突、拒绝和未知结果不伪报成功",
+      "status": "NOT_TESTED",
+      "evidence": null
+    }
+  ],
+  "knownDifferences": [],
+  "sourcePreview": {
+    "command": "node projects/ai-proxy/scripts/stage-preview.mjs --current-sources --view settings",
+    "defaultOutput": "projects/ai-proxy/.opendesk-preview/source-<uuid>/preview.html",
+    "forbidOverwriteApprovedHTML": true,
+    "simulationOnly": true
+  },
+  "gates": {
+    "DESIGN_BASELINE_READY": {
+      "status": "NOT_TESTED",
+      "evidence": null
+    },
+    "SOURCE_PARITY_PASS": {
+      "status": "NOT_TESTED",
+      "evidence": null
+    },
+    "BUILD_PASS": {
+      "status": "NOT_TESTED",
+      "evidence": null
+    },
+    "INSTALLED_PARITY_PASS": {
+      "status": "NOT_TESTED",
+      "evidence": null
+    },
+    "ACCEPTED": {
+      "status": "NOT_TESTED",
+      "evidence": null
+    }
+  },
+  "note": "Development source preview only. Scene declarations do not restore deferred native network, production, packaging or installed acceptance. PASS requires evidence bound to this candidate; no historical PASS is carried forward.",
+  "supersedes": {
+    "contract": "projects/ai-proxy/evidence/preview-to-production-r3/scene-contract.json",
+    "scope": "Current approved design identity only; historical evidence remains unchanged."
+  }
+}

@@ -43,6 +43,8 @@ description: Improve OpenDesk Browser five-tab UI (我的/扩展/工作流/开�
 
 **入口先分类**：可信 Side Panel 使用上述 `od-*`；扩展 Settings 使用自身 CSS + 合适的 tokens；Marketplace 属于独立响应式页面；Native Workspace 使用固定离线 Tailwind v4，且 `:root` 16px 保证 rem 基准；sandbox/网页注入 UI 不引入宿主 CSS、全局 reset、Preflight 或特权代码。
 
+调整已安装网页增强详情时，核对产品规格的[真实设置与安装维护](../../../docs/product/sidebar-ui-spec.zh-CN.md#已安装网页增强详情真实设置与安装维护2026-11-14)：按实际配置内容决定是否有设置区，并验证维护入口、真实设置和诊断/恢复入口仍可用。
+
 ## 改变导航或交互时核对受影响的页面状态
 
 新建页面或改变导航/交互时，简要说明下列受影响项；既有缺陷直接核对当前入口及失败步骤，不要求重画完整状态图或新建 HTML 原型：

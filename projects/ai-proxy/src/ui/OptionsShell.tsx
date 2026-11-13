@@ -36,24 +36,20 @@ export function OptionsNavIcon({ section }: { section: OptionsSection }) {
   return <svg className="optionsNavIcon" width="18" height="18" viewBox="0 0 24 24"
     fill="none" aria-hidden="true" focusable="false" {...common}>
     {section === 'profiles' ? <>
-      <rect x="3" y="4" width="18" height="16" rx="3"/>
-      <path d="M7 9h10M7 14h7M17 13v4"/>
+      <rect x="3" y="3" width="18" height="8" rx="2"/><rect x="3" y="13" width="18" height="8" rx="2"/>
+      <path d="M7 7h.01M7 17h.01"/>
     </> : section === 'rules' ? <>
-      <path d="M5 4v16M5 8h12l-3-3m3 3-3 3M5 16h13l-3-3m3 3-3 3"/>
+      <path d="M6 4h7a4 4 0 0 1 0 8H9a4 4 0 0 0 0 8h9"/><circle cx="6" cy="4" r="2"/><circle cx="18" cy="20" r="2"/>
     </> : section === 'subscriptions' ? <>
-      <path d="M4 7h13M4 12h16M4 17h11M17 4l3 3-3 3"/>
+      <path d="M10 13a5 5 0 0 0 7 0l2-2a5 5 0 0 0-7-7l-1 1M14 11a5 5 0 0 0-7 0l-2 2a5 5 0 0 0 7 7l1-1"/>
     </> : section === 'backup' ? <>
-      <path d="M12 3v12m0 0-4-4m4 4 4-4M5 16v3a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2v-3"/>
+      <path d="M3 6h6l2 2h10v11H3z"/>
     </> : section === 'diagnostic' ? <>
-      <path d="M3 12h4l3-7 4 14 3-7h4"/>
+      <rect x="2" y="3" width="20" height="13" rx="2"/><path d="M8 21h8m-4-5v5"/>
     </> : section === 'general' ? <>
-      <path d="M4 7h16M4 12h16M4 17h16"/>
-      <circle cx="9" cy="7" r="2" fill="var(--surface)"/>
-      <circle cx="15" cy="12" r="2" fill="var(--surface)"/>
-      <circle cx="9" cy="17" r="2" fill="var(--surface)"/>
+      <circle cx="12" cy="12" r="3"/><path d="m10 2 4 0 .6 2.3 2 1 2.3-.9 2 3.2-1.5 1.9v2.6l1.5 1.9-2 3.2-2.3-.9-2 1L14 21h-4l-.6-2.3-2-1-2.3.9-2-3.2L4.6 13.5v-3l-1.5-1.9 2-3.2 2.3.9 2-1z"/>
     </> : <>
-      <path d="m12 2 8 4v5c0 5-3.5 8.5-8 11-4.5-2.5-8-6-8-11V6z"/>
-      <path d="m9 12 2 2 4-4"/>
+      <circle cx="12" cy="12" r="9"/><path d="M3 12h18M12 3a15 15 0 0 1 0 18M12 3a15 15 0 0 0 0 18"/>
     </>}
   </svg>;
 }

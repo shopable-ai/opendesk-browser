@@ -1,0 +1,151 @@
+{
+  "schema": "opendesk.ai-scroll-navigation.virtualized-paging.v1",
+  "recordedAt": "2026-11-13T18:52:31.259Z",
+  "scope": "Development fix of the reported two-up / one-down path in system Chrome; not formal release acceptance",
+  "targetUrl": "https://chatgpt.com/g/g-p-6aec96027de881918b37eaec3df3746f-opendesk-broswer/c/6af60398-7320-83e8-9c8d-4f21e81395b2",
+  "rootCause": "ChatGPT unmounts entire offscreen rounds while retaining spacer geometry. Rebuilding pages from only mounted nodes loses already-observed next/previous questions.",
+  "fix": {
+    "history": "Per-dock, per-document observed stable ChatGPT user keys and geometry; no message text or detached node retention.",
+    "invalidation": "Route/root/main/scroller/selector/site, scroll and viewport dimensions, stable anchor/cover drift, role/identity ambiguity, disable and disposal; no history for custom adapters or other origins.",
+    "landing": "At most two verified live-question corrections, 180ms and 600ms after a trusted page jump; canceled by user scroll/touch/navigation key, outside pointer input, context or dimensions change, replacement action, disable or disposal.",
+    "count": "Observed and verified rounds only, never an invented server-side total."
+  },
+  "tests": {
+    "business": {
+      "status": "PASS",
+      "passed": 150,
+      "failed": 0,
+      "skipped": 0,
+      "command": "node --test projects/ai-scroll-navigation/tests/conversation.test.mjs projects/ai-scroll-navigation/tests/floating-navigation.test.mjs projects/ai-scroll-navigation/tests/runtime-reliability.test.mjs projects/ai-scroll-navigation/tests/virtualized-paging.test.mjs",
+      "log": "/tmp/ai-scroll-paging-node.log"
+    },
+    "pagePackage": {
+      "status": "PASS",
+      "passed": 14,
+      "failed": 0,
+      "skipped": 0,
+      "command": "node --test tests/environment/page-install-package.test.mjs",
+      "log": "/tmp/ai-scroll-paging-package.log"
+    },
+    "provenance": {
+      "status": "PASS",
+      "modules": [
+        {
+          "path": "src/conversation.js",
+          "bytes": 44234,
+          "sha256": "591526acdaee0eb5811821b221a94110b68f113816d92bebd6e9140a76511604"
+        },
+        {
+          "path": "src/floating-navigation.js",
+          "bytes": 27368,
+          "sha256": "d4ba480c322012b0c5cf89e615a41091bfeb76161db63ab17264a2c6c3d33b40"
+        },
+        {
+          "path": "src/main.js",
+          "bytes": 3333,
+          "sha256": "ca65eb7508c945ca9d0e2c679f2bf277c0125e023c60fda61ee15aa3d1fbf9ed"
+        },
+        {
+          "path": "src/site-adapters.js",
+          "bytes": 3302,
+          "sha256": "91d285494dc45f28dccf1f88fef675a2de37f66aabb17c14ed6d93345a62ecb0"
+        },
+        {
+          "path": "src/site-configuration.js",
+          "bytes": 46547,
+          "sha256": "3fc032b70d14c50f7ebf13f80bd0c8ee3a4112fb7ca1b194561436ac18bcdae7"
+        }
+      ],
+      "checks": [
+        "current source files equal original builder metadata",
+        "compiled program bytes equal frozen draft and package source",
+        "formal delivery bytes equal installed candidate",
+        "original package validator accepted",
+        "version/revision/catalog and original three-site USER_SCRIPT rules match"
+      ]
+    }
+  },
+  "package": {
+    "file": "projects/ai-scroll-navigation/ai-scroll-navigation.opendesk-page.json",
+    "candidate": "artifacts/ai-scroll-virtualization-20261114/candidate-r26.opendesk-page.json",
+    "version": "0.4.23",
+    "revision": 26,
+    "sourceHash": "add10c61bece5b465fff84612407e3b54073d174631996a318809bb865de25a8",
+    "packageHash": "d8fe2dfb72a3c0bd893f014d1db52b88b27c83ec1ce4ccaa5256b56b3cc489ea",
+    "fileSha256": "bc0eeac45b9cd8bfa2a1373183d2eb374f1543b5c3161baedaa7d5abfdb887c6",
+    "buildMode": "production (standalone Page compiler only)",
+    "browserProductionAcceptance": "NOT_TESTED"
+  },
+  "nativeChrome": {
+    "status": "PASS_FOR_REPORTED_PATH",
+    "app": "/Users/shopme/Applications/Google Chrome.app",
+    "extensionId": "ccfcjegpkdlgbclopjmadlcjedelidmf",
+    "update": "Original Extensions > Import > v0.4.22/r25 to v0.4.23/r26 > Confirm update. Review reported unchanged website permissions.",
+    "readback": {
+      "revision": 26,
+      "authorization": "active",
+      "chromeRegistration": "registered",
+      "sourceHash": "add10c61bece5b465fff84612407e3b54073d174631996a318809bb865de25a8",
+      "capabilities": [
+        "page.dom",
+        "page.config"
+      ]
+    },
+    "pageApplication": "Normal reload of this task-owned tab at the exact requested URL after update; no test messages sent.",
+    "steps": [
+      {
+        "action": "Initial conversation bottom",
+        "previous": "回到本轮提问 / enabled",
+        "next": "disabled",
+        "bottom": "disabled"
+      },
+      {
+        "action": "First previous click",
+        "previous": "上一轮提问 / enabled",
+        "next": "disabled",
+        "bottom": "enabled"
+      },
+      {
+        "action": "Second previous click reaches first question",
+        "previous": "disabled",
+        "next": "enabled",
+        "bottom": "enabled"
+      },
+      {
+        "action": "Next click returns to second question",
+        "previous": "上一轮提问 / enabled",
+        "next": "disabled",
+        "bottom": "enabled"
+      },
+      {
+        "action": "Later full AX observation after asynchronous layout",
+        "previous": "上一轮提问 / enabled",
+        "next": "disabled",
+        "bottom": "enabled",
+        "revision": 26
+      }
+    ],
+    "observation": "Native AX action/readback. Landing was confirmed by own-question navigation state and remaining enabled bottom control; no new pixel-coordinate measurement or final screenshot is claimed.",
+    "earlierCandidate": "r25 restored direction availability but a subsequent down jump was displaced toward bottom during async mount; final r26 adds bounded correction and passed the repeated path."
+  },
+  "environment": {
+    "mode": "Continuous development",
+    "output": "dist/development",
+    "service": "Original npm run dev restored only after prior writer had exited; retained running for daily use.",
+    "recovery": "Missing built-in resources produced E_BUILTIN_RESOURCE before service recovery. All 29 recovered built-ins matched manifest bytes/hashes at recovery check.",
+    "parallelChanges": "Existing provenance guards retained. Concurrent owner source/pin changes were not edited or reverted. One import was interrupted by dev reload and then retried before confirmation.",
+    "sourceOwnership": "Only Page project business implementation changed for this fix; Browser framework source was not edited by this task.",
+    "cleanup": {
+      "egoTaskSpace18": "finished; task pages closed",
+      "nativeUiLock": "released",
+      "nativeChromeTestTab": "left on verified requested conversation",
+      "devService": "kept running"
+    }
+  },
+  "limits": [
+    "Only already-observed verified rounds are remembered; unseen full server history is not inferred.",
+    "Custom adapters do not inherit ChatGPT history semantics.",
+    "DeepSeek/Gemini live-site paths, full history matrix, production Browser, release acceptance and independent scoring were not run.",
+    "Official catalog remains blocked. No commit or push by this task."
+  ]
+}

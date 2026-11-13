@@ -1,7 +1,7 @@
 import {SIDEBAR_TOOL_ENABLE_STORE,TOOL_REVOCATION_EPOCHS_STORE,sidebarToolLifecycleChanged} from '../../../src/ui/sidebar-tools/lifecycle.js';
 import {SIDEBAR_TOOL_STORE} from '../../../src/ui/sidebar-tools/package.js';
 import {isSidebarToolHostSender} from '../../../src/sidebar-tools/sender.js';
-import {CLIP_SITE_STORE,CLIP_PROTOCOL,CLIP_OPERATIONS,clipGrantAllowed} from './policy.js';
+import {CLIP_SITE_STORE,CLIP_PROTOCOL,CLIP_OPERATIONS,CLIP_READY_OPERATION,clipGrantAllowed} from './policy.js';
 import {chooseArticle,domToMarkdown,safeClipSource} from '../../../examples/shared/markdown/convert.js';
 import {beginRegionPick} from './region-picker.js';
 
@@ -15,7 +15,7 @@ export function initPageClip({api=globalThis.chrome,doc=globalThis.document,win=
   const cancelRegion=(reason='区域点选已取消')=>{activeRegion?.session.cancel(reason);activeRegion=null;};
   const handle=async(message,sender)=>{
     if(!isSidebarToolHostSender(api,sender,message?.toolId)||message?.protocol!==CLIP_PROTOCOL||
-      !CLIP_OPERATIONS.includes(message.operation)||typeof message.toolId!=='string'||
+      (!CLIP_OPERATIONS.includes(message.operation)&&message.operation!==CLIP_READY_OPERATION)||typeof message.toolId!=='string'||
       message.expectedUrl!==win.location.href)
       return {ok:false,error:'剪藏来源或文档已变化'};
     if(!policyEpochs.has(message.toolId))policyEpochs.set(message.toolId,0);
@@ -26,6 +26,7 @@ export function initPageClip({api=globalThis.chrome,doc=globalThis.document,win=
       return {ok:false,error:'剪藏工具或网站未授权'};
     if((message.installEpoch??null)!==(saved[TOOL_REVOCATION_EPOCHS_STORE]?.[message.toolId]??null))
       return {ok:false,error:'剪藏请求已撤销'};
+    if(message.operation===CLIP_READY_OPERATION)return {ok:true,data:{ready:true}};
     if(message.operation==='clip.region.cancel'){
       if(typeof message.pickId!=='string'||!/^[A-Za-z0-9_-]{8,64}$/.test(message.pickId))
         return {ok:false,error:'区域点选会话无效'};

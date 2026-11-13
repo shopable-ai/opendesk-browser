@@ -61,6 +61,7 @@ export function evaluatePageStartup(evidence) {
         fail(`${label}: eligible enhancement must be present, unique and usable`);
       }
       if (!time(sample.prerequisiteAtMs) || !time(sample.visibleAtMs)) fail(`${label}: invalid performance.now timestamps`);
+      else if (sample.visibleAtMs < sample.prerequisiteAtMs) fail(`${label}: visibleAtMs must not precede prerequisiteAtMs`);
     } else if (sample.prerequisiteAtMs !== null || sample.visibleAtMs !== null) {
       fail(`${label}: ineligible timestamps must both be null`);
     }
@@ -76,7 +77,7 @@ export function evaluatePageStartup(evidence) {
     if (!groups.has(groupKey)) groups.set(groupKey, { cohort, round, page, documentId, observations: new Map() });
     const group = groups.get(groupKey);
     const valid = failures.length === startFailures && sample.eligible === true;
-    const latency = valid ? Math.max(0, sample.visibleAtMs - sample.prerequisiteAtMs) : null;
+    const latency = valid ? sample.visibleAtMs - sample.prerequisiteAtMs : null;
     if (sample.eligible === true && time(sample.prerequisiteAtMs) && time(sample.visibleAtMs)
         && sample.visibleAtMs - sample.prerequisiteAtMs > 20000) {
       fail(`${label}: eligible ${enhancement} latency exceeds 20000ms hard limit`);

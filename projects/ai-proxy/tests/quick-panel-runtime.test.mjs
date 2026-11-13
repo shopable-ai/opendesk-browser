@@ -21,6 +21,7 @@ function fixture({pendingChanges,activeMode='rules',desiredMode='direct',managed
  runInNewContext(code,{exports:module.exports,module,HTMLElement:class {},document:{activeElement:null},requestAnimationFrame:fn=>fn(),require(name){
   if(name==='react')return hooks;
   if(name==='react/jsx-runtime')return jsxRuntime;
+  if(name==='./ui/PcPreferences')return {useStatusDisplay:()=>({show:true})};
   if(name==='./ui/useProxy')return {useProxy:()=>({state,error:'',busy:false,act:async message=>{calls.push(message);},refresh(){calls.push({type:'GET_STATE'});},setError(){},setErrorKey(){}})};
   if(name==='./ui/ProxyEditor')return {ProxyEditor};
   if(name==='./domain/config')return domain;
