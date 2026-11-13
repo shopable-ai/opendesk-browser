@@ -7,9 +7,9 @@ import {resolve,dirname} from 'node:path';
 import {describeBundle} from '../../scripts/bundle-provenance.mjs';
 import {FIXED_OUTPUTS} from '../../scripts/build-contract.mjs';
 
-// Reviewed pure result validation/formatting; neither target grants authority.
+// Reviewed WebFlow formatter delegates strict result validation to the exact shared Task contract.
 const source='projects/webflow/src/chatgpt-conversation-result.js';
-const pin='25581b6c905b5f8d6fd2bb7d7939c7ca8bfbd270';
+const pin='edbf68264b5aaa17d0c2f323baf88f4d99a79b71';
 const allowed=['sw.js','ui/tool-shell.js'];
 const blob=bytes=>createHash('sha1').update('blob '+bytes.length+'\0').update(bytes).digest('hex');
 const describe=(root,paths,target)=>describeBundle({root,lock:{packages:{}},chunk:{

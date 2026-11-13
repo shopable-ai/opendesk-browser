@@ -23,6 +23,8 @@ export function routeChatGPTBridgeMessage(message,hostInstanceId,{visible=false}
   return request;
 }
 import {decodeValue} from '../platform/page-port/codec.js';
+import {verifyInstalledChatGPTDurableResult}
+  from '../../task-packs/chatgpt.conversation.create/contracts/installed-result.js';
 import {reviewedChatGPTResultAdapter}
   from '../../projects/webflow/trusted/chatgpt-result-adapter.js';
 import {validateTaskParams} from '../platform/tasks/contract.js';
@@ -77,6 +79,11 @@ const safeWebURL=value=>{
 };
 
 export function verifyChatGPTTaskDurableResult(snapshot,runId,resolved,request){
+  // The 0.2.x installed Task and its Subagent consumer use ONE original
+  // Controller/retained-B result validator. A-delivery stays in WebFlow.
+  if(request?.taskId==='chatgpt.conversation.create'&&
+    ['0.2.0','0.2.1','0.2.2'].includes(request?.installation?.version))
+    return verifyInstalledChatGPTDurableResult(snapshot,runId,resolved,request);
   const task=request?.installation?{sourceHash:request.installation.contentHash}:TASKS[request?.taskId];
   if(!task)throw fail('E_BRIDGE_REQUEST','不是明确允许的任务');
   if(request.installation&&!sameInstallation(request.installation,resolved))

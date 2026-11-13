@@ -2,8 +2,8 @@
 // This module is NOT a Page USER_SCRIPT capability or a window message handler.
 // Only a trusted Host may construct it. Both callbacks must use the original
 // Page/Task Authority and persisted delegation; none may come from page data.
-import {verifyChatGPTTaskDurableResult}
-  from '../../../src/native-agent/chatgpt-fixed-bridge-host.js';
+import {verifyInstalledChatGPTDurableResult}
+  from '../../../task-packs/chatgpt.conversation.create/contracts/installed-result.js';
 import {verifiedResult} from '../src/contract.js';
 
 const TASK_ID='chatgpt.conversation.create',VERSION='0.2.2',ROOT='https://chatgpt.com/';
@@ -73,7 +73,7 @@ export function createSubagentResultReader({readOriginalRun,assertAuthorized}={}
     // cached success, page-supplied payload, new Run, B2, or retry of a send.
     const binding=structuredClone(await readOriginalRun(Object.freeze({requestId})));
     const request=assertBinding(binding,requestId);
-    const durable=verifyChatGPTTaskDurableResult(binding.snapshot,binding.runId,
+    const durable=verifyInstalledChatGPTDurableResult(binding.snapshot,binding.runId,
       binding.resolvedInstallation,request);
     if(durable.runId!==binding.runId||durable.resultId!==binding.resultId)
       fail('Original Run/Result identity changed during verification');
