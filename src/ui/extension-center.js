@@ -361,13 +361,13 @@ export function createExtensionCenter({api,client,doc,sidebarTools,taskWorkbench
       add(t('goDevelop'),()=>{if(taskWorkbench.navigate('develop')!==false)backIfNeeded();},'develop');
     }
     add(t('viewAction'),()=>openDetail(key,'more'),'detail');
-    if(row.stateKnown!==false&&!row.queueProduct)
-      add(t('uninstallAction'),event=>openListUninstallReview(row.key,event),'uninstall');
-    // Keep all existing lifecycle actions first; pinning is a secondary display preference.
+    // Keep the destructive uninstall action last for existing keyboard End behavior.
     if(pinStateKnown){
       const pinned=pinnedKeys.has(row.key);
       add(t(pinned?'unpinAction':'pinAction'),event=>{void setExtensionPinned(row,!pinned,event);},pinned?'unpin':'pin');
     }
+    if(row.stateKnown!==false&&!row.queueProduct)
+      add(t('uninstallAction'),event=>openListUninstallReview(row.key,event),'uninstall');
     extensionList.renderRowMenu(menuItems,{
       key,title:titleOf(row),trigger,onClose:closeRowMenu
     });
