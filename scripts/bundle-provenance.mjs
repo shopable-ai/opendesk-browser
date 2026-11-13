@@ -22,8 +22,8 @@ const compiledTimeReviewInputs=Object.freeze({
 // Their sourceUtf8 stays frozen data; only Controller may execute it after
 // installation and run authorization. Never admit their JS source modules.
 const packagedTaskInputs=Object.freeze({
-  'examples/tasks/baidu.search.top3.v1.opendesk-task.json':'7ed543cb4c46a688b6fb2f1a6943a10065b6c172',
-  'examples/tasks/google.search.top3.v1.opendesk-task.json':'acc7df905e0376a94385b7176c34a4081c536612'
+  'task-packs/baidu.search/releases/baidu.search.top3.v1.opendesk-task.json':'7ed543cb4c46a688b6fb2f1a6943a10065b6c172',
+  'task-packs/google.search/releases/google.search.top3.v1.opendesk-task.json':'acc7df905e0376a94385b7176c34a4081c536612'
 });
 function reviewedPackagedTask(target,path,root){
   if(target!=='sw.js'||!Object.hasOwn(packagedTaskInputs,path))return null;

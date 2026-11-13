@@ -6,8 +6,8 @@ import vm from 'node:vm';
 import {verifyTaskPackage} from '../../src/platform/tasks/contract.js';
 import {canonical} from '../../src/platform/protocol.js';
 
-const src=await readFile(new URL('../../examples/tasks/baidu-search-top3.js',import.meta.url),'utf8');
-const pkg=JSON.parse(await readFile(new URL('../../examples/tasks/baidu.search.top3.v1.opendesk-task.json',import.meta.url),'utf8'));
+const src=await readFile(new URL('../../task-packs/baidu.search/src/baidu-search-top3.js',import.meta.url),'utf8');
+const pkg=JSON.parse(await readFile(new URL('../../task-packs/baidu.search/releases/baidu.search.top3.v1.opendesk-task.json',import.meta.url),'utf8'));
 const sha=text=>createHash('sha256').update(text).digest('hex');
 test('Baidu Task package is importable and pins identical source and manifest bytes',async()=>{
   await verifyTaskPackage(pkg);
