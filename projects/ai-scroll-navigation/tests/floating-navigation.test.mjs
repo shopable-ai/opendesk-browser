@@ -140,11 +140,14 @@ test('aligned dock scrolls both directions and updates boundary disabled states'
   const f=fixture(),{dock,host}=f.mount();
   const [top,bottom]=host.shadowRoot.querySelectorAll('button');
   f.owner.click(top,false);assert.equal(f.main.scrollTop,400,'untrusted click does not scroll');
-  f.owner.click(top);dock.refresh();
-  assert.equal(f.main.scrollTop,0);assert.equal(top.disabled,true);assert.equal(bottom.disabled,false);
-  f.owner.click(bottom);dock.refresh();
+  f.owner.click(top);
+  assert.equal(f.main.scrollTop,0);
+  assert.equal(top.disabled,true,'top must disable on click without waiting for scheduled work');
+  assert.equal(bottom.disabled,false,'bottom must enable immediately on click');
+  f.owner.click(bottom);
   assert.equal(f.main.scrollTop,f.main.scrollHeight-f.main.clientHeight);
-  assert.equal(top.disabled,false);assert.equal(bottom.disabled,true);
+  assert.equal(top.disabled,false,'top must enable immediately on click');
+  assert.equal(bottom.disabled,true,'bottom must disable on click without scheduled work');
   assert.equal(host.style.left,'328px');
 });
 
