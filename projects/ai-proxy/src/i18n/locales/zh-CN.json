@@ -134,7 +134,7 @@
   "networkDiagnostics2": "网络诊断",
   "statusExtensionProbesAndTroubleshooting": "状态、能力边界与故障说明",
   "generalSettings": "通用设置",
-  "privacyPermissionsAndLimitations": "隐私、权限与使用边界",
+  "privacyPermissionsAndLimitations": "界面偏好、快捷操作与使用边界",
   "officialNetwork": "官方网络",
   "optionalNotAvailableYet": "完全可选 · 尚未上线",
   "chromeWillRunYourLocalPacScriptAndChange": "Chrome 将运行你提供的本地 PAC 脚本并改变浏览器请求线路。只使用可信脚本，确认应用吗？",

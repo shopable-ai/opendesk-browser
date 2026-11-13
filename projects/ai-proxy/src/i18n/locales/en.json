@@ -134,7 +134,7 @@
   "networkDiagnostics2": "Network diagnostics",
   "statusExtensionProbesAndTroubleshooting": "Status, capability limits and troubleshooting",
   "generalSettings": "General settings",
-  "privacyPermissionsAndLimitations": "Privacy, permissions and limitations",
+  "privacyPermissionsAndLimitations": "Interface preferences, quick actions and usage boundaries",
   "officialNetwork": "Official network",
   "optionalNotAvailableYet": "Optional · Not available yet",
   "chromeWillRunYourLocalPacScriptAndChange": "Chrome will run your local PAC script and change request routing. Use trusted scripts only. Apply?",

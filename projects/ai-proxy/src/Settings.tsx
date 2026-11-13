@@ -790,6 +790,7 @@ const tabs: {id:Page; name:string; caption:string}[] = [
               scope:t(r.includeSubdomains?'apRuleSubdomainScope':'apRuleExactScope')})} onClick={()=>editRule(r)}><ProxyIcon name="edit"/></Button>
               <Button className="proxyIconButton quietDanger" aria-describedby={'settings-rule-detail-'+r.id} disabled={busy} title={t('deleteNamedRule',{domain:r.domain,scope:t(r.includeSubdomains?'apRuleSubdomainScope':'apRuleExactScope')})} aria-label={t('deleteNamedRule',{domain:r.domain,
                 scope:t(r.includeSubdomains?'apRuleSubdomainScope':'apRuleExactScope')})} onClick={()=>void removeRule(r)}><ProxyIcon name="trash"/></Button></div></article>;})}</div>}
+              {presentation==='management'&&config.rules.length>0&&<p className="hint managementRuleHelp">{t('rulePriorityHelp')}</p>}
             </section>}
             {ruleEditorOpen&&<RuleEditorShell ref={presentation==='management'?ruleDialog:undefined} className={presentation==='management'?'rulesEditor ruleEditorDialog':'rulesEditor'}
               aria-labelledby={presentation==='management'?'rule-editor-title':undefined}

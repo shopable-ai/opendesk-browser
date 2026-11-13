@@ -1,22 +1,22 @@
 {
   "date": "2026-11-14",
   "stage": "PC management core UI development",
-  "status": "SOURCE_AND_MEMORY_UI_READY_RUNTIME_NOT_VERIFIED",
-  "method": "DOM/AX hierarchy, semantic controls, computed geometry first; one final viewport screenshot for local visual inspection.",
+  "status": "DEVELOPMENT_UI_VERIFIED",
+  "method": "Reference and current-source DOM/AX hierarchy and computed geometry, plus per-page screenshots; installed extension inspected through supported native app AX/screenshots without chrome-extension DOM binding.",
   "reference": {
     "path": "preview/preview.html",
     "sha256": "277ff8df72970906370507e9d7448da3ba583cb293536cae874c1a034080a977",
     "unchanged": true
   },
   "sourceSha256": {
-    "src/Settings.tsx": "9a932bb581cf0a4c6a4a80227e9c85c7969492f728d0db2885e49751640abad3",
-    "src/styles/management.css": "e85c1b30b69bb23ff9fbbe5c9f17026a1233bd517d6b1ba17ce7909343fc2b30",
+    "src/Settings.tsx": "9639a1f68b6b5605287a95298e0495126105603e72b28932a068521edc7246a1",
+    "src/styles/management.css": "e728c096c8f3831640789910b1fceb4b9b772bd31bc7776f3bd8eef93cedbab8",
     "src/styles/sidebar-settings.css": "64aa30ed865885b7f5ef074ac0a8a0e8328f013765d5e16126af1ab0dfbbeec9",
     "src/ui/DiagnosticsPage.tsx": "a8b10e802c5a59073e37afe295986644ef5f8a515a2d40506d209e1afce4131c",
     "src/ui/OfficialServicePage.tsx": "561ec8788129d8a8c42d3de195d7c410f74f5e9d647652686df438003a327d77",
-    "src/i18n/locales/zh-CN.json": "c51780c08e50b043ba8458d629c031528a6f66b4ab4c3ea39c348ad9d5efede3",
-    "src/i18n/locales/zh-TW.json": "c837450e04c5f41a49ff65634497d538de3d2ba486e9909d950d3fed60bf78b6",
-    "src/i18n/locales/en.json": "cec6ad621cf2cc2f938cd5070d6b08b614280ee6c3b7dd76988addbcbed2c829"
+    "src/i18n/locales/zh-CN.json": "6f40e479db5cf41b80b20af2eee39eb27ec064330c9198828e15487dfcd5343e",
+    "src/i18n/locales/zh-TW.json": "50c9d604815ec8c75ed6993f85c4b99f97784ba40bd40e06af04e7928fa35a95",
+    "src/i18n/locales/en.json": "9712dacfd544256d58f24d6eefcf0a0bf7bbc9c697f74f2aca98bc140b329b82"
   },
   "dom": [
     {
@@ -195,12 +195,13 @@
   },
   "development": {
     "path": "/Users/shopme/Documents/workspace/opendesk-browser/dist/development",
-    "watcherPidLastObserved": 52685,
+    "mode": "continuous development via existing npm run dev entry",
+    "watcherPidLastObserved": 63855,
+    "browserAppliedRevision": "c54653187a1cb0f571a84f46b50cc422ffe85f9105190014d7662a4c94c39ada",
+    "outputRevisionLastObserved": "c54653187a1cb0f571a84f46b50cc422ffe85f9105190014d7662a4c94c39ada",
+    "connection": "CONNECTED in native Debug > Local development service",
     "duplicateWriterPrevented": true,
-    "revisionLastObserved": "f7a90cea72bddbf06f4de8a5d865e3fea163382c897fb4c8ba798848a2979c59",
-    "pcOutputMarkersPresent": true,
-    "browserAppliedRevision": "NOT_TESTED",
-    "notes": "Initial task-owned writer exhausted Node heap and exited. A parallel owner restarted the existing development path; its writer was reused and preserved. Runtime revision was not read after browser binding refusal."
+    "notes": "Previous PID 59400 had exited. Confirmed no live development writer/listener, then used the original guarded npm run dev entry. Safe reload closed the old app tab; reopened through Extensions > AI Proxy > Settings. Kept the new daily development service running."
   },
   "nativeBeforeChange": {
     "observedEntry": "Existing installed AI Proxy > 管理全部 > profiles",
@@ -225,7 +226,146 @@
   "artifacts": {
     "domDirectory": "artifacts/ai-proxy/pc-visual/",
     "finalViewportScreenshot": "artifacts/ai-proxy/pc-visual/final-profiles-viewport.png",
-    "screenshotLimit": "The optional full-page screenshot had an iframe paint artifact; viewport capture succeeded. An unrelated Reading TOC overlay is outside the app and excluded from the app assessment."
+    "screenshotLimit": "The optional full-page screenshot had an iframe paint artifact; viewport capture succeeded. An unrelated Reading TOC overlay is outside the app and excluded from the app assessment.",
+    "followupDirectory": "artifacts/ai-proxy/pc-visual-followup/"
   },
-  "parallelOwnership": "QuickPanel.tsx, environment.ts, service.ts and their tests/source-lock entries belong to another active owner. This task preserves them and commits only its eight reviewed source entries."
+  "parallelOwnership": "Only Settings.tsx, management.css, three locale values and their five source-lock pins changed in this follow-up. Service/environment/QuickPanel/Host and all unrelated parallel work are preserved.",
+  "followup": {
+    "observedAt": "2026-11-13T17:40:20.702618+00:00",
+    "previousPass": {
+      "status": "SOURCE_AND_MEMORY_UI_READY_RUNTIME_NOT_VERIFIED",
+      "sourceSha256": {
+        "src/Settings.tsx": "9639a1f68b6b5605287a95298e0495126105603e72b28932a068521edc7246a1",
+        "src/styles/management.css": "e728c096c8f3831640789910b1fceb4b9b772bd31bc7776f3bd8eef93cedbab8",
+        "src/styles/sidebar-settings.css": "64aa30ed865885b7f5ef074ac0a8a0e8328f013765d5e16126af1ab0dfbbeec9",
+        "src/ui/DiagnosticsPage.tsx": "a8b10e802c5a59073e37afe295986644ef5f8a515a2d40506d209e1afce4131c",
+        "src/ui/OfficialServicePage.tsx": "561ec8788129d8a8c42d3de195d7c410f74f5e9d647652686df438003a327d77",
+        "src/i18n/locales/zh-CN.json": "6f40e479db5cf41b80b20af2eee39eb27ec064330c9198828e15487dfcd5343e",
+        "src/i18n/locales/zh-TW.json": "50c9d604815ec8c75ed6993f85c4b99f97784ba40bd40e06af04e7928fa35a95",
+        "src/i18n/locales/en.json": "9712dacfd544256d58f24d6eefcf0a0bf7bbc9c697f74f2aca98bc140b329b82"
+      },
+      "checks": {
+        "settingsManagementAndRules": {
+          "passed": 35,
+          "failed": 0
+        },
+        "diagnosticsRuntime": {
+          "passed": 12,
+          "failed": 0
+        },
+        "proxyEditorConfirmation": {
+          "passed": 2,
+          "failed": 0
+        },
+        "cssParse": "PASS",
+        "sixNewKeysInThreeLocales": "PASS",
+        "trustedSourceVerification": "PASS"
+      },
+      "development": {
+        "path": "/Users/shopme/Documents/workspace/opendesk-browser/dist/development",
+        "watcherPidLastObserved": 52685,
+        "duplicateWriterPrevented": true,
+        "revisionLastObserved": "f7a90cea72bddbf06f4de8a5d865e3fea163382c897fb4c8ba798848a2979c59",
+        "pcOutputMarkersPresent": true,
+        "browserAppliedRevision": "NOT_TESTED",
+        "notes": "Initial task-owned writer exhausted Node heap and exited. A parallel owner restarted the existing development path; its writer was reused and preserved. Runtime revision was not read after browser binding refusal."
+      },
+      "nativeBeforeChange": {
+        "observedEntry": "Existing installed AI Proxy > 管理全部 > profiles",
+        "addProxyAndCancel": "PASS",
+        "savedOrAppliedProxy": false,
+        "postChangeRuntime": "NOT_TESTED",
+        "limitation": "Automatic browser approval rejected chrome-extension: DOM binding (only http/https allowed); no alternate surface was used to bypass this rejection."
+      }
+    },
+    "freshChecks": {
+      "command": "node --test projects/ai-proxy/tests/settings-management-runtime.test.mjs projects/ai-proxy/tests/settings-rules-runtime.test.mjs projects/ai-proxy/tests/sources-editor-runtime.test.mjs",
+      "passed": 49,
+      "failed": 0,
+      "cssSyntax": "PASS",
+      "localeKeyParity": "PASS",
+      "trustedSourceLock": "PASS",
+      "diffWhitespace": "PASS",
+      "warning": "Existing duplicate apCloseRuleEditor locale entries produce bundler warnings; no functional failure and not expanded into cleanup."
+    },
+    "changes": [
+      "PC enabled column 26px -> 44px and no wrapping for its header.",
+      "Reuse existing three-language rulePriorityHelp under nonempty management rule lists.",
+      "16px grid gap inside the subscriptions/local-client tab panel.",
+      "General settings subtitle now describes interface preferences and quick actions in all three locales."
+    ],
+    "pages": [
+      {
+        "route": "profiles",
+        "result": "PASS",
+        "comparison": "Same workbench/nav, four modes and proxy/PAC hierarchy. Save/selection and actual applied state remain separate. Native add blank/cancel restored entry focus; no actual save/apply/stop."
+      },
+      {
+        "route": "rules",
+        "result": "PASS",
+        "comparison": "Priority/route columns and unmatched default/test groups retained. Native post-change screenshot confirms single-line enabled header and lower-number priority explanation."
+      },
+      {
+        "route": "subscriptions",
+        "result": "PASS",
+        "comparison": "Subscription/local-client tabs and source entry retained. Native empty state now has visible separation between information, official-account entry and protocol help."
+      },
+      {
+        "route": "backup",
+        "result": "PASS",
+        "comparison": "Import/export columns, file/paste groups and replacement consequences visible. Real 1 MiB v2 contract retained instead of reference mock schema."
+      },
+      {
+        "route": "diagnostic",
+        "result": "PASS_WITH_CAPABILITY_LIMIT",
+        "comparison": "Control status and capability explanations retained. Preview simulation is labeled; unsupported real HTTP/favorites/speed flows remain unavailable instead of copying mock success."
+      },
+      {
+        "route": "general",
+        "result": "PASS",
+        "comparison": "Preferences and quick-action groups retained. Native screenshot confirms the corrected subtitle; no real preference was saved."
+      },
+      {
+        "route": "official",
+        "result": "PASS_WITH_CAPABILITY_LIMIT",
+        "comparison": "Optional service remains independent. Honest unavailable empty state and return action retained instead of mock account/billing status."
+      }
+    ],
+    "native": {
+      "method": "CUA native app AX plus screenshots, not DOM or raw CDP",
+      "sevenPagesViewedBeforeFix": true,
+      "postFixPagesViewed": [
+        "rules",
+        "subscriptions",
+        "general"
+      ],
+      "postFixChangesVisible": true,
+      "installedVersionObserved": "0.3.17",
+      "packageUpgradePerformed": false,
+      "savedAppliedOrStoppedRealProxy": false,
+      "uiLockReleased": true,
+      "screenshots": "Inline CUA tool observations; not copied to a local file."
+    },
+    "sourcePreview": {
+      "taskSpace": 14,
+      "sevenRoutes": true,
+      "sevenNavigationItemsEach": true,
+      "oneActiveNavigationItemEach": true,
+      "horizontalOverflowEach": false,
+      "workbenchWidth": 1250,
+      "contentInnerWidth": 969,
+      "pixelIdentityClaimed": false,
+      "memoryMutationTests": "Previous pass memoryInteractions retained; this follow-up did not repeat saves."
+    },
+    "artifacts": {
+      "directory": "artifacts/ai-proxy/pc-visual-followup/",
+      "sourceScreenshots": "source-{route}-viewport.png (all seven); source-subscriptions.png additionally has valid expanded capture",
+      "referenceScreenshots": "reference-{route}.png (all seven)",
+      "sourceDom": "source-{route}.json",
+      "referenceDom": "reference-{route}.json",
+      "sourceSemanticTrees": "source-{route}-ax.txt",
+      "excludedCaptures": "rejected-fullpage-*.png: iframe paint clipping/loading/blank artifacts. These are not layout failures or full-page evidence. source-profiles-before-rules-driver.*: profiles report captured during a locator no-op, not a rules baseline.",
+      "overlay": "Any unrelated Reading TOC overlay is outside AI Proxy and excluded."
+    }
+  }
 }
