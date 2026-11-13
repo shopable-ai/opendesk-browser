@@ -612,6 +612,9 @@ test('R4.7 installed Page menu is keyboard usable, invokes original generation-b
   assert.equal(more.getAttribute('aria-expanded'),'true');
   assert.equal(f.rowMenu().hidden,false);
   assert.ok(f.menuItem('停用自动运行'));
+  const menuLabels=[...f.rowMenu().children].map(node=>node.textContent);
+  const pinIndex=menuLabels.indexOf('置顶'),uninstallIndex=menuLabels.findIndex(label=>label.includes('卸载'));
+  assert.ok(pinIndex>=0&&pinIndex<uninstallIndex,'pin preference stays before the final destructive uninstall action');
   assert.equal(f.rowMenu().dataset.align,'start','mixed-length Page actions share one reading edge');
   f.doc.dispatch('keydown',{key:'End'});
   assert.match(f.doc.activeElement.textContent,/卸载/,'End moves to the last (destructive) menu item');
