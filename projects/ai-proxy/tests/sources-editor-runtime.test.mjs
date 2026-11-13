@@ -127,3 +127,71 @@ test('confirmed local edit cancel returns profiles; breadcrumb back uses navigat
  const pending=f.cancel();assert.equal(f.confirmations.length,1);f.confirmations[0].resolve(true);await pending;f.render();
  assert.equal(f.navigation.getRoute(),'#/profiles');assert.equal(f.editor(),undefined);
 });
+
+test('management separates sources and local clients with matching add routes; switching never writes',()=>{
+ const f=fixture({kind:'list'},null);f.render({presentation:'management'});
+ const tab=id=>f.find(node=>node.props.id==='sources-tab-'+id);
+ assert.equal(tab('sources').props['aria-selected'],true);
+ assert.equal(f.find(node=>node.props.children==='addLocalClient'),undefined);
+ assert.equal(f.find(node=>node.props.className==='subscriptionLocalDetails'),undefined);
+ f.find(node=>node.props.children==='recordSubscriptionSource').props.onClick();
+ assert.equal(f.navigation.getRoute(),'#/subscriptions/new');
+ tab('local').props.onClick();f.render();
+ assert.equal(tab('local').props['aria-selected'],true);
+ assert.equal(f.find(node=>node.props.className==='subscriptionIndex'),undefined);
+ assert.ok(f.find(node=>node.props['aria-label']==='savedLocalClients'));
+ assert.equal(f.find(node=>node.props.children==='recordSubscriptionSource'),undefined);
+ f.find(node=>node.props.children==='addLocalClient').props.onClick();
+ assert.equal(f.navigation.getRoute(),'#/subscriptions/local');
+ assert.equal(f.actions.length,0);
+});
+
+test('management source rows retain detail routing and local reader',()=>{
+ const f=fixture({kind:'list'},null);
+ f.props.config.sources.push({id:'sub',kind:'subscription',displayName:'Provider',originHost:'example.test',format:'auto'});
+ f.render({presentation:'management'});
+ f.find(node=>node.props['data-subscription-id']==='sub').props.onClick();
+ assert.equal(f.navigation.getRoute(),'#/subscriptions/source/sub');
+ f.render({route:{kind:'source',id:'sub'}});
+ assert.ok(f.find(node=>node.type==='SubscriptionReader'&&node.props.source.id==='sub'));
+ f.find(node=>node.props.children==='subscriptionBackToList').props.onClick();
+ assert.equal(f.navigation.getRoute(),'#/subscriptions');
+});
+
+test('management returns from local creation to local list and keeps inline draft visible until cancel',async()=>{
+ const f=fixture();f.render({presentation:'management'});
+ await f.cancel();f.render({route:{kind:'list'},quickEntry:null});
+ assert.equal(f.find(node=>node.props.id==='sources-tab-local').props['aria-selected'],true);
+ f.find(node=>node.props['aria-label']==='editNamedLocal').props.onClick();f.render();
+ f.change('r72-local-name','Draft local');
+ assert.equal(f.find(node=>node.props.id==='sources-tab-sources').props.disabled,true);
+ const pending=f.cancel();f.confirmations[0].resolve(false);await pending;f.render();
+ assert.equal(f.field('r72-local-name').props.value,'Draft local');
+ assert.equal(f.find(node=>node.props.id==='sources-tab-sources').props.disabled,true);
+ assert.equal(f.actions.length,0);
+});
+
+test('management local empty state keeps an add entry; default sidebar retains other access',()=>{
+ const f=fixture({kind:'list'},null);f.props.config.endpoints=[];
+ f.render({presentation:'management'});
+ f.find(node=>node.props.id==='sources-tab-local').props.onClick();f.render();
+ assert.ok(f.find(node=>node.props.children==='noLocalClientsYetAddAListeningPortTo'));
+ assert.ok(f.find(node=>node.props.children==='addLocalClient'));
+ const sidebar=fixture({kind:'list'},null);sidebar.render();
+ assert.equal(sidebar.find(node=>node.props.role==='tablist'),undefined);
+ assert.ok(sidebar.find(node=>node.props.children==='subscriptionOtherAccess'));
+ assert.ok(sidebar.find(node=>node.props.className==='subscriptionLocalDetails'));
+});
+
+
+test('management tabs support arrow and edge keys with matching panel labels',()=>{
+ const f=fixture({kind:'list'},null);f.render({presentation:'management'});
+ for(const [key,expected] of [['ArrowRight','local'],['Home','sources'],['End','local'],['ArrowLeft','sources']]){
+  const tabs=['sources','local'].map(id=>f.find(node=>node.props.id==='sources-tab-'+id));
+  let prevented=false,focused=false;
+  const buttons=tabs.map(node=>({click:()=>node.props.onClick(),focus:()=>{focused=true;}}));
+  tabs.find(node=>node.props['aria-selected']).props.onKeyDown({key,preventDefault(){prevented=true;},currentTarget:{parentElement:{querySelectorAll:()=>buttons}}});
+  f.render();assert.ok(prevented);assert.ok(focused);
+  assert.equal(f.find(node=>node.props.role==='tabpanel').props['aria-labelledby'],'sources-tab-'+expected);
+ }
+});

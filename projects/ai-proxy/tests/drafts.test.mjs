@@ -500,6 +500,7 @@ test('both rule editors reject another saved rule instead of silently replacing 
   const {env}=fixture();const errors=[];
   try{
    const context={getEnvironment:()=>env,config:{rules:[{id:'other',domain:'example.com',includeSubdomains:true}]},
+    busy:false,ruleMutation:{current:false},confirmationRequest:{current:null},
     normalizeRuleSiteInput:()=> 'example.com',setErrorKey:code=>errors.push(code),setRuleSaved(){},ruleEditorGeneration:{current:0},
     siteInput:'example.com',ruleTarget:'direct',quickEndpoint:'',includeSubdomains:true,editingSiteRule:null,
     rule:{domain:'example.com',includeSubdomains:true,action:'direct',priority:'100'},editingRuleId:'',

@@ -164,6 +164,19 @@
   }
   :scope .options .rulesEditorFields > .ruleInputFields { display: grid; gap: var(--space-3); min-width: 0; }
   :scope .options .ruleInputFields > .ruleCheckbox { margin: 0; }
+  :scope .options .ruleEditorPair { display:grid; gap:12px; }
+  :scope .options .ruleEnabledToggle { justify-self:center; }
+  :scope .options .defaultRouteControl { display:flex; align-items:center; gap:12px; }
+  :scope .options .defaultRouteControl label { margin:0; flex:none; }
+  :scope .options .defaultRouteControl select { width:auto; max-width:340px; }
+  :scope .options .routeTester { padding:16px; border:1px solid var(--line); border-radius:11px; background:var(--soft); }
+  :scope .options .routeTester form { display:flex; align-items:flex-end; gap:12px; }
+  :scope .options .routeTester form > div { flex:1; min-width:0; }
+  :scope .options .routeTester label { margin-top:0; }
+  :scope .options .routeTester button { flex:none; }
+  :scope .options .routeTester > .hint { margin:12px 0 0; }
+  :scope .options .ruleTestResult { display:grid; gap:4px; margin-top:12px; padding:12px; border:1px solid var(--line); border-radius:8px; background:var(--surface); overflow-wrap:anywhere; }
+  :scope .options .ruleTestResult span { color:var(--muted); font-size:12px; }
   :scope .options .rulesEditorFields .actions { display: flex; flex-wrap: wrap; gap: var(--space-2); margin: 0; }
   :scope .options .rulesEditorFields .actions > .primary { flex: 1; }
   :scope .options .rulesEditorFields .actions > .hint { flex-basis: 100%; margin: 0; }
@@ -255,8 +268,8 @@
 @scope (.proxy-app) {
   :scope .r86Panel .siteContext { display:grid; gap:4px; }
   :scope .r86Panel .r86SiteDomain { font-size:14px; line-height:1.5; }
-  :scope .siteSource { color:var(--muted); font-size:12px; }
-  :scope .siteRouteSummary { display:grid; gap:8px; margin:12px 0 0; padding:12px; background:var(--soft); border-radius:8px; }
+  :scope .siteSource { color:var(--muted); font-size:11px; }
+  :scope .siteRouteSummary { display:grid; gap:6px; margin:10px 0 0; padding:0; background:transparent; border-radius:0; }
   :scope .siteRouteSummary > div { display:grid; grid-template-columns:96px minmax(0,1fr); gap:8px; align-items:start; }
   :scope .siteRouteSummary dt { color:var(--muted); font-size:12px; }
   :scope .siteRouteSummary dd { margin:0; font-size:12px; font-weight:600; overflow-wrap:anywhere; }
@@ -288,7 +301,7 @@
   :scope .r86Panel .quickManagementIcon .sideUiIcon + .sideUiIcon { width: 12px; height: 12px; }
   :scope .r86Panel .quickManagementIcon:hover:not(:disabled) { color: var(--accent); background: var(--soft); }
   :scope .r86Panel .quickManagementIcon:focus-visible { outline: 2px solid var(--accent); outline-offset: 1px; }
-  :scope .r86Panel .quickAdvanced { padding:12px 0; border-top:1px solid var(--line); }
+  :scope .r86Panel .quickAdvanced { padding:12px 16px; border-top:1px solid var(--line); }
   :scope .r86Panel .quickAdvanced summary { cursor:pointer; color:var(--muted); font-size:12px; }
   :scope .r86Panel .quickAdvanced .hint { font-size:12px; margin:12px 0; }
   :scope .r86Panel .quickAdvanced .textAction { display:inline-flex; align-items:center; gap:6px; min-height:34px; }

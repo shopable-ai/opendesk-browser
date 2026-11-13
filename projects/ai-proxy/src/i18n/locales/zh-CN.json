@@ -1051,5 +1051,16 @@
   "proxyConfigName": "配置名称（可选）",
   "proxyServerAddress": "服务器地址",
   "proxyEditorSave": "保存",
-  "proxyEditorAuthHelp": "保存不会应用代理。认证尚未接入，填写账号或密码时无法保存。"
+  "proxyEditorAuthHelp": "保存不会应用代理。认证尚未接入，填写账号或密码时无法保存。",
+  "apRuleToggle": "启用规则 {domain}（{scope}）",
+  "apRuleScope": "匹配范围",
+  "apEnableRule": "启用规则",
+  "apTestRules": "测试网站规则",
+  "apCalculate": "计算",
+  "apRuleTestLocal": "仅根据已保存规则在本地计算；不发送网络请求，也不切换 Chrome 代理。",
+  "apDefaultSaved": "默认路由已保存，尚未应用。",
+  "apBackupGenerated": "备份文件已生成，请查看浏览器下载。",
+  "sideModeProfile": "使用代理",
+  "sideModeRules": "按规则",
+  "sideModeDirect": "直接连接"
 }

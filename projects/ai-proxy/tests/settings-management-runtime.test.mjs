@@ -109,44 +109,18 @@ test('PC initial state retains workbench identity and honest loading/retry inste
  assert.ok($('.managementLoadingState button').length);
 });
 
-test('real PC proxy editor matches preview reading order, while retaining native business actions',()=>{
+test('both settings presentations mount the shared proxy editor only after an explicit edit intent',()=>{
  const config=domain.freshConfig();
  const runtime={state:'disabled',control:'controllable_by_this_extension',canStop:false,
   desired:config.selection,managedIntent:false,applied:false,pendingChanges:false,
   activeSelection:null,browserMode:'system',proxyError:null};
- const $=render('zh-CN',runtime,{config,route:'#/profiles'});
- const dialog=$('.proxyEditorDialog');
- assert.equal(dialog.length,1);
- const fields=dialog.find('.proxyEditorFields');
- assert.equal(fields.children('.proxyNameField').length,1,'name is the first editable field');
- const children=fields.children().toArray();
- const indexOf=selector=>children.findIndex(el=>$(el).is(selector));
- assert.ok(indexOf('.proxyEditorIntro')<indexOf('.proxyNameField'));
- assert.ok(indexOf('.proxyNameField')<indexOf('.proxyPrimaryFields'));
- assert.ok(indexOf('.proxyPrimaryFields')<indexOf('.proxyAuthDetails'));
- assert.deepEqual(fields.find('.proxyPrimaryFields').children().map((_,el)=>$(el).attr('class')).get(),
-  ['proxySchemeField','proxyHostField','proxyPortField'],'three PC connection controls read protocol → address → port');
- assert.equal(dialog.find('.proxyAuthDetails').length,1,'real optional auth interface remains present');
- assert.equal(dialog.find('.editorActions [type="submit"]').length,2,'real save and save-another actions remain');
- assert.equal(dialog.find('.editorActions [data-add-another="true"]').length,1);
- assert.equal(dialog.find('.editorActions button[type="button"]').length,1,'cancel is not a submit action');
- assert.equal(dialog.find('.editorHead button[type="button"]').length,1,'close is not a submit action');
-});
-
-test('shared editor keeps the compact Side Panel field order without cloning business controls',()=>{
- const config=domain.freshConfig();
- const runtime={state:'disabled',control:'controllable_by_this_extension',canStop:false,
-  desired:config.selection,managedIntent:false,applied:false,pendingChanges:false,
-  activeSelection:null,browserMode:'system',proxyError:null};
- const $=render('zh-CN',runtime,{config,route:'#/profiles',presentation:'sidebar'});
- const fields=$('.proxyEditorDialog .proxyEditorFields'), children=fields.children().toArray();
- const indexOf=selector=>children.findIndex(el=>$(el).is(selector));
- assert.ok(indexOf('.proxyPrimaryFields')<indexOf('.proxyNameField'),
-  'Side Panel still places connection before the optional name field');
- assert.deepEqual(fields.find('.proxyPrimaryFields').children().map((_,el)=>$(el).attr('class')).get(),
-  ['proxyHostField','proxySchemeField','proxyPortField'],
-  'Side Panel retains host → protocol → port');
- assert.equal(fields.find('.proxyNameField').length,1,'only one name editor is mounted');
+ for(const presentation of ['management','sidebar']){
+  const buttons=[];
+  const $=render('zh-CN',runtime,{config,route:'#/profiles',presentation,buttons});
+  assert.equal($('.proxyEditorDialog').length,0,'no hidden editor or draft is mounted during browsing');
+  assert.ok(buttons.some(button=>button.children===translate('zh-CN','addProxy2')),
+   'the real add entry remains available');
+ }
 });
 
 test('PC website rules expose preview-style route/priority columns while Side Panel stays compact',()=>{
@@ -159,7 +133,7 @@ test('PC website rules expose preview-style route/priority columns while Side Pa
  const pc=render('zh-CN',runtime,{config,route:'#/rules'});
  assert.equal(pc('.managementRulesHeader').length,1);
  assert.equal(pc('.ruleRecord .managementRuleTarget').text(),translate('zh-CN','directConnection2'));
- assert.equal(pc('.ruleRecord .managementRulePriority').text(),'20');
+ assert.equal(pc('.ruleRecord .managementRulePriority').val(),'20');
  assert.match(pc('.ruleRecordText small').text(),/子域/);
  const side=render('zh-CN',runtime,{config,route:'#/rules',presentation:'sidebar'});
  assert.equal(side('.managementRulesHeader').length,0);

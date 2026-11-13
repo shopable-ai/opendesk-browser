@@ -10,13 +10,14 @@ async function bundle(path){
   const result=await build({entryPoints:[new URL(path,import.meta.url).pathname],bundle:true,write:false,platform:'node',format:'esm'});
   return import('data:text/javascript;base64,'+Buffer.from(result.outputFiles[0].text).toString('base64'));
 }
+const pac=await bundle('../src/domain/pac.ts');
 const domain=await bundle('../src/domain/config.ts'),routes=await bundle('../src/ui/optionsRoute.ts');
 const headerActions=await bundle('../src/domain/header-actions.ts');
 const {translate}=await bundle('../src/i18n/locale.ts');
 const backupValidation=await bundle('../src/ui/backupImport.ts');
 const {code}=await transform(await readFile(new URL('../src/Settings.tsx',import.meta.url),'utf8'),{loader:'tsx',format:'cjs',jsx:'automatic'});
 const existing={id:'keep-id',domain:'existing.example',includeSubdomains:false,priority:42,enabled:false,action:'direct'};
-function fixture({locale='en',OptionsPageHeader,headerNavigation=false,route='#/rules',gestureGate=false}={}){
+function fixture({locale='en',OptionsPageHeader,headerNavigation=false,route='#/rules',gestureGate=false,presentation='sidebar'}={}){
   const values=[],refs=[],effects=[],drafts=new Map(),draftBases=new Map(),calls=[],focus=[],scroll=[],frames=[];
   let cursor=0,refCursor=0,effectCursor=0,tree,confirmResult=true,saveResult=true,revision=0,operationBusy=false,errorKey='';
   const config={...domain.freshConfig(),rules:[{...existing}],endpoints:[{id:'proxy',name:'Proxy',scheme:'https',host:'proxy.example',port:443}]};
@@ -80,6 +81,7 @@ function fixture({locale='en',OptionsPageHeader,headerNavigation=false,route='#/
       })};
       if(name==='./domain/header-actions')return headerActions;
       if(name==='./ui/backupImport')return backupValidation;
+      if(name==='./domain/pac')return pac;
       if(name==='./domain/config')return domain;if(name==='./ui/optionsRoute')return routes;
       if(name==='./ui/FormField')return {FormField:({id,label,children})=>React.createElement('label',null,label,children({id}))};
       if(name==='./ui/ProxyEntry')return {ClearableInput:({onValueChange,fieldLabel,...props})=>React.createElement('input',{...props,onChange:e=>onValueChange(e.target.value)})};
@@ -95,7 +97,7 @@ function fixture({locale='en',OptionsPageHeader,headerNavigation=false,route='#/
     if(element.props.ref&&typeof element.props.ref==='object')element.props.ref.current={...node(element.props.id||element.props.className),closest:()=>scroller,querySelector:()=>null};
     return result;
   }
-  function render(){cursor=refCursor=effectCursor=0;tree=expand(module.exports.default({headerNavigation}));
+  function render(){cursor=refCursor=effectCursor=0;tree=expand(module.exports.default({headerNavigation,presentation}));
     for(const effect of effects)if(effect?.pending){effect.pending=false;effect.fn();}
     for(const fn of frames.splice(0))fn();return tree;}
   function all(predicate,value){if(arguments.length===1)value=tree;if(Array.isArray(value))return value.flatMap(v=>all(predicate,v));if(!value||typeof value!=='object')return [];
@@ -108,7 +110,7 @@ function fixture({locale='en',OptionsPageHeader,headerNavigation=false,route='#/
     await new Promise(setImmediate);
     render();
   }
-  function change(id,value){const input=all(n=>n.props.id===id)[0];assert.ok(input,'field '+id);env.setDraftDirty(true,id==='import-data'?'settings-backup':'settings-rule');input.props.onChange({target:{value,checked:value}});render();}
+  function change(id,value){const input=all(n=>n.props.id===id)[0];assert.ok(input,'field '+id);env.setDraftDirty(true,id==='import-data'?'settings-backup':id==='default-route'?'settings-default':'settings-rule');input.props.onChange({target:{value,checked:value}});render();}
   render();render();
   return {config,state,env,draftBases,calls,focus,scroll,render,all,text,button,click,change,
     setNavigate:fn=>{onNavigate=fn;},
@@ -127,7 +129,7 @@ function fixture({locale='en',OptionsPageHeader,headerNavigation=false,route='#/
 test('settings rules list opens a separate editor; cancellation confirms only its draft and restores Add focus/scroll',async()=>{
   const f=fixture();assert.equal(f.hasEditor(),false);
   assert.equal(f.all(n=>n.type==='h2'&&f.text(n)==='websiteRules2').length,1);
-  assert.ok(f.all(n=>n.props.id==='default-action').length);
+  assert.ok(f.all(n=>n.props.id==='default-route').length);
   await f.click('addRule');assert.equal(f.hasEditor(),true);
   assert.equal(f.all(n=>n.props.className==='rulesList').length,0);
   f.env.setDraftDirty(true,'settings-default');f.change('rule-domain','draft.example');
@@ -254,7 +256,8 @@ test('settings rule target cards drive the matching preview and save only the se
   assert.doesNotMatch(f.text(preview),/subdomains/);
   assert.equal(f.all(n=>n.type==='p'&&f.text(n)==='apRuleSaveNote').length,1);
   assert.equal(f.all(n=>n.type==='p'&&f.text(n)==='ruleSaveDoesNotApply').length,0);
-  assert.equal(f.all(n=>n.type==='summary'&&f.text(n)==='apRulePriorityOptions').length,1);
+  assert.equal(f.all(n=>n.props.id==='rule-priority').length,1);
+  assert.equal(f.all(n=>n.props.id==='rule-enabled')[0].props.checked,true);
   await f.submit();assert.equal(f.hasEditor(),false);
   const saved=f.calls.find(c=>c.type==='SAVE_RULE').rule;
   assert.equal(saved.action,'direct');assert.equal(saved.includeSubdomains,false);assert.equal('endpointId' in saved,false);
@@ -267,14 +270,15 @@ test('settings rule list explains save-only semantics and labels enabled and dis
     f.config.rules.push({...existing,id:'enabled-rule',domain:'enabled.example',enabled:true});f.render();
     const records=f.all(n=>n.type==='article'&&n.props.className?.split(' ').includes('ruleRecord'));
     assert.equal(records.length,2);
-    assert.equal(f.all(n=>n.type==='span'&&n.props.className?.split(' ').includes('ruleStateIcon')&&n.props.role==='img'&&
-      n.props['aria-label']===translate(locale,'apRuleDisabled')&&n.props.title===translate(locale,'apRuleDisabled'),records[0]).length,1);
-    assert.equal(f.all(n=>n.type==='span'&&n.props.className?.split(' ').includes('ruleStateIcon')&&n.props.role==='img'&&
-      n.props['aria-label']===translate(locale,'apRuleEnabled')&&n.props.title===translate(locale,'apRuleEnabled'),records[1]).length,1);
+    for(const [index,enabled] of [[0,true],[1,false]]){
+      const toggles=f.all(n=>n.type==='input'&&n.props.className==='ruleEnabledToggle',records[index]);
+      assert.equal(toggles.length,1);assert.equal(toggles[0].props.checked,enabled);
+      assert.equal(toggles[0].props.title,translate(locale,enabled?'apRuleEnabled':'apRuleDisabled'));
+    }
     assert.equal(f.all(n=>n.type==='p'&&f.text(n)==='apRuleSaveNote').length,1);
     assert.equal(f.all(n=>n.type==='p'&&f.text(n)==='ruleEditorIntro').length,0);
     assert.equal(f.hasEditor(),false);
-    assert.ok(f.all(n=>n.props.id==='default-action').length);
+    assert.ok(f.all(n=>n.props.id==='default-route').length);
     assert.equal(f.calls.some(c=>c.type),false);
   }
 });
@@ -459,4 +463,39 @@ test('Settings mounts one shared proxy editor with edit identity and owns save f
     assert.ok(linked.calls.some(c=>c.navigate==='#/profiles'&&c.force&&c.replace));
     assert.equal(linked.all(n=>n.props['data-proxy-editor']).length,0);
   }
+});
+
+
+test('rule enable draft saves disabled and list toggle restores using the current ETag without applying',async()=>{
+  const f=fixture();await f.click('addRule');f.change('rule-domain','disabled.example');f.change('rule-enabled',false);
+  await f.submit();assert.equal(f.config.rules.find(r=>r.id==='new-id').enabled,false);
+  const toggle=f.all(n=>n.props.className==='ruleEnabledToggle')[1];
+  await toggle.props.onChange();await new Promise(setImmediate);f.render();
+  assert.equal(f.config.rules.find(r=>r.id==='new-id').enabled,true);
+  const writes=f.calls.filter(c=>c.type);assert.equal(writes.length,2);
+  assert.equal(writes[1].ifMatch,'rules-initial');assert.equal(writes[1].rule.enabled,true);
+  assert.equal(writes.some(c=>c.type==='APPLY'||c.type==='SELECT'),false);
+});
+
+test('rapid rule save and toggle do not enqueue a second mutation',async()=>{
+  const f=fixture();await f.clickRule('edit');
+  let settle;f.setSave(()=>new Promise(resolve=>settle=resolve));
+  const first=f.submit();const second=f.submit();assert.equal(f.calls.filter(c=>c.type==='SAVE_RULE').length,1);
+  settle(true);await Promise.all([first,second]);
+});
+
+test('PC inline priority persists through SAVE_RULE CAS without selecting or applying, and invalid input rolls back',async()=>{
+  const f=fixture({presentation:'management'});
+  const field=f.all(n=>n.props.className==='managementRulePriority')[0];assert.ok(field);
+  const input={value:'7',checkValidity:()=>true};
+  await field.props.onBlur({currentTarget:input});await new Promise(setImmediate);
+  const calls=f.calls.filter(c=>c.type);
+  assert.equal(calls.length,1);assert.equal(calls[0].type,'SAVE_RULE');
+  assert.equal(calls[0].rule.id,existing.id);assert.equal(calls[0].rule.priority,7);
+  assert.equal(calls[0].rule.enabled,false);assert.equal(calls[0].ifMatch,'rules-initial');assert.equal(calls[0].draftScope,'settings-rule-list');
+  for(const value of ['', '100000', '1.5']){
+    const invalid={value,checkValidity:()=>false};
+    await field.props.onBlur({currentTarget:invalid});assert.equal(invalid.value,String(existing.priority));
+  }
+  assert.equal(f.calls.filter(c=>c.type).length,1);
 });

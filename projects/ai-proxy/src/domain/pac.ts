@@ -1,5 +1,17 @@
 import type { ConfigState, ProxyEndpoint, RuleTarget } from './types';
-import { pacTextFrom, validateConfig } from './config';
+import { normalizeRuleSiteInput, pacTextFrom, validateConfig } from './config';
+
+const orderedRules = (config: ConfigState) => config.rules.filter(r => r.enabled)
+  .sort((a, b) => a.priority - b.priority || a.id.localeCompare(b.id));
+
+/** Explain saved rules locally, using the same order and domain boundary as PAC. */
+export function explainRulesRoute(configRaw: ConfigState, input: string) {
+  const config = validateConfig(configRaw);
+  const host = normalizeRuleSiteInput(input);
+  const rule = orderedRules(config).find(r => host === r.domain ||
+    (r.includeSubdomains && host.endsWith('.' + r.domain))) ?? null;
+  return {host, rule, target: rule ?? config.defaultTarget};
+}
 
 /** Declared PAC output only. Never eval/import remote PAC in the extension. */
 function proxyDirective(endpoint: ProxyEndpoint): string {
@@ -14,7 +26,7 @@ function targetDirective(target: RuleTarget, config: ConfigState): string {
 }
 export function compileRulesPac(configRaw: ConfigState): string {
   const config = validateConfig(configRaw);
-  const rules = config.rules.filter(r => r.enabled).sort((a, b) => a.priority - b.priority || a.id.localeCompare(b.id));
+  const rules = orderedRules(config);
   if (rules.length > 1000) throw new Error('规则数量超过 1000 条上限');
   const lines = ['function FindProxyForURL(url, host) {', '  host = String(host).toLowerCase().replace(/\\.$/, "");'];
   for (const r of rules) {

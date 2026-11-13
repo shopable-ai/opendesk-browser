@@ -27,6 +27,7 @@ interface Props {
   route: SubscriptionRoute;
   navigateSubscription: (route: SubscriptionRoute) => void;
   quickEntry?: 'local' | 'subscription' | null;
+  presentation?: 'sidebar' | 'management';
 }
 type Editor = 'local' | 'subscription' | null;
 const emptyLocal = { name: '', scheme: 'http' as ProxyScheme, port: '7890' };
@@ -57,8 +58,10 @@ function SourceIcon({ kind }: { kind: SourceIconKind }) {
  * Editing is progressive disclosure; no subscription URL ever leaves this component.
  */
 export function SourcesPage({ config, configEtag, runtime, busy, act, setError, setErrorKey, navigate,
-  route, navigateSubscription, quickEntry = null }: Props) {
+  route, navigateSubscription, quickEntry = null, presentation = 'sidebar' }: Props) {
   const { t } = useI18n();
+  const management = presentation === 'management';
+  const [area, setArea] = useState<'sources' | 'local'>(route.kind === 'local' ? 'local' : 'sources');
   const [editor, setEditor] = useState<Editor>(null);
   const [local, setLocal] = useState(emptyLocal);
   const [localId, setLocalId] = useState('');
@@ -92,6 +95,8 @@ export function SourcesPage({ config, configEtag, runtime, busy, act, setError, 
   useEffect(() => {
     const last = previousRoute.current;
     previousRoute.current = routeKey;
+    if (route.kind === 'local') setArea('local');
+    else if (route.kind === 'source' || route.kind === 'new' || route.kind === 'official') setArea('sources');
     // Editor drafts belong to their original source, not the next route.
     if (last && last !== routeKey && editor && quickEntry === null &&
       !getEnvironment().isDraftDirty('source-editor')) closeEditor(true);
@@ -408,16 +413,36 @@ export function SourcesPage({ config, configEtag, runtime, busy, act, setError, 
     {editorMarkup}
   </div>;
 
-  return <div className="sourcesPage subscriptionIndexPage">
+  const showSources = !management || area === 'sources';
+  return <div className={'sourcesPage subscriptionIndexPage' + (management ? ' sourcesManagement' : '')}>
+    {management && <div className="sourcesManagementTabs" role="tablist" aria-label={t('subscriptionSourcesAndLocalClients')}>
+      {(['sources','local'] as const).map(id => <Button key={id} type="button" role="tab"
+        id={'sources-tab-' + id} aria-selected={area === id} aria-controls="sources-management-panel"
+        tabIndex={area === id ? 0 : -1} disabled={busy || !!editor}
+        onClick={() => setArea(id)} onKeyDown={event => {
+          if (!['ArrowLeft','ArrowRight','Home','End'].includes(event.key)) return;
+          event.preventDefault();
+          const tabs = Array.from(event.currentTarget.parentElement!
+            .querySelectorAll<HTMLButtonElement>('[role="tab"]'));
+          const next = event.key === 'Home' ? 0 : event.key === 'End' ? 1 : area === 'sources' ? 1 : 0;
+          tabs[next]?.click();
+          tabs[next]?.focus();
+        }}>{t(id === 'sources' ? 'subscriptionSources' : 'localProxyClients')}</Button>)}
+    </div>}
+    <div id={management ? 'sources-management-panel' : undefined} role={management ? 'tabpanel' : undefined}
+      aria-labelledby={management ? 'sources-tab-' + area : undefined} tabIndex={management ? 0 : undefined}>
+
     <div className="subscriptionIndexHead">
-      <div><h2 ref={listTitle} tabIndex={-1}>{t('subscriptionListHeading')} <span className="countTag">
-        {subscriptionsCount + (verifiedOfficial ? 1 : 0)}</span></h2>
-        <p>{t('subscriptionListDescription')}</p></div>
-      <Button variant="primary" className="primary" disabled={busy}
-        onClick={() => navigateSubscription({kind:'new'})}>{t('recordSubscriptionSource')}</Button>
+      <div><h2 ref={listTitle} tabIndex={-1}>{t(showSources ? 'subscriptionListHeading' : 'localProxyClients')} <span className="countTag">
+        {showSources ? subscriptionsCount + (verifiedOfficial ? 1 : 0) : locals.length}</span></h2>
+        <p>{t(showSources ? 'subscriptionListDescription' : 'selectInThePopupUnderUseAProfileThen')}</p></div>
+      <Button variant="primary" className="primary" disabled={busy || (management && !!editor)}
+        ref={showSources ? subscriptionTrigger : localTrigger}
+        onClick={() => navigateSubscription({kind:showSources ? 'new' : 'local'})}>
+        {t(showSources ? 'recordSubscriptionSource' : 'addLocalClient')}</Button>
     </div>
     {editorMarkup}
-    <section className="subscriptionIndex" aria-label={t('subscriptionListHeading')}>
+    {showSources && <><section className="subscriptionIndex" aria-label={t('subscriptionListHeading')}>
       {verifiedOfficial && <Button className="subscriptionIndexRow" type="button" data-subscription-id="official"
         onClick={() => navigateSubscription({kind:'official'})}
         aria-label={t('subscriptionViewNamed',{name:t('officialNetwork')})}>
@@ -446,19 +471,22 @@ export function SourcesPage({ config, configEtag, runtime, busy, act, setError, 
       </div>}
     </section>
     <section className="subscriptionOtherAccess">
-      <div><h3>{t('subscriptionOtherAccess')}</h3>
-        <p>{t('subscriptionOtherAccessDescription')}</p></div>
+      {!management && <div><h3>{t('subscriptionOtherAccess')}</h3>
+        <p>{t('subscriptionOtherAccessDescription')}</p></div>}
       <div className="subscriptionOtherActions">
         <Button type="button" onClick={() => navigateSubscription({kind:'official'})}>
           {t('subscriptionOfficialEntry')}</Button>
-        <Button type="button" onClick={() => navigateSubscription({kind:'local'})}>
-          {t('addLocalClient')}</Button>
+        {!management && <Button type="button" onClick={() => navigateSubscription({kind:'local'})}>
+          {t('addLocalClient')}</Button>}
       </div>
     </section>
-    {!!locals.length && <details className="subscriptionLocalDetails">
+    </>}
+    {management && !showSources && localListMarkup}
+    {!management && !!locals.length && <details className="subscriptionLocalDetails">
       <summary>{t('savedLocalClients')} · {locals.length}</summary>
       {localListMarkup}
     </details>}
     {helpMarkup}
+    </div>
   </div>;
 }

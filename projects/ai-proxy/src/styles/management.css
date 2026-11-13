@@ -31,7 +31,9 @@
   :scope .options .optionsModeGrid button { display:inline-flex; align-items:center; justify-content:center; gap:8px; min-height:43px; }
   :scope .options .listSection { padding:20px; border:1px solid var(--line); border-radius:11px; }
   :scope .options .profileRecords .proxyRecord { min-height:72px; }
-  :scope .options .backupGrid, :scope .options .generalGrid { grid-template-columns:repeat(2,minmax(0,1fr)); }
+  :scope .options .backupGrid { grid-template-columns:repeat(2,minmax(0,1fr)); }
+  :scope .options .generalGrid { grid-template-columns:minmax(0,1fr); gap:0; }
+  :scope .options .generalGrid > .record { border:0; border-bottom:1px solid var(--line); border-radius:0; padding:18px 0; }
   /* R16 PC reference: one restrained, full-size management frame.
    * This is presentation-only; business state, route and save remain shared. */
   :scope { background:var(--bg); }
@@ -278,6 +280,27 @@
   :scope .options .rulesPage .ruleRecord .actions {
     justify-content:flex-end; flex-wrap:nowrap; white-space:nowrap;
   }
+  :scope .options .rulesPage .rulesDefault { display:flex; flex-wrap:wrap; align-items:center; gap:12px; padding:16px; }
+  :scope .options .rulesDefault > h2, :scope .options .rulesDefault > .hint { display:none; }
+  :scope .options .rulesDefault .actions { margin:0; }
+  :scope .options .ruleEditorDialog:not([open]) { display:none; }
+  :scope .options .ruleEditorDialog[open] {
+    display:block; width:560px; max-width:calc(100vw - 32px); max-height:calc(100dvh - 32px);
+    overflow:auto; margin:auto; padding:0; border:1px solid var(--line); border-radius:14px;
+    background:var(--surface); color:var(--ink); box-shadow:0 24px 70px #17223b33;
+  }
+  :scope .ruleEditorDialog::backdrop { background:#18223866; }
+  :scope .options .ruleDialogHeader { display:flex; align-items:center; justify-content:space-between; padding:20px 22px; border-bottom:1px solid var(--line); }
+  :scope .options .ruleDialogHeader h2 { margin:0; font-size:17px; }
+  :scope .options .ruleEditorDialog .siteRuleOrigin { display:none; }
+  :scope .options .ruleEditorDialog .ruleInputFields { padding:20px 22px; gap:16px; }
+  :scope .options .ruleEditorDialog .rulesEditorFields > .actions {
+    justify-content:flex-end; padding:14px 22px; border-top:1px solid var(--line); background:var(--soft);
+  }
+  :scope .options .ruleEditorDialog .rulesEditorFields > .actions > .primary { flex:none; order:1; }
+  :scope .options .ruleEditorDialog .ruleMatchPreview { display:none; }
+  :scope .options .ruleEditorPair { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); align-items:start; gap:16px; }
+  :scope .options .ruleEditorPair .ruleCheckbox { display:flex; align-items:center; gap:8px; min-height:38px; padding-top:22px; }
   @media(max-width:680px) {
     :scope .options .rulesPage .managementRulesHeader { display:none; }
     :scope .options .rulesPage .ruleRecord {
@@ -345,5 +368,31 @@
       grid-column:2;
       justify-content:flex-start;
     }
+  }
+  /* PC source and local-client lists share this management surface. */
+
+  :scope .options .sourcesManagementTabs {
+    display:flex; gap:4px; padding:4px; margin-bottom:16px;
+    width:fit-content; max-width:100%; border:1px solid var(--line);
+    border-radius:10px; background:var(--soft);
+  }
+  :scope .options .sourcesManagementTabs button {
+    min-height:36px; padding:8px 16px; border:0; background:transparent;
+    color:var(--muted); border-radius:7px;
+  }
+  :scope .options .sourcesManagementTabs button[aria-selected="true"] {
+    background:var(--surface); color:var(--accent); font-weight:650;
+  }
+  :scope .options .sourcesManagement .sourceListHead { display:none; }
+  :scope .options .sourcesManagement .sourceList .records.sourceCards {
+    display:flex; flex-direction:column; gap:8px;
+  }
+  :scope .options .sourcesManagement .sourceList .sourceRecord {
+    display:flex; flex-direction:row; flex-wrap:wrap; align-items:center;
+    gap:12px; padding:14px 16px;
+  }
+  :scope .options .sourcesManagement .sourceCardTop { flex:1; min-width:180px; }
+  :scope .options .sourcesManagement .sourceList .sourceRecord > .recordActions {
+    margin:0; padding:0;
   }
 }

@@ -1051,5 +1051,16 @@
   "proxyConfigName": "設定名稱（選填）",
   "proxyServerAddress": "伺服器位址",
   "proxyEditorSave": "儲存",
-  "proxyEditorAuthHelp": "儲存不會套用代理。認證尚未接入，填寫帳號或密碼時無法儲存。"
+  "proxyEditorAuthHelp": "儲存不會套用代理。認證尚未接入，填寫帳號或密碼時無法儲存。",
+  "apRuleToggle": "啟用規則 {domain}（{scope}）",
+  "apRuleScope": "比對範圍",
+  "apEnableRule": "啟用規則",
+  "apTestRules": "測試網站規則",
+  "apCalculate": "計算",
+  "apRuleTestLocal": "僅根據已儲存規則在本機計算；不傳送網路請求，也不切換 Chrome 代理。",
+  "apDefaultSaved": "預設路由已儲存，尚未套用。",
+  "apBackupGenerated": "備份檔案已產生，請查看瀏覽器下載。",
+  "sideModeProfile": "使用代理",
+  "sideModeRules": "依規則",
+  "sideModeDirect": "直接連線"
 }

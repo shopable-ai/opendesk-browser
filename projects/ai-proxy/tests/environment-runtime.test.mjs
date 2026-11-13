@@ -347,12 +347,13 @@ test('changing an owned route releases it before the next separately reviewed En
   assert.equal(result.state.runtime.activeSelection.mode,'direct');
  }finally{env.dispose();}
 });
-test('unsupported replacement is rejected before releasing the working route',async()=>{
+test('unsupported credential attachment is rejected before saving or releasing the working route',async()=>{
  const f=fixture(),env=f.open();
  try{
   assert.equal((await env.request({type:'APPLY'})).ok,true);
-  assert.equal((await env.request({type:'SAVE_ENDPOINT',endpoint:{...endpoint,credentialRef:'secret-ref'}})).ok,true);
-  assert.equal((await env.request({type:'APPLY'})).errorCode,'E_UNSUPPORTED');
+  const result=await env.request({type:'SAVE_ENDPOINT',endpoint:{...endpoint,credentialRef:'secret-ref'}});
+  assert.equal(result.ok,false);
+  assert.equal(f.stored().endpoints[0].credentialRef,undefined);
   assert.equal(f.calls.filter(([name])=>name==='disable').length,0);
   assert.equal(enables(f).length,1);
  }finally{env.dispose();}
@@ -508,4 +509,22 @@ test('PC initial section is an app-validated display hint and cannot apply a pro
     assert.equal(env.navigation.getRoute(),'','unrecognized business section must not enter the app route');
     assert.equal(env.openOwnPage({view:'settings',section:'profiles'}),null,'old Host keeps the original in-panel route');
   }finally{env.dispose();}
+});
+
+test('rule list mutations preserve an unrelated stale default draft baseline',async()=>{
+ for(const patch of [{enabled:false},{priority:7}]){
+  const f=fixture(),env=f.open();
+  try{
+   await env.request({type:'GET_STATE'});env.setDraftDirty(true,'settings-default');
+   const newer=f.stored();newer.defaultTarget={action:'endpoint',endpointId:endpoint.id};f.replace(newer);
+   const current=await env.request({type:'GET_STATE'});
+   const changed=await env.request({type:'SAVE_RULE',draftScope:'settings-rule-list',ifMatch:current.state.configEtag,rule:{...rule,...patch}});
+   assert.equal(changed.ok,true);
+   const stale=await env.request({type:'SET_DEFAULT',draftScope:'settings-default',target:{action:'direct'}});
+   assert.equal(stale.errorCode,'E_CONFLICT');
+   assert.deepEqual(f.stored().defaultTarget,newer.defaultTarget);
+   assert.equal(env.isDraftDirty('settings-default'),true);
+   assert.equal(f.calls.filter(([name])=>name==='storage.set').length,1);
+  }finally{env.dispose();}
+ }
 });

@@ -1051,5 +1051,16 @@
   "proxyConfigName": "Configuration name (optional)",
   "proxyServerAddress": "Server address",
   "proxyEditorSave": "Save",
-  "proxyEditorAuthHelp": "Saving does not apply the proxy. Authentication is not connected; leave credentials empty to save."
+  "proxyEditorAuthHelp": "Saving does not apply the proxy. Authentication is not connected; leave credentials empty to save.",
+  "apRuleToggle": "Enable rule {domain} ({scope})",
+  "apRuleScope": "Match scope",
+  "apEnableRule": "Enable rule",
+  "apTestRules": "Test website rules",
+  "apCalculate": "Calculate",
+  "apRuleTestLocal": "Calculates saved rules locally. No network request or Chrome proxy change.",
+  "apDefaultSaved": "Default route saved; not applied.",
+  "apBackupGenerated": "Backup file generated. Check browser downloads.",
+  "sideModeProfile": "Use proxy",
+  "sideModeRules": "Rules",
+  "sideModeDirect": "Direct"
 }

@@ -263,15 +263,17 @@ test('trusted AI Proxy checks nested CSS even when Rollup omits it from chunk.mo
  assert.throws(()=>verifyTrustedAIProxySources(project),/must not be a symlink/);
 });
 
-test('reviewed AI Proxy diagnostics/PC layout keeps all eight exact source locks and rejects altered locale bytes',async t=>{
+test('reviewed AI Proxy form and diagnostics keep exact source locks and reject altered locale bytes',async t=>{
  const changed=[
-  ['projects/ai-proxy/src/Settings.tsx','8df117891c0a0ef174652d704c902d6b52490062'],
-  ['projects/ai-proxy/src/i18n/locales/en.json','c424f3e122eb90c2a01cd0092d502c881350c2f5'],
-  ['projects/ai-proxy/src/i18n/locales/zh-CN.json','2889bd4e57509b6f13e6d31d4bf42c5e593009c9'],
-  ['projects/ai-proxy/src/i18n/locales/zh-TW.json','27e954916cc032b3f76c8210806a1a6e4668e0c8'],
-  ['projects/ai-proxy/src/styles/management.css','f4ea8d39cd408bcd70b14633128c5fdb8d595a58'],
-  ['projects/ai-proxy/src/styles/options.css','b4caaf40bb3e6d25bb3e19b8e8b8f1e8f72a326a'],
-  ['projects/ai-proxy/src/styles/sidebar-settings.css','4f86a1c71e03453767b0a76a0a92d8de745cb962'],
+  ['projects/ai-proxy/src/Settings.tsx','c5cedca843a7cda2430df916fd3c167903c090b6'],
+  ['projects/ai-proxy/src/service.ts','36279f234c4cbc1d379698767a9c71ac2620938e'],
+  ['projects/ai-proxy/src/ui/ProxyEntry.tsx','46f4bdef3a11cc6040fa857225b032e3bb6f5faa'],
+  ['projects/ai-proxy/src/i18n/locales/en.json','0c44b780cc021729bda79b6b1cd8a8a76087ab3b'],
+  ['projects/ai-proxy/src/i18n/locales/zh-CN.json','434b43d96e2bd0eaf2b539313c721e71a776fa9a'],
+  ['projects/ai-proxy/src/i18n/locales/zh-TW.json','7dbd2d25f854543df6e153e77aaef245f8f90245'],
+  ['projects/ai-proxy/src/styles/management.css','2a197ab877770e43a1d8a6f65f17926e1d471037'],
+  ['projects/ai-proxy/src/styles/options.css','c2da39181a88348a7be4e7ae93862098f7d61edf'],
+  ['projects/ai-proxy/src/styles/sidebar-settings.css','650f558abfba048f2ef64a8d895bb0c07951fb97'],
   ['projects/ai-proxy/src/ui/DiagnosticsPage.tsx','97538e5a13569339c44a016951b507cdc686ee9a']
  ];
  const locks=JSON.parse(await readFile(resolve('projects/ai-proxy/trusted/source-lock.json'),'utf8'));

@@ -226,24 +226,25 @@ test('busy settings close cannot leave and releases after the operation',()=>{
 
 const settingsSource = await readFile(new URL('../src/Settings.tsx', import.meta.url), 'utf8');
 function settingsHandler(start, end, context) {
-  const source = settingsSource.slice(settingsSource.indexOf(start), settingsSource.indexOf(end));
+  const startIndex=settingsSource.indexOf(start),endIndex=settingsSource.indexOf(end,startIndex);
+  assert.ok(startIndex>=0&&endIndex>startIndex,'settings handler boundaries must exist');
+  const source = settingsSource.slice(startIndex,endIndex);
   assert.ok(source.startsWith(start));
   return transform(source, { loader: 'tsx' }).then(({ code }) => runInNewContext(`${code}; ${/function (\w+)/.exec(start)[1]}`, {editorGeneration:{current:0},...context}));
 }
 
-test('actual editor close replaces its internal deep link, clears drafts and bypasses the stale guard', async () => {
+test('actual shared editor close replaces its internal deep link, clears its owner and bypasses the stale guard', async () => {
   const navigation = createNavigation({ initialRoute: '#/profiles/add' });
   navigation.setGuard(() => assert.fail('explicit editor close must bypass dirty guard'));
   const cleared = [];
-  const context = { navigation, getEnvironment: () => ({ setDraftDirty: value => cleared.push(['dirty', value]) }),
-    optionsHash: section => '#/' + section, emptyEndpoint: {},
+  const context = { navigation, optionsHash: section => '#/' + section,
     deepLinkedEditor: { current: true }, editorOriginHash: { current: '#/profiles/add' },
-    ...Object.fromEntries(['setError', 'setEditorOpen', 'setEditingId', 'setProxy', 'setUsername', 'setPassword', 'setAddressPasteError']
+    ...Object.fromEntries(['setEditorOpen','setEditingEndpoint','setProxyNotice']
       .map(name => [name, value => cleared.push([name, value])])) };
-  const close = await settingsHandler('  function closeEditor()', '  function openEditor(', context);
+  const close = await settingsHandler('  function closeEditor(', '  function openEditor(', context);
   close();
   assert.equal(navigation.getRoute(), '#/profiles');
-  for (const name of ['setUsername', 'setPassword', 'setEditingId']) assert.ok(cleared.some(([key, value]) => key === name && value === ''));
+  assert.ok(cleared.some(([key,value])=>key==='setEditingEndpoint'&&value===undefined));
   assert.ok(cleared.some(([key, value]) => key === 'setEditorOpen' && value === false));
   assert.equal(context.deepLinkedEditor.current, false);
   assert.equal(context.editorOriginHash.current, null);
@@ -258,7 +259,7 @@ test('actual copy action copies only an internal route and reports clipboard fai
       setCopiedPageLink: value => success.push(value), setPageLinkCopyFailed: value => failure.push(value),
       navigator: { clipboard: { async writeText(text) { if (fail) throw Error('denied'); copied.push(text); } } },
       document: { createElement: () => ({ style: {}, select() {}, remove() {} }), body: { appendChild() {} }, execCommand: () => false } };
-    const copy = await settingsHandler('  async function copyCurrentPageLink()', '  const [editingId,', context);
+    const copy = await settingsHandler('  async function copyCurrentPageLink()', '  const [pacName,', context);
     await copy();
     assert.deepEqual(copied, fail ? [] : ['#/subscriptions/source/provider_1']);
     assert.equal(success.at(-1), !fail);

@@ -34,7 +34,7 @@ test('pending direct selection keeps an explicit Apply entry and never claims Di
  // remains a distinct action and the runtime continues to show the old route.
  assert.match(html,/data-testid="side-proxy-toggle"[^>]*title="apApplyDirect"/);
  assert.match(html,/sideDirectPendingHint/);
- assert.match(html,/data-testid="side-current-route"[^>]*>popupModeRules</);
+ assert.match(html,/data-testid="side-current-route"[^>]*>sideModeRules</);
  assert.doesNotMatch(html,/sideDirectAppliedHint/);
  assert.doesNotMatch(html,/sideDirectAppliedHint/);
 });
