@@ -37,7 +37,7 @@ export type ServiceState = ViewState & {
 };
 export type ServiceResponse =
   | (Omit<Extract<Response, { ok: true }>, 'diagnostics'> & { state: ServiceState; preview: boolean; diagnostics?: DiagnosticsSnapshot & { preview: true; generation: number } })
-  | { ok: false; error: string; errorCode: string; code?: string };
+  | { ok: false; error: string; errorCode: string; code?: string; runtime?: ServiceState['runtime'] };
 // Diagnostic syntax is not evidence that an operation had no side effect.
 const isStatusCode = (value: unknown): value is string => typeof value === 'string' &&
   /^E_[A-Z0-9_]{1,60}$/.test(value) && value.trim() === value;
@@ -533,7 +533,8 @@ export function createProxyService({ load, save, status, validateApply, apply, s
           // Otherwise subscriber GET_STATE refreshes can clear the error and loop.
           if (code !== 'E_CANCELLED' && !['GET_STATE', 'GET_DIAGNOSTICS', 'GET_USAGE', 'EXPORT'].includes(message.type)) latestError = requestError;
           notify();
-          return { ok: false, error: requestError, errorCode, ...(code ? { code: errorCode } : {}) };
+          return { ok: false, error: requestError, errorCode, ...(code ? { code: errorCode } : {}),
+            ...(config ? { runtime: view().runtime } : {}) };
         }
       });
     },

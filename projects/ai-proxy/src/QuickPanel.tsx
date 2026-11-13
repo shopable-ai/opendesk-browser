@@ -46,7 +46,7 @@ export default function App(_props:{headerNavigation?:boolean;settingsFallback?:
   const [proxyEditorEtag,setProxyEditorEtag] = useState('');
   const proxyEditorOrigin=useRef<HTMLElement|null>(null);
   const [local,setLocal] = useState(emptyLocal);
-  const [savedHint,setSavedHint] = useState(false);
+  const [savedHint,setSavedHint] = useState<'saved'|'selected'|false>(false);
   const [ruleHint,setRuleHint] = useState(false);
   const [ruleTarget,setRuleTarget] = useState<RouteTarget>('endpoint');
   const [ruleEndpoint,setRuleEndpoint] = useState('');
@@ -178,7 +178,7 @@ export default function App(_props:{headerNavigation?:boolean;settingsFallback?:
         setLocal(emptyLocal);
         setNameExpanded(previous=>({...previous,[addKind]:false}));
         closeAdd(true);
-        setSavedHint(true);
+        setSavedHint('selected');
       } else {
         if(!getEnvironment().setDraftDirty(false,'quick-'+addKind,draftRevision))return;
         setLocal(emptyLocal);
@@ -407,6 +407,11 @@ export default function App(_props:{headerNavigation?:boolean;settingsFallback?:
   const managing = state.runtime.managedIntent || state.runtime.control === 'controlled_by_this_extension';
   const blocked = state.runtime.control === 'controlled_by_other_extensions' ||
     state.runtime.control === 'not_controllable';
+  const followingSystem = config.selection.mode==='system' && !managing &&
+    state.runtime.control==='controllable_by_this_extension' && state.runtime.browserMode==='system' &&
+    state.runtime.canStop===false && state.runtime.pendingChanges===false &&
+    !state.runtime.outcomeUnknown && !state.runtime.statusErrorCode && !state.runtime.proxyError &&
+    state.runtime.permission!==false;
   const needsProxySelection = config.selection.mode === 'profile' && !selected;
   const needsNewProxy = needsProxySelection && profiles.length === 0;
   const cannotEnable = needsProxySelection || blocked;
@@ -414,14 +419,14 @@ export default function App(_props:{headerNavigation?:boolean;settingsFallback?:
   const canApplyPending = managing && state.runtime.applied && state.runtime.pendingChanges &&
     state.runtime.control==='controlled_by_this_extension' && !state.runtime.outcomeUnknown &&
     !state.runtime.statusErrorCode && !state.runtime.proxyError && !needsProxySelection;
-  const primaryAction = state.runtime.stopFinalizationPending ? 'finalize' : blocked ? 'details' :
+  const primaryAction = state.runtime.stopFinalizationPending ? 'finalize' : blocked ? 'details' : followingSystem ? 'refresh' :
     canApplyPending ? 'apply' : managing && state.runtime.canStop ? 'pause'
     : needsProxySelection ? (needsNewProxy ? 'add' : 'choose')
     : state.runtime.proxyError ? 'retry' : 'enable';
   const primaryLabels = {
     finalize:'apFinishStop', pause: 'r83Pause', apply:config.selection.mode==='direct'?'apApplyDirect':'applySelection', details: 'sideProxyViewReason',
     add: 'sideAddProxyTitle', choose: 'sideProxyChooseAction',
-    retry: state.runtime.statusErrorCode || state.runtime.outcomeUnknown ? 'apRefreshStatus' : 'retry', enable: config.selection.mode==='direct'?'apEnableDirect':'r83Enable'
+    refresh:'apRefreshStatus', retry: state.runtime.statusErrorCode || state.runtime.outcomeUnknown ? 'apRefreshStatus' : 'retry', enable: config.selection.mode==='direct'?'apEnableDirect':'r83Enable'
   } as const;
   const idleStatusLabel = !managing && !blocked && !state.runtime.proxyError &&
     config.selection.mode === 'profile'
@@ -430,6 +435,7 @@ export default function App(_props:{headerNavigation?:boolean;settingsFallback?:
     : undefined;
   const appliedSelection = state.runtime.activeSelection;
   function handlePrimaryAction() {
+    if (primaryAction === 'refresh') { void refresh(); return; }
     if (primaryAction === 'pause'||primaryAction === 'finalize') { void act({type:'STOP'}); return; }
     if (primaryAction === 'apply') { void apply(); return; }
     if (primaryAction === 'add') { beginAdd('server','primary'); return; }
@@ -492,7 +498,7 @@ export default function App(_props:{headerNavigation?:boolean;settingsFallback?:
           </Button>
         </div>
         {preselected?<p className="r86Help">{t('sidePreselectedHelp')}</p>:
-          (!managing||state.runtime.pendingChanges)&&<p className="quickSelection">{t('apPendingSelection')} · {selectedRoute}</p>}
+          !followingSystem&&(!managing||state.runtime.pendingChanges)&&<p className="quickSelection">{t('apPendingSelection')} · {selectedRoute}</p>}
         {config.selection.mode==='direct'&&!blocked&&!state.runtime.proxyError&&
           <p className="r86Help" data-testid="side-direct-hint">
           {t(state.runtime.applied && !state.runtime.pendingChanges && appliedSelection?.mode==='direct' ? 'sideDirectAppliedHint'
@@ -507,7 +513,7 @@ export default function App(_props:{headerNavigation?:boolean;settingsFallback?:
           disabled={busy} onClick={()=>void act({type:'STOP'})}>{t('r83Pause')}</Button>}
         {error&&<p className="notice error" role="alert">{error}</p>}
       </section>
-      {savedHint&&<p className="r86Notice" role="status">{t('sideProxySavedNotApplied')}</p>}
+      {savedHint&&<p className="r86Notice" role="status">{t(savedHint==='selected'?'sideProxySavedNotApplied':'apProxySavedNotice')}</p>}
       <section className="r86Section" data-r86-section="proxies" aria-label={t('quickProxySelection')}>
         <div className="r86Head">
           <h2>{t(profiles.length ? 'sideSavedProxies' : 'sideProxySources')}{profiles.length>0&&<span className="countTag">{profiles.length}</span>}</h2>
@@ -581,7 +587,7 @@ export default function App(_props:{headerNavigation?:boolean;settingsFallback?:
       <p className="r86Legal" title={t('managesBrowserProxySettingsOnlyNotADeviceWide')}>{t('sideLegal')}</p>
     </div>
     {proxyEditorOpen&&<div className="options proxyQuickEditor"><ProxyEditor openingEtag={proxyEditorEtag} onClose={saved=>{
-      setProxyEditorOpen(false);if(saved)setSavedHint(true);
+      setProxyEditorOpen(false);if(saved)setSavedHint('saved');
       requestAnimationFrame(()=>proxyEditorOrigin.current?.isConnected&&proxyEditorOrigin.current.focus({preventScroll:true}));
     }}/></div>}
   </main>;

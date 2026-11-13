@@ -296,6 +296,49 @@ test('Enable outcome unknown is not replayed; STOP and disposed sessions retain 
  }finally{env.dispose();}
 });
 
+test('uncertain native failures immediately lock navigation and Host state without a refresh or replay',async()=>{
+ for(const operation of ['APPLY','STOP']){
+  const f=fixture(),states=[];f.bridge.setState=state=>states.push(state);
+  const env=f.open();
+  try{
+   if(operation==='STOP')assert.equal((await env.request({type:'APPLY'})).ok,true);
+   const method=operation==='APPLY'?'requestEnable':'requestDisable';let effects=0;
+   f.sdk.browser.proxy.managed[method]=async()=>{effects++;throw Object.assign(Error('timed out'),{code:'E_TIMEOUT'});};
+   const before=f.calls.filter(([name])=>name==='status').length;
+   const result=await env.request({type:operation});
+   assert.equal(result.errorCode,'E_TIMEOUT','preserve the original diagnostic code');
+   assert.equal(result.runtime.outcomeUnknown,true);
+   assert.equal(env.toolNavigation.isLocked(),true,'lock before any subscriber GET_STATE');
+   assert.equal(states.at(-1).busy,true);
+   assert.equal(f.calls.filter(([name])=>name==='status').length,before+(operation==='APPLY'?1:0),'no recovery status read added after the failure');
+   assert.equal(effects,1,'no native replay');
+  }finally{env.dispose();}
+ }
+});
+
+test('memory preview validates an unsupported replacement before releasing the working route',async()=>{
+ let stored=config(),revision=0,native={...disabled,browserMode:'system',activeConfig:null};const effects=[];
+ const preview={service:{
+  preview:true,
+  async load(){return {config:structuredClone(stored),etag:String(revision)};},
+  async save(value){stored=structuredClone(value);return String(++revision);},
+  async status(){return structuredClone(native);},
+  async apply(value){effects.push('apply');native={...enabled,browserMode:'pac_script',activeConfig:structuredClone(value)};return structuredClone(native);},
+  async stop(){effects.push('stop');native={...disabled,browserMode:'system',activeConfig:null};return structuredClone(native);}
+ }};
+ const env=configureEnvironment({},null,{preview,trusted:true});
+ try{
+  assert.equal((await env.request({type:'APPLY'})).ok,true);
+  const unsupported={...endpoint,id:'unsupported',name:'Unsupported',scheme:'http',host:'public.example.com'};
+  assert.equal((await env.request({type:'SAVE_ENDPOINT',endpoint:unsupported,createProfile:true})).ok,true);
+  assert.equal((await env.request({type:'SELECT',selection:{mode:'profile',profileId:'profile-unsupported'}})).ok,true);
+  const result=await env.request({type:'APPLY'});
+  assert.equal(result.errorCode,'E_UNSUPPORTED');
+  assert.deepEqual(effects,['apply'],'the old route is neither stopped nor replaced');
+  assert.equal(native.state,'enabled');assert.equal(native.activeConfig.selection.mode,'rules');
+ }finally{env.dispose();}
+});
+
 
 test('system uses confirmed read-only fallback without enabling an unowned native override',async()=>{
  const c=config();c.selection={mode:'system'};const f=fixture(c),env=f.open();

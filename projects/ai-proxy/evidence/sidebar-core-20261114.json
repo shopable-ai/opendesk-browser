@@ -1,0 +1,193 @@
+{
+  "kind": "AI Proxy sidebar core development; memory writes and read-only daily Chrome",
+  "at": "2026-11-13T17:08:35.073Z",
+  "stage": "CORE_DEVELOPMENT",
+  "entry": "OpenDesk → 扩展 → AI Proxy",
+  "owner": "projects/ai-proxy",
+  "sources": {
+    "projects/ai-proxy/src/QuickPanel.tsx": "73e640ba102b977f76744b0e7ea01a6d2b9ee4b017ba969c6c1b66312985c8a9",
+    "projects/ai-proxy/src/environment.ts": "ce68062929e3faa0d4848d96ddd109318fc853483d8d31a044a96be079f9c422",
+    "projects/ai-proxy/src/service.ts": "293cc15170713f05b84e7f6c1c64811f0401e9f65d6e3a4d7c4f469f24bbb7d3"
+  },
+  "fixes": [
+    "ProxyEditor save reports saved, not selected; local-client saved-and-selected receipt remains separate",
+    "Only service-confirmed following-system state offers status read and hides pending-enable text",
+    "Service failure carries authoritative runtime; timeout immediately locks Host/navigation without changing original error code or adding reads/replay",
+    "Preview uses the same pure toManagedRoute preflight before releasing an owned route"
+  ],
+  "operations": [
+    {
+      "operation": "Open installed sidebar, detect current website",
+      "surface": "daily Chrome",
+      "result": "PASS_READ_ONLY",
+      "observed": "Paused; selected HTTPS install-check.example.net:8443; current website chatgpt.com"
+    },
+    {
+      "operation": "Add proxy → cancel; add site rule → cancel",
+      "surface": "daily Chrome",
+      "result": "PASS_READ_ONLY",
+      "writes": 0,
+      "nativeEnable": 0,
+      "nativeDisable": 0
+    },
+    {
+      "operation": "Close/reopen tool and read saved config",
+      "surface": "daily Chrome",
+      "result": "PASS_READ_ONLY",
+      "observed": "Existing one profile and paused state preserved"
+    },
+    {
+      "operation": "Add credential-free HTTPS proxy → save",
+      "surface": "current-source memory preview",
+      "result": "PASS",
+      "observed": "New profile saved; previous selected US profile preserved; correct saved-only receipt; no route apply"
+    },
+    {
+      "operation": "Select another proxy",
+      "surface": "memory preview",
+      "result": "PASS",
+      "observed": "Pending selection; current confirmed route remains until explicit Apply"
+    },
+    {
+      "operation": "Site rule → save → reopen",
+      "surface": "memory preview",
+      "result": "PASS",
+      "observed": "Domain, scope and endpoint retained; no implicit route apply"
+    },
+    {
+      "operation": "Dirty rule cancel → retain; cancel again → discard",
+      "surface": "memory preview",
+      "result": "PASS",
+      "observed": "Shared confirmation preserves inputs on cancel and saved rule on explicit discard"
+    },
+    {
+      "operation": "Direct → explicit apply",
+      "surface": "memory preview",
+      "result": "PASS",
+      "observed": "Direct active only after explicit operation"
+    },
+    {
+      "operation": "System → explicit apply → read status",
+      "surface": "final current-source memory preview",
+      "result": "PASS",
+      "observed": "Follows system without takeover; status read leaves save/apply/stop counters unchanged"
+    },
+    {
+      "operation": "Rules without eligible rule",
+      "surface": "memory preview",
+      "result": "PASS_REJECTION",
+      "observed": "Unsupported configuration, no false success"
+    },
+    {
+      "operation": "Rules with eligible same-endpoint rule → cancel review → allow review",
+      "surface": "memory preview",
+      "result": "PASS",
+      "observed": "Exact domain/endpoint review; cancel does not enable; explicit approval enables simulated route"
+    },
+    {
+      "operation": "Switch to US profile → explicit whole-browser review → pause",
+      "surface": "memory preview",
+      "result": "PASS",
+      "observed": "Selection, review, apply and stop remain separate"
+    },
+    {
+      "operation": "Manage all / settings / rules / advanced → return",
+      "surface": "memory preview",
+      "result": "PASS",
+      "observed": "Original independent management page/session; sidebar preserved; no proxy mutations"
+    },
+    {
+      "operation": "Local client save/select, auth/PAC/unsupported rejection, conflict/unknown and disposal",
+      "surface": "targeted Node fixtures",
+      "result": "PASS",
+      "browser": "NOT_TESTED"
+    },
+    {
+      "operation": "Timeout Apply/Stop acknowledgement",
+      "surface": "targeted Node environment",
+      "result": "PASS",
+      "observed": "Original E_TIMEOUT retained, immediate busy/navigation lock, one effect and no extra status read"
+    },
+    {
+      "operation": "Unsupported replacement while route active",
+      "surface": "targeted Node preview environment",
+      "result": "PASS",
+      "observed": "E_UNSUPPORTED before stop/new apply; old route remains enabled"
+    }
+  ],
+  "checks": [
+    {
+      "command": "node --test projects/ai-proxy/tests/quick-panel-runtime.test.mjs projects/ai-proxy/tests/drafts.test.mjs projects/ai-proxy/tests/status-runtime.test.mjs",
+      "result": "PASS",
+      "tests": 38
+    },
+    {
+      "command": "node --test projects/ai-proxy/tests/environment-runtime.test.mjs projects/ai-proxy/tests/service.test.mjs",
+      "result": "PASS",
+      "tests": 135
+    },
+    {
+      "command": "esbuild bundle/write:false for QuickPanel.tsx, environment.ts, service.ts",
+      "result": "PASS"
+    },
+    {
+      "command": "verifyTrustedAIProxySources()",
+      "result": "PASS_WORKING_TREE",
+      "note": "Parallel PC lock entries remain owned by PC task; this commit only updates the three sidebar entries"
+    },
+    {
+      "command": "git diff --check (task paths)",
+      "result": "PASS"
+    },
+    {
+      "command": "npm run dev (original guarded daily output)",
+      "result": "BUILD_PASS_AND_NATIVE_CONNECTED",
+      "revision": "f7a90cea72bddbf06f4de8a5d865e3fea163382c897fb4c8ba798848a2979c59"
+    }
+  ],
+  "preview": {
+    "baseline": "projects/ai-proxy/preview/preview.html#sidepanel",
+    "baselineChanged": false,
+    "baselineSha256": "277ff8df72970906370507e9d7448da3ba583cb293536cae874c1a034080a977",
+    "finalSnapshot": ".opendesk-preview/source-91895122-2fcf-4630-a9e5-872d26b7ac7a/preview.html",
+    "sha256": "e0b797b7b6b0c350429b916ce3d61003acbc64cd9c24635e8b6446a5a72bb569",
+    "inputs": 93,
+    "screenshot": "artifacts/ai-proxy/sidebar-core-20261114/sidebar-memory-final.png",
+    "width": 400,
+    "note": "Local ignored screenshot and frozen source preview; these are memory simulation, not native routing evidence. Live preview reloads on source edits; frozen snapshots avoid concurrent refresh."
+  },
+  "development": {
+    "output": "dist/development",
+    "extensionId": "ccfcjegpkdlgbclopjmadlcjedelidmf",
+    "finalObservation": "Connected in native Debug UI; same revision as disk development-update.json",
+    "revision": "f7a90cea72bddbf06f4de8a5d865e3fea163382c897fb4c8ba798848a2979c59",
+    "serve": "http://127.0.0.1:43119",
+    "writerPid": 53249,
+    "session": 25001,
+    "log": "artifacts/ai-proxy/sidebar-core-20261114/dev.log",
+    "note": "Original dev writer absent. Started through original output guard; stopped only this task's first writer after an incremental stale-lock refusal, then rebuilt current inputs once. Leave final writer running."
+  },
+  "package": {
+    "formalJsonVersion": "0.3.22",
+    "installedRegistryVersion": "0.3.17",
+    "rebuilt": false,
+    "promoted": false,
+    "installed": false
+  },
+  "notTested": [
+    "Real proxy Enable/Stop, traffic reachability or system/network setting changes",
+    "Real config mutation in daily Chrome",
+    "Production candidate, complete PC acceptance, all browsers/sizes/IME, independent score",
+    "Authentication, arbitrary PAC, multi-node routing, online subscription, rotation and full diagnostics remain unconnected or unverified"
+  ],
+  "parallel": {
+    "preserved": [
+      "PC Settings/Diagnostics/Official pages, management CSS, locales, preview/frame.jsx and PC tests",
+      "Other projects and framework changes"
+    ],
+    "sharedFile": "trusted/source-lock.json: only three own source entries belong to this commit"
+  },
+  "warnings": [
+    "Current-source preview compiler observed duplicate apCloseRuleEditor keys in parallel locale edits; no locale edits made by this task"
+  ]
+}

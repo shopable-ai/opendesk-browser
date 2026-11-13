@@ -100,7 +100,7 @@ export function configureEnvironment(bridge:any,sdk:any,{trusted=false,preview:p
   return {...value,activeConfig:value.state==='enabled'&&value.control==='controlled_by_this_extension'&&
    value.permission!==false&&config?configForManagedRoute(config,value.activeConfig):null};
  };
- const service=createProxyService(preview?preview.service:{
+ const service=createProxyService(preview?{...preview.service,validateApply:toManagedRoute}:{
   async load(){const raw=await read(configKey);loadedConfig=raw==null?freshConfig():validateConfig(raw);return {config:loadedConfig,etag:entries.get(configKey)};},
   async save(config:any,etag:string){if(etag!==entries.get(configKey))fail('E_CONFLICT','配置已改变，请重新读取');await write(configKey,config);return entries.get(configKey);},
   status:async()=>observedStatus(await managed().getStatus()),
@@ -141,7 +141,7 @@ export function configureEnvironment(bridge:any,sdk:any,{trusted=false,preview:p
       if(base&&draftBases.get(source)===base)base.etag=configEtag;
     }
     const previous=outcomeUnknown;
-    if(r?.ok===false&&r.errorCode==='E_OUTCOME_UNKNOWN')outcomeUnknown=true;
+    if(r?.ok===false&&(r.errorCode==='E_OUTCOME_UNKNOWN'||r.runtime?.outcomeUnknown===true))outcomeUnknown=true;
     if(r?.ok===true){
      if(r.state?.runtime?.outcomeUnknown===true)outcomeUnknown=true;
      // Only the service's status/release reconciliation can confirm recovery.
