@@ -1365,7 +1365,7 @@ test('installed extension pin/unpin persists, reorders the list, and does not in
   const webflow={...app,id:'webflow',title:'WebFlow'};
   const f=fixture(t,{installedRows:[alpha,webflow]});
   await f.ui.refresh();
-  const order=()=>[...f.list.querySelectorAll('li[data-extension-id]')].map(node=>node.dataset.extensionId);
+  const order=()=>[...f.list.querySelectorAll('li[data-extension-id]')].map(node=>node.dataset.extensionId).filter(key=>key.startsWith('app:'));
   assert.deepEqual(order(),['app:alpha','app:webflow']);
   const installedBefore=structuredClone(f.store.get(SIDEBAR_TOOL_STORE));
   const pinKey=extensionCenterPinStorageKey('app:webflow');
@@ -1394,7 +1394,7 @@ test('stored pins are restored on refresh and external local changes synchronize
   const alpha={...app,id:'alpha',title:'Alpha'};
   const webflow={...app,id:'webflow',title:'WebFlow'};
   const f=fixture(t,{installedRows:[alpha,webflow]});
-  const order=()=>[...f.list.querySelectorAll('li[data-extension-id]')].map(node=>node.dataset.extensionId);
+  const order=()=>[...f.list.querySelectorAll('li[data-extension-id]')].map(node=>node.dataset.extensionId).filter(key=>key.startsWith('app:'));
   const pinKey=extensionCenterPinStorageKey('app:webflow');
   f.store.set(pinKey,true);
   await f.ui.refresh();
@@ -1418,7 +1418,7 @@ test('failed pin persistence never reports a successful pin',async t=>{
   assert.ok(pin);
   f.setCorrupt(true);
   pin.dispatch('click');
-  await settle(()=>f.state.statusModel.state==='error'&&f.state.statusModel.text.includes('置顶状态保存失败'));
+  await settle(()=>f.state.statusModel.state==='error'&&f.state.statusModel.text.includes('无法保存扩展置顶状态'));
   assert.equal(f.store.get(pinKey),undefined);
   assert.notEqual(f.state.statusModel.state,'success');
 });

@@ -267,7 +267,7 @@ export function createExtensionCenter({api,client,doc,sidebarTools,taskWorkbench
     }catch(error){
       if(disposed||id!==pinReadSequence)return false;
       pinnedKeys=new Set();pinStateKnown=false;
-      message(()=>t('pinReadFailed')+errorText(error),'error','read');
+      // A preference read must never overwrite an active install/Host action receipt.
       return false;
     }
   }
@@ -308,10 +308,6 @@ export function createExtensionCenter({api,client,doc,sidebarTools,taskWorkbench
       };
       menuItems.push({id:actionId,label,onClick:activate});
     };
-    if(pinStateKnown){
-      const pinned=pinnedKeys.has(row.key);
-      add(t(pinned?'unpinAction':'pinAction'),event=>{void setExtensionPinned(row,!pinned,event);},pinned?'unpin':'pin');
-    }
     if(row.kind==='app'){
       if(row.queueProduct){
         add(t('manageAction'),()=>openDetail(key,'more'),'product');
@@ -367,6 +363,11 @@ export function createExtensionCenter({api,client,doc,sidebarTools,taskWorkbench
     add(t('viewAction'),()=>openDetail(key,'more'),'detail');
     if(row.stateKnown!==false&&!row.queueProduct)
       add(t('uninstallAction'),event=>openListUninstallReview(row.key,event),'uninstall');
+    // Keep all existing lifecycle actions first; pinning is a secondary display preference.
+    if(pinStateKnown){
+      const pinned=pinnedKeys.has(row.key);
+      add(t(pinned?'unpinAction':'pinAction'),event=>{void setExtensionPinned(row,!pinned,event);},pinned?'unpin':'pin');
+    }
     extensionList.renderRowMenu(menuItems,{
       key,title:titleOf(row),trigger,onClose:closeRowMenu
     });
