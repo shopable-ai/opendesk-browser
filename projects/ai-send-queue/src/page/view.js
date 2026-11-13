@@ -101,7 +101,7 @@ function composerSurface(editor,nativeButton,form,win){
   }
   return null;
 }
-export function createQueueView({owner,createPageUI,assets,engine,actions,onRecoveryChange=()=>{}}){
+export function createQueueView({owner,createPageUI,assets,engine,actions,getBackup=()=>'',onRecoveryChange=()=>{}}){
   const doc=owner.content.ownerDocument,css=owner.getAsset('assets/queue.css');
   // Reference the declared image at runtime so the frozen source contains its
   // data URL once, rather than duplicating it inside both CSS and image assets.
@@ -115,6 +115,7 @@ export function createQueueView({owner,createPageUI,assets,engine,actions,onReco
   let list=null,button=null,root=null,blue=null,toastNode=null,toastToken=0;
   let awaitingConversation=false;
   let lastSignature='',recoveryText=null,recoveryReason='';
+  let cacheWarning='',cacheNotice=null,copyingBackup=false;
   let expandedScrollTop=0;
   function reset(){
     for(const prop of ['margin-left','margin-bottom'])list?.host.style.removeProperty(prop);
@@ -136,6 +137,7 @@ export function createQueueView({owner,createPageUI,assets,engine,actions,onReco
           case 'resume':actions.resume(b.dataset.id);break;
           case 'edit':actions.edit(b.dataset.id);break;
           case 'remove':actions.remove(b.dataset.id);break;
+          case 'backup':copyBackup(b);break;
           case 'more':engine.toggleExpanded();break;
           case 'status':{
             const state=engine.view();
@@ -190,8 +192,7 @@ export function createQueueView({owner,createPageUI,assets,engine,actions,onReco
         if(!target||recoveryText===null)return;
         event.stopPropagation();
         if(target.dataset.recovery==='done'){
-          recoveryText=null;recoveryReason='';
-          onRecoveryChange();
+          completeRecovery();
           toast('请核对原生草稿；输入框清空且回复结束后队列自动继续');return;
         }
         if(target.dataset.recovery!=='copy')return;
@@ -201,8 +202,7 @@ export function createQueueView({owner,createPageUI,assets,engine,actions,onReco
           if(!clipboard?.writeText)throw Error('clipboard unavailable');
           await clipboard.writeText(original);
           if(recoveryText!==original)return;
-          recoveryText=null;recoveryReason='';
-          onRecoveryChange();
+          completeRecovery();
           toast('原草稿已复制；输入框清空且回复结束后队列自动继续');
         }catch{
           if(recoveryText!==original)return;
@@ -232,16 +232,68 @@ export function createQueueView({owner,createPageUI,assets,engine,actions,onReco
     toastNode.hidden=false;
   }
   function hasRecovery(){return recoveryText!==null;}
+  function completeRecovery(){
+    recoveryText=null;recoveryReason='';toastToken++;
+    toastNode.replaceChildren();toastNode.hidden=true;
+    onRecoveryChange();
+  }
   function offerRecovery(text,reason){
     if(recoveryText!==null||typeof text!=='string'||!text)return false;
     ensure();recoveryText=text;recoveryReason=reason;
     onRecoveryChange();showRecovery();return true;
   }
-  function toast(message){
+  function toast(message,{variant='info',duration=3000}={}){
+    if(typeof owner.active==='function'&&!owner.active())return;
+    // Page USER_SCRIPT uses its public Page UI, independently of the sidebar.
+    // Keep the local status as a compatibility fallback, never a native dialog.
+    if(typeof owner.toast==='function'){
+      try{owner.toast({message,variant,duration,position:'top'});return;}catch{}
+    }
     if(!toastNode||recoveryText!==null)return;
     toastNode.textContent=message;toastNode.hidden=false;
     const id=++toastToken;
     owner.setTimeout(()=>{if(id===toastToken&&toastNode)toastNode.hidden=true;},3000);
+  }
+  function appendCacheWarning(){
+    if(!cacheWarning||!root)return;
+    if(!cacheNotice){
+      cacheNotice=element(doc,'div','sq-cache-warning');
+      cacheNotice.setAttribute('role','status');
+      const copy=element(doc,'button','sq-more','复制备份');
+      copy.type='button';copy.dataset.action='backup';
+      cacheNotice.append(element(doc,'p','',cacheWarning),copy);
+    }
+    root.append(cacheNotice);
+  }
+  function setCacheWarning(message){
+    if(cacheWarning===message)return;
+    cacheWarning=message;cacheNotice?.remove();cacheNotice=null;
+    appendCacheWarning();
+    if(message)toast(message,{variant:'warning',duration:5000});
+  }
+  async function copyBackup(trigger){
+    if(copyingBackup||!cacheWarning||!list?.active())return;
+    const notice=cacheNotice;
+    let text;
+    try{text=getBackup();}catch{toast('暂时无法生成备份，请保留网页后重试',{variant:'warning'});return;}
+    if(!list?.active())return;
+    if(!text){toast('暂无需要备份的消息');return;}
+    copyingBackup=true;trigger.disabled=true;
+    try{
+      const clipboard=doc.defaultView.navigator?.clipboard;
+      if(!clipboard?.writeText)throw Error('clipboard unavailable');
+      await clipboard.writeText(text);
+      if(list?.active())toast('已复制队列与草稿备份，请粘贴到安全位置保存',{variant:'success'});
+    }catch{
+      if(!list?.active()||notice!==cacheNotice)return;
+      let manual=notice.querySelectorAll('textarea')[0];
+      if(!manual){
+        manual=element(doc,'textarea','sq-cache-backup');manual.readOnly=true;
+        manual.setAttribute('aria-label','队列与草稿备份，请手动复制');notice.append(manual);
+      }
+      manual.value=text;manual.focus?.();manual.select?.();
+      toast('浏览器未允许复制，请手动复制下方完整备份',{variant:'warning'});
+    }finally{copyingBackup=false;trigger.disabled=false;}
   }
   function render(){
     if(!list?.active()||!button?.active())return;
@@ -264,6 +316,7 @@ export function createQueueView({owner,createPageUI,assets,engine,actions,onReco
       cue.setAttribute('aria-hidden','true');
       rows.append(cue);
       root.replaceChildren(rows);
+      appendCacheWarning();
       return;
     }
     const signature=JSON.stringify([state.expanded,state.reason,state.phase,
@@ -316,6 +369,7 @@ export function createQueueView({owner,createPageUI,assets,engine,actions,onReco
       more.type='button';more.dataset.action='more';
       more.setAttribute('aria-expanded',String(state.expanded));root.append(more);
     }
+    appendCacheWarning();
     if(state.expanded)rows.scrollTop=expandedScrollTop;
     if(activeRow){
       const row=[...root.querySelectorAll('[data-id-row]')]
@@ -413,6 +467,6 @@ export function createQueueView({owner,createPageUI,assets,engine,actions,onReco
       !!editorViewport(snap.editor,snap.form,win);
   }
   owner.onDispose(destroy);
-  return Object.freeze({place,render,hide,toast,offerRecovery,hasRecovery,isPlaced,
+  return Object.freeze({place,render,hide,toast,setCacheWarning,offerRecovery,hasRecovery,isPlaced,
     recovery:()=>recoveryText===null?null:{text:recoveryText},destroy});
 }

@@ -63,6 +63,19 @@ export default async function main({assets}={}) {
     const state=engine.view();
     return !!(state.items.length||state.inFlight||state.answerGate||pending||provenance||backup||cachedDraft||view?.hasRecovery());
   }
+  function cacheFeedback(status){
+    const previous=cacheStatus.status;
+    cacheStatus.status=status;
+    const message=status==='write-failed'?
+      '队列缓存未保存，刷新或关闭可能丢失消息。请先复制备份，存储恢复后自动重试。':
+      ['invalid','unavailable'].includes(status)?
+        '队列缓存无法读取，暂不自动发送。请先复制备份并检查浏览器存储。':'';
+    attempt(()=>{
+      view?.setCacheWarning?.(message);
+      if(status==='saved'&&['write-failed','invalid','unavailable'].includes(previous))
+        view?.toast('队列缓存已恢复保存',{variant:'success'});
+    },'cache-feedback');
+  }
   function checkpoint(state=engine.view(),removing=null){
     if(loadingCache)return true;
     if(!cacheReady||!cacheRoute)return false;
@@ -74,7 +87,7 @@ export default async function main({assets}={}) {
       items:state.items.map(({id,text,state})=>({id,text,state})),
       expanded:!!state.expanded,inFlight:state.inFlight?{id:state.inFlight.id}:null,
       draft:text?{text}:null});
-    cacheStatus.status=ok?'saved':'write-failed';
+    cacheFeedback(ok?'saved':'write-failed');
     return ok;
   }
   function restoreDraft(){
@@ -94,9 +107,9 @@ export default async function main({assets}={}) {
     if(cacheRoute&&cacheRoute!==snap.route&&hasWork())return;
     cacheRoute=snap.route;cacheReady=false;
     const result=cache.read(cacheRoute);
-    cacheStatus.status=result.status;
+    cacheFeedback(result.status);
     if(!['empty','ready'].includes(result.status)){
-      view?.toast('队列缓存无法读取，已保留原生草稿；不会覆盖原缓存');return;
+      return;
     }
     cacheReady=true;
     if(result.status==='ready'){
@@ -104,7 +117,7 @@ export default async function main({assets}={}) {
       loadingCache=true;
       try{
         if(!engine.restoreCache(result.data,cacheRoute)){
-          cacheReady=false;cacheStatus.status='invalid';return;
+          cacheReady=false;cacheFeedback('invalid');return;
         }
         cacheStatus.restored=result.data.items.length;
         if(!cachedDraft)view.toast('已恢复 '+result.data.items.length+' 条缓存消息；请核对原对话后逐条恢复');
@@ -388,7 +401,23 @@ export default async function main({assets}={}) {
         return result.ok;
       }
     };
-    view=createQueueView({owner,createPageUI,assets,engine,onRecoveryChange:checkpoint,
+    // Read current memory only after the explicit backup click. This never
+    // consumes a queue item, changes a send state, or relies on stale storage.
+    function getBackup(){
+      if(!owner.active()||retireForLegacy())return '';
+      const state=engine.view();
+      let snap;
+      try{snap=site.inspect();}catch{} // A missing editor cannot hide the memory backup.
+      const drafts=[pending?.text,pending?.draft,provenance?.text,provenance?.draft,
+        backup?.text,cachedDraft?.text,view?.recovery?.()?.text,
+        snap?.ok&&snap.route===cacheRoute?snap.draft:null];
+      const parts=state.items.map((item,i)=>'消息 '+(i+1)+'\n'+item.text);
+      for(const text of new Set(drafts.filter(text=>typeof text==='string'&&text.length)))
+        parts.push('草稿备份\n'+text);
+      return parts.length?'发送队列备份 · 请核对原对话，备份不会自动发送\n对话：'+
+        (state.route||cacheRoute)+'\n\n'+parts.join('\n\n'):'';
+    }
+    view=createQueueView({owner,createPageUI,assets,engine,getBackup,onRecoveryChange:checkpoint,
       actions:Object.fromEntries(Object.entries(actions).map(([name,action])=>
         [name,(...args)=>{if(owner.active()&&!retireForLegacy()){
           try{return action(...args);}finally{checkpoint();}
@@ -396,7 +425,7 @@ export default async function main({assets}={}) {
     // The fixed remote adapter is in USER_SCRIPT, not the website's JS world.
     remote=createSendQueueRemote({owner,site,engine,actions,retireForLegacy});
     if(globalThis.OpenDeskAppPage)
-      registerPageStatus({bridge:globalThis.OpenDeskAppPage,owner,site,view,version:'0.1.32'});
+      registerPageStatus({bridge:globalThis.OpenDeskAppPage,owner,site,view,version:'0.1.33'});
     // A native attempt may precede its DOM receipt. Subsequent editing cannot
     // prove that an externally initiated send was cancelled.
     owner.on(document,'click',event=>{
@@ -444,10 +473,10 @@ export default async function main({assets}={}) {
       }
       if(actions.enqueue())notify('官网当前无法发送，草稿已加入发送队列');
     },true);
-    owner.on(window,'beforeunload',event=>{
-      if(!owner.active()||(!pending&&!provenance&&!backup&&!cachedDraft&&!engine.view().items.length&&!view?.hasRecovery()))return;
-      if(checkpoint())return;
-      event.preventDefault();event.returnValue='';
+    owner.on(window,'beforeunload',()=>{
+      // Report failures while the page is usable; leaving never opens a native
+      // dialog. Normal enqueue/delete/send checkpoints remain fail-closed.
+      if(owner.active())checkpoint();
     });
     // All schedules share this gate and the original engine; no timeout proves a reply complete.
     function poll(source='poll'){

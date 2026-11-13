@@ -36,7 +36,7 @@ class Node {
     ...child.querySelectorAll(selector)]);}
   getBoundingClientRect(){return this.measure?.()||rect(0,0,0,0);}
 }
-function fixture({radius='28px',rightRadius=radius,paint=true,damage='',coarse=false,assetRecords,scrollOffset=null}={}){
+function fixture({radius='28px',rightRadius=radius,paint=true,damage='',coarse=false,assetRecords,scrollOffset=null,sharedToast=false,backupText='  queued original\n🙂  '}={}){
   const doc={defaultView:{getComputedStyle:node=>node.computed,matchMedia:()=>({matches:coarse})},
     createElement:tag=>new Node(doc,tag),createElementNS:(_ns,tag)=>new Node(doc,tag)};
   doc.body=new Node(doc,'body');
@@ -46,7 +46,7 @@ function fixture({radius='28px',rightRadius=radius,paint=true,damage='',coarse=f
   const toolbar=doc.createElement('div'),native=doc.createElement('button'),aux=doc.createElement('button');
   doc.body.append(parent);parent.append(form);form.append(surface);surface.append(wrapper);
   wrapper.append(editorShell,toolbar);editorShell.append(editor);toolbar.append(aux,native);
-  const managed=[],waits=[],calls=[],disposals=[];
+  const managed=[],waits=[],calls=[],disposals=[],notices=[];
   let state={items:[{id:'q1',text:'queued text',state:'queued'}],expanded:false,answerGate:true};
   const getUI=kind=>managed.find(ui=>ui.kind===kind&&ui.active());
   const shown=kind=>getUI(kind)?.host.style.getPropertyValue('display')!=='none'&&
@@ -96,14 +96,97 @@ function fixture({radius='28px',rightRadius=radius,paint=true,damage='',coarse=f
     (assetRecords[path].kind==='image'?assetRecords[path].url:assetRecords[path].text):path.endsWith('.webp')?
     'data:image/webp;base64,ZmFrZQ==':'.sq-crown{background:var(--sq-crown-image) center/contain no-repeat}',
     onDispose:fn=>disposals.push(fn),setTimeout(){}};
+  if(sharedToast)owner.toast=options=>{notices.push(options);return {shown:true};};
   const engine={view:()=>state,wait:reason=>waits.push(reason)};
-  const view=createQueueView({owner,createPageUI,assets:[],engine,
+  const view=createQueueView({owner,createPageUI,assets:[],engine,getBackup:()=>backupText,
     actions:{sendNow:id=>calls.push(id),enqueue:options=>calls.push(options)}});
-  return {view,doc,form,surface,wrapper,editor,native,toolbar,parent,managed,waits,calls,
+  return {view,doc,form,surface,wrapper,editor,native,toolbar,parent,managed,waits,calls,notices,
     snap:{ok:true,form,editor,sendButton:native},ui:getUI,
     state:value=>{state={...state,...value};},dispose:()=>disposals.forEach(fn=>fn())};
 }
 const panel=h=>h.ui('list').content.children[0];
+
+test('ordinary feedback uses the shared Page toast without replacing a recovery copy',()=>{
+  const h=fixture({sharedToast:true});h.view.place(h.snap);
+  h.view.offerRecovery('original recovery','still needs checking');
+  const recovery=h.ui('button').content.children[1],children=[...recovery.children];
+  h.view.toast('草稿已加入发送队列');
+  assert.equal(h.notices.at(-1).message,'草稿已加入发送队列');
+  assert.equal(h.notices.at(-1).position,'top');
+  assert.deepEqual(recovery.children,children);assert.equal(h.view.recovery().text,'original recovery');
+});
+
+for(const action of ['copy','done']){
+  test(`completed recovery ${action} removes its old controls when feedback uses the shared toast`,async()=>{
+    const h=fixture({sharedToast:true});h.view.place(h.snap);
+    h.view.offerRecovery('original recovery','still needs checking');
+    h.doc.defaultView.navigator={clipboard:{async writeText(text){assert.equal(text,'original recovery');}}};
+    const ui=h.ui('button'),recovery=ui.content.children[1];
+    const listener=ui.listeners.find(item=>item.node===recovery&&item.event==='click');
+    await listener.callback({target:{closest:()=>({dataset:{recovery:action}})},stopPropagation(){}});
+    assert.equal(h.view.hasRecovery(),false);assert.equal(h.view.recovery(),null);
+    assert.equal(recovery.hidden,true);assert.equal(recovery.children.length,0);
+    assert.match(h.notices.at(-1).message,/请核对原生草稿|原草稿已复制/);
+  });
+}
+
+test('a cache warning persists across renders and ordinary notifications, without repeated toasts',()=>{
+  const h=fixture({sharedToast:true});h.view.place(h.snap);h.view.render();
+  h.view.setCacheWarning('队列缓存未保存，请先复制备份');
+  const notice=panel(h).children.find(node=>node.className==='sq-cache-warning');
+  assert.ok(notice);assert.equal(notice.getAttribute('role'),'status');
+  assert.equal(notice.querySelectorAll('button').length,1);
+  h.view.setCacheWarning('队列缓存未保存，请先复制备份');
+  assert.equal(h.notices.length,1);
+  h.view.toast('其他操作完成');h.state({expanded:true});h.view.render();
+  assert.ok(panel(h).children.includes(notice));
+  h.view.offerRecovery('unsaved recovery','needs checking');
+  h.view.setCacheWarning('');
+  assert.equal(notice.isConnected,false);assert.equal(h.view.recovery().text,'unsaved recovery');
+});
+
+for(const clipboard of ['allowed','denied']){
+  test(`cache backup ${clipboard} preserves the exact text and does not mutate queue state`,async()=>{
+    const text='  queued original\n🙂  ',h=fixture({sharedToast:true,backupText:text});
+    h.view.place(h.snap);h.view.render();h.view.setCacheWarning('队列缓存未保存');
+    let copied=null;h.doc.defaultView.navigator={clipboard:{async writeText(value){
+      if(clipboard==='denied')throw Error('clipboard denied');copied=value;
+    }}};
+    const before=panel(h).children[0];
+    const notice=panel(h).children.find(node=>node.className==='sq-cache-warning');
+    const button=notice.querySelectorAll('button')[0];
+    const listener=h.ui('list').listeners.find(item=>item.event==='click');
+    listener.callback({target:{closest:()=>button},stopPropagation(){}});
+    await Promise.resolve();await Promise.resolve();
+    if(clipboard==='allowed'){
+      assert.equal(copied,text);assert.match(h.notices.at(-1).message,/已复制/);
+    }else{
+      const manual=notice.children.find(node=>node.tagName==='textarea');
+      assert.equal(manual.value,text);assert.equal(manual.readOnly,true);
+      assert.match(h.notices.at(-1).message,/手动复制/);
+    }
+    assert.equal(panel(h).children[0],before);assert.deepEqual(h.calls,[]);
+    assert.ok(panel(h).children.includes(notice));
+  });
+}
+
+test('a pending backup is not repeated and a late clipboard failure cannot revive a retired view',async()=>{
+  const h=fixture({sharedToast:true});h.view.place(h.snap);h.view.render();
+  h.view.setCacheWarning('队列缓存未保存');
+  let rejectCopy,copies=0;
+  h.doc.defaultView.navigator={clipboard:{writeText(){copies++;
+    return new Promise((_resolve,reject)=>{rejectCopy=reject;});
+  }}};
+  const notice=panel(h).children.find(node=>node.className==='sq-cache-warning');
+  const button=notice.querySelectorAll('button')[0];
+  const listener=h.ui('list').listeners.find(item=>item.event==='click');
+  const event=()=>({target:{closest:()=>button},stopPropagation(){}});
+  listener.callback(event());listener.callback(event());assert.equal(copies,1);
+  const notifications=h.notices.length;h.dispose();rejectCopy(Error('late denial'));
+  await Promise.resolve();await Promise.resolve();
+  assert.equal(h.notices.length,notifications);
+  assert.equal(notice.querySelectorAll('textarea').length,0);
+});
 
 test('Shift clicking the crown requests paused admission while ordinary clicks keep automatic admission',()=>{
   const h=fixture();h.view.place(h.snap);

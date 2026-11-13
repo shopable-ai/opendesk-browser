@@ -11,8 +11,8 @@ function fixture({preflight={ok:true},clear={ok:false,needsRecovery:true,text:'p
   reason:'editor replaced'},restore=false,enqueue=true,reclaim=null,queued=false,reclaimPrepared=false,removeResult=true}={}){
   const storage=memoryStorage();
   const calls={preflight:0,clear:0,enqueued:0,ticks:0,pauses:0,restores:0,toasts:[],
-    recovery:null,unloadPrevented:false,uncertain:null,now:0,confirms:0,removed:[],inspects:0,tickOptions:[],resumes:0};
-  let actions,unload,change,hasRecovery=false,active=true,legacy=false,now=1000;
+    recovery:null,unloadPrevented:false,uncertain:null,now:0,confirms:0,removed:[],inspects:0,tickOptions:[],resumes:0,cacheWarnings:[]};
+  let actions,getBackup,unload,change,hasRecovery=false,active=true,legacy=false,now=1000;
   const listeners=new Map(),editor={contains:()=>false};
   const disposers=[],timers=[],events=[];
   function runTimer(ms){
@@ -62,6 +62,7 @@ function fixture({preflight={ok:true},clear={ok:false,needsRecovery:true,text:'p
     onDispose(fn){disposers.push(fn);},setInterval(callback,ms){const timer={callback,ms,next:now+ms,enabled:true};timers.push(timer);return timer;},active:()=>active,destroy(){active=false;timers.forEach(timer=>timer.enabled=false);disposers.forEach(fn=>fn());}};
   const view={place(){calls.onPlace?.();return true;},render(){calls.onRender?.();},hide(){calls.onHide?.();},
     toast(message){calls.toasts.push(message);},
+    setCacheWarning(message){calls.cacheWarnings.push(message);},
     offerRecovery(text,reason){calls.onRecovery?.();if(hasRecovery)return false;hasRecovery=true;
       calls.recovery={text,reason};return true;},
     hasRecovery(){return hasRecovery;},recovery:()=>calls.recovery};
@@ -71,7 +72,7 @@ function fixture({preflight={ok:true},clear={ok:false,needsRecovery:true,text:'p
     createPageUI:()=>owner,createChatGPTSite:()=>site,
     createQueueCache:()=>createQueueCache({storage:()=>storage}),
     createQueueEngine:options=>{change=options.change;return engine;},
-    createQueueView:options=>{actions=options.actions;return view;},
+    createQueueView:options=>{actions=options.actions;getBackup=options.getBackup;return view;},
      createSendQueueRemote:()=>({changed(){calls.onChanged?.();}})});
   vm.runInContext(entry.replace(/^import .*;\n/gm,'')
     .replace('export default async function main','async function main'),ctx);
@@ -84,7 +85,7 @@ function fixture({preflight={ok:true},clear={ok:false,needsRecovery:true,text:'p
       preventDefault(){this.prevented=true;},stopImmediatePropagation(){this.stopped=true;},...patch};
       listeners.get('keydown').callback(event);return event;},
     composition(type){listeners.get(type).callback();},
-    run:()=>ctx.main(),enqueue:(event={})=>actions.enqueue(event),edit:()=>actions.edit('q1'),poll:()=>runTimer(650),destroy:()=>owner.destroy(),
+    run:()=>ctx.main(),backup:()=>getBackup(),enqueue:(event={})=>actions.enqueue(event),edit:()=>actions.edit('q1'),poll:()=>runTimer(650),destroy:()=>owner.destroy(),
     beforeinput(patch={}){const event={target:snap.editor,isTrusted:true,defaultPrevented:false,...patch};listeners.get('beforeinput').callback(event);return event;},
     input(patch={}){listeners.get('input')?.callback({target:snap.editor,isTrusted:true,...patch});},get actions(){return actions;},unload:()=>{
     const event={preventDefault(){calls.unloadPrevented=true;}};
@@ -119,14 +120,46 @@ test('confirmed exact clear enters the queue once',async()=>{
   assert.equal(h.calls.enqueued,1);assert.equal(h.calls.ticks,0);
   assert.equal(h.calls.pauses,0);assert.equal(h.calls.recovery,null);
 });
-test('the full transfer is cached before native clearing and quota failure retains unload protection',async()=>{
+test('the full transfer is cached before native clearing and quota failure never blocks leaving',async()=>{
   const h=fixture({clear:{ok:true,text:'private draft'}});await h.run();
   h.calls.onClear=()=>{
     const cached=createQueueCache({storage:()=>h.storage}).read(h.snap.route);
     assert.equal(cached.data.draft.text,'private draft');assert.equal(h.snap.draft,'private draft');
   };
   assert.equal(h.enqueue(),true);
-  h.storage.setItem=()=>{throw Error('quota');};h.unload();assert.equal(h.calls.unloadPrevented,true);
+  h.storage.setItem=()=>{throw Error('quota');};
+  const event=h.unload();
+  assert.equal(h.calls.unloadPrevented,false);assert.equal(event.returnValue,undefined);
+  assert.match(h.calls.cacheWarnings.at(-1),/未保存.*刷新.*关闭/);
+});
+
+test('cache failure is visible before leaving and recovery clears only its own warning',async()=>{
+  const h=fixture({queued:true});await h.run();
+  const write=h.storage.setItem;h.storage.setItem=()=>{throw Error('quota');};
+  h.poll();assert.match(h.calls.cacheWarnings.at(-1),/未保存/);
+  assert.equal(h.calls.canSubmit,false);
+  h.actions.pause('missing');
+  assert.match(h.calls.cacheWarnings.at(-1),/未保存/,'ordinary feedback must not clear the warning');
+  h.storage.setItem=write;h.poll();
+  assert.equal(h.calls.cacheWarnings.at(-1),'');
+  assert.equal(h.calls.toasts.filter(text=>text==='队列缓存已恢复保存').length,1);
+  h.poll();assert.equal(h.calls.toasts.filter(text=>text==='队列缓存已恢复保存').length,1);
+});
+
+test('manual backup preserves queue order, pauses, unknown text and the exact native draft without sending',async()=>{
+  const h=fixture({queued:true});await h.run();
+  h.state.items=[{id:'q1',text:'  paused\n🙂  ',state:'paused'},
+    {id:'q2',text:'unknown original',state:'unknown'}];
+  h.state.inFlight={id:'q2',phase:'unknown'};h.state.phase='unknown';
+  h.snap.draft=' \n native draft \n';
+  const before=JSON.stringify(h.state),copy=h.backup();
+  assert.ok(copy.indexOf('  paused\n🙂  ')<copy.indexOf('unknown original'));
+  assert.ok(copy.includes(h.snap.draft));
+  assert.equal(JSON.stringify(h.state),before);
+  assert.equal(h.calls.clear,0);assert.equal(h.calls.now,0);assert.equal(h.calls.resumes,0);
+  h.calls.onInspect=()=>{throw Error('editor unavailable');};
+  assert.ok(h.backup().includes('unknown original'),'memory remains accessible without the editor');
+  h.destroy();assert.equal(h.backup(),'');
 });
 test('uncertain clearing cannot lose its only original when recovery UI throws',async()=>{
   const h=fixture();await h.run();h.calls.onRecovery=()=>{throw Error('UI unavailable');};h.enqueue();
