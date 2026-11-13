@@ -67,12 +67,12 @@ const compiledWebFlowInputs=Object.freeze({
   // identity, required inputs, fixed values and original candidate bytes remain fenced.
   // 2026-11-11: stable loading/control slot and persistent emergency management;
   // original native gestures, authority and unknown-result fences are unchanged.
-  'projects/webflow/trusted/AutoSettings.tsx':'1618f0a1bffcce8174e4d623cba6c2643894de05',
+  'projects/webflow/trusted/AutoSettings.tsx':'6a3bc738ee18d5417388173990ad15e863fcf010',
   // Reviewed read-only projection: correlate the same request, prefer its Run,
   // distinguish reserved IDs/persistence/delivery/release; UNKNOWN never replays.
   // Reviewed same-receipt, owner-bound Toast projection; execution stays unchanged.
-  // Retain the upstream PREPARE-only/account-unverified status copy.
-  'projects/webflow/trusted/CurrentTask.tsx':'aa2ecc7a76140fdf228444223b10d700207f4014',
+  // R11: distinguish the exact 0.2 send/B-to-A review from unsubmitted drafts.
+  'projects/webflow/trusted/CurrentTask.tsx':'ae5cc76a6ff63f025244150e64a92849554ad59a',
   // Reviewed display-only scripts route, consumed by the same fixed tool shell.
   'projects/webflow/src/ui/app-page-routes.js':'04468dd893393f82482123355243d8cdad4b1fb7',
   'projects/webflow/trusted/RuntimePanel.tsx':'f418c26696933f0b9440080fd2586e47e42b870f'
@@ -175,10 +175,10 @@ const compiledChatGPTFilesInputs=Object.freeze({
   'projects/webflow/trusted/chatgpt-conversation-route.js':'8e28adedd8cc2b49ff34897c0857d33cf2478c87',
   // Reviewed pure result validation/formatting, including strict string IDs.
   // Its existing Host consumers alone may compile it; no Content/Native entry.
-  'projects/webflow/src/chatgpt-conversation-result.js':'25581b6c905b5f8d6fd2bb7d7939c7ca8bfbd270',
+  'projects/webflow/src/chatgpt-conversation-result.js':'13b05c1b0a426ee22a825c5ab6d9fab018334761',
   // Fixed-compiled ChatGPT Task 0.2.0 business-result registry: immutable
   // release identity, retained B provenance and no dynamic package validators.
-  'projects/webflow/trusted/chatgpt-result-adapter.js':'b55e4f27e5919464515b9687f45e8ca012f97c1b',
+  'projects/webflow/trusted/chatgpt-result-adapter.js':'e57dd4bbfe90c0f81c5465fd8cbbeefc95ea4dae',
   // 0.3 is opt-in and cannot claim a completed A/B workflow from a draft.
   // Its strict results and retained-B proof are first-party compiled inputs.
   'projects/webflow/src/chatgpt-conversation-result-v0.3.js':'53fd0ca5ae064053fc00d34ce5771800289efcc4',

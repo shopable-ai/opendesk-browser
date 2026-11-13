@@ -7,6 +7,7 @@ import {inspectChatGPTEditsOnPage,readChatGPTEdit,assertWebFlowReplyCandidate} f
 import {installChatGPTBridgeTriggerGate,CHATGPT_BRIDGE_LEDGER_KEY} from '../../../src/native-agent/chatgpt-bridge-trigger-gate.js';
 import {encodeValue} from '../../../src/platform/page-port/codec.js';
 import {validateWebFlowTaskIntent} from '../../../src/native-agent/chatgpt-task-request.js';
+import {createChatGPTBackgroundAdapter} from '../../../src/native-agent/chatgpt-background-adapter.js';
 
 const source={tabId:9,documentId:'webflow-final-document',url:'https://chatgpt.com/c/webflow-final-12345678'};
 const panel={id:'extension',documentId:'trusted-panel',url:'chrome-extension://extension/sidepanel.html?hostInstanceId=real'};
@@ -16,6 +17,62 @@ const scope={taskId:'baidu.search.top3',args:{query:'OpenDesk Browser',limit:3},
 const intent={protocol:'webflow.task.intent.v1',candidateId:'webflow-final-candidate',taskId:scope.taskId,
   targetUrl:scope.targetUrl,args:scope.args};
 const readOptions={taskIntent:true,requireComplete:true,protocols:['webflow.task.intent.v1']};
+
+test('R11 trusted candidate reader returns only the unique actual latest user official ID',async()=>{
+  const h=harness(),user=h.$('[data-message-author-role="user"]');
+  const read=()=>readChatGPTEdit(h.api,source,undefined,{...readOptions,readUserMessage:true});
+  user.attr('data-message-id','official-source-a-0001');
+  assert.equal((await read()).officialUserMessageId,'official-source-a-0001');
+  assert.equal((await h.read()).officialUserMessageId,undefined,'no identity opt-in means no official ID');
+  assert.equal((await assertWebFlowReplyCandidate(h.api,source,await h.candidate())).officialUserMessageId,
+    'official-source-a-0001');
+  h.$('main').append('<div hidden data-message-id="official-source-a-0001"></div>');
+  assert.equal((await read()).officialUserMessageId,undefined,'duplicate IDs cannot be anchors');
+  h.$('[hidden]').remove();user.attr('data-message-id','invalid id');
+  assert.equal((await read()).officialUserMessageId,undefined);
+  user.removeAttr('data-message-id').attr('data-chatgpt-search-unit-key','official-source-a-0001:user');
+  assert.equal((await read()).officialUserMessageId,undefined,'a site key or turn-N is not an official ID');
+});
+
+test('R11 modern official UUID anchors reject conflicts, duplicates and fallback keys',async()=>{
+  const h=harness(),user=h.$('[data-message-author-role="user"]');
+  const id='3ba7aa01-b55e-4591-a293-ed36d2239195';
+  const read=()=>readChatGPTEdit(h.api,source,undefined,{...readOptions,readUserMessage:true});
+  user.removeAttr('data-message-author-role').attr('data-chatgpt-search-unit-key','fallback-turn-0:0:user')
+    .attr('data-chatgpt-search-message-ids',id);
+  assert.equal((await read()).officialUserMessageId,id);
+  user.attr('data-message-id','conflicting-message-0001');
+  assert.equal((await read()).officialUserMessageId,undefined);
+  user.removeAttr('data-message-id');
+  h.$('main').append('<div hidden data-message-id="'+id+'"></div>');
+  assert.equal((await read()).officialUserMessageId,undefined);
+  h.$('[hidden]').remove();
+  user.attr('data-chatgpt-search-message-ids',id+' 9f2d4d48-788d-4d39-a669-9cd23c362d77');
+  assert.equal((await read()).officialUserMessageId,undefined);
+  user.attr('data-chatgpt-search-message-ids','fallback-turn-0:0:user');
+  assert.equal((await read()).officialUserMessageId,undefined);
+});
+
+test('R11 background admission freezes trusted DOM anchor separately and ignores page supplied identity',async()=>{
+  for(const official of [true,false]){
+    const h=harness();if(official)h.$('[data-message-author-role="user"]').attr('data-message-id','official-source-a-0001');
+    await h.gate.approveAuto(scope);await h.gate.setAutoEnabled(true);
+    const adapter=createChatGPTBackgroundAdapter({api:h.api,ledger:h.gate,captureSource:async()=>source,
+      ensureRunner:async()=>{},verifyTaskScope:async()=>({...scope,installation}),loadFoundation:async()=>({})});
+    const candidate=await h.candidate();
+    const admitted=await adapter.handle({kind:'auto-task',persistentAuto:true,candidateText:candidate.text,
+      turnKey:candidate.turnKey,answerKey:candidate.answerKey,
+      officialUserMessageId:'forged-page-anchor',originalAAnchorMessageId:'forged-page-anchor'},
+      {id:'extension',url:source.url,documentId:source.documentId,tab:{id:source.tabId}});
+    const saved=await h.gate.inspectWebTask(admitted.requestId);
+    assert.equal(saved.originalAAnchorMessageId,official?'official-source-a-0001':undefined);
+    assert.deepEqual(saved.candidate,candidate,'candidate strict four-field shape is unchanged');
+    if(official){
+      h.$('[data-message-author-role="user"]').attr('data-message-id','replacement-user-0001');
+      await assert.rejects(adapter.verify(saved),{code:'E_BRIDGE_CONTEXT'});
+    }
+  }
+});
 
 function harness({taskScope=scope,taskIntent=intent}={}){
   const $=load('<main><div data-message-author-role="user">请搜索 OpenDesk Browser</div><div data-message-author-role="assistant" data-talvt-turn-state="complete"><pre><code class="language-opendesk-task"></code></pre></div></main>');

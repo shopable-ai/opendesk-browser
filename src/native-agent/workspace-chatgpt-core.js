@@ -73,6 +73,20 @@ export function inspectChatGPTEditsOnPage({expectedUrl,requestId,identityOnly=fa
   if(eventText&&new TextEncoder().encode(userText).length>512*1024)
     return error('E_CHAT_LIMIT','当前用户消息过长，无法核对完整版本。');
   const userIdentity=readUserMessage&&user&&new TextEncoder().encode(userText).length<=32*1024?{userText}:{};
+  if(readUserMessage&&user){
+    const direct=user.getAttribute('data-message-id');
+    const modern=user.getAttribute('data-chatgpt-search-message-ids');
+    const ids=modern===null?[]:[...new Set(modern.trim().split(/\s+/))];
+    const modernId=ids.length===1&&/^[a-f0-9]{8}(?:-[a-f0-9]{4}){3}-[a-f0-9]{12}$/i.test(ids[0])?ids[0]:null;
+    const officialId=direct||modernId;
+    const valid=(direct===null||/^[A-Za-z0-9._:-]{8,128}$/u.test(direct))&&
+      (modern===null||modernId!==null)&&(direct===null||modern===null||direct===modernId);
+    const matches=valid&&officialId?[...document.querySelectorAll('[data-message-id],[data-chatgpt-search-message-ids]')]
+      .filter(node=>node.getAttribute('data-message-id')===officialId||
+        (node.getAttribute('data-chatgpt-search-message-ids')||'').trim().split(/\s+/).includes(officialId)):[];
+    if(matches.length===1&&matches[0]===user)
+      userIdentity.officialUserMessageId=officialId;
+  }
   const stop=[...document.querySelectorAll('[data-testid="stop-button"],button[aria-label="Stop generating"],button[aria-label="停止生成"]')].some(node=>!hidden(node));
   const turnAnswers=lastUser<0?[]:messages.slice(lastUser+1);
   const answer=taskIntent?turnAnswers.slice(-1):turnAnswers;

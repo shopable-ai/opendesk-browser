@@ -159,6 +159,26 @@ function receiptFields(document){
  return Object.fromEntries([...receipt.querySelectorAll('dt')].map(dt=>[dt.textContent,dt.nextElementSibling.textContent]));
 }
 
+test('review distinguishes the fixed 0.2 send recipe from unsubmitted drafts',()=>{
+ const review=(version,args,protocol='webflow.task.intent.v2')=>currentTaskMarkup({pendingAuto:{protocol,
+  scope:{taskId:'chatgpt.conversation.create',targetUrl:'https://chatgpt.com/',
+   installation:{version},args}}},null).querySelector('[aria-label="任务范围审核"]');
+ for(const version of ['0.2.0','0.2.1','0.2.2']){
+ const sent=review(version,{prompt:'分析 WebFlow 的三个主要优势',send:true});
+ assert.ok(sent.textContent.includes('独立新对话 B'));
+ assert.ok(sent.textContent.includes('批准同时包含这两次发送'));
+ assert.ok(!sent.textContent.includes('当前仅准备未发送草稿'));
+ assert.ok([...sent.querySelectorAll('button')].some(button=>button.textContent==='批准 B 单次发送与原 A 单次回传'));
+ assert.ok(review(version,{send:true},'webflow.task.intent.v1').textContent.includes('批准同时包含这两次发送'));
+ }
+ for(const [version,args] of [['0.2.0',{send:false}],['0.3.0',{phase:'prepare'}]]){
+  const draft=review(version,args);
+  assert.ok(draft.textContent.includes('当前仅准备未发送草稿'));
+  assert.ok(!draft.textContent.includes('批准同时包含这两次发送'));
+  assert.ok([...draft.querySelectorAll('button')].some(button=>button.textContent==='批准此草稿范围'));
+ }
+});
+
 test('a paused UNKNOWN run overrides the stale page status and exposes reserved identity without claiming a Result',()=>{
  const requestId='9be410ea-9ec5-4916-baa0-c7a695dc7480',runId='daa466e4-d9ac-43da-ac63-13f862a5fbe0',
   resultId='8d799fda-38ef-4e2f-966f-1b32507ff9d7';
@@ -348,4 +368,19 @@ test('read-only original B review shows frozen PREPARE evidence without a send c
  const staleReview=staleDoc.querySelector('[data-webflow-prepared-b-review]');
  assert.match(staleReview.textContent,/不自动重建、不批准、不发送/);
  assert.equal(staleReview.querySelector('pre'),null);
+});
+
+test('R11 oversized delivery refusal stays visible without a successful delivery Toast',()=>{
+ const receipt={requestId:'request',runId:'original-run',resultId:'original-result',execution:'completed',
+  persistence:'verified',release:'released',delivery:'refused',
+  deliveryError:{code:'E_CHAT_CREATE_RESULT',message:'完整回复超过 A 的 8192 UTF-8 字节回传上限'},
+  value:{replyText:'完整结果保留'}};
+ const document=currentTaskMarkup({},receipt);
+ assert.equal(receiptFields(document)['原聊天交付'],'回传被拒绝，未发送');
+ assert.match(document.querySelector('[role="alert"]').textContent,/8192 UTF-8/);
+ assert.match(document.querySelector('[aria-label="同次运行回执"] pre').textContent,/完整结果保留/);
+ const notice=projectTrustedTaskNotice({source:{tabId:1,documentId:'doc',url:'https://chatgpt.com/c/a'},
+  session:{requestId:'request'},receipt});
+ assert.equal(notice.phase,'delivery-refused');assert.equal(notice.options.type,'warning');
+ assert.equal(notice.options.timeout,0);assert.match(notice.options.message,/未发送/);
 });

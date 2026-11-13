@@ -79,6 +79,20 @@ function messageText(root) {
   const content = root.querySelector('[data-testid="message-content"],[data-message-content],.whitespace-pre-wrap') || root;
   return content.innerText ?? content.textContent ?? '';
 }
+function officialUserId(node, doc) {
+  const direct=node.getAttribute('data-message-id');
+  const modern=node.getAttribute('data-chatgpt-search-message-ids');
+  const ids=modern===null?[]:[...new Set(modern.trim().split(/\s+/))];
+  const modernId=ids.length===1&&/^[a-f0-9]{8}(?:-[a-f0-9]{4}){3}-[a-f0-9]{12}$/i.test(ids[0])?ids[0]:null;
+  if(direct!==null&&!/^[A-Za-z0-9._:-]{8,128}$/u.test(direct)||
+    modern!==null&&!modernId||direct!==null&&modern!==null&&direct!==modernId)return null;
+  const id=direct||modernId;
+  if(!id)return null;
+  const matches=[...doc.querySelectorAll('[data-message-id],[data-chatgpt-search-message-ids]')]
+    .filter(part=>part.getAttribute('data-message-id')===id||
+      (part.getAttribute('data-chatgpt-search-message-ids')||'').trim().split(/\s+/).includes(id));
+  return matches.length===1&&matches[0]===node?id:null;
+}
 function assistantCompleted(root) {
   if (!root) return false;
   // A completed turn can hydrate its body after the role heading. Do not
@@ -214,12 +228,12 @@ export function createChatGPTBridgeSite({doc = document, win = window} = {}) {
     if(typeof anchorMessageId!=='string'||!/^[A-Za-z0-9._:-]{8,128}$/u.test(anchorMessageId))return null;
     const snap=inspect();
     if(!snap.ok||!snap.route?.startsWith('c/'))return null;
-    const ids=snap.users.map(node=>node.getAttribute?.('data-message-id'));
+    const ids=snap.users.map(node=>officialUserId(node,doc));
     const index=ids.indexOf(anchorMessageId);
     if(index<0||ids.lastIndexOf(anchorMessageId)!==index||
       snap.users.length-index-1>32)return null;
     const messages=snap.users.slice(index+1).map(node=>({
-      messageId:node.getAttribute?.('data-message-id'),text:messageText(node)
+      messageId:officialUserId(node,doc),text:messageText(node)
     }));
     if(messages.some(row=>typeof row.messageId!=='string'||
       !/^[A-Za-z0-9._:-]{8,128}$/u.test(row.messageId)||
@@ -234,7 +248,7 @@ export function createChatGPTBridgeSite({doc = document, win = window} = {}) {
     if(typeof messageId!=='string'||!/^[A-Za-z0-9._:-]{8,128}$/u.test(messageId))return null;
     const snap=inspect();
     if(!snap.ok||!snap.route?.startsWith('c/'))return null;
-    const candidates=snap.users.filter(node=>node.getAttribute?.('data-message-id')===messageId);
+    const candidates=snap.users.filter(node=>officialUserId(node,doc)===messageId);
     if(candidates.length!==1)return null;
     const text=messageText(candidates[0]);
     if(typeof text!=='string'||!text||new TextEncoder().encode(text).byteLength>8192)return null;

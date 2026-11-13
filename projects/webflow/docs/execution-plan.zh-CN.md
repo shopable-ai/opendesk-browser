@@ -1,3 +1,57 @@
+## R11 · 原 0.2.2 请求的 A 只读核对（2026-11-13）
+
+**任务与阶段：** `OD-WEBFLOW-FIXED-CHAT-TASK-A2B2A-R11`；现有 `main`；业务 owner `projects/webflow/`；仅 dev。普通 A 自然请求 → 已审阅固定 Task → 独立 B 完整作答 → 原 A 单次回传。当前只核对已经发送的原请求；禁止重发 A、重建 B、改写原 Ledger/证明/冻结哈希、弱化官方身份或用规范化制造 DELIVERED。R10/Issue、0.3.0、多级/跨 Provider、production、全量矩阵与评分延期。
+
+**当前结果：R11_NOT_DONE；A_DELIVERY_UNKNOWN。** 原 B 已完整作答并与 Durable Result 逐字一致，Run 已完成/释放；原 A 有一条结果消息，但官方正文 SHA 与冻结发送 SHA 不同。按本轮 P2 允许的分支保留具体未决原因；它不是可信 DELIVERED。详细机器记录：[原请求只读核对](../evidence/r11-original-a-reconciliation-20261113.json)。
+
+### 原请求身份（本次只读实读；续跑须重查）
+
+| 项目 | 原始身份/状态 |
+| --- | --- |
+| A | [原对话](https://chatgpt.com/c/6af6f83f-6ebc-83e8-8d1a-fa532cc70e38)；tab `1114139403`；Document `62D4E8A15E50F43FBBB22A21057CC63C` |
+| A 用户锚点 | `918542a2-eb6a-41d9-a3d8-bc05e6048f92`；自然请求“请让一个新的 ChatGPT 对话分析 WebFlow 的三个主要优势，完成后把结果返回这个对话。” |
+| 候选 / 请求 | `wf-72e8c14a-9d35-4f26-b081-6ca9f3e572bd` / `290b136a-8e55-4732-94fe-acbc95259de0`；固定 args prompt“请分析 WebFlow 的三个主要优势。”、`send:true` |
+| Run / Result | `12666018-e12e-48ae-b47e-d61cac90cf65` / `40c4bc8a-4808-44fe-a930-6d1aa85d1302`；completed / workerRetired / released |
+| 安装 | `chatgpt.conversation.create@0.2.2`；installationId `aa3663d9-8f52-4008-8092-b66aa5489027`；generation `3`；script revision `1` |
+| 源码 / Manifest SHA-256 | `0d9eea01b8e5f4ff4433cba0f52b5fd80979870e7c0a118b0beffcb9fa02b8b4` / `907ed4de341c42dc3aa7890a8ce99afee30a63b8a971a8b28126e74271083050` |
+| 授权 | grant `6094794c-ba75-4cbe-92b6-668df2545bab`，autoEpoch `15`；不是 Issue 或 0.3.0 授权 |
+| B | [原对话](https://chatgpt.com/c/6af704a4-82d8-83e8-adee-63f161ccecda)；owned tab `1114139498`；Document `D6AEC41AE70CA44F37C7B7A20CD11B03` |
+| B 官方消息 | user `1e0eae89-91d5-4b79-9d95-4d02168447d5`（仅一条）；assistant `b85c4321-cef3-41ba-b1bd-f66cbeff2611`（现代属性重复同一 UUID，去重后一项） |
+| B 全文 | `1137` 字符；SHA-256 `768c84b4087bc5da73e30ac7a69f083230ba1b3ea45a3dec79e425860e05a7b5`；与原 Durable valueWire 解码全文完全一致 |
+| A 结果官方消息 | `60a74ed8-99fa-4591-a225-43bc5c7023aa`；锚点后仅一条；composer 为空 |
+| 原发送 intent | deliveryKey 为原 Result ID；冻结 `2947` 字符，SHA-256 `c50588b49f4b1a5210667058953b29bc3146419ed67124ab04d9c46341debf45`；由原 Result+原格式器重建仍匹配 |
+| A 官方正文读回 | `3021` 字符；SHA-256 `a1734d174f14987508ffb86e7382b05f5c10e5c0e897899b447b31880184158c`；只取 `.whitespace-pre-wrap`，不混入“显示更多”控件 |
+| 原 Ledger | webDelivery `dispatching`；execution `completed`、persistence `verified`、release `released`、delivery `unknown`；旧 `E_CHAT_DELIVERY_PROOF` 通用消息仍保留 |
+
+### 已复用的真实调用与本轮修复
+
+原 `chatgpt-fixed-bridge → Trigger Ledger → Task Catalog/Authority → cloud-runner/Offscreen RunHost/Controller → Task → Durable Result → A Adapter` 未更换。WebFlow 编排固定 Task，框架只修已证实的通用富文本 `locator.fill` 缺口。旧 `serial-two-step-run.js` 仅有测试消费者，不能冒称本轮已从它运行。
+
+1. 完整 B 回复进入原结果封装，不再只有 500 字预览；保留 **8192 UTF-8 字节**上限，超限拒绝而不截断。0.2.0 `send:true` 审阅准确披露 B 单次发送与 A 单次回传。
+2. 旧 0.2.0 不变。实测旧 composer 定位失败后，显式 0.2.1 补现代编辑器/submit；其真实 B 已发送后完成检测超时，已 Stop/释放，没有重放。显式 0.2.2 补现代完成标记/官方 UUID，先做 `send:false` 原生验证，再经原 Catalog 审阅安装；本表只对应其后产生的原 0.2.2 请求。
+3. 原 `locator-dom.js` 支持显式 contenteditable host 的纯文本替换/清空；保留 prepare/commit、原 Document、Authority、焦点后复核、只读/禁用/遮挡、选区与未知不重试。真实 ChatGPT 草稿填写及 B 单次发送已有证据；其他富文本网站兼容和发送字节保持不能据此宣称通过。
+4. 严格 V1/V2 的 0.2.x 在准入前要求真实官方 A 锚点；交付和只读恢复绑定原请求、授权、安装、Document、Run/Result、官方 messageId 与冻结 SHA，不缺字段降级。只读 `workflow-read-a` 重复观察同一消息；没有匹配证明就 UNKNOWN。
+5. 独立审查发现 0.2.2 脚本缺 UUID 时会退回 turn key；固定结果适配器已按版本拒绝非 UUID 的 B 用户/助手回执，不能借脚本自报 `messageConfirmed` 授权 A 发送。原脚本/安装包字节不变；原真实 Result 的 UUID 仍通过，原冻结输出逐字/哈希未变。0.2.2 最后稳定读未复核用户 UUID 的时间一致性，仍是未来显式补丁的已知限制；没有证据表明原 Run 受影响。
+6. 本次小补丁保留 `E_CHAT_A_READBACK` 的具体原因及冻结 SHA，由原 observation 保存 `deliveryError`，原 history 仅在持久结果与权限仍有效时显示；撤权不泄漏值或错误。失败不重发、不建新端点。**当前原 Ledger 尚为旧通用原因，新诊断的真实现场恢复 NOT_TESTED。**
+
+### 为什么仍为 UNKNOWN
+
+原 A 的读回文本在链接及反斜杠上不同，严格 SHA 拒绝是有效保护。尚未取得可用的官方原始字节接口来区分发送序列化与渲染序列化；一次同源只读 GET 返回 `conversation_inaccessible`，未提取认证、开启编辑或修改消息。自有空白首页 composer 的未发送探针插入冻结正文后两次 DOM 读回一致、并已清空，没有提交；这不能证明发送后仍保持字节，因此未把探针当作发送修复。
+
+只读原 Ledger、IDB runs/results、webNavigation 和官方 DOM 没有改写任何产品状态。原 A/原 B、ego **Space129** 保留；任务未完成，不 finish。原 webHostDocumentId `AF58ED5D5DF514202032E0B0AD94D852` 及 Run hostInstance `ca97c0db-be0b-4b68-8dc9-51560d67e4dc` 已不在当前 SidePanel/Offscreen 上下文，不能用扩展 tab 冒充原 Host 调 settle。
+
+### 开发环境、验证与提交边界
+
+持续开发沿用扩展 `ccfcjegpkdlgbclopjmadlcjedelidmf` 的 `dist/development` 与共享 `npm run dev`，不启动第二 writer、不复制包或改 Native 配对。上次只读观察 writer PID `45081`，applied revision `1c5b7fdc843dc95cc9a9c0077fa717eb00cbad781fca789b6afa4e1b60caf87a`；它只证明该 revision 被记录，不能证明旧 A 或本次诊断补丁已经生效。开始时重查，不重启其他 owner 服务。
+
+本轮新诊断/UNKNOWN 防重放测试 **52/52 PASS**；结果合同 **19/19 PASS**；精确来源/篡改边界 **3/3 PASS**。本机原 Run/Result 快照通过收紧后的验证，输出与原冻结正文逐字一致（只读本地验证，无产品副作用）。此前同轮现代完成/结果/UI **107/107 PASS**、ingress **45/45 PASS**、content 来源边界 **1/1 PASS**、R5/K3 富文本 **115/115 PASS**；日志在本机 `artifacts/webflow-r11/`，不是正式 Chrome 全矩阵。旧 Issue 入口单项失败保留、未修。当前任务不运行 production build/package verify、根全量测试/CI、压力或多浏览器矩阵。六项独立职责原始名单未恢复，**NOT_SCORED**；历史“三位评审覆盖六视角”不能代替。
+
+仅提交本轮明确文件及 `bundle-provenance.mjs` 的 WebFlow hunks；保留 AI Scroll provenance 和其他并行改动，不推送、不建分支/worktree/PR。本轮 Node 和独立窄范围代码审查不等于六项正式验收。
+
+**唯一下一操作：** 只读重查同一原请求/Run/Result/A。若取得授权范围内可验证的官方原始正文，并与原冻结 SHA 完全相同，才可经原可信身份恢复确认；否则维持可定位的 UNKNOWN 原因。现代发送序列化的修复应另以明确可审阅的新操作验证，不能拿本 UNKNOWN 请求补发或替换证据。不得自动恢复旧 production/评分/Issue 目标。
+
+---
+
 ## R10 · WebFlow 只编排固定 Task 的第一方业务授权解耦（2026-11-13；`OD-WEBFLOW-FIXED-TASK-DECOUPLING-R10`）
 
 **R10 已观察到的正式验证结果（GitHub Actions [43263417411](https://github.com/shopable-ai/opendesk-browser/actions/runs/43263417411)，源码候选 `4f85cd20`）：** 原授权 **12/12 PASS**，WebFlow 精确可信 Blob pin **2/2 PASS**，原 ingress **70/70 PASS**，两步事务/ChatGPT 0.2.0 兼容等 **63/63 PASS**，Google 专项 **PASS**；**production build PASS（131 assets；package SHA-256 `8fac3a07f0c48d613a1679cae0f333a08f1e64fa200eba5fee957ed4e044a915`）**，**production package verify PASS**。独立 R10 job **整体仍 FAIL**：原百度业务测试 **17/30 FAIL**（首例断言版本 1.1.4，当前固定发行 1.1.5；不能仅据此认定其余失败皆为过时断言）；宽范围原 CI 另有 ChatGPT 0.3.0 **2/131 FAIL**。此前全仓 provenance 的 **8/116 FAIL** 属其他项目范围，不随 R10 安全白名单被修改或忽略。各失败仍需其 owner 复核，不能当作整套回归 PASS。**SOURCE_REFACTORED=YES；R10_NODE_TARGETED=PASS；BUILD=PASS；PACKAGE_VERIFY=PASS；FULL_CI=FAIL；LOCAL_CODEXPRO=UNAVAILABLE；CHROME_NOT_TESTED；R9_BUSINESS_NOT_DONE。** 本条只复核已提交的相同源码，没有替代原生 Chrome 安装、真实 B 生成或原 A 单次发送证据。
@@ -730,7 +784,7 @@ Host 来源／会话／布局定向 **10/10**、R10 iframe CSS 定向 **1/1**、
 
 先尝试 ego，但其当前开发扩展向 HTTP 沙箱注入不可重新定义的 `OpenDeskSDK`，与实际 bridge 冲突；本轮使用仓库既有独立 Chromium 156 测试入口验证源码，没有修改用户扩展或 Profile。ego 空间 52 和本任务夹具 / 浏览器已释放。mock 仅为目录、存储、只读任务元数据及关闭的自动运行状态，真实 Task 派发与特权修改均为 0。
 
-相关 Host 高度 / 来源 / 实例检查 **9/9**、Web Flow 应用与恢复 **51/51**、原包门禁 **8/8 PASS**，JS 语法与定向 diff 检查通过。完整 Host 文件此前为 274 PASS / 16 FAIL：撤销草稿导航、缺失 Reading TOC 正式包、Bookmark 确认均由修前快照定向复现；旧 R10 的 Dock 源码字符串断言也属于已有迁移问题，未扩大修复范围。真实 Knowledge 工作区集成、当前扩展重载、应用安装、Task / Native、production、全 CI 与评分保持 **NOT_TESTED**。
+相关 Host 高度 / 来源 / 实例检查 **9/9**、Web Flow 应用与恢复 **52/52**、原包门禁 **8/8 PASS**，JS 语法与定向 diff 检查通过。完整 Host 文件此前为 274 PASS / 16 FAIL：撤销草稿导航、缺失 Reading TOC 正式包、Bookmark 确认均由修前快照定向复现；旧 R10 的 Dock 源码字符串断言也属于已有迁移问题，未扩大修复范围。真实 Knowledge 工作区集成、当前扩展重载、应用安装、Task / Native、production、全 CI 与评分保持 **NOT_TESTED**。
 
 唯一包 **0.3.20** 经原打包器候选→门禁→晋升→`PROJECT_PACKAGE_MATCH`，71,179 bytes，SHA256 `70e5ccb064c334593df73f4c4d779ba48123b8a49e6faaa8adb839b751a19c6e`；尚未安装。自动更新器遇到配置内多个 version 字段不能安全替换，故仅精确提升配置顶层版本并沿原打包器执行，没有修改更新器。全部本轮修改留在 main 工作区，未提交或推送。详细来源、截图位置与未测项见[本轮证据](../evidence/sidebar-host-layout-20261109.json)。下方 0.3.19 及更早段落保留各 owner 的历史记录。
 
@@ -742,7 +796,7 @@ Host 来源／会话／布局定向 **10/10**、R10 iframe CSS 定向 **1/1**、
 
 提交守卫发现并行 owner 正在修改高度 CSS 并将配置提升至 0.3.20，而已验证正式包仍为 0.3.19。本轮使用只读临时快照冻结 0.3.19 的 11 个核心文件，经原测试与打包器再核对后提交。并行新增 CSS／配置不写回、不回退，原样留在工作区给原 owner；本轮快照不是第二安装入口。
 
-等待授权期间候选由 0.3.18 迭代至 **0.3.19**，能力及固定任务绑定未变。当前快照的应用／恢复检查 **51/51 PASS**，相关 JS 语法与文档／JSON 检查通过，原打包器只读核对 **PROJECT_PACKAGE_MATCH**：71,295 bytes，SHA256 `fc4498c2e7d1656cbc35c303cfe59f1ff37682d8a5a27a9fe4d2a238071641dd`。没有新建打包器、重写正式 JSON、启动 Browser 构建或改变安装。0.3.19 的原生安装、宿主部署、真实 Task、production、缩放、全量 CI 和评分继续 **NOT_TESTED／延期**；Git 交付不提升这些证据等级。
+等待授权期间候选由 0.3.18 迭代至 **0.3.19**，能力及固定任务绑定未变。当前快照的应用／恢复检查 **52/52 PASS**，相关 JS 语法与文档／JSON 检查通过，原打包器只读核对 **PROJECT_PACKAGE_MATCH**：71,295 bytes，SHA256 `fc4498c2e7d1656cbc35c303cfe59f1ff37682d8a5a27a9fe4d2a238071641dd`。没有新建打包器、重写正式 JSON、启动 Browser 构建或改变安装。0.3.19 的原生安装、宿主部署、真实 Task、production、缩放、全量 CI 和评分继续 **NOT_TESTED／延期**；Git 交付不提升这些证据等级。
 
 ## 应用偏好与工具设置区分（2026-11-09；V0.3.19）
 
@@ -758,7 +812,7 @@ Host 来源／会话／布局定向 **10/10**、R10 iframe CSS 定向 **1/1**、
 
 Web Flow 恢复完整 Header 快照及原 root 事件，复核当前页后才切换帮助／设置，返回原来的概览／脚本／记录页签。宿主接受投影才隐藏内容入口；拒绝时立即重交 base 并保留原按钮。四组帮助、设置主题、运行与授权、开发安装和流程说明全部保留。并行的存储读回、任务不可用、高度／配色修改完整保留，未修改其他应用、共享索引或真实任务。
 
-验证：Web Flow 应用交互 **51/51**、完整 Header 组件 **3/3**、受影响 Host／Bridge 作用域保护 **24/24**、AI Proxy／ScrapyJS 原导航 **6/6**、原打包检查 **8/8 PASS**；相关 JS 语法与定向 diff 检查通过。Header 旧静态断言错误地要求历史 `gap:2px` 和声明顺序，本轮仅改为解析 CSS 检查定位／层级语义，不改变有效产品间距。测试的 Vite 依赖发现误扫描整个 artifacts 导致大量无关预览日志，已在该纯 SSR 测试关闭依赖发现和文件监听；重跑为 1.7 秒、无扫描错误。
+验证：Web Flow 应用交互 **52/52**、完整 Header 组件 **3/3**、受影响 Host／Bridge 作用域保护 **24/24**、AI Proxy／ScrapyJS 原导航 **6/6**、原打包检查 **8/8 PASS**；相关 JS 语法与定向 diff 检查通过。Header 旧静态断言错误地要求历史 `gap:2px` 和声明顺序，本轮仅改为解析 CSS 检查定位／层级语义，不改变有效产品间距。测试的 Vite 依赖发现误扫描整个 artifacts 导致大量无关预览日志，已在该纯 SSR 测试关闭依赖发现和文件监听；重跑为 1.7 秒、无扫描错误。
 
 ego TaskSpace **50** 使用现有完整可信宿主与 opaque 应用 iframe 源码夹具，仅模拟 SDK／安装／权限／存储边界；复用原预览生成器并补齐导航 Mock，无展示补丁。400px 宿主中两图标与卸载同为 **y=59.5、30×30px**，More 不存在，无横向溢出；实际键盘 Enter 打开帮助、切换设置、主题保存读回、返回原脚本页、重开保留主题均通过。截图 `artifacts/webflow-header-actions/{settings,topbar}.png`。候选输入 SHA `1f3eddee39b81d282a86c8a9d6498f681b0b1a6bae4fb927085807e7c5dbf97e`，离线 HTML SHA `f663cb104d4c97637a0dc5c364c3e49d8b4c6437c54989fe206dc838ceff5ffd`；113 项当前源码依赖逐项匹配，原生运行不是本轮证据。
 

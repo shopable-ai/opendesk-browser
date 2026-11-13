@@ -148,15 +148,22 @@ function disabled(el) {
   return Boolean(el.matches?.(':disabled') || el.disabled || el.inert || el.closest?.('[inert]') ||
     el.closest?.('fieldset[disabled]') || el.closest?.('[aria-disabled="true"]'));
 }
+function editableHost(el) {
+  const value = el.getAttribute('contenteditable');
+  return el.isContentEditable === true && ['', 'true', 'plaintext-only'].includes(value) &&
+    !el.parentElement?.isContentEditable;
+}
 function actionability(el, op, doc, win) {
   const action = op.action;
   if (!visible(el, win)) return 'E_ELEMENT_NOT_VISIBLE';
   if (disabled(el)) return 'E_ELEMENT_DISABLED';
   if (win.getComputedStyle(el).pointerEvents === 'none') return 'E_ELEMENT_OBSCURED';
   if (action === 'fill') {
-    if (!(tag(el) === 'textarea' || tag(el) === 'input' && ['text','search','email','url','tel','password'].includes(el.type)))
+    if (!(editableHost(el) || tag(el) === 'textarea' || tag(el) === 'input' && ['text','search','email','url','tel','password'].includes(el.type)))
       throw new PageError('E_INPUT_TARGET_UNSUPPORTED');
     if (el.readOnly || el.getAttribute('aria-readonly') === 'true') return 'E_INPUT_READONLY';
+    if (editableHost(el) && (el.closest?.('[aria-readonly="true"]') || el.querySelectorAll('[contenteditable="false"]').length))
+      return 'E_INPUT_READONLY';
   }
   if (action === 'check' || action === 'uncheck') {
     if (tag(el) !== 'input' || !['checkbox','radio'].includes(el.type) || action === 'uncheck' && el.type === 'radio')
@@ -295,6 +302,27 @@ export function createLocatorDOM({document:doc, window:win, check = () => {}}) {
     const focused = locate(doc, descriptor);
     if (!el.isConnected || focused.length !== 1 || focused[0] !== el || actionability(el, op, doc, win))
       return {committed:true, stateReached:false};
+    if (editableHost(el)) {
+      // Use the browser's plain-text editing command so rich text editors own
+      // their input transaction. Never assign HTML or retry after focus/edit.
+      if (doc.activeElement !== el || typeof doc.execCommand !== 'function')
+        return {committed:true, stateReached:false};
+      const text = () => el.innerText ?? el.textContent ?? '';
+      const reached = () => text() === op.value || text() === op.value + '\n';
+      if (reached()) return {committed:true};
+      const selection = doc.getSelection?.(), range = doc.createRange?.();
+      if (!selection || !range) return {committed:true, stateReached:false};
+      range.selectNodeContents(el); selection.removeAllRanges(); selection.addRange(range);
+      check();
+      const selected = locate(doc, descriptor);
+      if (doc.activeElement !== el || !el.isConnected || selected.length !== 1 || selected[0] !== el ||
+          actionability(el, op, doc, win) || selection.rangeCount !== 1 ||
+          !el.contains(selection.anchorNode) || !el.contains(selection.focusNode))
+        return {committed:true, stateReached:false};
+      const accepted = doc.execCommand(op.value ? 'insertText' : 'delete', false, op.value);
+      const live = locate(doc, descriptor);
+      return {committed:true, stateReached:accepted && el.isConnected && live.length === 1 && live[0] === el && reached()};
+    }
     if (el.value !== op.value) {
       inputValue(el, op.value, win);
       const data = op.value ? op.value : null;

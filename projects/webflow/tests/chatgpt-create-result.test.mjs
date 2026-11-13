@@ -1,7 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import {encodeValue} from '../../../src/platform/page-port/codec.js';
-import {BUILTIN_TASK_RELEASES} from '../../../src/platform/tasks/builtin-releases.js';
+import {BUILTIN_TASK_RELEASES,REVIEWED_BUILTIN_TASK_RELEASES} from '../../../src/platform/tasks/builtin-releases.js';
 import {verifyChatGPTTaskDurableResult,formatChatGPTInstalledResult}
   from '../../../src/native-agent/chatgpt-fixed-bridge-host.js';
 import {validateChatGPTCreateResult,formatChatGPTCreateDelivery}
@@ -30,11 +30,11 @@ const draft=()=>({
   sourceUrl:'https://chatgpt.com/',promptChars:args.prompt.length,
   readbackConfirmed:true,observedAt:when
 });
-function snapshot(value){
-  const revision={scriptId:install.scriptId,revision:1,sourceHash:pin.sourceHash};
+function snapshot(value,installed=install){
+  const revision={scriptId:installed.scriptId,revision:1,sourceHash:installed.contentHash};
   return {run:{runId:'run-0001',requestId:'request-0001',resultId:'result-0001',state:'completed',
-    retirementState:'released',sourceKind:'saved',scriptId:install.scriptId,
-    contentHash:pin.sourceHash,revision,targetDisposition:'retain-on-success',
+    retirementState:'released',sourceKind:'saved',scriptId:installed.scriptId,
+    contentHash:installed.contentHash,revision,targetDisposition:'retain-on-success',
     target:{mode:'owned',tabId:22,frameId:0,documentId:'document-0001',
       allowedOrigin:'https://chatgpt.com'},
     retainedTarget:{tabId:22,documentId:'document-0001',origin:'https://chatgpt.com',
@@ -62,14 +62,86 @@ test('real B identities are validated before a clickable link returns to A',()=>
   assert.match(text,/result-0001/);
   assert.match(text,/assistant-msg-0001/);
 });
-test('long complete reply remains in durable result, bounded A delivery is explicit preview',()=>{
-  const body='长回复。'.repeat(5000),d=verify(base(body));
-  const output=formatChatGPTCreateDelivery(request(),d);
+// Decode the actual escaped wire payload, rather than matching preview substrings.
+const deliveryPayload=text=>JSON.parse(text.slice(text.indexOf('{')));
+const bytes=text=>new TextEncoder().encode(text).byteLength;
+
+test('R11 immutable 0.2.x releases require their own exact reviewed pins with the same complete-result contract',()=>{
+  for(const version of ['0.2.0','0.2.1','0.2.2']){
+    const release=REVIEWED_BUILTIN_TASK_RELEASES.find(row=>row.taskId===request().taskId&&row.version===version);
+    assert.ok(release);
+    const installed={...install,version,manifestHash:release.manifestHash,contentHash:release.sourceHash,
+      scriptId:'task:chatgpt.conversation.create:'+version};
+    for(const send of [false,true]){
+      const a={...args,send},r={...request(a),installation:installed},value=send?base('完整正文。'.repeat(100)):draft();
+      if(send&&version==='0.2.2')Object.assign(value,{
+        userMessageRef:'1e0eae89-91d5-4b79-9d95-4d02168447d5',
+        assistantMessageRef:'b85c4321-cef3-41ba-b1bd-f66cbeff2611'});
+      const d=verifyChatGPTTaskDurableResult(snapshot(value,installed),'run-0001',installed,r);
+      assert.deepEqual(d.value,value);
+      const payload=deliveryPayload(formatChatGPTInstalledResult(r,d));
+      assert.equal(payload.sourceHash,release.sourceHash);
+      assert.equal(payload.data.replyText,send?value.replyText:undefined);
+      assert.equal(payload.data.status,value.status);
+      for(const patch of [{manifestHash:'0'.repeat(64)},{contentHash:'0'.repeat(64)},
+        {scriptId:install.scriptId===installed.scriptId?'task:chatgpt.conversation.create:0.2.1':install.scriptId},
+        {revision:2},{version:version==='0.2.0'?'0.2.1':'0.2.0'}])
+        assert.throws(()=>reviewedChatGPTResultAdapter({...r,installation:{...installed,...patch}}),
+          {code:'E_BRIDGE_RESULT'});
+    }
+  }
+});
+
+test('A receives the entire Chinese reply beyond 500 characters with original B and durable identities',()=>{
+  const body='完整中文回复。'.repeat(100)+'\n末尾证据 / 路径  双空格 😀',d=verify(base(body));
+  const output=formatChatGPTInstalledResult(request(),d),payload=deliveryPayload(output);
+  assert.ok(body.length>500);
+  assert.equal(payload.data.replyText,body);
+  assert.equal(payload.data.replyPreview,body.slice(0,500));
+  assert.equal(payload.data.replyPreviewComplete,false);
+  assert.equal(payload.data.replyChars,body.length);
+  assert.equal(payload.data.fullReplyInDurableResult,true);
+  assert.equal(payload.requestId,'request-0001');
+  assert.equal(payload.runId,d.runId);
+  assert.equal(payload.resultId,d.resultId);
+  assert.equal(payload.revision,d.revision);
+  assert.equal(payload.sourceHash,d.sourceHash);
+  assert.equal(payload.data.conversationId,uuid);
+  assert.equal(payload.data.conversationUrl,d.value.conversationUrl);
+  assert.equal(payload.data.userMessageRef,d.value.userMessageRef);
+  assert.equal(payload.data.assistantMessageRef,d.value.assistantMessageRef);
+  assert.ok(output.includes('[打开新对话 B]('+d.value.conversationUrl+')'));
+  assert.ok(bytes(output)<=8192);
   assert.equal(d.value.replyText,body);
-  assert.ok(new TextEncoder().encode(output).byteLength<8192);
-  assert.match(output,/fullReplyInDurableResult/);
-  assert.match(output,/replyPreviewComplete/);
-  assert.ok(!output.includes(body));
+});
+test('A UTF-8 budget includes the full escaped envelope: exactly 8192 passes, one byte more fails',()=>{
+  const prefix='中'.repeat(501)+'😀\n/  '+'x'.repeat(500),seed=verify(base(prefix));
+  const overhead=bytes(formatChatGPTCreateDelivery(request(),seed));
+  const body=prefix+'x'.repeat(8192-overhead),d=verify(base(body));
+  const output=formatChatGPTCreateDelivery(request(),d);
+  assert.equal(bytes(output),8192);
+  assert.equal(deliveryPayload(output).data.replyText,body);
+  for(const suffix of ['x','中','😀']){
+    const over=verify(base(body+suffix));
+    assert.throws(()=>formatChatGPTInstalledResult(request(),over),error=>{
+      assert.equal(error.code,'E_CHAT_CREATE_RESULT');
+      assert.match(error.message,/不可交付/);
+      assert.match(error.message,/持久 Run\/Result 保留全文/);
+      assert.match(error.message,/未截断或发送/);
+      return true;
+    });
+    assert.equal(over.value.replyText,body+suffix);
+  }
+});
+test('oversized delivery preserves the complete durable reply and its independent 65536-byte limit',()=>{
+  const body='中'.repeat(21845)+'x',d=verify(base(body));
+  assert.equal(bytes(body),65536);
+  assert.throws(()=>formatChatGPTCreateDelivery(request(),d),{
+    code:'E_CHAT_CREATE_RESULT',message:/8192 UTF-8.*不可交付/
+  });
+  assert.equal(d.value.replyText,body);
+  assert.throws(()=>validateChatGPTCreateResult(base(body+'x'),args),
+    {code:'E_CHAT_CREATE_RESULT'});
 });
 test('wrong site, conversation ID, query, unstable message or extra field fail closed',()=>{
   for(const bad of [

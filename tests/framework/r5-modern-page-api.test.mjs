@@ -132,7 +132,10 @@ function fixture({afterPrepare,dropCommit=false,stallPrepare=false,duplicateComm
   const api={runtime:{id:'ext',onMessage:bus,getURL:path=>'chrome-extension://ext/'+path},
     tabs:{sendMessage(_tab,message,exact,callback){
       if(message.action==='execute'&&message.envelope.operation.method==='locatorCommit')commitSubmissions++;
-      assert.deepEqual(exact,{documentId:changed?'doc-B':target.documentId,frameId:0});
+      // Navigation can occur in beforeEffect, after the last target check.
+      // The pending message must stay pinned to its original document; its
+      // callback then crosses the driver's post-dispatch document fence.
+      assert.deepEqual(exact,{documentId:message.envelope?.target.documentId || (changed?'doc-B':target.documentId),frameId:0});
       calls.push(message.action==='execute'?message.envelope.operation.method:message.action);
       if(changed){
         const e=message.envelope;
@@ -187,6 +190,72 @@ function fixture({afterPrepare,dropCommit=false,stallPrepare=false,duplicateComm
     setDocument(value){changed=value;},revoke(){granted=false;},
     dispose(){context.dispose();installation.dispose();}};
 }
+
+// Exercise rich text through the same Controller/Page Session commit protocol.
+function editableFixture(options = {}) {
+  const f = fixture(options), {doc,win,body} = f.dom;
+  const editor = body.append(new Element('div',{id:'editor',contenteditable:'true'},'old draft'));
+  editor.isContentEditable = true;
+  doc.elementFromPoint = () => editor;
+  const selection = {rangeCount:0,anchorNode:null,focusNode:null,
+    removeAllRanges(){this.rangeCount=0;},
+    addRange(range){this.rangeCount=1;this.anchorNode=range.root;this.focusNode=range.root;}};
+  doc.getSelection = () => selection;
+  doc.createRange = () => ({selectNodeContents(root){this.root=root;}});
+  editor.focus = () => {doc.activeElement=editor;editor.focuses=(editor.focuses||0)+1;editor.onFocus?.();};
+  const edits=[];
+  doc.execCommand = (command,_ui,value) => {
+    edits.push({command,value});editor.textContent=command==='delete'?'':value;
+    editor.dispatchEvent(new win.Event('input',{bubbles:true}));return true;
+  };
+  return {...f,editor,edits,selection};
+}
+
+test('contenteditable fill replaces plain text and clears through one durable commit each',async()=>{
+  const f=editableFixture();
+  try {
+    const text='first line\n<literal & text>第二行';
+    await f.context.page.locator('#editor').fill(text);
+    assert.equal(f.editor.textContent,text);
+    assert.deepEqual(f.edits,[{command:'insertText',value:text}]);
+    assert.equal(f.receipts.filter(row=>row.stage==='locator.commitIntent').length,1);
+    await f.context.page.locator('#editor').fill('');
+    assert.equal(f.editor.textContent,'');assert.equal(f.edits.at(-1).command,'delete');
+  } finally {f.dispose();}
+});
+
+test('contenteditable fill refuses focus replacement or selection escape without editing',async t=>{
+  for(const mode of ['replacement','selection','readonly'])await t.test(mode,async()=>{
+    const f=editableFixture();
+    try {
+      if(mode==='replacement')f.editor.onFocus=()=>f.editor.replaceWith(new Element('div',{id:'editor',contenteditable:'true'}));
+      if(mode==='selection')f.selection.addRange=function(){this.rangeCount=1;this.anchorNode=f.dom.input;this.focusNode=f.dom.input;};
+      if(mode==='readonly')f.editor.onFocus=()=>f.editor.setAttribute('aria-readonly','true');
+      await assert.rejects(f.context.page.locator('#editor').fill('new'),{code:'E_ACTION_STATE_NOT_REACHED'});
+      assert.deepEqual(f.edits,[]);assert.equal(f.editor.textContent,'old draft');
+    }finally{f.dispose();}
+  });
+});
+
+test('contenteditable lost commit ACK never repeats the edit',async()=>{
+  const f=editableFixture({dropCommit:true,deadlineMs:150});
+  try{
+    await assert.rejects(f.context.page.locator('#editor').fill('once',{timeout:100}),{code:'E_TIMEOUT'});
+    assert.equal(f.edits.length,1);assert.equal(f.editor.textContent,'once');
+    assert.equal(f.receipts.filter(row=>row.stage==='locator.commitIntent').length,1);
+    assert.equal(f.receipts.some(row=>row.stage==='locator.commitNoEffect'),false);
+  }finally{f.dispose();}
+});
+
+test('contenteditable fill retains revocation and document fences before commit',async t=>{
+  for(const options of [{afterPrepare:true},{navigateBeforeCommit:true}])await t.test(JSON.stringify(options),async()=>{
+    const f=editableFixture(options);
+    try{
+      await assert.rejects(f.context.page.locator('#editor').fill('new'),{code:options.afterPrepare?'E_PERMISSION':'E_DOCUMENT_REPLACED'});
+      assert.deepEqual(f.edits,[]);assert.equal(f.editor.focuses,undefined);
+    }finally{f.dispose();}
+  });
+});
 
 test('Locator navigation hands one confirmed click to the exact new document and fences old Locators',async()=>{
   const f=fixture({navigationURL:'https://example.test/results'});

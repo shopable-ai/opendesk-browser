@@ -23,6 +23,17 @@ const historicalReleases=[
 // NOT a new automatic release. No 0.2.0 installation, grant or ongoing Run
 // is silently upgraded to a two-stage task.
 const optionalReleases=[
+  // R11 modern complete-turn and official-message readback; explicit upgrade.
+  {taskId:'chatgpt.conversation.create',version:'0.2.2',
+    manifestHash:'907ed4de341c42dc3aa7890a8ce99afee30a63b8a971a8b28126e74271083050',
+    sourceHash:'0d9eea01b8e5f4ff4433cba0f52b5fd80979870e7c0a118b0beffcb9fa02b8b4',
+    sourcePath:'projects/webflow/tasks/chatgpt.conversation.create.0.2.2.opendesk-task.json'},
+  // R11 minimal composer compatibility patch; requires explicit installation.
+  // The 0.2.0 release and existing grants remain immutable.
+  {taskId:'chatgpt.conversation.create',version:'0.2.1',
+    manifestHash:'e071bfaf539fdc96e31c4b9a21c9dbd7d509fbfbbe249ea5af757dd098a33264',
+    sourceHash:'8c078f3acf5ca9608cffc2cd9a2e6c1b4c11b0b0bf121396ffeab89c27ac94c6',
+    sourcePath:'projects/webflow/tasks/chatgpt.conversation.create.0.2.1.opendesk-task.json'},
   {taskId:'chatgpt.conversation.create',version:'0.3.0',
     manifestHash:'758c6d0aa2100cff0e2197dbfd5141532e76e4a7c0410a355ec8e5795255b559',
     sourceHash:'2bfe2d610d63d5204edc4c2dd5b240a9771bede88ae1994ac92bde6dd0e40a42',

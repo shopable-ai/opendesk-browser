@@ -76,6 +76,18 @@ test('original ChatGPT site readback requires a unique official user message and
  document.querySelector('[data-message-id="result-message-0001"]').setAttribute('data-message-id','other-message-0001');
  assert.equal(site.readUserMessageById('result-message-0001'),null);
  assert.equal(site.readUserMessagesAfter('missing-message-0001'),null);
+ const users=[...document.querySelectorAll('[data-message-author-role="user"]')];
+ const sourceId='3ba7aa01-b55e-4591-a293-ed36d2239195',resultId='9f2d4d48-788d-4d39-a669-9cd23c362d77';
+ for(const [index,node] of users.entries()){
+  node.removeAttribute('data-message-author-role');node.removeAttribute('data-message-id');
+  node.setAttribute('data-chatgpt-search-unit-key','fallback-turn-'+index+':0:user');
+  node.setAttribute('data-chatgpt-search-message-ids',index?resultId:sourceId);
+ }
+ assert.deepEqual(site.readUserMessagesAfter(sourceId).messages,[{messageId:resultId,text:'Actual result text'}]);
+ assert.equal(site.readUserMessageById(resultId).text,'Actual result text');
+ users[1].setAttribute('data-message-id',sourceId);
+ assert.equal(site.readUserMessagesAfter(sourceId),null,'conflicting identity cannot prove the source');
+ assert.equal(site.readUserMessageById(resultId),null);
 });
 
 test('an adopted legacy candidate routes execution back to its exact responding Side Panel host',async()=>{
@@ -160,6 +172,25 @@ test('A readback rejects missing anchor, wrong sender, URL and delivery identity
   assert.equal((await h.receive({...args,sourceUrl:url+'/other'})).ok,false);
   assert.equal((await h.receive({...args,deliveryKey:'bad'})).ok,false);
   assert.equal(h.sends.length,0);
+ }finally{h.page.dispose();}
+});
+
+test('R11 an official A message with editor-rewritten Markdown cannot satisfy the frozen body SHA',async()=>{
+ const h=fixture({active:true});try{
+  const expected='结果：[打开新对话 B](https://chatgpt.com/c/12345678)。 '+
+   '{"requestId":"original-request-0001","replyText":"webflow.task.intent.v1"}';
+  const observed=expected.replace('](https://',']\\([https://').replace('webflow.task','webflow\\.task');
+  h.afterMessages.push({messageId:'official-message-0001',text:observed});
+  const args={kind:'workflow-read-a',workflowId:'wf-workflow-0001',deliveryKey:'wf-delivery-0001',
+   authorizationRef:'grant-00000001',anchorMessageId:'source-message-0001',
+   contentSha256:createHash('sha256').update(expected).digest('hex')};
+  for(let i=0;i<2;i++){
+   const reply=await h.receive(args);
+   assert.equal(reply.ok,false);assert.equal(reply.error.code,'E_CHAT_A_READBACK');
+   assert.match(reply.error.message,/没有唯一匹配/);
+  }
+  assert.equal(h.afterMessages[0].text,observed);
+  assert.equal(h.sends.length,0,'read-only recovery never edits the official message or sends again');
  }finally{h.page.dispose();}
 });
 

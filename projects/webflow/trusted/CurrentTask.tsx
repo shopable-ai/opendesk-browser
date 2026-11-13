@@ -109,6 +109,9 @@ export function projectTrustedTaskNotice(view:any){
    if(!verified)return make('unverified','脚本结束状态待核验，不能认定成功','warning',0);
    if(receipt.delivery==='confirmed')
      return make('delivered','原对话结果回传已确认','success',5000);
+   if(receipt.delivery==='refused')
+     return make('delivery-refused','脚本已完成，原对话回传被拒绝，未发送','warning',0,
+       '完整结果已保留；查看当前任务中的交付原因');
    if(receipt.delivery==='unknown')
      return make('delivery-unknown','脚本已执行，原对话回传未确认，禁止补发','warning',0);
    if(receipt.delivery==='submitted')
@@ -243,7 +246,10 @@ export function WebflowCurrentTask({controller,tasks=[],onSummary=null,onAuthori
  const noSessionTitle=view?.work?.state==='running'?'任务执行中，请核对原请求':
   waiting?'等待 ChatGPT 新任务':'任务状态未确认';
  const v2Pending=session?.pendingAuto?.protocol==='webflow.task.intent.v2';
- const chatgptDraftPending=v2Pending&&session?.pendingAuto?.scope?.taskId==='chatgpt.conversation.create';
+ const chatgptPending=session?.pendingAuto?.scope?.taskId==='chatgpt.conversation.create';
+ const chatgptSendPending=chatgptPending&&['0.2.0','0.2.1','0.2.2'].includes(session.pendingAuto.scope.installation?.version??'')&&
+  session.pendingAuto.scope.args?.send===true;
+ const chatgptDraftPending=chatgptPending&&!chatgptSendPending;
  const options=!v2Pending&&session?.pendingAuto&&autoParameterOptions(tasks.find(task=>task.taskId===session.pendingAuto.scope?.taskId));
  const executionLabel={'prepared-account-unverified':'原 B 草稿已保留 · 账号待核验，尚未发送','not-started':'尚未执行',validating:'核验中',preparing:'准备中',starting:'正在启动',completed:'已完成',running:'执行中',stopping:'正在停止',failed:'执行失败',stopped:'已停止',paused_unknown:'已暂停，结果未知（UNKNOWN），请核对原请求',unknown:'结果未知（UNKNOWN），请核对原请求'};
  const currentStatus=receipt&&!unstarted?(executionLabel[execution]||'任务状态未知（UNKNOWN），请核对原请求'):session?.status;
@@ -273,7 +279,7 @@ export function WebflowCurrentTask({controller,tasks=[],onSummary=null,onAuthori
    {view.history.map(row=><div key={row.requestId} className="od-stack">
     <p className="od-note">{row.scope.taskId} · {new Date(row.createdAt).toLocaleString()} ·
      {row.pendingAuto&&row.status==='prepared'&&row.receipt.execution==='not-started'?'未批准 · 尚未执行':executionLabel[row.receipt.execution]||'结果未知，请核对原记录'} ·
-     {row.receipt.delivery==='confirmed'?'原聊天交付已确认':row.receipt.delivery==='unknown'?'回传未知，禁止补发':row.receipt.delivery==='not-sent'?'尚未发送':'尚未确认交付'}</p>
+     {row.receipt.delivery==='confirmed'?'原聊天交付已确认':row.receipt.delivery==='unknown'?'回传未知，禁止补发':row.receipt.delivery==='refused'?'回传被拒绝，未发送':row.receipt.delivery==='not-sent'?'尚未发送':'尚未确认交付'}</p>
     {row.receipt.preparedB&&<div data-webflow-prepared-b-review className="od-surface od-surface--padded od-stack">
      <strong>唯一 B · 未发送草稿（可信只读审阅）</strong>
      {row.receipt.preparedB.state==='document-checked'?<>
@@ -310,7 +316,8 @@ export function WebflowCurrentTask({controller,tasks=[],onSummary=null,onAuthori
      options?'现有授权仅限固定输入或尚未批准此任务。可一次允许更换关键词，以后同范围自动执行。':
      '本任务的目标、参数或安装版本尚未获准。请审阅后执行。'}</p>
     <p className="od-body" style={{overflowWrap:'anywhere'}}>目标：{session.pendingAuto.scope.targetUrl}</p>
-    {chatgptDraftPending&&<p className="od-note" role="note">当前仅能准备未发送草稿。0.3.0 先执行 PREPARE，原 B 会保留，但账号与独立发送批准尚未接通；不会自动发送，也没有真实 /c/ 链接。旧版 0.2.0 仍以 send:false 准备草稿。</p>}
+    {chatgptSendPending&&<p className="od-note" role="note">本次固定配方：调用已安装的 ChatGPT {session.pendingAuto.scope.installation?.version}，在独立新对话 B 填入下方精确提示词并发送一次；核验完整回复与原 Run/Result 后，将结果向原对话 A 自动发送一次。A 不会被导航覆盖；结果未知只查询原记录，不重建 B、不补发 A。批准同时包含这两次发送，变更输入或安装身份须重新审核。</p>}
+    {chatgptDraftPending&&<p className="od-note" role="note">当前仅准备未发送草稿。0.3.0 执行 PREPARE；0.2.0 的 send:false 不发送。原 B 会保留，但没有真实 /c/ 会话链接，也不能认定完成回传。</p>}
     {options&&<p className="od-note">{options.description}目标、任务版本或权限变化后仍需审核。</p>}
     <strong className="od-field-label">本次输入</strong>
     <pre className="od-result" style={{whiteSpace:'pre-wrap',overflowWrap:'anywhere'}}>{JSON.stringify(session.pendingAuto.scope.args,null,2)}</pre>
@@ -323,7 +330,7 @@ export function WebflowCurrentTask({controller,tasks=[],onSummary=null,onAuthori
     {options?<details className="od-disclosure od-disclosure--flat"><summary>高级：仅允许此关键词</summary>
      <p className="od-note">仅保存这组固定输入，并替换旧授权；下次换关键词仍需批准。</p>
      <Button disabled={Boolean(working)} onClick={event=>void command('approve-range',event.nativeEvent)}>批准此精确范围并执行</Button>
-    </details>:<Button variant="primary" disabled={Boolean(working)} onClick={event=>void command('approve-range',event.nativeEvent)}>{chatgptDraftPending?'批准此草稿范围':v2Pending?'批准此范围并自动执行':'批准此精确范围并执行'}</Button>}
+    </details>:<Button variant="primary" disabled={Boolean(working)} onClick={event=>void command('approve-range',event.nativeEvent)}>{chatgptSendPending?'批准 B 单次发送与原 A 单次回传':chatgptDraftPending?'批准此草稿范围':v2Pending?'批准此范围并自动执行':'批准此精确范围并执行'}</Button>}
    </div>}
    {(session.actions?.cancel||session.actions?.run||session.actions?.view)&&<div className="od-toolbar" style={{flexWrap:'wrap'}}>
     {session.actions?.cancel&&action('cancel')}{session.actions?.run&&action('run')}{session.actions?.view&&action('view')}</div>}
@@ -335,9 +342,10 @@ export function WebflowCurrentTask({controller,tasks=[],onSummary=null,onAuthori
      <dt>结果 ID</dt><dd>{resultId?`${receipt.persistence==='verified'?'已核实':'预留，尚未核实持久 Result'}：${resultId}`:'尚未确认'}</dd>
      <dt>持久结果</dt><dd>{receipt.persistence==='verified'?'已核实同一 Run / Result':'尚未核实'}</dd>
      <dt>资源释放</dt><dd>{receipt.release==='released'?'已释放':unstarted?'未创建执行资源':['unknown','not-started'].includes(receipt.release)?'未知，请查询原请求':'尚未确认'}</dd>
-     <dt>原聊天交付</dt><dd>{receipt.delivery==='confirmed'?'已确认新增结果消息':receipt.delivery==='unknown'?'结果未知，请查询原请求':receipt.delivery==='submitted'?'已提交，等待原聊天确认':receipt.delivery==='not-sent'?'尚未发送':'交付状态未知，请查询原请求'}</dd>
+     <dt>原聊天交付</dt><dd>{receipt.delivery==='confirmed'?'已确认新增结果消息':receipt.delivery==='unknown'?'结果未知，请查询原请求':receipt.delivery==='submitted'?'已提交，等待原聊天确认':receipt.delivery==='refused'?'回传被拒绝，未发送':receipt.delivery==='not-sent'?'尚未发送':'交付状态未知，请查询原请求'}</dd>
      <dt>AI 续答</dt><dd>{receipt.aiReplyObserved===true?'已观察到新回复':receipt.aiReplyObserved===false?'尚未观察到新回复':'尚未确认'}</dd>
     </dl>
+    {receipt.deliveryError&&<p role="alert" className="od-field-error">交付失败：{receipt.deliveryError.code}：{receipt.deliveryError.message}</p>}
     {receipt.error&&<p role="alert" className="od-field-error">{receipt.error.code}：{receipt.error.message}</p>}
     {receipt.value&&<details className="od-disclosure od-disclosure--flat"><summary>查看完整结果（原始数据）</summary>
      <pre className="od-result" style={{whiteSpace:'pre-wrap',overflowWrap:'anywhere',maxHeight:300,overflow:'auto'}}>{JSON.stringify(receipt.value,null,2)}</pre></details>}

@@ -20,6 +20,8 @@ import {installAnalyticsHost} from './analytics/host.js';
 import {readAnalyticsAuthorityProjection} from './analytics/authority-projection.js';
 import {installedKey as taskInstalledKey} from './platform/tasks/contract.js';
 import {installChatGPTBridgeTriggerGate} from './native-agent/chatgpt-bridge-trigger-gate.js';
+import {requiresChatGPTOriginalAProof,assertOriginalADispatchIntent,assertOriginalAReceipt}
+  from '../projects/webflow/trusted/chatgpt-result-adapter.js';
 import {installGlobalVideoSpeedService} from '../projects/video-speed-controller/trusted/service.js';
 import {installUpdateNoticeService} from './platform/chrome/update-notice-service.js';
 import {handleSidebarToolRuntimeQuery} from './sidebar-tools/runtime-compatibility.js';
@@ -36,6 +38,7 @@ configureSidePanel(chrome).catch(error => console.error(`[side-panel ${error.cod
 // One-use bridge trigger fence only. Foundation Authority/RunHost remain the sole executors.
 let webTaskIngress;
 const bridgeTriggerGate=installChatGPTBridgeTriggerGate({api:chrome,
+  originalAProofPolicy:Object.freeze({requiresChatGPTOriginalAProof,assertOriginalADispatchIntent,assertOriginalAReceipt}),
   verifyWebTask:(row,sender)=>webTaskIngress.verifySubmission(row,sender)});
 installGlobalVideoSpeedService({api:chrome});
 // Existing MV3 Worker coordinates update notices; no independent Installer or Runner.

@@ -1,0 +1,131 @@
+{
+  "task": "OD-WEBFLOW-FIXED-CHAT-TASK-A2B2A-R11",
+  "stage": "development-only",
+  "observedAt": "2026-11-13T12:56:21.405Z",
+  "outcome": "A_DELIVERY_UNKNOWN_BODY_SHA_MISMATCH",
+  "coreLoop": "NOT_DONE",
+  "requestId": "290b136a-8e55-4732-94fe-acbc95259de0",
+  "runId": "12666018-e12e-48ae-b47e-d61cac90cf65",
+  "resultId": "40c4bc8a-4808-44fe-a930-6d1aa85d1302",
+  "candidateId": "wf-72e8c14a-9d35-4f26-b081-6ca9f3e572bd",
+  "taskIdentity": {
+    "taskId": "chatgpt.conversation.create",
+    "version": "0.2.2",
+    "scriptId": "task:chatgpt.conversation.create:0.2.2",
+    "revision": 1,
+    "sourceSha256": "0d9eea01b8e5f4ff4433cba0f52b5fd80979870e7c0a118b0beffcb9fa02b8b4",
+    "manifestSha256": "907ed4de341c42dc3aa7890a8ce99afee30a63b8a971a8b28126e74271083050",
+    "installationId": "aa3663d9-8f52-4008-8092-b66aa5489027",
+    "generation": 3
+  },
+  "originalA": {
+    "url": "https://chatgpt.com/c/6af6f83f-6ebc-83e8-8d1a-fa532cc70e38",
+    "documentId": "62D4E8A15E50F43FBBB22A21057CC63C",
+    "tabId": 1114139403,
+    "anchorMessageId": "918542a2-eb6a-41d9-a3d8-bc05e6048f92",
+    "observedDeliveryMessageId": "60a74ed8-99fa-4591-a225-43bc5c7023aa",
+    "resultMessagesAfterAnchor": 1,
+    "composerEmpty": true,
+    "frozenOutgoingChars": 2947,
+    "frozenOutgoingSha256": "c50588b49f4b1a5210667058953b29bc3146419ed67124ab04d9c46341debf45",
+    "officialBodyChars": 3021,
+    "officialBodySha256": "a1734d174f14987508ffb86e7382b05f5c10e5c0e897899b447b31880184158c",
+    "readbackSelector": ".whitespace-pre-wrap (message body, excluding show-more controls)",
+    "observedDifference": "Link text and backslash escaping differ from the frozen outgoing text. No normalization accepted.",
+    "rawServerMessage": "NOT_VERIFIED: same-origin read returned conversation_inaccessible; no credential extraction or edit attempted."
+  },
+  "originalB": {
+    "url": "https://chatgpt.com/c/6af704a4-82d8-83e8-adee-63f161ccecda",
+    "tabId": 1114139498,
+    "documentId": "D6AEC41AE70CA44F37C7B7A20CD11B03",
+    "userMessageId": "1e0eae89-91d5-4b79-9d95-4d02168447d5",
+    "userMessageCount": 1,
+    "assistantMessageId": "b85c4321-cef3-41ba-b1bd-f66cbeff2611",
+    "replyChars": 1137,
+    "replySha256": "768c84b4087bc5da73e30ac7a69f083230ba1b3ea45a3dec79e425860e05a7b5",
+    "durableReplyExactMatch": true
+  },
+  "durable": {
+    "execution": "completed",
+    "workerRetired": true,
+    "release": "released",
+    "webDelivery": "dispatching",
+    "webObservation": {
+      "delivery": "unknown",
+      "error": {
+        "code": "E_CHAT_DELIVERY_PROOF",
+        "message": "只读原消息核对没有返回匹配的官方证明"
+      },
+      "execution": "completed",
+      "persistence": "verified",
+      "release": "released",
+      "resultId": "40c4bc8a-4808-44fe-a930-6d1aa85d1302",
+      "runId": "12666018-e12e-48ae-b47e-d61cac90cf65"
+    }
+  },
+  "runtime": {
+    "taskSpace": 129,
+    "extensionId": "ccfcjegpkdlgbclopjmadlcjedelidmf",
+    "path": "/Users/shopme/Documents/workspace/opendesk-browser/dist/development",
+    "lastObservedAppliedRevision": "1c5b7fdc843dc95cc9a9c0077fa717eb00cbad781fca789b6afa4e1b60caf87a",
+    "lastObservedSidePanelOrOffscreenContexts": [],
+    "diagnosticPatchInLiveRecovery": "NOT_TESTED: no current original RunHost/SidePanel; persisted ledger retains the old generic error.",
+    "writer": "Existing shared npm run dev owner; not stopped/restarted or overwritten."
+  },
+  "sourcePatch": {
+    "behavior": "Preserve the official readback failure reason and frozen SHA in E_CHAT_DELIVERY_PROOF; persist deliveryError and disclose it only through the existing durable/auth fences. No new send or recovery endpoint.",
+    "nodeRecoveryTests": {
+      "passed": 52,
+      "failed": 0
+    },
+    "sourceBoundaryTests": {
+      "passed": 3,
+      "failed": 0
+    },
+    "modernCompletionTestsPreviouslyObserved": {
+      "passed": 107,
+      "failed": 0
+    },
+    "locatorTestsPreviouslyObserved": {
+      "passed": 115,
+      "failed": 0
+    },
+    "warning": "Node evidence does not establish trusted A delivery or byte-preserving ChatGPT serialization.",
+    "resultContractTests": {
+      "passed": 19,
+      "failed": 0
+    },
+    "officialBIdentity": "0.2.2 fixed result adapter rejects non-UUID turn references before A delivery. Immutable installed Task/package unchanged; exact original snapshot still validates and frozen outgoing bytes/SHA are unchanged.",
+    "knownTaskLimitation": "Immutable 0.2.2 does not recheck user UUID on its final stable reread; no evidence this affected the original run. Temporal-stability improvement needs a future explicitly reviewed Task revision.",
+    "independentReview": "One native independent code review found the UUID fallback defect; the narrow fix and diagnostic patch were reviewed with no remaining new code findings. Adapter blob e57dd4bbfe90c0f81c5465fd8cbbeefc95ea4dae. This is not six-role acceptance."
+  },
+  "sixRoleReview": {
+    "status": "NOT_SCORED",
+    "reason": "The exact R11 six-role list was not recovered; historical six-perspective reviews are not a substitute. A native independent code review is not six-role acceptance."
+  },
+  "safety": {
+    "resentA": false,
+    "newBForReconciliation": false,
+    "ledgerOrProofEdited": false,
+    "frozenHashChanged": false,
+    "normalizedIntoDelivered": false,
+    "originalABPreserved": true,
+    "unsentComposerProbe": "Owned empty home composer filled/read twice/cleared only after exact draft check; no submit."
+  },
+  "nextOperation": "Read only the same original request/run/result/A. Establish an authorized official original-byte readback before any future same-intent confirmation. Never resend A or create another B for this UNKNOWN request.",
+  "deferred": [
+    "production build",
+    "production package verify",
+    "full CI",
+    "full Chrome acceptance",
+    "independent six-role scoring",
+    "cross-provider/multi-level workflows"
+  ],
+  "localEvidence": [
+    "artifacts/webflow-r11/original-ledger-read.json",
+    "artifacts/webflow-r11/original-durable-read.json",
+    "artifacts/webflow-r11/original-final-dom-read.json",
+    "artifacts/webflow-r11/original-live-context.json",
+    "artifacts/webflow-r11/frozen-outgoing.txt"
+  ]
+}

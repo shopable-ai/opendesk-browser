@@ -35,7 +35,7 @@ async function main() {
 | Locator | `check()/uncheck()/selectOption(value)` | 原生 checkbox/radio 与 single select 的有限合成 DOM 操作 |
 | Locator | `innerText()/inputValue()/isVisible()/isEnabled()/isChecked()` | 即时状态读取，只有 isVisible 在零匹配时返回 false |
 | Locator | `click({timeout?,waitUntil?})` | 单元素严格匹配；等待 attached/可见/尺寸/可用/稳定/无遮挡；离屏时最多一次经授权滚动，重新 prepare 后用 DOM `click()`。显式 waitUntil 等待同 Origin 顶层整页导航 |
-| Locator | `fill(value,{timeout?})` | 支持 textarea、text/search/email/url/tel/password input；替换/清空；focus、原生 setter、变更时合成 input 和 change |
+| Locator | `fill(value,{timeout?})` | 支持 textarea、text/search/email/url/tel/password input 及显式 contenteditable 编辑 host；替换/清空纯文本。原生输入使用 setter 和合成 input/change；富文本使用浏览器编辑命令 |
 | Locator | `count()` | 立即获取当前匹配数；可以为零，不做隐式等待 |
 | Locator | `textContent()`、`getAttribute(name)` | 立即读取、严格单元素匹配，可能得到 null |
 | Locator | `waitFor({state?,timeout?})` | attached/detached/visible/hidden；默认 visible，元素不存在满足 detached/hidden |
@@ -67,6 +67,7 @@ Locator **同步、不可变、构造时零 RPC**，只保存查询描述与当�
 - `click/fill/check/uncheck/selectOption` 默认最多等待 30 秒；`waitFor` 默认 30 秒，单次指定 `timeout` 最多 120 秒。两者均受到 **原运行期限** 限制；任何重试不重设截止时间。读取方法不擅自等待业务完成。
 - Driver 只读 prepare → 校验现有 Authority/精确 Target/Stop → 一次 commit。prepare 不 focus、不滚动、不设置值、不发送网页事件。节点已消失或暂未就绪可在原截止时间重新准备；commit 已派出、结果不确定则不能重新执行动作，继承既有 `E_EFFECT_UNKNOWN` 恢复模型。
 - `fill` 的 focus 可能触发网页同步替换、禁用或遮挡输入框；当前实现会在 focus 后重查同一节点及可操作性。若已失效，报 `E_ACTION_STATE_NOT_REACHED` 并记录已发生的 focus，不写旧节点、不自动重放。该修复仅有组件回归，真实 Chrome 为 `NOT_TESTED`。
+- contenteditable 仅接受显式 `contenteditable=""/"true"/"plaintext-only"` 且父元素不可编辑的 host；拒绝只读及含不可编辑子区域的 host。focus 后复核节点、权限与选区，再通过 `insertText`/`delete` 替换纯文本，不赋值 `innerHTML`。编辑已提交但读回不匹配时报 `E_ACTION_STATE_NOT_REACHED`，ACK 丢失也不自动重试。R11 已在真实 ChatGPT 验证草稿填写及固定 Task 单次发送；这不证明 Markdown 发送序列化保持原字节，原 A 的冻结正文 SHA 核对仍为 UNKNOWN。其他现代富文本框架兼容性仍需对应网站实测。
 - Controller 仅在短 commit 窗口拒绝同一运行/文档上的重叠现代写操作（`E_WRITE_CONFLICT`）；长等待不持有写锁。`count/observe/waitFor` 属于读取。
 - prepare 与 commit 之间撤权会阻止新动作；stop 撤销运行并隔离迟到回执，不能靠迟到结果恢复运行。同一 requestId 的已提交请求使用原有去重结果，不再次产生网页副作用。若权限、文档或停止状态在提交以后变化，已经送出的动作可能发生，不能据取消状态推断零副作用。
 - 局部 `E_TIMEOUT` 也可能发生在 commit 已派出后。应核对对应 Durable Result / 操作账本：`effect_unknown`、`deliveryState=fenced` 或已有 `commitIntent` 而没有确认回执时禁止重放；顶层错误码不一定直接显示 `E_EFFECT_UNKNOWN`。原生超时失败结果不证明网页没有提交。

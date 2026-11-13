@@ -19,15 +19,28 @@
 ```text
 ChatGPT 原 A 的明确请求（来源身份/用户意图）
   → WebFlow 选择已审阅固定业务配方 + 复核持续授权
-  → Issue 读取 Task/受权专用适配器 → 冻结 Issue URL、版本、SHA
-  → 原 Task Catalog/Authority 校验 chatgpt.conversation.create@0.2.0 的安装和权限
+  → 冻结本轮任务提示词与 send:true（本轮不读取外部仓库数据）
+  → 原 Task Catalog/Authority 校验精确已审阅版本（R11 实际为 0.2.2）的安装和权限
   → 原 Controller/RunHost 单次执行该 Task（send:true）创建唯一 B
   → 原 Durable Result + B 专用校验适配器验证完整回复
   → 原可信 ChatGPT A 交付适配器单次发送、官方消息 ID/正文 SHA 读回
   → WebFlow 通用事务 DONE；未知结果只查原 Run/Result/交付回执
 ```
 
-**每条箭头都是受控接口，不是 WebFlow 内核直接抓网页或点击发送。** 站点账户/Profile、页面 Document、安装身份、能力、撤权和不可逆操作记录必须在可信边界复核，不能因配方已被批准而绕过原 Controller 或站点安全检查。普通 AI 回复中出现 Task 名称、Issue 编号或 JSON 只属于**请求数据**；必须由可信调用链审阅/授权才可执行。
+**每条箭头都是受控接口，不是 WebFlow 内核直接抓网页或点击发送。** 站点账户/Profile、页面 Document、安装身份、能力、撤权和不可逆操作记录必须在可信边界复核，不能因配方已被批准而绕过原 Controller 或站点安全检查。普通 AI 回复中出现 Task 名称或 JSON 只属于**请求数据**；必须由可信调用链审阅/授权才可执行。
+
+
+## R11 当前状态：原 A 交付 UNKNOWN，禁止重发（2026-11-13）
+
+`OD-WEBFLOW-FIXED-CHAT-TASK-A2B2A-R11` 当前只做 dev 主流程：普通 A 一次能力接入和可信审阅 → 已安装固定 Task 单次创建 B → 完整 Durable Result → 原 A 单次可信交付。不读取 GitHub Issue，不做 0.3.0 两阶段发送，不新建 Runner。
+
+真实入口仍为 `chatgpt-fixed-bridge` → 原 Trigger Ledger → Task Catalog/Authority → Offscreen RunHost/Controller → 固定 Task → 原 Durable Result → 原 A 交付 Adapter。旧 0.2.0 字节保留；0.2.1 修复现代 composer，0.2.2 补齐现代完成标记及官方消息 UUID，均显式审阅，不自动升级旧安装。实际本轮使用 **0.2.2 / generation 3**。
+
+[原 A](https://chatgpt.com/c/6af6f83f-6ebc-83e8-8d1a-fa532cc70e38) 已提出自然请求并产生受限候选；唯一[原 B](https://chatgpt.com/c/6af704a4-82d8-83e8-adee-63f161ccecda) 只有一条用户任务，完整回复 **1137 字符**与持久化 Result 逐字相同，Run 已完成并释放。原 A 已有一条结果消息，但其官方正文 **3021 字符**与冻结发送正文 **2947 字符**的 SHA-256 不同，链接与反斜杠有差异；尚未区分发送序列化与页面渲染原因，**不能标记 DELIVERED 或 R11 完成**。
+
+源码补丁保留具体只读失败原因及冻结 SHA，并由原持久/授权栅栏投影 UNKNOWN 原因；定向恢复 **52/52**、结果合同 **19/19**、精确来源 **3/3 PASS**。固定结果适配器另拒绝 0.2.2 的非 UUID B 回执，原脚本/包不变，原 Result 仍通过且冻结正文未改变。当前原记录仍是旧通用拒绝原因，新诊断补丁的现场恢复 **NOT_TESTED**。原 RunHost/侧栏已不在当前扩展上下文中，不伪造 Host 调用或改写数据库。保持原请求、Run/Result、A/B 和发送围栏；禁止补发、另建 B、替换正文或规范化哈希。
+
+全文回传仍遵守原 **8192 UTF-8 字节（含转义封装）**上限，超限明确拒绝并保留完整 Durable Result；工具 JSON 不能替代固定编译代码。本轮无 production build/package verify、全量 CI 或正式评分；R11 六项职责原始名单未恢复，**NOT_SCORED**，不能用历史六视角代替。精确身份、哈希、证据分级和唯一下一步见[当前执行卡](docs/execution-plan.zh-CN.md)及[原请求核对记录](evidence/r11-original-a-reconciliation-20261113.json)。下方 R10/Issue 与 0.3.0 是历史。
 
 ### R10 实际依赖边界与剩余风险（2026-11-13；`OD-WEBFLOW-FIXED-TASK-DECOUPLING-R10`）
 

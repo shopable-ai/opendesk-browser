@@ -214,6 +214,9 @@ function ChatGPTConnection({tasks,scopes,disabled}:{tasks:AutoTask[];scopes:unkn
   '执行请求的回复分为两部分：第一部分用一小段中文说明准备执行的任务、关键词和结果数量，并注明等待本机结果，不声称已执行；第二部分是唯一的 opendesk-task JSON 代码块，专门交给本机脚本，说明文字不写进 JSON。',
   '使用可读的标准 JSON：网址、中文和普通标点直接显示，不做额外转义；引号、反斜杠和换行仅按 JSON 语法处理，编码与解码由程序内部负责，用户无需手工转码。',
   '百度 baidu.search.top3 与 Google google.search.top3 的搜索参数放在 args 内，执行时映射为 Task params，不增加外层字段。以当前已安装 Schema 为准：支持 showExecutionTab 时它是可选严格 boolean，省略默认 true，显示执行标签页，无需强制显式 true；用户明确要求后台搜索时使用 false，仍创建后台页、搜索并返回真实回执，只不置前。不能使用字符串或数字。安装或固定参数变化不继承旧批准；明确 false 可以直接请求，由本机核验或审阅，不要求先测试显式 true。',
+  ...(tasks.some(task=>task.taskId==='chatgpt.conversation.create'&&['0.2.0','0.2.1','0.2.2'].includes(task.version))?[
+   'ChatGPT 固定 Task 0.2.x：用户要求让一个新的普通 ChatGPT 对话执行任务并把结果返回本对话时，args.prompt 使用用户的实际任务，args.send 必须为 true，targetUrl 为 https://chatgpt.com/。这会请求独立 B 的单次发送和原 A 的单次结果回传，必须等待本机精确审阅；仅准备草稿时才用 send:false。不要发明模型或推理选项，不使用 0.3.0 的 PREPARE/SUBMIT；不能截断已生成的真实结果。'
+  ]:[]),
   '当前已核验的已安装任务能力：'+JSON.stringify(tasks.map(task=>({taskId:task.taskId,name:task.name,
    description:task.description,targetUrl:task.siteOrigins[0].replace(/\/$/,'')+'/',paramsSchema:task.paramsSchema}))),
   '当前已批准范围（仅用于说明自动执行资格，不限制程序 Schema 能力；parameterPolicy 指定可在已批准 Schema 内变化的参数，其余参数固定）：'+JSON.stringify(scopes),

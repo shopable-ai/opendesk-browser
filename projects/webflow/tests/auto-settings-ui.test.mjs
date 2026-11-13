@@ -709,6 +709,26 @@ test('one-time ChatGPT instructions distinguish installed Schema capabilities fr
  assert.equal(f.find('webflow-chatgpt-instructions'),null,'an unverified catalog cannot publish capabilities');
 });
 
+test('ordinary chat capability requests the installed 0.2 send operation without granting it',async t=>{
+ const host=controller();host.snapshot={...host.snapshot,catalogVerified:true,grants:[],tasks:[{
+  ...task,taskId:'chatgpt.conversation.create',version:'0.2.0',siteOrigins:['https://chatgpt.com'],
+  paramsSchema:{type:'object',required:['prompt'],properties:{prompt:{type:'string'},send:{type:'boolean',default:false}}}
+ }]};
+ const f=await fixture(t,{host}),instructions=f.find('webflow-chatgpt-instructions').value;
+ assert.ok(instructions.includes('args.send 必须为 true'));
+ assert.ok(instructions.includes('必须等待本机精确审阅'));
+ assert.ok(instructions.includes('独立 B 的单次发送和原 A 的单次结果回传'));
+ assert.equal(host.calls.filter(([kind])=>kind!=='read').length,0);
+ for(const version of ['0.2.1','0.2.2']){
+  host.snapshot={...host.snapshot,tasks:[{...host.snapshot.tasks[0],version}]};
+  await f.click('webflow-auto-refresh');
+  assert.ok(f.find('webflow-chatgpt-instructions').value.includes('args.send 必须为 true'));
+ }
+ host.snapshot={...host.snapshot,tasks:[{...host.snapshot.tasks[0],version:'0.3.0'}]};
+ await f.click('webflow-auto-refresh');
+ assert.ok(!f.find('webflow-chatgpt-instructions').value.includes('args.send 必须为 true'));
+});
+
 test('pending candidate review shows exact parameters and identity; only a native click forwards this same review',async t=>{
  const host=controller(),calls=[];
  const pendingAuto={scope:{...scope,args:{query:'OpenDesk Browser SDK',limit:3}},

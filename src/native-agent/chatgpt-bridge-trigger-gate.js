@@ -77,9 +77,18 @@ const officialURL=value=>{
 // Serial admission belongs to the one MV3 service worker; persist BEFORE ACK.
 // Worker restart loses no admitted/consumed decisions. An ACK lost after a
 // durable write intentionally fails closed rather than replaying an effect.
-export function createChatGPTBridgeTriggerLedger({storage,revocationStorage,clock=()=>Date.now(),
+export function createChatGPTBridgeTriggerLedger({storage,revocationStorage,originalAProofPolicy,clock=()=>Date.now(),
   generateId=()=>crypto.randomUUID()}={}){
   if(!storage?.get||!storage?.set)throw fail('E_BRIDGE_STORAGE','缺少受信持久存储');
+  // Only the SW composition supplies business validators. Content imports this
+  // module for constants; missing/partial policy cannot authorize a delivery.
+  const proofPolicy=originalAProofPolicy&&Object.isFrozen(originalAProofPolicy)&&
+    ['requiresChatGPTOriginalAProof','assertOriginalADispatchIntent','assertOriginalAReceipt']
+      .every(key=>typeof originalAProofPolicy[key]==='function')?originalAProofPolicy:null;
+  const requiresProof=scope=>{
+    if(!proofPolicy)throw fail('E_CHAT_DELIVERY_PROOF','原消息证明策略未接通，禁止交付状态变更');
+    return proofPolicy.requiresChatGPTOriginalAProof(scope);
+  };
   let pending=Promise.resolve(),revokeAll=false,revocationRevision=0;
   const revokedTabs=new Set(),revokedRequests=[];
   const sequence=task=>{
@@ -279,7 +288,10 @@ export function createChatGPTBridgeTriggerLedger({storage,revocationStorage,cloc
     row.status='approved';row.mode='auto';row.approvedAt=now;row.conversationGrantId=grantId;
     row.approvalExpiresAt=Math.min(row.expiresAt,grant.expiresAt,now+300000);
   };
-  const admitPersistentAuto=({source,candidate,allowPending=false,...value},site)=>{
+  const admitPersistentAuto=({source,candidate,allowPending=false,originalAAnchorMessageId,...value},site)=>{
+    if(originalAAnchorMessageId!==undefined&&(site?.adapter!=='chatgpt'||
+      typeof originalAAnchorMessageId!=='string'||!/^[A-Za-z0-9._:-]{8,128}$/u.test(originalAAnchorMessageId)))
+      throw fail('E_BRIDGE_CONTEXT','原用户消息锚点必须来自可信官方读取');
     candidate=candidateSnapshot(candidate);
     const v2=JSON.parse(candidate.text).protocol===WEBFLOW_TASK_INTENT_V2_PROTOCOL;
     const intent=(v2?validateWebFlowTaskIntentV2:validateWebFlowTaskIntent)(candidate.text);
@@ -312,6 +324,7 @@ export function createChatGPTBridgeTriggerLedger({storage,revocationStorage,cloc
       const requestId=generateId();requireRequestId(requestId);
       if(rows[requestId]||requestId===candidate.candidateId)throw fail('E_BRIDGE_REPLAY','请求身份冲突');
       const row=rows[requestId]={source:structuredClone(source),scope,candidate,createdAt:now,
+        ...(originalAAnchorMessageId?{originalAAnchorMessageId}:{}),
         ...(v2?{intentProtocol:WEBFLOW_TASK_INTENT_V2_PROTOCOL}:{}),
         ...(site?{site:structuredClone(site)}:{}),
         ...(site?.adapter==='chatgpt'?{webReady:false}:{}),
@@ -615,10 +628,10 @@ export function createChatGPTBridgeTriggerLedger({storage,revocationStorage,cloc
       requireRequestId(requestId);
       if(!plain(observation))throw fail('E_BRIDGE_SCHEMA','网页观察必须为受限对象');
       const patch={};
-      for(const key of ['execution','persistence','release','delivery','aiReplyObserved','runId','resultId','error']){
+      for(const key of ['execution','persistence','release','delivery','aiReplyObserved','runId','resultId','error','deliveryError']){
         if(!Object.hasOwn(observation,key))continue;
         const value=observation[key];
-        if(key==='error'){
+        if(key==='error'||key==='deliveryError'){
           if(value!==null&&(!plain(value)||Object.keys(value).some(field=>!['code','message'].includes(field))||
             Object.entries(value).some(([field,text])=>typeof text!=='string'||text.length>(field==='code'?128:2048))))
             throw fail('E_BRIDGE_SCHEMA','网页观察错误对象不合法或超限');
@@ -644,7 +657,7 @@ export function createChatGPTBridgeTriggerLedger({storage,revocationStorage,cloc
         return {requestId,webObservation:structuredClone(row.webObservation)};
       });
     },
-    confirmWebTaskDelivery(requestId,{source,runId,resultId,aiReplyObserved,messageId,contentSha256}={}){
+    confirmWebTaskDelivery(requestId,{source,runId,resultId,aiReplyObserved,messageId,contentSha256,assertCurrent}={}){
       requireRequestId(requestId);requireSource(source);
       const hasId=messageId!==undefined,hasSha=contentSha256!==undefined;
       if(typeof runId!=='string'||!runId||runId.length>128||
@@ -655,6 +668,7 @@ export function createChatGPTBridgeTriggerLedger({storage,revocationStorage,cloc
         throw fail('E_CHAT_DELIVERY_PROOF','原消息回执缺少匹配的身份或哈希');
       return sequence(async()=>{
         const rows=await load(),row=rows[requestId],observation=row?.webObservation;
+        const ticket=revocationRevision;
         if(row?.site?.adapter!=='chatgpt'||row.status!=='consumed'||
           !row.controllerSubmitted||row.webDelivery!=='dispatching'||
           !sameSource(row.source,source)||observation?.execution!=='completed'||
@@ -662,7 +676,13 @@ export function createChatGPTBridgeTriggerLedger({storage,revocationStorage,cloc
           observation.runId!==runId||observation.resultId!==resultId||
           observation.delivery==='confirmed')
           throw fail('E_BRIDGE_REPLAY','原交付意图、Run/Result 或来源身份无法确认');
+        const strictProof=requiresProof(row.scope);
+        if(strictProof)proofPolicy.assertOriginalAReceipt(row,requestId,{runId,resultId,messageId,contentSha256});
         await checkAuto(row);
+        if(strictProof){
+          if(ticket!==revocationRevision)throw fail('E_BRIDGE_REVOKED','确认期间原请求已撤销');
+          assertCurrent?.();
+        }
         // Single original Ledger write: delivered never exists without its
         // matching receipt. Unknown persistence cannot authorize re-sending.
         row.webDelivery='delivered';
@@ -683,13 +703,17 @@ export function createChatGPTBridgeTriggerLedger({storage,revocationStorage,cloc
         return {requestId,ready:true};
       });
     },
-    markWebTaskDelivery(requestId,state){
+    markWebTaskDelivery(requestId,state,intent){
       requireRequestId(requestId);
       return sequence(async()=>{
         const rows=await load(),row=rows[requestId];
         if(!row?.site||row.status!=='consumed'||!row.controllerSubmitted||
           !(state==='dispatching'&&!row.webDelivery||state==='delivered'&&row.webDelivery==='dispatching'))
           throw fail('E_BRIDGE_REPLAY','交付已经开始或身份未知，禁止重复发送');
+        if(row.site.adapter==='chatgpt'&&requiresProof(row.scope)){
+          proofPolicy.assertOriginalADispatchIntent(row,requestId,state,intent);
+          row.webDispatchIntent=structuredClone(intent);
+        }
         await checkAuto(row);row.webDelivery=state;await save(rows);
         return {requestId,delivery:state};
       });
@@ -920,9 +944,9 @@ export function createChatGPTBridgeTriggerLedger({storage,revocationStorage,cloc
   });
 }
 
-export function installChatGPTBridgeTriggerGate({api=chrome,clock,verifyWebTask}={}){
+export function installChatGPTBridgeTriggerGate({api=chrome,clock,verifyWebTask,originalAProofPolicy}={}){
   const ledger=createChatGPTBridgeTriggerLedger({storage:api.storage.local,
-    revocationStorage:api.storage.session,clock});
+    revocationStorage:api.storage.session,clock,originalAProofPolicy});
   const pageSource=async sender=>{
     if(sender?.id!==api.runtime.id||sender?.frameId!==0||
       !Number.isSafeInteger(sender?.tab?.id)||sender.tab.incognito||

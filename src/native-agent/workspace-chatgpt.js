@@ -40,4 +40,6 @@ export async function assertWebFlowReplyCandidate(api,target,candidate){
   assertChatGPTTaskRoute({userText:current.userText,answerText:text});
   if(current.turnKey!==turnKey||current.answerKey!==answerKey||current.blocks[0]!==text)
     throw mismatch();
+  return typeof current.officialUserMessageId==='string'&&/^[A-Za-z0-9._:-]{8,128}$/u.test(current.officialUserMessageId)?
+    {officialUserMessageId:current.officialUserMessageId}:{};
 }

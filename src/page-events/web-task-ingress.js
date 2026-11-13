@@ -8,15 +8,23 @@ import {assertAutoGrant} from '../../projects/webflow/src/auto-grants.js';
 import {registeredSiteRegistry,loadSiteProfiles} from './site-catalog.js';
 import {SITE_PROFILES_KEY,WEB_TASK_PROTOCOL,validWebTaskSource} from './web-task-contract.js';
 import {CHATGPT_TASK_PROFILE} from './web-task-contract.js';
-import {createChatGPTBackgroundAdapter} from '../native-agent/chatgpt-background-adapter.js';
+import {createChatGPTBackgroundAdapter,verifyChatGPTBackgroundTask} from '../native-agent/chatgpt-background-adapter.js';
 import {activateWebFlowExecutionTarget} from '../native-agent/webflow-execution-view.js';
 import {isReviewedBPrepare,attestReviewedBPrepare} from '../../projects/webflow/trusted/chatgpt-b-prepare-stage.js';
+import {requiresChatGPTOriginalAProof,originalAReadbackRequest,originalADispatchIntent,prepareOriginalARecovery,
+  originalAReceiptConfirmed,normalizeOriginalADeliveryProof}
+  from '../../projects/webflow/trusted/chatgpt-result-adapter.js';
 
 const fail=(code,message)=>Object.assign(new Error(message),{code});
 const sameSource=(a,b)=>a?.tabId===b?.tabId&&a?.documentId===b?.documentId&&a?.url===b?.url;
 const sameProfile=(a,b)=>['id','version','origin','adapter','adapterVersion','enabled'].every(key=>a?.[key]===b?.[key])&&
   JSON.stringify(a?.protocols)===JSON.stringify(b?.protocols);
 const sameProfiles=(a,b)=>a.length===b.length&&a.every((profile,index)=>sameProfile(profile,b[index]));
+const deliveryConfirmed=row=>{
+  if(row.webDelivery!=='delivered')return false;
+  if(row.site?.adapter!=='chatgpt'||!requiresChatGPTOriginalAProof(row.scope))return true;
+  return originalAReceiptConfirmed(row);
+};
 
 // Routes reviewed website candidates to the ORIGINAL trigger ledger and
 // Offscreen RunHost. This module neither creates Runs nor executes scripts.
@@ -85,6 +93,52 @@ export function createWebTaskIngress({api,ledger,loadFoundation,ensureRunner,ver
     const actual=await runner(sender);
     if(row.webHostDocumentId!==actual.documentId)throw fail('E_WEB_TASK_OWNER','已消费请求不能转交新宿主');
     return verifySite(row);
+  }
+  // Sending advances A's current turn. Receipt reads validate the original
+  // source, installed scope and grant, not whether the old turn is still latest.
+  async function receiptContext(row,broker){
+    if(row.status!=='consumed'||!row.controllerSubmitted)
+      throw fail('E_BRIDGE_REVOKED','原请求未提交或已撤销');
+    if(!sameProfile(row.site,CHATGPT_TASK_PROFILE))
+      throw fail('E_WEB_TASK_PROFILE','原网站适配身份已改变');
+    const ticket=epoch,sourceTicket=sourceEpochs.get(row.source.tabId)??0;
+    const approval=ledger.captureAutoPolicyEpoch();
+    const installedFinal=broker.authority.captureInstalledTaskFence(row.scope.taskId);
+    const requestFinal=ledger.captureWebTaskReadFence(row.requestId,row.source);
+    await assertSource(row.source);
+    const manifest=verifyTaskScope?await verifyTaskScope(row.scope):
+      await verifyChatGPTBackgroundTask({api,broker,scope:row.scope});
+    if(Object.keys(row.scope.installation).some(key=>manifest.installation?.[key]!==row.scope.installation[key]))
+      throw fail('E_REVISION','确认期间任务安装身份已改变');
+    await assertTaskApproval(row,row.requestId);
+    const authorized=row.webDelivery==='delivered'?()=>{}:
+      await ledger.assertWebTaskDelivery(row.requestId,row.source);
+    const final=()=>{
+      installedFinal();requestFinal();authorized();
+      if(ticket!==epoch||sourceTicket!==(sourceEpochs.get(row.source.tabId)??0))
+        throw fail('E_WEB_TASK_REVOKED','确认期间网站权限或原文档已改变');
+      if(approval!==ledger.captureAutoPolicyEpoch())
+        throw fail('E_WEBFLOW_AUTO_DENIED','确认期间持续批准已改变');
+    };
+    final();return final;
+  }
+  async function recoverDelivery(requestId,row,broker,run,actual){
+    const readback=originalAReadbackRequest({...row,requestId});
+    if(!readback)return false;
+    const final=await receiptContext({...row,requestId},broker);
+    const snapshot=await broker.authority.snapshotControllerRun({runId:run.runId},actual);
+    const durable=verifyChatGPTTaskDurableResult(snapshot,run.runId,row.scope.installation,
+      {...row.scope,requestId});
+    const recovery=await prepareOriginalARecovery({...row,requestId},durable,chatgpt.delivery(row,durable,requestId));
+    final();
+    const reply=await api.tabs.sendMessage(row.source.tabId,recovery.message,{documentId:row.source.documentId});
+    const proof=recovery.proof(reply);
+    const after=await receiptContext({...row,requestId},broker);
+    final();after();
+    await ledger.confirmWebTaskDelivery(requestId,{source:row.source,runId:durable.runId,resultId:durable.resultId,
+      ...proof,
+      assertCurrent:()=>{final();after();}});
+    return true;
   }
   async function candidate(message,sender){
     const ticket=epoch,source=await captureSource(sender),site=await profileFor(source.url);
@@ -170,26 +224,42 @@ export function createWebTaskIngress({api,ledger,loadFoundation,ensureRunner,ver
     const approval=ledger.captureAutoPolicyEpoch();
     const source=await captureSource(sender),{row,run}=await observation(message.requestId);
     if(!sameSource(row.source,source))throw fail('E_WEB_TASK_SOURCE','不能查询其他网页文档的请求');
-    const final=await verifySite(row);
+    const final=row.site.adapter==='chatgpt'&&row.webDelivery&&requiresChatGPTOriginalAProof(row.scope)?
+      await receiptContext({...row,requestId:message.requestId},await loadFoundation()):await verifySite(row);
     await assertTaskApproval(row,message.requestId,source);
     if(approval!==ledger.captureAutoPolicyEpoch())throw fail('E_WEBFLOW_AUTO_DENIED','查询期间持续批准已改变');
     final();
     return {requestId:message.requestId,state:row.webBPrepared&&isReviewedBPrepare(row)?'prepared-account-unverified':
       run?.state??(row.status==='consumed'?'UNKNOWN':row.status),
-      runId:run?.runId??null,resultId:run?.resultId??null,delivery:row.webDelivery??'not-sent'};
+      runId:run?.runId??null,resultId:run?.resultId??null,
+      delivery:row.webObservation?.delivery==='refused'?'refused':
+        row.webDelivery==='delivered'&&!deliveryConfirmed(row)?'unknown':row.webDelivery??'not-sent'};
   }
   async function settle(message,sender){
     const actual=await runner(sender),{row,broker,run}=await observation(message.requestId);
     if(row.webHostDocumentId!==actual.documentId)throw fail('E_WEB_TASK_OWNER','不能对账其他宿主请求');
     const isChatGPT=row.site.adapter==='chatgpt';
-    if(isChatGPT)await ledger.recordWebTaskObservation(message.requestId,
+    if(isChatGPT&&row.webDelivery!=='delivered')await ledger.recordWebTaskObservation(message.requestId,
       Object.fromEntries(Object.entries(receiptFor(row,run)).filter(([,value])=>value!==null)));
     if(!run)return {requestId:message.requestId,state:'UNKNOWN'};
     if(run.state!=='completed'||run.retirementState!=='released')return {requestId:message.requestId,state:run.state};
+    if(isChatGPT&&row.webObservation?.delivery==='refused')return {requestId:message.requestId,state:'completed',
+      runId:run.runId,resultId:run.resultId,delivery:'refused'};
     // Reconciliation is a read of the SAME identity. An ambiguous dispatch is
     // permanently fenced; it must not fall through to a second send.
-    if(isChatGPT&&row.webDelivery)return {requestId:message.requestId,state:'completed',
-      runId:run.runId,resultId:run.resultId,delivery:row.webDelivery==='delivered'?'confirmed':'unknown'};
+    if(isChatGPT&&row.webDelivery){
+      let recovered=false;
+      if(row.webDelivery==='dispatching')try{
+        recovered=await recoverDelivery(message.requestId,row,broker,run,actual);
+      }catch(error){
+        await ledger.recordWebTaskObservation(message.requestId,{delivery:'unknown',
+          error:{code:error.code||'E_WEB_TASK_UNKNOWN',message:error.message},
+          deliveryError:{code:error.code||'E_WEB_TASK_UNKNOWN',message:error.message}});
+        throw error;
+      }
+      return {requestId:message.requestId,state:'completed',runId:run.runId,resultId:run.resultId,
+        delivery:recovered||deliveryConfirmed(row)?'confirmed':'unknown'};
+    }
     await verifySubmission(row,actual);
     const snapshot=await broker.authority.snapshotControllerRun({runId:run.runId},actual);
     const durable=verifyChatGPTTaskDurableResult(snapshot,run.runId,row.scope.installation,
@@ -211,7 +281,23 @@ export function createWebTaskIngress({api,ledger,loadFoundation,ensureRunner,ver
       sourceHash:durable.sourceHash,status:'completed',data:durable.value};
     // Same durable trigger row carries only a delivery fence, never a second Result.
     const approval=ledger.captureAutoPolicyEpoch();
-    await ledger.markWebTaskDelivery(message.requestId,'dispatching');
+    const strictProof=isChatGPT&&requiresChatGPTOriginalAProof(row.scope);
+    let outgoing,dispatchIntent;
+    if(strictProof){
+      const final=await verifySubmission(row,actual);
+      const authorized=await historyReadFence({...row,requestId:message.requestId},broker,approval);
+      final();authorized();
+      try{
+        outgoing=chatgpt.delivery(row,durable,message.requestId);
+        dispatchIntent=originalADispatchIntent(row,message.requestId,durable,await digestUtf8(outgoing.text));
+      }catch(error){
+        final();authorized();
+        await ledger.recordWebTaskObservation(message.requestId,{delivery:'refused',
+          deliveryError:{code:error.code||'E_WEB_TASK_DELIVERY',message:String(error.message).slice(0,2048)}});
+        throw error;
+      }
+    }
+    await ledger.markWebTaskDelivery(message.requestId,'dispatching',dispatchIntent);
     let reply,observedMessageProof=null;
     try{
       // The dispatch fence already exists. Retain final-check failures too,
@@ -220,7 +306,7 @@ export function createWebTaskIngress({api,ledger,loadFoundation,ensureRunner,ver
       const deliveryFinal=await ledger.assertWebTaskDelivery(message.requestId,row.source);
       if(approval!==ledger.captureAutoPolicyEpoch())throw fail('E_WEBFLOW_AUTO_DENIED','交付期间持续批准已改变');
       final();deliveryFinal();
-      const outgoing=isChatGPT?chatgpt.delivery(row,durable,message.requestId):
+      outgoing??=isChatGPT?chatgpt.delivery(row,durable,message.requestId):
         {protocol:WEB_TASK_PROTOCOL,kind:'deliver',sourceUrl:row.source.url,requestId:message.requestId,result};
       reply=await api.tabs.sendMessage(row.source.tabId,outgoing,{documentId:row.source.documentId});
       if(isChatGPT&&reply?.ok===false&&typeof reply.error?.code==='string'&&typeof reply.error.message==='string')
@@ -230,23 +316,33 @@ export function createWebTaskIngress({api,ledger,loadFoundation,ensureRunner,ver
       // Proof is accepted only when it binds an official observed A message ID
       // to the exact original Controller text. Reject incomplete or forged
       // evidence without ever re-opening the one-use send tombstone.
-      if(isChatGPT&&(Object.hasOwn(reply.data,'messageId')||Object.hasOwn(reply.data,'contentSha256'))){
-        const {messageId,contentSha256}=reply.data;
-        if(typeof messageId!=='string'||!/^[A-Za-z0-9._:-]{8,128}$/u.test(messageId)||
-          contentSha256!==await digestUtf8(outgoing.text))
-          throw fail('E_CHAT_DELIVERY_PROOF','原对话新增消息身份或内容 SHA-256 不匹配，禁止确认交付');
-        observedMessageProof={messageId,contentSha256};
+      if(isChatGPT)observedMessageProof=await normalizeOriginalADeliveryProof(row,reply,outgoing);
+      let assertCurrent;
+      if(strictProof){
+        const current=await receiptContext({...row,requestId:message.requestId},broker);
+        assertCurrent=()=>{
+          current();
+          if(approval!==ledger.captureAutoPolicyEpoch())
+            throw fail('E_WEBFLOW_AUTO_DENIED','确认期间持续批准已改变');
+        };
+        assertCurrent();
       }
+      if(strictProof)await ledger.confirmWebTaskDelivery(message.requestId,{
+        source:row.source,runId:durable.runId,resultId:durable.resultId,
+        aiReplyObserved:reply.data.aiReplyObserved===true,...(observedMessageProof??{}),assertCurrent
+      });
     }catch(error){
       if(isChatGPT)await ledger.recordWebTaskObservation(message.requestId,{delivery:'unknown',
         error:{code:error.code||'E_WEB_TASK_UNKNOWN',message:error.message}});
       throw error;
     }
-    if(isChatGPT)await ledger.confirmWebTaskDelivery(message.requestId,{
-      source:row.source,runId:durable.runId,resultId:durable.resultId,
-      aiReplyObserved:reply.data.aiReplyObserved===true,...(observedMessageProof??{})
-    });
-    else await ledger.markWebTaskDelivery(message.requestId,'delivered');
+    if(!strictProof){
+      if(isChatGPT)await ledger.confirmWebTaskDelivery(message.requestId,{
+        source:row.source,runId:durable.runId,resultId:durable.resultId,
+        aiReplyObserved:reply.data.aiReplyObserved===true,...(observedMessageProof??{})
+      });
+      else await ledger.markWebTaskDelivery(message.requestId,'delivered');
+    }
     return {requestId:message.requestId,state:'completed',runId:durable.runId,resultId:durable.resultId};
   }
   function receiptFor(row,run){
@@ -259,7 +355,7 @@ export function createWebTaskIngress({api,ledger,loadFoundation,ensureRunner,ver
       run?.state==='completed'?'completed':
       ['preparing','running','stopping','paused_unknown','failed','stopped','interrupted'].includes(run?.state)?run.state:notStarted?'not-started':'unknown',
     persistence:row.webObservation?.persistence??'not-confirmed',release:run?.retirementState??(notStarted?'not-started':'unknown'),
-    delivery:row.webDelivery==='delivered'?'confirmed':row.webDelivery==='dispatching'?'unknown':
+    delivery:deliveryConfirmed(row)?'confirmed':row.webDelivery?'unknown':
       row.webObservation?.delivery??'not-sent',runId:run?run.runId??null:row.webObservation?.runId??null,
     resultId:run?run.resultId??null:row.webObservation?.resultId??null};
   }
@@ -321,7 +417,7 @@ export function createWebTaskIngress({api,ledger,loadFoundation,ensureRunner,ver
       }
       const {run,broker}=await observation(row.requestId),receipt=receiptFor(row,run);
       // Cached observations carry no authority to disclose Result bytes/errors.
-      delete receipt.value;delete receipt.error;receipt.persistence='not-confirmed';
+      delete receipt.value;delete receipt.error;delete receipt.deliveryError;receipt.persistence='not-confirmed';
       if(['completed','failed','stopped'].includes(run?.state)&&run.retirementState==='released'){
         try{
           const approval=ledger.captureAutoPolicyEpoch();
@@ -331,6 +427,8 @@ export function createWebTaskIngress({api,ledger,loadFoundation,ensureRunner,ver
             row.scope.installation,{...row.scope,requestId:row.requestId}):null;
           const projection=durable?{value:durable.value}:
             {error:terminalError(snapshot,run,row.scope.installation)};
+          if(durable&&['refused','unknown'].includes(row.webObservation?.delivery)&&row.webObservation.deliveryError)
+            projection.deliveryError=structuredClone(row.webObservation.deliveryError);
           if(durable&&isReviewedBPrepare(row)&&row.webBPrepared){
             // Trusted, read-only PREPARE review: do not mistake a preserved B
             // document for a verified account, live composer or send grant.
@@ -368,7 +466,7 @@ export function createWebTaskIngress({api,ledger,loadFoundation,ensureRunner,ver
     // the batch return boundary so a later revocation removes earlier bytes.
     for(const {receipt,final} of disclosures){
       try{final();}catch(error){
-        delete receipt.value;delete receipt.preparedB;receipt.persistence='not-available';
+        delete receipt.value;delete receipt.preparedB;delete receipt.deliveryError;receipt.persistence='not-available';
         receipt.error={code:error.code||'E_WEB_TASK_UNKNOWN',message:String(error.message).slice(0,2048)};
       }
     }
@@ -377,7 +475,9 @@ export function createWebTaskIngress({api,ledger,loadFoundation,ensureRunner,ver
   async function reconcile(sender){
     const actual=await runner(sender),rows=await ledger.listWebTasks();
     for(const row of rows){
-      if(row.site.adapter!=='chatgpt'||row.status!=='consumed'||row.webHostDocumentId!==actual.documentId||row.webDelivery)continue;
+      if(row.site.adapter!=='chatgpt'||row.status!=='consumed'||row.webHostDocumentId!==actual.documentId||
+        row.webObservation?.delivery==='refused'||
+        row.webDelivery&&!(row.webDelivery==='dispatching'&&originalAReadbackRequest(row)))continue;
       try{await settle({requestId:row.requestId},sender);}
       catch(error){await ledger.recordWebTaskObservation(row.requestId,{error:{code:error.code||'E_WEB_TASK_UNKNOWN',message:error.message}});}
     }

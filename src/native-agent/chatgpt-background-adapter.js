@@ -10,6 +10,7 @@ import {installedKey,taskKey,validateTaskParams} from '../platform/tasks/contrac
 import {loadBuiltinWorkerSource} from '../libs/loader.js';
 import {builtinIdentity} from '../libs/identity.js';
 import {FoundationError} from '../platform/protocol.js';
+import {requiresChatGPTOriginalAProof} from '../../projects/webflow/trusted/chatgpt-result-adapter.js';
 
 const fail=(code,message)=>new FoundationError(code,message);
 const pinKeys=['version','manifestHash','contentHash','scriptId','revision','installationId','generation'];
@@ -74,7 +75,11 @@ export function createChatGPTBackgroundAdapter({api,ledger,loadFoundation,captur
     return source;
   }
   async function verify(row){
-    try{await verifyCandidate(api,row.source,row.candidate);}
+    try{
+      const observed=await verifyCandidate(api,row.source,row.candidate);
+      if(row.originalAAnchorMessageId&&observed?.officialUserMessageId!==row.originalAAnchorMessageId)
+        throw fail('E_BRIDGE_CONTEXT','原用户消息的官方身份已改变');
+    }
     catch(error){
       if(invalidCandidateCodes.has(error?.code))error.webTaskInvalid=true;
       throw error;
@@ -101,16 +106,26 @@ export function createChatGPTBackgroundAdapter({api,ledger,loadFoundation,captur
       const v2=JSON.parse(message.candidateText).protocol===WEBFLOW_TASK_INTENT_V2_PROTOCOL;
       const intent=(v2?validateWebFlowTaskIntentV2:validateWebFlowTaskIntent)(message.candidateText);
       const candidate={candidateId:intent.candidateId,text:message.candidateText,turnKey:message.turnKey,answerKey:message.answerKey};
-      await verifyCandidate(api,source,candidate);
+      const observed=await verifyCandidate(api,source,candidate);
       // The AI never supplies a V2 URL. A compiled entry is used only for
       // looking up the actual installed task, then checked again against its pin.
       const targetUrl=v2?webFlowV2ReviewedEntry(intent.taskId):intent.targetUrl;
       const manifest=await task({...intent,targetUrl});
       const bound=v2?resolveWebFlowV2FixedTarget({intent,manifest,installation:manifest.installation}):
         {taskId:intent.taskId,args:intent.args,targetUrl,installation:manifest.installation};
+      const checked=await verifyCandidate(api,source,candidate);
+      if(observed?.officialUserMessageId!==checked?.officialUserMessageId)
+        throw fail('E_BRIDGE_CONTEXT','准入期间原用户消息的官方身份已改变');
+      if(requiresChatGPTOriginalAProof(bound)&&
+        (typeof checked?.officialUserMessageId!=='string'||!/^[A-Za-z0-9._:-]{8,128}$/u.test(checked.officialUserMessageId)))
+        throw fail('E_CHAT_DELIVERY_PROOF','新自动任务缺少原用户消息的官方身份');
       const admitted=await ledger.admitWebTask({source,site:CHATGPT_TASK_PROFILE,candidate,allowPending:true,
-        ...bound,sourceOrigin:CHATGPT_TASK_PROFILE.origin});
-      await verifyCandidate(api,source,candidate);await sourceFor(sender);
+        ...bound,sourceOrigin:CHATGPT_TASK_PROFILE.origin,
+        ...(checked?.officialUserMessageId?{originalAAnchorMessageId:checked.officialUserMessageId}:{})});
+      const final=await verifyCandidate(api,source,candidate);
+      if(checked?.officialUserMessageId!==final?.officialUserMessageId)
+        throw fail('E_BRIDGE_CONTEXT','准入后原用户消息的官方身份已改变');
+      await sourceFor(sender);
       return {...admitted,executionOwner:'background',taskName:manifest.title};
     }
     const row=await ledger.inspectWebTask(message.requestId);

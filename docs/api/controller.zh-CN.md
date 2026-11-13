@@ -60,7 +60,7 @@ export default async function main() {
 | `fill(value)` / `click()` | Promise<void>；操作完成不等于业务异步完成 |
 | `waitFor({state,timeout})` | attached/detached/visible/hidden；默认 visible |
 
-多匹配违反严格模式；现代 click 是 DOM click，fill 使用原生 setter 和变更事件，不能描述成真实系统鼠标/键盘输入或完整 Playwright 兼容。完整参数、观察和错误参考[现代 Page/Locator API](../framework/modern-page-api.zh-CN.md)。
+多匹配违反严格模式；现代 click 是 DOM click，fill 对原生输入使用 setter 和变更事件，对显式 contenteditable 编辑 host 使用纯文本编辑命令。不能描述成真实系统鼠标/键盘输入或完整 Playwright 兼容。完整参数、观察和错误参考[现代 Page/Locator API](../framework/modern-page-api.zh-CN.md)。
 
 `bringToFront()` 复用 Controller 原 Authority、目标文档与原生效果日志；撤权、目标替换、Stop 或未知回执会拒绝，不自动重试。新建 owned 页仍默认在后台，只有脚本明确调用才显示；建议在参数及目标校验后、业务动作前调用一次，不在每次点击时重复抢焦点。旧宿主尚未提供此方法时须先更新 Browser 固定代码，任务 JSON 本身不能提供原生切页能力。
 

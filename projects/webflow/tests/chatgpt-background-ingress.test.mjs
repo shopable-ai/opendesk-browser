@@ -1,5 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
+import {readFile} from 'node:fs/promises';
 import {createWebTaskIngress} from '../../../src/page-events/web-task-ingress.js';
 import {createChatGPTBridgeTriggerLedger,CHATGPT_BRIDGE_LEDGER_KEY,CHATGPT_BRIDGE_PROTOCOL}
   from '../../../src/native-agent/chatgpt-bridge-trigger-gate.js';
@@ -7,16 +8,381 @@ import {WEB_TASK_PROTOCOL} from '../../../src/page-events/web-task-contract.js';
 import {encodeValue} from '../../../src/platform/page-port/codec.js';
 import {digestUtf8} from '../../../src/platform/protocol.js';
 import {REVIEWED_BUILTIN_TASK_RELEASES} from '../../../src/platform/tasks/builtin-releases.js';
+import {requiresChatGPTOriginalAProof,assertOriginalADispatchIntent,assertOriginalAReceipt}
+  from '../trusted/chatgpt-result-adapter.js';
+const originalAProofPolicy=Object.freeze({requiresChatGPTOriginalAProof,assertOriginalADispatchIntent,assertOriginalAReceipt});
+const strictVersions=['0.2.0','0.2.1','0.2.2'];
+const strictManifests=Object.fromEntries(await Promise.all(strictVersions.map(async version=>[
+  version,JSON.parse(await readFile(new URL(`../tasks/chatgpt.conversation.create.${version}.opendesk-task.json`,import.meta.url),'utf8')).manifest
+])));
+
+for(const version of strictVersions){
+function strictAFixture(){
+  const release=REVIEWED_BUILTIN_TASK_RELEASES.find(row=>
+    row.taskId==='chatgpt.conversation.create'&&row.version===version);
+  const taskScope={...scope,taskId:release.taskId,args:{prompt:'Review the issue',send:true},
+    targetUrl:'https://chatgpt.com/',installation:{...scope.installation,version:release.version,
+      scriptId:'task:'+release.taskId+':'+release.version,
+      manifestHash:release.manifestHash,contentHash:release.sourceHash}};
+  const h=fixture({taskScope});
+  h.state.manifest=strictManifests[version];
+  h.state.officialUserMessageId='official-source-a-0001';
+  const conversationId='6af1df79-ab04-83e8-8e06-db19beebafab';
+  h.state.resultValue={kind:'chatgpt.conversation.create.result',version:2,status:'reply-complete',
+    send:true,messageConfirmed:true,conversationId,conversationUrl:'https://chatgpt.com/c/'+conversationId,
+    sourceUrl:'https://chatgpt.com/',promptChars:taskScope.args.prompt.length,readbackConfirmed:true,
+    observedAt:'2026-11-10T12:30:00.000Z',userMessageRef:'1e0eae89-91d5-4b79-9d95-4d02168447d5',
+    assistantMessageRef:'b85c4321-cef3-41ba-b1bd-f66cbeff2611',replyText:'Complete B reply'};
+  h.state.retainedRun={targetDisposition:'retain-on-success',
+    target:{mode:'owned',tabId:22,frameId:0,documentId:'b-document',allowedOrigin:'https://chatgpt.com'},
+    retainedTarget:{tabId:22,documentId:'b-document',origin:'https://chatgpt.com',
+      url:h.state.resultValue.conversationUrl}};
+  h.state.deliveryReplyFactory=async message=>({ok:true,data:{sent:true,userObserved:true,
+    aiReplyObserved:false,messageId:'official-a-message-0001',contentSha256:await digestUtf8(message.text)}});
+  const completed=h.completed;
+  h.completed=()=>completed('fresh-candidate','run-0001','result-0001');
+  return h;
+}
+
+if(version==='0.2.2')test('R11 0.2.2 non-official B turn references cannot authorize any A delivery',async()=>{
+  for(const key of ['userMessageRef','assistantMessageRef']){
+    const h=strictAFixture();h.state.resultValue[key]='turn:'+key;
+    await h.approve();const row=await h.completed();
+    await assert.rejects(h.handle('settle',{requestId:row.requestId}),{code:'E_BRIDGE_RESULT'});
+    h.restart();
+    const history=await h.handle('history',{source},h.panel);
+    assert.equal(history[0].receipt.persistence,'not-available');
+    assert.equal(history[0].receipt.value,undefined);
+    assert.equal((await h.ledger.inspectWebTask(row.requestId)).webDelivery,undefined);
+    assert.equal(h.sent.filter(item=>['deliver','workflow-read-a'].includes(item.message.kind)).length,0);
+    assert.equal(h.runs.length,1);assert.equal(h.results.length,1);
+  }
+});
+
+test(`R11 ${version} new strict V1 and V2 requests without a trusted official A anchor cannot admit or run B`,async()=>{
+  for(const v2 of [false,true]){
+    const h=strictAFixture();delete h.state.officialUserMessageId;h.state.v2=v2;await h.approve();
+    await assert.rejects(h.admit(),{code:'E_CHAT_DELIVERY_PROOF'});
+    assert.deepEqual(await h.ledger.listWebTasks(),[]);
+    assert.equal(await h.handle('claim'),null);
+    await h.handle('reconcile');h.restart();
+    assert.equal(await h.handle('claim'),null);
+    assert.deepEqual(await h.ledger.listWebTasks(),[]);
+    assert.equal(h.state.ensures,0);assert.equal(h.runs.length,0);assert.equal(h.results.length,0);
+    assert.equal(h.sent.filter(item=>['deliver','workflow-read-a'].includes(item.message.kind)).length,0);
+  }
+});
+
+test(`R11 ${version} reviewed send freezes original A text and requires complete matching official proof`,async()=>{
+  for(const invalid of ['missing','id-only','sha-only','bad-id','bad-sha']){
+    const h=strictAFixture();await h.approve();const row=await h.completed();
+    h.state.deliveryReplyFactory=async message=>{
+      const data={sent:true,userObserved:true,aiReplyObserved:false};
+      if(!['missing','sha-only'].includes(invalid))data.messageId=invalid==='bad-id'?'bad id':'official-a-message-0001';
+      if(!['missing','id-only'].includes(invalid))data.contentSha256=invalid==='bad-sha'?'a'.repeat(64):await digestUtf8(message.text);
+      return {ok:true,data};
+    };
+    await assert.rejects(h.handle('settle',{requestId:row.requestId}),{code:'E_CHAT_DELIVERY_PROOF'});
+    const saved=await h.ledger.inspectWebTask(row.requestId);
+    assert.equal(saved.webDelivery,'dispatching');assert.equal(saved.webObservation.delivery,'unknown');
+    const original=h.sent.find(item=>item.message.kind==='deliver').message;
+    assert.deepEqual(saved.webDispatchIntent,{runId:'run-0001',resultId:'result-0001',
+      contentSha256:await digestUtf8(original.text),anchorMessageId:'official-source-a-0001',
+      workflowId:row.requestId,deliveryKey:'result-0001',authorizationRef:saved.autoGrantId});
+    // Even the ledger's direct confirmation path cannot downgrade strictness.
+    const receipt={source,runId:'run-0001',resultId:'result-0001',aiReplyObserved:false};
+    await assert.rejects(h.ledger.confirmWebTaskDelivery(row.requestId,receipt),{code:'E_CHAT_DELIVERY_PROOF'});
+    await assert.rejects(h.ledger.confirmWebTaskDelivery(row.requestId,{...receipt,
+      messageId:'official-a-message-0001',contentSha256:'0'.repeat(64)}),{code:'E_CHAT_DELIVERY_PROOF'});
+    await assert.rejects(h.ledger.markWebTaskDelivery(row.requestId,'delivered'),{code:'E_CHAT_DELIVERY_PROOF'});
+    h.restart();await h.handle('settle',{requestId:row.requestId});
+    assert.equal(h.sent.filter(item=>item.message.kind==='deliver').length,1);
+  }
+});
+
+test(`R11 ${version} reviewed original A proof confirms atomically and persists across worker restart`,async()=>{
+  const h=strictAFixture();await h.approve();const row=await h.completed();
+  const reply=h.state.deliveryReplyFactory;
+  h.state.deliveryReplyFactory=async message=>{
+    const receipt=await reply(message);h.state.replyValid=false;return receipt;
+  };
+  await h.handle('settle',{requestId:row.requestId});h.restart();
+  const saved=await h.ledger.inspectWebTask(row.requestId);
+  assert.equal(saved.webDelivery,'delivered');assert.equal(saved.webObservation.messageId,'official-a-message-0001');
+  assert.equal(saved.webObservation.contentSha256,saved.webDispatchIntent.contentSha256);
+  await h.handle('settle',{requestId:row.requestId});
+  assert.equal(h.sent.filter(item=>item.message.kind==='deliver').length,1);
+});
+
+test(`R11 ${version} missing or incomplete composed proof policy cannot dispatch or confirm`,async()=>{
+  for(const policy of [undefined,Object.freeze({}),{...originalAProofPolicy}]){
+    const h=strictAFixture();await h.approve();const row=await h.completed();
+    h.state.originalAProofPolicy=policy;h.restart();
+    await assert.rejects(h.handle('settle',{requestId:row.requestId}),{code:'E_CHAT_DELIVERY_PROOF'});
+    assert.equal(h.sent.filter(item=>item.message.kind==='deliver').length,0);
+    assert.equal((await h.ledger.inspectWebTask(row.requestId)).webDelivery,undefined);
+    h.state.originalAProofPolicy=originalAProofPolicy;h.restart();h.state.deliveryError=true;
+    await assert.rejects(h.handle('settle',{requestId:row.requestId}),/ACK lost/);
+    const saved=await h.ledger.inspectWebTask(row.requestId);
+    h.state.originalAProofPolicy=policy;h.restart();
+    await assert.rejects(h.ledger.confirmWebTaskDelivery(row.requestId,{source,runId:'run-0001',resultId:'result-0001',
+      aiReplyObserved:false,messageId:'official-a-message-0001',contentSha256:saved.webDispatchIntent.contentSha256}),
+      {code:'E_CHAT_DELIVERY_PROOF'});
+    assert.equal((await h.ledger.inspectWebTask(row.requestId)).webDelivery,'dispatching');
+    assert.equal(h.sent.filter(item=>item.message.kind==='deliver').length,1);
+  }
+});
+
+test(`R11 ${version} historical strict delivery without official proof is never projected as confirmed or replayed`,async()=>{
+  const h=strictAFixture();await h.approve();const row=await h.completed();
+  await h.handle('settle',{requestId:row.requestId});
+  // Model an older durable row written by the previous optional-proof path.
+  const saved=h.values[CHATGPT_BRIDGE_LEDGER_KEY][row.requestId];
+  delete saved.webDispatchIntent;delete saved.webObservation.messageId;delete saved.webObservation.contentSha256;
+  h.restart();
+  assert.equal((await h.handle('settle',{requestId:row.requestId})).delivery,'unknown');
+  assert.equal((await h.handle('history',{source},h.panel))[0].receipt.delivery,'unknown');
+  assert.equal((await h.handle('query',{requestId:row.requestId},h.page)).delivery,'unknown');
+  assert.equal(h.sent.filter(item=>item.message.kind==='deliver').length,1);
+});
+
+test(`R11 ${version} lost strict A ACK without an official frozen anchor remains read-only UNKNOWN after restart`,async()=>{
+  const h=strictAFixture();await h.approve();const row=await h.completed();h.state.deliveryError=true;
+  // Model a historical admitted row; recovery must never backfill its missing anchor.
+  delete h.values[CHATGPT_BRIDGE_LEDGER_KEY][row.requestId].originalAAnchorMessageId;
+  await assert.rejects(h.handle('settle',{requestId:row.requestId}),/ACK lost/);
+  h.restart();h.state.deliveryError=false;
+  await h.handle('reconcile');
+  assert.equal((await h.handle('settle',{requestId:row.requestId})).delivery,'unknown');
+  assert.equal(await h.handle('claim'),null);
+  const saved=await h.ledger.inspectWebTask(row.requestId);
+  assert.equal(saved.originalAAnchorMessageId,undefined);
+  assert.equal(saved.webDispatchIntent.anchorMessageId,undefined);
+  assert.equal(saved.webDelivery,'dispatching');
+  assert.equal(h.sent.filter(item=>item.message.kind==='deliver').length,1);
+  assert.equal(h.sent.filter(item=>item.message.kind==='workflow-read-a').length,0);
+});
+
+test(`R11 ${version} V2 uses the same strict original A receipt after its own existing candidate approval`,async()=>{
+  for(const proof of [true,false]){
+    const h=strictAFixture();h.state.v2=true;await h.approve();const row=await h.completed();
+    assert.equal((await h.ledger.inspectWebTask(row.requestId)).intentProtocol,'webflow.task.intent.v2');
+    if(!proof)h.state.deliveryReplyFactory=async()=>({ok:true,data:{sent:true,userObserved:true}});
+    if(proof)await h.handle('settle',{requestId:row.requestId});
+    else await assert.rejects(h.handle('settle',{requestId:row.requestId}),{code:'E_CHAT_DELIVERY_PROOF'});
+    assert.equal((await h.ledger.inspectWebTask(row.requestId)).webDelivery,proof?'delivered':'dispatching');
+    h.restart();await h.handle('settle',{requestId:row.requestId});
+    assert.equal(h.sent.filter(item=>item.message.kind==='deliver').length,1);
+  }
+});
+
+test(`R11 ${version} strict receipt fences a late install change and an atomic receipt write failure without resending`,async()=>{
+  for(const failure of ['late-version','write']){
+    const h=strictAFixture();await h.approve();const row=await h.completed();
+    if(failure==='write')h.state.failDeliveryReceiptWrite=true;
+    else h.state.onTaskVerified=()=>{
+      if(h.sent.some(item=>item.message.kind==='deliver'))
+        h.state.onStorageRead=()=>{h.state.taskEpoch++;};
+    };
+    await assert.rejects(h.handle('settle',{requestId:row.requestId}),
+      {code:failure==='write'?'E_TEST_STORAGE':'E_REVISION'});
+    h.state.onStorageRead=null;h.state.onTaskVerified=null;h.state.failDeliveryReceiptWrite=false;
+    h.restart();await h.handle('settle',{requestId:row.requestId});
+    assert.equal((await h.ledger.inspectWebTask(row.requestId)).webDelivery,'delivered');
+    assert.equal(h.sent.filter(item=>item.message.kind==='workflow-read-a').length,1);
+    assert.equal(h.sent.filter(item=>item.message.kind==='deliver').length,1);
+  }
+});
+
+test(`R11 ${version} lost A ACK recovers by original read-a only across worker restart for V1 and V2`,async()=>{
+  for(const v2 of [false,true]){
+    const h=strictAFixture();h.state.v2=v2;h.state.officialUserMessageId='official-source-a-0001';
+    await h.approve();const row=await h.completed();h.state.deliveryError=true;
+    await assert.rejects(h.handle('settle',{requestId:row.requestId}),/ACK lost/);
+    const frozen=await h.ledger.inspectWebTask(row.requestId);
+    assert.equal(frozen.originalAAnchorMessageId,'official-source-a-0001');
+    assert.deepEqual(Object.keys(frozen.candidate).sort(),['answerKey','candidateId','text','turnKey']);
+    assert.deepEqual(frozen.webDispatchIntent,{runId:'run-0001',resultId:'result-0001',
+      contentSha256:await digestUtf8(h.sent.find(item=>item.message.kind==='deliver').message.text),
+      anchorMessageId:'official-source-a-0001',workflowId:row.requestId,deliveryKey:'result-0001',
+      authorizationRef:frozen.autoGrantId});
+    h.state.replyValid=false;h.restart();
+    await h.handle('reconcile');
+    const saved=await h.ledger.inspectWebTask(row.requestId);
+    assert.equal(saved.webDelivery,'delivered');assert.equal(saved.webObservation.messageId,'official-a-message-0001');
+    assert.equal(saved.webObservation.contentSha256,frozen.webDispatchIntent.contentSha256);
+    const reads=h.sent.filter(item=>item.message.kind==='workflow-read-a');assert.equal(reads.length,1);
+    assert.equal(reads[0].tabId,source.tabId);assert.deepEqual(reads[0].options,{documentId:source.documentId});
+    assert.equal(reads[0].message.anchorMessageId,'official-source-a-0001');
+    await h.handle('settle',{requestId:row.requestId});await h.handle('reconcile');
+    assert.equal((await h.handle('query',{requestId:row.requestId},h.page)).delivery,'delivered');
+    assert.equal(h.sent.filter(item=>item.message.kind==='deliver').length,1);
+    assert.equal(h.sent.filter(item=>item.message.kind==='workflow-read-a').length,1);
+    assert.equal(h.runs.length,1);assert.equal(h.results.length,1);assert.equal(await h.handle('claim'),null);
+  }
+});
+
+test(`R11 ${version} read-a recovery refuses every mismatching echo, ambiguous or missing official message proof`,async()=>{
+  for(const field of ['workflowId','deliveryKey','authorizationRef','sourceUrl','anchorMessageId',
+    'contentSha256','messageId','readOnly','missing','ambiguous','original-anchor']){
+    const h=strictAFixture();h.state.officialUserMessageId='official-source-a-0001';
+    await h.approve();const row=await h.completed();h.state.deliveryError=true;
+    await assert.rejects(h.handle('settle',{requestId:row.requestId}),/ACK lost/);h.restart();
+    h.state.onReadA=data=>{
+      if(field==='missing')delete data.messageId;
+      else if(field==='original-anchor')data.messageId=data.anchorMessageId;
+      else if(field==='ambiguous')h.state.readAReply={ok:false,error:{code:'E_CHAT_A_READBACK',message:'ambiguous'}};
+      else data[field]=field==='readOnly'?false:'wrong value';
+    };
+    await assert.rejects(h.handle('settle',{requestId:row.requestId}),{code:'E_CHAT_DELIVERY_PROOF'});
+    assert.equal((await h.ledger.inspectWebTask(row.requestId)).webDelivery,'dispatching');
+    assert.equal(h.sent.filter(item=>item.message.kind==='deliver').length,1);
+    assert.equal(h.runs.length,1);
+  }
+});
+
+test(`R11 ${version} read-a recovery checks source, install, authorization and original Durable Result before reading`,async()=>{
+  for(const change of ['document','source','permission','revoke','version','denied-result','changed-result','hash']){
+    const h=strictAFixture();h.state.officialUserMessageId='official-source-a-0001';
+    await h.approve();const row=await h.completed();h.state.deliveryError=true;
+    await assert.rejects(h.handle('settle',{requestId:row.requestId}),/ACK lost/);h.restart();
+    if(change==='document')h.state.documentChanged=true;
+    if(change==='source')h.state.sourceValid=false;
+    if(change==='permission')h.state.permissionDenied=true;
+    if(change==='revoke')await h.ledger.revokeRequest({source,requestId:row.requestId});
+    if(change==='version')h.state.taskError=Object.assign(Error('installed version changed'),{code:'E_BRIDGE_REVISION'});
+    if(change==='denied-result')h.state.resultDenied=true;
+    if(change==='changed-result')h.results[0].outcome.valueWire=encodeValue({...h.state.resultValue,replyText:'different B reply'});
+    if(change==='hash')h.values[CHATGPT_BRIDGE_LEDGER_KEY][row.requestId].webDispatchIntent.contentSha256='a'.repeat(64);
+    await assert.rejects(h.handle('settle',{requestId:row.requestId}));
+    assert.equal(h.sent.filter(item=>item.message.kind==='workflow-read-a').length,0);
+    assert.equal(h.sent.filter(item=>item.message.kind==='deliver').length,1);
+    assert.equal((await h.ledger.inspectWebTask(row.requestId)).webDelivery,'dispatching');
+  }
+});
+
+test(`R11 ${version} read-a recovery rechecks document, authorization and installation after awaiting the page`,async()=>{
+  for(const change of ['document','revoke','version','late-version']){
+    const h=strictAFixture();h.state.officialUserMessageId='official-source-a-0001';
+    await h.approve();const row=await h.completed();h.state.deliveryError=true;
+    await assert.rejects(h.handle('settle',{requestId:row.requestId}),/ACK lost/);h.restart();
+    h.state.onReadA=async()=>{
+      if(change==='document')h.state.documentChanged=true;
+      if(change==='revoke')await h.ledger.revokeRequest({source,requestId:row.requestId});
+      if(change==='version')h.state.taskError=Object.assign(Error('installation replaced'),{code:'E_BRIDGE_REVISION'});
+      if(change==='late-version')h.state.onTaskVerified=()=>{h.state.onStorageRead=()=>{h.state.taskEpoch++;};};
+    };
+    await assert.rejects(h.handle('settle',{requestId:row.requestId}));
+    h.state.onStorageRead=null;
+    assert.equal((await h.ledger.inspectWebTask(row.requestId)).webDelivery,'dispatching');
+    assert.equal(h.sent.filter(item=>item.message.kind==='deliver').length,1);
+  }
+});
+
+test(`R11 ${version} replacement worker host cannot acquire or recover original A execution ownership`,async()=>{
+  const h=strictAFixture();h.state.officialUserMessageId='official-source-a-0001';
+  await h.approve();const row=await h.completed();h.state.deliveryError=true;
+  await assert.rejects(h.handle('settle',{requestId:row.requestId}),/ACK lost/);
+  h.restart({newOwner:true});await h.handle('reconcile');
+  await assert.rejects(h.handle('settle',{requestId:row.requestId}),{code:'E_WEB_TASK_OWNER'});
+  assert.equal(h.sent.filter(item=>item.message.kind==='workflow-read-a').length,0);
+  assert.equal(h.sent.filter(item=>item.message.kind==='deliver').length,1);
+  assert.equal(await h.handle('claim'),null);
+});
+
+test(`R11 ${version} strict A receipt stops when source document, permission, authorization or installed version changes`,async()=>{
+  for(const change of ['source','document','permission','revoke','version']){
+    const h=strictAFixture();await h.approve();const row=await h.completed();
+    const reply=h.state.deliveryReplyFactory;
+    h.state.deliveryReplyFactory=async message=>{
+      const receipt=await reply(message);
+      if(change==='source')h.state.sourceValid=false;
+      if(change==='document')h.state.documentChanged=true;
+      if(change==='permission')h.state.permissionDenied=true;
+      if(change==='revoke')await h.ledger.revokeRequest({source,requestId:row.requestId});
+      if(change==='version')h.state.taskError=Object.assign(Error('installed version changed'),{code:'E_BRIDGE_REVISION'});
+      return receipt;
+    };
+    await assert.rejects(h.handle('settle',{requestId:row.requestId}));
+    const saved=await h.ledger.inspectWebTask(row.requestId);
+    assert.equal(saved.webDelivery,'dispatching');assert.notEqual(saved.webObservation.delivery,'confirmed');
+    h.restart();
+    await assert.rejects(h.handle('settle',{requestId:row.requestId}));
+    assert.equal(h.sent.filter(item=>item.message.kind==='deliver').length,1);
+  }
+});
+
+test(`R11 ${version} oversized complete B reply preserves full Durable Result and persistent separate A delivery refusal`,async()=>{
+  for(const v2 of [false,true]){
+    const h=strictAFixture();h.state.v2=v2;h.state.officialUserMessageId='official-source-a-0001';
+    const fullReply='完整回复正文。'.repeat(1500);h.state.resultValue.replyText=fullReply;
+    await h.approve();const row=await h.completed();
+    const originalResult=structuredClone(h.results[0]);
+    await assert.rejects(h.handle('settle',{requestId:row.requestId}),{code:'E_CHAT_CREATE_RESULT'});
+    const saved=await h.ledger.inspectWebTask(row.requestId);
+    assert.equal(saved.webDelivery,undefined);assert.equal(saved.webDispatchIntent,undefined);
+    assert.equal(saved.webObservation.delivery,'refused');
+    assert.match(saved.webObservation.deliveryError.message,/8192/);
+    assert.equal(saved.webObservation.execution,'completed');
+    for(const restart of [false,true]){
+      if(restart)h.restart();
+      await h.handle('reconcile');
+      assert.equal((await h.handle('settle',{requestId:row.requestId})).delivery,'refused');
+      assert.equal((await h.handle('query',{requestId:row.requestId},h.page)).delivery,'refused');
+      const receipt=(await h.handle('history',{source},h.panel))[0].receipt;
+      assert.equal(receipt.execution,'completed');assert.equal(receipt.persistence,'verified');
+      assert.equal(receipt.delivery,'refused');assert.equal(receipt.value.replyText,fullReply);
+      assert.deepEqual(receipt.deliveryError,saved.webObservation.deliveryError);
+      assert.equal(receipt.error,undefined,'delivery refusal is separate from Task outcome');
+    }
+    assert.deepEqual(h.results[0],originalResult);
+    assert.equal(h.sent.filter(item=>['deliver','workflow-read-a'].includes(item.message.kind)).length,0);
+    h.state.resultDenied=true;
+    const denied=(await h.handle('history',{source},h.panel))[0].receipt;
+    assert.equal(denied.value,undefined);assert.equal(denied.deliveryError,undefined);
+  }
+});
+
+test(`R11 ${version} original A readback failure stays visible with frozen SHA after restart without replay`,async()=>{
+  const h=strictAFixture();h.state.officialUserMessageId='official-source-a-0001';
+  await h.approve();const row=await h.completed();h.state.deliveryError=true;
+  await assert.rejects(h.handle('settle',{requestId:row.requestId}),/ACK lost/);
+  const before=await h.ledger.inspectWebTask(row.requestId),result=structuredClone(h.results[0]);
+  h.state.readAReply={ok:false,error:{code:'E_CHAT_A_READBACK',message:'没有唯一匹配的官方新增用户消息'}};
+  for(const restart of [false,true]){
+    if(restart)h.restart();
+    await assert.rejects(h.handle('settle',{requestId:row.requestId}),error=>
+      error.code==='E_CHAT_DELIVERY_PROOF'&&error.message.includes(before.webDispatchIntent.contentSha256)&&
+      error.message.includes('没有唯一匹配的官方新增用户消息'));
+    const saved=await h.ledger.inspectWebTask(row.requestId);
+    assert.equal(saved.webDelivery,'dispatching');assert.equal(saved.webObservation.delivery,'unknown');
+    assert.deepEqual(saved.webDispatchIntent,before.webDispatchIntent);
+    const receipt=(await h.handle('history',{source},h.panel))[0].receipt;
+    assert.equal(receipt.execution,'completed');assert.equal(receipt.persistence,'verified');
+    assert.equal(receipt.delivery,'unknown');assert.equal(receipt.value.replyText,h.state.resultValue.replyText);
+    assert.deepEqual(receipt.deliveryError,saved.webObservation.deliveryError);
+    assert.match(receipt.deliveryError.message,/保持 UNKNOWN，禁止重发/);
+    assert.equal(receipt.error,undefined,'delivery failure does not replace completed Task outcome');
+  }
+  assert.deepEqual(h.results[0],result);assert.equal(h.runs.length,1);
+  assert.equal(h.sent.filter(item=>item.message.kind==='deliver').length,1);
+  h.state.resultDenied=true;
+  const denied=(await h.handle('history',{source},h.panel))[0].receipt;
+  assert.equal(denied.value,undefined);assert.equal(denied.deliveryError,undefined);
+});
+
+}
 
 const source={tabId:4,documentId:'chat-document',url:'https://chatgpt.com/c/background-test'};
 const scope={taskId:'baidu.search.top3',args:{query:'OpenDesk Browser',limit:3},targetUrl:'https://www.baidu.com/',
   sourceOrigin:'https://chatgpt.com',installation:{version:'1.1.2',scriptId:'task:baidu.search.top3:1.1.2',revision:1,
     manifestHash:'a'.repeat(64),contentHash:'b'.repeat(64),installationId:'install-one',generation:1}};
 const event=()=>({addListener(){}});
-function fixture(){
+function fixture({taskScope=scope}={}){
+  const scope=taskScope;
   const values={},sent=[],runs=[],results=[],framework=new Map();
   let serial=0,replyChecks=0,taskChecks=0;
-  const state={deliveryError:false,replyValid:true,sourceValid:true,ensures:0,resultDenied:false,taskEpoch:0};
+  const state={deliveryError:false,replyValid:true,sourceValid:true,ensures:0,resultDenied:false,taskEpoch:0,originalAProofPolicy};
   const storage={get:async key=>{state.onStorageRead?.();return {[key]:structuredClone(values[key])};},
     set:async next=>{
       if(state.failDeliveryReceiptWrite&&Object.values(next[CHATGPT_BRIDGE_LEDGER_KEY]??{})
@@ -33,17 +399,25 @@ function fixture(){
     {contextType:'SIDE_PANEL',documentId:panel.documentId,documentUrl:panel.url,frameId:0}]
     .filter(row=>(!filter.documentIds||filter.documentIds.includes(row.documentId))&&
       (!filter.documentUrls||filter.documentUrls.includes(row.documentUrl))&&filter.contextTypes.includes(row.contextType))},
-    storage:{local:storage,onChanged:event()},permissions:{onRemoved:event(),contains:async()=>true},
+    storage:{local:storage,onChanged:event()},permissions:{onRemoved:event(),contains:async()=>!state.permissionDenied},
     tabs:{onRemoved:event(),get:async()=>({id:4,url:state.sourceValid?source.url:'https://chatgpt.com/c/other'}),
       sendMessage:async(tabId,message,options)=>{sent.push({tabId,message,options});
         if(message.kind==='progress')return {ok:true};
+        if(message.kind==='workflow-read-a'){
+          if(state.readAError)throw state.readAError;
+          const {protocol,kind,...identity}=message;
+          const data={...identity,readOnly:true,messageId:'official-a-message-0001'};
+          await state.onReadA?.(data,message);
+          return state.readAReply??{ok:true,data};
+        }
         if(state.deliveryError)throw Error('ACK lost');
         if(state.deliveryReply)return structuredClone(state.deliveryReply);
         if(state.deliveryReplyFactory)return state.deliveryReplyFactory(message);
         return {ok:true,data:{sent:true,userObserved:true,aiReplyObserved:true}};}},
     webNavigation:{onCommitted:event(),onHistoryStateUpdated:event(),onReferenceFragmentUpdated:event(),getFrame:async()=>({
-      documentId:source.documentId,url:source.url,documentLifecycle:'active'})}};
-  const newLedger=()=>createChatGPTBridgeTriggerLedger({storage,generateId:()=>`11111111-1111-4111-8111-${String(++serial).padStart(12,'0')}`});
+      documentId:state.documentChanged?'replacement-document':source.documentId,url:source.url,documentLifecycle:'active'})}};
+  const newLedger=()=>createChatGPTBridgeTriggerLedger({storage,originalAProofPolicy:state.originalAProofPolicy,
+    generateId:()=>`11111111-1111-4111-8111-${String(++serial).padStart(12,'0')}`});
   let ledger=newLedger();
   const broker={storage:{transaction:async(stores,mode,read)=>read({
     get:async(_store,key)=>stores.includes('frameworkKV')?structuredClone(framework.get(key)):null,
@@ -57,23 +431,31 @@ function fixture(){
       return {run:structuredClone(runs.find(row=>row.runId===runId)),results:state.resultDenied?[]:structuredClone(results),
         resultDeliveryDenied:state.resultDenied?[runId]:[]};}}};
   const newIngress=()=>createWebTaskIngress({api,ledger,loadFoundation:async()=>broker,ensureRunner:async()=>{state.ensures++;},
-    verifyChatGPTCandidate:async()=>{replyChecks++;if(!state.replyValid)throw Object.assign(Error('reply changed'),{code:'E_BRIDGE_CONTEXT'});},
-    verifyTaskScope:async()=>{taskChecks++;state.onTaskVerified?.();return {title:'百度搜索',deadlineMs:30000,installation:scope.installation};}});
+    verifyChatGPTCandidate:async()=>{replyChecks++;if(!state.replyValid)throw Object.assign(Error('reply changed'),{code:'E_BRIDGE_CONTEXT'});
+      return state.officialUserMessageId?{officialUserMessageId:state.officialUserMessageId}:{};},
+    verifyTaskScope:async()=>{taskChecks++;state.onTaskVerified?.();if(state.taskError)throw state.taskError;
+      return {...(state.manifest??{title:'百度搜索',deadlineMs:30000}),installation:scope.installation};}});
   let ingress=newIngress();
   const handle=(kind,body={},sender=owner)=>ingress.handle({protocol:WEB_TASK_PROTOCOL,kind,...body},sender);
   const admit=(candidateId='fresh-candidate')=>ingress.handleChatGPT({protocol:CHATGPT_BRIDGE_PROTOCOL,kind:'auto-task',persistentAuto:true,
-    candidateText:JSON.stringify({protocol:'webflow.task.intent.v1',candidateId,taskId:scope.taskId,args:scope.args,targetUrl:scope.targetUrl}),
+    candidateText:JSON.stringify({protocol:state.v2?'webflow.task.intent.v2':'webflow.task.intent.v1',candidateId,
+      taskId:scope.taskId,args:scope.args,...(state.v2?{}:{targetUrl:scope.targetUrl})}),
     turnKey:'turn-new',answerKey:'answer-new'},page);
   const ready=async row=>ingress.handleChatGPT({protocol:CHATGPT_BRIDGE_PROTOCOL,kind:'background-ready',requestId:row.requestId},page);
   const completed=async(candidateId='fresh-candidate',runId='run-one',resultId='result-one',{lostStartAck=false}={})=>{
-    const row=await admit(candidateId);await ready(row);const request=await handle('claim');
+    const row=await admit(candidateId);
+    if(state.v2){
+      const saved=await ledger.inspectWebTask(row.requestId);
+      await ledger.approveV2Pending({source,requestId:row.requestId,candidate:saved.candidate,scope:saved.scope});
+    }
+    await ready(row);const request=await handle('claim');
     const revision={scriptId:scope.installation.scriptId,revision:1,sourceHash:scope.installation.contentHash};
     const submit=()=>{
       runs.push({tag:'controller-run',namespace:'tool:'+id,requestId:row.requestId,hostDocumentId:owner.documentId,
         sourceKind:'saved',scriptId:revision.scriptId,contentHash:revision.sourceHash,revision,runId,resultId,
-        state:'completed',retirementState:'released'});
+        state:'completed',retirementState:'released',...(state.retainedRun??{})});
       results.push({tag:'controller-result',runId,resultId,state:'completed',sourceKind:'saved',revision,
-        outcome:{ok:true,valueWire:encodeValue({query:'OpenDesk Browser',results:[1,2,3]})}});
+        outcome:{ok:true,valueWire:encodeValue(state.resultValue??{query:'OpenDesk Browser',results:[1,2,3]})}});
       if(lostStartAck)throw Error('start ACK lost');
       return {runId};
     };

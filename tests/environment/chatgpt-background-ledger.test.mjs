@@ -3,6 +3,9 @@ import assert from 'node:assert/strict';
 import {createChatGPTBridgeTriggerLedger,CHATGPT_BRIDGE_LEDGER_KEY} from '../../src/native-agent/chatgpt-bridge-trigger-gate.js';
 import {encodeValue} from '../../src/platform/page-port/codec.js';
 import {createChatGPTBackgroundAdapter} from '../../src/native-agent/chatgpt-background-adapter.js';
+import {requiresChatGPTOriginalAProof,assertOriginalADispatchIntent,assertOriginalAReceipt}
+  from '../../projects/webflow/trusted/chatgpt-result-adapter.js';
+const originalAProofPolicy=Object.freeze({requiresChatGPTOriginalAProof,assertOriginalADispatchIntent,assertOriginalAReceipt});
 
 const source={tabId:9,documentId:'chat-document',url:'https://chatgpt.com/c/background-test'};
 const site={id:'chatgpt',version:'1.0.0',origin:'https://chatgpt.com',adapter:'chatgpt',
@@ -14,7 +17,7 @@ function harness(){
   const data={};let counter=0,writes=0;
   const storage={get:async key=>({[key]:structuredClone(data[key])}),
     set:async value=>{writes++;Object.assign(data,structuredClone(value));}};
-  const create=()=>createChatGPTBridgeTriggerLedger({storage,
+  const create=()=>createChatGPTBridgeTriggerLedger({storage,originalAProofPolicy,
     generateId:()=>`88888888-8888-4888-8888-${String(++counter).padStart(12,'0')}`});
   let ledger=create();
   const candidate=id=>({candidateId:id,turnKey:'turn:'+id,answerKey:'answer:'+id,text:JSON.stringify({
