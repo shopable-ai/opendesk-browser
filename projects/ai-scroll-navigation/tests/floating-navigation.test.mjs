@@ -350,3 +350,26 @@ test('question pager can operate with both whole-conversation edge buttons disab
   assert.equal(host.shadowRoot.querySelector('.counter').textContent,'1/2');
   f.owner.dispose();
 });
+
+
+test('last-turn bottom boundary keeps back navigation usable',()=>{
+  const f=fixture();
+  f.first.setAttribute('data-turn','user');
+  f.last.setAttribute('data-turn','user');
+  f.main.scrollTop=f.main.scrollHeight-f.main.clientHeight;
+  const {dock,host}=f.mount();
+  const get=key=>host.shadowRoot.querySelector('[data-scroll-nav-key="'+key+'"]');
+  const top=get('conversationTop'),previous=get('turnPrevious');
+  const next=get('turnNext'),bottom=get('conversationBottom');
+  assert.ok(top&&previous&&next&&bottom,'four physical buttons stay mounted');
+  assert.equal(top.disabled,false,'top remains available at the bottom');
+  assert.equal(previous.disabled,false,'previous question remains available at the bottom');
+  assert.equal(next.disabled,true,'there is no question after the last loaded one');
+  assert.equal(bottom.disabled,true,'already at the end of the scrollport');
+  f.main.scrollTop=0;dock.refresh();
+  assert.equal(top.disabled,true);
+  assert.equal(previous.disabled,true);
+  assert.equal(next.disabled,false);
+  assert.equal(bottom.disabled,false);
+  f.owner.dispose();
+});
