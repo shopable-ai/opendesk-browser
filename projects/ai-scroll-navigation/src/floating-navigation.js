@@ -143,7 +143,10 @@ export function installFloatingNavigation({doc,win,owner,resolveConversation=nul
       if(next.custom)scrollConfiguredEdge(next,direction,doc,win);
       else jumpConversationEdge(next.main,next.selector,direction,doc,win);
     }
-    schedule();
+    // A successful instant jump changes the scrollport synchronously. Reflect
+    // the new disabled/enabled state now instead of waiting for the 120 ms
+    // coalesced DOM/scroll observer; later native scroll events still resync.
+    refresh();
   }
   function prepare() {
     if (host) return;
@@ -434,9 +437,15 @@ export function installFloatingNavigation({doc,win,owner,resolveConversation=nul
   if(coarsePointer)owner.on(coarsePointer,'change',schedule);
   for (const type of ['popstate','hashchange','pageshow','resize','scroll'])
     owner.on(win,type,schedule,type==='scroll');
-  // Element scrolls usually do not bubble to window; capture them on document
-  // to update boundary-disabled keys after an actual transcript scroll.
-  owner.on(doc,'scroll',schedule,true);
+  // Element scrolls do not generally bubble to window. Capture the actual
+  // transcript scroller, but ignore unrelated nested code/editor scrollports:
+  // those must not trigger a full conversation/layout/obstacle rescan.
+  owner.on(doc,'scroll',event=>{
+    const target=event?.target;
+    if(!target||!binding||target===binding.scroller||target===doc||
+        target===doc.documentElement||target===doc.scrollingElement)
+      schedule();
+  },true);
   if(win.visualViewport)for(const type of ['resize','scroll'])owner.on(win.visualViewport,type,schedule);
   win.navigation&&owner.on(win.navigation,'navigatesuccess',schedule);
   const session={dispose,refresh};

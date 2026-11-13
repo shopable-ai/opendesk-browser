@@ -28,7 +28,7 @@ function fixture({mainLeft=320,columnLeft=320,sidebar=false}={}) {
     events.set(type,listener);listeners.set(target,events);
   },click(target,isTrusted=true){
     listeners.get(target)?.get('click')?.({isTrusted,preventDefault(){},stopPropagation(){}});
-  },dispatch(target,type){listeners.get(target)?.get(type)?.();},
+  },dispatch(target,type,event){listeners.get(target)?.get(type)?.(event);},
   setTimeout(){},observe(){return {disconnect(){}};},
     onDispose:fn=>disposals.push(fn),dispose:()=>disposals.forEach(fn=>fn())};
   const context={main,first,last,scroller:main,site:'chatgpt',selector:'article'};
@@ -142,11 +142,14 @@ test('aligned dock scrolls both directions and updates boundary disabled states'
   const f=fixture(),{dock,host}=f.mount();
   const [top,bottom]=host.shadowRoot.querySelectorAll('button');
   f.owner.click(top,false);assert.equal(f.main.scrollTop,400,'untrusted click does not scroll');
-  f.owner.click(top);dock.refresh();
-  assert.equal(f.main.scrollTop,0);assert.equal(unavailable(top),true);assert.equal(unavailable(bottom),false);
-  f.owner.click(bottom);dock.refresh();
+  f.owner.click(top);
+  assert.equal(f.main.scrollTop,0);
+  assert.equal(unavailable(top),true,'top must disable on click without waiting for scheduled work');
+  assert.equal(unavailable(bottom),false,'bottom must enable immediately on click');
+  f.owner.click(bottom);
   assert.equal(f.main.scrollTop,f.main.scrollHeight-f.main.clientHeight);
-  assert.equal(unavailable(top),false);assert.equal(unavailable(bottom),true);
+  assert.equal(unavailable(top),false,'top must enable immediately on click');
+  assert.equal(unavailable(bottom),true,'bottom must disable on click without scheduled work');
   assert.equal(host.style.left,'328px');
 });
 
@@ -363,6 +366,7 @@ test('question pager groups explicit user/assistant messages into rounds, tracks
   const {dock,host}=f.mount(()=>flags);
   const controls=()=>[...host.shadowRoot.querySelectorAll('button')];
   assert.equal(controls().length,4,'two edge buttons plus previous and next');
+  assert.equal(host.style.top,'648px','compact four-button dock occupies 149px and stays bottom-aligned');
   assert.equal(host.shadowRoot.querySelector('.counter'),null,'counter is off by default and has no layout slot');
   const previous=controls().find(b=>b.dataset.scrollNavKey==='turnPrevious');
   const next=controls().find(b=>b.dataset.scrollNavKey==='turnNext');
@@ -379,6 +383,7 @@ test('question pager groups explicit user/assistant messages into rounds, tracks
   assert.equal(unavailable(next),true,'last round has no successor');
   flags={turnPaging:true,showTurnCount:true};dock.refresh();
   assert.equal(host.shadowRoot.querySelector('.counter').textContent,'2/2');
+  assert.equal(host.style.top,'617px','enabled counter expands dock predictably to 180px');
   assert.equal(controls().length,4,'counter is informational, not a fifth button');
   flags={turnPaging:true,showTurnCount:false};dock.refresh();
   assert.equal(host.shadowRoot.querySelector('.counter'),null,'turning the counter off removes its slot');
@@ -511,5 +516,23 @@ test('last-turn bottom boundary keeps back navigation usable',()=>{
   assert.equal(unavailable(previous),true);
   assert.equal(unavailable(next),false);
   assert.equal(unavailable(bottom),false);
+  f.owner.dispose();
+});
+
+
+test('nested editor scroll does not rescan the whole transcript',()=>{
+  const f=fixture();
+  f.mount();
+  const jobs=[];
+  f.owner.setTimeout=fn=>{jobs.push(fn);};
+  f.owner.dispatch(f.doc,'scroll',{target:f.editor});
+  assert.equal(jobs.length,0,'nested editor scroll should not schedule dock refresh');
+  f.owner.dispatch(f.doc,'scroll',{target:f.main});
+  assert.equal(jobs.length,1,'transcript scroll should schedule one refresh');
+  f.owner.dispatch(f.doc,'scroll',{target:f.main});
+  assert.equal(jobs.length,1,'consecutive transcript scrolls should coalesce');
+  jobs.shift()();
+  f.owner.dispatch(f.doc,'scroll',{target:f.doc});
+  assert.equal(jobs.length,1,'document-level scroll stays supported');
   f.owner.dispose();
 });
