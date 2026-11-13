@@ -44,3 +44,33 @@ test('preview exposes the accepted interaction without adding a second runtime',
   assert.ok(preview.includes("('flag-show-turn-count').checked"));
   assert.ok(preview.includes('id="sim-count" class="sim-count" role="status" aria-live="off" hidden'));
 });
+
+test('R4.4 preview pager returns to current question before previous round',()=>{
+  const start=preview.indexOf('  function simIndex(){');
+  const end=preview.indexOf('  function renderSim(){',start);
+  assert.ok(start>=0&&end>start,'preview exports a bounded offline navigation model');
+  const simScroll={scrollTop:0,scrollHeight:2400,clientHeight:400};
+  const rows=[10,390,770,1150,1530,1910].map(offsetTop=>({offsetTop}));
+  const {simIndex,simDestination}=new Function('simScroll','simRows',
+    preview.slice(start,end)+'\nreturn {simIndex,simDestination};'
+  )(simScroll,()=>rows);
+  simScroll.scrollTop=2000;
+  assert.equal(simIndex(),5);
+  assert.equal(simDestination('previous'),5,'bottom returns to the last question');
+  assert.equal(simDestination('next'),-1,'no next question after the last one');
+  simScroll.scrollTop=1902;
+  assert.equal(simDestination('previous'),4,'at last question go to preceding round');
+  simScroll.scrollTop=320;
+  assert.equal(simIndex(),0);
+  assert.equal(simDestination('previous'),0,'long first reply returns to its question');
+  simScroll.scrollTop=2;
+  assert.equal(simDestination('previous'),-1,'first question is the upper boundary');
+});
+
+test('preview boundary controls remain keyboard focusable and non-navigating',()=>{
+  assert.ok(preview.includes("setAttribute('aria-disabled',String(previousPage<0))"));
+  assert.ok(preview.includes("setAttribute('aria-disabled',String(nextPage<0))"));
+  assert.ok(preview.includes("getAttribute('aria-disabled')==='true')return"));
+  assert.ok(preview.includes("simJump(simDestination('previous'))"));
+  assert.ok(preview.includes("simJump(simDestination('next'))"));
+});

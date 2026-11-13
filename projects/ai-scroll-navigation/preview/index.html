@@ -180,8 +180,10 @@ details{min-width:0}.od-disclosure{border:1px solid var(--od-line);border-radius
 .sim-dock #sim-prev,.sim-dock #sim-next{height:28px;border-radius:9px;box-shadow:0 2px 8px #0001}
 .sim-dock #sim-prev svg,.sim-dock #sim-next svg{width:17px;height:17px}
 :root[data-theme="dark"] .sim-dock button{background:#303239ef;color:#f3f4f8;border-color:#ffffff30}
-.sim-dock button:hover:not(:disabled){background:var(--od-muted);border-color:var(--od-brand)}
-.sim-dock button:disabled{opacity:.48;box-shadow:none}
+.sim-dock button:hover:not([aria-disabled="true"]){background:var(--od-muted);border-color:var(--od-brand)}
+.sim-dock button[aria-disabled="true"]{color:#8a96a6;background:#ffffffc7;border-color:#b8c2d433;box-shadow:none;cursor:default}
+:root[data-theme="dark"] .sim-dock button[aria-disabled="true"]{color:#a2a7b1;background:#303239cc;border-color:#ffffff1c}
+.sim-dock button:focus-visible{outline:3px solid var(--od-focus);outline-offset:2px}
 .sim-dock svg{width:20px;height:20px}
 .sim-dock [hidden]{display:none!important}
 .sim-count{min-width:42px;min-height:28px;border:1px solid var(--od-line);
@@ -751,12 +753,30 @@ details{min-width:0}.od-disclosure{border:1px solid var(--od-line);border-radius
   for(const [question,answer] of examples)simTurns.append(createSimTurn(question,answer));
   const simRows=()=>[...simTurns.children];
   function simIndex(){
-    const rows=simRows();
-    if(simScroll.scrollTop>=simScroll.scrollHeight-simScroll.clientHeight-2)return rows.length-1;
-    const line=simScroll.scrollTop+Math.min(140,simScroll.clientHeight*.18);
+    // Like production, the reading round changes when the question reaches
+    // its landing, not merely when a long answer enters the viewport.
+    const line=simScroll.scrollTop+14;
     let current=0;
-    for(const [index,row] of rows.entries())if(row.offsetTop<=line)current=index;else break;
+    for(const [index,row] of simRows().entries())
+      if(row.offsetTop<=line+2)current=index;else break;
     return current;
+  }
+  function simLanding(index){
+    const row=simRows()[index];
+    if(!row)return null;
+    const max=Math.max(0,simScroll.scrollHeight-simScroll.clientHeight);
+    return Math.max(0,Math.min(max,row.offsetTop-8));
+  }
+  function simDestination(direction){
+    const index=simIndex(),position=simScroll.scrollTop;
+    if(direction==='previous'){
+      // A long answer scrolls back to its own question before going up a round.
+      for(let i=index;i>=0;i--)if(simLanding(i)<position-2)return i;
+    }else if(direction==='next'){
+      for(let i=index+1;i<simRows().length;i++)
+        if(simLanding(i)>position+2)return i;
+    }
+    return -1;
   }
   function renderSim(){
     $('sim-site-name').textContent=({chatgpt:'ChatGPT',deepseek:'DeepSeek',gemini:'Gemini',
@@ -776,29 +796,43 @@ details{min-width:0}.od-disclosure{border:1px solid var(--od-line);border-radius
     const index=simIndex(),length=simRows().length;
     $('sim-count').textContent=(index+1)+'/'+length;
     $('sim-count').setAttribute('aria-label','当前第'+(index+1)+'轮，共'+length+'轮');
-    $('sim-prev').disabled=index===0;$('sim-next').disabled=index===length-1;
-    $('sim-first').disabled=simScroll.scrollTop<=2;
-    $('sim-last').disabled=simScroll.scrollTop>=simScroll.scrollHeight-simScroll.clientHeight-2;
-    // Boundary hints reflect the individual target, not a dock-wide disabled flag.
-    $('sim-prev').title=index===0?'已经是第一轮':'上一轮提问';
-    $('sim-next').title=index===length-1?'已经是最后一轮':'下一轮提问';
-    $('sim-first').title=$('sim-first').disabled?'已在对话顶部':'回到对话顶部';
-    $('sim-last').title=$('sim-last').disabled?'已在对话底部':'跳到对话底部';
+    const previousPage=paging?simDestination('previous'):-1;
+    const nextPage=paging?simDestination('next'):-1;
+    const atTop=simScroll.scrollTop<=2;
+    const atBottom=simScroll.scrollTop>=simScroll.scrollHeight-simScroll.clientHeight-2;
+    // Focusable aria-disabled mirrors production semantics. Disabled controls
+    // reveal the boundary reason, but cannot perform a navigation action.
+    $('sim-prev').setAttribute('aria-disabled',String(previousPage<0));
+    $('sim-next').setAttribute('aria-disabled',String(nextPage<0));
+    $('sim-first').setAttribute('aria-disabled',String(atTop));
+    $('sim-last').setAttribute('aria-disabled',String(atBottom));
+    $('sim-prev').title=previousPage<0?'已到首个已加载提问':
+      previousPage===index?'回到本轮提问':'上一轮提问';
+    $('sim-next').title=nextPage<0?(atBottom?'已到对话底部':'已到末个已加载提问'):'下一轮提问';
+    $('sim-first').title=atTop?'已在对话顶部':'回到对话顶部';
+    $('sim-last').title=atBottom?'已在对话底部':'跳到对话底部';
+    $('sim-prev').setAttribute('aria-label',previousPage===index?'回到本轮提问':'上一轮提问');
     const labels=[['sim-first','置顶'],['sim-prev','上一轮'],['sim-next','下一轮'],['sim-last','底部']];
-    const available=labels.filter(([id])=>!$(id).hidden&&!$(id).disabled).map(([,label])=>label);
+    const available=labels.filter(([id])=>!$(id).hidden&&$(id).getAttribute('aria-disabled')!=='true').map(([,label])=>label);
     $('sim-status').dataset.state=active?'on':'off';
     $('sim-status-text').textContent=!active?$('sim-unavailable').textContent:
       paging?'当前第 '+(index+1)+'/'+length+' 轮 · 可用：'+(available.join('、')||'无'):
       '整段对话导航已启用 · 可用：'+(available.join('、')||'无');
   }
   function simJump(index){
-    const target=simRows()[index];if(!target)return;
-    simScroll.scrollTop=Math.max(0,target.offsetTop-8);renderSim();
+    const landing=simLanding(index);if(landing===null)return;
+    simScroll.scrollTop=landing;renderSim();
   }
-  $('sim-first').onclick=()=>{simScroll.scrollTop=0;renderSim();};
-  $('sim-last').onclick=()=>{simScroll.scrollTop=simScroll.scrollHeight;renderSim();};
-  $('sim-prev').onclick=()=>simJump(simIndex()-1);
-  $('sim-next').onclick=()=>simJump(simIndex()+1);
+  $('sim-first').onclick=()=>{
+    if($('sim-first').getAttribute('aria-disabled')==='true')return;
+    simScroll.scrollTop=0;renderSim();
+  };
+  $('sim-last').onclick=()=>{
+    if($('sim-last').getAttribute('aria-disabled')==='true')return;
+    simScroll.scrollTop=simScroll.scrollHeight;renderSim();
+  };
+  $('sim-prev').onclick=()=>simJump(simDestination('previous'));
+  $('sim-next').onclick=()=>simJump(simDestination('next'));
   $('sim-toggle-count').addEventListener('change',()=>{
     $('flag-show-turn-count').checked=$('sim-toggle-count').checked;
     renderSim();
