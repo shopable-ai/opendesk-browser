@@ -62,13 +62,33 @@ class MockElement {
   setAttribute(key,value){this.attributes.set(key,value);}
   removeAttribute(key){this.attributes.delete(key);}
   append(...nodes){
-    for(const node of nodes)if(node&&typeof node==='object')node.parent=this;
-    this.children.push(...nodes);
-    if(this.tagName==='SELECT')this.options.push(...nodes);
+    for(const node of nodes)this.insertBefore(node,null);
+  }
+  get firstElementChild(){return this.children[0]||null;}
+  get nextElementSibling(){
+    if(!this.parent)return null;
+    return this.parent.children[this.parent.children.indexOf(this)+1]||null;
+  }
+  insertBefore(node,reference){
+    if(reference!==null&&!this.children.includes(reference))throw new Error('NotFoundError');
+    if(node===reference)return node;
+    if(node.tagName==='FRAGMENT'){
+      for(const child of [...node.children])this.insertBefore(child,reference);
+      return node;
+    }
+    if(node.parent){
+      const previous=node.parent;
+      previous.children.splice(previous.children.indexOf(node),1);
+      if(previous.tagName==='SELECT')previous.options=[...previous.children];
+    }
+    this.children.splice(reference===null?this.children.length:this.children.indexOf(reference),0,node);
+    node.parent=this;node.removed=false;
+    if(this.tagName==='SELECT')this.options=[...this.children];
+    return node;
   }
   replaceChildren(...nodes){
-    this.children=nodes.flatMap(node=>node.tagName==='FRAGMENT'?node.children:[node]);
-    if(this.tagName==='SELECT')this.options=[...this.children];
+    for(const child of [...this.children])child.remove();
+    this.append(...nodes);
   }
   attachShadow(){const root=new MockElement('shadow',this.win);root.owner=this;return this.shadow=root;}
   addEventListener(type,handler){
@@ -106,7 +126,15 @@ class MockElement {
       .filter(child=>child.tagName==='BUTTON');
   }
   querySelector(){return null;}
-  remove(){this.removed=true;}
+  remove(){
+    if(this.parent){
+      const previous=this.parent;
+      previous.children.splice(previous.children.indexOf(this),1);
+      if(previous.tagName==='SELECT')previous.options=[...previous.children];
+      this.parent=null;
+    }
+    this.removed=true;
+  }
 }
 function viewFixture(){
   const win={
@@ -207,8 +235,10 @@ test('R4.2 real view controls drag only from handle, persist at release, reset a
     view.setPlacement({v:1,dock:'right',x:0.7,y:0.5});
     assert.equal(f.host().getBoundingClientRect().right,f.win.innerWidth-8);
     assert.equal(writes.length,5,'restoring another tab preference does not re-save');
+    const retiredHost=f.host();
     view.dispose();view.dispose();
-    assert.equal(f.host().removed,true);
+    assert.equal(retiredHost.removed,true);
+    assert.equal(f.doc.body.children.includes(retiredHost),false);
     assert.equal(f.win.events.get('resize').size,0,'no window listener leak');
   }finally{globalThis.CSSStyleSheet=oldSheet;}
 });

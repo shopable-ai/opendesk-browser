@@ -5,6 +5,7 @@ import {load} from 'cheerio';
 import {readFile} from 'node:fs/promises';
 import {runInNewContext} from 'node:vm';
 import {createDynamicReadingToc} from '../src/page/engine.js';
+import {createReadingTocIndex} from '../trusted/model.js';
 import {originStorageKey,preferenceState,updateStored,updateOrigin} from '../src/page/settings.js';
 import {resolveUiLocale,uiMessage} from '../src/page/localization.js';
 import catalog from '../trusted/locales.generated.js';
@@ -52,13 +53,13 @@ function fixture(initial={}){
  const bridge={storage:store,async readContext(){if(contextFailure)throw Error('Revoked');return {locale:'en',catalog,data:store.values};},
   onRequest(fn){handler=fn;return ()=>{handler=null;};}};
  const engine=createDynamicReadingToc({bridge,owner,doc,win,createView(options){
-  const node={removed:false};const view={options,node,render(snapshot){this.snapshot=snapshot;},setLocale(){},placements:[],collapses:[],setPlacement(value){this.placements.push(value);},setCollapsed(value){this.collapses.push(value);},dispose(){node.removed=true;}};
+  const node={removed:false};const view={options,node,renders:0,render(snapshot){this.renders++;this.snapshot=snapshot;},setLocale(){},placements:[],collapses:[],setPlacement(value){this.placements.push(value);},setCollapsed(value){this.collapses.push(value);},dispose(){node.removed=true;}};
   views.push(view);return view;
  }});
  const paint=async()=>{for(const [id,fn] of [...frames]){frames.delete(id);fn();}await tick();};
  const advance=async ms=>{const entry=[...timers].find(([,t])=>t.ms===ms);assert.ok(entry,'scheduled '+ms);timers.delete(entry[0]);await entry[1].fn();await tick();};
  const runNavigation=async(id='h-2')=>{const p=engine.navigate(id,'s-1');await tick();await paint();await paint();return p;};
- return {engine,doc,win,store,owner,views,observers,timers,frames,paint,advance,runNavigation,
+ return {engine,doc,win,store,owner,views,observers,timers,frames,paint,advance,runNavigation,$,
   get handler(){return handler;},get scrolls(){return scrolls;},revoke(){contextFailure=true;}};
 }
 
@@ -115,7 +116,10 @@ test('URL, document, index revision, permission and dispose changes cancel pendi
   const promise=f.engine.navigate('h-2','s-1');await tick();
   if(change==='url')f.win.location=new URL('https://example.org/other');
   if(change==='document')f.doc.documentElement.isConnected=false;
-  if(change==='revision')await f.handler({operation:'toc.snapshot',payload:{refresh:true}});
+  if(change==='revision'){
+   f.$('h2').text('Changed section');
+   await f.handler({operation:'toc.snapshot',payload:{refresh:true}});
+  }
   if(change==='permission')f.store.values.preferences={disabledPages:['https://example.org/article']};
   if(change==='dispose')await f.owner.destroy();
   if(change==='input')f.doc.fire('wheel');
@@ -130,9 +134,43 @@ test('frame timeout fails measured navigation rather than reporting attempted sc
 test('streaming mutations debounce at 280ms and scroll updates active heading',async()=>{
  const f=fixture();await f.engine.ready;const before=(await f.handler({operation:'toc.snapshot'})).revision;
  f.observers[0].fn([]);f.observers[0].fn([]);assert.equal([...f.timers.values()].filter(t=>t.ms===280).length,1);
- await f.advance(280);assert.equal((await f.handler({operation:'toc.snapshot'})).revision,before+1);
+ await f.advance(280);assert.equal((await f.handler({operation:'toc.snapshot'})).revision,before);
  f.win.scrollTo({top:850});f.doc.fire('scroll');await f.paint();
  assert.equal(f.views[0].snapshot.activeId,'h-2');await f.owner.destroy();
+});
+test('unchanged policy polls and unrelated mutations do not render or retire an in-flight navigation',async()=>{
+ const f=fixture();await f.engine.ready;
+ const revision=(await f.handler({operation:'toc.snapshot'})).revision,renders=f.views[0].renders;
+ for(let i=0;i<3;i++)await f.advance(1500);
+ assert.equal(f.views[0].renders,renders);
+ const navigation=f.engine.navigate('h-2','s-1');await tick();
+ f.$('article').append('<p>Streaming body text without a new heading</p>');
+ f.observers[0].fn([]);await f.advance(280);
+ assert.equal((await f.handler({operation:'toc.snapshot'})).revision,revision);
+ assert.equal(f.views[0].renders,renders);
+ await f.paint();await f.paint();assert.equal((await navigation).ok,true);
+ await f.owner.destroy();
+});
+test('continuous streaming flushes changed headings within one second and cleans both timers',async()=>{
+ const f=fixture();await f.engine.ready;
+ const revision=(await f.handler({operation:'toc.snapshot'})).revision;
+ for(let i=0;i<5;i++){f.$('h2').text('Streaming title '+i);f.observers[0].fn([]);}
+ assert.equal([...f.timers.values()].filter(t=>t.ms===1000).length,1);
+ await f.advance(1000);
+ const next=await f.handler({operation:'toc.snapshot'});
+ assert.equal(next.items[1].label,'Streaming title 4');assert.equal(next.revision,revision+1);
+ assert.equal([...f.timers.values()].filter(t=>t.ms===280||t.ms===1000).length,0);
+ f.observers[0].fn([]);await f.owner.destroy();assert.equal(f.timers.size,0);
+});
+test('index preserves resolved object identity for identical content but rejects replaced DOM targets',async()=>{
+ const f=fixture();await f.engine.ready;
+ const index=createReadingTocIndex(f.doc);index.rebuild();
+ const revision=index.revision,original=index.resolve('h-2','s-1');
+ f.$('article').append('<p>Unrelated paragraph</p>');index.rebuild();
+ assert.equal(index.revision,revision);assert.equal(index.resolve('h-2','s-1'),original);
+ f.$('h2').replaceWith('<h2>Details</h2>');original.element.isConnected=false;index.rebuild();
+ assert.equal(index.revision,revision+1);assert.equal(index.resolve('h-2','s-1'),null);
+ assert.notEqual(index.items[1].id,'h-2');await f.owner.destroy();
 });
 test('origin CAS merges concurrent placement/collapse, preserves migration, detects collisions and capacity',async()=>{
  const key=await originStorageKey('https://example.org');assert.match(key,/^origin\.[a-f0-9]{12}$/);

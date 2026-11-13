@@ -1,0 +1,159 @@
+{
+  "status": "SOURCE_BROWSER_PASS",
+  "installedChrome": "NOT_TESTED",
+  "taskSpace": 144,
+  "page": "p3",
+  "beforeWheel": {
+    "scrollTop": 1496,
+    "max": 1496,
+    "changes": 95,
+    "currentVisible": true,
+    "visible": "h-63",
+    "offset": -17.6875,
+    "focused": null,
+    "rect": {
+      "x": 1054,
+      "y": 144.59375,
+      "width": 228,
+      "height": 410.71875
+    }
+  },
+  "polls": {
+    "before": {
+      "scrollTop": 596,
+      "max": 1496,
+      "changes": 95,
+      "currentVisible": false,
+      "visible": "h-26",
+      "offset": 0.09375,
+      "focused": null,
+      "rect": {
+        "x": 1054,
+        "y": 144.59375,
+        "width": 228,
+        "height": 410.71875
+      }
+    },
+    "after": {
+      "scrollTop": 596,
+      "max": 1496,
+      "changes": 95,
+      "currentVisible": false,
+      "visible": "h-26",
+      "offset": 0.09375,
+      "focused": null,
+      "rect": {
+        "x": 1054,
+        "y": 144.59375,
+        "width": 228,
+        "height": 410.71875
+      }
+    }
+  },
+  "anchor": {
+    "before": {
+      "scrollTop": 596,
+      "max": 1496,
+      "changes": 95,
+      "currentVisible": false,
+      "visible": "h-26",
+      "offset": 0.09375,
+      "focused": "h-26",
+      "rect": {
+        "x": 1054,
+        "y": 144.59375,
+        "width": 228,
+        "height": 410.71875
+      }
+    },
+    "after": {
+      "scrollTop": 620,
+      "max": 1519,
+      "changes": 103,
+      "currentVisible": false,
+      "visible": "h-26",
+      "offset": -0.0625,
+      "focused": "h-26",
+      "rect": {
+        "x": 1054,
+        "y": 144.59375,
+        "width": 228,
+        "height": 410.71875
+      }
+    }
+  },
+  "manualActive": {
+    "before": {
+      "scrollTop": 620,
+      "max": 1519,
+      "changes": 103,
+      "currentVisible": false,
+      "visible": "h-26",
+      "offset": -0.0625,
+      "focused": "h-26",
+      "rect": {
+        "x": 1054,
+        "y": 144.59375,
+        "width": 228,
+        "height": 410.71875
+      }
+    },
+    "after": {
+      "scrollTop": 620,
+      "max": 1519,
+      "changes": 106,
+      "currentVisible": false,
+      "visible": "h-26",
+      "offset": -0.0625,
+      "focused": "h-26",
+      "rect": {
+        "x": 1054,
+        "y": 144.59375,
+        "width": 228,
+        "height": 410.71875
+      }
+    }
+  },
+  "resumed": {
+    "scrollTop": 24,
+    "max": 1519,
+    "changes": 109,
+    "currentVisible": true,
+    "visible": "h-1",
+    "offset": -0.15625,
+    "focused": "h-26",
+    "rect": {
+      "x": 1054,
+      "y": 144.59375,
+      "width": 228,
+      "height": 410.71875
+    }
+  },
+  "inputs": {
+    "trusted/view.js": "6de7d87ef26fbc29220ce6d3c0415689429762020bdc7ae85c628cca6792293e",
+    "trusted/model.js": "e4f74c8672a7ab699a9f59b0b975141cfaa7b3f62bdd41f4f734a010c098c35f",
+    "src/page/engine.js": "48b47e001bb6a793d4e6af56bd25b733b38e068afe3fcb505dad3d9655845a94",
+    "tests/fixtures/scroll-stability.html": "5f0c00c09b98012fbe13bb38f9ea772a4f0fdcb9a9ea573150bbf48e549cbd0f"
+  },
+  "keyboardBrowser": "NOT_TESTED: native PageDown movement was inconsistent; DOM keyboard intent is covered separately.",
+  "expertReview": {
+    "agent": "01a1d518-dedc-7133-8c6c-fd00ac0bdf44",
+    "scope": "Independent static architecture and code review; excludes installed Chrome acceptance",
+    "planScore": 96,
+    "codeScore": 95,
+    "unresolvedP1P2": 0
+  },
+  "nodeEvidence": {
+    "engine": 52,
+    "viewScroll": 31,
+    "placement": 13,
+    "headingQuality": 10,
+    "compositePackage": 11
+  },
+  "limitations": [
+    "Target ChatGPT page was opened and an existing overlay appeared temporarily, but installed current-runtime behavior was not stably reproduced.",
+    "Native PageDown behavior in browser fixture was inconsistent; DOM keyboard intent is covered by the project regression.",
+    "Historical overview release fixture expects 1.0.15 whereas current project was 1.1.11 before this change; eight behavior checks passed, release-fixture assertion remains outside this repair.",
+    "Production, actual 1.1.12 installation and target ChatGPT execution are NOT_TESTED."
+  ]
+}

@@ -6,10 +6,11 @@ import {originStorageKey,preferenceState,updateOrigin} from './settings.js';
 export function createDynamicReadingToc({bridge,owner,doc=globalThis.document,win=doc.defaultView,
   createIndex=createReadingTocIndex,createView=createReadingTocView}={}) {
   const index=createIndex(doc),removers=[],paintCancels=new Set(),writes=new Set();
-  let enabled=false,disposed=false,view=null,observer=null,rebuildTimer=0,spyFrame=0,pollTimer=0;
+  let enabled=false,disposed=false,view=null,observer=null,rebuildTimer=0,rebuildDeadline=0,spyFrame=0,pollTimer=0,lifecycle=0;
   let activeId='',href=win.location.href,navEpoch=0,settled=null,policyFlight=null;
   let uiLocale='zh-CN',uiCatalog=null,originKey='',visible=false;
   let unsubscribe=null,appliedPlacement='',appliedCollapsed=false;
+  let renderedView=null,renderedRevision=-1,renderedActiveId='';
   const listen=(target,type,fn,options)=>{target.addEventListener(type,fn,options);
     removers.push(()=>target.removeEventListener(type,fn,options));};
   const scrollRoot=element=>{
@@ -48,7 +49,11 @@ export function createDynamicReadingToc({bridge,owner,doc=globalThis.document,wi
     return offset;
   }
   const maxScroll=root=>Math.max(0,root.scrollHeight-root.clientHeight);
-  const redraw=()=>{if(view)view.render(index.snapshot(activeId));};
+  const redraw=()=>{
+    if(!view||view===renderedView&&index.revision===renderedRevision&&activeId===renderedActiveId)return;
+    view.render(index.snapshot(activeId));
+    renderedView=view;renderedRevision=index.revision;renderedActiveId=activeId;
+  };
   function updateFromScroll() {
     spyFrame=0;
     if(!enabled||!index.items.length||disposed||settled?.running)return;
@@ -66,8 +71,9 @@ export function createDynamicReadingToc({bridge,owner,doc=globalThis.document,wi
   }
   function cancelNavigation(){navEpoch++;settled=null;for(const cancel of [...paintCancels])cancel();}
   function stop(){
-    enabled=false;cancelNavigation();observer?.disconnect();observer=null;
-    view?.dispose();view=null;win.clearTimeout(rebuildTimer);rebuildTimer=0;
+    lifecycle++;enabled=false;cancelNavigation();observer?.disconnect();observer=null;
+    view?.dispose();view=null;renderedView=null;win.clearTimeout(rebuildTimer);rebuildTimer=0;
+    win.clearTimeout(rebuildDeadline);rebuildDeadline=0;
     if(spyFrame)win.cancelAnimationFrame(spyFrame);spyFrame=0;
     for(const remove of removers.splice(0))remove();activeId='';
   }
@@ -80,9 +86,13 @@ export function createDynamicReadingToc({bridge,owner,doc=globalThis.document,wi
   function failClosed(){close();owner.destroy();}
   function scheduleSpy(){if(enabled&&!disposed&&!spyFrame)spyFrame=win.requestAnimationFrame(updateFromScroll);}
   async function rebuild(){
-    rebuildTimer=0;
-    if(!await refreshPolicy()||!enabled||disposed)return;
-    index.rebuild();cancelNavigation();
+    win.clearTimeout(rebuildTimer);rebuildTimer=0;
+    win.clearTimeout(rebuildDeadline);rebuildDeadline=0;
+    const epoch=lifecycle,expected=href;
+    if(!await refreshPolicy()||!enabled||disposed||epoch!==lifecycle||expected!==href||href!==win.location.href)return;
+    const revision=index.revision;
+    index.rebuild();
+    if(index.revision!==revision)cancelNavigation();
     if(!index.items.some(row=>row.id===activeId))activeId=index.items[0]?.id||'';
     redraw();scheduleSpy();
   }
@@ -94,6 +104,8 @@ export function createDynamicReadingToc({bridge,owner,doc=globalThis.document,wi
       (record.type==='childList'&&[...record.addedNodes,...record.removedNodes].length&&
        [...record.addedNodes,...record.removedNodes].every(node=>node.matches?.('[data-opendesk-toc-root]')))))return;
     win.clearTimeout(rebuildTimer);rebuildTimer=win.setTimeout(()=>void rebuild(),280);
+    // Continuous streaming must not postpone a new heading indefinitely.
+    if(!rebuildDeadline)rebuildDeadline=win.setTimeout(()=>void rebuild(),1000);
   }
   function start(){
     enabled=true;

@@ -1,0 +1,72 @@
+<!doctype html>
+<html lang="zh-CN">
+<meta charset="utf-8">
+<title>阅读目录 · 滚动稳定性源码测试</title>
+<style>
+  body{margin:32px;font:16px/1.6 system-ui;background:#f5f6f9;color:#20222b}
+  header{max-width:700px}button{font:inherit;margin:4px;padding:6px 12px}
+  article{max-width:650px}article p{min-height:100px}
+</style>
+<header>
+  <h1>阅读目录滚动测试</h1>
+  <p>直接加载项目索引与视图；仅验证浏览器中的源码行为，不代表应用已安装。</p>
+  <button id="poll">重复相同快照</button>
+  <button id="above">在目录前方插入章节</button>
+  <button id="below">在目录末尾追加章节</button>
+  <button id="active">当前章节移到最后</button>
+</header>
+<main><article></article></main>
+<script type="module">
+  import {createReadingTocIndex} from '../../trusted/model.js';
+  import {createReadingTocView} from '../../trusted/view.js';
+  const article=document.querySelector('article');
+  for(let i=1;i<=80;i++){
+    const h=document.createElement('h2'),p=document.createElement('p');
+    h.textContent=`第 ${i} 章 · 长目录滚动与焦点保留`;p.textContent='用于测试真实布局的章节正文。';
+    article.append(h,p);
+  }
+  const index=createReadingTocIndex(document);index.rebuild();
+  let activeId=index.items.at(-1).id,shadow;
+  // Test instrumentation only: capture the production closed root at creation.
+  const attach=Element.prototype.attachShadow;
+  Element.prototype.attachShadow=function(options){
+    const root=attach.call(this,options);
+    if(this.hasAttribute('data-opendesk-toc-root'))shadow=root;
+    return root;
+  };
+  let view;
+  try{view=createReadingTocView({doc:document,onNavigate:id=>{
+    activeId=id;index.resolve(id,index.items.find(item=>item.id===id)?.sourceId)?.element.scrollIntoView();render();
+  }});}finally{Element.prototype.attachShadow=attach;}
+  const render=()=>view.render(index.snapshot(activeId));
+  let changes=0;
+  const mutations=new MutationObserver(records=>{changes+=records.length;});
+  mutations.observe(shadow,{childList:true,subtree:true,attributes:true,characterData:true});
+  render();
+  const nav=shadow.querySelector('.scroll');
+  const append=above=>{
+    const heading=document.createElement('h2');heading.textContent='新增章节 '+(++insertions);
+    if(above)article.prepend(heading);else article.append(heading);
+    index.rebuild();render();
+  };
+  let insertions=0;
+  document.querySelector('#poll').onclick=render;
+  document.querySelector('#above').onclick=()=>append(true);
+  document.querySelector('#below').onclick=()=>append(false);
+  document.querySelector('#active').onclick=()=>{activeId=index.items.at(-1).id;render();};
+  window.tocFixture={render,append,
+    active(position){activeId=index.items[position].id;render();},
+    read(){const rect=nav.getBoundingClientRect();const visible=[...nav.querySelectorAll('.link')]
+      .find(button=>button.getBoundingClientRect().bottom>rect.top);
+      const current=nav.querySelector('[aria-current]')?.getBoundingClientRect();
+      return {scrollTop:nav.scrollTop,max:nav.scrollHeight-nav.clientHeight,changes,
+        currentVisible:!!current&&current.top>=rect.top-1&&current.bottom<=rect.bottom+1,
+        visible:visible?.dataset.id,offset:visible?.getBoundingClientRect().top-rect.top,
+        focused:shadow.activeElement?.dataset.id||null,
+        rect:{x:rect.x,y:rect.y,width:rect.width,height:rect.height}};},
+    focusVisible(){const rect=nav.getBoundingClientRect();[...nav.querySelectorAll('.link')]
+      .find(button=>button.getBoundingClientRect().top>=rect.top)?.focus({preventScroll:true});},
+    dispose(){mutations.disconnect();view.dispose();}
+  };
+</script>
+</html>

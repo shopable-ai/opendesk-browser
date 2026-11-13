@@ -61,7 +61,7 @@ const CSS=[
 '.ai-promo-copy{margin:4px 0 0;color:#6d7f95;font-size:11px;line-height:1.5}',
 // Available height follows the viewport rather than the narrowed layout width
 // (opening Chrome Side Panel can shrink an otherwise tall desktop to <1100px).
-'.scroll{max-height:min(68dvh,calc(100dvh - 150px),var(--toc-scroll-limit,10000px));overflow:auto;overscroll-behavior:contain;scrollbar-width:thin}',
+'.scroll{max-height:min(68dvh,calc(100dvh - 150px),var(--toc-scroll-limit,10000px));overflow:auto;overscroll-behavior:contain;scrollbar-width:thin;overflow-anchor:none}',
 '.list{list-style:none;margin:0;padding:0;display:grid;gap:1px}',
 '.list li{margin:0;padding-left:calc(var(--depth,0)*12px)}',
 '.list li.answer-start{border-top:1px solid #e9e9ef;margin-top:7px;padding-top:7px}',
@@ -116,6 +116,7 @@ export function readingTocDisplayMode(mode,compact,userSelected=false){
 export function createReadingTocView({doc,win=doc.defaultView,initialPlacement=null,initialCollapsed=false,initialLocale='zh-CN',initialCatalog=readingTocCatalog,onPlacementChange=()=>{},onCollapseChange=()=>{},onNavigate}) {
   // Catalogs are admitted by the trusted controller, never read from page messages.
   let catalog=initialCatalog||readingTocCatalog;
+  let catalogKey=JSON.stringify(catalog);
   let locale=resolveUiLocale(initialLocale,Object.keys(catalog.messages),catalog.sourceLocale);
   const t=(key,params)=>uiMessage(catalog,locale,key,params);
   const host=doc.createElement('div');
@@ -131,13 +132,15 @@ export function createReadingTocView({doc,win=doc.defaultView,initialPlacement=n
   const modes=make('div','modes');modes.hidden=false;modes.setAttribute('role','group');modes.setAttribute('aria-label','目录视图');
   const types=['top','focus','full','ai'],buttons=[];
   let mode='focus',modeExplicit=false,selected='',snapshot={items:[],sources:[],activeId:''},lastKey='';
+  let lastRepresented='',lastMode='',following=true,ownedScrollTop=0;
+  const rows=new Map();
   let collapsed=false,edgeSide='right',expandedFrame=null;
   types.forEach((name,index)=>{
     const button=make('button','mode');button.type='button';const key=['topLabel','focusLabel','fullLabel','aiLabel'][index];
     button.title=t(name==='top'?'topTitle':key);
     button.setAttribute('aria-label',t(key));button.dataset.mode=name;
     button.setAttribute('aria-pressed',String(index===0));button.innerHTML=ICONS[index];
-    button.addEventListener('click',()=>{mode=name;modeExplicit=true;render();});buttons.push(button);modes.append(button);
+    button.addEventListener('click',()=>{mode=name;modeExplicit=true;following=true;lastMode='';render();});buttons.push(button);modes.append(button);
   });
   const grab=make('button','grab');grab.type='button';
   grab.title=t('dragTitle');
@@ -150,6 +153,28 @@ export function createReadingTocView({doc,win=doc.defaultView,initialPlacement=n
   head.append(grab,modes);
   const scroll=make('nav','scroll'),list=make('ul','list'),empty=make('p','empty');
   empty.textContent=t('pageEmpty');scroll.append(list,empty);
+  // Browsing a long outline belongs to the reader. Resume following only
+  // when they scroll the article itself or explicitly choose a TOC mode.
+  const readingInput=event=>event.type!=='keydown'||['ArrowUp','ArrowDown','PageUp','PageDown','Home','End',' '].includes(event.key);
+  const pauseFollowing=event=>{
+    if(!readingInput(event))return;
+    following=false;
+  };
+  for(const type of ['wheel','touchstart','pointerdown','keydown'])
+    scroll.addEventListener(type,pauseFollowing,{passive:true});
+  scroll.addEventListener('scroll',()=>{
+    if(scroll.scrollTop!==ownedScrollTop)following=false;
+    ownedScrollTop=scroll.scrollTop;
+  });
+  const resumeFollowing=event=>{
+    if(event.target===host||event.target===scroll||root.contains?.(event.target))return;
+    if(!readingInput(event))return;
+    following=true;
+  };
+  // A layout-induced document scroll (browser anchoring during streaming) is
+  // not an instruction to stop browsing the outline. Require reading input.
+  for(const type of ['wheel','touchstart','pointerdown','keydown'])
+    doc.addEventListener?.(type,resumeFollowing,{capture:true,passive:true});
   // Reuse the reviewed, localized AI membership/partner contract from the
   // official Side Panel. This trusted view never calls a model or payment API.
   const aiView=make('section','ai-view');aiView.hidden=true;
@@ -406,6 +431,7 @@ export function createReadingTocView({doc,win=doc.defaultView,initialPlacement=n
   const observer=typeof win.ResizeObserver==='function'?new win.ResizeObserver(onMeasuredResize):null;
   observer?.observe(panel);
   function render(next) {
+    if(disposed)return;
     if(next)snapshot=next;
     const {items,sources,activeId,adapter}=snapshot;
     // Website overlay follows the currently read answer automatically.
@@ -418,13 +444,11 @@ export function createReadingTocView({doc,win=doc.defaultView,initialPlacement=n
     // All four modes remain visible even for a single-heading page.
     // AI is intentionally read-only and retains the last free TOC snapshot.
     if(mode==='ai'){
+      if(lastMode==='ai')return;
       scroll.hidden=true;aiView.hidden=false;
       for(const button of buttons)button.setAttribute('aria-pressed',String(button.dataset.mode==='ai'));
-      place();return;
+      lastMode='ai';place();return;
     }
-    scroll.hidden=false;aiView.hidden=true;
-    // The approved four-icon toolbar is always visible, including compact outlines.
-    modes.hidden=false;
     // For short outlines, default to the complete overview; an explicit mode choice still wins.
     const compact=scoped.length<=12;
     const displayMode=readingTocDisplayMode(mode,compact,modeExplicit);
@@ -436,27 +460,55 @@ export function createReadingTocView({doc,win=doc.defaultView,initialPlacement=n
     const show=isChatFull?items:displayMode==='full'?scoped:displayMode==='top'
       ?(overviewShowsAll?scoped:scoped.filter(item=>overviewIds.has(item.id))):
       scoped.filter(item=>item.depth===0||item.topId===active?.topId);
-    const key=displayMode+'|'+(isChatFull?'chat-all':'source')+'|'+selected+'|'+show.map(i=>i.id+'-'+i.label+'-'+i.depth+'-'+i.sourceId).join('|');
-    if(key!==lastKey){
-      const fragment=doc.createDocumentFragment();
+    // Full ChatGPT mode spans answers: changing the active answer is only a
+    // highlight change, not a new list. JSON also avoids delimiter collisions
+    // in arbitrary heading text.
+    const key=JSON.stringify([displayMode,isChatFull?'chat-all':selected,
+      show.map(i=>[i.id,i.label,i.depth,i.sourceId])]);
+    const listChanged=key!==lastKey,modeChanged=lastMode!==displayMode;
+    const representedId=represented?.id||'',activeChanged=representedId!==lastRepresented;
+    if(!listChanged&&!modeChanged&&!activeChanged)return;
+    if(modeChanged){scroll.hidden=false;aiView.hidden=true;}
+    const scrollTop=scroll.scrollTop,outer=scroll.getBoundingClientRect(),focused=root.activeElement;
+    const anchors=listChanged&&!modeChanged?[...rows.values()].map(({button})=>({button,
+      offset:button.getBoundingClientRect().top-outer.top,
+      bottom:button.getBoundingClientRect().bottom-outer.top}))
+      .filter(anchor=>anchor.bottom>0&&anchor.offset<outer.height).sort((a,b)=>a.offset-b.offset):[];
+    if(listChanged){
+      const keep=new Set(show.map(item=>item.id));
+      for(const [id,row] of rows)if(!keep.has(id)){row.li.remove();rows.delete(id);}
+      let cursor=list.firstElementChild;
       for(const [index,item] of show.entries()){
-        const li=make('li');
-        if(isChatFull&&index>0&&show[index-1].sourceId!==item.sourceId)li.classList.add('answer-start');
-        li.style.setProperty('--depth',String(Math.min(item.depth,3)));
-        const button=make('button','link'+(item.depth?' child':''));button.type='button';
-        button.dataset.id=item.id;button.title=item.label;button.setAttribute('aria-label',item.label);
-        const span=make('span','label');span.textContent=item.label;button.append(span);
-        button.addEventListener('click',event=>
-          onNavigate(item.id,item.sourceId,event.isTrusted===true));
-        li.append(button);fragment.append(li);
+        let row=rows.get(item.id);
+        if(!row){
+          const li=make('li'),button=make('button','link'),span=make('span','label');
+          button.type='button';button.dataset.id=item.id;button.append(span);li.append(button);
+          row={li,button,span,item:null};rows.set(item.id,row);
+          button.addEventListener('click',event=>onNavigate(row.item.id,row.item.sourceId,event.isTrusted===true));
+        }
+        const {li,button,span}=row,previous=row.item;
+        const rowClass=isChatFull&&index>0&&show[index-1].sourceId!==item.sourceId?'answer-start':'';
+        if(li.className!==rowClass)li.className=rowClass;
+        if(!previous||previous.depth!==item.depth){
+          li.style.setProperty('--depth',String(Math.min(item.depth,3)));
+          button.className='link'+(item.depth?' child':'');
+        }
+        if(!previous||previous.label!==item.label){
+          button.title=item.label;button.setAttribute('aria-label',item.label);span.textContent=item.label;
+        }
+        row.item=item;
+        if(li!==cursor)list.insertBefore(li,cursor);
+        cursor=li.nextElementSibling;
       }
-      list.replaceChildren(fragment);lastKey=key;
+      if(focused?.isConnected&&root.activeElement!==focused)focused.focus({preventScroll:true});
+      lastKey=key;
     }
-    for(const button of buttons)button.setAttribute('aria-pressed',String(button.dataset.mode===displayMode));
-    for(const button of list.querySelectorAll('button')){
-      if(button.dataset.id===represented?.id)button.setAttribute('aria-current','location');
-      else button.removeAttribute('aria-current');
+    if(modeChanged)for(const button of buttons)button.setAttribute('aria-pressed',String(button.dataset.mode===displayMode));
+    if(activeChanged||listChanged){
+      rows.get(lastRepresented)?.button.removeAttribute('aria-current');
+      rows.get(representedId)?.button.setAttribute('aria-current','location');
     }
+    lastRepresented=representedId;lastMode=displayMode;
     empty.hidden=show.length>0;
     if(placement&&!restoredForContent&&scoped.length){
       // The view mounted before its first snapshot. Resolve persisted Y once
@@ -464,13 +516,20 @@ export function createReadingTocView({doc,win=doc.defaultView,initialPlacement=n
       host.style.removeProperty('--toc-scroll-limit');
       reposition();restoredForContent=true;
     }
-    place();
+    if(listChanged||modeChanged)place();
+    if(listChanged&&!modeChanged){
+      const anchor=anchors.find(entry=>entry.button.isConnected);
+      if(anchor)scroll.scrollTop+=anchor.button.getBoundingClientRect().top-scroll.getBoundingClientRect().top-anchor.offset;
+      else scroll.scrollTop=scrollTop;
+      ownedScrollTop=scroll.scrollTop;
+    }
     if(collapsed)return; // Keep indexing, but hidden content must not auto-scroll.
-    const current=list.querySelector('[aria-current="location"]');
-    if(current){
+    const current=rows.get(representedId)?.button;
+    if(current&&following&&(modeChanged||activeChanged)){
       const outer=scroll.getBoundingClientRect(),inner=current.getBoundingClientRect();
       if(inner.top<outer.top)scroll.scrollTop-=outer.top-inner.top;
       else if(inner.bottom>outer.bottom)scroll.scrollTop+=inner.bottom-outer.bottom;
+      ownedScrollTop=scroll.scrollTop;
     }
   }
   if(placement)reposition();
@@ -481,14 +540,17 @@ export function createReadingTocView({doc,win=doc.defaultView,initialPlacement=n
     setLocale(next,nextCatalog=catalog){
       const updated=nextCatalog||readingTocCatalog;
       const resolved=resolveUiLocale(next,Object.keys(updated.messages),updated.sourceLocale);
-      if(locale===resolved&&catalog===updated)return;
-      catalog=updated;locale=resolved;updateLanguage(); // No heading reindex, navigation, placement or scroll reset.
+      const updatedKey=JSON.stringify(updated);
+      if(locale===resolved&&catalogKey===updatedKey)return;
+      catalog=updated;catalogKey=updatedKey;locale=resolved;updateLanguage(); // No heading reindex, navigation, placement or scroll reset.
     },
     dispose(){
     if(disposed)return;disposed=true;drag=null;observer?.disconnect();
     win.removeEventListener('resize',onViewportChange);
     win.visualViewport?.removeEventListener('resize',onViewportChange);
     win.visualViewport?.removeEventListener('scroll',onViewportChange);
+    for(const type of ['wheel','touchstart','pointerdown','keydown'])
+      doc.removeEventListener?.(type,resumeFollowing,true);
     host.remove();
   }});
 }

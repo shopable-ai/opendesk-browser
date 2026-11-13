@@ -99,6 +99,7 @@ export function createReadingTocIndex(doc) {
   }
   function rebuild() {
     const next=[],groupMap=new Map(),stacks=new Map(),nextSources=[];
+    const previousAdapter=adapter;
     const host=String(doc.location?.hostname||doc.defaultView?.location?.hostname||'').toLowerCase();
     const onChatGPT=host==='chatgpt.com'||host==='chat.openai.com';
     const hasZhihu=!onChatGPT&&Boolean(doc.querySelector('.AnswerItem'));
@@ -145,8 +146,18 @@ export function createReadingTocIndex(doc) {
         parentId:parent?.id||null,topId:parent?parent.topId:id,element:heading};
       next.push(item);stack.push(item);stacks.set(sourceId,stack);
     }
-    model=next;sources=nextSources;byId=new Map(next.map(item=>[item.id,item]));
-    revision++;
+    // Body mutations (streaming paragraphs, clocks, other extensions) do not
+    // necessarily change the outline. Keep both its revision and resolved
+    // item objects stable so an unrelated mutation cannot retire navigation.
+    const fields=['id','sourceId','label','rank','depth','parentId','topId','element'];
+    const unchanged=previousAdapter===adapter&&next.length===model.length&&
+      next.every((item,i)=>fields.every(field=>item[field]===model[i][field]))&&
+      nextSources.length===sources.length&&nextSources.every((source,i)=>
+        source.id===sources[i].id&&source.label===sources[i].label&&source.kind===sources[i].kind);
+    if(!unchanged){
+      model=next;sources=nextSources;byId=new Map(next.map(item=>[item.id,item]));
+      revision++;
+    }
     return snapshot();
   }
   function snapshot(activeId='') {
