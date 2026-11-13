@@ -146,6 +146,12 @@ export function installFloatingNavigation({doc,win,owner,resolveConversation=nul
     style.textContent=`:host{all:initial;display:block;pointer-events:none;color-scheme:light}
       :host(.dark){color-scheme:dark}
       .stack{display:flex;flex-direction:column;align-items:center;gap:6px}
+      /* Keep the production SVG artwork; reduce only the middle pair on desktop. */
+      .stack.paging:not(.compact){gap:3px}
+      .stack.paging:not(.compact) button[data-scroll-nav-key="turnPrevious"],
+      .stack.paging:not(.compact) button[data-scroll-nav-key="turnNext"]{height:28px;border-radius:9px;box-shadow:0 2px 8px #0001}
+      .stack.paging:not(.compact) button[data-scroll-nav-key="turnPrevious"] svg,
+      .stack.paging:not(.compact) button[data-scroll-nav-key="turnNext"] svg{width:17px;height:17px}
       .stack.compact{flex-direction:row}
       button{pointer-events:auto;width:42px;height:42px;border:1px solid #b8c2d44d;
         border-radius:14px;background:#ffffffed;color:#2b3b51;box-shadow:0 4px 18px #0002;
@@ -254,9 +260,12 @@ export function installFloatingNavigation({doc,win,owner,resolveConversation=nul
     const rect=next.main.getBoundingClientRect();
     const compact=win.innerWidth<600;
     buttons.stack.classList.toggle('compact',compact);
+    buttons.stack.classList.toggle('paging',canPage);
     const count=options.length;
-    const extent=options.reduce((n,item)=>n+(item===buttons.counter?(compact?48:28):SIZE),0)
-      +Math.max(0,count-1)*GAP;
+    const gap=canPage&&!compact?3:GAP;
+    const extent=options.reduce((n,item)=>n+(item===buttons.counter?(compact?48:28)
+      :(!compact&&canPage&&(item===buttons.previous||item===buttons.next)?28:SIZE)),0)
+      +Math.max(0,count-1)*gap;
     const width=compact?extent:SIZE;
     const height=compact?SIZE:extent;
     // The transcript content can extend far above/below the screen. Anchor to
