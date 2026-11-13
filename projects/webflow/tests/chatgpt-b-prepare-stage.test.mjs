@@ -90,7 +90,9 @@ test('the existing trigger row persists PREPARE proof after worker restart',asyn
 });
 test('unverified account, incomplete run or unapproved request never becomes a send grant',async()=>{
   const h=fixture(),requestId=await h.admit(),proof=await attestReviewedBPrepare(materials(requestId));
-  await assert.rejects(h.ledger.recordWebTaskPreparedB(requestId,{...proof,profileVerified:true}),
+  // Schema/verified-account rejection happens synchronously before the
+  // existing ledger returns its serialized async persistence operation.
+  assert.throws(()=>h.ledger.recordWebTaskPreparedB(requestId,{...proof,profileVerified:true}),
     {code:'E_CHAT_B_PREPARE'});
   const row=h.store[CHATGPT_BRIDGE_LEDGER_KEY][requestId];
   row.status='prepared';
