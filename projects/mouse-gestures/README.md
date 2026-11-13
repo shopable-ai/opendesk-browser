@@ -1,12 +1,45 @@
-# Mouse Gestures · 独立方向箭头与双段组合识别（0.3.3 / Page revision 7）
+# Mouse Gestures · 普通点击与菜单保护（0.3.5 / Page revision 9）
 
-## 当前安装包（2026-11-13）
+## 当前修复（2026-11-13）
+
+目标：鼠标手势不得吞掉普通点击及网页原有菜单，只有明确识别到可执行动作时才拦截关联事件。
+
+- 移除会拦截普通右键的“手势优先”选项；旧 `preferences.menuPolicy: gesture-first` 立即按菜单保护行为运行，无须先打开设置。下次用户明确保存时经原 CAS 归一为 `native-first`，保留启停、触发方式、轨迹、组合映射及其他字段；打开设置不写入数据。
+- 12px 仍只代表拖动意图。短拖、斜线、折返、不完整或未配置组合、Esc 取消不再拦截菜单、mouseup 或后续点击；有效手势继续保留 56px 阈值及原 450ms/16px/目标匹配保护。
+- 新一次鼠标任意按键点击取消旧手势、关联拦截及等待授权的动作；多键同时按下不当作手势。网页 `role=button/menu/menuitem` 等交互控件及输入、选择操作优先。
+- 原 macOS 菜单先到时，保留菜单并取消本次手势；仍可选 Option / Alt + 左键拖动。不伪造或重放浏览器菜单。
+
+源码测试页：[`tests/fixtures/menu.html`](tests/fixtures/menu.html)。在本项目目录提供本地 HTTP 服务后打开 `/tests/fixtures/menu.html`；它在子框架加载真实识别模块，避免顶层已安装模块重复处理，所有动作只记录，不导航。ego(lite) 真实可信鼠标事件已验证网页菜单打开/选择、普通点击、四方向、短拖、Esc 取消，以及输入框、网页按钮/菜单项排除；这是 `SOURCE_FIXTURE_PASS`，**不证明新版包已安装或物理鼠标的系统菜单时序通过**。
+
+自动验证、正式包摘要与安装状态见下方本轮交付记录。原权限、网页范围、执行时机、同 ID 存储及逐动作授权读取保持原合同；未修改 Browser 框架或 `dist/development`。
+
+### 本轮交付记录
+
+唯一安装包：[`mouse-gestures.opendesk-tool.json`](mouse-gestures.opendesk-tool.json)，由工作区已有 `0.3.4 / revision 8` 升为 `0.3.5 / revision 9`；55,160 字节，SHA-256 `c5e086a7e272a817c9a3fc82c8402c2aced7af118bc3b1dff050f027e35378e7`。原打包器候选构建、门禁、显式晋升及 `--check-project` 同源检查均通过，能力和网页规则与前包一致。
+
+项目组 92/92 Node PASS；收尾补充“松开后等待授权时按 Esc 同时清除菜单拦截”回归，最终手势组 33/33 PASS（与项目组重叠，不相加）。包合同、路径/符号链接、版本/修订晋升、身份/摘要及 document_end 保护共 11/11 PASS；相关 JS 语法和 `git diff --check` 通过。日志及浏览器操作回执保存在本机忽略目录 `artifacts/sidebar-tools/mouse-gestures/menu-repair-01a1d42c/`。浏览器源码验证覆盖收尾前的菜单和控件路径，最后的待决授权 Esc 清理由 Node 回归证明。
+
+当前 `PACKAGE_READY / SOURCE_FIXTURE_PASS / INSTALL_NOT_TESTED / NATIVE_OS_MENU_NOT_TESTED`。当前已安装环境尚未更新到此候选；后续经原「扩展」审阅链同 ID 更新，无需卸载或重建 Browser。此次临时 HTTP 服务及 ego TaskSpace 已释放，未更改原开发 watcher、其他工具或浏览器版本。
+
+## 历史：0.3.4 安装包（2026-11-13）
+
+按用户要求重新编译并升版：工具与 Page 版本由 `0.3.3` 升至 `0.3.4`，Page revision 由 `7` 升至 `8`。默认开启鼠标手势，保留用户主动关闭的设置；本轮仅更新版本信息，业务代码、权限、网页范围及执行时机与上一版一致。
+
+唯一可导入包：[`mouse-gestures.opendesk-tool.json`](mouse-gestures.opendesk-tool.json)，56,840 字节，SHA-256 `4e713d676f6774c940acacb68a1f4a1187afa737ae63ed2a8bc25ddda7af34e2`。
+
+原打包器候选编译、4 项包合同/路径与符号链接/候选晋升/版本升级保护测试、候选身份及内容差异核对通过；正式 JSON 已晋升并通过 `--check-project` 同源检查。默认开启、关闭设置保留及撤权保护复用本对话升版前的 5 项定向 Node PASS（对应业务源码未变）。当前状态 `PACKAGE_READY / INSTALL_NOT_TESTED / CHROME_LATENCY_NOT_TESTED`；已生成新版安装包，未在浏览器中安装。
+
+### 上轮 0.3.3 打包记录（历史）
 
 按用户要求重新编译并升版：工具与 Page 版本由 `0.3.2` 升至 `0.3.3`，Page revision 由 `6` 升至 `7`。沿用原打包器生成候选、验证并晋升；权限、网页范围及执行时机不变，包内业务代码除版本信息外与上一版一致。
 
 唯一可导入包：[`mouse-gestures.opendesk-tool.json`](mouse-gestures.opendesk-tool.json)，56,840 字节，SHA-256 `9935ef955f7372f5f422d2b5a099f5a63bcab8c9b84814e5e66d507ba586bd64`。
 
 候选身份、Page 摘要与源码一致性校验通过。项目与公共工具包检查合计 95/96 通过；唯一失败是未改动的宿主 UI 旧断言（要求 48px，现有样式为 53px），与本次安装包无关，未修改宿主。原始日志：`artifacts/sidebar-tools/mouse-gestures/package-tests.log`。本次状态为 `PACKAGE_READY / INSTALL_NOT_TESTED / CHROME_LATENCY_NOT_TESTED`；新 JSON 需经原「扩展」安装审阅链更新，不代表当前运行版本已更新。
+
+### 导入时仍提示只支持 document_idle
+
+0.3.3 包已声明 `document_end`。旧提示“Page 模块只支持顶层 document_idle / USER_SCRIPT”属于 **Browser 运行代码与包合同不一致**；当前包通过原打包器同源检查，无需再次升版。先让同一 `dist/development` 的开发服务安全应用新 Browser 代码，再重新打开导入界面，沿原审阅链更新；不要卸载清数据或直接修改正式 JSON。源码、磁盘产物和 Chrome 已加载代码分别核对，开发服务连接及已应用 revision 的操作见[持续开发指南](../../docs/framework/extension-development-r131.zh-CN.md#已有扩展迭代与内部页限制处理2026-11-09)。框架运行合同已补入 Page 启动规则，用于阻止安装器与 Worker 混用不同规则；两端都旧时仍需先更新 Browser。
 
 ## 上轮 0.3.2 增量：动作响应与页面启动延迟
 
@@ -31,7 +64,9 @@
 
 > 2026-11-12 本地验收：83/83 Node PASS；Page 开发构建、生产组合包、正式 JSON 同源校验 PASS；ego 独立预览 7 条操作反馈符合预期。正式候选已由 0.2.1 / revision 2 晋升为 0.3.1 / revision 5。真实 macOS / Windows Chrome 安装、原生菜单及撤权仍为 NOT_TESTED，**正式验收未通过**。见[本轮完整报告](docs/final-acceptance-r5.zh-CN.md)。
 
-## R5 · 按下右键即弹原生菜单的兼容修复
+## 历史 R5 · 按下右键即弹原生菜单的兼容修复
+
+> 下述 `gesture-first` 取舍已在 0.3.5 取消；它解释旧版本的菜单干扰，不能作为当前行为或待恢复需求。
 
 **关键结论**：预览练习画布以前只处理左键，却默认提示右键。现在右键练习在画布内拦截右键菜单、按右键拖动识别方向；模拟不导航，画布外与键盘菜单不被拦截。可选 Option / Alt + 左键练习。
 
@@ -83,7 +118,7 @@ node --check projects/mouse-gestures/src/main.js
 - **安装后默认开启**：用户审阅并完成 Chrome 网站权限后，首次无 preferences 记录时 enabled=true，Side Panel 滑块同步显示开启，不增加第二次“启用”步骤。用户明确保存 enabled:false 则一直保持关闭；读取失败、值损坏、权限失败及撤权一律 fail-closed，不将“默认开启”当作授权。
 - 默认触发方式为 **右键拖动**；四方向手势：← 后退、→ 前进、↑ 刷新、↓ 到文档底部。只处理顶层已授权普通 HTTP(S) 网页，不扩容标签、Native 或后台权限。
 - **双阈值**：0–11px 视为普通单击/抖动；从 12px 起作为拖动意图，可显示灰色虚线；净位移达到 56px 且正交最大偏移不超过 28px 才识别方向。明显斜线和折返超过 12px 不执行。Esc、失焦、页面隐藏、停用及销毁取消。
-- **默认原生菜单保护**：contextmenu 如果在移动前到达（常见于 Mac），保留原生菜单并放弃该次手势，不假设网页脚本能事后关闭菜单。用户明确启用手势优先后，才在可处理的可信右键会话中拦截提前到达的菜单；此模式会牺牲可手势区域的普通右键菜单，Shift + 右键可回退原生菜单。移动达到意图阈值而菜单尚未出现时，拦截后续与该次右键会话关联的菜单事件；释放后拦截需匹配按键、元素、位置（16px 内）和最多 450ms 的窗口，不拦截键盘菜单及其他目标。
+- **原生菜单保护**：contextmenu 如果在有效动作识别前到达（常见于 Mac），保留原生或网页菜单并放弃该次手势。只有当前未取消且已识别可执行动作，才拦截后续与该次右键会话关联的菜单事件；释放后拦截需匹配按键、元素、位置（16px 内）和最多 450ms 的窗口，不拦截键盘菜单及其他目标。旧“手势优先”设置也不吞普通右键。
 - **替代方式**：在 Side Panel 的折叠「操作偏好」中，可将触发方式改为 Option/Alt + 左键拖动，作为 Mac 原生菜单提前触发时的保守替代。该方式不能保证所有网页不劫持组合键；仍需真实验收。也可关闭「显示轨迹与动作提示」，不影响方向识别。
 - 轨迹绘制复用受管 Page UI Shadow DOM 的 SVG，pointer-events:none，仅在意图阈值后显示。灰色候选轨迹、蓝色已识别动作及橙色无效反馈均不拦截网页点击；松开、取消或撤权清空路径与监听器。requestAnimationFrame 可用时合并绘图，点数上限 80。
 - 偏好沿用父工具私有 storage.local 与 ETag/CAS，跨 Side Panel 和 Page 使用既有 OpenDeskAppPage / Page Authority；不增加权限或第二套安装器。Page 在执行前通过一次有身份及授权校验的 storage.get 重读设置；1200ms 同步不是跨标签实时广播，有读取未完成时后台轮询让位。本轮 Browser 变更仅为通用 DOM-ready 启动合同，业务仍在本项目。

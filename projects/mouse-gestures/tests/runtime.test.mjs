@@ -100,11 +100,11 @@ test('Page runtime delivers configured combo mappings without a new permission',
   f.ui.destroy();
 });
 
-test('Page runtime passes user-selected gesture-first without changing authority scope',async()=>{
+test('Page runtime normalizes legacy gesture-first without changing authority scope',async()=>{
   const f=runtimeFixture();await f.runtime.ready;
   f.setPreferences({trigger:'right',menuPolicy:'gesture-first',showTrace:true,gestureMappings:{}});
   f.setEnabled(true);await f.runtime.readPolicy();
-  assert.equal(f.state.options.menuPolicy,'gesture-first');
+  assert.equal(f.state.options.menuPolicy,'native-first');
   f.revoke();await assert.rejects(f.runtime.readPolicy(),/E_APP_PAGE_OWNER/);
   assert.equal(f.runtime.isActive(),false);
 });

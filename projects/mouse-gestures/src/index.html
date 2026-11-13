@@ -53,18 +53,7 @@
       </div>
       <p class="mg-note">两种触发方式二选一，切换到 Option / Alt + 左键后不再通过右键触发。</p>
       <label class="mg-trace-option" for="gesture-trace"><input id="gesture-trace" type="checkbox" checked disabled>显示手势轨迹与方向箭头</label>
-      <details class="mg-risk-option">
-        <summary>高级：右键菜单兼容</summary>
-        <p class="mg-note">默认不影响普通右键。手势优先会拦截部分普通右键菜单，只在确有需要时使用。</p>
-        <div class="mg-preference-row">
-          <label for="gesture-menu-policy">菜单处理方式</label>
-          <select id="gesture-menu-policy" aria-describedby="gesture-menu-help" disabled>
-            <option value="native-first">保留原生菜单（默认）</option>
-            <option value="gesture-first">手势优先（影响普通右键）</option>
-          </select>
-        </div>
-        <p id="gesture-menu-help" class="mg-note">保留普通右键菜单。若菜单抢先出现，本次手势安全取消。</p>
-      </details>
+      <p id="gesture-menu-help" class="mg-note">普通点击、短拖和取消手势保留原菜单。只有识别到有效动作时才拦截对应事件。</p>
     </div>
   </details>
   <p id="gesture-error" class="mg-error" role="alert" hidden></p>

@@ -5,8 +5,7 @@ export const GESTURE_LIMITS=Object.freeze({
   ...SEGMENT_LIMITS,jitterPx:8,menuMatchPx:16,menuGuardMs:450
 });
 export const GESTURE_TRIGGERS=Object.freeze({RIGHT:'right',ALT_LEFT:'alt-left'});
-export const GESTURE_MENU_POLICIES=Object.freeze({NATIVE_FIRST:'native-first',GESTURE_FIRST:'gesture-first'});
-const EXCLUDED_TARGETS='input,textarea,select,option,button,a,[contenteditable],[role="textbox"],[role="slider"],[draggable="true"],canvas,video';
+const EXCLUDED_TARGETS='input,textarea,select,option,button,a,label,summary,[contenteditable],[role="button"],[role="textbox"],[role="slider"],[role="combobox"],[role="listbox"],[role="option"],[role="menu"],[role="menubar"],[role="menuitem"],[role="menuitemcheckbox"],[role="menuitemradio"],[draggable="true"],canvas,video';
 const NS='http://www.w3.org/2000/svg';
 const cssName=name=>name.replace(/[A-Z]/g,c=>'-'+c.toLowerCase());
 
@@ -38,7 +37,7 @@ function pageBottom(doc){
 }
 
 export function mountGestures({ui,doc=globalThis.document,win=doc.defaultView,
-  enabled=true,trigger=GESTURE_TRIGGERS.RIGHT,menuPolicy=GESTURE_MENU_POLICIES.NATIVE_FIRST,
+  enabled=true,trigger=GESTURE_TRIGGERS.RIGHT,
   showTrace=true,gestureMappings={},authorizeGesture=()=>true,
   navigateBack=()=>win.history.back(),navigateForward=()=>win.history.forward(),
   reloadPage=()=>win.location.reload(),scrollBottom=()=>win.scrollTo(0,pageBottom(doc))}={}){
@@ -46,8 +45,6 @@ export function mountGestures({ui,doc=globalThis.document,win=doc.defaultView,
     typeof authorizeGesture!=='function')throw Error('E_GESTURE_CONTEXT');
   let disposed=false,allowed=enabled===true;
   let activeTrigger=trigger===GESTURE_TRIGGERS.ALT_LEFT?trigger:GESTURE_TRIGGERS.RIGHT;
-  let activeMenuPolicy=menuPolicy===GESTURE_MENU_POLICIES.GESTURE_FIRST?
-    GESTURE_MENU_POLICIES.GESTURE_FIRST:GESTURE_MENU_POLICIES.NATIVE_FIRST;
   let displayTrace=showTrace!==false,mappings=normalizeGestureMappings(gestureMappings);
   let session=null,releaseGuard=null,epoch=0,frame=null;
   const host=ui.host;
@@ -147,15 +144,17 @@ export function mountGestures({ui,doc=globalThis.document,win=doc.defaultView,
     }).catch(()=>{});
   }
   ui.on(doc,'mousedown',event=>{
+    // Any new physical click cancels a delayed action and its menu/click guard.
+    reset();
     if(event.button!==primaryButton(activeTrigger))return;
-    reset(); // New physical press invalidates an old correlated menu guard.
-    if(!alive()||event.isTrusted!==true||excluded(event,win,activeTrigger))return;
+    if(!alive()||event.isTrusted!==true||event.buttons!==buttonMask(activeTrigger)||
+      excluded(event,win,activeTrigger))return;
     session=createGestureTrack(event.clientX,event.clientY);
     session.target=event.target;session.button=event.button;
   },true);
   ui.on(doc,'mousemove',event=>{
     if(!session||session.stage==='canceled')return;
-    if(!alive()||event.isTrusted!==true||(event.buttons&buttonMask(activeTrigger))===0)return reset();
+    if(!alive()||event.isTrusted!==true||event.buttons!==buttonMask(activeTrigger))return reset();
     if(modified(event,activeTrigger))return reset();
     updateGestureTrack(session,event.clientX,event.clientY);
     if(session.intent)scheduleRender();
@@ -163,18 +162,17 @@ export function mountGestures({ui,doc=globalThis.document,win=doc.defaultView,
   ui.on(doc,'mouseup',event=>{
     if(!session||event.button!==session.button)return;
     const s=session;
-    const trusted=event.isTrusted===true&&alive()&&!modified(event,activeTrigger);
+    const trusted=event.isTrusted===true&&alive()&&!excluded(event,win,activeTrigger)&&
+      (event.buttons&~buttonMask(activeTrigger))===0;
     if(trusted&&s.stage!=='canceled')
       updateGestureTrack(s,event.clientX,event.clientY);
     const selected=gestureOutcome(s,mappings);
     const chosen=trusted&&s.stage!=='canceled'?selected.action:null;
-    const suppress=trusted&&(s.intent||
-      (activeTrigger===GESTURE_TRIGGERS.RIGHT&&activeMenuPolicy===GESTURE_MENU_POLICIES.GESTURE_FIRST));
     reset();
-    if(suppress){
+    if(chosen){
       releaseGuard={button:event.button,target:event.target,x:event.clientX,y:event.clientY,
         at:Date.now(),kind:activeTrigger===GESTURE_TRIGGERS.RIGHT?'menu':'click'};
-      if(s.intent)event.preventDefault();
+      event.preventDefault();
     }
     if(chosen)finish(chosen,epoch);
   },true);
@@ -191,11 +189,10 @@ export function mountGestures({ui,doc=globalThis.document,win=doc.defaultView,
         Math.hypot(event.clientX-session.lastX,event.clientY-session.lastY)>GESTURE_LIMITS.menuMatchPx){
         reset();return;
       }
-      // On macOS the native menu may arrive before the first move. Gesture-first
-      // deliberately suppresses it only after an eligible trusted right press.
-      // Plain right-click on non-excluded background then has NO native menu;
-      // the explicit setting warns users and Shift+right-click bypasses it.
-      if(session.intent||activeMenuPolicy===GESTURE_MENU_POLICIES.GESTURE_FIRST){
+      // Intent alone is not an action. Preserve ordinary and page-owned menus
+      // for jitter, short/invalid drags, unmapped combos and canceled gestures.
+      // Old gesture-first preferences must never suppress a plain right-click.
+      if(session.stage!=='canceled'&&gestureOutcome(session,mappings).action){
         event.preventDefault();event.stopPropagation();return;
       }
       // Native-first protects ordinary right-click and sacrifices this gesture
@@ -213,7 +210,7 @@ export function mountGestures({ui,doc=globalThis.document,win=doc.defaultView,
   },true);
   ui.on(doc,'keydown',event=>{
     if(event.key!=='Escape')return;
-    if(!session){epoch++;return;}
+    if(!session)return reset();
     const hadIntent=session.intent;
     if(hadIntent){
       session.stage='canceled';epoch++;hide();event.preventDefault();
@@ -228,13 +225,11 @@ export function mountGestures({ui,doc=globalThis.document,win=doc.defaultView,
     setOptions(next={}){
       if(disposed)return;
       const requested=next.trigger===GESTURE_TRIGGERS.ALT_LEFT?GESTURE_TRIGGERS.ALT_LEFT:GESTURE_TRIGGERS.RIGHT;
-      const requestedMenuPolicy=next.menuPolicy===GESTURE_MENU_POLICIES.GESTURE_FIRST?
-        GESTURE_MENU_POLICIES.GESTURE_FIRST:GESTURE_MENU_POLICIES.NATIVE_FIRST;
       const visible=next.showTrace!==false;
       const nextMappings=normalizeGestureMappings(next.gestureMappings??mappings);
-      if(requested!==activeTrigger||requestedMenuPolicy!==activeMenuPolicy||visible!==displayTrace||
+      if(requested!==activeTrigger||visible!==displayTrace||
         JSON.stringify(nextMappings)!==JSON.stringify(mappings))reset();
-      activeTrigger=requested;activeMenuPolicy=requestedMenuPolicy;
+      activeTrigger=requested;
       displayTrace=visible;mappings=nextMappings;
     }
   });

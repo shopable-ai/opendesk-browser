@@ -90,11 +90,8 @@ test('practice rejects foreign pointers, stops on Escape and respects disabled t
   assert.match(f.element('practice-status').textContent,/已关闭/);
 });
 
-test('preview keeps formal native-first choice visible while sandbox remains isolated',async()=>{
+test('preview explains ordinary menu protection while practice remains isolated',async()=>{
   const f=await previewFixture();
-  assert.equal(f.element('mock-menu-policy').value,'native-first');
-  f.element('mock-menu-policy').value='gesture-first';
-  f.emit('mock-menu-policy','change');
-  assert.match(f.element('mock-menu-note').textContent,/Shift/);
+  assert.match(f.element('mock-menu-note').textContent,/保留普通点击、短拖和取消后的菜单/);
   assert.equal(f.emit('practice-pad','contextmenu',{button:2}).prevented,true);
 });

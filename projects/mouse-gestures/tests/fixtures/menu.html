@@ -1,0 +1,60 @@
+<!doctype html>
+<meta charset="utf-8">
+<title>Mouse gestures menu regression fixture</title>
+<style>
+  body { font:16px system-ui; margin:24px; }
+  #pad { width:600px; height:200px; background:#edf2fa; margin:16px 0; }
+  #page-menu { border:1px solid #777; padding:12px; }
+  iframe { width:100%; height:650px; border:0; }
+</style>
+<h1>Mouse gestures menu fixture</h1>
+<p>Source fixture only. No installation, permissions or navigation actions.</p>
+<button id="ordinary">Ordinary click</button>
+<input id="input" aria-label="Editable text" value="Menu text">
+<div id="role-button" role="button" tabindex="0">Page button</div>
+<div id="pad">Page context menu area</div>
+<div id="page-menu" role="menu" hidden>
+  <div id="menu-item" role="menuitem" tabindex="0">Page menu action</div>
+</div>
+<output id="result" aria-live="polite"></output>
+<script type="module">
+  if(!location.search.includes('source')){
+    // Installed Page modules are top-frame-only. Keep this source-only fixture
+    // in a child frame, so its input cannot trigger the installed app as well.
+    const frame=document.createElement('iframe');
+    frame.src='menu.html?source';frame.title='Source menu regression fixture';
+    document.body.replaceChildren(frame);
+  }else{
+    const {mountGestures}=await import('../../src/page/gesture.js');
+    const host=document.createElement('div'),content=host.attachShadow({mode:'open'});
+    document.body.append(host);
+    const disposers=[];
+    let stopped=false;
+    const state=window.fixture={actions:[],menus:[],clicks:0,menuClicks:0,events:[],ready:false};
+    const report=()=>{document.querySelector('#result').textContent=JSON.stringify(state);};
+    const ui={host,content,active:()=>!stopped,
+      on(target,type,fn,options){target.addEventListener(type,fn,options);
+        disposers.push(()=>target.removeEventListener(type,fn,options));},
+      onDispose(fn){disposers.push(fn);},
+      destroy(){if(stopped)return;stopped=true;for(const fn of disposers.reverse())fn();host.remove();}};
+    state.gesture=mountGestures({ui,doc:document,win:window,menuPolicy:'gesture-first',
+      navigateBack:()=>{state.actions.push('left');report();},
+      navigateForward:()=>{state.actions.push('right');report();},
+      reloadPage:()=>{state.actions.push('up');report();},
+      scrollBottom:()=>{state.actions.push('down');report();}});
+    document.querySelector('#ordinary').onclick=()=>{state.clicks++;report();};
+    document.querySelector('#menu-item').onclick=()=>{state.menuClicks++;report();};
+    document.querySelector('#pad').addEventListener('contextmenu',event=>{
+      state.menus.push({prevented:event.defaultPrevented,trusted:event.isTrusted});
+      // This is the website's menu, independent of the gesture module.
+      event.preventDefault();document.querySelector('#page-menu').hidden=false;report();
+    });
+    for(const type of ['mousedown','mousemove','mouseup','click','contextmenu'])
+      document.addEventListener(type,event=>{
+        state.events.push({type,button:event.button,buttons:event.buttons,
+          target:event.target.id,prevented:event.defaultPrevented,trusted:event.isTrusted});
+        if(state.events.length>80)state.events.shift();report();
+      });
+    state.ready=true;report();
+  }
+</script>

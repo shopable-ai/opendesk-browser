@@ -4,7 +4,6 @@
   const root=tool?.root,request=tool?.request;
   const toggle=root?.querySelector('#gesture-enabled');
   const triggerControl=root?.querySelector('#gesture-trigger');
-  const menuControl=root?.querySelector('#gesture-menu-policy');
   const menuHelp=root?.querySelector('#gesture-menu-help');
   const compatSummary=root?.querySelector('#gesture-compat-summary');
   const comboSummary=root?.querySelector('#gesture-combo-summary');
@@ -31,7 +30,6 @@
   const showError=message=>{error.textContent=message;error.hidden=!message;};
   const controlsDisabled=disabled=>{
     toggle.disabled=disabled;triggerControl.disabled=disabled;traceControl.disabled=disabled;
-    if(menuControl)menuControl.disabled=disabled;
     if(comboControl)comboControl.disabled=disabled;
     if(comboActionControl)comboActionControl.disabled=disabled;
   };
@@ -39,12 +37,8 @@
     toggle.checked=current.enabled;
     toggle.setAttribute('aria-checked',String(current.enabled));
     triggerControl.value=current.trigger;
-    if(menuControl)menuControl.value=current.menuPolicy;
-    if(menuHelp)menuHelp.textContent=current.menuPolicy==='gesture-first'?
-      '手势优先会拦截部分普通右键菜单，仅在确有需要时使用。按住 Shift 再右键可打开原生菜单；链接、输入框等排除区域仍保留菜单。':
-      '保留普通右键菜单。若 macOS 菜单抢先出现，本次手势会安全取消；可以选择 Option / Alt + 左键作为替代。';
-    if(compatSummary)compatSummary.textContent=current.menuPolicy==='gesture-first'?
-      '手势优先 · 菜单受限':current.trigger==='alt-left'?
+    if(menuHelp)menuHelp.textContent='普通点击、短拖和取消手势保留原菜单。若 macOS 菜单抢先出现，本次手势会安全取消；可选择 Option / Alt + 左键。';
+    if(compatSummary)compatSummary.textContent=current.trigger==='alt-left'?
         'Option / Alt + 左键':'原生菜单优先';
     if(comboSummary){
       const count=Object.keys(current.gestureMappings).length;
@@ -70,7 +64,7 @@
     // Authorized new installations start enabled without writing on first read.
     enabled:saved?.value?.enabled!==false,
     trigger:saved?.value?.trigger==='alt-left'?'alt-left':'right',
-    menuPolicy:saved?.value?.menuPolicy==='gesture-first'?'gesture-first':'native-first',
+    menuPolicy:'native-first',
     showTrace:saved?.value?.showTrace!==false,
     gestureMappings:cleanMappings(saved?.value?.gestureMappings)
   });
@@ -108,7 +102,7 @@
             latest.gestureMappings[key]!==baseline.gestureMappings[key]):
           latest[field]!==baseline[field]);
         if(overlaps){conflict=true;break;}
-        const value={...(before.value||{}),...changes};
+        const value={...(before.value||{}),...changes,menuPolicy:'native-first'};
         if(changes.gestureMappings){
           value.gestureMappings={...cleanMappings(before.value?.gestureMappings)};
           for(const [key,action] of Object.entries(changes.gestureMappings)){
@@ -163,7 +157,6 @@
   }
   toggle.addEventListener('change',()=>void persist({enabled:toggle.checked}));
   triggerControl.addEventListener('change',()=>void persist({trigger:triggerControl.value}));
-  menuControl?.addEventListener('change',()=>void persist({menuPolicy:menuControl.value}));
   traceControl.addEventListener('change',()=>void persist({showTrace:traceControl.checked}));
   comboControl?.addEventListener('change',()=>{
     if(comboActionControl)comboActionControl.value=current.gestureMappings[comboControl.value]||'none';

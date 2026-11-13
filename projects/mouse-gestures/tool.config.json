@@ -1,8 +1,8 @@
 {
   "id": "mouse-gestures",
-  "version": "0.3.3",
+  "version": "0.3.5",
   "title": "鼠标手势",
-  "description": "获准网页上默认开启四方向与有限双段组合；默认保留原生菜单，可主动选择手势优先。",
+  "description": "获准网页上默认开启四方向与有限双段组合；普通点击和菜单优先，仅有效手势拦截对应事件。",
   "format": "opendesk.sidebar-tool.v2",
   "capabilities": ["page.module", "storage.local"],
   "files": {
@@ -13,5 +13,5 @@
   "assets": [],
   "requires": {"browserSdk": "1.0.0"},
   "contributes": {"contextMenus": []},
-  "pageModule": {"revision": 7}
+  "pageModule": {"revision": 9}
 }

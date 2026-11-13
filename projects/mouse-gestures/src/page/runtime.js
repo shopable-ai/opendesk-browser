@@ -38,7 +38,7 @@ export function createMouseGestureRuntime({ui,bridge=globalThis.OpenDeskAppPage,
       const enabled=prefs.enabled!==false;
       gesture.setOptions?.({
         trigger:prefs.trigger==='alt-left'?'alt-left':'right',
-        menuPolicy:prefs.menuPolicy==='gesture-first'?'gesture-first':'native-first',
+        menuPolicy:'native-first', // Legacy gesture-first must preserve ordinary menus too.
         showTrace:prefs.showTrace!==false,
         gestureMappings:prefs.gestureMappings||{}
       });

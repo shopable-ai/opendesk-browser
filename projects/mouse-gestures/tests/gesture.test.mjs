@@ -121,10 +121,13 @@ test('release guard intercepts only matching mouse menu, never keyboard or unrel
   assert.equal(f.dispatch('contextmenu',{clientX:120}).prevented,false);
 });
 
-test('12px intent suppresses matching menu but does not execute 56px action',()=>{
+test('short drag keeps its menu and mouseup when no action is recognized',()=>{
   const f=fixture();rightDown(f);moveLeft(f,182);rightUp(f,182);
   assert.equal(f.backCount(),0);
-  assert.equal(f.dispatch('contextmenu',{clientX:182}).prevented,true);
+  assert.equal(f.dispatch('contextmenu',{clientX:182}).prevented,false);
+  rightDown(f);moveLeft(f,182);
+  assert.equal(f.dispatch('contextmenu',{clientX:182}).stopped,false);
+  assert.equal(rightUp(f,182).prevented,false);
 });
 
 test('backtracking beyond 12px invalidates recognized movement without crossing origin',()=>{
@@ -192,26 +195,28 @@ test('an unfinished second segment cannot execute the first segment',()=>{
   assert.equal(f.backCount(),0);
 });
 
-test('gesture-first suppresses early native menu and completes one right drag', () => {
+test('legacy gesture-first preserves early menu and abandons that drag', () => {
   const f=fixture();
   f.api.setOptions({menuPolicy:'gesture-first'});
   rightDown(f);
   const menu=f.dispatch('contextmenu');
-  assert.equal(menu.prevented,true);
-  assert.equal(menu.stopped,true);
+  assert.equal(menu.prevented,false);
+  assert.equal(menu.stopped,false);
   moveLeft(f);rightUp(f);
-  assert.equal(f.backCount(),1);
+  assert.equal(f.backCount(),0);
   const next=f.dispatch('contextmenu',{clientX:120});
-  assert.equal(next.prevented,true);
+  assert.equal(next.prevented,false);
+  rightDown(f);moveLeft(f);rightUp(f);
+  assert.equal(f.backCount(),1,'a recognized gesture still works when no menu opened early');
   rightDown(f);rightUp(f,200,100);
   assert.equal(f.backCount(),1,'plain right-click cannot execute actions');
 });
 
-test('gesture-first plain right-click suppresses the menu by explicit trade-off', () => {
+test('legacy gesture-first plain right-click preserves its menu', () => {
   const f=fixture();
   f.api.setOptions({menuPolicy:'gesture-first'});
   rightDown(f);
-  assert.equal(f.dispatch('contextmenu').prevented,true);
+  assert.equal(f.dispatch('contextmenu').prevented,false);
   const up=rightUp(f,200,100);
   assert.equal(up.prevented,false);
   assert.equal(f.backCount(),0);
@@ -234,23 +239,23 @@ test('gesture-first preserves keyboard, Shift-right-click, exclusions, disabled 
   assert.equal(f.dispatch('contextmenu').prevented,false);
 });
 
-test('switching menu policy while dragging cancels the in-progress gesture', () => {
+test('switching trigger while dragging cancels the in-progress gesture', () => {
   const f=fixture();
   rightDown(f);moveLeft(f);
-  f.api.setOptions({menuPolicy:'gesture-first'});
+  f.api.setOptions({trigger:'alt-left'});
   rightUp(f);
   assert.equal(f.backCount(),0);
   rightDown(f);
-  assert.equal(f.dispatch('contextmenu').prevented,true);
-  f.api.setOptions({menuPolicy:'native-first'});
+  assert.equal(f.dispatch('contextmenu').prevented,false);
+  f.api.setOptions({trigger:'right'});
   rightDown(f);
   assert.equal(f.dispatch('contextmenu').prevented,false);
 });
 
-test('gesture-first suppresses a plain click menu emitted after release', () => {
+test('legacy gesture-first keeps a plain click menu emitted after release', () => {
   const f=fixture();f.api.setOptions({menuPolicy:'gesture-first'});
   rightDown(f);rightUp(f,200,100);
-  assert.equal(f.dispatch('contextmenu').prevented,true);
+  assert.equal(f.dispatch('contextmenu').prevented,false);
   assert.equal(f.backCount(),0);
 });
 
@@ -292,5 +297,59 @@ test('release menu matching includes the exact distance and time limits', t => {
   now=1450;
   assert.equal(f.dispatch('contextmenu',{clientX:136}).prevented,true);
   rightDown(f);moveLeft(f);rightUp(f);now+=451;
+  assert.equal(f.dispatch('contextmenu',{clientX:120}).prevented,false);
+});
+
+test('invalid, incomplete, unmapped and Escape-canceled gestures preserve menus',()=>{
+  const paths=[[[160,140]],[[110,100],[136,100]],[[110,100],[110,118]],
+    [[110,100],[110,170]],[[110,100],'Escape']];
+  for(const points of paths)for(const beforeRelease of [true,false]){
+    const f=fixture();rightDown(f);let x=200,y=100;
+    for(const point of points){
+      if(point==='Escape')f.dispatch('keydown',{key:'Escape'});
+      else {[x,y]=point;moveLeft(f,x,y);}
+    }
+    if(!beforeRelease)assert.equal(rightUp(f,x,y).prevented,false);
+    const menu=f.dispatch('contextmenu',{clientX:x,clientY:y});
+    assert.equal(menu.prevented,false,JSON.stringify({points,beforeRelease}));
+    assert.equal(menu.stopped,false);
+    rightUp(f,x,y);assert.equal(f.backCount(),0);
+  }
+});
+
+test('another physical button cancels the gesture and clears its menu guard',async()=>{
+  let approve;
+  const f=fixture({authorizeGesture:()=>new Promise(resolve=>{approve=resolve;})});
+  rightDown(f);moveLeft(f);rightUp(f);
+  f.dispatch('mousedown',{button:0,buttons:1,clientX:120});
+  approve(true);await Promise.resolve();await Promise.resolve();
+  assert.equal(f.backCount(),0,'a new click cancels a delayed navigation');
+  assert.equal(f.dispatch('click',{button:0,buttons:0,clientX:120}).prevented,false);
+  assert.equal(f.dispatch('contextmenu',{clientX:120}).prevented,false);
+  rightDown(f);moveLeft(f);
+  f.dispatch('mousemove',{clientX:120,buttons:3});rightUp(f);
+  assert.equal(f.backCount(),0,'a left/right button chord is not a drag gesture');
+});
+
+test('Alt-left short and canceled drags never swallow a subsequent click',()=>{
+  for(const cancel of [false,true]){
+    const f=fixture();f.api.setOptions({trigger:'alt-left'});
+    const alt={button:0,buttons:1,altKey:true};
+    f.dispatch('mousedown',alt);
+    f.dispatch('mousemove',{...alt,clientX:cancel?120:182});
+    if(cancel)f.dispatch('keydown',{key:'Escape'});
+    assert.equal(f.dispatch('mouseup',{...alt,clientX:cancel?120:182}).prevented,false);
+    assert.equal(f.dispatch('click',{...alt,clientX:cancel?120:182}).prevented,false);
+    assert.equal(f.backCount(),0);
+  }
+});
+
+test('Escape during a pending action clears the matching release menu guard',async()=>{
+  let approve;
+  const f=fixture({authorizeGesture:()=>new Promise(resolve=>{approve=resolve;})});
+  rightDown(f);moveLeft(f);rightUp(f);
+  f.dispatch('keydown',{key:'Escape'});
+  approve(true);await Promise.resolve();await Promise.resolve();
+  assert.equal(f.backCount(),0);
   assert.equal(f.dispatch('contextmenu',{clientX:120}).prevented,false);
 });
