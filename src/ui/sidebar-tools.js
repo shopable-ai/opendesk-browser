@@ -1170,9 +1170,128 @@ function createSidebarToolsController({api=globalThis.chrome,doc=globalThis.docu
     const previous=videoSVIPWatchSession;videoSVIPWatchSession=null;
     try{previous?.port?.disconnect();}catch{}
   }
+  // Active sessions live through final delivery; bounded replay records never
+  // consume admission slots or retain a document/cleanup promise.
+  const clipRegionSessions=new Map(),clipRegionReplay=new Map(),clipRegionResults=new WeakMap();
+  let clipRegionGeneration=0;
+  const clipRegionError=()=>new Error('区域点选会话已取消或失效');
+  function rememberClipRegion(id,source,token){
+    clipRegionReplay.delete(id);
+    clipRegionReplay.set(id,{source,token});
+    if(clipRegionReplay.size>128)clipRegionReplay.delete(clipRegionReplay.keys().next().value);
+  }
+  function retireClipRegion(session){
+    // Late settlement of an old request cannot retire a replacement session.
+    if(clipRegionSessions.get(session.id)!==session)return;
+    clipRegionSessions.delete(session.id);
+    rememberClipRegion(session.id,session.source,session.token);
+  }
+  function cancelClipRegion(session){
+    session.cancelled=true;
+    retireClipRegion(session);
+    if(!session.sent||session.finished)return Promise.resolve({cancelled:false});
+    if(!session.cleanup){
+      const {target,tool,epoch,wireId}=session;
+      try{
+        session.cleanup=Promise.resolve(api.tabs.sendMessage(target.tabId,{
+          protocol:CLIP_PROTOCOL,operation:'clip.region.cancel',toolId:tool.id,
+          expectedUrl:target.url,installEpoch:epoch,pickId:wireId
+        },{frameId:0,documentId:target.documentId}))
+          .then(reply=>({cancelled:reply?.ok===true&&reply.data?.cancelled===true}),()=>({cancelled:false}));
+      }catch{session.cleanup=Promise.resolve({cancelled:false});}
+    }
+    return session.cleanup;
+  }
+  function clearClipRegions(){
+    clipRegionGeneration++;
+    for(const session of clipRegionSessions.values())void cancelClipRegion(session);
+    clipRegionSessions.clear();clipRegionReplay.clear();
+  }
+  function prepareClipRegion(operation,payload,tool,source,token,epoch){
+    const id=payload?.pickId;
+    if(tool.id!=='web-markdown-clipper'||typeof id!=='string'||!/^[A-Za-z0-9_-]{8,64}$/.test(id))
+      throw new Error('区域点选会话无效');
+    let session=clipRegionSessions.get(id);
+    const previousOwner=session||clipRegionReplay.get(id);
+    if(previousOwner&&(previousOwner.source!==source||previousOwner.token!==token))throw clipRegionError();
+    if(operation==='clip.region.cancel'){
+      if(session)return {cancelResult:cancelClipRegion(session)};
+      // No target is captured for an unknown cancellation. Remember it so a
+      // start delayed by authorization cannot create a picker afterwards.
+      rememberClipRegion(id,source,token);
+      return {cancelResult:Promise.resolve({cancelled:false})};
+    }
+    if(session||clipRegionReplay.has(id))throw clipRegionError();
+    if(!currentPageTarget?.capture||!currentPageTarget?.revalidate||!api.tabs?.sendMessage)
+      throw new Error('网页剪藏不可用');
+    for(const previous of clipRegionSessions.values())void cancelClipRegion(previous);
+    session={id,source,token,tool,epoch,target:{...currentPageTarget.capture()},
+      wireId:crypto.randomUUID(),cancelled:false,sent:false,finished:false};
+    clipRegionSessions.set(id,session);
+    return session;
+  }
+  async function requestClipRegion(operation,payload,tool,source,token,epoch,session){
+    // The receiver registers this exact object before queuing or authorization.
+    // Never reconstruct it from a replay ID after an asynchronous wait.
+    if(!session)throw clipRegionError();
+    if(operation==='clip.region.cancel')return session.cancelResult;
+    const id=payload.pickId;
+    if(session.id!==id||session.tool!==tool||session.source!==source||session.token!==token||session.epoch!==epoch)
+      throw clipRegionError();
+    const assertCurrent=()=>{
+      assertSession(source,token);
+      if(session.cancelled||clipRegionSessions.get(id)!==session)throw clipRegionError();
+    };
+    const authorize=async()=>{
+      assertCurrent();
+      await assertSidebarToolEnabled(api,tool.id);
+      await assertInstalledTool(tool,epoch,'剪藏期间安装身份已变化');
+      const grants=(await api.storage.local.get(CLIP_SITE_STORE))[CLIP_SITE_STORE];
+      if(!session.target.origin||!installedSiteAllowed(grants,tool.id,session.target.url))
+        throw new Error('网站剪藏授权已撤销');
+      await currentPageTarget.revalidate(session.target);
+      assertCurrent();
+    };
+    try{
+      await locked('tool:'+tool.id,authorize);
+      assertCurrent();
+      session.sent=true;
+      // Deliberately outside the storage/lifecycle lock: cancel must reach the
+      // original document while the Page waits for the user's selection.
+      const response=await api.tabs.sendMessage(session.target.tabId,{
+        protocol:CLIP_PROTOCOL,operation,toolId:tool.id,expectedUrl:session.target.url,
+        installEpoch:epoch,pickId:session.wireId
+      },{frameId:0,documentId:session.target.documentId});
+      assertCurrent();
+      await locked('tool:'+tool.id,authorize);
+      assertCurrent();
+      if(!response?.ok)throw new Error(String(response?.error||'剪藏失败').slice(0,200));
+      const data=response.data,encoder=new TextEncoder();
+      // Bound each public field, not its JSON serialization: escaping can
+      // expand a valid Markdown byte sixfold (e.g. control characters).
+      const fields={source:8192,title:2000,site:1000,capturedAt:64,mode:32};
+      if(!data||typeof data!=='object'||Array.isArray(data)||
+         Object.keys(data).some(key=>!['markdown','loadedOnly','streaming',...Object.keys(fields)].includes(key))||
+         typeof data.markdown!=='string'||encoder.encode(data.markdown).length>160000||
+         typeof data.source!=='string'||
+         Object.entries(fields).some(([key,max])=>data[key]!==undefined&&
+           (typeof data[key]!=='string'||encoder.encode(data[key]).length>max))||
+         ['loadedOnly','streaming'].some(key=>data[key]!==undefined&&typeof data[key]!=='boolean')||
+         (data.mode!==undefined&&data.mode!=='clip.region'))
+        throw new Error('剪藏响应过大或格式无效');
+      session.finished=true;
+      clipRegionResults.set(data,{id,session});
+      return data;
+    }finally{
+      // A failed/unknown start is cleaned once, never replayed as a new pick.
+      if(!session.finished)void cancelClipRegion(session);
+      session.finished=true;
+    }
+  }
   let sidebarAI=null;
   let localTaskBridge=null;
   function destroyFrame() {
+    clearClipRegions();
     clearToolNoticeHandles(true);
     cancelActionReview('invalidated');
     confirmationNavigation=null;cancelledConfirmations.clear();confirmationCancellationOverflow=false;editRevision++;
@@ -2331,10 +2450,10 @@ function createSidebarToolsController({api=globalThis.chrome,doc=globalThis.docu
       :{status:'unavailable',reasonCode:String(target?.reason||'E_NO_ACTIVE_TAB').slice(0,64),
         message:String(target?.message||'当前没有可用的普通网页').slice(0,250)};
   }
-  async function dispatch(operation,payload,tool,source,token,revocationEpoch,verifiedGesture=false,exportClick=null,directExportPort=null,assertWrite=null,proxyAction=null,observeClick=null) {
+  async function dispatch(operation,payload,tool,source,token,revocationEpoch,verifiedGesture=false,exportClick=null,directExportPort=null,assertWrite=null,proxyAction=null,observeClick=null,regionRequest=null) {
     proxyAction??=proxyActionGate.begin(tool.id,operation);
     proxyAction.assertCurrent();
-    const videoEnableEpoch=videoShortcutEpoch;
+    const videoEnableEpoch=videoShortcutEpoch,regionGeneration=clipRegionGeneration;
     assertSession(source,token);
     if(!readOnlyPreview)await assertSidebarToolEnabled(api,tool.id);
     assertSession(source,token);
@@ -3593,6 +3712,10 @@ function createSidebarToolsController({api=globalThis.chrome,doc=globalThis.docu
         operation:payload?.operation,payload:payload?.payload??{}});
       await authorize();return result;
     }
+    if(operation==='clip.region'||operation==='clip.region.cancel'){
+      if(regionGeneration!==clipRegionGeneration)throw clipRegionError();
+      return requestClipRegion(operation,payload,tool,source,token,revocationEpoch,regionRequest);
+    }
     return locked('tool:'+tool.id,async()=>{
       assertSession(source,token);
       await assertSidebarToolEnabled(api,tool.id);
@@ -3863,11 +3986,6 @@ function createSidebarToolsController({api=globalThis.chrome,doc=globalThis.docu
         return data;
       }
       if(CLIP_OPERATIONS.includes(operation)){
-        if(operation.startsWith('clip.region')){
-          if(tool.id!=='web-markdown-clipper'||typeof payload?.pickId!=='string'||
-             !/^[A-Za-z0-9_-]{8,64}$/.test(payload.pickId))
-            throw new Error('区域点选会话无效');
-        }
         if(!currentPageTarget?.capture||!currentPageTarget?.revalidate||!api.tabs?.sendMessage)
           throw new Error('网页剪藏不可用');
         const target=currentPageTarget.capture();
@@ -3878,16 +3996,14 @@ function createSidebarToolsController({api=globalThis.chrome,doc=globalThis.docu
         assertSession(source,token);
         const response=await api.tabs.sendMessage(target.tabId,{
           protocol:CLIP_PROTOCOL,operation,toolId:tool.id,expectedUrl:target.url,
-          installEpoch:revocationEpoch,
-          ...(operation.startsWith('clip.region')?{pickId:payload.pickId}:{})
+          installEpoch:revocationEpoch
         },{frameId:0,documentId:target.documentId});
         assertSession(source,token);
         await currentPageTarget.revalidate(target);
         if(!response?.ok)throw new Error(String(response?.error||'剪藏失败').slice(0,200));
-        if(operation==='clip.region.cancel')return {cancelled:response.data?.cancelled===true};
         const data=response.data;
         if(!data||typeof data.markdown!=='string'||typeof data.source!=='string'||
-          new TextEncoder().encode(JSON.stringify(data)).length>(operation==='clip.region'?176000:160000))
+          new TextEncoder().encode(JSON.stringify(data)).length>160000)
           throw new Error('剪藏响应过大或格式无效');
         const latest=(await api.storage.local.get(CLIP_SITE_STORE))[CLIP_SITE_STORE];
         if(!installedSiteAllowed(latest,tool.id,target.url))
@@ -4243,6 +4359,14 @@ function createSidebarToolsController({api=globalThis.chrome,doc=globalThis.docu
       return;
     }
     if(rateExceeded){reply(false,null,new Error(knowledgeOperation(message.operation)?'工具请求过于频繁，请稍后重试':'工具请求过于频繁，请一分钟后重试'));return;}
+    let regionRequest=null;
+    if(message.operation==='clip.region'||message.operation==='clip.region.cancel'){
+      try{
+        assertSession(source,token);
+        if(readOnlyPreview||!tool.capabilities.includes(CLIP_CAPABILITY))throw clipRegionError();
+        regionRequest=prepareClipRegion(message.operation,message.payload,tool,source,token,revocationEpoch);
+      }catch(error){reply(false,null,error);return;}
+    }
     const proxyAction=proxyActionGate.begin(tool.id,message.operation);
     // Serialize mutations for each tool; concurrent set operations cannot overwrite each other.
     const previous=queued.get(tool.id)||Promise.resolve();
@@ -4255,7 +4379,7 @@ function createSidebarToolsController({api=globalThis.chrome,doc=globalThis.docu
     const work=previous.catch(()=>{}).then(()=>{
       checkVideoEnable();
       proxyAction.assertCurrent();
-      return dispatch(message.operation,message.payload,tool,source,token,revocationEpoch,verifiedGesture,exportClick,exportPort,null,proxyAction,observeClick);
+      return dispatch(message.operation,message.payload,tool,source,token,revocationEpoch,verifiedGesture,exportClick,exportPort,null,proxyAction,observeClick,regionRequest);
     });
     if(message.operation==='storage.set')queued.set(tool.id,work);
     work.then(async result=>{
@@ -4269,8 +4393,24 @@ function createSidebarToolsController({api=globalThis.chrome,doc=globalThis.docu
          (!Number.isFinite(result?.expiresAt)||Date.now()>=result.expiresAt))
         throw Object.assign(new Error('选区在交付前已过期；不能重放旧领取'),{code:'E_LAUNCH_EXPIRED'});
       checkVideoEnable();
+      if(message.operation==='clip.region'){
+        const receipt=clipRegionResults.get(result);
+        const assertRegion=()=>{
+          if(!receipt||clipRegionSessions.get(receipt.id)!==receipt.session||
+             receipt.session.cancelled||receipt.session.source!==source||receipt.session.token!==token)
+            throw clipRegionError();
+          assertSession(source,token);
+        };
+        assertRegion();await currentPageTarget.revalidate(receipt.session.target);assertRegion();
+      }
       reply(true,result);
-    }).catch(error=>reply(false,null,error));
+    }).catch(error=>reply(false,null,error)).finally(()=>{
+      if(regionRequest&&message.operation==='clip.region'){
+        if(!regionRequest.finished)void cancelClipRegion(regionRequest);
+        regionRequest.finished=true;
+        retireClipRegion(regionRequest);
+      }
+    });
     work.finally(()=>{if(queued.get(tool.id)===work)queued.delete(tool.id);}).catch(()=>{});
   }
   const admittedList=admittedSidebarToolPackages;
@@ -4316,6 +4456,8 @@ function createSidebarToolsController({api=globalThis.chrome,doc=globalThis.docu
     }
     if([SIDEBAR_TOOL_ENABLE_STORE,TOOL_REVOCATION_EPOCHS_STORE,SIDEBAR_TOOL_STORE].some(key=>Object.hasOwn(changes||{},key)))
       if(pendingAction)cancelActionReview('invalidated');
+    if([CLIP_SITE_STORE,SIDEBAR_TOOL_ENABLE_STORE,TOOL_REVOCATION_EPOCHS_STORE,SIDEBAR_TOOL_STORE]
+      .some(key=>Object.hasOwn(changes||{},key)))clearClipRegions();
     if(Object.hasOwn(changes||{},SIDEBAR_TOOL_ENABLE_STORE)){
       enableReadEpoch++;enableRecords=changes[SIDEBAR_TOOL_ENABLE_STORE]?.newValue;
       try{requireToolEnableRecords(enableRecords);enableReadError=false;}catch{enableReadError=true;}
@@ -6069,6 +6211,7 @@ function createSidebarToolsController({api=globalThis.chrome,doc=globalThis.docu
       const requested=tocLanguageSelect.value;
       patchToolField(view,tocLanguageSelect,{disabled:true});
       void toolLocaleService.setToolLocale(tool.id,requested==='follow'?null:requested).then(()=>{
+      clearClipRegions();
         if(!disposed&&active===tool)notice(toolManagementText(localeController?.getLocale?.()||'zh-CN','languageSaved')+
           (languageNames[toolLocaleContext(tool).locale]||toolLocaleContext(tool).locale)+
           toolManagementText(localeController?.getLocale?.()||'zh-CN',requested==='follow'?'languageFollowScope':'languageToolScope'));

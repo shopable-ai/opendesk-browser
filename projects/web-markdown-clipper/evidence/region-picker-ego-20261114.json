@@ -1,0 +1,238 @@
+{
+  "schema": "opendesk.web-clipper.core-test-evidence.v1",
+  "observedAt": "2026-11-13T18:49:28.353546+00:00",
+  "goal": "一次点选单条长回答已加载 DOM，生成 Markdown；可修正与取消；失效结果不可回填；复用复制/下载及主动保存读回。",
+  "phase": "CORE_DEVELOPMENT_VERIFIED",
+  "repositoryHeadBeforeTaskCommit": "0936871497508e2f7369439f1f1ffdf8590f376b",
+  "branch": "main",
+  "sourceSha256": {
+    "projects/web-markdown-clipper/trusted/region-picker.js": "0b0e8212cb6b5a1993327ed1333b67d11ea093bb10f44145deaeba00c5164d4a",
+    "projects/web-markdown-clipper/trusted/page.js": "f6fa8191bcc26d94d5f942a9863f0147acbefd5b1421343c562f0eb0c1c8e0fe",
+    "examples/shared/markdown/convert.js": "d2d51702eaaa9f7bdeb95ac949fdeb2d0ee6b3cff2c4a1d2961a45b45319393c",
+    "src/ui/sidebar-tools.js": "8b5c2fcc87e00e1b3d776b0150840751630668af886ebb688b944f17231f0dfc",
+    "projects/web-markdown-clipper/src/main.js": "744e1fdcc00a215e884a2de04fb0873e5be1d21dc7138090b9623d418a0a0041",
+    "projects/web-markdown-clipper/tests/region-host.test.mjs": "23440f63b1477182f096149ac12a89b0d5f5444b6cd186d12da7ce73dfbdd3f7",
+    "projects/web-markdown-clipper/tests/region-browser-checks.mjs": "fd910fbd6fcb0d7858c890e08e75e466d73b67d73d2cb3faeeb91a9e284c1a3d",
+    "projects/web-markdown-clipper/tests/fixtures/region-picker.html": "eee05fa365b4e107bc19f82b82367ec1ee49a567301f72ba7cfca2052bc82271"
+  },
+  "sourceBrowser": {
+    "level": "SOURCE_BROWSER_FIXTURE",
+    "browser": "ego-browser",
+    "checks": [
+      {
+        "id": "long-answer-format-isolation",
+        "status": "PASS",
+        "bytes": 3212,
+        "chapters": 36
+      },
+      {
+        "id": "reselect-other-answer",
+        "status": "PASS"
+      },
+      {
+        "id": "link-click-is-consumed",
+        "status": "PASS"
+      },
+      {
+        "id": "narrow-range-click",
+        "status": "PASS"
+      },
+      {
+        "id": "keyboard-keeps-highlighted-range",
+        "status": "PASS"
+      },
+      {
+        "id": "escape-restores-website-events",
+        "status": "PASS"
+      },
+      {
+        "id": "untrusted-click-cannot-capture",
+        "status": "PASS"
+      },
+      {
+        "id": "streaming-is-labelled-as-snapshot",
+        "status": "PASS"
+      },
+      {
+        "id": "input-is-not-selectable",
+        "status": "PASS"
+      },
+      {
+        "id": "spa-route-cancels-before-extraction",
+        "status": "PASS"
+      },
+      {
+        "id": "stale-route-consumes-enter",
+        "status": "PASS"
+      },
+      {
+        "id": "stale-route-consumes-space",
+        "status": "PASS"
+      },
+      {
+        "id": "timeout-cleans-overlay",
+        "status": "PASS"
+      },
+      {
+        "id": "large-code-json-expansion",
+        "status": "PASS",
+        "markdownBytes": 140011,
+        "jsonBytes": 280065
+      },
+      {
+        "id": "utf8-159999",
+        "status": "PASS"
+      },
+      {
+        "id": "utf8-160000",
+        "status": "PASS"
+      },
+      {
+        "id": "utf8-160001",
+        "status": "PASS"
+      }
+    ]
+  },
+  "uiPreview": {
+    "level": "UI_PREVIEW_ONLY",
+    "inputSha256": "bf49adc99a28d3751cb371afe51fb14cfa4b870ab8ff2c2210b3b8a190f2c8a7",
+    "widthsObserved": [
+      320,
+      400
+    ],
+    "checks": [
+      {
+        "id": "region-start-and-cancel",
+        "status": "PASS"
+      },
+      {
+        "id": "answer-A-capture",
+        "status": "PASS"
+      },
+      {
+        "id": "answer-B-reselect",
+        "status": "PASS"
+      },
+      {
+        "id": "copy-mock-receipt",
+        "status": "PASS"
+      },
+      {
+        "id": "download-mock-receipt",
+        "status": "PASS"
+      },
+      {
+        "id": "save-search-full-readback-B-without-A",
+        "status": "PASS"
+      },
+      {
+        "id": "denied-clears-old-output",
+        "status": "PASS"
+      },
+      {
+        "id": "oversize-explicit-error-no-old-output",
+        "status": "PASS"
+      },
+      {
+        "id": "read-failure-visible",
+        "status": "PASS"
+      },
+      {
+        "id": "streaming-warning-visible",
+        "status": "PASS"
+      }
+    ],
+    "limits": "Host、存储、剪贴板、下载均为模拟。只证明正式同源界面处理，不证明真实扩展权限和持久化。"
+  },
+  "nodeChecks": [
+    {
+      "command": "node --test projects/web-markdown-clipper/tests/region-picker.test.mjs projects/web-markdown-clipper/tests/region-markdown.test.mjs",
+      "passed": 15,
+      "exitCode": 0
+    },
+    {
+      "command": "node --test projects/web-markdown-clipper/tests/region-host.test.mjs",
+      "passed": 35,
+      "exitCode": 0
+    },
+    {
+      "command": "node --test projects/web-markdown-clipper/tests/ui.test.mjs",
+      "passed": 28,
+      "exitCode": 0
+    },
+    {
+      "command": "node --test --test-name-pattern='(160,000|160,001|formatted selection)' projects/web-markdown-clipper/tests/notes.test.mjs",
+      "passed": 3,
+      "exitCode": 0
+    },
+    {
+      "command": "node --test --test-name-pattern='(Clipper|fixed Clipper|shared.*[Mm]arkdown|Markdown.*shared)' tests/environment/bundle-provenance.test.mjs",
+      "passed": 5,
+      "exitCode": 0
+    },
+    {
+      "command": "node --test --test-name-pattern='(UTF-8|final|Markdown conversion|selection|150|boundary)' tests/environment/markdown-tools-r22.test.mjs",
+      "passed": 1,
+      "exitCode": 0
+    },
+    {
+      "command": "node --test --test-name-pattern='(tool packer|native tool directory|portable Sidebar Tool|promotion rejects)' tests/environment/sidebar-tools.test.mjs",
+      "passed": 5,
+      "exitCode": 0
+    }
+  ],
+  "fixed": [
+    "cancel-waiting-behind-tool-lock",
+    "cancel-original-tab-document",
+    "keyboard-highlighted-range",
+    "SPA-and-tab-invalidation",
+    "stale-route-confirm-key-propagation",
+    "region-160000-byte-final-budget",
+    "JSON-escaping-false-overflow",
+    "128-session-exhaustion",
+    "cancelled-pending-start-resurrection-after-replay-rotation"
+  ],
+  "package": {
+    "status": "PACKAGE_READY_INSTALL_NOT_TESTED",
+    "id": "web-markdown-clipper",
+    "previousVersion": "1.2.10",
+    "version": "1.2.11",
+    "bytes": 81936,
+    "sha256": "f1a0f2a284897cb22225520793acbbc8b248117b503d8c8749d26f9d3932b29f",
+    "checks": [
+      "PROJECT_PACKAGE_PROMOTED",
+      "PROJECT_PACKAGE_MATCH"
+    ],
+    "installed": false,
+    "capabilitiesChanged": false
+  },
+  "runtime": {
+    "browserFixedCode": "NOT_TESTED",
+    "developmentWatcherStarted": false,
+    "existingExtensionReloaded": false,
+    "reason": "固定 picker/Page/Host/转换器代码不在工具 JSON 内，本轮没有更新现有浏览器扩展。"
+  },
+  "notTested": [
+    "real-extension-install-upgrade",
+    "Chrome-site-permission",
+    "real-ChatGPT-Claude-Gemini",
+    "real-clipboard-download",
+    "Chrome-storage-restart-persistence",
+    "production-build-acceptance",
+    "full-width-theme-zoom-matrix",
+    "formal-rating",
+    "full-repository-CI"
+  ],
+  "resources": {
+    "egoTaskSpace": 19,
+    "finished": true,
+    "ownedHttpServer": "127.0.0.1:18765",
+    "ownedHttpServerStopped": true
+  },
+  "sourceSnapshot": "Working tree tested; shared files also contained preserved parallel changes. Hashes identify that observed working tree, not a production Browser build.",
+  "codeReview": {
+    "status": "NO_REMAINING_ACTIONABLE_FINDINGS",
+    "reviewer": "independent native subagent",
+    "latestHostChecksPassed": 35
+  }
+}

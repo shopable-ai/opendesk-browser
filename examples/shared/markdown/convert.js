@@ -48,7 +48,7 @@ function excluded(el){
 }
 function budget(state,node){
   if(++state.nodes>9000)throw new Error('网页结构超过剪藏处理上限，请改用选区');
-  if(node?.nodeType===3&&node.textContent?.length>CLIP_MAX_BYTES)throw new Error('网页文本过大，请缩小选区');
+  if(node?.nodeType===3&&node.textContent?.length>state.maxBytes)throw new Error('网页文本过大，请缩小选区');
 }
 function inlineChildren(el,state){return [...el.childNodes].map(n=>inline(n,state)).join('');}
 function inline(node,state){
@@ -158,17 +158,22 @@ function renderChildren(root,state,depth){
   }
   flush();return result;
 }
-export function domToMarkdown(root,base){
+export function domToMarkdown(root,base,{maxBytes=CLIP_MAX_BYTES}={}){
   if(!root||typeof root.nodeType!=='number')throw new Error('没有可剪藏的内容');
-  const state={base,nodes:0};
+  // Region capture may use the existing 160,000-byte note budget. All legacy
+  // consumers retain their 150,000-byte default; callers cannot raise the cap.
+  if(!Number.isSafeInteger(maxBytes)||maxBytes<1||maxBytes>160000)
+    throw new Error('剪藏字节上限无效');
+  const state={base,nodes:0,maxBytes};
   // Do not squeeze the final document: that also changes blank lines inside code fences.
   const text=renderBlock(root,state).trim();
   if(!text)throw new Error('未找到可剪藏的文字');
   const markdown=text+'\n';
   // Include the final newline in the UTF-8 extraction budget. Otherwise a
   // 150,000-byte body could leak a 150,001-byte response across the Host.
-  if(new TextEncoder().encode(markdown).byteLength>CLIP_MAX_BYTES)
-    throw new Error('正文超过 150 KB，请选择范围缩小剪藏');
+  if(new TextEncoder().encode(markdown).byteLength>maxBytes)
+    throw new Error(maxBytes===CLIP_MAX_BYTES?'正文超过 150 KB，请选择范围缩小剪藏':
+      '正文超过 '+maxBytes.toLocaleString('en-US')+' 字节，请选择范围缩小剪藏；内容未截断');
   return markdown;
 }
 export function chooseArticle(doc){

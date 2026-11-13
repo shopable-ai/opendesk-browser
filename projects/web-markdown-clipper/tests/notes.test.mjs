@@ -4,8 +4,8 @@ import {createHash} from 'node:crypto';
 import {readFile} from 'node:fs/promises';
 import {runInNewContext} from 'node:vm';
 import {load} from 'cheerio';
-import {PROMPT_ID} from '../../../examples/sidebar-tools/prompt-shortcuts/trusted/policy.js';
-import {PROMPT_ASSET_OPERATIONS} from '../../../examples/sidebar-tools/prompt-shortcuts/trusted/asset-contract.js';
+import {PROMPT_ID} from '../../prompt-shortcuts/trusted/policy.js';
+import {PROMPT_ASSET_OPERATIONS} from '../../prompt-shortcuts/trusted/asset-contract.js';
 import {
  executeClipNotes,readClipLibrary,CLIP_NOTES_LIMITS,clipSource
 } from '../trusted/notes-store.js';

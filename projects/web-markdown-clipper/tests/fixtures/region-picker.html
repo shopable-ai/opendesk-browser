@@ -1,0 +1,60 @@
+<!doctype html>
+<html lang="zh-CN">
+<meta charset="utf-8">
+<title>网页剪藏 · 真实区域源码测试</title>
+<style>
+ body{font:16px/1.6 system-ui;margin:24px auto;max-width:800px;padding:0 20px}
+ article{padding:20px;border:1px solid #aaa;margin:16px 0}
+ pre{padding:12px;background:#eee} table{border-collapse:collapse}td,th{border:1px solid #aaa;padding:6px}
+ #controls{position:sticky;top:0;background:white;z-index:2;padding:8px}
+ #result{white-space:pre-wrap;overflow-wrap:anywhere}
+</style>
+<div id="controls"><strong>SOURCE_BROWSER_FIXTURE · 非扩展安装验收</strong>
+ <button id="start">开始真实区域点选</button><output id="state">ready</output>
+</div>
+<main id="thread">
+ <article id="reply-a" data-message-author-role="assistant">
+  <h1>目标回答 A</h1>
+  <p id="lead">这是目标回答的第一段，包含<strong>重要结论</strong>与<em>强调</em>。应保留整条回答，而非仅当前段落。</p>
+  <a id="test-link" href="#unwanted-navigation">参考资料链接</a>
+  <section id="format"><h2>格式保真</h2>
+   <ul><li>第一层<ul><li>第二层</li></ul></li></ul>
+   <blockquote>需要保留的引用</blockquote>
+   <pre><code class="language-js">const answer = 42;
+console.log(answer);</code></pre>
+   <table><thead><tr><th>项目</th><th>结果</th></tr></thead><tbody><tr><td>点选</td><td>通过</td></tr></tbody></table>
+   <p hidden>HIDDEN_SECRET</p><button id="website-action">网页原有按钮</button>
+  </section>
+  <div id="chapters"></div>
+ </article>
+ <article id="reply-b" data-message-author-role="assistant"><h2>其他回答 B</h2><p id="other">OTHER_REPLY_MUST_NOT_LEAK：这是另外一条独立回答，不能混入目标内容。</p></article>
+</main>
+<form><input id="private-input" value="INPUT_SECRET_MUST_NOT_LEAK" aria-label="私有输入"></form>
+<pre id="result"></pre>
+<script type="module">
+ import {beginRegionPick,regionCandidates,preferredRegionIndex} from '../../trusted/region-picker.js';
+ import {domToMarkdown} from '../../../../../examples/shared/markdown/convert.js';
+ const chapters=document.querySelector('#chapters');
+ for(let i=1;i<=36;i++){
+  const section=document.createElement('section');section.id='chapter-'+i;
+  const h=document.createElement('h2');h.textContent='第 '+i+' 章';
+  const p=document.createElement('p');p.textContent='目标长回答第 '+i+' 章：已加载 DOM 的完整内容。'+(i===36?'END_OF_REPLY_A':'');
+  section.append(h,p);chapters.append(section);
+ }
+ const state=document.querySelector('#state'),output=document.querySelector('#result');
+ let active=null;
+ window.regionTest={result:null,error:null,selected:null,websiteActions:0,
+  candidates(selector){const nodes=regionCandidates(document.querySelector(selector),document,window);
+   return {ids:nodes.map(n=>n.id||n.tagName),preferred:nodes[preferredRegionIndex(nodes)]?.id};},
+  start(options={}){
+   active?.cancel();this.result=null;this.error=null;this.selected=null;output.textContent='';state.textContent='picking';
+   active=beginRegionPick({...options,extract:node=>{this.selected=node.id;return domToMarkdown(node,location.href,{maxBytes:160000});}});
+   active.promise.then(result=>{this.result=result;state.textContent='done';output.textContent=result.markdown;},
+    error=>{this.error=error.message;state.textContent='cancelled';});
+  }
+ };
+ document.querySelector('#start').addEventListener('click',()=>window.regionTest.start());
+ document.querySelector('#test-link').addEventListener('click',()=>window.regionTest.websiteActions++);
+ document.querySelector('#website-action').addEventListener('click',()=>window.regionTest.websiteActions++);
+</script>
+</html>

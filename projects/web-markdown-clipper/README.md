@@ -1,6 +1,39 @@
-# 网页剪藏 · 当前已核实安装配置版本 1.2.10
+# 网页剪藏 · 1.2.11
 
-**R4 最新增量证据：** 已定位并差量修复共享构建准入与 Clipper 区域可信源码锁，四工具 Mock 合同 10/10 PASS；仍未晋升正式包、未完成真实 Chrome 同 ID 验收。详情见 [R4 增量验收记录](docs/region-picker-r4-acceptance.zh-CN.md)。本记录不替代 R2/R3 历史证据。
+## 当前目标与关键测试条件（2026-11-14）
+
+目标：在网页仅显示长回答中部时，点选一次即可把**同一条回答已加载的 DOM** 转为 Markdown；范围可修正，操作可取消，旧页面或旧请求不能回填。复制、下载、主动保存和全文读回复用现有入口，不自动保存。
+
+本轮按核心开发验证收尾：**ego 源码浏览器检查 17/17 PASS**，同源 UI 的点选、取消、复制/下载演示、保存后搜索与全文读回已操作；320px 和 400px 界面已检查。UI Host、存储、复制与下载为模拟，不能证明系统剪贴板、实际文件或 Chrome 持久化。机器可读证据见 [本轮测试记录](evidence/region-picker-ego-20261114.json)，可复跑检查在 [region-browser-checks.mjs](tests/region-browser-checks.mjs)。
+
+| 关键条件 | 本轮结果与证据边界 |
+| --- | --- |
+| 长内容一次点选 | ego 在 36 章回答中部点选，输出包含第 1–36 章及末尾标记；不混入其他回答、隐藏文本或输入值 |
+| Markdown 格式 | 标题、粗斜体、嵌套列表、链接、引用、表格、代码栅栏保留；实际复用正式转换器 |
+| 纠正范围与重选 | ↑/↓ 调整父子范围，鼠标/Enter 提交高亮范围；重新选择另一回答不混入旧内容 |
+| 原网页事件安全 | 点选链接不导航；Esc 后原网页按钮恢复；合成点击不能提交选择 |
+| 页面与生命周期失效 | ego 验证 SPA、超时及失效瞬间 Enter/空格不穿透；Node 验证切页、撤权、停用、安装代际、实例更换和迟到回执 |
+| 即时取消 | Host 等待网页点击时不占用安装/存储锁；取消发往最初绑定的 tab/document，而不是新活动页 |
+| 重复使用 | 同一 Host 实例连续 140 次点选通过，防重放记录有界回收，不再于第 129 次永久拒绝 |
+| 动态回答 | 标记流式输出和“仅已加载内容”；结果是点击时快照，未加载/虚拟化内容不承诺完整 |
+| 容量 | 159,999 / 160,000 UTF-8 字节成功，160,001 明确拒绝；140KB 反斜杠代码不会因 JSON 转义膨胀而被误拒；不截断 |
+| 保存与导出 | 同源 UI 保存后搜索、全文读回不混入相邻回答；Node 核对容量及完整正文；复制/下载在 UI 仅演示 |
+| 旧模式与构建保护 | UI 28 项回归、旧 150KB 边界、固定来源与准入 5 项、打包/晋升保护 5 项通过；未跑全仓 CI |
+| 真实扩展及网站 | **NOT_TESTED**：同 ID 安装升级、Chrome 网站权限、ChatGPT/Claude/Gemini、真实剪贴板/下载和重启持久化；production、跨宽度/主题完整矩阵与评分未开展 |
+
+本轮修复了取消锁阻塞及目标绑定、SPA/切页清理、键盘确认范围和失效按键穿透、160KB 区域预算与 JSON 膨胀误拒，以及累计 128 次后的会话耗尽。文章/选区保留原 150KB 提取预算；最终保存仍以含来源元数据的完整 Markdown 160,000 字节为限，超限须缩小范围或减少附加来源信息。
+
+**交付状态：PACKAGE_READY_INSTALL_NOT_TESTED。** 原打包器已将唯一正式 JSON 从 **1.2.10 → 1.2.11** 晋升，`--check-project` 同源通过；ID、能力和存储命名空间不变。包 SHA-256：`f1a0f2a284897cb22225520793acbbc8b248117b503d8c8749d26f9d3932b29f`。安装文件：[web-markdown-clipper.opendesk-tool.json](web-markdown-clipper.opendesk-tool.json)。
+
+`trusted/region-picker.js`、`trusted/page.js`、共享转换器和 `src/ui/sidebar-tools.js` 属于 Browser 固定编译代码，**不随工具 JSON 更新**。本轮没有启动/覆盖日常 `dist/development` watcher，没有安装或重载现有扩展；上述修复在当前扩展的运行生效状态为 **NOT_TESTED**。
+
+复跑时先启动自己的本地 HTTP 服务，用 `ego-browser skill` 创建或复用本目标 TaskSpace，再在 `ego-browser nodejs` 中将已获取的 Page 传给 `runRegionBrowserChecks(page,{baseUrl})`。检查设置该 Page 禁用缓存，读取真实模块，结束后释放自己的 TaskSpace 和服务；不新建浏览器 Profile，不触碰其他任务。
+
+## 历史：2026-11-12 及以前的 R2–R4 记录
+
+以下版本、阻塞和“本轮”均为当时观察，不覆盖上方 2026-11-14 的开发验证与包状态。
+
+**R4 当时增量证据：** 已定位并差量修复共享构建准入与 Clipper 区域可信源码锁，四工具 Mock 合同 10/10 PASS；仍未晋升正式包、未完成真实 Chrome 同 ID 验收。详情见 [R4 增量验收记录](docs/region-picker-r4-acceptance.zh-CN.md)。本记录不替代 R2/R3 历史证据。
 
 **R3 本机发布收口复核（2026-11-12）：** 已从 GitHub 核实当前 `main` 与区域点选源码/App CI 记录；Mac CodexPro 和 OpenDesk Desktop 通道仍不可用，GitHub Actions 对当前 HEAD 的相关任务仍排队。独立容器无法解析 github.com 且无完整仓库，未执行真实 Node/React/Chrome 测试。保持 `1.2.10` 正式包，不作候选晋升；具体回执、退出码与剩余门禁见 [R3 验收账本](docs/region-picker-r3-acceptance.zh-CN.md)。
 
@@ -106,7 +139,7 @@ python3 -m http.server 8765 --bind 127.0.0.1
 
 右键剪藏优先展示同次右键选区的 Markdown，保留标题层级、普通/有序/嵌套列表及已有链接、强调、代码语义。局部选区只包含选中的字符；保存仍需点击，容量以本页全文保存合同为准。需要同时更新可信扩展框架（日常固定 `dist/development`）；只导入 JSON 无法让旧宿主提供富选区。未取得格式时会明确提示，可保持网页选区后使用备用提取入口。已有同 ID 工具直接导入更新，勿卸载清数据。
 
-本次通用 SDK 缺口已由源码及组件复现证明：原 `launch.consume()` 只有 Chrome `selectionText`，不含 DOM，工具沙箱无法恢复标题/列表，也无法在打开侧栏后可靠找回原选区。最小公共扩展为同一 ticket 的可空 `selectionMarkdown`，由通用 Content 快照与原菜单 Host 提供，供任何已批准菜单工具使用，无 ChatGPT 分支或新增权限/依赖。复用共用转换器及可见 Range 克隆，保留安装身份、精确文档/URL、一次消费、导航/撤权与原限额。API 合同见 [Browser SDK](../../../docs/api/browser-sdk.zh-CN.md)。真实用户 ChatGPT 右键→预览→保存重开尚未实测，标记 `NOT_TESTED`；DOM/Range、Host 与存储组件证据不能替代该结论。
+本次通用 SDK 缺口已由源码及组件复现证明：原 `launch.consume()` 只有 Chrome `selectionText`，不含 DOM，工具沙箱无法恢复标题/列表，也无法在打开侧栏后可靠找回原选区。最小公共扩展为同一 ticket 的可空 `selectionMarkdown`，由通用 Content 快照与原菜单 Host 提供，供任何已批准菜单工具使用，无 ChatGPT 分支或新增权限/依赖。复用共用转换器及可见 Range 克隆，保留安装身份、精确文档/URL、一次消费、导航/撤权与原限额。API 合同见 [Browser SDK](../../docs/api/browser-sdk.zh-CN.md)。真实用户 ChatGPT 右键→预览→保存重开尚未实测，标记 `NOT_TESTED`；DOM/Range、Host 与存储组件证据不能替代该结论。
 
 ## 预览
 

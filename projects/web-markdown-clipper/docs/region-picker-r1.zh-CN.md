@@ -1,5 +1,7 @@
 # 网页剪藏 R1 · 点击选择目标区域并转 Markdown（AI 长回答优先）
  
+> 2026-11-14 状态补注：本页保留 2026-11-11 的设计基线与历史未验证矩阵。当前核心测试条件、ego/Node 分层结果、1.2.11 包状态及尚未执行的真实扩展验收，以 [README 当前记录](../README.md#当前目标与关键测试条件2026-11-14) 和 [证据 JSON](../evidence/region-picker-ego-20261114.json) 为准；不以本页历史 NOT_TESTED 覆盖已有源码证据，也不把源码证据提升为 Chrome 验收。
+
 - 任务 ID：`OD-WEB-MARKDOWN-CLIPPER-REGION-PICK-R1`
 - 仓库：`shopable-ai/opendesk-browser`；唯一分支：`main`
 - 业务目录：`projects/web-markdown-clipper/`

@@ -675,7 +675,7 @@ test('fixed Clipper relay and marketplace admit their reviewed capture dependenc
 
 test('Clipper region picker retains exact source, target and symlink fences',async ctx=>{
   const path='projects/web-markdown-clipper/trusted/region-picker.js';
-  const pin='c2a7b9b15c9ac7d6e132c5a1d1f5f27609d20a0a';
+  const pin='1aff80ff37936283b6922431cb9bfd1c44d1e286';
   const make=(target,root=process.cwd())=>describeBundle({chunk:{fileName:target,
     modules:{[resolve(root,path)]:{renderedLength:1,originalLength:1}}},root,lock:{packages:{}}});
   assert.equal(make('agents/page-relay.js').modules[0].reviewedFirstPartyBlob,pin);
@@ -760,7 +760,7 @@ test('R1.3 pinned shared Markdown converter can only enter the existing Page Rel
     modules:{[resolve(root,path)]:{renderedLength:20,originalLength:40}}},root,lock:{packages:{}}});
   const row=make('agents/page-relay.js');
   assert.equal(row.modules[0].path,path);
-  assert.equal(row.modules[0].reviewedFirstPartyBlob,'53687ae72643aa751c1ad0d5becf2401ada09bd0');
+  assert.equal(row.modules[0].reviewedFirstPartyBlob,'e665625350e3eda4327e6f453c96bf997259a3d9');
   for(const target of ['sw.js','ui/tool-shell.js','ui/sidebar-tool-host.js','scripting/sandbox/worker-runtime.js'])
     assert.throws(()=>make(target),/cannot enter a privileged fixed bundle/,
       'shared converter must not cross the Page Relay boundary: '+target);
@@ -849,8 +849,8 @@ test('relocated trusted policies and tab repair keep exact source, target and sy
 
 test('Clipper region source is byte-pinned to Page Relay and never admitted elsewhere',async t=>{
   const inputs=[
-    ['projects/web-markdown-clipper/trusted/page.js','46bb1a7b4355922fdc8e84e2be3933d8a2b33a17'],
-    ['projects/web-markdown-clipper/trusted/region-picker.js','c2a7b9b15c9ac7d6e132c5a1d1f5f27609d20a0a']
+    ['projects/web-markdown-clipper/trusted/page.js','4601cd079d6438a6294787b7de2dfe215841b788'],
+    ['projects/web-markdown-clipper/trusted/region-picker.js','1aff80ff37936283b6922431cb9bfd1c44d1e286']
   ];
   const project=await realpath(await mkdtemp(join(tmpdir(),'clipper-region-provenance-')));
   t.after(()=>rm(project,{recursive:true,force:true}));

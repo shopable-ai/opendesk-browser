@@ -62,7 +62,8 @@ export function preferredRegionIndex(candidates){
 export function beginRegionPick({doc=globalThis.document,win=globalThis.window,extract,timeoutMs=REGION_PICK_TIMEOUT_MS}={}){
   if(!doc?.documentElement||!doc.body||typeof extract!=='function')
     throw new Error('当前网页不能进行区域点选');
-  let finished=false,timer=null,candidates=[],index=0,lastTarget=null,lastMoveAt=0;
+  const startUrl=win.location?.href;
+  let finished=false,timer=null,monitor=null,candidates=[],index=0,lastTarget=null,lastMoveAt=0;
   let resolvePromise,rejectPromise;
   const promise=new Promise((resolve,reject)=>{resolvePromise=resolve;rejectPromise=reject;});
   const overlay=doc.createElement('div');
@@ -78,6 +79,7 @@ export function beginRegionPick({doc=globalThis.document,win=globalThis.window,e
   const listen=(target,name,fn)=>{target.addEventListener(name,fn,true);listeners.push([target,name,fn]);};
   const cleanup=()=>{
     if(timer!==null)win.clearTimeout(timer);
+    if(monitor!==null)win.clearInterval(monitor);
     for(const [target,name,fn] of listeners)target.removeEventListener(name,fn,true);
     overlay.remove();candidates=[];lastTarget=null;
   };
@@ -88,6 +90,13 @@ export function beginRegionPick({doc=globalThis.document,win=globalThis.window,e
     else resolvePromise(result);
   };
   const cancel=(message='已取消区域点选')=>settle(new Error(message));
+  const currentDocument=()=>{
+    if(finished)return false;
+    if(win.location?.href!==startUrl||doc.visibilityState==='hidden'){
+      cancel('网页已变化或离开，区域点选取消');return false;
+    }
+    return true;
+  };
   const highlight=()=>{
     const node=candidates[index];
     if(!node?.isConnected){overlay.style.setProperty('display','none','important');return;}
@@ -116,7 +125,7 @@ export function beginRegionPick({doc=globalThis.document,win=globalThis.window,e
     highlight();
   };
   const onMove=event=>{
-    if(finished||event.isTrusted===false)return;
+    if(event.isTrusted===false||!currentDocument())return;
     const now=Date.now();
     if(event.target!==lastTarget||now-lastMoveAt>60){lastMoveAt=now;update(event.target);}
   };
@@ -125,6 +134,7 @@ export function beginRegionPick({doc=globalThis.document,win=globalThis.window,e
     event.preventDefault?.();event.stopImmediatePropagation?.();event.stopPropagation?.();
   };
   const commit=target=>{
+    if(!currentDocument())return;
     if(!candidates[index]||!candidates[index].contains(target))update(target);
     const node=candidates[index];
     if(!node||!node.isConnected)return;
@@ -142,14 +152,19 @@ export function beginRegionPick({doc=globalThis.document,win=globalThis.window,e
   };
   const onKey=event=>{
     if(finished||event.isTrusted===false)return;
+    // Consume picker controls before document validation can settle and clean
+    // the session, so a stale Enter/Space cannot activate the focused page link.
+    if(['Escape','Enter',' '].includes(event.key)||
+      ((event.key==='ArrowUp'||event.key==='ArrowDown')&&candidates.length))consume(event);
+    if(!currentDocument())return;
     if(event.key==='Escape'){consume(event);cancel();return;}
     if(event.key==='Enter'||event.key===' '){
-      // Keyboard activation on a focused link must not follow that link.
-      // The selected region is still the actual focused, connected DOM.
+      // Commit the highlighted range, including ↑/↓ adjustments. A stale
+      // focus (for example the launch button or an editor) must not replace it.
       const focus=doc.activeElement;
       consume(event);
-      if(focus&&focus!==doc.body&&focus!==doc.documentElement)commit(focus);
-      else if(candidates[index])commit(candidates[index]);
+      if(candidates[index]?.isConnected)commit(candidates[index]);
+      else if(focus&&focus!==doc.body&&focus!==doc.documentElement)commit(focus);
       return;
     }
     if((event.key==='ArrowUp'||event.key==='ArrowDown')&&candidates.length){
@@ -168,6 +183,12 @@ export function beginRegionPick({doc=globalThis.document,win=globalThis.window,e
   listen(win,'scroll',highlight);
   listen(win,'resize',highlight);
   listen(win,'pagehide',onHide);
+  listen(win,'popstate',currentDocument);
+  listen(win,'hashchange',currentDocument);
+  listen(doc,'visibilitychange',currentDocument);
+  // pushState/replaceState emit no navigation event. Keep the one-shot
+  // session bounded without patching the website's History API.
+  monitor=win.setInterval(currentDocument,250);
   timer=win.setTimeout(()=>cancel('区域点选超时，请重新开始'),timeoutMs);
   return Object.freeze({promise,cancel});
 }

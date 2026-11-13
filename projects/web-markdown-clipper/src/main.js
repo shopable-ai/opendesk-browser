@@ -225,7 +225,9 @@ q('clip-fetch').addEventListener('click',async()=>{
  if(selectedMode==='selection'||selectedMode==='quote'){
   delete results.selection;delete results.quote;
  }else delete results[selectedMode];
- extracting=true;refresh();say('正在读取授权网页…');
+ extracting=true;refresh();say(selectedMode==='region'
+  ?'移动鼠标预览范围，单击提取；Esc 或「取消点选」退出'
+  :'正在读取授权网页…');
  const operation=selectedMode==='region'?'clip.region':selectedMode==='article'?'clip.article':selectedMode==='link'?'clip.link':'clip.selection';
  try{
   const result=await request(operation,pickId?{pickId}:{});

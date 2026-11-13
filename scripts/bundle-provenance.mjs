@@ -682,9 +682,10 @@ export function reviewedCompiledExtensionSettings(target,path,root){
 // R1.8 source review: the shared converter only corrects nested-list
 // Markdown indentation; URL filtering and secret redaction are unchanged.
 const sharedMarkdownInputs=Object.freeze({
-  // R4 review: 150,000-byte extraction budget covers the final UTF-8 newline;
-  // the Markdown grammar and URL filtering remain identical.
-  'examples/shared/markdown/convert.js':'53687ae72643aa751c1ad0d5becf2401ada09bd0',
+  // 2026-11-14 review: legacy 150,000-byte default is unchanged; the region
+  // caller opts into a bounded 160,000-byte budget, including the final newline.
+  // Markdown grammar, node budget and URL filtering remain identical.
+  'examples/shared/markdown/convert.js':'e665625350e3eda4327e6f453c96bf997259a3d9',
   'examples/shared/markdown/selection.js':'747d1afe2cee9a745552a3a7ceb699d1af83b35b'
 });
 function reviewedCompiledSharedMarkdown(target,path,root){
@@ -702,8 +703,10 @@ const compiledWebClipperInputs=Object.freeze({
   // Reviewed region selection/cancellation through the existing page.clip
   // permission, exact document/install epoch and post-extraction grant checks.
   // The one-shot picker and page adapter enter only the existing Page Relay.
-  'projects/web-markdown-clipper/trusted/page.js':'46bb1a7b4355922fdc8e84e2be3933d8a2b33a17',
-  'projects/web-markdown-clipper/trusted/region-picker.js':'c2a7b9b15c9ac7d6e132c5a1d1f5f27609d20a0a',
+  // 2026-11-14: cancel before SPA/background-tab reads; keyboard confirms the
+  // highlighted range. Page adapter uses the existing 160,000-byte note limit.
+  'projects/web-markdown-clipper/trusted/page.js':'4601cd079d6438a6294787b7de2dfe215841b788',
+  'projects/web-markdown-clipper/trusted/region-picker.js':'1aff80ff37936283b6922431cb9bfd1c44d1e286',
   'projects/web-markdown-clipper/trusted/policy.js':'9cb4b8af149d25e2427ed0e187433f77a03b788f',
   'projects/web-markdown-clipper/trusted/notes-store.js':'34547422b3a85be15cfad179e8df5993146c5b80'
 });

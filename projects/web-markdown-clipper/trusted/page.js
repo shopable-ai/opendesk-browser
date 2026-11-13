@@ -60,7 +60,7 @@ export function initPageClip({api=globalThis.chrome,doc=globalThis.document,win=
           throw new Error('区域点选已取消');
         }
         cancelRegion('已开始新的区域点选');
-        const session=beginRegionPick({doc,win,extract:node=>domToMarkdown(node,canonical)});
+        const session=beginRegionPick({doc,win,extract:node=>domToMarkdown(node,canonical,{maxBytes:160000})});
         activeRegion={session,id,toolId:message.toolId};
         try{
           const result=await session.promise;

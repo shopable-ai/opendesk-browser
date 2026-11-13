@@ -42,10 +42,11 @@ function fixture(){
   getBoundingClientRect(){return {left:5,top:30,right:400,bottom:300,width:395,height:270};}
  }
  const root=doc.documentElement=new Element('html',doc),body=doc.body=new Element('body',doc);root.append(body);
- const win={innerWidth:500,innerHeight:600,events:new Map(),
+ const win={innerWidth:500,innerHeight:600,location:{href:'https://example.test/conversation/a'},events:new Map(),
   addEventListener(name,fn){(this.events.get(name)||this.events.set(name,new Set()).get(name)).add(fn);},
   removeEventListener(name,fn){this.events.get(name)?.delete(fn);},
-  setTimeout(fn){this.timer=fn;return 1;},clearTimeout(){this.timer=null;}};
+  setTimeout(fn){this.timer=fn;return 1;},clearTimeout(){this.timer=null;},
+  setInterval(fn){this.monitor=fn;return 2;},clearInterval(){this.monitor=null;}};
  const thread=doc.createElement('div');
  const a=doc.createElement('article'),b=doc.createElement('article');
  const p=doc.createElement('p');p.textContent='A'.repeat(350);
@@ -76,6 +77,48 @@ test('one trusted click extracts one connected region, prevents page activation 
  assert.equal(click.defaultPrevented,true);
  assert.equal(doc.events.get('click').size,0);
  assert.equal(win.timer,null);
+ assert.equal(win.monitor,null);
+});
+
+test('a same-document route change refuses extraction before reading the DOM',async()=>{
+ const {doc,win,p,event}=fixture();let calls=0;
+ const pick=beginRegionPick({doc,win,extract:()=>{calls++;return 'STALE';}});
+ await doc.fire('mousemove',event(p));
+ win.location.href='https://example.test/conversation/b';
+ await doc.fire('click',event(p));
+ await assert.rejects(pick.promise,/网页已变化/);
+ assert.equal(calls,0);
+ assert.equal(doc.documentElement.querySelector('[data-opendesk-clip-root]'),null);
+ assert.equal(win.timer,null);assert.equal(win.monitor,null);
+});
+
+test('route monitoring cancels pushState without another pointer event',async()=>{
+ const {doc,win}=fixture();let calls=0;
+ const pick=beginRegionPick({doc,win,extract:()=>{calls++;return 'STALE';}});
+ win.location.href='https://example.test/conversation/b';win.monitor();
+ await assert.rejects(pick.promise,/网页已变化/);
+ assert.equal(calls,0);assert.equal(win.monitor,null);
+ assert.equal(doc.events.get('click').size,0);
+});
+
+for(const key of ['Enter',' '])test(`route invalidation consumes ${JSON.stringify(key)} before cleanup`,async()=>{
+ const {doc,win,p,event}=fixture();let calls=0;
+ const anchor=doc.createElement('a');anchor.textContent='Read link';p.append(anchor);doc.activeElement=anchor;
+ const pick=beginRegionPick({doc,win,extract:()=>{calls++;return 'STALE';}});
+ await doc.fire('mousemove',event(anchor));
+ win.location.href='https://example.test/conversation/b';
+ const confirmation=event(anchor,{key});await doc.fire('keydown',confirmation);
+ await assert.rejects(pick.promise,/网页已变化/);
+ assert.equal(confirmation.defaultPrevented,true);assert.equal(calls,0);
+ assert.equal(win.monitor,null);assert.equal(doc.events.get('keydown').size,0);
+});
+
+test('switching away from the target tab cancels the one-shot session',async()=>{
+ const {doc,win,event}=fixture();
+ const pick=beginRegionPick({doc,win,extract:()=>{throw Error('must not read');}});
+ doc.visibilityState='hidden';await doc.fire('visibilitychange',event(doc));
+ await assert.rejects(pick.promise,/离开/);
+ assert.equal(win.monitor,null);
 });
 test('Escape rejects without extraction and leaves no click handlers',async()=>{
  const {doc,win,p,event}=fixture();let calls=0;
@@ -111,4 +154,14 @@ test('Enter on a focused link uses current response and suppresses page navigati
  assert.equal(result.markdown,'# keyboard\n');
  assert.equal(captured,a);
  assert.equal(enter.defaultPrevented,true);
+});
+
+test('keyboard confirmation keeps the highlighted child instead of stale launch focus',async()=>{
+ const {doc,win,p,a,event}=fixture();let captured=null;
+ const launch=doc.createElement('button');doc.body.append(launch);doc.activeElement=launch;
+ const pick=beginRegionPick({doc,win,extract:node=>{captured=node;return 'child';}});
+ await doc.fire('mousemove',event(p));
+ await doc.fire('keydown',event(a,{key:'ArrowDown'}));
+ await doc.fire('keydown',event(launch,{key:'Enter'}));
+ assert.equal((await pick.promise).markdown,'child');assert.equal(captured,p);
 });
