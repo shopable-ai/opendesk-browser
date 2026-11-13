@@ -27,7 +27,7 @@ function fixture({mainLeft=320,columnLeft=320,sidebar=false}={}) {
     events.set(type,listener);listeners.set(target,events);
   },click(target,isTrusted=true){
     listeners.get(target)?.get('click')?.({isTrusted,preventDefault(){},stopPropagation(){}});
-  },dispatch(target,type){listeners.get(target)?.get(type)?.();},
+  },dispatch(target,type,event){listeners.get(target)?.get(type)?.(event);},
   setTimeout(){},observe(){return {disconnect(){}};},
     onDispose:fn=>disposals.push(fn),dispose:()=>disposals.forEach(fn=>fn())};
   const context={main,first,last,scroller:main,site:'chatgpt',selector:'article'};
@@ -376,5 +376,23 @@ test('last-turn bottom boundary keeps back navigation usable',()=>{
   assert.equal(previous.disabled,true);
   assert.equal(next.disabled,false);
   assert.equal(bottom.disabled,false);
+  f.owner.dispose();
+});
+
+
+test('nested editor scroll does not rescan the whole transcript',()=>{
+  const f=fixture();
+  f.mount();
+  const jobs=[];
+  f.owner.setTimeout=fn=>{jobs.push(fn);};
+  f.owner.dispatch(f.doc,'scroll',{target:f.editor});
+  assert.equal(jobs.length,0,'nested editor scroll should not schedule dock refresh');
+  f.owner.dispatch(f.doc,'scroll',{target:f.main});
+  assert.equal(jobs.length,1,'transcript scroll should schedule one refresh');
+  f.owner.dispatch(f.doc,'scroll',{target:f.main});
+  assert.equal(jobs.length,1,'consecutive transcript scrolls should coalesce');
+  jobs.shift()();
+  f.owner.dispatch(f.doc,'scroll',{target:f.doc});
+  assert.equal(jobs.length,1,'document-level scroll stays supported');
   f.owner.dispose();
 });
