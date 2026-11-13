@@ -1,6 +1,6 @@
 # Web Flow
 
-**UI 对齐进行中（2026-11-14）：** 唯一正式包已晋升为 **0.3.39**，上次实际安装仍为 **0.3.37**。重复行内管理按钮已移至 ⋯；配置错误收为可展开的完整原因，脚本/记录均可查看；原请求提示移至记录 Tab，查询/停止及 UNKNOWN 围栏保留。定向 Node **125/125 PASS**，ego 源码组件通过三档宽度、busy/待重新验证/UNKNOWN 及深色检查。**新版尚未真实安装，侧栏及正向共享抽屉未验收**：原生 UI 资源忙，既有准备仍返回 `E_TASK_BUSY`。当前 goal 保持未完成；原对话 paused goal 不变。见[执行卡](docs/execution-plan.zh-CN.md)与[本候选分层证据](evidence/ui-alignment-r2-20261114.json)。
+**UI 对齐进行中（2026-11-14，R3）：** 唯一正式包 **0.3.40 已沿原审阅链实际安装**，版本与完整 SHA 已读回，权限及固定 Task pin 未变。本轮仅修浅色正文为白色，UI/包检查 **85/85 PASS**、同源检查通过；同候选实际侧栏与 app 页已核对背景、紧凑行、三档宽度、深色、菜单命中、搜索和成功通知，原 UNKNOWN 身份保留。收藏持久读回等较早实测属于 0.3.39，未冒充新候选全项通过。正向共享抽屉仍受其他任务/应用身份的准备占用阻塞（`E_TASK_BUSY`），保存、确认执行及 Run/Result 尚未验证；未清空、取消或重放原准备。整体及 goal 未完成，原对话目标未修改。见[执行卡](docs/execution-plan.zh-CN.md)与[R3 分层证据](evidence/ui-alignment-r3-20261114.json)。
 
 > **独立脚本归属与「我的」统一管理（2026-11-14 设计基线）：** [Controller Task 资产、内置脚本与跨扩展消费合同](../../docs/architecture/installed-controller-tasks-and-workflow-consumers.zh-CN.md)。该合同区分脚本源码、内置发行、安装、委托、运行和卸载；**尚未完成目录迁移或改动现有运行链**，以下当前状态和 UNKNOWN 限制继续有效。
 

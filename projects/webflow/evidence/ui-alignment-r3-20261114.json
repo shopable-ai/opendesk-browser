@@ -1,0 +1,535 @@
+{
+  "scope": "OD-WEBFLOW-UI-ALIGNMENT-R3",
+  "observedAt": "2026-11-13T21:38:43.808023+00:00",
+  "result": "INCOMPLETE_FOREIGN_PREPARATION_BUSY",
+  "goal": {
+    "threadId": "01a1d6ae-5b46-72d0-b76e-14e2f7ae95e8",
+    "status": "active",
+    "complete": false,
+    "sourceThread": "01a1d68c-81cd-7450-a5b6-67a4d89d73f6",
+    "sourceGoalNotModified": true
+  },
+  "sourceRevision": "caf139cc8576cdb1420b0ddfd3d8d442741e86d7 plus scoped CSS/config/package change",
+  "inputs": {
+    "projects/webflow/src/ui/main.js": "218423168ef891ffa6a3b2f0d5ef174c690b37e62339fa3a410f4d3859c105d9",
+    "projects/webflow/src/ui/style.css": "8043b2df031b48401fe1841f22a9eaa40a661e646d2823f269b0519bf360f56b",
+    "projects/webflow/tool.config.json": "b506e55c9b681c0ee091d6c02371218febd516cd7656682e30cc64932d48fda9",
+    "projects/webflow/webflow.opendesk-tool.json": "fdc031b8526bac34bc99f1f41c11d779435a5da6ab22017da17d5713419d668e",
+    "projects/webflow/preview/index.html": "59e316150bc524178fe013703f670f36315d9f9f0784e076b4d6eca35e339762"
+  },
+  "candidates": {
+    "0.3.39": {
+      "packageSha256": "f42abe33d7b7baad5fdf199d60ebc6ee84f429f303f99a95077560fcf1f3775d",
+      "actualInstallation": "PASS",
+      "actualUi": "PARTIALLY_VERIFIED",
+      "entry": "Real native Side Panel plus app.html in ego TaskSpace 35",
+      "upgrade": {
+        "from": "0.3.37",
+        "to": "0.3.39",
+        "action": "Extensions > Import extension > native chooser > reviewed local package > Confirm update once",
+        "permissionsChanged": false,
+        "fixedPinsChanged": false,
+        "installerReceipt": [
+          "已更新「Web Flow」",
+          "可直接打开使用。"
+        ],
+        "readback": [
+          "本机已安装 · 已启用",
+          "版本：v0.3.39",
+          "来源：来源未记录",
+          "固定包 SHA-256：f42abe33d7b7baad5fdf199d60ebc6ee84f429f303f99a95077560fcf1f3775d"
+        ]
+      },
+      "nativeSidePanel": {
+        "hostInstanceId": "42bcaf34-b871-4dc3-9a02-079e91618ce1",
+        "observations": [
+          "Header v0.3.39; one Web Flow title/back; original automatic-admission summary and project-file link retained.",
+          "Scripts show two rows, website/runtime state, persistent favorite/play/more icons; no repeated management buttons or permanent original-request banner.",
+          "Play returned E_TASK_BUSY; collapsed disclosure expanded to full exact reason, inspect-script and close actions.",
+          "More > details shows full description, runtime-stale reason and folded technical identity.",
+          "Add exposes four original routes; Help and app preferences/tool management reachable.",
+          "Records preserve original UNKNOWN request, read and stop controls and identity disclosure. Read-only query reports original Run/Result identity mismatch. No stop or cancel performed."
+        ],
+        "screenshotEvidence": "Native CUA getScreenshot/getAXStateAndScreenshot outputs in this chat; not a locally saved PNG. Native width approximately 360 CSS px from screen/DPR comparison; exact inner frame measurement NOT_TESTED.",
+        "nativeFocusAndIme": "NOT_TESTED"
+      },
+      "actualApp": {
+        "hostInstanceId": "cb35d512-3c55-4492-b0a8-2964ca3ed2e1",
+        "widths": [
+          {
+            "width": 320,
+            "viewport": [
+              320,
+              650
+            ],
+            "dpr": 1,
+            "documentWidth": 320,
+            "frame": [
+              {
+                "w": 320,
+                "h": 550,
+                "box": {
+                  "x": 0,
+                  "y": 100.5
+                }
+              }
+            ],
+            "screenshot": "/Users/shopme/Documents/workspace/opendesk-browser/artifacts/webflow-ui-alignment-r3/installed-scripts-320.png"
+          },
+          {
+            "width": 360,
+            "viewport": [
+              360,
+              650
+            ],
+            "dpr": 1,
+            "documentWidth": 360,
+            "frame": [
+              {
+                "w": 360,
+                "h": 550,
+                "box": {
+                  "x": 0,
+                  "y": 100.5
+                }
+              }
+            ],
+            "screenshot": "/Users/shopme/Documents/workspace/opendesk-browser/artifacts/webflow-ui-alignment-r3/installed-scripts-360.png"
+          },
+          {
+            "width": 400,
+            "viewport": [
+              400,
+              650
+            ],
+            "dpr": 1,
+            "documentWidth": 400,
+            "frame": [
+              {
+                "w": 400,
+                "h": 550,
+                "box": {
+                  "x": 0,
+                  "y": 100.5
+                }
+              }
+            ],
+            "screenshot": "/Users/shopme/Documents/workspace/opendesk-browser/artifacts/webflow-ui-alignment-r3/installed-scripts-400.png"
+          }
+        ],
+        "search": "Unmatched query yields 0/2 and clear action restores both. Runnable filter yields 0/2 because both tasks are runtime-stale.",
+        "favorites": "Google was favorited; reload read back Cancel favorite and placed Google first; restored to not favorited and read back original ordering.",
+        "theme": "Selected dark through original app preferences; waited for data-theme=dark; captured confirmed 360x650 DPR1; restored system and read back system plus success Toast.",
+        "keyboard": "Add opened, Escape closed; screenshot shows visible focus returned to Add (wide app view). Native Side Panel focus and real IME not inferred.",
+        "menu": "320x650 more menu displayed above next row; clicking View details successfully opened correct description.",
+        "busy": "Task name returned same E_TASK_BUSY as native play; snapshots/screenshots saved. No confirm-execute action was clicked."
+      },
+      "originalRequest": {
+        "clientRequestId": "webflow:fcd2a5b4-c77e-430e-ae7b-1cd2b5e68caa",
+        "state": "UNKNOWN",
+        "release": "unconfirmed",
+        "readback": "原请求未确认：原运行 / 结果身份不匹配。请查询或停止原步骤，不能新建请求补跑。",
+        "replayed": false,
+        "stopped": false,
+        "mutatedLedger": false
+      },
+      "runtimeBlocker": {
+        "code": "E_TASK_BUSY",
+        "reason": "已有其他任务或应用身份的准备占用；请从原入口查询或取消，不能确认执行",
+        "foreignPreparationId": "Not exposed by this UI; unknown",
+        "foreignOwner": "Unknown; requested original task/entry from user while independent work continued",
+        "sameAsLegacyUnknown": "NOT_PROVEN",
+        "positiveSharedSheet": "BLOCKED",
+        "saveReadbackConfirmRunResult": "BLOCKED",
+        "executionCounts": "NOT_MEASURED; no execution/confirmation action performed"
+      }
+    },
+    "0.3.40": {
+      "packageSha256": "fdc031b8526bac34bc99f1f41c11d779435a5da6ab22017da17d5713419d668e",
+      "bytes": 118025,
+      "actualInstallation": "PASS",
+      "actualUi": "PARTIALLY_VERIFIED",
+      "change": "Only light --bg changes #f4f6fa to #fff to match reference device body; version bumped. Dark overrides, JS, capabilities, pins and Authority unchanged.",
+      "trial": {
+        "level": "EGO_SOURCE_UI_MOCK_SDK",
+        "before": {
+          "bg": "rgb(244, 246, 250)",
+          "row": [
+            51,
+            52
+          ]
+        },
+        "after": {
+          "bg": "rgb(255, 255, 255)",
+          "row": [
+            51,
+            52
+          ]
+        }
+      },
+      "visualVerdict": ".omx/state/OD-WEBFLOW-UI-ALIGNMENT-R3/ralph-progress.json",
+      "node": {
+        "result": "PASS",
+        "tests": 85,
+        "failures": 0,
+        "command": "WEBFLOW_PACKAGE_PATH=artifacts/sidebar-tools/webflow/candidate.opendesk-tool.json node --test --test-reporter=tap projects/webflow/tests/webflow-ui.test.mjs projects/webflow/tests/webflow-recovery-ui.test.mjs",
+        "log": "artifacts/webflow-ui-alignment-r3/node-ui-package.tap",
+        "unchangedLogicEvidence": "R2 shared-task-run-sheet/task-run-recovery evidence reused only for unchanged main.js; not new actual candidate proof"
+      },
+      "package": {
+        "validation": "PASS",
+        "promotion": "PASS",
+        "projectSourceMatch": "PASS",
+        "packer": "scripts/build-sidebar-tool.mjs",
+        "capabilitiesChanged": false,
+        "fixedPinsChanged": false
+      },
+      "remaining": "Locate and reconcile foreign preparation via its original task/owner. Then positive shared sheet Schema form/JSON, save/readback, explicit confirm once and same preparation/Run/Result; remaining WFUI verification is not implied by visual checks.",
+      "upgrade": {
+        "from": "0.3.39",
+        "to": "0.3.40",
+        "action": "Extensions > Import extension > native chooser > reviewed local package > Confirm update once",
+        "permissionsChanged": false,
+        "fixedPinsChanged": false,
+        "installerReceipt": [
+          "已更新「Web Flow」",
+          "可直接打开使用。"
+        ],
+        "readback": [
+          "本机已安装 · 已启用",
+          "版本：v0.3.40",
+          "来源：来源未记录",
+          "固定包 SHA-256：fdc031b8526bac34bc99f1f41c11d779435a5da6ab22017da17d5713419d668e"
+        ]
+      },
+      "nativeSidePanel": {
+        "hostInstanceId": "42bcaf34-b871-4dc3-9a02-079e91618ce1",
+        "observations": [
+          "Original import review shows 0.3.39 to 0.3.40 and unchanged permissions; candidate SHA matches formal package. Confirm update clicked once; original success Toast shown.",
+          "Installed details read back v0.3.40 and full matching SHA; opened original native Side Panel without extra enable step.",
+          "Overview preserved original UNKNOWN and counts; scripts shows white light body, two compact rows and persistent favorite/play/more.",
+          "Play still returns E_TASK_BUSY for a different task/app identity preparation. No save, execute-confirm, stop, cancel, clearing or private binding rewrite."
+        ],
+        "screenshots": "CUA getAXStateAndScreenshot receipts in this chat; not a local PNG.",
+        "nativeFocusAndIme": "NOT_TESTED"
+      },
+      "actualApp": {
+        "hostInstanceId": "cb35d512-3c55-4492-b0a8-2964ca3ed2e1",
+        "widths": [
+          {
+            "width": 320,
+            "viewport": [
+              320,
+              650
+            ],
+            "dpr": 1,
+            "documentWidth": 320,
+            "frame": [
+              {
+                "w": 320,
+                "h": 549.5,
+                "x": 0,
+                "y": 100.5
+              }
+            ]
+          },
+          {
+            "width": 360,
+            "viewport": [
+              360,
+              650
+            ],
+            "dpr": 1,
+            "documentWidth": 360,
+            "frame": [
+              {
+                "w": 360,
+                "h": 549.5,
+                "x": 0,
+                "y": 100.5
+              }
+            ]
+          },
+          {
+            "width": 400,
+            "viewport": [
+              400,
+              650
+            ],
+            "dpr": 1,
+            "documentWidth": 400,
+            "frame": [
+              {
+                "w": 400,
+                "h": 549.5,
+                "x": 0,
+                "y": 100.5
+              }
+            ]
+          }
+        ],
+        "light": "320/360/400 screenshots viewed: white body, no horizontal overflow; exact actual inner-frame hover/focus geometry not measured.",
+        "dark": "Confirmed visible data-theme=dark at 360x650 DPR1, screenshot viewed. Restored system and read back combobox plus original preference-saved/readback Toast.",
+        "menu": "320px menu overlays the next row and receives View details click. Details screenshot is wide after next binding reset and named accordingly; full text/runtime-stale reason and folded technical section observed.",
+        "search": "Unmatched query yields 0/2; clearing restores 2/2.",
+        "keyboard": "Add opened and Escape closed in actual app; no new native focus/IME proof.",
+        "records": "Original UNKNOWN clientRequestId and saved installation/manifest/content identity preserved; no second original query, stop or replay. Expanded busy reason remains visible across scripts/records.",
+        "busy": "Native play and actual app play returned same E_TASK_BUSY reason. No execution-confirm action performed."
+      },
+      "runtimeBlocker": {
+        "code": "E_TASK_BUSY",
+        "reason": "已有其他任务或应用身份的准备占用；请从原入口查询或取消，不能确认执行",
+        "foreignPreparationId": "Not exposed by this UI; unknown",
+        "foreignOwner": "Unknown; requested original task/entry from user while independent work continued",
+        "sameAsLegacyUnknown": "NOT_PROVEN",
+        "positiveSharedSheet": "BLOCKED",
+        "saveReadbackConfirmRunResult": "BLOCKED",
+        "executionCounts": "NOT_MEASURED; no execution/confirmation action performed"
+      }
+    }
+  },
+  "conditions": [
+    {
+      "id": "WFUI-01",
+      "result": "NOT_TESTED",
+      "observed039": "Native overview/scripts/records order and compact controls checked. Light background mismatch discovered and fixed only in 0.3.40 source/package.",
+      "remaining": "Full same-state overview/scripts/records comparison; shared sheet dependent states.",
+      "observed040": "Actual native overview/scripts and app scripts/records observed. Light body now white; dark verified at 360. Original required native host automatic strip retained. Complete same-state regional comparison remains unverified."
+    },
+    {
+      "id": "WFUI-02",
+      "result": "NOT_TESTED",
+      "observed039": "Default icons visible at three actual app widths; reference row geometry from unchanged R2 source retained. Exact actual iframe hover geometry not measured.",
+      "remaining": "Installed hover/focus zero-geometry movement and precise reference alignment.",
+      "observed040": "Persistent icons visible at three actual app widths. Exact installed iframe hover/focus geometry remains unmeasured; unchanged R2 mock geometry is separate evidence."
+    },
+    {
+      "id": "WFUI-03",
+      "result": "BLOCKED",
+      "reason": "Positive shared sheet blocked by original foreign preparation; no save/confirm/admission/Run/Result proof."
+    },
+    {
+      "id": "WFUI-04",
+      "result": "BLOCKED",
+      "reason": "Positive shared sheet blocked by original foreign preparation; no save/confirm/admission/Run/Result proof."
+    },
+    {
+      "id": "WFUI-05",
+      "result": "BLOCKED",
+      "reason": "Positive shared sheet blocked by original foreign preparation; no save/confirm/admission/Run/Result proof."
+    },
+    {
+      "id": "WFUI-06",
+      "result": "BLOCKED",
+      "reason": "Positive shared sheet blocked by original foreign preparation; no save/confirm/admission/Run/Result proof."
+    },
+    {
+      "id": "WFUI-07",
+      "result": "BLOCKED",
+      "observed039": "Original UNKNOWN ID and query/stop reachable; readonly query reports Run/Result identity mismatch; no replay or stop.",
+      "remaining": "Original foreign preparation owner and true settlement; do not conflate with legacy UNKNOWN.",
+      "observed040": "Actual records preserves original UNKNOWN ID, query/stop and saved task identity. No replay/stop. Foreign preparation is not proven to be this UNKNOWN."
+    },
+    {
+      "id": "WFUI-08",
+      "result": "NOT_TESTED",
+      "observed039": "Both tasks runtime-stale; reason visible in details; original auto-admission switch left unchanged.",
+      "remaining": "Confirm-time authority/invalidation on actual candidate; Node protection is separate.",
+      "observed040": "Both tasks show runtime-stale status and details reason. Confirmation-time authority/invalidation remains blocked."
+    },
+    {
+      "id": "WFUI-09",
+      "result": "NOT_TESTED",
+      "observed039": "Search/empty/clear, runnable filter, favorite persistence/default favorite ordering and refresh checked; temporary favorite restored.",
+      "remaining": "Same-candidate full filter/sort/favorite readback matrix remains unverified; prior JS evidence separate.",
+      "observed040": "Actual search unmatched 0/2 and clear 2/2 verified. Favorite persistence/filter/sorting evidence is 0.3.39 only; JS unchanged, not same-candidate full PASS."
+    },
+    {
+      "id": "WFUI-10",
+      "result": "NOT_TESTED",
+      "observed039": "Native Add/Help/settings/records reachable; source-specific manual directions honest; original tool enable state unchanged.",
+      "remaining": "All add routes/help/return-state and positive shared-sheet draft preservation.",
+      "observed040": "Actual app preferences/tool settings, Add/Escape and records reachable. All add subroutes/help were checked on 0.3.39 only; positive shared-sheet draft preservation blocked."
+    },
+    {
+      "id": "WFUI-11",
+      "result": "NOT_TESTED",
+      "observed039": "320/360/400x650 app widths captured without horizontal overflow; 320 menu overlays next row and receives detail click; actual native sidebar observed.",
+      "remaining": "Short native panel, long lists and shared-sheet scrolling/actions.",
+      "observed040": "Actual app 320/360/400x650 DPR1, frame widths same, height 549.5 and y100.5, document widths match viewport; screenshots viewed. 320 menu hit detail action. Native scripts observed; short native/shared-sheet proof missing."
+    },
+    {
+      "id": "WFUI-12",
+      "result": "NOT_TESTED",
+      "observed039": "App Add Escape closes and visible focus returns; keyboard screenshot wide, not native.",
+      "remaining": "Full actual keyboard/menu/modal semantics, native focus and IME.",
+      "observed040": "Actual app Add Escape closes. Full keyboard semantics, modal background protection, native focus and IME remain unverified."
+    },
+    {
+      "id": "WFUI-13",
+      "result": "NOT_TESTED",
+      "observed039": "Upgrade success Toast; preference-saved/readback Toast; persistent busy reason and original UNKNOWN read error.",
+      "remaining": "Real cancellation and late-reply lifecycle.",
+      "observed040": "Actual update success Toast; preference-saved/readback Toast; persistent expanded E_TASK_BUSY reason. Real cancellation/late-reply proof remains unverified."
+    }
+  ],
+  "environment": {
+    "mode": "Continuous development",
+    "expectedPath": "dist/development",
+    "actualLoadedPathAndNativePairing": "NOT_REVERIFIED",
+    "extensionId": "ccfcjegpkdlgbclopjmadlcjedelidmf",
+    "nativeDebugReadback": "开发服务已连接 · 构建指纹 7e603d5f268d；保存源码后自动安全更新。",
+    "buildRevision": "7e603d5f268daf6e8cfdecd920bb8841a21c979406d7b54ce3eb1b022362c81b",
+    "writerPids": [
+      61427,
+      61448
+    ],
+    "writerOwnedByThisTask": false,
+    "writerStoppedRestartedOrOverwritten": false
+  },
+  "screenshots": [
+    {
+      "path": "artifacts/webflow-ui-alignment-r3/escape-focus-wide.png",
+      "sha256": "8eac0771e8d2381d6c2c6f33bf3d1a632e4360b33c18a4a333ffb8913fc51fc5",
+      "candidate": "0.3.39",
+      "nativeSidePanel": false
+    },
+    {
+      "path": "artifacts/webflow-ui-alignment-r3/installed-039-busy-collapsed-360.png",
+      "sha256": "f5ae395a74c0133075940281fb420dd793f0d611ee938f45d696bdb83fc478d3",
+      "candidate": "0.3.39",
+      "nativeSidePanel": false
+    },
+    {
+      "path": "artifacts/webflow-ui-alignment-r3/installed-039-busy-expanded-360.png",
+      "sha256": "1eed8a0469f4c8e1ac7b3e3345c7bd38e8075a56fc1d0a945fcb816004f220d9",
+      "candidate": "0.3.39",
+      "nativeSidePanel": false
+    },
+    {
+      "path": "artifacts/webflow-ui-alignment-r3/installed-dark-360.png",
+      "sha256": "4cbd3510947b53db26d561d080a15504a596aec995772e26c2d2884ac6e886a5",
+      "candidate": "0.3.39",
+      "nativeSidePanel": false
+    },
+    {
+      "path": "artifacts/webflow-ui-alignment-r3/installed-dark-wide.png",
+      "sha256": "57693663337b372dd8a72b2f9b8faba64c6469ffde0613f6040be2ddbc9fd726",
+      "candidate": "0.3.39",
+      "nativeSidePanel": false
+    },
+    {
+      "path": "artifacts/webflow-ui-alignment-r3/installed-details-320.png",
+      "sha256": "ed2e53bf73c3ba1d428aa1293a3d7507ad73ea38b5db1c84c887f4d9604a60bb",
+      "candidate": "0.3.39",
+      "nativeSidePanel": false
+    },
+    {
+      "path": "artifacts/webflow-ui-alignment-r3/installed-menu-320.png",
+      "sha256": "745ec009bec191c77468e4509ff3641e4c4849439eba50421c91f4f64aefaecd",
+      "candidate": "0.3.39",
+      "nativeSidePanel": false
+    },
+    {
+      "path": "artifacts/webflow-ui-alignment-r3/installed-scripts-320.png",
+      "sha256": "e54b83f3aa1f340ec5f04d0a2e77042c3975bdc7c5e63a7903998639e3c8b1e1",
+      "candidate": "0.3.39",
+      "nativeSidePanel": false
+    },
+    {
+      "path": "artifacts/webflow-ui-alignment-r3/installed-scripts-360.png",
+      "sha256": "b4e70efe359caa2ac92d3152ca8ba6755915c389320d919bf48e1499314f1e7c",
+      "candidate": "0.3.39",
+      "nativeSidePanel": false
+    },
+    {
+      "path": "artifacts/webflow-ui-alignment-r3/installed-scripts-400.png",
+      "sha256": "8ff1338de6b59747bbbe1e747981e1eb4e03c3a379f4e5cbba7e8e52a7f580c3",
+      "candidate": "0.3.39",
+      "nativeSidePanel": false
+    },
+    {
+      "path": "artifacts/webflow-ui-alignment-r3/white-background-source-trial.png",
+      "sha256": "75d17386842b4a471c9931102de135f4c43a54c8c12127b1ca6193890c021871",
+      "candidate": "SOURCE_TRIAL_MOCK_SDK",
+      "nativeSidePanel": false
+    },
+    {
+      "path": "artifacts/webflow-ui-alignment-r3/installed-040-busy-360.png",
+      "sha256": "62d5b8d68e4c21ff41c9a7af2a9aadafde8f3b9aea89386f86a7b412f0e6a8b2",
+      "candidate": "0.3.40",
+      "nativeSidePanel": false
+    },
+    {
+      "path": "artifacts/webflow-ui-alignment-r3/installed-040-dark-360.png",
+      "sha256": "4cbd3510947b53db26d561d080a15504a596aec995772e26c2d2884ac6e886a5",
+      "candidate": "0.3.40",
+      "nativeSidePanel": false
+    },
+    {
+      "path": "artifacts/webflow-ui-alignment-r3/installed-040-details-wide.png",
+      "sha256": "cf52218447c7c9f2c66d5e67f5e2220e987dacf3f9f1e3f16af21a004a0de034",
+      "candidate": "0.3.40",
+      "nativeSidePanel": false
+    },
+    {
+      "path": "artifacts/webflow-ui-alignment-r3/installed-040-menu-320.png",
+      "sha256": "f4af08b8843c218653280bdfdfeb6a075f134b866e0249f4701921e9017ed2f2",
+      "candidate": "0.3.40",
+      "nativeSidePanel": false
+    },
+    {
+      "path": "artifacts/webflow-ui-alignment-r3/installed-040-records-360.png",
+      "sha256": "68966032fa1205ada835542a12bfea21e5451a3da54beb4fc444d190b15e6e61",
+      "candidate": "0.3.40",
+      "nativeSidePanel": false
+    },
+    {
+      "path": "artifacts/webflow-ui-alignment-r3/installed-040-scripts-320.png",
+      "sha256": "b0b54ac38df84ed2854a32b250d27a827cddc719fc0ec038457649e502e18ca0",
+      "candidate": "0.3.40",
+      "nativeSidePanel": false
+    },
+    {
+      "path": "artifacts/webflow-ui-alignment-r3/installed-040-scripts-360.png",
+      "sha256": "a973b767774f7f1951293b3c2a00b17cf65441a4e7fd1531ec38aa879148f392",
+      "candidate": "0.3.40",
+      "nativeSidePanel": false
+    },
+    {
+      "path": "artifacts/webflow-ui-alignment-r3/installed-040-scripts-400.png",
+      "sha256": "e6b24d5736502e866a8e831268258ae736595deb270a8eb62e1c6b1e97d7970b",
+      "candidate": "0.3.40",
+      "nativeSidePanel": false
+    }
+  ],
+  "notes": [
+    "Actual app and native Side Panel evidence are separate. App omits native host navigation/automatic strip; prototype includes mock host tabs and three fake rows. Actual task count is two and both statuses are runtime-stale; refresh/count are retained original capabilities.",
+    "Some initial app screenshots after rebind were wide; renamed *-wide. Final 360 dark image was captured after measured override. OOPIF resize requires a layout turn after viewport override; stale interim clipped capture replaced, not treated as product bug.",
+    "No new JS/framework changes, full build, root CI, production, score or R11 recovery.",
+    "0.3.40 initial dark capture caught host settings during asynchronous navigation; replaced after visible scripts/dark checks. Invalid generic role locator and early hidden-select driver attempts are not product failures. Details wide screenshot is named *-wide and is not 320px evidence."
+  ],
+  "cleanup": {
+    "nativeUiLock": "Acquired legally for both installation segments, released after native CUA completion; not held.",
+    "ego": "TaskSpace35 retained because foreign-preparation error leaves goal incomplete. Own mock fixture p4 closed; actual p2 and catalog p3 preserved for continuation.",
+    "fixture": "Own PID64300 stopped via SIGTERM and absence verified; output only temporary artifacts.",
+    "sharedServices": "Existing npm run dev PID61427/scripts dev PID61448 still observed; never stopped/restarted/overwritten by this task."
+  },
+  "next": [
+    "Identify original task/owner/entry for foreign preparation; user clarification pending. Do not clear/cancel/rebind it to enable testing.",
+    "Once legally reconciled, Schema form/JSON > save/readback > explicit confirm once > same preparation/request/Run/Result and targeted WFUI evidence.",
+    "Finish remaining same-candidate UI/keyboard checks after core shared sheet unblocks; do not mark goal complete from visual/Node/package results."
+  ],
+  "deferred": [
+    "Root CI/full suite",
+    "Production acceptance",
+    "Independent scores",
+    "Historical R11 A/B/delivery recovery",
+    "Model/provider changes"
+  ],
+  "delivery": {
+    "branch": "main",
+    "push": false,
+    "scope": "Only explicit projects/webflow task files; unrelated edits preserved."
+  }
+}
