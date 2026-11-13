@@ -359,7 +359,7 @@ test('last-turn bottom boundary keeps back navigation usable',()=>{
   f.main.scrollTop=f.main.scrollHeight-f.main.clientHeight;
   const {dock,host}=f.mount();
   const get=key=>host.shadowRoot.querySelector('[data-scroll-nav-key="'+key+'"]');
-  const top=get('conversationTop'),previous=get('turnPrevious');
+  const top=get('floatingTop')||get('conversationTop'),previous=get('turnPrevious');
   const next=get('turnNext'),bottom=get('conversationBottom');
   assert.ok(top&&previous&&next&&bottom,'four physical buttons stay mounted');
   assert.equal(top.disabled,false,'top remains available at the bottom');
