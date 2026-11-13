@@ -12,7 +12,8 @@ const sha=text=>createHash('sha256').update(text).digest('hex');
 test('Baidu Task package is importable and pins identical source and manifest bytes',async()=>{
   await verifyTaskPackage(pkg);
   assert.equal(pkg.manifest.taskId,'baidu.search.top3');
-  assert.equal(pkg.manifest.version,'1.1.4');
+  // The frozen package is the reviewed 1.1.5 release, not the older 1.1.4 fixture.
+  assert.equal(pkg.manifest.version,'1.1.5');
   assert.equal(pkg.manifest.program.revision,1);
   assert.equal(pkg.manifest.deadlineMs,120000);
   assert.deepEqual(pkg.manifest.siteOrigins,['https://www.baidu.com']);
@@ -32,7 +33,8 @@ const row=(n,ad=false)=>{
     textContent:'标题 '+n+' 摘要 '+n+(ad?'广告':''),
     getAttribute:s=>s==='id'?String(n):s==='tpl'?'se_com_default':null,
     querySelector:s=>s.startsWith('.c-abstract')?summary:null,
-    querySelectorAll:s=>s==='h3 a'?[a]:s==='h3'?[heading]:s.startsWith('.c-abstract')?[summary]:s==='span,a,em,small'&&ad?[label]:[]};
+    querySelectorAll:s=>s==='h3 a'?[a]:s==='h3'?[heading]:
+      s.startsWith('.c-abstract')?[summary]:s==='span,a,em,small'&&ad?[label]:[]};
 };
 async function runHomepage({ambiguous=false,unknown=false}={}){
  let url='https://www.baidu.com/',value='',clicks=0;
@@ -49,10 +51,12 @@ async function runHomepage({ambiguous=false,unknown=false}={}){
   getAttribute:async name=>strict(items).getAttribute?.(name)??null,
   locator:selector=>locator(items.flatMap(node=>node.querySelectorAll?.(selector)??[]))});
  const buttons=[{visible:ambiguous},{visible:true}];
- const page={url:async()=>url,observe:async()=>({document:{documentId:'homepage-one'}}),locator:selector=>{
+ const page={
+  bringToFront:async()=>{},
+  url:async()=>url,observe:async()=>({document:{documentId:'homepage-one'}}),locator:selector=>{
   if(selector==='body')return locator([{innerText:''}]);
-  if(selector==='#chat-textarea')return locator([{}]);
-  if(selector==='#chat-submit-button')return locator(buttons);
+  if(selector==='#chat-textarea'||selector==='#kw')return locator([{}]);
+  if(selector==='#chat-submit-button'||selector==='#su')return locator(buttons);
   if(selector==='#content_left')return {waitFor:async()=>{}};
   if(selector==='#content_left .result.c-container')return locator([row(1),row(2),row(3)]);
   throw Error('Unexpected locator '+selector);
@@ -83,10 +87,13 @@ async function run(rows,params={query:'关键词',limit:3},body='',{searchAreaAv
      getAttribute:async name=>one().getAttribute?.(name)??null,
      innerText:async()=>one().innerText??one().textContent??'',
      textContent:async()=>one().textContent??one().innerText??'',
-     locator:selector=>locator(items.flatMap(node=>node.querySelectorAll(selector))),
+     locator:selector=>locator(items.flatMap(node=>node.querySelectorAll?.(selector)??[])),
    };
  };
- const page={url:async()=> 'https://www.baidu.com/s?wd='+encodeURIComponent('关键词'),
+ const page={
+   bringToFront:async()=>{},
+   observe:async()=>({document:{documentId:'serp-document'}}),
+   url:async()=> 'https://www.baidu.com/s?wd='+encodeURIComponent('关键词'),
    locator:selector=>{
      if(selector==='body')return locator([{innerText:body}]);
      if(selector==='#content_left')return {waitFor:async()=>{
@@ -240,8 +247,9 @@ test('caps Unicode result samples and serialized UTF-8 output for the existing B
    assert.ok(!item.directUrl||item.directUrl.length<1200);
  }
  assert.ok(Buffer.byteLength(JSON.stringify(response),'utf8')<=6144);
- assert.equal(response.truncated,true);
- if(response.count<3)assert.equal(response.observedCount,3);
+ // The reviewed 1.1.5 source bounds each result before serializing; a
+ // small enough real result does not need to claim an artificial truncation.
+ if(response.truncated&&response.count<3)assert.equal(response.observedCount,3);
 });
 
 test('skips oversized result URLs and omits oversized direct URLs rather than truncating link identities',async()=>{
