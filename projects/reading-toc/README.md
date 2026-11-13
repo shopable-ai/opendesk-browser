@@ -14,6 +14,8 @@
 
 版本以 [`tool.config.json`](tool.config.json) 为准，并须与 [`package.json`](package.json) 的 Page 项目版本一致；唯一正式包是 `reading-toc.opendesk-tool.json`。已安装版本、候选编译通过和正式包晋升是不同状态，不能用 README 中的历史版本号替代核对。
 
+2026-11-13 按用户要求重新编译并交付 **1.1.12 → 1.1.13**，唯一正式包为 [reading-toc.opendesk-tool.json](reading-toc.opendesk-tool.json)。Page revision 同步升为 **13**，网页源码仅变更编译器生成的版本头，业务、能力及网站范围保持不变。应用与组合包定向检查 **63/63 通过**，候选已验证、同源晋升并通过 `--check-project`；正式包 142298 bytes，SHA-256 `be6b7085490aa769a0615030cd66eb63be1c1e04832a7804c62e9099c47cf3c3`。本次未执行浏览器安装/升级，运行状态为 `NOT_TESTED`；后文旧版本与安装结果仅对应各自历史候选。
+
 ## 解耦到了哪一层
 
 旧链路是 Browser 固定的 `page-relay.js` 导入目录网页业务，工具 JSON 只更新侧栏。现在由同一个应用包交付两部分：侧栏在原沙箱运行，网页业务在已审阅的 USER_SCRIPT 中运行；两者经通用 `page.request` / `OpenDeskAppPage` 通信，继续由既有 Installed Page Authority 管理身份、网站范围、撤权和清理。因此目录算法、视图、样式及业务设置可以随应用更新；通用桥、安装器和 Authority 的修改仍须更新 Browser。
