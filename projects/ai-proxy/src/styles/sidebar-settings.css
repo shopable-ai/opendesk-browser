@@ -98,6 +98,8 @@
   :scope .options .quietDanger { color: var(--bad); }
   :scope .options .proxyIconButton.quietDanger:hover:not(:disabled) { color: var(--bad); background: var(--badBg); border-color: var(--line); }
   :scope .options .optionsModeBar { display: grid; gap: var(--space-3); margin: 0; padding: var(--space-3); border-radius: 8px; }
+  :scope .options .modeSelectionRow { display: contents; }
+  :scope .options .officialEmptyIcon { display:none; }
   :scope .options .settingsRuntimeStatus { margin: 0; }
   :scope .options .settingsRuntimeStatus .controlChip { display: inline-flex; white-space: normal; font-size: 12px; }
   :scope .options .optionsModeGrid { grid-template-columns: repeat(2,minmax(0,1fr)); gap: var(--space-2); margin: 0; }
@@ -185,6 +187,7 @@
   :scope .options :where(input,select,textarea,button,summary) { scroll-margin-top: 68px; }
   :scope .options .formGrid { grid-template-columns: minmax(0,1fr); }
   :scope .options .backupCard { gap: 12px; }
+  :scope .options .backupInputGroup { display: grid; width: 100%; gap: 8px; }
   :scope .options .backupCard h2 { font-size: 15px; }
   :scope .options .backupCard input[type='file'] { font-size: 12px; padding: 8px; }
   :scope .options .backupImport textarea { min-height: 140px; }
@@ -221,7 +224,7 @@
     background: var(--od-paper); color: var(--od-ink); border: 1px solid var(--od-line);
   }
   /* Parent gaps own vertical rhythm; legacy child margins must not add to it. */
-  :scope .options :is(.optionsModeBar,.rulesDefault) > *,
+  :scope .options :is(.optionsModeBar,.rulesDefault,.modeSelectionRow) > *,
   :scope .options :is(.proxyEditorForm,.proxyEditorFields,.rulesEditorFields,.ruleInputFields) > * { margin: 0; }
   :scope .options .proxyEditorForm { display: grid; grid-template-rows: auto minmax(0,1fr) auto; max-height: calc(100dvh - 24px); gap: 0; padding: 0; }
   :scope .options .proxyEditorFields { display: grid; gap: 19px; min-width: 0; min-height: 0; overflow: auto; overscroll-behavior: contain; padding: 0 var(--proxy-editor-gutter) 24px; }

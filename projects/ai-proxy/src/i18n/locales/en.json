@@ -1072,5 +1072,11 @@
   "sideExpectedRoute": "Expected route",
   "sideSiteApplyHelp": "Apply explicitly after changing a rule or proxy.",
   "sideAddSiteRule": "Add rule for this site",
-  "sideLegal": "Manages browser proxy settings only, not device-wide settings."
+  "sideLegal": "Manages browser proxy settings only, not device-wide settings.",
+  "apDefaultRouteHelp": "Used when no website rule matches, not when a proxy connection fails. Apply explicitly after saving.",
+  "apSavedRoute": "Saved: ",
+  "apBackupReplaceHelp": "Import replaces existing proxies, PAC scripts and website rules. Valid data still requires confirmation and does not apply a route.",
+  "apInterfacePreferences": "Interface and actions",
+  "apDataAndHelp": "Data and help",
+  "apCloseRuleEditor": "Close rule editor"
 }

@@ -607,6 +607,7 @@ const tabs: {id:Page; name:string; caption:string}[] = [
                 aria-pressed={config.selection.mode===item.mode}
                 onClick={()=>void act({type:'SELECT',selection:{...config.selection,mode:item.mode}})}><ProxyIcon name={item.mode}/><span>{item.name}</span></Button>)}
             </div>
+            <div className="modeSelectionRow">
             {config.selection.mode==='profile' && <div className="optionsProfileSelect">
               <label htmlFor="options-profile">{t('useASavedProfile')}</label>
               <select id="options-profile" disabled={busy} value={config.selection.profileId||''}
@@ -625,11 +626,12 @@ const tabs: {id:Page; name:string; caption:string}[] = [
               <Button disabled={busy||!(state.runtime.canStop||state.runtime.stopFinalizationPending)} onClick={()=>void act({type:'STOP'})}>{t(state.runtime.stopFinalizationPending?'apFinishStop':'stopManagingProxy')}</Button>
               <small>{t('appliedSettingsWebsiteAccess')}</small>
             </div>
+            </div>
             <details className="runtimeDetails" open={!!error || !!state.runtime.proxyError || state.runtime.credentialRequired ||
               state.runtime.control==='controlled_by_other_extensions' || state.runtime.control==='not_controllable' ||
               (state.runtime.managedIntent&&!state.runtime.applied) ||
               (!state.runtime.managedIntent&&state.runtime.control==='controlled_by_this_extension')}>
-              <summary>{t('controlAndApplicationDetails')}</summary>
+              <summary>{t('controlAndApplicationDetails')}{presentation==='management'&&<small className="managementModeCaveat">{t('appliedSettingsWebsiteAccess')}</small>}</summary>
               <Status status={state.runtime} compact/>
             </details>
           </section>
@@ -749,7 +751,7 @@ const tabs: {id:Page; name:string; caption:string}[] = [
         </>}
         {tab==='rules' && <div className="rulesPage">
           {ruleEditorOpen&&presentation!=='management'?<header className="ruleEditorHeader"><h2>{t(editingRuleId?'editRule':'addRule')}</h2></header>:
-          <OptionsPageHeader title={t('websiteRules2')}
+          <OptionsPageHeader title={t('websiteRules2')} eyebrow={presentation==='management'?t('settings'):undefined}
             description={t('routeByDomainThroughAProxyOrDirect')}
             badge={config.rules.length}
             actions={<Button id="settings-rule-add" variant="primary" className="primary"
@@ -762,7 +764,7 @@ const tabs: {id:Page; name:string; caption:string}[] = [
           <div className="rulesGrid">
             {(!ruleEditorOpen||presentation==='management')&&<section className="rulesList" aria-label={t('websiteRules2')}>
               {ruleSaved&&<p className="r86Notice" role="status">{t('apRuleSavedNotice')}</p>}
-              <p className="hint">{t('apRuleSaveNote')}</p>
+              {(presentation!=='management'||config.selection.mode==='rules')&&<p className="hint">{t('apRuleSaveNote')}</p>}
               {presentation==='management' && config.rules.length>0 && <div className="managementRulesHeader" aria-hidden="true">
                 <span>{t('apRuleEnabled')}</span><span>{t('ruleWebsiteInput')}</span><span>{t('ruleWebsiteUse')}</span><span>{t('priority')}</span><span/>
               </div>}
@@ -804,7 +806,7 @@ const tabs: {id:Page; name:string; caption:string}[] = [
                 else if(!event.shiftKey&&document.activeElement===last){event.preventDefault();first.focus();}
               }}>
               {presentation==='management'&&<header className="ruleDialogHeader"><h2 id="rule-editor-title">{t(editingRuleId?'editRule':'addRule')}</h2>
-                <Button type="button" className="proxyIconButton" disabled={busy} aria-label={t('close')} onClick={()=>void requestCloseRuleEditor()}><ProxyIcon name="close"/></Button></header>}
+                <Button type="button" className="proxyIconButton" disabled={busy} aria-label={t('apCloseRuleEditor')} onClick={()=>void requestCloseRuleEditor()}><ProxyIcon name="close"/></Button></header>}
               <p className="siteRuleOrigin">{t(editingRuleId?'apExistingRuleSource':'apRulesListSource')}
                 {editingRuleId&&<strong className="mono"> {config.rules.find(item=>item.id===editingRuleId)?.domain}</strong>}</p>
               <form data-draft-scope="settings-rule" className="ruleEditorForm" aria-busy={busy}
@@ -889,7 +891,7 @@ const tabs: {id:Page; name:string; caption:string}[] = [
           </div>
           {(!ruleEditorOpen||presentation==='management')&&<section className="rulesDefault" data-draft-scope="settings-default">
             <h2>{t('whenNoRuleMatches')}</h2>
-            <p className="hint">{t('directByDefaultTrafficUsesAProxyOnlyWhen')}</p>
+            <p className="hint">{t(presentation==='management'?'apDefaultRouteHelp':'directByDefaultTrafficUsesAProxyOnlyWhen')}</p>
           <div className="defaultRouteControl"><label htmlFor="default-route">{t('defaultRoute')}</label>
             <select id="default-route" value={defaultAction==='direct'?'direct':defaultEndpointId}
               onChange={e=>{setDefaultSaved(false);setDefaultAction(e.target.value==='direct'?'direct':'endpoint');setDefaultEndpointId(e.target.value==='direct'?'':e.target.value);}}>
@@ -897,7 +899,7 @@ const tabs: {id:Page; name:string; caption:string}[] = [
             </select></div>
           <div className="actions"><Button disabled={busy || (defaultAction==='endpoint' && !defaultEndpointId)} onClick={async()=>{const revision=getEnvironment().getDraftRevision('settings-default');if(await act({type:'SET_DEFAULT',draftScope:'settings-default',target:defaultAction==='direct'?
             {action:'direct'}:{action:'endpoint',endpointId:defaultEndpointId}})){if(getEnvironment().setDraftDirty(false,'settings-default',revision))setDefaultSaved(true);}}}>{t('saveDefaultRoute')}</Button>
-            <small>{t('current')}{config.defaultTarget.action==='direct'?'DIRECT':endpoints.find(e=>e.id===config.defaultTarget.endpointId)?.name}</small></div>
+            <small>{t(presentation==='management'?'apSavedRoute':'current')}{config.defaultTarget.action==='direct'?'DIRECT':endpoints.find(e=>e.id===config.defaultTarget.endpointId)?.name}</small></div>
             {defaultSaved&&<p role="status" className="r86Notice">{t('apDefaultSaved')}</p>}
           </section>}
           {(!ruleEditorOpen||presentation==='management')&&<section className="routeTester" aria-label={t('apTestRules')}>
@@ -922,6 +924,8 @@ const tabs: {id:Page; name:string; caption:string}[] = [
             <section className="backupCard backupImport" data-draft-scope="settings-backup">
               
               <h2>{t('backupImportTitle')}</h2>
+              {presentation==='management'&&<p className="hint backupConsequence">{t('apBackupReplaceHelp')}</p>}
+              <div className="backupInputGroup">
               <label htmlFor="backup-file">{t('backupChooseFile')}</label>
               <input id="backup-file" type="file" accept=".json,application/json" disabled={busy}
                 aria-describedby="backup-file-hint" onChange={e=>{
@@ -939,6 +943,8 @@ const tabs: {id:Page; name:string; caption:string}[] = [
                 </Button>
                 <Button type="button" disabled={busy} onClick={()=>stageBackup(null)}>{t('apKeepEditing')}</Button>
               </div>}
+              </div>
+              <div className="backupInputGroup">
               <label htmlFor="import-data">{t('pasteJsonBackup')}</label>
               <textarea id="import-data" value={backup} disabled={busy} onChange={e=>{
                 backupReadGeneration.current++;stageBackup(null);
@@ -946,6 +952,7 @@ const tabs: {id:Page; name:string; caption:string}[] = [
                 setBackupImported(false);
                 setError('');
               }} placeholder='{"schemaVersion":2,...}' spellCheck={false}/>
+              </div>
               <Button disabled={busy||!backup.trim()} onClick={()=>void importBackup()}>
                 {t('validateAndImportStopManagingFirst')}
               </Button>
@@ -966,6 +973,7 @@ const tabs: {id:Page; name:string; caption:string}[] = [
           onStop={() => act({type:'STOP'})} onProfiles={() => navigate('profiles')} />}
         {tab==='general' && <div className="generalPage">
           <div className="generalGrid">
+            {presentation==='management'&&<h3 className="generalGroupHeading">{t('apInterfacePreferences')}</h3>}
             <article className="record languageRecord"><div>
               <strong>{t('interfaceLanguage')}</strong>
               <small>{t('languageHelp')}</small>
@@ -980,6 +988,7 @@ const tabs: {id:Page; name:string; caption:string}[] = [
               </select>
             </label></article>
             <HeaderActionsEditor store={headerActionsStore} disabled={busy||Boolean(state?.runtime?.outcomeUnknown)}/>
+            {presentation==='management'&&<h3 className="generalGroupHeading">{t('apDataAndHelp')}</h3>}
             <article className="record generalInfoCard"><div><strong>{t('freeThirdPartyProxyManagement')}</strong><small>{t('noSignUpPurchaseOrTopUpRequiredNo')}</small></div></article>
             <article className="record generalInfoCard"><div><strong>{t('privacyAndData')}</strong><small>{t('settingsAreStoredLocallyInTheBrowserProxyPasswords')}</small></div></article>
             <article className="record generalInfoCard"><div><strong>{t('helpAndFeedback')}</strong><small>{t('theRepositoryIsPrivateAPublicCommunityIsNot')}</small></div>

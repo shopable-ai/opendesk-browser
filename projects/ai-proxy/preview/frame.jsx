@@ -61,6 +61,36 @@ addEventListener('message',event=>{
     if(message.error)item.reject(Object.assign(Error(message.error.message),{code:message.error.code}));else item.resolve(message.value);
   }
   if(!environment)return;
+  // Read-only development evidence for the existing memory preview. Keep this
+  // separate from production SDK, configuration values and business actions.
+  if(message?.type==='ai-proxy-preview-inspect'&&typeof message.id==='string'){
+    const selectors=['.options','.managementNav','.optionsContent','.optionsPageHead',
+      '.optionsModeBar','.optionsModeGrid','.modeSelectionRow','.optionsProfileSelect','.modeActions','.runtimeDetails',
+      '.listSection','.proxyRecord','.rulesDefault','.rulesList','.backupCard',
+      '.sourcesManagementTabs','.subscriptionIndexHead','.generalInfoCard','.languageRecord',
+      '.diagnosticFeature','.officialEmpty','.managementFeedback','.backupInputGroup','.generalGroupHeading'];
+    const describe=element=>{
+      const rect=element.getBoundingClientRect(),style=getComputedStyle(element);
+      return {tag:element.tagName.toLowerCase(),class:element.className,
+        rect:Object.fromEntries(['x','y','width','height'].map(key=>[key,Math.round(rect[key]*10)/10])),
+        display:style.display,gap:style.gap,padding:style.padding,fontSize:style.fontSize,
+        columns:style.gridTemplateColumns};
+    };
+    send({type:'ai-proxy-preview-inspection',id:message.id,route:environment.navigation.getRoute(),
+      viewport:{width:innerWidth,height:innerHeight},
+      overflow:document.documentElement.scrollWidth>innerWidth,
+      headings:[...document.querySelectorAll('h1,h2,h3')].map(element=>({text:element.textContent,...describe(element)})),
+      navigation:[...document.querySelectorAll('.managementNav button')].map(element=>({text:element.textContent,current:element.getAttribute('aria-current')})),
+      structure:[...document.querySelectorAll('.optionsContent > *, .optionsContent > div > *')].map(element=>({tag:element.tagName.toLowerCase(),class:element.className})),
+      notices:[...document.querySelectorAll('[role="alert"],[role="status"]')].filter(element=>element.getClientRects().length).map(element=>({role:element.getAttribute('role'),text:element.textContent})),
+      regions:selectors.flatMap(selector=>[...document.querySelectorAll(selector)].map(element=>({selector,...describe(element)}))),
+      controls:[...document.querySelectorAll('button,input,select,textarea')].map(element=>({
+        tag:element.tagName.toLowerCase(),id:element.id,type:element.type,
+        label:element.getAttribute('aria-label')||element.textContent?.trim().slice(0,100)||
+          (element.id?document.querySelector('label[for="'+CSS.escape(element.id)+'"]')?.textContent:''),
+        disabled:element.disabled,visible:element.getClientRects().length>0})),
+      dialogs:[...document.querySelectorAll('dialog[open]')].map(element=>({label:element.getAttribute('aria-labelledby'),...describe(element)}))});
+  }
   if(message?.type==='ai-proxy-preview-navigate')environment.navigation.navigate(message.route);
   if(message?.type==='ai-proxy-preview-refresh')void refresh();
 });

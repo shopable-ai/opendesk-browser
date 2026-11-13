@@ -1072,5 +1072,11 @@
   "sideExpectedRoute": "預期線路",
   "sideSiteApplyHelp": "切換規則或代理後，需要明確套用才會生效。",
   "sideAddSiteRule": "為此網站新增規則",
-  "sideLegal": "僅管理瀏覽器代理設定，不會改變裝置的全域代理。"
+  "sideLegal": "僅管理瀏覽器代理設定，不會改變裝置的全域代理。",
+  "apDefaultRouteHelp": "沒有網站規則符合時使用此路由；它不是代理連線失敗時的備援。儲存後仍需明確套用。",
+  "apSavedRoute": "已儲存：",
+  "apBackupReplaceHelp": "匯入將取代現有代理、PAC 和網站規則。驗證通過後仍需確認；不會自動套用線路。",
+  "apInterfacePreferences": "介面與操作",
+  "apDataAndHelp": "資料與說明",
+  "apCloseRuleEditor": "關閉規則編輯"
 }

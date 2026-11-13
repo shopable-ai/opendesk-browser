@@ -1,0 +1,231 @@
+{
+  "date": "2026-11-14",
+  "stage": "PC management core UI development",
+  "status": "SOURCE_AND_MEMORY_UI_READY_RUNTIME_NOT_VERIFIED",
+  "method": "DOM/AX hierarchy, semantic controls, computed geometry first; one final viewport screenshot for local visual inspection.",
+  "reference": {
+    "path": "preview/preview.html",
+    "sha256": "277ff8df72970906370507e9d7448da3ba583cb293536cae874c1a034080a977",
+    "unchanged": true
+  },
+  "sourceSha256": {
+    "src/Settings.tsx": "9a932bb581cf0a4c6a4a80227e9c85c7969492f728d0db2885e49751640abad3",
+    "src/styles/management.css": "e85c1b30b69bb23ff9fbbe5c9f17026a1233bd517d6b1ba17ce7909343fc2b30",
+    "src/styles/sidebar-settings.css": "64aa30ed865885b7f5ef074ac0a8a0e8328f013765d5e16126af1ab0dfbbeec9",
+    "src/ui/DiagnosticsPage.tsx": "a8b10e802c5a59073e37afe295986644ef5f8a515a2d40506d209e1afce4131c",
+    "src/ui/OfficialServicePage.tsx": "561ec8788129d8a8c42d3de195d7c410f74f5e9d647652686df438003a327d77",
+    "src/i18n/locales/zh-CN.json": "c51780c08e50b043ba8458d629c031528a6f66b4ab4c3ea39c348ad9d5efede3",
+    "src/i18n/locales/zh-TW.json": "c837450e04c5f41a49ff65634497d538de3d2ba486e9909d950d3fed60bf78b6",
+    "src/i18n/locales/en.json": "cec6ad621cf2cc2f938cd5070d6b08b614280ee6c3b7dd76988addbcbed2c829"
+  },
+  "dom": [
+    {
+      "route": "profiles",
+      "referenceHeadings": [
+        "代理与配置",
+        "代理模式",
+        "代理服务器 3 项",
+        "PAC 配置"
+      ],
+      "sourceHeadings": [
+        "AI Proxy",
+        "代理配置3",
+        "当前代理模式",
+        "代理服务器 3",
+        "不会写 PAC？从现有代理生成"
+      ],
+      "sevenNavigationItems": true,
+      "oneCurrentNavigationItem": true,
+      "horizontalOverflow": false,
+      "pageHeadingHeight": 99.6
+    },
+    {
+      "route": "rules",
+      "referenceHeadings": [
+        "网站规则"
+      ],
+      "sourceHeadings": [
+        "AI Proxy",
+        "网站规则2",
+        "无规则命中时"
+      ],
+      "sevenNavigationItems": true,
+      "oneCurrentNavigationItem": true,
+      "horizontalOverflow": false,
+      "pageHeadingHeight": 99.6
+    },
+    {
+      "route": "subscriptions",
+      "referenceHeadings": [
+        "订阅管理",
+        "已保存的订阅",
+        "接入说明"
+      ],
+      "sourceHeadings": [
+        "AI Proxy",
+        "订阅管理",
+        "我的订阅 1"
+      ],
+      "sevenNavigationItems": true,
+      "oneCurrentNavigationItem": true,
+      "horizontalOverflow": false,
+      "pageHeadingHeight": 99.6
+    },
+    {
+      "route": "backup",
+      "referenceHeadings": [
+        "导入备份",
+        "导入备份",
+        "导出备份",
+        "兼容范围"
+      ],
+      "sourceHeadings": [
+        "AI Proxy",
+        "导入备份",
+        "导入备份",
+        "导出备份"
+      ],
+      "sevenNavigationItems": true,
+      "oneCurrentNavigationItem": true,
+      "horizontalOverflow": false,
+      "pageHeadingHeight": 99.6
+    },
+    {
+      "route": "diagnostic",
+      "referenceHeadings": [
+        "网络诊断",
+        "检查你关心的网站",
+        "先检查你正在使用的网站",
+        "常用 AI 工具快速检查",
+        "我的关键网站",
+        "速度与线路质量"
+      ],
+      "sourceHeadings": [
+        "AI Proxy",
+        "网络诊断",
+        "检查你关心的网站",
+        "网站规则",
+        "AI 网站可用性",
+        "关键网站 Top 5/10",
+        "模拟 · HTTP 请求耗时与稳定性",
+        "问题解释与恢复建议"
+      ],
+      "sevenNavigationItems": true,
+      "oneCurrentNavigationItem": true,
+      "horizontalOverflow": false,
+      "pageHeadingHeight": 99.6
+    },
+    {
+      "route": "general",
+      "referenceHeadings": [
+        "通用设置",
+        "基础偏好"
+      ],
+      "sourceHeadings": [
+        "AI Proxy",
+        "通用设置",
+        "界面与操作",
+        "数据与帮助"
+      ],
+      "sevenNavigationItems": true,
+      "oneCurrentNavigationItem": true,
+      "horizontalOverflow": false,
+      "pageHeadingHeight": 99.6
+    },
+    {
+      "route": "official",
+      "referenceHeadings": [
+        "官方网络",
+        "官方网络服务"
+      ],
+      "sourceHeadings": [
+        "AI Proxy",
+        "官方网络",
+        "官方服务暂未开放"
+      ],
+      "sevenNavigationItems": true,
+      "oneCurrentNavigationItem": true,
+      "horizontalOverflow": false,
+      "pageHeadingHeight": 99.6
+    }
+  ],
+  "geometry": {
+    "contentInnerWidth": 969,
+    "modeCardHeightBefore": 273.1,
+    "modeCardHeightAfter": 216.6,
+    "modeCardReferenceHeight": 200.0,
+    "recordRowHeight": 68,
+    "pixelIdentityClaimed": false
+  },
+  "memoryInteractions": {
+    "profileAddDirtyCancelRetained": true,
+    "profileSaveTopVisibleReceipt": true,
+    "profileReloadReadback": true,
+    "confirmedTestProfileDeletion": true,
+    "testProfileRemoved": true,
+    "ruleEditorOpenCancel": true,
+    "sourceLocalClientTabSwitch": true,
+    "invalidBackupPersistentError": "JSON 格式不正确",
+    "invalidBackupDidNotWrite": true,
+    "backupLeaveUsedDraftConfirmation": true,
+    "officialReturnToProfiles": true,
+    "serviceCounters": {
+      "reviews": 0,
+      "apply": 0,
+      "stop": 0,
+      "save": 2
+    }
+  },
+  "checks": {
+    "settingsManagementAndRules": {
+      "passed": 35,
+      "failed": 0
+    },
+    "diagnosticsRuntime": {
+      "passed": 12,
+      "failed": 0
+    },
+    "proxyEditorConfirmation": {
+      "passed": 2,
+      "failed": 0
+    },
+    "cssParse": "PASS",
+    "sixNewKeysInThreeLocales": "PASS",
+    "trustedSourceVerification": "PASS"
+  },
+  "development": {
+    "path": "/Users/shopme/Documents/workspace/opendesk-browser/dist/development",
+    "watcherPidLastObserved": 52685,
+    "duplicateWriterPrevented": true,
+    "revisionLastObserved": "f7a90cea72bddbf06f4de8a5d865e3fea163382c897fb4c8ba798848a2979c59",
+    "pcOutputMarkersPresent": true,
+    "browserAppliedRevision": "NOT_TESTED",
+    "notes": "Initial task-owned writer exhausted Node heap and exited. A parallel owner restarted the existing development path; its writer was reused and preserved. Runtime revision was not read after browser binding refusal."
+  },
+  "nativeBeforeChange": {
+    "observedEntry": "Existing installed AI Proxy > 管理全部 > profiles",
+    "addProxyAndCancel": "PASS",
+    "savedOrAppliedProxy": false,
+    "postChangeRuntime": "NOT_TESTED",
+    "limitation": "Automatic browser approval rejected chrome-extension: DOM binding (only http/https allowed); no alternate surface was used to bypass this rejection."
+  },
+  "delivery": {
+    "formalPackageVersion": "0.3.22",
+    "installedVersionLastObserved": "0.3.17",
+    "packageChanged": false,
+    "installedThisCandidate": false
+  },
+  "deferred": [
+    "real proxy/network requests",
+    "subscription networking",
+    "authentication/PAC runtime",
+    "production/full QA/scoring",
+    "package promotion/version/install"
+  ],
+  "artifacts": {
+    "domDirectory": "artifacts/ai-proxy/pc-visual/",
+    "finalViewportScreenshot": "artifacts/ai-proxy/pc-visual/final-profiles-viewport.png",
+    "screenshotLimit": "The optional full-page screenshot had an iframe paint artifact; viewport capture succeeded. An unrelated Reading TOC overlay is outside the app and excluded from the app assessment."
+  },
+  "parallelOwnership": "QuickPanel.tsx, environment.ts, service.ts and their tests/source-lock entries belong to another active owner. This task preserves them and commits only its eight reviewed source entries."
+}

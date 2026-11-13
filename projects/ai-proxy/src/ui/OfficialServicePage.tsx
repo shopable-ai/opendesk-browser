@@ -5,7 +5,7 @@ import { useI18n } from '../i18n/LocaleProvider';
 import { requestOfficial } from '../official/messages';
 import type { OfficialFailure, OfficialPlan, OfficialRequest, OfficialSnapshot,
   EntitlementState } from '../official/contracts';
-import { OptionsPageHeader } from './OptionsShell';
+import { OptionsPageHeader, OptionsNavIcon } from './OptionsShell';
 
 function money(plan:OfficialPlan,language:string):string {
   const rule=new Intl.NumberFormat(language,{style:'currency',currency:plan.currency});
@@ -94,6 +94,7 @@ export function OfficialServicePage({onBack,chromeApplied,embedded = false}:{
     {state?.configured && <p className="officialCaution">{t('officialStateSeparation')}</p>}
     {!state && !failure && <p role="status">{t('officialLoading')}</p>}
     {state && !state.configured && <div className="officialEmpty">
+      <span className="officialEmptyIcon" aria-hidden="true"><OptionsNavIcon section="official"/></span>
       <h3>{t('officialNotLaunched')}</h3>
       <p>{t('officialNoProviderDesc')}</p>
       {!embedded && <Button variant="primary" className="primary" onClick={onBack}>{t('officialReturnFree')}</Button>}

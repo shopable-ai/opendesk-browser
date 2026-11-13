@@ -1072,5 +1072,11 @@
   "sideExpectedRoute": "预期线路",
   "sideSiteApplyHelp": "切换规则或代理后，需要明确应用才会生效。",
   "sideAddSiteRule": "为此网站添加规则",
-  "sideLegal": "只管理浏览器代理设置，不会改变设备的全局代理。"
+  "sideLegal": "只管理浏览器代理设置，不会改变设备的全局代理。",
+  "apDefaultRouteHelp": "没有网站规则匹配时使用此路由；它不是代理连接失败时的回退。保存后仍需明确应用。",
+  "apSavedRoute": "已保存：",
+  "apBackupReplaceHelp": "导入将替换现有代理、PAC 和网站规则。验证通过后仍需确认；不会自动应用线路。",
+  "apInterfacePreferences": "界面与操作",
+  "apDataAndHelp": "数据与帮助",
+  "apCloseRuleEditor": "关闭规则编辑"
 }

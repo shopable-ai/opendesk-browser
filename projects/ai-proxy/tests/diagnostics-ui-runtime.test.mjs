@@ -186,3 +186,44 @@ test('local endpoint diagnosis uses the current endpoint only when applied with 
     runtime:{applied:true,pendingChanges:false}});
   assert.equal(remote.diagnosisInput.localEndpoint,false);
 });
+
+
+test('installed overview prioritizes real control and marks unconnected features as secondary',()=>{
+  const result=render({panel:'overview'});
+  assert.match(result.html, /diagnosticLeadState" aria-label="configurationStatus"><strong>apFollowingSystem<\/strong>/);
+  const primary=result.html.match(/<article class="diagnosticFeature diagnosticFeaturePrimary">([\s\S]*?)<\/article>/)?.[1];
+  assert.ok(primary,'real control has its own primary card');
+  assert.match(primary, /basicProxyDiagnostics/);
+  assert.match(primary, /apFollowingSystem/);
+  assert.match(primary, /controlOwner:notManagingYet/);
+  assert.match(primary, /viewActualControlStatus/);
+  assert.equal((result.html.match(/diagnosticFeatureSecondary/g)??[]).length,3);
+  for(const card of result.html.matchAll(/<article class="diagnosticFeature diagnosticFeatureSecondary">([\s\S]*?)<\/article>/g)){
+    assert.match(card[1], /notAvailable/);
+    assert.doesNotMatch(card[1], /diagProductionUnavailable|diagAttemptSummary|simulated-usage/);
+  }
+  assert.doesNotMatch(result.html, /<strong>diagIdle<\/strong>/,'unconnected diagnostics are not an idle operational service');
+  assert.deepEqual(result.calls,[]);
+});
+
+test('each installed category discloses the runtime boundary once and keeps all five categories',()=>{
+  for(const panel of ['overview','ai','top','speed','proxy']){
+    const result=render({panel});
+    assert.equal((result.html.match(/diagProductionUnavailable/g)??[]).length,1,panel);
+    assert.equal((result.html.match(/role="tab"/g)??[]).length,5,panel);
+    assert.deepEqual(result.calls,[]);
+  }
+});
+
+test('only boolean preview true retains simulated diagnostics and the preview overview',()=>{
+  const preview=render({panel:'overview',preview:true});
+  assert.doesNotMatch(preview.html,/diagnosticFeaturePrimary|diagnosticFeatureSecondary|diagProductionUnavailable/);
+  assert.match(preview.html,/diagAiFirstFive/);
+  assert.equal(button(preview,'diagStartFive').disabled,false);
+  for(const value of [false,undefined,null,1,'true']){
+    const installed=render({panel:'overview',preview:value});
+    assert.match(installed.html,/diagnosticFeaturePrimary/);
+    assert.equal(button(installed,'diagStartFive').disabled,true);
+    assert.deepEqual(installed.calls,[]);
+  }
+});

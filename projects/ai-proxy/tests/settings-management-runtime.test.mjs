@@ -42,6 +42,18 @@ function render(locale,runtime,{config={...domain.freshConfig(),selection:{mode:
  return load(renderToStaticMarkup(React.createElement(module.exports.default,{presentation})));
 }
 
+test('PC rules explain save-only routing once whether rules mode is selected or not',()=>{
+ for(const locale of ['zh-CN','zh-TW','en'])for(const mode of ['direct','rules']){
+  const config={...domain.freshConfig(),selection:{mode}};
+  const $=render(locale,{desired:config.selection,control:'controllable_by_this_extension',applied:false},{config});
+  const note=translate(locale,'apRuleSaveNote');
+  assert.equal($('.rulesPage .hint').toArray().filter(element=>$(element).text()===note).length,1);
+  assert.equal($('.rulesModeHint').length,mode==='rules'?0:1);
+  assert.equal($('.rulesDefault > h2').text(),translate(locale,'whenNoRuleMatches'));
+  assert.equal($('.rulesDefault > .hint').text(),translate(locale,'apDefaultRouteHelp'));
+ }
+});
+
 test('management summary labels saved Direct as a selection independently from confirmed Rules, system, errors and unknown runtime',()=>{
  const base={desired:{mode:'direct'},managedIntent:true,control:'controlled_by_this_extension',applied:true,
   pendingChanges:true,activeSelection:{mode:'rules'},browserMode:'rules',proxyError:null};
