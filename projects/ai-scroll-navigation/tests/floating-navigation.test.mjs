@@ -313,6 +313,7 @@ test('question pager groups explicit user/assistant messages into rounds, tracks
   const {dock,host}=f.mount(()=>flags);
   const controls=()=>[...host.shadowRoot.querySelectorAll('button')];
   assert.equal(controls().length,4,'two edge buttons plus previous and next');
+  assert.equal(host.style.top,'648px','compact four-button dock occupies 149px and stays bottom-aligned');
   assert.equal(host.shadowRoot.querySelector('.counter'),null,'counter is off by default and has no layout slot');
   const previous=controls().find(b=>b.dataset.scrollNavKey==='turnPrevious');
   const next=controls().find(b=>b.dataset.scrollNavKey==='turnNext');
@@ -329,6 +330,7 @@ test('question pager groups explicit user/assistant messages into rounds, tracks
   assert.equal(next.disabled,true,'last round has no successor');
   flags={turnPaging:true,showTurnCount:true};dock.refresh();
   assert.equal(host.shadowRoot.querySelector('.counter').textContent,'2/2');
+  assert.equal(host.style.top,'617px','enabled counter expands dock predictably to 180px');
   assert.equal(controls().length,4,'counter is informational, not a fifth button');
   flags={turnPaging:true,showTurnCount:false};dock.refresh();
   assert.equal(host.shadowRoot.querySelector('.counter'),null,'turning the counter off removes its slot');
