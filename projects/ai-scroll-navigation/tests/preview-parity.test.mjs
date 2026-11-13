@@ -52,7 +52,7 @@ test('R4.4 preview pager returns to current question before previous round',()=>
   const simScroll={scrollTop:0,scrollHeight:2400,clientHeight:400};
   const rows=[10,390,770,1150,1530,1910].map(offsetTop=>({offsetTop}));
   const {simIndex,simDestination}=new Function('simScroll','simRows',
-    preview.slice(start,end)+'\\nreturn {simIndex,simDestination};'
+    preview.slice(start,end)+'\nreturn {simIndex,simDestination};'
   )(simScroll,()=>rows);
   simScroll.scrollTop=2000;
   assert.equal(simIndex(),5);
