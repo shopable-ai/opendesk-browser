@@ -1,10 +1,50 @@
 # OpenDesk Browser · 独立 Controller Task 资产、内置脚本与跨扩展消费合同
 
-> 状态：**R1.1 设计审计修订（2026-11-14）**。替代 R1 中不完整的默认安装理由、单版本试点完成口径及迁移验收描述。本轮只修订本文件，不迁移脚本、不改变安装/委托/运行记录、不操作真实网页。
+> 历史基线：**R1.1 设计审计（2026-11-14）**。下述历史设计评分仍仅代表设计，实际研发进展以紧接着的 R2 落地证据段为准。
 >
 > 审查源码基线：`main@1d32cb04fd5c84c75a969704bda205d5c809b367`。下列评审是**同一模型的六专业视角模拟审阅与反方分析**，不是六名外部专家或六个独立代理的真实评审。设计自评分不代表代码、Chrome、安装或业务验收分数。
 >
 > 核心决定：**独立共享 Task 有自己的源码与发行身份；「我的」是统一管理入口；WebFlow/Subagent 是经授权的消费者；原 Task Catalog/Installer/Authority/Controller/RunHost/Durable Result 继续是唯一执行体系。** 不创建第二套运行器、安装数据库、权限系统或脚本市场。
+
+## R2 实际实施与验收台账（2026-11-14，优先于历史 R1.1 文案）
+
+当前 `main` 以 `6ca3bfcb245046132e93e4b0449e7a655b7cf4be` 为本次记录基线。仓库只用原 `main`，没有新增第二 Installer、Authority、Controller、RunHost 或 Durable Result，也未操作用户真实 Run/Result。R1.1 的“尚未实施”描述仅针对当时旧 HEAD；不得把它作为当前已完成/未完成的事实。
+
+| 阶段 | R2 已落地源码/提交 | 实际验收边界 |
+| --- | --- | --- |
+| M0 影响分析 | 初始 main `6295c21c`；核对冻结包、测试、构建 pin、Subagent 引用与 WebFlow 原结果适配器 | SOURCE 实际读取；未读取本机并行未提交代码，本地 CodexPro 不可用 |
+| M1 完整资产迁移 | `69a2228b`；ChatGPT 5 源+5 发行包、百度/Google 源与发行包，搜索测试迁移；运行时 `tasks/builtin/<taskId>/<version>.json` 不变 | Git 原 blob SHA 逐一相同，七组 `sourceUtf8` 与迁移源码一致；新增 `independent-task-pack-identity.test.mjs` |
+| M3 初次默认策略 | `356227e2`；两搜索默认、ChatGPT 0.2.2 在目录可选，原 0.2.0 历史包保留；保护停用/卸载及防旧版误报更新 | Node 回归有 PASS；没有真实用户升级、浏览器多 Profile 的安装证据 |
+| M2 结果契约解耦 | `8496e546`；Task 下新增固定 `contracts/result-v2.js`、`contracts/installed-result.js`；Subagent 不再从 WebFlow 私有 adapter 获取 0.2.x 结果校验；原 A 送达仍归 WebFlow | 仅两个精确 Git blob 固定编译准入；动态 Task source 不可进入特权 SW/UI |
+| 迁移兼容和 CI | `899929e4` → `169d05d4` → `70a80a93` → `6ca3bfcb`；旧测试路径、旧默认假设、CI 独立运行及百度 1.1.5 测试夹具对齐 | R11、两个搜索及独立不可变检查分步 PASS；其它旧 ChatGPT 0.3/MD 测试仍有失败 |
+
+**实际独立步骤证据：**
+`https://github.com/shopable-ai/opendesk-browser/actions/runs/43502961780` 中 R11、原串行回归、Google、独立来源/结果契约、生产构建/发行校验各自 PASS；百度遗留旧夹具当次仍 FAIL。后继
+`https://github.com/shopable-ai/opendesk-browser/actions/runs/43503313584` 在修正测试夹具后百度、Google、R11、独立契约步骤 PASS。Job/step 状态应按对应 commit 核查，不能宣称整个 CI 已全绿。
+
+**没有完成或不得过度承诺：**
+
+- `CHROME_NATIVE`、真实用户已有 Profile 升级、真实搜索网站与 A→B→A 端到端业务验收：**NOT_TESTED**；Node mock 和 Linux 构建不能替代。
+- `CHROMIUM`：仅在实际对应带浏览器门禁日志时才可标记通过；此记录没有这类证据。
+- 旧 ChatGPT 0.3 PREPARE/SUBMIT 和 Markdown 工作流有其它回归失败。必须与本次重构的回归区分，查最早失败 HEAD，不得借目录迁移重发原 B。
+- 默认首次判断目前基于已有 Task namespace 的持久安装/候选/移除记录；**旧 Profile 从未有任何 Task 记录时，不能凭该空 namespace 分辨新用户和历史升级用户**。发布前必须通过原扩展首次安装证据/保守显式初始化完善并在真实升级环境验证，避免隐式批量安装。不可另造安装数据库。
+- WebFlow「从我的」的通用**动态**选择/委托仍未实现；已有 `tasks.configure` 是针对声明的依赖与固定安装身份的可信 UI-only 入口，不可冒充任意 Task 授权接口。
+- 搜索 `limit` 当前仍固定为 `[3]`；`showExecutionTab` 仅控制执行标签页。泛化 1～10 条必须另建受审版本及兼容测试，**不得原地改旧包**。
+- 六视角 R1.1 设计模拟均分 95.83，不是 R2 实施质量评分；实际 CI 未全过、真实 Chrome 未测，因此不得宣称实现 95+ 或上线验收通过。
+
+**原始 Task ID 与源码家族名分开：**
+
+```text
+task-packs/
+  baidu.search/src, releases, tests              # baidu.search.top3@1.1.5
+  google.search/src, releases, tests             # google.search.top3@1.0.3
+  chatgpt.conversation.create/src, releases, contracts
+                                                # 0.1.0/0.2.0/0.2.1/0.2.2/0.3.0
+```
+
+**下轮只有三个优先闭环：** 先核对最新 main CI 中 0.3/MD 的历史与新回归区别；再证明新旧 Profile 首次预置、防复装和可选 ChatGPT 目录操作；最后在真实 Chrome 测试「我的」/WebFlow/Subagent Side Panel 与 PC，共用同一安装/授权/Run，不新建第二 B，不重放 UNKNOWN。M4 可变条数另开新版本，不应阻塞上述安全验收。
+
+---
 
 ## 1. 原始目标与范围
 
@@ -44,10 +84,14 @@ task-packs/
     contracts/    # 确有消费者时放纯输入/输出业务校验
     tests/        # Task 自身行为及版本边界
     README.md
-  baidu.search.top3/
-    releases/     # 初期按实际已有资产迁移，不强造空工程
-  google.search.top3/
-    releases/
+  baidu.search/
+    src/          # Task 家族源码
+    releases/     # baidu.search.top3 的冻结包
+    tests/
+  google.search/
+    src/          # Task 家族源码
+    releases/     # google.search.top3 的冻结包
+    tests/
 projects/webflow/   # 工作流调用、步骤、原 A 交付等产品逻辑
 projects/subagent/  # Mini Chat 与其结果投影
 src/platform/tasks/ # 原通用安装、授权、委托及执行服务
