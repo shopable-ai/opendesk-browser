@@ -11,9 +11,9 @@ const v2={protocol:'webflow.task.intent.v2',candidateId:id,taskId:'baidu.search.
 const v1={...v2,protocol:'webflow.task.intent.v1',targetUrl:'https://www.baidu.com/'};
 const fixture=async (taskId,version='0.2.0')=>{
   const packagePath=taskId==='chatgpt.conversation.create'?
-    (version==='0.1.0'?'../tasks/chatgpt.conversation.create.v1.opendesk-task.json':
-      '../tasks/chatgpt.conversation.create.0.2.0.opendesk-task.json'):
-    `../../../examples/tasks/${taskId}.v1.opendesk-task.json`;
+    (version==='0.1.0'?'../../../task-packs/chatgpt.conversation.create/releases/chatgpt.conversation.create.v1.opendesk-task.json':
+      '../../../task-packs/chatgpt.conversation.create/releases/chatgpt.conversation.create.0.2.0.opendesk-task.json'):
+    `../../../task-packs/${taskId==='baidu.search.top3'?'baidu.search':'google.search'}/releases/${taskId}.v1.opendesk-task.json`;
   const pkg=JSON.parse(await readFile(new URL(packagePath,import.meta.url),'utf8'));
   const pin=REVIEWED_BUILTIN_TASK_RELEASES.find(item=>item.taskId===taskId&&item.version===pkg.manifest.version);
   assert.ok(pin,'Expected exact reviewed release');

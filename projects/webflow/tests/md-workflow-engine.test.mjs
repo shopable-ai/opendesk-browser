@@ -1,13 +1,13 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import {webcrypto} from 'node:crypto';
-import {BUILTIN_TASK_RELEASES} from '../../../src/platform/tasks/builtin-releases.js';
+import {REVIEWED_BUILTIN_TASK_RELEASES} from '../../../src/platform/tasks/builtin-releases.js';
 import {digestUtf8} from '../../../src/platform/protocol.js';
 import {createMdRunRecord,applyMdRunEvent,nextMdRunAction} from '../src/md-run-contract.js';
 import {createMdWorkflowEngine} from '../trusted/md-workflow-engine.js';
 
 const H='a'.repeat(64),MARK='11111111-2222-4333-8444-555555555555';
-const RELEASE=BUILTIN_TASK_RELEASES.find(x=>x.taskId==='chatgpt.conversation.create');
+const RELEASE=REVIEWED_BUILTIN_TASK_RELEASES.find(x=>x.taskId==='chatgpt.conversation.create'&&x.version==='0.2.0');
 const digest=bytes=>webcrypto.subtle.digest('SHA-256',bytes);
 const chats=['11111111-1111-4111-8111-111111111111',
   '22222222-2222-4222-8222-222222222222'];

@@ -3,7 +3,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import {createChatGPTBridgeTriggerLedger,CHATGPT_BRIDGE_LEDGER_KEY} from '../../../src/native-agent/chatgpt-bridge-trigger-gate.js';
 import {CHATGPT_TASK_PROFILE} from '../../../src/page-events/web-task-contract.js';
-import {BUILTIN_TASK_RELEASES} from '../../../src/platform/tasks/builtin-releases.js';
+import {BUILTIN_TASK_RELEASES,REVIEWED_BUILTIN_TASK_RELEASES} from '../../../src/platform/tasks/builtin-releases.js';
 import {encodeValue} from '../../../src/platform/page-port/codec.js';
 import {WEBFLOW_AUTO_GRANTS_KEY} from '../src/auto-grants.js';
 
@@ -158,7 +158,7 @@ test('V2 refuses a changed approved target, stale page identity, and unsupported
 });
 
 test('ChatGPT omitted send is persistently bound as false before one-use V2 approval',async()=>{
-  const release=BUILTIN_TASK_RELEASES.find(row=>row.taskId==='chatgpt.conversation.create');
+  const release=REVIEWED_BUILTIN_TASK_RELEASES.find(row=>row.taskId==='chatgpt.conversation.create'&&row.version==='0.2.0');
   assert.ok(release);
   const draftScope={taskId:'chatgpt.conversation.create',targetUrl:'https://chatgpt.com/',
     args:{prompt:'Prepare this B draft',send:false},sourceOrigin:'https://chatgpt.com',

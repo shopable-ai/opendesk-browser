@@ -4,10 +4,10 @@ import {readFile} from 'node:fs/promises';
 import {parseHTML} from 'linkedom';
 import {digestUtf8} from '../../../src/platform/protocol.js';
 import {verifyTaskPackage,validateTaskParams} from '../../../src/platform/tasks/contract.js';
-import {BUILTIN_TASK_RELEASES,assertPackagedTask} from '../../../src/platform/tasks/builtin-releases.js';
+import {BUILTIN_TASK_RELEASES,REVIEWED_BUILTIN_TASK_RELEASES,assertPackagedTask} from '../../../src/platform/tasks/builtin-releases.js';
 
-const path=new URL('../tasks/chatgpt.conversation.create.0.2.0.opendesk-task.json',import.meta.url);
-const sourcePath=new URL('../src/tasks/chatgpt-conversation-create-v0.2.js',import.meta.url);
+const path=new URL('../../../task-packs/chatgpt.conversation.create/releases/chatgpt.conversation.create.0.2.0.opendesk-task.json',import.meta.url);
+const sourcePath=new URL('../../../task-packs/chatgpt.conversation.create/src/chatgpt-conversation-create-v0.2.js',import.meta.url);
 const pkg=JSON.parse(await readFile(path,'utf8')),source=await readFile(sourcePath,'utf8');
 const execute=new Function('page','params',source+'\nreturn main()');
 const uuid='10101010-2020-4030-8040-505050505050';
@@ -56,7 +56,7 @@ test('new task is exact immutable 0.2.0, historical draft remains separate',asyn
   assert.equal(await digestUtf8(source),pkg.manifest.program.sourceHash);
   assert.deepEqual(await verifyTaskPackage(pkg),pkg);
   await assertPackagedTask(pkg);
-  const pin=BUILTIN_TASK_RELEASES.find(row=>row.taskId==='chatgpt.conversation.create');
+  const pin=REVIEWED_BUILTIN_TASK_RELEASES.find(row=>row.taskId==='chatgpt.conversation.create'&&row.version==='0.2.0');
   assert.equal(pin?.version,'0.2.0');
   assert.equal(pin?.manifestHash,pkg.manifestHash);
   assert.equal(pin?.sourceHash,pkg.manifest.program.sourceHash);
@@ -99,8 +99,8 @@ test('lost native click acknowledgement is never retried',async()=>{
   assert.equal(h.state.sendCalls,1);
 });
 
-const patchSource=await readFile(new URL('../src/tasks/chatgpt-conversation-create-v0.2.1.js',import.meta.url),'utf8');
-const patch=JSON.parse(await readFile(new URL('../tasks/chatgpt.conversation.create.0.2.1.opendesk-task.json',import.meta.url),'utf8'));
+const patchSource=await readFile(new URL('../../../task-packs/chatgpt.conversation.create/src/chatgpt-conversation-create-v0.2.1.js',import.meta.url),'utf8');
+const patch=JSON.parse(await readFile(new URL('../../../task-packs/chatgpt.conversation.create/releases/chatgpt.conversation.create.0.2.1.opendesk-task.json',import.meta.url),'utf8'));
 const executePatch=new Function('page','params',patchSource+'\nreturn main()');
 test('R11 modern composer patch is an explicit immutable 0.2.1, with the old 0.2.0 release preserved',async()=>{
   assert.equal(patch.manifest.version,'0.2.1');
@@ -108,7 +108,7 @@ test('R11 modern composer patch is an explicit immutable 0.2.1, with the old 0.2
   await assertPackagedTask(patch);assert.deepEqual(await verifyTaskPackage(patch),patch);
   assert.notEqual(patch.manifestHash,pkg.manifestHash);
   assert.equal(pkg.manifest.program.sourceHash,'90d077ff17fdcf89ac0a13adf4a671edc324030165c7eefa95a4acdc531bd51c');
-  assert.equal(BUILTIN_TASK_RELEASES.find(row=>row.taskId==='chatgpt.conversation.create').version,'0.2.0');
+  assert.equal(BUILTIN_TASK_RELEASES.some(row=>row.taskId==='chatgpt.conversation.create'),false);
 });
 test('R11 current native composer empty paragraph prepares a draft or sends once with full readback',async()=>{
   for(const send of [false,true]){
@@ -128,7 +128,7 @@ test('R11 current composer rejects missing, ambiguous or existing draft before a
   await assert.rejects(h.run(),/ACK lost/);assert.equal(h.state.sendCalls,1);
 });
 
-const modernSource=await readFile(new URL('../src/tasks/chatgpt-conversation-create-v0.2.2.js',import.meta.url),'utf8');
+const modernSource=await readFile(new URL('../../../task-packs/chatgpt.conversation.create/src/chatgpt-conversation-create-v0.2.2.js',import.meta.url),'utf8');
 const executeModern=new Function('page','params',modernSource+'\nreturn main()');
 const modernUserId='11111111-2222-4333-8444-555555555555';
 const modernAssistantId='aaaaaaaa-bbbb-4ccc-8ddd-eeeeeeeeeeee';

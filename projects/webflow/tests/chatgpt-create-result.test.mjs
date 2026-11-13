@@ -8,7 +8,7 @@ import {validateChatGPTCreateResult,formatChatGPTCreateDelivery}
   from '../src/chatgpt-conversation-result.js';
 import {reviewedChatGPTResultAdapter} from '../trusted/chatgpt-result-adapter.js';
 
-const pin=BUILTIN_TASK_RELEASES.find(row=>row.taskId==='chatgpt.conversation.create');
+const pin=REVIEWED_BUILTIN_TASK_RELEASES.find(row=>row.taskId==='chatgpt.conversation.create'&&row.version==='0.2.0');
 const uuid='6af1df79-ab04-83e8-8e06-db19beebafab';
 const when='2026-11-10T12:30:00.000Z';
 const args={prompt:'Build the sample',send:true};
