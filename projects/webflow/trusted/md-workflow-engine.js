@@ -2,13 +2,14 @@
 // RunHost / Controller, installed Task, and Native file adapter.
 // No new Runner, Authority, background queue, database, or browser driver.
 // Only the first-party reviewed Host may construct these injected capabilities.
-import {BUILTIN_TASK_RELEASES} from '../../../src/platform/tasks/builtin-releases.js';
+import {REVIEWED_BUILTIN_TASK_RELEASES} from '../../../src/platform/tasks/builtin-releases.js';
 import {taskScriptId,validateTaskParams} from '../../../src/platform/tasks/contract.js';
 import {digestUtf8} from '../../../src/platform/protocol.js';
 import {mdTaskPrompt,nextMdRunAction} from '../src/md-run-contract.js';
 
 const TASK_ID='chatgpt.conversation.create',VERSION='0.2.0',URL='https://chatgpt.com/';
-const RELEASE=BUILTIN_TASK_RELEASES.find(x=>x.taskId===TASK_ID&&x.version===VERSION);
+// Fixed legacy 0.2.0 workflow depends on a *reviewed release*, not the default-onboarding list.
+const RELEASE=REVIEWED_BUILTIN_TASK_RELEASES.find(x=>x.taskId===TASK_ID&&x.version===VERSION);
 const ID=/^[A-Za-z0-9._:-]{8,128}$/u;
 const fail=code=>{throw Object.assign(new Error(code),{code});};
 const need=(okay,code)=>{if(!okay)fail(code);};
