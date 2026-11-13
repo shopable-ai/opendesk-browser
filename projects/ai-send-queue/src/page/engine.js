@@ -345,7 +345,7 @@ export function createQueueEngine({site, clock=()=>Date.now(), change=()=>{}, ch
     if(!eligible){idleSince=null;return;}
     if(!canSubmit){wait(submitBlockReason);return;}
     if(snap.busy || !snap.idle || (snap.assistants.length>0&&!snap.answerComplete) || snap.rich || snap.composing || snap.draft!=='') {
-      const draftReason=site.normal(snap.draft)?'输入框有草稿，处理后队列会自动继续':
+      const draftReason=site.normal(snap.draft)?'':
         '输入框有空白字符，清空后队列会自动继续';
       const reason=snap.rich?'检测到附件，不覆盖原生输入框':snap.composing?'等待输入法完成':snap.draft!==''?draftReason:'等待当前回复结束';
       wait(reason);
