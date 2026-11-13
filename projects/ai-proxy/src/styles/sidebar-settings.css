@@ -267,13 +267,14 @@
 /* Current-site context and its editor use the same form surface and tokens. */
 @scope (.proxy-app) {
   :scope .r86Panel .siteContext { display:grid; gap:4px; }
-  :scope .r86Panel .r86SiteDomain { font-size:14px; line-height:1.5; }
+  :scope .r86Panel .r86SiteDomain { display:flex; align-items:center; gap:6px; font-size:12px; line-height:1.5; }
+  :scope .r86Panel .r86SiteDomain svg { flex:none; }
   :scope .siteSource { color:var(--muted); font-size:11px; }
-  :scope .siteRouteSummary { display:grid; gap:6px; margin:10px 0 0; padding:0; background:transparent; border-radius:0; }
-  :scope .siteRouteSummary > div { display:grid; grid-template-columns:96px minmax(0,1fr); gap:8px; align-items:start; }
-  :scope .siteRouteSummary dt { color:var(--muted); font-size:12px; }
-  :scope .siteRouteSummary dd { margin:0; font-size:12px; font-weight:600; overflow-wrap:anywhere; }
-  :scope .r86Panel [data-r86-section='site'] .r86Help { font-size:12px; }
+  :scope .siteRouteSummary { display:grid; gap:6px; margin:8px 0 0; padding:9px 10px; border:1px solid var(--line); background:var(--soft); border-radius:7px; }
+  :scope .siteRouteSummary > div { display:grid; grid-template-columns:89px minmax(0,1fr); gap:8px; align-items:start; }
+  :scope .siteRouteSummary dt { color:var(--muted); font-size:11px; }
+  :scope .siteRouteSummary dd { margin:0; font-size:11px; font-weight:600; overflow-wrap:anywhere; }
+  :scope .r86Panel [data-r86-section='site'] .r86Help { font-size:11px; }
   :scope .siteRulePage .quickSetupBody { padding:16px 12px; overflow:auto; }
   :scope .siteRulePage .sideAddHeader { padding:8px 12px; min-height:52px; }
   :scope .siteRulePage .sideAddHeader h2 { font-size:16px; margin:0; }

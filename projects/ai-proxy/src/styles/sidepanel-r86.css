@@ -35,8 +35,8 @@
 :scope .r86Panel .r86RouteSummary strong{font-weight:650;color:var(--r86-ink)}
 :scope .r86Panel .r86Good{color:var(--r86-good);white-space:nowrap;font-size:10px}
 :scope .r86Panel .r86Help{margin:6px 0 0;color:var(--r86-muted);font-size:11px;line-height:1.5}
-:scope .r86Panel .r86Runtime{position:relative;border-top:0;padding-top:0;padding-bottom:12px;background:var(--r86-surface)}
-:scope .r86Panel .r86StatusCard{display:flex;align-items:center;gap:10px;min-width:0;padding:12px;background:var(--r86-soft);border-radius:10px}
+:scope .r86Panel .r86Runtime{position:relative;padding-bottom:12px;background:var(--r86-surface)}
+:scope .r86Panel .r86StatusCard{display:flex;align-items:center;gap:9px;min-width:0;padding:10px;background:var(--r86-soft);border-radius:9px}
 /* Flatten presentation only; Status retains the actual runtime label and notices. */
 :scope .r86Panel .r86StatusCopy{display:flex;flex-direction:column;flex:1 1 auto;min-width:0;gap:3px}
 :scope .r86Panel .r86StatusCard .statusCompact{display:contents}
@@ -59,8 +59,8 @@
 :scope .r86Panel .r86ApplyPending{display:flex;align-items:center;justify-content:center;gap:7px;width:100%;min-height:40px;margin-top:8px;padding:7px 10px;border:1px solid var(--warn);border-radius:8px;background:var(--warnBg);color:var(--warn);font-size:12px;font-weight:700}
 :scope .r86Panel .r86ApplyPending:hover:not(:disabled){background:var(--r86-soft)}
 :scope .r86Panel .r86Notice{margin:7px 15px;padding:7px 9px;background:var(--r86-soft);border-left:3px solid var(--r86-accent);color:var(--r86-ink);font-size:11px}
-:scope .r86Panel .r86ProxyList{display:grid;gap:7px;max-height:none;overflow:visible;padding:0}
-:scope .r86Panel .r86ProxyList button{display:flex;align-items:center;gap:9px;min-width:0;width:100%;min-height:54px;padding:9px 10px;border:1px solid var(--r86-line);border-radius:9px;background:var(--r86-surface);text-align:left}
+:scope .r86Panel .r86ProxyList{display:grid;gap:6px;max-height:none;overflow:visible;padding:0}
+:scope .r86Panel .r86ProxyList button{display:flex;align-items:center;gap:9px;min-width:0;width:100%;min-height:51px;padding:8px 10px;border:1px solid var(--r86-line);border-radius:9px;background:var(--r86-surface);text-align:left}
 :scope .r86Panel .r86ProxyList button[aria-pressed="true"]{border-color:var(--r86-accent);background:var(--r86-fill)}
 :scope .r86Panel .r86ProxyList button:hover:not(:disabled){border-color:var(--r86-accent)}
 :scope .r86Panel .r86ProxyList .sideProfileBadge{display:grid;place-items:center;flex:none;width:28px;height:28px;padding:0;border:1px solid var(--r86-line);border-radius:6px;background:var(--r86-surface);color:var(--r86-muted);font-size:12px}
@@ -79,7 +79,7 @@
 :scope .r86Panel .r86Actions button.primary{background:var(--r86-accent);border-color:var(--r86-accent);color:var(--r86-on-accent)}
 /* The canonical prototype's current-site actions are two equal, stable touch targets. */
 :scope .r86Panel [data-r86-section="site"] > .r86Actions{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}
-:scope .r86Panel [data-r86-section="site"] > .r86Actions button{display:flex;align-items:center;justify-content:center;gap:6px;min-width:0;min-height:40px;padding:7px 5px}
+:scope .r86Panel [data-r86-section="site"] > .r86Actions button{display:flex;align-items:center;justify-content:center;gap:6px;min-width:0;min-height:36px;padding:7px 5px}
 :scope .r86Panel .r86Editor{display:grid;gap:9px;margin:11px 0 0;padding:10px;border:1px solid var(--r86-line);border-radius:9px;background:var(--r86-soft)}
 :scope .r86Panel .r86Editor label{display:block;margin:0 0 4px;font-size:11px;font-weight:650}
 :scope .r86Panel .r86Editor input,:scope .r86Panel .r86Editor select{width:100%;min-width:0;min-height:34px;padding:6px 8px;font-size:12px;background:var(--r86-surface);color:var(--r86-ink);border:1px solid var(--r86-line);border-radius:7px}

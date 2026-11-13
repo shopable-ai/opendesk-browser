@@ -1,0 +1,85 @@
+{
+  "date": "2026-11-14",
+  "scope": "AI Proxy real native sidebar presentation, R18 reference alignment",
+  "reference": {
+    "path": "projects/ai-proxy/preview/preview.html",
+    "sha256": "277ff8df72970906370507e9d7448da3ba583cb293536cae874c1a034080a977",
+    "modified": false,
+    "comparisonNote": "Reference mock has 3 profiles; native before/after use identical real data (1 profile), same 360px width and light theme."
+  },
+  "native": {
+    "browser": "/Users/shopme/Applications/Google Chrome.app",
+    "extensionId": "ccfcjegpkdlgbclopjmadlcjedelidmf",
+    "loadedPath": "/Users/shopme/Documents/workspace/opendesk-browser/dist/development",
+    "mode": "continuous development",
+    "connected": true,
+    "appliedRevision": "cb07ca14ff87a38b005415e5ba0a1410687e7ca5f018c41f7af3954552c3fd5d",
+    "installedToolVersion": "0.3.17",
+    "actions": [
+      "Open AI Proxy from Extensions",
+      "Add proxy → Cancel without editing",
+      "Current website Add rule → Cancel without editing",
+      "Read connected build revision from Debug → Local development service",
+      "Return to AI Proxy"
+    ],
+    "result": "Updated compact status and two-row website card visibly present; original profile retained; no apply/stop/save performed"
+  },
+  "checks": {
+    "quickPanelRuntime": 2,
+    "formSubmit": 1,
+    "trustedSourceProvenance": 3,
+    "packageAndPromotion": 4,
+    "trustedInstallationAdmission": 4,
+    "projectBuild": "PASS",
+    "browserDevBuild": "RUNNING",
+    "projectPackage": "PROJECT_PACKAGE_MATCH"
+  },
+  "package": {
+    "version": "0.3.22",
+    "path": "projects/ai-proxy/ai-proxy.opendesk-tool.json",
+    "bytes": 1002311,
+    "sha256": "bef2aa2106c2d8b53b8f6d732d0675068486bdb023f8489720383feca5869b3e",
+    "installed": false
+  },
+  "visualVerdict": {
+    "result": "PASS for scoped presentation change",
+    "improvements": [
+      "Short actual route keeps runtime card compact",
+      "Site card distinguishes actual browser setting from expected untested route",
+      "Smaller domain, list spacing and site actions"
+    ],
+    "retainedDifferences": [
+      "Real pending/technical and reachability notices preserved",
+      "Native shared host controls are retained"
+    ]
+  },
+  "notTested": [
+    "New JSON installation",
+    "Actual proxy enable/stop or traffic",
+    "PC seven sections",
+    "Production acceptance",
+    "Full CI, dimensions matrix, expert score"
+  ],
+  "screenshots": {
+    "sidebar-before.png": {
+      "path": "artifacts/ai-proxy/sidebar-r19/sidebar-before.png",
+      "sha256": "ff5fe9cddfd09a80a8dc0faf717cb14c993c7b640d227fddebb1e7e73a11f655"
+    },
+    "sidebar-after.png": {
+      "path": "artifacts/ai-proxy/sidebar-r19/sidebar-after.png",
+      "sha256": "95b5e132733a46b432a7b7ffabb5e5835cfb37941c8c51837e303941378f124a"
+    },
+    "editor-after.png": {
+      "path": "artifacts/ai-proxy/sidebar-r19/editor-after.png",
+      "sha256": "8e400fb175d1fb6af82fac7c44c8c229e28339ca5ceffa1093557c3c64b84139"
+    },
+    "comparison.png": {
+      "path": "artifacts/ai-proxy/sidebar-r19/comparison.png",
+      "sha256": "90d11cef72a0a091003ebd2c29a306ea6cc439423c2df1135fa7ff7a65ed6529"
+    },
+    "reference-360.png": {
+      "path": "artifacts/ai-proxy/sidebar-r19/reference-360.png",
+      "sha256": "eca6adb2c29ba250f882da0136fc769ef2de3f19f4fc649d1e080b51f5ff6922"
+    }
+  }
+}

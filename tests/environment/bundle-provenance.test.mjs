@@ -273,7 +273,7 @@ test('reviewed AI Proxy form and diagnostics keep exact source locks and reject 
   ['projects/ai-proxy/src/i18n/locales/zh-TW.json','7dbd2d25f854543df6e153e77aaef245f8f90245'],
   ['projects/ai-proxy/src/styles/management.css','2a197ab877770e43a1d8a6f65f17926e1d471037'],
   ['projects/ai-proxy/src/styles/options.css','c2da39181a88348a7be4e7ae93862098f7d61edf'],
-  ['projects/ai-proxy/src/styles/sidebar-settings.css','650f558abfba048f2ef64a8d895bb0c07951fb97'],
+  ['projects/ai-proxy/src/styles/sidebar-settings.css','128730e443bfb4a35e77090940bf255e19802dd6'],
   ['projects/ai-proxy/src/ui/DiagnosticsPage.tsx','97538e5a13569339c44a016951b507cdc686ee9a']
  ];
  const locks=JSON.parse(await readFile(resolve('projects/ai-proxy/trusted/source-lock.json'),'utf8'));

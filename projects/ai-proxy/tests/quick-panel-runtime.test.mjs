@@ -35,6 +35,7 @@ test('pending direct selection keeps an explicit Apply entry and never claims Di
  assert.match(html,/data-testid="side-proxy-toggle"[^>]*title="apApplyDirect"/);
  assert.match(html,/sideDirectPendingHint/);
  assert.match(html,/data-testid="side-current-route"[^>]*>sideModeRules</);
+ assert.match(html,/<dt>apBrowserSetting<\/dt><dd[^>]*>sideModeRules<\/dd>/);
  assert.doesNotMatch(html,/sideDirectAppliedHint/);
  assert.doesNotMatch(html,/sideDirectAppliedHint/);
 });

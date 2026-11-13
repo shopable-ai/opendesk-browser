@@ -445,6 +445,7 @@ export default function App(_props:{headerNavigation?:boolean;settingsFallback?:
     auto_detect: t('sideRouteAutoDetect')
   };
   const browserRoute = browserRoutes[state.runtime.browserMode ?? ''] ?? t('unableToVerify');
+  const compactBrowserRoute = modes.find(m=>m.mode===state.runtime.browserMode)?.name||browserRoute;
   return <main className="popup sidepanel r86Panel" data-ui-version="R18">
     <div className="r86Scroll" ref={mainScroll}>
       <section className="r86Section" data-r86-section="modes">
@@ -470,10 +471,10 @@ export default function App(_props:{headerNavigation?:boolean;settingsFallback?:
         <div className="r86StatusCard">
           <div className="r86StatusCopy">
             <Status status={state.runtime} compact quiet labelOverride={idleStatusLabel}/>
-            <p className="quickActual">{t('apBrowserSetting')} · <strong data-testid="side-current-route">{
+            <p className="quickActual" title={browserRoute}><strong data-testid="side-current-route">{
               state.runtime.activeSelection?.mode==='profile'
                 ? profiles.find(p=>p.id===state.runtime.activeSelection?.profileId)?.name||browserRoute
-                : modes.find(m=>m.mode===state.runtime.activeSelection?.mode)?.name||browserRoute
+                : modes.find(m=>m.mode===state.runtime.activeSelection?.mode)?.name||compactBrowserRoute
             }</strong></p>
           </div>
           <Button type="button" ref={primaryActionButton} data-testid="side-proxy-toggle"
@@ -549,23 +550,23 @@ export default function App(_props:{headerNavigation?:boolean;settingsFallback?:
       </section>
       <section className="r86Section" data-r86-section="site" aria-label={t('currentWebsite')}>
         <div className="r86Head">
-          <h2><SideIcon name="rules"/>{t('currentWebsite')}</h2>
+          <h2>{t('currentWebsite')}</h2>
           <Button id="quick-manage-rules" className="quickManagementIcon" title={t('sideManageRules')} aria-label={t('sideManageRules')} disabled={busy}
             onClick={()=>void openOptions('rules')}><SideIcon name="settings"/></Button>
         </div>
         <div className="siteContext">
-          <strong className="r86SiteDomain">{site||t(siteInfo.status==='loading'?'apSiteLoading':'apSiteUnavailable')}</strong>
+          <strong className="r86SiteDomain"><SideIcon name="globe"/>{site||t(siteInfo.status==='loading'?'apSiteLoading':'apSiteUnavailable')}</strong>
           <span className="siteSource">{t(siteInfo.source==='preview'?'apSimulatedSite':site?'apCurrentPageSource':'apSiteManualHint')}</span>
         </div>
         <dl className="siteRouteSummary">
+          <div><dt>{t('apBrowserSetting')}</dt><dd title={browserRoute}>{compactBrowserRoute}</dd></div>
           <div><dt>{t('expectedRouteNotTested')}</dt><dd data-testid="side-selected-route">{site?expectedRoute:t('apSiteRouteUnknown')}</dd></div>
         </dl>
         {site&&config.selection.mode==='rules'&&currentRule&&<p className="r86Help">{t('apMatchedSavedRule',{domain:currentRule.domain})}</p>}
-        <details className="quickSiteDetails"><summary>{t('r86Tech')}</summary><p className="r86Help">{t('apSiteRouteHelp')}</p>
-        </details>
+        <p className="r86Help">{t('apSiteRouteHelp')}</p>
         <div className="r86Actions">
           <Button ref={siteEditorButton} id="quick-site-rule" type="button" onClick={beginSiteRule}>
-            {t(currentRule?'apEditMatchedRule':'addRule')}
+            <SideIcon name={currentRule?'edit':'plus'}/>{t(currentRule?'apEditMatchedRule':'addRule')}
           </Button>
           <Button type="button" disabled={siteLoading} onClick={()=>void readSite()}>
             <SideIcon name="refresh"/>{t(siteLoading?'apSiteLoading':'apRefreshSite')}
