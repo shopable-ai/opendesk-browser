@@ -79,7 +79,6 @@ button:focus-visible,select:focus-visible,textarea:focus-visible,input:focus-vis
 #clip-my-notes{display:none!important}
 .clip-page-title,.clip-modes{margin-bottom:7px}
 .clip .clip-fetch{min-height:34px}
-#clip-selection-hint{display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;margin:5px 0 7px}
 .clip-actions{margin:7px 0 5px}
 #clip-source,.clip-preview:not(.clip-note-read-body){height:148px;min-height:110px;max-height:190px}
 .clip-export{margin-top:7px}
@@ -222,10 +221,15 @@ button:focus-visible,select:focus-visible,textarea:focus-visible,input:focus-vis
 }
 
 /* R1.0 Four Tools UX: keep contextual help and backup off the primary action row. */
-.clip-context-help{min-width:0;margin:0 0 var(--space-2)}
-.clip-context-help>summary{min-height:30px;display:inline-flex;align-items:center;cursor:pointer;font-size:var(--od-note-size);color:var(--od-sub)}
-.clip-context-help[open]{padding:0 var(--space-2) var(--space-1);border:1px solid var(--od-line);border-radius:var(--radius-control);background:var(--od-muted)}
-.clip-context-help #clip-selection-hint{display:block;max-width:100%;overflow-wrap:anywhere;margin:0 0 var(--space-1)}
+.clip-range-toolbar{display:flex;align-items:center;gap:6px;margin-bottom:7px}
+.clip-range-toolbar .clip-modes{flex:1;min-width:0;margin-bottom:0}
+.clip-context-help{position:relative;flex:none;color:var(--od-sub)}
+.clip-context-help>summary{display:flex;align-items:center;justify-content:center;width:32px;height:32px;list-style:none;cursor:pointer;border:1px solid transparent;border-radius:var(--radius-control)}
+.clip-context-help>summary::-webkit-details-marker{display:none}
+.clip-context-help>summary:hover,.clip-context-help[open]>summary{color:var(--od-accent-ink);background:var(--od-muted);border-color:var(--od-line)}
+.clip-help-panel{position:absolute;z-index:12;top:calc(100% + 6px);right:0;width:min(288px,calc(100vw - 48px));padding:12px;border:1px solid var(--od-line);border-radius:var(--radius-control);background:var(--od-paper);box-shadow:0 8px 22px color-mix(in srgb,var(--od-ink) 12%,transparent);font-size:var(--od-note-size);line-height:1.55}
+.clip-help-panel>strong{display:block;color:var(--od-ink);font-weight:600}
+.clip-context-help #clip-selection-hint{max-width:100%;overflow-wrap:anywhere;margin:6px 0 0;font-size:var(--od-note-size)}
 .clip-backup-menu{position:relative;margin-left:auto}
 .clip-backup-menu>summary{list-style:none;min-height:30px;display:flex;align-items:center;cursor:pointer;font-size:var(--od-note-size);color:var(--od-sub)}
 .clip-backup-menu>summary::-webkit-details-marker{display:none}

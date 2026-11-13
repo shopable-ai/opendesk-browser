@@ -4,6 +4,20 @@ const {root,request}=globalThis.OpenDeskTool;
 const q=id=>root.querySelector('#'+id);
 const input=q('clip-source'),display=q('clip-preview'),state=q('clip-status');
 const modes=Array.from(root.querySelectorAll('[data-clip-mode]'));
+const help=q('clip-context-help');
+if(help){
+ root.addEventListener('pointerdown',event=>{
+  if(help.open&&!help.contains(event.target))help.open=false;
+ });
+ root.addEventListener('focusin',event=>{
+  if(help.open&&!help.contains(event.target))help.open=false;
+ });
+ root.addEventListener('keydown',event=>{
+  if(event.key!=='Escape'||!help.open)return;
+  event.preventDefault();event.stopPropagation();help.open=false;
+  help.querySelector('summary').focus();
+ });
+}
 let mode='article',version=0,pageEpoch=0,pageKey='',pageInfo=null;
 let results=Object.create(null),record=null,markdown='',exportBusy=false,extracting=false,saving=false;
 let activePickId=null;

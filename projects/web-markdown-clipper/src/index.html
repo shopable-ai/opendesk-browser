@@ -16,6 +16,7 @@
  <symbol id="clip-i-settings-2" viewBox="0 0 24 24"><path d="M4 7h9"/><path d="M17 7h3"/><path d="M4 17h3"/><path d="M11 17h9"/><circle cx="15" cy="7" r="2"/><circle cx="9" cy="17" r="2"/></symbol>
  <symbol id="clip-i-archive" viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="4" rx="1"/><path d="M5 8v12h14V8"/><path d="M10 12h4"/></symbol>
  <symbol id="clip-i-chevron-down" viewBox="0 0 24 24"><path d="m6 9 6 6 6-6"/></symbol>
+ <symbol id="clip-i-help-circle" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M9.1 9a3 3 0 0 1 5.8 1c0 2-3 2.5-3 4"/><path d="M12 17h.01"/></symbol>
 </svg>
 <header class="clip-head">
  <div class="clip-brand"><span id="clip-site" aria-live="polite">当前网页</span></div>
@@ -23,6 +24,7 @@
 </header>
 <section id="clip-home" aria-label="当前网页摘录">
 <p id="clip-title" class="clip-page-title" hidden>打开网页，提取文章或选中文字</p>
+<div class="clip-range-toolbar">
 <div class="clip-modes" role="group" aria-label="剪藏范围">
  <button type="button" data-clip-mode="article" aria-pressed="true">文章</button>
  <button type="button" data-clip-mode="selection" aria-pressed="false">选区</button>
@@ -30,8 +32,12 @@
  <button type="button" data-clip-mode="link" aria-pressed="false">链接</button>
  <button type="button" data-clip-mode="region" aria-pressed="false">区域</button>
 </div>
+<details id="clip-context-help" class="clip-context-help">
+ <summary aria-label="剪藏帮助" title="剪藏帮助"><svg class="clip-icon" aria-hidden="true" focusable="false"><use href="#clip-i-help-circle"></use></svg></summary>
+ <div class="clip-help-panel"><strong>剪藏帮助</strong><p id="clip-selection-hint" class="clip-hint">在网页选中文字后，也可右键选择「保存选中内容到我的摘录」。</p></div>
+</details>
+</div>
 <button type="button" id="clip-fetch" class="primary clip-fetch" aria-label="提取当前文章">提取当前文章</button>
-<details class="clip-context-help"><summary>如何保存选中文字？</summary><p id="clip-selection-hint" class="clip-hint">在网页选中文字后，也可右键选择「保存选中内容到我的摘录」。</p></details>
 <div class="clip-actions" role="toolbar" aria-label="显示方式">
  <button type="button" id="clip-show-preview" aria-pressed="true"><svg class="clip-icon" aria-hidden="true" focusable="false"><use href="#clip-i-eye"></use></svg>预览</button>
  <button type="button" id="clip-show-source" aria-pressed="false"><svg class="clip-icon" aria-hidden="true" focusable="false"><use href="#clip-i-code-2"></use></svg>Markdown</button>
