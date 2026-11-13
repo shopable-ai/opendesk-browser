@@ -62,3 +62,74 @@ AC01～AC10 以当前 `OD-SUBAGENT-CHAT-A2B2A-R2-TRUSTED-CLOSURE` 的业务验�
 **迁移提示：** 如本机曾手动安装旧 ID `opendesk.subagent-mini-chat`，需先在可信安装器内核对/明确卸载旧实验实例，再安装新 ID，避免同一 A 页面重复悬浮 UI；本轮不进行自动迁移或猜测本机安装状态。
 
 参考既有设计记录：[WebFlow Subagent 技术研究](../webflow/docs/subagent-technical-options.zh-CN.md)（早期命名描述保留历史，不再作为正式产品目录依据）。
+
+## R2.3 · 真实双入口调用图与最后一公里验收（2026-11-13；`OD-SUBAGENT-A2B2A-SCRIPT-WIRING-R2-3`）
+
+**原始目标仍是：** 在 ChatGPT 原对话 A 的 Subagent Mini Chat 输入任务 → 可信安装和一次明确审批 → 复用 WebFlow 已冻结的 `chatgpt.conversation.create@0.2.0` 和原 Controller 创建独立 B → 官方 B 填写、读回、单次发送、等待完整回答 → 校验原 Durable Result → 在 **A 的 Subagent 自有区域**只读展示全文及真实 B 链接；不向 A 官方 ChatGPT 自动发消息。WebFlow 的“官方 AI 回复 JSON 候选 → 固定 Task → 原独立授权交付”属于另一入口与交付合同，不能假扮成 Subagent 的点击，也不能因 Subagent 运行而自动授权 A 官方发送。
+
+**本段证据等级：** 以 GitHub `main@90938be4bc87983c8f245c269bb1a7a04c28b01c` 的源码和原 R2 证据静态核查为准。CodexPro 本机工作区不可连接，OpenDesk 本机 Code/Browser Core 返回 429；不代表本机工作树、安装状态或真实 Chrome 已核对。未修改冻结 Task 源码、通用 Runner 或另一条 WebFlow 交付逻辑。
+
+### 双入口映射（同一安装任务、不同授权与交付）
+
+```text
+入口一：WebFlow 原官方 AI JSON 候选（独立保留，当前无原生 PASS）
+  ChatGPT A 官方助手完整回复中的 webflow.task.intent.v1 五字段 JSON
+  → projects/webflow/src/task-intent-contract.js#validateWebFlowTaskIntent
+  → src/native-agent/chatgpt-fixed-bridge-host.js#assertIntent
+     / src/native-agent/chatgpt-bridge-trigger-gate.js（真实来源、候选/授权 Ledger）
+  → src/page-events/web-task-ingress.js#createWebTaskIngress（原可信准入）
+  → 原已安装 Task pin / Authority / Controller / Durable Result
+  → 原 WebFlow 交付器（A 官方输入/发送须走该路径自身独立批准；未由本轮授权）
+
+入口二：Subagent 原 A Mini Chat 的真实点击（R2 源码已接线）
+  projects/subagent/src/mini-chat/view.js#renderMiniChat
+  → projects/subagent/src/mini-chat/model.js#createSession.create
+     （subagent.task.request.v1：protocol/requestId/prompt，单 requestId）
+  → projects/subagent/src/transport.js#createMiniChatTransport.start
+     （映射到 taskId=chatgpt.conversation.create，params={prompt,send:true}）
+  → src/scripting/user-scripts/page-tasks.js#createPageTaskClient
+  → src/scripting/user-scripts/page-task-runtime.js#installPageTaskRuntime.request
+  → src/scripting/user-scripts/installed-programs.js#handlePageTaskBridge
+     （实证 sender、已安装 Page、nonce/world、A tab/frame/document/URL、权限）
+  → src/platform/host/broker.js#createFoundationBroker
+  → src/platform/host/controller-methods.js#handlePageTaskRequest
+     （校验固定 pin 与真实已安装 Task；原 commandJournal 持久 pending 审批）
+  → src/ui/task-workbench.js#refreshPageTaskRequests / openPageTaskRequest
+     （原 TaskRunSheet 冻结参数；用户「保存并核对」「确认执行一次」）
+  → src/platform/host/controller-methods.js#prepareTaskRun / startControllerRun
+     → #createOwned（原 Controller 一次性建 inactive 独立 B）
+  → projects/webflow/tasks/chatgpt.conversation.create.0.2.0.opendesk-task.json
+     → projects/webflow/src/tasks/chatgpt-conversation-create-v0.2.js#main
+        （B 根页无旧草稿 → fill → readback → send:true 独立批准后 click 一次
+         → 真实 /c/ URL → 用户/助手消息身份 → 完整回复与稳定终态）
+  → 原 Controller Run/Result/Codec/commandJournal（不新建另一份结果）
+  → src/platform/host/controller-methods.js#handlePageTaskRequest(read)
+     → #pageRequestStatus / #snapshotControllerRunInScope
+  → src/sw.js 注册 projects/subagent/trusted/page-task-result.js
+     #projectSubagentPageTaskResult
+  → projects/subagent/trusted/result.js#createSubagentResultReader.read
+     → src/native-agent/chatgpt-fixed-bridge-host.js#verifyChatGPTTaskDurableResult
+        → projects/webflow/trusted/chatgpt-result-adapter.js（0.2.0 业务结果核验）
+  → projects/subagent/src/transport.js#createMiniChatTransport.read
+  → projects/subagent/src/mini-chat/model.js#createSession.read
+  → projects/subagent/src/mini-chat/view.js#paint
+     （只向 A 的 Shadow DOM answer.textContent 写全文，展示真实 B URL）
+```
+
+**边界说明：** 原 WebFlow `attestChatHandoffBReply()` 是另一条 chat-handoff 工作流的只读凭据生成器；Subagent **没有直接调用它**，而是共享 `verifyChatGPTTaskDurableResult()` 和已审阅 WebFlow 0.2.0 Result Adapter。两个入口不共用“候选来源”或“A 交付权限”，但都依赖原 Task Registry/Authority/Controller/Run/Result。0.2.0 以原 Controller `owned` 新标签打开根 URL，不直接点击官网“新对话”，应按独立会话结果验收而非强制改变冻结脚本。0.3.0 PREPARE/SUBMIT 另有合同，不得自动替换。
+
+### 源码复用、安装身份及实测边界
+
+| 链路 | 现存真实消费者 / owner | 当前判定及验证 |
+| --- | --- | --- |
+| Mini Chat 请求、恢复、回显 | `projects/subagent/src/{main,transport,contract}.js`、`src/mini-chat/{model,view}.js` | **REUSE / SOURCE_WIRED**；R2 原记录 Subagent Node 48/48；真实 A 点击/显示 **NOT_TESTED** |
+| 已安装 Page 委派与批准 | `src/scripting/user-scripts/{page-tasks,page-task-runtime,installed-programs}.js`、`src/platform/host/{broker,controller-methods}.js`、`src/ui/task-workbench.js` | **REUSE / SOURCE_WIRED**；不能把 `accepted` 当 Run 成功；本机真实安装/审批 **NOT_TESTED** |
+| 固定 Task 与独立 B | `projects/subagent/package.json` 声明 pin；原 WebFlow 0.2.0 manifest + 源码；`controller-methods.js#createOwned` | **REUSE / SOURCE_WIRED**；实际已安装 Task 版本、B tab、send 次数 **UNKNOWN / NOT_TESTED** |
+| 原持久结果与结果消费者 | `src/sw.js` 固定注册 Subagent projection；`projects/subagent/trusted/{page-task-result,result}.js`；原 Result verifier/Codec | **REUSE / SOURCE_WIRED**；返回 `replyText` 而非 500 字预览；真实完整 B 回答及 A 显示 **NOT_TESTED** |
+| WebFlow JSON 老入口与原交付 | `projects/webflow/src/task-intent-contract.js`、原 `chatgpt-fixed-bridge-host`/trigger gate、`web-task-ingress` | **REUSE / VERIFY**；本轮未改/未执行原生回归；不能据此宣称旧 WebFlow 业务 PASS |
+
+安装 pin：`chatgpt.conversation.create@0.2.0`，`manifestHash=0402cbea8284f87bd3cc63c73b453530be1338cd511c30671957a919678ab146`，`contentHash=90d077ff17fdcf89ac0a13adf4a671edc324030165c7eefa95a4acdc531bd51c`，目标 `https://chatgpt.com/`，请求 `{prompt,send:true}`；**pin 仅是候选声明，不是本机已安装或发送批准**。
+
+原 R2 历史证据：Subagent Node **48/48 PASS**；Browser production BUILD/package verify **PASS**（131 资源、`packageHash=0b49abaabba5aa5a3d79f591dd31f331d316788f1fa0e392765e5f4d7e99cca0`）；Subagent Page **BUILT_UNVERIFIED / installable:false**；真实安装与 Chrome A→B→A 全部 **NOT_TESTED**。这些回执对应原候选，**不是本段新运行**。本轮远端 HEAD 的宽范围 CI 仍有其他失败，须逐条区分原有回归与本任务差量，不能称“全仓通过”。
+
+**唯一后续关键步骤（先验安装，再真实业务）：** 本机通道恢复 → 只读核对 `main`、dirty/owner、实际 Chrome 扩展 ID、原 Page/Task 安装身份及授权 → 通过原安装器提升/安装 Subagent 0.2.0 和固定 Task 0.2.0，取得真实 `installationId/generation/hash` → A 真实点击、原审批明确同意 `send:true` 一次 → 记录 B tab/document、真实消息身份、原 Run/Result、完整 `replyText`、B URL 与 A Mini Chat 显示 → 验刷新/撤权/丢 ACK/错 A/B 和 WebFlow 独立路径。任何发送或结果 UNKNOWN **只读核对原请求，不重新点击发送，不创建 B2**。AC01–AC10 仍全部 `NOT_TESTED`，不能因本调用图升级为完成。
