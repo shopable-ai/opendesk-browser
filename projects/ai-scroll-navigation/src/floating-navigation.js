@@ -133,7 +133,10 @@ export function installFloatingNavigation({doc,win,owner,resolveConversation=nul
       if(next.custom)scrollConfiguredEdge(next,direction,doc,win);
       else jumpConversationEdge(next.main,next.selector,direction,doc,win);
     }
-    schedule();
+    // A successful instant jump changes the scrollport synchronously. Reflect
+    // the new disabled/enabled state now instead of waiting for the 120 ms
+    // coalesced DOM/scroll observer; later native scroll events still resync.
+    refresh();
   }
   function prepare() {
     if (host) return;
