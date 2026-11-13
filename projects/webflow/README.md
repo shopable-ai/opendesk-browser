@@ -1,5 +1,7 @@
 # Web Flow
 
+> **独立脚本归属与「我的」统一管理（2026-11-14 设计基线）：** [Controller Task 资产、内置脚本与跨扩展消费合同](../../docs/architecture/installed-controller-tasks-and-workflow-consumers.zh-CN.md)。该合同区分脚本源码、内置发行、安装、委托、运行和卸载；**尚未完成目录迁移或改动现有运行链**，以下当前状态和 UNKNOWN 限制继续有效。
+
 ## 架构硬约束：WebFlow 只编排固定任务（跨对话接续必须遵守）
 
 > **长期产品原则，不是 R8/R9 某一轮的临时方案。** WebFlow 负责「什么时候触发哪个**已安装、已批准、版本固定的 Task／业务适配器**，以及怎样交接、恢复和展示结果」；具体网站操作由各自 Task／受审站点适配器完成。OpenDesk Browser Framework 仅提供通用 SDK、Installer、Authority、Controller、RunHost、Durable Result 与通用权限/生命周期。**业务脚本不是 WebFlow 内核，WebFlow 也不是第二套 Controller。**
