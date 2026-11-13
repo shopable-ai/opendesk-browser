@@ -1,0 +1,112 @@
+{
+  "date": "2026-11-14",
+  "scope": "AI Proxy sidebar visual alignment; core development only",
+  "reference": {
+    "path": "projects/ai-proxy/preview/preview.html#sidepanel",
+    "sha256": "277ff8df72970906370507e9d7448da3ba583cb293536cae874c1a034080a977",
+    "modified": false
+  },
+  "sourceOwner": "projects/ai-proxy",
+  "viewportCssWidth": 360,
+  "visualResult": {
+    "verdict": "CORE_LAYOUT_ALIGNED",
+    "method": "Manual comparison of same-width reference and current-source screenshots in running and paused states; no numerical score or pixel-perfect claim.",
+    "aligned": [
+      "four connection-mode icons and compact tabs",
+      "normal status card, concise route copy and blue 100px primary action",
+      "proxy row typography and density; selected/active distinction",
+      "current-site two-column route summary and paired actions",
+      "compact advanced disclosure and legal copy"
+    ],
+    "retainedDifferences": [
+      "shared semantic palette, including neutral paused dot and standard add button",
+      "Select remains selection-only; Re-identify reads site metadata without reloading the webpage",
+      "explicitly simulated site caption and docs.example.com in the source preview",
+      "minor row/section offsets remain; not a pixel-perfect reproduction"
+    ]
+  },
+  "native": {
+    "mode": "continuous development",
+    "directory": "dist/development",
+    "extensionId": "ccfcjegpkdlgbclopjmadlcjedelidmf",
+    "developmentService": "http://localhost:43119",
+    "connected": true,
+    "revision": "3fe9051fb08afb944adf0ceb645b0c6162f40ecd636528d939cdddca6ac0e81a",
+    "installedRegistryVersion": "0.3.17",
+    "formalJsonVersion": "0.3.22",
+    "observed": [
+      "Debug local-development service connected and matching revision",
+      "updated native sidebar; existing single saved HTTPS profile; paused",
+      "Add proxy opens; empty cancel returns",
+      "Add site rule opens; empty cancel returns; unavailable file-page site is accurately identified"
+    ],
+    "realApply": false,
+    "realStop": false,
+    "realConfigSave": false,
+    "networkProbe": false
+  },
+  "memoryPreview": {
+    "url": "http://127.0.0.1:43263/ai-proxy-preview?compare=1&scenario=sidebar-reference",
+    "currentSources": true,
+    "observed": [
+      "running fixture shows three reference profiles and current route",
+      "mock pause returns paused/preselected state",
+      "unsaved proxy draft cancel preserves entered text; explicit confirm discards the preview draft"
+    ],
+    "boundary": "preview/sdk-preview.js memory service only; no real Chrome proxy or persistent storage effects"
+  },
+  "verification": {
+    "node": {
+      "command": "node --test projects/ai-proxy/tests/status-runtime.test.mjs projects/ai-proxy/tests/quick-panel-runtime.test.mjs",
+      "passed": 7,
+      "failed": 0,
+      "claims": [
+        "normal quiet status hides technical details; uncertain states retain them",
+        "pending direct selection does not become applied; current route hint remains accurate"
+      ]
+    },
+    "sourceLock": "AI_PROXY_REVIEWED_SOURCES_MATCH",
+    "developmentBuild": "watcher compiled and native service applied the revision",
+    "diffCheck": "PASS"
+  },
+  "deferred": [
+    "formal JSON rebuild/version/promotion/installation",
+    "PC seven-section review",
+    "real proxy apply/stop, PAC/subscriptions/network",
+    "production acceptance and independent scoring"
+  ],
+  "artifacts": [
+    {
+      "path": "artifacts/ai-proxy/sidebar-visual/reference-running.png",
+      "sha256": "92f297eaa6cf58ac2baa070e8f422edf88cd9fcdac74325a2a91e59b9a36b2db"
+    },
+    {
+      "path": "artifacts/ai-proxy/sidebar-visual/implementation-running.png",
+      "sha256": "1bf2713fd61a9aecf8d8f910e47b6892058929ced163a53c75b206f4f7fba914"
+    },
+    {
+      "path": "artifacts/ai-proxy/sidebar-visual/comparison-running.png",
+      "sha256": "7adbdc117f441c62b07a0bb8e18fadeac95baef6c8c3634bb755da5fb1f88aa7"
+    },
+    {
+      "path": "artifacts/ai-proxy/sidebar-visual/reference-paused.png",
+      "sha256": "4a4acfb004d1cc4f4f6fcd38ece0da5d8b5952afdd765d6abdbc72aaeb1ef385"
+    },
+    {
+      "path": "artifacts/ai-proxy/sidebar-visual/implementation-paused.png",
+      "sha256": "6477cd0e55f3c0e3b022cbb4ec1a88bfea62749f6eb499a25abce5f0e31c0bf8"
+    },
+    {
+      "path": "artifacts/ai-proxy/sidebar-visual/comparison-paused.png",
+      "sha256": "33a40af5d7ac0394d92e4fff2746d33bf8efafedc0450b2050d99fc77f91df92"
+    },
+    {
+      "path": "artifacts/ai-proxy/sidebar-visual/native-sidebar-updated.png",
+      "sha256": "06b4ad43be105e61e8dd46f7497330cacbb074dd58eba89596706f146eb03cc7"
+    },
+    {
+      "path": "artifacts/ai-proxy/sidebar-visual/native-sidebar-crop.png",
+      "sha256": "908f88689c07384ebbefebec1048a3189e49c85de0d8b5d2d948df480a55ec82"
+    }
+  ]
+}

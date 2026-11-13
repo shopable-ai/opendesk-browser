@@ -943,7 +943,7 @@
   "subscriptionOtherAccess": "其他接入方式",
   "subscriptionOtherAccessDescription": "官方帳號和本機用戶端是不同接入方式；本機用戶端不是已購買的訂閱。",
   "subscriptionOfficialEntry": "查看官方帳號與權益",
-  "sideCurrentRoute": "Chrome 目前：{route}",
+  "sideCurrentRoute": "目前線路：",
   "sideRouteSystem": "跟隨系統（可能使用系統代理）",
   "sideRouteDirect": "直連（繞過系統代理）",
   "sideRoutePac": "PAC 指令碼",
@@ -1062,5 +1062,15 @@
   "apBackupGenerated": "備份檔案已產生，請查看瀏覽器下載。",
   "sideModeProfile": "使用代理",
   "sideModeRules": "依規則",
-  "sideModeDirect": "直接連線"
+  "sideModeDirect": "直接連線",
+  "sideRunning": "正在執行",
+  "sideProxyPaused": "已暫停",
+  "sideSelectedInactive": "已選：{route} · 尚未啟用",
+  "sidePreselectedHelp": "已預選線路，點擊「啟用」後才會生效。",
+  "sideUsing": "使用中",
+  "sideWaitingEnable": "待啟用",
+  "sideExpectedRoute": "預期線路",
+  "sideSiteApplyHelp": "切換規則或代理後，需要明確套用才會生效。",
+  "sideAddSiteRule": "為此網站新增規則",
+  "sideLegal": "僅管理瀏覽器代理設定，不會改變裝置的全域代理。"
 }

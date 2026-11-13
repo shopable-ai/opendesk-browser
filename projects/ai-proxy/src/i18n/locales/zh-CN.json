@@ -943,7 +943,7 @@
   "subscriptionOtherAccess": "其他接入方式",
   "subscriptionOtherAccessDescription": "官方账号和本地客户端是独立接入方式；本地客户端不是已购买的订阅。",
   "subscriptionOfficialEntry": "查看官方账号与权益",
-  "sideCurrentRoute": "Chrome 当前：{route}",
+  "sideCurrentRoute": "当前线路：",
   "sideRouteSystem": "跟随系统（可能使用系统代理）",
   "sideRouteDirect": "直连（绕过系统代理）",
   "sideRoutePac": "PAC 脚本",
@@ -1062,5 +1062,15 @@
   "apBackupGenerated": "备份文件已生成，请查看浏览器下载。",
   "sideModeProfile": "使用代理",
   "sideModeRules": "按规则",
-  "sideModeDirect": "直接连接"
+  "sideModeDirect": "直接连接",
+  "sideRunning": "正在运行",
+  "sideProxyPaused": "已暂停",
+  "sideSelectedInactive": "已选：{route} · 尚未启用",
+  "sidePreselectedHelp": "已预选线路，点击「启用」后才生效。",
+  "sideUsing": "使用中",
+  "sideWaitingEnable": "待启用",
+  "sideExpectedRoute": "预期线路",
+  "sideSiteApplyHelp": "切换规则或代理后，需要明确应用才会生效。",
+  "sideAddSiteRule": "为此网站添加规则",
+  "sideLegal": "只管理浏览器代理设置，不会改变设备的全局代理。"
 }

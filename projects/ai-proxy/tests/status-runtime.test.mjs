@@ -45,3 +45,28 @@ test('unclassified E_TOOL status failure offers a read retry without blaming con
   assert.ok(!html.includes(translate(locale,'errGeneric')));assert.doesNotMatch(html,/username|secret/);
  }
 });
+
+test('quiet sidebar keeps normal running and paused cards compact while uncertain states retain details',()=>{
+ locale='en';
+ const confirmed={...status,proxyError:null,statusErrorCode:undefined,permission:true,
+  control:'controlled_by_this_extension',managedIntent:true,applied:true,pendingChanges:false,
+  outcomeUnknown:false,activeSelection:{mode:'profile'},desired:{mode:'profile'}};
+ const running=renderToStaticMarkup(createElement(Status,{status:confirmed,compact:true,quiet:true}));
+ assert.ok(running.includes(translate(locale,'sideRunning')));
+ assert.doesNotMatch(running,/r86StatusDetails/);
+ const paused={...confirmed,control:'controllable_by_this_extension',managedIntent:false,applied:false};
+ const idle=renderToStaticMarkup(createElement(Status,{status:paused,compact:true,quiet:true,labelOverride:'sideProxyPaused'}));
+ assert.ok(idle.includes(translate(locale,'sideProxyPaused')));
+ assert.doesNotMatch(idle,/r86StatusDetails/);
+ for(const change of [
+  {control:'controlled_by_other_extensions'},
+  {outcomeUnknown:true,control:'unknown'},
+  {statusErrorCode:'E_TOOL'},
+  {permission:false},
+  {credentialRequired:true},
+  {pendingChanges:true}
+ ]){
+  const html=renderToStaticMarkup(createElement(Status,{status:{...confirmed,...change},compact:true,quiet:true}));
+  assert.match(html,/r86StatusDetails/);
+ }
+});

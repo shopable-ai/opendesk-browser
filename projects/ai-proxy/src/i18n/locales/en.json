@@ -943,7 +943,7 @@
   "subscriptionOtherAccess": "Other ways to connect",
   "subscriptionOtherAccessDescription": "Official accounts and local clients are separate access options. A local client is not a purchased subscription.",
   "subscriptionOfficialEntry": "Official account and plans",
-  "sideCurrentRoute": "Chrome currently uses: {route}",
+  "sideCurrentRoute": "Current route: ",
   "sideRouteSystem": "System settings (may use a system proxy)",
   "sideRouteDirect": "Direct (bypasses the system proxy)",
   "sideRoutePac": "PAC script",
@@ -1062,5 +1062,15 @@
   "apBackupGenerated": "Backup file generated. Check browser downloads.",
   "sideModeProfile": "Use proxy",
   "sideModeRules": "Rules",
-  "sideModeDirect": "Direct"
+  "sideModeDirect": "Direct",
+  "sideRunning": "Running",
+  "sideProxyPaused": "Paused",
+  "sideSelectedInactive": "Selected: {route} · Not enabled",
+  "sidePreselectedHelp": "Route selected. Click Enable to apply it.",
+  "sideUsing": "In use",
+  "sideWaitingEnable": "Not enabled",
+  "sideExpectedRoute": "Expected route",
+  "sideSiteApplyHelp": "Apply explicitly after changing a rule or proxy.",
+  "sideAddSiteRule": "Add rule for this site",
+  "sideLegal": "Manages browser proxy settings only, not device-wide settings."
 }

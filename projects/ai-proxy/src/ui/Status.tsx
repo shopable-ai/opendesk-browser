@@ -51,14 +51,16 @@ const controlName: Record<RuntimeStatus['control'], string> = {
   const pending = status.managedIntent && (!status.applied || status.pendingChanges);
   // Onboarding labels never hide verified control conflicts, errors or active routes.
   const idle = !status.managedIntent && !status.applied && !status.proxyError &&
-    status.control !== 'controlled_by_this_extension' &&
-    status.control !== 'controlled_by_other_extensions' &&
-    status.control !== 'not_controllable';
-  const label = t(idle && labelOverride ? labelOverride : statusLabelKey(status));
+    !status.outcomeUnknown && !status.statusErrorCode && status.permission !== false &&
+    status.control === 'controllable_by_this_extension';
   const tone = statusTone(status);
+  const label = t(quiet && status.applied && tone==='ok' && !status.outcomeUnknown && !status.statusErrorCode
+    ? 'sideRunning' : idle && labelOverride ? labelOverride : statusLabelKey(status));
+  const needsDetails = stranded || pending || tone==='danger' || status.outcomeUnknown ||
+    status.statusErrorCode || status.control==='unknown' || status.permission===false || status.credentialRequired;
   return <section className={'status ' + (compact ? 'statusCompact' : '')} aria-live="polite">
     <div className="statusTop"><span className={'statusDot ' + tone}></span><strong>{label}</strong></div>
-    {quiet ? <details className="r86StatusDetails">
+    {quiet ? needsDetails && <details className="r86StatusDetails">
       <summary>{t('r86Tech')}</summary>
       <small title={status.control}>{t('controlOwner',{owner:controlName[status.control]})}{t('chromeModeLabel2',{mode:status.browserMode || t('unknown')})}</small>
       {technical}
