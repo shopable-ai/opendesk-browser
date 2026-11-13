@@ -230,7 +230,7 @@ export const EXTENSION_CENTER_PIN_STORAGE_PREFIX='opendesk.extension-center.pin.
 export const extensionCenterPinStorageKey=key=>EXTENSION_CENTER_PIN_STORAGE_PREFIX+key;
 export function prioritizePinnedExtensionEntries(rows=[],pinnedKeys=[]){
   const pinned=pinnedKeys instanceof Set?pinnedKeys:new Set(Array.isArray(pinnedKeys)?pinnedKeys:[]);
-  return rows.map((row,index)=>({row:{...row,pinned:row?.installed===true&&pinned.has(row.key)},index}))
+  return rows.map((row,index)=>({row:{...row,pinned:row?.installed===true&&row?.stateKnown!==false&&pinned.has(row.key)},index}))
     .sort((a,b)=>Number(b.row.pinned)-Number(a.row.pinned)||a.index-b.index)
     .map(item=>item.row);
 }

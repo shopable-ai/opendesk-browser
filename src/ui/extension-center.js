@@ -272,9 +272,9 @@ export function createExtensionCenter({api,client,doc,sidebarTools,taskWorkbench
     }
   }
   async function setExtensionPinned(row,pinned,event){
-    if(!event?.isTrusted||disposed||busy||pendingKey||!pinStateKnown||!row?.installed)return;
+    if(!event?.isTrusted||disposed||busy||pendingKey||!pinStateKnown||!row?.installed||row.stateKnown===false)return;
     const current=find(row.key);
-    if(!current?.installed||current.kind!==row.kind)return;
+    if(!current?.installed||current.kind!==row.kind||current.stateKnown===false)return;
     pendingKey=row.key;draw();
     const storageKey=extensionCenterPinStorageKey(row.key);
     try{
@@ -362,7 +362,7 @@ export function createExtensionCenter({api,client,doc,sidebarTools,taskWorkbench
     }
     add(t('viewAction'),()=>openDetail(key,'more'),'detail');
     // Keep the destructive uninstall action last for existing keyboard End behavior.
-    if(pinStateKnown){
+    if(pinStateKnown&&row.stateKnown!==false){
       const pinned=pinnedKeys.has(row.key);
       add(t(pinned?'unpinAction':'pinAction'),event=>{void setExtensionPinned(row,!pinned,event);},pinned?'unpin':'pin');
     }

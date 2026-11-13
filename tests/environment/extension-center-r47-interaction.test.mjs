@@ -1340,11 +1340,12 @@ test('pinned extension projection promotes installed rows only and preserves the
   const rows=[
     {key:'app:alpha',installed:true},
     {key:'app:webflow',installed:true},
-    {key:'app:candidate',installed:false}
+    {key:'app:candidate',installed:false},
+    {key:'app:unknown',installed:true,stateKnown:false}
   ];
-  const ordered=prioritizePinnedExtensionEntries(rows,new Set(['app:webflow','app:candidate']));
+  const ordered=prioritizePinnedExtensionEntries(rows,new Set(['app:webflow','app:candidate','app:unknown']));
   assert.deepEqual(ordered.map(row=>[row.key,row.pinned]),[
-    ['app:webflow',true],['app:alpha',false],['app:candidate',false]
+    ['app:webflow',true],['app:alpha',false],['app:candidate',false],['app:unknown',false]
   ]);
   assert.equal(rows[0].pinned,undefined,'projection must not mutate the registry rows');
 });
