@@ -37,6 +37,15 @@ function verifyRun(snapshot,value,request){
     // the internal pre-admission selection is deliberately not disclosed.
     // The trusted WebFlow consumer MUST compare this exact target against the
     // original PREPARE retainedTarget and live Chrome document before A delivery.
+    // The internal Controller snapshot MAY still contain the original borrowed
+    // selection. When present, reject identity drift here as well. A public
+    // projection intentionally omits selection: never invent it or claim that
+    // durable result validation alone substitutes for live B readback.
+    const selected=run.selection;
+    if(selected!==undefined&&(selected?.mode!=='borrowed'||
+      selected.tabId!==target.tabId||selected.frameId!==target.frameId||
+      selected.documentId!==target.documentId||selected.expectedUrl!==ROOT))
+      fail('Original borrowed selection does not match the completed B target');
     if(target.mode!=='borrowed'||
       run.retainedFrom?.runId!==checked.prepareRunId||
       run.retainedFrom?.requestId!==checked.prepareRequestId||
