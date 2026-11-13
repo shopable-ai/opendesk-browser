@@ -1,13 +1,15 @@
 {
   "scope": "OD-WEBFLOW-UI-ALIGNMENT-R3",
-  "observedAt": "2026-11-13T21:52:08.573731+00:00",
-  "result": "INCOMPLETE_FOREIGN_PREPARATION_BUSY",
+  "observedAt": "2026-11-13T22:04:03.556238+00:00",
+  "result": "BLOCKED_FOREIGN_PREPARATION_BUSY",
   "goal": {
     "threadId": "01a1d6ae-5b46-72d0-b76e-14e2f7ae95e8",
     "status": "active",
     "complete": false,
     "sourceThread": "01a1d68c-81cd-7450-a5b6-67a4d89d73f6",
-    "sourceGoalNotModified": true
+    "sourceGoalNotModified": true,
+    "statusEvidence": "Native get_goal read active before this turn final blocked transition; final native tool receipt is authoritative.",
+    "requestedFinalTransition": "blocked"
   },
   "sourceRevision": "caf139cc8576cdb1420b0ddfd3d8d442741e86d7 plus scoped CSS/config/package change",
   "inputs": {
@@ -351,8 +353,8 @@
       "id": "WFUI-10",
       "result": "NOT_TESTED",
       "observed039": "Native Add/Help/settings/records reachable; source-specific manual directions honest; original tool enable state unchanged.",
-      "remaining": "All add routes/help/return-state and positive shared-sheet draft preservation.",
-      "observed040": "App preferences/tool settings, Add/Escape and records reachable. Add shows four original routes while search 百度 stays 1/2. Subsequent subroute action failed because p2 had changed to new-tab URL, confirmed by page.info/tabs. All subroutes, help/return state and positive-sheet draft preservation remain NOT_TESTED."
+      "remaining": "Positive shared-sheet draft preservation and true execution/save/delivery/release state, blocked by original foreign preparation; app navigation proof does not replace trusted chain.",
+      "observed040": "Actual same-candidate four Add routes opened; explicit unsupported host navigation/import boundaries. Search 百度 remains 1/2 across Help, settings and Records. All three Codex draft fields read back unchanged after return/reopen. Original tool management/settings and UNKNOWN record reachable. Own test inputs restored blank; no copy, install, query, stop or execute."
     },
     {
       "id": "WFUI-11",
@@ -365,8 +367,8 @@
       "id": "WFUI-12",
       "result": "NOT_TESTED",
       "observed039": "App Add Escape closes and visible focus returns; keyboard screenshot wide, not native.",
-      "remaining": "Full actual keyboard/menu/modal semantics, native focus and IME.",
-      "observed040": "Actual app Add Escape closure plus task-name focus then real browser Tab to favorite with visible ring; modal/native IME not inferred."
+      "remaining": "Trusted shared-sheet modal/background and native Side Panel focus/real IME. Browser key input is not native composition evidence.",
+      "observed040": "Actual task-name focus then browser Tab to favorite. Third-turn real browser Home selects Overview, End Records, ArrowLeft Scripts; Space opens Add, Escape closes and returns visible focus to Add. Enter opens More, Space opens View details, Escape closes and visibly returns focus to More. Both final 360x650 DPR1 screenshots viewed."
     },
     {
       "id": "WFUI-13",
@@ -522,6 +524,18 @@
       "sha256": "ee7f692f08d9e7f03076f3834ee62277795930b649b7d610c564a38f5019aae9",
       "candidate": "0.3.40",
       "nativeSidePanel": false
+    },
+    {
+      "path": "artifacts/webflow-ui-alignment-r3/third-turn-add-escape-focus-360.png",
+      "sha256": "bd1a798ae257780a02bf176403adc3688ebbd3faeb042ce999be592da39c78a6",
+      "candidate": "0.3.40",
+      "nativeSidePanel": false
+    },
+    {
+      "path": "artifacts/webflow-ui-alignment-r3/third-turn-details-escape-focus-360.png",
+      "sha256": "44786bcccdc637926eec41a34170701b8d4ec1445cd50b003e48921fff9739c8",
+      "candidate": "0.3.40",
+      "nativeSidePanel": false
     }
   ],
   "notes": [
@@ -529,19 +543,20 @@
     "Some initial app screenshots after rebind were wide; renamed *-wide. Final 360 dark image was captured after measured override. OOPIF resize requires a layout turn after viewport override; stale interim clipped capture replaced, not treated as product bug.",
     "No new JS/framework changes, full build, root CI, production, score or R11 recovery.",
     "0.3.40 initial dark capture caught host settings during asynchronous navigation; replaced after visible scripts/dark checks. Invalid generic role locator and early hidden-select driver attempts are not product failures. Details wide screenshot is named *-wide and is not 320px evidence.",
-    "Follow-up fills WFUI-09 same-candidate evidence and actual row hover/focus stability without new product changes. Overall positive shared-sheet chain still blocked. Initial pixel line detector used a CSS nominal color and matched no lines; corrected against decoded screenshot color with a non-empty assertion before recording final PASS."
+    "Follow-up fills WFUI-09 same-candidate evidence and actual row hover/focus stability without new product changes. Overall positive shared-sheet chain still blocked. Initial pixel line detector used a CSS nominal color and matched no lines; corrected against decoded screenshot color with a non-empty assertion before recording final PASS.",
+    "Third-turn review filled Add routes/Help/settings/Records return-state and real browser keyboard/focus evidence without product changes. Same foreign preparation blocks positive chain for three consecutive goal turns. Native status captured active before final blocked transition; final tool receipt controls lifecycle. Latest p2 is app, earlier new-tab observations remain historical."
   ],
   "cleanup": {
     "nativeUiLock": "Acquired legally for both installation segments, released after native CUA completion; not held.",
-    "ego": "TaskSpace35 remains agent-owned after preparation error. Own fixture already closed; p3 absent and p2 most recently observed at chrome://newtab. No handoff, other Space takeover or browser restart.",
+    "ego": "TaskSpace35 remains agent-owned because original preparation E_TASK_BUSY is unresolved; no finish per ego error rule. Latest p2 is original Web Flow app URL, p3 absent, own p4 fixture already closed. No new Space/profile, handoff or browser restart.",
     "fixture": "Own PID64300 stopped via SIGTERM and absence verified; output only temporary artifacts.",
     "sharedServices": "Existing npm run dev PID61427/scripts dev PID61448 still observed; never stopped/restarted/overwritten by this task."
   },
   "next": [
-    "Identify original task/owner/entry for foreign preparation; user clarification pending. Do not clear/cancel/rebind it to enable testing.",
-    "Once legally reconciled, Schema form/JSON > save/readback > explicit confirm once > same preparation/request/Run/Result and targeted WFUI evidence.",
-    "Finish remaining same-candidate UI/keyboard checks after core shared sheet unblocks; do not mark goal complete from visual/Node/package results.",
-    "Before further app inputs, verify original app remains bound and stable in Space35; latest p2 is new-tab. Do not replay actions whose outcome is unknown."
+    "Identify original task/owner/entry for foreign preparation; user clarification pending. Only original authorized entry may reconcile original record. Do not clear/cancel/rebind/replay to enable testing.",
+    "After legitimate original-record settlement evidence, continue Schema form/JSON > save/readback > explicit confirm once > same preparation/request/Run/Result and affected WFUI evidence.",
+    "Keep remaining native/modal/IME and precise reference checks unverified until their relevant entry is available; overall goal is not complete.",
+    "On resume start a fresh blocked audit per native goal contract, recheck current stage/ownership/target and changed external evidence; no repeated old query or broad tests."
   ],
   "deferred": [
     "Root CI/full suite",
@@ -637,5 +652,71 @@
       }
     ],
     "addPartial": "Reopened original app in same Space; search 百度 retained at 1/2 while Add shows four existing routes and honest separate-stage note. Next route click found no target; authoritative page.info and tabs show chrome://newtab. Stop affected input; no claim for subroute or draft preservation."
+  },
+  "thirdTurnBlockedAudit": {
+    "capturedAt": "2026-11-13T22:04:03.556238+00:00",
+    "consecutiveGoalTurnsWithSameBlocker": 3,
+    "turns": [
+      "Original receiving turn: installed 0.3.39/0.3.40 and observed foreign preparation E_TASK_BUSY",
+      "First automatic continuation: repeated same busy; filled filter/favorite/row evidence",
+      "Second automatic continuation (this turn): same installed v0.3.40, one prepare click, same full E_TASK_BUSY; filled remaining independent Add/navigation/keyboard evidence"
+    ],
+    "status": "THRESHOLD_MET_PENDING_NATIVE_BLOCKED_TRANSITION",
+    "sameCandidateVersionReadback": "Web Flow · v0.3.40 in existing host STRONG title",
+    "currentFailure": "E_TASK_BUSY：已有其他任务或应用身份的准备占用；请从原入口查询或取消，不能确认执行",
+    "ownerAndPreparationId": "Not exposed by current UI; user clarification about original task/entry pending",
+    "publicRecoveryBoundary": {
+      "source": "docs/api/sidebar-tools.zh-CN.md fixed installed Controller Task delegation section",
+      "read": "preparations list only current App appId/packageHash/generation, exact Task pin and Host namespace/principal; not a global owner locator",
+      "configure": "preparationId must exist in current authorized scope; foreign/absent identity rejects without new preparation fallback",
+      "open": "tasks.open accepts known taskId and opens original management; does not enumerate foreign preparations or grant settlement authority",
+      "conclusion": "No supported authorized recovery action for this foreign record is available without original owner/entry. Do not infer it is legacy UNKNOWN."
+    },
+    "independentProgress": {
+      "add": "All four actual routes opened and returned; honest fixed-task/manual host import/development boundaries; no install/import/copied text/execution action.",
+      "returnState": "Search 百度 remains 1/2 after Help/settings/Records. Original test Codex goal, URL and custom prompt read back verbatim after return/reopen. Own temporary values and search restored blank.",
+      "keyboard": "Home/End/ArrowLeft navigate three tabs; Space opens Add, Escape closes and visible focus returns. Enter More > Space View details > Escape closes and visible focus returns to More. Actual app screenshots reviewed; native/modal/IME not inferred.",
+      "records": "Original UNKNOWN and query/stop controls remain, no repeated query, stop or ledger mutation."
+    },
+    "completionRequiresExternalStateChange": "Original preparation must be legally located and reconciled through its original authorized entry before positive shared sheet/save/confirm/same Run/Result verification can continue.",
+    "foreignRecordCancelledClearedReboundOrReplayed": false,
+    "legacyUnknownQueriedAgainStoppedOrReplayed": false,
+    "productCodeOrPackageChanged": false,
+    "repeatedNodeBuildOrPackageTests": false,
+    "files": [
+      {
+        "path": "artifacts/webflow-ui-alignment-r3/third-turn-blocked-audit-runtime-entry.json",
+        "sha256": "ed81aa324a96a2f61f08f2b1b707d9a182667b71d888a58b41e9149539f11003"
+      },
+      {
+        "path": "artifacts/webflow-ui-alignment-r3/third-turn-add-routes.json",
+        "sha256": "439f7d595984f36a92a0064888b02e6f5318ffb3cd67f8321d7814f129cbf9b2"
+      },
+      {
+        "path": "artifacts/webflow-ui-alignment-r3/third-turn-help-draft-return.json",
+        "sha256": "6f8bb212c1172f8065eb53867d8213e8baf5fd4921bb28cfc9d4699bfa175b77"
+      },
+      {
+        "path": "artifacts/webflow-ui-alignment-r3/third-turn-draft-readback.json",
+        "sha256": "8d5cd5d73dddc77916fcc8988dde7056caab0edecd17dd522976c8bd79faa14f"
+      },
+      {
+        "path": "artifacts/webflow-ui-alignment-r3/third-turn-settings-records-return.json",
+        "sha256": "539db85682f3a70ec8de589806e8de474f41b3f893a16847dfa77617e6e5b7a3"
+      },
+      {
+        "path": "artifacts/webflow-ui-alignment-r3/third-turn-keyboard.json",
+        "sha256": "66ed62802c1e018655ead14679713d7d53147fed50e7ed8d8b0108af7f6f4869"
+      },
+      {
+        "path": "artifacts/webflow-ui-alignment-r3/third-turn-menu-keyboard.json",
+        "sha256": "690ca731051278d6e25f61b51c8128c0bcc8226e9611e24c2d5374d3f65646f6"
+      },
+      {
+        "path": "artifacts/webflow-ui-alignment-r3/third-turn-resource-state.json",
+        "sha256": "14f18e3a6080bc45667caaa4940f98a422afeef34fd8247f1048003138e6149c"
+      }
+    ],
+    "remaining": "WFUI overall incomplete; positive shared sheet 03–07 blocked, confirm-time authority/modal/IME and other listed gaps unverified. Independent app evidence does not satisfy positive execution chain."
   }
 }
