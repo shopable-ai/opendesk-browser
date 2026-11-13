@@ -1,0 +1,111 @@
+{
+  "round": 4,
+  "candidate": "b4c4ed7acec3bb021276b640b1e5fce2313e08765a201b188d422be1ec799d4a",
+  "reference": "277ff8df72970906370507e9d7448da3ba583cb293536cae874c1a034080a977",
+  "verdict": "REVISE",
+  "dimensions": [
+    "layout",
+    "controls",
+    "visible text/interaction cues",
+    "visual consistency"
+  ],
+  "reviews": {
+    "Darwin": {
+      "profiles": [
+        93,
+        94,
+        94,
+        94
+      ],
+      "rules": [
+        92,
+        93,
+        95,
+        94
+      ],
+      "subscriptions": [
+        93,
+        94,
+        96,
+        94
+      ],
+      "backup": [
+        95,
+        95,
+        97,
+        95
+      ],
+      "diagnostic": [
+        95,
+        95,
+        96,
+        95
+      ],
+      "general": [
+        94,
+        94,
+        97,
+        94
+      ],
+      "official": [
+        94,
+        95,
+        97,
+        95
+      ]
+    },
+    "Jason": {
+      "profiles": [
+        94,
+        94,
+        92,
+        92
+      ],
+      "rules": [
+        94,
+        93,
+        95,
+        94
+      ],
+      "subscriptions": [
+        90,
+        93,
+        95,
+        91
+      ],
+      "backup": [
+        97,
+        95,
+        97,
+        96
+      ],
+      "diagnostic": [
+        96,
+        95,
+        95,
+        96
+      ],
+      "general": [
+        93,
+        94,
+        96,
+        94
+      ],
+      "official": [
+        95,
+        96,
+        97,
+        95
+      ]
+    }
+  },
+  "remaining": [
+    "shared navigation pitch and 10px header/body gap",
+    "SOCKS authentication limitation visibility and mode action size",
+    "rule table alignment/row density/default route naming",
+    "subscription tabs/help density and info icon",
+    "general preference spacing/select size/appearance badge",
+    "official notice spacing"
+  ],
+  "scope": "Two independent read-only reviewers examined seven viewport+lower pairs (28 images each). In-memory production-component preview; installed/native current candidate NOT_TESTED."
+}

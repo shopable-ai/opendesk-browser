@@ -70,8 +70,10 @@ test('PC rules explain save-only routing once whether rules mode is selected or 
   const note=translate(locale,'apRuleSaveNote');
   assert.equal($('.rulesPage .hint').toArray().filter(element=>$(element).text()===note).length,1);
   assert.equal($('.rulesModeHint').length,mode==='rules'?0:1);
-  assert.equal($('.rulesDefault > h2').text(),translate(locale,'whenNoRuleMatches'));
-  assert.equal($('.rulesDefault > .hint').text(),translate(locale,'apDefaultRouteHelp'));
+  assert.equal($('.rulesDefault > h2').text(),translate(locale,'pcDefaultRouteTitle'));
+  assert.equal($('.rulesDefault > .hint').text(),translate(locale,'pcDefaultRouteHelp'));
+  assert.equal($('.rulesDefault > .hint').attr('title'),translate(locale,'apDefaultRouteHelp'));
+  assert.equal($('#default-route').attr('aria-labelledby'),$('.rulesDefault > h2').attr('id'));
  }
 });
 
@@ -219,9 +221,9 @@ test('PC subscriptions page header import opens the new-subscription route witho
  for(const locale of ['zh-CN','zh-TW','en']){
   const config=domain.freshConfig(),actions=[],buttons=[],visited=[];
   const $=render(locale,stoppedRuntime(config),{config,route:'#/subscriptions',actions,buttons,onNavigate:route=>visited.push(route)});
-  const label=translate(locale,'pcImportSubscription');
+  const label=translate(locale,'pcAddSubscription');
   assert.equal($('.optionsPageHead .panelHeadActions button').filter((_,node)=>$(node).text()===label).length,1);
-  const imports=buttons.filter(button=>button.children===label);
+  const imports=buttons.filter(button=>Array.isArray(button.children)&&button.children.includes(label));
   assert.equal(imports.length,1);assert.equal(imports[0].disabled,false);
   assert.deepEqual(visited,[]);assert.equal(actions.length,0);
   imports[0].onClick();assert.deepEqual(visited,['#/subscriptions/new']);assert.equal(actions.length,0);

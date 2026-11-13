@@ -1,0 +1,165 @@
+[p1 "AI Proxy · PC 管理预览" | space "AI Proxy PC seven-page parity"(22): 2 managed, 0 untracked — p1* "AI Proxy · PC 管理预览", p2 "AI Proxy · R16 PC 设置 · 交互预览"]
+root
+  container "OpenDesk Browser Side Panel 真实布局来源的离线预览"
+    tabpanel "当前扩展工具 扩展" [ref=1020]
+      iframe [ref=1021]
+        root
+          region "管理设置" [ref=1022, loc=role:region[name="管理设置"]]
+            container
+              container
+                container
+                  text "AI"
+                  container
+                    heading
+                      text "AI Proxy"
+                    paragraph
+                      text "设置"
+                      text "·"
+                      text "浏览器代理管理器"
+                container
+                  text "免费 · 无需账号"
+                  button [ref=1023]
+                    svg_root
+                    text "返回代理配置"
+                  button "刷新状态" [ref=1024, loc=css:button[aria-label="刷新状态"]]
+                    svg_root
+              status "浏览器状态"
+                text "浏览器状态"
+                text "浏览器已应用当前选择"
+                text "已选：香港节点 · 主用。"
+                button [ref=1025]
+                  text "查看真实控制状态 →"
+              container
+                container "设置栏目"
+                  paragraph
+                    text "管理中心"
+                  button [ref=1026]
+                    svg_root
+                    text "代理配置"
+                  button [ref=1027]
+                    svg_root
+                    text "网站规则"
+                  button [ref=1028]
+                    svg_root
+                    text "订阅管理"
+                  button [ref=1029]
+                    svg_root
+                    text "导入备份"
+                  button [ref=1030]
+                    svg_root
+                    text "网络诊断"
+                  button [ref=1031]
+                    svg_root
+                    text "通用设置"
+                  button [ref=1032]
+                    svg_root
+                    text "官方网络"
+                container
+                  container
+                    paragraph
+                      text "设置"
+                    heading
+                      text "通用设置"
+                    paragraph
+                      text "管理界面行为和基础使用偏好。"
+                  container
+                    container
+                      container
+                        heading
+                          text "基础偏好"
+                        paragraph
+                          text "保存在此扩展的本地设置中。"
+                        container
+                          svg_root
+                          container
+                            text "界面语言 / Language"
+                            text "只改变 AI Proxy 界面语言，不影响代理线路和浏览器网络设置。"
+                          combobox "界面语言 / Language" [ref=1033, loc=css:select[aria-label="界面语言 / Language"]]
+                            text "自动"
+                        container
+                          svg_root
+                          container
+                            text "打开扩展时显示状态"
+                            text "保留运行摘要的展开偏好；异常和待应用状态始终显示。"
+                          checkbox [ref=1034]
+                        container
+                          svg_root
+                          container
+                            text "隐私与安全"
+                            text "配置在浏览器本地保存。代理认证尚未接入，不保存账号或密码；备份不包含凭证。"
+                          text "已保持"
+                        container
+                          svg_root
+                          container
+                            text "外观"
+                            text "跟随 OpenDesk 的界面配色。"
+                          text "跟随宿主"
+                      container
+                        container [ref=1035]
+                          text "页头快捷操作"
+                          text "·"
+                          text "数据与帮助"
+                        container
+                          container "页头快捷操作"
+                            text "页头快捷操作"
+                            paragraph
+                              text "选择并排列页头操作。在 PC「通用设置」配置；留空时可从连接方式旁的设置图标进入。"
+                            container
+                              checkbox [ref=1036]
+                              text "添加代理"
+                            container
+                              checkbox [ref=1037]
+                              text "网络诊断"
+                            container
+                              checkbox [ref=1038]
+                              text "订阅来源"
+                            container
+                              checkbox [ref=1039]
+                              text "管理设置"
+                            container
+                              checkbox [ref=1040]
+                              text "官方网络"
+                            ordered_list
+                              list_item
+                                text "添加代理"
+                                button "上移 添加代理" [ref=1041, loc=css:button[aria-label="上移 添加代理"]]
+                                  text "上移"
+                                button "下移 添加代理" [ref=1042, loc=css:button[aria-label="下移 添加代理"]]
+                                  text "下移"
+                              list_item
+                                text "网络诊断"
+                                button "上移 网络诊断" [ref=1043, loc=css:button[aria-label="上移 网络诊断"]]
+                                  text "上移"
+                                button "下移 网络诊断" [ref=1044, loc=css:button[aria-label="下移 网络诊断"]]
+                                  text "下移"
+                              list_item
+                                text "订阅来源"
+                                button "上移 订阅来源" [ref=1045, loc=css:button[aria-label="上移 订阅来源"]]
+                                  text "上移"
+                                button "下移 订阅来源" [ref=1046, loc=css:button[aria-label="下移 订阅来源"]]
+                                  text "下移"
+                              list_item
+                                text "管理设置"
+                                button "上移 管理设置" [ref=1047, loc=css:button[aria-label="上移 管理设置"]]
+                                  text "上移"
+                                button "下移 管理设置" [ref=1048, loc=css:button[aria-label="下移 管理设置"]]
+                                  text "下移"
+                            button [ref=1049]
+                              text "保存修改"
+                            button [ref=1050]
+                              text "取消"
+                          heading
+                            text "数据与帮助"
+                          container
+                            text "免费第三方代理管理"
+                            text "无需注册、购买或充值；未接入自营服务。"
+                          container
+                            text "隐私与数据"
+                            text "配置在浏览器本地保存。代理认证尚未接入，不保存账号或密码；备份不包含凭证。"
+                          container
+                            text "帮助与反馈"
+                            text "仓库当前为私有，公开社区尚未开放。"
+                            anchor [ref=1051, loc=href:https://github.com/shopable-ai/ai-proxy, url=https://github.com/shopable-ai/ai-proxy]
+                              text "项目地址 ↗"
+                    paragraph
+                      text "本产品不保证 DNS、WebRTC、IPv6、其它应用或操作系统网络流量的完整代理覆盖。"

@@ -1,0 +1,230 @@
+[p1 "AI Proxy · PC 管理预览" | space "AI Proxy PC seven-page parity"(22): 2 managed, 0 untracked — p1* "AI Proxy · PC 管理预览", p2 "AI Proxy · R16 PC 设置 · 交互预览"]
+root
+  container
+    text "AI Proxy"
+    text "管理 · 交互预览"
+    status
+      text "配置只在本次预览内保存"
+    button [ref=1093]
+      text "打开侧栏预览"
+  container "OpenDesk Browser Side Panel 真实布局来源的离线预览"
+    tabpanel "当前扩展工具 扩展" [ref=1094]
+      iframe [ref=1095]
+        root
+          region "管理设置" [ref=1184, loc=role:region[name="管理设置"]]
+            container
+              container
+                container
+                  text "AI"
+                  container
+                    heading
+                      text "AI Proxy"
+                    paragraph
+                      text "设置"
+                      text "·"
+                      text "浏览器代理管理器"
+                container
+                  text "免费 · 无需账号"
+                  button [ref=1185]
+                    svg_root
+                    text "返回代理配置"
+                  button "刷新状态" [ref=1186, loc=css:button[aria-label="刷新状态"]]
+                    svg_root
+              status "浏览器状态"
+                text "浏览器状态"
+                text "待应用"
+                text "待应用选择 · 美国节点 · 备用"
+                button [ref=1187]
+                  text "查看真实控制状态 →"
+              container
+                container "设置栏目"
+                  paragraph
+                    text "管理中心"
+                  button [ref=1188]
+                    svg_root
+                    text "代理配置"
+                  button [ref=1189]
+                    svg_root
+                    text "网站规则"
+                  button [ref=1190]
+                    svg_root
+                    text "订阅管理"
+                  button [ref=1191]
+                    svg_root
+                    text "导入备份"
+                  button [ref=1192]
+                    svg_root
+                    text "网络诊断"
+                  button [ref=1193]
+                    svg_root
+                    text "通用设置"
+                  button [ref=1194]
+                    svg_root
+                    text "官方网络"
+                container
+                  container
+                    paragraph
+                      text "设置"
+                    heading
+                      text "网络诊断"
+                    paragraph
+                  container
+                    container
+                      heading
+                        text "检查你关心的网站"
+                      container
+                        text "已选择"
+                        text ":"
+                        text "美国节点 · 备用"
+                      text "预览模拟 · 无真实 HTTP 请求 · 不读取正文或切换代理"
+                    container "AI 登录与模型功能"
+                      text "尚未测试"
+                      text "AI 登录与模型功能"
+                  paragraph
+                    text "浏览器仍采用上次确认的「指定配置 (profile-hk)」设置。"
+                  container "当前诊断概要"
+                    container
+                      text "浏览器控制权"
+                      text "本扩展控制"
+                      text "Chrome Proxy API"
+                    container
+                      text "收藏网站测试"
+                      text "0 / 5"
+                    container
+                      text "当前网站响应"
+                      text "尚未测试"
+                      text "docs.example.com"
+                    container
+                      text "AI 模型功能"
+                      text "尚未测试"
+                  tablist "网络诊断分类"
+                    tab [ref=1235]
+                      text "⌂"
+                      text "概览"
+                    tab [ref=1236]
+                      text "◉"
+                      text "AI 网站"
+                    tab [ref=1237]
+                      text "☆"
+                      text "关键网站"
+                    tab [ref=1238]
+                      text "↗"
+                      text "测速"
+                    tab [ref=1239]
+                      text "≡"
+                      text "基础诊断"
+                  tabpanel "◉AI 网站" [ref=1240]
+                    container
+                      container
+                        heading
+                          text "AI 网站可用性"
+                        paragraph
+                          text "按需选择模拟诊断，可取消；不发送真实请求。"
+                      button [ref=1248]
+                        text "检测选中 5 项"
+                    container
+                      container
+                        container
+                          checkbox [ref=1249]
+                          container
+                            text "ChatGPT"
+                            text "chatgpt.com"
+                        text "尚未测试"
+                        container
+                          button [ref=1250]
+                            text "检测"
+                          button "取消收藏" [ref=1251]
+                            text "已收藏"
+                      container
+                        container
+                          checkbox [ref=1252]
+                          container
+                            text "Claude"
+                            text "claude.ai"
+                        text "尚未测试"
+                        container
+                          button [ref=1253]
+                            text "检测"
+                          button "取消收藏" [ref=1254]
+                            text "已收藏"
+                      container
+                        container
+                          checkbox [ref=1255]
+                          container
+                            text "Gemini"
+                            text "gemini.google.com"
+                        text "尚未测试"
+                        container
+                          button [ref=1256]
+                            text "检测"
+                          button "取消收藏" [ref=1257]
+                            text "已收藏"
+                      container
+                        container
+                          checkbox [ref=1258]
+                          text "Perplexity"
+                          text "perplexity.ai"
+                        text "尚未测试"
+                        button [ref=1259]
+                          text "检测"
+                        button "取消收藏" [ref=1260]
+                          text "已收藏"
+                      container
+                        container
+                          checkbox [ref=1261]
+                          text "Grok"
+                          text "grok.com"
+                        text "尚未测试"
+                        button [ref=1262]
+                          text "检测"
+                        button "取消收藏" [ref=1263]
+                          text "已收藏"
+                      container
+                        container
+                          checkbox [ref=1264]
+                          text "Microsoft Copilot"
+                          text "copilot.microsoft.com"
+                        text "尚未测试"
+                        button [ref=1265]
+                          text "检测"
+                        button "收藏" [ref=1266]
+                          text "收藏"
+                      container
+                        container
+                          checkbox [ref=1267]
+                          text "DeepSeek"
+                          text "chat.deepseek.com"
+                        text "尚未测试"
+                        button [ref=1268]
+                          text "检测"
+                        button "收藏" [ref=1269]
+                          text "收藏"
+                      container
+                        container
+                          checkbox [ref=1270]
+                          text "Poe"
+                          text "poe.com"
+                        text "尚未测试"
+                        button [ref=1271]
+                          text "检测"
+                        button "收藏" [ref=1272]
+                          text "收藏"
+                      container
+                        container
+                          checkbox [ref=1273]
+                          text "Hugging Face"
+                          text "huggingface.co"
+                        text "尚未测试"
+                        button [ref=1274]
+                          text "检测"
+                        button "收藏" [ref=1275]
+                          text "收藏"
+                    paragraph
+                      text "仅为预览模拟结果，不证明真实 HTTP、标签页、登录或模型功能正常。"
+                  paragraph
+                    text "当前诊断为预览模拟，真实 HTTP 探测尚未接入；不会访问目标网站。"
+                  container [ref=1247]
+                    text "如何理解检测结果和可信程度？"
+                    text "查看 →"
+                  paragraph
+                    text "① 代理设置与控制权：应用不等于连通。② HTTP 网站响应：不证明登录和模型可用。③ 请求耗时：不是 ICMP Ping，也不自动推荐最快线路。④ AI 登录和�..."

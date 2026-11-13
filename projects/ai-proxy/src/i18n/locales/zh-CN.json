@@ -1144,5 +1144,11 @@
   "pcBackSidebar": "返回侧边栏",
   "pcRuleScopeHelp": "规则作用于匹配域名的请求，包含同域的所有标签页。页面内其他域名的资源分别匹配规则。",
   "pcRuleScopeColumn": "域名与范围",
-  "pcRuleRouteColumn": "使用线路"
+  "pcRuleRouteColumn": "使用线路",
+  "pcSocksAuthLimit": "SOCKS 在 Chrome 中不支持用户名密码认证。",
+  "pcAddSubscription": "导入订阅",
+  "pcIntegrationBoundary": "仅本地解析；不自动同步订阅、启动客户端或应用代理。",
+  "pcAutoLanguage": "自动",
+  "pcDefaultRouteTitle": "未匹配时",
+  "pcDefaultRouteHelp": "与连接失败回退无关；保存后需应用。"
 }

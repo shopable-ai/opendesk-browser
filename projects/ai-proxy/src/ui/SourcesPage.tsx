@@ -322,11 +322,12 @@ export function SourcesPage({ config, configEtag, runtime, busy, act, setError, 
   const helpMarkup = management ? <section className="listSection sourceIntegrationHelp">
       <div className="sectionHeading"><h2>{t('protocolSupportAndIntegrationNotes')}</h2></div>
       <p className="hint">{t('subscriptionMetadataNotice')}</p>
-      <p className="notice sourceIntegrationNotice">{t('subscriptionIntegrationNotice')}</p>
-      <details className="sourceHelp subscriptionProtocolDetails"><summary>{t('protocol')}</summary>
+      <p className="notice sourceIntegrationNotice">{t('pcIntegrationBoundary')}</p>
+      <div className="sourceHelpLinks"><details className="sourceHelp subscriptionProtocolDetails"><summary>{t('protocol')}</summary>
         <p>{t('chromeSupportsHttpHttpsSocks4AndUnauthenticatedSocks5Proxies')}</p>
+        <p>{t('subscriptionIntegrationNotice')}</p>
       </details>
-      <details className="sourceHelp subscriptionCliDetails"><summary>CLI</summary>{cliGuidance}</details>
+      <details className="sourceHelp subscriptionCliDetails"><summary>CLI</summary>{cliGuidance}</details></div>
     </section> : <><details className="sourceHelp subscriptionCliDetails">
       <summary>{t('protocolSupportAndIntegrationNotes')}</summary>
       <p>{t('chromeSupportsHttpHttpsSocks4AndUnauthenticatedSocks5Proxies')}</p>
@@ -459,7 +460,7 @@ export function SourcesPage({ config, configEtag, runtime, busy, act, setError, 
           <Button type="button" className="proxyIconButton" data-subscription-id={source.id} disabled={busy}
             title={t('subscriptionViewNamed',{name:publicName(source.displayName)})}
             aria-label={t('subscriptionViewNamed',{name:publicName(source.displayName)})}
-            onClick={() => navigateSubscription({kind:'source',id:source.id})}><ProxyIcon name="open"/></Button>
+            onClick={() => navigateSubscription({kind:'source',id:source.id})}><ProxyIcon name="info"/></Button>
           <Button type="button" className="proxyIconButton quietDanger" disabled={busy || config.managed}
             title={t('delete')+' · '+publicName(source.displayName)}
             aria-label={t('delete')+' · '+publicName(source.displayName)}

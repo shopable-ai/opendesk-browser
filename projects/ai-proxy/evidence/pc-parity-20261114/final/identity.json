@@ -1,0 +1,15 @@
+{
+  "candidate": "e63734281037aab0cbf15b390b5ce4f693f9e165fe9d6b832b6c97e54ba40939",
+  "manifest": "projects/ai-proxy/.opendesk-preview/source-98024ff9-11b2-43ef-9b77-6d5c57551e26/manifest.json",
+  "sourceCount": 95,
+  "drift": [],
+  "reference": {
+    "sha256": "277ff8df72970906370507e9d7448da3ba583cb293536cae874c1a034080a977",
+    "bytes": 133880
+  },
+  "trustedPins": 67,
+  "cssParse": "PASS",
+  "localeKeySets": "PASS",
+  "simulation": "Memory service/storage only. No Chrome, real proxy, network probes or persistence.",
+  "sourceCommit": "e305e0a4a9d8e47b2637ec21ad9144dfc87ff212"
+}

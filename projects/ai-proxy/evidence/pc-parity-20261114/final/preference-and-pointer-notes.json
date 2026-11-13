@@ -1,0 +1,9 @@
+{
+  "candidate": "e63734281037aab0cbf15b390b5ce4f693f9e165fe9d6b832b6c97e54ba40939",
+  "preferenceProof": "Saved and remounted painted screenshots show on switch and Simplified Chinese. Reopened image taken after semantic General navigation from final diagnostic route; two top-window animation frames awaited. Memory-only, not native persistence.",
+  "driverFindings": [
+    "Immediate interaction screenshots without painted suffix are stale compositor frames; excluded from evidence.",
+    "CDP pointer navigation to Profiles reached its expected selector; later General coordinate navigation and keyboard retry did not reach expected selector. Complete pointer acceptance NOT_TESTED, no product patch made.",
+    "Outer DOMSnapshot excludes sandbox control document; no checked-value claim based on it."
+  ]
+}

@@ -1,0 +1,140 @@
+[p1 "AI Proxy · PC 管理预览" | space "AI Proxy PC seven-page parity"(22): 2 managed, 0 untracked — p1* "AI Proxy · PC 管理预览", p2 "AI Proxy · R16 PC 设置 · 交互预览"]
+root
+  container
+    text "AI Proxy"
+    text "管理 · 交互预览"
+    status
+      text "配置只在本次预览内保存"
+    button [ref=1093]
+      text "打开侧栏预览"
+  container "OpenDesk Browser Side Panel 真实布局来源的离线预览"
+    tabpanel "当前扩展工具 扩展" [ref=1094]
+      iframe [ref=1095]
+        root
+          region "管理设置" [ref=1096, loc=role:region[name="管理设置"]]
+            container
+              container
+                container
+                  text "AI"
+                  container
+                    heading
+                      text "AI Proxy"
+                    paragraph
+                      text "设置"
+                      text "·"
+                      text "浏览器代理管理器"
+                container
+                  text "免费 · 无需账号"
+                  button [ref=1097]
+                    svg_root
+                    text "返回代理配置"
+                  button "刷新状态" [ref=1098, loc=css:button[aria-label="刷新状态"]]
+                    svg_root
+              status "浏览器状态"
+                text "浏览器状态"
+                text "待应用"
+                text "待应用选择 · 美国节点 · 备用"
+                button [ref=1099]
+                  text "查看真实控制状态 →"
+              container
+                container "设置栏目"
+                  paragraph
+                    text "管理中心"
+                  button [ref=1100]
+                    svg_root
+                    text "代理配置"
+                  button [ref=1101]
+                    svg_root
+                    text "网站规则"
+                  button [ref=1102]
+                    svg_root
+                    text "订阅管理"
+                  button [ref=1103]
+                    svg_root
+                    text "导入备份"
+                  button [ref=1104]
+                    svg_root
+                    text "网络诊断"
+                  button [ref=1105]
+                    svg_root
+                    text "通用设置"
+                  button [ref=1106]
+                    svg_root
+                    text "官方网络"
+                container
+                  container
+                    paragraph
+                      text "设置"
+                    heading
+                      text "订阅管理"
+                    button [ref=1158]
+                      svg_root
+                      text "导入订阅"
+                    paragraph
+                      text "查看订阅记录与本地客户端。编辑不会自动应用代理。"
+                  container
+                    container "订阅导航"
+                      button [ref=1159]
+                        text "← 返回订阅列表"
+                      text "/"
+                      text "订阅详情"
+                    container
+                      container
+                        svg_root
+                        container
+                          paragraph
+                            text "第三方订阅"
+                          heading [ref=1160]
+                            text "我的订阅"
+                          paragraph
+                            text "example.com"
+                      container "订阅状态"
+                        container
+                          text "同步状态"
+                          text "未同步"
+                        container
+                          text "节点数量"
+                          text "未知"
+                        container
+                          text "连通性"
+                          text "未知"
+                      container
+                        text "声明格式（尚未识别）"
+                        text ":"
+                        text "auto"
+                      paragraph
+                        text "只保存来源域名和非敏感元数据；当前不自动下载订阅或启用线路。节点、流量、到期与连通性均未验证。"
+                      container
+                        button [ref=1161]
+                          text "编辑"
+                        button [ref=1162]
+                          text "删除"
+                    container "读取本地订阅内容"
+                      status
+                        text "未读取"
+                      text "兼容性未知"
+                      button "读取 我的订阅 的订阅" [ref=1163, loc=css:button[aria-label="读取 我的订阅 的订阅"]]
+                        text "本地读取 / 导入"
+                    container
+                      heading
+                        text "协议支持与接入说明"
+                      paragraph
+                        text "仅保存服务商域名、名称和声明格式。链接只保留在本页面内存中；凭证不会保存。"
+                      paragraph
+                        text "仅本地解析；不自动同步订阅、启动客户端或应用代理。"
+                      container
+                        container
+                          container [ref=1164]
+                            text "协议"
+                          container
+                            paragraph
+                              text "Chrome 可以设置 HTTP / HTTPS 代理、SOCKS4 和无认证 SOCKS5。SS、VMess、VLESS、Trojan、Hysteria 等远端协议由 Clash/Mihomo/sing-box 等本地客户端处理。"
+                            paragraph
+                              text "本地读取仅解析内容。不自动更新订阅、不启动客户端或调用客户端管理 API。保存、选择、应用和诊断是独立步骤。"
+                        container [ref=1165]
+                          text "CLI"
+                        container
+                          paragraph
+                            text "如需 CLI 受控 GET，请在 apps/browser-extension 目录执行下方命令。脚本仅授权 https://liangxin.xyz，缺少必要环境变量时会阻断。将生成的脱敏 JSON 本地导入；�..."
+                          paragraph
+                            text "node --experimental-strip-types scripts/probe-subscription.mjs --report /tmp/ai-proxy-subscription-report.json"

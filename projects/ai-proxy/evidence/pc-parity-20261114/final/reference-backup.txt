@@ -1,0 +1,85 @@
+[p2 "AI Proxy · R16 PC 设置 · 交互预览" | space "AI Proxy PC seven-page parity"(22): 2 managed, 0 untracked — p1 "AI Proxy · PC 管理预览", p2* "AI Proxy · R16 PC 设置 · 交互预览"]
+root
+  container
+    container
+      text "AI"
+      container
+        text "AI Proxy"
+        text "设置 · 浏览器代理管理"
+      text "免费 · 无需账号"
+      button "返回侧边栏" [ref=297, loc=css:button[aria-label="返回侧边栏"]]
+        svg_root
+        text "返回侧边栏"
+    container
+      container
+        container
+          text "配置应用："
+          text "已应用"
+        container
+          text "当前选择："
+          text "香港节点 · 主用"
+      button [ref=298]
+        text "查看连接状态 ↗"
+    container
+      container "PC 设置导航"
+        text "管理中心"
+        button [ref=299]
+          svg_root
+          text "代理配置"
+        button [ref=300]
+          svg_root
+          text "网站规则"
+        button [ref=301]
+          svg_root
+          text "订阅管理"
+        button [ref=302]
+          svg_root
+          text "导入备份"
+        button [ref=303]
+          svg_root
+          text "网络诊断"
+        button [ref=304]
+          svg_root
+          text "通用设置"
+        button [ref=305]
+          svg_root
+          text "官方网络"
+      container
+        container
+          paragraph
+            text "设置"
+          heading
+            text "导入备份"
+          paragraph
+            text "导出与导入分开处理；先预览数据，再由用户确认。"
+        container
+          container
+            container
+              heading
+                text "导入备份"
+              paragraph
+                text "仅解析 AI Proxy 示例 JSON，最大 256 KiB。"
+            container
+              text "配置内容"
+              textbox [ref=306, loc=css:textarea[placeholder="粘贴包含 proxies / rules 的 JSON"]]
+                text "粘贴包含 proxies / rules 的 JSON"
+            container
+              button [ref=307]
+                text "填入示例"
+              button [ref=308]
+                text "解析预览"
+          container
+            container
+              heading
+                text "导出备份"
+              paragraph
+                text "导出代理和规则的演示配置，不包含凭据。"
+            button [ref=309]
+              svg_root
+              text "导出无密码 JSON"
+            paragraph
+              text "PAC 文本和任何账号密码不会写入备份。"
+            heading
+              text "兼容范围"
+            paragraph
+              text "本便携预览使用简化 schema，不声称与正式业务导入器逐字段一致。"

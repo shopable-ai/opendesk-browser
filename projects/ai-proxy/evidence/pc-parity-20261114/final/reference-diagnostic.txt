@@ -1,0 +1,175 @@
+[p2 "AI Proxy · R16 PC 设置 · 交互预览" | space "AI Proxy PC seven-page parity"(22): 2 managed, 0 untracked — p1 "AI Proxy · PC 管理预览", p2* "AI Proxy · R16 PC 设置 · 交互预览"]
+root
+  container
+    container
+      text "AI"
+      container
+        text "AI Proxy"
+        text "设置 · 浏览器代理管理"
+      text "免费 · 无需账号"
+      button "返回侧边栏" [ref=373, loc=css:button[aria-label="返回侧边栏"]]
+        svg_root
+        text "返回侧边栏"
+    container
+      container
+        container
+          text "配置应用："
+          text "已应用"
+        container
+          text "当前选择："
+          text "香港节点 · 主用"
+      button [ref=374]
+        text "查看连接状态 ↗"
+    container
+      container "PC 设置导航"
+        text "管理中心"
+        button [ref=375]
+          svg_root
+          text "代理配置"
+        button [ref=376]
+          svg_root
+          text "网站规则"
+        button [ref=377]
+          svg_root
+          text "订阅管理"
+        button [ref=378]
+          svg_root
+          text "导入备份"
+        button [ref=379]
+          svg_root
+          text "网络诊断"
+        button [ref=380]
+          svg_root
+          text "通用设置"
+        button [ref=381]
+          svg_root
+          text "官方网络"
+      container
+        container
+          paragraph
+            text "设置"
+          heading
+            text "网络诊断"
+          paragraph
+        container
+          container "网络诊断工作台"
+            container
+              heading
+                text "检查你关心的网站"
+              text "当前：香港节点 · 主用"
+            container
+              text "未验证"
+              text "真实网站可达性"
+          container "网络诊断概况"
+            container
+              text "代理控制权"
+              text "可管理"
+            container
+              text "收藏网站测试"
+              container
+                text "0"
+                text "/ 5"
+            container
+              text "当前网站响应"
+              text "尚未检测"
+              text "example.com"
+            container
+              text "AI 模型功能"
+              text "未验证"
+          container "网络诊断子页面"
+            button [ref=382]
+              text "⌂"
+              text "概览"
+            button [ref=383]
+              text "◉"
+              text "AI 网站"
+            button [ref=384]
+              text "☆"
+              text "关键网站"
+            button [ref=385]
+              text "↗"
+              text "测速"
+            button [ref=386]
+              text "≡"
+              text "基础诊断"
+          container "网络诊断 概览"
+            container
+              container
+                container
+                  text "当前网站"
+                  text "当前网站"
+                heading
+                  text "先检查你正在使用的网站"
+                text "example.com"
+                paragraph
+                  text "预期路由：香港节点 · 主用 · 使用代理"
+                container
+                  text "尚未检测"
+                  text "AI 登录与模型功能未验证"
+                container
+                  button [ref=387]
+                    text "检测当前网站 →"
+                  button [ref=388]
+                    text "排查代理设置"
+              container
+                container
+                  text "常用 AI 网站"
+                  text "5 个 AI 网站"
+                heading
+                  text "常用 AI 工具快速检查"
+                paragraph
+                  text "检测网站响应，不冒充登录成功或模型调用正常。"
+                container
+                  container
+                    text "C"
+                    container
+                      text "ChatGPT"
+                      text "尚未检测"
+                  container
+                    text "C"
+                    container
+                      text "Claude"
+                      text "尚未检测"
+                  container
+                    text "G"
+                    container
+                      text "Gemini"
+                      text "尚未检测"
+                container
+                  button [ref=389]
+                    text "检测已收藏 5 项 →"
+                  button [ref=390]
+                    text "查看全部 →"
+            container
+              container
+                text "☆"
+                container
+                  text "我的收藏"
+                  heading
+                    text "我的关键网站"
+                  paragraph
+                    text "Top 5 / Top 10 · 5 个主动收藏"
+                button [ref=391]
+                  text "查看 →"
+              container
+                text "↗"
+                container
+                  text "测速与稳定性"
+                  heading
+                    text "速度与线路质量"
+                  paragraph
+                    text "HTTP 耗时 未测 · 下载 未测"
+                button [ref=392]
+                  text "测试 →"
+            paragraph
+              text "已演示检查 0/5 个收藏网站。真实网络状态未知，当前证据不足以推荐最快线路。切换代理后旧诊断会失效。"
+          container [ref=393]
+            text "如何理解检测结果和可信程度？"
+            text "查看说明 →"
+          container
+            text "① 代理设置与控制权 · 应用不等于连通"
+            text "② HTTP 网站可达性 · CORS 不等于网站失败"
+            text "③ 请求耗时与受控吞吐 · 不是 ICMP Ping"
+            text "④ AI 登录和模型推理 · 未验证"
+            paragraph
+              text "HTTP 403、429、CORS、DNS/TLS 信息不足等状态不能直接归因于代理。没有可信的多次测量时不推荐最快线路，也不擅自切换浏览器代理。"

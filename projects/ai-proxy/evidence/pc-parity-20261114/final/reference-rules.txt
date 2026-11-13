@@ -1,0 +1,101 @@
+[p2 "AI Proxy · R16 PC 设置 · 交互预览" | space "AI Proxy PC seven-page parity"(22): 2 managed, 0 untracked — p1 "AI Proxy · PC 管理预览", p2* "AI Proxy · R16 PC 设置 · 交互预览"]
+root
+  container
+    container
+      text "AI"
+      container
+        text "AI Proxy"
+        text "设置 · 浏览器代理管理"
+      text "免费 · 无需账号"
+      button "返回侧边栏" [ref=265, loc=css:button[aria-label="返回侧边栏"]]
+        svg_root
+        text "返回侧边栏"
+    container
+      container
+        container
+          text "配置应用："
+          text "已应用"
+        container
+          text "当前选择："
+          text "香港节点 · 主用"
+      button [ref=266]
+        text "查看连接状态 ↗"
+    container
+      container "PC 设置导航"
+        text "管理中心"
+        button [ref=267]
+          svg_root
+          text "代理配置"
+        button [ref=268]
+          svg_root
+          text "网站规则"
+        button [ref=269]
+          svg_root
+          text "订阅管理"
+        button [ref=270]
+          svg_root
+          text "导入备份"
+        button [ref=271]
+          svg_root
+          text "网络诊断"
+        button [ref=272]
+          svg_root
+          text "通用设置"
+        button [ref=273]
+          svg_root
+          text "官方网络"
+      container
+        container
+          container
+            paragraph
+              text "设置"
+            heading
+              text "网站规则"
+            paragraph
+              text "从上到下匹配；数字越小越优先。"
+          button [ref=274]
+            text "＋ 添加规则"
+        container
+          container
+            container
+              text "启用"
+              text "域名与范围"
+              text "使用线路"
+              text "优先级"
+              text "操作"
+            container
+              checkbox "启用规则 example.com" [ref=275, loc=css:input[aria-label="启用规则 example.com"]]
+              container
+                text "example.com"
+                text "域名及子域"
+              text "香港节点 · 主用"
+              spinbutton "example.com优先级" [ref=276, loc=css:input[aria-label="example.com优先级"]]
+                text "10"
+              container
+                button "编辑规则：example.com" [ref=277, loc=css:button[aria-label="编辑规则：example.com"]]
+                  svg_root
+                button "删除规则：example.com" [ref=278, loc=css:button[aria-label="删除规则：example.com"]]
+                  svg_root
+          container
+            container
+              text "未匹配时"
+              combobox "网站规则默认路由" [ref=279, loc=css:select[aria-label="网站规则默认路由"]]
+                text "直连"
+            text "与代理失败回退无关"
+          container
+            container
+              container
+                text "测试网站规则"
+                textbox [ref=280, loc=css:input[placeholder="example.com 或 https://example.com"]]
+                  text "example.com"
+              button [ref=281]
+                text "计算"
+            status
+              text "香港节点 · 主用"
+              text "· 网站规则 · example.com · 域名及子域 · 优先级 10"
+            container
+              text "当前是使用代理；网站规则尚未使用。"
+              button [ref=282]
+                text "切换到按规则 →"
+          paragraph
+            text "规则作用于匹配域名的请求，包含同域的所有标签页。页面内其他域名的资源分别匹配规则。"

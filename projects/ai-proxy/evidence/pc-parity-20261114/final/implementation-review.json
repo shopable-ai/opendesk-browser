@@ -1,0 +1,20 @@
+{
+  "candidate": "e63734281037aab0cbf15b390b5ce4f693f9e165fe9d6b832b6c97e54ba40939",
+  "reviewer": "Wegener",
+  "sourceBase": "e305e0a4a9d8e47b2637ec21ad9144dfc87ff212",
+  "safety": 96,
+  "interaction": 96,
+  "conclusion": "COMMENT: scoped review complete, no new required product fix; not full native/release approval.",
+  "closed": [
+    "Return destination label now matches Profiles navigation",
+    "Default route select has visible accessible name",
+    "Stale Favorites callbacks cannot use replacement session/environment",
+    "Painted screenshots show on state and Simplified Chinese after remount"
+  ],
+  "verification": "Reviewer independently ran86 tests and reviewed67 source pins in round5; final CSS and17-step final receipt/painted preferences reviewed without rerunning tests.",
+  "limitations": [
+    "Semantic type diagnostics unavailable; no project tsconfig or typecheck script",
+    "Complete pointer acceptance NOT_TESTED",
+    "Current native / real proxy / production / installed evidence NOT_TESTED"
+  ]
+}

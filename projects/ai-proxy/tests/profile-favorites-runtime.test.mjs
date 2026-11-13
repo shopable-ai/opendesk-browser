@@ -18,13 +18,18 @@ function fixture(){
     useState(initial){const index=cursor++;if(!(index in slots))slots[index]=initial;
       return [slots[index],next=>{if(unmounted)lateUpdates++;slots[index]=typeof next==='function'?next(slots[index]):next;}];},
     useRef(initial){return slots[cursor++]??={current:initial};},
-    useEffect(effect){const index=cursor++;if(!(index in slots)){slots[index]=true;effects.push(effect);}}
+    useEffect(effect,deps){const index=cursor++;const previous=slots[index];
+      if(!previous){slots[index]={deps,effectIndex:effects.length};effects.push(effect);}
+      else if(deps.some((value,i)=>value!==previous.deps[i])){
+        previous.deps=deps;effects[previous.effectIndex]=effect;
+      }}
   };
-  const env=new Proxy({storage:{local:{
+  function environment(reads,writes,listeners){return new Proxy({storage:{local:{
     get(key){const task={key,...deferred()};reads.push(task);return task.promise;},
     set(items){const task={items,...deferred()};writes.push(task);return task.promise;}
   },onChanged:{addListener(fn){listeners.add(fn);},removeListener(fn){listeners.delete(fn);}}}},
-  {get(target,key){if(key in target)return target[key];forbidden.push(key);throw Error(`Unexpected access: ${String(key)}`);}});
+  {get(target,key){if(key in target)return target[key];forbidden.push(key);throw Error(`Unexpected access: ${String(key)}`);}});}
+  let env=environment(reads,writes,listeners);
   const module={exports:{}};
   runInNewContext(code,{module,exports:module.exports,require(name){
     if(name==='react')return hooks;
@@ -38,6 +43,13 @@ function fixture(){
     emit(value,area='local'){for(const listener of [...listeners])listener({[key]:{newValue:value}},area);},
     async load(value){reads.at(-1).resolve({[key]:value});await tick();},
     restartEffects(){cleanups.forEach(fn=>fn());cleanups=effects.map(fn=>fn());},
+    switchEnvironment(){
+      const next={reads:[],writes:[],listeners:new Set()};
+      env=environment(next.reads,next.writes,next.listeners);
+      const rendered=render();
+      cleanups.forEach(fn=>fn());cleanups=effects.map(fn=>fn());
+      return {...next,rendered};
+    },
     unmount(){unmounted=true;cleanups.forEach(fn=>fn());},
     get lateUpdates(){return lateUpdates;}};
 }
@@ -134,4 +146,31 @@ test('effect lifecycle restart isolates old reads, writes and listeners from the
   f.writes[1].resolve();await current;assert.deepEqual(ids(f),['fresh','c']);f.unmount();
   const g=fixture();g.restartEffects();await g.load(['new-read']);
   g.reads[0].resolve({[g.key]:['old-read']});await tick();assert.deepEqual(ids(g),['new-read']);g.unmount();
+});
+
+test('callbacks captured before an effect restart cannot write once the new session is ready',async()=>{
+  const f=fixture();await f.load(['old']);const stale=f.render();
+  f.restartEffects();const loading=f.render();await f.load(['fresh']);
+  await f.initial.toggle('initial');await stale.toggle('stale');
+  assert.equal(f.writes.length,0);assert.deepEqual(ids(f),['fresh']);
+  assert.equal(f.render().busy,false);assert.equal(f.render().error,false);
+  const pending=loading.toggle('current');assert.equal(f.writes.length,1);
+  assert.deepEqual(Array.from(f.writes[0].items[f.key]),['fresh','current']);
+  f.writes[0].resolve();await pending;assert.deepEqual(ids(f),['fresh','current']);f.unmount();
+});
+
+test('environment replacement rejects old and transition callbacks without writing either environment',async()=>{
+  const f=fixture();await f.load(['old']);const stale=f.render();
+  const next=f.switchEnvironment();assert.equal(f.listeners.size,0);assert.equal(next.listeners.size,1);
+  next.reads[0].resolve({[f.key]:['fresh']});await tick();
+  assert.equal(f.render().ready,true);
+  await stale.toggle('stale');await next.rendered.toggle('transition');
+  assert.equal(f.writes.length,0);assert.equal(next.writes.length,0);
+  assert.deepEqual(ids(f),['fresh']);assert.equal(f.render().busy,false);
+  assert.equal(f.render().error,false);
+  const pending=f.render().toggle('current');assert.equal(next.writes.length,1);
+  assert.deepEqual(Array.from(next.writes[0].items[f.key]),['fresh','current']);
+  next.writes[0].resolve();await pending;
+  assert.deepEqual(ids(f),['fresh','current']);assert.equal(f.writes.length,0);
+  assert.deepEqual(f.forbidden,[]);f.unmount();assert.equal(next.listeners.size,0);
 });

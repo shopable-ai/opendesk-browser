@@ -1,0 +1,168 @@
+{
+  "candidate": "e63734281037aab0cbf15b390b5ce4f693f9e165fe9d6b832b6c97e54ba40939",
+  "inputMethod": "semantic keyboard Enter / Space",
+  "scope": "memory-only production components; no real storage, network, proxy or installed evidence",
+  "steps": [
+    {
+      "name": "profiles",
+      "receipt": {
+        "reviews": 0,
+        "apply": 0,
+        "stop": 0,
+        "save": 0
+      }
+    },
+    {
+      "name": "selected",
+      "receipt": {
+        "reviews": 0,
+        "apply": 0,
+        "stop": 0,
+        "save": 1
+      }
+    },
+    {
+      "name": "add-cancel",
+      "receipt": {
+        "reviews": 0,
+        "apply": 0,
+        "stop": 0,
+        "save": 1
+      }
+    },
+    {
+      "name": "rules-calculate",
+      "receipt": {
+        "reviews": 0,
+        "apply": 0,
+        "stop": 0,
+        "save": 1
+      }
+    },
+    {
+      "name": "source-detail",
+      "receipt": {
+        "reviews": 0,
+        "apply": 0,
+        "stop": 0,
+        "save": 1
+      }
+    },
+    {
+      "name": "source-local",
+      "receipt": {
+        "reviews": 0,
+        "apply": 0,
+        "stop": 0,
+        "save": 1
+      }
+    },
+    {
+      "name": "backup-preview",
+      "receipt": {
+        "reviews": 0,
+        "apply": 0,
+        "stop": 0,
+        "save": 1
+      }
+    },
+    {
+      "name": "dirty-confirm",
+      "receipt": {
+        "reviews": 0,
+        "apply": 0,
+        "stop": 0,
+        "save": 1
+      }
+    },
+    {
+      "name": "general-saved",
+      "receipt": {
+        "reviews": 0,
+        "apply": 0,
+        "stop": 0,
+        "save": 1
+      }
+    },
+    {
+      "name": "general-reopen",
+      "receipt": {
+        "reviews": 0,
+        "apply": 0,
+        "stop": 0,
+        "save": 1
+      }
+    },
+    {
+      "name": "official-info",
+      "receipt": {
+        "reviews": 0,
+        "apply": 0,
+        "stop": 0,
+        "save": 1
+      }
+    },
+    {
+      "name": "diagnostic-overview",
+      "receipt": {
+        "reviews": 0,
+        "apply": 0,
+        "stop": 0,
+        "save": 1
+      }
+    },
+    {
+      "name": "diagnostic-0",
+      "receipt": {
+        "reviews": 0,
+        "apply": 0,
+        "stop": 0,
+        "save": 1
+      }
+    },
+    {
+      "name": "diagnostic-1",
+      "receipt": {
+        "reviews": 0,
+        "apply": 0,
+        "stop": 0,
+        "save": 1
+      }
+    },
+    {
+      "name": "diagnostic-2",
+      "receipt": {
+        "reviews": 0,
+        "apply": 0,
+        "stop": 0,
+        "save": 1
+      }
+    },
+    {
+      "name": "diagnostic-3",
+      "receipt": {
+        "reviews": 0,
+        "apply": 0,
+        "stop": 0,
+        "save": 1
+      }
+    },
+    {
+      "name": "diagnostic-4",
+      "receipt": {
+        "reviews": 0,
+        "apply": 0,
+        "stop": 0,
+        "save": 1
+      }
+    }
+  ],
+  "status": "PASS",
+  "excluded": [
+    "real APPLY/STOP",
+    "network probes",
+    "online subscriptions",
+    "real storage/CAS and permissions",
+    "production/package/install/native acceptance"
+  ]
+}

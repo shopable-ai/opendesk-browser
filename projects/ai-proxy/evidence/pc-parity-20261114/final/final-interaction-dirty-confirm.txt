@@ -1,0 +1,109 @@
+[p1 "AI Proxy · PC 管理预览" | space "AI Proxy PC seven-page parity"(22): 2 managed, 0 untracked — p1* "AI Proxy · PC 管理预览", p2 "AI Proxy · R16 PC 设置 · 交互预览"]
+root
+  container
+    text "AI Proxy"
+    text "管理 · 交互预览"
+    status
+      text "有未保存更改"
+    button [ref=1093]
+      text "打开侧栏预览"
+  container "OpenDesk Browser Side Panel 真实布局来源的离线预览"
+    tabpanel "当前扩展工具 扩展" [ref=1094]
+      iframe [ref=1095]
+        root
+          region "管理设置"
+            container
+              container
+                text "AI"
+                heading
+                  text "AI Proxy"
+                paragraph
+                  text "设置"
+                  text "·"
+                  text "浏览器代理管理器"
+                text "免费 · 无需账号"
+                button [ref=1097]
+                  svg_root
+                  text "返回代理配置"
+                button "刷新状态" [ref=1098, loc=css:button[aria-label="刷新状态"]]
+                  svg_root
+              text "浏览器状态"
+              text "待应用"
+              text "待应用选择 · 美国节点 · 备用"
+              button [ref=1099]
+                text "查看真实控制状态 →"
+              container "设置栏目"
+                paragraph
+                  text "管理中心"
+                button [ref=1100]
+                  svg_root
+                  text "代理配置"
+                button [ref=1101]
+                  svg_root
+                  text "网站规则"
+                button [ref=1102]
+                  svg_root
+                  text "订阅管理"
+                button [ref=1103]
+                  svg_root
+                  text "导入备份"
+                button [ref=1104]
+                  svg_root
+                  text "网络诊断"
+                button [ref=1105]
+                  svg_root
+                  text "通用设置"
+                button [ref=1106]
+                  svg_root
+                  text "官方网络"
+              container
+                container
+                  paragraph
+                    text "设置"
+                  heading
+                    text "导入备份"
+                  paragraph
+                    text "无秘密配置导入、导出"
+                container
+                  heading
+                    text "导入备份"
+                  paragraph
+                    text "导入将替换现有代理、PAC 和网站规则。验证通过后仍需确认；不会自动应用线路。"
+                  text "粘贴 JSON 备份"
+                  textbox [ref=1173, loc=css:textarea[placeholder="{\"schemaVersion\":2,...}"]]
+                    text "{"schemaVersion":2,...}"
+                  button [ref=1174]
+                    text "填入示例"
+                  button [ref=1175]
+                    text "解析预览"
+                  text "选择本地 JSON 备份"
+                  container
+                    text "选择本地 JSON 备份"
+                    textbox [ref=1178]
+                      button [ref=1179]
+                        text "选择文件"
+                      text "未选择任何文件"
+                    paragraph
+                      text "仅在本地读取文件；最大 1 MiB。导入前验证格式并再次确认覆盖，不会自动启用代理。"
+                container
+                  heading
+                    text "导出备份"
+                  paragraph
+                    text "分享备份仅含非秘密配置，默认不含 PAC 文本、密码、令牌或运行状态。导入 v1 会保留代理与规则，绝不自动启用。"
+                  button [ref=1180]
+                    svg_root
+                    text "导出无密码分享备份 v2"
+                  heading
+                    text "兼容范围"
+                  paragraph
+                    text "本地 PAC 无法从分享备份完整恢复；请使用受信任的本地安全存储单独保管。"
+          alertdialog "确认" [ref=1181, loc=role:alertdialog[name="确认"]]
+            heading
+              text "确认"
+            paragraph
+              text "离开会丢弃当前草稿，已保存配置与实际路由不会改变。"
+            container
+              button [ref=1182]
+                text "取消"
+              button [ref=1183]
+                text "确认"

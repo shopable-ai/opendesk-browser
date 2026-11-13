@@ -1,0 +1,288 @@
+[p1 "AI Proxy · PC 管理预览" | space "AI Proxy PC seven-page parity"(22): 2 managed, 0 untracked — p1* "AI Proxy · PC 管理预览", p2 "AI Proxy · R16 PC 设置 · 交互预览"]
+root
+  container
+    text "AI Proxy"
+    text "管理 · 交互预览"
+    status
+      text "配置只在本次预览内保存"
+    button [ref=1093]
+      text "打开侧栏预览"
+  container "OpenDesk Browser Side Panel 真实布局来源的离线预览"
+    tabpanel "当前扩展工具 扩展" [ref=1094]
+      iframe [ref=1095]
+        root
+          region "管理设置" [ref=1096, loc=role:region[name="管理设置"]]
+            container
+              container
+                container
+                  text "AI"
+                  container
+                    heading
+                      text "AI Proxy"
+                    paragraph
+                      text "设置"
+                      text "·"
+                      text "浏览器代理管理器"
+                container
+                  text "免费 · 无需账号"
+                  button [ref=1097]
+                    svg_root
+                    text "返回代理配置"
+                  button "刷新状态" [ref=1098, loc=css:button[aria-label="刷新状态"]]
+                    svg_root
+              status "浏览器状态"
+                text "浏览器状态"
+                text "待应用"
+                text "待应用选择 · 美国节点 · 备用"
+                button [ref=1099]
+                  text "查看真实控制状态 →"
+              container
+                container "设置栏目"
+                  paragraph
+                    text "管理中心"
+                  button [ref=1100]
+                    svg_root
+                    text "代理配置"
+                  button [ref=1101]
+                    svg_root
+                    text "网站规则"
+                  button [ref=1102]
+                    svg_root
+                    text "订阅管理"
+                  button [ref=1103]
+                    svg_root
+                    text "导入备份"
+                  button [ref=1104]
+                    svg_root
+                    text "网络诊断"
+                  button [ref=1105]
+                    svg_root
+                    text "通用设置"
+                  button [ref=1106]
+                    svg_root
+                    text "官方网络"
+                container
+                  container
+                    paragraph
+                      text "设置"
+                    heading
+                      text "代理与配置"
+                    button [ref=1107]
+                      text "＋ 添加代理"
+                    paragraph
+                      text "自己的代理，随时添加和切换。"
+                  container "浏览器运行模式"
+                    container
+                      container
+                        heading
+                          text "代理模式"
+                        paragraph
+                          text "选择连接方式不会自动改变浏览器代理，需明确应用。"
+                      text "手动应用"
+                    group "四种代理模式"
+                      button [ref=1108]
+                        svg_root
+                        text "使用代理"
+                      button [ref=1109]
+                        svg_root
+                        text "按规则"
+                      button [ref=1110]
+                        svg_root
+                        text "直接连接"
+                      button [ref=1111]
+                        svg_root
+                        text "跟随系统"
+                    container
+                      status
+                        text "待应用"
+                        text "·"
+                        text "美国节点 · 备用"
+                        text "· 待应用选择"
+                      container
+                        button [ref=1112]
+                          text "应用配置"
+                        button [ref=1113]
+                          text "暂停"
+                  container
+                    container
+                      container
+                        heading
+                          text "代理服务器"
+                          text "3"
+                        paragraph
+                          text "这里集中管理代理；侧栏负责高频选择。"
+                      button [ref=1114]
+                        text "导入订阅 ↗"
+                    container
+                      container
+                        text "S"
+                        container
+                          container
+                            text "香港节点 · 主用"
+                            text "Chrome 已应用"
+                          container
+                            text "SOCKS5"
+                            text "·"
+                            text "proxy.example.com"
+                            text ":"
+                            text "7890"
+                        container
+                          button "取消收藏：香港节点 · 主用" [ref=1115, loc=css:button[aria-label="取消收藏：香港节点 · 主用"]]
+                            svg_root
+                          button "选择 香港节点 · 主用" [ref=1116, loc=css:button[aria-label="选择 香港节点 · 主用"]]
+                            svg_root
+                          button "编辑 香港节点 · 主用" [ref=1117, loc=css:button[aria-label="编辑 香港节点 · 主用"]]
+                            svg_root
+                          button "删除 香港节点 · 主用" [ref=1118, loc=css:button[aria-label="删除 香港节点 · 主用"]]
+                            svg_root
+                      container
+                        text "S"
+                        container
+                          container
+                            text "美国节点 · 备用"
+                            text "已选择"
+                          container
+                            text "SOCKS5"
+                            text "·"
+                            text "us.example.net"
+                            text ":"
+                            text "1080"
+                        container
+                          button "取消收藏：美国节点 · 备用" [ref=1119, loc=css:button[aria-label="取消收藏：美国节点 · 备用"]]
+                            svg_root
+                          button "选择 美国节点 · 备用" [ref=1120, loc=css:button[aria-label="选择 美国节点 · 备用"]]
+                            svg_root
+                          button "编辑 美国节点 · 备用" [ref=1121, loc=css:button[aria-label="编辑 美国节点 · 备用"]]
+                            svg_root
+                          button "删除 美国节点 · 备用" [ref=1122, loc=css:button[aria-label="删除 美国节点 · 备用"]]
+                            svg_root
+                      container
+                        text "H"
+                        container
+                          text "本地 Clash"
+                          container
+                            text "HTTP"
+                            text "·"
+                            text "127.0.0.1"
+                            text ":"
+                            text "7890"
+                        container
+                          button "取消收藏：本地 Clash" [ref=1123, loc=css:button[aria-label="取消收藏：本地 Clash"]]
+                            svg_root
+                          button "选择 本地 Clash" [ref=1124, loc=css:button[aria-label="选择 本地 Clash"]]
+                            svg_root
+                          button "编辑 本地 Clash" [ref=1125, loc=css:button[aria-label="编辑 本地 Clash"]]
+                            svg_root
+                          button "删除 本地 Clash" [ref=1126, loc=css:button[aria-label="删除 本地 Clash"]]
+                            svg_root
+                    paragraph
+                      text "SOCKS 在 Chrome 中不支持用户名密码认证。"
+                  container
+                    container [ref=1127]
+                      container
+                        container
+                          text "PAC 配置"
+                          text "高级能力与网站规则独立。仅支持用户提供的本地脚本。"
+                        text "＋ 新建 PAC"
+                      text "PAC 可能返回 DIRECT；保存不会自动执行或应用，启用前仍需明确确认。"
+                    container
+                      paragraph
+                        text "仅支持用户主动输入的本地脚本，不支持远程 PAC URL。检查格式不等于安全审计。"
+                      container "不会写 PAC？从现有代理生成"
+                        heading
+                          text "不会写 PAC？从现有代理生成"
+                        paragraph
+                          text "PAC 是决定哪些网站走代理的脚本。先添加一个真实可用的代理，再选择下面的场景；这里只生成可编辑草稿，不会自动连接。"
+                        text "使用场景"
+                        combobox [ref=1128]
+                          text "指定网站走代理，其他网站直连"
+                        text "使用哪一个已保存代理"
+                        combobox [ref=1129]
+                          text "请选择已保存代理"
+                        text "需要走代理的网站域名"
+                        textbox [ref=1130, loc=css:input[placeholder="例如 example.com（仅为示例，尚未填写）"]]
+                          text "例如 example.com（仅为示例，尚未填写）"
+                        paragraph
+                          text "只填域名，不填 https:// 或路径；同时匹配子域名。其他域名会直连，请确认这是你想要的规则。"
+                        button [ref=1131]
+                          text "生成并填入下方脚本"
+                        paragraph
+                          text "生成后请检查脚本，再点击「保存本地 PAC」；保存不等于启用，还需在侧边栏选择此配置并明确点击「启用」。"
+                        paragraph
+                          text "普通网站分流建议优先使用「网站规则」；PAC 适合确实需要脚本的高级用户。"
+                      form
+                        text "PAC 名称"
+                        textbox [ref=1132, loc=css:input[placeholder="我的本地 PAC"]]
+                          text "我的本地 PAC"
+                        text "FindProxyForURL 脚本"
+                        textbox [ref=1133, loc=css:textarea[placeholder="function FindProxyForURL(url, host) { return \"DIRECT\"; }"]]
+                          text "function FindProxyForURL(url, host) { return "DIRECT"; }"
+                        button [ref=1134]
+                          text "保存本地 PAC"
+                  container [ref=1135]
+                    text "高级代理功能"
+                  container
+                    container
+                      text "采集代理"
+                      text "设置规则 ↗"
+                    container
+                      paragraph
+                        text "为有权访问的目标保存代理池及请求预算；配置保存不等于运行。"
+                      paragraph
+                        text "Chrome 代理设置可能影响浏览器内其他标签页。长期任务必须使用独立隔离执行器。"
+                      paragraph
+                        text "隔离采集执行器尚未接入；不会自动访问目标、更换代理或生成访问计数。"
+                      form
+                        text "目标网站域名"
+                        textbox [ref=1136, loc=css:input[placeholder="example.com"]]
+                          text "example.com"
+                        text "每几次访问轮换代理"
+                        spinbutton [ref=1137]
+                          text "3"
+                        text "访问尝试总上限"
+                        spinbutton [ref=1138]
+                          text "12"
+                        text "请求间隔（毫秒）"
+                        spinbutton [ref=1139]
+                          text "1000"
+                        group [ref=1140]
+                          text "代理池（至少两条）"
+                          container
+                            checkbox [ref=1141]
+                            text "香港节点 · 主用"
+                            text "SOCKS5"
+                            text "·"
+                            text "proxy.example.com"
+                            text ":"
+                            text "7890"
+                          container
+                            checkbox [ref=1142]
+                            text "美国节点 · 备用"
+                            text "SOCKS5"
+                            text "·"
+                            text "us.example.net"
+                            text ":"
+                            text "1080"
+                          container
+                            checkbox [ref=1143]
+                            text "本地 Clash"
+                            text "HTTP"
+                            text "·"
+                            text "127.0.0.1"
+                            text ":"
+                            text "7890"
+                        container
+                          checkbox [ref=1144]
+                          text "我确认有权访问该目标，并遵守网站服务条款、robots 规则、速率与身份验证要求。"
+                        button [ref=1145]
+                          text "保存规则（不启动）"
+                        button [ref=1146]
+                          text "清除已保存规则"
+                      paragraph
+                        text "当前没有安全独立的任务执行器：真实请求、幂等计数、轮换、暂停、停止与恢复尚不可用。不会模拟成功。"
+                    container
+                      text "没有代理服务？"
+                      paragraph
+                        text "AI Proxy 是管理工具，不附赠可用线路。未来官方网络服务完全可选。"
+                      button [ref=1147]
+                        text "了解官方网络 →"

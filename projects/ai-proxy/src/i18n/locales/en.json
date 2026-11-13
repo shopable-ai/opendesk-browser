@@ -1144,5 +1144,11 @@
   "pcBackSidebar": "Back to side panel",
   "pcRuleScopeHelp": "Rules apply to requests for matching domains across all tabs. Resources from other domains match their own rules.",
   "pcRuleScopeColumn": "Domain and scope",
-  "pcRuleRouteColumn": "Route"
+  "pcRuleRouteColumn": "Route",
+  "pcSocksAuthLimit": "Chrome does not support SOCKS username/password authentication.",
+  "pcAddSubscription": "Import subscription",
+  "pcIntegrationBoundary": "Parse locally only. No automatic subscription sync, client launch or proxy application.",
+  "pcAutoLanguage": "Automatic",
+  "pcDefaultRouteTitle": "No match",
+  "pcDefaultRouteHelp": "Separate from connection fallback. Apply after saving."
 }

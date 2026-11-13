@@ -1,0 +1,267 @@
+[p1 "AI Proxy · PC 管理预览" | space "AI Proxy PC seven-page parity"(22): 2 managed, 0 untracked — p1* "AI Proxy · PC 管理预览", p2 "AI Proxy · R16 PC 设置 · 交互预览"]
+root
+  container
+    text "AI Proxy"
+    text "管理 · 交互预览"
+    status
+      text "配置只在本次预览内保存"
+    button [ref=1093]
+      text "打开侧栏预览"
+  container "OpenDesk Browser Side Panel 真实布局来源的离线预览"
+    tabpanel "当前扩展工具 扩展" [ref=1094]
+      iframe [ref=1095]
+        root
+          region "管理设置" [ref=1184, loc=role:region[name="管理设置"]]
+            container
+              container
+                container
+                  text "AI"
+                  container
+                    heading
+                      text "AI Proxy"
+                    paragraph
+                      text "设置"
+                      text "·"
+                      text "浏览器代理管理器"
+                container
+                  text "免费 · 无需账号"
+                  button [ref=1185]
+                    svg_root
+                    text "返回代理配置"
+                  button "刷新状态" [ref=1186, loc=css:button[aria-label="刷新状态"]]
+                    svg_root
+              status "浏览器状态"
+                text "浏览器状态"
+                text "待应用"
+                text "待应用选择 · 美国节点 · 备用"
+                button [ref=1187]
+                  text "查看真实控制状态 →"
+              container
+                container "设置栏目"
+                  paragraph
+                    text "管理中心"
+                  button [ref=1188]
+                    svg_root
+                    text "代理配置"
+                  button [ref=1189]
+                    svg_root
+                    text "网站规则"
+                  button [ref=1190]
+                    svg_root
+                    text "订阅管理"
+                  button [ref=1191]
+                    svg_root
+                    text "导入备份"
+                  button [ref=1192]
+                    svg_root
+                    text "网络诊断"
+                  button [ref=1193]
+                    svg_root
+                    text "通用设置"
+                  button [ref=1194]
+                    svg_root
+                    text "官方网络"
+                container
+                  container
+                    paragraph
+                      text "设置"
+                    heading
+                      text "网络诊断"
+                    paragraph
+                  container
+                    container
+                      heading
+                        text "检查你关心的网站"
+                      container
+                        text "已选择"
+                        text ":"
+                        text "美国节点 · 备用"
+                      text "预览模拟 · 无真实 HTTP 请求 · 不读取正文或切换代理"
+                    container "AI 登录与模型功能"
+                      text "尚未测试"
+                      text "AI 登录与模型功能"
+                  paragraph
+                    text "浏览器仍采用上次确认的「指定配置 (profile-hk)」设置。"
+                  container "当前诊断概要"
+                    container
+                      text "浏览器控制权"
+                      text "本扩展控制"
+                      text "Chrome Proxy API"
+                    container
+                      text "收藏网站测试"
+                      text "0 / 5"
+                    container
+                      text "当前网站响应"
+                      text "尚未测试"
+                      text "docs.example.com"
+                    container
+                      text "AI 模型功能"
+                      text "尚未测试"
+                  tablist "网络诊断分类"
+                    tab [ref=1235]
+                      text "⌂"
+                      text "概览"
+                    tab [ref=1236]
+                      text "◉"
+                      text "AI 网站"
+                    tab [ref=1237]
+                      text "☆"
+                      text "关键网站"
+                    tab [ref=1238]
+                      text "↗"
+                      text "测速"
+                    tab [ref=1239]
+                      text "≡"
+                      text "基础诊断"
+                  tabpanel "☆关键网站" [ref=1240]
+                    container
+                      container
+                        heading
+                          text "关键网站 Top 5/10"
+                        paragraph
+                          text "固定网站优先，随后显示收藏与常用推荐；访问统计不代表网络可用。"
+                      button [ref=1276]
+                        text "检测可支持的收藏站点"
+                    container "常用网站（模拟统计）"
+                      container
+                        heading
+                          text "常用网站（模拟统计）"
+                        status
+                          text "模拟统计已关闭 · 无真实采集"
+                      paragraph
+                        text "当前统计仅为预览模拟，真实采集未接入，不读取浏览历史、不采集或上传浏览数据。未来采集仍须用户明确授权。"
+                      paragraph
+                        text "无真实采集或自动巡检；诊断同样是预览模拟。"
+                      paragraph
+                        text "真实采集尚未接入；切换开关仅演示统计状态。"
+                      paragraph
+                        text "真实采集尚未接入；授予浏览器权限不会开启采集。"
+                      container
+                        button [ref=1277]
+                          text "开启模拟统计（不采集）"
+                        button [ref=1278]
+                          text "关闭并清除模拟统计"
+                      paragraph
+                        text "仅清除模拟统计；没有真实访问采集，收藏与诊断记录不受影响。"
+                      paragraph
+                        text "仅调整模拟统计与推荐，不采集真实访问；收藏不受影响。"
+                      text "显示数量"
+                      combobox [ref=1279]
+                        text "前5个"
+                      text "推荐排序"
+                      combobox [ref=1280]
+                        text "智能常用"
+                      paragraph
+                        text "没有访问统计记录；当前显示收藏和内置推荐。"
+                    form
+                      text "添加公开 HTTPS 站点域名"
+                      textbox [ref=1281, loc=css:input[placeholder="example.org"]]
+                        text "example.org"
+                      combobox "优先级" [ref=1282, loc=css:select[aria-label="优先级"]]
+                        text "P0"
+                      button [ref=1283]
+                        text "保存网站"
+                    paragraph
+                      text "自定义域名仅可收藏和手动打开。为避免内网请求及 DNS 重绑定风险，暂不自动探测。只输入域名，不含路径或账号。"
+                    container
+                      text "ChatGPT"
+                      text "chatgpt.com"
+                      text "内置推荐"
+                      paragraph
+                        text "内置官网推荐；有常用记录后不会永久占榜。"
+                      text "尚未测试"
+                      combobox "ChatGPT 的优先级" [ref=1284, loc=css:select[aria-label="ChatGPT 的优先级"]]
+                        text "P1"
+                      button "固定 ChatGPT" [ref=1285, loc=css:button[aria-label="固定 ChatGPT"]]
+                        text "固定"
+                      button [ref=1286]
+                        text "检测"
+                      anchor "在新标签页打开 ChatGPT" [ref=1287, loc=css:a[aria-label="在新标签页打开 ChatGPT"], url=https://chatgpt.com/]
+                        text "打开网站"
+                      button "移除收藏 ChatGPT" [ref=1288, loc=css:button[aria-label="移除收藏 ChatGPT"]]
+                        text "取消收藏"
+                      button "忽略 ChatGPT 的统计与自动推荐" [ref=1289, loc=css:button[aria-label="忽略 ChatGPT 的统计与自动推荐"]]
+                        text "忽略统计"
+                    container
+                      text "Claude"
+                      text "claude.ai"
+                      text "内置推荐"
+                      paragraph
+                        text "内置官网推荐；有常用记录后不会永久占榜。"
+                      text "尚未测试"
+                      combobox "Claude 的优先级" [ref=1290, loc=css:select[aria-label="Claude 的优先级"]]
+                        text "P1"
+                      button "固定 Claude" [ref=1291, loc=css:button[aria-label="固定 Claude"]]
+                        text "固定"
+                      button [ref=1292]
+                        text "检测"
+                      anchor "在新标签页打开 Claude" [ref=1293, loc=css:a[aria-label="在新标签页打开 Claude"], url=https://claude.ai/]
+                        text "打开网站"
+                      button "移除收藏 Claude" [ref=1294, loc=css:button[aria-label="移除收藏 Claude"]]
+                        text "取消收藏"
+                      button "忽略 Claude 的统计与自动推荐" [ref=1295, loc=css:button[aria-label="忽略 Claude 的统计与自动推荐"]]
+                        text "忽略统计"
+                    container
+                      text "Gemini"
+                      text "gemini.google.com"
+                      text "内置推荐"
+                      paragraph
+                        text "内置官网推荐；有常用记录后不会永久占榜。"
+                      text "尚未测试"
+                      combobox "Gemini 的优先级" [ref=1296, loc=css:select[aria-label="Gemini 的优先级"]]
+                        text "P1"
+                      button "固定 Gemini" [ref=1297, loc=css:button[aria-label="固定 Gemini"]]
+                        text "固定"
+                      button [ref=1298]
+                        text "检测"
+                      anchor "在新标签页打开 Gemini" [ref=1299, loc=css:a[aria-label="在新标签页打开 Gemini"], url=https://gemini.google.com/]
+                        text "打开网站"
+                      button "移除收藏 Gemini" [ref=1300, loc=css:button[aria-label="移除收藏 Gemini"]]
+                        text "取消收藏"
+                      button "忽略 Gemini 的统计与自动推荐" [ref=1301, loc=css:button[aria-label="忽略 Gemini 的统计与自动推荐"]]
+                        text "忽略统计"
+                    container
+                      text "Perplexity"
+                      text "perplexity.ai"
+                      text "内置推荐"
+                      paragraph
+                        text "内置官网推荐；有常用记录后不会永久占榜。"
+                      text "尚未测试"
+                      combobox "Perplexity 的优先级" [ref=1302, loc=css:select[aria-label="Perplexity 的优先级"]]
+                        text "P1"
+                      button "固定 Perplexity" [ref=1303, loc=css:button[aria-label="固定 Perplexity"]]
+                        text "固定"
+                      button [ref=1304]
+                        text "检测"
+                      anchor "在新标签页打开 Perplexity" [ref=1305, loc=css:a[aria-label="在新标签页打开 Perplexity"], url=https://perplexity.ai/]
+                        text "打开网站"
+                      button "移除收藏 Perplexity" [ref=1306, loc=css:button[aria-label="移除收藏 Perplexity"]]
+                        text "取消收藏"
+                      button "忽略 Perplexity 的统计与自动推荐" [ref=1307, loc=css:button[aria-label="忽略 Perplexity 的统计与自动推荐"]]
+                        text "忽略统计"
+                    container
+                      text "Grok"
+                      text "grok.com"
+                      text "内置推荐"
+                      paragraph
+                        text "内置官网推荐；有常用记录后不会永久占榜。"
+                      text "尚未测试"
+                      combobox "Grok 的优先级" [ref=1308, loc=css:select[aria-label="Grok 的优先级"]]
+                        text "P1"
+                      button "固定 Grok" [ref=1309, loc=css:button[aria-label="固定 Grok"]]
+                        text "固定"
+                      button [ref=1310]
+                        text "检测"
+                      anchor "在新标签页打开 Grok" [ref=1311, loc=css:a[aria-label="在新标签页打开 Grok"], url=https://grok.com/]
+                        text "打开网站"
+                      button "移除收藏 Grok" [ref=1312, loc=css:button[aria-label="移除收藏 Grok"]]
+                        text "取消收藏"
+                      button "忽略 Grok 的统计与自动推荐" [ref=1313, loc=css:button[aria-label="忽略 Grok 的统计与自动推荐"]]
+                        text "忽略统计"
+                  paragraph
+                    text "当前诊断为预览模拟，真实 HTTP 探测尚未接入；不会访问目标网站。"
+                  container [ref=1247]
+                    text "如何理解检测结果和可信程度？"
+                    text "查看 →"
+                  paragraph
+                    text "① 代理设置与控制权：应用不等于连通。② HTTP 网站响应：不证明登录和模型可用。③ 请求耗时：不是 ICMP Ping，也不自动推荐最快线路。④ AI 登录和�..."

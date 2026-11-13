@@ -554,7 +554,7 @@ const tabs: {id:Page; name:string; caption:string}[] = [
       {presentation==='management'?<>
         {proxyNotice&&<p className="managementFeedback" role="status">{t(proxyNotice)}</p>}
         <div className="managementHeaderActions"><span className="subtleTag managementFreeTag">{t('pcFreeNoAccount')}</span>
-          <Button className="settingsRefresh" disabled={busy||navigationBusy} onClick={()=>onClose?.()}><ProxyIcon name="back"/>{t('pcBackSidebar')}</Button>
+          <Button className="settingsRefresh" disabled={busy||navigationBusy} onClick={()=>onClose?.()}><ProxyIcon name="back"/>{t('backToProxyProfiles')}</Button>
           <Button className="proxyIconButton" disabled={busy} title={t('refreshStatus')} aria-label={t('refreshStatus')} onClick={()=>void refresh()}><ProxyIcon name="refresh"/></Button>
         </div>
       </>:<>
@@ -600,7 +600,7 @@ const tabs: {id:Page; name:string; caption:string}[] = [
           eyebrow={presentation==='management'?t('settings'):undefined}
           description={tab==='profiles'?t(presentation==='management'?'pcProfilesIntro':'apProfileIntro'):tab==='general'&&presentation==='management'?t('pcGeneralIntro'):tab==='diagnostic'&&presentation==='management'?'':tabs.find(item=>item.id===tab)?.caption ?? ''}
           className={tab==='profiles'?'profilePanelHead':''}
-          actions={tab==='subscriptions'&&presentation==='management'?<Button variant="primary" className="primary" disabled={busy||navigationBusy} onClick={()=>navigateAction('subscriptions','new')}>{t('pcImportSubscription')}</Button>:tab==='profiles'?<>
+          actions={tab==='subscriptions'&&presentation==='management'?<Button variant="primary" className="primary" disabled={busy||navigationBusy} onClick={()=>navigateAction('subscriptions','new')}><ProxyIcon name="plus"/>{t('pcAddSubscription')}</Button>:tab==='profiles'?<>
             <Button variant="primary" className="primary" onClick={()=>openEditor()}>{t('addProxy2')}</Button>
             {presentation!=='management'&&<Button id="settings-import" className="settingsImport" title={presentation==='management'?t('backupImportTitle'):t('importSettings')} aria-label={presentation==='management'?t('backupImportTitle'):t('importSettings')}
               onClick={()=>navigate('backup')}><ProxyIcon name="import"/>{presentation==='management'?t('backupImportTitle'):t('importSettings')}</Button>}
@@ -691,6 +691,7 @@ const tabs: {id:Page; name:string; caption:string}[] = [
               <Button className="textAction" disabled={busy} onClick={()=>navigateAction('subscriptions','new')}><ProxyIcon name="link"/>{t('recordSubscriptionSource')}</Button>
               <Button className="textAction" disabled={busy} onClick={()=>navigateAction('subscriptions','local')}><ProxyIcon name="system"/>{t('addLocalProxyClient')}</Button>
             </div>}
+            {presentation==='management'&&<p className="hint pcProxyLimit">{t('pcSocksAuthLimit')}</p>}
           </section>
           <details className="pacDetails" ref={pacDetails}>
             <summary>{presentation==='management'?<><span className="pcPacHeading"><span><strong>{t('pcPacTitle')}</strong><small>{t('pcPacIntro')}</small></span><span className="summaryAction">{t('pcNewPac')}</span></span><span className="notice pcPacNotice">{t('pcPacBoundary')}</span></>:<><span><strong>{t('localPacProfiles')}</strong><small>{t('pacCount',{count:profiles.filter(p=>p.kind==='pac-inline').length})}</small></span><span className="summaryAction">{t('expandSettings')}</span></>}</summary>
@@ -771,7 +772,7 @@ const tabs: {id:Page; name:string; caption:string}[] = [
             description={t(presentation==='management'?'pcRulesIntro':'routeByDomainThroughAProxyOrDirect')}
             badge={presentation==='management'?undefined:config.rules.length}
             actions={<Button id="settings-rule-add" variant="primary" className="primary"
-              disabled={busy} onClick={()=>editRule()}>{t('addRule')}</Button>}/>}
+              disabled={busy} onClick={()=>editRule()}>{presentation==='management'&&<ProxyIcon name="plus"/>}{t('addRule')}</Button>}/>}
           {presentation!=='management'&&(!ruleEditorOpen||presentation==='management') && config.selection.mode !== 'rules' && <div className="rulesModeHint">
             <span className="hint">{t('apRuleSaveNote')}</span>
             <Button type="button" variant="secondary" disabled={busy}
@@ -906,10 +907,10 @@ const tabs: {id:Page; name:string; caption:string}[] = [
             </RuleEditorShell>}
           </div>
           {(!ruleEditorOpen||presentation==='management')&&<section className="rulesDefault" data-draft-scope="settings-default">
-            <h2>{t('whenNoRuleMatches')}</h2>
-            <p className="hint">{t(presentation==='management'?'apDefaultRouteHelp':'directByDefaultTrafficUsesAProxyOnlyWhen')}</p>
+            <h2 id="default-route-title">{t(presentation==='management'?'pcDefaultRouteTitle':'whenNoRuleMatches')}</h2>
+            <p className="hint" title={presentation==='management'?t('apDefaultRouteHelp'):undefined}>{t(presentation==='management'?'pcDefaultRouteHelp':'directByDefaultTrafficUsesAProxyOnlyWhen')}</p>
           <div className="defaultRouteControl">{presentation!=='management'&&<label htmlFor="default-route">{t('defaultRoute')}</label>}
-            <select id="default-route" value={defaultAction==='direct'?'direct':defaultEndpointId}
+            <select id="default-route" aria-labelledby="default-route-title" value={defaultAction==='direct'?'direct':defaultEndpointId}
               onChange={e=>{setDefaultSaved(false);setDefaultAction(e.target.value==='direct'?'direct':'endpoint');setDefaultEndpointId(e.target.value==='direct'?'':e.target.value);}}>
               <option value="direct">{presentation==='management'?t('directConnection2'):'DIRECT'}</option>{endpoints.map(p=><option key={p.id} value={p.id}>{p.name} · {p.scheme.toUpperCase()}</option>)}
             </select></div>
@@ -929,7 +930,7 @@ const tabs: {id:Page; name:string; caption:string}[] = [
               <span>{ruleTest.host} · {ruleTest.rule?ruleTest.rule.domain+' · '+t(ruleTest.rule.includeSubdomains?'apRuleSubdomainScope':'apRuleExactScope')+' · '+t('priority')+' '+ruleTest.rule.priority:t('whenNoRuleMatches')}</span>
             </div>}
             <p className="hint">{t('apRuleTestLocal')}</p>{presentation==='management'&&config.selection.mode==='rules'&&<p className="hint">{t('apRuleSaveNote')}</p>}
-            {presentation==='management'&&config.selection.mode!=='rules'&&<div className="rulesModeHint"><span className="hint">{t('apRuleSaveNote')}</span><Button disabled={busy} onClick={()=>void act({type:'SELECT',selection:{...config.selection,mode:'rules'}})}>{t('apSwitchToRulesMode')}</Button></div>}
+            {presentation==='management'&&config.selection.mode!=='rules'&&<div className="rulesModeHint"><span className="hint">{t('apRuleSaveNote')}</span><Button className="textAction" disabled={busy} onClick={()=>void act({type:'SELECT',selection:{...config.selection,mode:'rules'}})}>{t('apSwitchToRulesMode')} →</Button></div>}
           </section>}
           {presentation==='management'&&<p className="hint">{t('pcRuleScopeHelp')}</p>}
         </div>}
@@ -998,7 +999,7 @@ const tabs: {id:Page; name:string; caption:string}[] = [
           onStop={() => act({type:'STOP'})} onProfiles={() => navigate('profiles')} />}
         {tab==='general' && <div className="generalPage">
           <div className="generalGrid">
-            {presentation==='management'&&<div className="generalPreferences"><h3>{t('pcBasicPreferences')}</h3><p className="hint">{t('pcPreferenceScope')}</p><PcPreferences/><article className="record"><ProxyIcon name="lock"/><div><strong>{t('pcPrivacySecurity')}</strong><small>{t('settingsAreStoredLocallyInTheBrowserProxyPasswords')}</small></div><span className="subtleTag pcMaintained">{t('pcMaintained')}</span></article><article className="record"><ProxyIcon name="system"/><div><strong>{t('pcAppearance')}</strong><small>{t('pcAppearanceHelp')}</small></div><span className="subtleTag">{t('pcHostTheme')}</span></article></div>}
+            {presentation==='management'&&<div className="generalPreferences"><h3>{t('pcBasicPreferences')}</h3><p className="hint">{t('pcPreferenceScope')}</p><PcPreferences/><article className="record"><ProxyIcon name="shield"/><div><strong>{t('pcPrivacySecurity')}</strong><small>{t('settingsAreStoredLocallyInTheBrowserProxyPasswords')}</small></div><span className="subtleTag pcMaintained">{t('pcMaintained')}</span></article><article className="record"><ProxyIcon name="system"/><div><strong>{t('pcAppearance')}</strong><small>{t('pcAppearanceHelp')}</small></div><span className="subtleTag pcHostTheme">{t('pcHostTheme')}</span></article></div>}
             {presentation!=='management'&&<article className="record languageRecord"><div>
               <strong>{t('interfaceLanguage')}</strong>
               <small>{t('languageHelp')}</small>

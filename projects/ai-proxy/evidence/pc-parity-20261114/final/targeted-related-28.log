@@ -1,0 +1,36 @@
+✔ installed AI diagnostics disclose unconnected runtime and prevent misleading check/save actions (16.966584ms)
+✔ installed priority and speed tabs show an honest unavailable state, not simulated measurements (10.564458ms)
+✔ isolated preview retains explicitly simulated actions; browser proxy tab keeps explicit controls (9.282625ms)
+✔ PROBE stays disabled with a visible explanation even in preview or a managed route (26.159833ms)
+✔ STOP is disabled while idle or busy, but stays explicit for recovery and finalization (31.093458ms)
+✔ pending B is selected separately from confirmed A without claiming B was applied (8.974125ms)
+✔ same selection with edited content remains pending and never invents a historical profile name (6.493417ms)
+✔ unverified control and absent active selection do not claim the selected route is confirmed (6.729542ms)
+✔ local endpoint diagnosis uses the current endpoint only when applied with no pending changes (15.277917ms)
+✔ installed overview prioritizes real control and marks unconnected features as secondary (5.678583ms)
+✔ each installed category discloses the runtime boundary once and keeps all five categories (8.865291ms)
+✔ only boolean preview true retains simulated diagnostics and the preview overview (8.978584ms)
+✔ management current-site checks remain disabled with an explanation and no dispatch path (3.89125ms)
+✔ management overview exposes real Status warnings for denied permissions and unknown control (6.619166ms)
+✔ management tabs navigate every diagnostic subroute locally without proxy or diagnostic commands (5.992166ms)
+✔ management overview shortcuts use the same local subroutes and never run tests implicitly (10.613708ms)
+✔ management current-site reads are display-only, ignore superseded results and clean up on unmount (9.833708ms)
+✔ sidebar presentation does not read or subscribe to management current-site context (3.751875ms)
+✔ management favorite count excludes non-favorites, duplicate observations and stale revisions (15.062416ms)
+✔ current PC approved HTML bytes are pinned independently of historical preview manifests (0.98925ms)
+✔ current PC route map describes all seven actual preview and official PC sections in order (0.915ms)
+✔ current PC covers PC, Side Panel, cross-surface and failure scenes without duplicate IDs (0.149333ms)
+✔ current PC gate statuses must not silently upgrade fixture evidence to installed acceptance (0.116041ms)
+✔ pending direct selection keeps an explicit Apply entry and never claims Direct is already active (26.453833ms)
+✔ confirmed unchanged Direct removes the pending Apply entry and shows its confirmed hint (5.763042ms)
+✔ sidebar proxy editor reports save without claiming selection or applying a route (18.128625ms)
+✔ sidebar proxy editor cancellation returns without a save receipt (9.643708ms)
+✔ confirmed following-system state offers a read and does not claim the selection still needs enabling (31.802625ms)
+ℹ tests 28
+ℹ suites 0
+ℹ pass 28
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 321.008583

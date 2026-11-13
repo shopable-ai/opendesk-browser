@@ -1,0 +1,395 @@
+{
+  "type": "ai-proxy-preview-inspection",
+  "id": "1575eb78-a767-4ee3-925b-04d7a0b4e0b6",
+  "route": "#/backup",
+  "viewport": {
+    "width": 1304,
+    "height": 1250
+  },
+  "overflow": false,
+  "headings": [
+    {
+      "text": "AI Proxy",
+      "tag": "h2",
+      "class": "managementTitle",
+      "rect": {
+        "x": 97,
+        "y": 31,
+        "width": 119.6,
+        "height": 24
+      },
+      "display": "block",
+      "gap": "normal",
+      "padding": "0px",
+      "fontSize": "16px",
+      "columns": "none"
+    },
+    {
+      "text": "导入备份",
+      "tag": "h2",
+      "class": "",
+      "rect": {
+        "x": 275,
+        "y": 197.6,
+        "width": 953,
+        "height": 31.2
+      },
+      "display": "block",
+      "gap": "normal",
+      "padding": "0px",
+      "fontSize": "24px",
+      "columns": "none"
+    },
+    {
+      "text": "导入备份",
+      "tag": "h2",
+      "class": "",
+      "rect": {
+        "x": 296,
+        "y": 315.2,
+        "width": 59.1,
+        "height": 21
+      },
+      "display": "block",
+      "gap": "normal",
+      "padding": "0px",
+      "fontSize": "15px",
+      "columns": "none"
+    },
+    {
+      "text": "导出备份",
+      "tag": "h2",
+      "class": "",
+      "rect": {
+        "x": 786.5,
+        "y": 315.2,
+        "width": 59.1,
+        "height": 21
+      },
+      "display": "block",
+      "gap": "normal",
+      "padding": "0px",
+      "fontSize": "15px",
+      "columns": "none"
+    },
+    {
+      "text": "兼容范围",
+      "tag": "h2",
+      "class": "",
+      "rect": {
+        "x": 786.5,
+        "y": 470.5,
+        "width": 414.1,
+        "height": 21
+      },
+      "display": "block",
+      "gap": "normal",
+      "padding": "0px",
+      "fontSize": "15px",
+      "columns": "none"
+    }
+  ],
+  "navigation": [
+    {
+      "text": "代理配置",
+      "current": null
+    },
+    {
+      "text": "网站规则",
+      "current": null
+    },
+    {
+      "text": "订阅管理",
+      "current": null
+    },
+    {
+      "text": "导入备份",
+      "current": "page"
+    },
+    {
+      "text": "网络诊断",
+      "current": null
+    },
+    {
+      "text": "通用设置",
+      "current": null
+    },
+    {
+      "text": "官方网络",
+      "current": null
+    }
+  ],
+  "structure": [
+    {
+      "tag": "header",
+      "class": "panelHead optionsPageHead"
+    },
+    {
+      "tag": "div",
+      "class": "backupPage"
+    },
+    {
+      "tag": "div",
+      "class": "backupGrid"
+    }
+  ],
+  "notices": [
+    {
+      "role": "status",
+      "text": "浏览器状态浏览器已应用当前选择已选：香港节点 · 主用。查看真实控制状态 →"
+    }
+  ],
+  "regions": [
+    {
+      "selector": ".options",
+      "tag": "main",
+      "class": "options",
+      "rect": {
+        "x": 27,
+        "y": 16,
+        "width": 1250,
+        "height": 775.6
+      },
+      "display": "block",
+      "gap": "normal",
+      "padding": "0px",
+      "fontSize": "13px",
+      "columns": "none"
+    },
+    {
+      "selector": ".managementNav",
+      "tag": "nav",
+      "class": "managementNav",
+      "rect": {
+        "x": 28,
+        "y": 140.6,
+        "width": 215,
+        "height": 381
+      },
+      "display": "grid",
+      "gap": "2px",
+      "padding": "24px 13px",
+      "fontSize": "13px",
+      "columns": "188px"
+    },
+    {
+      "selector": ".optionsContent",
+      "tag": "section",
+      "class": "panel optionsContent optionsContent--backup",
+      "rect": {
+        "x": 243,
+        "y": 140.6,
+        "width": 1033,
+        "height": 650
+      },
+      "display": "flex",
+      "gap": "16px",
+      "padding": "32px 32px 48px",
+      "fontSize": "13px",
+      "columns": "none"
+    },
+    {
+      "selector": ".optionsPageHead",
+      "tag": "header",
+      "class": "panelHead optionsPageHead",
+      "rect": {
+        "x": 275,
+        "y": 172.6,
+        "width": 969,
+        "height": 105.6
+      },
+      "display": "flex",
+      "gap": "20px",
+      "padding": "0px 0px 20px",
+      "fontSize": "13px",
+      "columns": "none"
+    },
+    {
+      "selector": ".backupCard",
+      "tag": "section",
+      "class": "backupCard backupImport",
+      "rect": {
+        "x": 275,
+        "y": 294.2,
+        "width": 478.5,
+        "height": 316.4
+      },
+      "display": "flex",
+      "gap": "8px",
+      "padding": "20px",
+      "fontSize": "13px",
+      "columns": "none"
+    },
+    {
+      "selector": ".backupCard",
+      "tag": "section",
+      "class": "backupCard backupExport",
+      "rect": {
+        "x": 765.5,
+        "y": 294.2,
+        "width": 478.5,
+        "height": 316.4
+      },
+      "display": "flex",
+      "gap": "8px",
+      "padding": "20px",
+      "fontSize": "13px",
+      "columns": "none"
+    },
+    {
+      "selector": ".backupInputGroup",
+      "tag": "div",
+      "class": "backupInputGroup",
+      "rect": {
+        "x": 296,
+        "y": 369.4,
+        "width": 436.5,
+        "height": 156
+      },
+      "display": "grid",
+      "gap": "8px",
+      "padding": "0px",
+      "fontSize": "13px",
+      "columns": "436.5px"
+    },
+    {
+      "selector": ".backupInputGroup",
+      "tag": "div",
+      "class": "backupInputGroup",
+      "rect": {
+        "x": 296,
+        "y": 589.6,
+        "width": 121.3,
+        "height": 163.2
+      },
+      "display": "grid",
+      "gap": "8px",
+      "padding": "0px",
+      "fontSize": "13px",
+      "columns": "121.336px"
+    }
+  ],
+  "controls": [
+    {
+      "tag": "button",
+      "id": "",
+      "type": "button",
+      "label": "返回代理配置",
+      "disabled": false,
+      "visible": true
+    },
+    {
+      "tag": "button",
+      "id": "",
+      "type": "button",
+      "label": "刷新状态",
+      "disabled": false,
+      "visible": true
+    },
+    {
+      "tag": "button",
+      "id": "",
+      "type": "button",
+      "label": "查看真实控制状态 →",
+      "disabled": false,
+      "visible": true
+    },
+    {
+      "tag": "button",
+      "id": "",
+      "type": "button",
+      "label": "代理配置",
+      "disabled": false,
+      "visible": true
+    },
+    {
+      "tag": "button",
+      "id": "",
+      "type": "button",
+      "label": "网站规则",
+      "disabled": false,
+      "visible": true
+    },
+    {
+      "tag": "button",
+      "id": "",
+      "type": "button",
+      "label": "订阅管理",
+      "disabled": false,
+      "visible": true
+    },
+    {
+      "tag": "button",
+      "id": "",
+      "type": "button",
+      "label": "导入备份",
+      "disabled": false,
+      "visible": true
+    },
+    {
+      "tag": "button",
+      "id": "",
+      "type": "button",
+      "label": "网络诊断",
+      "disabled": false,
+      "visible": true
+    },
+    {
+      "tag": "button",
+      "id": "",
+      "type": "button",
+      "label": "通用设置",
+      "disabled": false,
+      "visible": true
+    },
+    {
+      "tag": "button",
+      "id": "",
+      "type": "button",
+      "label": "官方网络",
+      "disabled": false,
+      "visible": true
+    },
+    {
+      "tag": "textarea",
+      "id": "import-data",
+      "type": "textarea",
+      "label": "粘贴 JSON 备份",
+      "disabled": false,
+      "visible": true
+    },
+    {
+      "tag": "button",
+      "id": "",
+      "type": "button",
+      "label": "填入示例",
+      "disabled": false,
+      "visible": true
+    },
+    {
+      "tag": "button",
+      "id": "",
+      "type": "button",
+      "label": "解析预览",
+      "disabled": true,
+      "visible": true
+    },
+    {
+      "tag": "input",
+      "id": "backup-file",
+      "type": "file",
+      "label": "选择本地 JSON 备份",
+      "disabled": false,
+      "visible": true
+    },
+    {
+      "tag": "button",
+      "id": "",
+      "type": "button",
+      "label": "导出无密码分享备份 v2",
+      "disabled": false,
+      "visible": true
+    }
+  ],
+  "dialogs": []
+}

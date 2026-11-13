@@ -1,0 +1,511 @@
+{
+  "type": "ai-proxy-preview-inspection",
+  "id": "709290f1-92d2-456c-9325-6ebd60c0c2fe",
+  "route": "#/general",
+  "viewport": {
+    "width": 1304,
+    "height": 1250
+  },
+  "overflow": false,
+  "headings": [
+    {
+      "text": "AI Proxy",
+      "tag": "h2",
+      "class": "managementTitle",
+      "rect": {
+        "x": 97,
+        "y": 31,
+        "width": 119.6,
+        "height": 24
+      },
+      "display": "block",
+      "gap": "normal",
+      "padding": "0px",
+      "fontSize": "16px",
+      "columns": "none"
+    },
+    {
+      "text": "通用设置",
+      "tag": "h2",
+      "class": "",
+      "rect": {
+        "x": 275,
+        "y": 197.6,
+        "width": 953,
+        "height": 31.2
+      },
+      "display": "block",
+      "gap": "normal",
+      "padding": "0px",
+      "fontSize": "24px",
+      "columns": "none"
+    },
+    {
+      "text": "基础偏好",
+      "tag": "h3",
+      "class": "",
+      "rect": {
+        "x": 296,
+        "y": 315.2,
+        "width": 927,
+        "height": 22.5
+      },
+      "display": "block",
+      "gap": "normal",
+      "padding": "0px",
+      "fontSize": "15px",
+      "columns": "none"
+    },
+    {
+      "text": "数据与帮助",
+      "tag": "h3",
+      "class": "generalGroupHeading",
+      "rect": {
+        "x": 296,
+        "y": 1032.3,
+        "width": 927,
+        "height": 50.5
+      },
+      "display": "block",
+      "gap": "normal",
+      "padding": "28px 0px 6px",
+      "fontSize": "11px",
+      "columns": "none"
+    }
+  ],
+  "navigation": [
+    {
+      "text": "代理配置",
+      "current": null
+    },
+    {
+      "text": "网站规则",
+      "current": null
+    },
+    {
+      "text": "订阅管理",
+      "current": null
+    },
+    {
+      "text": "导入备份",
+      "current": null
+    },
+    {
+      "text": "网络诊断",
+      "current": null
+    },
+    {
+      "text": "通用设置",
+      "current": "page"
+    },
+    {
+      "text": "官方网络",
+      "current": null
+    }
+  ],
+  "structure": [
+    {
+      "tag": "header",
+      "class": "panelHead optionsPageHead"
+    },
+    {
+      "tag": "div",
+      "class": "generalPage"
+    },
+    {
+      "tag": "div",
+      "class": "generalGrid"
+    },
+    {
+      "tag": "p",
+      "class": "hint"
+    }
+  ],
+  "notices": [
+    {
+      "role": "status",
+      "text": "浏览器状态浏览器已应用当前选择已选：香港节点 · 主用。查看真实控制状态 →"
+    }
+  ],
+  "regions": [
+    {
+      "selector": ".options",
+      "tag": "main",
+      "class": "options",
+      "rect": {
+        "x": 27,
+        "y": 16,
+        "width": 1250,
+        "height": 792.3
+      },
+      "display": "block",
+      "gap": "normal",
+      "padding": "0px",
+      "fontSize": "13px",
+      "columns": "none"
+    },
+    {
+      "selector": ".managementNav",
+      "tag": "nav",
+      "class": "managementNav",
+      "rect": {
+        "x": 28,
+        "y": 140.6,
+        "width": 215,
+        "height": 381
+      },
+      "display": "grid",
+      "gap": "2px",
+      "padding": "24px 13px",
+      "fontSize": "13px",
+      "columns": "188px"
+    },
+    {
+      "selector": ".optionsContent",
+      "tag": "section",
+      "class": "panel optionsContent optionsContent--general",
+      "rect": {
+        "x": 243,
+        "y": 140.6,
+        "width": 1033,
+        "height": 666.7
+      },
+      "display": "flex",
+      "gap": "16px",
+      "padding": "32px 32px 48px",
+      "fontSize": "13px",
+      "columns": "none"
+    },
+    {
+      "selector": ".optionsPageHead",
+      "tag": "header",
+      "class": "panelHead optionsPageHead",
+      "rect": {
+        "x": 275,
+        "y": 172.6,
+        "width": 969,
+        "height": 105.6
+      },
+      "display": "flex",
+      "gap": "20px",
+      "padding": "0px 0px 20px",
+      "fontSize": "13px",
+      "columns": "none"
+    },
+    {
+      "selector": ".generalInfoCard",
+      "tag": "section",
+      "class": "generalInfoCard headerActionsEditor",
+      "rect": {
+        "x": 296,
+        "y": 708.7,
+        "width": 927,
+        "height": 323.6
+      },
+      "display": "flex",
+      "gap": "8px",
+      "padding": "12px",
+      "fontSize": "13px",
+      "columns": "none"
+    },
+    {
+      "selector": ".generalInfoCard",
+      "tag": "article",
+      "class": "record generalInfoCard",
+      "rect": {
+        "x": 296,
+        "y": 1082.8,
+        "width": 927,
+        "height": 75.1
+      },
+      "display": "flex",
+      "gap": "8px",
+      "padding": "12px",
+      "fontSize": "13px",
+      "columns": "none"
+    },
+    {
+      "selector": ".generalInfoCard",
+      "tag": "article",
+      "class": "record generalInfoCard",
+      "rect": {
+        "x": 296,
+        "y": 1157.9,
+        "width": 927,
+        "height": 75.1
+      },
+      "display": "flex",
+      "gap": "8px",
+      "padding": "12px",
+      "fontSize": "13px",
+      "columns": "none"
+    },
+    {
+      "selector": ".generalInfoCard",
+      "tag": "article",
+      "class": "record generalInfoCard",
+      "rect": {
+        "x": 296,
+        "y": 1233,
+        "width": 927,
+        "height": 101.1
+      },
+      "display": "flex",
+      "gap": "8px",
+      "padding": "12px",
+      "fontSize": "13px",
+      "columns": "none"
+    },
+    {
+      "selector": ".languageRecord",
+      "tag": "article",
+      "class": "record languageRecord",
+      "rect": {
+        "x": 296,
+        "y": 374.3,
+        "width": 927,
+        "height": 65
+      },
+      "display": "flex",
+      "gap": "12px",
+      "padding": "13px 2px",
+      "fontSize": "13px",
+      "columns": "none"
+    },
+    {
+      "selector": ".generalGroupHeading",
+      "tag": "h3",
+      "class": "generalGroupHeading",
+      "rect": {
+        "x": 296,
+        "y": 1032.3,
+        "width": 927,
+        "height": 50.5
+      },
+      "display": "block",
+      "gap": "normal",
+      "padding": "28px 0px 6px",
+      "fontSize": "11px",
+      "columns": "none"
+    }
+  ],
+  "controls": [
+    {
+      "tag": "button",
+      "id": "",
+      "type": "button",
+      "label": "返回代理配置",
+      "disabled": false,
+      "visible": true
+    },
+    {
+      "tag": "button",
+      "id": "",
+      "type": "button",
+      "label": "刷新状态",
+      "disabled": false,
+      "visible": true
+    },
+    {
+      "tag": "button",
+      "id": "",
+      "type": "button",
+      "label": "查看真实控制状态 →",
+      "disabled": false,
+      "visible": true
+    },
+    {
+      "tag": "button",
+      "id": "",
+      "type": "button",
+      "label": "代理配置",
+      "disabled": false,
+      "visible": true
+    },
+    {
+      "tag": "button",
+      "id": "",
+      "type": "button",
+      "label": "网站规则",
+      "disabled": false,
+      "visible": true
+    },
+    {
+      "tag": "button",
+      "id": "",
+      "type": "button",
+      "label": "订阅管理",
+      "disabled": false,
+      "visible": true
+    },
+    {
+      "tag": "button",
+      "id": "",
+      "type": "button",
+      "label": "导入备份",
+      "disabled": false,
+      "visible": true
+    },
+    {
+      "tag": "button",
+      "id": "",
+      "type": "button",
+      "label": "网络诊断",
+      "disabled": false,
+      "visible": true
+    },
+    {
+      "tag": "button",
+      "id": "",
+      "type": "button",
+      "label": "通用设置",
+      "disabled": false,
+      "visible": true
+    },
+    {
+      "tag": "button",
+      "id": "",
+      "type": "button",
+      "label": "官方网络",
+      "disabled": false,
+      "visible": true
+    },
+    {
+      "tag": "select",
+      "id": "",
+      "type": "select-one",
+      "label": "界面语言 / Language",
+      "disabled": false,
+      "visible": true
+    },
+    {
+      "tag": "input",
+      "id": "show-status-on-open",
+      "type": "checkbox",
+      "label": "打开扩展时显示状态",
+      "disabled": false,
+      "visible": true
+    },
+    {
+      "tag": "input",
+      "id": "",
+      "type": "checkbox",
+      "label": "",
+      "disabled": false,
+      "visible": true
+    },
+    {
+      "tag": "input",
+      "id": "",
+      "type": "checkbox",
+      "label": "",
+      "disabled": false,
+      "visible": true
+    },
+    {
+      "tag": "input",
+      "id": "",
+      "type": "checkbox",
+      "label": "",
+      "disabled": false,
+      "visible": true
+    },
+    {
+      "tag": "input",
+      "id": "",
+      "type": "checkbox",
+      "label": "",
+      "disabled": false,
+      "visible": true
+    },
+    {
+      "tag": "input",
+      "id": "",
+      "type": "checkbox",
+      "label": "",
+      "disabled": false,
+      "visible": true
+    },
+    {
+      "tag": "button",
+      "id": "",
+      "type": "button",
+      "label": "上移 添加代理",
+      "disabled": true,
+      "visible": true
+    },
+    {
+      "tag": "button",
+      "id": "",
+      "type": "button",
+      "label": "下移 添加代理",
+      "disabled": false,
+      "visible": true
+    },
+    {
+      "tag": "button",
+      "id": "",
+      "type": "button",
+      "label": "上移 网络诊断",
+      "disabled": false,
+      "visible": true
+    },
+    {
+      "tag": "button",
+      "id": "",
+      "type": "button",
+      "label": "下移 网络诊断",
+      "disabled": false,
+      "visible": true
+    },
+    {
+      "tag": "button",
+      "id": "",
+      "type": "button",
+      "label": "上移 订阅来源",
+      "disabled": false,
+      "visible": true
+    },
+    {
+      "tag": "button",
+      "id": "",
+      "type": "button",
+      "label": "下移 订阅来源",
+      "disabled": false,
+      "visible": true
+    },
+    {
+      "tag": "button",
+      "id": "",
+      "type": "button",
+      "label": "上移 管理设置",
+      "disabled": false,
+      "visible": true
+    },
+    {
+      "tag": "button",
+      "id": "",
+      "type": "button",
+      "label": "下移 管理设置",
+      "disabled": true,
+      "visible": true
+    },
+    {
+      "tag": "button",
+      "id": "",
+      "type": "button",
+      "label": "保存修改",
+      "disabled": true,
+      "visible": true
+    },
+    {
+      "tag": "button",
+      "id": "",
+      "type": "button",
+      "label": "取消",
+      "disabled": false,
+      "visible": true
+    }
+  ],
+  "dialogs": []
+}

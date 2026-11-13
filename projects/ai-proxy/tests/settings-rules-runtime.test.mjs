@@ -104,7 +104,7 @@ function fixture({locale='en',OptionsPageHeader,headerNavigation=false,route='#/
     for(const fn of frames.splice(0))fn();return tree;}
   function all(predicate,value){if(arguments.length===1)value=tree;if(Array.isArray(value))return value.flatMap(v=>all(predicate,v));if(!value||typeof value!=='object')return [];
     return [...(predicate(value)?[value]:[]),...(value.children===undefined?[]:all(predicate,value.children))];}
-  const text=value=>Array.isArray(value)?value.map(text).join(''):value&&typeof value==='object'?text(value.children):String(value??'');
+  const text=value=>typeof value==='boolean'?'':Array.isArray(value)?value.map(text).join(''):value&&typeof value==='object'?text(value.children):String(value??'');
   const button=label=>{const found=all(n=>n.type==='button'&&(n.props['aria-label']??text(n))===label)[0];assert.ok(found,'button '+label);return found;};
   async function click(label){
     let result;try{eventStack='click';result=button(label).props.onClick();}finally{eventStack=null;}await result;

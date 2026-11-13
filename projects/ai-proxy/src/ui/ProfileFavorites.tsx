@@ -18,6 +18,7 @@ export function useProfileFavorites() {
   const [error,setError]=useState(false);
   const session=useRef({alive:false,ready:false,writing:false,failed:false,
     revision:0,ids:[] as string[]});
+  const renderedSession=session.current;
 
   useEffect(()=>{
     const current={alive:true,ready:false,writing:false,failed:false,
@@ -50,8 +51,8 @@ export function useProfileFavorites() {
   },[env]);
 
   async function toggle(id:string):Promise<void> {
-    const current=session.current;
-    if(!current.alive||!current.ready||current.failed||current.writing||
+    const current=renderedSession;
+    if(current!==session.current||!current.alive||!current.ready||current.failed||current.writing||
       typeof id!=='string'||!id.trim())return;
     const next=current.ids.includes(id)?current.ids.filter(value=>value!==id):[...current.ids,id];
     const revision=current.revision;

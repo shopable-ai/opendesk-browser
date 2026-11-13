@@ -1144,5 +1144,11 @@
   "pcBackSidebar": "返回側邊欄",
   "pcRuleScopeHelp": "規則套用於符合網域的請求，包含同網域的所有分頁。頁面內其他網域的資源分別比對規則。",
   "pcRuleScopeColumn": "網域與範圍",
-  "pcRuleRouteColumn": "使用線路"
+  "pcRuleRouteColumn": "使用線路",
+  "pcSocksAuthLimit": "SOCKS 在 Chrome 中不支援使用者名稱密碼驗證。",
+  "pcAddSubscription": "匯入訂閱",
+  "pcIntegrationBoundary": "僅本機解析；不自動同步訂閱、啟動用戶端或套用代理。",
+  "pcAutoLanguage": "自動",
+  "pcDefaultRouteTitle": "未匹配時",
+  "pcDefaultRouteHelp": "與連線失敗備援無關；儲存後需套用。"
 }

@@ -1,0 +1,110 @@
+{
+  "round": 5,
+  "candidate": "7a6782129fae315bbf602c6a2bcefa9cc7f7f55e1676881d0f6d40d0621271d3",
+  "reference": "277ff8df72970906370507e9d7448da3ba583cb293536cae874c1a034080a977",
+  "verdict": "REVISE",
+  "dimensions": [
+    "layout",
+    "controls",
+    "visible text/interaction cues",
+    "visual consistency"
+  ],
+  "reviews": {
+    "Darwin": {
+      "profiles": [
+        95,
+        96,
+        98,
+        96
+      ],
+      "rules": [
+        94,
+        95,
+        98,
+        95
+      ],
+      "subscriptions": [
+        96,
+        95,
+        98,
+        95
+      ],
+      "backup": [
+        96,
+        95,
+        98,
+        96
+      ],
+      "diagnostic": [
+        96,
+        96,
+        97,
+        96
+      ],
+      "general": [
+        96,
+        95,
+        98,
+        95
+      ],
+      "official": [
+        97,
+        96,
+        98,
+        96
+      ]
+    },
+    "Noether": {
+      "profiles": [
+        95,
+        97,
+        98,
+        94
+      ],
+      "rules": [
+        92,
+        96,
+        97,
+        94
+      ],
+      "subscriptions": [
+        96,
+        97,
+        98,
+        95
+      ],
+      "backup": [
+        93,
+        96,
+        96,
+        95
+      ],
+      "diagnostic": [
+        95,
+        93,
+        97,
+        94
+      ],
+      "general": [
+        96,
+        97,
+        98,
+        95
+      ],
+      "official": [
+        96,
+        98,
+        99,
+        96
+      ]
+    }
+  },
+  "remaining": [
+    "rule data row 80px vs63px and header tracks",
+    "profile final divider and PAC background",
+    "backup export vertical spacing",
+    "diagnostic hover artifact requires capture correction; metric/domain type hierarchy",
+    "common body begins7px early; subscriptions tab-to-card gap"
+  ],
+  "reviewScope": "Each reviewer viewed all28 images. Current native NOT_TESTED. Noether included diagnostic extra blue emphasis; Darwin excluded it as transient hover. Next capture moves pointer to valid top-left blank area before capture, avoiding out-of-viewport coordinates."
+}

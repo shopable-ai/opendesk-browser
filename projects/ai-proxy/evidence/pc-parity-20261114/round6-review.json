@@ -1,0 +1,156 @@
+{
+  "round": 6,
+  "candidate": "e63734281037aab0cbf15b390b5ce4f693f9e165fe9d6b832b6c97e54ba40939",
+  "reference": "277ff8df72970906370507e9d7448da3ba583cb293536cae874c1a034080a977",
+  "verdict": "PASS",
+  "scope": "Independent manual static visual comparison, not pixel similarity or installed/native acceptance",
+  "dimensions": [
+    "layout",
+    "controls",
+    "visible text / interaction cues",
+    "visual consistency"
+  ],
+  "reviews": {
+    "Darwin": {
+      "profiles": [
+        96,
+        96,
+        98,
+        97
+      ],
+      "rules": [
+        96,
+        96,
+        98,
+        96
+      ],
+      "subscriptions": [
+        96,
+        95,
+        98,
+        96
+      ],
+      "backup": [
+        97,
+        95,
+        98,
+        97
+      ],
+      "diagnostic": [
+        96,
+        96,
+        97,
+        97
+      ],
+      "general": [
+        96,
+        95,
+        98,
+        95
+      ],
+      "official": [
+        97,
+        96,
+        98,
+        96
+      ]
+    },
+    "Noether": {
+      "profiles": [
+        96,
+        97,
+        98,
+        96
+      ],
+      "rules": [
+        96,
+        97,
+        98,
+        96
+      ],
+      "subscriptions": [
+        96,
+        97,
+        98,
+        96
+      ],
+      "backup": [
+        96,
+        96,
+        97,
+        96
+      ],
+      "diagnostic": [
+        96,
+        97,
+        98,
+        96
+      ],
+      "general": [
+        96,
+        97,
+        98,
+        95
+      ],
+      "official": [
+        97,
+        98,
+        99,
+        97
+      ]
+    }
+  },
+  "aggregates": {
+    "Darwin": {
+      "overall": 96.5,
+      "minimum": 95,
+      "pageMeans": {
+        "profiles": 96.75,
+        "rules": 96.5,
+        "subscriptions": 96.25,
+        "backup": 96.75,
+        "diagnostic": 96.5,
+        "general": 96.0,
+        "official": 96.75
+      },
+      "dimensionMeans": [
+        96.29,
+        95.57,
+        97.86,
+        96.29
+      ]
+    },
+    "Noether": {
+      "overall": 96.79,
+      "minimum": 95,
+      "pageMeans": {
+        "profiles": 96.75,
+        "rules": 96.75,
+        "subscriptions": 96.75,
+        "backup": 96.25,
+        "diagnostic": 96.75,
+        "general": 96.5,
+        "official": 97.75
+      },
+      "dimensionMeans": [
+        96.14,
+        97.0,
+        98.0,
+        96.0
+      ]
+    }
+  },
+  "method": "Each independent reviewer viewed all28 images; after painted diagnostic recapture each reread two candidate diagnostic files plus the changed reference viewport. The other25 images remained identical. No authorship by reviewers.",
+  "diagnosticFinalHashes": {
+    "viewport": "2060c8fb1b8587d116bd5c5ccccc247b2453a0918dbf5d991c3f6d7729dc1508",
+    "lower": "40a15e556ae6c765fbe55005d6edfc1a67b25990e76bf926f43d45963c680c2f",
+    "referenceViewport": "88051cea8c75eb5b73f8dad998f1fd506c05c9b00478002f4ca98f57a416f520"
+  },
+  "residuals": [
+    "Small 7–11px body position differences",
+    "Slight select / textarea border contrast and switch tone differences",
+    "PAC button size and optional official badge emphasis differ slightly"
+  ],
+  "native": "NOT_TESTED",
+  "pointer": "NOT_TESTED"
+}

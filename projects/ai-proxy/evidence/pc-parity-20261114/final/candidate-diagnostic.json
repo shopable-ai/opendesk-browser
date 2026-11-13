@@ -1,0 +1,495 @@
+{
+  "type": "ai-proxy-preview-inspection",
+  "id": "9aadc529-c500-4893-892d-52e07046bc9e",
+  "route": "#/diagnostic",
+  "viewport": {
+    "width": 1304,
+    "height": 1250
+  },
+  "overflow": false,
+  "headings": [
+    {
+      "text": "AI Proxy",
+      "tag": "h2",
+      "class": "managementTitle",
+      "rect": {
+        "x": 97,
+        "y": 31,
+        "width": 119.6,
+        "height": 24
+      },
+      "display": "block",
+      "gap": "normal",
+      "padding": "0px",
+      "fontSize": "16px",
+      "columns": "none"
+    },
+    {
+      "text": "网络诊断",
+      "tag": "h2",
+      "class": "",
+      "rect": {
+        "x": 275,
+        "y": 197.6,
+        "width": 953,
+        "height": 31.2
+      },
+      "display": "block",
+      "gap": "normal",
+      "padding": "0px",
+      "fontSize": "24px",
+      "columns": "none"
+    },
+    {
+      "text": "检查你关心的网站",
+      "tag": "h2",
+      "class": "",
+      "rect": {
+        "x": 299,
+        "y": 297.8,
+        "width": 750,
+        "height": 30.4
+      },
+      "display": "block",
+      "gap": "normal",
+      "padding": "0px",
+      "fontSize": "22px",
+      "columns": "none"
+    },
+    {
+      "text": "先检查你正在使用的网站",
+      "tag": "h3",
+      "class": "",
+      "rect": {
+        "x": 295,
+        "y": 627.7,
+        "width": 467.2,
+        "height": 24
+      },
+      "display": "block",
+      "gap": "normal",
+      "padding": "0px",
+      "fontSize": "16px",
+      "columns": "none"
+    },
+    {
+      "text": "常用 AI 工具快速检查",
+      "tag": "h3",
+      "class": "",
+      "rect": {
+        "x": 815.2,
+        "y": 627.7,
+        "width": 408.8,
+        "height": 24
+      },
+      "display": "block",
+      "gap": "normal",
+      "padding": "0px",
+      "fontSize": "16px",
+      "columns": "none"
+    },
+    {
+      "text": "关键网站 Top 5/10",
+      "tag": "h3",
+      "class": "",
+      "rect": {
+        "x": 345,
+        "y": 961.9,
+        "width": 315.6,
+        "height": 21
+      },
+      "display": "block",
+      "gap": "normal",
+      "padding": "0px",
+      "fontSize": "14px",
+      "columns": "none"
+    },
+    {
+      "text": "速度与线路质量",
+      "tag": "h3",
+      "class": "",
+      "rect": {
+        "x": 836,
+        "y": 961.9,
+        "width": 315.6,
+        "height": 21
+      },
+      "display": "block",
+      "gap": "normal",
+      "padding": "0px",
+      "fontSize": "14px",
+      "columns": "none"
+    }
+  ],
+  "navigation": [
+    {
+      "text": "代理配置",
+      "current": null
+    },
+    {
+      "text": "网站规则",
+      "current": null
+    },
+    {
+      "text": "订阅管理",
+      "current": null
+    },
+    {
+      "text": "导入备份",
+      "current": null
+    },
+    {
+      "text": "网络诊断",
+      "current": "page"
+    },
+    {
+      "text": "通用设置",
+      "current": null
+    },
+    {
+      "text": "官方网络",
+      "current": null
+    }
+  ],
+  "structure": [
+    {
+      "tag": "header",
+      "class": "panelHead optionsPageHead"
+    },
+    {
+      "tag": "header",
+      "class": "diagnosticLead"
+    },
+    {
+      "tag": "div",
+      "class": "diagnosticMetrics"
+    },
+    {
+      "tag": "div",
+      "class": ""
+    },
+    {
+      "tag": "div",
+      "class": ""
+    },
+    {
+      "tag": "div",
+      "class": ""
+    },
+    {
+      "tag": "div",
+      "class": ""
+    },
+    {
+      "tag": "div",
+      "class": "diagnosticTabs"
+    },
+    {
+      "tag": "button",
+      "class": "od-button od-button--secondary"
+    },
+    {
+      "tag": "button",
+      "class": "od-button od-button--secondary"
+    },
+    {
+      "tag": "button",
+      "class": "od-button od-button--secondary"
+    },
+    {
+      "tag": "button",
+      "class": "od-button od-button--secondary"
+    },
+    {
+      "tag": "button",
+      "class": "od-button od-button--secondary"
+    },
+    {
+      "tag": "section",
+      "class": "diagnosticPanel"
+    },
+    {
+      "tag": "p",
+      "class": "hint diagnosticEvidenceFootnote"
+    },
+    {
+      "tag": "details",
+      "class": "diagnosticEvidenceDetails"
+    }
+  ],
+  "notices": [
+    {
+      "role": "status",
+      "text": "浏览器状态浏览器已应用当前选择已选：香港节点 · 主用。查看真实控制状态 →"
+    }
+  ],
+  "regions": [
+    {
+      "selector": ".options",
+      "tag": "main",
+      "class": "options",
+      "rect": {
+        "x": 27,
+        "y": 16,
+        "width": 1250,
+        "height": 1148.5
+      },
+      "display": "block",
+      "gap": "normal",
+      "padding": "0px",
+      "fontSize": "13px",
+      "columns": "none"
+    },
+    {
+      "selector": ".managementNav",
+      "tag": "nav",
+      "class": "managementNav",
+      "rect": {
+        "x": 28,
+        "y": 140.6,
+        "width": 215,
+        "height": 381
+      },
+      "display": "grid",
+      "gap": "2px",
+      "padding": "24px 13px",
+      "fontSize": "13px",
+      "columns": "188px"
+    },
+    {
+      "selector": ".optionsContent",
+      "tag": "section",
+      "class": "panel optionsContent optionsContent--diagnostic",
+      "rect": {
+        "x": 243,
+        "y": 140.6,
+        "width": 1033,
+        "height": 1022.9
+      },
+      "display": "flex",
+      "gap": "16px",
+      "padding": "32px 32px 48px",
+      "fontSize": "13px",
+      "columns": "none"
+    },
+    {
+      "selector": ".optionsPageHead",
+      "tag": "header",
+      "class": "panelHead optionsPageHead",
+      "rect": {
+        "x": 275,
+        "y": 172.6,
+        "width": 969,
+        "height": 86.2
+      },
+      "display": "flex",
+      "gap": "20px",
+      "padding": "0px 0px 20px",
+      "fontSize": "13px",
+      "columns": "none"
+    },
+    {
+      "selector": ".diagnosticFeature",
+      "tag": "article",
+      "class": "diagnosticFeature diagnosticCurrentSite",
+      "rect": {
+        "x": 275,
+        "y": 573.2,
+        "width": 507.2,
+        "height": 337.2
+      },
+      "display": "flex",
+      "gap": "8px",
+      "padding": "19px",
+      "fontSize": "13px",
+      "columns": "none"
+    },
+    {
+      "selector": ".diagnosticFeature",
+      "tag": "article",
+      "class": "diagnosticFeature diagnosticAiSummary",
+      "rect": {
+        "x": 795.2,
+        "y": 573.2,
+        "width": 448.8,
+        "height": 337.2
+      },
+      "display": "flex",
+      "gap": "8px",
+      "padding": "19px",
+      "fontSize": "13px",
+      "columns": "none"
+    }
+  ],
+  "controls": [
+    {
+      "tag": "button",
+      "id": "",
+      "type": "button",
+      "label": "返回代理配置",
+      "disabled": false,
+      "visible": true
+    },
+    {
+      "tag": "button",
+      "id": "",
+      "type": "button",
+      "label": "刷新状态",
+      "disabled": false,
+      "visible": true
+    },
+    {
+      "tag": "button",
+      "id": "",
+      "type": "button",
+      "label": "查看真实控制状态 →",
+      "disabled": false,
+      "visible": true
+    },
+    {
+      "tag": "button",
+      "id": "",
+      "type": "button",
+      "label": "代理配置",
+      "disabled": false,
+      "visible": true
+    },
+    {
+      "tag": "button",
+      "id": "",
+      "type": "button",
+      "label": "网站规则",
+      "disabled": false,
+      "visible": true
+    },
+    {
+      "tag": "button",
+      "id": "",
+      "type": "button",
+      "label": "订阅管理",
+      "disabled": false,
+      "visible": true
+    },
+    {
+      "tag": "button",
+      "id": "",
+      "type": "button",
+      "label": "导入备份",
+      "disabled": false,
+      "visible": true
+    },
+    {
+      "tag": "button",
+      "id": "",
+      "type": "button",
+      "label": "网络诊断",
+      "disabled": false,
+      "visible": true
+    },
+    {
+      "tag": "button",
+      "id": "",
+      "type": "button",
+      "label": "通用设置",
+      "disabled": false,
+      "visible": true
+    },
+    {
+      "tag": "button",
+      "id": "",
+      "type": "button",
+      "label": "官方网络",
+      "disabled": false,
+      "visible": true
+    },
+    {
+      "tag": "button",
+      "id": "diagnostic-tab-overview",
+      "type": "button",
+      "label": "⌂概览",
+      "disabled": false,
+      "visible": true
+    },
+    {
+      "tag": "button",
+      "id": "diagnostic-tab-ai",
+      "type": "button",
+      "label": "◉AI 网站",
+      "disabled": false,
+      "visible": true
+    },
+    {
+      "tag": "button",
+      "id": "diagnostic-tab-top",
+      "type": "button",
+      "label": "☆关键网站",
+      "disabled": false,
+      "visible": true
+    },
+    {
+      "tag": "button",
+      "id": "diagnostic-tab-speed",
+      "type": "button",
+      "label": "↗测速",
+      "disabled": false,
+      "visible": true
+    },
+    {
+      "tag": "button",
+      "id": "diagnostic-tab-proxy",
+      "type": "button",
+      "label": "≡基础诊断",
+      "disabled": false,
+      "visible": true
+    },
+    {
+      "tag": "button",
+      "id": "",
+      "type": "button",
+      "label": "检测当前网站 →",
+      "disabled": true,
+      "visible": true
+    },
+    {
+      "tag": "button",
+      "id": "",
+      "type": "button",
+      "label": "排查代理设置",
+      "disabled": false,
+      "visible": true
+    },
+    {
+      "tag": "button",
+      "id": "",
+      "type": "button",
+      "label": "检测核心五站",
+      "disabled": false,
+      "visible": true
+    },
+    {
+      "tag": "button",
+      "id": "",
+      "type": "button",
+      "label": "查看全部 →",
+      "disabled": false,
+      "visible": true
+    },
+    {
+      "tag": "button",
+      "id": "",
+      "type": "button",
+      "label": "查看 →",
+      "disabled": false,
+      "visible": true
+    },
+    {
+      "tag": "button",
+      "id": "",
+      "type": "button",
+      "label": "测试 →",
+      "disabled": false,
+      "visible": true
+    }
+  ],
+  "dialogs": []
+}

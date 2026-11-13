@@ -1,0 +1,37 @@
+▲ [WARNING] Duplicate key "apCloseRuleEditor" in object literal [duplicate-object-key]
+
+    projects/ai-proxy/src/i18n/locales/zh-TW.json:1081:2:
+      1081 │   "apCloseRuleEditor": "關閉規則編輯",
+           ╵   ~~~~~~~~~~~~~~~~~~~
+
+  The original key "apCloseRuleEditor" is here:
+
+    projects/ai-proxy/src/i18n/locales/zh-TW.json:1011:2:
+      1011 │   "apCloseRuleEditor": "關閉規則編輯",
+           ╵   ~~~~~~~~~~~~~~~~~~~
+
+▲ [WARNING] Duplicate key "apCloseRuleEditor" in object literal [duplicate-object-key]
+
+    projects/ai-proxy/src/i18n/locales/en.json:1081:2:
+      1081 │   "apCloseRuleEditor": "Close rule editor",
+           ╵   ~~~~~~~~~~~~~~~~~~~
+
+  The original key "apCloseRuleEditor" is here:
+
+    projects/ai-proxy/src/i18n/locales/en.json:1011:2:
+      1011 │   "apCloseRuleEditor": "Close rule editor",
+           ╵   ~~~~~~~~~~~~~~~~~~~
+
+▲ [WARNING] Duplicate key "apCloseRuleEditor" in object literal [duplicate-object-key]
+
+    projects/ai-proxy/src/i18n/locales/zh-CN.json:1081:2:
+      1081 │   "apCloseRuleEditor": "关闭规则编辑",
+           ╵   ~~~~~~~~~~~~~~~~~~~
+
+  The original key "apCloseRuleEditor" is here:
+
+    projects/ai-proxy/src/i18n/locales/zh-CN.json:1011:2:
+      1011 │   "apCloseRuleEditor": "关闭规则编辑",
+           ╵   ~~~~~~~~~~~~~~~~~~~
+
+{"preview":"/Users/shopme/Documents/workspace/opendesk-browser/projects/ai-proxy/.opendesk-preview/source-98024ff9-11b2-43ef-9b77-6d5c57551e26/preview.html","sha256":"e63734281037aab0cbf15b390b5ce4f693f9e165fe9d6b832b6c97e54ba40939","sources":95}

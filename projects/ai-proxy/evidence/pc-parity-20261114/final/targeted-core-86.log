@@ -1,0 +1,166 @@
+✔ default empty; hydrate only the favorites key and normalize stored UI metadata (4.236083ms)
+✔ toggle is single-flight, persists endpoint IDs, and never writes proxy config or applies a route (1.416833ms)
+✔ local event wins over late hydration; unrelated events do not suppress the read (2.087834ms)
+✔ late write receipt cannot overwrite newer events, including a deletion (2.496166ms)
+✔ read/write failures expose persistent error and block replay even through stale handlers and events (3.487834ms)
+✔ late reads, writes, saved callbacks and stale toggles cannot update or write after unmount (5.708166ms)
+✔ effect lifecycle restart isolates old reads, writes and listeners from the fresh session (1.718584ms)
+✔ callbacks captured before an effect restart cannot write once the new session is ready (2.088791ms)
+✔ environment replacement rejects old and transition callbacks without writing either environment (1.178541ms)
+▲ [WARNING] Duplicate key "apCloseRuleEditor" in object literal [duplicate-object-key]
+
+    projects/ai-proxy/src/i18n/locales/zh-TW.json:1081:2:
+      1081 │   "apCloseRuleEditor": "關閉規則編輯",
+           ╵   ~~~~~~~~~~~~~~~~~~~
+
+  The original key "apCloseRuleEditor" is here:
+
+    projects/ai-proxy/src/i18n/locales/zh-TW.json:1011:2:
+      1011 │   "apCloseRuleEditor": "關閉規則編輯",
+           ╵   ~~~~~~~~~~~~~~~~~~~
+
+▲ [WARNING] Duplicate key "apCloseRuleEditor" in object literal [duplicate-object-key]
+
+    projects/ai-proxy/src/i18n/locales/zh-CN.json:1081:2:
+      1081 │   "apCloseRuleEditor": "关闭规则编辑",
+           ╵   ~~~~~~~~~~~~~~~~~~~
+
+  The original key "apCloseRuleEditor" is here:
+
+    projects/ai-proxy/src/i18n/locales/zh-CN.json:1011:2:
+      1011 │   "apCloseRuleEditor": "关闭规则编辑",
+           ╵   ~~~~~~~~~~~~~~~~~~~
+
+▲ [WARNING] Duplicate key "apCloseRuleEditor" in object literal [duplicate-object-key]
+
+    projects/ai-proxy/src/i18n/locales/en.json:1081:2:
+      1081 │   "apCloseRuleEditor": "Close rule editor",
+           ╵   ~~~~~~~~~~~~~~~~~~~
+
+  The original key "apCloseRuleEditor" is here:
+
+    projects/ai-proxy/src/i18n/locales/en.json:1011:2:
+      1011 │   "apCloseRuleEditor": "Close rule editor",
+           ╵   ~~~~~~~~~~~~~~~~~~~
+
+✔ PC rules explain save-only routing once whether rules mode is selected or not (87.820584ms)
+✔ management summary labels saved Direct as a selection independently from confirmed Rules, system, errors and unknown runtime (64.4235ms)
+✔ the management control-status shortcut uses guarded navigation directly to basic proxy diagnostics (3.042917ms)
+✔ the real PC proxy table distinguishes saved choice, browser-applied identity and empty states (24.365625ms)
+✔ PC initial state retains workbench identity and honest loading/retry instead of a blank page (1.758959ms)
+✔ both settings presentations mount the shared proxy editor only after an explicit edit intent (9.319375ms)
+✔ PC website rules expose preview-style route/priority columns while Side Panel stays compact (6.687833ms)
+✔ PC profiles use row selection while sidebar retains the complete saved-profile dropdown and SELECT action (22.962958ms)
+✔ PC proxy and PAC row selection dispatch SELECT only without applying, stopping or changing configuration (25.425125ms)
+✔ PC subscriptions page header import opens the new-subscription route without a configuration action (23.477667ms)
+✔ PC mode summary ignores retained proxy identity in Direct, System and Rules, and shows it only in Profile mode (123.054208ms)
+✔ PC backup preview parses real input without importing; edits and invalid data invalidate the preview (20.759166ms)
+▲ [WARNING] Duplicate key "apCloseRuleEditor" in object literal [duplicate-object-key]
+
+    projects/ai-proxy/src/i18n/locales/zh-TW.json:1081:2:
+      1081 │   "apCloseRuleEditor": "關閉規則編輯",
+           ╵   ~~~~~~~~~~~~~~~~~~~
+
+  The original key "apCloseRuleEditor" is here:
+
+    projects/ai-proxy/src/i18n/locales/zh-TW.json:1011:2:
+      1011 │   "apCloseRuleEditor": "關閉規則編輯",
+           ╵   ~~~~~~~~~~~~~~~~~~~
+
+▲ [WARNING] Duplicate key "apCloseRuleEditor" in object literal [duplicate-object-key]
+
+    projects/ai-proxy/src/i18n/locales/en.json:1081:2:
+      1081 │   "apCloseRuleEditor": "Close rule editor",
+           ╵   ~~~~~~~~~~~~~~~~~~~
+
+  The original key "apCloseRuleEditor" is here:
+
+    projects/ai-proxy/src/i18n/locales/en.json:1011:2:
+      1011 │   "apCloseRuleEditor": "Close rule editor",
+           ╵   ~~~~~~~~~~~~~~~~~~~
+
+▲ [WARNING] Duplicate key "apCloseRuleEditor" in object literal [duplicate-object-key]
+
+    projects/ai-proxy/src/i18n/locales/zh-CN.json:1081:2:
+      1081 │   "apCloseRuleEditor": "关闭规则编辑",
+           ╵   ~~~~~~~~~~~~~~~~~~~
+
+  The original key "apCloseRuleEditor" is here:
+
+    projects/ai-proxy/src/i18n/locales/zh-CN.json:1011:2:
+      1011 │   "apCloseRuleEditor": "关闭规则编辑",
+           ╵   ~~~~~~~~~~~~~~~~~~~
+
+✔ settings rules list opens a separate editor; cancellation confirms only its draft and restores Add focus/scroll (10.220834ms)
+✔ settings rule edit/save retains identity, disabled state and priority; success returns receipt and never applies (4.743625ms)
+✔ settings rule failed save and background refresh preserve draft; Escape uses confirmation (4.691541ms)
+✔ settings rule late save or discard confirmation cannot clear a newer draft revision (7.783792ms)
+✔ settings new rule normalizes domain, saves one enabled target and returns to its list record (3.768625ms)
+✔ settings keeps seven discoverable sections and places copy/refresh in details without a second panel return (1.419125ms)
+✔ settings rule endpoint choice stays untouched when refreshed endpoints arrive during editing (4.923417ms)
+✔ settings default route remains independently saveable without applying or clearing another draft (1.983917ms)
+✔ settings section selector stays locked until an unfinished save settles (3.36775ms)
+✔ settings rule total appears beside the translated heading and includes disabled saved rules in all three locales (15.765292ms)
+✔ settings rule target cards drive the matching preview and save only the selected target (4.070917ms)
+✔ settings rule list explains save-only semantics and labels enabled and disabled records in all locales (9.584708ms)
+✔ correcting duplicate rule domain or scope removes its stale conflict without saving (13.243584ms)
+✔ same-domain rules expose scope in action names and delete confirmation in all locales (9.099541ms)
+✔ confirmed rule deletion returns focus to a surviving neighbor or Add; cancellation and failure preserve the record (8.700584ms)
+✔ successful deletion clears an earlier save receipt while failed deletion retains it (4.90875ms)
+✔ R14 Settings uses the Host return only after optional navigation was accepted (4.506292ms)
+✔ settings consumes confirmation rejection and blocks a second intent without losing the draft (4.943666ms)
+✔ settings does not delete after the config ETag changes while confirmation is pending (1.422333ms)
+✔ dirty native section selection prepares a click target without dispatching a confirmation (1.84575ms)
+✔ a changed draft or config invalidates a prepared native section target; clean navigation needs no confirmation (4.611292ms)
+✔ backup replacement reads/validates without confirmation and the explicit click starts shared confirmation synchronously (4.801375ms)
+✔ backup candidate cannot replace newer input, another file or refreshed config before or during confirmation (12.236084ms)
+✔ empty backup accepts a validated read without confirmation; invalid files never create a replacement action (1.305541ms)
+✔ Settings mounts one shared proxy editor with edit identity and owns save feedback and add deep-link exit (7.818084ms)
+✔ rule enable draft saves disabled and list toggle restores using the current ETag without applying (2.480667ms)
+✔ rapid rule save and toggle do not enqueue a second mutation (1.735042ms)
+✔ PC inline priority persists through SAVE_RULE CAS without selecting or applying, and invalid input rolls back (1.227625ms)
+✔ safe local endpoint routes round trip, copy and navigate; malformed IDs never reach guards (1.727458ms)
+✔ Cancel and Escape keep every local field when dirty discard is declined (5.531292ms)
+✔ Keep retains the token-bearing subscription URL; discard clears only source scope and restores focus (2.84875ms)
+✔ busy rejects explicit close before prompting or clearing (0.852584ms)
+✔ late discard cannot clear newer input or a new clean editor with revision zero (2.313667ms)
+✔ local route ID loads exact endpoint, updates within local type, and never replaces dirty input (2.194542ms)
+✔ missing local endpoint ID cannot open an add form or retain another endpoint editor (1.969584ms)
+✔ local edit saves original ID and returns profiles; new local returns subscriptions (5.422ms)
+✔ confirmed local edit cancel returns profiles; breadcrumb back uses navigation guard without clearing (1.194667ms)
+✔ management groups saved sources without duplicating the Settings add action; local add and tab switching never write (1.614542ms)
+✔ management source rows retain detail routing and local reader (1.743792ms)
+✔ management list delete cancel: exact source and opening CAS ETag, navigation only after success (4.259166ms)
+✔ management list delete success: exact source and opening CAS ETag, navigation only after success (1.376208ms)
+✔ management list delete conflict: exact source and opening CAS ETag, navigation only after success (1.131416ms)
+✔ management list inspect/delete respect busy and managed guards and redact private source labels (1.004ms)
+✔ management returns from local creation to local list and keeps inline draft visible until cancel (1.168709ms)
+✔ management local empty state keeps an add entry; default sidebar retains other access (1.027042ms)
+✔ management tabs support arrow and edge keys with matching panel labels (3.539958ms)
+✔ status preference defaults visible and only a persisted boolean false collapses it (9.602708ms)
+✔ save is single-flight before rerender, stays pending, and reports success only after storage confirms (1.4475ms)
+✔ failed reads or writes disable replay and preserve the last confirmed display value (1.705083ms)
+✔ a failed preference write blocks replay through the previous ready handler and later storage events (0.92175ms)
+✔ a pending write receipt cannot overwrite a newer storage value or deletion; own events still confirm saves (1.928917ms)
+✔ an own storage event arriving after its write acknowledgement retains the confirmed save receipt (1.374209ms)
+✔ a saved ready handler cannot write or update UI after unmount (0.646ms)
+✔ effect restart isolates pending writes, locks and callbacks from the new preference session (0.912917ms)
+✔ real PcPreferences checkbox hydrates, disables while pending, and reports only confirmed saves (6.087959ms)
+✔ real PcPreferences language selector passes the chosen locale, displays failure and recovers without a status write (1.498917ms)
+✔ late read resolve/reject and late write resolve/reject do not update an unmounted hook (1.757334ms)
+✔ onChanged synchronizes only the local preference, treats deletion as default, and never writes it back (0.643042ms)
+✔ newer local preference changes take precedence over a late initial storage read (1.167792ms)
+✔ unrelated and non-local events do not suppress the initial persisted preference (0.599917ms)
+✔ hidden optional status is a closed, user-expandable details containing real status and the primary action (3.740584ms)
+✔ mandatory errors, pending changes, busy work and blocked/missing routes cannot be collapsed by the preference (10.154625ms)
+✔ unknown or absent control cannot collapse mandatory runtime status (3.141375ms)
+✔ denied proxy permission remains visible even with an otherwise normal runtime (3.976042ms)
+✔ missing credentials and stranded control keep mandatory status and recovery actions expanded (2.210292ms)
+ℹ tests 86
+ℹ suites 0
+ℹ pass 86
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 899.215416

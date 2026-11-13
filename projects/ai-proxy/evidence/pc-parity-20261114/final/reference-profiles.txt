@@ -1,0 +1,156 @@
+[p2 "AI Proxy · R16 PC 设置 · 交互预览" | space "AI Proxy PC seven-page parity"(22): 2 managed, 0 untracked — p1 "AI Proxy · PC 管理预览", p2* "AI Proxy · R16 PC 设置 · 交互预览"]
+root
+  container
+    container
+      text "AI"
+      container
+        text "AI Proxy"
+        text "设置 · 浏览器代理管理"
+      text "免费 · 无需账号"
+      button "返回侧边栏" [ref=235, loc=css:button[aria-label="返回侧边栏"]]
+        svg_root
+        text "返回侧边栏"
+    container
+      container
+        container
+          text "配置应用："
+          text "已应用"
+        container
+          text "当前选择："
+          text "香港节点 · 主用"
+      button [ref=236]
+        text "查看连接状态 ↗"
+    container
+      container "PC 设置导航"
+        text "管理中心"
+        button [ref=237]
+          svg_root
+          text "代理配置"
+        button [ref=238]
+          svg_root
+          text "网站规则"
+        button [ref=239]
+          svg_root
+          text "订阅管理"
+        button [ref=240]
+          svg_root
+          text "导入备份"
+        button [ref=241]
+          svg_root
+          text "网络诊断"
+        button [ref=242]
+          svg_root
+          text "通用设置"
+        button [ref=243]
+          svg_root
+          text "官方网络"
+      container
+        container
+          container
+            paragraph
+              text "设置"
+            heading
+              text "代理与配置"
+            paragraph
+              text "自己的代理，随时添加和切换。"
+          button [ref=244]
+            svg_root
+            text "添加代理"
+        container
+          container
+            container
+              heading
+                text "代理模式"
+              paragraph
+                text "选择连接方式不会自动改变浏览器代理，需明确应用。"
+            text "手动应用"
+          container
+            button [ref=245]
+              svg_root
+              text "使用代理"
+            button [ref=246]
+              svg_root
+              text "按规则"
+            button [ref=247]
+              svg_root
+              text "直接连接"
+            button [ref=248]
+              svg_root
+              text "跟随系统"
+          container
+            text "当前已应用：香港节点 · 主用。"
+            container
+              button [ref=249]
+                text "暂停"
+              button [ref=250]
+                text "应用配置"
+        container
+          container
+            container
+              heading
+                text "代理服务器"
+                text "3 项"
+              paragraph
+                text "这里集中管理代理；侧栏只负责高频切换。"
+            button [ref=251]
+              text "导入订阅 ↗"
+          container
+            container
+              text "S"
+              container
+                container
+                  text "香港节点 · 主用"
+                  text "已选择"
+                paragraph
+                  text "SOCKS5 · proxy.example.com:7890"
+              group "香港节点 · 主用的操作"
+                button "取消收藏：香港节点 · 主用" [ref=252, loc=css:button[aria-label="取消收藏：香港节点 · 主用"]]
+                  svg_root
+                button "已选择代理：香港节点 · 主用" [ref=253, loc=css:button[aria-label="已选择代理：香港节点 · 主用"]]
+                  svg_root
+                button "编辑代理：香港节点 · 主用" [ref=254, loc=css:button[aria-label="编辑代理：香港节点 · 主用"]]
+                  svg_root
+                button "删除代理：香港节点 · 主用" [ref=255, loc=css:button[aria-label="删除代理：香港节点 · 主用"]]
+                  svg_root
+            container
+              text "S"
+              container
+                text "美国节点 · 备用"
+                paragraph
+                  text "SOCKS5 · us.example.net:1080"
+              group "美国节点 · 备用的操作"
+                button "取消收藏：美国节点 · 备用" [ref=256, loc=css:button[aria-label="取消收藏：美国节点 · 备用"]]
+                  svg_root
+                button "选择代理：美国节点 · 备用" [ref=257, loc=css:button[aria-label="选择代理：美国节点 · 备用"]]
+                  svg_root
+                button "编辑代理：美国节点 · 备用" [ref=258, loc=css:button[aria-label="编辑代理：美国节点 · 备用"]]
+                  svg_root
+                button "删除代理：美国节点 · 备用" [ref=259, loc=css:button[aria-label="删除代理：美国节点 · 备用"]]
+                  svg_root
+            container
+              text "H"
+              container
+                text "本地 Clash"
+                paragraph
+                  text "HTTP · 127.0.0.1:7890"
+              group "本地 Clash的操作"
+                button "收藏：本地 Clash" [ref=260, loc=css:button[aria-label="收藏：本地 Clash"]]
+                  svg_root
+                button "选择代理：本地 Clash" [ref=261, loc=css:button[aria-label="选择代理：本地 Clash"]]
+                  svg_root
+                button "编辑代理：本地 Clash" [ref=262, loc=css:button[aria-label="编辑代理：本地 Clash"]]
+                  svg_root
+                button "删除代理：本地 Clash" [ref=263, loc=css:button[aria-label="删除代理：本地 Clash"]]
+                  svg_root
+          paragraph
+            text "SOCKS 在 Chrome 中不支持用户名密码认证。"
+        container
+          container
+            container
+              heading
+                text "PAC 配置"
+              paragraph
+                text "高级能力与网站规则独立。本预览不执行任何 PAC 脚本。"
+            button [ref=264]
+              text "＋ 新建 PAC"
+          text "PAC 可能返回 DIRECT；任何执行、下载及真实网络操作均不属于本次 UI 预览。"

@@ -1,0 +1,735 @@
+{
+  "type": "ai-proxy-preview-inspection",
+  "id": "fad9f750-f4f4-488f-9d2d-f4f20d2a16dc",
+  "route": "#/profiles",
+  "viewport": {
+    "width": 1304,
+    "height": 1250
+  },
+  "overflow": false,
+  "headings": [
+    {
+      "text": "AI Proxy",
+      "tag": "h2",
+      "class": "managementTitle",
+      "rect": {
+        "x": 97,
+        "y": 31,
+        "width": 119.6,
+        "height": 24
+      },
+      "display": "block",
+      "gap": "normal",
+      "padding": "0px",
+      "fontSize": "16px",
+      "columns": "none"
+    },
+    {
+      "text": "代理与配置",
+      "tag": "h2",
+      "class": "",
+      "rect": {
+        "x": 275,
+        "y": 197.6,
+        "width": 858.6,
+        "height": 31.2
+      },
+      "display": "block",
+      "gap": "normal",
+      "padding": "0px",
+      "fontSize": "24px",
+      "columns": "none"
+    },
+    {
+      "text": "代理模式",
+      "tag": "h2",
+      "class": "",
+      "rect": {
+        "x": 296,
+        "y": 315.2,
+        "width": 288,
+        "height": 21
+      },
+      "display": "block",
+      "gap": "normal",
+      "padding": "0px",
+      "fontSize": "15px",
+      "columns": "none"
+    },
+    {
+      "text": "代理服务器 3",
+      "tag": "h2",
+      "class": "",
+      "rect": {
+        "x": 296,
+        "y": 528.8,
+        "width": 216,
+        "height": 22.9
+      },
+      "display": "block",
+      "gap": "normal",
+      "padding": "0px",
+      "fontSize": "15px",
+      "columns": "none"
+    },
+    {
+      "text": "不会写 PAC？从现有代理生成",
+      "tag": "h3",
+      "class": "",
+      "rect": {
+        "x": 301,
+        "y": 1059.4,
+        "width": 917,
+        "height": 21
+      },
+      "display": "block",
+      "gap": "normal",
+      "padding": "0px",
+      "fontSize": "14px",
+      "columns": "none"
+    }
+  ],
+  "navigation": [
+    {
+      "text": "代理配置",
+      "current": "page"
+    },
+    {
+      "text": "网站规则",
+      "current": null
+    },
+    {
+      "text": "订阅管理",
+      "current": null
+    },
+    {
+      "text": "导入备份",
+      "current": null
+    },
+    {
+      "text": "网络诊断",
+      "current": null
+    },
+    {
+      "text": "通用设置",
+      "current": null
+    },
+    {
+      "text": "官方网络",
+      "current": null
+    }
+  ],
+  "structure": [
+    {
+      "tag": "header",
+      "class": "panelHead optionsPageHead profilePanelHead"
+    },
+    {
+      "tag": "section",
+      "class": "optionsModeBar"
+    },
+    {
+      "tag": "section",
+      "class": "listSection"
+    },
+    {
+      "tag": "details",
+      "class": "pacDetails"
+    },
+    {
+      "tag": "details",
+      "class": "profileSecondary"
+    }
+  ],
+  "notices": [
+    {
+      "role": "status",
+      "text": "浏览器状态浏览器已应用当前选择已选：香港节点 · 主用。查看真实控制状态 →"
+    },
+    {
+      "role": "status",
+      "text": "浏览器已应用当前选择 · 香港节点 · 主用"
+    }
+  ],
+  "regions": [
+    {
+      "selector": ".options",
+      "tag": "main",
+      "class": "options",
+      "rect": {
+        "x": 27,
+        "y": 16,
+        "width": 1250,
+        "height": 1090.8
+      },
+      "display": "block",
+      "gap": "normal",
+      "padding": "0px",
+      "fontSize": "13px",
+      "columns": "none"
+    },
+    {
+      "selector": ".managementNav",
+      "tag": "nav",
+      "class": "managementNav",
+      "rect": {
+        "x": 28,
+        "y": 140.6,
+        "width": 215,
+        "height": 381
+      },
+      "display": "grid",
+      "gap": "2px",
+      "padding": "24px 13px",
+      "fontSize": "13px",
+      "columns": "188px"
+    },
+    {
+      "selector": ".optionsContent",
+      "tag": "section",
+      "class": "panel optionsContent optionsContent--profiles",
+      "rect": {
+        "x": 243,
+        "y": 140.6,
+        "width": 1033,
+        "height": 965.3
+      },
+      "display": "flex",
+      "gap": "16px",
+      "padding": "32px 32px 48px",
+      "fontSize": "13px",
+      "columns": "none"
+    },
+    {
+      "selector": ".optionsPageHead",
+      "tag": "header",
+      "class": "panelHead optionsPageHead profilePanelHead",
+      "rect": {
+        "x": 275,
+        "y": 172.6,
+        "width": 969,
+        "height": 105.6
+      },
+      "display": "flex",
+      "gap": "20px",
+      "padding": "0px 0px 20px",
+      "fontSize": "13px",
+      "columns": "none"
+    },
+    {
+      "selector": ".optionsModeBar",
+      "tag": "section",
+      "class": "optionsModeBar",
+      "rect": {
+        "x": 275,
+        "y": 294.2,
+        "width": 969,
+        "height": 197.6
+      },
+      "display": "grid",
+      "gap": "12px",
+      "padding": "20px",
+      "fontSize": "13px",
+      "columns": "927px"
+    },
+    {
+      "selector": ".optionsModeGrid",
+      "tag": "div",
+      "class": "optionsModeGrid",
+      "rect": {
+        "x": 296,
+        "y": 369.8,
+        "width": 927,
+        "height": 43
+      },
+      "display": "grid",
+      "gap": "9px",
+      "padding": "0px",
+      "fontSize": "13px",
+      "columns": "225px 225px 225px 225px"
+    },
+    {
+      "selector": ".modeSelectionRow",
+      "tag": "div",
+      "class": "modeSelectionRow",
+      "rect": {
+        "x": 296,
+        "y": 428.8,
+        "width": 927,
+        "height": 42
+      },
+      "display": "flex",
+      "gap": "10px 16px",
+      "padding": "11px 0px 0px",
+      "fontSize": "13px",
+      "columns": "none"
+    },
+    {
+      "selector": ".modeActions",
+      "tag": "div",
+      "class": "actions modeActions",
+      "rect": {
+        "x": 1109,
+        "y": 440.8,
+        "width": 114,
+        "height": 30
+      },
+      "display": "flex",
+      "gap": "8px",
+      "padding": "0px",
+      "fontSize": "13px",
+      "columns": "none"
+    },
+    {
+      "selector": ".listSection",
+      "tag": "section",
+      "class": "listSection",
+      "rect": {
+        "x": 275,
+        "y": 507.8,
+        "width": 969,
+        "height": 327
+      },
+      "display": "grid",
+      "gap": "0px",
+      "padding": "20px",
+      "fontSize": "13px",
+      "columns": "927px"
+    },
+    {
+      "selector": ".proxyRecord",
+      "tag": "article",
+      "class": "record proxyRecord isChosen",
+      "rect": {
+        "x": 296,
+        "y": 586.3,
+        "width": 927,
+        "height": 66
+      },
+      "display": "grid",
+      "gap": "13px",
+      "padding": "11px 168px 11px 9px",
+      "fontSize": "13px",
+      "columns": "34px 703px"
+    },
+    {
+      "selector": ".proxyRecord",
+      "tag": "article",
+      "class": "record proxyRecord",
+      "rect": {
+        "x": 296,
+        "y": 652.3,
+        "width": 927,
+        "height": 66
+      },
+      "display": "grid",
+      "gap": "13px",
+      "padding": "11px 168px 11px 9px",
+      "fontSize": "13px",
+      "columns": "34px 703px"
+    },
+    {
+      "selector": ".proxyRecord",
+      "tag": "article",
+      "class": "record proxyRecord",
+      "rect": {
+        "x": 296,
+        "y": 718.3,
+        "width": 927,
+        "height": 66
+      },
+      "display": "grid",
+      "gap": "13px",
+      "padding": "11px 168px 11px 9px",
+      "fontSize": "13px",
+      "columns": "34px 703px"
+    }
+  ],
+  "controls": [
+    {
+      "tag": "button",
+      "id": "",
+      "type": "button",
+      "label": "返回代理配置",
+      "disabled": false,
+      "visible": true
+    },
+    {
+      "tag": "button",
+      "id": "",
+      "type": "button",
+      "label": "刷新状态",
+      "disabled": false,
+      "visible": true
+    },
+    {
+      "tag": "button",
+      "id": "",
+      "type": "button",
+      "label": "查看真实控制状态 →",
+      "disabled": false,
+      "visible": true
+    },
+    {
+      "tag": "button",
+      "id": "",
+      "type": "button",
+      "label": "代理配置",
+      "disabled": false,
+      "visible": true
+    },
+    {
+      "tag": "button",
+      "id": "",
+      "type": "button",
+      "label": "网站规则",
+      "disabled": false,
+      "visible": true
+    },
+    {
+      "tag": "button",
+      "id": "",
+      "type": "button",
+      "label": "订阅管理",
+      "disabled": false,
+      "visible": true
+    },
+    {
+      "tag": "button",
+      "id": "",
+      "type": "button",
+      "label": "导入备份",
+      "disabled": false,
+      "visible": true
+    },
+    {
+      "tag": "button",
+      "id": "",
+      "type": "button",
+      "label": "网络诊断",
+      "disabled": false,
+      "visible": true
+    },
+    {
+      "tag": "button",
+      "id": "",
+      "type": "button",
+      "label": "通用设置",
+      "disabled": false,
+      "visible": true
+    },
+    {
+      "tag": "button",
+      "id": "",
+      "type": "button",
+      "label": "官方网络",
+      "disabled": false,
+      "visible": true
+    },
+    {
+      "tag": "button",
+      "id": "",
+      "type": "button",
+      "label": "＋ 添加代理",
+      "disabled": false,
+      "visible": true
+    },
+    {
+      "tag": "button",
+      "id": "",
+      "type": "button",
+      "label": "使用代理",
+      "disabled": false,
+      "visible": true
+    },
+    {
+      "tag": "button",
+      "id": "",
+      "type": "button",
+      "label": "按规则",
+      "disabled": false,
+      "visible": true
+    },
+    {
+      "tag": "button",
+      "id": "",
+      "type": "button",
+      "label": "直接连接",
+      "disabled": false,
+      "visible": true
+    },
+    {
+      "tag": "button",
+      "id": "",
+      "type": "button",
+      "label": "跟随系统",
+      "disabled": false,
+      "visible": true
+    },
+    {
+      "tag": "button",
+      "id": "",
+      "type": "button",
+      "label": "应用配置",
+      "disabled": false,
+      "visible": true
+    },
+    {
+      "tag": "button",
+      "id": "",
+      "type": "button",
+      "label": "暂停",
+      "disabled": false,
+      "visible": true
+    },
+    {
+      "tag": "button",
+      "id": "",
+      "type": "button",
+      "label": "导入订阅 ↗",
+      "disabled": false,
+      "visible": true
+    },
+    {
+      "tag": "button",
+      "id": "",
+      "type": "button",
+      "label": "取消收藏：香港节点 · 主用",
+      "disabled": false,
+      "visible": true
+    },
+    {
+      "tag": "button",
+      "id": "",
+      "type": "button",
+      "label": "选择 香港节点 · 主用",
+      "disabled": false,
+      "visible": true
+    },
+    {
+      "tag": "button",
+      "id": "settings-proxy-hk",
+      "type": "button",
+      "label": "编辑 香港节点 · 主用",
+      "disabled": false,
+      "visible": true
+    },
+    {
+      "tag": "button",
+      "id": "",
+      "type": "button",
+      "label": "删除 香港节点 · 主用",
+      "disabled": true,
+      "visible": true
+    },
+    {
+      "tag": "button",
+      "id": "",
+      "type": "button",
+      "label": "取消收藏：美国节点 · 备用",
+      "disabled": false,
+      "visible": true
+    },
+    {
+      "tag": "button",
+      "id": "",
+      "type": "button",
+      "label": "选择 美国节点 · 备用",
+      "disabled": false,
+      "visible": true
+    },
+    {
+      "tag": "button",
+      "id": "settings-proxy-us",
+      "type": "button",
+      "label": "编辑 美国节点 · 备用",
+      "disabled": false,
+      "visible": true
+    },
+    {
+      "tag": "button",
+      "id": "",
+      "type": "button",
+      "label": "删除 美国节点 · 备用",
+      "disabled": true,
+      "visible": true
+    },
+    {
+      "tag": "button",
+      "id": "",
+      "type": "button",
+      "label": "收藏：本地 Clash",
+      "disabled": false,
+      "visible": true
+    },
+    {
+      "tag": "button",
+      "id": "",
+      "type": "button",
+      "label": "选择 本地 Clash",
+      "disabled": false,
+      "visible": true
+    },
+    {
+      "tag": "button",
+      "id": "settings-proxy-clash",
+      "type": "button",
+      "label": "编辑 本地 Clash",
+      "disabled": false,
+      "visible": true
+    },
+    {
+      "tag": "button",
+      "id": "",
+      "type": "button",
+      "label": "删除 本地 Clash",
+      "disabled": true,
+      "visible": true
+    },
+    {
+      "tag": "select",
+      "id": "pac-starter-mode",
+      "type": "select-one",
+      "label": "指定网站走代理，其他网站直连所有网站都走所选代理",
+      "disabled": false,
+      "visible": true
+    },
+    {
+      "tag": "select",
+      "id": "pac-starter-endpoint",
+      "type": "select-one",
+      "label": "请选择已保存代理香港节点 · 主用 · SOCKS5 · proxy.example.com:7890美国节点 · 备用 · SOCKS5 · us.example.net:1080本地 Clash ",
+      "disabled": false,
+      "visible": true
+    },
+    {
+      "tag": "input",
+      "id": "pac-starter-site",
+      "type": "text",
+      "label": "需要走代理的网站域名",
+      "disabled": false,
+      "visible": true
+    },
+    {
+      "tag": "button",
+      "id": "",
+      "type": "button",
+      "label": "生成并填入下方脚本",
+      "disabled": false,
+      "visible": true
+    },
+    {
+      "tag": "input",
+      "id": "pac-name",
+      "type": "text",
+      "label": "PAC 名称",
+      "disabled": false,
+      "visible": true
+    },
+    {
+      "tag": "textarea",
+      "id": "pac-text",
+      "type": "textarea",
+      "label": "FindProxyForURL 脚本",
+      "disabled": false,
+      "visible": true
+    },
+    {
+      "tag": "button",
+      "id": "",
+      "type": "submit",
+      "label": "保存本地 PAC",
+      "disabled": false,
+      "visible": true
+    },
+    {
+      "tag": "input",
+      "id": "r83-target-host",
+      "type": "text",
+      "label": "目标网站域名",
+      "disabled": false,
+      "visible": true
+    },
+    {
+      "tag": "input",
+      "id": "r83-threshold",
+      "type": "number",
+      "label": "每几次访问轮换代理",
+      "disabled": false,
+      "visible": true
+    },
+    {
+      "tag": "input",
+      "id": "r83-max-attempts",
+      "type": "number",
+      "label": "访问尝试总上限",
+      "disabled": false,
+      "visible": true
+    },
+    {
+      "tag": "input",
+      "id": "r83-interval",
+      "type": "number",
+      "label": "请求间隔（毫秒）",
+      "disabled": false,
+      "visible": true
+    },
+    {
+      "tag": "input",
+      "id": "",
+      "type": "checkbox",
+      "label": "",
+      "disabled": false,
+      "visible": true
+    },
+    {
+      "tag": "input",
+      "id": "",
+      "type": "checkbox",
+      "label": "",
+      "disabled": false,
+      "visible": true
+    },
+    {
+      "tag": "input",
+      "id": "",
+      "type": "checkbox",
+      "label": "",
+      "disabled": false,
+      "visible": true
+    },
+    {
+      "tag": "input",
+      "id": "",
+      "type": "checkbox",
+      "label": "",
+      "disabled": false,
+      "visible": true
+    },
+    {
+      "tag": "button",
+      "id": "",
+      "type": "submit",
+      "label": "保存规则（不启动）",
+      "disabled": true,
+      "visible": true
+    },
+    {
+      "tag": "button",
+      "id": "",
+      "type": "button",
+      "label": "清除已保存规则",
+      "disabled": true,
+      "visible": true
+    },
+    {
+      "tag": "button",
+      "id": "",
+      "type": "button",
+      "label": "了解官方网络 →",
+      "disabled": false,
+      "visible": true
+    }
+  ],
+  "dialogs": []
+}

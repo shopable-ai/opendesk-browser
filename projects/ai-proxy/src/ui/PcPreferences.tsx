@@ -59,7 +59,7 @@ export function PcPreferences(){
   return <>
     <article className="record languageRecord"><ProxyIcon name="globe"/><div><strong>{t('interfaceLanguage')}</strong><small>{t('languageHelp')}</small></div>
       <select aria-label={t('interfaceLanguage')} value={preference} onChange={event=>{setLanguageError(false);void setPreference(event.target.value as UiLocalePreference).catch(()=>setLanguageError(true));}}>
-        <option value="auto">{t('autoBrowserLanguage')}</option><option value="zh-CN">{t('simplifiedChinese')}</option><option value="zh-TW">{t('traditionalChinese')}</option><option value="en">{t('englishLanguage')}</option>
+        <option value="auto">{t('pcAutoLanguage')}</option><option value="zh-CN">{t('simplifiedChinese')}</option><option value="zh-TW">{t('traditionalChinese')}</option><option value="en">{t('englishLanguage')}</option>
       </select></article>
     {languageError&&<p role="alert">{t('languageSettingFailure')}</p>}
     <article className="record"><ProxyIcon name="refresh"/><div><strong><label htmlFor="show-status-on-open">{t('pcShowStatus')}</label></strong><small>{t('pcShowStatusHelp')}</small></div>

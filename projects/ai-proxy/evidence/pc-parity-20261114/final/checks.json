@@ -1,0 +1,39 @@
+{
+  "candidate": "e63734281037aab0cbf15b390b5ce4f693f9e165fe9d6b832b6c97e54ba40939",
+  "targetedNode": {
+    "core": 86,
+    "related": 28,
+    "fail": 0
+  },
+  "sourceClosureTests": {
+    "pass": 2,
+    "fail": 0
+  },
+  "trustedPins": 67,
+  "frozenInputs": 95,
+  "frozenInputDrift": [],
+  "referenceUnchanged": true,
+  "cssParse": "PASS",
+  "localeKeySets": "PASS",
+  "diffCheck": "PASS",
+  "browserInteractions": {
+    "steps": 17,
+    "status": "PASS",
+    "method": "semantic keyboard Enter / Space",
+    "receipt": {
+      "reviews": 0,
+      "apply": 0,
+      "stop": 0,
+      "save": 1
+    }
+  },
+  "pointerAcceptance": "NOT_TESTED",
+  "nativeCurrentCandidate": "NOT_TESTED",
+  "deferred": [
+    "real network / APPLY / STOP",
+    "authentication / arbitrary PAC / online subscriptions",
+    "production / full CI / stress",
+    "formal JSON promotion / installation"
+  ],
+  "historicalTestFailures": "Tests were updated for new localized labels and React boolean children; 86+28 passed before final CSS-only revision. No implementation JS changed after those passing checks. Browser interaction evidence was rerun against the final HTML."
+}

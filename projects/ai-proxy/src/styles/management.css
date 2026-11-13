@@ -15,7 +15,7 @@
   :scope .managementTitle { margin:0; font-size:16px; line-height:1.5; }
   :scope .options .settingsRefresh { display:inline-flex; align-items:center; gap:8px; min-height:36px; flex:none; white-space:nowrap; }
   :scope .options .layout { display:grid; grid-template-columns:215px minmax(0,1fr); align-items:stretch; gap:0; background:var(--soft); }
-  :scope .managementNav { display:grid; align-content:start; gap:4px; position:sticky; top:64px; padding:24px 13px; }
+  :scope .managementNav { display:grid; align-content:start; gap:2px; position:sticky; top:64px; padding:24px 13px; }
   :scope .managementNav button { display:flex; align-items:center; justify-content:flex-start; gap:10px; position:relative; width:100%; min-height:44px; padding:10px 12px; border:0; background:transparent; color:var(--muted); text-align:left; }
   :scope .managementNav button[aria-current="page"] { background:var(--accentFill); color:var(--accent); font-weight:650; }
   :scope .managementNav button[aria-current="page"]::before { content:''; position:absolute; left:0; top:12px; bottom:12px; width:3px; border-radius:3px; background:var(--accent); }
@@ -62,7 +62,7 @@
   :scope .managementNav button { border-radius:9px; min-height:42px; }
   :scope .managementNav button[aria-current="page"]::before { display:none; }
   :scope .options .panel.optionsContent { border-left:0; min-height:650px; }
-  :scope .options .optionsPageHead { padding-bottom:20px; margin-bottom:6px; border-bottom:1px solid var(--line); }
+  :scope .options .optionsPageHead { padding-bottom:20px; margin-bottom:23px; border-bottom:1px solid var(--line); }
   :scope .managementIdentity { display:flex; align-items:center; gap:11px; min-width:0; }
   :scope .managementAppIcon { display:grid; place-items:center; width:36px; height:36px; flex:none; border-radius:9px; background:var(--ink); color:var(--surface); font-size:12px; font-weight:800; }
   :scope .managementBrandCopy { display:grid; min-width:0; gap:2px; }
@@ -84,6 +84,7 @@
   :scope .optionsProfileSelect label { flex:none; font-size:12px; }
   :scope .optionsProfileSelect select { flex:1; min-width:160px; max-width:360px; }
   :scope .options .modeActions { display:flex; flex:none; align-items:center; flex-wrap:wrap; gap:8px; padding:0; border:0; }
+  :scope .options .modeActions button { min-height:30px; padding:5px 9px; font-size:11px; }
   :scope .options .modeActions small { display:none; }
   :scope .options .managementModeCaveat { margin-left:12px; color:var(--muted); font-size:11px; font-weight:400; }
   :scope .options .runtimeDetails { margin:0; }
@@ -129,6 +130,7 @@
     padding:12px 8px; border:0; border-radius:0; background:var(--surface);
   }
   :scope .options .profileRecords .proxyRecord + .proxyRecord { border-top:1px solid var(--line); }
+  :scope .options .profileRecords .proxyRecord:last-child { border-bottom:1px solid var(--line); }
   :scope .options .profileRecords .proxyRecord:hover { background:var(--soft); }
   :scope .options .profileRecords .proxyRecord .proxyRecordTitle {
     display:flex; flex-wrap:wrap; gap:6px; align-items:center;
@@ -136,19 +138,21 @@
   :scope .options .profileRecords .proxyRecord .proxyRecordTitle strong { font-weight:680; }
   :scope .options .profileRecords .proxyRecord .proxySelect {
     display:grid; place-items:center; width:34px; height:34px; min-height:34px;
-    border:1px solid var(--line); border-radius:8px;
-    background:var(--soft); color:var(--muted);
+    border:1px solid transparent; border-radius:8px;
+    background:transparent; color:var(--muted);
   }
   :scope .options .profileRecords .proxyRecord .proxySelect[aria-pressed="true"] {
     color:var(--good); border-color:transparent; background:light-dark(#e8f7f0,color-mix(in srgb,var(--good) 14%,var(--surface)));
   }
   :scope .managementProtocolLetter { font-size:12px; font-weight:750; line-height:1; }
-  :scope .managementRecordTag {
+  :scope .options .managementRecordTag {
     display:inline-flex; align-items:center; flex:none; padding:2px 6px;
     background:var(--accentFill); color:var(--accent);
     border-radius:5px; font-size:10px; font-weight:650; line-height:1.5;
   }
-  :scope .managementRecordTag.managementAppliedTag { background:var(--goodBg); color:var(--good); }
+  :scope .options .managementRecordTag.managementAppliedTag { background:var(--goodBg); color:var(--good); }
+  :scope .options .pcProxyLimit { margin:13px 0 0; font-size:11px; line-height:1.5; }
+  :scope .options :is(.recordActions,.ruleRecord .actions) .quietDanger { color:var(--muted); }
   :scope .options .profileSourceLinks { border-top:1px solid var(--line); padding-top:12px; }
   :scope .managementEmptyState {
     display:grid; place-items:center; min-height:120px; padding:18px;
@@ -173,6 +177,7 @@
     grid-template-columns:repeat(4,minmax(0,1fr)); gap:10px;
   }
   :scope .options .diagnosticMetrics > div { padding:12px; gap:4px; }
+  :scope .options .diagnosticMetrics strong { font-size:14px; font-weight:650; }
   :scope .options .diagnosticPanel { padding-top:0; }
   :scope .options .diagnosticOverview {
     grid-template-columns:repeat(2,minmax(0,1fr)); gap:13px;
@@ -265,27 +270,29 @@
   :scope .options .profileRecords .recordActions > .quietDanger:hover:not(:disabled) {
     color:light-dark(#bd4658,var(--bad)); background:light-dark(#fff1f3,var(--badBg));
   }
-  :scope .options .rulesPage .rulesList { background:var(--surface); margin-top:7px; padding:0; border:0; border-top:1px solid var(--line); border-radius:0; }
+  :scope .options .rulesPage .rulesList { background:var(--surface); margin-top:0; padding:0; gap:0; border:0; border-top:1px solid var(--line); border-radius:0; }
   :scope .options .rulesPage .rulesList .records { margin:0; border:0; border-radius:0; }
   :scope .options .rulesPage .ruleRecord {
     border-bottom:1px solid var(--line); padding:12px 8px; min-height:58px;
   }
-  :scope .options .rulesPage .rulesList .records > .ruleRecord { padding:10px 8px; margin:0; min-height:62px; }
+  :scope .options .rulesPage .rulesList .records > .ruleRecord { padding:10px 0; margin:0; min-height:62px; align-content:center; }
   :scope .options .rulesPage .ruleRecord:last-child { border-bottom:1px solid var(--line); }
   :scope .options .rulesPage .ruleRecord:hover { background:light-dark(#fbfcfe,var(--soft)); }
   :scope .options .rulesPage .ruleRecord .actions { display:flex; gap:5px; }
   :scope .options .rulesPage .managementRulesHeader,
   :scope .options .rulesPage .ruleRecord {
     display:grid;
-    grid-template-columns:22px minmax(0,1.45fr) minmax(90px,1fr) 53px 76px;
+    grid-template-columns:22px minmax(0,1.45fr) minmax(90px,1fr) 53px 67px;
     align-items:center; gap:9px;
   }
   :scope .options .rulesPage .managementRulesHeader {
-    min-height:34px; padding:6px 8px; border-bottom:1px solid var(--line); background:var(--surface);
+    grid-template-columns:22px minmax(0,1.45fr) minmax(90px,1fr) 53px auto;
+    min-height:34px; padding:6px 0; border-bottom:1px solid var(--line); background:var(--surface);
     color:light-dark(#758397,var(--muted)); font-size:11px; font-weight:650;
   }
   :scope .options .rulesPage .managementRulesHeader > span:first-child { white-space:nowrap; }
   :scope .options .rulesPage .ruleRecordText { min-width:0; display:grid; gap:3px; }
+  :scope .options .rulesPage .ruleRecordText strong { font-weight:550; }
   :scope .options .rulesPage .ruleRecordText strong,
   :scope .options .rulesPage .managementRuleTarget {
     min-width:0; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;
@@ -301,7 +308,7 @@
   :scope .options .rulesPage .ruleRecord .actions {
     justify-content:flex-end; flex-wrap:nowrap; white-space:nowrap;
   }
-  :scope .options .rulesPage .rulesDefault { display:grid; grid-template-columns:max-content 170px 1fr max-content; align-items:center; gap:8px 12px; padding:0; border:0; }
+  :scope .options .rulesPage .rulesDefault { display:grid; grid-template-columns:max-content 210px 1fr max-content; align-items:center; gap:8px 12px; padding:0; border:0; }
   :scope .options .rulesDefault > h2 { display:block; grid-column:1; grid-row:1; margin:0; font-size:12px; font-weight:500; color:var(--muted); }
   :scope .options .rulesDefault > .hint { display:block; grid-column:3; grid-row:1; margin:0; font-size:11px; line-height:1.5; text-align:right; white-space:normal; overflow:visible; text-overflow:clip; min-width:0; }
   :scope .options .rulesDefault .defaultRouteControl { grid-column:2; grid-row:1; }
@@ -357,20 +364,21 @@
   :scope .options .backupCard button { min-height:30px; padding:6px 9px; }
   :scope .options .backupFileDetails { border-top:0; padding-top:0; }
   :scope .options .backupFileDetails summary { cursor:pointer; font-size:12px; color:var(--muted); }
-  :scope .options .backupCompatibility { border-top:1px solid var(--line); padding-top:16px; }
+  :scope .options .backupCompatibility { display:grid; gap:22px; margin-top:20px; border-top:1px solid var(--line); padding-top:16px; }
   :scope .options .generalGroupHeading { margin:0; padding:14px 0 6px; color:var(--muted); font-size:11px; font-weight:650; }
   :scope .options .generalGroupHeading:not(:first-child) { padding-top:28px; }
   :scope .options .generalGrid > .record { background:var(--surface); }
   :scope .options .generalPreferences { padding:20px; border:1px solid var(--line); border-radius:11px; background:var(--surface); }
-  :scope .options .generalPreferences > h3 { margin:0 0 12px; font-size:15px; }
+  :scope .options .generalPreferences > h3 { margin:0 0 4px; font-size:15px; }
   :scope .options .generalPreferences .record { display:flex; align-items:center; gap:12px; min-height:65px; padding:13px 2px; border:0; border-bottom:1px solid var(--line); border-radius:0; background:transparent; }
   :scope .options .generalPreferences .record > div { flex:1; }
   :scope .options .generalPreferences .languageRecord { flex-wrap:nowrap; display:flex; }
-  :scope .options .generalPreferences .languageRecord select { width:auto; max-width:210px; flex:none; }
+  :scope .options .generalPreferences .languageRecord select { width:114px; max-width:40%; flex:none; }
   :scope .options .generalPreferences .record:last-child { border-bottom:0; }
   :scope .options .generalPreferences .record > svg { flex:none; width:20px; height:20px; color:var(--muted); }
   :scope .options .generalPreferences .record strong { font-size:12px; }
   :scope .options .generalPreferences .record small { font-size:11px; }
+  :scope .options .generalPreferences .pcHostTheme { background:var(--soft); color:var(--muted); }
   :scope .options .generalSecondary { margin-top:16px; padding:16px 20px; border:1px solid var(--line); border-radius:11px; }
   :scope .options .generalSecondary > summary { cursor:pointer; color:var(--muted); font-size:12px; }
   :scope .options .generalGrid > .record:last-child { border-bottom:0; }
@@ -439,12 +447,12 @@
   }
 
   :scope .options .sourcesManagementTabs {
-    display:flex; gap:20px; padding:0; margin-bottom:16px;
+    display:flex; gap:5px; padding:0; margin-bottom:3px;
     max-width:100%; border:0; border-bottom:1px solid var(--line);
     border-radius:0; background:transparent;
   }
   :scope .options .sourcesManagementTabs button {
-    min-height:40px; padding:8px 0; border:0; border-bottom:2px solid transparent; background:transparent;
+    min-height:40px; padding:8px 13px; border:0; border-bottom:2px solid transparent; background:transparent;
     color:var(--muted); border-radius:0;
   }
   :scope .options .sourcesManagementTabs button[aria-selected="true"] {
@@ -463,6 +471,8 @@
     margin:0; padding:0;
   }
   :scope .options .officialServicePanel { display:grid; gap:16px; padding:20px; border:1px solid var(--line); border-radius:11px; }
+  :scope .options .officialServicePanel > .notice { display:flex; align-items:baseline; flex-wrap:wrap; gap:4px 8px; margin:0; padding:11px 13px; }
+  :scope .options .officialServicePanel > .notice p { margin:0; font-size:12px; line-height:1.55; }
   :scope .options .officialServicePanel .officialEmpty { min-height:0; padding:16px; gap:10px; }
   :scope .options .officialServicePanel .officialEmptyIcon { display:none; }
   :scope .options .officialServicePanel .officialEmpty h3 { font-size:14px; }
@@ -480,6 +490,7 @@
   :scope .options .sourcesManagement .subscriptionIndexRow .recordActions { display:flex; flex-wrap:nowrap; gap:3px; }
   @media(max-width:720px) { :scope .options .officialManagementSummary { grid-template-columns:repeat(2,minmax(0,1fr)); } }
 
+  :scope .options .pacDetails { background:light-dark(#f8fafc,var(--soft)); }
   :scope .options .pacDetails > summary { display:block; padding:20px; }
   :scope .options .pacDetails > summary .pcPacHeading { display:flex; align-items:flex-start; justify-content:space-between; gap:16px; }
   :scope .options .pcPacHeading > span:first-child { display:grid; gap:4px; }
@@ -497,7 +508,7 @@
   :scope .options .diagnosticOverviewCards p { margin:0; font-size:12px; color:var(--muted); }
   :scope .options .diagnosticOverviewCards .actions { margin-top:auto; gap:8px; }
   :scope .options .diagnosticOverviewCards button { font-size:12px; }
-  :scope .options .diagnosticHost { font-size:20px; }
+  :scope .options .diagnosticHost { font-size:22px; }
   :scope .options .diagnosticReading { display:grid; gap:3px; padding:12px; background:var(--soft); border:1px solid var(--line); border-radius:9px; }
   :scope .options .diagnosticReading strong { font-size:16px; }
   :scope .options .diagnosticReading small { font-size:11px; color:var(--muted); }
@@ -515,11 +526,12 @@
   @media(max-width:850px) { :scope .options .diagnosticOverviewCards, :scope .options .diagnosticOverviewShortcuts { grid-template-columns:1fr; } }
   :scope .options .proxyFavorite[aria-pressed="true"] { color:var(--accent); }
   :scope .options .proxyFavorite[aria-pressed="true"] svg { fill:currentColor; }
-  :scope .options .generalPreferences > .hint { margin:0 0 18px; font-size:12px; }
+  :scope .options .generalPreferences > .hint { margin:0 0 14px; font-size:12px; }
   :scope .options .diagnosticEvidenceDetails summary { cursor:pointer; border-top:1px solid var(--line); padding:16px 0; }
   :scope .options .diagnosticEvidenceDetails > .hint { padding-bottom:8px; }
   :scope .options .routeTester { background:var(--surface); }
   :scope .options .routeTester .rulesModeHint { padding:0; margin-top:0; border:0; background:transparent; }
+  :scope .options .routeTester .rulesModeHint button { background:var(--accentFill); color:var(--accent); border-color:color-mix(in srgb,var(--accent) 25%,var(--line)); }
   :scope .options .diagnosticAiSummary .diagnosticQuickSite:last-child { border-bottom:0; }
 }
 
@@ -535,10 +547,12 @@
   :scope .options .sourcesManagement .subscriptionRowMain { gap:4px; }
   :scope .options .sourcesManagement .subscriptionRowTitle { display:flex; align-items:center; flex-wrap:wrap; gap:7px; min-width:0; }
   :scope .options .sourcesManagement .subscriptionRowTitle .subscriptionRowStatus { padding:2px 6px; border-radius:5px; background:var(--soft); color:var(--muted); font-size:10px; line-height:1.5; }
-  :scope .options .sourcesManagement .sourceIntegrationHelp { background:var(--soft); }
+  :scope .options .sourcesManagement .sourceIntegrationHelp { background:light-dark(#f8fafc,var(--soft)); }
   :scope .options .sourcesManagement .sourceIntegrationHelp .sectionHeading { margin-bottom:4px; }
   :scope .options .sourcesManagement .sourceIntegrationHelp > .hint { margin:0; }
-  :scope .options .sourcesManagement .sourceIntegrationNotice { margin:14px 0 0; padding:11px 13px; border:1px solid color-mix(in srgb,var(--accent) 15%,var(--line)); border-radius:9px; background:var(--accentFill); color:var(--accent); font-size:12px; line-height:1.6; }
+  :scope .options .sourcesManagement .sourceIntegrationNotice { margin:10px 0 0; padding:9px 13px; border:1px solid color-mix(in srgb,var(--accent) 15%,var(--line)); border-radius:9px; background:var(--accentFill); color:var(--accent); font-size:12px; line-height:1.6; }
+  :scope .options .sourcesManagement .sourceHelpLinks { display:flex; flex-wrap:wrap; align-items:start; gap:0 18px; }
+  :scope .options .sourcesManagement .sourceHelpLinks details[open] { flex-basis:100%; }
   :scope .options .sourcesManagement .sourceIntegrationHelp > .sourceHelp { margin-top:10px; padding:0; border:0; background:transparent; }
   :scope .options .sourcesManagement .sourceIntegrationHelp details { margin:6px 0 0; padding:0; }
   :scope .options .sourcesManagement .sourceIntegrationHelp details > summary { padding:2px 0; }
