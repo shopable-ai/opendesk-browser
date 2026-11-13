@@ -1,0 +1,195 @@
+{
+  "schema": "opendesk.ai-scroll-navigation.settings-delivery.v1",
+  "recordedAt": "2026-11-13T12:58:42.607Z",
+  "stage": "core-development-and-importable-candidate",
+  "programId": "opendesk.ai-scroll-navigation",
+  "version": "0.4.21",
+  "revision": 24,
+  "package": {
+    "file": "projects/ai-scroll-navigation/ai-scroll-navigation.opendesk-page.json",
+    "fileSha256": "cc7ae5307816fa19b3a0550ff3efec72ea4fec2f10a72ffaff03c944a1ffb2bd",
+    "sourceHash": "15b5f924b997d1531cc7eb9114faa26e1759fa0c910cc8fdc8cc6bf394f09262",
+    "packageHash": "5d224e50172ae8603e47d520c7e31ca2a6afed4b867103916b5c91a8bd208c82",
+    "sourceBytes": 78081,
+    "pageRules": {
+      "matches": [
+        "https://chatgpt.com/*",
+        "https://chat.deepseek.com/*",
+        "https://gemini.google.com/*"
+      ],
+      "excludeMatches": [],
+      "runAt": "document_idle",
+      "allFrames": false,
+      "world": "USER_SCRIPT"
+    }
+  },
+  "changes": {
+    "navigationKeys": [
+      "regionTop",
+      "regionBottom",
+      "conversationTop",
+      "conversationBottom",
+      "turnPaging",
+      "showTurnCount",
+      "floatingTop"
+    ],
+    "trustedSettings": [
+      "label/htmlFor association for the existing shared Switch",
+      "visible pending/success/error receipt outside the scrollable settings content",
+      "four-language capability and effect descriptions"
+    ],
+    "existingFlowPreserved": [
+      "trusted input",
+      "CAS and full readback",
+      "unknown save reconciliation without automatic retry",
+      "five/six/seven-field compatibility",
+      "site scope and revocation"
+    ],
+    "pageRuntimeDelta": "Only the version header differs from 0.4.20/r23; all seven runtime consumers already existed."
+  },
+  "checks": [
+    {
+      "command": "npm test --prefix projects/ai-scroll-navigation",
+      "result": "PASS",
+      "pass": 357,
+      "fail": 0,
+      "skip": 0,
+      "reusedFromSameTask": true,
+      "rawLog": "artifacts/ai-scroll-settings-0421-20261113/project-tests.log",
+      "sha256": "2b6f40d23de9411b67cae4889e66afbd900d1ae684f3b70d2ac2f359cb7eeaf3"
+    },
+    {
+      "command": "node --test projects/ai-scroll-navigation/tests/navigation-settings.test.mjs projects/ai-scroll-navigation/tests/localization.test.mjs tests/environment/ai-scroll-react-manager-r38.test.mjs tests/environment/ai-scroll-config-r132.test.mjs tests/environment/page-install-package.test.mjs",
+      "result": "PASS",
+      "pass": 133,
+      "fail": 0,
+      "skip": 0,
+      "reusedFromSameTask": true,
+      "rawLog": "artifacts/ai-scroll-settings-0421-20261113/settings-contract-tests.log",
+      "sha256": "b06c101dc7e25ee9bb94ae42f07daed433de017f30dc395dbcf4026fc7d33932"
+    },
+    {
+      "command": "node --test tests/environment/page-install-package.test.mjs",
+      "result": "PASS",
+      "pass": 13,
+      "fail": 0,
+      "skip": 0,
+      "reusedFromSameTask": false,
+      "rawLog": "artifacts/ai-scroll-settings-0421-20261113/package-tests.log",
+      "sha256": "d15fe28b7d9b43bff1a75075ccfbe4c0b8171a00061ec735894485ecdbd849c3"
+    }
+  ],
+  "build": {
+    "command": "node scripts/build-program-project.mjs projects/ai-scroll-navigation --out artifacts/ai-scroll-settings-0421-20261113/build",
+    "mode": "production",
+    "scope": "Program source compilation; not production Browser acceptance",
+    "sourceModules": [
+      {
+        "path": "src/conversation.js",
+        "bytes": 41940,
+        "sha256": "b78d46ab39b84ebb0f5124c66e3bde3c35b566016997a6b70b740e76a8f05505"
+      },
+      {
+        "path": "src/floating-navigation.js",
+        "bytes": 24662,
+        "sha256": "397e652ecc7f7a774c3fcc5ac8c57edbcaa5b42d6b2aa96012be2f2dc5c4b2d5"
+      },
+      {
+        "path": "src/main.js",
+        "bytes": 3333,
+        "sha256": "ca65eb7508c945ca9d0e2c679f2bf277c0125e023c60fda61ee15aa3d1fbf9ed"
+      },
+      {
+        "path": "src/site-adapters.js",
+        "bytes": 3302,
+        "sha256": "91d285494dc45f28dccf1f88fef675a2de37f66aabb17c14ed6d93345a62ecb0"
+      },
+      {
+        "path": "src/site-configuration.js",
+        "bytes": 46547,
+        "sha256": "3fc032b70d14c50f7ebf13f80bd0c8ee3a4112fb7ca1b194561436ac18bcdae7"
+      }
+    ]
+  },
+  "packaging": {
+    "command": "node scripts/build-page-install-package.mjs --input artifacts/ai-scroll-settings-0421-20261113/build/program.opendesk-draft.json --out projects/ai-scroll-navigation/ai-scroll-navigation.opendesk-page.json --revision 24 --title \"AI 对话滚动导航\"",
+    "checks": {
+      "officialValidator": "PASS",
+      "compiledDraftPackageBytes": "PASS",
+      "currentAuthoringSource": "PASS",
+      "concurrentInputGuard": "PASS",
+      "pagePackageTests": {
+        "pass": 13,
+        "fail": 0,
+        "skip": 0
+      },
+      "pageBusinessChangeOnlyVersionHeader": true
+    },
+    "candidateBytesEqualUniquePackage": true,
+    "sourceInputGuard": "All snapshotted project source/test/trusted files unchanged across build and package write."
+  },
+  "browserComponent": {
+    "result": "PASS",
+    "scope": "actual React manager + shared Switch, simulated CAS storage; not installed Chrome",
+    "cases": [
+      {
+        "key": "regionTop",
+        "textClick": "PASS",
+        "spaceKey": "PASS"
+      },
+      {
+        "key": "regionBottom",
+        "textClick": "PASS",
+        "spaceKey": "PASS"
+      },
+      {
+        "key": "conversationTop",
+        "textClick": "PASS",
+        "spaceKey": "PASS"
+      },
+      {
+        "key": "conversationBottom",
+        "textClick": "PASS",
+        "spaceKey": "PASS"
+      },
+      {
+        "key": "turnPaging",
+        "textClick": "PASS",
+        "spaceKey": "PASS"
+      },
+      {
+        "key": "showTurnCount",
+        "textClick": "PASS",
+        "spaceKey": "PASS"
+      },
+      {
+        "key": "floatingTop",
+        "textClick": "PASS",
+        "spaceKey": "PASS"
+      }
+    ],
+    "reopen": "PASS",
+    "untrustedInput": "REJECTED",
+    "receiptVisible": true,
+    "outsideScrollableContent": true,
+    "rawResult": "artifacts/ai-scroll-settings-20261113/browser-result.json",
+    "sha256": "9d08af787e85adda0410dd2b067b936dbd0597eecfe3f6f2b47cfa6c3ba69429"
+  },
+  "trustedUI": {
+    "source": "projects/ai-scroll-navigation/trusted/react-controls.tsx",
+    "fixedConsumer": "src/ui/react/tabs/tools.tsx",
+    "delivery": "Browser static compilation; not carried by the Page JSON",
+    "sourceSha256": "6972fe77c5dfb0fc733c6f44806b5f42fce1e3b0bcf9d837e5df459055e17d7f",
+    "localizationSha256": "ef4f4ea1b26c691818c41d4cfc7a62fe01a2ab50c09817aae8ad03ca3f2bfde5",
+    "compilationEvidence": "Same-task esbuild fixture compiled the actual ScrollSiteManager and shared Switch before the recorded browser component checks."
+  },
+  "publication": "blocked",
+  "notTested": [
+    "Current installed Browser trusted settings code/update",
+    "Installation of 0.4.21/r24",
+    "Real ChatGPT/DeepSeek/Gemini operation for this candidate",
+    "Production Browser acceptance"
+  ],
+  "serviceChanges": "No Browser watcher/build output/profile or Native pairing changed.",
+  "note": "Test counts include repeated discovery across commands; they are execution counts, not a count of independent cases."
+}

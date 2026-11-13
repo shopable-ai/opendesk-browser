@@ -9,7 +9,7 @@ const critical = ['runs', 'results', 'commandJournal', 'frameworkKV'];
 function engine(options = {}) {
   const {rejectOptions, rows = []} = options;
   const durability = Object.hasOwn(options, 'durability') ? options.durability : 'strict';
-  const calls = [], operations = [];
+  const calls = [], operations = [], snapshot = structuredClone(rows);
   let aborted = false, completed = false, pending = 0;
   const native = {
     durability,
@@ -19,27 +19,51 @@ function engine(options = {}) {
       return {
         get(key) { operations.push(['get', store, key]); return request(undefined); },
         put(value, key) { operations.push(['put', store, value, key]); return request(key); },
-        openCursor() {
-          operations.push(['openCursor', store]);
-          let index = 0;
-          const next = () => {
-            const row = rows[index++];
-            return row ? {primaryKey: row.key, value: row.value, continue() { schedule(cursor, next); }} : null;
-          };
-          const cursor = {};
-          schedule(cursor, next);
-          return cursor;
-        }
+        openCursor(range, direction) { return cursorRequest(range, direction); },
+        openKeyCursor(range, direction) { return cursorRequest(range, direction, true); },
+        ...(options.fastRecords ? {getAllRecords({query, count, direction}) {
+          operations.push(['getAllRecords', store, {query, count, direction}]);
+          if (options.recordsThrow) throw options.recordsThrow;
+          if (options.recordsError) {
+            const req = {};
+            schedule(req, () => undefined, options.recordsError);
+            return req;
+          }
+          return request(select(query).slice(0, count).map(row => ({
+            key: row.key, primaryKey: row.key, value: row.value
+          })));
+        }} : {})
       };
     }
   };
-  function schedule(req, value) {
+  function select(range) {
+    if (!range) return snapshot;
+    return snapshot.filter(row => (range.lowerOpen ? row.key > range.lower : row.key >= range.lower) &&
+      (range.upperOpen ? row.key < range.upper : row.key <= range.upper))
+      .sort((a, b) => a.key < b.key ? -1 : a.key > b.key ? 1 : 0);
+  }
+  function cursorRequest(range, direction = 'next', keysOnly = false) {
+    operations.push([keysOnly ? 'openKeyCursor' : 'openCursor', range, direction]);
+    const entries = [...select(range)];
+    if (direction === 'prev') entries.reverse();
+    let index = 0;
+    const cursor = {};
+    const next = () => {
+      const row = entries[index++];
+      return row ? {primaryKey: row.key, ...(keysOnly ? {} : {value: row.value}),
+        continue() { schedule(cursor, next); },
+        advance(count) { index += count - 1; schedule(cursor, next); }} : null;
+    };
+    schedule(cursor, next);
+    return cursor;
+  }
+  function schedule(req, value, error) {
     pending++;
     setImmediate(() => {
       pending--;
       if (aborted || completed) return;
-      req.result = value();
-      req.onsuccess?.();
+      if (error) { req.error = error; req.onerror?.(); }
+      else { req.result = value(); req.onsuccess?.(); }
       setImmediate(() => {
         if (!pending && !aborted && !completed) { completed = true; native.oncomplete?.(); }
       });
@@ -129,4 +153,86 @@ test('raw readonly backup retains keys and values without invoking work or the k
   assert.deepEqual(result, scope.map(name => ({name, records: rows})));
   assert.deepEqual(e.calls, [[scope, 'readonly']]);
   assert.equal(e.operations.some(op => op[0] === 'get'), false);
+});
+
+// Native API boundary doubles: record paging is tested independently of product
+// callers. Native browser performance and disk durability are not claimed.
+function keyRanges(t) {
+  const previous = Object.getOwnPropertyDescriptor(globalThis, 'IDBKeyRange');
+  Object.defineProperty(globalThis, 'IDBKeyRange', {configurable: true, value: {
+    bound(lower, upper, lowerOpen = false, upperOpen = false) {
+      return {lower, upper, lowerOpen, upperOpen};
+    }
+  }});
+  t.after(() => {
+    if (previous) Object.defineProperty(globalThis, 'IDBKeyRange', previous);
+    else delete globalThis.IDBKeyRange;
+  });
+}
+const pageRows = () => ['other:z', 'page:03', 'page:01', 'page:04', 'page:02', 'pages:01']
+  .map(key => ({key, value: {id: key, nested: {saved: true}}}));
+for (const fastRecords of [true, false]) test('entry pages are bounded, ordered and resume by exact key: fast=' + fastRecords, async t => {
+  keyRanges(t);
+  const rows = pageRows(), e = engine({rows, fastRecords});
+  const result = await transact(e.db, ['frameworkKV'], 'readonly', async tx => {
+    const first = await tx.scanEntries('frameworkKV', {prefix: 'page:', limit: 2});
+    // A queued read in the same native transaction keeps the original snapshot.
+    rows.push({key: 'page:025', value: {inserted: true}});
+    const second = await tx.scanEntries('frameworkKV', {prefix: 'page:', limit: 2, afterKey: first.at(-1).key});
+    const end = await tx.scanEntries('frameworkKV', {prefix: 'page:', limit: 2, afterKey: second.at(-1).key});
+    return {first, second, end};
+  });
+  assert.deepEqual(result, {
+    first: ['page:01', 'page:02'].map(key => ({key, value: {id: key, nested: {saved: true}}})),
+    second: ['page:03', 'page:04'].map(key => ({key, value: {id: key, nested: {saved: true}}})), end: []
+  });
+  const reads = e.operations.filter(op => ['getAllRecords', 'openCursor'].includes(op[0]));
+  assert.equal(reads.length, 3);
+  assert.ok(reads.every(op => op[0] === (fastRecords ? 'getAllRecords' : 'openCursor')));
+  if (fastRecords) assert.deepEqual(reads.map(op => op[2]), [
+    {query: {lower: 'page:', upper: 'page:\uffff', lowerOpen: false, upperOpen: false}, count: 2, direction: 'next'},
+    {query: {lower: 'page:02', upper: 'page:\uffff', lowerOpen: true, upperOpen: false}, count: 2, direction: 'next'},
+    {query: {lower: 'page:04', upper: 'page:\uffff', lowerOpen: true, upperOpen: false}, count: 2, direction: 'next'}
+  ]);
+  assert.equal(e.aborted, false);
+});
+test('reverse, offset, value-only and key-only scans retain cursor behavior with fast API present', async t => {
+  keyRanges(t);
+  const e = engine({rows: pageRows(), fastRecords: true});
+  await transact(e.db, ['frameworkKV'], 'readonly', async tx => {
+    assert.deepEqual((await tx.scanEntries('frameworkKV', {prefix: 'page:', direction: 'prev', limit: 2}))
+      .map(row => row.key), ['page:04', 'page:03']);
+    assert.deepEqual((await tx.scanEntries('frameworkKV', {prefix: 'page:', offset: 1, limit: 2}))
+      .map(row => row.key), ['page:02', 'page:03']);
+    assert.deepEqual(await tx.keys('frameworkKV', {prefix: 'page:', limit: 2}), ['page:01', 'page:02']);
+    assert.deepEqual(await tx.scan('frameworkKV', {prefix: 'page:', limit: 1}),
+      [{id: 'page:01', nested: {saved: true}}]);
+  });
+  assert.equal(e.operations.some(op => op[0] === 'getAllRecords'), false);
+});
+for (const errorMode of ['recordsThrow', 'recordsError']) test('record fast-path failure aborts rather than retrying a cursor: ' + errorMode, async t => {
+  keyRanges(t);
+  const cause = new DOMException('Record read failed', 'UnknownError');
+  const e = engine({rows: pageRows(), fastRecords: true, [errorMode]: cause});
+  let continued = false;
+  await assert.rejects(transact(e.db, ['frameworkKV'], 'readwrite', async tx => {
+    await tx.put('frameworkKV', {pending: true}, 'page:pending');
+    await tx.scanEntries('frameworkKV', {prefix: 'page:', limit: 2});
+    continued = true;
+  }), error => error.code === 'E_SCHEMA' && error.cause === cause);
+  assert.equal(e.aborted, true);
+  assert.equal(continued, false);
+  assert.equal(e.operations.filter(op => op[0] === 'getAllRecords').length, 1);
+  assert.equal(e.operations.some(op => op[0] === 'openCursor'), false);
+});
+test('entry scan validation rejects invalid limits and resume keys before any scan', async t => {
+  keyRanges(t);
+  for (const options of [{limit: 0}, {limit: 1000002}, {afterKey: 'other:01'},
+    {afterKey: 'page:\uffff'}, {afterKey: 'page:01', offset: 1}, {afterKey: 'page:01', direction: 'prev'}]) {
+    const e = engine({rows: pageRows(), fastRecords: true});
+    await assert.rejects(transact(e.db, ['frameworkKV'], 'readonly', tx =>
+      tx.scanEntries('frameworkKV', {prefix: 'page:', ...options})), {code: 'E_SCHEMA'});
+    assert.equal(e.aborted, true);
+    assert.equal(e.operations.some(op => ['openCursor', 'getAllRecords'].includes(op[0])), false);
+  }
 });

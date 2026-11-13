@@ -98,12 +98,21 @@ function fixture({radius='28px',rightRadius=radius,paint=true,damage='',coarse=f
     onDispose:fn=>disposals.push(fn),setTimeout(){}};
   const engine={view:()=>state,wait:reason=>waits.push(reason)};
   const view=createQueueView({owner,createPageUI,assets:[],engine,
-    actions:{sendNow:id=>calls.push(id)}});
+    actions:{sendNow:id=>calls.push(id),enqueue:options=>calls.push(options)}});
   return {view,doc,form,surface,wrapper,editor,native,toolbar,parent,managed,waits,calls,
     snap:{ok:true,form,editor,sendButton:native},ui:getUI,
     state:value=>{state={...state,...value};},dispose:()=>disposals.forEach(fn=>fn())};
 }
 const panel=h=>h.ui('list').content.children[0];
+
+test('Shift clicking the crown requests paused admission while ordinary clicks keep automatic admission',()=>{
+  const h=fixture();h.view.place(h.snap);
+  const ui=h.ui('button'),button=ui.content.children[0];
+  const click=ui.listeners.find(row=>row.node===button&&row.event==='click').callback;
+  click({shiftKey:true});click({shiftKey:false});
+  assert.deepEqual(h.calls,[{paused:true},{paused:false}]);
+  assert.match(button.title,/Shift.*暂停/);
+});
 
 test('health visibility follows actual mounted controls and composer replacement',()=>{
   const h=fixture();assert.equal(h.view.isPlaced(h.snap),false);
@@ -124,8 +133,8 @@ test('new-chat composer shows one queue region and crown, then updates after nat
   assert.equal(h.managed.length,2,'polling reuses the same list and crown');
   assert.equal(h.ui('list').host.style.getPropertyValue('display'),'block');
   assert.equal(h.ui('button').host.style.getPropertyValue('display'),'inline-flex');
-  assert.match(panel(h).getAttribute('aria-label'),/首条消息/);
-  assert.match(h.ui('button').content.children[0].title,/首条消息/);
+  assert.equal(panel(h).getAttribute('aria-label'),'发送队列，暂无待发送消息');
+  assert.match(h.ui('button').content.children[0].title,/加入发送队列 · Ctrl \+ Enter/);
   assert.equal(h.view.place({...h.snap,route:'c/12345678',newConversation:false}),true);
   h.view.render();
   assert.equal(h.managed.length,2);
@@ -180,17 +189,48 @@ for(const overflowY of ['visible','hidden']){
   });
 }
 
-test('queue stays directly above the composer with only rows and expansion controls in every phase',()=>{
+test('queue keeps normal rows compact and avoids duplicating in-flight or unknown feedback',()=>{
   const h=fixture();assert.equal(h.view.place(h.snap),true);
   for(const phase of [null,'preparing','await-native-ready','await-stop','await-confirm','unknown']){
     h.state({answerGate:false,phase:phase==='unknown'?'unknown':'waiting',
-      reason:'原生草稿非空，等待用户处理',inFlight:phase?{id:'q1',phase}:null});
+      reason:'',inFlight:phase?{id:'q1',phase}:null});
     h.view.render();
     assert.deepEqual(panel(h).children.map(node=>node.className),['sq-rows']);
   }
   h.state({items:Array.from({length:4},(_,i)=>({id:'q'+i,text:'message '+i,state:'queued'})),
     phase:'waiting',inFlight:null});h.view.render();
   assert.deepEqual(panel(h).children.map(node=>node.className),['sq-rows','sq-more']);
+});
+
+test('blocked queue persistently exposes the reason and clears it when automatic sending resumes',()=>{
+  const h=fixture();assert.equal(h.view.place(h.snap),true);
+  h.state({answerGate:false,phase:'waiting',inFlight:null,
+    reason:'输入框有空白字符，清空后队列会自动继续'});
+  for(let i=0;i<3;i++)h.view.render();
+  const notice=panel(h).children.find(node=>node.className==='sq-waiting');
+  assert.ok(notice);assert.equal(notice.getAttribute('role'),'status');
+  assert.equal(notice.textContent,'输入框有空白字符，清空后队列会自动继续');
+  assert.equal(panel(h).children.filter(node=>node.className==='sq-waiting').length,1);
+  assert.equal(h.ui('button').content.children[1].hidden,true,'the reason does not expire in a toast');
+  assert.equal(panel(h).querySelectorAll('[data-id-row]').length,1);
+  h.state({items:[{id:'q1',text:'queued text',state:'paused'}]});h.view.render();
+  assert.equal(panel(h).children.some(node=>node.className==='sq-waiting'),false,
+    'paused rows must not promise automatic continuation');
+  h.state({items:[{id:'q1',text:'queued text',state:'queued'}]});h.view.render();
+  h.state({reason:'',phase:'sending',inFlight:{id:'q1',phase:'preparing'}});h.view.render();
+  assert.equal(panel(h).children.some(node=>node.className==='sq-waiting'),false);
+  h.state({items:[],phase:'waiting',inFlight:null,reason:'stale wait'});h.view.render();
+  assert.deepEqual(panel(h).children.map(node=>node.className),['sq-rows']);
+  assert.deepEqual(h.calls,[],'rendering feedback never sends or clears a draft');
+});
+
+test('unknown feedback remains attached to its row without an ordinary waiting notice',()=>{
+  const h=fixture();h.view.place(h.snap);
+  h.state({phase:'unknown',reason:'原生点击状态无法判定',inFlight:{id:'q1',phase:'unknown'},
+    items:[{id:'q1',text:'queued text',state:'unknown'}]});h.view.render();
+  assert.equal(panel(h).children.some(node=>node.className==='sq-waiting'),false);
+  assert.match(panel(h).querySelectorAll('button').find(node=>node.dataset.action==='status').title,
+    /不会自动重试/);
 });
 
 test('unknown result stays on its message with an accessible warning and no retry controls',()=>{

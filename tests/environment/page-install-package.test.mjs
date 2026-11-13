@@ -109,6 +109,32 @@ test('fresh import persists registered installation and explicit local proof wit
   assert.equal(f.executes,0);assert.equal(f.registers,1);
 });
 
+test('installed list reads version from its exact fixed source without changing installation or authority',async()=>{
+  const f=fixture(),sourceUtf8=source.replace('// @match','// @version 0.4.17\n// @match');
+  const pkg=await packageFor({version:'0.4.17',sourceUtf8,sourceHash:await digestUtf8(sourceUtf8)});
+  const installed=await f.import(pkg),before=structuredClone(f.rows());
+  f.restart();
+  const listed=await f.service.listPagePrograms({},{id:'test'});
+  assert.equal(listed.installed[0].version,'0.4.17');
+  assert.equal(listed.catalog[0].installed.version,'0.4.17');
+  assert.equal(listed.installed[0].manifestHash,installed.manifestHash);
+  assert.deepEqual(listed.installed[0].authorization,installed.authorization);
+  assert.deepEqual(f.rows(),before,'readback must not migrate or mutate an installation');
+  assert.equal(f.executes,0);assert.equal(f.previews,0);assert.equal(f.registers,1);
+
+  // A different candidate cannot supply the installed program's UI version.
+  const candidate=before.find(row=>row.tag==='page-candidate-v1');
+  await f.storage.transaction(['frameworkKV'],'readwrite',tx=>tx.put('frameworkKV',
+    {...candidate,manifestHash:'f'.repeat(64)},'page-candidate:'+canonical(['tool:test',pkg.programId,pkg.revision])));
+  assert.equal((await f.service.listPagePrograms({},{id:'test'})).installed[0].version,undefined);
+
+  await f.storage.transaction(['frameworkKV'],'readwrite',tx=>tx.put('frameworkKV',
+    {...candidate,sourceUtf8:sourceUtf8.replace('0.4.17','9.9.9')},
+    'page-candidate:'+canonical(['tool:test',pkg.programId,pkg.revision])));
+  assert.equal((await f.service.listPagePrograms({},{id:'test'})).installed[0].version,undefined,
+    'unverified source bytes must not advertise a newer compatible version');
+});
+
 test('same identity is a no-op including token/generation/proof/unknown cleanup; disabled stays disabled',async()=>{
   const f=fixture(),pkg=await packageFor(),first=await f.import(pkg),snapshot=structuredClone(f.rows()),cleanups=f.cleanups;
   assert.deepEqual(await f.import(pkg,first),first);assert.deepEqual(f.rows(),snapshot);
@@ -162,7 +188,7 @@ test('package upgrades reuse original installer CAS, scope approval and disabled
   }
 });
 
-test('pending managed UI cleanup cannot be overwritten by an upgrade',async()=>{
+test('pending managed UI cleanup is retained without blocking a disabled package upgrade',async()=>{
   const f=fixture(),pkg=await packageFor(),first=await f.import(pkg);
   f.cleanupUncertain=true;
   const disabled=await f.service.setInstalledPageEnabled({
@@ -175,11 +201,12 @@ test('pending managed UI cleanup cannot be overwritten by an upgrade',async()=>{
     sourceUtf8:altered,sourceHash:await digestUtf8(altered)});
   const before=structuredClone(f.installation()),registers=f.registers;
   const nativeBefore=structuredClone([...f.native.entries()]);
-  await assert.rejects(f.import(next,disabled),{code:'E_PAGE_CLEANUP_PENDING'});
-  // Preparing a new candidate/proof may persist those independent records.
-  // The installed version, authorization, native registration and execution
-  // MUST remain untouched after the cleanup-pending rejection.
-  assert.deepEqual(f.installation(),before);
+  const upgraded=await f.import(next,disabled);
+  assert.equal(upgraded.revision,2);assert.equal(upgraded.enabled,false);
+  assert.equal(upgraded.nativeState,'disabled');assert.equal(upgraded.managedCleanup.state,'unknown');
+  assert.equal(upgraded.authorization.installationId,before.authorization.installationId);
+  assert.equal(upgraded.authorization.generation,before.authorization.generation+1);
+  assert.deepEqual(f.installation().managedCleanup,before.managedCleanup);
   assert.deepEqual([...f.native.entries()],nativeBefore);
   assert.equal(f.registers,registers);
   assert.equal(f.previews,0);assert.equal(f.executes,0);

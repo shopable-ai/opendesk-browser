@@ -139,6 +139,8 @@ export default async function main({assets}) {
 
 清理失败、超时、回执缺失、身份不匹配、BFCache 文档或观察失败均保守保留未知/失败栅栏，不自动重试控制、不重放源码；同一文档中的后续安装版本也不能绕过未解决的清理。真实文档退出后才可解除对应文档限制。扩展重载导致账本丢失也不能据此宣布清理成功。
 
+上述限制作用于原文档的执行，不阻止安装、更新或卸载后重装。旧清理证据在原 Authority 中按原安装身份独立保留，界面分别显示安装成功和旧页面待清理；新文档按新授权正常运行。安装与清理的读回合同见[Page 安装持久化合同](page-import-persistence.zh-CN.md)。
+
 固定子帧资源通过项目 `pageFrames: [{resourceId,path}]` 声明本地已编译 JS，由原打包器冻结字节与 SHA。公开 `ui.createFrame({resourceId,data})` 只解析当前已安装固定源码声明的资源，复用原 Broker/Authority 核对安装身份、授权代数和精确父/子文档，并随受管 UI 清理；普通 iframe DOM 不获得这些能力。资源最多四项、单项 5 MiB、合计 6 MiB，不支持运行时导入。该合同不批准远程代码或厂商再分发。没有获授权资源入口的开发预览报 `E_FRAME_UNAVAILABLE`；不得把它当作绘图成功。
 
 R396 定向 Node 测试覆盖异步 dispose、停用/撤权/卸载及未知态；同候选 build 和真实 Chrome 安装证据由各自验收记录提供，不能从 Node PASS 推导。ChatGPT Mind Map 的真实回复按钮已在开发预览中原生点击，但没有厂商生产资源，转换仍阻塞；前序停用失败的源码修复尚未原生复验。

@@ -1,5 +1,112 @@
 # 鼠标手势响应与启动延迟优化
 
+## R6 · 2026-11-13 本机核验（验收未完成）
+
+**当前不能判断松开后的动作是否已足够快，也不能判断网页打开后是否及时可用。** 本机已核实已提交基线及工具包同源，但新 Browser 框架尚未成功构建、应用，Chrome 实际安装工具版本未核实；没有有效延迟样本，不报告改善百分比或 Chrome PASS。
+
+本节取代下文历史记录中的“尚未提交／需应用补丁”状态。`66617e66828869f4b17aaedb055289403fe61c26` 已包含在本机 `main` 的 `f41b40e0e25f24ed9a50dc95acac4c311560e0c2` 中，未重放 `changes.patch`，未重做 R1–R5，未创建分支、worktree 或 PR。
+
+### 环境与候选身份
+
+本机观察时间：2026-11-13 00:51（北京时间）。当前为**恢复后的旧静态 development 输出，持续开发服务未运行**，不是 production 验收包，也不是已确认应用 R6 的候选。
+
+| 项目 | 本轮观察 | 证据边界 |
+| --- | --- | --- |
+| Chrome | 运行 Helper 路径为 `157.0.8103.38`；磁盘应用已为 `157.0.8103.78` | 应用存在待更新差异；浏览器自身版本 UI 未核实，不混用磁盘版本与运行版本 |
+| Chrome 主程序 | `/Users/shopme/Applications/Google Chrome.app/Contents/MacOS/Google Chrome`，PID 44951 | 已有日常实例；没有启动新 Chrome/CFT 或操作他人的 CFT |
+| OpenDesk 扩展 ID | `ccfcjegpkdlgbclopjmadlcjedelidmf` | 来自现有 Side Panel 的实际 `chrome-extension://` URL |
+| 实际加载目录 | **未核实** | Chrome 工具不支持 claim 现有内部管理页；未换 surface 绕过该限制 |
+| 磁盘开发目录 | `/Users/shopme/Documents/workspace/opendesk-browser/dist/development` | 不代表 Chrome 已从此目录加载 |
+| 磁盘 Browser 名称／版本 | `OpenDesk Browser Developer` / `0.1.0` | 仅为还原后的 manifest；运行身份未闭合 |
+| 磁盘旧 revision | `e3fd4b6bccf7fe3e57fc063e284103b0763d0b0abebc45288795150461ecb2b8` | 文件时间 2026-11-12 14:32:40；不是 Chrome 已应用回执 |
+| 工具正式包 | `mouse-gestures` / `0.3.2`；`app.mouse-gestures` / revision `6` | `--check-project` 返回 `PROJECT_PACKAGE_MATCH`；**安装及运行未核实** |
+| 工具 SHA-256／大小 | `a0dccb7ebea18c856998b785845c92a8a955a52a43aa40b6ca991dc88109d772` / 56,840 字节 | 与已提交 R6 候选相同；未改正式 JSON |
+| Page sourceHash | `4a87d02601620029eba12b76e0424dce04fcb25aa8e84ddffca271677fe9c9c3` | 包内身份，未替代运行验证 |
+| 标准测试入口 | `http://127.0.0.1:43111/demo-form.html` | 端口由 PID 11384 的既有 `passive-form-proof.mjs` 服务占用；未覆盖、停止、刷新其页面或提交表单 |
+
+### 开发环境恢复及具体阻塞
+
+1. 只读检查未发现本仓库现有 dev watcher，原输出锁文件不存在。保留全部并行未提交改动；它们涉及 AI Proxy、Cookie Editor 和部分 Page 框架文件。
+2. 使用原 `npm run dev` 和输出锁恢复服务前，备份旧输出及 `.wxt/public`。首次准备资源时发生 `ENOSPC`，尚未进入 WXT 构建。恢复原输出 186 个文件并逐文件核对 SHA-256，恢复 `.wxt/public`，只释放本任务创建的备份占用。
+3. 当前可用空间变为约 1.18GB 后，按这一新环境证据重试一次。服务曾监听 `127.0.0.1:43119`，随后首次编译被原可信来源门禁拒绝：`Trusted AI Proxy source changed; review and re-pin: projects/ai-proxy/src/service.ts`，最终 `Failed to build tool-shell`。**这是并行输入的来源审阅阻塞，不是手势故障；未重置该文件、更新 pin 或绕过门禁。** 没有输入变化前不再重复构建。
+4. 失败构建产生 78 个文件，尚未达到 `RUNNING`。在原输出锁保护下移除本次半成品，从备份恢复旧 186 文件及 `.wxt/public`，核对全部哈希一致；服务已自行停止，锁已释放，没有 Chrome 重载或工具安装动作。
+5. 原生 UI 锁由另一个 owner 持有，申请返回 `native UI busy`。现有 Side Panel 正在 Cookie Editor，不争抢窗口、焦点、剪贴板、原生菜单或锁，不停止其他服务。这独立阻挡 Side Panel「调试 → 本地开发服务」和「扩展」安装版本核验。
+
+环境恢复的前置操作是：**由 AI Proxy 变更的原 owner 完成可信来源审阅并使原开发服务可成功编译，再在 UI 资源可用时核对已应用 revision。** 新框架运行身份确认后，才通过原「扩展」审阅链更新同 ID 手势包；本轮未颠倒该顺序。
+
+### 输入与计时边界
+
+用户后续明确允许使用 Computer Use 或 `opendesk ai` CLI 完成操作，不再以用户手持物理鼠标作为采样前置。CLI 已公开 `mouse.down --button right`、`mouse.move`、`mouse.up --button right` 接口；**本轮尚未发送输入，不能将接口存在计作真实手势通过**。后续样本须标记自动化来源，保留真实浏览器事件和可见效果，不能伪造 `isTrusted` 或用 DOM 调用、模拟授权回执替代。
+
+准备实际采样时，用同一份 Chrome Performance trace 关联导航、DOMContentLoaded、USER_SCRIPT ready、有效 mouseup 处理入口、策略读取前后与动作 API 调用；必要的临时非暂停日志点仅记录阶段，不记录网页正文、Cookie 或凭据。跨执行世界的裸 `performance.now()`、CLI 进程耗时、命令 ACK 或截图往返不能直接相减作为动作延迟。鼠标事件排队、处理入口、授权、动作派发、实际 Paint／导航效果各自保留边界。
+
+热态至少 30 次、页面新文档启动至少 10 次；新文档启动不冒称浏览器进程冷启动。先核对候选身份和一条核心操作，再扩充样本。失败率预先确定完成条件、超时及分母；没有同条件旧版基线，不计算改善比。
+
+| 指标 | 有效样本数 | P50 | P95 | 最大值 | 失败率 |
+| --- | --- | --- | --- | --- | --- |
+| 页面 DOM 完成 → Runtime ready | 0 | — | — | — | 未测（无分母） |
+| 有效手势 mouseup → 动作调用 | 0 | — | — | — | 未测（无分母） |
+| 动作调用 → 页面可见效果 | 0 | — | — | — | 未测（无分母） |
+
+`mouseup → 动作调用` P95 100ms 是待验目标；实际瓶颈及是否达标仍未知。共享 Page 启动队列是源码审查提出的潜在开销，尚无实机占时证据，不据此重构。
+
+### 当前 Chrome 功能验收状态
+
+| 验收范围 | 状态 | 原因 |
+| --- | --- | --- |
+| 左后退、右前进、上刷新、下到底 | NOT_TESTED | 新框架运行及安装版本前置未闭合 |
+| 已配置双段、未配置方向、不完整手势 | NOT_TESTED | 同上 |
+| 普通右键、Shift 右键、两种菜单策略 | NOT_TESTED | 同上；原生 UI 正由其他任务占用 |
+| Esc、失焦、隐藏、页面关闭 | NOT_TESTED | 无当前候选实际输入证据 |
+| 编辑区与应排除输入场景 | NOT_TESTED | 无当前候选实际输入证据 |
+| 设置停用立即失效、恢复 | NOT_TESTED | 未操作当前安装及其设置 |
+| loading 时停用、撤权、迟到回执 | NOT_TESTED | 原生证据缺失；静态安全疑点另做最小诊断，不冒充 Chrome 复现 |
+| HTTP(S)、SPA、受限页面 | NOT_TESTED | 未运行本轮功能链 |
+| 连续手势、切页、重复动作与残留监听 | NOT_TESTED | 无当前候选连续操作证据 |
+
+### 本轮文件、验证与原始证据
+
+当前业务源码与正式包未修改；本任务只持久修改本工作记录。项目 88 项、框架 213 项、清理 45 项沿用下文已提交历史证据，**未为环境问题重跑全套**。包同源核验、环境恢复及来源门禁结果不提升为 Chrome 功能或性能 PASS。
+
+最小 Node 诊断已复现一项既有框架安全竞态：`reconcile()` 的慢原生读取占住 mutation 队列，`revokePermissions()` 已同步记录精确站点权限撤销，但持久状态仍等待队列；`appExecution()` 的最后一次授权没有核对同步撤权 epoch，`storage.get` 仍可能返回旧 `enabled:true`。普通 ON 和撤权持久化完成后拒绝读取两个对照均通过。**这是产品授权链的 Node 组件失败证据，不是 Chrome 中已执行迟到动作的证据。**
+
+提议修复仅在原 `appExecution()` 入口捕获现有 `permissionEpoch(row)`，最终授权返回前核对相等，复用原拒绝路径；不增加桥调用、不缓存权限、不修改存储协议。该文件已有并行未提交改动，实际 owner／释放未核实；按 AGENTS 同文件单一落盘者规则，只准备精确补丁及内存加载验证，**不把补丁写进工作区产品文件**。回归代码临时加入原 `app-page-programs.test.mjs` 以获取红测，再归入同一补丁并精确撤回本任务新增测试段，测试文件最终与 HEAD 一致。
+
+| 最小诊断／拟议修复验证 | 结果 | 范围 |
+| --- | --- | --- |
+| 未修复产品＋新增定向用例 | 2 PASS / 1 FAIL | 最后一次授权期间撤权仍返回 ON；原始红测已保存 |
+| 内存加载拟议修复＋同一定向用例 | 3/3 PASS | 前置授权撤权、返回前撤权、无关站点撤权不误拒绝 |
+| 内存加载拟议修复＋完整受影响文件 | 40/40 PASS | 包含上述 3 项，不与定向数量相加；不是磁盘工作区已修复 |
+| `git apply --check` | PASS | 只核对补丁可应用，未实际应用 |
+
+精确补丁：`artifacts/mouse-gestures-latency/r6-mac-20261113/proposed-permission-epoch.patch`，SHA-256 `38f16af807f80433d9cb5816cf50c8b0312a6e4597c957140f39a74d9d1c6fcd`。产品文件前后 SHA-256 均为 `b38019f7f410f0d4d949775fd7076ffa40944907a67337b6252c5ba1b9090593`；loader 只在 Node 测试进程内对原函数作精确两处替换，未绕过 Browser 构建／安装门禁。**工作区内该安全缺陷仍未修复，需由原文件 owner 集成补丁后定向复验，再进入 Chrome。**
+
+安全审查代理随后独立核对精确补丁、loader 及红绿日志，确认拟议修改封住已复现竞态，未额外削弱保护；因实际源码未修复、Chrome 未测，最终仍为 `REQUEST CHANGES`，维持 75/100。
+
+本轮协调 owner：当前对话 `01a1d09f-33aa-7351-b949-356b1cab297a`；持久写入仅本记录，诊断／补丁／日志仅写上述任务 artifacts。共享产品文件只读，不声明他人文件释放；未取得 UI 锁，不释放其他 owner 的锁。两次本任务 dev 进程均已停止，输出恢复完成；未占用 Git 索引／HEAD、Chrome Profile、43111 测试服务或现有原生配对。当前状态为 `WAITING`，等待文件 owner 协调、可信来源审阅及 UI 资源可用。
+
+本机原始材料在忽略目录 `artifacts/mouse-gestures-latency/r6-mac-20261113/`：`environment.json`、`git-status-observed.txt`、`package-check.json`、`dev.log`、`dev-retry.log`、`recovery.json`、`recovery-after-build.json`、`failed-build-files.json`、`trusted-source-blocker.json`；安全候选的 `app-execution-permission-epoch-{red,green,green-file,handoff}.log`、`permission-epoch-test-loader.mjs`、精确补丁及命令／身份记录也在同目录。该目录不提交成重复验收账本；恢复备份已收尾，不保留多份完整输出。
+
+### 五个独立视角评分
+
+分别由五个独立 AI 子代理审查，属于本轮验收证据评分，不是外部认证或物理体验评分；没有真实 Chrome 证据的项目明确扣分，拟议修复未落盘不计为缺陷已关闭。
+
+| 视角 | 分数 | 主要扣分 |
+| --- | --- | --- |
+| 性能工程 | 55/100 | 实际样本为 0；启动、派发及尾延迟未测，运行候选未闭合 |
+| Chrome 扩展架构 | 82/100 | 同候选安装／启动缺证；共享启动队列风险尚未实测 |
+| 权限与安全 | 75/100 | 动态组件诊断证实撤权竞态，工作区尚未修复；真实撤权及清理未测 |
+| 交互体验 | 68/100 | 原生菜单、Shift、取消和响应缺当前候选 Chrome 证据 |
+| 测试验收 | 60/100 | 包同源可确认，实际加载、安装及原生矩阵未完成 |
+
+算术平均：`(55 + 82 + 75 + 68 + 60) / 5 = 68/100`，未达到 95/100。独立结果及代理身份在 `expert-scores.json`；Node 拟议修复绿测不能提升为已安装 Chrome PASS。当前状态为 **SOURCE_SECURITY_FIX_PENDING_OWNER / ENVIRONMENT_BLOCKED / INSTALL_NOT_TESTED / CHROME_LATENCY_NOT_TESTED / FINAL_ACCEPTANCE_NOT_PASSED**。
+
+下一条最重要操作：由 `installed-programs.js` 原 owner 集成上述精确撤权补丁并定向复验；同时仍须由 AI Proxy owner 完成来源审阅后恢复原 dev，UI 资源可用后按“先框架应用，再工具更新，后实测”继续。本任务未取得这些 owner 的交接／释放，不自动应用到其文件，也未提交或推送。
+
+---
+
+以下为 2026-11-12 的历史开发及验证记录，保留原始阶段措辞；当前状态以上述 R6 本机核验为准。
+
 ## 本轮目标与基线
 
 - 用户操作：已能画出轨迹并执行动作；本轮减少松开鼠标后的等待，以及打开页面后手势首次可用的等待。

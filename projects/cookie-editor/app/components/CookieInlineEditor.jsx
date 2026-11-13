@@ -8,7 +8,7 @@ import {localExpirationText,parseLocalExpiration} from '../domain/cookie-expirat
 // Expiration converts from the user's local wall time to Unix seconds only
 // after rejecting DST gaps and overlapping local times. Never infer a date.
 export default function CookieInlineEditor({row=null,target,disabled=false,
-  readValue,onSave,onCancel,onDelete,onDirty}){
+  readValue,onSave,onCancel,onDelete,onDirty,navigationRevision=0,navigationPending=false}){
   const valueRef=React.useRef(null),nameRef=React.useRef(null);
   // Raw Cookie values never enter React state, props or snapshots.
   const originalValueRef=React.useRef(null),valueEditedRef=React.useRef(false);
@@ -21,6 +21,8 @@ export default function CookieInlineEditor({row=null,target,disabled=false,
   const [newValueDirty,setNewValueDirty]=React.useState(false);
   const [readStatus,setReadStatus]=React.useState(row?'loading':'new');
   const [message,setMessage]=React.useState('');
+  const [navigationNotice,setNavigationNotice]=React.useState('');
+  const lastNavigationRevision=React.useRef(navigationRevision);
   const [discardConfirm,setDiscardConfirm]=React.useState(false);
   const [draft,setDraft]=React.useState(()=>({
     name:row?.name||'',domain:row?.domain||target?.hostname||'',
@@ -42,14 +44,33 @@ export default function CookieInlineEditor({row=null,target,disabled=false,
     (edited?valueEdited:newValueDirty);
   const dirty=isDirty();
   React.useEffect(()=>{onDirty?.(dirty);},[dirty,onDirty]);
+  React.useLayoutEffect(()=>{
+    // Scrub before paint; keep only the independent attribute draft. A repeated
+    // same-URL event must also retire the old original and unsaved value.
+    readGeneration.current++;inputRevision.current++;
+    originalValueRef.current=null;valueEditedRef.current=false;
+    if(valueRef.current)valueRef.current.value='';
+    if(readTimer.current)clearTimeout(readTimer.current);
+    readTimer.current=null;
+    setValueEdited(false);setValuePresent(false);setNewValueDirty(false);
+    setDiscardConfirm(false);setMessage('');
+    if(lastNavigationRevision.current!==navigationRevision)
+      setNavigationNotice('页面已变化，原敏感值与未保存值已清除；属性草稿保留，请核对后继续。');
+    else setNavigationNotice('');
+    lastNavigationRevision.current=navigationRevision;
+    setReadStatus(row?'loading':'new');
+  },[row?.id,target?.url,navigationRevision]);
   React.useEffect(()=>{
-    if(!row||!readValueRef.current)return;
+    if(navigationPending||!row||!readValueRef.current)return;
     let alive=true;
     const generation=++readGeneration.current;
     const revision=inputRevision.current;
     setReadStatus('loading');
     // A Host read is independently authorized. Null/denied never means ''.
-    void Promise.resolve().then(()=>readValueRef.current(row.id)).then(value=>{
+    void Promise.resolve().then(()=>{
+      if(!alive||generation!==readGeneration.current)return null;
+      return readValueRef.current(row.id);
+    }).then(value=>{
       if(!alive||generation!==readGeneration.current||revision!==inputRevision.current
         ||valueEditedRef.current||!valueRef.current)return;
       if(typeof value!=='string'){setReadStatus('unavailable');return;}
@@ -79,7 +100,7 @@ export default function CookieInlineEditor({row=null,target,disabled=false,
       readTimer.current=null;
       if(valueRef.current)valueRef.current.value='';
     };
-  },[row?.id,target?.url]);
+  },[row?.id,target?.url,navigationRevision,navigationPending]);
   const update=(key,value)=>{setDraft(old=>({...old,[key]:value}));setMessage('');};
   const setInputEdited=()=>{
     // A late Host answer must never replace a newer keystroke.
@@ -178,6 +199,7 @@ export default function CookieInlineEditor({row=null,target,disabled=false,
           readStatus==='expired'?'原值已隐藏':
           '留空保留原值'):'可为空'}/>
     </div>
+    {navigationNotice&&<p role="status" className="editor-hint">{navigationNotice}</p>}
     {edited&&(valueEdited||readStatus==='unavailable')&&
       <div className="cookie-value-restore value-controls">
         {valueEdited?<span>{valueRef.current?.value===''?'将写入空值':'将写入新值'}</span>:

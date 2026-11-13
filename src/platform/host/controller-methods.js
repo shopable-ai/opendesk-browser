@@ -699,7 +699,14 @@ export function controllerMethods({storage, api, session, clock, assertHost, cur
   const pageSlotMatches=(a,b)=>['namespace','programId','tabId','frameId','url','windowId'].every(key=>a?.[key]===b?.[key]);
   const pageReaderMatches=(a,b)=>['namespace','programId','revision','manifestHash','sourceHash','installationId','generation',
     'tabId','frameId','url','windowId'].every(key=>a?.[key]===b?.[key]);
+  // Keep the original source as audit evidence. A new, explicitly reviewed
+  // preparation owns its own authenticated document/session fences.
+  const pageApproval=row=>row.approval?{...row,pageSource:row.approval.source,
+    sourceFence:row.approval.sourceFence,sourceEpoch:row.approval.sourceEpoch,
+    browserSessionIncarnation:row.approval.browserSessionIncarnation,
+    sourceInvalidated:row.approval.invalidated===true}:row;
   function pageRequestView(row,preparation=null,approvalAllowed=false){
+    row=pageApproval(row);
     return {requestId:row.requestId,preparationId:row.preparationId,task:structuredClone(row.task),
       params:structuredClone(row.params),target:structuredClone(row.target),
       pageBinding:Object.fromEntries(['programId','revision','manifestHash','sourceHash','installationId','generation',
@@ -723,14 +730,15 @@ export function controllerMethods({storage, api, session, clock, assertHost, cur
     const row=await transaction.get(COMMAND_JOURNAL,pageRequestKey(ns,requestId));
     invariant(row?.tag==='page-task-request'&&row.namespace===ns,'E_OWNER');
     if(reader)invariant(pageReaderMatches(row.pageSource,reader),'E_REVISION','Request belongs to another Page installation grant');
-    await pageTaskSource.inTransaction(transaction,reader??row.pageSource);
+    const approval=pageApproval(row);
+    await pageTaskSource.inTransaction(transaction,reader??approval.pageSource);
     invariant(!row.authorizationRevoked,'E_PERMISSION','Original Page request was revoked');
     if(submission){
-      invariant(!row.sourceInvalidated&&row.browserSessionIncarnation===session,'E_DOCUMENT_STALE','Original approval source changed');
-      invariant((pageSourceEpochs.get(row.pageSource.tabId)||0)===row.sourceEpoch,'E_DOCUMENT_STALE','Original Page navigation was fenced');
-      checkFence({target:{...row.pageSource,allowedOrigin:httpUrl(row.pageSource.url).origin},selection:{frameId:0},nativeFence:row.sourceFence});
+      invariant(!approval.sourceInvalidated&&approval.browserSessionIncarnation===session,'E_DOCUMENT_STALE','Original approval source changed');
+      invariant((pageSourceEpochs.get(approval.pageSource.tabId)||0)===approval.sourceEpoch,'E_DOCUMENT_STALE','Original Page navigation was fenced');
+      checkFence({target:{...approval.pageSource,allowedOrigin:httpUrl(approval.pageSource.url).origin},selection:{frameId:0},nativeFence:approval.sourceFence});
     }
-    return row;
+    return submission?approval:row;
   }
   async function pageRequestStatus(row,{sender,reader}={}){
     const environment=builtinIdentity(await loadBuiltin({runtime:api.runtime}));
@@ -758,9 +766,20 @@ export function controllerMethods({storage, api, session, clock, assertHost, cur
       same(preparation.task,row.task)&&same(preparation.params,row.params)&&same(preparation.target,row.target),'E_OWNER');
     let approvalAllowed=false;
     if(!preparation?.runId&&(!preparation||preparation.state==='prepared'))try{
-      await pageTaskSource.authorize(row.pageSource);
+      await pageTaskSource.authorize(pageApproval(row).pageSource);
       await tx(RUN_READ,transaction=>assertPageRequestInTransaction(transaction,row.requestId,row.namespace,{submission:true}));
-      approvalAllowed=true;
+      approvalAllowed=!preparation||preparation.browserSessionIncarnation===session&&now()<preparation.expiresAt;
+    }catch{}
+    let reprepareAllowed=false;
+    if(host&&!approvalAllowed&&preparation?.state==='prepared')try{
+      await pageTaskSource.authorize(row.recoveryCandidate?.source);
+      await tx(RUN_READ,async transaction=>{
+        await currentHost(transaction,host,sender);
+        const current=await transaction.get(COMMAND_JOURNAL,pageRequestKey(row.namespace,row.requestId));
+        invariant(current?.preparationId===row.preparationId,'E_REVISION');
+        await assertPageRepreparation(transaction,current,host);
+      });
+      reprepareAllowed=true;
     }catch{}
     let snapshot=null;
     if(preparation?.runId){
@@ -776,7 +795,7 @@ export function controllerMethods({storage, api, session, clock, assertHost, cur
     }
     await authorize();
     const settled=preparation?await tx(RUN_READ,async transaction=>!await preparationUnresolved(transaction,preparation)):false;
-    return {request:pageRequestView(row,preparation,approvalAllowed),preparation:preparation?preparationView(preparation):null,
+    return {request:{...pageRequestView(row,preparation,approvalAllowed),reprepareAllowed},preparation:preparation?preparationView(preparation):null,
       snapshot,resolvedInstallation,settled,authorize};
   }
   async function listPageTaskRequests(request={},sender){
@@ -842,15 +861,26 @@ export function controllerMethods({storage, api, session, clock, assertHost, cur
       await pageTaskSource.authorize(source);
       return {requestId:row.requestId,preparationId:row.preparationId,accepted:true,state:'pending-approval'};
     }
-    const row=await tx(RUN_READ,async transaction=>{
+    const row=await tx(RUN_WRITE,async transaction=>{
       await pageTaskSource.inTransaction(transaction,source);
+      invariant((pageSourceEpochs.get(source.tabId)||0)===sourceEpoch,'E_DOCUMENT_STALE');
+      let row;
       if(operation==='read'){
-        id(payload.requestId);return assertPageRequestInTransaction(transaction,payload.requestId,source.namespace,{reader:source});
+        id(payload.requestId);row=await assertPageRequestInTransaction(transaction,payload.requestId,source.namespace,{reader:source});
+      }else{
+        const matches=(await transaction.all(COMMAND_JOURNAL)).filter(row=>row.tag==='page-task-request'&&pageSlotMatches(row.pageSource,source));
+        invariant(matches.length<=1,'E_OWNER');row=matches[0]??null;
+        if(row)invariant(pageReaderMatches(row.pageSource,source),'E_REVISION','Original Page request has another installation grant');
       }
-      const matches=(await transaction.all(COMMAND_JOURNAL)).filter(row=>row.tag==='page-task-request'&&pageSlotMatches(row.pageSource,source));
-      invariant(matches.length<=1,'E_OWNER');
-      if(matches[0])invariant(pageReaderMatches(matches[0].pageSource,source),'E_REVISION','Original Page request has another installation grant');
-      return matches[0]??null;
+      // Observation is not approval. Only the explicit trusted Host recovery
+      // transaction can consume this authenticated current Page candidate.
+      const candidate={source:structuredClone(source),sourceEpoch,
+        sourceFence:nativeFence(source.tabId,httpUrl(source.url).origin,0),browserSessionIncarnation:session};
+      if(row&&!row.authorizationRevoked&&!same(row.recoveryCandidate??null,candidate)){
+        row.recoveryCandidate=candidate;
+        await transaction.put(COMMAND_JOURNAL,row,pageRequestKey(row.namespace,row.requestId));
+      }
+      return row;
     });
     if(!row)return {requestId:null,state:'idle'};
     const status=await pageRequestStatus(row,{reader:source});
@@ -871,7 +901,84 @@ export function controllerMethods({storage, api, session, clock, assertHost, cur
   const preparationStartKey = (ns, preparationId) => `task-preparation-start:${canonical([ns,preparationId])}`;
   function preparationView(row) {
     return structuredClone(Object.fromEntries(['preparationId','task','params','target','binding','source','pageRequestId',
-      'deadlineAt','expiresAt','state','runId','resultId','operationRef'].filter(key=>row[key]!==undefined).map(key=>[key,row[key]])));
+      'deadlineAt','executionDeadlineMs','expiresAt','state','runId','resultId','operationRef','generation','supersededBy'].filter(key=>row[key]!==undefined).map(key=>[key,row[key]])));
+  }
+  async function assertPageRepreparation(transaction,row,host){
+    invariant(row?.tag==='page-task-request'&&!row.authorizationRevoked,'E_PERMISSION');
+    const candidate=row.recoveryCandidate;
+    invariant(candidate?.browserSessionIncarnation===session&&pageReaderMatches(row.pageSource,candidate.source), 'E_PAGE_AUTHORIZATION');
+    await pageTaskSource.inTransaction(transaction,candidate.source);
+    invariant((pageSourceEpochs.get(candidate.source.tabId)||0)===candidate.sourceEpoch,'E_DOCUMENT_STALE');
+    checkFence({target:{...candidate.source,allowedOrigin:httpUrl(candidate.source.url).origin},selection:{frameId:0},nativeFence:candidate.sourceFence});
+    const preparations=(await transaction.all(COMMAND_JOURNAL)).filter(p=>p.tag==='task-run-preparation'&&
+      p.namespace===row.namespace&&p.pageRequestId===row.requestId);
+    const current=preparations.find(p=>p.preparationId===row.preparationId);
+    invariant(current?.state==='prepared'&&same(current.principal,host.principal)&&
+      same(current.task,row.task)&&same(current.params,row.params)&&same(current.target,row.target)&&
+      !current.binding&&row.target.mode==='owned',EFFECT_UNKNOWN,'Original preparation cannot be proven unadmitted');
+    const ids=new Set([row.preparationId,...(row.preparationHistory??[]),...preparations.map(p=>p.preparationId)]);
+    invariant(ids.size<64,EFFECT_UNKNOWN);
+    for(const preparationId of ids){
+      const p=await transaction.get(COMMAND_JOURNAL,preparationKey(row.namespace,preparationId));
+      invariant(p?.tag==='task-run-preparation'&&p.pageRequestId===row.requestId&&
+        ['prepared','superseded'].includes(p.state)&&!p.runId&&!p.resultId&&
+        !await transaction.get(COMMAND_JOURNAL,preparationStartKey(row.namespace,preparationId)),
+        EFFECT_UNKNOWN,'Prior admission is not excluded');
+    }
+    const runs=await transaction.all(RUN_STORE),results=await transaction.all('results');
+    for(const record of [...runs,...results])
+      invariant(record.pageRequestId!==row.requestId&&!ids.has(record.taskPreparationId)&&!ids.has(record.requestId),
+        EFFECT_UNKNOWN,'An original Run or Result already exists');
+    for(const result of results)if(result.tag==='controller-result'&&result.namespace===row.namespace&&
+      result.revision?.scriptId===current.source.scriptId&&!runs.some(run=>run.runId===result.runId))
+      invariant(false,EFFECT_UNKNOWN,'Legacy Result has no original Run to exclude prior admission');
+    return current;
+  }
+  async function repreparePageTaskRequest(request,sender){
+    fields(request,['requestId','expectedPreparationId'],['requestId','expectedPreparationId']);
+    id(request.requestId);id(request.expectedPreparationId);
+    await withRecovery(null,sender,()=>withRunAdmissionLock(async()=>{
+      const host=await assertHost(sender),environment=builtinIdentity(await loadBuiltin({runtime:api.runtime}));
+      const row=await tx(RUN_READ,transaction=>transaction.get(COMMAND_JOURNAL,pageRequestKey(namespace(host),request.requestId)));
+      invariant(row?.preparationId===request.expectedPreparationId,'E_REVISION');
+      const candidate=row.recoveryCandidate;
+      const targetFence=nativeFence(undefined,httpUrl(row.target.url).origin,0);
+      await withPageSourceFence(candidate?.source,async assertSource=>{
+      await pageTaskSource.authorize(candidate?.source);
+      await requireGrant(api,httpUrl(row.target.url).origin);
+      await tx(RUN_WRITE,async transaction=>{
+        await currentHost(transaction,host,sender);
+        const current=await transaction.get(COMMAND_JOURNAL,pageRequestKey(namespace(host),request.requestId));
+        invariant(current?.preparationId===request.expectedPreparationId&&same(current.recoveryCandidate,candidate),'E_REVISION');
+        const old=await assertPageRepreparation(transaction,current,host);
+        const resolved=await resolvePageTask(transaction,current.namespace,{...current.task,targetUrl:current.target.url},current.params,environment);
+        invariant(sameTaskPin(resolved,current.task)&&resolved.installationId===current.task.installationId&&
+          resolved.generation===current.task.generation,'E_REVISION');
+        invariant(pageApproval(current).sourceInvalidated||old.browserSessionIncarnation!==session||now()>=old.expiresAt,
+          'E_REVISION','Current preparation is still valid');
+        await assertPreparationSlot(transaction,current.namespace,old.preparationId);
+        const generation=(old.generation??1)+1,preparationId='page:'+current.requestId+':'+generation;
+        invariant(!await transaction.get(COMMAND_JOURNAL,preparationKey(current.namespace,preparationId)),EFFECT_UNKNOWN);
+        const at=now();
+        const next={...old,preparationId,generation,previousPreparationId:old.preparationId,
+          browserSessionIncarnation:session,builtinIdentity:environment,
+          nativeFence:targetFence,
+          createdAt:at,deadlineAt:null,executionDeadlineMs:resolved.manifest.deadlineMs??30000,expiresAt:at+600000,
+          operationRef:newId(),state:'prepared',runId:null,resultId:null};
+        await transaction.put(COMMAND_JOURNAL,{...old,state:'superseded',supersededBy:preparationId,fencedAt:at},preparationKey(current.namespace,old.preparationId));
+        await transaction.put(COMMAND_JOURNAL,next,preparationKey(current.namespace,preparationId));
+        await transaction.put(COMMAND_JOURNAL,{...current,preparationId,
+          preparationHistory:[...(current.preparationHistory??[]),old.preparationId],
+          approval:{...candidate,invalidated:false}},pageRequestKey(current.namespace,current.requestId));
+        await pageTaskSource.inTransaction(transaction,candidate.source);
+        invariant((pageSourceEpochs.get(candidate.source.tabId)||0)===candidate.sourceEpoch,'E_DOCUMENT_STALE');
+        checkFence({target:{...candidate.source,allowedOrigin:httpUrl(candidate.source.url).origin},selection:{frameId:0},nativeFence:candidate.sourceFence});
+        checkFence({selection:current.target,startUrl:current.target.url,nativeFence:targetFence});
+        assertSource();
+      });
+      });
+    },{allowWithoutLocks:api!==globalThis.chrome}));
+    return readPageTaskRequest({requestId:request.requestId},sender);
   }
   async function runDurablySettled(transaction,run){
     if(!run||run.tag!==CONTROLLER_RUN_TAG||!terminals.has(run.state)||run.retirementState!=='released')return false;
@@ -880,7 +987,7 @@ export function controllerMethods({storage, api, session, clock, assertHost, cur
       result.namespace===run.namespace&&same(result.principal,run.principal)&&result.state===run.state;
   }
   async function preparationUnresolved(transaction,row) {
-    if(!row.runId)return row.state!=='cancelled';
+    if(!row.runId)return !['cancelled','superseded'].includes(row.state);
     const run=await transaction.get(RUN_STORE,row.runId);
     return run?.taskPreparationId!==row.preparationId||run?.resultId!==row.resultId||
       run?.namespace!==row.namespace||!same(run?.principal,row.principal)||!await runDurablySettled(transaction,run);
@@ -973,10 +1080,10 @@ export function controllerMethods({storage, api, session, clock, assertHost, cur
           params:request.params,migrate:true,builtinIdentity:environment,
           expectedGeneration:request.task.generation,expectedInstallationId:request.task.installationId});
         invariant(installed.installation.manifestHash===request.task.manifestHash,'E_REVISION');
-        const at=now(),deadlineAt=at+(installed.candidate.package.manifest.deadlineMs??30000);
+        const at=now(),executionDeadlineMs=installed.candidate.package.manifest.deadlineMs??30000;
         const row={tag:'task-run-preparation',namespace:namespace(host),principal:host.principal,...request,source,
           builtinIdentity:environment,browserSessionIncarnation:session,nativeFence:fence,observedTarget:observed,
-          createdAt:at,deadlineAt,expiresAt:deadlineAt,state:'prepared',runId:null,resultId:null,operationRef:newId()};
+          createdAt:at,deadlineAt:null,executionDeadlineMs,expiresAt:at+600000,state:'prepared',runId:null,resultId:null,operationRef:newId()};
         await transaction.put(COMMAND_JOURNAL,row,key);
       });
       // Read the committed identity back; a lost reply is recovered by inspection.
@@ -1054,6 +1161,7 @@ export function controllerMethods({storage, api, session, clock, assertHost, cur
         {tag:'task-run-preparation',namespace:namespace(host),principal:host.principal,
           preparationId:request.preparationId,state:'cancelled',runId:null,resultId:null,operationRef:newId(),createdAt:now()};
       invariant(row?.tag==='task-run-preparation'&&same(row.principal,host.principal),CONTROLLER_OWNER_ERROR);
+      invariant(row.state!=='superseded','E_REVISION','Preparation was superseded; inspect the original Page request before cancelling');
       if(!row.runId){row.state='cancelled';row.cancelledAt=now();
         await transaction.put(COMMAND_JOURNAL,row,preparationKey(namespace(host),row.preparationId));}
       return row;
@@ -1074,6 +1182,21 @@ export function controllerMethods({storage, api, session, clock, assertHost, cur
   }
   async function startControllerRunDelegated(request, sender) {
     return withRunAdmissionLock(()=>startControllerRunLocked(request,sender),{allowWithoutLocks:api!==globalThis.chrome});
+  }
+  async function withPageSourceFence(source,work){
+    if(!source)return work(()=>{});
+    let changed=false;
+    const moved=tabId=>{if(tabId===source.tabId)changed=true;};
+    const updated=(tabId,change)=>{if(tabId===source.tabId&&
+      (change.pendingUrl||['loading','unloaded'].includes(change.status)||change.url!==undefined&&change.url!==source.url))changed=true;};
+    const navigated=details=>{if(details.tabId===source.tabId&&details.frameId===0)changed=true;};
+    const removed=windowId=>{if(windowId===source.windowId)changed=true;};
+    const events=[[api.tabs.onDetached,moved],[api.tabs.onAttached,moved],[api.tabs.onRemoved,moved],
+      [api.tabs.onUpdated,updated],[api.windows?.onRemoved,removed],[api.webNavigation.onBeforeNavigate,navigated],
+      [api.webNavigation.onHistoryStateUpdated,navigated],[api.webNavigation.onReferenceFragmentUpdated,navigated]];
+    for(const [event,listener]of events)event?.addListener(listener);
+    try{return await work(()=>invariant(!changed,'E_DOCUMENT_STALE','Page approval source changed during admission'));}
+    finally{for(const [event,listener]of events)event?.removeListener(listener);}
   }
   async function startControllerRunLocked(request, sender) {
     selection(request.target);
@@ -1097,7 +1220,18 @@ export function controllerMethods({storage, api, session, clock, assertHost, cur
       [api.webNavigation.onReferenceFragmentUpdated, navigated], [api.windows?.onRemoved, windowRemoved]];
     const assertCandidate = () => invariant(!changed, 'E_DOCUMENT_STALE', 'Captured Current Page changed during admission');
     if (target.expectedWindowId !== undefined) for (const [event, listener] of fences) event?.addListener(listener);
-    try { return await prepareControllerRun(request, sender, assertCandidate); }
+    try {
+      let source;
+      if(request.taskPreparationId){
+        const host=await assertHost(sender);
+        source=await tx(RUN_READ,async transaction=>{
+          const preparation=await transaction.get(COMMAND_JOURNAL,preparationKey(namespace(host),request.taskPreparationId));
+          const row=preparation?.pageRequestId&&await transaction.get(COMMAND_JOURNAL,pageRequestKey(namespace(host),preparation.pageRequestId));
+          return row?pageApproval(row).pageSource:null;
+        });
+      }
+      return await withPageSourceFence(source,assertSource=>prepareControllerRun(request,sender,()=>{assertCandidate();assertSource();}));
+    }
     finally { if (target.expectedWindowId !== undefined) for (const [event, listener] of fences) event?.removeListener(listener); }
   }
   async function prepareAppServiceRun(request,sender){
@@ -1226,11 +1360,19 @@ export function controllerMethods({storage, api, session, clock, assertHost, cur
       invariant(Number.isSafeInteger(saved.revision) && saved.revision > 0 &&
         /^[a-f0-9]{64}$/.test(saved.contentHash), 'E_REVISION');
     }
-    invariant(Number.isSafeInteger(request.deadlineAt) && request.deadlineAt > now(), CONTROLLER_TIMEOUT_ERROR);
-    const sourceHash = frozenSource ? await digestUtf8(draftSourceUtf8) : saved.contentHash;
-    const host = await assertHost(sender), requestDigest = await digest(request, wireCanonicalOptions);
+    const host = await assertHost(sender);
     const requestedPreparation=request.taskPreparationId?await tx(RUN_READ,transaction=>
       transaction.get(COMMAND_JOURNAL,preparationKey(namespace(host),request.taskPreparationId))):null;
+    if(requestedPreparation?.executionDeadlineMs){
+      // Approval wait never spends execution time. Once admitted, replay reads
+      // the original deadline; no retry can renew the Run's execution budget.
+      if(requestedPreparation.deadlineAt===null)invariant(Number.isSafeInteger(request.deadlineAt)&&
+        request.deadlineAt>now()&&request.deadlineAt<=admissionStartedAt+requestedPreparation.executionDeadlineMs,CONTROLLER_TIMEOUT_ERROR);
+      request.deadlineAt=requestedPreparation.deadlineAt??admissionStartedAt+requestedPreparation.executionDeadlineMs;
+    }
+    invariant(Number.isSafeInteger(request.deadlineAt) && request.deadlineAt > now(), CONTROLLER_TIMEOUT_ERROR);
+    const sourceHash = frozenSource ? await digestUtf8(draftSourceUtf8) : saved.contentHash;
+    let requestDigest = await digest(request, wireCanonicalOptions);
     const pageRequest=requestedPreparation?.pageRequestId?await tx(RUN_READ,transaction=>
       assertPageRequestInTransaction(transaction,requestedPreparation.pageRequestId,namespace(host),{submission:true})):null;
     if(pageRequest)await pageTaskSource.authorize(pageRequest.pageSource);
@@ -1266,7 +1408,7 @@ export function controllerMethods({storage, api, session, clock, assertHost, cur
           pin.installationId===installation.authorization?.installationId&&
           pin.generation===installation.authorization?.generation,'E_REVISION');
       }
-      if(installedTask)invariant(request.deadlineAt<=admissionStartedAt+
+      if(installedTask&&!requestedPreparation?.executionDeadlineMs)invariant(request.deadlineAt<=admissionStartedAt+
         (installedTask.candidate.package.manifest.deadlineMs??30000),CONTROLLER_TIMEOUT_ERROR,
         'Installed Task deadline exceeds its reviewed manifest limit');
       const scheduledFire=request.scheduledFireId?
@@ -1300,7 +1442,7 @@ export function controllerMethods({storage, api, session, clock, assertHost, cur
           same(preparation.source,{kind:'saved',scriptId:saved.scriptId,revision:saved.revision,contentHash:saved.contentHash})&&
           same(preparation.params,runParams)&&same(preparation.target,request.target)&&
           same(preparation.binding??null,request.taskDelegation??null)&&
-          preparation.deadlineAt===request.deadlineAt&&
+          (preparation.executionDeadlineMs&&preparation.deadlineAt===null||preparation.deadlineAt===request.deadlineAt)&&
           preparation.task.generation===request.expectedTaskGeneration&&
           preparation.task.installationId===request.expectedTaskInstallationId&&
           preparation.task.manifestHash===installedTask.installation.manifestHash,CONTROLLER_OWNER_ERROR,
@@ -1364,6 +1506,10 @@ export function controllerMethods({storage, api, session, clock, assertHost, cur
       }
       const slot = await transaction.get(RUN_STORE, '@slot');
       invariant(!slot?.currentRunId&&!slot?.preview, CONTROLLER_OWNER_ERROR, 'Previous target or preview still active');
+      if(preparation?.executionDeadlineMs){
+        request.deadlineAt=now()+preparation.executionDeadlineMs;
+        requestDigest=await digest(request,wireCanonicalOptions);
+      }
       const runId = newId(), scriptId = isAppController?`app-controller:${variant.appId}`:isDraft ? `draft:${runId}` : saved.scriptId;
       const run = {tag: CONTROLLER_RUN_TAG, runId, namespace: namespace(host), principal: host.principal,
         registrationId: host.registrationId, hostDocumentId: host.hostDocumentId, hostInstanceId: host.hostInstanceId,
@@ -1417,9 +1563,12 @@ export function controllerMethods({storage, api, session, clock, assertHost, cur
       if(delegationStepKey)await transaction.put(COMMAND_JOURNAL,
         {...step,state:'submitted',runId,resultId:run.resultId,ownerEpoch:run.ownerEpoch,
           admissionCount:1,submittedAt:now()},delegationStepKey);
-      if(preparation)await transaction.put(COMMAND_JOURNAL,{...preparation,state:'submitted',runId,
+      if(preparation)await transaction.put(COMMAND_JOURNAL,{...preparation,state:'submitted',runId,deadlineAt:run.deadlineAt,
         resultId:run.resultId,submittedAt:now()},preparationKey(namespace(host),preparation.preparationId));
       if(scheduledFire)await scheduled.bind(transaction,scheduledFire,run);
+      if(preparation?.pageRequestId)await assertPageRequestInTransaction(transaction,preparation.pageRequestId,namespace(host),{submission:true});
+      if(preparation)invariant(now()<preparation.expiresAt,CONTROLLER_TIMEOUT_ERROR);
+      assertCandidate();
       return {run, pinned, duplicate: false};
     }, frozenSource ? stores : [...stores, 'scriptHeads', 'scriptRevisions', ...(isInstalledTask?['frameworkKV']:[])]);
     const run = admitted.run;
@@ -1874,6 +2023,7 @@ export function controllerMethods({storage, api, session, clock, assertHost, cur
       const expired = now() >= run.deadlineAt;
       const state = expired && terminal === 'completed' ? 'stopped' : terminal;
       const result = {tag: 'controller-result', resultId: run.resultId, runId, namespace: run.namespace, principal: run.principal,
+        ...(run.pageRequestId?{pageRequestId:run.pageRequestId,taskPreparationId:run.taskPreparationId,requestId:run.requestId}:{}),
         revision: run.revision, builtinIdentity:run.builtinIdentity, sourceKind: run.sourceKind, state, outcome: state === 'completed' ? {ok: true, valueWire: outcome.valueWire} :
           {ok: false, error: run.cancelSeq || expired ? typed(new FoundationError(expired ? CONTROLLER_TIMEOUT_ERROR : run.terminalReason || CANCELLED_CODE, 'Controller fenced')) : outcome.error},
         committedAt: now()};
@@ -2089,7 +2239,10 @@ export function controllerMethods({storage, api, session, clock, assertHost, cur
         const matches=permissionRemoved?[row.pageSource.url,row.target.url].some(url=>
           origins.some(pattern=>originMatches(pattern,httpUrl(url).origin))):row.pageSource.tabId===tabId;
         if(!matches)continue;
-        if(permissionRemoved)row.authorizationRevoked=true;else row.sourceInvalidated=true;
+        if(permissionRemoved)row.authorizationRevoked=true;else{
+          row.sourceInvalidated=true;
+          if(row.approval)row.approval={...row.approval,invalidated:true};
+        }
         await transaction.put(COMMAND_JOURNAL,row,pageRequestKey(row.namespace,row.requestId));affected.add(row.requestId);
       }
       const runs=[];
@@ -2198,7 +2351,7 @@ export function controllerMethods({storage, api, session, clock, assertHost, cur
     return result;
   }
   return Object.freeze({commitControllerScript, getControllerScript, listControllerScripts, tombstoneControllerScript, garbageCollectControllerScript,
-    handlePageTaskRequest,listPageTaskRequests,readPageTaskRequest,invalidatePageTaskSource,
+    handlePageTaskRequest,listPageTaskRequests,readPageTaskRequest,repreparePageTaskRequest,invalidatePageTaskSource,
     prepareDelegatedStep, inspectDelegatedStep, cancelDelegatedStep,prepareTaskRun,inspectTaskRun,cancelTaskRun,listTaskRunPreparations,
     startControllerRun, controllerOperation, stopControllerRun,
     finishControllerRun, snapshotControllerRun, retireControllerTarget, loseControllerHost, invalidateControllerTarget, invalidateAppServices, recoverControllers});

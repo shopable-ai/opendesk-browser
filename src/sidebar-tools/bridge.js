@@ -210,7 +210,7 @@ export function initSidebarToolSandbox() {
       apply(currentTargetGetter,aiKey,[])!==null?aiKey:exportClick;
     const clickTimeStamp=gesture&&timeStampGetter?apply(timeStampGetter,gesture,[]):null;
     const direct=exportPort&&!disposed&&timeStampGetter&&
-      (operation==='browser.clipboard.writeText'||operation==='browser.downloads.text'||operation==='localTasks.export'||operation==='ai.generate'||operation==='ai.settings.open'||operation==='tool.page.open'||operation==='tasks.configure')&&
+      (operation==='browser.clipboard.writeText'||operation==='browser.downloads.text'||operation==='localTasks.export'||operation==='browser.cookies.observe.start'||operation==='ai.generate'||operation==='ai.settings.open'||operation==='tool.page.open'||operation==='tasks.configure')&&
       gesture&&apply(trustedGetter,gesture,[])===true&&
       apply(currentTargetGetter,gesture,[])!==null&&
       finite(clickTimeStamp)&&!apply(setHas,consumedClickTimeStamps,[clickTimeStamp]);
@@ -536,6 +536,11 @@ export function initSidebarToolSandbox() {
     if (message.kind==='page-changed') {
       if(message.instance===instance&&message.toolId===toolId)
         root.dispatchEvent(new Event('opendesk-page-changed'));
+      return;
+    }
+    if (message.kind==='cookie-page-pending') {
+      if(message.instance===instance&&message.toolId===toolId&&toolId==='cookie-editor')
+        root.dispatchEvent(new Event('opendesk-cookie-page-pending'));
       return;
     }
     if (message.kind==='cookie-path-changed') {

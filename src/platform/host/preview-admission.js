@@ -1,9 +1,67 @@
 import {invariant,canonical} from '../protocol.js';
 import {assertPageInstallAuthorization} from '../../scripting/user-scripts/page-install-authorization.js';
 
+export const MAX_INSTALLED_DOCUMENT_EXECUTIONS=2;
+const GROUP='installed-documents-v1';
+const entries=slot=>slot?.preview?.kind===GROUP?slot.preview.entries:undefined;
+const uncertain=row=>row.unknown===true||row.children?.some(child=>child.unknown===true);
+export function installedPageReservation(slot,nonce){
+  return entries(slot)?.find(row=>row.nonce===nonce||row.children?.some(child=>child.nonce===nonce))??
+    (slot?.preview?.nonce===nonce?slot.preview:undefined);
+}
+function assertGroup(slot,session){
+  const rows=entries(slot);
+  invariant(!slot?.currentRunId&&(!slot?.preview||Array.isArray(rows)&&rows.length>0&&
+    rows.length<=MAX_INSTALLED_DOCUMENT_EXECUTIONS&&rows.every(row=>
+      row.browserSessionIncarnation===session&&Array.isArray(row.children)&&
+      typeof row.namespace==='string'&&typeof row.nonce==='string'&&!uncertain(row))),
+    'E_OWNER','共享执行入口被占用或存在未知效果');
+  return rows||[];
+}
+export function assertInstalledPageAvailable(slot,{session,tabId,documentId,exclusive=false}){
+  const rows=assertGroup(slot,session);
+  invariant(rows.length<MAX_INSTALLED_DOCUMENT_EXECUTIONS&&(!exclusive||!rows.length)&&
+    rows.every(row=>!row.exclusive&&!(row.tabId===tabId&&row.documentId===documentId)),
+    'E_OWNER','此文档或独占执行仍占用共享入口');
+}
+export function assertInstalledPageDispatch(slot,{nonce,executionKey,session,namespace,tabId,documentId}){
+  assertGroup(slot,session);
+  const row=installedPageReservation(slot,nonce);
+  invariant(row&&row.executionKey===executionKey&&row.browserSessionIncarnation===session&&
+    (namespace===undefined||row.namespace===namespace)&&row.tabId===tabId&&row.documentId===documentId,
+    'E_OWNER','最终派发前精确文档的执行准入已经改变');
+}
+
 // One shared Authority slot, no Page RunHost or invented Controller runId.
 export function createPreviewAdmission({storage,assertHost,currentHost,session}) {
+  const unknown=new Set(),waiters=new Set(),invocations=new Map();
+  let recovering=false;
+  const changed=()=>{for(const wake of waiters)wake();waiters.clear();};
+  const assertDispatch=()=>invariant(!recovering&&!unknown.size,'E_OWNER','存在未知页面效果；不派发新源码');
+  const blockInstalled=nonce=>{
+    // A trusted retirement can commit while Native's old promise is pending.
+    // Its late rejection must not invent an owner with no remaining slot.
+    if(invocations.get(nonce)?.retired)return;
+    unknown.add(nonce);changed();
+  };
+  async function updateSlot(work){
+    const cleared=[];
+    await storage.transaction(['runs'],'readwrite',async tx=>{
+      const slot=await tx.get('runs','@slot');
+      if(await work(slot,cleared))await tx.put('runs',slot,'@slot');
+    });
+    // A failed durable update must retain the synchronous unknown fence.
+    for(const nonce of cleared){unknown.delete(nonce);
+      const invocation=invocations.get(nonce);if(invocation)invocation.retired=true;}
+    changed();
+  }
   return {
+    assertDispatch,blockInstalled,
+    assertInstalledTarget(slot,binding){
+      assertDispatch();
+      if(binding.nonce)assertInstalledPageDispatch(slot,{...binding,session});
+      else assertInstalledPageAvailable(slot,{...binding,session});
+    },
     async reserve(preview,sender) {
       const host=await assertHost(sender);
       await storage.transaction(['runs','commandJournal'],'readwrite',async tx=>{
@@ -40,10 +98,15 @@ export function createPreviewAdmission({storage,assertHost,currentHost,session})
           (shared||prior.frameParentNonce===parent.nonce),'E_OWNER','资源最终派发前原预览准入已经改变');
       });
     },
-    async reserveInstalled(preview,installation,{resource=false}={}) {
+    async reserveInstalled(preview,installation,{resource=false,exclusive=false}={}) {
       // The same slot is used by Controller, developer previews and installed
       // Page scripts. This internal call cannot manufacture a Host identity.
-      const reservation=await storage.transaction(['runs','frameworkKV'],'readwrite',async tx=>{
+      assertDispatch();
+      invariant(!invocations.has(preview.nonce),'E_OWNER','本次执行 nonce 已使用');
+      invocations.set(preview.nonce,{retired:false});
+      let reservation;
+      try{reservation=await storage.transaction(['runs','frameworkKV'],'readwrite',async tx=>{
+        assertDispatch();
         const grant=await tx.get('frameworkKV','page-installed:'+canonical([installation.namespace,installation.programId]));
         invariant(grant?.tag==='page-installed-v1'&&grant.enabled===true&&
           grant.namespace===installation.namespace&&grant.programId===installation.programId&&
@@ -68,25 +131,99 @@ export function createPreviewAdmission({storage,assertHost,currentHost,session})
           execution.documentId===preview.documentId&&execution.tabId===preview.tabId,
           'E_OWNER','页面执行准入身份已经改变');
         const slot=await tx.get('runs','@slot');
-        invariant(!slot?.currentRunId&&(!slot?.preview||resource&&
-          slot.preview.executionKey===execution.executionKey&&slot.preview.nonce===execution.receiptNonce),
-          'E_OWNER','已有执行占用共享入口；不会自动重试页面脚本');
-        // A parent main awaiting createFrame keeps its original slot and receipt.
-        if(resource&&slot?.preview)return {shared:true};
-        await tx.put('runs',{...(slot||{tag:'slot',currentRunId:null}),preview:{...preview,
+        const rows=assertGroup(slot,session),parent=resource&&rows.find(row=>
+          row.executionKey===execution.executionKey&&row.nonce===execution.receiptNonce&&
+          row.namespace===installation.namespace&&row.tabId===preview.tabId&&row.documentId===preview.documentId&&
+          row.sourceHash===preview.sourceHash);
+        if(parent){
+          invariant(parent.children.length<16&&!parent.children.some(child=>child.nonce===preview.nonce),
+            'E_OWNER','子帧请求已准入或预算已满');
+          parent.children.push({nonce:preview.nonce,unknown:false});
+          await tx.put('runs',slot,'@slot');return {shared:true};
+        }
+        assertInstalledPageAvailable(slot,{session,...preview,exclusive});
+        rows.push({...preview,namespace:grant.namespace,exclusive,settled:false,unknown:false,children:[],
+          ...(resource?{resource:true,parentNonce:execution.receiptNonce}:{}),
           installedProgramId:grant.programId,manifestHash:grant.manifestHash,
-          executionKey:installation.executionKey,browserSessionIncarnation:session}},'@slot');
+          executionKey:installation.executionKey,browserSessionIncarnation:session});
+        await tx.put('runs',{...(slot||{tag:'slot',currentRunId:null}),preview:{kind:GROUP,entries:rows}},'@slot');
         if(resource)return {shared:false};
         await tx.put('frameworkKV',{...execution,receiptNonce:preview.nonce},installation.executionKey);
-      });
+      });}catch(error){invocations.delete(preview.nonce);throw error;}
       if(resource)return reservation;
     },
-    async release({nonce,removedTabId}) {
-      await storage.transaction(['runs'],'readwrite',async tx=>{
-        const slot=await tx.get('runs','@slot');
-        if(slot?.preview&&(nonce&&slot.preview.nonce===nonce||removedTabId!==undefined&&slot.preview.tabId===removedTabId)){
-          delete slot.preview;await tx.put('runs',slot,'@slot');
+    async settleInstalled({nonce,dispatched,confirmed}){
+      if(dispatched&&!confirmed)blockInstalled(nonce);
+      await updateSlot((slot,cleared)=>{
+        const rows=entries(slot),row=installedPageReservation(slot,nonce);
+        if(!rows||!row)return false;
+        if(row.nonce===nonce){row.settled=confirmed||!dispatched;row.unknown||=dispatched&&!confirmed;}
+        else{
+          const child=row.children.find(child=>child.nonce===nonce);
+          if(dispatched&&!confirmed)child.unknown=true;
+          else if(!child.unknown){row.children=row.children.filter(child=>child.nonce!==nonce);cleared.push(nonce);}
         }
+        if(row.settled&&!uncertain(row)&&!row.children.length){
+          slot.preview.entries=rows.filter(entry=>entry!==row);cleared.push(row.nonce);
+        }
+        if(!slot.preview.entries.length)delete slot.preview;
+        return true;
+      });
+      invocations.delete(nonce);
+    },
+    async waitInstalledDocument({tabId,documentId}){
+      for(;;){
+        let wake;
+        const next=new Promise(resolve=>{wake=resolve;waiters.add(wake);});
+        const slot=await storage.transaction(['runs'],'readonly',tx=>tx.get('runs','@slot'));
+        const pending=entries(slot)?.some(row=>row.tabId===tabId&&row.documentId===documentId&&!uncertain(row));
+        if(!pending){waiters.delete(wake);return;}
+        await next;
+      }
+    },
+    async recoverInstalled(observeGone){
+      recovering=true;
+      let pending=[];
+      await updateSlot(slot=>{
+        const rows=entries(slot);if(!rows)return false;
+        pending=structuredClone(rows);
+        for(const row of rows){if(!row.settled||row.unknown){row.unknown=true;unknown.add(row.nonce);}
+          for(const child of row.children){child.unknown=true;unknown.add(child.nonce);}}
+        return true;
+      });
+      // No replay; cached, live and unobservable UUIDs retain their fence.
+      for(const row of pending){
+        for(const child of row.children){
+          let gone=false;try{gone=await observeGone({...row,resourceNonce:child.nonce})===true;}catch{}
+          if(gone)await this.release({nonce:child.nonce});
+        }
+        if(!row.settled||row.unknown){
+          let gone=false;try{gone=await observeGone({...row,...(row.resource?{resourceNonce:row.nonce}:{})})===true;}catch{}
+          if(gone)await this.release({nonce:row.nonce});
+        }
+      }
+      recovering=false;
+    },
+    async release({nonce,removedTabId,legacyOnly=false}) {
+      await updateSlot((slot,cleared)=>{
+        const rows=entries(slot);
+        if(rows){
+          if(legacyOnly)return false;
+          slot.preview.entries=rows.filter(row=>{
+            if(row.nonce===nonce||removedTabId!==undefined&&row.tabId===removedTabId){
+              cleared.push(row.nonce,...row.children.map(child=>child.nonce));return false;
+            }
+            row.children=row.children.filter(child=>{if(child.nonce!==nonce)return true;cleared.push(child.nonce);return false;});
+            if(row.settled&&!uncertain(row)&&!row.children.length){cleared.push(row.nonce);return false;}
+            return true;
+          });
+          if(!slot.preview.entries.length)delete slot.preview;
+          return true;
+        }
+        if(slot?.preview&&(nonce&&slot.preview.nonce===nonce||removedTabId!==undefined&&slot.preview.tabId===removedTabId)){
+          cleared.push(slot.preview.nonce);delete slot.preview;return true;
+        }
+        return false;
       });
     }
   };

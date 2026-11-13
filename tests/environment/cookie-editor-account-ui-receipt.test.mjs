@@ -35,6 +35,8 @@ function mount(section='accounts'){
     clearInterval:id=>timers.delete(id),addEventListener(){},removeEventListener(){}};
   const document={visibilityState:'visible',addEventListener(){},removeEventListener(){}};
   const adapter={targetFor:async()=>({target:parseTarget(url),reasonCode:null}),checkRead:async()=>({callableNow:permission}),
+    getStore:async at=>{assert.equal(at.url,parseTarget(url).url);return {storeId:'0'};},
+    getPartition:async at=>{assert.equal(at.origin,parseTarget(url).origin);return {partitionKey:{topLevelSite:at.origin}};},
     list:async()=>list?list():structuredClone(rows),accountRequest:(action,payload)=>respond(action,payload),
     beginExportIntent:(target,method)=>{copies.push(['begin',target.url,method]);return begin();},
     copy:text=>{copies.push(['copy',text]);return copy();},
@@ -44,7 +46,7 @@ function mount(section='accounts'){
     .filter(name=>!['createCookieSdkAdapter','createCookieController'].includes(name));
   const Component=new Function('React','window','document','createCookieSdkAdapter','createCookieController',...names,
     code+'\nreturn CookieEditorApp;')(React,window,document,()=>adapter,options=>{
-      controller=createCookieController(options);return controller;
+      controller=createCookieController({...options,navigationIntervalMs:0});return controller;
     },...names);
   const hostRoot={isConnected:true,querySelectorAll:()=>[],querySelector:()=>null,
     addEventListener:(name,fn)=>events.set(name,fn),removeEventListener:name=>events.delete(name)};

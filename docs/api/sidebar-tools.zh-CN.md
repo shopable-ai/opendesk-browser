@@ -58,6 +58,8 @@ OpenDeskTool.ui?.notify({
 
 Quasar 常用别名 `positive` / `negative` 分别统一映射为 `success` / `error`；可简写 `OpenDeskTool.ui.notify('保存成功')`。但不支持 Quasar 的 HTML、JS 回调或自定义组件注入。
 
+宿主统一控制长通知的排版：短文本直接展示，溢出时提供内建展开/收起，完整纯文本可在有界区域滚动查看。现有 HTML、Vue、React 工具无需添加参数或修改调用；该控件只改变展示，不是工具可注入的 action。原长度限制、计时和句柄语义保持，关键错误及未知结果的恢复入口仍应保留在工具正文。
+
 **R1.2 受限通知句柄（可选）**：
 
 ```ts

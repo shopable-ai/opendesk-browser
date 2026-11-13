@@ -6,7 +6,7 @@ import {readFile,writeFile,mkdir} from 'node:fs/promises';
 import {resolve,join} from 'node:path';
 import {createHash} from 'node:crypto';
 import {serializeSidebarToolPackage} from '../../../src/ui/sidebar-tools/package.js';
-const usage='Usage: sidebar-core-chrome.mjs <fresh-owned-output-directory> [--phase panel|review|mounted|core|ui] [--package path] [--static] [--reference path] [--close]';
+const usage='Usage: sidebar-core-chrome.mjs <fresh-owned-output-directory> [--phase panel|review|mounted|core|ui|pc] [--package path] [--static] [--reference path] [--close]';
 if(process.argv.includes('--help')){console.log(usage+'\nDefault: panel, held for leader. Ctrl-C closes owned Chrome. Run after React + Shared UI Preview is stable.');process.exit(0);}
 if(!process.argv[2]||process.argv[2].startsWith('--'))throw Error(usage);
 let phase='panel',keepOpen=true,importFile=null,staticBuild=false,referenceFile=null;
@@ -19,7 +19,7 @@ for(let i=0;i<options.length;i++){
  else if(options[i]==='--close')keepOpen=false;
  else throw Error('Unknown option '+options[i]+'; '+usage);
 }
-if(!['panel','review','mounted','core','ui'].includes(phase))throw Error('Invalid phase '+phase);
+if(!['panel','review','mounted','core','ui','pc'].includes(phase))throw Error('Invalid phase '+phase);
 let stopping=false,releaseHold;
 const stop=()=>{stopping=true;releaseHold?.();};
 process.on('SIGINT',stop);process.on('SIGTERM',stop);
@@ -34,7 +34,7 @@ const save=()=>writeFile(join(out,'result.json'),JSON.stringify(report,null,2)+'
 const step=(name,data={})=>{report.steps.push({name,at:new Date().toISOString(),...data});console.log(name,JSON.stringify(data));return save();};
 const delay=ms=>new Promise(r=>setTimeout(r,ms));
 let proc,socket,seq=0,host,frame,worker,extensionId;
-const pending=new Map(),attached=new Map();
+const pending=new Map(),attached=new Map(),networkRequests=[];
 function call(method,params={},sessionId){return new Promise((ok,no)=>{const id=++seq;const timer=setTimeout(()=>{pending.delete(id);no(Error('CDP timeout '+method));},12000);pending.set(id,{ok:r=>{clearTimeout(timer);ok(r)},no:e=>{clearTimeout(timer);no(e)}});socket.send(JSON.stringify({id,method,params,...(sessionId?{sessionId}:{})}));});}
 async function until(fn,label,ms=20000){const end=Date.now()+ms;let last;while(Date.now()<end){if(stopping)throw Error("Driver stopped");try{const r=await fn();if(r)return r;}catch(e){last=e.message;}await delay(100);}throw Error('WAIT '+label+' '+(last||''));}
 async function ev(s,expression){const r=await call('Runtime.evaluate',{expression,returnByValue:true,awaitPromise:true},s);if(r.exceptionDetails)throw Error(r.exceptionDetails.exception?.description||r.exceptionDetails.text);return r.result?.value;}
@@ -45,7 +45,7 @@ async function click(s,selector){
  const key=isCheck?{key:' ',code:'Space',windowsVirtualKeyCode:32,text:' '}:{key:'Enter',code:'Enter',windowsVirtualKeyCode:13,text:'\r'};
  await call('Input.dispatchKeyEvent',{type:'keyDown',...key},s);await call('Input.dispatchKeyEvent',{type:'keyUp',key:key.key,code:key.code,windowsVirtualKeyCode:key.windowsVirtualKeyCode},s);
 }
-async function fill(selector,value,s=frame){await until(()=>ev(s,`(()=>{const e=document.querySelector(${JSON.stringify(selector)});if(!e||!e.getClientRects().length)return false;e.focus();return document.activeElement===e})()`),'field '+selector);await call('Input.dispatchKeyEvent',{type:'keyDown',key:'a',code:'KeyA',modifiers:4,windowsVirtualKeyCode:65},s);await call('Input.dispatchKeyEvent',{type:'keyUp',key:'a',code:'KeyA',modifiers:4,windowsVirtualKeyCode:65},s);await call('Input.insertText',{text:value},s);}
+async function fill(selector,value,s=frame){await until(()=>ev(s,`(()=>{const e=document.querySelector(${JSON.stringify(selector)});if(!e||!e.getClientRects().length)return false;e.focus();return document.activeElement===e})()`),'field '+selector);await call('Input.dispatchKeyEvent',{type:'keyDown',key:'a',code:'KeyA',modifiers:4,windowsVirtualKeyCode:65,commands:['selectAll']},s);await call('Input.dispatchKeyEvent',{type:'keyUp',key:'a',code:'KeyA',modifiers:4,windowsVirtualKeyCode:65},s);await call('Input.dispatchKeyEvent',{type:'keyDown',key:'Backspace',code:'Backspace',windowsVirtualKeyCode:8},s);await call('Input.dispatchKeyEvent',{type:'keyUp',key:'Backspace',code:'Backspace',windowsVirtualKeyCode:8},s);await until(()=>ev(s,`document.querySelector(${JSON.stringify(selector)}).value===''`),'driver cleared '+selector);await call('Input.insertText',{text:value},s);await until(()=>ev(s,`document.querySelector(${JSON.stringify(selector)}).value===${JSON.stringify(value)}`),'driver input readback '+selector);}
 async function native(){return ev(worker,`chrome.proxy.settings.get({incognito:false}).then(r=>({level:r.levelOfControl,mode:r.value?.mode,pacSha:r.value?.pacScript?.data||null}))`);}
 async function screenshot(name,s=host){const r=await call('Page.captureScreenshot',{format:'png',captureBeyondViewport:false},s);await writeFile(join(out,name+'.png'),Buffer.from(r.data,'base64'));}
 async function key(key,code=key,extra={},s=host){await call('Input.dispatchKeyEvent',{type:'keyDown',key,code,...extra},s);await call('Input.dispatchKeyEvent',{type:'keyUp',key,code,...extra},s);}
@@ -100,7 +100,7 @@ try{
  const lines=await until(async()=>{if(report.launchError)throw Error(report.launchError);try{return (await readFile(join(report.profile,'DevToolsActivePort'),'utf8')).trim().split('\n')}catch{}},'Chrome startup');
  report.cdp={http:'http://127.0.0.1:'+lines[0],webSocket:'ws://127.0.0.1:'+lines[0]+lines[1]};
  socket=new WebSocket(report.cdp.webSocket);await new Promise((r,j)=>{socket.addEventListener('open',r,{once:true});socket.addEventListener('error',j,{once:true});});
- socket.addEventListener('message',e=>{const m=JSON.parse(e.data);if(m.id&&pending.has(m.id)){const p=pending.get(m.id);pending.delete(m.id);m.error?p.no(Error(m.error.message)):p.ok(m.result||{});}if(m.method==='Runtime.exceptionThrown')report.errors.push((m.params.exceptionDetails?.exception?.description||m.params.exceptionDetails?.text||'').slice(0,2000));});
+ socket.addEventListener('message',e=>{const m=JSON.parse(e.data);if(m.id&&pending.has(m.id)){const p=pending.get(m.id);pending.delete(m.id);m.error?p.no(Error(m.error.message)):p.ok(m.result||{});}if(m.method==='Network.requestWillBeSent'){const u=new URL(m.params.request.url);if(['http:','https:','ws:','wss:'].includes(u.protocol))networkRequests.push({sessionId:m.sessionId,method:m.params.request.method,type:m.params.type,scheme:u.protocol,hostname:u.hostname});}if(m.method==='Runtime.exceptionThrown')report.errors.push((m.params.exceptionDetails?.exception?.description||m.params.exceptionDetails?.text||'').slice(0,2000));});
  report.chrome=await call('Browser.getVersion');
  const sw=await until(async()=>(await call('Target.getTargets')).targetInfos.find(t=>t.type==='service_worker'&&t.url.endsWith('/sw.js')),'OpenDesk service worker');worker=await attach(sw.targetId);extensionId=new URL(sw.url).host;report.extensionId=extensionId;
  report.loadedExtension=await until(()=>ev(worker,`typeof chrome!=="undefined"&&chrome.runtime?.id&&({id:chrome.runtime.id,url:chrome.runtime.getURL(''),manifest:chrome.runtime.getManifest()})`),'worker extension context');
@@ -131,6 +131,12 @@ try{
  await click(host,row);await until(()=>ev(host,'!!document.querySelector("[data-ai-proxy-trusted=true] #proxy-ready")'),'trusted full UI ready');assert.equal(await ev(host,'document.querySelectorAll("[data-ai-proxy-trusted=true] iframe").length'),0);report.trustedUI=await observeMount();assert.equal(report.trustedUI.rootCount,1);
  await step('TRUSTED_SINGLE_ROOT_READY',{trustedUI:report.trustedUI});
  if(phase==='mounted'){await screenshot('mounted');break workflow;}
+ if(phase==='pc'){
+  const {auditPCSettings}=await import('./pc-settings-core-chrome.mjs');
+  await call('Network.enable',{},worker);
+  report.pc=await auditPCSettings({networkRequests,call,attach,ev,host,worker,extensionId,out,until,click,fill,key,choose,textButton,screenshot,native,referenceFile});
+  await step('PC_CORE_COMPLETE',{result:report.pc.status});break workflow;
+ }
  if(phase==='ui'){
   const {auditUI}=await import('./ui-alignment-chrome.mjs');
   report.ui=await auditUI({call,attach,ev,host,worker,extensionId,out,until,click,fill,key,choose,textButton,screenshot,native,referenceFile});

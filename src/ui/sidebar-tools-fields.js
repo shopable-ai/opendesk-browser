@@ -1,5 +1,6 @@
 // Explicit presentation defaults from the existing trusted tool host. No DOM nodes.
 export const SIDEBAR_TOOL_FIELDS = {
+  "sidebar-tool-preinstall": {"hidden":true,"data":{}},
   "sidebar-tool-conversation-toggle": {
     "hidden": true,
     "type": "button",

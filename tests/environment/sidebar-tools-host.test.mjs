@@ -21,7 +21,7 @@ import {COOKIE_ACCOUNT_PROTOCOL} from '../../projects/cookie-editor/trusted/acco
 import {BROWSER_HOST_PROTOCOL,BROWSER_MENU_GRANTS_STORE} from '../../src/framework/sdk/browser-contract.js';
 import {MANAGED_SITE_BUDGET_PROTOCOL,MANAGED_SITE_RUNTIME_CONTRACT} from '../../src/platform/host/managed-site-runtime-contract.js';
 import {ANALYTICS_PROTOCOL} from '../../src/analytics/contract.js';
-import {SIDEBAR_TOOL_FORMAT,SIDEBAR_TOOL_STORE,sidebarToolStorageKey,sidebarToolPackageHash,sidebarToolPackageContractHash} from '../../src/ui/sidebar-tools/package.js';
+import {SIDEBAR_TOOL_FORMAT,SIDEBAR_TOOL_STORE,sidebarToolStorageKey,sidebarToolPackageHash,sidebarToolPackageContractHash,serializeSidebarToolPackage} from '../../src/ui/sidebar-tools/package.js';
 import {officialToolFixture,officialFixtureFetch,officialFixtures} from '../helpers/official-tools.mjs';
 import {OFFICIAL_STAY_FOCUS_RELEASE_URL as OFFICIAL_FOCUS_LATEST_URL} from '../../src/sidebar-tools/official-catalog.js';
 import {OFFICIAL_READING_TOC_RELEASE} from '../../src/sidebar-tools/official-reading-toc.js';
@@ -37,6 +37,94 @@ import {CAPTURE_SITE_STORE} from '../../src/knowledge/policy.js';
 import {READING_TOC_SITE_STORE,READING_TOC_VISIBILITY_STORE,READING_TOC_PAGE_RULES_STORE,READING_TOC_PLACEMENT_PREFIX,changeReadingTocVisibility,changeTocSiteAllowed,tocSiteAllowed} from '../../projects/reading-toc/trusted/policy.js';
 import {createSidebarToolsView} from '../../src/ui/sidebar-tools-view.js';
 import {parseHTML} from 'linkedom';
+import {approvedPageFixtureResources} from '../helpers/official-pages.mjs';
+import {DEFAULT_PREINSTALL_STORE} from '../../src/sidebar-tools/preinstall-intent.js';
+
+let preinstallPageResources;
+async function preinstallRecoveryFixture(t,{importError=null,pageState='pending'}={}){
+  const resources=await (preinstallPageResources||=approvedPageFixtureResources());
+  const calls=[],installed=[],settings=[];
+  const marker={schema:DEFAULT_PREINSTALL_STORE,state:'complete',extensionVersion:'0.1.0',
+    plan:[],completed:[],pageState};
+  const store=new Map([[SIDEBAR_TOOL_STORE,[sample]],[DEFAULT_PREINSTALL_STORE,marker]]);
+  const f=await hostFixture(t,{store,startTool:false,
+    chromePermissions:{contains:async()=>true},
+    configureApi(api){api.runtime.id='abcdefghijklmnopabcdefghijklmnop';api.tabs={create:async value=>{settings.push(value);}};},
+    fetcher:async url=>{
+      const bytes=resources.resources.get(new URL(url).pathname.slice(1));
+      return bytes?new Response(bytes):officialFixtureFetch(url);
+    },
+    foundationClient:{async request(method,args){
+      calls.push(method);
+      if(method==='listPagePrograms')return {installed:structuredClone(installed),catalog:[]};
+      assert.equal(method,'importPageInstallPackage');
+      assert.equal(store.get(DEFAULT_PREINSTALL_STORE).pageState,'attention');
+      if(importError)throw importError;
+      const row={programId:args.package.programId,manifestHash:'authority-manifest',
+        sourceHash:args.package.sourceHash,revision:args.package.revision,
+        authorization:{installationId:'authority-install',status:'active'},enabled:true,nativeState:'registered'};
+      installed.push(row);return structuredClone(row);
+    }}});
+  return {...f,calls,installed,settings,get recovery(){return f.view.fields['sidebar-tool-preinstall'];},
+    act(action,isTrusted=true){return f.view.dispatch('sidebar-tool-preinstall',action,{isTrusted});}};
+}
+
+test('default extension recovery probes only, then requires a new trusted continuation',async t=>{
+  const f=await preinstallRecoveryFixture(t);
+  assert.equal(f.recovery.data.state,'user-scripts-required',f.recovery.data.technical);
+  assert.equal(f.elements['sidebar-tool-status'].hidden,true,'an expected prerequisite is not a generic install error');
+  const initialCalls=[...f.calls];
+  f.act('settings',false);f.act('check',false);f.act('resume',false);
+  assert.deepEqual(f.settings,[]);assert.deepEqual(f.calls,initialCalls);
+  f.act('settings');
+  assert.deepEqual(f.settings,[{url:'chrome://extensions/?id=abcdefghijklmnopabcdefghijklmnop'}]);
+  let probes=0;
+  f.api.userScripts={getScripts:async()=>{probes++;return [];},execute(){assert.fail('a probe must not run scripts');}};
+  f.act('check');f.act('check');
+  await settle(()=>f.recovery.data.state==='available');
+  assert.equal(probes,1);assert.deepEqual(f.calls,initialCalls,'checking cannot resume installation');
+  f.changeStorage({[DEFAULT_PREINSTALL_STORE]:{newValue:{...f.store.get(DEFAULT_PREINSTALL_STORE),state:'pending'}}});
+  await pause();assert.deepEqual(f.calls,initialCalls,'storage events cannot bypass recovery');
+  f.view.patch('sidebar-tool-status',{hidden:false,textContent:'其他操作的错误',attributes:{'data-state':'error'}});
+  f.act('resume',false);assert.deepEqual(f.calls,initialCalls);
+  f.act('resume');f.act('resume');
+  await settle(()=>f.recovery.hidden);
+  assert.equal(f.calls.filter(x=>x==='importPageInstallPackage').length,1);
+  assert.equal(f.store.get(DEFAULT_PREINSTALL_STORE).pageState,'complete');
+  assert.equal(f.elements['sidebar-tool-status'].textContent,'其他操作的错误');
+  assert.equal(f.view.getSnapshot().toast.message,'默认扩展已准备完成');
+  assert.ok(f.store.get(SIDEBAR_TOOL_STORE).some(row=>row.id===sample.id));
+});
+
+test('default extension recovery keeps unknown installation results fenced',async t=>{
+  const f=await preinstallRecoveryFixture(t,{importError:Object.assign(Error('lost reply'),{code:'E_OUTCOME_UNKNOWN'})});
+  f.api.userScripts={getScripts:async()=>[],execute(){}};
+  f.act('check');await settle(()=>f.recovery.data.state==='available');
+  f.act('resume');await settle(()=>f.recovery.data.state==='attention');
+  assert.equal(f.store.get(DEFAULT_PREINSTALL_STORE).pageState,'attention');
+  const calls=[...f.calls];f.act('resume');f.act('check');
+  await pause();assert.deepEqual(f.calls,calls);
+  assert.equal(calls.filter(x=>x==='importPageInstallPackage').length,1);
+});
+
+test('default extension recovery distinguishes a failed probe and ignores completion after disposal',async t=>{
+  const f=await preinstallRecoveryFixture(t);
+  f.api.userScripts={getScripts:async()=>{throw Error('temporary native failure');},execute(){}};
+  f.act('check');await settle(()=>f.recovery.data.state==='check-error');
+  assert.match(f.recovery.data.technical,/E_USER_SCRIPTS_NATIVE/);
+  const gate=deferred();f.api.userScripts.getScripts=()=>gate.promise;
+  f.act('check');assert.equal(f.recovery.data.state,'checking');
+  f.host.dispose();const snapshot=f.view.getSnapshot();gate.resolve([]);
+  await pause();assert.equal(f.view.getSnapshot(),snapshot);
+  assert.equal(f.calls.filter(x=>x==='importPageInstallPackage').length,0);
+});
+
+test('default extension recovery preserves an existing attention fence at startup',async t=>{
+  const f=await preinstallRecoveryFixture(t,{pageState:'attention'});
+  assert.equal(f.recovery.data.state,'attention');
+  assert.deepEqual(f.calls,[]);
+  f.act('resume');f.act('check');await pause();assert.deepEqual(f.calls,[]);
+});
 
 test('installed tool ui.notify is bounded, tool-scoped and cannot forge a new update',async t=>{
   const f=await hostFixture(t);
@@ -3023,14 +3111,15 @@ test('R4.5 orphaned private data blocks reinstall until the acknowledged uninsta
     f.emit(f.elements['sidebar-tool-install'],'click');
   }
   await reviewAndConfirm();
-  await settle(()=>/上次卸载仍有未完成/.test(f.elements['sidebar-tool-file-error'].textContent||''));
+  await settle(()=>f.view.fields['page-install-import-status'].attributes['data-state']==='uninstall-cleanup-pending');
   assert.deepEqual(store.get(key),privateData,'failed admission preserves the previous owner data');
   assert.deepEqual(store.get(SIDEBAR_TOOL_STORE),[]);
   assert.equal(f.elements['sidebar-tool-frame'].children.length,0,'refused install must not start code');
-  assert.equal((await retryUninstalledToolCleanup({api:f.api,lockManager:sharedLocks(),id:sample.id})).state,'cleaned');
+  f.emit(f.elements['sidebar-tool-install'],'click',{isTrusted:true});
+  await settle(()=>f.view.fields['page-install-import-status'].attributes['data-state']==='pending-review');
   assert.equal(store.has(key),false,'only the acknowledged uninstall cleanup removes old data');
   assert.deepEqual(store.get(SIDEBAR_TOOL_STORE),[],'cleanup itself does not install anything');
-  await reviewAndConfirm();
+  f.emit(f.elements['sidebar-tool-install'],'click',{isTrusted:true});
   await settle(()=>store.get(SIDEBAR_TOOL_STORE)?.length===1);
   assert.equal(store.get(SIDEBAR_TOOL_STORE)[0].id,sample.id);
   assert.equal(f.elements['sidebar-tool-frame'].children.length,0,'install must not start code');
@@ -3046,7 +3135,7 @@ test('R5.0 incomplete cleanup record blocks a new tool even when no orphan paylo
   f.selectFile({name:'quick-notes.json',size:text.length,text:async()=>text});
   await settle(()=>!f.elements['sidebar-tool-install'].disabled);
   f.emit(f.elements['sidebar-tool-install'],'click');
-  await settle(()=>/上次卸载仍有未完成/.test(f.elements['sidebar-tool-file-error'].textContent||''));
+  await settle(()=>f.view.fields['page-install-import-status'].attributes['data-state']==='uninstall-cleanup-pending');
   assert.deepEqual(store.get(SIDEBAR_TOOL_STORE),[]);
   assert.deepEqual(store.get(TOOL_CLEANUP_STORE),pending,'recovery marker must remain');
   assert.equal(f.elements['sidebar-tool-frame'].children.length,0);
@@ -3338,10 +3427,25 @@ async function compoundToolFixture(){
     requires:{browserSdk:'1.0.0'},contributes:{contextMenus:[]},pageModule:{...page,packageHash:await digest(page)}};
 }
 
-test('compound file import with pending cleanup consumes review and shows recovery without replay',async t=>{
+async function pendingCompoundImport(t,{official=false,nativeRevoked=false,uninstallPending=false}={}){
   const tool=await compoundToolFixture(),calls=[],writes=[];
-  const f=await hostFixture(t,{store:new Map(),startTool:false,
-    chromePermissions:{contains:async()=>true,request:async()=>true},
+  const bytes=serializeSidebarToolPackage(tool),release={id:'opendesk/'+tool.id,toolId:tool.id,
+    kind:'sidebar-tool',installationPolicy:'optional',version:tool.version,packageTitle:tool.title,
+    description:tool.description,capabilities:tool.capabilities,
+    packagePath:'official-tools/'+tool.id+'/'+tool.id+'.opendesk-tool.json',
+    bytes:Buffer.byteLength(bytes),sha256:await sidebarToolPackageHash(tool)};
+  let cleanupPending=true,permissionRequests=0,importFailure=null,foreignReceipt=false;
+  const store=uninstallPending?new Map([[SIDEBAR_TOOL_STORE,[]],
+    [TOOL_CLEANUP_STORE,{[tool.id]:{version:tool.version,createdAt:1,pageModule:true}}],
+    [sidebarToolStorageKey(tool.id),{memo:'previous installation data'}]]):new Map();
+  const f=await hostFixture(t,{store,startTool:false,
+    ...(official?{fetcher:async url=>{
+      const path=new URL(url).pathname.slice(1);
+      if(path==='official-tools/catalog.json')return Response.json({schema:'opendesk.official-tools.releases.v1',
+        sourceRepository:'https://github.com/shopable-ai/opendesk-browser',apps:[release]});
+      return path===release.packagePath?new Response(bytes):new Response('',{status:404});
+    }}:{}),
+    chromePermissions:{contains:async()=>true,request:async()=>{permissionRequests++;return true;}},
     getHook(key){calls.push(['read',key]);},
     setHook(rows){writes.push(structuredClone(rows));},
     foundationClient:{async request(type,payload){
@@ -3350,28 +3454,249 @@ test('compound file import with pending cleanup consumes review and shows recove
         packageHash:await sidebarToolPackageHash(tool),programId:tool.pageModule.programId,
         sourceHash:tool.pageModule.sourceHash};
       if(type==='synchronizeAppPages')return {status:'synchronized',retired:[],
-        cleanupPending:[tool.pageModule.programId]};
-      assert.fail('pending cleanup cannot query or import a companion: '+type);
+        cleanupPending:cleanupPending?[tool.pageModule.programId]:[],...(nativeRevoked?{revocationPending:[]}:{} )};
+      assert.ok(!cleanupPending||nativeRevoked,'native revocation must be confirmed before any companion query/import');
+      if(type==='listPagePrograms')return {catalog:[],installed:[]};
+      assert.equal(type,'importAppPage');
+      if(importFailure)throw importFailure;
+      return {status:'installed',appOwner:foreignReceipt?{...payload,installEpoch:'foreign'}:payload,programId:tool.pageModule.programId,
+        sourceHash:tool.pageModule.sourceHash,manifestHash:'a'.repeat(64),nativeState:'registered',ready:true};
     }}});
-  f.host.openImport();
-  const text=JSON.stringify(tool);
-  f.selectFile({name:'target-fixture.opendesk-tool.json',size:Buffer.byteLength(text),text:async()=>text});
+  if(official)assert.equal(f.host.openOfficialReview(tool.id),true);
+  else{
+    f.host.openImport();
+    const text=JSON.stringify(tool);
+    // Model the native file input's selected value; no real file picker runs in Node.
+    f.view.patch('sidebar-tool-file',{value:'target-fixture.opendesk-tool.json'});
+    f.selectFile({name:'target-fixture.opendesk-tool.json',size:Buffer.byteLength(text),text:async()=>text});
+  }
   await settle(()=>!f.elements['sidebar-tool-preview'].hidden&&!f.elements['sidebar-tool-install'].disabled);
   f.emit(f.elements['sidebar-tool-install'],'click',{isTrusted:true});
-  await settle(()=>!f.elements['sidebar-tool-file-error'].hidden&&
-    /旧网页模块/.test(f.elements['sidebar-tool-file-error'].textContent));
-  const message=f.elements['sidebar-tool-file-error'].textContent;
-  assert.match(message,/应用安装包已保存.*安装尚未完成/);
-  assert.match(message,/保存.*刷新/);
-  assert.match(message,/重新选择同一个安装包.*确认安装/);
-  assert.match(message,/本次安装确认已失效，不会自动重试/);
-  assert.doesNotMatch(message,/本机事务记录/);
-  assert.equal(f.elements['sidebar-tool-preview'].hidden,true);
+  await settle(()=>!f.elements['sidebar-tool-file'].disabled&&
+    (!f.elements['sidebar-tool-file-error'].hidden||!f.elements['page-install-import-status'].hidden||
+      f.view.getSnapshot().toasts.some(row=>row.type==='success')));
+  return {...f,tool,release,calls,writes,finishCleanup(){cleanupPending=false;},
+    failImport(foreign){foreignReceipt=foreign;if(!foreign)importFailure=Object.assign(Error('receipt lost'),{code:'E_EFFECT_UNKNOWN'});},
+    permissions:()=>permissionRequests};
+}
+
+for(const official of [false,true])
+test('uninstall recovery in import retains the package and requires separate cleanup and installation clicks; official='+official,async t=>{
+  const f=await pendingCompoundImport(t,{uninstallPending:true,nativeRevoked:true,official});
+  const key=sidebarToolStorageKey(f.tool.id),data=structuredClone(f.store.get(key));
+  assert.equal(f.view.fields['page-install-import-status'].attributes['data-state'],'uninstall-cleanup-pending');
+  assert.equal(f.elements['sidebar-tool-file-error'].hidden,true);
+  assert.match(f.elements['page-install-import-status'].textContent,/上次卸载.*清理/);
+  assert.match(f.elements['page-install-import-status'].textContent,/本地数据.*权限/);
+  assert.equal(f.elements['sidebar-tool-install'].textContent,'恢复卸载清理');
+  assert.deepEqual(f.store.get(key),data,'merely attempting installation cannot delete old data');
+  assert.equal(f.calls.filter(([type])=>type==='synchronizeAppPages').length,0);
+  f.emit(f.elements['sidebar-tool-install'],'click',{isTrusted:false});await pause();
+  assert.deepEqual(f.store.get(key),data,'cleanup requires a new trusted user action');
+  f.emit(f.elements['sidebar-tool-install'],'click',{isTrusted:true});
+  f.emit(f.elements['sidebar-tool-install'],'click',{isTrusted:true});
+  await settle(()=>f.view.fields['page-install-import-status'].attributes['data-state']==='pending-review');
+  assert.equal(f.store.has(key),false);
+  assert.equal(f.store.get(TOOL_CLEANUP_STORE)?.[f.tool.id],undefined);
+  assert.deepEqual(f.store.get(SIDEBAR_TOOL_STORE),[],'finishing uninstall must not reinstall');
+  assert.equal(f.calls.filter(([type])=>type==='synchronizeAppPages').length,1,'double click cannot duplicate cleanup');
+  assert.equal(f.calls.filter(([type])=>type==='importAppPage').length,0);
+  assert.equal(f.elements['sidebar-tool-install'].textContent,'确认安装');
+  assert.match(f.elements['sidebar-tool-preview-source'].textContent,official?/官方发行/:/本地安装包/);
+  f.emit(f.elements['sidebar-tool-install'],'click',{isTrusted:true});
+  await settle(()=>f.view.getSnapshot().toasts.some(row=>/已安装/.test(row.message)));
+  assert.equal(f.calls.filter(([type])=>type==='importAppPage').length,1);
+  if(official)assert.equal(f.store.get(MARKET_PROVENANCE_STORE)[f.tool.id].marketId,f.release.id);
+});
+
+test('uninstall recovery in import retains the actual failure and never claims installation success',async t=>{
+  const f=await pendingCompoundImport(t,{uninstallPending:true,nativeRevoked:true});
+  const send=f.api.runtime.sendMessage;let retireCalls=0;
+  f.api.runtime.sendMessage=async message=>{
+    if(message.type==='cleanupUninstalledToolSchedules'){
+      retireCalls++;return {ok:false,error:{code:'E_OUTCOME_UNKNOWN',message:'卸载计划回执未确认'}};
+    }
+    return send(message);
+  };
+  f.emit(f.elements['sidebar-tool-install'],'click',{isTrusted:true});
+  await settle(()=>/卸载计划回执未确认/.test(f.elements['page-install-import-status'].textContent));
+  assert.ok(f.store.get(TOOL_CLEANUP_STORE)[f.tool.id]);
+  assert.ok(f.store.get(sidebarToolStorageKey(f.tool.id)));
+  assert.equal(f.calls.filter(([type])=>type==='importAppPage').length,0);
+  assert.equal(f.elements['sidebar-tool-file-error'].hidden,true);
+  assert.equal(f.elements['sidebar-tool-install'].textContent,'恢复卸载清理');
+  assert.equal(f.elements['sidebar-tool-install'].disabled,false);
+  assert.equal(f.view.getSnapshot().toasts.some(row=>/已安装/.test(row.message)),false);
+  await pause();await pause();assert.equal(retireCalls,1,'failure cannot automatically replay cleanup');
+});
+
+test('uninstall recovery in import cannot delete data owned by a concurrent new installation',async t=>{
+  const f=await pendingCompoundImport(t,{uninstallPending:true,nativeRevoked:true});
+  const key=sidebarToolStorageKey(f.tool.id),data={memo:'new installation data'};
+  f.store.set(SIDEBAR_TOOL_STORE,[f.tool]);f.store.set(key,data);f.change([f.tool]);
+  f.emit(f.elements['sidebar-tool-install'],'click',{isTrusted:true});
+  await settle(()=>/其他窗口.*安装/.test(f.elements['page-install-import-status'].textContent));
+  assert.deepEqual(f.store.get(key),data);
+  assert.deepEqual(f.store.get(SIDEBAR_TOOL_STORE),[f.tool]);
+  assert.equal(f.calls.filter(([type])=>type==='synchronizeAppPages').length,0);
+  assert.equal(f.elements['sidebar-tool-install'].disabled,true,'a stale uninstall recovery cannot authorize replacing the new owner');
+});
+
+test('uninstall recovery in import can resume a failed new review after cleanup has already completed',async t=>{
+  const f=await pendingCompoundImport(t,{uninstallPending:true,nativeRevoked:true});
+  const get=f.api.storage.local.get;let fail=true;
+  f.api.storage.local.get=async key=>{
+    if(key===SIDEBAR_TOOL_STORE&&!f.store.get(TOOL_CLEANUP_STORE)?.[f.tool.id]&&fail){
+      fail=false;throw Error('重新审阅服务暂不可用');
+    }
+    return get(key);
+  };
+  f.emit(f.elements['sidebar-tool-install'],'click',{isTrusted:true});
+  await settle(()=>/重新审阅服务暂不可用/.test(f.elements['page-install-import-status'].textContent));
+  assert.equal(f.store.get(TOOL_CLEANUP_STORE)?.[f.tool.id],undefined);
+  assert.equal(f.store.has(sidebarToolStorageKey(f.tool.id)),false);
+  f.emit(f.elements['sidebar-tool-install'],'click',{isTrusted:true});
+  await settle(()=>f.view.fields['page-install-import-status'].attributes['data-state']==='pending-review');
+  assert.equal(f.elements['sidebar-tool-install'].textContent,'确认安装');
+  assert.equal(f.calls.filter(([type])=>type==='synchronizeAppPages').length,1,'already completed cleanup cannot be replayed');
+  assert.equal(f.calls.filter(([type])=>type==='importAppPage').length,0);
+});
+
+test('uninstall recovery in import rechecks a new owner inside the original cleanup lock',async t=>{
+  const f=await pendingCompoundImport(t,{uninstallPending:true,nativeRevoked:true});
+  const get=f.api.storage.local.get,key=sidebarToolStorageKey(f.tool.id),data={memo:'concurrent owner data'};
+  let injected=false;
+  f.api.storage.local.get=async input=>{
+    const result=await get(input);
+    if(input===TOOL_CLEANUP_STORE&&!injected){
+      injected=true;f.store.set(SIDEBAR_TOOL_STORE,[f.tool]);f.store.set(key,data);
+    }
+    return result;
+  };
+  f.emit(f.elements['sidebar-tool-install'],'click',{isTrusted:true});
+  await settle(()=>/其他窗口.*安装/.test(f.elements['page-install-import-status'].textContent));
+  assert.equal(injected,true);
+  assert.deepEqual(f.store.get(key),data);
+  assert.equal(f.calls.filter(([type])=>type==='synchronizeAppPages').length,0);
   assert.equal(f.elements['sidebar-tool-install'].disabled,true);
-  assert.equal(f.elements['sidebar-tool-file'].value,'');
+});
+
+test('uninstall recovery in import stops before cleanup when its review closes during preparation',async t=>{
+  const f=await pendingCompoundImport(t,{uninstallPending:true,nativeRevoked:true});
+  const get=f.api.storage.local.get,gate=deferred(),entered=deferred();
+  t.after(()=>gate.resolve());
+  f.api.storage.local.get=async key=>{
+    const result=await get(key);
+    if(key===TOOL_CLEANUP_STORE){entered.resolve();await gate.promise;}
+    return result;
+  };
+  f.emit(f.elements['sidebar-tool-install'],'click',{isTrusted:true});
+  await entered.promise;
+  f.emit(f.elements['sidebar-tool-import-close'],'click');
+  assert.equal(f.elements['sidebar-tool-import'].hidden,true);
+  gate.resolve();await pause();await pause();
+  assert.ok(f.store.get(TOOL_CLEANUP_STORE)?.[f.tool.id]);
+  assert.ok(f.store.get(sidebarToolStorageKey(f.tool.id)));
+  assert.equal(f.calls.filter(([type])=>type==='synchronizeAppPages').length,0);
+  assert.equal(f.elements['sidebar-tool-preview'].hidden,true);
+});
+
+test('late uninstall recovery in import cannot restore a disposed review or install its saved package',async t=>{
+  const f=await pendingCompoundImport(t,{uninstallPending:true,nativeRevoked:true});
+  const send=f.api.runtime.sendMessage,gate=deferred(),entered=deferred();
+  t.after(()=>gate.resolve());
+  f.api.runtime.sendMessage=async message=>{
+    if(message.type==='cleanupUninstalledToolSchedules'){entered.resolve();await gate.promise;}
+    return send(message);
+  };
+  f.emit(f.elements['sidebar-tool-install'],'click',{isTrusted:true});
+  await entered.promise;
+  f.host.dispose();
+  const fields=structuredClone(f.view.getSnapshot().fields);
+  gate.resolve();
+  await settle(()=>!f.store.get(TOOL_CLEANUP_STORE)?.[f.tool.id]);await pause();await pause();
+  assert.deepEqual(f.view.getSnapshot().fields,fields,'late cleanup cannot change disposed import fields');
+  assert.equal(f.calls.filter(([type])=>type==='importAppPage').length,0);
+  assert.deepEqual(f.store.get(SIDEBAR_TOOL_STORE),[]);
+});
+
+test('compound install completes once after native revocation and only advises refreshing old webpages',async t=>{
+  const f=await pendingCompoundImport(t,{nativeRevoked:true});
+  const success=f.view.getSnapshot().toasts.find(row=>row.type==='success');
+  assert.ok(success);
+  assert.match(success.message,/已安装/);
+  assert.match(success.caption,/安装已完成.*网页.*刷新/);
+  assert.doesNotMatch(success.caption,/继续安装|重新核对|自动重试/);
+  assert.equal(f.view.getSnapshot().toasts.some(row=>row.type==='warning'),false);
+  assert.equal(f.elements['sidebar-tool-file-error'].hidden,true);
+  assert.equal(f.elements['sidebar-tool-preview'].hidden,true);
+  assert.equal(f.calls.filter(([type])=>type==='importAppPage').length,1);
+  const writes=f.writes.length;
+  f.emit(f.elements['sidebar-tool-install'],'click',{isTrusted:true});await pause();
+  assert.equal(f.writes.length,writes,'completed review cannot submit a second installation');
+});
+
+test('compound cleanup recovery preserves official source and requires a new approval to complete its companion',async t=>{
+  const f=await pendingCompoundImport(t,{official:true}),writeCount=f.writes.length;
+  const originalEpoch=f.store.get(TOOL_REVOCATION_EPOCHS_STORE)[f.tool.id];
+  f.finishCleanup();f.emit(f.elements['sidebar-tool-install'],'click',{isTrusted:true});
+  await settle(()=>f.view.fields['page-install-import-status'].attributes['data-state']==='pending-review');
+  assert.equal(f.elements['sidebar-tool-install'].textContent,'核对并恢复网页模块');
+  assert.equal(f.elements['sidebar-tool-install'].disabled,false);
+  assert.match(f.elements['sidebar-tool-preview-source'].textContent,/官方发行/);
+  assert.equal(f.writes.length,writeCount,'official recheck only prepares a new review');
+  f.emit(f.elements['sidebar-tool-install'],'click',{isTrusted:true});
+  await settle(()=>f.view.getSnapshot().toasts.some(row=>row.type==='success'));
+  assert.equal(f.calls.filter(([type])=>type==='importAppPage').length,1);
+  assert.equal(f.store.get(TOOL_REVOCATION_EPOCHS_STORE)[f.tool.id],originalEpoch);
+  assert.equal(f.store.get(MARKET_PROVENANCE_STORE)[f.tool.id].marketId,f.release.id);
+  assert.equal(f.store.get(MARKET_PROVENANCE_STORE)[f.tool.id].sha256,f.release.sha256);
+  assert.deepEqual(Object.values(f.store.get(MARKET_OPERATIONS_STORE)).map(row=>row.state).sort(),
+    ['outcome-unknown','succeeded'],'new confirmation cannot rewrite the original uncertain operation');
+});
+
+for(const changed of ['catalog','epoch'])
+test('compound cleanup recheck ignores a stale failed read after a newer '+changed+' update',async t=>{
+  const f=await pendingCompoundImport(t),gate=deferred(),get=f.api.storage.local.get;
+  let reads=0;
+  f.api.storage.local.get=async key=>{
+    if(key===SIDEBAR_TOOL_STORE){reads++;await gate.promise;}
+    return get(key);
+  };
+  const tools=[f.tool,sample];
+  if(changed==='epoch'){f.store.set(SIDEBAR_TOOL_STORE,tools);f.change(tools);}
+  f.emit(f.elements['sidebar-tool-install'],'click',{isTrusted:true});
+  await settle(()=>reads===1);
+  if(changed==='catalog'){f.store.set(SIDEBAR_TOOL_STORE,tools);f.change(tools);}
+  if(changed==='epoch')f.changeStorage({[TOOL_REVOCATION_EPOCHS_STORE]:{
+    newValue:{[f.tool.id]:f.store.get(TOOL_REVOCATION_EPOCHS_STORE)[f.tool.id]}}});
+  gate.reject(Error('stale read failed'));await pause();await pause();
+  f.emit(f.elements['sidebar-tool-import-close'],'click');
+  f.host.openTool(sample.id);
+  assert.equal(f.elements['sidebar-tool-frame'].children.length,1,'new valid installation state remains usable');
+});
+
+test('compound pending cleanup is actionable installation status, not an invalid file or success',async t=>{
+  const f=await pendingCompoundImport(t),{tool,calls,writes}=f;
+  const status=f.elements['page-install-import-status'],message=status.textContent;
+  assert.equal(status.hidden,false);
+  assert.equal(f.view.fields['page-install-import-status'].attributes['data-state'],'cleanup-pending');
+  assert.match(message,/安装待完成/);
+  assert.match(message,/安装包已保存/);
+  assert.match(message,/保存.*刷新/);
+  assert.match(message,/重新核对安装/);
+  assert.match(message,/不会自动重试/);
+  assert.doesNotMatch(message,/本机事务记录/);
+  assert.equal(f.elements['sidebar-tool-file-error'].hidden,true);
+  assert.notEqual(f.view.fields['sidebar-tool-file'].attributes['aria-invalid'],'true');
+  assert.equal(f.elements['sidebar-tool-preview'].hidden,false);
+  assert.equal(f.elements['sidebar-tool-install'].textContent,'重新核对安装');
+  assert.equal(f.elements['sidebar-tool-install'].disabled,false);
+  assert.notEqual(f.elements['sidebar-tool-file'].value,'');
   assert.deepEqual(f.store.get(SIDEBAR_TOOL_STORE),[tool]);
   assert.equal(f.elements['sidebar-tool-frame'].children.length,0);
   assert.equal(f.view.getSnapshot().toasts.some(row=>row.type==='success'),false);
+  assert.ok(f.view.getSnapshot().toasts.some(row=>row.type==='warning'));
   assert.deepEqual(calls.filter(([type])=>type!=='read').map(([type])=>type),
     ['prepareAppPage','synchronizeAppPages']);
   await settle(()=>!f.elements['sidebar-tool-file'].disabled);
@@ -3383,6 +3708,86 @@ test('compound file import with pending cleanup consumes review and shows recove
   assert.deepEqual([...f.store],before);
   assert.equal(calls.filter(([type])=>type==='importAppPage').length,0);
   assert.equal(calls.filter(([type])=>type==='synchronizeAppPages').length,1);
+});
+
+test('compound cleanup recovery rechecks once without writing or requesting permission, then needs a fresh confirmation',async t=>{
+  const f=await pendingCompoundImport(t),writeCount=f.writes.length,permissions=f.permissions();
+  f.finishCleanup();
+  f.emit(f.elements['sidebar-tool-install'],'click',{isTrusted:true});
+  f.emit(f.elements['sidebar-tool-install'],'click',{isTrusted:true});
+  await settle(()=>f.elements['sidebar-tool-install'].textContent==='核对并恢复网页模块'&&
+    !f.elements['sidebar-tool-install'].disabled);
+  assert.equal(f.writes.length,writeCount);
+  assert.equal(f.permissions(),permissions);
+  assert.equal(f.calls.filter(([type])=>type==='importAppPage').length,0);
+  f.emit(f.elements['sidebar-tool-install'],'click',{isTrusted:true});
+  await settle(()=>f.view.getSnapshot().toasts.some(row=>row.type==='success'));
+  assert.equal(f.calls.filter(([type])=>type==='importAppPage').length,1);
+  assert.equal(f.writes.length,writeCount,'same-package repair keeps the parent epoch and data');
+  assert.equal(f.elements['sidebar-tool-import'].hidden,true);
+});
+
+test('compound cleanup recheck read failure keeps a persistent recovery action without invalidating the file',async t=>{
+  const f=await pendingCompoundImport(t),get=f.api.storage.local.get;
+  f.api.storage.local.get=async key=>{if(key===SIDEBAR_TOOL_STORE)throw Error('read unavailable');return get(key);};
+  f.emit(f.elements['sidebar-tool-install'],'click',{isTrusted:true});
+  await settle(()=>/read unavailable/.test(f.elements['page-install-import-status'].textContent));
+  assert.equal(f.elements['sidebar-tool-install'].disabled,false);
+  assert.equal(f.elements['sidebar-tool-file-error'].hidden,true);
+  assert.equal(f.calls.filter(([type])=>type==='importAppPage').length,0);
+});
+
+test('compound repair rejects the consumed review after same-byte reinstall changes its epoch',async t=>{
+  const f=await pendingCompoundImport(t);
+  f.finishCleanup();f.emit(f.elements['sidebar-tool-install'],'click',{isTrusted:true});
+  await settle(()=>f.elements['sidebar-tool-install'].textContent==='核对并恢复网页模块');
+  f.store.set(TOOL_REVOCATION_EPOCHS_STORE,{[f.tool.id]:'new-installation'});
+  f.emit(f.elements['sidebar-tool-install'],'click',{isTrusted:true});
+  await settle(()=>/安装实例已发生变化/.test(f.elements['sidebar-tool-file-error'].textContent));
+  assert.equal(f.elements['sidebar-tool-install'].disabled,true);
+  assert.equal(f.calls.filter(([type])=>type==='importAppPage').length,0);
+});
+
+for(const foreign of [false,true])test('compound repair '+(foreign?'foreign':'lost')+' receipt consumes confirmation without replay',async t=>{
+  const f=await pendingCompoundImport(t);
+  f.finishCleanup();f.failImport(foreign);
+  f.emit(f.elements['sidebar-tool-install'],'click',{isTrusted:true});
+  await settle(()=>f.elements['sidebar-tool-install'].textContent==='核对并恢复网页模块');
+  f.emit(f.elements['sidebar-tool-install'],'click',{isTrusted:true});
+  await settle(()=>/本次批准已撤销/.test(f.elements['sidebar-tool-file-error'].textContent));
+  assert.equal(f.elements['sidebar-tool-install'].disabled,true);
+  f.emit(f.elements['sidebar-tool-install'],'click',{isTrusted:true});await pause();
+  assert.equal(f.calls.filter(([type])=>type==='importAppPage').length,1);
+  assert.equal(f.view.getSnapshot().toasts.some(row=>row.type==='success'),false);
+});
+
+for(const outcome of ['resolve','reject'])for(const next of ['close','cancel','replace','dispose'])
+test('late compound cleanup recheck '+outcome+' cannot restore a candidate after '+next,async t=>{
+  const f=await pendingCompoundImport(t),gate=deferred(),get=f.api.storage.local.get;
+  let reads=0;
+  f.api.storage.local.get=async key=>{
+    if(key===SIDEBAR_TOOL_STORE){reads++;await gate.promise;}
+    return get(key);
+  };
+  f.emit(f.elements['sidebar-tool-install'],'click',{isTrusted:true});
+  f.emit(f.elements['sidebar-tool-install'],'click',{isTrusted:true});
+  await settle(()=>reads===1);
+  if(next==='close')f.emit(f.elements['sidebar-tool-import-close'],'click');
+  if(next==='cancel')f.emit(f.elements['sidebar-tool-file'],'cancel');
+  if(next==='replace'){
+    const text=JSON.stringify(sample);
+    f.selectFile({name:'replacement.json',size:Buffer.byteLength(text),text:async()=>text});
+    await settle(()=>f.elements['sidebar-tool-preview-title'].textContent===sample.title&&
+      !f.elements['sidebar-tool-install'].disabled);
+  }
+  if(next==='dispose')f.host.dispose();
+  const importState=()=>Object.fromEntries(Object.entries(f.view.getSnapshot().fields).filter(([key])=>
+    /sidebar-tool-(file|import|preview|install)|page-install-import/.test(key)));
+  const before=structuredClone(importState());
+  if(outcome==='resolve')gate.resolve();else gate.reject(Error('late read failed'));
+  await pause();await pause();
+  assert.deepEqual(importState(),before);
+  assert.equal(f.calls.filter(([type])=>type==='importAppPage').length,0);
 });
 
 test('page.request quietly recovers an exhausted loading snapshot before exact-document dispatch',async t=>{
@@ -3972,20 +4377,30 @@ for(const failReadback of [false,true])test('R4.5 lost registry acknowledgement 
   for(const key of [READING_TOC_SITE_STORE,CLIP_SITE_STORE,CAPTURE_SITE_STORE])assert.equal(f.store.has(key),false);
 });
 
-test('R4.5 failure to refresh after a confirmed commit cannot reuse the consumed approval',async t=>{
-  const f=await hostFixture(t,{store:new Map(),startTool:false}),release=(await officialFixtures()).catalog.apps[0];
+for(const failKey of [null,SIDEBAR_TOOL_STORE,READING_TOC_SITE_STORE,CAPTURE_SITE_STORE])
+test('confirmed commit keeps a visible success and consumes approval; display read failure='+failKey,async t=>{
+  const f=await hostFixture(t,{store:new Map(),startTool:false}),release=(await officialFixtures()).catalog.apps.find(row=>row.toolId==='quick-notes');
   f.host.openOfficialReview(release.toolId);await settle(()=>!f.elements['sidebar-tool-preview'].hidden);
   const get=f.api.storage.local.get;let failed=false;
   f.api.storage.local.get=async key=>{
-    if(key===SIDEBAR_TOOL_STORE&&!failed&&Object.values(f.store.get(MARKET_OPERATIONS_STORE)||{}).some(row=>row.state==='succeeded')){
+    if(failKey&&key===failKey&&!failed&&Object.values(f.store.get(MARKET_OPERATIONS_STORE)||{}).some(row=>row.state==='succeeded')){
       failed=true;throw Error('post-commit list read failed');
     }
     return get(key);
   };
   f.emit(f.elements['sidebar-tool-install'],'click');
-  await settle(()=>/post-commit list read failed/.test(f.elements['sidebar-tool-file-error'].textContent||''));
+  await settle(()=>f.view.getSnapshot().toasts.some(row=>row.type==='success'));
+  if(failKey){
+    assert.match(f.elements['sidebar-tool-status'].textContent,/安装已完成.*post-commit list read failed/);
+    assert.equal(f.elements['sidebar-tool-status'].hidden,false);
+  }
+  assert.equal(f.elements['sidebar-tool-file-error'].hidden,true);
+  assert.notEqual(f.view.fields['sidebar-tool-file'].attributes['aria-invalid'],'true');
   assert.equal(f.store.get(SIDEBAR_TOOL_STORE).length,1);
   assert.equal(f.elements['sidebar-tool-install'].disabled,true);assert.equal(f.elements['sidebar-tool-preview'].hidden,true);
+  const before=structuredClone([...f.store]);
+  f.emit(f.elements['sidebar-tool-install'],'click');await pause();
+  assert.deepEqual([...f.store],before);
 });
 
 test('R4.5 an official package removed after review is rejected before any installation write',async t=>{
@@ -4523,11 +4938,237 @@ test('Cookie batch review cancellation proves no dispatch while later cancellati
     ['browser.intent.confirm','browser.cookies.setMany']).flat());
 });
 
+async function cookieExportNavigationFixture(t){
+  cookieTestLocation(t);
+  const tool=await officialToolFixture('cookie-editor');
+  const tab={id:7,windowId:1,active:true,status:'complete',url:'https://example.org/account',title:'Account'};
+  let documentId='doc-a',beforeObservation=null;
+  const realTarget=createCurrentPageTarget({api:{windows:{getCurrent:async()=>({id:1})},
+    tabs:{query:async()=>[{...tab}]},webNavigation:{getAllFrames:async()=>{
+      const hook=beforeObservation;beforeObservation=null;await hook?.();
+      return [{frameId:0,documentId,documentLifecycle:'active',url:tab.url}];
+    }}}});
+  const target={...realTarget,get snapshot(){return realTarget.snapshot;},
+    revalidate:(captured,options)=>realTarget.revalidate(captured,options)};
+  t.after(()=>target.dispose());await target.ready;
+  const store=await verifiedCookieStore(tool,{storeId:'0',read:true,write:true,observe:true,
+    clear:true,values:true,valueConsent:true,grantEpoch:'export-navigation'});
+  const f=await hostFixture(t,{tool,store,target});
+  await settle(()=>f.elements['sidebar-tool-cookie-target'].textContent.includes('已授权'));
+  const old=Object.getOwnPropertyDescriptor(globalThis,'navigator'),nativeCalls=[],hostCalls=[];
+  let active=false,beforeReceipt=null,nativeSink=null;
+  Object.defineProperty(globalThis,'navigator',{configurable:true,value:{
+    userActivation:{get isActive(){return active;}},clipboard:{writeText:async text=>{
+      nativeCalls.push({method:'copy',text});await nativeSink?.();
+    }}}});
+  t.after(()=>{if(old)Object.defineProperty(globalThis,'navigator',old);else delete globalThis.navigator;});
+  f.api.downloads={download:async args=>{nativeCalls.push({method:'download',...args});await nativeSink?.();return 91;}};
+  const sendMessage=f.api.runtime.sendMessage.bind(f.api.runtime);
+  f.api.runtime.sendMessage=async message=>{
+    hostCalls.push(message);
+    if(message.operation==='browser.intent.confirm')return {ok:true,data:{approvalRef:'exact-export-intent'}};
+    if(message.kind==='tool'){
+      await beforeReceipt?.();
+      return {ok:true,data:{authorized:true,consumedIntent:true}};
+    }
+    return sendMessage(message);
+  };
+  const responses=new Map(),postMessage=f.frame.contentWindow.postMessage.bind(f.frame.contentWindow);
+  f.frame.contentWindow.postMessage=(message,...args)=>{
+    postMessage(message,...args);
+    if(message.kind==='response')responses.get(message.requestId)?.resolve(message);
+  };
+  const ask=async(operation,payload,id)=>{
+    const response=deferred();responses.set(id,response);
+    try{f.ask(operation,payload,id);return await response.promise;}
+    finally{responses.delete(id);}
+  };
+  return {...f,target,tab,nativeCalls,hostCalls,ask,
+    setBeforeObservation(fn){beforeObservation=fn;},
+    setBeforeReceipt(fn){beforeReceipt=fn;},setNativeSink(fn){nativeSink=fn;},
+    async navigate(change){
+      if(change.documentId)documentId=change.documentId;
+      Object.assign(tab,change);delete tab.documentId;
+      await target.refresh({quiet:true,preserveRetry:true});
+    },
+    async begin(method){
+      active=true;
+      try{const reply=await ask('cookieEditor.export.begin',{url:tab.url,method},'begin-'+method);
+        assert.equal(reply.ok,true,JSON.stringify(reply));assert.equal(reply.result.authorized,true);
+      }finally{active=false;}
+    }
+  };
+}
+
+for(const method of ['copy','download']){
+  const operation=method==='copy'?'browser.clipboard.writeText':'browser.downloads.text';
+  const payload=method==='copy'?{text:'fixture-only'}:{text:'fixture-only',filename:'cookies.json'};
+  for(const scenario of ['durable read revocation','concurrent title refresh']){
+    test(`Cookie export revalidation await ${method}: ${scenario}`,{timeout:3000},async t=>{
+      const f=await cookieExportNavigationFixture(t),entered=deferred(),resume=deferred();
+      t.after(()=>resume.resolve());
+      await f.begin(method);
+      const revalidate=f.target.revalidate.bind(f.target);
+      let validations=0;
+      f.target.revalidate=(captured,options)=>{
+        validations++;
+        f.setBeforeObservation(async()=>{
+          entered.resolve();await resume.promise;
+        });
+        return revalidate(captured,options);
+      };
+      const pending=f.ask(operation,payload,'revalidation-delivery');
+      await entered.promise;
+      assert.equal(f.nativeCalls.length,0,'document observation must finish before native dispatch');
+      if(scenario==='durable read revocation'){
+        const grants=structuredClone(f.store.get(BROWSER_MENU_GRANTS_STORE));
+        grants['cookie-editor'].cookieAllSites.read=false;
+        f.store.set(BROWSER_MENU_GRANTS_STORE,grants); // No storage event: durable authority is decisive.
+      }else{
+        await f.navigate({title:'Title refreshed during document observation'});
+        assert.equal(f.target.capture().documentId,'doc-a');
+      }
+      resume.resolve();
+      const reply=await pending;
+      if(scenario==='concurrent title refresh'){
+        assert.equal(reply.ok,true,JSON.stringify(reply));
+        assert.equal(f.nativeCalls.length,1,'the same Document remains authorized after metadata refresh');
+        assert.equal(f.nativeCalls[0].method,method);
+      }else{
+        assert.equal(reply.ok,false,JSON.stringify(reply));
+        assert.equal(reply.error.code,'E_TOOL_CHANGED');
+        assert.equal(f.nativeCalls.length,0,'a durably revoked grant must never reach the native sink');
+      }
+      assert.equal(validations,1,'document observation is never automatically retried');
+      assert.equal(f.hostCalls.filter(row=>row.kind==='tool').length,1,'consumed Host intent is never replayed');
+      assert.equal(f.frame.contentWindow.sent.filter(row=>row.kind==='response'&&
+        row.requestId==='revalidation-delivery').length,1,'the request settles exactly once');
+    });
+  }
+  test(`Cookie export document binding ${method}: consumedIntent then same-Origin doc-a to doc-b prevents native sink`,{timeout:3000},async t=>{
+    const f=await cookieExportNavigationFixture(t),entered=deferred(),resume=deferred();
+    t.after(()=>resume.resolve());
+    f.setBeforeReceipt(async()=>{entered.resolve();await resume.promise;});
+    await f.begin(method);
+    const pending=f.ask(operation,payload,'delivery');
+    await entered.promise;
+    await f.navigate({documentId:'doc-b'});resume.resolve();
+    const reply=await pending;
+    assert.equal(reply.ok,false);assert.equal(reply.error.code,'E_DOCUMENT_CHANGED');
+    assert.equal(f.nativeCalls.length,0,'a consumed exact Host intent cannot authorize a different document');
+    await pause();await pause();
+    assert.equal(f.hostCalls.filter(row=>row.kind==='tool').length,1,'no automatic Host replay');
+    assert.equal(f.nativeCalls.length,0);
+  });
+  test(`Cookie export document binding ${method}: invalidation after native dispatch is unknown without replay`,{timeout:3000},async t=>{
+    const f=await cookieExportNavigationFixture(t),entered=deferred(),resume=deferred();
+    t.after(()=>resume.resolve());
+    f.setNativeSink(async()=>{entered.resolve();await resume.promise;});
+    await f.begin(method);
+    const pending=f.ask(operation,payload,'delivery');
+    await entered.promise;
+    assert.equal(f.nativeCalls.length,1,'the native operation has already started');
+    await f.navigate({documentId:'doc-b'});resume.resolve();
+    const reply=await pending;
+    assert.equal(reply.ok,false);assert.equal(reply.error.code,'E_OUTCOME_UNKNOWN');
+    await pause();await pause();
+    assert.equal(f.nativeCalls.length,1,'unknown native effects must never be replayed');
+    assert.equal(f.hostCalls.filter(row=>row.kind==='tool').length,1);
+  });
+  test(`Cookie export document binding ${method}: sameDocument path query and title preserve accepted export`,{timeout:3000},async t=>{
+    const f=await cookieExportNavigationFixture(t);
+    await f.begin(method);
+    await f.navigate({url:'https://example.org/next'});
+    await f.navigate({url:'https://example.org/next?view=all'});
+    await f.navigate({title:'Updated account'});
+    assert.equal(f.target.capture().documentId,'doc-a');
+    const reply=await f.ask(operation,payload,'delivery');
+    assert.equal(reply.ok,true,JSON.stringify(reply));
+    assert.equal(f.nativeCalls.length,1);
+    assert.equal(f.elements['sidebar-tool-action-review'].hidden,true,'accepted click needs no second review');
+    assert.equal(f.hostCalls.filter(row=>row.kind==='tool').length,1);
+  });
+}
+
+test('Cookie transient loading fences the original document and Bridge binds pending to the current instance',async t=>{
+  const f=await cookieExportNavigationFixture(t);
+  const sandboxWindow=new Node('window'),root=new Node(),events=[];
+  root.dispatchEvent=event=>{events.push(event.type);return true;};
+  const parent={postMessage(){}};
+  class BridgeEvent {constructor(type){this.type=type;}stopImmediatePropagation(){}}
+  runInNewContext(`(${initSidebarToolSandbox.toString()})()`,{
+    SIDEBAR_TOOL_PROTOCOL:f.loaded.protocol,createBrowserSdk,sandboxToolMessages,normalizeToolNavigation,
+    normalizeToolUiNotice,window:sandboxWindow,parent,CustomEvent,Event:BridgeEvent,
+    document:{getElementById:id=>id==='tool-root'?root:new Node(),documentElement:new Node('html'),
+      head:new Node(),body:new Node(),createElement:tag=>new Node(tag)},
+    Blob,URL:{createObjectURL:()=> 'blob:cookie-pending',revokeObjectURL(){}},
+    setTimeout,clearTimeout,requestAnimationFrame:()=>0
+  });
+  sandboxWindow.emit('message',{source:parent,data:f.loaded,stopImmediatePropagation(){}});
+  f.frame.contentWindow.postMessage=message=>{
+    f.frame.contentWindow.sent.push(message);
+    sandboxWindow.emit('message',{source:parent,data:message});
+  };
+  await f.navigate({url:'https://example.org/next',status:'loading'});
+  const pending=f.frame.contentWindow.sent.at(-1);
+  assert.equal(pending.kind,'cookie-page-pending');
+  assert.equal(events.at(-1),'opendesk-cookie-page-pending');
+  assert.throws(()=>f.target.capture(),{code:'E_DOCUMENT_UNRESOLVED'});
+  const count=events.length;
+  for(const extra of [{instance:'retired'},{toolId:'other-cookie-consumer'}])
+    sandboxWindow.emit('message',{source:parent,data:{...pending,...extra}});
+  assert.equal(events.length,count,'pending never crosses instance or tool identity');
+  await f.navigate({status:'complete'});
+  assert.equal(f.frame.contentWindow.sent.at(-1).kind,'cookie-path-changed');
+  await f.navigate({url:'https://example.org/replaced',status:'loading'});
+  assert.equal(f.frame.contentWindow.sent.at(-1).kind,'cookie-page-pending');
+  await f.navigate({status:'complete',documentId:'doc-b'});
+  assert.equal(f.frame.contentWindow.sent.at(-1).kind,'page-changed');
+  assert.equal(events.at(-1),'opendesk-page-changed');
+});
+
+test('Cookie consumer generic page changes: actual Host forwards path query and title through Bridge',async t=>{
+  const tool={...sample,format:'opendesk.sidebar-tool.v2',id:'other-cookie-consumer',
+    capabilities:['currentPage.read','browser.cookies.read','browser.cookies.write','user.export'],
+    requires:{browserSdk:'1.0.0'},contributes:{contextMenus:[]}};
+  const callbacks=[],target={snapshot:{status:'available',tabId:7,windowId:1,frameId:0,
+    documentId:'doc-a',origin:'https://example.org',url:'https://example.org/account',title:'Account'},
+    subscribe(fn){callbacks.push(fn);return()=>{};}};
+  const f=await hostFixture(t,{tool,target,store:new Map([[SIDEBAR_TOOL_STORE,[tool]]])});
+  const sandboxWindow=new Node('window'),root=new Node(),events=[];
+  root.dispatchEvent=event=>{events.push(event.type);return true;};
+  const parent={postMessage(){}};
+  class BridgeEvent {constructor(type){this.type=type;}stopImmediatePropagation(){}}
+  runInNewContext(`(${initSidebarToolSandbox.toString()})()`,{
+    SIDEBAR_TOOL_PROTOCOL:f.loaded.protocol,createBrowserSdk,sandboxToolMessages,normalizeToolNavigation,
+    normalizeToolUiNotice,window:sandboxWindow,parent,CustomEvent,Event:BridgeEvent,
+    document:{getElementById:id=>id==='tool-root'?root:new Node(),documentElement:new Node('html'),
+      head:new Node(),body:new Node(),createElement:tag=>new Node(tag)},
+    Blob,URL:{createObjectURL:()=> 'blob:cookie-page-changes',revokeObjectURL(){}},
+    setTimeout,clearTimeout,requestAnimationFrame:()=>0
+  });
+  sandboxWindow.emit('message',{source:parent,data:f.loaded,stopImmediatePropagation(){}});
+  f.frame.contentWindow.postMessage=message=>{
+    f.frame.contentWindow.sent.push(message);
+    sandboxWindow.emit('message',{source:parent,data:message});
+  };
+  for(const change of [{url:'https://example.org/next'},
+    {url:'https://example.org/next?view=all'},{title:'Updated account'}]){
+    const count=events.length;
+    target.snapshot={...target.snapshot,...change};callbacks[0]();
+    assert.equal(f.frame.contentWindow.sent.at(-1).kind,'page-changed',JSON.stringify(change));
+    assert.equal(events.length,count+1,'actual Bridge must forward each generic Host notification');
+    assert.equal(events.at(-1),'opendesk-page-changed');
+  }
+  assert.equal(f.frame.contentWindow.sent.filter(row=>row.kind==='cookie-path-changed').length,0,
+    'Cookie capabilities alone cannot select Cookie Editor notification filtering');
+});
+
 test('R5.30.3 official export reuses one real click and still requires exact Host approval',async t=>{
   const tool=await officialToolFixture('cookie-editor');
   const release=(await officialFixtures()).catalog.apps.find(row=>row.toolId===tool.id);
   const origin='https://example.org';
-  const target={snapshot:{status:'available',url:origin+'/'}};
+  const target=cookieTestTarget(origin);
   let pauseAdmission=false,admissionPaused=false;const resume=deferred();
   t.after(()=>resume.resolve());
   // Current installation consent must be complete before its iframe is shown.
@@ -5034,9 +5675,9 @@ function cookieChromeFixture({grant=true}={}){
 }
 function cookieTestTarget(origin='https://cookie-r537.example'){
   const url=origin+'/account';
-  return {snapshot:{status:'available',url},capture:()=>({
-    tabId:7,windowId:1,documentId:'cookie-r537-document',url,origin
-  }),async revalidate(captured){
+  const document={status:'available',tabId:7,windowId:1,frameId:0,
+    documentId:'cookie-r537-document',url,origin};
+  return {snapshot:{...document},capture:()=>({...document}),async revalidate(captured){
     assert.equal(captured.documentId,'cookie-r537-document');
     assert.equal(captured.url,url);
     return true;
@@ -5131,10 +5772,61 @@ function cookieTestLocation(t){
   t.after(()=>{if(old===undefined)delete globalThis.location;else globalThis.location=old;});
 }
 
+test('Cookie-capable apps share first-use consent with exact-site scope and no empty proxy revocation',async t=>{
+  cookieTestLocation(t);
+  const tool={...sample,format:'opendesk.sidebar-tool.v2',requires:{browserSdk:'1.0.0'},
+    contributes:{contextMenus:[]},
+    id:'cookie-site-app',title:'网站登录',capabilities:[
+    'browser.cookies.read','browser.cookies.write','browser.proxy.managed']};
+  const target=cookieTestTarget(),origin=target.snapshot.origin;
+  const store=new Map([[SIDEBAR_TOOL_STORE,[tool]]]),calls=[];
+  const chrome=cookieChromeFixture();
+  const f=await hostFixture(t,{tool,store,target,chromePermissions:chrome.permissions,
+    hostReply:cookieHostReceipt(tool,store,calls)});
+  const gate=f.elements['sidebar-tool-cookie-permissions'];
+  await settle(()=>!f.elements['sidebar-tool-cookie-site-toggle'].disabled);
+  assert.equal(gate.data.mode,'first-use',JSON.stringify({gate:gate.data,
+    status:f.elements['sidebar-tool-status'].textContent,frame:!!f.frame}));
+  assert.equal(gate.data.needsAuthorization,true);
+  assert.ok(gate.data.identity.includes(origin),'dismissal belongs to the reviewed site');
+  assert.match(f.elements['sidebar-tool-cookie-help'].textContent,/网站登录/);
+  assert.ok(f.elements['sidebar-tool-cookie-help'].textContent.includes(origin));
+  assert.doesNotMatch(f.elements['sidebar-tool-cookie-help'].textContent,/全站|所有普通/);
+  assert.equal(calls.length,0,'opening an app cannot mint permission');
+  f.emit(f.elements['sidebar-tool-cookie-site-toggle'],'click',{isTrusted:false});
+  await pause();assert.equal(calls.length,0,'synthetic consent is rejected');
+  f.emit(f.elements['sidebar-tool-cookie-site-toggle'],'click',{isTrusted:true});
+  await settle(()=>store.get(BROWSER_MENU_GRANTS_STORE)?.[tool.id]?.cookieSites?.[origin]?.write===true&&
+    !f.elements['sidebar-tool-cookie-site-toggle'].disabled);
+  assert.deepEqual(calls.map(row=>row.cookieCapability),['read','write']);
+  assert.ok(calls.every(row=>row.origin===origin&&row.scope===undefined));
+  assert.deepEqual(chrome.requests,[{origins:[origin+'/*']}],
+    'request only the missing exact site; reuse the already-approved Chrome cookies permission');
+  assert.equal(store.get(BROWSER_MENU_GRANTS_STORE)[tool.id].cookieAllSites,undefined);
+  assert.equal(gate.data.needsAuthorization,false);
+  assert.equal(f.host.openSettings(tool.id),true);
+  assert.equal(f.elements['sidebar-tool-proxy-consent'].hidden,true,
+    'no revoke-and-stop action before a route has been authorized');
+  assert.equal(f.elements['sidebar-tool-proxy-consent-revoke'].disabled,true);
+  assert.equal(f.elements['sidebar-tool-cookie-site-toggle'].textContent,'撤销授权');
+  assert.equal(f.elements['sidebar-tool-enable'].attributes['aria-checked'],'true');
+  assert.equal(f.elements['sidebar-tool-prompt-enable-label'].textContent,'已启用');
+  assert.equal(f.elements['sidebar-tool-frame'].hidden,true,'Settings replaces the business view');
+  // Remembered routes retain the existing revoke entry, isolated by installation.
+  const saved=structuredClone(store.get(BROWSER_MENU_GRANTS_STORE));
+  saved[tool.id].proxyConfigs=[{configHash:'reviewed-route'}];
+  store.set(BROWSER_MENU_GRANTS_STORE,saved);
+  f.changeStorage({[BROWSER_MENU_GRANTS_STORE]:{newValue:saved}});
+  assert.equal(f.elements['sidebar-tool-proxy-consent'].hidden,false);
+  assert.equal(f.elements['sidebar-tool-proxy-consent-revoke'].disabled,false);
+});
+
 test('Cookie session Host forwards only reviewed metadata and its captured document',async t=>{
   cookieTestLocation(t);
   const tool=await officialToolFixture('cookie-editor'),target=cookieTestTarget();
   const grant={storeId:'0',grantEpoch:'session-host',read:true,write:true,values:true,valueConsent:true};
+  const {tabId,windowId,documentId,url,origin}=target.capture();
+  const reviewedDocument={tabId,windowId,documentId,url,origin};
   const store=await verifiedCookieStore(tool,grant),messages=[];
   const f=await hostFixture(t,{tool,store,target,chromePermissions:{contains:async()=>true},
     hostReply:async message=>{
@@ -5162,7 +5854,7 @@ test('Cookie session Host forwards only reviewed metadata and its captured docum
     assert.equal(reply.ok,true,action+': '+JSON.stringify(reply.error));
     const message=messages.at(-1);
     assert.equal(message.trustedClick,true);assert.equal(message.payload.origin,target.capture().origin);
-    assert.deepEqual(message.payload.document,action==='sharePairs'?undefined:target.capture());
+    assert.deepEqual(message.payload.document,action==='sharePairs'?undefined:reviewedDocument);
     if(Object.hasOwn(payload,'senderFingerprint'))assert.equal(message.payload.senderFingerprint,senderFingerprint);
   }
   const count=messages.length;
@@ -5176,7 +5868,7 @@ test('Cookie session Host forwards only reviewed metadata and its captured docum
   const status=await ask('status',{});
   assert.equal(status.ok,true);
   assert.equal(messages.at(-1).trustedClick,false);
-  assert.deepEqual(messages.at(-1).payload.document,target.capture());
+  assert.deepEqual(messages.at(-1).payload.document,reviewedDocument);
   const afterStatus=messages.length;
   assert.equal((await ask('status',{document:{tabId:999}})).error.code,'E_ACCOUNT_REQUEST');
   assert.equal(messages.length,afterStatus,'caller cannot select a different display target');
@@ -6003,7 +6695,7 @@ test('queue joint review: one synchronous confirmation installs Page then Tool a
   f.click();f.click();
   await settle(()=>f.elements['sidebar-tool-import'].hidden||f.status.attributes['data-state']==='pending-review');
   assert.equal(f.view.getSnapshot().toast.type,'success');
-  assert.match(f.view.getSnapshot().toast.caption,/联合安装记录已读回/);
+  assert.match(f.view.getSnapshot().toast.caption,/打开或刷新目标网页即可使用/);
   assert.equal(f.elements['sidebar-tool-status'].hidden,true);
   assert.equal(f.host.hasInstallReview(),false);
   assert.deepEqual(f.store.get(SIDEBAR_TOOL_STORE),[f.tool]);
@@ -6021,15 +6713,27 @@ test('queue joint review: identical installed Tool is read without rewriting it'
   const f=await queueReviewFixture(t,{existingTool:true});await f.review();f.click();
   await settle(()=>!f.host.hasInstallReview());
   assert.equal(f.view.getSnapshot().toast.type,'success');
-  assert.match(f.view.getSnapshot().toast.caption,/联合安装记录已读回/);
+  assert.match(f.view.getSnapshot().toast.caption,/打开或刷新目标网页即可使用/);
   assert.equal(f.elements['sidebar-tool-status'].hidden,true);
   assert.deepEqual(f.store.get(SIDEBAR_TOOL_STORE),[f.tool]);
   assert.equal(f.calls.includes('tool-write'),false);
   assert.equal(f.calls.filter(c=>c==='page-import').length,1);
 });
 
-for(const mode of ['page-unknown','page-missing','page-cleanup-unknown','page-blocked',
-  'tool-failure','tool-unknown','tool-refresh','tool-race','final-page-race','final-page-cleanup-unknown'])
+for(const mode of ['page-cleanup-unknown','final-page-cleanup-unknown'])
+  test('queue joint review: '+mode+' confirms both installs and shows independent cleanup diagnostics',async t=>{
+    const f=await queueReviewFixture(t,{mode});await f.review();f.click();
+    await settle(()=>!f.host.hasInstallReview());
+    assert.equal(f.view.getSnapshot().toast.type,'success');
+    assert.equal(f.view.getSnapshot().toast.caption,'旧页面待核对，详见扩展详情。');
+    assert.doesNotMatch(f.view.getSnapshot().toast.caption,/unknown|历史记录数|标签页 #/);
+    assert.deepEqual(f.store.get(SIDEBAR_TOOL_STORE),[f.tool]);
+    assert.equal(f.calls.filter(c=>c==='page-import').length,1);
+    assert.equal(f.calls.filter(c=>c==='tool-write').length,1);
+  });
+
+for(const mode of ['page-unknown','page-missing','page-blocked',
+  'tool-failure','tool-unknown','tool-refresh','tool-race','final-page-race'])
   test('queue joint review: '+mode+' preserves partial state and cannot replay approval',async t=>{
     const f=await queueReviewFixture(t,{mode});await f.review();f.click();
     await settle(()=>f.status.attributes['data-state']==='pending-review');
@@ -6037,10 +6741,9 @@ for(const mode of ['page-unknown','page-missing','page-cleanup-unknown','page-bl
     assert.equal(f.status.hidden,false);
     assert.equal(f.elements['sidebar-tool-install'].disabled,true);
     const codes={'page-unknown':'E_EFFECT_UNKNOWN','page-missing':'E_PAGE_INSTALL_READBACK',
-      'page-cleanup-unknown':'E_PAGE_INSTALL_PENDING','page-blocked':'E_PAGE_INSTALL_PENDING',
+      'page-blocked':'E_PAGE_INSTALL_PENDING',
       'tool-failure':'E_HOST_STORAGE_QUOTA','tool-unknown':'E_OUTCOME_UNKNOWN',
-      'tool-refresh':'E_PAGE_INSTALL','tool-race':'E_TOOL_CHANGED','final-page-race':'E_QUEUE_PARTIAL',
-      'final-page-cleanup-unknown':'E_PAGE_INSTALL_PENDING'};
+      'tool-refresh':'E_PAGE_INSTALL','tool-race':'E_TOOL_CHANGED','final-page-race':'E_QUEUE_PARTIAL'};
     assert.ok(f.status.textContent.includes(codes[mode]),f.status.textContent);
     assert.doesNotMatch(f.elements['sidebar-tool-status'].textContent,/联合安装记录已读回/);
     assert.equal(f.view.getSnapshot().toasts.some(row=>row.type==='success'),false);

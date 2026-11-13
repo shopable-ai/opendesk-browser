@@ -3,7 +3,7 @@ import assert from 'node:assert/strict';
 import {digest,digestUtf8} from '../../src/platform/protocol.js';
 import {SIDEBAR_TOOL_STORE,sidebarToolPackageHash,sidebarToolStorageKey} from '../../src/ui/sidebar-tools/package.js';
 import {installReviewedSidebarTool,reconcileMarketOperation,recoverMarketOperation,
-  MARKET_OPERATIONS_STORE,TOOL_REVOCATION_EPOCHS_STORE} from '../../src/ui/sidebar-tools/installation.js';
+  MARKET_OPERATIONS_STORE,MARKET_PROVENANCE_STORE,TOOL_REVOCATION_EPOCHS_STORE} from '../../src/ui/sidebar-tools/installation.js';
 
 async function tool(){
   const sourceUtf8='document.documentElement.dataset.appPage="ready";';
@@ -62,11 +62,15 @@ test('successful combined install binds the Page submission to the committed par
   assert.equal(env.events[0][0],'prepareAppPage');
   assert.equal(env.events.filter(([type])=>type==='importAppPage').length,1);
 });
-test('lost or foreign Page receipts cannot turn a committed parent into reported success',async()=>{
+for(const cleanupPending of [false,true])
+test('lost or foreign Page receipts cannot turn a committed parent into reported success; old-page notice='+cleanupPending,async()=>{
   for(const options of [{failImport:true},{badReceipt:true}]){
     const env=environment(),candidate=await tool();
+    const client=pageClient(env,candidate,options),request=client.request;
+    if(cleanupPending)client.request=async(type,payload)=>type==='synchronizeAppPages'
+      ?{status:'synchronized',retired:[],cleanupPending:[candidate.pageModule.programId],revocationPending:[]}:request(type,payload);
     await assert.rejects(installReviewedSidebarTool({...env,candidate,reviewApproved:true,
-      pageClient:pageClient(env,candidate,options)}),{code:'E_OUTCOME_UNKNOWN'});
+      pageClient:client}),{code:'E_OUTCOME_UNKNOWN'});
     assert.deepEqual(env.values[SIDEBAR_TOOL_STORE],[candidate],'ambiguous commit is retained, not replayed or rolled back');
     assert.equal(env.events.filter(([type])=>type==='importAppPage').length,1);
   }
@@ -80,9 +84,8 @@ test('pending old Page cleanup names the recovery action without replaying insta
     sha256:await sidebarToolPackageHash(candidate),operationId}:null;
   await assert.rejects(installReviewedSidebarTool({...env,candidate,reviewApproved:true,pageClient:client,market}),error=>{
     assert.equal(error.code,'E_PAGE_CLEANUP_PENDING');
-    assert.match(error.message,/应用安装包已保存.*安装尚未完成/);
-    assert.match(error.message,/重新选择同一个安装包.*确认安装/);
-    assert.match(error.message,/旧网页模块.*清理/);
+    assert.match(error.message,/安装包已保存.*网页功能尚未就绪/);
+    assert.match(error.message,/旧版网页功能.*退出/);
     assert.match(error.message,/保存.*刷新/);
     return true;
   });
@@ -91,9 +94,31 @@ test('pending old Page cleanup names the recovery action without replaying insta
   if(marketReview)assert.equal(env.values[MARKET_OPERATIONS_STORE][operationId].state,'outcome-unknown');
 });
 
+for(const marketReview of [false,true])
+test('confirmed native revocation permits complete compound installation with an old-page refresh notice; market='+marketReview,async()=>{
+  const env=environment(),candidate=await tool(),client=pageClient(env,candidate),request=client.request;
+  client.request=async(type,payload)=>type==='synchronizeAppPages'
+    ?{status:'synchronized',retired:[],cleanupPending:[candidate.pageModule.programId],revocationPending:[]}:request(type,payload);
+  const market=marketReview?{marketId:'opendesk/'+candidate.id,sha256:await sidebarToolPackageHash(candidate),
+    operationId:crypto.randomUUID()}:null;
+  const result=await installReviewedSidebarTool({...env,candidate,reviewApproved:true,pageClient:client,market});
+  assert.equal(result.state,'installed');assert.equal(result.pageCleanupPending,true);
+  assert.equal(env.events.filter(([type])=>type==='importAppPage').length,1);
+  if(marketReview)assert.equal(env.values[MARKET_OPERATIONS_STORE][market.operationId].state,'succeeded');
+});
+test('unconfirmed native revocation never imports a new companion',async()=>{
+  const env=environment(),candidate=await tool(),client=pageClient(env,candidate),request=client.request;
+  client.request=async(type,payload)=>type==='synchronizeAppPages'
+    ?{status:'synchronized',retired:[],cleanupPending:[],revocationPending:[candidate.pageModule.programId]}:request(type,payload);
+  await assert.rejects(installReviewedSidebarTool({...env,candidate,reviewApproved:true,pageClient:client}),{code:'E_PAGE_CLEANUP_PENDING'});
+  assert.equal(env.events.filter(([type])=>type==='importAppPage').length,0);
+});
+
 for(const [name,receipt] of [['missing',undefined],['null',null],['empty',{}],
   ['wrong status',{status:'pending',cleanupPending:[]}],
   ['missing cleanup list',{status:'synchronized'}],
+  ['null revocation list',{status:'synchronized',cleanupPending:['app.composite-fixture'],revocationPending:null}],
+  ['non-array revocation list',{status:'synchronized',cleanupPending:['app.composite-fixture'],revocationPending:{}}],
   ['non-array cleanup list',{status:'synchronized',cleanupPending:{}}]])
 test('combined install keeps '+name+' synchronization receipt unknown without importing',async()=>{
   const env=environment(),candidate=await tool(),client=pageClient(env,candidate),request=client.request;
@@ -152,6 +177,56 @@ test('explicit identical compound review restores only a missing companion with 
   assert.equal((await f.install({repairMissingPageModule:true})).state,'already-installed');
   assert.deepEqual(f.operations(),['prepareAppPage','synchronizeAppPages','listPagePrograms','importAppPage']);
   f.assertParentUnchanged();
+});
+for(const scenario of ['approved','cancelled','reused','lost receipt'])
+test('official identical companion repair respects the new operation and consent: '+scenario,async()=>{
+  const f=await identicalCompound(scenario==='lost receipt'
+    ?{importError:Object.assign(Error('lost receipt'),{code:'E_EFFECT_UNKNOWN'})}:{});
+  const market={marketId:'opendesk/'+f.candidate.id,sha256:await sidebarToolPackageHash(f.candidate),
+    operationId:crypto.randomUUID()};
+  let approvals=0;
+  const commitIntent=async()=>{approvals++;if(scenario==='cancelled')throw Object.assign(Error('cancelled'),{code:'E_CANCELLED'});};
+  if(scenario==='reused')await f.install({market});
+  const install=()=>f.install({market,commitIntent,repairMissingPageModule:true});
+  if(scenario==='approved'){
+    assert.equal((await install()).state,'already-installed');
+    assert.equal(approvals,1);
+    assert.equal(f.values[MARKET_OPERATIONS_STORE][market.operationId].state,'succeeded');
+    assert.equal(f.events.filter(([type])=>type==='importAppPage').length,1);
+  }else if(scenario==='lost receipt'){
+    await assert.rejects(install(),{code:'E_OUTCOME_UNKNOWN'});
+    assert.equal(approvals,1);
+    assert.equal(f.values[MARKET_OPERATIONS_STORE][market.operationId].state,'outcome-unknown');
+    assert.equal(f.events.filter(([type])=>type==='importAppPage').length,1);
+  }else{
+    await assert.rejects(install(),{code:scenario==='cancelled'?'E_CANCELLED':'E_OUTCOME_UNKNOWN'});
+    assert.equal(f.events.filter(([type])=>type==='importAppPage').length,0);
+  }
+  assert.deepEqual(f.values[SIDEBAR_TOOL_STORE],[f.candidate]);
+  assert.equal(f.values[TOOL_REVOCATION_EPOCHS_STORE][f.candidate.id],f.owner.installEpoch);
+  assert.deepEqual(f.values[sidebarToolStorageKey(f.candidate.id)],{draft:'保留网页设置和草稿'});
+});
+for(const lost of ['reviewed','committing','provenance','succeeded'])
+test('official identical companion repair consumes approval after lost '+lost+' storage acknowledgement',async()=>{
+  const f=await identicalCompound(),set=f.api.storage.local.set;
+  const market={marketId:'opendesk/'+f.candidate.id,sha256:await sidebarToolPackageHash(f.candidate),
+    operationId:crypto.randomUUID()};
+  let lostOnce=false;
+  f.api.storage.local.set=async rows=>{
+    await set(rows);
+    if(!lostOnce&&(lost==='provenance'?rows[MARKET_PROVENANCE_STORE]:
+      rows[MARKET_OPERATIONS_STORE]?.[market.operationId]?.state===lost)){
+      lostOnce=true;throw Error('acknowledgement lost after durable write');
+    }
+  };
+  const install=()=>f.install({market,repairMissingPageModule:true});
+  await assert.rejects(install(),{code:'E_OUTCOME_UNKNOWN'});
+  assert.equal(lostOnce,true);
+  assert.equal(f.values[MARKET_OPERATIONS_STORE][market.operationId].state,'outcome-unknown');
+  const imported=['provenance','succeeded'].includes(lost)?1:0;
+  assert.equal(f.events.filter(([type])=>type==='importAppPage').length,imported);
+  await assert.rejects(install(),{code:'E_OUTCOME_UNKNOWN'});
+  assert.equal(f.events.filter(([type])=>type==='importAppPage').length,imported,'consumed operation never imports again');
 });
 test('identical compound repair ignores unrelated Page programs when locating its missing companion',async()=>{
   const f=await identicalCompound({installed:[{programId:'unrelated-page'}]});
@@ -230,4 +305,15 @@ test('identical compound repair requires a fresh explicit installation review',a
   const f=await identicalCompound();
   await assert.rejects(f.install({repairMissingPageModule:true,reviewApproved:false}),{code:'E_REVIEW_REQUIRED'});
   assert.deepEqual(f.operations(),[]);f.assertParentUnchanged();
+});
+test('identical bytes cannot reuse a review from a retired parent installation epoch',async()=>{
+  const f=await identicalCompound();
+  await assert.rejects(f.install({repairMissingPageModule:true,baselineInstallEpoch:'retired-installation'}),{code:'E_TOOL_CHANGED'});
+  assert.deepEqual(f.operations(),['prepareAppPage']);f.assertParentUnchanged();
+});
+test('a lost same-package repair receipt is classified unknown and never resubmitted',async()=>{
+  const f=await identicalCompound({importError:Object.assign(Error('receipt lost'),{code:'E_EFFECT_UNKNOWN'})});
+  await assert.rejects(f.install({repairMissingPageModule:true}),{code:'E_OUTCOME_UNKNOWN'});
+  assert.deepEqual(f.operations(),['prepareAppPage','synchronizeAppPages','listPagePrograms','importAppPage']);
+  f.assertParentUnchanged();
 });

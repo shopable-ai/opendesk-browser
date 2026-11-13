@@ -10,11 +10,13 @@ test('the packer/importer capability contract identifies the actual supported fo
   assert(value.formats[formal.format].includes('page.videoSpeed'));
   assert(!value.formats[formal.format].includes('browser.proxy.managed'));
   assert(value.formats['opendesk.sidebar-tool.v2'].includes('browser.proxy.managed'));
+  assert.deepEqual(value.pageModule,{runAt:['document_end','document_idle'],allFrames:false,world:'USER_SCRIPT'});
   const hash=await contract.sidebarToolPackageContractHash();
   assert.match(hash,/^[a-f0-9]{64}$/);
   value.formats[formal.format].push('fake.capability');
+  value.pageModule.runAt.push('document_start');
   assert.equal(await contract.sidebarToolPackageContractHash(),hash,'callers cannot change supported capabilities');
-  assert.equal(contract.validateSidebarToolPackage(formal).version,'1.2.1');
+  assert.equal(contract.validateSidebarToolPackage(formal).version,formal.version);
 });
 
 test('unknown capabilities remain rejected with a distinct code and no unconditional update advice',()=>{

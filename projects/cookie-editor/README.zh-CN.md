@@ -13,21 +13,23 @@ node scripts/build-sidebar-tool.mjs projects/cookie-editor --check-project
 
 只想知道怎么操作，请看[使用与简单测试](QUICKSTART.zh-CN.md)。
 
-## Cookie 变化提醒（2026-11-07，源码开发）
+## Cookie 变化提醒（2026-11-13，核心源码开发）
 
-Cookie 页复用原列表自动同步，增加对应 Key 行的短暂淡出高亮、持续的「新增／更新」标记和变化字段名称。变化摘要保留删除项名称，可「仅看变化」或「清除标记」；最多保留当前会话最近 100 项身份的最新变化，不保存原值、旧值或浏览记录。
+Cookie 页默认沿用原列表自动同步，对应 Key 行保留短暂高亮、「新增／更新」标记和变化字段名称。低频监听收在 Cookie 工具栏最右侧「更多」中，只保留开始／停止动作；默认不占正文，不再显示变化计数、「仅看变化」或「清除标记」。内部最多保留当前会话最近 100 项身份的最新变化，不保存原值、旧值或浏览记录。
 
-点击「监听30秒」使用现有公开 `browser.cookies.observe` 脱敏事件，识别元数据未变、同长度内容改写等情况；覆盖当前页面可用的非分区 Cookie，不保证分区 Cookie 或其他 Path 的内容变化。由于事件不提供原值比较证据，显示「内容或属性变化」，不会把一次改写的删除／新增事件误报成两次操作。普通属性、新增和删除仍由原自动同步更新。没有观察接口的旧运行时保留普通自动同步，监听按钮不可用。
+点击「更多 → 监听 Cookie 变化（30 秒）」使用现有公开 `browser.cookies.observe` 脱敏事件，识别元数据未变、同长度内容改写等情况；覆盖当前页面可用的非分区 Cookie，不保证分区 Cookie 或其他 Path 的内容变化。由于事件不提供原值比较证据，显示「内容或属性变化」，不会把一次改写的删除／新增事件误报成两次操作。普通属性、新增和删除仍由原自动同步更新。监听运行时仅显示图形角标，失败可从同一入口重试；没有观察接口的旧运行时保留普通自动同步。
+
+有效同步真实点击复用原私有点击通道，可信 Host 核验安装、当前文档及 read/observe 网站授权后签发原一次性精确审批，免去重复会话审阅；缺失权限仍由可信设置恢复。此修复包含 Browser 固定编译的 Bridge/Host，单独更新工具 JSON 无法替换。
 
 监听到期后不自动续期；打开编辑、导入、导出、切换产品页、隐藏文档、切站、撤权或关闭工具会停止。编辑期间保留草稿，重新读取或切站清除旧标记。原值继续通过原编辑器按需查看；不后台读取敏感值，不增加 Chrome 权限或第二条 Host 通道。高亮不遮挡 Key，系统开启减少动画时保留文字标记而不播放动画。
 
-正式 App 与现有 `preview/react/dev.html` 共用本次源码；实验台的「模拟值变化／新增／删除」仅操作虚构数据。定向行为回归、相关源码和 CSS 门禁、ego 同源预览已检查；真实 Chrome 安装后的监听、更新安装包与 production 验收为 **NOT_TESTED**。本轮不构建或晋升正式 JSON，不覆盖并行账号／整站范围工作。行为入口：
+正式 App 与现有 `preview/react/dev.html` 共用本次源码；实验台的「模拟值变化／新增／删除」仅操作虚构数据。本次精简已通过定向交互、观察器与导航草稿检查，以及原私有点击桥／Host 权限负例；ego 同源码＋虚构 SDK 验证了默认同步、按需启动、变化标记、停止、Escape 焦点恢复和 320px 暗色布局。真实 Chrome 安装后的新 UI／免重复审阅、构建、更新安装包与 production 验收为 **NOT_TESTED**。本轮不构建或晋升正式 JSON，不覆盖并行账号／整站范围工作。行为入口：
 
 ```sh
-node --test projects/cookie-editor/tests/cookie-changes.test.mjs tests/environment/cookie-editor-react-controller.test.mjs
+node --test projects/cookie-editor/tests/monitor-popover-ui.test.mjs projects/cookie-editor/tests/cookie-changes.test.mjs projects/cookie-editor/tests/navigation-draft-ui.test.mjs
 ```
 
-本轮检查范围、限制与收尾源码摘要见[开发记录](evidence/live-changes-development-20261107.json)。
+早期变化提醒的检查范围与限制见 [2026-11-07 历史开发记录](evidence/live-changes-development-20261107.json)，不代表本次精简或当前已安装版本的证据。
 
 ## 团队账号分配与明确应用（2026-11-06，合成核心开发）
 

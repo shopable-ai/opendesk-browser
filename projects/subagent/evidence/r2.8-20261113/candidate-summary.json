@@ -1,0 +1,30 @@
+{
+  "observedAt": "2026-11-13T13:51:26.596Z",
+  "programId": "opendesk.subagent",
+  "pageVersion": "0.2.1",
+  "revision": 2,
+  "sourceHash": "6e5d6a7578307a94627f8a785703af7e35e4d5fba067ea8ec5d5c5ef42649665",
+  "packageHash": "f77a2f64cea967b69d7e4f2fea1a0287cc92a5fc17539d66892f78e8b5cad58d",
+  "trustedResultSourceSha256": "20e9758b133fed4cbd1979ea48c8e8a5642a56177265d42c42a74531d8ff4eeb",
+  "trustedResultGitBlob": "1c7de2644d572a3b936549e68a70bf709f540f68",
+  "delegatedTasks": [
+    {
+      "taskId": "chatgpt.conversation.create",
+      "version": "0.2.2",
+      "manifestHash": "907ed4de341c42dc3aa7890a8ce99afee30a63b8a971a8b28126e74271083050",
+      "contentHash": "0d9eea01b8e5f4ff4433cba0f52b5fd80979870e7c0a118b0beffcb9fa02b8b4",
+      "targetUrl": "https://chatgpt.com/"
+    }
+  ],
+  "authorization": {
+    "versionChoice": "感觉高版本可以会更好，你作为专家合理判断；",
+    "singleSend": "批准这一次发送",
+    "executed": false
+  },
+  "requestId": "9cfd521f-b637-4082-9c70-a2ce2a6f5355",
+  "runId": null,
+  "resultId": null,
+  "bUrl": null,
+  "business": "BLOCKED",
+  "reason": "Original browser session changed: inspectTaskRun projects unknown; readPageTaskRequest approvalAllowed=false. No execution button clicked."
+}

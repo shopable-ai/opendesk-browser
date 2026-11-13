@@ -39,7 +39,7 @@ function fixture(t,{disabled=false,readError=false,installedRows=[app],cleanupRo
     [SIDEBAR_TOOL_ENABLE_STORE,{[app.id]:!disabled}]]);
   if(cleanupRows)store.set(TOOL_CLEANUP_STORE,structuredClone(cleanupRows));
   let corrupt=readError,programs=[page()],failPages=false,allowed=true,pageAckOnly=false;
-  let pageCandidates=null,pageUninstallMode='success';
+  let pageCandidates=null,pageUninstallMode='success',pageCleanupPending=[];
   const writes=[],uninstalls=[],invocations=[],changes=new Set();
   const api={
     runtime:{getURL:path=>'chrome-extension://fixture/'+path},
@@ -57,6 +57,7 @@ function fixture(t,{disabled=false,readError=false,installedRows=[app],cleanupRo
     if(name==='listPagePrograms'){
       if(failPages)throw Error('Page authority disconnected');
       return {catalog:pageCandidates??programs,
+        cleanupPending:pageCleanupPending,
         installed:programs.map(row=>({...row.installed,programId:row.programId}))};
     }
     if(name==='uninstallPageProgram'){
@@ -131,6 +132,7 @@ function fixture(t,{disabled=false,readError=false,installedRows=[app],cleanupRo
   return {doc,nodes,ui,state,store,client,sidebarTools,invocations,writes,uninstalls,list,button,buttons,rowMenu,menuItem,programs,
     setCorrupt:value=>{corrupt=value;},setFailPages:value=>{failPages=value;},
     setPageCatalog:value=>{pageCandidates=value;},setPageUninstallMode:value=>{pageUninstallMode=value;},
+    setPageCleanupPending:value=>{pageCleanupPending=value;},
     setPageAckOnly:value=>{pageAckOnly=value;},
     setAllowed:value=>{allowed=value;},emitStorage:()=>{
       for(const cb of changes)cb({[SIDEBAR_TOOL_ENABLE_STORE]:{oldValue:null,newValue:{}}},'local');
@@ -141,11 +143,110 @@ function openMenuUninstall(f,key){
   const trigger=f.button(key,'more');
   assert.ok(trigger,'Installed extension needs a management entry');
   trigger.dispatch('click');
-  const uninstall=f.menuItem('卸载…');
+  const uninstall=f.menuItem('卸载');
   assert.ok(uninstall,'Uninstall must live inside the overflow menu');
   uninstall.dispatch('click');
   return trigger;
 }
+
+test('old Page diagnostics remain accessible in details without inflating install feedback',async t=>{
+  const f=fixture(t);
+  const managedCleanup={state:'unknown',records:135,pendingRecords:1,
+    pendingDocuments:[{tabId:42,documentId:'old-document',tabTitle:'未保存草稿的旧页面',state:'active'}]};
+  f.programs[0].installed.managedCleanup=managedCleanup;
+  f.setPageCleanupPending([{programId:'reader',revision:0,managedCleanup},
+    {programId:'unrelated',revision:0,managedCleanup:{...managedCleanup,records:999}}]);
+  await f.ui.refresh();
+  f.button('page:reader','main').dispatch('click');
+  const disclosure=f.doc.querySelector('.ec-page-cleanup');
+  assert.ok(disclosure,'installed detail owns a persistent recovery entry');
+  assert.equal(disclosure.hasAttribute('open'),false);
+  assert.equal(disclosure.querySelector('summary').textContent,'旧页面切换待核对');
+  assert.match(disclosure.textContent,/保存.*草稿.*刷新/);
+  assert.equal(disclosure.querySelectorAll('.ec-page-cleanup-documents li').length,1,
+    'duplicate document references do not become duplicate page rows');
+  assert.match(disclosure.textContent,/未保存草稿的旧页面/);
+  assert.doesNotMatch(disclosure.textContent,/999/);
+  assert.equal(disclosure.querySelector('details').hasAttribute('open'),false);
+  assert.equal(f.state.detailModel.oldPageCleanup.records.length,2);
+  f.nodes['extension-center-back'].dispatch('click');
+  f.button('page:reader','main').dispatch('click');
+  assert.ok(f.doc.querySelector('.ec-page-cleanup'),'returning to details retains the recovery entry');
+  assert.equal(f.invocations.length,0,'viewing diagnostics does not invoke or replay installation');
+  f.programs[0].installed.managedCleanup={state:'retired',records:0};
+  f.setPageCleanupPending([]);await f.ui.refresh();
+  assert.equal(f.doc.querySelector('.ec-page-cleanup'),null,'fresh retired receipts clear the obsolete notice');
+});
+
+test('untitled old Pages use page numbers while full identifiers remain in technical details',async t=>{
+  const f=fixture(t);
+  const documents=[
+    {tabId:987654,documentId:'full-document-id-without-title',state:'active'},
+    {tabId:876543,documentId:'another-full-document-id',state:'unobservable'}
+  ];
+  f.setPageCleanupPending([{programId:'reader',revision:0,managedCleanup:{
+    state:'unknown',records:135,pendingRecords:2,pendingDocuments:documents
+  }}]);
+  await f.ui.refresh();
+  f.button('page:reader','main').dispatch('click');
+  const disclosure=f.doc.querySelector('.ec-page-cleanup');
+  assert.ok(disclosure);
+  const rows=[...disclosure.querySelectorAll('.ec-page-cleanup-documents li')];
+  assert.deepEqual(rows.map(row=>row.querySelector('span').textContent),['页面 1','页面 2']);
+  const mainList=disclosure.querySelector('.ec-page-cleanup-documents');
+  const technical=disclosure.querySelector('details');
+  assert.ok(technical,'technical records remain accessible separately');
+  for(const {tabId,documentId} of documents){
+    assert.equal(mainList.textContent.includes(String(tabId)),false);
+    assert.equal(mainList.textContent.includes(documentId),false);
+    assert.ok(technical.textContent.includes(`标签页 #${tabId} · ${documentId}`),
+      'technical records retain the complete tab and document identifiers');
+  }
+});
+
+for(const withCurrentCleanup of [false,true])test(
+  'joint App details show companion cleanup history '+(withCurrentCleanup?'with its current receipt':'without a current cleanup receipt'),async t=>{
+  // Reuse the archived, source-bound dual-installation fixture. The real
+  // controller computes its package digest and decides companion ownership.
+  const {tool}=await import('../../projects/ai-send-queue/tests/fixtures/legacy-installation.mjs');
+  const {SEND_QUEUE_PIN}=await import('../../src/platform/host/send-queue-admission.js');
+  const f=fixture(t,{installedRows:[tool]});
+  const current={programId:SEND_QUEUE_PIN.pageProgramId,revision:SEND_QUEUE_PIN.pageRevision,
+    sourceHash:SEND_QUEUE_PIN.pageSourceHash,manifestHash:'a'.repeat(64),
+    enabled:true,nativeState:'registered',
+    authorization:{installationId:'queue-install',generation:4,status:'active'},
+    pageRules:{matches:['https://chatgpt.com/*'],excludeMatches:[],world:'USER_SCRIPT',
+      runAt:'document_idle',allFrames:false}};
+  const oldDocument={tabId:654321,documentId:'queue-historical-document',tabTitle:'队列旧页面',state:'cached'};
+  const currentDocument={tabId:765432,documentId:'queue-current-document',tabTitle:'队列当前页面',state:'active'};
+  const managedCleanup={state:'unknown',records:135,pendingRecords:1,pendingDocuments:[oldDocument]};
+  if(withCurrentCleanup)current.managedCleanup={...managedCleanup,pendingDocuments:[currentDocument]};
+  f.programs.splice(0,f.programs.length,{programId:current.programId,
+    manifestHash:current.manifestHash,installed:current});
+  f.setPageCleanupPending([
+    {programId:current.programId,revision:current.revision-1,managedCleanup},
+    {programId:'unrelated-program',revision:999,managedCleanup:{...managedCleanup,
+      pendingDocuments:[{tabId:999999,documentId:'foreign-document',tabTitle:'不相关页面'}]}}
+  ]);
+  await f.ui.refresh();
+  const key='app:'+tool.id;
+  f.state.rowsModel.onMore(key,f.button(key,'more'));
+  f.state.rowMenuModel.items.find(row=>row.id==='detail').onClick({isTrusted:true});
+  assert.equal(f.state.detailModel.key,key,'diagnostics belong to the App detail');
+  assert.ok(f.state.detailModel.actions.some(row=>row.id==='queue-toggle'),
+    'the actual package digest and Page identity must earn joint product management');
+  const disclosure=f.doc.querySelector('.ec-page-cleanup');
+  assert.ok(disclosure,'the App exposes cleanupPending for its existing Page companion');
+  const expected=withCurrentCleanup?[currentDocument,oldDocument]:[oldDocument];
+  assert.deepEqual(f.state.detailModel.oldPageCleanup.documents.map(({tabId,documentId})=>({tabId,documentId})),
+    expected.map(({tabId,documentId})=>({tabId,documentId})));
+  assert.deepEqual(f.state.detailModel.oldPageCleanup.records.map(row=>row.revision),
+    withCurrentCleanup?[current.revision,current.revision-1]:[current.revision-1]);
+  const list=disclosure.querySelector('.ec-page-cleanup-documents');
+  assert.equal(list.querySelectorAll('li').length,expected.length);
+  for(const document of expected)assert.ok(list.textContent.includes(document.tabTitle));
+  assert.equal(disclosure.textContent.includes('不相关页面'),false);
+});
 
 test('extension toolbar shop keeps Host feedback intact when opening a configured site',async t=>{
   const notices=[];
@@ -217,8 +318,9 @@ test('R4.7 stopped app has no fake Settings main; overflow enable uses the sole 
   f.nodes['extension-center-back'].dispatch('click');
   f.button('app:quick-notes','more').dispatch('click');
   assert.equal(f.rowMenu().hidden,false);
-  assert.ok(f.menuItem('启用应用'));
-  f.menuItem('启用应用').dispatch('click');
+  assert.ok(f.menuItem('启用'));
+  assert.equal(f.rowMenu().dataset.align,'center','the whole short Chinese app menu shares a centered axis');
+  f.menuItem('启用').dispatch('click');
   await settle(()=>f.store.get(SIDEBAR_TOOL_ENABLE_STORE)[app.id]===true);
   await settle(()=>f.button('app:quick-notes','more')?.disabled===false);
   assert.deepEqual(f.invocations.filter(x=>x[0]==='toggle'),[['toggle','quick-notes']]);
@@ -331,7 +433,7 @@ for(const entry of ['list','detail'])test('Page '+entry+' uninstall removes a re
   const f=fixture(t);f.setPageUninstallMode('cleanup-pending');await f.ui.refresh();
   if(entry==='list'){
     f.button('page:reader','more').dispatch('click');
-    f.menuItem('卸载…').dispatch('click');
+    f.menuItem('卸载').dispatch('click');
   }else{
     f.button('page:reader','main').dispatch('click');
     f.doc.querySelector('[data-ec-detail-action="uninstall"]').dispatch('click');
@@ -401,9 +503,10 @@ test('R4.7 installed Page menu is keyboard usable, invokes original generation-b
   assert.equal(more.getAttribute('aria-expanded'),'true');
   assert.equal(f.rowMenu().hidden,false);
   assert.ok(f.menuItem('停用自动运行'));
+  assert.equal(f.rowMenu().dataset.align,'start','mixed-length Page actions share one reading edge');
   f.doc.dispatch('keydown',{key:'End'});
-  assert.match(f.doc.activeElement.textContent,/卸载…/,'End moves to the last (destructive) menu item');
-  assert.ok(f.menuItem('查看详情'),'the detail item is retained in the menu');
+  assert.match(f.doc.activeElement.textContent,/卸载/,'End moves to the last (destructive) menu item');
+  assert.ok(f.menuItem('查看'),'the detail item is retained in the menu');
   f.doc.dispatch('keydown',{key:'Home'});
   assert.match(f.doc.activeElement.textContent,/停用自动运行/);
   const esc=f.doc.dispatch('keydown',{key:'Escape'});
@@ -428,7 +531,7 @@ test('R33.3.4 extension menu arrows stay scoped and Tab restores focus',async t=
   assert.equal(unrelated.prevented,undefined,'Open menu must not hijack search keyboard input');
   assert.equal(f.doc.activeElement,search);
   assert.equal(f.rowMenu().hidden,false);
-  f.menuItem('查看详情').focus();
+  f.menuItem('查看').focus();
   const tab=f.doc.dispatch('keydown',{key:'Tab'});
   assert.equal(tab.prevented,undefined,'Native Tab traversal must remain available');
   assert.equal(f.rowMenu(),null);
@@ -499,7 +602,7 @@ test('R4.7 missing Page grant forbids enable; unreadable app status never fabric
 test('R5.0 uninstall from a second window retires installed details, search and old row actions',async t=>{
   const f=fixture(t);await f.ui.refresh();
   f.button('app:quick-notes','more').dispatch('click');
-  f.menuItem('查看详情').dispatch('click');
+  f.menuItem('查看').dispatch('click');
   assert.equal(f.nodes['extension-center-detail'].hidden,false);
   // Independent storage authority removes the installed package.
   f.store.set(SIDEBAR_TOOL_STORE,[]);
@@ -521,7 +624,7 @@ test('R5.0 uninstall from a second window retires installed details, search and 
 test('R5.1 detail retires on same-ID package replacement or Page revision change',async t=>{
   const f=fixture(t);await f.ui.refresh();
   f.button('app:quick-notes','more').dispatch('click');
-  f.menuItem('查看详情').dispatch('click');
+  f.menuItem('查看').dispatch('click');
   assert.equal(f.nodes['extension-center-detail'].hidden,false);
   // Same tool ID and version are NOT the same approved bytes.
   f.store.set(SIDEBAR_TOOL_STORE,[{...app,html:'<main>Replaced outside this window</main>'}]);
@@ -532,7 +635,7 @@ test('R5.1 detail retires on same-ID package replacement or Page revision change
   assert.deepEqual(f.invocations.filter(row=>row[0]==='settings'),[]);
 
   f.button('page:reader','more').dispatch('click');
-  f.menuItem('查看详情').dispatch('click');
+  f.menuItem('查看').dispatch('click');
   assert.equal(f.nodes['extension-center-detail'].hidden,false);
   f.programs[0]={...f.programs[0],manifestHash:'c'.repeat(64),
     installed:{...f.programs[0].installed,manifestHash:'c'.repeat(64),
@@ -588,6 +691,34 @@ test('R5.1 corrupt cleanup journal withdraws installed authority instead of hidi
   assert.deepEqual(f.store.get(TOOL_CLEANUP_STORE),malformed);
 });
 
+test('menu alignment follows the complete displayed group and language without executing actions',t=>{
+  const {doc,adapter}=createExtensionCenterDOM(t);
+  const trigger=doc.createElement('button');doc.body.append(trigger);
+  let activated=0;
+  for(const [locale,labels,expected] of [
+    ['zh-CN',['停用','设置','查看','卸载'],'center'],
+    ['zh-TW',['啟用','設定','更新','查看','卸載'],'center'],
+    ['zh-CN',['查看'],'center'],
+    ['zh-CN',['设置','查看详情','卸载'],'start'],
+    ['zh-CN',['停用','AI','查看'],'start'],
+    ['en',['Open','Save','View'],'start'],
+    ['ja',['管理','設定','更新'],'start'],
+    ['zh-CN',['查看','卸载…'],'start'],
+    ['zh-CN',['查看',''],'start'],
+    ['zh-CN',[],null],
+    ['zh-CN',['查看','设置'],'center']
+  ]){
+    adapter.renderToolbar({locale});
+    adapter.renderRowMenu(labels.map((label,index)=>({id:String(index),label,onClick:()=>activated++})),
+      {trigger,title:'菜单',onClose:()=>{}});
+    const menu=doc.getElementById('extension-center-row-menu');
+    assert.equal(menu?.dataset.align??null,expected,`${locale}: ${labels.join(' / ')}`);
+    if(menu)assert.deepEqual([...menu.querySelectorAll('button')].map(node=>node.textContent),labels,
+      'alignment must not shorten labels or change action order');
+  }
+  assert.equal(activated,0,'presentation changes must never activate an action');
+});
+
 test('R4.7 context menu closes on outside click/scroll and never stays outside viewport',async t=>{
   const f=fixture(t);await f.ui.refresh();
   const more=f.button('app:quick-notes','more');
@@ -595,6 +726,11 @@ test('R4.7 context menu closes on outside click/scroll and never stays outside v
   assert.ok(Number.parseInt(f.rowMenu().style.left,10)>=8);
   assert.ok(Number.parseInt(f.rowMenu().style.top,10)>=8);
   assert.ok(Number.parseInt(f.rowMenu().style.top,10)<640);
+  const active=f.doc.activeElement,view=f.doc.defaultView;
+  view.innerWidth=220;
+  view.dispatchEvent(new view.Event('resize'));
+  assert.equal(Number.parseInt(f.rowMenu().style.left,10),20,'resize repositions the existing menu inside the viewport');
+  assert.equal(f.doc.activeElement,active,'repositioning must not take focus');
   f.doc.dispatch('click',{target:f.nodes['extension-center-search']});
   assert.equal(f.rowMenu(),null);
   more.dispatch('click');assert.equal(f.rowMenu().hidden,false);
@@ -612,7 +748,7 @@ test('R4.7 async app toggle is single-flight and exposes processing without a se
     assert.equal(event.isTrusted,true);requested++;return gate;
   };
   f.button('app:quick-notes','more').dispatch('click');
-  const oldAction=f.menuItem('启用应用');
+  const oldAction=f.menuItem('启用');
   oldAction.dispatch('click');
   assert.equal(requested,1);
   const row=f.list.children.find(node=>node.dataset.extensionId==='app:quick-notes');
@@ -641,7 +777,7 @@ test('R4.7 menu detail Back restores the menu origin independent of pointer focu
   const f=fixture(t);await f.ui.refresh();
   const more=f.button('page:reader','more');
   more.dispatch('click');
-  const detail=f.menuItem('查看详情');
+  const detail=f.menuItem('查看');
   f.doc.activeElement=f.nodes['extension-center-search'];
   detail.dispatch('click');
   assert.equal(f.nodes['extension-center-detail'].hidden,false);
@@ -654,7 +790,7 @@ test('R4.7 menu detail Back restores the menu origin independent of pointer focu
 test('R4.8 app detail matches the R4.7 preview: no duplicate Open and visible stopped status',async t=>{
   const enabled=fixture(t);await enabled.ui.refresh();
   enabled.button('app:quick-notes','more').dispatch('click');
-  enabled.menuItem('查看详情').dispatch('click');
+  enabled.menuItem('查看').dispatch('click');
   assert.equal(enabled.nodes['extension-center-detail'].hidden,false);
   const enabledActions=[...enabled.nodes['extension-center-detail-body'].querySelectorAll('button')]
     .map(button=>button.getAttribute('aria-label')?.replace(/「.*$/,'')||button.textContent);
@@ -725,7 +861,7 @@ test('R4.9 rejected app toggle keeps an actionable error after the mandatory reg
   f.sidebarTools.toggleEnabled=()=>Promise.reject(Object.assign(
     new Error('用户取消了未保存草稿的启停操作'),{code:'E_DRAFT_CANCELLED'}));
   f.button('app:quick-notes','more').dispatch('click');
-  f.menuItem('启用应用').dispatch('click');
+  f.menuItem('启用').dispatch('click');
   await settle(()=>f.button('app:quick-notes','more')?.disabled===false);
   assert.match(f.nodes['extension-center-status'].textContent,/E_DRAFT_CANCELLED/);
   assert.equal(f.nodes['extension-center-status'].dataset.state,'error');
@@ -831,7 +967,7 @@ test('R5.0 Host false leaves a disabled App unchanged and reports unfinished dra
   const f=fixture(t,{disabled:true});await f.ui.refresh();
   f.sidebarTools.toggleEnabled=()=>false;
   f.button('app:quick-notes','more').dispatch('click');
-  f.menuItem('启用应用').dispatch('click');
+  f.menuItem('启用').dispatch('click');
   await settle(()=>f.button('app:quick-notes','more')?.disabled===false);
   assert.equal(f.nodes['extension-center-status'].dataset.state,'error');
   assert.match(f.nodes['extension-center-status'].textContent,/启停尚未完成/);
@@ -846,7 +982,7 @@ test('R5.0 failed background storage read does not replace the original Host act
   const f=fixture(t,{disabled:true});await f.ui.refresh();
   f.sidebarTools.toggleEnabled=()=>false;
   f.button('app:quick-notes','more').dispatch('click');
-  f.menuItem('启用应用').dispatch('click');
+  f.menuItem('启用').dispatch('click');
   await settle(()=>f.button('app:quick-notes','more')?.disabled===false);
   const actionError=f.nodes['extension-center-status'].textContent;
   assert.match(actionError,/启停尚未完成/);
@@ -861,7 +997,7 @@ test('R5.0 a true Host return without matching persisted enable state is not a s
   const f=fixture(t,{disabled:true});await f.ui.refresh();
   f.sidebarTools.toggleEnabled=()=>true;
   f.button('app:quick-notes','more').dispatch('click');
-  f.menuItem('启用应用').dispatch('click');
+  f.menuItem('启用').dispatch('click');
   await settle(()=>f.button('app:quick-notes','more')?.disabled===false);
   assert.equal(f.nodes['extension-center-status'].dataset.state,'error');
   assert.match(f.nodes['extension-center-status'].textContent,/未从可信安装记录确认/);
@@ -1016,7 +1152,7 @@ for(const transition of ['detail','back'])test('R1.8 action feedback clears on '
   f.programs.push(second);await f.ui.refresh();
   if(transition==='back')f.button('page:reader','main').dispatch('click');
   f.button('app:quick-notes','more').dispatch('click');
-  f.menuItem('启用应用').dispatch('click');
+  f.menuItem('启用').dispatch('click');
   await settle(()=>f.state.statusModel.state==='success');
   assert.match(f.state.statusModel.text,/本机安装记录确认应用启用/);
   await f.ui.refresh();
@@ -1076,7 +1212,7 @@ test('R1.8 navigation restores '+failure+' failure masked by action on '+transit
   const f=fixture(t,{disabled:true});await f.ui.refresh();
   if(transition==='back')f.button('page:reader','main').dispatch('click');
   f.button('app:quick-notes','more').dispatch('click');
-  f.menuItem('启用应用').dispatch('click');
+  f.menuItem('启用').dispatch('click');
   await settle(()=>f.state.statusModel.state==='success');
   if(failure==='read'){f.setCorrupt(true);await f.ui.refresh();}
   else {release();await tick();await tick();}

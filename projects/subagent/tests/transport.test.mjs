@@ -20,9 +20,9 @@ function fixture(){
   return {calls,client,transport:createMiniChatTransport(client),
     response:value=>{response=value;},recovery:value=>{recovery=value;}};
 }
-test('the project pins exactly the existing immutable WebFlow 0.2 Task and owned root',async()=>{
+test('the project pins exactly the reviewed immutable WebFlow 0.2.2 Task and owned root',async()=>{
   const project=JSON.parse(await readFile(new URL('../package.json',import.meta.url),'utf8'));
-  const release=REVIEWED_BUILTIN_TASK_RELEASES.find(row=>row.taskId==='chatgpt.conversation.create'&&row.version==='0.2.0');
+  const release=REVIEWED_BUILTIN_TASK_RELEASES.find(row=>row.taskId==='chatgpt.conversation.create'&&row.version==='0.2.2');
   assert.deepEqual(project.opendesk.delegatedTasks,[{taskId:release.taskId,version:release.version,
     manifestHash:release.manifestHash,contentHash:release.sourceHash,targetUrl:'https://chatgpt.com/'}]);
 });

@@ -92,5 +92,28 @@
     check(clicks===0,'fixture unexpectedly clicked send');
     return {status:'PASS',results,detachedRestoreRejected:true,sendClicks:clicks,evidence:'real DOM fixture, no install'};
   };
+  window.runQueueWaitingBrowserChecks=async()=>{
+    const text='输入框有空白字符，清空后队列会自动继续';
+    engine.resume('q1'); // No timers/ticks: this fixture cannot dispatch a message.
+    const before=JSON.stringify(engine.view().items),results=[];
+    for(const width of [700,380,320]){
+      document.querySelector('#composer-parent').style.width=width+'px';
+      engine.wait(text);check(view.place(site.inspect()),'waiting panel not placed');view.render();
+      await frame();
+      const panel=managed.find(ui=>ui.host.dataset.fixtureUi.endsWith('.list')).shadowRoot;
+      const status=panel.querySelector('.sq-waiting'),box=status.getBoundingClientRect();
+      check(status.getAttribute('role')==='status'&&status.textContent===text,'missing persistent wait reason');
+      check(status.scrollWidth<=status.clientWidth+1,'waiting reason overflows '+width);
+      check(box.height>0&&box.width>0,'waiting reason invisible');
+      check(site.inspect().draft==='','feedback wrote to native composer');
+      check(JSON.stringify(engine.view().items)===before,'feedback changed queue');
+      results.push({width,statusWidth:box.width,statusHeight:box.height});
+    }
+    engine.wait('');view.render();
+    check(!managed.some(ui=>ui.shadowRoot.querySelector('.sq-waiting')),'stale waiting reason');
+    check(clicks===0,'waiting feedback sent a message');
+    engine.wait(text);view.render();
+    return {status:'PASS',results,sendClicks:clicks,evidence:'LOCAL_SOURCE_NOT_INSTALLED'};
+  };
   window.fixtureReady=true;
 </script>

@@ -87,19 +87,22 @@ test('Preview IO presentation is shared without moving native Cookie operations 
 
 test('R5.25 file selection never starts a Cookie write or trusted import intent',async()=>{
   const importer=await get('app/components/CookieImport.jsx');
-  assert.match(importer,/onChange=\{event=>\{stageFile\(event\.currentTarget\.files\?\.\[0\]\);\}\}/);
+  assert.match(importer,/onChange=\{event=>stageFile\(event\.currentTarget\.files\?\.\[0\]\)\}/);
   assert.match(importer,/const stageFile=file=>\{/);
-  assert.match(importer,/stagedFile\.current=file;setStagedName\(/);
+  assert.match(importer,/stagedFile\.current=file;\s*setStagedName\(/);
   assert.match(importer,/const reading=React\.useRef\(false\)/);
-  assert.match(importer,/reading\.current=true;setBusy\(true\)/);
-  assert.match(importer,/if\(reading\.current\|\|running\.current\|\|disabled\|\|uncertain\)return/);
+  assert.match(importer,/reading\.current=true;\s*setBusy\(true\)/);
+  assert.match(importer,/if\(reading\.current\|\|running\.current\|\|disabled\|\|busy\|\|uncertain\)return/);
   const confirmation=importer.slice(importer.indexOf('const confirmImport=()=>{'),
-    importer.indexOf('// File selection and drag/drop only stage'));
-  assert.match(confirmation,/if\(reading\.current\|\|running\.current\|\|disabled\|\|uncertain\|\|!previewRef\.current\?\.ready\)return/);
+    importer.indexOf('// Choose / drop merely stages a File.'));
+  assert.match(confirmation,/if\(reading\.current\|\|running\.current\|\|disabled\|\|busy\|\|uncertain\)return/);
   assert.ok(confirmation.indexOf('beginIntent();')>=0);
   assert.ok(confirmation.indexOf('beginIntent();')<confirmation.indexOf('text=await file.text();'));
+  assert.match(importer,/if\(authorized!==true\)\{[\s\S]*?return;[\s\S]*?const imported=await onImportText/);
+  assert.match(importer,/if\(!active\.current\)\{[\s\S]*?onAbandonIntent\?\.\(\);[\s\S]*?return;/);
+  assert.match(importer,/onClick=\{confirmImport\}/);
   const selection=importer.slice(importer.indexOf('const stageFile=file=>{'),
-    importer.indexOf('const cancelFromKeys='));
+    importer.indexOf('const onBackdropClick='));
   assert.doesNotMatch(selection,/beginIntent\(|importText\(|importFile\(/);
   assert.doesNotMatch(importer,/onChange=\{event=>\{void importFile\(/);
   assert.doesNotMatch(importer,/onPick=\{[^\n]*beginIntent\(/);
@@ -110,7 +113,7 @@ test('R5.36 React UI defaults overwrite, supports opt-out and preserves Controll
     get('app/components/CookieImport.jsx'),get('app/CookieEditorApp.jsx')]);
   assert.match(importer,/\[overwrite,setOverwrite\]=React\.useState\(true\)/);
   assert.match(importer,/type="checkbox" checked=\{overwrite\}/);
-  assert.match(importer,/const next=event\.currentTarget\.checked;setOverwrite\(next\)/);
+  assert.match(importer,/setOverwrite\(event\.currentTarget\.checked\)/);
   assert.match(importer,/onPendingChange\?\.\(Boolean\(stagedFile\.current\)/);
    assert.match(importer,/onPendingChange\?\.\(Boolean\(event\.currentTarget\.value\.trim\(\)\)\)/);
    assert.doesNotMatch(importer,/默认不覆盖|\|\|overwrite/);

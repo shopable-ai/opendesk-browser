@@ -103,7 +103,7 @@ function reviewedCompiledWebFlow(target,path,root){
 // cannot replace this adapter or import Host/Controller functionality.
 const compiledSubagentResultInputs=Object.freeze({
   'projects/subagent/trusted/page-task-result.js':'16dda6e9a439dedb340e33874f1062bdfeaf8147',
-  'projects/subagent/trusted/result.js':'87c598a15994af1033b866f8f1b632c4c494deaa',
+  'projects/subagent/trusted/result.js':'1c7de2644d572a3b936549e68a70bf709f540f68',
   'projects/subagent/src/contract.js':'c394ad1d5dfb7271ec2a23d428e7605030da7664'
 });
 function reviewedCompiledSubagentResult(target,path,root){
@@ -648,11 +648,13 @@ function reviewedCompiledAppOwnedBackground(target,path,root){
 // Reviewed 2026-11-12: AI Scroll R4.2 only adds explicit turn-paging/count
 // settings, availability-gated React toggles and four-locale labels. The count
 // remains opt-in; no new import, network authority or privileged output target.
+// 2026-11-13 dev unblock review: associated toggle labels, explanatory locale
+// strings and visible settings feedback only; trusted gesture checks retained.
 const compiledExtensionSettingsInputs=Object.freeze({
   'projects/ai-scroll-navigation/trusted/ai-configuration.js':'c97137a3a871fb6c19fd3594fc627fafd67d03f8',
   'projects/ai-scroll-navigation/trusted/ai-controls.tsx':'ba7e94499c399aba685b7c80cf004bb56e2888f0',
-  'projects/ai-scroll-navigation/trusted/react-controls.tsx':'1261228715f9cd8f8496e190213e8b7cedb57406',
-  'projects/ai-scroll-navigation/trusted/host-localization.js':'73b0b62a0d009ff3451457623739d2a1716aad03',
+  'projects/ai-scroll-navigation/trusted/react-controls.tsx':'8f6c831049008d4011decd4581dab1b553d1424d',
+  'projects/ai-scroll-navigation/trusted/host-localization.js':'975a38f5f8e238cd07bfcb5771e822ced8e739f4',
   'projects/time-review/trusted/react-controls.tsx':'2a9155f4a6c56969d1aebcd7420405b84fd4eaf4',
   'projects/time-review/trusted/localization.js':'7478e9c91f33317c8e1fe08f33d2e49c47b47818',
   'projects/prompt-shortcuts/trusted/host-localization.js':'8a83cf4b2fff65af0ff12656d3f4aeafe62111d4'

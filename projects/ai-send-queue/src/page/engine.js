@@ -66,7 +66,7 @@ export function createQueueEngine({site, clock=()=>Date.now(), change=()=>{}, ch
   }
   // Read-only preflight before any destructive website draft operation.
   function checkEnqueue(text,route) {
-    if(!route)return {ok:false,reason:'请先在 ChatGPT 发送首条消息，建立对话后即可加入队列'};
+    if(!route)return {ok:false,reason:'当前对话暂不能加入队列'};
     if(typeof text!=='string'||!site.normal(text))return {ok:false,reason:'原生草稿为空'};
     if(text.length>MAX_TEXT)return {ok:false,reason:'文字超过队列上限'};
     if(items.length>=MAX_ITEMS)return {ok:false,reason:'发送队列已满'};
@@ -74,11 +74,11 @@ export function createQueueEngine({site, clock=()=>Date.now(), change=()=>{}, ch
       return {ok:false,reason:'会话不一致，队列未修改'};
     return {ok:true};
   }
-  function enqueue(text,route) {
+  function enqueue(text,route,{paused=false}={}) {
     const eligible=checkEnqueue(text,route);
     if(!eligible.ok)return false;
     state.route=route;
-    items.push({id:'q'+(++sequence),text,state:'queued'});
+    items.push({id:'q'+(++sequence),text,state:paused===true?'paused':'queued'});
     if (state.phase==='waiting') state.reason='';
     emit();return true;
   }
@@ -343,9 +343,11 @@ export function createQueueEngine({site, clock=()=>Date.now(), change=()=>{}, ch
     if(state.inFlight || !items.length)return;
     const eligible=current();
     if(!eligible){idleSince=null;return;}
-    if(!canSubmit){idleSince=null;return;}
+    if(!canSubmit){wait(submitBlockReason);return;}
     if(snap.busy || !snap.idle || (snap.assistants.length>0&&!snap.answerComplete) || snap.rich || snap.composing || snap.draft!=='') {
-      const reason=snap.rich?'检测到附件，不覆盖原生输入框':snap.composing?'等待输入法完成':snap.draft!==''?'原生草稿非空，等待用户处理':'等待当前回复结束';
+      const draftReason=site.normal(snap.draft)?'输入框有草稿，处理后队列会自动继续':
+        '输入框有空白字符，清空后队列会自动继续';
+      const reason=snap.rich?'检测到附件，不覆盖原生输入框':snap.composing?'等待输入法完成':snap.draft!==''?draftReason:'等待当前回复结束';
       wait(reason);
       return;
     }

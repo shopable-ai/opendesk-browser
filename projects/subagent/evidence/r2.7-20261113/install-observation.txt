@@ -1,0 +1,25 @@
+R2.7 / 2026-11-13
+Source: scoped native AX observation returned by cua_repl after one approved
+click on the original installer. This is a transcription of the tool result,
+not an exported Authority receipt or a proof of absence in all native registries.
+
+Before click:
+168 文本 Subagent
+169 文本 v0.2.0 · r1
+170 文本 网页增强 · 安装后在批准的网站自动运行。
+174 文本 Chrome 网站访问授权范围：https://chatgpt.com/*；脚本实际执行的路径范围：https://chatgpt.com/*。Chrome 权限可能覆盖整个 Origin；脚本仅在已审阅路径及顶层文档运行，不获得侧栏或 Native 权限。
+175 文本 本地安装包 · 请确认文件来源可信
+178 按钮 确认安装
+
+Immediate response:
+3175 文本 正在安装并核对注册状态…
+178 按钮 (disabled) 确认安装
+
+Final observed response:
+168 文本 Subagent
+169 文本 v0.2.0 · r1
+170 文本 审阅时基线：未安装；当前读回版本：未找到此 programId 的安装记录；不能确认目标已安装。 本次请求仍未确认。
+178 文本 E_BUILTIN_RESOURCE：E_BUILTIN_RESOURCE 审阅时基线：未安装；当前读回版本：未找到此 programId 的安装记录；不能确认目标已安装。 本次请求仍未确认。 请核对扩展中的安装状态；未自动重试安装。
+179 按钮 (disabled) 需要核对
+
+No retry; no Task request, B creation, send, Run or Result was performed.

@@ -36,7 +36,7 @@ export function composeExtensionEntries({installed=[],pages=[],official=[],pageR
   const page=pageRecord?.installed??pageRecord;
   const status=!pageStatusKnown?'unknown':!page?.manifestHash?'missing':
     !admitsPinnedQueuePage(page)?'version-mismatch':page.enabled!==true?'disabled':
-    page.nativeState!=='registered'||page.authorization?.status!=='active'||page.error||page.managedCleanup?.state==='unknown'?
+    page.nativeState!=='registered'||page.authorization?.status!=='active'||page.error?
       'restricted':'registered';
   const companion=Object.freeze({programId:SEND_QUEUE_PIN.pageProgramId,
     identity:queuePageIdentity(page),state:status,revision:page?.revision??null,installed:Boolean(page?.manifestHash)});
@@ -124,18 +124,17 @@ export function describeManagedAiPage(page,installedPrograms=[],locale='zh-CN'){
   const authorization=page.authorization?.status;
   const native=page.nativeState;
   const sitesKnown=Array.isArray(page.pageRules?.matches)&&page.pageRules.matches.length>0;
-  const cleanupUnknown=page.managedCleanup?.state==='unknown';
   const error=Boolean(page.error);
   let state='pending',status=t('runPending'),note=t('recheckNote');
   if(!enabledKnown){status=t('autoPending');}
   else if(!enabled){
-    if(authorization==='disabled'&&native==='disabled'&&!cleanupUnknown&&!error){
+    if(authorization==='disabled'&&native==='disabled'&&!error){
       state='off';status=t('autoOff');note='';
     }else{
       status=t('offPending');
       note=t('removedPending');
     }
-  }else if(sitesKnown&&authorization==='active'&&native==='registered'&&!cleanupUnknown&&!error){
+  }else if(sitesKnown&&authorization==='active'&&native==='registered'&&!error){
     state='ready';status=t('autoOn');note='';
   }else if(authorization==='suspended'){
     state='restricted';status=t('accessSuspended');
@@ -146,10 +145,6 @@ export function describeManagedAiPage(page,installedPrograms=[],locale='zh-CN'){
   }else if(error){
     state='restricted';status=t('autoError');
     note=t('autoErrorNote');
-  }else if(cleanupUnknown){
-    // An unconfirmed cleanup receipt is not proof of a failed registration.
-    // The runtime's same-document cleanup fence still applies unchanged.
-    note=t('cleanupUnknownNote');
   }else if(!sitesKnown){
     note=t('sitesUnknownNote');
   }else{
@@ -161,7 +156,7 @@ export function describeManagedAiPage(page,installedPrograms=[],locale='zh-CN'){
     enabled,enabledKnown,state,status,note,
     evidenceNote:t('aiEvidence'),
     legacyProgramId:legacyInstalled?legacyProgramId:null,
-    canRestore:enabledKnown&&enabled&&!cleanupUnknown&&
+    canRestore:enabledKnown&&enabled&&
       (authorization==='suspended'||
         (authorization==='active'&&(native!=='registered'||error)))
   };
@@ -188,26 +183,26 @@ export function describeInstalledPageControl(page,installedPrograms=[],locale='z
   const enabledKnown=typeof page?.enabled==='boolean',enabled=page?.enabled===true;
   const authorization=page?.authorization?.status,native=page?.nativeState;
   const sitesKnown=Array.isArray(page?.pageRules?.matches)&&page.pageRules.matches.length>0;
-  const cleanupUnknown=page?.managedCleanup?.state==='unknown',error=Boolean(page?.error);
+  const error=Boolean(page?.error);
   let state='pending',status=t('conditionsPending');
   if(!enabledKnown)status=t('enabledPending');
   else if(!enabled){
-    if(authorization==='disabled'&&native==='disabled'&&!cleanupUnknown&&!error){
+    if(authorization==='disabled'&&native==='disabled'&&!error){
       state='off';status=t('disabledConfirmed');
     }else status=t('disabledPending');
-  }else if(sitesKnown&&authorization==='active'&&native==='registered'&&!cleanupUnknown&&!error){
+  }else if(sitesKnown&&authorization==='active'&&native==='registered'&&!error){
     state='ready';status=t('conditionsReady');
   }else if(authorization==='suspended'){
     state='restricted';status=t('accessSuspended');
   }else if(native==='blocked'){
     state='restricted';status=t('registrationBlocked');
-  }else if(error||cleanupUnknown){
+  }else if(error){
     state='restricted';status=t('registrationIssue');
   }else status=t('enableRequested');
   return {enabled,enabledKnown,state,status,
     note:t('pageEvidence'),
     legacyProgramId:null,
-    canRestore:enabledKnown&&enabled&&!cleanupUnknown&&
+    canRestore:enabledKnown&&enabled&&
       (authorization==='suspended'||(authorization==='active'&&(native!=='registered'||error)))
   };
 }

@@ -1,5 +1,58 @@
 # AI 对话滚动导航 · AI Chat Scroll Navigation
 
+## 2026-11-13 · 导航设置交互完善与候选交付（0.4.21 / revision 24）
+
+正式设置页的七项开关沿用原可信 CAS 保存、完整读回与 Page 消费链；本轮补齐与预览一致的文字点击切换，并将保存等待、成功和失败回执移到设置滚动区外，短视口下也可看到结果。增加长回复按钮支持范围、轮次数字的生效条件，以及对话回顶与滚动后回顶共用一个按钮的说明；原五/六/七字段版本分流、配置与网站权限不变。长回复顶部/底部按钮仅对已适配的 ChatGPT、DeepSeek 生效，Gemini 和自定义站点不具有相同的回复工具栏能力。
+
+项目测试 **357 PASS**、设置/本地化/Host/配置/Page 包定向测试 **133 PASS**，均无失败或跳过（两组含重复发现，非 490 个独立用例）；相关项目输入未变，沿用本轮日志。Ego Lite 使用真实 `ScrollSiteManager`、共享 React Aria Switch 和模拟存储验证七项文字点击、空格键、重新打开恢复、可见保存回执及合成点击拒绝；这是源码组件证据。新候选另经 **13 项 Page 包测试**、原安装包校验器及 5 个源码模块、草稿、编译输出与包内字节同源核对。
+
+按用户要求使用原 Program Builder 的 production 模式和 Page 打包器，将唯一可导入包 [`ai-scroll-navigation.opendesk-page.json`](./ai-scroll-navigation.opendesk-page.json) 更新为 **0.4.21/r24**，官方目录版本同步并继续 `blocked`。`sourceHash` 为 `15b5f924b997d1531cc7eb9114faa26e1759fa0c910cc8fdc8cc6bf394f09262`，`packageHash` 为 `5d224e50172ae8603e47d520c7e31ca2a6afed4b867103916b5c91a8bd208c82`；详见[设置与打包证据](evidence/navigation-settings-20261113.json)。Page 业务相较 0.4.20 仅更新版本头；本轮交互改动位于 `trusted/react-controls.tsx`，经 `src/ui/react/tabs/tools.tsx` 静态接入 Browser，**Page JSON 不包含该可信 React 界面**。当前 Browser 固定代码更新、新候选安装及真实网站生效均为 `NOT_TESTED`，未启动或覆盖日常 Browser watcher。以下版本记录保留历史证据边界。
+
+## 2026-11-13 · 四按钮及轮次数字与预览对齐（0.4.20 / revision 23）
+
+沿用已有四按钮显隐、顺序跳转及可信设置修复，将 R4.4 预览的窄屏按钮圆角和 6px 横排间距落实到独立 Page 业务；桌面继续使用 42px 顶底按钮、28px 轮次按钮和 3px 间距。轮次数字默认关闭，开启后随滚动同步，关闭后移除数字及占位，不影响四按钮操作。修复 `120/120` 等长计数超出固定数字框：数字框随总轮次位数扩展，位置计算和碰撞避让使用相同宽度。
+
+本轮 38 项导航、预览及设置测试和 13 项 Page 包测试通过。Ego Lite 在真实业务模块与合成对话 DOM 中验证 1307px / 390px 两种视口的四按钮点击、数字开关、顺序同步、120 轮计数不溢出、角色失效时不显示虚构数字及识别恢复。浏览器驱动复用 `tests/visibility-browser-checks.mjs` 的 `runTurnCountBrowserChecks(page)`；这不是已安装扩展或真实网站证据。
+
+原 Program Builder 和 Page 打包器生成唯一可导入候选 **0.4.20/r23**，源码模块、编译字节、包摘要及原三站 USER_SCRIPT 范围核对一致。详见[本轮证据](evidence/preview-sync-20261113.json)。当前浏览器尚未安装本候选，真实网站及 production Browser 验收为 `NOT_TESTED`；官方目录继续 `blocked`。未重建或覆盖共享 `dist/development`。上一轮可信设置 UI 的源码改动需由 Browser 固定编译交付，Page JSON 不包含该 React 界面。
+
+## 2026-11-13 · 顺序导航与紧凑布局（0.4.19 / revision 22）
+
+修复长回复中“上一轮”跳过本轮提问的问题：从底部或回复中向上，先回到正在阅读的本轮提问起点；已在起点时再跳上一轮。单轮长回复也能返回提问。“下一轮”按已加载提问顺序前进；判定、计数、按钮禁用与实际落点共用固定页头偏移及滚动边界，不再把触底直接等同于末轮，也不提供无法滚动的空跳转。
+
+采用常见的顺序导航，到底部时“下一轮”和“底部”没有更下方的可达目标，通过 `aria-disabled` 标为不可执行，仍可 Tab 聚焦或触摸查看“已到对话底部”；激活只展示原因，不滚动。其他状态分别说明“回到本轮提问”“已到首个／末个已加载提问”“暂未识别提问”，避免把边界和角色识别失败混为一谈。四按钮继续稳定显示，沿用可信点击、目标复核、原开关及唯一 Dock。
+
+桌面置顶／底部保持 42×42px，上一轮／下一轮调整为 42×28px，间距由 6px 缩至 4px，总高由 186px 缩至 152px。触摸设备（包括宽屏触摸）保留四个 42px 按钮；窄屏继续横排。浅色、深色、键盘焦点与可见状态提示均在原 Shadow DOM 中实现。
+
+项目 349 项 Node 测试、根受影响导航／Page 包 98 项测试通过（合计 447 次执行，含原有重复发现）。Ego Lite 以真实业务模块验证 ChatGPT／DeepSeek／Gemini 合成 DOM 的鼠标导航、首末与单轮、手动滚动、未识别角色及恢复；完整 Tab／Shift+Tab、Enter／Space、禁用原因访问、提示可悬停及 Escape 关闭、深浅色、真实触摸事件与 390×600 窄屏另有交互及截图证据。原 Program Builder 的 production 模式、Page 打包器与源码／包字节同源验证通过。
+
+独立 AI UX 评审首轮 92/100，补齐键盘与提示交互后复评 **96/100**（导航39/40、视觉19/20、可访问性19/20、响应及证据19/20）；范围仅为源码与合成 DOM 开发候选。读屏器实际播报未测。结构化结果见[本轮证据](evidence/navigation-compact-20261113.json)。
+
+**交付边界：** 唯一可导入候选包为 `0.4.19/r22`，本轮未更新当前浏览器的已安装 Page。真实网站安装态和 production 扩展验收仍为 `NOT_TESTED`，官方目录继续 `blocked`；未触碰共享 `dist/development` 或 watcher。以下各节为历史证据。
+
+## 2026-11-13 · 轮次按钮稳定显示修复（0.4.18 / revision 21）
+
+修复“上一轮、下一轮”偶尔消失：旧实现将按钮挂载依赖于“至少两轮且全部角色可靠”，单轮及网页重绘期间的角色缺失会移除两个按钮。现在默认四个按钮稳定显示，无可跳目标时使用原生 `disabled` 和既有置灰样式；识别恢复后自动恢复可用，不缓存不可靠轮次。用户主动关闭 `turnPaging` 时仍隐藏轮次按钮，`showTurnCount` 默认关闭保持原合同。仅修改本项目导航业务，没有改 Browser Framework、权限、三站范围或运行世界。
+
+| 测试条件 | 预期与实测 |
+| --- | --- |
+| 三轮对话，首轮 → 中间 → 末轮，再返回 | 四按钮保持；首轮禁用上一轮、末轮禁用下一轮，真实点击定位用户提问 |
+| 单轮、未知角色、角色暂时缺失后恢复 | 四按钮保持原 DOM 与位置；无可靠目标时禁用，恢复后可点击 |
+| 全部内容可在一屏显示 | 四按钮保持，全部禁用 |
+| 手动滚动、消息新增、MutationObserver 更新 | 自动更新禁用状态，不因角色变化移除轮次按钮，不产生自刷新循环 |
+| 主动关闭轮次翻页、关闭所有导航、配置读取失败 | 保留原主动关闭及读取失败不启用的语义 |
+| 未信任点击、旧目标/DOM 替换 | 不执行不可靠跳转，顶底和原安全检查继续有效 |
+
+项目 **345 项 Node 测试**及 Page 安装包 **13 项测试**通过。Ego Lite 在合成 ChatGPT / DeepSeek / Gemini DOM 中加载真实业务模块，鼠标点击、轮次禁用/恢复、手动滚动及四按钮可见性均通过；可复用 [`tests/fixtures/floating-navigation.html`](tests/fixtures/floating-navigation.html) 与 [`runVisibilityBrowserChecks(page)`](tests/visibility-browser-checks.mjs)。项目校验、生产模式 Program 编译、原 Page 打包器及源码/包逐字节核对通过；唯一正式 JSON 为 **0.4.18/r21**。详见[本轮证据](evidence/turn-button-visibility-20261113.json)。
+
+**证据边界：** 这是业务开发修复和可导入候选；本轮未更新当前浏览器的已安装 Page。真实网站安装态、新候选 Chrome/Mac 与 production 扩展验收均为 `NOT_TESTED`，官方目录继续 `blocked`。未重建或覆盖日常 `dist/development`，未操作其他任务的浏览器、草稿或 watcher。以下 0.4.17 及更早段落为历史记录。
+
+## 2026-11-13 · 编译与版本更新（0.4.17 / revision 20）
+
+按用户要求将版本从 `0.4.16/r19` 提升为 **`0.4.17/r20`**，使用原 Program Builder 的 production 模式及 Page 打包器更新唯一正式安装包 [`ai-scroll-navigation.opendesk-page.json`](./ai-scroll-navigation.opendesk-page.json)，并同步 `official-pages/sources.json` 中本项目版本。编译源码仅版本头变化，业务代码、Program ID、ChatGPT / DeepSeek / Gemini 三站范围及权限保持原合同。
+
+项目格式验证、生产编译、Page 安装包的 13 项定向测试及源码/包哈希与字节同源检查通过。文件 SHA-256 为 `6937ffbb122c3a3ca7171c7962471a869096b89161270218e2f446971a50e0e4`，`sourceHash` 为 `4e4cf0a14cddb06791ff3aa01c7031830bc4cdccc7f3f1adf93bee3c49fb21ba`，`packageHash` 为 `8b7b9c73655d105a9dfeda69fbbd58a1aa44d60ab110066229ccd44d8a18fdda`。可从「扩展 → 导入」选择此包并审阅更新；本轮未安装，当前运行版本未核实，真实 Chrome/Mac 与三站验收为 `NOT_TESTED`，官方目录继续 `blocked`。以下各节保留历史观察，不作为本候选安装证明。
+
 ## 2026-11-12 · R4.3 CI 修复与候选包（真实 Chrome 验收未完成）
 
 R4.2 的轮次模型、唯一 Dock、默认隐藏数字与独立设置保持原实现。本轮仅修正配置兼容、可选数字、Toast 和 Host 路由的过期测试，并显式锁定 `jsdom@26.1.0`，移除个人 npm 缓存回退。CI #888 的十项失败已逐项分类；未发现需要重写业务源码的证据。

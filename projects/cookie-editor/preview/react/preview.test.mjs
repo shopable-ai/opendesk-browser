@@ -96,11 +96,33 @@ test('committed standalone React preview reflects the one-action consent UI',asy
   assert.doesNotMatch(styles,/preview-grant-icon|preview-global-grant small/);
 });
 
-test('fictional transport has no real Cookie, permission, network or persistence path',async()=>{
+// Only the opt-in isolated HTTP scene may read its fixed config and use
+// backend-scoped preview storage. All other ambient I/O stays forbidden.
+function assertIsolatedPreviewBoundary(preview){
+  const config="fetch('/__isolated-http/config',{signal:controller.signal,credentials:'omit',redirect:'error'})";
+  const storage="storage:scene==='isolatedHttp'?localStorage:null";
+  for(const allowed of [config,storage])
+    assert.equal(preview.split(allowed).length-1,1,'one exact isolated preview exception: '+allowed);
+  assert.match(preview,/if\(!isolatedRequested\)return;[\s\S]*?fetch\('\/__isolated-http\/config'/);
+  assert.match(preview,/new URLSearchParams\(location.search\).get\('isolatedHttp'\)==='1'/);
+  assert.doesNotMatch(preview.replace(config,'').replace(storage,''),
+    /chrome\.|document\.cookie|localStorage|sessionStorage|\bfetch\s*\(|XMLHttpRequest|OpenDeskSDK|OpenDeskTool/);
+}
+
+test('fictional transport forbids ambient I/O except the opt-in isolated HTTP fixture',async()=>{
   const [preview,mock]=await Promise.all([read('./src/App.jsx'),read('./src/mock-sdk.js')]);
-  for(const source of [preview,mock])assert.doesNotMatch(source,/chrome\.|document\.cookie|localStorage|sessionStorage|\bfetch\s*\(|XMLHttpRequest/);
-  assert.match(preview,/E_PREVIEW_REAL_SDK_PRESENT/);
+  assertIsolatedPreviewBoundary(preview);
+  assert.doesNotMatch(mock,/chrome\.|document\.cookie|localStorage|sessionStorage|\bfetch\s*\(|XMLHttpRequest|OpenDeskSDK|OpenDeskTool/);
+  assert.match(preview,/request=\{mock.request\} browser=\{mock.browser\}/);
   assert.match(mock,/import \{key,sameNativeSlot\} from '\.\.\/\.\.\/\.\.\/app\/domain\/cookie-model\.js'/);
+  const sdk=createMockSdk({storage:{getItem(){throw Error('PERSISTENCE_FORBIDDEN');},setItem(){throw Error('PERSISTENCE_FORBIDDEN');}},
+    fetchImpl:()=>{throw Error('NETWORK_FORBIDDEN');}});
+  try{
+    await assert.rejects(sdk.request('browser.network.request',{url:'https://example.com',method:'POST'}),{code:'E_PREVIEW_ONLY'});
+    await assert.rejects(sdk.request('browser.permissions.request',{}),{code:'E_PERMISSION'});
+    await sdk.request('browser.storage.local.set',{items:{fictional:true}});
+    assert.deepEqual(await sdk.request('browser.storage.local.get',{}),{items:{fictional:true}});
+  }finally{sdk.dispose();}
 });
 
 const {createMockSdk,fictionalCookies}=await import('./src/mock-sdk.js');
@@ -113,6 +135,36 @@ function fixture(scenario='ready'){
  const controller=createCookieController({adapter,onChange:s=>snapshots.push(s)});
  return {mock,adapter,controller,snapshots,close(){controller.dispose();mock.dispose();}};
 }
+
+test('isolated HTTP mock binds its relay, endpoints and storage without ambient network',async()=>{
+ const config={origin:'http://synthetic.localhost:12345',rpc:'/__isolated-http/fixture/rpc'};
+ const stored=new Map(),sent=[];
+ const storage={getItem:key=>stored.get(key)??null,setItem:(key,value)=>stored.set(key,value)};
+ const mock=createMockSdk({scenario:'isolatedHttp',isolatedHttp:config,storage,
+  fetchImpl:async(path,options)=>{sent.push({path,options});return {ok:true,status:200,json:async()=>({synthetic:true})};}});
+ try{
+  for(const url of ['https://example.com/opendesk/client/request',
+   config.origin+'/admin',config.origin+'/opendesk/client/request?secret=1',
+   config.origin+'/opendesk/client/request#secret',
+   'http://user:password@synthetic.localhost:12345/opendesk/client/request'])
+   await assert.rejects(mock.request('browser.network.request',{url,method:'POST'}),{code:'E_PREVIEW_NETWORK_SCOPE'});
+  await assert.rejects(mock.request('browser.network.request',{
+   url:config.origin+'/opendesk/client/request',method:'GET'}),{code:'E_PREVIEW_NETWORK_SCOPE'});
+  await assert.rejects(mock.request('browser.permissions.request',{}),{code:'E_PERMISSION'});
+  assert.equal(sent.length,0);
+  for(const endpoint of ['pair','pair-result','request']){
+   const url=config.origin+'/opendesk/client/'+endpoint;
+   assert.deepEqual(await mock.request('browser.network.request',{url,method:'POST',data:{fictional:true}}),
+    {status:200,data:{synthetic:true}});
+   const {path,options}=sent.at(-1);
+   assert.equal(path,config.rpc);
+   assert.equal(options.method,'POST');assert.equal(options.credentials,'omit');assert.equal(options.redirect,'error');
+   assert.deepEqual(JSON.parse(options.body),{url,method:'POST',data:{fictional:true}});
+  }
+  await mock.request('browser.storage.local.set',{items:{fictional:true}});
+  assert.deepEqual([...stored.keys()],['cookie-editor.preview.isolated-http.v1:'+config.origin]);
+ }finally{mock.dispose();}
+});
 
 test('mock scoped storage selects exact keys and merges cloned items per instance',async()=>{
  const first=createMockSdk(),second=createMockSdk();
@@ -153,7 +205,7 @@ test('real adapter saves a fictional enterprise service using only mock scoped s
   assert.ok(f.mock.inspect().calls.every(call=>[
    'browser.storage.local.get','browser.storage.local.set'
   ].includes(call.op)));
-  await assert.rejects(f.mock.request('browser.network.request',{}),{code:'E_PERMISSION'});
+  await assert.rejects(f.mock.request('browser.network.request',{}),{code:'E_PREVIEW_ONLY'});
  }finally{f.close();}
 });
 
@@ -214,7 +266,8 @@ test('real Controller loads only redacted fictional metadata and renames with ve
  const f=fixture();try{
   await f.controller.load();
   assert.equal(f.controller.snapshot().phase,'ready');
-  assert.equal(f.controller.snapshot().rows.length,8);
+  assert.equal(f.controller.snapshot().rows.length,7);
+  assert.ok(f.controller.snapshot().rows.every(row=>row.domain.replace(/^\./,'')===f.controller.snapshot().target.hostname));
   const original=f.controller.snapshot().rows.find(r=>r.name==='session_id');
   const row=fictionalCookies().find(r=>r.name==='session_id');
   assert.equal(await f.controller.save({...row,name:'renamed_sid'}, {originalId:original.id,valueEdited:false}),true);
@@ -227,9 +280,9 @@ test('real Controller loads only redacted fictional metadata and renames with ve
 
 test('clear preview/cancel is inert and confirmed scope excludes domain and partition cookies',async()=>{
  const f=fixture();try{
-  await f.controller.load();assert.equal((await f.controller.previewClear()).count,6);
+  await f.controller.load();assert.equal((await f.controller.previewClear(false)).count,6);
   f.controller.discardClear();assert.equal(f.mock.inspect().rows.length,8);
-  await f.controller.previewClear();assert.equal(await f.controller.executeClear(),true);
+  await f.controller.previewClear(false);assert.equal(await f.controller.executeClear(),true);
   assert.deepEqual(f.mock.inspect().rows.map(r=>r.name).sort(),['analytics_consent','embedded_pref']);
  }finally{f.close();}
 });
@@ -244,7 +297,8 @@ test('real import preflight validates rows; batch receipts and JSON export trave
   assert.equal(f.mock.inspect().rows.length,10);
   assert.equal(await f.controller.exportTo({format:'json',metadata:false,method:'copy'}),true);
   const output=JSON.parse(f.mock.inspect().deliveries.at(-1).text);
-  assert.equal(output.length,10);
+  assert.equal(output.length,9);
+  assert.ok(output.every(row=>row.domain.replace(/^\./,'')==='shop.example.com'));
   assert.ok(output.some(r=>r.name==='preview_one'&&r.value==='fictional one'));
   assert.equal(await f.controller.exportTo({format:'header',metadata:false,method:'copy'}),false);
  }finally{f.close();}
@@ -293,7 +347,7 @@ for(const operation of ['save','import','clear','remove'])test('unknown '+operat
    await f.controller.load();
    const source=JSON.stringify([{name:'uncertain_one',value:'one'},{name:'uncertain_two',value:'two'}]);
    if(operation==='import')assert.equal((await f.controller.previewImport(source,'json',false)).accepted,2);
-   if(operation==='clear')assert.equal((await f.controller.previewClear()).count,6);
+   if(operation==='clear')assert.equal((await f.controller.previewClear(false)).count,6);
    const before=f.mock.inspect();
    if(injection==='once')f.mock.setFailure('unknown');
    const run={save:()=>f.controller.save({...fictionalCookies()[0],name:'uncertain'}),
@@ -390,8 +444,10 @@ test('authorized subdomain imports valid parent-domain cookies without a domain 
   const plan=await f.controller.previewImport(source,'auto',true);
   assert.equal(plan.accepted,1);
   assert.equal(await f.controller.executeImport(source,'auto',true),true);
-  assert.ok(f.controller.snapshot().rows.some(row=>
+  assert.ok(f.mock.inspect().rows.some(row=>
     row.name==='parent_pref'&&row.domain==='.example.com'));
+  assert.equal(f.controller.snapshot().rows.some(row=>row.name==='parent_pref'),false,
+    'exact-host metadata must not display parent-domain cookies after import');
   const foreign=JSON.stringify([{name:'unrelated',value:'fictional',
     domain:'.elsewhere.invalid',hostOnly:false,path:'/'}]);
   const denied=await f.controller.previewImport(foreign,'auto',true);
@@ -407,7 +463,8 @@ test('global Cookie grant is one simulated decision across site changes and revo
   assert.equal(f.mock.hasGlobalCookieGrant(),false);
   f.mock.grantAllSites();await f.controller.load();
   assert.equal(f.controller.snapshot().phase,'ready');
-  assert.equal(f.controller.snapshot().rows.length,8);
+  assert.equal(f.controller.snapshot().rows.length,7);
+  assert.ok(f.controller.snapshot().rows.every(row=>row.domain.replace(/^\./,'')===f.controller.snapshot().target.hostname));
   for(const hostname of ['docs.example.org','store.example.net']){
    f.mock.switchSite(hostname);await f.controller.load();
    assert.equal(f.controller.snapshot().phase,'ready');
@@ -511,10 +568,8 @@ test('R3.2 market and account invite share one formal App but never create produ
  assert.match(experiences,/return props\.previewOnly\?<CookieAccountShareDemo[^:]+:<CookieAccountShareLive/);
  // The isolated HTTP preview may fetch one local, credential-free fixture
  // configuration. Never generalize this exception to Cookie/production I/O.
- const fixtureConfig="fetch('/__isolated-http/config',{signal:controller.signal,credentials:'omit',redirect:'error'})";
- assert.equal(preview.split(fixtureConfig).length-1,1,'only the isolated preview config read is allowlisted');
- for(const src of [preview.replace(fixtureConfig,''),experiences])assert.doesNotMatch(src,
-  /chrome\.|document\.cookie|localStorage|sessionStorage|\bfetch\s*\(|XMLHttpRequest/);
+ assertIsolatedPreviewBoundary(preview);
+ assert.doesNotMatch(experiences,/chrome\.|document\.cookie|localStorage|sessionStorage|\bfetch\s*\(|XMLHttpRequest/);
  assert.match(stylesheet,/\.cookie-market-resource/);
  assert.match(stylesheet,/\.cookie-share-demo-code/);
 });

@@ -30,7 +30,7 @@ test.before(async()=>{
 });
 test.after(()=>rm(artifacts,{recursive:true,force:true}));
 
-async function fixture({twoTasks=false,paramsSchema,otherParamsSchema}={}){
+async function fixture({twoTasks=false,paramsSchema,otherParamsSchema,pageDiscovery=false,configure}={}){
   const {document:doc,window}=parseHTML('<html><body><nav class="workbench-nav"></nav><div id="outside"></div><div id="mount"></div></body></html>');
   // Advertise the input events used by this fixture so React does not select
   // its legacy IE key-event value tracker (not implemented by linkedom).
@@ -72,6 +72,7 @@ async function fixture({twoTasks=false,paramsSchema,otherParamsSchema}={}){
   if(twoTasks){state.catalog.push({...candidate,taskId:'other.task',manifest:{...manifest,taskId:'other.task',title:'第二任务',paramsSchema:otherParamsSchema??manifest.paramsSchema}});
     state.installed.push({...installed,taskId:'other.task',scriptId:'task:other.task:1.0.0',installationId:'22222222-2222-4222-8222-222222222222'});}
   const runSubscribers=new Set(),pageSubscribers=new Set(),installedSubscribers=new Set(),connectionSubscribers=new Set();
+  const pageTaskSubscribers=new Set();
   let runId=null,resolveCompletion;
   const host={get currentRun(){return runId;},subscribe(fn){runSubscribers.add(fn);return ()=>runSubscribers.delete(fn);},
     async start(input){state.starts.push(input);runId='run-'+state.starts.length;host.completion=new Promise(resolve=>resolveCompletion=resolve);
@@ -86,12 +87,14 @@ async function fixture({twoTasks=false,paramsSchema,otherParamsSchema}={}){
       for(const fn of runSubscribers)fn({runId:id,state:failed?'failed':'completed'});resolveCompletion?.({});},
     forceRun(id){runId=id;for(const fn of runSubscribers)fn({runId:id,state:'running'});}};
   const client={ready:Promise.resolve(),subscribeConnection(fn){connectionSubscribers.add(fn);return ()=>connectionSubscribers.delete(fn);},
+    ...(pageDiscovery?{subscribePageTasks(fn){pageTaskSubscribers.add(fn);return ()=>pageTaskSubscribers.delete(fn);}}:{}),
     subscribeInstalledTasks(fn){installedSubscribers.add(fn);return ()=>installedSubscribers.delete(fn);},
     controller:{async snapshotControllerRun(){return structuredClone({runs:state.runs,results:state.results});}},
     async request(action,input){state.calls.push({action,input:structuredClone(input)});
       if(['inspectTaskRun','cancelTaskRun','prepareTaskRun'].includes(action)&&state.taskRunRequest)return state.taskRunRequest(action,input);
       if(['readPageTaskRequest','listPageTaskRequests'].includes(action)&&state.pageTaskRequest)return state.pageTaskRequest(action,input);
       if(action==='inspectTaskRun')return null;
+      if(action==='listPageTaskRequests')return {requests:[]};
       if(action==='listTaskCatalog')return structuredClone({catalog:state.catalog,installed:state.installed});
       if(action==='importTaskPackage'){
         if(state.importConflict)throw Object.assign(Error('immutable version conflict'),{code:'E_REQUEST_CONFLICT'});
@@ -135,6 +138,7 @@ async function fixture({twoTasks=false,paramsSchema,otherParamsSchema}={}){
     runtime:{getURL:path=>'chrome-extension://test/'+path,sendMessage:async()=>({ok:true})},
     tabs:{create:async()=>({id:4})}};
   const view=createMyWorkbenchView({document:doc});
+  configure?.({state,installed,candidate});
   const workbench=createTaskWorkbench({developerView:createDeveloperView(),client,host,currentPageTarget,api,document:doc,myView:view,
     reactNavigation:{ownsPages:true,connect:()=>{},select:()=>{}},importDraft:()=>{}});
   const scheduler=createScheduledTaskWorkbench({client,host,taskWorkbench:workbench,api,document:doc,myView:view});
@@ -154,6 +158,7 @@ async function fixture({twoTasks=false,paramsSchema,otherParamsSchema}={}){
     return event;
   };
   return {state,host,view,workbench,scheduler,doc,dispatch,input,mount,fire,
+    notifyPageTasks(){for(const listener of pageTaskSubscribers)listener();},
     counts:()=>[runSubscribers.size,pageSubscribers.size,installedSubscribers.size,connectionSubscribers.size,permissionAdded.size,permissionRemoved.size],
     dispose(){scheduler.dispose();workbench.dispose();}};
 }
@@ -313,6 +318,46 @@ function pageRequestFixture(f,{prepared=false}={}){
   return {request,read,get preparation(){return preparation;}};
 }
 
+test('fresh A discovers the same stale request only after Authority permits explicit reprepare',async()=>{
+  const f=await fixture({pageDiscovery:true});let root;
+  try{
+    root=await f.mount();const p=pageRequestFixture(f,{prepared:true});
+    Object.assign(p.request,{state:'source-stale',approvalAllowed:false,reprepareAllowed:false});
+    p.request.pageBinding.documentId='old-document';
+    f.state.pageTaskRequest=(action,input)=>action==='listPageTaskRequests'?{requests:[structuredClone(p.request)]}:p.read(action,input);
+    await React.act(async()=>{f.notifyPageTasks();await tick();await tick();});
+    assert.ok(!f.view.data.taskRunSheet);
+    p.request.reprepareAllowed=true;
+    await React.act(async()=>{f.notifyPageTasks();await tick();await tick();await tick();});
+    assert.equal(f.view.data.taskRunSheet.pageRequestId,p.request.requestId);
+    assert.equal(f.view.data.taskRunSheet.reprepareAllowed,true);
+    assert.match(f.doc.getElementById('task-parameters-sheet').textContent,/安全重新准备/);
+    assert.equal(f.state.starts.length,0);
+    assert.equal(f.state.calls.some(row=>row.action==='repreparePageTaskRequest'),false);
+  }finally{if(root)await React.act(async()=>root.unmount());f.dispose();}
+});
+
+test('reopened Host restores its one unadmitted Page preparation even while an extension tab is selected',async()=>{
+  let original;
+  const f=await fixture({pageDiscovery:true,configure({state,installed,candidate}){
+    const task={...installed,contentHash:candidate.manifest.program.sourceHash};
+    original={requestId:'original-page-request',preparationId:'original-preparation',task,
+      approvalAllowed:false,reprepareAllowed:true,state:'source-stale',params:{name:'original',count:3,accept:true,mode:'b'},
+      target:{mode:'owned',url:'https://example.com/new'},
+      pageBinding:{programId:'opendesk.subagent',tabId:99,documentId:'old-a',url:'https://example.com/original-a'}};
+    const preparation={...original,pageRequestId:original.requestId,state:'unknown',runId:null,resultId:null};
+    state.taskRunRequest=async action=>{assert.equal(action,'inspectTaskRun');return {preparation};};
+    state.pageTaskRequest=async(action,input)=>action==='listPageTaskRequests'?{requests:[{...original,reprepareAllowed:undefined}]}:
+      (assert.equal(input.requestId,original.requestId),{request:original,preparation});
+  }});let root;
+  try{
+    root=await f.mount();await React.act(async()=>{await tick();await tick();});
+    assert.equal(f.view.data.taskRunSheet.pageRequestId,original.requestId);
+    assert.match(f.doc.getElementById('task-parameters-sheet').textContent,/安全重新准备/);
+    assert.equal(f.state.starts.length,0);assert.equal(f.state.calls.some(r=>r.action==='prepareTaskRun'),false);
+  }finally{if(root)await React.act(async()=>root.unmount());f.dispose();}
+});
+
 test('page request renders one locked Sheet with source, fixed version and owned target, then uses original save and confirmation',async()=>{
   const f=await fixture();let root;
   try{
@@ -347,6 +392,33 @@ test('page request renders one locked Sheet with source, fixed version and owned
     assert.equal(f.state.starts[0].taskPreparationId,p.request.preparationId);
     await React.act(async()=>{f.view.actions.taskSheetConfirmClick(native(),p.request.task);await tick();});
     assert.equal(f.state.starts.length,1);
+    await React.act(async()=>{f.host.finish();await tick();await tick();});
+  }finally{if(root)await React.act(async()=>root.unmount());f.dispose();}
+});
+
+test('page request preserves explicit send true through both approval stages when the Task schema defaults to false',async()=>{
+  const pkg=JSON.parse(await readFile('projects/webflow/tasks/chatgpt.conversation.create.0.2.2.opendesk-task.json','utf8'));
+  assert.equal(pkg.manifest.paramsSchema.properties.send.default,false);
+  const f=await fixture({paramsSchema:pkg.manifest.paramsSchema});let root;
+  try{
+    root=await f.mount();const p=pageRequestFixture(f);
+    p.request.params={prompt:'请介绍 WebFlow 的三个主要优势。',send:true};
+    await React.act(async()=>{assert.equal(await f.workbench.openPageTaskRequest(p.request.requestId),true);});
+    assert.deepEqual(JSON.parse(f.doc.getElementById('task-params-json').value),p.request.params);
+    // A stale presentation draft cannot replace the frozen Page request.
+    f.view.field('task-params-json').value=JSON.stringify({...p.request.params,send:false});
+    await f.fire(f.doc.getElementById('task-run'),'click',{isTrusted:true});
+    await React.act(async()=>{await tick();await tick();});
+    assert.equal(f.view.data.taskRunSheet.phase,'prepared');
+    assert.deepEqual(p.preparation.params,p.request.params);
+    assert.equal(f.state.starts.length,0);
+    const confirm=f.doc.getElementById('task-run');
+    assert.equal(confirm.textContent,'确认执行一次');
+    await f.fire(confirm,'click',{isTrusted:true});
+    await React.act(async()=>{await tick();await tick();});
+    assert.equal(f.state.starts.length,1);
+    assert.deepEqual(f.state.starts[0].params,p.request.params);
+    assert.deepEqual(f.state.starts[0].target,p.request.target);
     await React.act(async()=>{f.host.finish();await tick();await tick();});
   }finally{if(root)await React.act(async()=>root.unmount());f.dispose();}
 });

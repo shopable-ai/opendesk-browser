@@ -33,10 +33,44 @@ test('one product projects real independent records, partial recovery and blocke
   assert.equal(filterExtensionEntries(partial)[0].queueProduct.state,'partial');
   assert.equal(filterExtensionEntries(partial)[0].installed,false,'Page must not fabricate a Tool record');
   assert.equal(describeSendQueueProduct({toolInstalled:true,toolEnabled:true,page,pageStatusKnown:false}).state,'unknown');
-  assert.equal(describeSendQueueProduct({toolInstalled:true,toolEnabled:true,page:{...page,managedCleanup:{state:'unknown'}}}).state,'restricted');
+  assert.equal(describeSendQueueProduct({toolInstalled:true,toolEnabled:true,page:{...page,managedCleanup:{state:'unknown'}}}).state,'ready');
   assert.equal(describeSendQueueProduct({toolInstalled:true,toolEnabled:true,page:{...page,sourceHash:'0'.repeat(64)}}).state,'version-mismatch');
   const untrusted=composeExtensionEntries({installed:[tool],pages:[page],queueToolHash:'0'.repeat(64)});
   assert.equal(filterExtensionEntries(untrusted).length,2,'same ID cannot hide Page authority');
+});
+
+test('cleanup warning is independent of readiness and retains the original Authority record',()=>{
+  const page={...makePage(),managedCleanup:{state:'unknown',scope:'managed-ui-only',records:150}};
+  const before=structuredClone(page),options={toolInstalled:true,toolEnabled:true,page};
+  const ready=describeSendQueueProduct(options);
+  assert.equal(ready.state,'ready');assert.equal(ready.pageState,'registered');
+  assert.equal(ready.cleanupWarning,true);assert.match(ready.summary,/旧页面清理待核对/);
+  assert.equal(describeSendQueueProduct({...options,page:{...page,managedCleanup:{state:'retired',records:0}}}).cleanupWarning,false);
+  for(const override of [{nativeState:'blocked'},{nativeState:'unregistered'},
+    {authorization:{...page.authorization,status:'suspended'}},
+    {authorization:{...page.authorization,status:'disabled'}},
+    {authorization:{status:'active'}},{error:{code:'E_REGISTER'}}]){
+    const result=describeSendQueueProduct({...options,page:{...page,...override}});
+    assert.equal(result.state,'restricted',JSON.stringify(override));
+    assert.equal(result.cleanupWarning,true);assert.match(result.summary,/旧页面清理待核对/);
+  }
+  assert.equal(describeSendQueueProduct({...options,pageStatusKnown:false}).state,'unknown');
+  assert.equal(describeSendQueueProduct({...options,appStatusKnown:false}).state,'unknown');
+  assert.equal(describeSendQueueProduct({...options,cleanupPending:true}).state,'cleanup-pending','App cleanup keeps its independent contract');
+  assert.deepEqual(page,before);
+});
+
+for(const disabled of [false,true])test('product cleanup unknown does not block confirmed '+(disabled?'restore':'disable'),async t=>{
+  const f=await fixture(t,{disabled});
+  f.pages[0].managedCleanup={state:'unknown',scope:'managed-ui-only'};
+  await f.ui.refresh();
+  assert.match(f.state.detailModel.usageText,/旧页面清理待核对/);
+  f.state.detailModel.actions.find(a=>a.id==='queue-toggle').onClick(trusted);
+  await settle(()=>f.state.statusModel.state==='success');
+  assert.equal(f.enabled,disabled);assert.equal(f.pages[0].enabled,disabled);
+  assert.equal(f.pages[0].managedCleanup.state,'unknown');
+  assert.equal(f.pages[0].authorization.installationId,'queue-install');
+  assert.deepEqual(f.calls.map(c=>c[0]),['setInstalledPageEnabled','toolToggle']);
 });
 
 test('Page identities bind generation and installation, never ID alone',()=>{

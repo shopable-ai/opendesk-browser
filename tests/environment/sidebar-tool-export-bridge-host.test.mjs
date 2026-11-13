@@ -6,8 +6,9 @@ import {buildSync} from 'esbuild';
 import {parseHTML} from 'linkedom';
 import {createHash} from 'node:crypto';
 import {initSidebarToolSandbox,sidebarToolRequestTimeout,ADBLOCK_CONFIRM_OPERATIONS,sandboxToolMessages} from '../../src/sidebar-tools/bridge.js';
+import {createCookieSdkAdapter} from '../../projects/cookie-editor/app/adapters/browser-sdk.js';
 import {createBrowserSdk} from '../../src/framework/sdk/browser.js';
-import {browserOperation,normalizeBrowserOperation,BROWSER_HOST_PROTOCOL,BROWSER_OPERATIONS} from '../../src/framework/sdk/browser-contract.js';
+import {browserOperation,normalizeBrowserOperation,BROWSER_HOST_PROTOCOL,BROWSER_OPERATIONS,BROWSER_MENU_GRANTS_STORE} from '../../src/framework/sdk/browser-contract.js';
 import {createSidebarTools} from '../../src/ui/sidebar-tools.js';
 import {createSidebarToolsView} from '../../src/ui/sidebar-tools-view.js';
 import {SIDEBAR_TOOL_FORMAT_V2,SIDEBAR_TOOL_PROTOCOL,SIDEBAR_TOOL_STORE} from '../../src/ui/sidebar-tools/package.js';
@@ -1283,3 +1284,100 @@ test('host: disposing while exact intent is pending prevents the frontend effect
   assert.equal(f.port.peer.closed,true);assert.equal(f.copied.length,0);
   assert.equal(f.calls.filter(row=>row.kind==='tool').length,0);
 });
+
+
+const cookieObserve='browser.cookies.observe.start';
+const observeArgs={url:'https://example.com/account',durationMs:30000,maxEvents:50};
+test('Cookie adapter sends one synchronous observe start through the existing native click port',async()=>{
+  const b=sandbox();
+  const adapter=createCookieSdkAdapter({getBrowser:()=>b.win.OpenDeskSDK.browser,request:b.request});
+  try{
+    const first=b.click(()=>{
+      const result=adapter.observeStart({url:observeArgs.url});
+      void adapter.observeStart({url:observeArgs.url}); // Same click is already spent.
+      return result;
+    });
+    await tick();
+    assert.equal(b.port.sent.length,1);
+    assert.equal(b.port.sent[0].operation,cookieObserve);
+    assert.deepEqual(b.port.sent[0].payload,observeArgs);
+    assert.equal(b.publicMessages.filter(row=>row.operation===cookieObserve).length,1);
+    for(const message of [...b.port.sent,...b.publicMessages.filter(row=>row.operation===cookieObserve)])acknowledge(b,message);
+    await first;
+    b.synthetic(()=>void adapter.observeStart({url:observeArgs.url}));
+    await b.click(async()=>{await tick();void adapter.observeStart({url:observeArgs.url});});
+    assert.equal(b.port.sent.length,1,'synthetic and delayed requests cannot attest a click');
+    for(const message of b.publicMessages.filter(row=>row.operation===cookieObserve))acknowledge(b,message);
+  }finally{await b.dispose();}
+});
+
+async function observeHostFixture(t,{capabilities=['browser.cookies.read','browser.cookies.observe']}={}){
+  const document={status:'available',tabId:1,windowId:2,frameId:0,documentId:'observe-doc',
+    origin:'https://example.com',url:observeArgs.url};
+  const page={snapshot:document,capture:()=>({...page.snapshot}),async revalidate(captured){
+    if(!['tabId','windowId','documentId','url','origin'].every(key=>page.snapshot[key]===captured[key]))
+      throw Object.assign(Error('changed'),{code:'E_DOCUMENT_CHANGED'});
+  }};
+  const f=await hostFixture(t,{capabilities,currentPageTarget:page});
+  const grant={read:true,observe:true,storeId:'0',grantEpoch:'observe-grant'};
+  const setGrant=value=>f.change(BROWSER_MENU_GRANTS_STORE,{[tool.id]:{
+    version:tool.version,installEpoch:null,cookieSites:{[document.origin]:value}}});
+  setGrant(grant);
+  return {...f,page,grant,setGrant};
+}
+test('generic installed Cookie observer approves the exact native-click request without another review',async t=>{
+  const f=await observeHostFixture(t);
+  const b=sandbox({loaded:f.loaded,port:f.port,send:message=>f.windowRequest(message.operation,message.payload,message.requestId)});
+  f.frame.contentWindow.receive=message=>b.respond(message);
+  t.after(()=>b.dispose());
+  const adapter=createCookieSdkAdapter({getBrowser:()=>b.win.OpenDeskSDK.browser,request:b.request});
+  globalThis.navigator.userActivation.isActive=false; // The private native-dispatch proof is sufficient.
+  await b.click(()=>adapter.observeStart({url:observeArgs.url}));
+  assert.equal(f.response(1).ok,true,JSON.stringify(f.response(1)));
+  assert.equal(f.review(),false);
+  assert.deepEqual(f.calls.map(row=>row.operation),['browser.intent.confirm',cookieObserve]);
+  assert.deepEqual(f.calls[0].targetArgs,observeArgs);
+  assert.equal(f.calls[1].approvalRef,'exact-intent');
+  for(const key of ['packageHash','toolInstance','hostInstanceId','installEpoch','toolVersion'])
+    assert.equal(f.calls[0][key],f.calls[1][key]);
+  f.privateRequest(cookieObserve,observeArgs,1);await tick();await tick();
+  assert.equal(f.calls.length,2,'replayed request cannot renew observation');
+});
+test('Cookie observation ignores public gesture claims and retains the trusted review',async t=>{
+  const f=await observeHostFixture(t);
+  f.windowRequest(cookieObserve,observeArgs,1,{verifiedGesture:true,trustedClick:true});
+  await settle(f.review);assert.equal(f.calls.length,0);
+  f.view.dispatch(f.view.fields['sidebar-tool-action-cancel'].key,'click',{});
+  await settle(()=>f.response(1));
+  assert.equal(f.response(1).ok,false);
+});
+for(const reason of ['read','observe','capability','origin','document','grant-epoch','expired','host-denied','read-revoked','unavailable','duration','event-limit'])
+  test(`Cookie native-click observation fails closed on ${reason}`,async t=>{
+    const f=await observeHostFixture(t,{...(reason==='capability'?{capabilities:['browser.cookies.observe']}:{})});
+    if(reason==='read'||reason==='observe')f.setGrant({...f.grant,[reason]:false});
+    if(reason==='unavailable')f.page.snapshot={...f.page.snapshot,status:'unavailable'};
+    const send=f.api.runtime.sendMessage;
+    let approvals=0;
+    f.api.runtime.sendMessage=async message=>{
+      if(message.operation==='browser.intent.confirm'){
+        approvals++;
+        if(reason==='document')f.page.snapshot={...f.page.snapshot,documentId:'new-doc'};
+        if(reason==='read-revoked')f.setGrant({...f.grant,read:false});
+        if(reason==='grant-epoch')f.setGrant({...f.grant,grantEpoch:'replacement'});
+        if(reason==='host-denied')return {ok:false,error:{code:'E_CHROME_PERMISSION_REQUIRED'}};
+        if(reason==='expired'){
+          const original=Date.now;Date.now=()=>original()+9000;
+          t.after(()=>{Date.now=original;});
+        }
+      }
+      return send(message);
+    };
+    const args={...observeArgs,...(reason==='origin'?{url:'https://foreign.test/'}:{}),
+      ...(reason==='duration'?{durationMs:30001}:{}),...(reason==='event-limit'?{maxEvents:51}:{})};
+    f.privateRequest(cookieObserve,args,1);
+    await settle(()=>f.response(1));
+    assert.equal(f.response(1).ok,false);
+    assert.equal(f.review(),false,'a stale click must not fall back to another approval');
+    assert.equal(f.calls.some(row=>row.operation===cookieObserve),false);
+    assert.equal(approvals,['document','grant-epoch','expired','host-denied','read-revoked'].includes(reason)?1:0);
+  });

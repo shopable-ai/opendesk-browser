@@ -1,0 +1,146 @@
+{
+  "date": "2026-11-13",
+  "stage": "core development fix; installed-page acceptance not performed",
+  "programId": "opendesk.ai-scroll-navigation",
+  "version": "0.4.18",
+  "revision": 21,
+  "rootCause": "Pager controls were mounted only when at least two user-question rounds and every message role could be verified. Single rounds and transient missing role evidence removed both controls.",
+  "behavior": "With turnPaging enabled, keep previous/next mounted and disable unavailable directions. Keep explicit settings and role/target/trusted-input revalidation.",
+  "node": {
+    "command": "node --test projects/ai-scroll-navigation/tests/*.test.mjs",
+    "passed": 345,
+    "failed": 0,
+    "skipped": 0
+  },
+  "packageTests": {
+    "command": "node --test tests/environment/page-install-package.test.mjs",
+    "passed": 13,
+    "failed": 0
+  },
+  "regressionBeforeFix": "All 3 new focused tests failed on the old implementation; repaired implementation and mutation recovery regressions pass.",
+  "browser": {
+    "scope": "synthetic site DOM with actual project modules; no installation/Authority claim",
+    "sites": [
+      {
+        "site": "chatgpt",
+        "status": "PASS",
+        "scenarios": [
+          "first/middle/last round",
+          "previous/next trusted mouse click",
+          "top/bottom scroll destinations",
+          "uncertain role disables without removing controls",
+          "single round",
+          "role and transcript recovery",
+          "untrusted click rejected",
+          "real wheel scroll",
+          "no scroll range disables all four"
+        ]
+      },
+      {
+        "site": "deepseek",
+        "status": "PASS",
+        "scenarios": [
+          "first/middle/last round",
+          "previous/next trusted mouse click",
+          "top/bottom scroll destinations",
+          "uncertain role disables without removing controls",
+          "single round",
+          "role and transcript recovery",
+          "untrusted click rejected",
+          "real wheel scroll",
+          "no scroll range disables all four"
+        ]
+      },
+      {
+        "site": "gemini",
+        "status": "PASS",
+        "scenarios": [
+          "first/middle/last round",
+          "previous/next trusted mouse click",
+          "top/bottom scroll destinations",
+          "uncertain role disables without removing controls",
+          "single round",
+          "role and transcript recovery",
+          "untrusted click rejected",
+          "real wheel scroll",
+          "no scroll range disables all four"
+        ]
+      }
+    ],
+    "rawReport": "artifacts/ai-scroll-navigation-visibility-20261113/browser.json",
+    "screenshot": "artifacts/ai-scroll-navigation-visibility-20261113/four-buttons.png"
+  },
+  "package": {
+    "sourceHash": "c3fe348a657f37f00629186a7547d138540d6cd247895c450990d5a9ca5a7561",
+    "packageHash": "a730026afc5daa0983dcd75214ab0d0d27986ac793704dffa686c052a8e6350e",
+    "fileSha256": "be6ddbf924890efd089a9bcd3d189ca20b6ca4c228de7b0bfa3c037bbdd8afda",
+    "builder": "scripts/build-program-project.mjs + scripts/build-page-install-package.mjs",
+    "sourceFiles": [
+      {
+        "path": "src/conversation.js",
+        "bytes": 41101,
+        "sha256": "5e42d3913382f58b9aec27c77564ec72d34fa87475ee51a574d65354566df07a"
+      },
+      {
+        "path": "src/floating-navigation.js",
+        "bytes": 19364,
+        "sha256": "b1946b1fa1f5cb31fc965c4ec99c707b8e2b382f375a80dd0e51922f8a7ab0ab"
+      },
+      {
+        "path": "src/main.js",
+        "bytes": 3333,
+        "sha256": "ca65eb7508c945ca9d0e2c679f2bf277c0125e023c60fda61ee15aa3d1fbf9ed"
+      },
+      {
+        "path": "src/site-adapters.js",
+        "bytes": 3302,
+        "sha256": "91d285494dc45f28dccf1f88fef675a2de37f66aabb17c14ed6d93345a62ecb0"
+      },
+      {
+        "path": "src/site-configuration.js",
+        "bytes": 46547,
+        "sha256": "3fc032b70d14c50f7ebf13f80bd0c8ee3a4112fb7ca1b194561436ac18bcdae7"
+      }
+    ],
+    "scopeUnchanged": true,
+    "candidateAndProjectBytesIdentical": true
+  },
+  "files": [
+    {
+      "path": "src/floating-navigation.js",
+      "sha256": "b1946b1fa1f5cb31fc965c4ec99c707b8e2b382f375a80dd0e51922f8a7ab0ab"
+    },
+    {
+      "path": "tests/floating-navigation.test.mjs",
+      "sha256": "a79fa938158181046b099dedfa12c10d0f26d24cfce7d98a70633bf779595b1a"
+    },
+    {
+      "path": "tests/runtime-reliability.test.mjs",
+      "sha256": "7010933a0956ecee8c502dbc66dd890f5db83d078b1de2aed59d2ee100a35453"
+    },
+    {
+      "path": "tests/site-configuration.test.mjs",
+      "sha256": "35e8c84bbc7d1b3f16a72a143314cfdb0220ed74f5f626d028b9eb58f8132ac6"
+    },
+    {
+      "path": "tests/fixtures/floating-navigation.html",
+      "sha256": "7a6082b7fc25338ccefa9e7deebcb87a923e9f1800e89f1abd5d0e36aadfaba1"
+    },
+    {
+      "path": "tests/visibility-browser-checks.mjs",
+      "sha256": "eb45bc470f1e5dd941f638d7cade12139ace1a2157b34ec610cc06632408ab39"
+    }
+  ],
+  "notTested": [
+    "new package installed in current browser",
+    "real ChatGPT/DeepSeek/Gemini installed-page flows",
+    "production extension acceptance"
+  ],
+  "publication": "blocked",
+  "git": {
+    "branch": "main",
+    "committed": false,
+    "pushed": false
+  },
+  "parallelWork": "Preserved earlier 0.4.17/r20 uncommitted package in local artifacts; retained its README history. No shared watcher or dist/development changes."
+}

@@ -1,15 +1,18 @@
 // One standalone conversation dock per installed Page Program.
 // Conversation top and floating top share one physical button.
 import {findSiteConversation} from './site-adapters.js';
-import {jumpConversationEdge,findConversationPages,currentConversationPageIndex,jumpConversationPage} from './conversation.js';
+import {jumpConversationEdge,findConversationPages,currentConversationPageIndex,conversationPageTargetIndex,jumpConversationPage} from './conversation.js';
 import {scrollConfiguredEdge} from './site-configuration.js';
 
 const OWN='data-opendesk-ai-scroll-navigation';
 const sessions=new WeakMap();
 const LEGACY='[data-opendesk-prompts-floating]';
-const GAP=6;
+const GAP=4;
+const COMPACT_GAP=6;
 const SIZE=42;
+const TURN_SIZE=28;
 const INSET=20;
+const unavailable=button=>button.getAttribute('aria-disabled')==='true';
 // Only a genuinely rendered global control owns this surface. Hidden old
 // hosts may remain in the DOM during upgrades and must not reserve buttons.
 function renderedControl(node,win) {
@@ -97,6 +100,7 @@ export function installFloatingNavigation({doc,win,owner,resolveConversation=nul
   let disposed=false,pending=false,observedRoot=null,observer=null,host=null,buttons=null;
   let resizeObserver=null,resizeTargets=[];
   let binding=null,lastHref=win.location.href;
+  const coarsePointer=win.matchMedia?.('(any-pointer: coarse)');
   const context=()=>typeof resolveConversation==='function'?resolveConversation():findSiteConversation(doc,win);
   const isCurrent=()=>!disposed&&binding&&host?.isConnected&&
     binding.root===doc.documentElement&&binding.href===win.location.href;
@@ -113,6 +117,12 @@ export function installFloatingNavigation({doc,win,owner,resolveConversation=nul
     event.preventDefault();
     event.stopPropagation();
     if (event.isTrusted!==true||!isCurrent()) return;
+    if(event.target?.closest?.('.hint'))return;
+    if(unavailable(buttons[direction])) {
+      buttons.stack.classList.remove('hints-dismissed');
+      buttons[direction].classList.add('show-hint');
+      return;
+    }
     // A legacy Page may mount after our last refresh. Do not race it.
     const active=[...doc.querySelectorAll(`[${OWN}="dock"]`)]
       .find(node=>liveDock(node,win));
@@ -145,40 +155,64 @@ export function installFloatingNavigation({doc,win,owner,resolveConversation=nul
     const style=doc.createElement('style');
     style.textContent=`:host{all:initial;display:block;pointer-events:none;color-scheme:light}
       :host(.dark){color-scheme:dark}
-      .stack{display:flex;flex-direction:column;align-items:center;gap:6px}
+      .stack{display:flex;flex-direction:column;align-items:center;gap:4px}
       /* Keep the production SVG artwork; reduce only the middle pair on desktop. */
       .stack.paging:not(.compact){gap:3px}
       .stack.paging:not(.compact) button[data-scroll-nav-key="turnPrevious"],
       .stack.paging:not(.compact) button[data-scroll-nav-key="turnNext"]{height:28px;border-radius:9px;box-shadow:0 2px 8px #0001}
       .stack.paging:not(.compact) button[data-scroll-nav-key="turnPrevious"] svg,
       .stack.paging:not(.compact) button[data-scroll-nav-key="turnNext"] svg{width:17px;height:17px}
-      .stack.compact{flex-direction:row}
+      .stack.compact{flex-direction:row;gap:6px}
       button{pointer-events:auto;width:42px;height:42px;border:1px solid #b8c2d44d;
         border-radius:14px;background:#ffffffed;color:#2b3b51;box-shadow:0 4px 18px #0002;
-        cursor:pointer;display:grid;place-items:center;padding:0}
+        cursor:pointer;display:grid;place-items:center;padding:0;position:relative}
+      button.turn{height:var(--turn-height,28px);border-radius:10px}
+      button.turn svg{width:18px;height:18px}
+      .stack.compact button.turn{border-radius:14px}
       :host(.dark) button{background:#303239ef;color:#f3f4f8;border-color:#ffffff30}
-      button:hover:not(:disabled){background:#e8eef8}
-      :host(.dark) button:hover:not(:disabled){background:#434a55}
-      button:disabled{opacity:.48;cursor:default}
+      button:hover:not([aria-disabled="true"]){background:#e8eef8}
+      :host(.dark) button:hover:not([aria-disabled="true"]){background:#434a55}
+      button[aria-disabled="true"]{color:#8a96a6;background:#ffffffc7;border-color:#b8c2d433;box-shadow:none;cursor:default}
+      :host(.dark) button[aria-disabled="true"]{color:#a2a7b1;background:#303239cc;border-color:#ffffff1c}
       button:focus-visible{outline:3px solid #4c82ff;outline-offset:2px}
+      .hint{position:absolute;left:calc(100% + 8px);top:50%;transform:translateY(-50%);
+        padding:6px 9px;border-radius:7px;background:#263449;color:#fff;
+        font:12px/1.4 system-ui,sans-serif;white-space:nowrap;pointer-events:auto;
+        visibility:hidden;opacity:0;box-shadow:0 2px 8px #0002}
+      .hint::before{content:"";position:absolute;right:100%;top:0;width:8px;height:100%}
+      button:hover .hint,button:focus-visible .hint,button.show-hint .hint{visibility:visible;opacity:1}
+      .stack.hints-dismissed .hint{visibility:hidden;opacity:0}
+      .stack.compact .hint{left:0;top:auto;bottom:calc(100% + 8px);transform:none}
+      .stack.compact .hint::before{right:auto;left:0;top:100%;width:100%;height:8px}
       svg{width:20px;height:20px;fill:none;stroke:currentColor;stroke-width:1.7;
         stroke-linecap:round;stroke-linejoin:round}
-      .counter{width:42px;min-height:28px;display:grid;place-items:center;pointer-events:none;
+      .counter{width:var(--counter-width,42px);min-height:28px;display:grid;place-items:center;pointer-events:none;
         box-sizing:border-box;border:1px solid #b8c2d44d;border-radius:9px;
         font:650 11px/1.2 system-ui,sans-serif;font-variant-numeric:tabular-nums;
         color:#2b3b51;background:#ffffffed;white-space:nowrap}
       :host(.dark) .counter{background:#303239ef;color:#f3f4f8;border-color:#ffffff30}
-      .stack.compact .counter{width:48px;min-height:42px}`;
+      .stack.compact .counter{width:var(--counter-width,48px);min-height:42px}`;
     const stack=doc.createElement('div');
     stack.className='stack';
     const make=(direction,label,pathData)=>{
       const button=doc.createElement('button');
-      button.type='button';button.title=label;button.setAttribute('aria-label',label);
+      button.type='button';button.setAttribute('aria-label',label);
       const svg=doc.createElementNS('http://www.w3.org/2000/svg','svg');
       svg.setAttribute('viewBox','0 0 24 24');
       svg.setAttribute('aria-hidden','true');
       const path=doc.createElementNS('http://www.w3.org/2000/svg','path');
       path.setAttribute('d',pathData);svg.append(path);button.append(svg);
+      const hint=doc.createElement('span');hint.className='hint';hint.setAttribute('aria-hidden','true');
+      button.append(hint);
+      const reveal=()=>{
+        buttons.stack.classList.remove('hints-dismissed');
+        for(const key of ['top','previous','next','bottom'])buttons[key].classList.remove('show-hint');
+      };
+      owner.on(button,'pointerenter',reveal);
+      owner.on(button,'focus',reveal);
+      owner.on(button,'pointerdown',event=>{
+        reveal();if(event.pointerType==='touch')button.classList.add('show-hint');
+      });
       owner.on(button,'click',event=>click(direction,event));
       return button;
     };
@@ -196,6 +230,7 @@ export function installFloatingNavigation({doc,win,owner,resolveConversation=nul
     };
     buttons.previous.dataset.scrollNavKey='turnPrevious';
     buttons.next.dataset.scrollNavKey='turnNext';
+    buttons.previous.className=buttons.next.className='turn';
     shadow.append(style,stack);
   }
   function refresh() {
@@ -229,12 +264,13 @@ export function installFloatingNavigation({doc,win,owner,resolveConversation=nul
     const paging=directions.paging?findConversationPages(next,doc,win):null;
     const currentPage=paging?currentConversationPageIndex(paging,doc,win):-1;
     const canPage=currentPage>=0;
-    if(!directions.top&&!directions.bottom&&!canPage){host?.remove();binding=null;return;}
+    if(!directions.top&&!directions.bottom&&!directions.paging){host?.remove();binding=null;return;}
     prepare();
-    // Reuse one dock: whole-conversation edges bracket the optional question
-    // pager. No page nodes are persisted beyond this synchronous refresh.
+    // Keep the enabled pager mounted through single-round transcripts and
+    // transient role gaps. Availability changes disabled state, never layout.
+    // No page nodes are persisted beyond this synchronous refresh.
     const options=[...(directions.top?[buttons.top]:[]),
-      ...(canPage?[buttons.previous,...(directions.showTurnCount?[buttons.counter]:[]),buttons.next]:[]),
+      ...(directions.paging?[buttons.previous,...(canPage&&directions.showTurnCount?[buttons.counter]:[]),buttons.next]:[]),
       ...(directions.bottom?[buttons.bottom]:[])];
     if (options.length!==buttons.stack.children.length||
         options.some((button,index)=>buttons.stack.children[index]!==button))
@@ -245,11 +281,26 @@ export function installFloatingNavigation({doc,win,owner,resolveConversation=nul
     // same physical top control; no second arrow is created.
     buttons.top.dataset.scrollNavKey=directions.topKey;
     buttons.bottom.dataset.scrollNavKey='conversationBottom';
-    buttons.top.disabled=scroller.scrollTop<=2;
-    buttons.bottom.disabled=scroller.scrollTop>=max-2;
+    // aria-disabled keeps all four controls in the keyboard path so their
+    // boundary reasons remain discoverable. Clicks still cannot scroll them.
+    buttons.top.setAttribute('aria-disabled',String(scroller.scrollTop<=2));
+    buttons.bottom.setAttribute('aria-disabled',String(scroller.scrollTop>=max-2));
+    const previousPage=canPage?conversationPageTargetIndex(paging,'previous',doc,win):-1;
+    const nextPage=canPage?conversationPageTargetIndex(paging,'next',doc,win):-1;
+    buttons.previous.setAttribute('aria-disabled',String(previousPage<0));
+    buttons.next.setAttribute('aria-disabled',String(nextPage<0));
+    const describe=(button,text)=>{
+      button.setAttribute('aria-description',text);
+      button.querySelector('.hint').textContent=text;
+    };
+    describe(buttons.top,unavailable(buttons.top)?'已到对话顶部':'置顶');
+    describe(buttons.bottom,unavailable(buttons.bottom)?'已到对话底部':'底部');
+    describe(buttons.previous,!canPage?'暂未识别提问':max<=2?'对话已完整显示':
+      previousPage<0?'已到首个已加载提问':previousPage===currentPage?'回到本轮提问':'上一轮提问');
+    describe(buttons.next,!canPage?'暂未识别提问':max<=2?'对话已完整显示':
+      nextPage<0?(unavailable(buttons.bottom)?'已到对话底部':'已到末个已加载提问'):'下一轮提问');
+    buttons.previous.setAttribute('aria-label',previousPage>=0&&previousPage===currentPage?'回到本轮提问':'上一轮提问');
     if(canPage){
-      buttons.previous.disabled=currentPage===0;
-      buttons.next.disabled=currentPage===paging.pages.length-1;
       if(directions.showTurnCount){
         buttons.counter.textContent=(currentPage+1)+'/'+paging.pages.length;
         buttons.counter.setAttribute('aria-label',
@@ -260,13 +311,22 @@ export function installFloatingNavigation({doc,win,owner,resolveConversation=nul
     const rect=next.main.getBoundingClientRect();
     const compact=win.innerWidth<600;
     buttons.stack.classList.toggle('compact',compact);
-    buttons.stack.classList.toggle('paging',canPage);
+    const turnSize=compact||coarsePointer?.matches?SIZE:TURN_SIZE;
+    buttons.stack.style.setProperty('--turn-height',turnSize+'px');
+    const compactPaging=directions.paging&&!compact&&!coarsePointer?.matches;
+    buttons.stack.classList.toggle('paging',compactPaging);
+    const gap=compact?COMPACT_GAP:compactPaging?3:GAP;
+    const hasCount=options.includes(buttons.counter);
+    // Keep short counts at the approved size, while fitting the full loaded
+    // count in long transcripts. Reserve the same width for collision checks.
+    const digits=hasCount?String(paging.pages.length).length:0;
+    const counterWidth=Math.max(compact?48:SIZE,digits>2?(digits*2+1)*7+8:0);
+    buttons.counter.style.setProperty('--counter-width',counterWidth+'px');
     const count=options.length;
-    const gap=canPage&&!compact?3:GAP;
-    const extent=options.reduce((n,item)=>n+(item===buttons.counter?(compact?48:28)
-      :(!compact&&canPage&&(item===buttons.previous||item===buttons.next)?28:SIZE)),0)
+    const extent=options.reduce((n,item)=>n+(item===buttons.counter?(compact?counterWidth:28):
+      item===buttons.previous||item===buttons.next?turnSize:SIZE),0)
       +Math.max(0,count-1)*gap;
-    const width=compact?extent:SIZE;
+    const width=compact?extent:hasCount?counterWidth:SIZE;
     const height=compact?SIZE:extent;
     // The transcript content can extend far above/below the screen. Anchor to
     // its visible scroll port, never to moving message boxes or document edges.
@@ -361,6 +421,17 @@ export function installFloatingNavigation({doc,win,owner,resolveConversation=nul
     if (sessions.get(doc)?.dispose===dispose) sessions.delete(doc);
   }
   owner.onDispose(dispose);
+  owner.on(doc,'keydown',event=>{
+    if(event.key==='Escape'&&buttons){
+      buttons.stack.classList.add('hints-dismissed');
+      for(const key of ['top','previous','next','bottom'])buttons[key].classList.remove('show-hint');
+    }
+  });
+  owner.on(doc,'pointerdown',event=>{
+    if(buttons&&!event.composedPath?.().includes(host))
+      for(const key of ['top','previous','next','bottom'])buttons[key].classList.remove('show-hint');
+  },true);
+  if(coarsePointer)owner.on(coarsePointer,'change',schedule);
   for (const type of ['popstate','hashchange','pageshow','resize','scroll'])
     owner.on(win,type,schedule,type==='scroll');
   // Element scrolls usually do not bubble to window; capture them on document

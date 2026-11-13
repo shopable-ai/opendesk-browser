@@ -41,7 +41,19 @@ test('Host mints a single exact approval and preserves review for other callers'
   assert.match(code,/cookieWriteGate\.acquire/);
   assert.match(code,/if\(!importBatchOwner&&!writeIntentOwner&&!clearIntentOwner\)/);
   assert.match(code,/operation:'browser\.intent\.confirm'/);
-  assert.match(code,/matchesOfficialRelease\(release,tool\)/);
+  const admission=code.slice(code.indexOf('async function admittedInstalledCookieTool('),
+    code.indexOf('const cookieImportOwner='));
+  assert.match(admission,/admitsInstalledSidebarTool\(\{tool,installed:state\[SIDEBAR_TOOL_STORE\]/);
+  assert.match(admission,/enableRecords:state\[SIDEBAR_TOOL_ENABLE_STORE\],epochs:state\[TOOL_REVOCATION_EPOCHS_STORE\]/);
+  assert.match(admission,/expectedEpoch,id:'cookie-editor',capabilities:\['browser\.cookies\.write'\],requireEnabled/);
+  assert.doesNotMatch(admission,/matchesOfficialRelease|loadOfficialTool|loadOfficialCatalog/);
+  const begin=code.slice(code.indexOf("if(operation==='cookieEditor.write.begin')"),
+    code.indexOf("if(operation==='cookieEditor.write.finish')"));
+  assert.match(begin,/if\(!verifiedGesture\)/);
+  assert.match(begin,/cookieSiteRecord\(tool,origin\)\?\.write!==true/);
+  assert.match(begin,/if\(!await admittedInstalledCookieTool\(tool,revocationEpoch\)\)/);
+  assert.match(begin,/assertSession\(source,token\)/);
+  assert.match(begin,/owner:cookieImportOwner\(tool,token,revocationEpoch\)/);
 });
 
 test('rename permits one old-name removal only after the new name is verified',()=>{

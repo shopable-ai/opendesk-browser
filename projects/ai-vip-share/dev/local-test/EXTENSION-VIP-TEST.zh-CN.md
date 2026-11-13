@@ -1,5 +1,24 @@
 # AI VIP Share：完善扩展到模拟 VIP 网站的真实操作链
 
+<a id="authorization-20261113"></a>
+
+## 2026-11-13 授权体验：真实设置授权与撤销通过，首次弹窗待应用
+
+本轮目标是复用 Cookie Editor 的可信审阅入口，明确当前网站作用域，授权后复用并可撤销；代理保留首次线路审阅、记住授权及停止自有代理无需重复确认。修改归通用 Browser ToolHost，未修改工具 JSON、Cookie Authority 或代理执行链。
+
+| 操作或检查 | 结果与边界 |
+| --- | --- |
+| 实际设置页 | ego TaskSpace135 内的原生 Side Panel 打开已安装 AI VIP Share 1.4.34；设置显示“已启用”，无未使用线路的撤销区，不混入全站 Cookie 授权说明 |
+| 本机空白站点授权 | 活动页 `http://127.0.0.1:56583/` 不设置 Cookie。真实点击“授权访问”后显示“已授权管理本站 Cookie，后续操作复用此次网站授权。”；返回设置显示该精确 Origin“已授权 / 撤销授权” |
+| 撤销与回执 | 真实点击“撤销授权”后，同一 Origin 显示“未授权 / 授权访问”及“已撤销本站 Cookie 授权”。测试授权已撤销，无 Cookie 读取、写入、登录或代理启用 |
+| 首次弹窗 | 同源真实 React 组件预览的 Escape、顶部授权入口、网站说明与设置返回通过；已安装侧栏未出现新版弹窗，故真实首次弹窗仍为 NOT_TESTED |
+| 受影响权限回归 | 定向 Host/React 测试验证普通 Cookie 应用首次审阅、精确站点、拒绝合成点击、不授予全站、Chrome 拒绝、撤权与停用保留数据；原代理审阅/自有停止及 Cookie 批次缺授权/取消保护通过。不是全量矩阵或 production 验收 |
+| 编译与未生效原因 | 独立 tool-shell 单入口编译于 UTC11:04:54 通过原来源、CSP 与体积门禁。日常 `dist/development` 的 Host map 已同源，但 React ToolHost map 仍含旧的 Cookie Editor 专属条件；磁盘旧 bundle 时间18:12:52。独立产物没有复制进日常目录 |
+
+本次使用持续开发路径 `/Users/shopme/Documents/workspace/opendesk-browser/dist/development`，实际扩展 ID `ccfcjegpkdlgbclopjmadlcjedelidmf`。当前运行修订与磁盘一致并不证明每个组件均已更新。原 `npm run dev` PID48068 保留；普通源码增量复用一代构建 hooks，配置恢复会停启 dev server 并全入口重建，须先协调共享服务。本轮未绕过来源 pin、直接覆盖共享产物或重启其他任务的服务。
+
+组件截图与独立编译原件在忽略目录 `artifacts/ai-vip-share-authorization/`。共享 Profile 不构成 Cookie/权限隔离；仅对本轮合成站点进行了授权测试，未操作个人网站 Cookie 或其他 TaskSpace。新 Chrome 权限弹窗未出现（原 Chrome 权限已存在）；新增 Chrome 权限提示、真实线路流量与 production 均未验证。
+
 <a id="market-vip-integration-20261110"></a>
 
 ## 2026-11-10 18:48 本地集成结果：1.4.34 开发实机核心链 DEMO_PASS

@@ -1,0 +1,41 @@
+<!doctype html>
+<meta charset="utf-8">
+<title>Installed mouse gestures · native menu timing</title>
+<style>
+  body { margin:24px; font:16px system-ui; }
+  #pad { width:640px; height:240px; background:#edf2fa; margin:20px 0; padding:12px; }
+  pre { max-height:280px; overflow:auto; font-size:12px; white-space:pre-wrap; }
+  #bottom { margin-top:1600px; }
+</style>
+<h1>Installed gesture and original menu check</h1>
+<p>Top-level page: no gesture source import and no menu replacement or event cancellation.
+  Use the installed tool with its default right-button setting.</p>
+<button id="ordinary">Ordinary click</button>
+<input aria-label="Editable text" value="Original editing menu">
+<a href="?navigation=link">Ordinary link</a>
+<div id="pad">Right-click or hold the right button and drag here.</div>
+<button id="clear">Clear event log</button>
+<output id="clicks" aria-live="polite">0 ordinary clicks</output>
+<pre id="events"></pre>
+<p id="bottom">Document bottom</p>
+<script>
+  // Passive observation only. These listeners never cancel or replay input.
+  const state=window.menuTiming={events:[],clicks:0,startedAt:new Date().toISOString()};
+  const render=()=>{document.querySelector('#events').textContent=JSON.stringify(state.events,null,2);};
+  for(const type of ['pointerdown','mousedown','contextmenu','pointermove','mousemove','pointerup','mouseup','click','auxclick','keydown','blur']) {
+    window.addEventListener(type,event=>{
+      if((type==='pointermove'||type==='mousemove')&&!event.buttons)return;
+      const row={type,time:+performance.now().toFixed(2),trusted:event.isTrusted,
+        button:event.button,buttons:event.buttons,x:event.clientX,y:event.clientY,
+        key:event.key,target:event.target?.id||event.target?.tagName,
+        prevented:event.defaultPrevented};
+      state.events.push(row);
+      if(state.events.length>160)state.events.shift();
+      setTimeout(()=>{row.prevented=event.defaultPrevented;render();},0);
+    },{capture:true,passive:true});
+  }
+  document.querySelector('#ordinary').onclick=()=>{
+    document.querySelector('#clicks').textContent=`${++state.clicks} ordinary clicks`;
+  };
+  document.querySelector('#clear').onclick=()=>{state.events=[];render();};
+</script>

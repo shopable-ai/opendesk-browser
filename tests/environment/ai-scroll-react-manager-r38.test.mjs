@@ -77,7 +77,7 @@ test('AI Scroll ready and off homes keep status diagnostics in management',async
   for(const installed of [{},{enabled:false,nativeState:'disabled',authorization:{status:'disabled',generation:4,
     installationId:'installation-r8'}}]){
     await t.test(installed.enabled===false?'off':'ready',async t=>{
-      const f=await fixture(t,{installed});await tick();
+      const f=await fixture(t,{installed:{...installed,managedCleanup:{state:'unknown'}}});await tick();
       const home=f.doc.querySelector('.ec-scroll-home'),control=home.querySelector('.ec-page-control');
       assert.ok(control);
       assert.equal(control.querySelector('.ec-page-state'),null);
@@ -85,13 +85,17 @@ test('AI Scroll ready and off homes keep status diagnostics in management',async
       assert.equal(buttonWithText(f.doc,'重新检查'),undefined);
       assert.equal(buttonWithText(f.doc,'查看详情'),undefined);
       assert.equal(f.state.detailModel.pageControl.state,installed.enabled===false?'off':'ready');
+      const cleanup=f.doc.querySelector('.ec-page-cleanup');
+      assert.match(cleanup.textContent,/旧页面切换待核对/);
+      assert.match(cleanup.textContent,/此处仅记录旧页面状态/);
       assertReadOnly(f.requests);
     });
   }
 });
 
 test('AI Scroll uncertain home opens technical details and rechecks without writes or lost focus',async t=>{
-  const f=await fixture(t,{installed:{managedCleanup:{state:'unknown'}}});await tick();
+  const f=await fixture(t,{installed:{managedCleanup:{state:'unknown'},authorization:{
+    status:'unknown',generation:3,installationId:'installation-r8'}}});await tick();
   const control=f.doc.querySelector('.ec-page-control');
   assert.equal(control.querySelector('.ec-page-state').dataset.state,'pending');
   assert.match(control.textContent,/运行状态待确认/);

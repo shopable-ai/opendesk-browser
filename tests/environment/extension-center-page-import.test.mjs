@@ -163,7 +163,7 @@ test('Page install reviews permissions and calls the existing Authority only aft
   assert.equal(f.doc.documentElement.dataset.opendeskTab,'tools');unchangedAuthoring(f);
   const toast=f.view.getSnapshot().toast;
   assert.equal(toast.type,'success');
-  assert.match(toast.message,/已安装网页增强/);
+  assert.match(toast.message,/已安装「.+」/);
   assert.match(toast.caption,/打开或刷新/);
   assert.equal(f.get('sidebar-tool-status').textContent,'');
   assert.equal(f.get('page-install-import-status').hidden,true);
@@ -205,7 +205,7 @@ test('same identity review carries the existing installation CAS and keeps the o
   await settle(()=>f.get('sidebar-tool-import').hidden);
   const toast=f.view.getSnapshot().toast;
   assert.equal(toast.type,'success');
-  assert.match(toast.message,/已更新网页增强/);
+  assert.match(toast.message,/已更新「.+」/);
   assert.match(toast.caption,/打开或刷新/);
   assert.equal(f.get('sidebar-tool-status').textContent,'');
   assert.equal(f.get('page-install-import-receipt').hidden,true);
@@ -267,36 +267,108 @@ test('valid Page receipt without a durable installed-list readback does not clos
   assert.equal(calls,1,'missing readback must not replay the installer');
 });
 
-test('Page r15 to r17 cleanup uncertainty replaces stale review text without changing CAS or replaying',async t=>{
+for(const archived of [false,true])test('Page upgrade confirms registration independently of '+(archived?'archived':'installed')+' cleanup unknown',async t=>{
   const pkg=await installPackage({revision:17,version:'1.7.0'});
   const baseline=receipt(pkg,{revision:15,version:'1.5.0',sourceHash:'b'.repeat(64)});
+  const managedCleanup={scope:'managed-ui-only',state:'unknown',records:150};
   const current=receipt(pkg,{authorization:{...baseline.authorization,generation:5},
-    managedCleanup:{scope:'managed-ui-only',state:'unknown',records:150}});
+    ...(!archived?{managedCleanup}:{})});
   let sent=0;
   const f=await fixture(t,{installed:[baseline],requestPage(operation,payload){
     if(operation==='importPageInstallPackage'){
       sent++;assert.equal(payload.expectedInstalledManifestHash,baseline.manifestHash);
       assert.equal(payload.expectedGeneration,3);return current;
     }
+    if(archived&&operation==='listPagePrograms'&&sent)return {catalog:[],installed:[current],
+      cleanupPending:[{programId:pkg.programId,revision:15,managedCleanup},
+        {programId:'unrelated.page',revision:1,managedCleanup:{...managedCleanup,records:999}}]};
   }});
   f.select(pkg);await settle(()=>!f.get('sidebar-tool-preview').hidden);
-  assert.match(f.get('sidebar-tool-preview-description').textContent,/已安装 r15；确认后/);
-  const originalTechnical=f.get('sidebar-tool-preview-file').textContent;
+  f.event('sidebar-tool-install','click',{trusted:true});
+  await settle(()=>f.get('sidebar-tool-import').hidden);
+  assert.equal(f.get('page-install-import-receipt').hidden,true,'closed review resets its local receipt');
+  const status=f.view.getSnapshot().toast.caption;
+  assert.match(status,/旧页面待核对，详见扩展详情/);
+  assert.doesNotMatch(status,/unknown|历史记录数|150|重新选择安装包|999/);
+  assert.equal(f.view.getSnapshot().toast.type,'success');
+  assert.ok(f.view.getSnapshot().toast.caption.length<80,'success stays short regardless of history volume');
+  f.event('sidebar-tool-install','click',{trusted:true});await tick();
+  assert.equal(sent,1,'successful installation never replays the reviewed request');
+  unchangedAuthoring(f);
+});
+
+test('Page reinstall with archived unknown cleanup keeps a fresh CAS and confirms the new installation',async t=>{
+  const pkg=await installPackage();let sent=0;
+  const cleanupPending=[12,15].map(revision=>({programId:pkg.programId,title:pkg.title,revision,
+    managedCleanup:{scope:'managed-ui-only',state:'unknown',records:revision,
+      pendingRecords:1,pendingDocuments:[{tabId:revision,state:'cached'}]}}));
+  const current=receipt(pkg,{managedCleanup:{state:'retired',records:0}});
+  const f=await fixture(t,{requestPage(operation,payload){
+    if(operation==='listPagePrograms')return {catalog:[],installed:sent?[current]:[],cleanupPending};
+    if(operation==='importPageInstallPackage'){
+      sent++;assert.equal(payload.expectedInstalledManifestHash,null);
+      assert.equal(payload.expectedGeneration,null);return current;
+    }
+  }});
+  f.select(pkg);await settle(()=>!f.get('sidebar-tool-preview').hidden);
+  assert.equal(f.get('sidebar-tool-install').disabled,false);
+  assert.doesNotMatch(f.get('sidebar-tool-preview-description').textContent,/重新选择安装包/);
+  assert.match(f.get('sidebar-tool-preview-description').textContent,/2 份历史安装/);
+  for(const revision of [12,15])assert.ok(f.get('sidebar-tool-preview-description').textContent.includes('标签页 #'+revision));
+  f.event('sidebar-tool-install','click',{trusted:true});
+  await settle(()=>f.get('sidebar-tool-import').hidden);
+  const toast=f.view.getSnapshot().toast;
+  assert.equal(toast.type,'success');assert.match(toast.message,/已安装「.+」/);
+  assert.match(toast.caption,/旧页面待核对，详见扩展详情/);
+  assert.doesNotMatch(toast.caption,/份历史安装|标签页 #|unknown/);
+  assert.equal(sent,1);unchangedAuthoring(f);
+});
+
+for(const override of [
+  {programId:'different.page'},{revision:999},{sourceHash:'f'.repeat(64)},
+  {manifestHash:null},{authorization:{status:'active'}},
+  {authorization:{installationId:'install',status:'suspended'}},
+  {nativeState:'blocked'},{error:{code:'E_REGISTER',message:'registration failed'}}
+])test('cleanup unknown never bypasses install identity or native checks: '+JSON.stringify(override),async t=>{
+  const pkg=await installPackage(),current=receipt(pkg,{managedCleanup:{state:'unknown'},...override});
+  const f=await fixture(t,{requestPage(operation){if(operation==='importPageInstallPackage')return current;}});
+  f.select(pkg);await settle(()=>!f.get('sidebar-tool-preview').hidden);
   f.event('sidebar-tool-install','click',{trusted:true});
   await settle(()=>f.get('page-install-import-status').attributes['data-state']==='pending-review');
-  const description=f.get('sidebar-tool-preview-description').textContent;
-  assert.match(description,/审阅时基线：r15/);
-  assert.match(description,/当前读回版本：r17/);
-  assert.match(description,/Chrome 注册：registered；授权：active/);
-  assert.match(description,/旧受管清理待核对：unknown（记录数：150）/);
-  assertReadbackDetails(f,pkg,current,originalTechnical);
-  assert.doesNotMatch(description,/已安装 r15|确认后|安装完成/);
-  assert.match(f.get('sidebar-tool-update-versions').textContent,/审阅时基线：r15；导入目标：v1\.7\.0 · r17；当前读回版本：r17/);
-  assert.equal(f.get('sidebar-tool-import').hidden,false);
+  assert.equal(f.get('sidebar-tool-install').disabled,true);
+  assert.equal(f.get('page-install-import-receipt').hidden,true);
+  assert.equal(f.view.getSnapshot().toasts.some(row=>row.type==='success'),false);
+  assert.equal(f.requests.filter(row=>row.operation==='importPageInstallPackage').length,1);
+});
+
+test('uninstalled Page cleanup remains visible during import and identifies pending documents without replay',async t=>{
+  const pkg=await installPackage();let sent=0;
+  const cleanup={programId:pkg.programId,revision:20,managedCleanup:{state:'unknown',records:134,
+    pendingRecords:2,pendingDocuments:[{tabId:42,documentId:'old',state:'cached',tabTitle:'旧对话'},
+      {tabId:43,documentId:'unobserved',state:'unobservable'}]}};
+  const f=await fixture(t,{requestPage(operation,payload){
+    if(operation==='listPagePrograms')return {catalog:[],installed:[],cleanupPending:[cleanup,{...cleanup,revision:19,managedCleanup:{...cleanup.managedCleanup,
+      pendingRecords:1,pendingDocuments:[{tabId:44,state:'cached'}]}}]};
+    if(operation==='importPageInstallPackage'){
+      sent++;assert.equal(payload.expectedInstalledManifestHash,null);
+      assert.equal(payload.expectedGeneration,null);
+      throw Object.assign(Error('旧安装已卸载，但原网页清理尚未确认'),{code:'E_PAGE_CLEANUP_PENDING'});
+    }
+  }});
+  f.select(pkg);await settle(()=>!f.get('sidebar-tool-preview').hidden);
+  assert.match(f.get('sidebar-tool-preview-description').textContent,/旧安装 r20 已卸载/);
+  f.event('sidebar-tool-install','click',{trusted:true});
+  await settle(()=>f.get('page-install-import-status').attributes['data-state']==='pending-review');
+  const status=f.get('page-install-import-status').textContent;
+  assert.match(status,/2 份历史安装/);
+  assert.match(status,/标签页 #44/);
+  assert.match(status,/历史记录数：134；待核对 2 条，2 个旧文档/);
+  assert.match(status,/「旧对话」 · 标签页 #42（浏览器缓存）/);
+  assert.match(status,/标签页 #43（暂无法观察）/);
+  assert.doesNotMatch(status,/未找到此 programId|安装完成/);
   assert.equal(f.get('page-install-import-receipt').hidden,true);
   assert.equal(f.get('sidebar-tool-install').disabled,true);
-  f.event('sidebar-tool-install','click',{trusted:true});await tick();
-  assert.equal(sent,1,'pending cleanup never replays or advances the reviewed CAS');
+  f.event('sidebar-tool-install','click',{trusted:true});await tick();assert.equal(sent,1);
   unchangedAuthoring(f);
 });
 
@@ -423,7 +495,7 @@ test('disabled Page update confirms fixed installation without claiming automati
   await settle(()=>f.get('sidebar-tool-import').hidden);
   const toast=f.view.getSnapshot().toast;
   assert.equal(toast.type,'success');
-  assert.match(toast.message,/已更新网页增强/);
+  assert.match(toast.message,/已更新「.+」/);
   assert.match(toast.caption,/停用状态已保留/);
   assert.doesNotMatch(toast.caption,/打开或刷新/);
   assert.equal(f.get('sidebar-tool-status').textContent,'');

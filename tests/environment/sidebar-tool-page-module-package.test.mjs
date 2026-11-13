@@ -5,7 +5,7 @@ import {tmpdir} from 'node:os';
 import {join} from 'node:path';
 import {digest,digestUtf8} from '../../src/platform/protocol.js';
 import {validateSidebarToolPackage,serializeSidebarToolPackage,verifySidebarToolBackground,
-  sidebarToolPackageHash} from '../../src/ui/sidebar-tools/package.js';
+  sidebarToolPackageHash,verifySidebarToolPackageWithHash,SIDEBAR_TOOL_BACKGROUND_KIND} from '../../src/ui/sidebar-tools/package.js';
 import {validatePageInstallPackage} from '../../src/scripting/user-scripts/page-install-package.js';
 import {createSidebarToolPackage,buildSidebarTool,promoteSidebarToolPackage}
   from '../../scripts/build-sidebar-tool.mjs';
@@ -66,6 +66,26 @@ test('embedded full Page package survives admission and canonical storage reorde
   assert.equal(serializeSidebarToolPackage(pkg),serializeSidebarToolPackage(reverse(pkg)));
   assert.equal(await sidebarToolPackageHash(pkg),await sidebarToolPackageHash(reverse(pkg)));
   assert.deepEqual(JSON.parse(serializeSidebarToolPackage(pkg)).pageModule,pkg.pageModule);
+});
+
+test('combined package verification preserves canonical identity and rechecks each fresh input',async()=>{
+  const pkg=await fixture(),expected=await digestUtf8(serializeSidebarToolPackage(pkg));
+  for(const input of [pkg,reverse(pkg)]){
+    const result=await verifySidebarToolPackageWithHash(input);
+    assert.deepEqual(result.tool,pkg);assert.notEqual(result.tool,input);
+    assert.equal(result.packageHash,expected);
+    assert.equal(await sidebarToolPackageHash(input),expected);
+  }
+  const changed=structuredClone(pkg);changed.js+='\nvoid 1;';
+  assert.notEqual((await verifySidebarToolPackageWithHash(changed)).packageHash,expected);
+  pkg.pageModule.sourceUtf8+='\nvoid 2;';
+  const {packageHash,...payload}=pkg.pageModule;
+  pkg.pageModule.packageHash=await digest(payload);
+  await assert.rejects(verifySidebarToolPackageWithHash(pkg),{code:'E_SOURCE_HASH'});
+  const background=await fixture();
+  background.capabilities.push('browser.storage','browser.scheduler');
+  background.background={kind:SIDEBAR_TOOL_BACKGROUND_KIND,js:'void 0;',sha256:'0'.repeat(64)};
+  await assert.rejects(verifySidebarToolPackageWithHash(background),{code:'E_TOOL_BACKGROUND_SHA'});
 });
 
 test('document_end companion packages retain their fixed timing through shape and hash admission',async()=>{

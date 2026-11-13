@@ -18,7 +18,7 @@ globalThis.crypto ||= webcrypto;
 // Transaction/native component doubles. These are not real Chrome evidence.
 function fixture(){
   let db=new Map(['frameworkKV','commandJournal','runs'].map(name=>[name,new Map()])),queue=Promise.resolve();
-  const writes=[];
+  const writes=[],reads=[];let prefixReads=false;
   const host={tag:'host',namespace:'tool:test',registrationId:'host',hostDocumentId:'tool-document',hostUrl:'chrome-extension://test/sidepanel.html',
     hostInstanceId:'instance',browserSessionIncarnation:'session',active:true,revoked:false};
   db.get('commandJournal').set('host:host',structuredClone(host));
@@ -26,9 +26,31 @@ function fixture(){
     if(mode==='readwrite')writes.push([...stores]);
     const next=queue.then(async()=>{
       const copy=structuredClone(db),table=name=>{assert.ok(stores.includes(name));return copy.get(name);};
-      const tx={get:async(name,key)=>structuredClone(table(name).get(key)),all:async name=>[...table(name).values()].map(v=>structuredClone(v)),
+      const tx={get:async(name,key)=>{if(prefixReads)reads.push({method:'get',store:name,key});return structuredClone(table(name).get(key));},
+        all:async name=>{
+          if(prefixReads){reads.push({method:'all',store:name});assert.notEqual(name,'frameworkKV','Page runtime must not use getAll');}
+          return [...table(name).values()].map(v=>structuredClone(v));
+        },
         put:async(name,value,key)=>{assert.equal(mode,'readwrite');table(name).set(key,structuredClone(value));},
         delete:async(name,key)=>{assert.equal(mode,'readwrite');table(name).delete(key);}};
+      if(prefixReads)Object.assign(tx,{
+        scanEntries:async(name,{prefix,direction='next',offset=0,afterKey,limit=50}={})=>{
+          assert.equal(typeof prefix,'string');assert.ok(prefix.length>0);
+          assert.equal(direction,'next');assert.equal(offset,0);
+          assert.ok(Number.isSafeInteger(limit)&&limit>=1&&limit<=1000001);
+          const high=prefix+'\uffff';
+          assert.ok(afterKey===undefined||typeof afterKey==='string'&&afterKey.startsWith(prefix)&&afterKey<high);
+          const entries=[...table(name)].filter(([key])=>typeof key==='string'&&key>=(afterKey??prefix)&&
+            key<=high&&(afterKey===undefined||key>afterKey)).sort(([a],[b])=>a<b?-1:a>b?1:0).slice(0,limit);
+          reads.push({method:'scanEntries',store:name,prefix,afterKey,limit,keys:entries.map(([key])=>key)});
+          return entries.map(([key,value])=>({key,value:structuredClone(value)}));
+        },
+        countPrefix:async(name,prefix)=>{
+          assert.equal(typeof prefix,'string');assert.ok(prefix.length>0);
+          const count=[...table(name).keys()].filter(key=>typeof key==='string'&&key>=prefix&&key<=prefix+'\uffff').length;
+          reads.push({method:'countPrefix',store:name,prefix,count});return count;
+        }
+      });
       const result=await work(tx);if(mode==='readwrite')db=copy;return result;
     });queue=next.catch(()=>{});return next;
   }};
@@ -61,14 +83,15 @@ function fixture(){
         f.injections.push({stage:input.worldId===PAGE_BOOT_WORLD?'bootstrap':probe?'probe':'source',
           target:structuredClone(input.target),injectImmediately:input.injectImmediately});
         if(f.requireImmediate&&f.tabStatus==='loading')
-          assert.equal(input.injectImmediately,true,'an approved document_end injection must not fall back to document_idle');
-        if(input.worldId===PAGE_BOOT_WORLD)return [{frameId:0,documentId:target.documentId,result:f.marker?f.token:null}];
+          assert.equal(input.injectImmediately,true,'a proven automatic bootstrap must not schedule another idle wait');
+        if(input.worldId===PAGE_BOOT_WORLD)return [{frameId:0,documentId:input.target.documentIds[0],
+          result:f.marker?code.match(/__opendesk_page_boot_([a-f0-9]{32})/)[1]:null}];
         if(!probe){
           f.executeCalls++;
           if(code.includes('const __opendeskManagedUIRegistryV1='))f.sourceCalls++;
           if(code.includes('r.retire(')&&f.retirementError)throw f.retirementError;
           if(f.executionError)throw f.executionError;
-          await f.completionGate;
+          await (typeof f.completionGate==='function'?f.completionGate(input):f.completionGate);
         }
         const id=input.worldId||'default';if(!contexts.has(id))contexts.set(id,vm.createContext({document:{},Event,setTimeout,clearTimeout,
           chrome:{runtime:{sendMessage:async message=>{try{return {ok:true,data:await f.service.handleBoot(message,{...sender,userScriptWorldId:id})};}
@@ -79,7 +102,7 @@ function fixture(){
         const executable=f.stubVendorInitialization?code.replace(f.stubVendorInitialization,
           'globalThis.jQuery={fn:{jquery:"3.7.1"}};globalThis.$=globalThis.jQuery;'):code;
         const result=await vm.runInContext(executable,contexts.get(id));
-        return [{frameId:0,documentId:target.documentId,result:JSON.parse(JSON.stringify(result))}];
+        return [{frameId:0,documentId:input.target.documentIds[0],result:JSON.parse(JSON.stringify(result))}];
       }
     }};
   const manager=createDependencyManager({loadBuiltin:async()=>f.builtinSource,api,storage,assertHost});
@@ -92,7 +115,11 @@ function fixture(){
   const preview={preview:async input=>{f.previewCalls++;const row=f.rows().find(row=>row.tag==='page-candidate-v1'&&row.sourceUtf8===input.sourceUtf8);
       assert.equal(input.sourceUtf8,row.sourceUtf8);return {builtinAbi:f.builtinSource.abi,builtinCatalogSha256:f.builtinSource.catalogSha256,builtinBundleSha256:f.builtinSource.sha256,state:'preview-evaluated',world:'USER_SCRIPT',sourceHash:row.manifest.sourceHash,tabId:1,documentId:target.documentId,worldId:'preview-world',resultText:'1',
         ...(f.packagedJquerySha256?{packagedJquerySha256:f.packagedJquerySha256}:{})};},
-    executeInstalled:executor.executeInstalled,
+    prepareInstalled:async desired=>{
+      const handle=await executor.prepareInstalled(desired);
+      await f.afterCompilation?.(desired,handle);
+      return handle;
+    },executeInstalled:executor.executeInstalled,
     get retireInstalled(){return f.retireHook||undefined;},
     executeFrame:async(_input,authorize)=>{await authorize();return {state:'frame-authorized'};}};
   const make=()=>createInstalledPagePrograms({loadBuiltin:async()=>f.builtinSource,api,storage,assertHost,dependencies,preview,admission,session:f.session,
@@ -101,12 +128,14 @@ function fixture(){
   Object.defineProperty(api,'userScripts',{get:()=>f.access?nativeScripts:undefined});
   f.api=api;f.previewExecutor=executor;f.service=make();f.restart=()=>{
     const restoredAdmission=createPreviewAdmission({storage,assertHost,currentHost:async()=>{},session:f.session});
-    const restoredPreview={...preview,executeInstalled:createPageScriptPreview({api,storage,assertHost,dependencies,admission:restoredAdmission,loadBuiltin:async()=>f.builtinSource}).executeInstalled};
+    const restoredExecutor=createPageScriptPreview({api,storage,assertHost,dependencies,admission:restoredAdmission,loadBuiltin:async()=>f.builtinSource});
+    const restoredPreview={...preview,prepareInstalled:restoredExecutor.prepareInstalled,executeInstalled:restoredExecutor.executeInstalled};
     f.service=createInstalledPagePrograms({loadBuiltin:async()=>f.builtinSource,api,storage,assertHost,dependencies,preview:restoredPreview,admission:restoredAdmission,session:f.session,
       onPageTask:(message,source)=>f.onPageTask?.(message,source)});
   };f.storage=storage;f.dependencies=dependencies;f.target=target;f.sender=sender;
   f.rows=()=>[...db.get('frameworkKV').values()];
   f.snapshot=()=>structuredClone(db);f.writes=writes;
+  f.reads=reads;f.enablePrefixReads=()=>{reads.length=0;prefixReads=true;};
   f.context=worldId=>contexts.get(worldId);
   f.installation=(programId='script')=>f.rows().find(row=>row.tag==='page-installed-v1'&&row.programId===programId);
   f.message=(programId='script')=>{const row=f.installation(programId);f.token=row.token;return {protocol:PAGE_BOOT_PROTOCOL,nativeId:row.nativeId,token:row.token};};
@@ -119,8 +148,9 @@ function fixture(){
     return candidate;
   };
   f.install=async()=>{const candidate=await f.prepare();return f.service.installPageProgram({programId:'script',revision:1,manifestHash:candidate.manifestHash,expectedInstalledManifestHash:null},{});};
-  f.pending=async(state='dispatched')=>{
-    const row=f.installation(),executionKey='pending-execution',receipt={tag:'page-execution-v1',namespace:host.namespace,
+  f.pending=async(state='dispatched',{canonicalKey=false}={})=>{
+    const row=f.installation(),executionKey=canonicalKey?
+      'page-execution:'+canonical([host.namespace,row.manifestHash,target.documentId]):'pending-execution',receipt={tag:'page-execution-v1',namespace:host.namespace,
       executionKey,receiptId:'receipt',programId:row.programId,revision:row.revision,manifestHash:row.manifestHash,sourceHash:row.sourceHash,
       browserSessionIncarnation:f.session,installationToken:row.token,tabId:1,documentId:target.documentId,
       installationId:row.authorization.installationId,grantGeneration:row.authorization.generation,
@@ -219,6 +249,330 @@ test('R134 document_idle bootstrap waits for the registration mutation and runs 
   assert.equal(f.sourceCalls,1);
   await fails(()=>f.service.handleBoot(f.message(),f.sender),'E_REQUEST_CONFLICT');
   assert.equal(f.sourceCalls,1);
+});
+
+test('a stale queued bootstrap is rejected before frozen source reads or native script probes',async()=>{
+  const f=fixture();await f.install();
+  const message=f.message(),before=f.snapshot(),nativeReads=f.nativeReads;
+  f.storedCandidateReads=0;
+  f.framesGone=true;
+  await fails(()=>f.service.handleBoot(message,f.sender),'E_DOCUMENT_STALE');
+  assert.equal(f.storedCandidateReads,0,'a departed document must not delay current documents with source preparation');
+  assert.equal(f.nativeReads,nativeReads,'a departed document needs no native script readback');
+  assert.equal(f.sourceCalls,0);
+  assert.deepEqual(f.snapshot(),before,'stale boot does not admit source or change its installation');
+});
+
+async function installAnother(f,programId){
+  const candidate=await f.prepare('document-idle',{programId});
+  return f.service.installPageProgram({programId,revision:1,manifestHash:candidate.manifestHash,
+    expectedInstalledManifestHash:null},{});
+}
+const reaches=async predicate=>{
+  for(let n=0;n<100&&!predicate();n++)await new Promise(resolve=>setTimeout(resolve,10));
+  assert.ok(predicate(),'the gated stage must be reached without releasing another preparation');
+};
+function documents(f,count=3){
+  const targets=Array.from({length:count},(_,index)=>({...f.target,tabId:index+1,expectedWindowId:index+1,
+    documentId:index===0?f.target.documentId:'document-'+(index+1)}));
+  f.api.tabs.get=async tabId=>{const t=targets.find(t=>t.tabId===tabId);return {
+    id:t.tabId,windowId:t.expectedWindowId,active:true,url:t.expectedUrl,incognito:false,status:'complete'};};
+  f.api.tabs.query=async({windowId})=>[{id:windowId}];
+  f.api.webNavigation.getAllFrames=async({tabId})=>targets.filter(t=>t.tabId===tabId).map(t=>({
+    frameId:0,documentId:t.documentId,url:t.expectedUrl,documentLifecycle:'active'}));
+  f.api.webNavigation.getFrame=async({documentId})=>targets.some(t=>t.documentId===documentId)?{
+    documentId,parentFrameId:-1,frameType:'outermost_frame',documentLifecycle:'active'}:null;
+  return targets.map(target=>({target,sender:{...f.sender,documentId:target.documentId,
+    tab:{id:target.tabId,incognito:false}}}));
+}
+test('two exact documents advance independently and a third waits for one lease',async()=>{
+  const f=fixture();await f.install();const pages=documents(f);
+  let releaseFirst,releaseSecond;
+  const gates=[new Promise(resolve=>releaseFirst=resolve),new Promise(resolve=>releaseSecond=resolve)];
+  f.completionGate=input=>gates[input.target.tabId-1];
+  const runs=pages.map(page=>f.service.handleBoot(f.message(),page.sender));
+  runs.forEach(run=>run.catch(()=>{}));
+  try{
+    await reaches(()=>f.sourceCalls===2);
+    assert.equal(f.snapshot().get('runs').get('@slot').preview.entries.length,2);
+    assert.equal(f.rows().some(row=>row.tag==='page-execution-v1'&&row.tabId===3),false);
+    releaseSecond();await runs[1];
+    await runs[2];
+    assert.equal(f.sourceCalls,3,'third document advances while first main still awaits its receipt');
+    assert.equal(f.installation().lastExecution.tabId,3);
+  }finally{releaseFirst();releaseSecond();await Promise.allSettled(runs);}
+});
+test('a waiting manual Run prevents later automatic documents from overtaking it',async()=>{
+  const f=fixture(),installed=await f.install(),pages=documents(f);
+  let finishFirst,finishManual;
+  const gates=[new Promise(resolve=>finishFirst=resolve),new Promise(resolve=>finishManual=resolve)];
+  f.completionGate=input=>gates[input.target.tabId-1];
+  const first=f.service.handleBoot(f.message(),pages[0].sender);first.catch(()=>{});
+  await reaches(()=>f.sourceCalls===1);
+  let manualPrepared=false;f.afterCompilation=()=>{manualPrepared=true;};
+  const manual=f.service.runInstalledPageProgram({programId:'script',manifestHash:installed.manifestHash,
+    installationId:installed.authorization.installationId,expectedGeneration:installed.authorization.generation,
+    target:pages[1].target},{documentId:'tool-document'});manual.catch(()=>{});
+  let later;
+  try{
+    await reaches(()=>manualPrepared);
+    later=f.service.handleBoot(f.message(),pages[2].sender);later.catch(()=>{});
+    await new Promise(resolve=>setImmediate(resolve));
+    assert.equal(f.sourceCalls,1);
+    finishFirst();await first;
+    await reaches(()=>f.sourceCalls===2);
+    assert.equal(f.rows().some(row=>row.tag==='page-execution-v1'&&row.tabId===3),false);
+    finishManual();await manual;await later;
+    assert.equal(f.sourceCalls,3);
+  }finally{finishFirst();finishManual();await Promise.allSettled([first,manual,later].filter(Boolean));}
+});
+test('rotation preserves multiple same-document waiters and the following manual barrier',async()=>{
+  const f=fixture();await f.install();
+  for(const id of ['waiting','later','manual'])await installAnother(f,id);
+  const pages=documents(f,5),installed=f.installation('manual');
+  let finishFirst,finishSecond,finishManual,manualPrepared=false;
+  const gates=[new Promise(resolve=>finishFirst=resolve),new Promise(resolve=>finishSecond=resolve),
+    undefined,new Promise(resolve=>finishManual=resolve)];
+  f.completionGate=input=>gates[input.target.tabId-1];
+  const first=f.service.handleBoot(f.message(),pages[0].sender),second=f.service.handleBoot(f.message(),pages[1].sender);
+  first.catch(()=>{});second.catch(()=>{});await reaches(()=>f.sourceCalls===2);
+  const repeat=f.service.handleBoot(f.message('waiting'),pages[0].sender),
+    repeat2=f.service.handleBoot(f.message('later'),pages[0].sender),third=f.service.handleBoot(f.message(),pages[2].sender);
+  for(const run of [repeat,repeat2,third])run.catch(()=>{});
+  f.afterCompilation=desired=>{if(desired.candidate.manifest.programId==='manual')manualPrepared=true;};
+  const manual=f.service.runInstalledPageProgram({programId:'manual',manifestHash:installed.manifestHash,
+    installationId:installed.authorization.installationId,expectedGeneration:installed.authorization.generation,
+    target:pages[3].target},{documentId:'tool-document'});manual.catch(()=>{});
+  await reaches(()=>manualPrepared);
+  const after=f.service.handleBoot(f.message(),pages[4].sender);after.catch(()=>{});
+  try{
+    finishFirst();await third;await repeat;await repeat2;
+    assert.equal(f.injections.filter(row=>row.stage==='source')[2].target.tabId,3);
+    assert.deepEqual(f.rows().filter(row=>row.tag==='page-execution-v1'&&row.tabId===1).sort((a,b)=>a.createdAt-b.createdAt)
+      .map(row=>row.programId),['script','waiting','later']);
+    assert.equal(f.sourceCalls,5,'manual and later automatic document remain behind the active second document');
+    finishSecond();await second;await reaches(()=>f.sourceCalls===6);
+    assert.equal(f.rows().some(row=>row.tag==='page-execution-v1'&&row.tabId===5),false);
+    finishManual();await manual;await after;assert.equal(f.sourceCalls,7);
+  }finally{finishFirst();finishSecond();finishManual();await Promise.allSettled([first,second,repeat,repeat2,third,manual,after]);}
+});
+test('invocation compilation overlaps an earlier main without reserving another slot',async()=>{
+  const f=fixture();await f.install();await installAnother(f,'waiting');
+  let finish,compiled=false;f.completionGate=new Promise(resolve=>finish=resolve);
+  const first=f.service.handleBoot(f.message(),{...f.sender});first.catch(()=>{});
+  await reaches(()=>f.sourceCalls===1);
+  f.afterCompilation=desired=>{if(desired.candidate.manifest.programId==='waiting')compiled=true;};
+  const waiting=f.service.handleBoot(f.message('waiting'),{...f.sender});waiting.catch(()=>{});
+  try{
+    await reaches(()=>compiled);
+    assert.equal(f.sourceCalls,1);
+    assert.equal(f.rows().some(row=>row.tag==='page-execution-v1'&&row.programId==='waiting'),false);
+    assert.equal(f.snapshot().get('runs').get('@slot').preview.entries[0].installedProgramId,'script');
+  }finally{finish();await Promise.allSettled([first,waiting]);}
+  await waiting;
+  assert.equal(f.sourceCalls,2);
+  assert.ok(f.installation('waiting').lastExecution.result.startupTimings.invocationPreparationMs>=0);
+});
+
+test('prepared compiler handles are invocation-local, one-shot and reject changed bytes',async()=>{
+  const f=fixture();await f.install();
+  const material=await f.dependencies.readStoredPageCandidate('tool:test','script',1);
+  const before=f.snapshot(),injections=f.injections.length;
+  const handle=await f.previewExecutor.prepareInstalled(material);
+  assert.deepEqual(f.snapshot(),before,'preparation has no Authority or execution writes');
+  assert.equal(f.injections.length,injections,'preparation has no native side effects');
+  const input={...material,preparation:handle,target:f.target,installation:f.installation()};
+  let checks=0;
+  const authorize=async()=>{checks++;throw new FoundationError('E_PERMISSION','revoked');};
+  await fails(()=>f.previewExecutor.executeInstalled(input,authorize,()=>{}),'E_PERMISSION');
+  await fails(()=>f.previewExecutor.executeInstalled(input,authorize,()=>{}),'E_SOURCE_HASH');
+  assert.equal(checks,1,'a consumed handle cannot reach authorization again');
+  for(const change of ['source','dependency']){
+    const preparation=await f.previewExecutor.prepareInstalled(material),changed=structuredClone(material);
+    if(change==='source')changed.candidate.sourceUtf8+='\n// changed';
+    else changed.resolution.entries.push({order:0,url:'https://example.com/other.js',world:'USER_SCRIPT',sha256:'a'.repeat(64)});
+    await fails(()=>f.previewExecutor.executeInstalled({...input,...changed,preparation},authorize,()=>{}),'E_SOURCE_HASH');
+  }
+  assert.equal(checks,1);assert.deepEqual(f.snapshot(),before);
+  assert.equal(f.injections.length,injections);
+});
+
+test('a compiler preparation failure releases its permit without reserving execution',async()=>{
+  const f=fixture();await f.install();await installAnother(f,'later');
+  f.afterCompilation=desired=>{
+    if(desired.candidate.manifest.programId==='script')throw new FoundationError('E_SOURCE_HASH','failed preparation');
+  };
+  await fails(()=>f.service.handleBoot(f.message(),{...f.sender}),'E_SOURCE_HASH');
+  assert.equal(f.rows().some(row=>row.tag==='page-execution-v1'),false);
+  assert.equal(f.snapshot().get('runs').get('@slot')?.preview,undefined);
+  assert.equal((await f.service.handleBoot(f.message('later'),{...f.sender})).state,'completed');
+  assert.equal(f.sourceCalls,1);
+});
+
+test('slow pure preparation cannot block a different document or claim the shared slot',async()=>{
+  const f=fixture();await f.install();await installAnother(f,'ready');
+  const pages=documents(f,2);
+  const read=f.dependencies.readStoredPageCandidate;let entered=false,release;
+  const gate=new Promise(resolve=>release=resolve);
+  f.dependencies.readStoredPageCandidate=async(...args)=>{
+    if(args[1]==='script'){entered=true;await gate;}
+    return read(...args);
+  };
+  const slow=f.service.handleBoot(f.message(),{...f.sender});slow.catch(()=>{});
+  let ready;
+  try{
+    await reaches(()=>entered);
+    ready=f.service.handleBoot(f.message('ready'),pages[1].sender);ready.catch(()=>{});
+    await reaches(()=>f.rows().some(row=>row.tag==='page-execution-v1'&&row.programId==='ready'&&row.state==='completed'));
+    assert.equal(f.sourceCalls,1);
+    assert.equal(f.rows().some(row=>row.tag==='page-execution-v1'&&row.programId==='script'),false,
+      'preparing code cannot reserve execution or a world');
+  }finally{release();await Promise.allSettled([slow,ready].filter(Boolean));}
+  assert.equal(f.sourceCalls,2);
+});
+
+test('pure preparation is bounded to four and holds no execution slot',async()=>{
+  const f=fixture(),ids=['script','b','c','d','e','f'];await f.install();
+  for(const id of ids.slice(1))await installAnother(f,id);
+  const read=f.dependencies.readStoredPageCandidate,entered=new Set();let release;
+  const gate=new Promise(resolve=>release=resolve);
+  f.dependencies.readStoredPageCandidate=async(...args)=>{
+    entered.add(args[1]);await gate;return read(...args);
+  };
+  const running=ids.map(id=>f.service.handleBoot(f.message(id),{...f.sender}));
+  running.forEach(promise=>promise.catch(()=>{}));
+  try{
+    await reaches(()=>entered.size===4);
+    await new Promise(resolve=>setImmediate(resolve));
+    assert.equal(entered.size,4);assert.equal(f.sourceCalls,0);
+    assert.equal(f.rows().some(row=>row.tag==='page-execution-v1'),false);
+    assert.equal(f.snapshot().get('runs').get('@slot')?.preview,undefined);
+  }finally{release();}
+  await Promise.all(running);
+  assert.equal(f.sourceCalls,6);
+  for(const row of f.rows().filter(row=>row.tag==='page-execution-v1'))
+    assert.ok(row.result.startupTimings.preflightQueueMs>=0);
+});
+
+for(const change of ['disabled','document','native descriptor','proof','candidate'])
+test('a prepared invocation rechecks '+change+' after waiting for an executing program',async()=>{
+  const f=fixture();await f.install();
+  for(const id of ['waiting','gate-b','gate-c','gate-d','sentinel'])await installAnother(f,id);
+  let finish,releasePreparation;const entered=new Set();
+  f.completionGate=new Promise(resolve=>finish=resolve);
+  const first=f.service.handleBoot(f.message(),{...f.sender});first.catch(()=>{});
+  await reaches(()=>f.sourceCalls===1);
+  const read=f.dependencies.readStoredPageCandidate,gate=new Promise(resolve=>releasePreparation=resolve);
+  f.dependencies.readStoredPageCandidate=async(...args)=>{
+    if(args[1].startsWith('gate-')||args[1]==='sentinel'){entered.add(args[1]);await gate;}
+    return read(...args);
+  };
+  const second=f.service.handleBoot(f.message('waiting'),{...f.sender});second.catch(()=>{});
+  const held=['gate-b','gate-c','gate-d','sentinel'].map(id=>f.service.handleBoot(f.message(id),{...f.sender}));
+  held.forEach(promise=>promise.catch(()=>{}));
+  try{
+    // Three blocked preparations consume three permits. The sentinel can
+    // enter the fourth only after 'waiting' has finished its preparation.
+    await reaches(()=>entered.size===4);
+    assert.equal(f.sourceCalls,1,'preparation must not run source alongside the first execution');
+    const row=f.installation('waiting');
+    if(change==='disabled')await f.service.setInstalledPageEnabled({programId:row.programId,
+      manifestHash:row.manifestHash,installationId:row.authorization.installationId,
+      expectedGeneration:row.authorization.generation,enabled:false},{});
+    if(change==='document')f.framesGone=true;
+    if(change==='native descriptor')f.native.get(row.nativeId).matches=['https://other.example/*'];
+    if(change==='proof'||change==='candidate')await f.storage.transaction(['frameworkKV'],'readwrite',async tx=>{
+      const kind=change==='proof'?'verification':'candidate',key= 'page-'+kind+':'+canonical(['tool:test','waiting',1]);
+      const value=await tx.get('frameworkKV',key);
+      if(change==='proof'){value.receipt.documentId='another-preview';value.receiptHash=await digest(value.receipt);}
+      else value.sourceUtf8+='\n// altered after preparation';
+      await tx.put('frameworkKV',value,key);
+    });
+    finish();await Promise.allSettled([first]);
+    await assert.rejects(second);
+    assert.equal(f.sourceCalls,1);
+    assert.equal(f.rows().some(row=>row.tag==='page-execution-v1'&&row.programId==='waiting'),false);
+  }finally{finish();releasePreparation();await Promise.allSettled([first,second,...held]);}
+});
+
+test('queued boot snapshots its message and native sender before preparation',async()=>{
+  const f=fixture();await f.install();
+  const message=f.message(),sender=structuredClone(f.sender);
+  const running=f.service.handleBoot(message,sender);
+  message.token='changed';sender.documentId='changed';sender.tab.id=99;
+  assert.equal((await running).state,'completed');assert.equal(f.sourceCalls,1);
+});
+
+test('warm pure registration facts reuse rules but still read fresh source and proof',async()=>{
+  const f=fixture();await f.install();
+  await f.service.handleBoot(f.message(),{...f.sender});
+  assert.equal(f.installation().lastExecution.result.startupTimings.registrationCacheHit,1);
+  f.navigate('second-document');
+  await f.storage.transaction(['frameworkKV'],'readwrite',async tx=>{
+    const key='page-verification:'+canonical(['tool:test','script',1]),value=await tx.get('frameworkKV',key);
+    value.receipt.documentId='another-valid-preview';value.receiptHash=await digest(value.receipt);
+    await tx.put('frameworkKV',value,key);
+  });
+  await f.service.handleBoot(f.message(),{...f.sender});
+  assert.equal(f.installation().lastExecution.result.startupTimings.registrationCacheHit,0,
+    'a changed valid proof must be fully compiled again');
+  f.navigate('third-document');
+  await f.storage.transaction(['frameworkKV'],'readwrite',async tx=>{
+    const key='page-candidate:'+canonical(['tool:test','script',1]),value=await tx.get('frameworkKV',key);
+    value.sourceUtf8+='\n// changed under the old hash';await tx.put('frameworkKV',value,key);
+  });
+  await assert.rejects(f.service.handleBoot(f.message(),{...f.sender}));
+  assert.equal(f.sourceCalls,2);
+});
+
+test('the ninth pure registration fact evicts the oldest and recompiles safely',async()=>{
+  const f=fixture();await f.install();
+  for(let n=1;n<=8;n++)await installAnother(f,'other-'+n);
+  await f.service.handleBoot(f.message(),{...f.sender});
+  assert.equal(f.installation().lastExecution.result.startupTimings.registrationCacheHit,0);
+  assert.equal(f.sourceCalls,1);
+});
+
+test('simultaneously prepared duplicates still dispatch one source in the document',async()=>{
+  const f=fixture();await f.install();
+  const results=await Promise.allSettled(Array.from({length:3},()=>f.service.handleBoot(f.message(),{...f.sender})));
+  assert.equal(results.filter(result=>result.status==='fulfilled').length,1);
+  for(const result of results.filter(result=>result.status==='rejected'))assert.equal(result.reason.code,'E_REQUEST_CONFLICT');
+  assert.equal(f.sourceCalls,1);
+  assert.equal(f.rows().filter(row=>row.tag==='page-execution-v1').length,1);
+});
+
+test('a prepared different program cannot bypass an unknown source effect',async()=>{
+  const f=fixture();await f.install();await installAnother(f,'waiting');
+  f.executionError={code:'E_EFFECT_UNKNOWN',message:'lost native reply'};
+  await fails(()=>f.service.handleBoot(f.message(),{...f.sender}),'E_EFFECT_UNKNOWN');
+  f.executionError=null;
+  await fails(()=>f.service.handleBoot(f.message('waiting'),{...f.sender}),'E_OWNER');
+  assert.equal(f.sourceCalls,1);
+  assert.equal(f.snapshot().get('runs').get('@slot').preview.entries[0].installedProgramId,'script');
+});
+
+test('a failed preparation joins execution order through suspension and lets later work continue',async()=>{
+  const f=fixture();await f.install();await installAnother(f,'bad');await installAnother(f,'later');
+  let finish,failedRead=false;f.completionGate=new Promise(resolve=>finish=resolve);
+  const first=f.service.handleBoot(f.message(),{...f.sender});first.catch(()=>{});
+  await reaches(()=>f.sourceCalls===1);
+  const read=f.dependencies.readStoredPageCandidate;
+  f.dependencies.readStoredPageCandidate=async(...args)=>{
+    if(args[1]==='bad'){failedRead=true;throw new FoundationError('E_PAGE_ENVIRONMENT','changed frozen asset');}
+    return read(...args);
+  };
+  const bad=f.service.handleBoot(f.message('bad'),{...f.sender});bad.catch(()=>{});
+  try{
+    await reaches(()=>failedRead);
+    await f.storage.transaction(['frameworkKV'],'readonly',tx=>tx.get('frameworkKV','barrier'));
+    assert.equal(f.installation('bad').authorization.status,'active',
+      'suspension must wait for the already executing program');
+  }finally{finish();await Promise.allSettled([first]);}
+  await fails(()=>bad,'E_PAGE_ENVIRONMENT');
+  assert.equal(f.installation('bad').authorization.status,'suspended');
+  assert.equal((await f.service.handleBoot(f.message('later'),{...f.sender})).state,'completed');
+  assert.equal(f.sourceCalls,2);
 });
 
 for(const scenario of ['registered','unavailable','missing','unrelated registration','disabled','disabled unavailable','disabled read throws','disabled stale registration'])
@@ -734,12 +1088,29 @@ test('installed executions use the same persisted Authority slot and cannot bypa
   await fails(()=>admission.reserveInstalled(claim,row),'E_PERMISSION');
 });
 
-test('idle auto execution accepts an exact loading document while explicit developer preview remains conservative',async()=>{
-  const f=fixture();await f.install();f.tabStatus='loading';
+test('idle auto execution proceeds immediately after its exact-document bootstrap and cannot replay',async()=>{
+  const f=fixture();await f.install();f.tabStatus='loading';f.requireImmediate=true;
   assert.equal((await f.service.handleBoot(f.message(),f.sender)).state,'completed');
   assert.equal(f.executeCalls,1);assert.equal(f.installation().lastExecution.result.resultText,'42');
   assert.equal(f.injections.length,5);
-  assert.ok(f.injections.every(value=>value.injectImmediately===undefined),'existing idle timing must remain unchanged');
+  assert.deepEqual(f.injections.map(value=>value.stage),['bootstrap','probe','probe','probe','source']);
+  for(const injection of f.injections){
+    assert.equal(injection.injectImmediately,true);
+    assert.deepEqual(injection.target,{tabId:1,documentIds:['web-document']});
+  }
+  await fails(()=>f.service.handleBoot(f.message(),f.sender),'E_REQUEST_CONFLICT');
+  assert.equal(f.sourceCalls,1);
+});
+
+for(const timing of ['document-end','document-idle'])test(timing+' premature boot cannot create its own marker or admit source',async()=>{
+  const f=fixture(),candidate=await f.prepare(timing);
+  await f.service.installPageProgram({programId:'script',revision:1,
+    manifestHash:candidate.manifestHash,expectedInstalledManifestHash:null},{});
+  const message=f.message(),worldCount=f.worlds.length;f.marker=false;f.tabStatus='loading';f.requireImmediate=true;
+  await fails(()=>f.service.handleBoot(message,f.sender),'E_PERMISSION');
+  assert.deepEqual(f.injections.map(value=>value.stage),['bootstrap']);
+  assert.equal(f.executeCalls,0);assert.equal(f.worlds.length,worldCount);
+  assert.equal(f.rows().filter(row=>row.tag==='page-execution-v1').length,0);
 });
 
 test('document_end executes once while loading without an idle wait at any native injection',async()=>{
@@ -768,9 +1139,9 @@ test('document_end executes once while loading without an idle wait at any nativ
   assert.equal(f.sourceCalls,1,'retirement never replays the user program');
 });
 
-test('document_end dispatch still rejects permission loss and exact document replacement',async()=>{
+for(const timing of ['document-end','document-idle'])test(timing+' dispatch still rejects permission loss and exact document replacement',async()=>{
   for(const changed of ['permission','document']){
-    const f=fixture(),candidate=await f.prepare('document-end');
+    const f=fixture(),candidate=await f.prepare(timing);
     await f.service.installPageProgram({programId:'script',revision:1,
       manifestHash:candidate.manifestHash,expectedInstalledManifestHash:null},{});
     f.tabStatus='loading';f.requireImmediate=true;
@@ -783,8 +1154,8 @@ test('document_end dispatch still rejects permission loss and exact document rep
   }
 });
 
-test('document_end manual runs keep conservative timing before the automatic bootstrap arrives',async()=>{
-  const f=fixture(),candidate=await f.prepare('document-end');
+for(const timing of ['document-end','document-idle'])test(timing+' manual runs keep conservative timing before the automatic bootstrap arrives',async()=>{
+  const f=fixture(),candidate=await f.prepare(timing);
   const installed=await f.service.installPageProgram({programId:'script',revision:1,
     manifestHash:candidate.manifestHash,expectedInstalledManifestHash:null},{});
   f.marker=false;f.tabStatus='loading';
@@ -794,7 +1165,7 @@ test('document_end manual runs keep conservative timing before the automatic boo
   assert.equal(result.state,'completed');
   assert.deepEqual(f.injections.map(value=>value.stage),['probe','probe','probe','source']);
   assert.ok(f.injections.every(value=>value.injectImmediately===undefined),
-    'an explicit run must not claim that an automatic document_end bootstrap already fired');
+    'an explicit run must not claim that an automatic bootstrap already fired');
 });
 
 test('document_start installs are rejected before saving a persistent grant or registering a bootstrap',async()=>{
@@ -815,6 +1186,120 @@ test('disable remains responsive after dispatch while async user completion is p
   assert.equal(disabled.enabled,false);assert.equal(f.native.size,0);
   finish();await fails(()=>running,'E_PERMISSION');
   assert.equal(f.rows().find(row=>row.tag==='page-execution-v1').state,'failed');
+});
+
+// Seed before opting into native-style reads: authoring intentionally retains
+// the legacy shim, while startup must never materialize unrelated frozen code.
+async function seedPageReadHistory(f,{executions=300,candidates=0}={}){
+  const installed=f.installation();
+  await f.storage.transaction(['frameworkKV'],'readwrite',async tx=>{
+    for(let index=0;index<executions;index++){
+      const documentId='history-'+String(index).padStart(4,'0'),
+        namespace=index===4095?'tool:other':installed.namespace,
+        executionKey='page-execution:'+canonical([namespace,installed.manifestHash,documentId]);
+      await tx.put('frameworkKV',{tag:'page-execution-v1',namespace,executionKey,
+        programId:installed.programId,manifestHash:installed.manifestHash,revision:installed.revision,
+        sourceHash:installed.sourceHash,installationId:installed.authorization.installationId,
+        installationToken:installed.token,grantGeneration:installed.authorization.generation,
+        documentId,tabId:1,browserSessionIncarnation:f.session,state:'completed',createdAt:0},executionKey);
+    }
+    for(let index=0;index<candidates;index++)await tx.put('frameworkKV',{
+      tag:'page-candidate-v1',namespace:installed.namespace,sourceUtf8:'x'.repeat(16*1024),
+      manifest:{programId:'unrelated-'+index,revision:1}
+    },'page-candidate:'+canonical([installed.namespace,'unrelated-'+index,1]));
+  });
+}
+function assertBoundedPageReads(f){
+  assert.equal(f.reads.filter(row=>row.method==='all'&&row.store==='frameworkKV').length,0);
+  const scans=f.reads.filter(row=>row.method==='scanEntries');
+  assert.ok(scans.length>0);
+  assert.ok(scans.every(row=>row.store==='frameworkKV'&&
+    ['page-installed:','page-execution:','page-cleanup:'].includes(row.prefix)&&row.limit===256));
+  assert.ok(scans.some(row=>row.prefix==='page-execution:'&&row.afterKey!==undefined),
+    'execution history must continue past the first cursor page');
+}
+
+test('prefix reads: cold recovery, app synchronization, reconciliation and boot skip large unrelated candidates',async()=>{
+  const f=fixture();await f.install();
+  await seedPageReadHistory(f,{candidates:320});
+  const pending=await f.pending('dispatched',{canonicalKey:true});
+  f.retireHook=(row,options)=>f.previewExecutor.retireInstalled(row,options);
+  f.exactDocumentGone=true;f.enablePrefixReads();f.restart();
+  await f.service.recoverExecutions();
+  assert.equal(f.installation().lastExecution.executionKey,pending.executionKey);
+  assert.equal(f.installation().lastExecution.state,'outcome-unknown');
+  assert.equal(f.installation().lastExecution.contextGone,true);
+  assert.equal(f.snapshot().get('runs').get('@slot').preview,undefined);
+  const beforeSynchronization=f.reads.length;
+  assert.deepEqual(await f.service.synchronizeAppPages(),{status:'synchronized',retired:[],cleanupPending:[]});
+  assert.equal(f.reads.slice(beforeSynchronization).some(row=>row.prefix==='page-execution:'),false,
+    'no companion installation needs an execution history scan');
+  f.native.clear();await f.service.reconcile();
+  assert.equal(f.installation().nativeState,'registered');
+  assert.equal(f.installation().managedCleanup.state,'retired');
+  const beforeObservation=f.reads.length;
+  await f.service.observeManagedCleanup({tabId:1});
+  assert.equal(f.reads.slice(beforeObservation).some(row=>row.prefix==='page-execution:'),false,
+    'no pending cleanup needs an execution history scan');
+  assert.equal(f.sourceCalls,0,'startup cannot replay interrupted source');
+  f.exactDocumentGone=false;f.navigate('new-document');
+  await f.service.handleBoot(f.message(),f.sender);
+  assert.equal(f.sourceCalls,1);
+  assert.equal(f.installation().lastExecution.state,'completed');
+  assert.ok(f.reads.some(row=>row.method==='countPrefix'&&row.prefix==='page-execution:'&&row.count===301));
+  assert.equal(f.rows().filter(row=>row.tag==='page-candidate-v1'&&row.manifest.programId.startsWith('unrelated-')).length,320);
+  assertBoundedPageReads(f);
+});
+
+test('prefix reads: late-page live unknown receipt keeps its exact fence and uninstall tombstone until document death',async()=>{
+  const f=fixture(),installed=await f.install();await seedPageReadHistory(f);
+  const pending=await f.pending('dispatched',{canonicalKey:true});
+  await f.storage.transaction(['frameworkKV'],'readwrite',tx=>tx.put('frameworkKV',{
+    ...pending,managedUI:{worldId:'lost-world',compiledSha256:'a'.repeat(64)}
+  },pending.executionKey));
+  f.retireHook=async()=>({scope:'managed-ui-only',state:'unknown',records:1});
+  await f.service.uninstallPageProgram({programId:installed.programId,manifestHash:installed.manifestHash,
+    installationId:installed.authorization.installationId,expectedGeneration:installed.authorization.generation},{});
+  const installKey='page-installed:'+canonical([pending.namespace,installed.programId]),
+    tombstone=structuredClone(f.snapshot().get('frameworkKV').get(installKey)),
+    slot=structuredClone(f.snapshot().get('runs').get('@slot'));
+  assert.equal(tombstone.tag,'page-uninstalled-v1');
+  const observations=[];
+  f.retireHook=(row,options)=>{
+    observations.push({tag:row.tag,options});return f.previewExecutor.retireInstalled(row,options);
+  };
+  f.framesGone=true;f.documentLifecycle='cached';f.session='extension-reloaded';
+  f.enablePrefixReads();f.restart();await f.service.recoverExecutions();
+  const recovered=f.snapshot().get('frameworkKV').get(pending.executionKey);
+  assert.equal(recovered.state,'outcome-unknown');assert.equal(recovered.contextGone,false);
+  assert.ok(f.reads.some(row=>row.method==='scanEntries'&&row.afterKey!==undefined&&row.keys.includes(pending.executionKey)),
+    'the live pending receipt must be recovered from a later cursor page');
+  await f.service.synchronizeAppPages();await f.service.reconcile();
+  await f.service.observeManagedCleanup({tabId:1});
+  assert.equal(observations.length,2,'both reconciliation and navigation must observe the tombstone');
+  assert.ok(observations.every(row=>row.tag==='page-uninstalled-v1'&&row.options.observeOnly===true));
+  const observed=f.snapshot().get('frameworkKV').get(installKey);
+  assert.deepEqual(observed.authorization,tombstone.authorization);
+  assert.equal(observed.token,tombstone.token);
+  assert.equal(observed.managedCleanup.state,'unknown');
+  assert.equal(observed.managedCleanup.pendingDocuments[0].state,'cached');
+  assert.deepEqual(f.snapshot().get('runs').get('@slot'),slot,'cached exact document retains the original reservation');
+  assert.equal(f.sourceCalls,0);assert.equal(f.executeCalls,0);
+  f.exactDocumentGone=true;await f.service.observeManagedCleanup({tabId:1});
+  assert.equal(f.snapshot().get('frameworkKV').has(installKey),false,'trusted exact-document absence finishes tombstone cleanup');
+  assertBoundedPageReads(f);
+});
+
+test('prefix reads: countPrefix keeps the global 4096 execution quota blocking before source dispatch',async()=>{
+  const f=fixture();await f.install();await seedPageReadHistory(f,{executions:4096});
+  f.enablePrefixReads();f.restart();
+  await fails(()=>f.service.handleBoot(f.message(),f.sender),'E_QUOTA');
+  assert.equal(f.sourceCalls,0);assert.equal(f.executeCalls,0);
+  assert.equal(f.rows().filter(row=>row.tag==='page-execution-v1').length,4096);
+  assert.deepEqual(f.reads.filter(row=>row.method==='countPrefix'),[
+    {method:'countPrefix',store:'frameworkKV',prefix:'page-execution:',count:4096}
+  ]);
+  assert.equal(f.reads.some(row=>row.method==='all'&&row.store==='frameworkKV'),false);
 });
 
 test('worker interruption becomes visible unknown state and preserves the live exact slot without replay',async()=>{
@@ -921,7 +1406,7 @@ test('uninstall fails closed and retains disabled recovery record until native u
   assert.equal(f.installation(),undefined);
 });
 
-test('uncertain managed cleanup uninstalls into the same-key tombstone and fences fresh grants',async()=>{
+test('uncertain managed cleanup is archived atomically when a fresh grant replaces the tombstone',async()=>{
   const f=fixture(),installed=await f.install(),oldBoot=f.message();
   const [installKey,stored]=[...f.snapshot().get('frameworkKV')].find(([,row])=>row.tag==='page-installed-v1');
   f.retireHook=async row=>({scope:'managed-ui-only',state:row.programId==='script'?'unknown':'retired',records:1});
@@ -951,27 +1436,32 @@ test('uncertain managed cleanup uninstalls into the same-key tombstone and fence
     manifestHash:tombstone.manifestHash,installationId:tombstone.authorization.installationId,
     expectedGeneration:tombstone.authorization.generation,enabled},{}),'E_REVISION');
   const next=await f.prepare('document-idle',{revision:2});
-  await fails(()=>f.service.installPageProgram({programId:'script',revision:2,
-    manifestHash:next.manifestHash,expectedInstalledManifestHash:null},{}),'E_PAGE_CLEANUP_PENDING');
   const candidate=f.rows().find(row=>row.tag==='page-candidate-v1'&&row.manifest.revision===2);
   const payload={format:'opendesk.page-install.v1',programId:'script',version:'2.0.0',title:'Script',revision:2,
     entryFormat:'async-main',sourceUtf8:candidate.sourceUtf8,sourceHash:candidate.manifest.sourceHash,pageRules:candidate.manifest.pageRules};
   const pkg={...payload,packageHash:await digest(payload)};
-  await fails(()=>f.service.importPageInstallPackage({package:pkg,
-    expectedInstalledManifestHash:null,expectedGeneration:null},{}),'E_PAGE_CLEANUP_PENDING');
-  assert.deepEqual(f.snapshot().get('frameworkKV').get(installKey),tombstone);
+  const fresh=await f.service.importPageInstallPackage({package:pkg,
+    expectedInstalledManifestHash:null,expectedGeneration:null},{});
+  assert.equal(fresh.ready,true);assert.equal(fresh.nativeState,'registered');
+  assert.notEqual(fresh.authorization.installationId,installed.authorization.installationId);
+  assert.deepEqual(f.rows().find(row=>row.tag==='page-cleanup-v1'),{...tombstone,tag:'page-cleanup-v1'});
+  await fails(()=>f.service.handleBoot(oldBoot,f.sender),'E_PERMISSION');
+  await fails(()=>f.service.setInstalledPageEnabled({programId:'script',manifestHash:fresh.manifestHash,
+    installationId:tombstone.authorization.installationId,expectedGeneration:fresh.authorization.generation,enabled:false},{}),'E_REVISION');
   const second=await f.prepare('document-idle',{programId:'second'});
   await f.service.installPageProgram({programId:'second',revision:1,manifestHash:second.manifestHash,expectedInstalledManifestHash:null},{});
   const other=structuredClone(f.installation('second')),otherNative=structuredClone(f.native.get(other.nativeId));
   await f.service.reconcile();
-  assert.equal(f.snapshot().get('frameworkKV').get(installKey).tag,'page-uninstalled-v1');
+  assert.equal(f.snapshot().get('frameworkKV').get(installKey).tag,'page-installed-v1');
+  assert.equal(f.rows().find(row=>row.tag==='page-cleanup-v1').managedCleanup.state,'unknown');
   f.retireHook=async()=>({scope:'managed-ui-only',state:'retired',records:1});
   await f.service.reconcile();
-  assert.equal(f.snapshot().get('frameworkKV').has(installKey),false);
+  assert.equal(f.rows().some(row=>row.tag==='page-cleanup-v1'),false);
   const again=await f.service.installPageProgram({programId:'script',revision:2,
-    manifestHash:next.manifestHash,expectedInstalledManifestHash:null},{});
+    manifestHash:next.manifestHash,expectedInstalledManifestHash:fresh.manifestHash,expectedGeneration:fresh.authorization.generation},{});
   assert.equal(again.nativeState,'registered');
   assert.notEqual(again.authorization.installationId,installed.authorization.installationId);
+  assert.deepEqual(again.authorization,fresh.authorization);
   assert.deepEqual(f.installation('second'),other);
   assert.deepEqual(f.native.get(other.nativeId),otherNative);
 });
@@ -1004,6 +1494,112 @@ test('tombstone reconciliation only observes cleanup and bypasses unavailable na
     manifestHash:installed.manifestHash,expectedInstalledManifestHash:null},{});
   assert.equal(again.nativeState,'registered');
   assert.notEqual(again.authorization.installationId,installed.authorization.installationId);
+});
+
+test('reinstall cannot archive a cleanup owner changed after its review snapshot',async()=>{
+  const f=fixture(),installed=await f.install();
+  f.retireHook=async()=>({scope:'managed-ui-only',state:'unknown',records:1});
+  await f.service.uninstallPageProgram({programId:'script',manifestHash:installed.manifestHash,
+    installationId:installed.authorization.installationId,expectedGeneration:installed.authorization.generation},{});
+  const installKey='page-installed:'+canonical(['tool:test','script']);
+  const tombstone=structuredClone(f.rows().find(row=>row.tag==='page-uninstalled-v1'));
+  const candidate=await f.prepare('document-idle',{revision:2});
+  f.api.permissions.contains=async()=>{
+    await f.storage.transaction(['frameworkKV'],'readwrite',async tx=>{
+      const current=await tx.get('frameworkKV',installKey);
+      await tx.put('frameworkKV',{...current,authorization:{...current.authorization,
+        generation:tombstone.authorization.generation+1}},installKey);
+    });return true;
+  };
+  await fails(()=>f.service.installPageProgram({programId:'script',revision:2,
+    manifestHash:candidate.manifestHash,expectedInstalledManifestHash:null},{}),'E_REVISION');
+  assert.equal(f.installation(),undefined);assert.equal(f.native.size,0);
+  assert.equal(f.rows().some(row=>row.tag==='page-cleanup-v1'),false);
+  assert.equal(f.rows().find(row=>row.tag==='page-uninstalled-v1').authorization.generation,
+    tombstone.authorization.generation+1);
+});
+
+test('an aborted reinstall transaction retains the original tombstone without a partial archive',async()=>{
+  const f=fixture(),installed=await f.install();
+  f.retireHook=async()=>({scope:'managed-ui-only',state:'unknown',records:1});
+  await f.service.uninstallPageProgram({programId:'script',manifestHash:installed.manifestHash,
+    installationId:installed.authorization.installationId,expectedGeneration:installed.authorization.generation},{});
+  const tombstone=structuredClone(f.rows().find(row=>row.tag==='page-uninstalled-v1'));
+  const candidate=await f.prepare('document-idle',{revision:2}),registerCalls=f.registerCalls;
+  const transaction=f.storage.transaction;
+  let archived=false;
+  f.storage.transaction=(stores,mode,work)=>transaction(stores,mode,tx=>work({...tx,
+    put:async(store,value,key)=>{
+      if(value.tag==='page-cleanup-v1')archived=true;
+      if(value.tag==='page-installed-v1'&&value.revision===2){
+        assert.equal(archived,true);throw new FoundationError('E_STORAGE','transaction aborted');
+      }
+      return tx.put(store,value,key);
+    }}));
+  await fails(()=>f.service.installPageProgram({programId:'script',revision:2,
+    manifestHash:candidate.manifestHash,expectedInstalledManifestHash:null},{}),'E_STORAGE');
+  assert.deepEqual(f.rows().find(row=>row.tag==='page-uninstalled-v1'),tombstone);
+  assert.equal(f.rows().some(row=>row.tag==='page-cleanup-v1'),false);
+  assert.equal(f.installation(),undefined);assert.equal(f.native.size,0);
+  assert.equal(f.registerCalls,registerCalls);
+});
+
+for(const conflict of [false,true])test('reinstall preserves an existing cleanup archive: '+(conflict?'conflicting':'identical'),async()=>{
+  const f=fixture(),installed=await f.install();
+  f.retireHook=async()=>({scope:'managed-ui-only',state:'unknown',records:1});
+  await f.service.uninstallPageProgram({programId:'script',manifestHash:installed.manifestHash,
+    installationId:installed.authorization.installationId,expectedGeneration:installed.authorization.generation},{});
+  const tombstone=structuredClone(f.rows().find(row=>row.tag==='page-uninstalled-v1'));
+  const archive={...tombstone,tag:'page-cleanup-v1',...(conflict?{token:'conflicting-original-owner'}:{})};
+  const archiveKey='page-cleanup:'+canonical([tombstone.namespace,tombstone.programId,
+    tombstone.authorization.installationId,tombstone.authorization.generation]);
+  await f.storage.transaction(['frameworkKV'],'readwrite',tx=>tx.put('frameworkKV',archive,archiveKey));
+  const candidate=await f.prepare('document-idle',{revision:2}),registerCalls=f.registerCalls;
+  const installing=()=>f.service.installPageProgram({programId:'script',revision:2,
+    manifestHash:candidate.manifestHash,expectedInstalledManifestHash:null},{});
+  if(conflict){
+    await fails(installing,'E_REVISION');
+    assert.deepEqual(f.rows().find(row=>row.tag==='page-uninstalled-v1'),tombstone);
+    assert.equal(f.installation(),undefined);assert.equal(f.registerCalls,registerCalls);
+  }else{
+    const fresh=await installing();assert.equal(fresh.ready,true);
+    assert.notEqual(fresh.authorization.installationId,installed.authorization.installationId);
+    assert.equal(f.rows().some(row=>row.tag==='page-uninstalled-v1'),false);
+  }
+  assert.deepEqual(f.snapshot().get('frameworkKV').get(archiveKey),archive);
+});
+
+test('native reinstall failure retains the old cleanup archive without restoring its revoked grant',async()=>{
+  const f=fixture(),installed=await f.install();
+  f.retireHook=async()=>({scope:'managed-ui-only',state:'unknown',records:1});
+  await f.service.uninstallPageProgram({programId:'script',manifestHash:installed.manifestHash,
+    installationId:installed.authorization.installationId,expectedGeneration:installed.authorization.generation},{});
+  const tombstone=structuredClone(f.rows().find(row=>row.tag==='page-uninstalled-v1'));
+  const candidate=await f.prepare('document-idle',{revision:2});
+  f.api.userScripts.register=async()=>{throw new FoundationError('E_QUOTA','registration quota');};
+  const result=await f.service.installPageProgram({programId:'script',revision:2,
+    manifestHash:candidate.manifestHash,expectedInstalledManifestHash:null},{});
+  assert.equal(result.ready,false);assert.equal(result.error.code,'E_QUOTA');
+  assert.notEqual(result.authorization.installationId,installed.authorization.installationId);
+  assert.deepEqual(f.rows().find(row=>row.tag==='page-cleanup-v1'),{...tombstone,tag:'page-cleanup-v1'});
+  assert.equal(f.native.size,0);
+});
+
+test('reinstall preserves a real unknown execution reservation while separating old cleanup',async()=>{
+  const f=fixture(),installed=await f.install();await f.pending('outcome-unknown');
+  const slot=structuredClone(f.snapshot().get('runs').get('@slot'));
+  f.retireHook=async()=>({scope:'managed-ui-only',state:'unknown',records:1});
+  await f.service.uninstallPageProgram({programId:'script',manifestHash:installed.manifestHash,
+    installationId:installed.authorization.installationId,expectedGeneration:installed.authorization.generation},{});
+  const candidate=await f.prepare('document-idle',{revision:2});
+  const fresh=await f.service.installPageProgram({programId:'script',revision:2,
+    manifestHash:candidate.manifestHash,expectedInstalledManifestHash:null},{});
+  assert.equal(fresh.ready,true);
+  assert.deepEqual(f.snapshot().get('runs').get('@slot'),slot);
+  f.navigate('new-document');
+  await fails(()=>f.service.handleBoot(f.message(),f.sender),'E_OWNER');
+  assert.deepEqual(f.snapshot().get('runs').get('@slot'),slot);
+  assert.equal(f.sourceCalls,0,'an installation cannot override an unknown execution admission');
 });
 
 test('tombstone ledger observation failure preserves the tombstone and does not block other installation reconciliation',async()=>{

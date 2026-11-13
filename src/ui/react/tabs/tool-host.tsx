@@ -257,8 +257,7 @@ export function ToolHost({view,concealed=false,debugPreview=false,onStopDebug,
   const cookieIdentity=cookieGate.identity||'';
   const [cookieDismissal,setCookieDismissal]=React.useState({identity:'',dismissed:false});
   const cookieDismissed=cookieDismissal.identity===cookieIdentity&&cookieDismissal.dismissed;
-  const cookieNeedsAuthorization=cookieGate.isCookieEditor===true&&
-    cookieGate.needsAuthorization===true&&cookieGate.hasOrigin===true&&
+  const cookieNeedsAuthorization=cookieGate.needsAuthorization===true&&cookieGate.hasOrigin===true&&
     cookieGate.settingsOpen!==true&&!concealed&&!debugPreview&&
     snapshot.fields['sidebar-tool-display']?.hidden===false;
   const cookieConsentVisible=cookieNeedsAuthorization&&cookieFirstUse&&!cookieDismissed&&!importOpen;

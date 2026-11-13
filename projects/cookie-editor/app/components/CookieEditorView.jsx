@@ -263,7 +263,7 @@ export function CookieSiteBar({site,loading=false,readonly=false,busy=false,gran
 }
 export function CookieToolbar({count=0,onImport,onExport,onNew,onClear,
   busy=false,readonly=false,clearDisabled=false,exportOpen=false,importOpen=false,
-  exportContent=null,onCloseExport}){
+  exportContent=null,onCloseExport,monitor=null}){
   const exportButton=React.useRef(null);
   const exportPopup=React.useRef(null);
   const exportPopupId=React.useId();
@@ -307,6 +307,7 @@ export function CookieToolbar({count=0,onImport,onExport,onNew,onClear,
       <span className="action-separator" aria-hidden="true"/>
       <Action name="trash" label="安全清理本站 Cookie" tone="danger" appearance="quiet"
         onClick={onClear} disabled={busy||readonly||clearDisabled||typeof onClear!=='function'}/>
+      {monitor}
       {exportOpen&&<div className="cookie-export-popover" id={exportPopupId} ref={exportPopup}>
         {exportContent}
       </div>}
@@ -453,8 +454,7 @@ export function CookieEditorView({
     <CookieToolbar count={unavailable?'—':rows.length} onImport={onImport} onExport={onExport}
       onNew={onNew} onClear={onClear} clearDisabled={clearDisabled}
       exportOpen={exportOpen} exportContent={exportContent} onCloseExport={onCloseExport}
-      importOpen={importOpen} busy={busy} readonly={readonly}/>
-    {monitor}
+      importOpen={importOpen} busy={busy} readonly={readonly} monitor={monitor}/>
     <CookieRows site={site} rows={currentPage} totalCount={rows.length} selected={selected}
       changes={changes}
       newEditor={newEditor} unavailable={unavailable}

@@ -24,8 +24,8 @@ const identity={toolId:cookiePkg.id,toolVersion:cookiePkg.version,
 const sender={id:'cookie-host-test',frameId:0,documentId:'host-doc',documentLifecycle:'active',
   url:'chrome-extension://cookie-host-test/sidepanel.html?hostInstanceId='+uid};
 
-function fixture({sender:hostSender=sender}={}){
-  const local=new Map([['opendesk.sidebar-tools.installed.v1',[cookiePkg]]]),session=new Map();
+function fixture({sender:hostSender=sender,installedPackage=cookiePkg,installedIdentity=identity}={}){
+  const local=new Map([['opendesk.sidebar-tools.installed.v1',[installedPackage]]]),session=new Map();
   const onStorage=[],native=[],listeners=[];
   const tab={id:10,windowId:3,url,active:true,incognito:false,status:'complete'};
   const document={tabId:tab.id,windowId:tab.windowId,documentId:'website-document',url,origin};
@@ -87,13 +87,13 @@ function fixture({sender:hostSender=sender}={}){
   const locks={request:(_key,work)=>work()};
   const host=createContextMenuHost({api,lockManager:locks,logger:{warn(){}}});
   const grant=(capability,enabled=true)=>host.handleHost({
-    operation:'browser.cookies.userGrant',...identity,cookieCapability:capability,enabled,
+    operation:'browser.cookies.userGrant',...installedIdentity,cookieCapability:capability,enabled,
     origin,...(enabled?{document}:{})},hostSender);
   const confirm=(operation,args)=>host.handleHost({operation:'browser.intent.confirm',
-    ...identity,targetOperation:operation,targetArgs:args},hostSender);
-  const call=(operation,args={},approvalRef,as=identity)=>host.handleTool({
+    ...installedIdentity,targetOperation:operation,targetArgs:args},hostSender);
+  const call=(operation,args={},approvalRef,as=installedIdentity)=>host.handleTool({
     ...as,operation,args,...(approvalRef?{approvalRef}:{})},hostSender);
-  return {api,host,grant,call,confirm,state,native,local,document,sender:hostSender,identity};
+  return {api,host,grant,call,confirm,state,native,local,document,sender:hostSender,identity:installedIdentity};
 }
 
 test('R9 actual Browser Dispatcher refuses a regular installed Cookie read before per-site grant',async()=>{
@@ -189,7 +189,13 @@ test('R9 revoking an entire Cookie website is atomic even without the tab open',
   const f=fixture();
   await f.grant('read');await f.grant('write');await f.grant('values');
   f.state.activeTab=false;
+  const writes=[];
+  f.api.storage.onChanged.addListener((changes,area)=>{
+    if(area==='local'&&changes['opendesk.browser.context-menu-grants.v1'])
+      writes.push(structuredClone(changes['opendesk.browser.context-menu-grants.v1'].newValue));
+  });
   await f.grant('all',false);
+  assert.equal(writes.length,1,'All site capabilities are revoked in one durable write');
   for(const cap of ['read','values','write','observe','clear']){
     const grant=f.local.get('opendesk.browser.context-menu-grants.v1')?.[f.identity.toolId]?.cookieSites?.[origin];
     assert.equal(grant?.[cap],false,cap);
@@ -197,8 +203,64 @@ test('R9 revoking an entire Cookie website is atomic even without the tab open',
   await assert.rejects(f.call('browser.cookies.getAll',{url}),reject('E_SITE_GRANT_REQUIRED'));
   await assert.rejects(f.call('browser.cookies.set',{url,name:'x',value:'x'}),
     reject('E_USER_GESTURE_REQUIRED'));
-  await assert.rejects(f.grant('all',true),reject('E_SCHEMA'),
-    'A sandbox or trusted UI must never bulk-enable all Cookie permissions');
+  const revoked=structuredClone(f.local.get('opendesk.browser.context-menu-grants.v1'));
+  const beforeNative=[...f.native];
+  await assert.rejects(f.grant('all',true),reject('E_DOCUMENT_CHANGED'),
+    'Restoring a site requires the actual current website document');
+  assert.deepEqual(f.local.get('opendesk.browser.context-menu-grants.v1'),revoked);
+  assert.deepEqual(f.native,beforeNative,'No Cookie access while the website is absent');
+  f.state.activeTab=true;
+  await assert.rejects(f.call('browser.cookies.userGrant',{
+    cookieCapability:'all',enabled:true,origin,document:f.document}),reject('E_SERVICE_UNSUPPORTED'),
+    'The sandbox cannot call the trusted consent operation');
+  await assert.rejects(f.host.handleHost({operation:'browser.cookies.userGrant',...identity,
+    cookieCapability:'all',enabled:true,origin,document:f.document},
+  {...sender,url:'https://attacker.example/'}),reject('E_OWNER'));
+  assert.deepEqual(f.local.get('opendesk.browser.context-menu-grants.v1'),revoked,
+    'Unauthorized requests cannot restore any revoked capability');
+  assert.equal(writes.length,1,'Denied requests do not write authorization');
+});
+
+test('R9 trusted one-consent restoration binds declared capabilities to the exact website and installation',async()=>{
+  const f=fixture();
+  let writes=0;
+  f.api.storage.onChanged.addListener((changes,area)=>{
+    if(area==='local'&&changes['opendesk.browser.context-menu-grants.v1'])writes++;
+  });
+  await f.grant('all');
+  assert.equal(writes,1,'All declared site capabilities are persisted atomically');
+  const grants=f.local.get('opendesk.browser.context-menu-grants.v1');
+  const installed=grants[identity.toolId],site=installed.cookieSites[origin];
+  assert.equal(installed.version,identity.toolVersion);
+  assert.equal(installed.packageHash,identity.packageHash);
+  assert.equal(installed.installEpoch,identity.installEpoch);
+  assert.deepEqual(Object.keys(installed.cookieSites),[origin]);
+  assert.equal(installed.cookieAllSites,undefined,'Site consent cannot create all-site consent');
+  assert.equal(site.storeId,'0');assert.deepEqual(site.partitionKey,partitionKey);
+  assert.equal(site.valueConsent,true);assert.ok(site.grantEpoch);
+  for(const cap of ['read','values','write','observe','clear'])assert.equal(site[cap],true,cap);
+  assert.equal(f.native.some(name=>['getAll','get','set','remove'].includes(name)),false,
+    'Granting capabilities does not read or write Cookie values');
+  const initialEpoch=site.grantEpoch;
+  await f.grant('all',false);
+  await f.grant('all');
+  assert.notEqual(f.local.get('opendesk.browser.context-menu-grants.v1')
+    [identity.toolId].cookieSites[origin].grantEpoch,initialEpoch);
+  await f.api.storage.local.set({[TOOL_REVOCATION_EPOCHS_STORE]:{[cookiePkg.id]:'replacement'}});
+  const before=structuredClone(f.local.get('opendesk.browser.context-menu-grants.v1'));
+  await assert.rejects(f.grant('all'),reject('E_TOOL_CHANGED'));
+  assert.deepEqual(f.local.get('opendesk.browser.context-menu-grants.v1'),before,
+    'Old installation cannot grant permissions to a replacement');
+});
+test('R9 one-consent site grant cannot add an undeclared Cookie capability',async()=>{
+  const installedPackage=validateSidebarToolPackage({...cookiePkg,
+    capabilities:cookiePkg.capabilities.filter(cap=>cap!=='browser.cookies.clear')});
+  const installedIdentity={...identity,packageHash:await sidebarToolPackageHash(installedPackage)};
+  const f=fixture({installedPackage,installedIdentity});
+  await f.grant('all');
+  const site=f.local.get('opendesk.browser.context-menu-grants.v1')[identity.toolId].cookieSites[origin];
+  for(const cap of ['read','values','write','observe'])assert.equal(site[cap],true,cap);
+  assert.notEqual(site.clear,true,'Trusted consent is bounded by the installed manifest');
 });
 test('R9 a later values/write grant cannot silently move an earlier read grant to another partition',async()=>{
   const f=fixture();

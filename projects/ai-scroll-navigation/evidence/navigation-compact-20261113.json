@@ -1,0 +1,155 @@
+{
+  "date": "2026-11-13",
+  "stage": "core development fix and importable candidate",
+  "programId": "opendesk.ai-scroll-navigation",
+  "version": "0.4.19",
+  "revision": 22,
+  "rootCause": "Index-only paging skipped the current question from long replies, forced bottom to the last index, and could offer clamped no-op destinations. Equal 42px button heights and 6px gaps made the dock tall.",
+  "behavior": {
+    "order": "sequential; no wrap",
+    "previous": "return to current question, then preceding question",
+    "next": "next reachable loaded question",
+    "boundary": "aria-disabled controls retain keyboard and touch access to the reason; no scroll action",
+    "singleRound": "return to its question",
+    "unreliableRoles": "no fabricated target"
+  },
+  "layout": {
+    "desktop": {
+      "width": 42,
+      "height": 152,
+      "edgeHeight": 42,
+      "turnHeight": 28,
+      "gap": 4,
+      "previousHeight": 186
+    },
+    "coarsePointer": {
+      "buttonSize": 42,
+      "height": 180
+    },
+    "narrow": {
+      "width": 180,
+      "height": 42,
+      "viewport": "390x600"
+    }
+  },
+  "validation": {
+    "node": {
+      "passed": 447,
+      "failed": 0,
+      "note": "execution count includes existing duplicate discovery",
+      "report": "artifacts/ai-scroll-navigation-compact-20261113/final-tests.txt"
+    },
+    "browser": {
+      "scope": "synthetic site DOM with actual project modules; no installation/Authority claim",
+      "sites": [
+        {
+          "site": "chatgpt",
+          "status": "PASS",
+          "fromBottom": [
+            1876,
+            1572,
+            792
+          ]
+        },
+        {
+          "site": "deepseek",
+          "status": "PASS",
+          "fromBottom": [
+            1876,
+            1572,
+            792
+          ]
+        },
+        {
+          "site": "gemini",
+          "status": "PASS",
+          "fromBottom": [
+            1876,
+            1572,
+            792
+          ]
+        }
+      ],
+      "report": "artifacts/ai-scroll-navigation-compact-20261113/browser.json"
+    },
+    "accessibility": {
+      "status": "PASS",
+      "checks": [
+        "Tab/Shift+Tab with boundary reasons",
+        "Enter/Space activation",
+        "unavailable activation does not scroll",
+        "hoverable tooltip",
+        "Escape dismissal",
+        "touch boundary explanation and enabled navigation",
+        "42px coarse targets and 390px horizontal layout"
+      ],
+      "report": "artifacts/ai-scroll-navigation-compact-20261113/accessibility.json"
+    }
+  },
+  "independentReview": {
+    "kind": "independent AI UX source and synthetic DOM review",
+    "initialScore": 92,
+    "finalScore": 96,
+    "rubric": {
+      "navigation": "39/40",
+      "visualDensity": "19/20",
+      "accessibility": "19/20",
+      "responsiveAndEvidence": "19/20"
+    },
+    "remaining": "Actual screen-reader speech NOT_TESTED; not a production or installed-site rating"
+  },
+  "package": {
+    "status": "PASS",
+    "programId": "opendesk.ai-scroll-navigation",
+    "version": "0.4.19",
+    "revision": 22,
+    "sourceHash": "3104fe30a604122d0711159dca52f4b656df7f28090a3e4a0d07ed82afeb1e11",
+    "packageHash": "30df1cc7d6659b1b100d190fe7677119050cf550c79c5245dbcc7d985293add9",
+    "fileSha256": "7a18bbb0462eb2ce6a09bf11d9554f885793b1bad77e371c89d3a52d781d50cc",
+    "sourceBytes": 77183,
+    "sourceFiles": [
+      {
+        "path": "src/conversation.js",
+        "bytes": 41940,
+        "sha256": "b78d46ab39b84ebb0f5124c66e3bde3c35b566016997a6b70b740e76a8f05505"
+      },
+      {
+        "path": "src/floating-navigation.js",
+        "bytes": 23365,
+        "sha256": "8482377f77bd52d84a6050f9e172a959fae5ef245a138f3cc995eeef2049d7e8"
+      },
+      {
+        "path": "src/main.js",
+        "bytes": 3333,
+        "sha256": "ca65eb7508c945ca9d0e2c679f2bf277c0125e023c60fda61ee15aa3d1fbf9ed"
+      },
+      {
+        "path": "src/site-adapters.js",
+        "bytes": 3302,
+        "sha256": "91d285494dc45f28dccf1f88fef675a2de37f66aabb17c14ed6d93345a62ecb0"
+      },
+      {
+        "path": "src/site-configuration.js",
+        "bytes": 46547,
+        "sha256": "3fc032b70d14c50f7ebf13f80bd0c8ee3a4112fb7ca1b194561436ac18bcdae7"
+      }
+    ],
+    "byteIdentity": true,
+    "scopeUnchanged": true,
+    "installation": "NOT_TESTED"
+  },
+  "screenshots": [
+    "artifacts/ai-scroll-navigation-compact-20261113/after-desktop.png",
+    "artifacts/ai-scroll-navigation-compact-20261113/boundary-hint.png",
+    "artifacts/ai-scroll-navigation-compact-20261113/after-dark.png",
+    "artifacts/ai-scroll-navigation-compact-20261113/after-touch.png",
+    "artifacts/ai-scroll-navigation-compact-20261113/after-narrow.png"
+  ],
+  "native": {
+    "installedPageUpdate": "NOT_TESTED",
+    "realWebsites": "NOT_TESTED",
+    "productionExtension": "NOT_TESTED",
+    "publication": "blocked"
+  },
+  "sharedServices": "No dist/development build, watcher replacement or shared browser reload"
+}

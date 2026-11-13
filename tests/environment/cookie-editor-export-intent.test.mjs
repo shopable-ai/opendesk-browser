@@ -1,7 +1,9 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import {createCookieExportIntentGate} from '../../src/ui/sidebar-tools/cookie-export-intent.js';
-const args={owner:'official/package/frame/epoch',origin:'https://example.com',operation:'browser.clipboard.writeText',grantEpoch:'grant-1'};
+const document={status:'available',windowId:1,tabId:2,frameId:0,documentId:'doc-a',
+  origin:'https://example.com',url:'https://example.com/a'};
+const args={owner:'official/package/frame/epoch',origin:'https://example.com',operation:'browser.clipboard.writeText',grantEpoch:'grant-1',document};
 test('export needs a browser-observed click and permits exactly one chosen sink',()=>{
   const gate=createCookieExportIntentGate();
   assert.throws(()=>gate.start({...args,verifiedUserActivation:false}),{code:'E_USER_GESTURE_REQUIRED'});
@@ -15,6 +17,18 @@ test('export needs a browser-observed click and permits exactly one chosen sink'
   gate.start({...args,verifiedUserActivation:true});
   assert.throws(()=>gate.consume({...args,operation:'browser.downloads.text'}),{code:'E_DOCUMENT_CHANGED'});
   assert.equal(gate.consume(args),false);
+});
+test('export click binds the exact Document while same-document visual and path changes survive',()=>{
+  const gate=createCookieExportIntentGate();
+  for(const update of [{url:'https://example.com/b'}, {url:document.url+'?q=1#hash',title:'new title'}]){
+    gate.start({...args,verifiedUserActivation:true});
+    assert.equal(gate.consume({...args,document:{...document,...update}}),true);
+  }
+  gate.start({...args,verifiedUserActivation:true});
+  assert.throws(()=>gate.consume({...args,document:{...document,documentId:'doc-b'}}),{code:'E_DOCUMENT_CHANGED'});
+  const before=gate.generation;
+  gate.start({...args,verifiedUserActivation:true});assert.equal(gate.consume(args),true);
+  gate.revoke();assert.notEqual(gate.generation,before,'Revocation also fences a consumed delivery');
 });
 test('site change, expiry, revocation and closing discard an unused export click',()=>{
   let now=0;const gate=createCookieExportIntentGate({now:()=>now});

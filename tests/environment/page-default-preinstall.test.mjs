@@ -1,10 +1,10 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import {createOfficialPageResources} from '../../scripts/build-official-pages.mjs';
+import {approvedPageFixtureResources} from '../helpers/official-pages.mjs';
 import {resumeDefaultPagePreinstall} from '../../src/scripting/user-scripts/default-preinstall.js';
 import {registerDefaultPreinstall,DEFAULT_PREINSTALL_STORE} from '../../src/sidebar-tools/preinstall-intent.js';
 
-const resources=(await createOfficialPageResources()).resources;
+const resources=(await approvedPageFixtureResources()).resources;
 const id='opendesk.ai-scroll-navigation';
 function fixture(){
   let marker={schema:DEFAULT_PREINSTALL_STORE,state:'complete',extensionVersion:'1.0.0',
@@ -56,6 +56,24 @@ test('fresh intent installs bundled Scroll once through Page Authority, then nev
   f.installed.length=0;
   await resumeDefaultPagePreinstall(f.options);
   assert.equal(f.calls.filter(m=>m==='importPageInstallPackage').length,1);
+});
+
+test('a blocked bundled release is not offered to the default installer or reported as a permission failure',async()=>{
+  const f=fixture();
+  const catalog=JSON.parse(resources.get('official-pages/catalog.json').toString());
+  catalog.apps=catalog.apps.map(row=>{
+    if(row.installationPolicy!=='preinstalled')return row;
+    const {packagePath,bytes,sha256,sourceHash,packageHash,...descriptor}=row;
+    return {...descriptor,status:'blocked',blockedReason:'Test release is awaiting approval'};
+  });
+  const options={...f.options,fetcher:async url=>{
+    assert.equal(new URL(url).pathname,'/official-pages/catalog.json','blocked packages are never downloaded');
+    return new Response(JSON.stringify(catalog));
+  }};
+  f.native=false;f.granted=false;
+  assert.deepEqual(await resumeDefaultPagePreinstall(options),{state:'complete',installed:0});
+  assert.equal(f.marker.pageState,'complete');
+  assert.deepEqual(f.calls,['listPagePrograms']);
 });
 
 test('old profiles, skipped history and changed extension versions cannot create Page intent',async()=>{

@@ -10,6 +10,10 @@
 
 确认按钮复用原 Chrome 权限手势。安装仍核对 `expectedInstalledManifestHash`、`expectedGeneration`，升级沿既有固定 Revision 和权限范围规则执行。相同已安装 manifest 返回原安装和当前 Chrome 注册状态，保留 installationId、token、generation、enabled，不重新执行或创建身份；主动停用、撤权或缺失注册不会显示为可自动使用的成功。成功界面要求原安装授权 active、enabled、Chrome registered 的回执，详情可查看安装 ID 和 manifest 摘要。请求结果未知时先查询 `listPagePrograms`，不自动重放写操作。
 
+安装就绪与旧网页清理分别确认。已有网页存活、BFCache 或清理 `unknown` 不阻止安装、升级、同包重新导入及主动恢复；成功仍须核对真实安装身份、授权和 Chrome 注册。旧卸载记录在新安装写入的同一事务中归档为原 Authority 的 `page-cleanup-v1`，保留原 installationId、generation、token 及清理证据，新安装获得独立身份；连续重装不覆盖更早的待清理记录。清理未知只约束原文档中的再次执行，新文档可按新授权运行；既不重放旧清理或源码，也不把旧实例视为新安装。
+
+`listPagePrograms.cleanupPending` 单独投影已卸载及已归档的待清理记录，不将它们列为 installed。导入成功界面显示非阻断清理提示，无需刷新或关闭原网页才能完成安装。`managedCleanup.records` 是历史记录数，`pendingRecords` 与去重的 `pendingDocuments` 才表示待核对执行及文档，后者含原 tab/document ID、观察状态和可读取的当前标签标题。导航、关闭及 Worker 恢复仅观察原文档；精确确认消失后按原安装身份及代数收尾，存活或不可观察则保留证据。旧标签查询抛错不等于文档消失，仍需单独查询原 document ID。`E_PAGE_INSTALL_PENDING` 保留用于真实安装回执未就绪，不因旧页面清理未完成而产生。构建产物更新与真实 Chrome 安装成功仍需分别核实。
+
 启停及恢复使用 `setInstalledPageEnabled({programId, manifestHash, installationId, expectedGeneration, enabled})`，其中 `installationId` 必填，取自所选安装的 `authorization.installationId`。Authority 初读与写事务均校验安装身份及代数；缺失身份拒绝为 `E_SCHEMA`，错误身份或陈旧代数拒绝为 `E_REVISION`。即使卸载后重装同字节且 generation 重置，旧安装请求也不能作用于新安装。
 
 草稿 JSON 继续用于「开发」的源码导入与本地项目调试；扩展安装入口明确拒绝将草稿当安装包，不自动导航或覆盖编辑器。临时运行不等于持久安装。Sidebar 应用 `.opendesk-tool.json` 保持原独立沙箱安装流程。

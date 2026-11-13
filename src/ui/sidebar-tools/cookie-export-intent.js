@@ -1,21 +1,26 @@
+import {classifyCookiePageTransition} from './cookie-page-transition.js';
+
 // A real click in the admitted official UI permits one delivery for its current
 // website. The existing Browser Host still approves and consumes the exact bytes.
 export function createCookieExportIntentGate({now=()=>Date.now()}={}){
-  let intent=null,sequence=0;
+  let intent=null,sequence=0,generation=0;
   const denied=code=>Object.assign(new Error('导出操作已失效，请重新点击复制或下载'),{code});
   return Object.freeze({
-    start({owner,origin,operation,grantEpoch,verifiedUserActivation}){
+    get generation(){return generation;},
+    start({owner,origin,operation,grantEpoch,document,verifiedUserActivation}){
       if(verifiedUserActivation!==true)throw denied('E_USER_GESTURE_REQUIRED');
       if(typeof owner!=='string'||!owner||typeof grantEpoch!=='string'||!grantEpoch||!/^https?:\/\//.test(origin)||
-         !['browser.clipboard.writeText','browser.downloads.text'].includes(operation))
+         !['browser.clipboard.writeText','browser.downloads.text'].includes(operation)||
+         classifyCookiePageTransition(document,document)==='invalidate'||document.origin!==origin)
         throw denied('E_SCHEMA');
-      intent={owner,origin,operation,grantEpoch,ref:++sequence,expiresAt:now()+30000};
+      intent={owner,origin,operation,grantEpoch,document:{...document},ref:++sequence,expiresAt:now()+30000};
       return {authorized:true,ref:intent.ref};
     },
-    consume({owner,origin,operation,grantEpoch}){
+    consume({owner,origin,operation,grantEpoch,document}){
       if(!intent||intent.owner!==owner)return false;
       const current=intent;intent=null;
-      if(now()>=current.expiresAt||current.origin!==origin||current.operation!==operation||current.grantEpoch!==grantEpoch)
+      if(now()>=current.expiresAt||current.origin!==origin||current.operation!==operation||current.grantEpoch!==grantEpoch||
+         classifyCookiePageTransition(current.document,document)==='invalidate')
         throw denied('E_DOCUMENT_CHANGED');
       return true;
     },
@@ -24,6 +29,6 @@ export function createCookieExportIntentGate({now=()=>Date.now()}={}){
       if(closed)intent=null;
       return {closed};
     },
-    revoke(){intent=null;}
+    revoke(){intent=null;generation++;}
   });
 }

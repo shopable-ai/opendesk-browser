@@ -297,31 +297,46 @@ export function findConversationPages(binding,doc,win) {
     if(role==='user')pages.push({target:node});
     else if(!pages.length)return null;
   }
-  return pages.length>=2?{main,scroller,pages}:null;
+  return pages.length?{main,scroller,pages}:null;
 }
 export function currentConversationPageIndex(paging,doc,win) {
   if(!paging?.pages?.length||!paging.scroller?.isConnected)return -1;
   const port=viewport(paging.scroller,doc,win);
-  if(paging.scroller.scrollHeight-paging.scroller.clientHeight>2 &&
-      paging.scroller.scrollTop>=paging.scroller.scrollHeight-paging.scroller.clientHeight-2)
-    return paging.pages.length-1;
-  // Allow for the native fixed header, while never using the assistant's
-  // own nested code/editor scrollport as the reading position.
-  const line=port.top+Math.min(144,Math.max(64,port.height*0.16));
+  // Count and navigate against the actual question landing, including native
+  // sticky headers. A question merely entering the viewport is not yet passed.
   let index=0;
   for(const [position,page] of paging.pages.entries()) {
     if(!page.target?.isConnected)return -1;
-    if(page.target.getBoundingClientRect().top<=line)index=position;
+    const line=port.top+GAP+obstruction({target:page.target,main:paging.main},paging.scroller,doc,win,port);
+    if(page.target.getBoundingClientRect().top<=line+2)index=position;
     else break;
   }
   return index;
 }
-export function jumpConversationPage(paging,direction,doc,win) {
-  if(!['previous','next'].includes(direction))return false;
+export function conversationPageTargetIndex(paging,direction,doc,win) {
+  if(!['previous','next'].includes(direction))return -1;
   const index=currentConversationPageIndex(paging,doc,win);
-  if(index<0)return false;
-  const destination=index+(direction==='next'?1:-1);
-  if(destination<0||destination>=paging.pages.length)return false;
+  if(index<0)return -1;
+  const {scroller,main,pages}=paging,port=viewport(scroller,doc,win);
+  const max=Math.max(0,scroller.scrollHeight-scroller.clientHeight);
+  // Going up from a long answer first returns to its own question. At that
+  // question's landing, continue to the previous round. Use the same sticky
+  // header allowance and clamp as the actual jump, including short final rounds.
+  const step=direction==='previous'?-1:1;
+  for(let candidate=index+(step>0?1:0);candidate>=0&&candidate<pages.length;candidate+=step) {
+    const target=pages[candidate].target;
+    if(!target?.isConnected||!main.contains(target))return -1;
+    const cover=obstruction({target,main},scroller,doc,win,port);
+    if(cover+GAP>=port.height)return -1;
+    const top=Math.max(0,Math.min(max,
+      scroller.scrollTop+target.getBoundingClientRect().top-port.top-cover-GAP));
+    if(step*(top-scroller.scrollTop)>2)return candidate;
+  }
+  return -1;
+}
+export function jumpConversationPage(paging,direction,doc,win) {
+  const destination=conversationPageTargetIndex(paging,direction,doc,win);
+  if(destination<0)return false;
   return jumpRegionTop({target:paging.pages[destination].target,
     main:paging.main,kind:'conversation'},doc,win);
 }

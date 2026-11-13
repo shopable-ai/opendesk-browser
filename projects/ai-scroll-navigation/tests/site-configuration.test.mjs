@@ -132,12 +132,13 @@ test('dock updates both disabled edges and rejects DOM replacement until refresh
   const f=fixture();
   const dock=installFloatingNavigation({...f,resolveConversation:()=>resolveConfiguredConversation(rule,f.doc,f.win)});
   const host=f.doc.querySelector('[data-opendesk-ai-scroll-navigation="dock"]');
-  const [top,bottom]=host.shadowRoot.querySelectorAll('button');
-  assert.equal(top.disabled,false);assert.equal(bottom.disabled,false);
-  f.click(top);dock.refresh();assert.equal(top.disabled,true);assert.equal(bottom.disabled,false);
-  f.click(bottom);dock.refresh();assert.equal(top.disabled,false);assert.equal(bottom.disabled,true);
+  const top=host.shadowRoot.querySelector('[data-scroll-nav-key="floatingTop"],[data-scroll-nav-key="conversationTop"]'),
+    bottom=host.shadowRoot.querySelector('[data-scroll-nav-key="conversationBottom"]');
+  assert.equal(top.getAttribute('aria-disabled'),'false');assert.equal(bottom.getAttribute('aria-disabled'),'false');
+  f.click(top);dock.refresh();assert.equal(top.getAttribute('aria-disabled'),'true');assert.equal(bottom.getAttribute('aria-disabled'),'false');
+  f.click(bottom);dock.refresh();assert.equal(top.getAttribute('aria-disabled'),'false');assert.equal(bottom.getAttribute('aria-disabled'),'true');
   f.main.scrollHeight=f.main.clientHeight;f.main.scrollTop=0;dock.refresh();
-  assert.equal(top.disabled,true);assert.equal(bottom.disabled,true);
+  assert.equal(top.getAttribute('aria-disabled'),'true');assert.equal(bottom.getAttribute('aria-disabled'),'true');
   f.main.replaceWith(f.main.cloneNode(true));const count=f.calls.length;f.click(top);
   assert.equal(f.calls.length,count);f.owner.dispose();
 });
@@ -594,7 +595,7 @@ test('formal Page consumer observes persisted flags, updates dock and restores a
     resolveConversation:()=>resolveConfiguredConversation(runtime.activeRule(),f.doc,f.win)});
   await settle();
   const controls=()=>[...f.doc.querySelector('[data-opendesk-ai-scroll-navigation="dock"]')?.shadowRoot.querySelectorAll('button')||[]];
-  assert.equal(controls().length,2);
+  assert.equal(controls().length,4);
   const navigation={regionTop:false,regionBottom:false,conversationTop:false,conversationBottom:false,floatingTop:false,turnPaging:false};
   await api.write({version:1,sites:[rule],navigation},'one');
   f.owner.flush();await settle();
@@ -620,10 +621,12 @@ test('main wires the formal snapshot to live navigation and subsequent persisten
     const module=await import('data:text/javascript;base64,'+Buffer.from(source).toString('base64'));
     assert.equal((await module.default()).status,'active');await settle();
     const controls=()=>[...f.doc.querySelector('[data-opendesk-ai-scroll-navigation="dock"]')?.shadowRoot.querySelectorAll('button')||[]];
-    assert.equal(controls().length,2);
+    assert.equal(controls().length,4);
     await api.write({version:1,sites:[rule],navigation:{conversationTop:false,floatingTop:false,conversationBottom:true}},'one');
     f.owner.flush();await settle();
-    assert.deepEqual(controls().map(button=>button.dataset.scrollNavKey),['conversationBottom']);
+    assert.deepEqual(controls().map(button=>button.dataset.scrollNavKey),
+      ['turnPrevious','turnNext','conversationBottom']);
+    assert.ok(controls().slice(0,2).every(button=>button.getAttribute('aria-disabled')==='true'));
   }finally{
     f.owner.dispose();for(const [key,descriptor] of previous){if(descriptor)Object.defineProperty(globalThis,key,descriptor);else delete globalThis[key];}
   }

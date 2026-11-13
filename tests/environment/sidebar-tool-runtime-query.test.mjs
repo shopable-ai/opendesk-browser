@@ -1,7 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import {handleSidebarToolRuntimeQuery,assertSidebarToolRuntime} from '../../src/sidebar-tools/runtime-compatibility.js';
-import {SIDEBAR_TOOL_PROTOCOL,sidebarToolPackageContractHash} from '../../src/ui/sidebar-tools/package.js';
+import {SIDEBAR_TOOL_PROTOCOL,sidebarToolPackageContract,sidebarToolPackageContractHash} from '../../src/ui/sidebar-tools/package.js';
 
 function fixture(){
   const api={runtime:{id:'extension',getURL:path=>'chrome-extension://extension/'+path,
@@ -36,6 +36,21 @@ test('a matching initial check cannot authorize a later Worker version',async()=
   const {api}=fixture();await assertSidebarToolRuntime(api);
   api.runtime.sendMessage=async()=>({ok:false,error:{code:'E_DEV_RELOADING',message:'正在安全更新'}});
   await assert.rejects(assertSidebarToolRuntime(api),error=>error.code==='E_DEV_RELOADING');
+});
+
+test('matching capability names cannot hide a Worker with legacy Page timing support',async()=>{
+  const {api}=fixture();
+  const {pageModule,...legacyContract}=sidebarToolPackageContract();
+  const contractHash=async value=>Array.from(new Uint8Array(await crypto.subtle.digest('SHA-256',
+    new TextEncoder().encode(JSON.stringify(value)))),byte=>byte.toString(16).padStart(2,'0')).join('');
+  // The old handshake omitted Page timing entirely. A same-version Worker
+  // could therefore agree with the importer while rejecting document_end.
+  for(const contract of [legacyContract,{...legacyContract,pageModule:{...pageModule,runAt:['document_idle']}}]){
+    const hash=await contractHash(contract);
+    api.runtime.sendMessage=async()=>({ok:true,data:{extensionId:api.runtime.id,version:'0.1.0',contractHash:hash}});
+    await assert.rejects(assertSidebarToolRuntime(api),error=>
+      error.code==='E_TOOL_RUNTIME_MISMATCH'&&/安全更新/.test(error.message));
+  }
 });
 
 test('sandbox, webpage, foreign extension and malformed requests cannot inspect the trusted runtime',async()=>{

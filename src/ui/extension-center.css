@@ -27,8 +27,19 @@
 .ec-more button[aria-pressed=true]{color:var(--od-accent-ink);border-color:var(--od-focus);background:color-mix(in srgb,var(--od-accent-ink) 8%,var(--od-paper));font-weight:650}
 .ec-more .ec-menu-action{display:block;width:100%;text-align:left;border:0;color:var(--od-ink);font-size:12px;padding:8px}
 .ec-menu-separator{border-top:1px solid var(--od-line);padding-top:7px}
+/* The setup notice is a compact part of the list, with one staged action. */
+.ec-preinstall{display:flex;align-items:center;flex-wrap:wrap;gap:var(--space-2);padding:var(--space-2) var(--space-3);margin-bottom:var(--space-2);min-width:0}
+.ec-preinstall p{flex:1 1 150px;min-width:0;margin:0;font-size:var(--od-body-size);line-height:1.5;overflow-wrap:anywhere}
+.ec-preinstall-actions{display:flex;align-items:center;flex-wrap:wrap;gap:var(--space-1);max-width:100%}
+.ec-preinstall-actions .od-button{max-width:100%;white-space:normal;font-weight:500;border-color:var(--od-line)}
+.ec-preinstall-help{min-width:0}
+.ec-preinstall-help p{margin:0;line-height:1.6;overflow-wrap:anywhere}
+.ec-preinstall-help .od-page-title{flex:1;margin:0}
+.ec-preinstall-steps{display:grid;gap:var(--space-3);margin:0;padding-left:var(--space-5,20px);line-height:1.6}
+.ec-preinstall-help-actions{flex-wrap:wrap}
+.ec-preinstall-diagnostic p{font-size:var(--od-note-size);color:var(--od-sub)}
 .ec-list:empty{display:none}
-.ec-row{position:relative;min-height:52px;--ec-row-surface:var(--od-paper);background:var(--ec-row-surface)}
+.ec-row{position:relative;min-height:52px;--ec-row-surface:var(--od-paper);--ec-actions-right:8px;--ec-content-right:12px;background:var(--ec-row-surface)}
 .ec-row:hover,.ec-row:focus-within,.ec-row:has([aria-expanded=true]){--ec-row-surface:var(--od-muted)}
 /* Full row opens the tool/detail; a single menu floats over content on hover/focus. */
 .ec-row-main{display:grid;grid-template-columns:29px minmax(0,1fr);align-items:center;gap:var(--space-2);width:100%;min-height:52px;min-width:0;max-width:none;padding:var(--space-3);border:0;border-radius:0;background:transparent;color:inherit;text-align:left;cursor:pointer}
@@ -38,10 +49,10 @@
 /* Exactly one pinned desktop menu follows the last pointer/focus interaction.
    Pointer exit does not clear it; touch still exposes all menu targets. */
 .ec-row--action-visible .ec-row-actions{opacity:1;pointer-events:auto}
-.ec-row--has-update .ec-row-main{padding-right:130px}
-.ec-row--has-update .ec-row-actions{opacity:1;pointer-events:auto;gap:4px}
-/* Update availability does not follow the last hovered/focused menu. */
-.ec-row--has-update>.ec-row-actions{opacity:1;pointer-events:auto}
+/* Update and More share the same centered overlay and interaction owner. */
+.ec-row--has-update .ec-row-actions{gap:4px}
+/* Only the title line yields to the visible overlay; body width stays intact. */
+.ec-row--action-visible .ec-name-line{max-width:calc(100% - var(--ec-row-actions-width,34px) - var(--ec-actions-right) + var(--ec-content-right) - 6px)}
 .ec-row-update{flex:none;min-width:48px;min-height:34px;padding:5px 8px;
   border:1px solid var(--od-focus);border-radius:var(--radius-control);
   background:var(--od-paper);color:var(--od-accent-ink);font-size:12px;font-weight:650;cursor:pointer}
@@ -54,8 +65,8 @@
 .ec-glyph svg{width:18px;height:18px;fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
 .ec-copy{display:flex;flex-direction:column;justify-content:center;gap:var(--space-1);min-width:0}
 .ec-name-line{display:flex;align-items:center;gap:6px;min-width:0;min-height:18px}
-.ec-name{display:flex;align-items:center;min-width:0;min-height:18px;text-align:left;font-size:var(--od-note-size);line-height:1.5;font-weight:680;color:var(--od-ink)}
-.ec-name-text{min-width:0;overflow:hidden;overflow-wrap:anywhere;display:-webkit-box;-webkit-box-orient:vertical;-webkit-line-clamp:2}
+.ec-name{display:flex;flex:0 1 auto;align-items:center;min-width:0;min-height:18px;text-align:left;font-size:var(--od-note-size);line-height:1.5;font-weight:680;color:var(--od-ink)}
+.ec-name-text{display:block;min-width:0;overflow:hidden;white-space:nowrap;text-overflow:ellipsis}
 .ec-type{flex:none;display:inline-flex;align-items:center;min-height:16px;padding:1px 5px;border:0;border-radius:4px;background:var(--od-muted);white-space:nowrap;color:var(--od-sub);font-size:var(--od-meta-size);line-height:1.3}
 .ec-description{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:var(--od-sub);font-size:var(--od-meta-size);line-height:1.5}
 /* Only duplicate-title installed apps show their authoritative ID. Avoid truncating identity at 320px. */
@@ -63,12 +74,13 @@
 .ec-row-more{display:grid;place-items:center;width:34px;min-width:34px;min-height:34px;padding:0;border:1px solid transparent;border-radius:var(--radius-control);background:transparent;color:var(--od-sub)}
 .ec-row-more[aria-expanded=true]{background:var(--od-paper);border-color:var(--od-line)}
 .ec-row-more:hover:not(:disabled){background:var(--od-muted)}
-.ec-context-menu{position:fixed;z-index:1000;min-width:172px;max-width:calc(100vw - 16px);max-height:calc(100vh - 16px);overflow-y:auto;
+.ec-context-menu{position:fixed;z-index:1000;width:max-content;min-width:min(96px,calc(100vw - 16px));max-width:calc(100vw - 16px);max-height:calc(100vh - 16px);overflow-y:auto;
   padding:5px;border:1px solid var(--od-line);border-radius:calc(var(--radius-control) + 2px);background:var(--od-paper);
   box-shadow:0 12px 32px #101a2a35}
 .ec-context-menu[hidden]{display:none!important}
-.ec-context-action{display:block;width:100%;min-height:36px;text-align:left;padding:7px 10px;border:0;border-radius:6px;
+.ec-context-action{display:block;width:100%;min-height:36px;text-align:start;padding:7px 10px;border:0;border-radius:6px;
   background:transparent;color:var(--od-ink);font-size:var(--od-note-size)}
+.ec-context-menu[data-align=center] .ec-context-action{text-align:center}
 .ec-context-action:hover,.ec-context-action:focus-visible{background:var(--od-muted)}
 .ec-context-action[data-ec-context-action="uninstall"]{margin-top:4px;border-top:1px solid var(--od-line);color:var(--od-negative)}
 .ec-context-action:focus-visible{outline:2px solid var(--od-focus);outline-offset:-2px}
@@ -116,15 +128,17 @@
 .ec-file-drop-overlay strong{font-size:14px;line-height:1.4}
 .ec-file-drop-overlay span{font-size:12px;color:var(--od-sub);line-height:1.5}
 @media(max-width:330px){
+  .ec-row{--ec-actions-right:6px}
   .ec-row-actions{right:6px}
   .ec-type{padding:1px 3px}
 }
 /* Touch lacks hover: retain one 44px control rather than three permanent actions. */
 @media(hover:none),(pointer:coarse){
   .ec-row-actions{opacity:1;pointer-events:auto}
+  .ec-row:has(>.ec-row-actions:not(:empty)) .ec-name-line{max-width:calc(100% - var(--ec-row-actions-width,44px) - var(--ec-actions-right) + var(--ec-content-right) - 6px)}
   .ec-row-more{width:44px;min-width:44px;min-height:44px}
   .ec-row-update{min-height:44px}
-  .ec-row--has-update .ec-row-main{padding-right:142px}
+  .ec-context-action{min-height:44px}
   .ec-toolbar .ec-icon{width:44px;min-width:44px;min-height:44px}
   .ec-more button{min-width:44px;min-height:44px}
 }
@@ -133,16 +147,13 @@
   .ec-search{order:0;flex:1 1 100%;width:100%}
   .ec-toolbar>#extension-center-market{order:1}
   .ec-menu-wrap{order:2;margin-left:auto}
-  .ec-row{min-height:82px}
+  .ec-row{min-height:82px;--ec-content-right:6px}
   .ec-row-main{grid-template-columns:26px minmax(0,1fr);gap:4px;min-height:82px;align-items:center;padding:8px 6px}
   .ec-glyph{width:26px;height:26px}
   .ec-name-line{flex-wrap:wrap;gap:3px}
   .ec-name{flex:1 1 70px;max-width:100%;min-height:18px}
   .ec-description{white-space:normal;display:-webkit-box;-webkit-box-orient:vertical;-webkit-line-clamp:2}
   .ec-row-actions{right:6px}
-  .ec-row--has-update{min-height:106px}
-  .ec-row--has-update .ec-row-main{min-height:106px;padding-right:6px;padding-bottom:54px}
-  .ec-row--has-update .ec-row-actions{top:auto;bottom:3px;transform:none}
   .ec-more{right:0;max-width:calc(100vw - 20px)}
 }
 @media(pointer:coarse){.ec-name,.ec-detail-back,.ec-detail-actions button{min-height:44px;min-width:44px}}
@@ -499,9 +510,13 @@
 .ec-scroll-flags{border:1px solid var(--od-line);border-radius:var(--radius-surface);overflow:hidden;background:var(--od-paper)}
 .ec-scroll-site-manager h3.ec-scroll-flag-group{padding:8px 12px;background:var(--od-muted);font-size:11px;font-weight:700;color:var(--od-sub)}
 .ec-scroll-flag{display:flex;align-items:center;justify-content:space-between;gap:10px;min-height:48px;padding:9px 12px;font-size:12px;font-weight:600}
+.ec-scroll-flag>label{margin:0}
 .ec-scroll-flag>span{min-width:0;overflow-wrap:anywhere}
 .ec-scroll-flag .od-shared-switch{flex:none}
 .ec-scroll-flag+.ec-scroll-flag{border-top:1px solid var(--od-line)}
+.ec-scroll-navigation-help{color:var(--od-sub);font-size:11px}
+.ec-scroll-navigation-help>summary{cursor:pointer}
+.ec-scroll-navigation-help[open]>.ec-scroll-help{margin-top:8px}
 @media(max-width:360px){
   .ec-scroll-builtins>li,.ec-scroll-site-row{padding:9px 10px}
   .ec-scroll-mark{width:28px;height:28px}
@@ -521,3 +536,9 @@
   .ec-scroll-title .od-icon-button,.ec-scroll-row-actions .od-icon-button{width:44px;min-width:44px;height:44px;min-height:44px}
   .ec-scroll-selector>.ec-scroll-picker{width:44px;min-width:44px;height:44px;min-height:44px}
 }
+.ec-page-cleanup{flex:none;min-width:0}
+.ec-page-cleanup-content{display:grid;gap:var(--space-2);padding:0 var(--space-3) var(--space-3);font-size:12px;line-height:1.5;overflow-wrap:anywhere}
+.ec-page-cleanup-content p{margin:0}
+.ec-page-cleanup-documents{display:grid;gap:var(--space-2);max-height:240px;overflow:auto;overscroll-behavior:contain;margin:0;padding-inline-start:var(--space-4)}
+.ec-page-cleanup-documents li>span{display:block}
+.ec-page-cleanup-meta{color:var(--od-sub);font-size:12px}

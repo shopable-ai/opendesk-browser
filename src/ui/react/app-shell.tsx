@@ -75,6 +75,20 @@ export function SidebarAppShell({
     !document.activeElement?.closest?.('#extension-center-list');
   const inlineRows=projectTrustedInlineUpdates(list.rows||[],updateNotice.state,
     {promote:Boolean(defaultOrder)});
+  // Focus moving from a row into its portal menu must not reorder the trigger.
+  // Keep only display order: release eligibility is still recomputed above.
+  const orderContext=JSON.stringify([pageSurface,controls.scope,controls.kind,controls.query||'']);
+  const committedOrder=React.useRef({context:null,keys:[]});
+  const rowInteraction=Boolean(list.busy||list.pendingKey||extensionProps.menuKey||
+    extensionProps.rowMenuModel||globalThis.document?.activeElement?.closest?.(
+      '#extension-center-list,#extension-center-row-menu'));
+  if(rowInteraction&&committedOrder.current.context===orderContext){
+    const rank=new Map(committedOrder.current.keys.map((key,index)=>[key,index]));
+    inlineRows.sort((a,b)=>(rank.get(a.key)??Infinity)-(rank.get(b.key)??Infinity));
+  }
+  React.useLayoutEffect(()=>{
+    committedOrder.current={context:orderContext,keys:inlineRows.map(row=>row.key)};
+  });
   const inlineRowsModel={...list,rows:inlineRows,
     onInlineUpdate:(record,event)=>event?.isTrusted===true?onOpenUpdateReview(record):false};
   const inlineToolbarModel={...controls,
@@ -126,7 +140,7 @@ export function SidebarAppShell({
   </main></>;
   return <>
     <TaskRunSheet view={myView}/>
-    {toolView&&<NotificationViewport view={toolView} snapshot={toolSnapshot}/>}
+    {toolView&&<NotificationViewport view={toolView} snapshot={toolSnapshot} locale={uiLocale}/>}
     <nav className="workbench-nav" role="tablist" aria-label={translateSidebarNavigation('sidebar.navigation',uiLocale)}
       aria-description={translateSidebarNavigation('sidebar.navigationHint',uiLocale)}
       data-debug-enabled={debugEnabled?'true':undefined}>
@@ -157,6 +171,9 @@ export function SidebarAppShell({
             <section id="extension-center" aria-label="扩展管理">
               <ExtensionCenterPage {...extensionProps}
                 rowsModel={inlineRowsModel} toolbarModel={inlineToolbarModel}
+                preinstallModel={toolSnapshot.fields['sidebar-tool-preinstall']?.hidden===false?
+                  toolSnapshot.fields['sidebar-tool-preinstall'].data:null}
+                onPreinstallAction={(action,event)=>toolView?.dispatch('sidebar-tool-preinstall',action,event)}
                 updateCenter={<UpdateNoticeSlot controller={updateNotice}
                   showTrigger={false} returnFocusSelector="#extension-center-more"
                   onOpenReview={onOpenUpdateReview}/>}/>

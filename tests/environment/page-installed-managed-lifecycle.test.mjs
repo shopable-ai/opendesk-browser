@@ -11,6 +11,7 @@ import {createPreviewWorlds,MAX_PREVIEW_WORLDS_PER_DOCUMENT} from '../../src/scr
 import {createPreviewAdmission} from '../../src/platform/host/preview-admission.js';
 import {createManagedUIPreview} from '../../src/native-agent/managed-preview.js';
 import {fakeBuiltinSource} from './builtin-support.mjs';
+import {digest,digestUtf8} from '../../src/platform/protocol.js';
 
 // Node protocol/DOM doubles, never Chrome or approved child-frame evidence.
 class Element extends EventTarget {
@@ -156,11 +157,12 @@ test('installed frozen frame resources enable parent messaging and bind the boot
 });
 test('allocating a child preserves live installed parent messaging while resetting stale world configurations',async()=>{
   const parentWorld='opendesk-preview-d1-live-parent',retiredWorld='opendesk-preview-d1-retired';
+  const linkedWorld='opendesk-preview-d1-live-child';
   const staleWorld='opendesk-preview-d1-orphan';
   const parentConfig={worldId:parentWorld,csp:PAGE_WORLD_CSP,messaging:true};
-  const configurations=new Map([parentConfig,{worldId:retiredWorld},{worldId:staleWorld}].map(row=>[row.worldId,row]));
+  const configurations=new Map([parentConfig,{worldId:linkedWorld},{worldId:retiredWorld},{worldId:staleWorld}].map(row=>[row.worldId,row]));
   const session={opendeskPagePreviewWorldsD1:[
-    {tabId:1,documentId:'parent-document',worldId:parentWorld,installed:{state:'evaluated'}},
+    {tabId:1,documentId:'parent-document',worldId:parentWorld,installed:{state:'evaluated',frames:[{worldId:linkedWorld,state:'unknown'}]}},
     {tabId:1,documentId:'old-document',worldId:retiredWorld,installed:{state:'retired'}}
   ]};
   const resets=[],probes=[],contexts=new Map();
@@ -183,12 +185,20 @@ test('allocating a child preserves live installed parent messaging while resetti
     get:async key=>({[key]:structuredClone(session[key])}),
     set:async value=>Object.assign(session,structuredClone(value))
   }}};
-  const childWorld=await createPreviewWorlds({api}).allocate(native,child);
+  const worlds=createPreviewWorlds({api}),childWorld=await worlds.allocate(native,child,{pendingBinding:'pending-child'});
   assert.deepEqual(resets,[retiredWorld,staleWorld]);
   assert.deepEqual(configurations.get(parentWorld),parentConfig,
     'child allocation must retain the original parent messaging channel for destroy/retirement');
   assert.deepEqual(configurations.get(childWorld),{worldId:childWorld,csp:PAGE_WORLD_CSP,messaging:false});
   assert.equal(probes.length,3,'real default-world persistence and child isolation probes must complete');
+  await worlds.allocate(native,child);
+  assert.ok(configurations.has(childWorld),'another allocation cannot reset a world awaiting its binding');
+  assert.ok(configurations.has(linkedWorld),'a child referenced by the original lifecycle remains protected');
+  await worlds.releasePending({worldId:childWorld,nonce:'stale'});
+  assert.equal((await worlds.records()).find(row=>row.worldId===childWorld).pendingBinding,'pending-child');
+  await worlds.releasePending({worldId:childWorld,nonce:'pending-child'});
+  await worlds.allocate(native,child);
+  assert.ok(resets.includes(childWorld),'exact known preparation cleanup permits later configuration reconciliation');
 });
 test('installed disable invokes actual managed disposers and binds original execution and resource hashes',async t=>{
   const f=fixture();t.after(f.dispose);await f.install();await f.boot();assert.equal(f.doc.querySelectorAll().length,1);
@@ -334,6 +344,94 @@ test('cleanup observation of a live ready world cannot dispatch a disposer',asyn
   assert.equal(f.doc.querySelectorAll().length,1);
   assert.equal(f.calls.length,calls);
 });
+for(const exact of ['gone','live','unobservable'])test('cleanup checks the exact document after its old tab query throws: '+exact,async t=>{
+  const f=fixture();t.after(f.dispose);await f.install();await f.boot();
+  const queries=[],calls=f.calls.length;
+  f.api.webNavigation.getFrame=async details=>{
+    queries.push(details);
+    if(Object.hasOwn(details,'tabId'))throw Error('old tab no longer exists');
+    if(exact==='unobservable')throw Error('exact document query unavailable');
+    return exact==='gone'?null:{documentId:f.target.documentId,parentFrameId:-1,
+      frameType:'outermost_frame',documentLifecycle:'cached'};
+  };
+  const cleanup=await f.executor.retireInstalled(f.installation(),{observeOnly:true});
+  assert.ok(queries.some(query=>!Object.hasOwn(query,'tabId')));
+  assert.equal(cleanup.state,exact==='gone'?'retired':'unknown');
+  assert.equal(cleanup.pendingDocuments.length,exact==='gone'?0:1);
+  if(exact!=='gone')assert.equal(cleanup.pendingDocuments[0].state,exact==='live'?'cached':'unobservable');
+  assert.equal(f.calls.length,calls,'document observation cannot execute a disposer or source');
+});
+test('cleanup diagnostics separate historical receipts from pending documents',async t=>{
+  const f=fixture();t.after(f.dispose);await f.install();await f.boot();
+  f.navigate('document-two');await f.boot();await f.loseLegacyMetadata();
+  const cleanup=await f.executor.retireInstalled(f.installation(),{observeOnly:true});
+  assert.equal(cleanup.records,2);
+  assert.equal(cleanup.pendingRecords,1);
+  assert.deepEqual(cleanup.pendingDocuments,[{tabId:1,documentId:'document-two',state:'active'}]);
+});
+test('archived cleanup observation cannot erase a concurrently changed cleanup owner',async t=>{
+  const f=fixture();t.after(f.dispose);await f.install();await f.boot();await f.loseLegacyMetadata();await f.uninstall();
+  const tombstone=f.rows().find(row=>row.tag==='page-uninstalled-v1'),calls=f.calls.length;
+  await f.install('return 43;',2);
+  f.api.webNavigation.getFrame=async()=>{
+    await f.storage.transaction(['frameworkKV'],'readwrite',async tx=>{
+      for(const row of await tx.all('frameworkKV')){
+        const key='page-cleanup:'+JSON.stringify([row.namespace,row.programId,row.authorization?.installationId,row.authorization?.generation]);
+        if(row.tag==='page-cleanup-v1')await tx.put('frameworkKV',{...row,token:'f'.repeat(32),
+          authorization:{...row.authorization,generation:tombstone.authorization.generation+1}},key);
+      }
+    });return null;
+  };
+  await f.service.observeManagedCleanup({tabId:1,removed:true});
+  const current=f.rows().find(row=>row.tag==='page-cleanup-v1');
+  assert.equal(current.token,'f'.repeat(32));
+  assert.equal(current.authorization.generation,tombstone.authorization.generation+1);
+  assert.equal(current.managedCleanup.state,'unknown');assert.equal(f.calls.length,calls);
+});
+for(const currentRunning of [false,true])test('same-version reimport succeeds independently of cleanup while preserving the active installation: '+currentRunning,async t=>{
+  const f=fixture();t.after(f.dispose);await f.install();await f.boot();f.cleanupReplies=()=>[];
+  const upgraded=await f.install('return 43;',2);
+  if(currentRunning){f.navigate('current-document');await f.boot();}else f.gone=true;
+  const calls=f.calls.length,token=f.installation().token,
+    current=structuredClone(f.rows().find(row=>row.tag==='page-execution-v1'&&row.revision===2));
+  const candidate=f.rows().find(row=>row.tag==='page-candidate-v1'&&row.manifest.revision===2);
+  const payload={format:'opendesk.page-install.v1',programId:'script',version:'2.0.0',title:'Script',revision:2,
+    entryFormat:'async-main',sourceUtf8:candidate.sourceUtf8,sourceHash:candidate.manifest.sourceHash,pageRules:candidate.manifest.pageRules};
+  const pkg={...payload,packageHash:await digest(payload)};
+  const restored=await f.service.importPageInstallPackage({package:pkg,
+    expectedInstalledManifestHash:upgraded.manifestHash,expectedGeneration:upgraded.authorization.generation},{});
+  assert.equal(restored.managedCleanup.state,'unknown');
+  assert.deepEqual(restored.authorization,upgraded.authorization);
+  assert.equal(restored.manifestHash,upgraded.manifestHash);
+  assert.equal(restored.nativeState,'registered');assert.equal(f.calls.length,calls);
+  assert.equal(f.installation().token,token);
+  await f.service.observeManagedCleanup({tabId:1,documentId:f.target.documentId});
+  assert.equal(f.installation().managedCleanup.state,'retired');
+  if(currentRunning)assert.deepEqual(f.rows().find(row=>row.executionKey===current.executionKey),current,
+    'current generation stays active in its own document; old cleanup cannot retire it');
+});
+for(const kind of ['gone','cached','unobservable'])test('Page reimport archives its cleanup tombstone without waiting for old documents: '+kind,async t=>{
+  const f=fixture();t.after(f.dispose);const installed=await f.install();await f.boot();
+  const candidate=f.rows().find(row=>row.tag==='page-candidate-v1');
+  await f.loseLegacyMetadata();await f.uninstall();
+  const calls=f.calls.length;
+  const pending=(await f.service.listPagePrograms({},{})).cleanupPending;
+  assert.equal(pending.length,1);assert.equal(pending[0].programId,'script');
+  assert.equal(pending[0].managedCleanup.pendingDocuments.length,1);
+  const payload={format:'opendesk.page-install.v1',programId:'script',version:'1.0.0',title:'Script',revision:1,
+    entryFormat:'async-main',sourceUtf8:candidate.sourceUtf8,sourceHash:await digestUtf8(candidate.sourceUtf8),
+    pageRules:candidate.manifest.pageRules};
+  const pkg={...payload,packageHash:await digest(payload)};
+  f.gone=kind==='gone';f.cached=kind==='cached';f.observationError=kind==='unobservable';
+  const result=await f.service.importPageInstallPackage({package:pkg,expectedInstalledManifestHash:null,expectedGeneration:null},{});
+  assert.equal(result.nativeState,'registered');assert.equal(result.ready,true);
+  assert.notEqual(result.authorization.installationId,installed.authorization.installationId);
+  assert.equal(f.rows().some(row=>row.tag==='page-uninstalled-v1'),false);
+  assert.equal(f.rows().some(row=>row.tag==='page-cleanup-v1'),true);
+  await f.service.observeManagedCleanup({tabId:1,documentId:f.target.documentId});
+  assert.equal((await f.service.listPagePrograms({},{})).cleanupPending.length,kind==='gone'?0:1);
+  assert.equal(f.calls.length,calls,'reimport cannot replay unknown cleanup or user source');
+});
 test('navigation clears an active upgrade cleanup warning without reinstalling or rerunning it',async t=>{
   const f=fixture();t.after(f.dispose);await f.install();await f.boot();f.cleanupReplies=()=>[];
   const upgraded=await f.install('return 43;',2),calls=f.calls.length;
@@ -349,12 +447,73 @@ test('navigation clears an active upgrade cleanup warning without reinstalling o
   assert.equal(recovered.enabled,true);
   assert.equal(f.calls.length,calls);
 });
-test('unknown cleanup rejects upgraded source without dispatching it',async t=>{
+test('unknown cleanup allows a disabled upgrade and restore but fences its old document',async t=>{
   const f=fixture();t.after(f.dispose);await f.install();await f.boot();f.cleanupReplies=()=>[];
   await f.disable();
   const calls=f.calls.length;
-  await assert.rejects(f.install('return 43;',2),{code:'E_PAGE_CLEANUP_PENDING'});
-  assert.equal(f.calls.length,calls,'unknown cleanup cannot dispatch upgraded source');
+  const upgraded=await f.install('return 43;',2);
+  assert.equal(upgraded.enabled,false);assert.equal(upgraded.nativeState,'disabled');
+  const enabled=await f.service.setInstalledPageEnabled({programId:'script',manifestHash:upgraded.manifestHash,
+    installationId:upgraded.authorization.installationId,enabled:true,expectedGeneration:upgraded.authorization.generation},{});
+  assert.equal(enabled.ready,true);
+  await assert.rejects(f.boot(),{code:'E_UI_CLEANUP_FAILED'});
+  assert.deepEqual(f.calls.slice(calls).map(call=>call.worldId),[PAGE_BOOT_WORLD],
+    'only the fixed bootstrap identity probe may run; upgraded source stays fenced');
+});
+test('two live old documents cannot block reinstall, restart or a new-document boot',async t=>{
+  const f=fixture();t.after(f.dispose);const original=await f.install();await f.boot();
+  const firstDocument=f.target.documentId;
+  f.navigate('document-two');f.goneDocuments.delete(firstDocument);await f.boot();
+  const getFrame=f.api.webNavigation.getFrame;
+  f.api.webNavigation.getFrame=async details=>details.documentId===firstDocument&&!f.goneDocuments.has(firstDocument)
+    ?{documentId:firstDocument,parentFrameId:-1,frameType:'outermost_frame',documentLifecycle:'cached'}:getFrame(details);
+  await f.loseLegacyMetadata();const removed=await f.uninstall();
+  assert.equal(removed.managedCleanup.pendingDocuments.length,2);
+  const calls=f.calls.length;
+  const fresh=await f.install('return 43;',2);
+  assert.equal(fresh.ready,true);assert.equal(fresh.nativeState,'registered');
+  assert.notEqual(fresh.authorization.installationId,original.authorization.installationId);
+  assert.equal((await f.service.listPagePrograms({},{})).cleanupPending[0].managedCleanup.pendingDocuments.length,2);
+  assert.equal(f.calls.length,calls,'install cannot re-execute source or uncertain cleanup');
+  await assert.rejects(f.boot(),{code:'E_UI_CLEANUP_FAILED'});
+  assert.equal(f.rows().find(row=>row.tag==='page-execution-v1'&&row.revision===2).state,'failed');
+  assert.deepEqual(f.calls.slice(calls).map(call=>call.worldId),[PAGE_BOOT_WORLD],
+    'same-document unknown history allows only the fixed bootstrap identity probe');
+  f.loseSession();f.restart();await f.service.reconcile();
+  assert.equal((await f.service.listPagePrograms({},{})).cleanupPending.length,1);
+  const current=structuredClone(f.installation());
+  f.navigate('document-three');await f.service.observeManagedCleanup({tabId:1,documentId:f.target.documentId});
+  assert.equal((await f.service.listPagePrograms({},{})).cleanupPending[0].managedCleanup.pendingDocuments.length,1);
+  await f.boot();
+  assert.equal(f.rows().find(row=>row.tag==='page-execution-v1'&&row.documentId==='document-three').state,'completed');
+  f.goneDocuments.add(firstDocument);await f.service.observeManagedCleanup({tabId:1,removed:true});
+  assert.equal((await f.service.listPagePrograms({},{})).cleanupPending.length,0);
+  assert.deepEqual(f.installation().authorization,current.authorization);
+  assert.equal(f.installation().token,current.token);
+});
+test('successive reinstalls retain separate old installation archives',async t=>{
+  const f=fixture();t.after(f.dispose);const first=await f.install();await f.boot();
+  const firstDocument=f.target.documentId;
+  await f.loseLegacyMetadata();await f.uninstall();
+  const second=await f.install('return 43;',2);
+  f.navigate('document-two');f.goneDocuments.delete(firstDocument);
+  const getFrame=f.api.webNavigation.getFrame;
+  f.api.webNavigation.getFrame=async details=>details.documentId===firstDocument&&!f.goneDocuments.has(firstDocument)
+    ?{documentId:firstDocument,parentFrameId:-1,frameType:'outermost_frame',documentLifecycle:'cached'}:getFrame(details);
+  await f.boot();await f.loseLegacyMetadata();await f.uninstall();
+  const calls=f.calls.length,third=await f.install('return 44;',3);
+  const archives=f.rows().filter(row=>row.tag==='page-cleanup-v1');
+  assert.deepEqual(archives.map(row=>row.authorization.installationId),
+    [first.authorization.installationId,second.authorization.installationId]);
+  assert.equal(new Set([...archives.map(row=>row.authorization.installationId),third.authorization.installationId]).size,3);
+  assert.equal((await f.service.listPagePrograms({},{})).cleanupPending.length,2);
+  f.loseSession();f.restart();await f.service.reconcile();
+  assert.equal(f.calls.length,calls,'archive recovery cannot dispatch native code');
+  assert.equal(f.rows().filter(row=>row.tag==='page-cleanup-v1').length,2);
+  f.goneDocuments.add(firstDocument);await f.service.observeManagedCleanup({tabId:1});
+  const pending=f.rows().filter(row=>row.tag==='page-cleanup-v1');
+  assert.equal(pending.length,1);assert.equal(pending[0].authorization.installationId,second.authorization.installationId);
+  assert.deepEqual(f.installation().authorization,third.authorization);
 });
 for(const recovery of ['navigation','reconcile'])test('legacy missing-lifecycle live document uninstall keeps a cleanup tombstone until exact document death: '+recovery,async t=>{
   const f=fixture();t.after(f.dispose);const installed=await f.install();await f.boot();
@@ -373,17 +532,24 @@ for(const recovery of ['navigation','reconcile'])test('legacy missing-lifecycle 
   assert.deepEqual((await f.service.listPagePrograms({},{})).installed,[]);
   assert.equal(f.doc.querySelectorAll().length,1,'lost ledger cannot select a disposer');
   await assert.rejects(f.service.handleBoot(oldBoot,sender),{code:'E_PERMISSION'});
-  await assert.rejects(f.install('return 43;',2),{code:'E_PAGE_CLEANUP_PENDING'});
+  // Cleanup evidence remains independently recoverable while a fresh grant exists.
+  const fresh=await f.install('return 43;',2);
+  const archived={...tombstone,tag:'page-cleanup-v1'};
+  assert.deepEqual(f.rows().find(row=>row.tag==='page-cleanup-v1'),archived);
+  assert.notEqual(fresh.authorization.installationId,installed.authorization.installationId);
+  await assert.rejects(f.service.handleBoot(oldBoot,sender),{code:'E_PERMISSION'});
   const observe=()=>recovery==='reconcile'?f.service.reconcile():f.service.observeManagedCleanup({tabId:1,documentId:'replacement-document'});
   for(const kind of ['live','cached','observationError']){
     f.cached=kind==='cached';f.observationError=kind==='observationError';
     await observe();
-    assert.deepEqual(f.rows().find(row=>row.tag==='page-uninstalled-v1'),tombstone);
+    const current=f.rows().find(row=>row.tag==='page-cleanup-v1');
+    assert.equal(current.managedCleanup.state,'unknown');
+    assert.deepEqual(current.authorization,archived.authorization);
     assert.equal(f.calls.length,calls,'live/cached/unobservable documents never replay cleanup or source');
   }
   f.cached=false;f.observationError=false;f.gone=true;
   await observe();
-  assert.equal(f.rows().some(row=>row.tag==='page-uninstalled-v1'),false);
+  assert.equal(f.rows().some(row=>row.tag==='page-cleanup-v1'),false);
   assert.equal(f.calls.length,calls,'document death only retires metadata');
   f.navigate('replacement-document');
   const again=await f.install('return 43;',2);
@@ -404,7 +570,11 @@ test('tombstone reconciliation never dispatches a recovered disposer after the f
   f.sessionReadError=false;f.restart();
   const nativeReads=f.nativeAccessReads;
   await f.service.reconcile();
-  assert.deepEqual(f.rows().find(row=>row.tag==='page-uninstalled-v1'),tombstone);
+  const observed=f.rows().find(row=>row.tag==='page-uninstalled-v1');
+  assert.deepEqual(observed.authorization,tombstone.authorization);
+  assert.equal(observed.token,tombstone.token);
+  assert.equal(observed.managedCleanup.state,'unknown');
+  assert.equal(observed.managedCleanup.pendingRecords,1);
   assert.equal(f.records()[0].installed.state,'evaluated','recovered ready ledger is only observed');
   assert.equal(f.doc.querySelectorAll().length,1);
   assert.equal(vm.runInContext('globalThis.disposals||0',f.context()),0);
@@ -491,6 +661,72 @@ test('durable world recovery retains budget for '+observation+' original documen
     'live, cached and unobservable documents still consume their original world slot');
   assert.ok(f.frameQueries.some(query=>query.documentId===original.documentId&&!Object.hasOwn(query,'tabId')),
     'recovery checks the original exact document UUID');
+});
+for(const collision of ['world','execution key'])test('same-read durable recovery rejects conflicting '+collision+' bindings',async t=>{
+  const f=fixture();t.after(f.dispose);await f.install();await f.boot();
+  const original=f.rows().find(row=>row.tag==='page-execution-v1'),conflicting=structuredClone(original);
+  if(collision==='world'){
+    conflicting.executionKey+='-conflict';
+    conflicting.managedUI.lifecycle.executionKey=conflicting.executionKey;
+  }else conflicting.managedUI.worldId+='-conflict';
+  await f.storage.transaction(['frameworkKV'],'readwrite',tx=>tx.put('frameworkKV',conflicting,original.executionKey+'-duplicate-row'));
+  f.loseSession();const before=structuredClone(f.rows()),calls=f.calls.length;
+  await assert.rejects(createPreviewWorlds({api:f.api,storage:f.storage}).records(),{code:'E_WORLD_ISOLATION'});
+  assert.deepEqual(f.rows(),before,'conflicts cannot rewrite durable identities');
+  assert.equal(f.records().length,0,'a rejected read cannot persist recovered duplicates');
+  assert.equal(f.calls.length,calls,'conflicts cannot dispatch source or cleanup');
+});
+test('same-read matching durable identities merge the later lifecycle into one world',async t=>{
+  const f=fixture();t.after(f.dispose);await f.install();await f.boot();
+  const original=f.rows().find(row=>row.tag==='page-execution-v1'),later=structuredClone(original);
+  later.managedUI.lifecycle.state='unknown';
+  await f.storage.transaction(['frameworkKV'],'readwrite',tx=>tx.put('frameworkKV',later,original.executionKey+'-later-row'));
+  f.loseSession();const before=structuredClone(f.rows()),calls=f.calls.length;
+  const rows=await createPreviewWorlds({api:f.api,storage:f.storage}).records();
+  assert.equal(rows.length,1,'matching durable rows consume only one world slot');
+  assert.equal(rows[0].installed.state,'unknown','execution order determines the final lifecycle');
+  assert.deepEqual(f.rows(),before);assert.equal(f.calls.length,calls);
+});
+test('world recovery bounds concurrent exact-document observations and retains cached or uncertain worlds',async t=>{
+  const f=fixture();t.after(f.dispose);await f.install();await f.boot();
+  const original=f.rows().find(row=>row.tag==='page-execution-v1');
+  await f.storage.transaction(['frameworkKV'],'readwrite',async tx=>{
+    for(let index=0;index<24;index++)for(let copy=0;copy<2;copy++){
+      const execution=structuredClone(original),documentId='history-'+index;
+      execution.documentId=documentId;execution.executionKey+='-'+index+'-'+copy;
+      execution.managedUI.worldId+='-'+index+'-'+copy;
+      const lifecycle=execution.managedUI.lifecycle;
+      lifecycle.executionKey=execution.executionKey;lifecycle.target.documentId=documentId;
+      await tx.put('frameworkKV',execution,execution.executionKey);
+    }
+  });
+  f.loseSession();let pending=0,peak=0,secondRead=false;const queries=[];
+  f.api.webNavigation.getFrame=async({documentId})=>{
+    queries.push(documentId);peak=Math.max(peak,++pending);
+    try{
+      await new Promise(resolve=>setImmediate(resolve));
+      if(secondRead)return documentId==='history-2'?{documentId,documentLifecycle:'active'}:null;
+      if(documentId==='history-1')throw Error('observation unavailable');
+      return documentId==='history-0'?{documentId,documentLifecycle:'cached'}:
+        documentId===original.documentId?{documentId,documentLifecycle:'active'}:null;
+    }finally{pending--;}
+  };
+  const before=structuredClone(f.rows());
+  const worlds=createPreviewWorlds({api:f.api,storage:f.storage}),rows=await worlds.records();
+  assert.ok(peak>1,'independent history checks must not each delay the next document');
+  assert.ok(peak<=8,'recovery must bound browser API pressure');
+  assert.equal(queries.length,25);assert.equal(new Set(queries).size,25,'observe each document once per recovery');
+  assert.deepEqual(rows.map(row=>row.documentId),[original.documentId,'history-0','history-0','history-1','history-1']);
+  assert.deepEqual(rows.map(row=>row.worldId),[original.managedUI.worldId,
+    ...[0,1].flatMap(index=>[0,1].map(copy=>original.managedUI.worldId+'-'+index+'-'+copy))],
+    'distinct worlds in one document retain execution order after concurrent observations');
+  secondRead=true;queries.length=0;
+  const refreshed=await worlds.records();
+  assert.equal(queries.length,25);assert.equal(new Set(queries).size,25,'each read reobserves every unique document');
+  assert.deepEqual(refreshed.map(row=>row.worldId),[0,1].map(copy=>original.managedUI.worldId+'-2-'+copy),
+    'previous absence is not cached and previous live or uncertain observations are refreshed');
+  assert.deepEqual(f.rows(),before,'observation cannot change Authority or replay lifecycle effects');
+  assert.equal(pending,0);
 });
 test('session reset cannot refund installed world slots in the same live document',async t=>{
   const f=fixture();t.after(f.dispose);

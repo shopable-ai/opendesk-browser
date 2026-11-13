@@ -39,22 +39,29 @@ const accessLossCodes=new Set(['E_GRANT_REVOKED','E_SITE_GRANT_REQUIRED',
 
 // Only public, redacted metadata is published to React. Values, pending import
 // batches, value-preservation reads and previewRefs never enter React state.
-export function createCookieController({adapter,onChange=()=>{}}){
+export function createCookieController({adapter,onChange=()=>{},onSuccess=()=>{},navigationIntervalMs=0}){
   if(!adapter||typeof adapter.list!=='function')throw Error('E_COOKIE_CONTROLLER_ADAPTER');
   let epoch=0,closed=false,busy=false,target=null,rows=[],phase='idle',problem=null,
     message='',messageType='info',importPlan=null,clearPlan=null;
   let importRevision=0,clearRevision=0,valueRevision=0,importOutcome=null;
   let syncStale=false,syncPending=null,syncGeneration=0,effectPending=false;
-  let navigationPending=false,navigationQueued=false,verifiedScope=null;
+  let navigationPending=false,navigationQueued=false,navigationRun=null,verifiedScope=null;
+  let nextAutomaticReadAt=0,navigationWait=null;
+  let unresolvedSince=null;
+  let readDiagnostic=null;
   const exportDiagnostics=[];
   let changes=[],changeRevision=0;
   const current=(ticket,at)=>!closed&&epoch===ticket&&target?.url===at.url;
   const snapshot=()=>({epoch,busy,target:target?{...target}:null,rows:structuredClone(rows),
-    phase,problem,message,messageType,syncStale,navigationPending,
+    phase,problem,message,messageType,syncStale,navigationPending,readDiagnostic,
     exportDiagnostics:structuredClone(exportDiagnostics),
     importOutcome,changes:structuredClone(changes)});
   const notify=()=>{if(!closed)onChange(snapshot());};
-  function report(text='',type='info'){message=text;messageType=type;notify();}
+  function report(text='',type='info'){
+    message=text;messageType=type;notify();
+    // Feedback cannot change a verified native outcome or trigger its replay.
+    if(type==='success')try{onSuccess(text);}catch{}
+  }
   // Session-only fixed-field diagnostics: no Cookie values, URLs, exported
   // bytes, raw error text or arbitrary Host objects can enter the ledger.
   function recordExport(operation,stage,code='OK',outcomeUnknown=false){
@@ -77,12 +84,31 @@ export function createCookieController({adapter,onChange=()=>{}}){
     return JSON.stringify([store.storeId,partition.partitionKey.topLevelSite,
       partition.partitionKey.hasCrossSiteAncestor===true]);
   }
+  function cancelNavigationWait(){
+    if(!navigationWait)return;
+    clearTimeout(navigationWait.timer);
+    navigationWait.resolve();navigationWait=null;
+  }
+  async function waitForNavigation(){
+    const delay=nextAutomaticReadAt-Date.now();
+    if(delay<=0)return;
+    await new Promise(resolve=>{
+      const pending={timer:null,resolve};
+      pending.timer=setTimeout(()=>{
+        if(navigationWait===pending)navigationWait=null;
+        resolve();
+      },delay);
+      navigationWait=pending;
+    });
+  }
   function invalidate(text='网站或权限已改变，先刷新并核对 Cookie。'){
     // Reads and write preflights are safe to restart. Only a dispatched native
     // write or export can have an unknown side effect after invalidation.
     const uncertain=effectPending;
     retireSync();syncStale=false;changes=[];
-    navigationPending=false;navigationQueued=false;verifiedScope=null;
+    cancelNavigationWait();
+    navigationPending=false;navigationQueued=false;navigationRun=null;verifiedScope=null;
+    unresolvedSince=null;
     epoch++;valueRevision++;busy=false;target=null;rows=[];phase='idle';problem=null;
     importPlan=null;importOutcome=null;
     clearPlan=null;
@@ -106,20 +132,25 @@ export function createCookieController({adapter,onChange=()=>{}}){
     if(navigationQueued)void syncNavigation();
   }};
   const verifiedRead=guard=>current(guard.ticket,guard.at);
-  async function load(input='',{preserveMessage=false}={}){
+  async function load(input='',{preserveMessage=false,automatic=false}={}){
     if(closed||busy)return;
     // Explicit readback clears a retired effect warning; repeated navigation
     // events alone must not erase an unconfirmed write/export outcome.
     effectPending=false;
     retireSync();syncStale=false;changes=[];
-    navigationPending=false;navigationQueued=false;verifiedScope=null;
+    cancelNavigationWait();
+    navigationPending=false;navigationQueued=false;navigationRun=null;verifiedScope=null;
     const ticket=++epoch;valueRevision++;rows=[];target=null;phase='loading';problem=null;
+    unresolvedSince=null;
     importPlan=null;importOutcome=null;
     clearPlan=null;busy=true;
     if(!preserveMessage){message='';messageType='info';}
     notify();
     let at=null;
     try{
+      if(automatic)await waitForNavigation();
+      if(ticket!==epoch||closed)return;
+      nextAutomaticReadAt=Date.now()+navigationIntervalMs;
       const resolved=await adapter.targetFor(input);
       if(ticket!==epoch||closed)return;
       at=resolved.target;
@@ -146,11 +177,20 @@ export function createCookieController({adapter,onChange=()=>{}}){
       // into a log, diagnostic store or React component state.
       verifiedScope=scope;
       rows=found.map(row=>({...row,id:key(row)}));
-      phase='ready';problem=null;if(!preserveMessage)message='';
+      phase='ready';problem=null;readDiagnostic=null;if(!preserveMessage)message='';
       notify();
     }catch(error){
       if(ticket===epoch&&!closed){
         if(rejectLostAccess(error))return;
+        if(automatic&&safeCode(error,'E_COOKIE_READ')==='E_RATE_LIMIT'){
+          readDiagnostic={operation:'load',stage:'read',code:'E_RATE_LIMIT'};
+          nextAutomaticReadAt=Date.now()+60000;
+          report('自动读取暂受请求频率限制，等待一分钟后重新核验。');
+          await waitForNavigation();
+          if(ticket!==epoch||closed)return;
+          busy=false;
+          return load(input,{automatic:true,preserveMessage});
+        }
         phase='error';problem=safeCode(error,'E_COOKIE_READ');rows=[];
         report('读取未确认'+formatCode(error,'E_COOKIE_READ')+
           '；检查权限与 Store/Partition 后手动刷新。','error');
@@ -179,7 +219,7 @@ export function createCookieController({adapter,onChange=()=>{}}){
       return value; // Caller may show it only in an ephemeral DOM node.
     }catch(error){
       if(current(ticket,at)){
-        if(rejectLostAccess(error))return null;
+        if(!(error?.code==='E_DOCUMENT_CHANGED'&&navigationRun)&&rejectLostAccess(error))return null;
         if(!busy&&revision===valueRevision)
           report('读取敏感值被拒绝'+formatCode(error,'E_COOKIE_VALUES')+
             '；'+(cookieFailureHelp(error)||'请核对当前网站与授权后手动刷新。'),'error');
@@ -238,7 +278,8 @@ export function createCookieController({adapter,onChange=()=>{}}){
           (cookieFailureHelp(error)||'请手动核对，不要自动重试。'),'error');
       }
     }finally{unlock(guard);}
-    if(saved&&current(ticket,at))await load(at.url,{preserveMessage:true});
+    if(saved&&current(ticket,at)&&!navigationPending&&!navigationQueued)
+      await load(at.url,{preserveMessage:true});
     return saved;
   }
   async function remove(id){
@@ -257,7 +298,7 @@ export function createCookieController({adapter,onChange=()=>{}}){
         '；请核对实际 Cookie，勿重复删除。','error');
     }
     }finally{unlock(guard);}
-    if(removed&&current(guard.ticket,guard.at))
+    if(removed&&current(guard.ticket,guard.at)&&!navigationPending&&!navigationQueued)
       await load(guard.at.url,{preserveMessage:true});
     return removed;
   }
@@ -320,7 +361,7 @@ export function createCookieController({adapter,onChange=()=>{}}){
       if(ref!==null)void adapter.finishClearIntent(ref).catch(()=>{});
       unlock(guard);
     }
-    if(verified&&current(guard.ticket,guard.at))
+    if(verified&&current(guard.ticket,guard.at)&&!navigationPending&&!navigationQueued)
       await load(guard.at.url,{preserveMessage:true});
     return verified;
   }
@@ -606,7 +647,7 @@ export function createCookieController({adapter,onChange=()=>{}}){
           :'。先核对 Chrome，不能盲目重试。'),'error');
     }
     }finally{unlock(guard);}
-    if(complete&&current(guard.ticket,guard.at))
+    if(complete&&current(guard.ticket,guard.at)&&!navigationPending&&!navigationQueued)
       await load(guard.at.url,{preserveMessage:true});
     return complete;
   }
@@ -617,7 +658,8 @@ export function createCookieController({adapter,onChange=()=>{}}){
   // never erase a live editor, re-read Cookie values or trigger a write.
   async function syncMetadata({canApply=()=>true,events=[]}={}){
     if(closed||busy||navigationPending||phase!=='ready'||!target||!canApply()||
-      syncPending?.ticket===epoch)return false;
+      syncPending?.ticket===epoch||Date.now()<nextAutomaticReadAt)return false;
+    nextAutomaticReadAt=Date.now()+navigationIntervalMs;
     const at=target,ticket=epoch,token={ticket,generation:syncGeneration},markRevision=changeRevision;
     syncPending=token;
     const safe=()=>current(ticket,at)&&syncPending===token&&
@@ -651,7 +693,11 @@ export function createCookieController({adapter,onChange=()=>{}}){
       if(changed||updates.length||syncStale){syncStale=false;notify();}
       return true;
     }catch(error){
-      if(current(ticket,at)&&rejectLostAccess(error))return false;
+      // A retired read still proves revocation for the same target. Only a
+      // document mismatch retired by a verified navigation belongs to the old
+      // path; it must not tear down that navigation's newer scope check.
+      if(current(ticket,at)&&!(error?.code==='E_DOCUMENT_CHANGED'&&navigationRun)&&
+        rejectLostAccess(error))return false;
       // Keep the last known metadata visible but identify it as stale. Native
       // permissions and write receipts remain the only authority for mutations.
       if(safe()&&!syncStale){syncStale=true;notify();}
@@ -665,62 +711,91 @@ export function createCookieController({adapter,onChange=()=>{}}){
     if(closed||phase!=='ready'||!target)return false;
     navigationQueued=true;
     if(busy||navigationPending)return false;
+    const run={};navigationRun=run;
+    const ownsRun=()=>!closed&&navigationRun===run;
     navigationPending=true;retireSync();valueRevision++;
     importPlan=null;clearPlan=null;notify();
-    let applied=false;
+    let applied=false,stage='target';
     try{
-      while(navigationQueued&&!closed&&phase==='ready'&&!busy){
+      while(navigationQueued&&ownsRun()&&phase==='ready'&&!busy){
+        // One verified navigation can require ten public SDK requests. Bound
+        // automatic work below the shared Host budget and coalesce destinations
+        // while keeping sensitive actions fenced throughout the wait.
+        await waitForNavigation();
+        if(!ownsRun()||phase!=='ready'||busy)return false;
         navigationQueued=false;
+        nextAutomaticReadAt=Date.now()+navigationIntervalMs;
         const at=target,ticket=epoch;
-        const live=()=>current(ticket,at)&&navigationPending;
-        const resolved=await adapter.targetFor();
+        const live=()=>current(ticket,at)&&ownsRun();
+        stage='target';const resolved=await adapter.targetFor();
         if(!live())return false;
         const next=resolved.target;
+        if(!next&&resolved.reasonCode==='E_DOCUMENT_UNRESOLVED')throw failure('E_DOCUMENT_UNRESOLVED');
         if(!next||next.origin!==at.origin){
           invalidate('网站已变化，请重新核对 Cookie 授权。');return false;
         }
-        const permission=await adapter.checkRead(next);
+        stage='permission';const permission=await adapter.checkRead(next);
         if(!live())return false;
         if(!permission.callableNow){
           invalidate('Cookie 授权已变化，请手动检查。');
           phase='blocked';problem=permission.reasonCode||'E_PERMISSION_REQUIRED';notify();
           return false;
         }
-        const scope=await readScope(next);
+        stage='scope-before';const scope=await readScope(next);
         if(!live())return false;
         if(scope!==verifiedScope){
           invalidate('Cookie Store 或 Partition 已变化，请重新授权读取。');
           phase='blocked';problem='E_COOKIE_SCOPE';notify();return false;
         }
-        const found=await adapter.list(next,{isCurrent:()=>live()&&!navigationQueued});
+        stage='list';const found=await adapter.list(next,{isCurrent:()=>live()&&!navigationQueued});
         if(!live())return false;
         if(navigationQueued)continue;
         if(found===null)throw failure('E_COOKIE_READ');
-        const afterScope=await readScope(next);
+        stage='scope-after';const afterScope=await readScope(next);
         if(!live())return false;
         if(afterScope!==scope){
           invalidate('读取期间 Cookie Store 或 Partition 已变化。');
           phase='blocked';problem='E_COOKIE_SCOPE';notify();return false;
         }
-        const latest=await adapter.targetFor();
+        stage='target-after';const latest=await adapter.targetFor();
         if(!live())return false;
+        if(!latest.target)throw failure(latest.reasonCode||'E_DOCUMENT_CHANGED');
+        if(latest.target.origin!==next.origin)throw failure('E_DOCUMENT_CHANGED');
         if(navigationQueued||latest.target?.url!==next.url){
           navigationQueued=true;continue;
         }
         // Publish the normalized URL and metadata together. Do not reset
         // search, filters, pagination, scroll or independent UI drafts.
-        if(at.url!==next.url){epoch++;target=next;changes=[];}
+        if(at.url!==next.url){epoch++;target=next;}
         const updated=found.map(row=>({...row,id:key(row)}));
         if(JSON.stringify(rows)!==JSON.stringify(updated))rows=updated;
-        syncStale=false;problem=null;
+        syncStale=false;problem=null;readDiagnostic=null;unresolvedSince=null;
         applied=true;notify();
       }
     }catch(error){
+      if(!ownsRun())return false;
+      // Fixed stage and allowlisted code only; never retain the Host error,
+      // request URL, returned Cookie rows or arbitrary error properties.
+      readDiagnostic={operation:'navigation',stage,code:safeCode(error,'E_COOKIE_READ')};
+      if(readDiagnostic.code==='E_RATE_LIMIT'){
+        // Only metadata reads resume. An export or mutation is never replayed.
+        syncStale=true;navigationQueued=true;nextAutomaticReadAt=Date.now()+60000;
+        report('自动同步暂受请求频率限制；保留上次列表，等待重新核验。');
+        return false;
+      }
+      if(readDiagnostic.code==='E_DOCUMENT_UNRESOLVED'){
+        unresolvedSince??=Date.now();
+        if(Date.now()-unresolvedSince<10000){
+          syncStale=true;navigationQueued=true;
+          nextAutomaticReadAt=Math.max(nextAutomaticReadAt,Date.now()+1000);
+          return false;
+        }
+      }
       // A newer verified same-document Path event may make an older SDK
       // request fail with E_DOCUMENT_CHANGED. Drain the queued destination
       // instead of briefly clearing the list for that retired request.
       // Genuine grant/Store/Partition revocation always remains fail-closed.
-      if(navigationQueued&&safeCode(error,'E_COOKIE_READ')==='E_DOCUMENT_CHANGED')
+      if(navigationQueued&&['E_DOCUMENT_CHANGED','E_DOCUMENT_STALE'].includes(safeCode(error,'E_COOKIE_READ')))
         return false;
       if(!closed&&navigationPending&&phase==='ready'){
         if(!rejectLostAccess(error)){
@@ -729,15 +804,19 @@ export function createCookieController({adapter,onChange=()=>{}}){
         }
       }
     }finally{
-      if(navigationPending){navigationPending=false;notify();}
-      if(navigationQueued&&!closed&&phase==='ready')void syncNavigation();
+      if(ownsRun()){
+        navigationRun=null;navigationPending=false;
+        if(navigationQueued&&phase==='ready')void syncNavigation();
+        else notify();
+      }
     }
     return applied;
   }
   function clearChanges(){changeRevision++;changes=[];notify();}
   function dispose(){
     retireSync();syncStale=false;changes=[];
-    navigationPending=false;navigationQueued=false;verifiedScope=null;
+    cancelNavigationWait();
+    navigationPending=false;navigationQueued=false;navigationRun=null;verifiedScope=null;
     epoch++;closed=true;busy=false;rows=[];target=null;importPlan=null;importOutcome=null;
     clearPlan=null;effectPending=false;
   }

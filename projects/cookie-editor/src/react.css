@@ -52,8 +52,6 @@
 :scope .od-icon-button--quiet{border:0}
 :scope .od-icon-button--quiet:is(:hover,[aria-expanded=true]):not(:disabled){background:var(--od-muted);color:var(--od-ink)}
 :scope .od-icon-button--quiet[aria-pressed=true]{background:var(--od-brand-bg);color:var(--od-brand)}
-.cookie-monitor-button{font-size:10px;min-height:28px;padding:4px 6px;white-space:nowrap}
-.cookie-monitor-button[aria-pressed="true"]{background:var(--od-brand-bg);color:var(--od-brand)}
 }
 /* Cookie-specific geometry; common controls and focus come from shared primitives. */
 .cookie-editor-react{container-type:inline-size;width:100%;min-width:0;max-width:860px;margin:0 auto;padding:0;color:var(--od-ink);background:var(--od-paper);font:var(--od-body-size)/1.5 -apple-system,BlinkMacSystemFont,"PingFang SC","Microsoft YaHei",system-ui,sans-serif}
@@ -132,14 +130,18 @@
 .cookie-editor-react .sort-field>.od-field{width:auto;max-width:100%;min-width:0;min-height:25px;padding:4px 6px;font-size:10px}
 .cookie-editor-react .cookie-list{border-top:1px solid var(--od-line)}
 .cookie-editor-react .cookie-row{border-bottom:1px solid var(--od-line)}
-.cookie-editor-react .cookie-change-monitor{padding:8px 13px;display:grid;gap:6px;border-top:1px solid var(--od-line);font-size:10px;color:var(--od-sub)}
-.cookie-editor-react .cookie-monitor-controls,.cookie-editor-react .cookie-change-controls{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
-.cookie-editor-react .cookie-monitor-state{flex:1;display:flex;align-items:center;gap:6px}
-.cookie-editor-react .cookie-monitor-state::before{content:"";width:6px;height:6px;border-radius:50%;background:var(--od-sub)}
-.cookie-editor-react .cookie-monitor-state.is-listening{color:var(--od-positive)}
-.cookie-editor-react .cookie-monitor-state.is-listening::before{background:var(--od-positive)}
-.cookie-editor-react .cookie-change-controls>span{flex:1;min-width:max-content}
-.cookie-editor-react .cookie-change-removals,.cookie-editor-react .cookie-monitor-note{margin:0;overflow-wrap:anywhere;line-height:1.5}
+/* Low-frequency listening stays in the rightmost More action. */
+.cookie-editor-react .cookie-monitor{display:flex;align-items:center;min-width:0}
+.cookie-editor-react .cookie-monitor-trigger{position:relative}
+.cookie-editor-react .cookie-monitor-trigger.is-listening{color:var(--od-positive)}
+.cookie-editor-react .cookie-monitor-trigger.has-warning{color:var(--od-negative)}
+.cookie-editor-react .cookie-monitor-badge{position:absolute;top:0;right:0;min-width:13px;padding:0 2px;border-radius:6px;background:var(--od-paper);color:var(--od-positive);font-size:10px;line-height:14px;font-weight:650;pointer-events:none}
+.cookie-editor-react .has-warning .cookie-monitor-badge{color:var(--od-negative)}
+.cookie-editor-react .cookie-monitor-popover{position:absolute;right:var(--space-2);top:100%;z-index:8;box-sizing:border-box;width:min(264px,calc(100% - 16px));max-height:60dvh;overflow:auto;overscroll-behavior:contain;display:grid;gap:var(--space-2);padding:var(--space-2);border:1px solid var(--od-line);border-radius:var(--radius-surface);background:var(--od-paper);color:var(--od-ink);box-shadow:0 8px 24px rgba(0,0,0,.12);font-size:var(--od-note-size)}
+.cookie-editor-react .cookie-monitor-action{justify-content:flex-start;width:100%;font-size:var(--od-note-size)}
+.cookie-editor-react .cookie-monitor-note{margin:0;padding:0 var(--space-2) var(--space-1);overflow-wrap:anywhere;line-height:1.5;font-size:var(--od-note-size);color:var(--od-sub)}
+.cookie-editor-react .cookie-monitor-error{color:var(--od-negative)}
+.cookie-editor-react .cookie-monitor-announcement{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip-path:inset(50%);white-space:nowrap;border:0}
 .cookie-editor-react .cookie-row-name{min-width:0;display:flex;align-items:center;gap:6px}
 .cookie-editor-react .cookie-change-badge{flex:none;font-size:9px;line-height:1.5;border-radius:4px;padding:1px 4px;background:var(--od-brand-bg);color:var(--od-brand)}
 .cookie-editor-react .cookie-change-badge.is-added{color:var(--od-positive)}

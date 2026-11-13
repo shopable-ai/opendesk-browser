@@ -45,7 +45,7 @@ test('AI Scroll R4.2 reviewed settings sources admit only exact bytes to the ori
 test('Subagent Result projection admits only three exact SW blobs and rejects other worlds or drift',async t=>{
   const pins={
     'projects/subagent/trusted/page-task-result.js':'16dda6e9a439dedb340e33874f1062bdfeaf8147',
-    'projects/subagent/trusted/result.js':'87c598a15994af1033b866f8f1b632c4c494deaa',
+    'projects/subagent/trusted/result.js':'1c7de2644d572a3b936549e68a70bf709f540f68',
     'projects/subagent/src/contract.js':'c394ad1d5dfb7271ec2a23d428e7605030da7664'
   };
   const project=await realpath(await mkdtemp(join(tmpdir(),'subagent-result-source-pin-')));

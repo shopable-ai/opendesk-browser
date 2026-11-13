@@ -6,6 +6,7 @@ import {ScrollSiteManager} from '../../../../projects/ai-scroll-navigation/trust
 import {ConversationAiGlyph} from '../components/conversation.tsx';
 import {extensionCenterText} from '../../extension-center-localization.js';
 import {localeManagerText} from '../../locale-manager-localization.js';
+import {PageCleanupDetails} from '../components/page-cleanup.tsx';
 
 const LocaleManager=React.lazy(()=>import('./locale-manager.tsx'));
 
@@ -14,6 +15,17 @@ const LocaleManager=React.lazy(()=>import('./locale-manager.tsx'));
 export function ExtensionRows({rows,busy,pendingKey,menuKey,onOpenRow,onMore,onInlineUpdate,locale='zh-CN'}){
   const [openingKey,setOpeningKey]=React.useState(null);
   const [updateError,setUpdateError]=React.useState(null);
+  const connectActions=React.useCallback(node=>{
+    if(!node)return;
+    const measure=()=>{
+      if(node.offsetWidth)node.parentElement.style.setProperty('--ec-row-actions-width',node.offsetWidth+'px');
+    };
+    measure();
+    if(typeof ResizeObserver==='undefined')return;
+    const observer=new ResizeObserver(measure);
+    observer.observe(node);
+    return ()=>observer.disconnect();
+  },[]);
   const review=(row,nativeEvent)=>{
     if(nativeEvent?.isTrusted!==true||busy||openingKey||!row.inlineUpdate||row.inlineUpdate.disabled)return;
     setOpeningKey(row.key);setUpdateError(null);
@@ -73,13 +85,13 @@ export function ExtensionRows({rows,busy,pendingKey,menuKey,onOpenRow,onMore,onI
             <span className="ec-name" title={row.title}>
               <span className="ec-name-text">{row.title}</span>
             </span>
-            <span className="ec-type">{row.type}</span>
+            <span className="ec-type" title={row.type}>{row.type}</span>
           </span>
           <span className="ec-description" title={row.description}>{row.description}</span>
           {identity&&<span className="ec-description ec-identity">{t('installationId')}{identity}</span>}
         </span>
       </button>
-      <span className="ec-row-actions">
+      <span className="ec-row-actions" ref={connectActions}>
         {row.inlineUpdate&&<button type="button" className="ec-row-update"
           data-extension-key={row.key} data-extension-action="update"
           disabled={busy||Boolean(openingKey)||row.inlineUpdate.disabled}
@@ -407,6 +419,7 @@ export function ExtensionDetail({model,container,onScrollNavigation,scrollNaviga
       </div>}
     </div>
     {model.description&&!model.scrollManager&&<p className="ec-detail-description">{model.description}</p>}
+    <PageCleanupDetails key={model.key} cleanup={model.oldPageCleanup} locale={locale}/>
     {managed&&!model.scrollManager&&<ManagedPageControl locale={locale} control={model.pageControl} title={model.title}/>}
     {model.scrollManager&&<ScrollSiteManager key={model.scrollManager.identityKey}
       locale={locale} model={model.scrollManager} pageControl={model.pageControl} title={model.title} detail={model}
@@ -537,23 +550,141 @@ export function ExtensionStatus({model}){
   return model?.text||'';
 }
 
+function preinstallTextKey(state){
+  return {'user-scripts-required':'preinstallScripts','check-error':'preinstallCheckError',
+    checking:'preinstallChecking',available:'preinstallAvailable',resuming:'preinstallResuming',
+    'permission-required':'preinstallSites',attention:'preinstallAttention',error:'preinstallError'}[state]||(state?'preinstallError':'preinstallComplete');
+}
+
+function focusPreinstallFallback(doc){
+  for(const id of ['extension-preinstall-help-title','extension-preinstall-info','extension-center-search']){
+    const target=doc.getElementById(id);
+    if(target&&!target.closest('[hidden],[inert]')&&target.getClientRects().length){
+      target.focus({preventScroll:true});return;
+    }
+  }
+}
+
+function PreinstallAction({model,settingsVisited,onAction,locale,compact=false}){
+  const t=key=>extensionCenterText(locale,key);
+  const busy=['checking','resuming'].includes(model?.state);
+  const action=model?.state==='available'?'resume':model?.state==='check-error'||
+    model?.state==='user-scripts-required'&&settingsVisited?'check':
+    model?.state==='user-scripts-required'?'settings':null;
+  const actionRef=React.useRef(null);
+  const connectAction=React.useCallback(node=>{
+    const previous=actionRef.current;
+    if(!node&&previous&&previous.ownerDocument.activeElement===previous){
+      const doc=previous.ownerDocument;
+      queueMicrotask(()=>{
+        if(doc.activeElement===previous||doc.activeElement===doc.body||!doc.activeElement?.isConnected)
+          focusPreinstallFallback(doc);
+      });
+    }
+    actionRef.current=node;
+  },[]);
+  React.useLayoutEffect(()=>{
+    const button=actionRef.current;
+    if(button?.disabled&&button.ownerDocument.activeElement===button)focusPreinstallFallback(button.ownerDocument);
+  },[model?.state]);
+  if(!action&&!busy)return null;
+  const label=busy?(model.state==='checking'?'preinstallCheckingAction':'preinstallResumingAction'):
+    {settings:'preinstallSettings',check:'preinstallCheck',resume:'preinstallContinue'}[action];
+  const activate=event=>{
+    const doc=event.currentTarget.ownerDocument,focused=doc.activeElement===event.currentTarget;
+    onAction?.(action,event.nativeEvent);
+    queueMicrotask(()=>{if(focused&&doc.activeElement===doc.body)focusPreinstallFallback(doc);});
+  };
+  if(compact&&action==='settings')return <IconButton ref={connectAction}
+    label={t(label)} onClick={activate}>
+    <svg viewBox="0 0 24 24" aria-hidden="true">
+      <path d="m9.5 3-.6 2.3-2 .9-2.1-.7-2.3 4 1.7 1.6v2L2.5 15l2.3 4 2.1-.7 2 .9.6 2.3h5l.6-2.3 2-.9 2.1.7 2.3-4-1.7-1.9v-2l1.7-1.6-2.3-4-2.1.7-2-.9L14.5 3Z"/>
+      <circle cx="12" cy="12" r="3"/>
+    </svg>
+  </IconButton>;
+  return <Button ref={connectAction} disabled={busy} onClick={activate}>
+    {t(label)}
+  </Button>;
+}
+
+export function ExtensionPreinstallNotice({model,locale='zh-CN',onAction,onInfo,settingsVisited=false}){
+  if(!model?.state)return null;
+  const t=key=>extensionCenterText(locale,key);
+  return <section id="extension-center-preinstall" className="ec-preinstall od-surface"
+    aria-label={t('preinstallPending')} aria-busy={['checking','resuming'].includes(model.state)}>
+    <p role="status" aria-live="polite">{t(model.settingsFailed?'preinstallSettingsShort':preinstallTextKey(model.state))}</p>
+    <div className="ec-preinstall-actions">
+      <PreinstallAction {...{model,settingsVisited,onAction,locale}} compact/>
+      <IconButton id="extension-preinstall-info" label={t('preinstallInfo')} onClick={onInfo}>
+        <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9"/>
+          <path d="M12 11v6m0-10v.01"/></svg>
+      </IconButton>
+    </div>
+  </section>;
+}
+
+function PreinstallExplanation({model,locale,onBack,onAction,settingsVisited,titleRef}){
+  const t=key=>extensionCenterText(locale,key);
+  const scripts=['user-scripts-required','checking','check-error','available','resuming'].includes(model?.state);
+  return <section id="extension-preinstall-explanation" className="ec-preinstall-help od-stack"
+    aria-labelledby="extension-preinstall-help-title">
+    <div className="od-page-head">
+      <IconButton label={t('backList')} onClick={onBack}>
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="m14 6-6 6 6 6"/></svg>
+      </IconButton>
+      <h2 id="extension-preinstall-help-title" className="od-page-title" ref={titleRef} tabIndex={-1}>{t('preinstallHelpTitle')}</h2>
+    </div>
+    <p role="status" aria-live="polite">{t(preinstallTextKey(model?.state))}</p>
+    <div className="od-toolbar ec-preinstall-help-actions">
+      <PreinstallAction {...{model,settingsVisited,onAction,locale}}/>
+      {scripts&&settingsVisited&&!['checking','resuming'].includes(model.state)&&
+        <Button variant="quiet" onClick={event=>onAction?.('settings',event.nativeEvent)}>{t('preinstallSettings')}</Button>}
+    </div>
+    <p>{t('preinstallUnaffected')}</p>
+    {scripts&&<>
+      <p>{t('preinstallReason')}</p>
+      <ol className="ec-preinstall-steps">
+        <li>{t('preinstallStepSettings')}</li>
+        <li>{t('preinstallStepCheck')}</li>
+        <li>{t('preinstallStepContinue')}</li>
+      </ol>
+      <p>{t('preinstallBoundary')}</p>
+    </>}
+    {model?.state==='permission-required'&&<p>{t('preinstallSitesGuide')}</p>}
+    {model?.state==='attention'&&<p>{t('preinstallAttentionGuide')}</p>}
+    {model?.state==='error'&&<p>{t('preinstallErrorGuide')}</p>}
+    {model?.settingsFailed&&<p role="alert">{t('preinstallSettingsFailed')}</p>}
+    {model?.technical&&<details className="od-disclosure od-disclosure--flat ec-preinstall-diagnostic">
+      <summary>{t('preinstallTechnical')}</summary><p>{model.technical}</p>
+    </details>}
+  </section>;
+}
+
  
 // One React-owned menu, including its host, placement and listener lifetime.
 // The portal remains part of this page/root and escapes the clipped list.
 export function ExtensionRowMenu({items=[],model=null,locale=model?.locale||'zh-CN',id='extension-center-row-menu',label}){
   const t=(key,params={})=>extensionCenterText(locale,key,params);
+  const menuItems=model?.items||items;
+  // Only unadorned two-Han labels in a Chinese menu share a centered axis.
+  // Longer, mixed-script or other-language menus retain one reading edge.
+  const centered=/^zh(?:-|$)/i.test(locale)&&menuItems.length>0&&menuItems.every(item=>
+    typeof item.label==='string'&&/^\p{Script=Han}{2}$/u.test(item.label));
   const ref=React.useRef(null);
   React.useLayoutEffect(()=>{
     const menu=ref.current,trigger=model?.trigger;
     if(!menu||!trigger)return;
     const doc=trigger.ownerDocument,view=doc.defaultView;
-    const rect=trigger.getBoundingClientRect();
-    const screenW=view?.innerWidth||doc.documentElement.clientWidth;
-    const screenH=view?.innerHeight||doc.documentElement.clientHeight;
-    const width=menu.offsetWidth,height=menu.offsetHeight,gutter=8;
-    menu.style.left=Math.max(gutter,Math.min(rect.right-width,screenW-width-gutter))+'px';
-    menu.style.top=(rect.bottom+height+gutter<=screenH?rect.bottom+3:
-      Math.max(gutter,rect.top-height-3))+'px';
+    const place=()=>{
+      const rect=trigger.getBoundingClientRect();
+      const screenW=view?.innerWidth||doc.documentElement.clientWidth;
+      const screenH=view?.innerHeight||doc.documentElement.clientHeight;
+      const width=menu.offsetWidth,height=menu.offsetHeight,gutter=8;
+      menu.style.left=Math.max(gutter,Math.min(rect.right-width,screenW-width-gutter))+'px';
+      menu.style.top=(rect.bottom+height+gutter<=screenH?rect.bottom+3:
+        Math.max(gutter,rect.top-height-3))+'px';
+    };
+    place();
     menu.querySelector('button')?.focus({preventScroll:true});
     const clickOutside=event=>{
       if(!menu.contains(event.target)&&!trigger.contains(event.target))model.onClose?.(false);
@@ -574,16 +705,19 @@ export function ExtensionRowMenu({items=[],model=null,locale=model?.locale||'zh-
     const scroll=event=>{if(!menu.contains(event.target))model.onClose?.(false);};
     doc.addEventListener('click',clickOutside);doc.addEventListener('keydown',keyDown);
     doc.addEventListener('scroll',scroll,true);
+    view?.addEventListener('resize',place);
     return ()=>{
       doc.removeEventListener('click',clickOutside);doc.removeEventListener('keydown',keyDown);
       doc.removeEventListener('scroll',scroll,true);
+      view?.removeEventListener('resize',place);
     };
-  },[model]);
-  const buttons=(model?.items||items).map(item=><button type="button" key={item.id}
+  },[model,locale]);
+  const buttons=menuItems.map(item=><button type="button" key={item.id}
     className="ec-context-action" role="menuitem" data-ec-context-action={item.id}
     onClick={event=>item.onClick?.(event.nativeEvent)}>{item.label}</button>);
   if(!model)return buttons;
   return createPortal(<div ref={ref} id={id} className="ec-context-menu"
+    data-align={centered?'center':'start'}
     role="menu" aria-label={label||t('manageTitle',{title:model.title})}>{buttons}</div>,model.trigger.ownerDocument.body);
 }
 
@@ -629,12 +763,34 @@ export function ExtensionDiscovery({model,onDiscover,showEntry=false,locale=mode
 export function ExtensionCenterPage({
   rowsModel={rows:[],busy:false,pendingKey:null,onOpenRow:()=>{},onMore:()=>{}},
   toolbarModel=null,detailModel=null,uninstallModel=null,feedbackModel=null,recoveryModel=null,discoveryModel=null,
-  statusModel=null,menuKey=null,rowMenuModel=null,updateCenter=null,view='list',onBack=()=>{}
+  statusModel=null,preinstallModel=null,onPreinstallAction=null,menuKey=null,rowMenuModel=null,updateCenter=null,view='list',onBack=()=>{}
 }){
   const locale=toolbarModel?.locale||toolbarModel?.language||detailModel?.locale||'zh-CN';
   const t=(key,params={})=>extensionCenterText(locale,key,params);
   const languageVisible=Boolean(toolbarModel?.localeManager);
   const detailVisible=view==='detail'&&!languageVisible;
+  const [preinstallInfo,setPreinstallInfo]=React.useState(false);
+  const [preinstallSettingsVisited,setPreinstallSettingsVisited]=React.useState(false);
+  const preinstallHelpVisible=preinstallInfo&&!detailVisible&&!languageVisible;
+  const preinstallTitleRef=React.useRef(null),preinstallReturn=React.useRef(null);
+  const preinstallAction=(action,event)=>{
+    if(action==='settings')setPreinstallSettingsVisited(true);
+    onPreinstallAction?.(action,event);
+  };
+  const openPreinstallInfo=()=>{
+    const scroll=[];
+    for(let node=pageRef.current;node;node=node.parentElement)scroll.push([node,node.scrollTop]);
+    preinstallReturn.current=scroll;setPreinstallInfo(true);
+  };
+  React.useLayoutEffect(()=>{
+    if(preinstallHelpVisible)preinstallTitleRef.current?.focus({preventScroll:true});
+    else if(!preinstallInfo&&preinstallReturn.current){
+      for(const [node,top] of preinstallReturn.current)node.scrollTop=top;
+      preinstallReturn.current=null;
+      const doc=pageRef.current?.ownerDocument;
+      (doc?.getElementById('extension-preinstall-info')||doc?.getElementById('extension-center-search'))?.focus({preventScroll:true});
+    }
+  },[preinstallHelpVisible,preinstallInfo]);
   const showWebDiscovery=toolbarModel?.scope==='available'&&toolbarModel?.kind!=='page'&&
     toolbarModel?.marketDiscoveryAvailable===true;
   const detailRef=React.useRef(null),pageRef=React.useRef(null);
@@ -650,20 +806,20 @@ export function ExtensionCenterPage({
   const fileDragDepth=React.useRef(0);
   const isFileDrag=event=>Array.from(event.dataTransfer?.types||[]).includes('Files');
   const onDragEnter=event=>{
-    if(languageVisible||!isFileDrag(event))return;
+    if(languageVisible||preinstallHelpVisible||!isFileDrag(event))return;
     event.preventDefault();fileDragDepth.current++;setFileOver(true);
   };
   const onDragOver=event=>{
-    if(languageVisible||!isFileDrag(event))return;
+    if(languageVisible||preinstallHelpVisible||!isFileDrag(event))return;
     event.preventDefault();event.dataTransfer.dropEffect='copy';
   };
   const onDragLeave=event=>{
-    if(languageVisible||!isFileDrag(event))return;
+    if(languageVisible||preinstallHelpVisible||!isFileDrag(event))return;
     fileDragDepth.current=Math.max(0,fileDragDepth.current-1);
     if(!fileDragDepth.current)setFileOver(false);
   };
   const onDrop=event=>{
-    if(languageVisible||!isFileDrag(event))return;
+    if(languageVisible||preinstallHelpVisible||!isFileDrag(event))return;
     event.preventDefault();event.stopPropagation();
     fileDragDepth.current=0;setFileOver(false);
     toolbarModel?.onImportFiles?.(Array.from(event.dataTransfer.files||[]));
@@ -679,19 +835,24 @@ export function ExtensionCenterPage({
       if(event.defaultPrevented||event.key!=='Escape')return;
       if(doc.documentElement.dataset.opendeskTab&&doc.documentElement.dataset.opendeskTab!=='tools')return;
       if(detailVisible&&detailRef.current?.closest('[hidden],[inert]'))return;
+      if(preinstallHelpVisible&&(!preinstallTitleRef.current?.getClientRects().length||
+        preinstallTitleRef.current.closest('[hidden],[inert]')))return;
       if(toolbarModel?.menuOpen){event.preventDefault();toolbarModel.onCloseMenu?.(true);}
+      else if(preinstallHelpVisible){event.preventDefault();setPreinstallInfo(false);}
       else if(detailVisible){event.preventDefault();detailBackRef.current(event);}
     };
     doc.addEventListener('click',clickOutside);doc.addEventListener('keydown',keyDown);
     return ()=>{doc.removeEventListener('click',clickOutside);doc.removeEventListener('keydown',keyDown);};
-  },[toolbarModel,detailVisible,onBack]);
+  },[toolbarModel,detailVisible,preinstallHelpVisible,onBack]);
   return <div className="ec-drop-surface"
     onDragEnter={onDragEnter} onDragOver={onDragOver}
     onDragLeave={onDragLeave} onDrop={onDrop}>
-    <div ref={pageRef} id="extension-center-list-view" hidden={detailVisible||languageVisible}>
+    <div ref={pageRef} id="extension-center-list-view" hidden={detailVisible||languageVisible||preinstallHelpVisible}>
       <div className="ec-toolbar">
         <ExtensionToolbar locale={locale} model={toolbarModel}/>
       </div>
+      <ExtensionPreinstallNotice model={preinstallModel} locale={locale} onAction={preinstallAction}
+        settingsVisited={preinstallSettingsVisited} onInfo={openPreinstallInfo}/>
       {updateCenter}
       <ExtensionDiscovery locale={locale} model={showWebDiscovery?discoveryModel:null}
         showEntry={showWebDiscovery} onDiscover={toolbarModel?.onDiscover}/>
@@ -715,6 +876,9 @@ export function ExtensionCenterPage({
         <ExtensionEmpty model={feedbackModel}/>
       </div>
     </div>
+    {preinstallHelpVisible&&<PreinstallExplanation model={preinstallModel} locale={locale}
+      onBack={()=>setPreinstallInfo(false)} onAction={preinstallAction}
+      settingsVisited={preinstallSettingsVisited} titleRef={preinstallTitleRef}/>}
     <section id="extension-center-detail" className="ec-detail" aria-label={t('detailAria')}
       data-scroll-app={detailModel?.scrollManager?'true':undefined}
       hidden={!detailVisible}>

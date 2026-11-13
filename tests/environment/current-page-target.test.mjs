@@ -494,3 +494,25 @@ test('document replacement still revokes current page immediately',async()=>{
   assert.ok(observed.includes('unavailable'));
   unsubscribe();target.dispose();
 });
+
+test('Chromium loading/complete around pushState stays unavailable until identity is reobserved without synthetic resolving',async()=>{
+  const {api,state}=fixture(),target=createCurrentPageTarget({api});await target.ready;
+  const states=[];target.subscribe(value=>states.push(value));
+  state.url='https://example.com/history';state.status='loading';
+  api.tabs.onUpdated.emit(11,{url:state.url,status:'loading'},{windowId:7,active:true});
+  await tick();
+  assert.equal(target.snapshot.status,'unavailable');
+  assert.equal(target.snapshot.tabId,11);
+  assert.equal(target.snapshot.navigationStarted,undefined);
+  assert.throws(()=>target.capture(),{code:'E_DOCUMENT_UNRESOLVED'});
+  api.webNavigation.onHistoryStateUpdated.emit({tabId:11,frameId:0,documentId:'doc-a'});
+  await tick();state.status='complete';
+  api.tabs.onUpdated.emit(11,{status:'complete'},{windowId:7,active:true});await tick();
+  assert.equal(target.capture().documentId,'doc-a');
+  assert.equal(target.capture().url,state.url);
+  assert.ok(states.every(value=>value.status!=='resolving'));
+  api.webNavigation.onBeforeNavigate.emit({tabId:11,frameId:0});
+  assert.equal(target.snapshot.navigationStarted,true);
+  assert.throws(()=>target.capture(),{code:'E_DOCUMENT_UNRESOLVED'});
+  target.dispose();
+});

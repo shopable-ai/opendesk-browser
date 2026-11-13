@@ -173,6 +173,80 @@ test('the package loader validates each independent file against manifest and so
     'E_BUILTIN_RESOURCE');
 });
 
+for(const [world,loader,core] of [
+  ['Page',loadBuiltinPageSource,BUILTIN_CATALOG.pageCore],
+  ['Controller',loadBuiltinWorkerSource,BUILTIN_CATALOG.controllerCore]
+])test(world+' default loader overlaps verified resource reads without caching or reordering',async()=>{
+  const selected=[BUILTIN_CATALOG.bootstrap,
+    ...Object.values(BUILTIN_RUNTIME_CATALOG.libraries).filter(lib=>lib.default).map(lib=>lib.output),core];
+  const sources=new Map(selected.map((path,index)=>[path,'/* resource '+index+' */']));
+  sources.set(BUILTIN_CATALOG.bootstrap,await bootstrap());
+  sources.set(BUILTIN_CATALOG.libraries.myUtils.output,await demo());
+  const manifest=()=>JSON.stringify({format:'opendesk.builtin-resources.v2',abi:BUILTIN_ABI,
+    catalogSha256:sha(JSON.stringify(BUILTIN_RUNTIME_CATALOG)),
+    resources:BUILTIN_RESOURCE_PATHS.map(path=>{
+      const pinned=Object.values(BUILTIN_RUNTIME_CATALOG.libraries).find(lib=>lib.output===path&&lib.sha256);
+      const code=sources.get(path)||'/* unselected */';
+      return {path,bytes:pinned?.bytes??Buffer.byteLength(code),sha256:pinned?.sha256??sha(code)};
+    })});
+  const deferred=()=>{let resolve;const promise=new Promise(done=>{resolve=done;});return {promise,resolve};};
+  const gates=new Map(selected.map(path=>[path,deferred()]));
+  const done=new Map(selected.map(path=>[path,deferred()]));
+  const allStarted=deferred(),started=[],completed=[],calls=[];
+  const runtime={id:'parallel-fixture',getURL:path=>'chrome-extension://parallel-fixture/'+path};
+  let gated=true,tamper=null;
+  const fetchImpl=async(url,options)=>{
+    assert.deepEqual(options,{cache:'no-store',credentials:'omit'});
+    const path=url.slice(runtime.getURL('').length);calls.push(path);
+    if(path===BUILTIN_CATALOG.resourceManifest)return {ok:true,url,text:async()=>manifest()};
+    assert.ok(selected.includes(path),'only default resources may be read');
+    started.push(path);
+    if(started.length===selected.length)allStarted.resolve();
+    return {ok:true,url,text:async()=>{
+      if(gated)await gates.get(path).promise;
+      completed.push(path);done.get(path).resolve();
+      const code=sources.get(path);
+      return path===tamper?code.replace('resource','tampered'):code;
+    }};
+  };
+  const pending=loader({runtime,fetchImpl});
+  let timer;
+  try{
+    await Promise.race([allStarted.promise,new Promise((_,reject)=>{
+      timer=setTimeout(()=>reject(Error('five independent resource reads must be in flight together')),1000);
+    })]);
+    assert.deepEqual(started,selected);
+    assert.deepEqual(completed,[],'all resource bodies remain blocked');
+    for(const path of [...selected].reverse()){
+      gates.get(path).resolve();await done.get(path).promise;
+    }
+    const result=await pending;
+    assert.deepEqual(completed,[...selected].reverse());
+    assert.deepEqual(result.resources.map(row=>row.path),selected);
+    assert.equal(result.code,selected.map(path=>sources.get(path)).join('\n;\n'));
+    assert.equal(result.sha256,sha(result.code));
+    assert.ok(Object.isFrozen(result)&&Object.isFrozen(result.resources));
+    assert.ok(result.resources.every(Object.isFrozen));
+    assert.throws(()=>{result.resources[0].path='changed';},TypeError);
+  }finally{
+    clearTimeout(timer);
+    for(const gate of gates.values())gate.resolve();
+    await pending.catch(()=>{});
+  }
+  gated=false;
+  tamper=BUILTIN_CATALOG.libraries.lodash.output;
+  await fails(()=>loader({runtime,fetchImpl}),'E_BUILTIN_HASH');
+  tamper=null;
+  sources.set(core,'/* freshly packaged replacement core */');
+  const fresh=await loader({runtime,fetchImpl});
+  assert.equal(fresh.code,selected.map(path=>sources.get(path)).join('\n;\n'));
+  assert.equal(fresh.sha256,sha(fresh.code));
+  assert.equal(calls.filter(path=>path===BUILTIN_CATALOG.resourceManifest).length,3,
+    'success, failure and retry each read a new manifest');
+  for(const path of selected)assert.equal(calls.filter(value=>value===path).length,3,
+    'every resource is freshly read even after failure: '+path);
+});
+
 test('unready builtins return the exact native nonce receipt before dependency or user side effects',async()=>{
   const nonce='00000000-0000-4000-8000-000000000001';
   const missing='void 0;',compiled=await compileLockedPageSource({sourceUtf8:'async function main(){document.runs++;}',entryFormat:'async-main',receiptNonce:nonce,

@@ -1,0 +1,195 @@
+{
+  "observedAt": "2026-11-13T13:48:59.981Z",
+  "observed": [
+    {
+      "type": "inspectTaskRun",
+      "response": {
+        "ok": true,
+        "data": {
+          "preparation": {
+            "preparationId": "page:9cfd521f-b637-4082-9c70-a2ce2a6f5355",
+            "task": {
+              "taskId": "chatgpt.conversation.create",
+              "version": "0.2.2",
+              "manifestHash": "907ed4de341c42dc3aa7890a8ce99afee30a63b8a971a8b28126e74271083050",
+              "contentHash": "0d9eea01b8e5f4ff4433cba0f52b5fd80979870e7c0a118b0beffcb9fa02b8b4",
+              "installationId": "aa3663d9-8f52-4008-8092-b66aa5489027",
+              "generation": 3
+            },
+            "params": {
+              "prompt": "请介绍 WebFlow 的三个主要优势。",
+              "send": true
+            },
+            "target": {
+              "mode": "owned",
+              "url": "https://chatgpt.com/"
+            },
+            "source": {
+              "kind": "saved",
+              "scriptId": "task:chatgpt.conversation.create:0.2.2",
+              "revision": 1,
+              "contentHash": "0d9eea01b8e5f4ff4433cba0f52b5fd80979870e7c0a118b0beffcb9fa02b8b4"
+            },
+            "pageRequestId": "9cfd521f-b637-4082-9c70-a2ce2a6f5355",
+            "deadlineAt": 1794577578353,
+            "expiresAt": 1794577578353,
+            "state": "unknown",
+            "runId": null,
+            "resultId": null,
+            "operationRef": "a5ba22f7-569e-4714-b7bb-0cc22d76d4ac"
+          },
+          "settled": false
+        }
+      }
+    },
+    {
+      "type": "readPageTaskRequest",
+      "response": {
+        "ok": true,
+        "data": {
+          "request": {
+            "requestId": "9cfd521f-b637-4082-9c70-a2ce2a6f5355",
+            "preparationId": "page:9cfd521f-b637-4082-9c70-a2ce2a6f5355",
+            "task": {
+              "taskId": "chatgpt.conversation.create",
+              "version": "0.2.2",
+              "manifestHash": "907ed4de341c42dc3aa7890a8ce99afee30a63b8a971a8b28126e74271083050",
+              "contentHash": "0d9eea01b8e5f4ff4433cba0f52b5fd80979870e7c0a118b0beffcb9fa02b8b4",
+              "installationId": "aa3663d9-8f52-4008-8092-b66aa5489027",
+              "generation": 3
+            },
+            "params": {
+              "prompt": "请介绍 WebFlow 的三个主要优势。",
+              "send": true
+            },
+            "target": {
+              "mode": "owned",
+              "url": "https://chatgpt.com/"
+            },
+            "pageBinding": {
+              "programId": "opendesk.subagent",
+              "revision": 2,
+              "manifestHash": "5d6ce5e9392de76fe93243597b543dfb08078e4687cc6d56783b5dd45f59033b",
+              "sourceHash": "6e5d6a7578307a94627f8a785703af7e35e4d5fba067ea8ec5d5c5ef42649665",
+              "installationId": "3d3dd82b-1fab-43a0-b0fe-464683c313aa",
+              "generation": 2,
+              "tabId": 1114139442,
+              "frameId": 0,
+              "documentId": "74902FBF01F8860C609C01615FF98271",
+              "url": "https://chatgpt.com/c/6af6fdcf-061c-83ec-ac2a-cf89307b0789",
+              "windowId": 1114139441
+            },
+            "state": "prepared",
+            "approvalAllowed": false
+          },
+          "preparation": {
+            "preparationId": "page:9cfd521f-b637-4082-9c70-a2ce2a6f5355",
+            "task": {
+              "taskId": "chatgpt.conversation.create",
+              "version": "0.2.2",
+              "manifestHash": "907ed4de341c42dc3aa7890a8ce99afee30a63b8a971a8b28126e74271083050",
+              "contentHash": "0d9eea01b8e5f4ff4433cba0f52b5fd80979870e7c0a118b0beffcb9fa02b8b4",
+              "installationId": "aa3663d9-8f52-4008-8092-b66aa5489027",
+              "generation": 3
+            },
+            "params": {
+              "prompt": "请介绍 WebFlow 的三个主要优势。",
+              "send": true
+            },
+            "target": {
+              "mode": "owned",
+              "url": "https://chatgpt.com/"
+            },
+            "source": {
+              "kind": "saved",
+              "scriptId": "task:chatgpt.conversation.create:0.2.2",
+              "revision": 1,
+              "contentHash": "0d9eea01b8e5f4ff4433cba0f52b5fd80979870e7c0a118b0beffcb9fa02b8b4"
+            },
+            "pageRequestId": "9cfd521f-b637-4082-9c70-a2ce2a6f5355",
+            "deadlineAt": 1794577578353,
+            "expiresAt": 1794577578353,
+            "state": "prepared",
+            "runId": null,
+            "resultId": null,
+            "operationRef": "a5ba22f7-569e-4714-b7bb-0cc22d76d4ac"
+          },
+          "snapshot": null,
+          "resolvedInstallation": {
+            "taskId": "chatgpt.conversation.create",
+            "version": "0.2.2",
+            "manifestHash": "907ed4de341c42dc3aa7890a8ce99afee30a63b8a971a8b28126e74271083050",
+            "contentHash": "0d9eea01b8e5f4ff4433cba0f52b5fd80979870e7c0a118b0beffcb9fa02b8b4",
+            "installationId": "aa3663d9-8f52-4008-8092-b66aa5489027",
+            "generation": 3,
+            "scriptId": "task:chatgpt.conversation.create:0.2.2",
+            "revision": 1,
+            "manifest": {
+              "format": "opendesk.task.v1",
+              "taskId": "chatgpt.conversation.create",
+              "version": "0.2.2",
+              "title": "ChatGPT 新对话：审阅后单次发送并核验回复",
+              "description": "在原可信 Controller 的全新官方 ChatGPT 标签页准备草稿；仅当安装版本与本次任务的 send:true 单独获批时，进行一次原生发送并核验真实会话 URL、消息身份和完整回答。结果不确定时禁止重新发送；不支持未验证的模型或推理设置。",
+              "author": "OpenDesk Browser",
+              "source": "local-developer",
+              "siteOrigins": [
+                "https://chatgpt.com"
+              ],
+              "permissions": [
+                "page.automation"
+              ],
+              "entryFormat": "async-main",
+              "program": {
+                "revision": 1,
+                "sourceHash": "0d9eea01b8e5f4ff4433cba0f52b5fd80979870e7c0a118b0beffcb9fa02b8b4"
+              },
+              "paramsSchema": {
+                "type": "object",
+                "properties": {
+                  "prompt": {
+                    "type": "string",
+                    "title": "待发送提示词",
+                    "minLength": 1,
+                    "maxLength": 3000
+                  },
+                  "send": {
+                    "type": "boolean",
+                    "title": "是否提交真实消息",
+                    "enum": [
+                      false,
+                      true
+                    ],
+                    "default": false
+                  },
+                  "model": {
+                    "type": "string",
+                    "title": "模型",
+                    "minLength": 1,
+                    "maxLength": 80
+                  },
+                  "effort": {
+                    "type": "string",
+                    "title": "推理强度",
+                    "minLength": 1,
+                    "maxLength": 80
+                  },
+                  "thinking": {
+                    "type": "boolean",
+                    "title": "启用思考"
+                  }
+                },
+                "required": [
+                  "prompt"
+                ],
+                "additionalProperties": false
+              },
+              "deadlineMs": 120000,
+              "targetDisposition": "retain-on-success"
+            }
+          },
+          "settled": false
+        }
+      }
+    }
+  ]
+}

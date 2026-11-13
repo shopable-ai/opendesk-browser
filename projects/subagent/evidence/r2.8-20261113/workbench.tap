@@ -1,0 +1,14 @@
+✔ page request renders one locked Sheet with source, fixed version and owned target, then uses original save and confirmation (1268.676542ms)
+✔ page request preserves explicit send true through both approval stages when the Task schema defaults to false (124.642708ms)
+✔ page request source revocation at reopen keeps the original request read-only without admission (70.670625ms)
+✔ page request source revocation at confirmation keeps the original request read-only without admission (114.04125ms)
+✔ page request late opening lookup cannot replace a newer Sheet or start a task (29.313791ms)
+✔ page request late approval lookup during query cannot retire or unlock a reopened Sheet (41.369334ms)
+ℹ tests 6
+ℹ suites 0
+ℹ pass 6
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 2074.73525

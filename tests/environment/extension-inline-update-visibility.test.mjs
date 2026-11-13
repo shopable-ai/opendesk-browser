@@ -15,11 +15,11 @@ const rows=(records=[candidate('first'),candidate('second')],verified=true)=>
   projectTrustedInlineUpdates([entry('first'),entry('second')],{verified,records});
 const settle=async()=>{await new Promise(resolve=>setImmediate(resolve));flushSync(()=>{});};
 
-test('every update row stays visible without hover, including after another row receives focus',async t=>{
+test('update and More share the last focused row overlay without changing row geometry',async t=>{
   const {doc,adapter}=createExtensionCenterDOM(t);
   adapter.renderRows({rows:rows(),onOpenRow(){},onMore(){}});
   const css=await readFile(new URL('../../src/ui/extension-center.css',import.meta.url),'utf8');
-  const check=()=>{
+  const check=active=>{
     // Actual component output + production stylesheet, not a string assertion.
     // DOM emulation proves the ordinary selector; real hit-testing is separate.
     const browser=new JSDOM(doc.documentElement.outerHTML);
@@ -29,14 +29,19 @@ test('every update row stays visible without hover, including after another row 
       for(const key of ['first','second']){
         const update=browser.window.document.querySelector(`[data-extension-key="app:${key}"][data-extension-action="update"]`);
         assert.ok(update);
-        assert.equal(browser.window.getComputedStyle(update.parentElement).opacity,'1');
-        assert.equal(browser.window.getComputedStyle(update.parentElement).pointerEvents,'auto');
+        const style=browser.window.getComputedStyle(update.parentElement);
+        assert.equal(style.opacity,key===active?'1':'0');
+        assert.equal(style.pointerEvents,key===active?'auto':'none');
+        assert.equal(style.top,'50%');
+        assert.equal(style.transform,'translateY(-50%)');
+        assert.equal(update.parentElement.querySelector('[data-extension-action="more"]').parentElement,update.parentElement);
       }
     }finally{browser.window.close();}
   };
-  check();
+  check('first');
   doc.querySelector('[data-extension-key="app:second"][data-extension-action="main"]').focus();
-  check();
+  await settle();
+  check('second');
 });
 
 test('cancelled, rejected and failed reviews retain the entry; UNKNOWN disables it without replay',async t=>{

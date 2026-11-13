@@ -1,18 +1,27 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
+import {readFileSync} from 'node:fs';
+import {transformSync} from 'esbuild';
+import * as React from 'react';
+import {renderToStaticMarkup} from 'react-dom/server';
 import {cookieChanges} from '../app/domain/cookie-changes.js';
 import {createCookieController} from '../app/controller/cookie-controller.js';
 import {createCookieObservation} from '../app/controller/cookie-observation.js';
 import {createCookieSdkAdapter} from '../app/adapters/browser-sdk.js';
 import {createMockSdk} from '../preview/react/src/mock-sdk.js';
 
+const popoverSource=readFileSync(new URL('../app/components/CookieMonitorPopover.jsx',import.meta.url),'utf8');
+const popoverCode=transformSync(popoverSource.replace(/^import .*;\n/gm,'').replace('export default function','function'),
+  {loader:'jsx',jsx:'transform'}).code;
+const CookieMonitorPopover=new Function('React',popoverCode+';return CookieMonitorPopover;')(React);
+
 const deferred=()=>{let resolve,reject;const promise=new Promise((a,b)=>{resolve=a;reject=b;});return {promise,resolve,reject};};
-function fixture(){
+function fixture(onObservedChange=()=>{}){
   const mock=createMockSdk(),snapshots=[];
   const adapter=createCookieSdkAdapter({getBrowser:()=>mock.browser,request:mock.request});
   const controller=createCookieController({adapter,onChange:value=>snapshots.push(value)});
   let allowed=true;
-  const observer=createCookieObservation({adapter,controller,canRun:()=>allowed});
+  const observer=createCookieObservation({adapter,controller,canRun:()=>allowed,onObservedChange});
   return {mock,adapter,controller,observer,snapshots,block:()=>{allowed=false;},
     dispose:()=>{observer.dispose();controller.dispose();mock.dispose();}};
 }
@@ -125,7 +134,9 @@ test('the observation expires without renewal or background reads',async()=>{
 test('change marks stay bounded and snapshot consumers cannot mutate their baseline',async()=>{
   let rows=[];
   const adapter={targetFor:async()=>({target:{hostname:'example.com',origin:'https://example.com',url:'https://example.com/'}}),
-    checkRead:async()=>({callableNow:true}),list:async()=>rows};
+    checkRead:async()=>({callableNow:true}),list:async()=>rows,
+    getStore:async()=>({storeId:'0'}),
+    getPartition:async()=>({partitionKey:{topLevelSite:'https://example.com'}})};
   const controller=createCookieController({adapter});
   try{
     await controller.load();
@@ -159,4 +170,107 @@ test('clearing marks during a read accepts current rows without restoring retire
     assert.equal(f.controller.snapshot().rows[0].name,'new_key');
     assert.deepEqual(f.controller.snapshot().changes,[]);
   }finally{f.dispose();}
+});
+
+// Execute current JSX with persistent hook slots and inert effects: no browser,
+// timers, host permissions or unrelated business components are mounted.
+function appMonitor(){
+  const source=readFileSync(new URL('../app/CookieEditorApp.jsx',import.meta.url),'utf8');
+  const names=[...source.matchAll(/^import (?:\{([^}]+)\}|(\w+)) from /gm)]
+    .flatMap(m=>m[1]?m[1].split(',').map(x=>x.trim()):[m[2]]);
+  const deps=Object.fromEntries(names.map(name=>[name,name]));
+  const snapshot={phase:'ready',epoch:1,rows:[],changes:[],target:{hostname:'example.com',url:'https://example.com/'}};
+  Object.assign(deps,{cookiePackage:{version:'test'},createCookieSdkAdapter:()=>({}),
+    createCookieController:()=>({snapshot:()=>snapshot})});
+  const slots=[];let cursor=0;
+  const React={useRef(value){const i=cursor++;return slots[i]??={current:value};},
+    useState(value){const i=cursor++;if(!(i in slots))slots[i]=typeof value==='function'?value():value;
+      return [slots[i],next=>{slots[i]=typeof next==='function'?next(slots[i]):next;}];},
+    useEffect(){},useLayoutEffect(){},
+    createElement(type,props,...children){return {type,props:props||{},children:children.flat(Infinity)};}};
+  const code=transformSync(source.replace(/^import .*;\n/gm,'').replace('export default function','function'),
+    {loader:'jsx',jsx:'transform'}).code;
+  const App=new Function('React',...Object.keys(deps),code+';return CookieEditorApp;')(React,...Object.values(deps));
+  const nodes=node=>node&&typeof node==='object'?[node,...(node.children||[]).flatMap(nodes)]:[];
+  return {render(epoch=1){snapshot.epoch=epoch;cursor=0;
+    const tree=App({hostRoot:{},request(){}});
+    return nodes(tree).find(n=>n.type==='CookieEditorView').props.monitor.props;
+  }};
+}
+test('first accepted observer event notifies once across polls, restarts and epoch remounts',async()=>{
+  const original=globalThis.OpenDeskTool,notices=[];
+  globalThis.OpenDeskTool={ui:{notify:notice=>{notices.push(notice);return true;}}};
+  const app=appMonitor();
+  const f=fixture(app.render().onObservedChange);
+  let remounted;
+  try{
+    await f.controller.load();await f.observer.start();
+    await f.observer.poll();assert.equal(notices.length,0,'empty poll');
+    const list=f.adapter.list,pending=deferred();
+    f.adapter.list=()=>pending.promise;
+    f.mock.simulateCookieChange('value');
+    const polling=f.observer.poll();
+    await Promise.resolve();await Promise.resolve();
+    assert.equal(notices.length,0,'metadata receipt is still pending');
+    pending.resolve(await list(f.controller.snapshot().target));await polling;
+    assert.equal(f.controller.snapshot().changes.length,1);
+    assert.equal(notices.length,1);
+    assert.equal(notices[0].type,'success');
+    f.adapter.list=list;
+    f.mock.simulateCookieChange('value');await f.observer.poll();
+    f.observer.stop();await f.observer.start();
+    f.mock.simulateCookieChange('added');await f.observer.poll();
+    f.observer.dispose();
+    remounted=createCookieObservation({adapter:f.adapter,controller:f.controller,canRun:()=>true,
+      onObservedChange:app.render(2).onObservedChange});
+    await remounted.start();f.mock.simulateCookieChange('value');await remounted.poll();
+    assert.equal(notices.length,1,'App lifetime outlives the monitor session and epoch');
+  }finally{remounted?.dispose();f.dispose();globalThis.OpenDeskTool=original;}
+});
+test('gap-only refresh does not notify or consume the first actual event',async()=>{
+  let notices=0;const f=fixture(()=>notices++);
+  try{
+    await f.controller.load();await f.observer.start();
+    const read=f.adapter.observeRead,sessionRef=f.mock.inspect().observations[0];
+    f.mock.simulateCookieChange('added');
+    f.adapter.observeRead=async()=>({sessionRef,events:[],nextCursor:'0',gapCount:1});
+    await f.observer.poll();
+    assert.equal(f.observer.snapshot().gap,true);
+    assert.equal(f.controller.snapshot().changes.length,1);
+    assert.equal(notices,0);
+    f.adapter.observeRead=read;await f.observer.poll();assert.equal(notices,1);
+  }finally{f.dispose();}
+});
+test('cancellation during event reads or metadata sync and rejected sync never notify',async()=>{
+  for(const stage of ['read','sync','rejected']){
+    let notices=0;const f=fixture(()=>notices++),pending=deferred(),syncEntered=deferred();
+    try{
+      await f.controller.load();await f.observer.start();
+      const sessionRef=f.mock.inspect().observations[0];
+      if(stage==='read')f.adapter.observeRead=()=>pending.promise;
+      else{
+        f.mock.simulateCookieChange('value');
+        f.controller.syncMetadata=()=>{syncEntered.resolve();return pending.promise;};
+      }
+      const polling=f.observer.poll();
+      if(stage!=='read')await syncEntered.promise;
+      if(stage!=='rejected')f.observer.stop();
+      pending.resolve(stage==='read'?{sessionRef,events:[{name:'theme',domain:'shop.example.com',path:'/'}],nextCursor:'1',gapCount:0}:stage!=='rejected');
+      await polling;assert.equal(notices,0,stage);
+    }finally{f.dispose();}
+  }
+});
+
+test('idle monitor exposes the toolbar icon without a permanent status block',()=>{
+  const source=readFileSync(new URL('../app/components/CookieChangeMonitor.jsx',import.meta.url),'utf8');
+  const code=transformSync(source.replace(/^import .*;\n/gm,'').replace('export default function','function'),
+    {loader:'jsx',jsx:'transform'}).code;
+  const Monitor=new Function('React','createCookieObservation','CookieMonitorPopover',code+';return CookieChangeMonitor;')(React,createCookieObservation,CookieMonitorPopover);
+  const props={
+    adapter:{supportsObservation:()=>true},controller:{},available:true,onOnlyChanged(){}
+  };
+  const html=renderToStaticMarkup(React.createElement(Monitor,props));
+  assert.equal((html.match(/<button /g)||[]).length,1);
+  assert.match(html,/aria-label="更多 Cookie 操作"/);
+  assert.doesNotMatch(html,/<p(?:\s|>)|role="dialog"|开始监听 30 秒/);
 });

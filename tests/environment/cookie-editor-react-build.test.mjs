@@ -48,9 +48,14 @@ test('canonical packer rejects Cookie source drift before writing a candidate',a
       await mkdir(dirname(resolve(project,file)),{recursive:true});
       await copyFile(resolve(root,file),resolve(project,file));
     }
-    await appendFile(resolve(project,'app/controller/cookie-controller.js'),'\n// changed after compilation\n');
-    await assert.rejects(buildSidebarTool(project,{out}),/compiled UI source changed since the successful build/);
-    await assert.rejects(access(out),{code:'ENOENT'});
+    for(const file of ['app/controller/cookie-controller.js',
+      'app/controller/cookie-observation.js','app/components/CookieChangeMonitor.jsx']){
+      const path=resolve(project,file);
+      await appendFile(path,'\n// changed after compilation\n');
+      await assert.rejects(buildSidebarTool(project,{out}),/compiled UI source changed since the successful build/);
+      await assert.rejects(access(out),{code:'ENOENT'});
+      await copyFile(resolve(root,file),path);
+    }
   }finally{await rm(scratch,{recursive:true,force:true});}
 });
 

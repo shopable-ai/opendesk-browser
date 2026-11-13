@@ -24,12 +24,14 @@ const V2_CAPABILITIES = Object.freeze([...new Set([...CAPABILITIES,'page.module'
   'browser.cookies.read','browser.cookies.values','browser.cookies.write','browser.cookies.observe','browser.cookies.clear','browser.storage','browser.proxy.managed',MANAGED_SITE_BUDGET_CAPABILITY,
   ...APPROVED_BROWSER_DIRECT_BINDINGS.flatMap(row=>row.requiredCapabilities)])]);
 const BROWSER_SDK_VERSION='1.0.0';
+const PAGE_MODULE_RUN_AT=Object.freeze(['document_end','document_idle']);
 // Derived from the validator's sole allowlist, never a permission grant. Each
 // fixed runtime computes this from its own loaded code, not a fetched catalog.
 export function sidebarToolPackageContract(){
   return {protocol:SIDEBAR_TOOL_PROTOCOL,formats:{
     [SIDEBAR_TOOL_FORMAT]:[...CAPABILITIES],[SIDEBAR_TOOL_FORMAT_V2]:[...V2_CAPABILITIES]
-  },limits:{...SIDEBAR_TOOL_LIMITS},browserSdk:BROWSER_SDK_VERSION};
+  },limits:{...SIDEBAR_TOOL_LIMITS},browserSdk:BROWSER_SDK_VERSION,
+  pageModule:{runAt:[...PAGE_MODULE_RUN_AT],allFrames:false,world:'USER_SCRIPT'}};
 }
 export async function sidebarToolPackageContractHash(){
   const bytes=new TextEncoder().encode(JSON.stringify(sidebarToolPackageContract()));
@@ -58,7 +60,7 @@ function normalizePageModule(value,tool){
      !['sourceHash','packageHash'].every(key=>typeof value[key]==='string'&&/^[a-f0-9]{64}$/.test(value[key])))
     fail('Page 模块必须是绑定当前应用 ID 和版本的完整安装包','E_TOOL_PAGE_MODULE');
   const pageRules=validatePageProgramRules(value.pageRules);
-  if(pageRules.allFrames||!['document_end','document_idle'].includes(pageRules.runAt))
+  if(pageRules.allFrames||!PAGE_MODULE_RUN_AT.includes(pageRules.runAt))
     fail('Page 模块只支持顶层 document_end 或 document_idle / USER_SCRIPT','E_TOOL_PAGE_MODULE');
   // Canonical encoding rejects cyclic/non-JSON data before cloning or hashing.
   const normalized={...value,pageRules};
@@ -221,7 +223,9 @@ export function validateSidebarToolPackage(value) {
 // Stable schema order also allows an installed package whose object keys were
 // reordered by Chrome Storage to be compared with a canonical official digest.
 export function serializeSidebarToolPackage(value){
-  const tool=validateSidebarToolPackage(value);
+  return serializeValidatedSidebarToolPackage(validateSidebarToolPackage(value));
+}
+function serializeValidatedSidebarToolPackage(tool){
   const isV2=tool.format===SIDEBAR_TOOL_FORMAT_V2;
   const stable=Object.fromEntries((isV2?V2_FIELDS:PACKAGE_FIELDS).map(key=>[key,tool[key]]));
   if(tool.localization!==undefined){
@@ -265,10 +269,17 @@ export function sidebarToolStorageKey(id) {
 }
 
 export async function sidebarToolPackageHash(tool){
+  return (await verifySidebarToolPackageWithHash(tool)).packageHash;
+}
+
+// One fresh validation produces both the admitted package and its canonical
+// identity. No caller can supply an unchecked "already verified" package.
+export async function verifySidebarToolPackageWithHash(tool){
   const verified=await verifySidebarToolBackground(tool);
-  const bytes=new TextEncoder().encode(serializeSidebarToolPackage(verified));
-  return Array.from(new Uint8Array(await crypto.subtle.digest('SHA-256',bytes)),
+  const bytes=new TextEncoder().encode(serializeValidatedSidebarToolPackage(verified));
+  const packageHash=Array.from(new Uint8Array(await crypto.subtle.digest('SHA-256',bytes)),
     value=>value.toString(16).padStart(2,'0')).join('');
+  return {tool:verified,packageHash};
 }
 
 // Shape admission remains synchronous. Installation and service consumers must

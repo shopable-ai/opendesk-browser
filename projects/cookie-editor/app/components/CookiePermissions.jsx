@@ -19,9 +19,10 @@ function content(phase,reason){
   if(chromeDenied.has(reason))return ['Chrome Cookie 权限不足','请在 Chrome 扩展权限中恢复 Cookie 或网站访问，再重新检查。',true];
   if(hostLost.has(reason))return ['工具宿主不可用','请核对工具启用状态与安装版本，重新打开 Cookie Editor。',true];
   if(reason==='E_OUTCOME_UNKNOWN')return ['读取结果未确认','请核对当前 Chrome Cookie 状态，不会自动重试。',true];
+  if(reason==='E_RATE_LIMIT')return ['读取请求过于频繁','请等待一分钟后重新检查。',true];
   return ['读取 Cookie 失败','请核对授权及 Cookie Store/Partition，按需手动重新检查。',true];
 }
-export default function CookiePermissions({phase,reason,target,disabled,onRetry,onOffline}){
+export default function CookiePermissions({phase,reason,target,disabled,onRetry,onOffline,readDiagnostic}){
   if(phase==='ready'||granting.has(reason))return null;
   if(phase==='loading')return <section className="cookie-permission od-surface od-surface--padded" role="status" aria-live="polite">
     正在读取 Cookie…
@@ -30,6 +31,8 @@ export default function CookiePermissions({phase,reason,target,disabled,onRetry,
   return <section className="cookie-permission od-surface od-surface--padded" role="status" aria-live="polite">
     <strong>{heading}</strong>
     <p>{help}</p>
+    {/^E_[A-Z_]{1,64}$/.test(reason||'')&&<p className="editor-hint">错误代码：{reason}</p>}
+    {readDiagnostic&&<p className="editor-hint">读取诊断：{readDiagnostic.operation} / {readDiagnostic.stage} / {readDiagnostic.code}</p>}
     {target&&<p className="cookie-editor-scope">{target.hostname}</p>}
     {canRetry&&<div className="cookie-permission-actions">
       <Button type="button" disabled={disabled} onClick={onRetry}>重新检查</Button>

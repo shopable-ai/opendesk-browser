@@ -106,7 +106,8 @@ export function createTaskWorkbench({client,host,currentPageTarget,api=globalThi
     }
     myView.project('taskRunSheet',{identity:{...preparation.task},title:info?.manifest.title||preparation.task.taskId,
       source:preparation.pageRequestId?'page':'tool',target:preparation.target,recoveryOnly,originalParams:preparation.params,
-      ...(preparation.pageRequestId?{pageRequestId:preparation.pageRequestId,pageBinding:pageRequest?.pageBinding,paramsLocked:true}:{}),
+      ...(preparation.pageRequestId?{pageRequestId:preparation.pageRequestId,pageBinding:pageRequest?.pageBinding,
+        reprepareAllowed:pageRequest?.reprepareAllowed===true,paramsLocked:true}:{}),
       phase:preparation.state==='cancelled'?'cancelled':settled===true?'settled':preparation.state==='prepared'?'prepared':preparation.state==='unknown'?'unknown':'submitted',
       preparationId:preparation.preparationId,status:preparation.state==='cancelled'
         ?'原准备已取消；请关闭后打开新配置。'
@@ -198,9 +199,15 @@ export function createTaskWorkbench({client,host,currentPageTarget,api=globalThi
       const {requests}=await client.request('listPageTaskRequests',{});
       if(disposed||myView.data.taskRunSheet||sheetBusy||running||working||host.currentRun)return;
       const source=currentPageTarget?.snapshot;
-      const request=requests?.find(row=>['pending-approval','prepared'].includes(row.state)&&!dismissedPageRequests.has(row.requestId)&&
+      const recoveryLocator=requests?.find(row=>sharedPreparation&&!sharedPreparation.runId&&
+        row.requestId===sharedPreparation.pageRequestId&&row.preparationId===sharedPreparation.preparationId&&
+        !dismissedPageRequests.has(row.requestId));
+      const recovery=recoveryLocator?(await client.request('readPageTaskRequest',{requestId:recoveryLocator.requestId}))?.request:null;
+      if(disposed||myView.data.taskRunSheet||sheetBusy||running||working||host.currentRun)return;
+      const request=(recovery?.reprepareAllowed===true&&recovery.requestId===recoveryLocator.requestId&&
+        recovery.preparationId===recoveryLocator.preparationId?recovery:null)||requests?.find(row=>['pending-approval','prepared','source-stale'].includes(row.state)&&!dismissedPageRequests.has(row.requestId)&&
         row.pageBinding?.tabId===source?.tabId&&row.pageBinding?.url===source?.url&&
-        row.pageBinding?.documentId===source?.documentId);
+        (row.pageBinding?.documentId===source?.documentId||row.reprepareAllowed===true));
       if(request)await openPageTaskRequest(request.requestId);
     })();
     pageDiscovery=task;
@@ -1031,7 +1038,7 @@ export function createTaskWorkbench({client,host,currentPageTarget,api=globalThi
         target:runTarget,
         ...(preparation?{taskPreparationId:preparation.preparationId,
           requestId:preparation.preparationId,...(preparation.binding?{taskDelegation:preparation.binding}:{})}:{}),
-        deadlineAt:preparation?.deadlineAt??Date.now()+(resolved.manifest.deadlineMs??30000)});
+        deadlineAt:preparation?.deadlineAt??Date.now()+(preparation?.executionDeadlineMs??resolved.manifest.deadlineMs??30000)});
       activeRunId=claim.runId;agentStartSubmitted=false;
       if(preparation&&currentSheet())sheetStatus('已提交原运行；查询原请求查看真实结果。','submitted');
       if(agentIntent&&agentStopRequested){
@@ -1363,6 +1370,22 @@ export function createTaskWorkbench({client,host,currentPageTarget,api=globalThi
     myView.project('taskRunSheet',null);
   });
   registerAction('taskSheetPrepareClick',prepareSheet);
+  registerAction('taskSheetReprepareClick',event=>{
+    const sheet=myView.data.taskRunSheet;
+    if(!event?.isTrusted||sheetBusy||!sheet?.reprepareAllowed||!sheet.pageRequestId)return;
+    const sequence=sheetSequence,id=sheet.preparationId;
+    const current=()=>!disposed&&sequence===sheetSequence&&myView.data.taskRunSheet?.preparationId===id;
+    sheetBusy=true;sheetStatus('正在核对从未执行的原请求；不会创建网页或发送。');
+    void client.request('repreparePageTaskRequest',{requestId:sheet.pageRequestId,expectedPreparationId:id}).then(reply=>{
+      if(!current())return;
+      if(reply?.request?.requestId!==sheet.pageRequestId||!reply.preparation||reply.request.approvalAllowed!==true||
+        reply.preparation.preparationId!==reply.request.preparationId||reply.preparation.preparationId===id)
+        throw {code:'E_OUTCOME_UNKNOWN',message:'新准备未可靠读回；只查询同一原请求'};
+      bindPageApproval(reply.request);showPreparation(reply.preparation,reply.snapshot,reply.settled);
+    }).catch(error=>{if(current())sheetStatus(formatTaskError(error)+'；请关闭并打开原网页请求核对，勿重建请求。','unknown');})
+      .finally(()=>{if(!disposed&&sequence===sheetSequence){sheetBusy=false;
+        if(myView.data.taskRunSheet){myView.data.taskRunSheet={...myView.data.taskRunSheet,busy:false};myView.publish();}}});
+  });
   registerAction('taskSheetConfirmClick',(event,expected)=>{
     const sheet=myView.data.taskRunSheet;
     if(!event?.isTrusted||sheetBusy||sheet?.phase!=='prepared'||sheet.recoveryOnly||!sharedPreparation||

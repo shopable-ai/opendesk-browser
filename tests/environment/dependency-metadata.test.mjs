@@ -52,6 +52,23 @@ test('leading copyright comments do not hide real dependencies or privileges; ma
   rejected('// ==UserScript==\n// comment\u2028// @grant GM_getValue\n// ==/UserScript==','E_GRANT_UNSUPPORTED');
 });
 
+test('large leading resource comments preserve header offsets and every JavaScript line ending',()=>{
+  const comment='// resource '+('x'.repeat(2*1024*1024))+' // @grant GM_getValue';
+  for(const ending of ['\n','\r','\r\n','\u2028','\u2029']){
+    const header=userscript(['@match https://example.com/*','@run-at document-idle',
+      '@noframes','@require https://cdn.example/a.js']).replaceAll('\n',ending);
+    const source=comment+ending+header,parsed=parse(source);
+    assert.equal(parsed.hasHeader,true);
+    assert.equal(parsed.headerComplete,true);
+    assert.equal(parsed.headerRange.start,comment.length+ending.length);
+    assert.equal(parsed.headerRaw,source.slice(parsed.headerRange.start,parsed.headerRange.end));
+    assert.deepEqual(parsed.requires.map(row=>row.url),['https://cdn.example/a.js']);
+    assert.equal(assess(parsed,{dependenciesLocked:true}).status,'executable');
+    assert.equal(parse(comment+ending+'const value=1;'+ending+header).hasHeader,false);
+  }
+  assert.equal(parse(comment).hasHeader,false,'a resource comment at EOF is not metadata');
+});
+
 test('standard unpinned @require is importable and reviewable, including duplicate execution order',()=>{
   const values = ['https://cdn.example/a.js','https://other.example/b.js','https://cdn.example/a.js'];
   const parsed = parse(userscript(values.map(value => '@require ' + value)));

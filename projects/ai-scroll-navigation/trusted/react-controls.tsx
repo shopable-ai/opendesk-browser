@@ -419,7 +419,9 @@ export function ScrollSiteManager({model,pageControl,title,detail,onNavigation,P
           {flags.map(([key,label])=><div key={key} className="ec-scroll-flag"
             onPointerDownCapture={captureNavigation} onPointerUpCapture={captureNavigation}
             onKeyDownCapture={captureNavigation} onKeyUpCapture={captureNavigation} onClickCapture={captureNavigation}
-            onBlurCapture={()=>{navigationGesture.current=null;}}><span>{t(label)}</span><Switch
+            onBlurCapture={()=>{navigationGesture.current=null;}}>
+              <label htmlFor={'scroll-navigation-'+key} style={{flex:1,minWidth:0}}>{t(label)}</label><Switch
+              id={'scroll-navigation-'+key}
               isSelected={key==='showTurnCount'?snapshot.value.navigation?.[key]===true:
                 snapshot.value.navigation?.[key]!==false} isDisabled={writesDisabled}
               aria-label={t(label)} onChange={value=>{
@@ -428,6 +430,10 @@ export function ScrollSiteManager({model,pageControl,title,detail,onNavigation,P
               }}/></div>)}
         </div>)}</div>}
       <p className="ec-scroll-help">{t('navigationHelp')}</p>
+      <details className="ec-scroll-navigation-help">
+        <summary>{t('navigationUsage')}</summary>
+        {['longReplyHelp','turnCountHelp','floatingTopHelp'].map(key=><p className="ec-scroll-help" key={key}>{t(key)}</p>)}
+      </details>
       <Button id="scroll-management" variant="quiet" onClick={openManagement}>{t('managementTitle')}</Button>
     </div>}
     {view==='management'&&detail&&<div className="ec-scroll-subview ec-scroll-management">
@@ -509,9 +515,13 @@ export function ScrollSiteManager({model,pageControl,title,detail,onNavigation,P
     </>}
     {(needsReconcile||(!snapshot&&!loading))&&<Button disabled={busy} onClick={()=>void readAgain()}>{t('reread')}</Button>}
     {model.disabledReason&&<p role="status">{model.disabledReason}</p>}
-    {notice&&<p role="status" className="ec-scroll-notice">{scrollNavigationMessageText(locale,notice)}</p>}
-    {error&&<p role="alert" className="ec-scroll-error">{scrollNavigationMessageText(locale,error)}</p>}
+    {view!=='settings'&&notice&&<p role="status" className="ec-scroll-notice">{scrollNavigationMessageText(locale,notice)}</p>}
+    {view!=='settings'&&error&&<p role="alert" className="ec-scroll-error">{scrollNavigationMessageText(locale,error)}</p>}
     </div>
+    {view==='settings'&&(busy||notice||error)&&<div className="ec-scroll-actionbar">
+      {error?<p role="alert" className="ec-scroll-error">{scrollNavigationMessageText(locale,error)}</p>:
+        <span role="status" aria-live="polite">{busy?t('processing'):scrollNavigationMessageText(locale,notice)}</span>}
+    </div>}
     {view==='editor'&&draft&&<div className="ec-scroll-actionbar" aria-label={t('saveActions')}>
       <span role="status" aria-live="polite">{busy?t('processing'):needsReconcile?t('writeUnconfirmed'):
         loading?t('readingConfig'):!snapshot?t('configUnread'):!valid?t('completeRequired'):

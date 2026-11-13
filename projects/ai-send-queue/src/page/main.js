@@ -257,7 +257,7 @@ export default async function main({assets}={}) {
       checkpoint();
     },true);
     const actions={
-      enqueue(){
+      enqueue({paused=false}={}){
         if(blocked())return false;
         if(cachedDraft||view?.hasRecovery()){
           notify('请先核对并处理上一次草稿交接的备份，再继续操作');return;
@@ -289,7 +289,7 @@ export default async function main({assets}={}) {
           }else notify(selected.reason);
           return;
         }
-        if(!engine.enqueue(selected.text,snap.route)){
+        if(!engine.enqueue(selected.text,snap.route,{paused})){
           pending={kind:'restore',text:selected.text,before};
           const fresh=site.inspect();
           let restored=false;
@@ -396,7 +396,7 @@ export default async function main({assets}={}) {
     // The fixed remote adapter is in USER_SCRIPT, not the website's JS world.
     remote=createSendQueueRemote({owner,site,engine,actions,retireForLegacy});
     if(globalThis.OpenDeskAppPage)
-      registerPageStatus({bridge:globalThis.OpenDeskAppPage,owner,site,view,version:'0.1.28'});
+      registerPageStatus({bridge:globalThis.OpenDeskAppPage,owner,site,view,version:'0.1.32'});
     // A native attempt may precede its DOM receipt. Subsequent editing cannot
     // prove that an externally initiated send was cancelled.
     owner.on(document,'click',event=>{

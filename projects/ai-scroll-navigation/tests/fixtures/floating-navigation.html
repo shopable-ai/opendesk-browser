@@ -1,0 +1,64 @@
+<!doctype html>
+<html lang="zh-CN">
+<meta charset="utf-8">
+<title>AI 对话滚动导航 · 源码回归</title>
+<style>
+  body{margin:0;font:16px/1.6 system-ui;background:#f6f7fb;color:#263449}
+  header{height:64px;display:flex;align-items:center;justify-content:space-between;padding:0 20px}
+  header label{font-size:14px}
+  main{height:calc(100vh - 80px);overflow-y:auto;background:white;margin:0 12px}
+  #messages{padding:24px 36px 36px 88px;max-width:800px}
+  article,.ds-message,user-query,model-response{display:block;margin:0 0 20px;padding:16px;
+    box-sizing:border-box;min-height:180px;border-radius:12px;background:#eef3fc}
+  [data-role="assistant"],model-response{min-height:560px;background:#f4f5f7}
+</style>
+<header><span>AI 对话滚动导航 · 业务源码测试（非安装态）</span>
+  <label>站点结构 <select id="site"><option value="chatgpt">ChatGPT</option>
+    <option value="deepseek">DeepSeek</option><option value="gemini">Gemini</option></select></label>
+</header>
+<main id="thread"><div id="messages"></div></main>
+<script type="module">
+  import {installFloatingNavigation} from '../../src/floating-navigation.js';
+  import {findConversationNavigation} from '../../src/conversation.js';
+  const main=document.querySelector('main'),messages=document.querySelector('#messages');
+  const disposals=[];
+  const owner={
+    on(target,type,listener,options){target.addEventListener(type,listener,options);
+      const off=()=>target.removeEventListener(type,listener,options);disposals.push(off);return off;},
+    setTimeout(fn,delay){const id=setTimeout(fn,delay);disposals.push(()=>clearTimeout(id));return id;},
+    observe(target,fn,options){const observer=new MutationObserver(fn);observer.observe(target,options);
+      disposals.push(()=>observer.disconnect());return observer;},
+    onDispose(fn){disposals.push(fn);}
+  };
+  let site='chatgpt',flags={turnPaging:true};
+  function transcript(rounds=3){
+    messages.replaceChildren();
+    for(let i=1;i<=rounds;i++)for(const role of ['user','assistant']){
+      const node=document.createElement(site==='gemini'?(role==='user'?'user-query':'model-response'):'article');
+      if(site==='chatgpt')node.setAttribute('data-testid',`conversation-turn-${i}-${role}`);
+      if(site==='deepseek')node.className='ds-message';
+      node.setAttribute('data-role',role);node.textContent=`第 ${i} 轮 · ${role==='user'?'用户提问':'AI 回复'}`;
+      messages.append(node);
+    }
+    main.scrollTop=0;
+  }
+  transcript();
+  const session=installFloatingNavigation({doc:document,win:window,owner,resolveNavigation:()=>flags,
+    resolveConversation:()=>{
+      const selector=site==='chatgpt'?'[data-testid^="conversation-turn-"]':
+        site==='deepseek'?'.ds-message':'user-query,model-response';
+      const binding=findConversationNavigation(main,selector,document,window);
+      return binding?{...binding,site,selector}:null;
+    }});
+  document.querySelector('#site').addEventListener('change',event=>{
+    site=event.target.value;transcript();session.refresh();
+  });
+  // Test controls change only synthetic content; actual navigation uses the source module.
+  window.scrollNavigationFixture={
+    transcript,refresh:()=>session.refresh(),
+    setFlags(value){flags=value;session.refresh();},
+    dispose(){disposals.splice(0).reverse().forEach(fn=>fn());}
+  };
+  window.addEventListener('pagehide',()=>window.scrollNavigationFixture.dispose(),{once:true});
+</script>
+</html>

@@ -98,14 +98,21 @@ export function createPageFrameRuntime({api,worlds}){
   const edit=async(worldId,nonce,work,kind='installed')=>worlds.editRecords(rows=>{
     const row=rows.find(r=>r.worldId===worldId);
     invariant(row?.[kind]?.receiptNonce===nonce,'E_FRAME_IDENTITY','父执行身份已变化');
-    row[kind].frames??=[];return work(row[kind].frames);
+    row[kind].frames??=[];
+    const retired=new Map(row[kind].frames.filter(frame=>frame.state==='retired').map(frame=>
+      [frame.requestId,structuredClone(frame)]));
+    const result=work(row[kind].frames);
+    // An exact-UUID retirement may overtake an old Native promise. Its late
+    // success/failure cannot resurrect that resource or its unknown fence.
+    row[kind].frames=row[kind].frames.map(frame=>retired.get(frame.requestId)||frame);
+    return result;
   });
   const exact=(results,target)=>{
     invariant(Array.isArray(results)&&results.length===1&&results[0]?.documentId===target.documentId&&
       results[0].frameId===target.frameId&&results[0].error===undefined,'E_EFFECT_UNKNOWN','缺少精确子文档回执');
     return results[0].result;
   };
-  async function execute({message,sender,candidate,execution,preview},authorize,dispatch){
+  async function execute({message,sender,candidate,execution,preview,onUnknown},authorize,dispatch){
     const kind=preview?'previewFrames':'installed';
     const row=(await worlds.records()).find(r=>r.worldId===(preview?.worldId??execution.managedUI?.worldId));
     const binding=row?.[kind];
@@ -148,7 +155,7 @@ export function createPageFrameRuntime({api,worlds}){
     const parentProbe=async challenge=>exact(await native.execute({injectImmediately:true,target:{tabId:row.tabId,documentIds:[row.documentId]},
       world:'USER_SCRIPT',worldId,js:[{code:'__opendeskPageFramesV1.inspect('+JSON.stringify(message.requestId)+
         (challenge?','+JSON.stringify(challenge):'')+')'}]}),parent);
-    let dispatched=false;
+    let dispatched=false,childWorldId;
     try{
       const challenge=crypto.randomUUID(),proof=await parentProbe(challenge);
       invariant(proof?.url===message.url&&proof.portToken===message.portToken,'E_FRAME_IDENTITY','父文档没有捕获此子帧');
@@ -157,7 +164,7 @@ export function createPageFrameRuntime({api,worlds}){
         r.frameId>0&&!r.errorOccurred&&r.documentLifecycle==='active');
       invariant(children.length===1,'E_FRAME_IDENTITY','缺少唯一真实父子文档');
       const child={...children[0],tabId:row.tabId};
-      const childWorldId=await worlds.allocate(native,child);
+      childWorldId=await worlds.allocate(native,child,{pendingBinding:message.requestId});
       await update(rows=>Object.assign(rows.find(r=>r.requestId===message.requestId),
         {documentId:child.documentId,frameId:child.frameId,worldId:childWorldId}));
       const connected=exact(await native.execute({injectImmediately:true,target:{tabId:row.tabId,documentIds:[child.documentId]},
@@ -187,10 +194,13 @@ export function createPageFrameRuntime({api,worlds}){
       await update(rows=>Object.assign(rows.find(r=>r.requestId===message.requestId),{state:'evaluated',receipt:result}));
       return result;
     }catch(error){
+      if(dispatched)onUnknown?.();
       await update(rows=>Object.assign(rows.find(r=>r.requestId===message.requestId),
         {state:dispatched?'unknown':'failed',error:{code:error.code||'E_FRAME_EXECUTION',message:String(error.message||error).slice(0,512)}}));
       if(dispatched)throw new FoundationError('E_EFFECT_UNKNOWN','子帧执行结果未确认；不重放资源');
       throw error;
+    }finally{
+      if(childWorldId)await worlds.releasePending({worldId:childWorldId,nonce:message.requestId});
     }
   }
   return Object.freeze({execute});

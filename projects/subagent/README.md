@@ -4,6 +4,8 @@
 
 ## 原始产品目标
 
+**R2.8 最新实测（2026-11-13）：** 原安装器已成功安装 0.2.0/r1，随后按用户授权的专家判断，将 Subagent 更新为 **0.2.1/r2，精确委托已安装 WebFlow Task 0.2.2**；安装身份不变、授权 generation=2、注册有效。原 A Mini Chat 已创建真实请求，原工作台已保存并读回 `{prompt:"请介绍 WebFlow 的三个主要优势。",send:true}`。用户已批准这一次发送，但开发服务重载后，原准备投影为 `unknown`、`approvalAllowed:false`，因此未点击执行；`runId/resultId` 均为 null，B 未创建，全文尚未回 A，业务仍 **BLOCKED**。保留原请求，不补发或另建请求。定向 48/48 + 6/6 + 来源 pin 1/1 PASS。[R2.8 当前证据](evidence/r2.8-20261113/README.md)取代 [R2.7 安装失败观察](evidence/r2.7-20261113/README.md)作为当前状态；历史记录不改写。
+
 在 AI 网页当前对话 A 展示一个极简 Subagent 入口；用户输入任务、点击创建 → 经可信任务委托使用**现有 WebFlow 已审阅 Controller Task** 在独立 ChatGPT B 填写并按原授权发送一次 → 等待 B 完整真实回答 → 在 A 的 Subagent Mini Chat 中显示正文及“打开原始对话 B”链接。**不向 A 官方对话框自动发送任何消息。**
 
 第一阶段只做单 A、单 B、一条任务、一个完成结果；未来才可能增加多 AI、子代理并发、管理 UI 等，不能为这些假设改造当前核心。
@@ -20,13 +22,13 @@
 
 ## 当前确切进度
 
-- 当前候选为 **Subagent 0.2.0**。`src/main.js` 已接入正式安装时才提供的 `@opendesk/tasks` 客户端；`src/transport.js` 只提交待审批请求、恢复和查询原请求。未安装、开发预览或旧 Browser 无此能力时仍禁用，不使用网页事件兜底。
-- Page 安装 scope 固定委托 **`chatgpt.conversation.create@0.2.0`**，同时绑定原不可变包的 manifest/source hash。原 Task 必须分别安装、启用并取得网站权限；这不是修改 WebFlow Sidebar Tool 的 delegatedTasks，也不是继承 R8 的发送授权。
+- 当前候选及已安装 Page 为 **Subagent 0.2.1/r2**。`src/main.js` 已接入正式安装时才提供的 `@opendesk/tasks` 客户端；`src/transport.js` 只提交待审批请求、恢复和查询原请求。未安装、开发预览或旧 Browser 无此能力时仍禁用，不使用网页事件兜底。
+- Page 安装 scope 固定委托 **`chatgpt.conversation.create@0.2.2`**，同时绑定原不可变包的 manifest/source hash，可信结果消费者也只接受该版本。原 Task 必须分别安装、启用并取得网站权限；这不是修改 WebFlow Sidebar Tool 的 delegatedTasks，也不是继承 R8/R11 的发送授权。0.2.2 已由原工作台解析为 installation `aa3663d9-8f52-4008-8092-b66aa5489027` / generation=3；下文 R2.3 的 0.2.0 调用图与 pin 仅保留历史。
 - 原 TaskWorkbench 已支持来自 Page 的冻结参数审阅和独立 owned 目标；“保存并核对”之后，真实用户“确认执行一次”才进入原 Controller。原 Page 安装、授权代次、来源 A tab/frame/document/URL 在准备、提交和读取时复核。
 - `trusted/page-task-result.js` 已注册到原 SW 的通用结果投影入口，调用 `trusted/result.js` 与既有 WebFlow Adapter，从原 Run/Result 取得完整 `replyText`。不使用 500 字预览，不调用向 A 官方聊天发送的交付路径。
 - 单请求恢复、迟到 ACK、并发读取、SPA 退役、撤权后重新授权不能另建请求，以及原审批 UI 已有本轮 Node/React fixture 证据。公共能力合同见 [Page USER_SCRIPT API](../../docs/api/page-userscript.zh-CN.md)。**源码接线和模拟测试不等于真实 Chrome 业务成功。**
-- 原 Browser production 构建及原包验证器已通过，131 个资源，packageHash `0b49abaabba5aa5a3d79f591dd31f331d316788f1fa0e392765e5f4d7e99cca0`，构建期间来源无漂移。Subagent 原 Page 构建仍为 `BUILT_UNVERIFIED / installable:false`，待原生验证和正式安装；不能把 Browser 包验证等同于 Page 已安装。
-- 未完成：当前候选的正式安装、真实 B 创建及原生单次发送、真实完整回复、A 页面回显和链接核验。OpenDesk 本机 Browser Core / Code 通道复查仍为 `UNAVAILABLE / 429`，没有本轮安装版本或 A/B Run/Result。AC01–AC10 尚无本轮真实 Chrome PASS。
+- 原 Browser production 构建及原包验证器的 131 资源 / packageHash `0b49abaabba5aa5a3d79f591dd31f331d316788f1fa0e392765e5f4d7e99cca0` 是历史证据。R2.8 复用原持续开发 watcher 和 `dist/development`，原构建器与 Page 打包器生成 0.2.1/r2 后，通过原安装器安装并读回；draft 仍保留 `BUILT_UNVERIFIED / installable:false`，未伪改生命周期。真实 Page 安装与 production 验收分别报告。
+- 未完成：原请求安全恢复后的真实 B 创建及单次发送、真实完整回复、A 页面回显和链接核验。当前阻断是原准备在浏览器会话变化后只读，而非 R2.7 的安装失败；用户的单次发送批准已取得，未消耗，也不能绕过原请求栅栏。未复测 connector 的历史 429，不将其作为当前浏览器阻断。AC01–AC10 无整体业务 PASS。
 
 ## 实现顺序（避免重复）
 

@@ -50,7 +50,8 @@ function fixture(overrides = {}) {
   };
   if(overrides.userScriptsUnavailable)delete api.userScripts;
   let slot=overrides.slotBusy?{currentRunId:'other-run'}:null;
-  const storage={transaction:async(_,__,work)=>work({get:async()=>structuredClone(slot),put:async(_name,value)=>{slot=structuredClone(value);}})};
+  const storage={transaction:async(_,__,work)=>work({get:async()=>structuredClone(slot),put:async(_name,value)=>{slot=structuredClone(value);},
+    all:async name=>{assert.equal(name,'frameworkKV');return [];}})};
   const assertHost=async()=>{if(overrides.denyHost)throw Object.assign(new Error('E_OWNER'),{code:'E_OWNER'});return {registrationId:'host-one'};};
   const admission=createPreviewAdmission({storage,assertHost,currentHost:assertHost});
   const preview=createPageScriptPreview({api,storage,assertHost,admission,fetchImpl:async()=>({ok:true,text:async()=>overrides.jquerySource||''}),loadBuiltin:loadFakeBuiltin});

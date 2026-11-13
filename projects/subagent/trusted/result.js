@@ -6,7 +6,7 @@ import {verifyChatGPTTaskDurableResult}
   from '../../../src/native-agent/chatgpt-fixed-bridge-host.js';
 import {verifiedResult} from '../src/contract.js';
 
-const TASK_ID='chatgpt.conversation.create',VERSION='0.2.0',ROOT='https://chatgpt.com/';
+const TASK_ID='chatgpt.conversation.create',VERSION='0.2.2',ROOT='https://chatgpt.com/';
 const UUID=/^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/iu;
 const REF=/^[A-Za-z0-9._:-]{8,128}$/u;
 const SHA=/^[a-f0-9]{64}$/u;

@@ -43,6 +43,9 @@ function fixture(t,frames=[]){
       assert.equal(native,api.userScripts);
       f.allocations.push(structuredClone(target));
       return CHILD_WORLD;
+    },
+    async releasePending({worldId,nonce:requestId}){
+      assert.equal(worldId,CHILD_WORLD);assert.equal(requestId,f.message.requestId);
     }
   };
   const parentListeners=new Set(),childListeners=new Set(),loads=new Map();

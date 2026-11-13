@@ -99,6 +99,23 @@ async function fixture({busy=false,storage=memoryStorage(),route='c/12345678',fa
   };
 }
 function queue(h,text){h.edit(text);assert.equal(h.key().prevented,true);h.poll();}
+test('paused crown admission and its refresh cache never send until explicit resume',async()=>{
+  const h=await fixture();
+  for(const text of ['继续','继续']){
+    h.edit(text);assert.equal(h.actions.enqueue({paused:true}),true);h.poll();
+  }
+  h.step(60000);h.step(120000);
+  assert.deepEqual(h.sent,[]);assert.equal(h.editor.value,'');
+  assert.deepEqual(h.engine.view().items.map(item=>item.state),['paused','paused']);
+  const cached=createQueueCache({storage:()=>h.storage}).read('c/12345678').data;
+  assert.deepEqual(cached.items.map(item=>item.state),['paused','paused']);
+  h.edit(' ');h.poll();
+  assert.equal(h.editor.value,' ');assert.deepEqual(h.sent,[]);
+  const refreshed=await fixture({storage:h.storage});
+  refreshed.step(60000);refreshed.step(120000);
+  assert.deepEqual(refreshed.engine.view().items.map(item=>item.state),['paused','paused']);
+  assert.deepEqual(refreshed.sent,[]);
+});
 for(const timedOut of [false,true]){
   test(`trusted editing takes back an unclicked prepared draft${timedOut?' after timeout':''}`,async()=>{
     const h=await fixture({busy:true});queue(h,'原文');queue(h,'next');h.finishReply();
@@ -701,13 +718,13 @@ test('a change render failure cannot strand a prepared flight or discard its com
 
 for(const route of ['', 'g/g-p-12345678-my-project-slug/project']){
   for(const entrance of ['shortcut','crown']){
-    test(`new conversation /${route} asks for native first send through ${entrance} without taking the draft`,async()=>{
+    test(`new conversation /${route} rejects queueing through ${entrance} without taking the draft`,async()=>{
       const h=await fixture({route}),text='  首条原生草稿🙂\n保留末行\n';
       h.edit(text);
       if(entrance==='shortcut'){
         const event=h.key();assert.equal(event.prevented,true);assert.equal(event.stopped,true);
       }else h.actions.enqueue();
-      assert.match(h.toasts.at(-1),/请先在 ChatGPT 发送首条消息/);
+      assert.equal(h.toasts.at(-1),'当前对话暂不能加入队列');
       for(const t of [1000,10000,30000])h.step(t);
       assert.equal(h.editor.value,text);
       assert.equal(h.clears,0);

@@ -5,9 +5,12 @@ p{margin:0}
 p+p{margin-top:8px}
 .send-queue-guide-title{color:var(--od-ink);font-weight:600}
 .send-queue-status{display:grid;gap:12px}
+.send-queue-status-row{display:flex;align-items:center;justify-content:space-between;gap:12px}
+.send-queue-status-row button{flex-shrink:0}
 .send-queue-guide{margin-top:16px;padding-top:12px;border-top:1px solid var(--od-line)}
-.send-queue-meta{font-size:12px}
-.send-queue-detail{color:var(--od-ink)}
+.send-queue-detail{font-size:12px}
+summary{width:fit-content;cursor:pointer}
+summary:focus-visible{outline:2px solid var(--od-focus);outline-offset:2px}
 button{justify-self:start;max-width:100%;padding:6px 12px;border:1px solid var(--od-line);border-radius:var(--radius-control);background:var(--od-paper);color:var(--od-ink);font:inherit;cursor:pointer}
 button:hover:enabled{background:var(--od-muted)}
 button:focus-visible{outline:2px solid var(--od-focus);outline-offset:2px}

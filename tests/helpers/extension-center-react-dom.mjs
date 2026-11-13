@@ -40,12 +40,17 @@ const scrollManager=await compile('../../projects/ai-scroll-navigation/trusted/r
   './ai-controls.tsx':scrollAI,
   './host-localization.js':new URL('../../projects/ai-scroll-navigation/trusted/host-localization.js',import.meta.url).href
 });
+const pageCleanup=await compile('../../src/ui/react/components/page-cleanup.tsx',{
+  'react':import.meta.resolve('react'),
+  '../../extension-center-localization.js':new URL('../../src/ui/extension-center-localization.js',import.meta.url).href
+});
 export const {ExtensionCenterPage,UninstallDialog}=await import(await compile('../../src/ui/react/tabs/tools.tsx',{
   'react':import.meta.resolve('react'),'react-dom':import.meta.resolve('react-dom'),
   '../../../../projects/ai-scroll-navigation/trusted/react-controls.tsx':scrollManager,
   '../components/ui/button.tsx':button,
   '../components/ui/switch.tsx':toggle,
   '../components/conversation.tsx':conversation,
+  '../components/page-cleanup.tsx':pageCleanup,
   '../../extension-center-localization.js':new URL('../../src/ui/extension-center-localization.js',import.meta.url).href,
   '../../locale-manager-localization.js':new URL('../../src/ui/locale-manager-localization.js',import.meta.url).href
 }));

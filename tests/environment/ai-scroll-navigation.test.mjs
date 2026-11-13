@@ -25,10 +25,9 @@ test('AI Chat Scroll Navigation Page manifest uses only explicit top-frame site 
   assert.equal(p.opendesk.pageRules.world, 'USER_SCRIPT');
 });
 
-test('R4.2 Dock keeps both pager keys with an optional counter and capture-scroll boundary updates', async () => {
+test('Dock preserves capture-scroll updates, single ownership and collision boundaries', async () => {
   const dock=await readFile('projects/ai-scroll-navigation/src/floating-navigation.js','utf8');
   const conversation=await readFile('projects/ai-scroll-navigation/src/conversation.js','utf8');
-  assert.match(dock,/canPage\?\[buttons\.previous,\.\.\.\(directions\.showTurnCount\?\[buttons\.counter\]:\[\]\),buttons\.next\]/);
   assert.match(dock,/owner\.on\(doc,'scroll',schedule,true\)/);
   assert.match(dock,/legacyFloatingPresent\(doc,win\)/);
   assert.match(dock,/const chosen=candidates\.find/);

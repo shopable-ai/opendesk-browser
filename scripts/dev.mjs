@@ -1,23 +1,11 @@
-import {createServer} from 'wxt';
 import {resolve} from 'node:path';
 import {fileURLToPath} from 'node:url';
 import {rm} from 'node:fs/promises';
 import {acquireDevelopmentLock} from './development-lock.mjs';
-import {verifyReadingTocTrustedLocales} from './generate-reading-toc-locales.mjs';
-import {resolveDevelopmentBrowserEdition} from './browser-editions-r245.mjs';
-
-// Select before loading the static-resource catalog: it fixes both the UI
-// compiler flag and the pinned resources copied into the daily extension.
-process.env.OPENDESK_BROWSER_EDITION=resolveDevelopmentBrowserEdition();
-const {preparePublic}=await import('./prepare-public.mjs');
-const {buildAdblockReact}=await import('./build-adblock-react.mjs');
-const {buildStayFocusReact}=await import('./build-stay-focus-react.mjs');
-const {buildCookieEditorReactIfOfficial}=await import('./build-cookie-editor-react.mjs');
-const {drainDevelopment,configureDevelopmentRestarts}=await import('./wxt-development.mjs');
 
 const root=fileURLToPath(new URL('../',import.meta.url));
 process.chdir(root);
-let server,release,stopping,closing=false,bootstrapping,restarts;
+let server,release,stopping,closing=false,bootstrapping,restarts,drainDevelopment;
 async function stop() {
   if(stopping)return stopping;
   closing=true;
@@ -32,7 +20,7 @@ async function stop() {
     }
   })();
   await stopping;
-  console.log('[OpenDesk dev] Stopped; output kept at '+resolve('dist/development'));
+  if(release)console.log('[OpenDesk dev] Stopped; output kept at '+resolve('dist/development'));
 }
 // npm can forward the terminal signal as well as the process-group delivery.
 // Keep the handler installed so a duplicate signal joins the same shutdown.
@@ -40,6 +28,20 @@ const terminate=()=>stop().then(()=>process.exit(0),error=>{console.error(error)
 process.on('SIGINT',terminate);process.on('SIGTERM',terminate);
 bootstrapping=(async()=>{
   release=await acquireDevelopmentLock();
+  if(closing)return;
+  const {resolveDevelopmentBrowserEdition}=await import('./browser-editions-r245.mjs');
+  // Select before loading the static-resource catalog: it fixes both the UI
+  // compiler flag and the pinned resources copied into the daily extension.
+  process.env.OPENDESK_BROWSER_EDITION=resolveDevelopmentBrowserEdition();
+  const {createServer}=await import('wxt');
+  const {verifyReadingTocTrustedLocales}=await import('./generate-reading-toc-locales.mjs');
+  const {preparePublic}=await import('./prepare-public.mjs');
+  const {buildAdblockReact}=await import('./build-adblock-react.mjs');
+  const {buildStayFocusReact}=await import('./build-stay-focus-react.mjs');
+  const {buildCookieEditorReactIfOfficial}=await import('./build-cookie-editor-react.mjs');
+  const development=await import('./wxt-development.mjs');
+  drainDevelopment=development.drainDevelopment;
+  const {configureDevelopmentRestarts}=development;
   if(closing)return;
   console.log('[OpenDesk dev] Source: '+resolve('src'));
   console.log('[OpenDesk dev] Output: '+resolve('dist/development'));
@@ -61,4 +63,14 @@ bootstrapping=(async()=>{
   console.log('[OpenDesk dev] First use: load dist/development in chrome://extensions. If already loaded from a standalone build, click Reload once to activate this development client.');
 })();
 try{await bootstrapping;}
-catch(error){console.error('[OpenDesk dev] '+error.stack);try{await stop();}catch(cleanup){console.error('[OpenDesk dev] Cleanup failed',cleanup);}process.exitCode=1;}
+catch(error){
+  if(error.code==='E_OUTPUT_GUARD_BUSY'&&error.owner?.kind==='development'){
+    console.log(`[OpenDesk dev] Already running — PID ${error.owner.pid} owns ${resolve('dist/development')}.`);
+    console.log('[OpenDesk dev] Reuse the existing watcher. No additional service was started; its environment/options are unchanged.');
+    console.log('[OpenDesk dev] Check the original terminal or Side Panel Debug for build readiness and browser connection status.');
+  }else{
+    console.error('[OpenDesk dev] '+(error.code==='E_OUTPUT_GUARD_BUSY'?error.message:error.stack));
+    try{await stop();}catch(cleanup){console.error('[OpenDesk dev] Cleanup failed',cleanup);}
+    process.exitCode=1;
+  }
+}

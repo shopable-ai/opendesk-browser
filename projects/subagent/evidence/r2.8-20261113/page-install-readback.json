@@ -1,0 +1,169 @@
+{
+  "ok": true,
+  "observedAt": "2026-11-13T13:26:52.949Z",
+  "installed": [
+    {
+      "programId": "opendesk.subagent",
+      "revision": 1,
+      "manifestHash": "69baa878e97a3883af02d06e4b2cc1866e41e926d42d7656a5c40d699a90283c",
+      "title": "Subagent",
+      "sourceHash": "ecfadece5c0568979e08288af59640a7e83089322ee53598f65456f1c010fe22",
+      "pageRules": {
+        "matches": [
+          "https://chatgpt.com/*"
+        ],
+        "excludeMatches": [],
+        "runAt": "document_idle",
+        "allFrames": false,
+        "world": "USER_SCRIPT"
+      },
+      "enabled": true,
+      "nativeId": "opendesk-page-boot-feb420838b0539fd7f63901a4dbc698b373e4f3199c8d3a2",
+      "nativeState": "registered",
+      "authorization": {
+        "tag": "page-install-authorization-v1",
+        "installationId": "3d3dd82b-1fab-43a0-b0fe-464683c313aa",
+        "generation": 1,
+        "status": "active",
+        "scope": {
+          "capabilities": [
+            "page.dom",
+            "page.tasks.request"
+          ],
+          "pageRules": {
+            "matches": [
+              "https://chatgpt.com/*"
+            ],
+            "excludeMatches": [],
+            "runAt": "document_idle",
+            "allFrames": false,
+            "world": "USER_SCRIPT"
+          },
+          "networkOrigins": [],
+          "delegatedTasks": [
+            {
+              "taskId": "chatgpt.conversation.create",
+              "version": "0.2.0",
+              "manifestHash": "0402cbea8284f87bd3cc63c73b453530be1338cd511c30671957a919678ab146",
+              "contentHash": "90d077ff17fdcf89ac0a13adf4a671edc324030165c7eefa95a4acdc531bd51c",
+              "targetUrl": "https://chatgpt.com/"
+            }
+          ]
+        },
+        "approvedAt": 1794576279821
+      },
+      "managedCleanup": {
+        "scope": "managed-ui-only",
+        "state": "retired",
+        "records": 0,
+        "pendingRecords": 0,
+        "pendingDocuments": []
+      },
+      "ready": true,
+      "error": null,
+      "lastExecution": null
+    }
+  ],
+  "catalog": [
+    {
+      "candidateId": "page-5014175cf6eec77f2f00e76004370c884638eceefc3334c0e2cdfee5a6778c97",
+      "programId": "opendesk.subagent",
+      "revision": 1,
+      "manifestHash": "69baa878e97a3883af02d06e4b2cc1866e41e926d42d7656a5c40d699a90283c",
+      "sourceHash": "ecfadece5c0568979e08288af59640a7e83089322ee53598f65456f1c010fe22",
+      "pageRules": {
+        "matches": [
+          "https://chatgpt.com/*"
+        ],
+        "excludeMatches": [],
+        "runAt": "document_idle",
+        "allFrames": false,
+        "world": "USER_SCRIPT"
+      },
+      "delegatedTasks": [
+        {
+          "taskId": "chatgpt.conversation.create",
+          "version": "0.2.0",
+          "manifestHash": "0402cbea8284f87bd3cc63c73b453530be1338cd511c30671957a919678ab146",
+          "contentHash": "90d077ff17fdcf89ac0a13adf4a671edc324030165c7eefa95a4acdc531bd51c",
+          "targetUrl": "https://chatgpt.com/"
+        }
+      ],
+      "entryFormat": "async-main",
+      "sourceProfile": {
+        "metadataProfile": "opendesk-d1",
+        "importSourceUrl": null
+      },
+      "dependencyLockId": null,
+      "stage": "Available",
+      "installed": {
+        "programId": "opendesk.subagent",
+        "revision": 1,
+        "manifestHash": "69baa878e97a3883af02d06e4b2cc1866e41e926d42d7656a5c40d699a90283c",
+        "title": "Subagent",
+        "sourceHash": "ecfadece5c0568979e08288af59640a7e83089322ee53598f65456f1c010fe22",
+        "pageRules": {
+          "matches": [
+            "https://chatgpt.com/*"
+          ],
+          "excludeMatches": [],
+          "runAt": "document_idle",
+          "allFrames": false,
+          "world": "USER_SCRIPT"
+        },
+        "enabled": true,
+        "nativeId": "opendesk-page-boot-feb420838b0539fd7f63901a4dbc698b373e4f3199c8d3a2",
+        "nativeState": "registered",
+        "authorization": {
+          "tag": "page-install-authorization-v1",
+          "installationId": "3d3dd82b-1fab-43a0-b0fe-464683c313aa",
+          "generation": 1,
+          "status": "active",
+          "scope": {
+            "capabilities": [
+              "page.dom",
+              "page.tasks.request"
+            ],
+            "pageRules": {
+              "matches": [
+                "https://chatgpt.com/*"
+              ],
+              "excludeMatches": [],
+              "runAt": "document_idle",
+              "allFrames": false,
+              "world": "USER_SCRIPT"
+            },
+            "networkOrigins": [],
+            "delegatedTasks": [
+              {
+                "taskId": "chatgpt.conversation.create",
+                "version": "0.2.0",
+                "manifestHash": "0402cbea8284f87bd3cc63c73b453530be1338cd511c30671957a919678ab146",
+                "contentHash": "90d077ff17fdcf89ac0a13adf4a671edc324030165c7eefa95a4acdc531bd51c",
+                "targetUrl": "https://chatgpt.com/"
+              }
+            ]
+          },
+          "approvedAt": 1794576279821
+        },
+        "managedCleanup": {
+          "scope": "managed-ui-only",
+          "state": "retired",
+          "records": 0,
+          "pendingRecords": 0,
+          "pendingDocuments": []
+        },
+        "ready": true,
+        "error": null,
+        "lastExecution": null
+      },
+      "authorizationChange": {
+        "requiresConfirmation": false,
+        "addedSites": [],
+        "removedExclusions": [],
+        "changedExecution": false
+      }
+    }
+  ],
+  "cleanupPending": []
+}

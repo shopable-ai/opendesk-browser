@@ -3,6 +3,7 @@ import assert from 'node:assert/strict';
 import {parseHTML} from 'linkedom';
 import {installFloatingNavigation} from '../src/floating-navigation.js';
 
+const unavailable=button=>button.getAttribute('aria-disabled')==='true';
 const box=(left,top,width,height)=>({left,top,width,height,right:left+width,bottom:top+height});
 function fixture({mainLeft=320,columnLeft=320,sidebar=false}={}) {
   const {document:doc,window}=parseHTML('<html><body><aside></aside><main><section><article>First</article><article>Last</article><div id="prompt-textarea" contenteditable="true"></div></section></main></body></html>');
@@ -15,7 +16,7 @@ function fixture({mainLeft=320,columnLeft=320,sidebar=false}={}) {
     [editor,box(640,740,770,54)],[nav,box(0,0,320,817)]]);
   if(!sidebar)nav.hidden=true;
   window.HTMLElement.prototype.getBoundingClientRect=function(){return rects.get(this)||
-    box(parseFloat(this.style.left)||0,parseFloat(this.style.top)||0,42,90);};
+    box(parseFloat(this.style.left)||0,parseFloat(this.style.top)||0,42,88);};
   const win={innerWidth:1728,innerHeight:817,location:new URL('https://chatgpt.com/c/existing'),
     getComputedStyle:node=>({display:node.hidden?'none':node.style.display||'block',
       visibility:node.style.visibility||'visible',opacity:node.style.opacity||'1',
@@ -31,7 +32,8 @@ function fixture({mainLeft=320,columnLeft=320,sidebar=false}={}) {
   setTimeout(){},observe(){return {disconnect(){}};},
     onDispose:fn=>disposals.push(fn),dispose:()=>disposals.forEach(fn=>fn())};
   const context={main,first,last,scroller:main,site:'chatgpt',selector:'article'};
-  const mount=(resolveNavigation=()=>({}))=>{
+  // Geometry-only cases retain their explicit two-button configuration.
+  const mount=(resolveNavigation=()=>({turnPaging:false}))=>{
     const dock=installFloatingNavigation({doc,win,owner,resolveNavigation,resolveConversation:()=>context});
     return {dock,host:doc.querySelector('[data-opendesk-ai-scroll-navigation="dock"]')};
   };
@@ -68,7 +70,7 @@ test('native composer collision moves navigation sideways before moving upward',
   f.rects.set(native,box(330,710,80,100));
   const {host}=f.mount();
   assert.equal(host.style.left,'422px');
-  assert.equal(host.style.top,'707px');
+  assert.equal(host.style.top,'709px');
 });
 
 test('tall native controls do not push the dock to the upper half',()=>{
@@ -76,7 +78,7 @@ test('tall native controls do not push the dock to the upper half',()=>{
   f.rects.set(native,box(320,600,100,200));
   const {host}=f.mount();
   assert.equal(host.style.left,'432px');
-  assert.equal(host.style.top,'707px');
+  assert.equal(host.style.top,'709px');
 });
 
 test('transparent sidebar action parents do not hide the conversation dock',()=>{
@@ -89,7 +91,7 @@ test('transparent sidebar action parents do not hide the conversation dock',()=>
   const {host}=f.mount();
   assert.ok(host);
   assert.equal(host.style.left,'328px');
-  assert.equal(host.style.top,'707px');
+  assert.equal(host.style.top,'709px');
 });
 
 test('visible shadow controls reserve space while the dock stays near the bottom',()=>{
@@ -99,7 +101,7 @@ test('visible shadow controls reserve space while the dock stays near the bottom
   const {host}=f.mount();
   assert.ok(host);
   assert.equal(host.style.left,'392px');
-  assert.equal(host.style.top,'707px');
+  assert.equal(host.style.top,'709px');
   assert.equal(peer.isConnected,true);
 });
 
@@ -111,7 +113,7 @@ test('closed fixed peer hosts reserve their whole rectangle without reading priv
   const {host}=f.mount();
   assert.ok(host);
   assert.equal(host.style.left,'392px');
-  assert.equal(host.style.top,'707px');
+  assert.equal(host.style.top,'709px');
 });
 
 test('configured conversation avoids crowded controls without jumping above the prompt rail',()=>{
@@ -130,8 +132,8 @@ test('configured conversation avoids crowded controls without jumping above the 
   f.rects.set(peer,box(349,261.5,52,181));
   const {host}=f.mount();
   assert.ok(host,'navigation remains available without moving or covering a peer');
-  assert.equal(host.style.left,'436px');
-  assert.equal(host.style.top,'539px');
+  assert.equal(host.style.left,'348px');
+  assert.equal(host.style.top,'541px');
   assert.equal(host.shadowRoot.querySelectorAll('button').length,2);
   assert.equal(peer.isConnected,true);
 });
@@ -141,10 +143,10 @@ test('aligned dock scrolls both directions and updates boundary disabled states'
   const [top,bottom]=host.shadowRoot.querySelectorAll('button');
   f.owner.click(top,false);assert.equal(f.main.scrollTop,400,'untrusted click does not scroll');
   f.owner.click(top);dock.refresh();
-  assert.equal(f.main.scrollTop,0);assert.equal(top.disabled,true);assert.equal(bottom.disabled,false);
+  assert.equal(f.main.scrollTop,0);assert.equal(unavailable(top),true);assert.equal(unavailable(bottom),false);
   f.owner.click(bottom);dock.refresh();
   assert.equal(f.main.scrollTop,f.main.scrollHeight-f.main.clientHeight);
-  assert.equal(top.disabled,false);assert.equal(bottom.disabled,true);
+  assert.equal(unavailable(top),false);assert.equal(unavailable(bottom),true);
   assert.equal(host.style.left,'328px');
 });
 
@@ -165,7 +167,7 @@ test('configured dock ignores message indentation and stays in the visible scrol
   f.rects.set(scroller,box(360,100,900,500));f.context.scroller=scroller;
   const {dock,host}=f.mount();
   assert.equal(host.style.left,'368px');
-  assert.equal(host.style.top,'490px');
+  assert.equal(host.style.top,'492px');
   f.rects.set(f.first,box(600,0,400,500));dock.refresh();
   assert.equal(host.style.left,'368px','scrolling messages never moves the dock horizontally');
 });
@@ -189,7 +191,7 @@ test('element client area excludes borders and scrollbar space, including scaled
     const {host}=f.mount();
     const right=360+(2+285)*scale,bottom=(2+496)*scale;
     assert.equal(parseFloat(host.style.left)+42,Math.floor(right-8));
-    assert.equal(parseFloat(host.style.top)+90,Math.floor(bottom-20));
+    assert.equal(parseFloat(host.style.top)+88,Math.floor(bottom-20));
   }
 });
 
@@ -199,7 +201,7 @@ test('document scroller uses the viewport instead of its moving document rectang
   Object.assign(f.doc.documentElement,{scrollTop:9000,scrollHeight:10000,clientHeight:817});
   f.rects.set(f.doc.documentElement,box(0,-9000,1728,10000));
   const {host}=f.mount();
-  assert.equal(host.style.left,'328px');assert.equal(host.style.top,'707px');
+  assert.equal(host.style.left,'328px');assert.equal(host.style.top,'709px');
 });
 
 test('empty or undersized visible scroller intersection never places a dock outside it',()=>{
@@ -230,7 +232,7 @@ test('container resize schedules repositioning and disposal disconnects the obse
   f.owner.setTimeout=(callback,delay)=>{if(delay===120)timers.push(callback);};
   const {host}=f.mount();assert.deepEqual(observed,[f.main]);
   f.rects.set(f.main,box(320,0,1408,600));resized();timers.shift()();
-  assert.equal(host.style.top,'490px');
+  assert.equal(host.style.top,'492px');
   f.owner.dispose();assert.equal(disconnected,1);
 });
 
@@ -247,7 +249,7 @@ test('resize observer follows replacement scrollers and queued work cannot remou
   Object.assign(scroller,{scrollTop:400,scrollHeight:9000,clientHeight:500});
   f.rects.set(scroller,box(360,100,900,500));f.context.scroller=scroller;dock.refresh();
   assert.deepEqual(observed,[f.main,f.main,scroller]);assert.equal(disconnected,1);
-  assert.equal(host.style.top,'490px');
+  assert.equal(host.style.top,'492px');
   resized();f.owner.dispose();timers.shift()();
   assert.equal(disconnected,2);assert.equal(host.isConnected,false);
   assert.equal(f.doc.querySelector('[data-opendesk-ai-scroll-navigation="dock"]'),null);
@@ -258,16 +260,16 @@ test('visual viewport resize and scroll listeners reposition above the keyboard'
   const viewport={offsetLeft:0,offsetTop:100,width:1728,height:500};
   f.win.visualViewport=viewport;
   f.owner.setTimeout=(callback,delay)=>{if(delay===120)timers.push(callback);};
-  const {host}=f.mount();assert.equal(host.style.top,'490px');
+  const {host}=f.mount();assert.equal(host.style.top,'492px');
   viewport.height=350;
-  f.owner.dispatch(viewport,'resize');timers.shift()();assert.equal(host.style.top,'340px');
+  f.owner.dispatch(viewport,'resize');timers.shift()();assert.equal(host.style.top,'342px');
   viewport.offsetTop=50;f.owner.dispatch(viewport,'scroll');timers.shift()();
-  assert.equal(host.style.top,'290px');
+  assert.equal(host.style.top,'292px');
 });
 
 test('conversation and floating top flags share one button across every combination and threshold',()=>{
   for(const conversationTop of [false,true])for(const floatingTop of [false,true]){
-    const f=fixture();let flags={conversationTop,floatingTop,conversationBottom:false};
+    const f=fixture();let flags={conversationTop,floatingTop,conversationBottom:false,turnPaging:false};
     const {dock}=f.mount(()=>flags);
     const buttons=()=>[...f.doc.querySelector('[data-opendesk-ai-scroll-navigation="dock"]')?.shadowRoot.querySelectorAll('button')||[]];
     for(const position of [0,1000,0]){
@@ -277,9 +279,9 @@ test('conversation and floating top flags share one button across every combinat
       if(expected)assert.equal(buttons()[0].dataset.scrollNavKey,
         floatingTop&&position===1000?'floatingTop':'conversationTop');
     }
-    flags={conversationTop:true,conversationBottom:true,floatingTop:true};dock.refresh();
+    flags={conversationTop:true,conversationBottom:true,floatingTop:true,turnPaging:false};dock.refresh();
     assert.equal(buttons().length,2,'restoring flags reuses the dock');
-    const stale=buttons()[0];flags={conversationTop:false,conversationBottom:false,floatingTop:false};
+    const stale=buttons()[0];flags={conversationTop:false,conversationBottom:false,floatingTop:false,turnPaging:false};
     f.main.scrollTop=1000;f.owner.click(stale);
     assert.equal(f.main.scrollTop,1000,'disabled intent cannot act before refresh');
     dock.refresh();assert.equal(buttons().length,0);
@@ -288,10 +290,61 @@ test('conversation and floating top flags share one button across every combinat
 });
 
 test('bottom can remain enabled when both top modes are disabled',()=>{
-  const f=fixture(),{host}=f.mount(()=>({conversationTop:false,floatingTop:false}));
+  const f=fixture(),{host}=f.mount(()=>({conversationTop:false,floatingTop:false,turnPaging:false}));
   const controls=host.shadowRoot.querySelectorAll('button');
   assert.equal(controls.length,1);assert.equal(controls[0].dataset.scrollNavKey,'conversationBottom');
   f.owner.click(controls[0]);assert.equal(f.main.scrollTop,f.main.scrollHeight-f.main.clientHeight);
+  f.owner.dispose();
+});
+
+test('question pager keeps all four controls when no question roles are available',()=>{
+  const f=fixture(),{dock,host}=f.mount(()=>({}));
+  const controls=[...host.shadowRoot.querySelectorAll('button')];
+  assert.deepEqual(controls.map(b=>b.dataset.scrollNavKey),
+    ['conversationTop','turnPrevious','turnNext','conversationBottom']);
+  for(const button of controls.slice(1,3)) {
+    assert.equal(unavailable(button),true);
+    const before=f.main.scrollTop;f.owner.click(button);
+    assert.equal(f.main.scrollTop,before,'unknown roles never scroll');
+  }
+  f.owner.click(controls[0]);dock.refresh();assert.equal(f.main.scrollTop,0);
+  f.owner.click(controls[3]);dock.refresh();
+  assert.equal(f.main.scrollTop,f.main.scrollHeight-f.main.clientHeight);
+  assert.deepEqual([...host.shadowRoot.querySelectorAll('button')],controls);
+  assert.equal(host.shadowRoot.querySelector('.counter'),null);
+  f.owner.dispose();
+});
+
+test('single round, missing roles and restored roles preserve the same pager buttons',()=>{
+  const f=fixture();f.main.scrollTop=0;
+  f.first.setAttribute('data-turn','user');f.last.setAttribute('data-turn','assistant');
+  const {dock,host}=f.mount(()=>({turnPaging:true}));
+  const controls=[...host.shadowRoot.querySelectorAll('button')];
+  assert.equal(controls.length,4);
+  const [,previous,next]=controls;
+  assert.equal(unavailable(previous),true);assert.equal(unavailable(next),true);
+  const top=host.style.top,left=host.style.left;
+  const second=f.doc.createElement('article');second.setAttribute('data-turn','user');
+  f.rects.set(second,box(586,960,800,200));f.main.append(second);dock.refresh();
+  assert.equal(unavailable(previous),true);assert.equal(unavailable(next),false);
+  second.removeAttribute('data-turn');
+  f.owner.click(next);assert.equal(f.main.scrollTop,0,'stale enabled button revalidates roles');
+  dock.refresh();assert.equal(unavailable(previous),true);assert.equal(unavailable(next),true);
+  second.setAttribute('data-turn','user');dock.refresh();
+  assert.equal(unavailable(next),false);
+  assert.deepEqual([...host.shadowRoot.querySelectorAll('button')],controls);
+  assert.equal(host.style.top,top);assert.equal(host.style.left,left);
+  f.owner.click(next);assert.equal(f.main.scrollTop,948);
+  f.owner.dispose();
+});
+
+test('fitting transcript disables both pager directions even with two recognized questions',()=>{
+  const f=fixture();f.main.scrollTop=0;f.main.scrollHeight=f.main.clientHeight;
+  f.first.setAttribute('data-turn','user');f.last.setAttribute('data-turn','user');
+  const {host}=f.mount(()=>({turnPaging:true}));
+  const controls=[...host.shadowRoot.querySelectorAll('button')];
+  assert.equal(controls.length,4);
+  assert.ok(controls.every(button=>unavailable(button)),'no scroll destination exists');
   f.owner.dispose();
 });
 
@@ -313,7 +366,7 @@ test('question pager groups explicit user/assistant messages into rounds, tracks
   assert.equal(host.shadowRoot.querySelector('.counter'),null,'counter is off by default and has no layout slot');
   const previous=controls().find(b=>b.dataset.scrollNavKey==='turnPrevious');
   const next=controls().find(b=>b.dataset.scrollNavKey==='turnNext');
-  assert.equal(previous.disabled,true);assert.equal(next.disabled,false);
+  assert.equal(unavailable(previous),true);assert.equal(unavailable(next),false);
   f.owner.click(next,false);assert.equal(f.main.scrollTop,0,'untrusted click cannot page');
   f.owner.click(previous);assert.equal(f.main.scrollTop,0,'first round has no predecessor');
   f.owner.click(next);assert.equal(f.main.scrollTop,948,'next page targets user prompt, not assistant text');
@@ -323,7 +376,7 @@ test('question pager groups explicit user/assistant messages into rounds, tracks
   f.rects.set(secondAnswer,box(586,252,800,300));
   dock.refresh();
   assert.equal(host.shadowRoot.querySelector('.counter'),null,'paging works while counter is hidden');
-  assert.equal(next.disabled,true,'last round has no successor');
+  assert.equal(unavailable(next),true,'last round has no successor');
   flags={turnPaging:true,showTurnCount:true};dock.refresh();
   assert.equal(host.shadowRoot.querySelector('.counter').textContent,'2/2');
   assert.equal(controls().length,4,'counter is informational, not a fifth button');
@@ -338,7 +391,9 @@ test('question pager groups explicit user/assistant messages into rounds, tracks
   dock.refresh();
   assert.equal(controls().length,2,'disabling the pager preserves existing edge buttons');
   flags={turnPaging:true};secondUser.removeAttribute('data-turn');dock.refresh();
-  assert.equal(controls().length,2,'ambiguous author roles do not fabricate a round count');
+  assert.equal(controls().length,4,'ambiguous roles disable the pager without removing it');
+  assert.equal(unavailable(previous),true);assert.equal(unavailable(next),true);
+  assert.equal(host.shadowRoot.querySelector('.counter'),null,'ambiguous author roles do not fabricate a round count');
   f.owner.dispose();
 });
 
@@ -351,25 +406,110 @@ test('question pager can operate with both whole-conversation edge buttons disab
   f.owner.dispose();
 });
 
+function scrollingQuestions({positions=[80,960,2200],height=3600,headerHeight=0}={}) {
+  const f=fixture();f.main.scrollTop=0;f.main.scrollHeight=height;
+  f.main.querySelectorAll('article').forEach(node=>node.remove());
+  for(const position of positions) {
+    const question=f.doc.createElement('article');question.setAttribute('data-turn','user');
+    question.getBoundingClientRect=()=>box(586,position-f.main.scrollTop,800,100);
+    f.main.append(question);
+  }
+  if(headerHeight) {
+    const header=f.doc.createElement('header');header.style.position='fixed';
+    f.main.prepend(header);f.rects.set(header,box(320,0,1408,headerHeight));
+  }
+  const mounted=f.mount(()=>({turnPaging:true,showTurnCount:true}));
+  return {...f,...mounted,controls:[...mounted.host.shadowRoot.querySelectorAll('button')]};
+}
+
+test('bottom returns to the current question before the preceding round without skipping',()=>{
+  const f=scrollingQuestions(),[top,previous,next,bottom]=f.controls;
+  f.owner.click(bottom);f.dock.refresh();
+  assert.equal(f.main.scrollTop,2783);
+  assert.equal(unavailable(previous),false);assert.equal(unavailable(next),true);
+  assert.equal(previous.getAttribute('aria-description'),'回到本轮提问');
+  assert.equal(next.querySelector('.hint').textContent,'已到对话底部');
+  f.owner.click(previous);f.dock.refresh();assert.equal(f.main.scrollTop,2188);
+  assert.equal(previous.getAttribute('aria-description'),'上一轮提问');
+  f.owner.click(previous);f.dock.refresh();assert.equal(f.main.scrollTop,948);
+  f.owner.click(next);f.dock.refresh();assert.equal(f.main.scrollTop,2188);
+  f.owner.click(top);f.dock.refresh();assert.equal(unavailable(previous),true);
+  assert.equal(unavailable(next),false);
+  f.owner.dispose();
+});
+
+test('first and single long rounds can return to their own question',()=>{
+  for(const positions of [[80],[80,2200]]) {
+    const f=scrollingQuestions({positions});f.main.scrollTop=500;f.dock.refresh();
+    const previous=f.controls[1];assert.equal(unavailable(previous),false);
+    f.owner.click(previous);f.dock.refresh();assert.equal(f.main.scrollTop,68);
+    assert.equal(unavailable(previous),true,'already aligned question is not a no-op destination');
+    assert.equal(f.host.shadowRoot.querySelector('.counter').textContent,'1/'+positions.length);
+    f.owner.dispose();
+  }
+});
+
+test('sticky header landing and scroll clamping agree with button availability',()=>{
+  const f=scrollingQuestions({headerHeight:80});
+  f.owner.click(f.controls[2]);f.dock.refresh();assert.equal(f.main.scrollTop,868);
+  assert.equal(f.host.shadowRoot.querySelector('.counter').textContent,'2/3');
+  f.owner.click(f.controls[1]);f.dock.refresh();assert.equal(f.main.scrollTop,0);
+  f.owner.dispose();
+
+  const short=scrollingQuestions({positions:[80,960,3000,3100],height:3260});
+  short.owner.click(short.controls[3]);short.dock.refresh();
+  assert.equal(short.main.scrollTop,2443);
+  assert.equal(unavailable(short.controls[2]),true,'clamped next questions cannot move farther');
+  assert.equal(short.host.shadowRoot.querySelector('.counter').textContent,'2/4',
+    'bottom does not fabricate the last question as the reading position');
+  short.owner.click(short.controls[1]);assert.equal(short.main.scrollTop,948);
+  short.owner.dispose();
+});
+
+test('compact pager geometry preserves bottom inset and larger touch targets',()=>{
+  for(const coarse of [false,true]) {
+    const f=fixture();f.win.matchMedia=()=>({matches:coarse});
+    const {host}=f.mount(()=>({turnPaging:true}));
+    const height=coarse?180:149;
+    assert.equal(parseFloat(host.style.top)+height,797);
+    assert.equal(host.shadowRoot.querySelector('.stack').style.getPropertyValue('--turn-height'),coarse?'42px':'28px');
+    f.owner.dispose();
+  }
+});
+
+test('long round counts reserve their full width before fitting a narrow scrollport',()=>{
+  const f=scrollingQuestions({positions:Array.from({length:120},(_,i)=>80+i*200),height:25000});
+  Object.assign(f.win,{innerWidth:260,innerHeight:600});
+  f.rects.set(f.main,box(0,0,260,600));
+  f.dock.refresh();
+  assert.equal(f.host.shadowRoot.querySelector('.counter').textContent,'1/120');
+  assert.equal(f.host.style.visibility,'hidden',
+    'four buttons and the full count must not overlap the scrollport edge');
+  Object.assign(f.win,{innerWidth:390});
+  f.rects.set(f.main,box(0,0,390,600));f.dock.refresh();
+  assert.equal(f.host.style.visibility,'visible');
+  assert.equal(f.host.shadowRoot.querySelectorAll('button').length,4);
+  f.owner.dispose();
+});
+
 
 test('last-turn bottom boundary keeps back navigation usable',()=>{
-  const f=fixture();
-  f.first.setAttribute('data-turn','user');
-  f.last.setAttribute('data-turn','user');
+  const f=scrollingQuestions({positions:[80,2200]});
+  const {dock,host}=f;
   f.main.scrollTop=f.main.scrollHeight-f.main.clientHeight;
-  const {dock,host}=f.mount();
+  dock.refresh();
   const get=key=>host.shadowRoot.querySelector('[data-scroll-nav-key="'+key+'"]');
   const top=get('floatingTop')||get('conversationTop'),previous=get('turnPrevious');
   const next=get('turnNext'),bottom=get('conversationBottom');
   assert.ok(top&&previous&&next&&bottom,'four physical buttons stay mounted');
-  assert.equal(top.disabled,false,'top remains available at the bottom');
-  assert.equal(previous.disabled,false,'previous question remains available at the bottom');
-  assert.equal(next.disabled,true,'there is no question after the last loaded one');
-  assert.equal(bottom.disabled,true,'already at the end of the scrollport');
+  assert.equal(unavailable(top),false,'top remains available at the bottom');
+  assert.equal(unavailable(previous),false,'previous question remains available at the bottom');
+  assert.equal(unavailable(next),true,'there is no question after the last loaded one');
+  assert.equal(unavailable(bottom),true,'already at the end of the scrollport');
   f.main.scrollTop=0;dock.refresh();
-  assert.equal(top.disabled,true);
-  assert.equal(previous.disabled,true);
-  assert.equal(next.disabled,false);
-  assert.equal(bottom.disabled,false);
+  assert.equal(unavailable(top),true);
+  assert.equal(unavailable(previous),true);
+  assert.equal(unavailable(next),false);
+  assert.equal(unavailable(bottom),false);
   f.owner.dispose();
 });

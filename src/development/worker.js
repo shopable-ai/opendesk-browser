@@ -9,6 +9,10 @@ export function developmentRunHostIdle(storage){
     if(slot?.currentRunId||slot?.preview)return false;
     const journal=await tx.all('commandJournal');
     for(const row of journal){
+      // A pending review owns its document/session until its bounded approval
+      // wait expires or it is explicitly cancelled. Never retire it mid-review.
+      if(row.tag==='task-run-preparation'&&row.state==='prepared'&&!row.runId&&
+        (!Number.isSafeInteger(row.expiresAt)||Date.now()<row.expiresAt))return false;
       if(!['dispatched','remove-dispatched','effect_unknown','OUTCOME_UNKNOWN','outcome-unknown'].includes(row.state))continue;
       if(row.state!=='effect_unknown'||!['controller-operation','controller-navigation'].includes(row.tag)||
         typeof row.runId!=='string'||row.envelope?.identity?.tag!=='controller-run'||

@@ -84,7 +84,7 @@ function fixture(){
   const preview={preview:async input=>{f.previewCalls++;const row=f.rows().find(row=>row.tag==='page-candidate-v1'&&row.sourceUtf8===input.sourceUtf8);
       assert.equal(input.sourceUtf8,row.sourceUtf8);return {builtinAbi:f.builtinSource.abi,builtinCatalogSha256:f.builtinSource.catalogSha256,builtinBundleSha256:f.builtinSource.sha256,state:'preview-evaluated',world:'USER_SCRIPT',sourceHash:row.manifest.sourceHash,tabId:1,documentId:target.documentId,worldId:'preview-world',resultText:'1',
         ...(f.packagedJquerySha256?{packagedJquerySha256:f.packagedJquerySha256}:{})};},
-    executeInstalled:executor.executeInstalled,
+    prepareInstalled:executor.prepareInstalled,executeInstalled:executor.executeInstalled,
     get retireInstalled(){return f.retireHook||undefined;},
     executeFrame:async(_input,authorize)=>{await authorize();return {state:'frame-authorized'};}};
   const make=()=>createInstalledPagePrograms({loadBuiltin:async()=>f.builtinSource,api,storage,assertHost,dependencies,preview,admission,session:f.session});
@@ -92,7 +92,8 @@ function fixture(){
   Object.defineProperty(api,'userScripts',{get:()=>f.access?nativeScripts:undefined});
   f.api=api;f.previewExecutor=executor;f.service=make();f.restart=()=>{
     const restoredAdmission=createPreviewAdmission({storage,assertHost,currentHost:async()=>{},session:f.session});
-    const restoredPreview={...preview,executeInstalled:createPageScriptPreview({api,storage,assertHost,dependencies,admission:restoredAdmission,loadBuiltin:async()=>f.builtinSource}).executeInstalled};
+    const restoredExecutor=createPageScriptPreview({api,storage,assertHost,dependencies,admission:restoredAdmission,loadBuiltin:async()=>f.builtinSource});
+    const restoredPreview={...preview,prepareInstalled:restoredExecutor.prepareInstalled,executeInstalled:restoredExecutor.executeInstalled};
     f.service=createInstalledPagePrograms({loadBuiltin:async()=>f.builtinSource,api,storage,assertHost,dependencies,preview:restoredPreview,admission:restoredAdmission,session:f.session});
   };f.storage=storage;f.dependencies=dependencies;f.target=target;f.sender=sender;
   f.rows=()=>[...db.get('frameworkKV').values()];
@@ -105,9 +106,9 @@ function fixture(){
 const fails=(work,code)=>assert.rejects(work,error=>error.code===code);
 
 
-import {SIDEBAR_TOOL_STORE,sidebarToolPackageHash,sidebarToolStorageKey} from '../../src/ui/sidebar-tools/package.js';
+import {SIDEBAR_TOOL_STORE,sidebarToolPackageHash,sidebarToolStorageKey,serializeSidebarToolPackage} from '../../src/ui/sidebar-tools/package.js';
 import {SIDEBAR_TOOL_ENABLE_STORE,TOOL_REVOCATION_EPOCHS_STORE} from '../../src/ui/sidebar-tools/lifecycle.js';
-import {appPageStorage,appPageEtag} from '../../src/scripting/user-scripts/app-page-contract.js';
+import {appPageStorage,appPageEtag,readAppPageParent,verifyAppPageTool} from '../../src/scripting/user-scripts/app-page-contract.js';
 import {installAppPageRuntime} from '../../src/scripting/user-scripts/app-page-runtime.js';
 import {installManagedUILifecycle} from '../../src/scripting/user-scripts/managed-ui-lifecycle.js';
 import {createToolLocalization} from '../../src/ui/sidebar-tools/localization.js';
@@ -134,6 +135,79 @@ async function appFixture(pageRules={}){
   };
   return f;
 }
+test('parent reads validate only the exact owner, not a large unrelated installed package',async()=>{
+  const f=await appFixture();
+  const unrelated={format:'opendesk.sidebar-tool.v1',id:'large-unrelated',version:'1.0.0',
+    title:'Unrelated',description:'Independent app',capabilities:[],html:'<main>Other app</main>',
+    css:'',js:'/*'+ 'x'.repeat(100000)+'*/'};
+  f.local[SIDEBAR_TOOL_STORE]=[unrelated,f.tool];
+  const clone=globalThis.structuredClone;let unrelatedClones=0;
+  globalThis.structuredClone=(value,...args)=>{
+    if(value?.id===unrelated.id)unrelatedClones++;
+    return clone(value,...args);
+  };
+  try{
+    assert.equal((await readAppPageParent(f.api,f.owner)).id,f.tool.id);
+    assert.equal(unrelatedClones,0,'unrelated packages must not enter full validation/cloning');
+  }finally{globalThis.structuredClone=clone;}
+  assert.equal(f.writes.length,0,'parent reads cannot modify product storage');
+  assert.equal(f.executeCalls,0);assert.equal(f.registerCalls,0);
+});
+test('unrelated malformed rows cannot deny a unique valid parent',async()=>{
+  const f=await appFixture();
+  f.local[SIDEBAR_TOOL_STORE]=[null,{}, {id:'broken-unrelated',js:null},f.tool];
+  assert.equal((await readAppPageParent(f.api,f.owner)).id,f.tool.id);
+});
+test('parent reads retain exact-id duplicates, target validation and fresh lifecycle fences',async()=>{
+  const f=await appFixture();
+  const read=()=>readAppPageParent(f.api,f.owner);
+  assert.equal((await read()).id,f.tool.id);
+  const originalGet=f.api.storage.local.get,queries=[];
+  f.api.storage.local.get=async keys=>{queries.push(keys);return originalGet(keys);};
+  for(const change of [
+    ()=>{f.local[SIDEBAR_TOOL_STORE]=[f.tool,structuredClone(f.tool)];},
+    ()=>{f.local[SIDEBAR_TOOL_STORE]=[f.tool,{id:f.tool.id}];},
+    ()=>{f.local[SIDEBAR_TOOL_STORE]=[{...f.tool,js:null}];},
+    ()=>{f.local[SIDEBAR_TOOL_STORE]=[{...f.tool,title:'Changed package'}];},
+    ()=>{f.local[SIDEBAR_TOOL_ENABLE_STORE]={[f.tool.id]:false};},
+    ()=>{f.local[TOOL_REVOCATION_EPOCHS_STORE]={[f.tool.id]:'replacement-epoch'};},
+    ()=>{f.local[SIDEBAR_TOOL_STORE]=[];},
+    ()=>{f.local[SIDEBAR_TOOL_STORE]={};},
+    ()=>{f.local[SIDEBAR_TOOL_ENABLE_STORE]={'broken-id':'not-boolean'};},
+    ()=>{f.local[TOOL_REVOCATION_EPOCHS_STORE]={'broken-id':123};}
+  ]){
+    f.local[SIDEBAR_TOOL_STORE]=[f.tool];
+    f.local[SIDEBAR_TOOL_ENABLE_STORE]={};
+    f.local[TOOL_REVOCATION_EPOCHS_STORE]={[f.tool.id]:'epoch-1'};
+    assert.equal((await read()).id,f.tool.id);
+    change();await assert.rejects(read());
+  }
+  assert.equal(queries.length,20,'every check must freshly read authority, including after earlier success');
+  for(const keys of queries)assert.deepEqual(keys,
+    [SIDEBAR_TOOL_STORE,SIDEBAR_TOOL_ENABLE_STORE,TOOL_REVOCATION_EPOCHS_STORE]);
+});
+test('parent verification retains the canonical package hash and rechecks replacements on the next read',async()=>{
+  const f=await appFixture();
+  const canonicalHash=await digestUtf8(serializeSidebarToolPackage(await verifyAppPageTool(f.tool)));
+  assert.equal(canonicalHash,f.owner.packageHash,'same UTF-8 serialization as the original hash path');
+  const tool=await readAppPageParent(f.api,{...f.owner,packageHash:canonicalHash});
+  assert.equal(await digestUtf8(serializeSidebarToolPackage(tool)),canonicalHash);
+  f.local[SIDEBAR_TOOL_STORE]=[{...f.tool,title:'Replacement package'}];
+  await fails(()=>readAppPageParent(f.api,f.owner),'E_APP_PAGE_OWNER');
+  const replacementHash=await sidebarToolPackageHash(f.local[SIDEBAR_TOOL_STORE][0]);
+  assert.equal((await readAppPageParent(f.api,{...f.owner,packageHash:replacementHash})).title,'Replacement package');
+  f.local[TOOL_REVOCATION_EPOCHS_STORE][f.tool.id]='new-epoch';
+  await fails(()=>readAppPageParent(f.api,{...f.owner,packageHash:replacementHash}),'E_APP_PAGE_OWNER');
+});
+test('parent verification still requires a valid reviewed Page module and capability',async()=>{
+  const f=await appFixture();
+  const noModule={...f.tool,capabilities:['storage.local']};delete noModule.pageModule;
+  f.local[SIDEBAR_TOOL_STORE]=[noModule];
+  const owner={...f.owner,packageHash:await sidebarToolPackageHash(noModule)};
+  await fails(()=>readAppPageParent(f.api,owner),'E_APP_PAGE_OWNER');
+  f.local[SIDEBAR_TOOL_STORE]=[{...f.tool,pageModule:{...f.tool.pageModule,sourceUtf8:'tampered'}}];
+  await assert.rejects(readAppPageParent(f.api,f.owner));
+});
 test('app preflight and verify are read-only; import uses Page proof and native authority',async()=>{
   const f=await appFixture(),before=f.snapshot(),writes=f.writes.length;
   assert.equal((await f.service.prepareAppPage({tool:f.tool},{})).status,'prepared');
@@ -391,7 +465,60 @@ test('synchronization retires the actual managed bridge and retains uncertain cl
   const uncertain=await appFixture();uncertain.retireHook=async()=>({state:'unknown',scope:'managed-ui-only'});
   await uncertain.installApp();await uncertain.bootApp();uncertain.local[SIDEBAR_TOOL_STORE]=[];
   const receipt=await uncertain.service.synchronizeAppPages();assert.deepEqual(receipt.cleanupPending,['app.page-fixture']);
-  assert.equal(uncertain.appRow().enabled,false);assert.equal(uncertain.native.size,0);
+  assert.deepEqual(receipt.revocationPending,[]);
+  assert.equal(uncertain.appRow(),undefined);assert.equal(uncertain.native.size,0);
+  assert.equal(uncertain.rows().find(row=>row.tag==='page-uninstalled-v1').authorization.status,'disabled');
+});
+
+for(const upgrade of [false,true])
+test('a revoked parent companion can be replaced while its old document cleanup stays recorded; upgrade='+upgrade,async()=>{
+  const f=await appFixture();f.retireHook=f.previewExecutor.retireInstalled;
+  await f.installApp();await f.bootApp();
+  const previous=structuredClone(f.appRow()),oldMessage=f.message(f.tool.pageModule.programId);
+  if(upgrade){
+    const {packageHash,...original}=f.tool.pageModule;
+    const sourceUtf8=original.sourceUtf8.replace('return 42','return 43');
+    const page={...original,version:'1.0.1',revision:2,sourceUtf8,sourceHash:await digestUtf8(sourceUtf8)};
+    f.tool={...f.tool,version:'1.0.1',pageModule:{...page,packageHash:await digest(page)}};
+    f.local[SIDEBAR_TOOL_STORE]=[f.tool];
+  }
+  f.retirementError=Error('old document did not acknowledge cleanup');
+  f.local[TOOL_REVOCATION_EPOCHS_STORE][f.tool.id]='epoch-2';
+  const receipt=await f.service.synchronizeAppPages({toolId:f.tool.id});
+  assert.deepEqual(receipt.revocationPending,[]);
+  assert.deepEqual(receipt.cleanupPending,[f.tool.pageModule.programId]);
+  assert.equal(f.appRow(),undefined,'a revoked previous parent cannot keep the current installation slot');
+  assert.equal(f.native.size,0);
+  f.owner={...f.owner,packageHash:await sidebarToolPackageHash(f.tool),installEpoch:'epoch-2'};
+  const installed=await f.installApp();
+  assert.equal(installed.ready,true);
+  assert.equal(f.appRow().appOwner.installEpoch,'epoch-2');
+  const archive=f.rows().find(row=>row.tag==='page-cleanup-v1');
+  assert.deepEqual(archive.appOwner,previous.appOwner);
+  assert.equal(archive.managedCleanup.state,'unknown');
+  const calls=f.sourceCalls;
+  await assert.rejects(f.service.handleBoot(oldMessage,f.sender));
+  assert.equal(f.sourceCalls,calls,'revoked bootstrap cannot execute source again');
+  await assert.rejects(f.bootApp(),{code:upgrade?'E_UI_CLEANUP_FAILED':'E_REQUEST_CONFLICT'});
+  assert.equal(f.sourceCalls,calls,'the new installation cannot replay source in the uncleared old document');
+  const current=structuredClone(f.appRow());
+  f.retirementError=null;
+  await f.service.observeManagedCleanup({tabId:1});
+  assert.deepEqual(f.appRow(),current,'old cleanup cannot mutate the newer installation');
+  f.navigate('new-compound-document');
+  assert.equal((await f.bootApp()).state,'completed');
+  assert.equal(f.sourceCalls,calls+1,'the new installation runs normally in a new document');
+});
+
+test('an unconfirmed native revocation still blocks replacement even when managed cleanup is known',async()=>{
+  const f=await appFixture();await f.installApp();
+  f.local[TOOL_REVOCATION_EPOCHS_STORE][f.tool.id]='epoch-2';f.access=false;
+  const receipt=await f.service.synchronizeAppPages({toolId:f.tool.id});
+  assert.deepEqual(receipt.revocationPending,[f.tool.pageModule.programId]);
+  assert.equal(f.appRow().tag,'page-installed-v1');
+  f.owner={...f.owner,installEpoch:'epoch-2'};
+  await fails(()=>f.installApp(),'E_APP_PAGE_OWNER');
+  assert.equal(f.rows().some(row=>row.tag==='page-uninstalled-v1'),false);
 });
 test('request native failure is unknown and never automatically redispatched',async()=>{
   const f=await appFixture();await f.installApp();await f.bootApp();
@@ -418,7 +545,7 @@ test('queued synchronization preserves an exact-bound disabled import through ve
   const installed=await f.installApp(),before=structuredClone(f.appRow());
   for(let i=0;i<2;i++){
     assert.deepEqual(await f.service.synchronizeAppPages({toolId:f.tool.id}),
-      {status:'synchronized',retired:[],cleanupPending:[]});
+      {status:'synchronized',retired:[],cleanupPending:[],revocationPending:[]});
     assert.deepEqual(f.appRow(),before,'sync must retain installation identity and disabled authorization');
     assert.deepEqual(await f.service.verifyAppPage(f.owner,{}),{...installed,status:'verified'});
   }
@@ -441,10 +568,26 @@ test('disabled companion preservation still rejects mismatched parent epoch',asy
   assert.equal(f.appRow(),undefined);assert.equal(f.native.size,0);
 });
 
-test('unknown managed resource cleanup is not mistaken for an inert companion',async()=>{
+test('unknown managed cleanup retains the exact intentionally disabled companion without blocking revocation readiness',async()=>{
   const f=await appFixture();f.retireHook=async()=>({state:'unknown',scope:'managed-ui-only'});
   f.local[SIDEBAR_TOOL_ENABLE_STORE]={[f.tool.id]:false};await f.installApp();
+  const before=structuredClone(f.appRow());
   const result=await f.service.synchronizeAppPages();
-  assert.deepEqual(result,{status:'synchronized',retired:[],cleanupPending:['app.page-fixture']});
+  assert.deepEqual(result,{status:'synchronized',retired:[],cleanupPending:['app.page-fixture'],revocationPending:[]});
+  assert.deepEqual(f.appRow(),before,'cleanup cannot consume the current disabled installation');
   assert.equal(f.appRow().enabled,false);assert.equal(f.registerCalls,0);assert.equal(f.sourceCalls,0);
+});
+
+test('a failed cleanup observation preserves the exact intentionally disabled companion across repeated synchronization',async()=>{
+  const f=await appFixture();
+  f.local[SIDEBAR_TOOL_ENABLE_STORE]={[f.tool.id]:false};await f.installApp();
+  const before=structuredClone(f.appRow());
+  f.retireHook=async()=>{throw Error('old document observation unavailable');};
+  for(let attempt=0;attempt<2;attempt++){
+    assert.deepEqual(await f.service.synchronizeAppPages(),
+      {status:'synchronized',retired:[],cleanupPending:['app.page-fixture'],revocationPending:[]});
+    assert.deepEqual(f.appRow(),before,'DOM observation cannot consume or rotate the current disabled grant');
+    assert.equal(f.rows().some(row=>row.tag==='page-uninstalled-v1'),false);
+  }
+  assert.equal(f.registerCalls,0);assert.equal(f.sourceCalls,0);
 });

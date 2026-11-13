@@ -57,11 +57,9 @@ async function load(world,{runtime=globalThis.chrome?.runtime,fetchImpl=globalTh
   const {rows,catalogSha256}=await manifestFor(ctx);
   const selected=[catalog.bootstrap,...libs.filter(x=>x.default&&x.worlds.includes(world)).map(x=>x.output),
     world==='CONTROLLER'?catalog.controllerCore:catalog.pageCore];
-  const parts=[],resources=[];
-  for(const path of selected){
-    const item=await checked(path,ctx,rows);
-    parts.push(item.text);resources.push(Object.freeze({path,bytes:item.bytes,sha256:item.sha256}));
-  }
+  const items=await Promise.all(selected.map(path=>checked(path,ctx,rows)));
+  const parts=items.map(item=>item.text),resources=items.map((item,index)=>
+    Object.freeze({path:selected[index],bytes:item.bytes,sha256:item.sha256}));
   const code=parts.join('\n;\n');
   return Object.freeze({code,sha256:await digestUtf8(code),catalogSha256,abi:BUILTIN_ABI,
     resources:Object.freeze(resources)});

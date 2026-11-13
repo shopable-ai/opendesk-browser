@@ -197,7 +197,7 @@ export function createChatGPTSite({doc = document, win = window, isComposing = (
     return editorText(editor) === text;
   }
   function clearForQueue(snapshot) {
-    if(!snapshot.route)return {ok:false,reason:'请先在 ChatGPT 发送首条消息，建立对话后即可加入队列'};
+    if(!snapshot.route)return {ok:false,reason:'当前对话暂不能加入队列'};
     if (!snapshot.ok || snapshot.rich || snapshot.composing || !normal(snapshot.draft)) return {ok:false,reason:'草稿为空、包含附件或输入法尚未完成'};
     const text=snapshot.draft;
     // Website input handlers can replace the composer after the old element

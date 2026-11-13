@@ -33,6 +33,7 @@ function fixture(){
   };
   const storage={transaction:async(stores,mode,work)=>work({
     get:async(name,key)=>name==='runs'?structuredClone(f.slot):undefined,
+    all:async name=>{assert.equal(name,'frameworkKV');return [];},
     put:async(name,value)=>{assert.equal(name,'runs');f.slot=structuredClone(value);}
   })};
   const root=()=>({frameId:0,documentId:f.documentId,url:target.expectedUrl,documentLifecycle:'active'});

@@ -1,16 +1,17 @@
 import * as React from 'react';
 import {createPortal} from 'react-dom';
-import {IconButton} from './ui/button.tsx';
+import {Button,IconButton} from './ui/button.tsx';
 
 // Reuse the existing bounded Host store. Only presentation moves outside the
 // scrollable/hidden Tab; installed code still reaches it through the same Bridge.
-export function NotificationViewport({view,snapshot,visible=true}) {
+export function NotificationViewport({view,snapshot,visible=true,locale}) {
   const toasts=snapshot.toasts?.length?snapshot.toasts:(snapshot.toast?[snapshot.toast]:[]);
   if(!toasts.length||typeof document==='undefined')return null;
-  return createPortal(<ToolToastStacks view={view} toasts={toasts} visible={visible}/>,document.body);
+  const language=locale||document.documentElement.lang||'zh-CN';
+  return createPortal(<ToolToastStacks view={view} toasts={toasts} visible={visible} locale={language}/>,document.body);
 }
 
-function ToolToastStacks({view,toasts,visible}){
+function ToolToastStacks({view,toasts,visible,locale}){
   // The existing modal CSS hides notices. Keep their remaining reading time
   // while a review is open, including receipts that arrive behind that review.
   const [modalOpen,setModalOpen]=React.useState(()=>Boolean(document.querySelector('[aria-modal=true]')));
@@ -22,14 +23,22 @@ function ToolToastStacks({view,toasts,visible}){
     return ()=>observer.disconnect();
   },[]);
   const positions=[...new Set(toasts.map(row=>row.position||'top-center'))];
+  const opposed=positions.some(position=>position.startsWith('top'))&&
+    positions.some(position=>position.startsWith('bottom'));
   return <>{positions.map(position=><div key={position} className="sidebar-tool-toast-stack"
-    data-position={position} aria-label="工具通知">
+    data-position={position} data-opposed={opposed} aria-label={toastCopy(locale).stack}>
     {toasts.filter(row=>(row.position||'top-center')===position).map(toast=>
-      <ToolToast key={toast.id} view={view} toast={toast} visible={visible} paused={modalOpen}/>)}
+      <ToolToast key={toast.id} view={view} toast={toast} visible={visible} paused={modalOpen} locale={locale}/>)}
   </div>)}</>;
 }
 
-const TOOL_TOAST_LABELS={info:'提示',success:'成功',warning:'注意',error:'错误'};
+const TOOL_TOAST_COPY={
+  'zh-CN':{info:'提示',success:'成功',warning:'注意',error:'错误',stack:'通知',expand:'展开详情',collapse:'收起详情',details:'通知完整内容',close:'关闭提示',count:'同一通知出现 {count} 次'},
+  en:{info:'Information',success:'Success',warning:'Warning',error:'Error',stack:'Notifications',expand:'Show details',collapse:'Hide details',details:'Full notification',close:'Dismiss notification',count:'Repeated {count} times'},
+  ja:{info:'お知らせ',success:'成功',warning:'注意',error:'エラー',stack:'通知',expand:'詳細を表示',collapse:'詳細を閉じる',details:'通知の全文',close:'通知を閉じる',count:'同じ通知が{count}回'},
+  'zh-TW':{info:'提示',success:'成功',warning:'注意',error:'錯誤',stack:'通知',expand:'展開詳情',collapse:'收起詳情',details:'通知完整內容',close:'關閉提示',count:'同一通知出現 {count} 次'}
+};
+const toastCopy=locale=>TOOL_TOAST_COPY[locale]||TOOL_TOAST_COPY['zh-CN'];
 const TOOL_TOAST_SYMBOLS={info:'i',success:'✓',warning:'!',error:'!'};
 // Restore focus when an auto-expiring success notice has keyboard focus.
 function restoreToastFocus(node,priorFocus){
@@ -40,9 +49,53 @@ function restoreToastFocus(node,priorFocus){
     item?.isConnected&&!item.disabled&&!item.closest?.('[hidden],[inert]'));
   target?.focus?.({preventScroll:true});
 }
-function ToolToast({view,toast,visible,paused}) {
+function ToolToast({view,toast,visible,paused,locale}) {
   const [hovered,setHovered]=React.useState(false),[focused,setFocused]=React.useState(false);
+  const [expanded,setExpanded]=React.useState(false),[overflowing,setOverflowing]=React.useState(false);
   const priorFocus=React.useRef(null),toastNode=React.useRef<HTMLDivElement|null>(null);
+  const messageNode=React.useRef<HTMLSpanElement|null>(null),captionNode=React.useRef<HTMLElement|null>(null);
+  const contentNode=React.useRef<HTMLDivElement|null>(null),expandButton=React.useRef<HTMLButtonElement|null>(null);
+  const closeButton=React.useRef<HTMLButtonElement|null>(null),contentId=React.useId();
+  const copy=toastCopy(locale);
+  React.useLayoutEffect(()=>{
+    const node=toastNode.current;
+    return ()=>restoreToastFocus(node,priorFocus);
+  },[]);
+  React.useLayoutEffect(()=>{
+    const doc=toastNode.current?.ownerDocument,win=doc?.defaultView;
+    let live=true;
+    const measure=()=>{
+      // Modal-hidden and detached notices have no measurable preview. Keep
+      // their reading state and focus until the same host becomes visible.
+      if(!live||paused||toastNode.current?.getClientRects?.().length===0)return;
+      const overflow=[messageNode.current,captionNode.current].some(node=>{
+        if(!node)return false;
+        // Measure the rendered two-line preview in every locale/width, also
+        // while expanded. Never guess a summary from an extension ID or text.
+        const lineHeight=parseFloat(win?.getComputedStyle?.(node).lineHeight);
+        const limit=Number.isFinite(lineHeight)?lineHeight*2:node.clientHeight;
+        return node.scrollHeight>limit+1;
+      });
+      if(!overflow){
+        const active=toastNode.current?.ownerDocument.activeElement;
+        if(active===expandButton.current||active===contentNode.current)closeButton.current?.focus();
+        setExpanded(false);
+      }
+      setOverflowing(overflow);
+    };
+    measure();
+    const Observer=win?.ResizeObserver||globalThis.ResizeObserver;
+    const observer=Observer?new Observer(measure):null;
+    for(const node of [toastNode.current,messageNode.current,captionNode.current])
+      if(node)observer?.observe(node);
+    win?.addEventListener('resize',measure);
+    doc?.fonts?.addEventListener('loadingdone',measure);
+    void doc?.fonts?.ready?.then(measure,()=>{});
+    return ()=>{
+      live=false;observer?.disconnect();win?.removeEventListener('resize',measure);
+      doc?.fonts?.removeEventListener('loadingdone',measure);
+    };
+  },[toast.message,toast.caption,toast.count,expanded,locale,paused]);
   const duration=Number.isSafeInteger(toast.timeout)?toast.timeout:5000;
   const pauseOnInteraction=toast.pauseOnInteraction!==false;
   // Revisions reset a changed notice's time once. Hover/focus pause the same
@@ -66,8 +119,8 @@ function ToolToast({view,toast,visible,paused}) {
     };
   },[view,toast.id,toast.revision,toast.count,visible,paused,hovered,focused,duration,pauseOnInteraction]);
   if(!visible)return null;
-  const type=Object.hasOwn(TOOL_TOAST_LABELS,toast.type)?toast.type:'info';
-  return <div ref={toastNode} className="sidebar-tool-toast" data-type={type}
+  const type=['info','success','warning','error'].includes(toast.type)?toast.type:'info';
+  return <div ref={toastNode} className="sidebar-tool-toast" data-type={type} data-expanded={expanded}
     onMouseEnter={()=>setHovered(true)} onMouseLeave={()=>setHovered(false)}
     onFocus={event=>{
       if(!event.currentTarget.contains(event.relatedTarget))priorFocus.current=event.relatedTarget;
@@ -76,15 +129,25 @@ function ToolToast({view,toast,visible,paused}) {
       if(!event.currentTarget.contains(event.relatedTarget))setFocused(false);
     }}>
     <span className="sidebar-tool-toast-symbol" aria-hidden="true">{TOOL_TOAST_SYMBOLS[type]}</span>
-    <div className="sidebar-tool-toast-body" role={type==='error'?'alert':'status'}
-      aria-live={type==='error'?'assertive':'polite'} aria-atomic="true"
-      aria-label={TOOL_TOAST_LABELS[type]}>
-      <span className="sidebar-tool-toast-message">{toast.message}</span>
-      {toast.caption&&<small className="sidebar-tool-toast-caption">{toast.caption}</small>}
+    <div className="sidebar-tool-toast-body">
+      <div id={contentId} ref={contentNode} className="sidebar-tool-toast-content"
+        tabIndex={expanded?0:undefined} role={expanded?'region':undefined}
+        aria-label={expanded?copy.details:undefined}>
+        <div className="sidebar-tool-toast-text" role={type==='error'?'alert':'status'}
+          aria-live={type==='error'?'assertive':'polite'} aria-atomic="true" aria-label={copy[type]}>
+          <span ref={messageNode} className="sidebar-tool-toast-message">{toast.message}</span>
+          {toast.caption&&<small ref={captionNode} className="sidebar-tool-toast-caption">{toast.caption}</small>}
+        </div>
+      </div>
+      {(overflowing||expanded)&&<Button ref={expandButton} variant="quiet" className="sidebar-tool-toast-expand"
+        aria-expanded={expanded} aria-controls={contentId} onClick={()=>{
+          if(contentNode.current)contentNode.current.scrollTop=0;
+          setExpanded(value=>!value);
+        }}>{expanded?copy.collapse:copy.expand}</Button>}
     </div>
     {toast.count>1&&<span className="sidebar-tool-toast-count"
-      aria-label={'同一通知出现 '+toast.count+' 次'}>×{toast.count}</span>}
-    <IconButton label="关闭提示" onMouseDown={event=>event.preventDefault()}
+      aria-label={copy.count.replace('{count}',toast.count)}>×{toast.count}</span>}
+    <IconButton ref={closeButton} label={copy.close} onMouseDown={event=>event.preventDefault()}
       onClick={event=>{
         if(event.currentTarget===event.currentTarget.ownerDocument.activeElement)
           restoreToastFocus(toastNode.current,priorFocus);

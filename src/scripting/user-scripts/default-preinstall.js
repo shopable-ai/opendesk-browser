@@ -24,7 +24,7 @@ export async function resumeDefaultPagePreinstall({api,lockManager,client,fetche
       marker=next;
     };
     const {apps}=await loadOfficialPageCatalog({api,fetcher});
-    const releases=apps.filter(row=>row.installationPolicy==='preinstalled');
+    const releases=apps.filter(row=>row.installationPolicy==='preinstalled'&&row.status==='available');
     const observed=await client.request('listPagePrograms',{});
     // Candidates survive uninstall. Any prior user work, including a local,
     // older, disabled or cleanup-unknown installation, wins over defaults.

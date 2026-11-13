@@ -123,3 +123,146 @@ test('language settings conceal the existing ToolHost and restore the same runti
     for(const [key,descriptor] of originals){if(descriptor)Object.defineProperty(globalThis,key,descriptor);else delete globalThis[key];}
   }
 });
+test('inline updates preserve committed row order during list and portal menu interaction until search context changes',async()=>{
+  const {SidebarAppShell}=await loadSidebarReact();
+  const developerView=createDeveloperView(),myView=createMyWorkbenchView();
+  const {document,window}=parseHTML('<html><body><div id="mount"></div></body></html>');
+  const originals=new Map(['window','document','chrome','IS_REACT_ACT_ENVIRONMENT'].map(key=>[key,Object.getOwnPropertyDescriptor(globalThis,key)]));
+  const listeners=new Set(),hash='a'.repeat(64);
+  const row=id=>({key:'app:'+id,id,kind:'app',title:id,installed:true,update:true,
+    updateIdentity:{id,fromVersion:'1.0.0',version:'1.1.0',source:'opendesk/'+id,sha256:hash}});
+  const candidate=id=>({kind:'sidebar-tool',id,title:id,status:'available',requiresReview:true,
+    fromVersion:'1.0.0',version:'1.1.0',source:'opendesk/'+id,sha256:hash,
+    newCapabilities:[],ignoredAt:null});
+  const rows=[row('notes'),row('cookie')];
+  let snapshot={verified:true,records:[candidate('cookie')],openRequestedAt:0};
+  const requests=[];
+  Object.assign(globalThis,{window,document,IS_REACT_ACT_ENVIRONMENT:true,chrome:{
+    runtime:{sendMessage:async message=>{requests.push(message);return {ok:true,data:snapshot};}},
+    storage:{onChanged:{addListener:listener=>listeners.add(listener),removeListener:listener=>listeners.delete(listener)}}
+  }});
+  // linkedom has no browser focus/layout: expose only the actual focused node.
+  Object.defineProperty(document,'activeElement',{configurable:true,writable:true,value:document.body});
+  const {createRoot}=await import('react-dom/client'),root=createRoot(document.getElementById('mount'));
+  let controls={scope:'smart',kind:'all',query:''},list={rows,busy:false,pendingKey:null};
+  let menu=null,menuKey=null,closeCount=0,closing;
+  function ListShellFixture(props){
+    // The shared helper stubs CSS imports as {}, which hidden tabs' Chat frames
+    // render as invalid <style> children. Mount the real shell hooks and its
+    // tools workspace only; no unrelated Chat/ToolHost is needed for this case.
+    const shell=SidebarAppShell(props);
+    const main=React.Children.toArray(shell.props.children).find(child=>child.type==='main');
+    return React.cloneElement(main,{},React.Children.toArray(main.props.children)
+      .filter(page=>page.props?.id==='workbench-tools'));
+  }
+  const render=()=>React.act(async()=>root.render(React.createElement(ListShellFixture,{
+    activeTab:'tools',developerView,myView,
+    extensionProps:{toolbarModel:controls,rowsModel:list,rowMenuModel:menu,menuKey}
+  })));
+  const publish=async records=>{
+    snapshot={...snapshot,records};
+    await React.act(async()=>{
+      for(const listener of listeners)listener({'opendesk.update-notice.state.v1':{newValue:snapshot}},'local');
+    });
+  };
+  const orders=[];
+  const observe=stage=>orders.push({stage,keys:[...document.querySelectorAll('#extension-center-list > li')].map(node=>node.dataset.extensionId)});
+  const update=id=>document.querySelector(`[data-extension-key="app:${id}"][data-extension-action="update"]`);
+  try{
+    await render();observe('initial promotion');
+    assert.ok(update('cookie'),'verified identity match exposes the cookie update');
+    assert.equal(update('notes'),null);
+    const more=document.querySelector('[data-extension-key="app:cookie"][data-extension-action="more"]');
+    document.activeElement=more;
+    await render();observe('focus enters list');
+
+    more.getBoundingClientRect=()=>({top:20,bottom:40,right:200,left:180});
+    menuKey='app:cookie';
+    menu={trigger:more,title:'cookie',items:[{id:'details',label:'详情'}],onClose:returnFocus=>{
+      closeCount++;
+      closing=(async()=>{
+        assert.equal(returnFocus,true,'Escape requests focus restoration');
+        // Model the Controller's separately committed adapter writes. Restore
+        // focus before unmounting the portal, so no commit sees an idle body.
+        document.activeElement=more;
+        assert.ok(document.getElementById('extension-center-row-menu'),'focus returns before portal removal');
+        await render();observe('focus returned before menu unmount');
+        menu=null;
+        await render();observe('portal removed with menu key retained');
+        assert.equal(document.getElementById('extension-center-row-menu'),null);
+        assert.equal(document.activeElement,more);
+        await publish([{...candidate('notes'),status:'review_required',newCapabilities:['browser.tabs']}]);
+        observe('eligibility changes during menu close');
+        assert.equal(update('notes')?.textContent,'审阅','closing still projects the latest eligibility');
+        assert.equal(update('cookie'),null);
+        menuKey=null;
+        await render();observe('menu key cleared after focus return');
+        assert.equal(more.getAttribute('aria-expanded'),'false');
+        assert.equal(document.activeElement,more,'clearing menu state keeps focus on the live trigger');
+      })();
+    }};
+    await render();
+    const portal=document.getElementById('extension-center-row-menu');
+    assert.equal(portal.parentNode,document.body,'the real menu is portaled outside the list');
+    document.activeElement=portal.querySelector('[role="menuitem"]');
+    // Both rows now have candidates, so a fresh promoted sort would revert to base order.
+    await publish([candidate('notes'),candidate('cookie')]);observe('new candidate while menu focused');
+    assert.ok(update('notes'),'freezing keys must still project the latest update snapshot');
+    assert.equal(document.getElementById('extension-center-row-menu'),portal);
+    assert.equal(document.activeElement,portal.querySelector('[role="menuitem"]'));
+    assert.equal(closeCount,0,'background refresh must not dismiss the open menu');
+
+    // Losing eligibility removes the action even while its row position is frozen.
+    await publish([candidate('notes'),{...candidate('cookie'),sha256:'b'.repeat(64)}]);
+    observe('invalidated cookie candidate');
+    assert.equal(update('cookie'),null,'a frozen row must not retain an invalid update');
+    assert.ok(update('notes'));
+
+    const escape=new window.Event('keydown',{bubbles:true,cancelable:true});
+    Object.assign(escape,{key:'Escape'});
+    await React.act(async()=>document.dispatchEvent(escape));
+    assert.ok(closing,'the real portal Escape handler initiates close and focus return');
+    await closing;
+    assert.equal(closeCount,1);
+    await render();observe('list focus after menu close');
+
+    document.activeElement=document.getElementById('extension-center-search');
+    menu=null;
+    list={...list,pendingKey:'app:cookie'};
+    await render();observe('pending menu action');
+    list={...list,pendingKey:null,busy:true};
+    await render();observe('busy menu action');
+    list={...list,busy:false};
+    await render();observe('search focus releases order');
+
+    await publish([candidate('cookie')]);observe('search focus permits new promotion');
+    controls={...controls,query:'cookie'};list={...list,rows:[rows[1]]};
+    await render();observe('search results replace frozen keys');
+    assert.ok(update('cookie'));
+    document.activeElement=document.querySelector('[data-extension-action="more"]');
+    controls={...controls,query:'',scope:'installed',kind:'app'};list={...list,rows};
+    await render();observe('filter change preserves controller order');
+    assert.ok(update('cookie'),'filtering does not discard a valid update projection');
+
+    assert.ok(requests.length>0);
+    assert.ok(requests.every(message=>message.protocol==='opendesk.update-notice.v1'&&message.kind==='list'),
+      'background refresh only reads update snapshots; it never initiates an installation');
+    assert.deepEqual(rows.map(row=>row.key),['app:notes','app:cookie'],'Registry input is never reordered');
+    assert.deepEqual(orders,[
+      ...['initial promotion','focus enters list','new candidate while menu focused',
+        'invalidated cookie candidate','focus returned before menu unmount',
+        'portal removed with menu key retained','eligibility changes during menu close',
+        'menu key cleared after focus return','list focus after menu close',
+        'pending menu action','busy menu action']
+        .map(stage=>({stage,keys:['app:cookie','app:notes']})),
+      {stage:'search focus releases order',keys:['app:notes','app:cookie']},
+      {stage:'search focus permits new promotion',keys:['app:cookie','app:notes']},
+      {stage:'search results replace frozen keys',keys:['app:cookie']},
+      {stage:'filter change preserves controller order',keys:['app:notes','app:cookie']}
+    ]);
+  }finally{
+    await React.act(async()=>root.unmount());
+    developerView.dispose?.();myView.dispose?.();
+    for(const [key,descriptor] of originals){if(descriptor)Object.defineProperty(globalThis,key,descriptor);else delete globalThis[key];}
+  }
+});

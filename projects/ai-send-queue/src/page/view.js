@@ -22,7 +22,7 @@ function action(doc,what,label,id){
   b.append(svg(doc,ICON[what]));return b;
 }
 function unknownMessage(state){
-  return '发送结果未知 · '+(state.reason||'请核对原对话')+'；队列继续核对入站，不会自动重试；未点击发送的原草稿可取回编辑';
+  return '发送结果未知 · '+(state.reason||'尚未确认消息是否已发送')+'；不会自动重试，请核对原对话';
 }
 function inline(host,width){
   const props={position:'relative',display:'block',top:'auto',right:'auto',
@@ -173,7 +173,7 @@ export function createQueueView({owner,createPageUI,assets,engine,actions,onReco
       blue=element(doc,'button','sq-send');
       blue.type='button';blue.setAttribute('aria-label','当前草稿加入发送队列');
       blue.setAttribute('aria-keyshortcuts','Control+Enter');
-      blue.title='OpenDesk 队列 · 点击或 Ctrl + Enter 加入发送队列 · 皇冠仅为装饰';
+      blue.title='加入发送队列 · Ctrl + Enter；Shift 点击可暂停入队';
       const crown=element(doc,'span','sq-crown');
       crown.setAttribute('aria-hidden','true');
       blue.append(svg(doc,ICON.send),crown);
@@ -182,7 +182,7 @@ export function createQueueView({owner,createPageUI,assets,engine,actions,onReco
       toastNode.setAttribute('role','status');toastNode.hidden=true;
       button.content.append(toastNode);
       button.host.style.setProperty('display','none','important');
-      button.on(blue,'click',actions.enqueue);
+      button.on(blue,'click',event=>actions.enqueue({paused:event.shiftKey===true}));
       // Recovery content is transient and never auto-enqueued or auto-sent.
       // Clipboard access happens only after an explicit user gesture.
       button.on(toastNode,'click',async event=>{
@@ -257,8 +257,7 @@ export function createQueueView({owner,createPageUI,assets,engine,actions,onReco
       if(lastSignature===signature)return;
       lastSignature=signature;
       root.className='sq-panel sq-empty';
-      root.setAttribute('aria-label',awaitingConversation?
-        '发送队列，请先在 ChatGPT 发送首条消息，建立对话后即可加入队列':'发送队列，暂无待发送消息');
+      root.setAttribute('aria-label','发送队列，暂无待发送消息');
       const rows=element(doc,'div','sq-rows');
       rows.setAttribute('role','list');
       const cue=element(doc,'span','sq-empty-mark','···');
@@ -303,6 +302,10 @@ export function createQueueView({owner,createPageUI,assets,engine,actions,onReco
       row.append(ops);rows.append(row);
     }
     root.replaceChildren(rows);
+    if(state.reason&&state.phase!=='unknown'&&!state.inFlight&&items.some(item=>item.state!=='paused')){
+      const waiting=element(doc,'div','sq-waiting',state.reason);
+      waiting.setAttribute('role','status');root.append(waiting);
+    }
     if(items.length>3){
       const more=element(doc,'button','sq-more',state.expanded?'收起队列':'展开其余 '+(items.length-3)+' 条');
       if(!state.expanded&&items.slice(3).some(item=>item.state==='unknown'||
@@ -366,8 +369,6 @@ export function createQueueView({owner,createPageUI,assets,engine,actions,onReco
     };
     ensure();
     awaitingConversation=snap.newConversation===true;
-    blue.title=awaitingConversation?'请先在 ChatGPT 发送首条消息，建立对话后即可加入队列':
-      'OpenDesk 队列 · 点击或 Ctrl + Enter 加入发送队列 · 皇冠仅为装饰';
     inline(button.host,size);button.host.style.setProperty('overflow','visible','important');
     blue.hidden=false;toastNode.style.removeProperty('bottom');
     button.host.style.setProperty('display','inline-flex','important');

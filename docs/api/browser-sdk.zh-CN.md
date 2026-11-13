@@ -192,7 +192,7 @@ await OpenDeskTool.request('storage.get',{key:'notes'});
 
 已安装工具的 `tabs.create/activateOwned/pinOwned/reloadOwned/navigateOwned/removeOwned`、`downloads.download/cancelOwned`、`bookmarks.createOwned/create/update/move` 复用已审阅能力与仍有效的 Chrome 权限，不再追加每次操作的 Host 确认。Owned 书签首次缺少 Chrome bookmarks 权限时，仍由可信界面真实点击申请；Full 书签仍要求独立的全书签范围授权，不能从 Owned 或其他工具继承。Chrome 的原生保存/危险下载提示按其自身规则保留。
 
-Registry 的 `requiresUserGesture` 表示 OpenDesk 可信前台意图门槛，不能一律解释为 Chrome 强制要求。书签删除、整库清空、敏感观察及导出、截图、Cookie 写入、代理切换和未来计划等仍按各自合同审阅；剪贴板与文本下载沿用已有真实点击桥接。所有实际分派继续校验当前安装、包摘要、代际、能力、网站、资源归属与撤权；拒绝、取消和未知结果均不自动重放。定向源码证据见[授权 UX 审计](../framework/workstreams/authorization-ux-audit-20261031.zh-CN.md)，真实 Chrome 新候选为 **NOT_TESTED**。
+Registry 的 `requiresUserGesture` 表示 OpenDesk 可信前台意图门槛，不能一律解释为 Chrome 强制要求。书签删除、整库清空、敏感观察及导出、截图、Cookie 写入、代理切换和未来计划等仍按各自合同审阅；剪贴板与文本下载沿用已有真实点击桥接。Cookie 元数据监听 `cookies.observe.start` 可复用当前同步真实点击的私有通道：安装及网站已具 read/observe、点击时文档和授权代际仍有效时，可信 Host 直接签发原 exact approval，不再重复弹出会话审阅；点击机会限 8 秒，原单次消费及最长 30 秒/最多 50 条会话边界不变，不自动续期。公有消息或无有效同步点击仍走原审阅，处理中失效直接拒绝。所有实际分派继续校验当前安装、包摘要、代际、能力、网站、资源归属与撤权；拒绝、取消和未知结果均不自动重放。定向源码证据见[授权 UX 审计](../framework/workstreams/authorization-ux-audit-20261031.zh-CN.md)，真实 Chrome 新候选为 **NOT_TESTED**。
 
 ### 其他 Browser 方法的源码状态（2026-10-31 校正）
 

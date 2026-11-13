@@ -24,7 +24,8 @@ export const STORE_NAMES = Object.freeze(Object.keys(STORE_SCHEMA));
 export function storageError(error) {
   if (error instanceof FoundationError) return error;
   const failure = new FoundationError(error?.name === 'QuotaExceededError' ? 'E_QUOTA' : 'E_SCHEMA',
-    error?.name === 'QuotaExceededError' ? 'Storage quota exceeded' : 'IndexedDB operation failed');
+    error?.name === 'QuotaExceededError' ? 'Storage quota exceeded' :
+      'IndexedDB operation failed'+(error?.name ? ' ('+error.name+')' : ''));
   failure.cause = error;
   return failure;
 }
@@ -241,6 +242,24 @@ export async function openConnection(factory, name, version, {readOnly = false} 
   }
 }
 
+// Recover only an existing, unchanged database. A lost connection is not an
+// installation reset or permission to recreate a deleted database/migrate it.
+export async function reopenConnection(factory, name, version, {onVersionChange} = {}) {
+  const db = await openRequest(factory, name, undefined, false);
+  let changed = false, disconnected = false;
+  // Schema validation awaits a transaction. Fence upgrades/forced closure
+  // before that await, rather than handing a stale candidate to the owner.
+  db.onversionchange = () => { changed = true; db.close(); onVersionChange?.(); };
+  db.onclose = () => { disconnected = true; };
+  try {
+    invariant(db.version === version, 'E_VERSION', 'Storage version changed while disconnected');
+    await validateOpenedSchema(db);
+    invariant(!changed, 'E_VERSION', 'Storage version changed during recovery');
+    invariant(!disconnected, 'E_VERSION', 'Storage connection closed during recovery');
+    return db;
+  } catch (error) { db.close(); throw error; }
+}
+
 // Work may await SHA-256. Merely keeping one request pending is insufficient:
 // a transaction can be inactive in the task that resolves that digest. Queue
 // every operation and issue it inside the keepalive request's success event.
@@ -259,7 +278,10 @@ export function transact(db, stores, mode, work, {raw = false} = {}) {
       invariant(!strict || native.durability === 'strict', 'E_VERSION', 'Strict IndexedDB durability unavailable');
     } catch (error) {
       try { native?.abort(); } catch {}
-      reject(storageError(error)); return;
+      const failure = storageError(error);
+      // Only failure to create the native transaction proves work never ran.
+      failure.storageConnectionClosed = error?.name === 'InvalidStateError';
+      reject(failure); return;
     }
     const enqueue = action => new Promise((yes, no) => {
       if (ended || workDone) { no(new FoundationError('E_SCHEMA', 'Transaction already finished')); return; }
@@ -286,8 +308,20 @@ export function transact(db, stores, mode, work, {raw = false} = {}) {
       invariant(typeof range?.bound==='function','E_VERSION','Native IDBKeyRange unavailable');
       return enqueue(() => ({cursor(done,fail){
         const rows=[];let advanced=false,request;
-        try{request=object(store)[keysOnly?'openKeyCursor':'openCursor'](
-          range.bound(afterKey??prefix,high,afterKey!==undefined),direction);}
+        try{
+          const source=object(store);
+          if(entries&&direction==='next'&&offset===0&&typeof source.getAllRecords==='function'){
+            request=source.getAllRecords({query:range.bound(afterKey??prefix,high,afterKey!==undefined),count:limit,direction:'next'});
+            request.onerror=()=>fail(request.error);
+            request.onsuccess=()=>{
+              try{done(request.result.map(({primaryKey,value})=>({key:primaryKey,value})));}
+              catch(error){fail(error);}
+            };
+            return;
+          }
+          request=source[keysOnly?'openKeyCursor':'openCursor'](
+            range.bound(afterKey??prefix,high,afterKey!==undefined),direction);
+        }
         catch(error){fail(error);return;}
         request.onerror=()=>fail(request.error);
         request.onsuccess=()=>{

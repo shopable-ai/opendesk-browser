@@ -12,12 +12,14 @@ const safeCodes=new Set([
   'E_DOWNLOAD','E_COOKIE_WRITE','E_SCHEMA','E_PERMISSION','E_COOKIE_SCOPE',
   'E_COOKIE_STORE','E_COOKIE_PARTITION','E_CHROME',
   'E_CHROME_UNSUPPORTED','E_CHROME_PERMISSION_REQUIRED','E_LIMIT',
-  'E_TOOL_CHANGED','E_TOOL_DISABLED','E_OWNER','E_CONTEXT','E_DOCUMENT_CHANGED',
-  'E_HOST_CLOSED','E_COOKIE_SDK_NOT_READY','E_TOOL_RUNTIME_UNAVAILABLE',
-  'E_USER_GESTURE_REQUIRED'
+  'E_TOOL_CHANGED','E_TOOL_DISABLED','E_OWNER','E_CONTEXT','E_DOCUMENT_CHANGED','E_DOCUMENT_STALE',
+  'E_HOST_CLOSED','E_COOKIE_SDK_NOT_READY','E_TOOL_RUNTIME_UNAVAILABLE','E_TOOL_TIMEOUT','E_TOOL_DISPOSED',
+  'E_USER_GESTURE_REQUIRED','E_RATE_LIMIT','E_DOCUMENT_UNRESOLVED'
 ]);
 export const safeCode=(error,fallback='E_COOKIE_READ')=>
-  safeCodes.has(error?.code)?error.code:fallback;
+  safeCodes.has(error?.code)?error.code:
+    error?.code==='E_TOOL'&&error?.message==='工具请求过于频繁，请一分钟后重试'
+      ?'E_RATE_LIMIT':fallback;
 
 function exactRoute(target,row){
   const domain=row?.domain?.replace(/^\./,'').toLowerCase();

@@ -1,6 +1,6 @@
 {
   "name": "@opendesk/subagent",
-  "version": "0.2.0",
+  "version": "0.2.1",
   "private": true,
   "type": "module",
   "description": "Subagent 独立网页增强产品；Mini Chat 是第一阶段验证 A→B→A 的轻量 Demo，执行复用受审 WebFlow Controller Task",
@@ -16,9 +16,9 @@
     "delegatedTasks": [
       {
         "taskId": "chatgpt.conversation.create",
-        "version": "0.2.0",
-        "manifestHash": "0402cbea8284f87bd3cc63c73b453530be1338cd511c30671957a919678ab146",
-        "contentHash": "90d077ff17fdcf89ac0a13adf4a671edc324030165c7eefa95a4acdc531bd51c",
+        "version": "0.2.2",
+        "manifestHash": "907ed4de341c42dc3aa7890a8ce99afee30a63b8a971a8b28126e74271083050",
+        "contentHash": "0d9eea01b8e5f4ff4433cba0f52b5fd80979870e7c0a118b0beffcb9fa02b8b4",
         "targetUrl": "https://chatgpt.com/"
       }
     ],

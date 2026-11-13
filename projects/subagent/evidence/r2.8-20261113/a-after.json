@@ -1,0 +1,21 @@
+{
+  "observedAt": "2026-11-13T13:52:35.899Z",
+  "url": "https://chatgpt.com/c/6af6fdcf-061c-83ec-ac2a-cf89307b0789",
+  "title": "分析WebFlow优势",
+  "officialComposer": [
+    {
+      "value": "\n",
+      "html": "<p data-empty-paragraph=\"true\" data-placeholder=\"询问 ChatGPT\" class=\"placeholder before:composer-placeholder\"><br class=\"ProseMirror-trailingBreak\"></p>"
+    }
+  ],
+  "miniChat": {
+    "text": "Subagent\n创建任务\n查询失败；原任务仍保留，不会重新发送。",
+    "draft": "请介绍 WebFlow 的三个主要优势。",
+    "disabled": true,
+    "answer": "",
+    "link": null
+  },
+  "officialConversationSha256": "20bb0f4101ee68d5b03c015b6114460cd6a5f1e47f37cdca99023608590d6757",
+  "officialConversationUnchanged": true,
+  "officialComposerUnchanged": true
+}

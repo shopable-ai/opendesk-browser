@@ -1,4 +1,5 @@
 import {FoundationError, invariant} from '../../platform/protocol.js';
+import {readPageRecords} from './page-records.js';
 import {PAGE_WORLD_CSP} from './execution-source.js';
 
 // Chromium can fall back to the default USER_SCRIPT world when a document has
@@ -38,42 +39,57 @@ export function createPreviewWorlds({api,storage}) {
       typeof row.documentId === 'string' && typeof row.worldId === 'string' && row.worldId.startsWith(PREFIX)),
       'E_WORLD_ISOLATION', '执行世界账本损坏，请关闭当前标签页后重试');
     if(!storage)return value;
-    const executions=await storage.transaction(['frameworkKV'],'readonly',tx=>tx.all('frameworkKV'));
+    const executions=await storage.transaction(['frameworkKV'],'readonly',tx=>readPageRecords(tx,'execution'));
     if(persisted)for(const execution of executions.filter(row=>row?.tag==='page-execution-v1'))
       persisted.set(execution.executionKey,JSON.stringify(execution.managedUI?.lifecycle));
-    const documents=new Map();
+    const documents=new Map(),recover=[];
     for(const execution of executions.filter(row=>row?.tag==='page-execution-v1'&&row.managedUI?.lifecycle)){
       const row={tabId:execution.tabId,documentId:execution.documentId,worldId:execution.managedUI.worldId,
         installed:execution.managedUI.lifecycle};
       assertInstalledBinding(row,execution);
+      recover.push({row,execution});
+      if(!value.some(item=>item.worldId===row.worldId||item.installed?.executionKey===execution.executionKey))
+        documents.set(row.documentId,true);
+    }
+    // Old executions can span hundreds of documents. Observe independent UUIDs
+    // in bounded batches, once each, rather than serially blocking every boot.
+    // No result is cached across reads; only an exact absence refunds a slot.
+    const ids=[...documents.keys()];
+    for(let index=0;index<ids.length;index+=8){
+      await Promise.all(ids.slice(index,index+8).map(async documentId=>{
+        try{
+          const frame=await api.webNavigation.getFrame({documentId});
+          documents.set(documentId,frame!==null&&frame!==undefined);
+        }catch{/* Unobservable and BFCache documents still consume their budget. */}
+      }));
+    }
+    // Merge against the accumulating ledger in execution order: a row recovered
+    // earlier in this read must enforce the same identity binding as a session row.
+    for(const {row,execution} of recover){
       const current=value.find(item=>item.worldId===row.worldId||item.installed?.executionKey===execution.executionKey);
       if(current){
         // A stale state mirror may follow a lost session-write acknowledgement;
         // a different identity must never be silently repaired into a dispatch.
         if(current.installed)assertInstalledBinding(current,execution);
         else invariant(current.tabId===row.tabId&&current.documentId===row.documentId&&current.worldId===row.worldId&&
-          Object.keys(current).every(key=>['tabId','documentId','worldId'].includes(key)),
+          (!current.pendingBinding||current.pendingBinding===execution.receiptNonce)&&
+          Object.keys(current).every(key=>['tabId','documentId','worldId','pendingBinding'].includes(key)),
           'E_WORLD_ISOLATION','安装执行世界与原始预留记录不一致');
         current.installed=row.installed;
         continue;
-      }
-      if(!documents.has(row.documentId)){
-        let exists=true;
-        try{const frame=await api.webNavigation.getFrame({documentId:row.documentId});exists=frame!==null&&frame!==undefined;}
-        catch{/* Unobservable and BFCache documents still consume their budget. */}
-        documents.set(row.documentId,exists);
       }
       if(documents.get(row.documentId))value.push(row);
     }
     return value;
   }
-  async function reserve(target) {
+  async function reserve(target,pendingBinding) {
       const rows = await ledger();
       invariant(rows.filter(row => row.documentId === target.documentId).length < MAX_PREVIEW_WORLDS_PER_DOCUMENT,
         'E_PREVIEW_WORLD_LIMIT', '当前文档已调试 6 次；请刷新网页后继续。刷新会清除本页旧脚本的运行状态。');
       invariant(rows.length < 4096, 'E_PREVIEW_WORLD_LIMIT', '本次浏览器会话的调试世界已达上限，请关闭不用的标签页');
       const worldId = PREFIX + token();
-      rows.push({tabId:target.tabId,documentId:target.documentId,worldId});
+      rows.push({tabId:target.tabId,documentId:target.documentId,worldId,
+        ...(pendingBinding?{pendingBinding}:{})});
       await api.storage.session.set({[LEDGER]:rows});
       return worldId;
   }
@@ -85,7 +101,7 @@ export function createPreviewWorlds({api,storage}) {
       receipt[0].documentId === target.documentId && receipt[0].error === undefined && receipt[0].result === expected,
       'E_WORLD_ISOLATION', '浏览器未确认独立脚本世界；请刷新网页后重试，未注入依赖或用户代码');
   }
-  async function allocate(native, target, {injectImmediately=false}={}) {
+  async function allocate(native, target, {injectImmediately=false,pendingBinding}={}) {
     return ordered(async () => {
     invariant(typeof native.configureWorld === 'function' && typeof native.getWorldConfigurations === 'function' &&
       typeof native.resetWorldConfiguration === 'function', 'E_WORLD_ISOLATION', '浏览器缺少独立世界配置与对账能力');
@@ -96,16 +112,22 @@ export function createPreviewWorlds({api,storage}) {
       // their original channel for frame retirement and managed disposal.
     const configurations = await native.getWorldConfigurations();
     invariant(Array.isArray(configurations), 'E_WORLD_ISOLATION', '无法读取浏览器执行世界配置');
-      const liveInstalled=new Set((await ledger()).filter(row=>row.installed&&row.installed.state!=='retired'||
-        row.previewFrames&&row.managed&&!['retired','discarded'].includes(row.managed.state))
-        .map(row=>row.worldId));
+      const liveInstalled=new Set();
+      for(const row of await ledger()){
+        if(row.pendingBinding||row.installed&&row.installed.state!=='retired'||
+          row.previewFrames&&row.managed&&!['retired','discarded'].includes(row.managed.state))
+          liveInstalled.add(row.worldId);
+        for(const child of [...(row.installed?.frames||[]),...(row.previewFrames?.frames||[])])
+          if(child.worldId&&child.state!=='retired')liveInstalled.add(child.worldId);
+      }
     for (const configuration of configurations) {
         if (typeof configuration.worldId === 'string' && configuration.worldId.startsWith(PREFIX)&&
           !liveInstalled.has(configuration.worldId))
         await native.resetWorldConfiguration(configuration.worldId);
     }
-    const worldId = await reserve(target), marker = '__opendesk_probe_' + token();
+    const worldId = await reserve(target,pendingBinding), marker = '__opendesk_probe_' + token();
     const reserved = token(), isolated = token();
+    try{
     await native.configureWorld({worldId,csp:PAGE_WORLD_CSP,messaging:false});
     // Random global lexical bindings cannot be deleted, have no getter, and do
     // not depend on mutable Object/Reflect builtins in the default world.
@@ -115,6 +137,16 @@ export function createPreviewWorlds({api,storage}) {
     await probe(native, target, marker, reserved,undefined,injectImmediately);
     await probe(native, target, 'typeof ' + marker + " === 'undefined' ? " + JSON.stringify(isolated) + ' : ' + JSON.stringify(reserved), isolated, worldId,injectImmediately);
     return worldId;
+    }catch(error){
+      // Allocation has not returned an ID to its caller yet. Release only its
+      // pending protection here, keeping the consumed document budget intact.
+      if(pendingBinding){
+        const rows=await ledger(),row=rows.find(row=>row.worldId===worldId);
+        if(row?.pendingBinding===pendingBinding){delete row.pendingBinding;
+          await api.storage.session.set({[LEDGER]:rows});}
+      }
+      throw error;
+    }
     });
   }
   async function cleanup({tabId, documentId, removed = false}) {
@@ -133,6 +165,12 @@ export function createPreviewWorlds({api,storage}) {
       // refund document budget. BFCache can restore the same document later.
     });
   }
+  const releasePending=({worldId,nonce})=>ordered(async()=>{
+    const rows=await ledger(),row=rows.find(row=>row.worldId===worldId);
+    if(row?.pendingBinding!==nonce)return;
+    delete row.pendingBinding;
+    await api.storage.session.set({[LEDGER]:rows});
+  });
   const editRecords=work=>ordered(async()=>{
     const persisted=new Map(),rows=await ledger(persisted),
       before=rows.map(row=>JSON.stringify(row.installed)),
@@ -151,7 +189,8 @@ export function createPreviewWorlds({api,storage}) {
         await tx.put('frameworkKV',{...execution,managedUI:{...execution.managedUI,lifecycle:row.installed}},row.installed.executionKey);
       }
     });
+    for(const row of rows)if(row.installed&&row.pendingBinding===row.installed.receiptNonce)delete row.pendingBinding;
     await api.storage.session.set({[LEDGER]:rows});return result;
   });
-  return Object.freeze({allocate,cleanup,records:ledger,editRecords});
+  return Object.freeze({allocate,cleanup,records:ledger,editRecords,releasePending});
 }

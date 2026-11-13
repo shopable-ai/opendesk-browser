@@ -82,7 +82,7 @@ test('initial '+failure+' read stays off; recover persisted '+stored+' snapshot'
   await f.run(1100);await f.run(120);
   assert.equal(f.controls().length,0,'failed retry cannot enable old defaults');
   recover=true;await f.run(1100);await f.run(120);
-  assert.ok(reads>=3);assert.equal(f.controls().length,stored==='legacy'?2:0,
+  assert.ok(reads>=3);assert.equal(f.controls().length,stored==='legacy'?4:0,
     'only successful legacy read enables defaults; stored all-off remains off');
 });
 
@@ -105,17 +105,38 @@ test('custom selector attribute changes refresh through real MutationObserver wi
   installFloatingNavigation({...f,resolveConversation:()=>{
     resolutions++;return resolveConfiguredConversation(rule,f.doc,f.win);
   }});
-  await settle();assert.equal(f.controls().length,2);
+  await settle();assert.equal(f.controls().length,4);
   assert.equal([...f.timers.values()].filter(t=>t.delay===120).length,0,'mount mutations schedule no self refresh');
   f.main.setAttribute('data-ready','no');await settle();
   assert.equal([...f.timers.values()].filter(t=>t.delay===120).length,1,'attribute-only mutation schedules a refresh');
   await f.run(120);assert.equal(f.controls().length,0);
   f.main.setAttribute('data-ready','yes');await settle();await f.run(120);
-  assert.equal(f.controls().length,2,'attribute restoration remounts without a manual refresh or scroll');
+  assert.equal(f.controls().length,4,'attribute restoration remounts without a manual refresh or scroll');
   const stable=resolutions;await f.run(120);await settle();
   assert.equal(resolutions,stable,'dock style/class/children changes cannot perpetuate observer refresh');
   f.owner.dispose();await settle();const deliveries=f.deliveries;
   f.main.setAttribute('data-ready','no');await settle();
   assert.equal(f.deliveries,deliveries,'dispose disconnects observers');
   assert.equal(f.timers.size,0);assert.equal(f.controls().length,0);
+});
+
+test('role mutations disable and recover the same four controls without observer loops',async t=>{
+  const f=fixture();t.after(()=>f.owner.dispose());
+  const [first,last]=f.main.querySelectorAll('article');
+  first.setAttribute('data-message-author-role','user');
+  last.setAttribute('data-message-author-role','user');
+  installFloatingNavigation({...f,resolveConversation:()=>({main:f.main,scroller:f.main,
+    site:'chatgpt',selector:'article'})});
+  await settle();const controls=f.controls();assert.equal(controls.length,4);
+  assert.ok(controls.slice(1,3).some(button=>button.getAttribute('aria-disabled')==='false'));
+  for(let i=0;i<3;i++) {
+    last.removeAttribute('data-message-author-role');await settle();await f.run(120);
+    assert.deepEqual(f.controls(),controls);
+    assert.ok(controls.slice(1,3).every(button=>button.getAttribute('aria-disabled')==='true'));
+    last.setAttribute('data-message-author-role','user');await settle();await f.run(120);
+    assert.deepEqual(f.controls(),controls);
+    assert.ok(controls.slice(1,3).some(button=>button.getAttribute('aria-disabled')==='false'));
+  }
+  assert.equal([...f.timers.values()].filter(timer=>timer.delay===120).length,0,
+    'disabled/DOM updates do not schedule endless refreshes');
 });

@@ -1,5 +1,5 @@
 import {invariant,digestUtf8} from '../../platform/protocol.js';
-import {validateSidebarToolPackage,verifySidebarToolBackground,sidebarToolPackageHash,SIDEBAR_TOOL_STORE,sidebarToolStorageKey,SIDEBAR_TOOL_DATA_LIMITS} from '../../ui/sidebar-tools/package.js';
+import {verifySidebarToolBackground,verifySidebarToolPackageWithHash,SIDEBAR_TOOL_STORE,sidebarToolStorageKey,SIDEBAR_TOOL_DATA_LIMITS} from '../../ui/sidebar-tools/package.js';
 import {SIDEBAR_TOOL_ENABLE_STORE,TOOL_REVOCATION_EPOCHS_STORE,requireToolEnableRecords,requireToolRevocationEpochs} from '../../ui/sidebar-tools/lifecycle.js';
 import {stableStorageString,writeVerifiedLocalValue} from '../../ui/sidebar-tools/storage-state.js';
 import {resolveToolLocaleState,toolLocaleStorageKey} from '../../ui/sidebar-tools/locale-packs.js';
@@ -18,13 +18,14 @@ export async function readAppPageParent(api,owner,{requireEnabled=true,withState
     'E_APP_PAGE_OWNER','Invalid parent installation identity');
   const raw=await api.storage.local.get([SIDEBAR_TOOL_STORE,SIDEBAR_TOOL_ENABLE_STORE,TOOL_REVOCATION_EPOCHS_STORE]);
   invariant(Array.isArray(raw[SIDEBAR_TOOL_STORE]),'E_APP_PAGE_OWNER','Parent registry unavailable');
-  const rows=raw[SIDEBAR_TOOL_STORE].map(validateSidebarToolPackage).filter(tool=>tool.id===owner.toolId);
+  const rows=raw[SIDEBAR_TOOL_STORE].filter(tool=>tool?.id===owner.toolId);
   const enabled=requireToolEnableRecords(raw[SIDEBAR_TOOL_ENABLE_STORE])[owner.toolId]!==false;
   invariant(rows.length===1&&(!requireEnabled||enabled)&&
     requireToolRevocationEpochs(raw[TOOL_REVOCATION_EPOCHS_STORE])[owner.toolId]===owner.installEpoch,
     'E_APP_PAGE_OWNER','Parent missing, disabled or replaced');
-  const tool=await verifyAppPageTool(rows[0]);
-  invariant(await sidebarToolPackageHash(tool)===owner.packageHash,'E_APP_PAGE_OWNER','Parent package changed');
+  const {tool,packageHash}=await verifySidebarToolPackageWithHash(rows[0]);
+  invariant(tool.pageModule&&tool.capabilities.includes('page.module'),'E_APP_PAGE_OWNER','Missing reviewed Page companion');
+  invariant(packageHash===owner.packageHash,'E_APP_PAGE_OWNER','Parent package changed');
   return withState?{tool,enabled}:tool;
 }
 export async function appPageStorage({api,owner,operation,payload={},authorize,lockManager=globalThis.navigator?.locks}){

@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import {createPreviewAdmission} from '../../src/platform/host/preview-admission.js';
+import {createPreviewAdmission,installedPageReservation} from '../../src/platform/host/preview-admission.js';
 import {canonical} from '../../src/platform/protocol.js';
 import {pageInstallScope} from '../../src/scripting/user-scripts/page-install-authorization.js';
 
@@ -21,6 +21,8 @@ function fixture(change=()=>{}){
   const slot={tag:'slot',currentRunId:null,preview:{...preview,nonce:receiptNonce,executionKey,
     installedProgramId:grant.programId,manifestHash:grant.manifestHash,browserSessionIncarnation:session}};
   const rows={grant,installation,execution,preview,slot};change(rows);
+  if(slot.preview)slot.preview={kind:'installed-documents-v1',entries:[{...slot.preview,
+    namespace:grant.namespace,exclusive:false,settled:false,unknown:false,children:[]}]};
   let db=structuredClone(new Map([
     ['frameworkKV',new Map([
       ['page-installed:'+canonical([grant.namespace,grant.programId]),grant],[executionKey,execution]
@@ -42,11 +44,13 @@ function fixture(change=()=>{}){
     snapshot:()=>structuredClone(db),read:(name,key)=>structuredClone(db.get(name).get(key))};
 }
 
-test('a resource shares the awaiting parent main slot without changing any durable row',async()=>{
+test('a resource records child ownership in the awaiting parent slot without changing its receipt',async()=>{
   const f=fixture(),before=f.snapshot();
   assert.deepEqual(await f.reserve(),{shared:true});
-  assert.deepEqual(f.writes,[]);
-  assert.deepEqual(f.snapshot(),before);
+  assert.deepEqual(f.writes,[{name:'runs',key:'@slot'}]);
+  assert.deepEqual(installedPageReservation(f.read('runs','@slot'),f.preview.nonce).children,
+    [{nonce:f.preview.nonce,unknown:false}]);
+  assert.deepEqual(f.read('frameworkKV',f.executionKey),before.get('frameworkKV').get(f.executionKey));
   await f.admission.release({nonce:f.preview.nonce});
   assert.deepEqual(f.snapshot(),before,'releasing the child request must keep the parent main slot');
 });
@@ -55,9 +59,11 @@ test('a completed parent resource claims an idle slot with its request nonce and
   const f=fixture(rows=>{rows.execution.state='completed';delete rows.slot.preview;});
   const parent=f.read('frameworkKV',f.executionKey);
   assert.deepEqual(await f.reserve(),{shared:false});
-  assert.deepEqual(f.read('runs','@slot'),{tag:'slot',currentRunId:null,preview:{...f.preview,
+  assert.deepEqual(installedPageReservation(f.read('runs','@slot'),f.preview.nonce),{...f.preview,
+    namespace:f.grant.namespace,exclusive:false,settled:false,unknown:false,children:[],
+    resource:true,parentNonce:parent.receiptNonce,
     installedProgramId:f.grant.programId,manifestHash:f.grant.manifestHash,
-    executionKey:f.executionKey,browserSessionIncarnation:'browser-session'}});
+    executionKey:f.executionKey,browserSessionIncarnation:'browser-session'});
   assert.deepEqual(f.writes,[{name:'runs',key:'@slot'}]);
   assert.deepEqual(f.read('frameworkKV',f.executionKey),parent);
   const occupied=f.snapshot();

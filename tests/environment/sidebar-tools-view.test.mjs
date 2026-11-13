@@ -419,11 +419,12 @@ test('Cookie first-use and everyday settings each mount one permission control w
   }
 });
  
-test('Cookie first-use discloses the current Host scope before enabling consent',()=>{
+for(const isCookieEditor of [true,false])
+test('Cookie first-use discloses the current Host scope before enabling consent: '+isCookieEditor,()=>{
   const view=createSidebarToolsView();
   view.patch('sidebar-tool-display',{hidden:false});
   view.patch('sidebar-tool-cookie-permissions',{hidden:false,data:{mode:'first-use',
-    isCookieEditor:true,needsAuthorization:true,hasOrigin:true,identity:'cookie-test:1'}});
+    isCookieEditor,needsAuthorization:true,hasOrigin:true,identity:'cookie-test:1'}});
   const description='允许管理当前网站 https://example.test 的 Cookie，包括查看 Cookie 值、修改、删除。授权可随时撤销。';
   view.patch('sidebar-tool-cookie-help',{textContent:description});
   const render=()=>parseHTML(renderToStaticMarkup(React.createElement(ToolHost,{view}))).document;

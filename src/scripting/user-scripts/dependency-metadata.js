@@ -30,8 +30,11 @@ function freeze(value) {
   return value;
 }
 function readLine(source, start) {
-  let end = start;
-  while (end < source.length && !/[\r\n\u2028\u2029]/.test(source[end])) end++;
+  // Fixed frame resources can occupy a multi-megabyte leading comment. Scan
+  // its line ending in the engine instead of running one RegExp per character.
+  const ending = /[\r\n\u2028\u2029]/g;
+  ending.lastIndex = start;
+  const end = ending.exec(source)?.index ?? source.length;
   const next = end + (source[end] === '\r' && source[end + 1] === '\n' ? 2 : end < source.length ? 1 : 0);
   return {raw:source.slice(start,end),end,next};
 }

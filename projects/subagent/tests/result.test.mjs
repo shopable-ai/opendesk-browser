@@ -9,20 +9,20 @@ import {verifiedResult} from '../src/contract.js';
 const logicalRequestId='71811b88-050a-4e7a-9dfa-00b10b906fe8';
 const controllerRequestId='controller-request-original-01';
 const pin=REVIEWED_BUILTIN_TASK_RELEASES.find(row=>
-  row.taskId==='chatgpt.conversation.create'&&row.version==='0.2.0');
+  row.taskId==='chatgpt.conversation.create'&&row.version==='0.2.2');
 const conversationId='11111111-2222-4333-8444-555555555555';
 const conversationUrl='https://chatgpt.com/c/'+conversationId;
 const prompt='请介绍 WebFlow 的三个主要优势。';
 function fixture(replyText='  完整回答\n\n'+('段落内容。'.repeat(300))+'\n  '){
   const installation={version:pin.version,manifestHash:pin.manifestHash,
-    contentHash:pin.sourceHash,scriptId:'task:chatgpt.conversation.create:0.2.0',
+    contentHash:pin.sourceHash,scriptId:'task:chatgpt.conversation.create:0.2.2',
     revision:1,installationId:'installation-original-01',generation:3};
   const revision={scriptId:installation.scriptId,revision:1,sourceHash:pin.sourceHash};
   const value={kind:'chatgpt.conversation.create.result',version:2,status:'reply-complete',
     send:true,messageConfirmed:true,conversationId,conversationUrl,
     sourceUrl:'https://chatgpt.com/',promptChars:prompt.length,readbackConfirmed:true,
-    observedAt:'2026-11-12T12:50:00.000Z',userMessageRef:'native-user-message-01',
-    assistantMessageRef:'native-assistant-message-01',replyText};
+    observedAt:'2026-11-12T12:50:00.000Z',userMessageRef:'11111111-2222-4333-8444-666666666666',
+    assistantMessageRef:'11111111-2222-4333-8444-777777777777',replyText};
   const runId='controller-run-original-01',resultId='controller-result-original-01';
   return {
     logicalRequestId,
@@ -134,6 +134,7 @@ test('a changed, revoked, missing or unreviewed installation cannot disclose a r
     b=>{b.resolvedInstallation.installationId='different-installation';},
     b=>{b.resolvedInstallation.manifestHash='f'.repeat(64);},
     b=>{b.request.installation.version='0.3.0';},
+    b=>{b.request.installation.version='0.2.0';},
     b=>{b.request.installation.contentHash='f'.repeat(64);},
     b=>{b.snapshot.run.taskInstallation.generation++;},
     b=>{delete b.snapshot.run.taskInstallation;},
@@ -164,7 +165,7 @@ test('page completion claims and preview-only data never become a full verified 
     {replyText:undefined,replyPreview:'looks complete',replyPreviewComplete:true},
     {replyText:'',trust:'host-verified'},
     {status:'draft-prepared',send:false},{messageConfirmed:false},
-    {assistantMessageRef:'native-user-message-01'},{assistantMessageRef:''},
+    {assistantMessageRef:'11111111-2222-4333-8444-666666666666'},{assistantMessageRef:''},
     {conversationUrl:'https://example.com/c/'+conversationId},
     {replyText:'中'.repeat(21846)}
   ])await reject(b=>{
@@ -174,14 +175,13 @@ test('page completion claims and preview-only data never become a full verified 
   });
 });
 
-test('native message references up to the original 160-character bound are retained',async()=>{
-  const h=harness();
-  h.binding.value.userMessageRef='u'.repeat(160);
-  h.binding.value.assistantMessageRef='a'.repeat(160);
-  h.binding.snapshot.results[0].outcome.valueWire=encodeValue(h.binding.value);
-  const result=await h.read();
-  assert.equal(result.userMessageRef,h.binding.value.userMessageRef);
-  assert.equal(result.assistantMessageRef,h.binding.value.assistantMessageRef);
+test('the reviewed 0.2.2 adapter rejects local turn keys and non-UUID message references',async()=>{
+  for(const [userMessageRef,assistantMessageRef] of [
+    ['u'.repeat(160),'a'.repeat(160)],['turn-00000001:user','turn-00000002:assistant'],
+    ['11111111-2222-4333-8444-666666666666','local-assistant-message']
+  ])await reject(b=>{
+    b.snapshot.results[0].outcome.valueWire=encodeValue({...b.value,userMessageRef,assistantMessageRef});
+  });
 });
 
 test('authorization failure before or after the async read prevents disclosure',async()=>{

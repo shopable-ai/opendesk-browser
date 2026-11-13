@@ -1,8 +1,49 @@
-# OD-COOKIE-EDITOR-NAVIGATION-EXPORT-STABILITY-R2 · 差量开发与验收记录
+# OD-COOKIE-EDITOR-NAVIGATION-EXPORT-STABILITY-R2 · 核心开发记录
 
-> 状态：`SOURCE_COMMITTED / R2_NODE_PASS_53 / CANDIDATE_BUILD_VERIFIED / CI_PARTIAL_FAIL / NATIVE_NOT_TESTED / NOT_RELEASED`  
-> 本记录只声明实际可核对的远端源码、工作流及连接结果；不将 HTML 预览视为正式 Chrome 验收。
-> 本任务唯一开发分支为 `main`，不创建临时开发分支，不覆盖其他任务修改。
+> 2026-11-13 最新状态：`SOURCE_FIXED / TARGETED_NODE_PASS / BUILD_PASS / TOOL_2.0.79_INSTALLED / NATIVE_CORE_PENDING`。
+> 当前阶段只完成导航、复制、下载及直接影响的安全保护。完整 CI、95 分评分和全量正式验收继续延期。以下最新段落优先于文末历史记录。
+
+## 当前修复与已证实根因
+
+真实 CFT 155 现场的原始 `E_COOKIE_READ` 已定位为 Host 的请求频率限制（120 次/分钟），不是未经证实的超时。旧自动读取每两秒执行多次 SDK RPC；Chromium 的 History API 还实际发出 `status:loading + url`，被误判为整页替换并进入绕过导航合并的 `load()`。诊断只记录固定错误码及阶段，不保存原始错误、完整 URL 或 Cookie 内容。
+
+- 业务读取共用八秒自动读取预算，合并连续导航，保留脱敏行；核验期间敏感动作继续禁用。明确的旧 Host 限流错误转换为 `E_RATE_LIMIT`，只对读取等待六十秒后重新核验，不重放写入、复制或下载。取消、卸载和撤权会终止等待。
+- Host 对准确同 Tab/Window 的短暂 unresolved 状态发送独立 `cookie-page-pending`；沙箱消息还核对工具 ID 与实例。该状态只保留脱敏显示，不是有效目标或授权。真实 `onBeforeNavigate`、文档/Origin/权限变化仍立即失效。恢复后完整核对目标、授权、Store/Partition 与新旧响应所有权。
+- 读取前后 unresolved 共用有界恢复窗口；成功恢复清除旧限流提示与诊断。导航立即擦除敏感 DOM，旧编辑/导入/导出计划失效。
+- 导出绑定精确 Document、一次可信点击及持久安装/授权状态；native sink 紧邻位置重新核对。sink 后范围变化仍报告结果未知，不能误报成功或自动重试。Controller 的原严格 URL 核验合同保留。
+
+## 当前产物与环境
+
+唯一正式工具包：`projects/cookie-editor/cookie-editor.opendesk-tool.json`，版本 **2.0.79**，397872 bytes，规范 SHA-256 `675fa008623615f3ad673d56758067e8e5244c434a2cce5b66ae6f04e9c20881`。原打包器 candidate → 定向检查 → promote-from → check-project 通过；通过扩展中心正常更新，真实更新审阅显示权限未变化并核对同一 SHA；标题已读回 v2.0.79。
+
+固定 Host 使用独立源码快照构建，attempt `0c4fdd98-0c58-46cc-b2f1-c5687c0b9ef7`，package hash `5f749138021a7a143fab070fbb0b69f42581ccd570efaab5e913bb02a12ca2a7`。快照基于 `f41b40e0e25f24ed9a50dc95acac4c311560e0c2` 加本任务源码；只在快照内恢复并行 AI Proxy 的 HEAD 来源，未覆盖或重新 pin 主工作区修改。依赖也克隆进快照，保留原来源边界检查。构建共 131 文件；逐文件核对后发布到本任务原 `dist/production`。
+
+本体预装工具为 2.0.77，随后正常导入更新为 2.0.79，不能称为同一冻结发行包的全矩阵验收。构建后并行 owner 又在 `src/ui/sidebar-tools.js` 加入了预装/用户脚本恢复 UI；这些后续段落不在本次运行快照中，Cookie 相关段落未变，提交时不能整体暂存该共享文件。测试扩展 ID `efhcmggbgamacpfhhmooelgdkepdcghh`、Profile 与加载路径保持原值；新 CFT PID98795。日常 `dist/development`、原生日常配对、并行 watcher 和其他 CFT 未变。测试只使用本机 fixture 的虚构 Cookie。
+
+## 最小验证
+
+| 证据 | 结果与边界 |
+| --- | --- |
+| `artifacts/cookie-editor-r2/final-navigation-core.log` | 169 PASS，导航/草稿/目标/Controller/账号回执；在最后清除恢复诊断的小改前执行 |
+| `artifacts/cookie-editor-r2/final-read-budget.log` | 最后修订 8 PASS，含 20 路径合并、共享读取预算、限流恢复、unresolved 前后边界、取消与诊断清除 |
+| `artifacts/cookie-editor-r2/transient-host-tests.log` | 12 PASS，实际 Host+Bridge pending 消息、实例限制、Document 与持久撤权竞态；未声称全 Host 套件通过 |
+| `artifacts/cookie-editor-r2/final-package-tests.log` | 2.0.79 的 19 PASS，编译来源、唯一正式包与当前 React 源码合同 |
+| `artifacts/cookie-editor-r2/final-snapshot-build.log` | 独立来源快照 production BUILD_PASS；主工作区构建曾被并行 AI Proxy 来源 pin 阻断，未放宽保护 |
+
+## 原生核心操作当前状态
+
+- 旧 2.0.73 / 2.0.74 / 2.0.75 的实际连续导航均失败；这些失败不被 Node PASS 覆盖。
+- 2.0.79 更新与真实版本读回通过。测试浏览器重启后需要恢复 Cookie 授权；产品当前入口显示全站 Cookie 管理，用户已明确批准仅在该隔离测试 Profile 恢复权限；尚未实际点击授权，不在日常 Chrome 操作。
+- 最新 20 次 SPA、标题/Query/Hash、虚构 Cookie 变化、真实复制与下载：**PENDING**，不得声明通过。
+- 原始 `E_OUTCOME_UNKNOWN` 尚未在浏览器复现。安全竞态目前有定向 Node 证据，不冒称真实故障注入验收。
+
+## 后续边界
+
+测试授权已取得，后续只跑上述最短核心链。完整 CI、权限/Store/Partition 的正式浏览器矩阵、长时间压力、跨版本与独立评分继续 `NOT_TESTED / DEFERRED`。源码、构建、正式 JSON、已安装版本和当前运行行为分开报告。源对话的旧 goal 生命周期未同步，本对话没有暂停或完成它。
+
+## 历史记录（2.0.69 阶段）
+
+以下保留旧提交和 CI 链接供追溯；其 NOT_TESTED、评分、排队状态和旧待办只表示当时观察，不是本轮行动清单。
 
 ## 原始目标
 

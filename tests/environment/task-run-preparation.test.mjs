@@ -38,7 +38,11 @@ function authoritySerialStore() {
     }); tail = next.catch(() => {}); return next;
   }};
 }
-const authorityEvent = () => ({addListener() {}, removeListener() {}});
+const authorityEvent = () => {
+  const listeners=new Set();
+  return {addListener:fn=>listeners.add(fn),removeListener:fn=>listeners.delete(fn),
+    emit:(...args)=>{for(const listener of [...listeners])listener(...args);}};
+};
 async function authorityBaseFixture(options={}) {
   const storage = authoritySerialStore(), calls = [], frames = new Map([[2, [{frameId:0, documentId:'doc-top', documentLifecycle:'active', errorOccurred:false, url:'https://a.example/page'},
     {frameId:7, documentId:'doc-child', url:'https://b.example/frame', parentFrameId:0}]]]);
@@ -61,7 +65,7 @@ async function authorityBaseFixture(options={}) {
           runId:e.identity.runId, ownerEpoch:e.identity.ownerEpoch, value:controlEncode(e.target.frameId === 7 ? 'Child' : 'Top')}; }
         else reply = {type:message.type, cancelled:true};
         queueMicrotask(() => callback(reply));
-      }, onRemoved:authorityEvent()},
+      }, onRemoved:authorityEvent(),onDetached:authorityEvent(),onAttached:authorityEvent()},
     webNavigation:{getAllFrames({tabId}, callback) { const value=(frames.get(tabId) || []).filter(f=>!f.url.startsWith('chrome-extension:')); if (callback) queueMicrotask(() => callback(value)); return Promise.resolve(value); },
       onCommitted:authorityEvent(),onCompleted:authorityEvent(),onDOMContentLoaded:authorityEvent(),onErrorOccurred:authorityEvent()},
     userScripts:{getScripts:async()=>[], execute:async options=>{
@@ -129,7 +133,7 @@ async function fixture(options={}) {
   const prepare=(preparationId='shared-one',extra={})=>f.authority.prepareTaskRun({preparationId,task,params,target,...extra},f.sender);
   const start=(preparation,extra={},sender=f.sender)=>f.authority.startControllerRun({requestId:crypto.randomUUID(),
     source:preparation.source,paramsWire:encodeValue(preparation.params),target:preparation.target,
-    deadlineAt:preparation.deadlineAt,expectedTaskGeneration:task.generation,expectedTaskInstallationId:task.installationId,
+    deadlineAt:preparation.deadlineAt??f.clock.now()+preparation.executionDeadlineMs,expectedTaskGeneration:task.generation,expectedTaskInstallationId:task.installationId,
     taskPreparationId:preparation.preparationId,...(preparation.binding?{taskDelegation:preparation.binding}:{}),...extra},sender);
   const inspect=(preparationId)=>f.authority.inspectTaskRun(preparationId===undefined?{}:{preparationId},f.sender);
   const cancel=(preparationId='shared-one')=>f.authority.cancelTaskRun({preparationId},f.sender);
@@ -224,6 +228,123 @@ test('refresh and SPA round trips only restore the original Page request and can
     const durable=(await f.rows('commandJournal')).find(row=>row.tag==='page-task-request');
     assert.equal(durable.pageSource.documentId,'doc-top','recovery never rewrites the approval source');
   }
+});
+
+test('expired unadmitted Page request gains a new reviewed preparation, preserving original audit and fencing late starts',async()=>{
+  const f=await pageTaskFixture();await f.request();const {preparation:old}=await f.preparePage();
+  const sourceBefore=structuredClone((await f.rows('commandJournal')).find(r=>r.tag==='page-task-request').pageSource);
+  f.clock.now=()=>old.expiresAt+1;
+  await f.restore();
+  const before=await f.hostRead();assert.equal(before.request.approvalAllowed,false);assert.equal(before.request.reprepareAllowed,true);
+  const request={requestId:f.requestId,expectedPreparationId:old.preparationId};
+  const replies=await Promise.allSettled([f.authority.repreparePageTaskRequest(request,f.sender),f.authority.repreparePageTaskRequest(request,f.sender)]);
+  assert.equal(replies.filter(r=>r.status==='fulfilled').length,1);
+  const recovered=replies.find(r=>r.status==='fulfilled').value;
+  assert.equal(recovered.request.requestId,f.requestId);assert.equal(recovered.request.approvalAllowed,true);
+  assert.equal(recovered.preparation.generation,2);assert.notEqual(recovered.preparation.preparationId,old.preparationId);
+  assert.equal(recovered.preparation.deadlineAt,null);assert.equal((await f.runs()).length,0);
+  assert.deepEqual((await f.rows('commandJournal')).find(r=>r.tag==='page-task-request').pageSource,sourceBefore);
+  assert.equal((await f.inspect(old.preparationId)).preparation.state,'superseded');
+  await assert.rejects(f.cancel(old.preparationId),{code:'E_REVISION'});
+  assert.equal((await f.inspect(old.preparationId)).preparation.state,'superseded');
+  assert.equal((await f.hostRead()).preparation.preparationId,recovered.preparation.preparationId,
+    'lost reprepare ACK is recovered through the same logical request');
+  await assert.rejects(f.startPage(old));
+  await assert.rejects(f.authority.repreparePageTaskRequest(request,f.sender),{code:'E_REVISION'});
+  const runs=await Promise.all([f.startPage(recovered.preparation),f.startPage(recovered.preparation)]);
+  assert.equal(runs[0].runId,runs[1].runId);assert.equal(f.calls.filter(r=>r.method==='create').length,1);
+  assert.equal((await f.rows('commandJournal')).filter(r=>r.tag==='page-task-request').length,1);
+});
+
+test('explicit Page reprepare revalidates a fresh authenticated document without changing the original source',async()=>{
+  const f=await pageTaskFixture();await f.request();const {preparation:old}=await f.preparePage();
+  await f.authority.invalidatePageTaskSource({tabId:2});f.frames.get(2)[0].documentId='fresh-document';
+  await f.restore();assert.equal((await f.hostRead()).request.approvalAllowed,false);
+  const recovered=await f.authority.repreparePageTaskRequest({requestId:f.requestId,expectedPreparationId:old.preparationId},f.sender);
+  assert.equal(recovered.request.pageBinding.documentId,'fresh-document');
+  assert.equal((await f.rows('commandJournal')).find(r=>r.tag==='page-task-request').pageSource.documentId,'doc-top');
+  await assert.rejects(f.startPage(old));assert.equal((await f.runs()).length,0);
+  const run=await f.startPage(recovered.preparation);assert.equal(run.taskPreparationId,recovered.preparation.preparationId);
+  await f.finish(run);await f.authority.retireControllerTarget({runId:run.runId},f.sender);
+  const read=await f.read();assert.equal(read.state,'completed');assert.equal(read.runId,run.runId);
+  const result=(await f.rows('results')).find(r=>r.resultId===run.resultId);
+  assert.equal(result.pageRequestId,f.requestId);assert.equal(result.taskPreparationId,recovered.preparation.preparationId);
+});
+
+test('SPA return refreshes the observed source epoch while keeping explicit recovery approval',async()=>{
+  const f=await pageTaskFixture();await f.request();const {preparation:old}=await f.preparePage();
+  await f.restore();await f.authority.invalidatePageTaskSource({tabId:2});await f.restore();
+  assert.equal((await f.hostRead()).request.reprepareAllowed,true);
+  const recovered=await f.authority.repreparePageTaskRequest({requestId:f.requestId,expectedPreparationId:old.preparationId},f.sender);
+  assert.equal(recovered.request.approvalAllowed,true);assert.equal((await f.runs()).length,0);
+});
+
+test('A window moves during source validation fence both recovery and admission before any B creation',async()=>{
+  for(const operation of ['reprepare','start']){
+    const f=await pageTaskFixture();await f.request();const {preparation}=await f.preparePage();
+    if(operation==='reprepare'){f.clock.now=()=>preparation.expiresAt+1;await f.restore();}
+    f.source(()=>f.api.tabs.onDetached.emit(2,{oldWindowId:1,oldPosition:0}));
+    await assert.rejects(operation==='start'?f.startPage(preparation):
+      f.authority.repreparePageTaskRequest({requestId:f.requestId,expectedPreparationId:preparation.preparationId},f.sender),{code:'E_DOCUMENT_STALE'});
+    assert.equal((await f.runs()).length,0);assert.equal(f.calls.filter(r=>r.method==='create').length,0);
+  }
+});
+
+test('Page recovery rejects possible admission, unknown state, cancellation and changed or revoked identities',async()=>{
+  for(const change of ['start','journal','run','result','legacy-result','unknown','cancel','permission','page','task','navigation']){
+    const f=await pageTaskFixture();await f.request();const {preparation:old}=await f.preparePage();await f.restore();
+    if(change==='start')await f.startPage(old);
+    if(change==='cancel')await f.authority.cancelTaskRun({preparationId:old.preparationId},f.sender);
+    if(change==='permission')await f.authority.invalidateControllerTarget({permissionRemoved:true,origins:['https://a.example/*']});
+    if(change==='page')f.revokeSource();
+    if(change==='task')await f.authority.setInstalledTaskEnabled({...f.installClaim(f.resolved),enabled:false},f.sender);
+    if(change==='navigation')await f.authority.invalidatePageTaskSource({tabId:2});
+    if(['journal','run','result','legacy-result','unknown'].includes(change))await f.storage.transaction(['commandJournal','runs','results'],'readwrite',async tx=>{
+      if(change==='journal')await tx.put('commandJournal',{tag:'controller-start',runId:'lost-run'},'task-preparation-start:'+canonical(['tool:extension',old.preparationId]));
+      if(change==='run')await tx.put('runs',{tag:'controller-run',requestId:old.preparationId,pageRequestId:f.requestId},'orphaned-run');
+      if(change==='result')await tx.put('results',{tag:'controller-result',pageRequestId:f.requestId},'orphaned-result');
+      if(change==='legacy-result')await tx.put('results',{tag:'controller-result',namespace:'tool:extension',runId:'missing',revision:{scriptId:old.source.scriptId}},'legacy-result');
+      if(change==='unknown'){
+        const key='task-preparation:'+canonical(['tool:extension',old.preparationId]);
+        await tx.put('commandJournal',{...await tx.get('commandJournal',key),state:'unknown'},key);
+      }
+    });
+    f.clock.now=()=>old.expiresAt+1;
+    await assert.rejects(f.authority.repreparePageTaskRequest({requestId:f.requestId,expectedPreparationId:old.preparationId},f.sender),undefined,change);
+    assert.equal((await f.rows('commandJournal')).filter(r=>r.tag==='task-run-preparation'&&r.pageRequestId===f.requestId).length,1,change);
+    assert.ok(f.calls.filter(r=>r.method==='create').length<=Number(change==='start'),change);
+  }
+});
+
+test('approval waiting does not consume or renew the one admitted execution deadline',async()=>{
+  const f=await fixture(),{preparation}=await f.prepare();
+  const at=preparation.expiresAt-1000;f.clock.now=()=>at;
+  const run=await f.start(preparation);assert.equal(run.deadlineAt,at+preparation.executionDeadlineMs);
+  f.clock.now=()=>at+1000;
+  const duplicate=await f.start(preparation);assert.equal(duplicate.duplicate,true);
+  assert.equal((await f.rows('runs')).find(r=>r.runId===run.runId).deadlineAt,run.deadlineAt);
+  assert.equal(f.calls.filter(r=>r.method==='create').length,0);
+});
+
+test('asynchronous admission checks do not spend the admitted execution budget',async()=>{
+  const f=await fixture(),{preparation}=await f.prepare();let at=preparation.expiresAt-1000;
+  f.clock.now=()=>at;const contains=f.api.permissions.contains;
+  f.api.permissions.contains=async(...args)=>{at+=100;return contains(...args);};
+  const run=await f.start(preparation),row=(await f.rows('runs')).find(r=>r.runId===run.runId);
+  assert.equal(row.deadlineAt,row.createdAt+preparation.executionDeadlineMs);
+});
+
+test('approval expiry during durable admission rolls back before any B creation',async()=>{
+  const f=await fixture(),{preparation}=await f.prepare('owned',{target:{mode:'owned',url:'https://a.example/new'}});
+  let at=preparation.expiresAt-100;f.clock.now=()=>at;
+  const transaction=f.storage.transaction;
+  f.storage.transaction=(names,mode,body)=>transaction(names,mode,tx=>body({...tx,put:async(name,row,key)=>{
+    if(row.tag==='controller-start')at=preparation.expiresAt;
+    return tx.put(name,row,key);
+  }}));
+  await assert.rejects(f.start(preparation),{code:'E_TIMEOUT'});
+  assert.equal((await f.runs()).length,0);assert.equal(f.calls.filter(r=>r.method==='create').length,0);
+  assert.equal((await f.inspect('owned')).preparation.state,'prepared');
 });
 
 test('Page read rechecks source authorization after projection and never reveals a cached success after revocation',async()=>{
@@ -606,7 +727,7 @@ test('Stop notification reaches the original RunHost from another host without r
       execute:()=>terminal,result:terminal,retired,resourceReleased:retired,stop:()=>{stops++;},
     };}});
   const run=await host.start({source:preparation.source,params:preparation.params,target:preparation.target,
-    deadlineAt:preparation.deadlineAt,expectedTaskGeneration:f.task.generation,expectedTaskInstallationId:f.task.installationId,
+    deadlineAt:preparation.deadlineAt??f.clock.now()+preparation.executionDeadlineMs,expectedTaskGeneration:f.task.generation,expectedTaskInstallationId:f.task.installationId,
     taskPreparationId:preparation.preparationId});
   try{
     const sender={...f.sender,documentId:'drawer-host',tab:{id:3,incognito:false}};
@@ -744,7 +865,7 @@ test('RunHost forwards taskPreparationId and never creates a Worker for a durabl
     observed=request;return f.authority.startControllerRun(request,f.sender);
   }}},document:null,templateModuleFactory:null,controllerFactory:()=>{workers++;throw Error('No replay');}});
   await assert.rejects(host.start({source:preparation.source,params:preparation.params,target:preparation.target,
-    deadlineAt:preparation.deadlineAt,expectedTaskGeneration:f.task.generation,expectedTaskInstallationId:f.task.installationId,
+    deadlineAt:preparation.deadlineAt??f.clock.now()+preparation.executionDeadlineMs,expectedTaskGeneration:f.task.generation,expectedTaskInstallationId:f.task.installationId,
     taskPreparationId:preparation.preparationId}),{code:'E_EFFECT_UNKNOWN'});
   assert.equal(observed.taskPreparationId,preparation.preparationId);assert.equal(workers,0);await host.dispose();
 });

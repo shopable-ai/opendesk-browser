@@ -31,6 +31,14 @@ test('released Controller history no longer blocks development reload and remain
   assert.equal(await developmentRunHostIdle(storage),true);
 });
 
+test('development reload preserves a pending Task approval until expiry or explicit cancellation',async()=>{
+  const storage=idleStorage(),preparation={tag:'task-run-preparation',state:'prepared',runId:null,expiresAt:Date.now()+600000};
+  storage.rows.commandJournal.preparation=preparation;
+  assert.equal(await developmentRunHostIdle(storage),false);
+  preparation.expiresAt=Date.now()-1;assert.equal(await developmentRunHostIdle(storage),true);
+  preparation.expiresAt=Date.now()+600000;preparation.state='cancelled';assert.equal(await developmentRunHostIdle(storage),true);
+});
+
 for(const [name,options] of [
   ['active run',{slot:{currentRunId:'active'}}],['preview',{slot:{preview:{id:'preview'}}}],
   ['unreleased',{run:{retirementState:'pending'}}],['live Worker',{run:{workerRetired:false}}],

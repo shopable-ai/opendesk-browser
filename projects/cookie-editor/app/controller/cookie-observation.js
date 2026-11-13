@@ -1,6 +1,6 @@
 // Orchestrates the existing bounded, redacted public observer. No renewal,
 // Cookie value reads, storage, native writes, or replacement authority.
-export function createCookieObservation({adapter,controller,canRun,onChange=()=>{},now=Date.now}){
+export function createCookieObservation({adapter,controller,canRun,onChange=()=>{},onObservedChange=()=>{},now=Date.now}){
   let generation=0,session=null,pending=false,closed=false;
   let state={phase:'idle',expiresAt:0,gap:false};
   const publish=patch=>{state={...state,...patch};if(!closed)onChange({...state});};
@@ -51,6 +51,7 @@ export function createCookieObservation({adapter,controller,canRun,onChange=()=>
       }
       value.cursor=result.nextCursor;
       if(gap)publish({gap:true});
+      if(result.events.length)onObservedChange();
     }catch(error){
       if(current()){
         controller.observationAccessLost(error);

@@ -55,7 +55,13 @@ test('scoped reads retire at each deferred boundary without querying the next sc
       return resultFor(name);
     };
     const sdk={cookies:{
-      getAll:async args=>read(args.partitionKey?'partitioned':'ordinary'),
+      getAll:async()=>{throw Error('SCOPED_READ_REQUIRES_PAGING');},
+      getAllPage:async args=>{
+        assert.equal(args.url,site.url);
+        assert.equal(args.scope,'site-exact-host');
+        if(args.partitionKey)assert.deepEqual(args.partitionKey,partitionKey);
+        return {cookies:await read(args.partitionKey?'partitioned':'ordinary')};
+      },
       getPartitionKey:async()=>read('partition')
     }};
     const reading=scopedLiveCookies(sdk,site,{isCurrent:()=>active});
@@ -81,6 +87,20 @@ test('invalidated paged reads discard partial rows and never follow a late curso
     assert.equal(await reading,null);
     assert.equal(calls,delayedPage);
   }
+});
+
+test('adapter scope reads bind store and partition to the exact sanitized target URL',async()=>{
+  const calls=[],store={storeId:'0'},partition={partitionKey:{topLevelSite:site.origin,hasCrossSiteAncestor:false}};
+  const browser={capabilities:{getStatus:async()=>({callableNow:true})},cookies:{
+    getAll:async()=>{throw Error('SCOPE_MUST_NOT_READ_COOKIES');},
+    getCurrentStore:async args=>{assert.deepEqual(args,{url:site.url});calls.push('store');return store;},
+    getPartitionKey:async args=>{assert.deepEqual(args,{url:site.url});calls.push('partition');return partition;}
+  }};
+  const adapter=createCookieSdkAdapter({getBrowser:()=>browser,
+    request:async()=>{throw Error('SCOPE_MUST_USE_BROWSER_SDK');}});
+  assert.deepEqual(await adapter.getStore(site),store);
+  assert.deepEqual(await adapter.getPartition(site),partition);
+  assert.deepEqual(calls,['store','partition']);
 });
 
 test('R5.20 sensitive value receipts must retain metadata as well as identity',async()=>{
@@ -133,10 +153,15 @@ test('scoped reads page ordinary and partitioned results without stale values',a
   const seen=[];
   const sdk={cookies:{
     getPartitionKey:async()=>({partitionKey:{topLevelSite:'https://shop.example.com'}}),
-    getAll:async({partitionKey})=>{
+    getAll:async()=>{throw Error('SCOPED_READ_REQUIRES_PAGING');},
+    getAllPage:async args=>{
+      assert.equal(args.url,site.url);
+      assert.equal(args.scope,'site-exact-host');
+      const {partitionKey}=args;
+      if(partitionKey)assert.deepEqual(partitionKey,{topLevelSite:site.origin});
       seen.push(Boolean(partitionKey));
-      return [row({name:partitionKey?'partitioned':'ordinary',
-        ...(partitionKey?{partitionKey}:{} )})];
+      return {cookies:[row({name:partitionKey?'partitioned':'ordinary',
+        ...(partitionKey?{partitionKey}:{} )})]};
     }
   }};
   const results=await scopedLiveCookies(sdk,site);

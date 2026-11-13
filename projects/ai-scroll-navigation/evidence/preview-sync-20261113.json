@@ -1,0 +1,248 @@
+{
+  "date": "2026-11-13",
+  "stage": "core development; importable candidate",
+  "programId": "opendesk.ai-scroll-navigation",
+  "version": "0.4.20",
+  "revision": 23,
+  "sourceHash": "432f234aac18364a4bc2e3fed5f26db1030feba34f16822b50af8a8eff3ac155",
+  "packageHash": "0a900b96e7682d61f792960798c04c137b9b93308273942833cc6575e464d576",
+  "fileSha256": "d3d4de7af1d26cd9d3a514e64d6edd9ac013eb71a05a37c1e49f9f9670f61270",
+  "sourceModulesMatch": true,
+  "packageSourceBytesMatch": true,
+  "websiteScopeUnchanged": true,
+  "installed": "NOT_TESTED",
+  "realWebsites": "NOT_TESTED",
+  "changes": [
+    "Preserve existing four-button visibility and sequential navigation fixes",
+    "Match R4.4 narrow layout with 42px buttons, 14px corner radius and 6px gaps",
+    "Expand full loaded-round count and include its width in positioning and collision checks",
+    "Keep round count optional and remove its layout slot when hidden"
+  ],
+  "reproduced": {
+    "count": "120/120",
+    "textWidth": 47.9375,
+    "beforeAvailableWidth": 40,
+    "afterAvailableWidth": 55
+  },
+  "tests": {
+    "passed": 51,
+    "failed": 0,
+    "commands": [
+      "node --test projects/ai-scroll-navigation/tests/floating-navigation.test.mjs projects/ai-scroll-navigation/tests/preview-parity.test.mjs projects/ai-scroll-navigation/tests/navigation-settings.test.mjs",
+      "node --test tests/environment/page-install-package.test.mjs"
+    ],
+    "browser": {
+      "scope": "Ego Lite with actual project modules in synthetic conversation DOM; no installed Authority claim",
+      "reports": [
+        {
+          "status": "PASS",
+          "scope": "actual project modules in synthetic DOM, not installed",
+          "hidden": {
+            "count": null,
+            "overflow": false,
+            "buttons": 4,
+            "sameButtons": true,
+            "top": 0,
+            "width": 42,
+            "height": 149,
+            "left": 20,
+            "right": 62,
+            "viewport": 1307,
+            "visible": true
+          },
+          "middle": {
+            "count": "2/3",
+            "overflow": false,
+            "buttons": 4,
+            "sameButtons": true,
+            "top": 792,
+            "width": 42,
+            "height": 180,
+            "left": 20,
+            "right": 62,
+            "viewport": 1307,
+            "visible": true
+          },
+          "removed": {
+            "count": null,
+            "overflow": false,
+            "buttons": 4,
+            "sameButtons": true,
+            "top": 792,
+            "width": 42,
+            "height": 149,
+            "left": 20,
+            "right": 62,
+            "viewport": 1307,
+            "visible": true
+          },
+          "long": {
+            "count": "120/120",
+            "overflow": false,
+            "buttons": 4,
+            "sameButtons": true,
+            "top": 93040,
+            "width": 57,
+            "height": 180,
+            "left": 20,
+            "right": 77,
+            "viewport": 1307,
+            "visible": true
+          },
+          "uncertain": {
+            "count": null,
+            "overflow": false,
+            "buttons": 4,
+            "sameButtons": true,
+            "top": 93040,
+            "width": 42,
+            "height": 149,
+            "left": 20,
+            "right": 62,
+            "viewport": 1307,
+            "visible": true
+          },
+          "recovered": {
+            "count": "120/120",
+            "overflow": false,
+            "buttons": 4,
+            "sameButtons": true,
+            "top": 93040,
+            "width": 57,
+            "height": 180,
+            "left": 20,
+            "right": 77,
+            "viewport": 1307,
+            "visible": true
+          }
+        },
+        {
+          "status": "PASS",
+          "scope": "actual project modules in synthetic DOM, not installed",
+          "hidden": {
+            "count": null,
+            "overflow": false,
+            "buttons": 4,
+            "sameButtons": true,
+            "top": 0,
+            "width": 186,
+            "height": 42,
+            "left": 20,
+            "right": 206,
+            "viewport": 390,
+            "visible": true
+          },
+          "middle": {
+            "count": "2/3",
+            "overflow": false,
+            "buttons": 4,
+            "sameButtons": true,
+            "top": 792,
+            "width": 240,
+            "height": 42,
+            "left": 20,
+            "right": 260,
+            "viewport": 390,
+            "visible": true
+          },
+          "removed": {
+            "count": null,
+            "overflow": false,
+            "buttons": 4,
+            "sameButtons": true,
+            "top": 792,
+            "width": 186,
+            "height": 42,
+            "left": 20,
+            "right": 206,
+            "viewport": 390,
+            "visible": true
+          },
+          "long": {
+            "count": "120/120",
+            "overflow": false,
+            "buttons": 4,
+            "sameButtons": true,
+            "top": 93040,
+            "width": 249,
+            "height": 42,
+            "left": 20,
+            "right": 269,
+            "viewport": 390,
+            "visible": true
+          },
+          "uncertain": {
+            "count": null,
+            "overflow": false,
+            "buttons": 4,
+            "sameButtons": true,
+            "top": 93040,
+            "width": 186,
+            "height": 42,
+            "left": 20,
+            "right": 206,
+            "viewport": 390,
+            "visible": true
+          },
+          "recovered": {
+            "count": "120/120",
+            "overflow": false,
+            "buttons": 4,
+            "sameButtons": true,
+            "top": 93040,
+            "width": 249,
+            "height": 42,
+            "left": 20,
+            "right": 269,
+            "viewport": 390,
+            "visible": true
+          }
+        }
+      ],
+      "raw": "artifacts/ai-scroll-navigation-preview-sync-20261113/browser.json",
+      "screenshots": [
+        "artifacts/ai-scroll-navigation-preview-sync-20261113/after-1307.png",
+        "artifacts/ai-scroll-navigation-preview-sync-20261113/after-390.png"
+      ]
+    }
+  },
+  "build": {
+    "mode": "production",
+    "sourceModules": [
+      {
+        "path": "src/conversation.js",
+        "bytes": 41940,
+        "sha256": "b78d46ab39b84ebb0f5124c66e3bde3c35b566016997a6b70b740e76a8f05505"
+      },
+      {
+        "path": "src/floating-navigation.js",
+        "bytes": 24662,
+        "sha256": "397e652ecc7f7a774c3fcc5ac8c57edbcaa5b42d6b2aa96012be2f2dc5c4b2d5"
+      },
+      {
+        "path": "src/main.js",
+        "bytes": 3333,
+        "sha256": "ca65eb7508c945ca9d0e2c679f2bf277c0125e023c60fda61ee15aa3d1fbf9ed"
+      },
+      {
+        "path": "src/site-adapters.js",
+        "bytes": 3302,
+        "sha256": "91d285494dc45f28dccf1f88fef675a2de37f66aabb17c14ed6d93345a62ecb0"
+      },
+      {
+        "path": "src/site-configuration.js",
+        "bytes": 46547,
+        "sha256": "3fc032b70d14c50f7ebf13f80bd0c8ee3a4112fb7ca1b194561436ac18bcdae7"
+      }
+    ],
+    "sourceBytes": 78081,
+    "builder": "scripts/build-program-project.mjs",
+    "packager": "scripts/build-page-install-package.mjs"
+  },
+  "limits": {
+    "trustedSettingsUI": "Existing React source change remains a Browser fixed-code delivery; not contained in Page JSON",
+    "sharedDevelopmentOutput": "not rebuilt or overwritten",
+    "productionBrowser": "NOT_TESTED",
+    "publication": "blocked"
+  }
+}

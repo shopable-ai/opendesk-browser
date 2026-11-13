@@ -15,9 +15,12 @@ function stale(message = '当前网页已变化，请重新点击 Run') {
   return new EnvironmentError('E_DOCUMENT_STALE', message);
 }
 
+const sameDocument=(a,b)=>a?.status==='available'&&b?.status==='available'&&
+  ['windowId','tabId','frameId','documentId','origin'].every(key=>a[key]===b[key]);
+
 export function createCurrentPageTarget({api = globalThis.chrome} = {}) {
   const observers = new Set(), removers = [];
-  let disposed = false, windowId = null, sequence = 0, state = resolving(null);
+  let disposed = false, windowId = null, sequence = 0, documentSequence = 0, state = resolving(null);
   // Event routing survives resolving/unavailable snapshots. This ID is never
   // an admitted target: capture/revalidate still require the exact live document.
   let observedTabId = null;
@@ -56,6 +59,7 @@ export function createCurrentPageTarget({api = globalThis.chrome} = {}) {
   }
 
   const emit = next => {
+    if(!sameDocument(state,next))documentSequence++;
     state = Object.freeze(next);
     for (const observer of observers) {
       try { observer(state); } catch {}
@@ -68,9 +72,11 @@ export function createCurrentPageTarget({api = globalThis.chrome} = {}) {
   };
 
   async function observe(boundWindowId, token, observation = {}) {
+    let candidateTabId=null;
     const transient = message => {
       observation.transient = true;
-      return unavailable('E_DOCUMENT_UNRESOLVED', message, boundWindowId);
+      return {...unavailable('E_DOCUMENT_UNRESOLVED', message, boundWindowId),
+        ...(candidateTabId===null?{}:{tabId:candidateTabId})};
     };
     if (!Number.isSafeInteger(boundWindowId) || boundWindowId < 0)
       return unavailable('E_WINDOW_UNAVAILABLE', '无法确定 Sidebar 所属浏览器窗口', boundWindowId);
@@ -81,6 +87,7 @@ export function createCurrentPageTarget({api = globalThis.chrome} = {}) {
     const tab = selected[0];
     if (tab.windowId !== boundWindowId || tab.active !== true)
       return unavailable('E_NO_ACTIVE_TAB', '当前活动网页已变化', boundWindowId);
+    candidateTabId=Number.isSafeInteger(tab.id)?tab.id:null;
     if (!disposed && token === sequence) observedTabId = tab.id;
     if (tab.incognito) return unavailable('E_INCOGNITO', '不支持隐身窗口网页', boundWindowId);
     // Classify the destination before loading/document checks: restricted pages
@@ -155,10 +162,10 @@ export function createCurrentPageTarget({api = globalThis.chrome} = {}) {
         // and its document identity stays authoritative. Loading/pendingUrl
         // still invalidates immediately, as does onBeforeNavigate.
         const urlOnly=Object.hasOwn(change || {}, 'url') &&
-          !Object.hasOwn(change || {}, 'pendingUrl') &&
-          !Object.hasOwn(change || {}, 'status');
+          !Object.hasOwn(change || {}, 'pendingUrl');
+        const completed=change?.status==='complete'&&!Object.hasOwn(change || {}, 'pendingUrl');
         void refresh({retryNavigation:navigated,preserveRetry:!navigated,
-          quiet:!navigated||urlOnly});
+          quiet:!navigated||urlOnly||completed});
       }
     });
     listen(api.tabs?.onRemoved, (tabId, info) => {
@@ -172,7 +179,8 @@ export function createCurrentPageTarget({api = globalThis.chrome} = {}) {
       if (details?.frameId !== 0 || details.tabId !== observedTabId) return;
       cancelRetry();
       sequence++;
-      emit({...unavailable('E_DOCUMENT_UNRESOLVED', '当前网页正在导航，请等待文档加载完成', windowId), tabId: details.tabId});
+      emit({...unavailable('E_DOCUMENT_UNRESOLVED', '当前网页正在导航，请等待文档加载完成', windowId),
+        tabId: details.tabId,navigationStarted:true});
     });
     listen(api.webNavigation?.onCommitted, navigation);
     listen(api.webNavigation?.onCompleted, navigation);
@@ -212,9 +220,23 @@ export function createCurrentPageTarget({api = globalThis.chrome} = {}) {
     return Object.freeze({...state, capturedAt: Date.now()});
   }
 
-  async function revalidate(captured) {
+  async function revalidate(captured,{sameDocument:documentOnly=false}={}) {
     if (disposed) throw new EnvironmentError('E_HOST_CLOSED', 'Sidebar 已关闭');
     if (!captured || captured.status !== 'available' || captured.windowId !== windowId) throw stale();
+    if(documentOnly){
+      // Export binds to a live Document, while Controller Run retains strict
+      // URL/observation semantics below. Metadata refreshes may finish in either
+      // order; this check never publishes an older observation over them.
+      if(!sameDocument(captured,state))throw stale();
+      const documentToken=documentSequence;
+      let observed;
+      try{observed=await observe(windowId,sequence);}
+      catch{throw stale();}
+      if(disposed)throw new EnvironmentError('E_HOST_CLOSED','Sidebar 已关闭');
+      if(documentToken!==documentSequence||!sameDocument(captured,observed)||
+         !sameDocument(captured,state))throw stale();
+      return observed;
+    }
     const token = ++sequence, observation = {};
     let observed;
     try { observed = await observe(windowId, token, observation); }

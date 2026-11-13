@@ -3,7 +3,7 @@ import assert from 'node:assert/strict';
 import {createQueueEngine} from '../src/page/engine.js';
 import {createChatGPTSite} from '../src/page/site.js';
 
-function fixture() {
+function fixture({change=()=>{}}={}) {
   const state={now:0,route:'c/12345678-1234-1234-1234-123456789abc',
     busy:true,complete:false,answers:1,users:0,ack:false,clicks:0,
     prepareCount:0,commitCount:0,preparedTexts:[],committedTexts:[],replyAllowed:true,replyChecks:[],failClick:false,failStop:false,stops:0,changed:false,draft:''};
@@ -42,10 +42,24 @@ function fixture() {
     },
     stop:()=>{state.stops++;if(state.throwStop)throw new Error('stop result unknown');return !state.failStop;}
   };
-  const engine=createQueueEngine({site,clock:()=>state.now});
+  const engine=createQueueEngine({site,clock:()=>state.now,change});
   const step=(t,patch={},options)=>{Object.assign(state,patch);state.now=t;engine.tick(options);};
   return {state,site,engine,step,defaults:{prepare:site.prepare,commit:site.commit}};
 }
+
+test('paused admission has no dispatchable intermediate state and keeps FIFO until explicit resume',()=>{
+  const published=[];
+  const {state,engine,step}=fixture({change:snapshot=>published.push(snapshot)});
+  assert.equal(engine.enqueue('first',state.route,{paused:true}),true);
+  assert.equal(engine.enqueue('second',state.route,{paused:true}),true);
+  assert.deepEqual(engine.view().items.map(item=>item.state),['paused','paused']);
+  assert.ok(published.every(snapshot=>snapshot.items.every(item=>item.state==='paused')));
+  step(0,{busy:false,complete:true});step(60000);
+  assert.equal(state.prepareCount,0);assert.equal(state.clicks,0);
+  assert.equal(engine.resume('q1'),true);step(61000);step(63000);step(64000);
+  assert.deepEqual(state.committedTexts,['first']);
+  assert.equal(engine.view().items[1].state,'paused');
+});
 
 test('two queued messages require separate assistant completion gates and each message acknowledgement',()=>{
   const {state,engine,step}=fixture();
@@ -179,6 +193,30 @@ for(const draft of ['user text',' ','\n','\u00a0']) {
     assert.equal(state.prepareCount,1);
   });
 }
+
+test('completed reply with a whitespace draft explains the wait and resumes the remaining FIFO once cleared',()=>{
+  const {state,engine,step}=fixture();
+  engine.enqueue('first',state.route);engine.enqueue('second',state.route);
+  step(100,{busy:false,complete:true});step(1300);step(2000);
+  step(2100,{ack:true,users:1});
+  step(2300,{ack:false,busy:true,complete:false});
+  step(3100,{busy:false,complete:true,answers:2,draft:' '});step(4500);
+  for(const t of [5700,10000,60000])step(t);
+  assert.equal(state.clicks,1);
+  assert.equal(state.prepareCount,1,'the blank draft is still user-owned');
+  assert.equal(state.draft,' ');
+  assert.deepEqual(engine.view().items.map(item=>item.text),['second']);
+  assert.match(engine.view().reason,/空白字符.*清空.*自动继续/);
+  step(61000,{draft:''});step(62100);
+  assert.equal(state.prepareCount,2,'clearing the draft needs no resume click');
+  assert.equal(engine.view().reason,'');
+  step(62750);step(63000,{ack:true,users:2});
+  step(64000,{ack:false,busy:true,complete:false});
+  step(65000,{busy:false,complete:true,answers:3});step(66200);step(80000);
+  assert.deepEqual(state.committedTexts,['first','second']);
+  assert.equal(state.clicks,2);assert.equal(engine.view().items.length,0);
+  assert.equal(engine.view().answerGate,null);
+});
 
 test('force-stop completion also preserves a whitespace native draft',()=>{
   const {state,engine,step}=fixture();

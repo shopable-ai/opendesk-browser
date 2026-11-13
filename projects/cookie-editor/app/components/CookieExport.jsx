@@ -32,9 +32,11 @@ export default function CookieExport({controller,disabled=false,onClose,onDelive
       const success=await controller.exportTo({format,metadata,method});
       if(success)onDelivered?.(method);
       else{
-        const last=controller.snapshot().exportDiagnostics?.at(-1);
+        const failure=controller.snapshot();
+        const last=failure.exportDiagnostics?.at(-1);
         setMessage(last?.outcomeUnknown
           ?'结果未确认（E_OUTCOME_UNKNOWN），请先核对剪贴板或下载记录，勿自动重试。'
+          :/^导出失败或被拒绝/.test(failure.message||'')?failure.message
           :'导出未完成（'+(last?.code||'E_COOKIE_EXPORT')+'），请检查授权或格式。');
       }
     }catch{

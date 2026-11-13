@@ -28,14 +28,14 @@ function fixture({info=available,result=ready,error}={}){
   return {calls,states,checker};
 }
 
-test('initial render is unchecked and retains the instructions and manual action',()=>{
+test('initial render waits for the first check and retains the instructions and retry action',()=>{
   assert.equal(INITIAL_STATUS.status,'idle');
   const html=renderToStaticMarkup(createElement(App));
-  assert.match(html,/尚未检查网页状态/);
-  assert.match(html,/检查网页状态/);
+  assert.match(html,/正在连接网页/);
+  assert.match(html,/重新检查/);
+  assert.match(html,/<button[^>]+disabled/);
   assert.match(html,/Ctrl \+ Enter/);
-  assert.match(html,/首条消息请由 ChatGPT 原生发送/);
-  assert.doesNotMatch(html,/网页队列已就绪/);
+  assert.doesNotMatch(html,/队列已就绪/);
 });
 
 for(const status of ['ready','new-conversation','composer-unavailable','stopped']){
@@ -47,7 +47,7 @@ for(const status of ['ready','new-conversation','composer-unavailable','stopped'
     assert.deepEqual(f.states.map(row=>row.status),['pending',status]);
     assert.equal(f.states.at(-1).version,'0.1.26');
     assert.equal(f.states.at(-1).detail,'真实网页原因');
-    if(status==='new-conversation')assert.match(f.states.at(-1).message,/原生发送首条消息/);
+    if(status==='new-conversation')assert.equal(f.states.at(-1).message,'');
     f.checker.dispose();
   });
 }
@@ -58,7 +58,7 @@ for(const url of ['https://example.com/','https://chatgpt.com.evil.test/','http:
     await f.checker.check();
     assert.equal(f.calls.length,1);
     assert.equal(f.states.at(-1).status,'unsupported');
-    assert.match(f.states.at(-1).message,/仅支持 https:\/\/chatgpt.com/);
+    assert.match(f.states.at(-1).message,/切换到 ChatGPT/);
   });
 }
 
@@ -98,8 +98,8 @@ for(const code of ['E_APP_PAGE_RELOAD_REQUIRED','E_APP_PAGE_NOT_READY','E_PAGE_A
     assert.equal(last.code,code);
     assert.equal(last.detail,'真实错误详情');
     assert.doesNotMatch(last.message,/重装|扩大权限/);
-    if(code.includes('RELOAD_REQUIRED'))assert.match(last.message,/保存草稿.*当前操作完成后.*正常刷新网页/);
-    else assert.match(last.message,/尚未确认网页模块运行或访问权限/);
+    if(code.includes('RELOAD_REQUIRED'))assert.match(last.message,/保存草稿.*当前操作完成后刷新网页/);
+    else assert.match(last.message,/允许访问该网站后重试/);
   });
 }
 
@@ -127,7 +127,7 @@ test('pending suppresses duplicate checks; new failure and pending cannot retain
   assert.equal(states.at(-1).status,'ready');
   const pending=checker.check();
   await Promise.resolve();
-  assert.deepEqual(states.at(-1),{status:'pending',title:'正在检查网页状态…',message:'正在核对当前目标和网页模块回执。'});
+  assert.deepEqual(states.at(-1),{status:'pending',title:'正在连接网页…',message:''});
   const count=calls.length;
   await checker.check();
   assert.equal(calls.length,count);

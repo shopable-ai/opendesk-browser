@@ -60,6 +60,8 @@ export default function CookieEditorApp({request,hostRoot,setState,previewMode=f
   const [exportOpen,updateExportOpen]=React.useState(false);
   const exportPending=React.useRef(false);
   const setExportOpen=value=>{syncGate.current.exportOpen=value;updateExportOpen(value);};
+  const navigationGeneration=React.useRef(0);
+  const [navigationRevision,setNavigationRevision]=React.useState(0);
   const [selected,updateSelected]=React.useState(null);
   const setSelected=value=>{syncGate.current.selected=value;updateSelected(value);};
   const [query,setQuery]=React.useState('');
@@ -67,7 +69,6 @@ export default function CookieEditorApp({request,hostRoot,setState,previewMode=f
   const [sort,setSort]=React.useState('source');
   const [page,setPage]=React.useState(1);
   const [expanded,setExpanded]=React.useState(false);
-  const [changesOnly,setChangesOnly]=React.useState(false);
   const [dirty,updateDirty]=React.useState(false);
   const setDirty=value=>{syncGate.current.dirty=value;updateDirty(value);};
   const dirtyRef=React.useRef(false);
@@ -81,13 +82,25 @@ export default function CookieEditorApp({request,hostRoot,setState,previewMode=f
   const setWorking=value=>{syncGate.current.working=value;updateWorking(value);};
   const clearScopeInFlight=React.useRef(false);
   const appliedSite=React.useRef('');
+  const observationNotified=React.useRef(false);
+  const notifySuccess=text=>{
+    try{
+      if(globalThis.OpenDeskTool?.ui?.notify?.({message:text,type:'success'})===true)return;
+    }catch{}
+    setImportNotice({text,kind:'success'});
+  };
+  const notifyObservedChange=()=>{
+    if(observationNotified.current)return;
+    observationNotified.current=true;
+    notifySuccess('检测到 Cookie 变化，列表已同步。');
+  };
   const data=React.useRef(null);
   if(data.current===null){
     const adapter=createCookieSdkAdapter({
       getBrowser:()=>previewMode ? browser : globalThis.OpenDeskSDK?.browser,
       request,version:cookiePackage.version
     });
-    const controller=createCookieController({adapter,onChange:s=>{
+    const controller=createCookieController({adapter,navigationIntervalMs:8000,onSuccess:notifySuccess,onChange:s=>{
       const applied=appliedAccount.current;
       if(applied&&(s.epoch!==applied.epoch||s.target?.url!==applied.url||s.phase!=='ready'))
         appliedAccount.current=null;
@@ -144,7 +157,8 @@ export default function CookieEditorApp({request,hostRoot,setState,previewMode=f
     action();
   };
   const endConfirm=accept=>{
-    const decision=confirmation;
+    const decision=syncGate.current.confirmation;
+    if(controller.snapshot().navigationPending)return;
     setConfirmation(null);
     if(accept&&decision?.action)decision.action();
     if(!accept&&decision?.onCancel)decision.onCancel();
@@ -171,7 +185,7 @@ export default function CookieEditorApp({request,hostRoot,setState,previewMode=f
     if(!uncertain){
       if(hadImportDraft)setStatus('网站或授权已改变，未提交的导入内容已清除；请确认新网站后重新准备。');
       else if(hadDirty)setStatus('网站或授权已改变，未保存的 Cookie 草稿已清除；请重新编辑。');
-      void controller.load(appliedSite.current);
+      void controller.load(appliedSite.current,{automatic:true});
     }
   };
   React.useEffect(()=>{
@@ -179,16 +193,21 @@ export default function CookieEditorApp({request,hostRoot,setState,previewMode=f
     const page=()=>invalidate('当前网站已切换，旧数据已清除。',true);
     const path=()=>{
       if(modeRef.current!=='browser')return;
-      // A real path transition can change which Cookie paths match. Keep
+      // A verified path or an unresolved same-tab transition requires a fresh
+      // scope check. Keep
       // list/search/pagination, but never expose an old live value or allow
       // an import/editor preflight to act on the new path implicitly.
       scrubSensitive();
-      const gate=syncGate.current;
-      if(gate.selected!==null||gate.panel==='import'){
-        const hadDraft=gate.dirty;
-        finishImportIntent(activeImportRef.current);
-        setSelected(null);setPanel(null);setDirty(false);
-        if(hadDraft)setStatus('页面路径已变化，未保存的 Cookie 草稿已清除；列表将静默重新核验。');
+      // Retire sensitive refs even for a repeated event at the same URL.
+      setNavigationRevision(++navigationGeneration.current);
+      controller.discardImport();controller.discardClear();
+      finishImportIntent(activeImportRef.current);
+      setConfirmation(null);
+      if(syncGate.current.panel==='import'){
+        // Remount only the import surface: staged files and raw text can contain
+        // credentials. Keep the surface/list state, never its old review.
+        importDirtyRef.current=false;
+        noteImport('页面路径已变化，未提交的导入内容已清除；请重新准备并确认导入。');
       }
       if(!exportPending.current)setExportOpen(false);
       void controller.syncNavigation();
@@ -196,11 +215,13 @@ export default function CookieEditorApp({request,hostRoot,setState,previewMode=f
     hostRoot.addEventListener('opendesk-cookie-grants-changed',grant);
     hostRoot.addEventListener('opendesk-page-changed',page);
     hostRoot.addEventListener('opendesk-cookie-path-changed',path);
+    hostRoot.addEventListener('opendesk-cookie-page-pending',path);
     void controller.load();
     return ()=>{
       hostRoot.removeEventListener('opendesk-cookie-grants-changed',grant);
       hostRoot.removeEventListener('opendesk-page-changed',page);
       hostRoot.removeEventListener('opendesk-cookie-path-changed',path);
+      hostRoot.removeEventListener('opendesk-cookie-page-pending',path);
       scrubSensitive();
       controller.dispose();
     };
@@ -224,6 +245,7 @@ export default function CookieEditorApp({request,hostRoot,setState,previewMode=f
     };
     const sync=()=>{
       if(!active||!visible())return;
+      // The controller shares an eight-second SDK budget with navigation.
       const period=controller.snapshot().syncStale?30000:2000;
       const now=Date.now();
       if(now-lastAutoCheck.current<period)return;
@@ -250,7 +272,6 @@ export default function CookieEditorApp({request,hostRoot,setState,previewMode=f
     // independent dirty state when an unrelated browser event fires.
     if(modeRef.current==='offline')return;
     if(snapshot.phase!=='ready'){
-      setChangesOnly(false);
       setSelected(null);setPanel(null);setExportOpen(false);setDirty(false);setConfirmation(null);
     }
   },[snapshot.epoch,snapshot.phase]);
@@ -676,7 +697,8 @@ export default function CookieEditorApp({request,hostRoot,setState,previewMode=f
   };
   const beginImportIntent=async()=>{
     const state=controller.snapshot();
-    if(modeRef.current!=='browser'||state.phase!=='ready'||!state.target||
+    const generation=navigationGeneration.current;
+    if(modeRef.current!=='browser'||state.phase!=='ready'||state.navigationPending||!state.target||
       activeImportRef.current!==null)return false;
     // The adapter admission starts synchronously in the real Confirm click.
     const receipt=await adapter.beginImportIntent(state.target);
@@ -684,7 +706,7 @@ export default function CookieEditorApp({request,hostRoot,setState,previewMode=f
       return false;
     const current=controller.snapshot();
     if(modeRef.current!=='browser'||syncGate.current.panel!=='import'||
-      current.epoch!==state.epoch||current.target?.url!==state.target.url){
+      current.navigationPending||generation!==navigationGeneration.current||current.epoch!==state.epoch||current.target?.url!==state.target.url){
       void adapter.finishImportIntent(receipt.ref).catch(()=>{});
       return false;
     }
@@ -695,7 +717,8 @@ export default function CookieEditorApp({request,hostRoot,setState,previewMode=f
     // Keep Controller's real preflight/Host receipt, but make it one user action.
     // Raw Cookie values are never stored in React state or rendered as a preview.
     const initial=controller.snapshot();
-    if(modeRef.current!=='browser'||initial.phase!=='ready'){
+    const generation=navigationGeneration.current;
+    if(modeRef.current!=='browser'||initial.phase!=='ready'||initial.navigationPending){
       finishImportIntent(activeImportRef.current);return false;
     }
     if(dirtyRef.current){
@@ -708,7 +731,7 @@ export default function CookieEditorApp({request,hostRoot,setState,previewMode=f
     const plan=await controller.previewImport(text,'auto',overwrite,{allSites:true});
     // Never report a stale success/error against a newly selected site.
     const currentSite=controller.snapshot();
-    if(initial.epoch!==currentSite.epoch||
+    if(currentSite.navigationPending||generation!==navigationGeneration.current||initial.epoch!==currentSite.epoch||
       initial.target?.url!==currentSite.target?.url)return false;
     if(!plan){
       controller.dismissImportReport();
@@ -746,8 +769,9 @@ export default function CookieEditorApp({request,hostRoot,setState,previewMode=f
   const save=async(row,options)=>{
     // Capture the trusted operation during the original Save click, before any
     // Controller reads or React state updates. Chrome still verifies the write.
-    if(writeInFlight.current)return;
+    if(writeInFlight.current||controller.snapshot().navigationPending)return;
     writeInFlight.current=true;
+    const generation=navigationGeneration.current;
     const state=controller.snapshot();
     let pending=null,ref=null;
     if(modeRef.current==='browser'&&state.phase==='ready'&&state.target){
@@ -763,6 +787,7 @@ export default function CookieEditorApp({request,hostRoot,setState,previewMode=f
         return;
       }
       ref=admitted.ref;
+      if(generation!==navigationGeneration.current||controller.snapshot().navigationPending)return;
       const saved=await controller.save(row,options);
       if(saved){setSelected(null);setDirty(false);setPage(1);setStatus('');}
     }catch{
@@ -774,8 +799,9 @@ export default function CookieEditorApp({request,hostRoot,setState,previewMode=f
     }
   };
     const remove=async id=>{
-     if(locked||writeInFlight.current)return;
+     if(locked||writeInFlight.current||controller.snapshot().navigationPending)return;
      const state=controller.snapshot();
+     const generation=navigationGeneration.current;
      const row=state.rows?.find(item=>item.id===id);
      if(modeRef.current!=='browser'||state.phase!=='ready'||!state.target||!row)return;
      // Mint the narrow, single-delete Host intent in the original button click.
@@ -791,6 +817,7 @@ export default function CookieEditorApp({request,hostRoot,setState,previewMode=f
          return;
        }
        ref=admitted.ref;
+       if(generation!==navigationGeneration.current||controller.snapshot().navigationPending)return;
        if(await controller.remove(id)){setSelected(null);setDirty(false);setStatus('');}
      }catch{
        setStatus('删除未确认，请先核对 Chrome，避免重复操作。');
@@ -801,14 +828,15 @@ export default function CookieEditorApp({request,hostRoot,setState,previewMode=f
      }
    };
   const clear=async()=>{
-    if(locked)return;
+    if(locked||controller.snapshot().navigationPending)return;
+    const generation=navigationGeneration.current;
     if(dirty){setStatus('请先保存或取消当前修改，再清理本站 Cookie。');return;}
     setStatus('');
     setWorking(true);
     let result;
     try{result=await controller.previewClear();}
     finally{setWorking(false);}
-    if(!result)return;
+    if(!result||generation!==navigationGeneration.current||controller.snapshot().navigationPending)return;
     if(!result.count){
       controller.discardClear();
       setStatus(result.excluded?'当前没有可清理的 Cookie；部分 Cookie 因权限或连接限制保留。':'当前清理范围内没有可删除的 Cookie。');
@@ -897,21 +925,21 @@ export default function CookieEditorApp({request,hostRoot,setState,previewMode=f
         id="cookie-product-panel-cookie" role="tabpanel"
         aria-labelledby="cookie-product-tab-cookie" aria-busy={busy}>
       <CookiePermissions phase={snapshot.phase} reason={snapshot.problem} target={target}
+        readDiagnostic={snapshot.readDiagnostic}
         disabled={busy} onRetry={()=>guarded(refresh)}
         onOffline={()=>switchMode('offline')}/>
       {!pageUnavailable&&<div className="od-surface cookie-editor-workspace">
         <CookieEditorView site={target?.hostname||''} showSiteBar={false} syncStale={snapshot.syncStale}
-          changes={snapshot.changes} changesOnly={changesOnly}
+          changes={snapshot.changes}
           monitor={cookieReady?<CookieChangeMonitor key={snapshot.epoch}
-            adapter={adapter} controller={controller} changes={snapshot.changes}
-            stale={snapshot.syncStale}
+            adapter={adapter} controller={controller}
+            onObservedChange={notifyObservedChange}
             available={selected===null&&panel===null&&!exportOpen&&!locked&&!dirty&&!serviceDirty}
             canApply={()=>{
               const gate=syncGate.current;
               return modeRef.current==='browser'&&gate.selected===null&&gate.panel===null&&
                 !gate.exportOpen&&!gate.dirty&&!gate.confirmation&&!gate.working;
-            }}
-            onlyChanged={changesOnly} onOnlyChanged={value=>{setChangesOnly(value);setPage(1);}}/>:null}
+            }}/>:null}
           importOpen={panel==='import'}
           rows={cookieReady?snapshot.rows:[]} selected={cookieReady?selected:null} onSelect={select}
           onRefresh={()=>guarded(refresh)}
@@ -934,9 +962,11 @@ export default function CookieEditorApp({request,hostRoot,setState,previewMode=f
           onNew={()=>select('new')} onClear={()=>void clear()}
           clearDisabled={!cookieReady||!snapshot.rows.length}
           newEditor={cookieReady&&selected==='new'?<CookieInlineEditor key="new" target={target}
+            navigationRevision={navigationRevision} navigationPending={snapshot.navigationPending}
             disabled={locked} onSave={save} onDirty={setDirty}
             onCancel={()=>{setSelected(null);setDirty(false);}}/>:null}
           editor={cookieReady?(row=><CookieInlineEditor key={row.id} row={row} target={target}
+            navigationRevision={navigationRevision} navigationPending={snapshot.navigationPending}
             disabled={locked} readValue={controller.readValue} onSave={save}
             onDirty={setDirty} onCancel={()=>{setSelected(null);setDirty(false);}}
             onDelete={remove}/>):null}/>
@@ -1062,7 +1092,7 @@ export default function CookieEditorApp({request,hostRoot,setState,previewMode=f
       {section==='circle'&&<CookieCommunityPanel/>}
     </>}
     {mode==='browser'&&section==='cookie'&&cookieReady&&panel==='import'&&
-      <CookieImport disabled={locked} notice={importNotice}
+      <CookieImport key={navigationRevision} disabled={locked} notice={importNotice}
         onImportText={importFromText} onNotice={noteImport}
         onPendingChange={value=>{importDirtyRef.current=value;}}
         onBeforeSubmit={()=>{
