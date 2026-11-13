@@ -269,6 +269,7 @@ jobs:
         if: ${{ always() }}
         run: node --test task-packs/google.search/tests/google-search-actions.test.mjs
       - name: Independent immutable Task pack and cross-consumer result contracts
+        if: ${{ always() }}
         run: |
           node --test tests/environment/independent-task-pack-identity.test.mjs tests/environment/independent-chatgpt-result-provenance.test.mjs
           node --test task-packs/baidu.search/tests/search-actions.test.mjs task-packs/google.search/tests/google-search-actions.test.mjs
