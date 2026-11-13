@@ -127,29 +127,73 @@ test('older Host retains one preference header fallback without claiming setting
   assert.deepEqual(f.errors,[]);
 });
 
-test('script play and more menu request only the shared trusted Task sheet',async t=>{
-  const host=sdk(),f=await mount(t,host);
-  await f.click('脚本');
-  const card=taskCard(f);
-  await f.click('运行',card);
-  assert.deepEqual(host.calls.filter(x=>x.name==='tasks.configure').map(x=>x.args),
-    [{task:host.pins[0]}]);
-  assert.equal(starts(host).length,0);
-  assert.equal(host.store.has('webflow.pending.v1'),false);
-  assert.equal(f.document.getElementById('wf-query'),null);
-  assert.equal(f.document.getElementById('wf-show-execution-tab'),null);
-  assert.equal(f.document.getElementById('task-parameters-sheet'),null,
-    'the real trusted Sheet belongs to the parent React root, not the iframe');
-  const title=manifests.get(host.pins[0].taskId).title;
-  await f.click(title,card);
-  assert.equal(card.querySelector('.wf-task-name').getAttribute('aria-expanded'),'true');
-  assert.equal(host.calls.filter(x=>x.name==='tasks.configure').length,1,'details never configure or execute');
-  await f.click('更多操作：'+title,card);
-  await f.click('配置运行',card);
-  assert.equal(host.calls.filter(x=>x.name==='tasks.configure').length,2);
-  assert.equal(starts(host).length,0);
-  assert.deepEqual(f.errors,[]);
+// WFUI-03/05: actual React click handlers, MOCK_SDK transport only.
+for(const entry of ['name','play'])test(`runnable script ${entry} opens the same trusted configuration without execution`,async t=>{
+  const host=sdk(),f=await mount(t,host);await f.click('脚本');
+  await f.input('百度');
+  const card=taskCard(f),title=manifests.get(host.pins[0].taskId).title;
+  await f.click(entry==='name'?title:'运行',card);
+  assert.deepEqual(host.calls.filter(c=>c.name==='tasks.configure').map(c=>c.args),[{task:host.pins[0]}]);
+  assert.ok(host.calls.find(c=>c.name==='tasks.configure').inClick,'request stays in the original click turn');
+  assert.equal(f.document.querySelector('.wf-task-detail'),null,'configuration does not expand row details');
+  assert.equal(f.document.querySelector('main').getAttribute('aria-label'),'脚本');
+  assert.equal(f.document.getElementById('wf-search').value,'百度');
+  assert.equal(f.document.querySelectorAll('.wf-task-row').length,1);
+  assert.equal(host.calls.some(c=>['tasks.start','tasks.prepare','tasks.open','storage.set'].includes(c.name)),false);
+  assert.equal(f.document.getElementById('task-parameters-sheet'),null,'trusted parent owns the sheet');
 });
+
+test('more menu configuration keeps the same public UI-only task binding',async t=>{
+  const host=sdk(),f=await mount(t,host);await f.click('脚本');
+  const card=taskCard(f),title=manifests.get(host.pins[0].taskId).title;
+  await f.click('更多操作：'+title,card);await f.click('配置运行',card);
+  assert.deepEqual(host.calls.filter(c=>c.name==='tasks.configure').map(c=>c.args),[{task:host.pins[0]}]);
+  assert.equal(host.calls.some(c=>['tasks.start','tasks.prepare','storage.set'].includes(c.name)),false);
+});
+
+test('more menu opens read-only script details without configuring a task',async t=>{
+  const host=sdk(),f=await mount(t,host);await f.click('脚本');
+  const card=taskCard(f),manifest=manifests.get(host.pins[0].taskId);
+  await f.click('更多操作：'+manifest.title,card);await f.click('查看详情',card);
+  assert.ok(card.querySelector('.wf-task-detail').textContent.includes(manifest.description));
+  assert.match(card.querySelector('.wf-task-detail').textContent,/参数 3 项/);
+  await f.click('更多操作：'+manifest.title,card);await f.click('查看详情',card);
+  assert.ok(card.querySelector('.wf-task-detail'),'viewing an open detail keeps its close/focus target mounted');
+  assert.equal(host.calls.some(c=>['tasks.configure','tasks.start','tasks.prepare','tasks.open'].includes(c.name)),false);
+});
+
+for(const state of ['missing','removed','disabled','initialization','changed'])test(`unrunnable ${state} script name exposes details without bypassing disabled play`,async t=>{
+  const host=sdk();
+  host.taskRead=async taskId=>{
+    const task=host.pins.find(pin=>pin.taskId===taskId);
+    if(taskId!==host.pins[0].taskId)return {task,manifest:manifests.get(taskId),runtimeCurrent:true};
+    if(state==='missing')throw problem('E_TASK_NOT_INSTALLED');
+    if(state==='removed')throw problem('E_TASK_REMOVED');
+    if(state==='initialization')throw Object.assign(Error('原初始化失败：固定包读取未完成'),{code:'E_TASK_INITIALIZATION'});
+    if(state==='disabled')throw problem('E_TASK_DISABLED');
+    return {task:{...task,manifestHash:'f'.repeat(64)},manifest:manifests.get(taskId),runtimeCurrent:true};
+  };
+  const f=await mount(t,host);await f.click('脚本');
+  const card=taskCard(f),play=f.find('运行',card);
+  assert.equal(play.disabled,true);
+  const reason=card.querySelector('.wf-badge').textContent;
+  assert.ok(reason);
+  assert.equal(card.querySelector('.wf-row-error'),null,'default row does not expose error prose');
+  assert.equal([...card.querySelectorAll('button')].some(node=>/打开任务管理|打开安装审阅|重试初始化/.test(node.textContent)),false,'management is on demand');
+  await f.click(card.querySelector('.wf-task-name').textContent,card);
+  assert.ok(card.querySelector('.wf-task-detail'),'blocked name still allows inspection');
+  assert.ok(card.textContent.includes(reason));
+  assert.match(card.querySelector('.wf-task-detail').textContent,
+    state==='disabled'?/停用.*任务管理/:state==='initialization'?/初始化失败/:/安装|版本/);
+  if(state==='initialization')assert.match(card.querySelector('.wf-task-detail').textContent,/原初始化失败：固定包读取未完成/);
+  await f.click('更多操作：'+card.querySelector('.wf-task-name').textContent,card);
+  assert.equal(f.find('配置运行',card).disabled,true);
+  assert.equal(host.calls.some(c=>['tasks.configure','tasks.start','tasks.prepare','tasks.open'].includes(c.name)),false);
+  await f.click(state==='disabled'?'宿主管理':'安装审阅',card);
+  assert.deepEqual(host.calls.filter(c=>c.name==='tasks.open').map(c=>c.args),[{taskId:host.pins[0].taskId}]);
+  assert.equal(host.calls.some(c=>['tasks.configure','tasks.start','tasks.prepare','storage.set'].includes(c.name)),false);
+});
+
 // Removed sandbox runner scenarios -> existing shared-owner behavioral coverage:
 // task-workbench.test.mjs (WB), task-run-preparation.test.mjs (PREP), and
 // shared-task-run-sheet.test.mjs (CONSUMER); no new execution lives in this suite.
@@ -191,7 +235,8 @@ test('opening Web Flow recognizes the verified Baidu upgrade by its exact packag
   assert.match(f.text(),/百度搜索/);
   assert.match(taskCard(f).textContent,/可手动运行/);
   // Details use installed manifest metadata; configuration retains the exact identity.
-  await f.click(pkg.manifest.title,taskCard(f));
+  await f.click('更多操作：'+pkg.manifest.title,taskCard(f));
+  await f.click('查看详情',taskCard(f));
   assert.match(taskCard(f).textContent,/参数 3 项/);
   assert.ok(taskCard(f).textContent.includes(pkg.manifest.description));
   await f.click('运行',taskCard(f));
@@ -349,7 +394,8 @@ test('missing fixed task is unavailable rather than a changed hash',async t=>{
   const host=sdk();host.pins=host.pins.filter(pin=>pin.taskId!=='baidu.search.top3');
   const f=await mount(t,host);await f.click('脚本');
   assert.match(taskCard(f).textContent,/任务不可用/);
-  assert.match(taskCard(f).textContent,/未读取到有效的任务安装/);
+  await f.click(taskCard(f).querySelector('.wf-task-name').textContent,taskCard(f));
+  assert.match(taskCard(f).querySelector('.wf-task-detail').textContent,/未读取到有效的任务安装/);
   assert.equal(f.find('运行',taskCard(f)).disabled,true);
   assert.equal(starts(host).length,0);
 });
@@ -360,12 +406,13 @@ test('uninstalled or disabled task has a readable recovery path, manifest detail
     return {task:host.pins[1]};
   };
   const f=await mount(t,host);await f.click('脚本');
-  assert.match(taskCard(f).textContent,/此任务尚未安装或已停用/);
+  await f.click('百度搜索 · 前三条自然结果',taskCard(f));
+  assert.match(taskCard(f).querySelector('.wf-task-detail').textContent,/此任务尚未安装或已停用/);
   assert.match(taskCard(f).textContent,/“我的”.*安装或恢复.*刷新/);
   assert.ok(!taskCard(f).textContent.includes('Task is disabled or not installed'));
   assert.equal(f.find('运行',taskCard(f)).disabled,true);
   await f.click('更多操作：百度搜索 · 前三条自然结果',taskCard(f));
-  assert.ok(!taskCard(f).textContent.includes('宿主管理'),'SDK cannot open an unavailable task');
+  assert.ok(f.find('宿主管理',taskCard(f)),'unavailable metadata still offers on-demand host management');
   await f.click('查看详情',taskCard(f));
   assert.doesNotMatch(taskCard(f).textContent,/Task is disabled or not installed/);
   assert.match(taskCard(f).textContent,/任务说明待核对/);
@@ -395,11 +442,11 @@ test('permission denial and unreadable metadata are not misreported as a missing
 });
 test('Authority installation states expose recovery without pretending to run or re-enable',async t=>{
   for(const [code,label,action] of [
-    ['E_TASK_REMOVED','已卸载','打开安装审阅'],
-    ['E_TASK_NOT_INSTALLED','尚未安装','打开安装审阅'],
-    ['E_TASK_DISABLED','已停用','打开任务管理'],
-    ['E_TASK_INITIALIZATION','初始化失败','打开安装审阅'],
-    ['E_BUILTIN_VERSION_UNAVAILABLE','待重新验证','打开任务管理']
+    ['E_TASK_REMOVED','已卸载','安装审阅'],
+    ['E_TASK_NOT_INSTALLED','尚未安装','安装审阅'],
+    ['E_TASK_DISABLED','已停用','宿主管理'],
+    ['E_TASK_INITIALIZATION','初始化失败','安装审阅'],
+    ['E_BUILTIN_VERSION_UNAVAILABLE','待重新验证','宿主管理']
   ]){
     const host=sdk();host.taskRead=async id=>{
       if(id==='baidu.search.top3')throw Object.assign(Error('exact storage diagnostic'),{code});
@@ -410,6 +457,7 @@ test('Authority installation states expose recovery without pretending to run or
     assert.match(card.textContent,new RegExp(label));
     assert.equal(f.find('运行',card).disabled,true);
     assert.ok(!card.textContent.includes('exact storage diagnostic'));
+    await f.click('更多操作：'+card.querySelector('.wf-task-name').textContent,card);
     await f.click(action,card);
     assert.deepEqual(host.calls.filter(c=>c.name==='tasks.open').map(c=>c.args),[{taskId:'baidu.search.top3'}]);
     assert.equal(starts(host).length,0);
@@ -424,12 +472,14 @@ test('runtime mismatch explains recovery, stays in attention and only becomes ru
     return {task:host.pins.find(pin=>pin.taskId===id)};
   };
   const f=await mount(t,host);await f.click('脚本');
-  assert.match(taskCard(f).textContent,/运行时已更新.*同一固定任务包重新验证并确认安装/);
+  await f.click('百度搜索 · 前三条自然结果',taskCard(f));
+  assert.match(taskCard(f).querySelector('.wf-task-detail').textContent,/运行时已更新.*同一固定任务包重新验证并确认安装/);
   assert.doesNotMatch(taskCard(f).textContent,/读取失败|任务状态读取失败/);
   assert.equal(f.find('运行',taskCard(f)).disabled,true);
   await f.click('筛选脚本');await f.click('需处理');
   assert.equal(f.document.querySelectorAll('article').length,1);
-  await f.click('打开任务管理',taskCard(f));
+  await f.click('更多操作：百度搜索 · 前三条自然结果',taskCard(f));
+  await f.click('宿主管理',taskCard(f));
   assert.deepEqual(host.calls.filter(c=>c.name==='tasks.open').map(c=>c.args),[{taskId:'baidu.search.top3'}]);
   await f.click('刷新');assert.match(taskCard(f).textContent,/待重新验证/);
   stale=false;await f.click('刷新');
@@ -447,6 +497,8 @@ test('retrying failed initialization re-reads Authority and never submits a task
   };
   const f=await mount(t,host);await f.click('脚本');
   assert.equal(f.find('运行',taskCard(f)).disabled,true);
+  await f.click('更多操作：百度搜索 · 前三条自然结果',taskCard(f));
+  await f.click('查看详情',taskCard(f));
   unavailable=false;await f.click('重试初始化',taskCard(f));
   assert.match(taskCard(f).textContent,/可手动运行/);
   assert.equal(f.find('运行',taskCard(f)).disabled,false);
@@ -630,7 +682,9 @@ test('help and settings use Host header icons and return to the original tab',as
   await dispatch({action:'header',actionId:'help',page:'settings'});
   assert.equal(f.document.querySelector('[data-page="scripts"]').getAttribute('aria-selected'),'true',
     'stale page actions cannot navigate');
-  await dispatch({action:'header',actionId:'help',page:'home'});
+  // The Host private-port transport validates the page before dispatch and
+  // currently forwards only action/actionId to this presentation event.
+  await dispatch({action:'header',actionId:'help'});
   assert.equal(f.document.querySelector('main h2').textContent,'使用与排障');
   assert.equal(host.navigation.at(-1).page,'help');
   assert.equal(f.document.querySelectorAll('main .wf-panel').length,4,'all original help topics are expanded');
@@ -958,14 +1012,21 @@ test('P0 trusted read permission failure downgrades one prior success Toast and 
   await f.close();
 });
 
-test('script rows expose installed metadata and send each exact installation to the shared drawer',async t=>{
+test('default script rows omit parameter and two-stage summaries while keeping named actions',async t=>{
+  const f=await mount(t);await f.click('脚本');
+  for(const card of f.document.querySelectorAll('.wf-task-row')){
+    assert.doesNotMatch(card.querySelector('.wf-task-main').textContent,/参数.*项|双阶段/);
+    const title=card.querySelector('.wf-task-name').textContent;
+    assert.ok(f.find('收藏 '+title,card));
+    assert.ok(f.find('运行',card));
+    assert.ok(f.find('更多操作：'+title,card));
+  }
+});
+
+test('script play sends each exact installation to the shared drawer',async t=>{
   const host=sdk(),f=await mount(t,host);await f.click('脚本');
   for(const task of host.pins){
     const card=[...f.document.querySelectorAll('article')].find(row=>row.textContent.includes(manifests.get(task.taskId).title));
-    assert.match(card.querySelector('.wf-task-secondary').textContent,/参数 3 项.*手动 · 双阶段确认/);
-    await f.click(manifests.get(task.taskId).title,card);
-    assert.equal(card.querySelectorAll('input').length,0);
-    assert.ok(card.textContent.includes(manifests.get(task.taskId).description));
     await f.click('运行',card);
   }
   const configured=host.calls.filter(c=>c.name==='tasks.configure');
@@ -1095,7 +1156,7 @@ test('opening or failing configuration cannot erase an unresolved original read 
     await f.click('运行',taskCard(f));
     assert.equal(f.document.querySelector('[role="alert"]').textContent,original);
     assert.match(f.text(),/运行配置未打开.*E_UNSUPPORTED/);
-    await f.click('关闭配置提示');
+    await f.click('关闭配置错误');
     assert.equal(f.document.querySelector('[role="alert"]').textContent,original);
     assert.equal(host.store.get('webflow.pending.v1').clientRequestId,id);
     assert.equal(starts(host).length,0);

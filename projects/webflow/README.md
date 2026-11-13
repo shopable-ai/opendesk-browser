@@ -1,5 +1,7 @@
 # Web Flow
 
+**UI 对齐进行中（2026-11-14）：** 唯一正式包已晋升为 **0.3.39**，上次实际安装仍为 **0.3.37**。重复行内管理按钮已移至 ⋯；配置错误收为可展开的完整原因，脚本/记录均可查看；原请求提示移至记录 Tab，查询/停止及 UNKNOWN 围栏保留。定向 Node **125/125 PASS**，ego 源码组件通过三档宽度、busy/待重新验证/UNKNOWN 及深色检查。**新版尚未真实安装，侧栏及正向共享抽屉未验收**：原生 UI 资源忙，既有准备仍返回 `E_TASK_BUSY`。当前 goal 保持未完成；原对话 paused goal 不变。见[执行卡](docs/execution-plan.zh-CN.md)与[本候选分层证据](evidence/ui-alignment-r2-20261114.json)。
+
 > **独立脚本归属与「我的」统一管理（2026-11-14 设计基线）：** [Controller Task 资产、内置脚本与跨扩展消费合同](../../docs/architecture/installed-controller-tasks-and-workflow-consumers.zh-CN.md)。该合同区分脚本源码、内置发行、安装、委托、运行和卸载；**尚未完成目录迁移或改动现有运行链**，以下当前状态和 UNKNOWN 限制继续有效。
 
 ## 架构硬约束：WebFlow 只编排固定任务（跨对话接续必须遵守）

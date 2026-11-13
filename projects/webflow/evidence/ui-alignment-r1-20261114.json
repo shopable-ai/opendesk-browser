@@ -1,0 +1,709 @@
+{
+  "scope": "OD-WEBFLOW-UI-ALIGNMENT-R1",
+  "observedAt": "2026-11-13T20:09:51.305207+00:00",
+  "result": "INCOMPLETE_USER_REJECTED_LAYOUT",
+  "version": "0.3.37",
+  "packageSha256": "5a0f69dfc3fa978d588727e7a407c5aa5695b7c791f356cf90dcafb233165f2b",
+  "latestUserCorrection": [
+    "Remove repeated 打开任务管理 row buttons that distort preview layout",
+    "Replace 关闭配置提示 body block with appropriate existing feedback and on-demand details",
+    "Remove the intrusive 原请求核对 presentation while preserving original read/stop and UNKNOWN fences"
+  ],
+  "goal": {
+    "threadId": "01a1d651-af39-77e0-9b84-13c4cfdd831e",
+    "status": "paused",
+    "complete": false
+  },
+  "inputs": {
+    "projects/webflow/src/ui/main.js": "aa7cb462ecb09cf47daebc403e75d746b8e208d4b737557189a32353d205b907",
+    "projects/webflow/src/ui/style.css": "7881fdb74eeff834096b64758efa3dc61554e40a95846636e1ee0fdbba150c32",
+    "projects/webflow/tool.config.json": "d4f822dd52d0ed6b026641f553bcc3298d070e4a8ffa30f7858b8f6f101fba60",
+    "projects/webflow/webflow.opendesk-tool.json": "5a0f69dfc3fa978d588727e7a407c5aa5695b7c791f356cf90dcafb233165f2b",
+    "projects/webflow/preview/index.html": "59e316150bc524178fe013703f670f36315d9f9f0784e076b4d6eca35e339762",
+    "projects/webflow/tests/webflow-recovery-ui.test.mjs": "91312babf2429b9647cf840d844c75579afda5f39e8c45824ba7189c487cade6",
+    "projects/webflow/tests/shared-task-run-sheet.test.mjs": "63c659678fcab5c7b9709c6eaa7090cb54d98ac3f63ba632f179fb0ec408ca9f",
+    "projects/webflow/tests/webflow-compact-browser.mjs": "4b4efe8720e1ee62ab054ec49f4e022e8c53a77f28f98bb3f20808717f6903c8"
+  },
+  "node": {
+    "result": "PASS",
+    "tests": 120,
+    "failures": 0,
+    "log": "artifacts/webflow-ui-alignment-r1/node-tests.tap",
+    "command": "WEBFLOW_PACKAGE_PATH=artifacts/sidebar-tools/webflow/candidate.opendesk-tool.json node --test projects/webflow/tests/webflow-ui.test.mjs projects/webflow/tests/webflow-recovery-ui.test.mjs projects/webflow/tests/shared-task-run-sheet.test.mjs projects/webflow/tests/task-run-recovery.test.mjs"
+  },
+  "package": {
+    "validation": "PASS",
+    "promotion": "PASS",
+    "projectSourceMatch": "PASS",
+    "installation": "PASS",
+    "installationMethod": "Original extension import/review UI, no permission change; version and SHA read back"
+  },
+  "reference": {
+    "deviceWidth": 360,
+    "rows": [
+      {
+        "row": [
+          14,
+          256,
+          332,
+          51
+        ],
+        "name": [
+          57,
+          265,
+          142.359375,
+          18
+        ],
+        "actions": [
+          [
+            252,
+            266,
+            29,
+            31
+          ],
+          [
+            281,
+            266,
+            29,
+            31
+          ],
+          [
+            310,
+            266,
+            29,
+            31
+          ]
+        ]
+      },
+      {
+        "row": [
+          14,
+          307,
+          332,
+          52
+        ],
+        "name": [
+          57,
+          317,
+          139.8046875,
+          18
+        ],
+        "actions": [
+          [
+            252,
+            318,
+            29,
+            31
+          ],
+          [
+            281,
+            318,
+            29,
+            31
+          ],
+          [
+            310,
+            318,
+            29,
+            31
+          ]
+        ]
+      },
+      {
+        "row": [
+          14,
+          359,
+          332,
+          52
+        ],
+        "name": [
+          57,
+          369,
+          96,
+          18
+        ],
+        "actions": [
+          [
+            252,
+            370,
+            29,
+            31
+          ],
+          [
+            281,
+            370,
+            29,
+            31
+          ],
+          [
+            310,
+            370,
+            29,
+            31
+          ]
+        ]
+      }
+    ]
+  },
+  "sourceComponent": {
+    "level": "EGO_SOURCE_UI_MOCK_SDK",
+    "version": "0.3.37",
+    "taskSpace": 25,
+    "url": "http://127.0.0.1:57933",
+    "layouts": [
+      {
+        "width": 320,
+        "viewport": 320,
+        "scroll": 320,
+        "rows": [
+          {
+            "row": [
+              10,
+              298.5,
+              300,
+              49
+            ],
+            "name": [
+              48,
+              306.5,
+              172,
+              18
+            ],
+            "fontSize": "12px",
+            "fontWeight": "700",
+            "actions": [
+              {
+                "rect": [
+                  224,
+                  307.5,
+                  27,
+                  31
+                ],
+                "visibility": "visible"
+              },
+              {
+                "rect": [
+                  251,
+                  307.5,
+                  27,
+                  31
+                ],
+                "visibility": "visible"
+              },
+              {
+                "rect": [
+                  278,
+                  307.5,
+                  27,
+                  31
+                ],
+                "visibility": "visible"
+              }
+            ]
+          },
+          {
+            "row": [
+              10,
+              347.5,
+              300,
+              50
+            ],
+            "name": [
+              48,
+              356.5,
+              172,
+              18
+            ],
+            "fontSize": "12px",
+            "fontWeight": "700",
+            "actions": [
+              {
+                "rect": [
+                  224,
+                  357.5,
+                  27,
+                  31
+                ],
+                "visibility": "visible"
+              },
+              {
+                "rect": [
+                  251,
+                  357.5,
+                  27,
+                  31
+                ],
+                "visibility": "visible"
+              },
+              {
+                "rect": [
+                  278,
+                  357.5,
+                  27,
+                  31
+                ],
+                "visibility": "visible"
+              }
+            ]
+          }
+        ],
+        "menu": {
+          "left": 151,
+          "right": 305,
+          "bottom": 496.5,
+          "hit": true
+        }
+      },
+      {
+        "width": 360,
+        "viewport": 360,
+        "scroll": 360,
+        "rows": [
+          {
+            "row": [
+              13,
+              301.5,
+              334,
+              51
+            ],
+            "name": [
+              56,
+              310.5,
+              190,
+              18
+            ],
+            "fontSize": "12px",
+            "fontWeight": "700",
+            "actions": [
+              {
+                "rect": [
+                  253,
+                  311.5,
+                  29,
+                  31
+                ],
+                "visibility": "visible"
+              },
+              {
+                "rect": [
+                  282,
+                  311.5,
+                  29,
+                  31
+                ],
+                "visibility": "visible"
+              },
+              {
+                "rect": [
+                  311,
+                  311.5,
+                  29,
+                  31
+                ],
+                "visibility": "visible"
+              }
+            ]
+          },
+          {
+            "row": [
+              13,
+              352.5,
+              334,
+              52
+            ],
+            "name": [
+              56,
+              362.5,
+              190,
+              18
+            ],
+            "fontSize": "12px",
+            "fontWeight": "700",
+            "actions": [
+              {
+                "rect": [
+                  253,
+                  363.5,
+                  29,
+                  31
+                ],
+                "visibility": "visible"
+              },
+              {
+                "rect": [
+                  282,
+                  363.5,
+                  29,
+                  31
+                ],
+                "visibility": "visible"
+              },
+              {
+                "rect": [
+                  311,
+                  363.5,
+                  29,
+                  31
+                ],
+                "visibility": "visible"
+              }
+            ]
+          }
+        ],
+        "menu": {
+          "left": 186,
+          "right": 340,
+          "bottom": 500.5,
+          "hit": true
+        }
+      },
+      {
+        "width": 400,
+        "viewport": 400,
+        "scroll": 400,
+        "rows": [
+          {
+            "row": [
+              13,
+              301.5,
+              374,
+              51
+            ],
+            "name": [
+              56,
+              310.5,
+              230,
+              18
+            ],
+            "fontSize": "12px",
+            "fontWeight": "700",
+            "actions": [
+              {
+                "rect": [
+                  293,
+                  311.5,
+                  29,
+                  31
+                ],
+                "visibility": "visible"
+              },
+              {
+                "rect": [
+                  322,
+                  311.5,
+                  29,
+                  31
+                ],
+                "visibility": "visible"
+              },
+              {
+                "rect": [
+                  351,
+                  311.5,
+                  29,
+                  31
+                ],
+                "visibility": "visible"
+              }
+            ]
+          },
+          {
+            "row": [
+              13,
+              352.5,
+              374,
+              52
+            ],
+            "name": [
+              56,
+              362.5,
+              230,
+              18
+            ],
+            "fontSize": "12px",
+            "fontWeight": "700",
+            "actions": [
+              {
+                "rect": [
+                  293,
+                  363.5,
+                  29,
+                  31
+                ],
+                "visibility": "visible"
+              },
+              {
+                "rect": [
+                  322,
+                  363.5,
+                  29,
+                  31
+                ],
+                "visibility": "visible"
+              },
+              {
+                "rect": [
+                  351,
+                  363.5,
+                  29,
+                  31
+                ],
+                "visibility": "visible"
+              }
+            ]
+          }
+        ],
+        "menu": {
+          "left": 226,
+          "right": 380,
+          "bottom": 500.5,
+          "hit": true
+        }
+      }
+    ],
+    "counts": {
+      "starts": 0,
+      "preparations": 0,
+      "configurations": [
+        {
+          "task": {
+            "taskId": "baidu.search.top3",
+            "version": "1.1.5",
+            "manifestHash": "f49e274aadfeed12540aff028ff267b3772ebe35a2f16c154008542b76a5bf38",
+            "contentHash": "2b0f31c0d485355576cac11968170bb9eb41c9076df5bb6659f93d0173286181",
+            "installationId": "fixture-installation",
+            "generation": 1
+          }
+        },
+        {
+          "task": {
+            "taskId": "baidu.search.top3",
+            "version": "1.1.5",
+            "manifestHash": "f49e274aadfeed12540aff028ff267b3772ebe35a2f16c154008542b76a5bf38",
+            "contentHash": "2b0f31c0d485355576cac11968170bb9eb41c9076df5bb6659f93d0173286181",
+            "installationId": "fixture-installation",
+            "generation": 1
+          }
+        }
+      ],
+      "configures": 2,
+      "lastConfigure": {
+        "task": {
+          "taskId": "baidu.search.top3",
+          "version": "1.1.5",
+          "manifestHash": "f49e274aadfeed12540aff028ff267b3772ebe35a2f16c154008542b76a5bf38",
+          "contentHash": "2b0f31c0d485355576cac11968170bb9eb41c9076df5bb6659f93d0173286181",
+          "installationId": "fixture-installation",
+          "generation": 1
+        }
+      }
+    },
+    "unavailableCounts": {
+      "starts": 0,
+      "preparations": 0,
+      "configurations": [
+        {
+          "task": {
+            "taskId": "baidu.search.top3",
+            "version": "1.1.5",
+            "manifestHash": "f49e274aadfeed12540aff028ff267b3772ebe35a2f16c154008542b76a5bf38",
+            "contentHash": "2b0f31c0d485355576cac11968170bb9eb41c9076df5bb6659f93d0173286181",
+            "installationId": "fixture-installation",
+            "generation": 1
+          }
+        },
+        {
+          "task": {
+            "taskId": "baidu.search.top3",
+            "version": "1.1.5",
+            "manifestHash": "f49e274aadfeed12540aff028ff267b3772ebe35a2f16c154008542b76a5bf38",
+            "contentHash": "2b0f31c0d485355576cac11968170bb9eb41c9076df5bb6659f93d0173286181",
+            "installationId": "fixture-installation",
+            "generation": 1
+          }
+        }
+      ],
+      "configures": 2,
+      "lastConfigure": {
+        "task": {
+          "taskId": "baidu.search.top3",
+          "version": "1.1.5",
+          "manifestHash": "f49e274aadfeed12540aff028ff267b3772ebe35a2f16c154008542b76a5bf38",
+          "contentHash": "2b0f31c0d485355576cac11968170bb9eb41c9076df5bb6659f93d0173286181",
+          "installationId": "fixture-installation",
+          "generation": 1
+        }
+      }
+    },
+    "checks": [
+      {
+        "name": "320/360/400 12px/700 names and permanent controls; no hover/focus shift; menu hit and bounds",
+        "result": "PASS"
+      },
+      {
+        "name": "Name/play same six-field configure; zero starts and preparation writes",
+        "result": "PASS"
+      },
+      {
+        "name": "Search, empty, clear",
+        "result": "PASS"
+      },
+      {
+        "name": "Favorite persists reload",
+        "result": "PASS"
+      },
+      {
+        "name": "Unavailable title details with no extra configure/start",
+        "result": "PASS"
+      }
+    ]
+  },
+  "installed": {
+    "extensionId": "ccfcjegpkdlgbclopjmadlcjedelidmf",
+    "surface": "app.html with real installed sandbox; sidepanel.html was opened as a tab for original installer UI, not native Side Panel acceptance",
+    "development": {
+      "extensionId": "ccfcjegpkdlgbclopjmadlcjedelidmf",
+      "appliedRevision": "4393a5c08601cb440f041cda6dbbeb3ebbd0924004b5db19dc54796ddad8f0c0",
+      "outputRevision": "4393a5c08601cb440f041cda6dbbeb3ebbd0924004b5db19dc54796ddad8f0c0",
+      "same": true
+    },
+    "checks": [
+      {
+        "name": "Host Help, preferences and settings return",
+        "result": "PASS"
+      },
+      {
+        "name": "Search, empty and clear",
+        "result": "PASS"
+      },
+      {
+        "name": "Add guide and Escape focus return",
+        "result": "PASS"
+      },
+      {
+        "name": "Dark theme readback, visible success, restore original system theme",
+        "result": "NOT_VERIFIED",
+        "actual": "Selection/save occurred, but final-dark screenshot showed stale light layout. Later snapshot confirmed system theme restored. Do not count this screenshot as dark visual PASS."
+      },
+      {
+        "name": "320px menu clickable above adjacent row; repeated details stays open, technical identity, close/Escape focus",
+        "result": "PASS"
+      },
+      {
+        "name": "Positive trusted drawer via name and play",
+        "result": "BLOCKED",
+        "actual": "E_TASK_BUSY existing preparation from another task/application identity; preserved"
+      }
+    ],
+    "nativeSidePanel": "NOT_TESTED: shared native UI lock busy; CUA inventory timed out; no global input or clipboard used",
+    "configure": "BLOCKED: both title and play returned E_TASK_BUSY for an existing preparation from another task/application identity; original state preserved",
+    "realSaveConfirmRunResult": "NOT_TESTED",
+    "nativeIME": "NOT_TESTED",
+    "originalPending": "Observed banner only; no replay, cancellation, DB mutation or new Run by this campaign",
+    "themeCleanup": "Later actual combobox snapshot confirmed 跟随系统 restored; final dark screenshot is invalid as visual proof"
+  },
+  "acceptedDifferences": [
+    "Actual two installed fixed Tasks rather than three demo items",
+    "Existing refresh capability retained"
+  ],
+  "rejectedDifferences": [
+    "Repeated per-row task management buttons",
+    "Body configuration error region with 关闭配置提示",
+    "Intrusive original-request recovery region"
+  ],
+  "artifacts": {
+    "ego-component-checks.json": {
+      "path": "artifacts/webflow-ui-alignment-r1/ego-component-checks.json",
+      "sha256": "68e1df7656c0ec9f72a665b4de8fc887bbefc62162fe8410e34f17ddbc9e9d5a",
+      "localGeneratedArtifact": true
+    },
+    "final-installation.json": {
+      "path": "artifacts/webflow-ui-alignment-r1/final-installation.json",
+      "sha256": "613041e01ea801a2ed51adb9aa8e9f807690740bc9d8a0cdc3973abf7e51cb0b",
+      "localGeneratedArtifact": true
+    },
+    "final-ui-checks.json": {
+      "path": "artifacts/webflow-ui-alignment-r1/final-ui-checks.json",
+      "sha256": "32d2969f302cbd7a73fdfae0ae4385e0c799359d5d623dd930321102b13d39bd",
+      "localGeneratedArtifact": true
+    },
+    "final-installed-actions.json": {
+      "path": "artifacts/webflow-ui-alignment-r1/final-installed-actions.json",
+      "sha256": "f70b2e996e9dc4511755d3add427bbf69b66ce01dec8579e48b16bde916dbda1",
+      "localGeneratedArtifact": true
+    },
+    "final-installed-layouts.json": {
+      "path": "artifacts/webflow-ui-alignment-r1/final-installed-layouts.json",
+      "sha256": "de17e7114f8c81a81cb0f152ff5f4dc649ca7bd542115b7c7c8dbfd86337f211",
+      "localGeneratedArtifact": true
+    },
+    "node-tests.tap": {
+      "path": "artifacts/webflow-ui-alignment-r1/node-tests.tap",
+      "sha256": "609e0cca68672c487c8292828f76e558390c7694935d1fce92930132cfe17d29",
+      "localGeneratedArtifact": true
+    },
+    "scripts-360.png": {
+      "path": "artifacts/webflow-ui-alignment-r1/scripts-360.png",
+      "sha256": "a680befdaf3e078929ffc2f0deb4cae03379ac82b8aa45908e79bc44efeefb46",
+      "localGeneratedArtifact": true
+    },
+    "reference-scripts-360.png": {
+      "path": "artifacts/webflow-ui-alignment-r1/reference-scripts-360.png",
+      "sha256": "7352d8c9da38a9c2ce597722cf74f21d6c0b3b7038bc0a70e6d5a17072e559f4",
+      "localGeneratedArtifact": true
+    },
+    "final-installed-identity.png": {
+      "path": "artifacts/webflow-ui-alignment-r1/final-installed-identity.png",
+      "sha256": "0ada4e6d13eca6c40c4a1134320b3e3bf251002b0059b5222c4f91fe14a43872",
+      "localGeneratedArtifact": true
+    },
+    "final-installed-scripts-320.png": {
+      "path": "artifacts/webflow-ui-alignment-r1/final-installed-scripts-320.png",
+      "sha256": "5eee45fd5139ee89ee91d472634d7f340341b33a3324867ff249c687bcda7462",
+      "localGeneratedArtifact": true
+    },
+    "final-installed-scripts-360.png": {
+      "path": "artifacts/webflow-ui-alignment-r1/final-installed-scripts-360.png",
+      "sha256": "c60ced8db3946d2670b78121d0362afc1d791f10f488f80a7c0f9e51f4b3e7eb",
+      "localGeneratedArtifact": true
+    },
+    "final-installed-scripts-400.png": {
+      "path": "artifacts/webflow-ui-alignment-r1/final-installed-scripts-400.png",
+      "sha256": "894b80725de32e9b46cedc105546d88a73e85a64a5176f1054a94cd784527889",
+      "localGeneratedArtifact": true
+    },
+    "final-configure-blocked-360.png": {
+      "path": "artifacts/webflow-ui-alignment-r1/final-configure-blocked-360.png",
+      "sha256": "33583a9adb85a5a941725b997b0aba3c9983ebfadda32d14c8a957b607f90a30",
+      "localGeneratedArtifact": true
+    },
+    "final-menu-320.png": {
+      "path": "artifacts/webflow-ui-alignment-r1/final-menu-320.png",
+      "sha256": "f1da537729dc8eed5bcde019a4ef9fdba7f6d14a64517a95f0594a7a81b4222d",
+      "localGeneratedArtifact": true
+    },
+    "final-help-360.png": {
+      "path": "artifacts/webflow-ui-alignment-r1/final-help-360.png",
+      "sha256": "622f82247362b7588cb179b46e5856b17ec16f492eeee0f8fef255a17e655c46",
+      "localGeneratedArtifact": true
+    },
+    "final-settings-360.png": {
+      "path": "artifacts/webflow-ui-alignment-r1/final-settings-360.png",
+      "sha256": "1fc51fa31aaee7797029c69334bf9cd074119dab098ac304bae110e5cef9d2e1",
+      "localGeneratedArtifact": true
+    }
+  },
+  "resources": {
+    "egoTaskSpace25": "finished with keep=[]",
+    "ownedFixturePid36163": "stopped through own exec session",
+    "sharedDevelopmentWriter": "85007 npm run dev / 85028 node scripts/dev.mjs left running; recheck on continuation"
+  },
+  "notRun": [
+    "Root full CI",
+    "production acceptance",
+    "independent scoring",
+    "CFT harness execution",
+    "old R11 business reconciliation"
+  ],
+  "handoff": "New chat owns subsequent work; no commit or push performed before handoff"
+}

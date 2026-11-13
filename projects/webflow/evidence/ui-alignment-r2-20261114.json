@@ -1,0 +1,1141 @@
+{
+  "scope": "OD-WEBFLOW-UI-ALIGNMENT-R2",
+  "observedAt": "2026-11-13T20:36:50.246Z",
+  "result": "INCOMPLETE_NEW_PACKAGE_READY_INSTALL_AND_RUNTIME_BLOCKED",
+  "version": "0.3.39",
+  "packageSha256": "f42abe33d7b7baad5fdf199d60ebc6ee84f429f303f99a95077560fcf1f3775d",
+  "goal": {
+    "threadId": "01a1d68c-81cd-7450-a5b6-67a4d89d73f6",
+    "status": "active",
+    "complete": false,
+    "previousThreadId": "01a1d651-af39-77e0-9b84-13c4cfdd831e",
+    "previousGoalStatus": "paused_not_modified"
+  },
+  "inputs": {
+    "projects/webflow/src/ui/main.js": "218423168ef891ffa6a3b2f0d5ef174c690b37e62339fa3a410f4d3859c105d9",
+    "projects/webflow/src/ui/style.css": "e469b2561791fc87f5bda49ff1649190beb9d23d308b18a74661ca20593db975",
+    "projects/webflow/tool.config.json": "96a76f027948c6e94c824822b366cfb7c44a2a8629ef419df32e47734c4d8da4",
+    "projects/webflow/webflow.opendesk-tool.json": "f42abe33d7b7baad5fdf199d60ebc6ee84f429f303f99a95077560fcf1f3775d",
+    "projects/webflow/preview/index.html": "59e316150bc524178fe013703f670f36315d9f9f0784e076b4d6eca35e339762",
+    "projects/webflow/tests/shared-task-run-sheet.test.mjs": "b4d40b48ee123b91855b2a1f4ad9771427cfc42e002db06041e0efbd6562118e",
+    "projects/webflow/tests/webflow-recovery-ui.test.mjs": "f8f5eb242ce133f79ed09a2e690ffbc4855e6245a664632d7624da8b780e267d",
+    "projects/webflow/tests/webflow-compact-browser.mjs": "4b4efe8720e1ee62ab054ec49f4e022e8c53a77f28f98bb3f20808717f6903c8",
+    "projects/webflow/tests/webflow-ui-server.mjs": "a28b8301f7ba874d63e6b8e169ffe66c9cb1c50b8f3607589bb38e913aae74ef"
+  },
+  "changes": [
+    "Per-row management/error blocks moved into existing more menu/details; initialization retry remains in details.",
+    "Configuration failure is a native 28px collapsed disclosure; safe reason expands as text and remains until dismissed or next configuration. Same disclosure renders on scripts and records.",
+    "Inspecting a configuration error reveals its correct task after search/filter, with focus fallback.",
+    "Legacy pending indication is a small accessible records-tab dot; original read/stop/identity and UNKNOWN fences unchanged."
+  ],
+  "node": {
+    "result": "PASS",
+    "tests": 125,
+    "failures": 0,
+    "log": "artifacts/webflow-ui-alignment-r2/node-tests.tap",
+    "command": "WEBFLOW_PACKAGE_PATH=artifacts/sidebar-tools/webflow/candidate.opendesk-tool.json node --test --test-reporter=tap projects/webflow/tests/webflow-ui.test.mjs projects/webflow/tests/webflow-recovery-ui.test.mjs projects/webflow/tests/shared-task-run-sheet.test.mjs projects/webflow/tests/task-run-recovery.test.mjs",
+    "reviewRegressions": {
+      "before": "15 pass / 2 fail, both reviewer findings reproduced",
+      "after": "17 pass / 0 fail",
+      "logs": [
+        "artifacts/webflow-ui-alignment-r2/review-regressions-before.tap",
+        "artifacts/webflow-ui-alignment-r2/review-regressions-after.tap"
+      ]
+    }
+  },
+  "package": {
+    "validation": "PASS",
+    "promotion": "PASS",
+    "projectSourceMatch": "PASS",
+    "bytes": 118028,
+    "installation": "BLOCKED",
+    "candidate": "artifacts/sidebar-tools/webflow/candidate.opendesk-tool.json",
+    "formal": "projects/webflow/webflow.opendesk-tool.json",
+    "capabilitiesChanged": false,
+    "delegatedTaskPinsChanged": false,
+    "precompiledRuntime": "Existing classic JS shared React runtime; no separate WXT build"
+  },
+  "installed": {
+    "lastObservedVersion": "0.3.37",
+    "extensionId": "ccfcjegpkdlgbclopjmadlcjedelidmf",
+    "entry": "app.html?toolId=webflow&view=scripts",
+    "beforeScreenshot": "artifacts/webflow-ui-alignment-r2/before-configure-error-360.png",
+    "observed": [
+      "Repeated management buttons, large configuration error area and original pending banner reproduced before editing.",
+      "Task-name click returned E_TASK_BUSY: existing preparation from another task/app identity. No original request was cancelled, cleared, confirmed or replayed."
+    ],
+    "newCandidateInstalled": false,
+    "newCandidateUi": "NOT_TESTED",
+    "positiveSharedTaskRunSheet": "BLOCKED",
+    "nativeSidePanel": "NOT_TESTED",
+    "nativeIme": "NOT_TESTED"
+  },
+  "nativeAccess": {
+    "result": "BLOCKED",
+    "nativeUiOwner": "01a1d647-ec47-7873-b450-d6b6df001a43",
+    "lock": "Original profiles.py ui-acquire reports busy; not stolen or released by this task.",
+    "cua": "Initial inventory timeout; final read-only retry succeeded and identified another owner’s active Space. No focus switch or input was performed.",
+    "standaloneEntry": "sidepanel.html in an ordinary tab resolves to real task catalog, not actual SIDE_PANEL. Not spoofed or treated as product pass."
+  },
+  "sourceComponent": {
+    "level": "EGO_SOURCE_UI_MOCK_SDK",
+    "taskSpaceId": 31,
+    "sourceFilesMatch": true,
+    "normal": {
+      "level": "EGO_SOURCE_UI_MOCK_SDK",
+      "widths": [
+        {
+          "width": 320,
+          "before": {
+            "width": 320,
+            "overflow": false,
+            "rows": [
+              {
+                "box": {
+                  "x": 10,
+                  "y": 298.5,
+                  "w": 300,
+                  "h": 49
+                },
+                "name": {
+                  "x": 48,
+                  "y": 306.5,
+                  "w": 172,
+                  "h": 18
+                },
+                "font": "12px",
+                "weight": "700",
+                "actions": [
+                  {
+                    "box": {
+                      "x": 224,
+                      "y": 307.5,
+                      "w": 27,
+                      "h": 31
+                    },
+                    "opacity": "0.55",
+                    "disabled": false
+                  },
+                  {
+                    "box": {
+                      "x": 251,
+                      "y": 307.5,
+                      "w": 27,
+                      "h": 31
+                    },
+                    "opacity": "1",
+                    "disabled": false
+                  },
+                  {
+                    "box": {
+                      "x": 278,
+                      "y": 307.5,
+                      "w": 27,
+                      "h": 31
+                    },
+                    "opacity": "0.55",
+                    "disabled": false
+                  }
+                ]
+              },
+              {
+                "box": {
+                  "x": 10,
+                  "y": 347.5,
+                  "w": 300,
+                  "h": 50
+                },
+                "name": {
+                  "x": 48,
+                  "y": 356.5,
+                  "w": 172,
+                  "h": 18
+                },
+                "font": "12px",
+                "weight": "700",
+                "actions": [
+                  {
+                    "box": {
+                      "x": 224,
+                      "y": 357.5,
+                      "w": 27,
+                      "h": 31
+                    },
+                    "opacity": "0.55",
+                    "disabled": false
+                  },
+                  {
+                    "box": {
+                      "x": 251,
+                      "y": 357.5,
+                      "w": 27,
+                      "h": 31
+                    },
+                    "opacity": "1",
+                    "disabled": false
+                  },
+                  {
+                    "box": {
+                      "x": 278,
+                      "y": 357.5,
+                      "w": 27,
+                      "h": 31
+                    },
+                    "opacity": "0.55",
+                    "disabled": false
+                  }
+                ]
+              }
+            ]
+          },
+          "menu": {
+            "x": 151,
+            "right": 305,
+            "bottom": 496.5,
+            "viewport": 320,
+            "hit": true
+          }
+        },
+        {
+          "width": 360,
+          "before": {
+            "width": 360,
+            "overflow": false,
+            "rows": [
+              {
+                "box": {
+                  "x": 13,
+                  "y": 301.5,
+                  "w": 334,
+                  "h": 51
+                },
+                "name": {
+                  "x": 56,
+                  "y": 310.5,
+                  "w": 190,
+                  "h": 18
+                },
+                "font": "12px",
+                "weight": "700",
+                "actions": [
+                  {
+                    "box": {
+                      "x": 253,
+                      "y": 311.5,
+                      "w": 29,
+                      "h": 31
+                    },
+                    "opacity": "1",
+                    "disabled": false
+                  },
+                  {
+                    "box": {
+                      "x": 282,
+                      "y": 311.5,
+                      "w": 29,
+                      "h": 31
+                    },
+                    "opacity": "1",
+                    "disabled": false
+                  },
+                  {
+                    "box": {
+                      "x": 311,
+                      "y": 311.5,
+                      "w": 29,
+                      "h": 31
+                    },
+                    "opacity": "1",
+                    "disabled": false
+                  }
+                ]
+              },
+              {
+                "box": {
+                  "x": 13,
+                  "y": 352.5,
+                  "w": 334,
+                  "h": 52
+                },
+                "name": {
+                  "x": 56,
+                  "y": 362.5,
+                  "w": 190,
+                  "h": 18
+                },
+                "font": "12px",
+                "weight": "700",
+                "actions": [
+                  {
+                    "box": {
+                      "x": 253,
+                      "y": 363.5,
+                      "w": 29,
+                      "h": 31
+                    },
+                    "opacity": "0.55",
+                    "disabled": false
+                  },
+                  {
+                    "box": {
+                      "x": 282,
+                      "y": 363.5,
+                      "w": 29,
+                      "h": 31
+                    },
+                    "opacity": "1",
+                    "disabled": false
+                  },
+                  {
+                    "box": {
+                      "x": 311,
+                      "y": 363.5,
+                      "w": 29,
+                      "h": 31
+                    },
+                    "opacity": "0.55",
+                    "disabled": false
+                  }
+                ]
+              }
+            ]
+          },
+          "menu": {
+            "x": 186,
+            "right": 340,
+            "bottom": 500.5,
+            "viewport": 360,
+            "hit": true
+          }
+        },
+        {
+          "width": 400,
+          "before": {
+            "width": 400,
+            "overflow": false,
+            "rows": [
+              {
+                "box": {
+                  "x": 13,
+                  "y": 301.5,
+                  "w": 374,
+                  "h": 51
+                },
+                "name": {
+                  "x": 56,
+                  "y": 310.5,
+                  "w": 230,
+                  "h": 18
+                },
+                "font": "12px",
+                "weight": "700",
+                "actions": [
+                  {
+                    "box": {
+                      "x": 293,
+                      "y": 311.5,
+                      "w": 29,
+                      "h": 31
+                    },
+                    "opacity": "1",
+                    "disabled": false
+                  },
+                  {
+                    "box": {
+                      "x": 322,
+                      "y": 311.5,
+                      "w": 29,
+                      "h": 31
+                    },
+                    "opacity": "1",
+                    "disabled": false
+                  },
+                  {
+                    "box": {
+                      "x": 351,
+                      "y": 311.5,
+                      "w": 29,
+                      "h": 31
+                    },
+                    "opacity": "1",
+                    "disabled": false
+                  }
+                ]
+              },
+              {
+                "box": {
+                  "x": 13,
+                  "y": 352.5,
+                  "w": 374,
+                  "h": 52
+                },
+                "name": {
+                  "x": 56,
+                  "y": 362.5,
+                  "w": 230,
+                  "h": 18
+                },
+                "font": "12px",
+                "weight": "700",
+                "actions": [
+                  {
+                    "box": {
+                      "x": 293,
+                      "y": 363.5,
+                      "w": 29,
+                      "h": 31
+                    },
+                    "opacity": "0.55",
+                    "disabled": false
+                  },
+                  {
+                    "box": {
+                      "x": 322,
+                      "y": 363.5,
+                      "w": 29,
+                      "h": 31
+                    },
+                    "opacity": "1",
+                    "disabled": false
+                  },
+                  {
+                    "box": {
+                      "x": 351,
+                      "y": 363.5,
+                      "w": 29,
+                      "h": 31
+                    },
+                    "opacity": "0.55",
+                    "disabled": false
+                  }
+                ]
+              }
+            ]
+          },
+          "menu": {
+            "x": 226,
+            "right": 380,
+            "bottom": 500.5,
+            "viewport": 400,
+            "hit": true
+          }
+        }
+      ],
+      "checks": [
+        "320 no horizontal overflow",
+        "320 hover/focus causes zero geometric movement",
+        "320 star play more always visible",
+        "320 more menu is in bounds and receives hits above next row",
+        "320 detail opens",
+        "320 technical identity expands",
+        "320 Escape closes detail and restores more focus",
+        "360 no horizontal overflow",
+        "360 hover/focus causes zero geometric movement",
+        "360 star play more always visible",
+        "360 more menu is in bounds and receives hits above next row",
+        "360 detail opens",
+        "360 technical identity expands",
+        "360 Escape closes detail and restores more focus",
+        "400 no horizontal overflow",
+        "400 hover/focus causes zero geometric movement",
+        "400 star play more always visible",
+        "400 more menu is in bounds and receives hits above next row",
+        "400 detail opens",
+        "400 technical identity expands",
+        "400 Escape closes detail and restores more focus",
+        "name and play configure once each with zero starts/preparation writes"
+      ],
+      "counts": "{\"starts\":0,\"originalReads\":0,\"originalStops\":0,\"preparations\":0,\"configurations\":[{\"task\":{\"taskId\":\"baidu.search.top3\",\"version\":\"1.1.5\",\"manifestHash\":\"f49e274aadfeed12540aff028ff267b3772ebe35a2f16c154008542b76a5bf38\",\"contentHash\":\"2b0f31c0d485355576cac11968170bb9eb41c9076df5bb6659f93d0173286181\",\"installationId\":\"fixture-installation\",\"generation\":1}},{\"task\":{\"taskId\":\"baidu.search.top3\",\"version\":\"1.1.5\",\"manifestHash\":\"f49e274aadfeed12540aff028ff267b3772ebe35a2f16c154008542b76a5bf38\",\"contentHash\":\"2b0f31c0d485355576cac11968170bb9eb41c9076df5bb6659f93d0173286181\",\"installationId\":\"fixture-installation\",\"generation\":1}}],\"configures\":2,\"lastConfigure\":{\"task\":{\"taskId\":\"baidu.search.top3\",\"version\":\"1.1.5\",\"manifestHash\":\"f49e274aadfeed12540aff028ff267b3772ebe35a2f16c154008542b76a5bf38\",\"contentHash\":\"2b0f31c0d485355576cac11968170bb9eb41c9076df5bb6659f93d0173286181\",\"installationId\":\"fixture-installation\",\"generation\":1}}}",
+      "dark": {
+        "theme": "dark",
+        "bg": "rgb(18, 28, 44)",
+        "width": 360
+      }
+    },
+    "states": {
+      "level": "EGO_SOURCE_UI_MOCK_SDK",
+      "states": [
+        {
+          "width": 320,
+          "errorHeight": 28,
+          "summaryHeight": 28,
+          "open": false,
+          "overflow": false,
+          "rows": [
+            {
+              "height": 49,
+              "text": "www.baidu.com待重新验证"
+            },
+            {
+              "height": 50,
+              "text": "www.google.com待重新验证"
+            }
+          ],
+          "recoveryIndicator": "记录，有原请求待核对",
+          "rowManagementButtons": 0
+        },
+        {
+          "width": 360,
+          "errorHeight": 28,
+          "summaryHeight": 28,
+          "open": false,
+          "overflow": false,
+          "rows": [
+            {
+              "height": 51,
+              "text": "www.baidu.com待重新验证"
+            },
+            {
+              "height": 52,
+              "text": "www.google.com待重新验证"
+            }
+          ],
+          "recoveryIndicator": "记录，有原请求待核对",
+          "rowManagementButtons": 0
+        },
+        {
+          "width": 400,
+          "errorHeight": 28,
+          "summaryHeight": 28,
+          "open": false,
+          "overflow": false,
+          "rows": [
+            {
+              "height": 51,
+              "text": "www.baidu.com待重新验证"
+            },
+            {
+              "height": 52,
+              "text": "www.google.com待重新验证"
+            }
+          ],
+          "recoveryIndicator": "记录，有原请求待核对",
+          "rowManagementButtons": 0
+        }
+      ],
+      "checks": [
+        "320 busy error is one compact collapsed line",
+        "320 runtime/UNKNOWN has no repeated row management or overflow",
+        "360 busy error is one compact collapsed line",
+        "360 runtime/UNKNOWN has no repeated row management or overflow",
+        "400 busy error is one compact collapsed line",
+        "400 runtime/UNKNOWN has no repeated row management or overflow",
+        "native disclosure reveals complete busy reason as wrapped text",
+        "search hides the affected script",
+        "error inspection reveals the affected script after search",
+        "UNKNOWN read and stop keep the original ID with zero starts/preparation writes",
+        "dark preference applies and unrelated save does not clear configuration error"
+      ],
+      "expanded": {
+        "open": true,
+        "text": "E_TASK_BUSY：已有其他任务或应用身份的准备占用；请从原入口查询或取消，不能确认执行。组件夹具仅模拟已观察到的 busy 原因，不代表真实安装。",
+        "overflow": false
+      },
+      "counts": {
+        "starts": 0,
+        "originalReads": 2,
+        "originalStops": 1,
+        "preparations": 0,
+        "configurations": [
+          {
+            "task": {
+              "taskId": "baidu.search.top3",
+              "version": "1.1.5",
+              "manifestHash": "f49e274aadfeed12540aff028ff267b3772ebe35a2f16c154008542b76a5bf38",
+              "contentHash": "2b0f31c0d485355576cac11968170bb9eb41c9076df5bb6659f93d0173286181",
+              "installationId": "fixture-installation",
+              "generation": 1
+            }
+          },
+          {
+            "task": {
+              "taskId": "baidu.search.top3",
+              "version": "1.1.5",
+              "manifestHash": "f49e274aadfeed12540aff028ff267b3772ebe35a2f16c154008542b76a5bf38",
+              "contentHash": "2b0f31c0d485355576cac11968170bb9eb41c9076df5bb6659f93d0173286181",
+              "installationId": "fixture-installation",
+              "generation": 1
+            }
+          },
+          {
+            "task": {
+              "taskId": "baidu.search.top3",
+              "version": "1.1.5",
+              "manifestHash": "f49e274aadfeed12540aff028ff267b3772ebe35a2f16c154008542b76a5bf38",
+              "contentHash": "2b0f31c0d485355576cac11968170bb9eb41c9076df5bb6659f93d0173286181",
+              "installationId": "fixture-installation",
+              "generation": 1
+            }
+          }
+        ],
+        "configures": 3,
+        "lastConfigure": {
+          "task": {
+            "taskId": "baidu.search.top3",
+            "version": "1.1.5",
+            "manifestHash": "f49e274aadfeed12540aff028ff267b3772ebe35a2f16c154008542b76a5bf38",
+            "contentHash": "2b0f31c0d485355576cac11968170bb9eb41c9076df5bb6659f93d0173286181",
+            "installationId": "fixture-installation",
+            "generation": 1
+          }
+        }
+      },
+      "dark": {
+        "theme": "dark",
+        "bg": "rgb(18, 28, 44)",
+        "error": true,
+        "width": 360
+      }
+    },
+    "reference": [
+      {
+        "width": 320,
+        "device": {
+          "x": 193.5,
+          "y": 103,
+          "w": 320,
+          "h": 650
+        },
+        "rows": [
+          {
+            "row": {
+              "x": 14,
+              "y": 256,
+              "w": 292,
+              "h": 51
+            },
+            "name": {
+              "x": 57,
+              "y": 265,
+              "w": 142.359375,
+              "h": 18
+            },
+            "actions": [
+              {
+                "x": 212,
+                "y": 266,
+                "w": 29,
+                "h": 31
+              },
+              {
+                "x": 241,
+                "y": 266,
+                "w": 29,
+                "h": 31
+              },
+              {
+                "x": 270,
+                "y": 266,
+                "w": 29,
+                "h": 31
+              }
+            ]
+          },
+          {
+            "row": {
+              "x": 14,
+              "y": 307,
+              "w": 292,
+              "h": 52
+            },
+            "name": {
+              "x": 57,
+              "y": 317,
+              "w": 139.8046875,
+              "h": 18
+            },
+            "actions": [
+              {
+                "x": 212,
+                "y": 318,
+                "w": 29,
+                "h": 31
+              },
+              {
+                "x": 241,
+                "y": 318,
+                "w": 29,
+                "h": 31
+              },
+              {
+                "x": 270,
+                "y": 318,
+                "w": 29,
+                "h": 31
+              }
+            ]
+          },
+          {
+            "row": {
+              "x": 14,
+              "y": 359,
+              "w": 292,
+              "h": 52
+            },
+            "name": {
+              "x": 57,
+              "y": 369,
+              "w": 96,
+              "h": 18
+            },
+            "actions": [
+              {
+                "x": 212,
+                "y": 370,
+                "w": 29,
+                "h": 31
+              },
+              {
+                "x": 241,
+                "y": 370,
+                "w": 29,
+                "h": 31
+              },
+              {
+                "x": 270,
+                "y": 370,
+                "w": 29,
+                "h": 31
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "width": 360,
+        "device": {
+          "x": 173.5,
+          "y": 103,
+          "w": 360,
+          "h": 650
+        },
+        "rows": [
+          {
+            "row": {
+              "x": 14,
+              "y": 256,
+              "w": 332,
+              "h": 51
+            },
+            "name": {
+              "x": 57,
+              "y": 265,
+              "w": 142.359375,
+              "h": 18
+            },
+            "actions": [
+              {
+                "x": 252,
+                "y": 266,
+                "w": 29,
+                "h": 31
+              },
+              {
+                "x": 281,
+                "y": 266,
+                "w": 29,
+                "h": 31
+              },
+              {
+                "x": 310,
+                "y": 266,
+                "w": 29,
+                "h": 31
+              }
+            ]
+          },
+          {
+            "row": {
+              "x": 14,
+              "y": 307,
+              "w": 332,
+              "h": 52
+            },
+            "name": {
+              "x": 57,
+              "y": 317,
+              "w": 139.8046875,
+              "h": 18
+            },
+            "actions": [
+              {
+                "x": 252,
+                "y": 318,
+                "w": 29,
+                "h": 31
+              },
+              {
+                "x": 281,
+                "y": 318,
+                "w": 29,
+                "h": 31
+              },
+              {
+                "x": 310,
+                "y": 318,
+                "w": 29,
+                "h": 31
+              }
+            ]
+          },
+          {
+            "row": {
+              "x": 14,
+              "y": 359,
+              "w": 332,
+              "h": 52
+            },
+            "name": {
+              "x": 57,
+              "y": 369,
+              "w": 96,
+              "h": 18
+            },
+            "actions": [
+              {
+                "x": 252,
+                "y": 370,
+                "w": 29,
+                "h": 31
+              },
+              {
+                "x": 281,
+                "y": 370,
+                "w": 29,
+                "h": 31
+              },
+              {
+                "x": 310,
+                "y": 370,
+                "w": 29,
+                "h": 31
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "width": 400,
+        "device": {
+          "x": 153.5,
+          "y": 103,
+          "w": 400,
+          "h": 650
+        },
+        "rows": [
+          {
+            "row": {
+              "x": 14,
+              "y": 256,
+              "w": 372,
+              "h": 51
+            },
+            "name": {
+              "x": 57,
+              "y": 265,
+              "w": 142.359375,
+              "h": 18
+            },
+            "actions": [
+              {
+                "x": 292,
+                "y": 266,
+                "w": 29,
+                "h": 31
+              },
+              {
+                "x": 321,
+                "y": 266,
+                "w": 29,
+                "h": 31
+              },
+              {
+                "x": 350,
+                "y": 266,
+                "w": 29,
+                "h": 31
+              }
+            ]
+          },
+          {
+            "row": {
+              "x": 14,
+              "y": 307,
+              "w": 372,
+              "h": 52
+            },
+            "name": {
+              "x": 57,
+              "y": 317,
+              "w": 139.8046875,
+              "h": 18
+            },
+            "actions": [
+              {
+                "x": 292,
+                "y": 318,
+                "w": 29,
+                "h": 31
+              },
+              {
+                "x": 321,
+                "y": 318,
+                "w": 29,
+                "h": 31
+              },
+              {
+                "x": 350,
+                "y": 318,
+                "w": 29,
+                "h": 31
+              }
+            ]
+          },
+          {
+            "row": {
+              "x": 14,
+              "y": 359,
+              "w": 372,
+              "h": 52
+            },
+            "name": {
+              "x": 57,
+              "y": 369,
+              "w": 96,
+              "h": 18
+            },
+            "actions": [
+              {
+                "x": 292,
+                "y": 370,
+                "w": 29,
+                "h": 31
+              },
+              {
+                "x": 321,
+                "y": 370,
+                "w": 29,
+                "h": 31
+              },
+              {
+                "x": 350,
+                "y": 370,
+                "w": 29,
+                "h": 31
+              }
+            ]
+          }
+        ]
+      }
+    ],
+    "alignment360": {
+      "referenceRows": [
+        51,
+        52
+      ],
+      "sourceRows": [
+        51,
+        52
+      ],
+      "referenceControls": [
+        29,
+        31
+      ],
+      "sourceControls": [
+        29,
+        31
+      ],
+      "nameFont": "12px/700",
+      "rowLeftDifference": 1,
+      "actionXDifference": 1,
+      "interpretation": "Script-row geometry only; reference has 3 mock rows and trusted host chrome, source fixture 2 real pinned tasks, real metadata and separate refresh/count. Absolute page y coordinates are not comparable."
+    },
+    "screenshots": [
+      {
+        "path": "artifacts/webflow-ui-alignment-r2/before-configure-error-360.png",
+        "sha256": "38a9787f82ebc97b861fb01a7db9dcb492e1949964fab8eba6f461a8383ae974",
+        "width": 360,
+        "height": 650
+      },
+      {
+        "path": "artifacts/webflow-ui-alignment-r2/source-scripts-320.png",
+        "sha256": "57ca79053f2caa31ffa503c8f0d1c722d85d71e35604d2b9d14d0c56e0724f7d",
+        "width": 320,
+        "height": 650
+      },
+      {
+        "path": "artifacts/webflow-ui-alignment-r2/source-scripts-360.png",
+        "sha256": "e0f613910cbbc2c73937ed81d3b83e17b4d835ccb4c205ebdc2b5b1f4e327f6b",
+        "width": 360,
+        "height": 650
+      },
+      {
+        "path": "artifacts/webflow-ui-alignment-r2/source-scripts-400.png",
+        "sha256": "bac323ab9e505cdfe64ca80b2d0e29fcfcef540ac12d286d41df6628afbbac3f",
+        "width": 400,
+        "height": 650
+      },
+      {
+        "path": "artifacts/webflow-ui-alignment-r2/source-busy-runtime-unknown-320.png",
+        "sha256": "55509894465685f9bf6601e9226584473b212291039aeac878038dc997b46722",
+        "width": 320,
+        "height": 650
+      },
+      {
+        "path": "artifacts/webflow-ui-alignment-r2/source-busy-runtime-unknown-360.png",
+        "sha256": "08acc0ed38a4b3b045cb16ae7575fccc429c5eed3d794da35b2e4969b506c066",
+        "width": 360,
+        "height": 650
+      },
+      {
+        "path": "artifacts/webflow-ui-alignment-r2/source-busy-runtime-unknown-400.png",
+        "sha256": "8a2306d7ca7a53e1d05c6496b3472e427217ebb9b0d8eb3519d7151a51615867",
+        "width": 400,
+        "height": 650
+      },
+      {
+        "path": "artifacts/webflow-ui-alignment-r2/source-original-record-360.png",
+        "sha256": "a6ab8ad09762959ccd55ff8c180cb86df453aa826f9208a953ebb87e6610d41f",
+        "width": 360,
+        "height": 650
+      },
+      {
+        "path": "artifacts/webflow-ui-alignment-r2/source-dark-360.png",
+        "sha256": "bd2b3cf56755833fef6ee39ca5abcf9530bd8cad02acb66d49a4dcfb1ec84e92",
+        "width": 360,
+        "height": 650
+      },
+      {
+        "path": "artifacts/webflow-ui-alignment-r2/reference-device-320.png",
+        "sha256": "9761fe9135e60279ffcadceb4dad8f8263237e6b53b0ac7a0a6ef76afdfb2336",
+        "width": 320,
+        "height": 650
+      },
+      {
+        "path": "artifacts/webflow-ui-alignment-r2/reference-device-360.png",
+        "sha256": "fc9121ab33d72763bdf245e7fe6fa801219220befdddb276f898410f9bbfc503",
+        "width": 360,
+        "height": 650
+      },
+      {
+        "path": "artifacts/webflow-ui-alignment-r2/reference-device-400.png",
+        "sha256": "ad710b5983ffedd32d0738166f8295a3c38025462d899af5e8e3b48d583ec94b",
+        "width": 400,
+        "height": 650
+      }
+    ],
+    "limitations": [
+      "Fixture screenshots include an explicit mock banner and an unrelated reading-toc overlay. These are not Web Flow UI elements or installed-candidate evidence.",
+      "Reference screenshots are 1 device pixel per CSS pixel after correcting initial DPR=2 captures.",
+      "The CFT compact-browser harness was updated in the prior handoff and syntax-checked only; not run by this task. Ego is the browser used."
+    ]
+  },
+  "runtime": {
+    "mode": "daily_development_contract",
+    "expectedPath": "/Users/shopme/Documents/workspace/opendesk-browser/dist/development",
+    "lastKnownWriterPids": [
+      85007,
+      85028
+    ],
+    "latestProcessObservation": "No npm run dev/scripts/dev.mjs writer found during final read-only check; prior PIDs absent. No service was stopped/restarted or replacement writer started by this task.",
+    "lastKnownAppliedRevision": "4393a5c08601cb440f041cda6dbbeb3ebbd0924004b5db19dc54796ddad8f0c0",
+    "connectionAndAppliedRevision": "NOT_REVERIFIED",
+    "actualLoadedPathAndNativePairing": "NOT_REVERIFIED"
+  },
+  "conditions": [
+    {
+      "id": "WFUI-01",
+      "result": "NOT_TESTED",
+      "evidence": "Source scripts compact in normal/runtime/busy/legacy UNKNOWN. Actual 0.3.39 overview/scripts/records not installed or compared."
+    },
+    {
+      "id": "WFUI-02",
+      "result": "NOT_TESTED",
+      "evidence": "SOURCE PASS at 360: rows 51/52; controls 29x31; name 12px/700; zero hover/focus geometry change. Installed candidate pending."
+    },
+    {
+      "id": "WFUI-03",
+      "result": "BLOCKED",
+      "evidence": "SOURCE/Node exact same six-field tasks.configure from name and play. Actual 0.3.37 returned E_TASK_BUSY; 0.3.39 installed entry not tested."
+    },
+    {
+      "id": "WFUI-04",
+      "result": "BLOCKED",
+      "evidence": "Real shared sheet form/JSON/draft unverified because original foreign preparation remains occupied."
+    },
+    {
+      "id": "WFUI-05",
+      "result": "BLOCKED",
+      "evidence": "SOURCE zero starts and zero pending writes when configuring. Real shared save/readback chain not verified."
+    },
+    {
+      "id": "WFUI-06",
+      "result": "BLOCKED",
+      "evidence": "Node rapid configure dedup passes. Real preparation admission/Run/Result chain not verified; never replay original."
+    },
+    {
+      "id": "WFUI-07",
+      "result": "NOT_TESTED",
+      "evidence": "SOURCE/Node original UNKNOWN lookup/stop keeps ID; source starts=0, preparation writes=0. Actual original record was preserved, no cancel or replay. New installed recovery pending."
+    },
+    {
+      "id": "WFUI-08",
+      "result": "NOT_TESTED",
+      "evidence": "Node exact pins/unavailable/changed/revocation fail-closed retained. Actual installed candidate changes not exercised."
+    },
+    {
+      "id": "WFUI-09",
+      "result": "NOT_TESTED",
+      "evidence": "SOURCE search hides target; error inspection clears filter and shows correct script. Source menu and details tested; actual candidate pending."
+    },
+    {
+      "id": "WFUI-10",
+      "result": "NOT_TESTED",
+      "evidence": "Node old Host header-event navigation tests retained; source preferences/theme applies. Native extension-center and actual candidate help/settings pending."
+    },
+    {
+      "id": "WFUI-11",
+      "result": "NOT_TESTED",
+      "evidence": "SOURCE 320/360/400x650 viewport: no horizontal overflow, menu receives hits above adjacent row; busy disclosure 28px. Fixture has its own banner and is not the native Side Panel height chain. Long list/native sheet pending."
+    },
+    {
+      "id": "WFUI-12",
+      "result": "NOT_TESTED",
+      "evidence": "SOURCE Escape closes task details and restores more focus at all 3 widths. Node records/filter recovery tests pass. Native Side Panel, sheet modality and real IME not tested."
+    },
+    {
+      "id": "WFUI-13",
+      "result": "NOT_TESTED",
+      "evidence": "Node busy and unrelated error preservation passes. SOURCE changing/saving dark preference does not clear configuration error. Actual candidate/Host toast and late reply interactions pending."
+    }
+  ],
+  "next": [
+    "Use real extension center import/review to update 0.3.39 after native UI resource becomes available; read installed version/SHA back.",
+    "Compare actual new candidate at 320/360/400x650, light/dark and real runtime/UNKNOWN/busy states; do not substitute source fixture.",
+    "Original preparation owner must lawfully reconcile its own record. Do not cancel, clear, replay or change identity to open a new sheet.",
+    "Then verify real shared form/JSON/save/readback/single confirm/Run/Result and remaining applicable WFUI checks."
+  ],
+  "deferred": [
+    "Root CI/full test suite",
+    "Production candidate/acceptance",
+    "Independent scores",
+    "Historical R11 A/B/delivery recovery",
+    "Model/provider changes"
+  ],
+  "delivery": {
+    "branch": "main",
+    "commit": "Commit containing this evidence; no push",
+    "scope": "Only explicit projects/webflow task files, preserving unrelated working-tree edits."
+  },
+  "cleanup": {
+    "ego": "TaskSpace 31 finished with keep:[]; own pages released",
+    "fixture": "Own fixture PID 50945 stopped with SIGTERM",
+    "nativeUiLock": "Not owned, stolen or released by this task",
+    "sharedServices": "Not stopped/restarted/replaced by this task"
+  },
+  "review": {
+    "initial": "Two MEDIUM findings reproduced by regression tests",
+    "final": "Both fixed; independent read-only second review found no new mandatory fixes",
+    "secondReviewTests": "2/2 PASS; real focus and installed execution not verified by reviewer"
+  }
+}

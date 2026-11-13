@@ -61,7 +61,7 @@ async function mount(t,{saved,history,configure,metadata=manifest,readError=fals
   await React.act(async()=>{vm.runInContext(source('model.js'),context);vm.runInContext(source('main.js'),context);});
   t.after(async()=>{await React.act(async()=>roots.forEach(root=>root.unmount()));assert.deepEqual(errors,[]);});
   const find=(name,scope=document)=>{
-    const matches=[...scope.querySelectorAll('button')].filter(node=>(node.getAttribute('aria-label')||node.textContent)===name);
+    const matches=[...scope.querySelectorAll('button')].filter(node=>(node.getAttribute('aria-label')===name||node.textContent===name));
     assert.equal(matches.length,1,'unique control: '+name);return matches[0];
   };
   const click=async(name,scope)=>{
@@ -81,7 +81,7 @@ const assertNoDispatch=f=>assert.equal(f.calls.some(call=>['tasks.start','tasks.
 test('play calls UI-only configure synchronously with the exact six-field installed pin, without preparing or executing',async t=>{
   const f=await mount(t);
   assert.match(f.row().textContent,/真实任务标题/);
-  assert.match(f.row().textContent,/参数 4 项/);
+  assert.equal(f.row().querySelector('.wf-task-secondary'),null);
   assert.equal(f.row().querySelector('.wf-primary').disabled,false,'unavailable current page does not block opening UI');
   const before=f.calls.length;
   await f.click(f.row().querySelector('.wf-primary'));
@@ -93,29 +93,34 @@ test('play calls UI-only configure synchronously with the exact six-field instal
   assert.doesNotMatch(f.text(),/保存运行步骤|确认手动运行|最多返回 3 条/);
 });
 
-test('details show manifest metadata without hashes or installation IDs and preserve ARIA and close focus handling',async t=>{
+test('more details keep metadata and folded technical identity, preserve ARIA and return focus to more',async t=>{
   const f=await mount(t);
   const title=f.row().querySelector('.wf-task-name');
-  let focusCount=0;title.focus=()=>focusCount++;
-  await f.click(title);
-  const details=f.document.getElementById(title.getAttribute('aria-controls'));
+  const more=f.row().querySelector('[data-wf-more]');
+  let focusCount=0;more.focus=()=>focusCount++;
+  await f.click(more);await f.click('查看详情',f.row());
+  const details=f.row().querySelector('.wf-task-detail');
   assert.ok(details);
-  assert.equal(title.getAttribute('aria-expanded'),'true');
+  assert.equal(title.getAttribute('aria-haspopup'),'dialog');
   assert.match(details.textContent,/来自已安装任务的说明/);
   assert.match(details.textContent,/https:\/\/example.test/);
   assert.match(details.textContent,/参数 4 项/);
   assert.ok(f.document.getElementById(details.getAttribute('aria-describedby')));
-  for(const value of [task.taskId,task.manifestHash,task.contentHash,task.installationId])
+  const technical=details.querySelector('details');
+  assert.equal(technical.hasAttribute('open'),false);
+  assert.match(technical.textContent,/Task ID/);
+  assert.ok(technical.textContent.includes(task.taskId));
+  for(const value of [task.manifestHash,task.contentHash,task.installationId])
     assert.equal(details.textContent.includes(value),false);
   await f.click('收起详情',f.row());
-  assert.equal(title.getAttribute('aria-expanded'),'false');
+  assert.equal(f.row().querySelector('.wf-task-detail'),null);
   assert.equal(focusCount,1);
-  await f.click(title);
+  await f.click(more);await f.click('查看详情',f.row());
   await React.act(async()=>{
     const event=new f.window.Event('keydown',{bubbles:true});event.key='Escape';
     title.dispatchEvent(event);
   });
-  assert.equal(title.getAttribute('aria-expanded'),'false');
+  assert.equal(f.row().querySelector('.wf-task-detail'),null);
   assert.equal(focusCount,2,'Escape also restores focus');
   assertNoDispatch(f);
 });
@@ -146,6 +151,38 @@ test('configure rejection or missing Host support keeps the consumer open and ne
   }
 });
 
+test('busy configuration keeps the complete safe reason readable and opens only the affected script information without replay',async t=>{
+  const message='原准备仍占用：请只核对原请求；关闭配置提示不能取消准备。<原始原因>&正文结尾';
+  const f=await mount(t,{saved:pending,history:[recent],configure:()=>Promise.reject(
+    Object.assign(Error(message),{code:'E_TASK_BUSY'}))});
+  const affected=f.document.querySelectorAll('article')[1];
+  await f.click(affected.querySelector('.wf-primary'));
+  const feedback=f.document.querySelector('.wf-configure-feedback');
+  assert.ok(feedback,'configuration error is a compact disclosure');
+  assert.equal(feedback.hasAttribute('open'),false);
+  assert.equal(feedback.querySelector('summary [role="alert"]').textContent,'运行配置未打开');
+  const main=f.document.querySelector('main');
+  const order=[...main.querySelectorAll('*')];
+  assert.ok(order.indexOf(main.querySelector('#wf-search'))<order.indexOf(feedback),'feedback follows search');
+  assert.match(feedback.previousElementSibling.textContent,/个固定脚本/);
+  assert.ok(order.indexOf(feedback)<order.indexOf(f.row()),'feedback precedes rows');
+  // linkedom does not implement native summary activation; expose the body
+  // while exercising its real React action handlers below.
+  feedback.setAttribute('open','');
+  assert.ok(feedback.textContent.includes('E_TASK_BUSY：'+message),'full safeError survives as text');
+  assert.equal(feedback.querySelector('原始原因'),null,'error text cannot become markup');
+  await f.click('查看脚本信息',feedback);
+  assert.ok(affected.querySelector('.wf-task-detail'));
+  assert.equal(f.row().querySelector('.wf-task-detail'),null,'taskId routes inspection to the affected script');
+  assert.equal(f.calls.filter(call=>call.name==='tasks.configure').length,1,'inspection never retries configuration');
+  await f.click('关闭配置错误');
+  assert.equal(feedback.isConnected,false);
+  assert.equal(affected.querySelector('.wf-task-detail')!==null,true,'dismissing error preserves inspection');
+  assert.deepEqual(f.store.get('webflow.pending.v1'),pending);
+  assert.equal(f.calls.some(call=>['tasks.prepare','tasks.stop','storage.set'].includes(call.name)),false);
+  assertNoDispatch(f);
+});
+
 test('rapid duplicate clicks cannot open overlapping configure requests',async t=>{
   let resolve;
   const held=new Promise(done=>{resolve=done;});
@@ -157,6 +194,35 @@ test('rapid duplicate clicks cannot open overlapping configure requests',async t
   assertNoDispatch(f);
 });
 
+test('original-run configuration failure stays visible on records and can inspect its script without replay',async t=>{
+  const preparation={preparationId:'original-unknown-preparation',task,state:'unknown',settled:false};
+  const f=await mount(t,{preparations:[preparation],configure:()=>Promise.reject(
+    Object.assign(Error('原准备仍占用，请核对原入口'),{code:'E_TASK_BUSY'}))});
+  await f.click('记录');await f.click('查看原运行');
+  const feedback=f.document.querySelector('.wf-configure-feedback');
+  assert.ok(feedback,'records keep their own configuration error visible');
+  assert.ok(feedback.textContent.includes('E_TASK_BUSY：原准备仍占用，请核对原入口'));
+  assert.equal(f.document.querySelector('main').getAttribute('aria-label'),'记录');
+  await f.click('查看脚本信息',feedback);
+  assert.equal(f.document.querySelector('main').getAttribute('aria-label'),'脚本');
+  assert.ok(f.row().querySelector('.wf-task-detail'));
+  assert.equal(f.calls.filter(call=>call.name==='tasks.configure').length,1);
+  assert.deepEqual(f.calls.find(call=>call.name==='tasks.configure').args,{task,preparationId:preparation.preparationId});
+  assertNoDispatch(f);
+});
+
+test('configuration-error inspection reveals the affected script after filtering it out',async t=>{
+  const f=await mount(t,{configure:()=>Promise.reject(Error('busy'))});
+  await f.click(f.row().querySelector('.wf-primary'));
+  await f.click('筛选脚本');await f.click('收藏');
+  assert.equal(f.document.querySelectorAll('article').length,0);
+  await f.click('查看脚本信息');
+  assert.ok(f.row(),'inspection makes the affected task visible');
+  assert.ok(f.row().querySelector('.wf-task-detail'));
+  assert.equal(f.calls.filter(call=>call.name==='tasks.configure').length,1);
+  assertNoDispatch(f);
+});
+
 test('legacy UNKNOWN preserves its historical ID and permits UI-only configure and original read/stop without dispatch',async t=>{
   const f=await mount(t,{saved:pending,history:[recent]});
   assert.deepEqual(f.store.get('webflow.pending.v1'),pending);
@@ -164,9 +230,12 @@ test('legacy UNKNOWN preserves its historical ID and permits UI-only configure a
   await f.click(f.row().querySelector('.wf-primary'));
   assert.equal(taskCalls(f).filter(call=>call.name==='tasks.configure').length,1);
   assert.equal(f.text().includes(pending.clientRequestId),false,'scripts show compact recovery rather than diagnostics');
+  assert.equal([...f.document.querySelectorAll('button')].some(node=>node.textContent==='查询原请求'),false);
+  const indicator=f.document.querySelector('[data-page="history"]');
+  assert.match(indicator?.getAttribute('aria-label')||'',/原请求.*待核对/);
+  await f.click('记录');
   await f.click('查询原请求');
   assert.deepEqual(f.store.get('webflow.pending.v1'),pending,'UNKNOWN does not clear or rewrite pending');
-  await f.click('查看记录');
   assert.ok(f.text().includes(pending.clientRequestId));
   assert.ok(f.text().includes(recent.runId));
   assert.ok(f.text().includes(recent.resultId));
@@ -182,7 +251,7 @@ test('legacy UNKNOWN preserves its historical ID and permits UI-only configure a
 test('older history-only UNKNOWN recovers the same locator without replay',async t=>{
   const f=await mount(t,{history:[recent]});
   assert.equal(f.row().querySelector('.wf-primary').disabled,false);
-  await f.click('查询原请求');
+  await f.click('记录');await f.click('查询原请求');
   assert.equal(f.store.get('webflow.pending.v1').clientRequestId,recent.clientRequestId);
   assert.equal(f.store.get('webflow.recent.v1')[0].runId,recent.runId);
   assertNoDispatch(f);
@@ -201,6 +270,7 @@ test('recovery failure does not block UI-only configure; removed installation st
 
 test('missing schema is unknown, and metadata counts arbitrary schema fields rather than search-specific parameters',async t=>{
   const f=await mount(t,{metadata:{title:'没有参数资料'}});
+  await f.click(f.row().querySelector('[data-wf-more]'));await f.click('查看详情',f.row());
   assert.match(f.row().textContent,/参数待核对/);
   const model=f.context.OpenDeskWebFlowModel;
   assert.equal(model.taskMetadata({paramsSchema:{type:'object',properties:{}}}).parameterCount,0);
@@ -216,7 +286,7 @@ test('configuration success, synchronous failure and rejection preserve the unre
     const original=f.document.querySelector('[role="alert"]').textContent;
     await f.click(f.row().querySelector('.wf-primary'));
     assert.equal(f.document.querySelector('[role="alert"]').textContent,original);
-    const close=[...f.document.querySelectorAll('button')].find(node=>node.textContent==='关闭配置提示');
+    const close=f.document.querySelector('[aria-label="关闭配置错误"]');
     if(close){await f.click(close);assert.equal(f.document.querySelector('[role="alert"]').textContent,original);}
     assertNoDispatch(f);
   }
@@ -225,6 +295,7 @@ test('configuration success, synchronous failure and rejection preserve the unre
 test('runtimeCurrent false preserves real schema metadata and opens configuration without claiming availability',async t=>{
   const f=await mount(t,{runtimeCurrent:false});
   assert.match(f.row().textContent,/待重新验证/);
+  await f.click(f.row().querySelector('[data-wf-more]'));await f.click('查看详情',f.row());
   assert.match(f.row().textContent,/参数 4 项/);
   assert.doesNotMatch(f.row().textContent,/可手动运行/);
   await f.click(f.row().querySelector('.wf-primary'));

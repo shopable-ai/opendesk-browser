@@ -33,11 +33,14 @@
       chevron:'m8 5 7 7-7 7',
       help:'M9 9a3 3 0 0 1 6 1c0 2-3 2-3 4 M12 17v.5 M12 21a9 9 0 1 0 0-18a9 9 0 0 0 0 18',
       settings:'M4 7h7m4 0h5M4 17h3m4 0h9 M15 7a2 2 0 1 0-4 0 2 2 0 0 0 4 0 M11 17a2 2 0 1 0-4 0 2 2 0 0 0 4 0',
+      close:'M6 6l12 12M18 6 6 18',
       plus:'M12 5v14 M5 12h14'
     };
     return h('svg',{viewBox:'0 0 24 24',width:17,height:17,fill:filled?'currentColor':'none',
       stroke:'currentColor',strokeWidth:1.8,strokeLinecap:'round',strokeLinejoin:'round',
-      'aria-hidden':'true',focusable:'false'},h('path',{d:paths[name]||paths.chevron}));
+      'aria-hidden':'true',focusable:'false'},name==='more'?
+        [5,12,19].map(cx=>h('circle',{key:cx,cx,cy:12,r:1.2})):
+        h('path',{d:paths[name]||paths.chevron}));
   };
   const labels={checking:'正在核验',available:'可手动运行',unavailable:'任务不可用',
     missing:'尚未安装',removed:'已卸载',disabled:'已停用',initialization:'初始化失败',
@@ -85,7 +88,7 @@
     const [loading,setLoading]=R.useState(true);
     const [pageInfo,setPageInfo]=R.useState({status:'unavailable'});
     const [error,setError]=R.useState('');
-    const [configureError,setConfigureError]=R.useState('');
+    const [configureError,setConfigureError]=R.useState(null);
     const [notice,setNotice]=R.useState('');
     const [feedback,setFeedback]=R.useState('');
     const [search,setSearch]=R.useState('');
@@ -327,7 +330,9 @@
           if(!child)returnTab.current=page;
           setPage('settings');setNotice('');
         }
-        else if(actions&&info?.action==='header'&&info.page===view&&
+        // Host validates the page before its private-port dispatch, which may
+        // omit page from the presentation event. Still reject an explicit stale page.
+        else if(actions&&info?.action==='header'&&(info.page===undefined||info.page===view)&&
           (info.actionId==='help'||!settingsEntry&&info.actionId==='settings')){
           if(!child)returnTab.current=page;
           setPage(info.actionId);setNotice('');
@@ -498,15 +503,16 @@
     const configure=(pin,preparationId)=>{
       if(runReason(pin)||taskReadPending.current||configuring.current)return;
       if(preparationId!==undefined&&!pin.preparations?.some(record=>record.preparationId===preparationId))return;
-      configuring.current=true;setConfigureError('');
+      configuring.current=true;setConfigureError(null);
+      const failed=e=>{
+        if(alive.current)setConfigureError({taskId:pin.taskId,message:safeError(e)});
+      };
       try{
         const opened=preparationId===undefined?request('tasks.configure',{task:pin.binding}):
           request('tasks.configure',{task:pin.binding,preparationId});
         setMore(null);
-        void Promise.resolve(opened).catch(e=>{
-          if(alive.current)setConfigureError('运行配置未打开：'+safeError(e));
-        }).finally(()=>{configuring.current=false;});
-      }catch(e){configuring.current=false;if(alive.current)setConfigureError('运行配置未打开：'+safeError(e));}
+        void Promise.resolve(opened).catch(failed).finally(()=>{configuring.current=false;});
+      }catch(e){configuring.current=false;failed(e);}
     };
     const readOriginal=(entry)=>{
       const pin=PINNED.find(p=>p.taskId===entry?.taskId),id=entry?.clientRequestId;
@@ -627,8 +633,8 @@ Web Flow 当前仅有安装包中已审阅的固定 delegatedTasks；不得自�
       !pin.binding?'固定安装身份未取得':'';
     const inspect=pin=>{
       const fromMenu=more===pin.taskId;
-      setDetail(detail===pin.taskId?null:pin.taskId);setMore(null);
-      if(fromMenu)global.queueMicrotask(()=>tool.root.querySelector('[data-wf-task-name="'+pin.taskId+'"]')?.focus());
+      setDetail(!fromMenu&&detail===pin.taskId?null:pin.taskId);setMore(null);
+      if(fromMenu)global.queueMicrotask(()=>tool.root.querySelector('[data-wf-detail-close="'+pin.taskId+'"]')?.focus());
     };
 
     const detailList=items=>h('dl',{className:'wf-detail'},...items.flatMap(([k,v])=>
@@ -640,7 +646,7 @@ Web Flow 当前仅有安装包中已审阅的固定 delegatedTasks；不得自�
         tool.root.querySelector('[data-wf-more="'+pin.taskId+'"]')?.focus());
       const closeDetails=()=>{
         setDetail(null);
-        global.queueMicrotask(()=>tool.root.querySelector('[data-wf-task-name="'+pin.taskId+'"]')?.focus());
+        focusMore();
       };
       return h('article',{key:pin.taskId,className:'wf-task-row','data-menu-open':more===pin.taskId,
         onKeyDown:e=>{
@@ -650,16 +656,15 @@ Web Flow 当前仅有安装包中已审阅的固定 delegatedTasks；不得自�
         },
         onBlur:e=>{if(more===pin.taskId&&!e.currentTarget.contains(e.relatedTarget))setMore(null);}},
         h('div',{className:'wf-task-main'},
-          h('span',{className:'wf-task-icon','aria-hidden':'true'},pin.icon),
+          h('span',{className:'wf-task-icon','aria-hidden':'true'},Icon('search')),
           h('div',{className:'wf-task-info'},
             h('button',{type:'button',className:'wf-task-name',title:pin.title,'data-wf-task-name':pin.taskId,
-              'aria-expanded':expanded,'aria-controls':'wf-details-'+pin.taskId,onClick:()=>inspect(pin)},pin.title),
+              'aria-haspopup':reason?undefined:'dialog',
+              'aria-expanded':reason?expanded:undefined,'aria-controls':reason?'wf-details-'+pin.taskId:undefined,
+              onClick:()=>reason?inspect(pin):configure(pin)},pin.title),
             h('div',{className:'wf-task-meta'},
               h('span',{className:'wf-truncate',title:pin.site},pin.site.replace('https://','')),
-              h(Status,{state:pin.state})),
-            h('div',{className:'wf-task-secondary'},
-              h('span',null,pin.parameterCount==null?'参数待核对':'参数 '+pin.parameterCount+' 项'),
-              h('span',null,'手动 · 双阶段确认'))),
+              h(Status,{state:pin.state}))),
           h('div',{className:'wf-item-buttons'},
             Btn(Icon('star',star),()=>toggleFavorite(pin),{key:'fav-'+pin.taskId,icon:true,shortcut:true,
               disabled:saving,title:star?'取消收藏':'收藏',
@@ -679,20 +684,23 @@ Web Flow 当前仅有安装包中已审阅的固定 delegatedTasks；不得自�
                 h('button',{type:'button',onClick:()=>inspect(pin)},'查看详情'),
                 h('button',{type:'button',disabled:saving,onClick:()=>{
                   setMore(null);void toggleFavorite(pin);}},star?'取消收藏':'收藏脚本'),
-                pin.state==='available'&&h('button',{type:'button',
-                  onClick:()=>{setMore(null);openTask(pin);}},'宿主管理'))))),
-        pin.error&&h('p',{className:'wf-sub wf-row-error',role:'status'},pin.error),
-        ['missing','removed','initialization','disabled','changed','runtime'].includes(pin.state)&&
-          h('div',{className:'wf-actions'},
-            Btn(['disabled','runtime'].includes(pin.state)?'打开任务管理':'打开安装审阅',()=>openTask(pin)),
-            pin.state==='initialization'&&Btn('重试初始化',()=>{void readTasks();},{disabled:loading})),
+                pin.state!=='checking'&&h('button',{type:'button',
+                  onClick:()=>{setMore(null);openTask(pin);}},
+                  ['missing','removed','initialization','changed'].includes(pin.state)?'安装审阅':'宿主管理'))))),
         expanded&&h('div',{id:'wf-details-'+pin.taskId,className:'wf-task-detail wf-stack',
           'aria-label':pin.title+' 详情','aria-describedby':'wf-description-'+pin.taskId},
-          h('strong',null,pin.title),
+          h('div',{className:'wf-task-detail-heading'},h('strong',null,'脚本信息'),
+            h('button',{type:'button',className:'wf-btn wf-icon wf-quiet',title:'收起详情',
+              'aria-label':'收起详情','data-wf-detail-close':pin.taskId,onClick:closeDetails},Icon('close'))),
           h('p',{id:'wf-description-'+pin.taskId,className:'wf-sub'},pin.description||'任务说明待核对'),
+          (pin.error||reason||pin.state==='runtime')&&h('p',{className:'wf-sub',role:'status'},
+            pin.error||reason||'待重新验证：请在宿主管理中核对当前脚本。'),
+          pin.state==='initialization'&&Btn('重试初始化',()=>{void readTasks();},{disabled:loading}),
           h('p',{className:'wf-sub'},'网站：'+(pin.siteOrigins?.join(' · ')||pin.site)),
           h('p',{className:'wf-sub'},pin.parameterCount==null?'参数待核对':'参数 '+pin.parameterCount+' 项；在可信运行配置中编辑'),
-          Btn('收起详情',closeDetails,{quiet:true}))
+          h('details',{className:'wf-task-technical'},h('summary',null,'技术信息'),
+            detailList([['Task ID',pin.taskId],['版本',pin.version]]),
+            pin.state==='initialization'&&pin.diagnostic&&h('p',{className:'wf-sub'},pin.diagnostic)))
       );
     };
     const historyCard=(entry,index,compact=false)=>h('li',{key:entry.clientRequestId+'-'+index,className:'wf-record-row'},
@@ -892,6 +900,26 @@ Web Flow 当前仅有安装包中已审阅的固定 delegatedTasks；不得自�
           if(e.key==='Escape'&&!e.isComposing){e.stopPropagation();e.preventDefault();closeScriptAdd();}
         }},header,content);
     }
+    function configureFeedback(){
+      return configureError&&h('details',{className:'wf-configure-feedback'},
+        h('summary',null,h('span',{role:'alert',title:configureError.message},'运行配置未打开'),
+          h('span',{className:'wf-sub'},'查看原因')),
+        h('div',{className:'wf-stack'},
+          h('p',{className:'wf-sub'},configureError.message),
+          h('div',{className:'wf-line wf-between'},
+            Btn('查看脚本信息',()=>{
+              setTab('scripts');setSearch('');setFilter('all');setDetail(configureError.taskId);
+              global.queueMicrotask(()=>
+                (tool.root.querySelector('[data-wf-detail-close="'+configureError.taskId+'"]')||
+                  tool.root.querySelector('#wf-panel'))?.focus());
+            },{quiet:true}),
+            Btn(Icon('close'),()=>{
+              const id=configureError.taskId;setConfigureError(null);
+              global.queueMicrotask(()=>
+                (tool.root.querySelector('[data-wf-task-name="'+id+'"]')||
+                  tool.root.querySelector('#wf-panel'))?.focus());
+            },{quiet:true,icon:true,ariaLabel:'关闭配置错误',title:'关闭配置错误'}))));
+    }
     function scripts(){
       return h('div',{className:'wf-stack'},
         h('div',{className:'wf-search-row'},
@@ -923,6 +951,7 @@ Web Flow 当前仅有安装包中已审阅的固定 delegatedTasks；不得自�
                  h('option',{value:'name'},'按名称'))))),
         scriptAdd&&scriptOnboarding(),
         h('p',{className:'wf-sub'},rows.length+' / '+tasks.length+' 个固定脚本'),
+        configureFeedback(),
         rows.length?h('div',{className:'wf-task-list'},...rows.map(taskCard)):
           h(Card,{extra:'wf-empty',children:[
             h('strong',{key:'empty'},'没有匹配的固定任务'),
@@ -933,6 +962,7 @@ Web Flow 当前仅有安装包中已审阅的固定 delegatedTasks；不得自�
     }
     function records(){
       return h('div',{className:'wf-stack'},
+        configureFeedback(),
         h('p',{className:'wf-sub'},'共享运行引用来自宿主；历史手动记录仅为原请求摘要，不是当前结果。'),
         ...tasks.flatMap(pin=>(pin.preparations||[]).map(entry=>
           h(Card,{key:entry.preparationId,children:h('div',{className:'wf-stack'},
@@ -1041,7 +1071,8 @@ Web Flow 当前仅有安装包中已审阅的固定 delegatedTasks；不得自�
               else return;
               event.preventDefault();setTab(steps[index]);
               global.queueMicrotask(()=>tool.root.querySelector('[data-page="'+steps[index]+'"]')?.focus());
-            }},label))),
+            },'aria-label':key==='history'&&active&&activeRef.current?'记录，有原请求待核对':undefined},
+            label,key==='history'&&active&&activeRef.current&&h('span',{className:'wf-tab-dot','aria-hidden':true})))),
         !hostNavigation.actions&&h('div',{className:'wf-head-actions',role:'group','aria-label':'帮助与偏好'},
           Btn(h(R.Fragment,null,Icon('help'),h('span',null,'帮助')),()=>setTab('help'),
             {key:'help',quiet:true,ariaLabel:'帮助',title:'帮助与使用说明',controls:'wf-panel',
@@ -1053,16 +1084,11 @@ Web Flow 当前仅有安装包中已审阅的固定 delegatedTasks；不得自�
         'aria-label':({overview:'概览',scripts:'脚本',history:'记录',md:'Markdown 任务队列',settings:'Web Flow 设置',help:'帮助'})[page],tabIndex:0},
         error&&h('div',{className:'wf-banner wf-warning',role:'alert'},
           h('p',null,error),Btn('关闭提示',()=>setError(''),{quiet:true})),
-        configureError&&h('div',{className:'wf-banner wf-warning',role:'alert'},
-          h('p',null,configureError),Btn('关闭配置提示',()=>setConfigureError(''),{quiet:true})),
         notice&&h('div',{className:'wf-banner',role:'status'},
           h('p',null,notice),Btn('×',()=>setNotice(''),
             {quiet:true,icon:true,ariaLabel:'关闭状态提示',title:'关闭状态提示'})),
         feedback&&h('div',{className:'wf-banner','data-wf-feedback':'fallback',role:'status'},
           h('p',null,feedback)),
-        page==='scripts'&&active&&activeRef.current&&h('div',{className:'wf-banner wf-line wf-between',role:'status'},
-          h('span',null,'有原请求待核对；只能查询或停止。'),
-          Btn('查询原请求',readActive),Btn('查看记录',()=>setTab('history'),{quiet:true})),
         sections[page]()));
   }
   function businessLabel(value){

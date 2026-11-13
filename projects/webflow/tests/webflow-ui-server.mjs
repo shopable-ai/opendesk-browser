@@ -43,7 +43,7 @@ document.getElementById('task-unavailable').onclick=()=>fetch('/control/task-una
 document.getElementById('task-restored').onclick=()=>fetch('/control/task-restored',{method:'POST'});
 setInterval(async()=>{const s=await (await fetch('/counts')).json();document.getElementById('calls').textContent=
  '模拟派发次数：'+s.starts+' · 原请求 ID：'+(s.clientRequestId||'无');},400);`;
-let revoked=false,taskUnavailable=false;
+let revoked=false,taskUnavailable=false,configureBusy=false,runtimeCurrent=true;
 const server=createServer(async(req,res)=>{
  const json=(value,status=200)=>{res.writeHead(status,{'Content-Type':'application/json'});res.end(JSON.stringify(value));};
  try{
@@ -54,6 +54,8 @@ const server=createServer(async(req,res)=>{
   if(files[req.url]){res.writeHead(200,{'Content-Type':req.url.endsWith('.css')?'text/css':'text/javascript'});
    res.end(sources.get(req.url));return;}
   if(req.url==='/counts'){json({starts:calls.filter(c=>c.name==='tasks.start').length,
+   originalReads:calls.filter(c=>c.name==='tasks.read'&&c.args.clientRequestId).length,
+   originalStops:calls.filter(c=>c.name==='tasks.stop').length,
    preparations:calls.filter(c=>c.name==='storage.set'&&c.args.key==='webflow.pending.v1').length,
    configurations:calls.filter(c=>c.name==='tasks.configure').map(c=>c.args),
    configures:calls.filter(c=>c.name==='tasks.configure').length,
@@ -63,6 +65,15 @@ const server=createServer(async(req,res)=>{
   if(req.url==='/control/revoked'&&req.method==='POST'){revoked=true;json({});return;}
   if(req.url==='/control/task-unavailable'&&req.method==='POST'){taskUnavailable=true;json({});return;}
   if(req.url==='/control/task-restored'&&req.method==='POST'){taskUnavailable=false;json({});return;}
+  if(req.url==='/control/configure-busy'&&req.method==='POST'){configureBusy=true;json({});return;}
+  if(req.url==='/control/runtime-stale'&&req.method==='POST'){runtimeCurrent=false;json({});return;}
+  if(req.url==='/control/pending-unknown'&&req.method==='POST'){
+   const pin=config.delegatedTasks[0];
+   store.set('webflow.pending.v1',{clientRequestId:'webflow:fixture-original-never-replay',
+    taskId:pin.taskId,version:pin.version,task:{...pin,installationId:'fixture-installation',generation:1},
+    params:{query:'fixture original query',limit:3,showExecutionTab:false},at:100});
+   json({});return;
+  }
   if(req.url==='/sdk'&&req.method==='POST'){
    let input='';for await(const chunk of req)input+=chunk;
    const {name,args}=JSON.parse(input);calls.push({name,args});
@@ -78,7 +89,7 @@ const server=createServer(async(req,res)=>{
      json({code:'E_PERMISSION',message:'Task is disabled or not installed'},403);return;
     }
     json({task:{...pin,installationId:'fixture-installation',generation:1},
-     manifest:taskPackages.get(args.taskId)?.manifest});return;}
+     manifest:taskPackages.get(args.taskId)?.manifest,runtimeCurrent});return;}
    // Transport receipt only: this fixture does not render or implement Host UI.
    if(name==='tasks.configure'){
     const task=args?.task,pin=config.delegatedTasks.find(p=>p.taskId===task?.taskId);
@@ -86,6 +97,7 @@ const server=createServer(async(req,res)=>{
       Object.keys(task).length!==6||
       !['taskId','version','manifestHash','contentHash'].every(key=>task[key]===pin[key])||
       task.installationId!=='fixture-installation'||task.generation!==1){json({code:'E_SCHEMA'},400);return;}
+    if(configureBusy){json({code:'E_TASK_BUSY',message:'已有其他任务或应用身份的准备占用；请从原入口查询或取消，不能确认执行。组件夹具仅模拟已观察到的 busy 原因，不代表真实安装。'},409);return;}
     json({opened:true});return;
    }
    if(name==='tasks.start'){

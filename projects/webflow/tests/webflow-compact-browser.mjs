@@ -234,6 +234,8 @@ try{
     assert.ok(await evaluate('[...document.querySelectorAll(".wf-icon")].every(e=>e.getAttribute("aria-label")&&e.title)'),
       'Icon controls expose names and native title hints');
     await assertLayout(width,'Scripts');
+    assert.equal(await evaluate('[...document.querySelectorAll(".wf-task-main")].some(e=>/参数.*项|双阶段/.test(e.textContent))'),false,
+      'default list does not repeat configuration/detail summaries');
     await screenshot('scripts-'+width);
     // R1 onboarding is source UI-only and MUST NOT call the trusted Run Host.
     const beforeOnboarding=await (await fetch(fixtureUrl+'/counts')).json();
@@ -273,26 +275,39 @@ try{
     await filterBy(1);
     const nameOrder=await evaluate('[...document.querySelectorAll(".wf-task-name")].map(e=>e.dataset.wfTaskName)');
     const favoriteMenu='[data-wf-menu="'+nameOrder[1]+'"]';
-    // The row's shortcut actions are intentionally hidden until a real pointer
-    // hover or keyboard focus. The native fixture must reveal them first.
-    const hoverPoint=await evaluate('(()=>{const row=document.querySelector(".wf-task-row:nth-child(2)");'+
-      'row.scrollIntoView({block:"nearest"});const b=row.querySelector(".wf-task-name").getBoundingClientRect();'+
-      'return {x:b.left+b.width/2,y:b.top+b.height/2}})()');
-    await cdp('Input.dispatchMouseEvent',{type:'mouseMoved',x:hoverPoint.x,y:hoverPoint.y});
-    // Headless Linux can report hover:none/pointer:coarse even after CDP mouseMoved.
-    // In that real input mode shortcuts are deliberately display:none; the
-    // visible More menu is the supported user path, not a fixture loophole.
-    const fineHover=await evaluate('matchMedia("(hover: hover) and (pointer: fine)").matches');
-    if(fineHover){
-      await eventually('(()=>{const el=document.querySelector(".wf-task-row:nth-child(2) button[aria-pressed]");'+
-        'return el&&el.getBoundingClientRect().width>0})()','favorite appears after native hover');
-      await click('.wf-task-row:nth-child(2) button[aria-pressed]');
-    }else{
-      await click('[data-wf-menu="'+nameOrder[1]+'"]');
-      await eventually('document.querySelector(".wf-task-row:nth-child(2) .wf-menu")?.textContent.includes("收藏脚本")',
-        'touch/coarse input has an accessible favorite menu item');
-      await click('.wf-task-row:nth-child(2) .wf-menu button:nth-child(3)');
-    }
+    // WFUI-02: all shortcuts are discoverable before hover; hover/focus
+    // must not resize the name, move the actions or change row height.
+    await cdp('Input.dispatchMouseEvent',{type:'mouseMoved',x:0,y:0});
+    const rowSelector='.wf-task-row:nth-child(2)';
+    const rowGeometry=()=>evaluate(`(()=>{
+      const row=document.querySelector(${JSON.stringify(rowSelector)});
+      const rect=e=>{const b=e.getBoundingClientRect();return {x:b.x,y:b.y,width:b.width,height:b.height}};
+      const controls=[...row.querySelectorAll('.wf-item-buttons button')];
+      return {row:rect(row),name:rect(row.querySelector('.wf-task-name')),
+        controls:controls.map(e=>{const s=getComputedStyle(e);return {...rect(e),
+          visible:s.visibility==='visible'&&Number(s.opacity)>0&&s.pointerEvents!=='none'}})};
+    })()`);
+    const normal=await rowGeometry();
+    assert.equal(normal.controls.length,3,'favorite/play/more exist without hover');
+    assert.ok(normal.controls.every(c=>c.visible&&c.width>0&&c.height>0),'all shortcuts visible without hover');
+    const point={x:normal.name.x+normal.name.width/2,y:normal.name.y+normal.name.height/2};
+    await cdp('Input.dispatchMouseEvent',{type:'mouseMoved',...point});
+    const assertStable=(actual,label)=>{
+      for(const part of ['row','name'])for(const axis of ['x','y','width','height'])
+        assert.ok(Math.abs(actual[part][axis]-normal[part][axis])<=1,label+' preserves '+part+' '+axis);
+      actual.controls.forEach((control,i)=>{
+        assert.ok(control.visible&&control.width>0&&control.height>0,label+' keeps actions visible');
+        for(const axis of ['x','y','width','height'])
+          assert.ok(Math.abs(control[axis]-normal.controls[i][axis])<=1,label+' preserves action '+i+' '+axis);
+      });
+    };
+    assertStable(await rowGeometry(),'hover');
+    await evaluate('document.querySelector('+JSON.stringify(rowSelector+' .wf-task-name')+').focus()');
+    await cdp('Input.dispatchMouseEvent',{type:'mouseMoved',x:0,y:0});
+    await key('Tab','Tab',9);
+    await expectFocus(rowSelector+' button[aria-pressed]');
+    assertStable(await rowGeometry(),'keyboard focus');
+    await click(rowSelector+' button[aria-pressed]');
     await eventually('document.querySelector(".wf-task-name").dataset.wfTaskName==='+JSON.stringify(nameOrder[1]),'favorite sorts first');
     await filterBy(4);
     await eventually('document.querySelectorAll(".wf-task-row").length===1','favorite filter');
@@ -322,6 +337,24 @@ try{
     await expectFocus(menu);
     await key('Enter','Enter',13);
     await eventually('!!document.querySelector(".wf-menu")','Enter opens more menu');
+    // Test both public entry points with real pointer input. The SDK remains mocked.
+    await key('Escape','Escape',27);
+    const taskSelector='[data-wf-task-name="'+nameOrder[0]+'"]';
+    for(const selector of [taskSelector,'.wf-task-row:first-child button[aria-label^="准备运行 "]']){
+      const before=await (await fetch(fixtureUrl+'/counts')).json();
+      await click(selector);
+      await eventually('fetch("/counts").then(r=>r.json()).then(c=>c.configurations.length==='+
+        (before.configurations.length+1)+')','name/play configuration request');
+      const after=await (await fetch(fixtureUrl+'/counts')).json();
+      const cfg=JSON.parse(await readFile('projects/webflow/tool.config.json','utf8'));
+      assert.deepEqual(after.configurations.at(-1),{task:{
+        ...cfg.delegatedTasks.find(pin=>pin.taskId===nameOrder[0]),installationId:'fixture-installation',generation:1}});
+      assert.equal(after.starts,before.starts);
+      assert.equal(after.preparations,before.preparations);
+      assert.equal(await evaluate('document.querySelector(".wf-task-detail")===null'),true);
+      assert.equal(await evaluate('document.querySelector("#wf-panel").getAttribute("aria-label")'),'脚本');
+    }
+    await click(menu);
     // Only the transport is mocked here; the trusted parent owns the Task sheet.
     const beforeConfigure=await (await fetch(fixtureUrl+'/counts')).json();
     await click('.wf-menu button');
@@ -353,7 +386,7 @@ try{
     await evaluate('document.querySelector(".wf-task-detail button").focus()');
     await key('Enter','Enter',13);
     await eventually('!document.querySelector(".wf-task-detail")','collapse details');
-    await expectFocus('.wf-task-row .wf-task-name');
+    await expectFocus(menu);
     await click('[data-page="history"]');
     assert.ok(await evaluate('document.body.textContent.includes("暂无手动运行记录")'),'Honest empty manual history');
     await assertLayout(width,'Empty history');
