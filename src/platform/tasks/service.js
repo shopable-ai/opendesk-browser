@@ -1,5 +1,5 @@
 const TASK_STORE="frameworkKV";
-import {BUILTIN_TASK_RELEASES,loadPackagedTask,assertPackagedTask,builtinTaskStateKey,taskRemovalKey} from './builtin-releases.js';
+import {BUILTIN_TASK_RELEASES,OPTIONAL_TASK_RELEASES,loadPackagedTask,assertPackagedTask,builtinTaskStateKey,taskRemovalKey} from './builtin-releases.js';
 import {canonical, digest, invariant} from '../protocol.js';
 import {loadBuiltinWorkerSource} from '../../libs/loader.js';
 import {builtinIdentity,assertBuiltinIdentity} from '../../libs/identity.js';
@@ -185,7 +185,13 @@ export async function ensureBuiltinTasks({storage,namespace,environment:current,
     return await storage.transaction([TASK_STORE,'scriptHeads','scriptRevisions','runs','commandJournal'],'readwrite',async tx=>{
       const ns=namespace;
       const states=[];
-      for(const release of BUILTIN_TASK_RELEASES){
+      // Snapshot before mutating anything: absence of one taskId never proves
+      // that an existing Task namespace is a fresh installation.
+      const priorRows=(await tx.all(TASK_STORE)).filter(row=>row?.namespace===ns);
+      const firstTaskInitialization=!priorRows.some(row=>['task-installed-v1',
+        'task-candidate-v1','task-builtin-state-v1','task-removed-v1'].includes(row.tag));
+      const defaultIds=new Set(BUILTIN_TASK_RELEASES.map(row=>row.taskId));
+      for(const release of [...BUILTIN_TASK_RELEASES,...OPTIONAL_TASK_RELEASES]){
         const {taskId,version}=release;
         initializingTaskId=taskId;
         const stateKey=builtinTaskStateKey(ns,taskId);
@@ -211,15 +217,20 @@ export async function ensureBuiltinTasks({storage,namespace,environment:current,
           }
           if(!await tx.get(TASK_STORE,stateKey))await tx.put(TASK_STORE,
             {tag:'task-builtin-state-v1',namespace:ns,taskId,status:'adopted'},stateKey);
-          states.push({taskId,status:'installed',...(installed.version!==version?{updateAvailable:version}:{})});
+          // A previously installed newer version must not advertise a
+          // lower release as an upgrade. This is only a discovery hint;
+          // installing still requires the original explicit version review.
+          const later=version.split('.').map(Number).some((n,i,a)=>
+            n>Number(installed.version.split('.')[i])&&a.slice(0,i).every((v,j)=>v===Number(installed.version.split('.')[j])));
+          states.push({taskId,status:'installed',...(installed.version!==version&&later?{updateAvailable:version}:{})});
           continue;
         }
         const removed=await tx.get(TASK_STORE,taskRemovalKey(ns,taskId));
         const state=await tx.get(TASK_STORE,stateKey);
-        const prior=(await tx.all(TASK_STORE)).some(row=>row?.namespace===ns&&row.taskId===taskId&&row.tag==='task-candidate-v1');
+        const prior=priorRows.some(row=>row.taskId===taskId&&row.tag==='task-candidate-v1');
         // Old candidates without an install cannot distinguish an earlier
         // uninstall from an unfinished import. Never silently install them.
-        const automatic=!removed&&!state&& !prior;
+        const automatic=defaultIds.has(taskId)&&firstTaskInitialization&&!removed&&!state&&!prior;
         const key=taskKey(ns,taskId,version);
         const existing=await tx.get(TASK_STORE,key);
         const pkg=await assertPackagedTask(await loadBuiltinTask(release));

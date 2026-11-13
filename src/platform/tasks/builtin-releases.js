@@ -8,14 +8,13 @@ const releases=[
   {taskId:'baidu.search.top3',version:'1.1.5',manifestHash:'f49e274aadfeed12540aff028ff267b3772ebe35a2f16c154008542b76a5bf38',
     sourceHash:'2b0f31c0d485355576cac11968170bb9eb41c9076df5bb6659f93d0173286181',sourcePath:'task-packs/baidu.search/releases/baidu.search.top3.v1.opendesk-task.json'},
   {taskId:'google.search.top3',version:'1.0.3',manifestHash:'e1d6b92ac83fc3eb9b21a9b7b420e808e69326f4764fdb8c6d4ee88bef7271b3',
-    sourceHash:'241575bb72dccd1106132fc5561c7322fcb11b927e1940e30eda66bec38a09ee',sourcePath:'task-packs/google.search/releases/google.search.top3.v1.opendesk-task.json'},
-  // Latest reviewed Task version for NEW installations. No grant inherits
-  // send:true; an exact installed version and per-request authorization remain
-  // mandatory. The old draft hash stays immutable and restorable below.
-  {taskId:'chatgpt.conversation.create',version:'0.2.0',manifestHash:'0402cbea8284f87bd3cc63c73b453530be1338cd511c30671957a919678ab146',
-    sourceHash:'90d077ff17fdcf89ac0a13adf4a671edc324030165c7eefa95a4acdc531bd51c',sourcePath:'task-packs/chatgpt.conversation.create/releases/chatgpt.conversation.create.0.2.0.opendesk-task.json'}
+    sourceHash:'241575bb72dccd1106132fc5561c7322fcb11b927e1940e30eda66bec38a09ee',sourcePath:'task-packs/google.search/releases/google.search.top3.v1.opendesk-task.json'}
+
 ];
 const historicalReleases=[
+  // Former automatic 0.2.0 release stays immutable for existing installs/restores.
+  {taskId:'chatgpt.conversation.create',version:'0.2.0',manifestHash:'0402cbea8284f87bd3cc63c73b453530be1338cd511c30671957a919678ab146',
+    sourceHash:'90d077ff17fdcf89ac0a13adf4a671edc324030165c7eefa95a4acdc531bd51c',sourcePath:'task-packs/chatgpt.conversation.create/releases/chatgpt.conversation.create.0.2.0.opendesk-task.json'},
   {taskId:'chatgpt.conversation.create',version:'0.1.0',manifestHash:'9cc34831cf5ea39654534219baef90ef2eccf3c274f5f20ce4c10eb2bb864bec',
     sourceHash:'6ae168d4039ac2ef12dceb7888125f4a5561a3f44dcb8bfdf78d43836678fd9d',sourcePath:'task-packs/chatgpt.conversation.create/releases/chatgpt.conversation.create.v1.opendesk-task.json'}
 ];
@@ -40,9 +39,11 @@ const optionalReleases=[
     sourcePath:'task-packs/chatgpt.conversation.create/releases/chatgpt.conversation.create.0.3.0.opendesk-task.json'}
 ];
 const packagedReleases=[...releases,...historicalReleases,...optionalReleases];
-// Exactly one latest release per taskId is auto-provisioned; historical bytes
-// remain verifiable for existing authorized installations and explicit restore.
+// Only the two introductory search Tasks are default-provisioned on a new Task namespace.
+// ChatGPT stays packaged, but 0.2.2 is catalog-only and requires explicit installation.
 export const BUILTIN_TASK_RELEASES=Object.freeze(releases.map(({sourcePath,...pin})=>Object.freeze(pin)));
+export const OPTIONAL_TASK_RELEASES=Object.freeze(optionalReleases.filter(row=>row.taskId==='chatgpt.conversation.create'&&row.version==='0.2.2')
+  .map(({sourcePath,...pin})=>Object.freeze(pin)));
 export const REVIEWED_BUILTIN_TASK_RELEASES=Object.freeze(packagedReleases.map(({sourcePath,...pin})=>Object.freeze(pin)));
 // Data assets, never fixed executable inputs or web-accessible scripts. The
 // build and original Task loader share this exact immutable resource set.
