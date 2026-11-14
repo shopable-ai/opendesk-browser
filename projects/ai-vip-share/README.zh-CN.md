@@ -8,7 +8,7 @@
 
 唯一正式包 [`ai-vip-share.opendesk-tool.json`](ai-vip-share.opendesk-tool.json)：**1.4.35 / 158612 字节 / SHA-256 `396a8a5b0134073307528facead113441a8a435542351259d17117284a894d53`**。原 7 项能力不变；53 项连接、固定来源及升级恢复检查、3 项包合同/晋升保护通过，候选 → 晋升 → `--check-project` 同源通过。另跑的旧展示测试有 6 项失败，修改前 HEAD 同样失败，未将其计为通过或扩大修复。
 
-**真实运行分层：** 当前 Browser 沿用 `dist/development` 和原 writer；专用 ego Profile `AI VIP Share Test 20261106` 实际安装仍是 **1.4.32**。新版 ToolHost 首次 Cookie 弹窗、关闭、顶部再次授权、精确网站说明、授权后重开复用、设置撤销及可见回执已在无数据合成站点验证，无 Cookie 读写或代理启动。Escape 因原生定向焦点未确认，仍为 **NOT_TESTED**。1.4.35 经原安装入口选包时被 `E_TOOL_RUNTIME_MISMATCH` 拦截，新侧栏文档重开后仍如此，未提交升级；实际 app.html 也显示 1.4.32，且代理读取出现 `E_OWNER`，不能称新版双 Surface 已通过。历史 1.4.34 Market/SQLite 和 1.4.32 ChatGPT 登录事实各保留在原版本范围内。
+**真实运行分层：** Browser 沿用 `dist/development` 和现有共享开发服务；专用 ego Profile `AI VIP Share Test 20261106` 本轮实读安装为 **1.4.32**。新版 ToolHost 首次 Cookie 弹窗、关闭、顶部再次授权、精确网站说明、授权后重开复用、设置撤销及可见回执已在无数据合成站点验证，无 Cookie 读写或代理启动。Escape 因原生定向焦点未确认，仍为 **NOT_TESTED**。1.4.35 经原安装入口选包时被 `E_TOOL_RUNTIME_MISMATCH` 拦截，新侧栏文档重开后仍如此，未提交升级；实际 app.html 也显示 1.4.32，且代理读取出现 `E_OWNER`，不能称新版双 Surface 已通过。收尾发现共享 writer 及磁盘 revision 随并行工作变化，未复核其后的浏览器运行状态，不推断安装已恢复，也不要求必须重启服务。历史 1.4.34 Market/SQLite 和 1.4.32 ChatGPT 登录事实各保留在原版本范围内。
 
 **当前可执行路径：** 待共享开发环境按原安全更新合同消除运行不匹配后，进入“扩展 → 筛选和管理扩展 → 导入扩展”，选择上述唯一 JSON，核对 1.4.32 → 1.4.35 及原 7 项能力，再确认更新。服务方正式 HTTPS 接入配置仍未提供；普通用户取得受支持服务链接后，才可连接并查看真实权益，任意目标网站 URL 不构成会话来源。生产服务、正式 Market channel、真实 VIP、production 发布与评分均 **NOT_TESTED**。详细实际操作、失败分类和资源释放见[唯一账本](dev/local-test/EXTENSION-VIP-TEST.zh-CN.md#core-closeout-1435-20261115)。
 

@@ -39,7 +39,7 @@
 
 ### 收尾与下一条操作
 
-Browser 始终使用 `dist/development`，扩展 ID `ccfcjegpkdlgbclopjmadlcjedelidmf`，原 writer PID42614 / 43119、43120 存活并保留；没有第二 writer、Native 配对修改、其他服务停止或跨 Profile 安装。仅本任务临时 51424 空站点、51425 静态预览与 TaskSpace86 在取证后释放，UI 协调锁已释放。未暂停、完成或迁移任何旧 goal。
+Browser 始终使用 `dist/development`，扩展 ID `ccfcjegpkdlgbclopjmadlcjedelidmf`。开始及操作阶段的共享 writer 为 PID42614；00:52 收尾只读复查时，该进程已不在，43119、43120 由 PID5089 `node scripts/dev.mjs` 监听（进程启动时间 00:49:27），磁盘 revision 已变为 `72443513e7d17c1ebabbcd71dec9299db0e99d85c627d21ca6b769348bbaeb4e`。本任务没有启动或停止共享 writer，交接发生原因及新 writer 的 owner 未知；此前原生操作证据不证明此后浏览器已应用，也不证明安装不匹配已恢复，不沿用“必须重启服务”的旧结论。没有 Native 配对修改、其他服务停止或跨 Profile 安装。仅本任务临时 51424 空站点、51425 静态预览与 TaskSpace86 在取证后释放；收尾确认两端口无监听，UI 协调锁已释放。未暂停、完成或迁移任何旧 goal。
 
 下一条原生操作：共享运行环境经原开发安全更新合同确认 Worker/安装器一致、无任务/草稿/Native/unknown 阻挡后，重新打开侧栏，经同一导入入口审阅 **1.4.32 → 1.4.35**，保留数据，再补新包首次/重开与双 Surface 证据。正式服务方未配置之前，普通网站 URL 仍不能连接服务；需服务方提供受支持 HTTPS 接入。Escape、新 Chrome 权限提示、新包真实登录、真实 VIP、生产、真实代理流量、完整矩阵及专家评分均 **NOT_TESTED**。
 
