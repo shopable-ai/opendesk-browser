@@ -1,5 +1,37 @@
 # AI VIP Share：完善扩展到模拟 VIP 网站的真实操作链
 
+<a id="activation-login-continuation-20261115"></a>
+
+## 2026-11-15 激活后接续网站登录：源码修复，真实登录仍未验证
+
+当前阶段仍是核心开发和最小验证，唯一 owner 为 `projects/ai-vip-share/`，在现有 `main` 工作。下一条实际操作是从指定测试 Profile 的原 OpenDesk 入口继续已批准服务及网站会话流程。本轮先核对入口，再修复 Controller 连续操作中的遗漏；不恢复 production、商业权益、真实 Plus/VIP、全量矩阵或评分。
+
+### 当前用户操作、修复与证据
+
+| 操作 | 本轮结果 |
+| --- | --- |
+| 首次激活后继续网站登录 | 原 Controller 只在 `localMode` 自动取得分配会话；受审阅正式服务模式确认后只刷新权益，需另点登录。新增连续流程先复现 **0 PASS / 2 FAIL**，随后移除这一接续范围遗漏。有效兑换回执后，刷新核验通过才准备会话；没有自动写入或开站 |
+| 刷新期间账号/分配变化 | 只读复核发现布尔接续可能改用刷新后的另一账号。新增回归先复现 **0 PASS / 1 FAIL**（本应零会话请求，实际为 1）；现将意图绑定到本次 `accountId / redemptionId / serviceRevision`，消费前清空，并核对新鲜响应和原身份。变化、失败、关闭或服务切换均不继续，后续刷新不恢复旧意图 |
+| 原 Cookie 确认、取消与 unknown | 连续测试覆盖预检零兑换、一次确认一笔兑换、准备零浏览器副作用、合成事件拒绝、可信取消不自动重试、用户明确重试、原 `setMany` 和精确 ChatGPT 目标；unknown 不开站，重开后不领取、不重兑、不重放。此处事件、Host 回执和 Cookie 均为 Controller 夹具，不是原生可信弹窗或真实登录证据 |
+| 默认正式服务与格式许可 | `REVIEWED_SERVICE=null` 保持原样；测试注入固定合成服务，不能证明默认正式入口可用。`chatgpt-export-v1` 仍只在原可信本地开发模式接受，没有扩大来源、权限或格式许可。服务端仍负责核验本次会话请求的有效授权 |
+| 专用 Profile 的真实入口 | ego TaskSpace103，复用用户指定 `AI VIP Share Test 20261106`（Profile 1）。在原生空间切换后，本任务窗口没有可操作的 OpenDesk 工具栏入口。只读 CDP 元数据显示本任务页面与现有扩展 targets 的 `browserContextId` 不同；未控制那些其他上下文的侧栏。没有重试此前被拒的直达 sidepanel 或内部管理页 |
+| 加载状态与当前版本 | 指定 Profile 的磁盘注册指向 `dist/development`，ID 为 `ccfcjegpkdlgbclopjmadlcjedelidmf`；这不证明扩展已在本任务上下文加载。当前安装版本、浏览器已应用 revision 和本轮 ChatGPT 登录状态均**未实读**。历史 1.4.32 与已有登录菜单仍只属上次观察 |
+| 本轮真实副作用 | 未读取授权 Cookie 文件，未启动 Provider/预览服务、发券、兑换、导入 Cookie、清理登录态、启用代理或打开 ChatGPT；未读取消息历史。没有把旧登录、模拟写入或打开 URL 记为新登录 |
+
+### 最小验证与交付分层
+
+1. `node --test projects/ai-vip-share/tests/controller-service-flow.test.mjs projects/ai-vip-share/tests/controller-server-session.test.mjs`：最终 **26/26 PASS**。证明本次连续接续及受影响的身份、来源、Store/Partition、取消、过期、unknown 和逐批确认保护；没有执行完整工具或全仓测试。
+2. `node --test --test-name-pattern='cancel after redeem dispatch' projects/ai-vip-share/tests/controller-lan-activation.test.mjs`：**1/1 PASS**。因自动准备同时适用于原开发链，定向确认兑换已提交后的取消仍保留原收据并停止网站后续操作。
+3. 原 `npm run build --prefix projects/ai-vip-share` 通过，只更新项目忽略的 `dist/`，没有写共享 Browser `dist/development`。最终 buildId 为 `752278a0aca89efc046013403aa8ffc57bb42592286bbee5e5d2b2d99493eb46`；**15 项输入 / 2 项输出 SHA-256 及字节逐项匹配**。它是工具编译证据，不是 Browser production 验收。
+4. 独立只读复核确认账号/事务绑定缺口已解决，未发现当前 diff 的具体新退化；真实安装、Host 与 ChatGPT 流程仍 **NOT_TESTED**。
+5. 唯一正式 JSON 保持 **1.4.35 / 158612 字节 / SHA-256 `396a8a5b0134073307528facead113441a8a435542351259d17117284a894d53`**，本轮实读摘要相符。它**不含本次源码修复**。当前共享 `src/ui/design-system.css` 有其他任务未提交的 7 行规则；原打包器会编入该依赖。本轮不晋升混合来源候选、不改版本、不手改 JSON，亦不把上一轮 `--check-project` 失败或历史同源通过改写为本轮 PASS。
+
+### 尚未完成的真实操作与资源边界
+
+先恢复指定 Profile 中受支持的原 OpenDesk 入口，读回运行版本、开发服务状态和更新等待原因；共享样式输入经 owner 协调后，才可按原打包器构建候选、定向检查、晋升并由原安装器更新。其后使用原服务端读取授权会话的链：已有有效权益直接复用，确需首次激活才预检并明确确认一次；核对当前网站及分配，按原网站授权和逐批 Cookie 确认继续，最后到 ChatGPT 分别核验登录与身份。已有登录保留时只能证明登录保留，不能称新登录；unknown/partial 从原记录核对，不重放。这些步骤尚未在本轮完成。
+
+Browser 仍沿用共享持续开发目录 `/Users/shopme/Documents/workspace/opendesk-browser/dist/development`；本轮观察原 PID21424 监听 43119/43120，没有启动、停止、重载或覆盖它。没有使用其他 owner 的测试 Profile、页面或待决审阅。TaskSpace103 仅持有本任务空白页，收尾释放该空间；原生 UI 锁已释放。没有更改其他未提交文件、创建分支/worktree/PR、推送或改变 goal 状态。下文保留历史证据及各自时间边界。
+
 <a id="test-entrances-20261115"></a>
 
 ## 2026-11-15 测试入口说明与开发预览修复

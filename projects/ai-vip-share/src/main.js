@@ -156,7 +156,7 @@ import {prepareServerCookieBatches,serverCookieScope,validateServerCookieScope} 
   let cookiePending=null,cookieRecord=null,cookieReady=false,cookieBusy=false,cookieFault='';
   let presentedCookiePending=null,presentedCookieIssue='';
   let cookieFaultRecoverable=false,cookieJournal=null,websiteController=null;
-  let sharedCatalog=null,sharedId='',sharedGeneration=0,sharedBusy=false,sharedNotice='',acquireAfterActivation=false;
+  let sharedCatalog=null,sharedId='',sharedGeneration=0,sharedBusy=false,sharedNotice='',acquireAfterActivation=null;
   let serverSession=null;
   let localSwitchBlocked=()=>false,refreshDevelopmentAvailability=async()=>{};
   // Provider clock, not device Date.now(), determines preview validity.
@@ -721,7 +721,7 @@ import {prepareServerCookieBatches,serverCookieScope,validateServerCookieScope} 
   function changeBusinessMode(development,origin=localChoiceOrigin,refresh=true){
     if(!LOCAL_ORIGINS.includes(origin))fail('E_LOCAL_ORIGIN','测试服务来源无效');
     if(localMode===development&&(!development||localOrigin===origin))return;
-    invalidateShared();sharedNotice='';acquireAfterActivation=false;
+    invalidateShared();sharedNotice='';acquireAfterActivation=null;
     localMode=development;
     if(development)localOrigin=origin;
     endpoints=development?localEndpoints(localOrigin):serviceConnected?productionEndpoints:null;
@@ -1030,7 +1030,7 @@ import {prepareServerCookieBatches,serverCookieScope,validateServerCookieScope} 
         redeemNotice('输入兑换码并预检，确认后再领取。');
     }
     if(memberVerifiedFresh&&redeemStatus.textContent==='服务端已确认兑换成功。正在更新权益，接下来可点击登录并打开网站。')
-      redeemNotice('激活成功，可登录并打开网站。');
+      redeemNotice('激活成功；请继续下方网站登录确认，实际登录以网站为准。');
     renderRedeem();
   }
   function renderRedeem(){
@@ -1186,9 +1186,12 @@ import {prepareServerCookieBatches,serverCookieScope,validateServerCookieScope} 
     }finally{
       if(current===seq){
         busy=false;refresh.disabled=false;if(snapshot)renderMember();else renderRedeem();
-        if(acquireAfterActivation&&snapshot){
-          const continueSession=!stopAfterRedeem&&!disposed;
-          acquireAfterActivation=false;
+        if(acquireAfterActivation){
+          const intent=acquireAfterActivation;
+          acquireAfterActivation=null;
+          const continueSession=!stopAfterRedeem&&!disposed&&memberVerifiedFresh&&
+            intent.revision===serviceRevision&&snapshot?.account.id===intent.accountId&&
+            sharedCatalog?.redemptionId===intent.redemptionId;
           if(continueSession)void requestSharedSession();
         }
       }
@@ -1359,7 +1362,10 @@ import {prepareServerCookieBatches,serverCookieScope,validateServerCookieScope} 
       // Valid receipt is authoritative; failed journal clearing keeps a lock.
       await clearRecovered(key);
       cookiePending=null;cookieFault='';
-      acquireAfterActivation=localMode&&!stopAfterRedeem&&!disposed;
+      // Prepare only the assignment belonging to this confirmed activation.
+      // Writing still requires the original explicit Cookie action.
+      acquireAfterActivation=!stopAfterRedeem&&!disposed?
+        {accountId,redemptionId:result.redemptionId,revision:intentRevision}:null;
       redeemNotice(stopAfterRedeem?'服务端已确认兑换成功；已停止后续自动操作，结果仍可查看。':
         '服务端已确认兑换成功。正在更新权益，接下来可点击登录并打开网站。');
       busy=false;renderRedeem();
@@ -1406,7 +1412,7 @@ import {prepareServerCookieBatches,serverCookieScope,validateServerCookieScope} 
         await clearRecovered(saved.idempotencyKey);
         cookiePending=null;cookieFault='';
         // Status recovery is not a new consent to write a website session.
-        acquireAfterActivation=false;
+        acquireAfterActivation=null;
         redeemNotice('服务端已确认上次兑换成功，已解除重复提交保护；请刷新权益。');
         busy=false;
         await refreshMember();
@@ -1974,7 +1980,7 @@ import {prepareServerCookieBatches,serverCookieScope,validateServerCookieScope} 
     },1200):null;
   renderRedeem();
   release=()=>{
-    disposed=true;++activationCancelGeneration;stopAfterRedeem=true;
+    disposed=true;++activationCancelGeneration;stopAfterRedeem=true;acquireAfterActivation=null;
     websiteController?.dispose();
     localConnect?.removeEventListener?.('click',connectLocalDevelopment);
     developmentControls?.dispose();

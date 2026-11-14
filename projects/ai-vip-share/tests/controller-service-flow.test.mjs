@@ -184,7 +184,7 @@ test('expired or exhausted rights do not suppress activation-link preflight',asy
   }
 });
 
-test('activation link preflights without redeeming; one trusted confirmation redeems once without session acquisition',async()=>{
+test('activation link preflights without redeeming; confirmation prepares its assigned login without writing',async()=>{
   const e=await create();
   await connect(e,ACTIVATION);
   assert.deepEqual(requests(e),[['GET','/api/member'],['POST','/api/preview']]);
@@ -197,10 +197,11 @@ test('activation link preflights without redeeming; one trusted confirmation red
   await e.click('redeem-confirm',false);
   assert.equal(e.fixture.ledger.size,0);
   await e.click('redeem-confirm');
-  await settle(e,()=>e.fixture.ledger.size===1&&!e.get('refresh').disabled);
+  await settle(e,()=>e.fixture.ledger.size===1&&!e.get('refresh').disabled&&!e.get('cookie-install').hidden);
   await e.click('redeem-confirm');
   assert.equal(e.calls.filter(row=>row.url===service.endpoints.voucherRedeem).length,1);
-  assert.equal(sessions(e).length,0);
+  assert.equal(sessions(e).length,1);
+  assert.equal(e.get('cookie-install').disabled,false);
   assert.equal(e.fixture.ledger.size,1);
   assert.equal(e.store.get(RECOVERY),null);
   assert.equal(e.get('member-card').attributes['data-view'],'active');
@@ -212,6 +213,101 @@ test('activation link preflights without redeeming; one trusted confirmation red
   assert.deepEqual(writes(reopened),[]);
   assert.equal(reopened.get('member-card').attributes['data-view'],'active');
   noBrowserEffects(reopened);
+});
+
+test('first activation continues through the original Cookie confirmation before opening the ChatGPT target (controller only)',async()=>{
+  let cancelled=true;
+  const e=await create({cookieSetMany:async args=>{
+    if(cancelled)throw Object.assign(Error('trusted user cancelled'),{code:'E_COOKIE_NOT_SUBMITTED'});
+    return {saved:args.cookies.length,verified:args.cookies.length,
+      results:args.cookies.map((_,index)=>({index,saved:true,verified:true}))};
+  }});
+  await connect(e,ACTIVATION);
+  assert.equal(e.fixture.ledger.size,0);assert.equal(sessions(e).length,0);
+  await e.click('redeem-confirm');
+  await settle(e,()=>!e.get('cookie-install').hidden&&!e.get('cookie-install').disabled);
+  assert.equal(e.fixture.ledger.size,1);assert.equal(sessions(e).length,1);
+  noBrowserEffects(e);
+  await e.click('cookie-install',false);assert.equal(e.cookieCalls.length,0);
+  await e.click('cookie-install');
+  await settle(e,()=>e.store.get(JOURNAL)?.attempts.at(-1)?.state==='failed'&&!e.get('cookie-install').disabled);
+  assert.equal(e.cookieCalls.length,1);assert.equal(e.tabCalls.length,0);
+  await e.flush();assert.equal(e.cookieCalls.length,1,'cancellation never retries');
+  cancelled=false;await e.click('cookie-install');
+  await settle(e,()=>e.tabCalls.length===1);
+  assert.deepEqual(e.cookieCalls,[{url:TARGET,cookies},{url:TARGET,cookies}]);
+  assert.deepEqual(e.tabCalls,[{url:TARGET}]);
+  assert.equal(sessions(e).length,1);assert.equal(e.fixture.ledger.size,1);
+  assert.equal(e.store.get(JOURNAL).attempts.at(-1).state,'success');
+  assert.match(e.get('cookie-status').textContent,/网站登录及身份仍需.*核对/);
+  assert.deepEqual(e.proxyCalls,[]);noSecrets(e);
+});
+
+test('first activation with an unknown Cookie outcome never replays or reports website login',async()=>{
+  const e=await create({cookieSetMany:async()=>{throw Object.assign(Error('lost acknowledgement'),{code:'E_CANCELLED'});}});
+  await connect(e,ACTIVATION);await e.click('redeem-confirm');
+  await settle(e,()=>!e.get('cookie-install').hidden&&!e.get('cookie-install').disabled);
+  await e.click('cookie-install');
+  await settle(e,()=>e.store.get(JOURNAL)?.attempts.at(-1)?.state==='unknown'&&!e.get('site-select').disabled);
+  assert.equal(e.fixture.ledger.size,1);assert.equal(sessions(e).length,1);
+  assert.equal(e.cookieCalls.length,1);assert.equal(e.tabCalls.length,0);
+  assert.match(e.get('cookie-status').textContent,/未知|禁止重放/);
+  const saved=JSON.stringify([...e.store]);
+  const reopened=await create({store:e.store,fixture:e.fixture});
+  await reopened.click('site-receive');await reopened.click('cookie-install');
+  await reopened.preview(CODE);await reopened.click('redeem-confirm');
+  assert.deepEqual(requests(reopened),[['GET','/api/member']]);
+  assert.equal(JSON.stringify([...reopened.store]),saved);
+  assert.equal(e.fixture.ledger.size,1);noBrowserEffects(reopened);noSecrets(reopened);
+});
+
+test('activation followed by a failed rights refresh does not acquire or write a session',async()=>{
+  let reads=0;
+  const e=await create({productionNetwork:async(args,fixture)=>{
+    if(args.method==='GET'&&++reads===3)throw Error('rights refresh offline');
+    return productionNetwork(args,fixture);
+  }});
+  await connect(e,ACTIVATION);await e.click('redeem-confirm');
+  await settle(e,()=>e.fixture.ledger.size===1&&!e.get('refresh').disabled);
+  assert.equal(sessions(e).length,0);noBrowserEffects(e);
+  assert.match(e.get('redeem-status').textContent,/兑换成功.*权益刷新失败/);
+  assert.equal(e.get('cookie-install').hidden,true);
+});
+
+test('activation continuation cannot acquire another account or redemption returned by the rights refresh',async()=>{
+  for(const changed of ['account','redemption']){
+    let reads=0;
+    const e=await create({productionNetwork:async(args,fixture)=>{
+      const result=await productionNetwork(args,fixture);
+      if(args.method==='GET'&&++reads===3){
+        if(changed==='account')result.data.account={...result.data.account,id:'another-member'};
+        else result.data.sharedAccounts.redemptionId='another-redemption';
+      }
+      return result;
+    }});
+    await connect(e,ACTIVATION);await e.click('redeem-confirm');
+    await settle(e,()=>e.fixture.ledger.size===1&&!e.get('refresh').disabled);
+    assert.equal(e.get('member-card').attributes['data-view'],'active','changed response remains schema-valid');
+    assert.equal(sessions(e).length,0,changed+' change cancels automatic preparation');
+    noBrowserEffects(e);
+    assert.equal(e.get('cookie-install').hidden,true);
+    await e.click('refresh');await e.flush();
+    assert.equal(sessions(e).length,0,'later refresh does not revive the continuation');
+  }
+});
+
+test('closing during the post-activation rights refresh prevents late session preparation',async()=>{
+  const gate=deferred();let reads=0,waiting=false;
+  const e=await create({productionNetwork:async(args,fixture)=>{
+    const result=await productionNetwork(args,fixture);
+    if(args.method==='GET'&&++reads===3){waiting=true;await gate.promise;}
+    return result;
+  }});
+  await connect(e,ACTIVATION);await e.click('redeem-confirm');
+  await settle(e,()=>waiting);
+  e.release();gate.resolve();await e.flush();
+  assert.equal(e.fixture.ledger.size,1);assert.equal(sessions(e).length,0);
+  noBrowserEffects(e);
 });
 
 test('existing assignment logs in through one session request, original setMany and the exact target URL',async()=>{
