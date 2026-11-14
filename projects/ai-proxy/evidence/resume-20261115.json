@@ -1,0 +1,193 @@
+{
+  "date": "2026-11-15",
+  "timezone": "Asia/Shanghai",
+  "phase": "continuous development; remaining configuration UI operations and in-place update completed",
+  "owner": "01a1db11-cd7f-7c53-8ee2-6348e0f249c4",
+  "branch": "main",
+  "sourceCommitAtStart": "231e0c88f3b550abb99f49573363a51f8d6c21cd",
+  "currentWork": "Completed this round; real traffic and formal acceptance remain deferred",
+  "testsRunning": false,
+  "freshChecks": [
+    {
+      "command": "node scripts/build-sidebar-tool.mjs projects/ai-proxy --check-project",
+      "result": "PROJECT_PACKAGE_MATCH",
+      "version": "0.3.25",
+      "bytes": 1062899,
+      "sha256": "d5110eabb9df9b2b2a48a92b391a407f1027f9ed07a0b1305b85ed2692fc8c45",
+      "when": "Start of this round, before subsequent parallel framework edits"
+    }
+  ],
+  "environment": {
+    "writer": {
+      "pidAtObservation": 21424,
+      "command": "node scripts/dev.mjs",
+      "output": "dist/development",
+      "lockOwnerMatchesProcessCwd": true,
+      "log": "artifacts/my-main-alignment-20261115/dev-service-recovered.log",
+      "startedByThisTask": false,
+      "stoppedByThisTask": false
+    },
+    "initialEntry": "TaskSpace 97, AI VIP Share Test 20261106 Profile: ERR_BLOCKED_BY_CLIENT; no business writes",
+    "profileSelection": "User explicitly selected 您的 ego (Default), retaining original OpenDesk installation and data",
+    "egoTaskSpace": 99,
+    "entry": "Original Side Panel extension list → AI Proxy → Open Settings",
+    "developerConnection": "Connected, read from Debug → Local Development Service",
+    "appliedRevisionAtObservation": "84cc0dac87459b1760b61d0a40f852007d0e3fe1b0b2a49f2dcf2c779227eacf",
+    "laterDevelopmentReload": "App tab closed during parallel updates; recovered existing App route in the same TaskSpace and read saved records",
+    "finalRunningBundleBytes": "NOT_VERIFIED",
+    "taskSpaceReleased": true
+  },
+  "realUiThisRound": {
+    "businessOperations": [
+      {
+        "name": "Local client",
+        "result": "PASS",
+        "observed": [
+          "Saved loopback HTTP 18993",
+          "Reloaded and reopened editor",
+          "Edited name and port to 18994 and read persisted values",
+          "Delete cancel preserved records",
+          "Confirmed deletion removed endpoint, profile and source"
+        ],
+        "privateStages": [
+          "01-client-save",
+          "02-client-reopen",
+          "03-client-edited",
+          "04-client-delete-cancel",
+          "14-client-deleted"
+        ]
+      },
+      {
+        "name": "Local PAC",
+        "result": "PASS_SAVE_ONLY",
+        "observed": [
+          "Invalid text displayed FindProxyForURL requirement with namespace unchanged",
+          "Valid script saved",
+          "Name and script edits persisted",
+          "Delete cancel preserved PAC",
+          "Confirmed deletion removed PAC"
+        ],
+        "execution": "NOT_TESTED",
+        "privateStages": [
+          "05-pac-invalid",
+          "06-pac-save",
+          "07-pac-edited",
+          "12-pac-delete-cancel",
+          "13-pac-deleted"
+        ]
+      },
+      {
+        "name": "Website rule deletion",
+        "result": "PASS",
+        "observed": [
+          "Saved disposable resume-ui.example rule",
+          "Record survived development reload",
+          "Cancel preserved rule",
+          "Confirmed deletion persisted"
+        ],
+        "privateStages": [
+          "08-rule-save",
+          "10-rule-delete-cancel",
+          "11-rule-deleted"
+        ]
+      },
+      {
+        "name": "Backup export/import",
+        "result": "PASS_SHARE_BACKUP_ROUNDTRIP",
+        "observed": [
+          "Actual download ai-proxy-share-v2.json: 1696 bytes, 2 endpoints, 2 endpoint profiles, 1 rule",
+          "No PAC script text; managed=false and selection reset to system",
+          "Selected actual downloaded file, then parsed preview",
+          "Preview and cancel left namespace unchanged",
+          "Confirmed import matched downloaded config with recursive object-key normalization",
+          "Reloaded UI showed imported rule",
+          "No proxy activation"
+        ],
+        "pacFullRestore": "Outside share-backup contract; NOT_TESTED",
+        "privateStages": [
+          "09-backup-downloaded",
+          "15-backup-file-preview",
+          "16-backup-parsed",
+          "17-import-cancel",
+          "18-import-confirmed",
+          "19-import-reopened"
+        ]
+      }
+    ],
+    "storageReadback": "PASS",
+    "cleanup": {
+      "result": "FULL_NAMESPACE_EQUALS_FRESH_BASELINE",
+      "method": "UI deletion of task fixtures and UI selection restoration; no direct storage writes",
+      "baselineSha256": "ed2b97e6aee620d4acc967bb55ed24db8ccdfd01b9c284f04005e53a0dcc4a23",
+      "finalSha256": "ed2b97e6aee620d4acc967bb55ed24db8ccdfd01b9c284f04005e53a0dcc4a23",
+      "namespaceKeys": [
+        "ai-proxy.full-config.v2",
+        "ai-proxy.profile-favorites.v1",
+        "ai-proxy.show-status-on-open.v1"
+      ],
+      "entireNamespaceEqualsBaseline": true,
+      "originalR3DisposablePreserved": true,
+      "favoritesPreferencesAndSelectionRestored": true,
+      "chromeProxyEqualsBaseline": true,
+      "privateStage": "20-restored-via-ui"
+    },
+    "proxyState": {
+      "mode": "system",
+      "levelOfControl": "controllable_by_this_extension",
+      "managed": false,
+      "unchangedAtAllCapturedStages": true
+    }
+  },
+  "remainingCoreOperations": [],
+  "historicalEvidence": "functional-20261115.json",
+  "historicalTestsRerun": false,
+  "businessSourceChanged": false,
+  "formalPackageChanged": false,
+  "protectedPreview": {
+    "sha256": "277ff8df72970906370507e9d7448da3ba583cb293536cae874c1a034080a977",
+    "unchanged": true
+  },
+  "safety": {
+    "applyOrStopInvoked": false,
+    "pacExecuted": false,
+    "subscriptionOrDiagnosticRequestSent": false,
+    "externalClientStarted": false,
+    "collectorSavedOrExecuted": false,
+    "permissionsChanged": false,
+    "hostSdkAuthorityChanged": false,
+    "nativeUiLockReleased": true,
+    "push": false
+  },
+  "installation": {
+    "before": "0.3.23",
+    "after": "0.3.25",
+    "path": "Extensions → Import Extension → unique formal JSON → review → Confirm Update",
+    "permissionReview": "Unchanged",
+    "nativeFileChooser": "Used supported All Files format option to select multi-dot JSON filename",
+    "sidebarVersionReadback": "0.3.25",
+    "installedObjectMatchesFormalJson": true,
+    "comparison": "Recursive object-key normalization; array order preserved",
+    "namespaceUnchangedByUpgrade": true
+  },
+  "evidenceLocation": "Ignored artifacts/ai-proxy/resume-20261115: AX snapshots, private namespace snapshots and actual downloaded file; no raw user data committed",
+  "notTested": [
+    "Actual proxy apply/stop or traffic",
+    "Authentication",
+    "PAC execution or full PAC backup",
+    "Online subscription fetch",
+    "Network diagnostic requests",
+    "External client execution",
+    "Official service",
+    "Collector save/execution",
+    "Final fixed-runtime bundle byte identity",
+    "Production",
+    "Full CI",
+    "New scoring"
+  ],
+  "recordChecks": [
+    "Evidence JSON parsed and all referenced private captures exist",
+    "Cancel/no-write comparisons and downloaded/imported config equality verified",
+    "Full namespace/proxy equal fresh baseline; protected preview and formal package SHA unchanged",
+    "git diff --check passed for the two task files"
+  ]
+}
