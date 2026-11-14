@@ -1,7 +1,7 @@
 {
   "projects/ai-proxy/src/adapter.js": "2b837f6cb983055889073333494780f5e5371e99",
   "projects/ai-proxy/src/App.jsx": "00e54b057e79405f7574b0c8bad2d588e13a3721",
-  "projects/ai-proxy/src/collector/rotation-plan.ts": "b589bf2a8869fd7f269f3b735af4d37976c99ad6",
+  "projects/ai-proxy/src/collector/rotation-plan.ts": "9accb5245e86c719a15cb6cf3d1d56aedee21dea",
   "projects/ai-proxy/src/config/product-links.defaults.json": "2e23db6f565a7dde6732cd0330185d65e2fcf39d",
   "projects/ai-proxy/src/config/product-links.demo.json": "cf60d2cb7e277f21f86398242552efb5752a21c2",
   "projects/ai-proxy/src/config/public-config.ts": "8b2ab58b742fd27e9416b99525424dad4a445c2a",

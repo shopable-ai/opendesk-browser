@@ -1,0 +1,231 @@
+{
+  "date": "2026-11-14",
+  "timezone": "Asia/Shanghai",
+  "status": "DEVELOPMENT_CORE_VERIFIED",
+  "scope": "关闭真实采集配置读取错误，补当前开发环境、鼠标配置核心链与安全备份往返证据；不升级正式包，不启停代理。",
+  "owner": "projects/ai-proxy/",
+  "type": "existing audited first-party trusted feature",
+  "reproduction": {
+    "entry": "扩展 → AI Proxy → 设置 → 代理配置 → 高级代理功能 → 采集代理",
+    "extensionId": "ccfcjegpkdlgbclopjmadlcjedelidmf",
+    "storageNamespace": "opendesk.sidebar-tools.data.v1:ai-proxy",
+    "storageKey": "aiProxy.collector.rotationPlan.v1",
+    "observed": "真实页面显示「采集配置读取失败；请检查本地数据。」；只读检查确认原数据中不存在采集键。",
+    "rootCause": "Host storage.get 对不存在的键返回 null；environment 原样适配。readRotationPlan 只将 undefined 当空值，将 null 送入 validateRotationPlan/asObject。environment.remove 也以 null 清除，故清除后重开同样失败。",
+    "errorDetail": {
+      "message": "需要对象格式的配置",
+      "code": null,
+      "evidenceBoundary": "底层普通 Error 无 code；UI catch 只显示通用读取失败。具体 message 来自实际读取路径的最小定向复现与 asObject 源码，不冒称 UI 展示了错误码。"
+    },
+    "classification": "未初始化空值处理缺陷；非存储失联、非法已存对象或 SDK 能力缺口。",
+    "readOnlyAnchors": [
+      "src/ui/sidebar-tools.js: storage.get current missing value = null",
+      "projects/ai-proxy/src/environment.ts: read + withEtag / remove writes null",
+      "projects/ai-proxy/src/ui/RotationPlan.tsx: readRotationPlan load and error display"
+    ],
+    "noUserDataCleared": true
+  },
+  "repair": {
+    "file": "projects/ai-proxy/src/collector/rotation-plan.ts",
+    "behavior": "只把 null / undefined 识别为空计划；其余值继续原校验。原存储适配、ETag/ifMatch、写后回读、错误与 unknown 保护不变。",
+    "sourceBlobBefore": "b589bf2a8869fd7f269f3b735af4d37976c99ad6",
+    "sourceBlobAfter": "9accb5245e86c719a15cb6cf3d1d56aedee21dea",
+    "trustedLock": "只更新同文件的 Git blob；仍执行原可信来源闭包校验，未修改准入或放宽来源。",
+    "executor": "尚未接入；未实现采集、计数、轮换、暂停、停止或恢复。"
+  },
+  "checks": [
+    {
+      "command": "node --test projects/ai-proxy/tests/rotation-plan.test.mjs",
+      "before": "2 FAIL / 3 PASS：Host null、清除后重开复现同一对象格式错误。",
+      "after": "5 PASS",
+      "coverage": [
+        "null/undefined 空值无写入",
+        "非空非法值继续失败且不覆盖",
+        "存储错误保留原错误码",
+        "经同意保存/回读/清除/重开",
+        "缺同意/无效端点拒绝，CAS 冲突不重放，禁止访问代理控制"
+      ]
+    },
+    {
+      "command": "node --test projects/ai-proxy/tests/rotation-plan.test.mjs projects/ai-proxy/tests/drafts.test.mjs projects/ai-proxy/tests/trusted-admission.test.mjs",
+      "result": "37 PASS / 0 FAIL",
+      "purpose": "本次读值修复、配置草稿revision/迟到回执以及实际安装身份保护。"
+    },
+    {
+      "command": "verifyTrustedAIProxySources() from scripts/bundle-provenance.mjs",
+      "result": "PASS",
+      "purpose": "固定可信业务源与 CSS 来源闭包匹配。"
+    },
+    {
+      "command": "node --test --test-name-pattern='trusted AI Proxy checks nested CSS' tests/environment/bundle-provenance.test.mjs",
+      "result": "1 PASS / 0 FAIL",
+      "purpose": "Rollup 缺 chunk.modules 时仍拒绝嵌套 CSS 漂移。"
+    }
+  ],
+  "realMouseCore": {
+    "method": "ego-browser 已有公开 page.click / role / aria-label 精确定位；文本填入用 page.fill。真实已安装 App，无内存 service 或代理 mock。",
+    "taskSpace": 67,
+    "temporaryEndpoint": {
+      "name": "READ-QA-20261114",
+      "host": "127.0.0.1",
+      "port": 19093,
+      "id": "0267132f-a463-46ba-bead-613cde921bb5"
+    },
+    "steps": [
+      {
+        "action": "添加临时 HTTP 配置 → 保存",
+        "result": "PASS：持久化成功，未自动应用。",
+        "artifact": "01-saved.txt",
+        "note": "此快照处于回执前；保存结论同时依据后续真实编辑回读与存储检查，不据此过早快照独立判定。"
+      },
+      {
+        "action": "安全更新/重开后编辑回读",
+        "result": "PASS：名称/127.0.0.1/19093 与保存一致。",
+        "artifact": "03-edit-reloaded.txt"
+      },
+      {
+        "action": "改名 → 取消 → 取消放弃确认",
+        "result": "PASS：未保存草稿仍保留。",
+        "artifact": "04-draft-confirm.txt"
+      },
+      {
+        "action": "再次取消 → 确认放弃 → 重开编辑",
+        "result": "PASS：原保存名称/主机/端口未变。",
+        "artifact": "06-draft-discard-readback.txt"
+      },
+      {
+        "action": "删除临时项 → 取消确认",
+        "result": "PASS：原项保留，确认中含精确目标。",
+        "artifact": "07-delete-confirm.txt"
+      },
+      {
+        "action": "删除临时项 → 确认",
+        "result": "PASS：临时项消失，原配置保留，整个 namespace 与操作前一致。",
+        "artifact": "08-deleted.txt"
+      },
+      {
+        "action": "设置导航：代理配置 ↔ 导入备份",
+        "result": "PASS：同一 App/Settings 路由。"
+      }
+    ],
+    "driverBoundary": "并行源码更新曾触发安全页面更新，部分旧定位/过早快照无效；先核对新页面、busy/对话框和持久数据，再按实际 role/aria-label/ep-* 定位继续。未修改产品规避驱动时序，未盲目重复保存/导入。此链不扩大为全部七页鼠标验收。"
+  },
+  "realBackupRoundtrip": {
+    "result": "PASS",
+    "download": {
+      "suggestedFilename": "ai-proxy-share-v2.json",
+      "bytes": 1171,
+      "sha256": "91cf9215c4e8e3cb179a2712738c83921b64e5e77f738fe87a35a5251f9e0054",
+      "schemaVersion": 2,
+      "endpointCount": 2,
+      "profileCount": 2,
+      "managed": false,
+      "selection": {
+        "mode": "system"
+      }
+    },
+    "steps": [
+      "导出前保全原 namespace；只有原配置与本轮临时配置。",
+      "下载监听在点击前建立；保存实际 Download 后读文件，非仅成功 Toast。",
+      "删除临时项后，整个 namespace 与原数据一致。",
+      "仅将刚下载的已知 JSON 粘贴入原导入入口，解析预览显示 v2 / 2 条代理 / 0 条规则。",
+      "导入确认前再次比对原 namespace 无变化；确认文字明确替换且不会自动启用。",
+      "确认导入后成功回执可见、临时项及相同 ID 恢复，managed=false；编辑读回名称/主机/端口。",
+      "分享备份按既有合同归为 system；通过「使用代理」仅恢复原 pending selection，不 APPLY。",
+      "经确认删除本轮临时项，刷新后 namespace 与最初逐项完全一致。"
+    ],
+    "visibleReceipt": "备份已导入；代理未自动启用。需要使用时请手动选择并应用。",
+    "artifacts": [
+      "05-backup-exported.txt",
+      "roundtrip-private.json",
+      "09-import-confirm.txt",
+      "10-import-success.txt",
+      "11-imported-readback.txt",
+      "12-roundtrip-delete-confirm.txt",
+      "13-final-clean.txt"
+    ],
+    "limits": "只验证无密码 HTTP 配置的 v2 分享备份；不是秘密/PAC/任意用户配置的完整保真备份，也未验证文件选择器分支。"
+  },
+  "environment": {
+    "mode": "持续开发；Browser 固定可信代码，不是本地调试快照或正式 JSON 升级。",
+    "sourceRoot": "/Users/shopme/Documents/workspace/opendesk-browser",
+    "output": "/Users/shopme/Documents/workspace/opendesk-browser/dist/development",
+    "initialDebugObservation": "真实 Side Panel「调试 → 本地开发服务」曾显示旧连接；进程/端口核实旧 serve 已退出，故旧显示未当作当前证据。受锁原 npm run dev 恢复后，真实 Debug 确认连接及 fa787e2648d41a4eac053701a44550f0ff1661f495eedcaa8b43aa06976cf986。",
+    "initialAppliedBundleSHA256": "272e6319dec81a9d2785dd6c398b8b8261483dd5e4e9c096dc3b089c7c756edb",
+    "parallelUpdates": "其他 owner 的 tool-shell/开发 UI 更改继续安全增量更新，revision 随之变化；不将旧 revision 冒充最终运行。",
+    "serveRecovery": {
+      "observedFailure": "PID 32438 在多次增量编译后触及约 4 GiB Node 堆上限退出；未强停其他服务。",
+      "action": "确认无存活 writer/listener 后，NODE_OPTIONS=--max-old-space-size=8192 npm run dev，复用原 development lock。只作用本次进程，不改全局配置。",
+      "pidAtObservation": 42614,
+      "startedAt": "2026-11-14T15:20:23.916Z",
+      "listener": "127.0.0.1:43119",
+      "result": "RUNNING / Output ready",
+      "longTermStability": "NOT_TESTED"
+    },
+    "finalObservedAt": "2026-11-14T15:22:16.959Z",
+    "finalUrl": "chrome-extension://ccfcjegpkdlgbclopjmadlcjedelidmf/app.html?hostInstanceId=3ef5eec5-58a0-4fb8-b82b-25cee6fe0ea0&toolId=ai-proxy&view=settings&section=profiles",
+    "extensionId": "ccfcjegpkdlgbclopjmadlcjedelidmf",
+    "appliedRevision": "3046095000d9f11edddade6cfa491581193258db2a04fab42991189ce7845ade",
+    "manifestRevision": "3046095000d9f11edddade6cfa491581193258db2a04fab42991189ce7845ade",
+    "runtimeBundle": {
+      "bytes": 3077583,
+      "sha256": "8498763615bdff698728feae365749d87f53f70eec6604faadb32434838a81d2"
+    },
+    "byteEquality": "浏览器实际 extension URL 的 tool-shell.js SHA-256 = storage.session 已应用 files 摘要 = development-update.json 摘要 = dist/development 磁盘文件；新 Host 实例安全更新后真实读取无错误。",
+    "physicalUnpackedPathIndependentCheck": "未读取浏览器 Profile 或管理内部页；路径来源为受锁 serve 输出根与上述字节闭合，不宣称另行查询 Chrome 已安装路径。",
+    "finalRotation": {
+      "keyPresent": false,
+      "errorPresent": false,
+      "executorUnavailable": true,
+      "saveDisabled": true,
+      "clearDisabled": true
+    },
+    "nonemptyAlerts": [],
+    "formalJSON": {
+      "version": "0.3.22",
+      "bytes": 1002311,
+      "sha256": "bef2aa2106c2d8b53b8f6d732d0675068486bdb023f8489720383feca5869b3e",
+      "modified": false
+    },
+    "installedVersion": "0.3.17",
+    "installedVersionSource": "chrome.storage.local opendesk.sidebar-tools.installed.v1 真实 ai-proxy 记录",
+    "installationOrPromotion": "NOT_TESTED / 未执行"
+  },
+  "cleanup": {
+    "temporaryDataRemoved": true,
+    "entireNamespaceDeepEqualsBefore": true,
+    "rotationKeyStillAbsent": true,
+    "originalFavoritesAndPreferenceAndPendingSelectionPreserved": true,
+    "proxyManaged": false,
+    "applyOrStopActions": 0,
+    "taskSpaceReleased": true,
+    "nativeUILockReleased": true,
+    "devServiceLeftRunning": true,
+    "privateDownloadsAndOriginalData": "仅在本机 ignored artifacts 保存，没有提交用户配置内容。"
+  },
+  "reference": {
+    "file": "projects/ai-proxy/preview/preview.html",
+    "sha256": "277ff8df72970906370507e9d7448da3ba583cb293536cae874c1a034080a977",
+    "modified": false,
+    "newVisualReview": "NOT_TESTED / 直接复用冻结候选历史记录"
+  },
+  "artifactRootLocalOnly": "artifacts/ai-proxy/collector-read-20261114/",
+  "deferred": [
+    "真实 APPLY/STOP 与流量",
+    "认证",
+    "任意 PAC 执行",
+    "在线订阅",
+    "采集/轮换执行器",
+    "完整诊断",
+    "官方账号服务",
+    "production",
+    "全 CI 与压力矩阵",
+    "重新95分评分",
+    "正式 JSON 晋升与安装"
+  ],
+  "existingEvidenceReused": [
+    "projects/ai-proxy/evidence/pc-parity-20261114/FINAL.zh-CN.md",
+    "projects/ai-proxy/evidence/profiles-ui-20261114.json"
+  ],
+  "lifecycle": "本 chat 无新 goal；未恢复旧自动续跑或声称跨 chat goal 已迁移。当前范围完成后停止。"
+}

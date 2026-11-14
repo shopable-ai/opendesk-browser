@@ -49,7 +49,8 @@ export function validateRotationPlan(
 }
 export async function readRotationPlan(): Promise<RotationPlan | null> {
   const stored = (await getEnvironment().storage.local.get(ROTATION_PLAN_KEY))[ROTATION_PLAN_KEY] as unknown;
-  return stored === undefined ? null : validateRotationPlan(stored);
+  // Host storage.get uses null for an absent key; remove also writes null.
+  return stored == null ? null : validateRotationPlan(stored);
 }
 export async function saveRotationPlan(
   draft: RotationPlanDraft, endpoints: ReadonlyArray<Pick<ProxyEndpoint, 'id'>>,
