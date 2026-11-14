@@ -1,6 +1,6 @@
 # 开发 Tab UI/UX 优化目标 R1
 
-日期：2026-11-14。阶段：**设计目标与关键测试条件已定义，待实施**。用户要求统一风格、改善观感与使用体验，并识别多余设计。本文件不是产品已优化或验收通过的声明。
+日期：2026-11-14。阶段：**本轮指定的编辑区与本地项目 UI 已实施，源码预览与本轮定向验证已完成；当前安装态未验证**。用户要求统一风格、改善观感与使用体验，并识别多余设计。本文件不是产品已优化或验收通过的声明。
 
 设计决定入口：[DESIGN.md](../../DESIGN.md#开发-tab-uiux2026-11-14独立作用域)。视觉数值、组件与布局继续归 [R20](../architecture/sidebar-design-system-r20.zh-CN.md)、[R27](../architecture/ui-layout-conventions-r27.zh-CN.md)、[R28](../architecture/sidebar-multi-section-tab-contract-r28.zh-CN.md) 与 [R33](../architecture/react-ui-shared-components-r33.zh-CN.md)，不建立第二套设计系统。行为门槛见[关键测试条件](developer-ui-ux-r1-test-spec-20261114.zh-CN.md)。
 
@@ -16,7 +16,7 @@
 | P0 | 原能力零退化 | 编辑、编译、预览、保存、Run、Stop 和已有安装/撤权流程保持；切换与返回不丢草稿，不混淆当前目标、历史结果或运行 owner |
 | P1 | 设计质量可复核 | 按六项设计检查点对照当前候选的默认侧栏前后证据，具体说明改善与剩余问题；独立评分在用户明确要求时执行，缺证据不计 PASS |
 
-本轮交付为上述目标、设计决策、任务顺序和测试规格，不改产品源码。后续实施先完成核心流程和最小定向验证，再对照前后视觉证据；不自动进入独立评分、production、安装全矩阵、极窄宽度/缩放矩阵或压力测试。用户认为观感差是本轮设计改进依据，不能据此臆测当前分数或恢复旧评分任务。
+本轮按用户最新细化需求实施运行环境二选一、代码示例 placeholder、字段/间距一致性及本地项目主要动作前置，并用源码绑定预览进行截图复核。原方案中的完整版本/安装/历史二级视图重组继续延期；不自动进入 production、安装全矩阵、极窄宽度/缩放矩阵或压力测试。评分仅对本轮取得的证据范围有效。
 
 ## 2. 已确认的现状与待验证问题
 
@@ -26,7 +26,7 @@
 | --- | --- | --- |
 | 页面顺序组合上下文、本地项目、编辑器、执行、保存管理、诊断；有条件显隐 | 缺少清晰的“创作主线/对象管理”层级，不能用简单再加卡片解决 | [develop.tsx](../../src/ui/react/tabs/develop.tsx) |
 | 来源使用“本地项目”开关，标题在“直接编辑/项目连接”间变化 | 来源属于互斥创作路径，建议采用同一具名来源选择，避免被理解成额外启用步骤 | [develop-editor.tsx](../../src/ui/react/tabs/develop-editor.tsx)、[local-project.js](../../src/ui/local-project.js) |
-| 本地项目选择后先放可选工具关联、关联说明和按钮，再放项目状态 | 状态与可用主动作前置；可选关联归项目设置，不让用户误以为关联是调试前提 | [develop-local.tsx](../../src/ui/react/tabs/develop-local.tsx) |
+| 修改前本地项目选择后先放可选工具关联、关联说明和按钮，再放项目状态 | 状态与可用主动作前置；可选关联归项目设置，不让用户误以为关联是调试前提 | [develop-local.tsx](../../src/ui/react/tabs/develop-local.tsx) |
 | 保存管理包含版本加载、Page 候选/安装、Controller 版本/任务表单、权限及删除 | 按当前对象组织二级视图；保留条件显隐，不声称所有内容同时出现 | [develop-advanced.tsx](../../src/ui/react/tabs/develop-advanced.tsx)、[script-editor.js](../../src/ui/script-editor.js) |
 | 下载位于“运行结果 → 运行记录与技术信息 → 结果下载与任务查询” | 当前结果保留复制，历史记录与下载相邻；高级 runId 查询不作为普通下载前置 | [develop-execution.tsx](../../src/ui/react/tabs/develop-execution.tsx) |
 | 下一次草稿运行期限与实际运行目标/版本放在同一区域 | 可编辑“运行选项”与只读“本次运行详情”分组，避免把未来设置误认为本次状态 | 同上 |
@@ -36,7 +36,7 @@
 
 ## 3. 目标信息架构
 
-以下为待实施布局，不是已有功能状态。保留五个一级 Tab，不新增路由框架。
+以下为总体布局方向；本轮已实施范围见第 6 节，其他内容继续延期。保留五个一级 Tab，不新增路由框架。
 
 | 层级 | 常驻/按需 | 内容与主要操作 |
 | --- | --- | --- |
@@ -72,6 +72,28 @@
 
 只在现有 `main` 工作，不建分支/worktree/PR；保留并行 dirty。开发复用原 `dist/development` 和 watcher，产品源码变更后再按需验证产物；不启动第二 writer。未授权提交/推送，本轮不执行。当前已知并行改动包括 Page 启动/预览、Web Flow、Subagent 及其他扩展，本轮不写入其文件。
 
-**规格完成**：目标、每项冗余的处置、功能保护、关键测试及延期范围明确，链接有效，经独立只读审查。本轮到此结束。
+**规格完成**：目标、每项冗余的处置、功能保护、关键测试及延期范围明确，链接有效。当前 UI 实施状态见下节；不恢复原计划全部管理改版。
 
 **产品优化完成（后续）**：当前候选已触发 P0 全通过、默认侧栏主流程有真实证据、无已知阻断回归，六项设计检查点有对应证据与缺口说明；交付修改清单、截图和验证缺口。独立评分不是本阶段前置。原生观察不可用时可继续独立源码工作，但不能宣称视觉/产品验收 PASS。
+
+
+## 6. 本轮已实施的具体决定与验证边界
+
+| 项目 | 实施与完成条件 |
+| --- | --- |
+| 运行环境 | 原 `controller/page` 值和动作保留，以「自动化 / 网页」原生 radio 分段展示；键盘可切换、忙态禁用；不新增一级 Tab 或第三种执行世界 |
+| 代码提示 | JS 自动化、JS 网页、React JSX、Vue SFC 有不同 placeholder，明确标为示例；空字段的真实 value 仍为空，切换保留作者源码，只读快照不提示可编辑示例 |
+| 说明层级 | 编辑器旁保留一句用途与明确 Run 提示；类型差异、侧栏与复合项目收进「如何选择运行方式」，原 edition 提示仍保留 |
+| 本地项目 | 项目选择 → 真实状态 → 适用的连接/恢复 → 调试/保存 → 可选源码关联。原关联/身份与调试校验保留；只增加展示层的状态显隐；调试失败、失效关联及保存回执保留在按钮附近，不藏在可选折叠内 |
+| 视觉一致 | 两组选择共用开发页 `developer-choices`；字段继续使用公共 `od-field` / `--od-input-border`。间距规范原已存在：说明紧邻 4px、字段组 12px、独立区域 16px；没有新增 Tokens 或第二套皮肤 |
+| 复合项目说明 | [原选型页](../api/extension-development-selection.zh-CN.md#开发-tab-的运行环境怎样选2026-11-14) 解释 Controller / Page / Sidebar 的选择与既有 `page.module` 同包试点；帮助明确「本地项目 → 在侧栏调试」「扩展 → 导入 → 获准网站验证」的不同操作，侧栏预览不更新已安装网页代码；现有 Prompt Shortcuts 固定网页适配器身份保留 |
+
+证据目录：`artifacts/developer-ui-ux-20261114/`。`before-final.png` 与 `after-refined.png` 使用同一正式根容器 class、520×1000 CSS 画布和 360×820 的源码工作台；预览通过实际 `SidebarAppShell` / `DeveloperPage` 与原 CSS 渲染，假状态明确为 `UI_PREVIEW_ONLY`。原六 Tab 综合预览入口因已搬迁的百度任务 fixture 缺失不能运行，本轮仅生成定向临时预览，不修改该无关入口。
+
+续接时只读确认旧 watcher 已退出、Web Flow 当前源码与原 pin 一致，旧失败已不再阻断来源准入。随后并行 Page 刷新任务启动了正常 `npm run dev`（PID 59971，原输出 `dist/development`，日志 `artifacts/page-refresh-missing-20261114/dev.log`）；本任务先复用它，连接区重排编译成功；随后该 writer 在帮助文案重编译时耗尽约 4GB V8 堆并退出（摘要 `shared-writer-oom.txt`）。确认其已退出、输出守卫释放后，本任务沿原入口恢复一次 `npm run dev`（PID 65678，日志 `/tmp/developer-ui-recovery-dev.log`），最终 revision 为 `aeba5af1596c262883a46d211ca8e9fc8c45cc8ad23fe7e1d64f699b588ae294`，实际 tool-shell 已包含新帮助，产物 SHA 与 marker 相符。未修改 pin、手动清锁、并发第二 writer 或复制预览覆盖 dist。输出 revision/SHA 与候选记录见 `recovery-development-output.json`；构建不等于安装或运行生效。Ego 打开侧栏得到新原生 target，但 Page API 不将它列为可操作 Page；原生 UI inventory 也超时。观察到的扩展 URL ID 为 `ccfcjegpkdlgbclopjmadlcjedelidmf`；实际加载路径、原生 mode/edition、serve/applied revision、真实编辑 → Run → 结果/Stop、Native/IME 与 production 仍为 `NOT_TESTED`。
+
+独立 designer 对同尺寸直接编辑源码预览评分 **80 → 93/100**，四项视觉子分为信息层级 93、一致性 95、密度 91、可读性 93；本地未连接预览 91/100。未达正式各维 ≥95，亦不覆盖核心执行、Native 或安装态。续接按该问题将原 recovery 整块移到状态之后、灰色动作和可选折叠之前；连接按钮由工作台 y≈462px 前移到 y≈303px，状态到按钮间距 8px。原 ID、可信点击及连接状态投影均保留。测量证据确认编辑器说明间距 4px、字段组 12px、独立区 16px，源码/参数边框同色；键盘聚焦最末主折叠项后正文可滚动到达且不被 Dock 遮挡。评分和交互证据的范围分别记录，不相互替代。
+
+续接证据：`after-local.png` → `after-local-recovery.png` 对比断连态，`after-refined.png` → `after-editor-recovery.png` 对比直接编辑；原 before 不重建。均为 520×1000 CSS 画布内的 360×820 工作台、浅色与正常缩放，当前截图来自 file:// 离线源码预览，等待 Switch 动画到达实际 checked 终态后采集。HTTP 预览曾出现已安装阅读目录的网页浮层，因此改用离线文件采集源码界面，未修改该扩展或产品样式。最终源码输入归 `recovery-final/inputs.json`，交互回执归 `recovery-ui-checks.json`，最终有限评审归 `review-recovery-final.json`。这些都不证明原生执行。
+
+续接最终有限复评：独立 designer 判定 `PASS_SCOPED_IMPROVEMENT`，本地断连态 **91→94/100**、直接编辑保持 **93/100**，具体子分与边界见 `review-recovery-final.json`；未发现新的源码预览视觉阻断项，停止继续改版，不将结果提升为原生/六维 ≥95 验收。

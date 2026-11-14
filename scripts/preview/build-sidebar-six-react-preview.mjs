@@ -18,7 +18,7 @@ const stylePaths=[
   'src/ui/cloud-hosting.css','src/ui/extension-center.css'
 ];
 const taskParamPreviewPaths=[
-  'examples/tasks/baidu.search.top3.v1.opendesk-task.json',
+  'task-packs/baidu.search/releases/baidu.search.top3.v1.opendesk-task.json',
   'examples/tasks/page.read.fixed.v1.opendesk-task.json',
   'examples/tasks/form-fill.v1.opendesk-task.json',
   'tests/fixtures/tasks/ui-readonly/ui-readonly.opendesk-task.json'
@@ -105,6 +105,12 @@ if(widthInput){
  });
 }
 const developerView=createDeveloperPreviewView();
+developerView.patch('script-source',{value:''});
+developerView.patch('script-status',{textContent:''});
+if(DEVELOPER_DESIGN_PROPOSAL){
+  developerView.patch('manual-project-params-tools',{className:'developer-params od-disclosure od-disclosure--flat'});
+  developerView.patch('script-advanced',{className:'od-disclosure od-disclosure--flat'});
+}
 for(const id of ['page-candidate-save','page-program-refresh'])
   if(developerView.fields[id])developerView.patch(id,{disabled:true});
 const myView=createMyWorkbenchView(),toolView=createSidebarToolsView();
@@ -115,7 +121,7 @@ myView.actions.taskSearchToggleClick=()=>{
 // Optional offline states live only in the existing six-tab React preview.
 // Selected/running/layout scenes never invoke a Host or persist an installation.
 const taskScene=new URLSearchParams(location.search).get('task');
-myView.project('runDock',{taskHidden:true,developHidden:true,hidden:true,stopOnly:true});
+myView.project('runDock',{taskHidden:true,developHidden:initial!=='develop',hidden:initial!=='develop',stopOnly:false});
 if(['selected','running','layout'].includes(taskScene)){
   myView.project('taskRows',{rows:[{taskId:'preview-task',title:'演示任务',
     description:'仅预览选中任务详情，不访问当前网页',enabled:true}],
@@ -125,6 +131,11 @@ if(['selected','running','layout'].includes(taskScene)){
   myView.field('task-run').disabled=taskScene==='running';
   myView.actions.taskRunClick=()=>myView.setText('task-status','仅预览 · 没有实际运行任务');
   if(taskScene==='layout'){
+    // Representative disclosure content; never a real run or permission receipt.
+    myView.field('task-history-panel').hidden=false;
+    myView.project('taskHistory',[{runId:'preview-run',ordinal:1,state:'预览记录',
+      text:'仅离线样例，没有执行任务。',technical:'UI_PREVIEW_ONLY · 无真实回执'}]);
+    myView.project('taskDetail','网站：https://example.com/*\\n权限：仅离线展示，无真实授权');
     const realExamples=TASK_PARAM_PREVIEW_MANIFESTS;
     const useReal=previewParams.get('params')==='real';
     const rows=useReal?realExamples.map(m=>({taskId:m.taskId,title:m.title,description:m.description,enabled:true})):[
@@ -537,6 +548,9 @@ function openDemoDetail(key,{focusToggle=false}={}){
       '应用保持停用，查看详情不会自动启用。'):'仅供审阅排版，不运行扩展',
     appDataText:'',
     sites:row.kind==='page'?['https://example.com/*']:[],suspended:false,
+    oldPageCleanup:row.kind==='page'?{documents:[{key:'preview-document',tabTitle:'演示页面',
+      state:'unobservable',tabId:0,documentId:'preview-only'}],
+      records:[{revision:'preview',state:'仅离线展示',records:0,pendingRecords:0}]}:null,
     pageInfo:row.kind==='page'?{
       source:'演示数据',excluded:[],capabilities:[],networkOrigins:[],
       authorization:'无真实授权',nativeState:'无真实注册',installationId:'无',
@@ -615,7 +629,11 @@ document.getElementById('od-sidebar-preview-error')?.setAttribute('hidden','');
 document.getElementById('od-sidebar-preview-stage')?.setAttribute('data-preview-ready','true');
 `;
 
-export async function generateSidebarSixReactPreview(){
+export async function generateSidebarSixReactPreview({previewOverrides={}}={}){
+  // Temporary design proposals remain offline and are reported separately from
+  // the source hashes; normal generation always uses the installed JSX unchanged.
+  for(const path of Object.keys(previewOverrides))
+    must(/^src\/ui\/react\/tabs\/develop-(editor|advanced)\.tsx$/.test(path),'unsupported design proposal: '+path);
   const initial=await Promise.all(inputs.map(async path=>[path,await readFile(join(root,path))]));
   const $=load(initial[0][1].toString());
   must($('#opendesk-react-app').length===1&&$('#opendesk-react-app').contents().length===0,
@@ -635,6 +653,7 @@ export async function generateSidebarSixReactPreview(){
     const clipperVersion=JSON.parse(await readFile(join(root,'projects/web-markdown-clipper/tool.config.json'),'utf8')).version;
     const localeTool=await createSidebarToolPackage(join(root,'projects/reading-toc'));
     await writeFile(entry,previewEntry.replace('CLIPPER_STAGE_DOCUMENT',JSON.stringify(clipperStage)).replace('CLIPPER_TOOL_VERSION',clipperVersion)
+      .replace('DEVELOPER_DESIGN_PROPOSAL',String(Object.keys(previewOverrides).length>0))
       .replace('LOCALE_PREVIEW_TOOL',JSON.stringify(localeTool))
       .replace('TASK_PARAM_PREVIEW_MANIFESTS',JSON.stringify(taskParamPreviewPaths.map(path=>JSON.parse(sources.get(path)).manifest))));
     await build({root,configFile:false,logLevel:'error',
@@ -645,6 +664,7 @@ export async function generateSidebarSixReactPreview(){
           if(path.startsWith(root)&&!path.includes('/node_modules/')&&/\.(?:[cm]?[jt]sx?|css)$/.test(path)){
             const key=relative(root,path);
             if(!sources.has(key))sources.set(key,await readFile(path));
+            if(Object.hasOwn(previewOverrides,key))return previewOverrides[key];
           }
           return null;
         }}],
@@ -774,6 +794,7 @@ export async function generateSidebarSixReactPreview(){
     ].join('\n');
     must(!/<script(?=\s)[^>]*src="https?:/i.test(html),'network script unexpectedly included');
     return {html,clipperStage,bytes:Buffer.byteLength(html),bundleBytes:compiled.length,inputSha256,bundleInputSha256,
+      previewOverrides:Object.entries(previewOverrides).map(([path,text])=>({path,sha256:sha(text)})),
       sourceInputs:sourceInputs.map(([path,bytes])=>({path,sha256:sha(bytes)}))};
   }finally{await rm(temp,{recursive:true,force:true});}
 }

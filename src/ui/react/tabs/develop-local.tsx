@@ -22,64 +22,10 @@ export function DevelopLocalProject(){
           </div>
           </div>
           </div>
-          <div className="local-project-binding od-stack">
-          <div className="od-form-field">
-          <label htmlFor="local-project-tool" className="od-field-label">关联已安装工具（可选）</label>
-          <DevelopField as="select" id="local-project-tool" className="od-field" aria-describedby="local-project-tool-pointer"/>
-          <DevelopField as="p" id="local-project-tool-pointer" className="od-field-help" role="status" aria-live="polite"/>
-          <p className="od-field-help">关联只记住此工具要打开的目录，不证明它是正式安装包的源码，也不授予安装权限。</p>
-          </div>
-          <div className="od-toolbar">
-            <DevelopField as="button" id="local-project-tool-bind" type="button" className="od-button od-button--secondary">保存源码关联</DevelopField>
-            <DevelopField as="button" id="local-project-preview" type="button" className="od-button od-button--secondary">在侧栏调试 ↗</DevelopField>
-          </div>
-          </div>
           <div className="od-stack">
           <DevelopField as="p" id="local-project-status" role="status" aria-live="polite">
           </DevelopField>
-          <DevelopField as="button" id="script-save" type="button" className="od-button od-button--secondary">
-            {"检查并保存本地项目"}
-          </DevelopField>
-          </div>
-          <DevelopField as="section" id="local-install-review" className="local-install-review od-surface" aria-label="固定版本安装确认" aria-describedby="local-install-summary local-install-warning" tabIndex="-1">
-            <strong>
-              {"安装与管理"}
-            </strong>
-            <DevelopField as="p" id="local-install-summary" className="hint" role="status">
-            </DevelopField>
-            <div className="od-form-field">
-            <label htmlFor="local-install-title" className="od-field-label">
-              {"名称"}
-            </label>
-                <DevelopField as="input" id="local-install-title" type="text" maxLength="100" autoComplete="off" className="od-field"/>
-            </div>
-            <div className="od-form-field">
-            <label htmlFor="local-install-version" className="od-field-label">
-              {"版本"}
-            </label>
-            <DevelopField as="input" id="local-install-version" type="text" maxLength="24" autoComplete="off" className="od-field"/>
-            </div>
-            <DevelopField as="p" id="local-install-warning" className="hint">
-            </DevelopField>
-            <div className="row">
-              <DevelopField as="button" id="local-install-confirm" type="button" className="od-button">
-                {"确认安装固定版本"}
-              </DevelopField>
-              <DevelopField as="button" id="local-install-cancel" type="button" className="od-button od-button--secondary">
-                {"取消"}
-              </DevelopField>
-            </div>
-            <DevelopField as="p" id="local-install-status" role="status" aria-live="polite">
-            </DevelopField>
-          </DevelopField>
-          <details className="od-disclosure od-disclosure--flat">
-            <summary>
-              {"本地连接诊断"}
-            </summary>
-            <DevelopField as="p" id="local-project-diagnostics">
-              {"正在核对 Native 和源码 Provider。"}
-            </DevelopField>
-          </details>
+          <DevelopField as="p" id="local-project-tool-pointer" className="od-field-help" role="status" aria-live="polite"/>
           <DevelopField as="div" id="local-project-recovery" className="local-project-recovery">
             <DevelopField as="button" id="local-project-connect" className="local-project-connect od-button od-button--secondary" type="button">
               {"连接本机 OpenDesk ↗"}
@@ -136,6 +82,65 @@ export function DevelopLocalProject(){
               </p>
             </DevelopField>
           </DevelopField>
+          <div className="od-toolbar">
+            <DevelopField as="button" id="local-project-preview" type="button" className="od-button od-button--secondary">在侧栏调试 ↗</DevelopField>
+            <DevelopField as="button" id="script-save" type="button" className="od-button od-button--secondary">
+              {"检查并保存本地项目"}
+            </DevelopField>
+          </div>
+          </div>
+          <details className="od-disclosure od-disclosure--flat">
+          <summary>源码关联（可选）</summary>
+          <div className="local-project-binding od-stack">
+          <div className="od-form-field">
+          <label htmlFor="local-project-tool" className="od-field-label">关联已安装工具（可选）</label>
+          <DevelopField as="select" id="local-project-tool" className="od-field" aria-describedby="local-project-tool-pointer"/>
+          <p className="od-field-help">关联只记住此工具要打开的目录，不证明它是正式安装包的源码，也不授予安装权限。</p>
+          </div>
+          <div className="od-toolbar">
+            <DevelopField as="button" id="local-project-tool-bind" type="button" className="od-button od-button--secondary">保存源码关联</DevelopField>
+          </div>
+          </div>
+          </details>
+          <DevelopField as="section" id="local-install-review" className="local-install-review od-surface" aria-label="固定版本安装确认" aria-describedby="local-install-summary local-install-warning" tabIndex="-1">
+            <strong>
+              {"安装与管理"}
+            </strong>
+            <DevelopField as="p" id="local-install-summary" className="hint" role="status">
+            </DevelopField>
+            <div className="od-form-field">
+            <label htmlFor="local-install-title" className="od-field-label">
+              {"名称"}
+            </label>
+                <DevelopField as="input" id="local-install-title" type="text" maxLength="100" autoComplete="off" className="od-field"/>
+            </div>
+            <div className="od-form-field">
+            <label htmlFor="local-install-version" className="od-field-label">
+              {"版本"}
+            </label>
+            <DevelopField as="input" id="local-install-version" type="text" maxLength="24" autoComplete="off" className="od-field"/>
+            </div>
+            <DevelopField as="p" id="local-install-warning" className="hint">
+            </DevelopField>
+            <div className="row">
+              <DevelopField as="button" id="local-install-confirm" type="button" className="od-button">
+                {"确认安装固定版本"}
+              </DevelopField>
+              <DevelopField as="button" id="local-install-cancel" type="button" className="od-button od-button--secondary">
+                {"取消"}
+              </DevelopField>
+            </div>
+            <DevelopField as="p" id="local-install-status" role="status" aria-live="polite">
+            </DevelopField>
+          </DevelopField>
+          <details className="od-disclosure od-disclosure--flat">
+            <summary>
+              {"本地连接诊断"}
+            </summary>
+            <DevelopField as="p" id="local-project-diagnostics">
+              {"正在核对 Native 和源码 Provider。"}
+            </DevelopField>
+          </details>
           <DevelopField as="details" id="local-project-params-tools" className="od-disclosure">
             <summary>
               {"项目参数 JSON（Controller 可选）"}

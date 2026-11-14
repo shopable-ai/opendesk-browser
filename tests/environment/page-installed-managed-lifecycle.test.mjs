@@ -833,7 +833,7 @@ for(const phase of [2,3])for(const failure of ['reject','wrong document'])test('
   const worlds=createPreviewWorlds({api:f.api,storage:f.storage});
   await assert.rejects(worlds.allocate(native,f.target,{pendingBinding:'failed-proof',concurrentProof:true}),
     failure==='reject'?/native proof acknowledgement lost/:{code:'E_WORLD_ISOLATION'});
-  assert.equal(probes,phase,'no later probe or user source can follow a failed proof');
+  assert.equal(probes,3,'both already-started readonly proofs settle, with no user source following failure');
   const rows=(await f.api.storage.session.get('opendeskPagePreviewWorldsD1')).opendeskPagePreviewWorldsD1;
   assert.equal(rows.length,1,'failed proof consumes its world budget');assert.equal(rows[0].pendingBinding,undefined);
 });
@@ -849,8 +849,33 @@ test('failed concurrent proof cleanup retains protection when the session write 
     assert.equal(rows.length,2,'a failed cleanup cannot refund budget or report allocation success');
     assert.equal(rows.find(row=>row.worldId===foreign).pendingBinding,'foreign-owner');
     assert.equal(rows.find(row=>row.worldId!==foreign).pendingBinding,'failed-owner','unknown cleanup retains original protection');
-    assert.equal(probes,2);
+    assert.equal(probes,3,'cleanup follows settlement of both readonly proofs');
   }finally{f.api.storage.session.set=set;}
+});
+for(const failedRead of ['default','isolated'])test('protected world proof drains both readonly receipts before '+failedRead+' failure cleanup',async t=>{
+  const f=fixture();t.after(f.dispose);const native=f.api.userScripts,execute=native.execute;
+  const write=allocationGate(),writeEntered=allocationGate(),reads=allocationGate(),readsEntered=allocationGate();
+  let calls=0,startedReads=0,settled=false;
+  native.execute=async request=>{
+    const phase=++calls,receipt=await execute(request);
+    if(phase===1){writeEntered.release();await write.wait;return receipt;}
+    assert.equal(phase<=3,true,'only the original three probes may run');
+    if(++startedReads===2)readsEntered.release();
+    if((failedRead==='default')===(phase===2))throw Error('readonly proof failed');
+    await reads.wait;return receipt;
+  };
+  const worlds=createPreviewWorlds({api:f.api,storage:f.storage}),allocation=worlds.allocate(native,f.target,
+    {pendingBinding:'protected-read-pair',concurrentProof:true});
+  const result=Promise.allSettled([allocation]).then(value=>{settled=true;return value;});
+  try{
+    await writeEntered.wait;await allocationTurn();assert.equal(calls,1,'reads cannot precede the acknowledged write');
+    write.release();await readsEntered.wait;await allocationTurn();
+    assert.equal(settled,false,'a failed read cannot release protection while the other receipt is pending');
+    assert.equal((await f.api.storage.session.get(allocationLedger))[allocationLedger][0].pendingBinding,'protected-read-pair');
+  }finally{write.release();reads.release();await result;}
+  assert.equal((await result)[0].status,'rejected');assert.match((await result)[0].reason.message,/readonly proof failed/);
+  const rows=(await f.api.storage.session.get(allocationLedger))[allocationLedger];
+  assert.equal(rows.length,1,'failure does not refund the consumed budget');assert.equal(rows[0].pendingBinding,undefined);
 });
 const installedWorldScope=row=>({worldId:row.worldId,executionKey:row.installed.executionKey,
   receiptNonce:row.installed.receiptNonce,compiledSha256:row.installed.compiledSha256});

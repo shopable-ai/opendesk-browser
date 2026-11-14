@@ -16,7 +16,8 @@ export function projectCloudInstalledTasks(data,approved=[]){
       candidate.version===row.version&&candidate.manifestHash===row.manifestHash);
     const manifest=item?.manifest,sourceHash=manifest?.program?.sourceHash??null,
       siteOrigins=Array.isArray(manifest?.siteOrigins)?manifest.siteOrigins:[],
-      eligible=!!(row.enabled&&item?.stage==='available'&&
+      eligible=!!(row.enabled&&row.runtimeCurrent!==false&&
+        item?.runtimeCurrent!==false&&item?.stage==='available'&&
         item?.verification?.manifestHash===row.manifestHash&&
         item?.verification?.sourceHash===sourceHash&&sourceHash&&siteOrigins.length);
     const authorized=grants.find(grant=>grant.taskId===row.taskId&&

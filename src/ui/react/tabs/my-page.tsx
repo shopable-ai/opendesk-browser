@@ -38,7 +38,7 @@ function MyTaskWorkspace({view}){
 <MyTaskDetail value={view.data.taskDetail||''}/>
 </MyControl>
 </details>
-<MyControl view={view} as="details" id="task-tools" onToggle={event=>view.actions.taskToolsToggle?.(event.nativeEvent)} className="task-tools od-disclosure od-disclosure--flat">
+<MyControl view={view} as="details" id="task-tools" onToggle={event=>view.actions.taskToolsToggle?.(event.nativeEvent)} className="task-tools od-disclosure">
 <summary>{"更多操作"}</summary>
 <div className="task-operation-strip" role="group" aria-label="当前任务操作">
 <MyControl view={view} as="button" type="button" id="task-refresh" onClick={event=>view.actions.taskRefreshClick?.(event.nativeEvent)} className="od-icon-button" title="刷新任务列表" aria-label="刷新任务列表">

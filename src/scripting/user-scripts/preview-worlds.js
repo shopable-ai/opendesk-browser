@@ -199,10 +199,26 @@ export function createPreviewWorlds({api,storage}) {
     const prove=async({worldId,marker,reserved,isolated})=>{
       await probe(native, target, 'const ' + marker + ' = ' + JSON.stringify(reserved) + ';\n' + JSON.stringify(reserved), reserved,undefined,injectImmediately);
       checkpoint('worldProbeDefaultWriteMs');
-      await probe(native, target, marker, reserved,undefined,injectImmediately);
-      checkpoint('worldProbeDefaultReadMs');
-      await probe(native, target, 'typeof ' + marker + " === 'undefined' ? " + JSON.stringify(isolated) + ' : ' + JSON.stringify(reserved), isolated, worldId,injectImmediately);
-      checkpoint('worldProbeIsolatedMs');
+      const defaultRead=()=>probe(native,target,marker,reserved,undefined,injectImmediately);
+      const isolatedRead=()=>probe(native,target,'typeof '+marker+" === 'undefined' ? "+JSON.stringify(isolated)+' : '+JSON.stringify(reserved),isolated,worldId,injectImmediately);
+      if(concurrentProof){
+        // The acknowledged const write precedes both immutable reads. Require
+        // both exact receipts and drain both calls before releasing protection,
+        // even when one fails. No dependency or user source is sent here.
+        const timed=(work,key)=>{
+          const finished=timingCheckpoint(onTiming);
+          return work().finally(()=>finished(key));
+        };
+        const results=await Promise.allSettled([
+          timed(defaultRead,'worldProbeDefaultReadMs'),
+          timed(isolatedRead,'worldProbeIsolatedMs')
+        ]);
+        checkpoint('worldProbeReadJoinMs');
+        for(const result of results)if(result.status==='rejected')throw result.reason;
+      }else{
+        await defaultRead();checkpoint('worldProbeDefaultReadMs');
+        await isolatedRead();checkpoint('worldProbeIsolatedMs');
+      }
     };
     // Start the full readonly observation without yielding our original FIFO
     // position. Handle rejection now, even while earlier Native work holds it.

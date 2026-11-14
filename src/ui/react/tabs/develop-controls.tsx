@@ -37,6 +37,15 @@ export function DevelopField({as:Tag='div',id,children,...props}){
     onChange={event=>invoke(event,{value:event.currentTarget.value})}>
     {field.options.map(row=><option key={row.value} value={row.value} disabled={row.disabled}>{row.label}</option>)}
   </select>;
+  if(Tag==='fieldset'&&id==='script-javascript-world')return <fieldset {...attrs}>
+    {children}
+    {field.options.map(row=><label key={row.value}>
+      <input type="radio" name="script-javascript-world-choice" value={row.value} aria-label={row.label}
+        checked={field.value===row.value} disabled={field.disabled||row.disabled}
+        onChange={event=>{if(event.currentTarget.checked)invoke(event,{value:row.value});}}/>
+      <span>{row.label}</span>
+    </label>)}
+  </fieldset>;
   if(Tag==='fieldset'&&id==='sdk-capabilities')return <fieldset {...attrs}>
     {children}
     {field.rows.map(row=><label key={row.value}>

@@ -92,6 +92,16 @@ test('real helper opens a new workspace with one bounded intent and never querie
   assert.equal(f.effects.length,1);assert.equal(f.sessionWrites.length,1);assertPreview(f,0,null);
 });
 
+test('preview failure publishes visible feedback while ordinary association guidance stays optional',async t=>{
+  const f=fixture(t);await settle();
+  assert.equal(f.find('local-project-tool-pointer').hidden,true);
+  f.api.tabs.create=async()=>{throw Object.assign(new Error('workspace unavailable'),{code:'E_TEST_OPEN'});};
+  f.find('local-project-preview').fire('click');await settle();
+  assert.equal(f.find('local-project-tool-pointer').hidden,false);
+  assert.match(f.find('local-project-tool-pointer').textContent,/未能打开侧栏应用调试.*E_TEST_OPEN/);
+  assert.equal(f.find('local-project-preview').disabled,false,'an explicit retry remains available');
+});
+
 test('saved pointer restores the exact source after a new Native lease, and offline same-name sources never substitute',async t=>{
   const saved={bindingId:'file-workspace:old-lease',name:workspace.name,sourceId:source,localMode:true,
     toolId:tool.id,toolPointers:{[source]:pointer}};

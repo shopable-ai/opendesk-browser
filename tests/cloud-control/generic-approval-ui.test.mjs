@@ -45,6 +45,33 @@ test('Cloud catalog allows multiple verified installed identities but neither di
     {...installed[0],version:'2.0.0',generation:2}]},[]);
   assert.equal(upgraded[0].eligible,false,'Upgrade requires a new local verification and approval');
 });
+test('Cloud approval excludes stale candidate and installation runtimes while retaining current Tasks',async()=>{
+  const {doc,reactUI,model}=surface(),approved=[];
+  const currentCatalog=catalog.map((row,index)=>({...row,runtimeCurrent:index!==0}));
+  const currentInstalled=installed.map((row,index)=>({...row,enabled:true,runtimeCurrent:index!==1}));
+  const control=createCloudHosting({client:{cloud:{
+    cloudStatus:async()=>({provider:{providerId:'p'},enabled:false,tasks:[],requests:[]}),
+    cloudApprove:async body=>{approved.push(body);return {};}
+  },request:async()=>({catalog:currentCatalog,installed:currentInstalled})},
+  host:{},document:doc,api:{},reactUI});
+  try{
+    for(let i=0;i<5;i++)await setImmediate();
+    const items=()=>model().authorization.tasks;
+    assert.deepEqual(items().map(row=>row.eligible),[false,false,true],
+      'Matching hashes and available stage cannot replace current runtime verification');
+    for(const task of items().slice(0,2))model().authorization.onSelection(task.key,true);
+    assert.deepEqual(items().map(row=>row.selected),[false,false,false]);
+    model().authorization.onConsent(true);
+    await model().authorization.onApprove();
+    assert.equal(approved.length,0,'Stale runtime Tasks cannot be sent for approval');
+    model().authorization.onSelection(items()[2].key,true);
+    model().authorization.onConsent(true);
+    await model().authorization.onApprove();
+    assert.equal(approved.length,1);
+    assert.deepEqual(approved[0].tasks.map(row=>row.taskId),[tasks[2].taskId]);
+    assert.equal(approved[0].tasks[0].resultAllowed,false);
+  }finally{control.dispose();}
+});
 test('Side Panel approves two distinct pinned Tasks with individual result scope, never the disabled third Task',async()=>{
   const {doc,reactUI,model}=surface(),approved=[],calls=[];
   const cloud={cloudStatus:async()=>({provider:{providerId:'p'},enabled:false,
@@ -123,7 +150,7 @@ test('approval reports stale builtin verification without exposing remote detail
     model().authorization.onSelection(model().authorization.tasks[0].key,true);
     model().authorization.onConsent(true);
     await model().authorization.onApprove();
-    assert.match(model().pairing.status,/内置运行时已改变.*新任务版本.*重新试运行、验证并安装/);
+    assert.match(model().pairing.status,/内置运行时已改变.*同一固定包.*重新试运行、验证并确认更新安装.*再批准云控/);
     assert.doesNotMatch(model().pairing.status,/PRIVATE_RUNTIME_DETAIL/);
     assert.equal(model().authorization.hostingEnabled,false);
     assert.equal(model().authorization.consent,false);

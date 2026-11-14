@@ -1332,6 +1332,60 @@ test('Candidate remains immutable; verification and native registration are dist
   const result=await f.service.handleBoot(f.message(),f.sender);assert.equal(result.state,'completed');assert.equal(f.executeCalls,1);
   assert.equal(f.rows().find(r=>r.tag==='page-execution-v1').sourceHash,candidate.manifest.sourceHash);
 });
+test('automatic bootstrap survives a development hold without dispatching the source twice',async()=>{
+  const f=fixture();await f.install();const calls=[],delays=[],errors=[];
+  const code=[...f.native.values()][0].js[0].code;
+  await vm.runInNewContext(code,{
+    chrome:{runtime:{sendMessage:async message=>{
+      calls.push(structuredClone(message));
+      if(calls.length<3)return {ok:false,error:{code:'E_DEV_RELOADING'}};
+      return {ok:true,data:await f.service.handleBoot(message,f.sender)};
+    }}},setTimeout(fn,ms){delays.push(ms);fn();},console:{error:(...args)=>errors.push(args)}
+  });
+  assert.equal(calls.length,3);assert.deepEqual(calls[1],calls[0]);assert.deepEqual(calls[2],calls[0]);
+  assert.deepEqual(delays,[200,400]);assert.equal(f.executeCalls,1);assert.deepEqual(errors,[]);
+});
+test('automatic bootstrap bounds development hold retries and reports the final refusal',async()=>{
+  const f=fixture();await f.install();let calls=0;const delays=[],errors=[];
+  await vm.runInNewContext([...f.native.values()][0].js[0].code,{
+    chrome:{runtime:{sendMessage:async()=>{calls++;return {ok:false,error:{code:'E_DEV_RELOADING'}};}}},
+    setTimeout(fn,ms){delays.push(ms);fn();},console:{error:(...args)=>errors.push(args)}
+  });
+  assert.equal(calls,7);assert.deepEqual(delays,[200,400,800,1600,2000,2000]);
+  assert.equal(f.executeCalls,0);assert.equal(errors.length,1);assert.equal(errors[0][1],'E_DEV_RELOADING');
+});
+for(const outcome of ['permission','stale','unknown','malformed','transport'])
+test('automatic bootstrap never retries '+outcome+' responses',async()=>{
+  const f=fixture();await f.install();let calls=0;const delays=[],errors=[];
+  const response={permission:{ok:false,error:{code:'E_PERMISSION'}},stale:{ok:false,error:{code:'E_DOCUMENT_STALE'}},
+    unknown:{ok:false,error:{code:'E_EFFECT_UNKNOWN'}},malformed:{error:{code:'E_DEV_RELOADING'}}}[outcome];
+  await vm.runInNewContext([...f.native.values()][0].js[0].code,{
+    chrome:{runtime:{sendMessage:async()=>{calls++;if(outcome==='transport')throw Error('channel closed');return response;}}},
+    setTimeout(fn,ms){delays.push(ms);fn();},console:{error:(...args)=>errors.push(args)}
+  });
+  assert.equal(calls,1);assert.deepEqual(delays,[]);assert.equal(f.executeCalls,0);assert.equal(errors.length,1);
+});
+for(const change of ['disable','navigation'])
+test('automatic bootstrap rechecks authority after development hold and '+change,async()=>{
+  const f=fixture();await f.install();const sender=structuredClone(f.sender);let calls=0;const errors=[];
+  await vm.runInNewContext([...f.native.values()][0].js[0].code,{
+    chrome:{runtime:{sendMessage:async message=>{
+      if(++calls===1){
+        if(change==='disable'){
+          const row=f.installation();
+          await f.service.setInstalledPageEnabled({programId:row.programId,manifestHash:row.manifestHash,
+            installationId:row.authorization.installationId,expectedGeneration:row.authorization.generation,enabled:false},{});
+        }
+        else f.navigate('new-document');
+        return {ok:false,error:{code:'E_DEV_RELOADING'}};
+      }
+      try{return {ok:true,data:await f.service.handleBoot(message,sender)};}
+      catch(error){return {ok:false,error:{code:error.code}};}
+    }}},setTimeout(fn){fn();},console:{error:(...args)=>errors.push(args)}
+  });
+  assert.equal(calls,2);assert.equal(f.executeCalls,0);assert.equal(errors.length,1);
+  assert.equal(errors[0][1],change==='disable'?'E_PERMISSION':'E_DOCUMENT_STALE');
+});
 test('Chrome may reorder native match ranges without changing the installed authority',async()=>{
   const f=fixture(),sourceUtf8='// ==UserScript==\n// @match https://chatgpt.com/*\n// @match https://chat.deepseek.com/*\n// @match https://gemini.google.com/*\n// @exclude-match https://chatgpt.com/private/*\n// @exclude-match https://chat.deepseek.com/private/*\n// @noframes\n// @run-at document-idle\n// ==/UserScript==\nasync function main(){return 42;}';
   const candidate=await f.prepare('document-idle',{sourceUtf8});

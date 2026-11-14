@@ -456,7 +456,7 @@ export function ExtensionDetail({model,container,onScrollNavigation,scrollNaviga
       <h3>{t('sites')}</h3>
       {sites.length>0&&<ul className="ec-sites">{sites.map(site=><li key={site}>{site}</li>)}</ul>}
       {model.suspended&&<p role="status">{t('siteRestricted')}</p>}
-      {model.siteUpgrade&&<details className="ec-site-review-details">
+      {model.siteUpgrade&&<details className="ec-site-review-details od-disclosure od-disclosure--flat">
         <summary>{model.siteUpgrade.summary||t('addCustomReview')}</summary>
         <PageSiteUpgrade locale={locale} upgrade={model.siteUpgrade}/>
       </details>}
@@ -465,7 +465,7 @@ export function ExtensionDetail({model,container,onScrollNavigation,scrollNaviga
       <p className="ec-page-release-block" role="status">
         {t('releaseBlock',{reason:model.pageControl.officialBlock})}
       </p>}
-    {model.kind==='page'&&!model.scrollManager&&model.pageInfo&&<details className="ec-detail-card ec-page-diagnostics">
+    {model.kind==='page'&&!model.scrollManager&&model.pageInfo&&<details className="od-disclosure ec-page-diagnostics">
       <summary>{t('diagnostics')}</summary>
       <p>{model.installationText} · {t('revision')}{model.version}</p>
       <PageDiagnostics locale={locale} info={model.pageInfo}/>

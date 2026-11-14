@@ -17,13 +17,30 @@
 | **2. 给网页直接增加功能** | **网页增强（Page USER_SCRIPT）** | 页面悬浮按钮、DOM 修改、思维导图、React/Vue 页面组件 | “开发”在当前网页试运行；本地 `page-userscript` 项目；正式安装后在“扩展→网页增强”管理 |
 | **3. 做一个独立侧边栏管理工具** | **侧边栏应用（Sidebar Tool）** | 笔记、Cookie Editor、书签管理、配置表单 | 独立 `tool.config.json` 项目，按原打包流程生成可审阅 JSON，安装到“扩展→应用” |
 | **4. 关闭界面后仍要监听事件或处理持久规则** | **后台服务（Background Service）** | Chrome 事件与 Alarm、云端任务通知、获批持久规则 | 当前复用已受审、固定编译的后台能力；**普通作者尚不能独立安装任意特权后台 JS** |
-| **5. 在一个产品内组合上述职责** | **组合式应用（Combined Application）** | Stay Focus、Time Review、Prompt Shortcuts、AdBlock 的不同组合 | 明确 UI、网页、Controller 与后台入口，按各自现有授权与安装合同交付；**尚无跨职责原子组合安装包** |
+| **5. 在一个产品内组合上述职责** | **组合式应用（Combined Application）** | Stay Focus、Time Review、Prompt Shortcuts、AdBlock 的不同组合 | 侧栏 + Page 可评估已有 [`page.module` 同包开发试点](sidebar-tool-page-module.zh-CN.md)；Controller 与特权后台仍按各自合同，不是任意职责都可合包 |
 
 文中的“扩展→应用 / 网页增强”表示在“扩展”列表定位对应类型；**应用、网页增强是类型标签/筛选，不是新增 Tab**。
 
 Controller、Page、Sidebar Tool 各有执行和安装合同；后台服务有固定 Chrome SW 事件与受审能力，但目前**没有任意第三方后台 JS 安装器**。组合式应用是第五种用户场景，**不是第五套 JavaScript Runtime**。JavaScript、React、Vue 是编写技术，不决定代码的运行位置或权限。
 
 已安装的成熟工具先保护其原类型与身份。例如 Prompt Shortcuts 是 Sidebar Tool v2 + 已审核网页适配器，不能仅凭“网页有按钮”就改成 Page Program。新建纯网页按钮通常优先考虑 Page。
+
+### 开发 Tab 的「运行环境」怎样选？（2026-11-14）
+
+「自动化 / 网页」是两个互斥的执行环境，用分段选择直接展示；JavaScript / React / Vue 是代码类型。切换不会转换或替换编辑器里的源码，也不会启动运行。空编辑器里的示例是 placeholder，须填写自己的源码后明确点击运行。
+
+| 当前需求 | 在开发 Tab 选择 | 代码中的入口与能力 |
+| --- | --- | --- |
+| 点击、等待、填写表单、提取结果 | JavaScript → **自动化**（Controller） | `page` / Locator、`params`；不能直接访问网站 `document` |
+| 页面按钮、DOM 修改、网页 UI | JavaScript → **网页**（Page） | 当前授权文档中的 `document`，运行于 `USER_SCRIPT`，不是网站 MAIN 世界 |
+| 在网页挂载组件 | **React / Vue** | 分别编写 JSX / SFC，使用原编译和受管 Page UI；直接编辑编译受 edition 限制，完整说明见 [Page UI 框架](page-ui-frameworks.zh-CN.md) |
+| 做侧栏管理界面 | **本地项目** → 选择原 Sidebar Tool 项目 → **在侧栏调试** | 独立沙箱中的 `OpenDeskTool`；无需先关联一个已安装工具，仍保留原来源及身份核验 |
+
+**以提示词快捷按钮为例**：网页按钮属于 Page 部分，侧栏列表、编辑与配置属于 Sidebar 部分；选 React 不会自动得到这两个入口。现有 [`projects/prompt-shortcuts/`](../../projects/prompt-shortcuts/README.zh-CN.md) 使用 Sidebar Tool v2 和固定编译的网页适配器，更新工具 JSON 不替换 Browser 固定代码。新建类似组合项目可评估已有 `page.module` 开发试点：侧栏和网页模块以同一个 v2 工具包交付，按原安装审阅、精确网站/文档及生命周期运行；不另发第二个 Page JSON。两边经公开桥接及获准的应用私有存储协作，不共享内存、不把沙箱代码提升到宿主。具体声明和 API 只在[原 Page 模块合同](sidebar-tool-page-module.zh-CN.md)维护。
+
+**组合项目怎样操作**：先在「开发 → 本地项目」选择原项目，点击「在侧栏调试」验证侧栏；已有 `page.module` 组合包按原打包流程生成后，在「扩展 → 导入」一次审阅侧栏与网页范围，再打开或刷新已授权的匹配网站，验证网页按钮及两边协作。侧栏预览不会更新已安装的网页代码。现有 Prompt Shortcuts 继续使用其固定适配器，网页代码须经 Browser 原开发服务与安全更新生效，不能仅导入工具 JSON。
+
+试运行不等于安装或自动运行已就绪。侧栏关闭、停止某次自动化、停止受管网页 UI、停用应用是不同操作；Stop 也不保证回滚已经完成的网页或网络副作用。
 
 ### 场景、触发来源、开发技术分开
 
@@ -43,7 +60,7 @@ Controller、Page、Sidebar Tool 各有执行和安装合同；后台服务有�
 | Page USER_SCRIPT | 当前文档试运行须用户脚本许可和目标网站授权；安装版还需验证、确认、启用及匹配 `pageRules` | 当前文档结束后，该文档运行结束；刷新/新导航只会按已安装且启用的规则重新启动，临时预览不会因此自动安装。停用/卸载撤销后续启动，并请求受管 UI 清理；清理回执未知时按状态提示处理，有未知清理栅栏则关闭原标签页后重新打开。任意脚本遗留的 DOM、监听器、定时器或请求不保证全部回滚，可能需要刷新；BFCache 恢复也需作者清理逻辑 |
 | Sidebar Tool | 审阅安装包和能力后，用户打开工具才挂载 UI；`OpenDeskTool` / v2 `OpenDeskSDK` 的具体操作仍由宿主授权 | UI 文档卸载时，其 React Root、监听和计时器结束；重开创建新实例，从获准存储恢复。关闭 UI 不撤销已经提交的 Cookie 修改或后台规则；停用、更新、卸载由安装器和对应生命周期处理 |
 | 后台服务 | 由 WXT/SW 的已审核固定入口注册 Chrome 事件与 Alarm，复用现有授权和持久状态；不是安装动态 `background.js` | 关闭 UI 不停用既有规则；SW 事件驱动、可休眠，业务需要恢复与明确撤权清理 |
-| 组合式应用 | UI、Page、Controller 和固定后台分别遵守自己的入口与权限；共享模块只在实际消费者环境运行 | 关闭 UI、停止 Run、停用 Page、撤销后台、整体卸载是不同生命周期；不能用单份 UI JSON 假装统一安装和清理 |
+| 组合式应用 | UI、Page、Controller 和固定后台分别遵守自己的入口与权限；已有 `page.module` 试点将侧栏与 Page 绑定同一父安装 | 关闭 UI、停止 Run、停用 Page、撤销后台、整体卸载是不同生命周期；同包不代表共用运行世界或能回滚任意副作用 |
 
 ### 第一个项目怎样开始？
 
@@ -51,7 +68,7 @@ Controller、Page、Sidebar Tool 各有执行和安装合同；后台服务有�
 - **网页增强**：在“开发”选择 Page JS 或相应组件，在当前网页明确试运行；满意后保存固定候选，验证同一版本，再确认安装。已选择的本地 Page 项目入口为“安装网页增强”→审阅→“确认安装固定版本”；安装后到“扩展→网页增强”启停和管理。正式验证可能再次执行源码，不能把预览回执直接当安装成功。详见 [操作步骤](sidebar-local-projects.zh-CN.md)。
 - **侧边栏应用**：开发者维护 tool.config.json 与自己的 UI 文件，按唯一打包流程生成正式 JSON；使用者在“扩展”审阅并确认安装，打开后使用。已有官方应用也可从原目录入口安装，不要求使用者有 Node 或项目源码。需要持久后台的组合产品再核查固定服务是否已支持。
 - **后台服务**：先检查已有 Cloud Control、Task 调度、Chrome Alarms 和固定可信规则。确需额外后台能力时由维护者设计可授权、可撤销的最小公共接口；当前不能上传一个动态 `background.js` 取得 SW 特权。
-- **组合式应用**：先分别列出每个入口、文件、执行世界、权限、跨环境消息、Stop owner；各职责单独跑通后，再沿现有 Sidebar Tool、Page、Task 安装通路交付。暂不宣称统一组合式安装包已经实现。
+- **组合式应用**：先分别列出每个入口、文件、执行世界、权限、跨环境消息、Stop owner；侧栏 + 网页按现有 `page.module` 同包试点评估，其他职责沿原 Task / 固定后台合同交付。不能把试点解释成任意后台 JS 的安装权限。
 - **开发前提**：直接编辑不需要本地开发服务；多文件本地项目按已有目录 CLI / Native 授权接入，MCP 是可选高级入口。新增 JSX/SFC 使用 Developer 编译入口，Standard 选择 Direct JS 或本地预构建。不要把这些不同路径的前提叠加给每位用户。
 
 完整合同：[Controller](controller.zh-CN.md) · [Page USER_SCRIPT](page-userscript.zh-CN.md) · [Sidebar Tool](sidebar-tool-development.zh-CN.md)。
@@ -139,7 +156,7 @@ flowchart TD
 | `trusted/rule-host.js`、`blocked-*` | 自有 DNR 规则、规则回读与固定阻止页 | 固定后台依赖 / 扩展阻止页入口 |
 | `tool.config.json` | 当前选择 `src/index.html`、`src/style.css`、`src/main.js` | 工具打包器；当前 Stay Focus 清单没有选择 `trusted/service.js` |
 
-Stay Focus 的业务源位于 `examples/sidebar-tools/stay-focus/trusted/`；最新 main 已不再保留旧 `src/stay-focus/` 包装目录。固定 SW 仍静态编译可信后台代码，**源码归属独立不等于工具 JSON 可独立更新后台算法**。 [R2 记录](../framework/workstreams/stay-focus-extraction-r2-20261018.md) 与 [产品说明](../../examples/sidebar-tools/stay-focus/README.zh-CN.md) 是既有入口。
+Stay Focus 的业务源位于 `projects/stay-focus/trusted/`；最新 main 已不再保留旧 `src/stay-focus/` 包装目录。固定 SW 仍静态编译可信后台代码，**源码归属独立不等于工具 JSON 可独立更新后台算法**。 [R2 记录](../framework/workstreams/stay-focus-extraction-r2-20261018.md) 与 [产品说明](../../projects/stay-focus/README.zh-CN.md) 是既有入口。
 
 | 用户操作 | 当前代码的结果 / 限制 |
 | --- | --- |
@@ -154,13 +171,13 @@ Stay Focus 的业务源位于 `examples/sidebar-tools/stay-focus/trusted/`；最
 
 **独立更新的准确边界：** 更新 UI 包能改变界面及其对已有批准操作的调用；用户也能通过这些操作修改服务已支持的参数。但 JSON 不能替换固定编译的计时算法、网页提醒、DNR 实现、权限适配器或阻止页 JS。修改这些代码仍需审核并更新 OpenDesk Browser 扩展。
 
-截至本次核查，Stay Focus 项目未提交根目录正式 `stay-focus.opendesk-tool.json`；不能把源码存在说成用户已拿到本轮验收的安装包。独立后台升级的既有 [R4 需求](../../examples/sidebar-tools/stay-focus/REQUIREMENTS.zh-CN.md) 尚未实现/验收，本页不另建方案或运行器。
+截至本次核查，Stay Focus 项目未提交根目录正式 `stay-focus.opendesk-tool.json`；不能把源码存在说成用户已拿到本轮验收的安装包。独立后台升级的既有 [R4 需求](../../projects/stay-focus/REQUIREMENTS.zh-CN.md) 尚未实现/验收，本页不另建方案或运行器。
 
 ### 共享源码的真实例子：Prompt Shortcuts
 
-[Prompt Shortcuts 配置](../../examples/sidebar-tools/prompt-shortcuts/tool.config.json) 的 v2 `files.dependencies: ["trusted/model.js"]` 把纯模型选入沙箱；其固定 [网页适配器](../../examples/sidebar-tools/prompt-shortcuts/trusted/page.js) 同时 `import './model.js'`。这两个消费者复用**同一份源码**，在各自环境建立独立实例，经原有存储/消息同步业务数据。`trusted/` 是源码组织约定，不能把选入沙箱的模型变成高权限代码。只更新工具 JSON 也不会更新浏览器中已固定编译的网页模型副本，应保持数据合同兼容。
+[Prompt Shortcuts 配置](../../projects/prompt-shortcuts/tool.config.json) 的 v2 `files.dependencies: ["trusted/model.js"]` 把纯模型选入沙箱；其固定 [网页适配器](../../projects/prompt-shortcuts/trusted/page.js) 同时 `import './model.js'`。这两个消费者复用**同一份源码**，在各自环境建立独立实例，经原有存储/消息同步业务数据。`trusted/` 是源码组织约定，不能把选入沙箱的模型变成高权限代码。只更新工具 JSON 也不会更新浏览器中已固定编译的网页模型副本，应保持数据合同兼容。
 
-下面摘录 Prompt Shortcuts 的真实配置；完整清单及其他必需字段以[原文件](../../examples/sidebar-tools/prompt-shortcuts/tool.config.json)为准，**不要把这个摘录当成完整安装包**：
+下面摘录 Prompt Shortcuts 的真实配置；完整清单及其他必需字段以[原文件](../../projects/prompt-shortcuts/tool.config.json)为准，**不要把这个摘录当成完整安装包**：
 
 ```json
 {
@@ -174,7 +191,7 @@ Stay Focus 的业务源位于 `examples/sidebar-tools/stay-focus/trusted/`；最
 }
 ```
 
-[model.js](../../examples/sidebar-tools/prompt-shortcuts/trusted/model.js) 是 Classic 自执行模块，在当前环境通过 `Object.defineProperty(globalThis, 'OpenDeskPromptShortcutsModel', ...)` 暴露纯模型；[工具 main.js](../../examples/sidebar-tools/prompt-shortcuts/src/main.js) 在依赖加载后读取该对象。网页入口的真实写法为：
+[model.js](../../projects/prompt-shortcuts/trusted/model.js) 是 Classic 自执行模块，在当前环境通过 `Object.defineProperty(globalThis, 'OpenDeskPromptShortcutsModel', ...)` 暴露纯模型；[工具 main.js](../../projects/prompt-shortcuts/src/main.js) 在依赖加载后读取该对象。网页入口的真实写法为：
 
 ```javascript
 import './model.js';
@@ -186,10 +203,10 @@ import './model.js';
 
 | 例子 | 实际分工与当前限制 |
 | --- | --- |
-| [Prompt Shortcuts](../../examples/sidebar-tools/prompt-shortcuts/README.zh-CN.md) | v2 侧边栏管理 + 固定网页适配器，支持获准目标网页按钮；不是每次插入都启动 Controller。不能把仅针对 ChatGPT 的某个菜单贡献误写成整个工具只支持 ChatGPT |
-| [Time Review](../../examples/sidebar-tools/time-review/README.zh-CN.md) | UI 源在独立项目，必要统计在 `src/time-review/service.js`；关闭侧栏后仍按授权统计。已有可信 UI 准入只执行固定源码并核对准确包身份，用户改包不会因此变成可信 JS |
-| [AdBlock](../../examples/sidebar-tools/adblock/README.zh-CN.md) | 最新源码与正式包已接入独立 React + Shared UI（`uiRuntime: "opendesk.react-ui.v1"`）；App 在工具自己的沙箱创建 Root，经真实 `adblock.*` 请求到可信服务和 Chrome DNR。关闭 React UI 不撤销 DNR；JSON 不替换后台 |
-| [ChatGPT Mind Map](../../examples/programs/chatgpt-mindmap/README.zh-CN.md) | Page USER_SCRIPT 在 ChatGPT 网页渲染 UI，通过受管容器清理；界面复杂不改变程序类型 |
+| [Prompt Shortcuts](../../projects/prompt-shortcuts/README.zh-CN.md) | v2 侧边栏管理 + 固定网页适配器，支持获准目标网页按钮；不是每次插入都启动 Controller。不能把仅针对 ChatGPT 的某个菜单贡献误写成整个工具只支持 ChatGPT |
+| [Time Review](../../projects/time-review/README.zh-CN.md) | UI 源在独立项目，必要统计在 `src/time-review/service.js`；关闭侧栏后仍按授权统计。已有可信 UI 准入只执行固定源码并核对准确包身份，用户改包不会因此变成可信 JS |
+| [AdBlock](../../projects/adblock/README.zh-CN.md) | 最新源码与正式包已接入独立 React + Shared UI（`uiRuntime: "opendesk.react-ui.v1"`）；App 在工具自己的沙箱创建 Root，经真实 `adblock.*` 请求到可信服务和 Chrome DNR。关闭 React UI 不撤销 DNR；JSON 不替换后台 |
+| [React 网页组件示例](../../examples/programs/page-ui-react-direct/README.md) | Page USER_SCRIPT 在网页渲染 UI，通过受管容器清理；界面复杂不改变程序类型 |
 | Cookie Editor | 正式 v2 工具主要以自身侧栏 UI 调用 `OpenDeskSDK.browser.cookies.*`，通用授权服务再调用 Chrome。`src/ui/react/cookie-editor/` 的私有 React 视图仍是另外的试点；项目内同名 JSX 只是转发，不能宣称正式产品已迁完 React |
 
 **React Root 的归属是文档边界：** 主工作台的单 Root 约束不禁止独立沙箱文档创建自己的 Root。不要把工具 App、算法或数据模型导入主工作台来完成 UI 升级。
@@ -214,7 +231,7 @@ import './model.js';
 
 本次发现的具体后续项是 Time Review 的 `src/time-review/` 实现及通用 `src/ui/sidebar-tools.js` 中的 `time.*` 私有处理、安装器对 `TIME_REVIEW_KEY` 的直接清理；以及 Cookie Editor 尚在通用 React 目录的产品视图。这些分别交给已有工具任务，不在运行环境文档任务中重写。
 
-现有公开 SDK 不能让任意 Sidebar Tool 安装可替换的高权限后台 JS。Stay Focus 的 R4 已选择先评估**有界、可授权的声明式后台策略**：只提供获准网站观察、持久预算/时段、应用自有访问规则及状态撤销的最小公共能力，复用原有 Registry / Schema / Host / Chrome Driver。它是未实现的需求方向，不是可调用 API；现有 scheduler 调度的是已安装 Task，不能冒充工具后台处理器。超出已支持策略的算法仍需固定宿主升级。详见既有 [R4 唯一需求](../../examples/sidebar-tools/stay-focus/REQUIREMENTS.zh-CN.md)。
+现有公开 SDK 不能让任意 Sidebar Tool 安装可替换的高权限后台 JS。Stay Focus 的 R4 已选择先评估**有界、可授权的声明式后台策略**：只提供获准网站观察、持久预算/时段、应用自有访问规则及状态撤销的最小公共能力，复用原有 Registry / Schema / Host / Chrome Driver。它是未实现的需求方向，不是可调用 API；现有 scheduler 调度的是已安装 Task，不能冒充工具后台处理器。超出已支持策略的算法仍需固定宿主升级。详见既有 [R4 唯一需求](../../projects/stay-focus/REQUIREMENTS.zh-CN.md)。
 
 ## 5. 下次开发可直接套用的最短判断
 
@@ -239,7 +256,7 @@ import './model.js';
 | 运行按钮、目标与停止 | [script-editor](../../src/ui/script-editor.js) → [RunHost](../../src/run-host.js) → [sandbox controller](../../src/scripting/sandbox/controller.js) / [Worker](../../src/scripting/sandbox/worker-runtime.js)；本地另经 [host-adapter](../../src/native-agent/host-adapter.js) |
 | Page 预览、安装与卸载 | [preview](../../src/scripting/user-scripts/preview.js)、[installed-programs](../../src/scripting/user-scripts/installed-programs.js)、[managed-preview](../../src/native-agent/managed-preview.js) |
 | 固定后台 / 网页 / 权限入口 | [WXT 配置](../../wxt.config.mjs)、[基础 Manifest](../../manifest.json)、[background entry](../../src/entrypoints/background.js)、[SW](../../src/sw.js)、[page-relay](../../src/entrypoints/page-relay.js)、[stay-focus-controls](../../src/entrypoints/stay-focus-controls.js) |
-| 工具打包、安装与卸载 | [打包器](../../scripts/build-sidebar-tool.mjs)、[安装器](../../src/ui/sidebar-tools/installation.js)、[Stay Focus 生命周期](../../examples/sidebar-tools/stay-focus/trusted/lifecycle.js) |
+| 工具打包、安装与卸载 | [打包器](../../scripts/build-sidebar-tool.mjs)、[安装器](../../src/ui/sidebar-tools/installation.js)、[Stay Focus 生命周期](../../projects/stay-focus/trusted/lifecycle.js) |
 | 核查基线、具体缺口与本轮验证 | [R1 工作记录](../framework/workstreams/extension-runtime-r1-20261018.md) |
 
 AI/Codex 路由：[唯一创建工作流](../../.agents/workflows/extension-creation.md) · [Skill 路由](../../.agents/skills/README.md) · [脚本创作](../../.agents/skills/opendesk-script-authoring/SKILL.md) · [Sidebar Tool](../../.agents/skills/opendesk-sidebar-tool-dev/SKILL.md) · [第一方可信功能](../../.agents/skills/opendesk-trusted-sidebar-feature/SKILL.md) · [扩展运行时](../../.agents/skills/opendesk-extension-runtime/SKILL.md)。

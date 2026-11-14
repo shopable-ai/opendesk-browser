@@ -112,7 +112,7 @@
    The existing back control remains mounted for loading and error states. */
 /* Back and cards share the shell gutter; reserve the actual hit area plus one gap. */
 #extension-center-detail{--ec-detail-back-size:var(--od-icon-size);position:relative;min-width:0}
-#extension-center-detail-body{display:grid;gap:var(--space-3);min-width:0}
+#extension-center-detail-body{display:grid;gap:var(--space-4);min-width:0}
 #extension-center-detail .ec-detail-back{position:absolute;top:0;left:0;z-index:1}
 #extension-center-detail .ec-detail-head .ec-glyph{flex:none}
 /* Page apps share the compact title/action header used by installed tools. */
@@ -408,17 +408,9 @@
 .ec-page-sites .ec-sites{margin:0}
 .ec-detail-description{margin:0}
 .ec-page-release-block{overflow-wrap:anywhere}
-.ec-site-review-details,.ec-page-diagnostics{min-width:0}
-.ec-site-review-details{margin:0;border-top:1px solid var(--od-line);padding-top:var(--space-1)}
-.ec-site-review-details summary,.ec-page-diagnostics summary{display:list-item;cursor:pointer;font-size:12px;
-  font-weight:600;color:var(--od-accent-ink);line-height:1.5;padding:10px 3px}
-.ec-site-review-details summary:focus-visible,.ec-page-diagnostics summary:focus-visible{
-  outline:2px solid var(--od-focus);outline-offset:2px;border-radius:var(--radius-control)}
-.ec-page-diagnostics[open]{padding-bottom:var(--space-3)}
-.ec-site-review-details .ec-site-upgrade{margin:0;border-top:0;padding-top:0}
+.ec-site-review-details .ec-site-upgrade{border-top:0;padding-top:0}
 @media (pointer:coarse){
   .ec-page-control-actions button{min-height:44px}
-  .ec-site-review-details summary,.ec-page-diagnostics summary{min-height:44px}
 }
 @media (max-width:360px){
   .ec-page-control .ec-page-main{gap:var(--space-2)}
@@ -538,7 +530,7 @@
   .ec-scroll-selector>.ec-scroll-picker{width:44px;min-width:44px;height:44px;min-height:44px}
 }
 .ec-page-cleanup{flex:none;min-width:0}
-.ec-page-cleanup-content{display:grid;gap:var(--space-2);padding:0 var(--space-3) var(--space-3);font-size:12px;line-height:1.5;overflow-wrap:anywhere}
+.ec-page-cleanup-content{display:grid;gap:var(--space-2);font-size:12px;line-height:1.5;overflow-wrap:anywhere}
 .ec-page-cleanup-content p{margin:0}
 .ec-page-cleanup-documents{display:grid;gap:var(--space-2);max-height:240px;overflow:auto;overscroll-behavior:contain;margin:0;padding-inline-start:var(--space-4)}
 .ec-page-cleanup-documents li>span{display:block}

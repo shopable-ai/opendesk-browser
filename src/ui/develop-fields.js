@@ -61,7 +61,7 @@ export const DEVELOPER_FIELDS = {
     "value": ""
   },
   "local-project-tool-bind": {"disabled": true},
-  "local-project-tool-pointer": {},
+  "local-project-tool-pointer": {hidden:true},
   "local-project-preview": {"disabled": true},
   "local-install-review": {
     "hidden": true
@@ -143,11 +143,11 @@ export const DEVELOPER_FIELDS = {
   "script-javascript-world": {
     "options": [
       [
-        "Controller · 自动化 API",
+        "自动化",
         "controller"
       ],
       [
-        "Page · 当前网页 DOM",
+        "网页",
         "page"
       ]
     ],
@@ -232,7 +232,7 @@ export const DEVELOPER_FIELDS = {
   },
   "program-generated-source": {},
   "manual-project-params-tools": {
-    "className": "developer-params od-disclosure"
+    "className": "developer-params od-disclosure od-disclosure--flat"
   },
   "script-params": {
     "value": "{\"value\":0}"
@@ -575,7 +575,7 @@ export const DEVELOPER_FIELDS = {
     "textContent": "候选需要真实运行验证后才能安装"
   },
   "script-advanced": {
-    "className": "od-disclosure"
+    "className": "od-disclosure od-disclosure--flat"
   },
   "site-access": {
     "className": "site-access-panel od-disclosure od-disclosure--flat"

@@ -1,6 +1,6 @@
 # 开发 Tab UI/UX 关键测试条件 R1
 
-日期：2026-11-14。对应[优化目标](developer-ui-ux-r1-20261114.zh-CN.md)与 [DESIGN.md](../../DESIGN.md#开发-tab-uiux2026-11-14独立作用域)。**这是待实施测试规格；以下产品条件本轮均为 NOT_TESTED。** 文档检查不算产品 PASS。
+日期：2026-11-14。对应[优化目标](developer-ui-ux-r1-20261114.zh-CN.md)与 [DESIGN.md](../../DESIGN.md#开发-tab-uiux2026-11-14独立作用域)。**这是按行为分层的测试规格。** 本轮源码 UI 和定向行为已执行，当前原生安装态条件仍为 NOT_TESTED；文档检查不算产品 PASS。
 
 ## 1. 测试原则与证据
 
@@ -44,7 +44,7 @@ K01–K05、K11 为基础 UI 门槛；其余按本次实际改动触发。标记
 
 ## 4. 设计检查点、后续评分参考与阻断规则
 
-本阶段使用以下六项检查点记录实际改善，不强制独立评分。用户后续明确要求独立评分时，沿用原合同**各项 ≥95/100**的参考目标，不以平均分掩盖弱项；使用当前真实候选截图、操作回执和组件来源。本轮未评分，也不推定当前分数。
+本阶段使用以下六项检查点记录实际改善，不强制独立评分。用户后续明确要求独立评分时，沿用原合同**各项 ≥95/100**的参考目标，不以平均分掩盖弱项；使用当前真实候选截图、操作回执和组件来源。本轮另对源码预览作有限视觉复评，见第 5 节；该分数不等于六项产品维度或原生验收。
 
 | 维度 | 五个检查点（每项满分 20） |
 | --- | --- |
@@ -61,6 +61,41 @@ K01–K05、K11 为基础 UI 门槛；其余按本次实际改动触发。标记
 
 ## 5. 当前执行状态与延期项
 
-本轮已完成源码/合同发现、独立只读设计审查及目标/规格编写。文档链接/格式另做定向检查；未运行产品测试、构建或原生评分。真实开发界面截图/产物身份与所有 K 条件均待取得；Ego 目录开侧栏回执不证明开发主链通过。
+本轮已实施运行环境分段、代码示例、就近说明和本地状态/调试层级。`developer-editor-interaction.test.mjs` 用真实 React DOM 点击验证新 radio 的原生事件/字段桥接、忙态禁用、源码保留和 placeholder；现有 Controller/Page 路由及组件 Run/Stop 定向检查 10/10 PASS。Ego 源码预览的实测记录归 `artifacts/developer-ui-ux-20261114/ui-checks.json`，包括方向键与可见焦点、中文草稿、类型切换、本地顺序及同色输入边框。此结果只覆盖 K01/K02/K05/K11 的源码 UI 层，以及 K03/K08/K12 的 Node 受影响行为层，不代替对应原生条件。
 
-后续交付最少包含：冗余处置对照、变更文件、同候选默认侧栏前后截图、已触发 K 条件及回执、六项设计检查点的证据、剩余失败与 NOT_TESTED。独立评分、完整宽度/缩放/主题/跨版本矩阵、全工具回归与 production 均延期，用户当前核心阶段优先。
+后续交付最少包含：冗余处置对照、变更文件、同候选默认侧栏前后截图、已触发 K 条件及回执、六项设计检查点的证据、剩余失败与 NOT_TESTED。正式六维独立评分、完整宽度/缩放/主题/跨版本矩阵、全工具回归与 production 均延期，用户当前核心阶段优先。
+
+
+## 6. 本轮新增的直接判定条件
+
+| 条件 | 判定 |
+| --- | --- |
+| 环境选择 | 页面直接显示两项，值仍为 controller/page；鼠标与方向键调用原动作；忙态不能改变；切换不执行、不转换源码 |
+| 示例提示 | 自动化 JS、网页 JS、React、Vue 的 placeholder 不同；真实空值保持空；输入后不覆盖；只读源码无可编辑示例 |
+| 说明准确 | React/Vue 明确指网页组件；组合帮助给出本地项目调试侧栏、扩展导入审阅组合包、打开或刷新获准网站的步骤；侧栏预览不会更新已安装网页代码，语言标签不授予执行权限 |
+| 视觉与间距 | 编辑器/参数等 od-field 复用 --od-input-border；选中与focus分开；说明4px、字段组12px、独立组16px，仅记录实际样式与几何 |
+| 本地项目层级 | 状态后紧接适用的连接/恢复，再放调试与可选关联；刷新后 Tab 可直达连接，Enter 仅调用原动作；折叠关联不隐藏已发生的阻塞原因，无工具关联的调试仍按原 controller/身份链处理 |
+
+原生验证缺口：Ego Page API 不将新打开的原生侧栏列为可操作 Page，原生 UI inventory 超时。旧 watcher 已退出、旧 Web Flow pin 阻塞已解除；并行 writer 编译连接区后在帮助重编译时 OOM 退出；确认输出守卫释放后，原入口恢复的 dev writer（PID 65678）已编译最终帮助和 tool-shell，但实际加载路径、serve/applied revision 与真实 Run/Stop、Native、OS IME、installation、production 仍为 NOT_TESTED。输出就绪不证明原生应用。
+
+基线已知失败：修改前现有 144 项组中 143 PASS，`draft import rejects empty/oversized sources...` 的大小上限断言失败；未以本轮 UI 改动修订该无关边界。其他失败须在本轮验证记录中分类，不删除安全断言换取通过。
+
+## 7. 本轮验证结果（2026-11-14）
+
+| 检查 | 结果及边界 |
+| --- | --- |
+| 新 radio / placeholder / 草稿 | `developer-editor-interaction.test.mjs` 真实 React DOM 点击通过，并确认本地调试反馈位于折叠区外；只证明 UI 桥接、不自动运行和源码保留，不冒充执行器测试 |
+| Controller/Page 与组件执行保护 | `script-editor.test.mjs` 受影响选择/Run/Stop/编译路由 10/10 PASS |
+| 本地状态反馈与原身份保护 | 最后修订后 `local-project-tool-preview.test.mjs` 10/10 PASS，覆盖显式调试失败反馈、精确目录、包更新后重新关联、未知来源拒绝与只读目录查询；新反馈回归在修复前失败、修复后通过 |
+| 原开发结构/视图/React/本地预览 | 139 项中 138 PASS；一项 `local-project-status-ui` 失败为旧文案正则仍要求“实时开发预览”，当前 HEAD 已改为“在侧栏调试”，相关状态实现未由本轮修改；不改产品迎合该断言 |
+| 修改前基线 | 144 项中 143 PASS；已有草稿大小上限断言失败，见第 6 节；本轮未修改导入上限 |
+| Ego 源码 UI | `ui-checks.json`、`layout-check.json`、`scroll-check.json`：中文草稿、类型切换、方向键/可见焦点、同色输入边框、4/12/16px 间距、本地顺序和末尾内容可达均通过；所有动作运行在无 Host 的源码预览 |
+| 有限视觉复评 | 同尺寸直接编辑 80 → 93/100，本地未连接 91/100；完整 Dock 可见。此为四项静态视觉复评，不是六维正式达标；连接入口后置已由本次续接微调，最终复评单独记录 |
+| 续接恢复入口 | `developer-editor-interaction.test.mjs` 最后源码下 1/1 PASS；`recovery-ui-checks.json` 确认刷新 → 连接 → 首次说明的键盘顺序、焦点、预览回执、帮助开合及来源往返草稿保留。未重复未改动的 10+10 路由/身份组 |
+| 编译与原生候选 | `recovery-final/inputs.json` 记录最终源码预览 esbuild 的 124 个输入；共享 writer OOM 退出后，原入口恢复的 dev writer 已编译最终固定 tool-shell，revision `aeba5af1596c…`。`recovery-development-output.json` 记录 revision/产物 SHA；真实安装态、已应用 revision 和 Run/Stop 未验证。未启动第二 writer、未改 pin、未复制预览覆盖 dist |
+
+两项旧失败和原生缺口不应被写成“全量测试通过”；本轮正式产品验收仍为 NOT_TESTED。源码实现、定向 UI 结果与当前安装生效须分别报告。
+
+续接同条件截图：断连态 `after-local.png` → `after-local-recovery.png`，直接编辑 `after-refined.png` → `after-editor-recovery.png`；`after-combined-help.png` 展示可操作的组合说明。画布 520×1000 CSS、工作台 360×820、浅色正常缩放，file:// 源码预览不接 Host，采集前等待开关动画与 checked 状态一致。最终有限视觉判定归 `review-recovery-final.json`，不恢复全量评分或验收。
+
+续接最终有限复评：独立 designer 判定 `PASS_SCOPED_IMPROVEMENT`，本地断连态 **91→94/100**、直接编辑保持 **93/100**，具体子分与边界见 `review-recovery-final.json`；未发现新的源码预览视觉阻断项，停止继续改版，不将结果提升为原生/六维 ≥95 验收。

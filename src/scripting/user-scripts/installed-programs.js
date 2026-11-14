@@ -37,6 +37,20 @@ const PAGE_STORE="frameworkKV",
 
 export const PAGE_BOOT_PROTOCOL='opendesk.page-installed.boot.v1';
 export const PAGE_BOOT_WORLD='opendesk-page-installed-bootstrap-v1';
+// Only the development fence proves this message was never dispatched. Keep
+// the original bootstrap identity; every retry still passes the full Authority.
+async function sendPageBootstrap(message){
+  try{
+    for(let attempt=0;attempt<7;attempt++){
+      const result=await chrome.runtime.sendMessage(message);
+      if(result?.ok===true)return;
+      if(result?.ok!==false||result.error?.code!=='E_DEV_RELOADING'||attempt===6){
+        console.error('[OpenDesk Page bootstrap]',result?.error?.code||'E_PAGE_BOOT_RESPONSE');return;
+      }
+      await new Promise(resolve=>setTimeout(resolve,Math.min(200*2**attempt,2000)));
+    }
+  }catch(error){console.error('[OpenDesk Page bootstrap]',error);}
+}
 const PREFIX='opendesk-page-boot-';
 const ACCESS_CHANGED='访问受限，请检查安装并恢复访问';
 const SEND_QUEUE_PROGRAM_ID=SEND_QUEUE_PIN.pageProgramId;
@@ -521,7 +535,7 @@ export function createInstalledPagePrograms({api,storage,assertHost,dependencies
     return {id:nativeId,matches:rules.matches,excludeMatches:rules.excludeMatches,
       runAt:rules.runAt,allFrames:false,world:'USER_SCRIPT',worldId:PAGE_BOOT_WORLD,
       js:[{code:'const '+marker+' = '+JSON.stringify(row.token)+';\n'+
-        'chrome.runtime.sendMessage('+JSON.stringify(message)+').then(result=>{if(result?.ok!==true)console.error("[OpenDesk Page bootstrap]",result?.error?.code||"E_PAGE_BOOT_RESPONSE");}).catch(error=>console.error("[OpenDesk Page bootstrap]",error));'}]};
+        '('+sendPageBootstrap.toString()+')('+JSON.stringify(message)+');'}]};
   }
   async function importPageInstallPackage(request,sender,appOwner=null){
     fields(request,['package','expectedInstalledManifestHash','expectedGeneration']);

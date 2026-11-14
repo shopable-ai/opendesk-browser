@@ -8,19 +8,22 @@ export function DevelopAdvanced(){
           <summary>
             {"保存与管理"}
           </summary>
+          <div className="developer-management-body od-stack">
           <DevelopField as="section" id="script-version-identity" className="developer-management-section">
             <label htmlFor="script-id" className="od-field-label">
               {"脚本 ID（用于保存）"}
             </label>
             <DevelopField as="input" id="script-id" autoComplete="off" className="od-field"/>
-            <div className="row">
+            <div className="od-form-field">
               <label htmlFor="script-revision" className="od-field-label">
                 {"Revision（可选）"}
               </label>
+              <div className="developer-version-controls">
               <DevelopField as="input" id="script-revision" type="number" min="1" placeholder="留空加载最新版本" className="od-field"/>
               <DevelopField as="button" id="script-load" className="od-button od-button--secondary">
                 {"按 ID 加载版本"}
               </DevelopField>
+              </div>
             </div>
           </DevelopField>
           <DevelopField as="section" id="page-preview-tools" className="developer-management-section">
@@ -97,7 +100,7 @@ export function DevelopAdvanced(){
             <label htmlFor="script-list" className="od-field-label">
               {"已保存脚本"}
             </label>
-            <div className="row">
+            <div className="developer-saved-controls">
               <DevelopField as="select" id="script-list" className="od-field"/>
               <DevelopField as="button" id="script-list-refresh" className="od-button od-button--secondary">
                 {"刷新"}
@@ -167,7 +170,7 @@ export function DevelopAdvanced(){
               </DevelopField>
             </DevelopField>
           </DevelopField>
-          <DevelopField as="details" id="script-advanced" className="od-disclosure">
+          <DevelopField as="details" id="script-advanced" className="od-disclosure od-disclosure--flat">
             <summary>
               {"高级脚本与目标设置"}
             </summary>
@@ -210,6 +213,7 @@ export function DevelopAdvanced(){
               </DevelopField>
             </details>
           </DevelopField>
+          </div>
         </DevelopField>
   );
 }

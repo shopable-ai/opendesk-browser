@@ -39,7 +39,8 @@ export function createLocalProjectView({client,api,document:doc,view=null,onChan
     const source=previewSource(),bound=source&&toolPointers[source];
     if(find('local-project-tool-bind'))patchDeveloperField(view,find('local-project-tool-bind'),{disabled:!canChoosePreview()});
     if(find('local-project-preview'))patchDeveloperField(view,find('local-project-preview'),{disabled:!canPreview()});
-    if(find('local-project-tool-pointer'))patchDeveloperField(view,find('local-project-tool-pointer'),{textContent:
+    if(find('local-project-tool-pointer'))patchDeveloperField(view,find('local-project-tool-pointer'),{
+      hidden:!(pointerStale()||pointerMessage||bound||savedSourceId&&!selected()),textContent:
       pointerStale()?'已安装工具包已更新，请点击「保存源码关联」重新确认目录。':pointerMessage||(bound?'已关联目录：'+sourceName(selected()?.name)+'。下次打开此工具时仍使用这个目录。':
         savedSourceId&&!selected()?'原关联目录未连接，请重新连接该目录；不会改用其他目录。':
         '选择目录和工具后，可保存源码关联，方便下次打开。')});

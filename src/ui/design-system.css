@@ -92,7 +92,7 @@ details>section{margin-top:var(--space-3)}
 .od-disclosure{min-width:0;margin:0;border:1px solid var(--od-line);border-radius:var(--radius-surface);background:var(--od-paper);color:var(--od-ink)}
 /* All trusted disclosures use the same centered header, marker and type scale.
  * Keep the lighter --flat and emphasis-only --info variants on this one component. */
-.od-disclosure>summary{display:flex;align-items:center;flex-wrap:wrap;gap:var(--space-2);min-height:44px;padding:var(--space-2) var(--space-3);list-style:none;cursor:pointer;font-size:var(--od-body-size);line-height:1.5;font-weight:650;color:var(--od-ink);overflow-wrap:anywhere}
+.od-disclosure>summary{display:flex;align-items:center;flex-wrap:wrap;gap:var(--space-2);min-height:44px;padding:var(--space-2) var(--space-3);list-style:none;cursor:pointer;font-size:var(--od-note-size);line-height:1.5;font-weight:600;color:var(--od-ink);overflow-wrap:anywhere}
 .od-disclosure>summary::-webkit-details-marker{display:none}
 .od-disclosure>summary::before{content:"";flex:none;width:7px;height:7px;border-right:1.5px solid currentColor;border-bottom:1.5px solid currentColor;transform:rotate(-45deg)}
 .od-disclosure[open]>summary::before{transform:rotate(45deg)}
@@ -153,7 +153,7 @@ details>section{margin-top:var(--space-3)}
 .od-theme-shadcn .od-field-label{font-size:14px;font-weight:500;line-height:20px}
 .od-theme-shadcn .od-form-field{gap:8px}
 .od-theme-shadcn :is(.od-title,.od-page-title){font-size:14px;font-weight:600;line-height:20px}
-.od-theme-shadcn .od-disclosure>summary{font-weight:500;min-height:36px}
+.od-theme-shadcn .od-disclosure>summary{font-weight:500}
 .od-theme-shadcn :is(strong,b){font-weight:500}
 .od-theme-shadcn .od-shared-card{background:var(--card);border-color:var(--border);box-shadow:none}
 .od-theme-shadcn .od-shared-switch{width:32px;height:18.4px;background:var(--input)}

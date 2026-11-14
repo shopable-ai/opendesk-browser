@@ -48,8 +48,12 @@ export function createDeveloperPreviewView(){
   for(const kind of ['javascript','react','vue']){
     view.actions['page-component-'+kind]=()=>{
       for(const current of ['javascript','react','vue'])view.patch('page-component-'+current,{checked:current===kind});
+      view.patch('script-javascript-world-row',{hidden:kind!=='javascript'});
+      view.patch('manual-project-params-tools',{hidden:kind!=='javascript'||view.fields['script-javascript-world'].value==='page'});
     };
   }
+  view.actions['script-javascript-world']=()=>view.patch('manual-project-params-tools',{
+    hidden:view.fields['script-javascript-world'].value==='page'});
   projectChanged();
   return view;
 }

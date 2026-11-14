@@ -2,7 +2,7 @@
 
 ## 作用域与本轮入口（2026-11-01）
 
-- 开发 Tab UI/UX（2026-11-14）：当前阶段为目标与关键测试条件定义，见[本轮设计决定](#开发-tab-uiux2026-11-14独立作用域)、[优化目标](docs/framework/developer-ui-ux-r1-20261114.zh-CN.md)及[关键测试条件](docs/framework/developer-ui-ux-r1-test-spec-20261114.zh-CN.md)。产品源码未修改，当前候选原生视觉基线与评分未取得；不沿用其他 Tab 或历史候选评分。
+- 开发 Tab UI/UX（2026-11-14）：当前阶段为指定 UI 的源码实施与定向验证完成、原生候选待验证，见[本轮设计决定](#开发-tab-uiux2026-11-14独立作用域)、[优化目标](docs/framework/developer-ui-ux-r1-20261114.zh-CN.md)及[关键测试条件](docs/framework/developer-ui-ux-r1-test-spec-20261114.zh-CN.md)。本轮运行环境分段、语言示例、组合项目操作说明与本地连接恢复层级已实现；源码预览与原生运行分别记录，不沿用其他 Tab 或历史候选评分。
 - 五 Tab 共同布局规范（2026-11-10）：本轮设计依据与实施边界见[共同布局决定](#五-tab-共同布局决定2026-11-10独立作用域)、[R27 语义与间距所有权](docs/architecture/ui-layout-conventions-r27.zh-CN.md#token-语义与使用决策2026-11-10)、[R20 集合与真实映射](docs/architecture/sidebar-design-system-r20.zh-CN.md#集合列表与独立参数区2026-11-10)。规则已在共享 CSS、任务/扩展集合及本地项目表单中实施；源码预览与实际安装态分别记录。
 - Side Panel 页面留白修复（2026-11-10）：规则归 [R20 留白所有权](docs/architecture/sidebar-design-system-r20.zh-CN.md#留白所有权和使用原则2026-11-10-修订)，变量归 `src/ui/design-tokens.css`。普通页由 shell 提供页面边距；通栏 ToolHost 头部负责自身顶部留白，避免全局清零与多层叠加。已在 Ego Lite 实际 development 侧栏检查扩展列表、网页笔记运行页、扩展信息详情及返回；production、窄屏/缩放矩阵与正式评分未执行。此状态只属于本次留白修复。
 - 统一确认与反馈目标（2026-11-09）：见[本轮独立设计作用域](#统一确认与反馈2026-11-09独立作用域)、[唯一交互与异步合同](docs/architecture/browser-framework/confirmation-and-feedback.zh-CN.md)、[实施目标](docs/framework/shared-confirmation-r1-20261109.md)及[关键测试条件](docs/framework/shared-confirmation-r1-test-spec-20261109.md)。原对话已完成规范同步，用户要求新对话实施；公开确认 API 与运行验收仍未完成。
@@ -26,13 +26,13 @@
 
 ## 开发 Tab UI/UX（2026-11-14，独立作用域）
 
-- **状态与目标**：Draft，按用户要求先定义优化目标和关键测试条件；让开发首屏围绕“选择来源 → 编辑或选项目 → 明确运行/调试 → 看结果”展开，减少重复说明、同权重操作和嵌套管理。详细范围、决策与完成标准归[目标规格](docs/framework/developer-ui-ux-r1-20261114.zh-CN.md)，行为条件归[测试规格](docs/framework/developer-ui-ux-r1-test-spec-20261114.zh-CN.md)。本轮未实施产品修改。
+- **状态与目标**：Implemented / native verification pending，按用户最新细化需求实施编辑区及本地项目 UI；让开发首屏围绕“选择来源 → 编辑或选项目 → 明确运行/调试 → 看结果”展开，减少重复说明、同权重操作和嵌套管理。详细范围、决策与完成标准归[目标规格](docs/framework/developer-ui-ux-r1-20261114.zh-CN.md)，行为条件归[测试规格](docs/framework/developer-ui-ux-r1-test-spec-20261114.zh-CN.md)。本轮已实施运行环境两项分段、代码 placeholder、说明与可选源码关联层级；版本/历史全面重组延期。
 - **用户与使用环境**：直接编辑代码或调试本地项目的开发者；先服务实际默认宽度、正常缩放的 Side Panel。保留 Standard/Developer、JS/JSX/Vue、Controller/Page 及旧 HTML/Vue 工具；完整响应式矩阵和 production 验收延期。
-- **信息架构**：来源、当前目标和真实可用状态先于创作区；本地项目状态与主操作先于可选源码关联。版本/安装、历史和权限管理按对象进入二级视图，轻量技术值继续按需折叠，不再把复杂表单堆进一个“高级”长面板。
+- **信息架构**：来源、当前目标和真实可用状态先于创作区；本地项目状态后紧接有效的连接/恢复入口，再放调试、保存和可选源码关联。组合项目帮助给出本地调试、组合包导入与获准网站验证的具体路径。版本/安装、历史和权限管理按对象进入二级视图，轻量技术值继续按需折叠，不再把复杂表单堆进一个“高级”长面板。
 - **视觉与组件**：安静、紧凑、明确；复用 R20/R27/R33、唯一 Tokens、`src/ui/react/` 和现有 `od-*`。同级标题、字段、按钮、提示与邻近 Tab 一致；不新建皮肤、组件包、Root，不靠缩小字体、图标或删除功能换取密度。
 - **交互与状态**：编辑、来源切换和保存不自动执行。当前网页与实际运行目标、草稿与冻结版本分别表达；Run/Stop 绑定原 owner。二级返回保留草稿、选择、结果、滚动与焦点；错误/未知持续可见，成功回执使用现有通知。loading、empty、blocked、running、success、failed、unknown 按真实状态呈现。
 - **可访问性与内容**：文字主操作、具名次级入口、可见焦点、字段关联错误；保留原 IME、键盘与可信手势。普通说明一句表达下一步；精确身份、授权范围与后果不因精简而省略。正文/控件对比度按现行 AA 合同，长源码和日志在局部滚动。
-- **证据与开放项**：已读真实 React 组件和状态投影，并经独立只读设计审查；复杂区域已有条件显隐，不能认定所有控件同时出现。Ego Lite 已从本任务目录入口打开真实侧栏，但 Page API 未枚举该原生面板，原生 UI 连接超时；首屏截图、运行产物路径/连接/指纹、实际几何及评分均待实施开始时核实。源码问题与视觉推断分开记录，不凭文档宣称 ≥95。
+- **证据与开放项**：已通过真实 React/CSS 的 360px 源码预览检查运行环境选择、键盘焦点、源码保留、类型提示及本地状态顺序，证据归 `artifacts/developer-ui-ux-20261114/`。续接已将本机连接按钮前移约 159px，验证刷新后 Tab 直达连接、可见焦点、Enter 回执、首次帮助开合和中文草稿保留。Ego Page API 未暴露新原生面板，原生 UI inventory 超时；实际加载路径、已应用 revision、原生 Run/Stop/Native/IME 与 production 仍为 NOT_TESTED。原 watcher 已退出，旧 Web Flow pin 失败不再阻断；并行 Page 刷新 writer 编译重排后因堆内存耗尽退出，本任务确认其退出与守卫释放后沿原入口恢复 npm run dev（PID 65678），最终原 dist/development 产物包含新帮助文案，revision aeba5af1596c…；未并发第二 writer、覆盖加载目录或修改 pin。直接编辑历史有限视觉复评 80→93/100，本地续接复评及四层证据见目标/测试文档；均不代表正式 ≥95。4/12/16px 间距、输入边框同色和末尾内容可达复用原预览证据。
 
 ## 统一确认与反馈（2026-11-09，独立作用域）
 
