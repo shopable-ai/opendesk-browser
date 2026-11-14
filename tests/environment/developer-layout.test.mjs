@@ -22,13 +22,13 @@ test('Dev has one live run-status row and keeps technical identity below results
 });
 test('Dev editor retains readable minimum and user resizing',()=>{
   assert.equal($('#script-source').attr('rows'),'6');
-  assert.match(css,/#script-source\{[^}]*min-height:216px;height:clamp\(216px,32vh,320px\);max-height:max\(216px,70vh\)/);
+  assert.match(css,/#script-source\{[^}]*min-height:140\.4px;height:clamp\(140\.4px,20\.8vh,208px\);max-height:max\(216px,70vh\)/);
   assert.match(css,/#script-source\{[^}]*resize:vertical|textarea\{[^}]*resize:vertical/);
 });
 test('Dev disclosures inherit shared typography and content inset',()=>{
   assert.ok($('#developer-results-panel').hasClass('developer-results'));
   assert.ok($('#developer-results-panel').hasClass('od-disclosure'));
-  assert.match(design,/\.od-disclosure>summary\{[^}]*font-weight:650/);
+  assert.match(design,/\.od-disclosure>summary\{[^}]*font-weight:600/);
   assert.match(design,/\.od-disclosure>:not\(summary\)\{[^}]*max-width:calc\(100% - var\(--space-3\) - var\(--space-3\)\);margin:var\(--space-2\) var\(--space-3\) 0/);
   assert.doesNotMatch(css,/#workbench-develop \.developer-editor>details>summary\{/);
   assert.match(css,/\.developer-run-feedback\{display:flex;align-items:baseline;flex-wrap:wrap/);
@@ -36,18 +36,18 @@ test('Dev disclosures inherit shared typography and content inset',()=>{
   assert.match(css,/\.row:not\(\.od-disclosure>\.row\)\{margin:0\}/);
 });
 test('Develop keeps normal disclosures and flattens version management to one entry',()=>{
-  for(const id of ['developer-target-detail','manual-project-params-tools','developer-results-panel',
-    'developer-run-technical','script-advanced','tool-diagnostics','local-project-params-tools']){
+  for(const id of ['developer-target-detail','developer-results-panel',
+    'developer-run-technical','tool-diagnostics','local-project-params-tools']){
     assert.equal($('details#'+id).length,1,id);assert.ok($('#'+id).hasClass('od-disclosure'),id);
     assert.ok(!$('#'+id).hasClass('od-disclosure--flat'),id);
   }
   for(const id of ['script-version-identity','page-preview-tools','script-library-tools']){
-    assert.equal($('#developer-program-management > section#'+id).length,1,id);
+    assert.equal($('#developer-program-management > .developer-management-body > section#'+id).length,1,id);
     assert.ok($('#'+id).hasClass('developer-management-section'),id);
     assert.equal($('#'+id+' > summary').length,0,'no redundant nested toggle: '+id);
   }
   assert.ok($('#local-project-diagnostics').closest('details').hasClass('od-disclosure--flat'));
-  for(const id of ['script-history-panel','page-dependency-panel','program-generated'])assert.ok($('#'+id).hasClass('od-disclosure--flat'),id);
+  for(const id of ['script-history-panel','page-dependency-panel','program-generated','manual-project-params-tools','script-advanced'])assert.ok($('#'+id).hasClass('od-disclosure--flat'),id);
   assert.match(design,/\.od-disclosure\{[^}]*border:1px solid var\(--od-line\);[^}]*background:var\(--od-paper\)/);
   assert.match(css,/#workspace-content #workbench-develop\{display:grid;gap:var\(--space-4\)/);
   assert.match(css,/#workbench-develop \.developer-editor\{display:grid;gap:var\(--space-4\)/);

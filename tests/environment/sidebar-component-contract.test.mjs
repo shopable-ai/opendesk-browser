@@ -151,8 +151,8 @@ test('Shared components own normal visual appearance; business CSS retains only 
 test('Developer disclosure headers share the Run Result surface; nested diagnostics remain lightweight', () => {
   const dev = section('workbench-develop', 'workbench-debug');
   for (const id of [
-    'developer-target-detail', 'manual-project-params-tools', 'developer-results-panel',
-    'developer-run-technical', 'script-advanced', 'tool-diagnostics'
+    'developer-target-detail', 'developer-results-panel',
+    'developer-run-technical', 'developer-program-management', 'tool-diagnostics'
   ]) {
     const tag = element(dev, 'details', id);
     assert.ok(has(tag, 'od-disclosure'), 'Missing shared disclosure: ' + id);
@@ -168,7 +168,8 @@ test('Developer disclosure headers share the Run Result surface; nested diagnost
   }
   for (const id of [
     'page-dependency-panel', 'program-generated', 'script-history-panel',
-    'page-preview-technical-panel', 'task-package-dev', 'site-access'
+    'page-preview-technical-panel', 'task-package-dev', 'site-access',
+    'manual-project-params-tools', 'script-advanced'
   ])
     assert.ok(has(element(dev, 'details', id), 'od-disclosure--flat'),
       'Nested technical disclosure should not create another card: ' + id);
@@ -177,7 +178,7 @@ test('Developer disclosure headers share the Run Result surface; nested diagnost
     'display:flex', 'align-items:center', 'flex-wrap:wrap',
     'gap:var(--space-2)', 'min-height:44px',
     'padding:var(--space-2) var(--space-3)',
-    'font-size:var(--od-body-size)', 'font-weight:650',
+    'font-size:var(--od-note-size)', 'font-weight:600',
     'color:var(--od-ink)'
   ]) assert.ok(summary.includes(rule), 'Missing shared header rule: ' + rule);
   assert.match(components, /\.od-disclosure>summary::before\{[^}]*transform:rotate\(-45deg\)/);

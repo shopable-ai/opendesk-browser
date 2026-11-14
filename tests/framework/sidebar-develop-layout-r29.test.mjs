@@ -168,8 +168,8 @@ test('First-use connection guide uses canonical disclosure and readable action s
   assert.match(surface,/border-radius:var\(--radius-surface\)/,'use canonical card radius');
   assert.match(surface,/color:var\(--od-ink\)/,'body text follows readable ink');
   const summary=rule(components,'.od-disclosure>summary');
-  assert.match(summary,/font-size:var\(--od-body-size\)/,'guide heading uses shared 13px body token');
-  assert.match(summary,/font-weight:650/,'heading uses shared emphasis');
+  assert.match(summary,/font-size:var\(--od-note-size\)/,'guide heading uses shared 12px disclosure token');
+  assert.match(summary,/font-weight:600/,'heading uses shared emphasis');
   assert.match(rule(components,'.od-disclosure--info>summary'),/color:var\(--od-brand\)/,
     'blue emphasis is reserved for the guide heading');
   assert.match(rule(components,'.od-button'),/min-height:36px/,'CTA remains usable');
