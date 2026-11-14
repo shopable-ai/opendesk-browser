@@ -5,7 +5,7 @@ import {readFile} from 'node:fs/promises';
 import {verifyTaskPackage,validateTaskParams} from '../../../src/platform/tasks/contract.js';
 import {assertPackagedTask} from '../../../src/platform/tasks/builtin-releases.js';
 import {digestUtf8} from '../../../src/platform/protocol.js';
-const source=await readFile(new URL('../google-search-top3.js',import.meta.url),'utf8');
+const source=await readFile(new URL('../src/google-search-top3.js',import.meta.url),'utf8');
 async function run({url='https://www.google.com/',challenge=false,delayedLoad=false,lateSuggestions=false,dismissError=null,clickError=null,foregroundError=null,params={query:'OpenDesk Browser',limit:3},calls=[]}={}){
   let value='',doc='before',suggestions=lateSuggestions;
   const links=[{title:'Public result one',href:'https://example.org/one'},
@@ -28,7 +28,7 @@ async function run({url='https://www.google.com/',challenge=false,delayedLoad=fa
   return {calls,result:JSON.parse(JSON.stringify(result))};
 }
 test('Google fixed package pins exact source and approved Origin',async()=>{
-  const pkg=JSON.parse(await readFile(new URL('../google.search.top3.v1.opendesk-task.json',import.meta.url),'utf8'));
+  const pkg=JSON.parse(await readFile(new URL('../releases/google.search.top3.v1.opendesk-task.json',import.meta.url),'utf8'));
   await verifyTaskPackage(pkg);await assertPackagedTask(pkg);assert.equal(pkg.sourceUtf8,source);
   assert.equal(pkg.manifest.version,'1.0.3');
   assert.equal(pkg.manifest.paramsSchema.required.includes('showExecutionTab'),false);

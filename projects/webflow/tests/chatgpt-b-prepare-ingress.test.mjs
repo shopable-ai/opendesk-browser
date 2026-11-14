@@ -8,7 +8,7 @@ import {CHATGPT_TASK_PROFILE,WEB_TASK_PROTOCOL} from '../../../src/page-events/w
 import {encodeValue} from '../../../src/platform/page-port/codec.js';
 
 const origin='https://chatgpt.com/',A='https://chatgpt.com/c/0be71d2c-7f21-4d98-963a-5edbcabca394';
-const pkg=JSON.parse(await readFile(new URL('../tasks/chatgpt.conversation.create.0.3.0.opendesk-task.json',import.meta.url),'utf8'));
+const pkg=JSON.parse(await readFile(new URL('../../../task-packs/chatgpt.conversation.create/releases/chatgpt.conversation.create.0.3.0.opendesk-task.json',import.meta.url),'utf8'));
 const install={version:'0.3.0',manifestHash:pkg.manifestHash,
   contentHash:pkg.manifest.program.sourceHash,
   scriptId:'task:chatgpt.conversation.create:0.3.0',revision:1,

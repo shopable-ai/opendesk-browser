@@ -7,7 +7,7 @@ import {SIDEBAR_TOOL_ENABLE_STORE,requireToolEnableRecords} from './sidebar-tool
 import {loadOfficialCatalog} from '../sidebar-tools/official-catalog.js';
 import {loadOfficialPageCatalog} from '../scripting/user-scripts/official-page-catalog.js';
 import {installedPageEnableAction,setInstalledPageProgramEnabled} from './installed-page-tools.js';
-import {composeExtensionEntries,isPinnedQueueRelease,filterExtensionEntries,describeInstalledAppSource,resolveExtensionRowIntent,resolveExtensionPrimaryAction,describeInstalledPageControl} from './extension-center-model.js';
+import {composeExtensionEntries,isPinnedQueueRelease,filterExtensionEntries,describeInstalledAppSource,resolveExtensionRowIntent,resolveExtensionPrimaryAction,describeInstalledPageControl,prioritizePinnedExtensionEntries,EXTENSION_CENTER_PIN_STORAGE_PREFIX,extensionCenterPinStorageKey} from './extension-center-model.js';
 import readingTocCatalog from '../../projects/reading-toc/trusted/locales.generated.js';
 import {OFFICIAL_READING_TOC_RELEASE} from '../sidebar-tools/official-reading-toc.js';
 import {uiMessage} from './app-localization.js';
@@ -32,6 +32,7 @@ export function createExtensionCenter({api,client,doc,sidebarTools,taskWorkbench
     throw new Error('E_REACT_LIST_OWNERSHIP');
   let disposed=false,sequence=0,officialSequence=0,pageOfficialSequence=0,busy=false,pendingKey=null,installed=[],pages=[],enabled={},official=[],officialPages=[];
   let appStatusKnown=false,pageStatusKnown=false,pendingCleanups=new Set(),pageCleanupPending=[];
+  let pinnedKeys=new Set(),pinStateKnown=false,pinReadSequence=0;
   let connectionSeen=false,pendingPageReads=0;
   let pageRemovalPending=false,deferredInstallationRefresh=false;
   let toolbarMenuOpen=false,searchText='',languageManager=null,languageSession=0;
@@ -247,6 +248,49 @@ export function createExtensionCenter({api,client,doc,sidebarTools,taskWorkbench
     extensionList.renderRowMenu([]);
     extensionList.setMenuKey(null);
   }
+  async function readPinnedState(){
+    const id=++pinReadSequence;
+    if(!appStatusKnown&&!pageStatusKnown)return false;
+    const keys=[
+      ...(appStatusKnown?installed.map(tool=>'app:'+tool.id):[]),
+      ...(pageStatusKnown?pages.map(row=>'page:'+row.programId):[])
+    ];
+    try{
+      const saved=keys.length?await api.storage.local.get(keys.map(extensionCenterPinStorageKey)):{};
+      if(disposed||id!==pinReadSequence)return false;
+      const next=new Set(pinnedKeys);
+      if(appStatusKnown)for(const key of next)if(key.startsWith('app:'))next.delete(key);
+      if(pageStatusKnown)for(const key of next)if(key.startsWith('page:'))next.delete(key);
+      for(const key of keys)if(saved[extensionCenterPinStorageKey(key)]===true)next.add(key);
+      pinnedKeys=next;pinStateKnown=true;
+      return true;
+    }catch(error){
+      if(disposed||id!==pinReadSequence)return false;
+      pinnedKeys=new Set();pinStateKnown=false;
+      // A preference read must never overwrite an active install/Host action receipt.
+      return false;
+    }
+  }
+  async function setExtensionPinned(row,pinned,event){
+    if(!event?.isTrusted||disposed||busy||pendingKey||!pinStateKnown||!row?.installed||row.stateKnown===false)return;
+    const current=find(row.key);
+    if(!current?.installed||current.kind!==row.kind||current.stateKnown===false)return;
+    pendingKey=row.key;draw();
+    const storageKey=extensionCenterPinStorageKey(row.key);
+    try{
+      await api.storage.local.set({[storageKey]:Boolean(pinned)});
+      const saved=await api.storage.local.get([storageKey]);
+      if(saved[storageKey]!==Boolean(pinned))throw uiError('pinSaveUnconfirmed');
+      if(pinned)pinnedKeys.add(row.key);else pinnedKeys.delete(row.key);
+      message(()=>t(pinned?'pinSaved':'unpinSaved',{title:titleOf(row)}),'success','action');
+    }catch(error){
+      await readPinnedState();
+      message(()=>t('pinSaveFailed')+errorText(error),'error');
+    }finally{
+      pendingKey=null;
+      if(!disposed){draw();if(selectedKey)renderDetail();else restoreRowFocus(row.key,'more');}
+    }
+  }
   function showRowMenu(key,trigger){
     if(busy||pendingKey||disposed)return;
     if(rowMenuKey===key){closeRowMenu(true);return;}
@@ -317,6 +361,11 @@ export function createExtensionCenter({api,client,doc,sidebarTools,taskWorkbench
       add(t('goDevelop'),()=>{if(taskWorkbench.navigate('develop')!==false)backIfNeeded();},'develop');
     }
     add(t('viewAction'),()=>openDetail(key,'more'),'detail');
+    // Keep the destructive uninstall action last for existing keyboard End behavior.
+    if(pinStateKnown&&row.stateKnown!==false){
+      const pinned=pinnedKeys.has(row.key);
+      add(t(pinned?'unpinAction':'pinAction'),event=>{void setExtensionPinned(row,!pinned,event);},pinned?'unpin':'pin');
+    }
     if(row.stateKnown!==false&&!row.queueProduct)
       add(t('uninstallAction'),event=>openListUninstallReview(row.key,event),'uninstall');
     extensionList.renderRowMenu(menuItems,{
@@ -433,7 +482,8 @@ export function createExtensionCenter({api,client,doc,sidebarTools,taskWorkbench
     const action=active?.dataset?.extensionAction;
     const menuFocusKey=get('extension-center-row-menu')?.contains(active)?rowMenuKey:null;
     closeRowMenu();
-    const rows=filterExtensionEntries(all().map(row=>({...row,title:titleOf(row),description:descriptionOf(row)})),{query,kind,scope});
+    const rows=prioritizePinnedExtensionEntries(
+      filterExtensionEntries(all().map(row=>({...row,title:titleOf(row),description:descriptionOf(row)})),{query,kind,scope}),pinnedKeys);
     // A cleanup journal is not an installed app or a trusted Catalog release.
     // Show a recovery-only control in discovery even if the catalog is offline.
     const orphaned=scope==='available'&&appStatusKnown&&kind!=='page'?
@@ -448,7 +498,7 @@ export function createExtensionCenter({api,client,doc,sidebarTools,taskWorkbench
     extensionList.renderRows({
         rows:rows.map(row=>({
           key:row.key,title:titleOf(row),kind:row.kind,type:typeOf(row),
-          description:rowDescription(row),installed:row.installed,stateKnown:row.stateKnown,
+          description:rowDescription(row),installed:row.installed,stateKnown:row.stateKnown,pinned:row.pinned,
           updateIdentity:row.kind==='app'&&row.installed&&appStatusKnown&&
             row.stateKnown!==false&&!row.queueReviewRelease&&
             !row.queueProduct&&!row.cleanupPending&&row.update===true&&
@@ -1407,6 +1457,9 @@ export function createExtensionCenter({api,client,doc,sidebarTools,taskWorkbench
     pagesDone=true;publish();})();
     await Promise.all([readApps,readPages]);
     if(!current())return false;
+    await readPinnedState();
+    if(!current())return false;
+    draw();
     return appReadback?appStatusKnown:pageReadback?pageStatusKnown:!dataError;
   }
   async function readOfficial(){
@@ -1462,6 +1515,8 @@ export function createExtensionCenter({api,client,doc,sidebarTools,taskWorkbench
     if(deferredInstallationRefresh){deferredInstallationRefresh=false;if(!disposed)void refresh();}
   }
   const storageChanged=(changes,area)=>{
+    if(area==='local'&&Object.keys(changes).some(key=>key.startsWith(EXTENSION_CENTER_PIN_STORAGE_PREFIX)))
+      void readPinnedState().then(()=>{if(!disposed)draw();});
     if(area==='local'&&(SIDEBAR_TOOL_STORE in changes||SIDEBAR_TOOL_ENABLE_STORE in changes||MARKET_PROVENANCE_STORE in changes||
       TOOL_CLEANUP_STORE in changes||
       Object.keys(changes).some(key=>key.startsWith('opendesk.page'))))refreshFromInstallationChange();

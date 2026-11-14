@@ -224,7 +224,7 @@ for(const state of ['missing','removed','disabled','initialization','changed'])t
 // Legacy AppStorage CAS/readback, read/stop races, UNKNOWN, Results and notices
 // remain below; UI-only configure never substitutes for an Authority admission fence.
 test('opening Web Flow recognizes the verified Baidu upgrade by its exact package identity',async t=>{
-  const pkg=JSON.parse(readFileSync(new URL('../../../examples/tasks/baidu.search.top3.v1.opendesk-task.json',import.meta.url),'utf8'));
+  const pkg=JSON.parse(readFileSync(new URL('../../../task-packs/baidu.search/releases/baidu.search.top3.v1.opendesk-task.json',import.meta.url),'utf8'));
   const host=sdk();
   host.pins[0]={taskId:pkg.manifest.taskId,version:pkg.manifest.version,
     manifestHash:pkg.manifestHash,contentHash:pkg.manifest.program.sourceHash,

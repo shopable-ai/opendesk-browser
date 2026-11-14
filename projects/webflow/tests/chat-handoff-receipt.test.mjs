@@ -2,14 +2,14 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import {createHash} from 'node:crypto';
 import {encodeValue} from '../../../src/platform/page-port/codec.js';
-import {BUILTIN_TASK_RELEASES} from '../../../src/platform/tasks/builtin-releases.js';
+import {REVIEWED_BUILTIN_TASK_RELEASES} from '../../../src/platform/tasks/builtin-releases.js';
 import {CHAT_HANDOFF_PROTOCOL} from '../src/chat-handoff-contract.js';
 import {attestChatHandoffBReply} from '../trusted/chat-handoff-receipt.js';
 
 const digest=s=>createHash('sha256').update(s).digest('hex');
 const NOW=1800000000000,CHAT='6af1df79-ab04-83e8-8e06-db19beebafab';
 const REQ='request-0001',RUN='run-0001',PROMPT='Analyze this issue';
-const pin=BUILTIN_TASK_RELEASES.find(x=>x.taskId==='chatgpt.conversation.create');
+const pin=REVIEWED_BUILTIN_TASK_RELEASES.find(x=>x.taskId==='chatgpt.conversation.create'&&x.version==='0.2.0');
 const install={version:pin.version,manifestHash:pin.manifestHash,contentHash:pin.sourceHash,
   scriptId:'task:chatgpt.conversation.create:'+pin.version,revision:1,
   installationId:'installation-0001',generation:1};

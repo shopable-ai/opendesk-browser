@@ -55,11 +55,12 @@ export function ExtensionRows({rows,busy,pendingKey,menuKey,onOpenRow,onMore,onI
     const label=row.primaryAction||t('details');
     const identity=row.installed&&titles.get(row.title)>1&&row.key.startsWith('app:')
       ?row.key.slice(4):null;
-    const accessible=t('actionTitle',{action:label,title:row.title})+(identity?' · '+t('installationId')+identity:'');
+    const accessible=t('actionTitle',{action:label,title:row.title})+(row.pinned?' · '+t('pinned'):'')+(identity?' · '+t('installationId')+identity:'');
     return <li key={row.key} data-extension-id={row.key}
       className={'ec-row od-collection-row'+(row.installed&&row.key===activeActionKey?' ec-row--action-visible':'')+
         (row.inlineUpdate?' ec-row--has-update':'')}
       aria-busy={busy||pendingKey===row.key?'true':undefined}
+      data-pinned={row.pinned?'true':undefined}
       onPointerEnter={event=>{
         if(row.installed&&event.pointerType!=='touch')setLastInteractedKey(row.key);
       }}
@@ -85,6 +86,9 @@ export function ExtensionRows({rows,busy,pendingKey,menuKey,onOpenRow,onMore,onI
             <span className="ec-name" title={row.title}>
               <span className="ec-name-text">{row.title}</span>
             </span>
+            {row.pinned&&<span className="ec-pin-indicator" role="img" aria-label={t('pinned')} title={t('pinned')}>
+              <svg viewBox="0 0 24 24" aria-hidden="true"><path d="m15 3 6 6-4 1-4 4-3-3 4-4 1-4ZM11 13l-6 6"/></svg>
+            </span>}
             <span className="ec-type" title={row.type}>{row.type}</span>
           </span>
           <span className="ec-description" title={row.description}>{row.description}</span>

@@ -22,8 +22,8 @@ const compiledTimeReviewInputs=Object.freeze({
 // Their sourceUtf8 stays frozen data; only Controller may execute it after
 // installation and run authorization. Never admit their JS source modules.
 const packagedTaskInputs=Object.freeze({
-  'examples/tasks/baidu.search.top3.v1.opendesk-task.json':'7ed543cb4c46a688b6fb2f1a6943a10065b6c172',
-  'examples/tasks/google.search.top3.v1.opendesk-task.json':'acc7df905e0376a94385b7176c34a4081c536612'
+  'task-packs/baidu.search/releases/baidu.search.top3.v1.opendesk-task.json':'7ed543cb4c46a688b6fb2f1a6943a10065b6c172',
+  'task-packs/google.search/releases/google.search.top3.v1.opendesk-task.json':'acc7df905e0376a94385b7176c34a4081c536612'
 });
 function reviewedPackagedTask(target,path,root){
   if(target!=='sw.js'||!Object.hasOwn(packagedTaskInputs,path))return null;
@@ -103,7 +103,7 @@ function reviewedCompiledWebFlow(target,path,root){
 // cannot replace this adapter or import Host/Controller functionality.
 const compiledSubagentResultInputs=Object.freeze({
   'projects/subagent/trusted/page-task-result.js':'16dda6e9a439dedb340e33874f1062bdfeaf8147',
-  'projects/subagent/trusted/result.js':'1c7de2644d572a3b936549e68a70bf709f540f68',
+  'projects/subagent/trusted/result.js':'1d3cf5e91710b1493f0d1e83e3a3f9a6908e0057',
   'projects/subagent/src/contract.js':'c394ad1d5dfb7271ec2a23d428e7605030da7664'
 });
 function reviewedCompiledSubagentResult(target,path,root){
@@ -158,6 +158,25 @@ function reviewedCompiledChatGPTImages(target,path,root){
 // Fixed Web Flow file handling reuses the image gate's exact source/blob checks.
 // Each source has only its actual static consumers; installed packages and
 // arbitrary project files never inherit this compiled-source admission.
+// Only these two audited, fixed-compiled cross-consumer business validators
+// may enter the trusted SW/Task UI. No installed Task JS, dynamic validator,
+// arbitrary new Task pack or unrelated target receives this trust.
+const compiledIndependentTaskResultInputs=Object.freeze({
+  'task-packs/chatgpt.conversation.create/contracts/result-v2.js':'f7d70b85778c91cf6e77043777606fb65456d0bc',
+  'task-packs/chatgpt.conversation.create/contracts/installed-result.js':'9617464b6326b7def7d34e90d563cc44b992577a'
+});
+function reviewedIndependentTaskResult(target,path,root){
+  if(!['sw.js','ui/tool-shell.js'].includes(target)||
+    !Object.hasOwn(compiledIndependentTaskResultInputs,path))return null;
+  const file=resolve(root,path);
+  if(realpathSync(file)!==file)throw Error('Independent Task result contract must not be a symlink: '+path);
+  const bytes=readFileSync(file);
+  const hash=createHash('sha1').update('blob '+bytes.length+'\0').update(bytes).digest('hex');
+  if(hash!==compiledIndependentTaskResultInputs[path])
+    throw Error('Independent Task contract changed; review and re-pin before fixed build: '+path);
+  return hash;
+}
+
 const compiledChatGPTFilesInputs=Object.freeze({
   'projects/webflow/trusted/chatgpt-files-service.js':'65a9aee1d533a85bc9bbf5c529a7993859a657a5',
   // Reviewed generic-reader import separation; Stop/dispatch behavior unchanged.
@@ -175,14 +194,14 @@ const compiledChatGPTFilesInputs=Object.freeze({
   'projects/webflow/trusted/chatgpt-conversation-route.js':'8e28adedd8cc2b49ff34897c0857d33cf2478c87',
   // Reviewed pure result validation/formatting, including strict string IDs.
   // Its existing Host consumers alone may compile it; no Content/Native entry.
-  'projects/webflow/src/chatgpt-conversation-result.js':'13b05c1b0a426ee22a825c5ab6d9fab018334761',
+  'projects/webflow/src/chatgpt-conversation-result.js':'edbf68264b5aaa17d0c2f323baf88f4d99a79b71',
   // Fixed-compiled ChatGPT Task 0.2.0 business-result registry: immutable
   // release identity, retained B provenance and no dynamic package validators.
-  'projects/webflow/trusted/chatgpt-result-adapter.js':'e57dd4bbfe90c0f81c5465fd8cbbeefc95ea4dae',
+  'projects/webflow/trusted/chatgpt-result-adapter.js':'acfd6684a0e9a9bacdda7f863d460823ce9e8231',
   // 0.3 is opt-in and cannot claim a completed A/B workflow from a draft.
   // Its strict results and retained-B proof are first-party compiled inputs.
   'projects/webflow/src/chatgpt-conversation-result-v0.3.js':'53fd0ca5ae064053fc00d34ce5771800289efcc4',
-  'projects/webflow/trusted/chatgpt-result-adapter-v0.3.js':'9e58fafd786733db036a5995889cbff00157622e',
+  'projects/webflow/trusted/chatgpt-result-adapter-v0.3.js':'21021f0c9427b6492a5ada0fd482a7ae840db8d8',
   'projects/webflow/trusted/chatgpt-b-prepare-stage.js':'68eeee6e3dee11d6d9abd1c534fe960c4a083e01'
 });
 const chatGPTFilesTargets=Object.freeze({
@@ -873,6 +892,7 @@ export function describeBundle({chunk,root=process.cwd(),lock}) {
       reviewedCompiledTimeReview(chunk.fileName,path,root)||
       reviewedCompiledWebFlow(chunk.fileName,path,root)||
       reviewedCompiledSubagentResult(chunk.fileName,path,root)||
+      reviewedIndependentTaskResult(chunk.fileName,path,root)||
       reviewedCompiledWebflowMedia(chunk.fileName,path,root)||
       reviewedCompiledChatGPTImages(chunk.fileName,path,root)||
       reviewedCompiledChatGPTFiles(chunk.fileName,path,root)||
@@ -894,7 +914,7 @@ export function describeBundle({chunk,root=process.cwd(),lock}) {
       reviewedCompiledHostStyle(chunk.fileName,path,root);
     // Moving an independent app into projects/ never grants privileged access.
     // It must retain the same exact reviewed source/target admission as examples/.
-    if(!reviewedSource&&/^(?:docs\/contracts\/source-snapshots\/|examples\/|projects\/|src\/vendor\/)/.test(path))
+    if(!reviewedSource&&/^(?:docs\/contracts\/source-snapshots\/|examples\/|projects\/|task-packs\/|src\/vendor\/)/.test(path))
       throw Error('Historical/user/vendor code cannot enter a privileged fixed bundle: '+path);
     const row={path,renderedLength:info.renderedLength,originalLength:info.originalLength,
       ...(reviewedSource?{reviewedFirstPartyBlob:reviewedSource}:{})};

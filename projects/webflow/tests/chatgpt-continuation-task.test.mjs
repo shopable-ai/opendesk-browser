@@ -4,10 +4,10 @@ import {readFile} from 'node:fs/promises';
 import {digestUtf8} from '../../../src/platform/protocol.js';
 import {verifyTaskPackage,validateTaskParams} from '../../../src/platform/tasks/contract.js';
 
-const sourcePath=new URL('../src/tasks/chatgpt-conversation-create-v0.3.js',import.meta.url);
+const sourcePath=new URL('../../../task-packs/chatgpt.conversation.create/src/chatgpt-conversation-create-v0.3.js',import.meta.url);
 const source=await readFile(sourcePath,'utf8');
 const execute=new Function('page','params',source+'\nreturn main()');
-const candidate=JSON.parse(await readFile(new URL('../tasks/chatgpt.conversation.create.0.3.0.opendesk-task.json',import.meta.url),'utf8'));
+const candidate=JSON.parse(await readFile(new URL('../../../task-packs/chatgpt.conversation.create/releases/chatgpt.conversation.create.0.3.0.opendesk-task.json',import.meta.url),'utf8'));
 
 const uuid='10101010-2020-4030-8040-505050505050';
 function harness({draft=undefined,attachments=0,users=0,send=true,model,

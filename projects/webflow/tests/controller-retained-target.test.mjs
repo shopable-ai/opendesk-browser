@@ -33,7 +33,7 @@ test('ordinary Controller targets close; only a completed reviewed owned Task ma
 
 test('task manifest makes retention hash-covered and expressly reviewed; old packages are unchanged',async()=>{
   const pkg=JSON.parse(await readFile(new URL(
-    '../../../examples/tasks/google.search.top3.v1.opendesk-task.json',import.meta.url),'utf8'));
+    '../../../task-packs/google.search/releases/google.search.top3.v1.opendesk-task.json',import.meta.url),'utf8'));
   assert.equal(validateTaskManifest(pkg.manifest),pkg.manifest);
   assert.equal(pkg.manifest.targetDisposition,undefined);
   const reviewed={...pkg.manifest,targetDisposition:'retain-on-success'};

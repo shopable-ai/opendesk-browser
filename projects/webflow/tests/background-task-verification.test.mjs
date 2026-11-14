@@ -31,7 +31,7 @@ async function fixture(t){
     return {ok:value!==undefined,url,text:async()=>value};
   });
   const environment=builtinIdentity(await loadBuiltinWorkerSource({runtime}));
-  const pkg=JSON.parse(await readFile(new URL('../../../examples/tasks/baidu.search.top3.v1.opendesk-task.json',import.meta.url),'utf8'));
+  const pkg=JSON.parse(await readFile(new URL('../../../task-packs/baidu.search/releases/baidu.search.top3.v1.opendesk-task.json',import.meta.url),'utf8'));
   const {taskId,version}=pkg.manifest,namespace='tool:'+runtime.id;
   const installed={tag:'task-installed-v1',namespace,taskId,version,enabled:true,
     scriptId:taskScriptId(taskId,version),manifestHash:pkg.manifestHash,builtinIdentity:environment,

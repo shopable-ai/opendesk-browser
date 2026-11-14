@@ -52,7 +52,7 @@ async function run(file, options = {}) {
       };
     },
   };
-  const source = await readFile(new URL('../'+file,import.meta.url),'utf8');
+  const source = await readFile(new URL('../src/'+file,import.meta.url),'utf8');
   const result = await vm.runInNewContext(source+'\nmain()',{
     page,params:options.params ?? {query:'OpenDesk Browser',limit:3},URL,Date:Clock,TextEncoder,
     setTimeout:(fn,ms)=>{pauses.push(ms);now+=ms;fn();return 0;},
@@ -233,10 +233,10 @@ test('baidu foreground failures stop without any search or replay',async()=>{
 
 
 test('Baidu package matches source, version, schema defaults, and builtin release pins',async()=>{
-  const pkg=JSON.parse(await readFile(new URL('../baidu.search.top3.v1.opendesk-task.json',import.meta.url),'utf8'));
+  const pkg=JSON.parse(await readFile(new URL('../releases/baidu.search.top3.v1.opendesk-task.json',import.meta.url),'utf8'));
   await verifyTaskPackage(pkg);
   await assertPackagedTask(pkg);
-  assert.equal(pkg.sourceUtf8,await readFile(new URL('../baidu-search-top3.js',import.meta.url),'utf8'));
+  assert.equal(pkg.sourceUtf8,await readFile(new URL('../src/baidu-search-top3.js',import.meta.url),'utf8'));
   assert.equal(pkg.manifest.version,'1.1.5');
   assert.deepEqual(pkg.manifest.siteOrigins,['https://www.baidu.com']);
   assert.deepEqual(pkg.manifest.permissions,['page.automation']);

@@ -13,7 +13,7 @@ import {requiresChatGPTOriginalAProof,assertOriginalADispatchIntent,assertOrigin
 const originalAProofPolicy=Object.freeze({requiresChatGPTOriginalAProof,assertOriginalADispatchIntent,assertOriginalAReceipt});
 const strictVersions=['0.2.0','0.2.1','0.2.2'];
 const strictManifests=Object.fromEntries(await Promise.all(strictVersions.map(async version=>[
-  version,JSON.parse(await readFile(new URL(`../tasks/chatgpt.conversation.create.${version}.opendesk-task.json`,import.meta.url),'utf8')).manifest
+  version,JSON.parse(await readFile(new URL(`../../../task-packs/chatgpt.conversation.create/releases/chatgpt.conversation.create.${version}.opendesk-task.json`,import.meta.url),'utf8')).manifest
 ])));
 
 for(const version of strictVersions){

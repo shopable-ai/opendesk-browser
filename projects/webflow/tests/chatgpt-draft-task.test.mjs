@@ -5,8 +5,8 @@ import {digestUtf8} from '../../../src/platform/protocol.js';
 import {verifyTaskPackage,validateTaskParams} from '../../../src/platform/tasks/contract.js';
 import {BUILTIN_TASK_RELEASES,assertPackagedTask,REVIEWED_BUILTIN_TASK_RELEASES} from '../../../src/platform/tasks/builtin-releases.js';
 
-const path=new URL('../tasks/chatgpt.conversation.create.v1.opendesk-task.json',import.meta.url);
-const sourcePath=new URL('../src/tasks/chatgpt-conversation-create.js',import.meta.url);
+const path=new URL('../../../task-packs/chatgpt.conversation.create/releases/chatgpt.conversation.create.v1.opendesk-task.json',import.meta.url);
+const sourcePath=new URL('../../../task-packs/chatgpt.conversation.create/src/chatgpt-conversation-create.js',import.meta.url);
 const pkg=JSON.parse(await readFile(path,'utf8'));
 const source=await readFile(sourcePath,'utf8');
 const runSource=new Function('page','params',source+'\nreturn main();');
@@ -35,9 +35,9 @@ test('ChatGPT reviewed task package and human-readable source share an exact imm
   assert.deepEqual(await verifyTaskPackage(pkg),pkg);
   assert.equal(pkg.manifest.targetDisposition,'retain-on-success');
   // Version 0.1.0 is still an immutable, verifiable historical release.
-  // Only 0.2.0 is auto-provisioned for new installations.
+  // The 0.2.0 package is still restorable, but new users must explicitly install ChatGPT.
   await assertPackagedTask(pkg);
-  assert.equal(BUILTIN_TASK_RELEASES.find(row=>row.taskId===pkg.manifest.taskId)?.version,'0.2.0');
+  assert.equal(BUILTIN_TASK_RELEASES.some(row=>row.taskId===pkg.manifest.taskId),false);
   assert.ok(REVIEWED_BUILTIN_TASK_RELEASES.some(row=>row.taskId===pkg.manifest.taskId&&
     row.version==='0.1.0'&&row.manifestHash===pkg.manifestHash&&
     row.sourceHash===pkg.manifest.program.sourceHash));

@@ -60,7 +60,7 @@ function verify(phase,value=phase==='prepare'?draft():reply(),patch={}){
 
 test('0.3 is an explicitly pinned manual release and does not auto-upgrade 0.2',()=>{
   assert.ok(pin);
-  assert.equal(BUILTIN_TASK_RELEASES.find(x=>x.taskId===pin.taskId)?.version,'0.2.0');
+  assert.equal(BUILTIN_TASK_RELEASES.some(x=>x.taskId===pin.taskId),false);
 });
 test('0.3 PREPARE verifies only retained unsent original owned B',()=>{
   const found=verify('prepare');
