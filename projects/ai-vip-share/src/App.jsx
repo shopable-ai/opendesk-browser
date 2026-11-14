@@ -25,6 +25,7 @@ export default function VipApp({createDevelopmentControls,serviceDefinition}={})
                 autoComplete="off" spellCheck="false" placeholder="粘贴服务链接或专属激活链接" />
             </label>
             <Button variant="primary" size="lg" id="ai-vip-connect" type="button">连接并查看权益</Button>
+            <Button variant="quiet" id="ai-vip-connection-cancel" type="button" hidden>取消更换</Button>
           </div>
           <p id="ai-vip-connection-status" className="ai-vip-note" role="status" aria-live="polite">粘贴服务方提供的链接，连接后查看权益；激活前会先供你核对。</p>
         </CardContent>

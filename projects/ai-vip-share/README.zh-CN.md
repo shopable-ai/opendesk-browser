@@ -1,5 +1,17 @@
 # AI VIP Share · 独立 Sidebar Tool
 
+<a id="user-journey-current"></a>
+
+## 当前开发交付（1.4.35，2026-11-15）
+
+唯一业务 owner 是 `projects/ai-vip-share/`。本轮在真实入口先验证授权，再修复两处连接体验：更换链接可“取消更换”，只清除未提交草稿；已有新鲜、有效权益时再次连接专属链接只刷新权益，不自动重复预检。主动开通或续期仍使用原激活码预检及确认。首次连接 → 无消费预检 → 取消或一次确认 → 单网站登录/直接打开入口，已在使用正式 App.jsx / main.js 的同源合成预览验证；不是生产服务或真实 VIP 证据。
+
+唯一正式包 [`ai-vip-share.opendesk-tool.json`](ai-vip-share.opendesk-tool.json)：**1.4.35 / 158612 字节 / SHA-256 `396a8a5b0134073307528facead113441a8a435542351259d17117284a894d53`**。原 7 项能力不变；53 项连接、固定来源及升级恢复检查、3 项包合同/晋升保护通过，候选 → 晋升 → `--check-project` 同源通过。另跑的旧展示测试有 6 项失败，修改前 HEAD 同样失败，未将其计为通过或扩大修复。
+
+**真实运行分层：** 当前 Browser 沿用 `dist/development` 和原 writer；专用 ego Profile `AI VIP Share Test 20261106` 实际安装仍是 **1.4.32**。新版 ToolHost 首次 Cookie 弹窗、关闭、顶部再次授权、精确网站说明、授权后重开复用、设置撤销及可见回执已在无数据合成站点验证，无 Cookie 读写或代理启动。Escape 因原生定向焦点未确认，仍为 **NOT_TESTED**。1.4.35 经原安装入口选包时被 `E_TOOL_RUNTIME_MISMATCH` 拦截，新侧栏文档重开后仍如此，未提交升级；实际 app.html 也显示 1.4.32，且代理读取出现 `E_OWNER`，不能称新版双 Surface 已通过。历史 1.4.34 Market/SQLite 和 1.4.32 ChatGPT 登录事实各保留在原版本范围内。
+
+**当前可执行路径：** 待共享开发环境按原安全更新合同消除运行不匹配后，进入“扩展 → 筛选和管理扩展 → 导入扩展”，选择上述唯一 JSON，核对 1.4.32 → 1.4.35 及原 7 项能力，再确认更新。服务方正式 HTTPS 接入配置仍未提供；普通用户取得受支持服务链接后，才可连接并查看真实权益，任意目标网站 URL 不构成会话来源。生产服务、正式 Market channel、真实 VIP、production 发布与评分均 **NOT_TESTED**。详细实际操作、失败分类和资源释放见[唯一账本](dev/local-test/EXTENSION-VIP-TEST.zh-CN.md#core-closeout-1435-20261115)。
+
 ## 当前项目入口（2026-11-08 目录迁移）
 
 唯一源码 owner 为 `projects/ai-vip-share/`；项目自有测试、依赖、预览和忽略产物一同迁移，旧目录不保留副本或符号链接。以下命令从仓库根运行：
@@ -9,11 +21,11 @@ npm run build --prefix projects/ai-vip-share
 node scripts/build-sidebar-tool.mjs projects/ai-vip-share --check-project
 ```
 
-本次只迁移目录及修正有效引用，不晋升正式包。正式身份保持 `ai-vip-share` / `1.4.32`，能力和配置不变；正式 JSON 为 143989 字节，SHA-256 `cbffe4776d5530e64b19eb500e9c58b64e41d14bddefde96c59cba2e2367beda`。历史验收、账本及 evidence 中的原路径仍表示当时位置，不作为当前命令入口。
+目录迁移当时只修正有效引用，未晋升正式包；当时身份为 `ai-vip-share` / `1.4.32`，143989 字节，SHA-256 `cbffe4776d5530e64b19eb500e9c58b64e41d14bddefde96c59cba2e2367beda`。当前包以上节为准。历史验收、账本及 evidence 中的原路径仍表示当时位置，不作为当前命令入口。
 
 最新产品方向见[网站快速登录与 Cookie 会话方案](ROADMAP.zh-CN.md)。
 
-### 2026-11-13 授权交互
+### 2026-11-13 授权交互（历史阶段，首次弹窗已于 11-15 补验）
 
 Cookie 授权复用 Cookie Editor 的可信弹窗与顶部“授权”入口；关闭弹窗可继续查看工具，授权只覆盖当前网站的已声明 Cookie 能力。设置保留当前网站状态与撤销入口，不再混入全站授权说明。安装后默认可用，“已启用 / 已停用”表示工具使用状态，不是另一道网站授权。
 
@@ -32,9 +44,7 @@ Cookie 授权复用 Cookie Editor 的可信弹窗与顶部“授权”入口；�
 **2026-11-10 受控验证**：修复提交 [`e0d4b43`](https://github.com/shopable-ai/opendesk-browser/commit/e0d4b43d1c00af9cc35eb5c4239275e4bc62c4a9) 后，[App CI 42676450891](https://github.com/shopable-ai/opendesk-browser/actions/runs/42676450891) 中本轮链接/取消 9/9 PASS、LAN 安全入口 4/4 PASS；但全组 424 项为 342 PASS / 68 FAIL / 14 CANCELLED，整体 **FAIL**，不能作为正式包晋升凭据。详细首轮失败、修复和未测边界已回写原 [EXTENSION-VIP-TEST 验收账本](dev/local-test/EXTENSION-VIP-TEST.zh-CN.md)。
 
 
-<a id="user-journey-current"></a>
-
-## 当前开发交付（1.4.32，2026-11-07）
+## 历史开发交付（1.4.32，2026-11-07）
 
 **已在原专用 ego Profile 证明：ChatGPT 未登录 → 原服务端会话及逐批可信确认 → 网站新登录。** 仅清除该测试 Profile 的 ChatGPT 本地数据，更新后和可信取消后刷新仍显示登录/注册、无账号菜单；再主动确认21项及独立第二批1项，全部核验后打开网站，账号菜单可见设置/退出登录。未发送消息或读取历史；身份匹配、Plus/VIP、套餐和到期仍未验证。
 

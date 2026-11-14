@@ -116,6 +116,74 @@ test('trusted service selection verifies a fresh member GET and reopen restores 
   noBrowserEffects(reopened);
 });
 
+test('cancelling a replacement link clears only its draft and keeps the connected service without effects',async()=>{
+  const e=await assigned();
+  const saved=JSON.stringify([...e.store]),count=e.calls.length;
+  await e.click('connection-change');
+  e.get('service-link').value=ACTIVATION;
+  assert.equal(e.get('connection-form').hidden,false);
+  assert.equal(e.get('connection-cancel').hidden,false);
+  await e.click('connection-cancel',false);
+  assert.equal(e.get('connection-form').hidden,false);
+  await e.click('connection-cancel');
+  assert.equal(e.get('connection-form').hidden,true);
+  assert.equal(e.get('service-link').value,'');
+  assert.equal(e.get('connection-change').hidden,false);
+  assert.equal(JSON.stringify([...e.store]),saved);
+  assert.equal(e.calls.length,count);
+  assert.deepEqual(writes(e),[]);noBrowserEffects(e);
+});
+
+test('reconnecting an activation link with usable rights only refreshes; explicit activation remains available',async()=>{
+  const e=await assigned();
+  const count=e.calls.length,ledger=e.fixture.ledger.size;
+  await e.click('connection-change');await connect(e,ACTIVATION);
+  assert.deepEqual(requests(e).slice(count),[['GET','/api/member']]);
+  assert.equal(e.get('redeem-preview').hidden,true);
+  assert.match(e.get('redeem-status').textContent,/已有有效权益.*无需重复激活/);
+  assert.equal(e.get('redeem-code').value,'');
+  assert.equal(e.get('site-open').disabled,false);
+  assert.equal(e.fixture.ledger.size,ledger);
+  noBrowserEffects(e);noSecrets(e);
+  await e.preview(CODE);
+  assert.equal(e.calls.at(-1).url,service.endpoints.voucherPreview);
+  assert.equal(e.fixture.ledger.size,ledger);
+});
+
+test('a replacement connection in progress cannot be cancelled as an unsent draft',async()=>{
+  const gate=deferred();let waiting=false;
+  const e=await assigned({productionNetwork:async(args,fixture)=>{
+    if(waiting&&args.method==='GET')await gate.promise;
+    return productionNetwork(args,fixture);
+  }});
+  await e.click('connection-change');waiting=true;await connect(e);
+  assert.equal(e.get('connection-cancel').disabled,true);
+  const notice=e.get('connection-status').textContent;
+  await e.click('connection-cancel');
+  assert.equal(e.get('connection-status').textContent,notice);
+  gate.resolve();await settle(e,()=>!e.get('connect').disabled);
+  assert.equal(e.get('connection-form').hidden,true);
+  assert.equal(e.get('member-card').attributes['data-view'],'active');
+  noBrowserEffects(e);noSecrets(e);
+});
+
+test('expired or exhausted rights do not suppress activation-link preflight',async()=>{
+  for(const status of ['expired','exhausted']){
+    const e=await assigned({productionNetwork:async(args,fixture)=>{
+      const result=await productionNetwork(args,fixture);
+      if(args.method==='GET'){
+        result.data.entitlements=result.data.entitlements.map(row=>({...row,status}));
+        delete result.data.sharedAccounts;
+      }
+      return result;
+    }});
+    const count=e.calls.length;
+    await connect(e,ACTIVATION);
+    assert.deepEqual(requests(e).slice(count),[['GET','/api/member'],['POST','/api/preview']]);
+    noBrowserEffects(e);
+  }
+});
+
 test('activation link preflights without redeeming; one trusted confirmation redeems once without session acquisition',async()=>{
   const e=await create();
   await connect(e,ACTIVATION);

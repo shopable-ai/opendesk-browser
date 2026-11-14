@@ -1,5 +1,48 @@
 # AI VIP Share：完善扩展到模拟 VIP 网站的真实操作链
 
+<a id="core-closeout-1435-20261115"></a>
+
+## 2026-11-15 核心体验收尾：1.4.35 包就绪，首次授权实机通过，升级受阻
+
+本轮唯一 owner `projects/ai-vip-share/`，在 `main` 开发；未创建分支、worktree、PR，未推送。先从实际“扩展 → AI VIP Share”检查，再用原同源预览走连接链，未恢复商业后台、production、全量矩阵或评分。以下覆盖 11-13 的“首次弹窗未进入开发产物”结论；历史事实保留。
+
+### 真实入口与版本分层
+
+| 操作 / 层次 | 本轮实际结果与边界 |
+| --- | --- |
+| 浏览器与现有安装 | ego TaskSpace86，用户指定既有 Profile `AI VIP Share Test 20261106`（Profile 1）；共享 Profile 不是 Cookie/权限隔离。原生侧栏标题实际为 **1.4.32**，与历史另一 Profile 的 1.4.34 不同；未操作系统 Chrome 的旧升级审阅 |
+| 首次 Cookie 弹窗 | 在不设置 Cookie、不收集数据的 `http://127.0.0.1:51424/` 打开原已安装工具，自动出现“Cookie 管理授权”，完整列出精确 Origin、读取元数据/新建/编辑/删除及仅对当前网站生效。关闭后工具仍可看，顶部保留“授权”，无需二次启用 |
+| 顶部入口、复用与撤销 | 顶部“授权”成功后看到“已授权管理本站 Cookie，后续操作复用此次网站授权。”；设置显示该精确网站“已授权 / 撤销授权”。另一轮从首次弹窗授权后返回列表并重开工具，没有再弹授权，设置仍已授权。撤销后可见“已撤销本站 Cookie 授权”或精确 Origin 的撤销回执；测试授权最终撤销。原 ChatGPT 授权保留，无 Cookie 读写或代理启动 |
+| Escape / Chrome 新权限 | 原生自动化读回焦点仍在网页，未取得授权弹窗定向键盘目标；未盲发 Escape，**NOT_TESTED**。Chrome 已有站点访问权限，本轮未出现新增 Chrome optional 权限提示，不将工具弹窗当作该提示验证 |
+| 实际运行 revision | 原“调试 → 本地开发服务”先显示已连接 / `2093fdec253fd74f5ba170c665461ecd951ac05b4e4dfb1751227e8ccee6250a`，后随并行构建显示已连接 / `78636418e58bcaedf5671ae2e3de9151e6d98048bcd16f769ded30996d4e4371`。后者与当时磁盘 `development-update.json` 相符，但不证明 Worker/安装器/网页均已一致 |
+| 1.4.35 原安装入口 | “扩展 → 筛选和管理扩展 → 导入扩展”选择本项目唯一 JSON，实际返回 `E_TOOL_RUNTIME_MISMATCH`。取消导入，读原开发诊断；没有显示具体等待项。安全关闭并重开本任务侧栏文档、同包再次选取仍拒绝；两次均未到确认更新，没有安装或重复提交。未重启共享服务、清锁或强制重载扩展 |
+| 原独立 app.html | 从工具设置“在新标签页打开当前工具”打开。真实包仍 **1.4.32**；侧栏保留本地服务选择但离线，独立页显示正式服务未配置，代理状态读取 `E_OWNER`。同页原只读 runtime-contract 查询返回 `E_OWNER: Unresolved packaged tool sender`，只作该文档的诊断，不能等同于安装器错误根因。**当前新包双 Surface 一致性未通过**，不沿用历史 1.4.34 的通过结论 |
+| 服务与历史 SQLite | 开始及收尾核对旧 7898/7903/43132 无监听；历史 `artifacts/market-vip-20261110-evidence/receipts.sqlite` 存在，只读查询 `redemptions` 为 2。未启动第二 Provider、发新券、清库、重兑或改旧收据。无生产 HTTPS service、Market channel 或商业 Provider |
+
+### 用户链、实际缺陷与最小修复
+
+原预览来源收据已过期，故先用原 `npm run build:preview --prefix projects/ai-vip-share` 刷新同源预览，再在同一 TaskSpace 内操作。正式 `App.jsx` / `main.js` 与 fixture 响应组合，未另造 Mock UI 或放宽 SDK。预览仅合成内存响应，刷新会重置，不作为持久化/原生安装证据。
+
+1. 首次粘贴合成专属链接 → 连接并查看权益 → 自动无消费预检 → 核对接收主体及权益。取消后仍未开通；再次明确预检并确认，出现 1 条合成兑换、有效权益和单网站登录/直接打开入口，未强迫选择单网站。
+2. 实测更换链接后没有返回入口：新增“取消更换”，仅清未提交的敏感链接草稿，保留连接和记录；忙于连接/核对时禁用，不能将已开始操作伪报为取消。可信点击、零网络/写入/代理/开站及等待期保护由实际控制器测试验证。
+3. 实测已有有效权益时重连同一专属链接，仍自动展开激活确认：现在新鲜核验、已绑定且至少一项权益有效时只刷新会员，不自动预检，明确“已有有效权益，无需重复激活”；开通/续期仍可主动输入码。过期/耗尽仍走原预检，旧 recovery/unknown/partial、来源、CAS、Store/Partition 与撤权保护不变。
+4. 修复后同源浏览器验证“更换 → 取消 → 原服务仍在”，以及已有权益重连后无自动激活确认、网站入口仍可用。模拟服务中断后保留旧事实并标“当前状态待核验 / 刷新重试”，兑换暂停；无分配场景保留额度并明确联系服务方，无需重复激活。不能把额度、Cookie 写入、网站登录或第三方 VIP 合并表述。
+
+### 验证与唯一正式包
+
+- `node --test projects/ai-vip-share/tests/controller-service-flow.test.mjs projects/ai-vip-share/tests/service-links.test.mjs projects/ai-vip-share/tests/controller-recovery-upgrade.test.mjs`：**53/53 PASS**。覆盖连接取消、连接中取消拒绝、已有效权益仅 GET、首次预检/明确确认一次、旧 1.4.32/1.4.34 事务升级、Cookie 取消及 unknown 重开禁止重放、离线、固定 HTTPS 来源与跨服务恢复锁。
+- `node --test --test-name-pattern='tool contract is independent|portable Sidebar Tool builds|promotion rejects' tests/environment/sidebar-tools.test.mjs`：**3/3 PASS**。验证规范包、显式晋升、拒绝同版本不同字节及降级，不运行无关工具构建。
+- 首轮额外运行 `member-presentation.test.mjs` 为 **6 PASS / 6 FAIL**：4 项旧身份区域隐藏断言、1 项旧错误文案、1 项无分配文案。用修改前 HEAD 的 App.jsx/main.js 在临时只读诊断副本运行同一测试，仍是相同 6 项失败，副本随后清理。保留历史失败，不改正确产品来迎合旧断言，不记为全组通过。
+- 原项目预编译、`node --check src/main.js` 和定向 `git diff --check` 通过。使用唯一打包器生成忽略目录候选，相关门禁通过后 `--promote-from`，最后 `--check-project` 返回 `PROJECT_PACKAGE_MATCH`。
+
+唯一正式 JSON **1.4.35 / 158612 字节 / SHA-256 `396a8a5b0134073307528facead113441a8a435542351259d17117284a894d53`**；配置、源码版本、磁盘构建与包一致，原 7 项能力不变。**PACKAGE_PASS / INSTALLED_1_4_35_NOT_TESTED**；ToolHost 未改动，不能用此 JSON 替代固定 Host/Worker 更新。历史 1.4.32 新登录、1.4.34 Market 合成额度及 SQLite 重启持久化只保留原日期/候选事实。
+
+### 收尾与下一条操作
+
+Browser 始终使用 `dist/development`，扩展 ID `ccfcjegpkdlgbclopjmadlcjedelidmf`，原 writer PID42614 / 43119、43120 存活并保留；没有第二 writer、Native 配对修改、其他服务停止或跨 Profile 安装。仅本任务临时 51424 空站点、51425 静态预览与 TaskSpace86 在取证后释放，UI 协调锁已释放。未暂停、完成或迁移任何旧 goal。
+
+下一条原生操作：共享运行环境经原开发安全更新合同确认 Worker/安装器一致、无任务/草稿/Native/unknown 阻挡后，重新打开侧栏，经同一导入入口审阅 **1.4.32 → 1.4.35**，保留数据，再补新包首次/重开与双 Surface 证据。正式服务方未配置之前，普通网站 URL 仍不能连接服务；需服务方提供受支持 HTTPS 接入。Escape、新 Chrome 权限提示、新包真实登录、真实 VIP、生产、真实代理流量、完整矩阵及专家评分均 **NOT_TESTED**。
+
 <a id="authorization-20261113"></a>
 
 ## 2026-11-13 授权体验：真实设置授权与撤销通过，首次弹窗待应用
