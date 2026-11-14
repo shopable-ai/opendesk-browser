@@ -1,5 +1,40 @@
 # AI VIP Share：完善扩展到模拟 VIP 网站的真实操作链
 
+<a id="test-entrances-20261115"></a>
+
+## 2026-11-15 测试入口说明与开发预览修复
+
+本轮继续核心开发，在 `main` 仅修改 `projects/ai-vip-share/` 的开发控件、原预览夹具、定向测试及说明。正式 App/Controller、Host/Authority、权限、版本和唯一 JSON 未改。入口/步骤以[项目 README 顶部](../../README.zh-CN.md#user-journey-current)为准；[同源预览操作](../../preview/README.zh-CN.md#current-test-entry)不代替原生授权与安装证据。
+
+### 当前实际操作与边界
+
+| 操作 | 本次结果 |
+| --- | --- |
+| 专用 Profile 与 ChatGPT 基线 | ego TaskSpace96 复用用户指定的 `AI VIP Share Test 20261106`（Profile 1）。`https://chatgpt.com/` 可见“打开个人资料菜单”，未显示登录入口；保留已有登录，不清数据、不重导会话、不发送消息或读取历史。未证明账号匹配、套餐、到期或 VIP；授权原文件只核对大小为 13841 字节，没有读取内容 |
+| 真实 OpenDesk 入口 | 本任务新建的 ego 窗口没有可操作的 OpenDesk 扩展工具栏按钮；直达 sidepanel URL 返回 `net::ERR_BLOCKED_BY_CLIENT`。原生 UI 也只看到本任务窗口的普通导航/ego 菜单，未操作其他任务的侧栏、内部管理页或安装。故本轮安装版本**未实读**，1.4.32 仅为上一轮观察；未复现或宣称修复 `E_TOOL_RUNTIME_MISMATCH` / app.html `E_OWNER` |
+| 本地项目调试能力 | 原公开合同只开放隔离存储及网页信息，不支持本工具依赖的网络、Cookie 和代理。未把“开发 → 本地项目 → 在侧栏调试”误当完整登录入口，也未扩大预览权限。两个开发按钮只通过原 `dev/main.jsx` 在同源开发场景组装，正式 `src/main.jsx` 不导入 |
+| 开发按钮真实点击（合成） | 原同源预览先显示“尚未连接”，点「连接本地开发」后显示 7903、权益有效、原 1 条合成历史；再点「测试网站登录」展开普通工作台 1/2。连接/展开不兑换、不写真实 Cookie、不启用代理。“已选择”只证明服务选择，会员核验以会员卡为准；工作台完整登录后端未在此预览模拟 |
+| 网站登录场景（合成） | 从原场景下拉切换“网站登录测试”，点「登录并打开网站」显示两项合成“已写入并核验”和网站身份/套餐待核验提示，兑换仍 1 条。无真实 Cookie、站点授权、Host 逐批确认或真实新标签页；不记为网站新登录或第三方 VIP PASS |
+| 首次连接/激活、取消与异常 | 本轮只澄清入口与副作用，未重新执行既有 1.4.35 全部连接/恢复场景。旧 53 项及历史实站证据仍绑定原日期/候选。取消不续交，unknown/partial 必须核对原记录，不新发券、换键重兑或重放写入 |
+| 新包更新、双 Surface、真实代理 | **NOT_TESTED**。1.4.35 仍为磁盘可安装候选，不能宣称已安装或独立页一致；代理启用/停止/实际转发本轮均未执行。生产服务、商业权益、正式 Market、完整矩阵和评分继续延期 |
+
+### 最小修复与验证
+
+1. `dev/local-test/connection.js` 保留原按钮和 Controller 绑定，增加前置条件、两步顺序及简短副作用说明；测试按钮初始禁用，后续可用性仍由原 Controller 决定。说明明确已有有效权益不必重兑、已有登录可直接打开、Cookie 每批确认及可选代理分别审阅。创建隐藏 DOM 不代表通过 SDK 开发准入。
+2. 实测开发预览原来自动选中旧 7898，且夹具拒绝 Controller 使用的只读会员 POST，导致“会员信息暂不可用”。仅修原 `preview/sdk-fixture.js`：初始不预选服务，开发端点匹配原显式连接默认 7903，允许精确 member 端点的空对象只读 POST；错误来源或含业务字段的 POST 仍拒绝。无真实网络，也不修改正式会员传输。
+3. `node --test projects/ai-vip-share/tests/preview-isolation.test.mjs`：**3/3 PASS**，覆盖只读真实 SDK 不被替换/调用、场景目录隔离、显式开发连接及只读 POST 不新增兑换，拒绝旧来源和非空数据。两个开发 JS 的 `node --check` 通过；未为文案增加字符串断言或运行全仓测试。
+4. 因开发 adapter/fixture 输入变化，重建原 `build:preview` 并在 ego 点击验证。最终源码收据 buildId `a0f54cf29c02d9775699deb6e337dbc3346aaa9efe0efb48cb81a56b6a9184c4`，**30 项输入 / 6 项输出逐项 SHA/字节相符**。最后一次仅校正 adapter 注释，生成的 JS/CSS 文件名及内容未变；界面操作证据仍适用。生成物不提交。
+5. 额外选择既有 `tests/environment/ai-vip-share-local-development.test.mjs` 的 `installed controller creates optional development controls` / `a late profile response` 两项：**0 PASS / 2 FAIL**，均为 created `1 !== 0`。它们使用自己的 controls stub，不导入本次 adapter 或预览夹具；当前未改的 `src/main.js` 第 18 行先构造隐藏 controls，与旧“profile 返回前不构造”断言冲突。未修改正确可见行为来迎合旧断言，未将其计为 PASS；生命周期要求与断言的后续核对另记。
+6. 只读 `--check-project`：**FAIL**。使用原打包器在内存比较，唯一不同字段为 `css`（原 29681 字符、当前计算 30271），HTML/JS/身份/权限相同；公共 `src/ui/design-system.css` 存在并行改动。本轮开发文件均不参与正式包。保留已验证正式 JSON **1.4.35 / 158612 字节 / SHA-256 `396a8a5b0134073307528facead113441a8a435542351259d17117284a894d53`**，不以同版本不同字节覆盖或为共享样式改动擅自晋升新版。历史 `PROJECT_PACKAGE_MATCH` 只属于上次构建时刻，当前不能沿用。
+
+### 环境与下一条真实操作
+
+持续开发路径仍为 `/Users/shopme/Documents/workspace/opendesk-browser/dist/development`；沿用原扩展 ID `ccfcjegpkdlgbclopjmadlcjedelidmf`，本轮未通过实际安装 UI 重查启用路径/ID/Native 配对。开始时 43119/43120 无监听，随后原共享服务自然出现 PID21424（01:15:47 启动），监听两端口；本任务未启动、停止或重载它。收尾磁盘 revision 上次读到 `84cc0dac87459b1760b61d0a40f852007d0e3fe1b0b2a49f2dcf2c779227eacf`，浏览器已应用 revision **未知**，不以磁盘值代替真实运行。7898/7903/43132 无监听，未开新 Provider、发券、查询/修改旧 SQLite 或重兑。
+
+本任务临时预览 52983 已停止并确认端口释放，TaskSpace96 的两个 agent 页已释放，原生 UI 协调锁及子 agent 已释放；其他页面、Profile、watcher、服务和未提交文件保留。未创建分支/worktree/PR，未推送或改变任何 goal 状态。
+
+下一条真实操作仍是从有合法入口的原专用 Profile 打开 **调试 → 本地开发服务**，读回实际运行/等待原因；随后从 **扩展 → 筛选和管理扩展 → 导入扩展** 审阅既有 1.4.35 候选并保留数据，再补同版本侧栏/独立页及必要的站点流程。当前缺少本任务可操作的工具栏入口，不能以直接注入、强制重载、清锁或控制其他任务侧栏替代；原包共享 CSS 差异须在下一次正式晋升前由对应 owner 核对。本轮不恢复商业/production 等延期事项。
+
 <a id="core-closeout-1435-20261115"></a>
 
 ## 2026-11-15 核心体验收尾：1.4.35 包就绪，首次授权实机通过，升级受阻

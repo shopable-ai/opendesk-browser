@@ -61,3 +61,24 @@ test('only the session preview supplies a website directory, including after red
     }
   }
 });
+
+test('development preview connects explicitly and accepts the controller read-only member POST',async()=>{
+  const source=await readFile(new URL('../preview/sdk-fixture.js',import.meta.url),'utf8');
+  const {outputFiles}=await build({stdin:{contents:source,loader:'js'},bundle:true,
+    write:false,format:'iife',globalName:'Fixture',define:config.define});
+  const page={URL,structuredClone,location:{href:'http://preview.localhost/?scene=development'}};
+  page.window=page;
+  vm.runInContext(outputFiles[0].text,vm.createContext(page));
+  vm.runInContext('Fixture.installPreviewFixture({})',page);
+  const choice=await page.__OpenDeskVipPreviewTool.request('storage.get',{key:'aiVipLocalDevelopmentR136'});
+  assert.equal(choice.value,null,'opening the preview does not preselect a local connection');
+  const request=page.__OpenDeskVipPreviewSDK.browser.network.request;
+  const read=async(method,data)=>(await request({method,url:'http://127.0.0.1:7903/api/member',data})).data;
+  const before=await read('GET');
+  const after=await read('POST',{});
+  assert.equal(after.account.id,before.account.id);
+  assert.deepEqual(after.redemptions.map(row=>row.redemptionId),before.redemptions.map(row=>row.redemptionId),
+    'the transport POST only reads existing rights');
+  await assert.rejects(read('POST',{code:'DEMO-VIP-01'}),/UNSUPPORTED_REQUEST/);
+  await assert.rejects(request({method:'POST',url:'http://127.0.0.1:7898/api/member',data:{}}),/NO_EXTERNAL_NETWORK/);
+});

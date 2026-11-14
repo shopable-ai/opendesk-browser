@@ -1,7 +1,7 @@
 // Isolated, non-network, non-Chrome SDK Fixture for the production React App.
 // The installed JSON never imports or packages this module.
 const development=new URL(location.href).searchParams.get('scene')==='development';
-const ORIGIN=development?'http://127.0.0.1:7898':'https://vip.example.com';
+const ORIGIN=development?'http://127.0.0.1:7903':'https://vip.example.com';
 const SITE=development?ORIGIN+'/session/':'https://chatgpt.com/';
 export const PREVIEW_SERVICE=Object.freeze({id:'preview-only',label:'演示服务（无真实网络）',url:ORIGIN+'/',
   endpoints:{member:ORIGIN+'/api/member',voucherPreview:ORIGIN+'/api/preview',voucherRedeem:ORIGIN+'/api/redeem',voucherStatus:ORIGIN+'/api/status'},
@@ -34,7 +34,6 @@ export function installPreviewFixture(root){
   const offline=['offline','unconfigured'].includes(scene);
   let serviceError=scene==='error';
   const values=new Map();
-  if(development)values.set('aiVipLocalDevelopmentR136',{schemaVersion:1,enabled:true});
   if(!['connect','unconfigured','offline','development'].includes(scene))values.set('aiVipServiceConnectionR1',{schemaVersion:1,serviceId:PREVIEW_SERVICE.id,url:PREVIEW_SERVICE.url});
   let granted=!['redeem','empty','first','link','offline','unconfigured','guest','error','connect'].includes(scene);
   let assigned='A',serial=0,lastReceipt=null;
@@ -71,7 +70,9 @@ export function installPreviewFixture(root){
     network:{request:async({method,url,data})=>{
       if(typeof url!=='string'||!url.startsWith(ORIGIN+'/api/'))
         throw Error('E_PREVIEW_NO_EXTERNAL_NETWORK');
-      if(method==='GET'&&url===ORIGIN+'/api/member'){
+      const memberRead=method==='GET'||development&&method==='POST'&&data&&
+        typeof data==='object'&&!Array.isArray(data)&&Object.keys(data).length===0;
+      if(memberRead&&url===ORIGIN+'/api/member'){
         if(serviceError)throw Error('E_PREVIEW_SERVICE_UNAVAILABLE');
         return {status:200,data:member()};
       }
