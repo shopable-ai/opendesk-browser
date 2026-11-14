@@ -20,7 +20,7 @@ import {parseUserScriptDependencies, assertUserScriptExecutable} from './depende
 import {managedUIBootstrapSource,managedUIRetireSource} from './managed-ui-lifecycle.js';
 import {createPageFrameRuntime,pageFrameBootstrapSource} from './page-frame-runtime.js';
 import {readPageFrameResources} from './page-frame-resources.js';
-import {MAX_INSTALLED_DOCUMENT_EXECUTIONS} from '../../platform/host/preview-admission.js';
+import {MAX_INSTALLED_PARENT_INVOCATIONS} from '../../platform/host/preview-admission.js';
 
 // One-shot developer preview only. Not a Task Candidate, durable Controller
 // Result, installed Page Program or a persistent userScripts.register grant.
@@ -147,7 +147,7 @@ export function createPageScriptPreview({api, storage, assertHost, dependencies,
       'E_PERMISSION', 'Site permission was not granted or was revoked');
     const slot = await storage.transaction(['runs'], 'readonly', tx => tx.get('runs','@slot'));
     if(installation)admission.assertInstalledTarget(slot,{nonce,executionKey:installation.executionKey,
-      namespace:installation.namespace,tabId:t.tabId,documentId:t.documentId,exclusive});
+      namespace:installation.namespace,programId:installation.programId,tabId:t.tabId,documentId:t.documentId,exclusive});
     else invariant(!slot?.currentRunId&&(!slot?.preview||slot.preview.nonce===nonce), 'E_OWNER', 'Controller/Page preview owns slot');
   }
   async function preview(request, sender, authorize, {managedVerification=false}={}) {
@@ -408,12 +408,12 @@ export function createPageScriptPreview({api, storage, assertHost, dependencies,
   // Reuse the compiler, native world proof and unique Authority slot.
   const installedIdentity=['namespace','programId','revision','sourceHash','manifestHash',
     'installationId','grantGeneration','executionKey','receiptNonce'];
-  async function markInstalled(worldId,receiptNonce,change){
+  async function markInstalled(worldId,receiptNonce,change,scope){
     await worlds.editRecords(rows=>{
       const row=rows.find(row=>row.worldId===worldId);
       invariant(row?.installed?.receiptNonce===receiptNonce,'E_UI_LIFECYCLE','原安装清理身份已变化');
       row.installed={...row.installed,...change(row.installed)};
-    });
+    },scope);
   }
   // Internal broker control only: no UI message accepts an installation or
   // source here. Reuse the existing world ledger and lexical UI registry.
@@ -541,7 +541,29 @@ export function createPageScriptPreview({api, storage, assertHost, dependencies,
       resolutionIdentity:resolutionIdentity(resolution),preparationMs:performance.now()-startedAt});
     return handle;
   }
-  async function executeInstalled({candidate,resolution,target,installation,runAtReached=false,preparation,exclusive=false},authorize,dispatch) {
+  const installedObservations=new WeakMap();
+  const observationBinding=({candidate,resolution,target,installation})=>JSON.stringify([
+    candidate.manifestHash,candidate.sourceUtf8,resolutionIdentity(resolution),
+    target.tabId,target.frameId,target.documentId,target.expectedUrl,target.expectedWindowId,installation]);
+  function beginInstalledAllocation(input){
+    const {candidate,resolution,preparation,source}=input,prepared=installedPreparations.get(preparation);
+    invariant(source==='page_auto'&&prepared&&!prepared.observation&&prepared.manifestHash===candidate.manifestHash&&
+      prepared.sourceUtf8===candidate.sourceUtf8&&prepared.resolutionIdentity===resolutionIdentity(resolution),
+      'E_SOURCE_HASH','首账本观察必须属于原自动安装准备');
+    const target=freezeTarget(input.target),handle=Object.freeze({});
+    const binding=observationBinding({...input,target});
+    const firstLedger=worlds.beginAllocation(target,{pendingBinding:prepared.receiptNonce});
+    installedObservations.set(handle,{preparation,receiptNonce:prepared.receiptNonce,binding,firstLedger,claimed:false});
+    prepared.observation=handle;
+    return handle;
+  }
+  async function discardInstalledAllocation(handle){
+    const observation=installedObservations.get(handle);
+    invariant(observation,'E_SOURCE_HASH','首账本观察不属于此安装入口');
+    observation.claimed=true;
+    await worlds.discardAllocation(observation.firstLedger);
+  }
+  async function executeInstalled({candidate,resolution,target,installation,runAtReached=false,preparation,exclusive=false,firstLedger},authorize,dispatch) {
     const startupTimings={},startedAt=performance.now();
     let checkpointAt=startedAt;
     const checkpoint=key=>{
@@ -549,32 +571,62 @@ export function createPageScriptPreview({api, storage, assertHost, dependencies,
     };
     invariant(!active&&typeof admission.reserveInstalled==='function','E_OWNER','页面执行入口正忙');
     const t=freezeTarget(target);
-    const documentKey=JSON.stringify([installation.namespace,t.tabId,t.documentId]);
-    invariant(!installedActive.has(documentKey)&&installedActive.size<MAX_INSTALLED_DOCUMENT_EXECUTIONS&&
+    const ownerKey=JSON.stringify([installation.namespace,installation.programId,t.tabId,t.documentId]);
+    invariant(!installedActive.has(ownerKey)&&installedActive.size<MAX_INSTALLED_PARENT_INVOCATIONS&&
       (!exclusive||!installedActive.size),'E_OWNER','此文档或独占页面执行仍在运行');
     // The broker has verified Chrome's exact-document bootstrap marker at the
     // approved runAt. Do not schedule another idle wait after that point.
     // Manual runs have no such proof and retain the native default timing.
     const injectImmediately=runAtReached===true&&
       ['document_end','document_idle'].includes(installation.pageRules.runAt);
-    installedActive.add(documentKey);if(exclusive)active=true;
+    installedActive.add(ownerKey);if(exclusive)active=true;
     let dispatched=false,confirmed=false,reserved=false,installedWorld,allocatedWorld;
     // Direct internal callers use the same preparation path. A supplied handle
     // is one-shot and must match freshly verified bytes, not just a caller hash.
-    let receiptNonce;
+    let receiptNonce,observation,ownedObservation;
     try {
       preparation??=await prepareInstalled({candidate,resolution});
       const prepared=installedPreparations.get(preparation);
+      // Only the original preparation owns cleanup; a supplied foreign handle
+      // can neither replace that observation nor acquire its drain authority.
+      ownedObservation=installedObservations.get(prepared?.observation);
       installedPreparations.delete(preparation);
       receiptNonce=prepared?.receiptNonce;
       invariant(prepared&&prepared.manifestHash===candidate.manifestHash&&prepared.sourceUtf8===candidate.sourceUtf8&&
         prepared.resolutionIdentity===resolutionIdentity(resolution),'E_SOURCE_HASH','本次安装准备不属于当前固定源码');
+      if(firstLedger!==undefined||ownedObservation){
+        const owned=ownedObservation;
+        invariant(owned&&!owned.claimed&&firstLedger===prepared.observation&&
+          owned.preparation===preparation&&owned.receiptNonce===receiptNonce&&
+          runAtReached===true&&!exclusive&&owned.binding===observationBinding({candidate,resolution,target:t,installation}),
+          'E_SOURCE_HASH','首账本观察与原安装准备或目标不符');
+        owned.claimed=true;observation=owned;
+      }
       invariant(typeof dispatch==='function','E_OWNER','缺少安装派发授权');
-      await authorize();await verifyTarget(t,undefined,{requireActive:false,allowLoading:true,installation,exclusive});
-      checkpoint('authorizeTargetMs');
-      const history=await storage.transaction(['frameworkKV'],'readonly',async tx=>(await readPageRecords(tx,'execution')).filter(row=>
-        row?.tag==='page-execution-v1'&&row.namespace===installation.namespace&&row.programId===installation.programId&&
-        row.documentId===t.documentId&&row.executionKey!==installation.executionKey&&row.managedUI));
+      const joinStartedAt=performance.now();
+      // Async wrappers start both branches even after a synchronous rejection.
+      // Retain the owner until both settle, with original auth/target priority.
+      const [authorized,readHistory]=await Promise.allSettled([
+        (async()=>{
+          const phaseAt=performance.now();
+          try{await authorize();await verifyTarget(t,undefined,{requireActive:false,allowLoading:true,installation,exclusive});}
+          finally{startupTimings.authorizeTargetMs=performance.now()-phaseAt;}
+        })(),
+        (async()=>{
+          const phaseAt=performance.now();
+          try{return await storage.transaction(['frameworkKV'],'readonly',async tx=>(await readPageRecords(tx,'execution')).filter(row=>
+            row?.tag==='page-execution-v1'&&row.namespace===installation.namespace&&row.programId===installation.programId&&
+            row.documentId===t.documentId&&row.executionKey!==installation.executionKey&&row.managedUI));}
+          finally{startupTimings.historyReadMs=performance.now()-phaseAt;}
+        })()
+      ]);
+      // Local phases overlap: never sum them with this join or the total.
+      startupTimings.authorizeHistoryJoinMs=performance.now()-joinStartedAt;
+      if(authorized.status==='rejected')throw authorized.reason;
+      if(readHistory.status==='rejected')throw readHistory.reason;
+      const history=readHistory.value;
+      // historyWorldsMs now covers only post-join retirement/identity checks.
+      checkpointAt=performance.now();
       if(history.length){
         // Retire a prior same-document world only through the original
         // document-bound cleanup broker. Completion alone does not prove that
@@ -594,16 +646,23 @@ export function createPageScriptPreview({api, storage, assertHost, dependencies,
       const {script,frameResources}=prepared;
       startupTimings.invocationPreparationMs=prepared.preparationMs;
       checkpoint('consumePreparationMs');
-      const native=await nativeAPI(),worldId=await worlds.allocate(native,t,{injectImmediately,pendingBinding:receiptNonce});
+      const nativeStartedAt=performance.now(),native=await nativeAPI();
+      startupTimings.allocateNativeAvailabilityMs=performance.now()-nativeStartedAt;
+      const worldId=await worlds.allocate(native,t,{injectImmediately,pendingBinding:receiptNonce,concurrentProof:true,
+        onTiming:(key,duration)=>{startupTimings[key]=duration;},firstLedger:observation?.firstLedger});
       allocatedWorld=worldId;
       checkpoint('allocateMs');
+      let metadataAt=performance.now();
       await admission.reserveInstalled({nonce:receiptNonce,tabId:t.tabId,documentId:t.documentId,
         sourceHash:script.sourceHash},installation,{exclusive});reserved=true;
+      startupTimings.reserveAdmissionMs=performance.now()-metadataAt;
       invariant(script.sourceHash===installation.sourceHash,'E_SOURCE_HASH','安装源码已变化');
       const scrollConfig=installation.programId===SCROLL_CONFIG_PROGRAM_ID&&
         installation.revision>=SCROLL_CONFIG_MIN_REVISION;
+      const messagingStartedAt=performance.now();
       if(frameResources.length||scrollConfig||installation.appOwner||installation.delegatedTasks?.length)
         await native.configureWorld({worldId,csp:PAGE_WORLD_CSP,messaging:true});
+      startupTimings.worldMessagingConfigureMs=performance.now()-messagingStartedAt;
       const frameBootstrap=frameResources.length?pageFrameBootstrapSource({executionKey:installation.executionKey,
         receiptNonce,resourceIds:frameResources.map(row=>row.resourceId)}):'';
       const configBootstrap=scrollConfig?(()=>{
@@ -624,15 +683,20 @@ export function createPageScriptPreview({api, storage, assertHost, dependencies,
         programId:installation.programId,executionKey:installation.executionKey,receiptNonce,worldId}):'';
       const js=[{code:managedUIBootstrapSource(receiptNonce)+';\n'+appBootstrap+';\n'+taskBootstrap+';\n'+frameBootstrap+';\n'+
         configBootstrap+';\n'+script.js.map(row=>row.code).join('\n;\n')}];
+      metadataAt=performance.now();
       const compiledSha256=await sha256Utf8(js[0].code);
+      startupTimings.compiledDigestMs=performance.now()-metadataAt;
       // Persist the world/code binding in the original Authority execution too;
       // session metadata alone cannot choose a world for privileged control.
+      metadataAt=performance.now();
       await storage.transaction(['frameworkKV'],'readwrite',async tx=>{
         const execution=await tx.get('frameworkKV',installation.executionKey);
         invariant(execution?.state==='prepared'&&execution.receiptNonce===receiptNonce&&
           execution.sourceHash===script.sourceHash&&!execution.managedUI,'E_UI_LIFECYCLE','原执行已变化');
         await tx.put('frameworkKV',{...execution,managedUI:{worldId,compiledSha256}},installation.executionKey);
       });
+      startupTimings.executionBindingMs=performance.now()-metadataAt;
+      metadataAt=performance.now();
       await worlds.editRecords(rows=>{
         const row=rows.find(row=>row.worldId===worldId);
         invariant(row&&!row.installed&&!row.managed,'E_UI_LIFECYCLE','安装执行世界已被占用');
@@ -641,8 +705,11 @@ export function createPageScriptPreview({api, storage, assertHost, dependencies,
           installationId:installation.authorization.installationId,grantGeneration:installation.authorization.generation,
           executionKey:installation.executionKey,receiptNonce,target:t,compiledSha256,state:'ready',
           builtinBundleSha256:script.builtinBundleSha256,dependencyHashes:resolution.entries.map(row=>row.sha256)};
-      });installedWorld=worldId;
+      },{worldId,executionKey:installation.executionKey,receiptNonce,compiledSha256,initial:true});installedWorld=worldId;
+      startupTimings.worldMetadataMs=performance.now()-metadataAt;
+      metadataAt=performance.now();
       await verifyTarget(t,receiptNonce,{requireActive:false,allowLoading:true,installation});
+      startupTimings.metadataTargetMs=performance.now()-metadataAt;
       checkpoint('reserveMetadataTargetMs');
       // Serialize the last grant check and native invocation with disable and
       // replacement. Release that queue before awaiting user code completion.
@@ -663,7 +730,8 @@ export function createPageScriptPreview({api, storage, assertHost, dependencies,
       invariant(completion?.format===PAGE_PREVIEW_RECEIPT_FORMAT&&completion.nonce===receiptNonce&&
         typeof completion.ok==='boolean','E_PAGE_SCRIPT_EXECUTION','安装脚本缺少完成回执');
       confirmed=true;
-      await markInstalled(worldId,receiptNonce,current=>current.state==='ready'?{state:'evaluated'}:{});
+      await markInstalled(worldId,receiptNonce,current=>current.state==='ready'?{state:'evaluated'}:{},
+        {worldId,executionKey:installation.executionKey,receiptNonce,compiledSha256});
       invariant(completion.ok,'E_PAGE_SCRIPT_EXECUTION',completion.error||'安装脚本执行失败');
       await verifyTarget(t,receiptNonce,{requireActive:false,allowLoading:true,installation});
       await authorize(); // A completed native effect does not revive a revoked grant.
@@ -695,12 +763,15 @@ export function createPageScriptPreview({api, storage, assertHost, dependencies,
           if(allocatedWorld&&!installedWorld)await worlds.releasePending({worldId:allocatedWorld,nonce:receiptNonce});
         }finally{
           try{if(reserved)await admission.settleInstalled({nonce:receiptNonce,dispatched,confirmed});}
-          finally{installedActive.delete(documentKey);if(exclusive)active=false;}
+          finally{
+            try{if(ownedObservation)await worlds.discardAllocation(ownedObservation.firstLedger);}
+            finally{installedActive.delete(ownerKey);if(exclusive)active=false;}
+          }
         }
       }
     }
   }
-  return Object.freeze({preview,retire,query,prepareInstalled,executeInstalled,retireInstalled,executeFrame:pageFrames.execute,handlePreviewFrame,async cleanupWorlds(details){
+  return Object.freeze({preview,retire,query,prepareInstalled,beginInstalledAllocation,discardInstalledAllocation,executeInstalled,retireInstalled,executeFrame:pageFrames.execute,handlePreviewFrame,async cleanupWorlds(details){
     for(const [worldId,context] of framePreviews)if(context.target.tabId===details.tabId&&
       (details.removed||context.target.documentId!==details.documentId)){context.stopping=true;if(details.removed)framePreviews.delete(worldId);}
     if(details.removed)await admission.release({removedTabId:details.tabId});

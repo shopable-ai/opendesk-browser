@@ -1,0 +1,115 @@
+{
+  "schema": "opendesk.clipper.connection-repair.v1",
+  "updatedAt": "2026-11-13T19:33:46.786085+00:00",
+  "status": "SOURCE_NODE_AND_RUNTIME_RESOURCE_PASS_REAL_EGO_UI_BLOCKED",
+  "goal": "修复点选网页区域的接收端缺失错误，并通过真实 ego 安装侧栏 UI 验证",
+  "ownership": {
+    "business": "projects/web-markdown-clipper",
+    "fixedHost": "src/ui/sidebar-tools.js",
+    "branch": "main"
+  },
+  "runtime": {
+    "mode": "持续开发；原 watcher 已发布，扩展已安全应用相同 revision",
+    "output": "/Users/shopme/Documents/workspace/opendesk-browser/dist/development",
+    "watcherPid": 85028,
+    "watcherLog": "/private/tmp/ai-scroll-development-recovery-current.log",
+    "extensionId": "ccfcjegpkdlgbclopjmadlcjedelidmf",
+    "installedToolVersion": "1.2.11",
+    "appliedRevision": "47e3fa79fb8a6e530aff27629fbe46ee7f3e86eb24aca6b9aa9c3af7bd3d7cbd",
+    "resourceSha256": {
+      "ui/sidebar-tool-host.js": "0501e290f6e268fef7659666ab1e0b3a66cccc57e460e1c36ad5d55491d68102",
+      "agents/page-relay.js": "4d7eb347a7ed91cd32e72d73d3525f5c1218c764e08ee65cadec16b2583e712b"
+    },
+    "resourceEvidence": "ego p4 在已安装扩展中 fetch 两脚本与磁盘 SHA-256 一致；chrome.storage.session 原开发 worker 的 applied revision 与 marker 一致。目标旧网页未重载，relayRegistered=false，不能称为恢复验证通过。"
+  },
+  "ego": {
+    "taskSpaceId": 21,
+    "name": "修复网页剪藏区域点选",
+    "targetPage": "p1",
+    "targetUrl": "http://127.0.0.1:43148/projects/web-markdown-clipper/tests/fixtures/region-picker.html",
+    "installedAppDiagnosticPage": "p4（p3 被框架安全更新关闭）",
+    "nativeSidepanel": "安全应用扩展更新后需经真实用户手势重新打开本任务侧栏",
+    "nativeUiLock": "released; never take another owner lock",
+    "ownedHttpSession": 50998
+  },
+  "reproduction": {
+    "actualExtension": true,
+    "result": "chrome.tabs.sendMessage 对目标真实 tab/document 报 Could not establish connection. Receiving end does not exist.",
+    "isolatedProbe": "目标文档 __opendeskTrustedPageRelayV1 未注册",
+    "nativeUi": "ego 本任务空间中已打开真实扩展列表→网页剪藏；共享重编译期间 sandbox.html 缺失，不能完成点击验证",
+    "currentTarget": {
+      "tabId": 1114139863,
+      "windowId": 1114139862,
+      "documentId": "F3D76864F24CDD6517CA80F636521640",
+      "chromePermission": true,
+      "relayRegistered": false
+    }
+  },
+  "repair": {
+    "readiness": "仅可信 Host 可发 clip.ready，复用原 sender/URL/安装代际/站点授权校验，不读取正文",
+    "bootstrap": "仅接收端缺失时向原 documentId 的 ISOLATED world 加载固定 agents/page-relay.js，复核授权及目标",
+    "operation": "真实 clip.region 仍只发一次，未知传输结果不重放，补载中取消阻止启动"
+  },
+  "checks": [
+    {
+      "command": "node --test projects/web-markdown-clipper/tests/page-connection.test.mjs projects/web-markdown-clipper/tests/region-host.test.mjs",
+      "status": "PASS",
+      "passed": 50
+    },
+    {
+      "command": "node --test --test-name-pattern='Clipper' tests/environment/bundle-provenance.test.mjs",
+      "status": "PASS",
+      "passed": 6
+    }
+  ],
+  "criticalUiConditions": [
+    {
+      "condition": "真实侧栏启动点选，缺失接收端可恢复，无原连接错误",
+      "status": "PENDING"
+    },
+    {
+      "condition": "悬停高亮；点击长回答自动回填同一回答 Markdown，不混入相邻/隐藏/输入内容",
+      "status": "PENDING"
+    },
+    {
+      "condition": "Esc 和侧栏按钮取消；可再次点选另一回答",
+      "status": "PENDING"
+    },
+    {
+      "condition": "受限页面或未授权站点明确停止，不注入、不错误回填",
+      "status": "PENDING"
+    },
+    {
+      "condition": "核对当前实际加载的 Host/relay 与修复源码同源",
+      "status": "PENDING"
+    }
+  ],
+  "blockers": [
+    {
+      "scope": "真实 ego 原生侧栏 UI 输入",
+      "cause": "共享原生 UI 锁连续三个 goal turn 仍被其他 owner 占用；ui-acquire 明确拒绝。不能抢占其焦点或释放其他 owner 的锁。",
+      "next": "该 owner 释放 UI 后，在同一 TaskSpace 21 打开 p1 的真实侧栏→网页剪藏→区域→点选，验证缺失接收端恢复、高亮、目标完整 Markdown、Esc/按钮取消、重选及受限/未授权拒绝。保留原站点授权、安装身份和目标精确绑定。"
+    }
+  ],
+  "notTested": [
+    "真实 ego 修复后的点选成功",
+    "production",
+    "ChatGPT/Claude/Gemini 站点矩阵",
+    "安装升级",
+    "真实剪贴板/下载",
+    "重启持久化"
+  ],
+  "resources": "保留 TaskSpace 21 供同目标续测；自有 HTTP 服务在本轮阻塞收尾停止，续测时在 127.0.0.1:43148 从仓库根重启；不停止共享 watcher、不操作其他空间/Profile。",
+  "lastVerifiedWait": {
+    "watcherPid": 85028,
+    "processObservedLive": true,
+    "sourceLockDriftCount": 0,
+    "revisionPublished": true,
+    "boundedWaitSeconds": [
+      45,
+      45
+    ],
+    "nativeUi": "ui-acquire 再次返回 native UI busy；本 owner 未持锁",
+    "diagnosticSample": "/tmp/clipper-development-watcher-85028.sample"
+  }
+}

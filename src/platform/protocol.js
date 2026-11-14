@@ -29,7 +29,10 @@ export function invariant(condition, code = 'E_SCHEMA', message = code) {
 export const newId = () => crypto.randomUUID();
 const forbidden = new Set(['__proto__', 'prototype', 'constructor']);
 function string(value) {
-  for (let i = 0; i < value.length; i++) {
+  // Native UTF-16 validation avoids a JavaScript pass over every source byte.
+  // Older engines retain the same surrogate-pair rejection below.
+  if (typeof value.isWellFormed === 'function') invariant(value.isWellFormed(), 'E_SCHEMA', 'Unpaired UTF-16 surrogate');
+  else for (let i = 0; i < value.length; i++) {
     const n = value.charCodeAt(i);
     if (n >= 0xd800 && n <= 0xdbff) {
       const next = value.charCodeAt(++i);

@@ -135,6 +135,24 @@ async function appFixture(pageRules={}){
   };
   return f;
 }
+test('parent verification overlaps fresh companion material and still rejects a revoked parent',async()=>{
+  const f=await appFixture();await f.installApp();
+  const get=f.api.storage.local.get,read=f.dependencies.readStoredPageCandidate;
+  let release,parentEntered=false,sourceEntered=false;
+  const gate=new Promise(resolve=>release=resolve);
+  f.api.storage.local.get=async keys=>{
+    if(Array.isArray(keys)&&keys.includes(SIDEBAR_TOOL_STORE)){parentEntered=true;await gate;}
+    return get(keys);
+  };
+  f.dependencies.readStoredPageCandidate=async(...args)=>{sourceEntered=true;return read(...args);};
+  const running=f.bootApp();running.catch(()=>{});
+  try{
+    for(let i=0;i<100&&!(parentEntered&&sourceEntered);i++)await new Promise(resolve=>setTimeout(resolve,10));
+    assert.ok(parentEntered&&sourceEntered,'independent fresh source read must not wait for parent registry');
+    assert.equal(f.sourceCalls,0,'overlap does not authorize Native execution');
+  }finally{f.local[TOOL_REVOCATION_EPOCHS_STORE][f.tool.id]='replaced-epoch';release();}
+  await fails(()=>running,'E_APP_PAGE_OWNER');assert.equal(f.sourceCalls,0);
+});
 test('parent reads validate only the exact owner, not a large unrelated installed package',async()=>{
   const f=await appFixture();
   const unrelated={format:'opendesk.sidebar-tool.v1',id:'large-unrelated',version:'1.0.0',
@@ -241,6 +259,88 @@ test('document_end companions keep the original authenticated storage bridge and
   await fails(()=>f.bridge('storage.get',{key:'preferences',withEtag:true}),'E_APP_PAGE_OWNER');
 });
 
+for(const operation of ['readContext','storage.get']){
+  test(operation+' keeps fresh Native authorization at both storage boundaries without an extra outer pass',async()=>{
+    const f=await appFixture();await f.installApp();await f.bootApp();
+    const native=f.nativeReads;
+    const answer=await f.bridge(operation,{key:'settings'});
+    assert.equal(operation==='readContext'?answer.locale:answer.value,operation==='readContext'?'en':null);
+    assert.equal(f.nativeReads-native,2);
+  });
+  test(operation+' rejects forged message and Sender worlds before private namespace reads',async()=>{
+    const f=await appFixture();await f.installApp();await f.bootApp();
+    const get=f.api.storage.local.get;let reads=0;
+    f.api.storage.local.get=async keys=>{if(keys===sidebarToolStorageKey(f.tool.id))reads++;return get(keys);};
+    await fails(()=>f.bridge(operation,{key:'settings'},{worldId:'forged-world'}),'E_PAGE_AUTHORIZATION');
+    f.sender.userScriptWorldId='forged-sender-world';
+    await fails(()=>f.bridge(operation,{key:'settings'}),'E_PAGE_AUTHORIZATION');
+    assert.equal(reads,0);
+  });
+  test(operation+' rejects a changed execution world at the final read boundary',async()=>{
+    const f=await appFixture();await f.installApp();await f.bootApp();
+    const get=f.api.storage.local.get;
+    f.api.storage.local.get=async keys=>{
+      const value=await get(keys);
+      if(keys===sidebarToolStorageKey(f.tool.id))
+        f.rows().find(row=>row.tag==='page-execution-v1').managedUI.worldId='changed-world';
+      return value;
+    };
+    await fails(()=>f.bridge(operation,{key:'settings'}),'E_PAGE_AUTHORIZATION');
+  });
+  for(const boundary of ['descriptor','native','return'])test(operation+' refuses parent replacement at '+boundary+' boundary',async()=>{
+    const f=await appFixture();await f.installApp();await f.bootApp();
+    const get=f.api.storage.local.get,native=f.api.userScripts.getScripts;
+    let parentReads=0,privateReads=0;
+    const revoke=()=>{f.local[TOOL_REVOCATION_EPOCHS_STORE][f.tool.id]='replacement-epoch';};
+    f.api.storage.local.get=async keys=>{
+      if(Array.isArray(keys)&&keys.includes(SIDEBAR_TOOL_STORE)&&++parentReads===2&&boundary==='descriptor')revoke();
+      const value=await get(keys);
+      if(keys===sidebarToolStorageKey(f.tool.id)){privateReads++;if(boundary==='return')revoke();}
+      return value;
+    };
+    f.api.userScripts.getScripts=async filter=>{const value=await native(filter);if(boundary==='native')revoke();return value;};
+    await fails(()=>f.bridge(operation,{key:'settings'}),'E_APP_PAGE_OWNER');
+    assert.equal(privateReads,boundary==='return'?1:0);
+  });
+}
+
+test('bridge parent verification overlaps fresh material without disclosing private data after replacement',async()=>{
+  const f=await appFixture();await f.installApp();await f.bootApp();
+  const get=f.api.storage.local.get,read=f.dependencies.readStoredPageCandidate;
+  let release,parentReads=0,parentEntered=false,sourceEntered=false,privateReads=0;
+  const gate=new Promise(resolve=>release=resolve);
+  f.api.storage.local.get=async keys=>{
+    if(Array.isArray(keys)&&keys.includes(SIDEBAR_TOOL_STORE)&&++parentReads===2){parentEntered=true;await gate;}
+    if(keys===sidebarToolStorageKey(f.tool.id))privateReads++;
+    return get(keys);
+  };
+  f.dependencies.readStoredPageCandidate=async(...args)=>{sourceEntered=true;return read(...args);};
+  const running=f.bridge('readContext');running.catch(()=>{});
+  try{
+    for(let i=0;i<100&&!(parentEntered&&sourceEntered);i++)await new Promise(resolve=>setTimeout(resolve,10));
+    assert.ok(parentEntered&&sourceEntered,'fresh material must not wait for a redundant parent pass');
+    assert.equal(privateReads,0);
+  }finally{f.local[TOOL_REVOCATION_EPOCHS_STORE][f.tool.id]='replacement-epoch';release();}
+  await fails(()=>running,'E_APP_PAGE_OWNER');assert.equal(privateReads,0);
+});
+
+test('bridge writes reject a forged world or replaced parent before tool lock admission',async()=>{
+  const f=await appFixture();await f.installApp();await f.bootApp();
+  const previous=Object.getOwnPropertyDescriptor(globalThis.navigator,'locks');let locks=0;
+  Object.defineProperty(globalThis.navigator,'locks',{configurable:true,value:{request:async(_name,work)=>{locks++;return work();}}});
+  try{
+    const payload={key:'settings',value:1,ifMatch:'stale'};
+    await fails(()=>f.bridge('storage.set',payload,{worldId:'forged-world'}),'E_PAGE_AUTHORIZATION');
+    assert.equal(locks,0);
+    f.local[TOOL_REVOCATION_EPOCHS_STORE][f.tool.id]='replacement-epoch';
+    await fails(()=>f.bridge('storage.set',payload),'E_APP_PAGE_OWNER');assert.equal(locks,0);
+    f.local[TOOL_REVOCATION_EPOCHS_STORE][f.tool.id]=f.owner.installEpoch;
+    await fails(()=>f.bridge('storage.set',payload),'E_STORAGE_CONFLICT');assert.equal(locks,1);
+  }finally{
+    if(previous)Object.defineProperty(globalThis.navigator,'locks',previous);else delete globalThis.navigator.locks;
+  }
+});
+
 async function seedAppCandidate(f){
   const pkg=f.tool.pageModule;
   await f.dependencies.importPageCandidate({programId:pkg.programId,revision:pkg.revision,
@@ -306,6 +406,17 @@ test('exact document, nonce, world and session fence bridge and fixed Sidebar di
   await fails(()=>f.service.requestAppPage({...f.owner,target:{...f.target,documentId:'other'},operation:'read',payload:{}},{}),'E_PAGE_AUTHORIZATION');
   f.sender.url='https://evil.example/';await fails(()=>f.bridge('authorize'),'E_DOCUMENT_STALE');f.sender.url=f.target.expectedUrl;
   f.navigate('new-doc');await fails(()=>f.bridge('authorize'),'E_PAGE_AUTHORIZATION');
+});
+test('companion authorization uses one fresh filtered native read and rejects changed registration',async()=>{
+  const f=await appFixture();await f.installApp();await f.bootApp();
+  const native=f.api.userScripts,getScripts=native.getScripts,queries=[];
+  native.getScripts=async filter=>{queries.push(structuredClone(filter));return getScripts(filter);};
+  assert.equal((await f.bridge('authorize')).ready,true);
+  assert.deepEqual(queries,[{ids:[f.appRow().nativeId]}]);
+  const registered=f.native.get(f.appRow().nativeId);
+  f.native.set(registered.id,{...registered,matches:['https://different.example/*']});
+  await fails(()=>f.bridge('authorize'),'E_PAGE_AUTHORIZATION');
+  assert.equal(queries.length,2,'every authorization must query the current registration');
 });
 for(const url of ['https://example.com/demo#heading','https://example.com/history?view=2'])
   test('same-document bridge accepts current approved URL '+url+' while Sidebar target stays exact',async()=>{

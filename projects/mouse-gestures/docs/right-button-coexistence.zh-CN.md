@@ -1,5 +1,92 @@
 # 默认右键手势与原菜单共存：当前能力缺口
 
+## 当前修复目标与关键测试（2026-11-14）
+
+用户最新要求是修复完成，并设置目标和关键测试条件；本轮再次明确“右拖和普通单次右击原菜单都必须保留”。本对话 `01a1d64d-1185-7d93-9501-cbbe086fb915` 的原生目标已创建，实际创建回执为 **active**，无 token 预算。以本对话 `get_goal` 实读为准；以下历史其他对话的 blocked 和 46 分不改变本目标，也不证明修复完成。
+
+**当前状态：blocked，未完成。** 本目标原始轮和两次自动续跑连续遇到同一菜单协调/原输入与文档绑定缺口；第三轮复核后，原生 `update_goal` 已实际返回 blocked，完整目标未缩减。见[本目标阻塞审计](#本目标第三轮阻塞审计2026-11-14)。
+
+**唯一核心结果：** 在日常 macOS Google Chrome、同一安装候选、同一已授权 HTTP(S) 文档、同一默认右键设置下，普通单次右击原菜单和按住右键拖动手势同时正常。菜单先到就取消、改 Alt-left、双右击、Shift 菜单、合成或自绘菜单均不算完成。
+
+| 关键条件 | 操作与通过标准 | 当前证据 |
+| --- | --- | --- |
+| K0/K1 来源、目标与撤权 | 若暂留或重投输入，证明原始输入属于原获准文档；检查后切页、同 URL 换文档或撤权均不投错、不重复、不重放未知效果。允许可验证的等效机制，不强制某个 API 名称 | 现有 Native 路线未实现；旧 ACK＋CDP Input 已被反例否证 |
+| K2 普通右击 | 单次右击及不足 12px 抖动，原系统/网站菜单在正确位置打开，原内容、选择可用；实际选择一个无破坏菜单项 | 日常 Chrome 同候选未测，不能仅靠网页截图判定 |
+| K3 默认右拖 | 紧接 K2，不改候选/网页/设置：按住右键拖过 12px 有轨迹，单方向至少 56px 后松开，真实动作恰好一次，提前及收尾均无多余菜单 | 用户再次确认失败；源码夹具默认右拖无动作 |
+| K4 四方向 | 预置真实后退/前进历史、刷新标记及长页面；左后退、右前进、上刷新、下到底各一次，导航后重新核实文档/运行身份 | 安装版未测 |
+| K5 无动作 | 短拖、斜线、折返、不完整/未配置组合不执行，不吞下一次点击或菜单 | 仅历史源码/模型证据 |
+| K6 取消与生命周期 | 拖动中及松开后授权待决中触发 Esc、失焦、隐藏、新点击、OFF、撤权、换文档或断连；轨迹/pending 清理，无迟到或重复动作；新增原生路径另验按键清理 | 仅历史源码/模型证据 |
+| K7 网页交互 | 输入框、链接、按钮、菜单项、文字选择、键盘菜单及 macOS Control＋单击保持原交互 | 日常 Chrome 同候选未测 |
+| K8 同 ID 更新 | 原安装审阅链更新，旧设置/映射/数据保留，权限不扩大，包与运行 revision/sourceHash 对应，再复验 K2/K3 | 新修复候选尚未生成 |
+
+执行先后是 **取得可部署机制 → 同文档 K2/K3 → 四方向及受影响回归 → 同源打包与同 ID 安装验证**。业务仍归 `projects/mouse-gestures/`，复用原 SDK/Authority/Native/安装器；`main`、并行改动、`dist/development`、已有 watcher、扩展 ID 和配对继续保护。尚未证明的原生输入拦截不启用，不能用权限预检或虚构身份补足机制。
+
+本轮先完成核心功能，K9 的两位专家分别 ≥95 分、production 发布、跨 OS、全量 CI 和压力测试保留为后续阶段；原量表与历史证据不变。原[执行 PRD](../../../.omx/plans/prd-mouse-gestures-coexistence.md)和[详细测试表](../../../.omx/plans/test-spec-mouse-gestures-coexistence.md)已同步当前范围，不另建一套目标或测试标准。
+
+2026-11-14 的直接观察：ego 无手势源码观察页记录 `mousedown → contextmenu → mousemove → mouseup`；源码夹具默认右拖动作数为 0。四项定向 Node 检查通过及 Alt-left 源码动作仅证明各自范围，没有本轮日常 Chrome 安装包/系统菜单成功证据。官方扩展取证及新的原事件探针如下；有可部署机制才进入最小实现。不重复无变化测试，不生成无效升版，不将文档交付冒充修复完成。
+
+### 本轮官方扩展取证
+
+crxMouse 官方商店页面本次读取显示 7.8.0 / 2026-11-11，但缓存检索仍显示旧版，实际包版本未知。代理 `192.168.30.9:7897` 一次检查拒连，Google 官方更新端点一次直连 8 秒超时（curl exit 28、HTTP 000、0 字节）；网页工具另一次元数据读取不可访问。未取得 manifest、摘要或源码，不能断言它解决或无法解决双核心目标。独立重写且自称非官方的同名仓库不作官方样本；不再重复下载。原始[取证报告](../../../artifacts/sidebar-tools/mouse-gestures/repair-20261114/research-crxmouse/REPORT.md)在本机忽略目录。
+
+### 原菜单事件生命周期探针（2026-11-14）
+
+**新假设：** 暂停原 `contextmenu` 的同步 JS 栈，可信外部输入观测决定短击或拖动，再继续或取消同一个原事件，避免创建新的右键输入。它不等同于已排除的“文档 ACK 后按 tab 补发 Input”组合。官方 [chrome.debugger 允许域](https://developer.chrome.com/docs/extensions/reference/api/debugger#restricted-domains)包括 Debugger；[协议](https://chromedevtools.github.io/devtools-protocol/tot/Debugger/)允许在 paused 的 `callFrameId` 中求值并 resume，但没有菜单保留、输入队列、导航锁或原生菜单显示/选择的保证。
+
+先在本任务 ego 临时页命中原 handler 的暂停点，后续栈帧求值返回 `Can only perform operation while paused`，原事件约 15 秒后继续。此为驱动/机制待分类结果，不能直接判定路线不成立。已明确 resume/disable 并释放该次右键。为区分驱动影响，按个人 `chrome-testing-keychain` 启动器启动独立 headless CFT **155.0.8059.39**，mock keychain、临时 Profile、无扩展安装，使用独立协议连接验证同一 HTML。没有改日常 Chrome、用户 Profile、权限、启动器或原 Native 配对。
+
+| 样本 | 实际观察 | 结论边界 |
+| --- | --- | --- |
+| 原事件继续 | 暂停帧中 `e.type=contextmenu`、`isTrusted=true`、`cancelable=true`；不取消并 resume 后，网页自身菜单数 1，真实左键选择计数 1 | 原网站监听处理同一个事件可继续；不是 OS 菜单证据 |
+| 原事件取消 | 同一暂停帧 `e.preventDefault()` 后 `defaultPrevented=true`，resume 后网页菜单数 0 | 原事件可取消；未运行手势产品动作 |
+| 原文档失效 | 初次导航探针将任意错误计作拒绝，断言过宽；后续专门探针记录确切错误 `Can only perform operation while paused.`，新文档事件数/菜单数均为 0 | 只证明该次旧帧求值失败，未证明通用原子交付或撤权 |
+| 输入链对照 | 后续五组均保持 Debugger enabled：skip 下顺序/并发 move/up 全到；暂停中并发派发在恢复后 800ms 观察中未到；恢复后再派发则全到 | 排除了初次主要混杂，仍限本驱动与观察窗口；CDP ACK 不证明网页已接收，更不证明物理输入表现 |
+| 暂停中呈现 | `evaluateOnCallFrame` 添加绿色图形，未强制截图的 screencast 在暂停期间收到一帧；已查看 before/paused/resumed PNG，暂停帧确有图形 | 证明一次 DOM 修改进入合成帧，不证明持续轨迹或可信输入观测 |
+
+原始[协议探针](../../../artifacts/sidebar-tools/mouse-gestures/repair-20261114/event-gate/raw-event-gate.mjs)和[回执](../../../artifacts/sidebar-tools/mouse-gestures/repair-20261114/event-gate/raw-event-gate.json)、纠正混杂后的[五组对照](../../../artifacts/sidebar-tools/mouse-gestures/repair-20261114/event-gate/event-gate-controls.mjs)与[结果](../../../artifacts/sidebar-tools/mouse-gestures/repair-20261114/event-gate/event-gate-controls.json)留在本机忽略目录；ego 的首次失败另存 `original-click.json`。探针只使用临时网页、受信浏览器派发和同一事件对象，没有 Native 捕获、重投或产品 Authority。CFT 版本与日常 Chrome 不同、无界面无 OS 菜单、外部短击/拖动决定尚未实现，故这些结果不能提升为 K2/K3/K7 或已安装功能通过。
+
+[固定上游源码](https://github.com/chromium/chromium/blob/905dc21104c3b2f8856b278dfd3e286fe053ae5b/third_party/blink/renderer/core/frame/web_frame_widget_impl.cc#L3654-L3671)在 paused 的输入禁用分支直接返回 `kNotHandled`，该分支未排队重放；它是 2026-11-13 main 快照，不能冒充目标二进制证明。Apple SDK 允许 active tap 返回原事件，但没有“rightUp 回调等待 CDP 恢复”的最大等待预算或跨进程原子顺序保证。因此不能用等待 CDP 后放行原 up 的设想补足本缺口，也不按当前 tab 补发 up。
+
+**当前结论：** 原事件继续/取消和一次暂停内呈现是局部进展；暂停期间合法、可信、绑定原目标的观测与决策链，以及安全结束和菜单保真仍缺。独立审阅已核对脚本、JSON 和 PNG，同意不将 K0–K8 标通过；这些调用来自 CDP WebSocket，也未证明安装版 `chrome.debugger` 可用。当前纯 Debugger 组合不是修复候选。
+
+### 原事件同步等待探针（2026-11-14）
+
+另一具体假设是在原 `contextmenu` handler 中同步等待决定，使原输入留在浏览器队列，而不是进入 Debugger 的输入禁用分支。隔离同源 HTTP 探针以受控服务固定等待 400ms 后返回 allow/cancel；等待期间派发的 move/up 在返回后均进入网页日志。allow 的网页原菜单打开并选择一次，cancel 菜单数 0。原始[同步探针](../../../artifacts/sidebar-tools/mouse-gestures/repair-20261114/event-gate/sync-xhr-gate.mjs)和[结果](../../../artifacts/sidebar-tools/mouse-gestures/repair-20261114/event-gate/sync-xhr-gate.json)保存于同一忽略目录。固定延时和 URL 参数只是诊断桩，**不是物理手势决定、Authority 或产品实现**；无 OS 菜单、真实轨迹、撤权或安装证据。
+
+为检验能否复用原扩展后台，另在专属临时 CFT/Profile 加载最小 MV3 诊断扩展。content 同步 XHR 读取自身 WAR 文件得到静态标记，未进入 worker fetch。正对照先在该扩展自身页面发消息，worker 明确回 alive，随后该页面 fetch 返回动态标记；worker 存活时再到网页请求，仍只得到静态文件。见[内容脚本结果](../../../artifacts/sidebar-tools/mouse-gestures/repair-20261114/event-gate/extension-fetch-gate.json)和[后台存活正对照](../../../artifacts/sidebar-tools/mouse-gestures/repair-20261114/event-gate/extension-fetch-control.json)。这与 [Chrome 官方 fetch 调用方限制](https://developer.chrome.com/docs/extensions/develop/concepts/service-workers/events#serviceworkerglobalfetch)一致；WAR/CORS 成功不等于动态 RPC。USER_SCRIPT 特例未证明，不能假定它成为扩展页面客户端。没有替换日常扩展或 Native 配对。
+
+此路径还有明确约束：[Window 同步 XHR 不允许非零 timeout](https://xhr.spec.whatwg.org/#the-timeout-attribute)，同线程定时器无法在等待中 abort；[当前 Blink 实现](https://github.com/chromium/chromium/blob/905dc21104c3b2f8856b278dfd3e286fe053ae5b/third_party/blink/renderer/core/xmlhttprequest/xml_http_request.cc#L745-L765)还检查 `sync-xhr` 的 Permissions/Document Policy。改为 localhost 涉及原 CSP、CORS 与 [Chrome LNA 许可](https://developer.chrome.com/blog/local-network-access)，不能悄悄新建不受控服务或用固定成功响应绕过授权。输入可能合并，不能声称保留每个物理 move。
+
+**下一动作：** 只有发现复用既有 Authority/Native、可达且能独立有界取消的同步决定通道，或另一受支持的原事件协调机制，才进入最小接线。须同时证明原菜单保真、可信短击/拖动观测、意图后实时轨迹、原文档失效/撤权/断连安全结束。当前同步 XHR＋扩展资源路线尚不可部署，不生成修复候选；不重复上述无变化探针，也不启用系统 tap。
+
+### 实际扩展 API 与安全回退对照（2026-11-14 续跑）
+
+为区分底层协议能力与扩展可调用能力，继续在专属临时 CFT **155.0.8059.39** 中加载最小 MV3 诊断扩展：只操作本任务 loopback 夹具，使用真实 `chrome.debugger` API；未安装鼠标手势产品。测试目的仅是判断同步决定通道能否进入最小实现，未启动全量回归或 production 验收。
+
+| 路线与对照 | 实际结果 | 当前结论 |
+| --- | --- | --- |
+| 原始 WebSocket CDP：同步 XHR 到自身 WAR | allow/cancel 两例命中 Fetch，原事件分别继续/取消，等待中的 move/up 随后到达；第三个 HTTP 对照因驱动未处理第二个请求而超时 | 仅前两例有局部证据，整份脚本不能标全通过；不能推出扩展 API 等价 |
+| 实际 `chrome.debugger`：自身 WAR | 后台及扩展自身页面两种调用、通配符对照均只见 Network 请求并取得静态内容，无 Fetch 暂停 | 该配置未获得动态决定通道；RawWS 与 API 差异原因仍未定位 |
+| 同一实际 API：HTTP 正对照 | 记录 Fetch 暂停并返回 cancel，原网站菜单数 0 | 排除 Fetch 整体不可用或仅 URL 匹配错误；不证明安全端点/失联结束成立 |
+| 同一实际 API：`data:` / 原文档 `blob:` | 两例均未暂停，静态 allow，原网站菜单数 1 | 被测本地回退通道不能兼作动态决定；不外推所有版本 |
+| DNR 将专用 HTTP 地址重定向到自身 WAR | 未启用/启用 Fetch 两例均返回静态 allow、原网站菜单数 1，无 Fetch 暂停 | 该配置中的“静态安全回退＋动态决定”组合失败，不表述为通用协议顺序保证 |
+
+原始证据：[RawWS](../../../artifacts/sidebar-tools/mouse-gestures/repair-20261114/event-gate/fetch-original-event.json)、[真实 API 后台日志](../../../artifacts/sidebar-tools/mouse-gestures/repair-20261114/event-gate/fetch-extension-api-instrumented.json)、[WAR/HTTP 对照](../../../artifacts/sidebar-tools/mouse-gestures/repair-20261114/event-gate/api-pattern-controls.json)、[data/blob](../../../artifacts/sidebar-tools/mouse-gestures/repair-20261114/event-gate/api-special-schemes.json)、[DNR](../../../artifacts/sidebar-tools/mouse-gestures/repair-20261114/event-gate/api-dnr-order.json)。对应 `.mjs`/扩展源码同目录保留，仅为本机忽略的诊断材料。
+
+[Chrome 官方允许域](https://developer.chrome.com/docs/extensions/reference/api/debugger#restricted-domains)包括 Fetch；允许调用不保证所有请求经过拦截器。固定 [Chromium 源码](https://github.com/chromium/chromium/blob/905dc21104c3b2f8856b278dfd3e286fe053ae5b/content/browser/devtools/devtools_url_loader_interceptor.cc#L876-L892)明确绕过 `data:`，但该 main 快照未与目标二进制对齐；WAR 的 API/RawWS 差异不能借此解释。原 Native 合同没有鼠标观察方法，现有受限本地任务接口也不是同步菜单决定服务。
+
+**当前闭合结论：** 独立只读审阅确认上述被测组合均未形成可部署修复；尚缺可信物理观察、意图后的实时轨迹、原文档/撤权绑定，以及后台消失也可独立结束的安全通道。HTTP 正对照不能抵扣这些缺口，不创建新本地服务、扩大权限或启用 tap 来假定解决。不重复无变化探针；须取得实际适用实现材料或新的受支持具体机制，才能开始产品最小接线。此结论只排除已测组合，不断言所有浏览器/原生机制均不可能。K0–K8 均不因此提升。
+
+本轮资源已收尾：ego TaskSpace 26 已 finish；本任务专属 HTTP 服务已停止；上述独立 CFT 均已退出，临时 Profile 已确认删除。正式包 SHA256 仍为 `c5e086a7e272a817c9a3fc82c8402c2aced7af118bc3b1dff050f027e35378e7`。本轮只更新现有计划/测试条件/证据文档，没有改动生产业务、Browser/Native、开发 watcher 或日常 Chrome。默认右键仍未修复，本对话目标保持未完成，生命周期以原生工具实读为准。
+
+### 本目标第三轮阻塞审计（2026-11-14）
+
+上一目标轮次属于实质进展：真实 `chrome.debugger` 与 RawWS 的差异、HTTP 正对照以及 data/blob、DNR 反例改变了下一动作，阻止将实验通道误接为产品修复；不是修复完成，也不是等待。原始轮、第一次自动续跑及本轮仍连续遇到同一可部署菜单协调/可信观察/原文档绑定缺口。
+
+本轮按工作树和原始 JSON 重新核对：提前 `contextmenu` 的 reset 仍在，原 Native 方法表仍没有鼠标观察接口，正式包摘要未变；HTTP 正对照与各失败对照记录均未变化。最新 CFT 进程已终止、临时 Profile 不存在，专属服务端口未监听；两项独立研究/审阅此前均已终结，没有已确认存活的待决探针。未发现新的受支持候选或实现材料，不以反复测试、随机通道搜索、升版或普通文档修改维持 active。
+
+本对话原生 `update_goal({status:"blocked"})` 现已实际返回 **blocked**；未报 complete。解锁需要新的受支持具体机制或实际适用实现材料，能够验证原事件菜单保真、可信拖动观察与实时轨迹、原文档/撤权和失联安全结束。单独追加权限或启用 tap 不构成此证据。K0–K8、同 ID 更新与原完整目标保留；没有修改或替换正式包。
+
 ## 当前方案与离线原型（2026-11-13 续接）
 
 当前目标仍是同候选、同获准网页、默认单次右击原菜单与右拖手势同时可用。日常 Chrome 已由用户确认失败；本轮交付可审阅方案和默认关闭的离线原型，不把 Node 结果提升为产品修复。旧对话的 blocked 目标没有被暂停、迁移或完成。本文其余“本轮不采用 Native”等描述保留为此前阶段证据，最新决定以本节为准。

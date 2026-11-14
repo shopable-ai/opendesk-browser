@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import {createPreviewAdmission,MAX_INSTALLED_DOCUMENT_EXECUTIONS,installedPageReservation,
+import {createPreviewAdmission,MAX_INSTALLED_PARENT_INVOCATIONS,installedPageReservation,
   assertInstalledPageDispatch} from '../../src/platform/host/preview-admission.js';
 import {canonical} from '../../src/platform/protocol.js';
 import {pageInstallScope} from '../../src/scripting/user-scripts/page-install-authorization.js';
@@ -36,12 +36,15 @@ function fixture() {
   const admission=createPreviewAdmission({storage,session,
     assertHost:async()=>({registrationId:'host'}),currentHost:async()=>{}});
   const read=(name,key)=>structuredClone(db.get(name).get(key));
-  async function document(id,{tabId=id,documentId='document-'+id}={}) {
+  async function document(id,{tabId=id,documentId='document-'+id,programId=grant.programId,revision=grant.revision}={}) {
+    const currentGrant={...structuredClone(grant),programId,revision};
+    await storage.transaction(['frameworkKV'],'readwrite',tx=>tx.put('frameworkKV',currentGrant,
+      'page-installed:'+canonical([grant.namespace,programId])));
     const executionKey='page-execution:'+canonical([grant.namespace,grant.manifestHash,documentId,id]);
     const preview={nonce:'nonce-'+id,tabId,documentId,sourceHash:grant.sourceHash};
-    const installation={...structuredClone(grant),executionKey};
+    const installation={...currentGrant,executionKey};
     await storage.transaction(['frameworkKV'],'readwrite',tx=>tx.put('frameworkKV',{
-      tag:'page-execution-v1',namespace:grant.namespace,programId:grant.programId,revision:grant.revision,
+      tag:'page-execution-v1',namespace:grant.namespace,programId,revision,
       sourceHash:grant.sourceHash,manifestHash:grant.manifestHash,installationToken:grant.token,
       installationId:grant.authorization.installationId,grantGeneration:grant.authorization.generation,
       executionKey,receiptId:'receipt-'+id,browserSessionIncarnation:session,
@@ -72,7 +75,7 @@ function fixture() {
 }
 
 test('simultaneous distinct documents get exactly two durable grants; a freed place is reusable',async()=>{
-  assert.equal(MAX_INSTALLED_DOCUMENT_EXECUTIONS,2);
+  assert.equal(MAX_INSTALLED_PARENT_INVOCATIONS,2);
   const f=fixture(),rows=await Promise.all([1,2,3].map(id=>f.document(id)));
   const outcomes=await Promise.allSettled(rows.map(row=>f.reserve(row)));
   assert.equal(outcomes.filter(result=>result.status==='fulfilled').length,2);
@@ -92,7 +95,7 @@ test('simultaneous distinct documents get exactly two durable grants; a freed pl
   assert.ok(f.lookup(rows[2].preview.nonce));
 });
 
-test('same-document reservations collide even with different executions and spare capacity',async()=>{
+test('same-program document reservations collide even with different executions and spare capacity',async()=>{
   const f=fixture(),a=await f.document(1),b=await f.document(2,{
     tabId:a.preview.tabId,documentId:a.preview.documentId});
   await f.reserve(a);
@@ -210,6 +213,43 @@ test('stale settlement and trusted release never delete a sibling or a replaceme
   assert.ok(f.lookup(b.preview.nonce));
 });
 
+test('installed resource retirement binds parent execution and cannot release a main or sibling nonce',async()=>{
+  const f=fixture(),a=await f.document(1),b=await f.document(2);
+  await f.reserve(a);await f.reserve(b);
+  const child=await f.child(a);await f.reserve(child,{resource:true});
+  const installedResource={namespace:a.installation.namespace,executionKey:a.executionKey,
+    receiptNonce:a.preview.nonce,tabId:a.preview.tabId,documentId:a.preview.documentId};
+  for(const nonce of [a.preview.nonce,b.preview.nonce]){
+    const before=f.slot();await f.admission.release({nonce,installedResource});assert.deepEqual(f.slot(),before);
+  }
+  for(const field of ['namespace','executionKey','receiptNonce','tabId','documentId']){
+    const before=f.slot();await f.admission.release({nonce:child.preview.nonce,
+      installedResource:{...installedResource,[field]:field==='tabId'?999:'wrong'}});
+    assert.deepEqual(f.slot(),before,field+' must bind the retirement');
+  }
+  const current=f.slot(),stale=structuredClone(current);
+  stale.preview.entries.find(row=>row.nonce===a.preview.nonce).browserSessionIncarnation='older-session';
+  await f.storage.transaction(['runs'],'readwrite',tx=>tx.put('runs',stale,'@slot'));
+  await f.admission.release({nonce:child.preview.nonce,installedResource});
+  assert.deepEqual(f.slot(),stale,'retirement must not release a reservation from another browser session');
+  await f.storage.transaction(['runs'],'readwrite',tx=>tx.put('runs',current,'@slot'));
+  await f.admission.release({nonce:child.preview.nonce,installedResource});
+  assert.ok(f.lookup(a.preview.nonce));assert.ok(f.lookup(b.preview.nonce));
+  assert.equal(f.lookup(a.preview.nonce).children.length,0);
+  await f.settle(a.preview.nonce);
+  const late=await f.child(a,'late-resource');
+  await f.storage.transaction(['frameworkKV'],'readwrite',async tx=>{
+    const execution=await tx.get('frameworkKV',a.executionKey);
+    await tx.put('frameworkKV',{...execution,state:'completed'},a.executionKey);
+  });
+  await f.reserve(late,{resource:true});
+  await f.admission.release({nonce:late.preview.nonce,installedResource});
+  assert.ok(!f.lookup(late.preview.nonce));assert.ok(f.lookup(b.preview.nonce));
+  // Retirement raced ahead of Native's late rejection: no global fence revives.
+  await f.settle(late.preview.nonce,{confirmed:false});
+  assert.doesNotThrow(()=>f.admission.assertDispatch());
+});
+
 test('legacy installed reservations remain readable and releasable but cannot admit another document',async()=>{
   const f=fixture(),a=await f.document(1),b=await f.document(2);
   const legacy={...a.preview,executionKey:a.executionKey,installedProgramId:a.installation.programId,
@@ -244,4 +284,50 @@ test('completed-parent resource recovery fences dispatch and releases only prove
   assert.ok(f.lookup(b.preview.nonce),'a still-present sibling must survive recovery');
   assert.throws(()=>assertInstalledPageDispatch(f.slot(),f.dispatch(b)),
     'presence does not prove that previously dispatched code completed');
+});
+
+
+test('two owners on one document share the bound and settle only their exact parent and children',async()=>{
+  const f=fixture(),a=await f.document(1),b=await f.document(2,{
+    tabId:a.preview.tabId,documentId:a.preview.documentId,programId:'other'}),c=await f.document(3);
+  await f.reserve(a);await f.reserve(b);
+  const ca=await f.child(a,'child-a'),cb=await f.child(b,'child-b');
+  assert.equal((await f.reserve(ca,{resource:true})).shared,true);
+  assert.equal((await f.reserve(cb,{resource:true})).shared,true);
+  assert.deepEqual(f.lookup(ca.preview.nonce).children,[{nonce:'child-a',unknown:false}]);
+  assert.deepEqual(f.lookup(cb.preview.nonce).children,[{nonce:'child-b',unknown:false}]);
+  let done=false;
+  const waiting=f.admission.waitInstalledReservation({...a.preview,executionKey:a.executionKey,
+    receiptNonce:a.preview.nonce}).then(()=>{done=true;});
+  await f.settle(a.preview.nonce);await f.settle(b.preview.nonce);
+  await f.settle(ca.preview.nonce);await waiting;
+  assert.equal(done,true,'the other parent child must not hold this parent lease');
+  assert.ok(f.lookup(cb.preview.nonce));
+  await f.reserve(c);assert.equal(f.slot().preview.entries.length,2);
+  await f.settle(cb.preview.nonce);
+  assert.ok(f.lookup(c.preview.nonce));
+});
+
+test('same owner and document cannot overlap a new revision',async()=>{
+  const f=fixture(),a=await f.document(1);await f.reserve(a);
+  const b=await f.document(2,{tabId:a.preview.tabId,documentId:a.preview.documentId,revision:4});
+  await assert.rejects(f.reserve(b),{code:'E_OWNER'});
+  assert.equal(f.lookup(a.preview.nonce).nonce,a.preview.nonce);
+});
+
+
+test('same-document parents retain independent sixteen-child budgets and exact parent nonce checks',async()=>{
+  const f=fixture(),a=await f.document(1),b=await f.document(2,{
+    tabId:a.preview.tabId,documentId:a.preview.documentId,programId:'other'});
+  await f.reserve(a);await f.reserve(b);
+  const ca=await f.child(a,'a-0'),cb=await f.child(b,'b-0');
+  await assert.rejects(f.reserve({...ca,installation:{...ca.installation,receiptNonce:b.preview.nonce}},{resource:true}),{code:'E_OWNER'});
+  assert.equal(f.lookup(a.preview.nonce).children.length,0);
+  assert.equal(f.lookup(b.preview.nonce).children.length,0);
+  for(let n=0;n<16;n++)for(const [child,prefix] of [[ca,'a'],[cb,'b']])
+    assert.equal((await f.reserve({...child,preview:{...child.preview,nonce:prefix+'-'+n}},{resource:true})).shared,true);
+  for(const child of [ca,cb])await assert.rejects(f.reserve({
+    ...child,preview:{...child.preview,nonce:child.preview.nonce+'-overflow'}},{resource:true}),{code:'E_OWNER'});
+  for(const parent of [a,b])assert.equal(f.lookup(parent.preview.nonce).children.length,16);
+  assert.equal(f.slot().preview.entries.length,2);
 });

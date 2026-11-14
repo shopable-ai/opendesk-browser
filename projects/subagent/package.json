@@ -1,6 +1,6 @@
 {
   "name": "@opendesk/subagent",
-  "version": "0.2.1",
+  "version": "0.2.2",
   "private": true,
   "type": "module",
   "description": "Subagent 独立网页增强产品；Mini Chat 是第一阶段验证 A→B→A 的轻量 Demo，执行复用受审 WebFlow Controller Task",

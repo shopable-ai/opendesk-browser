@@ -1,7 +1,7 @@
 // Installed Page startup needs metadata and receipts, not every frozen source
 // in frameworkKV. Reuse its existing primary-key cursors without a new index.
 export async function readPageRecords(tx,kind) {
-  const prefix='page-'+kind+':',store='frameworkKV',limit=256,rows=[];
+  const prefix='page-'+kind+':',store='frameworkKV',limit=kind==='execution'?4096:256,rows=[];
   const tags=kind==='installed'?['page-installed-v1','page-uninstalled-v1']:['page-'+kind+'-v1'];
   if(typeof tx.scanEntries!=='function')return (await tx.all(store)).filter(row=>tags.includes(row?.tag));
   let afterKey;

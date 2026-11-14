@@ -64,9 +64,9 @@ async function rejectedWithoutWrites(change,code) {
 test('current complete installation and prepared execution reserve the shared slot',async()=>{
   const f=fixture();
   await f.admission.reserveInstalled(f.preview,f.installation);
-  assert.deepEqual(f.read('runs','@slot'),{tag:'slot',currentRunId:null,preview:{...f.preview,
-    installedProgramId:f.installation.programId,manifestHash:f.installation.manifestHash,
-    executionKey:f.executionKey,browserSessionIncarnation:'browser-session'}});
+  assert.deepEqual(f.read('runs','@slot'),{tag:'slot',currentRunId:null,preview:{kind:'installed-documents-v1',entries:[{...f.preview,
+    namespace:f.installation.namespace,exclusive:false,settled:false,unknown:false,children:[],installedProgramId:f.installation.programId,manifestHash:f.installation.manifestHash,
+    executionKey:f.executionKey,browserSessionIncarnation:'browser-session'}]}});
   const execution=f.read('frameworkKV',f.executionKey);
   assert.equal(execution.receiptNonce,f.preview.nonce);
   assert.equal(execution.state,'prepared');

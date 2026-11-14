@@ -712,6 +712,26 @@ test('first-party Clipper full-text notes store is pinned exclusively to the ori
   assert.throws(()=>make('ui/sidebar-tool-host.js',root),/Trusted Web Clipper source changed/);
 });
 
+test('Clipper connection repair is pinned exclusively to the original Sidebar Host',async ctx=>{
+  const path='projects/web-markdown-clipper/trusted/page-connection.js';
+  const pin='1ca443c6ece3520e18896cfbd3cdc0618a4e4ad5';
+  const make=(target,root=process.cwd())=>describeBundle({chunk:{fileName:target,
+    modules:{[resolve(root,path)]:{renderedLength:1,originalLength:1}}},root,lock:{packages:{}}});
+  assert.equal(make('ui/sidebar-tool-host.js').modules[0].reviewedFirstPartyBlob,pin);
+  for(const target of ['sw.js','ui/tool-shell.js','ui/marketplace.js','agents/page-relay.js',
+    'scripting/sandbox/sandbox.js','scripting/sandbox/worker-runtime.js'])
+    assert.throws(()=>make(target),/cannot enter a privileged fixed bundle/);
+  const root=await realpath(await mkdtemp(join(tmpdir(),'clip-connection-pin-')));
+  ctx.after(()=>rm(root,{recursive:true,force:true}));
+  const file=resolve(root,path),bytes=await readFile(path);
+  await mkdir(dirname(file),{recursive:true});await writeFile(file,bytes);
+  assert.equal(make('ui/sidebar-tool-host.js',root).modules[0].reviewedFirstPartyBlob,pin);
+  await writeFile(file,Buffer.concat([bytes,Buffer.from('\n// unreviewed drift')]));
+  assert.throws(()=>make('ui/sidebar-tool-host.js',root),/Trusted Web Clipper source changed/);
+  await rm(file);await symlink(resolve(path),file);
+  assert.throws(()=>make('ui/sidebar-tool-host.js',root),/must not be a symlink/);
+});
+
 test('Prompt Shortcuts OD rail bridge requires its reviewed SW blob and fixed outputs',async ctx=>{
   const path='projects/prompt-shortcuts/trusted/rail-open.js';
   const pin='3131842ad495be96fcf26c83571f7061bc66c3d7';
@@ -825,7 +845,6 @@ test('Reading TOC generated locale keeps exact source, target and symlink fences
 test('relocated trusted policies and tab repair keep exact source, target and symlink fences',async ctx=>{
   const cases=[
     ['projects/reading-toc/trusted/policy.js','sw.js','2a2dcc3c21ac74bb569c2c418c52bdd3cb430bb2'],
-    ['projects/web-markdown-clipper/trusted/policy.js','sw.js','9cb4b8af149d25e2427ed0e187433f77a03b788f'],
     ['projects/reading-toc/trusted/existing-tabs.js','sidebar-tools/preinstall-intent.js','e82a3e3b43debfff756180ccf1da110b7dfd8172']
   ];
   const tmp=await realpath(await mkdtemp(join(tmpdir(),'relocated-trusted-source-')));
@@ -849,7 +868,7 @@ test('relocated trusted policies and tab repair keep exact source, target and sy
 
 test('Clipper region source is byte-pinned to Page Relay and never admitted elsewhere',async t=>{
   const inputs=[
-    ['projects/web-markdown-clipper/trusted/page.js','4601cd079d6438a6294787b7de2dfe215841b788'],
+    ['projects/web-markdown-clipper/trusted/page.js','7792562f90c2b0aa78dbc154ca35413cac91fdd4'],
     ['projects/web-markdown-clipper/trusted/region-picker.js','1aff80ff37936283b6922431cb9bfd1c44d1e286']
   ];
   const project=await realpath(await mkdtemp(join(tmpdir(),'clipper-region-provenance-')));
@@ -869,6 +888,24 @@ test('Clipper region source is byte-pinned to Page Relay and never admitted else
     await rm(file);await symlink(resolve(path),file);
     assert.throws(()=>make('agents/page-relay.js',project),/must not be a symlink/);
   }
+});
+
+test('Clipper readiness policy retains its reviewed source and sandbox boundary',async t=>{
+  const path='projects/web-markdown-clipper/trusted/policy.js';
+  const pin='6b2259c9731b3a818336403c91ea7a12f0a13b29';
+  const root=await realpath(await mkdtemp(join(tmpdir(),'clipper-policy-provenance-')));
+  t.after(()=>rm(root,{recursive:true,force:true}));
+  const make=(target,project=process.cwd())=>describeBundle({root:project,lock:{packages:{}},
+    chunk:{fileName:target,modules:{[resolve(project,path)]:{renderedLength:1,originalLength:1}}}});
+  assert.equal(make('sw.js').modules[0].reviewedFirstPartyBlob,pin);
+  assert.throws(()=>make('scripting/sandbox/worker-runtime.js'),/cannot enter a privileged fixed bundle/);
+  const file=resolve(root,path),bytes=await readFile(path);
+  await mkdir(dirname(file),{recursive:true});await writeFile(file,bytes);
+  assert.equal(make('sw.js',root).modules[0].reviewedFirstPartyBlob,pin);
+  await writeFile(file,Buffer.concat([bytes,Buffer.from('\n// unreviewed drift')]));
+  assert.throws(()=>make('sw.js',root),/Trusted Web Clipper source changed/);
+  await rm(file);await symlink(resolve(path),file);
+  assert.throws(()=>make('sw.js',root),/must not be a symlink/);
 });
 
 test('shared visible-selection helper is pinned only into existing Page Relay',async t=>{

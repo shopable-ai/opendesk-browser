@@ -1,0 +1,93 @@
+{
+  "schema": "opendesk.ai-scroll-navigation.installed-ui-followup.v1",
+  "date": "2026-11-14",
+  "stage": "core-development",
+  "status": "IN_PROGRESS",
+  "targetUrl": "https://chatgpt.com/g/g-p-6aec96027de881918b37eaec3df3746f-opendesk-broswer/c/6af60398-7320-83e8-9c8d-4f21e81395b2",
+  "ownership": {
+    "branch": "main",
+    "runtimeKind": "page-userscript",
+    "project": "projects/ai-scroll-navigation",
+    "businessChangesInThisFollowup": false,
+    "commitOrPush": false
+  },
+  "identity": {
+    "installedReadback": {
+      "revision": 26,
+      "versionFromMatchingPackage": "0.4.23",
+      "authorization": "active",
+      "registration": "registered",
+      "sourceHash": "add10c61bece5b465fff84612407e3b54073d174631996a318809bb865de25a8",
+      "capabilities": ["page.dom", "page.config"],
+      "managedCleanup": "unknown"
+    },
+    "diskCandidate": {
+      "version": "0.4.24",
+      "revision": 27,
+      "sourceHash": "db9103812b60e8384c5d7332ff1489edab7de6f6193611e9699cb7c5af07a1a6",
+      "packageHash": "7307469d666329c57eb16d53f8b871f9a69dbce841f9cbf7e29f78791b145b73",
+      "sourceHashRecomputed": true,
+      "installation": "NOT_TESTED",
+      "differenceFromR26": "Exactly the @version metadata value; replacing 0.4.23 with 0.4.24 makes sourceUtf8 equal. All five business modules match the prior evidence hashes. Page rules are unchanged."
+    }
+  },
+  "environment": {
+    "browser": "/Users/shopme/Applications/Google Chrome.app",
+    "extensionId": "ccfcjegpkdlgbclopjmadlcjedelidmf",
+    "mode": "continuous-development",
+    "developerPanel": {
+      "connected": true,
+      "appliedRevision": "5a7e05a47a414ffdb76f82e286bf18a515c92901e0b088b49b900d8ad2859b96"
+    },
+    "loadedDirectory": "dist/development (previous observation; not independently re-read in Chrome this followup)",
+    "watchersChanged": false,
+    "browserProductionAcceptance": "NOT_TESTED"
+  },
+  "observations": [
+    {
+      "action": "Read existing native Side Panel runtime diagnostics",
+      "result": "Installed r26 / active / registered with matching sourceHash. The diagnostics explicitly distinguish registration from execution in the open document."
+    },
+    {
+      "action": "Inspect the existing target conversation in its ordinary window",
+      "result": "One native screenshot was returned in the chat. The second user question begins visibly below the page header, roughly 65 CSS pixels below the content viewport top; the question and subsequent answer heading are readable. No DOM-coordinate measurement or persisted screenshot file was obtained."
+    },
+    {
+      "action": "Click the conversation-bottom button and read back",
+      "result": "Current-question return remained available; next and conversation-bottom were disabled."
+    },
+    {
+      "action": "Activate current-question return and read back",
+      "result": "Previous-question label was restored. Subsequent screenshot calls failed, so this observation alone does not establish a complete visual landing chain."
+    }
+  ],
+  "uiCoverage": {
+    "fullBottomUpUpDownStableLanding": "NOT_TESTED_TO_COMPLETION",
+    "roundTripAndBoundaries": "PARTIAL",
+    "immediateManualScrollCancelsDelayedLanding": "NOT_TESTED",
+    "turnPagingToggleAndRestoration": "NOT_TESTED",
+    "showTurnCountToggleAndRestoration": "NOT_TESTED",
+    "tabEnterSpaceAndDisabledReason": "NOT_TESTED",
+    "longAnswerTopBottom": "NOT_TESTED"
+  },
+  "evidenceLimits": [
+    "Native screenshot calls after the first image returned native_hook_stdin_oversized. No later screenshot is claimed.",
+    "Binding the existing Chrome tab through the DOM bridge timed out and reset the CUA kernel; native AX remained available.",
+    "The active tab and Side Panel changed between actions. The task-added target tab was absent from a subsequent native tab strip; the source of the change was not established.",
+    "After the user stopped their own operations, another Codex owner held the shared UI lock. Native input waits for release rather than taking that owner's lock."
+  ],
+  "reusedChecks": {
+    "business": "Prior 150 PASS; the five business modules remain byte-identical to virtualized-paging-20261114.json. No new business failure established, so those tests were not rerun.",
+    "pagePackage": "Prior package checks retained with their original candidate scope; no new package build or installation in this followup.",
+    "documentation": "git diff --check passed before this evidence addition."
+  },
+  "sideEffects": {
+    "chatMessagesSent": 0,
+    "messageEdits": 0,
+    "settingsChanged": 0,
+    "installations": 0,
+    "permissionsChanged": 0,
+    "officialPublication": "blocked"
+  },
+  "nextAction": "After obtaining the existing shared UI lock, restore a task-owned target tab, verify its actual URL and installed identity, and complete the ordinary-window bottom/up/up/down chain with readable visual landings before the related interaction checks."
+}

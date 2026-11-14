@@ -499,17 +499,28 @@ export function sdkMethods({storage, api, session, clock, assertHost, currentHos
     for (const [incarnation,live] of grantControllers)
       if (affected(live.grant)) retire(incarnation,grantIncarnation !== undefined || tabId === undefined ? SDK_REVOKED_ERROR : 'E_DOCUMENT_STALE');
     return storage.transaction([SDK_JOURNAL], 'readwrite', async tx => {
-      for (const grant of await tx.all(SDK_JOURNAL)) {
-        if (grant.tag !== 'sdk-grant' || !isActive(grant) || !affected(grant)) continue;
-        // A fresh grant created AFTER this observed native event must not be
-        // closed by an older delayed persistence callback.
-        if (tabId !== undefined || origins || permissions) {
-          try { assertFence(grantFence(grant,grant),false); continue; } catch { /* Original incarnation is fenced. */ }
+      // Every native frame navigation reaches this path. Read original grants
+      // through their existing primary-key range, not Controller operation
+      // bodies sharing the journal. Keep one transaction and the same fences.
+      let afterKey;
+      for (;;) {
+        const page=typeof tx.scanEntries==='function'
+          ? await tx.scanEntries(SDK_JOURNAL,{prefix:'sdk-grant:',afterKey,limit:256}) : null;
+        const grants=page?page.map(entry=>entry.value):await tx.all(SDK_JOURNAL);
+        for (const grant of grants) {
+          if (grant.tag !== 'sdk-grant' || !isActive(grant) || !affected(grant)) continue;
+          // A fresh grant created AFTER this observed native event must not be
+          // closed by an older delayed persistence callback.
+          if (tabId !== undefined || origins || permissions) {
+            try { assertFence(grantFence(grant,grant),false); continue; } catch { /* Original incarnation is fenced. */ }
+          }
+          retire(grant.grantIncarnation);
+          grant.active = false; if (grant.targetScopeVersion !== undefined) grant.crossOriginActive = false;
+          grant.closedAt = now(); grant.closeReason = reason;
+          await tx.put(SDK_JOURNAL, grant, grant.key);
         }
-        retire(grant.grantIncarnation);
-        grant.active = false; if (grant.targetScopeVersion !== undefined) grant.crossOriginActive = false;
-        grant.closedAt = now(); grant.closeReason = reason;
-        await tx.put(SDK_JOURNAL, grant, grant.key);
+        if(!page||page.length<256)break;
+        afterKey=page.at(-1).key;
       }
     });
   }

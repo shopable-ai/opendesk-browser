@@ -20,8 +20,20 @@ export function createRunAuthority({storage, api, session, entitlement, validate
   async function assertHost(sender, registrationId) {
     tool(sender);
     return storage.transaction([COMMAND_JOURNAL], 'readonly', async tx => {
-      const rows = registrationId ? [await tx.get(COMMAND_JOURNAL, `host:${registrationId}`)] : await tx.all(COMMAND_JOURNAL);
-      const host = rows.find(row => row?.tag === 'host' && row.hostDocumentId === sender.documentId && row.active && row.browserSessionIncarnation === session);
+      const matchesHost = row => row?.tag === 'host' && row.hostDocumentId === sender.documentId && row.active && row.browserSessionIncarnation === session;
+      let host;
+      if (!registrationId && typeof tx.scanEntries === 'function') {
+        let afterKey;
+        for (;;) {
+          const page = await tx.scanEntries(COMMAND_JOURNAL, {prefix:'host:', afterKey, limit:256});
+          host = page.map(entry => entry.value).find(matchesHost);
+          if (host || page.length < 256) break;
+          afterKey = page.at(-1).key;
+        }
+      } else {
+        const rows = registrationId ? [await tx.get(COMMAND_JOURNAL, `host:${registrationId}`)] : await tx.all(COMMAND_JOURNAL);
+        host = rows.find(matchesHost);
+      }
       invariant(host && host.hostUrl === sender.url, 'E_OWNER', 'Host registration has expired or belongs to another document');
       // Stable identity is derived from the actual extension, never a payload
       // namespace. It also upgrades old registered hosts after worker restart.

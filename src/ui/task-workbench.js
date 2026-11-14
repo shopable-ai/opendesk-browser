@@ -597,7 +597,7 @@ export function createTaskWorkbench({client,host,currentPageTarget,api=globalThi
     const toggleAction=ui('task-toggle'),toggleLabel=row?.enabled?'停用任务':'启用任务';
     toggleAction.disabled=!row||working;
     toggleAction.title=toggleLabel;toggleAction.attributes['aria-label']=toggleLabel;
-    toggleAction.text=toggleLabel;
+    toggleAction.dataset.enabled=String(row?.enabled===true);
     ui('task-uninstall').disabled=!row||working;
     ui('task-uninstall-yes').disabled=!row||working||!pendingTaskUninstall;
     if(catalogList){

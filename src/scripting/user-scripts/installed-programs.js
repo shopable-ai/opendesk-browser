@@ -22,7 +22,7 @@ import {SCROLL_CONFIG_PROGRAM_ID,SCROLL_CONFIG_MIN_REVISION,SCROLL_CONFIG_EMPTY,
 import {pageProgramUrlMatches} from './page-program-rules.js';
 import {PAGE_FRAME_ACTION} from './page-frame-runtime.js';
 import {SEND_QUEUE_PIN,admitsPinnedQueuePage} from '../../platform/host/send-queue-admission.js';
-import {MAX_INSTALLED_DOCUMENT_EXECUTIONS,assertInstalledPageDispatch} from '../../platform/host/preview-admission.js';
+import {MAX_INSTALLED_PARENT_INVOCATIONS,assertInstalledPageDispatch} from '../../platform/host/preview-admission.js';
 // Reuse exact literals within the fixed privileged bundle budget.
 const PAGE_STORE="frameworkKV",
   PAGE_INSTALL_TAG="page-installed-v1",
@@ -183,51 +183,98 @@ export function createInstalledPagePrograms({api,storage,assertHost,dependencies
   const namespace='tool:'+api.runtime.id;
   const taskAuthorityInstance=crypto.randomUUID();
   let mutations=Promise.resolve();
-  const executions=[],runningDocuments=new Map();
+  const executions=[],runningJobs=new Set();
+  let lastSchedulerReleaseAt;
   const documentKey=sender=>canonical([session,namespace,sender?.tab?.id,sender?.documentId]);
   function drainExecutions(releasedDocument){
-    if([...runningDocuments.values()].some(job=>job.exclusive))return;
-    while(executions.length&&runningDocuments.size<MAX_INSTALLED_DOCUMENT_EXECUTIONS){
+    if([...runningJobs].some(job=>job.exclusive))return;
+    while(executions.length&&runningJobs.size<MAX_INSTALLED_PARENT_INVOCATIONS){
       const barrier=executions.findIndex(job=>job.exclusive);
-      const eligible=(job,index)=>(barrier<0||index<=barrier)&&!runningDocuments.has(job.documentKey);
+      const eligible=(job,index)=>job.prepared&&job.ownerKey!==undefined&&(barrier<0||index<=barrier)&&
+        !executions.slice(0,index).some(earlier=>earlier.ownerKey===undefined||earlier.ownerKey===job.ownerKey)&&
+        ![...runningJobs].some(running=>running.ownerKey===job.ownerKey);
       let index=executions.findIndex(eligible);
       if(index<0)return;
       // Rotate a freed lease to another waiting document before repeating the
-      // same page's backlog. Same-document order and the manual barrier remain.
+      // same page's backlog. Per-owner order and the manual barrier remain.
       if(releasedDocument&&executions[index].documentKey===releasedDocument){
         const other=executions.findIndex((job,index)=>eligible(job,index)&&!job.exclusive&&job.documentKey!==releasedDocument);
         if(other>=0)index=other;
       }
       const job=executions[index];
       // A waiting manual Run is a FIFO barrier, including later resources.
-      if(job.exclusive&&runningDocuments.size)return;
-      executions.splice(index,1);runningDocuments.set(job.documentKey,job);
+      if(job.exclusive&&(runningJobs.size||index>0))return;
+      executions.splice(index,1);runningJobs.add(job);
+      if(job.startupTimeline)Object.assign(job.startupTimeline,{
+        schedulerLeaseAcquiredAtMs:performance.now(),
+        ...(lastSchedulerReleaseAt===undefined?{}:{schedulerLastReleaseAtMs:lastSchedulerReleaseAt})});
       releasedDocument=undefined;
-      Promise.resolve().then(job.work).then(job.resolve,job.reject).finally(async()=>{
+      Promise.resolve().then(()=>{
+        if(job.startupTimeline)job.startupTimeline.schedulerWorkStartedAtMs=performance.now();
+        return job.work(job);
+      }).then(job.resolve,job.reject).finally(async()=>{
         try{
           do{
             await Promise.allSettled([...job.dependents]);
-            await admission.waitInstalledDocument(job.target);
+            await admission.waitInstalledReservation({...job.target,executionKey:job.executionKey,receiptNonce:job.receiptNonce});
           }while(job.dependents.size);
-        }finally{runningDocuments.delete(job.documentKey);drainExecutions(job.documentKey);}
+        }finally{lastSchedulerReleaseAt=performance.now();runningJobs.delete(job);drainExecutions(job.documentKey);}
       }).catch(()=>{});
       if(job.exclusive)return;
     }
   }
-  function scheduleDocument(sender,work,{exclusive=false}={}){
+  function scheduleDocument(sender,work,{exclusive=false,owner,executionKey,receiptNonce,
+    parentReceiptNonce,resourceRequestId,preparation,startupTimeline}={}){
     invariant(executions.length<256,'E_QUOTA','页面启动等待队列已满');
+    const queuedDocument=documentKey(sender),pendingOwner=owner&&typeof owner.then==='function';
+    // A malformed synchronous owner must never leave an uninitialised FIFO barrier.
+    const ownerKey=pendingOwner?undefined:canonical([owner,queuedDocument]);
     return new Promise((resolve,reject)=>{
-      executions.push({documentKey:documentKey(sender),target:{tabId:sender?.tab?.id,documentId:sender?.documentId},
-        work,resolve,reject,exclusive,dependents:new Set()});drainExecutions();
+      const job={documentKey:queuedDocument,ownerKey,executionKey,receiptNonce,parentReceiptNonce,resourceRequestId,
+        target:{tabId:sender?.tab?.id,documentId:sender?.documentId},
+        work,resolve,reject,exclusive,prepared:!preparation,dependents:new Set(),startupTimeline};
+      executions.push(job);
+      if(startupTimeline)startupTimeline.schedulerQueuedAtMs=performance.now();
+      // Waiting for immutable preparation consumes only the preparation pool,
+      // never a parent execution lease. Failures still run through work's
+      // original ordered suspension path; same-owner and manual order remain.
+      if(preparation){
+        const prepared=()=>{
+          job.prepared=true;
+          // Numeric diagnostics only; never an admission or scheduling input.
+          if(startupTimeline){
+            const earlier=executions.slice(0,executions.indexOf(job));
+            Object.assign(startupTimeline,{schedulerReadyAtMs:performance.now(),schedulerReadyActiveLeases:runningJobs.size,
+              schedulerReadyExclusiveActive:Number([...runningJobs].some(r=>r.exclusive)),
+              schedulerReadyEarlierExclusive:Number(earlier.some(r=>r.exclusive)),
+              schedulerReadyOwnerActive:Number([...runningJobs].some(r=>r.ownerKey===job.ownerKey)),
+              schedulerReadyEarlierOwnerBlocked:Number(earlier.some(r=>r.ownerKey===undefined||r.ownerKey===job.ownerKey))});
+          }
+          drainExecutions();
+        };
+        Promise.resolve(preparation).then(prepared,prepared);
+      }
+      const ready=owner=>{job.ownerKey=canonical([owner,job.documentKey]);drainExecutions();};
+      // Reserve arrival order before a late resource reads its parent identity.
+      // This is scheduling only; executeFrameBoot still performs full authority checks.
+      if(pendingOwner)Promise.resolve(owner).then(ready).catch(error=>{
+        const index=executions.indexOf(job);
+        if(index>=0)executions.splice(index,1);
+        reject(error);drainExecutions();
+      });
+      else drainExecutions();
     });
   }
+
   let preparing=0;
   const preparationWaiters=[];
   // Pure successful compiler facts only; no code, asset bytes or authority.
   const registrationFacts=new Map();
   // Only immutable reads/validation use this pool. World/Authority admission,
   // native execution uses bounded exact-document leases in the original slot.
-  const prepare=work=>new Promise((resolve,reject)=>{
+  const prepare=(work,speculative=false)=>new Promise((resolve,reject)=>{
+    // Speculation may use a free permit, never the real-bootstrap wait queue.
+    if(speculative&&preparing>=4){resolve(undefined);return;}
     const start=()=>{
       preparing++;
       Promise.resolve().then(work).then(resolve,reject).finally(()=>{
@@ -236,6 +283,115 @@ export function createInstalledPagePrograms({api,storage,assertHost,dependencies
     };
     if(preparing<4)start();else preparationWaiters.push(start);
   });
+  // Single automatic invocation handoffs, not a source cache. Keep bounded
+  // document tombstones until navigation so a late commit cannot prepare twice.
+  const preparationDocuments=new Map();
+  const preparationDocumentKey=(tabId,documentId)=>canonical([session,namespace,tabId,documentId]);
+  function discardPreparation(state){
+    state.version++;state.expired=true;state.cancel();state.hints.clear();clearTimeout(state.timer);
+  }
+  function discardOtherPreparationDocuments(details){
+    for(const [id,state] of preparationDocuments)if(state.tabId===details.tabId&&
+      (details.removed||state.documentId!==details.documentId)){
+      discardPreparation(state);preparationDocuments.delete(id);
+    }
+  }
+  // Fence overlapping readbacks without trusting delivery order as document
+  // identity. Coalesce the paired cleanup/hint selector; retain no source bytes.
+  const preparationSelectors=new Map();
+  let preparationReadbacks=0;
+  function invalidatePreparation(details){
+    if(details.removed){
+      preparationSelectors.delete(details.tabId);
+      discardOtherPreparationDocuments(details); // Closure is synchronously proven.
+      return Promise.resolve();
+    }
+    if(!Number.isSafeInteger(details.tabId)||typeof details.documentId!=='string')return Promise.resolve();
+    const previous=preparationSelectors.get(details.tabId);
+    if(previous?.pending&&previous.documentId===details.documentId&&previous.url===details.url)return previous.promise;
+    if(!previous&&preparationSelectors.size>=64)return Promise.resolve();
+    const selector={documentId:details.documentId,url:details.url,pending:false};
+    preparationSelectors.set(details.tabId,selector); // Fence older reads even when at capacity.
+    if(preparationReadbacks>=64)return Promise.resolve();
+    preparationReadbacks++;selector.pending=true;
+    selector.promise=Promise.resolve().then(()=>Promise.all([
+      api.tabs.get(details.tabId),api.webNavigation.getAllFrames({tabId:details.tabId})
+    ])).then(([tab,frames])=>{
+        const frame=frames?.find(value=>value.frameId===0&&value.documentId===details.documentId);
+        if(preparationSelectors.get(details.tabId)!==selector||tab?.id!==details.tabId||tab.pendingUrl||
+          !frame||frame.errorOccurred||frame.documentLifecycle&&frame.documentLifecycle!=='active'||
+          tab.url!==frame.url||details.url!==undefined&&details.url!==frame.url)return;
+        httpUrl(frame.url);
+        discardOtherPreparationDocuments(details); // Only after fresh identity + sequence proof.
+        return {tab,frame,selector};
+      }).catch(()=>undefined).finally(()=>{preparationReadbacks--;selector.pending=false;});
+    return selector.promise;
+  }
+  function preparationDocument(tabId,documentId,url){
+    const id=preparationDocumentKey(tabId,documentId);
+    if(!preparationDocuments.has(id)&&preparationDocuments.size<64){
+      const state={tabId,documentId,url,hints:new Map(),seen:new Set(),version:0,expired:false};
+      state.cancelled=new Promise(resolve=>{state.cancel=()=>resolve(undefined);});
+      state.timer=setTimeout(()=>discardPreparation(state),5000);
+      state.timer.unref?.();preparationDocuments.set(id,state);
+    }
+    return preparationDocuments.get(id);
+  }
+  const preparationIdentity=row=>canonical([row.nativeId,row.token,row.programId,row.revision,row.manifestHash,
+    row.sourceHash,row.authorization.installationId,row.authorization.generation,row.pageRules,row.builtinIdentity]);
+  async function hintPreparation(details){
+    if(details.frameId!==0||!Number.isSafeInteger(details.tabId)||typeof details.documentId!=='string')return;
+    const selected=await invalidatePreparation(details);
+    const selectedCurrent=()=>selected&&preparationSelectors.get(details.tabId)===selected.selector;
+    if(!selectedCurrent()||selected.tab.active!==true||selected.tab.incognito!==false)return;
+    const state=preparationDocument(details.tabId,details.documentId,details.url);
+    if(!state||state.expired||state.url!==details.url)return;
+    const version=state.version,live=()=>!state.expired&&state.version===version&&
+      preparationDocuments.get(preparationDocumentKey(details.tabId,details.documentId))===state;
+    try{
+      const rows=await read(tx=>readPageRecords(tx,'installed'));
+      await Promise.all(rows.filter(row=>row.namespace===namespace&&active(row)&&row.nativeState==='registered'&&
+        !row.error&&installedURLMatches(row,details.url)).map(row=>{
+        if(!live()||!selectedCurrent()||state.seen.has(row.nativeId)||state.seen.size>=32)return;
+        state.seen.add(row.nativeId);
+        const epoch=permissionEpoch(row),dependencyEpoch=removals.length,identity=preparationIdentity(row);
+        const valid=()=>live()&&permissionEpoch(row)===epoch&&removals.length===dependencyEpoch;
+        const queuedAt=performance.now();
+        const promise=Promise.race([prepare(async()=>{
+          if(!valid())return;
+          const startedAt=performance.now();
+          await requireSiteGrant(row);
+          if(await read(tx=>tx.get(PAGE_STORE,key('execution',namespace,row.manifestHash,details.documentId))))return;
+          const desired=await descriptor(row),descriptorAt=performance.now();
+          if(!valid())return;
+          const preparation=await preview.prepareInstalled(desired),compiledAt=performance.now();
+          const current=await read(tx=>tx.get(PAGE_STORE,key(INSTALL_KEY_KIND,namespace,row.programId)));
+          if(!valid()||!current||!active(current)||current.nativeState!=='registered'||current.error||
+            preparationIdentity(current)!==identity)return;
+          return {row,epoch,dependencyEpoch,desired,preparation,timings:{
+            preflightDescriptorMs:descriptorAt-startedAt,preflightCompilationMs:compiledAt-descriptorAt},
+            preflightQueueMs:startedAt-queuedAt,preflightMs:performance.now()-startedAt,readyAt:performance.now()};
+        },true).catch(()=>undefined),state.cancelled]);
+        state.hints.set(row.nativeId,{promise,valid,identity,token:row.token});
+        return promise.then(()=>{});
+      }));
+    }catch{} // Speculation never suspends a grant or changes the real boot path.
+  }
+  function claimPreparation(message,sender){
+    const selector=preparationSelectors.get(sender.tab.id);
+    if(selector&&(selector.documentId!==sender.documentId||selector.url!==sender.url))
+      preparationSelectors.delete(sender.tab.id); // A newer real bootstrap fences older selector readbacks.
+    const state=preparationDocument(sender.tab.id,sender.documentId,sender.url);
+    if(!state)return;
+    const hint=state.hints.get(message.nativeId);
+    if(!state.seen.has(message.nativeId)){
+      if(state.seen.size<32)state.seen.add(message.nativeId);else discardPreparation(state);
+    }
+    if(state.url===sender.url&&hint?.token===message.token){
+      state.hints.delete(message.nativeId); // Atomic matching claim, before awaits.
+      return hint;
+    }
+  }
   const removals=[];
   const permissionEpoch=row=>removals.filter(removed=>pageInstallAffectedByRemoval(row.pageRules,removed)).length;
   const active=row=>row?.tag===PAGE_INSTALL_TAG&&row.enabled&&assertPageInstallAuthorization(row).status==='active';
@@ -262,8 +418,18 @@ export function createInstalledPagePrograms({api,storage,assertHost,dependencies
       throw Object.assign(new FoundationError(PAGE_PERMISSION_ERROR,ACCESS_CHANGED),{pageAccessLost:true});
   }
   async function material(programId,revision){
-    const material=await dependencies.readStoredPageCandidate(namespace,programId,revision);
-    assertBuiltinIdentity(material.candidate.builtinIdentity,builtinIdentity(await loadBuiltin({runtime:api.runtime})));
+    // Both reads are fresh and independent. Neither result is authority; wait
+    // for both and compare their identities before returning any candidate.
+    const [stored,loaded]=await Promise.allSettled([
+      dependencies.readStoredPageCandidate(namespace,programId,revision),
+      loadBuiltin({runtime:api.runtime})
+    ]);
+    // A failed sibling must not release the preparation permit while another
+    // read is still pending. Preserve the original candidate-first error order.
+    if(stored.status==='rejected')throw stored.reason;
+    if(loaded.status==='rejected')throw loaded.reason;
+    const material=stored.value,builtin=loaded.value;
+    assertBuiltinIdentity(material.candidate.builtinIdentity,builtinIdentity(builtin));
     return material;
   }
   async function revalidateCompilation(candidate){
@@ -332,8 +498,12 @@ export function createInstalledPagePrograms({api,storage,assertHost,dependencies
       tool.pageModule.revision===row.revision&&equal(tool.pageModule.pageRules,row.pageRules),'E_APP_PAGE_OWNER','Companion source changed');
   }
   async function descriptor(row,{legacy=false}={}){
-    await assertAppParent(row);
-    const {candidate,resolution}=await material(row.programId,row.revision),proof=await proofFor(candidate,{available:true});
+    const [parent,fixed]=await Promise.allSettled([
+      assertAppParent(row),material(row.programId,row.revision)
+    ]);
+    if(parent.status==='rejected')throw parent.reason;
+    if(fixed.status==='rejected')throw fixed.reason;
+    const {candidate,resolution}=fixed.value,proof=await proofFor(candidate,{available:true});
     assertBuiltinIdentity(row.builtinIdentity,candidate.builtinIdentity);
     invariant(row.tag===PAGE_INSTALL_TAG&&row.namespace===namespace&&row.manifestHash===candidate.manifestHash&&
       row.sourceHash===candidate.manifest.sourceHash&&equal(row.pageRules,candidate.manifest.pageRules)&&/^[a-f0-9]{32}$/.test(row.token),
@@ -438,6 +608,7 @@ export function createInstalledPagePrograms({api,storage,assertHost,dependencies
     });
   }
   async function installPageProgram(request,sender,appOwner=null){
+    for(const state of preparationDocuments.values())discardPreparation(state);
     invariant(!request?.programId?.startsWith('app.')||appOwner&&request.programId==='app.'+appOwner.toolId,'E_APP_PAGE_OWNER','Companions require parent installation');
     request=structuredClone(request);
     fields(request,['programId','revision','manifestHash','expectedInstalledManifestHash','expectedGeneration','title'],
@@ -547,6 +718,7 @@ export function createInstalledPagePrograms({api,storage,assertHost,dependencies
     });
   }
   async function setInstalledPageEnabled(request,sender){
+    for(const state of preparationDocuments.values())discardPreparation(state);
     invariant(!request?.programId?.startsWith('app.'),'E_APP_PAGE_OWNER','Manage companion through parent');
     request=structuredClone(request);
     fields(request,['programId','manifestHash','installationId','enabled','expectedGeneration']);
@@ -586,6 +758,7 @@ export function createInstalledPagePrograms({api,storage,assertHost,dependencies
   // A failed native unregister leaves a disabled recoverable record, never an
   // apparent successful uninstall. This does not undo effects in live pages.
   async function uninstallPageProgram(request,sender){
+    for(const state of preparationDocuments.values())discardPreparation(state);
     invariant(!request?.programId?.startsWith('app.'),'E_APP_PAGE_OWNER','Manage companion through parent');
     request=structuredClone(request);
     fields(request,['programId','manifestHash','installationId','expectedGeneration']);
@@ -716,6 +889,7 @@ export function createInstalledPagePrograms({api,storage,assertHost,dependencies
   function revokePermissions(removed){
     const snapshot=structuredClone(removed);
     removals.push(snapshot); // Synchronous dispatch fence, before any DB await.
+    for(const state of preparationDocuments.values())discardPreparation(state);
     return ordered(async()=>{
       const changed=await storage.transaction([PAGE_STORE],PAGE_WRITE,async tx=>{
         const rows=(await tx.all(PAGE_STORE)).filter(row=>row?.tag===PAGE_INSTALL_TAG&&row.namespace===namespace&&
@@ -944,19 +1118,26 @@ export function createInstalledPagePrograms({api,storage,assertHost,dependencies
     return {tab,frame};
   }
   async function prepareBoot(message,sender,queuedAt){
-    const startedAt=performance.now();
+    const startedAt=performance.now(),timings={};let checkpointAt=startedAt;
+    const checkpoint=name=>{const at=performance.now();timings[name]=at-checkpointAt;checkpointAt=at;};
     assertBootSender(message,sender);
     const row=await bootInstallation(message),epoch=permissionEpoch(row),dependencyEpoch=removals.length;
+    checkpoint('preflightInstallationMs');
     await requireSiteGrant(row);
     // A document already gone must not consume frozen-source preparation.
     await bootDocument(row,sender);
+    checkpoint('preflightGrantDocumentMs');
     const desired=await descriptor(row);
+    checkpoint('preflightDescriptorMs');
     const preparation=await preview.prepareInstalled(desired);
-    return {row,epoch,dependencyEpoch,desired,preparation,preflightQueueMs:startedAt-queuedAt,
+    checkpoint('preflightCompilationMs');
+    return {row,epoch,dependencyEpoch,desired,preparation,timings,preflightQueueMs:startedAt-queuedAt,
       preflightMs:performance.now()-startedAt,readyAt:performance.now()};
   }
-  async function boot(message,sender,source,manualReceiptId,manualHostDocumentId,prepared){
-    const prepareStartedAt=performance.now(),queueWaitMs=prepareStartedAt-prepared.readyAt;
+  async function boot(message,sender,source,manualReceiptId,manualHostDocumentId,prepared,job){
+    const prepareStartedAt=performance.now(),queueWaitMs=prepareStartedAt-prepared.readyAt,timings={};let checkpointAt=prepareStartedAt;
+    Object.assign(job.startupTimeline,{sourcePreparationReadyAtMs:prepared.readyAt,schedulerBootStartedAtMs:prepareStartedAt});
+    const checkpoint=name=>{const at=performance.now();timings[name]=at-checkpointAt;checkpointAt=at;};
     assertBootSender(message,sender);
     const row=await bootInstallation(message),epoch=permissionEpoch(row),dependencyEpoch=prepared.dependencyEpoch;
     invariant(row.token===prepared.row.token&&row.manifestHash===prepared.row.manifestHash&&
@@ -965,17 +1146,34 @@ export function createInstalledPagePrograms({api,storage,assertHost,dependencies
       row.authorization.installationId===prepared.row.authorization.installationId&&
       row.authorization.generation===prepared.row.authorization.generation&&epoch===prepared.epoch,
       PAGE_PERMISSION_ERROR,ACCESS_CHANGED);
+    checkpoint('bootInstallationMs');
     await requireSiteGrant(row);
     // Preparation is not authority. Recheck the exact current document before
     // reading fresh material or probing Chrome, then recheck proof/dependencies.
     const {tab,frame}=await bootDocument(row,sender);
-    const current=await material(row.programId,row.revision),proof=await proofFor(current.candidate,{available:true});
+    checkpoint('bootGrantDocumentMs');
+    const current=await material(row.programId,row.revision);
+    checkpoint('bootMaterialMs');
+    const proof=await proofFor(current.candidate,{available:true});
+    checkpoint('bootProofMs');
     invariant(current.candidate.manifestHash===prepared.desired.candidate.manifestHash&&
       proof.receiptHash===prepared.desired.proofReceiptHash,'E_PAGE_VERIFICATION','准备期间固定候选或验证回执已经改变');
     const desired={...prepared.desired,...current},native=await nativeAPI();
     const compilationCurrent=()=>!desired.candidate.manifest.compilation||removals.length===dependencyEpoch;
     const registered=await native.getScripts({ids:[row.nativeId]});
     invariant(registered.length===1&&nativeEqual(registered[0],desired.script),PAGE_PERMISSION_ERROR,'此安装的原生引导已经改变');
+    checkpoint('bootRegistrationMs');
+    const receiptId=manualReceiptId??crypto.randomUUID();
+    const executionKey=source==='manual'?
+      key('execution',namespace,row.manifestHash,frame.documentId,receiptId):
+      key('execution',namespace,row.manifestHash,frame.documentId);
+    const allocationInput={...desired,preparation:prepared.preparation,
+      target:{tabId:tab.id,frameId:0,documentId:frame.documentId,expectedUrl:frame.url,expectedWindowId:tab.windowId},
+      installation:{...row,executionKey}};
+    // The original parent lease is already held. Only automatic boot starts a
+    // readonly FULL observation here, after exact fresh registration validation.
+    const firstLedger=source==='page_auto'?preview.beginInstalledAllocation({...allocationInput,source}):undefined;
+    try{
     // Automatic messages need Chrome's original matching bootstrap marker.
     // A separately authenticated Host click can target the already open page:
     // registration does not retroactively inject its bootstrap there. Its
@@ -988,10 +1186,8 @@ export function createInstalledPagePrograms({api,storage,assertHost,dependencies
       invariant(probe.length===1&&probe[0]?.frameId===0&&probe[0]?.documentId===frame.documentId&&
         probe[0].error===undefined&&probe[0].result===row.token,PAGE_PERMISSION_ERROR,'缺少匹配文档的真实安装引导标记');
     }
-    const receiptId=manualReceiptId??crypto.randomUUID();
-    const executionKey=source==='manual'?
-      key('execution',namespace,row.manifestHash,frame.documentId,receiptId):
-      key('execution',namespace,row.manifestHash,frame.documentId);
+    checkpoint('bootMarkerMs');
+    job.executionKey=executionKey;
     const admitted=await storage.transaction([PAGE_STORE],PAGE_WRITE,async tx=>{
       const current=await tx.get(PAGE_STORE,key(INSTALL_KEY_KIND,namespace,row.programId));
       invariant(current&&active(current)&&current.token===row.token&&permissionEpoch(row)===epoch&&compilationCurrent(),PAGE_PERMISSION_ERROR,ACCESS_CHANGED);
@@ -1008,6 +1204,7 @@ export function createInstalledPagePrograms({api,storage,assertHost,dependencies
         tabId:tab.id,documentId:frame.documentId,state:'prepared',createdAt:clock.now()},executionKey);return true;
     });
     invariant(admitted,'E_REQUEST_CONFLICT','此固定版本已在本 document 准入；不会自动重放');
+    checkpoint('bootAdmissionMs');
     const authorize=async()=>{
       await assertAppParent(row);
       const current=await read(tx=>tx.get(PAGE_STORE,key(INSTALL_KEY_KIND,namespace,row.programId)));
@@ -1021,6 +1218,7 @@ export function createInstalledPagePrograms({api,storage,assertHost,dependencies
         PAGE_PERMISSION_ERROR,ACCESS_CHANGED);
     };
     const dispatch=(receiptNonce,invoke)=>ordered(async()=>{
+      job.receiptNonce=receiptNonce;
       await authorize();
       await storage.transaction([PAGE_STORE,'runs'],PAGE_WRITE,async tx=>{
         if(desired.candidate.manifest.compilation){
@@ -1046,11 +1244,10 @@ export function createInstalledPagePrograms({api,storage,assertHost,dependencies
     });
     const prepareMs=performance.now()-prepareStartedAt;
     let result,error;
-    try{result=await preview.executeInstalled({...desired,preparation:prepared.preparation,exclusive:source==='manual',runAtReached:source==='page_auto',target:{tabId:tab.id,frameId:0,documentId:frame.documentId,
-      expectedUrl:frame.url,expectedWindowId:tab.windowId},installation:{...row,executionKey}},authorize,dispatch);}
+    try{result=await preview.executeInstalled({...allocationInput,firstLedger,exclusive:source==='manual',runAtReached:source==='page_auto'},authorize,dispatch);}
     catch(e){error={code:e.code||PAGE_UNKNOWN_ERROR,message:String(e.message||e),...(e.effectConfirmed?{effectConfirmed:true}:{}),
       ...(e.pageAccessLost?{pageAccessLost:true}:{})};}
-    if(result)result={...result,startupTimings:{...result.startupTimings,
+    if(result)result={...result,startupTimings:{...result.startupTimings,...prepared.timings,...timings,...job.startupTimeline,
       preflightQueueMs:prepared.preflightQueueMs,preflightMs:prepared.preflightMs,
       registrationCacheHit:prepared.desired.registrationCacheHit,queueWaitMs,prepareMs}};
     await storage.transaction([PAGE_STORE],PAGE_WRITE,async tx=>{
@@ -1065,10 +1262,29 @@ export function createInstalledPagePrograms({api,storage,assertHost,dependencies
     });
     if(error)throw Object.assign(new FoundationError(error.code,error.message),error.pageAccessLost?{pageAccessLost:true}:{});
     return {receiptId,state:'completed'};
+    }finally{
+      // Drain even marker/admission/synchronous failures before scheduler release.
+      if(firstLedger!==undefined)await preview.discardInstalledAllocation(firstLedger);
+    }
   }
   async function frameBoot(message,sender){
-    const job=runningDocuments.get(documentKey(sender));
-    if(!job)return scheduleDocument(sender,()=>executeFrameBoot(message,sender));
+    // Destruction can release an older world's disposer awaited by the current
+    // exclusive Run. It must not queue behind the source invocation it releases.
+    // executeFrameBoot still validates the exact parent, sender and resource.
+    if(message.operation==='retire')return executeFrameBoot(message,sender);
+    const job=[...runningJobs].find(job=>job.documentKey===documentKey(sender)&&
+      job.executionKey===message.executionKey&&
+      (job.resourceRequestId?job.parentReceiptNonce:job.receiptNonce)===message.receiptNonce&&
+      (!job.resourceRequestId||job.resourceRequestId===message.requestId));
+    if(!job){
+      // A late resource takes its own bounded lease; it cannot borrow an
+      // unrelated program's still-running parent on the same document.
+      const owner=read(tx=>tx.get(PAGE_STORE,message.executionKey)).then(async execution=>
+        PREFIX+(await digest([namespace,execution?.programId])).slice(0,48));
+      return scheduleDocument(sender,()=>executeFrameBoot(message,sender),{owner,
+        executionKey:message.executionKey,receiptNonce:message.requestId,
+        parentReceiptNonce:message.receiptNonce,resourceRequestId:message.requestId});
+    }
     // A child of an earlier main may be needed to complete that main. Keep
     // its document lease even when main itself has already returned.
     invariant(job.dependents.size<16,'E_QUOTA','此文档的子帧等待预算已满');
@@ -1145,7 +1361,9 @@ export function createInstalledPagePrograms({api,storage,assertHost,dependencies
       const result=await preview.executeFrame({message,sender,candidate:desired.candidate,execution,
         onUnknown:()=>admission.blockInstalled(message.requestId)},authorize,dispatch);
       confirmed=true;
-      if(message.operation==='retire'&&result.state==='retired')await admission.release({nonce:message.requestId});
+      if(message.operation==='retire'&&result.state==='retired')await admission.release({nonce:message.requestId,
+        installedResource:{namespace,executionKey:execution.executionKey,receiptNonce:execution.receiptNonce,
+          tabId:execution.tabId,documentId:execution.documentId}});
       return result;
     }catch(error){
       if(dispatched&&!confirmed)admission.blockInstalled(message.requestId);
@@ -1581,6 +1799,7 @@ export function createInstalledPagePrograms({api,storage,assertHost,dependencies
     // never mutable references supplied by a later caller.
     message=structuredClone(message);sender=structuredClone(sender);
     const queuedAt=performance.now();
+    const startupTimeline={schedulerClockOrigin:performance.timeOrigin,bootRequestQueuedAtMs:queuedAt,schedulerHintUsed:0};
     const failed=async error=>{
       // Chrome's User Scripts toggle does not necessarily emit permissions
       // onRemoved. A real access failure must durably suspend this installation
@@ -1602,13 +1821,24 @@ export function createInstalledPagePrograms({api,storage,assertHost,dependencies
     };
     invariant(executions.length<256,'E_QUOTA','页面启动等待队列已满');
     // Reserve FIFO position before asynchronous preparation can reorder arrivals.
-    const ready=prepare(()=>prepareBoot(message,sender,queuedAt)).then(value=>({value}),error=>({error}));
-    return scheduleDocument(sender,async()=>{
+    let hint;
+    try{assertBootSender(message,sender);if(source!=='manual')hint=claimPreparation(message,sender);}
+    catch(error){return Promise.reject(error);}
+    // Never hold a pool permit while waiting for a hint from that same pool.
+    const ready=(async()=>{
+      const value=await hint?.promise;
+      if(value&&hint.valid()){
+        const current=await bootInstallation(message);
+        if(hint.valid()&&preparationIdentity(current)===hint.identity){startupTimeline.schedulerHintUsed=1;return {value};}
+      }
+      return {value:await prepare(()=>prepareBoot(message,sender,queuedAt))};
+    })().catch(error=>({error}));
+    return scheduleDocument(sender,async job=>{
       try{
         const prepared=await ready;if(prepared.error)throw prepared.error;
-        return await boot(message,sender,source,manualReceiptId,manualHostDocumentId,prepared.value);
+        return await boot(message,sender,source,manualReceiptId,manualHostDocumentId,prepared.value,job);
       }catch(error){return failed(error);}
-    },{exclusive:source==='manual'});
+    },{exclusive:source==='manual',owner:message.nativeId,preparation:ready,startupTimeline});
   }
   // An authenticated first-party Developer click can ask the *same* installed
   // USER_SCRIPT executor for one explicit invocation. It never replays the
@@ -1847,7 +2077,7 @@ export function createInstalledPagePrograms({api,storage,assertHost,dependencies
     return onPageTask({operation:message.operation,payload:structuredClone(message.payload)},source);
   }
   async function appExecution(row,executionKey,receiptNonce,target){
-    await assertAppParent(row);await requireSiteGrant(row);
+    await requireSiteGrant(row);
     const current=await read(tx=>tx.get(PAGE_STORE,key(INSTALL_KEY_KIND,namespace,row.programId)));
     const execution=await read(tx=>tx.get(PAGE_STORE,executionKey));
     invariant(current?.token===row.token&&active(current)&&current.nativeState==='registered'&&!current.error&&
@@ -1865,7 +2095,7 @@ export function createInstalledPagePrograms({api,storage,assertHost,dependencies
       !tab.incognito&&!tab.pendingUrl&&tab.url===frame.url&&frame.url===target.expectedUrl&&
       (target.expectedWindowId===undefined||tab.windowId===target.expectedWindowId)&&installedURLMatches(row,frame.url),
       'E_DOCUMENT_STALE','Companion document changed');
-    const scripts=await (await nativeAPI()).getScripts({ids:[row.nativeId]});
+    const scripts=await readNativeUserScripts(api,{ids:[row.nativeId]});
     invariant(scripts.length===1&&nativeEqual(scripts[0],desired.script),'E_PAGE_AUTHORIZATION','Native companion changed');
     await assertAppParent(row);
     const latest=await read(tx=>tx.get(PAGE_STORE,key(INSTALL_KEY_KIND,namespace,row.programId)));
@@ -1887,14 +2117,19 @@ export function createInstalledPagePrograms({api,storage,assertHost,dependencies
       // Re-resolve the exact document and current URL on every authorization.
       invariant(frame&&httpUrl(frame.url).origin===httpUrl(sender.url).origin,
         'E_DOCUMENT_STALE','Companion sender document changed');
-      return appExecution(row,message.executionKey,message.receiptNonce,
+      const execution=await appExecution(row,message.executionKey,message.receiptNonce,
         {tabId:sender.tab.id,documentId:sender.documentId,expectedUrl:frame.url});
+      invariant(message.worldId===execution.managedUI.worldId&&
+        (sender.userScriptWorldId===undefined||sender.userScriptWorldId===message.worldId),
+        'E_PAGE_AUTHORIZATION','Companion world changed');
+      return execution;
     };
-    const execution=await authorize();
-    invariant(message.worldId===execution.managedUI.worldId&&
-      (sender.userScriptWorldId===undefined||sender.userScriptWorldId===message.worldId),
-      'E_PAGE_AUTHORIZATION','Companion world changed');
-    if(message.operation==='authorize')return {ready:true};
+    // Read operations authorize before private storage and again before return.
+    // Other operations retain authorization before lock admission or rejection.
+    if(message.operation!=='readContext'&&message.operation!=='storage.get'){
+      await authorize();
+      if(message.operation==='authorize')return {ready:true};
+    }
     return appPageStorage({api,owner:row.appOwner,operation:message.operation,payload:message.payload,authorize});
   }
   async function requestAppPage(request,sender){
@@ -1931,6 +2166,6 @@ export function createInstalledPagePrograms({api,storage,assertHost,dependencies
     return results[0].result;
   }
   return Object.freeze({prepareAppPage,importAppPage,verifyAppPage,synchronizeAppPages,requestAppPage,importPageInstallPackage,prepareScrollSitePackage,verifyPageCandidate,makePageAvailable,installPageProgram,setInstalledPageEnabled,uninstallPageProgram,
-    listPagePrograms,runInstalledPageProgram,sendQueueOperation,readScrollSiteConfig,pickScrollSiteElement,observeScrollSitePage,saveScrollSiteRule,saveScrollNavigationSettings,recoverExecutions,reconcile,observeManagedCleanup,revokePermissions,handleBoot,
+    listPagePrograms,runInstalledPageProgram,sendQueueOperation,readScrollSiteConfig,pickScrollSiteElement,observeScrollSitePage,saveScrollSiteRule,saveScrollNavigationSettings,recoverExecutions,reconcile,observeManagedCleanup,revokePermissions,handleBoot,hintPreparation,invalidatePreparation,
     assertPageTaskSource,assertPageTaskSourceInTransaction});
 }

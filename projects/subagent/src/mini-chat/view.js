@@ -2,8 +2,10 @@ import {createSession} from './model.js';
 
 const CSS=`
 :host{color-scheme:light dark;--od-bg:Canvas;--od-fg:CanvasText;--od-muted:GrayText;
-  --od-line:color-mix(in srgb,CanvasText 18%,Canvas)}
-.mini{width:min(348px,calc(100vw - 24px));max-height:calc(100vh - 32px);max-height:calc(100dvh - 32px);overflow:auto;
+  --od-line:color-mix(in srgb,CanvasText 18%,Canvas);--od-mini-bottom:max(160px,25vh)}
+@supports(height:100dvh){:host{--od-mini-bottom:max(160px,25dvh)}}
+.mini{box-sizing:border-box;width:min(348px,calc(100vw - 24px));
+  max-height:calc(100vh - var(--od-mini-bottom) - 16px);max-height:calc(100dvh - var(--od-mini-bottom) - 16px);overflow:auto;
   overscroll-behavior:contain;padding:13px;border-radius:12px;
   font:13px/1.45 -apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif}
 .head{font-size:14px;font-weight:650;margin:0 0 10px}
@@ -20,7 +22,8 @@ a{display:inline-block;margin-top:8px;color:LinkText}
 export function renderMiniChat(ui,options={}){
   const {transport=null,initialRequest}=options;
   ui.addStyle(CSS);
-  ui.host.style.top='auto';ui.host.style.bottom='16px';
+  // Keep the floating task form above the native composer and its inline tools.
+  ui.host.style.top='auto';ui.host.style.bottom='var(--od-mini-bottom)';
   ui.host.style.right='12px';ui.host.style.left='auto';
   ui.host.style.colorScheme='light dark';
   const doc=ui.content.ownerDocument;

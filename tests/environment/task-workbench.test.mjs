@@ -160,6 +160,38 @@ async function managementFixture(t,operation,notify){
   if(operation.name==='uninstall')f.action('taskUninstallClick');
   return f;
 }
+
+test('task management strip keeps stateful icons through disable, enable and refresh',async t=>{
+  const f=await managementFixture(t,{name:'disable'});
+  const {renderSidebarReact}=await import('../helpers/sidebar-react-fixture.mjs');
+  const check=async(enabled)=>{
+    const $=load(await renderSidebarReact({myView:f.myView}));
+    const strip=$('.task-operation-strip'),toggle=strip.find('#task-toggle');
+    const label=enabled?'停用任务':'启用任务';
+    assert.equal(toggle.text().trim(),'','state updates must not replace the icon with text');
+    assert.equal(toggle.attr('title'),label);
+    assert.equal(toggle.attr('aria-label'),label);
+    assert.equal(toggle.find('svg:not([hidden])').length,1);
+    assert.equal(toggle.find('svg:not([hidden])').attr('data-task-toggle-icon'),enabled?'pause':'play');
+    for(const button of strip.find('button').toArray()){
+      const control=$(button);
+      assert.equal(control.text().trim(),'');
+      assert.equal(control.find('svg:not([hidden])[aria-hidden="true"]').length,1);
+      assert.ok(control.attr('title'));
+      assert.ok(control.attr('aria-label'));
+    }
+  };
+  await check(true);
+  await f.action('taskToggleClick');
+  assert.equal(f.catalogState.installed[0].enabled,false);
+  await check(false);
+  await f.ui.refresh();await check(false);
+  await f.action('taskToggleClick');
+  assert.equal(f.catalogState.installed[0].enabled,true);
+  await check(true);
+  assert.equal(f.starts.length,0,'management actions must not run the task');
+});
+
 for(const operation of managementCases){
   test('management success notification: '+operation.name,async t=>{
     const notices=[];

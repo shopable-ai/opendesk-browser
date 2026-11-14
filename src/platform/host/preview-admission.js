@@ -1,7 +1,7 @@
 import {invariant,canonical} from '../protocol.js';
 import {assertPageInstallAuthorization} from '../../scripting/user-scripts/page-install-authorization.js';
 
-export const MAX_INSTALLED_DOCUMENT_EXECUTIONS=2;
+export const MAX_INSTALLED_PARENT_INVOCATIONS=2;
 const GROUP='installed-documents-v1';
 const entries=slot=>slot?.preview?.kind===GROUP?slot.preview.entries:undefined;
 const uncertain=row=>row.unknown===true||row.children?.some(child=>child.unknown===true);
@@ -12,16 +12,16 @@ export function installedPageReservation(slot,nonce){
 function assertGroup(slot,session){
   const rows=entries(slot);
   invariant(!slot?.currentRunId&&(!slot?.preview||Array.isArray(rows)&&rows.length>0&&
-    rows.length<=MAX_INSTALLED_DOCUMENT_EXECUTIONS&&rows.every(row=>
+    rows.length<=MAX_INSTALLED_PARENT_INVOCATIONS&&rows.every(row=>
       row.browserSessionIncarnation===session&&Array.isArray(row.children)&&
       typeof row.namespace==='string'&&typeof row.nonce==='string'&&!uncertain(row))),
     'E_OWNER','共享执行入口被占用或存在未知效果');
   return rows||[];
 }
-export function assertInstalledPageAvailable(slot,{session,tabId,documentId,exclusive=false}){
+export function assertInstalledPageAvailable(slot,{session,namespace,programId,tabId,documentId,exclusive=false}){
   const rows=assertGroup(slot,session);
-  invariant(rows.length<MAX_INSTALLED_DOCUMENT_EXECUTIONS&&(!exclusive||!rows.length)&&
-    rows.every(row=>!row.exclusive&&!(row.tabId===tabId&&row.documentId===documentId)),
+  invariant(rows.length<MAX_INSTALLED_PARENT_INVOCATIONS&&(!exclusive||!rows.length)&&
+    rows.every(row=>!row.exclusive&&!(row.namespace===namespace&&row.installedProgramId===programId&&row.tabId===tabId&&row.documentId===documentId)),
     'E_OWNER','此文档或独占执行仍占用共享入口');
 }
 export function assertInstalledPageDispatch(slot,{nonce,executionKey,session,namespace,tabId,documentId}){
@@ -141,7 +141,7 @@ export function createPreviewAdmission({storage,assertHost,currentHost,session})
           parent.children.push({nonce:preview.nonce,unknown:false});
           await tx.put('runs',slot,'@slot');return {shared:true};
         }
-        assertInstalledPageAvailable(slot,{session,...preview,exclusive});
+        assertInstalledPageAvailable(slot,{session,...preview,namespace:grant.namespace,programId:grant.programId,exclusive});
         rows.push({...preview,namespace:grant.namespace,exclusive,settled:false,unknown:false,children:[],
           ...(resource?{resource:true,parentNonce:execution.receiptNonce}:{}),
           installedProgramId:grant.programId,manifestHash:grant.manifestHash,
@@ -171,12 +171,13 @@ export function createPreviewAdmission({storage,assertHost,currentHost,session})
       });
       invocations.delete(nonce);
     },
-    async waitInstalledDocument({tabId,documentId}){
+    async waitInstalledReservation({executionKey,receiptNonce,tabId,documentId}){
       for(;;){
         let wake;
         const next=new Promise(resolve=>{wake=resolve;waiters.add(wake);});
         const slot=await storage.transaction(['runs'],'readonly',tx=>tx.get('runs','@slot'));
-        const pending=entries(slot)?.some(row=>row.tabId===tabId&&row.documentId===documentId&&!uncertain(row));
+        const pending=entries(slot)?.some(row=>row.executionKey===executionKey&&row.nonce===receiptNonce&&
+          row.tabId===tabId&&row.documentId===documentId&&!uncertain(row));
         if(!pending){waiters.delete(wake);return;}
         await next;
       }
@@ -204,21 +205,42 @@ export function createPreviewAdmission({storage,assertHost,currentHost,session})
       }
       recovering=false;
     },
-    async release({nonce,removedTabId,legacyOnly=false}) {
+    async release({nonce,removedTabId,legacyOnly=false,installedResource}) {
       await updateSlot((slot,cleared)=>{
         const rows=entries(slot);
+        if(installedResource){
+          // Less-trusted retirement controls can release only their exact
+          // child/standalone resource, never a main or another execution.
+          const binding=installedResource,row=rows?.find(row=>
+            row.namespace===binding.namespace&&row.executionKey===binding.executionKey&&
+            row.browserSessionIncarnation===session&&row.tabId===binding.tabId&&row.documentId===binding.documentId&&
+            (row.resource===true&&row.nonce===nonce&&row.parentNonce===binding.receiptNonce||
+              row.nonce===binding.receiptNonce&&row.children.some(child=>child.nonce===nonce)));
+          if(!row)return false;
+          cleared.push(nonce);
+          if(row.resource===true&&row.nonce===nonce)slot.preview.entries=rows.filter(entry=>entry!==row);
+          else{
+            row.children=row.children.filter(child=>child.nonce!==nonce);
+            if(row.settled&&!uncertain(row)&&!row.children.length){
+              slot.preview.entries=rows.filter(entry=>entry!==row);cleared.push(row.nonce);
+            }
+          }
+          if(!slot.preview.entries.length)delete slot.preview;
+          return true;
+        }
         if(rows){
           if(legacyOnly)return false;
+          let modified=false;
           slot.preview.entries=rows.filter(row=>{
             if(row.nonce===nonce||removedTabId!==undefined&&row.tabId===removedTabId){
-              cleared.push(row.nonce,...row.children.map(child=>child.nonce));return false;
+              modified=true;cleared.push(row.nonce,...row.children.map(child=>child.nonce));return false;
             }
-            row.children=row.children.filter(child=>{if(child.nonce!==nonce)return true;cleared.push(child.nonce);return false;});
-            if(row.settled&&!uncertain(row)&&!row.children.length){cleared.push(row.nonce);return false;}
+            row.children=row.children.filter(child=>{if(child.nonce!==nonce)return true;modified=true;cleared.push(child.nonce);return false;});
+            if(row.settled&&!uncertain(row)&&!row.children.length){modified=true;cleared.push(row.nonce);return false;}
             return true;
           });
           if(!slot.preview.entries.length)delete slot.preview;
-          return true;
+          return modified;
         }
         if(slot?.preview&&(nonce&&slot.preview.nonce===nonce||removedTabId!==undefined&&slot.preview.tabId===removedTabId)){
           cleared.push(slot.preview.nonce);delete slot.preview;return true;

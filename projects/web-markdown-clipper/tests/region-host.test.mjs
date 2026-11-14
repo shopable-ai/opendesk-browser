@@ -177,6 +177,43 @@ test('region cancel reaches Page while pick is pending outside the tool lock',as
   assert.equal(f.calls.length,2,'cleanup is never replayed');
 });
 
+test('missing receiver is prepared before Host sends exactly one real region request',async t=>{
+  const f=await regionFixture(t),original=f.api.tabs.sendMessage;
+  let probes=0,injections=0;
+  f.api.tabs.sendMessage=async(tab,message,address)=>{
+    if(message.operation==='clip.ready'){
+      probes++;
+      if(!injections)throw Error('Could not establish connection. Receiving end does not exist.');
+      return {ok:true,data:{ready:true}};
+    }
+    return original(tab,message,address);
+  };
+  f.api.scripting={async executeScript(options){
+    assert.deepEqual(options,{target:{tabId:7,documentIds:['document-a']},world:'ISOLATED',files:['agents/page-relay.js']});
+    injections++;return [{frameId:0,documentId:'document-a'}];
+  }};
+  f.ask('clip.region',{pickId:'repair_pick'},'pick');await settle(()=>f.calls.length===1);
+  f.gate.resolve({ok:true,data:validData()});await settle(()=>f.response('pick'));
+  assert.equal(f.response('pick').ok,true);
+  assert.equal(probes,2);assert.equal(injections,1);
+  assert.equal(f.calls.length,1);assert.equal(f.calls[0].message.operation,'clip.region');
+});
+
+test('cancel while fixed relay loads prevents the pending picker from starting',async t=>{
+  const f=await regionFixture(t),hold=deferred();let injecting=false,probes=0;
+  t.after(()=>hold.resolve());
+  f.api.tabs.sendMessage=async()=>{probes++;throw Error('Could not establish connection. Receiving end does not exist.');};
+  f.api.scripting={async executeScript(){
+    injecting=true;await hold.promise;return [{frameId:0,documentId:'document-a'}];
+  }};
+  f.ask('clip.region',{pickId:'repair_cancel'},'pick');await settle(()=>injecting);
+  assert.equal((await f.request('clip.region.cancel','repair_cancel','cancel')).ok,true);
+  hold.resolve();await settle(()=>f.response('pick'));
+  assert.equal(f.response('pick').ok,false);
+  assert.equal(probes,1,'no second probe or real picker after cancellation');
+  assert.equal(f.calls.length,0);
+});
+
 test('A to B transition cancels only the original tab and document',async t=>{
   const f=await regionFixture(t);
   f.ask('clip.region',{pickId:'navigation_pick'},'pick');await settle(()=>f.calls.length===1);

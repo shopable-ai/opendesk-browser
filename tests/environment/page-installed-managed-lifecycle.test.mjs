@@ -92,10 +92,12 @@ function fixture(){
   f.api=api;
   Object.defineProperty(api,'userScripts',{get:()=>{f.nativeAccessReads++;return f.nativeAccess?nativeScripts:undefined;}});
   const assertHost=async()=>host,dependencies=createDependencyManager({api,storage,assertHost,loadBuiltin:async()=>fakeBuiltinSource});
+  f.dependencies=dependencies;
   const make=()=>{
     const admission=createPreviewAdmission({storage,assertHost,currentHost:async()=>{},session:'session'});
     f.executor=createPageScriptPreview({api,storage,assertHost,dependencies,admission,managedFactory:createManagedUIPreview,loadBuiltin:async()=>fakeBuiltinSource});
-    const preview={...f.executor,preview:async (input,...args)=>f.realVerification?f.executor.preview(input,...args):({state:'preview-evaluated',world:'USER_SCRIPT',sourceHash:f.rows().find(row=>row.sourceUtf8===input.sourceUtf8).manifest.sourceHash,
+    const preview={...f.executor,executeInstalled:(...args)=>(f.executeInstalled??f.executor.executeInstalled)(...args),
+      preview:async (input,...args)=>f.realVerification?f.executor.preview(input,...args):({state:'preview-evaluated',world:'USER_SCRIPT',sourceHash:f.rows().find(row=>row.sourceUtf8===input.sourceUtf8).manifest.sourceHash,
       documentId:target.documentId,builtinAbi:fakeBuiltinSource.abi,builtinCatalogSha256:fakeBuiltinSource.catalogSha256,builtinBundleSha256:fakeBuiltinSource.sha256})};
     f.service=createInstalledPagePrograms({api,storage,assertHost,dependencies,preview,admission,session:'session',loadBuiltin:async()=>fakeBuiltinSource});
   };
@@ -728,6 +730,236 @@ test('world recovery bounds concurrent exact-document observations and retains c
   assert.deepEqual(f.rows(),before,'observation cannot change Authority or replay lifecycle effects');
   assert.equal(pending,0);
 });
+test('world recovery reuses free query positions while joining every exact document',async t=>{
+  const f=fixture();t.after(f.dispose);await f.install();await f.boot();
+  const original=f.rows().find(row=>row.tag==='page-execution-v1');
+  await f.storage.transaction(['frameworkKV'],'readwrite',async tx=>{
+    for(let index=0;index<24;index++){
+      const execution=structuredClone(original),documentId='rolling-history-'+index;
+      execution.documentId=documentId;execution.executionKey+='-rolling-'+index;
+      execution.managedUI.worldId+='-rolling-'+index;
+      execution.managedUI.lifecycle.executionKey=execution.executionKey;
+      execution.managedUI.lifecycle.target.documentId=documentId;
+      await tx.put('frameworkKV',execution,execution.executionKey);
+    }
+  });
+  f.loseSession();const before=structuredClone(f.rows()),calls=f.calls.length,queries=[];
+  let release,enter,pending=0,peak=0,secondRead=false,finished=false;
+  const held=new Promise(resolve=>{release=resolve;}),entered=new Promise(resolve=>{enter=resolve;});
+  f.api.webNavigation.getFrame=async({documentId})=>{
+    queries.push(documentId);peak=Math.max(peak,++pending);
+    try{
+      if(!secondRead&&documentId==='rolling-history-0'){enter();await held;}
+      else await new Promise(resolve=>setImmediate(resolve));
+      if(secondRead)return documentId==='rolling-history-4'?{documentId,documentLifecycle:'active'}:null;
+      if(documentId==='rolling-history-1')throw Error('exact document observation unavailable');
+      return documentId==='rolling-history-2'?{documentId,documentLifecycle:'cached'}:
+        documentId===original.documentId?{documentId,documentLifecycle:'active'}:null;
+    }finally{pending--;}
+  };
+  const worlds=createPreviewWorlds({api:f.api,storage:f.storage}),reading=worlds.records().then(value=>{finished=true;return value;});
+  await entered;
+  try{
+    for(let turn=0;turn<8;turn++)await new Promise(resolve=>setImmediate(resolve));
+    assert.ok(queries.length>8,'a slow first-batch document cannot idle all later query positions');
+    assert.ok(peak<=8,'rolling recovery cannot increase browser API pressure');
+    assert.equal(finished,false,'all exact queries must finish before recovery returns');
+  }finally{release();await reading;}
+  const rows=await reading;
+  assert.equal(queries.length,25);assert.equal(new Set(queries).size,25);
+  assert.deepEqual(rows.map(row=>row.documentId),[original.documentId,'rolling-history-1','rolling-history-2'],
+    'completion order cannot change execution-order merge or discard uncertain/cached worlds');
+  secondRead=true;queries.length=0;
+  const refreshed=await worlds.records();
+  assert.equal(queries.length,25);assert.equal(new Set(queries).size,25,'a new ledger observes every UUID again');
+  assert.deepEqual(refreshed.map(row=>row.documentId),['rolling-history-4'],'previous absence is never cached');
+  assert.equal(pending,0);assert.deepEqual(f.rows(),before);assert.equal(f.calls.length,calls);
+});
+for(const mode of ['reserved success','reserved failure','unreserved','default reserved child'])test('world proof wait preserves isolation and ledger progress: '+mode,async t=>{
+  const f=fixture();t.after(f.dispose);const native=f.api.userScripts,execute=native.execute,resets=[];
+  native.getWorldConfigurations=async()=>structuredClone(f.worldConfigurations);
+  native.resetWorldConfiguration=async worldId=>{resets.push(worldId);};
+  let release,enter,held=false;const gate=new Promise(resolve=>{release=resolve;}),entered=new Promise(resolve=>{enter=resolve;});
+  native.execute=async request=>{const result=await execute(request);
+    if(!held){held=true;enter();await gate;if(mode==='reserved failure')throw Error('proof response lost');}
+    return result;
+  };
+  const concurrent=mode.startsWith('reserved'),worlds=createPreviewWorlds({api:f.api,storage:f.storage}),first=worlds.allocate(native,f.target,
+    mode==='unreserved'?{}:{pendingBinding:'first-pending',...(concurrent?{concurrentProof:true}:{})}),firstResult=Promise.allSettled([first]);
+  await entered;const ledger='opendeskPagePreviewWorldsD1',before=(await f.api.storage.session.get(ledger))[ledger];
+  assert.equal(before.length,1);const firstId=before[0].worldId;let secondDone=false;
+  const second=worlds.allocate(native,f.target,{pendingBinding:'second-pending',concurrentProof:true}).then(value=>{secondDone=true;return value;}),secondResult=Promise.allSettled([second]);
+  try{
+    await new Promise(resolve=>setImmediate(resolve));
+    assert.equal(secondDone,concurrent,'only an opted-in protected reservation can release the ledger queue during proof');
+    assert.equal(resets.includes(firstId),false,'another allocation cannot reset the pending proof world');
+    if(concurrent)assert.equal(((await f.api.storage.session.get(ledger))[ledger]).length,2,
+      'both distinct reserved worlds still consume their original budget');
+  }finally{release();await Promise.all([firstResult,secondResult]);}
+  const [a]=await firstResult,[b]=await secondResult;
+  assert.equal(a.status,mode==='reserved failure'?'rejected':'fulfilled');assert.equal(b.status,'fulfilled');
+  const after=(await f.api.storage.session.get(ledger))[ledger];assert.equal(after.length,2,'a failed proof cannot refund a consumed world');
+  assert.equal(after.find(row=>row.worldId===firstId).pendingBinding,
+    mode==='reserved success'||mode==='default reserved child'?'first-pending':undefined);
+  assert.equal(after.find(row=>row.worldId===b.value).pendingBinding,'second-pending','failure cannot release another reservation');
+  if(mode==='reserved failure')assert.match(a.reason.message,/proof response lost/);
+});
+for(const interruption of ['navigate','close','pending replacement','pending release'])test('a concurrent world proof cannot succeed after '+interruption,async t=>{
+  const f=fixture();t.after(f.dispose);const native=f.api.userScripts,execute=native.execute;
+  let release,enter,held=false;const gate=new Promise(resolve=>{release=resolve;}),entered=new Promise(resolve=>{enter=resolve;});
+  native.execute=async request=>{const result=await execute(request);if(!held){held=true;enter();await gate;}return result;};
+  const worlds=createPreviewWorlds({api:f.api,storage:f.storage}),allocation=worlds.allocate(native,f.target,{pendingBinding:'proof-owner',concurrentProof:true}),outcome=Promise.allSettled([allocation]);
+  await entered;const ledger='opendeskPagePreviewWorldsD1',before=(await f.api.storage.session.get(ledger))[ledger],worldId=before[0].worldId;
+  let interrupted=false;
+  const action=(async()=>{
+    if(interruption==='navigate')await worlds.cleanup({tabId:1,documentId:'new-document'});
+    if(interruption==='close')await worlds.cleanup({tabId:1,removed:true});
+    if(interruption==='pending replacement')await f.api.storage.session.set({[ledger]:[{...before[0],pendingBinding:'another-owner'}]});
+    if(interruption==='pending release')await worlds.releasePending({worldId,nonce:'proof-owner'});
+    interrupted=true;
+  })();
+  try{await new Promise(resolve=>setImmediate(resolve));assert.equal(interrupted,true,'ledger lifecycle operations must progress while Native remains pending');}
+  finally{release();await action;await outcome;}
+  const [result]=await outcome;assert.equal(result.status,'rejected');assert.equal(result.reason.code,'E_WORLD_ISOLATION');
+  if(interruption==='pending replacement')assert.equal((await f.api.storage.session.get(ledger))[ledger][0].pendingBinding,'another-owner');
+});
+for(const phase of [2,3])for(const failure of ['reject','wrong document'])test('concurrent proof rejects '+failure+' at probe '+phase,async t=>{
+  const f=fixture();t.after(f.dispose);const native=f.api.userScripts,execute=native.execute;
+  let probes=0;native.execute=async request=>{
+    const receipt=await execute(request);if(++probes!==phase)return receipt;
+    if(failure==='reject')throw Error('native proof acknowledgement lost');
+    return receipt.map(row=>({...row,documentId:'foreign-document'}));
+  };
+  const worlds=createPreviewWorlds({api:f.api,storage:f.storage});
+  await assert.rejects(worlds.allocate(native,f.target,{pendingBinding:'failed-proof',concurrentProof:true}),
+    failure==='reject'?/native proof acknowledgement lost/:{code:'E_WORLD_ISOLATION'});
+  assert.equal(probes,phase,'no later probe or user source can follow a failed proof');
+  const rows=(await f.api.storage.session.get('opendeskPagePreviewWorldsD1')).opendeskPagePreviewWorldsD1;
+  assert.equal(rows.length,1,'failed proof consumes its world budget');assert.equal(rows[0].pendingBinding,undefined);
+});
+test('failed concurrent proof cleanup retains protection when the session write fails',async t=>{
+  const f=fixture();t.after(f.dispose);const native=f.api.userScripts,execute=native.execute,set=f.api.storage.session.set;
+  const worlds=createPreviewWorlds({api:f.api,storage:f.storage}),foreign=await worlds.allocate(native,f.target,{pendingBinding:'foreign-owner',concurrentProof:true});
+  let probes=0;native.execute=async request=>{const receipt=await execute(request);if(++probes===2){
+    f.api.storage.session.set=async()=>{throw Error('pending cleanup write failed');};throw Error('native proof acknowledgement lost');
+  }return receipt;};
+  try{
+    await assert.rejects(worlds.allocate(native,f.target,{pendingBinding:'failed-owner',concurrentProof:true}),/pending cleanup write failed/);
+    const rows=(await f.api.storage.session.get('opendeskPagePreviewWorldsD1')).opendeskPagePreviewWorldsD1;
+    assert.equal(rows.length,2,'a failed cleanup cannot refund budget or report allocation success');
+    assert.equal(rows.find(row=>row.worldId===foreign).pendingBinding,'foreign-owner');
+    assert.equal(rows.find(row=>row.worldId!==foreign).pendingBinding,'failed-owner','unknown cleanup retains original protection');
+    assert.equal(probes,2);
+  }finally{f.api.storage.session.set=set;}
+});
+const installedWorldScope=row=>({worldId:row.worldId,executionKey:row.installed.executionKey,
+  receiptNonce:row.installed.receiptNonce,compiledSha256:row.installed.compiledSha256});
+test('scoped installed metadata reads its own execution and preserves every foreign session row',async t=>{
+  const f=fixture();t.after(f.dispose);await f.install();await f.boot();
+  const original=structuredClone(f.records()[0]),scope=installedWorldScope(original),ledger='opendeskPagePreviewWorldsD1';
+  const foreign={...structuredClone(original),worldId:original.worldId+'-foreign',pendingBinding:original.installed.receiptNonce,
+    installed:{...original.installed,executionKey:original.installed.executionKey+'-foreign',state:'unknown'}};
+  await f.api.storage.session.set({[ledger]:[original,foreign]});
+  let scans=0;const storage={transaction:(stores,mode,work)=>f.storage.transaction(stores,mode,tx=>work({...tx,
+    all:async(...args)=>{scans++;return tx.all(...args);}}))};
+  const worlds=createPreviewWorlds({api:f.api,storage}),calls=f.calls.length;
+  await worlds.editRecords(rows=>{rows.find(row=>row.worldId===original.worldId).installed.state='unknown';},scope);
+  assert.equal(scans,0,'an exact metadata mutation must not materialize unrelated execution history');
+  assert.deepEqual(f.records()[1],foreign,'foreign unknown and pending metadata are untouched');
+  assert.equal(f.records()[0].installed.state,'unknown');assert.equal(f.calls.length,calls);
+});
+for(const state of ['unknown','retiring','retired'])test('scoped completion refreshes durable '+state+' instead of reviving a stale ready mirror',async t=>{
+  const f=fixture();t.after(f.dispose);await f.install();await f.boot();
+  const row=structuredClone(f.records()[0]),scope=installedWorldScope(row);row.installed.state='ready';
+  await f.api.storage.session.set({opendeskPagePreviewWorldsD1:[row]});
+  await f.storage.transaction(['frameworkKV'],'readwrite',async tx=>{const execution=await tx.get('frameworkKV',scope.executionKey);
+    execution.managedUI.lifecycle.state=state;await tx.put('frameworkKV',execution,scope.executionKey);});
+  await createPreviewWorlds({api:f.api,storage:f.storage}).editRecords(rows=>{
+    const current=rows[0].installed;if(current.state==='ready')current.state='evaluated';
+  },scope);
+  assert.equal(f.records()[0].installed.state,state);
+});
+for(const conflict of ['world','execution alias','duplicate','nonce','compiled hash'])test('scoped metadata denies '+conflict+' before its callback',async t=>{
+  const f=fixture();t.after(f.dispose);await f.install();await f.boot();
+  const row=structuredClone(f.records()[0]),scope=installedWorldScope(row),rows=[row];
+  if(conflict==='world')row.worldId+='-wrong';
+  if(conflict==='execution alias')row.installed.executionKey+='-wrong';
+  if(conflict==='duplicate')rows.push(structuredClone(row));
+  if(conflict==='nonce')scope.receiptNonce+='-wrong';
+  if(conflict==='compiled hash')scope.compiledSha256='f'.repeat(64);
+  await f.api.storage.session.set({opendeskPagePreviewWorldsD1:rows});let called=false;
+  await assert.rejects(createPreviewWorlds({api:f.api,storage:f.storage}).editRecords(()=>{called=true;},scope),{code:'E_WORLD_ISOLATION'});
+  assert.equal(called,false);assert.deepEqual(f.records(),rows);
+});
+for(const absent of ['missing','null'])test('scoped completion cannot recreate a '+absent+' durable lifecycle from a ready mirror',async t=>{
+  const f=fixture();t.after(f.dispose);await f.install();await f.boot();
+  const row=structuredClone(f.records()[0]),scope=installedWorldScope(row);row.installed.state='ready';
+  await f.api.storage.session.set({opendeskPagePreviewWorldsD1:[row]});
+  await f.storage.transaction(['frameworkKV'],'readwrite',async tx=>{
+    const execution=await tx.get('frameworkKV',scope.executionKey);
+    if(absent==='missing')delete execution.managedUI.lifecycle;else execution.managedUI.lifecycle=null;
+    await tx.put('frameworkKV',execution,scope.executionKey);
+  });
+  let called=false;
+  await assert.rejects(createPreviewWorlds({api:f.api,storage:f.storage}).editRecords(rows=>{
+    called=true;rows[0].installed.state='evaluated';
+  },scope),{code:'E_WORLD_ISOLATION'});
+  assert.equal(called,false);assert.deepEqual(f.records(),[row]);
+});
+test('scoped metadata rejects edits to another world without writing either lifecycle',async t=>{
+  const f=fixture();t.after(f.dispose);await f.install();await f.boot();
+  const row=structuredClone(f.records()[0]),scope=installedWorldScope(row),foreign={tabId:99,documentId:'foreign',worldId:row.worldId+'-foreign',pendingBinding:'foreign'};
+  await f.api.storage.session.set({opendeskPagePreviewWorldsD1:[row,foreign]});
+  await assert.rejects(createPreviewWorlds({api:f.api,storage:f.storage}).editRecords(rows=>{rows[1].pendingBinding='changed';},scope),{code:'E_WORLD_ISOLATION'});
+  assert.deepEqual((await f.api.storage.session.get('opendeskPagePreviewWorldsD1')).opendeskPagePreviewWorldsD1,[row,foreign]);
+});
+test('scoped metadata falls back to full recovery only when its session world is absent',async t=>{
+  const f=fixture();t.after(f.dispose);await f.install();await f.boot();
+  const scope=installedWorldScope(f.records()[0]);f.loseSession();f.frameQueries.length=0;
+  await createPreviewWorlds({api:f.api,storage:f.storage}).editRecords(rows=>{rows[0].installed.state='unknown';},scope);
+  assert.ok(f.frameQueries.some(query=>query.documentId===f.target.documentId));assert.equal(f.records()[0].installed.state,'unknown');
+});
+for(const change of ['lifecycle','nonce','world','compiled hash'])test('scoped metadata CAS rejects concurrent '+change+' including a no-op completion',async t=>{
+  const f=fixture();t.after(f.dispose);await f.install();await f.boot();
+  const original=structuredClone(f.records()),scope=installedWorldScope(original[0]);let changed=false;
+  const storage={async transaction(stores,mode,work){const result=await f.storage.transaction(stores,mode,work);
+    if(mode==='readonly'&&!changed){changed=true;await f.storage.transaction(['frameworkKV'],'readwrite',async tx=>{
+      const execution=await tx.get('frameworkKV',scope.executionKey);
+      if(change==='lifecycle')execution.managedUI.lifecycle.state='unknown';
+      if(change==='nonce')execution.receiptNonce+='-wrong';
+      if(change==='world')execution.managedUI.worldId+='-wrong';
+      if(change==='compiled hash')execution.managedUI.compiledSha256='f'.repeat(64);
+      await tx.put('frameworkKV',execution,scope.executionKey);
+    });}return result;}};
+  await assert.rejects(createPreviewWorlds({api:f.api,storage}).editRecords(()=>{},scope),{code:'E_WORLD_ISOLATION'});
+  assert.deepEqual(f.records(),original,'a failed CAS cannot write the session mirror');
+});
+for(const failure of ['pending identity','durable write','session write'])test('scoped initial metadata preserves binding and commit order after '+failure,async t=>{
+  const f=fixture();t.after(f.dispose);await f.install();await f.boot();
+  const original=structuredClone(f.records()[0]),scope={...installedWorldScope(original),initial:true},ledger='opendeskPagePreviewWorldsD1';
+  await f.storage.transaction(['frameworkKV'],'readwrite',async tx=>{
+    const execution=await tx.get('frameworkKV',scope.executionKey),{lifecycle,...managedUI}=execution.managedUI;
+    await tx.put('frameworkKV',{...execution,managedUI},scope.executionKey);
+  });
+  const pending={tabId:original.tabId,documentId:original.documentId,worldId:original.worldId,
+    pendingBinding:scope.receiptNonce+(failure==='pending identity'?'-wrong':'')};
+  await f.api.storage.session.set({[ledger]:[pending]});const set=f.api.storage.session.set;let sessionWrites=0;
+  f.api.storage.session.set=async value=>{sessionWrites++;if(failure==='session write')throw Error('session write failed');return set(value);};
+  const storage={transaction:(stores,mode,work)=>f.storage.transaction(stores,mode,tx=>work({...tx,
+    put:async(...args)=>{if(failure==='durable write')throw Error('durable write failed');return tx.put(...args);}}))};
+  let called=false;
+  await assert.rejects(createPreviewWorlds({api:f.api,storage}).editRecords(rows=>{
+    called=true;const row=rows.find(row=>row.worldId===scope.worldId);assert.equal(row.installed,undefined);
+    row.installed={...original.installed,state:'ready'};
+  },scope),failure==='pending identity'?{code:'E_WORLD_ISOLATION'}:new RegExp(failure+' failed'));
+  assert.equal(called,failure!=='pending identity');assert.equal(sessionWrites,failure==='session write'?1:0);
+  assert.deepEqual((await f.api.storage.session.get(ledger))[ledger],[pending]);
+  const execution=f.rows().find(row=>row.executionKey===scope.executionKey);
+  assert.equal(execution.managedUI.lifecycle?.state,failure==='session write'?'ready':undefined);
+  f.api.storage.session.set=set;
+  if(failure==='session write')assert.equal((await createPreviewWorlds({api:f.api,storage:f.storage}).records())[0].installed.state,'ready',
+    'lost mirror acknowledgement recovers the durable lifecycle without dispatch');
+});
 test('session reset cannot refund installed world slots in the same live document',async t=>{
   const f=fixture();t.after(f.dispose);
   for(let revision=1;revision<=MAX_PREVIEW_WORLDS_PER_DOCUMENT;revision++){
@@ -831,4 +1063,478 @@ test('durable reservation recovery denies conflicting '+conflict+' metadata',asy
   await assert.rejects(createPreviewWorlds({api:f.api,storage:f.storage}).records(),{code:'E_WORLD_ISOLATION'});
   assert.equal(f.calls.length,calls,'conflicting mirrors cannot select a cleanup target');
   assert.deepEqual(f.rows().find(value=>value.executionKey===installed.executionKey).managedUI.lifecycle,installed);
+});
+
+const allocationLedger='opendeskPagePreviewWorldsD1';
+const allocationTurn=()=>new Promise(resolve=>setImmediate(resolve));
+function allocationGate(){let release;const wait=new Promise(resolve=>{release=resolve;});return {wait,release};}
+const allocationRow=(id,extra={})=>({tabId:1,documentId:'document-one',worldId:'opendesk-preview-d1-'+id,...extra});
+
+test('overlapped world reads start while queued and keep their original FIFO position',async t=>{
+  const f=fixture();t.after(f.dispose);const native=f.api.userScripts,execute=native.execute,get=f.api.storage.session.get;
+  const proof=allocationGate(),read=allocationGate(),entered=allocationGate();let held=false,holdRead=false,readStarted=false;
+  native.execute=async request=>{const result=await execute(request);if(!held){held=true;entered.release();await proof.wait;}return result;};
+  f.api.storage.session.get=async key=>{if(holdRead){holdRead=false;readStarted=true;await read.wait;}return get(key);};
+  const worlds=createPreviewWorlds({api:f.api,storage:f.storage}),timings=[];
+  const first=worlds.allocate(native,f.target,{pendingBinding:'first'});await entered.wait;
+  holdRead=true;
+  const second=worlds.allocate(native,f.target,{pendingBinding:'second',onTiming:(key,value)=>timings.push([key,value])});
+  const third=worlds.allocate(native,f.target,{pendingBinding:'third'}),outcomes=Promise.allSettled([first,second,third]);
+  try{
+    await allocationTurn();assert.equal(readStarted,true,'FULL first read must start before waiting for the world lock');
+    proof.release();await allocationTurn();
+    assert.equal(f.worldConfigurations.length,1,'later ready reads cannot overtake the immediately enqueued reservation');
+  }finally{proof.release();read.release();await outcomes;}
+  assert.ok((await outcomes).every(row=>row.status==='fulfilled'));
+  assert.deepEqual((await get(allocationLedger))[allocationLedger].map(row=>row.pendingBinding),['first','second','third']);
+  assert.ok(timings.length>0&&timings.every(([key,value])=>/^world[A-Za-z]+Ms$/.test(key)&&Number.isFinite(value)&&value>=0));
+});
+
+test('overlapped world first-read rejection is handled immediately while the queue is held',async t=>{
+  const f=fixture();t.after(f.dispose);const native=f.api.userScripts,execute=native.execute,get=f.api.storage.session.get;
+  const held=allocationGate(),entered=allocationGate();let blocked=false,fail=false,rejectedRead=false;
+  native.execute=async request=>{const result=await execute(request);if(!blocked){blocked=true;entered.release();await held.wait;}return result;};
+  f.api.storage.session.get=async key=>{if(fail){fail=false;rejectedRead=true;throw Error('queued FULL ledger unavailable');}return get(key);};
+  const worlds=createPreviewWorlds({api:f.api,storage:f.storage}),first=worlds.allocate(native,f.target);await entered.wait;
+  fail=true;const second=worlds.allocate(native,f.target),outcomes=Promise.allSettled([first,second]);
+  try{
+    await allocationTurn();await allocationTurn();
+    assert.equal(rejectedRead,true,'a rejected prefetch must already be observed while its ordered work is still queued');
+  }finally{held.release();await outcomes;}
+  const [a,b]=await outcomes;assert.equal(a.status,'fulfilled');assert.equal(b.status,'rejected');
+  assert.match(b.reason.message,/queued FULL ledger unavailable/);assert.equal(f.worldConfigurations.length,1);assert.equal(f.calls.length,3);
+});
+
+test('overlapped world second fresh FULL rejection fences cleanup and preserves independent FIFO progress',async t=>{
+  const f=fixture();t.after(f.dispose);const native=f.api.userScripts,transaction=f.storage.transaction,set=f.api.storage.session.set;
+  const fresh=allocationGate(),freshEntered=allocationGate(),next=allocationGate(),nextEntered=allocationGate();
+  const failure=Error('second fresh FULL ledger unavailable'),stale='opendesk-preview-d1-cleanable',resets=[];
+  let fullReads=0,configurationReads=0,writes=0,firstComplete=false;
+  f.storage.transaction=(stores,mode,work)=>transaction(stores,mode,tx=>work({...tx,all:async name=>{
+    assert.equal(mode,'readonly');assert.deepEqual(stores,['frameworkKV']);assert.equal(name,'frameworkKV');
+    const rows=await tx.all(name);
+    if(++fullReads===2){assert.equal(firstComplete,true);freshEntered.release();await fresh.wait;throw failure;}
+    return rows;
+  }}));
+  f.api.storage.session.set=async value=>{writes++;return set(value);};
+  native.getWorldConfigurations=async()=>{
+    if(++configurationReads===2){nextEntered.release();await next.wait;}
+    return [{worldId:stale}];
+  };
+  native.resetWorldConfiguration=async id=>{resets.push(id);};
+  const worlds=createPreviewWorlds({api:f.api,storage:f.storage});
+  const failed=worlds.allocate(native,f.target,{pendingBinding:'failed-owner',onTiming:key=>{if(key==='worldAllocateLedgerMs')firstComplete=true;}}),
+    failedOutcome=Promise.allSettled([failed]);
+  await freshEntered.wait;
+  const second=worlds.allocate(native,f.target,{pendingBinding:'second-owner'}),
+    third=worlds.allocate(native,f.target,{pendingBinding:'third-owner'}),later=Promise.allSettled([second,third]);
+  fresh.release();
+  try{
+    const [result]=await failedOutcome;await nextEntered.wait;
+    assert.equal(result.status,'rejected');assert.equal(result.reason,failure);
+    assert.deepEqual(resets,[],'a rejected fresh ledger cannot clean even a preexisting stale configuration');
+    assert.equal(writes,0);assert.equal(f.worldConfigurations.length,0);assert.equal(f.calls.length,0);
+  }finally{next.release();await later;}
+  const results=await later;assert.ok(results.every(row=>row.status==='fulfilled'));
+  const rows=(await f.api.storage.session.get(allocationLedger))[allocationLedger];
+  assert.deepEqual(rows.map(row=>row.pendingBinding),['second-owner','third-owner'],'independent allocations retain their original queue positions');
+  assert.deepEqual(rows.map(row=>row.worldId),results.map(row=>row.value));
+  assert.deepEqual(f.worldConfigurations.map(row=>row.worldId),rows.map(row=>row.worldId));
+  assert.deepEqual(resets,[stale,stale]);assert.equal(writes,2);assert.equal(f.calls.length,6);
+  assert.equal(fullReads,6,'the rejected allocation is not retried; each independent allocation still reads two FULL ledgers');
+});
+
+for(const protection of ['pending','installed','installed child','preview child'])
+test('overlapped world cleanup protects fresh '+protection+' arriving after the first FULL read',async t=>{
+  const f=fixture();t.after(f.dispose);const native=f.api.userScripts,resets=[],child='opendesk-preview-d1-live-child';
+  const live=allocationRow('live',protection==='pending'?{pendingBinding:'other-owner'}:
+    protection==='preview child'?{managed:{state:'evaluated'},previewFrames:{frames:[{worldId:child,state:'unknown'}]}}:
+      {installed:{state:'unknown',frames:protection==='installed child'?[{worldId:child,state:'ready'}]:[]}});
+  let reads=0;const get=f.api.storage.session.get;
+  f.api.storage.session.get=async key=>++reads===1?{[key]:[]}:{[key]:[structuredClone(live)]};
+  native.getWorldConfigurations=async()=>[{worldId:live.worldId},{worldId:child},{worldId:'foreign-world'},{worldId:'opendesk-preview-d1-stale'}];
+  native.resetWorldConfiguration=async worldId=>{resets.push(worldId);};
+  await createPreviewWorlds({api:f.api,storage:f.storage}).allocate(native,f.target,{pendingBinding:'new-owner'});
+  assert.equal(resets.includes(live.worldId),false,'cleanup must await the second FULL ledger before touching a newly protected parent');
+  assert.equal(resets.includes(child),!protection.endsWith('child'));
+  assert.ok(resets.includes('opendesk-preview-d1-stale'));assert.equal(resets.includes('foreign-world'),false);
+  assert.deepEqual((await get(allocationLedger))[allocationLedger][0],live,'persist only the latest FULL rows');
+  assert.equal(reads,2);
+});
+
+test('overlapped world stale protection union neither authorizes nor merges old rows into the fresh budget',async t=>{
+  const f=fixture();t.after(f.dispose);const native=f.api.userScripts,child='opendesk-preview-d1-old-child',resets=[];
+  const first=[allocationRow('retiring',{installed:{state:'ready',frames:[{worldId:child,state:'ready'}]}}),
+    ...Array.from({length:6},(_,i)=>allocationRow('stale-'+i,{pendingBinding:'stale-owner'}))];
+  const fresh=[allocationRow('retiring',{installed:{state:'retired',frames:[{worldId:child,state:'retired'}]}})];
+  let reads=0;const get=f.api.storage.session.get;
+  f.api.storage.session.get=async key=>({[key]:structuredClone(++reads===1?first:fresh)});
+  native.getWorldConfigurations=async()=>[...first.map(row=>({worldId:row.worldId})),{worldId:child},{worldId:'opendesk-preview-d1-unused'}];
+  native.resetWorldConfiguration=async id=>{resets.push(id);};
+  const id=await createPreviewWorlds({api:f.api,storage:f.storage}).allocate(native,f.target,{pendingBinding:'new-owner'});
+  assert.deepEqual(resets,['opendesk-preview-d1-unused'],'both full protection sets include original child worlds');
+  const rows=(await get(allocationLedger))[allocationLedger];assert.deepEqual(rows.slice(0,-1),fresh);
+  assert.equal(rows.length,2,'first-read slots are not merged or charged against fresh quotas');
+  assert.equal(rows[0].installed.state,'retired');assert.equal(rows[0].pendingBinding,undefined);
+  assert.equal(rows[1].worldId,id);assert.equal(rows[1].installed,undefined,'protection does not create installed authority');
+});
+
+for(const budget of ['six','global'])test('overlapped world latest FULL '+budget+' quota still rejects before new reservation',async t=>{
+  const f=fixture();t.after(f.dispose);const native=f.api.userScripts,rows=Array.from({length:budget==='six'?6:4096},(_,i)=>
+    allocationRow('full-'+i,{documentId:budget==='six'?f.target.documentId:'other-'+i}));
+  let reads=0,writes=0;f.api.storage.session.get=async key=>({[key]:++reads===1?[]:structuredClone(rows)});
+  f.api.storage.session.set=async()=>{writes++;};
+  await assert.rejects(createPreviewWorlds({api:f.api,storage:f.storage}).allocate(native,f.target,{pendingBinding:'denied'}),{code:'E_PREVIEW_WORLD_LIMIT'});
+  assert.equal(reads,2);assert.equal(writes,0);assert.equal(f.worldConfigurations.length,0);assert.equal(f.calls.length,0);
+});
+
+for(const failure of ['rejected','unknown'])test('overlapped world '+failure+' native cleanup cannot reserve, configure, probe or replay',async t=>{
+  const f=fixture();t.after(f.dispose);const native=f.api.userScripts,entered=allocationGate(),settle=allocationGate();let resets=0,writes=0,done=false;
+  native.getWorldConfigurations=async()=>[{worldId:'opendesk-preview-d1-unused'}];
+  native.resetWorldConfiguration=async()=>{resets++;entered.release();if(failure==='unknown')await settle.wait;throw Error('cleanup acknowledgement unavailable');};
+  f.api.storage.session.set=async()=>{writes++;};
+  const allocation=createPreviewWorlds({api:f.api,storage:f.storage}).allocate(native,f.target),outcome=Promise.allSettled([allocation]).then(rows=>{done=true;return rows;});
+  await entered.wait;
+  try{
+    await allocationTurn();assert.equal(done,failure==='rejected');
+    assert.equal(resets,1);assert.equal(writes,0);assert.equal(f.worldConfigurations.length,0);assert.equal(f.calls.length,0);
+  }finally{settle.release();await outcome;}
+  assert.equal((await outcome)[0].status,'rejected');assert.equal(resets,1);assert.equal(writes,0);
+});
+
+test('overlapped world allocations and record reads globally share eight fresh document query permits',async t=>{
+  const f=fixture();t.after(f.dispose);await f.install();await f.boot();
+  const original=f.rows().find(row=>row.tag==='page-execution-v1');
+  await f.storage.transaction(['frameworkKV'],'readwrite',async tx=>{
+    for(let i=0;i<24;i++){
+      const row=structuredClone(original);row.documentId='overlap-history-'+i;row.executionKey+='-history-'+i;
+      row.managedUI.worldId+='-history-'+i;row.managedUI.lifecycle.executionKey=row.executionKey;row.managedUI.lifecycle.target.documentId=row.documentId;
+      await tx.put('frameworkKV',row,row.executionKey);
+    }
+  });
+  f.loseSession();let active=0,peak=0,late=false;const queries=[];
+  f.api.webNavigation.getFrame=async({documentId})=>{
+    queries.push(documentId);peak=Math.max(peak,++active);
+    try{
+      await allocationTurn();if(documentId==='overlap-history-1')throw Error('observation unknown');
+      return late&&documentId==='overlap-history-2'?{documentId,documentLifecycle:'active'}:null;
+    }finally{active--;}
+  };
+  const worlds=createPreviewWorlds({api:f.api,storage:f.storage}),other=createPreviewWorlds({api:f.api,storage:f.storage});
+  await Promise.all([worlds.allocate(f.api.userScripts,f.target,{pendingBinding:'allocation'}),worlds.records(),other.records()]);
+  assert.ok(peak>1);assert.ok(peak<=8,'all concurrent FULL ledgers, including allocation prefetches and other instances, share the same eight slots');
+  assert.equal(active,0,'each successful or rejected native query releases its permit');
+  assert.equal(queries.filter(id=>id==='overlap-history-2').length,4,'each allocation ledger and each record read reobserves absent UUIDs');
+  late=true;const before=queries.length,rows=await other.records();
+  assert.ok(queries.slice(before).includes('overlap-history-2'));assert.ok(rows.some(row=>row.documentId==='overlap-history-2'),'absence is not cached');
+  assert.ok(rows.some(row=>row.documentId==='overlap-history-1'),'unknown observations retain their world budget');assert.equal(active,0);
+});
+
+async function installedHistoryInput(f){
+  const material=await f.dependencies.readStoredPageCandidate('tool:test','script',1);
+  return {...material,preparation:await f.executor.prepareInstalled(material),target:structuredClone(f.target),
+    installation:{...f.installation(),executionKey:'page-execution:overlap-'+crypto.randomUUID()}};
+}
+function holdInstalledHistory(f,{error,synchronous=false}={}){
+  const transaction=f.storage.transaction,held=allocationGate(),entered=allocationGate();
+  let armed=false,reads=0,value;
+  f.storage.transaction=(stores,mode,work)=>{
+    const eligible=mode==='readonly'&&stores.length===1&&stores[0]==='frameworkKV';
+    if(armed&&eligible&&synchronous){armed=false;reads++;throw error;}
+    let selected=false;
+    const result=transaction(stores,mode,tx=>work({...tx,all:async name=>{
+      if(armed&&eligible&&name==='frameworkKV'){armed=false;selected=true;reads++;}
+      return tx.all(name);
+    }}));
+    // Hold the completed readonly acknowledgement, not the fixture transaction
+    // queue: the independent authorize/target reads must be able to progress.
+    return result.then(async rows=>{
+      if(selected){value=rows;entered.release();await held.wait;if(error)throw error;}
+      return rows;
+    });
+  };
+  return {arm(){armed=true;},release:held.release,entered:entered.wait,get reads(){return reads;},get value(){return value;}};
+}
+function installedHistoryEffects(f){
+  const native=f.api.userScripts,reset=native.resetWorldConfiguration,set=f.api.storage.session.set;let resets=0,writes=0;
+  native.resetWorldConfiguration=async(...args)=>{resets++;return reset(...args);};
+  f.api.storage.session.set=async(...args)=>{writes++;return set(...args);};
+  return ()=>({calls:f.calls.length,configurations:f.worldConfigurations.length,resets,writes});
+}
+async function installedHistoryTurns(){for(let i=0;i<4;i++)await allocationTurn();}
+
+test('installed history overlap validates owner preparation and dispatch before either branch',async t=>{
+  const f=fixture();t.after(f.dispose);await f.install();const history=holdInstalledHistory(f),effects=installedHistoryEffects(f),before=effects();
+  let authorizations=0;
+  for(const invalid of ['handle','source','dispatch']){
+    const input=await installedHistoryInput(f);
+    if(invalid==='handle')input.preparation={};
+    if(invalid==='source')input.candidate={...input.candidate,sourceUtf8:input.candidate.sourceUtf8+'\n// changed'};
+    history.arm();
+    await assert.rejects(f.executor.executeInstalled(input,()=>{authorizations++;},invalid==='dispatch'?undefined:()=>{}),
+      {code:invalid==='dispatch'?'E_OWNER':'E_SOURCE_HASH'});
+    assert.equal(history.reads,0);assert.equal(authorizations,0);assert.deepEqual(effects(),before);
+  }
+  history.release();
+});
+
+test('installed history overlap joins a synchronous auth rejection with held rejected history',async t=>{
+  const f=fixture();t.after(f.dispose);await f.install();const input=await installedHistoryInput(f);
+  const authError=Error('authorization rejected synchronously'),historyError=Error('history acknowledgement rejected');
+  const history=holdInstalledHistory(f,{error:historyError}),effects=installedHistoryEffects(f),before=effects();
+  let done=false,checks=0,targetReads=0;const get=f.api.tabs.get;
+  f.api.tabs.get=async(...args)=>{targetReads++;return get(...args);};
+  history.arm();const running=f.executor.executeInstalled(input,()=>{checks++;throw authError;},()=>{}),
+    outcome=Promise.allSettled([running]).then(rows=>{done=true;return rows;});
+  try{
+    await installedHistoryTurns();assert.equal(history.reads,1,'history must start even when authorize throws synchronously');
+    assert.equal(done,false,'owner cannot release before the held sibling settles');assert.deepEqual(effects(),before);
+    await assert.rejects(f.executor.executeInstalled(input,()=>{checks++;},()=>{}),{code:'E_OWNER'});
+  }finally{history.release();await outcome;}
+  const [result]=await outcome;assert.equal(result.status,'rejected');assert.equal(result.reason,authError,'original auth error has priority');
+  assert.equal(checks,1);assert.equal(targetReads,0,'verifyTarget cannot run after failed authorization');assert.deepEqual(effects(),before);
+  await assert.rejects(f.executor.executeInstalled(input,()=>{},()=>{}),{code:'E_SOURCE_HASH'},'owner releases only after the join; preparation remains one-shot');
+});
+
+test('installed history overlap joins synchronous history rejection with held successful auth',async t=>{
+  const f=fixture();t.after(f.dispose);await f.install();const input=await installedHistoryInput(f),held=allocationGate();
+  const historyError=Error('FULL history transaction rejected synchronously');
+  const history=holdInstalledHistory(f,{error:historyError,synchronous:true}),effects=installedHistoryEffects(f),before=effects();
+  let done=false,authorized=false,targetReads=0;const get=f.api.tabs.get;
+  f.api.tabs.get=async(...args)=>{assert.equal(authorized,true,'target observation follows successful authorization');targetReads++;return get(...args);};
+  history.arm();const running=f.executor.executeInstalled(input,async()=>{await held.wait;authorized=true;},()=>{}),
+    outcome=Promise.allSettled([running]).then(rows=>{done=true;return rows;});
+  try{
+    await installedHistoryTurns();assert.equal(history.reads,1,'history starts without waiting for authorization');
+    assert.equal(done,false);assert.deepEqual(effects(),before);
+    await assert.rejects(f.executor.executeInstalled(input,()=>{},()=>{}),{code:'E_OWNER'});
+  }finally{held.release();await outcome;}
+  const [result]=await outcome;assert.equal(result.status,'rejected');assert.equal(result.reason,historyError);
+  assert.equal(targetReads,1);assert.deepEqual(effects(),before);
+});
+
+for(const change of ['revoke','navigation'])test('installed history overlap original broker authorization and target reject '+change+' while siblings are held',async t=>{
+  const f=fixture();t.after(f.dispose);await f.install();
+  const history=holdInstalledHistory(f,{error:change==='navigation'?Error('history also rejected'):undefined}),effects=installedHistoryEffects(f),auth=allocationGate(),entered=allocationGate();
+  let before;
+  f.executeInstalled=(input,authorize,dispatch)=>{
+    before=effects();history.arm();
+    return f.executor.executeInstalled(input,async()=>{entered.release();await auth.wait;return authorize();},dispatch);
+  };
+  const outcome=Promise.allSettled([f.boot()]);await entered.wait;
+  try{
+    await installedHistoryTurns();assert.equal(history.reads,1);assert.deepEqual(effects(),before);
+    if(change==='revoke')await f.disable();else f.navigate('new-document');
+  }finally{history.release();auth.release();await outcome;}
+  const [result]=await outcome;assert.equal(result.status,'rejected');assert.equal(result.reason.code,change==='revoke'?'E_PERMISSION':'E_DOCUMENT_STALE');
+  assert.deepEqual(effects(),before,'failed original authorization/target cannot allocate worlds or dispatch source');
+  const execution=f.rows().find(row=>row.tag==='page-execution-v1');assert.equal(execution.state,'failed');assert.equal(execution.managedUI,undefined);
+});
+
+for(const cleanup of ['retired','unknown'])test('installed history overlap full history fences retirement until both siblings succeed: '+cleanup,async t=>{
+  const f=fixture();t.after(f.dispose);await f.install();await f.boot();
+  const original=f.rows().find(row=>row.tag==='page-execution-v1'),oldContext=f.context(),history=holdInstalledHistory(f),effects=installedHistoryEffects(f),
+    auth=allocationGate(),entered=allocationGate(),get=f.api.tabs.get;
+  f.api.tabs.get=async(...args)=>({...await get(...args),incognito:false});
+  if(cleanup==='unknown')f.cleanupReplies=()=>[];
+  let before;
+  f.executeInstalled=(input,authorize,dispatch)=>{
+    before=effects();history.arm();
+    return f.executor.executeInstalled(input,async()=>{entered.release();await auth.wait;return authorize();},dispatch);
+  };
+  const installed=f.installation(),outcome=Promise.allSettled([f.service.runInstalledPageProgram({programId:installed.programId,manifestHash:installed.manifestHash,
+    installationId:installed.authorization.installationId,expectedGeneration:installed.authorization.generation,target:structuredClone(f.target)},{documentId:'host-doc'})]);
+  await entered.wait;
+  try{
+    await installedHistoryTurns();assert.equal(history.reads,1);
+    assert.deepEqual(history.value.map(row=>row.executionKey),[original.executionKey],'complete history includes the old same-document world and excludes the new unbound execution');
+    assert.deepEqual(effects(),before);assert.equal(f.doc.querySelectorAll().length,1);
+    auth.release();await installedHistoryTurns();assert.deepEqual(effects(),before,'successful authorize/target cannot retire while history is held');
+  }finally{auth.release();history.release();await outcome;}
+  const [result]=await outcome;assert.equal(result.status,'fulfilled');
+  assert.equal(result.value.state,cleanup==='retired'?'completed':'failed');
+  assert.equal(vm.runInContext('disposals',oldContext),1,'the exact old disposer runs once after the join');
+  assert.equal(f.records().find(row=>row.worldId===original.managedUI.worldId).installed.state,cleanup);
+  const current=f.rows().filter(row=>row.tag==='page-execution-v1').at(-1);
+  if(cleanup==='unknown'){
+    assert.equal(result.value.error.code,'E_UI_CLEANUP_FAILED');assert.equal(current.managedUI,undefined);
+    assert.equal(f.calls.length-before.calls,1,'unknown retirement cannot enter allocation/proofs/source');
+    assert.equal(f.worldConfigurations.length,before.configurations);
+  }else{
+    assert.equal(current.state,'completed');assert.equal(f.calls.length-before.calls,5);
+    for(const key of ['authorizeTargetMs','historyReadMs','authorizeHistoryJoinMs','historyWorldsMs','totalMs'])
+      assert.ok(Number.isFinite(current.result.startupTimings[key])&&current.result.startupTimings[key]>=0,key);
+    assert.ok(current.result.startupTimings.authorizeHistoryJoinMs>=current.result.startupTimings.authorizeTargetMs);
+    assert.ok(current.result.startupTimings.authorizeHistoryJoinMs>=current.result.startupTimings.historyReadMs);
+  }
+});
+
+
+// 148 opaque observations: no rows, reservations or queue entry at begin.
+test('early FULL handle is private one-shot, exact-bound and allocator-local',async t=>{
+  const f=fixture();t.after(f.dispose);const worlds=createPreviewWorlds({api:f.api,storage:f.storage}),other=createPreviewWorlds({api:f.api,storage:f.storage}),native=f.api.userScripts;
+  const handle=worlds.beginAllocation(f.target,{pendingBinding:'nonce'});
+  assert.deepEqual(Object.keys(handle),[]);assert.ok(Object.isFrozen(handle));
+  await assert.rejects(other.allocate(native,f.target,{pendingBinding:'nonce',firstLedger:handle}),{code:'E_WORLD_ISOLATION'});
+  await assert.rejects(worlds.allocate(native,{...f.target,documentId:'foreign'},{pendingBinding:'nonce',firstLedger:handle}),{code:'E_WORLD_ISOLATION'});
+  await assert.rejects(worlds.allocate(native,f.target,{pendingBinding:'other',firstLedger:handle}),{code:'E_WORLD_ISOLATION'});
+  const id=await worlds.allocate(native,f.target,{pendingBinding:'nonce',firstLedger:handle});assert.equal(typeof id,'string');
+  const calls=f.calls.length;
+  await assert.rejects(worlds.allocate(native,f.target,{pendingBinding:'nonce',firstLedger:handle}),{code:'E_WORLD_ISOLATION'});
+  assert.equal(f.calls.length,calls);await worlds.discardAllocation(handle);
+  const discarded=worlds.beginAllocation(f.target,{pendingBinding:'discard'});await worlds.discardAllocation(discarded);
+  await assert.rejects(worlds.allocate(native,f.target,{pendingBinding:'discard',firstLedger:discarded}),{code:'E_WORLD_ISOLATION'});
+});
+
+test('early FULL begin has no queue/native effects; consumption reserves original FIFO before held read',async t=>{
+  const f=fixture();t.after(f.dispose);const worlds=createPreviewWorlds({api:f.api,storage:f.storage}),native=f.api.userScripts,get=f.api.storage.session.get;
+  const held=allocationGate();let reads=0,full=0;
+  const tx=f.storage.transaction;f.storage.transaction=(stores,mode,work)=>tx(stores,mode,t=>work({...t,all:async name=>{full++;return t.all(name);}}));
+  f.api.storage.session.get=async key=>{const rows=await get(key);if(++reads===1)await held.wait;return rows;};
+  const handle=worlds.beginAllocation(f.target,{pendingBinding:'early'});await allocationTurn();
+  assert.equal(reads,1);assert.equal(f.calls.length,0);assert.equal(f.worldConfigurations.length,0);
+  // Begin alone must not hold the world FIFO.
+  await worlds.allocate(native,f.target,{pendingBinding:'before'});
+  let observed=0;const second=worlds.allocate(native,f.target,{pendingBinding:'early',firstLedger:handle,onTiming:()=>{observed++;return Promise.reject(Error('non-authoritative observer'));}});
+  const third=worlds.allocate(native,f.target,{pendingBinding:'after'}),outcomes=Promise.allSettled([second,third]);
+  try{await allocationTurn();assert.equal(f.worldConfigurations.length,1);}finally{held.release();await outcomes;}
+  assert.ok((await outcomes).every(x=>x.status==='fulfilled'));
+  assert.deepEqual((await get(allocationLedger))[allocationLedger].map(x=>x.pendingBinding),['before','early','after']);
+  assert.equal(full,6,'exactly two full reads per allocation; no replacement first read');assert.ok(observed>0);
+});
+
+for(const change of ['fresh rejection','six','global','child union'])test('early FULL preserves second fresh FULL '+change,async t=>{
+  const f=fixture();t.after(f.dispose);const native=f.api.userScripts,get=f.api.storage.session.get,worlds=createPreviewWorlds({api:f.api,storage:f.storage});
+  const child='opendesk-preview-d1-child',parent=allocationRow('parent',{installed:{state:'ready',frames:[{worldId:child,state:'ready'}]}}),resets=[];
+  let reads=0;f.api.storage.session.get=async key=>{
+    reads++;
+    if(reads===1)return {[key]:change==='child union'?[parent]:[]};
+    if(change==='fresh rejection')throw Error('148 fresh FULL rejected');
+    return {[key]:change==='child union'?[{...parent,installed:{state:'retired',frames:[{worldId:child,state:'retired'}]}}]:
+      Array.from({length:change==='six'?6:4096},(_,i)=>allocationRow('charged'+i,{documentId:change==='six'?f.target.documentId:'other'+i}))};
+  };
+  native.getWorldConfigurations=async()=>[{worldId:parent.worldId},{worldId:child}];native.resetWorldConfiguration=async id=>{resets.push(id);};
+  const firstLedger=worlds.beginAllocation(f.target,{pendingBinding:'early'});
+  const result=worlds.allocate(native,f.target,{pendingBinding:'early',firstLedger});
+  if(change==='child union'){
+    await result;assert.deepEqual(resets,[]);const rows=(await get(allocationLedger))[allocationLedger];
+    assert.equal(rows.length,2);assert.equal(rows[0].installed.state,'retired');assert.equal(rows[1].installed,undefined);
+  }else{
+    await assert.rejects(result,change==='fresh rejection'?/148 fresh FULL rejected/:{code:'E_PREVIEW_WORLD_LIMIT'});
+    assert.equal(f.worldConfigurations.length,0);assert.equal(f.calls.length,0);
+    assert.equal((await get(allocationLedger))[allocationLedger],undefined);
+    if(change==='fresh rejection')assert.deepEqual(resets,[]);
+  }
+  assert.equal(reads,2);await worlds.discardAllocation(firstLedger);
+});
+
+test('early FULL preview handle binds preparation source installation nonce and exact target',async t=>{
+  const f=fixture();t.after(f.dispose);await f.install();
+  for(const field of ['preparation','installation','target','source']){
+    const input=await installedHistoryInput(f),firstLedger=f.executor.beginInstalledAllocation({...input,source:'page_auto'});
+    assert.throws(()=>f.executor.beginInstalledAllocation({...input,source:'page_auto'}),{code:'E_SOURCE_HASH'});
+    const changed=field==='preparation'?{preparation:await f.executor.prepareInstalled(input)}:
+      field==='installation'?{installation:{...input.installation,token:'foreign'}}:
+      field==='target'?{target:{...input.target,expectedWindowId:2}}:
+      {candidate:{...input.candidate,sourceUtf8:input.candidate.sourceUtf8+' '}};
+    await assert.rejects(f.executor.executeInstalled({...input,...changed,firstLedger,runAtReached:true},async()=>{},()=>{}),{code:'E_SOURCE_HASH'});
+    await f.executor.discardInstalledAllocation(firstLedger);
+  }
+  assert.equal(f.calls.length,0);
+});
+
+
+test('early FULL and default allocations plus records share eight fresh exact UUID permits',async t=>{
+  const f=fixture();t.after(f.dispose);await f.install();await f.boot();
+  const original=f.rows().find(row=>row.tag==='page-execution-v1');
+  await f.storage.transaction(['frameworkKV'],'readwrite',async tx=>{
+    for(let i=0;i<16;i++){
+      const row=structuredClone(original);row.documentId='early-history-'+i;row.executionKey+='-early-'+i;
+      row.managedUI.worldId+='-early-'+i;row.managedUI.lifecycle.executionKey=row.executionKey;row.managedUI.lifecycle.target.documentId=row.documentId;
+      await tx.put('frameworkKV',row,row.executionKey);
+    }
+  });
+  f.loseSession();let active=0,peak=0,late=false;const queries=[];
+  f.api.webNavigation.getFrame=async({documentId})=>{
+    queries.push(documentId);peak=Math.max(peak,++active);
+    try{await allocationTurn();if(documentId==='early-history-1')throw Error('unknown exact observation');
+      return late&&documentId==='early-history-2'?{documentId,documentLifecycle:'active'}:null;
+    }finally{active--;}
+  };
+  const worlds=createPreviewWorlds({api:f.api,storage:f.storage}),other=createPreviewWorlds({api:f.api,storage:f.storage});
+  const firstLedger=worlds.beginAllocation(f.target,{pendingBinding:'early'});
+  await Promise.all([worlds.allocate(f.api.userScripts,f.target,{pendingBinding:'early',firstLedger}),
+    worlds.allocate(f.api.userScripts,f.target,{pendingBinding:'default'}),other.records()]);
+  assert.ok(peak>1&&peak<=8);assert.equal(active,0);
+  assert.equal(queries.filter(id=>id==='early-history-2').length,5,'each of five FULL ledgers independently observes absent UUIDs');
+  late=true;const before=queries.length,rows=await other.records();
+  assert.ok(queries.slice(before).includes('early-history-2'));assert.ok(rows.some(row=>row.documentId==='early-history-2'));
+  assert.ok(rows.some(row=>row.documentId==='early-history-1'));assert.equal(active,0);
+});
+
+
+// 148 review: independently held original reads prove ownership, not handle shape.
+function holdReviewLedger148(f){
+  const get=f.api.storage.session.get,gates=[];let reads=0;
+  f.api.storage.session.get=async key=>{reads++;const gate=gates.shift(),rows=await get(key);if(gate)await gate.wait;return rows;};
+  return {next(){const gate=allocationGate();gates.push(gate);return gate;},get reads(){return reads;}};
+}
+for(const own of [true,false])test('early FULL review foreign B cannot replace '+(own?'held original A':'preparation without observation'),async t=>{
+  const f=fixture();t.after(f.dispose);await f.install();const a=await installedHistoryInput(f),held=holdReviewLedger148(f);
+  let aRead,aHandle;if(own){aRead=held.next();aHandle=f.executor.beginInstalledAllocation({...a,source:'page_auto'});}
+  const bRead=held.next(),enterB=allocationGate();let bInput,aSettled=false;
+  f.executeInstalled=async(input,...args)=>{bInput=input;await enterB.wait;return f.executor.executeInstalled(input,...args);};
+  const b=f.boot(),bOutcome=Promise.allSettled([b]);await allocationTurn();
+  // Wait only for normal boot bookkeeping, never release either observation.
+  for(let i=0;i<50&&!bInput;i++)await allocationTurn();assert.ok(bInput,'real B boot must reach its execution entry');
+  const before=f.calls.length,configurations=f.worldConfigurations.length;
+  const rejected=f.executor.executeInstalled({...a,runAtReached:true,firstLedger:bInput.firstLedger},async()=>{},()=>{}).finally(()=>{aSettled=true;});
+  const aOutcome=Promise.allSettled([rejected]);
+  try{
+    await installedHistoryTurns();
+    if(own){
+      assert.equal(aSettled,false,'A must drain only its original held observation');
+      await assert.rejects(f.executor.executeInstalled(await installedHistoryInput(f),async()=>{},()=>{}),{code:'E_OWNER'});
+      aRead.release();await installedHistoryTurns();
+    }
+    assert.equal(aSettled,true,'A rejection must not wait for the independently held B read');
+    assert.equal((await aOutcome)[0].reason.code,'E_SOURCE_HASH');
+    assert.equal(f.calls.length,before);assert.equal(f.worldConfigurations.length,configurations);
+    // The real B pipeline must still consume B and finish all three Native proofs.
+    enterB.release();await installedHistoryTurns();assert.equal(f.worldConfigurations.length,configurations);
+    bRead.release();await b;
+    assert.equal(f.records().length,1);assert.equal(f.rows().find(row=>row.tag==='page-execution-v1').state,'completed');
+  }finally{aRead?.release();bRead.release();enterB.release();await aOutcome;await bOutcome;if(aHandle)await f.executor.discardInstalledAllocation(aHandle);}
+});
+
+test('early FULL review omitted registered handle rejects and drains original without a replacement read',async t=>{
+  const f=fixture();t.after(f.dispose);await f.install();const held=holdReviewLedger148(f),read=held.next();
+  const configurations=f.worldConfigurations.length;let entered=false,innerSettled=false;
+  f.executeInstalled=(input,...args)=>{entered=true;const {firstLedger,...omitted}=input;
+    return f.executor.executeInstalled(omitted,...args).finally(()=>{innerSettled=true;});};
+  const run=f.boot(),outcome=Promise.allSettled([run]);
+  try{
+    for(let i=0;i<50&&!entered;i++)await allocationTurn();assert.equal(entered,true);
+    await installedHistoryTurns();assert.equal(held.reads,1,'omission cannot silently start a default first ledger');
+    assert.equal(innerSettled,false,'execute owner cannot release before its registered original settles');
+    assert.equal(f.calls.length,1,'only the previously validated bootstrap marker ran');assert.equal(f.worldConfigurations.length,configurations);
+    await assert.rejects(f.executor.executeInstalled(await installedHistoryInput(f),async()=>{},()=>{}),{code:'E_OWNER'});
+  }finally{read.release();await outcome;}
+  const [result]=await outcome;assert.equal(result.status,'rejected');assert.equal(result.reason.code,'E_SOURCE_HASH');
+  assert.equal(held.reads,1);assert.equal(f.calls.length,1);assert.equal(f.worldConfigurations.length,configurations);
+});
+
+for(const field of ['source','target'])test('early FULL review original '+field+' rejection retains owner until its own observation settles',async t=>{
+  const f=fixture();t.after(f.dispose);await f.install();const input=await installedHistoryInput(f),held=holdReviewLedger148(f),read=held.next();
+  const firstLedger=f.executor.beginInstalledAllocation({...input,source:'page_auto'});
+  const changed=field==='source'?{candidate:{...input.candidate,sourceUtf8:input.candidate.sourceUtf8+' '}}:
+    {target:{...input.target,expectedWindowId:2}};let settled=false;
+  const run=f.executor.executeInstalled({...input,...changed,runAtReached:true,firstLedger},async()=>{},()=>{}).finally(()=>{settled=true;});
+  const outcome=Promise.allSettled([run]);
+  try{
+    await installedHistoryTurns();assert.equal(settled,false);
+    await assert.rejects(f.executor.executeInstalled(await installedHistoryInput(f),async()=>{},()=>{}),{code:'E_OWNER'});
+    assert.equal(f.calls.length,0);assert.equal(held.reads,1);
+  }finally{read.release();await outcome;await f.executor.discardInstalledAllocation(firstLedger);}
+  assert.equal((await outcome)[0].reason.code,'E_SOURCE_HASH');
 });

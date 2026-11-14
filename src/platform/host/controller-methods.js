@@ -694,6 +694,16 @@ export function controllerMethods({storage, api, session, clock, assertHost, cur
   }
 
   const pageRequestKey=(ns,requestId)=>'page-task-request:'+canonical([ns,requestId]);
+  async function readPageTaskRequests(transaction){
+    if(typeof transaction.scanEntries!=='function')return transaction.all(COMMAND_JOURNAL);
+    const rows=[];let afterKey;
+    for(;;){
+      const page=await transaction.scanEntries(COMMAND_JOURNAL,{prefix:'page-task-request:',afterKey,limit:256});
+      rows.push(...page.map(entry=>entry.value));
+      if(page.length<256)return rows;
+      afterKey=page.at(-1).key;
+    }
+  }
   // Installation changes cannot free the one-request source slot. They revoke
   // access to the old result; they never prove that its effects did not occur.
   const pageSlotMatches=(a,b)=>['namespace','programId','tabId','frameId','url','windowId'].every(key=>a?.[key]===b?.[key]);
@@ -802,7 +812,7 @@ export function controllerMethods({storage, api, session, clock, assertHost, cur
     fields(request,[]);const host=await assertHost(sender);
     return tx(RUN_READ,async transaction=>{
       await currentHost(transaction,host,sender);
-      const requests=(await transaction.all(COMMAND_JOURNAL)).filter(row=>row.tag==='page-task-request'&&row.namespace===namespace(host))
+      const requests=(await readPageTaskRequests(transaction)).filter(row=>row.tag==='page-task-request'&&row.namespace===namespace(host))
         .sort((a,b)=>b.createdAt-a.createdAt).slice(0,64);
       const result=[];
       for(const row of requests)result.push(pageRequestView(row,await transaction.get(COMMAND_JOURNAL,preparationKey(row.namespace,row.preparationId))));
@@ -868,7 +878,7 @@ export function controllerMethods({storage, api, session, clock, assertHost, cur
       if(operation==='read'){
         id(payload.requestId);row=await assertPageRequestInTransaction(transaction,payload.requestId,source.namespace,{reader:source});
       }else{
-        const matches=(await transaction.all(COMMAND_JOURNAL)).filter(row=>row.tag==='page-task-request'&&pageSlotMatches(row.pageSource,source));
+        const matches=(await readPageTaskRequests(transaction)).filter(row=>row.tag==='page-task-request'&&pageSlotMatches(row.pageSource,source));
         invariant(matches.length<=1,'E_OWNER');row=matches[0]??null;
         if(row)invariant(pageReaderMatches(row.pageSource,source),'E_REVISION','Original Page request has another installation grant');
       }
@@ -2234,7 +2244,7 @@ export function controllerMethods({storage, api, session, clock, assertHost, cur
     if(!permissionRemoved)pageSourceEpochs.set(tabId,(pageSourceEpochs.get(tabId)||0)+1);
     const fenced=await tx(RUN_WRITE,async transaction=>{
       const affected=new Set();
-      for(const row of await transaction.all(COMMAND_JOURNAL)){
+      for(const row of await readPageTaskRequests(transaction)){
         if(row.tag!=='page-task-request')continue;
         const matches=permissionRemoved?[row.pageSource.url,row.target.url].some(url=>
           origins.some(pattern=>originMatches(pattern,httpUrl(url).origin))):row.pageSource.tabId===tabId;

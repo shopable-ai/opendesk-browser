@@ -275,10 +275,12 @@ export async function createFoundationBroker({api = chrome, ports = new Map(), c
   return {handle,issueGestureTicket,disconnectHost,recoverHostTab:recoverHostTabForBroker,
     handleInstalledPageBoot:(message,sender)=>message?.action==='page-frame'&&Object.hasOwn(message,'previewId')
       ?pageScriptPreview.handlePreviewFrame(message,sender):installedPages.handleBoot(message,sender),
+    hintInstalledPagePreparation:installedPages.hintPreparation,
     synchronizeAppPages:installedPages.synchronizeAppPages,
     reconcileInstalledPages:installedPages.reconcile,
     revokeInstalledPagePermissions:installedPages.revokePermissions,
     async cleanupPagePreviewWorlds(details){
+      installedPages.invalidatePreparation(details);
       await pageScriptPreview.cleanupWorlds(details);
       await installedPages.observeManagedCleanup(details);
     },authority,storage,pagePort:consumer?.pagePort,targets:consumer?.targets,downloads,entitlement,session,emitToHost,sdk};

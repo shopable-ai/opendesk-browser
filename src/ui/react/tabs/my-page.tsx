@@ -13,6 +13,7 @@ export function MyTasksDock({view,hidden=false}){
 }
 
 function MyTaskWorkspace({view}){
+  const taskEnabled=view.field('task-toggle').dataset.enabled==='true';
   return (<MyControl view={view} as="div" id="task-selected-workspace" className="task-selected-workspace">
 <MyControl view={view} as="p" id="task-current-site" className="identity">
 </MyControl>
@@ -52,10 +53,10 @@ function MyTaskWorkspace({view}){
 </svg>
 </MyControl>
 <MyControl view={view} as="button" type="button" id="task-toggle" onClick={event=>view.actions.taskToggleClick?.(event.nativeEvent)} className="od-icon-button" title="停用任务" aria-label="停用任务">
-<svg data-task-toggle-icon="pause" viewBox="0 0 24 24" aria-hidden="true">
+<svg data-task-toggle-icon="pause" viewBox="0 0 24 24" aria-hidden="true" hidden={!taskEnabled}>
 <path d="M7 5v14M17 5v14"/>
 </svg>
-<svg data-task-toggle-icon="play" viewBox="0 0 24 24" aria-hidden="true" hidden>
+<svg data-task-toggle-icon="play" viewBox="0 0 24 24" aria-hidden="true" hidden={taskEnabled}>
 <path d="m8 5 12 7-12 7Z"/>
 </svg>
 </MyControl>

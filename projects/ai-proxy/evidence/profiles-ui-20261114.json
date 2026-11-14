@@ -1,0 +1,184 @@
+{
+  "date": "2026-11-14",
+  "timezone": "Asia/Shanghai",
+  "status": "CORE_CONFIGURATION_UI_VERIFIED",
+  "goal": "通过真实已安装 AI Proxy profiles 页的 UI，完成代理配置新增、校验、编辑、草稿保护、保存回读、收藏、选择、删除及 PAC 管理；保存和选择不自动应用线路。",
+  "requestedUrl": "chrome-extension://ccfcjegpkdlgbclopjmadlcjedelidmf/app.html?hostInstanceId=5a5edf96-d14b-45a5-8fce-20be286cfdcc&toolId=ai-proxy&view=settings&section=profiles",
+  "runtimeUrlAtCleanup": "chrome-extension://ccfcjegpkdlgbclopjmadlcjedelidmf/app.html?hostInstanceId=54a21a3d-943f-49e5-856f-376623c0f343&toolId=ai-proxy&view=settings&section=profiles",
+  "environment": {
+    "method": "ego-browser v2.2.1, TaskSpace 29; real installed extension UI, no mock service",
+    "entry": "A task-owned app tab opened the requested URL; the app allocated a fresh hostInstanceId. The original user tab was not adopted or closed.",
+    "loadedExtensionId": "ccfcjegpkdlgbclopjmadlcjedelidmf",
+    "mode": "Existing installed runtime. This task did not change the runtime.",
+    "actualLoadPathAndServeConnection": "NOT_TESTED; the existing dist/development output was read but is not proof of current browser loading or connection.",
+    "runtimeRevisionAndInstalledPackageVersion": "NOT_TESTED",
+    "repositoryHeadObserved": "233fc9f692b1d53496788b7a463df6e9669e3949",
+    "sourceOrBuildEquivalence": "NOT_TESTED; observed UI results apply to this running installed UI."
+  },
+  "criticalConditions": [
+    {
+      "id": "C01",
+      "condition": "Profiles 页面能加载，并显示原有配置与真实控制状态",
+      "result": "PASS",
+      "observed": "R3 UI disposable, HTTP 127.0.0.1:18997; 尚未管理浏览器代理"
+    },
+    {
+      "id": "C02",
+      "condition": "添加独立临时代理，保存回执可见且不自动应用",
+      "result": "PASS",
+      "observed": "UI-QA-20261114-TEST, 127.0.0.1:19091；代理配置已保存，未自动应用。",
+      "evidence": "01-saved.txt"
+    },
+    {
+      "id": "C03",
+      "condition": "刷新后重新打开编辑器，名称、主机、端口正确回读",
+      "result": "PASS",
+      "evidence": "02-reloaded.txt"
+    },
+    {
+      "id": "C04",
+      "condition": "编辑保存并刷新后仍为修改后的名称和端口",
+      "result": "PASS",
+      "observed": "UI-QA-20261114-EDITED, 19092",
+      "evidence": "06-edited.txt"
+    },
+    {
+      "id": "C05",
+      "condition": "越界端口被拒绝，编辑器保持打开",
+      "result": "PASS",
+      "observed": "70000: validity.valid=false, 值必须小于或等于 65535。",
+      "evidence": "03-invalid-port.txt"
+    },
+    {
+      "id": "C06",
+      "condition": "不完整认证及尚未接入的完整认证明确拒绝保存",
+      "result": "PASS",
+      "observed": [
+        "认证需要同时填写用户名和密码，代理尚未保存",
+        "代理认证尚未接入，代理未保存。全部输入已保留。"
+      ],
+      "evidence": "04-incomplete-auth.txt"
+    },
+    {
+      "id": "C07",
+      "condition": "关闭未保存草稿时确认；取消确认保留编辑内容",
+      "result": "PASS",
+      "observed": "取消后名称仍 UI-QA-UNSAVED",
+      "evidence": "05-draft-confirm.txt"
+    },
+    {
+      "id": "C08",
+      "condition": "确认放弃草稿后，已保存的原始值仍然存在",
+      "result": "PASS",
+      "observed": "重新编辑回读 UI-QA-20261114-TEST"
+    },
+    {
+      "id": "C09",
+      "condition": "收藏状态在刷新后保持",
+      "result": "PASS",
+      "observed": "取消收藏：UI-QA-20261114-EDITED, aria-pressed=true",
+      "evidence": "07-favorite-reloaded.txt"
+    },
+    {
+      "id": "C10",
+      "condition": "选择只改变待应用配置，真实浏览器仍未接管",
+      "result": "PASS",
+      "observed": "已选择 UI-QA-20261114-EDITED；尚未管理浏览器代理",
+      "evidence": "08-selection-no-apply.txt"
+    },
+    {
+      "id": "C11",
+      "condition": "取消删除不移除记录；确认删除后刷新不再出现",
+      "result": "PASS",
+      "observed": "确认对话包含目标名称；删除后只剩原有记录",
+      "evidence": "11-deleted.txt"
+    },
+    {
+      "id": "C12",
+      "condition": "四种模式可选择，选择不自动应用；结束恢复原有待应用模式",
+      "result": "PASS",
+      "observed": "按规则→直接连接→跟随系统→使用代理；最终未选择配置，浏览器未接管",
+      "evidence": "14-mode-selection.json"
+    },
+    {
+      "id": "C13",
+      "condition": "备份导出有真实 UI 完成回执",
+      "result": "PASS_UI_RECEIPT",
+      "observed": "备份文件已生成，请查看浏览器下载。",
+      "limit": "No download artifact/content inspection; full export/import roundtrip NOT_TESTED.",
+      "evidence": "09-backup-export.txt"
+    },
+    {
+      "id": "C14",
+      "condition": "无效导入有持久错误且不替换配置，离开遵守草稿确认",
+      "result": "PASS",
+      "observed": "JSON 格式不正确；离开确认后代理列表仍为原有项和临时项",
+      "evidence": "10-invalid-import.txt"
+    },
+    {
+      "id": "C15",
+      "condition": "代理配置与导入备份可通过鼠标和键盘往返",
+      "result": "PASS_NATIVE_INPUT_WITH_DRIVER_LIMIT",
+      "observed": "ego Page.cdp Input.dispatchMouseEvent 完整 trusted mouse 链成功往返；Enter 也成功。",
+      "evidence": "12-pointer-diagnostic.json"
+    },
+    {
+      "id": "C16",
+      "condition": "从现有代理生成本地 PAC，保存并刷新后脚本正确回读",
+      "result": "PASS",
+      "observed": "UI-QA-20261114-PAC；qa.example.com → PROXY 127.0.0.1:18997；5 个真实换行。未执行或应用 PAC。",
+      "evidence": "16-pac-saved.txt"
+    },
+    {
+      "id": "C17",
+      "condition": "无 FindProxyForURL 的 PAC 编辑被拒绝并保留输入",
+      "result": "PASS",
+      "observed": "PAC 需包含 FindProxyForURL 且不超过 64 KiB；未执行代码检查",
+      "evidence": "17-pac-validation-error.txt"
+    },
+    {
+      "id": "C18",
+      "condition": "PAC 删除明确确认，临时代理/PAC 全部从 UI 清理；原有配置保留",
+      "result": "PASS_UI_CLEANUP",
+      "observed": "最终仅 编辑 R3 UI disposable；未发现 UI-QA- 项；pendingMode=使用代理；尚未管理浏览器代理",
+      "evidence": "18-cleanup.json"
+    }
+  ],
+  "driverIssue": {
+    "status": "HIGH_LEVEL_CLICK_TIMING_LIMIT",
+    "observed": "High-level page.click / page.mouse.click occasionally produced pointerdown/up while navigation button was transiently disabled; no click followed. In one attempt a full click chain also did not navigate. The same coordinate through Page.cdp at stable enabled state produced a complete trusted mouse chain and successful navigation.",
+    "sourceCorroboration": "Read-only native explore agent traced focus/visibility → header resume/reload busy → App headerLocked → navigationBusy → Settings disabled. The exact high-level driver internals are not proven.",
+    "productChanges": "None; no evidence justified changing navigation or relaxing busy/unknown guards."
+  },
+  "otherObservation": {
+    "scope": "Advanced collection area, outside this core configuration goal",
+    "observed": "采集配置读取失败；请检查本地数据。 appeared in full-page observations. The UI also says an isolated collection executor is not connected and disables its actions.",
+    "result": "NOT_RESOLVED_OR_ACCEPTED_AS_PASS",
+    "currentProfilesViewport": "No visible alert at final cleanup."
+  },
+  "preservation": {
+    "originalProxy": "R3 UI disposable, HTTP 127.0.0.1:18997 retained",
+    "initialAndFinalPending": "使用代理 / 尚未选择配置",
+    "realApplyOrStopActionPerformed": false,
+    "realProxyRequestsPerformed": false,
+    "sourceEdits": false,
+    "packageChanges": false,
+    "buildsOrWatcherChanges": false,
+    "commitOrPush": false,
+    "cleanup": "TaskSpace 29 finished with keep:[]; task-created p1/p2 closed; original user tab and other task spaces preserved.",
+    "auxiliaryPage": "A task-owned direct sidepanel.html tab exposed local task catalogue, not the Debug tab; it supplied no development connection evidence and was closed."
+  },
+  "notTested": [
+    "Real proxy apply/stop and website traffic",
+    "Runtime authentication",
+    "PAC execution/security audit",
+    "Valid replacement import roundtrip",
+    "Advanced collection executor/data-read failure",
+    "Subscription networking",
+    "Production/full app acceptance",
+    "Current source/build/installed-version equivalence"
+  ],
+  "artifactsDirectory": "artifacts/ai-proxy/profiles-ui-20261114/",
+  "finalScreenshot": "artifacts/ai-proxy/profiles-ui-20261114/profiles-final.png",
+  "evidenceLimit": "Core operation results come from visible UI, reloads and DOM reads. No direct service/storage mutations were used. Snapshot files and screenshots are local ignored artifacts."
+}

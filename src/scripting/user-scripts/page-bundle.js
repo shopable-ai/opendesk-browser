@@ -4,7 +4,7 @@ import {PAGE_SOURCE_LIMIT} from '../../platform/source-budgets.js';
 // rules. Nothing in this module evaluates source or fetches a URL.
 import {digest,digestUtf8,invariant} from '../../platform/protocol.js';
 import {remoteURL,REMOTE_PAGE_LIBRARY_LIMITS} from './remote-esm-contract.js';
-import {PREFIX as PAGE_FRAME_PREFIX,inspectPageFrameSource,readPageFrameResources} from './page-frame-resources.js';
+import {PREFIX as PAGE_FRAME_PREFIX,inspectPageFrameSource} from './page-frame-resources.js';
 export const PAGE_BUNDLE_FORMAT='opendesk.page-linked-resource.v1';
 export const PAGE_BUNDLE_PREFIX='// OpenDesk Page linked resource v1 ';
 export const PAGE_BUNDLE_LIMITS=Object.freeze({linkedBytes:512*1024,descriptorBytes:4096,draftBytes:768*1024});
@@ -51,7 +51,11 @@ export function inspectPageSource(sourceUtf8,{plainLimit=PAGE_SOURCE_LIMIT}={}){
 }
 export async function validatePageSource(sourceUtf8,options){
   const bundle=inspectPageSource(sourceUtf8,options);
-  await readPageFrameResources(sourceUtf8);
+  // inspectPageSource already parsed and checked this source's exact frame
+  // header/byte counts. Hash those captured resources without parsing a second
+  // multi-megabyte JSON copy; no parsed facts survive this validation call.
+  for(const row of bundle?.resources??[])invariant(await digestUtf8(row.code)===row.sha256,
+    'E_PAGE_FRAME_RESOURCE_HASH','Page frame resource SHA-256 mismatch: '+row.resourceId);
   if(bundle?.descriptor)invariant(await digestUtf8(bundle.linked)===bundle.descriptor.linkedSha256,
     'E_PAGE_BUNDLE_HASH','固定 Page 执行资源 SHA-256 不符；不会下载或回退其它版本');
   return bundle;

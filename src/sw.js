@@ -266,7 +266,10 @@ chrome.webNavigation.onCommitted.addListener(details => {
   // SDK grants are document-bound; controller navigation additionally retains
   // the native document fact for its separately journalled controlled handoff.
   invalidateSdk('navigation',{tabId:details.tabId,frameId:details.frameId,documentId:details.documentId});
-  if (details.frameId === 0) foundation.then(broker => broker.cleanupPagePreviewWorlds({tabId:details.tabId,documentId:details.documentId}))
+  if (details.frameId === 0) foundation.then(broker => Promise.all([
+    broker.cleanupPagePreviewWorlds(details),
+    broker.hintInstalledPagePreparation(details)
+  ]))
     .catch(error => console.error(`[page preview cleanup ${error.code || 'E_WORLD_ISOLATION'}] ${error.message}`));
 });
 // Same-document URL changes retire Page-origin approvals as well. Returning to

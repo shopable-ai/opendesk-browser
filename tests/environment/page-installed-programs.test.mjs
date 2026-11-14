@@ -119,17 +119,20 @@ function fixture(){
       const handle=await executor.prepareInstalled(desired);
       await f.afterCompilation?.(desired,handle);
       return handle;
-    },executeInstalled:executor.executeInstalled,
+    },beginInstalledAllocation:executor.beginInstalledAllocation,discardInstalledAllocation:executor.discardInstalledAllocation,
+    executeInstalled:(...args)=>(f.executeInstalled||executor.executeInstalled)(...args),
     get retireInstalled(){return f.retireHook||undefined;},
-    executeFrame:async(_input,authorize)=>{await authorize();return {state:'frame-authorized'};}};
-  const make=()=>createInstalledPagePrograms({loadBuiltin:async()=>f.builtinSource,api,storage,assertHost,dependencies,preview,admission,session:f.session,
+    executeFrame:async(input,authorize,dispatch)=>{
+      if(f.frameExecute)return f.frameExecute(input,authorize,dispatch);
+      await authorize();return {state:'frame-authorized'};}};
+  const make=()=>createInstalledPagePrograms({loadBuiltin:async()=>f.readBuiltin?f.readBuiltin():f.builtinSource,api,storage,assertHost,dependencies,preview,admission,session:f.session,
     onPageTask:(message,source)=>f.onPageTask?.(message,source)});
   const nativeScripts=api.userScripts;
   Object.defineProperty(api,'userScripts',{get:()=>f.access?nativeScripts:undefined});
-  f.api=api;f.previewExecutor=executor;f.service=make();f.restart=()=>{
+  f.api=api;f.admission=admission;f.previewExecutor=executor;f.service=make();f.restart=()=>{
     const restoredAdmission=createPreviewAdmission({storage,assertHost,currentHost:async()=>{},session:f.session});
     const restoredExecutor=createPageScriptPreview({api,storage,assertHost,dependencies,admission:restoredAdmission,loadBuiltin:async()=>f.builtinSource});
-    const restoredPreview={...preview,prepareInstalled:restoredExecutor.prepareInstalled,executeInstalled:restoredExecutor.executeInstalled};
+    const restoredPreview={...preview,prepareInstalled:restoredExecutor.prepareInstalled,executeInstalled:restoredExecutor.executeInstalled,beginInstalledAllocation:restoredExecutor.beginInstalledAllocation,discardInstalledAllocation:restoredExecutor.discardInstalledAllocation};
     f.service=createInstalledPagePrograms({loadBuiltin:async()=>f.builtinSource,api,storage,assertHost,dependencies,preview:restoredPreview,admission:restoredAdmission,session:f.session,
       onPageTask:(message,source)=>f.onPageTask?.(message,source)});
   };f.storage=storage;f.dependencies=dependencies;f.target=target;f.sender=sender;
@@ -302,6 +305,287 @@ test('two exact documents advance independently and a third waits for one lease'
     assert.equal(f.installation().lastExecution.tabId,3);
   }finally{releaseFirst();releaseSecond();await Promise.allSettled(runs);}
 });
+function executionProgram(f,input){
+  return f.rows().find(row=>row.tag==='page-execution-v1'&&row.managedUI?.worldId===input.worldId)?.programId;
+}
+function frameMessage(execution){
+  return {protocol:PAGE_BOOT_PROTOCOL,action:'page-frame',executionKey:execution.executionKey,
+    receiptNonce:execution.receiptNonce,operation:'execute',requestId:crypto.randomUUID(),
+    resourceId:'renderer',url:'about:blank',portToken:'unused',data:{}};
+}
+function deferred(){let resolve;const promise=new Promise(r=>resolve=r);return {promise,resolve};}
+
+test('malformed boot initialization cannot strand later automatic startup or manual Run',async()=>{
+  const f=fixture(),installed=await f.install();await installAnother(f,'automatic');
+  const malformed={protocol:PAGE_BOOT_PROTOCOL,token:f.message().token};
+  await fails(async()=>f.service.handleBoot(malformed,f.sender),'E_SCHEMA');
+  assert.equal(f.sourceCalls,0);
+  assert.ok(!f.snapshot().get('runs').get('@slot')?.preview);
+  const automatic=f.service.handleBoot(f.message('automatic'),f.sender);automatic.catch(()=>{});
+  await reaches(()=>f.sourceCalls===1);await automatic;
+  const manual=f.service.runInstalledPageProgram({programId:'script',manifestHash:installed.manifestHash,
+    installationId:installed.authorization.installationId,expectedGeneration:installed.authorization.generation,
+    target:f.target},{documentId:'tool-document'});manual.catch(()=>{});
+  await reaches(()=>f.sourceCalls===2);await manual;
+  assert.ok(!f.snapshot().get('runs').get('@slot')?.preview);
+});
+
+test('a rejected late resource owner read releases FIFO position for automatic and manual work',async()=>{
+  const f=fixture();await f.install();const installed=await installAnother(f,'manual');await installAnother(f,'automatic');
+  await f.service.handleBoot(f.message(),f.sender);await new Promise(resolve=>setImmediate(resolve));
+  const parent=f.rows().find(row=>row.tag==='page-execution-v1'),transaction=f.storage.transaction;
+  let rejectOwner=true;
+  f.storage.transaction=(stores,mode,work)=>transaction(stores,mode,tx=>{
+    const get=tx.get;tx.get=async(name,key)=>{
+      if(rejectOwner&&mode==='readonly'&&key===parent.executionKey){rejectOwner=false;throw Error('owner read failed');}
+      return get(name,key);
+    };return work(tx);
+  });
+  await assert.rejects(f.service.handleBoot(frameMessage(parent),f.sender),/owner read failed/);
+  assert.ok(!f.snapshot().get('runs').get('@slot')?.preview);
+  const automatic=f.service.handleBoot(f.message('automatic'),f.sender);automatic.catch(()=>{});
+  const manual=f.service.runInstalledPageProgram({programId:'manual',manifestHash:installed.manifestHash,
+    installationId:installed.authorization.installationId,expectedGeneration:installed.authorization.generation,
+    target:f.target},{documentId:'tool-document'});manual.catch(()=>{});
+  await reaches(()=>f.sourceCalls===3);await Promise.all([automatic,manual]);
+  assert.doesNotThrow(()=>f.admission.assertDispatch());
+});
+
+test('a late resource retires while Native is pending and its late failure cannot revive a fence',async()=>{
+  const f=fixture();await f.install();await installAnother(f,'automatic');
+  await f.service.handleBoot(f.message(),f.sender);await new Promise(resolve=>setImmediate(resolve));
+  const parent=f.rows().find(row=>row.tag==='page-execution-v1'),message=frameMessage(parent);
+  let rejectNative,entered=false,retired=false;
+  const native=new Promise((_resolve,reject)=>{rejectNative=reject;});
+  f.frameExecute=async(input,authorize,dispatch)=>{
+    if(input.message.operation==='retire'){retired=true;return {state:'retired'};}
+    await authorize();const pending=await dispatch(()=>{entered=true;return native;});
+    await pending.completion;return {state:'frame-authorized'};
+  };
+  const late=f.service.handleBoot(message,f.sender);late.catch(()=>{});
+  let retirement;
+  try{
+    await reaches(()=>entered);
+    const {resourceId,url,portToken,data,...identity}=message;
+    retirement=f.service.handleBoot({...identity,operation:'retire'},f.sender);retirement.catch(()=>{});
+    await reaches(()=>retired);
+    assert.equal((await retirement).state,'retired');
+    assert.ok(!f.snapshot().get('runs').get('@slot')?.preview,'retirement releases only its resource reservation before Native settles');
+    assert.equal((await f.service.handleBoot(f.message('automatic'),f.sender)).state,'completed',
+      'a different owner advances while the retired Native completion is still pending');
+    rejectNative(Error('late Native rejection'));await assert.rejects(late,/late Native rejection/);
+    assert.doesNotThrow(()=>f.admission.assertDispatch());
+  }finally{rejectNative(Error('test cleanup'));await late.catch(()=>{});}
+});
+
+test('manual rerun retires an old frame disposer before dispatching the replacement world',async()=>{
+  const f=fixture(),installed=await f.install();await f.service.handleBoot(f.message(),f.sender);
+  await new Promise(resolve=>setImmediate(resolve));
+  const parent=f.rows().find(row=>row.tag==='page-execution-v1'),message=frameMessage(parent);
+  const {resourceId,url,portToken,data,...identity}=message;
+  let cleanupStarted=false,retired=false;
+  f.frameExecute=async input=>{assert.equal(input.message.operation,'retire');retired=true;return {state:'retired'};};
+  const context=f.context(parent.managedUI.worldId);
+  context.cleanupFrame=()=>{cleanupStarted=true;return f.service.handleBoot({...identity,operation:'retire'},f.sender);};
+  vm.runInContext('__opendeskManagedUIRegistryV1.enroll("old-frame",cleanupFrame,()=>({clean:true}));',context);
+  const manual=f.service.runInstalledPageProgram({programId:'script',manifestHash:installed.manifestHash,
+    installationId:installed.authorization.installationId,expectedGeneration:installed.authorization.generation,
+    target:f.target},{documentId:'tool-document'});manual.catch(()=>{});
+  await reaches(()=>cleanupStarted);await reaches(()=>retired);
+  assert.equal((await manual).state,'completed');
+  assert.equal(f.sourceCalls,2,'replacement source dispatches after confirmed old-world disposal');
+  const worlds=Object.values(await f.api.storage.session.get()).flat().filter(row=>row?.worldId===parent.managedUI.worldId);
+  assert.equal(worlds[0]?.installed?.state,'retired');
+  assert.ok(!f.snapshot().get('runs').get('@slot')?.preview);
+  assert.doesNotThrow(()=>f.admission.assertDispatch());
+});
+
+test('a no-record retirement from one parent cannot clear another resource or its unknown fence',async()=>{
+  const f=fixture();await f.install();await installAnother(f,'second');
+  await f.service.handleBoot(f.message(),f.sender);
+  await f.service.handleBoot(f.message('second'),f.sender);
+  await new Promise(resolve=>setImmediate(resolve));
+  const parents=f.rows().filter(row=>row.tag==='page-execution-v1'),
+    first=parents.find(row=>row.programId==='script'),second=parents.find(row=>row.programId==='second'),
+    resource=frameMessage(second);
+  f.frameExecute=async(input,authorize,dispatch)=>{
+    if(input.message.operation==='retire')return {state:'retired',notDispatched:true};
+    await authorize();const pending=await dispatch(()=>Promise.reject(Error('Native receipt lost')));
+    await pending.completion;
+  };
+  await assert.rejects(f.service.handleBoot(resource,f.sender),/Native receipt lost/);
+  const before=f.snapshot().get('runs').get('@slot');
+  assert.equal(before.preview.entries[0].nonce,resource.requestId);
+  assert.equal(before.preview.entries[0].unknown,true);
+  const {resourceId,url,portToken,data,...identity}=frameMessage(first);
+  assert.deepEqual(await f.service.handleBoot({...identity,operation:'retire',requestId:resource.requestId},f.sender),
+    {state:'retired',notDispatched:true});
+  assert.deepEqual(f.snapshot().get('runs').get('@slot'),before);
+  assert.throws(()=>f.admission.assertDispatch(),{code:'E_OWNER'});
+});
+
+test('two programs on one document advance; a third waits and same-program main dispatches once',async()=>{
+  const f=fixture();await f.install();await installAnother(f,'second');await installAnother(f,'third');
+  const gates={script:deferred(),second:deferred()};
+  f.completionGate=input=>gates[executionProgram(f,input)]?.promise;
+  const first=f.service.handleBoot(f.message(),f.sender),second=f.service.handleBoot(f.message('second'),f.sender);
+  for(const run of [first,second])run.catch(()=>{});
+  await reaches(()=>f.sourceCalls===2);
+  const third=f.service.handleBoot(f.message('third'),f.sender),duplicate=f.service.handleBoot(f.message(),f.sender);
+  for(const run of [third,duplicate])run.catch(()=>{});
+  try{
+    await new Promise(resolve=>setImmediate(resolve));
+    assert.equal(f.sourceCalls,2);
+    // Independent owners may finish pure preparation in either order. Require
+    // exactly both active identities; same-owner FIFO/manual barriers are separate.
+    assert.deepEqual(f.snapshot().get('runs').get('@slot').preview.entries.map(row=>row.installedProgramId).sort(),['script','second']);
+    gates.second.resolve();await second;await third;
+    assert.equal(f.sourceCalls,3,'the third program must not wait for the first main');
+    gates.script.resolve();await first;
+    await fails(()=>duplicate,'E_REQUEST_CONFLICT');
+    assert.equal(f.rows().filter(row=>row.tag==='page-execution-v1'&&row.programId==='script').length,1);
+    assert.equal(f.sourceCalls,3);
+  }finally{Object.values(gates).forEach(g=>g.resolve());await Promise.allSettled([first,second,third,duplicate]);}
+});
+
+test('same-document children bind their exact parents and release independently',async()=>{
+  const f=fixture();await f.install();await installAnother(f,'second');await installAnother(f,'third');
+  const mains={script:deferred(),second:deferred()},children={script:deferred(),second:deferred()},entered=new Set();
+  f.completionGate=input=>mains[executionProgram(f,input)]?.promise;
+  f.frameExecute=async(input,authorize,dispatch)=>{
+    await authorize();
+    const pending=await dispatch(()=>{entered.add(input.execution.programId);return children[input.execution.programId].promise;});
+    await pending.completion;return {state:'frame-authorized'};
+  };
+  const runs=[f.service.handleBoot(f.message(),f.sender),f.service.handleBoot(f.message('second'),f.sender)];
+  runs.forEach(run=>run.catch(()=>{}));await reaches(()=>f.sourceCalls===2);
+  const parents=f.rows().filter(row=>row.tag==='page-execution-v1');
+  const childRuns=parents.map(row=>f.service.handleBoot(frameMessage(row),f.sender));
+  childRuns.forEach(run=>run.catch(()=>{}));
+  const third=f.service.handleBoot(f.message('third'),f.sender);third.catch(()=>{});
+  try{
+    await reaches(()=>entered.size===2);
+    for(const entry of f.snapshot().get('runs').get('@slot').preview.entries)assert.equal(entry.children.length,1);
+    mains.script.resolve();mains.second.resolve();await Promise.all(runs);
+    assert.equal(f.sourceCalls,2,'children retain both parent places');
+    children.script.resolve();await childRuns[0];await third;
+    assert.equal(f.sourceCalls,3,'only the first parent and its own child need settle');
+    const entries=f.snapshot().get('runs').get('@slot').preview.entries;
+    assert.equal(entries.length,1);assert.equal(entries[0].installedProgramId,'second');
+    assert.equal(entries[0].children.length,1);
+  }finally{
+    [...Object.values(mains),...Object.values(children)].forEach(g=>g.resolve());
+    await Promise.allSettled([...runs,...childRuns,third]);
+  }
+});
+
+test('a waiting manual barrier services earlier parent children but holds late independent resources',async()=>{
+  const f=fixture();await f.install();await installAnother(f,'second');await installAnother(f,'later');
+  const installed=await installAnother(f,'manual');
+  const mains={script:deferred(),second:deferred()},child=deferred(),manual=deferred();let manualPrepared=false,children=0;
+  f.completionGate=input=>{
+    const row=f.rows().find(row=>row.managedUI?.worldId===input.worldId);
+    return row?.source==='manual'?manual.promise:mains[row?.programId]?.promise;
+  };
+  f.frameExecute=async(input,authorize,dispatch)=>{
+    await authorize();const pending=await dispatch(()=>{children++;return child.promise;});
+    await pending.completion;return {state:'frame-authorized'};
+  };
+  const first=f.service.handleBoot(f.message(),f.sender),second=f.service.handleBoot(f.message('second'),f.sender);
+  first.catch(()=>{});second.catch(()=>{});await reaches(()=>f.sourceCalls===2);
+  const parent=f.rows().find(row=>row.tag==='page-execution-v1'&&row.programId==='script');
+  f.afterCompilation=desired=>{if(desired.candidate.manifest.programId==='manual')manualPrepared=true;};
+  const runManual=f.service.runInstalledPageProgram({programId:'manual',manifestHash:installed.manifestHash,
+    installationId:installed.authorization.installationId,expectedGeneration:installed.authorization.generation,
+    target:f.target},{documentId:'tool-document'});runManual.catch(()=>{});
+  await reaches(()=>manualPrepared);
+  const earlierChild=f.service.handleBoot(frameMessage(parent),f.sender);earlierChild.catch(()=>{});
+  const later=f.service.handleBoot(f.message('later'),f.sender);later.catch(()=>{});
+  let lateChild;
+  try{
+    await reaches(()=>children===1);
+    mains.script.resolve();mains.second.resolve();await Promise.all([first,second]);
+    assert.equal(f.sourceCalls,2);
+    child.resolve();await earlierChild;await reaches(()=>f.sourceCalls===3);
+    lateChild=f.service.handleBoot(frameMessage(parent),f.sender);lateChild.catch(()=>{});
+    await new Promise(resolve=>setImmediate(resolve));assert.equal(children,1,'late child cannot borrow a completed parent across the barrier');
+    assert.equal(f.rows().some(row=>row.tag==='page-execution-v1'&&row.programId==='later'),false);
+    manual.resolve();await runManual;await later;await lateChild;
+    assert.equal(f.sourceCalls,4);assert.equal(children,2);
+  }finally{
+    [...Object.values(mains),child,manual].forEach(g=>g.resolve());
+    await Promise.allSettled([first,second,earlierChild,runManual,later,lateChild].filter(Boolean));
+  }
+});
+
+test('a late resource keeps FIFO position while its owner is read before a manual barrier',async()=>{
+  const f=fixture();await f.install();const installed=await installAnother(f,'manual');
+  await f.service.handleBoot(f.message(),f.sender);
+  // Let the completed parent's scheduler lease leave before sending its late child.
+  await new Promise(resolve=>setImmediate(resolve));
+  const parent=f.rows().find(row=>row.tag==='page-execution-v1'),owner=deferred(),child=deferred();
+  let ownerRead=false,childStarted=false,manualPrepared=false,pause=true;
+  const transaction=f.storage.transaction;
+  f.storage.transaction=(stores,mode,work)=>{
+    let hold=false;
+    return transaction(stores,mode,tx=>{
+      const get=tx.get;tx.get=async(name,key)=>{
+        const value=await get(name,key);
+        if(pause&&mode==='readonly'&&key===parent.executionKey){pause=false;hold=true;ownerRead=true;}
+        return value;
+      };return work(tx);
+    }).then(async value=>{if(hold)await owner.promise;return value;});
+  };
+  f.frameExecute=async(_input,authorize,dispatch)=>{
+    await authorize();const pending=await dispatch(()=>{childStarted=true;return child.promise;});
+    await pending.completion;return {state:'frame-authorized'};
+  };
+  const late=f.service.handleBoot(frameMessage(parent),f.sender);late.catch(()=>{});
+  await reaches(()=>ownerRead);
+  f.afterCompilation=()=>{manualPrepared=true;};
+  const manual=f.service.runInstalledPageProgram({programId:'manual',manifestHash:installed.manifestHash,
+    installationId:installed.authorization.installationId,expectedGeneration:installed.authorization.generation,
+    target:f.target},{documentId:'tool-document'});manual.catch(()=>{});
+  try{
+    await reaches(()=>manualPrepared);
+    assert.equal(f.sourceCalls,1,'manual cannot overtake an earlier child whose owner lookup is pending');
+    owner.resolve();await reaches(()=>childStarted);
+    assert.equal(f.sourceCalls,1,'manual waits for the independent child lease');
+    child.resolve();await late;await manual;assert.equal(f.sourceCalls,2);
+  }finally{owner.resolve();child.resolve();await Promise.allSettled([late,manual]);}
+});
+
+test('a same-document unknown fences a prepared sibling before its native dispatch',async()=>{
+  const f=fixture();await f.install();await installAnother(f,'second');
+  const fail=deferred(),resume=deferred();let secondReady=false;
+  f.completionGate=async input=>{
+    if(executionProgram(f,input)==='script'){await fail.promise;throw Error('lost first receipt');}
+  };
+  // Hold the sibling immediately before the real final ordered dispatch,
+  // leaving all production authorization and exact-CAS checks in place.
+  const originalTransaction=f.storage.transaction;
+  f.storage.transaction=(stores,mode,work)=>originalTransaction(stores,mode,async tx=>{
+    const put=tx.put;tx.put=async(name,value,key)=>{
+      await put(name,value,key);
+      if(name==='frameworkKV'&&value?.tag==='page-execution-v1'&&value.programId==='second'&&value.managedUI&&value.state==='prepared'){
+        secondReady=true;await resume.promise;
+      }
+    };return work(tx);
+  });
+  const first=f.service.handleBoot(f.message(),f.sender);first.catch(()=>{});
+  await reaches(()=>f.sourceCalls===1);
+  const second=f.service.handleBoot(f.message('second'),f.sender);second.catch(()=>{});
+  try{
+    await reaches(()=>secondReady);fail.resolve();
+    await reaches(()=>{try{f.admission.assertDispatch();return false;}catch{return true;}});
+    assert.equal(f.sourceCalls,1,'unknown is fenced before its durable transaction can run');
+    resume.resolve();await fails(()=>first,'E_EFFECT_UNKNOWN');await fails(()=>second,'E_OWNER');
+    assert.equal(f.sourceCalls,1);
+    assert.equal(f.rows().find(row=>row.tag==='page-execution-v1'&&row.programId==='second').state,'failed');
+    assert.equal(f.snapshot().get('runs').get('@slot').preview.entries.length,1);
+  }finally{fail.resolve();resume.resolve();await Promise.allSettled([first,second]);}
+});
+
 test('a waiting manual Run prevents later automatic documents from overtaking it',async()=>{
   const f=fixture(),installed=await f.install(),pages=documents(f);
   let finishFirst,finishManual;
@@ -357,20 +641,22 @@ test('rotation preserves multiple same-document waiters and the following manual
   }finally{finishFirst();finishSecond();finishManual();await Promise.allSettled([first,second,repeat,repeat2,third,manual,after]);}
 });
 test('invocation compilation overlaps an earlier main without reserving another slot',async()=>{
-  const f=fixture();await f.install();await installAnother(f,'waiting');
+  const f=fixture();await f.install();await installAnother(f,'waiting');await installAnother(f,'blocker');
   let finish,compiled=false;f.completionGate=new Promise(resolve=>finish=resolve);
   const first=f.service.handleBoot(f.message(),{...f.sender});first.catch(()=>{});
   await reaches(()=>f.sourceCalls===1);
+  const blocker=f.service.handleBoot(f.message('blocker'),{...f.sender});blocker.catch(()=>{});
+  await reaches(()=>f.sourceCalls===2);
   f.afterCompilation=desired=>{if(desired.candidate.manifest.programId==='waiting')compiled=true;};
   const waiting=f.service.handleBoot(f.message('waiting'),{...f.sender});waiting.catch(()=>{});
   try{
     await reaches(()=>compiled);
-    assert.equal(f.sourceCalls,1);
+    assert.equal(f.sourceCalls,2);
     assert.equal(f.rows().some(row=>row.tag==='page-execution-v1'&&row.programId==='waiting'),false);
     assert.equal(f.snapshot().get('runs').get('@slot').preview.entries[0].installedProgramId,'script');
-  }finally{finish();await Promise.allSettled([first,waiting]);}
+  }finally{finish();await Promise.allSettled([first,blocker,waiting]);}
   await waiting;
-  assert.equal(f.sourceCalls,2);
+  assert.equal(f.sourceCalls,3);
   assert.ok(f.installation('waiting').lastExecution.result.startupTimings.invocationPreparationMs>=0);
 });
 
@@ -431,6 +717,71 @@ test('slow pure preparation cannot block a different document or claim the share
   assert.equal(f.sourceCalls,2);
 });
 
+test('two blocked pure preparations do not occupy both parent execution leases',async()=>{
+  const f=fixture();await f.install();for(const id of ['blocked','ready'])await installAnother(f,id);
+  const pages=documents(f,3),read=f.dependencies.readStoredPageCandidate,entered=new Set();
+  let release;const gate=new Promise(resolve=>release=resolve);
+  f.dependencies.readStoredPageCandidate=async(...args)=>{
+    if(args[1]!=='ready'){entered.add(args[1]);await gate;}
+    return read(...args);
+  };
+  const slow=[f.service.handleBoot(f.message(),pages[0].sender),f.service.handleBoot(f.message('blocked'),pages[1].sender)];
+  slow.forEach(p=>p.catch(()=>{}));let ready;
+  try{
+    await reaches(()=>entered.size===2);
+    ready=f.service.handleBoot(f.message('ready'),pages[2].sender);ready.catch(()=>{});
+    await reaches(()=>f.rows().some(row=>row.tag==='page-execution-v1'&&row.programId==='ready'&&row.state==='completed'));
+    assert.equal(f.sourceCalls,1,'only the prepared independent program may enter execution');
+    assert.equal(f.rows().some(row=>row.tag==='page-execution-v1'&&row.programId!=='ready'),false);
+  }finally{release();await Promise.allSettled([...slow,ready].filter(Boolean));}
+});
+
+test('prepared duplicate cannot overtake an earlier same-owner preparation',async()=>{
+  const f=fixture();await f.install();await installAnother(f,'ready');
+  const pages=documents(f,2),read=f.dependencies.readStoredPageCandidate;
+  let release,entered=false,firstRead=true,duplicatePrepared=false;const gate=new Promise(resolve=>release=resolve);
+  f.afterCompilation=desired=>{if(desired.candidate.manifest.programId==='script')duplicatePrepared=true;};
+  f.dependencies.readStoredPageCandidate=async(...args)=>{
+    if(args[1]==='script'&&firstRead){firstRead=false;entered=true;await gate;}
+    return read(...args);
+  };
+  const first=f.service.handleBoot(f.message(),pages[0].sender);first.catch(()=>{});
+  let duplicate,independent;
+  try{
+    await reaches(()=>entered);
+    duplicate=f.service.handleBoot(f.message(),pages[0].sender);duplicate.catch(()=>{});
+    independent=f.service.handleBoot(f.message('ready'),pages[1].sender);independent.catch(()=>{});
+    await reaches(()=>duplicatePrepared);
+    await independent;
+    assert.equal(f.sourceCalls,1);assert.equal(f.rows().some(row=>row.tag==='page-execution-v1'&&row.tabId===1),false);
+  }finally{release();await Promise.allSettled([first,duplicate,independent].filter(Boolean));}
+  await first;await fails(()=>duplicate,'E_REQUEST_CONFLICT');assert.equal(f.sourceCalls,2);
+});
+
+test('unprepared manual Run remains a barrier to later ready automatic work',async()=>{
+  const f=fixture();await f.install();for(const id of ['manual','ready'])await installAnother(f,id);
+  const pages=documents(f,3),installed=f.installation('manual'),read=f.dependencies.readStoredPageCandidate,entered=new Set();
+  let release,laterPrepared=false;const gate=new Promise(resolve=>release=resolve);
+  f.dependencies.readStoredPageCandidate=async(...args)=>{
+    if(args[1]!=='ready'){entered.add(args[1]);await gate;}
+    return read(...args);
+  };
+  f.afterCompilation=desired=>{if(desired.candidate.manifest.programId==='ready')laterPrepared=true;};
+  const first=f.service.handleBoot(f.message(),pages[0].sender);first.catch(()=>{});
+  let manual,later;
+  try{
+    await reaches(()=>entered.has('script'));
+    manual=f.service.runInstalledPageProgram({programId:'manual',manifestHash:installed.manifestHash,
+      installationId:installed.authorization.installationId,expectedGeneration:installed.authorization.generation,
+      target:pages[1].target},{documentId:'tool-document'});manual.catch(()=>{});
+    await reaches(()=>entered.has('manual'));
+    later=f.service.handleBoot(f.message('ready'),pages[2].sender);later.catch(()=>{});
+    await reaches(()=>laterPrepared);await new Promise(resolve=>setImmediate(resolve));
+    assert.equal(f.sourceCalls,0,'a manual FIFO barrier applies even before it consumes an execution lease');
+  }finally{release();await Promise.allSettled([first,manual,later].filter(Boolean));}
+  assert.deepEqual(f.injections.filter(row=>row.stage==='source').map(row=>row.target.tabId),[1,2,3]);
+});
+
 test('pure preparation is bounded to four and holds no execution slot',async()=>{
   const f=fixture(),ids=['script','b','c','d','e','f'];await f.install();
   for(const id of ids.slice(1))await installAnother(f,id);
@@ -457,11 +808,13 @@ test('pure preparation is bounded to four and holds no execution slot',async()=>
 for(const change of ['disabled','document','native descriptor','proof','candidate'])
 test('a prepared invocation rechecks '+change+' after waiting for an executing program',async()=>{
   const f=fixture();await f.install();
-  for(const id of ['waiting','gate-b','gate-c','gate-d','sentinel'])await installAnother(f,id);
+  for(const id of ['blocker','waiting','gate-b','gate-c','gate-d','sentinel'])await installAnother(f,id);
   let finish,releasePreparation;const entered=new Set();
   f.completionGate=new Promise(resolve=>finish=resolve);
   const first=f.service.handleBoot(f.message(),{...f.sender});first.catch(()=>{});
   await reaches(()=>f.sourceCalls===1);
+  const blocker=f.service.handleBoot(f.message('blocker'),{...f.sender});blocker.catch(()=>{});
+  await reaches(()=>f.sourceCalls===2);
   const read=f.dependencies.readStoredPageCandidate,gate=new Promise(resolve=>releasePreparation=resolve);
   f.dependencies.readStoredPageCandidate=async(...args)=>{
     if(args[1].startsWith('gate-')||args[1]==='sentinel'){entered.add(args[1]);await gate;}
@@ -474,7 +827,7 @@ test('a prepared invocation rechecks '+change+' after waiting for an executing p
     // Three blocked preparations consume three permits. The sentinel can
     // enter the fourth only after 'waiting' has finished its preparation.
     await reaches(()=>entered.size===4);
-    assert.equal(f.sourceCalls,1,'preparation must not run source alongside the first execution');
+    assert.equal(f.sourceCalls,2,'preparation must not exceed the two executing parents');
     const row=f.installation('waiting');
     if(change==='disabled')await f.service.setInstalledPageEnabled({programId:row.programId,
       manifestHash:row.manifestHash,installationId:row.authorization.installationId,
@@ -488,11 +841,11 @@ test('a prepared invocation rechecks '+change+' after waiting for an executing p
       else value.sourceUtf8+='\n// altered after preparation';
       await tx.put('frameworkKV',value,key);
     });
-    finish();await Promise.allSettled([first]);
+    finish();await Promise.allSettled([first,blocker]);
     await assert.rejects(second);
-    assert.equal(f.sourceCalls,1);
+    assert.equal(f.sourceCalls,2);
     assert.equal(f.rows().some(row=>row.tag==='page-execution-v1'&&row.programId==='waiting'),false);
-  }finally{finish();releasePreparation();await Promise.allSettled([first,second,...held]);}
+  }finally{finish();releasePreparation();await Promise.allSettled([first,blocker,second,...held]);}
 });
 
 test('queued boot snapshots its message and native sender before preparation',async()=>{
@@ -525,6 +878,40 @@ test('warm pure registration facts reuse rules but still read fresh source and p
   assert.equal(f.sourceCalls,2);
 });
 
+test('fresh candidate and packaged builtin reads overlap without allowing an unverified dispatch',async()=>{
+  const f=fixture();await f.install();
+  const read=f.dependencies.readStoredPageCandidate;
+  let release,sourceEntered=false,builtinEntered=false;
+  const gate=new Promise(resolve=>release=resolve);
+  f.dependencies.readStoredPageCandidate=async(...args)=>{sourceEntered=true;await gate;return read(...args);};
+  f.readBuiltin=async()=>{builtinEntered=true;return {...f.builtinSource,sha256:'b'.repeat(64)};};
+  const running=f.service.handleBoot(f.message(),f.sender);running.catch(()=>{});
+  try{
+    await reaches(()=>sourceEntered);
+    await reaches(()=>builtinEntered);
+    assert.equal(f.sourceCalls,0,'parallel immutable reads do not authorize execution');
+  }finally{release();}
+  await fails(()=>running,'E_BUILTIN_VERSION_UNAVAILABLE');
+  assert.equal(f.sourceCalls,0,'a changed builtin must still reject after both fresh reads');
+});
+
+test('a failed parallel builtin read waits for its candidate read before releasing preparation',async()=>{
+  const f=fixture();await f.install();
+  const read=f.dependencies.readStoredPageCandidate;
+  let release,sourceEntered=false,builtinEntered=false,settled=false;
+  const gate=new Promise(resolve=>release=resolve),error=new FoundationError('E_BUILTIN_RESOURCE','unavailable');
+  f.dependencies.readStoredPageCandidate=async(...args)=>{sourceEntered=true;await gate;return read(...args);};
+  f.readBuiltin=async()=>{builtinEntered=true;throw error;};
+  const running=f.service.handleBoot(f.message(),f.sender);
+  running.then(()=>{settled=true;},()=>{settled=true;});
+  try{
+    await reaches(()=>sourceEntered&&builtinEntered);
+    await new Promise(resolve=>setImmediate(resolve));
+    assert.equal(settled,false,'a failed sibling must not release a still-pending read');
+  }finally{release();}
+  await fails(()=>running,'E_BUILTIN_RESOURCE');assert.equal(f.sourceCalls,0);
+});
+
 test('the ninth pure registration fact evicts the oldest and recompiles safely',async()=>{
   const f=fixture();await f.install();
   for(let n=1;n<=8;n++)await installAnother(f,'other-'+n);
@@ -553,10 +940,12 @@ test('a prepared different program cannot bypass an unknown source effect',async
 });
 
 test('a failed preparation joins execution order through suspension and lets later work continue',async()=>{
-  const f=fixture();await f.install();await installAnother(f,'bad');await installAnother(f,'later');
+  const f=fixture();await f.install();await installAnother(f,'blocker');await installAnother(f,'bad');await installAnother(f,'later');
   let finish,failedRead=false;f.completionGate=new Promise(resolve=>finish=resolve);
   const first=f.service.handleBoot(f.message(),{...f.sender});first.catch(()=>{});
   await reaches(()=>f.sourceCalls===1);
+  const blocker=f.service.handleBoot(f.message('blocker'),{...f.sender});blocker.catch(()=>{});
+  await reaches(()=>f.sourceCalls===2);
   const read=f.dependencies.readStoredPageCandidate;
   f.dependencies.readStoredPageCandidate=async(...args)=>{
     if(args[1]==='bad'){failedRead=true;throw new FoundationError('E_PAGE_ENVIRONMENT','changed frozen asset');}
@@ -568,11 +957,11 @@ test('a failed preparation joins execution order through suspension and lets lat
     await f.storage.transaction(['frameworkKV'],'readonly',tx=>tx.get('frameworkKV','barrier'));
     assert.equal(f.installation('bad').authorization.status,'active',
       'suspension must wait for the already executing program');
-  }finally{finish();await Promise.allSettled([first]);}
+  }finally{finish();await Promise.allSettled([first,blocker]);}
   await fails(()=>bad,'E_PAGE_ENVIRONMENT');
   assert.equal(f.installation('bad').authorization.status,'suspended');
   assert.equal((await f.service.handleBoot(f.message('later'),{...f.sender})).state,'completed');
-  assert.equal(f.sourceCalls,2);
+  assert.equal(f.sourceCalls,3);
 });
 
 for(const scenario of ['registered','unavailable','missing','unrelated registration','disabled','disabled unavailable','disabled read throws','disabled stale registration'])
@@ -1085,7 +1474,7 @@ test('installed executions use the same persisted Authority slot and cannot bypa
   await fails(()=>admission.reserveInstalled({...claim,nonce:'second'},row),'E_OWNER');
   await admission.release({nonce:'nonce'});
   await f.service.setInstalledPageEnabled({programId:'script',manifestHash:row.manifestHash,installationId:row.authorization.installationId,expectedGeneration:f.installation().authorization.generation,enabled:false},{});
-  await fails(()=>admission.reserveInstalled(claim,row),'E_PERMISSION');
+  await fails(()=>admission.reserveInstalled({...claim,nonce:'after-disable'},row),'E_PERMISSION');
 });
 
 test('idle auto execution proceeds immediately after its exact-document bootstrap and cannot replay',async()=>{
@@ -1214,9 +1603,8 @@ function assertBoundedPageReads(f){
   const scans=f.reads.filter(row=>row.method==='scanEntries');
   assert.ok(scans.length>0);
   assert.ok(scans.every(row=>row.store==='frameworkKV'&&
-    ['page-installed:','page-execution:','page-cleanup:'].includes(row.prefix)&&row.limit===256));
-  assert.ok(scans.some(row=>row.prefix==='page-execution:'&&row.afterKey!==undefined),
-    'execution history must continue past the first cursor page');
+    ['page-installed:','page-execution:','page-cleanup:'].includes(row.prefix)&&
+    row.limit===(row.prefix==='page-execution:'?4096:256)));
 }
 
 test('prefix reads: cold recovery, app synchronization, reconciliation and boot skip large unrelated candidates',async()=>{
@@ -1231,7 +1619,7 @@ test('prefix reads: cold recovery, app synchronization, reconciliation and boot 
   assert.equal(f.installation().lastExecution.contextGone,true);
   assert.equal(f.snapshot().get('runs').get('@slot').preview,undefined);
   const beforeSynchronization=f.reads.length;
-  assert.deepEqual(await f.service.synchronizeAppPages(),{status:'synchronized',retired:[],cleanupPending:[]});
+  assert.deepEqual(await f.service.synchronizeAppPages(),{status:'synchronized',retired:[],cleanupPending:[],revocationPending:[]});
   assert.equal(f.reads.slice(beforeSynchronization).some(row=>row.prefix==='page-execution:'),false,
     'no companion installation needs an execution history scan');
   f.native.clear();await f.service.reconcile();
@@ -1252,7 +1640,9 @@ test('prefix reads: cold recovery, app synchronization, reconciliation and boot 
 });
 
 test('prefix reads: late-page live unknown receipt keeps its exact fence and uninstall tombstone until document death',async()=>{
-  const f=fixture(),installed=await f.install();await seedPageReadHistory(f);
+  const f=fixture(),installed=await f.install();await seedPageReadHistory(f,{executions:4096});
+  // Even an over-quota legacy history must recover its later unknown receipt;
+  // the per-page bound cannot truncate recovery at the dispatch quota.
   const pending=await f.pending('dispatched',{canonicalKey:true});
   await f.storage.transaction(['frameworkKV'],'readwrite',tx=>tx.put('frameworkKV',{
     ...pending,managedUI:{worldId:'lost-world',compiledSha256:'a'.repeat(64)}
@@ -2316,4 +2706,366 @@ for(const changed of ['installationId','generation'])test('R15 enable transactio
   await fails(()=>f.service.setInstalledPageEnabled(request,{}),'E_REVISION');
   assert.deepEqual(f.snapshot(),concurrent);
   assert.equal(f.registerCalls,registers);
+});
+
+
+const committed=f=>({tabId:f.target.tabId,frameId:0,documentId:f.target.documentId,url:f.target.expectedUrl});
+test('scheduler timeline separates early preparation age from a real held lease',async()=>{
+  const f=fixture();await f.install();await installAnother(f,'second');await installAnother(f,'third');
+  await f.service.hintPreparation(committed(f));
+  const gates={script:deferred(),second:deferred()};
+  f.completionGate=input=>gates[executionProgram(f,input)]?.promise;
+  const first=f.service.handleBoot(f.message(),f.sender),second=f.service.handleBoot(f.message('second'),f.sender);
+  for(const run of [first,second])run.catch(()=>{});
+  let third;
+  try{
+    await reaches(()=>f.sourceCalls===2);
+    third=f.service.handleBoot(f.message('third'),f.sender);third.catch(()=>{});
+    await new Promise(resolve=>setImmediate(resolve));
+    assert.equal(f.sourceCalls,2,'diagnostics cannot admit a third held lease');
+    gates.second.resolve();await second;await third;
+    const t=f.rows().find(row=>row.tag==='page-execution-v1'&&row.programId==='third').result.startupTimings;
+    assert.equal(t.schedulerClockOrigin,performance.timeOrigin);
+    for(const key of ['bootRequestQueuedAtMs','sourcePreparationReadyAtMs','schedulerQueuedAtMs','schedulerReadyAtMs','schedulerLeaseAcquiredAtMs','schedulerWorkStartedAtMs','schedulerBootStartedAtMs','schedulerLastReleaseAtMs'])assert.ok(Number.isFinite(t[key]),key);
+    assert.ok(t.sourcePreparationReadyAtMs<=t.bootRequestQueuedAtMs,'early hint predates this real request');
+    assert.ok(t.bootRequestQueuedAtMs<=t.schedulerQueuedAtMs&&t.schedulerQueuedAtMs<=t.schedulerReadyAtMs);
+    assert.ok(t.schedulerReadyAtMs<=t.schedulerLastReleaseAtMs&&t.schedulerLastReleaseAtMs<=t.schedulerLeaseAcquiredAtMs);
+    assert.ok(t.schedulerLeaseAcquiredAtMs<=t.schedulerWorkStartedAtMs&&t.schedulerWorkStartedAtMs<=t.schedulerBootStartedAtMs);
+    assert.equal(t.schedulerReadyActiveLeases,2);
+    assert.equal(t.schedulerHintUsed,1);
+    assert.equal(t.queueWaitMs,t.schedulerBootStartedAtMs-t.sourcePreparationReadyAtMs,'legacy age is preserved honestly');
+    gates.script.resolve();await first;
+    assert.equal(f.sourceCalls,3,'each independent owner still executes exactly once');
+  }finally{Object.values(gates).forEach(g=>g.resolve());await Promise.allSettled([first,second,...(third?[third]:[])]);}
+});
+test('early preparation is pure, consumed once and retains fresh boot verification',async()=>{
+  const f=fixture();await f.install();let compiled=0;f.afterCompilation=()=>{compiled++;};
+  const before=f.snapshot(),worlds=structuredClone(f.worlds),nativeReads=f.nativeReads;
+  await f.service.hintPreparation(committed(f));
+  assert.equal(compiled,1);assert.deepEqual(f.snapshot(),before);
+  assert.deepEqual(f.worlds,worlds);assert.equal(f.executeCalls,0);assert.equal(f.injections.length,0);
+  assert.equal(f.nativeReads,nativeReads,'hint cannot probe or mutate native registration');
+  const reads=f.storedCandidateReads;
+  assert.equal((await f.service.handleBoot(f.message(),f.sender)).state,'completed');
+  assert.equal(compiled,1,'real bootstrap claims the invocation-local handle');
+  assert.ok(f.storedCandidateReads>reads,'boot still reads fresh source');
+  assert.ok(f.injections.some(row=>row.stage==='bootstrap'),'real marker is checked');
+  await f.service.hintPreparation(committed(f));
+  await fails(()=>f.service.handleBoot(f.message(),f.sender),'E_REQUEST_CONFLICT');
+  assert.equal(compiled,2,'duplicate boot uses fallback but cannot consume the hint twice');
+  assert.equal(f.sourceCalls,1);
+});
+test('early preparation failure is discarded without suspension and boot falls back',async()=>{
+  const f=fixture();await f.install();const before=f.snapshot();let attempts=0;
+  f.afterCompilation=()=>{if(++attempts===1)throw new FoundationError('E_PAGE_ENVIRONMENT','speculation failed');};
+  await f.service.hintPreparation(committed(f));
+  assert.deepEqual(f.snapshot(),before);
+  assert.equal((await f.service.handleBoot(f.message(),f.sender)).state,'completed');
+  assert.equal(attempts,2);assert.equal(f.installation().authorization.status,'active');
+});
+test('early preparation four pending hints and real boot avoid nested preparation permits',async()=>{
+  const f=fixture();await f.install();for(const id of ['b','c','d'])await installAnother(f,id);
+  let release,compiled=0;const gate=new Promise(resolve=>release=resolve);
+  f.afterCompilation=async()=>{compiled++;await gate;};
+  const hint=f.service.hintPreparation(committed(f));await reaches(()=>compiled===4);
+  const boots=['script','b','c','d'].map(id=>f.service.handleBoot(f.message(id),f.sender));
+  release();
+  const result=await Promise.race([Promise.all([hint,...boots]),new Promise((_,reject)=>{
+    const timer=setTimeout(()=>reject(Error('nested preparation deadlock')),2000);timer.unref();
+  })]);
+  assert.equal(result.length,5);assert.equal(compiled,4);assert.equal(f.sourceCalls,4);
+});
+
+for(const changed of ['marker','native descriptor','source','proof'])test('early preparation retains fresh rejection: '+changed,async()=>{
+  const f=fixture();await f.install();let compiled=0;f.afterCompilation=()=>{compiled++;};
+  await f.service.hintPreparation(committed(f));
+  if(changed==='marker')f.marker=false;
+  else if(changed==='native descriptor')f.native.get(f.installation().nativeId).runAt='document_end';
+  else await f.storage.transaction(['frameworkKV'],'readwrite',async tx=>{
+    const [key,row]=[...f.snapshot().get('frameworkKV')].find(([,row])=>
+      changed==='source'?row.tag==='page-candidate-v1':row.status==='Available');
+    if(changed==='source')row.sourceUtf8+='\n// changed after preparation';
+    else row.receiptHash='0'.repeat(64);
+    await tx.put('frameworkKV',row,key);
+  });
+  await assert.rejects(f.service.handleBoot(f.message(),f.sender));
+  assert.equal(compiled,1,'boot rejects fresh material instead of silently recompiling a claimed hint');
+  assert.equal(f.sourceCalls,0);assert.equal(f.rows().some(row=>row.tag==='page-execution-v1'),false);
+});
+
+for(const changed of ['navigation','close','token','generation','installation','permission','dependency','expiry'])
+  test('early preparation late completion cannot revive after '+changed,async t=>{
+    const f=fixture();await f.install();const old=f.message();let release,compiled=0;
+    const gate=new Promise(resolve=>release=resolve);
+    f.afterCompilation=async()=>{if(++compiled===1)await gate;};
+    if(changed==='expiry')t.mock.timers.enable({apis:['setTimeout']});
+    const hint=f.service.hintPreparation(committed(f));
+    for(let n=0;n<100&&compiled!==1;n++)await new Promise(resolve=>setImmediate(resolve));
+    assert.equal(compiled,1,'hint reached real compilation');
+    if(changed==='navigation'){
+      f.navigate('new-document');f.service.invalidatePreparation(committed(f));
+    }else if(changed==='close'){
+      f.service.invalidatePreparation({tabId:1,removed:true});f.navigate('reopened-document');
+    }else if(changed==='permission'||changed==='dependency'){
+      await f.service.revokePermissions({origins:[changed==='permission'?'https://example.com/*':'https://dependency.example/*']});
+      if(changed==='permission'){
+        const row=f.installation();
+        await f.service.setInstalledPageEnabled({programId:row.programId,manifestHash:row.manifestHash,
+          installationId:row.authorization.installationId,expectedGeneration:row.authorization.generation,enabled:true},{});
+      }
+    }else if(changed==='expiry'){
+      t.mock.timers.tick(5001);t.mock.timers.reset();
+    }else{
+      await f.storage.transaction(['frameworkKV'],'readwrite',async tx=>{
+        const [key,row]=[...f.snapshot().get('frameworkKV')].find(([,row])=>row.tag==='page-installed-v1');
+        if(changed==='token')row.token=crypto.randomUUID().replaceAll('-','');
+        else if(changed==='generation')row.authorization.generation++;
+        else row.authorization.installationId=crypto.randomUUID();
+        await tx.put('frameworkKV',row,key);
+      });
+      if(changed==='token')await f.service.reconcile();
+    }
+    release();await hint;
+    if(['token','permission'].includes(changed))await fails(()=>f.service.handleBoot(old,f.sender),'E_PERMISSION');
+    assert.equal((await f.service.handleBoot(f.message(),f.sender)).state,'completed');
+    assert.equal(compiled,2,'real boot must prepare again after invalidation');assert.equal(f.sourceCalls,1);
+  });
+
+test('early preparation manual Run leaves the automatic handle available',async()=>{
+  const f=fixture(),installed=await f.install();let compiled=0;f.afterCompilation=()=>{compiled++;};
+  await f.service.hintPreparation(committed(f));
+  const result=await f.service.runInstalledPageProgram({programId:installed.programId,manifestHash:installed.manifestHash,
+    installationId:installed.authorization.installationId,expectedGeneration:installed.authorization.generation,
+    target:f.target},{documentId:'tool-document'});
+  assert.equal(result.state,'completed');assert.equal(compiled,2,'manual has independent preparation');
+  assert.equal((await f.service.handleBoot(f.message(),f.sender)).state,'completed');
+  assert.equal(compiled,2,'automatic boot still claims its original handle');assert.equal(f.sourceCalls,2);
+});
+
+test('early preparation duplicate commits and late commit after boot never prepare again',async()=>{
+  const f=fixture();await f.install();let compiled=0;f.afterCompilation=()=>{compiled++;};
+  await Promise.all([f.service.hintPreparation(committed(f)),f.service.hintPreparation(committed(f))]);
+  assert.equal(compiled,1);
+  assert.equal((await f.service.handleBoot(f.message(),f.sender)).state,'completed');
+  await f.service.hintPreparation(committed(f));assert.equal(compiled,1);assert.equal(f.sourceCalls,1);
+  const g=fixture();await g.install();let release,count=0;const gate=new Promise(resolve=>release=resolve);
+  g.afterCompilation=async()=>{count++;await gate;};
+  const boot=g.service.handleBoot(g.message(),g.sender);await reaches(()=>count===1);
+  await g.service.hintPreparation(committed(g));assert.equal(count,1,'boot arrival precedes a late commit');
+  release();await boot;assert.equal(g.sourceCalls,1);
+});
+
+for(const rejected of ['inactive tab','incognito','pending URL','non-top','inactive document','wrong URL','grant','disabled'])
+  test('early preparation requires current eligibility: '+rejected,async()=>{
+    const f=fixture();await f.install();let compiled=0;f.afterCompilation=()=>{compiled++;};
+    const event=committed(f),get=f.api.tabs.get;
+    if(['inactive tab','incognito','pending URL'].includes(rejected))f.api.tabs.get=async id=>({...await get(id),
+      ...(rejected==='inactive tab'?{active:false}:rejected==='incognito'?{incognito:true}:{pendingUrl:'https://example.com/next'})});
+    else if(rejected==='non-top')event.frameId=1;
+    else if(rejected==='inactive document')f.documentLifecycle='cached';
+    else if(rejected==='wrong URL'){f.target.expectedUrl='https://elsewhere.example/';event.url=f.target.expectedUrl;}
+    else if(rejected==='grant')f.granted=false;
+    else{
+      const row=f.installation();await f.service.setInstalledPageEnabled({programId:row.programId,manifestHash:row.manifestHash,
+        installationId:row.authorization.installationId,expectedGeneration:row.authorization.generation,enabled:false},{});
+    }
+    const before=f.snapshot(),worlds=structuredClone(f.worlds);
+    await f.service.hintPreparation(event);
+    assert.equal(compiled,0);assert.equal(f.sourceCalls,0);assert.deepEqual(f.snapshot(),before);assert.deepEqual(f.worlds,worlds);
+  });
+
+test('early preparation invalidation wakes an already claimed pending hint',async()=>{
+  const f=fixture();await f.install();let release,compiled=0;
+  const gate=new Promise(resolve=>release=resolve);
+  f.afterCompilation=async()=>{compiled++;await gate;};
+  const hint=f.service.hintPreparation(committed(f));await reaches(()=>compiled===1);
+  const boot=f.service.handleBoot(f.message(),f.sender).catch(error=>error);
+  f.framesGone=true;f.service.invalidatePreparation({tabId:1,removed:true});
+  try{
+    const result=await Promise.race([boot,new Promise(resolve=>setTimeout(()=>resolve({code:'HINT_STILL_WAITING'}),100))]);
+    assert.equal(result.code,'E_DOCUMENT_STALE','retired hint must not hold real boot until its compiler returns');
+    assert.equal(compiled,1);assert.equal(f.sourceCalls,0);
+  }finally{release();await hint;await boot;}
+});
+
+for(const changed of ['generation','replacement','grant'])test('early preparation resolved handle rechecks later '+changed,async()=>{
+  const f=fixture();await f.install();let compiled=0;f.afterCompilation=()=>{compiled++;};
+  await f.service.hintPreparation(committed(f));assert.equal(compiled,1);
+  if(changed==='generation')await f.storage.transaction(['frameworkKV'],'readwrite',async tx=>{
+    const [key,row]=[...f.snapshot().get('frameworkKV')].find(([,row])=>row.tag==='page-installed-v1');
+    row.authorization.generation++;await tx.put('frameworkKV',row,key);
+  });
+  else if(changed==='replacement'){
+    const row=f.installation(),candidate=await f.prepare('document-idle',{revision:2});
+    await f.service.installPageProgram({programId:row.programId,revision:2,manifestHash:candidate.manifestHash,
+      expectedInstalledManifestHash:row.manifestHash,expectedGeneration:row.authorization.generation},{});
+  }else f.granted=false;
+  if(changed==='grant'){
+    await fails(()=>f.service.handleBoot(f.message(),f.sender),'E_PERMISSION');
+    assert.equal(f.sourceCalls,0);assert.equal(f.installation().authorization.status,'suspended',
+      'real boot retains its original access-loss failure path');
+  }else{
+    assert.equal((await f.service.handleBoot(f.message(),f.sender)).state,'completed');
+    assert.equal(compiled,2,'changed installation cannot use the previously resolved handle');assert.equal(f.sourceCalls,1);
+  }
+});
+
+const turn=()=>new Promise(resolve=>setImmediate(resolve));
+test('early preparation review: full pool never queues speculative work across navigation and expiry',async t=>{
+  const f=fixture();await f.install();for(const id of ['b','c','d'])await installAnother(f,id);
+  let release,compiled=0;const gate=new Promise(resolve=>release=resolve),hints=[];
+  f.afterCompilation=async()=>{compiled++;await gate;};
+  hints.push(f.service.hintPreparation(committed(f)));await reaches(()=>compiled===4);
+  t.mock.timers.enable({apis:['setTimeout']});const waiting=[];
+  try{
+    for(let n=0;n<40;n++){
+      f.navigate('bounded-document-'+n);let settled=false;
+      const hint=f.service.hintPreparation(committed(f)).then(()=>{settled=true;});hints.push(hint);
+      for(let spin=0;spin<40&&!settled;spin++)await turn();
+      if(!settled)waiting.push(n);
+      t.mock.timers.tick(5001);await turn();
+    }
+    assert.deepEqual(waiting,[],'full-pool hints must settle without waiting for cancellation, expiry or a permit');
+    assert.equal(compiled,4,'cancellation must retain permits for the four still-running preparations');
+    assert.equal(f.sourceCalls,0);
+  }finally{t.mock.timers.reset();release();await Promise.all(hints);}
+  assert.equal((await f.service.handleBoot(f.message(),f.sender)).state,'completed');
+  assert.equal(compiled,5,'the current real bootstrap still uses the original preparation fallback');
+});
+
+for(const entry of ['hint','cleanup'])test('early preparation review: B stale-A B preserves current handle at '+entry,async()=>{
+  const f=fixture();await f.install();const stale=committed(f);f.navigate('current-B');
+  let compiled=0;f.afterCompilation=()=>{compiled++;};
+  await f.service.hintPreparation(committed(f));assert.equal(compiled,1);
+  if(entry==='hint')await f.service.hintPreparation(stale);
+  else await f.service.invalidatePreparation(stale);
+  await f.service.hintPreparation(committed(f));
+  assert.equal((await f.service.handleBoot(f.message(),f.sender)).state,'completed');
+  assert.equal(compiled,1,'a stale selector cannot erase current B or its once-only tombstone');
+  assert.equal(f.sourceCalls,1);
+});
+
+for(const entry of ['hint','cleanup'])test('early preparation review: overlapping readbacks cannot restore A after B at '+entry,async()=>{
+  const f=fixture();await f.install();const stale=committed(f),get=f.api.webNavigation.getAllFrames;
+  let release,arrived=false,compiled=0;const gate=new Promise(resolve=>release=resolve);
+  f.api.webNavigation.getAllFrames=async request=>{
+    const captured=await get(request);
+    if(!arrived){arrived=true;await gate;}
+    return captured;
+  };
+  f.afterCompilation=()=>{compiled++;};
+  const old=entry==='hint'?f.service.hintPreparation(stale):f.service.invalidatePreparation(stale);
+  for(let spin=0;spin<40&&!arrived;spin++)await turn();
+  if(!arrived){release();assert.fail('cleanup must validate the selector before mutating preparation state');}
+  try{
+    f.navigate('newer-B');await f.service.hintPreparation(committed(f));
+    release();await old;
+    await f.service.hintPreparation(committed(f));
+    assert.equal((await f.service.handleBoot(f.message(),f.sender)).state,'completed');
+    assert.equal(compiled,1,'the older captured A readback cannot invalidate or prepare after B');
+  }finally{release();await old;}
+});
+
+test('early preparation review: six useful preparations retain full-pool boot fallback',async()=>{
+  const f=fixture();await f.install();const ids=['script','b','c','d','e','f'];
+  for(const id of ids.slice(1))await installAnother(f,id);
+  let release;const gate=new Promise(resolve=>release=resolve),compiled=[];
+  f.afterCompilation=async desired=>{compiled.push(desired.candidate.manifest.programId);if(compiled.length<=4)await gate;};
+  const hint=f.service.hintPreparation(committed(f));await reaches(()=>compiled.length===4);
+  const boots=ids.map(id=>f.service.handleBoot(f.message(id),f.sender));
+  try{release();await Promise.all([hint,...boots]);}
+  finally{release();await Promise.allSettled([hint,...boots]);}
+  assert.deepEqual([...compiled].sort(),[...ids].sort(),'four admitted hints and two real-boot fallbacks each compile once');
+  assert.equal(f.sourceCalls,6);
+});
+
+test('early preparation review: real B bootstrap fences a pending captured A selector',async()=>{
+  const f=fixture();await f.install();const stale=committed(f),get=f.api.webNavigation.getAllFrames;
+  let release,releaseBoot,arrived=false,compiled=0;
+  const gate=new Promise(resolve=>release=resolve),bootGate=new Promise(resolve=>releaseBoot=resolve);
+  f.api.webNavigation.getAllFrames=async request=>{
+    const captured=await get(request);if(!arrived){arrived=true;await gate;}return captured;
+  };
+  const old=f.service.invalidatePreparation(stale);
+  for(let spin=0;spin<40&&!arrived;spin++)await turn();assert.ok(arrived);
+  f.navigate('booted-B');f.afterCompilation=async()=>{if(++compiled===1)await bootGate;};
+  const boot=f.service.handleBoot(f.message(),f.sender);
+  try{
+    await reaches(()=>compiled===1);release();await old;
+    assert.equal(f.rows().some(row=>row.tag==='page-execution-v1'),false,'real boot has not admitted an execution yet');
+    await f.service.hintPreparation(committed(f));
+    assert.equal(compiled,1,'older navigation readback cannot erase a newer real-bootstrap tombstone');
+  }finally{release();releaseBoot();await old;await boot;}
+});
+
+
+// 148: protocol doubles exercise the real automatic boot and allocator entry.
+function holdBootLedger148(f,error){
+  const get=f.api.storage.session.get,gate=deferred();let reads=0;
+  f.api.storage.session.get=async key=>{const index=++reads,value=await get(key);if(index===1){await gate.promise;if(error)throw error;}return value;};
+  return {release:gate.resolve,get reads(){return reads;}};
+}
+for(const phase of ['marker','admission','authorize','history'])test('early FULL boot '+phase+' failure drains observation before parent/owner release',async()=>{
+  const f=fixture();await f.install();const beforeWorlds=f.worlds.length,held=holdBootLedger148(f,['authorize','history'].includes(phase)?Error('148 readonly sibling failed'):undefined),failure=Object.assign(Error('148 '+phase),{code:'E_148_FAILURE'});
+  const execute=f.api.userScripts.execute,transaction=f.storage.transaction;let atFailure=false,markers=0,settled=false,historyArmed=false,executingInput;
+  f.api.userScripts.execute=async input=>{
+    if(input.worldId===PAGE_BOOT_WORLD){markers++;if(markers===1)assert.equal(held.reads,1,'FULL readonly observation starts before marker');
+      if(phase==='marker'&&!atFailure){atFailure=true;throw failure;}}
+    return execute(input);
+  };
+  f.storage.transaction=(stores,mode,work)=>transaction(stores,mode,tx=>work({...tx,
+    put:async(store,row,key)=>{if(phase==='admission'&&row.tag==='page-execution-v1'&&row.state==='prepared'&&!atFailure){atFailure=true;throw failure;}return tx.put(store,row,key);},
+    all:async store=>{if(historyArmed){historyArmed=false;atFailure=true;throw failure;}return tx.all(store);}
+  }));
+  f.executeInstalled=(input,authorize,dispatch)=>{
+    executingInput=input;
+    if(phase==='history')historyArmed=true;
+    return f.previewExecutor.executeInstalled(input,phase==='authorize'?()=>{atFailure=true;throw failure;}:authorize,dispatch);
+  };
+  const first=f.service.handleBoot(f.message(),f.sender).finally(()=>{settled=true;});const outcome=Promise.allSettled([first]);let queued;
+  try{
+    await reaches(()=>atFailure);await new Promise(setImmediate);
+    assert.equal(settled,false,'failure must drain its original readonly observation before releasing parent');
+    assert.equal(f.sourceCalls,0);assert.equal(f.worlds.length,beforeWorlds);
+    if(executingInput){
+      const material=await f.dependencies.readStoredPageCandidate('tool:test','script',1);
+      const preparation=await f.previewExecutor.prepareInstalled(material);
+      await assert.rejects(f.previewExecutor.executeInstalled({...executingInput,preparation,firstLedger:undefined},async()=>{},()=>{}),{code:'E_OWNER'});
+    }
+    queued=f.service.handleBoot(f.message(),f.sender);queued.catch(()=>{});
+    await new Promise(setImmediate);await new Promise(setImmediate);assert.equal(markers,1,'same owner stays behind original parent lease');
+  }finally{held.release();await outcome; if(queued)await Promise.allSettled([queued]);}
+  const [result]=await outcome;assert.equal(result.status,'rejected');assert.equal(result.reason.code,'E_148_FAILURE');
+  assert.equal(markers,2,'independent queued boot progresses after original observation settles');
+});
+
+test('early FULL boot starts only after exact registration and leaves manual/preparation unchanged',async()=>{
+  const f=fixture();await f.install();let ledgerReads=0;
+  const get=f.api.storage.session.get;f.api.storage.session.get=async key=>{ledgerReads++;return get(key);};
+  const getScripts=f.api.userScripts.getScripts;f.api.userScripts.getScripts=async()=>[];
+  await assert.rejects(f.service.handleBoot(f.message(),f.sender),{code:'E_PERMISSION'});
+  assert.equal(ledgerReads,0);assert.equal(f.injections.length,0);
+  f.api.userScripts.getScripts=getScripts;
+  let markers=0,atMarker;
+  const execute=f.api.userScripts.execute;f.api.userScripts.execute=async input=>{if(input.worldId===PAGE_BOOT_WORLD){markers++;atMarker=ledgerReads;}return execute(input);};
+  await f.service.handleBoot(f.message(),f.sender);assert.equal(atMarker,1);assert.equal(markers,1);assert.equal(f.sourceCalls,1);
+  const material=await f.dependencies.readStoredPageCandidate('tool:test','script',1),before=ledgerReads;
+  await f.previewExecutor.prepareInstalled(material);assert.equal(ledgerReads,before,'immutable preparation never starts a ledger');
+  // Manual execution retains its original allocation-only observation path.
+  f.executeInstalled=(input,...args)=>{assert.equal(input.firstLedger,undefined);return f.previewExecutor.executeInstalled(input,...args);};
+  const installed=f.installation();
+  await f.service.runInstalledPageProgram({programId:'script',manifestHash:installed.manifestHash,installationId:installed.authorization.installationId,expectedGeneration:installed.authorization.generation,target:f.target},{documentId:'tool-document'});
+  assert.equal(markers,1);assert.equal(f.sourceCalls,2);
+});
+
+
+test('early FULL rejection is immediately handled during a held marker and retains marker error priority',async()=>{
+  const f=fixture();await f.install();const get=f.api.storage.session.get,execute=f.api.userScripts.execute,gate=deferred();
+  let observed=false,entered=false,settled=false;
+  f.api.storage.session.get=()=>{observed=true;throw Error('synchronous readonly failure');};
+  f.api.userScripts.execute=async input=>{if(input.worldId===PAGE_BOOT_WORLD){entered=true;await gate.promise;throw Object.assign(Error('marker priority'),{code:'E_PERMISSION'});}return execute(input);};
+  const result=f.service.handleBoot(f.message(),f.sender).finally(()=>{settled=true;}),outcome=Promise.allSettled([result]);
+  try{await reaches(()=>entered);await new Promise(setImmediate);assert.equal(observed,true);assert.equal(settled,false);assert.equal(f.sourceCalls,0);}
+  finally{gate.resolve();await outcome;f.api.storage.session.get=get;}
+  assert.equal((await outcome)[0].reason.code,'E_PERMISSION');assert.equal((await outcome)[0].reason.message,'marker priority');
 });
