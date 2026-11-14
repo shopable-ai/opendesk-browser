@@ -229,6 +229,7 @@ await removeOriginalNoteIfUnchanged();
 | title / description | 最长 80 / 300 字符 |
 | HTML / CSS / JS | 不设固定字符或字节大小上限；仍校验类型、内容与执行世界 |
 | 完整包 | 不设固定大小上限；导入、打包、下载和沙箱加载使用同一合同 |
+| 编译来源回执 | 最多 96 个 source；逐项校验字节与 SHA，仍受原回执读取界限约束，见[容量政策](../architecture/browser-ui-r23.zh-CN.md#2026-11-14编译来源回执项数) |
 | 安装数量 | 框架不设数量硬限制 |
 | 图片 assets | 最多 16 个；PNG/JPEG/WebP，本地预嵌入，不设单张大小上限 |
 

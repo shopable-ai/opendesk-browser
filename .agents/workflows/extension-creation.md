@@ -64,6 +64,8 @@ Phase 0–3 / Gate A 中先按[五种使用场景](../../docs/api/extension-deve
 
 **防漂移流程**：业务问题先在项目内修；公开 SDK 已有能力直接使用；通用 SDK 确实缺失时核对公开文档、可复现失败、为何项目内部无法解决、跨工具价值、最小接口/文件/测试、权限/生命周期/兼容性与安全影响，证据不足为 `SDK_GAP_NOT_PROVEN`。仅某工具需要的 Host/Installer 特例默认拒绝；第三方不应拥有的特权动作记 `BLOCKED`。临时 Chrome 直接注入、Node 通过、资源容量问题均不自动等于平台漏洞或正式 Page Installed PASS。
 
+编译回执容量复核沿[唯一打包 Skill](../skills/opendesk-sidebar-tool-package/SKILL.md#r56--react-构建产物防漂移)及[容量政策](../../docs/architecture/browser-ui-r23.zh-CN.md#2026-11-14编译来源回执项数)：项目编译器与原打包器共用项数门禁，保留全部输入摘要和漂移拒绝；容量修复、候选晋升与真实安装各自提供证据。
+
 **所有权而非路径拦截**：一般工具内部业务修改不扩展到 Broker/安装器；经证实的第一方可信产品仅在其 `src/<feature>/` 最小改动；真正通用 Page 安装/撤权/SDK 任务可由 Runtime Skill 正常修改 `src/`，CI 不得机械拒绝含 `src/` 的并行提交。维持现有 F/S/A、授权/升级/撤权与用户数据合同，不另建 Skill、Host、安装器或创建工作流。
 
 **项目目录与测试归属**：按[唯一目录合同](../../docs/architecture/extension-project-layout.zh-CN.md)维护工具自己的源码、业务测试与 fixture；根目录只保留框架/跨项目测试。开发验证按变化选择，不默认全仓执行，不按修订轮次复制测试；混合业务与宿主测试按责任拆分，现有 native 路径限制保留。新正式 Sidebar 产品默认 projects；下文 examples 默认路径仅适用教学示例或尚未迁移的实际 owner，不构成移动已有项目的授权。

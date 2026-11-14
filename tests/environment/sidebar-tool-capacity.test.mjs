@@ -34,18 +34,19 @@ test('large packages and JSON escaping round-trip without a total byte cap',()=>
   for(const candidate of [value,{...base,js:'"'.repeat(2200000)}])
     assert.deepEqual(validateSidebarToolPackage(JSON.parse(encodeSidebarToolPackage(candidate))),candidate);
 });
-test('compiled receipt accepts large source and still rejects excess source entries and changed provenance',async t=>{
+test('compiled receipt accepts 96 sources and rejects 97 sources or changed provenance',async t=>{
   const root=await mkdtemp(join(tmpdir(),'tool-capacity-'));t.after(()=>rm(root,{recursive:true,force:true}));
   await mkdir(join(root,'dist'));
   const files={html:'root.html',css:'dist/tool.css',js:'dist/tool.js'};
   await writeFile(join(root,'tool.config.json'),JSON.stringify({id:base.id,version:base.version,title:base.title,description:base.description,capabilities:[],files}));
   const sources={};
-  for(let i=0;i<limits.buildSourceFiles+1;i++){
+  const sourceCount=96;
+  for(let i=0;i<sourceCount+1;i++){
     const name='source-'+i+'.js',bytes=Buffer.from('void 0;');
     await writeFile(join(root,name),bytes);sources[name]={bytes:bytes.length,sha256:sha(bytes)};
   }
   const receipt={format:'opendesk.ui-build-ready.v1',buildId:'capacity-fixture',files:{},sources:{...sources}};
-  delete receipt.sources['source-64.js'];
+  delete receipt.sources['source-'+sourceCount+'.js'];
   for(const [key,name] of Object.entries(files)){
     const bytes=Buffer.from(key==='js'?';'.repeat(2200000):base[key]);
     await writeFile(join(root,name),bytes);
@@ -55,7 +56,7 @@ test('compiled receipt accepts large source and still rejects excess source entr
   await save();assert.equal((await createSidebarToolPackage(root)).js.length,2200000);
   receipt.sources=sources;await save();
   await assert.rejects(createSidebarToolPackage(root),/source receipt is invalid/);
-  delete receipt.sources['source-64.js'];await save();
+  delete receipt.sources['source-'+sourceCount+'.js'];await save();
   await writeFile(join(root,'source-0.js'),'void 1;');
   await assert.rejects(createSidebarToolPackage(root),/source changed/);
   await writeFile(join(root,'source-0.js'),'void 0;');

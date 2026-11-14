@@ -1,0 +1,216 @@
+{
+  "date": "2026-11-15",
+  "timezone": "Asia/Shanghai",
+  "startedDate": "2026-11-14",
+  "status": "DEVELOPMENT_PACKAGE_INSTALLED_CORE_VERIFIED",
+  "scope": "最新 AI Proxy 开发交付：原位更新正式 JSON，复核真实侧栏/管理页与临时配置核心链；不启停代理或开展完整验收。",
+  "owner": "projects/ai-proxy/",
+  "type": "existing audited first-party trusted feature",
+  "discovery": {
+    "entry": "扩展 → AI Proxy → 打开设置",
+    "reuse": "继续使用现有 QuickPanel / Settings / service 与固定可信适配器、唯一 React Root；未复制预览或另建业务 UI。",
+    "initialInstalledVersion": "0.3.17",
+    "initialOfficialJSONVersion": "0.3.22",
+    "observedUIFailure": "本轮最短真实入口及七区导航未复现新 UI 故障；前轮 collector null 修复在运行代码中可见。"
+  },
+  "packagingBlocker": {
+    "error": "E_TOOL_BUILD: compiled UI source receipt is invalid",
+    "actualSourceCount": 66,
+    "previousPublicLimit": 64,
+    "previousProjectLimit": 96,
+    "classification": "已证实的公共打包合同不一致，项目内部不能删减真实来源绕过校验。",
+    "repair": "SIDEBAR_TOOL_LIMITS.buildSourceFiles 统一为 96；AI Proxy Vite 编译器引用同一常量，原打包器继续逐项校验。",
+    "boundary": "保留原回执 20,000 字节读取界限、路径/字节/SHA/产物及漂移拒绝；无新权限、身份、Authority 或安装器。",
+    "crossToolValue": "同一公共回执容量适用于所有预编译 Sidebar Tool；不加入 AI Proxy 安装特例。",
+    "regression": "96 项真实回执测试在调整公共常量前复现 1 FAIL，调整后接受 96、拒绝 97、拒绝源码及产物漂移。"
+  },
+  "build": {
+    "command": "npm --prefix projects/ai-proxy run build",
+    "result": "PASS",
+    "transformedModules": 56,
+    "browserProductionBuild": false,
+    "receipt": {
+      "format": "opendesk.ui-build-ready.v1",
+      "buildId": "feda9eea-116b-4b86-b9e5-50f3fa283e9a",
+      "sourceCount": 66,
+      "bytes": 9947,
+      "sha256": "05f9212f79e3c993e442e97ea8bd280b4c1de90bb6efde019548f016486b00d6"
+    },
+    "packCommand": "node scripts/build-sidebar-tool.mjs projects/ai-proxy --out artifacts/sidebar-tools/ai-proxy/candidate.opendesk-tool.json",
+    "promotionCommand": "node scripts/build-sidebar-tool.mjs projects/ai-proxy --promote-from artifacts/sidebar-tools/ai-proxy/candidate.opendesk-tool.json",
+    "checkCommand": "node scripts/build-sidebar-tool.mjs projects/ai-proxy --check-project",
+    "checkResult": "PROJECT_PACKAGE_MATCH",
+    "official": {
+      "path": "projects/ai-proxy/ai-proxy.opendesk-tool.json",
+      "version": "0.3.23",
+      "bytes": 1061979,
+      "sha256": "fae806e94bdf5166c72e3d494f64f3f70fb593ce82661ea1dceff9da22e4cd1d",
+      "capabilities": [
+        "storage.local",
+        "currentPage.read",
+        "browser.proxy.managed"
+      ]
+    },
+    "identityAndCapabilitiesUnchanged": true
+  },
+  "installation": {
+    "method": "ego lite 实际原生 Side Panel → 扩展筛选/管理 → 导入扩展 → 文件选择器选择项目唯一正式 JSON → 原更新审阅 → 确认更新。",
+    "extensionId": "ccfcjegpkdlgbclopjmadlcjedelidmf",
+    "review": "当前 v0.3.17 → 新 v0.3.23；权限未变化；三项原有能力。",
+    "reviewedCanonicalSHA256": "fae806e94bdf5166c72e3d494f64f3f70fb593ce82661ea1dceff9da22e4cd1d",
+    "sourceNotice": "用户选择的本地包；原安装器说明不保留官方来源标记。",
+    "visibleReceipt": "已更新「AI Proxy」 / 可直接打开使用。",
+    "reopenedSidebarTitle": "AI Proxy · v0.3.23",
+    "settingsOpenedFromSidebar": true,
+    "actualInstalledVersion": "0.3.23",
+    "installedObjectEqualsOfficialJSON": true,
+    "namespaceUnchangedImmediatelyAfterUpdate": true
+  },
+  "realUI": {
+    "method": "同一 ego TaskSpace 77；Page 公开 click/fill 定向操作真实 chrome-extension App，不使用 mock；原生侧栏和文件选择器使用 App/AX 精确入口并持有/释放共享 UI 锁。",
+    "viewport": {
+      "width": 1329,
+      "height": 662
+    },
+    "sevenSectionNavigation": [
+      {
+        "section": "profiles",
+        "label": "代理配置",
+        "currentCorrect": true,
+        "horizontalOverflow": false,
+        "nonemptyAlerts": []
+      },
+      {
+        "section": "rules",
+        "label": "网站规则",
+        "currentCorrect": true,
+        "horizontalOverflow": false,
+        "nonemptyAlerts": []
+      },
+      {
+        "section": "subscriptions",
+        "label": "订阅管理",
+        "currentCorrect": true,
+        "horizontalOverflow": false,
+        "nonemptyAlerts": []
+      },
+      {
+        "section": "backup",
+        "label": "导入备份",
+        "currentCorrect": true,
+        "horizontalOverflow": false,
+        "nonemptyAlerts": []
+      },
+      {
+        "section": "diagnostic",
+        "label": "网络诊断",
+        "currentCorrect": true,
+        "horizontalOverflow": false,
+        "nonemptyAlerts": []
+      },
+      {
+        "section": "general",
+        "label": "通用设置",
+        "currentCorrect": true,
+        "horizontalOverflow": false,
+        "nonemptyAlerts": []
+      },
+      {
+        "section": "official",
+        "label": "官方网络",
+        "currentCorrect": true,
+        "horizontalOverflow": false,
+        "nonemptyAlerts": []
+      }
+    ],
+    "temporaryConfiguration": {
+      "name": "delivery-0.3.23-disposable",
+      "scheme": "http",
+      "host": "127.0.0.1",
+      "port": 18996,
+      "steps": [
+        "添加 → 保存 → 页首回执「代理配置已保存，未自动应用。」",
+        "刷新 → 编辑读回相同名称/主机/端口",
+        "临时改名 → 取消 → 原统一确认提示未保存修改 → 确认放弃；已保存名称保留",
+        "删除精确临时目标 → 确认 → 项目消失；页首回执「代理配置已删除。」",
+        "最终刷新 → namespace 与最初逐项完全一致"
+      ],
+      "persistedOriginalDataUnchanged": true
+    },
+    "collector": {
+      "storedPlanAbsent": true,
+      "visibleReadFailure": false,
+      "executorUnavailableNotice": true,
+      "configurationNotSaved": true
+    },
+    "noNewBusinessUIRepairRequired": true,
+    "activeApplyOrStopActions": 0,
+    "networkDiagnosticExecuted": false,
+    "backupRoundtrip": "复用前轮证据，本轮只导航未再次导入或导出。",
+    "taskSpaceFinished": true,
+    "nativeUILockReleased": true
+  },
+  "environment": {
+    "mode": "持续开发；工具预编译/JSON 原位更新与 Browser 固定可信代码分别核对。",
+    "output": "/Users/shopme/Documents/workspace/opendesk-browser/dist/development",
+    "existingWatcherPreserved": true,
+    "watcherPIDAtObservation": 42614,
+    "devDebugText": "开发服务已连接 · 构建指纹 ed36378eaa8e；保存源码后自动安全更新。",
+    "waitingReasonObserved": false,
+    "appliedRevision": "ed36378eaa8ee6c645508ac1cc42c5ae6578af19345ccf38bc8cbe229ba633cc",
+    "runtimeBundle": {
+      "path": "ui/tool-shell.js",
+      "bytes": 3077977,
+      "sha256": "f19b4ac96ea79949964149fce7a154cd27b1a27e269c29459a226eed257fc82d"
+    },
+    "runtimeBundleMatchesLocal": true,
+    "runtimeBundleMatchesAppliedSession": true,
+    "physicalUnpackedPathIndependentCheck": "未查询管理内部页或个人 Profile；输出路径与实际 extension URL 字节闭合，不冒称独立读过启用加载路径。"
+  },
+  "checks": [
+    {
+      "command": "node --test projects/ai-proxy/tests/rotation-plan.test.mjs projects/ai-proxy/tests/trusted-admission.test.mjs",
+      "result": "9 PASS / 0 FAIL",
+      "purpose": "空采集计划、安全存储错误及实际安装身份保护。"
+    },
+    {
+      "command": "node --test --test-name-pattern='tool packer rejects|portable Sidebar Tool builds|promotion rejects' tests/environment/sidebar-tools.test.mjs",
+      "result": "3 PASS / 0 FAIL",
+      "purpose": "原打包器路径边界、便携包和版本/来源安全晋升。"
+    },
+    {
+      "command": "node --test tests/environment/sidebar-tool-capacity.test.mjs",
+      "result": "6 PASS / 0 FAIL",
+      "purpose": "公共 96/97 来源边界、来源/产物漂移拒绝及原格式/Native 分片。"
+    },
+    {
+      "command": "verifyTrustedAIProxySources() from scripts/bundle-provenance.mjs",
+      "result": "PASS",
+      "purpose": "固定可信业务与 CSS 来源闭包；本轮未改业务来源锁。"
+    },
+    {
+      "command": "git diff --check",
+      "result": "PASS",
+      "purpose": "本轮差异空白检查；不代替产品验证。"
+    }
+  ],
+  "unchangedReference": {
+    "path": "projects/ai-proxy/preview/preview.html",
+    "sha256": "277ff8df72970906370507e9d7448da3ba583cb293536cae874c1a034080a977"
+  },
+  "localArtifacts": "artifacts/ai-proxy/install-0.3.23-20261114/",
+  "privateStateFiles": "baseline-private / after-install-private / final-private 只留 ignored artifacts，不提交用户数据。",
+  "deferred": [
+    "真实代理启停与流量",
+    "认证",
+    "PAC 执行",
+    "在线订阅",
+    "隔离采集执行器及真实轮换",
+    "完整 HTTP/收藏/测速诊断",
+    "官方网络服务",
+    "production Browser 验收",
+    "完整 CI",
+    "新增视觉评分"
+  ],
+  "deliveryBoundary": "开发交付与本次真实更新/核心操作已验证；历史评分不扩为当前包正式验收，未声明所有产品能力完成。"
+}

@@ -120,6 +120,12 @@ R23 当时不引入 React/shadcn，是对当时宿主状态、缺少挂载边界
 
 以下 2026-10-30 数值及临界测试记录仅保留为历史证据，不再定义当前大小上限。真实 Chrome 安装/运行本轮 `NOT_TESTED`。
 
+#### 2026-11-14：编译来源回执项数
+
+AI Proxy 的原 Vite 编译生成 66 项真实输入，原打包器因公共回执上限 64 项返回 `E_TOOL_BUILD: compiled UI source receipt is invalid`，阻断当前 0.3.23 安装交付。项目编译器此前允许 96 项，与公共门禁不一致；删除输入摘要不能解决完整来源校验。现以唯一 `SIDEBAR_TOOL_LIMITS.buildSourceFiles` 统一为有限的 96 项，项目编译器引用同一数值，供所有预编译工具复用。单位是输入条目数，不是文件字节或安装能力；原回执 20,000 字节读取界限、逐项字节/SHA、路径、构建产物校验均保留。
+
+96/97 项边界及源文件、产物漂移拒绝由 `tests/environment/sidebar-tool-capacity.test.mjs` 覆盖；旧包格式、Native 分片、权限、身份、撤权和沙箱执行边界不变。该调整解除本机 macOS 开发交付阻塞，不代表其他设备性能或 production 验收。实际包、编译回执大小及浏览器安装证据归 AI Proxy 的本轮交付记录。
+
 #### 2026-10-30：1 MiB JS / 2 MiB 工具包的有界开发预算（历史）
 
 用户明确授权恢复 AI Proxy 完整 UI 并通过正式 Sidebar 包路径运行，而非为预览便利放宽。唯一 owner 为 `projects/ai-proxy/`；原 `node scripts/build-sidebar-tool.mjs projects/ai-proxy --out artifacts/sidebar-tools/ai-proxy/capacity-candidate.opendesk-tool.json` 实际先返回 `E_TOOL_BUILD: source file exceeds budget: dist/tool.js`。该内部预算不是 Chrome 外部硬限制，工具自身无法修改读取/安装/sandbox 门槛，跨工具复用同一容量合同。

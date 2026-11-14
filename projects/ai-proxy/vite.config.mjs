@@ -3,6 +3,7 @@ import {createHash,randomUUID} from 'node:crypto';
 import {readFile,writeFile,rename} from 'node:fs/promises';
 import {resolve,join,relative,isAbsolute} from 'node:path';
 import {fileURLToPath} from 'node:url';
+import {SIDEBAR_TOOL_LIMITS} from '../../src/ui/sidebar-tools/limits.js';
 
 const root=fileURLToPath(new URL('.',import.meta.url));
 const hash=bytes=>createHash('sha256').update(bytes).digest('hex');
@@ -32,7 +33,8 @@ function receiptPlugin(){
           !name.split('/').some(part=>!part||part==='.'||part==='..'))
           names.add(name);
       }
-      if(names.size>96)throw Error('AI Proxy source receipt exceeds 96 files');
+      if(names.size>SIDEBAR_TOOL_LIMITS.buildSourceFiles)
+        throw Error('AI Proxy source receipt exceeds '+SIDEBAR_TOOL_LIMITS.buildSourceFiles+' files');
       compiledSources=[...names].sort();
     },
     async writeBundle(){
