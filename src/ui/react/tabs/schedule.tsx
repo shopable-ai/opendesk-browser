@@ -81,18 +81,52 @@ export function SchedulePlanRows({plans=[],currentRunId='',canStop,onOpen,onTogg
 export function ScheduleManagerRows({rows=[],emptyText='',canCreatePlan=true,
   onToggle,onCopy,onCreatePlan,onUninstall}){
   const [openTaskId,setOpenTaskId]=React.useState('');
+  const [menuPosition,setMenuPosition]=React.useState({});
   const menus=React.useRef(new Map());
+  React.useLayoutEffect(()=>{
+    if(!openTaskId)return;
+    const menu=menus.current.get(openTaskId),win=menu?.ownerDocument.defaultView;
+    const panel=menu?.querySelector('.schedule-manager-menu-panel');
+    if(!panel||!win)return;
+    const position=()=>{
+      const rect=menu.querySelector('summary').getBoundingClientRect(),inset=12,gap=4;
+      const clip=menu.closest('#workspace-content')?.getBoundingClientRect();
+      const top=Math.max(inset,clip?.top||0),bottom=Math.min(win.innerHeight-inset,clip?.bottom||win.innerHeight);
+      if(rect.bottom<=top||rect.top>=bottom){setOpenTaskId('');return;}
+      const width=Math.min(260,win.innerWidth-inset*2);
+      const below=Math.max(0,bottom-rect.bottom-gap),above=Math.max(0,rect.top-top-gap);
+      const upward=below<Math.min(panel.scrollHeight,220)&&above>below;
+      const maxHeight=Math.max(0,upward?above:below);
+      setMenuPosition({width,left:Math.max(inset,Math.min(rect.right-width,win.innerWidth-width-inset)),
+        top:upward?Math.max(top,rect.top-gap-Math.min(panel.scrollHeight,maxHeight)):Math.min(bottom,rect.bottom+gap),
+        maxHeight});
+    };
+    const observer=win.ResizeObserver?new win.ResizeObserver(position):null;
+    position();observer?.observe(panel);win.addEventListener('resize',position);win.addEventListener('scroll',position,true);
+    return ()=>{observer?.disconnect();win.removeEventListener('resize',position);win.removeEventListener('scroll',position,true);};
+  },[openTaskId,rows]);
   React.useEffect(()=>{
     if(!openTaskId)return;
     const menu=menus.current.get(openTaskId),doc=menu?.ownerDocument;
+    let active=true;
     const close=event=>{
       if(event.type==='keydown'&&event.key!=='Escape')return;
       if(event.type==='pointerdown'&&menu?.contains(event.target))return;
+      if(event.type==='focusin'&&menu?.contains(event.target))return;
       setOpenTaskId('');
       if(event.type==='keydown'){event.preventDefault();menu?.querySelector('summary')?.focus({preventScroll:true});}
     };
-    doc?.addEventListener('pointerdown',close);doc?.addEventListener('keydown',close);
-    return ()=>{doc?.removeEventListener('pointerdown',close);doc?.removeEventListener('keydown',close);};
+    const leave=event=>{
+      // Chrome may flush microtasks before the internal destination receives
+      // focus; relatedTarget already identifies that pending focus transfer.
+      if(menu?.contains(event.relatedTarget))return;
+      queueMicrotask(()=>{
+        if(active&&!menu?.contains(doc?.activeElement))setOpenTaskId('');
+      });
+    };
+    doc?.addEventListener('pointerdown',close);doc?.addEventListener('keydown',close);doc?.addEventListener('focusin',close);
+    doc?.addEventListener('focusout',leave);
+    return ()=>{active=false;doc?.removeEventListener('pointerdown',close);doc?.removeEventListener('keydown',close);doc?.removeEventListener('focusin',close);doc?.removeEventListener('focusout',leave);};
   },[openTaskId]);
   React.useEffect(()=>{if(openTaskId&&!rows.some(row=>row.taskId===openTaskId))setOpenTaskId('');},[rows,openTaskId]);
   if(!rows.length)return <p className="task-search-empty" role="status">{emptyText}</p>;
@@ -107,18 +141,14 @@ export function ScheduleManagerRows({rows=[],emptyText='',canCreatePlan=true,
       data-manager-task-id={row.taskId}>
       <div className="schedule-manager-card-head">
         <div className="schedule-manager-identity">
-          <div className="schedule-manager-title-line">
-            <strong>{title}</strong>
-            <span className="schedule-manager-state schedule-state-icon"
-              data-state={enabled?'enabled':'disabled'} role="img"
-              title={enabled?'已启用':'已停用'} aria-label={enabled?'已启用':'已停用'}>
-              <svg viewBox="0 0 24 24" aria-hidden="true">
-                <path d={enabled?'M4 12l5 5L20 6':'M8 5v14M16 5v14'}/>
-              </svg>
-            </span>
-          </div>
-          <p className="hint">v{version} · {row.linked||0} 个关联计划</p>
+          <strong>{title}</strong>
+          {row.description&&<p className="schedule-manager-description hint" title={row.description}>{row.description}</p>}
         </div>
+      </div>
+      <div className="schedule-manager-footer">
+      <div className="schedule-manager-meta">
+        <span className="schedule-manager-state" data-state={enabled?'enabled':'disabled'}>{enabled?'已启用':'已停用'}</span>
+        <span className="hint">v{version} · {row.linked||0} 个关联计划</span>
       </div>
       <div className="schedule-manager-actions od-toolbar" role="group"
         aria-label={'管理「'+title+'」'}>
@@ -137,20 +167,23 @@ export function ScheduleManagerRows({rows=[],emptyText='',canCreatePlan=true,
           </svg>
         </IconButton>
         <details className="schedule-manager-menu" open={openTaskId===row.taskId}
-          ref={node=>{if(node)menus.current.set(row.taskId,node);else menus.current.delete(row.taskId);}}
-          onToggle={event=>{
-            const open=event.currentTarget.open;
-            setOpenTaskId(current=>open?row.taskId:current===row.taskId?'':current);
-          }}>
+          ref={node=>{if(node)menus.current.set(row.taskId,node);else menus.current.delete(row.taskId);}}>
           <summary className="od-icon-button schedule-manager-action schedule-manager-menu-trigger"
             data-manager-action="more" data-manager-more={row.taskId}
+            onClick={event=>{event.preventDefault();setOpenTaskId(current=>current===row.taskId?'':row.taskId);}}
+            onKeyDown={event=>{
+              if(event.key!=='ArrowDown')return;
+              event.preventDefault();setOpenTaskId(row.taskId);
+              event.currentTarget.ownerDocument.defaultView.requestAnimationFrame(()=>
+                menus.current.get(row.taskId)?.querySelector('button')?.focus());
+            }}
             title={'更多操作：'+title} aria-label={'更多操作：'+title}>
             <svg viewBox="0 0 24 24" aria-hidden="true">
               <circle cx="5" cy="12" r="1.5"/><circle cx="12" cy="12" r="1.5"/>
               <circle cx="19" cy="12" r="1.5"/>
             </svg>
           </summary>
-          <div className="schedule-manager-menu-panel od-surface" role="group"
+          <div className="schedule-manager-menu-panel od-surface" role="group" style={openTaskId===row.taskId?menuPosition:undefined}
             aria-label={'其他操作：'+title}>
             {canCreatePlan&&<button type="button"
               className="od-button od-button--quiet schedule-manager-action schedule-manager-menu-item"
@@ -174,6 +207,7 @@ export function ScheduleManagerRows({rows=[],emptyText='',canCreatePlan=true,
             </details>
           </div>
         </details>
+      </div>
       </div>
     </article>;
   });

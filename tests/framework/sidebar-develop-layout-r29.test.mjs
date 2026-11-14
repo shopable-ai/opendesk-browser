@@ -19,23 +19,29 @@ const [html,css,components]=await Promise.all([
   readFile(new URL('design-system.css',root),'utf8'),
 ]);
 
-test('Develop history retains unique DOM IDs, labels and nested disclosure structure',()=>{
+test('Develop results and history retain separate ownership, unique field IDs and accessible labels',()=>{
   const $=load(html);
   const ids=['workbench-develop','developer-results-panel','script-history-panel',
     'script-read','script-history-run','script-history-open','script-history',
     'script-run-id','script-read-run','script-download-result','script-download','script-download-status'];
   for(const id of ids)assert.equal($('#'+id).length,1,'missing/duplicate '+id);
-  const history=$('#developer-results-panel #script-history-panel');
-  assert.equal(history.length,1,'history remains inside results');
-  assert.equal(history.children('summary').text().trim(),'运行记录与技术信息');
+  const history=$('#script-history-panel'),result=$('#developer-results-panel');
+  assert.equal(result.find('#script-history-panel').length,0,'history is a separate task, not current output');
+  assert.equal(result.parent().is('[hidden]'),false,'editor initially shows the current result wrapper');
+  assert.equal(history.parent().is('[hidden]'),true,'history mounts without exposing management on the editor');
+  assert.equal(history.parent()[0].parent,result.parent()[0].parent,'result and history share the execution owner');
+  assert.equal(history.children('summary').text().trim(),'过去运行');
   for(const classname of ['developer-history-content','developer-history-field',
     'developer-history-actions','developer-history-disclosure'])
     assert.ok(history.find('.'+classname).length,'missing group '+classname);
   assert.equal(history.find('#script-history-open').prop('disabled'),true);
   assert.equal(history.find('#script-history-run').attr('aria-describedby'),'script-history-hint');
-  for(const control of ['script-history-run','script-run-id','script-download-result'])
+  for(const control of ['script-history-run','script-download-result'])
     assert.equal(history.find('label[for="'+control+'"]').length,1,'accessible label '+control);
   assert.equal(history.find('details.developer-history-disclosure').length,2);
+  assert.equal(history.find('#script-run-id').length,0,'manual identity query belongs to diagnostics');
+  assert.equal($('label[for="script-run-id"]').length,1);
+  assert.equal($('#script-run-id').closest('details').parent().is('[hidden]'),true);
   assert.equal($('#script-status').attr('data-opendesk-react-owner'),'developer-run-status');
   assert.equal($('#script-result').attr('data-opendesk-react-owner'),'developer-result');
 });
@@ -83,6 +89,9 @@ test('React history actions publish button state and query the existing Controll
   const fire=async(id,type='click')=>React.act(async()=>{
     get(id).dispatchEvent(new window.Event(type,{bubbles:true}));await tick();
   });
+  await React.act(async()=>view.navigate('history'));
+  assert.equal(get('script-history-panel').parentElement.hidden,false);
+  assert.equal(get('developer-results-panel').parentElement.hidden,false);
   assert.equal(get('script-history-open').disabled,true);
   assert.equal(get('script-history-run').querySelectorAll('option').length,2,get('script-status').textContent);
   // LinkeDOM selects have no writable value; setting the real option drives
@@ -94,7 +103,9 @@ test('React history actions publish button state and query the existing Controll
   await fire('script-history-open');
   assert.deepEqual(requests.at(-1),{runId:'history-a'});
   assert.match(get('script-result').textContent,/history-secret/);
-  assert.equal(get('developer-results-panel').hasAttribute('open'),false,'reading history does not run or reveal a draft');
+  assert.equal(view.getSnapshot().section,'history','reading history stays on its task');
+  assert.equal(document.querySelectorAll('#script-result').length,1,'selected result reuses the original field');
+  assert.equal(get('developer-results-panel').parentElement.hidden,false,'selected result remains visible');
   denied=['history-a'];
   await fire('script-read');
   assert.deepEqual(requests.at(-1),{});
@@ -106,6 +117,9 @@ test('React history actions publish button state and query the existing Controll
   await fire('script-read');
   assert.equal(view.getSnapshot().fields['script-history-run'].value,'');
   assert.equal(get('script-history-open').disabled,true,'refresh clears a removed selection');
+  await React.act(async()=>view.navigate('diagnostics'));
+  assert.equal(get('script-run-id').closest('details').parentElement.hidden,false);
+  assert.equal(get('developer-results-panel').parentElement.hidden,false,'diagnostic queries have visible output');
   get('script-run-id').value='history-b';
   await fire('script-run-id','input');
   await fire('script-read-run');
@@ -116,31 +130,27 @@ test('React history actions publish button state and query the existing Controll
     'only read-only catalogs and dependency inspection are allowed');
 });
 
-test('Develop styles follow R27 tokens and reflow actions below 380 CSS px',()=>{
-  assert(css.includes('#workbench-develop .developer-context>.developer-target{margin:0;padding:0}'),
-    'Developer view owns target alignment, not shared disclosure appearance');
-  assert(components.includes('.od-disclosure>summary{display:flex;align-items:center'),
-    'All disclosure headings must share the public centered typography');
-  assert(css.includes('#workbench-develop .developer-history-field{display:grid;gap:var(--space-2)'),
-    'Form labels and controls need the tokenized 8px gap');
-  assert(css.includes('#workbench-develop .developer-history-content{display:grid;gap:var(--space-3)'),
-    'History groups need the tokenized 12px gap');
-  assert(css.includes('grid-template-columns:minmax(0,1fr) auto'),
-    'Wide history select and action must fit without fixed input widths');
-  assert(css.includes('@media(max-width:380px)'),
-    'Narrow Sidebar needs stacked history actions');
-  assert(css.includes('#workbench-develop .developer-editor{display:grid;gap:var(--space-4)'),
-    'Independent developer sections need 16px spacing');
-  assert(html.includes('class="developer-run-area od-stack"'),
-    'Output status and result must stay in one 8px group');
-  assert(components.includes('.od-disclosure{min-width:0;'),
-    'Shared accordion must not overflow a narrow parent');
-  assert(components.includes('.od-disclosure>summary>*{min-width:0}'),
-    'Summary children must shrink before overflowing');
-  assert(components.includes('max-width:calc(100% - var(--space-3) - var(--space-3))'),
-    '100%-width fields must fit inside both disclosure body margins');
-  assert(css.includes('#workbench-develop .developer-history-disclosure>pre{max-height:240px;overflow:auto'),
-    'Large JSON histories must scroll locally');
+test('Develop fields belong to editor, task management or Dock without duplicate controls',()=>{
+  const $=load(html),page=$('#workbench-develop'),dock=$('#develop-dock');
+  for(const node of page.find('[id]').toArray())
+    assert.equal($('[id]').filter((_,candidate)=>candidate.attribs.id===node.attribs.id).length,1,
+      'unique field '+node.attribs.id);
+  for(const id of ['script-source','script-params']){
+    assert.equal(page.find('.developer-compose #'+id).length,1,'editor owns '+id);
+    assert.equal(page.find('label[for="'+id+'"]').length,1,'accessible label '+id);
+  }
+  assert.equal($('#script-javascript-world').prop('tagName'),'FIELDSET');
+  assert.equal($('#script-javascript-world').attr('role'),'radiogroup');
+  assert.equal($('#script-javascript-world').attr('aria-label'),'JavaScript 运行位置');
+  for(const world of ['controller','page'])assert.equal($('label[for="script-javascript-world-'+world+'"]').length,1);
+  for(const id of ['script-id','script-list','script-save-version','page-program-install'])
+    assert.equal(page.find('#developer-program-management #'+id).length,1,'management owns '+id);
+  for(const id of ['script-run','developer-save-entry']){
+    assert.equal(dock.find('#'+id).length,1,'Dock owns '+id);
+    assert.equal(page.find('#'+id).length,0,'no second action owner '+id);
+  }
+  assert.equal(dock.find('#developer-more-actions').is('[hidden]'),true);
+  assert.equal(dock.find('[aria-controls="developer-more-actions"]').attr('aria-label'),'更多操作');
 });
 
 test('First-use connection guide uses canonical disclosure and readable action styles',()=>{

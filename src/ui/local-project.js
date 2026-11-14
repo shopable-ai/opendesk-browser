@@ -107,7 +107,9 @@ export function createLocalProjectView({client,api,document:doc,view=null,onChan
     patchDeveloperField(view,find('manual-source-editor'),{hidden:local});
     patchDeveloperField(view,find('local-project-params-tools'),{hidden:!local||runtimeKind!=='controller'});
     patchDeveloperField(view,find('manual-project-params-tools'),{hidden:local});
-    patchDeveloperField(view,select,{disabled:checking||(!connected&&!workspaces.length)});
+    patchDeveloperField(view,select,{disabled:checking||(!connected&&!workspaces.length),
+      data:{...(select.data||select.dataset),promptProjectSelected:Boolean(row),
+        promptRuntimeKind:['controller','page-userscript'].includes(runtimeKind)?runtimeKind:'unknown'}});
     patchDeveloperField(view,find('local-project-connect'),{textContent:row?.fileOnly?'打开文件工作区 ↗':'连接本机 OpenDesk ↗'});
     patchDeveloperField(view,find('local-project-connect'),{disabled:row?.fileOnly?!canOpenWorkspace():false});
     const recovery=local&&(!connected||!projects.length||row?.fileOnly);

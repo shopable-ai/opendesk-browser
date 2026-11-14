@@ -29,7 +29,7 @@ export function TaskRunSheet({view}){
   React.useSyncExternalStore(view.subscribe,view.getSnapshot,view.getSnapshot);
   const request=view.data.taskRunSheet;
   const dialog=React.useRef(null),composing=React.useRef(false),focusInvalid=React.useRef(false);
-  const opening=React.useRef(null);
+  const opening=React.useRef(null),backdropPress=React.useRef(false),returnFocus=React.useRef(null);
   const tool=['tool','page'].includes(request?.source),phase=request?.phase||'editing';
   const blocked=!request||request.busy||request.recoveryOnly||!(tool?['editing','prepared']:['editing']).includes(phase);
   const fieldsDisabled=Boolean(!request||request.busy||request.paramsLocked||(tool&&phase!=='editing'));
@@ -42,6 +42,7 @@ export function TaskRunSheet({view}){
     view.field('task-param-'+name).error?.endsWith(status)));
   const close=()=>{
     if(!request)return;
+    backdropPress.current=false;
     composing.current=false;focusInvalid.current=false;
     view.actions.taskSheetClose?.();
   };
@@ -53,6 +54,8 @@ export function TaskRunSheet({view}){
     if(request){
       if(node.open&&opening.current!==key)node.close();
       if(!node.open){
+        backdropPress.current=false;
+        returnFocus.current=request.trigger||null;
         composing.current=false;
         request.trigger?.focus({preventScroll:true});
         node.showModal();
@@ -77,10 +80,30 @@ export function TaskRunSheet({view}){
       if(view.data.taskRunSheet===request)close();
     }else focusInvalid.current=true;
   };
-  // Chromium owns modal focus, inertness and focus return.
+  const isBackdrop=event=>{
+    if(event.target!==event.currentTarget)return false;
+    const {left,right,top,bottom}=event.currentTarget.getBoundingClientRect();
+    return event.clientX<left||event.clientX>right||event.clientY<top||event.clientY>bottom;
+  };
+  const restoreTrigger=()=>{
+    const trigger=returnFocus.current;returnFocus.current=null;
+    if(!trigger?.isConnected)return;
+    // Focusing the row first reveals its hover/focus-only run button.
+    trigger.closest('.task-card-group')?.querySelector('[data-task-id]')?.focus({preventScroll:true});
+    trigger.focus({preventScroll:true});
+  };
+  // Chromium owns modal focus, inertness and focus return. Both pointer ends
+  // must be outside: drags from fields and clicks on dialog padding stay open.
   return (<dialog ref={dialog} id="task-parameters-sheet" className="task-params-sheet" aria-labelledby="task-parameters-title" aria-describedby="task-parameters-description"
-  onClose={event=>{if(!event.currentTarget.open)close();}}
+  onClose={event=>{if(!event.currentTarget.open){close();restoreTrigger();}}}
   onCancel={event=>{event.preventDefault();event.stopPropagation();if(!composing.current)close();}}
+  onPointerDown={event=>{backdropPress.current=event.button===0&&isBackdrop(event);}}
+  onPointerCancel={()=>{backdropPress.current=false;}}
+  onClick={event=>{
+    const dismiss=backdropPress.current&&isBackdrop(event);
+    backdropPress.current=false;
+    if(dismiss)close();
+  }}
   onCompositionStart={()=>{composing.current=true;}} onCompositionEnd={()=>{composing.current=false;}}
   onKeyDownCapture={event=>{
     if((event.key==='Escape'||event.key==='Enter')&&(composing.current||event.nativeEvent.isComposing||event.repeat)){
@@ -135,6 +158,7 @@ export function TaskRunSheet({view}){
 {tool&&request?.preparationId&&['submitted','unknown'].includes(phase)&&view.actions.taskSheetStopClick&&<Button variant="danger" disabled={request.busy} onClick={event=>view.actions.taskSheetStopClick(event.nativeEvent)}><SheetActionIcon kind="stop"/>停止</Button>}
 {tool&&request?.preparationId&&['editing','preparing','prepared','unknown'].includes(phase)&&view.actions.taskSheetCancelClick&&<Button variant="quiet" disabled={request.busy} onClick={event=>view.actions.taskSheetCancelClick(event.nativeEvent)}><SheetActionIcon kind="cancel"/>取消准备</Button>}
 {tool&&request?.reprepareAllowed&&view.actions.taskSheetReprepareClick&&<Button variant="primary" disabled={request.busy} onClick={event=>view.actions.taskSheetReprepareClick(event.nativeEvent)}><SheetActionIcon kind="prepare"/>安全重新准备</Button>}
+{request?.source==='my'&&phase==='editing'&&view.data.taskRuntimeRecovery&&<Button variant="quiet" disabled={request.busy||view.data.taskRuntimeRecoveryDisabled} onClick={event=>view.actions.taskSheetRuntimeRecoveryClick?.(event.nativeEvent,request.identity)}>在开发中重新验证</Button>}
 {(!tool||(['editing','prepared'].includes(phase)&&!request?.recoveryOnly))&&<Button id="task-run" variant="primary" disabled={blocked||(!tool&&(view.field('task-run').disabled||view.field('task-run').hidden))||!action}
   onClick={run}><SheetActionIcon kind={tool?(phase==='editing'?'prepare':'confirm'):'run'}/>{tool?(phase==='editing'?'保存并核对':'确认执行一次'):'运行任务'}</Button>}</footer>
 </dialog>);

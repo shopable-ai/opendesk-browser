@@ -12,23 +12,26 @@ export function NotificationViewport({view,snapshot,visible=true,locale}) {
 }
 
 function ToolToastStacks({view,toasts,visible,locale}){
-  // The existing modal CSS hides notices. Keep their remaining reading time
-  // while a review is open, including receipts that arrive behind that review.
-  const [modalOpen,setModalOpen]=React.useState(()=>Boolean(document.querySelector('[aria-modal=true]')));
+  // Pending trusted reviews keep their controls clear while preserving both
+  // existing receipts and notices that arrive during the decision.
+  const reviewIsOpen=()=>[...document.querySelectorAll('[aria-modal=true],[data-opendesk-pending-review]')]
+    .some(node=>!node.closest('[hidden]'));
+  const [reviewOpen,setReviewOpen]=React.useState(reviewIsOpen);
   React.useLayoutEffect(()=>{
-    const check=()=>setModalOpen(Boolean(document.querySelector('[aria-modal=true]')));
+    const check=()=>setReviewOpen(reviewIsOpen());
     const observer=new document.defaultView.MutationObserver(check);
     check();
-    observer.observe(document.body,{childList:true,subtree:true,attributes:true,attributeFilter:['aria-modal']});
+    observer.observe(document.body,{childList:true,subtree:true,attributes:true,
+      attributeFilter:['aria-modal','hidden','data-opendesk-pending-review']});
     return ()=>observer.disconnect();
   },[]);
   const positions=[...new Set(toasts.map(row=>row.position||'top-center'))];
   const opposed=positions.some(position=>position.startsWith('top'))&&
     positions.some(position=>position.startsWith('bottom'));
   return <>{positions.map(position=><div key={position} className="sidebar-tool-toast-stack"
-    data-position={position} data-opposed={opposed} aria-label={toastCopy(locale).stack}>
+    hidden={reviewOpen} data-position={position} data-opposed={opposed} aria-label={toastCopy(locale).stack}>
     {toasts.filter(row=>(row.position||'top-center')===position).map(toast=>
-      <ToolToast key={toast.id} view={view} toast={toast} visible={visible} paused={modalOpen} locale={locale}/>)}
+      <ToolToast key={toast.id} view={view} toast={toast} visible={visible} paused={reviewOpen} locale={locale}/>)}
   </div>)}</>;
 }
 

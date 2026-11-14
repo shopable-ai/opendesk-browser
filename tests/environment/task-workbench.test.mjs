@@ -56,8 +56,10 @@ const make=({installedInitially=true,secondTask=false,sharedStore=null,draftStor
   const catalogState=state;
   const starts=[],permissions=[],stops=[],catalogOpens=[],draftMessages=[],importedDrafts=[];
   let target={status:'available',url:'https://a.example/',tabId:9,windowId:7,documentId:'doc-9'};
+  const pageSubscribers=new Set();
   const page={
-    get snapshot(){return target;},subscribe:fn=>{fn(target);return()=>{};},
+    get snapshot(){return target;},subscribe:fn=>{pageSubscribers.add(fn);fn(target);return()=>pageSubscribers.delete(fn);},
+    setSnapshot(next){target=next;for(const fn of pageSubscribers)fn(target);},
     capture:()=>target,revalidate:async()=>true};
   const view={runs:[],results:[],slotAvailable:true,downloads:[],resultDeliveryDenied:[]};
   const client={ready:Promise.resolve(),subscribeConnection:()=>()=>{},
@@ -619,12 +621,11 @@ test('My keeps search inside installed task management without executing or requ
   assert.equal(f.catalogOpens[0].url,'chrome-extension://extension/sidepanel.html');
 });
 
-test('My Escape closes task management, clears filters and returns focus without Run',async t=>{
+test('My Escape closes task search, clears the query and returns focus without Run',async t=>{
   const f=make({secondTask:true});t.after(()=>f.ui.dispose());await tick();await tick();
   await f.click('task-manage-toggle');
   f.field('local-discover-search').value='不存在的任务';
   f.action('localDiscoverSearchInput');
-  await f.click('local-filter-current');
   assert.equal(f.field('task-run').disabled,true);
   let prevented=false;
   f.action('taskSearchPanelKeydown',{
@@ -635,7 +636,6 @@ test('My Escape closes task management, clears filters and returns focus without
   assert.equal(f.field('task-search-panel').hidden,true);
   assert.equal(f.field('task-manage-toggle').attributes['aria-pressed'],'false');
   assert.equal(f.field('local-discover-search').value,'');
-  assert.equal(f.field('local-filter-all').attributes['aria-pressed'],'true');
   assert.equal(f.myView.data.taskRows.rows.length,2);
   // The Node fixture observes the focus instruction only; browser focus and
   // keyboard dispatch require actual React/Chrome, never a fake Element.fire.
@@ -645,10 +645,10 @@ test('My Escape closes task management, clears filters and returns focus without
   assert.equal(f.starts.length,0);assert.equal(f.permissions.length,0);
 });
 
-test('My search Escape clears query first, keeps active filter and focus, then closes on second Escape',async t=>{
+test('My search Escape restores all tasks and keeps focus, then closes on second Escape',async t=>{
   const f=make({secondTask:true});t.after(()=>f.ui.dispose());await tick();await tick();
   f.catalogState.installed[1].enabled=false;await f.ui.refresh();
-  await f.click('task-manage-toggle');await f.click('local-filter-disabled');
+  await f.click('task-manage-toggle');
   f.field('local-discover-search').value='no match';f.action('localDiscoverSearchInput');
   assert.deepEqual(f.myView.data.taskRows.rows,[]);
   const search=f.get('local-discover-search');search.focus();
@@ -659,44 +659,50 @@ test('My search Escape clears query first, keeps active filter and focus, then c
   assert.equal(prevented,1);
   assert.equal(f.field('task-search-panel').hidden,false);
   assert.equal(f.field('local-discover-search').value,'');
-  assert.equal(f.field('local-filter-disabled').attributes['aria-pressed'],'true');
-  assert.deepEqual(f.myView.data.taskRows.rows.map(row=>row.taskId),['demo.second']);
+  assert.deepEqual(f.myView.data.taskRows.rows.map(row=>row.taskId),['demo.form','demo.second']);
   assert.equal(f.doc.activeElement,search);
-  assert.equal(f.field('task-run').disabled,true,'filtered-out selected Task stays blocked');
+  assert.equal(f.field('task-run').disabled,false,'the enabled, matching selected Task is visible again');
   escape();await tick();
   assert.equal(prevented,2);
   assert.equal(f.field('task-search-panel').hidden,true);
-  assert.equal(f.field('local-filter-all').attributes['aria-pressed'],'true');
   assert.equal(f.starts.length,0);assert.equal(f.permissions.length,0);
 });
 
-test('My task filters use the one installed list and never run or grant permissions',async t=>{
+test('My search covers disabled and other-site tasks without changing drafts or Run authority',async t=>{
   const f=make({secondTask:true});t.after(()=>f.ui.dispose());await tick();await tick();
   f.catalogState.installed[1].enabled=false;
   f.catalogState.catalog[1].manifest.siteOrigins=['https://elsewhere.example'];
+  f.catalogState.catalog[1].manifest.description='跨站搜索摘要';
   await f.ui.refresh();
   assert.equal(f.field('task-run').disabled,false);
   const param=f.field('task-param-name');
   await f.click('task-manage-toggle');
   const visibleTaskIds=()=>f.myView.data.taskRows.rows.map(row=>row.taskId);
-  await f.click('local-filter-disabled');
-  assert.equal(f.field('local-filter-disabled').attributes['aria-pressed'],'true');
+  assert.deepEqual(visibleTaskIds(),['demo.form','demo.second']);
+  f.field('local-discover-search').value='跨站搜索摘要';f.action('localDiscoverSearchInput');
   assert.deepEqual(visibleTaskIds(),['demo.second']);
   assert.equal(f.field('task-run').disabled,true,
     'a hidden selected Task must not gain Run authority');
-  assert.equal(f.field('task-param-name'),param,'filters retain the same live input state');
+  assert.equal(f.field('task-param-name'),param,'search retains the same live input state');
   await f.click('task-run');
   assert.equal(f.starts.length,0,'hidden selected Task cannot run');
   assert.equal(f.myView.data.taskRows.selectedId,'demo.form');
   assert.equal(visibleTaskIds().includes('demo.form'),false,
     'the selected workspace is not rendered as a visible filtered card');
-  await f.click('local-filter-current');
-  assert.equal(f.field('local-filter-current').attributes['aria-pressed'],'true');
+  f.field('local-discover-search').value='表单';f.action('localDiscoverSearchInput');
   assert.deepEqual(visibleTaskIds(),['demo.form']);
   assert.equal(f.field('task-run').disabled,false);
-  await f.click('local-filter-all');
-  assert.equal(f.field('local-filter-all').attributes['aria-pressed'],'true');
+  f.field('local-discover-search').value='';f.action('localDiscoverSearchInput');
   assert.deepEqual(visibleTaskIds(),['demo.form','demo.second']);
+  f.myView.data.taskRows.onSelect('demo.second');
+  assert.equal(f.field('task-run').disabled,true,'showing a disabled task does not enable Run');
+  await f.click('task-run');
+  f.catalogState.installed[1].enabled=true;await f.ui.refresh();
+  assert.equal(f.field('task-run').disabled,true,'an enabled other-site task remains blocked');
+  await f.click('task-run');
+  f.page.setSnapshot({status:'restricted'});
+  assert.deepEqual(visibleTaskIds(),['demo.form','demo.second'],'page availability does not filter tasks');
+  assert.equal(f.field('task-run').disabled,true);
   assert.equal(f.starts.length,0);assert.equal(f.permissions.length,0);
 });
 

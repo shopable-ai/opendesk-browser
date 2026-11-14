@@ -3,6 +3,10 @@ import assert from 'node:assert/strict';
 import vm from 'node:vm';
 import {readFile} from 'node:fs/promises';
 import {createHash} from 'node:crypto';
+import * as React from 'react';
+import {renderToStaticMarkup} from 'react-dom/server';
+import {createDeveloperView} from '../../src/ui/develop-view.js';
+import {createDeveloperStarterSource} from '../../src/ui/developer-starter-source.js';
 import {prepareBrowserPageComponent,inspectBrowserPageComponent} from '../../src/libs/page-frameworks/page-component-browser-linker.js';
 import {transformVueSFC} from '../../src/libs/page-frameworks/vue-sfc-transform.js';
 import {PAGE_BROWSER_COMPILER,PAGE_BROWSER_PRIVATE_FILES} from '../../src/libs/page-frameworks/contract.js';
@@ -82,17 +86,23 @@ test('browser ESM inspector discovers literal transitive URLs without evaluating
   assert.deepEqual(built.remoteLock,completed.remoteLock);
 });
 
-test('browser linker uses the real pinned D3 max bytes and keeps one fixed React runtime',async()=>{
+test('editor React HTTPS starter compiles with pinned D3 bytes and renders its calculation',async t=>{
   const project='examples/programs/page-ui-toc-react-direct';
   const lock=JSON.parse(await readFile(project+'/opendesk.remote-lock.json','utf8'));
   const url='https://raw.githubusercontent.com/d3/d3-array/v3.2.4/src/max.js',row=lock.modules[url];
   assert.equal(row.sha256,'691945a453633d9e204846af8ea4e299821b924f82b15eaf7906aba642979b1d');
   const code=await readFile(project+'/.opendesk/remote-cache/'+row.sha256+'.mjs','utf8');
-  const source=`import React from 'react';import max from '${url}';export default function App(){return <output>{max([3,9,4])}</output>}`;
+  const view=createDeveloperView();t.after(()=>view.dispose());
+  createDeveloperStarterSource(view).fill('react');
+  const source=view.fields['script-source'].value;
+  const inspection=await inspectBrowserPageComponent(inputFor(source));
+  assert.deepEqual(inspection.remoteRoots,[url]);
   const prepared=await prepareBrowserPageComponent(inputFor(source,[{url,...row,code}]));
-  const context=vm.createContext({OpenDeskPageReact:{createElement:(name,props,...children)=>({name,props,children})}});
+  const context=vm.createContext({OpenDeskPageReact:React});
   vm.runInContext(prepared.sourceUtf8+'\nglobalThis.__component=__odComponentR243.default;',context);
-  assert.equal(context.__component().children[0],9);
+  const markup=renderToStaticMarkup(React.createElement(context.__component));
+  assert.match(markup,/数据：2、5、3/);
+  assert.match(markup,/最大值：<strong>5<\/strong>/);
   assert.equal(prepared.remoteModules.length,1);assert.equal(prepared.remoteModules[0].sha256,row.sha256);
   assert.match(prepared.sourceUtf8,/return globalThis.OpenDeskPageReact/);
   assert.doesNotMatch(prepared.sourceUtf8,/createElement\(['"]script|window\.React|@require|import\(/);

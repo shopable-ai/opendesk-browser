@@ -1,43 +1,35 @@
 import * as React from 'react';
-import {DevelopField} from './develop-controls.tsx';
+import {DevelopField,useDevelop} from './develop-controls.tsx';
 
 // JSX-only region: the trusted DevelopProvider remains in DeveloperPage.
-export function DevelopAdvanced(){
+export function DevelopAdvanced({section='editor'}){
+  const {snapshot}=useDevelop();
+  const page=!snapshot.fields['page-preview-tools'].hidden;
   return (
-        <DevelopField as="details" id="developer-program-management" className="od-disclosure">
-          <summary>
-            {"保存与管理"}
-          </summary>
+        <div hidden={!['save','library','install','diagnostics'].includes(section)}>
+        <DevelopField as="div" id="developer-program-management" className="developer-management" data-section={section}>
           <div className="developer-management-body od-stack">
+          <div hidden={section==='diagnostics'}>
           <DevelopField as="section" id="script-version-identity" className="developer-management-section">
             <label htmlFor="script-id" className="od-field-label">
-              {"脚本 ID（用于保存）"}
+              {"脚本名称 / 标识"}
             </label>
-            <DevelopField as="input" id="script-id" autoComplete="off" className="od-field"/>
-            <div className="od-form-field">
+            <DevelopField as="input" id="script-id" autoComplete="off" className="od-field" aria-describedby="developer-script-name-help"/>
+            <p id="developer-script-name-help" className="od-field-help">沿用脚本唯一标识：字母、数字、点、短横线或下划线；中文可保留在源码中。</p>
+            <div className="od-form-field" hidden={section==='save'&&!page}>
               <label htmlFor="script-revision" className="od-field-label">
-                {"Revision（可选）"}
+                {section==='save'?'网页脚本版本号（可选；留空为 1）':'版本号（可选；留空加载最新）'}
               </label>
               <div className="developer-version-controls">
               <DevelopField as="input" id="script-revision" type="number" min="1" placeholder="留空加载最新版本" className="od-field"/>
-              <DevelopField as="button" id="script-load" className="od-button od-button--secondary">
+              <span hidden={section==='save'}><DevelopField as="button" id="script-load" className="od-button od-button--secondary">
                 {"按 ID 加载版本"}
-              </DevelopField>
+              </DevelopField></span>
               </div>
             </div>
           </DevelopField>
           <DevelopField as="section" id="page-preview-tools" className="developer-management-section">
-            <DevelopField as="h3" id="page-preview-mode-title" className="od-field-label">
-              {"网页 JavaScript 试运行"}
-            </DevelopField>
-            <DevelopField as="p" id="page-preview-mode-hint" className="hint">
-              {"直接使用上方 JavaScript 源码操作当前网页 DOM；可写 async function main() 返回结果，也可直接编写顶层语句。不要求特殊脚本声明；运行前仍需网站授权。"}
-            </DevelopField>
-            <DevelopField as="p" id="page-component-status" role="status" aria-live="polite">
-            </DevelopField>
-            <DevelopField as="p" id="page-preview-status" role="status">
-              {"请先确认当前网页可用；试运行不会保存版本或安装任务。"}
-            </DevelopField>
+            <div hidden={section!=='save'}>
             <DevelopField as="details" id="page-preview-technical-panel" className="od-disclosure od-disclosure--flat">
               <summary>
                 {"技术信息"}
@@ -51,11 +43,13 @@ export function DevelopAdvanced(){
               </DevelopField>
             </div>
             <p className="hint">
-              {"保存仅创建固定候选，不会自动安装。普通 JS 默认匹配本次网页的协议与主机（可能包括同主机其他端口）；显式 @match 保留原范围。后续仍须验证并确认权限。脚本 ID 与 Revision 在上方设置。"}
+              {"保存仅创建固定候选，不会自动安装。普通 JS 需先取得本次试运行回执，组件可准备后保存。普通 JS 默认匹配本次网页的协议与主机（可能包括同主机其他端口）；显式 @match 保留原范围。后续仍须验证并确认权限。沿用当前脚本名称与版本；保存后在「安装与发布」核对。"}
             </p>
             <DevelopField as="p" id="page-candidate-status" role="status" aria-live="polite">
               {"尚未保存网页脚本候选。"}
             </DevelopField>
+            </div>
+            <div hidden={section==='save'}>
             <label htmlFor="page-program-list" className="od-field-label">
               {"已保存网页脚本"}
             </label>
@@ -70,8 +64,11 @@ export function DevelopAdvanced(){
               <DevelopField as="button" id="page-program-verify" type="button" className="od-button od-button--secondary">
                 {"验证冻结版本"}
               </DevelopField>
+              <DevelopField as="button" id="page-program-refresh" type="button" className="od-button od-button--secondary">
+                {"刷新状态"}
+              </DevelopField>
             </div>
-            <div className="row">
+            <div className="row" hidden={section!=='install'}>
               <DevelopField as="button" id="page-program-install" type="button" className="od-button">
                 {"安装自动运行"}
               </DevelopField>
@@ -87,15 +84,14 @@ export function DevelopAdvanced(){
               <DevelopField as="button" id="page-program-uninstall" type="button" className="od-button od-button--danger">
                 {"卸载程序"}
               </DevelopField>
-              <DevelopField as="button" id="page-program-refresh" type="button" className="od-button od-button--secondary">
-                {"刷新状态"}
-              </DevelopField>
             </div>
             <DevelopField as="p" id="page-program-status" role="status" aria-live="polite">
               {"正式安装支持顶层网页与 document-idle；停用不会撤销已有网页效果。效果未知时不自动重放。"}
             </DevelopField>
+            </div>
           </DevelopField>
           <DevelopField as="section" id="script-library-tools" className="developer-management-section">
+            <div hidden={section==='save'}>
             <h3 className="od-field-label">Controller 版本与任务</h3>
             <label htmlFor="script-list" className="od-field-label">
               {"已保存脚本"}
@@ -112,9 +108,17 @@ export function DevelopAdvanced(){
             <DevelopField as="p" id="script-version" role="status">
               {"尚未保存"}
             </DevelopField>
+            <div hidden={section!=='library'}>
+              <DevelopField as="button" id="script-delete" className="od-button od-button--danger">删除脚本</DevelopField>
+            </div>
+            </div>
+            <div hidden={section!=='save'}>
+            <p className="od-field-help">保存当前完整源码为固定版本，不会运行或安装。名称沿用现有脚本标识，版本由原存储管理。</p>
             <DevelopField as="button" id="script-save-version" type="button" className="od-button od-button--secondary">
               {"保存 Controller 固定版本"}
             </DevelopField>
+            </div>
+            <div hidden={section!=='install'}>
             <DevelopField as="details" id="task-package-dev" className="od-disclosure od-disclosure--flat">
               <summary>
                 {"从已保存版本创建任务候选"}
@@ -169,7 +173,10 @@ export function DevelopAdvanced(){
                 {"候选需要真实运行验证后才能安装"}
               </DevelopField>
             </DevelopField>
+            </div>
           </DevelopField>
+          </div>
+          <div hidden={section!=='diagnostics'}>
           <DevelopField as="details" id="script-advanced" className="od-disclosure od-disclosure--flat">
             <summary>
               {"高级脚本与目标设置"}
@@ -202,9 +209,6 @@ export function DevelopAdvanced(){
                 {"允许脚本访问目标网站的 Cookie"}
               </label>
             </p>
-            <DevelopField as="button" id="script-delete" className="od-button od-button--danger">
-              {"删除脚本"}
-            </DevelopField>
             <details className="od-disclosure od-disclosure--flat">
               <summary>
                 {"当前网页精确身份"}
@@ -214,6 +218,8 @@ export function DevelopAdvanced(){
             </details>
           </DevelopField>
           </div>
+          </div>
         </DevelopField>
+        </div>
   );
 }

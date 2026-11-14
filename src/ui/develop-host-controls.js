@@ -6,17 +6,26 @@ import {createSdkApproval, sdkApprovalPreview, sdkHttpLabPreset} from './sdk-app
 
 const capabilityLabels = {
   'network.localRelay': '本机 Node HTTP 转发（独立配对；仅批准的本机 GET）',
-  network: 'HTTP 网络请求（仅本次精确批准的来源与目标）', 'storage.persistent': '持久存储',
+  network: 'HTTP 网络请求', 'storage.persistent': '持久存储',
   'storage.session': '浏览器会话存储', notifications: '通知', 'device.id': '稳定应用 ID',
-  'network.info': '外部网络信息（当前未启用）'
+  'network.info': '外部网络信息（当前未启用）',
+  'service.log': '调试日志', 'service.time': '当前时间', 'resources.packaged': '内置资源'
 };
+// Deliberate development defaults; newly admitted capabilities need a separate decision.
+const defaultCapabilities = new Set(['network', 'storage.persistent', 'storage.session',
+  'notifications', 'device.id', 'service.log', 'service.time', 'resources.packaged']);
 
 // React owns the controls. These fields are observations and inputs, never an
 // authorization store; the original Chrome gate and SDK Authority still decide.
-export function createDeveloperHostControls({api, client, view}) {
+export function createDeveloperHostControls({api, client, view, currentPageTarget}) {
   const fields = view.fields, actions = new Map();
   let disposed = false, target, healthVersion = 0;
   let sdkDocuments = new Map(), sdkSelectionVersion = 0, sdkBusy = false, autoLabPreset = null;
+  const sdkDrafts = new Map();
+  let sdkDraftKey = null, unboundSdkDraft = null;
+  let sdkTabs = new Map(), sdkFollowCurrent = true, sdkCurrentReady = false, sdkCurrentIdentity, sdkRefreshVersion = 0;
+  const currentIdentity = state => JSON.stringify([state?.status, state?.windowId, state?.tabId,
+    state?.frameId, state?.documentId, state?.origin]);
   const patch = (id, values) => { if (!disposed) view.patch(id, values); };
   const bind = (id, action) => {
     if (view.actions[id]) throw new Error('E_DEVELOPER_ACTION_OWNER: ' + id);
@@ -79,10 +88,18 @@ export function createDeveloperHostControls({api, client, view}) {
   });
 
   patch('sdk-capabilities', {rows:[...new Set(Object.values(ADMITTED_METHODS).map(method => method.capability))]
-    .map(value => ({value, label:capabilityLabels[value] || value, checked:false, disabled:value === 'network.info'}))});
+    .map(value => ({value, label:capabilityLabels[value] || value,
+      checked:defaultCapabilities.has(value), disabled:value === 'network.info'}))});
   const selectedCapabilities = () => fields['sdk-capabilities'].rows.filter(row => row.checked && !row.disabled).map(row => row.value);
   const sdkSelection = () => ({document:sdkDocuments.get(fields['sdk-document'].value),
     capabilities:selectedCapabilities(), targetText:fields['sdk-target-origins'].value});
+  function sdkPageSummary() {
+    const doc = sdkSelection().document, tab = sdkTabs.get(fields['sdk-tab'].value);
+    patch('sdk-page-title', {textContent:doc ? tab?.title || new URL(doc.url).hostname :
+      sdkFollowCurrent ? currentPageTarget?.snapshot?.message || '正在识别当前网页…' : '所选网页的文档尚未确认'});
+    patch('sdk-page-url', {textContent:doc?.url || ''});
+    patch('sdk-use-current', {hidden:sdkFollowCurrent || !currentPageTarget});
+  }
   function sdkDisplay(state, message, data) {
     patch('sdk-status', {data:{state}, textContent:message});
     patch('sdk-result', {textContent:data === undefined ? '' : JSON.stringify(data, null, 2)});
@@ -102,66 +119,104 @@ export function createDeveloperHostControls({api, client, view}) {
         historyNotice:'历史回执不证明当前授权仍有效，也不代表当前输入已批准'});
     }});
   function sdkInputsChanged(message) { sdkApproval.invalidate(message); sdkUpdateButtons(); }
+  const readSdkDraft = () => ({capabilities:selectedCapabilities(),
+    targetText:fields['sdk-target-origins'].value, autoLabPreset});
+  function saveSdkDraft() { if (sdkDraftKey) sdkDrafts.set(sdkDraftKey, readSdkDraft()); }
   function sdkDocumentChanged() {
+    saveSdkDraft();
     const doc = sdkDocuments.get(fields['sdk-document'].value);
+    sdkDraftKey = doc ? `${doc.tabId}:${doc.frameId}:${doc.documentId}` : null;
+    if (!doc) { sdkPageSummary(); sdkInputsChanged(); return; }
     const preset = doc?.frameId === 0 ? sdkHttpLabPreset(doc.url) : null;
-    const network = fields['sdk-capabilities'].rows.find(row => row.value === 'network');
-    if (!preset && autoLabPreset && fields['sdk-target-origins'].value === autoLabPreset.targetText &&
-        selectedCapabilities().length === 1 && selectedCapabilities()[0] === 'network') {
-      patch('sdk-target-origins', {value:''});
-      patch('sdk-capabilities', {rows:fields['sdk-capabilities'].rows.map(row => row.value === 'network' ? {...row, checked:false} : row)});
-    }
-    autoLabPreset = null;
-    if (preset && !fields['sdk-target-origins'].value.trim() && selectedCapabilities().length === 0 && network && !network.disabled) {
-      patch('sdk-capabilities', {rows:fields['sdk-capabilities'].rows.map(row => row.value === 'network' ? {...row, checked:true} : row)});
-      patch('sdk-target-origins', {value:preset.targetText}); autoLabPreset = preset;
-    }
+    const draft = sdkDrafts.get(sdkDraftKey) || unboundSdkDraft || {
+      capabilities:[...defaultCapabilities], targetText:preset?.targetText || '', autoLabPreset:preset};
+    unboundSdkDraft = null;
+    const selected = new Set(draft.capabilities);
+    patch('sdk-capabilities', {rows:fields['sdk-capabilities'].rows.map(row =>
+      ({...row, checked:!row.disabled && selected.has(row.value)}))});
+    patch('sdk-target-origins', {value:draft.targetText});
+    autoLabPreset = draft.autoLabPreset;
+    saveSdkDraft();
+    sdkPageSummary();
     sdkInputsChanged();
   }
   function clearSdkDocument() {
+    saveSdkDraft(); sdkDraftKey = null;
     sdkSelectionVersion++; sdkDocuments = new Map();
     patch('sdk-document', {options:[{label:'请选择当前精确文档', value:''}], value:'', disabled:true});
+    sdkPageSummary();
     sdkInputsChanged('文档列表已变化，请重新选择精确文档并批准');
   }
   async function refreshSdkTabs() {
+    const refreshVersion = ++sdkRefreshVersion;
+    patch('sdk-refresh', {disabled:true});
+    try {
+    const previousTab = fields['sdk-tab'].value;
+    const previousDocument = sdkDocuments.get(fields['sdk-document'].value);
     clearSdkDocument();
     patch('sdk-tab', {options:[{label:'请选择具体网页', value:''}], value:''});
     const version = sdkSelectionVersion;
-    const tabs = await api.tabs.query({});
+    const current = currentPageTarget?.snapshot;
+    sdkCurrentIdentity = currentIdentity(current);
+    const windowId = current?.windowId ?? currentPageTarget?.windowId;
+    const tabs = currentPageTarget && (!Number.isSafeInteger(windowId) || windowId < 0) ? [] :
+      await api.tabs.query(currentPageTarget ? {windowId} : {});
     if (disposed || version !== sdkSelectionVersion) return;
-    const eligible = tabs.filter(tab => !tab.incognito && Number.isInteger(tab.id) && /^https?:\/\//.test(tab.url || ''));
+    const eligible = tabs.filter(tab => !tab.incognito && Number.isInteger(tab.id) && /^https?:\/\//.test(tab.url || '') &&
+      (!currentPageTarget || tab.windowId === windowId));
+    sdkTabs = new Map(eligible.map(tab => [String(tab.id), tab]));
     patch('sdk-tab', {options:[{label:'请选择具体网页', value:''}, ...eligible.map(tab =>
-      ({label:`[${tab.id}] ${tab.title || tab.url} — ${tab.url}`, value:String(tab.id)}))]});
+      ({label:`${tab.title || new URL(tab.url).hostname} — ${tab.url}`, value:String(tab.id)}))]});
     const demos = eligible.filter(tab => sdkHttpLabPreset(tab.url));
-    const demo = demos.find(tab => tab.active) || demos[0];
-    if (demo) { patch('sdk-tab', {value:String(demo.id)}); await refreshSdkDocuments(); }
-    else sdkDisplay('idle', '请选择网页、当前文档和服务');
+    const selected = currentPageTarget && sdkFollowCurrent
+      ? current?.status === 'available' && eligible.find(tab => tab.id === current.tabId)
+      : eligible.find(tab => String(tab.id) === previousTab) || (!currentPageTarget && (demos.find(tab => tab.active) || demos[0]));
+    if (selected) { patch('sdk-tab', {value:String(selected.id)}); await refreshSdkDocuments(previousDocument); }
+    else { sdkPageSummary(); sdkDisplay('idle', current?.message || '请打开 HTTP(S) 网页，或展开选择其他网页'); }
+    } finally {
+      if (refreshVersion === sdkRefreshVersion) patch('sdk-refresh', {disabled:false});
+    }
   }
-  async function refreshSdkDocuments() {
+  async function refreshSdkDocuments(preferredDocument) {
+    const previousDocument = preferredDocument || sdkDocuments.get(fields['sdk-document'].value);
     clearSdkDocument();
     if (!fields['sdk-tab'].value) return;
     const tabId = Number(fields['sdk-tab'].value), version = sdkSelectionVersion;
     const [tab, frames] = await Promise.all([api.tabs.get(tabId), api.webNavigation.getAllFrames({tabId})]);
     if (disposed || version !== sdkSelectionVersion || fields['sdk-tab'].value !== String(tabId)) return;
     if (tab.incognito) throw {code:'E_PERMISSION', message:'不支持隐身网页'};
+    if (currentPageTarget && tab.windowId !== (currentPageTarget.snapshot?.windowId ?? currentPageTarget.windowId))
+      throw {code:'E_DOCUMENT_STALE', message:'所选网页已移出当前窗口，请重新选择'};
     for (const frame of frames || []) {
       if (!frame.documentId || frame.errorOccurred || !/^https?:\/\//.test(frame.url || '') ||
           (frame.documentLifecycle && frame.documentLifecycle !== 'active')) continue;
       sdkDocuments.set(frame.documentId, {tabId, frameId:frame.frameId, documentId:frame.documentId, url:frame.url});
     }
     const root = [...sdkDocuments.values()].find(doc => doc.frameId === 0);
+    const current = currentPageTarget?.snapshot;
+    if (currentPageTarget && sdkFollowCurrent && (current?.status !== 'available' || current.tabId !== tabId ||
+        root?.documentId !== current.documentId || root?.url !== current.url)) {
+      clearSdkDocument(); sdkDisplay('stale', '当前网页正在变化，请等待文档确认后再批准'); return;
+    }
+    const selected = previousDocument?.tabId === tabId && sdkDocuments.has(previousDocument.documentId)
+      ? previousDocument : root;
     patch('sdk-document', {options:[{label:'请选择当前精确文档', value:''}, ...[...sdkDocuments.values()].map(doc =>
-      ({label:`frame ${doc.frameId} · ${doc.documentId} · ${doc.url}`, value:doc.documentId}))],
-      value:root?.documentId || '', disabled:sdkDocuments.size === 0});
+      ({label:`${doc.frameId === 0 ? '主文档' : '子框架 ' + doc.frameId} · ${doc.url}`, value:doc.documentId}))],
+      value:selected?.documentId || '', disabled:sdkDocuments.size === 0});
     sdkDocumentChanged();
     sdkDisplay('idle', autoLabPreset
-      ? '已预填本地 HTTP 实验页的 network 与目标 Origin；请核对后点击明确批准并安装（尚未授权或发送 HTTP）'
-      : root ? '已选择当前主文档；请核对并选择要授权的服务' : '没有可自动选择的当前 HTTP(S) 主文档');
+      ? '开发服务与本地 HTTP 实验页目标已预填；请核对后批准（尚未授权或发送 HTTP）'
+      : selected ? '已选择当前文档；请核对所选服务与访问范围后批准' : '没有可自动选择的当前 HTTP(S) 主文档');
   }
   bind('sdk-refresh', () => refreshSdkTabs().catch(sdkError));
-  bind('sdk-tab', () => refreshSdkDocuments().catch(sdkError));
-  bind('sdk-document', sdkDocumentChanged);
-  for (const id of ['sdk-capabilities', 'sdk-target-origins']) bind(id, () => { autoLabPreset = null; sdkInputsChanged(); });
+  bind('sdk-tab', () => { sdkFollowCurrent = false; return refreshSdkDocuments().catch(sdkError); });
+  bind('sdk-document', () => { sdkFollowCurrent = false; sdkDocumentChanged(); });
+  bind('sdk-use-current', () => { sdkFollowCurrent = true; return refreshSdkTabs().catch(sdkError); });
+  for (const id of ['sdk-capabilities', 'sdk-target-origins']) bind(id, () => {
+    autoLabPreset = null;
+    if (sdkDraftKey) saveSdkDraft(); else unboundSdkDraft = readSdkDraft();
+    sdkInputsChanged();
+  });
   for (const [id, operation] of [['sdk-install', event => sdkApproval.approve(event)],
     ['sdk-inspect', () => sdkApproval.inspectGrant()], ['sdk-revoke', event => sdkApproval.revoke(event)]]) {
     bind(id, event => {
@@ -174,29 +229,59 @@ export function createDeveloperHostControls({api, client, view}) {
   const sdkNavigation = details => {
     if (String(details.tabId) !== fields['sdk-tab'].value) return;
     clearSdkDocument(); sdkDisplay('stale', '网页已导航，请重新选择当前文档并授权');
+    for (const key of sdkDrafts.keys()) {
+      if (key.startsWith(`${details.tabId}:`) && (details.frameId === 0 || key.startsWith(`${details.tabId}:${details.frameId}:`))) sdkDrafts.delete(key);
+    }
   };
   const sdkTabRemoved = tabId => {
     if (String(tabId) !== fields['sdk-tab'].value) return;
     patch('sdk-tab', {value:''}); clearSdkDocument(); sdkDisplay('stale', '选定网页已关闭');
+    for (const key of sdkDrafts.keys()) if (key.startsWith(`${tabId}:`)) sdkDrafts.delete(key);
   };
   api.permissions.onRemoved.addListener(sdkPermissionsRemoved);
   api.webNavigation.onCommitted.addListener(sdkNavigation);
   api.tabs.onRemoved.addListener(sdkTabRemoved);
+  const unsubscribeCurrent = currentPageTarget?.subscribe(state => {
+    if (disposed || !sdkCurrentReady || !sdkFollowCurrent) return;
+    const identity = currentIdentity(state);
+    if (identity === sdkCurrentIdentity) {
+      const tab = sdkTabs.get(String(state.tabId));
+      if (tab && state.status === 'available') {
+        sdkTabs.set(String(state.tabId), {...tab, title:state.title, url:state.url});
+        const doc = sdkDocuments.get(state.documentId);
+        if (doc) sdkDocuments.set(state.documentId, {...doc, url:state.url});
+        sdkPageSummary();
+      }
+      return;
+    }
+    sdkCurrentIdentity = identity;
+    if (state.status === 'available') void refreshSdkTabs().catch(sdkError);
+    else {
+      clearSdkDocument(); patch('sdk-tab', {value:''});
+      sdkDisplay('stale', state.message || '正在识别当前网页，请等待文档确认');
+    }
+  });
   client.ready.catch(sdkError);
   const ready = Promise.all([
     siteAccess.refresh().catch(error => warn('Chrome site access check failed', error)),
-    refreshSdkTabs().catch(sdkError)
+    (async () => {
+      await currentPageTarget?.ready;
+      if (disposed) return;
+      sdkCurrentReady = true;
+      return refreshSdkTabs();
+    })().catch(sdkError)
   ]);
 
   return Object.freeze({ready,
-    resourceSnapshot:() => ({subscriptions:disposed ? 0 : 5, actions:actions.size}),
+    resourceSnapshot:() => ({subscriptions:disposed ? 0 : 5 + Number(Boolean(unsubscribeCurrent)), actions:actions.size}),
     dispose() {
       if (disposed) return;
-      disposed = true; sdkSelectionVersion++; healthVersion++;
+      disposed = true; sdkSelectionVersion++; sdkRefreshVersion++; healthVersion++;
+      unsubscribeCurrent?.();
       api.permissions.onRemoved.removeListener(sdkPermissionsRemoved);
       api.webNavigation.onCommitted.removeListener(sdkNavigation);
       api.tabs.onRemoved.removeListener(sdkTabRemoved);
-      sdkApproval.dispose(); siteAccess.dispose();
+      sdkApproval.dispose(); siteAccess.dispose(); sdkDrafts.clear(); unboundSdkDraft = null;
       for (const [id, handler] of actions) if (view.actions[id] === handler) delete view.actions[id];
       actions.clear();
     }

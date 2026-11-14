@@ -1,8 +1,10 @@
 import {createDeveloperView} from '../../develop-view.js';
+import {createDeveloperStarterSource} from '../../developer-starter-source.js';
 
 // UI_PREVIEW_ONLY: all changes stay in this view; no controller or Host is connected.
 export function createDeveloperPreviewView(){
   const view=createDeveloperView();
+  const starterSource=createDeveloperStarterSource(view);
   for(const id of ['script-run','script-save','script-stop','script-history-run','script-delete',
     'script-download','script-read-run','script-copy-result','sdk-install','sdk-inspect','sdk-revoke',
     'sdk-approval-preview','create-target','check-source','check-target','page-preview-run',
@@ -13,7 +15,22 @@ export function createDeveloperPreviewView(){
   view.patch('script-current-page-status',{textContent:'未连接网页',data:{state:'unknown'}});
   view.patch('script-current-page-title',{textContent:'无真实网页身份'});
   view.patch('script-status',{textContent:'仅演示 UI，不读取真实数据',data:{state:'unknown'}});
-  view.patch('script-source',{value:'async function main() {\n  return "仅预览";\n}'});
+  starterSource.fill();
+  // Presentation-only mirror of the editor owner's independent draft slots.
+  const draftFields=['script-source','script-params','script-id','script-revision'];
+  const initialDraft=Object.fromEntries(draftFields.map(id=>[id,view.fields[id].value]));
+  const drafts=new Map();let currentDraft='controller';
+  const switchSource=(kind,world)=>{
+    const next=kind==='javascript'?world:kind;
+    if(next===currentDraft)return;
+    drafts.set(currentDraft,Object.fromEntries(draftFields.map(id=>[id,view.fields[id].value])));
+    const draft=drafts.get(next);
+    starterSource.preserve();
+    for(const [id,value] of Object.entries(draft??{...initialDraft,'script-source':'','script-revision':''}))
+      view.patch(id,{value});
+    if(!draft)starterSource.fill(kind,world);
+    currentDraft=next;
+  };
   view.patch('local-project-diagnostics',{textContent:'仅预览 · Chrome Native：未连接；源码 Provider：未连接；固定项目身份与源代码均未读取。'});
   view.patch('local-project-select',{options:[
     {label:'选择演示项目（不代表授权）',value:''},
@@ -47,13 +64,17 @@ export function createDeveloperPreviewView(){
   for(const id of ['local-project-refresh','local-project-connect','local-project-guide-open'])view.patch(id,{disabled:false});
   for(const kind of ['javascript','react','vue']){
     view.actions['page-component-'+kind]=()=>{
+      switchSource(kind,view.fields['script-javascript-world'].value);
       for(const current of ['javascript','react','vue'])view.patch('page-component-'+current,{checked:current===kind});
       view.patch('script-javascript-world-row',{hidden:kind!=='javascript'});
       view.patch('manual-project-params-tools',{hidden:kind!=='javascript'||view.fields['script-javascript-world'].value==='page'});
     };
   }
-  view.actions['script-javascript-world']=()=>view.patch('manual-project-params-tools',{
-    hidden:view.fields['script-javascript-world'].value==='page'});
+  view.actions['script-javascript-world']=()=>{
+    switchSource('javascript',view.fields['script-javascript-world'].value);
+    view.patch('manual-project-params-tools',{
+      hidden:view.fields['script-javascript-world'].value==='page'});
+  };
   projectChanged();
   return view;
 }

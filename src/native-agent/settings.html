@@ -42,8 +42,28 @@
   <p id="bridge-feedback" class="settings-error" role="alert" hidden></p>
   <p id="bridge-switch-note" class="settings-note">开启连接需要浏览器授权 Native Messaging；已有授权不会重复申请。连接开启不等于 Codex 已就绪。</p>
  </section>
- <section id="chatgpt-files-controls" class="settings-card connection-card" aria-labelledby="chatgpt-files-heading">
-  <h2 id="chatgpt-files-heading">ChatGPT 项目文件</h2>
+ <section id="webflow-media-settings" class="settings-card" aria-labelledby="webflow-media-heading">
+  <h2 id="webflow-media-heading">WebFlow 素材仓库（首版 PNG）</h2>
+  <p class="settings-note">在本扩展可信页面选择真实本机 PNG，保存后按 SHA-256 独立读回验证。单文件不超过 1 MiB；最多 20 张、合计 10 MiB、7 天清理。素材 ID 不是上传授权，暂不支持自动跨脚本取图。</p>
+  <label for="webflow-media-file">保存新图片</label>
+  <input id="webflow-media-file" type="file" accept="image/png,.png">
+  <div class="connection-actions"><button id="webflow-media-refresh" type="button" class="secondary">刷新并清理过期素材</button></div>
+  <p id="webflow-media-status" class="settings-note" role="status" aria-live="polite">正在读取扩展素材仓库…</p>
+  <ul id="webflow-media-list" aria-label="当前扩展 Profile 已保存的 PNG 素材"></ul>
+ </section>
+ <section class="settings-card"><h2>ChatGPT 生成图片</h2><p>选择完整生成图片，在批准目录另存并独立解码核验。</p><a href="#chatgpt-images" target="_blank" rel="noopener">保存 ChatGPT 生成图片</a></section>
+ <section class="settings-card"><h2>本地 HTTP 转发</h2><p>让已审阅的任务通过本机 Node.js 服务发送请求。</p><button id="http-relay-open" type="button">配置本地 HTTP 转发</button></section>
+ <section class="settings-card workspace-card" aria-labelledby="workspace-heading">
+  <div>
+   <h2 id="workspace-heading">本机文件工作区</h2>
+   <p>仅查看和修改你已授权的目录，不会因连接开启自动访问文件。</p>
+  </div>
+  <button id="workspace-open" type="button" class="secondary">打开工作区</button>
+ </section>
+ <details id="chatgpt-files-controls" class="settings-card advanced-card" aria-labelledby="chatgpt-files-heading">
+  <summary id="chatgpt-files-heading">实验与诊断：ChatGPT 项目文件</summary>
+  <div class="advanced-content">
+  <p class="settings-note">非核心实验能力，尚未完成可行性验证。仅供开发验证和已有任务恢复，不作为 Web Flow 的常规使用入口。</p>
   <div class="connection-heading">
   <label class="connection-switch">
    <span>ChatGPT 项目文件处理</span>
@@ -51,7 +71,7 @@
    <span class="switch-track" aria-hidden="true"></span>
   </label>
   </div>
-  <p id="chatgpt-files-processing-note" class="settings-note">默认开启，复用合法安装，无需第二次启用。在原 ChatGPT 输入框提出需求；关闭后停止接收新任务，已派发写入请查看真实回执。打开此开关不授予文件权限。</p>
+  <p id="chatgpt-files-processing-note" class="settings-note">开关仅控制既有文件任务监听，不代表功能已通过验证，也不授予文件权限。关闭后停止接收新任务；已派发写入仍以真实回执为准。</p>
   <details class="advanced-card"><summary>开发诊断（可选）</summary>
   <div class="connection-heading">
   <label class="connection-switch">
@@ -84,25 +104,8 @@
    <p id="chatgpt-file-run-status" role="status" aria-live="polite">等待可信状态…</p>
    <pre id="chatgpt-file-run-receipt" class="connection-diagnostics" hidden></pre>
   </section>
- </section>
- <section id="webflow-media-settings" class="settings-card" aria-labelledby="webflow-media-heading">
-  <h2 id="webflow-media-heading">WebFlow 素材仓库（首版 PNG）</h2>
-  <p class="settings-note">在本扩展可信页面选择真实本机 PNG，保存后按 SHA-256 独立读回验证。单文件不超过 1 MiB；最多 20 张、合计 10 MiB、7 天清理。素材 ID 不是上传授权，暂不支持自动跨脚本取图。</p>
-  <label for="webflow-media-file">保存新图片</label>
-  <input id="webflow-media-file" type="file" accept="image/png,.png">
-  <div class="connection-actions"><button id="webflow-media-refresh" type="button" class="secondary">刷新并清理过期素材</button></div>
-  <p id="webflow-media-status" class="settings-note" role="status" aria-live="polite">正在读取扩展素材仓库…</p>
-  <ul id="webflow-media-list" aria-label="当前扩展 Profile 已保存的 PNG 素材"></ul>
- </section>
- <section class="settings-card"><h2>ChatGPT 生成图片</h2><p>选择完整生成图片，在批准目录另存并独立解码核验。</p><a href="#chatgpt-images" target="_blank" rel="noopener">保存 ChatGPT 生成图片</a></section>
- <section class="settings-card"><h2>本地 HTTP 转发</h2><p>让已审阅的任务通过本机 Node.js 服务发送请求。</p><button id="http-relay-open" type="button">配置本地 HTTP 转发</button></section>
- <section class="settings-card workspace-card" aria-labelledby="workspace-heading">
-  <div>
-   <h2 id="workspace-heading">本机文件工作区</h2>
-   <p>仅查看和修改你已授权的目录，不会因连接开启自动访问文件。</p>
   </div>
-  <button id="workspace-open" type="button" class="secondary">打开工作区</button>
- </section>
+ </details>
  <details class="settings-card advanced-card">
   <summary>开发版配对与诊断</summary>
   <div class="advanced-content">

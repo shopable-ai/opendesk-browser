@@ -113,6 +113,10 @@ test('app.html SSR reuses ToolHost without the Side Panel rail or Extension Cent
   assert.equal($('.workbench-nav').length,0);
   assert.equal($('#workspace-dock').length,0);
   assert.equal($('#extension-center').length,0);
+  assert.equal($('.od-update-slot').length,0,
+    'global update history belongs to Extension Center, not an individual app');
+  assert.equal($('#od-app-more,.od-app-update-entry').length,0,
+    'standalone app must not reserve a toolbar for global maintenance');
   assert.equal($('#workspace-content #workbench-tools #sidebar-tools').length,1);
   assert.equal($('#sidebar-tool-display').length,1);
   assert.equal($('#sidebar-tool-back').length,1);
@@ -124,6 +128,41 @@ test('app.html SSR reuses ToolHost without the Side Panel rail or Extension Cent
   }));
   assert.equal(load(side)('#sidebar-tool-back').is('[hidden]'),false,
     'Side Panel retains its original list Back control');
+  assert.equal(load(side)('#extension-center-update-history').length,1,
+    'global history and reminder settings remain reachable from Extension Center');
+});
+
+test('standalone app does not subscribe to or consume global update requests',async t=>{
+  const {JSDOM}=await import('jsdom');
+  const {createRoot}=await import('react-dom/client');
+  const dom=new JSDOM('<div id="root"></div>');
+  const calls=[],listeners=[];
+  for(const [key,value]of Object.entries({window:dom.window,document:dom.window.document,
+    IS_REACT_ACT_ENVIRONMENT:true,chrome:{
+      runtime:{sendMessage:async message=>{
+        calls.push(message);
+        return {ok:true,data:{records:[],openRequestedAt:123,verified:true}};
+      }},
+      storage:{onChanged:{addListener:listener=>listeners.push(listener),removeListener:()=>{}}}
+    }})){
+    const before=Object.getOwnPropertyDescriptor(globalThis,key);
+    Object.defineProperty(globalThis,key,{configurable:true,writable:true,value});
+    t.after(()=>before?Object.defineProperty(globalThis,key,before):delete globalThis[key]);
+  }
+  const {SidebarAppShell}=await loadSidebarReact();
+  const root=createRoot(document.getElementById('root'));
+  try{
+    await React.act(async()=>{
+      root.render(React.createElement(SidebarAppShell,{
+        developerView:createDeveloperView(),myView:createMyWorkbenchView(),pageSurface:'app'
+      }));
+    });
+    assert.deepEqual(calls,[],'opening an app must not list or clear global update requests');
+    assert.equal(listeners.length,0,'an app has no global update inbox to keep subscribed');
+  }finally{
+    await React.act(async()=>root.unmount());
+    dom.window.close();
+  }
 });
 
 test('R35.1 Cloud status remains escaped and cannot grant authority (SOURCE_ONLY)',async t=>{

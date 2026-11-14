@@ -67,7 +67,9 @@ const compiledWebFlowInputs=Object.freeze({
   // identity, required inputs, fixed values and original candidate bytes remain fenced.
   // 2026-11-11: stable loading/control slot and persistent emergency management;
   // original native gestures, authority and unknown-result fences are unchanged.
-  'projects/webflow/trusted/AutoSettings.tsx':'6a3bc738ee18d5417388173990ad15e863fcf010',
+  // 2026-11-15 reviewed: remove the unrelated file experiment link from both
+  // runtime/settings summaries; original Task controls and admission stay unchanged.
+  'projects/webflow/trusted/AutoSettings.tsx':'a31362d8deefe6d8d1501b03d435e64fd074b5e9',
   // Reviewed read-only projection: correlate the same request, prefer its Run,
   // distinguish reserved IDs/persistence/delivery/release; UNKNOWN never replays.
   // Reviewed same-receipt, owner-bound Toast projection; execution stays unchanged.

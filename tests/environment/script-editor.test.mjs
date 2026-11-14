@@ -47,12 +47,13 @@ const componentInspectResult=({componentSource,framework,projectId,remoteModules
   complete:true
 });
 async function fixture(persisted={scripts:[],runs:[],results:[]}, draftStorage,
-  {contextTabId,componentPreparerFactory,staticESMPreparerFactory,wrapTarget}={}) {
+  {contextTabId,componentPreparerFactory,staticESMPreparerFactory,wrapTarget,
+    initialSource='return params.value;',browserCompilerEnabled=true}={}) {
   const view=new Element(), legacyDoc={getElementById(){assert.fail('controller fields must come from the view');},defaultView:view,createElement:()=>new Element()};
   const projection=createDeveloperView();
   const find=developerTestFields(projection);
-  find('script-id').value='my-script';find('script-source').value='return params.value;';find('script-params').value='{"value":1}';
-  const traces=[], permissions=[], permissionChecks=[], starts=[], executions=[], snapshots=[], commits=[], previews=[], dependencyInspections=[], terminal=deferred();
+  find('script-id').value='my-script';find('script-source').value=initialSource;find('script-params').value='{"value":1}';
+  const traces=[], permissions=[], permissionChecks=[], starts=[], executions=[], snapshots=[], commits=[], previews=[], dependencyInspections=[], notices=[], terminal=deferred();
   let activeTab=11, permission=Promise.resolve(true), saveGate, loadGate, documentVersion=0;
   const tabDocuments=new Map([[11,'doc-11'],[12,'doc-12']]);
   const tabs=new Map([[11,{id:11,windowId:7,url:'https://a.example/',title:'A',incognito:false}],[12,{id:12,windowId:7,url:'https://b.example/',title:'B',incognito:false}]]);
@@ -114,13 +115,15 @@ async function fixture(persisted={scripts:[],runs:[],results:[]}, draftStorage,
   const target=createCurrentPageTarget({api});await target.ready;
   const testedTarget=wrapTarget?wrapTarget(target):target;
   const editor=createScriptEditor({client,currentPageTarget:testedTarget,api,document:legacyDoc,view:projection,
+    browserCompilerEnabled,
+    notify:(message,options)=>notices.push({message,options}),
     ...(staticESMPreparerFactory?{staticESMPreparerFactory}:{}),
     ...(componentPreparerFactory?{componentPreparerFactory}:{}),hostFactory:options=>createRunHost({...options,controllerFactory:({context})=>({
     execute:async(source,params)=>{executions.push({source,params});context.signal.addEventListener('abort',()=>terminal.resolve({status:context.signal.reason.code==='E_HOST_CLOSED'?'host-closed':'stopped'}),{once:true});return terminal.promise;},
     retired:Promise.resolve({acknowledged:true}),stop(){traces.push('local-stop');},close(){traces.push('local-close');}
   })})});
   await tick();
-  return {find,editor,client,target,persisted,api,view,permissions,permissionChecks,starts,executions,snapshots,commits,previews,traces,dependencyInspections,
+  return {find,editor,client,target,persisted,api,view,permissions,permissionChecks,starts,executions,snapshots,commits,previews,traces,dependencyInspections,notices,
     click:async id=>{find(id).fire('click',{isTrusted:true});await tick();},
     finish:async value=>{terminal.resolve({status:'succeeded',value:controlEncode(value)});await editor.host.completion;await tick();},
     setPermission:value=>{permission=value;},setSaveGate:value=>{saveGate=value;},setLoadGate:value=>{loadGate=value;},
@@ -142,6 +145,135 @@ async function fixture(persisted={scripts:[],runs:[],results:[]}, draftStorage,
     },
     dispose(){editor.dispose();target.dispose();}};
 }
+
+test('blank editor and untouched examples follow JS worlds, React and Vue without execution',async t=>{
+  const f=await fixture(undefined,undefined,{initialSource:''});t.after(()=>f.dispose());
+  const source=()=>f.find('script-source').value;
+  const choose=async mode=>{const field=f.find('page-component-'+mode);field.checked=true;field.fire('change');await tick();};
+  const controller=source();
+  assert.match(controller,/async function main/);
+  const controllerResult=await vm.runInNewContext(controller+'\nmain()',{
+    page:{title:async()=>'Test page',url:async()=>'https://a.example/'}});
+  assert.deepEqual({...controllerResult},{title:'Test page',url:'https://a.example/'});
+  f.find('script-javascript-world').value='page';f.find('script-javascript-world').fire('change');await tick();
+  const page=source();assert.notEqual(page,controller);
+  const pageResult=await vm.runInNewContext(page+'\nmain()',{
+    document:{title:'Test page',querySelector:()=>null}});
+  assert.deepEqual({...pageResult},{title:'Test page',heading:''});
+  await choose('react');const react=source();
+  assert.match(react,/useState/);assert.match(react,/onClick/);
+  assert.ok(Babel.transform(react,{presets:['react'],sourceType:'module'}).code);
+  await choose('vue');const vue=source();
+  const compiler=await import('../../src/libs/page-frameworks/vue-sfc-compiler-3.5.22.mjs');
+  const parsed=compiler.parse(vue,{filename:'App.vue'});assert.deepEqual(parsed.errors,[]);
+  assert.ok(compiler.compileScript(parsed.descriptor,{id:'starter',inlineTemplate:true}).content);
+  await choose('javascript');assert.equal(source(),page);
+  f.find('script-javascript-world').value='controller';f.find('script-javascript-world').fire('change');await tick();
+  assert.equal(source(),controller);
+  assert.deepEqual([f.starts.length,f.executions.length,f.previews.length,f.permissions.length,f.commits.length],[0,0,0,0,0]);
+});
+
+test('independent direct-edit drafts retain source, params and identity across four slots',async t=>{
+  const f=await fixture();t.after(()=>f.dispose());
+  const choose=async(mode,world)=>{
+    const field=f.find('page-component-'+mode);field.checked=true;field.fire('change');await tick();
+    if(world){f.find('script-javascript-world').value=world;f.find('script-javascript-world').fire('change');await tick();}
+  };
+  const slots=[['javascript','controller'],['javascript','page'],['react'],['vue']];
+  const values=new Map();
+  for(const [index,[mode,world]] of slots.entries()){
+    await choose(mode,world);
+    const fields={'script-source':`// ${mode}-${world??''}\nasync function main(){return ${index};}`,
+      'script-params':index===2?'unfinished JSON':JSON.stringify({slot:index}),
+      'script-id':'draft-'+index,'script-revision':String(index+7)};
+    for(const [id,value] of Object.entries(fields)){f.find(id).value=value;f.find(id).fire('input');}
+    values.set(mode+world,fields);
+  }
+  for(const [mode,world] of [...slots,...slots].reverse()){
+    await choose(mode,world);
+    for(const [id,value] of Object.entries(values.get(mode+world)))assert.equal(f.find(id).value,value,id+' in '+mode+world);
+  }
+  assert.deepEqual([f.starts.length,f.executions.length,f.previews.length,f.permissions.length,f.commits.length],[0,0,0,0,0]);
+});
+
+test('cross-slot JS import retains destination params and leaves the component draft intact',async t=>{
+  const f=await fixture();t.after(()=>f.dispose());
+  f.find('script-params').value='{"controller":true}';
+  const choose=async mode=>{f.find('page-component-'+mode).checked=true;f.find('page-component-'+mode).fire('change');await tick();};
+  await choose('react');
+  f.find('script-source').value='';f.find('script-source').fire('input');
+  f.find('script-params').value='{"react":true}';
+  f.find('script-id').value='react-draft';
+  await f.editor.importDraft('async function main(){return "imported";}');
+  assert.equal(f.find('script-params').value,'{"controller":true}');
+  assert.match(f.find('script-id').value,/^import-/);
+  const importedId=f.find('script-id').value;
+  await choose('react');
+  assert.equal(f.find('script-source').value,'','an intentionally cleared slot must stay blank');
+  assert.equal(f.find('script-params').value,'{"react":true}');
+  assert.equal(f.find('script-id').value,'react-draft');
+  await choose('javascript');
+  assert.equal(f.find('script-source').value,'async function main(){return "imported";}');
+  assert.equal(f.find('script-id').value,importedId);
+  assert.equal(f.find('script-params').value,'{"controller":true}');
+  assert.deepEqual([f.starts.length,f.previews.length,f.permissions.length,f.commits.length],[0,0,0,0]);
+});
+
+test('readonly imported project blocks slot switches and New restores the prior direct draft',async t=>{
+  const {programDraft}=await import('../fixtures/program-draft.mjs');
+  const f=await fixture();t.after(()=>f.dispose());
+  const original=f.find('script-source').value;
+  f.find('script-params').value='{"beforeImport":true}';
+  await f.editor.importDraft(await programDraft());
+  const imported=f.editor.executionSource(),id=f.find('script-id').value;
+  f.find('page-component-react').checked=true;f.find('page-component-react').fire('change');await tick();
+  assert.equal(f.find('page-component-javascript').checked,true);
+  assert.equal(f.find('script-source').readOnly,true);
+  assert.equal(f.editor.executionSource(),imported);assert.equal(f.find('script-id').value,id);
+  f.find('script-javascript-world').value='page';f.find('script-javascript-world').fire('change');await tick();
+  assert.equal(f.find('script-javascript-world').value,'controller');
+  await f.click('program-new-script');
+  assert.equal(f.find('script-source').readOnly,false);
+  assert.equal(f.find('script-source').value,original);
+  assert.equal(f.find('script-id').value,'my-script');
+  assert.equal(f.find('script-params').value,'{"beforeImport":true}');
+  assert.deepEqual([f.starts.length,f.previews.length,f.permissions.length,f.commits.length],[0,0,0,0]);
+});
+
+test('authored and imported source stays in its slot; busy and untrusted switches preserve it',async t=>{
+  const f=await fixture(undefined,undefined,{initialSource:''});t.after(()=>f.dispose());
+  const initial=f.find('script-source').value;
+  const choose=async mode=>{const field=f.find('page-component-'+mode);field.checked=true;field.fire('change');await tick();};
+  const draft='// 自己编写的代码\nasync function main(){ return "保留草稿"; }';
+  f.find('script-source').value=draft;f.find('script-source').fire('input');
+  await choose('react');const reactSource=f.find('script-source').value;assert.notEqual(reactSource,draft);
+  await choose('vue');assert.notEqual(f.find('script-source').value,draft);
+  await choose('javascript');assert.equal(f.find('script-source').value,draft);
+  await f.editor.importDraft(initial);
+  await choose('react');assert.equal(f.find('script-source').value,reactSource);
+  await choose('javascript');assert.equal(f.find('script-source').value,initial);
+  const react=f.find('page-component-react');react.checked=true;react.fire('change',{isTrusted:false});await tick();
+  assert.equal(f.find('script-source').value,initial,'untrusted events cannot replace source');
+  await f.click('script-run');
+  react.checked=true;react.fire('change');await tick();
+  assert.equal(f.find('script-source').value,initial,'busy mode switch cannot replace source');
+  assert.equal(f.find('page-component-javascript').checked,true);
+  f.find('script-javascript-world').value='page';f.find('script-javascript-world').fire('change');await tick();
+  assert.equal(f.find('script-javascript-world').value,'controller');
+  assert.equal(f.starts.length,1);
+  await f.click('script-stop');await f.editor.host.completion;
+});
+
+test('Standard seeds JavaScript without exposing unavailable JSX/SFC modes',async t=>{
+  const f=await fixture(undefined,undefined,{initialSource:'',browserCompilerEnabled:false});t.after(()=>f.dispose());
+  const initial=f.find('script-source').value;assert.match(initial,/page.title/);
+  assert.equal(f.find('page-component-editor-tools').hidden,true);
+  for(const mode of ['react','vue']){
+    const field=f.find('page-component-'+mode);assert.equal(field.disabled,true);
+    field.checked=true;field.fire('change');await tick();assert.equal(f.find('script-source').value,initial);
+  }
+  assert.equal(f.starts.length,0);assert.equal(f.previews.length,0);
+});
 
 test('a new available page rechecks a released execution slot without replacing the visible result',async t=>{
   const f=await fixture({scripts:[],runs:[{runId:'foreign-run',state:'running'}],results:[]});t.after(()=>f.dispose());
@@ -495,6 +627,7 @@ test('Developer shows one terminal status line and hides it for unrelated feedba
   await f.click('script-save-version');
   assert.match(f.find('script-status').textContent,/已持久保存/);
   assert.equal(f.find('script-task-status').hidden,true);
+  assert.match(f.notices.at(-1).message,/已持久保存/,'the durable receipt also reaches the shared non-blocking feedback');
 });
 
 async function componentFixture(t,framework,{compilerError,previewError,compileGate}={}) {
@@ -557,8 +690,11 @@ test('Result copy keeps its icon and reports clipboard success, failure and rese
   assert.deepEqual(writes,['{"value":7}']);
   assert.equal(feedback.textContent,'已复制');assert.equal(feedback.hidden,false);
   assert.equal(button.ariaLabel,'已复制');
+  assert.equal(f.notices.at(-1).message,'已复制运行结果');
+  const noticeCount=f.notices.length;
   reject=true;await f.click('script-copy-result');
   assert.equal(feedback.textContent,'无法自动复制');
+  assert.equal(f.notices.length,noticeCount,'failed clipboard writes must not announce success');
   assert.equal(button.title,'请选中返回值后手动复制');
   await f.click('script-read');
   assert.equal(feedback.hidden,true);assert.equal(button.title,'复制结果');
@@ -1670,7 +1806,7 @@ test('R37.1 JavaScript, React and Vue share one visible source without hidden bu
   react.checked=true;react.fire('change');await tick();
   assert.equal(react.checked,true);
   assert.equal(editor.value,original,'React selection must not insert its template');
-  assert.match(f.find('page-component-status').textContent,/源码保持不变/);
+  assert.match(f.find('page-component-status').textContent,/已保留你的代码/);
   editor.value='export default function App(){return <p>one source</p>}';
   editor.fire('input');await tick();
   const current=editor.value;
@@ -2000,7 +2136,17 @@ for(const framework of ['react','vue'])test(`Page ${framework} save and reopen r
   assert.equal(f.find('page-component-'+framework).checked,true,'reopen lost author type');
   assert.equal(f.find('page-component-javascript').checked,false);
   assert.equal(f.find('script-run').textContent,'运行');
-  await choose('javascript');await choose(framework);
+  const loadedId=f.find('script-id').value,loadedRevision=f.find('script-revision').value;
+  f.find('script-params').value='{"loaded":true}';
+  await choose('javascript');
+  assert.equal(f.find('script-source').value,'async function main(){return "other draft";}','Page load must not overwrite the Controller slot');
+  assert.equal(f.find('script-id').value,'my-script');
+  assert.equal(f.find('script-revision').value,'');
+  assert.equal(f.find('script-params').value,'{"value":1}');
+  await choose(framework);
+  assert.equal(f.find('script-id').value,loadedId);
+  assert.equal(f.find('script-revision').value,loadedRevision);
+  assert.equal(f.find('script-params').value,'{"loaded":true}');
   assert.equal(f.find('script-source').value,author,'switching away and back lost reopened source');
   assert.equal(saved.sourceUtf8,executable,'loading must not rewrite fixed execution bytes');
   assert.equal(f.starts.length,0);assert.equal(f.previews.length,0,'save/load does not execute');

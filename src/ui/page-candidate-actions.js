@@ -4,7 +4,7 @@ import {preparePageCandidateDraft} from './page-candidate-source.js';
 
 // Prepared-only Candidates use a frozen one-save value, never the Preview receipt.
 // Only the Page execution owner retains successful Preview identities.
-export function createPageCandidateActions({client,view,currentPageTarget,pageLibrary}){
+export function createPageCandidateActions({client,view,currentPageTarget,pageLibrary,onSaved=()=>{}}){
   async function prepareComponent({source,artifact,mode,captured,check,prepareManagedSource}){
     const frozen=artifact?.project.entryMode==='component';
     const framework=frozen?/^\/\/ @opendesk-lib (react|vue)\s*$/m.exec(source)?.[1]:mode;
@@ -36,6 +36,7 @@ export function createPageCandidateActions({client,view,currentPageTarget,pageLi
     patchDeveloperField(view,status,{textContent:'已保存 Page Candidate：'+programId+' · r'+revision+' · '+saved.manifestHash.slice(0,12)+'…。 '+
       prepared.summary+(changed?' 保存期间编辑器已变化，请重新核对当前版本。':'')+
       ' 请在已保存网页脚本中验证冻结版本，再明确安装。'});
+    onSaved('已保存网页脚本版本；尚未安装');
     await pageLibrary.refresh(programId+':'+revision);
   }
   return Object.freeze({prepareComponent,save});

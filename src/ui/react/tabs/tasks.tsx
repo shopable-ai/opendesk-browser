@@ -9,14 +9,14 @@ export function TaskGlyph(){
 export function MyTaskCount({value=''}) {return <>{String(value)}</>;}
 export function MyTaskDetail({value=''}) {
   const facts=String(value).split('\n').filter(Boolean);
-  return <div className="task-detail-facts">
+  return <dl className="task-detail-facts">
     {facts.map((line,i)=>{
       const at=line.indexOf('：');
-      return at<0?<p key={i}>{line}</p>:<div key={i} className="task-detail-fact">
-        <span>{line.slice(0,at)}</span><strong>{line.slice(at+1)}</strong>
+      return at<0?<div key={i}><dt className="visually-hidden">说明</dt><dd>{line}</dd></div>:<div key={i} className="task-detail-fact">
+        <dt>{line.slice(0,at)}</dt><dd>{line.slice(at+1)}</dd>
       </div>;
     })}
-  </div>;
+  </dl>;
 }
 export function MyTaskRows({rows=[],selectedId='',emptyText='',onSelect,
   manageMode=false,onManage,onParametersOpen,renderWorkspace,workspace=null,visible=true}) {
@@ -72,7 +72,7 @@ export function MyTaskRows({rows=[],selectedId='',emptyText='',onSelect,
         onClick={event=>openParameters(row,event.nativeEvent,event.currentTarget)}>
         <svg viewBox="0 0 24 24" aria-hidden="true"><path d="m9 5 10 7-10 7Z"/></svg>
       </IconButton>
-      <IconButton className="task-card-manage od-icon-button--quiet"
+      <IconButton id={row.taskId===selectedId?'task-manage-open':undefined} className="task-card-manage od-icon-button--quiet"
         label={'管理「'+row.title+'」'} title="任务菜单" aria-haspopup="menu"
         aria-expanded={menu?.taskId===row.taskId} aria-controls="task-row-menu"
         onClick={event=>{

@@ -2,6 +2,8 @@
 
 [返回总入口](README.md)。Controller 在受控 Worker 中通过公开 `page` 操作获准网页；没有网页全局 document。本地项目、MCP、Sidebar 使用原 RunHost、Authority 和持久结果体系。
 
+<a id="developer-controller-quickstart"></a>
+
 ## main 输入：推荐零参数环境变量写法（Controller）
 
 **多文件 ESM 项目**应优先写 `export default async function main()`，直接使用受控 Worker 里的 `page`、`params` 和已预装 `_`、`dayjs`：

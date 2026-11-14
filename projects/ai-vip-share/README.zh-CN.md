@@ -1,5 +1,178 @@
 # AI VIP Share · 独立 Sidebar Tool
 
+<a id="activation-login-audit-20261115"></a>
+
+## 2026-11-15 需求、调用链与证据梳理（当前阶段）
+
+**结论：完整产品目标尚未完成证明。** 当前源码已接通“有效兑换回执 → 新鲜会员/分配核验 → 准备会话”，并有 Controller 模拟检查证据；没有当前候选的真实安装、逐批可信确认、Cookie 写入、目标 ChatGPT 账号匹配证据。历史 1.4.32 证明过新登录，但未证明账号匹配或 Plus/VIP，不能与当前源码拼成一次全链 PASS。
+
+本节按用户最新要求只梳理需求与证据；下文“下一条实际操作”、历史 GOAL、清登录基线、固定 21+1 批和验收清单均不自动触发执行。本轮不修改功能、打包、安装、兑换、读取授权 Cookie 文件或写入 Cookie，不启动产品环境。后续步骤是评审材料，尚未执行；原账本保留历史事实。
+
+### 目的、状态与第一处断点
+
+用户目的是从真实工具入口连接合法服务，必要时明确激活一次，取得当前授权分配和服务器会话，经网站授权及每批可信确认，最终在 ChatGPT 核验**登录状态及目标账号一致**。工具安装可用、Provider 账号绑定、权益激活、会话准备、Cookie 写入、网站登录、网站 Plus/VIP 是分别取证的事实；代理和商品不是登录前置。
+
+| 层次 | 当前可证实的事实 | 状态及边界 |
+| --- | --- | --- |
+| 源码 | main 上 `24c715a5c` 修改 Controller、相关测试及原文档；开始时本项目无未提交改动 | 已核对；该提交绑定 accountId、redemptionId、serviceRevision 后接续准备，不自动写入 |
+| Controller 检查 | 原账本记载两个相关文件 26/26、提交后取消 1/1 PASS | 历史 Node/VM 运行证据，本轮只审查测试，不重复执行 |
+| 工具编译 | 现存 build-ready 的 buildId 为 `752278a0aca89efc046013403aa8ffc57bb42592286bbee5e5d2b2d99493eb46` | 原账本已记录 15 输入/2 输出匹配；本轮未重建，不证明安装或浏览器运行 |
+| 正式 JSON | 1.4.35，158612 字节，SHA-256 `396a8a5b0134073307528facead113441a8a435542351259d17117284a894d53` | 本轮重算相符；不含该接续修复。共享 CSS 仍有其他 owner 的 7 行未提交输入，未晋升 |
+| 安装与运行 | 上次指定 Profile 实读为 1.4.32；升级曾报 `E_TOOL_RUNTIME_MISMATCH`，独立页曾报 `E_OWNER` | 历史失败；当前版本、运行 revision、根因和是否恢复均未知，不能认定同根 |
+| 真实 ChatGPT | 11-07 的 1.4.32 有未登录 → 原服务链 → 逐批可信确认 → 新登录记录 | 仅历史候选；账号匹配、Plus/VIP 未验证。11-15 上一轮已有菜单只证明当时已有登录，本轮未重查 |
+
+**第一处断点随入口不同：** 默认正式连接在 `REVIEWED_SERVICE=null` 即停止；本地 Cookie 开发链在当前会员 wire 协议处已有静态不相容；实际浏览器取证还受指定上下文无可操作 OpenDesk 入口、当前候选未安装等断点限制。不能以其中一条入口通过替代另一条。
+
+### 普通用户操作链
+
+```mermaid
+flowchart TD
+  A[扩展 → AI VIP Share] --> B{服务入口}
+  B -->|正式链接| C[固定受审阅服务解析与连接]
+  C --> X[当前默认配置为空：停止]
+  B -->|已批准本地开发| D[原可信开发准入与合法服务]
+  D --> E[读取新鲜会员与当前分配]
+  C -. 配置获批准后 .-> E
+  E --> F{已有可用权益及当前分配?}
+  F -->|已有：主动登录| G[取得并准备当前会话]
+  F -->|需要首次激活| H[无消费预检 → 核对主体和权益]
+  H --> I[明确确认一次 → 原兑换日志与回执]
+  I --> J[刷新并匹配本次账号、兑换和服务代际]
+  J -->|自动接续准备| G
+  G --> K[服务器交付及范围、期限校验]
+  K --> L[原网站授权已具备后解析 Store 与 Partition]
+  L --> M[核对目标与账号摘要 → 每批可信确认]
+  M --> N[写前日志 → 实际写入及逐项回执]
+  N -->|仍有批次| M
+  N -->|全部成功| O[打开精确目标网站]
+  O --> P[分别核验登录、目标账号、网站套餐]
+  F -->|有权益但无分配| Q[联系服务方，不重复激活]
+  E -. 已有网站登录可主动选择 .-> R[直接打开网站：不准备、不写入]
+```
+
+图中的完整链是需求，不能解释为已全部通过。“准备”在 ChatGPT 导出分支内就调用 Cookie 元数据 API，因此授权不能一律排在准备完成之后；缺授权可保留激活结果，从原可信界面授权后再主动准备。已有登录时优先保留并直接打开；若确需替换账号，必须先明确本次替换目的及目标 Profile，不能从“已有权益”推导覆盖许可。
+
+按钮路径也有区别：本地开发的 `useWebsite` 只准备；正式受审阅服务的已有权益按钮会在准备成功后接续第一批的原 Host 确认。首次激活自动接续只准备，后续批次仍需各自点击；不能用开发入口的按钮次数判断正式路径。
+
+### 文件、函数与公开边界
+
+```mermaid
+flowchart TD
+  UI[src/main.jsx → App.jsx 的 useLayoutEffect] --> CT[src/main.js mountController]
+  CT --> CO[connectService → service-links.js parseServiceLink]
+  CT --> AL[activation-links.js → checkActivationPage]
+  CO --> RM[refreshMember → verifiedMember → acceptMemberSnapshot]
+  AL --> RA[runActivation：preview → beginRecovery → redeem]
+  RA --> RM
+  RM --> RS[匹配接续意图 → requestSharedSession]
+  CT --> SC[site-session.js：网站按钮 → useWebsite]
+  SC --> RS
+  RS --> NR[businessRequest → browser.network.request]
+  NR --> SV[原 Provider member / preview / redeem / status]
+  SV --> SS[status 的 sharedSession 分支]
+  SS --> BD{交付格式}
+  BD -->|schema 1| VC[validateCookieDelivery]
+  BD -->|开发 chatgpt-export-v1 / schema 2| SB[server-cookie-batches.js → local-cookie-file.js 纯校验]
+  SB --> MD[cookies.getCurrentStore / getPartitionKey]
+  VC --> IN[installCurrentSession → validateCurrentDelivery]
+  MD --> IN
+  IN --> CJ[cookie-journal.js：迁移 / reserveCookieAttempt / CAS 读回]
+  CJ --> SDK[browser.cookies.setMany]
+  SDK --> BR[src/sidebar-tools/bridge.js → 原 Sidebar Tool Host]
+  BR --> HC[src/ui/sidebar-tools.js：网站 grant / requestBrowserClick / 精确意图]
+  HC --> AU[src/platform/chrome/context-menus.js：安装身份 / epoch / approvalRef / authorizedCookie]
+  AU --> CH[browser-cookie-host.js executeInstalled → 原 Cookie Driver]
+  CH --> RC[saveCookieReceipt → completeServerBatch]
+  RC --> OT[全批成功 → browser.tabs.create → 网站人工核验]
+```
+
+上述只读追踪不授予新权限。`OpenDeskSDK.browser` 的方法树由原 `src/framework/sdk/browser.js` 建立，仍通过 `OpenDeskTool.request` 的原 Bridge/Host；网站 grant 与每批真实确认不是沙箱 `event.isTrusted` 检查的替代品。`session-context.js` 定义作用域、来源授权和重叠判定；`cookie-journal.js` 保存非秘密事实及 unknown/partial 屏障。网站页面核验是链末独立观察，源码没有在 `tabs.create` 后自动证明 ChatGPT 登录或账号一致。
+
+关键定位：`src/main.js:267`（sharedSession）、`:500`（写前复核）、`:564`（提交）、`:641`（网站动作）、`:1096`（传输）、`:1143`（刷新接续）、`:1246`（激活）、`:1862`（正式连接）；`src/site-session.js:151`（打开/登录按钮）、`:193`（展示）；`src/server-cookie-batches.js:29`（导出分批）。可信最小边界是仓库 `src/ui/sidebar-tools.js:3286`、`:3427`、`src/platform/chrome/context-menus.js:324`、`:870` 和 `src/platform/chrome/browser-cookie-host.js:263`；本轮没有修改 Browser 源码。
+
+### 入口与后端不能混用
+
+| 入口/后端 | 真实合同 | 能证明和不能证明的范围 |
+| --- | --- | --- |
+| 正式 `src/main.jsx` | 默认不传 serviceDefinition，使用 `service-links.js` 的固定声明；只接受受审阅 HTTPS 链接 | 当前声明为 null；任意 ChatGPT URL、开发 LAN 链接不能充当正式服务 |
+| 开发活动页 | `activation-links.js` 固定来源，Host `currentPage.info`；正式 UI 仅在可信开发准入后可发现精确 7898 页面并选择 7903 | LAN 页面是码的来源，业务 API 仍走已选择 loopback；发现、预检不代表领取授权 |
+| `dev/main.jsx` / `dev/local-test/connection.js` | 注入可选开发控件；`preview/` 在 iframe 外提供合成 SDK | 连接/展开无消费；预览不能证明真实网络、Cookie 或 Host。普通“本地项目侧栏调试”目前能力不足以验证此登录链 |
+| `dev/local-test/local-fixture-server.mjs` | 内存 Map 会员/兑换/分配/会话；status 支持 sharedSession；可读取服务端授权来源 | 合成来源发 schema 1 的两个 loopback Cookie；服务端导出发 ChatGPT schema 2。重启会丢账，`durableReceipt` 函数名不表示磁盘持久 |
+| `server/demo-provider.mjs`（Market×SQLite） | 文件 SQLite 保存发放、预检、条款摘要及兑换额度；双端口共用该 DB；member 支持只读 POST `{}` | **没有 sharedAccounts、cookieDelivery 或 sharedSession**；status 只支持原事务/发放查询。1.4.34 DEMO_PASS 到演示权益回读为止 |
+| 普通受控网站来源 | `site-session.js` 两个固定开发站，先来源 authorization，再 session，复用同一写入/journal | 无会员/兑换/代理前置；它不是 ChatGPT 商业分配来源，两个站通过不代表真实 ChatGPT 通过 |
+
+普通交付 schema 1 校验精确目标、槽位、短时有效期及单批预算；ChatGPT `chatgpt-export-v1` 标记只在 `localMode && developmentProfile` 接受，交付 schema 2 完整校验导出后过滤过期项、按 Store/Partition 分组并绑定当前上下文，每批独立确认。服务端读取授权文件复用纯校验器，不表示浏览器端用户导入文件；实际批次数由当次合法数据决定，不固定为历史 21+1。
+
+本地 Cookie fixture 的关键路由是 member GET；preview POST `{code}`；redeem POST `{previewId,accountId,idempotencyKey}`；status POST 原账号/键查询，或 `{operation:'sharedSession',accountId,redemptionId,requestId}`。sharedSession 复核当前分配及授权，同 requestId 不另发交付；无记录的原兑换查询返回 unknown，不当作终局未执行。生产 Provider 的真实认证及会话交付仍未配置，本机测试 header/Origin 不构成商业身份认证。
+
+### 需求—操作—文件/API—测试—证据映射
+
+保留 ROADMAP 2026-11-07 的 K1–K9，以及原账本 2026-10-31 的 F-01–F-06；它们按各自日期解释。此次材料未定位到适用的 S-/A-编号，不另造。表中测试表示静态确认的覆盖范围；历史 PASS 的时间及层级以上表/原账本为准。
+
+| 原需求 | 用户输入/操作 → 真实输出与成功标准 | 文件/API | 测试/证据层级 | 当前缺口 |
+| --- | --- | --- | --- | --- |
+| K1、F-05 | 合法链接/码 → 无消费预检；明确确认后唯一原兑换回执；已有权益不重兑 | service-links、runActivation、beginRecovery；member/preview/redeem/status | controller-service-flow:137/187/218；controller-lan-activation:9/129；VM；历史 Market 实机额度 | 正式服务缺配置，SQLite 额度不能证明网站交付 |
+| K1、K4 | 原回执 → 新鲜相同 accountId/redemptionId/serviceRevision → 当前分配 | refreshMember、acceptMemberSnapshot、requestSharedSession | controller-service-flow:264/277/299；Controller 模拟 | 本次修复未进正式包；没有当前 Host 运行证据 |
+| K2、F-01 | 当前分配 → 固定目标、可比较的脱敏身份/缺失说明、交付截止 | validateSharedCatalog、site-session；sharedSession | member-presentation:93/115/146/168；VM | Provider 账号和 shared-a/b 不证明真实 ChatGPT 身份 |
+| K2、K4 | 服务端会话 → 完整校验、期限、当前 Store/Partition 及确切分批 | server-cookie-source、server-cookie-batches、local-cookie-file；cookies 元数据 API | controller-server-session:19/54/95；server-cookie-source:61/111/136；VM及真实本机 HTTP＋合成数据 | 当前 wire 合同不相容；授权文件当前有效性未知，本轮未读 |
+| K3、F-02 | 网站授权和每批真实确认 → 只派发该批；明确未提交取消可主动重试 | 原 Host requestBrowserClick、精确 approvalRef；setMany | controller-service-flow:336；controller-server-session:80；VM；历史1.4.32真实确认 | 模拟 SDK 调用次数不等于可信 Host 派发次数 |
+| K5、F-04 | 写前 CAS/读回 → 逐项 saved/verified；全部成功才完成 | cookie-journal reserveCookieAttempt/saveCookieReceipt；Cookie Host | controller-server-session:19/60/106；恢复/journal定向测试；历史1.4.32 | 当前包实际写入未验证；保存成功不是网页认证 |
+| K4、K5、F-03/04 | 撤权、过期、变化、partial/unknown → 停止并保留原事实和锁 | validateCurrentDelivery、session-context、cookie-journal | controller-server-session:80/95/106；service-flow:246/363；Node/VM | 当前候选真实异常分支未执行；页面已有登录不能解除未知锁 |
+| K6、F-04/05 | 重开/原笔查询 → 不重兑、不重新交付、不写入或自动开站 | restoreServiceChoice、checkRecoveryClick、原 journal/CAS | controller-recovery-upgrade、controller-site-restore；VM；历史安装重开 | 旧内存服务退出不能当作可恢复旧账 |
+| K7、F-01/03 | 全批真实回执 → 正确网页 → 分别核验登录、分配身份和网站套餐 | openCookieTarget/tabs.create；网站最少信息人工观察 | 历史1.4.32有新登录；无当前自动化账号匹配测试 | 目标账号一致未验证；Plus/VIP、套餐期限延期 |
+| K8、F-01 | 普通来源授权 → 两固定网站独立会话/恢复，无商业副作用 | site-session、session-context | controller-member-site-context、session-context、controller-site-restore；Node/VM及历史两站 | 仅复用既有边界，不扩多站矩阵或行业适配 |
+| K9 | 同源候选 → 原审阅更新 → 当前运行候选身份可核对 | 原编译器/打包器/安装器 | 原包历史晋升记录；本轮仅读包摘要与编译回执 | 正式包不含修复；安装/运行未知，不重复打包补 PASS |
+| F-06 | 独立代理启停 → 自有控制回执 | 原 managed proxy | 历史独立证据 | 可选项，当前登录链不启动代理 |
+
+表内测试路径均在本项目 `tests/`。真实 HTTP 的 `controller-member-http.integration.test.mjs` 证明传输到达 listener，但其 `runtime({network})` 未启用 `wireNetwork`，仍经过 helper 的 POST→GET 改写；它不能证明当前开发 wire 请求已兼容后端。
+
+### 已定位的遗漏、错误步骤与证据断点（按影响排序）
+
+1. **高置信源码事实：本地 Cookie 服务的会员 wire 合同不一致。** `main.js:1104` 将开发会员 logical GET 发为 `POST /api/member`，数据为 JSON `{}`；`local-fixture-server.mjs:233` 仅实现 GET，POST 会落到末尾 `E_ROUTE_NOT_FOUND`。`tests/helpers/controller-fixture.mjs:79` 默认将 POST 改回 GET，包含 Cookie 连续测试及未启用 wireNetwork 的 HTTP 测试。推断：当前源码直接连接该后端会在会员核验阶段停止；**尚未本轮实机复现**。最小修复候选是仅让原 Cookie fixture 支持严格只读 POST `{}` 并验证原 Origin/header/字段拒绝；不回退生产协议或扩大白名单。本轮不实施。
+2. **高置信源码事实：两个 Provider 功能不连续。** SQLite Demo 支持上述 POST，但只发额度，无分配与交付；Cookie fixture 有分配/交付但当前不支持 POST。两者使用相同端口或相似账号 ID 不是共享账本/同一服务证据，不能拿 Market 领取成功接上另一实验的登录结果。下一阶段须明确本次到底使用哪个后端及其原账本，不能通过替换端口进程偷偷拼链。
+3. **高置信需求/证据缺口：分配未绑定真实网站账号证据。** Cookie fixture 将码关联 shared-a/b，但二者都调用同一个无账号参数的 `cookieSource()`（local-fixture:91/116/146）；真实来源不继承合成邮箱摘要（:158）。这不证明文件错误，却说明现有凭据无法证明“激活分配的就是网站目标账号”。需服务方给出合法可比较的最小预期身份及对应分配事实，再与网站最少信息独立核对；缺失则继续标身份未核验，不解码/打印 Cookie 猜账号。
+4. **高置信交付断点：源码、包和运行候选不同。** 不含修复的1.4.35、历史安装1.4.32、当前Controller测试不能合并。当前运行入口/版本/revision未知；先核对原入口与候选，不能先兑换来判断新源码是否生效。E_TOOL_RUNTIME_MISMATCH/E_OWNER分别保留未知根因。
+5. **高置信测试范围错误：模拟接续不是真实确认。** helper:30 用流调用 handler，无 listener；:107 的 setMany 默认直接返回全项成功，tabs也为 stub；:137 直接调用监听器并自填 isTrusted。service-flow:22 将本地合成交付改成 ChatGPT 目标及合成Cookie；:63的 assigned()直接用夹具兑换建立前置，不是用户首次激活。service-flow:218覆盖连续首次激活，但仍仅 Controller。server-session:19的两批来自合成导出，不是用户授权文件。
+6. **高置信步骤错误：授权与核验时点。** ChatGPT准备先调用getCurrentStore/必要的getPartitionKey，需原read授权；只有写前再授权会先准备失败。可信取消时SDK调用可能已经计数1，但Cookie RPC派发为0，不能混用。只有原Host的E_COOKIE_NOT_SUBMITTED能证明本批未派发；普通取消/超时不行。全部批次成功后才自动开站；已有登录菜单、HTTP200、Cookie回读都不能单独证明本次新登录/目标账号/Plus。
+7. **历史断言与候选边界：** 1.4.31写前已有登录；1.4.32的未登录→登录有历史证据，但账号匹配仍缺。原账本另记录旧data-testid已被网站aria-label替代、2项“构造隐藏控件”断言及6项旧展示断言失败；本轮不把它们升级为产品故障或抹成PASS。service-flow:267/282/303按“第三次GET”注入故障，是测试维护风险，尚无证据说本轮已失效。旧文档固定21+1及清登录步骤只属当时授权，当前不执行。
+
+### 下一阶段最短正常测试步骤（未执行）
+
+不以重演所有历史实验为前置。以下是一条连续记录的最小形状；任一步缺前置便停在该步，已确认权益不因网站失败而重新兑换。首次激活和已有权益是两个分支，分别记证据，不能在已激活状态宣布首次链通过。
+
+| 步骤 | 前置输入/事实 | 从原入口执行的动作 | 预期真实回执/判据 | 禁止副作用/证据限制 |
+| --- | --- | --- | --- | --- |
+| 0 入口与候选 | 指定Profile、受支持工具入口、文件/浏览器owner明确 | 默认ego，先按skill；只读打开“扩展→AI VIP Share”及“调试→本地开发服务”，核对安装包、运行revision、等待原因 | 记录同一候选、实际加载路径/ID与连接；无法核对即入口阻塞 | 不重复直达被拒sidepanel、不碰其他上下文，不重启/覆盖共享writer；当前包不能验证未包含的修复 |
+| 1 后端与基线 | 已明确哪个原Provider/账本、传输合同兼容；现有unknown已识别 | 只读核对本次服务身份/模式、原会员与分配、原恢复记录；最少观察ChatGPT当前登录基线 | 分清服务账号、分配账号和网站账号；Provider当前可用及来源授权分别有证据 | 不用端口推断后端，不重建旧账/清锁；不清登录、不读聊天、不给已有头像附会新登录 |
+| 2 网站授权前置 | 合法目标ChatGPT标签及当前安装身份 | 通过原顶部/设置可信入口核对或补精确网站Cookie授权及Chrome必要权限，已有合法授权复用 | 读元数据授权可用；write授权在写前必须有效，Store/Partition来自原Host | 不读取现有Cookie值，不把选网站或安装审阅当站点授权，不自动代理 |
+| 3 首次激活分支 | 当前确无可用权益且有合法未消费领取授权 | 原码/专属页无消费预检→核对接收账号/权益→明确确认一次 | 确认前原账本零核销；确认后一条原回执，原键可查询；刷新匹配本次账号/事务 | 不直接HTTP兑换，不用旧码换key；已有有效权益跳过此步；无分配不能靠重复激活修复 |
+| 4 分配与交付 | 新鲜相符会员/分配；来源有合法有效会话与预期身份事实 | 首次激活自动接续准备；已有权益点击原“登录并打开网站”；需补授权后则主动再次准备 | 原status sharedSession绑定账号/兑换/requestId/目标，期限与范围有效；显示实际保留/跳过/批次及身份已知或未知 | 准备本身不写Cookie/开站；正式已有权益路径可接续第5步的首批Host确认。不使用SQLite额度回执代替交付；当前授权文件有效项未知，历史期限/条数不可复用 |
+| 5 逐批确认与写入 | 交付未过期、原grant/身份/Store/Partition未变、journal可安全预留 | 首批从原“继续登录/确认本批”或正式已有权益按钮接续→真实Host精确批次确认；每个后续批次另点一次 | 写前CAS读回；每批真实逐项saved+verified，关联本交付及本次attempt；最后一批才完成 | 不伪造事件/回执，不CDP导入，不重放。确认替换须在获准测试Profile，存在需保留登录时只测直接打开分支 |
+| 6 网站结果 | 全批真实成功且目标一致；开站失败保留写入结果 | 自动或手动打开固定目标，仅观察登录及最少授权身份信息 | 独立登记登录、预期身份匹配；只有本次自然未登录基线才可登记新登录 | 已有登录只能证明保留/可打开；缺预期身份则身份NOT_TESTED。套餐/Plus另证，本轮不测试付费功能、不发消息 |
+| 7 安全重开 | 已记录本笔服务账本、交付/attempt及真实回执 | 重开原工具，只读核对结果与待决记录 | 权益/回执保留，没有新的兑换、领取、写入、开站、代理动作 | 不把旧成功当当前网页登录证据；unknown/partial仍保留锁，不因菜单存在解锁 |
+
+单条记录至少串联：本候选/运行revision、服务Origin与模式、最小主体标识、redemptionId、当前分配、deliveryId/requestId、确切目标、各批attempt和真实Host回执、网站基线与核验时间/方式。只在原受控诊断保存必要非秘密引用；不把Cookie/token/完整JSON或账号原文写进仓库/提示词。
+
+### 当前必要异常分支（定向，不启动完整矩阵）
+
+| 前置与动作 | 应保留的事实与通过判据 | 禁止行为 |
+| --- | --- | --- |
+| 预检/提交前会员复核等待时取消 | 未调用redeem POST；迟到预检不恢复自动资格；原日志若已写需确定核对 | 不把关闭视图当清账，不自动重新预检/提交 |
+| redeem已派发后取消 | 原收据/unknown可查，停止后续会话及导航；不承诺撤销已消费权益 | 不换key重兑，不丢弃已派发事实 |
+| 缺网站grant或原可信批次取消 | 激活结果保留；只有E_COOKIE_NOT_SUBMITTED/内部未调用事实可记零派发；有效交付允许用户再明确确认 | 不把模拟SDK次数当真实写入次数，不自动重试 |
+| 账号/兑换/服务代际/分配摘要/范围/Store/Partition变化，或撤权/过期 | 旧准备停止，新鲜刷新也不复活旧接续；历史不删 | 不改用新账号继续旧确认，不扩来源/格式许可 |
+| 部分成功、普通取消/超时、回执丢失 | 保存原逐项及unknown/partial、原作用域与锁；只核对原笔；后续批次及自动开站停止 | 不自动回滚、重兑、重写、清锁；页面登录不能证明Cookie事务结清 |
+| 全批成功但开站失败，或本来已有登录 | 写入与导航结果分别保留；允许主动打开；基线只支持相应结论 | 不为重开网页重写Cookie，不退出/清登录制造因果 |
+
+### 最小下一步与停止边界
+
+1. **先完成事实补齐：** 下一阶段从指定Profile的受支持原入口只读确认当前运行候选/连接/等待原因，以及实际使用哪个Provider及原账本；无入口时仅协调对应owner/专项能力，不能绕过原拒绝或占别人的侧栏。普通开发登录的第一个源码阻塞是Cookie fixture的member POST合同；正式服务未配置另列，不能为测试临时开放生产。
+2. **最小修复建议，尚未实施：** 仅在后续进入修复阶段时，针对原Cookie fixture的只读POST兼容和原wire请求增加必要定向证据，保持精确Origin/header/空对象拒绝边界；不把两个Provider合并为新平台，也不自动启动商业服务/账号池。另由服务方补齐分配与目标账号的合法可比较证据，否则最多验证登录状态。
+3. **产生可测候选后再走一次原链：** 共享样式归属协调好，才按原打包器候选→受影响检查→同源晋升唯一JSON→原安装审阅核对运行。已有权益复用；只有确有需要且获准的首次激活才消费。没有同候选和合法来源证据，不进入兑换/写入。
+4. **资源与授权：** 当前登录及并行资源保留；本轮未启用浏览器或占用UI锁，未重查历史PID/端口。若后续需原生焦点，沿用ui-acquire/ui-release和定向输入，不全局粘贴提交。清登录/退出、替换现有账号或新来源/新能力需另有适用授权；商业、生产、真实Plus/VIP、评分、完整矩阵继续延期。
+
+本轮只交付上述梳理及原账本的当前阶段引用，未提交或推送；文档仅检查内容、链接与一致性，不产生新的产品PASS。完成梳理后停止，不自动进入以上后续步骤。
+
 <a id="user-journey-current"></a>
 
 ## 先选测试入口（2026-11-15）
@@ -11,7 +184,7 @@
 | 开发按钮 | 同源预览选择“开发实验（非安装版）” → 连接本地开发 → 测试网站登录 | 先从未连接到会员核验成功，再展开网站；两按钮本身不兑换、不写 Cookie、不启用代理 |
 | 首次连接/激活 | 已安装工具输入受支持服务链接 → 连接并查看权益 → 核对账号/权益 → 必要时确认激活 → 继续网站登录确认 | 预检不消费；确认后只有一笔兑换，新鲜权益核验通过后准备分配会话；Cookie 仍逐批确认 |
 | 已有权益 | 重开工具或重连同一服务 → 直接使用网站入口 | 有效权益复用，不自动再次激活；无分配时联系服务方 |
-| 网站登录 | 核对目标和会话 → 网站授权 → 每批 Cookie 分别确认 → 打开网站 | 写入回执、网站登录、账号与 VIP 分别核验；已有登录可直接打开 |
+| 网站登录 | 核对目标并具备原网站授权 → 准备及核对会话 → 每批 Cookie 分别确认 → 打开网站 | ChatGPT 准备已需元数据 read 授权；写入回执、网站登录、账号与 VIP 分别核验；已有登录可直接打开 |
 | 取消/异常 | 取消待提交操作；unknown/partial 从原记录核对 | 不自动重兑或重放写入；代理另行审阅，停止只操作自有代理 |
 | 独立窗口 | 工具设置 → 在新标签页打开当前工具 | 对比同一版本、服务及权益，保留各自草稿；当前新包仍未验证 |
 

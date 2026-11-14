@@ -1,11 +1,41 @@
-// OpenDesk Browser Developer Preview R2.6: source-only regression gates.
-// Run: node --test prototypes/sidebar/develop/preview-contract.test.mjs
-// Layout geometry and native Chrome require separate browser evidence.
-import test from 'node:test';
+// Current offline prototype checks plus explicitly scoped R2.6 historical checks.
+// Does not prove browser layout, Host execution, Native, permissions or installation.
+import test, {describe} from 'node:test';
 import assert from 'node:assert/strict';
 import {readFileSync} from 'node:fs';
+import {Script} from 'node:vm';
 
-const html=readFileSync(new URL('./index.html', import.meta.url),'utf8');
+const current=readFileSync(new URL('./index.html', import.meta.url),'utf8');
+const scripts=[...current.matchAll(/<script\b[^>]*>([\s\S]*?)<\/script>/gi)].map(match=>match[1]);
+const markup=current.replace(/<script\b[^>]*>[\s\S]*?<\/script>/gi,'');
+
+describe('当前原型：可独立打开的安全离线提案',()=>{
+ test('内联脚本可解析，不依赖外部可执行资源',()=>{
+  assert.ok(scripts.length>0);
+  for(const source of scripts)assert.doesNotThrow(()=>new Script(source));
+  assert.doesNotMatch(markup,/<script\b[^>]*\bsrc\s*=/i);
+  assert.doesNotMatch(markup,/<(?:link|img|iframe|object|embed)\b[^>]*(?:src|href|data)\s*=\s*["'][^#]/i);
+ });
+ test('静态ID唯一，label与ARIA引用可解析',()=>{
+  const ids=[...markup.matchAll(/\bid="([^"]+)"/g)].map(match=>match[1]);
+  assert.equal(new Set(ids).size,ids.length,'重复ID会破坏选择器和无障碍关系');
+  const known=new Set(ids);
+  for(const match of markup.matchAll(/\b(?:for|aria-controls|aria-labelledby|aria-describedby)="([^"]+)"/g)){
+   for(const id of match[1].split(/\s+/))assert.ok(known.has(id),'未找到关联目标 '+id);
+  }
+ });
+ test('CSP阻止联网、表单提交及对象资源',()=>{
+  const policy=markup.match(/http-equiv="Content-Security-Policy"\s+content="([^"]+)"/i)?.[1];
+  assert.ok(policy,'离线提案必须声明资源边界');
+  const rules=new Map(policy.split(';').map(rule=>{const [name,...values]=rule.trim().split(/\s+/);return [name,values.join(' ')];}));
+  for(const name of ['default-src','connect-src','form-action','base-uri','object-src'])assert.equal(rules.get(name),"'none'",name);
+ });
+});
+
+// These unchanged legacy assertions preserve the archived mock's historical evidence.
+// Its field IDs, Tab interception and installation UI are NOT current requirements.
+describe('R2.6历史快照：不约束当前原型布局或入口',()=>{
+const html=readFileSync(new URL('./r2.6-baseline-preview.html', import.meta.url),'utf8');
 const css=html.match(/<style>([\s\S]+?)<\/style>/)?.[1]??'';
 const occurrences=(needle,inText=html)=>inText.split(needle).length-1;
 
@@ -122,4 +152,6 @@ test('R2.6 恢复提示不会将 Page 模拟证明跨侧边栏复用',()=>{
  assert.match(html,/PREVIEW_ONLY/);
  assert.match(html,/安装入口始终可访问/);
  assert.match(html,/Page 项目不会在后台静默重复执行/);
+});
+
 });

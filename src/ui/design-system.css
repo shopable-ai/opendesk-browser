@@ -108,6 +108,13 @@ details>section{margin-top:var(--space-3)}
  * pushing their right edge outside a narrow Side Panel. */
 .od-disclosure>:not(summary){min-width:0;max-width:calc(100% - var(--space-3) - var(--space-3));margin:var(--space-2) var(--space-3) 0}
 .od-disclosure>:last-child:not(summary){margin-bottom:var(--space-3)}
+/* Icon-led first-level groups: task history and installed website scope. */
+.od-disclosure--icon>summary{flex-wrap:nowrap}
+.od-disclosure--icon>summary::before{display:none}
+.od-disclosure--icon>summary>svg{flex:none;width:18px;height:18px;fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
+.od-disclosure--icon>summary>.od-disclosure-chevron{width:15px;height:15px;margin-left:auto;color:var(--od-sub)}
+.od-disclosure--icon[open]>summary>.od-disclosure-chevron{transform:rotate(90deg)}
+.od-disclosure--icon>:not(summary){margin-top:var(--space-3)}
 .od-disclosure--info>summary{color:var(--od-brand)}
 .od-disclosure--info[open]>summary{background:var(--od-muted)}
 .od-disclosure--flat{border:0;border-radius:0;background:transparent}

@@ -1,38 +1,80 @@
 import * as React from 'react';
-import {DevelopProvider,DevelopField} from './develop-controls.tsx';
+import {DevelopProvider,DevelopField,useDevelop,DevelopIcon} from './develop-controls.tsx';
 import {DevelopContextHeader,DevelopSourceEditor} from './develop-editor.tsx';
 import {DevelopLocalProject} from './develop-local.tsx';
 import {DevelopDiagnostics} from './develop-diagnostics.tsx';
 import {DevelopExecution} from './develop-execution.tsx';
 import {DevelopAdvanced} from './develop-advanced.tsx';
+import {DevelopPromptProvider} from './develop-ai-prompt.tsx';
 
-// One React owner for the complete trusted developer workbench. User source
-// stays in fields and crosses only the existing compiler/RunHost boundary.
-export function DeveloperPage({model,view=model,actions=view.actions,hidden=false}){
+// Presentation shares the existing field store; controllers retain all execution authority.
+const sectionTitles={save:'保存脚本',library:'已保存脚本与版本',history:'过去运行',install:'安装与发布',diagnostics:'权限与诊断','run-detail':'本次运行详情'};
+export function DeveloperPage({model,view=model,actions=view.actions,hidden=false,locale='zh-CN',noticeView}){
+  const snapshot=React.useSyncExternalStore(view.subscribe,view.getSnapshot,view.getSnapshot);
+  const section=snapshot.section||'editor';
+  const back=React.useRef(null);
+  React.useLayoutEffect(()=>{
+    if(hidden)return;
+    if(section!=='editor')back.current?.focus();
+    else if(snapshot.returnFocusId)back.current?.ownerDocument.getElementById(snapshot.returnFocusId)?.focus();
+  },[section,hidden]);
   return <DevelopProvider view={view} actions={actions}>
     <div id="workbench-develop" role="tabpanel" aria-labelledby="tab-develop" className="od-page" data-workbench-page="develop" hidden={hidden}>
       <section className="developer-editor" aria-label="代码开发">
-        <DevelopContextHeader/>
-        <DevelopLocalProject/>
-        <DevelopSourceEditor view={view} actions={actions}/>
-        <DevelopExecution/>
-        <DevelopAdvanced/>
-        <DevelopDiagnostics/>
+        <div className="developer-sub-head" hidden={section==='editor'}>
+          <button ref={back} type="button" className="od-icon-button" aria-label="返回编辑" onClick={()=>view.navigate('editor')}><DevelopIcon name="chevron"/></button>
+          <h2 className="od-page-title">{sectionTitles[section]}</h2>
+        </div>
+        <DevelopPromptProvider noticeView={noticeView} locale={locale} hidden={hidden||section!=='editor'}>
+        <div className="developer-compose od-stack" hidden={section!=='editor'}>
+          <DevelopContextHeader/>
+          <DevelopLocalProject/>
+          <DevelopSourceEditor view={view} actions={actions} locale={locale}/>
+        </div>
+        </DevelopPromptProvider>
+        <DevelopExecution section={section}>
+          <nav className="developer-management-links od-toolbar" aria-label="脚本管理" hidden={section!=='editor'}>
+            <DevelopSectionButton section="library" id="developer-library-entry">已保存脚本</DevelopSectionButton>
+            <DevelopSectionButton section="diagnostics" id="developer-diagnostics-entry">权限与诊断</DevelopSectionButton>
+          </nav>
+        </DevelopExecution>
+        <DevelopAdvanced section={section}/>
+        <div hidden={section!=='diagnostics'}><DevelopDiagnostics/></div>
       </section>
     </div>
   </DevelopProvider>;
 }
 
+function DevelopSectionButton({section,children,...props}){
+  const {model}=useDevelop();
+  return <button type="button" className="developer-text-button" {...props}
+    onClick={event=>model.navigate(section,{returnFocusId:event.currentTarget.closest('#developer-more-actions')?'developer-more-button':event.currentTarget.id})}>{children}</button>;
+}
+
 export function DeveloperDock({model,view=model,actions=view.actions,hidden=false}){
+  const {fields,section}=React.useSyncExternalStore(view.subscribe,view.getSnapshot,view.getSnapshot);
+  const local=fields['local-project-mode'].checked;
+  const [more,setMore]=React.useState(false);
+  const moreButton=React.useRef(null);
+  const showStop=!fields['script-stop'].disabled||fields['script-status'].data.state==='stopping';
   return <DevelopProvider view={view} actions={actions}>
-    <div id="develop-dock" className="dock-actions" hidden={hidden}>
+    <div id="develop-dock" className="dock-actions" data-subview={section!=='editor'} hidden={hidden||section!=='editor'&&!showStop}>
       <div className="dock-buttons od-toolbar" data-opendesk-react-owner="developer-actions">
-        <DevelopField as="button" className="od-button" id="script-run">
-          {"运行"}
-        </DevelopField>
-        <DevelopField as="button" id="script-stop" className="od-button od-button--secondary">
-          {"停止"}
-        </DevelopField>
+        <DevelopField as="button" className="od-button" id="script-run" icon={<DevelopIcon name="play"/>}>运行</DevelopField>
+        {showStop&&<DevelopField as="button" id="script-stop" className="od-button od-button--secondary" icon={<DevelopIcon name="stop"/>}>停止</DevelopField>}
+        <DevelopSectionButton section="save" hidden={local} className="od-button od-button--secondary" id="developer-save-entry"><DevelopIcon name="save"/>保存脚本</DevelopSectionButton>
+        <span hidden={!local}><DevelopField as="button" id="script-save" className="od-button od-button--secondary" icon={<DevelopIcon name="save"/>}>检查并保存本地项目</DevelopField></span>
+        <div className="developer-more" onBlur={event=>{if(!event.currentTarget.contains(event.relatedTarget))setMore(false);}}
+          onKeyDown={event=>{if(event.key==='Escape'){setMore(false);moreButton.current?.focus();}}}>
+          <button type="button" id="developer-more-button" ref={moreButton} className="od-icon-button" aria-label="更多操作" aria-expanded={more}
+            aria-controls="developer-more-actions" onClick={()=>setMore(!more)}><DevelopIcon name="dots"/></button>
+          <div id="developer-more-actions" className="developer-more-actions od-surface" hidden={!more} onClick={()=>setMore(false)}>
+            <DevelopSectionButton section="library">已保存脚本</DevelopSectionButton>
+            <DevelopSectionButton section="history">过去运行</DevelopSectionButton>
+            <DevelopSectionButton section="install">安装与发布</DevelopSectionButton>
+            <DevelopSectionButton section="diagnostics">权限与诊断</DevelopSectionButton>
+          </div>
+        </div>
       </div>
     </div>
   </DevelopProvider>;

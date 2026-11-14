@@ -64,14 +64,14 @@ export function MyTaskParams({view,disabled=false}){
 
 function TaskHistoryEntry({row}){
   const [revealed,setRevealed]=React.useState(false);
-  return <details className="task-history-entry od-disclosure od-disclosure--flat">
-    <summary>{row.state} · 最近第 {row.ordinal} 次</summary>
+  return <article className="task-history-entry" data-tone={row.runState==='failed'?'error':row.runState==='paused_unknown'?'warning':undefined}>
+    <div className="task-history-heading"><strong>{row.state}</strong><span>{row.time||'最近第 '+row.ordinal+' 次'}</span></div>
     <pre>{revealed?row.fullText:row.text}</pre>
     {typeof row.fullText==='string'&&<button type="button" className="task-result-reveal od-button od-button--secondary"
       title="完整原值可能包含访问令牌等敏感信息" onClick={()=>setRevealed(value=>!value)}>
       {revealed?'隐藏完整原值':'显示完整原值'}</button>}
     <details className="task-history-tech od-disclosure od-disclosure--flat"><summary>技术信息</summary><pre>{row.technical}</pre></details>
-  </details>;
+  </article>;
 }
 export function MyTaskHistory({rows=[]}){
   return <div className="task-history-entries">{rows.map(row=><TaskHistoryEntry key={row.runId} row={row}/>)}</div>;
@@ -144,11 +144,11 @@ export function MyScheduleDetail({model}){
 }
 
 export function MyCopyConfirmation({view}){
-  return <MyControl view={view} as="div" id="schedule-copy-confirm" className="od-surface" role="group" aria-label="确认覆盖开发草稿">
+  return <MyControl view={view} as="div" id="schedule-copy-confirm" className="od-surface" role="group" aria-label="确认覆盖开发草稿" aria-describedby="schedule-copy-label" data-opendesk-pending-review="">
     <MyControl view={view} as="p" id="schedule-copy-label"/>
     <div className="schedule-actions od-toolbar">
-      <MyControl view={view} as="button" type="button" id="schedule-copy-yes" onClick={event=>view.actions.scheduleCopyYesClick?.(event.nativeEvent)} className="od-button">确认覆盖并复制</MyControl>
-      <MyControl view={view} as="button" type="button" id="schedule-copy-no" onClick={event=>view.actions.scheduleCopyNoClick?.(event.nativeEvent)} className="od-button od-button--secondary">取消</MyControl>
+      <MyControl view={view} as="button" type="button" id="schedule-copy-yes" aria-describedby="schedule-copy-label" onClick={event=>view.actions.scheduleCopyYesClick?.(event.nativeEvent)} className="od-button">确认覆盖并复制</MyControl>
+      <MyControl view={view} as="button" type="button" id="schedule-copy-no" aria-describedby="schedule-copy-label" onClick={event=>view.actions.scheduleCopyNoClick?.(event.nativeEvent)} className="od-button od-button--secondary">取消</MyControl>
     </div>
   </MyControl>;
 }

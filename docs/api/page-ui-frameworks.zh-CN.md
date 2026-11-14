@@ -6,6 +6,8 @@
 
 [Page USER_SCRIPT](page-userscript.zh-CN.md) · [本地项目](local-projects.zh-CN.md) · [受管 UI 生命周期](../framework/ui-api.zh-CN.md) · [架构](../architecture/browser-framework/page-framework-authoring-r243.zh-CN.md)
 
+直接编辑入门：[React JSX](#developer-react-quickstart) · [Vue SFC](#developer-vue-quickstart)
+
 ## 零、自动编译可行性与验收状态
 
 **已证实可行：JSX 和 Vue SFC 必须转换为浏览器可执行的普通 JavaScript，但 OpenDesk 已能自动转换。用户不需要每次手动运行 Vite、npm build 或导入预编译 JSON。** 本地项目保存后后台准备，浏览器直接编辑则点击 Run 后按需编译；两条路径都只有用户明确点击 Run 才操作网页，绝不是“保存即热更新／自动执行”。
@@ -35,6 +37,8 @@
 
 所有默认组件只写官方语法和默认导出；**不要求** `createPageUI`、`createDemoEnhancer`、`main()` 或手动 `createRoot/createApp`。原高亮/撤销演示的完整源码保存在 `examples/import-ready/history/` 的 R24.2 历史 JSON，旧版原生回归从快照还原临时测试项目。React Direct 已删除重复旧源码；Vue Direct 仍保留 `src/legacy-main.js` + `src/enhancement.js`。
 
+<a id="local-component-development"></a>
+
 ## 二、本地源码开发：保存自动准备，Run 才操作网页
 
 本地目录开发仍需要**已安装和配对**的 OpenDesk Native Host，这是连接本地文件系统的前置条件；不是让用户手动安装 React/Vue、为此示例创建 `node_modules` 或执行 Vite。
@@ -53,7 +57,23 @@ Chrome 可打开 `http://127.0.0.1:43111/demo-form.html` 进行回归；**React 
 
 仅 Developer Edition 提供：进入 Side Panel → 开发 → 直接编辑，选择「React JSX」或「Vue SFC」，输入原始组件源码并明确点击「运行 React/Vue 组件」。扩展自身的按需 Dedicated Worker 编译受信固定版本的 Babel/Vue SFC；生成的普通 JS 由原有 Page USER_SCRIPT 在当前已授权文档中运行。点击「停止受管 UI」卸载 root/app 和受管样式。**编辑、保存与编译均不会自动执行网页业务。** 此路径无需本机 Go/Node/npm/Vite/Native 编译服务，但仍需 Chrome「允许用户脚本」、当前网站访问授权和可运行的 HTTP(S) 页面。
 
-[真实 macOS Chrome 无 Native 编译、交互与 Stop](https://github.com/shopable-ai/opendesk-browser/actions/runs/38225425847) 已在候选 `9cdb3bf98fe410b88c456801855e2635f6b1a7b0` 验证 React Hooks 状态更新与 Vue `ref` 更新；它不是此后任意代码变动的自动通过证明。浏览器目前面向单组件和受信固定框架导入，不提供任意 npm 包、跨文件相对导入、动态导入、远程 CDN、TypeScript/TSX 及自定义 Vite 插件。转换错误应以侧栏错误/位置诊断为准，不会回退执行旧版本。
+[真实 macOS Chrome 无 Native 编译、交互与 Stop](https://github.com/shopable-ai/opendesk-browser/actions/runs/38225425847) 已在候选 `9cdb3bf98fe410b88c456801855e2635f6b1a7b0` 验证 React Hooks 状态更新与 Vue `ref` 更新；它不是此后任意代码变动的自动通过证明。浏览器面向单组件、受信固定框架导入与小型静态 HTTPS ESM 图。现有 [React + D3 网络 Import 示例](../../examples/programs/page-ui-toc-react-direct/README.md#react-network-import-example)使用固定版本 URL；依赖在准备期校验并链接，网页不动态加载 CDN。单文件入口最多 32 个模块、整图 256 KiB、链接结果 100 KB；不提供任意 npm 包、作者源码跨文件相对导入、动态导入、TypeScript/TSX 及自定义 Vite 插件。转换错误应以侧栏错误/位置诊断为准，不会回退执行旧版本。
+
+<a id="developer-react-quickstart"></a>
+
+### React JSX：直接编辑入门
+
+1. 使用 **Developer Edition**，在「开发 → 直接编辑」选择 **React**。Standard 用户通过原[本地项目入口](#local-component-development)准备 JSX。
+2. 编写默认导出的 React 组件；可使用 `react` 的 Hooks。React/ReactDOM 由扩展提供，无需手动 `createRoot`。右上角“示例”打开 [React + D3 网络 Import 示例](../../examples/programs/page-ui-toc-react-direct/README.md#react-network-import-example)，已有草稿保留。
+3. 核对目标网页，明确点击「运行」才编译并在获准文档中挂载。查看原运行回执和错误；停止由原受管 UI 生命周期卸载。HTTPS 依赖仍需原准备与审阅，打开帮助或示例不授予权限。
+
+<a id="developer-vue-quickstart"></a>
+
+### Vue SFC：直接编辑入门
+
+1. 使用 **Developer Edition**，在「开发 → 直接编辑」选择 **Vue**。Standard 用户通过原[本地项目入口](#local-component-development)准备 SFC。
+2. 编写 `<script setup>` 和 `<template>`，按需使用 `<style scoped>`；可从 `vue` 导入 `ref` 等官方能力。Vue 运行时由扩展提供，无需手动 `createApp`。右上角“示例”打开 [App.vue 源码](../../examples/programs/page-ui-vue/src/App.vue)，已有草稿保留。
+3. 核对目标网页，明确点击「运行」才编译并在获准文档中挂载。模板或脚本错误在原诊断区处理；停止由原受管 UI 生命周期卸载。编辑和打开参考资料不会自动执行。
 
 ### 兼容：导入已经冻结的 JSON
 

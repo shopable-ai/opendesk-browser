@@ -3,19 +3,26 @@ import assert from 'node:assert/strict';
 import * as React from 'react';
 import {JSDOM} from 'jsdom';
 import {loadSidebarReact} from '../helpers/sidebar-react-fixture.mjs';
+import {createDeveloperStarterSource} from '../../src/ui/developer-starter-source.js';
+import browserConfig from '../../src/config/browser-config.json' with {type:'json'};
 
-test('developer radios bridge native events without running or replacing source; placeholders follow snapshots',async t=>{
+test('developer native world radios and section navigation preserve drafts and dispatch only explicit owner actions',async t=>{
   const dom=new JSDOM('<!doctype html><html><body><div id="root"></div></body></html>');
   const {window}=dom,{document}=window;
-  const globals={window,document,IS_REACT_ACT_ENVIRONMENT:true};
+  const globals={window,document,Element:window.Element,HTMLElement:window.HTMLElement,
+    SVGElement:window.SVGElement,Node:window.Node,HTMLInputElement:window.HTMLInputElement,
+    HTMLTextAreaElement:window.HTMLTextAreaElement,IS_REACT_ACT_ENVIRONMENT:true};
   const previous=new Map(Object.keys(globals).map(key=>[key,Object.getOwnPropertyDescriptor(globalThis,key)]));
   for(const [key,value] of Object.entries(globals))
     Object.defineProperty(globalThis,key,{value,writable:true,configurable:true});
+  const errors=[];
+  window.addEventListener('error',event=>errors.push(event.error));
   let root,view;
   t.after(async()=>{
     try{
       if(root)await React.act(async()=>root.unmount());
       if(view)assert.equal(view.resourceSnapshot().subscriptions,0);
+      assert.deepEqual(errors,[],'DOM event handlers must not throw uncaught errors');
     }finally{
       view?.dispose();dom.window.close();
       for(const [key,descriptor] of previous){
@@ -27,18 +34,21 @@ test('developer radios bridge native events without running or replacing source;
     import('react-dom/client'),loadSidebarReact()
   ]);
   view=createDeveloperView();
+  const starterSource=createDeveloperStarterSource(view);starterSource.fill();
   const calls=[];
   // Observe every action, including Run, installation and permission controls.
   // Only emulate the controller's code-type projection. This test exercises UI
   // bridging, not Controller execution, dependency resolution or authorization.
   for(const id of Object.keys(view.fields))view.actions[id]=event=>{
-    calls.push({id,event,value:view.fields[id].value,checked:view.fields[id].checked});
+    calls.push({id,event,value:view.fields[id].value,checked:view.fields[id].checked,
+      section:view.getSnapshot().section});
   };
   const frameworks=['javascript','react','vue'];
   for(const framework of frameworks){
     const id='page-component-'+framework,record=view.actions[id];
     view.actions[id]=event=>{
       record(event);
+      starterSource.fill(framework,view.fields['script-javascript-world'].value);
       for(const candidate of frameworks)
         view.patch('page-component-'+candidate,{checked:candidate===framework},{immediate:true});
       view.patch('script-javascript-world-row',{hidden:framework!=='javascript'});
@@ -49,21 +59,20 @@ test('developer radios bridge native events without running or replacing source;
     React.createElement(DeveloperPage,{view}),React.createElement(DeveloperDock,{view}))));
   const get=id=>document.getElementById(id);
   const source=get('script-source'),world=get('script-javascript-world');
-  const radios=[...world.querySelectorAll('input[type="radio"]')];
   assert.equal(world.tagName,'FIELDSET');
-  assert.deepEqual(radios.map(radio=>radio.value),['controller','page']);
-  assert.equal(new Set(radios.map(radio=>radio.name)).size,1);
-  assert.ok(radios[0].name);
-  for(const [index,option] of view.fields['script-javascript-world'].options.entries())
-    assert.equal(radios[index].getAttribute('aria-label'),option.label);
-  assert.deepEqual(radios.map(radio=>radio.checked),[true,false]);
-  const controllerPlaceholder=source.placeholder;
-  assert.ok(controllerPlaceholder.trim());
-  assert.equal(source.value,'','examples are placeholders, not initial source');
-  assert.equal(view.fields['script-source'].value,'');
+  assert.equal(world.getAttribute('role'),'radiogroup');
+  const radios=[...world.querySelectorAll('input[type=radio]')];
+  assert.deepEqual(radios.map(input=>input.value),['controller','page']);
+  assert.deepEqual([...world.querySelectorAll('label span')].map(span=>span.textContent),
+    view.fields['script-javascript-world'].options.map(option=>option.label));
+  const selectedWorld=()=>world.querySelector('input:checked').value;
+  assert.equal(selectedWorld(),'controller');
+  assert.equal(source.placeholder,'','examples are real source supplied by the editor owner');
+  assert.match(source.value,/page.title/,'the example is editable source, not placeholder text');
+  assert.equal(source.value,view.fields['script-source'].value);
   assert.equal(calls.length,0,'mounting must not invoke any action');
 
-  const draft='// authored draft\nconst keep = "my source";';
+  const draft='// 完整中文草稿\nasync function main() {\n  const keep = "你好，网页";\n  return { keep, lines: [1, 2] };\n}\n';
   const inputEvent=new window.Event('input',{bubbles:true});
   await React.act(async()=>{
     // Use the native setter so React observes a genuine DOM edit.
@@ -80,6 +89,32 @@ test('developer radios bridge native events without running or replacing source;
   };
   preserved();
 
+  const references=async(key,mode,filename)=>{
+    const head=document.querySelector('.developer-editor-head');
+    assert.equal(head.querySelector('.developer-editor-filename').textContent,filename);
+    assert.equal(head.querySelector('.developer-editor-filename').title,filename);
+    assert.equal(head.textContent.includes('当前草稿'),false);
+    const before=calls.length;
+    for(const [kind,label] of [['examples','示例'],['help','API 文档']]){
+      const link=get('developer-source-'+kind);
+      assert.equal(link.tagName,'A');
+      assert.equal(link.href,new URL(browserConfig.navigation.developerReferences[key][kind]).href);
+      assert.equal(link.target,'_blank');
+      assert.equal(link.rel,'noopener noreferrer');
+      assert.equal(link.title,mode+' · '+label+'（新标签页）');
+      assert.equal(link.getAttribute('aria-label'),link.title);
+      assert.equal(link.querySelector('svg').getAttribute('aria-hidden'),'true');
+      link.focus();
+      assert.equal(document.activeElement,link);
+      // JSDOM does not implement navigation; browser verification covers the popup.
+      link.addEventListener('click',event=>event.preventDefault(),{once:true});
+      await React.act(async()=>link.click());
+      preserved();
+    }
+    assert.equal(calls.length,before,'reference links dispatch no editor or execution action');
+  };
+  await references('controller','自动化 JS','main.js');
+
   const click=async(node,id)=>{
     let nativeClick;
     node.addEventListener('click',event=>{nativeClick=event;},{once:true});
@@ -94,33 +129,43 @@ test('developer radios bridge native events without running or replacing source;
     preserved();
     return call;
   };
-  const pageCall=await click(radios[1],'script-javascript-world');
-  assert.equal(pageCall.value,'page','patch the original field before invoking its action');
-  assert.equal(view.getSnapshot().fields['script-javascript-world'].value,'page');
-  assert.deepEqual(radios.map(radio=>radio.checked),[false,true]);
-  const pagePlaceholder=source.placeholder;
-  assert.ok(pagePlaceholder.trim());
-  assert.notEqual(pagePlaceholder,controllerPlaceholder);
-  const controllerCall=await click(radios[0],'script-javascript-world');
-  assert.equal(controllerCall.value,'controller');
-  assert.equal(view.getSnapshot().fields['script-javascript-world'].value,'controller');
-  assert.deepEqual(radios.map(radio=>radio.checked),[true,false]);
-  assert.equal(source.placeholder,controllerPlaceholder);
+  const select=async value=>{
+    const input=radios.find(input=>input.value===value);
+    let nativeEvent;
+    input.addEventListener('click',event=>{nativeEvent=event;},{once:true});
+    const before=calls.length;
+    await React.act(async()=>input.click());
+    assert.equal(calls.length,before+1);
+    assert.equal(calls.at(-1).id,'script-javascript-world');
+    assert.equal(calls.at(-1).event,nativeEvent,'forward the original native radio event');
+    assert.equal(calls.at(-1).event.target,input);
+    assert.equal(calls.at(-1).value,value,'patch before invoking the original action');
+    assert.equal(selectedWorld(),value);
+    assert.equal(view.getSnapshot().fields['script-javascript-world'].value,value);
+    preserved();
+  };
+  await select('page');
+  await references('page','网页 JS','page.js');
+  assert.equal(source.placeholder,'');
+  await select('controller');
+  assert.equal(source.placeholder,'');
 
-  // Project the same disabled field that the controller publishes while busy.
+  // A disabled native radio is not operable. Do not fabricate a change on a
+  // disabled node: dispatchEvent bypasses browser interaction restrictions.
   await React.act(async()=>view.patch('script-javascript-world',{disabled:true}));
   assert.equal(world.disabled,true);
-  for(const radio of radios)assert.equal(radio.matches(':disabled'),true);
+  assert.equal(world.matches(':disabled'),true);
+  source.focus();
   const beforeBusy=calls.length;
-  await React.act(async()=>{for(const radio of radios)radio.click();});
-  assert.equal(calls.length,beforeBusy,'disabled native radios cannot switch environments');
+  await React.act(async()=>{radios[1].focus();radios[1].click();});
+  assert.equal(document.activeElement,source,'disabled radio cannot take focus');
+  assert.equal(calls.length,beforeBusy);
+  assert.equal(selectedWorld(),'controller');
   assert.equal(view.fields['script-javascript-world'].value,'controller');
-  assert.deepEqual(radios.map(radio=>radio.checked),[true,false]);
   preserved();
   await React.act(async()=>view.patch('script-javascript-world',{disabled:false}));
   assert.equal(world.disabled,false);
 
-  const placeholders=[controllerPlaceholder,pagePlaceholder];
   for(const framework of ['react','vue','javascript']){
     const id='page-component-'+framework;
     const call=await click(get(id),id);
@@ -128,20 +173,215 @@ test('developer radios bridge native events without running or replacing source;
     assert.equal(call.checked,true,'the field is patched before the original action');
     assert.deepEqual(frameworks.map(candidate=>get('page-component-'+candidate).checked),
       frameworks.map(candidate=>candidate===framework));
-    assert.ok(source.placeholder.trim());
-    if(framework==='javascript')assert.equal(source.placeholder,controllerPlaceholder);
-    else placeholders.push(source.placeholder);
+    assert.equal(source.placeholder,'');
+    if(framework!=='javascript')await references(framework,framework==='react'?'React JSX':'Vue SFC',
+      framework==='react'?'App.jsx':'App.vue');
   }
-  assert.equal(new Set(placeholders).size,4,'JS environments, React and Vue have distinct example hints');
   assert.deepEqual(calls.map(call=>call.id),[
     'script-source','script-javascript-world','script-javascript-world',
     'page-component-react','page-component-vue','page-component-javascript'
   ],'editing and switching never invoke Run, installation or permission actions');
 
+  const params=get('script-params');
+  const parameterDraft='{\n  "关键词": "中文参数",\n  "items": [1, 2],\n  "nested": {"保留": true}\n}';
+  await React.act(async()=>{
+    Object.getOwnPropertyDescriptor(window.HTMLTextAreaElement.prototype,'value').set.call(params,parameterDraft);
+    params.dispatchEvent(new window.Event('input',{bubbles:true}));
+  });
+  assert.equal(calls.at(-1).id,'script-params');
+  const preservedAll=()=>{
+    preserved();
+    assert.equal(get('script-source'),source,'navigation keeps the same editor mounted');
+    assert.equal(get('script-params'),params);
+    assert.equal(params.value,parameterDraft);
+    assert.equal(view.fields['script-params'].value,parameterDraft);
+    assert.equal(view.getSnapshot().fields['script-params'].value,parameterDraft);
+  };
+  // Include closed disclosures when testing visibility; JSDOM has no layout.
+  const visible=node=>{
+    if(node.closest('[hidden]'))return false;
+    for(let parent=node.parentElement;parent;parent=parent.parentElement)
+      if(parent.tagName==='DETAILS'&&!parent.open&&!parent.querySelector(':scope > summary')?.contains(node))return false;
+    return true;
+  };
+  const button=(container,text)=>[...container.querySelectorAll('button')]
+    .find(node=>node.textContent.trim()===text&&visible(node));
+  const fixedFile='project/很长的目录名称/'.repeat(8)+'actual-source.js';
+  await React.act(async()=>{
+    view.patch('script-source',{readOnly:true});
+    view.patch('program-source-files',{value:fixedFile});
+  });
+  assert.equal(source.readOnly,true);
+  assert.equal(document.querySelector('.developer-editor-readonly').textContent,'固定源码 · 只读');
+  assert.equal(document.querySelector('.developer-editor-filename').title,fixedFile);
+  assert.equal(document.querySelector('.developer-editor-filename').textContent,fixedFile);
+  preservedAll();
+  await React.act(async()=>view.patch('manual-source-editor',{hidden:true}));
+  assert.equal(visible(get('developer-source-examples')),false,'local projection hides references with the manual editor');
+  assert.equal(visible(get('developer-source-help')),false);
+  await React.act(async()=>{
+    view.patch('manual-source-editor',{hidden:false});
+    view.patch('script-source',{readOnly:false});
+    view.patch('program-source-files',{value:''});
+  });
+  assert.equal(document.querySelector('.developer-editor-readonly'),null);
+  preservedAll();
+  const navigate=async node=>{
+    assert.ok(node&&visible(node),'navigation entry must be visible');
+    const before=calls.length;
+    await React.act(async()=>node.click());
+    assert.equal(calls.length,before,'section navigation dispatches no business action');
+    preservedAll();
+  };
+  const result=get('developer-results-panel'),history=get('script-history-panel');
+  assert.equal(result.parentElement.hidden,false);
+  assert.equal(history.parentElement.hidden,true);
+  assert.equal(visible(get('script-id')),false);
+  assert.equal(visible(get('site-access-grant')),false);
+  assert.equal(visible(get('page-program-install')),false);
+  await navigate(get('developer-save-entry'));
+  assert.equal(view.getSnapshot().section,'save');
+  assert.equal(visible(get('script-id')),true);
+  assert.equal(visible(get('script-save-version')),true);
+  assert.equal(visible(get('script-revision')),false,'Controller save allocates its own next revision');
+  assert.equal(visible(get('script-delete')),false,'saving does not expose deletion');
+  assert.equal(visible(source),false);
+  assert.equal(result.parentElement.hidden,true);
+  assert.equal(history.parentElement.hidden,true);
+  assert.equal(visible(get('script-list')),false);
+  assert.equal(visible(get('page-program-install')),false);
+  assert.equal(visible(get('site-access-grant')),false);
+  const back=()=>get('workbench-develop').querySelector('[aria-label="返回编辑"]');
+  assert.equal(document.activeElement,back(),'management entry focuses its return action');
+  await navigate(back());
+  assert.equal(view.getSnapshot().section,'editor');
+  assert.equal(document.activeElement,get('developer-save-entry'));
+  await React.act(async()=>{
+    view.patch('script-status',{textContent:''});
+    view.patch('script-task-status',{textContent:''});
+  });
+  await navigate(get('developer-save-entry'));
+  assert.equal(document.querySelector('.developer-run-area').hidden,true,'empty execution area leaves no gap above save form');
+  assert.equal(get('develop-dock').hidden,true,'idle management has no blank action dock');
+  await React.act(async()=>view.patch('script-status',{textContent:'运行结果未知，请先核对',data:{state:'unknown'}}));
+  assert.equal(visible(get('script-status')),true,'management preserves actual error and unknown feedback');
+  await React.act(async()=>view.patch('script-status',{textContent:'',data:{state:'idle'}}));
+  await navigate(back());
+  await React.act(async()=>view.patch('page-preview-tools',{hidden:false}));
+  await navigate(get('developer-save-entry'));
+  assert.equal(visible(get('script-revision')),true,'Page save retains its explicit optional version');
+  assert.equal(visible(get('script-load')),false,'save form cannot silently replace the current source');
+  await navigate(back());
+  await React.act(async()=>view.patch('page-preview-tools',{hidden:true}));
+  const more=get('develop-dock').querySelector('[aria-label="更多操作"]');
+  await navigate(more);
+  assert.equal(more.getAttribute('aria-expanded'),'true');
+  await navigate(button(get('developer-more-actions'),'过去运行'));
+  assert.equal(view.getSnapshot().section,'history');
+  assert.equal(get('script-history-panel'),history,'history retains its original field owner');
+  assert.equal(history.parentElement.hidden,false);
+  assert.equal(result.parentElement.hidden,false,'history exposes the selected result beside its query controls');
+  assert.equal(result.querySelector('h2').textContent.trim(),'所选运行结果');
+  assert.equal(visible(get('script-id')),false);
+  assert.equal(visible(get('page-program-install')),false);
+  assert.equal(visible(get('site-access-grant')),false);
+  assert.equal(more.getAttribute('aria-expanded'),'false');
+  await React.act(async()=>{history.open=true;});
+  assert.equal(visible(get('script-history-run')),true);
+  await navigate(back());
+  assert.equal(document.activeElement,more);
+  assert.equal(result.parentElement.hidden,false);
+  assert.equal(history.parentElement.hidden,true);
+  assert.equal(visible(get('script-history-run')),false);
+  preservedAll();
+
+  await React.act(async()=>view.patch('script-copy-result',{disabled:false}));
+  await navigate(get('developer-result-detail'));
+  assert.equal(view.getSnapshot().section,'run-detail');
+  assert.equal(visible(get('script-task-id')),true,'run details open the original identity disclosure');
+  assert.equal(visible(get('script-running-target')),true);
+  assert.equal(visible(source),false);
+  await navigate(back());
+  assert.equal(document.activeElement,get('developer-result-detail'));
+  await navigate(get('developer-result-download'));
+  assert.equal(view.getSnapshot().section,'history','download options navigate without pretending to download');
+  await navigate(back());
+
+  const beforeKeys=calls.length;
+  // Native keyboard events exercise React handlers. JSDOM does not synthesize
+  // browser default typing or Tab focus traversal from dispatchEvent.
+  await React.act(async()=>{
+    for(const node of [source,params,world]){
+      node.focus();
+      for(const key of ['Tab','Enter'])for(const type of ['keydown','keyup'])
+        node.dispatchEvent(new window.KeyboardEvent(type,{key,bubbles:true}));
+    }
+  });
+  assert.equal(calls.length,beforeKeys,'Tab/Enter do not invoke Run or any other action');
+  preservedAll();
+  assert.deepEqual(calls.map(call=>call.id),[
+    'script-source','script-javascript-world','script-javascript-world',
+    'page-component-react','page-component-vue','page-component-javascript','script-params'
+  ],'editing and navigation never run, install, save or request permissions');
+
+  assert.equal(get('script-stop'),null,'idle stop is not an extra competing action');
+  await React.act(async()=>view.patch('script-stop',{disabled:false}));
+  const stop=get('script-stop');
+  assert.ok(get('develop-dock').contains(stop));
+  assert.equal(visible(stop),true);
+  assert.equal(stop.disabled,false);
+  assert.equal(document.querySelectorAll('#script-run').length,1);
+  assert.equal(document.querySelectorAll('#script-stop').length,1);
+  stop.focus();
+  assert.equal(document.activeElement,stop,'enabled Stop is keyboard reachable in Dock');
+  const beforeStop=calls.length;
+  await click(stop,'script-stop');
+  assert.equal(calls.length,beforeStop+1,'Stop invokes its original action exactly once');
+  assert.equal(calls.filter(call=>call.id==='script-stop').length,1);
+  assert.equal(calls.filter(call=>call.id==='script-run').length,0);
+  preservedAll();
+  await navigate(get('developer-save-entry'));
+  assert.equal(get('develop-dock').hidden,false,'running management retains Stop');
+  assert.equal(get('develop-dock').dataset.subview,'true');
+  assert.equal(visible(stop),true);
+  await navigate(back());
+
+  // Explicit execution/save remain the original actions; management cannot
+  // hide their result/review because navigation happens before the callback.
+  await navigate(get('developer-save-entry'));
+  await React.act(async()=>view.patch('script-run',{disabled:false}));
+  const runCall=await click(get('script-run'),'script-run');
+  assert.equal(runCall.section,'editor','Run navigates before invoking the owner');
+  assert.equal(result.parentElement.hidden,false);
+  assert.equal(visible(source),true);
+  preservedAll();
+  await navigate(more);
+  await navigate(button(get('developer-more-actions'),'过去运行'));
+  await React.act(async()=>view.patch('local-project-mode',{checked:true}));
+  const localSave=get('script-save');
+  assert.equal(visible(get('developer-save-entry')),false);
+  assert.equal(visible(localSave),true,'local save remains reachable from history');
+  assert.ok(get('develop-dock').contains(localSave));
+  const saveCall=await click(localSave,'script-save');
+  assert.equal(saveCall.section,'editor','local save navigates before invoking the owner');
+  assert.equal(visible(source),true);
+  assert.equal(result.parentElement.hidden,false);
+  assert.equal(history.parentElement.hidden,true);
+  assert.equal(calls.filter(call=>call.id==='script-run').length,1);
+  assert.equal(calls.filter(call=>call.id==='script-save').length,1);
+  assert.deepEqual(calls.slice(beforeStop).map(call=>call.id),['script-stop','script-run','script-save'],
+    'only the three explicit Dock actions invoke owners, once each');
+  preservedAll();
+
   await React.act(async()=>view.patch('script-source',{readOnly:true}));
   assert.equal(source.readOnly,true);
   assert.equal(source.placeholder,'','read-only source has no editable example hint');
   preserved();
+  await React.act(async()=>view.patch('program-source-files',{value:'src/actual-entry.ts'}));
+  assert.equal(document.querySelector('.developer-editor-head .od-technical').textContent,'src/actual-entry.ts');
+  await React.act(async()=>view.patch('script-run',{textContent:'检查后运行'}));
+  assert.equal(get('script-run').textContent,'检查后运行');
+  assert.ok(get('script-run').querySelector('svg'),'dynamic owner labels retain their action icon');
 
   await React.act(async()=>{
     view.patch('local-project-tools',{hidden:false});

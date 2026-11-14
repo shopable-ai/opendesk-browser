@@ -20,37 +20,51 @@ export function DevelopDiagnostics(){
                 </strong>
                 {"的显式授权、检查和撤销。后台仍按真实网页身份核查每次请求。"}
               </p>
-              <div className="row">
-                <label htmlFor="sdk-tab" className="od-field-label">
-                  {"网页"}
-                </label>
-                <DevelopField as="select" id="sdk-tab" className="od-field"/>
-                <DevelopField as="button" id="sdk-refresh" className="od-button od-button--secondary">
-                  {"刷新网页列表"}
+              <div className="od-page-head" role="group" aria-label="授权网页">
+                <div className="od-form-field">
+                  <span className="od-field-label">授权网页</span>
+                  <DevelopField as="strong" id="sdk-page-title"/>
+                  <DevelopField as="p" id="sdk-page-url" className="identity"/>
+                </div>
+                <DevelopField as="button" id="sdk-refresh" className="od-icon-button" title="刷新网页与文档" aria-label="刷新网页与文档">
+                  <svg viewBox="0 0 24 24" aria-hidden="true">
+                    <path d="M20 11a8 8 0 1 0-2.4 5.7M20 4v7h-7"/>
+                  </svg>
                 </DevelopField>
               </div>
-              <div className="row">
-                <label htmlFor="sdk-document" className="od-field-label">
-                  {"精确文档"}
-                </label>
-                <DevelopField as="select" id="sdk-document" className="od-field"/>
-              </div>
-              <DevelopField as="fieldset" id="sdk-capabilities">
+              <details className="od-disclosure od-disclosure--flat">
+                <summary>更换网页或子框架</summary>
+                <div className="od-stack">
+                  <div className="od-form-field">
+                    <label htmlFor="sdk-tab" className="od-field-label">选择网页</label>
+                    <DevelopField as="select" id="sdk-tab" className="od-field"/>
+                  </div>
+                  <div className="od-form-field">
+                    <label htmlFor="sdk-document" className="od-field-label">网页文档</label>
+                    <DevelopField as="select" id="sdk-document" className="od-field"/>
+                  </div>
+                  <DevelopField as="button" id="sdk-use-current" className="od-button od-button--secondary"/>
+                </div>
+              </details>
+              <DevelopField as="fieldset" id="sdk-capabilities" aria-describedby="sdk-capabilities-help">
                 <legend className="od-field-label">
-                  {"允许的服务（仅授予勾选项）"}
+                  {"开发服务"}
                 </legend>
               </DevelopField>
+              <p id="sdk-capabilities-help">
+                {"已默认选中当前可用服务，可取消不需要的项目。勾选后仍需点击批准才会授权。"}
+              </p>
               <label htmlFor="sdk-target-origins" className="od-field-label">
-                {"额外批准的目标 origin（每行一个，最多 8 条）"}
+                {"额外访问的网站（可选，每行一个，最多 8 个）"}
               </label>
               <DevelopField as="textarea" id="sdk-target-origins" rows="3" maxLength="18000" spellCheck={false} placeholder="https://api.example.com\nhttp://127.0.0.1:43111" aria-describedby="sdk-target-help" className="od-field"/>
               <p id="sdk-target-help">
-                {"留空仅允许来源同源；这里是完整的新范围，不与旧授权自动合并。协议、主机和有效端口精确匹配；不能填写账户、路径、查询或通配符。回环与局域网也须明确列出。原生权限可能覆盖更多端口，但不会扩大应用授权；此检查不是 DNS 重绑定防护。"}
+                {"HTTP 默认可访问当前网页同源地址；需要跨站访问时，在此填写目标地址的协议、主机和端口，例如 https://api.example.com。不要填写路径、查询参数或通配符。本次批准以所选文档、服务和这里填写的完整范围为准，不自动合并旧授权。"}
               </p>
               <details open className="od-disclosure od-disclosure--flat">
                 <summary>
                   <span>
-                    {"本次批准快照（来源、精确 document、服务与目标）"}
+                    {"本次授权范围（网页、文档、服务与访问目标）"}
                   </span>
                 </summary>
                 <DevelopField as="pre" id="sdk-approval-preview" aria-live="polite" className="od-result">
@@ -81,7 +95,7 @@ export function DevelopDiagnostics(){
                 {"。用户脚本的 @grant / GM_* 不会在这里自动授权。查询不会申请新权限；撤销阻止后续 SDK 服务，但不能回滚已发生操作，也无法强制卸载已执行 JS；结果未知时须重新查询。"}
               </p>
               <DevelopField as="p" id="sdk-status" role="status" data-state="idle">
-                {"请选择网页、文档和服务"}
+                {"请选择网页和当前文档，核对所选开发服务"}
               </DevelopField>
               <DevelopField as="pre" id="sdk-result" aria-label="SDK 安装结果" className="od-result">
               </DevelopField>

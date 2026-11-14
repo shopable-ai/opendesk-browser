@@ -154,7 +154,6 @@ function Preview(){
     initial==='tasks'&&initialMode==='schedule'?'schedule':'list');
   const [planDensity,setPlanDensity]=React.useState('many');
   const [taskSearch,setTaskSearch]=React.useState('');
-  const [taskFilter,setTaskFilter]=React.useState('all');
   const previousRoute=React.useRef('');
   const [sheetOpen,setSheetOpen]=React.useState(false);
   const [history,setHistory]=React.useState(false);
@@ -254,7 +253,6 @@ function Preview(){
       description:'整理目标网页中的所需信息',enabled:taskEnabled['preview-off']}
   ].filter(row=>installedTaskIds.includes(row.taskId));
   const taskRows=allTaskRows.filter(p=>
-    (taskFilter!=='disabled'||!p.enabled)&&
     (!taskSearch||[p.title,p.taskId,p.description].join(' ').toLocaleLowerCase()
       .includes(taskSearch.toLocaleLowerCase())));
   const cloudPreview=cloudScenarios[cloudScenario];
@@ -627,7 +625,7 @@ function Preview(){
     <PreviewMyFlows tab={tab} mode={taskMode} onMode={setTaskMode}
       onOpenDevelop={()=>{setTab('develop');setTaskMode('list');}}
       rows={allTaskRows} search={taskSearch} onSearch={setTaskSearch}
-      filter={taskFilter} onFilter={setTaskFilter} density={planDensity}
+      density={planDensity}
       selectedTask={selectedTask} manageMode={taskManageMode} onManageMode={setTaskManageMode}
       onTaskAction={onTaskAction}/>
     {createPortal(<div className="od-sidebar-preview-toolbar">

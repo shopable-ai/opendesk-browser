@@ -151,7 +151,8 @@ const myView=createMyWorkbenchView();
   const toolView=createSidebarToolsView();
 const sharedRunHost=createRunHost({api:chrome,client:foundationClient,document,templateModuleFactory:null});
 const scriptEditor = createScriptEditor({client:foundationClient,currentPageTarget,sharedRunHost,
-  development:Boolean(installDevelopment),view:developerView});
+  development:Boolean(installDevelopment),view:developerView,
+  notify:(message,options)=>toolView.showToast(message,options)});
 let debugWorkbench=null;
 let extensionList=null,reactNavigationRequest=null,pendingReactTab='tasks';
 const reactNavigation=Object.freeze({
@@ -406,6 +407,7 @@ const scheduleStatus=message=>{
   }
 };
 scheduleUI=createScheduledTaskWorkbench({client:foundationClient,host:scriptEditor.host,taskWorkbench,
+  notify:(message,options)=>toolView.showToast(message,options),
   api:chrome,document,myView,developerView,onOpen:()=>scheduleStatus(scheduleHost?
     scheduleHost.status:'没有活动运行页')});
 const myConversation=createBusinessConversation({providerRuntime,api:chrome,hostInstanceId,
@@ -820,7 +822,7 @@ const listeners = [];
 const listen = (element, event, listener, options) => {
   element.addEventListener(event, listener, options); listeners.push({element, event, listener, options});
 };
-const developHostControls = createDeveloperHostControls({api:chrome, client:foundationClient, view:developerView});
+const developHostControls = createDeveloperHostControls({api:chrome, client:foundationClient, view:developerView, currentPageTarget});
 Object.defineProperty(globalThis, 'OpenDeskResourceDiagnostics', {value: Object.freeze({
   snapshot: () => snapshotToolResources(scriptEditor.resourceSnapshot(),
     {subscriptions: listeners.length + developHostControls.resourceSnapshot().subscriptions + Number(draftImportAttached) + currentPageTarget.resourceSnapshot().subscriptions})

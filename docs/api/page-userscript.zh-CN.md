@@ -51,6 +51,8 @@ const original=tasks?await tasks.restore():null;
 
 普通 Page 编译产物、开发草稿导入、静态 ESM/组件准备、执行与安装统一使用 **128 KiB UTF-8 字节**上限，定义在 `src/platform/source-budgets.js`；不打包展开的固定静态 ESM Worker 资源镜像该值，并由原资源清单绑定字节/SHA 和闭合依赖。2026-11-10 修复编译/草稿入口仍限制 100000 字节的不一致：AI Send Queue 的缓存候选约 102.5 KB，现有普通执行和安装格式已可容纳，工具内无法修复编译器拒绝。保持有限上限、哈希、固定范围、权限、身份、撤权及原草稿 envelope/作者源码预算；大型锁定依赖与 Page frame 沿原资源合同，不用其格式绕过普通源码限制。Node 边界与包测试不证明当前 Browser 固定代码已经更新。
 
+<a id="developer-page-quickstart"></a>
+
 ## 普通 main 与项目 main
 
 Page 与 Controller 都可以写零参数 main，但**只有 Page USER_SCRIPT 可直接访问 `document`，没有 Controller `page` / `params` / `axiosx`**。默认 `_`、`dayjs`、`OpenDeskLibs` 来自扩展本地固定资源；可选库通过批准声明按需加载，不会自动进入网站 MAIN。见[零参数预置运行变量与多环境区别](runtime-globals-and-preinstalled-libraries.zh-CN.md)以及 [Page 零参数 ESM Demo](../../examples/programs/page-globals-zero-arg/README.md)。

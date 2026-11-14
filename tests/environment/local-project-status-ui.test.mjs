@@ -468,6 +468,16 @@ test('Local attempt storage only propagates write failures for strict saves',asy
   await assert.doesNotReject(f.view.rememberInstallAttempt(null));
   await assert.rejects(f.view.rememberInstallAttempt(null,{strict:true}),error);
 });
+test('prompt context metadata never guesses a file workspace runtime or retains a revoked project',async t=>{
+  const f=fixture(t,{files:[workspace]});await tick();
+  const metadata=()=>f.developerView.getSnapshot().fields['local-project-select'].data;
+  assert.equal(metadata().promptProjectSelected,true);
+  assert.equal(metadata().promptRuntimeKind,'unknown');
+  f.setFiles([]);f.find('local-project-refresh').fire('click');await tick();
+  assert.equal(metadata().promptProjectSelected,false);
+  assert.equal(metadata().promptRuntimeKind,'unknown');
+  assert.deepEqual(f.opened,[],'copy context preparation never opens or runs a project');
+});
 test('file-only catalog stays metadata-only and opens only through a trusted explicit action',async t=>{
   const f=fixture(t,{files:[workspace]});await tick();
   const binding='file-workspace:'+workspace.workspaceId;
@@ -908,6 +918,9 @@ test(`catalog runtime omission uses verified source for parameter visibility: ${
   assert.equal(f.view.readyForRun(),true);
   assert.equal(f.find('local-project-params-tools').hidden,runtimeKind!=='controller');
   assert.match(f.find('local-project-diagnostics').textContent,new RegExp(`（${runtimeKind}）`));
+  assert.equal(f.developerView.getSnapshot().fields['local-project-select'].data.promptProjectSelected,true);
+  assert.equal(f.developerView.getSnapshot().fields['local-project-select'].data.promptRuntimeKind,runtimeKind,
+    'the prompt receives the verified runtime enum without copying project identity');
   f.find('local-project-params').value='{"query":"OpenDesk Browser","limit":3}';
   f.find('local-project-mode').checked=false;f.find('local-project-mode').fire('change');
   assert.equal(f.find('local-project-params-tools').hidden,true);

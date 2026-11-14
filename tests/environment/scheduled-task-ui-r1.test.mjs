@@ -10,8 +10,6 @@ import {createRoot} from 'react-dom/client';
 import {flushSync} from 'react-dom';
 import {renderToStaticMarkup} from 'react-dom/server';
 import {build} from 'esbuild';
-import {createRequire} from 'node:module';
-import {pathToFileURL} from 'node:url';
 import {createMyWorkbenchView} from '../../src/ui/my-workbench-view.js';
 import {createScheduledTaskWorkbench,mergeScheduleHistoryView,commitScheduledMutation,describeScheduleMutationFailure} from '../../src/ui/scheduled-task-workbench.js';
 import {formatScheduleRule,presentSchedulePlan} from '../../src/ui/schedule-plan-presentation.js';
@@ -21,11 +19,10 @@ const extension='chrome-extension://abcdefghijklmnopabcdefghijklmnop/';
 const base=extension+'sidepanel.html';
 const host='12345678-1234-4123-8123-123456789abc';
 // Compile only the test entry in memory; no product build, listener or watcher.
-const require=createRequire(import.meta.url);
 const compiled=await build({stdin:{contents:"export {MyTasksPage} from './src/ui/react/tabs/my-page.tsx';",resolveDir:process.cwd()},
-  bundle:true,write:false,format:'esm',platform:'node',jsx:'transform',
+  bundle:true,write:false,format:'esm',platform:'node',jsx:'transform',loader:{'.css':'text'},
   plugins:[{name:'test-react-instance',setup(builder){
-    builder.onResolve({filter:/^react(?:$|\/)/},({path})=>({path:pathToFileURL(require.resolve(path)).href,external:true}));
+    builder.onResolve({filter:/^(?:react|react-dom|react-aria-components)(?:$|\/)/},({path})=>({path:import.meta.resolve(path),external:true}));
   }}]});
 const {MyTasksPage}=await import('data:text/javascript;base64,'+Buffer.from(compiled.outputFiles[0].text).toString('base64'));
 const renderMyPage=(view=createMyWorkbenchView())=>renderToStaticMarkup(React.createElement(MyTasksPage,{view}));
@@ -986,8 +983,7 @@ test('R33.3.19 manager is in plan header; detail delete has one owner and cancel
   assert.equal(get('schedule-manager-create').hidden,false);
   const taskCard=get('schedule-manager-list').querySelector('.schedule-manager-card');
   assert.ok(taskCard);
-  assert.equal(taskCard.querySelector('.schedule-manager-title-line .schedule-manager-state')
-    .getAttribute('role'),'img');
+  assert.equal(taskCard.querySelector('.schedule-manager-state').textContent,'已启用');
   assert.ok(taskCard.querySelector('.schedule-manager-menu > summary'));
   assert.ok(taskCard.querySelector('.schedule-manager-menu-panel .schedule-manager-uninstall'));
   get('schedule-back').click();await flush();

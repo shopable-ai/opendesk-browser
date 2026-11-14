@@ -14,32 +14,62 @@ export function MyTasksDock({view,hidden=false}){
 
 function MyTaskWorkspace({view}){
   const taskEnabled=view.field('task-toggle').dataset.enabled==='true';
-  return (<MyControl view={view} as="div" id="task-selected-workspace" className="task-selected-workspace">
+  const selection=view.data.taskSelection,result=view.data.taskResultMeta;
+  const latest=view.data.taskHistory?.[0],unknown=selection?.label==='结果未知';
+  const failed=latest?.runState==='failed',historySummary=React.useRef(null);
+  const toolsOpen=view.field('task-tools').open;
+  const tools=React.useRef(null),previousToolsOpen=React.useRef(false);
+  React.useEffect(()=>{
+    if(toolsOpen&&!previousToolsOpen.current)tools.current?.querySelector('summary')?.focus({preventScroll:true});
+    previousToolsOpen.current=toolsOpen;
+  },[toolsOpen]);
+  return (<MyControl view={view} as="section" id="task-selected-workspace" className="task-selected-workspace" aria-label="所选任务信息">
+<div className="task-selection-status" role="status" aria-live="polite">
+{selection?.label&&<strong className="task-selection-state" data-tone={selection.tone}>{selection.label}</strong>}
 <MyControl view={view} as="p" id="task-current-site" className="identity">
 </MyControl>
+</div>
 <MyControl view={view} as="p" id="task-status" role="status" aria-live="polite">
 </MyControl>
+{(unknown||failed)&&<div className="task-outcome-notice" data-tone={unknown?'warning':'error'} role="alert">
+<strong>{unknown?'上次执行结果尚未确认':'上次运行失败'}</strong>
+<p>{unknown?'不能确定是否产生了效果。请核对原记录，暂不重新运行。':latest.text}</p>
+{unknown?<button type="button" className="od-button od-button--quiet" onClick={()=>{
+  view.field('task-history-panel').open=true;view.publish();
+  queueMicrotask(()=>historySummary.current?.focus({preventScroll:true}));
+}}>查看原运行记录</button>:<p>请检查目标网页，再准备下一次运行。</p>}
+</div>}
 <MyControl view={view} as="div" id="task-result-panel" className="task-result-panel">
 <div className="task-result-controls">
 <h3 className="task-result-heading">{"最近结果"}</h3>
-<MyControl view={view} as="button" type="button" id="task-result-reveal" onClick={event=>view.actions.taskResultRevealClick?.(event.nativeEvent)} title="完整返回值可能包含敏感信息" className="od-button od-button--secondary">{"查看完整原值"}</MyControl>
+{result?.state&&<span className="task-result-state">{result.state}</span>}
 </div>
 <MyControl view={view} as="pre" id="task-result" aria-label="当前任务结果">{"尚未运行"}</MyControl>
+<div className="task-result-footer">
+{result?.owner&&<p className="task-result-owner">{result.owner}</p>}
+<MyControl view={view} as="button" type="button" id="task-result-reveal" onClick={event=>view.actions.taskResultRevealClick?.(event.nativeEvent)} title="完整返回值可能包含敏感信息" className="od-button od-button--secondary">{"查看完整原值"}</MyControl>
+</div>
 </MyControl>
-<MyControl view={view} as="details" id="task-history-panel" className="task-history-panel od-disclosure">
-<summary>{"运行记录"}</summary>
+<MyControl view={view} as="details" id="task-history-panel" className="task-history-panel od-disclosure od-disclosure--icon">
+<summary ref={historySummary} tabIndex={0}><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 12a9 9 0 1 1 2.5 6M3 17v-5h5m4-5v5l4 3"/></svg><span>{"运行记录"}</span>{view.data.taskHistory?.length>0&&<span className="task-history-count">{view.data.taskHistory.length} 条</span>}<svg className="od-disclosure-chevron" viewBox="0 0 24 24" aria-hidden="true"><path d="m9 5 7 7-7 7"/></svg></summary>
 <MyControl view={view} as="div" id="task-history" aria-live="polite">
+{!view.data.taskHistory?.length&&<p className="hint">{view.data.taskHistoryState==='loading'?'正在读取运行记录…':view.data.taskHistoryState==='error'?'运行记录读取失败，请通过任务菜单中的管理操作刷新。':'还没有运行记录。准备参数后可开始运行。'}</p>}
 <MyTaskHistory rows={view.data.taskHistory||[]}/>
 </MyControl>
 </MyControl>
-<details className="task-scope-panel od-disclosure">
-<summary>{"网站与权限"}</summary>
+<details className="task-scope-panel od-disclosure od-disclosure--icon">
+<summary><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m12 3-8 3v5c0 5 3 8 8 10 5-2 8-5 8-10V6Z"/><path d="m8 12 3 3 5-6"/></svg><span>{"网站与权限"}</span><svg className="od-disclosure-chevron" viewBox="0 0 24 24" aria-hidden="true"><path d="m9 5 7 7-7 7"/></svg></summary>
 <MyControl view={view} as="div" id="task-installed-detail" className="task-detail" aria-live="polite">
 <MyTaskDetail value={view.data.taskDetail||''}/>
 </MyControl>
 </details>
-<MyControl view={view} as="details" id="task-tools" onToggle={event=>view.actions.taskToolsToggle?.(event.nativeEvent)} className="task-tools od-disclosure">
-<summary>{"更多操作"}</summary>
+<div ref={tools} hidden={!toolsOpen&&!view.data.taskRows?.manageMode}>
+<MyControl view={view} as="details" id="task-tools" onToggle={event=>{
+  view.actions.taskToolsToggle?.(event.nativeEvent);
+  if(!event.currentTarget.open&&!view.data.taskRows?.manageMode)
+    event.currentTarget.ownerDocument.getElementById('task-manage-open')?.focus({preventScroll:true});
+}} className="task-tools od-disclosure">
+<summary tabIndex={0}>{"更多操作"}</summary>
 <div className="task-operation-strip" role="group" aria-label="当前任务操作">
 <MyControl view={view} as="button" type="button" id="task-refresh" onClick={event=>view.actions.taskRefreshClick?.(event.nativeEvent)} className="od-icon-button" title="刷新任务列表" aria-label="刷新任务列表">
 <svg viewBox="0 0 24 24" aria-hidden="true">
@@ -79,15 +109,21 @@ function MyTaskWorkspace({view}){
 </div>
 </MyControl>
 </MyControl>
+</div>
 </MyControl>);}
 
 export function MyTasksPage({view,agent=null,hidden=false}){
   React.useSyncExternalStore(view.subscribe,view.getSnapshot,view.getSnapshot);
+  const addHeading=React.useRef(null);
+  const addOpen=!hidden&&!view.field('my-task-surface').hidden&&!view.field('task-add-menu').hidden;
+  React.useLayoutEffect(()=>{
+    if(addOpen)addHeading.current?.parentElement?.querySelector('#task-add-import')?.focus({preventScroll:true});
+  },[addOpen]);
   return <div id="workbench-tasks" role="tabpanel" aria-labelledby="tab-my-tasks" className="od-page" data-workbench-page="tasks" hidden={hidden}>
 <MyControl view={view} as="section" className="tasks-surface" aria-label="已安装任务" id="my-task-surface">
 <div className="task-section-head od-page-head">
 <div className="task-section-copy">
-<strong>{"自动化任务"}</strong>
+<strong className="od-page-title">{"自动化任务"}</strong>
 <MyControl view={view} as="span" id="task-installed-count" aria-live="polite">
 </MyControl>
 </div>
@@ -113,40 +149,37 @@ export function MyTasksPage({view,agent=null,hidden=false}){
 </MyControl>
 </div>
 </div>
-<MyControl view={view} as="div" id="task-add-menu" className="task-add-menu od-surface task-file-dropzone" role="group" aria-label="添加任务：可拖放单个文件" tabIndex={0} aria-describedby="task-add-status"
-onDragEnter={event=>view.actions.taskFileDragEnter?.('add',event.nativeEvent)}
-onDragOver={event=>view.actions.taskFileDragOver?.('add',event.nativeEvent)}
-onDragLeave={event=>view.actions.taskFileDragLeave?.('add',event.nativeEvent)}
-onDrop={event=>view.actions.taskFileDrop?.('add',event.nativeEvent)}
-onKeyDown={event=>view.actions.taskFileZoneKeydown?.('add',event.nativeEvent)}>
-<div className="task-add-heading od-toolbar">
-<strong>{"添加任务"}</strong>
-<MyControl view={view} as="button" id="task-add-close" onClick={event=>view.actions.taskAddCloseClick?.(event.nativeEvent)} type="button" className="od-icon-button" title="关闭添加任务" aria-label="关闭添加任务">
-<svg viewBox="0 0 24 24" aria-hidden="true">
-<path d="M5 5l14 14M19 5 5 19"/>
-</svg>
+<MyControl view={view} as="section" id="task-add-menu" className="task-add-menu od-surface" aria-labelledby="task-add-title"
+onKeyDown={event=>{if(event.key==='Escape')view.actions.taskFileZoneKeydown?.('add',event);}}>
+<div ref={addHeading} className="task-add-heading od-toolbar">
+<strong id="task-add-title">{"添加任务"}</strong>
+<MyControl view={view} as="button" id="task-add-close" onClick={event=>view.actions.taskAddCloseClick?.(event.nativeEvent)} type="button" className="od-icon-button od-icon-button--quiet" title="关闭添加任务" aria-label="关闭添加任务">
+<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 5l14 14M19 5 5 19"/></svg>
 </MyControl>
 </div>
-<p className="hint">{"将单个 .js 或 .json 文件拖到这里，或点击下方按钮选择；导入只保存草稿/候选，不会安装或运行。扩展工具包请到「扩展」。"}</p>
-<MyControl view={view} as="button" type="button" id="task-add-import" onClick={event=>view.actions.taskAddImportClick?.(event.nativeEvent)} className="od-button">{"导入任务文件"}</MyControl>
-<MyControl view={view} as="input" id="task-add-file" onChange={event=>view.actions.taskAddFileChange?.(event.nativeEvent)} type="file" accept=".json,.js,application/json,text/javascript" aria-label="选择本地任务包"/>
+<MyControl view={view} id="task-add-dropzone" className="task-add-dropzone task-file-dropzone" role="group" aria-label="任务文件拖放区" tabIndex={0} aria-describedby="task-add-help task-add-status"
+onDragEnter={event=>view.actions.taskFileDragEnter?.('add',event)}
+onDragOver={event=>view.actions.taskFileDragOver?.('add',event)}
+onDragLeave={event=>view.actions.taskFileDragLeave?.('add',event)}
+onDrop={event=>view.actions.taskFileDrop?.('add',event)}
+onKeyDown={event=>view.actions.taskFileZoneKeydown?.('add',event)}>
+<svg className="task-add-file-icon" viewBox="0 0 24 24" aria-hidden="true"><rect x="5" y="3" width="14" height="18" rx="2"/><path d="M9 8h6M9 12h6M9 16h3"/></svg>
+<p>{"拖入一个 .js 或 .json 文件"}</p>
+<MyControl view={view} as="button" type="button" id="task-add-import" onClick={event=>view.actions.taskAddImportClick?.(event.nativeEvent)} className="od-button od-button--secondary">{"选择任务文件"}</MyControl>
+</MyControl>
+<MyControl view={view} as="input" id="task-add-file" onChange={event=>view.actions.taskAddFileChange?.(event.nativeEvent)} type="file" accept=".json,.js,application/json,text/javascript" tabIndex={-1} aria-label="选择本地任务文件"/>
+<p id="task-add-help" className="hint">{"导入仅创建草稿或待验证候选，不会安装或运行。扩展工具包请到「扩展」。"}</p>
+<MyControl view={view} as="p" id="task-add-status" className="hint" role="status" aria-live="polite"/>
 <div className="task-add-options od-toolbar">
-<MyControl view={view} as="button" type="button" id="task-add-catalog" onClick={event=>view.actions.taskAddCatalogClick?.(event.nativeEvent)} className="od-button od-button--secondary">{"浏览任务目录 ↗"}</MyControl>
-<MyControl view={view} as="button" type="button" id="task-add-develop" onClick={event=>view.actions.taskAddDevelopClick?.(event.nativeEvent)} className="od-button od-button--quiet">{"新建脚本"}</MyControl>
+<MyControl view={view} as="button" type="button" id="task-add-catalog" onClick={event=>view.actions.taskAddCatalogClick?.(event.nativeEvent)} className="od-button od-button--quiet" title="在新标签页打开本地任务目录">{"浏览任务目录"}<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M14 3h7v7M10 14 21 3M21 13v8H3V3h8"/></svg></MyControl>
+<MyControl view={view} as="button" type="button" id="task-add-develop" onClick={event=>view.actions.taskAddDevelopClick?.(event.nativeEvent)} className="od-button od-button--quiet">{"新建脚本"}<svg viewBox="0 0 24 24" aria-hidden="true"><path d="m9 5 7 7-7 7"/></svg></MyControl>
 </div>
-<MyControl view={view} as="p" id="task-add-status" className="hint" role="status" aria-live="polite">
 </MyControl>
-</MyControl>
-<MyControl view={view} as="div" id="task-search-panel" onKeyDown={event=>view.actions.taskSearchPanelKeydown?.(event.nativeEvent)} className="task-search-panel" role="search" aria-label="查找与筛选已安装任务">
+<MyControl view={view} as="div" id="task-search-panel" onKeyDown={event=>view.actions.taskSearchPanelKeydown?.(event.nativeEvent)} className="task-search-panel" role="search" aria-label="搜索已安装任务">
 <div className="local-discovery-search-row od-toolbar">
 <label htmlFor="local-discover-search" className="visually-hidden">{"搜索已安装任务"}</label>
 <MyControl view={view} as="input" type="search" id="local-discover-search" onInput={event=>view.actions.localDiscoverSearchInput?.(event.nativeEvent)} className="od-field" placeholder="搜索已安装任务…" autoComplete="off" aria-controls="task-installed-cards"/>
 </div>
-<MyControl view={view} as="div" id="local-discover-filters" className="local-discovery-filters od-segmented" role="group" aria-label="任务筛选">
-<MyControl view={view} as="button" type="button" id="local-filter-all" onClick={event=>view.actions.localFilterAllClick?.(event.nativeEvent)} data-local-filter="all" aria-pressed="true">{"全部"}</MyControl>
-<MyControl view={view} as="button" type="button" id="local-filter-current" onClick={event=>view.actions.localFilterCurrentClick?.(event.nativeEvent)} data-local-filter="current" aria-pressed="false">{"当前网页"}</MyControl>
-<MyControl view={view} as="button" type="button" id="local-filter-disabled" onClick={event=>view.actions.localFilterDisabledClick?.(event.nativeEvent)} data-local-filter="disabled" aria-pressed="false">{"已停用"}</MyControl>
-</MyControl>
 <MyControl view={view} as="p" id="local-discover-count" className="visually-hidden" aria-live="polite">
 </MyControl>
 </MyControl>
@@ -428,9 +461,9 @@ onKeyDown={event=>view.actions.taskFileZoneKeydown?.('add',event.nativeEvent)}>
 <MyControl view={view} as="div" id="schedule-task-manager" className="od-stack">
 <MyControl view={view} as="button" id="schedule-manager-back" onClick={event=>view.actions.scheduleManagerBackClick?.(event.nativeEvent)} type="button" className="od-button od-button--secondary">{"← 返回计划"}</MyControl>
 <div className="schedule-manager-controls">
-<label className="od-field" htmlFor="schedule-manager-search">{"搜索已安装任务\n            "}<MyControl view={view} as="input" id="schedule-manager-search" onInput={event=>view.actions.scheduleManagerSearchInput?.(event.nativeEvent)} type="search" placeholder="任务名称 / ID" className="od-field"/>
+<label className="od-field" htmlFor="schedule-manager-search">{"搜索已安装任务\n            "}<MyControl view={view} as="input" id="schedule-manager-search" onInput={event=>view.actions.scheduleManagerSearchInput?.(event.nativeEvent)} type="search" placeholder="名称 / ID / 用途" aria-controls="schedule-manager-list" className="od-field"/>
 </label>
-<label className="od-field" htmlFor="schedule-manager-filter">{"筛选任务\n            "}<MyControl view={view} as="select" id="schedule-manager-filter" onChange={event=>view.actions.scheduleManagerFilterChange?.(event.nativeEvent)} className="od-field">
+<label className="od-field" htmlFor="schedule-manager-filter">{"任务状态\n            "}<MyControl view={view} as="select" id="schedule-manager-filter" onChange={event=>view.actions.scheduleManagerFilterChange?.(event.nativeEvent)} aria-controls="schedule-manager-list" className="od-field">
 <option value="all">{"全部"}</option>
 <option value="enabled">{"已启用"}</option>
 <option value="disabled">{"已停用"}</option>
@@ -443,12 +476,12 @@ onKeyDown={event=>view.actions.taskFileZoneKeydown?.('add',event.nativeEvent)}>
 <ScheduleManagerRows {...(view.data.managerRows||{})}/>
 <MyCopyConfirmation view={view}/>
 </MyControl>
-<MyControl view={view} as="div" id="schedule-uninstall-confirm" className="od-surface">
+<MyControl view={view} as="div" id="schedule-uninstall-confirm" className="od-surface" role="group" aria-label="确认卸载固定任务" aria-describedby="schedule-uninstall-label" data-opendesk-pending-review="">
 <MyControl view={view} as="p" id="schedule-uninstall-label">
 </MyControl>
 <div className="schedule-actions od-toolbar">
-<MyControl view={view} as="button" type="button" id="schedule-uninstall-yes" onClick={event=>view.actions.scheduleUninstallYesClick?.(event.nativeEvent)} className="od-button">{"确认卸载"}</MyControl>
-<MyControl view={view} as="button" type="button" id="schedule-uninstall-no" onClick={event=>view.actions.scheduleUninstallNoClick?.(event.nativeEvent)} className="od-button od-button--secondary">{"取消"}</MyControl>
+<MyControl view={view} as="button" type="button" id="schedule-uninstall-yes" aria-describedby="schedule-uninstall-label" onClick={event=>view.actions.scheduleUninstallYesClick?.(event.nativeEvent)} className="od-button">{"确认卸载"}</MyControl>
+<MyControl view={view} as="button" type="button" id="schedule-uninstall-no" aria-describedby="schedule-uninstall-label" onClick={event=>view.actions.scheduleUninstallNoClick?.(event.nativeEvent)} className="od-button od-button--secondary">{"取消"}</MyControl>
 </div>
 </MyControl>
 </MyControl>

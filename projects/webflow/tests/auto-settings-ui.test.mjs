@@ -567,6 +567,20 @@ test('existing settings portal owns Web Flow; closing and reopening discards rev
 });
 
 
+for(const entry of [false,true])test(`file experiments stay outside ${entry?'installed Web Flow':'shared AI settings'} task controls`,async t=>{
+ // Reproduce the real extension URL API; without it the old file link was
+ // silently absent in this DOM fixture, hiding the unrelated home entry.
+ const chrome=Object.getOwnPropertyDescriptor(globalThis,'chrome');
+ Object.defineProperty(globalThis,'chrome',{configurable:true,value:{runtime:{getURL:path=>'chrome-extension://fixture/'+path}}});
+ t.after(()=>{if(chrome)Object.defineProperty(globalThis,'chrome',chrome);else delete globalThis.chrome;});
+ const host=controller(),f=await fixture(t,{host,entry});
+ assert.ok(f.find('webflow-auto-control'),'the actual task controls are mounted');
+ if(entry){await f.click('webflow-runtime-open');await f.click('webflow-runtime-tab-help');}
+ assert.ok(!f.document.querySelector('a[href*="chatgpt-files-controls"]'),
+  'experimental file recovery belongs in Native settings, outside automatic task controls');
+ assert.deepEqual(host.calls.map(([kind])=>kind),['read'],'opening task management never changes file or task authority');
+});
+
 test('installed Web Flow exposes one real slider; other tools, previews and disabled installs do not',async t=>{
  const host=controller(),f=await fixture(t,{entry:true});
  const slider=()=>f.document.querySelector('[role="switch"]');

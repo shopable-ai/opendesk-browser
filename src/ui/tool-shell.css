@@ -66,11 +66,15 @@
 .task-card-copy small{display:block;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:var(--od-sub);font-size:var(--od-note-size);line-height:1.5}
 /* Action glyphs overlay the text surface; hover/focus never changes copy width. */
 .task-card-state{color:var(--od-sub);white-space:nowrap}
-.task-selected-workspace{display:grid;gap:var(--space-4);min-width:0;padding:0}
+.task-selected-workspace{display:grid;gap:var(--space-2);min-width:0;padding:0}
 .task-selected-workspace>:not([hidden]){margin-block:0}
-#task-current-site{margin:0;font:650 var(--od-note-size)/1.5 system-ui,sans-serif;color:var(--od-positive)}
+.task-selection-status{display:flex;align-items:baseline;flex-wrap:wrap;gap:var(--space-2);min-width:0}
+.task-selection-state{font-size:var(--od-note-size);font-weight:600}
+.task-selection-state[data-tone=positive]{color:var(--od-positive)}
+.task-selection-state[data-tone=warning]{color:var(--od-warning-ink)}
+.task-selection-state[data-tone=muted]{color:var(--od-sub)}
+#task-current-site{margin:0;font-family:inherit;font-size:var(--od-note-size);font-weight:400;line-height:1.55;color:var(--od-sub);overflow-wrap:anywhere}
 #task-current-site:empty{display:none}
-#task-current-site[data-state=unmatched],#task-current-site[data-state=unavailable]{color:var(--od-negative)}
 #task-params-form{display:grid;gap:var(--space-3);min-width:0;margin:0}
 #task-params-form:empty{display:none}
 .task-param-fields{display:grid;gap:0;min-width:0;border:1px solid var(--od-line);border-radius:var(--radius-control);overflow:hidden}
@@ -99,10 +103,21 @@
 .task-param-fields[hidden],.task-param-json[hidden]{display:none}
 #task-params-json{font-family:ui-monospace,SFMono-Regular,Consolas,monospace;resize:vertical;min-height:180px;margin:0;line-height:1.7;tab-size:2}
 #task-params-form select{width:100%}
-#task-status{font-size:12px;line-height:1.45;color:var(--od-sub);background:var(--od-muted);border-radius:var(--radius-control);padding:7px 8px;margin:5px 0}
+#task-status{font-size:var(--od-note-size);line-height:1.55;color:var(--od-sub);margin:0;overflow-wrap:anywhere}
+.task-selected-workspace:has(.task-selection-state[data-tone=warning])>#task-status:not(:empty){color:var(--od-warning-ink);background:var(--od-warning-bg);border:1px solid var(--od-warning-border);border-radius:var(--radius-control);padding:var(--space-3)}
 #task-status:empty{display:none}
-.task-result-panel{border-top:1px solid var(--od-line);margin-top:8px;padding-top:8px}
-.task-result-heading{margin:0 0 4px;font-size:12px;font-weight:600;color:var(--od-sub)}
+.task-outcome-notice{display:grid;gap:var(--space-1);padding:var(--space-3);border:1px solid var(--od-warning-border);border-radius:var(--radius-control);background:var(--od-warning-bg);color:var(--od-warning-ink);font-size:var(--od-note-size)}
+.task-outcome-notice[data-tone=error]{border-color:var(--od-negative);background:var(--od-negative-bg);color:var(--od-negative)}
+.task-outcome-notice>strong{font-weight:600}
+.task-outcome-notice>p{margin:0}
+.task-outcome-notice>.od-button{justify-self:start;min-height:34px;padding:var(--space-1) 0;font-size:var(--od-note-size);font-weight:400;color:var(--od-sub);text-align:left}
+.task-result-panel{display:grid;gap:var(--space-2);min-width:0}
+.task-result-heading{margin:0;font-size:var(--od-note-size);font-weight:600;color:var(--od-ink)}
+.task-result-state,.task-history-count{font-size:var(--od-meta-size);font-weight:400;color:var(--od-sub)}
+.task-result-state{margin-left:auto}
+.task-result-footer{display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:var(--space-2);min-width:0}
+.task-result-footer:has(> [hidden]:only-child){display:none}
+.task-result-owner{margin:0;min-width:0;font-size:var(--od-note-size);line-height:1.55;color:var(--od-sub);overflow-wrap:anywhere}
 .task-result-controls,.result-toolbar{display:flex;align-items:center;justify-content:space-between;gap:8px;min-width:0}
 #task-result-reveal,.task-result-reveal{flex:none;min-height:34px;padding:5px 8px;border:1px solid var(--od-action-border);background:var(--od-action-bg);color:var(--od-action-ink);font-size:var(--od-note-size)}
 #script-copy-result{flex:none}
@@ -110,16 +125,24 @@
 .result-toolbar{margin-bottom:6px}
 .result-toolbar .hint{margin:0;color:var(--od-sub);font-size:11px}
 .result-toolbar button:disabled{opacity:.5}
-#task-result{margin:0;max-height:160px;border:1px solid var(--od-line);background:var(--od-muted);color:var(--od-ink)}
+#task-result{margin:0;padding:var(--space-3);max-height:180px;border:1px solid var(--od-line);background:var(--od-muted);color:var(--od-ink);font-size:var(--od-note-size);line-height:1.65}
 
 #task-installed-detail{white-space:pre-wrap;overflow-wrap:anywhere;font-size:12px;line-height:1.6;color:var(--od-sub)}
-.task-history-entries{display:grid;gap:6px;margin:8px 0}
-.task-history-entry{min-width:0}
+.task-history-entries{display:grid;gap:0;margin:0}
+.task-history-entries:empty{display:none}
+.task-history-entry{display:grid;gap:var(--space-1);min-width:0;padding:var(--space-2) 0}
+.task-history-entry+.task-history-entry{border-top:1px solid var(--od-line)}
+.task-history-heading{display:flex;align-items:baseline;gap:var(--space-2);font-size:var(--od-note-size);color:var(--od-sub)}
+.task-history-heading strong{font-weight:600}
+.task-history-entry[data-tone=error] .task-history-heading strong{color:var(--od-negative)}
+.task-history-entry[data-tone=warning] .task-history-heading strong{color:var(--od-warning-ink)}
+.task-history-heading>span{margin-left:auto;font-size:var(--od-meta-size)}
 
-.task-history-entry pre{margin:0 0 7px;max-height:140px}
+.task-history-entry>pre{margin:0;padding:0;max-height:140px;background:transparent;color:var(--od-sub);font-size:var(--od-note-size);line-height:1.55}
 .task-history-tech{font-size:10px}
 
-#task-history{overflow-wrap:anywhere;font-size:11px}
+#task-history{overflow-wrap:anywhere;font-size:var(--od-note-size)}
+#task-history>.hint{margin:0;font-size:var(--od-note-size);line-height:1.55}
 /* One-level task action strip: never nest another disclosure in More. */
 #task-tools{min-width:0}
 #task-tools>.task-operation-strip{display:flex;align-items:center;justify-content:flex-end;gap:var(--space-2);flex-wrap:wrap;min-width:0;margin-block:var(--space-2)}
@@ -131,10 +154,10 @@
 .task-uninstall-confirm p{margin:0;font-size:12px;line-height:1.5;color:var(--od-warning-ink)}
 .task-uninstall-confirm-actions{display:flex;justify-content:flex-end;align-items:center;gap:var(--space-2);flex-wrap:wrap}
 .task-uninstall-confirm-actions button{font-size:12px;min-height:34px}
-.task-detail-facts{display:grid;gap:var(--space-2);min-width:0}
-.task-detail-fact{display:grid;grid-template-columns:minmax(64px,.32fr) minmax(0,1fr);gap:var(--space-2);min-width:0;align-items:start}
-.task-detail-fact span{color:var(--od-sub);font-size:11px}
-.task-detail-fact strong{font-size:11px;color:var(--od-ink);font-weight:500;overflow-wrap:anywhere}
+.task-detail-facts{display:grid;gap:var(--space-2);min-width:0;margin:0;line-height:1.5}
+.task-detail-fact{display:grid;grid-template-columns:72px minmax(0,1fr);gap:var(--space-2);min-width:0;align-items:start}
+.task-detail-facts dt{color:var(--od-sub);font-size:var(--od-note-size)}
+.task-detail-facts dd{margin:0;font-size:var(--od-note-size);color:var(--od-ink);font-weight:400;overflow-wrap:anywhere}
 .task-card-actions{position:absolute;right:var(--space-2);top:50%;transform:translateY(-50%);z-index:1;display:flex;align-items:center;gap:var(--space-1);opacity:0;pointer-events:none;border-radius:var(--radius-control);background:var(--task-row-surface)}
 .task-card-actions::before{content:"";position:absolute;right:100%;top:0;bottom:0;width:var(--space-4);background:linear-gradient(to right,transparent,var(--task-row-surface));pointer-events:none}
 .task-card-group:is(:hover,:focus-within) .task-card-actions,.task-card-group:has([aria-expanded=true].task-card-manage) .task-card-actions{opacity:1;pointer-events:auto}
@@ -157,26 +180,60 @@
 #task-installed-count:empty{display:none}
 .task-card-list>.hint{background:var(--od-paper);border:1px dashed var(--line);padding:16px 12px;border-radius:var(--radius-surface);margin:0}
 
-/* Find/filter stays inside installed Task management, never as a top-level action. */
+/* Search stays inside installed Task management, never as a top-level action. */
 #task-search-panel[hidden]{display:none!important}
 .task-search-panel{display:grid;gap:var(--space-2);min-width:0;margin:0 0 var(--space-2)}
 .local-discovery-search-row{display:flex;align-items:center;gap:var(--space-2);min-width:0}
 #local-discover-search{flex:1;min-width:0;width:100%;min-height:36px;font-size:13px;background:var(--od-paper);border-color:var(--od-input-border)}
-.local-discovery-filters{display:flex;flex-wrap:wrap;width:max-content;max-width:100%;gap:var(--space-1);padding:var(--space-1);margin:0;background:var(--od-paper);border:1px solid var(--od-line);border-radius:var(--radius-surface)}
-.local-discovery-filters button{flex:none;min-height:34px;padding:5px var(--space-2);background:transparent;color:var(--od-sub);border:1px solid transparent;border-radius:var(--radius-control);font-size:12px;font-weight:650}
-.local-discovery-filters button[aria-pressed=true]{background:var(--od-muted);border-color:var(--od-focus);color:var(--od-accent-ink)}
 .task-search-empty{margin:0;padding:var(--space-3);border:1px dashed var(--od-line);border-radius:var(--radius-surface);font-size:12px;line-height:1.5;color:var(--od-sub)}
 
+/* Develop's approved composition; all palette values remain canonical tokens. */
+#workbench-develop{--od-input-border:var(--od-line)}
+#workbench-develop [hidden],#develop-dock [hidden]{display:none!important}
+/* The 34px source row supplies its own breathing room above the code controls. */
+#workbench-develop .developer-compose{gap:0}
+#workbench-develop .developer-context,#workbench-develop .developer-output{gap:var(--space-1)}
+#workbench-develop .developer-management-links{gap:var(--space-4);flex-wrap:wrap}
+#workbench-develop .developer-text-button,#develop-dock .developer-text-button{display:inline-flex;align-items:center;gap:var(--space-1);min-height:34px;padding:var(--space-1) 0;border:0;border-radius:var(--space-1);background:transparent;color:var(--od-sub);font-size:var(--od-note-size);font-weight:400;text-align:left;cursor:pointer}
+#workbench-develop .developer-text-button:hover:not(:disabled),#develop-dock .developer-text-button:hover:not(:disabled){color:var(--od-brand);text-decoration:underline;background:transparent}
+#workbench-develop .developer-icon,#develop-dock .developer-icon{width:18px;height:18px;flex:none;fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
+#workbench-develop .developer-sub-head{display:flex;align-items:center;gap:var(--space-1)}
+#workbench-develop .developer-sub-head>.od-icon-button{border-color:transparent;background:transparent}
+#workbench-develop .developer-sub-head svg{transform:rotate(180deg)}
+#workbench-develop .developer-management-section{border:1px solid var(--od-line);border-radius:var(--radius-surface);padding:var(--space-3)}
+#workbench-develop .developer-sub-head h2{font-size:13px;margin:0}
+#workbench-develop .developer-options{margin:0;border:1px solid var(--od-line);border-radius:var(--radius-surface);background:var(--od-paper)}
+#workbench-develop .developer-options>summary{display:flex;align-items:center;gap:var(--space-2);min-height:44px;padding:var(--space-2) var(--space-3);font-size:var(--od-note-size);font-weight:600;cursor:pointer;list-style:none}
+#workbench-develop .developer-options>summary::-webkit-details-marker{display:none}
+#workbench-develop .developer-options>summary .developer-icon{width:15px;height:15px}
+#workbench-develop .developer-option-title{flex:1;min-width:0}
+#workbench-develop .developer-options>summary>.developer-icon:last-child{color:var(--od-sub)}
+#workbench-develop .developer-options[open]>summary>.developer-icon:last-child{transform:rotate(90deg)}
+#workbench-develop .developer-option-body{padding:var(--space-3);border-top:1px solid var(--od-line)}
+#workbench-develop .developer-option-body>:not([hidden]){margin-block:0}
+#workbench-develop .developer-editor-controls #page-component-framework{width:auto}
+#develop-dock .dock-buttons{justify-content:flex-start;flex-wrap:wrap}
+#develop-dock .dock-buttons>button,#develop-dock .dock-buttons>span{flex:0 1 auto;min-width:0}
+#develop-dock .dock-buttons>.od-button,#develop-dock .dock-buttons>span .od-button{display:inline-flex;align-items:center;justify-content:center;gap:var(--space-1);min-height:38px;padding:7px 10px;font-weight:600}
+#develop-dock .od-button .developer-icon{width:15px;height:15px}
+#develop-dock #script-run{flex:1 1 auto}
+#develop-dock .od-button--secondary{border-color:var(--od-line);background:var(--od-paper);color:var(--od-sub)}
+#develop-dock .developer-more{position:relative;margin-inline-start:auto;flex:none}
+#develop-dock .developer-more>.od-icon-button{width:34px;height:34px;min-height:34px;padding:0;border-color:var(--od-line);background:var(--od-paper)}
+#develop-dock .developer-more-actions{position:absolute;bottom:calc(100% + var(--space-2));right:0;z-index:5;display:grid;padding:var(--space-1);width:180px;max-width:calc(100vw - 24px)}
+#develop-dock .developer-more-actions button{min-height:36px;padding:var(--space-2) var(--space-3);text-align:left;white-space:nowrap;color:var(--od-ink);border-radius:var(--radius-control)}
+#develop-dock .developer-more-actions button:hover{background:var(--od-muted);text-decoration:none}
+#develop-dock[data-subview=true] .dock-buttons>:not(#script-stop){display:none}
 /* Develop: related od-stack rows use 8px; separate sections use 16px; card padding is owned by the design system. */
 #workspace-content #workbench-develop{display:grid;gap:var(--space-4);align-content:start}
 #workspace-content #workbench-develop>.developer-target,#workspace-content #workbench-develop>.developer-editor{margin:0;padding:0}
-#workbench-develop .developer-editor{display:grid;gap:var(--space-4);align-content:start;font-size:var(--od-body-size);line-height:1.55}
+#workbench-develop .developer-editor{display:grid;gap:var(--space-2);align-content:start;font-size:var(--od-body-size);line-height:1.5;-webkit-font-smoothing:antialiased}
 #workbench-develop .developer-context>.developer-target{margin:0;padding:0}
 /* Normalize only layout margins at group boundaries; public visual skin remains shared. */
 #workbench-develop .developer-context .developer-target>details,
 #workbench-develop .developer-run-area>:not([hidden]){margin-block:0}
 #workbench-develop .developer-editor>:not([hidden]){margin-block:0}
-#workbench-develop #manual-source-editor{display:grid;gap:var(--space-3);min-width:0}
+#workbench-develop #manual-source-editor{display:grid;gap:var(--space-2);min-width:0}
 #workbench-develop #manual-source-editor>:not([hidden]){margin-block:0}
 #workbench-develop .local-project-tools>:not([hidden]){margin-block:0}
 /* Dev layout only: component text, colors, borders and inner spacing are shared. */
@@ -187,6 +244,9 @@
 #workbench-develop .developer-management-section:not([hidden]){display:grid;gap:var(--space-2);min-width:0}
 #workbench-develop .developer-management-section>:not([hidden]){margin-block:0}
 .developer-management-body{gap:var(--space-4)}
+#workbench-develop .developer-management-body>div:not([hidden]){display:grid;gap:var(--space-2)}
+#workbench-develop .developer-management[data-section=save] .developer-management-body>div:not([hidden]){border:1px solid var(--od-line);border-radius:var(--radius-surface);padding:var(--space-3)}
+#workbench-develop .developer-management[data-section=save] .developer-management-section{border:0;padding:0}
 #workbench-develop .developer-management-body>.developer-management-section{margin:0}
 #workbench-develop .developer-management-section .od-form-field{gap:var(--space-1)}
 .developer-version-controls{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:var(--space-2);align-items:center;min-width:0}
@@ -195,46 +255,49 @@
 #workbench-develop :is(.developer-version-controls,.developer-saved-controls)>button{white-space:nowrap}
 #workbench-develop .developer-editor :is(input,select,textarea).od-field{line-height:1.5}
 #workbench-develop .result-toolbar{margin-bottom:0}
-.developer-page-label{flex:none;font-weight:inherit}
-#script-current-page-host{flex:1 1 auto;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:var(--sub)}
-#script-current-page-status{flex:none;white-space:nowrap;font-size:11px;font-weight:650}
-.developer-page-detail{display:grid;gap:var(--space-1)}
+.developer-target-card{border:1px solid var(--od-line);border-radius:var(--radius-surface);padding:var(--space-3)}
+.developer-target-card>summary{display:flex;align-items:center;gap:var(--space-2);list-style:none;cursor:pointer}
+.developer-target-card>summary::-webkit-details-marker{display:none}
+.developer-target-card>summary>.developer-icon{width:15px;height:15px;color:var(--od-sub)}
+.developer-target-card[open]>summary>.developer-icon{transform:rotate(90deg)}
+.developer-target-icon{width:36px;height:36px;flex:none;display:grid;place-items:center;border-radius:var(--radius-control);background:var(--od-muted);color:var(--od-sub)}
+.developer-target-copy{flex:1;min-width:0}
+#script-current-page-title{display:block;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:var(--od-note-size);font-weight:650;color:var(--od-ink)}
+#script-current-page-host{display:block;min-width:0;margin-top:var(--space-1);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:var(--od-sub);font-size:var(--od-meta-size)}
+#script-current-page-status{flex:none;white-space:nowrap;font-size:11px;font-weight:400}
+.developer-page-detail{display:grid;gap:var(--space-2);margin-top:var(--space-3);padding-top:var(--space-3);border-top:1px solid var(--od-line)}
 .developer-page-detail p{margin:0}
-#script-current-page-title{font-size:var(--od-note-size);color:var(--od-sub)}
 .developer-source-switch{margin:0;font-size:var(--od-note-size);font-weight:400}
 .developer-source-switch label{position:relative;display:inline-flex;align-items:center;gap:var(--space-2);min-height:var(--od-icon-size);padding:var(--space-1) 0;white-space:nowrap;margin:0;cursor:pointer;font-weight:400;color:var(--od-sub)}
-.developer-source-switch[data-mode=local]>span{color:var(--sub);font-weight:400}
 .developer-source-switch[data-mode=local] #program-new-script{display:none}
-.developer-source-switch[data-mode=local] label{color:var(--od-accent-ink);font-weight:650}
 .developer-source-switch input[role=switch]{position:absolute;inset:0;z-index:1;opacity:0;width:100%;height:100%;min-height:0;margin:0;cursor:pointer}
-.local-project-switch-track{position:relative;display:inline-block;flex:none;width:34px;height:20px;border-radius:var(--radius-pill);background:var(--od-input-border);transition:background-color .12s}
+.local-project-switch-track{position:relative;display:inline-block;flex:none;width:34px;height:20px;border-radius:var(--radius-pill);background:var(--od-line);transition:background-color .12s}
 .local-project-switch-track::after{content:"";position:absolute;top:3px;left:3px;width:14px;height:14px;border-radius:50%;background:var(--od-on-brand);transition:transform .12s}
 .developer-source-switch input:checked+.local-project-switch-track{background:var(--blue)}
 .developer-source-switch input:checked+.local-project-switch-track::after{transform:translateX(14px)}
 .developer-source-switch input:focus-visible+.local-project-switch-track{outline:2px solid var(--od-focus);outline-offset:3px}
 /* Reserve a fixed right inset for every Dev dropdown arrow, including truncated project names. */
 #workbench-develop select{-webkit-appearance:none;appearance:none;padding-right:34px;background-image:linear-gradient(45deg,transparent 50%,var(--od-sub) 50%),linear-gradient(135deg,var(--od-sub) 50%,transparent 50%);background-repeat:no-repeat;background-position:right 17px center,right 11px center;background-size:6px 6px,6px 6px;text-overflow:ellipsis;white-space:nowrap}
-/* Aligned choice rows, with 28px visuals inside 36px radio targets.
- * No outer frame; the editor remains the primary bordered surface. */
-#workbench-develop .developer-editor-controls{gap:var(--space-2)}
+/* Compact native choices share a single visual row at the reference width. */
+#workbench-develop .developer-editor-controls{display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:var(--space-2);min-height:36px}
 #page-component-editor-tools{margin:0;min-width:0}
 #page-component-framework{width:100%;border:0;padding:0;margin:0;min-width:0}
-#workbench-develop :is(#page-component-framework,#script-javascript-world-row){display:grid;grid-template-columns:80px minmax(0,1fr);gap:var(--space-2);align-items:center}
-.page-component-label{flex:none;font-size:12px;font-weight:600;line-height:1.5;color:var(--od-sub)}
-#workbench-develop .developer-choices{display:flex;align-items:center;justify-content:flex-start;justify-self:start;flex-wrap:wrap;flex:0 0 auto;margin-inline-start:0;gap:var(--space-1);padding:0;border:0;min-width:0;max-width:100%}
-#workbench-develop .developer-choices label{position:relative;display:flex;align-items:center;justify-content:center;min-width:36px;min-height:36px;padding:0;margin:0;color:var(--od-sub);font-size:var(--od-note-size);font-weight:600;line-height:1.5;text-align:center;white-space:nowrap;cursor:pointer}
-#workbench-develop .developer-choices label>span{display:flex;align-items:center;justify-content:center;min-width:36px;min-height:28px;padding:0 var(--space-2);border:1px solid transparent;border-radius:var(--space-1)}
+#workbench-develop #script-javascript-world-row{display:flex;flex-wrap:nowrap;gap:var(--space-2);align-items:center;min-width:0}
+.page-component-label{flex:none;font-size:var(--od-meta-size);font-weight:400;line-height:1.5;color:var(--od-sub)}
+#workbench-develop .developer-choices{display:inline-flex;align-items:center;flex:none;width:auto;max-width:100%;margin:0;gap:2px;padding:3px;border:0;border-radius:var(--radius-control);background:var(--od-muted);min-width:0}
+#workbench-develop .developer-choices label{position:relative;display:flex;align-items:center;padding:0;margin:0;color:var(--od-sub);font-size:var(--od-note-size);font-weight:400;line-height:1.5;text-align:center;white-space:nowrap;cursor:pointer}
+#workbench-develop .developer-choices label>span{display:flex;align-items:center;min-height:30px;padding:4px 7px;border:0;border-radius:6px}
 #workbench-develop .developer-choices input[type=radio]{position:absolute;inset:0;width:100%;height:100%;min-height:0;padding:0;margin:0;opacity:0;cursor:inherit}
-#workbench-develop .developer-choices label:has(input:checked)>span{background:var(--od-paper);color:var(--od-accent-ink);border-color:var(--od-input-border)}
-#workbench-develop .developer-choices label:has(input:focus-visible)>span{outline:2px solid var(--od-focus);outline-offset:1px}
-#workbench-develop :is(fieldset:disabled .developer-choices,.developer-choices:disabled) label{opacity:.55;cursor:not-allowed}
+#workbench-develop .developer-choices label:has(input:checked)>span{background:var(--od-paper);color:var(--od-ink);font-weight:650;box-shadow:0 1px 4px color-mix(in srgb,var(--od-ink) 9%,transparent)}
+#workbench-develop .developer-choices label:has(input:focus-visible)>span{outline:2px solid var(--od-focus);outline-offset:2px}
+#workbench-develop .developer-choices label:has(input:disabled){opacity:.48;cursor:not-allowed}
 #workbench-develop .developer-environment-guide p{margin:0}
-#workbench-develop .developer-source-options{gap:0}
+#workbench-develop .developer-source-options{gap:var(--space-2)}
 #page-component-hint{font-size:12px;line-height:1.5;margin:0;color:var(--od-sub)}
-@media(pointer:coarse){#workbench-develop .developer-choices label{min-height:44px}}
-@media(forced-colors:active){#workbench-develop .developer-choices label:has(input:checked)>span{border-color:Highlight;color:Highlight}#workbench-develop .developer-choices label:has(input:focus-visible)>span{outline-color:Highlight}}
+@media(pointer:coarse){#workbench-develop .developer-choices label>span,#workbench-develop .developer-text-button,#develop-dock .developer-text-button,#develop-dock .dock-buttons>.od-button{min-height:44px}}
+@media(forced-colors:active){#workbench-develop .developer-choices label:has(input:checked)>span{outline:1px solid Highlight;color:Highlight}}
 
-.local-project-tools{display:grid;gap:var(--space-4);margin:0}
+.local-project-tools{display:grid;gap:var(--space-2);margin:0}
 .local-project-binding>.od-toolbar{flex-wrap:wrap}
 .local-project-intro{margin:0}
 .local-project-connect{width:100%;text-align:center}
@@ -249,12 +312,27 @@
 .local-project-controls{display:flex;align-items:center;gap:var(--space-2);min-width:0}
 .local-project-controls select{flex:1 1 auto;width:0;min-width:0}
 .local-project-controls button{flex:none}
+.developer-prompt-recovery{margin-block:var(--space-2)}
+.developer-prompt-recovery textarea{display:block;width:100%;box-sizing:border-box;resize:vertical;white-space:pre-wrap;overflow-wrap:anywhere}
 #local-project-status{font-size:var(--od-note-size);line-height:1.5;margin:0;color:var(--od-sub)}
 #local-project-status[data-state=disconnected]{color:var(--od-negative)}
 #local-project-status:empty{display:none}
 @media(prefers-reduced-motion:reduce){.local-project-switch-track,.local-project-switch-track::after{transition:none}}
-#script-source{width:100%;min-width:0;max-width:100%;min-height:140.4px;height:clamp(140.4px,20.8vh,208px);max-height:max(216px,70vh);resize:vertical;overflow:auto;white-space:pre;overflow-wrap:normal;word-break:normal;margin:0;font:13px/1.6 ui-monospace,SFMono-Regular,Consolas,monospace}
+#workbench-develop .developer-source-input{display:grid;gap:var(--space-2);min-width:0}
+#workbench-develop .developer-editor-card{border:1px solid var(--od-line);border-radius:var(--radius-surface);background:var(--od-paper);min-width:0}
+#workspace-dock:has(>#develop-dock:not([hidden])){min-height:61px;padding:var(--space-2) var(--space-4);display:flex;align-items:center}
+:root[data-opendesk-tab=develop] #workspace-dock:has(>#develop-dock[hidden]){display:none}
+#develop-dock{width:100%;min-width:0}
+#workbench-develop .developer-editor-head .od-technical{font:inherit;font-family:ui-monospace,Menlo,monospace;line-height:1.5}
+#workbench-develop .developer-editor-head{display:flex;align-items:center;justify-content:space-between;gap:var(--space-2);min-height:36px;padding:0 var(--space-2) 0 var(--space-3);border-bottom:1px solid var(--od-line);border-radius:var(--radius-surface) var(--radius-surface) 0 0;background:var(--od-muted);font-size:var(--od-meta-size);line-height:1.5;color:var(--od-sub)}
+#workbench-develop .developer-editor-identity{display:flex;align-items:center;gap:var(--space-2);flex:1;min-width:0}
+#workbench-develop .developer-editor-readonly{flex:none}
+#workbench-develop .developer-editor-filename{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+#workbench-develop .developer-editor-actions{display:flex;align-items:center;gap:var(--space-1);flex:none}
+#workbench-develop #script-source{display:block;width:100%;min-width:0;max-width:100%;min-height:120px;height:164px;max-height:max(216px,70vh);padding:var(--space-3);border:0;border-radius:var(--radius-surface);background:transparent;resize:vertical;overflow:auto;white-space:pre;overflow-wrap:normal;word-break:normal;margin:0;font:12px/1.65 ui-monospace,SFMono-Regular,Menlo,monospace;tab-size:2}
 #script-source:focus-visible{outline:2px solid var(--od-focus);outline-offset:2px}
+#workbench-develop #developer-environment-hint{margin:0;font-size:var(--od-note-size);line-height:1.55}
+#workbench-develop :is(#script-params,#local-project-params){font:12px/1.6 ui-monospace,Menlo,monospace;resize:vertical}
 #program-source-info{white-space:pre-wrap;overflow-wrap:anywhere;margin:0}
 /* Source selector grows; the New action belongs to the page header. */
 .program-source-toolbar{display:flex;flex-wrap:nowrap;align-items:center;gap:var(--space-2);min-width:0;width:100%;margin:0}
@@ -267,8 +345,13 @@
 #script-status[data-state=results],#script-task-status{white-space:normal}
 #script-status:empty,#script-task-status:empty{display:none}
 .developer-run-technical p{font-size:var(--od-meta-size);overflow-wrap:anywhere}
-.developer-results-body{display:grid;gap:var(--space-2)}
-#script-result{max-height:250px}
+.developer-results{display:grid;gap:var(--space-2);min-width:0}
+.developer-result-head{display:flex;align-items:center;gap:var(--space-2)}
+.developer-result-head h2{margin:0;font-size:var(--od-note-size);font-weight:600}
+#script-result-kind{margin-left:auto;font-size:var(--od-note-size);color:var(--od-sub);text-align:right}
+.developer-results-body{display:grid;gap:var(--space-2);min-width:0}
+#workbench-develop #script-result{min-height:64px;max-height:195px;padding:var(--space-3);font:12px/1.65 ui-monospace,Menlo,monospace;white-space:pre-wrap;overflow-wrap:anywhere;overflow:auto;color:var(--od-sub)}
+.developer-result-actions{display:flex;align-items:center;gap:var(--space-2);flex-wrap:wrap}
 #workbench-develop .developer-results .row{margin:0}
 #workbench-develop .developer-results label{margin:0}
 #workbench-develop .result-toolbar{margin-bottom:0;flex-wrap:wrap}
@@ -360,12 +443,11 @@
 @media(max-width:340px){
   .workspace-dock{padding:var(--space-2) var(--od-page-gutter)}
   .workbench-nav{padding:0 8px}
-  .local-discovery-filters button{padding:6px 9px}
   .dock-buttons{flex-wrap:wrap}
   .dock-buttons button{flex:1 1 calc(50% - 6px)}
   #script-run{flex-basis:100%}
 }
-@media(prefers-reduced-motion:no-preference){.task-card,.local-discovery-filters button{transition:background-color .12s,border-color .12s}}
+@media(prefers-reduced-motion:no-preference){.task-card{transition:background-color .12s,border-color .12s}}
 
 /* Visible only after a userScripts failure; never blocks unrelated Page APIs. */
 .developer-execution-help{min-width:0}
@@ -385,9 +467,9 @@
 
 /* Tool mini-app canvas: one app or the list, never two stacked navigation systems. */
 .sidebar-tools{min-width:0;margin:0;padding:0;border:0;background:transparent}
-.sidebar-tools-head,.task-section-head{display:flex;align-items:center;justify-content:space-between;gap:var(--space-2);min-height:32px;min-width:0}
+.sidebar-tools-head{display:flex;align-items:center;justify-content:space-between;gap:var(--space-2);min-height:32px;min-width:0}
 .sidebar-tools-head{margin:0 0 8px}
-.sidebar-tools-head strong,.task-section-head strong{font-size:12px;font-weight:600;color:var(--od-ink)}
+.sidebar-tools-head strong{font-size:12px;font-weight:600;color:var(--od-ink)}
 /* My header reuses od-page-head/od-page-actions/od-icon-button; no second button skin. */
 .sidebar-tools-actions{display:flex;align-items:center;justify-content:flex-end;gap:var(--space-2);margin-left:auto;flex:0 0 auto;min-width:0}
 .sidebar-tool-import{min-width:0;margin:0 0 8px;padding:10px;background:var(--od-paper);border:1px solid var(--od-line);border-radius:var(--radius-surface)}
@@ -455,7 +537,6 @@
 .sidebar-tool-toast-count{flex:none;padding:1px 5px;border-radius:999px;background:var(--od-muted);font-size:10px;color:var(--od-sub);font-variant-numeric:tabular-nums}
 .sidebar-tool-toast>.od-icon-button{flex:none}
 @media (prefers-reduced-motion:reduce){.sidebar-tool-toast{animation:none}}
-body:has([aria-modal=true]) .sidebar-tool-toast-stack{display:none}
 .sidebar-tool-status{font-size:11px;line-height:1.5;color:var(--od-sub);overflow-wrap:anywhere;margin:8px 0 0;padding:8px 9px;background:var(--od-muted);border-radius:var(--radius-control)}
 .sidebar-tool-status[data-state=error]{color:var(--od-negative)}
 .sidebar-tool-status[data-state=success]{color:var(--od-positive)}
@@ -472,8 +553,9 @@ body:has([aria-modal=true]) .sidebar-tool-toast-stack{display:none}
 .sidebar-tool-action-buttons button{min-height:34px;width:auto;padding:6px 10px;font-size:12px}
 .sidebar-tool-display{min-width:0;margin:0;padding:0;background:transparent}
 /* Only the trusted tool header owns this full-width surface; od-toolbar remains layout-only. */
-.sidebar-tool-view-head{position:relative;z-index:3;display:flex;flex-wrap:wrap;align-items:center;gap:7px;min-width:0;min-height:53px;margin:0 calc(0px - var(--od-page-gutter));padding:var(--space-2) var(--od-page-gutter);border-bottom:1px solid var(--od-line);background:var(--od-paper);font-size:var(--od-meta-size)}
-#sidebar-tool-back{color:var(--od-ink);border-color:transparent;background:transparent}
+.sidebar-tool-view-head{position:relative;z-index:3;display:flex;flex-wrap:wrap;align-items:center;gap:var(--space-2);min-width:0;min-height:53px;margin:0 calc(0px - var(--od-page-gutter));padding:var(--space-2) var(--od-page-gutter);border-bottom:1px solid var(--od-line);background:var(--od-paper);font-size:var(--od-meta-size)}
+/* Align the leading public icon with the page gutter without shrinking its hit target. */
+#sidebar-tool-back{margin-inline-start:calc(0px - var(--space-2));color:var(--od-ink);border-color:transparent;background:transparent}
 #sidebar-tool-remove{border-color:transparent;color:var(--od-sub);background:transparent}
 
 /* Reading TOC settings are a trusted sibling view; hiding never destroys the iframe. */
@@ -509,7 +591,6 @@ body:has([aria-modal=true]) .sidebar-tool-toast-stack{display:none}
   height:var(--od-icon-size);min-height:var(--od-icon-size);max-height:var(--od-icon-size);padding:0;
   border:1px solid transparent;background:transparent;color:var(--od-sub)
 }
-.sidebar-tool-view-head .sidebar-tool-icon-action svg{width:17px;height:17px}
 .sidebar-tool-header-actions{display:flex;align-items:center;gap:2px;flex:0 0 auto;min-width:0}
 .sidebar-tool-header-actions[hidden]{display:none!important}
 .sidebar-tool-header-actions .sidebar-tool-icon-action:hover:not(:disabled),
@@ -522,6 +603,8 @@ body:has([aria-modal=true]) .sidebar-tool-toast-stack{display:none}
   color:var(--od-negative)
 }
 @media(pointer:coarse){
+  /* Keep the complete touch target inside the full-width header. */
+  #sidebar-tool-back{margin-inline-start:calc(0px - var(--od-page-gutter))}
   .sidebar-tool-view-head>.sidebar-tool-icon-action,
   .sidebar-tool-view-head .od-conversation-header-slot>.od-conversation-frame-trigger,
   .sidebar-tool-header-menu-slot>.sidebar-tool-icon-action,
@@ -716,7 +799,7 @@ body:has([aria-modal=true]) .sidebar-tool-toast-stack{display:none}
   flex:1 1 auto;height:auto;min-height:0;max-height:none;
 }
 
-.task-section-head{margin:0 0 8px}
+.task-section-head{margin:0 0 var(--space-2)}
 .task-section-actions{gap:var(--space-1);flex:0 0 auto}
 #task-installed-count{font-size:11px;color:var(--od-sub);white-space:nowrap}
 @media(max-width:360px){.sidebar-tool-import{padding:10px}}
@@ -728,7 +811,8 @@ body:has([aria-modal=true]) .sidebar-tool-toast-stack{display:none}
 #workspace-content:has(> #workbench-workflow:not([hidden])){overflow:hidden;padding-top:0;padding-bottom:0}
 #workbench-workflow:not([hidden]){display:flex;flex-direction:column;height:100%;min-height:0}
 .workflow-editor{display:flex;flex-direction:column;height:100%;min-height:0;min-width:0;padding:0}
-.workflow-head{display:flex;justify-content:space-between;align-items:center;gap:var(--space-2);min-height:44px;padding:var(--space-1) 1px;flex:none}
+/* The full-height conversation keeps its own scroll; its header owns the page's top inset. */
+.workflow-head{display:flex;justify-content:space-between;align-items:center;gap:var(--space-2);min-height:calc(var(--od-icon-size) + var(--space-3));padding:var(--space-3) 0 0;flex:none}
 .workflow-head-copy{flex:1;min-width:0}
 .workflow-head .od-page-title{font-size:var(--od-note-size);line-height:1.5;font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .workflow-head-actions{display:flex;align-items:center;justify-content:flex-end;gap:var(--space-2);flex-shrink:0}
@@ -1175,7 +1259,7 @@ body:has([aria-modal=true]) .sidebar-tool-toast-stack{display:none}
 .schedule-advanced>.od-field,.schedule-advanced>.schedule-check{margin-top:var(--space-3)}
 #schedule-task-manager{display:grid;gap:var(--space-3);min-width:0}
 #schedule-task-manager>.schedule-actions{justify-content:flex-end;margin:0}
-.schedule-manager-controls{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,132px);gap:var(--space-2);align-items:end;min-width:0}
+.schedule-manager-controls{display:grid;grid-template-columns:minmax(0,1fr) 104px;gap:var(--space-2);align-items:end;min-width:0}
 .schedule-manager-controls>.od-field{min-width:0}
 #schedule-manager-count{margin:0}
 #schedule-manager-list{display:grid;grid-template-columns:minmax(0,1fr);gap:var(--space-2);min-width:0}
@@ -1191,7 +1275,7 @@ body:has([aria-modal=true]) .sidebar-tool-toast-stack{display:none}
 .schedule-manager-action svg{stroke:currentColor;fill:none;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
 .schedule-manager-more{min-width:0}
 .schedule-manager-more .hint{margin:var(--space-2) 0 0}
-@media(max-width:340px){.schedule-manager-controls{grid-template-columns:minmax(0,1fr)}}
+@media(max-width:280px){.schedule-manager-controls{grid-template-columns:minmax(0,1fr)}}
 
 #schedule-uninstall-confirm{padding:var(--space-3);display:grid;gap:var(--space-2)}
 #schedule-uninstall-confirm p{margin:0;overflow-wrap:anywhere}
@@ -1379,43 +1463,34 @@ body:has([aria-modal=true]) .sidebar-tool-toast-stack{display:none}
 .schedule-detail-card .schedule-delete-confirm strong{font-size:12px}
 .schedule-detail-card .schedule-delete-confirm .od-button{min-height:36px}
 .schedule-header #schedule-detail-delete{color:var(--od-negative)}
-/* Installed tasks: first line title/status, second line version/linked plans,
-   floating quick actions, low-frequency uninstall in an accessible disclosure. */
-.schedule-manager-card{position:relative;overflow:visible;padding:10px 12px;gap:var(--space-1)}
-.schedule-manager-card:has(.schedule-manager-menu[open]){z-index:12}
-.schedule-manager-card-head{display:block;padding-inline-end:112px;min-width:0}
-.schedule-manager-title-line{display:inline-flex;align-items:baseline;gap:6px;
-  min-width:0;max-width:100%}
-.schedule-manager-title-line strong{display:block;min-width:0;font-size:13px;
-  font-weight:700;line-height:1.5;overflow-wrap:anywhere}
-.schedule-manager-identity{min-width:0;flex:1 1 auto}
-.schedule-manager-identity .hint{margin:1px 0 0;font-size:11px;line-height:1.45;color:var(--od-sub)}
-.schedule-manager-state{display:inline-grid;flex:0 0 20px;white-space:nowrap;
-  background:transparent;border:0;padding:0;border-radius:50%;font-size:0;color:var(--od-sub)}
+/* Task manager: full-width names and persistent controls remain usable in a narrow panel. */
+.schedule-manager-card{position:relative;overflow:visible;padding:var(--space-3);gap:var(--space-2)}
+.schedule-manager-card-head{display:block;padding-inline-end:0;min-width:0}
+.schedule-manager-identity{min-width:0}
+.schedule-manager-identity strong{font-size:var(--od-body-size);font-weight:650;line-height:1.5;overflow-wrap:anywhere}
+.schedule-manager-identity .schedule-manager-description{display:-webkit-box;-webkit-box-orient:vertical;-webkit-line-clamp:2;overflow:hidden;margin:var(--space-1) 0 0;font-size:var(--od-note-size);line-height:1.5}
+.schedule-manager-footer{display:flex;align-items:center;justify-content:space-between;gap:var(--space-2);flex-wrap:wrap;min-width:0}
+.schedule-manager-meta{display:grid;gap:var(--space-1);min-width:0}
+.schedule-manager-meta .hint{font-size:var(--od-note-size);line-height:1.5}
+.schedule-manager-state{display:inline-flex;justify-self:start;align-items:center;gap:var(--space-1);background:var(--od-muted);border-radius:var(--radius-control);padding:0 var(--space-1);font-size:var(--od-note-size);font-weight:600;line-height:1.5;color:var(--od-sub)}
 .schedule-manager-state[data-state="enabled"]{color:var(--od-positive)}
-.schedule-manager-actions{position:absolute;top:8px;right:8px;display:flex;align-items:center;
-  justify-content:flex-end;gap:4px;min-width:0;flex-wrap:nowrap}
-.schedule-manager-actions .schedule-manager-action{width:32px;height:32px;
-  min-width:32px;min-height:32px;padding:5px;flex:none}
+.schedule-manager-actions{position:static;display:flex;align-items:center;justify-content:flex-end;gap:var(--space-1);min-width:0;flex-wrap:nowrap;margin-inline-start:auto}
+.schedule-manager-actions .schedule-manager-action{width:34px;height:34px;min-width:34px;min-height:34px;padding:var(--space-2);flex:none}
 .schedule-manager-actions .schedule-manager-action svg{width:16px;height:16px}
 .schedule-manager-menu{position:relative;flex:none;min-width:0}
 .schedule-manager-menu>summary{list-style:none;cursor:pointer}
-/* Hide only the UA marker: the summary stays visible, focusable and touchable. */
 .schedule-manager-menu>summary::-webkit-details-marker{display:none}
 .schedule-manager-menu>summary::marker{content:""}
 .schedule-manager-menu[open]>.schedule-manager-menu-trigger{background:var(--od-muted)}
-.schedule-manager-menu-panel{position:absolute;right:0;top:calc(100% + 5px);z-index:20;
-  display:grid;gap:4px;width:min(260px,calc(100vw - 48px));max-height:min(360px,65vh);
-  overflow:auto;padding:8px;border:1px solid var(--od-line);border-radius:var(--radius-control);
-  background:var(--od-paper);box-shadow:0 10px 26px #142a4c25}
-.schedule-manager-menu-panel .od-button{display:flex;justify-content:flex-start;
-  width:100%;min-height:36px;text-align:left;font-size:12px;white-space:normal}
-.schedule-manager-menu-panel .schedule-manager-action{width:100%;height:auto;
-  min-height:36px;justify-content:flex-start;text-align:left;font-size:12px}
-.schedule-manager-menu-panel .schedule-manager-more{padding:0 4px;min-width:0}
-.schedule-manager-menu-panel .schedule-manager-more>.hint{margin:4px 0;font-size:11px;overflow-wrap:anywhere}
+/* Fixed coordinates are measured against the native panel viewport, including its bottom edge. */
+.schedule-manager-menu-panel{position:fixed;z-index:20;display:grid;gap:var(--space-1);overflow:auto;padding:var(--space-2);border:1px solid var(--od-line);border-radius:var(--radius-control);background:var(--od-paper);box-shadow:0 8px 24px color-mix(in srgb,var(--od-ink) 16%,transparent)}
+.schedule-manager-menu-panel .od-button{display:flex;justify-content:flex-start;width:100%;min-height:36px;text-align:left;font-size:var(--od-note-size);white-space:normal}
+.schedule-manager-menu-panel .schedule-manager-action{width:100%;height:auto;min-height:36px;justify-content:flex-start;text-align:left;font-size:var(--od-note-size)}
+.schedule-manager-menu-panel .schedule-manager-more{padding:0 var(--space-1);min-width:0}
+.schedule-manager-menu-panel .schedule-manager-more>.hint{margin:var(--space-1) 0;font-size:var(--od-note-size);overflow-wrap:anywhere}
 .schedule-manager-menu-panel .schedule-manager-uninstall{color:var(--od-negative)}
 #schedule-uninstall-confirm{margin-top:var(--space-2);border-radius:var(--radius-control)}
+#schedule-copy-label,#schedule-uninstall-label{white-space:pre-line;font-size:var(--od-note-size);line-height:1.65}
 @media(hover:hover) and (pointer:fine){
   .schedule-card .schedule-card-head{padding-inline-end:110px}
   .schedule-card:has([data-schedule-action="stop"]) .schedule-card-head{padding-inline-end:144px}
@@ -1426,17 +1501,11 @@ body:has([aria-modal=true]) .sidebar-tool-toast-stack{display:none}
     transition:opacity .12s ease,transform .12s ease}
   .schedule-card:is(:hover,:focus-within) .schedule-plan-actions{
     opacity:1;visibility:visible;pointer-events:auto;transform:none}
-  .schedule-manager-card .schedule-manager-actions{opacity:0;pointer-events:none;
-    transition:opacity .12s ease}
-  .schedule-manager-card:is(:hover,:focus-within) .schedule-manager-actions{
-    opacity:1;pointer-events:auto}
-}
+  }
 @media(hover:none), (pointer:coarse){
   .schedule-card .schedule-plan-actions{position:static;flex:0 0 auto}
   .schedule-card .schedule-plan-actions .od-icon-button,
   .schedule-manager-actions .schedule-manager-action{width:44px;height:44px;min-width:44px;min-height:44px}
-  .schedule-manager-card-head{padding-inline-end:144px}
-  .schedule-manager-actions{top:6px;right:6px}
 }
 @media(prefers-reduced-motion:reduce){
   .schedule-card .schedule-plan-actions,.schedule-manager-card .schedule-manager-actions{
@@ -1647,17 +1716,22 @@ body:has([aria-modal=true]) .sidebar-tool-toast-stack{display:none}
 /* R2.5 Prompt Shortcuts: trusted Host owns all three switches. */
 
 /* R33.3.11 compact Add; keep a single workspace scroll owner. */
-.task-add-menu{min-width:0;margin:0 0 var(--space-3);padding:var(--space-3);border:1px solid var(--od-line);border-radius:var(--radius-surface);background:var(--od-paper);gap:var(--space-3)}
+.task-add-menu{min-width:0;margin:0 0 var(--space-3);padding:var(--space-3);border:1px solid var(--od-line);border-radius:var(--radius-surface);background:var(--od-paper);gap:var(--space-2)}
 .task-add-menu[hidden]{display:none}
 .task-add-menu:not([hidden]){display:grid}
 .task-add-menu .task-add-heading{display:flex;align-items:center;justify-content:space-between;gap:var(--space-2);min-width:0}
 .task-add-heading strong{font-size:13px}
 .task-add-heading .od-icon-button{flex:0 0 var(--od-icon-size)}
 .task-add-menu .hint{margin:0;line-height:1.5;overflow-wrap:anywhere}
-.task-add-menu .task-add-options{display:flex;align-items:center;gap:var(--space-2);flex-wrap:wrap}
-.task-add-menu .task-add-options .od-button{flex:1 1 115px;min-width:0;white-space:normal}
-.task-add-menu #task-add-import{justify-self:stretch;min-height:36px;white-space:normal}
+.task-add-menu .task-add-dropzone{display:grid;justify-items:center;gap:var(--space-2);text-align:center;font-size:var(--od-note-size);color:var(--od-sub)}
+.task-add-dropzone>p{margin:0}
+.task-add-file-icon{width:22px;height:22px;fill:none;stroke:currentColor;stroke-width:1.5;stroke-linecap:round;stroke-linejoin:round}
+.task-add-menu .task-add-options{display:flex;align-items:center;justify-content:space-between;gap:var(--space-2);flex-wrap:wrap;padding-top:var(--space-2);border-top:1px solid var(--od-line)}
+.task-add-menu .task-add-options .od-button{display:inline-flex;align-items:center;gap:var(--space-1);min-width:0;padding-inline:0;font-size:var(--od-note-size);font-weight:400;white-space:normal;color:var(--od-sub)}
+.task-add-options svg{width:14px;height:14px;flex:none;fill:none;stroke:currentColor;stroke-width:1.5;stroke-linecap:round;stroke-linejoin:round}
+.task-add-menu #task-add-import{min-height:36px;white-space:normal;font-weight:400}
 .task-add-menu #task-add-status:empty{display:none}
+.task-add-menu #task-add-status[data-tone="error"]{color:var(--od-negative)}
 /* Unified trusted file import: a visible drop target with native keyboard access. */
 .task-file-dropzone{min-width:0;border:1px dashed var(--od-line);border-radius:var(--radius-surface);padding:var(--space-3);background:var(--od-paper)}
 .task-file-dropzone:focus-visible{outline:2px solid var(--od-ink);outline-offset:2px}

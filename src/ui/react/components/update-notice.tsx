@@ -82,9 +82,9 @@ function ReleaseDetail({row,onUpdate,onOpenReview,busy,verified,surface='sidebar
     {message&&<p role="alert" className="od-update-error">{message}</p>}
   </section>;
 }
-// One trusted React Shell subscription serves both the toolbar badge and center.
+// The Side Panel owns the global update inbox. Standalone apps do not consume it.
 // The update store is read-only here. Mutations remain in the existing Worker.
-export function useUpdateNoticeController(onOpenRequested=()=>{}){
+export function useUpdateNoticeController(onOpenRequested=()=>{},{enabled=true}={}){
   const [state,setState]=React.useState(empty);
   const [opened,setOpened]=React.useState(false);
   const [filter,setFilter]=React.useState('pending');
@@ -95,6 +95,7 @@ export function useUpdateNoticeController(onOpenRequested=()=>{}){
   const handledOpen=React.useRef(0);
   openRef.current=onOpenRequested;
   const refresh=React.useCallback(async()=>{
+    if(!enabled)return;
     if(refreshing.current){dirty.current=true;return;}
     refreshing.current=true;
     try{
@@ -112,15 +113,16 @@ export function useUpdateNoticeController(onOpenRequested=()=>{}){
       refreshing.current=false;
       if(dirty.current){dirty.current=false;if(mounted.current)void refresh();}
     }
-  },[]);
+  },[enabled]);
   React.useEffect(()=>{
+    if(!enabled)return;
     mounted.current=true;void refresh();
     const listener=(changes,area)=>{
       if(area==='local'&&changes['opendesk.update-notice.state.v1'])void refresh();
     };
     chrome?.storage?.onChanged?.addListener(listener);
     return ()=>{mounted.current=false;chrome?.storage?.onChanged?.removeListener(listener);};
-  },[refresh]);
+  },[enabled,refresh]);
   const act=async(key,action)=>{
     setBusy(true);
     try{await call('action',{key,action});await refresh();}

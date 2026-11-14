@@ -57,7 +57,7 @@ export function createTaskWorkbench({client,host,currentPageTarget,api=globalThi
   }
   let latestResultDisplay=null;
   let catalogSurface=false, catalogQuery='', catalogFilter='all', catalogInitialization=null;
-  let localQuery='', localFilter='all', taskManagementMode=false, pendingTaskUninstall=null;
+  let localQuery='', taskManagementMode=false, pendingTaskUninstall=null;
   const parameterDrafts=new Map();
   let sharedPreparation=null,sheetAuthorization=null,sheetBusy=false,sheetSequence=0,inspectionSequence=0;
   let sheetPageRequest=null,pageDiscovery=null;
@@ -344,7 +344,6 @@ export function createTaskWorkbench({client,host,currentPageTarget,api=globalThi
   const focus=(id,options)=>{
     myView.publish();queueMicrotask(()=>get(id)?.focus?.(options));
   };
-  const actionName=(id,event)=>id.replace(/-([a-z])/g,(_,letter)=>letter.toUpperCase())+event[0].toUpperCase()+event.slice(1);
   function registerAction(name,fn){
     const callback=myView.action(fn);myView.actions[name]=callback;
     listeners.push({remove:()=>{if(myView.actions[name]===callback)delete myView.actions[name];}});
@@ -561,19 +560,19 @@ export function createTaskWorkbench({client,host,currentPageTarget,api=globalThi
       throw error;
     }
   }
-  // Filtering never changes the selected Task, but a hidden selection must not be runnable.
-  function taskMatchesView(row,info,origin) {
+  // Search never changes the selected Task, but a hidden selection must not be runnable.
+  function taskMatchesView(row,info) {
     if(!row)return false;
-    if(localFilter==='disabled' && row.enabled)return false;
-    if(localFilter==='current' && (!row.enabled || !origin ||
-      !info?.manifest.siteOrigins.includes(origin)))return false;
     return !localQuery || [info?.manifest.title,info?.manifest.description,
       row.taskId,...(info?.manifest.siteOrigins||[])].join(' ').toLocaleLowerCase().includes(localQuery);
   }
   function update() {
     if(disposed)return;
     const row=installedRow(),info=candidateFor(row),selected=candidate();
-    const available=row?.enabled && row.runtimeCurrent!==false && info?.runtimeCurrent!==false && info?.stage==='available';
+    const runtimeStale=row?.runtimeCurrent===false||info?.runtimeCurrent===false;
+    const available=row?.enabled && !runtimeStale && info?.stage==='available';
+    myView.data.taskRuntimeRecovery=Boolean(row&&runtimeStale);
+    myView.data.taskRuntimeRecoveryDisabled=working||running||!!host.currentRun||!!sharedPreparation||sheetBusy;
     let siteAvailable=false,origin='';
     if(currentPage?.status==='available') {
       origin=new URL(currentPage.url).origin;
@@ -585,13 +584,25 @@ export function createTaskWorkbench({client,host,currentPageTarget,api=globalThi
     ui('task-current-site').dataset.state=siteState;
     ui('task-current-site').title=origin || '';
     const otherPreparedTask=Boolean(sharedPreparation)&&myView.data.taskRunSheet?.source!=='tool';
+    // Presentation only; run/permission decisions below keep their existing owners.
+    const unknown=myView.data.taskHistory?.[0]?.runState==='paused_unknown'||
+      row&&sameInstallation(myView.data.taskRunSheet?.identity,taskIdentity(row))&&myView.data.taskRunSheet?.phase==='unknown';
+    myView.data.taskSelection=unknown?{label:'结果未知',tone:'warning'}:
+      running||host.currentRun?{label:runOwnerKey=== (row&&identity(row))?'运行中':'其他任务运行中',tone:'muted'}:
+      working?{label:'处理中',tone:'muted'}:!row?.enabled?{label:'已停用',tone:'muted'}:
+      !origin?{label:'网页不可用',tone:'warning'}:!siteAvailable?{label:'其他网站',tone:'warning'}:
+      !available?{label:'暂不可运行',tone:'warning'}:otherPreparedTask?{label:'等待原任务',tone:'muted'}:
+      {label:'就绪',tone:'positive'};
+    ui('task-current-site').text=unknown?'先核对原运行记录':!row?.enabled?'可在任务管理中恢复':
+      !origin?'打开普通网页后再试':!siteAvailable?'适用 '+(info?.manifest.siteOrigins.join('、')||'已批准的网站'):'当前网页适用';
     ui('task-run').disabled=working||running||!!host.currentRun||otherPreparedTask||
-      !available||!siteAvailable||!taskMatchesView(row,info,origin);
+      !available||!siteAvailable||!taskMatchesView(row,info);
     myView.data.taskRunBlockedReason=working?'正在处理任务，请稍候':running||host.currentRun?'已有任务正在运行，请先停止或等待完成':
       otherPreparedTask?'Web Flow 有尚未释放的准备或执行身份，请先核对原步骤，不能从「我的」另起任务':
       !row?'请先选择任务':!row.enabled?'此任务已停用，请在「更多操作」中启用':
-      !available?'此固定版本当前不可运行，请在任务目录核查状态':!siteAvailable?siteMessage:
-      !taskMatchesView(row,info,origin)?'此任务不在当前筛选结果中，请重新选择':'';
+      runtimeStale?'运行时已更新；需在开发中重新验证同一固定版本，再确认安装后才能运行':
+      !available?'此固定版本尚未设为可用，请在任务目录核查验证及发布状态':!siteAvailable?siteMessage:
+      !taskMatchesView(row,info)?'此任务不在当前搜索结果中，请重新选择':'';
     ui('task-stop').disabled=!activeRunId || host.currentRun!==activeRunId;
     ui('task-fork-draft').disabled=!row||working;
     const toggleAction=ui('task-toggle'),toggleLabel=row?.enabled?'停用任务':'启用任务';
@@ -617,17 +628,10 @@ export function createTaskWorkbench({client,host,currentPageTarget,api=globalThi
   function renderInstalledCards() {
     const selected=ui('task-installed-list').value;
     const selectedTask=installed.find(row=>row.taskId===selected);
-    let origin=null;
-    if(currentPage?.status==='available'){
-      try{origin=new URL(currentPage.url).origin;}catch{/* No stale URL fallback. */}
-    }
-    const visible=installed.filter(row=>taskMatchesView(row,candidateFor(row),origin));
-    for(const value of ['all','current','disabled'])
-      ui('local-filter-'+value).attributes['aria-pressed']=String(localFilter===value);
+    const visible=installed.filter(row=>taskMatchesView(row,candidateFor(row)));
     ui('local-discover-count').text=`显示 ${visible.length} 个任务 · 共安装 ${installed.length} 个`;
     const emptyText=!installed.length?'暂无任务。点击上方「添加」导入本地任务。'
-      :localFilter==='current'&&!origin?'当前网页不可用。选择「全部」查看已安装任务。'
-      :localFilter==='disabled'&&!localQuery?'没有已停用任务。':'没有匹配的任务。试试其他关键词或选择「全部」。';
+      :'没有匹配的任务。试试其他关键词或清空搜索。';
     myView.project('taskRows',{rows:visible.map(row=>{
       const info=candidateFor(row);
       return {taskId:row.taskId,version:row.version,enabled:row.enabled===true,
@@ -662,8 +666,8 @@ export function createTaskWorkbench({client,host,currentPageTarget,api=globalThi
         renderInstalledSelection();
       }
     }else{
-      // Never strand a task behind a search/filter when management closes.
-      localQuery='';localFilter='all';ui('local-discover-search').value='';
+      // Never strand a task behind a search when management closes.
+      localQuery='';ui('local-discover-search').value='';
       dismissTaskUninstall();
       ui('task-tools').open=false;
     }
@@ -692,11 +696,14 @@ export function createTaskWorkbench({client,host,currentPageTarget,api=globalThi
     if(taskManagementMode)ui('task-tools').open=true;
     const row=installedRow(),info=candidateFor(row);
     const detailText=info
-      ?`适用网站：${info.manifest.siteOrigins.join('、')}\n所需能力：${info.manifest.permissions.join('、')}\n来源：${info.manifest.source} · v${row.version}`
+      ?`适用网站：${info.manifest.siteOrigins.join('、')}\n任务能力：${info.manifest.permissions.join('、')||'无额外能力'}\n安装版本：v${row.version} · ${!row.enabled?'已停用':row.runtimeCurrent===false||info.runtimeCurrent===false||info.stage!=='available'?'暂不可运行':'可用'}\n权限说明：此处仅展示已安装范围，不申请或扩大权限。\n来源：${info.manifest.source}`
       :'';
     myView.project('taskDetail',detailText);
     ui('task-result-panel').hidden=true;
-    ui('task-history-panel').hidden=true;
+    ui('task-history-panel').hidden=!row;
+    myView.data.taskHistoryState=row?'loading':'empty';
+    myView.project('taskHistory',[]);
+    myView.data.taskResultMeta=null;
     ui('task-result').text='';
     latestResultDisplay=null;
     ui('task-result-reveal').hidden=true;
@@ -802,24 +809,35 @@ export function createTaskWorkbench({client,host,currentPageTarget,api=globalThi
       ui('task-result-panel').hidden=true;
       return;
     }
-    const view=await client.controller.snapshotControllerRun({});
+    let view;
+    try{view=await client.controller.snapshotControllerRun({});}
+    catch(error){
+      if(disposed||seq!==historySequence||installedRow()?.taskId!==row.taskId)return;
+      myView.data.taskHistoryState='error';myView.publish();
+      throw error;
+    }
     if(disposed||seq!==historySequence||installedRow()?.taskId!==row.taskId)return;
+    myView.data.taskHistoryState='ready';
     const runs=view.runs.filter(value=>value.revision?.scriptId===row.scriptId).slice(-8).reverse();
     const matching=view.results.filter(value=>value.revision?.scriptId===row.scriptId);
     if(!runs.length){
       latestResultDisplay=null;ui('task-result-reveal').hidden=true;
       myView.project('taskHistory',[]);
-      ui('task-history-panel').hidden=true;ui('task-result-panel').hidden=true;return;
+      myView.data.taskResultMeta=null;
+      ui('task-history-panel').hidden=false;ui('task-result-panel').hidden=true;update();return;
     }
     myView.project('taskHistory',runs.map((run,index)=>{
       const result=matching.find(value=>value.runId===run.runId);
-      return {runId:run.runId,state:runStateNames[run.state]||run.state||'状态待确认',
+      return {runId:run.runId,runState:run.state,state:runStateNames[run.state]||run.state||'状态待确认',
+        time:Number.isFinite(run.createdAt)?new Date(run.createdAt).toLocaleString([],{month:'numeric',day:'numeric',hour:'2-digit',minute:'2-digit'}):'',
         ordinal:index+1,...taskResultView(run,result),technical:formatTaskRunTechnical(run,result)};
     }));
     ui('task-history-panel').hidden=false;
-    ui('task-result-panel').hidden=false;
+    ui('task-result-panel').hidden=runs[0].state==='paused_unknown';
     const latest=matching.find(value=>value.runId===runs[0].runId);
     const presented=taskResultView(runs[0],latest);
+    myView.data.taskResultMeta={state:runStateNames[runs[0].state]||'状态待确认',
+      owner:'任务：'+(candidateFor(row)?.manifest.title||row.taskId)+(myView.data.taskHistory[0]?.time?' · '+myView.data.taskHistory[0].time:'')};
     latestResultDisplay={...presented,taskKey:identity(row)};
     ui('task-result').text=presented.text;
     const reveal=ui('task-result-reveal');
@@ -927,8 +945,8 @@ export function createTaskWorkbench({client,host,currentPageTarget,api=globalThi
         return ui('task-catalog-status').text='文件已送到同窗口「开发」的未保存草稿；未安装、未运行、未授权。请前往开发核对。';
       }
       if(!importDraft)throw {code:'E_DRAFT_EDITOR_UNAVAILABLE',message:'开发编辑器尚未连接'};
-      await importDraft(draft);
-      navigate('develop');
+      if(await importDraft(draft)===false)return;
+      if(navigate('develop')===false)return;
       return ui('task-catalog-status').text='文件已进入「开发」的未保存草稿；请先审阅、验证，不会自动安装或运行。';
     }
     // A byte-identical Task ID + version is idempotent in the existing Host.
@@ -1139,13 +1157,31 @@ export function createTaskWorkbench({client,host,currentPageTarget,api=globalThi
     if(disposed)return;
     announce();success('已卸载确定版本；历史结果仍可保留');
   }
-  async function fork() {
+  async function fork(_event,{validate=()=>{}}={}) {
     const row=installedRow();if(!row)throw {code:'E_SCHEMA',message:'请选择任务'};
+    const expected=taskIdentity(row);
+    const check=()=>{
+      validate();
+      if(disposed||!sameInstallation(expected,taskIdentity(installedRow())))
+        throw {code:'E_TASK_CHANGED',message:'任务安装身份已变化，请重新打开核对'};
+    };
+    check();
     const value=await client.request('getTaskCandidate',{taskId:row.taskId,version:row.version});
+    check();
+    if(value.taskId!==expected.taskId||value.version!==expected.version||value.manifestHash!==expected.manifestHash||
+      typeof value.package?.sourceUtf8!=='string')
+      throw {code:'E_TASK_CHANGED',message:'固定任务源码身份不匹配，请重新核对'};
+    const checked=await client.request('listTaskCatalog',{});check();
+    const latest=checked.installed?.find(value=>value.taskId===expected.taskId);
+    const info=checked.catalog?.find(value=>value.taskId===expected.taskId&&value.version===expected.version);
+    if(!sameInstallation(expected,{...latest,contentHash:info?.verification?.sourceHash||info?.manifest?.program?.sourceHash||latest?.contentHash}))
+      throw {code:'E_TASK_CHANGED',message:'任务安装或授权在复制期间已变化；请重新打开核对'};
     if(!importDraft)throw {code:'E_DRAFT_EDITOR_UNAVAILABLE',message:'开发编辑器尚未连接'};
-    await importDraft(value.package.sourceUtf8);
-    navigate('develop');
+    if(await importDraft(value.package.sourceUtf8)===false)return false;
+    check();
+    if(navigate('develop')===false)return false;
     patchDeveloperField(developerView,developer('task-dev-status'),{textContent:'已复制独立未保存草稿；原已安装版本未变化'});
+    return true;
   }
   const asyncAction=fn=>async event=>{
     if(working||disposed)return;
@@ -1162,10 +1198,10 @@ export function createTaskWorkbench({client,host,currentPageTarget,api=globalThi
   function showTaskAddMenu(open){
     if(!taskAddMenu){if(open)navigate('catalog');return;}
     taskAddMenu.hidden=!open;
+    if(!open)ui('task-add-dropzone').dataset.importDragActive='false';
     ui('task-open-catalog').attributes['aria-expanded']=String(open);
     if(open){
       get('workspace-content')?.scrollTo?.({top:0});
-      focus('task-add-import',{preventScroll:true});
     }else if(doc.documentElement?.dataset?.opendeskTab==='tasks')
       focus('task-open-catalog',{preventScroll:true});
   }
@@ -1198,10 +1234,17 @@ export function createTaskWorkbench({client,host,currentPageTarget,api=globalThi
     return Array.from(event?.dataTransfer?.types||[]).includes('Files');
   }
   function markImportDrag(source,active){
-    const field=ui(source==='add'?'task-add-menu':'task-catalog-dropzone');
+    const field=ui(source==='add'?'task-add-dropzone':'task-catalog-dropzone');
     if(field.dataset.importDragActive===String(active))return;
     field.dataset.importDragActive=String(active);
     myView.publish();
+  }
+  function importStatus(source,message,error=false){
+    const field=ui(source==='add'?'task-add-status':'task-catalog-status');
+    field.text=message;
+    field.attributes.role=error?'alert':'status';
+    field.attributes['aria-live']=error?'assertive':'polite';
+    field.dataset.tone=error?'error':'success';
   }
   async function importSelectedFiles(fileList,source){
     const files=Array.from(fileList||[]);
@@ -1210,8 +1253,8 @@ export function createTaskWorkbench({client,host,currentPageTarget,api=globalThi
       if(files.length!==1)
         throw {code:'E_TASK_FILE_COUNT',message:`一次只能导入 1 个文件；本次选择了 ${files.length} 个，均未导入。请逐个选择。`};
       const message=await readFile(files[0]);
-      if(disposed)return;
-      ui(source==='add'?'task-add-status':'task-catalog-status').text=message;
+      if(disposed||!message)return;
+      importStatus(source,message);
       success(message);
       if(source==='add'&&doc.documentElement?.dataset?.opendeskTab==='develop'){
         showTaskAddMenu(false);
@@ -1219,8 +1262,8 @@ export function createTaskWorkbench({client,host,currentPageTarget,api=globalThi
       }
     }catch(error){
       const message=formatTaskError(error);
-      ui(source==='add'?'task-add-status':'task-catalog-status').text=message;
-      throw error;
+      importStatus(source,message,true);
+      if(source!=='add'||taskAddMenu.hidden)throw error;
     }finally{myView.publish();}
   }
   registerAction('taskFileDragEnter',(source,event)=>{
@@ -1243,19 +1286,20 @@ export function createTaskWorkbench({client,host,currentPageTarget,api=globalThi
     markImportDrag(source,false);
     const files=event.dataTransfer?.files;
     if(!files?.length){
-      ui(source==='add'?'task-add-status':'task-catalog-status').text=
-        '未找到可读取的文件；文件夹/目录拖放暂不支持。请选择单个 .js 或 .json 文件。';
+      importStatus(source,'未找到可读取的文件；文件夹/目录拖放暂不支持。请选择单个 .js 或 .json 文件。',true);
       myView.publish();return;
     }
     return droppedFiles({files,source});
   });
   registerAction('taskFileZoneKeydown',(source,event)=>{
-    if(event.target!==event.currentTarget||event.isComposing||event.repeat)return;
+    if(event.defaultPrevented||event.isComposing||event.nativeEvent?.isComposing||event.repeat)return;
+    if(source==='add'&&event.key==='Escape'){
+      event.preventDefault();showTaskAddMenu(false);return;
+    }
+    if(event.target!==event.currentTarget)return;
     if(event.key==='Enter'||event.key===' '){
       event.preventDefault();
       get(source==='add'?'task-add-file':'task-package-file')?.click?.();
-    }else if(source==='add'&&event.key==='Escape'){
-      event.preventDefault();showTaskAddMenu(false);
     }
   });
   registerAction('taskManageToggleClick',event=>{
@@ -1267,7 +1311,7 @@ export function createTaskWorkbench({client,host,currentPageTarget,api=globalThi
     event.preventDefault();
     const search=ui('local-discover-search');
     if(event.target===get('local-discover-search')&&search.value){
-      // First Escape clears only the query; retain the filter and input focus.
+      // First Escape clears the query; retain the input focus.
       search.value='';localQuery='';renderInstalledCards();update();
       return;
     }
@@ -1278,10 +1322,6 @@ export function createTaskWorkbench({client,host,currentPageTarget,api=globalThi
     localQuery=ui('local-discover-search').value.trim().toLocaleLowerCase();
     renderInstalledCards();update();
   });
-  for(const value of ['all','current','disabled'])
-    registerAction(actionName('local-filter-'+value,'click'),()=>{
-      localFilter=value;renderInstalledCards();update();
-    });
   registerAction('taskSearchInput',()=>{catalogQuery=ui('task-search').value.trim().toLocaleLowerCase();renderCatalogCards();});
   registerAction('taskCatalogFilterClick',filter=>{
     if(!['all','installed','available','candidate'].includes(filter))return;
@@ -1368,6 +1408,27 @@ export function createTaskWorkbench({client,host,currentPageTarget,api=globalThi
     if(myView.data.taskRunSheet?.pageRequestId)dismissedPageRequests.add(myView.data.taskRunSheet.pageRequestId);
     rememberParams();persistParams();sheetSequence++;sheetBusy=false;sheetValidation=null;sheetPageRequest=null;
     myView.project('taskRunSheet',null);
+  });
+  registerAction('taskSheetRuntimeRecoveryClick',async(event,expected)=>{
+    const sheet=myView.data.taskRunSheet,sequence=sheetSequence;
+    if(!event?.isTrusted||sheetBusy||working||disposed||sheet?.source!=='my'||sheet.phase!=='editing'||
+      running||host.currentRun||sharedPreparation||!myView.data.taskRuntimeRecovery||
+      !sameInstallation(sheet.identity,expected))return false;
+    const current=()=>!disposed&&sequence===sheetSequence&&myView.data.taskRunSheet?.source==='my';
+    const validate=()=>{
+      if(!current()||!sameInstallation(expected,taskIdentity(installedRow())))
+        throw {code:'E_TASK_CHANGED',message:'任务安装身份已变化，请重新打开核对'};
+      if(working||running||host.currentRun||sharedPreparation)
+        throw {code:'E_TASK_BUSY',message:'已有任务或共享准备，请先核对原操作'};
+    };
+    sheetBusy=true;rememberParams();persistParams();sheetStatus('正在读取同一固定版本；只导入开发草稿，不运行或安装。');update();
+    try{
+      await inspectPreparation();validate();
+      const imported=await fork(event,{validate});
+      if(imported&&current())myView.actions.taskSheetClose();
+      return imported;
+    }catch(error){if(current())sheetStatus(formatTaskError(error));return false;}
+    finally{if(current()){sheetBusy=false;myView.data.taskRunSheet={...myView.data.taskRunSheet,busy:false};update();}}
   });
   registerAction('taskSheetPrepareClick',prepareSheet);
   registerAction('taskSheetReprepareClick',event=>{
@@ -1553,7 +1614,7 @@ export function createTaskWorkbench({client,host,currentPageTarget,api=globalThi
     if(disposed||!selectedRow)return false;
     if(navigate('tasks')===false)return false;
     // A manager handoff must not leave its explicitly selected task filtered out.
-    localQuery='';localFilter='all';ui('local-discover-search').value='';
+    localQuery='';ui('local-discover-search').value='';
     setTaskManagementMode(false);
     ui('task-installed-list').value=taskId;
     renderInstalledSelection();

@@ -300,3 +300,30 @@ test('modal-hidden zero sizes do not collapse a focused notice when the review c
   assert.equal(button.getAttribute('aria-expanded'),'true');
   assert.equal(f.document.activeElement,button);
 });
+
+for(const kind of ['inline','modal'])test(`visible ${kind} reviews hide notices and preserve their remaining reading time`,async t=>{
+  const f=await fixture(t,{clientHeight:36,messageHeight:36});
+  const parent=f.document.createElement('section'),review=f.document.createElement('div');
+  parent.hidden=true;
+  review.setAttribute(kind==='modal'?'aria-modal':'data-opendesk-pending-review',kind==='modal'?'true':'');
+  parent.append(review);
+  await React.act(async()=>{f.document.body.append(parent);await Promise.resolve();});
+  await f.show('先前成功',{type:'success',timeout:5000});
+  await f.tick(2000);
+  assert.equal(f.document.querySelector('.sidebar-tool-toast-stack').hasAttribute('hidden'),false,
+    'a review in a hidden view cannot hide feedback');
+  await React.act(async()=>{parent.hidden=false;await Promise.resolve();});
+  assert.equal(f.document.querySelector('.sidebar-tool-toast-stack').hasAttribute('hidden'),true,
+    'visible review buttons cannot be covered by old notices');
+  await f.show('审阅期间成功',{type:'success',timeout:5000});
+  await f.tick(10000);
+  assert.equal(f.view.getSnapshot().toasts.length,2,'neither receipt expires behind the review');
+  await React.act(async()=>{parent.hidden=true;await Promise.resolve();});
+  assert.equal(f.document.querySelector('.sidebar-tool-toast-stack').hasAttribute('hidden'),false);
+  await f.tick(2999);
+  assert.equal(f.view.getSnapshot().toasts.length,2);
+  await f.tick(1);
+  assert.deepEqual(f.view.getSnapshot().toasts.map(row=>row.message),['审阅期间成功']);
+  await f.tick(2000);
+  assert.equal(f.view.getSnapshot().toasts.length,0);
+});

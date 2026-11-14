@@ -23,7 +23,7 @@ export const DEVELOPER_FIELDS = {
     "type": "checkbox"
   },
   "developer-target-detail": {
-    "className": "od-disclosure"
+    "className": "developer-target-card"
   },
   "script-current-page-host": {
     "textContent": "正在识别…"
@@ -232,7 +232,7 @@ export const DEVELOPER_FIELDS = {
   },
   "program-generated-source": {},
   "manual-project-params-tools": {
-    "className": "developer-params od-disclosure od-disclosure--flat"
+    "className": "developer-params od-form-field"
   },
   "script-params": {
     "value": "{\"value\":0}"
@@ -252,8 +252,14 @@ export const DEVELOPER_FIELDS = {
     ],
     "value": ""
   },
-  "sdk-refresh": {
-    "textContent": "刷新网页列表"
+  "sdk-refresh": {},
+  "sdk-page-title": {
+    "textContent": "正在识别当前网页…"
+  },
+  "sdk-page-url": {},
+  "sdk-use-current": {
+    "textContent": "使用当前网页",
+    "hidden": true
   },
   "sdk-document": {
     "disabled": true,
@@ -288,7 +294,7 @@ export const DEVELOPER_FIELDS = {
     "dataset": {
       "state": "idle"
     },
-    "textContent": "请选择网页、文档和服务"
+    "textContent": "请选择网页和当前文档，核对所选开发服务"
   },
   "sdk-result": {
     "className": "od-result"
@@ -341,7 +347,7 @@ export const DEVELOPER_FIELDS = {
     "textContent": "重新检测"
   },
   "developer-results-panel": {
-    "className": "developer-results od-disclosure"
+    "className": "developer-results"
   },
   "script-result-kind": {
     "textContent": "尚无结果"
@@ -422,7 +428,7 @@ export const DEVELOPER_FIELDS = {
     "className": "identity"
   },
   "developer-program-management": {
-    "className": "od-disclosure"
+    "className": "developer-management"
   },
   "script-version-identity": {
     "className": "developer-management-section"
@@ -593,7 +599,8 @@ export const DEVELOPER_FIELDS = {
     "textContent": "刷新授权状态"
   },
   "script-allow-cookies": {
-    "type": "checkbox"
+    "type": "checkbox",
+    "checked": true
   },
   "script-delete": {
     "disabled": true,

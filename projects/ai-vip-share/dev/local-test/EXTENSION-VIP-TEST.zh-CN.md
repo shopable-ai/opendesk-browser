@@ -1,5 +1,17 @@
 # AI VIP Share：完善扩展到模拟 VIP 网站的真实操作链
 
+<a id="activation-login-audit-20261115"></a>
+
+## 2026-11-15 当前阶段：需求与证据梳理，未继续执行登录
+
+用户最新要求先梳理目的、需求、文件调用链、测试步骤和证据断点。本轮结果统一写入原[README 的当前梳理](../../README.zh-CN.md#activation-login-audit-20261115)，含两条链路图、保留 K1–K9/F-01–F-06 的映射、各入口差异、最短正常/异常测试步骤和最小后续建议；不另建总计划或验收合同。**完整目标尚未完成证明**，本次没有新的功能代码或产品运行 PASS。
+
+新增只读发现：当前开发 Controller 将 member 读发为 POST `{}`，Cookie local-fixture 仅处理 GET，VM helper及未启用wireNetwork的HTTP集成测试会将POST改成GET；支持POST的Market×SQLite Demo则没有共享分配/Cookie交付。这是源码合同与测试覆盖断点，尚未本轮实机复现。另有shared-a/b共用同一外部Cookie源、缺少真实目标账号绑定证据；不能把本地额度、历史新登录与当前Controller接续拼成全链通过。
+
+开始时在main、本项目clean，24c715a5c存在；正式1.4.35包摘要重算相符且仍不含该修复，编译buildId读回相符，共享CSS的其他owner改动保留。当前安装/运行版本与revision、服务进程/账本、授权文件有效项、网站登录/身份均未重查。本轮只修正文档，未跑测试/构建，未启动环境、打包/安装/兑换、读写授权Cookie、操作Profile/共享watcher、创建分支/worktree/PR或提交推送。两条只读审计子任务已结束释放。
+
+以下按日期保留历史记录；其中“下一条实际操作”、清登录基线、21+1批次和旧验收清单不是本轮执行指令。梳理交付后停止，等待下一阶段安排。
+
 <a id="activation-login-continuation-20261115"></a>
 
 ## 2026-11-15 激活后接续网站登录：源码修复，真实登录仍未验证

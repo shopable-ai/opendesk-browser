@@ -30,7 +30,7 @@ test.before(async()=>{
 });
 test.after(()=>rm(artifacts,{recursive:true,force:true}));
 
-async function fixture({twoTasks=false,paramsSchema,otherParamsSchema,pageDiscovery=false,configure}={}){
+async function fixture({twoTasks=false,paramsSchema,otherParamsSchema,pageDiscovery=false,configure,notify,taskNotify,importDraft=()=>{},developerView}={}){
   const {document:doc,window}=parseHTML('<html><body><nav class="workbench-nav"></nav><div id="outside"></div><div id="mount"></div></body></html>');
   // Advertise the input events used by this fixture so React does not select
   // its legacy IE key-event value tracker (not implemented by linkedom).
@@ -91,11 +91,12 @@ async function fixture({twoTasks=false,paramsSchema,otherParamsSchema,pageDiscov
     subscribeInstalledTasks(fn){installedSubscribers.add(fn);return ()=>installedSubscribers.delete(fn);},
     controller:{async snapshotControllerRun(){return structuredClone({runs:state.runs,results:state.results});}},
     async request(action,input){state.calls.push({action,input:structuredClone(input)});
+      if(['setInstalledTaskEnabled','uninstallTask','getTaskCandidate'].includes(action)&&state.managerRequest)return state.managerRequest(action,input);
       if(['inspectTaskRun','cancelTaskRun','prepareTaskRun'].includes(action)&&state.taskRunRequest)return state.taskRunRequest(action,input);
       if(['readPageTaskRequest','listPageTaskRequests'].includes(action)&&state.pageTaskRequest)return state.pageTaskRequest(action,input);
       if(action==='inspectTaskRun')return null;
       if(action==='listPageTaskRequests')return {requests:[]};
-      if(action==='listTaskCatalog')return structuredClone({catalog:state.catalog,installed:state.installed});
+      if(action==='listTaskCatalog')return state.catalogRequest?state.catalogRequest():structuredClone({catalog:state.catalog,installed:state.installed});
       if(action==='importTaskPackage'){
         if(state.importConflict)throw Object.assign(Error('immutable version conflict'),{code:'E_REQUEST_CONFLICT'});
         return {taskId:input.package?.manifest?.taskId||'imported.task',
@@ -139,9 +140,9 @@ async function fixture({twoTasks=false,paramsSchema,otherParamsSchema,pageDiscov
     tabs:{create:async()=>({id:4})}};
   const view=createMyWorkbenchView({document:doc});
   configure?.({state,installed,candidate});
-  const workbench=createTaskWorkbench({developerView:createDeveloperView(),client,host,currentPageTarget,api,document:doc,myView:view,
-    reactNavigation:{ownsPages:true,connect:()=>{},select:()=>{}},importDraft:()=>{}});
-  const scheduler=createScheduledTaskWorkbench({client,host,taskWorkbench:workbench,api,document:doc,myView:view});
+  const workbench=createTaskWorkbench({developerView:developerView??createDeveloperView(),client,host,currentPageTarget,api,document:doc,myView:view,
+    reactNavigation:{ownsPages:true,connect:()=>{},select:()=>{}},importDraft,notify:taskNotify});
+  const scheduler=createScheduledTaskWorkbench({client,host,taskWorkbench:workbench,api,document:doc,myView:view,notify,developerView});
   await tick();await tick();
   const dispatch=async(id,event='click')=>{await React.act(async()=>{await view.actions[id.replace(/-([a-z])/g,(_,letter)=>letter.toUpperCase())+event[0].toUpperCase()+event.slice(1)]?.(native());await tick();});};
   const input=async(id,value,event='input')=>{await React.act(async()=>{view.field(id).value=value;await view.actions[id.replace(/-([a-z])/g,(_,letter)=>letter.toUpperCase())+event[0].toUpperCase()+event.slice(1)]?.(native());await tick();});};
@@ -158,10 +159,50 @@ async function fixture({twoTasks=false,paramsSchema,otherParamsSchema,pageDiscov
     return event;
   };
   return {state,host,view,workbench,scheduler,doc,dispatch,input,mount,fire,
+    notifyInstalledTasks(taskId){for(const listener of installedSubscribers)listener({type:'installed-task-changed',taskId});},
     notifyPageTasks(){for(const listener of pageTaskSubscribers)listener();},
     counts:()=>[runSubscribers.size,pageSubscribers.size,installedSubscribers.size,connectionSubscribers.size,permissionAdded.size,permissionRemoved.size],
     dispose(){scheduler.dispose();workbench.dispose();}};
 }
+
+test('My search renders only keywords, searches every installed task and restores the list without losing drafts',async()=>{
+  const f=await fixture({twoTasks:true,configure({state}){
+    state.installed[1].enabled=false;
+    state.catalog[1].manifest.siteOrigins=['https://elsewhere.example'];
+    state.catalog[1].manifest.description='另一个网站的摘要';
+  }});let root;
+  try{
+    root=await f.mount();
+    await f.dispatch('task-manage-toggle');
+    const panel=f.doc.getElementById('task-search-panel');
+    assert.equal(panel.hidden,false);
+    assert.equal(panel.getAttribute('aria-label'),'搜索已安装任务');
+    assert.equal(panel.querySelectorAll('input[type="search"]').length,1);
+    assert.equal(panel.querySelectorAll('button').length,0,'keyword search has no category controls');
+    const ids=()=>[...f.doc.querySelectorAll('.task-card')].map(node=>node.dataset.taskId);
+    assert.deepEqual(ids(),['test.task','other.task']);
+    await f.input('task-param-name','保留参数草稿');
+    const param=f.doc.getElementById('task-param-name');
+    await f.input('local-discover-search','另一个网站的摘要');
+    assert.deepEqual(ids(),['other.task'],'disabled, other-site tasks are still searchable by summary');
+    assert.match(f.doc.querySelector('.task-card').textContent,/已停用/);
+    assert.equal(f.view.field('task-run').disabled,true,'a hidden selection cannot run');
+    assert.equal(f.view.data.taskRows.selectedId,'test.task');
+    await f.input('local-discover-search','');
+    assert.deepEqual(ids(),['test.task','other.task']);
+    assert.equal(f.doc.getElementById('task-param-name'),param);
+    assert.equal(param.value,'保留参数草稿');
+    assert.equal(f.view.field('task-run').disabled,false);
+    await f.input('local-discover-search','没有匹配的关键词');
+    assert.match(f.doc.querySelector('.task-search-empty').textContent,/清空搜索/);
+    await f.dispatch('task-manage-toggle');
+    assert.equal(panel.hidden,true);
+    assert.equal(f.doc.getElementById('local-discover-search').value,'');
+    assert.deepEqual(ids(),['test.task','other.task']);
+    assert.equal(f.state.starts.length,0);
+    assert.equal(f.state.permissionCalls.length,0);
+  }finally{if(root)await React.act(async()=>root.unmount());f.dispose();}
+});
 
 async function fillPlan(f,title='每天任务'){
   await React.act(async()=>f.scheduler.open());await f.dispatch('schedule-create');
@@ -169,6 +210,324 @@ async function fillPlan(f,title='每天任务'){
   await f.input('schedule-target','https://example.com/form');await f.input('schedule-kind','daily','change');
   await f.input('schedule-clock','09:00','change');
 }
+
+async function openScheduleManager(f){
+  await f.scheduler.open();await f.dispatch('schedule-open-manager');
+}
+
+function addNewInstalledTask(f,taskId='new.task'){
+  const installed={...f.state.installed[0],taskId,scriptId:`task:${taskId}:1.0.0`,
+    installationId:taskId==='new.task'?'33333333-3333-4333-8333-333333333333':'44444444-4444-4444-8444-444444444444'};
+  f.state.catalog.push({...f.state.catalog[0],...installed,
+    manifest:{...f.state.catalog[0].manifest,taskId,title:'新安装任务'}});
+  f.state.installed.push(installed);
+  return taskId;
+}
+
+test('schedule manager resume accepts cross-document installation while the creation intent remains active',async()=>{
+  const f=await fixture({developerView:createDeveloperView()});
+  try{
+    await openScheduleManager(f);await f.dispatch('schedule-manager-create');
+    const taskId=addNewInstalledTask(f);
+    // Match the cross-document Host event, without calling the local install callback.
+    f.notifyInstalledTasks(taskId);await tick();await tick();
+    assert.equal(f.scheduler.shown,true);
+    assert.equal(f.view.field('schedule-form').hidden,false);
+    assert.equal(f.view.field('schedule-task-select').value,taskId);
+  }finally{f.dispose();}
+});
+
+for(const restart of [false,true])test(`schedule manager resume ignores a delayed installation callback after ${restart?'a newer creation intent starts':'returning to management cancels its intent'}`,async()=>{
+  const f=await fixture({developerView:createDeveloperView()});
+  let release,pending;
+  try{
+    await openScheduleManager(f);await f.dispatch('schedule-manager-create');
+    const taskId=addNewInstalledTask(f);
+    const snapshot=structuredClone({catalog:f.state.catalog,installed:f.state.installed});
+    const delayed=new Promise(resolve=>{release=()=>resolve(snapshot);});
+    f.state.catalogRequest=()=>{delete f.state.catalogRequest;return delayed;};
+    pending=f.scheduler.onInstalled(taskId);
+    await openScheduleManager(f);
+    if(restart)await f.dispatch('schedule-manager-create');
+    release();await pending;
+    assert.equal(f.view.field('schedule-form').hidden,true,'a stale completion cannot open a plan form');
+    assert.equal(f.scheduler.shown,!restart);
+    if(restart){
+      const newerTaskId=addNewInstalledTask(f,'newer.task');
+      await f.scheduler.onInstalled(newerTaskId);
+      assert.equal(f.view.field('schedule-form').hidden,false,'the stale callback must not consume the newer intent');
+      assert.equal(f.view.field('schedule-task-select').value,newerTaskId);
+    }else assert.equal(f.view.field('schedule-task-manager').hidden,false);
+  }finally{release?.();await pending;f.dispose();}
+});
+
+test('schedule manager resume ignores enabling an old task while the creation intent remains active in Developer',async()=>{
+  const f=await fixture({developerView:createDeveloperView(),configure({installed}){installed.enabled=false;}});
+  try{
+    await openScheduleManager(f);await f.dispatch('schedule-manager-create');
+    f.state.installed[0].enabled=true;f.state.installed[0].generation++;
+    f.notifyInstalledTasks('test.task');await tick();await tick();
+    assert.equal(f.scheduler.shown,false,'enabling an old installation must leave Developer open');
+    assert.equal(f.view.field('schedule-form').hidden,true);
+    const taskId=addNewInstalledTask(f);
+    f.notifyInstalledTasks(taskId);await tick();await tick();
+    assert.equal(f.view.field('schedule-form').hidden,false,'the ignored toggle must preserve the genuine installation continuation');
+    assert.equal(f.view.field('schedule-task-select').value,taskId);
+  }finally{f.dispose();}
+});
+
+test('schedule manager resume ignores enabling an existing task after returning from new-task creation',async()=>{
+  const f=await fixture({developerView:createDeveloperView(),configure({installed}){installed.enabled=false;}});
+  try{
+    await openScheduleManager(f);await f.dispatch('schedule-manager-create');
+    await openScheduleManager(f);
+    f.state.installed[0].enabled=true;f.state.installed[0].generation++;
+    f.notifyInstalledTasks('test.task');await tick();await tick();
+    assert.equal(f.view.field('schedule-task-manager').hidden,false,'an enable event must not resume an abandoned installation flow');
+    assert.equal(f.view.field('schedule-form').hidden,true);
+  }finally{f.dispose();}
+});
+
+test('schedule manager resume ignores an uninstall event for the removed task while another task remains eligible',async()=>{
+  const f=await fixture({twoTasks:true,developerView:createDeveloperView()});
+  try{
+    await openScheduleManager(f);await f.dispatch('schedule-manager-create');
+    await openScheduleManager(f);
+    f.state.installed=f.state.installed.filter(row=>row.taskId!=='other.task');
+    f.notifyInstalledTasks('other.task');await tick();await tick();
+    assert.equal(f.view.field('schedule-task-manager').hidden,false);
+    assert.equal(f.view.field('schedule-form').hidden,true);
+    assert.deepEqual(f.view.data.managerRows.rows.map(row=>row.taskId),['test.task']);
+  }finally{f.dispose();}
+});
+
+test('schedule manager resume opens the plan form after a confirmed new eligible task installation',async()=>{
+  const f=await fixture({developerView:createDeveloperView()});
+  try{
+    await openScheduleManager(f);await f.dispatch('schedule-manager-create');
+    const taskId=addNewInstalledTask(f);
+    await f.scheduler.onInstalled(taskId);await tick();
+    assert.equal(f.view.field('schedule-form').hidden,false);
+    assert.equal(f.view.field('schedule-task-select').value,taskId);
+    assert.match(f.view.field('schedule-message').text,/新任务已验证安装/);
+  }finally{f.dispose();}
+});
+
+test('main task workspace keeps empty history discoverable and management available on demand',async()=>{
+  const f=await fixture();let root;
+  try{
+    root=await f.mount();
+    assert.deepEqual(f.view.data.taskSelection,{label:'就绪',tone:'positive'});
+    assert.equal(f.doc.getElementById('task-history-panel').hidden,false);
+    assert.match(f.doc.getElementById('task-history').textContent,/还没有运行记录/);
+    assert.equal(f.doc.getElementById('task-result-panel').hidden,true);
+    assert.equal(f.doc.getElementById('task-tools').parentElement.hidden,true);
+    const scope=f.doc.getElementById('task-installed-detail').textContent;
+    assert.match(scope,/安装版本v1\.0\.0 · 可用/);
+    assert.match(scope,/此处仅展示已安装范围，不申请或扩大权限/);
+    const starts=f.state.starts.length;
+    await React.act(async()=>{f.view.data.taskRows.onManage('test.task');await tick();});
+    assert.equal(f.doc.getElementById('task-tools').parentElement.hidden,false);
+    assert.equal(f.doc.getElementById('task-tools').open,true);
+    assert.equal(f.state.starts.length,starts,'opening management never runs a task');
+    assert.ok(f.doc.getElementById('task-uninstall'));
+  }finally{if(root)await React.act(async()=>root.unmount());f.dispose();}
+});
+
+test('main task result keeps its owner and redaction, then clears when another task is selected',async()=>{
+  const f=await fixture({twoTasks:true,configure({state,installed}){
+    state.runs.push({runId:'finished-task',state:'completed',createdAt:1794700800000,revision:{scriptId:installed.scriptId}});
+    state.results.push({runId:'finished-task',state:'completed',revision:{scriptId:installed.scriptId},
+      outcome:{ok:true,valueWire:encodeValue({summary:'任务结果',token:'private-token'})}});
+  }});let root;
+  try{
+    root=await f.mount();
+    assert.match(f.doc.querySelector('.task-result-owner').textContent,/已验证任务/);
+    assert.match(f.doc.getElementById('task-result').textContent,/已隐藏/);
+    assert.doesNotMatch(f.doc.getElementById('task-result').textContent,/private-token/);
+    assert.equal(f.doc.getElementById('task-result-reveal').hidden,false);
+    await f.dispatch('task-result-reveal');
+    assert.match(f.doc.getElementById('task-result').textContent,/private-token/);
+    await React.act(async()=>{f.view.data.taskRows.onSelect('other.task');await tick();});
+    assert.equal(f.view.data.taskResultMeta,null);
+    assert.equal(f.doc.getElementById('task-result-panel').hidden,true);
+    assert.equal(f.doc.getElementById('task-result-reveal').hidden,true);
+    assert.equal(f.doc.getElementById('task-history-panel').hidden,false);
+    assert.match(f.doc.getElementById('task-history').textContent,/还没有运行记录/);
+  }finally{if(root)await React.act(async()=>root.unmount());f.dispose();}
+});
+
+test('main task failure preserves the real error and its recovery hint',async()=>{
+  const f=await fixture({configure({state,installed}){
+    state.runs.push({runId:'failed-task',state:'failed',revision:{scriptId:installed.scriptId}});
+    state.results.push({runId:'failed-task',revision:{scriptId:installed.scriptId},
+      outcome:{ok:false,error:{code:'E_TARGET',message:'找不到文章正文'}}});
+  }});let root;
+  try{
+    root=await f.mount();
+    const notice=f.doc.querySelector('.task-outcome-notice[role=alert]');
+    assert.equal(notice.dataset.tone,'error');
+    assert.match(notice.textContent,/上次运行失败.*E_TARGET.*找不到文章正文.*请检查目标网页/s);
+    assert.match(f.doc.getElementById('task-result').textContent,/E_TARGET/);
+    assert.equal(f.state.starts.length,0);
+  }finally{if(root)await React.act(async()=>root.unmount());f.dispose();}
+});
+
+for(const scenario of ['disabled','unmatched','unknown'])test(`main task summary names ${scenario} without claiming readiness`,async()=>{
+  const f=await fixture({configure({state,installed,candidate}){
+    if(scenario==='disabled')installed.enabled=false;
+    if(scenario==='unmatched')candidate.manifest.siteOrigins=['https://other.example'];
+    if(scenario==='unknown')state.runs.push({runId:'unknown-task',state:'paused_unknown',revision:{scriptId:installed.scriptId}});
+  }});let root;
+  try{
+    assert.equal(f.view.data.taskSelection.label,{disabled:'已停用',unmatched:'其他网站',unknown:'结果未知'}[scenario]);
+    if(scenario==='unknown'){
+      assert.equal(f.view.field('task-current-site').text,'先核对原运行记录');
+      root=await f.mount();
+      assert.equal(f.doc.getElementById('task-result-panel').hidden,true);
+      const notice=f.doc.querySelector('.task-outcome-notice[role=alert]');
+      assert.equal(notice.dataset.tone,'warning');
+      assert.match(notice.textContent,/暂不重新运行/);
+      await f.fire(notice.querySelector('button'),'click');
+      assert.equal(f.view.field('task-history-panel').open,true);
+    }
+    else assert.equal(f.view.field('task-run').disabled,true);
+    assert.equal(f.state.starts.length,0,'reading a summary never executes a task');
+  }finally{if(root)await React.act(async()=>root.unmount());f.dispose();}
+});
+
+test('schedule manager searches description and restores results when the query is cleared',async()=>{
+  const f=await fixture({twoTasks:true,configure({state}){
+    state.catalog[1].manifest.description='独有用途：每周归档';
+  }});
+  try{
+    await openScheduleManager(f);
+    await f.input('schedule-manager-search','每周归档');
+    assert.deepEqual(f.view.data.managerRows.rows.map(row=>row.taskId),['other.task']);
+    assert.equal(f.view.data.managerRows.rows[0].description,'独有用途：每周归档');
+    await f.input('schedule-manager-search','');
+    assert.equal(f.view.data.managerRows.rows.length,2);
+  }finally{f.dispose();}
+});
+
+test('schedule manager filters installed status and restores all rows when reset',async()=>{
+  const f=await fixture({twoTasks:true,configure({state}){state.installed[1].enabled=false;}});
+  try{
+    await openScheduleManager(f);
+    for(const [filter,ids]of [['disabled',['other.task']],['enabled',['test.task']],['all',['test.task','other.task']]]){
+      await f.input('schedule-manager-filter',filter,'change');
+      assert.deepEqual(f.view.data.managerRows.rows.map(row=>row.taskId),ids);
+    }
+  }finally{f.dispose();}
+});
+
+for(const enabled of [true,false])test(`schedule manager ${enabled?'disable':'enable'} success notifies without clearing an unrelated persistent error`,async()=>{
+  const notifications=[];
+  const f=await fixture({notify:(...args)=>notifications.push(args),configure({installed}){installed.enabled=enabled;}});
+  try{
+    await openScheduleManager(f);
+    const row=f.view.data.managerRows.rows[0];
+    Object.assign(f.view.field('schedule-message'),{text:'另一个计划的持久错误',dataset:{state:'error'}});
+    f.view.data.managerRows.onToggle(row);await tick();await tick();
+    assert.deepEqual(f.state.calls.find(call=>call.action==='setInstalledTaskEnabled').input,{
+      taskId:row.taskId,version:row.version,enabled:!enabled,
+      expectedGeneration:row.generation,expectedInstallationId:row.installationId});
+    assert.equal(f.view.data.managerRows.rows[0].enabled,!enabled);
+    assert.equal(f.view.field('schedule-message').text,'另一个计划的持久错误');
+    assert.equal(f.view.field('schedule-message').dataset.state,'error');
+    assert.equal(notifications.length,1);
+    assert.match(notifications[0][0],enabled?/任务已停用/:/任务已启用/);
+    assert.equal(notifications[0][1].type,'success');
+  }finally{f.dispose();}
+});
+
+test('schedule manager RPC rejection keeps a persistent error without success notification',async()=>{
+  const notifications=[];
+  const f=await fixture({notify:(...args)=>notifications.push(args),configure({state}){
+    state.managerRequest=()=>{throw Object.assign(Error('安装身份冲突'),{code:'E_REVISION'});};
+  }});
+  try{
+    await openScheduleManager(f);
+    f.view.data.managerRows.onToggle(f.view.data.managerRows.rows[0]);await tick();await tick();
+    assert.match(f.view.field('schedule-message').text,/停用任务未完成：安装身份冲突/);
+    assert.equal(f.view.field('schedule-message').dataset.state,'error');
+    assert.equal(f.view.data.managerRows.rows[0].enabled,true);
+    assert.deepEqual(notifications,[]);
+    assert.equal(f.state.calls.filter(call=>call.action==='setInstalledTaskEnabled').length,1);
+  }finally{f.dispose();}
+});
+
+for(const operation of ['copy','uninstall'])test(`schedule manager ${operation} review cancel clears intent without mutation`,async()=>{
+  const drafts=[];
+  const f=await fixture({importDraft:source=>drafts.push(source)});let root;
+  try{
+    await openScheduleManager(f);
+    root=await f.mount();
+    const row=f.view.data.managerRows.rows[0],before=structuredClone(f.state.installed);
+    const start=f.state.calls.length;
+    await React.act(async()=>f.view.data.managerRows[operation==='copy'?'onCopy':'onUninstall'](row));
+    assert.equal(f.view.field(`schedule-${operation==='copy'?'copy':'uninstall'}-confirm`).hidden,false);
+    const review=f.doc.getElementById(`schedule-${operation}-confirm`);
+    const description=f.doc.getElementById(`schedule-${operation}-label`);
+    assert.equal(review.hidden,false);
+    assert.equal(review.getAttribute('role'),'group');
+    assert.ok(review.getAttribute('aria-label')?.trim(),'review group has an accessible name');
+    for(const control of [review,f.doc.getElementById(`schedule-${operation}-yes`),f.doc.getElementById(`schedule-${operation}-no`)]){
+      const ids=control.getAttribute('aria-describedby')?.trim().split(/\s+/)||[];
+      assert.ok(ids.includes(description.id),'group and both decisions reference the review description');
+      for(const id of ids)assert.ok(f.doc.getElementById(id),'every description reference resolves in the mounted DOM');
+    }
+    assert.equal(description.closest('[hidden]'),null,'the described consequences are available during review');
+    assert.ok(description.textContent.includes(row.title),'description identifies the reviewed task');
+    assert.ok(description.textContent.includes('v'+row.version),'description identifies the fixed version');
+    assert.match(description.textContent,operation==='copy'?/未保存的源码与修改将被替换/:/后续计划可能无法运行/);
+    await f.dispatch(`schedule-${operation==='copy'?'copy':'uninstall'}-no`);
+    assert.equal(f.view.field(`schedule-${operation==='copy'?'copy':'uninstall'}-confirm`).hidden,true);
+    await f.dispatch(`schedule-${operation==='copy'?'copy':'uninstall'}-yes`);
+    assert.deepEqual(f.state.calls.slice(start),[],'neither review, cancel nor stale confirmation calls Host');
+    assert.deepEqual(drafts,[]);
+    assert.deepEqual(f.state.installed,before);
+  }finally{if(root)await React.act(async()=>root.unmount());f.dispose();}
+});
+
+for(const [key,value]of Object.entries({version:'2.0.0',manifestHash:'c'.repeat(64),generation:2,
+  installationId:'22222222-2222-4222-8222-222222222222'})){
+  test(`schedule manager copy rejects ${key} drift during candidate read before replacing a draft`,async()=>{
+    const drafts=[];
+    const f=await fixture({importDraft:source=>drafts.push(source),configure({state,installed}){
+      state.managerRequest=(action)=>{
+        assert.equal(action,'getTaskCandidate');
+        const result={taskId:installed.taskId,version:installed.version,manifestHash:installed.manifestHash,
+          package:{sourceUtf8:'unapplied draft'}};
+        state.installed[0]={...installed,[key]:value};
+        return result;
+      };
+    }});
+    try{
+      await openScheduleManager(f);
+      f.view.data.managerRows.onCopy(f.view.data.managerRows.rows[0]);
+      await f.dispatch('schedule-copy-yes');
+      assert.match(f.view.field('schedule-message').text,/任务安装或授权在复制期间已变更/);
+      assert.equal(f.view.field('schedule-message').dataset.state,'error');
+      assert.deepEqual(drafts,[]);
+      assert.equal(f.state.calls.some(call=>['uninstallTask','setInstalledTaskEnabled','saveSchedule'].includes(call.action)),false);
+    }finally{f.dispose();}
+  });
+}
+
+test('schedule manager uninstall sends the reviewed fixed version and installation fences',async()=>{
+  const f=await fixture();
+  try{
+    await openScheduleManager(f);
+    const row=f.view.data.managerRows.rows[0];
+    f.view.data.managerRows.onUninstall(row);
+    await f.dispatch('schedule-uninstall-yes');
+    assert.deepEqual(f.state.calls.find(call=>call.action==='uninstallTask').input,{
+      taskId:row.taskId,version:row.version,expectedGeneration:row.generation,expectedInstallationId:row.installationId});
+    assert.equal(f.view.field('schedule-uninstall-confirm').hidden,true);
+    assert.deepEqual(f.view.data.managerRows.rows,[]);
+  }finally{f.dispose();}
+});
 
 test('row parameter action selects its own task, opens the one Sheet and retains other drafts without running',async()=>{
   const f=await fixture({twoTasks:true});let root;
@@ -692,7 +1051,7 @@ test('numeric boundaries, unbounded long strings and invalid values retain the o
   }finally{if(root)await React.act(async()=>root.unmount());f.dispose();}
 });
 
-for(const dismissal of ['cancel button','close button','native cancel','native close']){
+for(const dismissal of ['cancel button','close button','native cancel','native close','backdrop click']){
   test(`parameter Sheet retains the same input and draft after ${dismissal} and reopening without starting`,async()=>{
     const f=await fixture();let root;
     try{
@@ -705,6 +1064,11 @@ for(const dismissal of ['cancel button','close button','native cancel','native c
       const permissions=f.state.permissionCalls.length;
       if(dismissal==='native close')await React.act(async()=>{sheet.close();await tick();});
       else if(dismissal==='native cancel')await f.fire(sheet,'cancel');
+      else if(dismissal==='backdrop click'){
+        sheet.getBoundingClientRect=()=>({left:0,right:360,top:200,bottom:800});
+        await f.fire(sheet,'pointerdown',{button:0,clientX:20,clientY:80});
+        await f.fire(sheet,'click',{clientX:20,clientY:80});
+      }
       else await f.fire(dismissal==='close button'?sheet.querySelector('[aria-label="关闭任务参数"]'):
         [...sheet.querySelectorAll('button')].find(node=>node.textContent==='取消'),'click');
       assert.equal(sheet.open,false);
@@ -716,6 +1080,36 @@ for(const dismissal of ['cancel button','close button','native cancel','native c
     }finally{if(root)await React.act(async()=>root.unmount());f.dispose();}
   });
 }
+
+test('shared Sheet backdrop ignores interior clicks and drags; WebFlow dismissal only retains the draft',async()=>{
+  const f=await fixture();let root;
+  try{
+    root=await f.mount();
+    const task={...f.view.data.taskRows.identity,contentHash:f.state.catalog[0].manifest.program.sourceHash};
+    await React.act(async()=>{await f.workbench.openTaskRunSheet({task,binding:{appId:'webflow'}});await tick();});
+    const sheet=f.doc.getElementById('task-parameters-sheet'),name=f.doc.getElementById('task-param-name');
+    sheet.getBoundingClientRect=()=>({left:0,right:360,top:200,bottom:800});
+    await f.input('task-param-name','WebFlow 草稿');
+    const inside={button:0,clientX:20,clientY:240},outside={button:0,clientX:20,clientY:80};
+    for(const [down,up] of [[inside,inside],[inside,outside],[outside,inside]]){
+      await f.fire(sheet,'pointerdown',down);await f.fire(sheet,'click',up);
+      assert.equal(sheet.open,true,'dialog padding and boundary-crossing gestures do not dismiss');
+    }
+    await f.fire(name,'pointerdown',inside);await f.fire(sheet,'click',outside);
+    assert.equal(sheet.open,true,'dragging from a field does not dismiss');
+    await f.fire(sheet,'pointerdown',{...outside,button:2});await f.fire(sheet,'click',outside);
+    assert.equal(sheet.open,true,'secondary button does not dismiss');
+    await f.fire(sheet,'pointerdown',outside);await f.fire(sheet,'pointercancel');await f.fire(sheet,'click',outside);
+    assert.equal(sheet.open,true,'cancelled gestures do not dismiss');
+    const calls=f.state.calls.length,permissions=f.state.permissionCalls.length;
+    await f.fire(sheet,'pointerdown',outside);await f.fire(sheet,'click',outside);
+    assert.equal(sheet.open,false);assert.equal(f.view.data.taskRunSheet,null);
+    assert.equal(f.state.calls.length,calls,'dismissal does not prepare, execute or cancel a task request');
+    assert.equal(f.state.starts.length,0);assert.equal(f.state.permissionCalls.length,permissions);
+    await React.act(async()=>{await f.workbench.openTaskRunSheet({task,binding:{appId:'webflow'}});await tick();});
+    assert.equal(sheet.open,true);assert.equal(name.value,'WebFlow 草稿');
+  }finally{if(root)await React.act(async()=>root.unmount());f.dispose();}
+});
 
 test('hiding My leaves the hoisted parameter Sheet visible with the same draft on return',async()=>{
   const f=await fixture();let root;
@@ -820,6 +1214,117 @@ test('correcting a parameter clears its obsolete summary without clearing other 
     assert.equal(f.view.field('task-status').text,'权限失效');
     assert.equal(f.state.starts.length,0);
   }finally{if(root)await React.act(async()=>root.unmount());f.dispose();}
+});
+
+for(const stale of ['installed','candidate','stage'])test(`runtime recovery explains ${stale} blocking without enabling Run`,async()=>{
+  const f=await fixture({configure({installed,candidate}){
+    if(stale==='stage')candidate.stage='verified';else (stale==='installed'?installed:candidate).runtimeCurrent=false;
+  }});let root;
+  try{
+    root=await f.mount();await f.fire(f.doc.getElementById('task-parameters-open'),'click');
+    const sheet=f.doc.getElementById('task-parameters-sheet');
+    assert.match(sheet.textContent,stale==='stage'?/尚未设为可用/:/运行时已更新.*同一固定版本.*确认安装/);
+    assert.equal([...sheet.querySelectorAll('button')].some(b=>b.textContent==='在开发中重新验证'),stale!=='stage');
+    assert.equal(f.doc.getElementById('task-run').disabled,true);
+    await React.act(async()=>assert.equal(f.view.actions.taskRunClick(native(),f.view.data.taskRunSheet.identity),false));
+    assert.equal(f.state.starts.length,0);assert.equal(f.state.permissionCalls.length,0);
+  }finally{if(root)await React.act(async()=>root.unmount());f.dispose();}
+});
+
+for(const outcome of ['success','cancel','error','navigation cancelled','generation','installationId','manifestHash','candidate identity','host busy','shared preparation']){
+  test(`runtime recovery ${outcome} imports only a draft and preserves the Sheet until accepted`,async()=>{
+    const drafts=[];
+    const f=await fixture({importDraft:source=>{
+      if(outcome==='error')throw Error('编辑器拒绝导入');
+      if(outcome==='cancel')return false;
+      drafts.push(source);
+    },configure({state,installed,candidate}){
+      installed.runtimeCurrent=false;candidate.runtimeCurrent=false;
+      state.managerRequest=()=>{
+        if(['generation','installationId','manifestHash'].includes(outcome))
+          state.installed[0]={...installed,[outcome]:outcome==='generation'?2:'changed'};
+        return {taskId:installed.taskId,version:installed.version,
+          manifestHash:outcome==='candidate identity'?'wrong':installed.manifestHash,package:{sourceUtf8:'fixed source'}};
+      };
+    }});let root;
+    try{
+      root=await f.mount();await f.fire(f.doc.getElementById('task-parameters-open'),'click');
+      await f.input('task-param-name','保留参数');
+      const identity={...f.view.data.taskRunSheet.identity};
+      if(outcome==='navigation cancelled')f.workbench.connectToolsView((_active,name)=>name==='develop'?false:undefined);
+      if(outcome==='host busy')await React.act(async()=>f.host.forceRun('other-run'));
+      if(outcome==='shared preparation')f.state.taskRunRequest=async()=>({preparation:{preparationId:'other',state:'prepared'}});
+      const start=f.state.calls.length;
+      await React.act(async()=>{
+        assert.equal(await f.view.actions.taskSheetRuntimeRecoveryClick({isTrusted:false},identity),false);
+        await f.view.actions.taskSheetRuntimeRecoveryClick(native(),identity);await tick();
+      });
+      assert.equal(f.doc.getElementById('task-parameters-sheet').open,outcome!=='success');
+      assert.equal(f.doc.documentElement.dataset.opendeskTab,outcome==='success'?'develop':'tasks');
+      assert.equal(f.view.field('task-param-name').value,'保留参数');
+      assert.deepEqual(drafts,['success','navigation cancelled'].includes(outcome)?['fixed source']:[]);
+      assert.ok(f.state.calls.slice(start).every(call=>['inspectTaskRun','getTaskCandidate','listTaskCatalog'].includes(call.action)));
+      assert.equal(f.state.starts.length,0);assert.equal(f.state.permissionCalls.length,0);
+      if(outcome==='success'){
+        f.state.installed[0].runtimeCurrent=true;f.state.catalog[0].runtimeCurrent=true;
+        await React.act(async()=>{await f.workbench.refresh();f.workbench.navigate('tasks');});
+        await f.fire(f.doc.getElementById('task-parameters-open'),'click');
+        await React.act(async()=>{assert.equal(f.view.actions.taskRunClick(native(),f.view.data.taskRunSheet.identity),true);await tick();});
+        assert.equal(f.state.starts.length,1);assert.equal(f.state.starts[0].params.name,'保留参数');
+        await React.act(async()=>{f.host.finish();await tick();});
+      }
+    }finally{if(root)await React.act(async()=>root.unmount());f.dispose();}
+  });
+}
+
+for(const transition of ['repeat','close and reopen','host starts'])test(`runtime recovery pending read rejects ${transition} without stale navigation`,async()=>{
+  let release;const drafts=[];
+  const f=await fixture({importDraft:source=>drafts.push(source),configure({state,installed,candidate}){
+    installed.runtimeCurrent=false;candidate.runtimeCurrent=false;
+    state.managerRequest=()=>new Promise(resolve=>{release=()=>resolve({taskId:installed.taskId,
+      version:installed.version,manifestHash:installed.manifestHash,package:{sourceUtf8:'fixed source'}});});
+  }});let root,pending;
+  try{
+    root=await f.mount();await f.fire(f.doc.getElementById('task-parameters-open'),'click');
+    const identity={...f.view.data.taskRunSheet.identity};
+    await React.act(async()=>{pending=f.view.actions.taskSheetRuntimeRecoveryClick(native(),identity);await tick();});
+    assert.equal(typeof release,'function');
+    assert.equal(f.view.data.taskRunSheet.busy,true);
+    await React.act(async()=>assert.equal(await f.view.actions.taskSheetRuntimeRecoveryClick(native(),identity),false));
+    if(transition==='close and reopen'){
+      await React.act(async()=>f.view.actions.taskSheetClose());
+      await f.fire(f.doc.getElementById('task-parameters-open'),'click');
+    }
+    if(transition==='host starts')await React.act(async()=>f.host.forceRun('other-run'));
+    await React.act(async()=>{release();await pending;await tick();});
+    assert.deepEqual(drafts,transition==='repeat'?['fixed source']:[]);
+    assert.equal(f.doc.getElementById('task-parameters-sheet').open,transition!=='repeat');
+    assert.equal(f.doc.documentElement.dataset.opendeskTab,transition==='repeat'?'develop':'tasks');
+    assert.equal(f.state.calls.filter(call=>call.action==='getTaskCandidate').length,1);
+    assert.equal(f.state.starts.length,0);assert.equal(f.state.permissionCalls.length,0);
+  }finally{release?.();if(pending)await pending;if(root)await React.act(async()=>root.unmount());f.dispose();}
+});
+
+test('ordinary Run admits only one start while permission is pending and while its host runs',async()=>{
+  const f=await fixture();let root,release;
+  try{
+    root=await f.mount();await f.fire(f.doc.getElementById('task-parameters-open'),'click');
+    await f.input('task-param-name','合法参数');
+    f.state.pendingPermission=new Promise(resolve=>{release=resolve;});
+    const identity={...f.view.data.taskRunSheet.identity},permissions=f.state.permissionCalls.length;
+    await React.act(async()=>{
+      assert.equal(f.view.actions.taskRunClick(native(),identity),true);
+      assert.equal(f.view.actions.taskRunClick(native(),identity),false);
+      assert.equal(f.view.actions.taskRunClick(native(),identity),false);await tick();
+    });
+    assert.equal(f.state.permissionCalls.length,permissions+1);assert.equal(f.state.starts.length,0);
+    await React.act(async()=>assert.equal(f.view.actions.taskRunClick(native(),identity),false));
+    await React.act(async()=>{release(true);await tick();await tick();});
+    assert.equal(f.state.starts.length,1);assert.equal(f.state.starts[0].params.name,'合法参数');
+    await React.act(async()=>assert.equal(f.view.actions.taskRunClick(native(),identity),false));
+    assert.equal(f.state.permissionCalls.length,permissions+1);assert.equal(f.state.starts.length,1);
+    await React.act(async()=>{f.host.finish();await tick();});
+  }finally{release?.(true);if(root)await React.act(async()=>root.unmount());f.dispose();}
 });
 
 test('disabled task shows its disabled reason despite matching the current site',async()=>{
@@ -1244,8 +1749,8 @@ test('R1 file picker and drag-drop route through the same trusted import, never 
   try{
     root=await f.mount();
     await f.dispatch('task-open-catalog');
-    const dropZone=f.doc.getElementById('task-add-menu');
-    assert.equal(dropZone.getAttribute('aria-label'),'添加任务：可拖放单个文件');
+    const dropZone=f.doc.getElementById('task-add-dropzone');
+    assert.equal(dropZone.getAttribute('aria-label'),'任务文件拖放区');
     assert.equal(dropZone.getAttribute('tabindex'),'0');
     const js=importFixtureFile('sample.js','async function main(){ return 1; }');
     await React.act(async()=>{f.view.field('task-add-file').files=[js];
@@ -1256,6 +1761,85 @@ test('R1 file picker and drag-drop route through the same trusted import, never 
     assert.match(f.view.field('task-add-status').text,/未保存草稿/);
     assert.equal(f.state.calls.filter(x=>['importTaskPackage','installTask','runTask'].includes(x.action)).length,0);
     assert.equal(f.state.starts.length,0);
+  }finally{if(root)await React.act(async()=>root.unmount());f.dispose();}
+});
+
+test('Add Task keyboard closes from descendants, preserves IME and restores the trigger',async()=>{
+  const f=await fixture();let root;
+  try{
+    root=await f.mount();f.doc.documentElement.dataset.opendeskTab='tasks';
+    const trigger=f.doc.getElementById('task-open-catalog');let restored=0,picked=0;
+    let openingFocus=false;
+    f.doc.getElementById('task-add-import').focus=()=>{openingFocus=!f.doc.getElementById('task-add-menu').hidden;};
+    trigger.focus=()=>restored++;
+    f.doc.getElementById('task-add-file').click=()=>picked++;
+    await f.dispatch('task-open-catalog');
+    assert.equal(openingFocus,true,'focus is applied after React shows the panel');
+    const drop=f.doc.getElementById('task-add-dropzone');
+    const choose=f.doc.getElementById('task-add-import');
+    const composing=await f.fire(choose,'keydown',{key:'Escape',isComposing:true});
+    assert.equal(composing.defaultPrevented,false);
+    assert.equal(f.doc.getElementById('task-add-menu').hidden,false);
+    await f.fire(drop,'keydown',{key:'Enter'});
+    assert.equal(picked,1);
+    // Bubbling from a child must not invoke the drop target's picker again.
+    await f.fire(choose,'keydown',{key:'Enter'});
+    assert.equal(picked,1);
+    f.view.field('task-add-dropzone').dataset.importDragActive='true';
+    await f.fire(f.doc.getElementById('task-add-catalog'),'keydown',{key:'Escape'});
+    assert.equal(f.doc.getElementById('task-add-menu').hidden,true);
+    assert.equal(trigger.getAttribute('aria-expanded'),'false');
+    assert.equal(restored,1);
+    assert.equal(f.view.field('task-add-dropzone').dataset.importDragActive,'false');
+    await f.dispatch('task-open-catalog');
+    assert.equal(f.doc.getElementById('task-add-menu').hidden,false);
+  }finally{if(root)await React.act(async()=>root.unmount());f.dispose();}
+});
+
+test('Add Task import errors stay beside the file field and successful retry restores status semantics',async()=>{
+  const f=await fixture({taskNotify:()=>{}});let root;
+  try{
+    root=await f.mount();await f.dispatch('task-open-catalog');
+    f.view.setText('task-status','原任务错误，仍需处理');
+    const drop=file=>({dataTransfer:{types:['Files'],files:[file]},preventDefault(){},stopPropagation(){}});
+    await React.act(async()=>{await f.view.actions.taskFileDrop('add',drop(importFixtureFile('bad.json','{')));});
+    let status=f.doc.getElementById('task-add-status');
+    assert.match(status.textContent,/JSON 语法错误/);
+    assert.equal(status.getAttribute('role'),'alert');
+    assert.equal(status.getAttribute('aria-live'),'assertive');
+    assert.ok(f.doc.getElementById('task-add-menu').contains(status));
+    assert.equal(f.view.field('task-status').text,'原任务错误，仍需处理');
+    await React.act(async()=>{await f.view.actions.taskFileDrop('add',drop(importFixtureFile('retry.js','return 1;')));});
+    status=f.doc.getElementById('task-add-status');
+    assert.match(status.textContent,/未保存草稿/);
+    assert.equal(status.getAttribute('role'),'status');
+    assert.equal(status.getAttribute('aria-live'),'polite');
+    assert.equal(f.view.field('task-status').text,'原任务错误，仍需处理');
+    assert.equal(f.state.starts.length,0);
+  }finally{if(root)await React.act(async()=>root.unmount());f.dispose();}
+});
+
+test('Add Task canceled file choice or declined draft replacement does not report success or navigate',async()=>{
+  let imports=0;const f=await fixture({importDraft:()=>{imports++;return false;}});let root;
+  try{
+    root=await f.mount();await f.dispatch('task-open-catalog');
+    f.doc.documentElement.dataset.opendeskTab='tasks';
+    await React.act(async()=>{
+      f.view.field('task-add-file').files=[];
+      await f.view.actions.taskAddFileChange(native());
+    });
+    assert.equal(imports,0);
+    await React.act(async()=>{
+      f.view.field('task-add-file').files=[importFixtureFile('draft.js','return 1;')];
+      await f.view.actions.taskAddFileChange(native());
+    });
+    assert.equal(imports,1);
+    assert.equal(f.doc.documentElement.dataset.opendeskTab,'tasks');
+    assert.equal(f.doc.getElementById('task-add-menu').hidden,false);
+    assert.equal(f.view.field('task-add-status').text,undefined);
+    assert.equal(f.view.field('task-add-file').files,null);
+    assert.equal(f.state.starts.length,0);
+    assert.equal(f.state.calls.some(x=>x.action==='importTaskPackage'),false);
   }finally{if(root)await React.act(async()=>root.unmount());f.dispose();}
 });
 

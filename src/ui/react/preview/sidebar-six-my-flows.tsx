@@ -63,7 +63,7 @@ const previewDeviceZone=()=>{
   try{return Intl.DateTimeFormat().resolvedOptions().timeZone||'UTC';}
   catch{return 'UTC';}
 };
-export function PreviewMyFlows({tab,mode,onMode,onOpenDevelop,rows,search,onSearch,filter,onFilter,
+export function PreviewMyFlows({tab,mode,onMode,onOpenDevelop,rows,search,onSearch,
   selectedTask='',manageMode=false,onManageMode=()=>{},onTaskAction=()=>{},density='many'}){
   const [addOpen,setAddOpen]=React.useState(false);
   const [addStatus,setAddStatus]=React.useState('');
@@ -154,8 +154,6 @@ export function PreviewMyFlows({tab,mode,onMode,onOpenDevelop,rows,search,onSear
       :'确认卸载此任务？';
     get('task-add-status').textContent=addStatus;
     get('local-discover-count').textContent='显示 '+rows.length+' 项 · 仅预览';
-    for(const key of ['all','current','disabled'])
-      get('local-filter-'+key).setAttribute('aria-pressed',String(filter===key));
     for(const [name,id] of [['list','schedule-list-view'],['detail','schedule-detail-view'],
       ['form','schedule-form'],['manager','schedule-task-manager']])
       get(id).hidden=name!==view;
@@ -217,7 +215,7 @@ export function PreviewMyFlows({tab,mode,onMode,onOpenDevelop,rows,search,onSear
     get('task-catalog-status').textContent=importReview||
       '仅预览 · 仅展示正式目录 UI，安装须核对任务与授权';
     get('task-install').disabled=true;
-  },[tab,mode,rows,selectedTask,manageMode,removalReview,managerRows.length,managerRemoving,filter,addOpen,addStatus,editingId,view,
+  },[tab,mode,rows,selectedTask,manageMode,removalReview,managerRows.length,managerRemoving,addOpen,addStatus,editingId,view,
     plans,density,pending,dirtyConfirm,rule,feedback,found.length,importReview,managerOrigin]);
   React.useEffect(()=>{
     const zone=get('schedule-timezone');
@@ -243,7 +241,7 @@ export function PreviewMyFlows({tab,mode,onMode,onOpenDevelop,rows,search,onSear
       off.push(()=>node.removeEventListener(event,fn));
     };
     bind('task-manage-toggle','click',()=>{
-      if(manageMode){onSearch('');onFilter('all');get('local-discover-search').value='';}
+      if(manageMode){onSearch('');get('local-discover-search').value='';}
       onManageMode(!manageMode);
     });
     bind('task-refresh','click',()=>onTaskAction('refresh',selectedTask));
@@ -259,11 +257,9 @@ export function PreviewMyFlows({tab,mode,onMode,onOpenDevelop,rows,search,onSear
     bind('open-catalog','click',()=>onMode('catalog'));
     bind('task-catalog-back','click',()=>onMode('list'));
     bind('local-discover-search','input',e=>onSearch(e.currentTarget.value));
-    for(const key of ['all','current','disabled'])
-      bind('local-filter-'+key,'click',()=>onFilter(key));
     bind('task-search-panel','keydown',e=>{
       if(e.key==='Escape'&&!e.isComposing){
-        e.preventDefault();onSearch('');onFilter('all');
+        e.preventDefault();onSearch('');
         get('local-discover-search').value='';
         onManageMode(false);get('task-manage-toggle').focus();
       }
@@ -409,7 +405,7 @@ export function PreviewMyFlows({tab,mode,onMode,onOpenDevelop,rows,search,onSear
       setFeedback('已更新预览展示；真实计划未修改。');
     });
     return ()=>off.forEach(fn=>fn());
-  },[onMode,onOpenDevelop,onSearch,onFilter,onManageMode,onTaskAction,manageMode,
+  },[onMode,onOpenDevelop,onSearch,onManageMode,onTaskAction,manageMode,
     selectedTask,removalReview,managerRemoving,managerOrigin,selected,editingId,pending,view,removeConfirm,formOrigin]);
   return <>
     {createPortal(found.map(p=><button key={p.taskId} type="button"

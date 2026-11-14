@@ -67,20 +67,35 @@ node scripts/lock-program-remote.mjs examples/programs/page-ui-toc-react-direct 
 
 原 `opendesk browser dev .` 仍适用于具备相应能力的 Native Host。本轮为较大固定产物增加能力协商和分块读取，**仓库内 Node 参考 Host 已适配，正式外部 Go Host 尚未实现该能力**；旧 Host 明确提示升级。本示例尚未在用户 Mac 的直接本地入口验收。主动 MCP `session.run` 大报文仍受原 60 KiB 限制。完整 ECharts 可走上述冻结 JSON 入口，无需 Native。
 
-### 3. 只有浏览器组件源码编辑权限
+<a id="react-network-import-example"></a>
 
-在原“开发”单文件编辑器选择 React，可以直接编写：
+### 3. 浏览器单文件 React 网络 Import 示例
+
+在“开发 → 直接编辑”选择 React，空白或未修改的默认示例会填入下面的可编辑源码；已有草稿保留。编辑器右上角“示例”也可打开本节。React 由 OpenDesk 提供，D3 使用明确版本的 HTTPS ESM：
 
 ```jsx
-import {createElement} from 'react';
+import React, { useState } from 'react';
 import max from 'https://raw.githubusercontent.com/d3/d3-array/v3.2.4/src/max.js';
 
 export default function App() {
-  return createElement('div', null, 'D3 max = ' + max([2, 5, 3]));
+  const [values, setValues] = useState([2, 5, 3]);
+  return (
+    <section>
+      <h3>React + D3 网络 Import</h3>
+      <p>数据：{values.join('、')}</p>
+      <p>最大值：<strong>{max(values)}</strong></p>
+      <button type="button" onClick={() => setValues(items => [...items, max(items) + 1])}>
+        添加更大值
+      </button>
+      <button type="button" onClick={() => setValues([2, 5, 3])}>重置</button>
+    </section>
+  );
 }
 ```
 
-点击 **检查依赖**只解析并列出来源；点击 **确认获取所列模块**才取得已列出的新代码。发现新的传递 URL 后继续逐批确认。完整图就绪后，查看 URL、实际字节数、SHA-256 和可提取的许可证信息，再点 **确认固定此版本**。来源未声明许可证时，由作者核对，界面不会虚构许可结论。
+明确点击“运行”后，当前网页显示数据 `2、5、3` 和 D3 算出的最大值 `5`；点击“添加更大值”变为 `6`，点击“重置”恢复初始数据。Stop 沿原受管组件入口清理。单文件 JSX 需要 Developer Edition；Standard 可使用本项目冻结 JSON 或原本地项目入口。
+
+运行会沿原流程自动获取并固定明确版本的 HTTPS 依赖；首次获取缺少的来源权限仍需 Chrome 的真实点击授权。只编辑或查看示例不会下载、执行或安装。可选的高级流程：点击 **检查依赖**解析并列出来源，再按提示 **确认获取所列模块**、审阅完整图并 **确认固定此版本**。来源未声明许可证时，由作者核对，界面不会虚构许可结论。
 
 固定后，保存和 Run 只读批准锁及原始缓存，缓存损坏立即失败。多个已固定版本需要明确选择；源码变化、取消或 Stop 使迟到准备结果失效，不能重新挂载。
 

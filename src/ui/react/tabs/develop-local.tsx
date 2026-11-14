@@ -1,18 +1,19 @@
 import * as React from 'react';
-import {DevelopField} from './develop-controls.tsx';
+import {DevelopField,DevelopOptionsSummary} from './develop-controls.tsx';
+import {DevelopPromptButton} from './develop-ai-prompt.tsx';
 
 // JSX-only region: the trusted DevelopProvider remains in DeveloperPage.
 export function DevelopLocalProject(){
   return (
         <DevelopField as="section" id="local-project-tools" className="local-project-tools" aria-label="本地项目连接">
           <div className="od-stack">
-          <p id="local-project-intro" className="local-project-intro od-note">选择已连接的目录，打开文件或实时预览修改。</p>
           <div className="od-form-field">
-            <label htmlFor="local-project-select" className="od-field-label">
+            <label htmlFor="local-project-select" className="visually-hidden">
               {"已授权本地项目"}
             </label>
           <div className="local-project-controls od-toolbar">
             <DevelopField as="select" id="local-project-select" className="od-field"/>
+            <DevelopPromptButton local/>
             <DevelopField as="button" id="local-project-refresh" type="button" className="od-icon-button" title="刷新已授权本地项目" aria-label="刷新已授权本地项目">
               <svg viewBox="0 0 24 24" aria-hidden="true">
                 <path d="M20 11a8 8 0 1 0-2.4 5.7M20 4v7h-7">
@@ -25,11 +26,53 @@ export function DevelopLocalProject(){
           <div className="od-stack">
           <DevelopField as="p" id="local-project-status" role="status" aria-live="polite">
           </DevelopField>
+          <p id="local-project-intro" className="local-project-intro od-note">在外部编辑器修改源码，这里运行或调试。</p>
           <DevelopField as="p" id="local-project-tool-pointer" className="od-field-help" role="status" aria-live="polite"/>
           <DevelopField as="div" id="local-project-recovery" className="local-project-recovery">
             <DevelopField as="button" id="local-project-connect" className="local-project-connect od-button od-button--secondary" type="button">
               {"连接本机 OpenDesk ↗"}
             </DevelopField>
+          </DevelopField>
+          <div className="od-toolbar">
+            <DevelopField as="button" id="local-project-preview" type="button" className="od-button od-button--secondary">在侧栏调试 ↗</DevelopField>
+          </div>
+          </div>
+
+          <DevelopField as="section" id="local-install-review" className="local-install-review od-surface" aria-label="固定版本安装确认" aria-describedby="local-install-summary local-install-warning" tabIndex="-1">
+            <strong>
+              {"安装与管理"}
+            </strong>
+            <DevelopField as="p" id="local-install-summary" className="hint" role="status">
+            </DevelopField>
+            <div className="od-form-field">
+            <label htmlFor="local-install-title" className="od-field-label">
+              {"名称"}
+            </label>
+                <DevelopField as="input" id="local-install-title" type="text" maxLength="100" autoComplete="off" className="od-field"/>
+            </div>
+            <div className="od-form-field">
+            <label htmlFor="local-install-version" className="od-field-label">
+              {"版本"}
+            </label>
+            <DevelopField as="input" id="local-install-version" type="text" maxLength="24" autoComplete="off" className="od-field"/>
+            </div>
+            <DevelopField as="p" id="local-install-warning" className="hint">
+            </DevelopField>
+            <div className="row">
+              <DevelopField as="button" id="local-install-confirm" type="button" className="od-button">
+                {"确认安装固定版本"}
+              </DevelopField>
+              <DevelopField as="button" id="local-install-cancel" type="button" className="od-button od-button--secondary">
+                {"取消"}
+              </DevelopField>
+            </div>
+            <DevelopField as="p" id="local-install-status" role="status" aria-live="polite">
+            </DevelopField>
+          </DevelopField>
+          <details className="developer-options developer-project-options">
+            <DevelopOptionsSummary>项目设置与连接</DevelopOptionsSummary>
+            <div className="developer-option-body od-stack">
+              <p className="od-note">模块、依赖和资源在本地项目维护，源码历史由 Git 管理。</p>
             <DevelopField as="details" id="local-project-guide" className="local-project-guide od-disclosure od-disclosure--info">
               <summary>
                 {"首次使用：连接方法"}
@@ -73,6 +116,7 @@ export function DevelopLocalProject(){
               <DevelopField as="button" id="local-project-guide-open" type="button" className="od-button od-button--secondary">
                 {"查看首次配置命令和示例 ↗"}
               </DevelopField>
+
               <p>
                 {"查看"}
                 <code>
@@ -80,15 +124,16 @@ export function DevelopLocalProject(){
                 </code>
                 {"中的正式授权示例。"}
               </p>
-            </DevelopField>
+              </DevelopField>
+          <DevelopField as="details" id="local-project-params-tools" className="od-disclosure">
+            <summary>
+              {"项目参数 JSON（Controller 可选）"}
+            </summary>
+            <label htmlFor="local-project-params" className="visually-hidden">
+              {"本地项目参数"}
+            </label>
+            <DevelopField as="textarea" id="local-project-params" rows="3" spellCheck={false} className="od-field"/>
           </DevelopField>
-          <div className="od-toolbar">
-            <DevelopField as="button" id="local-project-preview" type="button" className="od-button od-button--secondary">在侧栏调试 ↗</DevelopField>
-            <DevelopField as="button" id="script-save" type="button" className="od-button od-button--secondary">
-              {"检查并保存本地项目"}
-            </DevelopField>
-          </div>
-          </div>
           <details className="od-disclosure od-disclosure--flat">
           <summary>源码关联（可选）</summary>
           <div className="local-project-binding od-stack">
@@ -102,37 +147,6 @@ export function DevelopLocalProject(){
           </div>
           </div>
           </details>
-          <DevelopField as="section" id="local-install-review" className="local-install-review od-surface" aria-label="固定版本安装确认" aria-describedby="local-install-summary local-install-warning" tabIndex="-1">
-            <strong>
-              {"安装与管理"}
-            </strong>
-            <DevelopField as="p" id="local-install-summary" className="hint" role="status">
-            </DevelopField>
-            <div className="od-form-field">
-            <label htmlFor="local-install-title" className="od-field-label">
-              {"名称"}
-            </label>
-                <DevelopField as="input" id="local-install-title" type="text" maxLength="100" autoComplete="off" className="od-field"/>
-            </div>
-            <div className="od-form-field">
-            <label htmlFor="local-install-version" className="od-field-label">
-              {"版本"}
-            </label>
-            <DevelopField as="input" id="local-install-version" type="text" maxLength="24" autoComplete="off" className="od-field"/>
-            </div>
-            <DevelopField as="p" id="local-install-warning" className="hint">
-            </DevelopField>
-            <div className="row">
-              <DevelopField as="button" id="local-install-confirm" type="button" className="od-button">
-                {"确认安装固定版本"}
-              </DevelopField>
-              <DevelopField as="button" id="local-install-cancel" type="button" className="od-button od-button--secondary">
-                {"取消"}
-              </DevelopField>
-            </div>
-            <DevelopField as="p" id="local-install-status" role="status" aria-live="polite">
-            </DevelopField>
-          </DevelopField>
           <details className="od-disclosure od-disclosure--flat">
             <summary>
               {"本地连接诊断"}
@@ -141,15 +155,8 @@ export function DevelopLocalProject(){
               {"正在核对 Native 和源码 Provider。"}
             </DevelopField>
           </details>
-          <DevelopField as="details" id="local-project-params-tools" className="od-disclosure">
-            <summary>
-              {"项目参数 JSON（Controller 可选）"}
-            </summary>
-            <label htmlFor="local-project-params" className="visually-hidden">
-              {"本地项目参数"}
-            </label>
-            <DevelopField as="textarea" id="local-project-params" rows="3" spellCheck={false} className="od-field"/>
-          </DevelopField>
+            </div>
+          </details>
         </DevelopField>
   );
 }

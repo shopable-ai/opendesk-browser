@@ -1,5 +1,7 @@
 # Web Flow
 
+**项目文件定位（2026-11-15）：** 文件读写是非核心实验能力，尚未完成可行性验证。自动运行摘要及 AI 设置不再展示项目文件链接；已有文件任务的查询、停止和可信审阅保留在「本机连接 → 实验与诊断：ChatGPT 项目文件」默认折叠区。当前只收敛展示与产品定位，不扩展文件能力、不改既有开关或授权。它属于 Browser 固定代码，工具 JSON 更新不能使之生效；本轮验证与应用状态见[执行卡](docs/execution-plan.zh-CN.md#项目文件入口收敛2026-11-15)。
+
 **UI 对齐受阻（2026-11-14，R3）：** 唯一正式包 **0.3.40 已沿原审阅链实际安装**，版本与完整 SHA 已读回，权限及固定 Task pin 未变。本轮仅修浅色正文为白色，UI/包检查 **85/85 PASS**、同源检查通过；同候选实际侧栏与 app 页已核对背景、紧凑行、三档宽度、深色、菜单命中、搜索和成功通知，原 UNKNOWN 身份保留。续查已补齐 **WFUI-09 同候选筛选/排序/收藏重载读回**，并证明实际行在 hover/键盘焦点下无几何移动，成功通知不清除已有 busy 错误。第三轮又补齐添加四路径、帮助/设置/记录返回后的搜索与 Codex 草稿保留，以及 Home/End、方向键、Enter/Space、Escape 和关闭后的焦点归还；真实 IME 与受阻抽屉不标通过。共享抽屉连续三轮仍受其他任务/应用身份的准备占用阻塞（`E_TASK_BUSY`），公开恢复列表不能定位其他身份的记录，原任务/入口澄清待答。保存、确认执行及 Run/Result 尚未验证；未清空、取消或重放原准备。整体未完成，本轮按原生 goal 的连续阻塞合同收尾；最终状态以原生回执为准，原对话目标未修改。见[执行卡](docs/execution-plan.zh-CN.md)与[R3 分层证据](evidence/ui-alignment-r3-20261114.json)。
 
 > **独立脚本归属与「我的」统一管理（2026-11-14 设计基线）：** [Controller Task 资产、内置脚本与跨扩展消费合同](../../docs/architecture/installed-controller-tasks-and-workflow-consumers.zh-CN.md)。该合同区分脚本源码、内置发行、安装、委托、运行和卸载；**尚未完成目录迁移或改动现有运行链**，以下当前状态和 UNKNOWN 限制继续有效。
@@ -76,7 +78,7 @@ GitHub→ChatGPT 授权 UI → 原可信 Side Panel Host
 
 **概览清理 R1（2026-11-11）：** 唯一正式包现为 **0.3.32**，首页收敛为状态、真实脚本统计与最近活动；待核对请求从「查看记录」进入原恢复页，身份信息保留在详情。Markdown 开发卡片和实验入口已从首页移除，相关引擎与数据保留。相关 Node 164/164、候选晋升及同源检查通过；源码组件通过不代表新包已安装，**0.3.32 实际 Chrome 安装验收 NOT_TESTED**。结果与证据边界见[本轮执行卡](docs/execution-plan.zh-CN.md#概览清理-r12026-11-11od-webflow-overview-cleanup-r1)。
 
-**ChatGPT 项目文件浮窗退役（2026-11-11；OD-AI-WORKFLOW-BRIDGE）：** 当前 `main` 的网页文件适配器为 Headless，不再注入「项目文件／停止项目任务／展开」面板；状态、Stop 和审阅通过 Web Flow「运行与授权 → 项目文件」进入现有可信扩展设置。原消息监听、文件授权、Native 回执和 UNKNOWN 防重放保留。**源码已退役不等于用户 Chrome 已更新。**
+**ChatGPT 项目文件浮窗退役（2026-11-11；OD-AI-WORKFLOW-BRIDGE）：** 网页文件适配器为 Headless，不再注入「项目文件／停止项目任务／展开」面板；当时迁入 Web Flow 的常驻链接已按 2026-11-15 的实验定位移除，已有任务恢复改从本机连接设置的折叠实验区进入。原消息监听、文件授权、Native 回执和 UNKNOWN 防重放保留。**源码已退役不等于用户 Chrome 已更新。**
 
 **R2 正式工具包历史状态（2026-11-11；当前版本以上方 R1 卡为准）：** `tool.config.json` 与唯一正式 `webflow.opendesk-tool.json` 当时均为 **0.3.27**，正式包包含 R2 `createTaskNoticePublisher`；[Web Flow CI 42989278190](https://github.com/shopable-ai/opendesk-browser/actions/runs/42989278190) 的定向 Node 71/71、Chromium 源码组件 320/360/400px、`--promote-from` 和 `--check-project` 均通过（`PROJECT_PACKAGE_MATCH`，包 SHA-256 `4008ed394a171ba91649e97e916d974e0352e1fe8c2c2e89580fa2cc3e02abca`）。**这些不证明用户本机已更新或实站任务已成功。** 工具包与浏览器内容脚本 `agents/chatgpt-fixed-bridge.js` 属于不同发行路径，不能互相代替；实际安装的扩展 ID、unpacked 路径、Host R1.2、脚本 hash 和 Chrome/Native 全链仍待现场核验。完整溯源及待验收入口见[原执行计划 Headless 专项](docs/execution-plan.zh-CN.md)。
 

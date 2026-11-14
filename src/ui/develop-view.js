@@ -11,7 +11,7 @@ export function createDeveloperView(){
   }));
   const actions={},subscribers=new Set();
   let snapshot={fields:Object.fromEntries(Object.entries(fields).map(([key,state])=>[key,{...state}])),
-    dependencies:{classic:null,network:null}},disposed=false,queued=false;
+    dependencies:{classic:null,network:null},section:'editor'},disposed=false,queued=false;
   function notify(immediate=false){
     // Controlled inputs must publish before React restores their value at the
     // end of the native input event. Result/status projections stay batched.
@@ -37,6 +37,14 @@ export function createDeveloperView(){
     snapshot={...snapshot,dependencies:{...snapshot.dependencies,[section]:value}};notify();
   }
   return Object.freeze({fields,actions,patch,patchDependencies,
+    // Local presentation only; changing a section never dispatches a controller action.
+    navigate(section,{returnFocusId=''}={}){
+      if(disposed||!['editor','save','library','history','install','diagnostics','run-detail'].includes(section))return;
+      if(section==='history')patch('script-history-panel',{open:true});
+      if(section==='run-detail')patch('developer-run-technical',{open:true});
+      snapshot={...snapshot,section,returnFocusId:section==='editor'?snapshot.returnFocusId:returnFocusId};
+      notify(true);
+    },
     getSnapshot:()=>snapshot,
     subscribe(fn){if(disposed)return ()=>{};subscribers.add(fn);return ()=>subscribers.delete(fn);},
     focus(key){

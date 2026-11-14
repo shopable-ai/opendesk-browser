@@ -1,6 +1,34 @@
 {
   "schema": "opendesk.browser.public-config.v1",
   "navigation": {
-    "extensionStore": "https://codexproxy.com/"
+    "extensionStore": "https://codexproxy.com/",
+    "developerReferences": {
+      "controller": {
+        "examples": "https://github.com/shopable-ai/opendesk-browser/blob/main/examples/programs/single-file/controller-globals-zero-arg.js",
+        "help": "https://github.com/shopable-ai/opendesk-browser/blob/main/docs/api/controller.zh-CN.md#developer-controller-quickstart"
+      },
+      "page": {
+        "examples": "https://github.com/shopable-ai/opendesk-browser/blob/main/examples/programs/single-file/page-globals-zero-arg.js",
+        "help": "https://github.com/shopable-ai/opendesk-browser/blob/main/docs/api/page-userscript.zh-CN.md#developer-page-quickstart"
+      },
+      "react": {
+        "examples": "https://github.com/shopable-ai/opendesk-browser/blob/main/examples/programs/page-ui-toc-react-direct/README.md#react-network-import-example",
+        "help": "https://github.com/shopable-ai/opendesk-browser/blob/main/docs/api/page-ui-frameworks.zh-CN.md#developer-react-quickstart"
+      },
+      "vue": {
+        "examples": "https://github.com/shopable-ai/opendesk-browser/blob/main/examples/programs/page-ui-vue/src/App.vue",
+        "help": "https://github.com/shopable-ai/opendesk-browser/blob/main/docs/api/page-ui-frameworks.zh-CN.md#developer-vue-quickstart"
+      }
+    },
+    "developerGuides": {
+      "apiIndex": "https://github.com/shopable-ai/opendesk-browser/blob/main/docs/api/README.md",
+      "typeSelection": "https://github.com/shopable-ai/opendesk-browser/blob/main/docs/api/extension-development-selection.zh-CN.md",
+      "localSidebarProject": "https://github.com/shopable-ai/opendesk-browser/blob/main/docs/api/sidebar-local-projects.zh-CN.md",
+      "completeProject": "https://github.com/shopable-ai/opendesk-browser/blob/main/docs/api/local-projects.zh-CN.md",
+      "sidebarTool": "https://github.com/shopable-ai/opendesk-browser/blob/main/docs/api/sidebar-tool-development.zh-CN.md",
+      "sidebarExample": "https://github.com/shopable-ai/opendesk-browser/blob/main/examples/sidebar-tools/minimal-html-starter/README.md",
+      "runtime": "https://github.com/shopable-ai/opendesk-browser/blob/main/docs/api/runtime-globals-and-preinstalled-libraries.zh-CN.md",
+      "dependencies": "https://github.com/shopable-ai/opendesk-browser/blob/main/docs/api/dependencies-and-errors.zh-CN.md"
+    }
   }
 }

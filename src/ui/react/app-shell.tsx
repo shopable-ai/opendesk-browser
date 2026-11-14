@@ -48,23 +48,11 @@ export function SidebarAppShell({
         target?.focus?.({preventScroll:true});
       });
     }
-  });
-  const [appMoreOpen,setAppMoreOpen]=React.useState(false);
+  },{enabled:pageSurface!=='app'});
   const openUpdateHistory=()=>{
     updateNotice.setFilter('history');updateNotice.setOpened(true);
     void updateNotice.refresh();
   };
-  React.useEffect(()=>{
-    if(!appMoreOpen)return;
-    const onKey=event=>{
-      if(event.key==='Escape'){
-        event.preventDefault();setAppMoreOpen(false);
-        document.getElementById('od-app-more')?.focus({preventScroll:true});
-      }
-    };
-    document.addEventListener('keydown',onKey);
-    return ()=>document.removeEventListener('keydown',onKey);
-  },[appMoreOpen]);
   // Release eligibility comes from the Worker, then matches the Controller's
   // source-pinned installed row. Only a projection can be reordered.
   const controls=extensionProps.toolbarModel||{};
@@ -121,19 +109,6 @@ export function SidebarAppShell({
   <main id="workspace-content" className="opendesk-app-page-content">
     <div id="workbench-tools" className="od-page" data-workbench-page="tools">
       <section id="sidebar-tools" className="sidebar-tools" aria-label="当前已安装应用">
-        <div className="od-app-update-entry">
-          <button id="od-app-more" type="button" aria-label="更多工具设置"
-            aria-haspopup="menu" aria-expanded={appMoreOpen}
-            onClick={()=>setAppMoreOpen(value=>!value)}>⋯</button>
-          {appMoreOpen&&<div className="od-app-more-menu" role="menu" aria-label="工具设置">
-            <button type="button" role="menuitem" onClick={()=>{
-              setAppMoreOpen(false);openUpdateHistory();
-            }}>更新记录与提醒设置…</button>
-          </div>}
-          <UpdateNoticeSlot controller={updateNotice} surface="app"
-            showTrigger={false} returnFocusSelector="#od-app-more"
-            onOpenReview={onOpenUpdateReview}/>
-        </div>
         {toolView&&<ToolHost view={toolView} active trustedControls={null} showListBack={false}/>}
       </section>
     </div>
@@ -191,7 +166,7 @@ export function SidebarAppShell({
         onOpenProviderSettings={onOpenProviderSettings}
         providerSettings={providerSettings}
         sharedProviderSettings={Boolean(providerSettings)}/>
-      <DeveloperPage view={developerView} hidden={activeTab!=='develop'}/>
+      <DeveloperPage view={developerView} noticeView={toolView} hidden={activeTab!=='develop'} locale={uiLocale}/>
       <CloudConnectionPage model={cloudModel} requestsModel={cloudRequestsModel}
         setupModel={cloudSetupModel}
         pageModel={cloudPageModel}

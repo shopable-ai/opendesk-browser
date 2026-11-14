@@ -1,0 +1,610 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'unsafe-inline'; style-src 'unsafe-inline'; img-src data:; connect-src 'none'; form-action 'none'; base-uri 'none'; object-src 'none'">
+<title>OpenDesk 我的 · 离线交互提案</title>
+<style>
+/* Canonical light-token snapshot, as used by ../develop/index.html.
+   Proposal composition only. Product tokens/React components remain their owners. */
+:root{--od-ink:#1b2c49;--od-sub:#5b6e86;--od-line:#dfe6ef;--od-input-border:#7f8da1;--od-brand:#365eda;--od-paper:#fff;--od-muted:#f5f7fb;--od-focus:var(--od-brand);--od-positive:#117a5d;--od-negative:#ae3d4b;--od-warning:#80510d;--od-warning-bg:#fff9ec;--od-warning-border:#dcc58a;--od-negative-bg:#fff0f1;--od-page-gutter:12px;--space-1:4px;--space-2:8px;--space-3:12px;--space-4:16px;--radius-control:8px;--radius-surface:12px;--od-icon-size:34px;--od-body-size:13px;--od-note-size:12px;--od-meta-size:11px}
+*{box-sizing:border-box}html,body{margin:0;min-height:100%;font:var(--od-body-size)/1.5 -apple-system,BlinkMacSystemFont,"SF Pro Text","PingFang SC",system-ui,sans-serif;color:var(--od-ink);-webkit-font-smoothing:antialiased;color-scheme:light}body{display:flex;justify-content:center;background:var(--od-muted)}[hidden]{display:none!important}.symbols{position:absolute;width:0;height:0;overflow:hidden}
+button,input,select,textarea{font:inherit;min-width:0;max-width:100%}button{cursor:pointer;color:inherit}button:disabled{opacity:.5;cursor:not-allowed}button:hover:not(:disabled){background:var(--od-muted)}:focus-visible{outline:2px solid var(--od-focus);outline-offset:2px}p,pre,h1,h2,h3,ul,dl{margin:0}h1,h2,h3{font-size:12px;font-weight:600;line-height:1.5}a{color:var(--od-brand);text-underline-offset:3px}.sr-only{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip-path:inset(50%);white-space:nowrap;border:0}
+.shell{position:relative;width:360px;max-width:100vw;height:100dvh;display:flex;flex-direction:column;overflow:hidden;background:var(--od-paper)}.icon{width:18px;height:18px;flex:none;fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}.icon-button{display:inline-grid;place-items:center;width:var(--od-icon-size);height:var(--od-icon-size);flex:none;padding:0;border:1px solid transparent;border-radius:var(--radius-control);background:transparent;color:var(--od-sub)}
+.brandbar{height:55px;flex:none;display:flex;align-items:center;gap:var(--space-2);padding:0 var(--space-4);border-bottom:1px solid var(--od-line)}.brand{display:flex;align-items:center;gap:var(--space-2);white-space:nowrap;font-size:14px;font-weight:700;letter-spacing:-.025em}.brandmark{display:grid;place-items:center;width:27px;height:27px;border-radius:var(--radius-control);background:var(--od-ink);color:var(--od-paper);font-size:15px;font-weight:800}.brand small{font-size:10px;color:var(--od-sub);font-weight:500;letter-spacing:.04em;margin-left:var(--space-1)}.offline{font-size:var(--od-meta-size);color:var(--od-sub);margin-left:auto;white-space:nowrap}
+.top-tabs{display:flex;flex:none;height:45px;padding:0 var(--space-2);border-bottom:1px solid var(--od-line)}.top-tabs>*{flex:1;position:relative;display:grid;place-items:center;font-size:12px;font-weight:500;color:var(--od-sub);text-decoration:none}.top-tabs [aria-current]{color:var(--od-brand);font-weight:650}.top-tabs [aria-current]:after{content:"";position:absolute;bottom:-1px;left:25%;right:25%;height:2px;background:var(--od-brand)}.top-tabs a:hover{background:var(--od-muted)}
+.viewport{flex:1;min-height:0;padding:var(--space-3) var(--od-page-gutter) var(--space-4);overflow:auto;scrollbar-width:thin;overscroll-behavior:contain}.stack{display:grid;gap:var(--space-2);min-width:0}.section{margin-bottom:var(--space-4)}.grow{flex:1;min-width:0}.note{font-size:12px;line-height:1.55;color:var(--od-sub)}.meta{font-size:11px;color:var(--od-sub)}.technical{font:11px/1.6 ui-monospace,Menlo,monospace;color:var(--od-sub);overflow-wrap:anywhere}.error{font-size:12px;color:var(--od-negative);overflow-wrap:anywhere}.positive{color:var(--od-positive)}.warning{color:var(--od-warning)}
+summary{cursor:pointer;list-style:none}summary::-webkit-details-marker{display:none}.disclosure{border:1px solid var(--od-line);border-radius:var(--radius-surface)}.disclosure>summary{display:flex;align-items:center;gap:var(--space-2);min-height:44px;padding:var(--space-2) var(--space-3);font-size:12px;font-weight:600}.disclosure summary>.icon:last-child{width:15px;height:15px;margin-left:auto;color:var(--od-sub)}.disclosure[open]>summary>.icon:last-child{transform:rotate(90deg)}.disclosure-body{display:grid;gap:var(--space-2);padding:var(--space-3);border-top:1px solid var(--od-line)}
+.page-head{display:flex;align-items:center;gap:var(--space-2);min-height:34px;margin-bottom:var(--space-2)}.head-copy{display:flex;align-items:baseline;gap:var(--space-2);flex:1;min-width:0}.head-actions{display:flex;align-items:center;gap:var(--space-1)}.count{font-size:11px;color:var(--od-sub);white-space:nowrap}.search-panel{display:grid;gap:var(--space-2);margin-bottom:var(--space-2)}.search-field{position:relative}.search-field>.icon{position:absolute;left:10px;top:9px;width:16px;height:16px;color:var(--od-sub)}.search-field input{padding-left:34px}.filters{display:flex;gap:var(--space-1);flex-wrap:wrap}.filters button{min-height:30px;border:1px solid transparent;padding:4px 10px;background:transparent;border-radius:var(--radius-control);font-size:12px;color:var(--od-sub)}.filters [aria-pressed=true]{background:var(--od-muted);color:var(--od-ink);font-weight:600}.empty{padding:24px var(--space-3);display:grid;justify-items:center;gap:var(--space-2);text-align:center;border:1px dashed var(--od-line);border-radius:var(--radius-surface)}.empty>.icon{width:28px;height:28px;color:var(--od-sub)}.empty h2{font-size:13px}
+.collection{list-style:none;padding:0;border:1px solid var(--od-line);border-radius:var(--radius-surface);overflow:hidden}.task-row{position:relative}.task-row+.task-row{border-top:1px solid var(--od-line)}.task-main{display:flex;align-items:center;gap:var(--space-3);width:100%;min-height:60px;padding:var(--space-2) var(--space-3);border:0;background:var(--od-paper);text-align:left}.task-row.selected .task-main{background:var(--od-muted)}.task-main:focus-visible{outline-offset:-3px}.task-icon{display:grid;place-items:center;width:32px;height:32px;flex:none;border:1px solid var(--od-line);border-radius:var(--radius-control);background:var(--od-paper);color:var(--od-sub)}.task-copy{display:block;min-width:0;flex:1}.task-copy strong{display:block;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:13px;font-weight:600;line-height:1.5}.task-copy small{display:block;margin-top:var(--space-1);font-size:12px;color:var(--od-sub);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.task-badge{font-size:11px;color:var(--od-warning);font-weight:400;margin-left:var(--space-2)}.task-actions{position:absolute;right:var(--space-2);top:50%;display:flex;align-items:center;gap:var(--space-1);transform:translateY(-50%);opacity:0;pointer-events:none;background:linear-gradient(90deg,transparent,var(--od-paper) 18px);padding-left:24px}.task-actions .icon-button{background:var(--od-paper)}.task-row:is(:hover,:focus-within) .task-actions,.task-row.last-active .task-actions{opacity:1;pointer-events:auto}.task-row.selected .task-actions{background:linear-gradient(90deg,transparent,var(--od-muted) 18px)}.task-row.selected .task-actions .icon-button{background:var(--od-muted)}.task-actions .icon-button:hover{color:var(--od-brand)}.task-actions .icon{width:16px;height:16px}
+.workspace{display:grid;gap:var(--space-2);margin-top:var(--space-4)}.selection-status{display:flex;align-items:baseline;gap:var(--space-2);flex-wrap:wrap}.selection-status strong{font-size:12px;font-weight:600}.result-panel{display:grid;gap:var(--space-2)}.result-head{display:flex;align-items:center;gap:var(--space-2)}.result-head .meta{margin-left:auto}.result{padding:var(--space-3);max-height:180px;overflow:auto;background:var(--od-muted);border:1px solid var(--od-line);border-radius:var(--radius-control);font:12px/1.65 ui-monospace,Menlo,monospace;white-space:pre-wrap;overflow-wrap:anywhere}.alert{border:1px solid var(--od-warning-border);border-radius:var(--radius-control);padding:var(--space-3);background:var(--od-warning-bg);color:var(--od-warning);font-size:12px;display:grid;gap:var(--space-1)}.alert.error-alert{background:var(--od-negative-bg);border-color:var(--od-negative);color:var(--od-negative)}.text-button{min-height:34px;padding:4px 0;border:0;background:transparent;font-size:12px;color:var(--od-sub);text-align:left;border-radius:4px}.text-button:hover:not(:disabled){color:var(--od-brand);background:transparent;text-decoration:underline}.record{display:grid;gap:var(--space-1);padding:var(--space-2) 0}.record+.record{border-top:1px solid var(--od-line)}.record-head{display:flex;gap:var(--space-2);align-items:baseline}.record-head time{margin-left:auto;font-size:11px;color:var(--od-sub)}.facts{display:grid;gap:var(--space-2)}.facts>div{display:grid;grid-template-columns:72px minmax(0,1fr);gap:var(--space-2);font-size:12px}.facts dt{color:var(--od-sub)}.facts dd{margin:0;overflow-wrap:anywhere}
+.button{display:inline-flex;align-items:center;justify-content:center;gap:var(--space-1);min-height:36px;padding:7px 12px;border:1px solid var(--od-line);border-radius:var(--radius-control);background:var(--od-paper);color:var(--od-sub);font-size:12px;font-weight:600;text-decoration:none}.button .icon{width:15px;height:15px}.primary{background:var(--od-brand);border-color:var(--od-brand);color:var(--od-paper)}.primary:hover:not(:disabled){background:var(--od-brand);filter:brightness(.97)}.danger{color:var(--od-negative)}.toolbar{display:flex;align-items:center;gap:var(--space-2);flex-wrap:wrap}.toolbar .primary{margin-left:auto}.field{display:grid;gap:var(--space-1);font-size:12px;font-weight:600}.field-help{font-size:12px;color:var(--od-sub);font-weight:400}input:not([type=checkbox]),select,textarea{display:block;width:100%;min-height:36px;padding:7px 8px;border:1px solid var(--od-input-border);border-radius:var(--radius-control);background:var(--od-paper);color:var(--od-ink)}textarea{resize:vertical;font:12px/1.65 ui-monospace,Menlo,monospace}input[type=checkbox]{width:16px;height:16px;accent-color:var(--od-brand)}[aria-invalid=true]{border-color:var(--od-negative)!important}.compact-field{display:grid;grid-template-columns:clamp(104px,34%,142px) minmax(0,1fr);align-items:center;min-width:0;min-height:40px}.compact-field+.compact-field{border-top:1px solid var(--od-line)}.compact-field>label{align-self:stretch;display:flex;align-items:center;min-width:0;padding:10px var(--space-3);border-right:1px solid var(--od-line);background:var(--od-muted);font-size:12px;color:var(--od-sub);overflow-wrap:anywhere}.compact-field>input,.compact-field>select{border:0;border-radius:0;background:transparent}.compact-field:focus-within{outline:2px solid var(--od-focus);outline-offset:-2px}.compact-field>input:focus-visible,.compact-field>select:focus-visible{outline:0}.check-field{display:flex;align-items:center;justify-content:flex-end;padding:var(--space-2) var(--space-3);min-height:40px}#params-fields{border:1px solid var(--od-input-border);border-radius:var(--radius-control);overflow:hidden}#params-dialog .dialog-head{gap:var(--space-3);padding:var(--space-4)}#params-dialog .dialog-head>.icon-button{align-self:flex-start}.params-kicker{margin-bottom:var(--space-1)}#params-dialog .dialog-body{padding:var(--space-4)}#params-dialog .dialog-foot{justify-content:flex-end;padding:var(--space-3) var(--space-4)}#params-dialog .dialog-foot .primary{margin-left:0}.fieldset{border:0;padding:0;margin:0;display:grid;gap:var(--space-3)}.fieldset legend{font-size:12px;font-weight:600;margin-bottom:var(--space-3)}
+.sub-head{display:flex;align-items:center;gap:var(--space-1);margin-bottom:var(--space-4)}.sub-head h1{flex:1;font-size:13px;min-width:0;overflow-wrap:anywhere}.back .icon{transform:rotate(180deg)}.sub-card{display:grid;gap:var(--space-3);border:1px solid var(--od-line);border-radius:var(--radius-surface);padding:var(--space-3)}.sub-card h2{font-size:13px}/* Plan list: status belongs to the object; the trailing icon is an action. */
+.plan{display:grid;grid-template-columns:minmax(0,1fr) 34px;align-items:center;gap:var(--space-2);padding:var(--space-3)}.plan+.plan{border-top:1px solid var(--od-line)}
+.plan-main{display:flex;align-items:center;gap:var(--space-3);border:0;border-radius:4px;padding:0;background:transparent;text-align:left;width:100%;min-width:0;min-height:68px}.plan-main:hover{background:transparent!important}.plan-main>.icon{width:12px;height:12px;margin-left:-4px;color:var(--od-sub);opacity:.65}.plan-main:hover strong{text-decoration:underline;text-underline-offset:3px}
+.plan-marker{width:40px;flex:none;align-self:flex-start;margin-top:4px;display:grid;justify-items:center;gap:var(--space-1);color:var(--od-positive)}.plan-marker>.icon{width:22px;height:22px}.plan-marker>small{font-size:12px;white-space:nowrap}.plan-marker.paused{color:var(--od-sub)}.plan-marker.warning{color:var(--od-warning)}
+.plan-copy{display:grid;gap:var(--space-1);min-width:0;flex:1}.plan-copy strong{font-size:13px;font-weight:600;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;overflow-wrap:anywhere}.plan-next>span{font-weight:500}.plan-next{font-size:13px;line-height:1.5;display:flex;flex-wrap:wrap;gap:var(--space-1)}.plan-next>small{font-size:12px;color:var(--od-sub)}.plan-meta{display:block;font-size:12px;color:var(--od-sub);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.plan-issue{grid-column:1/-1;font-size:12px;color:var(--od-warning);overflow-wrap:anywhere;padding:var(--space-2);background:var(--od-warning-bg);border-radius:var(--radius-control)}
+.quiet-link{display:inline-flex;align-items:center;gap:var(--space-1);font-weight:500}.quiet-link>.icon{width:15px;height:15px}
+[data-tip]{position:relative}[data-tip]:is(:hover,:focus-visible)::after{content:attr(data-tip);position:absolute;z-index:4;right:0;top:calc(100% + 4px);width:max-content;max-width:220px;padding:4px 8px;white-space:normal;border:1px solid var(--od-line);border-radius:4px;background:var(--od-paper);color:var(--od-ink);font-size:12px;font-weight:400;line-height:1.5;box-shadow:0 2px 8px #1b2c4910;pointer-events:none}
+/* One continuous form, with a footer outside the scrolling content. */
+.plan-form{display:grid;gap:var(--space-4);padding-bottom:var(--space-2)}.plan-form-section{display:grid;gap:var(--space-2);margin:0;padding:0;border:0;min-width:0}.plan-form-section+.plan-form-section{border-top:1px solid var(--od-line);padding-top:var(--space-4)}.plan-form-section>legend{float:left;width:100%;margin:0;padding:0;font-size:12px;font-weight:600}.plan-form-section .field{font-weight:400}.field{font-weight:500}.field-heading{display:flex;align-items:center;justify-content:space-between;gap:var(--space-2)}.task-picker{display:grid;gap:var(--space-1)}.task-source-tools{display:flex;align-items:center;gap:var(--space-3);font-weight:400}.task-source-tools>.note{margin-right:auto}.task-source-tools .text-button{font-weight:500}.task-source-tools a{text-decoration:none}.task-fixed-note{font-size:12px;font-weight:400;color:var(--od-sub)}.task-picker>.icon-button{border-color:var(--od-line);height:36px;width:34px}.task-picker>select:disabled{opacity:1;background:var(--od-muted)}.task-picker>.icon-button .icon{width:16px;height:16px}.task-picker-note{font-size:12px;font-weight:400;color:var(--od-sub)}
+.frequency{display:flex;gap:var(--space-1);padding:var(--space-1);background:var(--od-muted);border-radius:var(--radius-control)}.frequency>label{position:relative;flex:1;display:flex;justify-content:center;align-items:center;min-height:32px;font-size:12px;font-weight:500;cursor:pointer;border:1px solid transparent;border-radius:4px;color:var(--od-sub)}.frequency>label:has(:checked){background:var(--od-paper);border-color:var(--od-line);color:var(--od-ink)}.frequency>label:focus-within{outline:2px solid var(--od-focus);outline-offset:1px}.frequency input{position:absolute;opacity:0;width:1px;height:1px;min-height:0;padding:0;pointer-events:none}.time-settings{display:flex;align-items:center;gap:var(--space-2);flex-wrap:wrap}.time-settings>.field{flex:1;min-width:110px}.time-settings input[type=time]{font-size:13px}.time-zone{font-size:12px;color:var(--od-sub);font-weight:400}.time-summary{display:flex;gap:var(--space-2);align-items:center;font-size:12px;color:var(--od-sub)}.time-summary>.icon{width:16px;height:16px}.plan-save-state{display:grid;gap:var(--space-2);margin:0;padding:var(--space-3) 0 0;border:0;border-top:1px solid var(--od-line);min-width:0}.plan-save-state>legend{float:left;width:100%;padding:0;font-size:12px;font-weight:600}.save-options{display:flex;gap:var(--space-4)}.save-options>label{display:flex;align-items:center;gap:var(--space-2);min-height:30px;font-size:12px;cursor:pointer}.save-options input[type=radio]{width:16px;height:16px;min-height:0;margin:0;accent-color:var(--od-brand)}
+.plan-footer{display:flex;align-items:center;justify-content:flex-end;gap:var(--space-2);flex:none;padding:var(--space-3);border-top:1px solid var(--od-line);background:var(--od-paper)}.plan-footer .button{min-width:76px}.plan-footer .primary{min-width:108px}.shell:has(.plan-footer:not([hidden])) .toast{bottom:80px}.shell:has(.plan-footer:not([hidden]))[data-running=true] .toast{bottom:144px}
+.manager-toolbar{display:grid;gap:var(--space-2)}.manager-count{font-size:12px;color:var(--od-sub)}.manager-row{padding:var(--space-3);display:grid;gap:var(--space-2)}.manager-row+.manager-row{border-top:1px solid var(--od-line)}.manager-row-head{display:flex;align-items:flex-start;gap:var(--space-2)}.manager-copy{min-width:0;flex:1;display:grid;gap:var(--space-1)}.manager-copy h2{font-size:13px;overflow-wrap:anywhere}.manager-copy p{font-size:12px;color:var(--od-sub);overflow-wrap:anywhere}.manager-state{font-size:12px;white-space:nowrap;color:var(--od-positive)}.manager-state.disabled{color:var(--od-sub)}.manager-actions{display:flex;flex-wrap:wrap;align-items:center;gap:var(--space-2);padding-left:40px}.manager-actions .text-button{font-weight:500}.manager-actions>.icon-button{margin-left:auto}.manager-enable{display:flex;align-items:center;gap:var(--space-1)}.task-switch{display:inline-flex;align-items:center;justify-content:center;width:38px;min-width:38px;height:34px;flex:none;background:transparent;border:0;border-radius:var(--radius-control);padding:0}.switch-track{width:28px;height:16px;border-radius:16px;background:var(--od-sub);padding:2px;display:flex;align-items:center;border:1px solid var(--od-sub)}.switch-track:before{content:"";display:block;width:10px;height:10px;border-radius:50%;background:var(--od-paper)}.task-switch[aria-checked=true] .switch-track{background:var(--od-brand);border-color:var(--od-brand);justify-content:flex-end}.manager-impact{font-size:12px;color:var(--od-sub);padding-left:40px}.manager-create{white-space:nowrap;display:inline-flex;gap:var(--space-1);align-items:center}.manager-create>.icon{width:14px;height:14px}[data-manager-expand]>.icon{width:13px;height:13px}[data-manager-expand][aria-expanded=true]>.icon{transform:rotate(90deg)}.association-list{list-style:none;padding:0;display:grid;gap:var(--space-1);margin-bottom:var(--space-2)}.association-list li{display:flex;justify-content:space-between;gap:var(--space-2);overflow-wrap:anywhere;font-size:12px}.association-list li>small{font-size:12px;white-space:nowrap}.association-link{border:0;background:transparent;padding:4px 0;text-align:left;font-size:12px;color:var(--od-ink);text-decoration:underline;text-underline-offset:3px;overflow-wrap:anywhere}.association-link:disabled{text-decoration:none;opacity:1;color:var(--od-sub)}.manager-association-help{padding-bottom:var(--space-2)}.manager-state{display:inline-flex;gap:var(--space-1);align-items:center}.manager-state>.icon{width:14px;height:14px}.manager-impact.warning{color:var(--od-warning)}.manager-counts{font-variant-numeric:tabular-nums}.manager-association-slot{min-width:0;margin-left:40px;border-top:1px solid var(--od-line);padding-top:var(--space-2)}.plan-form .error{flex-basis:100%}.manager-empty{margin-top:var(--space-2)}.search-field>input[type=search]{padding-inline-start:34px}.collection:has(>.plan),.collection:has(>.manager-row){overflow:visible}
+
+.run-dock{flex:none;border-top:1px solid var(--od-line);padding:var(--space-2) var(--space-3);display:flex;align-items:center;gap:var(--space-2);background:var(--od-paper)}.run-dock .note{flex:1;min-width:0}.run-dock strong{display:block;font-size:12px}.run-dock .button{border-color:var(--od-negative)}.toast{position:absolute;z-index:5;bottom:var(--space-4);left:var(--space-4);right:var(--space-4);border:1px solid var(--od-line);border-radius:var(--radius-control);padding:var(--space-3);box-shadow:0 4px 16px #1b2c4910;background:var(--od-muted);font-size:12px;pointer-events:none}.shell[data-running=true] .toast{bottom:84px}
+dialog{color:var(--od-ink);border:1px solid var(--od-line);background:var(--od-paper);padding:0;max-width:calc(100vw - 24px);box-shadow:0 12px 48px #1b2c4920}dialog::backdrop{background:#1b2c493d}.sheet{width:360px;max-width:100vw;max-height:calc(100dvh - 56px);margin:auto auto 0;border-bottom:0;border-radius:var(--radius-surface) var(--radius-surface) 0 0;overflow:hidden}.sheet[open]{display:flex;flex-direction:column}.dialog-head{display:flex;align-items:center;gap:var(--space-2);padding:var(--space-3);border-bottom:1px solid var(--od-line);flex:none}.dialog-head h2{flex:1;min-width:0;font-size:13px;overflow-wrap:anywhere}.dialog-body{display:grid;gap:var(--space-3);padding:var(--space-4) var(--space-3);overflow:auto;min-height:0}.dialog-foot{display:flex;align-items:center;gap:var(--space-2);padding:var(--space-3);border-top:1px solid var(--od-line);flex:none}.dialog-foot .primary{margin-left:auto}.modal{width:336px;margin:auto;border-radius:var(--radius-surface)}.modal .dialog-body{max-height:65dvh}.segment{display:inline-flex;gap:2px;padding:3px;border-radius:var(--radius-control);background:var(--od-muted)}.segment button{min-height:28px;padding:4px 10px;border:0;border-radius:6px;background:transparent;font-size:12px;color:var(--od-sub)}.segment [aria-pressed=true]{background:var(--od-paper);color:var(--od-ink);font-weight:600;box-shadow:0 1px 4px #1b2c4918}.scenario-list{display:grid;gap:var(--space-2)}.scenario-list button{padding:var(--space-3);min-height:40px;background:var(--od-paper);border:1px solid var(--od-line);border-radius:var(--radius-control);text-align:left;font-size:12px}.menu-list{display:grid;gap:var(--space-1)}.menu-list button{border:0;border-radius:var(--radius-control);background:transparent;text-align:left;min-height:36px;padding:var(--space-2);font-size:12px}.menu-list button:disabled{opacity:1;color:var(--od-sub)}
+.add-panel{display:grid;gap:var(--space-2);padding:var(--space-3);margin-bottom:var(--space-3);border:1px solid var(--od-line);border-radius:var(--radius-surface)}.add-panel>.toolbar{min-height:28px}.add-panel>.toolbar>.icon-button{width:28px;height:28px}.file-drop{display:grid;justify-items:center;gap:var(--space-2);padding:var(--space-3);border:1px dashed var(--od-line);border-radius:var(--radius-control);font-size:12px;color:var(--od-sub)}.file-drop>.icon{width:22px;height:22px}.file-drop.dragging{border-color:var(--od-brand);background:var(--od-muted)}.add-options{display:flex;align-items:center;justify-content:space-between;gap:var(--space-2);padding-top:var(--space-2);border-top:1px solid var(--od-line)}.add-options>.text-button{display:inline-flex;align-items:center;gap:var(--space-1);text-decoration:none;white-space:nowrap}.add-options .icon{width:14px;height:14px}.catalog-row{display:flex;align-items:center;gap:var(--space-2);padding:var(--space-3);border:0;background:var(--od-paper);width:100%;text-align:left}.catalog-row+.catalog-row{border-top:1px solid var(--od-line)}.catalog-row>span:first-child{display:grid;gap:var(--space-1);flex:1;min-width:0}.catalog-row strong{font-size:13px;font-weight:600}.catalog-row>.icon{width:14px;height:14px;color:var(--od-sub)}.catalog-empty{padding:var(--space-3)}.file-source{max-height:320px}.plan-overview{display:grid;gap:var(--space-4);padding:var(--space-1) 0 var(--space-2)}.sub-head>.button{padding-inline:var(--space-2);min-height:34px;font-weight:500}
+@media(hover:none),(pointer:coarse){.task-actions{opacity:1;pointer-events:auto}.icon-button{width:44px;min-height:44px}.button,.text-button,.filters button,.segment button{min-height:44px}.task-main{min-height:60px}.head-actions{gap:0}.task-actions{gap:0}.page-head{flex-wrap:wrap}.brand small{display:none}}
+@media(max-width:340px){.brand small{display:none}.page-head{gap:var(--space-1)}.head-actions{gap:0}}
+@media(prefers-reduced-motion:reduce){*{scroll-behavior:auto}}
+.result-view{display:grid;gap:var(--space-1);min-width:0}.result-actions{display:flex;align-items:center;justify-content:space-between;gap:var(--space-2);flex-wrap:wrap}.result-actions .note{flex:1 1 140px}.result-reveal{display:inline-flex;align-items:center;gap:var(--space-1);flex:none;color:var(--od-brand)}.result-reveal .icon{width:15px;height:15px}.result-hint--sensitive{color:var(--od-warning)}
+</style>
+</head>
+<body>
+<svg class="symbols" aria-hidden="true">
+<symbol id="i-task" viewBox="0 0 24 24"><rect x="4" y="3" width="16" height="18" rx="3"/><path d="M8 9h8M8 13h8M8 17h5"/></symbol>
+<symbol id="i-globe" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M3 12h18M12 3c3 3 4 6 4 9s-1 6-4 9m0-18c-3 3-4 6-4 9s1 6 4 9"/></symbol>
+<symbol id="i-chevron" viewBox="0 0 24 24"><path d="m9 5 7 7-7 7"/></symbol>
+<symbol id="i-play" viewBox="0 0 24 24"><path d="m8 5 11 7-11 7Z"/></symbol>
+<symbol id="i-stop" viewBox="0 0 24 24"><rect x="6" y="6" width="12" height="12" rx="2"/></symbol>
+<symbol id="i-plus" viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></symbol>
+<symbol id="i-x" viewBox="0 0 24 24"><path d="m6 6 12 12M6 18 18 6"/></symbol>
+<symbol id="i-clock" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></symbol>
+<symbol id="i-dots" viewBox="0 0 24 24"><circle cx="5" cy="12" r="1"/><circle cx="12" cy="12" r="1"/><circle cx="19" cy="12" r="1"/></symbol>
+<symbol id="i-search" viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><path d="m20 20-4-4"/></symbol>
+<symbol id="i-shield" viewBox="0 0 24 24"><path d="m12 3-8 3v5c0 5 3 8 8 10 5-2 8-5 8-10V6Z"/><path d="m8 12 3 3 5-6"/></symbol>
+<symbol id="i-pause" viewBox="0 0 24 24"><path d="M9 5v14M15 5v14"/></symbol>
+<symbol id="i-paused" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M9 9v6M15 9v6"/></symbol>
+<symbol id="i-alert" viewBox="0 0 24 24"><path d="m12 3 10 18H2Z"/><path d="M12 9v5m0 3h.01"/></symbol>
+<symbol id="i-manage" viewBox="0 0 24 24"><path d="M4 7h9m4 0h3M4 17h3m4 0h9"/><circle cx="15" cy="7" r="2"/><circle cx="9" cy="17" r="2"/></symbol>
+<symbol id="i-enabled" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="m8 12 3 3 5-6"/></symbol>
+<symbol id="i-resume" viewBox="0 0 24 24"><path d="M20 7v5h-5M20 12a8 8 0 1 0-2 5"/></symbol>
+<symbol id="i-history" viewBox="0 0 24 24"><path d="M3 12a9 9 0 1 1 2.5 6M3 17v-5h5m4-5v5l4 3"/></symbol>
+<symbol id="i-expand" viewBox="0 0 24 24"><path d="M8 3H3v5m13-5h5v5M3 16v5h5m13-5v5h-5M3 3l6 6m12-6-6 6M3 21l6-6m12 6-6-6"/></symbol>
+<symbol id="i-collapse" viewBox="0 0 24 24"><path d="M3 8h5V3m8 0v5h5M8 21v-5H3m18 0h-5v5M3 3l5 5m13-5-5 5M3 21l5-5m13 5-5-5"/></symbol>
+</svg>
+<div class="shell" id="shell">
+  <header class="brandbar"><div class="brand"><span class="brandmark">O</span>OpenDesk <small>BROWSER</small></div><span class="offline">离线提案</span><button class="icon-button" id="demo-open" type="button" aria-label="选择演示状态" title="选择演示状态"><svg class="icon" aria-hidden="true"><use href="#i-dots"/></svg></button></header>
+  <nav class="top-tabs" aria-label="工作台视图"><span aria-current="page">我的</span><span title="本原型未包含扩展页">扩展</span><span title="本原型未包含工作流页">工作流</span><a href="../develop/index.html" title="打开开发离线原型">开发</a><span title="本原型未包含云控页">云控</span></nav>
+  <main class="viewport" id="viewport" aria-label="我的任务工作区">
+    <section id="tasks-view">
+      <div class="page-head"><div class="head-copy"><h1>自动化任务</h1><span class="count" id="task-count">4 个</span></div><div class="head-actions"><button class="icon-button" id="search-toggle" type="button" aria-label="搜索任务" title="搜索任务" aria-expanded="false" aria-controls="search-panel"><svg class="icon" aria-hidden="true"><use href="#i-search"/></svg></button><button class="icon-button" id="task-manager-open" type="button" aria-label="打开任务管理" title="任务管理" data-tip="任务管理" aria-controls="subview"><svg class="icon" aria-hidden="true"><use href="#i-manage"/></svg></button><button class="icon-button" id="schedule-open" type="button" aria-label="打开定时计划" title="定时计划"><svg class="icon" aria-hidden="true"><use href="#i-clock"/></svg></button><button class="icon-button" id="add-open" type="button" aria-label="添加任务" title="添加任务" aria-expanded="false" aria-controls="add-panel"><svg class="icon" aria-hidden="true"><use href="#i-plus"/></svg></button></div></div>
+      <section class="add-panel" id="add-panel" aria-labelledby="add-title" hidden>
+        <div class="toolbar"><h2 class="grow" id="add-title">添加任务</h2><button class="icon-button" id="add-close" type="button" aria-label="关闭添加任务"><svg class="icon" aria-hidden="true"><use href="#i-x"/></svg></button></div>
+        <div class="file-drop" id="add-drop" role="group" aria-label="任务文件拖放区" aria-describedby="add-help" tabindex="0"><svg class="icon" aria-hidden="true"><use href="#i-task"/></svg><p>拖入一个 .js 或 .json 文件</p><button class="button" id="add-import" type="button">选择任务文件</button></div>
+        <input id="add-file" type="file" accept=".js,.json,application/json,text/javascript" class="sr-only" tabindex="-1" aria-label="选择本地任务文件">
+        <p class="note" id="add-help">只读预览文件；正式工作台将在审阅后创建草稿或验证任务包。</p>
+        <p class="error" id="add-error" role="alert" hidden></p>
+        <div class="add-options"><button class="text-button" id="add-catalog" type="button">浏览任务目录<svg class="icon" aria-hidden="true"><use href="#i-chevron"/></svg></button><a class="text-button" href="../develop/index.html">新建脚本<svg class="icon" aria-hidden="true"><use href="#i-chevron"/></svg></a></div>
+      </section>
+      <div class="search-panel" id="search-panel" hidden><div class="search-field"><svg class="icon" aria-hidden="true"><use href="#i-search"/></svg><label for="task-search" class="sr-only">搜索已安装任务</label><input id="task-search" type="search" placeholder="搜索已安装任务…" autocomplete="off" aria-controls="task-list"></div></div>
+      <p id="list-announcement" class="sr-only" role="status"></p>
+      <ul class="collection" id="task-list" aria-label="已安装任务"></ul>
+      <div class="empty" id="task-empty" hidden></div>
+      <section class="workspace" id="workspace" aria-label="所选任务信息" hidden>
+        <div class="selection-status"><strong id="selection-status"></strong><span class="note" id="selection-help"></span></div>
+        <div class="alert" id="task-alert" role="status" hidden></div>
+        <div class="result-panel" id="result-panel" hidden><div class="result-head"><h2>最近结果</h2><span class="meta" id="result-state"></span></div><div id="result-content"></div><p class="note" id="result-owner"></p></div>
+        <details class="disclosure" id="history-panel"><summary><svg class="icon" aria-hidden="true"><use href="#i-history"/></svg><span>运行记录</span><span class="meta" id="history-count"></span><svg class="icon" aria-hidden="true"><use href="#i-chevron"/></svg></summary><div class="disclosure-body" id="history-body"></div></details>
+        <details class="disclosure" id="scope-panel"><summary><svg class="icon" aria-hidden="true"><use href="#i-shield"/></svg><span>网站与权限</span><svg class="icon" aria-hidden="true"><use href="#i-chevron"/></svg></summary><div class="disclosure-body"><dl class="facts" id="scope-facts"></dl></div></details>
+      </section>
+    </section>
+    <section id="subview" hidden aria-labelledby="sub-title"><header class="sub-head"><button class="icon-button back" id="sub-back" type="button" aria-label="返回我的任务" title="返回"><svg class="icon" aria-hidden="true"><use href="#i-chevron"/></svg></button><h1 id="sub-title" tabindex="-1"></h1><button class="icon-button" id="plan-manager-open" type="button" aria-label="管理执行任务" title="管理执行任务" data-open-manager aria-controls="subview" hidden><svg class="icon" aria-hidden="true"><use href="#i-manage"/></svg></button><button class="icon-button" id="plan-new" type="button" aria-label="新建定时计划" title="新建计划" hidden><svg class="icon" aria-hidden="true"><use href="#i-plus"/></svg></button></header><div id="sub-body" class="stack"></div></section>
+  </main>
+  <footer class="plan-footer" id="plan-footer" hidden aria-label="计划编辑操作"><button class="button" type="button" id="plan-cancel">取消</button><button class="button primary" type="submit" form="plan-form" id="plan-review">检查计划<svg class="icon" aria-hidden="true"><use href="#i-chevron"/></svg></button></footer>
+  <footer class="run-dock" id="run-dock" hidden aria-label="正在运行的任务"><div class="note"><strong id="run-owner"></strong><span>运行中</span></div><button class="button danger" id="stop-run" type="button"><svg class="icon" aria-hidden="true"><use href="#i-stop"/></svg>停止</button></footer>
+  <p class="toast" id="toast" role="status" hidden></p>
+</div>
+<dialog class="sheet" id="params-dialog" aria-labelledby="params-title" aria-describedby="params-description">
+  <header class="dialog-head"><span class="task-icon"><svg class="icon" aria-hidden="true"><use href="#i-task"/></svg></span><div class="grow"><p class="note params-kicker">参数与运行</p><h2 id="params-title"></h2></div><button class="icon-button" id="params-close" type="button" aria-label="关闭任务参数" title="关闭任务参数"><svg class="icon" aria-hidden="true"><use href="#i-x"/></svg></button></header>
+  <div class="dialog-body"><p class="note" id="params-context"></p><div class="toolbar"><h3 class="grow">运行参数</h3><div class="segment" role="group" aria-label="参数编辑方式"><button type="button" id="mode-form" aria-pressed="true">表单</button><button type="button" id="mode-json" aria-pressed="false">JSON</button></div></div><p class="note" id="params-description">关闭后保留草稿；点击“运行任务”才会执行。</p><div id="params-fields"></div><div id="params-json-wrap" hidden><label class="field" for="params-json">参数 JSON</label><textarea id="params-json" rows="7" spellcheck="false" aria-describedby="params-error"></textarea></div><p class="error" id="params-error" role="alert" hidden></p></div>
+  <footer class="dialog-foot"><button class="button" id="params-cancel" type="button"><svg class="icon" aria-hidden="true"><use href="#i-x"/></svg>取消</button><button class="button primary" id="params-run" type="button"><svg class="icon" aria-hidden="true"><use href="#i-play"/></svg>运行任务</button></footer>
+</dialog>
+<dialog class="modal" id="utility-dialog" aria-labelledby="utility-title"><header class="dialog-head"><h2 id="utility-title" tabindex="-1"></h2><button class="icon-button" id="utility-close" type="button" aria-label="关闭对话框" title="关闭"><svg class="icon" aria-hidden="true"><use href="#i-x"/></svg></button></header><div class="dialog-body" id="utility-body"></div></dialog>
+<script>
+// OFFLINE_INTERACTIVE_PROPOSAL: memory-only presentation, no Host/SDK or execution.
+(() => {
+  'use strict';
+  const $ = id => document.getElementById(id);
+  const esc = value => String(value).replace(/[&<>"']/g, ch => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[ch]));
+  const icon = name => `<svg class="icon" aria-hidden="true"><use href="#i-${name}"/></svg>`;
+  const taskSeed = () => [
+    {id:'summary',title:'提取网页摘要',description:'整理当前文章的要点与原文链接',site:'example.com',enabled:true,fields:[{key:'length',label:'摘要长度',type:'select',options:['简明','详细'],value:'简明'},{key:'includeLinks',label:'附上原文链接',type:'checkbox',value:true}]},
+    {id:'links',title:'整理页面链接',description:'提取并去重当前网页中的链接',site:'example.com',enabled:true,fields:[{key:'limit',label:'最多条数',type:'number',value:20,min:1,max:100},{key:'externalOnly',label:'只保留站外链接',type:'checkbox',value:false}]},
+    {id:'knowledge',title:'整理知识库页面',description:'提取文档标题、目录与正文',site:'docs.example.com',enabled:true,fields:[{key:'includeLinks',label:'附上原文链接',type:'checkbox',value:true}]},
+    {id:'search',title:'站内搜索',description:'按关键词收集站内搜索结果',site:'example.com',enabled:false,fields:[{key:'keyword',label:'搜索关键词',type:'text',value:'浏览器'},{key:'limit',label:'结果数量',type:'number',value:10,min:1,max:50}]}
+  ];
+  let tasks=taskSeed(),selected='summary',expanded=true,activeRow='summary',scene='normal',siteAvailable=true;
+  let drafts={},records={},run=null,runTimer=null,toastTimer=null,route='tasks',routeTask=null,scrollTop=0,homeTrigger=null;
+  let paramsErrorField=null;
+  let paramsTask=null,paramsMode='form',paramsTrigger=null,utilityTrigger=null,planDraft=null,planBaseline='',planTrigger=null,planSequence=2,planFormOrigin=null;
+  let fileRevision=0,discardAction=null,managerContext=null,managerQuery='',managerFilter='all',managerTask=null,managerExpanded=new Set(),planListScroll=0,planError=null,planManagerOrigin=null,detailReturnsManager=false,planTimeDraft={recurring:'09:00',once:''};
+  let plans=[{id:'plan-1',name:'每日文章摘要',task:'summary',url:'https://example.com/articles/workflows',kind:'daily',time:'09:00',paused:false},{id:'plan-2',name:'每周链接整理',task:'links',url:'https://example.com/reading',kind:'weekly',time:'18:30',paused:true}];
+  const findTask = id => tasks.find(task=>task.id===id);
+  const hasUnknown = id => records[id]?.[0]?.state==='unknown';
+  const canRun = task => !!task&&task.enabled&&siteAvailable&&task.site==='example.com'&&!run&&!hasUnknown(task.id);
+  const initialParams = task => Object.fromEntries(task.fields.map(field=>[field.key,field.value]));
+  function draftFor(task){return drafts[task.id]??(drafts[task.id]={values:initialParams(task),raw:JSON.stringify(initialParams(task),null,2)});}
+  function notify(message){clearTimeout(toastTimer);$('toast').textContent=message;$('toast').hidden=false;toastTimer=setTimeout(()=>$('toast').hidden=true,3600);}
+  // Presentation fixtures only. Product values still use the original Codec and owner.
+  function resultExample(kind){
+    const value={title:'日常工作流',summary:'文章围绕目标、步骤与复盘组织日常工作流。',url:'https://example.com/articles/workflows'};
+    if(kind==='long')value.content='这是离线长结果示例，用于检查完整内容的展开与收起。\n'.repeat(220);
+    if(kind==='sensitive')value.accessToken='DEMO_ONLY_NOT_A_REAL_TOKEN';
+    const full=JSON.stringify(value,null,2),redacted=kind==='sensitive',truncated=kind==='long';
+    const preview=redacted?JSON.stringify({...value,accessToken:'[已隐藏]'},null,2):truncated?full.slice(0,4096)+'\n…（内容已截断）':full;
+    return {id:'preview-result-'+kind,state:'success',label:'成功 · 离线示例',time:'示例记录',result:preview,
+      ...(redacted||truncated?{fullResult:full,redacted,truncated}:{})};
+  }
+  function resultHint(record,revealed){
+    return revealed?(record.redacted?'正在显示完整结果，可能含敏感信息；分享前请检查。':'正在显示完整结果。'):
+      [record.truncated?'内容已截断':null,record.redacted?'已隐藏敏感字段':null].filter(Boolean).join('；');
+  }
+  function resultMarkup(record,taskId,bodyId){
+    const reveal=typeof record.fullResult==='string'&&record.fullResult!==record.result;
+    return `<div class="result-view"><pre class="result" id="${bodyId}">${esc(record.result)}</pre>${reveal?`<div class="result-actions"><p class="note${record.redacted?' result-hint--sensitive':''}" id="${bodyId}-hint" role="status">${esc(resultHint(record,false))}</p><button type="button" class="text-button result-reveal" data-result-toggle data-result-task="${esc(taskId)}" data-result-run="${esc(record.id)}" aria-controls="${bodyId}" aria-describedby="${bodyId}-hint" aria-expanded="false">${icon('expand')}<span>查看完整结果</span></button></div>`:''}</div>`;
+  }
+  function toggleResult(button,hide=false){
+    const record=(records[button.dataset.resultTask]||[]).find(item=>item.id===button.dataset.resultRun);
+    if(!record||typeof record.fullResult!=='string')return;
+    const revealed=!hide&&button.getAttribute('aria-expanded')!=='true',body=$(button.getAttribute('aria-controls'));
+    if(!body)return;
+    body.textContent=revealed?record.fullResult:record.result;body.scrollTop=0;
+    button.setAttribute('aria-expanded',String(revealed));
+    button.innerHTML=icon(revealed?'collapse':'expand')+'<span>'+(revealed?'收起完整结果':'查看完整结果')+'</span>';
+    $(body.id+'-hint').textContent=resultHint(record,revealed);
+  }
+  function hideRevealed(root=document){root.querySelectorAll('[data-result-toggle][aria-expanded="true"]').forEach(button=>toggleResult(button,true));}
+  function renderTasks(){
+    const query=$('task-search').value.trim().toLocaleLowerCase();
+    const visible=tasks.filter(task=>!query||(task.title+' '+task.description).toLocaleLowerCase().includes(query));
+    if(!visible.some(task=>task.id===activeRow))activeRow=visible[0]?.id;
+    $('task-count').textContent=tasks.length+' 个';
+    $('list-announcement').textContent=visible.length+' 个匹配任务';
+    $('task-list').hidden=!visible.length;
+    $('task-list').innerHTML=visible.map(task=>`<li class="task-row${selected===task.id?' selected':''}${activeRow===task.id?' last-active':''}" data-row="${task.id}"><button class="task-main" type="button" data-select="${task.id}" aria-pressed="${selected===task.id}" aria-expanded="${selected===task.id&&expanded}" aria-controls="workspace" title="${esc(task.title)}"><span class="task-icon">${icon('task')}</span><span class="task-copy"><strong>${esc(task.title)}</strong><small>${!task.enabled?'已停用 · ':task.site!=='example.com'?'其他网站 · ':''}${esc(task.description)}</small></span></button><span class="task-actions"><button class="icon-button" type="button" data-prepare="${task.id}" aria-label="准备运行「${esc(task.title)}」" title="配置参数与准备运行" aria-haspopup="dialog">${icon('play')}</button><button class="icon-button" type="button" data-manage="${task.id}" aria-label="管理「${esc(task.title)}」" title="任务更多操作" aria-haspopup="dialog">${icon('dots')}</button></span></li>`).join('');
+    $('task-empty').hidden=!!visible.length;
+    if(!visible.length){
+      const empty=!tasks.length;
+      $('task-empty').innerHTML=icon(empty?'task':'search')+`<h2>${empty?'还没有自动化任务':'没有匹配的任务'}</h2><p class="note">${empty?'添加已审阅的任务，或前往开发创建。':'试试其他关键词，或清空搜索。'}</p><button class="button" type="button" id="${empty?'empty-add':'search-reset'}">${empty?'添加任务':'清空搜索'}</button>`;
+    }
+    $('workspace').hidden=!expanded||!visible.some(task=>task.id===selected);
+    renderWorkspace();renderDock();
+  }
+  function renderWorkspace(){
+    const task=findTask(selected);if(!task){$('result-content').replaceChildren();$('history-body').replaceChildren();return;}
+    const history=records[task.id]||[],latest=history[0],ownRun=run?.task===task.id;
+    let state='就绪',help='当前网页适用';
+    if(!task.enabled){state='已停用';help='可在任务管理中恢复';}
+    else if(!siteAvailable){state='网页不可用';help='打开普通网页后再试';}
+    else if(task.site!=='example.com'){state='其他网站';help='适用 '+task.site;}
+    if(latest?.state==='unknown'){state='结果未知';help='先核对原运行记录';}
+    if(ownRun){state='运行中';help=task.title;}
+    $('selection-status').textContent=state;$('selection-help').textContent=help;
+    $('selection-status').className=state==='就绪'?'positive':state==='结果未知'?'warning':'';
+    $('result-panel').hidden=!latest||latest.state==='unknown';
+    $('result-content').innerHTML=latest?resultMarkup(latest,task.id,'result'):'';
+    if(latest){$('result-state').textContent=latest.label;$('result-owner').textContent='任务：'+task.title+' · '+latest.time;}
+    const alert=$('task-alert');alert.hidden=!latest||!['unknown','failed'].includes(latest.state);
+    alert.classList.toggle('error-alert',latest?.state==='failed');
+    if(!alert.hidden)alert.innerHTML=latest.state==='unknown'?'<strong>上次执行结果尚未确认</strong><p>不能确定是否产生了效果。请核对原记录，暂不重新运行。</p><button class="text-button" type="button" id="open-original">查看原运行记录</button>':'<strong>上次运行失败</strong><p>示例：未找到文章正文。请检查目标网页，再准备下一次运行。</p>';
+    $('history-count').textContent=history.length?history.length+' 条':'';
+    $('history-body').innerHTML=history.length?history.map((record,index)=>`<article class="record"><div class="record-head"><strong class="${record.state==='failed'?'error':record.state==='unknown'?'warning':'note'}">${esc(record.label)}</strong><time>${esc(record.time)}</time></div>${typeof record.fullResult==='string'?resultMarkup(record,task.id,'history-result-'+index):`<p class="note">${esc(record.result)}</p>`}<details><summary class="technical">运行标识</summary><p class="technical">${esc(record.id)} · ${esc(task.id)} · v1.0.0</p></details></article>`).join(''):'<p class="note">还没有运行记录。准备参数后可开始一次模拟。</p>';
+    $('scope-facts').innerHTML=`<div><dt>适用网站</dt><dd>https://${esc(task.site)}/*</dd></div><div><dt>任务能力</dt><dd>读取网页内容（示例）</dd></div><div><dt>安装版本</dt><dd>v1.0.0 · ${task.enabled?'可用':'已停用'}</dd></div><div><dt>权限说明</dt><dd>此处仅展示已安装范围，不申请或扩大权限。</dd></div>`;
+  }
+  function renderDock(){
+    $('run-dock').hidden=!run;$('shell').dataset.running=String(!!run);
+    if(run){$('run-owner').textContent=run.title;$('stop-run').setAttribute('aria-label','停止「'+run.title+'」的运行');}
+  }
+  function setActive(id){activeRow=id;document.querySelectorAll('[data-row]').forEach(row=>row.classList.toggle('last-active',row.dataset.row===id));}
+  function selectTask(id){expanded=selected===id?!expanded:true;selected=id;activeRow=id;renderTasks();document.querySelector(`[data-select="${id}"]`)?.focus({preventScroll:true});}
+  function paramsError(message,focus){$('params-error').textContent=message;$('params-error').hidden=false;if(focus){paramsErrorField=focus.id;focus.setAttribute('aria-invalid','true');focus.setAttribute('aria-describedby','params-error');focus.focus();}}
+  function clearParamsError(){paramsErrorField=null;$('params-error').hidden=true;document.querySelectorAll('#params-dialog [aria-invalid]').forEach(node=>{node.removeAttribute('aria-invalid');node.removeAttribute('aria-describedby');});}
+  function renderFields(task){
+    const draft=draftFor(task);
+    $('params-fields').innerHTML=task.fields.map(field=>{
+      const value=draft.values[field.key],id='param-'+field.key;
+      if(field.type==='checkbox')return `<div class="compact-field"><label for="${id}">${esc(field.label)}</label><span class="check-field"><input id="${id}" type="checkbox" data-param="${field.key}" ${value?'checked':''}></span></div>`;
+      const control=field.type==='select'?`<select id="${id}" data-param="${field.key}">${field.options.map(option=>`<option${value===option?' selected':''}>${esc(option)}</option>`).join('')}</select>`:`<input id="${id}" data-param="${field.key}" type="${field.type}" value="${esc(value)}"${field.type==='number'?` min="${field.min}" max="${field.max}" step="1"`:''}>`;
+      return `<div class="compact-field"><label for="${id}">${esc(field.label)}</label>${control}</div>`;
+    }).join('');
+  }
+  function validateParams(task,value,fieldKey){
+    if(!value||Array.isArray(value)||typeof value!=='object')return {message:'参数必须是 JSON 对象，例如 {}。'};
+    const extra=Object.keys(value).find(key=>!task.fields.some(field=>field.key===key));
+    if(extra)return {message:'不支持的参数：'+extra+'。请使用本任务的字段。'};
+    for(const field of task.fields){if(fieldKey&&field.key!==fieldKey)continue;const v=value[field.key];
+      if(field.type==='number'&&(!Number.isInteger(v)||v<field.min||v>field.max))return {key:field.key,message:field.label+'须为 '+field.min+'–'+field.max+' 的整数。'};
+      if(field.type==='checkbox'&&typeof v!=='boolean')return {key:field.key,message:field.label+'须为 true 或 false。'};
+      if(field.type==='select'&&!field.options.includes(v))return {key:field.key,message:'请选择有效的'+field.label+'。'};
+      if(field.type==='text'&&(typeof v!=='string'||!v.trim()))return {key:field.key,message:'请填写'+field.label+'。'};
+    }return null;
+  }
+  function readJson(task){let value;try{value=JSON.parse($('params-json').value);}catch{paramsError('JSON 格式有误，请检查引号、逗号和括号。',$('params-json'));return null;}const error=validateParams(task,value);if(error){paramsError(error.message,$('params-json'));return null;}return value;}
+  function setParamsMode(mode){
+    if(mode===paramsMode)return;
+    const task=findTask(paramsTask),draft=draftFor(task);
+    if(mode==='form'){const value=readJson(task);if(!value)return;draft.values=value;renderFields(task);}
+    else {draft.raw=JSON.stringify(draft.values,null,2);$('params-json').value=draft.raw;}
+    paramsMode=mode;clearParamsError();$('params-fields').hidden=mode!=='form';$('params-json-wrap').hidden=mode!=='json';
+    $('mode-form').setAttribute('aria-pressed',String(mode==='form'));$('mode-json').setAttribute('aria-pressed',String(mode==='json'));
+  }
+  function openParams(id,trigger){
+    const task=findTask(id);selected=id;expanded=true;activeRow=id;renderTasks();paramsTrigger=document.querySelector(`[data-prepare="${id}"]`)||trigger;
+    if(!canRun(task)){
+      if(hasUnknown(id)){$('history-panel').open=true;$('task-alert').scrollIntoView({block:'nearest'});}
+      else notify(run?'请先停止或等待「'+run.title+'」完成。':!task.enabled?'此任务已停用，可在更多操作中恢复。':!siteAvailable?'当前网页不可用，请打开普通网页。':'此任务适用于 '+task.site+'。');
+      paramsTrigger?.focus({preventScroll:true});return;
+    }
+    paramsTask=id;paramsMode='form';clearParamsError();renderFields(task);$('params-title').textContent=task.title;
+    $('params-context').textContent='适用网站：'+task.site;$('params-json').value=draftFor(task).raw;
+    $('params-fields').hidden=false;$('params-json-wrap').hidden=true;$('mode-form').setAttribute('aria-pressed','true');$('mode-json').setAttribute('aria-pressed','false');
+    // Restore invalid raw JSON as-is rather than silently losing that draft.
+    if(draftFor(task).raw!==JSON.stringify(draftFor(task).values,null,2)){paramsMode='json';$('params-fields').hidden=true;$('params-json-wrap').hidden=false;$('mode-form').setAttribute('aria-pressed','false');$('mode-json').setAttribute('aria-pressed','true');}
+    $('params-dialog').showModal();
+    (paramsMode==='json'?$('params-json'):$('params-fields').querySelector('input,select'))?.focus();
+  }
+  function closeParams(){$('params-dialog').close();paramsTrigger?.focus({preventScroll:true});}
+  function startRun(){
+    const task=findTask(paramsTask);if(!canRun(task))return;
+    const draft=draftFor(task),value=paramsMode==='json'?readJson(task):draft.values;if(!value)return;
+    const error=validateParams(task,value);if(error){paramsError(error.message,$('param-'+error.key));return;}
+    draft.values={...value};draft.raw=JSON.stringify(value,null,2);
+    run={task:task.id,title:task.title,params:{...value},id:'preview-'+Date.now()};closeParams();renderWorkspace();renderDock();
+    // Deliberately long enough to inspect selection changes and Stop ownership.
+    runTimer=setTimeout(()=>finishRun('success'),6500);
+  }
+  function finishRun(state){
+    if(!run)return;clearTimeout(runTimer);const owner=run;run=null;
+    const result=state==='stopped'?'已停止这次模拟，未操作网页。':owner.task==='summary'?'文章围绕目标、步骤与复盘组织日常工作流。\n原文：https://example.com/articles/workflows':owner.task==='links'?'已整理 6 条示例链接；最多 '+owner.params.limit+' 条。':'已完成示例任务。';
+    (records[owner.task]??=[]).unshift({id:owner.id,state,label:state==='stopped'?'已停止':'成功',result,time:new Date().toLocaleTimeString('zh-CN',{hour:'2-digit',minute:'2-digit'})});
+    renderWorkspace();renderDock();if(route==='manager')renderManagerRows();notify(owner.title+' · '+(state==='stopped'?'已停止':'已完成'));
+  }
+  function openUtility(title,html,trigger){utilityTrigger=trigger||document.activeElement;$('utility-title').textContent=title;$('utility-body').innerHTML=html;$('utility-dialog').showModal();}
+  function closeUtility(){discardAction=null;$('utility-dialog').close();const trigger=utilityTrigger?.isConnected?utilityTrigger:route==='manager'?document.querySelector(`[data-manager-more="${utilityTrigger?.dataset.managerMore}"]`):null;if(trigger)trigger.focus({preventScroll:true});else if(route!=='tasks')$('sub-title').focus({preventScroll:true});}
+  function openAdd(trigger){
+    if(!$('add-panel').hidden&&trigger===$('add-open'))return closeAdd();
+    $('add-panel').hidden=false;$('add-open').setAttribute('aria-expanded','true');
+    $('add-import').focus({preventScroll:true});$('add-panel').scrollIntoView({block:'nearest'});
+  }
+  function closeAdd(){fileRevision++;$('add-panel').hidden=true;$('add-open').setAttribute('aria-expanded','false');$('add-drop').classList.remove('dragging');$('add-open').focus({preventScroll:true});}
+  function addFailure(message){$('add-error').textContent=message;$('add-error').hidden=false;}
+  async function previewFiles(files){
+    const revision=++fileRevision;$('add-error').hidden=true;
+    if(files.length!==1)return addFailure('一次请选择一个 .js 或 .json 文件。');
+    const file=files[0],js=/\.js$/i.test(file.name),json=/\.json$/i.test(file.name);
+    if(!js&&!json)return addFailure('请选择 .js 源码或 .json 任务包；扩展工具包请到“扩展”。');
+    if(!file.size||file.size>1024*1024)return addFailure('文件为空，或超过离线预览的 1 MB 上限。');
+    let source,parsed;
+    try{source=await file.text();if(json)parsed=JSON.parse(source);}catch{return revision===fileRevision&&addFailure('无法读取文件，或 JSON 格式有误，请核对后重新选择。');}
+    if(revision!==fileRevision||$('add-panel').hidden||route!=='tasks')return;
+    if(!source.trim())return addFailure('文件内容为空，请重新选择。');
+    if(json&&(!parsed||typeof parsed!=='object'||Array.isArray(parsed)))return addFailure('JSON 应是任务包或程序草稿对象。');
+    if(json&&(/\.opendesk-tool\.json$/i.test(file.name)||/^opendesk\.sidebar-tool\./.test(parsed.format||'')))return addFailure('这是扩展工具包，请在“扩展”中导入。');
+    const taskPackage=json&&parsed.format==='opendesk.task-package.v1';
+    const draft=json&&['opendesk.program-draft.v1','opendesk.program-draft.v2'].includes(parsed.format);
+    if(json&&!taskPackage&&!draft)return addFailure('不支持此 JSON 类型；请选择 Controller Task 包或程序草稿。');
+    homeTrigger=$('add-import');scrollTop=$('viewport').scrollTop;
+    showRoute('file-preview',taskPackage?'任务包预览':'脚本草稿',`<div class="selection-status"><strong class="warning">${taskPackage?'尚未验证':'未保存'}</strong><span class="note">${esc(file.name)}</span></div><p class="note">${taskPackage?'正式工作台将先验证固定源码与 Manifest，再进入安装审阅。':'正式工作台将在“开发”中打开未保存草稿，供你审阅和验证。'}</p><details class="disclosure" open><summary>文件内容${icon('chevron')}</summary><div class="disclosure-body"><pre class="result file-source">${esc(source.slice(0,6000))}${source.length>6000?'\n…（仅预览前 6000 字符）':''}</pre></div></details><p class="note">此离线预览只读取所选文件，不写入开发草稿、验证、安装或执行。</p>`);
+  }
+  function showCatalog(){
+    showRoute('catalog','任务目录',`<p class="note">选择任务查看版本、适用网站及安装状态。</p><div class="collection">${tasks.map(task=>`<button type="button" class="catalog-row" data-catalog-task="${task.id}"><span><strong>${esc(task.title)}</strong><small class="note">v1.0.0 · ${esc(task.site)}</small></span><span class="meta">已安装</span>${icon('chevron')}</button>`).join('')||'<p class="note catalog-empty">目录中暂无任务。</p>'}</div>`);
+  }
+  function catalogDetail(id){
+    const task=findTask(id);if(!task)return showCatalog();routeTask=id;
+    showRoute('catalog-detail',task.title,`<div class="selection-status"><strong class="positive">已安装</strong><span class="note">v1.0.0</span></div><p class="note">${esc(task.description)}</p><dl class="facts"><div><dt>适用网站</dt><dd>${esc(task.site)}</dd></div><div><dt>当前状态</dt><dd>${task.enabled?'可用':'已停用'}</dd></div></dl><button type="button" class="button" id="catalog-show-task">在我的任务中查看</button>`);
+  }
+  function openManage(id,trigger){
+    const task=findTask(id);routeTask=id;
+    openUtility(task.title,`<div class="menu-list"><button type="button" data-utility="prepare">配置参数与准备运行</button><button type="button" data-utility="toggle" ${run?.task===id||!task.enabled&&hasUnknown(id)?'disabled':''}>${task.enabled?'停用任务':'恢复任务'}</button><button type="button" data-utility="scope">查看网站与权限</button><button type="button" data-utility="uninstall" class="danger" ${run?.task===id||hasUnknown(id)?'disabled':''}>卸载任务…</button></div>${run?.task===id?'<p class="note">请先停止当前任务，再停用或卸载。</p>':hasUnknown(id)?'<p class="note">上次结果未知，请先核对原运行记录，暂不卸载或恢复任务。</p>':''}`,trigger);
+  }
+  function showRoute(next,title,html){
+    hideRevealed();
+    fileRevision++;
+    $('plan-footer').hidden=next!=='plan-form';
+    route=next;$('tasks-view').hidden=next!=='tasks';$('subview').hidden=next==='tasks';$('sub-title').textContent=title;$('sub-body').innerHTML=html;$('plan-manager-open').hidden=next!=='plans';$('plan-new').hidden=next!=='plans';
+    $('sub-back').setAttribute('aria-label',['catalog','file-preview'].includes(next)?'返回添加任务':next==='catalog-detail'?'返回任务目录':next==='plan-form'&&planFormOrigin?'返回计划详情':next==='manager'?(managerContext?.route==='plan-form'?'返回计划编辑器':managerContext?.route==='plan-detail'?'返回计划详情':managerContext?.route==='plans'?'返回定时计划':'返回我的任务'):next==='plans'?'返回我的任务':next==='plan-detail'&&detailReturnsManager?'返回任务管理':'返回定时计划');
+    $('viewport').scrollTop=0;$('sub-title').focus({preventScroll:true});
+  }
+  function home(){$('plan-footer').hidden=true;route='tasks';$('tasks-view').hidden=false;$('subview').hidden=true;$('viewport').scrollTop=scrollTop;renderTasks();if(homeTrigger?.isConnected)homeTrigger.focus({preventScroll:true});}
+  const weekdays=['日','一','二','三','四','五','六'];
+  const ruleText=plan=>plan.kind==='weekly'?'每周'+weekdays[plan.weekday??1]+' '+plan.time:plan.kind==='once'?'执行一次 · '+plan.time.replace('T',' '):'每天 '+plan.time;
+  function planBlockReason(plan){const task=findTask(plan.task);return !task?'任务已卸载，请在任务管理中核对；新建计划可选择其他任务。':!task.enabled?'任务已停用，请在任务管理中恢复任务。':hasUnknown(task.id)?'任务结果未知，请先核对原运行记录；核对前不恢复或重放。':'';}
+  const planState=plan=>planBlockReason(plan)?'待处理':plan.paused?'已暂停':'已启用';
+  function nextText(plan){if(planBlockReason(plan))return '等待核对任务';if(plan.paused)return '恢复后按规则执行';if(plan.kind==='once')return '下次：'+plan.time.replace('T',' ');return plan.kind==='weekly'?'下次：下周'+weekdays[plan.weekday??1]+' '+plan.time:'下次：明天 '+plan.time;}
+  function showPlans(){
+    const html=plans.length?`<ul class="collection" aria-label="定时计划">${plans.map(plan=>{
+      const reason=planBlockReason(plan),rule=ruleText(plan),taskName=findTask(plan.task)?.title||'任务已卸载',state=planState(plan);
+      const next=reason?'尚未安排':plan.paused?rule:nextText(plan).replace(/^下次：/,'');
+      const frequency=plan.kind==='daily'?'每天':plan.kind==='weekly'?'每周'+weekdays[plan.weekday??1]:'仅一次';
+      const meta='任务：'+taskName;
+      const action=(plan.paused?'恢复':'暂停')+'「'+plan.name+'」的未来调度';
+      return `<li class="plan"><button class="plan-main" type="button" data-plan="${plan.id}" aria-label="查看「${esc(plan.name)}」计划详情" aria-describedby="${plan.id}-next ${plan.id}-rule ${plan.id}-state${reason?' '+plan.id+'-issue':''}"><span class="plan-marker ${reason?'warning':plan.paused?'paused':''}" aria-hidden="true">${icon(reason?'alert':plan.paused?'paused':'enabled')}<small>${state}</small></span><span id="${plan.id}-state" class="sr-only">${state}</span><span class="plan-copy"><strong title="${esc(plan.name)}">${esc(plan.name)}</strong><span class="plan-next" id="${plan.id}-next"><small>${reason?'下次':plan.paused?'恢复后':'下次'}</small><span>${esc(next)}</span>${!plan.paused&&!reason?`<small>· ${esc(frequency)}</small>`:''}</span><span class="plan-meta" id="${plan.id}-rule" title="${esc(meta)}">${esc(meta)}</span></span>${icon('chevron')}</button><button class="icon-button" type="button" data-plan-toggle="${plan.id}" aria-label="${esc(action)}" title="${esc(action)}" data-tip="${plan.paused?'恢复未来调度':'暂停未来调度'}"${reason?' aria-describedby="'+plan.id+'-issue"':''} ${plan.paused&&reason?'disabled':''}>${icon(plan.paused?'resume':'pause')}</button>${reason?`<p class="plan-issue" id="${plan.id}-issue">${esc(reason)}</p>`:''}</li>`;
+    }).join('')}</ul>`:'<div class="empty"><h2>还没有定时计划</h2><p class="note">为已安装任务安排执行时间。</p><button type="button" class="button" data-new-plan>新建计划</button></div>';
+    showRoute('plans','定时计划',html);
+  }
+  function planDetail(id){
+    routeTask=id;const plan=plans.find(item=>item.id===id);if(!plan)return showPlans();
+    const reason=planBlockReason(plan);planTrigger=id;
+    showRoute('plan-detail',plan.name,`<section class="plan-overview"><div class="selection-status"><strong class="${reason?'warning':plan.paused?'note':'positive'}">${planState(plan)}</strong><span class="note">${esc(nextText(plan))}</span></div>${reason?`<p class="alert" role="status">${esc(reason)}</p>`:''}<dl class="facts"><div><dt>执行任务</dt><dd>${esc(findTask(plan.task)?.title||'任务已卸载')} · v1.0.0</dd></div><div><dt>目标网页</dt><dd>${esc(plan.url)}</dd></div><div><dt>执行规则</dt><dd>${esc(ruleText(plan))}</dd></div><div><dt>执行时区</dt><dd>北京时间 · UTC+8</dd></div></dl><div class="toolbar"><button type="button" class="button" data-plan-toggle="${id}" ${plan.paused&&reason?'disabled':''}>${plan.paused?'恢复计划':'暂停计划'}</button><button type="button" class="button primary" data-plan-edit="${id}">编辑计划</button></div><p class="note">暂停只影响未来调度，不会停止当前任务。</p><button class="text-button quiet-link" type="button" data-open-manager>${icon('manage')}管理关联任务</button></section><details class="disclosure"><summary>运行记录${icon('chevron')}</summary><div class="disclosure-body"><p class="note">还没有执行记录。</p></div></details><details class="disclosure"><summary>运行条件${icon('chevron')}</summary><div class="disclosure-body"><p class="note">沿用已安装任务与已批准的网站范围，需有可见运行宿主。浏览器关闭时不会唤醒电脑。本页时间文案为离线示例，不计算真实下次调度。</p></div></details><button type="button" class="text-button danger" data-plan-delete="${id}">删除计划…</button>`);
+  }
+  function editPlan(id,taskId){
+    if(route==='manager')planManagerOrigin=managerSnapshot(`[data-manager-create="${taskId}"]`);else if(route!=='plan-detail')planManagerOrigin=null;
+    planFormOrigin=route==='plan-detail'?id:null;
+    const existing=plans.find(plan=>plan.id===id),task=findTask(taskId)||tasks.find(task=>task.enabled);
+    planDraft=existing?{...existing}:{id:null,name:taskId&&task?task.title+' 定时':'',task:task?.enabled?task.id:'',url:task?'https://'+task.site+'/articles/workflows':'',kind:'daily',weekday:1,time:'09:00',paused:false};planBaseline=JSON.stringify(planDraft);planError=null;planTimeDraft={recurring:planDraft.kind==='once'?'09:00':planDraft.time,once:planDraft.kind==='once'?planDraft.time:''};
+    renderPlanForm();
+  }
+  function renderPlanForm(){
+    const existing=!!planDraft.id,task=findTask(planDraft.task);
+    showRoute('plan-form',existing?'编辑计划':'新建计划',`<form id="plan-form" class="plan-form" novalidate><label class="field" for="plan-name">计划名称<input id="plan-name" data-plan-field="name" maxlength="100" value="${esc(planDraft.name)}" placeholder="例如：每日文章摘要"></label><fieldset class="plan-form-section"><legend>执行任务</legend><div class="field"><label class="sr-only" for="plan-task">选择执行任务</label><div class="task-picker"><select id="plan-task" data-plan-field="task" aria-describedby="plan-task-note" ${existing?'disabled':''}>${existing&&!task?`<option value="${esc(planDraft.task)}" selected>原任务已卸载</option>`:!existing&&!task?.enabled?`<option value="${esc(planDraft.task)}" selected>选择已启用的任务</option>`:''}${tasks.filter(item=>item.enabled||existing&&item.id===planDraft.task).map(item=>`<option value="${item.id}" ${item.id===planDraft.task?'selected':''}>${esc(item.title)}</option>`).join('')}</select><div class="task-source-tools"><span class="note" id="plan-task-note">${task?'版本 v1.0.0'+(!task.enabled?' · 已停用':''):'无可用任务'}</span><a href="../develop/index.html" class="text-button quiet-link" aria-label="在开发中新建脚本">${icon('plus')}新建脚本</a><button type="button" class="text-button quiet-link" id="plan-manage-tasks" data-open-manager>${icon('manage')}管理任务</button></div>${existing?'<p class="task-fixed-note">此计划绑定原任务；更换任务需新建计划。</p>':''}</div></div><label class="field" for="plan-url">目标网页<input id="plan-url" data-plan-field="url" type="url" value="${esc(planDraft.url)}" placeholder="https://example.com/…" aria-describedby="plan-url-help"><span class="field-help" id="plan-url-help">${task?'仅限 '+esc(task.site)+' 已审阅的网站范围。':'选择任务后核对可用网站。'}</span></label></fieldset><fieldset class="plan-form-section"><legend>执行安排</legend><div class="field"><span id="plan-frequency-label">重复规则</span><div class="frequency" role="radiogroup" aria-labelledby="plan-frequency-label">${[['daily','每天'],['weekly','每周'],['once','单次']].map(([value,label])=>`<label><input type="radio" name="plan-kind" data-plan-field="kind" value="${value}" ${planDraft.kind===value?'checked':''}>${label}</label>`).join('')}</div></div><div id="plan-time-settings" class="time-settings"></div><p class="time-summary" id="plan-rule-preview">${icon('clock')}<span>${esc(planDraft.time?ruleText(planDraft):'选择执行日期和时间')} · 北京时间（UTC+8）</span></p></fieldset><fieldset class="plan-save-state"><legend>保存后状态</legend><div class="save-options"><label><input id="plan-enabled" name="plan-state" data-plan-field="paused" type="radio" value="enabled" ${!planDraft.paused?'checked':''}>按规则执行</label><label><input id="plan-paused" name="plan-state" data-plan-field="paused" type="radio" value="paused" ${planDraft.paused?'checked':''}>暂停</label></div><p class="note" id="plan-save-result">${planDraft.paused?'保存后暂不触发。':'按以上规则安排未来调度。'}不会停止当前任务。</p></fieldset><p class="error" id="plan-error" role="alert" ${planError?'':'hidden'}>${esc(planError?.message||'')}</p></form>`);
+    renderTimeSettings();
+    if(planError)presentPlanError(planError);
+  }
+  function renderTimeSettings(){
+    const once=planDraft.kind==='once',weekly=planDraft.kind==='weekly';
+    $('plan-time-settings').innerHTML=`${weekly?`<label class="field" for="plan-weekday">星期<select id="plan-weekday" data-plan-field="weekday">${[1,2,3,4,5,6,0].map(day=>`<option value="${day}" ${Number(planDraft.weekday??1)===day?'selected':''}>星期${weekdays[day]}</option>`).join('')}</select></label>`:''}<label class="field" for="plan-time">${once?'日期和时间':'时间'}<input id="plan-time" data-plan-field="time" type="${once?'datetime-local':'time'}" value="${esc(planDraft.time)}" aria-describedby="plan-rule-preview"></label>`;
+  }
+  function openTaskManager(trigger){
+    managerContext={route,id:routeTask,scroll:$('viewport').scrollTop,focus:trigger?.id||null,parentOrigin:planManagerOrigin,parentDetailReturn:detailReturnsManager};planManagerOrigin=null;detailReturnsManager=false;managerQuery='';managerFilter='all';managerTask=null;managerExpanded.clear();
+    renderTaskManager();
+  }
+  function managerSnapshot(focusSelector){
+    return {context:managerContext,query:managerQuery,filter:managerFilter,scroll:$('viewport').scrollTop,
+      focusSelector,focusTask:document.activeElement.closest('[data-manager-row]')?.dataset.managerRow,expanded:[...managerExpanded]};
+  }
+  function renderTaskManager(){
+    showRoute('manager','任务管理',`${managerContext?.route==='plan-form'?'<p class="note" id="manager-draft-note">返回后继续编辑计划，草稿和未解决错误保留。</p>':''}<div class="manager-toolbar"><div class="search-field">${icon('search')}<label class="sr-only" for="manager-search">搜索任务名称、ID 或网站</label><input id="manager-search" type="search" placeholder="搜索任务名称、ID 或网站…" value="${esc(managerQuery)}" autocomplete="off" aria-controls="manager-list" aria-describedby="manager-count"></div><div class="filters" role="group" aria-label="管理任务筛选">${[['all','全部'],['enabled','已启用'],['disabled','已停用']].map(([value,label])=>`<button type="button" data-manager-filter="${value}" aria-pressed="${value===managerFilter}">${label} <span class="manager-counts" data-manager-filter-count="${value}"></span></button>`).join('')}</div></div><p class="manager-count" id="manager-count" role="status" aria-live="polite"></p><ul class="collection" id="manager-list" aria-label="管理已安装任务"></ul><div class="empty manager-empty" id="manager-empty" hidden></div>`);
+    renderManagerRows();
+  }
+  function renderManagerRows(){
+    const list=$('manager-list');if(!list)return;
+    const focused=list.contains(document.activeElement)?document.activeElement:null;
+    const focusKey=focused&&['managerToggle','managerCreate','managerMore','managerPlan','managerRecords','managerExpand'].find(key=>focused.dataset[key]);
+    const focusValue=focusKey&&focused.dataset[focusKey],scroll=$('viewport').scrollTop;
+    const query=managerQuery.trim().toLocaleLowerCase(),visible=tasks.filter(task=>(task.title+' '+task.id+' '+task.site).toLocaleLowerCase().includes(query)&&(managerFilter==='all'||(managerFilter==='enabled')===task.enabled));
+    for(const [value,count] of [['all',tasks.length],['enabled',tasks.filter(task=>task.enabled).length],['disabled',tasks.filter(task=>!task.enabled).length]])document.querySelector(`[data-manager-filter-count="${value}"]`).textContent=count;
+    $('manager-count').textContent=query||managerFilter!=='all'?`显示 ${visible.length} / ${tasks.length} 个任务`:`共 ${tasks.length} 个已安装任务`;
+    list.hidden=!visible.length;
+    list.innerHTML=visible.map(task=>{
+      const related=plans.filter(plan=>plan.task===task.id),running=run?.task===task.id,unknown=hasUnknown(task.id);
+      const reason=running?'任务运行中，请先停止再停用或卸载。':unknown?'上次结果未知，请先核对原运行记录；不能新建计划或卸载。':!task.enabled?'请先启用此任务，再新建计划。':'';
+      return `<li class="manager-row" data-manager-row="${task.id}"><div class="manager-row-head"><span class="task-icon">${icon('task')}</span><div class="manager-copy"><h2 title="${esc(task.title)}">${esc(task.title)}</h2><p>v1.0.0 · ${esc(task.site)}</p></div><div class="manager-enable"><span class="manager-state ${task.enabled?'':'disabled'}">${icon(task.enabled?'enabled':'pause')}${task.enabled?'已启用':'已停用'}</span><button type="button" class="task-switch" role="switch" aria-checked="${task.enabled}" data-manager-toggle="${task.id}" aria-label="启用任务「${esc(task.title)}」" title="${running?'请先停止当前任务':unknown&&!task.enabled?'请先核对原运行记录':task.enabled?'停用任务':'启用任务'}" ${running||unknown&&!task.enabled?'disabled':''} ${reason?`aria-describedby="manager-reason-${task.id}"`:''}><span class="switch-track" aria-hidden="true"></span></button></div></div><div class="manager-actions"><span class="grow note">${related.length?`<button type="button" class="text-button quiet-link" data-manager-expand="${task.id}" aria-expanded="${managerExpanded.has(task.id)}" aria-controls="manager-associations-${task.id}">关联计划 ${related.length}${icon('chevron')}</button>`:'无关联计划'}</span>${managerContext?.route==='plan-form'?'':`<button type="button" class="text-button manager-create" data-manager-create="${task.id}" aria-label="为「${esc(task.title)}」新建计划" ${!task.enabled||unknown?'disabled':''} ${reason?`aria-describedby="manager-reason-${task.id}"`:''}>${icon('plus')}新建计划</button>`}<button type="button" class="icon-button" data-manager-more="${task.id}" aria-label="${esc(task.title)}：更多管理操作" title="更多管理操作" data-tip="更多操作" aria-haspopup="dialog">${icon('dots')}</button></div>${related.length?`<div class="manager-association-slot" id="manager-associations-${task.id}" data-manager-associations="${task.id}" ${managerExpanded.has(task.id)?'':'hidden'}><ul class="association-list">${related.map(plan=>`<li><button class="association-link" type="button" data-manager-plan="${plan.id}" ${managerContext?.route==='plan-form'?'disabled title="请先返回并完成当前计划编辑"':''}>${esc(plan.name)}</button><small>${planState(plan)}</small></li>`).join('')}</ul><p class="note manager-association-help">停用任务会暂停关联计划；重新启用后，计划仍保持暂停。${managerContext?.route==='plan-form'?' 编辑中的计划保留，请先返回完成编辑。':''}</p></div>`:''}${reason?`<p id="manager-reason-${task.id}" class="manager-impact${unknown?' warning':''}">${esc(reason)}${unknown?` <button class="text-button quiet-link" type="button" data-manager-records="${task.id}">查看运行记录</button>`:''}</p>`:''}</li>`;
+    }).join('');
+    if(focusKey){const key='data-'+focusKey.replace(/[A-Z]/g,char=>'-'+char.toLowerCase());const target=list.querySelector(`[${key}="${focusValue}"]`);(target&&!target.disabled?target:$('manager-search')).focus({preventScroll:true});$('viewport').scrollTop=scroll;}
+    $('manager-empty').hidden=!!visible.length;
+    if(!visible.length)$('manager-empty').innerHTML=`${icon('search')}<h2>${tasks.length?'没有匹配的任务':'尚未安装任务'}</h2><p class="note">${tasks.length?'更换关键词或重置筛选。':'添加已审阅的任务后，可在这里管理启停和关联计划。'}</p>${tasks.length?'<button class="button" type="button" id="manager-reset">重置筛选</button>':'<button class="button" type="button" id="manager-add">添加任务</button>'}`;
+  }
+  function returnFromManager(){
+    const context=managerContext;if(!context)return home();
+    planManagerOrigin=context.parentOrigin||null;detailReturnsManager=!!context.parentDetailReturn;
+    if(context.route==='plan-form'){renderPlanForm();$('viewport').scrollTop=context.scroll;$(context.focus||'plan-manage-tasks')?.focus({preventScroll:true});}
+    else if(context.route==='plan-detail'){planDetail(context.id);$('viewport').scrollTop=context.scroll;$('sub-body').querySelector('[data-open-manager]')?.focus({preventScroll:true});}
+    else if(context.route==='plans'){showPlans();$('viewport').scrollTop=context.scroll;$('plan-manager-open').focus({preventScroll:true});}
+    else{home();$('viewport').scrollTop=context.scroll;$('task-manager-open').focus({preventScroll:true});}
+    managerContext=null;
+  }
+  function managerMenu(id,trigger){
+    managerTask=id;const task=findTask(id),running=run?.task===id;
+    openUtility(task.title,`<p class="note">v1.0.0 · ${esc(task.site)} · ${task.enabled?'已启用':'已停用'}</p><div class="menu-list"><button type="button" data-manager-action="copy">复制到开发…</button><button type="button" data-manager-action="scope">固定版本与网站范围</button><button type="button" data-manager-action="uninstall" class="danger" ${running||hasUnknown(id)?'disabled':''}>卸载任务…</button></div>${running?'<p class="note">请先停止当前任务，再停用或卸载。</p>':hasUnknown(id)?'<p class="note">上次结果未知，请先回到原运行记录核对，暂不卸载。</p>':''}`,trigger);
+  }
+  function returnFromPlanForm(){
+    if(planFormOrigin){const id=planFormOrigin;planDetail(id);document.querySelector(`[data-plan-edit="${id}"]`)?.focus({preventScroll:true});}
+    else if(planManagerOrigin)restoreManagerAfterPlan();
+    else{showPlans();$('viewport').scrollTop=planListScroll;$('plan-new').focus({preventScroll:true});}
+  }
+  function restoreManagerAfterPlan(){
+    const origin=planManagerOrigin;if(!origin)return;managerContext=origin.context;managerQuery=origin.query;managerFilter=origin.filter;managerExpanded=new Set(origin.expanded||[]);renderTaskManager();$('viewport').scrollTop=origin.scroll;(document.querySelector(origin.focusSelector||`[data-manager-create="${origin.task}"]`)||document.querySelector(`[data-manager-expand="${origin.focusTask}"]`)||document.querySelector(`[data-manager-more="${origin.focusTask}"]`)||$('manager-search')).focus({preventScroll:true});planManagerOrigin=null;detailReturnsManager=false;
+  }
+  function leavePlan(afterDiscard=returnFromPlanForm){
+    if(JSON.stringify(planDraft)===planBaseline){afterDiscard();return;}
+    discardAction=afterDiscard;
+    openUtility('放弃尚未保存的修改？','<p class="note">离开后，本次计划修改不会保存。</p><div class="toolbar"><button class="button" type="button" data-confirm="stay" autofocus>继续编辑</button><button class="button danger" type="button" data-confirm="discard">放弃修改</button></div>',document.activeElement);
+    $('utility-body').querySelector('[data-confirm="stay"]').focus();
+  }
+  function planFieldError(id){
+    if(id==='plan-name')return !planDraft.name.trim()?'请填写计划名称。':'';
+    const task=findTask(planDraft.task);
+    if(id==='plan-task')return !task?.enabled?'请选择可用的已安装任务。':!planDraft.paused&&hasUnknown(task.id)?'任务结果未知；请先核对原记录，或暂停保存。':'';
+    if(id==='plan-url'){
+      let url;try{url=new URL(planDraft.url);}catch{return '请输入完整的 HTTP(S) 网页地址。';}
+      return !['https:','http:'].includes(url.protocol)||!task||url.hostname!==task.site||url.username||url.password||url.hash?'目标须在 '+(task?.site||'所选任务的网站范围')+'，且不含账号密码或 # 片段。':'';
+    }
+    if(id==='plan-time')return !planDraft.time||planDraft.kind==='once'&&(!Number.isFinite(Date.parse(planDraft.time+'+08:00'))||Date.parse(planDraft.time+'+08:00')<=Date.now())?'请选择有效的未来执行时间。':'';
+    return '';
+  }
+  function clearPlanError(){
+    if(planError){const input=$(planError.id);if(input){input.removeAttribute('aria-invalid');const ids=(input.getAttribute('aria-describedby')||'').split(' ').filter(id=>id&&id!=='plan-error');ids.length?input.setAttribute('aria-describedby',ids.join(' ')):input.removeAttribute('aria-describedby');}}
+    planError=null;$('plan-error').hidden=true;
+  }
+  function presentPlanError(error,focus=false){
+    if(planError&&planError.id!==error.id)clearPlanError();planError=error;
+    const input=$(error.id),message=$('plan-error');message.textContent=error.message;message.hidden=false;input.setAttribute('aria-invalid','true');
+    input.setAttribute('aria-describedby',[...new Set((input.getAttribute('aria-describedby')||'').split(' ').filter(Boolean).concat('plan-error'))].join(' '));
+    (input.closest('#plan-time-settings')||input.closest('.field')).after(message);
+    if(focus)(input.disabled?$('plan-manage-tasks'):input).focus();
+  }
+  function validPlan(){
+    for(const id of ['plan-name','plan-task','plan-url','plan-time']){const message=planFieldError(id);if(message){presentPlanError({id,message},true);return false;}}
+    clearPlanError();return true;
+  }
+  function savePlan(){
+    if(!validPlan())return;
+    openUtility('检查计划',`<dl class="facts"><div><dt>计划名称</dt><dd>${esc(planDraft.name.trim())}</dd></div><div><dt>执行任务</dt><dd>${esc(findTask(planDraft.task).title)}</dd></div><div><dt>目标网页</dt><dd>${esc(planDraft.url)}</dd></div><div><dt>执行规则</dt><dd>${esc(ruleText(planDraft))} · 北京时间</dd></div><div><dt>保存后状态</dt><dd>${planDraft.paused?'暂停，暂不触发':'启用，按规则执行'}</dd></div></dl><p class="note">正式工作台仅在原授权和可见宿主条件满足时按计划尝试执行。</p><div class="toolbar"><button class="button" type="button" data-confirm="stay">返回修改</button><button class="button primary" type="button" data-confirm="save-plan">保存计划</button></div>`,document.activeElement);
+    $('utility-body').querySelector('[data-confirm="stay"]').focus();
+  }
+  function commitPlan(){
+    if(route!=='plan-form'||!validPlan())return;
+    const plan={...planDraft,name:planDraft.name.trim(),id:planDraft.id||'plan-'+(++planSequence)};
+    const index=plans.findIndex(item=>item.id===plan.id);if(index>=0)plans[index]=plan;else plans.push(plan);
+    detailReturnsManager=!!planManagerOrigin;planDetail(plan.id);notify('计划已保存（仅本页示例）');
+  }
+  function setScene(next){
+    fileRevision++;$('add-panel').hidden=true;$('add-open').setAttribute('aria-expanded','false');
+    clearTimeout(runTimer);run=null;tasks=next==='empty'?[]:taskSeed();drafts={};records={};selected=tasks[0]?.id;activeRow=selected;expanded=true;scene=next;siteAvailable=next!=='restricted';
+    $('task-search').value='';$('search-panel').hidden=true;$('search-toggle').setAttribute('aria-expanded','false');
+    if(next==='failed'||next==='unknown')records.summary=[{id:'preview-original-run',state:next,label:next==='failed'?'模拟失败':'结果未知',time:'上次模拟',result:next==='failed'?'未找到文章正文，未返回摘要。':'连接中断，无法确认是否完成；不得自动重放。'}];
+    if(['result-plain','result-long','result-sensitive'].includes(next))records.summary=[resultExample(next.slice(7))];
+    closeUtility();home();renderTasks();notify('已切换演示状态，任务与参数恢复示例');
+  }
+  document.addEventListener('click',event=>{
+    const link=event.target.closest('a[href]');
+    if(link&&(route==='plan-form'||route==='manager'&&managerContext?.route==='plan-form')&&!event.ctrlKey&&!event.metaKey&&!event.shiftKey&&!event.altKey&&event.button===0&&JSON.stringify(planDraft)!==planBaseline){
+      event.preventDefault();leavePlan(()=>window.location.assign(link.href));return;
+    }
+    const button=event.target.closest('button');if(!button||button.disabled)return;
+    if(button.hasAttribute('data-result-toggle'))return toggleResult(button);
+    if(button.dataset.select)return selectTask(button.dataset.select);
+    if(button.dataset.prepare)return openParams(button.dataset.prepare,button);
+    if(button.dataset.manage)return openManage(button.dataset.manage,button);
+    if(button.dataset.catalogTask)return catalogDetail(button.dataset.catalogTask);
+    if(button.dataset.scene){const next=button.dataset.scene;if((route==='plan-form'||route==='manager'&&managerContext?.route==='plan-form')&&JSON.stringify(planDraft)!==planBaseline)return leavePlan(()=>setScene(next));return setScene(next);}
+    if(button.hasAttribute('data-open-manager'))return openTaskManager(button);
+    if(button.dataset.plan){detailReturnsManager=false;planManagerOrigin=null;planListScroll=$('viewport').scrollTop;planTrigger=button.dataset.plan;return planDetail(button.dataset.plan);}
+    if(button.dataset.managerFilter){managerFilter=button.dataset.managerFilter;document.querySelectorAll('[data-manager-filter]').forEach(item=>item.setAttribute('aria-pressed',String(item===button)));renderManagerRows();return;}
+    if(button.dataset.managerToggle){const task=findTask(button.dataset.managerToggle);if(run?.task===task.id||!task.enabled&&hasUnknown(task.id))return;task.enabled=!task.enabled;if(!task.enabled)plans.forEach(plan=>{if(plan.task===task.id)plan.paused=true;});renderTasks();renderManagerRows();(document.querySelector(`[data-manager-toggle="${task.id}"]`)||$('manager-search')).focus({preventScroll:true});notify('任务已'+(task.enabled?'启用':'停用')+'（仅本页示例）');return;}
+    if(button.dataset.managerExpand){const id=button.dataset.managerExpand,open=!managerExpanded.has(id);open?managerExpanded.add(id):managerExpanded.delete(id);button.setAttribute('aria-expanded',String(open));$('manager-associations-'+id).hidden=!open;return;}
+    if(button.dataset.managerCreate){const task=findTask(button.dataset.managerCreate);if(!task?.enabled||hasUnknown(task.id)||managerContext?.route==='plan-form')return;return editPlan(undefined,task.id);}
+    if(button.dataset.managerPlan){
+      if(managerContext?.route==='plan-form')return;
+      const id=button.dataset.managerPlan;if(!plans.some(plan=>plan.id===id))return;
+      planManagerOrigin=managerSnapshot(`[data-manager-plan="${id}"]`);detailReturnsManager=true;return planDetail(id);
+    }
+    if(button.dataset.managerRecords){const task=findTask(button.dataset.managerRecords);if(!task)return;return openUtility('运行记录 · '+task.title,`<p class="note">原型仅展示本页记录；未知结果不会因查看而结算。</p>${(records[task.id]||[]).map(record=>`<div class="stack"><strong>${esc(record.label)} · ${esc(record.time)}</strong><pre class="result">${esc(record.result)}</pre></div>`).join('')}`,button);}
+    if(button.dataset.managerMore)return managerMenu(button.dataset.managerMore,button);
+    if(button.dataset.managerAction){
+      const action=button.dataset.managerAction,id=managerTask,task=findTask(id);
+      if(action==='scope'){$('utility-title').textContent='固定版本与网站范围';$('utility-body').innerHTML=`<p class="note">${esc(task.description)}</p><dl class="facts"><div><dt>任务名称</dt><dd>${esc(task.title)}</dd></div><div><dt>任务 ID</dt><dd>${esc(task.id)}</dd></div><div><dt>固定版本</dt><dd>v1.0.0</dd></div><div><dt>适用网站</dt><dd>https://${esc(task.site)}/*</dd></div></dl><p class="note">仅展示离线安装示例，不申请权限。</p>`;$('utility-title').focus();return;}
+      if(action==='copy'){$('utility-title').textContent='复制到开发';$('utility-body').innerHTML=`<p class="note">正式工作台会读取「${esc(task.title)}」的固定版本，确认后将源码交给开发编辑器；可能覆盖尚未保存的源码。</p><p class="note">此原型不创建或传递真实草稿，不改变已安装任务和计划。</p><div class="toolbar"><button class="button" type="button" data-confirm="stay">返回管理</button><a class="button" href="../develop/index.html">查看开发入口</a></div>`;$('utility-body').querySelector('[data-confirm="stay"]').focus();return;}
+      if(action==='uninstall'){routeTask=id;$('utility-title').textContent='卸载「'+task.title+'」？';$('utility-body').innerHTML='<p class="note">只移除本页示例任务。关联计划将暂停，运行记录保留；不会卸载真实任务。</p><div class="toolbar"><button class="button" type="button" data-confirm="stay">保留任务</button><button class="button danger" type="button" data-confirm="uninstall">卸载示例任务</button></div>';$('utility-body').querySelector('[data-confirm="stay"]').focus();return;}
+    }
+    if(button.dataset.planEdit)return editPlan(button.dataset.planEdit);
+    if(button.hasAttribute('data-new-plan'))return editPlan();
+    if(button.dataset.planToggle){const plan=plans.find(item=>item.id===button.dataset.planToggle);if(plan.paused&&planBlockReason(plan)){notify(planBlockReason(plan));return;}plan.paused=!plan.paused;const detail=route==='plan-detail',position=$('viewport').scrollTop;detail?planDetail(plan.id):showPlans();$('viewport').scrollTop=position;const control=document.querySelector(`[data-plan-toggle="${plan.id}"]`);control?.focus({preventScroll:true});control?.scrollIntoView({block:'nearest'});notify((plan.paused?'已暂停未来调度，当前执行不受影响':'已恢复未来调度')+'（仅本页示例）');return;}
+    if(button.dataset.planDelete){routeTask=button.dataset.planDelete;openUtility('删除这个计划？','<p class="note">只删除本页中的示例计划，不影响任务及其运行记录。</p><div class="toolbar"><button class="button" type="button" data-confirm="stay">保留计划</button><button class="button danger" type="button" data-confirm="delete-plan">删除计划</button></div>',button);$('utility-body').querySelector('[data-confirm="stay"]').focus();return;}
+    if(button.dataset.utility){
+      const action=button.dataset.utility,id=routeTask,task=findTask(id);
+      if(action==='uninstall'){if(run?.task===id||hasUnknown(id)){notify(run?.task===id?'请先停止当前任务，再卸载。':'结果未知，请先核对原运行记录，暂不卸载。');return;}$('utility-title').textContent='卸载「'+task.title+'」？';$('utility-body').innerHTML='<p class="note">从本页列表移除任务，保留本页运行记录。关联计划会暂停；不操作真实安装。</p><div class="toolbar"><button class="button" type="button" data-confirm="stay">保留任务</button><button class="button danger" type="button" data-confirm="uninstall">卸载示例任务</button></div>';$('utility-body').querySelector('[data-confirm="stay"]').focus();return;}
+      closeUtility();
+      if(action==='prepare')return openParams(id,document.querySelector(`[data-prepare="${id}"]`));
+      if(action==='toggle'){if(run?.task===id||!task.enabled&&hasUnknown(id)){notify('请先停止当前任务或核对原运行记录。');return;}task.enabled=!task.enabled;if(!task.enabled)plans.forEach(plan=>{if(plan.task===id)plan.paused=true;});renderTasks();document.querySelector(`[data-manage="${id}"]`)?.focus({preventScroll:true});notify('任务已'+(task.enabled?'恢复':'停用')+'（仅示例）');return;}
+      if(action==='scope'){selected=id;expanded=true;renderTasks();$('scope-panel').open=true;$('scope-panel').querySelector('summary').focus();return;}
+    }
+    if(button.dataset.confirm){
+      const action=button.dataset.confirm,afterDiscard=discardAction;closeUtility();
+      if(action==='discard')afterDiscard?.();
+      if(action==='save-plan')commitPlan();
+      if(action==='delete-plan'){plans=plans.filter(plan=>plan.id!==routeTask);detailReturnsManager&&planManagerOrigin?restoreManagerAfterPlan():showPlans();notify('计划已删除');}
+      if(action==='uninstall'){const id=routeTask;if(run?.task===id||hasUnknown(id)){notify(run?.task===id?'请先停止当前任务，再卸载。':'结果未知，请先核对原运行记录，暂不卸载。');return;}tasks=tasks.filter(task=>task.id!==id);plans.forEach(plan=>{if(plan.task===id)plan.paused=true;});if(selected===id)selected=tasks[0]?.id;renderTasks();if(route==='manager'){renderManagerRows();$('manager-search').focus({preventScroll:true});}else(document.querySelector('[data-select]')||$('add-open')).focus({preventScroll:true});notify('示例任务已卸载，运行记录已保留');}
+      return;
+    }
+    switch(button.id){
+      case 'search-toggle':{const open=$('search-panel').hidden;$('search-panel').hidden=!open;button.setAttribute('aria-expanded',String(open));if(open)$('task-search').focus();else{$('task-search').value='';renderTasks();}break;}
+      case 'search-reset':$('task-search').value='';renderTasks();$('task-search').focus();break;
+      case 'add-open':case 'empty-add':openAdd(button);break;
+      case 'add-close':closeAdd();break;
+      case 'add-import':$('add-file').click();break;
+      case 'add-catalog':homeTrigger=button;scrollTop=$('viewport').scrollTop;showCatalog();break;
+      case 'catalog-show-task':{const id=routeTask;home();closeAdd();selected=id;expanded=true;activeRow=id;renderTasks();document.querySelector(`[data-select="${id}"]`)?.focus({preventScroll:true});break;}
+      case 'manager-add':homeTrigger=$('task-manager-open');home();openAdd($('add-open'));break;
+      case 'manager-reset':managerQuery='';managerFilter='all';$('manager-search').value='';document.querySelectorAll('[data-manager-filter]').forEach(item=>item.setAttribute('aria-pressed',String(item.dataset.managerFilter==='all')));renderManagerRows();$('manager-search').focus();break;
+      case 'task-manager-open':homeTrigger=button;scrollTop=$('viewport').scrollTop;openTaskManager(button);break;
+      case 'schedule-open':scrollTop=$('viewport').scrollTop;homeTrigger=button;showPlans();break;
+      case 'sub-back':if(route==='manager')returnFromManager();else if(route==='plan-form')leavePlan();else if(route==='plan-detail'&&detailReturnsManager){restoreManagerAfterPlan();}else if(route==='plan-detail'){showPlans();$('viewport').scrollTop=planListScroll;document.querySelector(`[data-plan="${planTrigger}"]`)?.focus({preventScroll:true});}else if(route==='catalog-detail'){const id=routeTask;showCatalog();document.querySelector(`[data-catalog-task="${id}"]`)?.focus({preventScroll:true});}else home();break;
+      case 'plan-new':editPlan();break;
+      case 'plan-cancel':leavePlan();break;
+      case 'mode-form':setParamsMode('form');break;
+      case 'mode-json':setParamsMode('json');break;
+      case 'params-close':case 'params-cancel':closeParams();break;
+      case 'params-run':startRun();break;
+      case 'stop-run':finishRun('stopped');break;
+      case 'open-original':$('history-panel').open=true;$('history-panel').querySelector('summary').focus();break;
+      case 'utility-close':closeUtility();break;
+      case 'demo-open':openUtility('演示状态','<p class="note">切换会重置任务、参数与当前模拟；计划仍保留在本页。</p><div class="scenario-list"><button type="button" data-scene="normal">正常任务列表</button><button type="button" data-scene="result-plain">完整结果（无需展开）</button><button type="button" data-scene="result-long">长结果（查看完整结果）</button><button type="button" data-scene="result-sensitive">敏感字段（查看与再隐藏）</button><button type="button" data-scene="empty">没有已安装任务</button><button type="button" data-scene="restricted">当前网页不可用</button><button type="button" data-scene="failed">上次运行失败</button><button type="button" data-scene="unknown">上次结果未知</button></div>',button);break;
+    }
+  });
+  $('task-list').addEventListener('pointerover',event=>{const row=event.target.closest('[data-row]');if(row)setActive(row.dataset.row);});
+  $('task-list').addEventListener('focusin',event=>{const row=event.target.closest('[data-row]');if(row)setActive(row.dataset.row);});
+  $('task-search').addEventListener('input',renderTasks);
+  $('search-panel').addEventListener('keydown',event=>{if(event.key==='Escape'){event.preventDefault();$('search-toggle').click();$('search-toggle').focus();}});
+  $('add-panel').addEventListener('keydown',event=>{if(event.key==='Escape'&&!event.isComposing){event.preventDefault();closeAdd();}});
+  $('add-file').addEventListener('change',event=>{const files=[...event.target.files];event.target.value='';if(files.length)void previewFiles(files);});
+  $('add-drop').addEventListener('keydown',event=>{if(event.target===$('add-drop')&&['Enter',' '].includes(event.key)&&!event.isComposing){event.preventDefault();$('add-file').click();}});
+  $('add-drop').addEventListener('dragover',event=>{event.preventDefault();event.dataTransfer.dropEffect='copy';$('add-drop').classList.add('dragging');});
+  $('add-drop').addEventListener('dragleave',event=>{if(!$('add-drop').contains(event.relatedTarget))$('add-drop').classList.remove('dragging');});
+  $('add-drop').addEventListener('drop',event=>{event.preventDefault();$('add-drop').classList.remove('dragging');void previewFiles([...event.dataTransfer.files]);});
+  // Keep accidental drops outside the intended preview zone from navigating
+  // away from an unsaved plan. Selected file bytes are never executed.
+  document.addEventListener('dragover',event=>{if([...event.dataTransfer.types].includes('Files'))event.preventDefault();});
+  document.addEventListener('drop',event=>{if([...event.dataTransfer.types].includes('Files'))event.preventDefault();});
+  $('params-dialog').addEventListener('cancel',event=>{event.preventDefault();closeParams();});
+  // Match TaskRunSheet: only a complete click on the backdrop dismisses it.
+  let paramsBackdropPress=false;
+  const isParamsBackdrop=event=>{
+    if(event.target!==event.currentTarget)return false;
+    const {left,right,top,bottom}=event.currentTarget.getBoundingClientRect();
+    return event.clientX<left||event.clientX>right||event.clientY<top||event.clientY>bottom;
+  };
+  $('params-dialog').addEventListener('pointerdown',event=>{paramsBackdropPress=event.button===0&&isParamsBackdrop(event);});
+  $('params-dialog').addEventListener('pointercancel',()=>{paramsBackdropPress=false;});
+  $('params-dialog').addEventListener('close',()=>{paramsBackdropPress=false;});
+  $('params-dialog').addEventListener('click',event=>{
+    const dismiss=paramsBackdropPress&&isParamsBackdrop(event);
+    paramsBackdropPress=false;
+    if(dismiss)closeParams();
+  });
+  $('utility-dialog').addEventListener('cancel',event=>{event.preventDefault();closeUtility();});
+  // Native modal inertness protects the page. Wrap Tab explicitly so the last
+  // control returns to the first instead of handing focus to browser chrome.
+  for(const dialog of [$('params-dialog'),$('utility-dialog')])dialog.addEventListener('keydown',event=>{
+    if(event.key!=='Tab')return;
+    const controls=[...dialog.querySelectorAll('button:not(:disabled),a[href],input:not(:disabled),select:not(:disabled),textarea:not(:disabled)')].filter(node=>node.getClientRects().length);
+    const first=controls[0],last=controls.at(-1);
+    if(!first)return;
+    if(event.shiftKey&&document.activeElement===first){event.preventDefault();last.focus();}
+    else if(!event.shiftKey&&document.activeElement===last){event.preventDefault();first.focus();}
+  });
+  $('params-dialog').addEventListener('input',event=>{
+    const task=findTask(paramsTask),draft=draftFor(task),input=event.target;
+    if(input.id==='params-json')draft.raw=input.value;
+    else if(input.dataset.param){draft.values[input.dataset.param]=input.type==='checkbox'?input.checked:input.type==='number'?Number(input.value):input.value;draft.raw=JSON.stringify(draft.values,null,2);}
+    if(input.id===paramsErrorField){let error;try{error=input.id==='params-json'?validateParams(task,JSON.parse(input.value)):validateParams(task,draft.values,input.dataset.param);}catch{error={message:'JSON 格式有误，请检查引号、逗号和括号。'};}
+      if(!error)clearParamsError();else $('params-error').textContent=error.message;}
+  });
+  $('sub-body').addEventListener('keydown',event=>{
+    if(route!=='manager'||event.key!=='Escape'||event.defaultPrevented||event.isComposing||event.repeat||$('utility-dialog').open)return;
+    event.preventDefault();
+    if(event.target===$('manager-search')&&managerQuery){managerQuery='';event.target.value='';renderManagerRows();}
+    else returnFromManager();
+  });
+  $('sub-body').addEventListener('input',event=>{
+    const input=event.target;
+    if(input.id==='manager-search'){managerQuery=input.value;renderManagerRows();return;}
+    if(!input.dataset.planField)return;
+    const field=input.dataset.planField,previousKind=planDraft.kind;
+    planDraft[field]=field==='paused'?input.value==='paused':input.type==='checkbox'?input.checked:field==='weekday'?Number(input.value):input.value;
+    if(field==='kind'){
+      if(previousKind==='once')planTimeDraft.once=planDraft.time;else planTimeDraft.recurring=planDraft.time;
+      planDraft.time=input.value==='once'?planTimeDraft.once:planTimeDraft.recurring;renderTimeSettings();
+    }
+    if(field==='task'){
+      const task=findTask(input.value);$('plan-task-note').textContent=task?'版本 v1.0.0':'请选择已启用的任务';$('plan-url-help').textContent=task?'仅限 '+task.site+' 已审阅的网站范围。':'选择任务后核对可用网站。';
+    }
+    $('plan-rule-preview').innerHTML=icon('clock')+'<span>'+esc(planDraft.time?ruleText(planDraft):'选择执行日期和时间')+' · 北京时间（UTC+8）</span>';
+    if(field==='paused')$('plan-save-result').textContent=(planDraft.paused?'保存后暂不触发。':'按以上规则安排未来调度。')+'不会停止当前任务。';
+    if(planError){
+      const relevant=input.id===planError.id||field==='kind'&&planError.id==='plan-time'||field==='task'&&['plan-task','plan-url'].includes(planError.id)||field==='paused'&&planError.id==='plan-task';
+      if(relevant){const message=planFieldError(planError.id);if(message)presentPlanError({id:planError.id,message});else clearPlanError();}
+    }
+  });
+  $('sub-body').addEventListener('submit',event=>{event.preventDefault();if(event.target.id==='plan-form')savePlan();});
+  $('history-panel').addEventListener('toggle',()=>{if(!$('history-panel').open)hideRevealed($('history-panel'));});
+  document.addEventListener('visibilitychange',()=>{if(document.hidden)hideRevealed();});
+  window.addEventListener('pagehide',()=>{hideRevealed();fileRevision++;clearTimeout(runTimer);clearTimeout(toastTimer);});
+  renderTasks();
+})();
+</script>
+</body>
+</html>

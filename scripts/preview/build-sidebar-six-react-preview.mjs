@@ -35,6 +35,7 @@ const inputs=[
   'src/ui/react/tabs/develop-controls.tsx','src/ui/react/tabs/develop-dependencies.tsx',
   'src/ui/develop-view.js','src/ui/develop-fields.js',
   'src/ui/react/preview/developer-preview.js',
+  'src/config/browser-config.json',
   'src/ui/my-workbench-view.js','src/ui/sidebar-tools-view.js',
   'src/ui/workflow/workflow-ui-state.js','src/ui/react/tabs/workflow.tsx',
   'src/ui/react/preview/shared-ai-preview.js','src/ui/conversation/draft-suggestion.js',
@@ -105,7 +106,6 @@ if(widthInput){
  });
 }
 const developerView=createDeveloperPreviewView();
-developerView.patch('script-source',{value:''});
 developerView.patch('script-status',{textContent:''});
 if(DEVELOPER_DESIGN_PROPOSAL){
   developerView.patch('manual-project-params-tools',{className:'developer-params od-disclosure od-disclosure--flat'});
@@ -176,6 +176,15 @@ if(['selected','running','layout'].includes(taskScene)){
     };
     myView.project('taskRows',{rows,selectedId:'',identity:null,emptyText:'',onSelect:myView.action(selectFixture)});
     selectFixture(rows[0].taskId);
+    // Exercise the production drawer with memory-only fixtures, never a RunHost.
+    myView.actions.taskParametersOpen=myView.action((taskId,event,trigger)=>{
+      const row=rows.find(row=>row.taskId===taskId);
+      if(!event?.isTrusted||!row?.enabled)return;
+      selectFixture(taskId);
+      myView.project('taskRunSheet',{identity:myView.data.taskRows.identity,title:row.title,
+        source:'my',phase:'editing',trigger});
+    });
+    myView.actions.taskSheetClose=myView.action(()=>myView.project('taskRunSheet',null));
     myView.setText('task-installed-count',rows.length+' 个'+(useReal?'真实任务 Schema':'演示任务')+' · 仅预览');
     myView.actions.taskParamsModeChange=myView.action(mode=>{
       try{

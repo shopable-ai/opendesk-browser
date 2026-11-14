@@ -130,14 +130,16 @@ export function filterScheduleTimeZoneGroups(groups,search='',selected=''){
   return filtered;
 }
 
-export function createScheduledTaskWorkbench({client,host,taskWorkbench,api=globalThis.chrome,
+export function createScheduledTaskWorkbench({client,host,taskWorkbench,api=globalThis.chrome,notify,
   document:doc=globalThis.document,developerView=null,myView=taskWorkbench.myView||createMyWorkbenchView({document:doc}),onClose=()=>{},onOpen=()=>{}}){
   const get=id=>doc.getElementById(id),ui=id=>myView.field(id),listeners=[];
   const text=(field,value)=>{field.text=value??'';myView.publish();return field;};
   // Single Header owns navigation. Host availability remains in the list.
   ui('schedule-create').attributes['aria-label']='新建定时计划';
   const focus=(id,options)=>{
-    myView.publish();queueMicrotask(()=>get(id)?.focus?.(options));
+    myView.publish();
+    const afterCommit=doc.defaultView?.requestAnimationFrame?.bind(doc.defaultView)||queueMicrotask;
+    afterCommit(()=>{if(!disposed&&!get(id)?.closest?.('[hidden]'))get(id)?.focus?.(options);});
   };
   const actionName=(id,event)=>id.replace(/-([a-z])/g,(_,letter)=>letter.toUpperCase())+event[0].toUpperCase()+event.slice(1);
   function registerAction(name,fn){
@@ -146,6 +148,7 @@ export function createScheduledTaskWorkbench({client,host,taskWorkbench,api=glob
   }
   let disposed=false,shown=false,busy=false,editing=null,managerReturn='list';
   let pendingCreate=false,pendingCreateFromForm=false,pendingTask=null,confirmUninstall=null,allPlans=[],catalog=[],installed=[];
+  let createIntentRevision=0,pendingCreateInstallations=new Map();
   let uninstallReturnFocus=null,pendingCopyTask=null,copyTaskReturnId=null;
   let selectedFire=null,lastRefresh=0,activeView='list',runnerFocusId=null;
   let selectedPlanId=null,detailReturnView='list',formReturnView='list',listScrollTop=0,formScrollTop=0;
@@ -174,6 +177,10 @@ export function createScheduledTaskWorkbench({client,host,taskWorkbench,api=glob
   }
   const message=(value,error=false)=>{
     const el=ui('schedule-message');text(el,value);el.dataset.state=error?'error':'ready';myView.publish();
+  };
+  const managementFeedback=(value,error=false)=>{
+    if(error||!notify)message(value,error);
+    else notify(value,{type:'success',position:'bottom-center'});
   };
   // Only reads native Chrome origin-wide quota. It is NOT a schedule-only
   // count, and never garbage-collects UNKNOWN, unsettled or audit records.
@@ -768,6 +775,9 @@ export function createScheduledTaskWorkbench({client,host,taskWorkbench,api=glob
     finally{busy=false;ui('schedule-confirm-yes').disabled=false;}
   }
   function enterDeveloper(){
+    createIntentRevision++;
+    pendingCreateInstallations=new Map(installed.map(row=>[row.taskId,{
+      installationId:row.installationId,version:row.version,manifestHash:row.manifestHash}]));
     pendingCreateFromForm=activeView==='form'||(activeView==='manager'&&managerReturn==='form');
     pendingCreate=true;hidePanel();taskWorkbench.navigate('develop');
     patchDeveloperField(developerView,developerView?.fields['task-dev-status']??get('task-dev-status'),
@@ -786,7 +796,7 @@ export function createScheduledTaskWorkbench({client,host,taskWorkbench,api=glob
           enabled:!row.enabled,expectedGeneration:row.generation??null,
           expectedInstallationId:row.installationId??null}),refresh);
       const outcome=row.enabled?'任务已停用':'任务已启用';
-      message(refreshError?outcome+'，但列表刷新失败：'+
+      managementFeedback(refreshError?outcome+'，但列表刷新失败：'+
         (refreshError?.message||String(refreshError))+'；请重新进入任务管理核对。':
         outcome+'；已重新读取安装状态',Boolean(refreshError));
     }catch(error){
@@ -800,10 +810,10 @@ export function createScheduledTaskWorkbench({client,host,taskWorkbench,api=glob
     confirmUninstall=null;ui('schedule-uninstall-confirm').hidden=true;
     pendingCopyTask=row;copyTaskReturnId=row.taskId;
     text(copyReviewLabel,'将「'+title+'」v'+row.version+
-      ' 复制到开发？开发编辑器当前未保存的源码与修改将被替换。'+
+      ' 复制到开发？\n开发编辑器当前未保存的源码与修改将被替换。\n'+
       '请先保存或备份草稿。已安装任务、固定身份与定时计划均不会改变。');
     copyReview.hidden=false;get('schedule-copy-confirm')?.scrollIntoView?.({block:'nearest'});
-    focus('schedule-copy-yes',{preventScroll:true});
+    focus('schedule-copy-yes');
   }
   async function copyManagedTask(row){
     if(busy)return;busy=true;
@@ -827,6 +837,7 @@ export function createScheduledTaskWorkbench({client,host,taskWorkbench,api=glob
         throw Error('任务安装或授权在复制期间已变更；请重新打开任务管理核对');
       await taskWorkbench.receiveDraft(existing.package.sourceUtf8);
       hidePanel(); // Leave manager only after the existing Developer accepts the draft.
+      managementFeedback('已复制「'+(candidate(row)?.manifest?.title||row.taskId)+'」到开发');
     }catch(error){message('复制到开发失败：'+(error?.message||String(error)),true);}
     finally{busy=false;}
   }
@@ -834,21 +845,23 @@ export function createScheduledTaskWorkbench({client,host,taskWorkbench,api=glob
     managerReturn='list';formReturnView='manager';show('form');
     reset();ui('schedule-task-select').value=row.enabled?row.taskId:'';
     showTaskVersion();ui('schedule-title').value=title+' 定时';
+    focus('schedule-title');
   }
   function confirmManagedTaskUninstall(row,title,trigger){
     closeCopyReview();uninstallReturnFocus=trigger;confirmUninstall=row;
     const review=ui('schedule-uninstall-confirm');
     review.hidden=false;
     text(ui('schedule-uninstall-label'),'确认卸载「'+title+'」v'+row.version+
-      '？后续计划可能无法运行，但已有 Run/Result 历史不会自动清除。');
+      '？\n后续计划可能无法运行，但已有 Run/Result 历史不会自动清除。');
     get('schedule-uninstall-confirm')?.scrollIntoView?.({block:'nearest'});
-    focus('schedule-uninstall-yes',{preventScroll:true});
+    focus('schedule-uninstall-yes');
   }
   function renderManager(){
     const filter=ui('schedule-manager-filter').value;
     const q=ui('schedule-manager-search').value.trim().toLowerCase();
     const rows=installed.filter(row=>(filter==='all'||row.enabled===(filter==='enabled'))&&
-      [row.taskId,candidate(row)?.manifest?.title||''].some(value=>value.toLowerCase().includes(q)));
+      [row.taskId,candidate(row)?.manifest?.title||'',candidate(row)?.manifest?.description||'']
+        .some(value=>value.toLowerCase().includes(q)));
     text(ui('schedule-manager-count'),'显示 '+rows.length+' / '+installed.length+' 个已安装任务');
     myView.project('managerRows',{rows:rows.map(row=>{
       const entry=candidate(row);
@@ -861,6 +874,7 @@ export function createScheduledTaskWorkbench({client,host,taskWorkbench,api=glob
       onUninstall:myView.action((row,trigger)=>confirmManagedTaskUninstall(row,row.title,trigger))});
   }
   function openManager(returnView){
+    cancelCreateIntent();
     managerScrollTop=get('workspace-content')?.scrollTop??0;
     managerReturn=returnView;
     renderManager();show('manager');
@@ -876,7 +890,7 @@ export function createScheduledTaskWorkbench({client,host,taskWorkbench,api=glob
         refresh);
       ui('schedule-uninstall-confirm').hidden=true;confirmUninstall=null;
       focus('schedule-manager-search',{preventScroll:true});
-      message(refreshError?'固定版本已卸载，但列表刷新失败：'+
+      managementFeedback(refreshError?'固定版本已卸载，但列表刷新失败：'+
         (refreshError?.message||String(refreshError))+'；请重新进入任务管理核对。':
         '已卸载固定版本；关联计划需重新安装授权',Boolean(refreshError));
     }catch(error){
@@ -891,6 +905,7 @@ export function createScheduledTaskWorkbench({client,host,taskWorkbench,api=glob
     }finally{busy=false;}
   }
   async function open(view='list'){
+    cancelCreateIntent();
     taskWorkbench.navigate('tasks');showPanel();show(view);message('');
     try{await refresh();}catch(error){message('读取计划失败：'+(error?.message||String(error)),true);}
   }
@@ -925,6 +940,7 @@ export function createScheduledTaskWorkbench({client,host,taskWorkbench,api=glob
     else if(destination==='detail')
       (get('schedule-detail-view')?.querySelector('.schedule-status-help .od-button')||
         get('schedule-detail-edit'))?.focus({preventScroll:true});
+    else if(destination==='list')focus('schedule-open-manager',{preventScroll:true});
     else focusReturnedView(destination);
     const scroller=get('workspace-content');if(scroller)scroller.scrollTop=managerScrollTop;
   }
@@ -1046,12 +1062,26 @@ export function createScheduledTaskWorkbench({client,host,taskWorkbench,api=glob
     if(event?.runId&&event?.scheduledFireId)selectedFire=event.runId;
     if(selectedFire&&event?.runId===selectedFire&&terminal.has(event.state))selectedFire=null;
   });
-  async function onInstalledTask(taskId){
+  function cancelCreateIntent(){
+    createIntentRevision++;pendingCreate=false;pendingCreateFromForm=false;
+    pendingCreateInstallations.clear();
+  }
+  async function onInstalledTask(taskId,confirmedInstall=false){
     if(!pendingCreate||disposed)return;
+    const intentRevision=createIntentRevision;
     try{
       await refresh();
-      if(!eligible().some(row=>row.taskId===taskId))return;
+      if(disposed||!pendingCreate||intentRevision!==createIntentRevision)return;
+      const row=eligible().find(row=>row.taskId===taskId);
+      if(!row)return;
+      // Installed-task notifications also cover enable/disable/uninstall.
+      // Only a new identity/version, or the explicit install-success callback,
+      // may continue creation; generation changes alone are not installation.
+      const prior=pendingCreateInstallations.get(taskId);
+      if(!confirmedInstall&&prior&&prior.installationId===row.installationId&&
+        prior.version===row.version&&prior.manifestHash===row.manifestHash)return;
       pendingCreate=false;pendingTask=taskId;taskWorkbench.navigate('tasks');
+      pendingCreateInstallations.clear();
       // Task manager launches a NEW plan. Editor launches preserve the current
       // draft; an existing plan must never silently rebind to the new version.
       if(!pendingCreateFromForm)reset();
@@ -1066,14 +1096,17 @@ export function createScheduledTaskWorkbench({client,host,taskWorkbench,api=glob
         populateChoices();
         message('新任务已安装；原计划仍固定原任务身份。如需使用新任务，请另建计划。');
       }
-    }catch(error){message('任务安装后刷新失败：'+error.message,true);}
+    }catch(error){
+      if(!disposed&&pendingCreate&&intentRevision===createIntentRevision)
+        message('任务安装后刷新失败：'+error.message,true);
+    }
   }
   return {open,hidePanel,refresh,setRun(runId){
     selectedFire=runId;
     taskWorkbench.setScheduledRunOwner?.(runId);
     ui('schedule-stop').hidden=!runId;
     renderRunner();
-  },onInstalled:onInstalledTask,get shown(){return shown;},dispose(){
+  },onInstalled:taskId=>onInstalledTask(taskId,true),get shown(){return shown;},dispose(){
     disposed=true;permissionSeq++;refreshSeq++;storageProbeRevision++;for(const remove of listeners)remove();unsubscribe?.();installedUpdates?.();hidePanel();
   }};
 }
