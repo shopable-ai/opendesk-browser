@@ -1,0 +1,377 @@
+{
+  "date": "2026-11-15",
+  "phase": "continuous development functional testing; partially blocked",
+  "owner": "01a1dad4-2d2c-7852-92a7-0c52282bda6b",
+  "branch": "main",
+  "entry": "Installed AI Proxy Side Panel → Open Settings; ego TaskSpace 83",
+  "candidate": {
+    "version": "0.3.25",
+    "bytes": 1062899,
+    "sha256": "d5110eabb9df9b2b2a48a92b391a407f1027f9ed07a0b1305b85ed2692fc8c45",
+    "capabilities": [
+      "storage.local",
+      "currentPage.read",
+      "browser.proxy.managed"
+    ],
+    "projectPackageMatch": true
+  },
+  "installed": {
+    "version": "0.3.23",
+    "unchangedFromBaseline": true,
+    "upgradeToCandidate": "NOT_TESTED"
+  },
+  "fix": {
+    "file": "src/ui/SourcesPage.tsx",
+    "failure": "Trusted confirmation rejected synthetic submit with E_GESTURE; subscription save had no visible result",
+    "change": "Start confirmation from original submit-button click or unmodified, non-composing Enter; preserve form validity and busy guards",
+    "realUi": [
+      "click opens trusted confirmation",
+      "cancel retains draft",
+      "Enter confirmation accepts and persists source metadata",
+      "edit name persists without resupplying URL"
+    ],
+    "urlAndRawLocalTextPersisted": false
+  },
+  "checks": [
+    {
+      "command": "node --test projects/ai-proxy/tests/sources-editor-runtime.test.mjs projects/ai-proxy/tests/environment-confirm.test.mjs projects/ai-proxy/tests/form-submit.test.mjs",
+      "passed": 33,
+      "failed": 0
+    },
+    {
+      "command": "npm --prefix projects/ai-proxy run build",
+      "result": "PASS"
+    },
+    {
+      "command": "node --test --test-name-pattern='tool packer rejects|portable Sidebar Tool builds|promotion rejects' tests/environment/sidebar-tools.test.mjs",
+      "passed": 3,
+      "failed": 0
+    },
+    {
+      "command": "Original tool packer candidate → promote-from → check-project",
+      "result": "PROJECT_PACKAGE_MATCH"
+    }
+  ],
+  "operations": [
+    {
+      "name": "Website rules",
+      "result": "PASS",
+      "observed": [
+        "URL normalized to hostname",
+        "priority 10 endpoint beats priority 20 DIRECT",
+        "disable persists after reload",
+        "edit priority 30 persists",
+        "subdomain falls back to enabled DIRECT rule",
+        "unmatched hostname uses configured default endpoint"
+      ],
+      "privateStages": [
+        "01",
+        "02",
+        "03",
+        "04",
+        "05",
+        "06"
+      ]
+    },
+    {
+      "name": "Manual proxy",
+      "result": "PASS",
+      "observed": [
+        "port 70000 rejected",
+        "HTTP endpoint save and reload readback",
+        "edit name and port readback",
+        "cancel-confirm retains draft",
+        "accept-discard returns to saved value"
+      ],
+      "privateStages": [
+        "07",
+        "08",
+        "09",
+        "10",
+        "11"
+      ]
+    },
+    {
+      "name": "Four modes",
+      "result": "PASS_SELECTION_ONLY",
+      "observed": [
+        "rules/direct/system/profile persist without applying proxy"
+      ],
+      "privateStages": [
+        "12-mode-*"
+      ]
+    },
+    {
+      "name": "PAC",
+      "result": "PARTIAL",
+      "observed": [
+        "generate script locally",
+        "save and edit stored PAC text without execution"
+      ],
+      "notVerified": [
+        "invalid-PAC error UI after asynchronous settling",
+        "PAC execution"
+      ],
+      "privateStages": [
+        "13",
+        "14",
+        "15",
+        "16"
+      ]
+    },
+    {
+      "name": "Preferences",
+      "result": "PASS_SUBSET",
+      "observed": [
+        "show-status false → true persists → false restored",
+        "header reorder draft cancelled"
+      ],
+      "notVerified": [
+        "language change"
+      ],
+      "privateStages": [
+        "18",
+        "19",
+        "20"
+      ]
+    },
+    {
+      "name": "Subscription",
+      "result": "PASS_SUBSET",
+      "observed": [
+        "click/cancel/Enter/accept",
+        "source name edit",
+        "local Clash YAML parsed, one loopback HTTP node classified as needing local client",
+        "full URL and raw parsed node not in namespace"
+      ],
+      "publicEvidence": [
+        "22-subscription-click-confirm.ax.txt",
+        "23-subscription-enter-saved.ax.txt",
+        "24-subscription-local-parse.ax.txt"
+      ]
+    },
+    {
+      "name": "Local client",
+      "result": "SAVE_PERSISTED_UI_READBACK_BLOCKED",
+      "observed": [
+        "saved ui-1115-local-client HTTP 127.0.0.1:18993",
+        "endpoint, profile and source present in storage"
+      ],
+      "notVerified": [
+        "reopen editor/edit/delete through UI"
+      ]
+    },
+    {
+      "name": "Backup export/import",
+      "result": "NOT_TESTED_THIS_ROUND"
+    }
+  ],
+  "environment": {
+    "initialWatcherPid": 42614,
+    "laterWatcherPid": 11194,
+    "laterWatcherOwnerLog": "artifacts/my-main-alignment-20261115/dev-service.log",
+    "output": "dist/development",
+    "observation": "Original watcher exited; another workstream started its watcher. app.html and manifest.json were briefly absent. Later output became ready, but App remained reading browser state; Debug Local Development Service remained connecting; read-only worker requests reported E_EFFECT_UNKNOWN / Worker response deadline exceeded.",
+    "classification": "Shared development connection blocker; no platform mutation made in this task",
+    "finalAppliedRevision": "NOT_VERIFIED",
+    "candidateInstall": "NOT_TESTED",
+    "packagingDrift": "Final check rejected earlier candidate because parallel canonical shared CSS changed. Bumped 0.3.25, rebuilt, reran packaging checks and promoted same tested candidate. Shared CSS source remains owned by the parallel workstream; not staged here.",
+    "publicEvidence": "26-environment-blocked.ax.txt"
+  },
+  "cleanup": {
+    "result": "FULL_NAMESPACE_EQUALS_BASELINE",
+    "method": "Guarded direct restoration of this task-owned fixture records and known default-route change after UI became blocked. Asserted no unrelated namespace change before writing. Not evidence of UI deletion.",
+    "namespaceKeys": [
+      "ai-proxy.full-config.v2",
+      "ai-proxy.profile-favorites.v1",
+      "ai-proxy.show-status-on-open.v1"
+    ],
+    "canonicalBaselineSha256": "ed2b97e6aee620d4acc967bb55ed24db8ccdfd01b9c284f04005e53a0dcc4a23",
+    "canonicalFinalSha256": "ed2b97e6aee620d4acc967bb55ed24db8ccdfd01b9c284f04005e53a0dcc4a23",
+    "favoritesRestored": true,
+    "preferencesRestored": true,
+    "selectionRestored": true,
+    "originalR3DisposablePreserved": true,
+    "managed": false,
+    "proxyMode": "system",
+    "installedObjectUnchanged": true,
+    "rawSnapshots": "Ignored local artifacts only"
+  },
+  "proxyObservations": [
+    {
+      "stage": "01-priority-match",
+      "mode": "system",
+      "managed": false
+    },
+    {
+      "stage": "02-disabled-match",
+      "mode": "system",
+      "managed": false
+    },
+    {
+      "stage": "03-rules-reopened",
+      "mode": "system",
+      "managed": false
+    },
+    {
+      "stage": "04-rule-edit-default",
+      "mode": "system",
+      "managed": false
+    },
+    {
+      "stage": "05-default-match",
+      "mode": "system",
+      "managed": false
+    },
+    {
+      "stage": "06-disabled-match-confirmed",
+      "mode": "system",
+      "managed": false
+    },
+    {
+      "stage": "07-invalid-proxy",
+      "mode": "system",
+      "managed": false
+    },
+    {
+      "stage": "08-proxy-saved",
+      "mode": "system",
+      "managed": false
+    },
+    {
+      "stage": "09-proxy-reopened",
+      "mode": "system",
+      "managed": false
+    },
+    {
+      "stage": "10-draft-preserved",
+      "mode": "system",
+      "managed": false
+    },
+    {
+      "stage": "11-draft-discarded",
+      "mode": "system",
+      "managed": false
+    },
+    {
+      "stage": "12-mode-direct",
+      "mode": "system",
+      "managed": false
+    },
+    {
+      "stage": "12-mode-profile",
+      "mode": "system",
+      "managed": false
+    },
+    {
+      "stage": "12-mode-rules",
+      "mode": "system",
+      "managed": false
+    },
+    {
+      "stage": "12-mode-system",
+      "mode": "system",
+      "managed": false
+    },
+    {
+      "stage": "13-pac-generated",
+      "mode": "system",
+      "managed": false
+    },
+    {
+      "stage": "14-pac-saved",
+      "mode": "system",
+      "managed": false
+    },
+    {
+      "stage": "15-pac-invalid",
+      "mode": "system",
+      "managed": false
+    },
+    {
+      "stage": "16-pac-edited",
+      "mode": "system",
+      "managed": false
+    },
+    {
+      "stage": "17-preferences-baseline",
+      "mode": "system",
+      "managed": false
+    },
+    {
+      "stage": "18-preference-reopened",
+      "mode": "system",
+      "managed": false
+    },
+    {
+      "stage": "19-header-draft-order",
+      "mode": "system",
+      "managed": false
+    },
+    {
+      "stage": "20-header-cancelled",
+      "mode": "system",
+      "managed": false
+    },
+    {
+      "stage": "21-subscription-no-result",
+      "mode": "system",
+      "managed": false
+    },
+    {
+      "stage": "22-subscription-click-confirm",
+      "mode": "system",
+      "managed": false
+    },
+    {
+      "stage": "23-subscription-enter-saved",
+      "mode": "system",
+      "managed": false
+    },
+    {
+      "stage": "24-subscription-local-parse",
+      "mode": "system",
+      "managed": false
+    },
+    {
+      "stage": "26-environment-blocked",
+      "mode": "system",
+      "managed": false
+    },
+    {
+      "stage": "27-restored",
+      "mode": "system",
+      "managed": false
+    },
+    {
+      "stage": "28-final",
+      "mode": "system",
+      "managed": false
+    }
+  ],
+  "protectedPreview": {
+    "path": "preview/preview.html",
+    "sha256": "277ff8df72970906370507e9d7448da3ba583cb293536cae874c1a034080a977",
+    "unchanged": true
+  },
+  "notTested": [
+    "actual proxy apply/stop or traffic",
+    "PAC execution",
+    "online subscription fetch",
+    "network diagnostic requests",
+    "official service",
+    "collector save/execution",
+    "production",
+    "full CI",
+    "new scoring",
+    "0.3.25 installed upgrade",
+    "backup roundtrip this round"
+  ],
+  "safety": {
+    "applyOrStopInvoked": false,
+    "proxySettingChanged": false,
+    "permissionBoundaryChanged": false,
+    "hostSdkAuthorityChanged": false,
+    "push": false
+  }
+}

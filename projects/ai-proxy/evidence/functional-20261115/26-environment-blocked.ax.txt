@@ -1,0 +1,22 @@
+[p1 "OpenDesk Browser · App" | space "AI Proxy installed functional testing 20261115"(83): 1 managed, 0 untracked — p1* "OpenDesk Browser · App"]
+root
+  container "当前已安装应用"
+    container
+      button "更多工具设置" [ref=208, loc=css:button[aria-label="更多工具设置"]]
+        text "⋯"
+      container "更新记录与提醒设置"
+    container "当前工具界面"
+      region "管理设置" [ref=209, loc=role:region[name="管理设置"]]
+        container
+          container
+            text "AI"
+            container
+              heading
+                text "AI Proxy"
+              paragraph
+                text "管理设置"
+          status
+            paragraph
+              text "读取浏览器状态…"
+            button [ref=210]
+              text "重试"

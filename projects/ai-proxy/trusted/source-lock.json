@@ -55,7 +55,7 @@
   "projects/ai-proxy/src/ui/ProxyEntry.tsx": "46f4bdef3a11cc6040fa857225b032e3bb6f5faa",
   "projects/ai-proxy/src/ui/ProxyIcon.tsx": "89f7a49ec838d964bac4205ccbadb3c9e5d38d11",
   "projects/ai-proxy/src/ui/RotationPlan.tsx": "78368f323f1871e930fb68274a65d2f0b139c243",
-  "projects/ai-proxy/src/ui/SourcesPage.tsx": "0405bc36091a06a2ec8d9f621918ad84c6c0195f",
+  "projects/ai-proxy/src/ui/SourcesPage.tsx": "fb935f97110e46cf93feb48963c7db6416b9a20e",
   "projects/ai-proxy/src/ui/Status.tsx": "a02f8556a65b66b97e2e863079430b501130d286",
   "projects/ai-proxy/src/ui/SubscriptionReader.tsx": "994f63468b318ab650e40d2b5026de8e11020e50",
   "projects/ai-proxy/src/ui/UsageControls.tsx": "3d32edd9edf3a3c17167dd0b89e26ff105b64ffe",

@@ -197,7 +197,7 @@ export function SourcesPage({ config, configEtag, runtime, busy, act, setError, 
       id:localId || crypto.randomUUID(), name:displayName, scheme:local.scheme, port:Number(local.port)
     }})) closeEditor(false, revision);
   }
-  async function saveSubscription(event: FormEvent<HTMLFormElement>) {
+  async function saveSubscription(event: React.SyntheticEvent) {
     const revision=getEnvironment().getDraftRevision('source-editor');
     event.preventDefault();
     let originHost = '';
@@ -227,6 +227,12 @@ export function SourcesPage({ config, configEtag, runtime, busy, act, setError, 
       closeEditor(true);
       if (!subId) navigateSubscription({kind:'source',id:source.id});
     }
+  }
+  function submitSubscriptionFromGesture(event: React.SyntheticEvent<HTMLFormElement>) {
+    // Confirm during the original click/Enter; a synthetic submit cannot satisfy
+    // the trusted host's gesture check. Keep normal form validation as well.
+    event.preventDefault();
+    if (!busy && event.currentTarget.reportValidity()) void saveSubscription(event);
   }
   const editorMarkup = <>{editor && <section id="source-editor" className="sourceInlineEditor"
       aria-labelledby="source-editor-title" onKeyDown={event => {
@@ -264,7 +270,16 @@ export function SourcesPage({ config, configEtag, runtime, busy, act, setError, 
           <div className="sourceFormActions"><Button disabled={busy} className="primary" type="submit">
             {localId?t('saveLocalEndpointChanges'):t('saveLocalEndpoint')}</Button></div>
         </form>
-        : <form data-draft-scope="source-editor" className="sourceForm" onSubmit={e=>void saveSubscription(e)}>
+        : <form data-draft-scope="source-editor" className="sourceForm" onSubmit={e=>void saveSubscription(e)}
+          onClick={event => {
+            const button = (event.target as HTMLElement).closest<HTMLButtonElement>('button[type="submit"]');
+            if (button?.form === event.currentTarget) submitSubscriptionFromGesture(event);
+          }}
+          onKeyDown={event => {
+            if (event.key === 'Enter' && !event.nativeEvent.isComposing && !event.altKey && !event.ctrlKey &&
+                !event.metaKey && !event.shiftKey && (event.target as HTMLElement).tagName === 'INPUT')
+              submitSubscriptionFromGesture(event);
+          }}>
         <p className="sourceFieldNote">{t('subscriptionMetadataNotice')}</p>
           <div><label htmlFor="r72-sub-name">{t('subscriptionSourceName')}</label>
             <ClearableInput id="r72-sub-name" fieldLabel={t('subscriptionSourceName')} maxLength={80} required autoFocus value={sub.name}

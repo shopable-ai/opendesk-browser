@@ -1,0 +1,180 @@
+[p1 "OpenDesk Browser · App" | space "AI Proxy installed functional testing 20261115"(83): 1 managed, 0 untracked — p1* "OpenDesk Browser · App"]
+root
+  container "当前已安装应用"
+    container
+      button "更多工具设置" [ref=108, loc=css:button[aria-label="更多工具设置"]]
+        text "⋯"
+      container "更新记录与提醒设置"
+    container "当前工具界面"
+      region "管理设置" [ref=109, loc=role:region[name="管理设置"]]
+        container
+          container
+            container
+              text "AI"
+              container
+                heading
+                  text "AI Proxy"
+                paragraph
+                  text "设置"
+                  text "·"
+                  text "浏览器代理管理器"
+            container
+              text "免费 · 无需账号"
+              button [ref=110]
+                svg_root
+                text "返回代理配置"
+              button "刷新状态" [ref=111, loc=css:button[aria-label="刷新状态"]]
+                svg_root
+          text "浏览器状态"
+          text "尚未管理浏览器代理"
+          text "待应用选择 · 尚未选择配置"
+          button [ref=112]
+            text "查看真实控制状态 →"
+          container
+            container "设置栏目"
+              paragraph
+                text "管理中心"
+              button [ref=113]
+                svg_root
+                text "代理配置"
+              button [ref=114]
+                svg_root
+                text "网站规则"
+              button [ref=115]
+                svg_root
+                text "订阅管理"
+              button [ref=116]
+                svg_root
+                text "导入备份"
+              button [ref=117]
+                svg_root
+                text "网络诊断"
+              button [ref=118]
+                svg_root
+                text "通用设置"
+              button [ref=119]
+                svg_root
+                text "官方网络"
+            container
+              container
+                paragraph
+                  text "设置"
+                heading
+                  text "订阅管理"
+                button [ref=120]
+                  svg_root
+                  text "导入订阅"
+                paragraph
+                  text "查看订阅记录与本地客户端。编辑不会自动应用代理。"
+              container
+                container "订阅导航"
+                  button [ref=129]
+                    text "← 返回订阅列表"
+                  text "/"
+                  text "订阅详情"
+                container
+                  svg_root
+                  paragraph
+                    text "第三方订阅"
+                  heading [ref=130]
+                    text "ui-1115-subscription-edited"
+                  paragraph
+                    text "ui-1115.example.com"
+                  text "同步状态"
+                  text "未同步"
+                  text "节点数量"
+                  text "未知"
+                  text "连通性"
+                  text "未知"
+                  text "声明格式（尚未识别）"
+                  text ":"
+                  text "auto"
+                  paragraph
+                    text "只保存来源域名和非敏感元数据；当前不自动下载订阅或启用线路。节点、流量、到期与连通性均未验证。"
+                  button [ref=131]
+                    text "编辑"
+                  button [ref=132]
+                    text "删除"
+                container "读取本地订阅内容"
+                  container
+                    status
+                      text "解析成功"
+                    button "读取 ui-1115-subscription-edited 的订阅" [ref=139, loc=css:button[aria-label="读取 ui-1115-subscription-edited 的订阅"]]
+                      text "本地读取 / 导入"
+                  container "ui-1115-subscription-edited 的本地订阅读取"
+                    container
+                      heading
+                        text "读取本地订阅内容"
+                      button [ref=142]
+                        text "取消"
+                    paragraph
+                      text "结果和订阅链接仅在本页面内存中保留。关闭、刷新或离开页面后需重新粘贴链接或内容。已保存的手动配置仍保留；原始文本和凭证不保留。限制：1 ..."
+                    form
+                      container
+                        text "本地订阅文本或脱敏报告 JSON"
+                        textbox [ref=143]
+                      button [ref=144]
+                        text "读取并清空文本"
+                    container
+                      text "选择本地订阅或脱敏报告文件（不超过 1 MiB）"
+                      textbox [ref=145]
+                        button [ref=146]
+                          text "选择文件"
+                        text "未选择任何文件"
+                    form
+                      container
+                        text "此服务商的 HTTPS 订阅链接"
+                        textbox [ref=147, loc=css:input[placeholder="https://ui-1115.example.com/…"]]
+                          text "https://ui-1115.example.com/…"
+                      paragraph
+                        text "在线订阅下载尚未接入。请粘贴本地文本或选择文件读取；不会发送请求、保存链接或启用线路。"
+                      button [ref=148]
+                        text "更新订阅"
+                    paragraph
+                      text "格式：clash · 节点：1 · 无效：0 · 去重：0"
+                    paragraph
+                      text "协议：http: 1"
+                    text "Chrome 原生 · 无认证"
+                    text ":"
+                    text "0"
+                    text "需要本地客户端"
+                    text ":"
+                    text "1"
+                    text "不支持"
+                    text ":"
+                    text "0"
+                    paragraph
+                      text "解析成功仅说明内容已读取，不代表节点能连接、Chrome 已使用该节点或 AI 网站可用。"
+                    paragraph
+                      text "原生入口以现有手动来源保存，不含凭证。保存不会选择、应用或测试线路。请在代理配置中选择并应用，再查看网络诊断。"
+                    unordered_list
+                      list_item
+                        text "ui-1115-local-node"
+                        text "http"
+                        text "·"
+                        text "需要本地客户端"
+                        paragraph
+                          text "此节点使用私网、回环或特殊用途主机。请使用本地客户端流程，不能作为订阅原生入口导入。"
+                        button [ref=149]
+                          text "配置本地客户端端口"
+                container
+                  heading
+                    text "协议支持与接入说明"
+                  paragraph
+                    text "仅保存服务商域名、名称和声明格式。链接只保留在本页面内存中；凭证不会保存。"
+                  paragraph
+                    text "仅本地解析；不自动同步订阅、启动客户端或应用代理。"
+                  container [ref=140]
+                    text "协议"
+                  container
+                    paragraph
+                      text "Chrome 可以设置 HTTP / HTTPS 代理、SOCKS4 和无认证 SOCKS5。SS、VMess、VLESS、Trojan、Hysteria 等远端协议由 Clash/Mihomo/sing-box 等本地客户端处理。"
+                    paragraph
+                      text "本地读取仅解析内容。不自动更新订阅、不启动客户端或调用客户端管理 API。保存、选择、应用和诊断是独立步骤。"
+                  container [ref=141]
+                    text "CLI"
+                  container
+                    paragraph
+                      text "如需 CLI 受控 GET，请在 apps/browser-extension 目录执行下方命令。脚本仅授权 https://liangxin.xyz，缺少必要环境变量时会阻断。将生成的脱敏 JSON 本地导入；�..."
+                    paragraph
+                      text "node --experimental-strip-types scripts/probe-subscription.mjs --report /tmp/ai-proxy-subscription-report.json"

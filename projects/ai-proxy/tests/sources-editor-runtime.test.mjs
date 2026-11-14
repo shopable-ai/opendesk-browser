@@ -31,6 +31,7 @@ function fixture(route={kind:'local'},quickEntry='local') {
     if(name==='../environment')return {getEnvironment:()=>env};
     if(name==='../i18n/LocaleProvider')return {useI18n:()=>({t:key=>{assert.ok(Object.hasOwn(translations,key),`Unknown translation: ${key}`);return key;}})};
     if(name==='../official/messages')return {requestOfficial:async()=>({ok:false})};
+    if(name==='../subscription/download')return {validateSubscriptionUrlShape:value=>new URL(value)};
     if(name==='../domain/proxy-entry')return {isValidProxyPort:value=>Number(value)>0&&Number(value)<=65535};
     return new Proxy({}, {get:(_,key)=>key});
   },document,HTMLElement:class {static [Symbol.hasInstance](value){return value===opener;}},window:{addEventListener(){},removeEventListener(){}},requestAnimationFrame:()=>1,cancelAnimationFrame(){},crypto:{randomUUID:()=> 'new-id'}});
@@ -44,6 +45,38 @@ function fixture(route={kind:'local'},quickEntry='local') {
     cancel:()=>find(node=>node.props.children==='cancel').props.onClick(),
     change(id,value){field(id).props.onValueChange(value);env.setDraftDirty(true,'source-editor');render();}};
 }
+
+test('subscription click and Enter start confirmation in the original event and cancel keeps the draft',async()=>{
+ for(const type of ['click','keydown']){
+  const f=fixture({kind:'new'},'subscription');f.render();
+  f.change('r72-sub-name','Disposable provider');f.change('r72-sub-url','https://provider.example.com/private?token=disposable');
+  const form=f.find(n=>n.type==='form');let prevented=false;
+  const currentTarget={reportValidity:()=>true};
+  const event={type,currentTarget,target:type==='click'?{closest:()=>({form:currentTarget})}:{tagName:'INPUT'},
+   key:'Enter',nativeEvent:{isComposing:false},preventDefault(){prevented=true;}};
+  form.props[type==='click'?'onClick':'onKeyDown'](event);
+  assert.equal(prevented,true);assert.equal(f.confirmations.length,1,'confirmation starts before returning to the synthetic submit dispatcher');
+  assert.equal(f.actions.length,0);f.confirmations[0].resolve(false);await new Promise(setImmediate);f.render();
+  assert.equal(f.actions.length,0);assert.equal(f.field('r72-sub-name').props.value,'Disposable provider');
+  form.props[type==='click'?'onClick':'onKeyDown'](event);
+  f.confirmations[1].resolve(true);await new Promise(setImmediate);
+  assert.equal(f.actions[0].type,'SAVE_SUBSCRIPTION');assert.equal(f.actions[0].source.originHost,'provider.example.com');
+  assert.equal(Object.hasOwn(f.actions[0].source,'url'),false);
+ }
+});
+
+test('subscription gesture submission retains invalid-field, busy and IME guards',()=>{
+ const f=fixture({kind:'new'},'subscription');f.render();
+ const form=f.find(n=>n.type==='form');const currentTarget={reportValidity:()=>false};
+ form.props.onClick({currentTarget,target:{closest:()=>({form:currentTarget})},preventDefault(){}});
+ assert.equal(f.confirmations.length,0);
+ form.props.onKeyDown({key:'Enter',nativeEvent:{isComposing:true},target:{tagName:'INPUT'}});
+ form.props.onKeyDown({key:'Enter',nativeEvent:{isComposing:false},ctrlKey:true,target:{tagName:'INPUT'}});
+ assert.equal(f.confirmations.length,0);
+ f.render({busy:true});const busyForm=f.find(n=>n.type==='form');currentTarget.reportValidity=()=>true;
+ busyForm.props.onClick({currentTarget,target:{closest:()=>({form:currentTarget})},preventDefault(){}});
+ assert.equal(f.confirmations.length,0);
+});
 
 test('safe local endpoint routes round trip, copy and navigate; malformed IDs never reach guards',()=>{
  for(const id of ['a','Endpoint_-9','a'.repeat(80)]){
