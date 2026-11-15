@@ -158,6 +158,9 @@ function restrictedYaml(text: string): unknown {
       if (!Number.isFinite(number)) fail('invalid_yaml');
       return number;
     }
+    // Canonical UUIDs are plain strings, even when they start with 01, 0b or 1e.
+    // Credential fields are still validated and removed by node normalization.
+    if (uuid.test(source)) return source;
     // Refuse ambiguous implicit YAML scalars (rather than silently coercing them).
     if (/^(?:yes|no|on|off|True|False|NULL|\.nan|[-+]?\.inf)$/i.test(source) ||
         /^[-+]?(?:0[xob]|0\d|\d+[eE]|\d[\d_]*_)/i.test(source) || /^\d{4}-\d\d-\d\d/.test(source)) fail('invalid_yaml');

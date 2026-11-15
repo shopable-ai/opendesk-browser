@@ -1,0 +1,124 @@
+{
+  "date": "2026-11-15",
+  "timezone": "Asia/Shanghai",
+  "owner": "01a1db42-50a0-7432-bfae-406afefd6764",
+  "phase": "continuous development; bounded real UI subscription and network functional testing completed",
+  "branch": "main",
+  "scope": "Reuse configuration management evidence; extend subscription, existing Clash Verge, apply, browser traffic, stop/resume and relevant invalid/cancel paths",
+  "priorEvidence": ["functional-20261115.json", "resume-20261115.json"],
+  "environment": {
+    "browser": "ego lite, existing user Profile; one TaskSpace 117",
+    "entry": "Existing installed AI Proxy App management route, subscriptions/profiles/diagnostic sections",
+    "extensionId": "ccfcjegpkdlgbclopjmadlcjedelidmf",
+    "output": "dist/development",
+    "sharedWriterPidAtObservation": 26515,
+    "writerStartedOrKilledByThisTask": false,
+    "developmentRefresh": "Existing WXT configuration change mechanism re-read the reviewed source lock; no second writer or direct output replacement",
+    "runningResourceReadback": {
+      "revision": "7010b907900aab18c466868f40ca9ed3961e0accf086dbf79117fda1324893b0",
+      "toolShellBytes": 3201221,
+      "toolShellSha256": "12d5336719f210a97c9580fbb97034aef513e80fa646c4595f6387548407b464",
+      "servedResourceMatchesDevelopmentManifestAndDisk": true,
+      "limit": "Resource readback plus fixed-parser UI behavior; not a production acceptance or complete applied-revision audit"
+    },
+    "installedPackage": {
+      "versionFromPriorVerifiedInstallation": "0.3.25",
+      "packageHashFromCurrentManagedProxyOwnerReceipt": "d5110eabb9df9b2b2a48a92b391a407f1027f9ed07a0b1305b85ed2692fc8c45",
+      "upgradedThisRound": false
+    },
+    "taskSpaceReleased": true,
+    "nativeUiLockReleased": true
+  },
+  "subscription": {
+    "originHost": "vsray.com",
+    "fullUrlOrCredentialsIncludedInCommittedEvidence": false,
+    "rawFileBytes": 19491,
+    "rawFileSha256": "15ead097fc501904a71a3fc6f830788ee7d1c2013941734352e6e93b22de1c1c",
+    "downloadMethod": "User-authorized browser navigation to supplied subscription, followed by local file import through actual AI Proxy UI",
+    "onlineDownloadInProduct": "NOT_IMPLEMENTED; disabled UI explicitly states no online download",
+    "beforeFix": "Original Clash YAML rejected with invalid_yaml: an unquoted canonical UUID began with a numeric-looking prefix",
+    "fix": "Recognize exact canonical UUID strings before ambiguous implicit scalar rejection; retain credential validation and report redaction",
+    "realUiAfterFix": {
+      "result": "PASS",
+      "format": "clash",
+      "nodes": 1,
+      "protocols": {"vmess": 1},
+      "invalid": 0,
+      "nativeChrome": 0,
+      "localClientRequired": 1,
+      "doesNotProveRemoteNodeConnection": true
+    },
+    "forbiddenYamlReference": "PASS_REJECTED; forbidden_feature visible; namespace unchanged",
+    "sourceStoresOnlyPublicMetadata": true,
+    "fullUrlAndUuidAbsentFromToolNamespace": true,
+    "rawSubscriptionDeletedAfterTesting": true
+  },
+  "realUiNetwork": {
+    "client": "Existing Clash Verge / verge-mihomo; no import, node, mode, system proxy or client configuration changes",
+    "endpoint": "http://127.0.0.1:7897",
+    "nativeObservation": "Clash UI showed existing VMess node selected, global mode and system proxy on; connection filter showed www.cloudflare.com:443 via GLOBAL / the selected node, HTTPS(tcp)",
+    "saveThenSelect": "PASS; Chrome remained system and controllable_by_this_extension",
+    "applyReview": "PASS; original Host reviewed exact endpoint and browser-wide effect",
+    "applyReadback": "PASS; controlled_by_this_extension, mandatory owner-marked pac_script returning PROXY 127.0.0.1:7897",
+    "browserTraffic": [
+      {"stage": "baseline system", "result": "HTTPS response body received", "host": "www.cloudflare.com", "country": "JP", "colo": "NRT", "serverTimestamp": "1794729746.000"},
+      {"stage": "managed Clash endpoint", "result": "HTTPS response body received", "host": "www.cloudflare.com", "country": "JP", "colo": "NRT", "serverTimestamp": "1794729828.000"},
+      {"stage": "after pause/system restored", "result": "HTTPS response body received", "host": "www.cloudflare.com", "country": "JP", "colo": "NRT", "serverTimestamp": "1794729886.000"}
+    ],
+    "sameEgressIpInAllThree": true,
+    "ipAddressIncludedInCommittedEvidence": false,
+    "pause": "PASS; released control and restored system, not direct",
+    "resume": "PASS; explicit apply reused existing exact route approval and restored the same controlled PAC",
+    "stopFromBasicDiagnostics": "PASS; released control and restored system",
+    "diagnosticsRealControlReadback": "PASS; UI showed this extension controls the browser and proxy permission granted",
+    "websiteAndSpeedDiagnostics": "NOT_IMPLEMENTED; UI explicitly marks HTTP tests unavailable and exit probe simulated; no simulated result counted as PASS"
+  },
+  "relatedInvalidAndCancelPaths": {
+    "portZero": "PASS_REJECTED; min=1/max=65535, visible range error, saved endpoint and namespace unchanged",
+    "deleteCancel": "PASS; original record retained, visible cancel notification, namespace unchanged",
+    "missingSelection": "PASS_DISABLED; Apply disabled with no profile selected; not bypassed",
+    "draftDiscard": "PASS; original async confirmation discarded invalid unsaved draft only"
+  },
+  "cleanup": {
+    "method": "UI deletions and UI mode selection only; no direct storage or proxy writes",
+    "baselineNamespaceSha256": "ed2b97e6aee620d4acc967bb55ed24db8ccdfd01b9c284f04005e53a0dcc4a23",
+    "afterCleanupAndReopenNamespaceSha256": "ed2b97e6aee620d4acc967bb55ed24db8ccdfd01b9c284f04005e53a0dcc4a23",
+    "fullNamespaceEqual": true,
+    "proxyEqual": true,
+    "proxy": {"levelOfControl": "controllable_by_this_extension", "value": {"mode": "system"}},
+    "originalR3EndpointFavoritesAndPreferencesPreserved": true,
+    "clashConnectionFilterClearedAndOriginalProxyPageRestored": true
+  },
+  "validation": [
+    {"command": "node --test projects/ai-proxy/tests/subscription-parser.test.mjs", "result": "2/2 PASS; UUID regression failed before fix"},
+    {"command": "node --test projects/ai-proxy/tests/subscription-parser.test.mjs projects/ai-proxy/tests/trusted-admission.test.mjs", "result": "6/6 PASS"},
+    {"command": "verifyTrustedAIProxySources() via scripts/bundle-provenance.mjs", "result": "PASS"},
+    {"command": "npm --prefix projects/ai-proxy run build", "result": "PASS"},
+    {"command": "node --test --test-name-pattern='tool packer rejects|portable Sidebar Tool builds|promotion rejects' tests/environment/sidebar-tools.test.mjs", "result": "3/3 PASS"},
+    {"command": "Original build-sidebar-tool candidate, --promote-from and --check-project", "result": "PASS; PROJECT_PACKAGE_MATCH"}
+  ],
+  "formalPackage": {
+    "version": "0.3.27",
+    "bytes": 1062954,
+    "sha256": "c23829f95906ca3e5b462c9cf6732d84dd7ad89d3074a4410697396e76cf65b7",
+    "capabilitiesChanged": false,
+    "installedThisRound": false,
+    "limit": "Fixed trusted development UI tested separately from JSON package; no 0.3.27 installation claim"
+  },
+  "driverAndEnvironmentLimits": [
+    "Shared native UI initially busy; independent browser work continued, lock obtained later and released without stealing another owner",
+    "Shared WXT process cached the previous source lock; existing configuration reload refreshed reviewed sources and preserved the writer",
+    "Pointer/Enter attempts sometimes left UI unchanged; inspected state and completed with target-bound Space activation; no synthetic DOM click",
+    "An initial assertion expected fixed_servers; actual SDK correctly uses owner-marked PAC. Timeout was a test assertion issue, not an application failure"
+  ],
+  "notTested": [
+    "AI website login or model calls",
+    "Claim that supplied subscription node itself was imported into or selected by Clash Verge",
+    "Real rule-based split routing, arbitrary PAC execution or authenticated proxies",
+    "Unavailable client endpoint, disconnection and Chrome permission revocation recovery",
+    "Official network account, entitlement and transactions",
+    "0.3.27 in-place installation, production candidate, complete CI and formal 95+ scoring"
+  ],
+  "privateEvidenceDirectory": "artifacts/ai-proxy/network-functional-20261115/",
+  "score": "NOT_SCORED; missing implementations and untested boundaries remain explicit"
+}

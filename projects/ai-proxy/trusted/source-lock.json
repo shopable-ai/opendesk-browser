@@ -38,7 +38,7 @@
   "projects/ai-proxy/src/styles/sidepanel-r86.css": "4b89318ea7ea3c466c6d538cd34685ffb9575a85",
   "projects/ai-proxy/src/styles/style.css": "619462108d2f6b93d74e85549b16de11630a27ae",
   "projects/ai-proxy/src/subscription/download.ts": "0b182b6faf289e73c9a764f80487900f14699347",
-  "projects/ai-proxy/src/subscription/parser.ts": "42a936d7191bb422a71fe173a822b55e591a6024",
+  "projects/ai-proxy/src/subscription/parser.ts": "efa8dae9aa079f2fb995c2e4488bde910936990e",
   "projects/ai-proxy/src/ui/backupImport.ts": "53e6cbf048126f94efb5d3456a773fc0c871320a",
   "projects/ai-proxy/src/ui/DiagnosticsPage.tsx": "c30db6621844d2bc3149181ef87c95e53a24f9ec",
   "projects/ai-proxy/src/ui/FormField.tsx": "1f9bcf20be1740c0c5df65d13ee5e7ac81428d24",
