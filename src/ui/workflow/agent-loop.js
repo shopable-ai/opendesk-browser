@@ -6,7 +6,8 @@ const fault=(code,message)=>Object.assign(new Error(message),{code});
 const terminalUnknown=code=>/(?:UNKNOWN|TIMEOUT|SETTLEMENT|DISCONNECT|WORKER)/i.test(code||'');
 const actions=step=>({op:step.op,locatorKind:step.locatorKind||'',selector:step.selector||'',
   roleName:step.roleName||'',param:step.param||'',text:step.text||'',url:step.url||'',
-  ...(step.waitUntil?{waitUntil:step.waitUntil,timeout:step.timeout??15000}:{})});
+  ...(step.waitUntil?{waitUntil:step.waitUntil,timeout:step.timeout??15000}:{}),
+  ...(step.searchNavigation?{searchNavigation:step.searchNavigation}:{})});
 const positiveGoal=goal=>goal.replace(/(?:不要|不需|无需|不得|别|禁止|勿|do\s+not|don't|never)\s*(?:点击|按下|提交|搜索|查找|检索|跳转|打开|进入|填写|填入|输入|查看|读取|提取|读回|观察|检查|press|click|submit|search|open|navigate|fill|type|read|extract|observe|inspect|check)[^，,。；;\n]*/gi,'');
 const searchIntent=/(?:搜索(?!按钮|控件|框|栏|关键词|输入框|词|结果|页面|历史|记录|列表)|查找(?!输入框|框)|检索(?!词|框)|\bsearch\b(?!\s+(?:keyword|input|field|box|term|results?)\b))/i;
 // This refinement applies to an explicit control-identification read, not

@@ -37,6 +37,7 @@ const inputs=[
   'src/ui/react/preview/developer-preview.js',
   'src/config/browser-config.json',
   'src/ui/my-workbench-view.js','src/ui/sidebar-tools-view.js',
+  'src/ui/task-run-diagnostics.js','src/ui/run-value-format.js',
   'src/ui/workflow/workflow-ui-state.js','src/ui/react/tabs/workflow.tsx',
   'src/ui/react/preview/shared-ai-preview.js','src/ui/conversation/draft-suggestion.js',
   'src/ui/react/preview/locale-preview.js',
@@ -61,6 +62,8 @@ import {createExtensionUiShowcase} from ${JSON.stringify(join(root,'src/ui/react
 import {mountSidebarApp} from ${JSON.stringify(join(root,'src/ui/react/main.tsx'))};
 import {createDeveloperPreviewView} from ${JSON.stringify(join(root,'src/ui/react/preview/developer-preview.js'))};
 import {createMyWorkbenchView} from ${JSON.stringify(join(root,'src/ui/my-workbench-view.js'))};
+import {presentTaskValue} from ${JSON.stringify(join(root,'src/ui/task-run-diagnostics.js'))};
+import {formatRunValue} from ${JSON.stringify(join(root,'src/ui/run-value-format.js'))};
 import {validateTaskParams} from ${JSON.stringify(join(root,'src/platform/tasks/contract.js'))};
 import {createSidebarToolsView} from ${JSON.stringify(join(root,'src/ui/sidebar-tools-view.js'))};
 import {createClipperPreview} from ${JSON.stringify(join(root,'src/ui/react/preview/clipper-preview.js'))};
@@ -121,6 +124,17 @@ myView.actions.taskSearchToggleClick=()=>{
 // Optional offline states live only in the existing six-tab React preview.
 // Selected/running/layout scenes never invoke a Host or persist an installation.
 const taskScene=new URLSearchParams(location.search).get('task');
+const taskSceneInput=document.getElementById('od-sidebar-preview-task-scene');
+if(taskSceneInput){
+  taskSceneInput.value=['selected','running','layout'].includes(taskScene)?taskScene:'';
+  taskSceneInput.addEventListener('change',event=>{
+    const value=event.currentTarget.value,url=new URL(location.href);
+    url.searchParams.set('tab','tasks');
+    if(value)url.searchParams.set('task',value);else url.searchParams.delete('task');
+    if(value==='layout')url.searchParams.set('params','real');
+    location.href=url.href;
+  });
+}
 myView.project('runDock',{taskHidden:true,developHidden:initial!=='develop',hidden:initial!=='develop',stopOnly:false});
 if(['selected','running','layout'].includes(taskScene)){
   myView.project('taskRows',{rows:[{taskId:'preview-task',title:'演示任务',
@@ -162,6 +176,27 @@ if(['selected','running','layout'].includes(taskScene)){
       selectedFixture=id;const schema=schemas.get(id),prior=drafts.get(id);
       myView.data.taskRows.selectedId=id;
       myView.data.taskRows.identity={taskId:id,version:'0.0.0',generation:0,installationId:'preview-only'};
+      const row=rows.find(row=>row.taskId===id);
+      const value=id===rows[0].taskId?{status:'success',query:'OpenDesk Browser',results:[
+        {position:1,title:'OpenDesk Browser · 产品介绍',url:'https://example.com/opendesk?from=preview'},
+        {position:2,title:'OpenDesk Browser · 使用指南',url:'https://example.com/guide?from=preview'},
+        {position:3,title:'OpenDesk Browser · 开发文档',url:'https://example.com/docs?from=preview'}
+      ]}:{summary:'仅离线结果样例，没有执行任务。'};
+      const presented=presentTaskValue(value),fullText=presented.redacted||presented.truncated?formatRunValue(value):null;
+      myView.field('task-result-panel').hidden=false;
+      myView.field('task-result').text=presented.text;
+      myView.field('task-result-reveal').hidden=typeof fullText!=='string';
+      myView.field('task-result-reveal').dataset.revealed='false';
+      myView.data.taskResultMeta={state:'离线样例',owner:'任务：'+row.title+' · 非真实搜索结果'};
+      myView.data.taskHistory=[{runId:'preview-result-'+id,ordinal:1,state:'离线样例',
+        text:presented.text,fullText,technical:'UI_PREVIEW_ONLY · 无真实回执'}];
+      myView.actions.taskResultRevealClick=myView.action(()=>{
+        const button=myView.field('task-result-reveal');
+        if(typeof fullText!=='string')return;
+        const revealed=button.dataset.revealed==='true';
+        myView.field('task-result').text=revealed?presented.text:fullText;
+        button.dataset.revealed=String(!revealed);
+      });
       myView.project('taskParams',Object.entries(schema.properties).map(([name,rule])=>{
         const field=myView.field('task-param-'+name),saved=prior?.fields[name];
         field.error='';field.checked=saved?.checked??rule.default===true;
@@ -779,6 +814,9 @@ export async function generateSidebarSixReactPreview({previewOverrides={}}={}){
           '<label>主题 <select id="od-sidebar-preview-theme" aria-label="预览主题">'+
             '<option value="auto">跟随系统</option><option value="light">浅色</option>'+
             '<option value="dark">深色</option></select></label>'+
+          '<label>任务场景 <select id="od-sidebar-preview-task-scene" aria-label="任务预览场景">'+
+            '<option value="">暂无任务</option><option value="selected">已选中任务</option>'+
+            '<option value="running">运行中</option><option value="layout">百度结果／原值</option></select></label>'+
           '<label>安装场景 <select id="od-sidebar-preview-market-scene" aria-label="安装审阅场景">'+
             '<option value="none">不显示</option>'+
             '<option value="first">首次安装</option>'+

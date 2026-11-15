@@ -15,13 +15,14 @@ function abortableDelay(ms, signal) {
 // Only discover and read effects of an already dispatched action. No action
 // callback is accepted, so an unknown click result can never be replayed here.
 export async function waitForWorkflowSearchEffect({captured, currentPageTarget,
-  signal, observe, verify, hasPermission, clock = Date.now, delay = abortableDelay,
+  signal, observe, verify, hasPermission, onDiagnostic, clock = Date.now, delay = abortableDelay,
   timeoutMs = 10000, intervalMs = 250}) {
   const start = clock(), deadline = start + timeoutMs;
   const pollMs = Math.max(1, intervalMs);
   const observeGap = Math.max(500, (timeoutMs - Math.min(pollMs, timeoutMs)) / 3);
   const internal = new AbortController();
   let observations = 0, nextObservation = start, cancel, timedOut = false;
+  let phase = 'target', reason = 'deadline', lastTarget = null, verified = false;
   const cancelled = new Promise(resolve => {
     cancel = () => { internal.abort(); resolve(null); };
   });
@@ -36,41 +37,57 @@ export async function waitForWorkflowSearchEffect({captured, currentPageTarget,
   signal?.addEventListener('abort', cancel, {once:true});
   if (signal?.aborted) cancel();
   try {
-    if (!captured || captured.frameId !== 0) return null;
+    if (!captured || captured.frameId !== 0) { reason = 'invalid-target'; return null; }
     while (!stopped()) {
-      if (!await read(() => hasPermission(captured)) || stopped()) return null;
+      phase = 'permission';
+      if (!await read(() => hasPermission(captured)) || stopped()) { reason = 'permission'; return null; }
+      phase = 'refresh';
       const next = await read(() => currentPageTarget.refresh({preserveRetry:true}));
-      if (stopped() || differentTarget(next)) return null;
+      lastTarget = next && {status:next.status, reason:next.reason || null,
+        message:next.message || null, documentId:next.documentId || null};
+      if (stopped() || differentTarget(next)) { reason = 'target-changed'; return null; }
       if (next?.status === 'available' && next.windowId === captured.windowId &&
           next.tabId === captured.tabId && next.origin === captured.origin &&
           next.frameId === 0 && next.documentId && !next.loading &&
           !next.pendingUrl && !['loading', 'unloaded'].includes(next.tabStatus) &&
           observations < 4 && clock() >= nextObservation) {
         const effectTarget = structuredClone(next);
-        if (!await read(() => hasPermission(effectTarget)) || stopped()) return null;
-        if (differentTarget(currentPageTarget.snapshot)) return null;
+        phase = 'permission';
+        if (!await read(() => hasPermission(effectTarget)) || stopped()) { reason = 'permission'; return null; }
+        if (differentTarget(currentPageTarget.snapshot)) { reason = 'target-changed'; return null; }
         observations++;
         nextObservation = clock() + observeGap;
+        phase = 'observe';
         const after = await read(() => observe(effectTarget, {signal:internal.signal}));
-        if (stopped() || differentTarget(currentPageTarget.snapshot)) return null;
-        if (!await read(() => hasPermission(effectTarget)) || stopped()) return null;
+        if (stopped() || differentTarget(currentPageTarget.snapshot)) { reason = 'target-changed'; return null; }
+        phase = 'permission';
+        if (!await read(() => hasPermission(effectTarget)) || stopped()) { reason = 'permission'; return null; }
+        phase = 'verify';
         const effect = await read(() => verify(after, effectTarget));
-        if (stopped() || differentTarget(currentPageTarget.snapshot)) return null;
+        if (stopped() || differentTarget(currentPageTarget.snapshot)) { reason = 'target-changed'; return null; }
         if (effect) {
-          if (!await read(() => hasPermission(effectTarget)) || stopped() ||
-              differentTarget(currentPageTarget.snapshot)) return null;
+          phase = 'permission';
+          if (!await read(() => hasPermission(effectTarget)) || stopped()) { reason = 'permission'; return null; }
+          if (differentTarget(currentPageTarget.snapshot)) { reason = 'target-changed'; return null; }
+          verified = true; reason = 'verified';
           return {effect, effectTarget:structuredClone(effectTarget)};
         }
       }
+      phase = 'wait';
       if (!stopped()) await read(() => delay(Math.min(pollMs, deadline - clock()),
         internal.signal));
     }
-  } catch {
+  } catch (error) {
+    reason = typeof error?.code === 'string' ? error.code.slice(0,80) : 'reader-failed';
     // Missing/failed evidence is never a business result or permission to retry writes.
   } finally {
     clearTimeout(timer);
     internal.abort();
     signal?.removeEventListener('abort', cancel);
+    // Diagnostic metadata cannot grant evidence or interfere with cleanup.
+    try { onDiagnostic?.({state:verified?'verified':'unconfirmed',
+      reason:signal?.aborted?'cancelled':timedOut||clock()>=deadline?'deadline':reason,
+      phase, elapsedMs:clock()-start, observations, lastTarget}); } catch {}
   }
   return null;
 }

@@ -1,6 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import {emptyWorkflow} from '../../src/framework/workflow/contract.js';
+import {emptyWorkflow,normalizeAiProposal} from '../../src/framework/workflow/contract.js';
+import {workflowForModel} from '../../src/ui/workflow/data-sharing.js';
 import {compileWorkflow} from '../../src/framework/workflow/compiler.js';
 import {createWorkflowAgentLoopGuard} from '../../src/ui/workflow/agent-loop.js';
 import {classifyWorkflowRunRisk,prepareDirectExecution,verifyDirectExecutionReceipt,directExecutionEvidenceLevel,verifyDirectFillReadbacks,verifySearchBusinessEffect,verifySavedWorkflowRevision,verifyOpenedLinkPage} from '../../src/ui/workflow/direct-execution.js';
@@ -65,7 +66,7 @@ test('explicit search navigation freezes readiness and binds only the matching d
   }
   await assert.rejects(compileWorkflow(workflow([{...fill,waitUntil:'load'}])),{code:'E_WORKFLOW_SCHEMA'});
 });
-test('admitted Google homepage search supplies omitted navigation readiness before source and ticket freeze',async()=>{
+test('admitted Google search freezes one durable query navigation despite autocomplete duplicate buttons',async()=>{
   for(const path of ['/', '/webhp?hl=en']){
     const googleOrigin='https://www.google.com';
     const googleTarget={...target,origin:googleOrigin,url:googleOrigin+path};
@@ -81,6 +82,8 @@ test('admitted Google homepage search supplies omitted navigation readiness befo
     const guard=createWorkflowAgentLoopGuard({goal:'搜索 OpenDesk'});
     const ticket=guard.claim({workflow:frozen.workflow,target:googleTarget,observation});
     const click=frozen.workflow.steps.at(-1);
+    assert.equal(click.searchNavigation,'google-query-v1');
+    assert.equal(ticket.steps.at(-1).searchNavigation,click.searchNavigation);
     assert.equal(click.waitUntil,'domcontentloaded');
     assert.equal(click.timeout,15000);
     assert.equal(ticket.steps.at(-1).waitUntil,click.waitUntil);
@@ -91,12 +94,40 @@ test('admitted Google homepage search supplies omitted navigation readiness befo
     const calls=[];
     await new Function('page','params',frozen.sourceUtf8+';return main();')({
       locator:()=>({fill:async value=>calls.push(['fill',value]),inputValue:async()=> 'OpenDesk'}),
-      getByRole:()=>({click:async options=>calls.push(['click',options])})},{});
-    assert.deepEqual(calls,[['fill','OpenDesk'],['click',{waitUntil:'domcontentloaded',timeout:15000}]]);
+      url:async()=>googleTarget.url,
+      getByRole:()=>{throw Error('ambiguous Google buttons must not be clicked');},
+      goto:async(url,options)=>calls.push(['goto',url,options])},{});
+    assert.deepEqual(calls,[['fill','OpenDesk'],['goto','https://www.google.com/search?q=OpenDesk',{waitUntil:'domcontentloaded',timeout:15000}]]);
     assert.throws(()=>guard.claim({workflow:frozen.workflow,target:googleTarget,observation}),
       {code:'E_AGENT_NO_PROGRESS'});
   }
 });
+test('Google query navigation marker is trusted, origin bounded and safely parameterized',async()=>{
+  const googleOrigin='https://www.google.com',googleTarget={...target,origin:googleOrigin,url:googleOrigin+'/'};
+  const observation={summary:{...searchObservation.summary,origin:googleOrigin}};
+  const query='OpenDesk & GitHub # browser';
+  const w={...workflow([{...fill,text:query},{stepId:'search',op:'click',locatorKind:'role',selector:'button',roleName:'搜索'}]),siteOrigin:googleOrigin};
+  const admitted=prepareDirectExecution({request:'搜索 '+query,workflow:w,target:googleTarget,observation});
+  assert.equal(admitted.effectExpectation.query,query);
+  const {title,description,paramsSchema,steps}=w;
+  assert.throws(()=>normalizeAiProposal({title,description,paramsSchema,steps},w),{code:'E_WORKFLOW_AI'});
+  assert.equal(workflowForModel(w).steps.at(-1).searchNavigation,undefined);
+
+  assert.throws(()=>prepareDirectExecution({request:'搜索 '+query,workflow:w,target:googleTarget,observation}),{code:'E_AI_REVIEW_REQUIRED'});
+  const freeze=await compileWorkflow(w,{verifyFill:true}),calls=[];
+  const page={locator:()=>({fill:async()=>{},inputValue:async()=>query}),url:async()=>googleTarget.url,
+    goto:async url=>calls.push(url)};
+  await new Function('page','params',freeze.sourceUtf8+';return main();')(page,{});
+  const destination=new URL(calls[0]);
+  assert.equal(destination.origin,googleOrigin);assert.equal(destination.pathname,'/search');
+  assert.deepEqual([...destination.searchParams],[['q',query]]);
+  page.url=async()=>googleOrigin+'/account';
+  await assert.rejects(new Function('page','params',freeze.sourceUtf8+';return main();')(page,{}),/search entry changed/);
+  assert.equal(calls.length,1,'changed entry never navigates');
+  const forged={...w,siteOrigin:'https://www.google.com.evil.test'};
+  await assert.rejects(compileWorkflow(forged),{code:'E_WORKFLOW_SCHEMA'});
+});
+
 test('Google readiness defaults preserve explicit readiness/timeout and only follow successful admission',()=>{
   const googleOrigin='https://www.google.com';
   const googleTarget={...target,origin:googleOrigin,url:googleOrigin+'/'};

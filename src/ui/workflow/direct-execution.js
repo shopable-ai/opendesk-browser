@@ -46,7 +46,7 @@ export function classifyWorkflowRunRisk(value) {
 export function prepareDirectExecution({request,workflow,target,observation,verifiedFacts=[],
   paramsOverride=undefined,allowBoundParameters=false}) {
   const clean=validateWorkflow(workflow);
-  if(clean.steps.some(step=>step.linkGuard!==undefined))
+  if(clean.steps.some(step=>step.linkGuard!==undefined||step.searchNavigation!==undefined))
     throw error('E_AI_REVIEW_REQUIRED','模型不得携带旧的链接执行证明');
   if(typeof request!=='string'||!request.trim()||request.length>4000)
     throw error('E_AI_REQUEST','任务描述无效');
@@ -239,17 +239,17 @@ export function prepareDirectExecution({request,workflow,target,observation,veri
     typeof query==='string'&&query.trim().length>=2&&query.length<=120&&
     /(?:搜索|查找|检索|\bsearch\b)/i.test(instruction)&&searchButton(clicks[0])
       ?{kind:'search-results-v1',query}:null;
-  if(effectExpectation&&url.origin==='https://www.google.com'&&
+  if(effectExpectation&&clean.steps.length===2&&url.origin==='https://www.google.com'&&
     ['/', '/webhp'].includes(url.pathname)) {
-    // A supported Google homepage submit navigates durably even when the
-    // model omits readiness. Only after admission, amend the proposal that
-    // callers clone for compilation AND ticketing; metadata alone cannot
-    // change the executed click. Other (including inline) searches stay opt-in.
+    // Google autocomplete can expose two visible search buttons after fill.
+    // Freeze the already-admitted query as one same-origin browser navigation,
+    // using the existing Authority rather than weakening Locator strictness.
+    // This trusted marker must never originate in a Provider response.
     const click=clicks[0];
     click.waitUntil??='domcontentloaded';
     click.timeout??=15000;
     Object.assign(workflow.steps[clean.steps.indexOf(click)],{
-      waitUntil:click.waitUntil,timeout:click.timeout});
+      waitUntil:click.waitUntil,timeout:click.timeout,searchNavigation:'google-query-v1'});
   }
   const searchNavigation=effectExpectation&&clicks[0].waitUntil?
     {...effectExpectation,origin:clean.siteOrigin}:null;

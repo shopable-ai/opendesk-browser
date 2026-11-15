@@ -2,8 +2,10 @@ import * as React from 'react';
 import {MyControl} from './my-controls.tsx';
 import {MyTaskRows,MyTaskDetail} from './tasks.tsx';
 import {SchedulePlanRows,ScheduleManagerRows} from './schedule.tsx';
-import {MyTaskHistory,MyScheduleDetail,MyCopyConfirmation} from './my-sections.tsx';
+import {MyTaskHistory,MyScheduleDetail,MyCopyConfirmation,TaskResultRevealIcon} from './my-sections.tsx';
 import {MyAgentToggle} from './my-agent.tsx';
+import {TaskCode} from './task-code.tsx';
+import {Confirmation} from '../components/confirmation.tsx';
 
 export function MyTasksDock({view,hidden=false}){
   React.useSyncExternalStore(view.subscribe,view.getSnapshot,view.getSnapshot);
@@ -15,6 +17,8 @@ export function MyTasksDock({view,hidden=false}){
 function MyTaskWorkspace({view}){
   const taskEnabled=view.field('task-toggle').dataset.enabled==='true';
   const selection=view.data.taskSelection,result=view.data.taskResultMeta;
+  const revealed=view.field('task-result-reveal').dataset.revealed==='true';
+  const revealLabel=revealed?'隐藏完整原值':'查看完整原值';
   const latest=view.data.taskHistory?.[0],unknown=selection?.label==='结果未知';
   const failed=latest?.runState==='failed',historySummary=React.useRef(null);
   const toolsOpen=view.field('task-tools').open;
@@ -43,12 +47,12 @@ function MyTaskWorkspace({view}){
 <div className="task-result-controls">
 <h3 className="task-result-heading">{"最近结果"}</h3>
 {result?.state&&<span className="task-result-state">{result.state}</span>}
+<MyControl view={view} as="button" type="button" id="task-result-reveal" onClick={event=>view.actions.taskResultRevealClick?.(event.nativeEvent)}
+  title={revealed?revealLabel:revealLabel+'（可能包含敏感信息）'} aria-label={revealLabel} aria-pressed={revealed}
+  aria-controls="task-result" className="task-result-reveal od-icon-button"><TaskResultRevealIcon revealed={revealed}/></MyControl>
 </div>
 <MyControl view={view} as="pre" id="task-result" aria-label="当前任务结果">{"尚未运行"}</MyControl>
-<div className="task-result-footer">
 {result?.owner&&<p className="task-result-owner">{result.owner}</p>}
-<MyControl view={view} as="button" type="button" id="task-result-reveal" onClick={event=>view.actions.taskResultRevealClick?.(event.nativeEvent)} title="完整返回值可能包含敏感信息" className="od-button od-button--secondary">{"查看完整原值"}</MyControl>
-</div>
 </MyControl>
 <MyControl view={view} as="details" id="task-history-panel" className="task-history-panel od-disclosure od-disclosure--icon">
 <summary ref={historySummary} tabIndex={0}><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 12a9 9 0 1 1 2.5 6M3 17v-5h5m4-5v5l4 3"/></svg><span>{"运行记录"}</span>{view.data.taskHistory?.length>0&&<span className="task-history-count">{view.data.taskHistory.length} 条</span>}<svg className="od-disclosure-chevron" viewBox="0 0 24 24" aria-hidden="true"><path d="m9 5 7 7-7 7"/></svg></summary>
@@ -63,6 +67,7 @@ function MyTaskWorkspace({view}){
 <MyTaskDetail value={view.data.taskDetail||''}/>
 </MyControl>
 </details>
+<TaskCode view={view}/>
 <div ref={tools} hidden={!toolsOpen&&!view.data.taskRows?.manageMode}>
 <MyControl view={view} as="details" id="task-tools" onToggle={event=>{
   view.actions.taskToolsToggle?.(event.nativeEvent);
@@ -71,43 +76,48 @@ function MyTaskWorkspace({view}){
 }} className="task-tools od-disclosure">
 <summary tabIndex={0}>{"更多操作"}</summary>
 <div className="task-operation-strip" role="group" aria-label="当前任务操作">
-<MyControl view={view} as="button" type="button" id="task-refresh" onClick={event=>view.actions.taskRefreshClick?.(event.nativeEvent)} className="od-icon-button" title="刷新任务列表" aria-label="刷新任务列表">
+<MyControl view={view} as="button" type="button" id="task-view-code" onClick={event=>view.actions.taskViewCodeClick?.(event.nativeEvent)} className="od-button od-button--secondary">查看代码</MyControl>
+<MyControl view={view} as="button" type="button" id="task-refresh" onClick={event=>view.actions.taskRefreshClick?.(event.nativeEvent)} className="od-button od-button--secondary" title="刷新任务列表" aria-label="刷新任务列表">
 <svg viewBox="0 0 24 24" aria-hidden="true">
 <path d="M20 11a8 8 0 1 0-2.4 5.7M20 4v7h-7"/>
 </svg>
+刷新
 </MyControl>
-<MyControl view={view} as="button" type="button" id="task-fork-draft" onClick={event=>view.actions.taskForkDraftClick?.(event.nativeEvent)} className="od-icon-button" title="复制为新草稿" aria-label="复制为新草稿">
+<MyControl view={view} as="button" type="button" id="task-fork-draft" onClick={event=>view.actions.taskForkDraftClick?.(event.nativeEvent)} className="od-button od-button--secondary" title="复制为新草稿" aria-label="复制为新草稿">
 <svg viewBox="0 0 24 24" aria-hidden="true">
 <rect x="8" y="8" width="12" height="12" rx="2"/>
 <path d="M16 8V5a2 2 0 0 0-2-2H5a2 2 0 0 0-2 2v9a2 2 0 0 0 2 2h3"/>
 </svg>
+复制为新草稿
 </MyControl>
-<MyControl view={view} as="button" type="button" id="task-toggle" onClick={event=>view.actions.taskToggleClick?.(event.nativeEvent)} className="od-icon-button" title="停用任务" aria-label="停用任务">
+<MyControl view={view} as="button" type="button" id="task-toggle" onClick={event=>view.actions.taskToggleClick?.(event.nativeEvent)} className="od-button od-button--secondary" title="停用任务" aria-label="停用任务">
 <svg data-task-toggle-icon="pause" viewBox="0 0 24 24" aria-hidden="true" hidden={!taskEnabled}>
 <path d="M7 5v14M17 5v14"/>
 </svg>
 <svg data-task-toggle-icon="play" viewBox="0 0 24 24" aria-hidden="true" hidden={taskEnabled}>
 <path d="m8 5 12 7-12 7Z"/>
 </svg>
+{taskEnabled?'停用任务':'恢复任务'}
 </MyControl>
-<MyControl view={view} as="button" type="button" id="task-uninstall" onClick={event=>view.actions.taskUninstallClick?.(event.nativeEvent)} className="od-icon-button od-icon-button--danger" title="卸载当前版本" aria-label="卸载当前版本">
+<MyControl view={view} as="button" type="button" id="task-uninstall" onClick={event=>view.actions.taskUninstallClick?.(event.nativeEvent)} className="od-button od-button--danger" title="卸载当前版本" aria-label="卸载当前版本">
 <svg viewBox="0 0 24 24" aria-hidden="true">
 <path d="M4 7h16M10 11v6m4-6v6M6 7l1 13h10l1-13M9 7V4h6v3"/>
 </svg>
+卸载当前版本
 </MyControl>
-<MyControl view={view} as="button" type="button" id="open-catalog" onClick={event=>view.actions.openCatalogClick?.(event.nativeEvent)} className="od-icon-button" title="打开本地任务目录" aria-label="打开本地任务目录">
+<MyControl view={view} as="button" type="button" id="open-catalog" onClick={event=>view.actions.openCatalogClick?.(event.nativeEvent)} className="od-button od-button--secondary" title="打开本地任务目录" aria-label="打开本地任务目录">
 <svg viewBox="0 0 24 24" aria-hidden="true">
 <path d="M13 5h6v6m0-6-9 9M19 13v6H5V5h6"/>
 </svg>
+任务目录
 </MyControl>
 </div>
-<MyControl view={view} as="div" id="task-uninstall-confirm" className="task-uninstall-confirm" role="group" aria-label="确认卸载任务">
-<MyControl view={view} as="p" id="task-uninstall-summary">{"确认卸载当前任务版本？历史运行结果不会一并删除。"}</MyControl>
-<div className="task-uninstall-confirm-actions">
-<MyControl view={view} as="button" type="button" id="task-uninstall-cancel" onClick={event=>view.actions.taskUninstallCancelClick?.(event.nativeEvent)} className="od-button od-button--secondary">{"取消"}</MyControl>
-<MyControl view={view} as="button" type="button" id="task-uninstall-yes" onClick={event=>view.actions.taskUninstallYesClick?.(event.nativeEvent)} className="od-button od-button--danger">{"确认卸载"}</MyControl>
-</div>
-</MyControl>
+<p className="hint">停用保留安装；卸载保留源码和历史，不会清空计划记录。当前不提供固定任务包的永久删除，以免破坏历史引用。已保存草稿请在「开发 → 已保存脚本」中删除。</p>
+{view.data.taskUninstallUnknown&&<p role="alert">卸载结果尚未确认。请刷新任务列表核对原安装；此安装的卸载不会再次提交，切换任务也不会解除保护。</p>}
+<Confirmation open={Boolean(view.data.taskUninstallReview)} identity={view.data.taskUninstallReview?.identity}
+  title="卸载当前任务版本" message={view.data.taskUninstallReview?.message||''} confirmLabel="确认卸载" tone="danger"
+  onCancel={()=>view.actions.taskUninstallCancelClick?.()}
+  onConfirm={event=>view.actions.taskUninstallYesClick?.(event)}/>
 </MyControl>
 </div>
 </MyControl>);}

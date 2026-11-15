@@ -46,7 +46,17 @@ export async function compileWorkflow(value,{verifyFill=false,observationRequest
       }
     }
     if (step.op === 'click') {
-      if (step.linkGuard && step.param) {
+      if (step.searchNavigation === 'google-query-v1') {
+        const fill=workflow.steps[0];
+        const query=fill.param?'params['+JSON.stringify(fill.param)+']':JSON.stringify(fill.text);
+        lines.push('  { const __source=new URL(await page.url());');
+        lines.push('    if(__source.origin!=="https://www.google.com" || !["/","/webhp"].includes(__source.pathname)) throw new Error("Workflow search entry changed");');
+        lines.push('    const __query='+query+';');
+        lines.push('    if(typeof __query!=="string" || __query.trim().length<2 || __query.length>120) throw new Error("Workflow search query invalid");');
+        lines.push('    const __destination=new URL("/search",__source.origin);');
+        lines.push('    __destination.searchParams.set("q",__query);');
+        lines.push('    await page.goto(__destination.href,'+JSON.stringify({waitUntil:step.waitUntil||'domcontentloaded',timeout:step.timeout??15000})+'); }');
+      } else if (step.linkGuard && step.param) {
         // This v2 source is frozen ONCE, including during the original AI-on
         // verified execution. Only the trusted Controller supplies __odLinks
         // from a freshly verified DOM observation on each later replay.

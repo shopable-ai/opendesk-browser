@@ -62,14 +62,15 @@ async function waitForNextSend(f,where){
     runs:f.starts.length,runId:f.host.currentRun
   }));
 }
-test('R23.17 Native: first disclosure, valid session reuse, revoke then deny without new RunHost',async t=>{
+test('Native: trusted Send directly authorizes the first summary and later user-requested turns',async t=>{
   const n=makeNative(),f=await workflowFixture({client:n.client});
   t.after(()=>f.view.dispose());
   f.input('workflow-ai-request','读取当前网页内容，不修改。');
-  const first=f.click('workflow-ai-plan');await tick();await tick();
-  assert.equal(state(f,'workflow-ai-approval').hidden,false);
-  assert.equal(f.starts.length,0);
-  await f.click('workflow-ai-approve');await first;await tick();await tick();
+  await f.click('workflow-ai-plan',false);await tick();
+  assert.equal(f.starts.length,0,'an untrusted Send never authorizes observation');
+  const first=f.click('workflow-ai-plan');
+  await first;await tick();await tick();
+  assert.equal(state(f,'workflow-ai-approval').hidden,true,'first Send needs no separate summary approval');
   assert.equal(n.answers[0]?.decision,'approve');
   assert.equal(f.starts.length,2,'Native read-only observation is followed by a single safe auto-run');
   assert.equal(state(f,'workflow-run-review').hidden,true,'no second product confirmation for approved low-risk steps');
@@ -97,10 +98,22 @@ test('R23.17 Native: first disclosure, valid session reuse, revoke then deny wit
   await f.click('workflow-observation-revoke');await tick();
   assert.equal(f.session.get(key),null);
   f.input('workflow-ai-request','读取第三次检查授权撤销。');
-  const third=f.click('workflow-ai-plan');await tick();await tick();
-  assert.equal(state(f,'workflow-ai-approval').hidden,false);
-  assert.equal(f.starts.length,4);
-  await f.click('workflow-ai-deny');await third;
-  assert.equal(n.answers[2]?.decision,'deny');
-  assert.equal(f.starts.length,4);
+  const third=f.click('workflow-ai-plan');await third;await tick();await tick();
+  assert.equal(state(f,'workflow-ai-approval').hidden,true,'a new trusted Send supplies new task consent after revoke');
+  assert.equal(n.answers[2]?.decision,'approve');
+  assert.equal(f.starts.length,6);
+});
+
+test('Native: Stop before the direct observation settles never sends its late summary',async t=>{
+  const n=makeNative(),f=await workflowFixture({client:n.client,hold:true});
+  t.after(()=>f.view.dispose());
+  f.input('workflow-ai-request','请读取当前 Google 网页，识别搜索输入框和搜索按钮，告诉我它们的作用，不要修改网页。');
+  const send=f.click('workflow-ai-plan');
+  for(let attempt=0;attempt<80&&f.starts.length===0;attempt++)await tick();
+  assert.equal(f.starts.length,1);
+  assert.equal(state(f,'workflow-ai-approval').hidden,true);
+  await f.click('workflow-ai-cancel');
+  f.finish();await send;await tick();
+  assert.equal(n.answers.some(answer=>answer.decision==='approve'),false);
+  assert.equal(f.starts.length,1,'Stop never dispatches the planned action');
 });

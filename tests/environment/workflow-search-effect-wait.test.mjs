@@ -225,3 +225,32 @@ for (const phase of ['refresh', 'hasPermission', 'observe', 'verify', 'delay']) 
     assert.equal(getEventListeners(f.controller.signal, 'abort').length, 0);
   });
 }
+
+test('failure diagnostics distinguish unresolved navigation from a reader refusal', async () => {
+  const unresolved = fixture({target:() => ({status:'unavailable', windowId:7, tabId:11,
+    reason:'E_DOCUMENT_UNRESOLVED', message:'Loading'})});
+  let diagnostic;
+  unresolved.options.onDiagnostic = value => { diagnostic = value; };
+  assert.equal(await unresolved.run(), null);
+  assert.equal(diagnostic.reason, 'deadline');
+  assert.equal(diagnostic.observations, 0);
+  assert.equal(diagnostic.lastTarget.reason, 'E_DOCUMENT_UNRESOLVED');
+  const refused = fixture({observe:() => { throw Object.assign(new Error('refused'), {code:'E_OWNER'}); }});
+  refused.options.onDiagnostic = value => { diagnostic = value; };
+  assert.equal(await refused.run(), null);
+  assert.equal(diagnostic.reason, 'E_OWNER');
+  assert.equal(diagnostic.phase, 'observe');
+  assert.equal(diagnostic.observations, 1);
+});
+
+test('diagnostic callbacks cannot change verification or prevent cancellation cleanup', async () => {
+  const f = fixture({observe:() => ({ready:true})});
+  f.options.onDiagnostic = value => {
+    assert.equal(value.state, 'verified');
+    assert.equal(value.reason, 'verified');
+    throw new Error('diagnostic consumer failed');
+  };
+  assert.equal((await f.run()).effect.kind, 'search-inline');
+  assert.equal(getEventListeners(f.controller.signal, 'abort').length, 0);
+  assert.ok(f.reads.every(row => row.signal.aborted));
+});

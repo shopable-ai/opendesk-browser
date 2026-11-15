@@ -9,6 +9,7 @@ import {createDeveloperView} from '../../src/ui/develop-view.js';
 import {createTaskReviewHandoff,taskReviewHandoffKey} from '../../src/ui/workflow/task-review-handoff.js';
 import {encodeValue} from '../../src/platform/page-port/codec.js';
 import {verifyTaskPackage} from '../../src/platform/tasks/contract.js';
+import {digest,digestUtf8} from '../../src/platform/protocol.js';
 import {createMyTaskAgent} from '../../src/ui/my-task-agent.js';
 import {createSharedAIProviderRuntime} from '../../src/ui/ai/provider-runtime.js';
 import {createBusinessConversation} from '../../src/ui/conversation/provider-consumer.js';
@@ -163,24 +164,21 @@ async function managementFixture(t,operation,notify){
   return f;
 }
 
-test('task management strip keeps stateful icons through disable, enable and refresh',async t=>{
+test('task management strip keeps visible action labels through disable, enable and refresh',async t=>{
   const f=await managementFixture(t,{name:'disable'});
   const {renderSidebarReact}=await import('../helpers/sidebar-react-fixture.mjs');
   const check=async(enabled)=>{
     const $=load(await renderSidebarReact({myView:f.myView}));
     const strip=$('.task-operation-strip'),toggle=strip.find('#task-toggle');
-    const label=enabled?'停用任务':'启用任务';
-    assert.equal(toggle.text().trim(),'','state updates must not replace the icon with text');
+    const label=enabled?'停用任务':'恢复任务';
+    assert.equal(toggle.text().trim(),label);
     assert.equal(toggle.attr('title'),label);
     assert.equal(toggle.attr('aria-label'),label);
     assert.equal(toggle.find('svg:not([hidden])').length,1);
     assert.equal(toggle.find('svg:not([hidden])').attr('data-task-toggle-icon'),enabled?'pause':'play');
     for(const button of strip.find('button').toArray()){
       const control=$(button);
-      assert.equal(control.text().trim(),'');
-      assert.equal(control.find('svg:not([hidden])[aria-hidden="true"]').length,1);
-      assert.ok(control.attr('title'));
-      assert.ok(control.attr('aria-label'));
+      assert.ok(control.text().trim(),'management actions are understandable without icon tooltips');
     }
   };
   await check(true);
@@ -2041,3 +2039,161 @@ for(const stage of ['start failure','start receipt','final lookup receipt','fina
     assert.equal(f.starts.length,stage==='start failure'?0:1,'no stale callback may replay execution');
   });
 }
+
+
+async function installedSourceFixture(t,{secondTask=false}={}){
+  const f=make({secondTask});t.after(()=>f.ui.dispose());await tick();await tick();
+  const source='async function main(){return "<script>never execute</script>";}';
+  const manifest={...f.catalogState.catalog[0].manifest,taskId:'demo.form',version:'1.0.0',
+    program:{revision:1,sourceHash:await digestUtf8(source)}};
+  const manifestHash=await digest(manifest);
+  Object.assign(f.catalogState.catalog[0],{manifest,manifestHash});
+  Object.assign(f.catalogState.installed[0],{manifestHash});
+  await f.ui.refresh();
+  const frozen={taskId:'demo.form',version:'1.0.0',manifestHash,
+    package:{manifest,manifestHash,sourceUtf8:source}};
+  const request=f.client.request.bind(f.client),calls=[];
+  f.client.request=async(method,input)=>{
+    calls.push({method,input});
+    return method==='getTaskCandidate'?structuredClone(frozen):request(method,input);
+  };
+  return {...f,frozen,source,calls};
+}
+
+test('installed code inspection reads exact disabled version as escaped text with zero execution or permission requests',async t=>{
+  const f=await installedSourceFixture(t);
+  f.catalogState.installed[0].enabled=false;await f.ui.refresh();f.calls.length=0;
+  await f.action('taskViewCodeClick');
+  const detail=f.myView.data.taskInspection;
+  assert.equal(detail.source,f.source);assert.deepEqual(detail.manifest,f.frozen.package.manifest);
+  assert.equal(detail.identity.manifestHash,f.frozen.manifestHash);
+  assert.deepEqual(f.calls.map(call=>call.method),['getTaskCandidate','listTaskCatalog']);
+  assert.equal(f.starts.length,0);assert.equal(f.permissions.length,0);
+  const {renderSidebarReact}=await import('../helpers/sidebar-react-fixture.mjs');
+  const html=await renderSidebarReact({myView:f.myView}),$=load(html);
+  assert.equal($('[aria-label="只读任务源码"]').text(),f.source);
+  assert.equal($('[aria-label="只读任务源码"] script').length,0);
+  assert.deepEqual(JSON.parse($('[aria-label="固定任务 Manifest"]').text()),f.frozen.package.manifest);
+});
+
+for(const tamper of ['source','manifest','version','installation'])test('installed code inspection rejects changed '+tamper,async t=>{
+  const f=await installedSourceFixture(t);
+  if(tamper==='source')f.frozen.package.sourceUtf8='forged';
+  if(tamper==='manifest')f.frozen.package.manifest.siteOrigins=['https://forged.example'];
+  if(tamper==='version')f.frozen.package.manifest.version='2.0.0';
+  if(tamper==='installation')f.catalogState.installed[0].generation++;
+  await f.action('taskViewCodeClick');
+  assert.equal(f.myView.data.taskInspection.source,undefined);
+  assert.match(f.myView.data.taskInspection.error,/E_REVIEW_IDENTITY|E_TASK_CHANGED/);
+  assert.equal(f.starts.length,0);
+});
+
+test('installed code inspection discards a late response after selecting another task',async t=>{
+  const f=await installedSourceFixture(t,{secondTask:true});let release;
+  const request=f.client.request.bind(f.client);
+  f.client.request=(method,input)=>method==='getTaskCandidate'?new Promise(resolve=>release=resolve):request(method,input);
+  const pending=f.action('taskViewCodeClick');
+  f.myView.data.taskRows.onSelect('demo.second');
+  assert.equal(f.myView.data.taskInspection,null);
+  release(f.frozen);await pending;
+  assert.equal(f.myView.data.taskInspection,null);assert.equal(f.starts.length,0);
+});
+
+test('installed code inspection safely retries a read failure and clears bytes when installation changes',async t=>{
+  const f=await installedSourceFixture(t);const request=f.client.request.bind(f.client);let fail=true;
+  f.client.request=(method,input)=>method==='getTaskCandidate'&&fail?Promise.reject({code:'E_NOT_FOUND',message:'源码暂不可读'}):request(method,input);
+  await f.action('taskViewCodeClick');assert.match(f.myView.data.taskInspection.error,/源码暂不可读/);
+  fail=false;await f.action('taskViewCodeClick');assert.equal(f.myView.data.taskInspection.source,f.source);
+  f.catalogState.installed[0].generation++;await f.ui.refresh();
+  assert.equal(f.myView.data.taskInspection,null);
+});
+
+test('task uninstall review is cancelled by version or installation replacement and by navigation',async t=>{
+  const f=make();t.after(()=>f.ui.dispose());await tick();await tick();
+  const calls=[];const request=f.client.request.bind(f.client);
+  f.client.request=(method,input)=>{calls.push(method);return request(method,input);};
+  for(const key of ['version','generation','installationId']){
+    await f.action('taskUninstallClick');assert.ok(f.myView.data.taskUninstallReview);
+    f.catalogState.installed[0][key]=key==='generation'?2:key==='version'?'1.0.1':'changed-install';
+    await f.ui.refresh();assert.equal(f.myView.data.taskUninstallReview,null);
+    await f.action('taskUninstallYesClick');
+  }
+  await f.action('taskUninstallClick');f.ui.navigate('develop');
+  assert.equal(f.myView.data.taskUninstallReview,null);await f.action('taskUninstallYesClick');
+  assert.equal(calls.includes('uninstallTask'),false);
+});
+
+test('task uninstall consumes reviewed identity once and sends original installation fences',async t=>{
+  const f=make();t.after(()=>f.ui.dispose());await tick();await tick();
+  const calls=[];const request=f.client.request.bind(f.client);let release;
+  f.client.request=(method,input)=>{
+    if(method==='uninstallTask'){calls.push(input);return new Promise(resolve=>release=()=>{f.catalogState.installed=[];resolve({uninstalled:true});});}
+    return request(method,input);
+  };
+  await f.action('taskUninstallClick');const pending=f.action('taskUninstallYesClick');
+  await f.action('taskUninstallYesClick');assert.equal(calls.length,1);
+  assert.deepEqual(calls[0],{taskId:'demo.form',version:'1.0.0',expectedGeneration:1,
+    expectedInstallationId:'11111111-1111-4111-8111-111111111111'});
+  assert.equal(f.myView.data.taskUninstallReview,null);
+  release();await pending;assert.equal(f.starts.length,0);
+});
+
+test('unknown task uninstall stays fenced across selection and refresh without automatic replay',async t=>{
+  const f=make({secondTask:true});t.after(()=>f.ui.dispose());await tick();await tick();
+  let calls=0;const request=f.client.request.bind(f.client);
+  f.client.request=(method,input)=>{
+    if(method==='uninstallTask'){calls++;throw {code:'E_EFFECT_UNKNOWN',message:'lost write receipt'};}
+    return request(method,input);
+  };
+  await f.action('taskUninstallClick');await f.action('taskUninstallYesClick');
+  assert.equal(f.field('task-uninstall').disabled,true);assert.equal(f.myView.data.taskUninstallUnknown,true);
+  f.myView.data.taskRows.onSelect('demo.second');f.myView.data.taskRows.onSelect('demo.form');await f.ui.refresh();
+  await f.action('taskUninstallClick');await f.action('taskUninstallYesClick');
+  assert.equal(f.myView.data.taskUninstallReview,null);assert.equal(calls,1);
+  assert.equal(f.myView.data.taskUninstallUnknown,true);
+  f.catalogState.installed[0].generation++;await f.ui.refresh();
+  assert.equal(f.myView.data.taskUninstallUnknown,false);
+});
+
+test('task uninstall review does not stack over another decision or a run sheet and expires safely',async t=>{
+  const f=make();t.after(()=>f.ui.dispose());await tick();await tick();
+  f.doc.querySelector=()=>({});await f.action('taskUninstallClick');assert.equal(f.myView.data.taskUninstallReview,undefined);
+  f.doc.querySelector=()=>null;f.myView.project('taskRunSheet',{phase:'editing'});
+  await f.action('taskUninstallClick');assert.equal(f.myView.data.taskUninstallReview,undefined);
+  f.myView.project('taskRunSheet',null);
+  t.mock.timers.enable({apis:['setTimeout']});
+  await f.action('taskUninstallClick');assert.ok(f.myView.data.taskUninstallReview);
+  t.mock.timers.tick(120000);t.mock.timers.reset();
+  assert.equal(f.myView.data.taskUninstallReview,null);
+  await f.action('taskUninstallYesClick');assert.equal(f.catalogState.installed.length,1);
+});
+
+for(const stage of ['discovery','page request','preparation','tool resolution'])test('task uninstall review blocks a late run sheet after '+stage,async t=>{
+  const f=await pageSheetFixture(t);f.action('taskSheetClose');
+  f.record.requestId=crypto.randomUUID();
+  const request=f.client.request.bind(f.client);let release;
+  const method={discovery:'listPageTaskRequests','page request':'readPageTaskRequest',
+    preparation:'inspectTaskRun','tool resolution':'resolveInstalledTask'}[stage];
+  f.client.request=(name,args)=>name===method?new Promise(resolve=>{
+    release=async()=>resolve(await request(name,args));
+  }):request(name,args);
+  let opening;
+  if(stage==='discovery'){
+    f.client.subscribePageTasks=()=>()=>{};
+    f.page.setSnapshot({...f.page.snapshot});
+  }else opening=stage==='tool resolution'?f.ui.openTaskRunSheet({task:f.task}):f.ui.openPageTaskRequest(f.record.requestId);
+  await tick();await tick();assert.equal(typeof release,'function');
+  await f.action('taskUninstallClick');const review=f.myView.data.taskUninstallReview;
+  assert.ok(review);
+  await release();await opening;await tick();await tick();
+  assert.equal(f.myView.data.taskRunSheet,null);
+  assert.equal(f.myView.data.taskUninstallReview,review);
+  assert.equal(f.myView.actions.taskParametersOpen('demo.form',{isTrusted:true}),false);
+  assert.equal(await f.ui.openPageTaskRequest(f.record.requestId),false);
+  assert.equal(await f.ui.openTaskRunSheet({task:f.task}),false);
+  assert.equal(f.starts.length,0);
+  assert.equal(f.calls.some(call=>['prepareTaskRun','uninstallTask'].includes(call.method)),false);
+  f.action('taskUninstallCancelClick');
+  f.client.request=request;
+  assert.equal(await f.ui.openPageTaskRequest(f.record.requestId),true,'cancelling the review leaves the original request available');
+});

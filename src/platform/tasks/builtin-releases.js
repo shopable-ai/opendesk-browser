@@ -7,11 +7,19 @@ import {TASK_PACKAGE_LIMIT} from '../source-budgets.js';
 const releases=[
   {taskId:'baidu.search.top3',version:'1.1.5',manifestHash:'f49e274aadfeed12540aff028ff267b3772ebe35a2f16c154008542b76a5bf38',
     sourceHash:'2b0f31c0d485355576cac11968170bb9eb41c9076df5bb6659f93d0173286181',sourcePath:'task-packs/baidu.search/releases/baidu.search.top3.v1.opendesk-task.json'},
-  {taskId:'google.search.top3',version:'1.0.3',manifestHash:'e1d6b92ac83fc3eb9b21a9b7b420e808e69326f4764fdb8c6d4ee88bef7271b3',
-    sourceHash:'241575bb72dccd1106132fc5561c7322fcb11b927e1940e30eda66bec38a09ee',sourcePath:'task-packs/google.search/releases/google.search.top3.v1.opendesk-task.json'}
+  {taskId:'google.search.top3',version:'1.0.7',manifestHash:'16f2dc3e1349d232d3a7ff2b51f3155d636d8f0550741cd52ac44bc686041f06',
+    sourceHash:'3a4b7a55e459e675e7cd3b741af2bf35da27a3054598aedd6ff168e1c19df356',sourcePath:'task-packs/google.search/releases/google.search.top3.v1.opendesk-task.json'}
 
 ];
 const historicalReleases=[
+  {taskId:'google.search.top3',version:'1.0.6',manifestHash:'b490addb1c57d1f983df85782afb547aef8168cd35498dd8b421531de1220c8b',
+    sourceHash:'134cdc2a58a7f3d389a8db1b2a00967bfb6aa1d358dd95f9b104a27b83cd7a0f',sourcePath:'task-packs/google.search/releases/google.search.top3.1.0.6.opendesk-task.json'},
+  {taskId:'google.search.top3',version:'1.0.5',manifestHash:'494d831de8ef55517b58df5147ba6b9a7b9d575f059a1a3c492e34bebb6ed79f',
+    sourceHash:'515e287e32a8e85bc7db887529efa4c76e00ede1f50c14dadd30b7ef6e986f3c',sourcePath:'task-packs/google.search/releases/google.search.top3.1.0.5.opendesk-task.json'},
+  {taskId:'google.search.top3',version:'1.0.4',manifestHash:'0c21ede180cb74156d87d15ba46e88d82ac290133c5badc521aa56d8c687215b',
+    sourceHash:'1ef5f4768d600cea280a1cc1e9cdc5c5ad92b8fad6005c3e6a7b441d212a6873',sourcePath:'task-packs/google.search/releases/google.search.top3.1.0.4.opendesk-task.json'},
+  {taskId:'google.search.top3',version:'1.0.3',manifestHash:'e1d6b92ac83fc3eb9b21a9b7b420e808e69326f4764fdb8c6d4ee88bef7271b3',
+    sourceHash:'241575bb72dccd1106132fc5561c7322fcb11b927e1940e30eda66bec38a09ee',sourcePath:'task-packs/google.search/releases/google.search.top3.1.0.3.opendesk-task.json'},
   // Former automatic 0.2.0 release stays immutable for existing installs/restores.
   {taskId:'chatgpt.conversation.create',version:'0.2.0',manifestHash:'0402cbea8284f87bd3cc63c73b453530be1338cd511c30671957a919678ab146',
     sourceHash:'90d077ff17fdcf89ac0a13adf4a671edc324030165c7eefa95a4acdc531bd51c',sourcePath:'task-packs/chatgpt.conversation.create/releases/chatgpt.conversation.create.0.2.0.opendesk-task.json'},

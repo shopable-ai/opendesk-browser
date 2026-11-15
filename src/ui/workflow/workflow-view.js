@@ -193,8 +193,8 @@ export function createWorkflowView({api=globalThis.chrome,document:doc=globalThi
       captured:{origin:currentOrigin()},recipientId:'local_codex',receiverPattern:null
     });
     control('workflow-observation-scope').text=selected==='local_codex'
-      ?(active?'网页摘要：已授权':'网页摘要：使用前检查授权')
-      :'网页摘要：同网站、对话及 AI 接收方的有效授权会自动复用。';
+      ?(active?'网页摘要：已授权':'网页摘要：发送任务后自动提供')
+      :'网页摘要：发送任务后自动提供给当前所选 AI，无需再次确认。';
     control('workflow-observation-revoke').disabled=!observationApproval;
   }
   const bindings=new Map();
@@ -250,6 +250,10 @@ export function createWorkflowView({api=globalThis.chrome,document:doc=globalThi
   function appendChat(speaker,message) {
     if(disposed)return;
     const id=workflowSession.append(speaker,String(message));
+    // Once a request is in the transcript it is no longer an unsent draft.
+    // Clear only that request; async routing may have left a newer draft here.
+    if(speaker==='你'&&control('workflow-ai-request').value.trim()===String(message))
+      setConversationDraft('');
     const paint=()=>ui.patch({messages:workflowSession.getSnapshot().rows.map(row=>({...row}))});
     paint();
     return {
@@ -834,6 +838,11 @@ export function createWorkflowView({api=globalThis.chrome,document:doc=globalThi
             try {
               const found=await waitForWorkflowSearchEffect({captured,currentPageTarget,
                 signal:prepared.signal,
+                onDiagnostic:searchEffect=>{
+                  if(disposed)return;
+                  const detail=JSON.parse(control('workflow-technical').text);
+                  control('workflow-technical').text=JSON.stringify({searchEffect,...detail},null,2);
+                },
                 hasPermission:next=>api.permissions.contains({origins:[permissionPattern(next.url)]}),
                 observe:(next,{signal})=>observation.observe(next,{signal,
                   requestId:'search-effect-'+crypto.randomUUID(),
@@ -1167,7 +1176,7 @@ export function createWorkflowView({api=globalThis.chrome,document:doc=globalThi
           sessionId:agent.selected==='local_codex'?localPlanner.snapshot().sessionId:session(),
           captured:target,recipientId,receiverPattern};
         if(!validObservationApproval(approval))
-          throw err('E_AI_APPROVAL','网页摘要授权已失效，请重新发送并授权，不再自动读取');
+          throw err('E_AI_APPROVAL','本次任务的网页摘要范围已失效，请重新发送任务');
         if(receiverPattern&&!await api.permissions.contains({origins:[receiverPattern]}))
           throw err('E_AI_PERMISSION','AI 接收方权限已撤销，后续决策已停止');
         const receipt=await observation.observe(target,{signal:agent.controller.signal,
@@ -1456,7 +1465,7 @@ export function createWorkflowView({api=globalThis.chrome,document:doc=globalThi
         agent.guard.check();
         agent.guard.observed({target,receipt:before,remaining:runtimeGoal});
         const stripped={...segment.workflow,steps:segment.workflow.steps.map(step=>{
-          const clean={...step};delete clean.linkGuard;
+          const clean={...step};delete clean.linkGuard;delete clean.searchNavigation;
           // Admission alone receives the newly requested product label, never
           // the persisted source. The frozen script uses param + DOM binding.
           if(clean.op==='click'&&clean.param){
@@ -1471,6 +1480,9 @@ export function createWorkflowView({api=globalThis.chrome,document:doc=globalThi
           request:runtimeGoal,workflow:stripped,target,observation:before,
           verifiedFacts:agent.guard.snapshot().facts,paramsOverride:segmentParams,
           allowBoundParameters:true});
+        if(segment.workflow.steps.some((step,index)=>
+          step.searchNavigation!==stripped.steps[index]?.searchNavigation))
+          throw err('E_WORKFLOW_HASH','搜索执行方式与当前核验方案不一致，未复跑');
         const clickStep=segment.workflow.steps.find(step=>step.linkGuard)||null;
         const frozenLink=clickStep?.linkGuard||null;
         if(dynamic&&frozenLink){
@@ -1658,9 +1670,9 @@ export function createWorkflowView({api=globalThis.chrome,document:doc=globalThi
     control('workflow-ai-endpoint-label').text='接口地址';
     control('workflow-ai-endpoint').title=cloud?'Responses API 的 HTTPS 地址':'Chat Completions API 的 HTTPS 地址';
     control('workflow-provider-scope').text=local
-      ?'Codex 在本机管理对话，模型推理可能联网；已同意的内容可能保存在 Codex 本机对话中。使用官方 CLI 登录，请勿填写 Codex 登录凭据。网页摘要按当前对话、网站与摘要范围授权，任务逐次绑定文档。'
-      :cloud?'网页摘要仅在首次明确授权后发送至指定 Responses HTTPS 接口；有效授权限定当前对话、网站、接收方和 30 分钟，可撤销。store:false，不使用 previous_response_id。API Key 不保存。'
-      :custom?'HTTPS Chat Completions 仅支持单轮 JSON 规划；网页摘要首次发送需授权，相同对话、网站及接收方的有效授权可复用。Locator 仍由本轮可信摘要校验。API Key 不保存。'
+      ?'Codex 在本机管理对话，模型推理可能联网；任务需要的有限网页摘要会随发送直接提供，无需再次确认，可能保存在 Codex 本机对话中。使用官方 CLI 登录，请勿填写 Codex 登录凭据。任务逐次绑定当前文档。'
+      :cloud?'发送任务后，所需有限网页摘要直接提供给指定 Responses HTTPS 接口，无需再次确认。store:false，不使用 previous_response_id。API Key 不保存。'
+      :custom?'HTTPS Chat Completions 仅支持单轮 JSON 规划；发送任务后直接提供所需有限网页摘要，无需再次确认。Locator 仍由本轮可信摘要校验。API Key 不保存。'
       :'OpenDesk 官方 AI 服务目前尚未开放。';
     syncSharedProviderSettings();
     updateLocalStatus();updateButtons();
@@ -1815,17 +1827,19 @@ export function createWorkflowView({api=globalThis.chrome,document:doc=globalThi
         row.siteGranted=await api.permissions.contains({origins:[permissionPattern(captured.url)]});
         planningCurrent(epoch,serial,selected);
         if(row.settled||context.signal.aborted)return;
-        if(row.siteGranted&&validObservationApproval(row)&&
-          (selected==='local_codex'||await api.permissions.contains({origins:[receiverPattern]}))){
-          await processObservation(row,Promise.resolve(true));return;
+        if(selected!=='local_codex'&&
+          !await api.permissions.contains({origins:[receiverPattern]}))
+          throw err('E_AI_PERMISSION','AI 接收方权限已撤销，未读取或发送网页摘要');
+        if(row.settled||context.signal.aborted)return;
+        // Trusted Send authorizes this task's bounded summary for the frozen
+        // recipient. A missing/expired prior grant never needs another dialog.
+        // Chrome site permission remains independent of the task's consent.
+        if(row.siteGranted){
+          await processObservation(row,Promise.resolve(true),!validObservationApproval(row));return;
         }
-        control('workflow-ai-approval-title').text='允许共享网页摘要？';
-        control('workflow-ai-approval-scope').text='网站：'+captured.origin+
-          (selected==='cloud_responses'?' → Cloud Responses ('+receiverPattern+')':
-             selected==='custom_https'?' → HTTPS 接口 ('+receiverPattern+')':' → 本机 Codex')+
-          '：最多 24 项结构、名称、相关文字，可能含敏感文字；无截图/完整 URL。任务：'+request+
-          '。同网站、当前对话、接收方及摘要范围有效 30 分钟，可在 AI 设置撤销；每次仍绑定当前文档，不授予 AI 浏览器执行权限。外发后无法撤回。'+
-          (row.siteGranted?'':'还需 Chrome 网站权限确认。');
+        control('workflow-ai-approval-title').text='需要 Chrome 网站权限';
+        control('workflow-ai-approval-scope').text='当前网站 '+captured.origin+
+          ' 尚未获得 Chrome 访问权限。点击继续申请网站权限后执行本次任务。';
         control('workflow-ai-approve').disabled=false;control('workflow-ai-deny').disabled=false;
         control('workflow-ai-approval').hidden=false;
         focus('workflow-ai-deny');
@@ -1862,6 +1876,8 @@ export function createWorkflowView({api=globalThis.chrome,document:doc=globalThi
       await currentPageTarget.revalidate(row.captured);
       if(!await api.permissions.contains({origins:[permissionPattern(row.captured.url)]}))
         throw err('E_PERMISSION','网站权限已撤销，未向 AI 发送观察结果');
+      if(row.receiverPattern&&!await api.permissions.contains({origins:[row.receiverPattern]}))
+        throw err('E_AI_PERMISSION','AI 接收方权限已撤销，未发送网页摘要');
       planningCurrent(row.epoch,row.serial,row.selected);
       if(row.context.signal.aborted)throw err('E_CANCELLED','网页观察已停止');
       if(remember){
@@ -1992,8 +2008,8 @@ export function createWorkflowView({api=globalThis.chrome,document:doc=globalThi
         if(!await permission)throw err('E_AI_PERMISSION','未授权访问模型网站');
         planningCurrent(epoch,frozen.serial,frozen.selected);
         if(frozen.selected!=='local_codex') {
-          // Both HTTPS transports require the current RunHost observation and
-          // one-turn disclosure. Neither inherits Native session approval.
+          // Both HTTPS transports use this Send's task consent and a fresh,
+          // document-bound RunHost observation for the frozen recipient.
           const decision=await offerObservation(
             {type:'tool.request',tool:'browser.observe',canApprove:true},
             {signal:abort.signal,requestId:'cloud-'+crypto.randomUUID()},
@@ -2001,7 +2017,7 @@ export function createWorkflowView({api=globalThis.chrome,document:doc=globalThi
               recipientId,receiverPattern});
           planningCurrent(epoch,frozen.serial,frozen.selected);
           if(decision?.decision!=='approve'||!decision.result)
-            throw err('E_AI_APPROVAL','本轮 HTTPS 网页摘要未获得明确批准；未调用模型');
+            throw err('E_AI_APPROVAL','本轮网页摘要未能安全读取；未调用模型');
         }
       }
       if(frozen.selected!=='local_codex'&&
@@ -2031,7 +2047,6 @@ export function createWorkflowView({api=globalThis.chrome,document:doc=globalThi
           const result=planned.proposal;
           if(frozen.selected==='local_codex'&&result?.kind==='chat') {
             appendChat('Codex',result.message);
-            if(control('workflow-ai-request').value.trim()===frozen.request)setConversationDraft('');
             status('');
             finishWorkflowAgent(agent,'COMPLETED','');
             return;
@@ -2208,7 +2223,6 @@ export function createWorkflowView({api=globalThis.chrome,document:doc=globalThi
       writeWorkflowOutput('尚无本次持久结果');
       control('workflow-technical').text='';
       updateButtons();
-      appendChat('你',request);
       appendChat('助手','找到已安装任务「'+candidate.title+'」，正在使用新参数执行原有 JavaScript。');
       const completed=await started;
       if(installedStopRequested)
@@ -2433,9 +2447,9 @@ export function createWorkflowView({api=globalThis.chrome,document:doc=globalThi
         await verifyInstalledCandidate(selectedTask);assertLive();
         const granted=await api.permissions.contains({origins:[permissionPattern(target.url)]});
         assertLive();
+        appendChat('你',original);
         if(!granted||selectedTask.sensitive){
-          pendingInstalledGrant={...prepared,confirmInput:original,needsPermission:!granted};
-          appendChat('你',original);
+          pendingInstalledGrant={...prepared,confirmInput:'',needsPermission:!granted};
           appendChat('助手',!granted?'找到已安装任务，但需要当前网站授权。':
             '找到已安装任务，尚未证明其业务操作完全只读，执行前需要确认。');
           showRoutingGrant(!granted?'确认后申请当前网站权限，再执行原固定任务。':

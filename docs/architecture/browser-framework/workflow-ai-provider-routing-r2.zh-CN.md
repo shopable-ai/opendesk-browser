@@ -33,7 +33,7 @@
 正式主流程：
 
 1. 用户在 Workflow Tab 选择本机 Codex 或已配置云端 Provider，针对精确当前页 Send；网站授权仅缺失时按真实 Chrome 手势申请。
-2. 固定的 Browser `browser.observe` Controller 通过原 RunHost 读取有限语义节点，绑定当前 `windowId/tabId/frameId/documentId/origin/url`，保留 `runId/resultId/sourceHash` 及独立披露授权；云端每次向配置服务发送网页摘要前明确批准，本机按原会话短期授权合同与本轮目标检查。
+2. **2026-11-15 用户最新规则：工作流对话发送即执行，不再弹出“允许共享网页摘要”二次确认。** 本机 Codex、Responses 和 HTTPS Chat Completions 均随本次可信 Send 向当前所选 AI 提供任务需要的有限语义摘要。固定的 Browser `browser.observe` Controller 仍通过原 RunHost 读取，绑定当前 `windowId/tabId/frameId/documentId/origin/url`，保留 `runId/resultId/sourceHash`；原 30 分钟授权记录继续限定会话、网站、接收方和摘要范围，首次、过期或不匹配时由本次 Send 建立当前范围，无须用户重复点击。只在 Chrome 缺少网站访问权限时申请真实浏览器权限；停止、撤权、换页、接收方变化及未知副作用仍阻止迟到结果或自动重放。此规则取代本文及历史记录中的独立摘要批准要求，不扩展其他 Chat 消费者或权限范围。
 3. Provider 仅产出 `WorkflowProposal`；Schema、意图、可见 Locator、目标、权限及副作用约束必须由本地 Validator/DirectExecution 判定。网页文本永远是 `UNTRUSTED_DATA`，不能更改系统/工具/权限策略。
 4. 无需新增“采用建议”按钮：已明确授权且安全的操作由**原 Workflow Compiler → RunHost** 立即执行；有歧义/敏感/跨站/无授权操作一律拒绝或返回要求明确授权的状态。
 5. 原 Controller 结果与 RunHost `runId/resultId/sourceHash/document/retirement` 栅栏成立后，读取实际目标效果并生成持久回执；状态区分“任务运行终态”和“网页业务验证”。

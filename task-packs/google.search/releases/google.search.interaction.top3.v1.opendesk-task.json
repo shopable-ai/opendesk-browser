@@ -1,0 +1,55 @@
+{
+  "format": "opendesk.task-package.v1",
+  "manifest": {
+    "format": "opendesk.task.v1",
+    "taskId": "google.search.interaction.top3",
+    "version": "1.0.0",
+    "title": "Google 搜索：输入与点击测试",
+    "description": "每次运行在 Google 首页通过受控节点填写并读回关键词，等待建议层搜索按钮并点击一次，读取前三条自然结果。验证、异常或未知回执停止，不重放、不回退到直接搜索导航。",
+    "author": "OpenDesk Browser",
+    "source": "local-developer",
+    "siteOrigins": [
+      "https://www.google.com"
+    ],
+    "permissions": [
+      "page.automation"
+    ],
+    "entryFormat": "async-main",
+    "program": {
+      "revision": 1,
+      "sourceHash": "97792794894702ecb81e2ef30011222b01df3a88514c90de5a59c0999542d8f3"
+    },
+    "paramsSchema": {
+      "type": "object",
+      "properties": {
+        "query": {
+          "type": "string",
+          "title": "搜索关键词",
+          "minLength": 1,
+          "maxLength": 120
+        },
+        "limit": {
+          "type": "integer",
+          "enum": [
+            3
+          ],
+          "default": 3,
+          "title": "结果数量"
+        },
+        "showExecutionTab": {
+          "type": "boolean",
+          "title": "显示执行标签页",
+          "default": true
+        }
+      },
+      "required": [
+        "query",
+        "limit"
+      ],
+      "additionalProperties": false
+    },
+    "deadlineMs": 60000
+  },
+  "manifestHash": "f1b3f41e683491ad89ef7a7e8a755af7a19b5bc0a4f3a92ee146ca1a9028c390",
+  "sourceUtf8": "// Controller interaction test: ISOLATED DOM input/click, not trusted OS input.\n// Every intentional run submits once; failures propagate without replay or URL fallback.\nasync function main() {\n  const query = params?.query;\n  if (typeof query !== 'string' || !query.trim() || query.length > 120 || params?.limit !== 3 ||\n      (Object.hasOwn(params, 'showExecutionTab') && typeof params.showExecutionTab !== 'boolean') ||\n      Object.keys(params).some(key => !['query', 'limit', 'showExecutionTab'].includes(key))) {\n    fail('E_TASK_PARAMS', 'Expected a nonempty query and limit=3');\n  }\n\n  const trace = [];\n  const record = (action, detail = {}) => trace.push({action, ...detail});\n  let url = await readTarget();\n  if (params.showExecutionTab !== false) await page.bringToFront();\n  await checkChallenge();\n\n  // Reset results pages to the homepage, including repeat queries, to exercise input each run.\n  if (url.pathname === '/search') {\n    await page.goto('https://www.google.com/', {waitUntil: 'load', timeout: 15000});\n    url = await readTarget();\n    if (!isHomepage(url)) fail('E_TARGET', 'Expected Google homepage after preparation');\n    record('homepage', {waitUntil: 'load', documentId: await documentId()});\n  }\n  await checkChallenge();\n  const beforeDocumentId = await documentId();\n  const input = page.locator('form[action=\"/search\"] textarea[name=\"q\"]');\n  await input.fill(query, {timeout: 10000});\n  await checkInput(input);\n  record('input', {value: query});\n\n  // The first btnK belongs to autocomplete; the last homepage button can be\n  // covered when suggestions arrive. Wait for the popup's own submit node.\n  // A missing/hidden popup stops this interaction test without another action.\n  const submit = page.locator('form[action=\"/search\"] input[name=\"btnK\"]').first();\n  await submit.waitFor({state: 'visible', timeout: 8000});\n  record('submit-ready', {button: 'autocomplete'});\n\n  const submitUrl = await readTarget();\n  if (submitUrl.href !== url.href) fail('E_TARGET', 'Target changed before submission');\n  await checkInput(input);\n  await submit.click({waitUntil: 'domcontentloaded', timeout: 15000});\n  url = await readTarget();\n  if (url.pathname !== '/search' || url.searchParams.get('q') !== query) {\n    fail('E_TARGET', 'Unexpected search destination or query');\n  }\n  record('submit', {count: 1, waitUntil: 'domcontentloaded', beforeDocumentId, documentId: await documentId()});\n  await checkChallenge();\n\n  // Navigation readiness does not mean that Google's business results are ready.\n  try {\n    await page.locator('#rso').waitFor({state: 'visible', timeout: 12000});\n  } catch (error) {\n    if (error.code === 'E_TIMEOUT' && noResults(await bodyText())) return result('no_results', []);\n    throw error;\n  }\n  const results = await readResults();\n  record('results', {count: results.length});\n  if (results.length) return result('success', results);\n  if (noResults(await bodyText())) return result('no_results', []);\n  fail('E_SEARCH_RESULTS', '未能识别 Google 自然搜索结果；请检查目标网页');\n\n  function fail(code, message) {\n    throw Object.assign(new Error(message), {code});\n  }\n\n  function isHomepage(target) {\n    return target.pathname === '/' || target.pathname === '/webhp';\n  }\n\n  async function readTarget() {\n    const target = new URL(await page.url());\n    if (target.origin !== 'https://www.google.com' || target.username || target.password ||\n        (!isHomepage(target) && target.pathname !== '/search')) {\n      fail('E_TARGET', '请在 Google 首页或搜索页运行，或选择新建标签页，起始网址 https://www.google.com/');\n    }\n    return target;\n  }\n\n  async function documentId() {\n    return (await page.observe({root: 'body', maxDepth: 1, maxNodes: 1, maxChars: 256})).document.documentId;\n  }\n\n  async function bodyText() {\n    return (await page.locator('body').innerText()).slice(0, 3000);\n  }\n\n  async function checkChallenge() {\n    if (/captcha|unusual traffic|automated queries|验证码|安全验证|访问受限|异常流量/i.test(await bodyText())) {\n      fail('E_SEARCH_BLOCKED', 'Google 需要验证；请检查目标网页后再准备下一次运行');\n    }\n  }\n\n  async function checkInput(locator) {\n    if (await locator.inputValue() !== query) fail('E_SEARCH_INPUT', '搜索输入读回不一致；停止提交');\n  }\n\n  function noResults(text) {\n    return /did not match any documents|找不到和您查询|没有找到/i.test(text);\n  }\n\n  async function readResults() {\n    // Recreate locators after the navigation handoff; never reuse homepage locators.\n    const links = page.locator('#rso a:has(h3)');\n    const ads = page.locator('#rso [data-text-ad] a:has(h3),#rso [data-ad] a:has(h3),#rso [data-ad-slot] a:has(h3)');\n    const excluded = new Set();\n    const adCount = Math.min(await ads.count(), 40);\n    for (let index = 0; index < adCount; index++) excluded.add(await ads.nth(index).getAttribute('href'));\n    const rows = [];\n    const linkCount = Math.min(await links.count(), 30);\n    for (let index = 0; index < linkCount && rows.length < 3; index++) {\n      const anchor = links.nth(index);\n      const heading = anchor.locator('h3');\n      const href = await anchor.getAttribute('href');\n      if (!href || excluded.has(href) || !await anchor.isVisible() || await heading.count() !== 1) continue;\n      const title = (await heading.innerText()).replace(/\\s+/g, ' ').trim();\n      let link;\n      try { link = new URL(href, url); } catch { continue; }\n      if (!title || !['https:', 'http:'].includes(link.protocol) || link.username || link.password) continue;\n      if (link.origin === 'https://www.google.com' && link.pathname === '/goto') link.searchParams.delete('gsessionid');\n      if (link.href.length > 1000 || rows.some(row => row.url === link.href)) continue;\n      rows.push({position: rows.length + 1, title: title.slice(0, 240), url: link.href});\n    }\n    return rows;\n  }\n\n  function result(status, results) {\n    return {\n      kind: 'google.search.interaction.top3.result', version: 1, query,\n      sourceUrl: url.href, status, count: results.length, results,\n      inputMode: 'isolated-dom', trace, observedAt: new Date().toISOString()\n    };\n  }\n}\n"
+}

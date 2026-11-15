@@ -1,0 +1,55 @@
+{
+  "format": "opendesk.task-package.v1",
+  "manifest": {
+    "format": "opendesk.task.v1",
+    "taskId": "google.search.top3",
+    "version": "1.0.6",
+    "title": "Google 搜索：前三条自然网页结果",
+    "description": "在已授权 Google 首页（含 /webhp 与语言参数）或搜索结果页搜索并读取前三条自然结果。支持重复运行和更换关键词；固定 limit=3，遇验证或未知回执停止。",
+    "author": "OpenDesk Browser",
+    "source": "local-developer",
+    "siteOrigins": [
+      "https://www.google.com"
+    ],
+    "permissions": [
+      "page.automation"
+    ],
+    "entryFormat": "async-main",
+    "program": {
+      "revision": 1,
+      "sourceHash": "134cdc2a58a7f3d389a8db1b2a00967bfb6aa1d358dd95f9b104a27b83cd7a0f"
+    },
+    "paramsSchema": {
+      "type": "object",
+      "properties": {
+        "query": {
+          "type": "string",
+          "title": "搜索关键词",
+          "minLength": 1,
+          "maxLength": 120
+        },
+        "limit": {
+          "type": "integer",
+          "enum": [
+            3
+          ],
+          "default": 3,
+          "title": "结果数量"
+        },
+        "showExecutionTab": {
+          "type": "boolean",
+          "title": "显示执行标签页",
+          "default": true
+        }
+      },
+      "required": [
+        "query",
+        "limit"
+      ],
+      "additionalProperties": false
+    },
+    "deadlineMs": 60000
+  },
+  "manifestHash": "b490addb1c57d1f983df85782afb547aef8168cd35498dd8b421531de1220c8b",
+  "sourceUtf8": "// Fixed Controller Task. Explicit click navigation stays in the approved Google Origin.\n// These are ISOLATED DOM actions, not operating-system keyboard/mouse events.\nasync function main() {\n  const query=params?.query;\n  if(typeof query!=='string'||!query.trim()||query.length>120||params?.limit!==3||\n      (Object.hasOwn(params,'showExecutionTab')&&typeof params.showExecutionTab!=='boolean')||\n      Object.keys(params).some(key=>!['query','limit','showExecutionTab'].includes(key)))\n    throw Object.assign(new Error('Expected a nonempty query and limit=3'),{code:'E_TASK_PARAMS'});\n  const isHomepage=url=>url.pathname==='/'||url.pathname==='/webhp';\n  const readUrl=async()=>{\n    const url=new URL(await page.url());\n    if(url.origin!=='https://www.google.com'||url.username||url.password||\n        (!isHomepage(url)&&url.pathname!=='/search'))\n      throw Object.assign(new Error('请在 Google 首页或搜索结果页运行，或选择“新建标签页”，起始网址 https://www.google.com/'),{code:'E_TARGET'});\n    return url;\n  };\n  let url=await readUrl();\n  const trace=[];\n  const record=(action,state,detail={})=>trace.push({at:new Date().toISOString(),action,state,...detail});\n  const body=async()=>(await page.locator('body').innerText()).slice(0,3000);\n  const blocked=text=>/captcha|unusual traffic|automated queries|验证码|安全验证|访问受限|异常流量/i.test(text);\n  const documentId=async()=>(await page.observe({root:'body',maxDepth:1,maxNodes:1,maxChars:256})).document.documentId;\n  const result=(status,results=[])=>({kind:'google.search.top3.result',version:1,query,sourceUrl:url.href,\n    status,count:results.length,results,inputMode:'isolated-dom',trace,observedAt:new Date().toISOString()});\n  // Errors propagate to the Run result; no operation is replayed after a missing acknowledgement.\n  if (params.showExecutionTab !== false) await page.bringToFront();\n  if(blocked(await body()))return result('blocked');\n  if(!isHomepage(url)&&url.searchParams.get('q')!==query){\n    record('navigation','started',{url:'https://www.google.com/'});\n    await page.goto('https://www.google.com/',{waitUntil:'domcontentloaded',timeout:15000});\n    url=await readUrl();\n    if(!isHomepage(url))\n      throw Object.assign(new Error('Unexpected homepage navigation'),{code:'E_TARGET'});\n    record('navigation','returned',{url:url.href,documentId:await documentId()});\n    if(blocked(await body()))return result('blocked');\n  }\n  if(isHomepage(url)){\n    const field=page.locator('textarea[name=q]');\n    record('input','before',{locator:'textarea[name=q]',value:await field.inputValue(),url:url.href,documentId:await documentId()});\n    await field.fill(query,{timeout:10000});\n    const entered=await field.inputValue();\n    record('input','returned',{locator:'textarea[name=q]',value:entered});\n    if(entered!==query)throw Object.assign(new Error('Search input did not match'),{code:'E_INPUT_VALUE'});\n    // Late suggestions can cover the homepage button after its visibility read.\n    // A neutral logo-container click dismisses them without submitting the query.\n    record('suggestions','dismiss-started');\n    await page.locator('div:has(> [role=\"img\"][aria-label=\"Google\"]),div:has(> img[alt=\"Google\"])').click({timeout:5000});\n    await page.locator('textarea[name=q][aria-expanded=\"true\"]').waitFor({state:'hidden',timeout:5000});\n    record('suggestions','dismiss-returned');\n    const buttons=page.locator('input[name=btnK]');let index=-1;\n    for(let i=0,count=await buttons.count();i<count;i++)if(await buttons.nth(i).isVisible()){index=i;break;}\n    if(index<0)throw Object.assign(new Error('No visible search button'),{code:'E_SELECTOR_NOT_FOUND'});\n    const locator='input[name=btnK] >> nth='+index;\n    record('click','started',{locator,url:await page.url()});\n    await buttons.nth(index).click({waitUntil:'domcontentloaded',timeout:15000});\n    record('click','returned',{locator});\n    url=await readUrl();\n    record('navigation','observed',{url:url.href,documentId:await documentId()});\n    if(url.pathname!=='/search'||url.searchParams.get('q')!==query)\n      throw Object.assign(new Error('Unexpected search navigation'),{code:'E_TARGET'});\n  }\n  if(blocked(await body()))return result('blocked');\n  try{await page.locator('#rso').waitFor({state:'visible',timeout:12000});}\n  catch(error){if(error.code!=='E_TIMEOUT')throw error;return result(blocked(await body())?'blocked':'dom_unavailable');}\n  const links=page.locator('#rso a:has(h3)');\n  const paid=page.locator('#rso [data-text-ad] a:has(h3),#rso [data-ad] a:has(h3),#rso [data-ad-slot] a:has(h3)');\n  const excluded=new Set();\n  for(let i=0,count=Math.min(await paid.count(),40);i<count;i++)excluded.add(await paid.nth(i).getAttribute('href'));\n  const results=[];\n  for(let i=0,count=Math.min(await links.count(),30);i<count&&results.length<3;i++){\n    const anchor=links.nth(i),heading=anchor.locator('h3'),href=await anchor.getAttribute('href');\n    if(!href||excluded.has(href)||!await anchor.isVisible()||await heading.count()!==1)continue;\n    const title=(await heading.innerText()).replace(/\\s+/g,' ').trim();\n    let link;try{link=new URL(href,url);}catch{continue;}\n    if(!title||!['https:','http:'].includes(link.protocol)||link.username||link.password)continue;\n    // Keep the observed public redirect target, omit Google's transient browser session parameter.\n    if(link.origin==='https://www.google.com'&&link.pathname==='/goto')link.searchParams.delete('gsessionid');\n    if(link.href.length>1000||results.some(row=>row.url===link.href))continue;\n    results.push({position:results.length+1,title:title.slice(0,240),url:link.href});\n  }\n  record('results','read',{locator:'#rso a:has(h3)',url:url.href,count:results.length});\n  return result(results.length?'success':/did not match any documents|找不到和您查询|没有找到/i.test(await body())?'no_results':'dom_changed',results);\n}\n"
+}

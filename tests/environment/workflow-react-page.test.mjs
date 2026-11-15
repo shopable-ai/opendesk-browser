@@ -43,6 +43,8 @@ test('workflow whole page declares DOM in TSX and adapter has no legacy renderer
 });
 test('workflow normal execution preserves durable run, result, document and source identities',async t=>{
   const f=await workflowFixture();t.after(()=>f.view.dispose());
+  for(let attempt=0;attempt<80&&get(f,'workflow-run').disabled;attempt++)await tick();
+  assert.equal(get(f,'workflow-run').disabled,false,'the initial asynchronous compilation must settle before Run');
   const result=await f.click('workflow-run');await tick();
   assert.equal(result.ok,true);assert.equal(result.runId,'workflow-run-1');
   assert.equal(result.resultId,'workflow-result-1');assert.equal(f.starts.length,1);
@@ -676,11 +678,9 @@ test('R23.37 '+(dropVerifiedBundleWrite
     await send;
     send=original.click('workflow-run-review-confirm');
   }
-  await until(()=>original.state().controls['workflow-ai-approval'].hidden===false,
-    ()=>JSON.stringify(original.state().controls['workflow-status']));
-  assert.equal(modelGenerations,0,'HTTPS page summary is never sent before recipient disclosure');
-  await original.click('workflow-ai-approve');
   await send;
+  assert.equal(original.state().controls['workflow-ai-approval'].hidden,true,
+    'Send directly authorizes the task summary without a second dialog');
   await until(()=>['COMPLETED','SAVE_FAILED'].includes(
     original.state().controls['workflow-editor'].dataset.agentState),
     ()=>JSON.stringify({agent:original.state().controls['workflow-editor'].dataset.agentState,

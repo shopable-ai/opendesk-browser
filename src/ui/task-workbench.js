@@ -6,13 +6,14 @@ import {permissionPattern} from '../environment.js';
 import {createChromePermissionConsent,requireChromePermissions} from '../platform/chrome/permission-gate.js';
 import {decodeValue} from '../platform/page-port/codec.js';
 import {createTaskPackage, validateTaskParams, TASK_PACKAGE_FORMAT} from '../platform/tasks/contract.js';
-import {digestUtf8} from '../platform/protocol.js';
+import {digest, digestUtf8} from '../platform/protocol.js';
 import {PROGRAM_DRAFT_FORMAT, PROGRAM_DRAFT_V2_FORMAT, PROGRAM_DRAFT_INPUT_LIMIT, PROGRAM_DRAFT_LIMIT, validateProgramDraft} from './program-source.js';
 import {formatTaskValue, presentTaskValue, formatTaskError, formatTaskRunTechnical,
   unresolvedTaskRunMessage} from './task-run-diagnostics.js';
 import {formatRunValue} from './run-value-format.js';
 import {matchTaskReviewHandoff,taskReviewHandoffKey} from './workflow/task-review-handoff.js';
 import {sameTaskPin} from '../platform/tasks/delegation-contract.js';
+import {TOOL_UI_CONFIRM_TIMEOUT_MS} from '../sidebar-tools/ui-confirm.js';
 
 const states={candidate:'待验证',verified:'本机验证通过',available:'本地可用'};
 const validTaskId=value=>typeof value==='string'&&/^[a-zA-Z0-9][a-zA-Z0-9._-]{0,59}$/.test(value);
@@ -57,7 +58,8 @@ export function createTaskWorkbench({client,host,currentPageTarget,api=globalThi
   }
   let latestResultDisplay=null;
   let catalogSurface=false, catalogQuery='', catalogFilter='all', catalogInitialization=null;
-  let localQuery='', taskManagementMode=false, pendingTaskUninstall=null;
+  let localQuery='', taskManagementMode=false, pendingTaskUninstall=null,taskUninstallTimer=null;
+  const unknownUninstalls=new Map();
   const parameterDrafts=new Map();
   let sharedPreparation=null,sheetAuthorization=null,sheetBusy=false,sheetSequence=0,inspectionSequence=0;
   let sheetPageRequest=null,pageDiscovery=null;
@@ -162,16 +164,16 @@ export function createTaskWorkbench({client,host,currentPageTarget,api=globalThi
     };
   }
   async function openPageTaskRequest(requestId){
-    if(disposed||sheetBusy||running||working||host.currentRun)return false;
+    if(disposed||pendingTaskUninstall||sheetBusy||running||working||host.currentRun)return false;
     const sequence=++sheetSequence;
     await client.ready;await refresh(undefined,{skipUnchanged:true});
     const reply=await client.request('readPageTaskRequest',{requestId});
     const request=reply?.request;
-    if(disposed||sequence!==sheetSequence)return false;
+    if(disposed||pendingTaskUninstall||sequence!==sheetSequence)return false;
     if(request?.requestId!==requestId||!request.preparationId||request.target?.mode!=='owned')
       throw {code:'E_OWNER',message:'缺少原网页任务请求'};
     const existing=await inspectPreparation(reply.preparation?.preparationId);
-    if(disposed||sequence!==sheetSequence)return false;
+    if(disposed||pendingTaskUninstall||sequence!==sheetSequence)return false;
     if(existing?.preparation&&existing.preparation.pageRequestId!==requestId)
       throw {code:'E_TASK_BUSY',message:'已有原任务准备占用；请先核对原请求'};
     bindPageApproval(request);
@@ -193,17 +195,17 @@ export function createTaskWorkbench({client,host,currentPageTarget,api=globalThi
     return true;
   }
   async function refreshPageTaskRequests(){
-    if(disposed||pageDiscovery||myView.data.taskRunSheet||sheetBusy||running||working||host.currentRun||
+    if(disposed||pendingTaskUninstall||pageDiscovery||myView.data.taskRunSheet||sheetBusy||running||working||host.currentRun||
       typeof client.subscribePageTasks!=='function')return;
     const task=(async()=>{
       const {requests}=await client.request('listPageTaskRequests',{});
-      if(disposed||myView.data.taskRunSheet||sheetBusy||running||working||host.currentRun)return;
+      if(disposed||pendingTaskUninstall||myView.data.taskRunSheet||sheetBusy||running||working||host.currentRun)return;
       const source=currentPageTarget?.snapshot;
       const recoveryLocator=requests?.find(row=>sharedPreparation&&!sharedPreparation.runId&&
         row.requestId===sharedPreparation.pageRequestId&&row.preparationId===sharedPreparation.preparationId&&
         !dismissedPageRequests.has(row.requestId));
       const recovery=recoveryLocator?(await client.request('readPageTaskRequest',{requestId:recoveryLocator.requestId}))?.request:null;
-      if(disposed||myView.data.taskRunSheet||sheetBusy||running||working||host.currentRun)return;
+      if(disposed||pendingTaskUninstall||myView.data.taskRunSheet||sheetBusy||running||working||host.currentRun)return;
       const request=(recovery?.reprepareAllowed===true&&recovery.requestId===recoveryLocator.requestId&&
         recovery.preparationId===recoveryLocator.preparationId?recovery:null)||requests?.find(row=>['pending-approval','prepared','source-stale'].includes(row.state)&&!dismissedPageRequests.has(row.requestId)&&
         row.pageBinding?.tabId===source?.tabId&&row.pageBinding?.url===source?.url&&
@@ -214,12 +216,12 @@ export function createTaskWorkbench({client,host,currentPageTarget,api=globalThi
     try{await task;}finally{if(pageDiscovery===task)pageDiscovery=null;}
   }
   async function openTaskRunSheet({task,binding=null,preparationId=null,assertAuthorized=async()=>{},trigger=null,target=null}){
-    if(disposed||sheetBusy)return false;
+    if(disposed||pendingTaskUninstall||sheetBusy)return false;
     const sequence=++sheetSequence;
     await client.ready;await refresh(undefined,{skipUnchanged:true});await assertAuthorized();
     const previous=await inspectPreparation(preparationId);
     await assertAuthorized();
-    if(disposed||sequence!==sheetSequence)return false;
+    if(disposed||pendingTaskUninstall||sequence!==sheetSequence)return false;
     if(preparationId&&(!previous?.preparation||!sameInstallation(previous.preparation.task,task)))
       throw {code:'E_REVISION',message:'原准备不存在或任务身份不匹配；不能打开新配置'};
     if(previous?.preparation){
@@ -237,7 +239,7 @@ export function createTaskWorkbench({client,host,currentPageTarget,api=globalThi
     if(previous?.preparation){showPreparation(previous.preparation,previous.snapshot,previous.settled);return true;}
     const resolved=await client.request('resolveInstalledTask',{taskId:task.taskId,purpose:'configure'});
     await assertAuthorized();
-    if(disposed||sequence!==sheetSequence)return false;
+    if(disposed||pendingTaskUninstall||sequence!==sheetSequence)return false;
     if(!sameInstallation(resolved,task))throw {code:'E_REVISION',message:'任务安装身份已变化，请刷新脚本列表'};
     selectSheetTask(task.taskId);
     if(target!==null&&(target?.mode!=='owned'||typeof target.url!=='string'||
@@ -373,6 +375,7 @@ export function createTaskWorkbench({client,host,currentPageTarget,api=globalThi
     }
     // Ask the live tool before changing panes or destroying its editor.
     if(toolsViewListener?.((name==='tools'||name==='app-debug')&&!catalogSurface,name)===false)return false;
+    if(name!=='tasks')dismissTaskUninstall();
     reactNavigation?.select(name);
     syncRunDock(name);
     if(doc.documentElement?.dataset)doc.documentElement.dataset.opendeskTab=name;
@@ -579,6 +582,18 @@ export function createTaskWorkbench({client,host,currentPageTarget,api=globalThi
       siteAvailable=info?.manifest.siteOrigins.includes(origin)===true;
     }
     const siteState=origin?(siteAvailable?'matched':'unmatched'):'unavailable';
+    const sheet=myView.data.taskRunSheet;
+    const ownedTarget=sheet?.source==='my'&&sameInstallation(sheet.identity,taskIdentity(row))&&sheet.target?.mode==='owned'
+      ?sheet.target:null;
+    let runSiteAvailable=siteAvailable;
+    if(ownedTarget){
+      runSiteAvailable=false;
+      try{
+        const url=new URL(ownedTarget.url);
+        runSiteAvailable=['http:','https:'].includes(url.protocol)&&!url.username&&!url.password&&
+          info?.manifest.siteOrigins.includes(url.origin)===true;
+      }catch{/* Incomplete URL stays editable and cannot start a task. */}
+    }
     const siteMessage=origin?(siteAvailable?'适用于当前网页':'当前网页不适用'):'当前网页不可运行';
     ui('task-current-site').text=siteMessage;
     ui('task-current-site').dataset.state=siteState;
@@ -596,20 +611,24 @@ export function createTaskWorkbench({client,host,currentPageTarget,api=globalThi
     ui('task-current-site').text=unknown?'先核对原运行记录':!row?.enabled?'可在任务管理中恢复':
       !origin?'打开普通网页后再试':!siteAvailable?'适用 '+(info?.manifest.siteOrigins.join('、')||'已批准的网站'):'当前网页适用';
     ui('task-run').disabled=working||running||!!host.currentRun||otherPreparedTask||
-      !available||!siteAvailable||!taskMatchesView(row,info);
+      !available||!runSiteAvailable||!taskMatchesView(row,info);
     myView.data.taskRunBlockedReason=working?'正在处理任务，请稍候':running||host.currentRun?'已有任务正在运行，请先停止或等待完成':
       otherPreparedTask?'Web Flow 有尚未释放的准备或执行身份，请先核对原步骤，不能从「我的」另起任务':
       !row?'请先选择任务':!row.enabled?'此任务已停用，请在「更多操作」中启用':
       runtimeStale?'运行时已更新；需在开发中重新验证同一固定版本，再确认安装后才能运行':
-      !available?'此固定版本尚未设为可用，请在任务目录核查验证及发布状态':!siteAvailable?siteMessage:
+      !available?'此固定版本尚未设为可用，请在任务目录核查验证及发布状态':!runSiteAvailable?
+      ownedTarget?'请输入此任务已批准网站内的完整网址':siteMessage:
       !taskMatchesView(row,info)?'此任务不在当前搜索结果中，请重新选择':'';
     ui('task-stop').disabled=!activeRunId || host.currentRun!==activeRunId;
     ui('task-fork-draft').disabled=!row||working;
-    const toggleAction=ui('task-toggle'),toggleLabel=row?.enabled?'停用任务':'启用任务';
+    ui('task-view-code').disabled=!row||!info;
+    const toggleAction=ui('task-toggle'),toggleLabel=row?.enabled?'停用任务':'恢复任务';
     toggleAction.disabled=!row||working;
     toggleAction.title=toggleLabel;toggleAction.attributes['aria-label']=toggleLabel;
     toggleAction.dataset.enabled=String(row?.enabled===true);
-    ui('task-uninstall').disabled=!row||working;
+    const uninstallUnknown=unknownUninstalls.get(row?.taskId);
+    myView.data.taskUninstallUnknown=Boolean(uninstallUnknown&&sameInstallation(uninstallUnknown,taskIdentity(row)));
+    ui('task-uninstall').disabled=!row||working||myView.data.taskUninstallUnknown;
     ui('task-uninstall-yes').disabled=!row||working||!pendingTaskUninstall;
     if(catalogList){
     const selectedInstallation=installed.find(item=>item.taskId===selected?.taskId&&item.version===selected?.version);
@@ -674,8 +693,10 @@ export function createTaskWorkbench({client,host,currentPageTarget,api=globalThi
     renderInstalledCards();update();
   }
   function dismissTaskUninstall() {
+    clearTimeout(taskUninstallTimer);taskUninstallTimer=null;
     pendingTaskUninstall=null;
     ui('task-uninstall-confirm').hidden=true;
+    myView.project('taskUninstallReview',null);
   }
   function renderInstalled() {
     ui('task-installed-count').text=installed.length+' 个';
@@ -690,11 +711,12 @@ export function createTaskWorkbench({client,host,currentPageTarget,api=globalThi
     renderInstalledSelection();
   }
   function renderInstalledSelection() {
-    const currentSelection=ui('task-installed-list').value;
-    if(pendingTaskUninstall&&pendingTaskUninstall.taskId!==currentSelection)
-      dismissTaskUninstall();
-    if(taskManagementMode)ui('task-tools').open=true;
     const row=installedRow(),info=candidateFor(row);
+    if(pendingTaskUninstall&&!sameInstallation(pendingTaskUninstall,taskIdentity(row)))
+      dismissTaskUninstall();
+    if(myView.data.taskInspection&&!sameInstallation(myView.data.taskInspection.identity,taskIdentity(row)))
+      myView.project('taskInspection',null);
+    if(taskManagementMode)ui('task-tools').open=true;
     const detailText=info
       ?`适用网站：${info.manifest.siteOrigins.join('、')}\n任务能力：${info.manifest.permissions.join('、')||'无额外能力'}\n安装版本：v${row.version} · ${!row.enabled?'已停用':row.runtimeCurrent===false||info.runtimeCurrent===false||info.stage!=='available'?'暂不可运行':'可用'}\n权限说明：此处仅展示已安装范围，不申请或扩大权限。\n来源：${info.manifest.source}`
       :'';
@@ -772,6 +794,41 @@ export function createTaskWorkbench({client,host,currentPageTarget,api=globalThi
     }catch(error){if(!disposed&&myView.data.catalogDetail===detail)detail.sourceError=formatTaskError(error);}
     finally{detail.loading=false;myView.publish();}
   }
+  async function readInstalledSource(){
+    const row=installedRow(),info=candidateFor(row);
+    if(!row||!info||disposed)return;
+    const expected=taskIdentity(row),prior=myView.data.taskInspection;
+    if(prior?.loading&&sameInstallation(prior.identity,expected))return;
+    const detail={identity:expected,title:info.manifest.title,loading:true};
+    myView.project('taskInspection',detail);
+    ui('task-code-panel').open=true;
+    const current=()=>!disposed&&myView.data.taskInspection===detail&&
+      sameInstallation(expected,taskIdentity(installedRow()));
+    try{
+      const frozen=await client.request('getTaskCandidate',{taskId:expected.taskId,version:expected.version});
+      if(!current())return;
+      const pkg=frozen?.package,manifest=pkg?.manifest;
+      if(frozen?.taskId!==expected.taskId||frozen.version!==expected.version||
+        frozen.manifestHash!==expected.manifestHash||pkg?.manifestHash!==expected.manifestHash||
+        manifest?.taskId!==expected.taskId||manifest.version!==expected.version||
+        manifest.program?.sourceHash!==expected.contentHash||typeof pkg.sourceUtf8!=='string'||
+        await digestUtf8(pkg.sourceUtf8)!==expected.contentHash||await digest(manifest)!==expected.manifestHash)
+        throw {code:'E_REVIEW_IDENTITY',message:'固定版本源码或 Manifest 不匹配，请刷新任务后重试'};
+      if(!current())return;
+      // Re-read installation authority after the async source read. Viewing
+      // disabled tasks is allowed; changed/revoked installations are not reused.
+      const checked=await client.request('listTaskCatalog',{});
+      if(!current())return;
+      const latest=checked.installed?.find(value=>value.taskId===expected.taskId);
+      const candidate=checked.catalog?.find(value=>value.taskId===expected.taskId&&value.version===expected.version);
+      if(!sameInstallation(expected,{...latest,contentHash:candidate?.manifest?.program?.sourceHash})||
+        candidate?.manifestHash!==expected.manifestHash)
+        throw {code:'E_TASK_CHANGED',message:'读取期间安装身份已变化，请刷新任务后重新查看'};
+      detail.source=pkg.sourceUtf8;detail.manifest=manifest;
+      detail.facts=`任务 ID：${expected.taskId}\n固定版本：v${expected.version}\n来源：${manifest.source}\n作者：${manifest.author}\n适用网站：${manifest.siteOrigins.join('、')}\n任务能力：${manifest.permissions.join('、')||'无额外能力'}`;
+    }catch(error){if(current())detail.error=formatTaskError(error);}
+    finally{if(current()){detail.loading=false;myView.publish();}}
+  }
   async function refresh(preferred,{skipUnchanged=false}={}) {
     const seq=++catalogSequence;
     const result=await client.request('listTaskCatalog',{});
@@ -782,6 +839,9 @@ export function createTaskWorkbench({client,host,currentPageTarget,api=globalThi
     if(initializationChanged&&(hadInitializationFailure||catalogInitialization?.status==='failed'))catalogNotice();
     if(skipUnchanged&&JSON.stringify([catalog,installed])===JSON.stringify([result.catalog,result.installed]))return;
     catalog=result.catalog;installed=result.installed;
+    for(const [taskId,pin]of unknownUninstalls){
+      if(!sameInstallation(pin,taskIdentity(installed.find(row=>row.taskId===taskId))))unknownUninstalls.delete(taskId);
+    }
     renderInstalled();renderCatalog(preferred);
     if(catalogInitialization?.status==='failed')catalogNotice();
   }
@@ -842,7 +902,7 @@ export function createTaskWorkbench({client,host,currentPageTarget,api=globalThi
     ui('task-result').text=presented.text;
     const reveal=ui('task-result-reveal');
     reveal.hidden=typeof presented.fullText!=='string';
-    reveal.dataset.revealed='false';reveal.text='查看完整原值';
+    reveal.dataset.revealed='false';
     if(activeRunId&&identity(row)===runOwnerKey&&runs.some(value=>value.runId===activeRunId)){
       const live=matching.find(value=>value.runId===activeRunId);
       if(live)setTaskNotice(identity(row),`本次任务：${runStateNames[live.state]||live.state}`);
@@ -999,6 +1059,9 @@ export function createTaskWorkbench({client,host,currentPageTarget,api=globalThi
       if(preparation&&(preparation.state!=='prepared'||!sameInstallation(preparation.task,expectedIdentity)))
         throw {code:'E_REVISION',message:'原准备任务身份已变化，只能查询原请求'};
       if(preparation?.target?.mode==='owned')runTarget={...preparation.target};
+      else if(expectedIdentity&&myView.data.taskRunSheet?.source==='my'&&
+        sameInstallation(myView.data.taskRunSheet.identity,expectedIdentity)&&
+        myView.data.taskRunSheet.target?.mode==='owned')runTarget={...myView.data.taskRunSheet.target};
       else{
         captured=currentPageTarget.capture();
         if(preparation&&(preparation.target.tabId!==captured.tabId||preparation.target.documentId!==captured.documentId||
@@ -1148,14 +1211,23 @@ export function createTaskWorkbench({client,host,currentPageTarget,api=globalThi
     if(disposed)return;
     announce();success(row.enabled?'任务已停用':'任务已重新启用');
   }
-  async function uninstall() {
-    const row=installedRow();if(!row)throw {code:'E_SCHEMA',message:'请选择已安装任务'};
-    await client.request('uninstallTask',{taskId:row.taskId,version:row.version,
-      expectedGeneration:row.generation??null,expectedInstallationId:row.installationId??null});
+  async function uninstall(row) {
+    try{
+      await client.request('uninstallTask',{taskId:row.taskId,version:row.version,
+        expectedGeneration:row.generation??null,expectedInstallationId:row.installationId??null});
+    }catch(error){
+      // A lost write receipt is not permission to submit the same uninstall again.
+      if(!error?.code||['E_EFFECT_UNKNOWN','E_OUTCOME_UNKNOWN','OUTCOME_UNKNOWN','E_TIMEOUT','E_HOST_DISCONNECTED','E_DISCONNECTED'].includes(error.code)){
+        unknownUninstalls.set(row.taskId,row);
+        throw {code:error?.code||'E_OUTCOME_UNKNOWN',message:'卸载结果未知，尚未确认。请刷新任务列表核对原安装；不会自动重试。'+
+          (error?.message?' 原因：'+error.message:'')};
+      }
+      throw error;
+    }
     if(disposed)return;
     await refresh();
     if(disposed)return;
-    announce();success('已卸载确定版本；历史结果仍可保留');
+    announce();success('已卸载当前版本；固定源码和运行历史已保留');
   }
   async function fork(_event,{validate=()=>{}}={}) {
     const row=installedRow();if(!row)throw {code:'E_SCHEMA',message:'请选择任务'};
@@ -1383,12 +1455,29 @@ export function createTaskWorkbench({client,host,currentPageTarget,api=globalThi
     const button=ui('task-result-reveal'), showing=button.dataset.revealed==='true';
     ui('task-result').text=showing?entry.text:entry.fullText;
     button.dataset.revealed=String(!showing);
-    button.text=showing?'查看完整原值':'隐藏完整原值';
   });
   registerAction('taskCatalogListChange',()=>selectCandidate(catalogList.value));
   registerAction('taskRunClick',(event,expected)=>run(event,null,expected));
+  const editableMyTarget=(event,expected)=>{
+    const sheet=myView.data.taskRunSheet;
+    return event?.isTrusted&&!disposed&&!sheetBusy&&!working&&!running&&!host.currentRun&&!sharedPreparation&&
+      sheet?.source==='my'&&sheet.phase==='editing'&&sameInstallation(sheet.identity,expected)&&
+      sameInstallation(taskIdentity(installedRow()),expected)?sheet:null;
+  };
+  registerAction('taskSheetTargetChange',(event,mode,expected)=>{
+    const sheet=editableMyTarget(event,expected);
+    if(!sheet||!['current','owned'].includes(mode))return;
+    const {target,...rest}=sheet;
+    myView.data.taskRunSheet={...rest,...(mode==='owned'?{target:{mode:'owned',url:sheet.sites[0]+'/'}}:{})};
+    update();
+  });
+  registerAction('taskSheetTargetUrlInput',(event,url,expected)=>{
+    const sheet=editableMyTarget(event,expected);
+    if(!sheet||sheet.target?.mode!=='owned'||typeof url!=='string')return;
+    myView.data.taskRunSheet={...sheet,target:{mode:'owned',url}};update();
+  });
   registerAction('taskParametersOpen',(taskId,event,trigger)=>{
-    if(!event?.isTrusted||disposed||sheetBusy)return false;
+    if(!event?.isTrusted||disposed||pendingTaskUninstall||sheetBusy)return false;
     const sequence=++sheetSequence;
     if(sharedPreparation?.pageRequestId){
       void openPageTaskRequest(sharedPreparation.pageRequestId).catch(fail);return false;
@@ -1407,7 +1496,7 @@ export function createTaskWorkbench({client,host,currentPageTarget,api=globalThi
   registerAction('taskSheetClose',()=>{
     if(myView.data.taskRunSheet?.pageRequestId)dismissedPageRequests.add(myView.data.taskRunSheet.pageRequestId);
     rememberParams();persistParams();sheetSequence++;sheetBusy=false;sheetValidation=null;sheetPageRequest=null;
-    myView.project('taskRunSheet',null);
+    myView.project('taskRunSheet',null);update();
   });
   registerAction('taskSheetRuntimeRecoveryClick',async(event,expected)=>{
     const sheet=myView.data.taskRunSheet,sequence=sheetSequence;
@@ -1504,34 +1593,42 @@ export function createTaskWorkbench({client,host,currentPageTarget,api=globalThi
   const createCandidateButton=developer('task-create-candidate');
   if(createCandidateButton)listeners.push({remove:developerAction(developerView,createCandidateButton,'click',asyncAction(createCandidate))});
   registerAction('taskToggleClick',asyncAction(toggle));
+  registerAction('taskViewCodeClick',readInstalledSource);
   registerAction('taskUninstallClick',event=>{
-    if(!event.isTrusted||working)return;
+    if(!event?.isTrusted||working||disposed||pendingTaskUninstall||myView.data.taskRunSheet)return;
     const row=installedRow();if(!row)return;
-    pendingTaskUninstall={taskId:row.taskId,version:row.version,
-      generation:row.generation??null,installationId:row.installationId??null};
+    if(sameInstallation(unknownUninstalls.get(row.taskId),taskIdentity(row)))return;
+    if(doc.querySelector?.('dialog[open], [aria-modal="true"], .od-confirm-overlay, [data-opendesk-pending-review]:not([hidden])')){
+      fail({code:'E_UI_CONFIRM_BUSY',message:'请先完成或关闭当前审阅'});return;
+    }
+    pendingTaskUninstall=taskIdentity(row);
     const info=candidateFor(row);
     ui('task-uninstall-summary').text=
-      '卸载「'+(info?.manifest.title||row.taskId)+'」v'+row.version+'？历史结果仍可能保留。';
+      '卸载「'+(info?.manifest.title||row.taskId)+'」v'+row.version+'？将撤销此安装的后续执行资格，相关计划需重新处理。固定源码、运行与结果历史会保留；已发生的网页操作不会回滚。';
     ui('task-uninstall-confirm').hidden=false;
-    focus('task-uninstall-cancel',{preventScroll:true});
+    myView.project('taskUninstallReview',{identity:pendingTaskUninstall,message:ui('task-uninstall-summary').text});
+    taskUninstallTimer=setTimeout(()=>{
+      dismissTaskUninstall();
+      fail({code:'E_REVIEW_EXPIRED',message:'卸载确认已过期，请重新核对当前版本'});
+    },TOOL_UI_CONFIRM_TIMEOUT_MS);
+    taskUninstallTimer.unref?.();
     update();
   });
-  registerAction('taskUninstallCancelClick',event=>{
-    if(!event.isTrusted)return;
+  registerAction('taskUninstallCancelClick',()=>{
     dismissTaskUninstall();
     focus('task-uninstall',{preventScroll:true});
     update();
   });
   registerAction('taskUninstallYesClick',asyncAction(async event=>{
-    if(!event.isTrusted||!pendingTaskUninstall)return;
+    if(!event?.isTrusted||!pendingTaskUninstall)return;
     const selected=installedRow(),pending=pendingTaskUninstall;
-    if(!selected||selected.taskId!==pending.taskId||selected.version!==pending.version||
-      (selected.generation??null)!==pending.generation||
-      (selected.installationId??null)!==pending.installationId){
+    if(!selected||!sameInstallation(taskIdentity(selected),pending)){
       dismissTaskUninstall();
       throw {code:'E_TASK_CHANGED',message:'安装版本已变化，请重新检查后卸载'};
     }
-    try{await uninstall();}finally{dismissTaskUninstall();}
+    // Consume before awaiting: late/double confirmation cannot execute twice.
+    dismissTaskUninstall();
+    await uninstall(pending);
   }));
   registerAction('taskToolsToggle',()=>{
     if(!ui('task-tools').open)dismissTaskUninstall();
@@ -1552,7 +1649,7 @@ export function createTaskWorkbench({client,host,currentPageTarget,api=globalThi
   const unsubscribePageTasks=client.subscribePageTasks?.(()=>{void refreshPageTaskRequests().catch(fail);});
   const unsubscribeConn=client.subscribeConnection?.(state=>{if(state.connected){
     refresh().catch(fail);void refreshPageTaskRequests().catch(fail);
-  }});
+  }else dismissTaskUninstall();});
   client.ready.then(async()=>{
     await restoreParams().catch(error=>console.warn('Task parameter drafts could not be restored',error));
     if(!disposed){await refresh();await inspectPreparation().catch(error=>console.warn('Task preparation recovery unavailable',error));
@@ -1626,6 +1723,7 @@ export function createTaskWorkbench({client,host,currentPageTarget,api=globalThi
     navigate('develop');
   },dispose() {
     if(disposed)return;disposed=true;
+    dismissTaskUninstall();myView.project('taskInspection',null);
     permissionSequence++;permissionConsent.dispose();
     unsubscribePage?.();unsubscribeRun?.();unsubscribeConn?.();unsubscribePageTasks?.();
     for(const {remove} of listeners)remove();

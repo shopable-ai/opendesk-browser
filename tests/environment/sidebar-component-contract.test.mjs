@@ -224,7 +224,7 @@ test('R31 detects view-owned public disclosure appearance from parsed CSS declar
 });
 test('Other formal tabs reuse shared actions without restyling their unique filters', () => {
   for (const [id,variant] of [
-    ['task-refresh','secondary'], ['task-uninstall','danger'],
+    ['task-view-code','secondary'], ['task-refresh','secondary'], ['task-uninstall','danger'],
     ['sidebar-tool-settings-allow','secondary'],
     ['sidebar-tool-settings-deny','danger'],
     ['task-install','primary'], ['task-catalog-refresh','secondary'],
@@ -232,10 +232,9 @@ test('Other formal tabs reuse shared actions without restyling their unique filt
     ['sdk-install','primary'], ['script-save','secondary']
   ]) {
     const button = element(html, 'button', id);
-    const icon = ['task-refresh','task-uninstall'].includes(id);
-    assert.ok(has(button, icon?'od-icon-button':'od-button'), 'Missing shared button: ' + id);
-    if (variant !== 'primary' && (icon ? variant==='danger' : true))
-      assert.ok(has(button, (icon?'od-icon-button--':'od-button--') + variant), 'Wrong role: ' + id);
+    assert.ok(has(button, 'od-button'), 'Missing shared button: ' + id);
+    if (variant !== 'primary')
+      assert.ok(has(button, 'od-button--' + variant), 'Wrong role: ' + id);
   }
   assert.match(read('src/ui/react/tabs/workflow.tsx'), /className="od-field"/);
   assert.match(read('src/ui/react/tabs/workflow.tsx'), /className="od-button--danger"/);

@@ -6,7 +6,7 @@ import {readFile} from 'node:fs/promises';
 import {spawnSync} from 'node:child_process';
 import {fileURLToPath} from 'node:url';
 import vm from 'node:vm';
-import {transform} from 'esbuild';
+import {build,stop} from 'esbuild';
 import {parseHTML} from 'linkedom';
 import * as React from 'react';
 import {flushSync} from 'react-dom';
@@ -49,22 +49,17 @@ if(!vm.SourceTextModule) {
     while(!predicate()){assert.ok(Date.now()<until,'component state did not settle');await new Promise(resolve=>setTimeout(resolve,5));await tick();}
   };
   const deferred=()=>{let resolve;const promise=new Promise(done=>{resolve=done;});return {promise,resolve};};
-  const compile=async(path,replacements={})=>{
-    const result=await transform(await readFile(new URL(path,import.meta.url),'utf8'),
-      {loader:'tsx',format:'esm',jsx:'transform'});
-    let code=result.code;
-    for(const [from,to] of Object.entries(replacements))code=code.replaceAll(JSON.stringify(from),JSON.stringify(to));
-    return 'data:text/javascript;base64,'+Buffer.from(code).toString('base64');
-  };
-  const imports={'react':import.meta.resolve('react'),'react-dom':import.meta.resolve('react-dom')};
-  const button=await compile('../../src/ui/react/components/ui/button.tsx',imports);
-  const conversation=await compile('../../src/ui/react/components/conversation.tsx',
-    {...imports,'./ui/button.tsx':button});
-  const providerSettings=await compile('../../src/ui/react/components/provider-settings.tsx',
-    {...imports,'./ui/button.tsx':button});
-  const {WorkflowPage}=await import(await compile('../../src/ui/react/tabs/workflow.tsx',
-    {...imports,'../components/ui/button.tsx':button,'../components/conversation.tsx':conversation,
-      '../components/provider-settings.tsx':providerSettings}));
+  // Bundle the production component's current local imports in memory instead
+  // of maintaining a stale manual list. Keep the mounted renderer's React.
+  let component;
+  try{
+    component=await build({entryPoints:[fileURLToPath(new URL('../../src/ui/react/tabs/workflow.tsx',import.meta.url))],
+      bundle:true,write:false,platform:'node',format:'esm',jsx:'transform',loader:{'.css':'text'},
+      plugins:[{name:'shared-test-packages',setup(builder){
+        builder.onResolve({filter:/^[^./]/},({path})=>({path:import.meta.resolve(path),external:true}));
+      }}]});
+  }finally{stop();}
+  const {WorkflowPage}=await import('data:text/javascript;base64,'+Buffer.from(component.outputFiles[0].text).toString('base64'));
   const initial=parseHTML('<html><body></body></html>');
   const original={window:globalThis.window,document:globalThis.document};
   globalThis.window=initial.window;globalThis.document=initial.document;
@@ -345,6 +340,34 @@ if(!vm.SourceTextModule) {
     assert.equal(starts,0);
   });
 
+  test('component: accepted Send clears the mounted composer before planning completes',async t=>{
+    const f=await make(t),request='检查当前网页，不修改内容';
+    t.after(()=>f.planGate.resolve());
+    const {running}=await f.startPlan(request);
+    await waitFor(()=>Boolean(f.plannerOptions));
+    assert.equal(f.ui.getSnapshot().messages.filter(row=>row.speaker==='你'&&row.message===request).length,1);
+    assert.equal(f.ui.getSnapshot().controls['workflow-ai-request'].value,'');
+    assert.equal(f.get('workflow-ai-request').value,'');
+    f.planGate.resolve();await running;
+    assert.equal(f.get('workflow-ai-request').value,'');
+  });
+
+  for(const nextDraft of ['下一条尚未发送的内容','你好，不执行网页操作'])
+    test('component: completed reply preserves the new composer draft '+nextDraft,async t=>{
+      const f=await make(t,{chatReply:'收到测试消息'}),request='你好，不执行网页操作';
+      t.after(()=>f.planGate.resolve());
+      const {running}=await f.startPlan(request);
+      await waitFor(()=>Boolean(f.plannerOptions));
+      assert.equal(f.get('workflow-ai-request').value,'');
+      f.get('workflow-ai-request').value=nextDraft;
+      await f.get('workflow-ai-request').fire('input');
+      f.planGate.resolve();await running;
+      assert.equal(f.get('workflow-ai-request').value,nextDraft);
+      assert.equal(f.ui.getSnapshot().controls['workflow-ai-request'].value,nextDraft);
+      assert.equal(f.get('workflow-ai-plan').disabled,false);
+      assert.equal(f.ui.getSnapshot().messages.filter(row=>row.speaker==='你').length,1);
+    });
+
   test('component: local check prevents a concurrent probe even with a stale enabled Send control',async t=>{
     const check=deferred(),probeErrors=[];let checking=false;
     const f=await make(t,{controllerOnly:true,sessionId:null,probe:async()=>{
@@ -431,8 +454,9 @@ if(!vm.SourceTextModule) {
     await tick();await tick();
     assert.equal(f.permissionRequests.length,1,
       'missing HTTPS receiver permission is requested synchronously only on the second trusted Confirm click');
-    await waitFor(()=>!control('workflow-ai-approval').hidden);
-    assert.equal(control('workflow-ai-approval').hidden,false,'HTTPS Send still requires its own observation approval');
+    await confirming;
+    assert.equal(control('workflow-ai-approval').hidden,true,'HTTPS Send needs no separate summary approval');
+    assert.equal(f.observations.length,1,'the task summary is read directly after Chrome permission');
     assert.equal(f.probeCalls,1);assert.equal(f.plannerOptions,undefined);
     await f.ui.actions.click('workflow-ai-cancel',trusted);await confirming;await running;
     check.resolve();await tick();
@@ -462,6 +486,8 @@ if(!vm.SourceTextModule) {
     assert.equal(f.catalogReads,2);
     assert.equal(f.plannerOptions,undefined);
     assert.ok(f.ui.getSnapshot().messages.some(row=>/未执行|E_TASK_CATALOG/.test(row.message)));
+    assert.equal(f.ui.getSnapshot().controls['workflow-ai-request'].value,'Observe page with Catalog unavailable',
+      'a request rejected before entering the conversation must remain editable');
   });
 
   test('component: current AI-only markup initializes Run and Save without a manual-start control',async t=>{
@@ -531,7 +557,8 @@ if(!vm.SourceTextModule) {
     f.get('workflow-ai-request').value='尚未发送的输入';await f.get('workflow-ai-request').fire('input');
     await f.openCreation();
     await f.click(f.get('workflow-ai-new-session'));
-    assert.equal(f.get('workflow-ai-transcript').children.length,0);
+    assert.equal(f.ui.getSnapshot().messages.length,0);
+    assert.equal(f.get('workflow-ai-transcript').querySelectorAll('.workflow-chat-entry').length,0);
     assert.deepEqual(f.stepsNow().map(item=>item.dataset.stepId),priorIds);
     assert.equal(f.get('workflow-ai-request').value,'尚未发送的输入');
     assertFocus(f,f.get('workflow-ai-request'));
@@ -623,8 +650,8 @@ if(!vm.SourceTextModule) {
       assert.equal(f.permissionRequests.length,0,'pre-granted safe execution must not request Chrome permission again');
       assertFocus(f,f.get(external?'workflow-new':'workflow-ai-request'));
     });
-    test('component: observation denial closes focused approval '+(external?'without stealing focus':'to stable request'),async t=>{
-      const f=await make(t,{approval:true});const {running}=await f.startPlan();await f.approvalReady.promise;
+    test('component: Chrome permission cancellation closes focused review '+(external?'without stealing focus':'to stable request'),async t=>{
+      const f=await make(t,{approval:true,initialPermission:false});const {running}=await f.startPlan();await f.approvalReady.promise;
       assertFocus(f,f.get('workflow-ai-deny'));if(external)await f.focusNew();
       await f.click(f.get('workflow-ai-deny'));assert.equal(f.get('workflow-ai-approval').hidden,true);
       assertFocus(f,f.get(external?'workflow-new':'workflow-ai-request'));
@@ -645,7 +672,7 @@ if(!vm.SourceTextModule) {
   });
 
   test('component: async approval moves before disabling, then preserves user-moved focus on settlement',async t=>{
-    const gate=deferred(),f=await make(t,{approval:true,observeGate:gate});
+    const gate=deferred(),f=await make(t,{approval:true,initialPermission:false,observeGate:gate});
     const {running}=await f.startPlan();await f.approvalReady.promise;
     f.get('workflow-ai-approve').focus();await f.click(f.get('workflow-ai-approve'));
     assert.equal(f.get('workflow-ai-approve').disabled,true);assertFocus(f,f.get('workflow-ai-request'));
@@ -666,10 +693,11 @@ if(!vm.SourceTextModule) {
     f.planGate.resolve();await running;
   });
 
-  test('component: missing site permission requests Chrome only once from explicit approval and then remembers grant',async t=>{
+  test('component: only a missing Chrome site permission needs a fresh gesture before direct execution',async t=>{
     const f=await make(t,{approval:true,initialPermission:false});
     const {running}=await f.startPlan('Observe once and remember this task scope');await f.approvalReady.promise;
     assert.equal(f.get('workflow-ai-approval').hidden,false);
+    assert.equal(f.get('workflow-ai-approval-title').textContent,'需要 Chrome 网站权限');
     assert.equal(f.permissionRequests.length,0,'showing the task approval is not a Chrome permission request');
     await f.click(f.get('workflow-ai-approve'));await tick();await tick();
     assert.deepEqual(f.permissionRequests,[{origins:['https://a.example/*']}]);
@@ -686,20 +714,21 @@ if(!vm.SourceTextModule) {
     ['new session',grant({sessionId:'older-session'}),{}],
     ['new site',grant({origin:'https://b.example'}),{}],
     ['changed scope',grant({scope:'full-dom-v0'}),{}]
-  ]) test('component: '+name+' requires a fresh observation approval',async t=>{
+  ]) test('component: '+name+' uses the new Send without a summary approval dialog',async t=>{
     const f=await make(t,{approval:true,storedGrant:stored});
     if(options.provider)f.get('workflow-ai-provider').value=options.provider;
     const {running}=await f.startPlan('Observe after grant mismatch');await f.approvalReady.promise;
-    assert.equal(f.get('workflow-ai-approval').hidden,false);
-    assert.equal(f.observations.length,0);
-    await f.click(f.get('workflow-ai-deny'));
-    f.planGate.resolve();await running;assert.equal(f.answers[0].decision,'deny');
+    await waitFor(()=>f.answers.length===1);
+    assert.equal(f.get('workflow-ai-approval').hidden,true);
+    assert.equal(f.observations.length,1);
+    assert.equal(f.permissionRequests.length,0);
+    f.planGate.resolve();await running;assert.equal(f.answers[0].decision,'approve');
   });
 
   test('component: Stop discards late observation receipt after approval has started',async t=>{
     const gate=deferred(),f=await make(t,{approval:true,observeGate:gate});
     const {running}=await f.startPlan('Observe then stop before receipt settles');await f.approvalReady.promise;
-    await f.click(f.get('workflow-ai-approve'));
+    await waitFor(()=>f.observations.length===1);
     assert.equal(f.observations.length,1);
     await f.click(f.get('workflow-ai-cancel'));
     gate.resolve();await tick();await tick();
@@ -711,9 +740,9 @@ if(!vm.SourceTextModule) {
 
   test('component: permission removal for the approved site revokes grant and stops pending receipt, unrelated origin keeps it',async t=>{
     const gate=deferred(),f=await make(t,{approval:true,storedGrant:grant(),observeGate:gate});
-    assert.equal(f.ui.getSnapshot().controls['workflow-observation-scope']?.text,'网页摘要：使用前检查授权');
+    assert.equal(f.ui.getSnapshot().controls['workflow-observation-scope']?.text,'网页摘要：发送任务后自动提供');
     await f.removePermission({origins:['https://elsewhere.example/*']});
-    assert.equal(f.ui.getSnapshot().controls['workflow-observation-scope']?.text,'网页摘要：使用前检查授权');
+    assert.equal(f.ui.getSnapshot().controls['workflow-observation-scope']?.text,'网页摘要：发送任务后自动提供');
     const running=(await f.startPlan('Observe with existing grant before revoke')).running;
     await f.approvalReady.promise;await tick();
     await f.removePermission({origins:['https://a.example/*']});
@@ -722,13 +751,13 @@ if(!vm.SourceTextModule) {
     gate.resolve();
     f.planGate.resolve();await running;
     assert.equal(f.answers[0].decision,'deny');
-    assert.equal(f.ui.getSnapshot().controls['workflow-observation-scope']?.text,'网页摘要：使用前检查授权');
+    assert.equal(f.ui.getSnapshot().controls['workflow-observation-scope']?.text,'网页摘要：发送任务后自动提供');
   });
 
   test('component: resolving navigation cancels pending observation but same-origin fresh document keeps stored grant',async t=>{
     let gate=deferred();
     const f=await make(t,{approval:true,storedGrant:grant(),observeGate:gate});
-    assert.equal(f.ui.getSnapshot().controls['workflow-observation-scope']?.text,'网页摘要：使用前检查授权');
+    assert.equal(f.ui.getSnapshot().controls['workflow-observation-scope']?.text,'网页摘要：发送任务后自动提供');
     let {running}=await f.startPlan('Observe before document navigation');await f.approvalReady.promise;
     await f.setPage({status:'resolving',origin:undefined,documentId:undefined,url:'https://a.example/refreshing'});
     gate.resolve();
@@ -746,20 +775,25 @@ if(!vm.SourceTextModule) {
     assert.equal(f.answers[1].decision,'approve');
   });
 
-  for(const external of [false,true])test('component: Stop settles pending approval '+(external?'without stealing focus':'to stable request'),async t=>{
-    const f=await make(t,{approval:true});const {running}=await f.startPlan();await f.approvalReady.promise;
+  for(const external of [false,true])test('component: Stop settles direct observation '+(external?'without stealing focus':'to stable request'),async t=>{
+    const gate=deferred(),f=await make(t,{approval:true,observeGate:gate});
+    f.get('workflow-ai-request').focus();
+    const {running}=await f.startPlan();await f.approvalReady.promise;
+    await waitFor(()=>f.observations.length===1);
     if(external)await f.focusNew();await f.click(f.get('workflow-ai-cancel'));
     assert.equal(f.get('workflow-ai-approval').hidden,true);assertFocus(f,f.get(external?'workflow-new':'workflow-ai-request'));
-    f.planGate.resolve();await running;assert.equal(f.answers[0].decision,'deny');assert.equal(f.observations.length,0);
+    gate.resolve();f.planGate.resolve();await running;assert.equal(f.answers[0].decision,'deny');assert.equal(f.observations.length,1);
     assert.equal(f.get('workflow-ai-proposal'),null,'cancelled plan cannot publish a proposal');
   });
 
-  test('component: abort settles approval; untrusted approval clicks have no effect',async t=>{
-    const f=await make(t,{approval:true});const {running}=await f.startPlan();await f.approvalReady.promise;
-    await f.get('workflow-ai-deny').fire('click',{isTrusted:false});assert.equal(f.get('workflow-ai-approval').hidden,false);
+  test('component: abort settles direct observation; hidden untrusted approval clicks have no effect',async t=>{
+    const gate=deferred(),f=await make(t,{approval:true,observeGate:gate});
+    f.get('workflow-ai-request').focus();
+    const {running}=await f.startPlan();await f.approvalReady.promise;
+    await f.get('workflow-ai-deny').fire('click',{isTrusted:false});assert.equal(f.get('workflow-ai-approval').hidden,true);
     f.plannerOptions.signal.dispatchEvent(new Event('abort'));await tick();
     assert.equal(f.get('workflow-ai-approval').hidden,true);assertFocus(f,f.get('workflow-ai-request'));
-    f.planGate.resolve();await running;assert.equal(f.answers[0].decision,'deny');
+    gate.resolve();f.planGate.resolve();await running;assert.equal(f.answers[0].decision,'deny');
   });
 
   test('component: saved fill Revision replays twice without AI and refuses mutated journal bytes',async t=>{

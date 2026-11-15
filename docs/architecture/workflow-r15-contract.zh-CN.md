@@ -40,6 +40,14 @@ Sidebar Workflow（语义定义与参数）
 
 同文档 SPA / 同 origin 全文档导航沿用 **现有** `page.goto` 的 RunHost/Controller 导航交接。每一步新创建定位器，不能重用旧 document 上的 Locator。是否能通过完整真实导航必须保留与本次包绑定的原生证据。
 
+搜索点击可显式冻结 `waitUntil: "domcontentloaded" | "load"` 与 `timeout`，透传原 Locator 的导航交接；同文档搜索不强制等待导航。提交后的效果检查只进行有界只读观察，保留当前网页恢复机制，不重发填写或点击。搜索回执仍须核对真实查询、目标文档、源码和资源释放，导航完成本身不证明业务结果。
+
+Google 首页（仅 `https://www.google.com/` 或 `/webhp`）的一次明确搜索，在原始请求、当前观察控件和关键词均通过既有准入后，冻结可信 `searchNavigation: "google-query-v1"`。编译器保留填写及读回，用原 `page.goto` 将同一关键词编码为该 Origin 的 `/search?q=…`，避免自动补全产生两个同名按钮导致误选或严格模式失败。标记不接受模型输入，复跑重新准入且须与冻结标记一致；其他站点及普通点击不变，不放宽 Locator 严格模式或权限。导航仍不替代独立结果观察。
+
+明确要求 Google 前三条自然结果的标题／网址时，当前固定 `observe` 实现仅支持 `https://www.google.com/search`：从唯一 `#rso` 按 DOM 顺序扫描至多 30 个含 `h3` 的链接，排除广告标记祖先、隐藏项、重复与无效 HTTP(S) 地址，返回三个完整标题／href 及查询、Document 和选择规则。不足三个、URL 变化或无法核对规则时不宣布完成；Google 跳转地址按实际 href 返回，不伪造最终站点地址。此能力不推广为任意网站的排名保证，真实 Google E2E 仍须独立取证。
+
+该读取沿原编译器、Controller Revision 和 RunHost 冻结，不接受模型生成的选择代码或完成声明。保存的有序读取分段仅在全部步骤为 `observe` 时将 Google 入口归一为固定 `/search?q=…`，避免保存临时导航参数；复跑须保持精确 Origin、查询、上一段真实文档及现有授权，重新读取结果。其他分段继续精确 URL 匹配，不能借此放宽写操作入口。原始结果留在运行结果中，不自动加入下一轮模型摘要。
+
 跨 origin、多 tab 尚无可信 `WorkflowCoordinator` 合同与独立 CFT 证据；`navigate.url` 的 origin 不等于 `siteOrigin` 时 Schema 直接拒绝，不能申请一个宽泛权限后当作已实现。不改写单 origin Task v1。未来必须独立设计逐 origin 审批、tab/document handoff、取消、effect unknown 和新版本 Package 合同。
 
 ## 5. AI 规划与安全（2026-10-13 当前开发期规则）

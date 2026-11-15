@@ -68,6 +68,10 @@ export default async function main() {
 
 标签激活后，窗口焦点在有界只读核对中仍未确认时返回 `E_WINDOW_FOCUS_UNCONFIRMED`；这不是回执格式错误，也不证明窗口已显示。原效果未知栅栏保留，调用方不能继续业务动作或自动重发置前。
 
+「我的 → 参数与运行」可选择**当前网页**或**新建标签页**。当前网页绑定点击运行时核对的原标签及文档；脚本可通过已有 `page.goto(url,{waitUntil:'domcontentloaded',timeout:15000})` 在获准网站内导航。新建标签页使用原 `owned` 目标，起始网址必须属于任务 manifest 的 `siteOrigins`，仅在明确点击运行后创建；填写或切换选项不执行。两条路径都复用原 RunHost、安装身份、权限与 Stop/未知效果保护。
+
+目标页不需要固定或置顶；`showExecutionTab` 仅控制搜索任务是否调用 `bringToFront()` 显示执行过程。Google 搜索任务接受 `https://www.google.com` 的 `/`、`/webhp` 首页及其语言/导航参数；新关键词通过一次 `page.goto` 导航到同一获准 Origin 的 `/search?q=…`，精确匹配的结果页继续只读，不依赖首页建议框或搜索按钮。其他网站或不支持的 Google 页面可选择“新建标签页”，起始网址为 `https://www.google.com/`。导航失败或回执未知停止，不自动重试。
+
 ## 运行与源码身份
 
 由 MCP 客户端调用 run，或在 Sidebar 点击「运行草稿」。run 返回 `runId`、`revision`、`source` 和 `completion:"PENDING"`，仅证明入场。MCP 的 `source` 是源码元数据，不含原源码正文或 source map。
@@ -109,7 +113,26 @@ run.deadlineMs 默认 30000，范围 1000–120000；到期以 E_TIMEOUT 收尾�
 
 ## 已安装 Task 的存储与调用
 
-随 Browser 固定发行的百度 1.1.5 与 Google 1.0.1 在首次目录读取、任务解析或后台候选准入时，由同一 Task 安装事务初始化真实安装。发行证明 `verification.kind='builtin-release'`、`source='packaged'` 绑定原包双 hash 与运行库身份，不携带虚构 runId/resultId/原生回执，不授予网站或执行权限。重复访问保留安装身份、数据与停用状态；主动卸载持久保留，原目录可明确审阅恢复。已有合法安装不要求继续匹配当前发行目录。`resolveInstalledTask` 分别返回 `E_TASK_NOT_INSTALLED`、`E_TASK_REMOVED`、`E_TASK_DISABLED`、`E_TASK_INITIALIZATION`；目录的 `initialization` 单独报告 ready/failed 与失败原因，ready 不代表每个任务均已安装。以下普通导入 Task 的真实运行验证仍适用。
+### 查看代码、停用、卸载与删除
+
+在「我的」选择任务，打开任务菜单 →「管理任务」→「更多操作」。这里提供文字按钮：查看代码、复制为新草稿、停用/恢复和卸载当前版本；「网站与权限」展示已安装范围。
+
+「查看代码」按当前安装的确定版本只读展示 JavaScript、完整 Manifest、来源、双 SHA-256 和安装身份。读取后会重新核对安装代际；切换任务或安装身份变化时丢弃旧回包。查看不会运行、安装或申请权限；停用任务仍可查看。编辑使用「复制为新草稿」，不会修改原固定版本。
+
+| 操作 | 后果 |
+| --- | --- |
+| 停用 / 恢复 | 保留安装与历史，改变后续执行资格；恢复仍检查原权限。 |
+| 卸载当前版本 | 经统一确认浮层撤销该安装，围栏阻止后续执行；保留固定源码、运行与结果历史，相关计划会提示需要处理。不会回滚已发生的网页操作。 |
+| 删除已保存草稿 | 「开发 → 已保存脚本 → 加载最新 → 删除脚本」沿原带 revision 检查的墓碑路径操作，不删除安装任务。已有运行引用按原存储合同保留，不随卸载清空。 |
+| 永久删除候选 / 清理历史 | 当前没有固定候选安全删除入口；不能把“未安装”视为没有计划、验证或历史引用，也不将物理清理附带在卸载中。 |
+
+卸载确认绑定当前 taskId/version、安装 ID 与代际，取消、过期、换目标或断连会关闭原确认。运行审阅与卸载确认互斥，晚到的网页请求不会覆盖卸载确认；取消后仍可打开原运行请求。未知回执保留原因，当前面板不会再次提交同一安装的卸载；刷新只核对原安装，不重放写入。
+
+任务包包含明文 JavaScript，本机拥有相应文件或浏览器资料权限的管理者可以查看。此只读界面不提供代码保密，也不上传代码。现有云控 Provider Admin 的任务摘要、结果读取和程序投递不构成远程读取本地源码的授权；本轮不新增远程源码访问。
+
+### 固定版本与执行资格
+
+随 Browser 固定发行的百度 1.1.5 与 Google 1.0.7 在首次目录读取、任务解析或后台候选准入时，由同一 Task 安装事务初始化真实安装。发行证明 `verification.kind='builtin-release'`、`source='packaged'` 绑定原包双 hash 与运行库身份，不携带虚构 runId/resultId/原生回执，不授予网站或执行权限。重复访问保留安装身份、数据与停用状态；主动卸载持久保留，原目录可明确审阅恢复。已有合法安装不要求继续匹配当前发行目录。`resolveInstalledTask` 分别返回 `E_TASK_NOT_INSTALLED`、`E_TASK_REMOVED`、`E_TASK_DISABLED`、`E_TASK_INITIALIZATION`；目录的 `initialization` 单独报告 ready/failed 与失败原因，ready 不代表每个任务均已安装。以下普通导入 Task 的真实运行验证仍适用。
 
 Task `siteOrigins` 接受 1–8 个唯一 canonical 精确 HTTP(S) origin；拒绝空、重复、超限、credentials、路径、opaque origin 与通配（包括 `<all_urls>`）。在列表内任一 origin 上，同一固定源码的成功 run、持久结果及匹配 native receipt 即可通过 `verifyTaskCandidate({taskId,version,runId})` 进入 verified → Available → 安装；安装审阅覆盖完整列表。`verification.origin` 记录真实验证站点，不表示其余站点运行成功，localhost fixture 也必须在列表内。单 origin 旧流程保持可用。证据绑定 sourceHash、manifestHash 和内置运行库身份；改动列表须新版本重新验证。安装/委托逐次校验真实目标 origin、固定 Revision 与安装代际，跨站 navigation 继续走原目标 session/Authority，列表不扩充网络授权。
 

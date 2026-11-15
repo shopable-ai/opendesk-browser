@@ -105,6 +105,7 @@ export function TaskRunSheet({view}){
     if(dismiss)close();
   }}
   onCompositionStart={()=>{composing.current=true;}} onCompositionEnd={()=>{composing.current=false;}}
+  onBlurCapture={()=>{composing.current=false;}}
   onKeyDownCapture={event=>{
     if((event.key==='Escape'||event.key==='Enter')&&(composing.current||event.nativeEvent.isComposing||event.repeat)){
       event.preventDefault();event.stopPropagation();
@@ -119,6 +120,19 @@ export function TaskRunSheet({view}){
 {request?.sites?.length>0&&<p className="hint">适用网站：{request.sites.join('、')}</p>}
 {request?.pageBinding&&<p className="hint">来源网页：{request.pageBinding.url}<br/>网页程序：{request.pageBinding.programId} · 任务版本：{request.identity.version}</p>}
 {request?.target&&<p className="hint">{request.target.mode==='owned'?'将新建独立网页：':'已核对网页：'}{request.target.mode==='owned'?request.target.url:request.target.expectedUrl}</p>}
+{request?.source==='my'&&<div className="task-param-fields">
+<label className="od-field-label" htmlFor="task-run-target-mode">执行页面</label>
+<select id="task-run-target-mode" className="od-field" disabled={fieldsDisabled} value={request.target?.mode==='owned'?'owned':'current'}
+  onChange={event=>view.actions.taskSheetTargetChange?.(event.nativeEvent,event.target.value,request.identity)}>
+<option value="current">当前网页</option><option value="owned">新建标签页</option>
+</select>
+{request.target?.mode==='owned'?<>
+<label className="od-field-label" htmlFor="task-run-target-url">起始网址</label>
+<input id="task-run-target-url" className="od-field" type="url" disabled={fieldsDisabled} value={request.target.url}
+  onInput={event=>view.actions.taskSheetTargetUrlInput?.(event.nativeEvent,event.target.value,request.identity)}/>
+<p className="hint">点击运行后打开；网址必须属于此任务已批准的网站。</p>
+</>:<p className="hint">操作当前标签页；任务可在已批准的网站内导航。</p>}
+</div>}
 {hasParams&&!request?.recoveryOnly&&<div className="task-params-toolbar">
 <span className="task-params-section-label">运行参数</span>
 <div className="task-params-mode od-segmented" role="group" aria-label="参数编辑方式">

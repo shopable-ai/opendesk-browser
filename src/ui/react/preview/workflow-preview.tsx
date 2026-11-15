@@ -38,7 +38,7 @@ const scenes=Object.freeze({
   ],
   failure:[{id:'demo-failure',speaker:'系统',message:'演示：操作失败，未将结果当成成功。'}],
   unknown:[{id:'demo-unknown',speaker:'系统',message:'结果未知：核对目标网页后再操作，不自动重试。'}],
-  approval:[{id:'demo-approval',speaker:'AI',message:'网页摘要授权界面预览；未读取或发送页面内容。'}],
+  approval:[{id:'demo-approval',speaker:'AI',message:'Chrome 网站权限界面预览；未读取或发送页面内容。'}],
   'run-review':[{id:'demo-run-review',speaker:'AI',message:'目标网站尚未获得访问权限。此处仅预览授权入口，没有执行网页操作。'}],
   denied:[{id:'demo-denied',speaker:'系统',message:'演示：授权已拒绝，未执行网页读取。'}],
   disconnected:[{id:'demo-disconnected',speaker:'系统',message:'本机连接不可用，请在正式扩展中检查连接。'}],
@@ -66,9 +66,9 @@ const apply=()=>{
   control('workflow-ai-approval').hidden=scene!=='approval';
   control('workflow-run-review').hidden=scene!=='run-review';
   control('workflow-run-review-scope').text='当前网站尚未授权。正式产品只在缺少 Chrome 网站权限时显示此入口。';
-  control('workflow-ai-approval-title').text='允许共享网页摘要？';
+  control('workflow-ai-approval-title').text='需要 Chrome 网站权限';
   control('workflow-ai-approval-scope').text=scene==='approval'
-    ?'当前仅为授权界面预览，不会实际发送网页摘要。':'';
+    ?'当前仅为 Chrome 网站权限界面预览，不会实际申请权限或读取网页。':'';
   control('workflow-ai-plan').hidden=busy;
   control('workflow-ai-plan').disabled=busy||scene==='run-review';
   control('workflow-ai-cancel').hidden=!busy;
@@ -99,7 +99,7 @@ const apply=()=>{
   control('workflow-local-connect').title='离线预览无法连接本机应用';
   control('workflow-local-connected').hidden=true;
   control('workflow-observation-revoke').disabled=true;
-  control('workflow-observation-scope').text='网页摘要仅在正式任务经明确授权后发送。';
+  control('workflow-observation-scope').text='正式工作流发送后直接提供所需网页摘要，无需再次确认。';
   control('workflow-provider-settings').open=scene==='settings'||control('workflow-provider-settings').open;
   state.patch({
     messages:messages.map(row=>({...row})),

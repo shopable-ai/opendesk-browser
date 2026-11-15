@@ -1,6 +1,6 @@
 import * as React from 'react';
 import {MyControl} from './my-controls.tsx';
-import {Button} from '../components/ui/button.tsx';
+import {Button,IconButton} from '../components/ui/button.tsx';
 import {presentSchedulePlan,formatScheduleTime,scheduleFireLabel} from '../../schedule-plan-presentation.js';
 import {scheduleStatusGuidance} from '../../scheduled-task-workbench.js';
 
@@ -62,14 +62,26 @@ export function MyTaskParams({view,disabled=false}){
   });
 }
 
+export function TaskResultRevealIcon({revealed}){
+  return <svg viewBox="0 0 24 24" aria-hidden="true">
+    <path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7S2 12 2 12Z"/>
+    <circle cx="12" cy="12" r="3"/>
+    {revealed&&<path d="m3 3 18 18"/>}
+  </svg>;
+}
+
 function TaskHistoryEntry({row}){
-  const [revealed,setRevealed]=React.useState(false);
+  // A reveal belongs to this result snapshot, never a refreshed row with the same runId.
+  const [revealedRow,setRevealedRow]=React.useState(null);
+  const revealed=revealedRow===row&&typeof row.fullText==='string';
+  const resultId=React.useId(),label=revealed?'隐藏完整原值':'查看完整原值';
   return <article className="task-history-entry" data-tone={row.runState==='failed'?'error':row.runState==='paused_unknown'?'warning':undefined}>
-    <div className="task-history-heading"><strong>{row.state}</strong><span>{row.time||'最近第 '+row.ordinal+' 次'}</span></div>
-    <pre>{revealed?row.fullText:row.text}</pre>
-    {typeof row.fullText==='string'&&<button type="button" className="task-result-reveal od-button od-button--secondary"
-      title="完整原值可能包含访问令牌等敏感信息" onClick={()=>setRevealed(value=>!value)}>
-      {revealed?'隐藏完整原值':'显示完整原值'}</button>}
+    <div className="task-history-heading"><strong>{row.state}</strong><span>{row.time||'最近第 '+row.ordinal+' 次'}</span>
+    {typeof row.fullText==='string'&&<IconButton className="task-result-reveal" label={label}
+      title={revealed?label:label+'（可能包含敏感信息）'} aria-pressed={revealed} aria-controls={resultId}
+      onClick={()=>setRevealedRow(value=>value===row?null:row)}><TaskResultRevealIcon revealed={revealed}/></IconButton>}
+    </div>
+    <pre id={resultId}>{revealed?row.fullText:row.text}</pre>
     <details className="task-history-tech od-disclosure od-disclosure--flat"><summary>技术信息</summary><pre>{row.technical}</pre></details>
   </article>;
 }

@@ -66,6 +66,8 @@ test('chat finds installed verified Task, binds keyword, dispatches the same Run
   assert.equal(f.state().controls['workflow-run-review'].hidden,false,
     'opaque v1 manifest cannot claim risk-free auto permission');
   assert.equal(calls.length,0,'discovery must not execute before approval');
+  assert.equal(f.state().controls['workflow-ai-request'].value,'',
+    'an accepted request is cleared while execution review remains available');
   const reply=await f.click('workflow-run-review-confirm');
   await tick();
   assert.equal(reply.ok,true);
@@ -77,6 +79,21 @@ test('chat finds installed verified Task, binds keyword, dispatches the same Run
   assert.equal(f.starts[0].source.contentHash,scriptHash);
   assert.ok(f.state().messages.some(row=>row.speaker==='执行结果'&&/结果：OpenDesk/.test(row.message)));
   assert.ok(!f.state().messages.some(row=>/重新生成.*JavaScript/.test(row.message)));
+  assert.equal(f.state().messages.filter(row=>row.speaker==='你').length,1,
+    'confirming execution must not echo the accepted request again');
+});
+
+test('a new composer draft invalidates installed Task confirmation without discarding the draft',async t=>{
+  const {f,calls}=await fixture();t.after(()=>f.view.dispose());
+  f.input('workflow-ai-request','在当前演示搜索页搜索 OpenDesk，并核对结果。');
+  await f.click('workflow-ai-plan');
+  assert.equal(f.state().controls['workflow-ai-request'].value,'');
+  const draft='改为搜索其他内容，尚未发送';
+  f.input('workflow-ai-request',draft);
+  const reply=await f.click('workflow-run-review-confirm');
+  assert.equal(reply.ok,false);
+  assert.equal(calls.length,0,'editing the draft must not authorize the old request');
+  assert.equal(f.state().controls['workflow-ai-request'].value,draft);
 });
 
 test('durable Task completion without independent submission-count readback cannot claim success',async t=>{

@@ -3,7 +3,7 @@ import {checkParamsSchema, validateTaskParams} from '../../platform/tasks/contra
 export const WORKFLOW_FORMAT = 'opendesk.workflow.v1';
 export const WORKFLOW_OPERATIONS = Object.freeze(['navigate','observe','fill','click','wait','extract','assert','confirm']);
 export const WORKFLOW_LOCATORS = Object.freeze(['css','role','label','text','testId']);
-const STEP_FIELDS = new Set(['stepId','op','locatorKind','selector','roleName','param','text','url','timeout','waitUntil','linkGuard']);
+const STEP_FIELDS = new Set(['stepId','op','locatorKind','selector','roleName','param','text','url','timeout','waitUntil','linkGuard','searchNavigation']);
 const STEP_ACTIONS = new Set(['fill','click','wait','extract','assert']);
 
 function check(ok, code, message) {
@@ -56,6 +56,12 @@ export function validateWorkflow(value) {
     }
     // The trusted Controller attaches this proof from a fresh RunHost DOM
     // observation; a Provider can never supply it. Keep it in frozen revisions.
+    if (step.searchNavigation !== undefined) {
+      check(step.searchNavigation === 'google-query-v1' && step.op === 'click' &&
+        !step.linkGuard && value.siteOrigin === 'https://www.google.com' &&
+        value.steps.length === 2 && value.steps[0].op === 'fill' && value.steps[1] === step,
+        'E_WORKFLOW_SCHEMA', 'Invalid bounded search navigation');
+    }
     if (step.linkGuard !== undefined) {
       const g = step.linkGuard;
       check(step.op === 'click' && g && typeof g === 'object' && !Array.isArray(g) &&
@@ -130,7 +136,7 @@ export function normalizeAiProposal(response, original) {
     siteOrigin:original.siteOrigin,paramsSchema:response.paramsSchema,steps:response.steps};
   // Never accept model-supplied executable code, permissions, host identity, or origin.
   const normalized=validateWorkflow(proposed);
-  check(!normalized.steps.some(step=>step.linkGuard!==undefined),
+  check(!normalized.steps.some(step=>step.linkGuard!==undefined||step.searchNavigation!==undefined),
     'E_WORKFLOW_AI','模型不得提供或继承链接执行证明');
   return normalized;
 }

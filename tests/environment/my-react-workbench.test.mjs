@@ -43,6 +43,9 @@ async function fixture({twoTasks=false,paramsSchema,otherParamsSchema,pageDiscov
   dialogPrototype.showModal=function(){this.open=true;};
   dialogPrototype.close=function(){if(!this.open)return;this.open=false;this.dispatchEvent(new window.Event('close'));};
   globalThis.window=window;globalThis.document=doc;globalThis.IS_REACT_ACT_ENVIRONMENT=true;
+  // React selects its native composition path once when react-dom loads.
+  // Advertise the browser event so compositionstart/end reach our IME guard.
+  window.CompositionEvent=window.Event;
   globalThis.HTMLElement=window.HTMLElement;globalThis.SVGElement=window.SVGElement;
   globalThis.Option=function(label,value){const option=doc.createElement('option');option.textContent=label;option.value=value;return option;};
   const outside=doc.getElementById('outside');
@@ -345,15 +348,87 @@ test('main task result keeps its owner and redaction, then clears when another t
     assert.match(f.doc.querySelector('.task-result-owner').textContent,/已验证任务/);
     assert.match(f.doc.getElementById('task-result').textContent,/已隐藏/);
     assert.doesNotMatch(f.doc.getElementById('task-result').textContent,/private-token/);
-    assert.equal(f.doc.getElementById('task-result-reveal').hidden,false);
+    const reveal=f.doc.getElementById('task-result-reveal');
+    assert.equal(reveal.hidden,false);
+    assert.equal(reveal.classList.contains('od-icon-button'),true);
+    assert.equal(reveal.textContent,'','the reveal action has an icon instead of visible text');
+    assert.ok(reveal.querySelector('svg'));
+    assert.equal(reveal.getAttribute('aria-label'),'查看完整原值');
+    assert.equal(reveal.getAttribute('aria-controls'),'task-result');
+    assert.equal(reveal.getAttribute('aria-pressed'),'false');
     await f.dispatch('task-result-reveal');
     assert.match(f.doc.getElementById('task-result').textContent,/private-token/);
+    assert.equal(reveal.getAttribute('aria-label'),'隐藏完整原值');
+    assert.equal(reveal.getAttribute('aria-pressed'),'true');
+    await f.dispatch('task-result-reveal');
+    assert.doesNotMatch(f.doc.getElementById('task-result').textContent,/private-token/);
+    assert.equal(reveal.getAttribute('aria-pressed'),'false');
+    const history=f.doc.querySelector('.task-history-entry .task-result-reveal');
+    assert.equal(history.getAttribute('aria-label'),'查看完整原值');
+    const historyResult=f.doc.getElementById(history.getAttribute('aria-controls'));
+    assert.doesNotMatch(historyResult.textContent,/private-token/);
+    await f.fire(history,'click');
+    assert.match(historyResult.textContent,/private-token/);
+    assert.equal(history.getAttribute('aria-pressed'),'true');
+    assert.doesNotMatch(f.doc.getElementById('task-result').textContent,/private-token/,'history does not reveal the main result');
+    await f.fire(history,'click');
+    assert.doesNotMatch(historyResult.textContent,/private-token/);
+    await f.dispatch('task-result-reveal');
     await React.act(async()=>{f.view.data.taskRows.onSelect('other.task');await tick();});
     assert.equal(f.view.data.taskResultMeta,null);
     assert.equal(f.doc.getElementById('task-result-panel').hidden,true);
     assert.equal(f.doc.getElementById('task-result-reveal').hidden,true);
     assert.equal(f.doc.getElementById('task-history-panel').hidden,false);
     assert.match(f.doc.getElementById('task-history').textContent,/还没有运行记录/);
+  }finally{if(root)await React.act(async()=>root.unmount());f.dispose();}
+});
+
+test('task raw value controls reset on refreshed results and stay hidden for ordinary results',async()=>{
+  const f=await fixture({configure({state,installed}){
+    state.runs.push({runId:'refreshed-result',state:'completed',revision:{scriptId:installed.scriptId}});
+    state.results.push({runId:'refreshed-result',revision:{scriptId:installed.scriptId},
+      outcome:{ok:true,valueWire:encodeValue({token:'private-before-refresh'})}});
+    state.runs.unshift({runId:'older-result',state:'completed',revision:{scriptId:installed.scriptId}});
+    state.results.push({runId:'older-result',revision:{scriptId:installed.scriptId},
+      outcome:{ok:true,valueWire:encodeValue({token:'private-older-result'})}});
+  }});let root;
+  try{
+    root=await f.mount();
+    const refresh=async()=>React.act(async()=>{await f.workbench.refresh();await tick();});
+    await f.dispatch('task-result-reveal');
+    await f.fire(f.doc.querySelector('.task-history-entry .task-result-reveal'),'click');
+    assert.match(f.doc.querySelector('.task-history-entry > pre').textContent,/private-before-refresh/);
+    const older=f.doc.querySelectorAll('.task-history-entry')[1];
+    assert.doesNotMatch(older.querySelector('pre').textContent,/private-older-result/);
+    assert.equal(older.querySelector('.task-result-reveal').getAttribute('aria-pressed'),'false');
+    await refresh();
+    assert.doesNotMatch(f.doc.getElementById('task-result').textContent,/private-before-refresh/);
+    assert.equal(f.doc.getElementById('task-result-reveal').getAttribute('aria-pressed'),'false');
+    assert.doesNotMatch(f.doc.querySelector('.task-history-entry > pre').textContent,/private-before-refresh/);
+    assert.equal(f.doc.querySelector('.task-history-entry .task-result-reveal').getAttribute('aria-pressed'),'false');
+
+    await f.fire(f.doc.querySelector('.task-history-entry .task-result-reveal'),'click');
+    f.state.results[0].outcome.valueWire=encodeValue({summary:'普通完整结果'});
+    await refresh();
+    assert.equal(f.doc.getElementById('task-result-reveal').hidden,true);
+    assert.equal(f.doc.querySelector('.task-history-entry').querySelector('.task-result-reveal'),null);
+    assert.match(f.doc.getElementById('task-result').textContent,/普通完整结果/);
+    assert.match(f.doc.querySelector('.task-history-entry > pre').textContent,/普通完整结果/);
+
+    const longValue='长结果内容'.repeat(1100)+'END-OF-RESULT';
+    f.state.results[0].outcome.valueWire=encodeValue(longValue);
+    await refresh();
+    const preview=f.doc.getElementById('task-result').textContent;
+    assert.match(preview,/内容已截断/);
+    assert.doesNotMatch(preview,/END-OF-RESULT/);
+    assert.equal(f.doc.getElementById('task-result-reveal').hidden,false);
+    await f.dispatch('task-result-reveal');
+    assert.equal(f.doc.getElementById('task-result').textContent,longValue);
+    await f.dispatch('task-result-reveal');
+    assert.equal(f.doc.getElementById('task-result').textContent,preview);
+    assert.equal(f.state.starts.length,0);
+    assert.equal(f.state.permissionCalls.length,0);
+    assert.equal(f.state.calls.some(call=>/install|uninstall|start/i.test(call.action)),false);
   }finally{if(root)await React.act(async()=>root.unmount());f.dispose();}
 });
 
@@ -1142,6 +1217,66 @@ for(const key of ['Enter','Escape']){
     }finally{if(root)await React.act(async()=>root.unmount());f.dispose();}
   });
 }
+
+test('leaving a Chinese IME field clears stale composition before an explicit Run click',async()=>{
+  const f=await fixture();let root;
+  try{
+    root=await f.mount();await f.fire(f.doc.getElementById('task-parameters-open'),'click',{isTrusted:true});
+    const name=f.doc.getElementById('task-param-name');
+    await f.input('task-param-name','时间清单');
+    await f.fire(name,'compositionstart');
+    await f.fire(f.doc.getElementById('task-run'),'click',{isTrusted:true});
+    assert.equal(f.state.starts.length,0,'an active composition must not submit');
+    await f.fire(name,'focusout',{relatedTarget:f.doc.getElementById('task-run')});
+    await f.fire(f.doc.getElementById('task-run'),'click',{isTrusted:true});
+    assert.equal(f.state.starts.length,1);
+    assert.equal(f.state.starts[0].params.name,'时间清单');
+    assert.equal(f.doc.getElementById('task-parameters-sheet').open,false);
+    await React.act(async()=>{f.host.finish();await tick();});
+  }finally{if(root)await React.act(async()=>root.unmount());f.dispose();}
+});
+
+test('My can explicitly start one approved owned tab while the current site is unrelated',async()=>{
+  const f=await fixture({configure({candidate}){candidate.manifest.siteOrigins=['https://target.example'];}});let root;
+  try{
+    root=await f.mount();await f.fire(f.doc.getElementById('task-parameters-open'),'click',{isTrusted:true});
+    assert.equal(f.view.field('task-run').disabled,true);
+    const pin=f.view.data.taskRunSheet.identity;
+    await React.act(async()=>f.view.actions.taskSheetTargetChange(native(),'owned',pin));
+    assert.equal(f.doc.getElementById('task-run-target-url').value,'https://target.example/');
+    assert.equal(f.view.field('task-run').disabled,false);
+    assert.equal(f.state.starts.length,0,'selecting a target never creates or runs a tab');
+    await f.fire(f.doc.getElementById('task-run'),'click',{isTrusted:true});
+    assert.equal(f.state.starts.length,1);
+    assert.deepEqual(f.state.starts[0].target,{mode:'owned',url:'https://target.example/'});
+    assert.equal(f.state.starts[0].expectedTaskInstallationId,pin.installationId);
+    assert.equal(f.state.starts[0].expectedTaskGeneration,pin.generation);
+    assert.equal(f.view.field('task-run').disabled,true,'busy still blocks another run');
+    await React.act(async()=>{f.host.finish();await tick();await tick();});
+    assert.equal(f.view.field('task-run').disabled,true,'closing the sheet restores the current-site restriction');
+  }finally{if(root)await React.act(async()=>root.unmount());f.dispose();}
+});
+
+test('My owned target rejects invalid or unapproved URLs before permissions and ignores stale edits',async()=>{
+  const f=await fixture();let root;
+  try{
+    root=await f.mount();await f.fire(f.doc.getElementById('task-parameters-open'),'click',{isTrusted:true});
+    const pin=f.view.data.taskRunSheet.identity;
+    await React.act(async()=>f.view.actions.taskSheetTargetChange(native(),'owned',pin));
+    for(const url of ['', 'not a URL','javascript:alert(1)','https://evil.example/','https://user:pass@example.com/']){
+      await React.act(async()=>f.view.actions.taskSheetTargetUrlInput(native(),url,pin));
+      assert.equal(f.view.field('task-run').disabled,true);
+      assert.equal(f.view.actions.taskRunClick(native(),pin),false);
+    }
+    assert.equal(f.state.permissionCalls.length,0);assert.equal(f.state.starts.length,0);
+    await React.act(async()=>f.view.actions.taskSheetTargetUrlInput(native(),'https://example.com/start',pin));
+    await React.act(async()=>f.view.actions.taskSheetTargetUrlInput(native(),'https://evil.example/',{...pin,generation:2}));
+    assert.equal(f.view.data.taskRunSheet.target.url,'https://example.com/start');
+    await React.act(async()=>f.view.actions.taskSheetTargetChange(native(),'current',pin));
+    assert.equal(f.view.data.taskRunSheet.target,undefined);
+    assert.equal(f.doc.getElementById('task-run-target-url'),null);
+  }finally{if(root)await React.act(async()=>root.unmount());f.dispose();}
+});
 
 test('an untrusted React Run click leaves the parameter Sheet open without starting',async()=>{
   const f=await fixture();let root;

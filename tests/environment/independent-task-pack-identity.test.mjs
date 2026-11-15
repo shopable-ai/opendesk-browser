@@ -8,7 +8,7 @@ import {assertPackagedTask,BUILTIN_TASK_RELEASES,OPTIONAL_TASK_RELEASES,PACKAGED
   from '../../src/platform/tasks/builtin-releases.js';
 
 // Git blob SHA-1 witnesses captured from main BEFORE the ownership migration.
-// Package manifestHash/sourceHash and runtime tasks/builtin paths are unchanged.
+// Historical package bytes preserve the migration witnesses after a version upgrade.
 // A source or package change requires a NEW reviewed Task version, not a re-pin.
 const fixtures=[
   ['baidu.search/src/baidu-search-top3.js',
@@ -18,7 +18,8 @@ const fixtures=[
   ['google.search/src/google-search-top3.js',
    'google.search/releases/google.search.top3.v1.opendesk-task.json',
    '85bbaab356792903ced6423aa65f6f80a9dc15ca',
-   'acc7df905e0376a94385b7176c34a4081c536612'],
+   'acc7df905e0376a94385b7176c34a4081c536612',
+   'google.search/releases/google.search.top3.1.0.3.opendesk-task.json'],
   ['chatgpt.conversation.create/src/chatgpt-conversation-create.js',
    'chatgpt.conversation.create/releases/chatgpt.conversation.create.v1.opendesk-task.json',
    'a023e08e619da4be19af776e861bc36e4b04ce7f',
@@ -44,11 +45,12 @@ const sha=bytes=>createHash('sha1').update('blob '+bytes.length+'\0').update(byt
 const path=p=>resolve('task-packs',p);
 
 test('all seven reviewed Task sources and package bytes retain pre-migration Git blob identities',async()=>{
-  for(const [src,pkgPath,srcSha,pkgSha] of fixtures){
-    const [js,pkgBytes]=await Promise.all([readFile(path(src)),readFile(path(pkgPath))]);
+  for(const [src,pkgPath,srcSha,pkgSha,historicalPath] of fixtures){
+    const pkgBytes=await readFile(path(historicalPath||pkgPath));
+    const pkg=JSON.parse(pkgBytes.toString('utf8'));
+    const js=historicalPath?Buffer.from(pkg.sourceUtf8):await readFile(path(src));
     assert.equal(sha(js),srcSha,src);
     assert.equal(sha(pkgBytes),pkgSha,pkgPath);
-    const pkg=JSON.parse(pkgBytes.toString('utf8'));
     await assertPackagedTask(pkg);
     assert.equal(await digestUtf8(js.toString('utf8')),pkg.manifest.program.sourceHash,src);
     assert.equal(pkg.sourceUtf8,js.toString('utf8'),src);
@@ -57,10 +59,10 @@ test('all seven reviewed Task sources and package bytes retain pre-migration Git
 
 test('directory names never become Task IDs; reviewed identities and private resource paths are stable',()=>{
   assert.deepEqual(BUILTIN_TASK_RELEASES.map(x=>[x.taskId,x.version]),
-    [['baidu.search.top3','1.1.5'],['google.search.top3','1.0.3']]);
+    [['baidu.search.top3','1.1.5'],['google.search.top3','1.0.7']]);
   assert.deepEqual(OPTIONAL_TASK_RELEASES.map(x=>[x.taskId,x.version]),
     [['chatgpt.conversation.create','0.2.2']]);
-  assert.equal(PACKAGED_TASK_RESOURCES.length,fixtures.length);
+  assert.equal(PACKAGED_TASK_RESOURCES.length,fixtures.length+4);
   for(const row of PACKAGED_TASK_RESOURCES){
     assert.ok(row.sourcePath.startsWith('task-packs/'));
     assert.equal(row.path,`tasks/builtin/${row.taskId}/${row.version}.json`);

@@ -19,7 +19,7 @@ async function ready(fixture) {
   assert.equal(state(fixture,'workflow-ai-provider').value,'custom_https');
 }
 
-test('R23.17 Controller: first HTTPS disclosure, repeat without dialog, revoke then reauthorize',async t=>{
+test('Controller: HTTPS Send directly shares its summary; Chrome permissions and revocation remain separate',async t=>{
   const priorFetch=globalThis.fetch;
   const posts=[];
   globalThis.fetch=async (url,options)=>{
@@ -44,10 +44,7 @@ test('R23.17 Controller: first HTTPS disclosure, repeat without dialog, revoke t
   assert.equal(f.requests.length,0,'untrusted Confirm cannot request permission');
   const firstPlanning=f.click('workflow-run-review-confirm');
   assert.equal(f.requests.length,1,'trusted Confirm starts the Chrome request synchronously');
-  await tick();await tick();
-  assert.equal(state(f,'workflow-ai-approval').hidden,false,'first external disclosure must be explicit');
-  assert.equal(f.starts.length,0,'model and RunHost may not observe before disclosure');
-  await f.click('workflow-ai-approve');await firstPlanning;await tick();await tick();
+  await firstPlanning;await tick();await tick();
   assert.equal(state(f,'workflow-ai-approval').hidden,true);
   assert.equal(posts.length,1,'model receives the authorized observation exactly once');
   assert.equal(f.starts.length,2,'Send automatically dispatches once after independently authorized read-only observation');
@@ -75,18 +72,16 @@ test('R23.17 Controller: first HTTPS disclosure, repeat without dialog, revoke t
   await f.revoke([receiverPattern]);
   await tick();
   assert.equal(f.session.get(grantKey),null,'revocation destroys the previous disclosure scope');
-  f.input('workflow-ai-request','第三次读取当前网页，不修改任何输入。');
+  f.input('workflow-ai-request','再次读取本页结构，核对现状，不要提交。');
   const third=f.click('workflow-ai-plan');
   await third;await tick();
   assert.equal(state(f,'workflow-run-review').hidden,false,'revoked receiver permission needs a new trusted confirmation');
   const thirdPlanning=f.click('workflow-run-review-confirm');
   assert.equal(f.requests.length,2);
-  await tick();await tick();
-  assert.equal(state(f,'workflow-ai-approval').hidden,false,'receiver revocation must require new disclosure');
-  assert.equal(posts.length,2,'the provider must not receive unapproved page data');
-  await f.click('workflow-ai-deny');await thirdPlanning;
-  assert.equal(posts.length,2);
-  assert.equal(f.starts.length,4,'denying a new disclosure never dispatches RunHost');
+  await thirdPlanning;await tick();await tick();
+  assert.equal(state(f,'workflow-ai-approval').hidden,true,'a new Send needs no separate summary confirmation');
+  assert.equal(posts.length,3);
+  assert.equal(f.starts.length,6);
 });
 
 test('R23.17 Controller: read-only manual Run does not request second OpenDesk confirmation',async t=>{
@@ -97,6 +92,24 @@ test('R23.17 Controller: read-only manual Run does not request second OpenDesk c
   assert.equal(f.starts.length,1);
   assert.equal(state(f,'workflow-run-review').hidden,true);
   assert.equal(f.requests.length,1);
+});
+
+test('Controller: revoking the receiver during the first direct observation prevents summary delivery',async t=>{
+  const priorFetch=globalThis.fetch;let posts=0;
+  globalThis.fetch=async()=>{posts++;throw Error('revoked receiver must not be called');};
+  t.after(()=>{globalThis.fetch=priorFetch;});
+  const f=await workflowFixture({hold:true});t.after(()=>f.view.dispose());
+  await ready(f);f.permissions.add(receiverPattern);
+  f.input('workflow-ai-request','读取本页结构，然后说明。不要修改网页。');
+  const send=f.click('workflow-ai-plan');
+  for(let attempt=0;attempt<80&&f.starts.length===0;attempt++)await tick();
+  assert.equal(f.starts.length,1,'trusted Send starts the bounded observation directly');
+  assert.equal(state(f,'workflow-ai-approval').hidden,true);
+  await f.revoke([receiverPattern]);
+  f.finish();await send;await tick();
+  assert.equal(posts,0,'a late receipt cannot reach a revoked AI receiver');
+  assert.equal(f.starts.length,1,'no action or automatic retry follows revocation');
+  assert.equal(f.session.get(grantKey)||null,null,'late completion cannot recreate a revoked grant');
 });
 
 test('R23.17 fixture: ordinary manually authored observe is not the privileged internal AI observation',async t=>{
@@ -129,9 +142,8 @@ test('R23.26 Stop races a submitted RunHost.start before runId and cancels the l
   await send;await tick();
   assert.equal(state(f,'workflow-run-review').hidden,false);
   const planning=f.click('workflow-run-review-confirm');
-  await tick();await tick();
-  assert.equal(state(f,'workflow-ai-approval').hidden,false);
-  await f.click('workflow-ai-approve');await planning;
+  await planning;
+  assert.equal(state(f,'workflow-ai-approval').hidden,true);
   // The first RunHost observation finishes. The actual action has been sent,
   // but its start response (and runId) are deliberately held by the fixture.
   for(let attempt=0;attempt<80&&!f.service.releaseActionStart;attempt++)await tick();

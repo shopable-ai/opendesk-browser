@@ -7,6 +7,7 @@ export function workflowForModel(workflow){
   for(const step of data.steps||[]){
     // Never include trusted local navigation targets in model context.
     delete step.linkGuard;
+    delete step.searchNavigation;
     // The locally persisted observation query can duplicate old fill literals.
     if(step.op==='observe')delete step.text;
     if(step.op==='fill'&&Object.hasOwn(step,'text'))step.text='[原填写值未发送，请使用运行参数]';
