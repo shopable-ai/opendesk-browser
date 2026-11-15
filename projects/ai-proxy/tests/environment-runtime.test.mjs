@@ -204,7 +204,7 @@ test('current website uses only the declared page-info bridge and keeps only a p
  f.bridge.request=async(action,input)=>action==='currentPage.info'
   ?{status:'available',url:'https://Docs.Example.com/path?token=private',title:'Private title'}:request(action,input);
  const env=f.open();
- try{assert.deepEqual(await env.currentSite(),{status:'available',host:'docs.example.com',source:'currentPage'});}
+ try{assert.deepEqual(await env.currentSite(),{status:'available',host:'docs.example.com',source:'currentPage',diagnosticDomain:'docs.example.com',diagnosticReason:null});}
  finally{env.dispose();}
 });
 test('unavailable, rejected and non-web current pages never become a detected website',async()=>{

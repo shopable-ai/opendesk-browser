@@ -5,6 +5,8 @@ import {toManagedRoute,configForManagedRoute} from './domain/managed-config';
 import {createNavigation} from './ui/navigation';
 import {OPTIONS_SECTIONS} from './ui/optionsRoute';
 import {checkDiagnosticSite} from './diagnostics/http';
+import {safePublicDomain} from './diagnostics/catalog';
+import {migrateFavorites} from './diagnostics/favorites';
 import {downloadSubscriptionTextWithSdk} from './subscription/download';
 let environment:any;
 const fail=(code:string,message:string):never=>{throw Object.assign(Error(message),{code});};
@@ -69,6 +71,7 @@ export function configureEnvironment(bridge:any,sdk:any,{trusted=false,preview:p
   isLocked:()=>disposed||uiDirty||pending>0||outcomeUnknown
  };
  const configKey='ai-proxy.full-config.v2';
+ const favoritesKey='aiProxy.diagnostics.favorites.v2';
  const entries=new Map<string,any>(),listeners=new Set<Function>();
  const changed={addListener(fn:Function){listeners.add(fn);},removeListener(fn:Function){listeners.delete(fn);}};
  const emit=(changes:any)=>{for(const fn of listeners)fn(changes,'local');};
@@ -99,6 +102,24 @@ export function configureEnvironment(bridge:any,sdk:any,{trusted=false,preview:p
   assertLive();
   return bridge.request('browser.network.request',input);
  };
+ async function currentSite(){
+  assertLive();
+  if(preview)return {status:'available',host:'docs.example.com',source:'preview',diagnosticDomain:'docs.example.com',diagnosticReason:null};
+  let result:any;
+  try{result=await bridge?.request('currentPage.info',{});}catch{assertLive();}
+  assertLive();
+  if(result?.status==='available')try{
+   const url=new URL(result.url);
+   if(['http:','https:'].includes(url.protocol)&&!url.username&&!url.password&&url.hostname){
+    const host=url.hostname.toLowerCase().replace(/\.$/,'');
+    const domain=safePublicDomain(host);
+    const diagnosticDomain=url.protocol==='https:'&&!url.port&&domain?domain:null;
+    return {status:'available',host,source:'currentPage',diagnosticDomain,
+     diagnosticReason:diagnosticDomain?null:url.protocol!=='https:'?'https-required':'public-host-required'};
+   }
+  }catch{/* Never return the original URL, credentials or privileged context. */}
+  return {status:'unavailable',host:'',source:'currentPage',diagnosticDomain:null,diagnosticReason:'unavailable'};
+ }
  let loadedConfig:any=null;
  const observedStatus=(value:any,config=loadedConfig)=>{
   assertLive();
@@ -106,11 +127,26 @@ export function configureEnvironment(bridge:any,sdk:any,{trusted=false,preview:p
   return {...value,activeConfig:value.state==='enabled'&&value.control==='controlled_by_this_extension'&&
    value.permission!==false&&config?configForManagedRoute(config,value.activeConfig):null};
  };
- const service=createProxyService(preview?{...preview.service,validateApply:toManagedRoute}:{
+ const service=createProxyService(preview?{...preview.service,validateApply:toManagedRoute,currentTarget:async()=> (await currentSite()).diagnosticDomain}:{
   async load(){const raw=await read(configKey);loadedConfig=raw==null?freshConfig():validateConfig(raw);return {config:loadedConfig,etag:entries.get(configKey)};},
   async save(config:any,etag:string){if(etag!==entries.get(configKey))fail('E_CONFLICT','配置已改变，请重新读取');await write(configKey,config);return entries.get(configKey);},
   status:async()=>observedStatus(await managed().getStatus()),
   checkSite:async(id:string)=>{const result=await checkDiagnosticSite(id,networkRequest);assertLive();return result;},
+  async loadFavorites(){
+   let value=await read(favoritesKey);
+   const etag=entries.get(favoritesKey);
+   if(value==null){
+    value=await read('aiProxy.diagnostics.favorites.v1');
+    return {favorites:migrateFavorites(value,true),etag};
+   }
+   if(!Array.isArray(value))fail('E_INVALID_ARGUMENT','Diagnostic favorites data is invalid');
+   return {favorites:migrateFavorites(value,false),etag};
+  },
+  async saveFavorites(favorites,etag){
+   if(etag!==entries.get(favoritesKey))fail('E_CONFLICT','Diagnostic favorites changed; refresh before retrying');
+   await write(favoritesKey,favorites);
+  },
+  currentTarget:async()=> (await currentSite()).diagnosticDomain,
   validateApply:toManagedRoute,
   async apply(config:any){
    return observedStatus(await managed().requestEnable({config:toManagedRoute(config)}),config);
@@ -126,11 +162,15 @@ export function configureEnvironment(bridge:any,sdk:any,{trusted=false,preview:p
  let confirmation:AbortController|null=null;
  const route=(hash:string)=>navigation.navigate(hash);
  let quickView:any=null;
- const pageChanged=()=>events.dispatchEvent(new Event('ai-proxy-page-changed'));
+ const pageChanged=()=>{
+  // Context changes may invalidate a current-page run but never start a request.
+  void service.request({type:'CANCEL_DIAGNOSTICS'}).catch(()=>{});
+  events.dispatchEvent(new Event('ai-proxy-page-changed'));
+ };
  bridge?.root?.addEventListener('opendesk-page-changed',pageChanged);
  const current={service,storage,navigation,toolNavigation,events,trusted,preview:!!preview,httpDiagnostics:!preview,request:async(m:any)=>{
    assertLive();
-   const mutation=!['GET_STATE','GET_DIAGNOSTICS','GET_USAGE','EXPORT','RUN_DIAGNOSTICS','CANCEL_DIAGNOSTICS'].includes(m.type);
+   const mutation=!['GET_STATE','GET_DIAGNOSTICS','GET_USAGE','EXPORT','RUN_DIAGNOSTICS','RUN_CURRENT_DIAGNOSTIC','CANCEL_DIAGNOSTICS'].includes(m.type);
    if(mutation){pending++;uiState();}
    try{
     const draftWrites=['SAVE_ENDPOINT','SAVE_LOCAL_CLIENT','SAVE_SUBSCRIPTION','DELETE_SUBSCRIPTION','DELETE_ENDPOINT',
@@ -211,19 +251,7 @@ export function configureEnvironment(bridge:any,sdk:any,{trusted=false,preview:p
   surface:bridge?.surface==='page'?'page':'sidebar',
   openOwnPage:(target:any)=>typeof bridge?.openOwnPage==='function'?bridge.openOwnPage(target):null,
   rememberQuickView:(value:any)=>{quickView=value;},takeQuickView:()=>{const value=quickView;quickView=null;return value;},
-  async currentSite(){
-   assertLive();
-   if(preview)return {status:'available',host:'docs.example.com',source:'preview'};
-   let result:any;
-   try{result=await bridge?.request('currentPage.info',{});}catch{assertLive();}
-   assertLive();
-   if(result?.status==='available')try{
-    const url=new URL(result.url);
-    if(['http:','https:'].includes(url.protocol)&&!url.username&&!url.password&&url.hostname)
-     return {status:'available',host:url.hostname.toLowerCase().replace(/\.$/,''),source:'currentPage'};
-   }catch{/* Invalid or privileged URLs are never a detected website. */}
-   return {status:'unavailable',host:'',source:'currentPage'};
-  },
+  currentSite,
   async official(message:any){if(message.type==='OFFICIAL_STATUS')return {ok:true,snapshot:{configured:false,auth:'guest',availability:'unconfigured',plans:[],lines:[],checkout:'none'}};return {ok:false,failure:'not-configured'};},
   async download(input:string,originHost:string,options:{signal?:AbortSignal}={}){
    const result=await downloadSubscriptionTextWithSdk(input,originHost,networkRequest,options);

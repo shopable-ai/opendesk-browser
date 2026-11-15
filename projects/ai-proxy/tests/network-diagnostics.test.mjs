@@ -28,6 +28,13 @@ test('HTTP failures expose fixed categories without adapter messages or URLs',as
   assert.deepEqual(r,{kind,httpStatus:null,elapsedMs:null});
  }
 });
+test('local deadline settles an unresponsive SDK and ignores its late body',async t=>{
+ t.mock.timers.enable({apis:['setTimeout']});
+ let finish;const pending=checkDiagnosticSite('current:www.example.org',()=>new Promise(resolve=>finish=resolve));
+ t.mock.timers.tick(10000);
+ assert.deepEqual(await pending,{kind:'timeout',httpStatus:null,elapsedMs:null});
+ finish({status:200,data:'late private response'});
+});
 test('real diagnostics perform no request on read, never write config, and report L2 only',async()=>{
  const calls=[];const f=fixture(async id=>{calls.push(id);return {kind:'http_ok',httpStatus:200,elapsedMs:3};});
  try{

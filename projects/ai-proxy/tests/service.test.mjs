@@ -428,7 +428,7 @@ test('preview favorites/order and usage opt-in/ignore/clear stay session-local w
   const custom = added.diagnostics.favorites.at(-1);
   assert.equal(custom.pinnedByUser, true);
   const moved = await ok(f.service, { type: 'MOVE_DIAGNOSTIC_SITE', id: custom.id, direction: 'up' });
-  assert.equal(moved.diagnostics.favorites.at(-2).id, custom.id);
+  assert.equal(moved.diagnostics.favorites[0].id, custom.id, 'pinned favorites precede builtin suggestions');
   await ok(f.service, { type: 'REMOVE_DIAGNOSTIC_SITE', id: custom.id });
   assert.equal((await ok(f.service, { type: 'GET_USAGE' })).usage.settings.enabled, false);
   const usage = await ok(f.service, { type: 'SET_USAGE_SETTINGS', settings: { enabled: true, topLimit: 10, sort: 'recent' } });

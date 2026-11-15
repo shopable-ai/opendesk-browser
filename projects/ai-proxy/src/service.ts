@@ -6,8 +6,8 @@ import type { Request, Response } from './domain/messages';
 import { aiSite, diagnosticUrl, PUBLIC_HTTPS_CHECK, defaultFavorites, safePublicDomain, siteForDomain } from './diagnostics/catalog';
 import { statistics } from './diagnostics/logic';
 import type { HttpCheck } from './diagnostics/http';
-import { MAX_FAVORITES } from './diagnostics/favorites';
-import type { DiagnosticsSnapshot } from './diagnostics/types';
+import { MAX_FAVORITES, migrateFavorites, prioritizeFavorites, favoriteGroup } from './diagnostics/favorites';
+import type { DiagnosticSite, DiagnosticsSnapshot } from './diagnostics/types';
 import type { UsageSnapshot } from './usage/types';
 
 /** Adapter owns native confirmation and permissions; the service never retries Enable. */
@@ -33,6 +33,9 @@ export interface ProxyServiceOptions {
   stop(): Promise<ManagedStatus>;
   preview?: boolean;
   checkSite?(id:string):Promise<HttpCheck>;
+  loadFavorites?():Promise<{favorites:DiagnosticSite[];etag:string}>;
+  saveFavorites?(favorites:DiagnosticSite[],etag:string):Promise<void>;
+  currentTarget?():Promise<string|null>;
 }
 export type ServiceState = ViewState & {
   configEtag: string;
@@ -76,7 +79,7 @@ function routeSignature(config: ConfigState): string {
   return JSON.stringify([mode]);
 }
 
-export function createProxyService({ load, save, status, validateApply, apply, stop, checkSite, preview = false }: ProxyServiceOptions) {
+export function createProxyService({ load, save, status, validateApply, apply, stop, checkSite, loadFavorites, saveFavorites, currentTarget, preview = false }: ProxyServiceOptions) {
   let config: ConfigState;
   let etag: string;
   let active: ConfigState | null = null;
@@ -88,12 +91,34 @@ export function createProxyService({ load, save, status, validateApply, apply, s
   let queue: Promise<unknown> = Promise.resolve();
   let revision = 0;
   let generation = 0;
+  let cancellationEpoch = 0;
   let lastNotification = '';
   let disposed = false;
   const listeners = new Set<Function>();
   let diagnostics: DiagnosticsSnapshot = {
-    configRevision: preview?'preview:0':'http:0', favorites: defaultFavorites(), observations: [], statistics: {}, activeRun: null
+    configRevision: preview?'preview:0':'http:0', favorites: migrateFavorites(defaultFavorites(), false), observations: [], statistics: {}, activeRun: null
   };
+  let favoritesEtag: string | null = null;
+  async function readFavorites() {
+    if (!loadFavorites) return;
+    const loaded = await loadFavorites();
+    assertLive();
+    if (!loaded || typeof loaded.etag !== 'string' || !loaded.etag)
+      fail('E_OUTCOME_UNKNOWN', 'Diagnostic favorites read not confirmed');
+    const next = migrateFavorites(loaded.favorites, false);
+    if (JSON.stringify(next) !== JSON.stringify(diagnostics.favorites)) invalidate();
+    diagnostics.favorites = next; favoritesEtag = loaded.etag;
+  }
+  async function persistFavorites(next: DiagnosticSite[]) {
+    if (saveFavorites) {
+      if (!favoritesEtag) fail('E_CONFLICT', 'Read diagnostic favorites before saving');
+      const previous = favoritesEtag; favoritesEtag = null;
+      await saveFavorites(clone(next), previous);
+      assertLive();
+      await readFavorites();
+    } else diagnostics.favorites = next;
+    invalidate();
+  }
   let usage: UsageSnapshot = {
     settings: { enabled: false, enabledAt: null, topLimit: 5, sort: 'smart', ignored: [] },
     permissionGranted: false, sites: [], retentionDays: 30, maxSites: 200
@@ -111,6 +136,15 @@ export function createProxyService({ load, save, status, validateApply, apply, s
     diagnostics.configRevision = `${preview?'preview':'http'}:${++revision}`;
     diagnostics.observations = [];
     diagnostics.statistics = {};
+  }
+  function cancelDiagnostics() {
+    cancellationEpoch++; generation++;
+    diagnostics.activeRun = null;
+    notify();
+  }
+  function assertDiagnosticRequest(epoch: number) {
+    assertLive();
+    if (epoch !== cancellationEpoch) fail('E_CANCELLED', 'Diagnostic request cancelled');
   }
   async function read() {
     assertLive();
@@ -218,7 +252,7 @@ export function createProxyService({ load, save, status, validateApply, apply, s
   }
   function previewOnly() { if (!preview) fail('E_NOT_CONNECTED', 'E_NOT_CONNECTED: this capability has no connected runtime'); }
 
-  async function dispatch(message: Request): Promise<ServiceResponse> {
+  async function dispatch(message: Request, requestEpoch: number): Promise<ServiceResponse> {
     if (message.type === 'STOP') {
       assertLive();
       if (stopFinalizationPending) {
@@ -477,35 +511,50 @@ export function createProxyService({ load, save, status, validateApply, apply, s
         next.sites = []; usage = next;
         return { ok: true, state: view(), usage: clone(usage), preview };
       }
-      case 'GET_DIAGNOSTICS': case 'RUN_DIAGNOSTICS': case 'CANCEL_DIAGNOSTICS':
+      case 'GET_DIAGNOSTICS': case 'RUN_DIAGNOSTICS': case 'RUN_CURRENT_DIAGNOSTIC': case 'CANCEL_DIAGNOSTICS':
       case 'SAVE_DIAGNOSTIC_SITE': case 'REMOVE_DIAGNOSTIC_SITE': case 'MOVE_DIAGNOSTIC_SITE': {
-        const httpAction=['GET_DIAGNOSTICS','RUN_DIAGNOSTICS','CANCEL_DIAGNOSTICS'].includes(message.type);
-        if(!httpAction || !checkSite)previewOnly();
+        if (!preview && !checkSite) previewOnly();
+        const favoriteWrite = ['SAVE_DIAGNOSTIC_SITE','REMOVE_DIAGNOSTIC_SITE','MOVE_DIAGNOSTIC_SITE'].includes(message.type);
+        if (!preview && favoriteWrite && !saveFavorites) previewOnly();
+        if (message.type === 'GET_DIAGNOSTICS' || (loadFavorites && favoritesEtag === null &&
+            !['CANCEL_DIAGNOSTICS','RUN_CURRENT_DIAGNOSTIC'].includes(message.type))) await readFavorites();
         if (message.type === 'SAVE_DIAGNOSTIC_SITE') {
           if (!['P0', 'P1'].includes(message.priority) || (message.name !== undefined && typeof message.name !== 'string')) throw new Error('Invalid diagnostic site');
           const site = siteForDomain(message.domain, message.priority, message.name);
           if (!site) throw new Error('Invalid diagnostic domain');
           if (!diagnostics.favorites.some(row => row.id === site.id) && diagnostics.favorites.length >= MAX_FAVORITES) throw new Error('Too many diagnostic favorites');
-          diagnostics.favorites = upsert(diagnostics.favorites, { ...site, provenance: 'user', pinnedByUser: message.priority === 'P0' });
-          invalidate();
+          await persistFavorites(upsert(diagnostics.favorites, { ...site, provenance: 'user', pinnedByUser: message.priority === 'P0' }));
         } else if (message.type === 'REMOVE_DIAGNOSTIC_SITE') {
-          diagnostics.favorites = diagnostics.favorites.filter(row => row.id !== message.id); invalidate();
+          await persistFavorites(diagnostics.favorites.filter(row => row.id !== message.id));
         } else if (message.type === 'MOVE_DIAGNOSTIC_SITE') {
           if (!['up', 'down'].includes(message.direction)) throw new Error('Invalid diagnostic direction');
-          const from = diagnostics.favorites.findIndex(row => row.id === message.id);
+          const next = prioritizeFavorites(clone(diagnostics.favorites));
+          const from = next.findIndex(row => row.id === message.id);
           const to = from + (message.direction === 'up' ? -1 : 1);
-          if (from >= 0 && to >= 0 && to < diagnostics.favorites.length)
-            [diagnostics.favorites[from], diagnostics.favorites[to]] = [diagnostics.favorites[to]!, diagnostics.favorites[from]!];
-          invalidate();
+          if (from >= 0 && to >= 0 && to < next.length && favoriteGroup(next[from]!) === favoriteGroup(next[to]!))
+            [next[from], next[to]] = [next[to]!, next[from]!];
+          await persistFavorites(next);
         } else if (message.type === 'CANCEL_DIAGNOSTICS') {
           // The SDK has no AbortSignal contract. Invalidate this run and stop
           // subsequent requests; do not claim to retract the in-flight GET.
-          generation++; diagnostics.activeRun = null;
-        } else if (message.type === 'RUN_DIAGNOSTICS') {
+          // Already invalidated synchronously when request() received cancel.
+        } else if (message.type === 'RUN_DIAGNOSTICS' || message.type === 'RUN_CURRENT_DIAGNOSTIC') {
+          assertDiagnosticRequest(requestEpoch);
           if (diagnostics.activeRun)fail('E_BUSY','A diagnostic run is already active');
-          if (!Array.isArray(message.siteIds) || !message.siteIds.length || message.siteIds.length > MAX_FAVORITES ||
-              message.siteIds.some(id => !diagnosticUrl(id))) throw new Error('Invalid diagnostic selection');
-          const ids = [...new Set(message.siteIds)];
+          let ids: string[];
+          if (message.type === 'RUN_CURRENT_DIAGNOSTIC') {
+            const expected = safePublicDomain(message.expectedDomain);
+            if (!expected || expected !== message.expectedDomain || !currentTarget)
+              fail('E_INVALID_ARGUMENT', 'Invalid current diagnostic target');
+            const current = await currentTarget(); assertDiagnosticRequest(requestEpoch);
+            if (current !== expected) fail('E_CONFLICT', 'Current website changed; refresh target before retrying');
+            ids = ['current:' + expected];
+          } else {
+            if (!Array.isArray(message.siteIds) || !message.siteIds.length || message.siteIds.length > MAX_FAVORITES ||
+                message.siteIds.some(id => !diagnosticUrl(id) || (!aiSite(id) && id !== PUBLIC_HTTPS_CHECK.id &&
+                  !diagnostics.favorites.some(site => site.id === id)))) throw new Error('Invalid diagnostic selection');
+            ids = [...new Set(message.siteIds)];
+          }
           const runGeneration = ++generation;
           const runRevision = diagnostics.configRevision;
           const live=()=>!disposed && generation===runGeneration && diagnostics.configRevision===runRevision;
@@ -517,8 +566,8 @@ export function createProxyService({ load, save, status, validateApply, apply, s
               if(!live())return;
               const result:HttpCheck=checkSite?await checkSite(id).catch(()=>({kind:'network_error' as const,httpStatus:null,elapsedMs:null})):{kind:'network_error',httpStatus:null,elapsedMs:null};
               if(!live())return;
-              const site=aiSite(id)??PUBLIC_HTTPS_CHECK;
-              const observation={...result,siteId:id,domain:site.domain,checkedAt:Date.now(),
+              const domain = aiSite(id)?.domain ?? (id === PUBLIC_HTTPS_CHECK.id ? PUBLIC_HTTPS_CHECK.domain : id.slice(id.indexOf(':') + 1));
+              const observation={...result,siteId:id,domain,checkedAt:Date.now(),
                 configRevision:runRevision,scope:'extension-http-only' as const};
               diagnostics.observations=[observation,...diagnostics.observations].slice(0,100);
               diagnostics.statistics[id]=statistics(diagnostics.observations.filter(item=>item.siteId===id));
@@ -546,8 +595,10 @@ export function createProxyService({ load, save, status, validateApply, apply, s
         if (!input || typeof input !== 'object' || Array.isArray(input) || !('type' in input) || typeof input.type !== 'string') throw new Error('消息格式不正确');
         message = clone(input) as Request;
       } catch (error) { return { ok: false, error: error instanceof Error ? error.message : '消息格式不正确', errorCode: 'errBadMessage' }; }
+      if (message.type === 'CANCEL_DIAGNOSTICS') cancelDiagnostics();
+      const requestEpoch = cancellationEpoch;
       return serial(async () => {
-        try { const response = await dispatch(message); assertLive(); notify(); return response; }
+        try { const response = await dispatch(message, requestEpoch); assertLive(); notify(); return response; }
         catch (error) {
           assertLive();
           const detail = error instanceof Error ? error.message : '发生未知错误';

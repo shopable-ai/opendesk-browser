@@ -15,9 +15,15 @@ const {code:statusCode}=await transform(statusSource,{loader:'tsx',format:'cjs',
 const logicModule={exports:{}};
 runInNewContext((await transform(await readFile(new URL('../src/diagnostics/logic.ts',import.meta.url),'utf8'),{loader:'ts',format:'cjs'})).code,
   {module:logicModule,exports:logicModule.exports});
+const favoritesModule={exports:{}};
+runInNewContext((await transform(await readFile(new URL('../src/diagnostics/favorites.ts',import.meta.url),'utf8'),{loader:'ts',format:'cjs'})).code,
+  {module:favoritesModule,exports:favoritesModule.exports,require:()=>({})});
 function render({preview=false,httpDiagnostics=false,panel='ai',busy=false,config:configPatch={},runtime={},presentation='sidebar',snapshot=null,
-  language=null,currentSite=async()=>({status:'available',host:'current.example'})}={}){
-  const calls=[],buttons=[],routes=[],slots=[],effects=[],routeListeners=new Set(),siteListeners=new Set();
+  language=null,dispatch=null,currentSite=async()=>({status:'available',host:'current.example',diagnosticDomain:'current.example',diagnosticReason:null})}={}){
+  const calls=[],commands=[],nodes=[],buttons=[],routes=[],slots=[],effects=[],routeListeners=new Set(),siteListeners=new Set();
+  const intervals=new Map();let intervalId=0;
+  const setInterval=(fn,delay)=>{intervals.set(++intervalId,{fn,delay});return intervalId;};
+  const clearInterval=id=>intervals.delete(id);
   let diagnosisInput,route=`#/diagnostic/${panel}`,cursor=0,html,siteReads=0,unmounted=false,lateUpdates=0;
   const navigation={getRoute:()=>route,subscribe:fn=>{routeListeners.add(fn);return()=>routeListeners.delete(fn);}};
   const noopEvents={addListener(){},removeListener(){}};
@@ -37,22 +43,25 @@ function render({preview=false,httpDiagnostics=false,panel='ai',busy=false,confi
     useRef(initial){const index=cursor++;return slots[index]??={current:initial};},
     useEffect(fn,deps){const index=cursor++,previous=effects[index];
       if(!previous||!deps||deps.some((value,i)=>value!==previous.deps?.[i]))effects[index]={fn,deps,pending:true,cleanup:previous?.cleanup};},useMemo:callback=>callback(),
-    useCallback:callback=>callback};
+    useCallback(callback,deps){const index=cursor++,previous=slots[index];
+      if(!previous||deps.some((value,i)=>value!==previous.deps[i]))slots[index]={callback,deps};
+      return slots[index].callback;}};
   const translate=(key,values)=>language?Object.entries(values??{}).reduce((text,[name,value])=>text.replaceAll('{'+name+'}',String(value)),translations[language][key]??key):key+(values ? ':'+Object.values(values).join('|') : '');
   const statusModule={exports:{}};
   const statusRequire=name=>{
     if(name==='react')return hooks;
-    if(name==='react/jsx-runtime')return jsxRuntime;
+    if(name==='react/jsx-runtime')return {...jsxRuntime,jsx:(type,props,key)=>{nodes.push({type,...props});return jsxRuntime.jsx(type,props,key);},jsxs:(type,props,key)=>{nodes.push({type,...props});return jsxRuntime.jsxs(type,props,key);}};
     if(name==='../i18n/LocaleProvider')return {useI18n:()=>({locale:'en',t:translate})};
     if(name==='../i18n/errors')return {localizedBackendError:(_locale,error)=>error};
     throw Error('Unhandled Status dependency '+name);
   };
   runInNewContext(statusCode,{exports:statusModule.exports,module:statusModule,require:statusRequire});
   runInNewContext(code,{exports:module.exports,module,
-    window:{setInterval:()=>0,clearInterval(){},addEventListener(){},removeEventListener(){}},
+    setInterval,clearInterval,
+    window:{setInterval,clearInterval,addEventListener(){},removeEventListener(){}},
     document:{addEventListener(){},removeEventListener(){}},require(name){
     if(name==='react')return hooks;
-    if(name==='react/jsx-runtime')return jsxRuntime;
+    if(name==='react/jsx-runtime')return {...jsxRuntime,jsx:(type,props,key)=>{nodes.push({type,...props});return jsxRuntime.jsx(type,props,key);},jsxs:(type,props,key)=>{nodes.push({type,...props});return jsxRuntime.jsxs(type,props,key);}};
     if(name==='../environment')return {getEnvironment:()=>env};
     if(name==='@opendesk/ui')return {Button:React.forwardRef(({children,variant,...props},ref)=>
       {
@@ -60,24 +69,25 @@ function render({preview=false,httpDiagnostics=false,panel='ai',busy=false,confi
         return React.createElement('button',{...props,ref},children);
       })};
     if(name==='../i18n/LocaleProvider')return {useI18n:()=>({locale:'en',t:translate})};
-    if(name==='../domain/messages')return {request:async()=>{calls.push('request');return {ok:false,error:'E_NOT_CONNECTED'}}};
+    if(name==='../domain/messages')return {request:async command=>{commands.push(command);if(dispatch)return dispatch(command);calls.push('request');return {ok:false,error:'E_NOT_CONNECTED'}}};
     if(name==='../diagnostics/catalog')return {AI_SITES:[{id:'chatgpt',name:'ChatGPT',domain:'chatgpt.com'}],PUBLIC_HTTPS_CHECK:{id:'public-https',name:'Cloudflare HTTPS',domain:'www.cloudflare.com'}};
     if(name==='../diagnostics/logic')return {...logicModule.exports,diagnosisCodes:input=>{diagnosisInput=input;return ['limited_evidence'];}};
     if(name==='./Status')return statusModule.exports;
-    if(name==='./ProxyEntry')return {ClearableInput:()=>React.createElement('input')};
-    if(name==='./UsageControls')return {UsageControls:()=>React.createElement('span',null,'simulated-usage'),UsageOverview:()=>null};
+    if(name==='./ProxyEntry')return {ClearableInput:props=>React.createElement('input',{'aria-label':props.fieldLabel,value:props.value,onChange:event=>props.onValueChange(event.target.value)})};
+    if(name==='../diagnostics/favorites')return favoritesModule.exports;
     if(name==='./optionsRoute')return {
       diagnosticHash:name=>`#/diagnostic/${name}`,
       parseDiagnosticHash:route=>route.split('/').at(-1)};
     throw Error('Unhandled dependency '+name);
   }});
-  function rerender(){cursor=0;buttons.length=0;
+  function rerender(){cursor=0;buttons.length=0;nodes.length=0;
     html=renderToStaticMarkup(React.createElement(module.exports.DiagnosticsPage,{
       state,busy,presentation,onRefresh:async()=>calls.push('refresh'),
       onProbe:async()=>calls.push('probe'),onStop:async()=>calls.push('stop'),onProfiles:()=>calls.push('profiles')}));return html;}
   function flushEffects(){for(const effect of effects)if(effect?.pending){effect.pending=false;effect.cleanup?.();effect.cleanup=effect.fn();}}
   rerender();
-  return {get html(){return html;},calls,buttons,routes,rerender,flushEffects,
+  return {get html(){return html;},calls,commands,nodes,buttons,routes,rerender,flushEffects,
+    poll(){let count=0;for(const timer of intervals.values())if(timer.delay===650){timer.fn();count++;}return count;},
     pageChanged(){for(const fn of [...siteListeners])void fn();},
     unmount(){unmounted=true;for(const effect of effects)effect?.cleanup?.();},
     get siteReads(){return siteReads;},get siteListeners(){return siteListeners.size;},
@@ -254,9 +264,9 @@ test('management current-site checks remain disabled with an explanation and no 
   for(const preview of [false,true]){
     const result=render({presentation:'management',panel:'overview',preview});
     const check=button(result,'pcDiagCheckCurrent');
-    assert.equal(check.disabled,true);assert.equal(check.onClick,undefined);
-    assert.equal(check['aria-describedby'],'current-site-check-unavailable');
-    assert.match(result.html,/<p[^>]*id="current-site-check-unavailable"[^>]*>pcDiagCurrentUnavailable<\/p>/);
+    assert.equal(check.disabled,true);
+    assert.equal(check['aria-describedby'],'current-site-check-help');
+    assert.match(result.html,/<p[^>]*id="current-site-check-help"[^>]*>(?:pcDiagCurrentUnavailable|diagCurrentUnavailable)<\/p>/);
     assert.match(result.html,/pcDiagModel<\/small><strong>notTested<\/strong>/);
     assert.deepEqual(result.calls,[]);
   }
@@ -313,9 +323,9 @@ test('management current-site reads are display-only, ignore superseded results 
   result.pageChanged();assert.equal(result.siteReads,4);assert.deepEqual(result.calls,[]);
 });
 
-test('sidebar presentation does not read or subscribe to management current-site context',()=>{
+test('sidebar also reads and subscribes to display-only current-site context',()=>{
   const result=render({panel:'overview'});result.flushEffects();
-  assert.equal(result.siteReads,0);assert.equal(result.siteListeners,0);assert.deepEqual(result.calls,[]);result.unmount();
+  assert.equal(result.siteReads,1);assert.equal(result.siteListeners,1);assert.deepEqual(result.calls,[]);result.unmount();
 });
 
 test('management favorite count excludes non-favorites, duplicate observations and stale revisions',()=>{
@@ -329,12 +339,13 @@ test('management favorite count excludes non-favorites, duplicate observations a
   assert.deepEqual(result.calls,[]);
 });
 
-test('live HTTP checks are explicit while preview usage and favorite writes stay unavailable',async()=>{
+test('live HTTP checks and favorite writes are explicit while usage stays unavailable',async()=>{
  const ai=render({httpDiagnostics:true,panel:'ai'});
  assert.match(ai.html,/diagLiveBoundary/);
  assert.match(ai.html,/diagLiveChecksHelp/);
  assert.equal(button(ai,'diagTestOne').disabled,false);
- assert.match(ai.html,/<button[^>]*disabled=""[^>]*aria-label="diagAddFavorite"/);
+ const loaded=render({httpDiagnostics:true,panel:'ai',snapshot:{favorites:[],observations:[],statistics:{},activeRun:null}});
+ assert.equal(loaded.buttons.find(item=>item['aria-label']==='diagAddFavorite').disabled,false);
  assert.deepEqual(ai.calls,[], 'render does not send network requests');
  const basic=render({httpDiagnostics:true,panel:'proxy'});
  assert.equal(button(basic,'diagPublicHttps').disabled,false);
@@ -355,4 +366,152 @@ test('translated live evidence is neutral while preview results retain an explic
   const timing=render({httpDiagnostics:true,panel:'speed',language,snapshot}).html;
   assert.doesNotMatch(timing.match(/<h3>([^<]+)<\/h3>/)?.[1]??'',/模拟|模擬|Simulated/);
  }
+});
+
+const tick=()=>new Promise(resolve=>setImmediate(resolve));
+const emptySnapshot=()=>({configRevision:'r',favorites:[],observations:[],statistics:{},activeRun:null});
+const favorite=(domain,priority='P1',provenance='user')=>({id:'custom:'+domain,domain,name:domain,priority,provenance,pinnedByUser:priority==='P0',kind:'custom'});
+const node=(result,predicate)=>{const value=result.nodes.find(predicate);assert.ok(value,'missing rendered control');return value;};
+
+test('all 30 persisted favorites remain accessible in stable groups without any usage calls',async()=>{
+ const data=emptySnapshot();data.favorites=Array.from({length:30},(_,i)=>favorite(`site${i}.example`,i%3===0?'P0':'P1'));
+ const result=render({panel:'top',httpDiagnostics:true,dispatch:async()=>({ok:true,diagnostics:data})});
+ result.flushEffects();await tick();result.rerender();
+ const order=[...result.html.matchAll(/data-site-id="([^"]+)"/g)].map(item=>item[1]);
+ assert.deepEqual(order,Array.from(favoritesModule.exports.prioritizeFavorites(data.favorites),item=>item.id));
+ assert.equal(order.length,30);assert.equal(button(result,'diagSaveSite').disabled,true);
+ assert.equal(button(result,'diagCheckSaved').disabled,false);
+ assert.ok(result.commands.every(item=>item.type==='GET_DIAGNOSTICS'));
+ assert.doesNotMatch(result.html,/usage-controls|usage-toggle|simulated-usage/);result.unmount();
+});
+
+test('favorite form, priority, moves, removal and single/batch checks use explicit persisted requests',async()=>{
+ let data=emptySnapshot();data.favorites=[favorite('first.example','P0'),favorite('second.example','P0'),favorite('last.example')];
+ const result=render({panel:'top',httpDiagnostics:true,snapshot:data,dispatch:async command=>{
+  if(command.type==='SAVE_DIAGNOSTIC_SITE'){
+   const old=data.favorites.find(item=>item.domain===command.domain);
+   data={...data,favorites:old?data.favorites.map(item=>item===old?{...item,priority:command.priority,pinnedByUser:command.priority==='P0'}:item):[...data.favorites,favorite(command.domain,command.priority)]};
+  } else if(command.type==='REMOVE_DIAGNOSTIC_SITE')data={...data,favorites:data.favorites.filter(item=>item.id!==command.id)};
+  else if(command.type==='MOVE_DIAGNOSTIC_SITE'){
+   const list=[...data.favorites],i=list.findIndex(item=>item.id===command.id),j=i+(command.direction==='up'?-1:1);
+   [list[i],list[j]]=[list[j],list[i]];data={...data,favorites:list};
+  }
+  return {ok:true,diagnostics:data};
+ }});
+ assert.deepEqual(result.commands,[]);
+ node(result,item=>item.id==='diag-add-domain').onValueChange('new.example');result.rerender();
+ await node(result,item=>item.type==='form').onSubmit({preventDefault(){}});await tick();result.rerender();
+ assert.equal(result.commands.at(-1).type,'SAVE_DIAGNOSTIC_SITE');assert.match(result.html,/new.example/);
+ const move=result.buttons.find(item=>item['aria-label']==='usageMoveUpFor:second.example');assert.equal(move.disabled,false);await move.onClick();await tick();result.rerender();
+ assert.equal([...result.html.matchAll(/data-site-id="([^"]+)"/g)][0][1],'custom:second.example');
+ await node(result,item=>item.type==='select'&&item['aria-label']==='diagPriorityFor:last.example').onChange({target:{value:'P0'}});await tick();result.rerender();
+ assert.equal(data.favorites.find(item=>item.domain==='last.example').priority,'P0');
+ await button(result,'diagTestOne').onClick();await tick();result.rerender();
+ assert.equal(result.commands.at(-1).type,'RUN_DIAGNOSTICS');assert.equal(result.commands.at(-1).siteIds.length,1);
+ await button(result,'diagCheckSaved').onClick();await tick();result.rerender();
+ assert.deepEqual([...result.commands.at(-1).siteIds],Array.from(favoritesModule.exports.prioritizeFavorites(data.favorites),item=>item.id));
+ await result.buttons.find(item=>item['aria-label']==='usageRemoveFor:new.example').onClick();await tick();result.rerender();
+ assert.doesNotMatch(result.html,/data-site-id="custom:new.example"/);result.unmount();
+});
+
+test('GET failure is visible and retry restores saved sites without probing',async()=>{
+ let fail=true;const data=emptySnapshot();data.favorites=[favorite('saved.example')];
+ const result=render({panel:'top',httpDiagnostics:true,dispatch:async()=>fail?{ok:false,error:'denied'}:{ok:true,diagnostics:data}});
+ result.flushEffects();await tick();result.rerender();assert.match(result.html,/role="alert"[^>]*><p>diagLoadFailed/);
+ fail=false;await button(result,'usageRetry').onClick();await tick();result.rerender();
+ assert.doesNotMatch(result.html,/diagLoadFailed/);assert.match(result.html,/saved.example/);
+ assert.ok(result.commands.every(item=>item.type==='GET_DIAGNOSTICS'));result.unmount();
+});
+
+test('current website safe root is display-only on both surfaces until explicit check',async()=>{
+ for(const presentation of ['management','sidebar']){
+  const result=render({panel:'overview',presentation,httpDiagnostics:true,dispatch:async command=>{
+   const data=emptySnapshot();if(command.type==='RUN_CURRENT_DIAGNOSTIC')data.observations=[{siteId:'current:current.example',domain:'current.example',configRevision:'r',checkedAt:Date.now(),kind:'http_ok',httpStatus:200,elapsedMs:8}];
+   return {ok:true,diagnostics:data};
+  }});
+  result.flushEffects();await tick();result.rerender();assert.match(result.html,/https:\/\/current.example\//);
+  assert.equal(button(result,'pcDiagCheckCurrent').disabled,false);
+  assert.ok(result.commands.every(item=>item.type==='GET_DIAGNOSTICS'));
+  await button(result,'pcDiagCheckCurrent').onClick();await tick();result.rerender();
+  assert.deepEqual(JSON.parse(JSON.stringify(result.commands.at(-1))),{type:'RUN_CURRENT_DIAGNOSTIC',expectedDomain:'current.example'});
+  assert.match(result.html,/HTTP 200/);result.unmount();
+ }
+});
+
+test('unsafe or unavailable current contexts have a reason and cannot dispatch a current check',async()=>{
+ for(const reason of ['unavailable','https-required','public-host-required']){
+  const result=render({panel:'overview',httpDiagnostics:true,currentSite:async()=>({status:'available',host:'display.example',diagnosticDomain:null,diagnosticReason:reason}),dispatch:async()=>({ok:true,diagnostics:emptySnapshot()})});
+  result.flushEffects();await tick();result.rerender();assert.equal(button(result,'pcDiagCheckCurrent').disabled,true);
+  assert.match(result.html,new RegExp(reason==='https-required'?'diagCurrentHttpsRequired':reason==='public-host-required'?'diagCurrentPublicRequired':'diagCurrentUnavailable'));
+  button(result,'pcDiagCheckCurrent').onClick();await tick();assert.ok(result.commands.every(item=>item.type==='GET_DIAGNOSTICS'));result.unmount();
+ }
+});
+test('current result appears after the active run completes through polling',async()=>{
+ let snapshot={...emptySnapshot(),observations:[{siteId:'current:current.example',domain:'current.example',configRevision:'r',checkedAt:Date.now()-1000,kind:'http_ok',httpStatus:200,elapsedMs:8}]};
+ const result=render({panel:'overview',httpDiagnostics:true,dispatch:async command=>{
+  if(command.type==='RUN_CURRENT_DIAGNOSTIC')snapshot={...snapshot,activeRun:{startedAt:Date.now(),completed:0,total:1}};
+  return {ok:true,diagnostics:snapshot};
+ }});
+ result.flushEffects();await tick();result.rerender();
+ button(result,'pcDiagCheckCurrent').onClick();await tick();result.rerender();result.flushEffects();
+ assert.doesNotMatch(result.html,/HTTP 200/);
+ snapshot={...snapshot,activeRun:null,observations:[{siteId:'current:current.example',domain:'current.example',configRevision:'r',checkedAt:Date.now(),kind:'http_ok',httpStatus:200,elapsedMs:8}]};
+ assert.equal(result.poll(),1);await tick();result.rerender();assert.match(result.html,/HTTP 200/);result.unmount();
+});
+
+test('page change clears the target immediately and drops late current checks even on the same domain',async()=>{
+ let finish,resolveSite,reads=0;
+ const result=render({panel:'overview',httpDiagnostics:true,currentSite:()=>++reads===1?Promise.resolve({status:'available',host:'same.example',diagnosticDomain:'same.example',diagnosticReason:null}):new Promise(resolve=>{resolveSite=resolve;}),dispatch:command=>command.type==='RUN_CURRENT_DIAGNOSTIC'?new Promise(resolve=>{finish=resolve;}):Promise.resolve({ok:true,diagnostics:emptySnapshot()})});
+ result.flushEffects();await tick();result.rerender();button(result,'pcDiagCheckCurrent').onClick();
+ result.pageChanged();result.rerender();assert.doesNotMatch(result.html,/https:\/\/same.example/);assert.equal(button(result,'pcDiagCheckCurrent').disabled,true);
+ resolveSite({status:'available',host:'same.example',diagnosticDomain:'same.example',diagnosticReason:null});await tick();
+ const data=emptySnapshot();data.observations=[{siteId:'current:same.example',domain:'same.example',configRevision:'r',checkedAt:Date.now(),kind:'http_ok',httpStatus:200,elapsedMs:1}];
+ finish({ok:true,diagnostics:data});await tick();result.rerender();assert.doesNotMatch(result.html,/HTTP 200/);result.unmount();assert.equal(result.lateUpdates,0);
+});
+
+test('cancel supersedes a pending run, and unmount ignores late command and GET replies',async()=>{
+ let finish;
+ const result=render({panel:'ai',httpDiagnostics:true,snapshot:emptySnapshot(),dispatch:command=>command.type==='RUN_DIAGNOSTICS'?new Promise(resolve=>{finish=resolve;}):Promise.resolve({ok:true,diagnostics:emptySnapshot()})});
+ button(result,'diagTestOne').onClick();result.rerender();await button(result,'diagCancel').onClick();await tick();
+ const data=emptySnapshot();data.observations=[{siteId:'chatgpt',configRevision:'r',checkedAt:Date.now(),kind:'http_ok',httpStatus:200,elapsedMs:1}];
+ finish({ok:true,diagnostics:data});await tick();result.rerender();assert.doesNotMatch(result.html,/HTTP 200/);result.unmount();
+ const pending=[];const late=render({panel:'top',httpDiagnostics:true,dispatch:command=>command.type==='GET_DIAGNOSTICS'?new Promise(resolve=>pending.push(resolve)):Promise.resolve({ok:true})});
+ late.flushEffects();late.unmount();for(const resolve of pending)resolve({ok:true,diagnostics:data});await tick();assert.equal(late.lateUpdates,0);
+});
+
+test('GET replies older than an explicit favorite save cannot overwrite its persisted receipt',async()=>{
+ const pending=[],data=emptySnapshot();data.favorites=[favorite('saved.example')];
+ const result=render({panel:'ai',httpDiagnostics:true,snapshot:emptySnapshot(),dispatch:command=>command.type==='GET_DIAGNOSTICS'
+  ?new Promise(resolve=>pending.push(resolve)):Promise.resolve({ok:true,diagnostics:data})});
+ result.flushEffects();
+ await result.buttons.find(item=>item['aria-label']==='diagAddFavorite').onClick();await tick();result.rerender();
+ assert.equal(result.buttons.find(item=>item['aria-label']==='diagAddFavorite').disabled,false);
+ // Navigate via the real tab handler to inspect the saved list.
+ result.buttons.find(item=>item.id==='diagnostic-tab-top').onClick();result.rerender();assert.match(result.html,/saved.example/);
+ for(const resolve of pending)resolve({ok:true,diagnostics:emptySnapshot()});await tick();result.rerender();
+ assert.match(result.html,/saved.example/);assert.doesNotMatch(result.html,/diagLoadFailed/);result.unmount();
+});
+
+test('cancel invalidates old GET observations as well as the pending run response',async()=>{
+ const pending=[],data=emptySnapshot();let finish;
+ const result=render({panel:'proxy',httpDiagnostics:true,snapshot:data,dispatch:command=>{
+  if(command.type==='GET_DIAGNOSTICS')return new Promise(resolve=>pending.push(resolve));
+  if(command.type==='RUN_DIAGNOSTICS')return new Promise(resolve=>{finish=resolve;});
+  return Promise.resolve({ok:true,diagnostics:data});
+ }});
+ result.flushEffects();button(result,'diagPublicHttps').onClick();result.rerender();
+ await button(result,'diagCancel').onClick();await tick();
+ const old={...data,observations:[{siteId:'public-https',configRevision:'r',checkedAt:Date.now(),kind:'http_ok',httpStatus:200,elapsedMs:1}]};
+ for(const resolve of pending)resolve({ok:true,diagnostics:old});finish({ok:true,diagnostics:old});await tick();result.rerender();
+ assert.doesNotMatch(result.html,/HTTP 200/);result.unmount();
+});
+
+test('favorite failure stays visible, duplicate writes are locked, and late writes after unmount do not update',async()=>{
+ let finish,count=0;
+ const result=render({panel:'ai',httpDiagnostics:true,snapshot:emptySnapshot(),dispatch:command=>{if(command.type!=='SAVE_DIAGNOSTIC_SITE')return Promise.resolve({ok:true,diagnostics:emptySnapshot()});count++;return new Promise(resolve=>{finish=resolve;});}});
+ result.flushEffects();await tick();result.rerender();
+ const save=result.buttons.find(item=>item['aria-label']==='diagAddFavorite');save.onClick();save.onClick();
+ assert.equal(count,1);result.rerender();assert.equal(result.buttons.find(item=>item['aria-label']==='diagAddFavorite').disabled,true);
+ finish({ok:false,error:'storage failed'});await tick();result.rerender();assert.match(result.html,/role="alert">diagOperationFailed/);
+ result.buttons.find(item=>item['aria-label']==='diagAddFavorite').onClick();result.unmount();finish({ok:true,diagnostics:emptySnapshot()});await tick();assert.equal(result.lateUpdates,0);
 });

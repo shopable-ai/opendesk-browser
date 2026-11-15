@@ -26,6 +26,7 @@ export type Request = (
   | { type: 'PROBE' }
   | { type: 'GET_DIAGNOSTICS' }
   | { type: 'RUN_DIAGNOSTICS'; siteIds: string[] }
+  | { type: 'RUN_CURRENT_DIAGNOSTIC'; expectedDomain: string }
   | { type: 'CANCEL_DIAGNOSTICS' }
   | { type: 'SAVE_DIAGNOSTIC_SITE'; domain: string; priority: SitePriority; name?: string }
   | { type: 'REMOVE_DIAGNOSTIC_SITE'; id: string }

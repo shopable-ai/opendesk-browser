@@ -2,12 +2,12 @@ import { AI_SITES, defaultFavorites, siteForDomain } from './catalog';
 import type { DiagnosticSite, SitePriority } from './types';
 
 export const MAX_FAVORITES = 30;
+export const favoriteGroup = (site: DiagnosticSite) => site.pinnedByUser === true ||
+  (site.pinnedByUser === undefined && site.priority === 'P0') ? 0 :
+  !site.provenance || site.provenance === 'user' ? 1 : 2;
 /** Diagnostic favorites remain usable when optional usage statistics fail. */
 export function prioritizeFavorites(favorites: DiagnosticSite[]): DiagnosticSite[] {
-  const group = (site: DiagnosticSite) => site.pinnedByUser === true ||
-    (site.pinnedByUser === undefined && site.priority === 'P0') ? 0 :
-    !site.provenance || site.provenance === 'user' ? 1 : 2;
-  return [...favorites].sort((a, b) => group(a) - group(b));
+  return [...favorites].sort((a, b) => favoriteGroup(a) - favoriteGroup(b));
 }
 
 /** Only an exact, unedited factory list is identifiable as cold-start defaults. */

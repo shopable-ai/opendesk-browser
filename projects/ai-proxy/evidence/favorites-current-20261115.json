@@ -1,0 +1,142 @@
+{
+  "date": "2026-11-15",
+  "timezone": "Asia/Shanghai",
+  "owner": "01a1df61-734b-7bd1-9467-61656901dbcf",
+  "phase": "core development; no production acceptance",
+  "branch": "main",
+  "ownership": {
+    "business": "projects/ai-proxy/",
+    "frameworkFilesChanged": [],
+    "publicApi": [
+      "storage.get/set with ETag",
+      "currentPage.info",
+      "browser.network.request"
+    ],
+    "newCapabilities": false
+  },
+  "formalPackage": {
+    "version": "0.3.29",
+    "bytes": 714839,
+    "sha256": "ada76f57e27b0d114ef2f3f9d22fff5a29bd02572f55e4b29ef4cecd3937c81c",
+    "validated": true,
+    "sourceMatch": "PROJECT_PACKAGE_MATCH",
+    "candidateTestedBeforePromotion": true,
+    "installed": false
+  },
+  "implementation": {
+    "favorites": "At most 30 persisted entries; P0/P1, same-group stable moves, add/remove; GET does not send HTTP",
+    "http": "Explicit saved custom hosts and builtins only; cookie-free bounded SDK GET; HTTPS root for custom/current; status and elapsed time only; local 10s wait plus SDK deadline; at most 100 memory-only observations",
+    "current": "Display only from original currentPage.info; drop credentials, path, query and fragment; revalidate canonical expected public hostname immediately before run; deny unsafe or unknown contexts",
+    "cancel": "Synchronous token invalidation before mutation queue or storage awaits; current target preparation also checks cancellation epoch; late GET results ignored and no next site sent",
+    "dnsLimit": "Public hostname syntax is checked; DNS answer safety and DNS rebinding protection have not been attested",
+    "authority": "Original Host/installation/capability/Chrome permission chain retained; no custom privilege bridge"
+  },
+  "runtime": {
+    "browser": "ego lite shared Profile, TaskSpace 120",
+    "extensionId": "ccfcjegpkdlgbclopjmadlcjedelidmf",
+    "output": "dist/development",
+    "sharedWriterPidAtObservation": 56750,
+    "writerStartedOrKilled": false,
+    "installedVersion": "0.3.28",
+    "nativeUpgrade": "NOT_TESTED; CUA initialization timed out twice, supported desktop connector returned UNAVAILABLE/429",
+    "nativeSidePanel": "NOT_TESTED; native control unavailable",
+    "debugAppliedRevision": "NOT_READ; native debug surface unavailable",
+    "finalServedResource": {
+      "bytes": 3064448,
+      "sha256": "9ba0dade8786fdceddcfcf8c684592bc4af20be9592e030a9baafd34d51610d2",
+      "matchesDisk": true,
+      "newUnavailableLabelObserved": true,
+      "limit": "Development fixed code execution plus installed 0.3.28 identity; not installation of 0.3.29 or production acceptance"
+    }
+  },
+  "realUi": {
+    "surface": "Original installed AI Proxy management App using updated fixed trusted development code and installed 0.3.28 identity",
+    "add": "PASS; www.example.org and www.iana.org through normal save buttons",
+    "http": {
+      "host": "www.example.org",
+      "status": 200,
+      "elapsedMs": 542,
+      "scope": "extension-http-only"
+    },
+    "move": "PASS; www.iana.org moved before www.example.org within P0 group",
+    "reopen": "PASS; both custom hosts and moved order read after reload",
+    "priority": "PASS; IANA P1 and example P0 reflected in grouped order",
+    "remove": "PASS; temporary favorites removed with original UI buttons",
+    "all30": "Node UI runtime PASS; not filled with 30 real user records",
+    "currentWebsite": "Management App has no eligible webpage; original unavailable reason displayed and action disabled. Successful public-page current HTTP covered by runtime adapter fixture, not a real native sidepanel call Final corrected unavailable label observed on the final served resource.",
+    "batch": "Node runtime and UI handler PASS; not an additional real network batch",
+    "customHttpLineage": "Observed before the final unavailable-label-only correction; final UI runtime suite rerun after that correction"
+  },
+  "cleanup": {
+    "temporaryFavoritesRemoved": true,
+    "remainingFavorites": [
+      "chatgpt",
+      "claude",
+      "gemini",
+      "perplexity",
+      "grok"
+    ],
+    "originalThreeKeysDigest": "ed2b97e6aee620d4acc967bb55ed24db8ccdfd01b9c284f04005e53a0dcc4a23",
+    "originalThreeKeysMatchBaseline": true,
+    "newMetadataKey": "aiProxy.diagnostics.favorites.v2; five unchanged builtin defaults persisted by normal UI",
+    "fullNamespaceByteIdentical": false,
+    "directStorageOrProxyWritesFromBrowserDriver": false,
+    "nativeUiLockReleased": true,
+    "taskSpaceReleased": true,
+    "finalOriginalDataDigest": "ed2b97e6aee620d4acc967bb55ed24db8ccdfd01b9c284f04005e53a0dcc4a23",
+    "proxyAtFinalObservation": {
+      "levelOfControl": "controllable_by_this_extension",
+      "value": {
+        "mode": "system"
+      }
+    }
+  },
+  "validation": [
+    {
+      "command": "node --test projects/ai-proxy/tests/favorite-http-runtime.test.mjs projects/ai-proxy/tests/network-diagnostics.test.mjs projects/ai-proxy/tests/environment-runtime.test.mjs projects/ai-proxy/tests/service.test.mjs projects/ai-proxy/tests/diagnostics-ui-runtime.test.mjs",
+      "result": "184/184 PASS"
+    },
+    {
+      "command": "node --test projects/ai-proxy/tests/diagnostics-ui-runtime.test.mjs after final unavailable-label correction",
+      "result": "32/32 PASS; same UI suite rerun, not extra cases"
+    },
+    {
+      "command": "node --test projects/ai-proxy/tests/trusted-admission.test.mjs",
+      "result": "4/4 PASS"
+    },
+    {
+      "command": "node --test --test-name-pattern=\"trusted AI Proxy checks nested CSS|trusted AI Proxy rejects missing CSS\" tests/environment/bundle-provenance.test.mjs",
+      "result": "2/2 PASS"
+    },
+    {
+      "command": "node --test --test-name-pattern=\"tool contract is independent|portable Sidebar Tool builds|promotion rejects\" tests/environment/sidebar-tools.test.mjs",
+      "result": "3/3 PASS"
+    },
+    {
+      "command": "npm --prefix projects/ai-proxy run build",
+      "result": "PASS"
+    },
+    {
+      "command": "verifyTrustedAIProxySources()",
+      "result": "PASS"
+    },
+    {
+      "command": "original build-sidebar-tool candidate, --promote-from, --check-project",
+      "result": "PASS; final candidate frozen after all source edits, intermediate unpublished promotions were reverted to the untouched 0.3.28 baseline before final promotion"
+    }
+  ],
+  "review": {
+    "independentBackend": "One blocking cancellation race reported; fixed synchronous invalidation and added delayed-storage and current-target-preparation regressions",
+    "remainingBlockingFindings": 0
+  },
+  "notTested": [
+    "0.3.29 original native importer upgrade",
+    "Real native sidepanel current-page success/change and per-request traffic-level cancellation",
+    "Real Chrome permission revocation, forced timeout/disconnection",
+    "DNS resolution or rebinding safety",
+    "AI login/model invocation, tab/device egress, usage history, exit IP or throughput",
+    "Production candidate, full CI, browser matrix, 95+ scoring",
+    "Standalone TypeScript typecheck; targeted runtime tests and Vite used"
+  ],
+  "privateEvidenceDirectory": "artifacts/ai-proxy/favorites-current-20261115/"
+}

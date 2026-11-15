@@ -11,7 +11,7 @@ import { diagnosisCodes, observationIsCurrent, type DiagnosisCode } from '../dia
 import type { CheckKind, DiagnosticSite, DiagnosticsSnapshot, HttpObservation, SitePriority } from '../diagnostics/types';
 import { Status, statusLabelKey } from './Status';
 import { ClearableInput } from './ProxyEntry';
-import { UsageControls, UsageOverview } from './UsageControls';
+import { prioritizeFavorites, favoriteGroup, MAX_FAVORITES } from '../diagnostics/favorites';
 import { diagnosticHash, parseDiagnosticHash, type DiagnosticSection } from './optionsRoute';
 
 type Panel = DiagnosticSection;
@@ -66,19 +66,41 @@ export function DiagnosticsPage({ state, busy, onRefresh, onStop, onProfiles, pr
     return unsubscribe;
   }, [navigation]);
   const [siteHost,setSiteHost]=useState('');
+  const [currentDomain,setCurrentDomain]=useState('');
+  const [currentReason,setCurrentReason]=useState<string | null>('unavailable');
+  const [currentObservation,setCurrentObservation]=useState<HttpObservation | undefined>(undefined);
+  const pageGeneration=useRef(0);
+  const currentTarget=useRef('');
+  const currentCheckStarted=useRef<number | null>(null);
   useEffect(()=>{
-    if(!management)return;
-    const env=getEnvironment();let active=true,revision=0;
-    const read=async()=>{const current=++revision;try{const info=await env.currentSite();if(active&&current===revision)setSiteHost(info.status==='available'?info.host:'');}catch{if(active&&current===revision)setSiteHost('');}};
+    const env=getEnvironment();let mounted=true;
+    const read=async()=>{
+      const generation=++pageGeneration.current;
+      currentTarget.current='';setSiteHost('');setCurrentDomain('');
+      currentCheckStarted.current=null;
+      setCurrentReason('unavailable');setCurrentObservation(undefined);
+      try {
+        const info=await env.currentSite();
+        if(!mounted||generation!==pageGeneration.current)return;
+        setSiteHost(info.status==='available'?info.host:'');
+        const domain=info.status==='available'?info.diagnosticDomain:null;
+        currentTarget.current=domain??'';setCurrentDomain(domain??'');
+        setCurrentReason(info.diagnosticReason??'unavailable');
+      } catch { /* The target was already cleared before this read. */ }
+    };
     void read();env.events.addEventListener('ai-proxy-page-changed',read);
-    return()=>{active=false;revision++;env.events.removeEventListener('ai-proxy-page-changed',read);};
-  },[management]);
+    return()=>{mounted=false;pageGeneration.current++;currentTarget.current='';env.events.removeEventListener('ai-proxy-page-changed',read);};
+  },[]);
   const [snapshot, setSnapshot] = useState<DiagnosticsSnapshot | null>(null);
   const [now, setNow] = useState(() => Date.now());
   const [selectedIds, setSelectedIds] = useState<string[]>(AI_SITES.slice(0, 5).map(s => s.id));
   const [running, setRunning] = useState(false);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState('');
+  const [loadError,setLoadError]=useState(false);
+  const operationGeneration=useRef(0);
+  const mutationPending=useRef(false);
+  const runPending=useRef(false);
   const [domain, setDomain] = useState('');
   const [priority, setPriority] = useState<SitePriority>('P0');
   const active = useRef(true);
@@ -86,7 +108,7 @@ export function DiagnosticsPage({ state, busy, onRefresh, onStop, onProfiles, pr
   useEffect(()=>{
     active.current=true;
     return()=>{
-      active.current=false;readGeneration.current++;
+      active.current=false;readGeneration.current++;operationGeneration.current++;
       if(httpDiagnostics)void request({type:'CANCEL_DIAGNOSTICS'}).catch(()=>{});
     };
   },[httpDiagnostics]);
@@ -106,8 +128,13 @@ export function DiagnosticsPage({ state, busy, onRefresh, onStop, onProfiles, pr
     if (!httpDiagnostics) { setSnapshot(null); return; }
     try {
       const result = await request({ type: 'GET_DIAGNOSTICS' });
-      if (active.current && token===readGeneration.current && result.ok && result.diagnostics) setSnapshot(result.diagnostics);
-    } catch { /* Last completed evidence is kept with its revision marker. */ }
+      if (!active.current || token!==readGeneration.current) return;
+      if (!result.ok || !result.diagnostics) {setLoadError(true);return;}
+      setSnapshot(result.diagnostics);setLoadError(false);
+      const observation=result.diagnostics.observations.find(item=>item.siteId==='current:'+currentTarget.current);
+      setCurrentObservation(currentCheckStarted.current!==null&&observation&&observation.checkedAt>=currentCheckStarted.current&&
+        observationIsCurrent(observation,result.diagnostics.configRevision,Date.now())?observation:undefined);
+    } catch { if(active.current&&token===readGeneration.current)setLoadError(true); }
   }, [httpDiagnostics]);
   useEffect(() => { void load(); }, [load]);
   useEffect(() => {
@@ -163,37 +190,52 @@ export function DiagnosticsPage({ state, busy, onRefresh, onStop, onProfiles, pr
   // context digest is read; never reuse an old success as a new route's result.
   useEffect(() => { setSnapshot(null); void load(); }, [state.config, state.runtime.control, state.runtime.applied, load]);
 
-  const submit = useCallback(async (command: Request): Promise<boolean> => {
-    if (!httpDiagnostics || (!simulatedDiagnostics && !['RUN_DIAGNOSTICS','CANCEL_DIAGNOSTICS'].includes(command.type))) { setError(t('diagProductionUnavailable')); return false; }
+  const submit = useCallback(async (command: Request, page?: number): Promise<boolean> => {
+    if (!httpDiagnostics) { setError(t('diagProductionUnavailable')); return false; }
+    const mutation=['SAVE_DIAGNOSTIC_SITE','REMOVE_DIAGNOSTIC_SITE','MOVE_DIAGNOSTIC_SITE'].includes(command.type);
+    if(mutation&&(mutationPending.current||runPending.current||busy||snapshot?.activeRun))return false;
+    if(mutation){mutationPending.current=true;setSaving(true);}
+    const token=++operationGeneration.current;
+    readGeneration.current++;
+    const valid=()=>active.current&&token===operationGeneration.current&&(page===undefined||page===pageGeneration.current);
     try {
       const result = await request(command);
-      if(!active.current)return false;
+      if(!valid())return false;
       if (!result.ok) { setError(result.error.includes('Invalid public HTTPS domain')
         ? t('diagInvalidDomain') : t('diagOperationFailed')); return false; }
-      if (result.diagnostics) setSnapshot(result.diagnostics);
-      setError('');
-      return true;
-    } catch { if(active.current)setError(t('diagBackgroundUnavailable')); return false; }
-  }, [httpDiagnostics, simulatedDiagnostics, t]);
-  async function test(ids: string[]) {
-    if (!httpDiagnostics || running || snapshot?.activeRun || !ids.length) return;
-    setRunning(true);
-    setError('');
-    try { await submit({ type: 'RUN_DIAGNOSTICS', siteIds: ids }); }
-    finally { if(active.current){setRunning(false);void load();} }
+      if (result.diagnostics) {
+        readGeneration.current++;
+        setSnapshot(result.diagnostics);
+        if(page!==undefined){
+          const observation=result.diagnostics.observations.find(item=>item.siteId==='current:'+currentTarget.current);
+          setCurrentObservation(!result.diagnostics.activeRun&&currentCheckStarted.current!==null&&observation&&
+            observation.checkedAt>=currentCheckStarted.current&&observationIsCurrent(observation,result.diagnostics.configRevision,Date.now())?observation:undefined);
+        }
+      } else await load();
+      if(valid())setError('');
+      return valid();
+    } catch { if(valid())setError(t('diagBackgroundUnavailable')); return false; }
+    finally {if(mutation){mutationPending.current=false;if(active.current)setSaving(false);}}
+  }, [httpDiagnostics, t, load, busy, snapshot?.activeRun]);
+  async function test(ids: string[], currentPage = false) {
+    if (!httpDiagnostics || busy || runPending.current || mutationPending.current || snapshot?.activeRun || !ids.length || !ids[0]) return;
+    const page=pageGeneration.current;
+    if(currentPage&&ids[0]!==currentTarget.current)return;
+    if(currentPage){currentCheckStarted.current=Date.now();setCurrentObservation(undefined);}
+    runPending.current=true;setRunning(true);setError('');
+    try { await submit(currentPage
+      ? {type:'RUN_CURRENT_DIAGNOSTIC',expectedDomain:ids[0]!}
+      : {type:'RUN_DIAGNOSTICS',siteIds:ids},currentPage?page:undefined); }
+    finally {runPending.current=false;if(active.current)setRunning(false);}
   }
   async function save(event: FormEvent) {
     const revision=getEnvironment().getDraftRevision('diagnostic-site');
     event.preventDefault();
-    setSaving(true);
-    try {
-      if (await submit({ type: 'SAVE_DIAGNOSTIC_SITE', domain: domain.trim(), priority }) && getEnvironment().setDraftDirty(false,'diagnostic-site',revision)) setDomain('');
-    } finally { setSaving(false); }
+    if(!httpDiagnostics||locked||saving||!snapshot||favorites.length>=MAX_FAVORITES)return;
+    if (await submit({ type: 'SAVE_DIAGNOSTIC_SITE', domain: domain.trim(), priority }) && active.current &&
+      getEnvironment().setDraftDirty(false,'diagnostic-site',revision)) setDomain('');
   }
-  const favorites = useMemo(() => [...(snapshot?.favorites ?? [])].sort((a, b) =>
-    Number(a.priority === 'P1') - Number(b.priority === 'P1') ||
-    // A user-specified work domain must never disappear behind the five built-in AI defaults.
-    Number(a.kind === 'ai') - Number(b.kind === 'ai')), [snapshot?.favorites]);
+  const favorites = useMemo(() => prioritizeFavorites(snapshot?.favorites ?? []), [snapshot?.favorites]);
   const current = useMemo(() => {
     const seen = new Set<string>();
     const checkedNow = Date.now();
@@ -222,10 +264,10 @@ export function DiagnosticsPage({ state, busy, onRefresh, onStop, onProfiles, pr
     // Never blame the desired local client when Chrome did not apply that route.
     localEndpoint: selectionApplied && !!localEndpoint, results: current
   });
-  const locked = running || !!snapshot?.activeRun;
+  const locked = busy || running || !!snapshot?.activeRun;
   const latestObservation = (id: string) => latestFor(id, snapshot);
-  const renderResult = (site: Pick<DiagnosticSite,'id'|'domain'|'name'>) => {
-    const result = latestObservation(site.id);
+  const renderResult = (site: Pick<DiagnosticSite,'id'|'domain'|'name'>, currentSite = false) => {
+    const result = currentSite ? currentObservation : latestObservation(site.id);
     // The page may have been open before this request completed. Never compare
     // a fresh network observation against an older time cached at mount.
     const stale = !!result && (!snapshot ||
@@ -240,6 +282,17 @@ export function DiagnosticsPage({ state, busy, onRefresh, onStop, onProfiles, pr
           }).format(result.checkedAt)}</small></>}
     </div>;
   };
+  const currentSiteCard = <article className="diagnosticFeature diagnosticCurrentSite">
+    <div className="diagnosticCardHeading"><small>{t('currentWebsite')}</small></div>
+    <h3>{t('pcDiagCurrentTitle')}</h3>
+    <strong className="diagnosticHost">{currentDomain?'https://'+currentDomain+'/':siteHost||t('apSiteUnavailable')}</strong>
+    {currentDomain&&renderResult({id:'current:'+currentDomain,domain:currentDomain,name:currentDomain},true)}
+    <p className="hint" id="current-site-check-help">{t(!httpDiagnostics?'pcDiagCurrentUnavailable':currentDomain?'diagCurrentSafeHelp':
+      currentReason==='https-required'?'diagCurrentHttpsRequired':currentReason==='public-host-required'?'diagCurrentPublicRequired':'diagCurrentUnavailable')}</p>
+    <div className="actions"><Button variant="primary" className="primary" disabled={!httpDiagnostics||!currentDomain||locked||saving}
+      aria-describedby="current-site-check-help" onClick={()=>void test([currentDomain],true)}>{t('pcDiagCheckCurrent')}</Button>
+      <Button onClick={()=>openPanel('proxy')}>{t('pcDiagProxySettings')}</Button></div>
+  </article>;
   return <>
     <header className="diagnosticLead" data-presentation={presentation}>
       <div className="diagnosticLeadMain">
@@ -265,8 +318,8 @@ export function DiagnosticsPage({ state, busy, onRefresh, onStop, onProfiles, pr
           ? t('controlledByAnotherExtension2') : t('controlNotConfirmed')}</strong>
         <small>Chrome Proxy API</small></div>
       {management?<>
-        <div><small>{t('pcDiagFavoriteTests')}</small><strong>{simulatedDiagnostics?`${current.filter(result=>favorites.some(site=>site.id===result.siteId)).length} / ${favorites.length}`:t('notTested')}</strong></div>
-        <div><small>{t('pcDiagCurrentResponse')}</small><strong>{t('notTested')}</strong><small>{siteHost||t('notAvailable')}</small></div>
+        <div><small>{t('pcDiagFavoriteTests')}</small><strong>{httpDiagnostics?`${current.filter(result=>favorites.some(site=>site.id===result.siteId)).length} / ${favorites.length}`:t('notTested')}</strong></div>
+        <div><small>{t('pcDiagCurrentResponse')}</small><strong>{currentObservation&&snapshot&&observationIsCurrent(currentObservation,snapshot.configRevision,now)?currentObservation.httpStatus??t(statusKeys[currentObservation.kind]):t('notTested')}</strong><small>{currentDomain?'https://'+currentDomain+'/':siteHost||t('apSiteUnavailable')}</small></div>
         <div><small>{t('pcDiagModel')}</small><strong>{t('notTested')}</strong></div>
       </>:<>      <div><small>{t('configurationStatus')}</small><strong>{t(statusLabelKey(state.runtime))}</strong>
         <small>{t('doesNotProveReachability')}</small></div>
@@ -302,6 +355,8 @@ export function DiagnosticsPage({ state, busy, onRefresh, onStop, onProfiles, pr
         onClick={() => setPanel(id)}>{management ? <><span className="diagnosticTabGlyph" aria-hidden="true">{({overview:'⌂',ai:'◉',top:'☆',speed:'↗',proxy:'≡'} as const)[id]}</span>{label}</> : label}</Button>)}
     </div>
     {!simulatedDiagnostics && <p className="diagnosticRuntimeNotice" role="status">{t(httpDiagnostics?'diagLiveBoundary':'diagProductionUnavailable')}</p>}
+    {simulatedDiagnostics && <p className="diagnosticRuntimeNotice" role="status">{t('diagPreviewOnly')}</p>}
+    {loadError && <div className="notice error" role="alert"><p>{t('diagLoadFailed')}</p><Button onClick={()=>void load()}>{t('usageRetry')}</Button></div>}
     {error && <p className="notice error" role="alert">{error}</p>}
     {locked && <div className="diagnosticRunProgress" role="status">
       <span>{t('diagRunning')} · {snapshot?.activeRun
@@ -311,14 +366,7 @@ export function DiagnosticsPage({ state, busy, onRefresh, onStop, onProfiles, pr
     <section ref={panelContent} id="diagnostic-panel" role="tabpanel" tabIndex={0} aria-labelledby={'diagnostic-tab-' + panel} className="diagnosticPanel">
       {panel === 'overview' && management && <div className="diagnosticOverviewManagement">
         <div className="diagnosticOverviewCards">
-          <article className="diagnosticFeature diagnosticCurrentSite">
-            <div className="diagnosticCardHeading"><small>{t('currentWebsite')}</small><span className="diagnosticCornerBadge">{t('currentWebsite')}</span></div><h3>{t('pcDiagCurrentTitle')}</h3>
-            <strong className="diagnosticHost">{siteHost||t('notAvailable')}</strong>
-            <p>{t('selected')}: {state.config.selection.mode==='profile'?selectedProfile?.name??t('noProfileSelected'):t(modeKeys[state.config.selection.mode])}</p>
-            <div className="diagnosticReading"><strong>{t('notTested')}</strong><small>{t('diagModelVerification')}</small></div>
-            <div className="actions"><Button variant="primary" className="primary" disabled aria-describedby="current-site-check-unavailable">{t('pcDiagCheckCurrent')}</Button><Button onClick={()=>openPanel('proxy')}>{t('pcDiagProxySettings')}</Button></div>
-            <p className="hint" id="current-site-check-unavailable">{t('pcDiagCurrentUnavailable')}</p>
-          </article>
+          {currentSiteCard}
           <article className="diagnosticFeature diagnosticAiSummary">
             <div className="diagnosticCardHeading"><small>{t('aiSites')}</small><span className="diagnosticCornerBadge">{AI_SITES.length} · {t('aiSites')}</span></div><h3>{t('pcDiagAiTitle')}</h3><p>{t('pcDiagAiHelp')}</p>
             <div className="diagnosticQuickSites">{AI_SITES.slice(0,3).map(site=><div className="diagnosticQuickSite" key={site.id}><span className="diagnosticSiteGlyph" aria-hidden="true">{site.name[0]}</span><div><strong>{site.name}</strong>{renderResult(site)}</div></div>)}</div>
@@ -326,11 +374,12 @@ export function DiagnosticsPage({ state, busy, onRefresh, onStop, onProfiles, pr
           </article>
         </div>
         <div className="diagnosticOverviewShortcuts">
-          <article><span className="diagnosticShortcutGlyph" aria-hidden="true">☆</span><div><small>{t('pcDiagFavorites')}</small><h3>{t('prioritySitesTop510')}</h3><p>{simulatedDiagnostics?t('diagFavoritesCount',{count:favorites.length}):t('notAvailable')}</p></div><Button data-testid="usage-manage" onClick={()=>openPanel('top')}>{t('pcDiagView')}</Button></article>
+          <article><span className="diagnosticShortcutGlyph" aria-hidden="true">☆</span><div><small>{t('pcDiagFavorites')}</small><h3>{t('prioritySitesTop510')}</h3><p>{httpDiagnostics?t('diagFavoritesCount',{count:favorites.length}):t('notAvailable')}</p></div><Button data-testid="usage-manage" onClick={()=>openPanel('top')}>{t('pcDiagView')}</Button></article>
           <article><span className="diagnosticShortcutGlyph" aria-hidden="true">↗</span><div><small>{t('connectionSpeed')}</small><h3>{t('pcDiagQuality')}</h3><p>{t(httpDiagnostics?'diagHttpTiming':'diagSpeedNotConnected')}</p></div><Button onClick={()=>openPanel('speed')}>{t('pcDiagTest')}</Button></article>
         </div>
       </div>}
       {panel === 'overview' && !management && <div className={'diagnosticOverview' + (management ? ' diagnosticOverviewManagement' : simulatedDiagnostics ? '' : ' diagnosticOverviewRuntime')}>
+        {currentSiteCard}
         <article className={'diagnosticFeature' + (simulatedDiagnostics ? '' : ' diagnosticFeaturePrimary')}>
           <small>{t(simulatedDiagnostics ? 'selected' : 'proxyControl')}</small>
           <h3>{simulatedDiagnostics ? (state.config.selection.mode === 'profile'
@@ -361,8 +410,7 @@ export function DiagnosticsPage({ state, busy, onRefresh, onStop, onProfiles, pr
         </article>
         <article className={'diagnosticFeature' + (simulatedDiagnostics ? '' : ' diagnosticFeatureSecondary')}>
           <small>{t('customTargets')}</small><h3>{t('prioritySitesTop510')}</h3>
-          <p>{simulatedDiagnostics ? t('diagFavoritesCount', {count: favorites.length}) : t('notAvailable')}</p>
-          {simulatedDiagnostics && <UsageOverview />}
+          <p>{httpDiagnostics ? t('diagFavoritesCount', {count: favorites.length}) : t('notAvailable')}</p>
           <Button variant="secondary" data-testid="usage-manage" onClick={() => openPanel('top')}>{t('usageManage')}</Button>
         </article>
         <article className={'diagnosticFeature' + (simulatedDiagnostics ? '' : ' diagnosticFeatureSecondary')}>
@@ -390,7 +438,7 @@ export function DiagnosticsPage({ state, busy, onRefresh, onStop, onProfiles, pr
             {renderResult(site)}
             <div className="diagnosticSiteActions">
               <Button variant="secondary" disabled={!httpDiagnostics || locked} onClick={() => void test([site.id])}>{t('diagTestOne')}</Button>
-              <Button variant="secondary" disabled={!simulatedDiagnostics || saving} onClick={() => void submit(favorite
+              <Button variant="secondary" disabled={!httpDiagnostics || locked || saving || !snapshot} onClick={() => void submit(favorite
                 ? {type:'REMOVE_DIAGNOSTIC_SITE',id:site.id}
                 : {type:'SAVE_DIAGNOSTIC_SITE',domain:site.domain,priority:'P1'})}
                 aria-label={favorite ? t('diagRemoveFavorite') : t('diagAddFavorite')}>
@@ -401,20 +449,37 @@ export function DiagnosticsPage({ state, busy, onRefresh, onStop, onProfiles, pr
         <p className="hint">{t(simulatedDiagnostics ? 'diagExtensionEvidence' : 'diagEvidenceBoundary')}</p>
       </div>}
       {panel === 'top' && <div className="diagnosticSection">
-        {simulatedDiagnostics ? <UsageControls favorites={snapshot?.favorites ?? []} locked={locked} saving={saving}
-          submit={submit} test={test} renderResult={renderResult}>
-          <form data-draft-scope="diagnostic-site" className="diagnosticAddSite" onSubmit={e => void save(e)}>
-            <label htmlFor="diag-add-domain">{t('diagAddDomain')}</label>
-            <ClearableInput id="diag-add-domain" fieldLabel={t('diagAddDomain')} value={domain} onValueChange={setDomain}
-              placeholder="example.org" required maxLength={253} autoComplete="off"/>
-            <select value={priority} onChange={e => setPriority(e.target.value as SitePriority)}
-              aria-label={t('diagPriority')}><option value="P0">P0</option><option value="P1">P1</option></select>
-            <Button type="submit" disabled={saving}>{t('diagSaveSite')}</Button>
-          </form>
-          <p className="hint">{t('diagCustomManualOnly')}</p>
-        </UsageControls> : <div className="diagnosticUnavailable" role="status">
-          <h3>{t('prioritySitesTop510')}</h3><p>{t('notAvailable')}</p>
-        </div>}
+        <div className="diagnosticSectionHead"><div><h3>{t('pcDiagFavorites')}</h3><p className="hint">{t('diagTopHelp')}</p></div>
+          <Button disabled={!httpDiagnostics||locked||saving||!favorites.length} onClick={()=>void test(favorites.map(site=>site.id))}>{t('diagCheckSaved')}</Button></div>
+        <form data-draft-scope="diagnostic-site" className="diagnosticAddSite" onSubmit={e=>void save(e)}>
+          <label htmlFor="diag-add-domain">{t('diagAddDomain')}</label>
+          <ClearableInput id="diag-add-domain" fieldLabel={t('diagAddDomain')} value={domain} onValueChange={setDomain}
+            placeholder="example.org" required maxLength={253} autoComplete="off" disabled={!httpDiagnostics||saving||!snapshot}/>
+          <select value={priority} onChange={e=>setPriority(e.target.value as SitePriority)} aria-label={t('diagPriority')} disabled={!httpDiagnostics||saving||!snapshot}>
+            <option value="P0">P0</option><option value="P1">P1</option></select>
+          <Button type="submit" disabled={!httpDiagnostics||locked||saving||!snapshot||favorites.length>=MAX_FAVORITES}>{t('diagSaveSite')}</Button>
+        </form>
+        <p className="hint">{t('diagCustomManualOnly')}</p>
+        <p role="status">{t('diagFavoritesCapacity',{count:favorites.length,limit:MAX_FAVORITES})}</p>
+        <div className="diagnosticSiteList">{favorites.map((site,index)=>{
+          return <article className="diagnosticSite" key={site.id} data-site-id={site.id}>
+            <div className="diagnosticSiteName"><strong>{site.name}</strong><small>{'https://'+site.domain+'/'}</small></div>
+            {renderResult(site)}
+            <div className="diagnosticSiteActions">
+              <select value={site.priority} disabled={!httpDiagnostics||locked||saving} aria-label={t('diagPriorityFor',{site:site.name})}
+                onChange={e=>void submit({type:'SAVE_DIAGNOSTIC_SITE',domain:site.domain,name:site.name,priority:e.target.value as SitePriority})}>
+                <option value="P0">P0</option><option value="P1">P1</option></select>
+              <Button disabled={!httpDiagnostics||locked||saving||index===0||favoriteGroup(favorites[index-1]!)!==favoriteGroup(site)} aria-label={t('usageMoveUpFor',{site:site.name})}
+                onClick={()=>void submit({type:'MOVE_DIAGNOSTIC_SITE',id:site.id,direction:'up'})}>{t('usageMoveUp')}</Button>
+              <Button disabled={!httpDiagnostics||locked||saving||index===favorites.length-1||favoriteGroup(favorites[index+1]!)!==favoriteGroup(site)} aria-label={t('usageMoveDownFor',{site:site.name})}
+                onClick={()=>void submit({type:'MOVE_DIAGNOSTIC_SITE',id:site.id,direction:'down'})}>{t('usageMoveDown')}</Button>
+              <Button disabled={!httpDiagnostics||locked||saving} onClick={()=>void test([site.id])}>{t('diagTestOne')}</Button>
+              <Button disabled={!httpDiagnostics||locked||saving} aria-label={t('usageRemoveFor',{site:site.name})}
+                onClick={()=>void submit({type:'REMOVE_DIAGNOSTIC_SITE',id:site.id})}>{t('diagRemoveFavorite')}</Button>
+            </div>
+          </article>;
+        })}</div>
+        {httpDiagnostics&&snapshot&&!favorites.length&&<p className="hint">{t('diagNoFavorites')}</p>}
       </div>}
 
       {panel === 'speed' && <div className="diagnosticSection">

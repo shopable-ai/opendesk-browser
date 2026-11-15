@@ -33,7 +33,7 @@ export function safePublicDomain(raw: string): string | null {
     !/^[a-z0-9](?:[a-z0-9-]*[a-z0-9])?$/.test(s))) return null;
   const tld = labels.at(-1)!;
   if (!/^[a-z]{2,63}$/.test(tld) ||
-    ['localhost','local','internal','invalid','test','lan','onion','home','arpa','example'].includes(tld) ||
+    ['localhost','local','internal','invalid','test','lan','onion','home','intranet','arpa','example'].includes(tld) ||
     domain.endsWith('.home.arpa')) return null;
   // The URL parser validates punycode/IDNA without fetching or retaining a URL.
   try { if (new URL('https://' + domain + '/').hostname !== domain) return null; }
@@ -41,11 +41,15 @@ export function safePublicDomain(raw: string): string | null {
   if (labels.every(s => /^\d+$/.test(s))) return null;
   return domain;
 }
-/** Exactly the shipped HTTPS origin is network-probeable, not its redirects or custom hosts. */
+/** Only fixed probes or canonical public hostname IDs; never accept an input URL. */
 export function diagnosticUrl(id: string): string | null {
+  if (typeof id !== 'string') return null;
   if (id === PUBLIC_HTTPS_CHECK.id) return 'https://www.cloudflare.com/cdn-cgi/trace';
   const site = aiSite(id);
-  return site ? 'https://' + site.domain + '/' : null;
+  if (site) return 'https://' + site.domain + '/';
+  const match = /^(?:custom|current):(.+)$/.exec(id);
+  const domain = match && safePublicDomain(match[1]!);
+  return domain && domain === match![1] ? 'https://' + domain + '/' : null;
 }
 export function siteForDomain(domain: string, priority: SitePriority, name?: string): DiagnosticSite | null {
   const safe = safePublicDomain(domain);

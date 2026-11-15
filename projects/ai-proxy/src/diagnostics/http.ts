@@ -12,8 +12,13 @@ export async function checkDiagnosticSite(id:string, request:NetworkRequest):Pro
   const url=diagnosticUrl(id);
   if(!url)throw Object.assign(Error('Unknown diagnostic target'),{code:'E_INVALID_ARGUMENT'});
   const started=performance.now();
+  let timer: ReturnType<typeof setTimeout> | undefined;
   try {
-    const result=await request({method:'GET',url,config:{timeout:10000,responseType:'text'}});
+    // Bound the local wait as well as the SDK. This cannot retract a sent GET.
+    const deadline=new Promise<never>((_resolve,reject)=>{
+      timer=setTimeout(()=>reject(Object.assign(Error('Diagnostic timeout'),{code:'E_TIMEOUT'})),10000);
+    });
+    const result=await Promise.race([request({method:'GET',url,config:{timeout:10000,responseType:'text'}}),deadline]);
     if(!Number.isInteger(result?.status)||result.status<0||result.status>599)
       return {kind:'network_error',httpStatus:null,elapsedMs:null};
     return {kind:result.status===0?'redirect':classifyHttp(result.status),
@@ -24,5 +29,5 @@ export async function checkDiagnosticSite(id:string, request:NetworkRequest):Pro
       :/PERMISSION|CAPABILITY|GESTURE|NETWORK_NOT_SUBMITTED|REVOKED|TOOL_CHANGED/.test(code)?'permission'
       :/LIMIT|TOO_LARGE|QUOTA/.test(code)?'response_limit':code==='E_HTTP'?'http_error':'network_error';
     return {kind,httpStatus:null,elapsedMs:null};
-  }
+  } finally { clearTimeout(timer); }
 }
