@@ -3,7 +3,7 @@ import {checkParamsSchema, validateTaskParams} from '../../platform/tasks/contra
 export const WORKFLOW_FORMAT = 'opendesk.workflow.v1';
 export const WORKFLOW_OPERATIONS = Object.freeze(['navigate','observe','fill','click','wait','extract','assert','confirm']);
 export const WORKFLOW_LOCATORS = Object.freeze(['css','role','label','text','testId']);
-const STEP_FIELDS = new Set(['stepId','op','locatorKind','selector','roleName','param','text','url','timeout','linkGuard']);
+const STEP_FIELDS = new Set(['stepId','op','locatorKind','selector','roleName','param','text','url','timeout','waitUntil','linkGuard']);
 const STEP_ACTIONS = new Set(['fill','click','wait','extract','assert']);
 
 function check(ok, code, message) {
@@ -46,6 +46,9 @@ export function validateWorkflow(value) {
     if (step.timeout !== undefined)
       check(Number.isSafeInteger(step.timeout) && step.timeout >= 100 && step.timeout <= 30000,
         'E_WORKFLOW_SCHEMA', 'Invalid step timeout');
+    if(step.waitUntil!==undefined)
+      check(step.op==='click'&&['load','domcontentloaded'].includes(step.waitUntil),
+        'E_WORKFLOW_SCHEMA','Invalid click navigation readiness');
     if (STEP_ACTIONS.has(step.op)) {
       check(WORKFLOW_LOCATORS.includes(step.locatorKind), 'E_WORKFLOW_SCHEMA', 'Unsupported locator');
       string(step.selector, 512, 'selector', true);

@@ -54,7 +54,7 @@ export function verifiedWorkflowHistory(history=[]) {
     typeof item.request!=='string'||item.request.length>4000||
     item.outcome!=='verified'||typeof item.readbackVerified!=='boolean'||
     !Number.isSafeInteger(item.stepCount)||item.stepCount<0||item.stepCount>32||
-    (item.effectKind!==undefined&&!['input-readback','read-only','search-results','search-empty','search-inline','link-page','product-page'].includes(item.effectKind))||
+    (item.effectKind!==undefined&&!['input-readback','read-only','search-results','search-empty','search-inline','link-page','product-page','ordered-search-results'].includes(item.effectKind))||
     (item.visibleResultLinks!==undefined&&
       (!Number.isSafeInteger(item.visibleResultLinks)||item.visibleResultLinks<0||
        item.visibleResultLinks>24||!['search-results','search-empty'].includes(item.effectKind)))||

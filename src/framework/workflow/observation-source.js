@@ -1,6 +1,8 @@
 // One fixed, bounded read implementation shared by AI planning and compiled workflows.
 // The original RunHost, Locator checks and Document pin remain the execution authority.
-export const WORKFLOW_OBSERVE_FUNCTION=String.raw`async function __observeWorkflowPage(request='') {
+import {WORKFLOW_ORDERED_SEARCH_FUNCTION} from './ordered-search-source.js';
+
+export const WORKFLOW_OBSERVE_FUNCTION=WORKFLOW_ORDERED_SEARCH_FUNCTION+String.raw`async function __observeWorkflowPage(request='') {
   const first=await page.observe({maxDepth:8,maxNodes:48,maxChars:6000});
   const visible=first.nodes.filter(row=>row.state?.visible===true);
   const control=row=>['textbox','searchbox','combobox','button','link'].includes(row.role);
@@ -81,8 +83,9 @@ export const WORKFLOW_OBSERVE_FUNCTION=String.raw`async function __observeWorkfl
   // Leave room for the receipt's Run/Result/hash and Document envelope within
   // the existing 12 KiB send limit. Count UTF-8, including trusted link proof.
   const bytes=value=>new TextEncoder().encode(JSON.stringify(value)).byteLength;
-  while(rows.length&&bytes({nodes:rows,title})>9*1024){rows.pop();truncated=true;}
-  return {...first,nodes:rows,title,truncated};
+  const orderedResults=await __observeWorkflowOrderedSearch(request,first.document);
+  while(rows.length&&bytes({nodes:rows,title,orderedResults})>9*1024){rows.pop();truncated=true;}
+  return {...first,nodes:rows,title,truncated,orderedResults};
 }
 `;
 

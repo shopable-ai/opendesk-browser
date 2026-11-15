@@ -43,9 +43,9 @@ test('T02 organic top three require ordered title and URL evidence absent from g
  const guard=createWorkflowAgentLoopGuard({goal});
  const claim=guard.claim({workflow:proposal([{...fill,text:'OpenDesk Browser GitHub'},search]),target});
  const first=guard.verified({claim,reply:{...successful,effect:{kind:'search-results',visibleResultLinks:3}}});
- assert.equal(first.state,'PARTIAL');
+ assert.equal(first.state,'CONTINUE');
  assert.equal(first.completed,false);
- assert.match(first.reason,/无法证明前三条自然结果的顺序、标题和网址/);
+ assert.match(first.reason,/下一段只读前三条自然结果/);
  assert.ok(first.facts.includes('search-results'));
  const followup=guard.claim({workflow:proposal([{stepId:'readResults',op:'observe'}]),target});
  const afterRead=guard.verified({claim:followup,reply:{ok:true,
@@ -61,7 +61,7 @@ test('quoted reading objects retain the ordered result evidence requirement',()=
   '搜索 camera，读取「前三条自然搜索结果标题和网址」']){
   const guard=createWorkflowAgentLoopGuard({goal});
   const claim=guard.claim({workflow:proposal([fill,search]),target});
-  assert.equal(guard.verified({claim,reply:successful}).state,'PARTIAL',goal);
+  assert.equal(guard.verified({claim,reply:successful}).state,'CONTINUE',goal);
  }
 });
 test('search to detail requires independently verified link and price',()=>{

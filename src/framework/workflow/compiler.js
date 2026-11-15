@@ -79,7 +79,8 @@ export async function compileWorkflow(value,{verifyFill=false,observationRequest
         lines.push('    const __fixed = page.locator('+JSON.stringify(css)+');');
         lines.push('    if ((await __fixed.count()) !== 1) throw new Error("Workflow link is not unique");');
         lines.push('    await page.goto('+JSON.stringify(g.url)+'); }');
-      } else lines.push('  await ' + locator(step) + '.click();');
+      } else lines.push('  await ' + locator(step) + '.click('+
+        (step.waitUntil?JSON.stringify({waitUntil:step.waitUntil,timeout:step.timeout??15000}):'')+');');
     }
     if (step.op === 'wait') lines.push('  await ' + locator(step) +
       '.waitFor({state:"visible",timeout:' + (step.timeout ?? 10000) + '});');

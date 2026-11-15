@@ -2,6 +2,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import {emptyWorkflow} from '../../src/framework/workflow/contract.js';
 import {compileWorkflow} from '../../src/framework/workflow/compiler.js';
+import {createWorkflowAgentLoopGuard} from '../../src/ui/workflow/agent-loop.js';
 import {classifyWorkflowRunRisk,prepareDirectExecution,verifyDirectExecutionReceipt,directExecutionEvidenceLevel,verifyDirectFillReadbacks,verifySearchBusinessEffect,verifySavedWorkflowRevision,verifyOpenedLinkPage} from '../../src/ui/workflow/direct-execution.js';
 const origin='https://example.test';
 const target={windowId:1,tabId:2,frameId:0,documentId:'doc-1',url:origin+'/form',origin};
@@ -43,6 +44,91 @@ test('explicit fill compiles with opt-in readback and retains old source hash',a
   assert.match(now.sourceUtf8,/input-readback/);
   assert.match(now.sourceUtf8,/value:__actual/);
   assert.notEqual(now.sourceHash,old.sourceHash);
+});
+test('explicit search navigation freezes readiness and binds only the matching durable query destination',async()=>{
+  const click={stepId:'search',op:'click',locatorKind:'role',selector:'button',roleName:'搜索',waitUntil:'domcontentloaded',timeout:12000};
+  const w=workflow([{...fill,text:'OpenDesk'},click]);
+  const admitted=prepareDirectExecution({request:'搜索 OpenDesk',workflow:w,target,observation:searchObservation});
+  assert.deepEqual(admitted.searchNavigation,{kind:'search-results-v1',query:'OpenDesk',origin});
+  const frozen=await compileWorkflow(w),plain=await compileWorkflow(workflow([{...click,waitUntil:undefined}]));
+  assert.notEqual(frozen.sourceHash,plain.sourceHash);
+  const calls=[];
+  await new Function('page','params',frozen.sourceUtf8+';return main();')({
+    locator:()=>({fill:async()=>{}}),getByRole:()=>({click:async options=>calls.push(options)})},{});
+  assert.deepEqual(calls,[{waitUntil:'domcontentloaded',timeout:12000}]);
+  const p=proof();p.claim.target={...p.claim.target,targetVersion:1};
+  p.view.run.target={...p.claim.target,documentId:'new-doc',url:origin+'/search?q=OpenDesk&source=hp',targetVersion:2};
+  assert.equal(verifyDirectExecutionReceipt({...p,navigationTarget:admitted.searchNavigation}).runId,'run-1');
+  for(const url of [origin+'/search?q=other','https://evil.test/search?q=OpenDesk']){
+    assert.throws(()=>verifyDirectExecutionReceipt({...p,navigationTarget:admitted.searchNavigation,
+      view:{...p.view,run:{...p.view.run,target:{...p.view.run.target,url}}}}),{code:'E_AI_OUTCOME_UNKNOWN'});
+  }
+  await assert.rejects(compileWorkflow(workflow([{...fill,waitUntil:'load'}])),{code:'E_WORKFLOW_SCHEMA'});
+});
+test('admitted Google homepage search supplies omitted navigation readiness before source and ticket freeze',async()=>{
+  for(const path of ['/', '/webhp?hl=en']){
+    const googleOrigin='https://www.google.com';
+    const googleTarget={...target,origin:googleOrigin,url:googleOrigin+path};
+    const observation={summary:{...searchObservation.summary,origin:googleOrigin}};
+    const w={...workflow([{...fill,text:'OpenDesk'},
+      {stepId:'search',op:'click',locatorKind:'role',selector:'button',roleName:'搜索'}]),siteOrigin:googleOrigin};
+    const original=await compileWorkflow(w,{verifyFill:true});
+    const admitted=prepareDirectExecution({request:'搜索 OpenDesk',workflow:w,target:googleTarget,observation});
+    assert.deepEqual(admitted.searchNavigation,{kind:'search-results-v1',query:'OpenDesk',origin:googleOrigin});
+    // Match the production caller: clone the admitted proposal, compile, then
+    // claim the exact compiled workflow rather than separate navigation hints.
+    const frozen=await compileWorkflow(structuredClone(w),{verifyFill:true});
+    const guard=createWorkflowAgentLoopGuard({goal:'搜索 OpenDesk'});
+    const ticket=guard.claim({workflow:frozen.workflow,target:googleTarget,observation});
+    const click=frozen.workflow.steps.at(-1);
+    assert.equal(click.waitUntil,'domcontentloaded');
+    assert.equal(click.timeout,15000);
+    assert.equal(ticket.steps.at(-1).waitUntil,click.waitUntil);
+    assert.equal(ticket.steps.at(-1).timeout,click.timeout);
+    assert.deepEqual(JSON.parse(ticket.signature)[1].at(-1),
+      (({stepId,...action})=>action)(ticket.steps.at(-1)));
+    assert.notEqual(frozen.sourceHash,original.sourceHash);
+    const calls=[];
+    await new Function('page','params',frozen.sourceUtf8+';return main();')({
+      locator:()=>({fill:async value=>calls.push(['fill',value]),inputValue:async()=> 'OpenDesk'}),
+      getByRole:()=>({click:async options=>calls.push(['click',options])})},{});
+    assert.deepEqual(calls,[['fill','OpenDesk'],['click',{waitUntil:'domcontentloaded',timeout:15000}]]);
+    assert.throws(()=>guard.claim({workflow:frozen.workflow,target:googleTarget,observation}),
+      {code:'E_AGENT_NO_PROGRESS'});
+  }
+});
+test('Google readiness defaults preserve explicit readiness/timeout and only follow successful admission',()=>{
+  const googleOrigin='https://www.google.com';
+  const googleTarget={...target,origin:googleOrigin,url:googleOrigin+'/'};
+  const observation={summary:{...searchObservation.summary,origin:googleOrigin}};
+  for(const fields of [{timeout:12000},{waitUntil:'load'},{waitUntil:'domcontentloaded',timeout:20000}]){
+    const w={...workflow([{...fill,text:'OpenDesk'},
+      {stepId:'search',op:'click',locatorKind:'role',selector:'button',roleName:'搜索',...fields}]),siteOrigin:googleOrigin};
+    prepareDirectExecution({request:'搜索 OpenDesk',workflow:w,target:googleTarget,observation});
+    assert.equal(w.steps.at(-1).waitUntil,fields.waitUntil??'domcontentloaded');
+    assert.equal(w.steps.at(-1).timeout,fields.timeout??15000);
+  }
+  const refused={...workflow([{...fill,text:'OpenDesk'},
+    {stepId:'search',op:'click',locatorKind:'role',selector:'button',roleName:'搜索'}]),siteOrigin:googleOrigin};
+  const before=structuredClone(refused);
+  assert.throws(()=>prepareDirectExecution({request:'搜索 OpenDesk',workflow:refused,target:googleTarget}),
+    {code:'E_AI_REVIEW_REQUIRED'});
+  assert.deepEqual(refused,before);
+});
+test('readiness defaults do not change inline, non-homepage or lookalike searches',async()=>{
+  for(const url of ['https://example.test/', 'https://www.google.com/search?q=prior',
+    'https://www.google.com/other', 'https://www.google.com.evil.test/', 'http://www.google.com/']){
+    const localOrigin=new URL(url).origin;
+    const localTarget={...target,origin:localOrigin,url};
+    const observation={summary:{...searchObservation.summary,origin:localOrigin}};
+    const w={...workflow([{...fill,text:'OpenDesk'},
+      {stepId:'search',op:'click',locatorKind:'role',selector:'button',roleName:'搜索'}]),siteOrigin:localOrigin};
+    const before=await compileWorkflow(w);
+    const admitted=prepareDirectExecution({request:'搜索 OpenDesk',workflow:w,target:localTarget,observation});
+    assert.equal(admitted.searchNavigation,null);
+    assert.equal(w.steps.at(-1).waitUntil,undefined);
+    assert.equal((await compileWorkflow(w)).sourceHash,before.sourceHash);
+  }
 });
 test('reading Google input and search controls does not request fills or clicks',()=>{
   const request='请读取当前 Google 网页，识别搜索输入框和搜索按钮，告诉我它们的作用，不要修改网页。';

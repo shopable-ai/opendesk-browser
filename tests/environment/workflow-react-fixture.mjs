@@ -107,9 +107,9 @@ export async function workflowFixture(options={}) {
       options.afterAction({source,params,target,claim});
       const bytes=source.kind==='draft'?source.sourceUtf8:
         scripts.get(source.scriptId+':'+source.revision)?.sourceUtf8;
-      // Model the real Authority's durable goto handoff. A DOM click never
-      // gains this new-Document binding merely because the fixture navigated.
-      if(bytes?.includes('await page.goto(')&&target.documentId!==claim.target.documentId)
+      // Only explicit navigation operations model an Authority handoff.
+      if((bytes?.includes('await page.goto(')||/\.click\(\{"waitUntil":/.test(bytes))&&
+          target.documentId!==claim.target.documentId)
         snapshot.run.target={...claim.target,documentId:target.documentId,url:target.url,
           allowedOrigin:target.origin,targetVersion:claim.target.targetVersion+1};
       for(const listener of subscriptions.page)listener({...target});
@@ -129,7 +129,7 @@ export async function workflowFixture(options={}) {
     requestWorkflowAI:async method=>method==='ai.connection.read'?{nativeConnected:false,protocolAvailable:false,state:'NATIVE_PERMISSION_REQUIRED'}:
       {state:'DISCONNECTED',readyForTurn:false},...(options.client||{})};
   const currentPageTarget={windowId:7,snapshot:target,ready:Promise.resolve(),capture:()=>({...target}),
-    refresh:async()=>({...target}),
+    refresh:async()=>{options.beforeTargetRefresh?.(target);return {...target};},
     revalidate:async captured=>{if(['windowId','tabId','frameId','documentId','url','origin'].some(key=>captured[key]!==target[key]))throw fail('E_DOCUMENT_STALE','网页已变化');},
     subscribe:fn=>{subscriptions.page.add(fn);return ()=>subscriptions.page.delete(fn);}};
   const taskWorkbench=typeof options.taskWorkbench==='function'?

@@ -1,4 +1,5 @@
 import {validateWorkflow,validateWorkflowParams} from '../../framework/workflow/contract.js';
+import {verifyOrderedSearchResults} from './ordered-search-results.js';
 
 const error=(code,message)=>Object.assign(new Error(message),{code});
 const targetFields=['windowId','tabId','frameId','documentId','url','origin'];
@@ -238,7 +239,22 @@ export function prepareDirectExecution({request,workflow,target,observation,veri
     typeof query==='string'&&query.trim().length>=2&&query.length<=120&&
     /(?:搜索|查找|检索|\bsearch\b)/i.test(instruction)&&searchButton(clicks[0])
       ?{kind:'search-results-v1',query}:null;
-  return {params,hasReadback:fills.length>0,hasUnprovenClick:clicks.length>0,effectExpectation,linkGuard};
+  if(effectExpectation&&url.origin==='https://www.google.com'&&
+    ['/', '/webhp'].includes(url.pathname)) {
+    // A supported Google homepage submit navigates durably even when the
+    // model omits readiness. Only after admission, amend the proposal that
+    // callers clone for compilation AND ticketing; metadata alone cannot
+    // change the executed click. Other (including inline) searches stay opt-in.
+    const click=clicks[0];
+    click.waitUntil??='domcontentloaded';
+    click.timeout??=15000;
+    Object.assign(workflow.steps[clean.steps.indexOf(click)],{
+      waitUntil:click.waitUntil,timeout:click.timeout});
+  }
+  const searchNavigation=effectExpectation&&clicks[0].waitUntil?
+    {...effectExpectation,origin:clean.siteOrigin}:null;
+  return {params,hasReadback:fills.length>0,hasUnprovenClick:clicks.length>0,
+    effectExpectation,linkGuard,searchNavigation};
 }
 
 // A generated fill script compares inputValue() in the same RunHost execution.
@@ -257,7 +273,7 @@ export function verifyDirectFillReadbacks({workflow,params={},values}={}) {
 // This oracle proves only a visible, query-related search-result *state*.
 // It does not prove relevance, server persistence, or an arbitrary click.
 // Both summaries must come from separately verified, read-only RunHost receipts.
-export function verifySearchBusinessEffect({expectation,before,after,actionTarget,resultTarget}={}) {
+export function verifySearchBusinessEffect({expectation,before,after,actionTarget,resultTarget,request}={}) {
   if(expectation?.kind!=='search-results-v1'||typeof expectation.query!=='string')return null;
   const query=expectation.query.trim().toLocaleLowerCase();
   if(query.length<2||query.length>120||!before?.summary||!after?.summary||
@@ -279,6 +295,15 @@ export function verifySearchBusinessEffect({expectation,before,after,actionTarge
   const sameText=value=>typeof value==='string'&&value.trim().toLocaleLowerCase()===query;
   const urlQuery=['q','query','search','keyword','keywords','wd','s','term']
     .some(key=>resultUrl.searchParams.getAll(key).some(sameText));
+  // Deep result links can fall outside the bounded generic semantic tree.
+  // An explicitly requested ordered read has its own exact Document/query
+  // proof, retained locally by the independently verified observer.
+  if(urlQuery&&actionTarget.documentId!==resultTarget.documentId&&after.orderedResults){
+    const ordered=verifyOrderedSearchResults({workflow:{steps:[{stepId:'read',op:'observe'}]},
+      values:{read:{kind:'semantic-dom-summary',document:after.orderedResults.document,
+        orderedResults:after.orderedResults}},target:resultTarget,request});
+    if(ordered&&sameText(ordered.query))return {kind:'search-results',visibleResultLinks:3};
+  }
   const visible=node=>node?.state?.visible===true;
   const label=node=>[node?.name,node?.text].filter(value=>typeof value==='string').join(' ').slice(0,400);
   const resultMarker=/搜索结果|查询结果|匹配结果|search results|results for/i;
@@ -405,10 +430,19 @@ export function verifyDirectExecutionReceipt({claim,completed,view,sourceHash,ta
   // Authority changes a Controller target only after its durable navigation
   // handoff. Accept that exact, requested destination; arbitrary replacement
   // Documents still fail, as do old-Document receipts for a navigation.
+  let navigationUrlMatches=run?.target?.url===navigationTarget?.url;
+  if(navigationTarget?.kind==='search-results-v1'){
+    try{
+      const url=new URL(run.target.url);
+      navigationUrlMatches=url.origin===navigationTarget.origin&&
+        !url.username&&!url.password&&['q','query','search','keyword','s']
+          .some(key=>url.searchParams.getAll(key).length===1&&url.searchParams.get(key)===navigationTarget.query);
+    }catch{navigationUrlMatches=false;}
+  }
   const navigatedTarget=navigationTarget&&run?.target&&claim?.target&&
     ['windowId','tabId','frameId'].every(key=>run.target[key]===target[key])&&
     run.target.documentId!==target.documentId&&typeof run.target.documentId==='string'&&
-    run.target.url===navigationTarget.url&&run.target.allowedOrigin===navigationTarget.origin&&
+    navigationUrlMatches&&run.target.allowedOrigin===navigationTarget.origin&&
     Number.isSafeInteger(claim.target.targetVersion)&&
     run.target.targetVersion===claim.target.targetVersion+1;
   const targetMatches=admittedTargetMatches&&(navigationTarget?navigatedTarget:unchangedTarget);

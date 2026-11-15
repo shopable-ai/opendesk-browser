@@ -1,20 +1,14 @@
 // A bounded, observation-driven continuation guard for WorkflowView.
 // No Chrome privilege, Provider, Compiler, scheduler or RunHost is owned here.
 import {isWorkflowSearchControl,requiresWorkflowSearchControls} from './direct-execution.js';
+import {requiresOrderedSearchResults,verifyOrderedSearchResults} from './ordered-search-results.js';
 const fault=(code,message)=>Object.assign(new Error(message),{code});
 const terminalUnknown=code=>/(?:UNKNOWN|TIMEOUT|SETTLEMENT|DISCONNECT|WORKER)/i.test(code||'');
 const actions=step=>({op:step.op,locatorKind:step.locatorKind||'',selector:step.selector||'',
-  roleName:step.roleName||'',param:step.param||'',text:step.text||'',url:step.url||''});
+  roleName:step.roleName||'',param:step.param||'',text:step.text||'',url:step.url||'',
+  ...(step.waitUntil?{waitUntil:step.waitUntil,timeout:step.timeout??15000}:{})});
 const positiveGoal=goal=>goal.replace(/(?:不要|不需|无需|不得|别|禁止|勿|do\s+not|don't|never)\s*(?:点击|按下|提交|搜索|查找|检索|跳转|打开|进入|填写|填入|输入|查看|读取|提取|读回|观察|检查|press|click|submit|search|open|navigate|fill|type|read|extract|observe|inspect|check)[^，,。；;\n]*/gi,'');
 const searchIntent=/(?:搜索(?!按钮|控件|框|栏|关键词|输入框|词|结果|页面|历史|记录|列表)|查找(?!输入框|框)|检索(?!词|框)|\bsearch\b(?!\s+(?:keyword|input|field|box|term|results?)\b))/i;
-function orderedSearchRead(goal){
-  // Query literals and a prohibited read never become completion obligations.
-  const instruction=positiveGoal(goal.replace(/((?:搜索|查找|检索|填入|填写|输入|\b(?:search|fill|type)\b)\s*)(?:「[^」]*」|『[^』]*』|“[^”]*”|‘[^’]*’|"[^"]*")/gi,'$1'));
-  return /(?:读取|提取|读回|列出|给出|告诉|\b(?:read|extract|list|show|tell)\b)/i.test(instruction)&&
-    /(?:前\s*(?:三|3)\s*(?:条|项|个)|\b(?:top|first)\s+(?:three|3)\b)/i.test(instruction)&&
-    /(?:自然(?:搜索)?结果|搜索结果|\b(?:organic|search)\s+results?\b)/i.test(instruction)&&
-    /(?:标题|网址|链接|\b(?:titles?|urls?|addresses?)\b)/i.test(instruction);
-}
 // This refinement applies to an explicit control-identification read, not
 // ordinary page reads or a request to fill/submit a search.
 function missingSearchControls(ticket,values){
@@ -70,6 +64,7 @@ function goalFulfilled(goal,facts){
   // Search and fill are independently required when the user named both;
   // a product detail can satisfy a requested read of that detail.
   const required=[];
+  if(requiresOrderedSearchResults(goal))required.push(facts.has('ordered-search-results'));
   if(price||details)required.push(product);
   else if(open)required.push(link);
   if(search)required.push([...facts].some(value=>value.startsWith('search-')));
@@ -157,7 +152,7 @@ export function createWorkflowAgentLoopGuard({goal,signal,clock=Date.now,limits=
       throw fault('E_AGENT_NO_PROGRESS','相同网页操作已经尝试；已停止，避免重复写入或点击');
     issued.add(signature);rounds++;actionCount+=workflow.steps.length;
     return Object.freeze({signature,round:rounds,actions:workflow.steps.length,
-      origin:target?.origin,documentId:target?.documentId,
+      origin:target?.origin,documentId:target?.documentId,url:target?.url,
       steps:steps.map((step,index)=>({...actions(step),stepId:workflow.steps[index].stepId})),linkName:linkGuard?.name||null,
       readOnly:workflow.steps.every(step=>['observe','extract','assert','wait'].includes(step.op))});
   }
@@ -171,7 +166,18 @@ export function createWorkflowAgentLoopGuard({goal,signal,clock=Date.now,limits=
         ?'操作结果未知，已停止且绝不自动重放'
         :'已有步骤可能生效，当前执行失败，不再重放'};
     }
-    if(reply.evidenceLevel==='BUSINESS_EFFECT_VERIFIED'){
+    if(reply.effect?.kind==='ordered-search-results'){
+      const ordered=ticket.readOnly&&reply.readOnlyVerified===true&&
+        reply.evidenceLevel==='BUSINESS_EFFECT_VERIFIED'&&
+        verifyOrderedSearchResults({workflow:{steps:ticket.steps},
+          values:reply.readbackValues,target:ticket,request:goal});
+      if(!ordered||JSON.stringify(ordered)!==JSON.stringify(reply.effect)||
+        searchIntent.test(positiveGoal(goal))&&
+        !facts.has('search-target:'+ordered.query.trim().toLocaleLowerCase()))
+        return {state:'PARTIAL',completed:false,
+          reason:'前三条结果的文档、查询、顺序或排除广告规则无法共同核对，已停止'};
+      facts.add('ordered-search-results');facts.add('read-only');
+    } else if(reply.evidenceLevel==='BUSINESS_EFFECT_VERIFIED'){
       if(reply.effect?.kind==='product-page'&&(
         typeof reply.effect.name!=='string'||!reply.effect.name.trim()||
         !goal.toLocaleLowerCase().includes(reply.effect.name.toLocaleLowerCase())||
@@ -212,11 +218,10 @@ export function createWorkflowAgentLoopGuard({goal,signal,clock=Date.now,limits=
       facts.add('read-only');
     }
     else return {state:'PARTIAL',completed:false,reason:'执行回执已核对，但网页效果尚未独立确认，不继续写入'};
-    // Generic search-effect and read-only receipts contain neither ordered
-    // organic-result identity nor title/URL pairs. Do not invent that evidence
-    // from the number of visible links or a model's prose.
-    if(orderedSearchRead(goal))return {state:'PARTIAL',completed:false,facts:[...facts],
-      reason:'当前读取合同无法证明前三条自然结果的顺序、标题和网址；已停止，不重复搜索'};
+    if(requiresOrderedSearchResults(goal)&&!facts.has('ordered-search-results'))
+      return {state:ticket.readOnly?'PARTIAL':'CONTINUE',completed:false,facts:[...facts],
+        reason:ticket.readOnly?'当前读取合同无法证明前三条自然结果的顺序、标题和网址；已停止，不重复搜索':
+          '搜索状态已核验，下一段只读前三条自然结果；不得重复搜索'};
     const completed=goalFulfilled(goal,facts);
     return {state:completed?'COMPLETED':'CONTINUE',completed,
       facts:[...facts],reason:completed?'原始目标已由独立网页结果核验':'仅部分目标已确认，需重新观察并规划'};

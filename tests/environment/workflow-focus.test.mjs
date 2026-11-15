@@ -19,6 +19,8 @@ import * as taskReviewHandoff from '../../src/ui/workflow/task-review-handoff.js
 import * as directExecution from '../../src/ui/workflow/direct-execution.js';
 import * as agentLoop from '../../src/ui/workflow/agent-loop.js';
 import * as segmentReplay from '../../src/ui/workflow/segment-replay.js';
+import * as orderedSearchResults from '../../src/ui/workflow/ordered-search-results.js';
+import * as searchEffectWait from '../../src/ui/workflow/search-effect-wait.js';
 import * as workflowReuse from '../../src/ui/workflow/workflow-reuse.js';
 import * as installedTaskReuse from '../../src/ui/workflow/installed-task-reuse.js';
 import * as taskContract from '../../src/platform/tasks/contract.js';
@@ -201,6 +203,8 @@ if(!vm.SourceTextModule) {
       './direct-execution.js':directExecution,
       './agent-loop.js':agentLoop,
       './segment-replay.js':segmentReplay,
+      './ordered-search-results.js':orderedSearchResults,
+      './search-effect-wait.js':searchEffectWait,
       './workflow-reuse.js':workflowReuse,
       './installed-task-reuse.js':installedTaskReuse,
       '../conversation/prompt-actions.js':promptActions,

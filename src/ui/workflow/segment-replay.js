@@ -9,7 +9,29 @@ export const WORKFLOW_DYNAMIC_BUNDLE_FORMAT = 'opendesk.workflow-segment-bundle.
 const fail=(code,message)=>{throw Object.assign(new Error(message),{code});};
 const hashPattern=/^[a-f0-9]{64}$/;
 const allowedKinds=new Set(['input-readback','search-results','search-empty',
-  'search-inline','link-page','product-page','read-only']);
+  'search-inline','link-page','product-page','read-only','ordered-search-results']);
+
+// Only this read-only Google result segment may discard volatile navigation
+// parameters. Writes and every other segment retain exact frozen URL matching.
+export function workflowSegmentEntryUrl({workflow,evidence,entryUrl:raw}) {
+  if(evidence?.kind!=='ordered-search-results')return raw;
+  const clean=validateWorkflow(workflow);
+  if(!clean.steps.every(step=>step.op==='observe'))
+    fail('E_WORKFLOW_BUNDLE','有序结果入口仅适用于固定只读观察');
+  let url;try{url=new URL(raw);}catch{fail('E_WORKFLOW_BUNDLE','结果入口地址无效');}
+  const queries=url.searchParams.getAll('q');
+  if(clean.siteOrigin!=='https://www.google.com'||url.origin!==clean.siteOrigin||
+    url.pathname!=='/search'||url.username||url.password||url.hash||
+    queries.length!==1||!/^[\p{L}\p{N} _.-]{2,120}$/u.test(queries[0]))
+    fail('E_WORKFLOW_BUNDLE','结果入口缺少冻结的精确查询');
+  const canonicalUrl=new URL('/search',url.origin);canonicalUrl.searchParams.set('q',queries[0]);
+  return canonicalUrl.href;
+}
+
+export function workflowSegmentEntryMatches(segment,url) {
+  try{return workflowSegmentEntryUrl({...segment,entryUrl:url})===segment.entryUrl;}
+  catch{return false;}
+}
 
 function entryUrl(value,origin) {
   if(typeof value!=='string'||value.length>500)fail('E_WORKFLOW_BUNDLE','无效的分段入口网页');
@@ -74,7 +96,7 @@ function validateSegment(value) {
     typeof proof.documentId!=='string'||!proof.documentId||
     proof.documentId.length>128)
     fail('E_WORKFLOW_BUNDLE','分段缺少与源码一致的独立 RunHost 执行证明');
-  return {workflow,entryUrl:entryUrl(value.entryUrl,workflow.siteOrigin),
+  return {workflow,entryUrl:entryUrl(workflowSegmentEntryUrl({...value,workflow}),workflow.siteOrigin),
     revision:value.revision,sourceHash:value.sourceHash,
     verificationMode:value.verificationMode,
     evidence:structuredClone(evidence),proof:structuredClone(proof)};
@@ -244,6 +266,9 @@ export function assertLegacyReplayParameterScope(bundle,params) {
 export function verifyReplayBusinessEffect(expected,reply) {
   if(!reply?.ok)return false;
   if(expected.kind==='read-only')return reply.readOnlyVerified===true;
+  if(expected.kind==='ordered-search-results')
+    return reply.readOnlyVerified===true&&reply.evidenceLevel==='BUSINESS_EFFECT_VERIFIED'&&
+      reply.effect?.kind==='ordered-search-results'&&reply.effect.items?.length===3;
   if(expected.kind==='input-readback')
     return reply.evidenceLevel==='BUSINESS_EFFECT_VERIFIED'&&reply.readbackVerified===true;
   if(reply.evidenceLevel!=='BUSINESS_EFFECT_VERIFIED'||reply.effect?.kind!==expected.kind)

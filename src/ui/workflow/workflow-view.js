@@ -21,10 +21,12 @@ import {createWorkflowObservation,workflowObservationForModel,workflowObservatio
 import {classifyWorkflowRunRisk,prepareDirectExecution,verifyDirectExecutionReceipt,directExecutionEvidenceLevel,verifyDirectFillReadbacks,verifySearchBusinessEffect,verifyOpenedLinkPage,verifySavedWorkflowRevision,workflowLinkBusinessRunRefs} from './direct-execution.js';
 import {createTaskReviewHandoff,taskReviewHandoffKey} from './task-review-handoff.js';
 import {createWorkflowAgentLoopGuard,classifyWorkflowAgentStop} from './agent-loop.js';
+import {verifyOrderedSearchResults} from './ordered-search-results.js';
+import {waitForWorkflowSearchEffect} from './search-effect-wait.js';
 import {WORKFLOW_BUNDLE_FORMAT,replayParameterSchema,sealWorkflowBundle,
   verifyWorkflowBundle,verifyReplayBusinessEffect,assertLegacyReplayParameterScope,
   WORKFLOW_DYNAMIC_BUNDLE_FORMAT,inferDynamicReplayPlan,dynamicReplayIntent,
-  simpleCommerceReplayGoal} from './segment-replay.js';
+  simpleCommerceReplayGoal,workflowSegmentEntryUrl,workflowSegmentEntryMatches} from './segment-replay.js';
 
 const STORAGE_PREFIX = 'opendesk.sidebar.workflow.v1:';
 const SESSION_PREFIX = 'opendesk.sidebar.workflow-draft.v1:';
@@ -44,6 +46,9 @@ function defaultStep(op = 'observe') {
 // Presentation only: describe effects only after RunHost and readback verification.
 export function workflowExecutionFeedback({execution,workflow,params={},values}={}) {
   if(!execution?.ok)return '本次未能确认成功；不会自动重试。请检查真实网页与运行详情。';
+  if(execution.evidenceLevel==='BUSINESS_EFFECT_VERIFIED'&&execution.effect?.kind==='ordered-search-results')
+    return '已从当前搜索页面按 DOM 顺序读取前三条自然结果，并排除广告标记内的链接：\n'+
+      execution.effect.items.map(item=>item.position+'. '+item.title+'\n'+item.href).join('\n');
   if(execution.readOnlyVerified===true){
     const details=[];let truncated=false;
     const roles={textbox:'输入框',combobox:'输入框',searchbox:'搜索框',
@@ -585,7 +590,9 @@ export function createWorkflowView({api=globalThis.chrome,document:doc=globalThi
       await refreshSaved();
       assertSaveCurrent();
       selectedBundle=confirmed;revision=null;fullAgentDraft=null;
-      workflow=structuredClone(segments.at(-1).workflow);
+      // Keep the editor on the independently reread definition: Chrome
+      // storage may reorder nested keys without changing frozen source bytes.
+      workflow=structuredClone(confirmed.segments.at(-1).workflow);
       directVerifiedSerial=segments.at(-1).verificationMode==='fill-readback'?stable():null;
       render();persistDraft();
       control('workflow-saved-list').value=key;
@@ -802,9 +809,12 @@ export function createWorkflowView({api=globalThis.chrome,document:doc=globalThi
         if(prepared) {
           let proof=null;
           try{proof=verifyDirectExecutionReceipt({claim,completed,view,sourceHash:freeze.sourceHash,
-            target:captured,navigationTarget:prepared.linkGuard});}
+            target:captured,navigationTarget:prepared.linkGuard||prepared.searchNavigation});}
           catch(error){status(format(error),true);}
-          lastRun=proof&&decoded?'success':'failed';
+          const frozenRevisionValid=source.kind!=='saved'||verifySavedWorkflowRevision({
+            source,claim,completed,view,result
+          });
+          lastRun=proof&&decoded&&frozenRevisionValid?'success':'failed';
           let readbackVerified=false;
           if(lastRun==='success'&&prepared.hasReadback) {
             try{readbackVerified=verifyDirectFillReadbacks({workflow:freeze.workflow,params,
@@ -822,35 +832,18 @@ export function createWorkflowView({api=globalThis.chrome,document:doc=globalThi
           let effect=null,effectTarget=null,linkEffectAfter=null;
           if(lastRun==='success'&&prepared.effectExpectation&&!prepared.signal?.aborted) {
             try {
-              let resultTarget=null;
-              // Search may navigate asynchronously or update the current DOM.
-              // Stabilize only by bounded, read-only target discovery: never
-              // repeat the click or borrow permission from the old Document.
-              for(let attempt=0;attempt<7;attempt++){
-                if(prepared.signal?.aborted)break;
-                const next=await currentPageTarget.refresh();
-                if(next.status==='available'&&next.origin===captured.origin&&
-                  next.windowId===captured.windowId&&next.tabId===captured.tabId&&
-                  next.frameId===0){
-                  resultTarget=next;
-                  if(next.documentId!==captured.documentId||next.url!==captured.url||
-                    attempt>=1)break;
-                }
-                if(attempt!==6)await new Promise(resolve=>setTimeout(resolve,220));
-              }
-              if(resultTarget&&!prepared.signal?.aborted&&
-                await api.permissions.contains({origins:[permissionPattern(resultTarget.url)]})) {
-                // One new RunHost read, bound to the current authorized
-                // Document. The prior click is NEVER dispatched again.
-                const post=await observation.observe(resultTarget,{signal:prepared.signal,
+              const found=await waitForWorkflowSearchEffect({captured,currentPageTarget,
+                signal:prepared.signal,
+                hasPermission:next=>api.permissions.contains({origins:[permissionPattern(next.url)]}),
+                observe:(next,{signal})=>observation.observe(next,{signal,
                   requestId:'search-effect-'+crypto.randomUUID(),
-                  request:prepared.effectExpectation.query});
-                if(!disposed&&!prepared.signal?.aborted){
-                  effect=verifySearchBusinessEffect({
+                  request:prepared.agent?.goal||prepared.effectExpectation.query}),
+                verify:(post,next)=>!disposed&&verifySearchBusinessEffect({
                     expectation:prepared.effectExpectation,before:prepared.beforeObservation,
-                    after:post,actionTarget:captured,resultTarget});
-                  if(effect)effectTarget=structuredClone(resultTarget);
-                }
+                    after:post,actionTarget:captured,resultTarget:next,
+                    request:prepared.agent?.goal})});
+              if(found&&!disposed&&!prepared.signal?.aborted){
+                effect=found.effect;effectTarget=found.effectTarget;
               }
             }catch{ /* Observation is optional; never promote or replay unknown click effects. */ }
           }
@@ -880,7 +873,17 @@ export function createWorkflowView({api=globalThis.chrome,document:doc=globalThi
               }
             }catch{ /* Unknown effects never authorize a repeat click or ungranted read. */ }
           }
-          const evidenceLevel=directExecutionEvidenceLevel({
+          const readOnlyVerified=lastRun==='success'&&decoded&&
+            !prepared.hasReadback&&!prepared.hasUnprovenClick&&
+            freeze.workflow.steps.every(step=>['observe','extract','assert','wait'].includes(step.op));
+          if(readOnlyVerified){
+            await currentPageTarget.revalidate(captured);
+            if(await api.permissions.contains({origins:[permissionPattern(captured.url)]}))
+              effect=verifyOrderedSearchResults({workflow:freeze.workflow,
+                values:decodeValue(result.outcome.valueWire),target:captured,
+                request:prepared.agent?.goal||freeze.workflow.steps.find(step=>step.op==='observe')?.text});
+          }
+          const evidenceLevel=effect?.kind==='ordered-search-results'?'BUSINESS_EFFECT_VERIFIED':directExecutionEvidenceLevel({
             receiptVerified:lastRun==='success',hasReadback:readbackVerified,
             hasUnprovenClick:prepared.hasUnprovenClick,
             searchEffectVerified:Boolean(effect&&effect.kind.startsWith('search-')),
@@ -901,9 +904,6 @@ export function createWorkflowView({api=globalThis.chrome,document:doc=globalThi
           }
           if(lastRun==='failed' && !hasError)
             status('运行未成功或结果无法确认，请检查真实结果及页面效果；不会自动重试。',true);
-          const readOnlyVerified=lastRun==='success'&&decoded&&
-            !prepared.hasReadback&&!prepared.hasUnprovenClick&&
-            freeze.workflow.steps.every(step=>['observe','extract','assert','wait'].includes(step.op));
           return {ok:lastRun==='success',runId:claim.runId,resultId:proof?.resultId||null,
             evidenceLevel,readbackVerified,readOnlyVerified,effect,effectTarget,
             readbackValues:readbackVerified||readOnlyVerified?decodeValue(result.outcome.valueWire):null};
@@ -982,6 +982,7 @@ export function createWorkflowView({api=globalThis.chrome,document:doc=globalThi
   // and independent DOM readback. A completed worker is not an observed business effect.
   function describeExecution(reply) {
     if(reply?.ok) {
+      if(reply.effect?.kind==='ordered-search-results')return workflowExecutionFeedback({execution:reply});
       if(reply.readOnlyVerified)return '只读网页步骤和持久运行回执已完成验证。';
       if(reply.effect?.kind==='product-page')
         return '已在新 Document 独立核对商品名称与页面价格。';
@@ -1034,7 +1035,7 @@ export function createWorkflowView({api=globalThis.chrome,document:doc=globalThi
       permission,signal:planned.signal,hasReadback:planned.hasReadback,
       hasUnprovenClick:planned.hasUnprovenClick,
       beforeObservation:planned.beforeObservation,effectExpectation:planned.effectExpectation,
-      linkGuard:planned.linkGuard,
+      linkGuard:planned.linkGuard,searchNavigation:planned.searchNavigation,
       // Keep task ownership through the shared RunHost adapter, including
       // the asynchronous interval before host.start returns its runId.
       agent:planned.agent,
@@ -1098,7 +1099,8 @@ export function createWorkflowView({api=globalThis.chrome,document:doc=globalThi
             throw err('E_WORKFLOW_EVIDENCE','当前段未获得独立 RunHost 结果身份，不能纳入完整复跑');
           agent.segments.push({signature:previous.ticket.signature,
             workflow:structuredClone(previous.freeze.workflow),
-            entryUrl:previous.captured.url,
+            entryUrl:workflowSegmentEntryUrl({workflow:previous.freeze.workflow,
+              evidence:{kind},entryUrl:previous.captured.url}),
             verificationMode:previous.freeze.workflow.steps.some(step=>step.op==='fill')
               ?'fill-readback':'none',
             evidence:{kind,...(name?{name}: {})},
@@ -1264,6 +1266,7 @@ export function createWorkflowView({api=globalThis.chrome,document:doc=globalThi
           freeze,captured:structuredClone(target),params:structuredClone(runParams),
           hasReadback:admission.hasReadback,hasUnprovenClick:admission.hasUnprovenClick,
           beforeObservation:receipt,effectExpectation:admission.effectExpectation,
+          searchNavigation:admission.searchNavigation,
           linkGuard:admission.linkGuard,signal:agent.controller.signal,
           agent,ticket,continuation:true
         };
@@ -1430,14 +1433,15 @@ export function createWorkflowView({api=globalThis.chrome,document:doc=globalThi
         const segment=bundle.segments[i];
         const target=await currentPageTarget.refresh();
         agent.guard.check();
-        const fromPrevious=dynamic&&i>0;
+        const fromPrevious=i>0&&(dynamic||
+          segment.evidence.kind==='ordered-search-results');
         const expected=fromPrevious?verifiedEntry:null;
         const targetFields=['windowId','tabId','frameId','documentId','url','origin'];
         if(target.status!=='available'||target.frameId!==0||
           target.windowId!==initial.windowId||target.tabId!==initial.tabId||
           target.origin!==segment.workflow.siteOrigin||
           (fromPrevious?(!expected||targetFields.some(key=>target[key]!==expected[key])):
-            target.url!==segment.entryUrl)||
+            !workflowSegmentEntryMatches(segment,target.url))||
           previousNavigationDocument===target.documentId)
           throw err('E_DOCUMENT_STALE','第 '+(i+1)+' 段入口不是上一段独立核验的真实 Document，已停止');
         const scope=permissionPattern(target.url);
@@ -1504,7 +1508,7 @@ export function createWorkflowView({api=globalThis.chrome,document:doc=globalThi
           hasReadback:admitted.hasReadback,
           hasUnprovenClick:admitted.hasUnprovenClick,
           beforeObservation:before,effectExpectation:admitted.effectExpectation,
-          linkGuard:admitted.linkGuard,
+          linkGuard:admitted.linkGuard,searchNavigation:admitted.searchNavigation,
           bundleId:bundle.bundleId,bundleRevision:bundle.revision,
           savedSource:{kind:'saved',scriptId:segment.workflow.workflowId,
             revision:segment.revision,contentHash:segment.sourceHash},
@@ -1521,7 +1525,8 @@ export function createWorkflowView({api=globalThis.chrome,document:doc=globalThi
         if(!verifyReplayBusinessEffect(expectedEvidence,reply))
           throw err('E_WORKFLOW_EVIDENCE','第 '+(i+1)+' 段业务效果未独立核验，停止且绝不重复操作');
         lastEffect=reply.effect||null;
-        if(dynamic&&i<bundle.segments.length-1){
+        if(i<bundle.segments.length-1&&(dynamic||
+          bundle.segments[i+1].evidence.kind==='ordered-search-results')){
           if(!reply.effectTarget||!['search-results','search-inline'].includes(reply.effect?.kind))
             throw err('E_WORKFLOW_EVIDENCE','未获得搜索后独立核验的网页入口，拒绝猜测导航');
           verifiedEntry=structuredClone(reply.effectTarget);
@@ -1539,6 +1544,9 @@ export function createWorkflowView({api=globalThis.chrome,document:doc=globalThi
       if(prepared&&lastEffect?.kind==='product-page')
         appendChat('执行结果','已搜索 '+params.query+'，打开 '+lastEffect.name+
           '，并独立核对商品名称与页面价格：'+lastEffect.price+'。');
+      if(lastEffect?.kind==='ordered-search-results')
+        appendChat('执行结果',workflowExecutionFeedback({execution:{ok:true,
+          evidenceLevel:'BUSINESS_EFFECT_VERIFIED',readOnlyVerified:true,effect:lastEffect}}));
       return {ok:true,segments:bundle.segments.length};
     }catch(error){
       if(workflowAgent===agent&&!agent.stopping){
@@ -2082,6 +2090,7 @@ export function createWorkflowView({api=globalThis.chrome,document:doc=globalThi
         freeze,captured:structuredClone(captured),params:structuredClone(runParams),
         hasReadback:prepared.hasReadback,hasUnprovenClick:prepared.hasUnprovenClick,
         beforeObservation:planningObservation,effectExpectation:prepared.effectExpectation,
+        searchNavigation:prepared.searchNavigation,
         linkGuard:prepared.linkGuard,
         signal:abort.signal,agent,ticket,continuation:false
       };

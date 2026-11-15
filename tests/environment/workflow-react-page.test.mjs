@@ -728,6 +728,13 @@ test('R23.37 '+(dropVerifiedBundleWrite
   assert.ok(record.segments.every(part=>original.scripts.get(
     part.workflow.workflowId+':'+part.revision)?.contentHash===part.sourceHash));
   assert.equal(original.state().header.saved,true);
+  const savedKey=[...original.local.entries()].find(([,value])=>value===record)?.[0];
+  original.view.actions.onOpenSavedHistory(savedKey,{isTrusted:true});
+  await until(()=>/已打开完整/.test(original.state().controls['workflow-status'].text)||
+    /未保存内容/.test(original.state().controls['workflow-status'].text),
+    ()=>original.state().controls['workflow-status'].text);
+  assert.match(original.state().controls['workflow-status'].text,/已打开完整/,
+    'a just-saved bundle must reopen after Chrome storage reorders nested definition keys');
   const storedLocal=original.local,storedScripts=original.scripts;
   const journalBeforeReuse=[...storedScripts.entries()].map(([key,row])=>[key,structuredClone(row)]);
   original.view.dispose();

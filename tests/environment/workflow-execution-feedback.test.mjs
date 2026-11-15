@@ -8,6 +8,16 @@ const execution={ok:true,evidenceLevel:'BUSINESS_EFFECT_VERIFIED',readbackVerifi
   runId:'internal-run',resultId:'internal-result'};
 const values={'fill-name':{kind:'input-readback',matched:true,value:'测试乙'}};
 
+test('ordered result feedback preserves all three titles and full URLs only after business verification',()=>{
+  const effect={kind:'ordered-search-results',items:[1,2,3].map(position=>
+    ({position,title:'Title '+position,href:'https://example.com/result/'+position+'?id=full'}))};
+  const message=workflowExecutionFeedback({execution:{...execution,readOnlyVerified:true,effect}});
+  for(const item of effect.items)assert.ok(message.includes(item.position+'. '+item.title+'\n'+item.href));
+  const unverified=workflowExecutionFeedback({execution:{...execution,
+    evidenceLevel:'EXECUTION_RECEIPT_VERIFIED',effect}});
+  assert.doesNotMatch(unverified,/Title|example.com/);
+});
+
 test('verified read feedback presents observed controls and extracted text instead of a generic success',()=>{
   const workflow={steps:[{stepId:'controls',op:'observe'},{stepId:'heading',op:'extract'}]};
   const values={controls:{kind:'semantic-dom-summary',truncated:true,nodes:[

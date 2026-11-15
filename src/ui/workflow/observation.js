@@ -12,6 +12,7 @@ const error=(code,message)=>Object.assign(new Error(message),{code});
 export function workflowObservationForModel(receipt) {
   if(!receipt)return receipt;
   const data=structuredClone(receipt);
+  delete data.orderedResults;
   if(data.summary){
     for(const node of data.summary.nodes||[])delete node.navigation;
     delete data.summary.title;
@@ -103,6 +104,7 @@ export function createWorkflowObservation({api=globalThis.chrome,host,currentPag
       // and unrelated request/history fields; page text can still be sensitive.
       const receipt={format:'opendesk.workflow-observation.v1',runId:proof.runId,resultId:proof.resultId,
         sourceHash:proof.sourceHash,
+        ...(value.orderedResults?{orderedResults:structuredClone(value.orderedResults)}:{}),
         summary:{kind:value.kind,origin:captured.origin,documentId:captured.documentId,
           title:typeof value.title==='string'?value.title.slice(0,200):'',
           nodes:value.nodes,truncated:value.truncated===true}};
