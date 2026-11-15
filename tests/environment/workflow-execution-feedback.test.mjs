@@ -8,6 +8,25 @@ const execution={ok:true,evidenceLevel:'BUSINESS_EFFECT_VERIFIED',readbackVerifi
   runId:'internal-run',resultId:'internal-result'};
 const values={'fill-name':{kind:'input-readback',matched:true,value:'测试乙'}};
 
+test('verified read feedback presents observed controls and extracted text instead of a generic success',()=>{
+  const workflow={steps:[{stepId:'controls',op:'observe'},{stepId:'heading',op:'extract'}]};
+  const values={controls:{kind:'semantic-dom-summary',truncated:true,nodes:[
+    {role:'textbox',name:'搜索',state:{visible:true}},
+    {role:'button',name:'Google 搜索',state:{visible:true}},
+    {role:'button',name:'Hidden action',state:{visible:false}},
+    {role:'button',name:'Bearer private-value',state:{visible:true}}
+  ]},heading:'当前页面标题'};
+  const message=workflowExecutionFeedback({workflow,values,
+    execution:{ok:true,readOnlyVerified:true}});
+  assert.match(message,/输入框“搜索”/);
+  assert.match(message,/按钮“Google 搜索”/);
+  assert.match(message,/当前页面标题/);
+  assert.match(message,/摘要有截断/);
+  assert.doesNotMatch(message,/Hidden action|private-value/);
+  const unknown=workflowExecutionFeedback({workflow,values,execution:{ok:false,readOnlyVerified:true}});
+  assert.doesNotMatch(unknown,/Google 搜索|当前页面标题/);
+});
+
 test('verified feedback names the actual fill and readback without internal identities',()=>{
   const message=workflowExecutionFeedback({workflow,execution,values});
   assert.match(message,/已将“姓名”填写为“测试乙”，并核对输入值一致/);

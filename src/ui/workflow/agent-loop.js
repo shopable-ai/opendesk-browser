@@ -1,33 +1,69 @@
 // A bounded, observation-driven continuation guard for WorkflowView.
 // No Chrome privilege, Provider, Compiler, scheduler or RunHost is owned here.
+import {isWorkflowSearchControl,requiresWorkflowSearchControls} from './direct-execution.js';
 const fault=(code,message)=>Object.assign(new Error(message),{code});
 const terminalUnknown=code=>/(?:UNKNOWN|TIMEOUT|SETTLEMENT|DISCONNECT|WORKER)/i.test(code||'');
 const actions=step=>({op:step.op,locatorKind:step.locatorKind||'',selector:step.selector||'',
   roleName:step.roleName||'',param:step.param||'',text:step.text||'',url:step.url||''});
+const positiveGoal=goal=>goal.replace(/(?:不要|不需|无需|不得|别|禁止|勿|do\s+not|don't|never)\s*(?:点击|按下|提交|搜索|查找|检索|跳转|打开|进入|填写|填入|输入|查看|读取|提取|读回|观察|检查|press|click|submit|search|open|navigate|fill|type|read|extract|observe|inspect|check)[^，,。；;\n]*/gi,'');
+const searchIntent=/(?:搜索(?!按钮|控件|框|栏|关键词|输入框|词|结果|页面|历史|记录|列表)|查找(?!输入框|框)|检索(?!词|框)|\bsearch\b(?!\s+(?:keyword|input|field|box|term|results?)\b))/i;
+function orderedSearchRead(goal){
+  // Query literals and a prohibited read never become completion obligations.
+  const instruction=positiveGoal(goal.replace(/((?:搜索|查找|检索|填入|填写|输入|\b(?:search|fill|type)\b)\s*)(?:「[^」]*」|『[^』]*』|“[^”]*”|‘[^’]*’|"[^"]*")/gi,'$1'));
+  return /(?:读取|提取|读回|列出|给出|告诉|\b(?:read|extract|list|show|tell)\b)/i.test(instruction)&&
+    /(?:前\s*(?:三|3)\s*(?:条|项|个)|\b(?:top|first)\s+(?:three|3)\b)/i.test(instruction)&&
+    /(?:自然(?:搜索)?结果|搜索结果|\b(?:organic|search)\s+results?\b)/i.test(instruction)&&
+    /(?:标题|网址|链接|\b(?:titles?|urls?|addresses?)\b)/i.test(instruction);
+}
+// This refinement applies to an explicit control-identification read, not
+// ordinary page reads or a request to fill/submit a search.
+function missingSearchControls(ticket,values){
+  let input=false,button=false;
+  for(const step of ticket.steps||[]){
+    const value=values?.[step.stepId];
+    if(step.op!=='observe'||value?.kind!=='semantic-dom-summary'||
+      !ticket.documentId||value.document?.documentId!==ticket.documentId||
+      !Array.isArray(value.nodes))continue;
+    try{if(new URL(value.document.url).origin!==ticket.origin)continue;}
+    catch{continue;}
+    for(const node of value.nodes){
+      if(node?.state?.visible!==true||typeof node.locator?.kind!=='string'||
+        !node.locator.kind.trim()||typeof node.locator.value!=='string'||
+        !node.locator.value.trim())continue;
+      const searchName=/(?:搜索|查找|检索|\bsearch\b)/i.test(node.name||'');
+      input ||= node.role==='searchbox'||
+        ['textbox','combobox'].includes(node.role)&&searchName;
+      button ||= node.role==='button'&&searchName;
+    }
+  }
+  return [!input&&'搜索输入框',!button&&'搜索按钮'].filter(Boolean);
+}
 function goalFulfilled(goal,facts){
   // A prohibition in the user's own request is not a positive completion
   // condition (e.g. "填写搜索框，不要点击搜索").
-  const affirmed=goal.replace(/(?:不要|不需|无需|不得|别|禁止|勿|do\s+not|don't|never)\s*(?:点击|按下|提交|搜索|查找|检索|跳转|打开|进入|填写|填入|输入|press|click|submit|search|open|navigate|fill|type)[^，,。；;\n]*/gi,'');
+  const affirmed=positiveGoal(goal);
   const price=/(?:价格|标价|售价|价钱|\bprice\b)/i.test(affirmed);
   const details=/(?:商品详情|商品页面|详情页|\bproduct\s*(?:page|detail)\b)/i.test(affirmed);
-  const open=/(?:打开|进入|点开|跳转|点击(?:.*?)(?:链接|结果)|\b(?:open|navigate)\b)/i.test(affirmed);
-  const search=/(?:搜索(?!框|栏|关键词|输入框|词)|查找(?!输入框|框)|检索(?!词|框)|\bsearch\b(?!\s+(?:keyword|input|field|box|term)\b))/i.test(affirmed);
-  const fill=/(?:填写|填入|输入|\bfill\b|\btype\b)/i.test(affirmed);
+  // Arriving at the search results is the search effect, not an additional
+  // result-link click. Keep independently named links as navigation targets.
+  const actionsGoal=affirmed.replace(/(?:打开|进入|跳转(?:到|至)?)\s*搜索结果(?:页面|页)(?=$|[，,。；;\n]|(?:并|然后|再)(?:读取|查看|提取|告诉|核对))|\b(?:open|navigate\s+to)\s+(?:the\s+)?search\s+results?(?:\s+page)?(?=$|[,.;\n]|\s+and\s+(?:read|extract|inspect|tell)\b)/gi,'');
+  const open=/(?:打开|进入|点开|跳转|点击(?:.*?)(?:链接|结果)|\b(?:open|navigate)\b)/i.test(actionsGoal);
+  const search=searchIntent.test(affirmed);
+  const fill=/(?:填写|填入|输入(?!框|栏|区|控件|字段)|\bfill\b|\btype\b)/i.test(affirmed);
   const read=/(?:查看|读取|提取|读回|核对|观察|检查|\b(?:read|extract|verify|observe|inspect|check)\b)/i.test(affirmed);
   const product=facts.has('product-page'),link=product||facts.has('link-page');
   // The same effect category does not prove two independently named targets.
   // Fail closed on coordinated objects instead of declaring the first one
   // "completed" merely because its generic category became true.
-  const fragments=affirmed.split(/[，,。；;\n]/);
-  const explicitFillCount=fragments.filter(value=>/(?:填写|填入|输入|\b(?:fill|type)\b)/i.test(value)).length;
+  const fragments=actionsGoal.split(/[，,。；;\n]/);
+  const explicitFillCount=fragments.filter(value=>/(?:填写|填入|输入(?!框|栏|区|控件|字段)|\b(?:fill|type)\b)/i.test(value)).length;
   const explicitOpenCount=fragments.filter(value=>/(?:打开|进入|点开|跳转|\b(?:open|navigate)\b)/i.test(value)).length;
-  const explicitSearchCount=fragments.filter(value=>
-    /(?:搜索(?!框|栏|关键词|输入框|词)|查找(?!输入框|框)|检索(?!词|框)|\bsearch\b(?!\s+(?:keyword|input|field|box|term)\b))/i.test(value)).length;
+  const explicitSearchCount=fragments.filter(value=>searchIntent.test(value)).length;
   const multiOpen=explicitOpenCount>=2||fragments.some(part=>
     /(?:打开|进入|点开|点击|访问|\b(?:open|visit|click)\b)[^，,。；;]{1,100}(?:和|与|以及|\band\b)[^，,。；;]{1,100}/i.test(part)&&
     !/(?:和|与|以及|\band\b)\s*(?:检查|核对|查看|读取|搜索|验证|\b(?:read|check|verify|search)\b)/i.test(part));
   const multiFill=explicitFillCount>=2||fragments.some(part=>
-    (/(?:填写|填入|输入|\b(?:fill|type)\b)[^，,。；;]{1,100}(?:和|与|以及|\band\b)[^，,。；;]{1,100}/i.test(part)&&
+    (/(?:填写|填入|输入(?!框|栏|区|控件|字段)|\b(?:fill|type)\b)[^，,。；;]{1,100}(?:和|与|以及|\band\b)[^，,。；;]{1,100}/i.test(part)&&
     !/(?:和|与|以及|\band\b)\s*(?:检查|核对|查看|读取|搜索|打开|点击|\b(?:read|check|verify|search|open|click)\b)/i.test(part))||
     /(?:填写|填入|输入)[^，,。；;]{1,100}(?:并且|然后|再)(?:填写|填入|输入)/i.test(part));
   // A combined user goal is a conjunction, not "whichever fact happens first".
@@ -79,11 +115,11 @@ export function createWorkflowAgentLoopGuard({goal,signal,clock=Date.now,limits=
   const isObservedSearch=(step,observation,target)=>
     step.op==='click'&&(
       step.locatorKind==='role'&&step.selector==='button'&&
-        /^(?:搜索|search)$/i.test(step.roleName||'')||
+        isWorkflowSearchControl(step.roleName)||
       Boolean(observation?.summary&&target)&&observation.summary.origin===target.origin&&
       observation.summary.documentId===target.documentId&&
       observation.summary.nodes?.some(node=>node.role==='button'&&
-        /^(?:搜索|search)$/i.test(node.name||'')&&node.state?.visible===true&&
+        isWorkflowSearchControl(node.name)&&node.state?.visible===true&&
         node.locator?.kind===step.locatorKind&&node.locator?.value===step.selector&&
         (step.locatorKind!=='role'||node.locator.name===step.roleName))
     );
@@ -121,7 +157,8 @@ export function createWorkflowAgentLoopGuard({goal,signal,clock=Date.now,limits=
       throw fault('E_AGENT_NO_PROGRESS','相同网页操作已经尝试；已停止，避免重复写入或点击');
     issued.add(signature);rounds++;actionCount+=workflow.steps.length;
     return Object.freeze({signature,round:rounds,actions:workflow.steps.length,
-      origin:target?.origin,steps:steps.map(actions),linkName:linkGuard?.name||null,
+      origin:target?.origin,documentId:target?.documentId,
+      steps:steps.map((step,index)=>({...actions(step),stepId:workflow.steps[index].stepId})),linkName:linkGuard?.name||null,
       readOnly:workflow.steps.every(step=>['observe','extract','assert','wait'].includes(step.op))});
   }
   function verified({claim:ticket,reply}={}){
@@ -165,8 +202,21 @@ export function createWorkflowAgentLoopGuard({goal,signal,clock=Date.now,limits=
         if(step.op==='fill')facts.add('fill-target:'+fieldIdentity(ticket.origin,step));
       }
     } else if(ticket.readOnly&&reply.evidenceLevel==='EXECUTION_RECEIPT_VERIFIED'&&
-      reply.readOnlyVerified===true)facts.add('read-only');
+      reply.readOnlyVerified===true){
+      if(requiresWorkflowSearchControls(goal)){
+        const missing=missingSearchControls(ticket,reply.readbackValues);
+        if(missing.length)return {state:'PARTIAL',completed:false,
+          reason:'只读回执已核对，但尚未实际读取到可见且有定位器的'+missing.join('和')+
+            '，不能确认已识别目标；已停止，不重复同一无效观察'};
+      }
+      facts.add('read-only');
+    }
     else return {state:'PARTIAL',completed:false,reason:'执行回执已核对，但网页效果尚未独立确认，不继续写入'};
+    // Generic search-effect and read-only receipts contain neither ordered
+    // organic-result identity nor title/URL pairs. Do not invent that evidence
+    // from the number of visible links or a model's prose.
+    if(orderedSearchRead(goal))return {state:'PARTIAL',completed:false,facts:[...facts],
+      reason:'当前读取合同无法证明前三条自然结果的顺序、标题和网址；已停止，不重复搜索'};
     const completed=goalFulfilled(goal,facts);
     return {state:completed?'COMPLETED':'CONTINUE',completed,
       facts:[...facts],reason:completed?'原始目标已由独立网页结果核验':'仅部分目标已确认，需重新观察并规划'};

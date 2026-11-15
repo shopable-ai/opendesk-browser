@@ -4,76 +4,9 @@ import {decodeValue} from '../../platform/page-port/codec.js';
 import {digestUtf8} from '../../platform/protocol.js';
 import {verifyDirectExecutionReceipt} from './direct-execution.js';
 
-// The only Browser tool available to the Agent. Its code and budget are bundled,
-// never supplied by the model. All execution belongs to the original RunHost.
-export const WORKFLOW_OBSERVE_SOURCE=String.raw`async function main() {
-  const first=await page.observe({maxNodes:12,maxChars:2600});
-  const rows=[...first.nodes],seen=new Set(rows.map(row=>JSON.stringify(row.locator)));
-  const query=String(params.request||'').replace(/\s+/g,'').slice(0,4000);
-  let truncated=first.truncated===true;
-  if(query){
-    const regions=page.locator('section[id],form[id],[id*="result" i],[role="list"]'),count=await regions.count();
-    if(count>12)truncated=true;
-    for(let i=0;i<Math.min(count,12)&&rows.length<24;i++){
-      const id=await regions.nth(i).getAttribute('id');
-      if(!/^[A-Za-z][\w-]{0,79}$/.test(id||''))continue;
-      const part=await page.observe({root:'[id='+JSON.stringify(id)+']',maxDepth:7,maxNodes:14,maxChars:2400});
-      // A planning request may contain a short control label ("搜索"), while
-      // a post-click effect observation may contain only the search term.
-      // Match bounded, visible result text containing that term as well.
-      const match=row=>row?.state?.visible===true&&[row.name,row.text].some(value=>{
-        if(typeof value!=='string')return false;
-        const text=value.replace(/\s+/g,'').toLocaleLowerCase();
-        const term=query.toLocaleLowerCase();
-        return text.length>=2&&text.length<=120&&
-          (text.length<=40&&term.includes(text)||
-            term.length>=2&&term.length<=120&&text.includes(term));
-      });
-      if(!part.nodes.some(match))continue;
-      for(const row of [...part.nodes].sort((a,b)=>Number(match(b))-Number(match(a)))){
-        if(!row.locator||row.locator.parent||row.state?.visible!==true)continue;
-        const key=JSON.stringify(row.locator);
-        if(seen.has(key))continue;
-        if(rows.length>=24){truncated=true;break;}
-        seen.add(key);rows.push(row);
-      }
-      if(part.truncated)truncated=true;
-    }
-  }
-  // Read-only proof for ordinary links already observed in this Document.
-  // New windows, downloads, opaque schemes and sensitive URLs are refused.
-  for(const row of rows){
-    if(row?.role!=='link'||row.state?.visible!==true||row.state?.disabled ||
-      !row.locator||row.locator.parent||row.locator.index!==undefined)continue;
-    const d=row.locator;
-    let loc;
-    if(d.kind==='role'&&d.value==='link'&&d.exact===true&&d.name===row.name)
-      loc=page.getByRole('link',{name:d.name,exact:true});
-    else if(d.kind==='css')loc=page.locator(d.value);
-    else if(d.kind==='testId')loc=page.getByTestId(d.value);
-    else continue;
-    try {
-      if(await loc.count()!==1)continue;
-      const href=await loc.getAttribute('href'),
-        target=await loc.getAttribute('target'),
-        download=await loc.getAttribute('download');
-      if(typeof href!=='string'||href.length<1||href.length>260||
-        /[^\x21-\x7e]|["'\\<>]/.test(href)||
-        download!==null||(target!==null&&target!==''&&target!=='_self'))continue;
-      const url=new URL(href,first.document?.url);
-      if(!['http:','https:'].includes(url.protocol)||url.username||url.password||
-        url.hash||url.href.length>320||
-        /(?:login|account|checkout|payment|delete|logout|auth|token|reset|upload|send|order)/i.test(url.pathname)||
-        [...url.searchParams].some(([key,val])=>!['product','detail','sku','item','id'].includes(key)||
-          !/^[\w-]{1,60}$/.test(val)))continue;
-      row.navigation={href,url:url.href,origin:url.origin};
-    }catch{}
-  }
-  let title='';
-  try{if(typeof page.title==='function')title=String(await page.title()).slice(0,200);}catch{}
-  return {...first,nodes:rows,title,truncated};
-}
-`;
+import {WORKFLOW_OBSERVE_SOURCE} from '../../framework/workflow/observation-source.js';
+export {WORKFLOW_OBSERVE_SOURCE} from '../../framework/workflow/observation-source.js';
+
 const error=(code,message)=>Object.assign(new Error(message),{code});
 // Do not disclose trusted link destinations or page titles to an AI receiver.
 export function workflowObservationForModel(receipt) {

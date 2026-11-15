@@ -5,7 +5,11 @@ import {PageError, encodeValue, decodeValue} from '../../src/framework/control/v
 import {createControllerDriver} from '../../src/framework/control/native-driver.js';
 import {installPackagedPageSession} from '../../src/scripting/packaged/page-session.js';
 import {createLocatorDescriptor, validateLocatorDescriptor} from '../../src/framework/control/locator-contract.js';
-import {locate, accessibleName, semanticRole} from '../../src/scripting/packaged/locator-dom.js';
+import {JSDOM} from 'jsdom';
+import {createLocatorDOM, locate, accessibleName, semanticRole} from '../../src/scripting/packaged/locator-dom.js';
+import {compileWorkflow} from '../../src/framework/workflow/compiler.js';
+import {emptyWorkflow} from '../../src/framework/workflow/contract.js';
+import {runInNewContext} from 'node:vm';
 
 const pause = ms => new Promise(resolve => setTimeout(resolve,ms));
 const target = {mode:'borrowed',tabId:17,frameId:0,documentId:'doc-A',allowedOrigin:'https://example.test',
@@ -520,6 +524,127 @@ test('observation verifies a scoped locator with duplicate names and never expos
     assert.equal(locate(f.dom.doc,found.locator)[0],f.dom.button);
     assert.equal(JSON.stringify(observed).includes('PRIVATE_INPUT_VALUE'),false);
     assert.ok(observed.budget.locatorChecks<=observed.budget.maxLocatorChecks);
+  }finally{f.dispose();}
+});
+
+test('observation CSS fallback binds the visible duplicate control within the shared check budget',()=>{
+  for(const controlHTML of ['<input type="submit" value="Run search">','<button>Run search</button>']) {
+    for(const exhausted of [false,true]) {
+      const dom=new JSDOM(`<body>${exhausted ? Array.from({length:39},(_,i)=>`<h2>Section ${i}</h2>`).join('') : ''}
+        <form><div style="display:none">${controlHTML}</div>
+        <div><span></span>${controlHTML}</div></form>
+        <input type="password" value="PRIVATE_PASSWORD"><input value="PRIVATE_QUERY">
+        <textarea>PRIVATE_DRAFT</textarea></body>`);
+      try {
+        const {document}=dom.window;
+        dom.window.HTMLElement.prototype.getBoundingClientRect=()=>({width:100,height:20});
+        const control=document.querySelectorAll('input[type=submit],button')[1];
+        const semantic=createLocatorDescriptor('role','button',{name:'Run search',exact:true});
+        assert.equal(locate(document,semantic).length,2,'strict semantic matching still sees both controls');
+        const observed=createLocatorDOM({document,window:dom.window}).observe({maxNodes:80,maxChars:16000});
+        const row=observed.nodes.find(row=>row.role==='button'&&row.state.visible);
+        assert.equal(row?.locator?.kind,'css');
+        assert.equal(row.locator.index,undefined);
+        assert.doesNotMatch(row.locator.value,/Run search|\[value|\[name/);
+        assert.deepEqual(locate(document,row.locator),[control]);
+        assert.ok(row.locator.value.includes(control.localName+':nth-of-type(1)'), 'position counts only same-tag siblings');
+        assert.ok(observed.budget.locatorChecks<=40);
+        if(exhausted)assert.equal(observed.budget.locatorChecks,40,'last reserved check verifies CSS');
+        assert.equal(observed.nodes.find(row=>row.role==='button'&&!row.state.visible).locator,null);
+        assert.doesNotMatch(JSON.stringify(observed),/PRIVATE_PASSWORD|PRIVATE_QUERY|PRIVATE_DRAFT/);
+      }finally{dom.window.close();}
+    }
+  }
+});
+
+test('CSS-hidden id rows retain state without spending checks before a visible duplicate control',()=>{
+  const hidden=Array.from({length:40},(_,i)=>`<div id="hidden-${i}" style="display:none"></div>`).join('');
+  const dom=new JSDOM(`<body><form>${hidden}<input type="submit" value="Search" style="display:none">
+    <div><input type="submit" value="Search"></div></form></body>`);
+  try {
+    const {document}=dom.window;
+    dom.window.HTMLElement.prototype.getBoundingClientRect=()=>({width:100,height:20});
+    const api=createLocatorDOM({document,window:dom.window});
+    const hiddenOnly=api.observe({root:'[id="hidden-0"]'});
+    assert.equal(hiddenOnly.nodes.length,1);
+    assert.equal(hiddenOnly.nodes[0].state.visible,false);
+    assert.equal(hiddenOnly.nodes[0].locator,null);
+    assert.equal(hiddenOnly.budget.locatorChecks,0);
+    const observed=api.observe({root:'form',maxNodes:48,maxChars:16000});
+    const hiddenRows=observed.nodes.filter(row=>!row.state.visible);
+    assert.equal(hiddenRows.length,41);
+    assert.ok(hiddenRows.every(row=>row.locator===null));
+    const control=observed.nodes.find(row=>row.state.visible&&row.role==='button');
+    assert.equal(control?.locator?.kind,'css');
+    assert.deepEqual(locate(document,control.locator),[document.querySelector('div input')]);
+    assert.equal(observed.budget.locatorChecks,2,'only semantic match and verified CSS for the visible input');
+  }finally{dom.window.close();}
+});
+
+test('observation CSS fallback rejects ambiguous anchors, unsupported roles and excessive paths',()=>{
+  for(const html of [
+    '<div id="repeated"><button>Act</button></div><div id="repeated"><button>Act</button></div>',
+    '<h2>Act</h2><h2>Act</h2>',
+    '<button>Act</button>'+ '<div>'.repeat(17)+'<button>Act</button>'+'</div>'.repeat(17),
+    '<button>Act</button><div>'+ '<span></span>'.repeat(401)+'<button>Act</button></div>'
+  ]) {
+    const dom=new JSDOM('<body>'+html+'</body>');
+    try {
+      const {document}=dom.window;
+      dom.window.HTMLElement.prototype.getBoundingClientRect=()=>({width:100,height:20});
+      // Observe only the last action so traversal depth cannot mask path limits.
+      const root=document.querySelectorAll('button,h2');
+      root[root.length-1].setAttribute('data-observe-root','');
+      const observed=createLocatorDOM({document,window:dom.window}).observe({root:'[data-observe-root]'});
+      assert.equal(observed.nodes.length,1);
+      assert.equal(observed.nodes[0].locator,null);
+      assert.ok(observed.budget.locatorChecks<=40);
+    }finally{dom.window.close();}
+  }
+});
+
+test('observation depth truncation keeps later shallow search controls and verified locators',async()=>{
+  const f=fixture();
+  try {
+    const header=new Element('header',{id:'deep-header'});
+    let branch=header;
+    for(let i=0;i<4;i++) branch=branch.append(new Element('div'));
+    branch.append(new Element('button',{id:'too-deep'},'Deep action'));
+    header.parentElement=f.dom.body;
+    f.dom.body.children.unshift(header);
+    const observed=await f.context.page.observe({maxDepth:3,maxNodes:50,maxChars:8000});
+    assert.equal(observed.truncated,true);
+    assert.ok(observed.nodes.some(row=>row.locator?.value==='[id="deep-header"]'));
+    assert.equal(observed.nodes.some(row=>row.role==='button'&&row.name==='Deep action'),false);
+    const search=observed.nodes.find(row=>row.role==='searchbox'&&row.name==='搜索关键词');
+    const button=observed.nodes.find(row=>row.role==='button'&&row.name==='搜索');
+    assert.ok(search?.locator,'shallow search input after the deep header must remain observable');
+    assert.ok(button?.locator,'shallow search button after the deep header must remain observable');
+    assert.equal(locate(f.dom.doc,search.locator)[0],f.dom.input);
+    assert.equal(locate(f.dom.doc,button.locator)[0],f.dom.button);
+    assert.ok(observed.budget.visited<=observed.budget.maxVisited);
+    assert.ok(observed.budget.locatorChecks<=observed.budget.maxLocatorChecks);
+  }finally{f.dispose();}
+});
+
+test('compiled observe reads nested live controls within the existing depth budget',async()=>{
+  const f=fixture();
+  try{
+    const {input,button,body}=f.dom;
+    input.parentElement.children=input.parentElement.children.filter(el=>el!==input&&el!==button);
+    let parent=body;
+    for(let i=0;i<6;i++)parent=parent.append(new Element('div'));
+    parent.append(input);parent.append(button);
+    const workflow=emptyWorkflow(target.allowedOrigin);
+    workflow.steps=[{stepId:'controls',op:'observe'}];
+    const compiled=await compileWorkflow(workflow);
+    const result=await runInNewContext(compiled.sourceUtf8+';main()',
+      {page:f.context.page,TextEncoder});
+    const observed=result.controls;
+    assert.ok(observed.nodes.some(row=>row.role==='searchbox'&&row.locator));
+    assert.ok(observed.nodes.some(row=>row.role==='button'&&row.name==='搜索'&&row.locator));
+    assert.ok(observed.nodes.length<=48);
+    assert.ok(observed.budget.visited<=observed.budget.maxVisited);
   }finally{f.dispose();}
 });
 

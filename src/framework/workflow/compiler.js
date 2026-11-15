@@ -1,5 +1,6 @@
 import {digestUtf8} from '../../platform/protocol.js';
 import {validateWorkflow} from './contract.js';
+import {WORKFLOW_OBSERVE_FUNCTION} from './observation-source.js';
 
 // This is a deliberately restricted code emitter, not an LLM JavaScript evaluator.
 // Every runtime operand is JSON-quoted; only known ChromePage/Locator methods are emitted.
@@ -13,10 +14,18 @@ function locator(step) {
   const method = {label:'getByLabel',text:'getByText',testId:'getByTestId'}[step.locatorKind];
   return 'page.' + method + '(' + arg + ')';
 }
-export async function compileWorkflow(value,{verifyFill=false}={}) {
+export async function compileWorkflow(value,{verifyFill=false,observationRequest}={}) {
   if(typeof verifyFill!=='boolean')throw Object.assign(new Error('Invalid verification mode'),{code:'E_WORKFLOW_SCHEMA'});
   const workflow = validateWorkflow(value);
-  const lines = ['async function main() {','  const __results = Object.create(null);'];
+  if(observationRequest!==undefined){
+    if(typeof observationRequest!=='string'||observationRequest.length>4000)
+      throw Object.assign(new Error('Invalid observation request'),{code:'E_WORKFLOW_SCHEMA'});
+    // Persist the same bounded selection input used during planning. Reopening
+    // this Revision must not substitute an unrelated model-generated title.
+    for(const step of workflow.steps)if(step.op==='observe')step.text=observationRequest.slice(0,512);
+  }
+  const lines = [...(workflow.steps.some(step=>step.op==='observe')?[WORKFLOW_OBSERVE_FUNCTION]:[]),
+    'async function main() {','  const __results = Object.create(null);'];
   for (const step of workflow.steps) {
     const id = JSON.stringify(step.stepId);
     lines.push('  // workflow-step: ' + step.stepId);
@@ -25,7 +34,7 @@ export async function compileWorkflow(value,{verifyFill=false}={}) {
         {code:'E_WORKFLOW_CONFIRM_UNSUPPORTED'});
     }
     if (step.op === 'navigate') lines.push('  await page.goto(' + JSON.stringify(step.url) + ');');
-    if (step.op === 'observe') lines.push('  __results[' + id + '] = await page.observe({maxNodes:48,maxChars:6000});');
+    if (step.op === 'observe') lines.push('  __results[' + id + '] = await __observeWorkflowPage(' + JSON.stringify(step.text??workflow.title+' '+workflow.description) + ');');
     if (step.op === 'fill') {
       const input = step.param ? 'params[' + JSON.stringify(step.param) + ']' : JSON.stringify(step.text);
       lines.push('  await ' + locator(step) + '.fill(' + input + ');');

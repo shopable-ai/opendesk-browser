@@ -1,9 +1,54 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import {runInNewContext} from 'node:vm';
+import {runInNewContext as runVM} from 'node:vm';
 import {createWorkflowObservation,workflowObservationForModel,WORKFLOW_OBSERVE_SOURCE} from '../../src/ui/workflow/observation.js';
 import {encodeValue} from '../../src/platform/page-port/codec.js';
 import {digestUtf8} from '../../src/platform/protocol.js';
+import {compileWorkflow} from '../../src/framework/workflow/compiler.js';
+import {emptyWorkflow} from '../../src/framework/workflow/contract.js';
+const runInNewContext=(source,context)=>runVM(source,{TextEncoder,...context});
+
+test('compiled and reopened observations retain the planning request despite a generic title',async()=>{
+  const row=(role,name)=>({role,name,text:name,state:{visible:true},
+    locator:{kind:'role',value:role,name,exact:true}});
+  const page={
+    observe:async options=>({kind:'semantic-dom-summary',
+      document:{documentId:'live-doc',url:'https://example.com/'},
+      nodes:options.root?[row('button','搜索')]:[row('banner','页眉')],truncated:true}),
+    locator:selector=>({count:async()=>selector==='form:not([id])'?1:0})
+  };
+  const request='读取搜索按钮';
+  const workflow=emptyWorkflow('https://example.com','12345678-1234-1234-1234-123456789abc');
+  workflow.steps=[{stepId:'read',op:'observe'}];
+  const planned=await runInNewContext(WORKFLOW_OBSERVE_SOURCE+';main()',
+    {page,params:{request},TextEncoder});
+  const compiled=await compileWorkflow(workflow,{observationRequest:request});
+  const executed=await runInNewContext(compiled.sourceUtf8+';main()',{page,TextEncoder});
+  assert.deepEqual(JSON.parse(JSON.stringify(executed.read)),JSON.parse(JSON.stringify(planned)));
+  assert.ok(executed.read.nodes.some(node=>node.name==='搜索'));
+  assert.equal(compiled.workflow.steps[0].text,request);
+  const reopened=await compileWorkflow(compiled.workflow);
+  assert.equal(reopened.sourceHash,compiled.sourceHash);
+  assert.equal(reopened.sourceUtf8,compiled.sourceUtf8);
+  assert.equal(workflow.steps[0].text,undefined);
+});
+
+test('long CJK control labels are truncated within the original UTF-8 receipt limit',async()=>{
+  const nodes=Array.from({length:24},(_,i)=>({role:'button',name:'搜'.repeat(119)+i,
+    text:'搜'.repeat(119)+i,state:{visible:true,disabled:false},
+    locator:{kind:'role',value:'button',name:'搜'.repeat(119)+i,exact:true}}));
+  const page={observe:async()=>({kind:'semantic-dom-summary',
+    document:{documentId:'live-doc',url:'https://example.com/'},nodes,truncated:false})};
+  const observed=await runInNewContext(WORKFLOW_OBSERVE_SOURCE+';main()',
+    {page,params:{},TextEncoder});
+  const receipt={format:'opendesk.workflow-observation.v1',runId:'r'.repeat(128),
+    resultId:'x'.repeat(128),sourceHash:'a'.repeat(64),summary:{kind:observed.kind,
+      origin:'https://example.com',documentId:'live-doc',title:observed.title,
+      nodes:observed.nodes,truncated:observed.truncated}};
+  assert.ok(new TextEncoder().encode(JSON.stringify(receipt)).length<=12*1024);
+  assert.ok(observed.nodes.length>0);
+  assert.equal(observed.truncated,true);
+});
 
 async function fixture() {
   const target={windowId:2,tabId:3,frameId:0,documentId:'document-one',origin:'https://example.com',url:'https://example.com/path?private=never-upload#fragment'};
@@ -46,6 +91,7 @@ test('fixed observer scans bounded semantic regions instead of guessing a demo s
         nodes:names,truncated:!opts.root};
     },
     locator(css){
+      if(css==='form:not([id])')return {count:async()=>0};
       assert.equal(css,'section[id],form[id],[id*="result" i],[role="list"]');
       return {count:async()=>2,nth:i=>({getAttribute:async()=>i?'lab-search':'lab-form'})};
     }
@@ -58,8 +104,31 @@ test('fixed observer scans bounded semantic regions instead of guessing a demo s
   assert.ok(!result.nodes.some(node=>node.name==='其他表单'));
   assert.ok(result.nodes.length<=24);
   assert.equal(calls.length,3);
-  assert.ok(calls.every(options=>options.maxNodes<=24&&options.maxChars<=4000));
+  assert.ok(calls.every(options=>options.maxNodes<=48&&options.maxChars<=6000));
   assert.doesNotMatch(WORKFLOW_OBSERVE_SOURCE,/#lab-search|#keyword/);
+});
+
+test('a unique form without an id supplies search controls beyond a truncated header',async()=>{
+  const row=(role,name)=>({role,name,text:name,state:{visible:true},
+    locator:{kind:'role',value:role,name,exact:true}});
+  const calls=[];
+  const page={
+    async observe(options){
+      calls.push(options);
+      return {kind:'semantic-dom-summary',document:{documentId:'doc-live',url:'https://example.com/'},
+        nodes:options.root==='form:not([id])'
+          ?[row('textbox','搜索'),row('button','Google 搜索')]
+          :[row('banner','页眉')],truncated:!options.root};
+    },
+    locator:selector=>({count:async()=>selector==='form:not([id])'?1:0})
+  };
+  const result=await runInNewContext(WORKFLOW_OBSERVE_SOURCE+';main()',
+    {page,params:{request:'读取搜索输入框和搜索按钮，不要修改网页'}});
+  assert.ok(result.nodes.some(node=>node.role==='textbox'&&node.name==='搜索'));
+  assert.ok(result.nodes.some(node=>node.role==='button'&&node.name==='Google 搜索'));
+  assert.equal(calls.length,2);
+  assert.ok(result.nodes.length<=24);
+  assert.ok(calls.every(options=>options.maxNodes<=48&&options.maxChars<=6000));
 });
 
 test('untrusted oversized observation query never starts a RunHost',async t=>{
@@ -166,6 +235,7 @@ test('post-click observation includes a result status containing the bounded que
         nodes,truncated:false};
     },
     locator(selector){
+      if(selector==='form:not([id])')return {count:async()=>0};
       assert.equal(selector,'section[id],form[id],[id*="result" i],[role="list"]');
       return {count:async()=>2,nth:i=>({getAttribute:async()=>i?'lab-search':'other-form'})};
     }
@@ -177,7 +247,7 @@ test('post-click observation includes a result status containing the bounded que
   assert.ok(!result.nodes.some(node=>node.text==='其他信息'));
   assert.ok(result.nodes.length<=24);
   assert.equal(requests.length,3);
-  assert.ok(requests.every(options=>options.maxNodes<=24&&options.maxChars<=4000));
+  assert.ok(requests.every(options=>options.maxNodes<=48&&options.maxChars<=6000));
 });
 
 test('demo search fixture exposes the empty result container to pre-click DOM observation',async()=>{

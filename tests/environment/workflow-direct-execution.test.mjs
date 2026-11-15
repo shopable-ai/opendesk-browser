@@ -44,6 +44,54 @@ test('explicit fill compiles with opt-in readback and retains old source hash',a
   assert.match(now.sourceUtf8,/value:__actual/);
   assert.notEqual(now.sourceHash,old.sourceHash);
 });
+test('reading Google input and search controls does not request fills or clicks',()=>{
+  const request='请读取当前 Google 网页，识别搜索输入框和搜索按钮，告诉我它们的作用，不要修改网页。';
+  const read=workflow([{stepId:'read',op:'observe'}]);
+  assert.doesNotThrow(()=>prepareDirectExecution({request,workflow:read,target}));
+  assert.throws(()=>prepareDirectExecution({request,workflow:workflow([
+    {stepId:'field',op:'extract',locatorKind:'role',selector:'textbox',roleName:'搜索'},
+    {stepId:'button',op:'extract',locatorKind:'role',selector:'button',roleName:'搜索'}]),target}),
+    {code:'E_AI_MISSING_ACTION'});
+  assert.throws(()=>prepareDirectExecution({request,workflow:workflow([
+    {...fill,text:'Google'}]),target}),{code:'E_AI_UNREQUESTED_ACTION'});
+  assert.throws(()=>prepareDirectExecution({request,workflow:workflow([
+    {stepId:'search',op:'click',locatorKind:'role',selector:'button',roleName:'搜索'}]),
+    target,observation:searchObservation}),{code:'E_AI_UNREQUESTED_ACTION'});
+});
+test('only the current observed editable search combobox admits a grounded fill',()=>{
+  const step={...fill,locatorKind:'role',selector:'combobox',roleName:'搜索',text:'OpenDesk'};
+  const observation={summary:{origin,documentId:target.documentId,nodes:[{
+    role:'combobox',name:'搜索',state:{visible:true,disabled:false,readOnly:false},
+    locator:{kind:'role',value:'combobox',name:'搜索',exact:true}}]}};
+  const run=observed=>prepareDirectExecution({request:'填入 OpenDesk，不要点击',
+    workflow:workflow([step]),target,observation:observed});
+  assert.doesNotThrow(()=>run(observation));
+  for(const alter of [x=>x.summary.documentId='old',x=>x.summary.origin='https://other.test',
+    x=>x.summary.nodes[0].state.readOnly=true,x=>x.summary.nodes[0].state.disabled=true,
+    x=>x.summary.nodes[0].state.visible=false,x=>x.summary.nodes[0].locator.exact=false]){
+    const stale=structuredClone(observation);alter(stale);
+    assert.throws(()=>run(stale),{code:'E_AI_REVIEW_REQUIRED'});
+  }
+  assert.throws(()=>run(null),{code:'E_AI_REVIEW_REQUIRED'});
+});
+test('control-identification words inside a fill literal do not require an extra observation',()=>{
+  const text='识别搜索输入框和搜索按钮';
+  assert.doesNotThrow(()=>prepareDirectExecution({
+    request:'请在搜索框填入「'+text+'」，不要点击搜索。',
+    workflow:workflow([{...fill,text}]),target}));
+});
+test('observed prefixed search labels admit one search but never unobserved or sensitive buttons',()=>{
+  const search={stepId:'search',op:'click',locatorKind:'css',selector:'body > form:nth-of-type(1) > input:nth-of-type(2)'};
+  const w=workflow([{...fill,text:'OpenDesk'},search]);
+  const make=name=>({summary:{origin,documentId:target.documentId,nodes:[{
+    role:'button',name,state:{visible:true},locator:{kind:'css',value:search.selector}}]}});
+  for(const name of ['Google 搜索','Site Search'])assert.equal(prepareDirectExecution({
+    request:'搜索 OpenDesk',workflow:w,target,observation:make(name)}).effectExpectation.query,'OpenDesk');
+  for(const observation of [null,make('Delete Search'),make('付款 搜索'),
+    {...make('Google 搜索'),summary:{...make('Google 搜索').summary,documentId:'old'}}])
+    assert.throws(()=>prepareDirectExecution({request:'搜索 OpenDesk',workflow:w,target,observation}),
+      {code:'E_AI_REVIEW_REQUIRED'});
+});
 test('unrequested clicks, irreversible actions, and changed sites fail closed',()=>{
   const w=workflow([fill,{stepId:'click1',op:'click',locatorKind:'css',selector:'#submit'}]);
   assert.throws(()=>prepareDirectExecution({request:'在输入框里填入 ai自动化第一选择',workflow:w,target}),{code:'E_AI_UNREQUESTED_ACTION'});

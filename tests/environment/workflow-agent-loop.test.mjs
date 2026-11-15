@@ -10,6 +10,60 @@ const successful={ok:true,evidenceLevel:'BUSINESS_EFFECT_VERIFIED',readbackVerif
   effect:{kind:'search-results'}};
 const read=()=>({summary:{origin:target.origin,documentId:target.documentId,
  nodes:[{role:'button',name:'搜索',state:{visible:true}}]}});
+test('arriving at search results is one search, not a second query or link click',()=>{
+ for(const goal of ['搜索 camera，打开搜索结果页面','搜索 camera，进入搜索结果页',
+  'Search camera, open the search results page']){
+  const guard=createWorkflowAgentLoopGuard({goal});
+  const claim=guard.claim({workflow:proposal([fill,search]),target});
+  assert.equal(guard.verified({claim,reply:successful}).state,'COMPLETED',goal);
+ }
+});
+test('opening a named link within search results still requires a navigation effect',()=>{
+ for(const goal of ['搜索 camera，打开搜索结果页面中的 Camera X 链接',
+  'Search camera, open the search results page link Camera X']){
+  const guard=createWorkflowAgentLoopGuard({goal});
+  const claim=guard.claim({workflow:proposal([fill,search]),target});
+  assert.equal(guard.verified({claim,reply:successful}).state,'CONTINUE',goal);
+  const navigate=guard.claim({workflow:proposal([link]),target});
+  assert.equal(guard.verified({claim:navigate,reply:{ok:true,
+   evidenceLevel:'BUSINESS_EFFECT_VERIFIED',effect:{kind:'link-page',name:'Camera X'}}}).state,'COMPLETED');
+ }
+});
+test('top-three wording in a query or prohibited read does not require result extraction',()=>{
+ for(const goal of ['搜索「前三条自然搜索结果标题和网址」',
+  '搜索“读取前三条自然搜索结果标题和网址”',
+  '搜索 camera，不要读取前三条自然搜索结果标题和网址']){
+  const guard=createWorkflowAgentLoopGuard({goal});
+  const claim=guard.claim({workflow:proposal([fill,search]),target});
+  assert.equal(guard.verified({claim,reply:successful}).state,'COMPLETED',goal);
+ }
+});
+test('T02 organic top three require ordered title and URL evidence absent from generic receipts',()=>{
+ const goal='请使用当前 Google 网站搜索 OpenDesk Browser GitHub，打开搜索结果页面，读取前三条自然搜索结果的标题和网址，并告诉我实际执行结果。';
+ const guard=createWorkflowAgentLoopGuard({goal});
+ const claim=guard.claim({workflow:proposal([{...fill,text:'OpenDesk Browser GitHub'},search]),target});
+ const first=guard.verified({claim,reply:{...successful,effect:{kind:'search-results',visibleResultLinks:3}}});
+ assert.equal(first.state,'PARTIAL');
+ assert.equal(first.completed,false);
+ assert.match(first.reason,/无法证明前三条自然结果的顺序、标题和网址/);
+ assert.ok(first.facts.includes('search-results'));
+ const followup=guard.claim({workflow:proposal([{stepId:'readResults',op:'observe'}]),target});
+ const afterRead=guard.verified({claim:followup,reply:{ok:true,
+  evidenceLevel:'EXECUTION_RECEIPT_VERIFIED',readOnlyVerified:true,
+  readbackValues:{readResults:'three arbitrary titles and URLs'}}});
+ assert.equal(afterRead.state,'PARTIAL');
+ assert.equal(afterRead.completed,false);
+ assert.throws(()=>guard.claim({workflow:proposal([{...search,stepId:'retry'}]),target}),
+  {code:'E_AGENT_NO_PROGRESS'});
+});
+test('quoted reading objects retain the ordered result evidence requirement',()=>{
+ for(const goal of ['搜索 camera，读取前三条“自然搜索结果”的标题和网址',
+  '搜索 camera，读取「前三条自然搜索结果标题和网址」']){
+  const guard=createWorkflowAgentLoopGuard({goal});
+  const claim=guard.claim({workflow:proposal([fill,search]),target});
+  assert.equal(guard.verified({claim,reply:successful}).state,'PARTIAL',goal);
+ }
+});
 test('search to detail requires independently verified link and price',()=>{
  const guard=createWorkflowAgentLoopGuard({goal:'搜索 camera，打开 Camera X 商品详情并核对价格'});
  const one=guard.claim({workflow:proposal([fill,search]),target});
@@ -30,6 +84,89 @@ test('read-only observation completes without falsely requiring a search effect'
  const claim=guard.claim({workflow:proposal([{stepId:'observe1',op:'observe'}]),target});
  assert.equal(guard.verified({claim,reply:{ok:true,evidenceLevel:'EXECUTION_RECEIPT_VERIFIED',
   readOnlyVerified:true}}).state,'COMPLETED');
+});
+test('T01 Google control inspection is partial when verified receipt has no readback values',()=>{
+ const guard=createWorkflowAgentLoopGuard({goal:'请读取当前 Google 网页，识别搜索输入框和搜索按钮，告诉我它们的作用，不要修改网页。'});
+ const claim=guard.claim({workflow:proposal([{stepId:'read',op:'observe'}]),target});
+ const result=guard.verified({claim,reply:{ok:true,evidenceLevel:'EXECUTION_RECEIPT_VERIFIED',
+  readOnlyVerified:true}});
+ assert.equal(result.state,'PARTIAL');
+ assert.equal(result.completed,false);
+ assert.match(result.reason,/搜索输入框和搜索按钮/);
+ assert.match(result.reason,/不重复/);
+ assert.ok(!guard.snapshot().facts.includes('read-only'));
+ assert.throws(()=>guard.claim({workflow:proposal([{stepId:'renamed',op:'observe'}]),target}),
+  {code:'E_AGENT_NO_PROGRESS'});
+});
+const inspectionGoal='请读取当前网页，识别搜索输入框和搜索按钮，告诉我它们的作用，不要修改网页。';
+const searchInput={role:'combobox',name:'Search',state:{visible:true},
+ locator:{kind:'role',value:'combobox',name:'Search',exact:true}};
+const searchButton={role:'button',name:'Search',state:{visible:true},
+ locator:{kind:'role',value:'button',name:'Search',exact:true}};
+const controlSummary=nodes=>({kind:'semantic-dom-summary',
+ document:{documentId:target.documentId,url:target.url},nodes});
+function inspectControls(values,{goal=inspectionGoal,verified=true}={}){
+ const guard=createWorkflowAgentLoopGuard({goal});
+ const claim=guard.claim({workflow:proposal([{stepId:'read',op:'observe'}]),target});
+ return guard.verified({claim,reply:{ok:true,evidenceLevel:'EXECUTION_RECEIPT_VERIFIED',
+  readOnlyVerified:verified,readbackValues:values}});
+}
+test('control inspection requires both actual search controls, independently of site brand',()=>{
+ for(const role of ['searchbox','textbox','combobox']){
+  const input={...searchInput,role,name:role==='searchbox'?'Query':'搜索'};
+  const result=inspectControls({read:controlSummary([input,searchButton])});
+  assert.equal(result.state,'COMPLETED',role);
+  assert.equal(result.completed,true);
+ }
+ assert.equal(inspectControls({read:controlSummary([searchInput,searchButton])},
+  {goal:inspectionGoal.replace('当前网页','当前 Google 网页')}).state,'COMPLETED');
+});
+test('links and unrelated controls do not prove the requested search controls were read',()=>{
+ const languageLink={role:'link',name:'日本語',state:{visible:true},
+  locator:{kind:'role',value:'link',name:'日本語'}};
+ for(const nodes of [[],[languageLink],[{...searchInput,name:'Email'},
+  {...searchButton,name:'Save'}]]){
+  const result=inspectControls({read:controlSummary(nodes)});
+  assert.equal(result.state,'PARTIAL');
+  assert.match(result.reason,/搜索输入框和搜索按钮/);
+ }
+ for(const [nodes,missing,present] of [
+  [[searchInput],'搜索按钮','搜索输入框'],[[searchButton],'搜索输入框','搜索按钮']]){
+  const result=inspectControls({read:controlSummary(nodes)});
+  assert.equal(result.state,'PARTIAL');
+  assert.ok(result.reason.includes(missing));
+  assert.ok(!result.reason.includes(present));
+ }
+});
+test('hidden or unlocatable controls cannot satisfy control inspection',()=>{
+ for(const control of [searchInput,searchButton]){
+  for(const change of [{state:{visible:false}},{state:{}},{locator:null},
+   {locator:{kind:'css',value:''}},{locator:{value:'#q'}}]){
+   const nodes=[searchInput,searchButton].map(node=>node===control?{...node,...change}:node);
+   assert.equal(inspectControls({read:controlSummary(nodes)}).state,'PARTIAL');
+  }
+ }
+});
+test('only verified current-document semantic observe values prove control inspection',()=>{
+ const summary=controlSummary([searchInput,searchButton]);
+ for(const values of [null,{read:'搜索输入框和搜索按钮'},
+  {read:{...summary,kind:'model-summary'}},
+  {read:{...summary,document:{...summary.document,url:'https://other.example/'}}},
+  {read:{...summary,document:{...summary.document,documentId:'stale'}}},
+  {read:{...summary,document:{...summary.document,url:'invalid'}}},
+  {read:{...summary,document:undefined}},
+  {unrelated:summary}]){
+  assert.equal(inspectControls(values).state,'PARTIAL');
+ }
+ assert.equal(inspectControls({read:summary},{verified:false}).state,'PARTIAL');
+ const guard=createWorkflowAgentLoopGuard({goal:inspectionGoal});
+ const claim=guard.claim({workflow:proposal([{stepId:'read',op:'extract'}]),target});
+ assert.equal(guard.verified({claim,reply:{ok:true,evidenceLevel:'EXECUTION_RECEIPT_VERIFIED',
+  readOnlyVerified:true,readbackValues:{read:summary}}}).state,'PARTIAL');
+});
+test('ordinary page reads still complete with partial semantic content',()=>{
+ assert.equal(inspectControls({read:controlSummary([searchButton])},
+  {goal:'请读取当前网页，不要修改网页。'}).state,'COMPLETED');
 });
 test('a search field fill alone requires input verification, not a search submission',()=>{
  const guard=createWorkflowAgentLoopGuard({goal:'在搜索框填入 camera，不要点击搜索'});

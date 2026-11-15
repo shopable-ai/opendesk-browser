@@ -342,12 +342,34 @@ export function createLocatorDOM({document:doc, window:win, check = () => {}}) {
     // subsection of a very large SPA. All emitted descriptors still pass locate().
     const semanticSafe = doc.querySelectorAll('*').length <= 1200;
     const maxLocatorChecks = 40, maxVisited = Math.min(3000, Math.max(400, opts.maxNodes * 30));
-    let truncated = false, used = 0, visited = 0, locatorChecks = 0;
+    let truncated = false, stopped = false, used = 0, visited = 0, locatorChecks = 0;
+    function controlPath(el) {
+      // Only structural DOM data: never values, names, text or arbitrary attributes.
+      // Bound both ancestor depth and total sibling work; failure stays conservative.
+      const parts = []; let siblings = 0;
+      for (let current = el; current && parts.length < 16; current = current.parentElement) {
+        const name = tag(current);
+        if (!/^[a-z][a-z0-9-]*$/.test(name)) return null;
+        if (current === doc.body || /^[A-Za-z_][A-Za-z0-9_-]{0,63}$/.test(current.id || '')) {
+          parts.unshift(current === doc.body ? 'body' : '[id="' + current.id + '"]');
+          const value = parts.join(' > ');
+          return value.length <= 1024 ? createLocatorDescriptor('css',value) : null;
+        }
+        let index = 1;
+        for (let previous = current.previousElementSibling; previous; previous = previous.previousElementSibling) {
+          if (++siblings > 400) return null;
+          if (tag(previous) === name) index++;
+        }
+        parts.unshift(name + ':nth-of-type(' + index + ')');
+      }
+      return null;
+    }
     function suggestion(el, role, name, label, text) {
       const scope = el.closest?.('form,dialog,[role="dialog"]');
       const parent = scope?.id ? createLocatorDescriptor('css','[id=' + JSON.stringify(scope.id) + ']') : null;
-      const test = candidate => {
-        if (locatorChecks >= maxLocatorChecks ||
+      const test = (candidate, fallback = false) => {
+        // Keep the last shared check available for a visible control's CSS path.
+        if (locatorChecks >= maxLocatorChecks - (fallback ? 0 : 1) ||
             !semanticSafe && !candidate.parent && candidate.kind !== 'css' && candidate.kind !== 'testId') return null;
         locatorChecks++;
         try {
@@ -372,15 +394,24 @@ export function createLocatorDOM({document:doc, window:win, check = () => {}}) {
       if (id) {
         const found = scoped('testId',id); if (found) return found;
       }
-      if (text && text.length <= 80) return scoped('text',text,{exact:true});
+      if (text && text.length <= 80) {
+        const found = scoped('text',text,{exact:true}); if (found) return found;
+      }
+      if (locatorChecks < maxLocatorChecks &&
+          (['button','link','textbox','searchbox','checkbox','radio','combobox','option'].includes(role) ||
+            ['input','button','select','textarea'].includes(tag(el))) && visible(el,win)) {
+        const candidate = controlPath(el);
+        if (candidate) return test(candidate,true);
+      }
       return null;
     }
     function walk(el, depth) {
-      if (truncated) return;
-      if (++visited > maxVisited) { truncated = true; return; }
+      if (stopped) return;
+      if (++visited > maxVisited) { truncated = stopped = true; return; }
       if ((visited & 63) === 0) check();
+      // Depth clips only this branch; global budgets still stop the whole walk.
       if (depth > opts.maxDepth) { truncated = true; return; }
-      if (rows.length >= opts.maxNodes) { truncated = true; return; }
+      if (rows.length >= opts.maxNodes) { truncated = stopped = true; return; }
       if (ariaHidden(el)) return;
       const role = semanticRole(el), name = role ? accessibleName(el, doc, observationText) : '',
         label = ['input','select','textarea'].includes(tag(el)) ? labelText(el,doc,observationText) : '',
@@ -389,17 +420,19 @@ export function createLocatorDOM({document:doc, window:win, check = () => {}}) {
       const noteworthy = Boolean(role || label || el.id || el.hasAttribute('data-testid'));
       if (noteworthy) {
         const scope = el.closest?.('form,dialog,[role="dialog"]');
+        const shown = visible(el,win);
         const row = {role:role || null, name:name.slice(0,120), text,
-          state:{visible:visible(el,win),disabled:Boolean(el.disabled || el.getAttribute('aria-disabled') === 'true' ||
+          state:{visible:shown,disabled:Boolean(el.disabled || el.getAttribute('aria-disabled') === 'true' ||
               el.closest?.('[aria-disabled="true"]')),readOnly:Boolean(el.readOnly || el.getAttribute('aria-readonly') === 'true'),
             ...(el.hasAttribute('aria-expanded') ? {expanded:el.getAttribute('aria-expanded')} : {}),
             ...(typeof el.checked === 'boolean' ? {checked:String(el.checked)} :
               el.hasAttribute('aria-checked') ? {checked:el.getAttribute('aria-checked')} : {}),
             ...(typeof el.selected === 'boolean' ? {selected:el.selected} : {})},
           scope:scope && scope !== el ? {tag:tag(scope),id:scope.id || null} : null,
-          locator:suggestion(el,role,name,label,text)};
+          // Hidden rows retain their state without spending locator checks.
+          locator:shown ? suggestion(el,role,name,label,text) : null};
         const length = JSON.stringify(row).length;
-        if (used + length > opts.maxChars) { truncated = true; return; }
+        if (used + length > opts.maxChars) { truncated = stopped = true; return; }
         rows.push(row); used += length;
       }
       for (const child of el.children) walk(child,depth+1);

@@ -12,7 +12,8 @@ test('Codex planning copy omits old fill values, defaults and navigational query
     paramsSchema:{type:'object',additionalProperties:false,properties:{
       x:{type:'string',title:'输入值',default:'HIDDEN_DEFAULT'}},required:[]},
     steps:[{stepId:'a',op:'fill',locatorKind:'css',selector:'#x',text:'HIDDEN_FILL'},
-      {stepId:'b',op:'navigate',url:'https://demo.example/page?token=HIDDEN_QUERY#fragment'}]};
+      {stepId:'b',op:'navigate',url:'https://demo.example/page?token=HIDDEN_QUERY#fragment'},
+      {stepId:'read',op:'observe',text:'填写 HIDDEN_FILL 后读取页面'}]};
   const copy=workflowForModel(workflow);
   const prompt=workflowCodexInput('生成表单自动化',workflow);
   for(const secret of ['HIDDEN_DEFAULT','HIDDEN_FILL','HIDDEN_QUERY']){
@@ -21,6 +22,8 @@ test('Codex planning copy omits old fill values, defaults and navigational query
   }
   assert.equal(workflow.steps[0].text,'HIDDEN_FILL');
   assert.equal(copy.steps[1].url,'https://demo.example/page');
+  assert.equal(workflow.steps[2].text,'填写 HIDDEN_FILL 后读取页面');
+  assert.equal(Object.hasOwn(copy.steps[2],'text'),false);
 });
 test('unchanged secret fills and navigation URLs survive AI refinement locally',()=>{
   const original={paramsSchema:{properties:{}},steps:[

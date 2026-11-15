@@ -44,7 +44,30 @@ function defaultStep(op = 'observe') {
 // Presentation only: describe effects only after RunHost and readback verification.
 export function workflowExecutionFeedback({execution,workflow,params={},values}={}) {
   if(!execution?.ok)return '本次未能确认成功；不会自动重试。请检查真实网页与运行详情。';
-  if(execution.readOnlyVerified===true)return '只读步骤已完成，已核对真实 RunHost 回执；没有修改网页。';
+  if(execution.readOnlyVerified===true){
+    const details=[];let truncated=false;
+    const roles={textbox:'输入框',combobox:'输入框',searchbox:'搜索框',
+      button:'按钮',link:'链接',heading:'标题',status:'状态'};
+    for(const step of workflow?.steps||[]){
+      const value=values?.[step.stepId];
+      if(step.op==='observe'&&value?.kind==='semantic-dom-summary'){
+        truncated ||= value.truncated===true;
+        for(const node of value.nodes||[]){
+          if(node?.state?.visible!==true||!roles[node.role]||!node.name)continue;
+          const shown=presentTaskValue(node.name);
+          if(shown.redacted||shown.truncated)continue;
+          const label=roles[node.role]+'“'+node.name.slice(0,120)+'”'+
+            (['textbox','combobox'].includes(node.role)?'（用于输入文字）':
+              node.role==='searchbox'?'（用于输入查询词）':
+                node.role==='button'&&/搜索|search/i.test(node.name)?'（用于发起搜索，本轮未点击）':'');
+          if(!details.includes(label)&&details.length<10)details.push(label);
+        }
+      }else if(step.op==='extract'&&typeof value==='string')details.push(presentTaskValue(value).text);
+    }
+    return '只读步骤已完成，已核对真实 RunHost 回执；没有修改网页。'+
+      (details.length?'\n实际读取：'+details.join('；').slice(0,1800):'未取得可展示的控件或文本，不能确认已识别目标。')+
+      (truncated?'\n摘要有截断，未展示的内容仍未确认。':'');
+  }
   if(execution.evidenceLevel!=='BUSINESS_EFFECT_VERIFIED')
     return '运行已结束。网页效果尚未确认，请检查当前网页；不会自动重复执行。';
   const effect=execution.effect;
@@ -883,7 +906,7 @@ export function createWorkflowView({api=globalThis.chrome,document:doc=globalThi
             freeze.workflow.steps.every(step=>['observe','extract','assert','wait'].includes(step.op));
           return {ok:lastRun==='success',runId:claim.runId,resultId:proof?.resultId||null,
             evidenceLevel,readbackVerified,readOnlyVerified,effect,effectTarget,
-            readbackValues:readbackVerified?decodeValue(result.outcome.valueWire):null};
+            readbackValues:readbackVerified||readOnlyVerified?decodeValue(result.outcome.valueWire):null};
         }
         let receiptProof=null;
         try{receiptProof=verifyDirectExecutionReceipt({
@@ -1202,14 +1225,15 @@ export function createWorkflowView({api=globalThis.chrome,document:doc=globalThi
             const admission=prepareDirectExecution({
               request:agent.goal,workflow:proposed,target,observation:receipt,
               verifiedFacts:agent.guard.snapshot().facts});
-            const executable=structuredClone(proposed);
+            let executable=structuredClone(proposed);
             if(admission.linkGuard){
               const click=executable.steps.find(step=>step.op==='click');
               if(!click)throw err('E_AI_REVIEW_REQUIRED','缺少已核验链接点击');
               click.linkGuard=structuredClone(admission.linkGuard);
             }
             const runParams=promoteVerifiedReplayParameters(executable,admission,agent.goal);
-            const freeze=await compileWorkflow(executable,{verifyFill:true});
+            const freeze=await compileWorkflow(executable,{verifyFill:true,observationRequest:agent.goal});
+            executable=freeze.workflow;
             if(executable.steps.length>4)throw err('E_AGENT_SCHEMA','AI 每轮最多四步，请只提出接下来的必要动作');
             checked={executable,admission,freeze,runParams};break;
           }catch(error){
@@ -2017,7 +2041,8 @@ export function createWorkflowView({api=globalThis.chrome,document:doc=globalThi
           // Otherwise a successful first search is frozen with a literal
           // keyword and cannot be saved as a dynamic Bundle v2 for a new Send.
           runParams=promoteVerifiedReplayParameters(executable,prepared,frozen.request);
-          freeze=await compileWorkflow(executable,{verifyFill:true});
+          freeze=await compileWorkflow(executable,{verifyFill:true,observationRequest:frozen.request});
+          executable=freeze.workflow;
           if(executable.steps.length>4)throw err('E_AGENT_SCHEMA','AI 每轮最多四步，请提出下一组必要动作');
           planningCurrent(epoch,frozen.serial,frozen.selected);
           lastProviderTurn={businessWorkflowId:frozen.workflow.workflowId,

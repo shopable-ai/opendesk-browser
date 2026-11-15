@@ -4,10 +4,15 @@ const error=(code,message)=>Object.assign(new Error(message),{code});
 const targetFields=['windowId','tabId','frameId','documentId','url','origin'];
 const highImpact=/(?:付款|支付|购买|下单|结账|转账|提现|确认订单|提交订单|删除|永久移除|清空|注销|发布|群发|发送(?:邮件|消息)|发消息|退款|修改(?:密码|账号)|重设密码|pay(?:ment)?|purchase|checkout|transfer\s+money|delete|remove\s+account|reset\s+password|send\s+(?:email|message)|post\s+(?:comment|message)|confirm\s+order)/i;
 const riskyClickTarget=/(?:付款|支付|购买|下单|结账|转账|删除|清空|注销|发布|发送|退款|密码|订单确认|支付确认|pay|purchase|checkout|transfer|delete|remove|reset.?password|send|submit|提交|confirm.?order|logout|publish|billing)/i;
-const fillIntent=/(?:填入|填写|输入|填上|填到|写入|写在|设为|改成|改为|放入|设置输入框|\b(?:fill|type|enter)\b)/i;
-const clickIntent=/(?:点击|点开|按下|打开|跳转|搜索(?!关键词|框|栏|输入框|结果|页面|记录|历史|列表)|提交|下一步|选择(?:按钮|菜单|选项|标签|条目|项目)|\bsearch\b(?!\s+(?:keyword|input|field|box)\b)|\b(?:click|open|navigate|submit|select|press)\b)/i;
+export const isWorkflowSearchControl=name=>typeof name==='string'&&
+  /^(?:[\p{L}\p{N}._-]{1,24}\s+)?(?:搜索|search)$/iu.test(name)&&!riskyClickTarget.test(name);
+// Control names in a read request (输入框、搜索按钮) do not authorize writes.
+const fillIntent=/(?:填入|填写|输入(?!框|栏|区|控件|字段)|填上|填到|写入|写在|设为|改成|改为|放入|设置输入框|\b(?:fill|type|enter)\b)/i;
+const clickIntent=/(?:点击|点开|按下|打开|跳转|搜索(?!按钮|控件|关键词|框|栏|输入框|结果|页面|记录|历史|列表)|提交|下一步|选择(?:按钮|菜单|选项|标签|条目|项目)|\bsearch\b(?!\s+(?:keyword|input|field|box)\b)|\b(?:click|open|navigate|submit|select|press)\b)/i;
 const negatedClickIntent=new RegExp(String.raw`(?:不要|不得|禁止|别|勿|无需|不允许|do\s+not|don['’]t|never)\s*${clickIntent.source}(?:(?!(?:但|然后|接着|随后|而是|不过|\b(?:but|then|however)\b))[^，。；,;.!！？?\n])*`,'gi');
 const readIntent=/(?:查看(?:页面|网页|内容|结果)?|读取|提取|核对|验证|比对|检查|显示(?:页面|内容|结果)|观察|页面内容|\b(?:read|extract|observe|inspect|show|verify|check)\b)/i;
+export const requiresWorkflowSearchControls=goal=>/(?:识别|辨认|找出|指出)/.test(goal)&&
+  /搜索(?:输入框|框|栏)/.test(goal)&&/搜索按钮/.test(goal);
 
 // Shared risk classification, not a second permission or execution authority.
 // The exact frozen script, site grant and Document are still checked by RunHost.
@@ -67,7 +72,21 @@ export function prepareDirectExecution({request,workflow,target,observation,veri
   if(clean.steps.some(step=>step.op==='navigate'||step.op==='confirm'))
     throw error('E_AI_REVIEW_REQUIRED','本轮暂不自动执行跳转或交互确认');
   const fills=clean.steps.filter(step=>step.op==='fill');
-  if(fills.length&&classifyWorkflowRunRisk(clean).sensitiveFields)
+  // ARIA combobox includes editable search inputs as well as non-editable
+  // selectors. Admit only the exact editable search control observed here;
+  // Locator.fill still enforces the real element's editability at commit.
+  const observedSearchInput=step=>step.locatorKind==='role'&&step.selector==='combobox'&&
+    /^(?:搜索|search)$/i.test(step.roleName||'')&&
+    observation?.summary?.origin===target.origin&&
+    observation.summary.documentId===target.documentId&&
+    observation.summary.nodes?.some(node=>node.role==='combobox'&&node.name===step.roleName&&
+      node.state?.visible===true&&node.state.disabled===false&&node.state.readOnly===false&&
+      node.locator?.kind==='role'&&node.locator.value==='combobox'&&
+      node.locator.name===step.roleName&&node.locator.exact===true&&
+      !node.locator.parent&&node.locator.index===undefined);
+  const riskWorkflow={...clean,steps:clean.steps.map(step=>step.op==='fill'&&observedSearchInput(step)
+    ?{...step,selector:'textbox'}:step)};
+  if(fills.length&&classifyWorkflowRunRisk(riskWorkflow).sensitiveFields)
     throw error('E_AI_REVIEW_REQUIRED','敏感或无法判断影响的填写目标，不能自动执行');
   if(clean.steps.some(step=>step.op==='assert'&&fills.some(fill=>
     step.locatorKind===fill.locatorKind&&step.selector===fill.selector&&
@@ -121,7 +140,7 @@ export function prepareDirectExecution({request,workflow,target,observation,veri
   // Do not misclassify an omitted search click as an unsolicited fill. By
   // contrast, "在搜索框填入…" explicitly requests only the input value.
   if(fills.length===1&&!clicks.length&&!fillIntent.test(instruction)&&
-    /(?:搜索(?!框|栏|关键词|词|结果|页面|历史|记录|输入框)|查找|检索(?!词|结果)|\bsearch\b(?!\s+(?:keyword|input|field|box|term)\b))/i.test(instruction)&&!searchDone)
+    /(?:搜索(?!按钮|控件|框|栏|关键词|词|结果|页面|历史|记录|输入框)|查找|检索(?!词|结果)|\bsearch\b(?!\s+(?:keyword|input|field|box|term)\b))/i.test(instruction)&&!searchDone)
     throw error('E_AI_MISSING_ACTION','用户要求执行搜索，但模型遗漏了搜索点击');
   if(fills.length&&!fillIntent.test(instruction)&&!groundedSearch)
     throw error('E_AI_UNREQUESTED_ACTION','本次未要求填写，模型额外生成填写动作');
@@ -129,11 +148,13 @@ export function prepareDirectExecution({request,workflow,target,observation,veri
     throw error('E_AI_UNREQUESTED_ACTION','本次未要求点击，模型额外生成点击动作');
   if(requestedClick&&!clicks.length&&!searchDone&&!linkDone)
     throw error('E_AI_MISSING_ACTION','用户要求点击，模型没有返回点击步骤');
+  if(requiresWorkflowSearchControls(instruction)&&!clean.steps.some(step=>step.op==='observe'))
+    throw error('E_AI_MISSING_ACTION','识别搜索输入框和按钮需要 observe；extract 只能提取文本，不能证明控件身份');
   const summary=observation?.summary;
   const observedSearch=step=>step.locatorKind==='css'&&
     summary?.origin===target.origin&&summary.documentId===target.documentId&&
     !riskyClickTarget.test(step.selector.replace(/submit/ig,''))&&
-    summary.nodes?.some(node=>node.role==='button'&&/^(?:搜索|search)$/i.test(node.name)&&
+    summary.nodes?.some(node=>node.role==='button'&&isWorkflowSearchControl(node.name)&&
       node.state?.visible&&node.locator?.kind==='css'&&node.locator.value===step.selector&&
       !node.locator.parent&&node.locator.index===undefined);
   const observedLink=step=>{
@@ -182,7 +203,7 @@ export function prepareDirectExecution({request,workflow,target,observation,veri
     if(!summary||summary.origin!==target.origin||summary.documentId!==target.documentId)return false;
     if(step.locatorKind==='css')return observedSearch(step);
     if(step.locatorKind!=='role'||step.selector!=='button'||
-      !/^(?:搜索|search)$/i.test(step.roleName||''))return false;
+      !isWorkflowSearchControl(step.roleName))return false;
     return summary.nodes?.some(node=>node.role==='button'&&node.name===step.roleName&&
       node.state?.visible===true&&node.locator?.kind==='role'&&
       node.locator.value==='button'&&node.locator.name===step.roleName&&
