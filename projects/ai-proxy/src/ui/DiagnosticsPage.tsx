@@ -6,7 +6,7 @@ import { useI18n } from '../i18n/LocaleProvider';
 import type { TranslationKey } from '../i18n/locale';
 import { request, type Request } from '../domain/messages';
 import type { ViewState } from '../domain/types';
-import { AI_SITES } from '../diagnostics/catalog';
+import { AI_SITES, PUBLIC_HTTPS_CHECK } from '../diagnostics/catalog';
 import { diagnosisCodes, observationIsCurrent, type DiagnosisCode } from '../diagnostics/logic';
 import type { CheckKind, DiagnosticSite, DiagnosticsSnapshot, HttpObservation, SitePriority } from '../diagnostics/types';
 import { Status, statusLabelKey } from './Status';
@@ -16,7 +16,7 @@ import { diagnosticHash, parseDiagnosticHash, type DiagnosticSection } from './o
 
 type Panel = DiagnosticSection;
 const statusKeys: Record<CheckKind, TranslationKey> = {
-  http_ok: 'diagHttpOk', auth_required: 'diagAuthRequired',
+  response_limit: 'diagResponseLimit', http_ok: 'diagHttpOk', auth_required: 'diagAuthRequired',
   forbidden: 'diagForbidden', rate_limited: 'diagRateLimited',
   proxy_auth: 'diagProxyAuth', redirect: 'diagRedirect',
   http_error: 'diagHttpError', timeout: 'diagTimeout',
@@ -53,6 +53,7 @@ export function DiagnosticsPage({ state, busy, onRefresh, onStop, onProfiles, pr
   const navigation = getEnvironment().navigation;
   // Only the isolated preview adapter has simulated diagnostics and usage state.
   const simulatedDiagnostics = getEnvironment().preview === true;
+  const httpDiagnostics = simulatedDiagnostics || getEnvironment().httpDiagnostics === true;
   const [panel, updatePanel] = useState<Panel>(() => parseDiagnosticHash(navigation.getRoute()));
   function setPanel(next: Panel) {
     const hash = diagnosticHash(next);
@@ -80,6 +81,15 @@ export function DiagnosticsPage({ state, busy, onRefresh, onStop, onProfiles, pr
   const [error, setError] = useState('');
   const [domain, setDomain] = useState('');
   const [priority, setPriority] = useState<SitePriority>('P0');
+  const active = useRef(true);
+  const readGeneration = useRef(0);
+  useEffect(()=>{
+    active.current=true;
+    return()=>{
+      active.current=false;readGeneration.current++;
+      if(httpDiagnostics)void request({type:'CANCEL_DIAGNOSTICS'}).catch(()=>{});
+    };
+  },[httpDiagnostics]);
   useEffect(() => {
     if (!focusPanelAfterNavigation.current) return;
     focusPanelAfterNavigation.current = false;
@@ -92,12 +102,13 @@ export function DiagnosticsPage({ state, busy, onRefresh, onStop, onProfiles, pr
     setPanel(next);
   }
   const load = useCallback(async () => {
-    if (!simulatedDiagnostics) { setSnapshot(null); return; }
+    const token=++readGeneration.current;
+    if (!httpDiagnostics) { setSnapshot(null); return; }
     try {
       const result = await request({ type: 'GET_DIAGNOSTICS' });
-      if (result.ok && result.diagnostics) setSnapshot(result.diagnostics);
+      if (active.current && token===readGeneration.current && result.ok && result.diagnostics) setSnapshot(result.diagnostics);
     } catch { /* Last completed evidence is kept with its revision marker. */ }
-  }, [simulatedDiagnostics]);
+  }, [httpDiagnostics]);
   useEffect(() => { void load(); }, [load]);
   useEffect(() => {
     // A clock update is display-only; it must never trigger network scanning.
@@ -153,22 +164,23 @@ export function DiagnosticsPage({ state, busy, onRefresh, onStop, onProfiles, pr
   useEffect(() => { setSnapshot(null); void load(); }, [state.config, state.runtime.control, state.runtime.applied, load]);
 
   const submit = useCallback(async (command: Request): Promise<boolean> => {
-    if (!simulatedDiagnostics) { setError(t('diagProductionUnavailable')); return false; }
+    if (!httpDiagnostics || (!simulatedDiagnostics && !['RUN_DIAGNOSTICS','CANCEL_DIAGNOSTICS'].includes(command.type))) { setError(t('diagProductionUnavailable')); return false; }
     try {
       const result = await request(command);
+      if(!active.current)return false;
       if (!result.ok) { setError(result.error.includes('Invalid public HTTPS domain')
         ? t('diagInvalidDomain') : t('diagOperationFailed')); return false; }
       if (result.diagnostics) setSnapshot(result.diagnostics);
       setError('');
       return true;
-    } catch { setError(t('diagBackgroundUnavailable')); return false; }
-  }, [simulatedDiagnostics, t]);
+    } catch { if(active.current)setError(t('diagBackgroundUnavailable')); return false; }
+  }, [httpDiagnostics, simulatedDiagnostics, t]);
   async function test(ids: string[]) {
-    if (!simulatedDiagnostics || running || snapshot?.activeRun || !ids.length) return;
+    if (!httpDiagnostics || running || snapshot?.activeRun || !ids.length) return;
     setRunning(true);
     setError('');
     try { await submit({ type: 'RUN_DIAGNOSTICS', siteIds: ids }); }
-    finally { setRunning(false); void load(); }
+    finally { if(active.current){setRunning(false);void load();} }
   }
   async function save(event: FormEvent) {
     const revision=getEnvironment().getDraftRevision('diagnostic-site');
@@ -212,7 +224,7 @@ export function DiagnosticsPage({ state, busy, onRefresh, onStop, onProfiles, pr
   });
   const locked = running || !!snapshot?.activeRun;
   const latestObservation = (id: string) => latestFor(id, snapshot);
-  const renderResult = (site: DiagnosticSite | typeof AI_SITES[number]) => {
+  const renderResult = (site: Pick<DiagnosticSite,'id'|'domain'|'name'>) => {
     const result = latestObservation(site.id);
     // The page may have been open before this request completed. Never compare
     // a fresh network observation against an older time cached at mount.
@@ -220,10 +232,10 @@ export function DiagnosticsPage({ state, busy, onRefresh, onStop, onProfiles, pr
       !observationIsCurrent(result, snapshot.configRevision, Date.now()));
     return <div className="diagnosticResult" aria-live="polite">
       {!result ? <span className="subtleTag">{t('notTested')}</span> :
-        <><span className={stale ? 'subtleTag' : 'diagnosticResultLabel'}>{stale ? t('diagStale') : t(statusKeys[result.kind])}</span>
+        <><span className={stale ? 'subtleTag' : 'diagnosticResultLabel'}>{stale ? t('diagStale') : (simulatedDiagnostics ? t('diagSimulated') : '') + t(statusKeys[result.kind])}</span>
           {!stale && result.httpStatus !== null && <small>HTTP {result.httpStatus}</small>}
           {!stale && result.elapsedMs !== null && <small>{result.elapsedMs} ms</small>}
-          <small title={t('diagExtensionEvidence')}>{new Intl.DateTimeFormat(locale, {
+          <small title={t(simulatedDiagnostics?'diagExtensionEvidence':'diagEvidenceBoundary')}>{new Intl.DateTimeFormat(locale, {
             dateStyle: 'short', timeStyle: 'short'
           }).format(result.checkedAt)}</small></>}
     </div>;
@@ -258,9 +270,9 @@ export function DiagnosticsPage({ state, busy, onRefresh, onStop, onProfiles, pr
         <div><small>{t('pcDiagModel')}</small><strong>{t('notTested')}</strong></div>
       </>:<>      <div><small>{t('configurationStatus')}</small><strong>{t(statusLabelKey(state.runtime))}</strong>
         <small>{t('doesNotProveReachability')}</small></div>
-      <div><small>{t(simulatedDiagnostics ? 'diagSitesChecked' : 'diagSitesLive')}</small><strong>{simulatedDiagnostics ? `${current.length} / ${AI_SITES.length}` : t('notTested')}</strong>
+      <div><small>{t(simulatedDiagnostics ? 'diagSitesChecked' : 'diagSitesLive')}</small><strong>{httpDiagnostics ? `${current.filter(item=>item.siteId!==PUBLIC_HTTPS_CHECK.id).length} / ${AI_SITES.length}` : t('notTested')}</strong>
         <small>{!simulatedDiagnostics ? t('diagModelVerification') : current.length === 0 ? t('notTested') : t('diagCurrentRouteOnly')}</small></div>
-      <div><small>{t('diagRunStatus')}</small><strong>{!simulatedDiagnostics ? t('notAvailable') : locked ? t('diagRunning') : t('diagIdle')}</strong>
+      <div><small>{t('diagRunStatus')}</small><strong>{!httpDiagnostics ? t('notAvailable') : locked ? t('diagRunning') : t('diagIdle')}</strong>
         <small>{snapshot?.activeRun ? t('diagProgress', {
           done: snapshot.activeRun.completed, total: snapshot.activeRun.total
         }) : t('diagOnDemandOnly')}</small></div>
@@ -289,7 +301,7 @@ export function DiagnosticsPage({ state, busy, onRefresh, onStop, onProfiles, pr
         }}
         onClick={() => setPanel(id)}>{management ? <><span className="diagnosticTabGlyph" aria-hidden="true">{({overview:'⌂',ai:'◉',top:'☆',speed:'↗',proxy:'≡'} as const)[id]}</span>{label}</> : label}</Button>)}
     </div>
-    {!simulatedDiagnostics && <p className="diagnosticRuntimeNotice" role="status">{t("diagProductionUnavailable")}</p>}
+    {!simulatedDiagnostics && <p className="diagnosticRuntimeNotice" role="status">{t(httpDiagnostics?'diagLiveBoundary':'diagProductionUnavailable')}</p>}
     {error && <p className="notice error" role="alert">{error}</p>}
     {locked && <div className="diagnosticRunProgress" role="status">
       <span>{t('diagRunning')} · {snapshot?.activeRun
@@ -310,12 +322,12 @@ export function DiagnosticsPage({ state, busy, onRefresh, onStop, onProfiles, pr
           <article className="diagnosticFeature diagnosticAiSummary">
             <div className="diagnosticCardHeading"><small>{t('aiSites')}</small><span className="diagnosticCornerBadge">{AI_SITES.length} · {t('aiSites')}</span></div><h3>{t('pcDiagAiTitle')}</h3><p>{t('pcDiagAiHelp')}</p>
             <div className="diagnosticQuickSites">{AI_SITES.slice(0,3).map(site=><div className="diagnosticQuickSite" key={site.id}><span className="diagnosticSiteGlyph" aria-hidden="true">{site.name[0]}</span><div><strong>{site.name}</strong>{renderResult(site)}</div></div>)}</div>
-            <div className="actions"><Button variant="primary" className="primary" disabled={!simulatedDiagnostics||locked} onClick={()=>void test(AI_SITES.slice(0,5).map(s=>s.id))}>{t('diagStartFive')}</Button><Button onClick={()=>openPanel('ai')}>{t('pcDiagViewAll')}</Button></div>
+            <div className="actions"><Button variant="primary" className="primary" disabled={!httpDiagnostics||locked} onClick={()=>void test(AI_SITES.slice(0,5).map(s=>s.id))}>{t('diagStartFive')}</Button><Button onClick={()=>openPanel('ai')}>{t('pcDiagViewAll')}</Button></div>
           </article>
         </div>
         <div className="diagnosticOverviewShortcuts">
           <article><span className="diagnosticShortcutGlyph" aria-hidden="true">☆</span><div><small>{t('pcDiagFavorites')}</small><h3>{t('prioritySitesTop510')}</h3><p>{simulatedDiagnostics?t('diagFavoritesCount',{count:favorites.length}):t('notAvailable')}</p></div><Button data-testid="usage-manage" onClick={()=>openPanel('top')}>{t('pcDiagView')}</Button></article>
-          <article><span className="diagnosticShortcutGlyph" aria-hidden="true">↗</span><div><small>{t('connectionSpeed')}</small><h3>{t('pcDiagQuality')}</h3><p>{t(simulatedDiagnostics?'diagHttpTiming':'diagSpeedNotConnected')}</p></div><Button onClick={()=>openPanel('speed')}>{t('pcDiagTest')}</Button></article>
+          <article><span className="diagnosticShortcutGlyph" aria-hidden="true">↗</span><div><small>{t('connectionSpeed')}</small><h3>{t('pcDiagQuality')}</h3><p>{t(httpDiagnostics?'diagHttpTiming':'diagSpeedNotConnected')}</p></div><Button onClick={()=>openPanel('speed')}>{t('pcDiagTest')}</Button></article>
         </div>
       </div>}
       {panel === 'overview' && !management && <div className={'diagnosticOverview' + (management ? ' diagnosticOverviewManagement' : simulatedDiagnostics ? '' : ' diagnosticOverviewRuntime')}>
@@ -334,7 +346,7 @@ export function DiagnosticsPage({ state, busy, onRefresh, onStop, onProfiles, pr
         </article>
         <article className={'diagnosticFeature' + (simulatedDiagnostics ? '' : ' diagnosticFeatureSecondary')}>
           <small>{t('priorityScenario')}</small><h3>{t('aiSiteAvailability')}</h3>
-          <p>{t(simulatedDiagnostics ? 'diagAiFirstFive' : 'notAvailable')}</p>
+          <p>{t(simulatedDiagnostics ? 'diagAiFirstFive' : httpDiagnostics?'diagLiveChecksHelp':'notAvailable')}</p>
           {management && <div className="diagnosticSiteList diagnosticQuickSites">
             {AI_SITES.slice(0, 3).map(site => <div className="diagnosticQuickSite" key={site.id}>
               <div className="diagnosticSiteName"><strong>{site.name}</strong></div>
@@ -342,7 +354,7 @@ export function DiagnosticsPage({ state, busy, onRefresh, onStop, onProfiles, pr
             </div>)}
           </div>}
           <div className="actions">
-            <Button variant="primary" className="primary" disabled={!simulatedDiagnostics || locked} onClick={() =>
+            <Button variant="primary" className="primary" disabled={!httpDiagnostics || locked} onClick={() =>
               void test(AI_SITES.slice(0, 5).map(s => s.id))}>{t('diagStartFive')}</Button>
             <Button variant="secondary" onClick={() => openPanel('ai')}>{t('diagManageTests')}</Button>
           </div>
@@ -354,30 +366,30 @@ export function DiagnosticsPage({ state, busy, onRefresh, onStop, onProfiles, pr
           <Button variant="secondary" data-testid="usage-manage" onClick={() => openPanel('top')}>{t('usageManage')}</Button>
         </article>
         <article className={'diagnosticFeature' + (simulatedDiagnostics ? '' : ' diagnosticFeatureSecondary')}>
-          <small>{t('connectionSpeed')}</small><h3>{t(simulatedDiagnostics ? 'diagHttpTiming' : 'speedTest')}</h3>
-          <p>{t(simulatedDiagnostics ? 'diagSpeedCaveat' : 'notAvailable')}</p>
+          <small>{t('connectionSpeed')}</small><h3>{t(httpDiagnostics ? 'diagHttpTiming' : 'speedTest')}</h3>
+          <p>{t(simulatedDiagnostics ? 'diagSpeedCaveat' : httpDiagnostics?'diagLiveTiming':'notAvailable')}</p>
           <Button variant="secondary" onClick={() => openPanel('speed')}>{t('diagSeeTiming')}</Button>
         </article>
       </div>}
       {panel === 'ai' && <div className="diagnosticSection">
         <div className="diagnosticSectionHead"><div><h3>{t('aiSiteAvailability')}</h3>
-          <p className="hint">{t(simulatedDiagnostics ? 'diagAiListHelp' : 'notAvailable')}</p></div>
+          <p className="hint">{t(simulatedDiagnostics?'diagAiListHelp':httpDiagnostics?'diagLiveChecksHelp':'notAvailable')}</p></div>
           <div className="actions">
-            <Button variant="primary" className="primary" disabled={!simulatedDiagnostics || locked || selectedIds.length === 0}
+            <Button variant="primary" className="primary" disabled={!httpDiagnostics || locked || selectedIds.length === 0}
               onClick={() => void test(selectedIds)}>{t('diagCheckSelected', {count:selectedIds.length})}</Button>
           </div></div>
         <div className="diagnosticSiteList">{AI_SITES.map(site => {
           const favorite = favorites.some(f => f.id === site.id);
           return <article className="diagnosticSite" key={site.id}>
             <label className="diagnosticSiteName">
-              <input type="checkbox" checked={selectedIds.includes(site.id)} disabled={!simulatedDiagnostics || locked}
+              <input type="checkbox" checked={selectedIds.includes(site.id)} disabled={!httpDiagnostics || locked}
                 onChange={e => setSelectedIds(v => e.target.checked
                   ? [...v, site.id] : v.filter(id => id !== site.id))} />
               <span><strong>{site.name}</strong><small>{site.domain}</small></span>
             </label>
             {renderResult(site)}
             <div className="diagnosticSiteActions">
-              <Button variant="secondary" disabled={!simulatedDiagnostics || locked} onClick={() => void test([site.id])}>{t('diagTestOne')}</Button>
+              <Button variant="secondary" disabled={!httpDiagnostics || locked} onClick={() => void test([site.id])}>{t('diagTestOne')}</Button>
               <Button variant="secondary" disabled={!simulatedDiagnostics || saving} onClick={() => void submit(favorite
                 ? {type:'REMOVE_DIAGNOSTIC_SITE',id:site.id}
                 : {type:'SAVE_DIAGNOSTIC_SITE',domain:site.domain,priority:'P1'})}
@@ -406,9 +418,9 @@ export function DiagnosticsPage({ state, busy, onRefresh, onStop, onProfiles, pr
       </div>}
 
       {panel === 'speed' && <div className="diagnosticSection">
-        <h3>{t(simulatedDiagnostics ? 'diagHttpTiming' : 'speedTest')}</h3>
-        <p className="hint">{t(simulatedDiagnostics ? 'diagSpeedCaveat' : 'diagSpeedNotConnected')}</p>
-        {simulatedDiagnostics ? <div className="diagnosticSiteList">{AI_SITES.map(site => {
+        <h3>{t(httpDiagnostics ? 'diagHttpTiming' : 'speedTest')}</h3>
+        <p className="hint">{t(simulatedDiagnostics?'diagSpeedCaveat':httpDiagnostics?'diagLiveTiming':'diagSpeedNotConnected')}</p>
+        {httpDiagnostics ? <div className="diagnosticSiteList">{AI_SITES.map(site => {
           const stats = snapshot?.statistics[site.id];
           return <article className="diagnosticSite" key={site.id}>
             <div className="diagnosticSiteName"><strong>{site.name}</strong><small>{site.domain}</small></div>
@@ -418,17 +430,22 @@ export function DiagnosticsPage({ state, busy, onRefresh, onStop, onProfiles, pr
               <small>p50: {stats?.p50Ms === null || stats?.p50Ms === undefined ? '—' : stats.p50Ms + ' ms'}</small>
               <small>p95: {stats?.p95Ms === null || stats?.p95Ms === undefined ? '—' : stats.p95Ms + ' ms'}</small>
             </div>
-            <Button variant="secondary" disabled={!simulatedDiagnostics || locked} onClick={() => void test([site.id])}>{t('diagTestOne')}</Button>
+            <Button variant="secondary" disabled={!httpDiagnostics || locked} onClick={() => void test([site.id])}>{t('diagTestOne')}</Button>
           </article>;
         })}</div> : <div className="diagnosticUnavailable" role="status">
           <p>{t('diagSpeedNotConnected')}</p>
         </div>}
-        {simulatedDiagnostics && <p className="hint">{t('diagNoThroughput')}</p>}
+        {httpDiagnostics && <p className="hint">{t(simulatedDiagnostics?'diagNoThroughput':'diagLiveNoThroughput')}</p>}
       </div>}
       {panel === 'proxy' && <div className="basicDiagnostic diagnosticSection">
         <h3>{t('basicProxyDiagnostics')}</h3>
         <p className="hint">{t('theseValuesComeFromRealChromeApisExtensionOnly')}</p>
         <Status status={state.runtime} />
+        {httpDiagnostics && <article className="diagnosticSite">
+          <div><strong>{PUBLIC_HTTPS_CHECK.name}</strong><p className="hint">{t('diagLiveBoundary')}</p></div>
+          {renderResult(PUBLIC_HTTPS_CHECK)}
+          <Button disabled={busy||locked} onClick={()=>void test([PUBLIC_HTTPS_CHECK.id])}>{t('diagPublicHttps')}</Button>
+        </article>}
         <div className="actions">
           <Button variant="primary" className="primary" disabled aria-describedby="diagnostic-probe-unavailable">{t('probeApiIpifyOrg')}</Button>
           <Button variant="secondary" disabled={busy} onClick={() => { void onRefresh(); void load(); }}>{t('refreshState')}</Button>
@@ -439,11 +456,11 @@ export function DiagnosticsPage({ state, busy, onRefresh, onStop, onProfiles, pr
       {(panel === 'proxy' || (panel === 'overview' && (!management || issues.some(code=>code!=='limited_evidence')))) && <div className="diagnosticIssues">
         <h3>{t('diagTroubleshoot')}</h3>
         {issues.map(code => <article key={code} className="diagnosticIssue">
-          <strong>{t(diagnosisKeys[code][0])}</strong>
+          <strong>{simulatedDiagnostics?t('diagSimulated'):''}{t(diagnosisKeys[code][0])}</strong>
           <p>{!simulatedDiagnostics && code === 'limited_evidence' ? t('diagEvidenceBoundary') : t(diagnosisKeys[code][1])}</p>
           <div className="actions">
             <Button variant="secondary" onClick={onProfiles}>{t('diagCheckSettings')}</Button>
-            <Button variant="secondary" disabled={!simulatedDiagnostics || locked} onClick={() => void test([selectedIds[0] ?? "chatgpt"])}>{t('diagRetest')}</Button>
+            <Button variant="secondary" disabled={!httpDiagnostics || locked} onClick={() => void test([selectedIds[0] ?? "chatgpt"])}>{t('diagRetest')}</Button>
           </div>
         </article>)}
       </div>}

@@ -18,6 +18,7 @@ export function isAiSite(id: string): id is AiSiteId { return ids.has(id); }
 export function aiSite(id: string): typeof AI_SITES[number] | undefined {
   return AI_SITES.find(s => s.id === id);
 }
+export const PUBLIC_HTTPS_CHECK = {id:'public-https',domain:'www.cloudflare.com',name:'Cloudflare HTTPS'};
 export function defaultFavorites(): DiagnosticSite[] {
   return AI_SITES.slice(0, 5).map(s => ({ ...s, kind: 'ai', priority: 'P1',
     provenance: 'builtin', pinnedByUser: false }));
@@ -42,6 +43,7 @@ export function safePublicDomain(raw: string): string | null {
 }
 /** Exactly the shipped HTTPS origin is network-probeable, not its redirects or custom hosts. */
 export function diagnosticUrl(id: string): string | null {
+  if (id === PUBLIC_HTTPS_CHECK.id) return 'https://www.cloudflare.com/cdn-cgi/trace';
   const site = aiSite(id);
   return site ? 'https://' + site.domain + '/' : null;
 }

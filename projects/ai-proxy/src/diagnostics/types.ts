@@ -1,7 +1,7 @@
 /** Only user-initiated, extension-context HTTP observations; no model or tab access proof. */
 export type CheckKind = 'http_ok' | 'auth_required' | 'forbidden' | 'rate_limited'
   | 'proxy_auth' | 'redirect' | 'http_error' | 'timeout' | 'network_error'
-  | 'permission' | 'cancelled';
+  | 'permission' | 'cancelled' | 'response_limit';
 export type SitePriority = 'P0' | 'P1';
 export interface DiagnosticSite {
   id: string;

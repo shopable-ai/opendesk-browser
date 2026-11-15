@@ -4,6 +4,8 @@ import {freshConfig,validateConfig} from './domain/config';
 import {toManagedRoute,configForManagedRoute} from './domain/managed-config';
 import {createNavigation} from './ui/navigation';
 import {OPTIONS_SECTIONS} from './ui/optionsRoute';
+import {checkDiagnosticSite} from './diagnostics/http';
+import {downloadSubscriptionTextWithSdk} from './subscription/download';
 let environment:any;
 const fail=(code:string,message:string):never=>{throw Object.assign(Error(message),{code});};
 // JSON object member order is not storage identity; array order remains significant.
@@ -93,6 +95,10 @@ export function configureEnvironment(bridge:any,sdk:any,{trusted=false,preview:p
   emit({[key]:{newValue:committed}});
  };
  const managed=()=>{assertLive();return sdk?.browser?.proxy?.managed??fail('E_NOT_CONNECTED','OpenDesk 受管代理服务未接入');};
+ const networkRequest=(input:any)=>{
+  assertLive();
+  return bridge.request('browser.network.request',input);
+ };
  let loadedConfig:any=null;
  const observedStatus=(value:any,config=loadedConfig)=>{
   assertLive();
@@ -104,6 +110,7 @@ export function configureEnvironment(bridge:any,sdk:any,{trusted=false,preview:p
   async load(){const raw=await read(configKey);loadedConfig=raw==null?freshConfig():validateConfig(raw);return {config:loadedConfig,etag:entries.get(configKey)};},
   async save(config:any,etag:string){if(etag!==entries.get(configKey))fail('E_CONFLICT','配置已改变，请重新读取');await write(configKey,config);return entries.get(configKey);},
   status:async()=>observedStatus(await managed().getStatus()),
+  checkSite:async(id:string)=>{const result=await checkDiagnosticSite(id,networkRequest);assertLive();return result;},
   validateApply:toManagedRoute,
   async apply(config:any){
    return observedStatus(await managed().requestEnable({config:toManagedRoute(config)}),config);
@@ -121,9 +128,9 @@ export function configureEnvironment(bridge:any,sdk:any,{trusted=false,preview:p
  let quickView:any=null;
  const pageChanged=()=>events.dispatchEvent(new Event('ai-proxy-page-changed'));
  bridge?.root?.addEventListener('opendesk-page-changed',pageChanged);
- const current={service,storage,navigation,toolNavigation,events,trusted,preview:!!preview,request:async(m:any)=>{
+ const current={service,storage,navigation,toolNavigation,events,trusted,preview:!!preview,httpDiagnostics:!preview,request:async(m:any)=>{
    assertLive();
-   const mutation=!['GET_STATE','GET_DIAGNOSTICS','GET_USAGE','EXPORT'].includes(m.type);
+   const mutation=!['GET_STATE','GET_DIAGNOSTICS','GET_USAGE','EXPORT','RUN_DIAGNOSTICS','CANCEL_DIAGNOSTICS'].includes(m.type);
    if(mutation){pending++;uiState();}
    try{
     const draftWrites=['SAVE_ENDPOINT','SAVE_LOCAL_CLIENT','SAVE_SUBSCRIPTION','DELETE_SUBSCRIPTION','DELETE_ENDPOINT',
@@ -218,7 +225,10 @@ export function configureEnvironment(bridge:any,sdk:any,{trusted=false,preview:p
    return {status:'unavailable',host:'',source:'currentPage'};
   },
   async official(message:any){if(message.type==='OFFICIAL_STATUS')return {ok:true,snapshot:{configured:false,auth:'guest',availability:'unconfigured',plans:[],lines:[],checkout:'none'}};return {ok:false,failure:'not-configured'};},
-  async download(){fail('E_NOT_CONNECTED','订阅在线下载尚未接入；请使用文本或文件解析。');},
+  async download(input:string,originHost:string,options:{signal?:AbortSignal}={}){
+   const result=await downloadSubscriptionTextWithSdk(input,originHost,networkRequest,options);
+   assertLive();return result;
+  },
   beginDraft,setDraftDirty,getDraftVersion:()=>draftRevision,getDraftRevision:(source:string)=>drafts.get(source)??0,
   isDraftDirty:(source:string)=>drafts.has(source),
   hasDrafts:()=>drafts.size>0,

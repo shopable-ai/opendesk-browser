@@ -3,7 +3,9 @@ import {validateHeaderActions} from './domain/header-actions';
 import { errorCodeOf } from './domain/error-codes';
 import type { ConfigState, RuleTarget, ViewState } from './domain/types';
 import type { Request, Response } from './domain/messages';
-import { defaultFavorites, safePublicDomain, siteForDomain } from './diagnostics/catalog';
+import { aiSite, diagnosticUrl, PUBLIC_HTTPS_CHECK, defaultFavorites, safePublicDomain, siteForDomain } from './diagnostics/catalog';
+import { statistics } from './diagnostics/logic';
+import type { HttpCheck } from './diagnostics/http';
 import { MAX_FAVORITES } from './diagnostics/favorites';
 import type { DiagnosticsSnapshot } from './diagnostics/types';
 import type { UsageSnapshot } from './usage/types';
@@ -30,13 +32,14 @@ export interface ProxyServiceOptions {
   apply(config: ConfigState): Promise<ManagedStatus>;
   stop(): Promise<ManagedStatus>;
   preview?: boolean;
+  checkSite?(id:string):Promise<HttpCheck>;
 }
 export type ServiceState = ViewState & {
   configEtag: string;
   runtime: ViewState['runtime'] & { state: ManagedStatus['state']; canStop: boolean; reason: string | null; statusErrorCode?: string; permission?: boolean | null; outcomeUnknown: boolean; stopFinalizationPending: boolean; preview: boolean };
 };
 export type ServiceResponse =
-  | (Omit<Extract<Response, { ok: true }>, 'diagnostics'> & { state: ServiceState; preview: boolean; diagnostics?: DiagnosticsSnapshot & { preview: true; generation: number } })
+  | (Omit<Extract<Response, { ok: true }>, 'diagnostics'> & { state: ServiceState; preview: boolean; diagnostics?: DiagnosticsSnapshot & { preview: boolean; generation: number } })
   | { ok: false; error: string; errorCode: string; code?: string; runtime?: ServiceState['runtime'] };
 // Diagnostic syntax is not evidence that an operation had no side effect.
 const isStatusCode = (value: unknown): value is string => typeof value === 'string' &&
@@ -73,7 +76,7 @@ function routeSignature(config: ConfigState): string {
   return JSON.stringify([mode]);
 }
 
-export function createProxyService({ load, save, status, validateApply, apply, stop, preview = false }: ProxyServiceOptions) {
+export function createProxyService({ load, save, status, validateApply, apply, stop, checkSite, preview = false }: ProxyServiceOptions) {
   let config: ConfigState;
   let etag: string;
   let active: ConfigState | null = null;
@@ -89,7 +92,7 @@ export function createProxyService({ load, save, status, validateApply, apply, s
   let disposed = false;
   const listeners = new Set<Function>();
   let diagnostics: DiagnosticsSnapshot = {
-    configRevision: 'preview:0', favorites: defaultFavorites(), observations: [], statistics: {}, activeRun: null
+    configRevision: preview?'preview:0':'http:0', favorites: defaultFavorites(), observations: [], statistics: {}, activeRun: null
   };
   let usage: UsageSnapshot = {
     settings: { enabled: false, enabledAt: null, topLimit: 5, sort: 'smart', ignored: [] },
@@ -105,7 +108,7 @@ export function createProxyService({ load, save, status, validateApply, apply, s
   function invalidate() {
     generation++;
     diagnostics.activeRun = null;
-    diagnostics.configRevision = `preview:${++revision}`;
+    diagnostics.configRevision = `${preview?'preview':'http'}:${++revision}`;
     diagnostics.observations = [];
     diagnostics.statistics = {};
   }
@@ -142,6 +145,7 @@ export function createProxyService({ load, save, status, validateApply, apply, s
   }
   function observe(value: ManagedStatus) {
     assertLive();
+    const previous=JSON.stringify([actual.control,actual.state,actual.browserMode,actual.permission,actual.statusErrorCode,active]);
     if (!value || !['enabled', 'disabled', 'unavailable', 'conflict'].includes(value.state) ||
         typeof value.canStop !== 'boolean' || !['unknown', 'not_controllable', 'controlled_by_other_extensions',
           'controllable_by_this_extension', 'controlled_by_this_extension'].includes(value.control) ||
@@ -165,6 +169,7 @@ export function createProxyService({ load, save, status, validateApply, apply, s
       ...(value.browserMode !== undefined ? { browserMode: value.browserMode } : {}),
       ...(value.permission !== undefined ? { permission: value.permission } : {}),
       ...(value.statusErrorCode !== undefined ? { statusErrorCode: value.statusErrorCode } : {}) };
+    if(previous!==JSON.stringify([actual.control,actual.state,actual.browserMode,actual.permission,actual.statusErrorCode,active]))invalidate();
     // A newly observed own route supersedes the historical release receipt.
     if (actual.control === 'controlled_by_this_extension' && (actual.state === 'enabled' || actual.canStop))
       stopFinalizationPending = false;
@@ -178,6 +183,11 @@ export function createProxyService({ load, save, status, validateApply, apply, s
       assertLive();
       unknown = true;
       const code = safeStatusCode(error && typeof error === 'object' && 'code' in error ? error.code : undefined);
+      // A subscriber refreshes on changes. Repeating the same failed read must
+      // not create another revision, but pending or completed evidence expires.
+      if (actual.state !== 'unavailable' || actual.control !== 'unknown' ||
+          actual.statusErrorCode !== code || diagnostics.activeRun || diagnostics.observations.length)
+        invalidate();
       actual = { state: 'unavailable', canStop: actual.canStop, control: 'unknown',
         reason: 'Status unavailable; do not replay Apply', statusErrorCode: code,
         ...(actual.permission !== undefined ? { permission: actual.permission } : {}) };
@@ -469,7 +479,8 @@ export function createProxyService({ load, save, status, validateApply, apply, s
       }
       case 'GET_DIAGNOSTICS': case 'RUN_DIAGNOSTICS': case 'CANCEL_DIAGNOSTICS':
       case 'SAVE_DIAGNOSTIC_SITE': case 'REMOVE_DIAGNOSTIC_SITE': case 'MOVE_DIAGNOSTIC_SITE': {
-        previewOnly();
+        const httpAction=['GET_DIAGNOSTICS','RUN_DIAGNOSTICS','CANCEL_DIAGNOSTICS'].includes(message.type);
+        if(!httpAction || !checkSite)previewOnly();
         if (message.type === 'SAVE_DIAGNOSTIC_SITE') {
           if (!['P0', 'P1'].includes(message.priority) || (message.name !== undefined && typeof message.name !== 'string')) throw new Error('Invalid diagnostic site');
           const site = siteForDomain(message.domain, message.priority, message.name);
@@ -487,26 +498,41 @@ export function createProxyService({ load, save, status, validateApply, apply, s
             [diagnostics.favorites[from], diagnostics.favorites[to]] = [diagnostics.favorites[to]!, diagnostics.favorites[from]!];
           invalidate();
         } else if (message.type === 'CANCEL_DIAGNOSTICS') {
+          // The SDK has no AbortSignal contract. Invalidate this run and stop
+          // subsequent requests; do not claim to retract the in-flight GET.
           generation++; diagnostics.activeRun = null;
         } else if (message.type === 'RUN_DIAGNOSTICS') {
+          if (diagnostics.activeRun)fail('E_BUSY','A diagnostic run is already active');
           if (!Array.isArray(message.siteIds) || !message.siteIds.length || message.siteIds.length > MAX_FAVORITES ||
-              message.siteIds.some(id => !diagnostics.favorites.some(row => row.id === id))) throw new Error('Invalid diagnostic selection');
+              message.siteIds.some(id => !diagnosticUrl(id))) throw new Error('Invalid diagnostic selection');
           const ids = [...new Set(message.siteIds)];
           const runGeneration = ++generation;
           const runRevision = diagnostics.configRevision;
+          const live=()=>!disposed && generation===runGeneration && diagnostics.configRevision===runRevision;
           diagnostics.activeRun = { startedAt: Date.now(), total: ids.length, completed: 0 };
-          setTimeout(() => { void serial(async () => {
-            if (disposed || generation !== runGeneration || diagnostics.configRevision !== runRevision) return;
-            // Explicit preview failures, never successful real HTTP evidence.
-            diagnostics.observations = ids.map(id => ({ siteId: id,
-              domain: diagnostics.favorites.find(row => row.id === id)!.domain,
-              checkedAt: Date.now(), configRevision: runRevision, kind: 'network_error',
-              httpStatus: null, elapsedMs: null, scope: 'extension-http-only' }));
-            diagnostics.statistics = Object.fromEntries(ids.map(id => [id, { attempts: 1, successes: 0, failures: 1, p50Ms: null, p95Ms: null }]));
-            diagnostics.activeRun = null; notify();
-          }).catch(() => {}); }, 20);
+          // Never hold the mutation queue during a network wait: STOP, cancel,
+          // configuration edits and revocation observations must remain usable.
+          const run=async()=>{
+            for(const id of ids){
+              if(!live())return;
+              const result:HttpCheck=checkSite?await checkSite(id).catch(()=>({kind:'network_error' as const,httpStatus:null,elapsedMs:null})):{kind:'network_error',httpStatus:null,elapsedMs:null};
+              if(!live())return;
+              const site=aiSite(id)??PUBLIC_HTTPS_CHECK;
+              const observation={...result,siteId:id,domain:site.domain,checkedAt:Date.now(),
+                configRevision:runRevision,scope:'extension-http-only' as const};
+              diagnostics.observations=[observation,...diagnostics.observations].slice(0,100);
+              diagnostics.statistics[id]=statistics(diagnostics.observations.filter(item=>item.siteId===id));
+              diagnostics.activeRun!.completed++;
+              notify();
+              // Refused/unknown permission must not launch the remaining batch.
+              if(result.kind==='permission')break;
+            }
+          };
+          setTimeout(()=>{void run().catch(()=>{}).finally(()=>{
+            if(live()){diagnostics.activeRun=null;notify();}
+          });},0);
         }
-        return { ok: true, state: view(), diagnostics: { ...clone(diagnostics), preview: true, generation }, preview };
+        return { ok: true, state: view(), diagnostics: { ...clone(diagnostics), preview, generation }, preview };
       }
       default: throw new Error('未知消息类型');
     }

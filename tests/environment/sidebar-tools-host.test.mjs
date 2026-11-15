@@ -1825,6 +1825,84 @@ for(const version of ['0.3.12','0.1.1'])test('AI Proxy fixed management opens th
   await assert.rejects(mounted.request('storage.get',{key:'probe'}),{code:'E_TOOL_CHANGED'});
 });
 
+async function trustedAIProxyNetworkFixture(t,{network=true,chromePermissions={contains:async()=>true},hostReply}={}){
+  const official=await officialToolFixture('ai-proxy');
+  const tool={...official,capabilities:[...official.capabilities.filter(cap=>cap!=='network'),...(network?['network']:[])]};
+  const epoch='trusted-network-install',oldLocation=globalThis.location;
+  globalThis.location={href:'chrome-extension://test/sidepanel.html?hostInstanceId=12345678-1234-4234-8234-123456789abc'};
+  t.after(()=>{globalThis.location=oldLocation;});
+  let mounted;
+  const f=await hostFixture(t,{tool,startTool:false,chromePermissions,hostReply,
+    store:new Map([[SIDEBAR_TOOL_STORE,[tool]],[TOOL_REVOCATION_EPOCHS_STORE,{[tool.id]:epoch}]]),
+    trustedAIProxyPilot:{enabled:true,version:TRUSTED_AI_PROXY_VERSION,mount(options){mounted=options;return ()=>{};}}});
+  f.host.openTool(tool.id);
+  await settle(()=>f.runtime.frameRoot.dataset.aiProxyTrusted==='true');
+  return {...f,tool,epoch,sdk:createBrowserSdk({request:mounted.request})};
+}
+const trustedAIProxyNetworkInput={method:'GET',url:'https://provider.example.com/sub?token=fixture-only',
+  config:{timeout:15000,responseType:'text'}};
+
+for(const network of [true,false])test('AI Proxy trusted network dispatch requires installed capability: '+network,async t=>{
+  const calls=[],permissionChecks=[];
+  const f=await trustedAIProxyNetworkFixture(t,{network,
+    chromePermissions:{contains:async request=>{permissionChecks.push(request);return true;},request:()=>assert.fail('already granted')},
+    hostReply:async message=>{if(message.operation==='browser.network.request'){calls.push(message);return {ok:true,data:{status:200,data:'subscription text'}};}}});
+  if(!network){
+    await assert.rejects(f.sdk.network.request(trustedAIProxyNetworkInput),{code:'E_TOOL_CAPABILITY_REQUIRED'});
+    assert.equal(calls.length,0);assert.equal(permissionChecks.length,0);return;
+  }
+  assert.deepEqual(await f.sdk.network.request(trustedAIProxyNetworkInput),{status:200,data:'subscription text'});
+  assert.equal(calls.length,1);
+  const envelope=calls[0];
+  assert.equal(envelope.protocol,BROWSER_HOST_PROTOCOL);assert.equal(envelope.kind,'tool');
+  assert.equal(envelope.toolId,f.tool.id);assert.equal(envelope.toolVersion,f.tool.version);
+  assert.equal(envelope.packageHash,await sidebarToolPackageHash(f.tool));
+  assert.equal(envelope.installEpoch,f.epoch);assert.equal(typeof envelope.toolInstance,'string');
+  assert.equal(envelope.hostInstanceId,'12345678-1234-4234-8234-123456789abc');
+  assert.deepEqual(envelope.args,trustedAIProxyNetworkInput);
+  assert.deepEqual(permissionChecks,[{origins:['https://provider.example.com/*']}]);
+  assert.equal(f.elements['sidebar-tool-action-review'].hidden,true,'granted host access needs no extra review');
+});
+
+for(const trusted of [true,false])test('AI Proxy trusted network dispatch retains Chrome permission click: '+trusted,async t=>{
+  const calls=[],permissions=[];
+  const f=await trustedAIProxyNetworkFixture(t,{
+    chromePermissions:{contains:async()=>false,request:request=>{permissions.push(request);return Promise.resolve(true);}},
+    hostReply:async message=>{if(message.operation==='browser.network.request'){calls.push(message);return {ok:true,data:{status:200,data:'text'}};}}});
+  const pending=f.sdk.network.request(trustedAIProxyNetworkInput);
+  const checked=trusted?pending:assert.rejects(pending,{code:'E_NETWORK_NOT_SUBMITTED'});
+  await settle(()=>!f.elements['sidebar-tool-action-review'].hidden);
+  assert.equal(calls.length,0);assert.equal(permissions.length,0,'opening review cannot request native permission');
+  f.emit(f.elements['sidebar-tool-action-continue'],'click',{isTrusted:trusted});
+  if(trusted){
+    assert.equal(permissions.length,1,'Chrome permission is invoked synchronously inside the trusted review click');
+    assert.deepEqual(await checked,{status:200,data:'text'});
+    assert.equal(calls.length,1);
+    assert.deepEqual(permissions,[{origins:['https://provider.example.com/*']}]);
+  }else{await checked;assert.equal(permissions.length,0);assert.equal(calls.length,0);}
+});
+
+for(const change of ['disabled','revoked','closed'])test('AI Proxy trusted network dispatch rejects stale lifecycle before submission: '+change,async t=>{
+  const calls=[];
+  const f=await trustedAIProxyNetworkFixture(t,{hostReply:async message=>{if(message.operation==='browser.network.request')calls.push(message);}});
+  if(change==='disabled')f.store.set(SIDEBAR_TOOL_ENABLE_STORE,{[f.tool.id]:false});
+  if(change==='revoked')f.store.set(TOOL_REVOCATION_EPOCHS_STORE,{[f.tool.id]:'new-install'});
+  if(change==='closed')f.host.closeTool();
+  await assert.rejects(f.sdk.network.request(trustedAIProxyNetworkInput),{code:'E_TOOL_CHANGED'});
+  assert.equal(calls.length,0);
+});
+
+test('AI Proxy trusted network dispatch rejects a late receipt after close without replay',async t=>{
+  const gate=deferred(),entered=deferred(),calls=[];t.after(()=>gate.resolve({ok:true,data:{status:200,data:'late'}}));
+  const f=await trustedAIProxyNetworkFixture(t,{hostReply:async message=>{
+    if(message.operation==='browser.network.request'){calls.push(message);entered.resolve();return gate.promise;}
+  }});
+  const pending=f.sdk.network.request(trustedAIProxyNetworkInput);
+  const checked=assert.rejects(pending,/工具界面已经切换/);
+  await entered.promise;f.host.closeTool();gate.resolve({ok:true,data:{status:200,data:'late'}});
+  await checked;assert.equal(calls.length,1,'a submitted request is neither aborted nor replayed by closing UI');
+});
+
 for(const mode of ['sync','async','busy'])test('R14 Header reports trusted handler failure and preserves its owner: '+mode,async t=>{
   const tool=await officialToolFixture('ai-proxy');
   let mounted,calls=0,disposals=0;

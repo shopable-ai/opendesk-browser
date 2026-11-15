@@ -1,0 +1,140 @@
+{
+  "date": "2026-11-15",
+  "timezone": "Asia/Shanghai",
+  "owner": "01a1de50-600e-7403-9729-b4b643671df2",
+  "phase": "continuous development; bounded installed UI upgrade, subscription and HTTP continuation completed",
+  "branch": "main",
+  "priorEvidence": ["network-functional-20261115.json", "resume-20261115.json", "functional-20261115.json"],
+  "ownership": {
+    "business": "projects/ai-proxy/",
+    "publicApi": "browser.network.request; existing controlled GET text response contract",
+    "provenTrustedAdapterGap": "Existing AI Proxy trusted request allowlist rejected this already public operation. Added this operation to that allowlist, retaining original Host dispatch and all admission checks.",
+    "frameworkFiles": ["src/ui/sidebar-tools.js", "tests/environment/sidebar-tools-host.test.mjs"],
+    "newPublicApiOrHost": false
+  },
+  "environment": {
+    "browser": "ego lite existing shared Profile; TaskSpace 119, not Cookie or network isolation",
+    "extensionId": "ccfcjegpkdlgbclopjmadlcjedelidmf",
+    "entry": "Original native Side Panel extension importer, then original installed AI Proxy settings App",
+    "output": "dist/development",
+    "sharedWriterPidAtObservation": 26515,
+    "writerStartedOrKilledByThisTask": false,
+    "developmentService": "Connected; original WXT configuration reload refreshed source-lock cache",
+    "revisionFromDebugUi": "85d1b397f22d214c061ae2f86f0e1166980f65381c5ee009221533c6d3247339",
+    "runningToolShell": {
+      "bytes": 3212725,
+      "sha256": "fe5bb3e9e96d1ab59b5bbc2e44640d7cff65f3c7805cbd760905fbbb4936494f",
+      "servedResourceMatchesDisk": true,
+      "limit": "Served fixed development resource plus observed new UI behavior; not production acceptance"
+    },
+    "taskSpaceReleased": true,
+    "nativeUiLockReleased": true
+  },
+  "installation": [
+    {
+      "from": "0.3.25",
+      "to": "0.3.27",
+      "review": "Original importer showed unchanged permissions and data-preserving update; update success notification observed",
+      "installedObjectMatchesFormalJson": true,
+      "namespaceUnchanged": true
+    },
+    {
+      "from": "0.3.27",
+      "to": "0.3.28",
+      "review": "Original importer showed exactly one added capability: network; confirmed through original review",
+      "installedObjectMatchesFormalJson": true,
+      "namespaceUnchanged": true
+    }
+  ],
+  "subscription": {
+    "host": "vsray.com",
+    "privateUrlCredentialsOrRawResponseInCommittedEvidence": false,
+    "realUi": {
+      "explicitDownload": "PASS; original installed App downloaded user-authorized input via public SDK",
+      "explicitUpdate": "PASS; second explicit update parsed successfully",
+      "format": "clash",
+      "nodes": 1,
+      "invalid": 0,
+      "protocols": {"vmess": 1},
+      "localClientRequired": 1,
+      "sourceMismatch": "PASS_REJECTED; existing source host must match before dispatch",
+      "unsafeYaml": "PASS_REJECTED; forbidden_feature; raw input cleared",
+      "cancel": "PASS; pending state observed, original Cancel closed reader, later UI remained unread",
+      "fullUrlAndUrlTokenAbsentFromNamespace": true,
+      "temporarySourceDeletedThroughUi": true
+    },
+    "contract": {
+      "request": "Explicit HTTPS GET, exact recorded public hostname, no credentials or nonstandard port; public SDK permission path",
+      "limits": "15000 ms; 64000 UTF-8 bytes and 80000 encoded JSON response budget",
+      "cancellation": "Local wait and result ownership only; already dispatched GET may finish",
+      "storage": "Only public source metadata is stored; raw text, private URL and node credentials remain out of namespace",
+      "noAutomaticRouteApplication": true
+    }
+  },
+  "httpDiagnostics": {
+    "requestScope": "Fixed built-in HTTPS targets; cookie-free extension HTTP GET; no redirect following; status and total elapsed time only",
+    "limits": "10000 ms per request, original SDK response budget, sequential explicit batch, at most 100 in-memory observations",
+    "realUiPublicProbe": [
+      {"host": "www.cloudflare.com", "status": 200, "elapsedMs": 507},
+      {"stage": "after cancel activation", "host": "www.cloudflare.com", "status": 200, "elapsedMs": 494}
+    ],
+    "realUiAiTargets": {
+      "chatgpt.com": "response_limit; HTTP status not delivered",
+      "gemini.google.com": "response_limit; HTTP status not delivered",
+      "grok.com": "response_limit; HTTP status not delivered",
+      "claude.ai": "network_error; specific cause unknown",
+      "perplexity.ai": "network_error; specific cause unknown"
+    },
+    "realUiCancel": "Running state and cancel activation observed; control returned and subsequent explicit public probe succeeded. This does not prove network abort or per-request queue suppression at the Chrome traffic layer.",
+    "nodeCancelAndRecovery": "PASS; pending GET does not block cancel/STOP, generation guards reject late observations and stop remaining batch; permission refusal stops batch and later explicit run recovers",
+    "nodeStatusInvalidation": "PASS; changed, failed or malformed status invalidates pending evidence; unchanged failure deduplicates subscriber notifications",
+    "noConfigWritesFromDiagnostics": true,
+    "loginModelTabEgressOrThroughputProven": false
+  },
+  "validation": [
+    {"command": "node --test projects/ai-proxy/tests/network-diagnostics.test.mjs projects/ai-proxy/tests/diagnostics-ui-runtime.test.mjs projects/ai-proxy/tests/subscription-online.test.mjs projects/ai-proxy/tests/subscription-online-runtime.test.mjs projects/ai-proxy/tests/environment-runtime.test.mjs projects/ai-proxy/tests/service.test.mjs", "result": "177/177 PASS"},
+    {"command": "node --test --test-name-pattern='AI Proxy trusted network' tests/environment/sidebar-tools-host.test.mjs", "result": "8/8 PASS; actual Host dispatcher fixture covers capability, original envelope, permission review trust, closed/revoked identity and late receipts"},
+    {"command": "node --test projects/ai-proxy/tests/trusted-admission.test.mjs", "result": "4/4 PASS"},
+    {"command": "node --test --test-name-pattern='trusted AI Proxy checks nested CSS|trusted AI Proxy rejects missing CSS' tests/environment/bundle-provenance.test.mjs", "result": "2/2 PASS"},
+    {"command": "node --test --test-name-pattern='tool contract is independent|portable Sidebar Tool builds|promotion rejects' tests/environment/sidebar-tools.test.mjs", "result": "3/3 PASS"},
+    {"command": "verifyTrustedAIProxySources() via scripts/bundle-provenance.mjs", "result": "PASS"},
+    {"command": "npm --prefix projects/ai-proxy run build", "result": "PASS; Vite compiled project"},
+    {"command": "Original build-sidebar-tool candidate, --promote-from and --check-project", "result": "PASS; PROJECT_PACKAGE_MATCH"}
+  ],
+  "formalPackage": {
+    "version": "0.3.28",
+    "bytes": 1072468,
+    "sha256": "95588a59b97a386c494077c36a239367b03f7c4e972e237a7da0c9d504004b3e",
+    "addedCapability": "network",
+    "installedThroughOriginalReview": true,
+    "installedObjectMatchesFormalJson": true
+  },
+  "cleanup": {
+    "method": "Original UI deletion of temporary source; no direct storage or proxy writes",
+    "baselineAndReopenedNamespaceSha256": "ed2b97e6aee620d4acc967bb55ed24db8ccdfd01b9c284f04005e53a0dcc4a23",
+    "fullNamespaceEqual": true,
+    "proxyEqual": true,
+    "proxy": {"levelOfControl": "controllable_by_this_extension", "value": {"mode": "system"}},
+    "privateInputAbsentAfterReload": true,
+    "originalR3FavoritesPreferencesPreserved": true,
+    "clashModeNodeSubscriptionAndSystemProxyChanged": false,
+    "existingClashListenerAtFinalObservation": "verge-mih PID 43518, port 7897",
+    "sharedWriterPreserved": true
+  },
+  "driverLimits": [
+    "Native file chooser selection initially lacked a selection callback; keyboard list selection enabled original Open button. No extension permissions or personal Profile were changed to work around this.",
+    "Ego actions sometimes observed transient empty diagnostics during state refresh, and stale refs were refreshed before retry. UI control disappearance alone was not used as proof of cancelled network traffic.",
+    "Reload returns to the original query-selected profiles section, so an expected basic-diagnostics selector timed out; actual reopened UI and storage were read back successfully."
+  ],
+  "notTestedOrUnavailable": [
+    "AI login, model calls or changed tab/device egress",
+    "Custom/favorite website HTTP, current-tab HTTP, usage collection, exit IP and throughput measurements",
+    "Real Chrome host-permission revocation, forced timeout/disconnection or per-request traffic-level cancellation",
+    "Real split routing, arbitrary PAC execution or authenticated proxies on this candidate",
+    "Official network accounts, entitlements or transactions",
+    "Production candidate, full CI, browser version matrix and formal 95+ scoring",
+    "Standalone TypeScript typecheck; project verification used Vite/esbuild and targeted runtime tests"
+  ],
+  "privateEvidenceDirectory": "artifacts/ai-proxy/continuation-20261115/",
+  "score": "NOT_SCORED"
+}

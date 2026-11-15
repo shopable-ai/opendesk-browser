@@ -7,6 +7,7 @@ import * as jsxRuntime from 'react/jsx-runtime';
 import {renderToStaticMarkup} from 'react-dom/server';
 import {runInNewContext} from 'node:vm';
 
+const translations=Object.fromEntries(await Promise.all(['zh-CN','zh-TW','en'].map(async lang=>[lang,JSON.parse(await readFile(new URL('../src/i18n/locales/'+lang+'.json',import.meta.url),'utf8'))])));
 const source=await readFile(new URL('../src/ui/DiagnosticsPage.tsx',import.meta.url),'utf8');
 const {code}=await transform(source,{loader:'tsx',format:'cjs',jsx:'automatic'});
 const statusSource=await readFile(new URL('../src/ui/Status.tsx',import.meta.url),'utf8');
@@ -14,13 +15,13 @@ const {code:statusCode}=await transform(statusSource,{loader:'tsx',format:'cjs',
 const logicModule={exports:{}};
 runInNewContext((await transform(await readFile(new URL('../src/diagnostics/logic.ts',import.meta.url),'utf8'),{loader:'ts',format:'cjs'})).code,
   {module:logicModule,exports:logicModule.exports});
-function render({preview=false,panel='ai',busy=false,config:configPatch={},runtime={},presentation='sidebar',snapshot=null,
-  currentSite=async()=>({status:'available',host:'current.example'})}={}){
+function render({preview=false,httpDiagnostics=false,panel='ai',busy=false,config:configPatch={},runtime={},presentation='sidebar',snapshot=null,
+  language=null,currentSite=async()=>({status:'available',host:'current.example'})}={}){
   const calls=[],buttons=[],routes=[],slots=[],effects=[],routeListeners=new Set(),siteListeners=new Set();
   let diagnosisInput,route=`#/diagnostic/${panel}`,cursor=0,html,siteReads=0,unmounted=false,lateUpdates=0;
   const navigation={getRoute:()=>route,subscribe:fn=>{routeListeners.add(fn);return()=>routeListeners.delete(fn);}};
   const noopEvents={addListener(){},removeListener(){}};
-  const env={preview,navigation,navigate(next){routes.push(next);route=next;for(const fn of routeListeners)fn();},storage:{onChanged:noopEvents},
+  const env={preview,httpDiagnostics,navigation,navigate(next){routes.push(next);route=next;for(const fn of routeListeners)fn();},storage:{onChanged:noopEvents},
     currentSite(){siteReads++;return currentSite();},
     events:{addEventListener(name,fn){assert.equal(name,'ai-proxy-page-changed');siteListeners.add(fn);},
       removeEventListener(name,fn){assert.equal(name,'ai-proxy-page-changed');siteListeners.delete(fn);}},
@@ -37,7 +38,7 @@ function render({preview=false,panel='ai',busy=false,config:configPatch={},runti
     useEffect(fn,deps){const index=cursor++,previous=effects[index];
       if(!previous||!deps||deps.some((value,i)=>value!==previous.deps?.[i]))effects[index]={fn,deps,pending:true,cleanup:previous?.cleanup};},useMemo:callback=>callback(),
     useCallback:callback=>callback};
-  const translate=(key,values)=>key+(values ? ':'+Object.values(values).join('|') : '');
+  const translate=(key,values)=>language?Object.entries(values??{}).reduce((text,[name,value])=>text.replaceAll('{'+name+'}',String(value)),translations[language][key]??key):key+(values ? ':'+Object.values(values).join('|') : '');
   const statusModule={exports:{}};
   const statusRequire=name=>{
     if(name==='react')return hooks;
@@ -60,7 +61,7 @@ function render({preview=false,panel='ai',busy=false,config:configPatch={},runti
       })};
     if(name==='../i18n/LocaleProvider')return {useI18n:()=>({locale:'en',t:translate})};
     if(name==='../domain/messages')return {request:async()=>{calls.push('request');return {ok:false,error:'E_NOT_CONNECTED'}}};
-    if(name==='../diagnostics/catalog')return {AI_SITES:[{id:'chatgpt',name:'ChatGPT',domain:'chatgpt.com'}]};
+    if(name==='../diagnostics/catalog')return {AI_SITES:[{id:'chatgpt',name:'ChatGPT',domain:'chatgpt.com'}],PUBLIC_HTTPS_CHECK:{id:'public-https',name:'Cloudflare HTTPS',domain:'www.cloudflare.com'}};
     if(name==='../diagnostics/logic')return {...logicModule.exports,diagnosisCodes:input=>{diagnosisInput=input;return ['limited_evidence'];}};
     if(name==='./Status')return statusModule.exports;
     if(name==='./ProxyEntry')return {ClearableInput:()=>React.createElement('input')};
@@ -326,4 +327,32 @@ test('management favorite count excludes non-favorites, duplicate observations a
   assert.match(result.html,/pcDiagFavoriteTests<\/small><strong>1 \/ 2<\/strong>/);
   assert.doesNotMatch(result.html,/expectedRoute/,'selected mode is not presented as a site-resolved route');
   assert.deepEqual(result.calls,[]);
+});
+
+test('live HTTP checks are explicit while preview usage and favorite writes stay unavailable',async()=>{
+ const ai=render({httpDiagnostics:true,panel:'ai'});
+ assert.match(ai.html,/diagLiveBoundary/);
+ assert.match(ai.html,/diagLiveChecksHelp/);
+ assert.equal(button(ai,'diagTestOne').disabled,false);
+ assert.match(ai.html,/<button[^>]*disabled=""[^>]*aria-label="diagAddFavorite"/);
+ assert.deepEqual(ai.calls,[], 'render does not send network requests');
+ const basic=render({httpDiagnostics:true,panel:'proxy'});
+ assert.equal(button(basic,'diagPublicHttps').disabled,false);
+ assert.match(basic.html,/diagLiveBoundary/);
+ const speed=render({httpDiagnostics:true,panel:'speed'});
+ assert.match(speed.html,/diagLiveTiming/);
+ assert.doesNotMatch(speed.html,/diagSpeedCaveat|simulated-usage/);
+});
+
+test('translated live evidence is neutral while preview results retain an explicit simulation prefix',()=>{
+ for(const language of Object.keys(translations)){
+  const snapshot={configRevision:'r',favorites:[],observations:[{siteId:'chatgpt',configRevision:'r',checkedAt:Date.now(),kind:'http_ok',httpStatus:200,elapsedMs:3}],statistics:{},activeRun:null};
+  const live=render({httpDiagnostics:true,panel:'ai',language,snapshot}).html;
+  const result=live.match(/class="diagnosticResultLabel">([^<]+)/)?.[1];assert.ok(result);assert.doesNotMatch(result,/模拟|模擬|Simulated/);
+  assert.match(live,/HTTP 200/);assert.doesNotMatch(live,/title="[^"]*(?:模拟|模擬|Simulated)/);
+  const preview=render({preview:true,panel:'ai',language,snapshot}).html;
+  assert.match(preview.match(/class="diagnosticResultLabel">([^<]+)/)?.[1]??'',/模拟|模擬|Simulated/);
+  const timing=render({httpDiagnostics:true,panel:'speed',language,snapshot}).html;
+  assert.doesNotMatch(timing.match(/<h3>([^<]+)<\/h3>/)?.[1]??'',/模拟|模擬|Simulated/);
+ }
 });

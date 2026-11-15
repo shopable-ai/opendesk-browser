@@ -7,7 +7,7 @@ import type { Request, Response } from '../domain/messages';
 import type { ConfigState, ProxyEndpoint, SubscriptionSource } from '../domain/types';
 import { useI18n } from '../i18n/LocaleProvider';
 import type { TranslationKey } from '../i18n/locale';
-import { downloadSubscriptionText, SubscriptionDownloadError, type SubscriptionDownloadErrorCode } from '../subscription/download';
+import { SubscriptionDownloadError, type SubscriptionDownloadErrorCode } from '../subscription/download';
 import { parseSubscription, parseSubscriptionReport, SubscriptionParseError,
   SUBSCRIPTION_ERROR_CODES, type SubscriptionErrorCode } from '../subscription/parser';
 import { ClearableInput } from './ProxyEntry';
@@ -75,10 +75,12 @@ export const subscriptionErrorKeys: Record<SubscriptionErrorCode, TranslationKey
   invalid_report: 'subscriptionInvalidReport'
 };
 export const subscriptionDownloadErrorKeys: Record<SubscriptionDownloadErrorCode, TranslationKey> = {
+  'permission-denied': 'subscriptionDownloadPermission',
   'invalid-url': 'subscriptionDownloadInvalidUrl',
   'origin-mismatch': 'subscriptionDownloadOriginMismatch',
   'fetch-failed': 'subscriptionDownloadFailed',
   timeout: 'subscriptionDownloadTimeout',
+  cancelled: 'subscriptionDownloadCancelled',
   'redirect-refused': 'subscriptionDownloadRedirect',
   'http-error': 'subscriptionDownloadHttp',
   'response-too-large': 'subscriptionInputTooLarge',
@@ -115,11 +117,18 @@ export function SubscriptionReader({ source, config, busy, act, openLocal, initi
   const fileInput = useRef<HTMLInputElement>(null);
   const generation = useRef(0);
   const mounted = useRef(true);
+  const downloadWait = useRef<AbortController | null>(null);
   const panelId = `subscription-reader-${source.id}`;
   const disabled = busy || status === 'reading' || saving !== null;
   useEffect(() => {
     mounted.current = true;
-    return () => { mounted.current = false; generation.current++; };
+    return () => {
+      mounted.current = false; generation.current++;
+      downloadWait.current?.abort(); downloadWait.current = null;
+      lastInitialUrl.current = '';
+      if (input.current) input.current.value = '';
+      if (fileInput.current) fileInput.current.value = '';
+    };
   }, []);
   useEffect(() => { if (expanded) input.current?.focus(); }, [expanded]);
   useEffect(() => {
@@ -132,7 +141,7 @@ export function SubscriptionReader({ source, config, busy, act, openLocal, initi
   useEffect(() => {
     if (initialUrl === lastInitialUrl.current) return;
     lastInitialUrl.current = initialUrl;
-    if (initialUrl) setDownloadUrl(initialUrl);
+    changeDownloadUrl(initialUrl);
   }, [initialUrl]);
 
   function close() {
@@ -141,12 +150,16 @@ export function SubscriptionReader({ source, config, busy, act, openLocal, initi
     getEnvironment().setDraftDirty(false,panelId);
     restoreTriggerFocus.current = true;
     generation.current++;
+    downloadWait.current?.abort(); downloadWait.current = null;
     setText('');
+    setDownloadUrl('');
     if (fileInput.current) fileInput.current.value = '';
-    if (status === 'reading') { setStatus('unread'); setReport(null); }
+    setStatus('unread'); setReport(null); setErrorKey(null); setErrorCode(null);
+    setSaved([]); setPage(0); pendingIds.current.clear();
     setExpanded(false);
   }
   function startRead() {
+    downloadWait.current?.abort(); downloadWait.current = null;
     getEnvironment().setDraftDirty(true,panelId);
     const token = ++generation.current;
     setReport(null); setSaved([]); setPage(0); pendingIds.current.clear();
@@ -189,6 +202,13 @@ export function SubscriptionReader({ source, config, busy, act, openLocal, initi
       pendingIds.current.clear();
     }
   }
+  function changeDownloadUrl(value: string) {
+    generation.current++;
+    downloadWait.current?.abort(); downloadWait.current = null;
+    setDownloadUrl(value); setText('');
+    setStatus('unread'); setReport(null); setErrorKey(null); setErrorCode(null);
+    setSaved([]); setPage(0); pendingIds.current.clear();
+  }
   function readText(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     const raw = text;
@@ -211,13 +231,19 @@ export function SubscriptionReader({ source, config, busy, act, openLocal, initi
       }
     }
   }
-  async function readDownload(event: FormEvent<HTMLFormElement>) {
+  async function readDownload(event: { preventDefault(): void }) {
     event.preventDefault();
+    if (disabled || downloadWait.current || !downloadUrl.trim()) return;
     setText('');
     if (fileInput.current) fileInput.current.value = '';
     const token = startRead();
+    const controller = new AbortController();
+    downloadWait.current = controller;
     try {
-      const raw = await getEnvironment().download(downloadUrl, source.originHost);
+      // Keep adapter invocation in the original click/Enter stack for host permission review.
+      const pending = getEnvironment().download(downloadUrl, source.originHost, { signal: controller.signal });
+      const raw = await pending;
+      if (controller.signal.aborted) return;
       finishRead(raw, token);
     } catch (error) {
       if (!mounted.current || token !== generation.current) return;
@@ -226,7 +252,13 @@ export function SubscriptionReader({ source, config, busy, act, openLocal, initi
       const key = error instanceof SubscriptionDownloadError
         ? subscriptionDownloadErrorKeys[error.code] : 'subscriptionDownloadFailed';
       setErrorKey(key);
+    } finally {
+      if (downloadWait.current === controller) downloadWait.current = null;
     }
+  }
+  function downloadFromGesture(event: { preventDefault(): void; currentTarget: HTMLFormElement }) {
+    event.preventDefault();
+    if (event.currentTarget.reportValidity()) void readDownload(event);
   }
   async function saveNative(node: Node, index: number) {
     const manual = config.sources.find(item => item.kind === 'manual');
@@ -270,14 +302,23 @@ export function SubscriptionReader({ source, config, busy, act, openLocal, initi
       <div className="field"><label htmlFor={panelId + '-file'}>{t('subscriptionFileLabel')}</label>
         <input ref={fileInput} id={panelId + '-file'} type="file" disabled={disabled}
           accept=".txt,.yaml,.yml,.json,.conf,text/plain,application/json" onChange={event => void readFile(event)} /></div>
-      <form onSubmit={event => void readDownload(event)}>
+      <form onSubmit={event => void readDownload(event)}
+        onClick={event => {
+          const button = (event.target as HTMLElement).closest<HTMLButtonElement>('button[type="submit"]');
+          if (button?.form === event.currentTarget) downloadFromGesture(event);
+        }}
+        onKeyDown={event => {
+          if (event.key === 'Enter' && !event.nativeEvent.isComposing && !event.altKey && !event.ctrlKey &&
+              !event.metaKey && !event.shiftKey && (event.target as HTMLElement).tagName === 'INPUT')
+            downloadFromGesture(event);
+        }}>
         <div className="field"><label htmlFor={panelId + '-url'}>{t('subscriptionDownloadUrlLabel')}</label>
           <ClearableInput id={panelId + '-url'} type="url" value={downloadUrl} disabled={disabled}
             fieldLabel={t('subscriptionDownloadUrlLabel')}
             autoComplete="off" spellCheck={false} placeholder={'https://' + source.originHost + '/…'}
-            onValueChange={setDownloadUrl} /></div>
+            onValueChange={changeDownloadUrl} /></div>
         <p className="sourceFieldNote">{t('subscriptionDownloadNotice', { host: source.originHost })}</p>
-        <div className="actions"><Button type="submit" variant="primary" className="primary" disabled title={t('subscriptionDownloadNotice', { host: source.originHost })}>
+        <div className="actions"><Button type="submit" variant="primary" className="primary" disabled={disabled || !downloadUrl.trim()} title={t('subscriptionDownloadNotice', { host: source.originHost })}>
           {t(report ? 'subscriptionDownloadUpdate' : 'subscriptionDownloadRead')}</Button></div>
       </form>
       {errorKey && <p role="alert">{t(errorKey)}</p>}

@@ -1399,7 +1399,7 @@ function createSidebarToolsController({api=globalThis.chrome,doc=globalThis.docu
     const current=()=>!disposed&&!readOnlyPreview&&active===tool&&instance===token&&
       (nativePending||nativeUI?.kind==='ai-proxy');
     if(!current())throw Object.assign(new Error('AI Proxy 可信界面已关闭'),{code:'E_TOOL_CHANGED'});
-    if(!['storage.get','storage.set','currentPage.info','browser.proxy.managed.getStatus',
+    if(!['storage.get','storage.set','currentPage.info','browser.network.request','browser.proxy.managed.getStatus',
       'browser.proxy.managed.requestEnable','browser.proxy.managed.requestDisable'].includes(operation))
       throw Object.assign(new Error('不支持此 AI Proxy 操作'),{code:'E_OPERATION'});
     const proxyAction=proxyActionGate.begin(tool.id,operation);

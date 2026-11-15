@@ -1,10 +1,12 @@
 export const SUBSCRIPTION_DOWNLOAD_MAX_BYTES = 1024 * 1024;
 export const SUBSCRIPTION_DOWNLOAD_TIMEOUT_MS = 15000;
 export const SUBSCRIPTION_DOWNLOAD_MAX_URL_LENGTH = 8192;
+export const SUBSCRIPTION_SDK_DOWNLOAD_MAX_BYTES = 64000;
+export const SUBSCRIPTION_SDK_RESPONSE_MAX_BYTES = 80000;
 
 export const SUBSCRIPTION_DOWNLOAD_ERROR_CODES = Object.freeze([
   'invalid-url', 'origin-mismatch', 'fetch-failed', 'timeout', 'redirect-refused',
-  'http-error', 'response-too-large', 'empty-response', 'encoding-invalid'
+  'http-error', 'response-too-large', 'empty-response', 'encoding-invalid', 'cancelled', 'permission-denied'
 ] as const);
 export type SubscriptionDownloadErrorCode = typeof SUBSCRIPTION_DOWNLOAD_ERROR_CODES[number];
 
@@ -70,6 +72,64 @@ export function validateSubscriptionDownloadUrl(input: string, originHost: strin
   const actualHost = normalizeHost(url.hostname);
   if (actualHost !== expectedHost) fail('origin-mismatch');
   return url;
+}
+
+export type SubscriptionTextRequester = (request: {
+  method: 'GET'; url: string; config: { timeout: number; responseType: 'text' };
+}) => Promise<{ status: number; data: unknown }>;
+
+/** Cancels only the local wait; the SDK request may still complete on the wire. */
+export async function downloadSubscriptionTextWithSdk(
+  input: string,
+  originHost: string,
+  requester: SubscriptionTextRequester,
+  options: { signal?: AbortSignal; timeoutMs?: number } = {}
+): Promise<string> {
+  const url = validateSubscriptionDownloadUrl(input, originHost);
+  if (options.signal?.aborted) fail('cancelled');
+  return new Promise<string>((resolve, reject) => {
+    let settled = false;
+    const finish = (code?: SubscriptionDownloadErrorCode, text?: string) => {
+      if (settled) return;
+      settled = true;
+      clearTimeout(timer);
+      options.signal?.removeEventListener('abort', cancel);
+      if (code) reject(new SubscriptionDownloadError(code));
+      else resolve(text!);
+    };
+    const cancel = () => finish('cancelled');
+    const timeoutMs = Number.isFinite(options.timeoutMs) && options.timeoutMs! > 0
+      ? Math.min(options.timeoutMs!, SUBSCRIPTION_DOWNLOAD_TIMEOUT_MS)
+      : SUBSCRIPTION_DOWNLOAD_TIMEOUT_MS;
+    const timer = setTimeout(() => finish('timeout'), timeoutMs);
+    options.signal?.addEventListener('abort', cancel, { once: true });
+    const failure=(error:unknown)=>{
+      const code=error&&typeof error==='object'&&'code' in error&&typeof error.code==='string'?error.code:'';
+      finish(/TIMEOUT|DEADLINE/.test(code)?'timeout':/LIMIT|TOO_LARGE|QUOTA/.test(code)?'response-too-large'
+        :/PERMISSION|CAPABILITY|GESTURE|NETWORK_NOT_SUBMITTED|REVOKED|TOOL_CHANGED/.test(code)?'permission-denied':code==='E_HTTP'?'http-error':'fetch-failed');
+    };
+    try {
+      // Invoke in the caller's event stack, before yielding to permission UI.
+      const pending = requester({ method: 'GET', url: url.href,
+        config: { timeout: SUBSCRIPTION_DOWNLOAD_TIMEOUT_MS, responseType: 'text' } });
+      Promise.resolve(pending).then(response => {
+        if (settled) return;
+        try {
+          if (!response || !Number.isInteger(response.status)) return finish('http-error');
+          if (response.status >= 300 && response.status < 400) return finish('redirect-refused');
+          if (response.status < 200 || response.status >= 300) return finish('http-error');
+          if (typeof response.data !== 'string') return finish('encoding-invalid');
+          const text = response.data;
+          const encoder = new TextEncoder();
+          if (encoder.encode(text).byteLength > SUBSCRIPTION_SDK_DOWNLOAD_MAX_BYTES ||
+              encoder.encode(JSON.stringify({ status: response.status, data: text })).byteLength >
+                SUBSCRIPTION_SDK_RESPONSE_MAX_BYTES) return finish('response-too-large');
+          if (!text.trim()) return finish('empty-response');
+          finish(undefined, text);
+        } catch { finish('fetch-failed'); }
+      }, failure);
+    } catch (error) { failure(error); }
+  });
 }
 
 function isAbortError(error: unknown): boolean {

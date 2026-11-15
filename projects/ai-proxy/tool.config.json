@@ -1,13 +1,14 @@
 {
   "format": "opendesk.sidebar-tool.v2",
   "id": "ai-proxy",
-  "version": "0.3.27",
+  "version": "0.3.28",
   "title": "AI Proxy",
-  "description": "浏览器网络代理管理：配置、规则与选择独立保存，公开受管服务的有限路由需明确审阅。四模式与七区保留，认证/PAC/订阅联网等能力待接入。",
+  "description": "浏览器网络代理管理：配置、规则与选择独立保存。订阅显式读取和有界 HTTP 诊断使用公开网络能力；应用线路仍需明确审阅。认证代理与任意 PAC 未接入。",
   "capabilities": [
     "storage.local",
     "currentPage.read",
-    "browser.proxy.managed"
+    "browser.proxy.managed",
+    "network"
   ],
   "requires": {
     "browserSdk": "1.0.0"

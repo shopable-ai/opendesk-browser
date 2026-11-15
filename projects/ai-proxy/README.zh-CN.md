@@ -1,5 +1,13 @@
 # AI Proxy 当前交付状态
 
+**2026-11-15 · 在线订阅与有界 HTTP 诊断已接通，0.3.28 已原位安装。** 先经原 Side Panel「扩展」审阅完成 0.3.25 → 0.3.27，再审阅新增 `network` 能力并升级 0.3.28。两次安装读回均与对应正式 JSON 一致，原完整工具数据未变。业务继续留在本项目，复用公开 `browser.network.request`；固定可信 adapter 仅补齐原分发白名单，仍经原 Host 的安装身份、能力、Origin、手势和撤权检查，没有新增 SDK 或下载后台。
+
+真实 App 已完成：记录临时 `vsray.com` 来源 → 显式下载 → Clash 格式识别为 1 个 VMess、0 无效 → 显式更新再次成功；来源不匹配和危险 YAML 被拒绝，读取中取消后不回填解析结果。完整链接、令牌及原文未进入工具 namespace。公共 HTTPS 检测返回 **HTTP 200 / 507 ms**，取消操作后再次检测返回 **200 / 494 ms**；AI 网站的大响应被标为“响应超出预算，HTTP 状态未交付”，其余网络错误保留原因未知，不冒称网站、登录或模型可用。诊断只保留本次会话内的状态与总耗时，不测吞吐量；SDK 不提供 AbortSignal，取消不等于撤回已发出的 GET。队列停止、迟到结果隔离、超时及权限拒绝恢复具有定向 Node 证据，未扩为真实 Chrome 撤权／断网验收。
+
+唯一正式 [ai-proxy.opendesk-tool.json](ai-proxy.opendesk-tool.json) 为 **0.3.28**，1,072,468 字节，SHA-256 `95588a59b97a386c494077c36a239367b03f7c4e972e237a7da0c9d504004b3e`；原候选 → 门禁 → 晋升 → `PROJECT_PACKAGE_MATCH` 通过，实际安装对象与正式 JSON 一致。177 项业务定向检查、8 项真实 Host 分发回归、4 项安装准入、2 项来源保护及 3 项包门禁通过，工具 Vite 编译通过。现有 `dist/development` 服务连接，固定可信脚本资源与磁盘字节一致；这些不是 production 证据。临时来源经 UI 删除，重开后完整 namespace SHA-256 仍为 `ed2b97e6aee620d4acc967bb55ed24db8ccdfd01b9c284f04005e53a0dcc4a23`，Chrome 保持 `system`，原 R3、收藏、偏好及 Clash 配置保留，TaskSpace 与 UI 锁已释放。详见[缩进清单](progress/UI-FUNCTIONAL-TESTS.zh-CN.md)和[本轮分层证据](evidence/continuation-20261115.json)。收藏网站、自定义网站请求、使用统计、出口 IP、吞吐测速、AI 登录／模型、真实撤权／断网、production 与正式评分继续延期。
+
+## 历史轮次（仅证明各自候选与范围）
+
 **2026-11-15 · 真实订阅与 Clash Verge 功能续测完成。** 用户提供的 Clash 原文曾因未加引号的 UUID 被误判为 YAML 隐式数值而拒绝；现在仅放行精确 canonical UUID，保留危险 YAML 拒绝和凭证脱敏。真实已安装 App 经现有持续开发更新后，原文件识别为 1 个 VMess 节点、0 无效，正确提示需要本地客户端；禁止的引用输入仍被拒绝，原文、完整订阅链接与 UUID 均未进入工具存储。
 
 本轮真实链已完成：保存现有 Clash Verge 的 `127.0.0.1:7897` → 选择但不应用 → 原 Host 线路审阅 → Chrome 受控 PAC 回读 → 新浏览器 HTTPS 请求及 Clash 连接列表核对 → 暂停恢复 `system` → 再应用 → 从基础诊断停止释放。端口 0、删除取消及无选择时禁用应用均已验证。经 UI 清理临时来源／客户端并恢复原选择，重开后完整 namespace SHA-256 仍为 `ed2b97e6aee620d4acc967bb55ed24db8ccdfd01b9c284f04005e53a0dcc4a23`，代理与基线相同；原 R3、收藏、偏好及 Clash 配置保留，TaskSpace／UI 锁已释放。基线、应用、停止后三次出口一致为日本，不能声称换了出口，也不证明 AI 登录或模型可用。
