@@ -1,0 +1,141 @@
+{
+  "date": "2026-11-15",
+  "timezone": "Asia/Shanghai",
+  "sourceThread": "01a1df61-734b-7bd1-9467-61656901dbcf",
+  "phase": "core development and targeted real UI continuation; not production acceptance",
+  "branch": "main",
+  "sourceCommit": "11d25051b",
+  "ownership": {
+    "business": "projects/ai-proxy/",
+    "businessSourceChanged": false,
+    "frameworkFilesChanged": [],
+    "installationOrProxyWritesFromDriver": false,
+    "newCapabilities": false
+  },
+  "formalPackage": {
+    "version": "0.3.29",
+    "bytes": 714839,
+    "sha256": "ada76f57e27b0d114ef2f3f9d22fff5a29bd02572f55e4b29ef4cecd3937c81c",
+    "identityReadAgain": true,
+    "unchanged": true,
+    "rebuiltOrPromotedThisRound": false,
+    "installedThisRound": false
+  },
+  "runtime": {
+    "browser": "ego lite; shared Profile; TaskSpace 121",
+    "extensionId": "ccfcjegpkdlgbclopjmadlcjedelidmf",
+    "output": "dist/development",
+    "writerPidObservedAlive": 56750,
+    "writerStartedStoppedOrReplaced": false,
+    "installedVersionReadBeforeAndAfter": "0.3.28",
+    "installedObjectUnchanged": true,
+    "finalServedToolShell": {
+      "bytes": 3066702,
+      "sha256": "48fbc164429459e487c603938a5e6552a9dfc79471ca89c6d99eea28d4893623",
+      "matchesDiskAtObservation": true,
+      "meaning": "Updated fixed development code with existing 0.3.28 installation identity; not installation of 0.3.29"
+    },
+    "nativeDebugAppliedRevision": "NOT_READ",
+    "sharedDevelopmentReloadsObserved": true,
+    "reloadHandling": "Checked actual URL before further action; safely reopened the same managed Page after it became a new-tab page. No unknown write was replayed and no second writer was started."
+  },
+  "nativeEntry": {
+    "cua": "getState initialization timed out at 30 seconds; no input or installation action executed; completion summary recorded",
+    "officialDesktopConnector": "tm_status returned UNAVAILABLE; MCP SSE probe HTTP 429",
+    "egoOpen": "Original OpenDesk open-sidebar button clicked; original UI showed sidebar-open receipt and a new real sidepanel target appeared",
+    "egoControlGap": "Native target was absent from TaskSpace.tabs(); current documented Page APIs provided no operable native-sidepanel handle. No invented Page, nativeSidePanel identity or direct Registry write was used.",
+    "upgrade": "NOT_TESTED; original Side Panel importer review not operated",
+    "currentWebpageChain": "NOT_TESTED; no claim from management App or top-level sidepanel.html",
+    "classification": "Automation entry limitation, not an observed installation failure or approval rejection"
+  },
+  "realUi": {
+    "surface": "Original installed AI Proxy app.html management UI; live fixed development code; not a mock or native-sidepanel substitute",
+    "trigger": "Previously untested real favorites batch and cancellation/recovery",
+    "setup": "Added example.org and iana.org as temporary P0 favorites through normal form save buttons; retained all five original builtin favorites",
+    "firstBatch": {
+      "sites": 7,
+      "explicitClick": true,
+      "outcomes": [
+        {"host": "example.org", "status": 200, "elapsedMs": 519},
+        {"host": "iana.org", "outcome": "network_error; specific cause unknown"},
+        {"host": "chatgpt.com", "outcome": "response_limit; HTTP status not delivered"},
+        {"host": "claude.ai", "outcome": "network_error; specific cause unknown"},
+        {"host": "gemini.google.com", "outcome": "response_limit; HTTP status not delivered"},
+        {"host": "perplexity.ai", "outcome": "network_error; specific cause unknown"},
+        {"host": "grok.com", "outcome": "response_limit; HTTP status not delivered"}
+      ],
+      "claim": "Per-site bounded HTTP results were rendered; does not prove all sites reachable, login or models"
+    },
+    "cancellationAttempts": [
+      {
+        "attempt": "First batch",
+        "outcome": "Wrong expected cancellation label timed out; batch completed naturally; no cancellation action dispatched"
+      },
+      {
+        "attempt": "Second batch",
+        "outcome": "Cancel was initially observed but disappeared while taking the snapshot; no cancel click matched because the batch had completed naturally",
+        "exampleOrg": {"status": 200, "elapsedMs": 277},
+        "countedAsCancellationPass": false
+      },
+      {
+        "attempt": "Third batch",
+        "driver": "Documented Page CDP Input.dispatchMouseEvent at freshly observed batch and cancel button coordinates; no global keyboard, clipboard or JavaScript handler invocation",
+        "trustedStartAtUnixMs": 1794754672264,
+        "trustedCancelAtUnixMs": 1794754672359,
+        "elapsedToCancelMs": 95,
+        "observed": "Both actual DOM clicks were isTrusted=true; run progress ended and no new result had replaced previous observations at the immediate cancellation read",
+        "limits": "No transport-level request count or GET abort attestation. Shared watcher subsequently reloaded the App before a same-instance late-result audit could finish."
+      }
+    ],
+    "recovery": {
+      "surface": "Management App reopened after shared development reload",
+      "explicitSingleSiteClick": true,
+      "host": "example.org",
+      "status": 200,
+      "elapsedMs": 287,
+      "limit": "Recovery after reopening, not a same-instance late-result or cancellation-isolation proof"
+    },
+    "driverFindings": "Initial tab ref click did not switch the selected tab; actual DOM selector and trusted input did. Initial unsupported diagnostics plural deep-link was corrected to the existing diagnostic section. Neither was treated as a product defect or used to justify source changes.",
+    "nonBlockingCopyObservation": "The existing diagLiveBoundary notice still incorrectly says favorites and usage statistics are not connected. Favorites are connected; update the obsolete localized notice during the next source change. No release bump was manufactured for this continuation."
+  },
+  "cleanup": {
+    "temporaryFavoritesRemovedThroughUi": ["example.org", "iana.org"],
+    "remainingFavoriteIds": ["chatgpt", "claude", "gemini", "perplexity", "grok"],
+    "completeFourKeyNamespaceSha256": "4eace3fce23324aafa7933cf508cb8a52e45c5144ad576aabdcf5ff09f05ee25",
+    "completeNamespaceMatchesThisRoundBaseline": true,
+    "originalThreeKeysSha256": "ed2b97e6aee620d4acc967bb55ed24db8ccdfd01b9c284f04005e53a0dcc4a23",
+    "v2FavoritesKeyPreserved": true,
+    "proxy": {"levelOfControl": "controllable_by_this_extension", "value": {"mode": "system"}},
+    "proxyMatchesBaseline": true,
+    "systemProxyOrClashChanged": false,
+    "nativeFocusOrClipboardUsed": false,
+    "nativeUiLockAcquired": false,
+    "ownNativePanelTargetAlreadyGoneAfterReload": true,
+    "taskSpaceFinish": {"spaceId": 121, "closedSpace": true, "keep": [], "preservedUnmanagedCount": 0},
+    "otherOwnersServicesAndPagesPreserved": true
+  },
+  "evidenceReuse": {
+    "newAutomatedProductTestsOrBuilds": [],
+    "reason": "No business source, dependencies, package, public SDK or relevant Host-contract changes; no reproduced business failure. Reuse existing scoped evidence and do not sum repeated cases.",
+    "records": [
+      "favorites-current-20261115.json: 184 targeted checks, including the same 32-case UI rerun; 4 admission, 2 provenance, 3 packaging checks and previous Vite/promotion/source-match evidence",
+      "continuation-20261115.json: existing installation/network review, 177 project checks and 8 actual Host dispatcher fixtures",
+      "network-functional-20261115.json: existing local-client proxy application and system restoration",
+      "resume-20261115.json and functional-20261115.json: original configuration, rules, preferences and backup flows"
+    ]
+  },
+  "remainingCore": [
+    "Original native Side Panel importer review: 0.3.28 to 0.3.29, verify installation identity and data retention",
+    "Real public HTTPS webpage and native sidepanel: safe host display, explicit HTTP result, page switch/cancel invalidation",
+    "Same-instance late-result isolation remains supported by old automated evidence only; do not repeat this round's completed real batch solely for a new chat"
+  ],
+  "stillNotTestedOrDeferred": [
+    "Real Chrome revocation, forced disconnection/timeouts and transport-level cancellation",
+    "DNS answer or rebinding safety",
+    "AI login/models, usage collection, exit IP and throughput",
+    "Arbitrary PAC execution, authenticated proxies and actual rule-based traffic splitting",
+    "Official account, entitlement, service and transaction integration",
+    "Standalone TypeScript typecheck, production, full CI, cross-version matrix and 95+ scoring"
+  ],
+  "privateEvidenceDirectory": "artifacts/ai-proxy/native-continuation-20261115/"
+}
