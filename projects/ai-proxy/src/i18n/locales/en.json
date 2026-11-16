@@ -1151,7 +1151,7 @@
   "pcDefaultRouteTitle": "No match",
   "pcDefaultRouteHelp": "Separate from connection fallback. Apply after saving.",
   "subscriptionDownloadCancelled": "Read cancelled. A submitted GET may still finish; late results are ignored.",
-  "diagLiveBoundary": "On-demand cookie-free extension GET: status and total elapsed time only, without proof of tab routing, sign-in or model access. Results last for this session. Cancel stops subsequent requests; a submitted GET may still finish. Favorites and usage statistics remain unavailable.",
+  "diagLiveBoundary": "On-demand cookie-free extension GET: status and total elapsed time only, without proof of tab routing, sign-in or model access. Results last for this session. Cancel stops subsequent requests; a submitted GET may still finish. Usage statistics remain unavailable.",
   "diagLiveChecksHelp": "Explicit checks of fixed HTTPS sites. Large pages may exceed the SDK response budget. No automatic checks, redirect following or sign-in.",
   "diagLiveTiming": "Total extension GET elapsed time, including bridge and response reading; not ping, bandwidth or DNS/TLS timing.",
   "diagPublicHttps": "Check public HTTPS",

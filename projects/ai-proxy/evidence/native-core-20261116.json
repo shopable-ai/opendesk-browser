@@ -1,0 +1,196 @@
+{
+  "date": "2026-11-16",
+  "timezone": "Asia/Shanghai",
+  "threadId": "01a1e4b7-b4a6-7c51-a9bd-3bffdf843e34",
+  "phase": "core development and minimum validation; native core not completed; no formal acceptance",
+  "branch": "main",
+  "baseCommit": "261ff5b10",
+  "coreLogicEvidenceCommit": "11d25051b",
+  "goal": {
+    "createdBecauseNoExistingGoal": true,
+    "tokenBudget": null,
+    "status": "active",
+    "completed": false
+  },
+  "ownership": {
+    "businessOwner": "projects/ai-proxy/",
+    "frameworkSourceChanged": false,
+    "otherRepositoryTouched": false,
+    "newCapabilities": false,
+    "parallelChangesPreserved": true,
+    "pushed": false
+  },
+  "discoveryAndReuse": {
+    "type": "existing Sidebar Tool with audited fixed first-party React surface",
+    "entry": "original native Side Panel Extensions importer; existing AI Proxy project and installer",
+    "reuse": [
+      "currentPage.info for current target",
+      "browser.network.request for explicit bounded HTTP",
+      "existing storage ETag/CAS and generation guards",
+      "original Vite and build-sidebar-tool.mjs"
+    ],
+    "sdkGapProven": false,
+    "newBridgeOrInstaller": false
+  },
+  "sourceChange": {
+    "scope": "diagLiveBoundary only in zh-CN/zh-TW/en; remove obsolete claim that favorites are unavailable",
+    "logicChanged": false,
+    "versionChange": "0.3.29 -> 0.3.30",
+    "sourceLock": "Only the three reviewed locale blob hashes updated; exact-source verification passed",
+    "newTestsAdded": false
+  },
+  "formalPackage": {
+    "path": "projects/ai-proxy/ai-proxy.opendesk-tool.json",
+    "id": "ai-proxy",
+    "version": "0.3.30",
+    "bytes": 714807,
+    "sha256": "87c419c48da5ad0c7c65c07e04c766be16c5b7d735a6649f6fdc8643470b711f",
+    "capabilities": [
+      "storage.local",
+      "currentPage.read",
+      "browser.proxy.managed",
+      "network"
+    ],
+    "capabilitiesAndRequiresUnchanged": true,
+    "buildAndValidate": "PASS",
+    "promotion": "PROJECT_PACKAGE_PROMOTED",
+    "sourceMatch": "PROJECT_PACKAGE_MATCH",
+    "installedThisRound": false,
+    "old029Preserved": "Original byte-identical package copied to ignored artifacts/ai-proxy/native-core-20261116/original-0.3.29.opendesk-tool.json; no duplicate formal package in owner"
+  },
+  "nativeEntry": {
+    "browser": "ego lite; TaskSpace 122; shared Profile, not isolation",
+    "egoGuide": "2.2.1",
+    "egoOpener": "Original top-level task-directory Open OpenDesk Sidebar button clicked; original sidebar target present",
+    "topLevelSidepanelTreatedAsNative": false,
+    "egoNativeHandle": "Native sidebar absent from managed task.tabs; help(task.cdp) supports Target/Browser only, no invented Page or custom transport",
+    "cua": "getState succeeded; getApp com.citrolabs.ego.lite returned real native workbench and AI Proxy v0.3.28 sidebar AX state",
+    "cuaCompletionSummaryRecorded": true,
+    "previousCuaTimeoutStillCurrent": false,
+    "desktopUiLock": {
+      "ownerObserved": "od-workflow-followup-20261116",
+      "acquireResult": "busy; owner preserved",
+      "nativeInputPerformed": false,
+      "ownLockAcquired": false,
+      "otherOwnerLockReleasedOrChanged": false
+    },
+    "blockerClassification": "shared desktop UI resource conflict, not reproduced installation/product failure or approval rejection",
+    "originalUpgrade": "NOT_TESTED",
+    "publicCurrentPage": "NOT_TESTED",
+    "sameInstancePageChangeCancelLateResult": "NOT_TESTED; original automated evidence reused"
+  },
+  "runtime": {
+    "extensionId": "ccfcjegpkdlgbclopjmadlcjedelidmf",
+    "expectedDailyOutput": "/Users/shopme/Documents/workspace/opendesk-browser/dist/development",
+    "installedVersionBeforeAndAfter": "0.3.28",
+    "installedObjectUnchanged": true,
+    "retrievableToolShell": {
+      "bytes": 3066765,
+      "sha256": "b0d65d49f52084bec84a8584d6d014d2852aa992b8ab862afe55541cf84fe150",
+      "matchesDiskAtObservation": true,
+      "stillContainsOldFavoritesNotice": true,
+      "limit": "Fetched extension resource fingerprint only; not proof of execution, loading path or applied revision"
+    },
+    "serveConnection": "NOT_READ",
+    "nativeDebugAppliedRevision": "NOT_READ",
+    "writerScan": "Narrow ps scan found no repository scripts/dev.mjs, WXT/npm run dev, tool watcher or AI Proxy Vite writer; does not attest all services stopped",
+    "browserOutputRebuilt": false,
+    "writerStartedStoppedOrReplaced": false,
+    "fixedSurfaceNewCopyApplied": "NOT_TESTED; original fixed resource still contains old notice"
+  },
+  "validation": [
+    {
+      "trigger": "Changed localized live-diagnostics boundary text; existing rendering and explicit-action semantics",
+      "command": "node --test --test-name-pattern='live HTTP checks|translated live evidence' projects/ai-proxy/tests/diagnostics-ui-runtime.test.mjs",
+      "result": "2/2 PASS"
+    },
+    {
+      "trigger": "Reviewed locale source-lock changes; retain exact-source/CSS boundary protection",
+      "command": "node --test --test-name-pattern='trusted AI Proxy checks nested CSS|trusted AI Proxy rejects missing CSS' tests/environment/bundle-provenance.test.mjs",
+      "result": "2/2 PASS"
+    },
+    {
+      "trigger": "New package delivery; candidate-only build and version-safe explicit promotion",
+      "command": "node --test --test-name-pattern='tool contract is independent|portable Sidebar Tool builds|promotion rejects' tests/environment/sidebar-tools.test.mjs",
+      "result": "3/3 PASS"
+    },
+    {
+      "trigger": "Source changed; regenerate source-bound IIFE/CSS receipt before candidate packaging",
+      "command": "npm --prefix projects/ai-proxy run build",
+      "result": "PASS; 53 modules; no Browser build"
+    },
+    {
+      "command": "node scripts/build-sidebar-tool.mjs projects/ai-proxy --out artifacts/ai-proxy/native-core-20261116/candidate.opendesk-tool.json",
+      "result": "PASS"
+    },
+    {
+      "command": "verifyTrustedAIProxySources(); validateSidebarToolPackage(candidate); assert same id/capabilities/requires and version 0.3.30",
+      "result": "PASS"
+    },
+    {
+      "command": "node scripts/build-sidebar-tool.mjs projects/ai-proxy --promote-from artifacts/ai-proxy/native-core-20261116/candidate.opendesk-tool.json",
+      "result": "PASS"
+    },
+    {
+      "command": "node scripts/build-sidebar-tool.mjs projects/ai-proxy --check-project",
+      "result": "PASS"
+    },
+    {
+      "command": "git diff --check -- projects/ai-proxy",
+      "result": "PASS"
+    }
+  ],
+  "evidenceReuse": [
+    "native-continuation-20261115.json: actual seven-site batch, trusted cancel click, recovery and cleanup; no new batch",
+    "favorites-current-20261115.json: 184 targeted checks and original favorites/current-target automation; unchanged logic reused",
+    "continuation-20261115.json: original install/network review, 177 checks and 8 real Host dispatcher fixtures; no new Host change",
+    "network-functional-20261115.json, resume-20261115.json, functional-20261115.json: prior proxy/config/rules/preferences/backup results within original scope"
+  ],
+  "cleanup": {
+    "newDiagnosticNetworkRequests": 0,
+    "temporaryBusinessRecordsCreated": false,
+    "directStorageRegistryOrProxyWritesFromDriver": false,
+    "namespaceKeys": [
+      "ai-proxy.full-config.v2",
+      "ai-proxy.profile-favorites.v1",
+      "ai-proxy.show-status-on-open.v1",
+      "aiProxy.diagnostics.favorites.v2"
+    ],
+    "namespaceSha256": "4eace3fce23324aafa7933cf508cb8a52e45c5144ad576aabdcf5ff09f05ee25",
+    "namespaceMatchesThisRoundBaseline": true,
+    "installedObjectMatchesBaseline": true,
+    "proxy": {
+      "levelOfControl": "controllable_by_this_extension",
+      "value": {
+        "mode": "system"
+      }
+    },
+    "proxyMatchesBaseline": true,
+    "systemProxyClashOrNativePairingChanged": false,
+    "nativeClipboardOrGlobalKeysUsed": false,
+    "taskSpaceFinish": {
+      "spaceId": 122,
+      "closedSpace": true,
+      "keptManagedLabels": [],
+      "closedManagedLabels": [
+        "p1"
+      ],
+      "preservedUnmanagedCount": 0
+    },
+    "otherOwnersPagesServicesAndUiLockPreserved": true
+  },
+  "nextOperation": [
+    "After shared desktop UI becomes available, use original Side Panel Extensions importer to upgrade existing 0.3.28 directly to unique formal 0.3.30 and verify same identity/capabilities and retained namespace",
+    "Read original Debug local-development connection/applied revision; coordinate original writer and safe refresh only if fixed surface update is needed",
+    "On real public HTTPS webpage, verify safe host, explicit root-only GET receipt and same-instance page-change/cancel invalidation; no repeated favorites batch"
+  ],
+  "notTestedOrDeferred": [
+    "Native upgrade, real current-public-page chain and same-instance late-receipt isolation this round",
+    "Real Chrome revocation, forced timeout/disconnection, transport abort and DNS/rebinding safety",
+    "Usage collector, exit IP, throughput, AI login/models",
+    "Arbitrary PAC execution, authenticated proxies and actual rule-based traffic splitting",
+    "Official account/entitlement/transactions",
+    "Standalone TypeScript typecheck, production, full CI, browser/version matrix and scoring"
+  ],
+  "privateEvidenceDirectory": "artifacts/ai-proxy/native-core-20261116/"
+}

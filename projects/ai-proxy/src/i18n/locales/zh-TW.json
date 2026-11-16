@@ -1151,7 +1151,7 @@
   "pcDefaultRouteTitle": "未匹配時",
   "pcDefaultRouteHelp": "與連線失敗備援無關；儲存後需套用。",
   "subscriptionDownloadCancelled": "已取消讀取；已送出的 GET 可能仍在完成，不接收延遲結果。",
-  "diagLiveBoundary": "按需傳送無 Cookie 的擴充功能 HTTP GET，只記錄狀態與總耗時；不證明分頁出口、登入或模型可用。結果僅留在本次工作階段。取消停止後續請求，已送出的 GET 可能仍在完成。收藏與使用統計尚未接入。",
+  "diagLiveBoundary": "按需傳送無 Cookie 的擴充功能 HTTP GET，只記錄狀態與總耗時；不證明分頁出口、登入或模型可用。結果僅留在本次工作階段。取消停止後續請求，已送出的 GET 可能仍在完成。使用統計尚未接入。",
   "diagLiveChecksHelp": "明確檢測固定 HTTPS 網站；大頁面可能超出 SDK 回應預算。不自動檢測、跟隨重新導向或登入。",
   "diagLiveTiming": "顯示擴充功能 GET 的總耗時，包含橋接與回應讀取；不是 Ping、頻寬或 DNS/TLS 分段耗時。",
   "diagPublicHttps": "檢測公共 HTTPS",
