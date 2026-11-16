@@ -1165,5 +1165,7 @@
   "diagCurrentSafeHelp": "僅在點擊後請求上方 HTTPS 根位址。讀取目前網站資訊不會發出網路請求；結果不證明網頁路由、登入或 AI 模型可用。",
   "diagCurrentHttpsRequired": "目前網站檢測需要標準連接埠、無憑據的 HTTPS 位址。",
   "diagCurrentPublicRequired": "僅支援公共網域，不能檢測私有網路或 IP 位址。",
-  "diagCurrentUnavailable": "目前網站資訊不可用，請切換到公共 HTTPS 網頁後重試。"
+  "diagCurrentUnavailable": "目前網站資訊不可用，請切換到公共 HTTPS 網頁後重試。",
+  "diagCurrentInSidebar": "在網頁側欄檢測",
+  "diagCurrentSidebarHelp": "回到要檢測的網頁，在 AI Proxy 快捷側欄的「目前網站」中檢測。此管理頁負責收藏和批次診斷。"
 }

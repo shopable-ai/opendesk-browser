@@ -237,7 +237,7 @@ test('actual shared editor close replaces its internal deep link, clears its own
   const navigation = createNavigation({ initialRoute: '#/profiles/add' });
   navigation.setGuard(() => assert.fail('explicit editor close must bypass dirty guard'));
   const cleared = [];
-  const context = { navigation, optionsHash: section => '#/' + section,
+  const context = { navigation, addReturnRoute:'#/profiles', optionsHash: section => '#/' + section,
     deepLinkedEditor: { current: true }, editorOriginHash: { current: '#/profiles/add' },
     ...Object.fromEntries(['setEditorOpen','setEditingEndpoint','setProxyNotice']
       .map(name => [name, value => cleared.push([name, value])])) };
@@ -248,6 +248,38 @@ test('actual shared editor close replaces its internal deep link, clears its own
   assert.ok(cleared.some(([key, value]) => key === 'setEditorOpen' && value === false));
   assert.equal(context.deepLinkedEditor.current, false);
   assert.equal(context.editorOriginHash.current, null);
+});
+
+test('Header add remembers its actual entry and explicit editor close returns there without applying', async()=>{
+ for(const origin of ['', '#/diagnostic/ai']){
+  const f=workspaceFixture();f.render();f.navigation.navigate(origin);f.render();
+  f.header({action:'header',actionId:'add-proxy',page:f.snapshots.at(-1).page});
+  const tree=f.render();
+  const addReturnRoute=routeContent(tree).props.children[0].props.addReturnRoute;
+  assert.equal(addReturnRoute,origin);
+  const close=await settingsHandler('  function closeEditor(', '  function openEditor(', {
+   navigation:f.navigation,addReturnRoute,deepLinkedEditor:{current:true},editorOriginHash:{current:'#/profiles/add'},
+   setEditorOpen(){},setEditingEndpoint(){},setProxyNotice(){}
+  });
+  close();assert.equal(f.navigation.getRoute(),origin);f.unmount();
+ }
+});
+
+test('Header add save carries its receipt across Settings unmount without applying',async()=>{
+ const f=workspaceFixture();f.render();f.navigation.navigate('');f.render();
+ f.header({action:'header',actionId:'add-proxy',page:f.snapshots.at(-1).page});
+ const settings=routeContent(f.render()).props.children[0].props;
+ const close=await settingsHandler('  function closeEditor(', '  function openEditor(', {
+  navigation:f.navigation,addReturnRoute:settings.addReturnRoute,onProxySaved:settings.onProxySaved,
+  deepLinkedEditor:{current:true},editorOriginHash:{current:'#/profiles/add'},
+  setEditorOpen(){},setEditingEndpoint(){},setProxyNotice(){}
+ });
+ close(true);assert.equal(f.navigation.getRoute(),'');
+ assert.equal(routeContent(f.render()).props.children[0].props.savedProxy,true);
+ f.header({action:'header',actionId:'add-proxy',page:f.snapshots.at(-1).page});f.render();
+ f.navigation.navigate('',{force:true});
+ assert.equal(routeContent(f.render()).props.children[0].props.savedProxy,false);
+ f.unmount();
 });
 
 test('actual copy action copies only an internal route and reports clipboard failure honestly', async () => {

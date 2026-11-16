@@ -10,6 +10,7 @@ import { Status } from './ui/Status';
 import { ClearableInput } from './ui/ProxyEntry';
 import { isValidProxyPort } from './domain/proxy-entry';
 import { ProxyEditor } from './ui/ProxyEditor';
+import { DiagnosticsPage } from './ui/DiagnosticsPage';
 import { optionsUrl } from './ui/optionsRoute';
 import { RotationEntry } from './ui/RotationPlan';
 import {useStatusDisplay} from './ui/PcPreferences';
@@ -20,7 +21,7 @@ type AddKind = 'local';
 type RouteTarget = 'endpoint' | 'direct';
 const emptyLocal = { name:'', scheme:'http' as 'http' | 'socks5', port:'' };
 
-export default function App(_props:{headerNavigation?:boolean;settingsFallback?:boolean}={}) {
+export default function App(_props:{headerNavigation?:boolean;settingsFallback?:boolean;savedProxy?:boolean}={}) {
   const { t } = useI18n();
   const statusDisplay=useStatusDisplay();
   const { state, error, busy, act, refresh, setError, setErrorKey } = useProxy();
@@ -34,6 +35,7 @@ export default function App(_props:{headerNavigation?:boolean;settingsFallback?:
   const site=siteInfo.host;
   const siteGeneration=useRef(0);
   const [siteLoading,setSiteLoading]=useState(false);
+  const [siteRefreshRevision,setSiteRefreshRevision]=useState(0);
   const [editingSiteRule,setEditingSiteRule]=useState<SiteRule|null>(null);
   const [ruleSource,setRuleSource]=useState('');
   const [includeSubdomains,setIncludeSubdomains]=useState(true);
@@ -48,7 +50,7 @@ export default function App(_props:{headerNavigation?:boolean;settingsFallback?:
   const [proxyEditorEtag,setProxyEditorEtag] = useState('');
   const proxyEditorOrigin=useRef<HTMLElement|null>(null);
   const [local,setLocal] = useState(emptyLocal);
-  const [savedHint,setSavedHint] = useState<'saved'|'selected'|false>(false);
+  const [savedHint,setSavedHint] = useState<'saved'|'selected'|false>(_props.savedProxy?'saved':false);
   const [ruleHint,setRuleHint] = useState(false);
   const [ruleTarget,setRuleTarget] = useState<RouteTarget>('endpoint');
   const [ruleEndpoint,setRuleEndpoint] = useState('');
@@ -582,11 +584,13 @@ export default function App(_props:{headerNavigation?:boolean;settingsFallback?:
           <Button ref={siteEditorButton} id="quick-site-rule" type="button" onClick={beginSiteRule}>
             <SideIcon name={currentRule?'edit':'plus'}/>{t(currentRule?'apEditMatchedRule':'sideAddSiteRule')}
           </Button>
-          <Button type="button" disabled={siteLoading} onClick={()=>void readSite()}>
+          <Button type="button" disabled={siteLoading} onClick={()=>{void readSite();setSiteRefreshRevision(value=>value+1);}}>
             <SideIcon name="refresh"/>{t(siteLoading?'apSiteLoading':'apRefreshSite')}
           </Button>
         </div>
         {ruleHint&&<p role="status" className="r86Notice">{t('r86Saved')}</p>}
+        <DiagnosticsPage state={state} busy={entryBusy} onRefresh={refresh} onProbe={refresh}
+          onStop={refresh} onProfiles={()=>void openOptions('profiles')} presentation="quick" currentSiteRevision={siteRefreshRevision}/>
       </section>
       <details className="quickAdvanced"><summary>{t('apAdvancedProxy')}</summary>
         <div className="r86CollectorMount" data-r86-section="collector"><RotationEntry/></div><p className="hint">{t('apAdvancedHelp')}</p><Button className="textAction" disabled={busy} onClick={()=>void openOptions('profiles')}>{t('apManageAdvanced')} <SideIcon name="open"/></Button></details>

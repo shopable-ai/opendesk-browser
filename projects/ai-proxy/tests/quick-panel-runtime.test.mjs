@@ -9,7 +9,7 @@ import {runInNewContext} from 'node:vm';
 const domainBuild=await build({entryPoints:[new URL('../src/domain/config.ts',import.meta.url).pathname],bundle:true,write:false,platform:'node',format:'esm'});
 const domain=await import(`data:text/javascript;base64,${Buffer.from(domainBuild.outputFiles[0].text).toString('base64')}`);
 const {code}=await transform(await readFile(new URL('../src/QuickPanel.tsx',import.meta.url),'utf8'),{loader:'tsx',format:'cjs',jsx:'automatic'});
-function fixture({pendingChanges,activeMode='rules',desiredMode='direct',managedIntent=true,control='controlled_by_this_extension'}){
+function fixture({pendingChanges,activeMode='rules',desiredMode='direct',managedIntent=true,control='controlled_by_this_extension',savedProxy=false}){
  const config={...domain.freshConfig(),managed:true,selection:{mode:desiredMode}};
  const state={config,runtime:{managedIntent,control,canStop:managedIntent,
   applied:true,pendingChanges,activeSelection:{mode:activeMode},browserMode:activeMode,proxyError:null}};
@@ -30,7 +30,7 @@ function fixture({pendingChanges,activeMode='rules',desiredMode='direct',managed
   if(name==='@opendesk/ui')return {Button:React.forwardRef(({children,variant,...props},ref)=>React.createElement('button',{...props,ref},children))};
   return new Proxy({},{get:()=>()=>null});
  }});
- function render(){cursor=0;tree=module.exports.default();return renderToStaticMarkup(tree);}
+ function render(){cursor=0;tree=module.exports.default({savedProxy});return renderToStaticMarkup(tree);}
  function visit(predicate,node){if(!node||typeof node!=='object')return;
   if(Array.isArray(node)){for(const child of node){const match=visit(predicate,child);if(match)return match;}return;}
   return predicate(node)?node:visit(predicate,node.props?.children);
@@ -87,4 +87,10 @@ test('confirmed following-system state offers a read and does not claim the sele
   Object.assign(other.state.runtime,changed);
   assert.match(other.render(),/apPendingSelection/,'unverified system state keeps pending feedback');
  }
+});
+
+test('Header saved receipt remains visible after mounting the quick panel without proxy effects',()=>{
+ const f=fixture({pendingChanges:false,savedProxy:true});
+ assert.match(f.render(),/role="status">apProxySavedNotice</);
+ assert.deepEqual(f.calls,[]);
 });

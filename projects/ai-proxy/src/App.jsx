@@ -38,8 +38,10 @@ function Workspace({surface}) {
  const [busy,setBusy]=useState(false);
  const [headerNavigation,setHeaderNavigation]=useState(false);
  const [navigationError,setNavigationError]=useState(null);
+ const [quickProxySaved,setQuickProxySaved]=useState(false);
  const dirtyRef=useRef(false),busyRef=useRef(false),routeContent=useRef(null),focusAfterDiscard=useRef(false),lastRoute=useRef(route);
  const navigationEpoch=useRef(0),routeDecision=useRef(null);
+ const previousRoute=useRef(route),addReturnRoute=useRef('#/profiles');
  function markDirty(value){dirtyRef.current=value;setDirty(value);}
  const settings=surface==='management'||route.startsWith('#/');
  const headerPage=useRef({route:null,revision:0,page:'home'});
@@ -77,7 +79,12 @@ function Workspace({surface}) {
    }).catch(()=>{});
    return false;
   });
-  const change=()=>{navigationEpoch.current++;setRoute(env.navigation.getRoute());setNavigationError(null);};
+  const change=()=>{
+   const next=env.navigation.getRoute();
+   if(next==='#/profiles/add'&&previousRoute.current!==next){addReturnRoute.current=previousRoute.current;setQuickProxySaved(false);}
+   previousRoute.current=next;
+   navigationEpoch.current++;setRoute(next);setNavigationError(null);
+  };
   const unsubscribe=env.navigation.subscribe(change);
   change();markDirty(env.hasDrafts());
   const draft=event=>markDirty(event.detail===true);
@@ -147,7 +154,7 @@ function Workspace({surface}) {
   // Bubble after the field's own controlled update. Capture can restore its old value.
   env.markDraftFrom(event.target);
  }}>
-  <div id="proxy-workspace-panel" role="region" aria-label={t(settings?'apManageSettings':'apProxyPanel')} className="proxy-route" ref={routeContent} tabIndex={-1} key={(settings?'settings':'quick')+pageEpoch}>{settings?<Settings presentation={surface==='management'?'management':'sidebar'} onClose={()=>env.navigation.navigate('')} navigationBusy={busy||headerLocked()} headerNavigation={headerNavigation} headerActionsStore={headerStore}/>:<QuickPanel headerNavigation={headerNavigation} settingsFallback={headerNavigation&&headerState?.saved.length===0}/>}</div>
+  <div id="proxy-workspace-panel" role="region" aria-label={t(settings?'apManageSettings':'apProxyPanel')} className="proxy-route" ref={routeContent} tabIndex={-1} key={(settings?'settings':'quick')+pageEpoch}>{settings?<Settings presentation={surface==='management'?'management':'sidebar'} addReturnRoute={addReturnRoute.current} onProxySaved={()=>setQuickProxySaved(true)} onClose={()=>env.navigation.navigate('')} navigationBusy={busy||headerLocked()} headerNavigation={headerNavigation} headerActionsStore={headerStore}/>:<QuickPanel savedProxy={quickProxySaved} headerNavigation={headerNavigation} settingsFallback={headerNavigation&&headerState?.saved.length===0}/>}</div>
   {navigationError&&<p className="notice error" role="alert">{t(navigationError)}</p>}
   {confirmation&&<Confirmation title={t('apConfirm')} text={confirmation.text} accept={t('apConfirm')} cancel={t('cancel')} onDone={confirmation.resolve}/>}
  </div>;

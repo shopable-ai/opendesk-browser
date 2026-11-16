@@ -1165,5 +1165,7 @@
   "diagCurrentSafeHelp": "仅在点击后请求上方 HTTPS 根地址。读取当前网站信息不会发出网络请求；结果不证明网页路由、登录或 AI 模型可用。",
   "diagCurrentHttpsRequired": "当前网站检测需要标准端口、无凭据的 HTTPS 地址。",
   "diagCurrentPublicRequired": "仅支持公共域名，不能检测私网或 IP 地址。",
-  "diagCurrentUnavailable": "当前网站信息不可用，请切换到公共 HTTPS 网页后重试。"
+  "diagCurrentUnavailable": "当前网站信息不可用，请切换到公共 HTTPS 网页后重试。",
+  "diagCurrentInSidebar": "在网页侧栏检测",
+  "diagCurrentSidebarHelp": "回到要检测的网页，在 AI Proxy 快捷侧栏的「当前网站」中检测。此管理页负责收藏和批量诊断。"
 }

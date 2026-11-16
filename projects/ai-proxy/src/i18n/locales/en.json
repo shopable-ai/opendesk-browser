@@ -1165,5 +1165,7 @@
   "diagCurrentSafeHelp": "Only the displayed HTTPS root URL is requested after you click. Reading the current website sends no network request. This does not verify the page route, login or AI model.",
   "diagCurrentHttpsRequired": "Current website checks require HTTPS on the standard port, without credentials.",
   "diagCurrentPublicRequired": "Only public domain names are supported. Private networks and IP addresses cannot be checked.",
-  "diagCurrentUnavailable": "Current website is unavailable. Switch to a public HTTPS page and try again."
+  "diagCurrentUnavailable": "Current website is unavailable. Switch to a public HTTPS page and try again.",
+  "diagCurrentInSidebar": "Check in the page sidebar",
+  "diagCurrentSidebarHelp": "Return to the website and check Current website in the AI Proxy quick sidebar. Use this management page for favorites and batch diagnostics."
 }

@@ -24,6 +24,7 @@ function render({preview=false,httpDiagnostics=false,panel='ai',busy=false,confi
   const intervals=new Map();let intervalId=0;
   const setInterval=(fn,delay)=>{intervals.set(++intervalId,{fn,delay});return intervalId;};
   const clearInterval=id=>intervals.delete(id);
+  let currentSiteRevision=0;
   let diagnosisInput,route=`#/diagnostic/${panel}`,cursor=0,html,siteReads=0,unmounted=false,lateUpdates=0;
   const navigation={getRoute:()=>route,subscribe:fn=>{routeListeners.add(fn);return()=>routeListeners.delete(fn);}};
   const noopEvents={addListener(){},removeListener(){}};
@@ -82,12 +83,13 @@ function render({preview=false,httpDiagnostics=false,panel='ai',busy=false,confi
   }});
   function rerender(){cursor=0;buttons.length=0;nodes.length=0;
     html=renderToStaticMarkup(React.createElement(module.exports.DiagnosticsPage,{
-      state,busy,presentation,onRefresh:async()=>calls.push('refresh'),
+      state,busy,presentation,currentSiteRevision,onRefresh:async()=>calls.push('refresh'),
       onProbe:async()=>calls.push('probe'),onStop:async()=>calls.push('stop'),onProfiles:()=>calls.push('profiles')}));return html;}
   function flushEffects(){for(const effect of effects)if(effect?.pending){effect.pending=false;effect.cleanup?.();effect.cleanup=effect.fn();}}
   rerender();
   return {get html(){return html;},calls,commands,nodes,buttons,routes,rerender,flushEffects,
     poll(){let count=0;for(const timer of intervals.values())if(timer.delay===650){timer.fn();count++;}return count;},
+    refreshSite(){currentSiteRevision++;rerender();flushEffects();},
     pageChanged(){for(const fn of [...siteListeners])void fn();},
     unmount(){unmounted=true;for(const effect of effects)effect?.cleanup?.();},
     get siteReads(){return siteReads;},get siteListeners(){return siteListeners.size;},
@@ -260,13 +262,11 @@ test('only boolean preview true retains simulated diagnostics and the preview ov
   }
 });
 
-test('management current-site checks remain disabled with an explanation and no dispatch path',()=>{
+test('management explains the page-sidebar entry without offering a misleading current-site check',()=>{
   for(const preview of [false,true]){
     const result=render({presentation:'management',panel:'overview',preview});
-    const check=button(result,'pcDiagCheckCurrent');
-    assert.equal(check.disabled,true);
-    assert.equal(check['aria-describedby'],'current-site-check-help');
-    assert.match(result.html,/<p[^>]*id="current-site-check-help"[^>]*>(?:pcDiagCurrentUnavailable|diagCurrentUnavailable)<\/p>/);
+    assert.equal(result.buttons.some(item=>item.children==='pcDiagCheckCurrent'),false);
+    assert.match(result.html,/diagCurrentSidebarHelp/);
     assert.match(result.html,/pcDiagModel<\/small><strong>notTested<\/strong>/);
     assert.deepEqual(result.calls,[]);
   }
@@ -306,9 +306,9 @@ test('management overview shortcuts use the same local subroutes and never run t
   }
 });
 
-test('management current-site reads are display-only, ignore superseded results and clean up on unmount',async()=>{
+test('quick current-site reads are display-only, ignore superseded results and clean up on unmount',async()=>{
   const pending=[];
-  const result=render({presentation:'management',panel:'overview',currentSite:()=>new Promise((resolve,reject)=>pending.push({resolve,reject}))});
+  const result=render({presentation:'quick',panel:'overview',currentSite:()=>new Promise((resolve,reject)=>pending.push({resolve,reject}))});
   assert.equal(result.siteReads,0,'render itself does not read browser context');
   result.flushEffects();assert.equal(result.siteReads,1);assert.equal(result.siteListeners,1);
   result.pageChanged();assert.equal(result.siteReads,2);
@@ -423,8 +423,8 @@ test('GET failure is visible and retry restores saved sites without probing',asy
  assert.ok(result.commands.every(item=>item.type==='GET_DIAGNOSTICS'));result.unmount();
 });
 
-test('current website safe root is display-only on both surfaces until explicit check',async()=>{
- for(const presentation of ['management','sidebar']){
+test('current website safe root is display-only in quick and sidebar diagnostics until explicit check',async()=>{
+ for(const presentation of ['quick','sidebar']){
   const result=render({panel:'overview',presentation,httpDiagnostics:true,dispatch:async command=>{
    const data=emptySnapshot();if(command.type==='RUN_CURRENT_DIAGNOSTIC')data.observations=[{siteId:'current:current.example',domain:'current.example',configRevision:'r',checkedAt:Date.now(),kind:'http_ok',httpStatus:200,elapsedMs:8}];
    return {ok:true,diagnostics:data};
@@ -436,6 +436,31 @@ test('current website safe root is display-only on both surfaces until explicit 
   assert.deepEqual(JSON.parse(JSON.stringify(result.commands.at(-1))),{type:'RUN_CURRENT_DIAGNOSTIC',expectedDomain:'current.example'});
   assert.match(result.html,/HTTP 200/);result.unmount();
  }
+});
+
+test('management keeps favorites and batch diagnostics while directing current-page checks to the sidebar',async()=>{
+ const result=render({panel:'overview',presentation:'management',httpDiagnostics:true,dispatch:async()=>({ok:true,diagnostics:emptySnapshot()})});
+ result.flushEffects();await tick();result.rerender();
+ assert.match(result.html,/diagCurrentSidebarHelp/);
+ assert.equal(result.siteReads,0,'management must not pretend its active extension tab is the previous website');
+ assert.equal(result.buttons.some(item=>item.children==='pcDiagCheckCurrent'),false);
+ assert.ok(result.buttons.some(item=>item.children==='diagStartFive'));
+ assert.ok(result.commands.every(item=>item.type==='GET_DIAGNOSTICS'));result.unmount();
+});
+
+test('quick diagnostics only exposes the current-site check, clears late receipts on page change, and cleans up',async()=>{
+ let host='old.example',finish;const data=emptySnapshot();
+ const result=render({presentation:'quick',httpDiagnostics:true,currentSite:async()=>({status:'available',host,diagnosticDomain:host}),dispatch:async command=>{
+  if(command.type==='RUN_CURRENT_DIAGNOSTIC')return new Promise(resolve=>{finish=resolve;});
+  return {ok:true,diagnostics:data};
+ }});
+ result.flushEffects();await tick();result.rerender();
+ assert.doesNotMatch(result.html,/diagnosticTabs|diagStartFive|diagCheckSelected|diagAddFavorite/);
+ const run=button(result,'pcDiagCheckCurrent').onClick();await tick();
+ host='new.example';result.pageChanged();await tick();result.rerender();
+ finish({ok:true,diagnostics:{...data,observations:[{siteId:'current:old.example',domain:'old.example',configRevision:'r',checkedAt:Date.now(),kind:'http_ok',httpStatus:200,elapsedMs:8}]}});
+ await run;await tick();result.rerender();assert.match(result.html,/https:\/\/new.example\//);assert.doesNotMatch(result.html,/HTTP 200|old.example/);
+ result.unmount();assert.equal(result.commands.at(-1).type,'CANCEL_DIAGNOSTICS');assert.equal(result.siteListeners,0);assert.equal(result.lateUpdates,0);
 });
 
 test('unsafe or unavailable current contexts have a reason and cannot dispatch a current check',async()=>{
@@ -514,4 +539,23 @@ test('favorite failure stays visible, duplicate writes are locked, and late writ
  assert.equal(count,1);result.rerender();assert.equal(result.buttons.find(item=>item['aria-label']==='diagAddFavorite').disabled,true);
  finish({ok:false,error:'storage failed'});await tick();result.rerender();assert.match(result.html,/role="alert">diagOperationFailed/);
  result.buttons.find(item=>item['aria-label']==='diagAddFavorite').onClick();result.unmount();finish({ok:true,diagnostics:emptySnapshot()});await tick();assert.equal(result.lateUpdates,0);
+});
+
+test('quick busy-only operations disable checks without inventing a diagnostic run',async()=>{
+ const result=render({presentation:'quick',busy:true,httpDiagnostics:true,dispatch:async()=>({ok:true,diagnostics:emptySnapshot()})});
+ result.flushEffects();await tick();result.rerender();
+ assert.equal(button(result,'pcDiagCheckCurrent').disabled,true);
+ assert.doesNotMatch(result.html,/diagRunning|diagCancel/);
+ assert.ok(result.commands.every(command=>command.type==='GET_DIAGNOSTICS'));result.unmount();
+});
+
+test('quick manual site refresh recovers an unavailable diagnostic target without a page event or HTTP check',async()=>{
+ let available=false;
+ const result=render({presentation:'quick',httpDiagnostics:true,currentSite:async()=>available
+  ?{status:'available',host:'recovered.example',diagnosticDomain:'recovered.example'}:{status:'unavailable'},
+  dispatch:async()=>({ok:true,diagnostics:emptySnapshot()})});
+ result.flushEffects();await tick();result.rerender();assert.equal(button(result,'pcDiagCheckCurrent').disabled,true);
+ available=true;result.refreshSite();await tick();result.rerender();
+ assert.equal(button(result,'pcDiagCheckCurrent').disabled,false);assert.match(result.html,/https:\/\/recovered.example\//);
+ assert.ok(result.commands.every(command=>command.type==='GET_DIAGNOSTICS'));result.unmount();
 });

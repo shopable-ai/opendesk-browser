@@ -37,17 +37,19 @@ const diagnosisKeys: Record<DiagnosisCode, [TranslationKey, TranslationKey]> = {
 function latestFor(siteId: string, data: DiagnosticsSnapshot | null): HttpObservation | null {
   return data?.observations.find(v => v.siteId === siteId) ?? null;
 }
-export function DiagnosticsPage({ state, busy, onRefresh, onStop, onProfiles, presentation = 'sidebar' }: {
+export function DiagnosticsPage({ state, busy, onRefresh, onStop, onProfiles, presentation = 'sidebar', currentSiteRevision = 0 }: {
   state: ViewState;
   busy: boolean;
   onRefresh: () => Promise<unknown>;
   onProbe: () => Promise<unknown>;
   onStop: () => Promise<unknown>;
   onProfiles: () => void;
-  presentation?: 'sidebar' | 'management';
+  presentation?: 'sidebar' | 'management' | 'quick';
+  currentSiteRevision?: number;
 }) {
   const { t, locale } = useI18n();
   const management = presentation === 'management';
+  const quick = presentation === 'quick';
   const panelContent = useRef<HTMLElement>(null);
   const focusPanelAfterNavigation = useRef(false);
   const navigation = getEnvironment().navigation;
@@ -73,6 +75,7 @@ export function DiagnosticsPage({ state, busy, onRefresh, onStop, onProfiles, pr
   const currentTarget=useRef('');
   const currentCheckStarted=useRef<number | null>(null);
   useEffect(()=>{
+    if(management)return;
     const env=getEnvironment();let mounted=true;
     const read=async()=>{
       const generation=++pageGeneration.current;
@@ -90,7 +93,7 @@ export function DiagnosticsPage({ state, busy, onRefresh, onStop, onProfiles, pr
     };
     void read();env.events.addEventListener('ai-proxy-page-changed',read);
     return()=>{mounted=false;pageGeneration.current++;currentTarget.current='';env.events.removeEventListener('ai-proxy-page-changed',read);};
-  },[]);
+  },[management,currentSiteRevision]);
   const [snapshot, setSnapshot] = useState<DiagnosticsSnapshot | null>(null);
   const [now, setNow] = useState(() => Date.now());
   const [selectedIds, setSelectedIds] = useState<string[]>(AI_SITES.slice(0, 5).map(s => s.id));
@@ -282,17 +285,24 @@ export function DiagnosticsPage({ state, busy, onRefresh, onStop, onProfiles, pr
           }).format(result.checkedAt)}</small></>}
     </div>;
   };
-  const currentSiteCard = <article className="diagnosticFeature diagnosticCurrentSite">
-    <div className="diagnosticCardHeading"><small>{t('currentWebsite')}</small></div>
-    <h3>{t('pcDiagCurrentTitle')}</h3>
+  const currentSiteCard = <article className={quick?'diagnosticCurrentSite':'diagnosticFeature diagnosticCurrentSite'}>
+    {!quick&&<><div className="diagnosticCardHeading"><small>{t('currentWebsite')}</small></div>
+    <h3>{t('pcDiagCurrentTitle')}</h3></>}
     <strong className="diagnosticHost">{currentDomain?'https://'+currentDomain+'/':siteHost||t('apSiteUnavailable')}</strong>
     {currentDomain&&renderResult({id:'current:'+currentDomain,domain:currentDomain,name:currentDomain},true)}
     <p className="hint" id="current-site-check-help">{t(!httpDiagnostics?'pcDiagCurrentUnavailable':currentDomain?'diagCurrentSafeHelp':
       currentReason==='https-required'?'diagCurrentHttpsRequired':currentReason==='public-host-required'?'diagCurrentPublicRequired':'diagCurrentUnavailable')}</p>
     <div className="actions"><Button variant="primary" className="primary" disabled={!httpDiagnostics||!currentDomain||locked||saving}
       aria-describedby="current-site-check-help" onClick={()=>void test([currentDomain],true)}>{t('pcDiagCheckCurrent')}</Button>
-      <Button onClick={()=>openPanel('proxy')}>{t('pcDiagProxySettings')}</Button></div>
+      {!quick&&<Button onClick={()=>openPanel('proxy')}>{t('pcDiagProxySettings')}</Button>}</div>
   </article>;
+  if(quick)return <div className="quickCurrentDiagnostic">
+    {currentSiteCard}
+    <p className="r86Help">{t('diagEvidenceBoundary')}</p>
+    {loadError&&<div className="notice error" role="alert"><p>{t('diagLoadFailed')}</p><Button onClick={()=>void load()}>{t('usageRetry')}</Button></div>}
+    {error&&<p className="notice error" role="alert">{error}</p>}
+    {(running||snapshot?.activeRun)&&<div role="status"><span>{t('diagRunning')}</span><Button onClick={()=>void submit({type:'CANCEL_DIAGNOSTICS'})}>{t('diagCancel')}</Button></div>}
+  </div>;
   return <>
     <header className="diagnosticLead" data-presentation={presentation}>
       <div className="diagnosticLeadMain">
@@ -319,7 +329,7 @@ export function DiagnosticsPage({ state, busy, onRefresh, onStop, onProfiles, pr
         <small>Chrome Proxy API</small></div>
       {management?<>
         <div><small>{t('pcDiagFavoriteTests')}</small><strong>{httpDiagnostics?`${current.filter(result=>favorites.some(site=>site.id===result.siteId)).length} / ${favorites.length}`:t('notTested')}</strong></div>
-        <div><small>{t('pcDiagCurrentResponse')}</small><strong>{currentObservation&&snapshot&&observationIsCurrent(currentObservation,snapshot.configRevision,now)?currentObservation.httpStatus??t(statusKeys[currentObservation.kind]):t('notTested')}</strong><small>{currentDomain?'https://'+currentDomain+'/':siteHost||t('apSiteUnavailable')}</small></div>
+        <div><small>{t('currentWebsite')}</small><strong>{t('diagCurrentInSidebar')}</strong></div>
         <div><small>{t('pcDiagModel')}</small><strong>{t('notTested')}</strong></div>
       </>:<>      <div><small>{t('configurationStatus')}</small><strong>{t(statusLabelKey(state.runtime))}</strong>
         <small>{t('doesNotProveReachability')}</small></div>
@@ -366,7 +376,7 @@ export function DiagnosticsPage({ state, busy, onRefresh, onStop, onProfiles, pr
     <section ref={panelContent} id="diagnostic-panel" role="tabpanel" tabIndex={0} aria-labelledby={'diagnostic-tab-' + panel} className="diagnosticPanel">
       {panel === 'overview' && management && <div className="diagnosticOverviewManagement">
         <div className="diagnosticOverviewCards">
-          {currentSiteCard}
+          <article className="diagnosticFeature diagnosticCurrentSite"><div className="diagnosticCardHeading"><small>{t('currentWebsite')}</small></div><h3>{t('diagCurrentInSidebar')}</h3><p>{t('diagCurrentSidebarHelp')}</p><div className="actions"><Button onClick={()=>openPanel('proxy')}>{t('pcDiagProxySettings')}</Button></div></article>
           <article className="diagnosticFeature diagnosticAiSummary">
             <div className="diagnosticCardHeading"><small>{t('aiSites')}</small><span className="diagnosticCornerBadge">{AI_SITES.length} · {t('aiSites')}</span></div><h3>{t('pcDiagAiTitle')}</h3><p>{t('pcDiagAiHelp')}</p>
             <div className="diagnosticQuickSites">{AI_SITES.slice(0,3).map(site=><div className="diagnosticQuickSite" key={site.id}><span className="diagnosticSiteGlyph" aria-hidden="true">{site.name[0]}</span><div><strong>{site.name}</strong>{renderResult(site)}</div></div>)}</div>

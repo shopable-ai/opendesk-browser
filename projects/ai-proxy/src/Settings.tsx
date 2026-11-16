@@ -28,7 +28,7 @@ import { explainRulesRoute } from './domain/pac';
 
 type Page = OptionsSection;
 
-export default function App({onClose,navigationBusy=false,presentation='sidebar',headerNavigation=false,headerActionsStore}:{headerActionsStore?:any;onClose?:()=>void;navigationBusy?:boolean;presentation?:'sidebar'|'management';headerNavigation?:boolean}={}) {
+export default function App({onClose,onProxySaved,navigationBusy=false,presentation='sidebar',headerNavigation=false,headerActionsStore,addReturnRoute='#/profiles'}:{headerActionsStore?:any;onClose?:()=>void;onProxySaved?:()=>void;navigationBusy?:boolean;presentation?:'sidebar'|'management';headerNavigation?:boolean;addReturnRoute?:string}={}) {
   const { t, preference, setPreference } = useI18n();
   const profileFavorites=useProfileFavorites();
   const modes:{mode:RouteMode;name:string}[]=[
@@ -226,7 +226,8 @@ const tabs: {id:Page; name:string; caption:string}[] = [
     deepLinkedEditor.current = false;
     editorOriginHash.current = null;
     if (navigation.getRoute() === '#/profiles/add') {
-      navigation.navigate(optionsHash('profiles'), { force: true, replace: true });
+      if(saved&&addReturnRoute==='')onProxySaved?.();
+      navigation.navigate(addReturnRoute, { force: true, replace: true });
     }
   }
   function openEditor(endpoint?: ProxyEndpoint) {
