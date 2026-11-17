@@ -1,9 +1,9 @@
 {
   "manifest_version": 3,
-  "name": "OpenDesk Browser",
-  "short_name": "OD",
+  "name": "GrayDove",
+  "short_name": "GrayDove",
   "version": "0.1.0",
-  "description": "OpenDesk Browser 浏览器自动化框架。",
+  "description": "Reduce repetitive web work with installed browser automation tasks, and customize websites with JavaScript.",
   "minimum_chrome_version": "138",
   "permissions": [
     "storage",
@@ -66,17 +66,27 @@
     },
     {
       "resources": [
-        "stay-focus/blocked-quota.html", "stay-focus/blocked-schedule.html",
-        "stay-focus/blocked-session.html", "stay-focus/blocked-always.html"
+        "stay-focus/blocked-quota.html",
+        "stay-focus/blocked-schedule.html",
+        "stay-focus/blocked-session.html",
+        "stay-focus/blocked-always.html"
       ],
-      "matches": ["http://*/*", "https://*/*"]
+      "matches": [
+        "http://*/*",
+        "https://*/*"
+      ]
     },
     {
       "resources": [
-        "managed-site/blocked-quota.html", "managed-site/blocked-schedule.html",
-        "managed-site/blocked-session.html", "managed-site/blocked-always.html"
+        "managed-site/blocked-quota.html",
+        "managed-site/blocked-schedule.html",
+        "managed-site/blocked-session.html",
+        "managed-site/blocked-always.html"
       ],
-      "matches": ["http://*/*", "https://*/*"]
+      "matches": [
+        "http://*/*",
+        "https://*/*"
+      ]
     }
   ],
   "side_panel": {
@@ -88,8 +98,12 @@
   },
   "content_scripts": [
     {
-      "matches": ["https://chatgpt.com/*"],
-      "js": ["agents/chatgpt-fixed-bridge.js"],
+      "matches": [
+        "https://chatgpt.com/*"
+      ],
+      "js": [
+        "agents/chatgpt-fixed-bridge.js"
+      ],
       "run_at": "document_idle",
       "all_frames": false,
       "world": "ISOLATED"

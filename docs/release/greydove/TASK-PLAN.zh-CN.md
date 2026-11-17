@@ -1,10 +1,10 @@
-# GreyDove（灰鸽）：品牌统一与 Chrome Web Store 上架任务链路
+# GrayDove（灰鸽）：品牌统一与 Chrome Web Store 上架任务链路
 
 > 本文件是唯一的总体任务树。任务编号用于跨对话追踪；状态必须由证据驱动。路径是当前已知入口或待审计候选，不表示所有文件都必须修改。
 
 ## 1. 总体目标与发布边界
 
-将现有 OpenDesk Browser 在不重构原有工程架构的前提下，完成 GreyDove（灰鸽）对外品牌统一，准备符合 Chrome Web Store 当前要求的商品资料和生产包，经过真实 Chrome 验收后提交审核。
+将现有 OpenDesk Browser 在不重构原有工程架构的前提下，完成 GrayDove（灰鸽）对外品牌统一，准备符合 Chrome Web Store 当前要求的商品资料和生产包，经过真实 Chrome 验收后提交审核。
 
 首发建议：**只发布 Standard 版本；Developer 版本先作为内部开发/验证发行，除非另有独立用户定位和商店审核依据。**
 
@@ -100,9 +100,9 @@ T7 商业化规划独立进行，不是首发上架的前置条件。
   - 区分已实现、组件通过、构建通过、真实 Chrome 通过和规划功能。
   - 验收：形成可用于商店描述和截图的“可宣传功能白名单”。
 
-### T1：GreyDove 品牌规范统一
+### T1：GrayDove 品牌规范统一
 
-**总体状态：IN_PROGRESS（名称已由用户确定，其他规范待核实）**
+**总体状态：IN_PROGRESS（英文拼写开放调整，商标与域名尚待核实）**
 
 目标：形成单一、稳定的对外品牌规范。
 
@@ -111,9 +111,9 @@ T7 商业化规划独立进行，不是首发上架的前置条件。
 交付：`BRAND-SPEC.md`。
 
 - **T1.1 品牌名称**
-  - 状态：VERIFIED（用户已明确决定）
-  - 英文：`GreyDove`；中文：`灰鸽`。
-  - 禁止混用 Grey Dove、GrayDove、Grey Pigeon 等拼写。
+  - 状态：IN_PROGRESS（用户明确原拼写未最终确定，当前以 GrayDove 为发行候选）
+  - 英文：`GrayDove`；中文：`灰鸽`。
+  - 当前候选使用 GrayDove；旧英式拼写保留在历史提交中，正式上架前仍须完成商标检索。
 - **T1.2 产品定位和语言**
   - 状态：IN_PROGRESS
   - 英文方向：Browser Automation & Scripts。
@@ -122,8 +122,8 @@ T7 商业化规划独立进行，不是首发上架的前置条件。
   - 验收：所有文案与首发功能白名单一致，不宣传未交付能力。
 - **T1.3 品牌层级与发行命名**
   - 状态：NOT_STARTED
-  - Standard 对外名称建议：GreyDove。
-  - Developer 建议：GreyDove Developer，默认不作为首发公开商品。
+  - Standard 对外名称建议：GrayDove。
+  - Developer 建议：GrayDove Developer，默认不作为首发公开商品。
   - 确定仓库名、包名、协议和内部 ID 保留规则。
 - **T1.4 品牌可用性核查**
   - 状态：NOT_STARTED
@@ -164,7 +164,7 @@ T7 商业化规划独立进行，不是首发上架的前置条件。
 
 **总体状态：NOT_STARTED**
 
-目标：让生产扩展实际显示 GreyDove，同时不改变既有功能和身份。
+目标：让生产扩展实际显示 GrayDove，同时不改变既有功能和身份。
 
 依赖：T1 最终批准、T2 正式图标资产、T0 品牌引用审计。
 
@@ -228,7 +228,7 @@ T7 商业化规划独立进行，不是首发上架的前置条件。
 交付：`COMPLIANCE-AND-PRIVACY.zh-CN.md`、隐私政策草案及最终审核记录。
 
 - **T5.1 单一主要用途**
-  - 明确 GreyDove 的核心用途，避免把互不相关功能拼成多个产品。
+  - 明确 GrayDove 的核心用途，避免把互不相关功能拼成多个产品。
 - **T5.2 权限逐项审计**
   - 将每个 required / optional 权限映射到实际 API 调用、用户功能、触发方式和失败行为。
   - 评估是否可以删除、降为 optional 或缩小 Host 范围。

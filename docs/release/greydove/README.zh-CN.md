@@ -1,12 +1,12 @@
-# GreyDove（灰鸽）发布工作流
+# GrayDove（灰鸽）发布工作流
 
-> 本目录是 GreyDove 品牌统一与 Chrome Web Store 发布的长期工作区。它记录决策、任务、依赖、合规要求和发布证据；**规划文档不代表功能已经实现，也不代表 Chrome Web Store 已审核通过。**
+> 本目录是 GrayDove 品牌统一与 Chrome Web Store 发布的长期工作区。它记录决策、任务、依赖、合规要求和发布证据；**规划文档不代表功能已经实现，也不代表 Chrome Web Store 已审核通过。**
 
-## 1. 已确定的产品决策
+## 1. 当前拟采用的产品品牌（最终商标与域名待核验）
 
 | 项目 | 当前决定 |
 |---|---|
-| 英文品牌 | **GreyDove** |
+| 英文品牌 | **GrayDove** |
 | 中文品牌 | **灰鸽** |
 | 产品方向 | Browser Automation & Scripts |
 | 中文定位 | 浏览器自动化与脚本工作台 |
@@ -15,11 +15,13 @@
 | 内部仓库 | `shopable-ai/opendesk-browser`，暂时保留 |
 | 内部工程标识 | `opendesk-browser`、API、Storage key、协议和模块标识原则上保留 |
 
+R4 品牌拼写改为美式 GrayDove；本目录 greydove 是历史发布文档路径，仍然保留，不代表对外产品名称。品牌拼写可调整，但正式上架前需要核对 GrayDove 的同名软件及相关商标。
+
 产品品牌和工程身份分离。除非有单独的迁移计划，不要为了对外改名而重命名仓库、包名、Native Messaging 协议、Storage 数据键或扩展身份。
 
 ## 2. 当前工作状态
 
-**当前阶段：发布规划与现状审计。尚未开始代码品牌改造。**
+**当前阶段：商店资料 R1 与最小用户可见品牌元数据调整已进入源码阶段；生产构建、真实 Chrome、图标、隐私与商店发布仍未完成。**
 
 - [完整任务链路](TASK-PLAN.zh-CN.md)
 - [品牌规范](BRAND-SPEC.md)
@@ -50,8 +52,8 @@
 | 本次读取的基线 Commit | `ec8766088b4f290386cf05d5848b56f767ce6d06` |
 | 基线提交时间 | 2026-11-17 07:47:30 UTC |
 | Manifest | MV3，版本 `0.1.0` |
-| 当前 Manifest 名称 | `OpenDesk Browser` |
-| 当前 short_name | `OD` |
+| 当前 Manifest 名称 | `GrayDove`（R1 源码调整，生产包待验证） |
+| 当前 short_name | `GrayDove`（R1 源码调整，生产包待验证） |
 | 最低 Chrome 版本 | `138` |
 | 正式构建入口 | `npm run build` |
 | 正式打包入口 | `npm run pack` |

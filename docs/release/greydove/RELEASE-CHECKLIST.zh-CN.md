@@ -1,6 +1,37 @@
-# GreyDove 生产构建与 Chrome Web Store 发布检查清单
+# GrayDove 生产构建与 Chrome Web Store 发布检查清单
 
-> 只用于已完成品牌改造和合规审计的候选版本。勾选项必须有证据；本清单本身不代表任何测试已通过。
+> 本文保留完整验收要求，但优先帮助完成 **Standard 首发审核**。勾选项必须有证据；任何 ZIP 的生成或商店 Draft 上传均不等于审核通过。
+
+## 0. 首发最短链路：先生成 ZIP、再补齐审核条件
+
+**目标：仅上传 Standard，不上传 Developer。** 请先确保工作区已经同步远端 `main`，并保存/协调其他 Agent 的未提交改动，不要为发布执行 `reset --hard` 或 `clean -fd`。
+
+```bash
+git status --short
+git fetch origin main
+git pull --ff-only
+npm ci --ignore-scripts
+npm run cws:package
+shasum -a 256 artifacts/opendesk-browser-production.zip
+```
+
+`npm run cws:package` 等同于执行现有 `npm run build` 后执行 `npm run pack`。**打包器会对 `dist/production` 执行 `verifyPackage`；无需为只做 Standard 的本轮额外执行检查 `dist/development` 的 `npm run verify`。** 失败时停止上传，核查原日志；不得关闭包验证器或更改脚本/权限安全检查绕过失败。
+
+**先上传 Draft（非提交审核）：** 只有构建/包检查通过，才能在 Chrome Web Store 开发者后台上传 ZIP，以利用 Google 的上传后安装预检反馈。此动作不会自动公开上架；若预检失败先修复再上传。
+
+**点击 Submit for Review 前，必须具备的最小人工条件：**
+- [ ] 已选定的正式灰鸽品牌图标（商店 128×128 PNG），不是 `icons/notification.png`；当前源码并无已确认的正式品牌原图，也未在根 Manifest 中声明品牌图标。必须补入已批准的品牌资产，不得新造占位图。
+- [ ] 至少一张来自**同一发行候选、真实 Chrome 页面**的 1280×800 PNG/JPEG 截图，显示核心“脚本/任务”操作；不使用 HTML 原型图冒充截图。
+- [ ] 可公开访问且与真实本地/网络数据处理相符的隐私政策 URL；后端、AI Provider、Native 和云端传输若存在，必须如实披露。没有已审计数据流时，不得填写“完全不收集数据”。
+- [ ] `<all_urls>`、`debugger`、`cookies`、`proxy`、`userScripts` 等权限的必要性、数据用途、授权入口已逐项审核。无关权限可能违反单一主要用途政策，不能为了通过审核简单删除或隐藏。
+- [ ] Standard ZIP 的真实 Chrome 安装、侧栏脚本试运行、已授权任务执行及结果反馈检查通过，版本与 SHA-256 对应本轮包。
+- [ ] 商品正文、类别、发布者/支持联系方式、Privacy Practices、Distribution 与 Trader/Non-Trader 已在后台准确填写；发布负责人自行点击审核提交。
+
+**单一主要用途建议填法（须与真实发行版一致）：** “通过 JavaScript 脚本和经用户授权的浏览器自动化任务，自定义网页功能并执行重复的网页操作；侧栏用于管理相关脚本、任务和结果。” 可选的 Cookie/代理/拦截等工具必须证明与该用途的关联；不能仅因放在同一个界面就视为合规。
+
+**发布状态分离：** ZIP 生成 → 上传 Draft → 自动安装预检 → 提交审核 → 审核通过 → 正式发布；每一步单独记实际回执。2026-08 起商店新增上传 Draft 即进行的安装测试，但不代替真实 Chrome 使用验收。
+
+官方参考：[商店材料](https://developer.chrome.com/docs/webstore/cws-dashboard-listing) · [单一用途](https://developer.chrome.com/docs/webstore/program-policies/quality-guidelines-faq) · [隐私与权限](https://developer.chrome.com/docs/webstore/program-policies/policies) · [2026 上传预检](https://developer.chrome.com/blog/cws-review-updates-2026)。
 
 ## 1. 发布候选身份
 
@@ -28,7 +59,7 @@
 ## 2. 发布前冻结
 
 - [ ] 从最新远端 `main` 开始，核对本地工作区和并行改动。
-- [ ] 确认本次只包含 GreyDove 发布范围内的变更。
+- [ ] 确认本次只包含 GrayDove 发布范围内的变更。
 - [ ] 确认品牌规范和商店文案已批准。
 - [ ] 确认图标源文件和导出文件已固定。
 - [ ] 确认 Manifest version 已按 Chrome 版本格式更新。
@@ -45,16 +76,14 @@
 ```bash
 npm ci --ignore-scripts
 npm run check
-npm run build
-npm test
-npm run verify
-npm run pack
+npm run cws:package
+# 按改动执行相关定向测试；全量 npm test 的既有失败须单独记录并评估
 ```
 
 已知脚本行为：
 - `npm run build`：生产 Standard 构建，默认输出 `dist/production`。
-- `npm run pack`：验证并打包 Standard 生产目录。
-- `npm run verify`：当前脚本验证 `dist/production` 和 `dist/development`。
+- `npm run pack`：验证并打包 Standard 生产目录；`npm run cws:package` 已按顺序复用原构建与打包器。
+- `npm run verify`：当前脚本验证 `dist/production` 和 `dist/development`，仅在两种输出都实际存在且需要验证时使用；**只构建 Standard 不直接运行它**。
 - `npm test`：包含 pretest 构建步骤，需留意实际测试范围和运行环境要求。
 
 Standard ZIP 的当前命名规则来自 `scripts/pack.mjs`：`artifacts/opendesk-browser-production.zip`。实际文件名必须以本轮运行输出为准。
@@ -99,7 +128,7 @@ Developer 构建由现有脚本设置 Developer edition；它不是 Standard 包
 使用独立、干净的测试 Profile 安装最终 ZIP：
 
 - [ ] 安装成功。
-- [ ] Chrome 扩展管理页显示 GreyDove。
+- [ ] Chrome 扩展管理页显示 GrayDove。
 - [ ] 工具栏图标清晰。
 - [ ] Side Panel 和设置页面正常。
 - [ ] 最低声明 Chrome 版本 138 已验证，或明确记录无法验证。

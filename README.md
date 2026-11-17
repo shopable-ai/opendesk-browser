@@ -1,8 +1,10 @@
-# OpenDesk Browser
+# GrayDove（灰鸽）
+
+> 对外产品名称 GrayDove；技术仓库与原有协议保留 OpenDesk Browser / opendesk-browser。首发定位：浏览器自动化与 JavaScript 脚本工作台。功能是否可宣传以同一 Standard 发行候选的真实 Chrome 验收为准；商店草稿见 [GrayDove Store Listing](docs/release/greydove/STORE-LISTING.md)。
 
 > **从这里理解产品与下一步**：[R8 用户目标、188 项能力取舍与真实验收](docs/product/browser-automation-r8-product-guide.zh-CN.md)。先读用户能做什么，再按 [188 项能力总账本](docs/product/browser-automation-feature-catalog-r8.zh-CN.md) 与 [40 项工程任务](docs/product/browser-automation-r8-implementation-plan.zh-CN.md) 追踪实现；规划不代表功能已交付。
 
-**定位：Chrome MV3 的浏览器自动化与网页增强工作台。** 跨页面操作走 Controller / RunHost / ChromePage；页面 JavaScript 走 User Scripts API 的 USER_SCRIPT。两者共享可信宿主，但不是同一个运行环境。
+**定位：Chrome MV3 的 JavaScript 网页脚本与浏览器自动化工作台。** 跨页面操作走 Controller / RunHost / ChromePage；页面 JavaScript 走 User Scripts API 的 USER_SCRIPT。两者共享可信宿主，但不是同一个运行环境。
 
 ## 我想写 JavaScript，先看哪份说明？
 
@@ -37,7 +39,7 @@
 - [现代 Page API：Locator / fill / waitFor / page.observe](docs/framework/modern-page-api.zh-CN.md)：Controller 新任务的默认写法及安全边界；[R5.2 组件证据与真实 Chrome 待验收项](docs/framework/workstreams/r5-2-modern-page-api-acceptance.md)。旧 `page.type` 的追加语义保持兼容。
 - [D1 依赖 ADR](docs/architecture/browser-framework/userscript-dependencies-d1-adr.zh-CN.md)：@require、哈希、授权与缓存的细节。
 
-**现在可做**：编辑页脚本、识别标准 @require、明确审核并锁定内容字节、进入不保存草稿的 USER_SCRIPT 预览代码路径；具备定向组件和双构建 CI。**尚未验收**：真实 Chrome 用户流程与断网运行。**尚未正式实现**：Page Program 的自动匹配安装、启停、重启注册对账。生成 register 描述符不等于已安装任务。
+**当前源码可定位**：编辑、审核并锁定网页脚本，使用 USER_SCRIPT 预览；`src/scripting/user-scripts/installed-programs.js` 已有用户脚本原生注册、卸载和启动对账实现，`src/ui/installed-page-tools.js` 已有启停与恢复入口，对应组件测试文件亦存在。**尚未以同一 Standard 生产包验收**：安装后自动匹配运行、禁用后停止新文档执行、浏览器重启恢复、权限撤销与断网场景。源码存在和模拟测试通过不能替代真实 Chrome 验收。
 
 Controller 的 @require 不会被偷偷下载并运行进 Worker 或 Service Worker；第三方脚本仅进入受控 USER_SCRIPT 页面环境。
 

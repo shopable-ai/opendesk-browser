@@ -1,0 +1,27 @@
+name: GrayDove brand spelling
+on:
+  push:
+    branches: [main]
+    paths:
+      - manifest.json
+      - README.md
+      - package.json
+      - .github/workflows/graydove-brand-spelling.yml
+      - scripts/check-brand-spelling.mjs
+      - src/**
+      - projects/**
+      - docs/**
+      - tests/**
+      - official-tools/**
+      - official-pages/**
+  workflow_dispatch:
+jobs:
+  brand-spelling:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Check current brand spelling
+        run: npm run check:brand
