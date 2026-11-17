@@ -101,3 +101,74 @@ short_name 当前有 <=12 字符的构建约束；`GreyDove` 长度符合该限�
 - [ ] 内部 API、Storage、Native Messaging 和扩展身份未被无意修改。
 - [ ] 文案没有宣称未交付功能。
 - [ ] 商标、域名和素材权利风险有记录。
+
+
+## 8. R1 域名预选与未解决证据（2026-11-17）
+
+品牌继续使用 GreyDove，不因为主域名当前无法取得而改名。这里记录 **40 个 .com 名称候选**，不是宣布这些域名可注册。2026-11-17 查询时，实时 RDAP 页面与注册商逐域名报价无法通过现有查询通道取得可归属的注册状态证据；因此任何未确认的状态一律为 UNKNOWN。没有网站或 DNS 不解析绝不是 AVAILABLE。
+
+**主域名 greydove.com：** 暂按“暂不可直接注册”做商业决策，但本轮 RDAP / ICANN / 注册商实时证据不足，正式注册状态、公开出售与具体报价仍为 UNKNOWN；不发起购买询价。
+
+### 有条件的前 12 个优先查询项
+
+| 顺序 | 域名 | 注册状态 | 首年/续费 | 是否溢价 | 商标风险 | 0–100 语言/品牌适配预评 |
+| --- | --- | --- | --- | --- | --- | --- |
+| 1 | greydovejs.com | UNKNOWN | UNKNOWN | UNKNOWN | 未完成官方商标检索 | 92（仅名称适配度，非购买评分） |
+| 2 | getgreydove.com | UNKNOWN | UNKNOWN | UNKNOWN | 未完成官方商标检索 | 91（仅名称适配度，非购买评分） |
+| 3 | greydovego.com | UNKNOWN | UNKNOWN | UNKNOWN | 未完成官方商标检索 | 90（仅名称适配度，非购买评分） |
+| 4 | greydovehq.com | UNKNOWN | UNKNOWN | UNKNOWN | 未完成官方商标检索 | 90（仅名称适配度，非购买评分） |
+| 5 | greydoveapp.com | UNKNOWN | UNKNOWN | UNKNOWN | 未完成官方商标检索 | 89（仅名称适配度，非购买评分） |
+| 6 | usegreydove.com | UNKNOWN | UNKNOWN | UNKNOWN | 未完成官方商标检索 | 89（仅名称适配度，非购买评分） |
+| 7 | gogreydove.com | UNKNOWN | UNKNOWN | UNKNOWN | 未完成官方商标检索 | 88（仅名称适配度，非购买评分） |
+| 8 | mygreydove.com | UNKNOWN | UNKNOWN | UNKNOWN | 未完成官方商标检索 | 88（仅名称适配度，非购买评分） |
+| 9 | greydoveweb.com | UNKNOWN | UNKNOWN | UNKNOWN | 未完成官方商标检索 | 87（仅名称适配度，非购买评分） |
+| 10 | greydovekit.com | UNKNOWN | UNKNOWN | UNKNOWN | 未完成官方商标检索 | 87（仅名称适配度，非购买评分） |
+| 11 | greydoveup.com | UNKNOWN | UNKNOWN | UNKNOWN | 未完成官方商标检索 | 86（仅名称适配度，非购买评分） |
+| 12 | greydovelab.com | UNKNOWN | UNKNOWN | UNKNOWN | 未完成官方商标检索 | 85（仅名称适配度，非购买评分） |
+
+上表是名称与记忆体验的**预评**，不是最终综合独立专家结论；注册状态、实际价格、商标硬条件未通过前，不存在可购买的 95 分合格域名。优先考虑简短、独立 .com；greydoveai / greydovepro / greydoveos 容易带来未交付能力或版本暗示，应降级。
+
+### 第二梯队 28 个 .com 待验证项
+
+| 域名 | 注册状态 | 价格/续费 | 溢价 |
+| --- | --- | --- | --- |
+| greydoveai.com | UNKNOWN | UNKNOWN | UNKNOWN |
+| greydovedev.com | UNKNOWN | UNKNOWN | UNKNOWN |
+| greydovetool.com | UNKNOWN | UNKNOWN | UNKNOWN |
+| greydovehub.com | UNKNOWN | UNKNOWN | UNKNOWN |
+| greydovecode.com | UNKNOWN | UNKNOWN | UNKNOWN |
+| greydovenow.com | UNKNOWN | UNKNOWN | UNKNOWN |
+| greydoveone.com | UNKNOWN | UNKNOWN | UNKNOWN |
+| greydovebox.com | UNKNOWN | UNKNOWN | UNKNOWN |
+| greydoveio.com | UNKNOWN | UNKNOWN | UNKNOWN |
+| greydovex.com | UNKNOWN | UNKNOWN | UNKNOWN |
+| greydoved.com | UNKNOWN | UNKNOWN | UNKNOWN |
+| greydovel.com | UNKNOWN | UNKNOWN | UNKNOWN |
+| greydovet.com | UNKNOWN | UNKNOWN | UNKNOWN |
+| greydoveit.com | UNKNOWN | UNKNOWN | UNKNOWN |
+| greydovepro.com | UNKNOWN | UNKNOWN | UNKNOWN |
+| greydoveos.com | UNKNOWN | UNKNOWN | UNKNOWN |
+| greydoveui.com | UNKNOWN | UNKNOWN | UNKNOWN |
+| greydoveon.com | UNKNOWN | UNKNOWN | UNKNOWN |
+| greydoveco.com | UNKNOWN | UNKNOWN | UNKNOWN |
+| greydovedo.com | UNKNOWN | UNKNOWN | UNKNOWN |
+| trygreydove.com | UNKNOWN | UNKNOWN | UNKNOWN |
+| higreydove.com | UNKNOWN | UNKNOWN | UNKNOWN |
+| greydovework.com | UNKNOWN | UNKNOWN | UNKNOWN |
+| greydovesdk.com | UNKNOWN | UNKNOWN | UNKNOWN |
+| greydovecli.com | UNKNOWN | UNKNOWN | UNKNOWN |
+| greydoveplus.com | UNKNOWN | UNKNOWN | UNKNOWN |
+| greydoves.com | UNKNOWN | UNKNOWN | UNKNOWN |
+| greydovely.com | UNKNOWN | UNKNOWN | UNKNOWN |
+
+其他主流后缀待查：greydove.dev、greydove.app、greydove.io、greydove.net（全部 UNKNOWN，优先级低于可接受的 .com）。
+
+### 唯一推荐操作链
+
+1. 先在 ICANN Lookup / registry RDAP 查注册状态与更新时间，并保存结果；对 .com 选择 Verisign 注册局数据与 ICANN 查询交叉核验。
+2. 在一个实际注册商按候选查询购物车状态、首年价格、续费、溢价与税费，并对另外一家注册商复核；查询失败保持 UNKNOWN。
+3. 在 USPTO、WIPO Global Brand Database 和目标市场官方商标系统检索 GreyDove 的文字、近似拼写和软件/浏览器相关类别；同名/近似的重大风险为硬阻断，不得用加后缀域名来豁免商标权。
+4. 通过以上硬门槛后，再由品牌、增长、域名投资、商标、国际化专家独立评分并加权平均；不能把“尚未查询”写成“已核验”。
+5. 未获得“可购买 + 价格合理 + 商标冲突已评估”三项证据，结论是 **暂不注册、继续使用 GreyDove 品牌**。不购买、不修改 DNS、不把未知域名写入任何生产配置。
+
+参考入口：https://lookup.icann.org/en/；https://rdap.verisign.com/com/v1/；https://www.namecheap.com/domains/；https://www.uspto.gov/trademarks/search；https://www.wipo.int/en/web/global-brand-database/index 。

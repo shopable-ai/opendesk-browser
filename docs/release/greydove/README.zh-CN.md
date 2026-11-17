@@ -19,7 +19,7 @@
 
 ## 2. 当前工作状态
 
-**当前阶段：发布规划与现状审计。尚未开始代码品牌改造。**
+**当前阶段：商店资料 R1 与最小用户可见品牌元数据调整已进入源码阶段；生产构建、真实 Chrome、图标、隐私与商店发布仍未完成。**
 
 - [完整任务链路](TASK-PLAN.zh-CN.md)
 - [品牌规范](BRAND-SPEC.md)
@@ -50,8 +50,8 @@
 | 本次读取的基线 Commit | `ec8766088b4f290386cf05d5848b56f767ce6d06` |
 | 基线提交时间 | 2026-11-17 07:47:30 UTC |
 | Manifest | MV3，版本 `0.1.0` |
-| 当前 Manifest 名称 | `OpenDesk Browser` |
-| 当前 short_name | `OD` |
+| 当前 Manifest 名称 | `GreyDove`（R1 源码调整，生产包待验证） |
+| 当前 short_name | `GreyDove`（R1 源码调整，生产包待验证） |
 | 最低 Chrome 版本 | `138` |
 | 正式构建入口 | `npm run build` |
 | 正式打包入口 | `npm run pack` |
