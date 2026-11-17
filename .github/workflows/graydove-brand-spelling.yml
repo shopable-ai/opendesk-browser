@@ -6,6 +6,7 @@ on:
       - manifest.json
       - README.md
       - package.json
+      - .github/workflows/graydove-brand-spelling.yml
       - scripts/check-brand-spelling.mjs
       - src/**
       - projects/**
