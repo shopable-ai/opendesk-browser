@@ -1,4 +1,4 @@
-# GreyDove 发布记录与证据账本
+# GrayDove 发布记录与证据账本
 
 > 每次提交 Chrome Web Store 或正式发布一个版本，新增一条记录。不得覆盖历史记录，不得用旧 ZIP、旧测试或其他 commit 的证据填充新版本。
 

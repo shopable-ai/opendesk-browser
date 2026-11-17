@@ -1,6 +1,6 @@
-# GreyDove（灰鸽）
+# GrayDove（灰鸽）
 
-> 对外产品名称 GreyDove；技术仓库与原有协议保留 OpenDesk Browser / opendesk-browser。首发定位：浏览器自动化与 JavaScript 脚本工作台。功能是否可宣传以同一 Standard 发行候选的真实 Chrome 验收为准；商店草稿见 [GreyDove Store Listing](docs/release/greydove/STORE-LISTING.md)。
+> 对外产品名称 GrayDove；技术仓库与原有协议保留 OpenDesk Browser / opendesk-browser。首发定位：浏览器自动化与 JavaScript 脚本工作台。功能是否可宣传以同一 Standard 发行候选的真实 Chrome 验收为准；商店草稿见 [GrayDove Store Listing](docs/release/greydove/STORE-LISTING.md)。
 
 > **从这里理解产品与下一步**：[R8 用户目标、188 项能力取舍与真实验收](docs/product/browser-automation-r8-product-guide.zh-CN.md)。先读用户能做什么，再按 [188 项能力总账本](docs/product/browser-automation-feature-catalog-r8.zh-CN.md) 与 [40 项工程任务](docs/product/browser-automation-r8-implementation-plan.zh-CN.md) 追踪实现；规划不代表功能已交付。
 

@@ -1,4 +1,4 @@
-# GreyDove · Chrome Web Store 上架文案及证据 R1
+# GrayDove · Chrome Web Store 上架文案及证据 R1
 
 > 更新：2026-11-17。基线：5926662a802ea76babadf6b8d6837c872eb21448（写入前）。本文件为可复制的 **上架候选文案**，尚未获得同一 Standard 生产 ZIP 的真实 Chrome 验收，不得标记为已上架、VERIFIED 或 PUBLISHED。此次只收敛现有发布文件，没有建立第二份品牌任务树。
 
@@ -18,13 +18,13 @@
 
 ### English product name / Chrome Manifest
 
-GreyDove
+GrayDove
 
 ### 中文品牌展示与本地化策略
 
-用户可见中文名：灰鸽（GreyDove）。
+用户可见中文名：灰鸽（GrayDove）。
 
-**当前第一阶段的实际 Manifest 名称仍统一为 GreyDove**，不在中文版后台擅自填入另一个与 Manifest 不一致的标题。中文品牌可用于中文完整介绍、官网和截图。若需在 Chrome 内显示真正的中文扩展名称或在后台建立按语言切换的完整商店 Listing，必须按 Chrome i18n 官方机制新增 _locales/en 与 _locales/zh_CN、default_locale 和消息引用，并先改造 Standard/Developer 的“源 Manifest 名称派生”和包验证规则；本轮不冒险改造这条发行链。当前尚不视为已完成中文商店本地化。
+**当前发行候选的 Manifest 暂用 GrayDove（待商标确认）**，不在中文版后台擅自填入另一个与 Manifest 不一致的标题。中文品牌可用于中文完整介绍、官网和截图。若需在 Chrome 内显示真正的中文扩展名称或在后台建立按语言切换的完整商店 Listing，必须按 Chrome i18n 官方机制新增 _locales/en 与 _locales/zh_CN、default_locale 和消息引用，并先改造 Standard/Developer 的“源 Manifest 名称派生”和包验证规则；本轮不冒险改造这条发行链。当前尚不视为已完成中文商店本地化。
 
 ### English short description (Manifest / listing, <=132 characters)
 
@@ -36,9 +36,9 @@ Reduce repetitive web work with installed browser automation tasks, and customiz
 
 ## 3. Detailed description — English (copy)
 
-GreyDove helps you customize websites and run repeatable browser tasks from one Chrome Side Panel.
+GrayDove helps you customize websites and run repeatable browser tasks from one Chrome Side Panel.
 
-If you often repeat clicks or fill in forms, GreyDove lets you run browser automation tasks you have installed and reviewed. You can also write and test JavaScript to add buttons, adjust page display, or create custom interactions.
+If you often repeat clicks or fill in forms, GrayDove lets you run browser automation tasks you have installed and reviewed. You can also write and test JavaScript to add buttons, adjust page display, or create custom interactions.
 
 What you can do:
 - Write and test JavaScript on the current web page.
@@ -46,17 +46,17 @@ What you can do:
 - Review task parameters, execution status, results, and errors; enable or disable installed page scripts.
 - Access related optional tools in the Side Panel.
 
-Getting started: Open GreyDove to test JavaScript on a page or choose an installed task. Review the target website, parameters, and permissions before running.
+Getting started: Open GrayDove to test JavaScript on a page or choose an installed task. Review the target website, parameters, and permissions before running.
 
-Some actions require writing a script or installing a suitable task; GreyDove does not automatically operate every website. Chrome may require enabling "Allow User Scripts" for page scripts. Full compatibility with all userscripts or GM APIs is not provided.
+Some actions require writing a script or installing a suitable task; GrayDove does not automatically operate every website. Chrome may require enabling "Allow User Scripts" for page scripts. Full compatibility with all userscripts or GM APIs is not provided.
 
-GreyDove requests website access for scripts and automation. Optional features may also use tab, download, cookie, or proxy permissions. Check permission details and the privacy policy before use.
+GrayDove requests website access for scripts and automation. Optional features may also use tab, download, cookie, or proxy permissions. Check permission details and the privacy policy before use.
 
 ## 4. 完整介绍 — 简体中文（复制）
 
 经常在网页上重复点击、填写表单，或者希望常用网站多一个按钮、少一些手动操作？
 
-GreyDove（灰鸽）是一款 Chrome 浏览器脚本与自动化工作台。你可以通过 JavaScript 定制网页功能，也可以运行已安装、经过授权审阅的自动化任务，减少重复操作。
+GrayDove（灰鸽）是一款 Chrome 浏览器脚本与自动化工作台。你可以通过 JavaScript 定制网页功能，也可以运行已安装、经过授权审阅的自动化任务，减少重复操作。
 
 **主要功能**
 
@@ -64,7 +64,7 @@ GreyDove（灰鸽）是一款 Chrome 浏览器脚本与自动化工作台。你�
 2. **执行重复操作：** 运行已安装的浏览器自动化任务，在获准网站完成点击、填写表单、读取页面信息等步骤。
 3. **管理脚本与任务：** 查看已安装的脚本并启停，执行前核对网站和参数，执行后查看状态、结果和错误。相关可选网页工具也可以从侧边栏打开。
 
-**如何使用？** 打开 GreyDove 侧边栏，选择编写 JavaScript 或运行已经安装的任务。执行前请确认目标网站、参数和授权范围。
+**如何使用？** 打开 GrayDove 侧边栏，选择编写 JavaScript 或运行已经安装的任务。执行前请确认目标网站、参数和授权范围。
 
 **使用限制：** 部分功能需要自行编写脚本或安装适合的任务，并非所有网站都能自动操作。Chrome 可能要求开启“允许用户脚本”；不承诺兼容全部油猴脚本或 GM API。
 
@@ -92,11 +92,11 @@ GreyDove（灰鸽）是一款 Chrome 浏览器脚本与自动化工作台。你�
 
 ## 6. 竞品边界（不用于堆砌商店关键词）
 
-| 竞品 | 公开定位与已公开能力 | GreyDove 的正确边界 |
+| 竞品 | 公开定位与已公开能力 | GrayDove 的正确边界 |
 | --- | --- | --- |
-| Tampermonkey | 成熟 userscript 管理、编辑、运行、更新、发现及同步 | 不能宣传 GreyDove 具备完整 GM API、脚本迁移兼容或云同步 |
-| Violentmonkey | 开源用户脚本管理、网页定制、外部编辑及同步 | GreyDove 重点是另一种 Controller 任务工作台，而非脚本生态更成熟 |
-| ScriptCat | 用户脚本、后台/定时脚本、社区；2026 年的 Agent 文档亦提供测试阶段的网页操作能力 | GreyDove Controller 与 ScriptCat Agent 存在自动化能力重叠，区别应落在 GreyDove 当前工作台与受审阅任务流程，不能声称独家或更强 |
+| Tampermonkey | 成熟 userscript 管理、编辑、运行、更新、发现及同步 | 不能宣传 GrayDove 具备完整 GM API、脚本迁移兼容或云同步 |
+| Violentmonkey | 开源用户脚本管理、网页定制、外部编辑及同步 | GrayDove 重点是另一种 Controller 任务工作台，而非脚本生态更成熟 |
+| ScriptCat | 用户脚本、后台/定时脚本、社区；2026 年的 Agent 文档亦提供测试阶段的网页操作能力 | GrayDove Controller 与 ScriptCat Agent 存在自动化能力重叠，区别应落在 GrayDove 当前工作台与受审阅任务流程，不能声称独家或更强 |
 | Greasemonkey | Firefox 的经典网页脚本管理生态 | Chrome 产品不应宣传 Firefox/GM 完整兼容 |
 
 来源：Tampermonkey https://www.tampermonkey.net/；Violentmonkey https://violentmonkey.github.io/；ScriptCat https://docs.scriptcat.org/；Greasemonkey https://addons.mozilla.org/en-US/firefox/addon/greasemonkey/
@@ -135,7 +135,7 @@ GreyDove（灰鸽）是一款 Chrome 浏览器脚本与自动化工作台。你�
 
 ## 8. 发布限制、权限与验收门禁
 
-- Manifest 英文 name 和 short_name 使用 GreyDove；Developer 通过现有 scripts/browser-editions-r245.mjs 派生 GreyDove Developer。不要添加独立 Developer 商品。
+- Manifest 英文 name 和 short_name 使用 GrayDove；Developer 通过现有 scripts/browser-editions-r245.mjs 派生 GrayDove Developer。不要添加独立 Developer 商品。
 - Manifest name 长度须符合 Chrome Web Store 现行 75 字符限制（2024 年已从 45 调整）；short_name 遵守仓库 12 字符限制；description <=132 字符。Chrome Web Store 完整描述在后台单独录入；“副标题”不作为确定存在的后台字段。
 - 当前 Manifest 有 `<all_urls>`、`debugger`、`userScripts`、`cookies`、`proxy`、`downloads` 等必需权限。请按真实源码调用点评估必要性、用途和隐私披露；文案不能代替权限合规。
 - Chrome 138+ 的 User Scripts 需要用户在扩展详情页开启 “Allow User Scripts”；只声明 userScripts 权限不代表用户已经启用。

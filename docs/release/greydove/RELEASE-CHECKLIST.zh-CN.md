@@ -1,4 +1,4 @@
-# GreyDove 生产构建与 Chrome Web Store 发布检查清单
+# GrayDove 生产构建与 Chrome Web Store 发布检查清单
 
 > 本文保留完整验收要求，但优先帮助完成 **Standard 首发审核**。勾选项必须有证据；任何 ZIP 的生成或商店 Draft 上传均不等于审核通过。
 
@@ -59,7 +59,7 @@ shasum -a 256 artifacts/opendesk-browser-production.zip
 ## 2. 发布前冻结
 
 - [ ] 从最新远端 `main` 开始，核对本地工作区和并行改动。
-- [ ] 确认本次只包含 GreyDove 发布范围内的变更。
+- [ ] 确认本次只包含 GrayDove 发布范围内的变更。
 - [ ] 确认品牌规范和商店文案已批准。
 - [ ] 确认图标源文件和导出文件已固定。
 - [ ] 确认 Manifest version 已按 Chrome 版本格式更新。
@@ -128,7 +128,7 @@ Developer 构建由现有脚本设置 Developer edition；它不是 Standard 包
 使用独立、干净的测试 Profile 安装最终 ZIP：
 
 - [ ] 安装成功。
-- [ ] Chrome 扩展管理页显示 GreyDove。
+- [ ] Chrome 扩展管理页显示 GrayDove。
 - [ ] 工具栏图标清晰。
 - [ ] Side Panel 和设置页面正常。
 - [ ] 最低声明 Chrome 版本 138 已验证，或明确记录无法验证。

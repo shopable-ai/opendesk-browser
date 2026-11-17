@@ -1,7 +1,7 @@
 {
   "manifest_version": 3,
-  "name": "GreyDove",
-  "short_name": "GreyDove",
+  "name": "GrayDove",
+  "short_name": "GrayDove",
   "version": "0.1.0",
   "description": "Reduce repetitive web work with installed browser automation tasks, and customize websites with JavaScript.",
   "minimum_chrome_version": "138",
