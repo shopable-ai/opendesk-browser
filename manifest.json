@@ -3,7 +3,7 @@
   "name": "GreyDove",
   "short_name": "GreyDove",
   "version": "0.1.0",
-  "description": "Reduce repeat clicks and form filling: customize websites with JavaScript and run browser automation tasks in one workspace.",
+  "description": "Reduce repetitive web work with installed browser automation tasks, and customize websites with JavaScript.",
   "minimum_chrome_version": "138",
   "permissions": [
     "storage",

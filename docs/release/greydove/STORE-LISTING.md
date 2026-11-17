@@ -4,15 +4,15 @@
 
 ## 1. 产品定位和目标用户（搜索意图优先，功能证据兜底）
 
-**用户的问题：** 经常在网页上反复点击、填写表单、读取页面信息，或者希望在常用网站中添加一个按钮、调整显示或自定义操作。
+**主要用途：** 在一个 Chrome 侧边栏中编写/运行 JavaScript 网页脚本，并执行已安装、经过审阅的浏览器自动化任务。
 
-**GreyDove 的单一主要用途：** 帮助用户通过 JavaScript 脚本和经过安装/授权审阅的浏览器自动化任务，自定义网页功能、处理重复网页操作，并在一个 Chrome 侧边栏中管理相关脚本、任务和结果。
+**用户要解决的问题：** 经常重复点击或填表，希望让常用网站更符合自己的使用习惯。
 
-**一句话价值：** 把重复网页操作变成可审阅、可运行的脚本与任务，减少每个小功能都要开发独立浏览器扩展的负担。
+**首发用户：** 需要脚本定制或重复网页操作的进阶用户与开发者。自动化需先有合适的已安装任务；不是输入一句话就能操作任意网站。
 
-**首批目标用户：** 在网页上进行重复操作的进阶用户、熟悉少量 JavaScript 的用户，以及需要自定义网站交互的开发者。一般用户可使用已有任务，但不暗示无需配置、无需脚本或自动理解任意网站。
+**首发差异化：** 网页脚本（Page USER_SCRIPT）和 Controller 自动化任务的统一工作台与执行反馈，而不是油猴全兼容、AI 无人值守或多个互不相关产品的集合。
 
-**差异化：** GreyDove 同时有网页脚本与 Controller 自动化任务两种执行方式，加上 Side Panel 工具管理；它不是完整 Tampermonkey/GM API 兼容管理器，也不应与脚本猫的自动化能力做不实独家对比。此处说的是源码定位，仍须以最终 Standard 包真实 Chrome 验收决定宣传白名单。
+**发布优先原则：** 商店正文只用简明用户语言呈现这三点；源码证据、权限矩阵、竞品研究保留在下面的内部审核章节，不直接复制到开发者后台。
 
 ## 2. 商品字段（直接复制候选）
 
@@ -28,51 +28,47 @@ GreyDove
 
 ### English short description (Manifest / listing, <=132 characters)
 
-Reduce repeat clicks and form filling: customize websites with JavaScript and run browser automation tasks in one workspace.
+Reduce repetitive web work with installed browser automation tasks, and customize websites with JavaScript.
 
 ### 中文短描述候选（同功能范围）
 
-减少反复点击、填写表单等网页操作：编写 JavaScript 脚本定制网页，运行和管理浏览器自动化任务，并查看结果。
+减少反复点击、填写表单等操作：运行已安装的浏览器自动化任务，也可用 JavaScript 自定义网页功能。
 
 ## 3. Detailed description — English (copy)
 
-GreyDove helps you handle repetitive website tasks and customize the pages you use, using JavaScript scripts and browser automation in one Chrome Side Panel.
+GreyDove helps you customize websites and run repeatable browser tasks from one Chrome Side Panel.
 
-Do you repeat the same clicks, fill out forms, or read information from webpages? Or wish a website had a button or interaction that better suited your workflow? GreyDove brings the scripts and reviewed tasks for those jobs into one workspace.
+If you often repeat clicks or fill in forms, GreyDove lets you run browser automation tasks you have installed and reviewed. You can also write and test JavaScript to add buttons, adjust page display, or create custom interactions.
 
 What you can do:
-- Customize websites with JavaScript. Write and test scripts to add buttons, adjust what a page displays, or create your own interactions.
-- Run repetitive webpage steps. Use installed, reviewed automation tasks to click, fill forms, and read page information on approved websites.
-- Manage scripts and results. Review installed scripts and enable or disable them. Check a task's target website, parameters, execution status, result, and errors. Open optional related web tools from the same Side Panel.
+- Write and test JavaScript on the current web page.
+- Run installed automation tasks on approved websites to click, fill forms, or read page information.
+- Review task parameters, execution status, results, and errors; enable or disable installed page scripts.
+- Access related optional tools in the Side Panel.
 
-Getting started: Open the GreyDove Side Panel. Try JavaScript on the current page or select a task that has been installed. Review the website, parameters, and permissions before running.
+Getting started: Open GreyDove to test JavaScript on a page or choose an installed task. Review the target website, parameters, and permissions before running.
 
-GreyDove is for people who frequently work with websites and for developers who want more control over how pages behave. Some workflows require writing a script or installing a suitable task; GreyDove does not automatically understand every website.
+Some actions require writing a script or installing a suitable task; GreyDove does not automatically operate every website. Chrome may require enabling "Allow User Scripts" for page scripts. Full compatibility with all userscripts or GM APIs is not provided.
 
-Some user-script features require enabling "Allow User Scripts" in Chrome. GreyDove does not promise compatibility with all userscripts or GM APIs. Website access is required for scripting and browser automation; individual tools may also involve tabs, downloads, cookies, or proxy settings. Please review permissions and privacy disclosures before using these features.
+GreyDove requests website access for scripts and automation. Optional features may also use tab, download, cookie, or proxy permissions. Check permission details and the privacy policy before use.
 
 ## 4. 完整介绍 — 简体中文（复制）
 
-经常在网页上反复点击、填写表单、查看页面信息？或者希望常用网站能多一个按钮、少几个手动步骤？
+经常在网页上重复点击、填写表单，或者希望常用网站多一个按钮、少一些手动操作？
 
-GreyDove（灰鸽）是一款 Chrome 浏览器自动化与 JavaScript 脚本工作台。它把网页脚本、自动化任务和相关网页工具集中在侧边栏，帮助你定制网站功能、处理重复操作，而不必为每个小需求单独开发浏览器扩展。
+GreyDove（灰鸽）是一款 Chrome 浏览器脚本与自动化工作台。你可以通过 JavaScript 定制网页功能，也可以运行已安装、经过授权审阅的自动化任务，减少重复操作。
 
-你可以用灰鸽做什么？
+**主要功能**
 
-1. **按自己的习惯使用网页。** 编写、试运行 JavaScript 脚本，在网页中添加按钮、调整页面显示或实现自定义操作。
-2. **减少重复点击和表单填写。** 使用已安装、经过授权审阅的浏览器自动化任务，在获准的网站执行点击、填写表单、读取页面信息等步骤。
-3. **集中管理脚本和任务。** 查看已安装脚本并启用或停用；运行前确认目标网站与参数，运行后查看任务状态、执行结果和错误。需要时，也可从侧边栏打开相关网页小工具。
+1. **自定义网页：** 编写并试运行 JavaScript，在网页中添加按钮、调整显示或实现自己的交互。
+2. **执行重复操作：** 运行已安装的浏览器自动化任务，在获准网站完成点击、填写表单、读取页面信息等步骤。
+3. **管理脚本与任务：** 查看已安装的脚本并启停，执行前核对网站和参数，执行后查看状态、结果和错误。相关可选网页工具也可以从侧边栏打开。
 
-**适合谁？**
-适合经常处理重复网页操作的用户，以及希望用 JavaScript 定制网站功能的开发者。你可以使用现有脚本与任务，也可以按自己的需要编写代码。
+**如何使用？** 打开 GreyDove 侧边栏，选择编写 JavaScript 或运行已经安装的任务。执行前请确认目标网站、参数和授权范围。
 
-**如何开始？**
-打开 GreyDove 侧边栏，在当前网页试运行一段 JavaScript，或者选择一个已经安装的自动化任务。确认目标网站、参数和权限后再执行。
+**使用限制：** 部分功能需要自行编写脚本或安装适合的任务，并非所有网站都能自动操作。Chrome 可能要求开启“允许用户脚本”；不承诺兼容全部油猴脚本或 GM API。
 
-**使用前请了解：**
-灰鸽不是无需设置就能自动处理所有网站的工具。部分操作需要自行编写脚本或安装合适的任务；Chrome 网页用户脚本功能可能需要开启“允许用户脚本”。本产品不保证兼容全部油猴脚本或 GM API。
-
-执行网页脚本和自动化任务需要相应的网站访问权限。个别工具还可能涉及标签页、下载、Cookie 或代理等浏览器能力，具体用途以实际功能及隐私披露为准。
+为执行网页脚本和自动化任务，扩展需要相应的网站访问权限。某些可选功能还可能涉及标签页、下载、Cookie 或代理等权限，请结合隐私政策及权限说明使用。
 
 ## 5. 功能证据白名单（未完成同包 Chrome 验收，暂不提升为 VERIFIED）
 
@@ -133,20 +129,9 @@ GreyDove（灰鸽）是一款 Chrome 浏览器自动化与 JavaScript 脚本工�
 
 ### R2：文案质量评审与证据限制（2026-11-17）
 
-先按用户场景组织语言，再保留真实的产品类型与搜索词；不是简单删除技术词，也不能依赖未经核验的“高流量关键词”。
+首发审核采用上方的**简短、准确、可验证**版本；之前自评的 96.2 分仅属于历史文案练习，不能说明上架条件已齐备。此轮不继续调整 SEO 分数，也不将完整技术研究、竞品评分或所有内置工具罗列到公开商店介绍。
 
-| 模拟独立专业审阅视角 | 文案质量分（100） | 判定依据 |
-| --- | ---: | --- |
-| 用户理解与任务价值 | 97 | 首屏先说重复点击/表单、自定义网页，且不承诺无需配置 |
-| 搜索意图和关键词自然性 | 96 | 保留“浏览器自动化、JavaScript、脚本”等准确词；缺少真实搜索量数据 |
-| 竞品差异化 | 96 | 主打脚本 + 审阅后运行的任务 + 侧栏管理，避免声称独占能力 |
-| 与源码证据一致性 | 95 | 有实现和组件测试路径，但功能仍需最终生产包 Chrome 验收 |
-| 商店文本政策与中英文一致性 | 97 | 概览 + 3 个用户功能点 + 使用说明，避免关键词堆砌；权限披露仍待独立合规审计 |
-| **等权算术平均** | **96.2** | **仅代表文字方案的内部模拟审查，不等于真实专家访谈、流量 A/B 或可上架认证** |
-
-**硬门槛（与分数无关）：** 当前无同源 Standard ZIP 的真实 Chrome 功能验收、最终图标/截图与隐私合规结论；因此即使文案内部评分超过 95，整款产品仍是 **NOT READY TO SUBMIT**。此评分不得替换此前的发布准备度评分或测试证据。
-
-官方来源：[Creating a great listing page](https://developer.chrome.com/docs/webstore/best-listing)、[Chrome Web Store discovery](https://developer.chrome.com/docs/webstore/discovery/)、[Listing requirements](https://developer.chrome.com/docs/webstore/program-policies/listing-requirements)、[2026 policy update](https://developer.chrome.com/blog/cws-policy-updates-2026)。
+**实际发布条件优先于任何评分：** Standard ZIP 必须来自同一 commit、打包校验通过，正式品牌图标与真实截图到位，隐私政策及敏感权限说明可公开核对，核心脚本/任务在真实 Chrome 可操作。缺少其中任一项应保留为待补，不要声称已经达到审核通过标准。
 
 ## 8. 发布限制、权限与验收门禁
 
@@ -158,4 +143,4 @@ GreyDove（灰鸽）是一款 Chrome 浏览器自动化与 JavaScript 脚本工�
 - **2026-07-01 政策更新、2026-08-01 生效：** 数据收集必须严格服务披露的单一主要用途，并且向用户显著披露；产品如含 AI 网站自动化，不得以绕过第三方 AI 服务安全防护或用量限制为卖点或实现目的。项目中可选的 Cookie、代理、广告过滤等工具与主用途的关系、相应敏感权限和网络传输应逐项核查，不得因工具均处于侧栏就推定满足“单一主要用途”。
 - 官方参考：https://developer.chrome.com/blog/cws-policy-updates-2026；https://developer.chrome.com/docs/extensions/whats-new；https://developer.chrome.com/docs/webstore/program-policies/listing-requirements；https://developer.chrome.com/docs/webstore/program-policies/policies；https://developer.chrome.com/docs/webstore/cws-dashboard-listing；https://developer.chrome.com/docs/extensions/reference/api/userScripts；https://developer.chrome.com/docs/extensions/reference/api/i18n；https://docs.scriptcat.org/en/docs/dev/agent/ 。
 
-**交付状态：文案候选已收敛，NOT READY TO SUBMIT。** 任何正式提交前，都要将正文动词逐条对照真实 Standard 发行包，去掉未通过的能力并补齐必要的披露。
+**交付状态：首发文案已收敛，可复制到商店 Draft；生产包、图标/截图、隐私、权限和真实 Chrome 证据未全部齐备前，NOT READY TO SUBMIT。** 任何正式提交前，都要将正文动词逐条对照真实 Standard 发行包，去掉未通过的能力并补齐必要的披露。

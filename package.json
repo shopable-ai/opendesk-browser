@@ -45,7 +45,8 @@
     "build:developer": "node scripts/build-page-edition-r245.mjs production",
     "build:developer:dev": "node scripts/build-page-edition-r245.mjs development",
     "pack:developer": "node scripts/pack-page-edition-r245.mjs production",
-    "verify:developer": "node scripts/verify-package.mjs dist/production-developer production"
+    "verify:developer": "node scripts/verify-package.mjs dist/production-developer production",
+    "cws:package": "npm run build && npm run pack"
   },
   "devDependencies": {
     "@colbymchenry/codegraph": "1.6.2",

@@ -4,7 +4,7 @@
 
 > **从这里理解产品与下一步**：[R8 用户目标、188 项能力取舍与真实验收](docs/product/browser-automation-r8-product-guide.zh-CN.md)。先读用户能做什么，再按 [188 项能力总账本](docs/product/browser-automation-feature-catalog-r8.zh-CN.md) 与 [40 项工程任务](docs/product/browser-automation-r8-implementation-plan.zh-CN.md) 追踪实现；规划不代表功能已交付。
 
-**定位：Chrome MV3 的浏览器自动化与网页增强工作台。** 跨页面操作走 Controller / RunHost / ChromePage；页面 JavaScript 走 User Scripts API 的 USER_SCRIPT。两者共享可信宿主，但不是同一个运行环境。
+**定位：Chrome MV3 的 JavaScript 网页脚本与浏览器自动化工作台。** 跨页面操作走 Controller / RunHost / ChromePage；页面 JavaScript 走 User Scripts API 的 USER_SCRIPT。两者共享可信宿主，但不是同一个运行环境。
 
 ## 我想写 JavaScript，先看哪份说明？
 
