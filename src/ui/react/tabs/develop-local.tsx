@@ -69,7 +69,7 @@ export function DevelopLocalProject(){
             <DevelopField as="p" id="local-install-status" role="status" aria-live="polite">
             </DevelopField>
           </DevelopField>
-          <details className="developer-options developer-project-options">
+          <details className="developer-options developer-project-options od-disclosure od-disclosure--icon">
             <DevelopOptionsSummary>项目设置与连接</DevelopOptionsSummary>
             <div className="developer-option-body od-stack">
               <p className="od-note">模块、依赖和资源在本地项目维护，源码历史由 Git 管理。</p>

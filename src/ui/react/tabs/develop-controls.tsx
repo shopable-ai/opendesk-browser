@@ -77,8 +77,10 @@ export function DevelopWorldChoices(){
   </fieldset>;
 }
 
-export function DevelopIcon({name}){
+export function DevelopIcon({name,className=''}){
   const paths={play:<path d="m8 5 11 7-11 7z"/>,stop:<rect x="6" y="6" width="12" height="12" rx="2"/>,
+    copy:<><rect x="8" y="8" width="12" height="13" rx="2"/><path d="M16 8V5a2 2 0 0 0-2-2H5a2 2 0 0 0-2 2v9a2 2 0 0 0 2 2h3"/></>,
+    refresh:<path d="M20 11a8 8 0 1 0-2.4 5.7M20 4v7h-7"/>,
     save:<path d="M5 4h12l3 3v13H4V4h1zm2 0v6h10V4m-11 16v-7h12v7"/>,
     globe:<><circle cx="12" cy="12" r="9"/><path d="M3 12h18M12 3c3 3 4 6 4 9s-1 6-4 9m0-18c-3 3-4 6-4 9s1 6 4 9"/></>,
     code:<path d="m8 6-6 6 6 6m8-12 6 6-6 6m-3-15-2 18"/>,
@@ -86,10 +88,10 @@ export function DevelopIcon({name}){
     help:<><circle cx="12" cy="12" r="9"/><path d="M9.1 9a3 3 0 0 1 5.8 1c0 2-3 2-3 4m.1 3h.01"/></>,
     chevron:<path d="m9 5 7 7-7 7"/>,dots:<><circle cx="5" cy="12" r="1"/><circle cx="12" cy="12" r="1"/><circle cx="19" cy="12" r="1"/></>,
     settings:<><circle cx="12" cy="12" r="3"/><path d="m19.4 15 .1 2-2 2-2-.5-2 1-1 1.7H10l-1-1.7-2-1L5 19l-2-2 .5-2-1-2L1 12l1.5-1 1-2L3 7l2-2 2 .5 2-1L10 3h2.5l1 1.5 2 1 2-.5 2 2-.5 2 1 2 1.5 1-1.5 1z"/></>};
-  return <svg className="developer-icon" viewBox="0 0 24 24" aria-hidden="true">{paths[name]}</svg>;
+  return <svg className={['developer-icon',className].filter(Boolean).join(' ')} viewBox="0 0 24 24" aria-hidden="true">{paths[name]}</svg>;
 }
 
 export function DevelopOptionsSummary({children,optional=false}){
   return <summary><DevelopIcon name="settings"/><span className="developer-option-title">{children}</span>
-    {optional&&<span className="od-technical">可选</span>}<DevelopIcon name="chevron"/></summary>;
+    {optional&&<span className="od-technical">可选</span>}<DevelopIcon name="chevron" className="od-disclosure-chevron"/></summary>;
 }

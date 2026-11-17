@@ -145,3 +145,57 @@ test('Controller revision catalog does not publish a snapshot for every saved sc
     assert.equal(view.fields['script-list'].value,'my-script');
   }finally{owner.dispose();view.dispose();}
 });
+
+test('Develop confirmation resolves once, refuses overlap and isolates late answers',async()=>{
+  const view=createDeveloperView();
+  const choice={title:'替换草稿？',message:'将用所选固定版本替换当前内容。',confirmLabel:'替换并加载',cancelLabel:'继续编辑'};
+  try{
+    const first=view.requestConfirmation(choice),identity=view.getSnapshot().confirmation.identity;
+    await assert.rejects(view.requestConfirmation(choice),{code:'E_UI_CONFIRM_BUSY'});
+    view.settleConfirmation(identity,'cancel');
+    assert.equal((await first).action,'cancel');
+    const second=view.requestConfirmation(choice),next=view.getSnapshot().confirmation.identity;
+    view.settleConfirmation(identity,'confirm');
+    assert.equal(view.getSnapshot().confirmation.identity,next,'old answer cannot settle a new dialog');
+    view.settleConfirmation(next,'confirm');
+    assert.equal((await second).action,'confirm');
+    assert.equal(view.getSnapshot().confirmation,null);
+    assert.equal(Object.keys(view.actions).length,0,'choice alone invokes no business actions');
+  }finally{view.dispose();}
+});
+
+test('Develop navigation, hidden host, disposal and timeout safely cancel pending decisions',async t=>{
+  t.mock.timers.enable({apis:['setTimeout']});
+  const view=createDeveloperView();
+  const choice={title:'删除所选脚本？',message:'将删除所选对象的全部版本。',confirmLabel:'删除',tone:'danger'};
+  try{
+    for(const reason of ['navigation','hidden','timeout','disposed']){
+      const answer=view.requestConfirmation(choice);
+      if(reason==='navigation')view.navigate('library');
+      else if(reason==='hidden')view.cancelConfirmation('hidden');
+      else if(reason==='timeout')t.mock.timers.tick(120000);
+      else view.dispose();
+      assert.deepEqual(await answer,{action:'cancel',reason});
+      assert.equal(view.getSnapshot().confirmation,null);
+    }
+    assert.equal((await view.requestConfirmation(choice)).action,'cancel','closed host cannot open another dialog');
+  }finally{view.dispose();t.mock.timers.reset();}
+});
+
+test('hidden or unmounted Develop hosts reject late decisions until presented again',async()=>{
+  const view=createDeveloperView(),choice={title:'替换草稿？',message:'加载所选版本',confirmLabel:'替换并加载'};
+  try{
+    const original=view.getSnapshot().navigationGeneration;
+    const first=view.requestConfirmation(choice);
+    view.setPresentationActive(false);
+    assert.deepEqual(await first,{action:'cancel',reason:'hidden'});
+    assert.equal(view.getSnapshot().navigationGeneration,original+1);
+    assert.deepEqual(await view.requestConfirmation(choice),{action:'cancel',reason:'hidden'});
+    assert.equal(view.getSnapshot().confirmation,null);
+    view.setPresentationActive(true);
+    const second=view.requestConfirmation(choice);
+    view.setPresentationActive(false,'unmounted');
+    assert.deepEqual(await second,{action:'cancel',reason:'unmounted'});
+    assert.equal(view.getSnapshot().confirmation,null);
+  }finally{view.dispose();}
+});

@@ -10,6 +10,7 @@ import {createHash} from 'node:crypto';
 import {load} from 'cheerio';
 import {build} from 'vite';
 import {renderSidebarReact} from './react-sidebar-ssr.mjs';
+import {PREVIEW_SCENARIOS} from '../../src/ui/react/preview/workflow-preview-model.js';
 
 const root=fileURLToPath(new URL('../../',import.meta.url));
 const output=join(root,'prototypes/sidebar/workflow/react-preview/index.html');
@@ -19,6 +20,8 @@ const inputs=[
   'src/ui/design-system.css',
   'src/ui/tool-shell.css',
   'src/ui/react/preview/workflow-preview.tsx',
+  'src/ui/react/preview/workflow-preview-model.js',
+  'src/ui/react/tabs/workflow.css',
   'src/ui/react/preview/shared-ai-preview.js',
   'src/ui/conversation/draft-suggestion.js',
   'src/ui/react/app-shell.tsx',
@@ -71,6 +74,7 @@ export async function generateWorkflowReactPreview(){
     // React 19's CJS entry reads process.env.NODE_ENV. Browser file:// has
     // no Node process global; Vite library mode must replace this at build time.
     await build({root,configFile:false,logLevel:'error',
+      resolve:{alias:{'@opendesk/ui':join(root,'src/ui/react/components/ui/button.tsx')}},
       plugins:[{name:'opendesk-workflow-preview-inputs',enforce:'pre',
         async load(id){
           const path=id.split('?')[0];
@@ -110,8 +114,8 @@ export async function generateWorkflowReactPreview(){
       '.od-workflow-preview-controls select{min-height:34px;min-width:110px;color:var(--od-ink);'+
         'border:1px solid var(--od-input-border);background:var(--od-paper);border-radius:var(--radius-control);padding:5px 8px}',
       '.od-workflow-preview-frame{padding:12px 10px 20px;display:flex;justify-content:center}',
-      '.od-workflow-preview-stage{max-width:100%;height:750px;max-height:calc(100dvh - 145px);'+
-        'min-height:490px;background:var(--od-bg);border:1px solid var(--od-line);'+
+      '.od-workflow-preview-stage{max-width:100%;height:750px;max-height:calc(100dvh - var(--od-preview-stage-top,145px) - 48px);'+
+        'min-height:260px;background:var(--od-bg);border:1px solid var(--od-line);'+
         'border-radius:var(--radius-surface);box-shadow:0 10px 30px #142a4c14;'+
         'overflow:hidden;display:flex;flex-direction:column;min-width:0;position:relative;'+
         'color:var(--od-ink);--ink:var(--od-ink);--sub:var(--od-sub);--line:var(--od-line);'+
@@ -122,6 +126,8 @@ export async function generateWorkflowReactPreview(){
       'body>.workflow-sheet-overlay{inset:var(--od-preview-stage-top) auto auto var(--od-preview-stage-left);'+
         'width:var(--od-preview-stage-width);height:var(--od-preview-stage-height)}',
       'body>.workflow-sheet-overlay .workflow-sheet-panel{max-height:min(72dvh,560px,100%)}',
+      '.od-confirm-overlay{inset:var(--od-preview-stage-top) auto auto var(--od-preview-stage-left);width:var(--od-preview-stage-width);height:var(--od-preview-stage-height)}',
+      '.od-confirm-surface{max-width:calc(100% - 16px);max-height:calc(100% - 16px);overflow:auto}',
       '.od-workflow-preview-stage #opendesk-react-app{height:100%;min-height:0;'+
         'display:flex;flex-direction:column;overflow:hidden}',
       '.od-workflow-preview-stage .workbench-nav{flex:0 0 auto}',
@@ -169,16 +175,12 @@ export async function generateWorkflowReactPreview(){
       '<div class="od-workflow-preview-top" id="od-workflow-preview-controls">',
       '<div class="od-workflow-preview-controls">',
       '<div class="od-workflow-preview-copy"><strong>正式 React 同源预览</strong>',
-      '<span>仅预览界面 · 不连接本机，不执行网页操作</span></div>',
+      '<span>仅内存样例：姓名/邮箱、文章、只读检查、受限商品搜索。其余输入使用界面样例，不代表理解任意任务；不连接本机或网站。</span></div>',
       '<label>界面状态<select id="od-workflow-preview-scenario" data-preview-scenario>',
-      '<option value="empty">空白</option><option value="conversation">对话</option>',
-      '<option value="planning">规划中</option><option value="running">执行中</option>',
-      '<option value="success">成功</option><option value="failure">失败</option>',
-      '<option value="unknown">结果未知</option><option value="approval">摘要授权</option>',
-      '<option value="run-review">网站权限</option>',
-      '<option value="denied">授权拒绝</option><option value="disconnected">连接中断</option>',
-      '<option value="history">历史</option><option value="settings">设置</option>',
+      ...Object.entries(PREVIEW_SCENARIOS).map(([value,label])=>'<option value="'+value+'">'+label+'</option>'),
       '</select></label>',
+      '<label><input type="checkbox" id="od-workflow-preview-auto" checked>自动推进演示</label>',
+      '<label><input type="checkbox" id="od-workflow-preview-pause-plan" checked>步骤处暂停检查</label>',
       '<label>宽度<select id="od-workflow-preview-width" data-preview-width>',
       '<option value="320">320px</option><option value="360" selected>360px</option>',
       '<option value="400">400px</option><option value="420">420px</option>',

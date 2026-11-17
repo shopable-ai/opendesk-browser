@@ -9,7 +9,9 @@ import {renderToStaticMarkup} from 'react-dom/server';
 import {createRequire} from 'node:module';
 import {pathToFileURL} from 'node:url';
 import {createHash} from 'node:crypto';
+import {resolve} from 'node:path';
 import {createPreviewProviderSettings} from '../../src/ui/react/preview/shared-ai-preview.js';
+import {createWorkflowPreviewSimulation,PREVIEW_SCENARIOS} from '../../src/ui/react/preview/workflow-preview-model.js';
 
 const require=createRequire(import.meta.url);
 // Render the actual shared primitive, not invented SSR content for Portal targets.
@@ -19,7 +21,12 @@ async function renderSharedFrame(props){
     result=await build({stdin:{resolveDir:process.cwd(),contents:
       "export {SharedConversationFrame} from './src/ui/react/components/conversation.tsx';"},
       bundle:true,write:false,format:'esm',platform:'node',jsx:'transform',
-      plugins:[{name:'shared-react-instance',setup(builder){
+      plugins:[{name:'shared-raw-css',setup(builder){
+        builder.onResolve({filter:/\.css\?raw$/},({path,resolveDir})=>({
+          path:resolve(resolveDir,path.slice(0,-4)),namespace:'raw-css'}));
+        builder.onLoad({filter:/.*/,namespace:'raw-css'},async({path})=>({
+          contents:await readFile(path,'utf8'),loader:'text'}));
+      }},{name:'shared-react-instance',setup(builder){
         builder.onResolve({filter:/^react(?:-dom)?(?:$|\/)/},({path})=>({
           path:pathToFileURL(require.resolve(path)).href,external:true}));
       }}]});
@@ -226,7 +233,7 @@ test('Workflow preview mounts the installed SidebarAppShell and exactly one Reac
     'src/ui/tool-shell.css','src/ui/react/main.tsx','src/ui/react/app-shell.tsx',
     'src/ui/workflow/workflow-ui-state.js','src/ui/react/tabs/workflow.tsx',
     'src/ui/react/components/provider-settings.tsx','src/ui/react/components/conversation.tsx',
-    'src/ui/react/preview/shared-ai-preview.js'
+    'src/ui/react/preview/shared-ai-preview.js','src/ui/react/preview/workflow-preview-model.js'
   ])assert.ok(builder.includes(path),'canonical preview input missing '+path);
   for(const currentDom of ['workflow-editor','workflow-history-panel','workflow-ai-transcript','workflow-provider-toggle','workflow-composer-frame'])
     assert.ok(builder.includes(currentDom),'must validate installed JSX node '+currentDom);
@@ -271,15 +278,17 @@ test('Preview covers all UI outcomes, requested 320–960px widths, both themes 
     read('scripts/preview/build-workflow-react-preview.mjs'),
     read('src/ui/react/components/provider-settings.tsx')
   ]);
-  for(const scene of ['empty','conversation','planning','running','success','failure',
-    'unknown','approval','run-review','denied','disconnected','history','settings'])
-    assert.ok(builder.includes('value="'+scene+'"'),'preview selector must include '+scene);
+  assert.match(builder,/import \{PREVIEW_SCENARIOS\} from '[^']*workflow-preview-model\.js'/);
+  const generated=load(await read('prototypes/sidebar/workflow/react-preview/index.html'));
+  assert.deepEqual(generated('#od-workflow-preview-scenario option').map((_,node)=>[
+    [generated(node).val(),generated(node).text()]
+  ]).get(),Object.entries(PREVIEW_SCENARIOS),'generated selector uses the complete model catalog');
   for(const width of [320,360,400,420,440,520,640,768,960])
     assert.ok(builder.includes('value="'+width+'"'),'preview viewport missing '+width);
   for(const theme of ['light','dark'])
     assert.ok(builder.includes('value="'+theme+'"'),'theme selector missing '+theme);
   assert.match(entry,/let lastHttps='custom_https'/);
-  assert.match(entry,/chooseProvider\(lastHttps\)/);
+  assert.match(entry,/providerSettings\.updateSettings\(\{source:lastHttps\}\)/);
   assert.match(entry,/\[320,360,400,420,440,520,640,768,960\]\.includes\(width\)/);
   const $=load(await read('prototypes/sidebar/workflow/react-preview/index.html'));
   assert.deepEqual($('#od-workflow-preview-width option').map((_,node)=>Number($(node).val())).get(),
@@ -292,7 +301,7 @@ test('Preview covers all UI outcomes, requested 320–960px widths, both themes 
   assert.match(settings,/item\.getAttribute\('aria-hidden'\)!=='true'/);
 });
 
-test('Preview does not forge saved workflow history or native/Provider authority',async()=>{
+test('Preview exposes explicitly memory simulated history without native/Provider authority',async()=>{
   const [entry,builder,html,view]=await Promise.all([
     read('src/ui/react/preview/workflow-preview.tsx'),
     read('scripts/preview/build-workflow-react-preview.mjs'),
@@ -311,8 +320,22 @@ test('Preview does not forge saved workflow history or native/Provider authority
   assert.match(component,/Object\.entries\(SOURCE_LABELS\)/);
   for(const source of ['local_codex','custom_https','cloud_responses'])
     assert.ok(component.includes(source),'source menu must retain '+source);
-  assert.match(entry,/history:\{open:historyOpen,rows:\[\],canResume:false,busy\}/);
-  assert.match(entry,/sourceName:local\?'Codex'/);
+  assert.match(entry,/history:\{open:s\.historyOpen,rows:s\.history,canResume:false,busy\}/);
+  assert.match(entry,/savedTitle:'仅保存在本页内存'/);
+  assert.match(entry,/sourceName:providerSettings\.settingsSnapshot\(\)\.source==='local_codex'\?'Codex'/);
+  const simulation=createWorkflowPreviewSimulation();
+  simulation.scene('conversation');simulation.save();simulation.advance();
+  assert.equal(simulation.s.history.length,1);
+  assert.match(simulation.s.history[0].savedText,/内存样例/);
+  assert.match(simulation.s.notice,/重新打开页面后清空/);
+  assert.deepEqual(createWorkflowPreviewSimulation().s.history,[],
+    'a new preview instance cannot inherit durable or installed history');
+  for(const path of ['src/ui/react/preview/workflow-preview-model.js',
+    'src/ui/react/preview/workflow-preview.tsx']){
+    const source=(await read(path)).replace(/^\s*\/\/[^\n]*$/gm,'');
+    assert.doesNotMatch(source,/\bchrome\s*[.\[]|\bfetch\s*\(|localStorage|sessionStorage|indexedDB|\b(?:WebSocket|XMLHttpRequest)\b|createWorkflowProviderFacade/);
+    assert.doesNotMatch(source,/from ['"][^'"]*(?:framework\/sdk|platform\/host|installer|sandbox)/);
+  }
   assert.match(entry,/sourceBound:true,native:false,provider:false/);
   assert.match(entry,/runHost:false,permission:false,realResult:false/);
   assert.match(builder,/src\/ui\/react\/preview\/workflow-preview\.tsx/);
@@ -381,8 +404,9 @@ test('Shared Workflow transcript preserves escaped speaker semantics and native 
   const conversation=await read('src/ui/react/components/conversation.tsx');
   assert.match(conversation,/transcriptTarget\?createPortal\(transcript,transcriptTarget\):null/);
   assert.match(conversation,/composerTarget\?createPortal\(composer,composerTarget\):null/);
-  const dockCss=await read('src/ui/react/components/conversation-dock.css');
-  assert.match(dockCss,/\.od-conversation-entry\[data-speaker="user"\]\{[^}]*background:var\(--od-conversation-user-bg\)/);
+  const frameCss=await read('src/ui/react/components/conversation-frame.css');
+  assert.match(conversation,/import frameCSS from '\.\/conversation-frame\.css\?raw'/);
+  assert.match(frameCss,/\.od-conversation-entry\[data-speaker="user"\]\{[^}]*background:var\(--od-conversation-user-bg\)/);
   assert.match(css,/\.workflow-chat-transcript\{[^}]*max-height:none;overflow:visible\}/);
   assert.ok(!css.includes('max-height:210px'));
   assert.ok(css.includes('.workflow-composer:focus-within'));

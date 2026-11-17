@@ -2801,7 +2801,7 @@ test('Task AppStorage rejects every operation and durable replay after Stop, tas
 });
 
 
-test('installed Task admission enforces reviewed deadline before slot writes while drafts retain 120s',async()=>{
+test('installed Task admission retains reviewed deadlines while drafts admit at most 24 hours',async()=>{
   const f=await installedTaskFixture(),time=Date.now();f.clock.now=()=>time;
   const reject=async(row,deadlineMs)=>{
     const writes=f.storage.writes.length,calls=f.calls.length,runs=await f.rows('runs');
@@ -2818,10 +2818,20 @@ test('installed Task admission enforces reviewed deadline before slot writes whi
   run=await f.startTask(short,{deadlineAt:time+1000});await close(run);
   const long=await f.installPackage({...f.manifest,version:'1.2.0',deadlineMs:120000},short);
   run=await f.startTask(long,{deadlineAt:time+120000});await close(run);
-  run=await f.authority.startControllerRun({requestId:crypto.randomUUID(),source:{kind:'draft',sourceUtf8:'return true;'},
-    paramsWire:encodeValue({}),target:{mode:'borrowed',tabId:2,frameId:0,documentId:'doc-top'},deadlineAt:time+120000},f.sender);
-  assert.equal((await f.rows('runs')).find(row=>row.runId===run.runId).deadlineAt,time+120000);
-  await close(run);
+  const draft=deadlineMs=>({requestId:crypto.randomUUID(),source:{kind:'draft',sourceUtf8:'return true;'},
+    paramsWire:encodeValue({}),target:{mode:'borrowed',tabId:2,frameId:0,documentId:'doc-top'},deadlineAt:time+deadlineMs});
+  for(const deadlineMs of [120000,300000,600000,1200000,1800000,3600000,7200000,21600000,43200000,86400000]){
+    run=await f.authority.startControllerRun(draft(deadlineMs),f.sender);
+    assert.equal((await f.rows('runs')).find(row=>row.runId===run.runId).deadlineAt,time+deadlineMs);
+    await close(run);
+  }
+  for(const deadlineMs of [0,86400001,2147483648]){
+    const writes=f.storage.writes.length,calls=f.calls.length,runs=await f.rows('runs');
+    await assert.rejects(f.authority.startControllerRun(draft(deadlineMs),f.sender),code('E_TIMEOUT'));
+    assert.equal(f.storage.writes.length,writes);
+    assert.equal(f.calls.length,calls);
+    assert.deepEqual(await f.rows('runs'),runs);
+  }
 });
 
 test('installed Controller foreground uses original Authority, exact target, durable receipts and replay fence',async()=>{

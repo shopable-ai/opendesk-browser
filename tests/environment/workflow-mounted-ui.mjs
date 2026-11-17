@@ -41,9 +41,17 @@ export async function mountWorkflowClient({steps=[],activeTab='workflow',...opti
   const {SidebarAppShell,createDeveloperView,createMyWorkbenchView,
     createSidebarToolsView,TrustedConversationWorkspace}=await loadSidebarReact();
   const {window,document}=parseHTML('<html><body><div id="opendesk-react-app"></div></body></html>');
-  const previous=new Map(['window','document','IS_REACT_ACT_ENVIRONMENT'].map(key=>
+  const previous=new Map(['window','document','chrome','IS_REACT_ACT_ENVIRONMENT'].map(key=>
     [key,Object.getOwnPropertyDescriptor(globalThis,key)]));
-  for(const [key,value] of Object.entries({window,document,IS_REACT_ACT_ENVIRONMENT:true}))
+  // The real App Shell subscribes to update-notice storage changes. Supply
+  // only that in-memory event surface; no runtime transport, permissions or
+  // verified update response is available in this Workflow fixture.
+  const storageListeners=new Set();
+  const chrome={storage:{onChanged:{
+    addListener:listener=>storageListeners.add(listener),
+    removeListener:listener=>storageListeners.delete(listener)
+  }}};
+  for(const [key,value] of Object.entries({window,document,chrome,IS_REACT_ACT_ENVIRONMENT:true}))
     Object.defineProperty(globalThis,key,{value,writable:true,configurable:true});
   Object.defineProperty(document,'activeElement',{value:document.body,writable:true,configurable:true});
   const proto=window.HTMLElement.prototype;
@@ -124,8 +132,13 @@ export async function mountWorkflowClient({steps=[],activeTab='workflow',...opti
       }
     }
   };
-  await React.act(async()=>{root.render(React.createElement(App));await tick();});
-  await tick();
+  try{
+    await React.act(async()=>{root.render(React.createElement(App));await tick();});
+    await tick();
+  }catch(error){
+    await close();
+    throw error;
+  }
   return {document,window,source:f,controller,providerSettings,keys,TrustedConversationWorkspace,
     subscriptions:()=>subscriptions,html:()=>document.toString(),
     toolView:views[2],click,clickNode,keydown,openSettings,close};

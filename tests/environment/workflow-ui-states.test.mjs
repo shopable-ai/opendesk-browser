@@ -221,7 +221,8 @@ test('later AI Send retains committed Controller revision for optimistic Save',a
   const view=await file('src/ui/workflow/workflow-view.js');
   assert.match(view,/const previous=revision\?\.workflow\?\.workflowId===freeze\.workflow\.workflowId\?revision\.revision:0/);
   assert.match(view,/\bexecutable=structuredClone\(result\)/);
-  assert.match(view,/const freeze=await compileWorkflow\(executable,\{verifyFill:true\}\)/);
+  assert.match(view,/const freeze=await compileWorkflow\(executable,\{verifyFill:true,observationRequest:agent\.goal\}\)/);
+  assert.match(view,/freeze=await compileWorkflow\(executable,\{verifyFill:true,observationRequest:frozen\.request\}\)/);
   assert.match(view,/workflow=structuredClone\(executable\);touched=true;lastTrustedRun=null/);
   assert.doesNotMatch(view,/workflow=structuredClone\(executable\);touched=true;revision=null/);
 });

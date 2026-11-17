@@ -267,7 +267,8 @@ export function DiagnosticsPage({ state, busy, onRefresh, onStop, onProfiles, pr
     // Never blame the desired local client when Chrome did not apply that route.
     localEndpoint: selectionApplied && !!localEndpoint, results: current
   });
-  const locked = busy || running || !!snapshot?.activeRun;
+  const diagnosticRunning = running || !!snapshot?.activeRun;
+  const locked = busy || diagnosticRunning;
   const latestObservation = (id: string) => latestFor(id, snapshot);
   const renderResult = (site: Pick<DiagnosticSite,'id'|'domain'|'name'>, currentSite = false) => {
     const result = currentSite ? currentObservation : latestObservation(site.id);
@@ -301,7 +302,7 @@ export function DiagnosticsPage({ state, busy, onRefresh, onStop, onProfiles, pr
     <p className="r86Help">{t('diagEvidenceBoundary')}</p>
     {loadError&&<div className="notice error" role="alert"><p>{t('diagLoadFailed')}</p><Button onClick={()=>void load()}>{t('usageRetry')}</Button></div>}
     {error&&<p className="notice error" role="alert">{error}</p>}
-    {(running||snapshot?.activeRun)&&<div role="status"><span>{t('diagRunning')}</span><Button onClick={()=>void submit({type:'CANCEL_DIAGNOSTICS'})}>{t('diagCancel')}</Button></div>}
+    {diagnosticRunning&&<div role="status"><span>{t('diagRunning')}</span><Button onClick={()=>void submit({type:'CANCEL_DIAGNOSTICS'})}>{t('diagCancel')}</Button></div>}
   </div>;
   return <>
     <header className="diagnosticLead" data-presentation={presentation}>
@@ -335,7 +336,7 @@ export function DiagnosticsPage({ state, busy, onRefresh, onStop, onProfiles, pr
         <small>{t('doesNotProveReachability')}</small></div>
       <div><small>{t(simulatedDiagnostics ? 'diagSitesChecked' : 'diagSitesLive')}</small><strong>{httpDiagnostics ? `${current.filter(item=>item.siteId!==PUBLIC_HTTPS_CHECK.id).length} / ${AI_SITES.length}` : t('notTested')}</strong>
         <small>{!simulatedDiagnostics ? t('diagModelVerification') : current.length === 0 ? t('notTested') : t('diagCurrentRouteOnly')}</small></div>
-      <div><small>{t('diagRunStatus')}</small><strong>{!httpDiagnostics ? t('notAvailable') : locked ? t('diagRunning') : t('diagIdle')}</strong>
+      <div><small>{t('diagRunStatus')}</small><strong>{!httpDiagnostics ? t('notAvailable') : diagnosticRunning ? t('diagRunning') : t('diagIdle')}</strong>
         <small>{snapshot?.activeRun ? t('diagProgress', {
           done: snapshot.activeRun.completed, total: snapshot.activeRun.total
         }) : t('diagOnDemandOnly')}</small></div>
@@ -368,7 +369,7 @@ export function DiagnosticsPage({ state, busy, onRefresh, onStop, onProfiles, pr
     {simulatedDiagnostics && <p className="diagnosticRuntimeNotice" role="status">{t('diagPreviewOnly')}</p>}
     {loadError && <div className="notice error" role="alert"><p>{t('diagLoadFailed')}</p><Button onClick={()=>void load()}>{t('usageRetry')}</Button></div>}
     {error && <p className="notice error" role="alert">{error}</p>}
-    {locked && <div className="diagnosticRunProgress" role="status">
+    {diagnosticRunning && <div className="diagnosticRunProgress" role="status">
       <span>{t('diagRunning')} · {snapshot?.activeRun
         ? t('diagProgress', {done:snapshot.activeRun.completed, total:snapshot.activeRun.total}) : t('diagStarting')}</span>
       <Button variant="secondary" onClick={() => void submit({ type:'CANCEL_DIAGNOSTICS' })}>{t('diagCancel')}</Button>

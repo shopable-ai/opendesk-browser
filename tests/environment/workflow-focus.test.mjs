@@ -609,6 +609,26 @@ if(!vm.SourceTextModule) {
     assert.equal(f.get('workflow-add-step').visible(),false,'empty workflow has no manual creation entry');
   });
 
+  test('component: parameter removal restores a visible neighbour or the request field',async t=>{
+    const f=await make(t,{steps:[{...fill('one'),text:'first'},{...fill('two'),text:'second'}]});
+    f.ui.actions.parameterizeStep('one');f.ui.actions.parameterizeStep('two');await tick();
+    const names=f.ui.getSnapshot().params.map(row=>row.name);
+    const remove=name=>f.doc.querySelector(`button[aria-label="移除参数 ${name}"]`);
+    remove(names[0]).focus();await f.click(remove(names[0]));
+    assertFocus(f,f.doc.querySelector(`[data-workflow-param="${names[1]}"]`));
+    remove(names[1]).focus();await f.click(remove(names[1]));
+    assertFocus(f,f.get('workflow-ai-request'));
+  });
+
+  test('component: management focus reveals the requested field and returns to its trigger',async t=>{
+    const f=await make(t,{steps:[fill('one')]});
+    f.get('workflow-edit-details').focus();await f.click(f.get('workflow-edit-details'));
+    assertFocus(f,f.get('workflow-title'));
+    assert.equal(f.get('workflow-title').closest('details').open,true);
+    await f.click(f.get('workflow-manage-close'));
+    assertFocus(f,f.get('workflow-edit-details'));
+  });
+
   test('component: a reordered focused step uses its current neighbour after deletion',async t=>{
     const f=await make(t,{steps:['one','two','three','four'].map(observe)});
     const remove=f.control('one','remove');remove.focus();

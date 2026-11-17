@@ -13,6 +13,16 @@ export function createControllerRevisionView({host,client,view,programSource,pre
   const scriptId=()=>find('script-id').value.trim(),getSource=()=>programSource.source();
   const head=id=>heads.get(id);
   const has=id=>heads.has(id);
+  const editorSnapshot=()=>({source:getSource(),id:scriptId(),revision:find('script-revision').value,
+    generation:getGeneration(),selected:list.value,world:find('script-javascript-world').value,
+    navigationGeneration:view.getSnapshot?.().navigationGeneration,
+    modes:['javascript','react','vue'].map(value=>find('page-component-'+value).checked),current});
+  function checkEditor(snapshot){
+    const now=editorSnapshot();
+    if(disposed||Object.keys(snapshot).some(key=>key==='modes'
+      ?snapshot.modes.some((value,index)=>value!==now.modes[index]):snapshot[key]!==now[key]))
+      throw {code:'E_REVISION',message:'编辑内容或选择已变化，请重新操作'};
+  }
 
   function renderRevisionState() {
     const node = find('script-version');
@@ -38,7 +48,7 @@ export function createControllerRevisionView({host,client,view,programSource,pre
     patchDeveloperField(view,find('script-load'),{disabled:busy||local});
     patchDeveloperField(view,find('script-list-refresh'),{disabled:busy});
     patchDeveloperField(view,find('script-list-load'),{disabled:busy||local||!list.value});
-    patchDeveloperField(view,find('script-delete'),{disabled:busy||local||!has(scriptId())});
+    patchDeveloperField(view,find('script-delete'),{disabled:busy||local||!has(list.value)});
     patchDeveloperField(view,find('script-save-version'),{hidden:page||local,disabled:busy||page||!getSource().trim()});
     patchDeveloperField(view,find('script-library-tools'),{hidden:local||page});
     if(local)patchDeveloperField(view,find('script-version'),{textContent:'本地项目模式 · 直接编辑内容保持不变；运行所选项目准备完成的代码'});
@@ -78,7 +88,7 @@ export function createControllerRevisionView({host,client,view,programSource,pre
     // initially select the current script ID when it exists in the catalog.
     for (const row of rows) heads.set(row.scriptId, row.revision);
     developerOptions(view,list,[{label:rows.length ? '选择已保存脚本' : '没有已保存脚本',value:''},
-      ...rows.map(row=>({label:`${row.scriptId} · r${row.revision} · ${row.contentHash}`,value:row.scriptId}))]);
+      ...rows.map(row=>({label:`${row.scriptId} · r${row.revision}`,value:row.scriptId}))]);
     if (!list.value && rows.some(row=>row.scriptId===selected)) patchDeveloperField(view,list,{value:selected});
     onUpdate();
   }
@@ -90,8 +100,14 @@ export function createControllerRevisionView({host,client,view,programSource,pre
     if(!silent)onStatus('scripts',rows.length?`已刷新 ${rows.length} 个已保存脚本`:'没有已保存脚本');
   }
   async function remove(){
-    const id=scriptId(),expectedRevision=head(id);
+    const id=list.value,expectedRevision=head(id),snapshot=editorSnapshot();
     if(!expectedRevision)throw {code:'E_REVISION',message:'请先加载最新持久版本'};
+    const answer=await view.requestConfirmation({title:'删除已保存脚本',
+      message:`删除 ${id} · r${expectedRevision}？所有已保存版本都将被删除，原脚本 ID 不能再次使用。`,
+      confirmLabel:'删除脚本',cancelLabel:'取消',tone:'danger'});
+    if(answer.action!=='confirm')return;
+    checkEditor(snapshot);
+    if(head(id)!==expectedRevision)throw {code:'E_REVISION',message:'已保存版本已变化，请重新选择后删除'};
     await host.controller.tombstoneControllerScript({scriptId:id,expectedRevision});
     if(disposed)return;
     heads.delete(id);
@@ -132,18 +148,35 @@ export function createControllerRevisionView({host,client,view,programSource,pre
     }finally{preparingKind=null;onUpdate();}
   }
   async function load(fromList=false){
-    const id=fromList?list.value:scriptId(),activeId=scriptId(),revisionText=find('script-revision').value.trim(),
-      source=getSource(),selectedHead=head(id),generation=getGeneration(),world=find('script-javascript-world').value,
-      mode=['javascript','react','vue'].find(value=>find('page-component-'+value).checked);
+    const snapshot=editorSnapshot(),id=fromList?snapshot.selected:snapshot.id,
+      revisionText=snapshot.revision.trim(),selectedHead=head(id);
+    const check=()=>{
+      checkEditor(snapshot);
+      if(head(id)!==selectedHead)throw {code:'E_REVISION',message:'已保存版本已变化，请重新加载'};
+    };
     if(fromList&&!id)throw {code:'E_REVISION',message:'请选择已保存脚本'};
     const row=await host.controller.getControllerScript({scriptId:id,
       ...(!fromList&&revisionText?{revision:Number(revisionText)}:{})});
     const recorded=await verifiedControllerESMAuthorSource(row.sourceUtf8)||await verifiedControllerClassicAuthorSource(row.sourceUtf8);
     if(disposed)return;
-    if(scriptId()!==activeId||(fromList&&list.value!==id)||find('script-revision').value.trim()!==revisionText||
-      getSource()!==source||generation!==getGeneration()||world!==find('script-javascript-world').value||
-      !find('page-component-'+mode).checked)
-      throw {code:'E_REVISION',message:'加载期间编辑内容已变化，请重新加载'};
+    check();
+    const authorSource=recorded?.authorSourceUtf8??row.sourceUtf8;
+    let savedAuthorSource=currentAuthorSource;
+    if(current&&savedAuthorSource===null){
+      savedAuthorSource=(readControllerESMAuthorSource(current.sourceUtf8)||
+        readControllerClassicAuthorSource(current.sourceUtf8))?.authorSourceUtf8??current.sourceUtf8;
+    }
+    // Matching bytes alone do not make a renamed or repurposed draft saved.
+    const cleanSavedDraft=current?.scriptId===snapshot.id&&current.revision===Number(snapshot.revision)&&
+      snapshot.world==='controller'&&snapshot.modes[0]&&!snapshot.modes[1]&&!snapshot.modes[2]&&
+      snapshot.source===savedAuthorSource;
+    if(snapshot.source&&snapshot.source!==authorSource&&!cleanSavedDraft){
+      const answer=await view.requestConfirmation({title:'替换编辑内容',
+        message:`加载 ${id} · r${row.revision} 将替换当前未保存的编辑内容。`,
+        confirmLabel:'加载并替换',cancelLabel:'继续编辑',tone:'neutral'});
+      if(answer.action!=='confirm')return;
+      check();
+    }
     if(fromList)patchDeveloperField(view,find('script-id'),{value:id});
     onLoad(recorded?.authorSourceUtf8??row.sourceUtf8);
     remember(row,{head:fromList||!revisionText||head(id)===row.revision,authorSourceUtf8:recorded?null:row.sourceUtf8});

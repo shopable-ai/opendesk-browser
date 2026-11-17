@@ -1,5 +1,5 @@
 import * as React from 'react';
-import {DevelopField,useDevelop} from './develop-controls.tsx';
+import {DevelopField,useDevelop,DevelopIcon} from './develop-controls.tsx';
 
 // JSX-only region: the trusted DevelopProvider remains in DeveloperPage.
 export function DevelopAdvanced({section='editor'}){
@@ -10,24 +10,8 @@ export function DevelopAdvanced({section='editor'}){
         <DevelopField as="div" id="developer-program-management" className="developer-management" data-section={section}>
           <div className="developer-management-body od-stack">
           <div hidden={section==='diagnostics'}>
-          <DevelopField as="section" id="script-version-identity" className="developer-management-section">
-            <label htmlFor="script-id" className="od-field-label">
-              {"脚本名称 / 标识"}
-            </label>
-            <DevelopField as="input" id="script-id" autoComplete="off" className="od-field" aria-describedby="developer-script-name-help"/>
-            <p id="developer-script-name-help" className="od-field-help">沿用脚本唯一标识：字母、数字、点、短横线或下划线；中文可保留在源码中。</p>
-            <div className="od-form-field" hidden={section==='save'&&!page}>
-              <label htmlFor="script-revision" className="od-field-label">
-                {section==='save'?'网页脚本版本号（可选；留空为 1）':'版本号（可选；留空加载最新）'}
-              </label>
-              <div className="developer-version-controls">
-              <DevelopField as="input" id="script-revision" type="number" min="1" placeholder="留空加载最新版本" className="od-field"/>
-              <span hidden={section==='save'}><DevelopField as="button" id="script-load" className="od-button od-button--secondary">
-                {"按 ID 加载版本"}
-              </DevelopField></span>
-              </div>
-            </div>
-          </DevelopField>
+          {section==='library'&&<p className="od-field-help">这里只列出手动保存的版本。加载后回到编辑器，不会运行或安装。</p>}
+          {section==='save'&&<DevelopScriptIdentity section={section} page={page}/>}
           <DevelopField as="section" id="page-preview-tools" className="developer-management-section">
             <div hidden={section!=='save'}>
             <DevelopField as="details" id="page-preview-technical-panel" className="od-disclosure od-disclosure--flat">
@@ -54,9 +38,10 @@ export function DevelopAdvanced({section='editor'}){
               {"已保存网页脚本"}
             </label>
             <DevelopField as="select" id="page-program-list" className="od-field"/>
-            <DevelopField as="pre" id="page-program-detail" className="od-result">
-              {"尚未读取。"}
-            </DevelopField>
+            <details className="od-disclosure od-disclosure--flat">
+              <summary>版本与安装详情</summary>
+              <DevelopField as="pre" id="page-program-detail" className="od-result">尚未读取。</DevelopField>
+            </details>
             <div className="row">
               <DevelopField as="button" id="page-program-load" type="button" className="od-button od-button--secondary">
                 {"加载源码"}
@@ -92,24 +77,22 @@ export function DevelopAdvanced({section='editor'}){
           </DevelopField>
           <DevelopField as="section" id="script-library-tools" className="developer-management-section">
             <div hidden={section==='save'}>
-            <h3 className="od-field-label">Controller 版本与任务</h3>
             <label htmlFor="script-list" className="od-field-label">
-              {"已保存脚本"}
+              自动化脚本{snapshot.fields['script-list'].options.some(row=>row.value)&&`（${snapshot.fields['script-list'].options.filter(row=>row.value).length}）`}
             </label>
             <div className="developer-saved-controls">
               <DevelopField as="select" id="script-list" className="od-field"/>
-              <DevelopField as="button" id="script-list-refresh" className="od-button od-button--secondary">
-                {"刷新"}
-              </DevelopField>
               <DevelopField as="button" id="script-list-load" className="od-button od-button--secondary">
-                {"加载最新"}
+                {"加载最新版本"}
               </DevelopField>
+              <DevelopField as="button" id="script-list-refresh" className="od-icon-button od-icon-button--quiet" title="刷新已保存脚本" aria-label="刷新已保存脚本"><DevelopIcon name="refresh"/></DevelopField>
             </div>
+            <p className="od-field-help">编辑器中的版本</p>
             <DevelopField as="p" id="script-version" role="status">
               {"尚未保存"}
             </DevelopField>
             <div hidden={section!=='library'}>
-              <DevelopField as="button" id="script-delete" className="od-button od-button--danger">删除脚本</DevelopField>
+              <DevelopField as="button" id="script-delete" className="od-button od-button--danger">删除所选脚本</DevelopField>
             </div>
             </div>
             <div hidden={section!=='save'}>
@@ -175,6 +158,10 @@ export function DevelopAdvanced({section='editor'}){
             </DevelopField>
             </div>
           </DevelopField>
+          {section!=='save'&&<details className="od-disclosure od-disclosure--flat">
+            <summary>按标识查找其他版本</summary>
+            <DevelopScriptIdentity section={section} page={page}/>
+          </details>}
           </div>
           <div hidden={section!=='diagnostics'}>
           <DevelopField as="details" id="script-advanced" className="od-disclosure od-disclosure--flat">
@@ -221,5 +208,28 @@ export function DevelopAdvanced({section='editor'}){
           </div>
         </DevelopField>
         </div>
+  );
+}
+
+function DevelopScriptIdentity({section,page}){
+  return (
+          <DevelopField as="section" id="script-version-identity" className="developer-management-section">
+            <label htmlFor="script-id" className="od-field-label">
+              {"脚本名称 / 标识"}
+            </label>
+            <DevelopField as="input" id="script-id" autoComplete="off" className="od-field" aria-describedby="developer-script-name-help"/>
+            <p id="developer-script-name-help" className="od-field-help">沿用脚本唯一标识：字母、数字、点、短横线或下划线；中文可保留在源码中。</p>
+            <div className="od-form-field" hidden={section==='save'&&!page}>
+              <label htmlFor="script-revision" className="od-field-label">
+                {section==='save'?'网页脚本版本号（可选；留空为 1）':'版本号（可选；留空加载最新）'}
+              </label>
+              <div className="developer-version-controls">
+              <DevelopField as="input" id="script-revision" type="number" min="1" placeholder="留空加载最新版本" className="od-field"/>
+              <span hidden={section==='save'}><DevelopField as="button" id="script-load" className="od-button od-button--secondary">
+                {"按 ID 加载版本"}
+              </DevelopField></span>
+              </div>
+            </div>
+          </DevelopField>
   );
 }

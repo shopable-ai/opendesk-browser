@@ -1,4 +1,5 @@
 import {DEVELOPER_FIELDS} from './develop-fields.js';
+import {normalizeToolUiConfirmOptions,TOOL_UI_CONFIRM_TIMEOUT_MS} from '../sidebar-tools/ui-confirm.js';
 
 // UI state only. There are no nodes, document facade, DOM queries or element
 // events. The existing business controllers patch these explicit form fields;
@@ -11,7 +12,18 @@ export function createDeveloperView(){
   }));
   const actions={},subscribers=new Set();
   let snapshot={fields:Object.fromEntries(Object.entries(fields).map(([key,state])=>[key,{...state}])),
-    dependencies:{classic:null,network:null},section:'editor'},disposed=false,queued=false;
+    dependencies:{classic:null,network:null},section:'editor',confirmation:null,
+    presentationActive:true,navigationGeneration:0},disposed=false,queued=false;
+  let pendingConfirmation=null,confirmationSequence=0;
+  function settleConfirmation(identity,action,reason='user'){
+    if(!pendingConfirmation||identity!==pendingConfirmation.identity)return;
+    const pending=pendingConfirmation;pendingConfirmation=null;
+    clearTimeout(pending.timer);
+    snapshot={...snapshot,confirmation:null};
+    pending.resolve({action:action==='confirm'?'confirm':'cancel',reason});
+    if(!disposed)notify(true);
+  }
+  const cancelConfirmation=reason=>settleConfirmation(pendingConfirmation?.identity,'cancel',reason);
   function notify(immediate=false){
     // Controlled inputs must publish before React restores their value at the
     // end of the native input event. Result/status projections stay batched.
@@ -37,12 +49,34 @@ export function createDeveloperView(){
     snapshot={...snapshot,dependencies:{...snapshot.dependencies,[section]:value}};notify();
   }
   return Object.freeze({fields,actions,patch,patchDependencies,
+    // Business owners retain target/revision checks; this is only a choice in
+    // the existing trusted React tree, never execution or browser authority.
+    requestConfirmation(options){
+      if(disposed)return Promise.resolve({action:'cancel',reason:'disposed'});
+      if(!snapshot.presentationActive)return Promise.resolve({action:'cancel',reason:'hidden'});
+      if(pendingConfirmation)return Promise.reject(Object.assign(new Error('已有待处理确认'),{code:'E_UI_CONFIRM_BUSY'}));
+      const checked=normalizeToolUiConfirmOptions(options);
+      if(!checked)return Promise.reject(Object.assign(new Error('确认内容无效'),{code:'E_UI_CONFIRM_INPUT'}));
+      const identity=++confirmationSequence;
+      return new Promise(resolve=>{
+        pendingConfirmation={identity,resolve,timer:setTimeout(()=>settleConfirmation(identity,'cancel','timeout'),TOOL_UI_CONFIRM_TIMEOUT_MS)};
+        snapshot={...snapshot,confirmation:{...checked,identity}};notify(true);
+      });
+    },
+    settleConfirmation,cancelConfirmation,
+    setPresentationActive(active,reason='hidden'){
+      if(disposed||snapshot.presentationActive===active)return;
+      snapshot={...snapshot,presentationActive:active,navigationGeneration:snapshot.navigationGeneration+1};
+      if(!active)cancelConfirmation(reason);
+      notify(true);
+    },
     // Local presentation only; changing a section never dispatches a controller action.
     navigate(section,{returnFocusId=''}={}){
-      if(disposed||!['editor','save','library','history','install','diagnostics','run-detail'].includes(section))return;
+      if(disposed||!['editor','save','library','history','install','diagnostics'].includes(section))return;
+      cancelConfirmation('navigation');
       if(section==='history')patch('script-history-panel',{open:true});
-      if(section==='run-detail')patch('developer-run-technical',{open:true});
-      snapshot={...snapshot,section,returnFocusId:section==='editor'?snapshot.returnFocusId:returnFocusId};
+      snapshot={...snapshot,section,navigationGeneration:snapshot.navigationGeneration+1,
+        returnFocusId:section==='editor'?returnFocusId||snapshot.returnFocusId:returnFocusId};
       notify(true);
     },
     getSnapshot:()=>snapshot,
@@ -54,7 +88,7 @@ export function createDeveloperView(){
       for(const fn of subscribers)fn();
     },
     resourceSnapshot:()=>({subscriptions:subscribers.size,actions:Object.keys(actions).length}),
-    dispose(){disposed=true;subscribers.clear();for(const key of Object.keys(actions))delete actions[key];}
+    dispose(){disposed=true;cancelConfirmation('disposed');subscribers.clear();for(const key of Object.keys(actions))delete actions[key];}
   });
 }
 

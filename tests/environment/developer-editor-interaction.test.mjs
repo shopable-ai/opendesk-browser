@@ -276,7 +276,7 @@ test('developer native world radios and section navigation preserve drafts and d
   const more=get('develop-dock').querySelector('[aria-label="更多操作"]');
   await navigate(more);
   assert.equal(more.getAttribute('aria-expanded'),'true');
-  await navigate(button(get('developer-more-actions'),'过去运行'));
+  await navigate(button(get('developer-more-actions'),'运行记录与下载'));
   assert.equal(view.getSnapshot().section,'history');
   assert.equal(get('script-history-panel'),history,'history retains its original field owner');
   assert.equal(history.parentElement.hidden,false);
@@ -295,18 +295,39 @@ test('developer native world radios and section navigation preserve drafts and d
   assert.equal(visible(get('script-history-run')),false);
   preservedAll();
 
-  await React.act(async()=>view.patch('script-copy-result',{disabled:false}));
-  await navigate(get('developer-result-detail'));
-  assert.equal(view.getSnapshot().section,'run-detail');
-  assert.equal(visible(get('script-task-id')),true,'run details open the original identity disclosure');
+  await React.act(async()=>{
+    view.patch('script-copy-result',{disabled:false});
+    view.patch('script-task-status',{hidden:false,textContent:'已完成 · 资源已释放'});
+  });
+  const copy=get('script-copy-result');
+  assert.ok(result.querySelector('.developer-result-head').contains(copy),'copy belongs to the result header');
+  assert.equal(copy.getAttribute('aria-label'),'复制运行结果');
+  assert.equal(copy.textContent.trim(),'');
+  assert.ok(copy.querySelector('svg'));
+  for(const id of ['developer-result-download','developer-result-detail','developer-result-history'])
+    assert.equal(get(id),null,'redundant result action removed: '+id);
+  const technical=get('developer-run-technical');
+  assert.equal(technical.open,false);
+  assert.equal(visible(get('script-task-id')),false,'technical identity stays collapsed inline');
+  await React.act(async()=>{technical.open=true;});
+  assert.equal(visible(get('script-task-id')),true);
+  assert.equal(visible(source),true,'technical details keep the source in view');
   assert.equal(visible(get('script-running-target')),true);
-  assert.equal(visible(source),false);
+  assert.ok(technical.contains(get('script-task-status')),'resource status belongs in technical details');
+  await React.act(async()=>{technical.open=false;});
+  assert.equal(visible(get('script-task-status')),false);
+  await React.act(async()=>{
+    view.patch('script-status',{textContent:'运行结果未知，请先核对',data:{state:'unknown'}});
+    view.patch('script-task-status',{data:{state:'paused_unknown'}});
+  });
+  await navigate(get('developer-unknown-history'));
+  assert.equal(view.getSnapshot().section,'history');
   await navigate(back());
-  assert.equal(document.activeElement,get('developer-result-detail'));
-  await navigate(get('developer-result-download'));
-  assert.equal(view.getSnapshot().section,'history','download options navigate without pretending to download');
-  await navigate(back());
+  assert.equal(document.activeElement,get('developer-unknown-history'));
+  await React.act(async()=>view.patch('script-status',{textContent:'',data:{state:'idle'}}));
 
+  await React.act(async()=>view.patch('script-task-status',{data:{state:'completed'}}));
+  assert.match(get('developer-draft-help').textContent,/未自动保存/);
   const beforeKeys=calls.length;
   // Native keyboard events exercise React handlers. JSDOM does not synthesize
   // browser default typing or Tab focus traversal from dispatchEvent.
@@ -356,7 +377,7 @@ test('developer native world radios and section navigation preserve drafts and d
   assert.equal(visible(source),true);
   preservedAll();
   await navigate(more);
-  await navigate(button(get('developer-more-actions'),'过去运行'));
+  await navigate(button(get('developer-more-actions'),'运行记录与下载'));
   await React.act(async()=>view.patch('local-project-mode',{checked:true}));
   const localSave=get('script-save');
   assert.equal(visible(get('developer-save-entry')),false);
@@ -372,6 +393,14 @@ test('developer native world radios and section navigation preserve drafts and d
   assert.deepEqual(calls.slice(beforeStop).map(call=>call.id),['script-stop','script-run','script-save'],
     'only the three explicit Dock actions invoke owners, once each');
   preservedAll();
+
+  await React.act(async()=>root.render(React.createElement(DeveloperPage,{view,hidden:true})));
+  assert.deepEqual(await view.requestConfirmation({title:'迟到的加载',message:'不可显示'}),{action:'cancel',reason:'hidden'});
+  assert.equal(view.getSnapshot().confirmation,null,'a late async read cannot queue an invisible dialog');
+  await React.act(async()=>root.render(React.createElement(React.Fragment,null,
+    React.createElement(DeveloperPage,{view}),React.createElement(DeveloperDock,{view}))));
+  assert.equal(view.getSnapshot().confirmation,null,'returning never reveals a stale decision');
+  assert.equal(document.querySelector('[role="alertdialog"]'),null);
 
   await React.act(async()=>view.patch('script-source',{readOnly:true}));
   assert.equal(source.readOnly,true);
@@ -392,4 +421,37 @@ test('developer native world radios and section navigation preserve drafts and d
   assert.equal(Boolean(feedback.closest('details')),false,'preview feedback stays outside optional association settings');
   assert.ok(feedback.parentElement.contains(get('local-project-preview')),
     'feedback remains beside the action that produced it');
+
+  // Deadline choices stay local UI state and never imply Run or permission.
+  const deadline=get('script-draft-deadline-ms'),note=get('script-draft-deadline-note');
+  assert.equal(deadline.value,'30000');
+  assert.equal(note.hidden,true,'ordinary debugging keeps long-run guidance out of the form');
+  const beforeDeadline=calls.length;
+  for(const value of ['300000','600000','1200000','3600000','43200000','86400000','30000']){
+    const event=new window.Event('change',{bubbles:true});
+    await React.act(async()=>{deadline.value=value;deadline.dispatchEvent(event);});
+    assert.equal(deadline.value,value);
+    assert.equal(view.getSnapshot().fields['script-draft-deadline-ms'].value,value);
+    assert.equal(note.hidden,Number(value)<3600000);
+    for(const id of deadline.getAttribute('aria-describedby').split(' ')){
+      assert.ok(get(id));assert.equal(get(id).hidden,false,'every description is available for the current selection');
+    }
+    assert.equal(calls.at(-1).id,'script-draft-deadline-ms');
+    assert.equal(calls.at(-1).event,event);
+  }
+  assert.deepEqual(calls.slice(beforeDeadline).map(call=>call.id),Array(7).fill('script-draft-deadline-ms'));
+  const beforeDeadlineNavigation=calls.length;
+  await React.act(async()=>{
+    view.patch('local-project-mode',{checked:false});
+    view.patch('script-draft-deadline-ms',{value:'86400000'});
+  });
+  await navigate(get('developer-save-entry'));await navigate(back());
+  assert.equal(get('script-draft-deadline-ms').value,'86400000','management navigation preserves the chosen next-run duration');
+  assert.equal(calls.length,beforeDeadlineNavigation,'navigation does not execute the duration choice');
+  await React.act(async()=>view.patch('script-draft-deadline-ms',{disabled:true}));
+  assert.equal(get('script-draft-deadline-ms').disabled,true,'the owner can lock duration during an active run');
+  const fresh=createDeveloperView();
+  assert.equal(fresh.fields['script-draft-deadline-ms'].value,'30000','long-run choices do not become a global default');
+  fresh.dispose();
+  preservedAll();
 });

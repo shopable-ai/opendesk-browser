@@ -1,4 +1,6 @@
 import * as React from 'react';
+import {Confirmation} from '../components/confirmation.tsx';
+import './workflow.css';
 import {SharedProviderSettingsSheet as WorkflowSettingsSheet} from '../components/provider-settings.tsx';
 export {SharedProviderSettingsSheet as WorkflowSettingsSheet} from '../components/provider-settings.tsx';
 import {SharedConversationFrame,ConversationTranscript} from '../components/conversation.tsx';
@@ -164,8 +166,22 @@ export function WorkflowHistory({model={open:false,rows:[],canResume:false},acti
     if(event.nativeEvent?.isTrusted) actions?.[action]?.(key,event.nativeEvent);
   };
   const rows=model.rows||[];
-  return <section id="workflow-history-panel" className="workflow-history-panel"
+  const panel=React.useRef(null);
+  React.useLayoutEffect(()=>{
+    if(!model.open)return;
+    const node=panel.current,doc=node?.ownerDocument;
+    if(!node||node.closest('[hidden]'))return;
+    node.focus({preventScroll:true});
+    return ()=>{
+      if(node?.contains(doc?.activeElement))
+        doc?.getElementById('workflow-history-toggle')?.focus({preventScroll:true});
+    };
+  },[model.open]);
+  return <section id="workflow-history-panel" ref={panel} className="workflow-history-panel"
     role="region" aria-label="历史" tabIndex={-1} hidden={!model.open}>
+    <div className="workflow-history-navigation">
+      <Button onClick={event=>{if(event.nativeEvent?.isTrusted)actions.onHistory?.(event.nativeEvent);}}>返回</Button>
+    </div>
     <div className="workflow-history-section">
       <h3>历史对话</h3>
       {model.canResume
@@ -216,15 +232,15 @@ function Glyph({kind='edit'}) {
       'M12 20h9M16.5 3.5a2.1 2.1 0 0 1 3 3L9 17l-4 1 1-4 10.5-10.5Z'}/>
   </svg>;
 }
-function StepField({step,field,label,actions,options,maxLength=512,type='text',placeholder}) {
+function StepField({step,field,label,actions,options,maxLength=512,type='text',placeholder,disabled=false}) {
   const id=`workflow-step-${step.stepId}-${field}`;
   return <label className="workflow-field" htmlFor={id}><span>{label}</span>
-    {options?<select id={id} className="od-field" data-workflow-focus={field}
+    {options?<select id={id} className="od-field" data-workflow-focus={field} disabled={disabled}
       value={step[field]||options[0]?.value||''}
       onChange={event=>actions.editStep?.(step.stepId,field,event.currentTarget.value)}>
       {options.map(item=><option key={item.value} value={item.value}>{item.label}</option>)}
     </select>:<input id={id} className="od-field" type={type} maxLength={maxLength}
-      data-workflow-focus={field} placeholder={placeholder}
+      data-workflow-focus={field} placeholder={placeholder} disabled={disabled}
       value={step[field]??(field==='timeout'?10000:'')}
       onChange={event=>actions.editStep?.(step.stepId,field,event.currentTarget.value)}/>}
   </label>;
@@ -233,31 +249,40 @@ function WorkflowStep({step,index,count,model,actions}) {
   const [open,setOpen]=React.useState(model.expandStepId===step.stepId);
   React.useEffect(()=>{if(model.expandStepId===step.stepId)setOpen(true);},[model.expandStepId,step.stepId]);
   const label=model.operations?.find(item=>item.value===step.op)?.label||step.op;
-  const suffix=step.op==='fill'&&step.param?' · 参数 '+step.param:
-    step.locatorKind==='role'&&step.roleName?' · '+step.roleName:step.op==='navigate'?' · 同站页面':'';
+  const target=(step.locatorKind==='role'&&step.roleName)||step.selector;
+  const namedTarget=target?`「${target}」`:'目标元素';
+  const value=step.param?`参数「${step.param}」`:`「${step.text??''}」`;
+  const summary=step.op==='fill'?`将${value}填入${namedTarget}`:
+    step.op==='click'?`点击${namedTarget}`:
+    step.op==='wait'?`等待${namedTarget}出现`:
+    step.op==='extract'?`读取${namedTarget}的内容`:
+    step.op==='assert'?`检查${namedTarget}包含「${step.text??''}」`:
+    step.op==='navigate'?`打开同站页面${step.url?`「${step.url}」`:''}`:
+    step.op==='confirm'?`确认${step.text?`「${step.text}」`:'后续操作'}`:
+    `${label}${target?`：${target}`:''}`;
   return <details className="workflow-step od-disclosure" data-step-id={step.stepId} open={open}
     onToggle={event=>setOpen(event.currentTarget.open)}>
-    <summary id={`workflow-step-${step.stepId}-summary`}>{index+1}. {label}{suffix}</summary>
+    <summary id={`workflow-step-${step.stepId}-summary`}><span>{index+1}. {summary}</span></summary>
     <div className="workflow-step-body">
-      <StepField step={step} field="op" label="动作" actions={actions} options={model.operations}/>
+      <StepField step={step} field="op" label="动作" actions={actions} disabled={Boolean(model.busy)} options={model.operations}/>
       {['fill','click','wait','extract','assert'].includes(step.op)&&<>
-        <StepField step={step} field="locatorKind" label="定位方法" actions={actions} options={model.locators}/>
-        <StepField step={step} field="selector" label="目标元素" actions={actions}/>
-        {step.locatorKind==='role'&&<StepField step={step} field="roleName" label="无障碍名称（可选）" actions={actions} maxLength={200}/>}
+        <StepField step={step} field="locatorKind" label="定位方法" actions={actions} disabled={Boolean(model.busy)} options={model.locators}/>
+        <StepField step={step} field="selector" label="目标元素" actions={actions} disabled={Boolean(model.busy)}/>
+        {step.locatorKind==='role'&&<StepField step={step} field="roleName" label="无障碍名称（可选）" actions={actions} disabled={Boolean(model.busy)} maxLength={200}/>}
       </>}
-      {step.op==='navigate'&&<StepField step={step} field="url" label="同站目标 URL" actions={actions} maxLength={2000} placeholder={model.siteOrigin+'/'}/>}
+      {step.op==='navigate'&&<StepField step={step} field="url" label="同站目标 URL" actions={actions} disabled={Boolean(model.busy)} maxLength={2000} placeholder={model.siteOrigin+'/'}/>}
       {step.op==='fill'&&<>
-        <StepField step={step} field="param" label="参数名（有值时使用参数）" actions={actions} maxLength={40}/>
-        <StepField step={step} field="text" label="固定填写值（参数名留空时生效）" actions={actions}/>
+        <StepField step={step} field="param" label="参数名（有值时使用参数）" actions={actions} disabled={Boolean(model.busy)} maxLength={40}/>
+        <StepField step={step} field="text" label="固定填写值（参数名留空时生效）" actions={actions} disabled={Boolean(model.busy)}/>
         {!step.param&&typeof step.text==='string'&&step.text.trim()&&
-          <Button onClick={()=>actions.parameterizeStep?.(step.stepId)}>将填写值设为参数</Button>}
+          <Button disabled={Boolean(model.busy)} onClick={()=>actions.parameterizeStep?.(step.stepId)}>将填写值设为参数</Button>}
       </>}
-      {['assert','confirm'].includes(step.op)&&<StepField step={step} field="text" label={step.op==='assert'?'预期包含文字':'确认事项'} actions={actions}/>}
-      {step.op==='wait'&&<StepField step={step} field="timeout" label="最长等待毫秒（100–30000）" type="number" maxLength={5} actions={actions}/>}
+      {['assert','confirm'].includes(step.op)&&<StepField step={step} field="text" label={step.op==='assert'?'预期包含文字':'确认事项'} actions={actions} disabled={Boolean(model.busy)}/>}
+      {step.op==='wait'&&<StepField step={step} field="timeout" label="最长等待毫秒（100–30000）" type="number" maxLength={5} actions={actions} disabled={Boolean(model.busy)}/>}
       <div className="workflow-step-actions">
-        <Button data-workflow-focus="moveUp" aria-label={`上移第${index+1}步`} disabled={index===0} onClick={()=>actions.moveStep?.(step.stepId,-1)}>↑</Button>
-        <Button data-workflow-focus="moveDown" aria-label={`下移第${index+1}步`} disabled={index===count-1} onClick={()=>actions.moveStep?.(step.stepId,1)}>↓</Button>
-        <Button className="od-button--danger" data-workflow-focus="remove" onClick={()=>actions.removeStep?.(step.stepId)}>删除</Button>
+        <Button data-workflow-focus="moveUp" aria-label={`上移第${index+1}步`} disabled={Boolean(model.busy)||index===0} onClick={()=>actions.moveStep?.(step.stepId,-1)}>↑</Button>
+        <Button data-workflow-focus="moveDown" aria-label={`下移第${index+1}步`} disabled={Boolean(model.busy)||index===count-1} onClick={()=>actions.moveStep?.(step.stepId,1)}>↓</Button>
+        <Button className="od-button--danger" data-workflow-focus="remove" disabled={Boolean(model.busy)} onClick={()=>actions.removeStep?.(step.stepId)}>删除</Button>
       </div>
     </div>
   </details>;
@@ -277,7 +302,7 @@ export function WorkflowPage({controller=null,model:providedModel=EMPTY_MODEL,ac
    providerSettings?.settingsSnapshot??readEmptyProviderSettings);
   const [legacyKeyDraft,setLegacyKeyDraft]=React.useState('');
   const page=React.useRef(null),lastFocus=React.useRef(null),scroller=React.useRef(null);
-  const stepFocus=React.useRef(null);
+  const stepFocus=React.useRef(null),paramFocus=React.useRef(null);
   const nearBottom=React.useRef(true);
    const [transcriptTarget,setTranscriptTarget]=React.useState(null);
    const [composerTarget,setComposerTarget]=React.useState(null);
@@ -291,7 +316,13 @@ export function WorkflowPage({controller=null,model:providedModel=EMPTY_MODEL,ac
     if(!active)return;
     const node=doc?.getElementById(model.focusRequest?.id);
     if(node&&page.current?.contains(node)){
+      // Explicit controller focus may target a field inside a closed disclosure.
+      // Reveal that field before focusing; hidden panels remain controller-owned.
+      if(node.closest('[hidden]'))return;
+      for(let parent=node.parentElement;parent&&parent!==page.current;parent=parent.parentElement)
+        if(parent.tagName==='DETAILS')parent.open=true;
       node.focus?.({preventScroll:true});
+      node.scrollIntoView?.({block:'nearest'});
     }
   },[model.focusRequest?.version,active,doc]);
   React.useLayoutEffect(()=>{
@@ -307,6 +338,16 @@ export function WorkflowPage({controller=null,model:providedModel=EMPTY_MODEL,ac
       steps[Math.min(previous.index,steps.length-1)];
     (step?.querySelector('summary')||doc?.getElementById('workflow-ai-request'))?.focus({preventScroll:true});
   },[model.steps,active,doc]);
+  React.useLayoutEffect(()=>{
+    const previous=paramFocus.current,current=doc?.activeElement;
+    if(!active||!previous||(current!==previous.node&&current!==doc?.body))return;
+    const index=(model.params||[]).findIndex(row=>row.name===previous.name);
+    if(index>=0)previous.index=index;
+    if(previous.node.isConnected)return;
+    const fields=[...page.current.querySelectorAll('[data-workflow-param]')];
+    const next=fields[Math.min(previous.index,fields.length-1)]||doc?.getElementById('workflow-ai-request');
+    next?.focus({preventScroll:true});next?.scrollIntoView?.({block:'nearest'});
+  },[model.params,active,doc]);
   React.useLayoutEffect(()=>{
     if(active&&lastFocus.current?.isConnected)lastFocus.current.focus?.({preventScroll:true});
     return ()=>{if(active&&page.current?.contains(doc?.activeElement))lastFocus.current=doc.activeElement;};
@@ -348,6 +389,9 @@ export function WorkflowPage({controller=null,model:providedModel=EMPTY_MODEL,ac
       const step=event.target.closest('details.workflow-step');
       stepFocus.current=step?{node:event.target,stepId:step.dataset.stepId,
         index:(model.steps||[]).findIndex(row=>row.stepId===step.dataset.stepId)}:null;
+      const param=event.target.closest('.workflow-param-row')?.querySelector('[data-workflow-param]');
+      paramFocus.current=param?{node:event.target,name:param.dataset.workflowParam,
+        index:(model.params||[]).findIndex(row=>row.name===param.dataset.workflowParam)}:null;
     }}>
     <section id="workflow-editor" className="workflow-editor" aria-label="AI 语义工作流"
       data-view-state={c('workflow-editor').dataset?.viewState||'empty'} data-history-open={Boolean(model.history?.open)}>
@@ -363,6 +407,16 @@ export function WorkflowPage({controller=null,model:providedModel=EMPTY_MODEL,ac
           <div id="workflow-ai-transcript" ref={setTranscriptTarget}
             className="workflow-chat-transcript" role="log"
             aria-label="浏览器任务对话与执行记录" aria-live="polite"/>
+          {!model.messages?.length&&model.phase==='idle'&&!model.history?.open&&
+            <div className="workflow-welcome-suggestions" role="group" aria-label="选择任务示例，只填入草稿">
+              <p>选择一个示例开始，也可以直接描述任务。</p>
+              <div className="workflow-suggestion-actions">
+                {[['fill','填写网页表单'],['read','读取网页内容'],['check','检查页面内容']].map(([id,label])=>
+                  <Button key={id} disabled={Boolean(model.busy)} onClick={event=>{
+                    if(event.nativeEvent?.isTrusted)actions.chooseExample?.(id,event.nativeEvent);
+                  }}>{label}</Button>)}
+              </div>
+            </div>}
           {text('workflow-planning-indicator',{className:'workflow-planning-indicator',role:'status'})}
           <ol id="workflow-ai-progress" className="workflow-ai-progress" aria-label="Codex 实时规划进度" hidden={c('workflow-ai-progress').hidden}>
             {model.progress?.map((item,index)=><li key={index} data-state={item.state}>{item.text}</li>)}
@@ -398,13 +452,29 @@ export function WorkflowPage({controller=null,model:providedModel=EMPTY_MODEL,ac
             <details id="workflow-technical-details" className="workflow-advanced od-disclosure od-disclosure--flat"><summary>诊断详情（模型来源与执行编号）</summary><pre id="workflow-technical" aria-label="运行证据身份">{c('workflow-technical').text}</pre></details>
           </details>
         </section>
-        <section id="workflow-plan-panel" className="workflow-card od-surface--padded workflow-plan od-surface" aria-label="可编辑语义步骤" hidden={c('workflow-plan-panel').hidden!==false}>
+        {model.feedback&&<section id="workflow-feedback" className="workflow-feedback od-surface"
+          data-tone={model.feedback.tone} tabIndex={-1}
+          aria-labelledby="workflow-feedback-title" aria-describedby="workflow-feedback-detail">
+          <div role={model.feedback.tone==='error'?'alert':'status'} aria-atomic="true">
+            <h3 id="workflow-feedback-title">{model.feedback.title}</h3>
+            <p id="workflow-feedback-detail">{model.feedback.detail}</p>
+          </div>
+          {Boolean(model.feedback.actions?.length)&&<div className="workflow-feedback-actions">
+            {model.feedback.actions.map(item=><Button key={item.id}
+              variant={item.primary?'primary':'secondary'} disabled={Boolean(item.disabled)}
+              onClick={event=>{
+                if(event.nativeEvent?.isTrusted)actions.onFeedbackAction?.(item.id,event.nativeEvent);
+              }}>{item.label}</Button>)}
+          </div>}
+        </section>}
+        <section id="workflow-plan-panel" tabIndex={-1} className="workflow-card od-surface--padded workflow-plan od-surface" aria-label="可编辑语义步骤" hidden={c('workflow-plan-panel').hidden!==false}>
           <div className="workflow-section-header od-toolbar"><h3>执行步骤</h3><div className="workflow-step-tools">
             <span id="workflow-step-count">{model.steps?.length||0} 步</span>{action('workflow-edit-details','编辑工作流详情及高级设置',{icon:true})}
           </div></div>
+          {model.planLabel&&<p className="workflow-plan-label">{model.planLabel}</p>}
           {Boolean(model.bundleSegments?.length)&&<div className="workflow-bundle-summary">
-            <p>完整工作流共 {model.bundleSegments.length} 段。下方编辑器显示最后一段；修改参数将用于所有绑定分段。</p>
-            <ol className="workflow-bundle-segments" aria-label="完整工作流已核验步骤">
+            <p>{model.bundleLabel||`完整工作流共 ${model.bundleSegments.length} 段。下方编辑器显示最后一段；修改参数将用于所有绑定分段。`}</p>
+            <ol className="workflow-bundle-segments" aria-label={model.bundleLabel?'已记录分段，结果归属原修订':'完整工作流已核验步骤'}>
               {model.bundleSegments.map(part=><li key={part.index}>
                 <strong>第 {part.index} 段 · {part.origin}</strong>
                 <ol>{part.steps.map((step,index)=><li key={index}>{step.op}{step.target?' · '+step.target:''}</li>)}</ol>
@@ -414,10 +484,10 @@ export function WorkflowPage({controller=null,model:providedModel=EMPTY_MODEL,ac
           <div id="workflow-steps" className="workflow-steps" aria-label="工作流步骤列表">
             {model.steps?.map((step,index)=><WorkflowStep key={step.stepId} step={step} index={index} count={model.steps.length} model={model} actions={actions}/>)}
           </div>
-          {action('workflow-add-step','＋ 添加步骤')}
+          {action('workflow-add-step','＋ 添加步骤',{disabled:Boolean(model.busy)||Boolean(c('workflow-add-step').disabled)})}
           {text('workflow-target-warning',{className:'workflow-target-warning od-alert od-alert--warning',role:'status'})}
         </section>
-        <section id="workflow-params-panel" className="workflow-card od-surface--padded workflow-run-settings od-surface" aria-label="工作流运行参数" hidden={c('workflow-params-panel').hidden!==false}>
+        <section id="workflow-params-panel" tabIndex={-1} className="workflow-card od-surface--padded workflow-run-settings od-surface" aria-label="工作流运行参数" hidden={c('workflow-params-panel').hidden!==false}>
           <div className="workflow-section-header od-toolbar"><h3>运行参数</h3></div>
           <div id="workflow-params">{model.params?.map(({name,rule,required,value})=><div key={name} className="workflow-param-row">
             <label className="workflow-field"><span>{rule.title}{required?' *':''}</span>
@@ -432,7 +502,7 @@ export function WorkflowPage({controller=null,model:providedModel=EMPTY_MODEL,ac
             </label><Button className="od-button--danger" disabled={Boolean(model.busy)} aria-label={'移除参数 '+name} onClick={()=>actions.removeParam?.(name)}>移除</Button>
           </div>)}</div>
         </section>
-        <section id="workflow-manage-panel" className="workflow-management od-surface" aria-label="工作流编辑与高级管理" hidden={c('workflow-manage-panel').hidden!==false}>
+        <section id="workflow-manage-panel" tabIndex={-1} className="workflow-management od-surface" aria-label="工作流编辑与高级管理" hidden={c('workflow-manage-panel').hidden!==false}>
           <div className="workflow-section-header od-toolbar"><h3>工作流编辑</h3>{action('workflow-manage-close','收起版本与设置',{icon:true,kind:'close'})}</div>
           <div className="workflow-card od-surface--padded workflow-library od-surface">
             {input('workflow-saved-list','选择版本',{select:true,options:[{value:'',label:'选择已保存版本…'},...(model.savedOptions||[])]})}
@@ -441,15 +511,15 @@ export function WorkflowPage({controller=null,model:providedModel=EMPTY_MODEL,ac
           </div>
           <details className="workflow-manage-details od-disclosure"><summary>名称与网站</summary>
             {input('workflow-title','名称',{maxLength:100,autoComplete:'off',placeholder:'例如：填写表单并读取结果'})}
-            {input('workflow-description','用途（可选）',{textarea:true,rows:2,maxLength:800})}
+            {input('workflow-description','用途（可选）',{textarea:true,rows:2,maxLength:800,disabled:Boolean(c('workflow-description').disabled),placeholder:c('workflow-description').title})}
             {input('workflow-site','执行网站（精确 origin）',{readOnly:true,'aria-describedby':'workflow-site-note'})}
             {text('workflow-site-note',{className:'hint'})}
           </details>
           <details className="workflow-manage-details od-disclosure"><summary>参数定义</summary>
-            <div className="workflow-param-create"><input id="workflow-new-param-name" className="od-field" aria-label="新参数英文名称" maxLength={40} value={c('workflow-new-param-name').value||''}
-              onChange={event=>field('workflow-new-param-name',event.currentTarget.value,event)} placeholder="参数名称，例如 keyword"/>{action('workflow-add-param','＋ 添加文本参数')}</div>
+            <div className="workflow-param-create"><input id="workflow-new-param-name" className="od-field" aria-label="新参数英文名称" maxLength={40} value={c('workflow-new-param-name').value||''} disabled={Boolean(model.busy)}
+              onChange={event=>field('workflow-new-param-name',event.currentTarget.value,event)} placeholder="参数名称，例如 keyword"/>{action('workflow-add-param','＋ 添加文本参数',{disabled:Boolean(model.busy)||Boolean(c('workflow-add-param').disabled)})}</div>
             <details className="workflow-advanced od-disclosure od-disclosure--flat"><summary>高级参数 Schema</summary>
-              {input('workflow-schema','参数 Schema（string / number / integer / boolean）',{textarea:true,rows:6,spellCheck:false,eventName:'change'})}
+              {input('workflow-schema','参数 Schema（string / number / integer / boolean）',{textarea:true,rows:6,spellCheck:false,eventName:'change',disabled:Boolean(c('workflow-schema').disabled),placeholder:c('workflow-schema').title})}
             </details>
           </details>
           <details className="workflow-manage-details od-disclosure"><summary>代码与 Task 候选</summary>
@@ -474,8 +544,8 @@ export function WorkflowPage({controller=null,model:providedModel=EMPTY_MODEL,ac
          </div>
          <div className="workflow-composer-frame" ref={setComposerTarget}/>
        </div>
-       <div id="workflow-page-actions" className="workflow-actions od-toolbar" hidden={Boolean(model.awaitingReview)||(!model.hasSteps&&model.phase!=='running')}>
-        {action('workflow-run','再次运行',{primary:true})}{action('workflow-save','保存工作流')}{action('workflow-stop','停止')}
+       <div id="workflow-page-actions" className="workflow-actions od-toolbar" hidden={Boolean(model.history?.open)||Boolean(model.awaitingReview)||(!model.hasSteps&&model.phase!=='running')}>
+        {action('workflow-run',c('workflow-run').text||'再次运行',{primary:true})}{action('workflow-save','保存工作流')}{action('workflow-stop',c('workflow-stop').text||'停止')}
       </div>
       {text('workflow-status',{className:'workflow-status',role:'status','aria-live':'polite','data-state':c('workflow-status').dataset?.state})}
     </section>
@@ -512,6 +582,11 @@ export function WorkflowPage({controller=null,model:providedModel=EMPTY_MODEL,ac
         </details>
       </details>
     </WorkflowSettingsSheet>}
+  <Confirmation open={active&&Boolean(model.confirmation)} identity={model.confirmation?.identity}
+    title={model.confirmation?.title} message={model.confirmation?.message}
+    confirmLabel={model.confirmation?.confirmLabel}
+    onConfirm={event=>actions.onConfirmNavigation?.(event)}
+    onCancel={()=>actions.onCancelNavigation?.()}/>
   <SharedConversationFrame open={active} rows={model.messages||[]}
      draft={c('workflow-ai-request').value||''}
      busy={c('workflow-ai-cancel').hidden===false}
@@ -519,6 +594,7 @@ export function WorkflowPage({controller=null,model:providedModel=EMPTY_MODEL,ac
      canSend={c('workflow-ai-plan').hidden!==true}
      inputId="workflow-ai-request" inputLabel="描述任务，或告诉 AI 怎样修改步骤"
      placeholder="描述要完成的操作…" emptyPrompt="想让浏览器做什么？"
+     stopLabel={model.phase==='planning'?'停止规划':model.phase==='running'?'停止后续执行':undefined}
      inputRows={1}
      sendId="workflow-ai-plan" stopId="workflow-ai-cancel"
      splitTargets transcriptTarget={transcriptTarget} composerTarget={composerTarget}

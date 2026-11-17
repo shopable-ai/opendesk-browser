@@ -1,17 +1,18 @@
 import * as React from 'react';
-import {DevelopField,useDevelop} from './develop-controls.tsx';
+import {DevelopField,useDevelop,DevelopIcon} from './develop-controls.tsx';
 
 // JSX-only region: the trusted DevelopProvider remains in DeveloperPage.
 export function DevelopExecution({section='editor',children}={}){
   const {model,snapshot}=useDevelop();
   const resultAvailable=!snapshot.fields['script-copy-result'].disabled;
-  const hasFeedback=['script-status','script-task-status'].some(id=>{
-    const field=snapshot.fields[id];
-    return !field.hidden&&Boolean(field.textContent?.trim());
-  });
-  const showArea=['editor','history','diagnostics','run-detail'].includes(section)||hasFeedback||
+  const taskState=snapshot.fields['script-task-status'].data.state;
+  const unknown=taskState==='paused_unknown';
+  const feedback=snapshot.fields['script-status'];
+  const hasFeedback=!feedback.hidden&&Boolean(feedback.textContent?.trim())&&
+    (feedback.data.state==='results'&&['paused_unknown','failed','interrupted'].includes(taskState)||
+      !['results','completed','saved','loaded','deleted','scripts','idle','draft'].includes(feedback.data.state));
+  const showArea=['editor','history','diagnostics'].includes(section)||hasFeedback||
     !snapshot.fields['script-user-scripts-recovery'].hidden;
-  const navigate=(section,event)=>model.navigate(section,{returnFocusId:event.currentTarget.id});
   return <div className="developer-output od-stack" hidden={!showArea}>
         <div className="developer-run-area od-stack" hidden={!showArea}>
           <DevelopField as="div" id="script-user-scripts-recovery" className="developer-execution-help od-alert od-alert--warning" data-state="blocked">
@@ -26,20 +27,21 @@ export function DevelopExecution({section='editor',children}={}){
               </DevelopField>
             </div>
           </DevelopField>
+          {section==='editor'&&unknown&&<button type="button" id="developer-unknown-history" className="od-button od-button--quiet"
+            onClick={()=>model.navigate('history',{returnFocusId:'developer-unknown-history'})}>查看原运行记录</button>}
           <div hidden={!['editor','history','diagnostics'].includes(section)}>
             <DevelopField as="section" id="developer-results-panel" className="developer-results" aria-label="运行结果">
               <div className="developer-result-head"><h2>{section==='editor'?'运行结果':'所选运行结果'}</h2>
                 <DevelopField as="span" id="script-result-kind" className="hint">尚无结果</DevelopField>
+                <span hidden={!resultAvailable}>
+                  <DevelopField as="button" type="button" id="script-copy-result" className="od-icon-button od-icon-button--quiet" title="复制运行结果" aria-label="复制运行结果">
+                    <DevelopIcon name="copy"/>
+                  </DevelopField>
+                </span>
               </div>
               <div className="developer-results-body">
                 <DevelopField as="pre" id="script-result" data-opendesk-react-owner="developer-result" aria-label="脚本返回值" className="od-result">尚无结果</DevelopField>
                 <DevelopField as="span" id="script-copy-feedback" className="od-note" role="status" aria-live="polite"/>
-                <div className="developer-result-actions" hidden={!resultAvailable}>
-                  <DevelopField as="button" type="button" id="script-copy-result" className="developer-text-button" title="复制运行结果">复制</DevelopField>
-                  <button type="button" id="developer-result-download" className="developer-text-button" onClick={event=>navigate('history',event)}>下载选项</button>
-                  <button type="button" id="developer-result-detail" className="developer-text-button" onClick={event=>navigate('run-detail',event)}>本次详情</button>
-                  <button type="button" id="developer-result-history" className="developer-text-button" onClick={event=>navigate('history',event)}>过去运行</button>
-                </div>
               </div>
             </DevelopField>
           </div>
@@ -47,14 +49,13 @@ export function DevelopExecution({section='editor',children}={}){
             <DevelopField as="span" id="script-status" data-opendesk-react-owner="developer-run-status" data-state="loading">
               {"正在连接公共运行入口…"}
             </DevelopField>
-            <DevelopField as="span" id="script-task-status" className="developer-task-status">
-            </DevelopField>
           </DevelopField>
-          <div hidden={section!=='run-detail'}>
-                <DevelopField as="details" id="developer-run-technical" className="developer-run-technical od-disclosure">
+          <div hidden={!['editor','history','diagnostics'].includes(section)||!snapshot.fields['script-task-status'].textContent}>
+                <DevelopField as="details" id="developer-run-technical" className="developer-run-technical od-disclosure od-disclosure--flat">
                   <summary>
-                    {"运行目标与版本"}
+                    {"调试详情"}
                   </summary>
+                  <DevelopField as="span" id="script-task-status" className="developer-task-status"/>
                   <DevelopField as="p" id="script-task-id" className="identity">
                     {"尚未运行"}
                   </DevelopField>

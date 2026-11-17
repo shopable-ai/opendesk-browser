@@ -134,6 +134,7 @@ export function createScriptEditor({client, currentPageTarget, development=false
       loadedPageSource=false;componentMode='javascript';javascriptWorld='controller';syncComponentInputs();
       pagePreviewFlow?.clearLast();componentMessage('idle','');
       programSource.replaceSource(source);sourceInput();
+      view.navigate('editor',{returnFocusId:'script-source'});
     }});
   const resultDownloads=createRunArtifactDownload({client,host,document:doc,view,onState:update});
   const controllerResults=createControllerResultsView({host,view,resultDownloads,
@@ -152,7 +153,7 @@ export function createScriptEditor({client, currentPageTarget, development=false
     // RunHost return values enter the result area only via an authorized Result
     // projection, never through transient claim/preview transport payloads.
     patchDeveloperField(view,status,{data:{...status.data,state},textContent:message});
-    if(['saved','loaded','deleted'].includes(state))notify(message,{position:'bottom-center'});
+    if(['saved','loaded','deleted'].includes(state))notify(message,{position:'top-center'});
     const taskStatus = find('script-task-status');
     patchDeveloperField(view,taskStatus,{hidden:state !== 'results' || !taskStatus.textContent});
   }
@@ -423,31 +424,50 @@ export function createScriptEditor({client, currentPageTarget, development=false
       pagePreviewFlow?.managed||!!pagePreviewFlow?.unknown||localProject?.active()||programSource.snapshot();
     if(loadBlocked())throw {code:'E_BUSY',message:'请先停止当前运行并切换为直接编辑'};
     const source=programSource.source(),activeId=scriptId(),revisionText=find('script-revision').value,
-      editorTicket=browserPrepareGeneration,previousMode=componentMode,previousWorld=javascriptWorld;
+      selection=find('page-program-list').value,
+      editorTicket=browserPrepareGeneration,previousMode=componentMode,previousWorld=javascriptWorld,
+      navigationTicket=view.getSnapshot().navigationGeneration;
     const saved=await client.request('getPageCandidate',{programId:row.programId,revision:row.revision});
     const changed=()=>disposed||loadBlocked()||editorTicket!==browserPrepareGeneration||
+      navigationTicket!==view.getSnapshot().navigationGeneration||
       source!==programSource.source()||activeId!==scriptId()||revisionText!==find('script-revision').value||
-      previousMode!==componentMode||previousWorld!==javascriptWorld;
+      previousMode!==componentMode||previousWorld!==javascriptWorld||selection!==find('page-program-list').value;
     if(changed())throw {code:'E_REVISION',message:'加载期间编辑器已变化，请重新核对'};
     const authoring=await validatePageCandidateAuthoring(saved);
     if(changed())throw {code:'E_REVISION',message:'加载期间编辑器已变化，请重新核对'};
+    const incoming=authoring?.sourceUtf8??saved.authorSourceUtf8??saved.sourceUtf8;
+    if(source.trim()&&source!==incoming){
+      const answer=await view.requestConfirmation({title:'加载网页脚本？',
+        message:`将用 ${row.programId} · r${row.revision} 替换当前网页编辑草稿。未保存的内容将丢失；加载不会运行或安装。`,
+        confirmLabel:'替换草稿并加载',cancelLabel:'继续编辑'});
+      if(answer.action!=='confirm')return false;
+      if(changed())throw {code:'E_REVISION',message:'确认期间编辑器或所选版本已变化，请重新加载'};
+    }
     rememberDraft();
     componentMode=authoring?.framework??'javascript';
     if(componentMode==='javascript')javascriptWorld='page';
     restoreDraft();
     starterSource.preserve();
     loadedPageSource=true;syncComponentInputs();
-    programSource.replaceSource(authoring?.sourceUtf8??saved.authorSourceUtf8??saved.sourceUtf8);
+    programSource.replaceSource(incoming);
     patchDeveloperField(view,find('script-id'),{value:row.programId});
     patchDeveloperField(view,find('script-revision'),{value:String(row.revision)});pagePreviewFlow?.clearLast();
+    const appliedTicket=browserPrepareGeneration,appliedMode=componentMode,appliedWorld=javascriptWorld;
     if(saved.manifest?.compilation)await dependencyResolver.restore(saved.manifest.compilation);
     else dependencyResolver.refresh();
+    if(disposed||loadBlocked()||navigationTicket!==view.getSnapshot().navigationGeneration||
+      appliedTicket!==browserPrepareGeneration||appliedMode!==componentMode||appliedWorld!==javascriptWorld||
+      programSource.source()!==incoming||scriptId()!==row.programId||
+      find('script-revision').value!==String(row.revision)||selection!==find('page-program-list').value)
+      throw {code:'E_REVISION',message:'加载期间编辑器或页面已变化，请重新核对'};
     browserPreparer.cancel();browserPrepareGeneration++;
     dependencyInstaller.refresh();componentRemote.refresh();
     update();
+    view.navigate('editor',{returnFocusId:'script-source'});
+    notify(`已加载 ${row.programId} · r${row.revision}`,{position:'top-center'});
   }});
   const pageCandidates=createPageCandidateActions({client,view,currentPageTarget,pageLibrary,
-    onSaved:message=>notify(message,{position:'bottom-center'})});
+    onSaved:message=>notify(message,{position:'top-center'})});
   pagePreviewFlow=createPagePreviewFlow({client,api,host,view,currentPageTarget,programSource,
     dependencyResolver,dependencyReview,dependencyInstaller,componentRemote,prepareManagedSource,
     browserCompilerEnabled,browserBinding,
@@ -479,6 +499,7 @@ export function createScriptEditor({client, currentPageTarget, development=false
   });
   on('script-load','click',edit(()=>{rememberDraft();return controllerRevisions.load();})); on('script-list-load','click',edit(()=>{rememberDraft();return controllerRevisions.loadLatest();}));
   on('script-read','click',()=>controllerResults.read('')); on('script-delete','click',edit(()=>controllerRevisions.remove())); on('script-list-refresh','click',()=>controllerRevisions.refresh().catch(fail));
+  on('script-list','change',update);
   on('script-read-run','click',()=>controllerResults.read());
   on('script-history-open','click',()=>controllerResults.read(find('script-history-run').value));
   on('script-history-run','change',()=>{patchDeveloperField(view,find('script-history-open'),{disabled:!find('script-history-run').value});});
@@ -487,7 +508,7 @@ export function createScriptEditor({client, currentPageTarget, development=false
     try {
       if (!globalThis.navigator?.clipboard?.writeText) throw new Error('Clipboard unavailable');
       await globalThis.navigator.clipboard.writeText(output.textContent);
-      if (!disposed) {displayCopyResult('已复制');notify('已复制运行结果',{position:'bottom-center'});}
+      if (!disposed) {displayCopyResult('已复制');notify('已复制运行结果',{position:'top-center'});}
     } catch {
       if (disposed) return;
       displayCopyResult('无法自动复制');

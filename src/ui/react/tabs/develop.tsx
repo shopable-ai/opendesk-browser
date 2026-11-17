@@ -6,17 +6,31 @@ import {DevelopDiagnostics} from './develop-diagnostics.tsx';
 import {DevelopExecution} from './develop-execution.tsx';
 import {DevelopAdvanced} from './develop-advanced.tsx';
 import {DevelopPromptProvider} from './develop-ai-prompt.tsx';
+import {Confirmation} from '../components/confirmation.tsx';
 
 // Presentation shares the existing field store; controllers retain all execution authority.
-const sectionTitles={save:'保存脚本',library:'已保存脚本与版本',history:'过去运行',install:'安装与发布',diagnostics:'权限与诊断','run-detail':'本次运行详情'};
+const sectionTitles={save:'保存脚本',library:'已保存脚本',history:'运行记录与下载',install:'安装与发布',diagnostics:'权限与诊断'};
 export function DeveloperPage({model,view=model,actions=view.actions,hidden=false,locale='zh-CN',noticeView}){
   const snapshot=React.useSyncExternalStore(view.subscribe,view.getSnapshot,view.getSnapshot);
   const section=snapshot.section||'editor';
   const back=React.useRef(null);
   React.useLayoutEffect(()=>{
+    view.setPresentationActive(!hidden);
+    return ()=>view.setPresentationActive(false,'unmounted');
+  },[hidden,view]);
+  React.useLayoutEffect(()=>{
     if(hidden)return;
-    if(section!=='editor')back.current?.focus();
-    else if(snapshot.returnFocusId)back.current?.ownerDocument.getElementById(snapshot.returnFocusId)?.focus();
+    const doc=back.current?.ownerDocument;
+    const target=section!=='editor'?back.current:doc?.getElementById(snapshot.returnFocusId);
+    target?.focus();
+    // A modal FocusScope may restore focus after this layout effect. Recover
+    // only a background/hidden focus, without stealing a newer user choice.
+    const win=doc?.defaultView;
+    const frame=win?.requestAnimationFrame?.(()=>{
+      if(target?.isConnected&&!doc.querySelector('.od-confirm-overlay')&&
+        (doc.activeElement===doc.body||doc.activeElement?.closest('[hidden]')))target.focus();
+    });
+    return ()=>{if(frame!==undefined)win.cancelAnimationFrame(frame);};
   },[section,hidden]);
   return <DevelopProvider view={view} actions={actions}>
     <div id="workbench-develop" role="tabpanel" aria-labelledby="tab-develop" className="od-page" data-workbench-page="develop" hidden={hidden}>
@@ -40,6 +54,12 @@ export function DeveloperPage({model,view=model,actions=view.actions,hidden=fals
         </DevelopExecution>
         <DevelopAdvanced section={section}/>
         <div hidden={section!=='diagnostics'}><DevelopDiagnostics/></div>
+        <Confirmation open={!hidden&&Boolean(snapshot.confirmation)} identity={snapshot.confirmation?.identity}
+          title={snapshot.confirmation?.title} message={snapshot.confirmation?.message}
+          confirmLabel={snapshot.confirmation?.confirmLabel} cancelLabel={snapshot.confirmation?.cancelLabel}
+          tone={snapshot.confirmation?.tone}
+          onConfirm={()=>view.settleConfirmation(snapshot.confirmation?.identity,'confirm')}
+          onCancel={reason=>view.settleConfirmation(snapshot.confirmation?.identity,'cancel',reason)}/>
       </section>
     </div>
   </DevelopProvider>;
@@ -47,7 +67,7 @@ export function DeveloperPage({model,view=model,actions=view.actions,hidden=fals
 
 function DevelopSectionButton({section,children,...props}){
   const {model}=useDevelop();
-  return <button type="button" className="developer-text-button" {...props}
+  return <button type="button" className="od-button od-button--quiet" {...props}
     onClick={event=>model.navigate(section,{returnFocusId:event.currentTarget.closest('#developer-more-actions')?'developer-more-button':event.currentTarget.id})}>{children}</button>;
 }
 
@@ -70,7 +90,7 @@ export function DeveloperDock({model,view=model,actions=view.actions,hidden=fals
             aria-controls="developer-more-actions" onClick={()=>setMore(!more)}><DevelopIcon name="dots"/></button>
           <div id="developer-more-actions" className="developer-more-actions od-surface" hidden={!more} onClick={()=>setMore(false)}>
             <DevelopSectionButton section="library">已保存脚本</DevelopSectionButton>
-            <DevelopSectionButton section="history">过去运行</DevelopSectionButton>
+            <DevelopSectionButton section="history">运行记录与下载</DevelopSectionButton>
             <DevelopSectionButton section="install">安装与发布</DevelopSectionButton>
             <DevelopSectionButton section="diagnostics">权限与诊断</DevelopSectionButton>
           </div>

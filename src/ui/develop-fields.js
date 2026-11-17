@@ -1,3 +1,5 @@
+import {CONTROLLER_DRAFT_DEFAULT_DEADLINE_MS} from '../platform/controller-deadlines.js';
+
 // Initial UI values only. Runtime authority remains in the existing editor controllers.
 export const DEVELOPER_FIELDS = {
   "workbench-develop": {
@@ -23,7 +25,7 @@ export const DEVELOPER_FIELDS = {
     "type": "checkbox"
   },
   "developer-target-detail": {
-    "className": "developer-target-card"
+    "className": "developer-target-card od-disclosure od-disclosure--icon"
   },
   "script-current-page-host": {
     "textContent": "正在识别…"
@@ -411,9 +413,14 @@ export const DEVELOPER_FIELDS = {
   },
   "script-draft-deadline-row": {},
   "script-draft-deadline-ms": {
-    "value": "30000",
+    "value": String(CONTROLLER_DRAFT_DEFAULT_DEADLINE_MS),
     "className": "od-field",
-    "options": [["30 秒（默认）", "30000"], ["60 秒", "60000"], ["120 秒", "120000"]]
+    "options": [
+      ["30 秒（默认）", "30000"], ["1 分钟", "60000"], ["2 分钟", "120000"],
+      ["5 分钟", "300000"], ["10 分钟", "600000"], ["20 分钟", "1200000"],
+      ["30 分钟", "1800000"], ["60 分钟", "3600000"], ["2 小时", "7200000"],
+      ["6 小时", "21600000"], ["12 小时", "43200000"], ["24 小时", "86400000"]
+    ]
   },
   "script-task-id": {
     "textContent": "尚未运行"
@@ -441,7 +448,7 @@ export const DEVELOPER_FIELDS = {
     "className": "od-field"
   },
   "script-load": {
-    "textContent": "加载版本"
+    "textContent": "按 ID 加载版本"
   },
   "page-preview-tools": {
     "className": "developer-management-section",
@@ -530,11 +537,9 @@ export const DEVELOPER_FIELDS = {
     ],
     "value": ""
   },
-  "script-list-refresh": {
-    "textContent": "刷新"
-  },
+  "script-list-refresh": {},
   "script-list-load": {
-    "textContent": "加载最新"
+    "textContent": "加载最新版本"
   },
   "script-version": {
     "textContent": "尚未保存"
@@ -604,7 +609,7 @@ export const DEVELOPER_FIELDS = {
   },
   "script-delete": {
     "disabled": true,
-    "textContent": "删除脚本"
+    "textContent": "删除所选脚本"
   },
   "script-current-page-debug": {},
   "develop-dock": {

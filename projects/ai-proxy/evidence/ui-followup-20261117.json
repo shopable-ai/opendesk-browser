@@ -1,0 +1,112 @@
+{
+  "date": "2026-11-17",
+  "timezone": "Asia/Shanghai",
+  "threadId": "01a1e859-8901-7f70-9ce6-6f51515df31a",
+  "phase": "core development and targeted native UI verification",
+  "owner": "projects/ai-proxy/",
+  "branch": "main",
+  "sourceCommit": "3ac8259ef",
+  "sourceChanged": false,
+  "frameworkChanged": false,
+  "previousEvidence": "native-core-20261117.json#latestContinuation",
+  "entryAndReuse": {
+    "type": "existing Sidebar App and fixed trusted adapter",
+    "entry": "public HTTPS tab > native OpenDesk Side Panel > Extensions > AI Proxy > Header More > Add proxy",
+    "reused": "existing ProxyEditor, Settings, QuickPanel, DiagnosticsPage, shared asynchronous confirmation and installed identity",
+    "noNewHostSdkOrPermission": true
+  },
+  "nativeHeaderSave": {
+    "status": "PASS",
+    "actions": [
+      "Verified unchanged installed identity, complete namespace and system proxy; editor opened empty with Save disabled",
+      "Header More > Add proxy; entered a disposable HTTP 127.0.0.1:18996 profile without credentials",
+      "Read back the exact fields before clicking Save once",
+      "Observed disabled editor controls while saving, then return to the quick proxy panel",
+      "Observed visible nonblocking receipt: 代理配置已保存，未自动应用。",
+      "Observed the new profile in the quick list while selection remained empty and route remained system",
+      "Read back storage: only full-config changed; installed object and Chrome proxy remained unchanged"
+    ],
+    "cleanup": "Manage all opened the original independent App profiles section; deleted only this round's temporary profile through the existing confirmation; visible deletion receipt and list count returned to one",
+    "cleanupReadback": "Complete namespace exactly restored; original R3 profile and five P1 favorites retained",
+    "receiptLifetime": "Receipt remained during the same mounted quick session, including the management visit; reopening AI Proxy after leaving for Debug showed no old receipt. This does not establish every possible remount path."
+  },
+  "nativeCurrentWebsite": {
+    "status": "PASS_WITH_SCOPE",
+    "explicitRequests": 1,
+    "host": "www.gnu.org",
+    "displayedTarget": "https://www.gnu.org/",
+    "httpStatus": 200,
+    "elapsedMs": 1392,
+    "runningFeedback": "Observed actual request's disabled Check button, 正在检测 and Cancel control; no cancellation attempted",
+    "manualRefresh": "PASS: clicked 重新识别 after completion; old HTTP receipt disappeared and same GNU root returned to 尚未测试",
+    "hostChange": "PASS: navigated same owned tab to https://example.org/?ai-proxy-ui-followup=20261117#public-check; quick target became https://example.org/ and 尚未测试, without GNU receipt",
+    "pageReload": "PASS: normal reload retained example.org root and 尚未测试; no diagnostic click on that host",
+    "reopen": "PASS: after Debug and reopening AI Proxy, example.org root remained available and the old saved-profile receipt was absent",
+    "boundary": "HTTP and UI evidence only; not page proxy route, DNS, exit change, transport abort, login or model availability"
+  },
+  "runtime": {
+    "mode": "existing serve-generated development output, no live compiler observed",
+    "expectedDailyOutput": "/Users/shopme/Documents/workspace/opendesk-browser/dist/development",
+    "extensionId": "ccfcjegpkdlgbclopjmadlcjedelidmf",
+    "resource": "ui/tool-shell.js",
+    "resourceBytes": 3073443,
+    "resourceSha256": "734f7419627881349cfff5a608c7c951be5bf7fcca876ffc164b269ff10d79a0",
+    "retrievedExtensionResourceEqualsDisk": true,
+    "nativeDebugText": "开发服务已连接 · 构建指纹 6d4f8e773639；保存源码后自动安全更新。",
+    "nativeAndSessionAppliedRevision": "6d4f8e773639736295a8f0c6d5d945ebc4e869b43df08cdf7879b27fa2030b1a",
+    "liveServe": "NOT_OBSERVED: no npm run dev/scripts/dev.mjs process or listener on 43119/43120",
+    "connectionInterpretation": "Debug text reports the extension's internal development port and local update manifest; it does not prove a live npm compiler. Source read of development/page.js and worker.js used only to classify this discrepancy; no platform edit.",
+    "writerStartedStoppedOrRebuiltByThisTask": false,
+    "concurrentOutput": "Current resource/revision differ from the source handoff; no claim that unrelated parallel inputs were validated",
+    "production": "NOT_TESTED"
+  },
+  "packageAndInstallation": {
+    "formalVersion": "0.3.31",
+    "formalBytes": 716968,
+    "formalSha256": "3a45070edf5dbc184107630efb81f3ac382c47234edf98ef14772f2c37f5f721",
+    "formalPackageChanged": false,
+    "installedVersion": "0.3.30",
+    "installedObjectUnchanged": true,
+    "upgradePerformed": false,
+    "reason": "Existing installed identity and fixed trusted runtime supported the current UI operations; package version was not a blocker. This is not installation evidence for 0.3.31."
+  },
+  "dataAndResources": {
+    "namespaceKeys": 4,
+    "entryEqualsHistoricalFinal": true,
+    "finalEqualsEntry": true,
+    "namespaceSha256": "4eace3fce23324aafa7933cf508cb8a52e45c5144ad576aabdcf5ff09f05ee25",
+    "hashMethod": "SHA-256 of JSON.stringify(namespace), original key order",
+    "originalFiveP1FavoritesRetained": true,
+    "proxyUnchanged": true,
+    "proxyMode": "system",
+    "proxyControl": "controllable_by_this_extension",
+    "temporaryProfilesRemaining": 0,
+    "subscriptionFilePresentMode0600": true,
+    "subscriptionReadOrRequested": false,
+    "clashConfigurationOrProxyChanged": false,
+    "taskSpaceId": 126,
+    "taskSpaceFinishedKeepEmpty": true,
+    "nativeSidePanelClosed": true,
+    "nativeUiLockReleased": true,
+    "otherSpacesWritersAndDirtyFilesPreserved": true,
+    "privateReadbacks": "artifacts/ai-proxy/ui-followup-20261117/{entry,saved,cleaned,final}-readback.private.json; ignored, mode 0600; not committed"
+  },
+  "verification": {
+    "newNativeEvidence": "Header save/return/receipt/no apply/cleanup; manual current-site refresh; host change and normal reload; reopening without stale receipt",
+    "previousNodeAndPackageChecks": "Reused native-core-20261117.json latestContinuation: 81 targeted project, 2 source and 3 package protection checks; inputs affecting these behaviors unchanged",
+    "testsOrBuildRerun": false,
+    "reason": "No code, dependency, authority, permission or package change; no new product failure. New checks exercised real UI rather than repeating Node counts.",
+    "documentationChecks": "JSON parsing, local evidence links and git diff --check",
+    "newCommitOrVersion": false
+  },
+  "notTested": [
+    "busy-only state unrelated to an active diagnostic request",
+    "same-instance native cancellation and in-flight late receipt isolation",
+    "0.3.31 installation",
+    "real split routing, arbitrary PAC execution and authenticated proxies",
+    "usage collection, exit-IP and throughput features",
+    "AI account login or model invocation",
+    "production, full CI, stress or browser-version matrix"
+  ],
+  "nextOperation": "Choose the next concrete user-visible gap from the seven-section checklist; reproduce first. Do not repeat historical subscription/Clash requests or native cancellation queues without a new dependency or failure."
+}

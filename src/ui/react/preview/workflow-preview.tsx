@@ -5,246 +5,172 @@ import {createMyWorkbenchView} from '../../my-workbench-view.js';
 import {createSidebarToolsView} from '../../sidebar-tools-view.js';
 import {createPreviewProviderSettings,bindPreviewSettingsViewport} from './shared-ai-preview.js';
 import {appendWorkflowSuggestionDraft} from '../../conversation/draft-suggestion.js';
+import {createWorkflowPreviewSimulation,PREVIEW_OPERATIONS,PREVIEW_LOCATORS} from './workflow-preview-model.js';
 
-// PREVIEW_ADAPTER_NOT_NATIVE: the production SidebarAppShell/WorkflowPage owns
-// the one React root. This adapter is presentation state only: no Host, Provider,
-// Browser Authority, permission request, storage or synthetic execution receipt.
+// PREVIEW_ADAPTER_NOT_NATIVE. Product JSX and shared Root own all DOM. Samples
+// live only in memory: no Host, Provider, website or synthetic durable receipt.
 const doc=document;
 doc.documentElement.dataset.opendeskTab='workflow';
-const get=id=>{
-  const node=doc.getElementById(id);
-  if(!node)throw Error('E_WORKFLOW_PREVIEW_MISSING:'+id);
-  return node;
-};
+const get=id=>{const node=doc.getElementById(id);if(!node)throw Error('E_WORKFLOW_PREVIEW_MISSING:'+id);return node;};
 const state=createWorkflowUIState(),control=state.control;
 const stage=get('od-workflow-preview-stage');
 const releaseSettingsViewport=bindPreviewSettingsViewport(stage);
-const selectors={
-  scenario:get('od-workflow-preview-scenario'),
-  width:get('od-workflow-preview-width'),
-  theme:get('od-workflow-preview-theme')
-};
-const scenes=Object.freeze({
-  empty:[],
-  conversation:[
-    {id:'demo-user',speaker:'你',message:'填写姓名为“给我一个亿的项目”，读回并验证，不提交。'},
-    {id:'demo-ai',speaker:'AI',message:'这是对话样式示例；未连接模型，也未操作当前网页。'}
-  ],
-  planning:[{id:'demo-planning',speaker:'AI',message:'预览规划中的界面，未请求模型。'}],
-  running:[{id:'demo-running',speaker:'AI',message:'预览运行中的界面，未启动 RunHost。'}],
-  success:[
-    {id:'demo-success-user',speaker:'你',message:'修改输入框并读回。'},
-    {id:'demo-success',speaker:'执行结果',message:'成功结果的展示示例；没有真实 DOM 读回。'}
-  ],
-  failure:[{id:'demo-failure',speaker:'系统',message:'演示：操作失败，未将结果当成成功。'}],
-  unknown:[{id:'demo-unknown',speaker:'系统',message:'结果未知：核对目标网页后再操作，不自动重试。'}],
-  approval:[{id:'demo-approval',speaker:'AI',message:'Chrome 网站权限界面预览；未读取或发送页面内容。'}],
-  'run-review':[{id:'demo-run-review',speaker:'AI',message:'目标网站尚未获得访问权限。此处仅预览授权入口，没有执行网页操作。'}],
-  denied:[{id:'demo-denied',speaker:'系统',message:'演示：授权已拒绝，未执行网页读取。'}],
-  disconnected:[{id:'demo-disconnected',speaker:'系统',message:'本机连接不可用，请在正式扩展中检查连接。'}],
-  history:[],
-  settings:[]
-});
+const selectors={scenario:get('od-workflow-preview-scenario'),width:get('od-workflow-preview-width'),
+ theme:get('od-workflow-preview-theme'),auto:get('od-workflow-preview-auto'),pausePlan:get('od-workflow-preview-pause-plan')};
 const providerSettings=createPreviewProviderSettings();
-let scene='empty',messages=[],historyOpen=false,source='local_codex';
 let lastHttps='custom_https';
-const sample=x=>scenes[x].map(row=>({...row}));
-const apply=()=>{
-  const busy=scene==='planning',running=scene==='running';
-  const result=['success','failure','unknown'].includes(scene);
-  const local=source==='local_codex';
-  const hasRows=messages.length>0;
-  const edit=control('workflow-editor');
-  edit.dataset.viewState=hasRows?'conversation':'empty';
-  edit.dataset.historyOpen=String(historyOpen);
-  control('workflow-chat-intro').hidden=hasRows||busy;
-  control('workflow-ai-title').text='创建新工作流';
-  control('workflow-intro-description').text='描述要自动执行的任务，或选择示例。';
-  control('workflow-ai-progress').hidden=!busy;
-  control('workflow-planning-indicator').hidden=!busy;
-  control('workflow-planning-indicator').text=busy?'正在规划步骤…':'';
-  control('workflow-ai-approval').hidden=scene!=='approval';
-  control('workflow-run-review').hidden=scene!=='run-review';
-  control('workflow-run-review-scope').text='当前网站尚未授权。正式产品只在缺少 Chrome 网站权限时显示此入口。';
-  control('workflow-ai-approval-title').text='需要 Chrome 网站权限';
-  control('workflow-ai-approval-scope').text=scene==='approval'
-    ?'当前仅为 Chrome 网站权限界面预览，不会实际申请权限或读取网页。':'';
-  control('workflow-ai-plan').hidden=busy;
-  control('workflow-ai-plan').disabled=busy||scene==='run-review';
-  control('workflow-ai-cancel').hidden=!busy;
-  control('workflow-plan-panel').hidden=true;
-  control('workflow-params-panel').hidden=true;
-  control('workflow-manage-panel').hidden=true;
-  control('workflow-result-panel').hidden=!result;
-  control('workflow-output').text=scene==='success'
-    ?'结果示例：已完成填写与读回（仅演示 UI，未实际执行）。'
-    :scene==='failure'?'演示：任务失败，未核实网页写入结果。'
-    :scene==='unknown'?'结果未知；请先检查当前网页，不要自动重试。':'尚未运行';
-  control('workflow-technical').text='离线预览不产生 Run ID / Result ID / Revision。';
-  control('workflow-status').hidden=!['failure','disconnected','denied'].includes(scene);
-  control('workflow-status').text=scene==='failure'?'演示：任务失败。'
-    :scene==='disconnected'?'本机连接未建立。'
-    :scene==='denied'?'已拒绝本轮演示授权。':'';
-  control('workflow-status').dataset.state=scene==='failure'?'error':'info';
-  control('workflow-ai-provider').value=source;
-  control('workflow-https-protocol').value=local?lastHttps:source;
-  control('workflow-https-mode').hidden=local;
-  control('workflow-local-settings').hidden=!local;
-  control('workflow-custom-settings').hidden=local;
-  control('workflow-local-status').text='未连接';
-  control('workflow-local-status').title='本机连接未建立';
-  control('workflow-local-status').dataset.state='DISCONNECTED';
-  control('workflow-local-status-detail').text='请在正式安装的 OpenDesk 扩展中连接本机应用。';
-  control('workflow-local-connect').disabled=true;
-  control('workflow-local-connect').title='离线预览无法连接本机应用';
-  control('workflow-local-connected').hidden=true;
-  control('workflow-observation-revoke').disabled=true;
-  control('workflow-observation-scope').text='正式工作流发送后直接提供所需网页摘要，无需再次确认。';
-  control('workflow-provider-settings').open=scene==='settings'||control('workflow-provider-settings').open;
-  state.patch({
-    messages:messages.map(row=>({...row})),
-    phase:busy?'planning':running?'running':'idle',
-    lastRun:scene==='success'?'success':scene==='failure'?'failed':'none',
-    progress:busy?[{state:'pending',text:'等待确认网页范围（预览）'}]:[],
-    entryMode:'new-workflow',
-    sourceName:local?'Codex':control('workflow-ai-model').value.trim(),
-    awaitingReview:scene==='run-review',
-    hasSteps:false,steps:scene==='run-review'?[
-      {stepId:'preview-fill',op:'fill',locatorKind:'css',selector:'#search',text:'OpenDesk'},
-      {stepId:'preview-click',op:'click',locatorKind:'css',selector:'#search-button'}
-    ]:[],params:[],
-    history:{open:historyOpen,rows:[],canResume:false,busy},
-    header:{saved:false,busy,planning:busy,historyExpanded:historyOpen,
-      sessionHint:'保留当前工作流'}
-  });
-};
-function showScene(next,{keepRows=false}={}){
-  if(!Object.hasOwn(scenes,next))return;
-  scene=next;if(!keepRows)messages=sample(next);
-  historyOpen=next==='history';
-  control('workflow-provider-settings').open=false;
-  selectors.scenario.value=next;
-  apply();
-  if(next==='settings')app.openProviderSettings();
+let timer=null,timerPhase='',lastPhase='idle',disposed=false;
+const simulation=createWorkflowPreviewSimulation(apply),s=simulation.s;
+function cancelTimer(){if(timer!==null)clearTimeout(timer);timer=null;timerPhase='';}
+function schedule(){
+ const autoRun=s.phase==='idle'&&s.pendingAutoRun&&!selectors.pausePlan.checked;
+ const delay=autoRun?3000:{searching:1000,planning:1600,waiting:1800,running:4500,stopping:1600,saving:1000}[s.phase];
+ if(!selectors.auto.checked||!delay||s.confirmation){cancelTimer();return;}
+ if(timer!==null&&timerPhase===s.phase)return;
+ cancelTimer();timerPhase=s.phase;
+ timer=setTimeout(()=>{timer=null;timerPhase='';if(autoRun)simulation.action('run');else simulation.advance();},delay);
 }
-function chooseProvider(next){
-  if(!['local_codex','custom_https','cloud_responses'].includes(next))return;
-  source=next;if(next!=='local_codex')lastHttps=next;
-  apply();
+function reveal(id){
+ state.setFocus(id);
+ requestAnimationFrame(()=>get(id)?.scrollIntoView({block:'nearest'}));
 }
-function closeSettings(){
-  control('workflow-provider-settings').open=false;
-  if(scene==='settings')scene='empty';
-  selectors.scenario.value=scene;
-  apply();
+function apply(){
+ if(disposed)return;
+ const busy=s.phase!=='idle',planning=['searching','planning'].includes(s.phase);
+ const executing=['waiting','running','stopping'].includes(s.phase);
+ const unsafe=['unknown','partial','unverified'].includes(s.outcome);
+ const edit=control('workflow-editor');
+ edit.dataset.viewState=s.messages.length?'conversation':'empty';edit.dataset.historyOpen=String(s.historyOpen);
+ control('workflow-display-title').text=s.title;
+ control('workflow-ai-request').value=s.draft;
+ control('workflow-ai-progress').hidden=!planning;
+ control('workflow-planning-indicator').hidden=!planning;
+ control('workflow-planning-indicator').text=planning?(s.phase==='searching'?'查找可复用程序…':'正在理解与规划…'):'';
+ control('workflow-ai-plan').hidden=planning||executing;
+ control('workflow-ai-plan').disabled=busy||s.sourceState!=='ready'||s.reviewPending||s.historyOpen;
+ control('workflow-ai-cancel').hidden=!(planning||executing);
+ // Offline gate decisions are presentation samples in the existing feedback
+ // projection. They never call the production permission/Host entry points.
+ control('workflow-ai-approval').hidden=true;control('workflow-run-review').hidden=true;
+ control('workflow-plan-panel').hidden=!s.steps.length;
+ control('workflow-params-panel').hidden=!s.params.length;
+ control('workflow-manage-panel').hidden=!s.manageOpen;
+ control('workflow-result-panel').hidden=!s.outcome;
+ control('workflow-output').text=s.outcome?'离线样例状态：'+s.outcome+'；没有真实执行回执。':'尚未运行';
+ control('workflow-technical').text='UI_PREVIEW_ONLY · 修订 '+s.revision+'；离线预览不产生 Run ID / Result ID / 源码哈希。未连接模型、Native 或网站。';
+ control('workflow-run').hidden=executing||planning||s.historyOpen;
+ control('workflow-run').text=s.savedKey&&!s.dirty?'再次运行此版本':'运行当前方案';
+ control('workflow-run').disabled=busy||unsafe||Boolean(s.effectFence&&s.steps.some(step=>['fill','click','navigate'].includes(step.op)))||!s.siteMatches;
+ control('workflow-save').hidden=executing||planning||s.historyOpen;
+ control('workflow-save').disabled=busy||!s.dirty;
+ control('workflow-stop').hidden=!executing;
+ control('workflow-stop').disabled=s.phase==='stopping';control('workflow-stop').text=s.phase==='stopping'?'停止中…':s.phase==='waiting'?'执行前取消':'停止后续执行';
+ control('workflow-status').hidden=!s.error&&!s.notice&&!s.effectFence;
+ control('workflow-status').text=[...new Set([s.notice,s.error,s.effectFence?.message].filter(Boolean))].join(' · ');
+ control('workflow-status').dataset.state=s.error||s.effectFence?'error':'info';
+ control('workflow-title').value=s.title;control('workflow-site').value='https://workflow.example';
+ for(const id of ['workflow-description','workflow-schema']){control(id).disabled=true;control(id).title='本离线预览不编辑此高级字段；正式产品保留原能力。';}
+ control('workflow-site-note').text='内存样例网站；此 Preview 不访问它。';
+ control('workflow-code-hash').text='离线预览不编译业务代码，不产生源码哈希。';
+ control('workflow-candidate').disabled=s.dirty||s.bundled;control('workflow-open-code').disabled=true;
+ control('workflow-local-status').text='未连接';control('workflow-local-connect').disabled=true;
+ control('workflow-observation-revoke').disabled=true;
+ selectors.scenario.value=s.scene;
+ const bundled=s.bundled?s.rounds.slice(-1).filter(round=>round.bundled&&round.mode==='commerce').flatMap(round=>{const boundary=round.steps.findIndex(step=>step.stepId==='product');return [
+  {index:1,origin:'workflow.example · 搜索页（样例）',steps:round.steps.slice(0,boundary<0?round.steps.length:boundary).map(step=>({op:PREVIEW_OPERATIONS.find(x=>x.value===step.op)?.label,target:step.roleName||step.selector}))},
+  {index:2,origin:'workflow.example · 详情页（样例）',steps:round.steps.slice(boundary<0?round.steps.length:boundary).map(step=>({op:PREVIEW_OPERATIONS.find(x=>x.value===step.op)?.label,target:step.roleName||step.selector}))}
+ ];}):[];
+ state.patch({messages:s.messages,phase:planning?'planning':executing?'running':'idle',busy,
+  lastRun:s.outcome==='success'?'success':s.outcome==='failure'?'failed':'none',
+  progress:planning?[{state:'pending',text:s.phase==='searching'?'查询保存版本与已安装任务（样例）':'整理语义步骤；尚未执行（样例）'}]:[],
+  hasSteps:Boolean(s.steps.length),steps:s.steps,params:s.params,operations:PREVIEW_OPERATIONS,locators:PREVIEW_LOCATORS,
+  expandStepId:s.expandStepId,siteOrigin:'https://workflow.example',entryMode:'new-workflow',
+  feedback:s.feedback?{...s.feedback,actions:s.feedback.actions.map(item=>({...item,disabled:item.disabled||item.id==='run'&&!s.siteMatches}))}:null,confirmation:s.confirmation,bundleSegments:bundled,
+  bundleLabel:bundled.length?'以下是上一轮已记录的两段样例结果，按搜索页 → 详情页排列。下方编辑器展示本轮完整方案；修改后不会改写旧结果。':null,
+  planLabel:`当前方案 · 第 ${s.round||1} 轮 / 修订 ${s.revision}${s.dirty?' · 未保存更改':''}。执行记录按轮次保留在对话中。`,
+  sourceName:providerSettings.settingsSnapshot().source==='local_codex'?'Codex':'离线 HTTPS 样例',
+  savedOptions:s.history.map(({key,fullTitle,savedText})=>({value:key,label:fullTitle+' · '+savedText})),
+  history:{open:s.historyOpen,rows:s.history,canResume:false,busy},
+  header:{saved:Boolean(s.savedKey),savedText:s.dirty?'未保存更改':'已保存',savedTitle:'仅保存在本页内存',
+   busy,planning,historyExpanded:s.historyOpen,sessionHint:'新对话，保留当前工作流'}});
+ const changedPhase=lastPhase!==s.phase;lastPhase=s.phase;
+ if(changedPhase&&s.phase==='idle'&&s.feedback&&!s.confirmation)requestAnimationFrame(()=>{
+  if(!doc.activeElement?.matches('textarea,input,select'))get('workflow-feedback').scrollIntoView({block:'nearest'});
+ });
+ schedule();
 }
 const requireGesture=event=>event?.isTrusted===true;
+const focusAfterAction=id=>{
+ if(['edit','params'].includes(id))reveal(id==='edit'?'workflow-plan-panel':'workflow-params-panel');
+ else if(id==='modify')state.setFocus('workflow-ai-request');
+ else if(id!=='history')reveal('workflow-feedback');
+};
 const actions={
-  onHistory(event){
-    if(!requireGesture(event))return;
-    historyOpen=!historyOpen;scene=historyOpen?'history':'empty';
-    selectors.scenario.value=scene;apply();
-  },
-  onNewSession(event){
-    if(!requireGesture(event))return;
-    scene='empty';messages=[];historyOpen=false;
-    selectors.scenario.value=scene;apply();state.setFocus('workflow-ai-request');
-  },
-  onNewWorkflow(event){
-    if(!requireGesture(event))return;
-    messages=[];control('workflow-ai-request').value='';
-    showScene('empty');state.setFocus('workflow-ai-request');
-  },
-  input(id,value,event){
-    if(!requireGesture(event))return;
-    if(id==='workflow-https-protocol'){chooseProvider(value);return;}
-    control(id).value=value;
-    if(id==='workflow-ai-model'&&source!=='local_codex')apply();
-  },
-  click(id,event){
-    if(!requireGesture(event))return;
-    if(id==='workflow-provider-toggle'){
-      control('workflow-provider-settings').open=true;apply();return;
-    }
-    if(id==='workflow-source-local'){chooseProvider('local_codex');return;}
-    if(id==='workflow-source-https'){chooseProvider(lastHttps);return;}
-    if(id==='workflow-ai-plan'){
-      const request=control('workflow-ai-request').value.trim();
-      if(!request)return;
-      control('workflow-ai-request').value='';
-      messages=[...messages,{id:'preview-u-'+messages.length,speaker:'你',message:request},
-        {id:'preview-a-'+messages.length,speaker:'系统',
-          message:'离线预览未连接 Provider / RunHost，未执行浏览器任务。'}].slice(-24);
-      showScene('conversation',{keepRows:true});state.setFocus('workflow-ai-request');return;
-    }
-    if(id==='workflow-ai-cancel'){
-      messages=[...messages,{id:'preview-stop-'+messages.length,speaker:'系统',
-        message:'已结束预览中的规划状态，未发生真实执行。'}];
-      showScene('conversation',{keepRows:true});return;
-    }
-    if(id==='workflow-run-review-cancel'||id==='workflow-run-review-confirm'){
-      messages=[...messages,{id:'preview-review-'+messages.length,speaker:'系统',
-        message:id==='workflow-run-review-cancel'?'已取消预览操作；没有执行网页动作。'
-          :'离线预览无法请求 Chrome 权限或执行网页操作。'}];
-      showScene('conversation',{keepRows:true});return;
-    }
-    if(id==='workflow-ai-approve'||id==='workflow-ai-deny'){
-      messages=[...messages,{id:'preview-grant-'+messages.length,speaker:'系统',
-        message:id==='workflow-ai-deny'?'预览中已拒绝授权，未读取网页。'
-          :'授权按钮仅演示状态，不会发出真实网页摘要。'}];
-      showScene('conversation',{keepRows:true});return;
-    }
-    if(id==='workflow-edit-details'){
-      control('workflow-manage-panel').hidden=false;return;
-    }
-    if(id==='workflow-manage-close'){
-      control('workflow-manage-panel').hidden=true;return;
-    }
-  },
-  chooseExample(key,event,editDraft){
-    if(!requireGesture(event))return;
-    const instruction={
-      fill:'请填写表单并读回（预览不会执行）',read:'请只读提取网页信息（预览不会执行）',
-      continue:'请继续修改上次填写内容',check:'请检查当前网页'
-    }[key];
-    const outcome=appendWorkflowSuggestionDraft(control('workflow-ai-request').value,instruction);
-    if(['filled','appended'].includes(outcome.kind)){
-     editDraft?.(outcome);
-     control('workflow-ai-request').value=outcome.value;
-    }
-    state.setFocus('workflow-ai-request');
-    return outcome;
-  },
-  closeSettings
+ onHistory(event){if(!requireGesture(event))return;s.historyOpen=!s.historyOpen;apply();},
+ onOpenSavedHistory(key,event){if(requireGesture(event))simulation.openHistory(key);},
+ onNewSession(event){if(requireGesture(event)){simulation.newSession();if(!s.confirmation&&!s.historyOpen)state.setFocus('workflow-ai-request');}},
+ onNewWorkflow(event){if(requireGesture(event))simulation.newWorkflow();},
+ onFeedbackAction(id,event){if(!requireGesture(event))return;simulation.action(id);focusAfterAction(id);},
+  onConfirmNavigation(event){if(requireGesture(event)){simulation.confirmNavigation();if(!s.historyOpen&&!s.messages.length)requestAnimationFrame(()=>state.setFocus('workflow-ai-request'));}},
+ onCancelNavigation(){simulation.cancelNavigation();},
+ input(id,value,event){
+  if(!requireGesture(event))return;
+  if(id==='workflow-ai-request'){simulation.setDraft(value);control(id).value=value;return;}
+  control(id).value=value;
+  if(id==='workflow-title')simulation.editTitle(value);
+ },
+ click(id,event){
+  if(!requireGesture(event))return;
+  if(id==='workflow-ai-plan'){if(simulation.send())reveal('workflow-feedback');return;}
+  if(id==='workflow-ai-cancel'){simulation.action(['waiting','running','stopping'].includes(s.phase)?'stop':'cancel');reveal('workflow-feedback');return;}
+  if(id==='workflow-run'){simulation.action('run');reveal('workflow-feedback');return;}
+  if(id==='workflow-stop'){simulation.action('stop');reveal('workflow-feedback');return;}
+  if(id==='workflow-save'){simulation.save();reveal('workflow-feedback');return;}
+  if(id==='workflow-add-step'){simulation.addStep();return;}
+  if(id==='workflow-add-param'){simulation.addParam(control('workflow-new-param-name').value.trim());return;}
+  if(id==='workflow-edit-details'){s.manageOpen=true;apply();reveal('workflow-manage-panel');return;}
+  if(id==='workflow-manage-close'){s.manageOpen=false;apply();reveal('workflow-edit-details');return;}
+  if(id==='workflow-load'){simulation.openHistory(control('workflow-saved-list').value);return;}
+  if(id==='workflow-refresh'){s.notice='内存版本列表已刷新 · 没有读取安装存储';apply();return;}
+  if(id==='workflow-candidate'){simulation.action('handoff');reveal('workflow-feedback');return;}
+  if(id==='workflow-source-https'){providerSettings.updateSettings({source:lastHttps});return;}
+  if(id==='workflow-source-local'){providerSettings.updateSettings({source:'local_codex'});return;}
+ },
+ chooseExample(key,event,editDraft){
+  if(!requireGesture(event))return;
+  const instruction={fill:'请填写姓名为林小满，联系邮箱为 demo@example.test，读回核对，不提交。',
+   read:'请只读提取文章标题和正文，检查内容不为空。',check:'请检查表单姓名是否为林小满，不提交。',continue:'请继续修改上次填写内容。'}[key];
+  const outcome=appendWorkflowSuggestionDraft(s.draft,instruction);
+  if(['filled','appended'].includes(outcome.kind)){editDraft?.(outcome);s.draft=outcome.value;control('workflow-ai-request').value=outcome.value;}
+  state.setFocus('workflow-ai-request');return outcome;
+ },
+ editStep:simulation.editStep,moveStep:simulation.moveStep,removeStep:simulation.removeStep,
+ setParam:simulation.setParam,removeParam:simulation.removeParam,parameterizeStep:simulation.parameterizeStep
 };
 const app=mountSidebarApp(doc,{debugEnabled:true,onNavigate:()=>false,
-  developerView:createDeveloperView(),myView:createMyWorkbenchView(),
-  toolView:createSidebarToolsView(),providerSettings});
+ developerView:createDeveloperView(),myView:createMyWorkbenchView(),toolView:createSidebarToolsView(),providerSettings});
 app.connectWorkflowPage({...state,actions});
 const unsubscribeSettings=providerSettings.subscribeSettings(()=>{
- source=providerSettings.settingsSnapshot().source;
- apply();
+ const source=providerSettings.settingsSnapshot().source;if(source!=='local_codex')lastHttps=source;apply();
 });
-for(const button of doc.querySelectorAll('nav.workbench-nav button')){
-  if(button.dataset.workbenchTab!=='workflow'){
-    button.disabled=true;button.setAttribute('aria-disabled','true');
-  }
+for(const button of doc.querySelectorAll('nav.workbench-nav button'))if(button.dataset.workbenchTab!=='workflow'){
+ button.disabled=true;button.setAttribute('aria-disabled','true');
 }
-selectors.scenario.addEventListener('change',event=>showScene(event.target.value));
-selectors.width.addEventListener('change',event=>{
-  const width=Number(event.target.value);
-  if([320,360,400,420,440,520,640,768,960].includes(width))stage.style.width=width+'px';
+selectors.scenario.addEventListener('change',event=>{
+ const next=event.target.value;
+ simulation.navigate(()=>{cancelTimer();selectors.auto.checked=false;simulation.scene(next);if(next==='settings')app.openProviderSettings();});
+ selectors.scenario.value=s.scene;
 });
-selectors.theme.addEventListener('change',event=>{
-  stage.dataset.previewTheme=event.target.value==='dark'?'dark':'light';
-});
+selectors.auto.addEventListener('change',schedule);
+selectors.pausePlan.addEventListener('change',schedule);
+selectors.width.addEventListener('change',event=>{const width=Number(event.target.value);
+ if([320,360,400,420,440,520,640,768,960].includes(width))stage.style.width=width+'px';});
+selectors.theme.addEventListener('change',event=>{stage.dataset.previewTheme=event.target.value==='dark'?'dark':'light';});
 doc.documentElement.dataset.workflowPreviewReady='true';
-Object.defineProperty(window,'__workflowPreviewInfo',{configurable:true,
-  value:Object.freeze({sourceBound:true,native:false,provider:false,
-    runHost:false,permission:false,realResult:false})});
-showScene('empty');
+Object.defineProperty(window,'__workflowPreviewInfo',{configurable:true,value:Object.freeze({sourceBound:true,native:false,provider:false,
+ runHost:false,permission:false,realResult:false})});
+simulation.scene('empty');
 window.addEventListener('pagehide',()=>{
-  releaseSettingsViewport();unsubscribeSettings();app.dispose();state.dispose();providerSettings.dispose();
-  delete doc.documentElement.dataset.workflowPreviewReady;
-  delete window.__workflowPreviewInfo;
+ disposed=true;cancelTimer();releaseSettingsViewport();unsubscribeSettings();app.dispose();state.dispose();providerSettings.dispose();
+ delete doc.documentElement.dataset.workflowPreviewReady;delete window.__workflowPreviewInfo;
 },{once:true});

@@ -48,9 +48,10 @@ const componentInspectResult=({componentSource,framework,projectId,remoteModules
 });
 async function fixture(persisted={scripts:[],runs:[],results:[]}, draftStorage,
   {contextTabId,componentPreparerFactory,staticESMPreparerFactory,wrapTarget,
-    initialSource='return params.value;',browserCompilerEnabled=true}={}) {
+    initialSource='return params.value;',browserCompilerEnabled=true,confirmDecision=async()=>({action:'confirm'})}={}) {
   const view=new Element(), legacyDoc={getElementById(){assert.fail('controller fields must come from the view');},defaultView:view,createElement:()=>new Element()};
-  const projection=createDeveloperView();
+  // Ordinary-choice UI is stubbed here; management/React tests cover real cancellation.
+  const projection={...createDeveloperView(),requestConfirmation:confirmDecision};
   const find=developerTestFields(projection);
   find('script-id').value='my-script';find('script-source').value=initialSource;find('script-params').value='{"value":1}';
   const traces=[], permissions=[], permissionChecks=[], starts=[], executions=[], snapshots=[], commits=[], previews=[], dependencyInspections=[], notices=[], terminal=deferred();
@@ -123,7 +124,7 @@ async function fixture(persisted={scripts:[],runs:[],results:[]}, draftStorage,
     retired:Promise.resolve({acknowledged:true}),stop(){traces.push('local-stop');},close(){traces.push('local-close');}
   })})});
   await tick();
-  return {find,editor,client,target,persisted,api,view,permissions,permissionChecks,starts,executions,snapshots,commits,previews,traces,dependencyInspections,notices,
+  return {find,editor,client,target,persisted,api,view,projection,permissions,permissionChecks,starts,executions,snapshots,commits,previews,traces,dependencyInspections,notices,
     click:async id=>{find(id).fire('click',{isTrusted:true});await tick();},
     finish:async value=>{terminal.resolve({status:'succeeded',value:controlEncode(value)});await editor.host.completion;await tick();},
     setPermission:value=>{permission=value;},setSaveGate:value=>{saveGate=value;},setLoadGate:value=>{loadGate=value;},
@@ -2628,4 +2629,75 @@ test('R40.10.7 unchanged scalar React field projections reuse snapshots without 
   assert.equal(notifications,3);
   unsubscribe();
   model.dispose();
+});
+
+test('cancelling a library load keeps the current complete draft and causes no execution',async t=>{
+  const reviews=[],source='return "saved";';
+  const f=await fixture({scripts:[{scriptId:'other-script',revision:1,sourceUtf8:source,contentHash:sha256(source)}],runs:[],results:[]},undefined,
+    {confirmDecision:async options=>{reviews.push(options);return {action:'cancel'};}});
+  t.after(()=>f.dispose());
+  const original=f.find('script-source').value;
+  f.find('script-list').value='other-script';await f.click('script-list-load');
+  assert.equal(reviews.length,1);assert.match(reviews[0].message,/other-script/);
+  assert.equal(f.find('script-source').value,original);
+  assert.equal(f.find('script-id').value,'my-script');
+  assert.equal(f.starts.length,0);assert.equal(f.executions.length,0);assert.equal(f.commits.length,0);assert.equal(f.permissions.length,0);
+});
+
+test('cancelling a Page library load preserves the current draft and never claims success',async t=>{
+  const reviews=[],f=await fixture(undefined,undefined,{confirmDecision:async options=>{reviews.push(options);return {action:'cancel'};}});
+  t.after(()=>f.dispose());
+  const original=f.client.request;
+  const row={programId:'saved-page',revision:1,stage:'Candidate',manifestHash:'f'.repeat(64),
+    pageRules:{matches:['https://a.example/*'],excludeMatches:[],runAt:'document_idle',allFrames:false,world:'USER_SCRIPT'}};
+  f.client.request=async(method,input)=>{
+    if(method==='listPagePrograms')return {catalog:[row]};
+    if(method==='getPageCandidate')return {sourceUtf8:'async function main(){return "page";}'};
+    return original(method,input);
+  };
+  await f.click('page-program-refresh');for(let n=0;n<5;n++)await tick();
+  f.find('page-program-list').value='saved-page:1';f.find('page-program-list').fire('change');
+  const source=f.find('script-source').value;
+  await f.click('page-program-load');for(let n=0;n<5;n++)await tick();
+  assert.equal(reviews.length,1);assert.match(reviews[0].message,/saved-page/);
+  assert.equal(f.find('script-source').value,source);assert.equal(f.find('script-id').value,'my-script');
+  assert.match(f.find('page-program-status').textContent,/已取消/);
+  assert.equal(f.starts.length,0);assert.equal(f.previews.length,0);assert.equal(f.commits.length,0);assert.equal(f.permissions.length,0);
+});
+
+for(const change of ['navigation','source','identity'])
+test(`Page dependency restoration cannot override a later ${change} or announce stale success`,async t=>{
+  const f=await staticESMFixture(t);await f.page();
+  await f.click('script-run');await f.settle();
+  const frozen=f.compiled[0],original=f.client.request,gate=deferred(),restoring=deferred();
+  t.after(()=>gate.resolve());
+  const row={programId:'saved-esm',revision:1,stage:'Candidate',manifestHash:'f'.repeat(64),
+    pageRules:{matches:['https://a.example/*'],excludeMatches:[],runAt:'document_idle',allFrames:false,world:'USER_SCRIPT'}};
+  f.client.request=async(method,input)=>{
+    if(method==='listPagePrograms')return {catalog:[row]};
+    if(method==='getPageCandidate')return {sourceUtf8:'async function main(){return 7;}',authorSourceUtf8:f.sourceUtf8,
+      manifest:{compilation:{sourceFormat:'esm-page',authorSourceHash:sha256(f.sourceUtf8),
+        dependencyLockId:frozen.lockId,dependencyManifestDigest:frozen.manifestDigest}}};
+    if(method==='inspectPageDependencies'&&input.programId==='saved-esm'){
+      restoring.resolve();await gate.promise;
+    }
+    return original(method,input);
+  };
+  await f.world('esm-controller');
+  f.projection.navigate('library');
+  await f.click('page-program-refresh');for(let n=0;n<10;n++)await tick();
+  f.find('page-program-list').value='saved-esm:1';f.find('page-program-list').fire('change');
+  await f.click('page-program-load');await restoring.promise;
+  if(change==='navigation')f.projection.navigate('diagnostics');
+  else{
+    const field=f.find(change==='source'?'script-source':'script-id');
+    field.value=change==='source'?'// newer draft':'newer-id';field.fire('input');
+  }
+  gate.resolve();for(let n=0;n<20;n++)await tick();
+  assert.equal(f.projection.getSnapshot().section,change==='navigation'?'diagnostics':'library');
+  if(change==='source')assert.equal(f.find('script-source').value,'// newer draft');
+  if(change==='identity')assert.equal(f.find('script-id').value,'newer-id');
+  assert.equal(f.notices.some(row=>row.message.includes('已加载')),false);
+  assert.doesNotMatch(f.find('page-program-status').textContent,/已加载为/);
+  assert.equal(f.starts.length,0);assert.equal(f.previews.length,1);assert.equal(f.commits.length,0);
 });

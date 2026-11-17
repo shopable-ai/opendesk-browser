@@ -77,8 +77,46 @@ import {createRoot} from 'react-dom/client';
 import {createServer} from 'vite';
 import postcss from 'postcss';
 import {createSidebarToolsView} from '../../src/ui/sidebar-tools-view.js';
-import {mountWorkflowClient} from './workflow-mounted-ui.mjs';
+import {JSDOM} from 'jsdom';
 import {tick} from './workflow-react-fixture.mjs';
+
+// This ToolHost-only fixture needs real style queries, filtered TreeWalkers,
+// focus events and MutationObserver for the production React Aria modal.
+// Reuse the installed jsdom dependency rather than the Workflow shell's
+// linkedom fixture. It models DOM behavior, not layout, Chrome or permissions.
+function secondaryHeaderDOM(){
+  // BODY is an explicit focus destination in the window-blur scenario below.
+  const dom=new JSDOM('<!doctype html><html><body tabindex="-1"></body></html>',
+    {pretendToBeVisual:true,url:'https://secondary-header.test/'});
+  const {window}=dom;
+  // jsdom does not yet reflect inert. Preserve the shared fixture's attribute
+  // model so production isolation and [inert] focus guards see the same state.
+  Object.defineProperty(window.HTMLElement.prototype,'inert',{configurable:true,
+    get(){return this.hasAttribute('inert');},
+    set(value){this.toggleAttribute('inert',Boolean(value));}});
+  const globals={window,document:window.document,IS_REACT_ACT_ENVIRONMENT:true};
+  for(const key of ['Node','NodeFilter','Element','HTMLElement','SVGElement',
+    'HTMLInputElement','HTMLTextAreaElement','MutationObserver'])globals[key]=window[key];
+  for(const key of ['getComputedStyle','requestAnimationFrame','cancelAnimationFrame'])
+    globals[key]=window[key].bind(window);
+  const previous=new Map(Object.keys(globals).map(key=>
+    [key,Object.getOwnPropertyDescriptor(globalThis,key)]));
+  for(const [key,value] of Object.entries(globals))
+    Object.defineProperty(globalThis,key,{value,writable:true,configurable:true});
+  return {window,document:window.document,
+    async clickNode(node){
+      assert.ok(node,'mounted ToolHost control exists');
+      await React.act(async()=>{node.click();await tick();});
+    },
+    close(){
+      window.close();
+      for(const [key,descriptor] of previous){
+        if(descriptor)Object.defineProperty(globalThis,key,descriptor);
+        else delete globalThis[key];
+      }
+    }
+  };
+}
 
 test('R14 More dispatches captured scope and supports keyboard, disabled reasons and dismissal',async t=>{
   const vite=await createServer({configFile:false,root:process.cwd(),
@@ -86,7 +124,7 @@ test('R14 More dispatches captured scope and supports keyboard, disabled reasons
     server:{middlewareMode:true,ws:false,watch:null},logLevel:'error'});
   t.after(()=>vite.close());
   const {ToolHost}=await vite.ssrLoadModule('/src/ui/react/tabs/tool-host.tsx');
-  const f=await mountWorkflowClient({activeTab:'tools'});
+  const f=secondaryHeaderDOM();
   const view=createSidebarToolsView();
   for(const id of Object.keys(view.fields))view.patch(id,{hidden:true});
   view.patch('sidebar-tool-display',{hidden:false});
@@ -104,8 +142,8 @@ test('R14 More dispatches captured scope and supports keyboard, disabled reasons
     props={...props,...patch};root.render(React.createElement(ToolHost,props));await tick();
   });
   t.after(async()=>{
-    await React.act(async()=>{root.unmount();await tick();});
-    mount.remove();view.dispose();await f.close();
+    try{await React.act(async()=>{root.unmount();await tick();});}
+    finally{mount.remove();view.dispose();f.close();}
   });
   const patch=async(id,values)=>React.act(async()=>{view.patch(id,values);await tick();});
   const trigger=()=>mount.querySelector('#sidebar-tool-header-actions-trigger');
@@ -312,8 +350,10 @@ test('R14 More dispatches captured scope and supports keyboard, disabled reasons
       'original Back/title first-row reservation is retained at '+width);
     assert.equal(titleStyle['flex-basis'],undefined,'new title basis cannot override <=240px');
   }
+  const titleWithActions=declarations(title,320,true);
   await patch('sidebar-tool-header-actions',{hidden:true});
-  assert.equal(declarations(title,320,true)['min-width'],'0','optional slot does not restyle legacy headers');
+  assert.deepEqual(declarations(title,320,true),titleWithActions,
+    'hiding the optional slot preserves the shared readable title reservation');
   await patch('sidebar-tool-header-actions',{hidden:false});
   const inline=()=>mount.querySelector('.sidebar-tool-header-inline-actions');
   const direct=()=>[...inline().querySelectorAll('button')];

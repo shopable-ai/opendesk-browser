@@ -91,21 +91,26 @@ test('Developer static controls all use shared roles; important IDs and ARIA lin
   for (const id of [
     'local-project-mode', 'local-project-refresh', 'local-project-guide',
     'script-source', 'program-new-script', 'script-history-run', 'script-copy-result',
-    'script-read-run', 'script-download', 'script-run', 'script-stop',
+    'script-read-run', 'script-download', 'script-run',
     'sdk-install', 'sdk-revoke', 'page-component-framework'
   ]) assert.match(html, new RegExp('\\bid="' + id + '"'));
+  // Stop is mounted only while a run can be stopped. The mounted developer
+  // interaction test exercises its single action owner and dispatch.
+  assert.doesNotMatch(html, /\bid="script-stop"/);
   assert.match(element(dev, 'div', 'developer-source-switch'), /\bod-page-head\b/);
-  assert.ok(dev.indexOf('id="developer-source-switch"') < dev.indexOf('id="developer-target-detail"'),
-    'developer header must remain before current page details');
+  const $ = load(dev);
+  assert.equal($('.developer-context #developer-source-switch').length, 1);
+  assert.equal($('.developer-context #developer-target-detail').length, 1,
+    'source selection and live page identity keep the same context owner');
   assert.match(element(dev, 'button', 'program-new-script'), /\bhidden\b/);
   assert.match(element(dev, 'button', 'program-new-script'), /\bod-icon-button\b/);
   assert.match(element(dev, 'button', 'program-new-script'), /\btitle="[^"]+"/);
   assert.match(element(dev, 'button', 'local-project-refresh'), /\bod-icon-button\b/);
-  assert.match(element(dev, 'button', 'script-copy-result'), /\bod-icon-button\b/);
+  assert.match(element(dev, 'button', 'script-copy-result'), /\bod-button--quiet\b/);
   assert.match(element(dev, 'button', 'script-copy-result'), /\bdisabled\b/);
   assert.match(element(dev, 'button', 'script-read'), /\bod-icon-button\b/);
   assert.match(element(dev, 'details', 'local-project-guide'), /\bod-disclosure--info\b/);
-  assert.match(element(dev, 'details', 'developer-results-panel'), /\bod-disclosure\b/);
+  assert.match(element(dev, 'section', 'developer-results-panel'), /\baria-label="运行结果"/);
   assert.match(element(dev, 'textarea', 'script-source'), /\bod-field\b/);
   assert.match(dev, /<label\b[^>]*\bfor="script-source"/);
   assert.match(element(dev, 'section', 'local-install-review'), /\bhidden\b/);
@@ -128,13 +133,23 @@ test('Shared components own normal visual appearance; business CSS retains only 
     '--space-2', '--space-3', '--radius-control', '--radius-surface'])
     assert.ok(tokens.includes(property + ':'), 'No source token: ' + property);
   for (const selector of ['.local-project-controls button',
-    '#script-source',
     '#program-source-info', '.workflow-card', '.workflow-icon-button']) {
     const body = declarations(selector);
     assert.doesNotMatch(body, /(?:^|;)\s*(?:background|border(?:-[\w-]+)?|color|padding(?:-[\w-]+)?):/,
       'Legacy appearance override still present in ' + selector);
     assert.doesNotMatch(body, /![ \t]*important/, 'Important appearance override: ' + selector);
   }
+  // The code editor intentionally sits inside its own framed filename/toolbar
+  // surface. Audit its current scoped rule, not the retired bare ID selector.
+  const editor = declarations('#workbench-develop #script-source');
+  assert.match(editor, /resize:vertical/);
+  assert.match(editor, /overflow:auto/);
+  assert.match(editor, /white-space:pre/);
+  assert.doesNotMatch(editor, /(?:^|;)\s*color:|!\s*important/,
+    'editor geometry must retain shared text, disabled and readonly semantics');
+  assert.equal(load(html)('.developer-editor-card > #script-source.od-field').length, 1);
+  assert.doesNotMatch(shell, /\.developer-text-button/,
+    'text actions must consume the existing shared quiet button');
   assert.doesNotMatch(shell, /\.program-source-toolbar #program-new-script\{/);
   assert.doesNotMatch(shell, /#workbench-develop\s+#local-project-guide>summary/);
   assert.doesNotMatch(shell, /#workbench-develop\s+\.developer-editor>details>summary/);
@@ -148,31 +163,48 @@ test('Shared components own normal visual appearance; business CSS retains only 
     'A later panel rule must not restore fixed desktop action columns');
 });
 
-test('Developer disclosure headers share the Run Result surface; nested diagnostics remain lightweight', () => {
+test('Developer disclosures share headers; continuous results and management retain their owners', () => {
   const dev = section('workbench-develop', 'workbench-debug');
   for (const id of [
-    'developer-target-detail', 'developer-results-panel',
-    'developer-run-technical', 'developer-program-management', 'tool-diagnostics'
+    'developer-target-detail', 'developer-run-technical', 'tool-diagnostics'
   ]) {
     const tag = element(dev, 'details', id);
     assert.ok(has(tag, 'od-disclosure'), 'Missing shared disclosure: ' + id);
-    assert.ok(!has(tag, 'od-disclosure--flat'), 'First-level section must match Run Result: ' + id);
+    assert.ok(!has(tag, 'od-disclosure--flat'), 'First-level disclosure retains its shared surface: ' + id);
   }
   const $ = load(dev);
+  const results = $('section#developer-results-panel');
+  assert.equal(results.length, 1);
+  assert.equal(results.find('h2').text(), '运行结果');
+  assert.equal(results.find('#script-result.od-result').length, 1);
+  assert.equal(results.find('summary, #script-history-panel').length, 0,
+    'current results remain visible without another toggle or history owner');
+  assert.equal($('div#developer-program-management').length, 1);
+  assert.equal($('#developer-program-management > summary').length, 0);
   for (const id of ['page-preview-tools', 'script-library-tools']) {
     const panel = $('section#' + id);
     assert.equal(panel.length, 1, 'Management controls remain a section: ' + id);
     assert.ok(panel.hasClass('developer-management-section'));
-    assert.equal(panel.children('h3').length, 1, 'Section has a visible heading: ' + id);
+    assert.ok(panel.find('h3, label').text().trim(), 'Management controls retain readable labels: ' + id);
     assert.equal(panel.children('summary').length, 0, 'Expanded section has no disclosure header: ' + id);
   }
   for (const id of [
     'page-dependency-panel', 'program-generated', 'script-history-panel',
     'page-preview-technical-panel', 'task-package-dev', 'site-access',
-    'manual-project-params-tools', 'script-advanced'
+    'script-advanced'
   ])
     assert.ok(has(element(dev, 'details', id), 'od-disclosure--flat'),
       'Nested technical disclosure should not create another card: ' + id);
+  assert.equal($('div#manual-project-params-tools.od-form-field').length, 1);
+  assert.equal($('#manual-project-params-tools label[for="script-params"]').length, 1);
+  for (const selector of ['#developer-target-detail', '.developer-options']) {
+    for (const panel of $(selector).toArray()) {
+      assert.ok($(panel).hasClass('od-disclosure--icon'));
+      assert.equal($(panel).children('summary').length, 1);
+      assert.equal($(panel).find('> summary > .od-disclosure-chevron').length, 1,
+        'one chevron consumes the existing shared open/closed styling');
+    }
+  }
   const summary = components.match(/\.od-disclosure>summary\{([^}]*)\}/)?.[1] || '';
   for (const rule of [
     'display:flex', 'align-items:center', 'flex-wrap:wrap',
@@ -215,12 +247,14 @@ test('R31 detects view-owned public disclosure appearance from parsed CSS declar
   }
   assert.match(components, /\.od-disclosure>summary:hover\{background:var\(--od-muted\)\}/);
   assert.match(components, /\.od-disclosure--flat:is\(:not\(\[open\]\),\[open\]\)>summary:hover/);
-  for (const id of ['developer-target-detail','developer-results-panel','cloud-hosting','task-history-panel'])
+  for (const id of ['developer-target-detail','cloud-hosting','task-history-panel'])
     assert.ok(has(element(html,'details',id),'od-disclosure'), 'Shared Tab primitive: ' + id);
   const developer = section('workbench-develop', 'workbench-debug');
   assert.match(developer, /class="developer-context od-stack"/);
   assert.match(developer, /class="developer-run-area od-stack"/);
-  assert.match(shell, /#workbench-develop \.developer-editor\{display:grid;gap:var\(--space-4\)/);
+  assert.match(shell, /#workbench-develop \.developer-editor\{display:grid;gap:var\(--space-2\)/);
+  assert.match(shell, /#workspace-content #workbench-develop\{display:grid;gap:var\(--space-4\)/,
+    'independent sections retain the outer 16px rhythm');
 });
 test('Other formal tabs reuse shared actions without restyling their unique filters', () => {
   for (const [id,variant] of [

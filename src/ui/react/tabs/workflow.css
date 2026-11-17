@@ -1,0 +1,103 @@
+/* Workflow presentation only; shared primitives and tokens keep their owners. */
+#workbench-workflow .workflow-feedback {
+  min-width: 0;
+  margin-block: var(--space-2);
+  padding: var(--space-3);
+  border: 1px solid var(--od-line);
+  border-inline-start: var(--space-1) solid var(--od-accent-ink);
+  border-radius: var(--radius-surface);
+  background: var(--od-paper);
+  color: var(--od-ink);
+  overflow-wrap: anywhere;
+}
+
+#workbench-workflow .workflow-feedback[data-tone="error"] {
+  border-inline-start-color: var(--od-negative);
+}
+
+#workbench-workflow .workflow-feedback[data-tone="warning"] {
+  border-inline-start-color: var(--od-warning);
+}
+
+#workbench-workflow .workflow-feedback[data-tone="success"] {
+  border-inline-start-color: var(--od-positive);
+}
+
+#workbench-workflow .workflow-feedback h3 {
+  margin: 0;
+  font-size: var(--od-body-size);
+}
+
+#workbench-workflow .workflow-feedback p,
+#workbench-workflow .workflow-welcome-suggestions p,
+#workbench-workflow .workflow-plan-label {
+  margin: var(--space-2) 0;
+  font-size: var(--od-note-size);
+  line-height: 1.55;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+
+#workbench-workflow .workflow-welcome-suggestions,
+#workbench-workflow .workflow-plan-label {
+  min-width: 0;
+  color: var(--od-sub);
+}
+
+#workbench-workflow .workflow-welcome-suggestions {
+  padding-block: var(--space-2);
+}
+
+#workbench-workflow .workflow-feedback-actions,
+#workbench-workflow .workflow-suggestion-actions,
+#workbench-workflow .workflow-history-navigation {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+  min-width: 0;
+}
+
+#workbench-workflow .workflow-feedback-actions .od-button,
+#workbench-workflow .workflow-suggestion-actions .od-button {
+  min-width: 0;
+  max-width: 100%;
+  height: auto;
+  white-space: normal;
+  overflow-wrap: anywhere;
+  text-align: start;
+}
+
+/* Keep every real step summary readable without a nested clipped list. */
+#workbench-workflow .workflow-steps {
+  max-height: none;
+  overflow: visible;
+}
+
+#workbench-workflow .workflow-step > summary,
+#workbench-workflow .workflow-bundle-summary,
+#workbench-workflow .workflow-history-row-title {
+  min-width: 0;
+  white-space: normal;
+  overflow-wrap: anywhere;
+  text-overflow: clip;
+}
+
+#workbench-workflow #workflow-plan-panel:focus-visible,
+#workbench-workflow #workflow-params-panel:focus-visible,
+#workbench-workflow #workflow-manage-panel:focus-visible,
+#workbench-workflow #workflow-feedback:focus-visible,
+#workbench-workflow #workflow-history-panel:focus-visible {
+  outline: 2px solid var(--od-focus);
+  outline-offset: 2px;
+}
+
+@media (max-width: 360px) {
+  #workbench-workflow .workflow-feedback {
+    padding: var(--space-2);
+  }
+
+  #workbench-workflow .workflow-feedback-actions .od-button,
+  #workbench-workflow .workflow-suggestion-actions .od-button {
+    flex: 1 1 100%;
+  }
+}

@@ -40,7 +40,7 @@
   "projects/ai-proxy/src/styles/style.css": "619462108d2f6b93d74e85549b16de11630a27ae",
   "projects/ai-proxy/src/subscription/download.ts": "787a707be1bff1311e3f9a737912d193c796489f",
   "projects/ai-proxy/src/subscription/parser.ts": "efa8dae9aa079f2fb995c2e4488bde910936990e",
-  "projects/ai-proxy/src/ui/DiagnosticsPage.tsx": "5302ebbaa3f176e43485dca4345955e9ee21279a",
+  "projects/ai-proxy/src/ui/DiagnosticsPage.tsx": "41b0aa987dec838a49b5f9c4b7ef3a18adf9d313",
   "projects/ai-proxy/src/ui/FormField.tsx": "1f9bcf20be1740c0c5df65d13ee5e7ac81428d24",
   "projects/ai-proxy/src/ui/HeaderActionsEditor.jsx": "790d31cd0f20c1793d9ee4493f322eb9b5980029",
   "projects/ai-proxy/src/ui/OfficialServicePage.tsx": "c526f9a343a87d4f007c4044e406bd7c2808bac5",

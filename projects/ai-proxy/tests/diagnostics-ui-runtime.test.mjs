@@ -541,12 +541,23 @@ test('favorite failure stays visible, duplicate writes are locked, and late writ
  result.buttons.find(item=>item['aria-label']==='diagAddFavorite').onClick();result.unmount();finish({ok:true,diagnostics:emptySnapshot()});await tick();assert.equal(result.lateUpdates,0);
 });
 
-test('quick busy-only operations disable checks without inventing a diagnostic run',async()=>{
- const result=render({presentation:'quick',busy:true,httpDiagnostics:true,dispatch:async()=>({ok:true,diagnostics:emptySnapshot()})});
+for(const presentation of ['quick','sidebar','management'])test(`${presentation} busy-only operations disable checks without inventing a diagnostic run`,async()=>{
+ const result=render({presentation,panel:'ai',busy:true,httpDiagnostics:true,dispatch:async()=>({ok:true,diagnostics:emptySnapshot()})});
  result.flushEffects();await tick();result.rerender();
- assert.equal(button(result,'pcDiagCheckCurrent').disabled,true);
- assert.doesNotMatch(result.html,/diagRunning|diagCancel/);
+ assert.equal(button(result,presentation==='quick'?'pcDiagCheckCurrent':'diagTestOne').disabled,true);
+ assert.doesNotMatch(result.html,/diagRunning|diagCancel|diagnosticRunProgress/);
  assert.ok(result.commands.every(command=>command.type==='GET_DIAGNOSTICS'));result.unmount();
+});
+
+for(const presentation of ['quick','sidebar','management'])for(const busy of [false,true])test(`${presentation} active diagnostics retain cancellation with busy=${busy}`,async()=>{
+ const snapshot={...emptySnapshot(),activeRun:{startedAt:Date.now(),completed:0,total:1}};
+ const result=render({presentation,panel:'ai',busy,httpDiagnostics:true,snapshot,dispatch:async()=>({ok:true,diagnostics:emptySnapshot()})});
+ assert.equal(button(result,presentation==='quick'?'pcDiagCheckCurrent':'diagTestOne').disabled,true);
+ assert.notEqual(button(result,'diagCancel').disabled,true);
+ assert.match(result.html,/diagRunning/);
+ assert.deepEqual(result.commands,[],'rendering an active run must not start another request');
+ button(result,'diagCancel').onClick();await tick();
+ assert.deepEqual(result.commands.map(command=>command.type),['CANCEL_DIAGNOSTICS']);result.unmount();
 });
 
 test('quick manual site refresh recovers an unavailable diagnostic target without a page event or HTTP check',async()=>{

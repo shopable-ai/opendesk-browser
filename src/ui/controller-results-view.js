@@ -20,7 +20,7 @@ export function createControllerResultsView({host,view,resultDownloads,isDispose
     if(currentTask?.runId!==run?.runId)++snapshotSequence;
     currentTask = run;
     patchDeveloperField(view,find('script-task-id'),{textContent:run ? `runId：${run.runId}` : '尚未运行'});
-    patchDeveloperField(view,find('script-task-status'),{textContent:run ? `${stateLabels[run.state] || run.state} · ${run.retirementState === 'released' ? '资源已释放' : '以后台回执为准'}` : ''});
+    patchDeveloperField(view,find('script-task-status'),{data:{state:run?.state||'idle'},textContent:run ? `${stateLabels[run.state] || run.state} · ${run.retirementState === 'released' ? '资源已释放' : '以后台回执为准'}` : ''});
     patchDeveloperField(view,find('script-task-version'),{textContent:run?.revision
       ? run.sourceKind === 'draft' || run.revision.kind === 'draft'
         ? `草稿快照 · SHA-256 ${run.revision.sourceHash}`
@@ -70,7 +70,7 @@ export function createControllerResultsView({host,view,resultDownloads,isDispose
     }
     onUpdate();
     const focused = snapshot.run || currentTask;
-    onStatus('results', focused ? '任务状态：' : '已读取持久结果');
+    onStatus('results', focused ? stateLabels[focused.state] || focused.state : '已读取运行记录');
     // The result is the decoded value, not runId/revision/sourceHash/transport metadata.
     // Authorized technical history stays available in the existing collapsed panel.
     setResultText(formatControllerRunResult(values, focused?.runId, snapshot.resultDeliveryDenied));

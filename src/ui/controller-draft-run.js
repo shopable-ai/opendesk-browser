@@ -5,6 +5,7 @@ import {parseUserScriptDependencies} from '../scripting/user-scripts/dependency-
 import {parseControllerClassicDependencies} from '../scripting/user-scripts/controller-classic.js';
 import {hasUnbuiltESM} from './esm-source-detector.js';
 import {requireChromePermissions} from '../platform/chrome/permission-gate.js';
+import {CONTROLLER_DRAFT_DEFAULT_DEADLINE_MS,CONTROLLER_DRAFT_MAX_DEADLINE_MS} from '../platform/controller-deadlines.js';
 
 // Runs only the current Controller draft; it never saves, installs, or selects a revision.
 export const controllerESMInput=(source,id)=>({componentSource:source,framework:'controller',programId:id});
@@ -45,9 +46,9 @@ export function createControllerDraftRun({client,api,host,currentPageTarget,prog
       // before any asynchronous permission check or other work.
       chosen = captureCurrentPage(); params = JSON.parse(find('script-params').value);
       sourceUtf8 = programSource.source();
-      deadlineMs=Number(find('script-draft-deadline-ms')?.value??30000);
-      if(!Number.isSafeInteger(deadlineMs)||deadlineMs<1000||deadlineMs>120000)
-        throw {code:'E_ARGUMENT_TYPE',message:'Controller 草稿最长运行时间须为 1–120 秒'};
+      deadlineMs=Number(find('script-draft-deadline-ms')?.value??CONTROLLER_DRAFT_DEFAULT_DEADLINE_MS);
+      if(!Number.isSafeInteger(deadlineMs)||deadlineMs<1000||deadlineMs>CONTROLLER_DRAFT_MAX_DEADLINE_MS)
+        throw {code:'E_ARGUMENT_TYPE',message:'Controller 草稿最长运行时间须为 1 秒至 24 小时'};
       if (programSource.kind() === 'page-userscript') throw {code:'E_PROGRAM_KIND',message:'这是网页 JavaScript 项目，请使用“在当前网页试运行”'};
       if (!sourceUtf8.trim()) throw {code:'E_SCHEMA',message:'请先输入草稿源码'};
       if (parseUserScriptDependencies(sourceUtf8).hasHeader) throw {code:'E_PROGRAM_KIND',
@@ -84,9 +85,9 @@ export function createControllerDraftRun({client,api,host,currentPageTarget,prog
       const check=()=>{
         if(isDisposed()||ticket!==generation||programSource.source()!==authorSourceUtf8||
           scriptId()!==id||programSource.kind()!==runKind||!isControllerDraft()||
-          Number(find('script-draft-deadline-ms')?.value??30000)!==deadlineMs)
+          Number(find('script-draft-deadline-ms')?.value??CONTROLLER_DRAFT_DEFAULT_DEADLINE_MS)!==deadlineMs)
           throw {code:esm?'E_CONTROLLER_ESM_STALE':classic?'E_CONTROLLER_CLASSIC_STALE':'E_CONTROLLER_DRAFT_STALE',
-            message:'源码、程序或运行模式已变化；不会启动过期 Controller 草稿'};
+            message:'源码、程序或运行选项已变化；不会启动过期 Controller 草稿'};
       };
       check();
       if(esm){

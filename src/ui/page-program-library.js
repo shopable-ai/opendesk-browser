@@ -94,7 +94,7 @@ export function createPageProgramLibrary({client,currentPageTarget,api,document:
   });
   listen(select,'change',()=>{void readAccess().catch(showError);});
   operation('refresh',async()=>{await refresh();return '已读取持久版本和授权状态。';});
-  operation('load',async row=>{if(!row)throw new Error('请选择已保存版本');await onLoad(row);return '已载入固定 Page 源码；编辑不会修改已安装版本。';});
+  operation('load',async row=>{if(!row)throw new Error('请选择已保存版本');const loaded=await onLoad(row);return loaded===false?'已取消加载，草稿保持不变。':'已载入固定 Page 源码；编辑不会修改已安装版本。';});
   operation('verify',async row=>{
     if(!row)throw new Error('请选择已保存版本');
     const captured=currentPageTarget.capture();await requireChromePermissions({api,request:requestFor(row)});assertOpen();

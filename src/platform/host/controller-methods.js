@@ -1,4 +1,5 @@
 import {CONTROLLER_SOURCE_LIMIT,TASK_PACKAGE_LIMIT} from '../source-budgets.js';
+import {CONTROLLER_DRAFT_MAX_DEADLINE_MS} from '../controller-deadlines.js';
 import {assertTaskDelegationApp,readTaskDelegationApp} from '../tasks/delegation-installation.js';
 import {assertAppControllerBinding} from '../tasks/app-controller-installation.js';
 import {validateTaskParams} from '../tasks/contract.js';
@@ -1381,6 +1382,8 @@ export function controllerMethods({storage, api, session, clock, assertHost, cur
       request.deadlineAt=requestedPreparation.deadlineAt??admissionStartedAt+requestedPreparation.executionDeadlineMs;
     }
     invariant(Number.isSafeInteger(request.deadlineAt) && request.deadlineAt > now(), CONTROLLER_TIMEOUT_ERROR);
+    if(isDraft)invariant(request.deadlineAt<=admissionStartedAt+CONTROLLER_DRAFT_MAX_DEADLINE_MS,
+      CONTROLLER_TIMEOUT_ERROR,'Controller draft deadline exceeds 24 hours');
     const sourceHash = frozenSource ? await digestUtf8(draftSourceUtf8) : saved.contentHash;
     let requestDigest = await digest(request, wireCanonicalOptions);
     const pageRequest=requestedPreparation?.pageRequestId?await tx(RUN_READ,transaction=>

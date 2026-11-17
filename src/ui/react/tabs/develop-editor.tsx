@@ -10,7 +10,7 @@ export function DevelopContextHeader(){
   return (
         <div className="developer-context od-stack">
           <section aria-label="当前网页" className="developer-target">
-            <DevelopField as="details" id="developer-target-detail" className="developer-target-card">
+            <DevelopField as="details" id="developer-target-detail" className="developer-target-card od-disclosure od-disclosure--icon">
               <summary className="developer-page-summary">
                 <span className="developer-target-icon"><DevelopIcon name="globe"/></span>
                 <span className="developer-target-copy">
@@ -19,7 +19,7 @@ export function DevelopContextHeader(){
                   <DevelopField as="span" id="script-current-page-host" title="当前活动网页" data-opendesk-react-owner="developer-target-host">正在识别…</DevelopField>
                 </span>
                 <DevelopField as="span" id="script-current-page-status" role="status" aria-live="polite" data-state="resolving">检查中</DevelopField>
-                <DevelopIcon name="chevron"/>
+                <DevelopIcon name="chevron" className="od-disclosure-chevron"/>
               </summary>
               <div className="developer-page-detail">
                 <DevelopField as="p" id="script-current-page-url" className="identity"/>
@@ -56,6 +56,7 @@ export function DevelopSourceEditor({view,actions,locale='zh-CN'}){
   const {fields}=React.useSyncExternalStore(view.subscribe,view.getSnapshot,view.getSnapshot);
   const framework=fields['page-component-react'].checked?'react':fields['page-component-vue'].checked?'vue':'javascript';
   const page=fields['script-javascript-world'].value==='page';
+  const longDraftRun=Number(fields['script-draft-deadline-ms'].value)>=60*60*1000;
   const readOnly=fields['script-source'].readOnly;
   const filename=readOnly?(fields['program-source-files'].value||'program.js')
     :framework==='react'?'App.jsx':framework==='vue'?'App.vue':page?'page.js':'main.js';
@@ -132,12 +133,13 @@ export function DevelopSourceEditor({view,actions,locale='zh-CN'}){
           <p id="developer-environment-hint" className="od-field-help">
             {framework==='react'?'React 组件显示在网页；点击运行才执行。':framework==='vue'?'Vue 组件显示在网页；点击运行才执行。':page?'使用 document 修改网页；点击运行才执行。':'使用 page 操作网页；点击运行才执行。'}
           </p>
+          {!readOnly&&<p className="od-field-help" id="developer-draft-help">草稿未自动保存；关闭或刷新后不恢复。请用「保存脚本」保留版本。</p>}
 
           </div>
           <DevelopField as="p" id="page-component-status" role="status" aria-live="polite"/>
           <DevelopField as="p" id="page-preview-status" role="status"/>
           <div className="developer-source-options od-stack">
-          <details className="developer-run-options developer-options">
+          <details className="developer-run-options developer-options od-disclosure od-disclosure--icon">
             <DevelopOptionsSummary optional>运行选项</DevelopOptionsSummary>
             <div className="developer-option-body od-stack">
               <DevelopField as="div" id="manual-project-params-tools" className="developer-params od-form-field">
@@ -146,8 +148,17 @@ export function DevelopSourceEditor({view,actions,locale='zh-CN'}){
               </DevelopField>
               <DevelopField as="div" id="script-draft-deadline-row" className="od-form-field">
                 <label htmlFor="script-draft-deadline-ms" className="od-field-label">下次草稿最长运行时间</label>
-                <DevelopField as="select" id="script-draft-deadline-ms" className="od-field"/>
-                <p className="od-field-help">仅用于下一次 Controller 草稿；已安装任务沿用安装时声明的期限。</p>
+                <DevelopField as="select" id="script-draft-deadline-ms" className="od-field"
+                  aria-describedby={longDraftRun?'script-draft-deadline-help script-draft-deadline-note':'script-draft-deadline-help'}/>
+                <p id="script-draft-deadline-help" className="od-field-help">仅用于下一次自动化草稿，运行开始后期限固定。已安装任务沿用安装时声明的期限。</p>
+                <p id="script-draft-deadline-note" className="od-field-help" role="status" aria-live="polite" hidden={!longDraftRun}>长时运行请保持浏览器和当前运行页面打开，并让电脑保持唤醒。关闭运行页面会终止草稿。</p>
+                <details className="od-disclosure od-disclosure--flat">
+                  <summary>长时间等待说明</summary>
+                  <div className="od-stack">
+                    <p className="od-field-help">总运行时间包含等待时间。单次 Locator 等待默认 30 秒；需要更久时，可在代码中设置 <code>timeout: 0</code>，等待仍受草稿总期限和「停止」控制。</p>
+                    <p className="od-field-help">侧栏持有的草稿会在关闭侧栏时终止；切换产品 Tab 不会终止运行。此设置不提供浏览器关闭或电脑休眠期间的持续执行。</p>
+                  </div>
+                </details>
               </DevelopField>
           <div className="od-stack" hidden={!page&&framework==='javascript'}>
             <DevelopField as="h3" id="page-preview-mode-title" className="od-field-label"/>
