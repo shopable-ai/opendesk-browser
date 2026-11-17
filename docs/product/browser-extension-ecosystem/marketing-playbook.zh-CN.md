@@ -2,6 +2,8 @@
 
 **营销主文档的当前上限是 M0**：可信 AI-first 产品方向，而不是已被证明的“全球首个、最安全、最快、全球 TOP5”。[更全面的 TOP 20 / 84 OPP](global-first-r5-portfolio.zh-CN.md)、[真实竞品时间线](competitor-timeline.json)、[GF 审批](first-claims-ledger.json)、[公平比较计划](../../framework/workstreams/evidence/global-first-r5-20261013/benchmark-contract.json) 应作为每一次对外说明的依据。
 
+**内容营销宇宙执行规则**：选题扩展、竞品内容集群、搜索意图映射、文章生产和 SEO/GEO 更新统一遵循 [GreyDove Marketing Universe](content-marketing-universe.zh-CN.md)。本规则补充内容运营方法，不替代本手册的 M0–M3 宣传边界、竞品证据和唯一声明审批流程。
+
 ## 首屏给用户的三个备选定位（不同受众，不同时宣称独家）
 
 | 目标用户 | 中文 M0（方向与条件） | English M0（positioning, not certified product release） | CTA 必须指向 |
