@@ -1,0 +1,121 @@
+{
+  "date": "2026-11-17",
+  "owner": "projects/ai-proxy/",
+  "branch": "main",
+  "phase": "bounded core development; no production acceptance",
+  "goalAndConditions": "../progress/CORE-UI-GOAL-20261117.zh-CN.md",
+  "previousReusableEvidence": "ui-followup-20261117.json",
+  "implementation": {
+    "defect": "Full sidebar and management diagnostic pages treated generic busy as a diagnostic run, showing false progress and Cancel.",
+    "reproduction": "Real DiagnosticsPage render: quick busy-only passed; sidebar and management busy-only failed before the source edit.",
+    "fix": "diagnosticRunning = running || activeRun; locked = busy || diagnosticRunning. Only diagnosticRunning controls run status/progress/Cancel; existing operation guards remain.",
+    "source": "src/ui/DiagnosticsPage.tsx",
+    "trustedSourceLock": "Only this reviewed source pin updated: 41b0aa987dec838a49b5f9c4b7ef3a18adf9d313",
+    "serviceNetworkPermissionsChanged": false,
+    "independentReview": "Read-only test-engineer found no blocking regression; its busy + activeRun coverage suggestion was included."
+  },
+  "verification": {
+    "diagnosticsComponent": {
+      "command": "node --test projects/ai-proxy/tests/diagnostics-ui-runtime.test.mjs",
+      "passed": 44,
+      "failed": 0,
+      "scope": "Three presentations busy-only; activeRun with busy false/true permits exactly one cancel dispatch; existing cancellation/late RUN/GET/current-context/favorites regressions.",
+      "boundary": "Real component transformed with React hook/request substitutes, not browser e2e."
+    },
+    "sourceProtection": {
+      "command": "node --test --test-name-pattern='trusted AI Proxy' tests/environment/bundle-provenance.test.mjs",
+      "passed": 2,
+      "failed": 0
+    },
+    "packageProtection": {
+      "command": "node --test --test-name-pattern='tool contract is independent|portable Sidebar Tool builds|promotion rejects same-version' tests/environment/sidebar-tools.test.mjs",
+      "passed": 3,
+      "failed": 0
+    },
+    "trustedSourceVerification": "PASS verifyTrustedAIProxySources",
+    "projectBuild": "PASS npm run build --prefix projects/ai-proxy",
+    "canonicalCandidateValidation": "PASS validateSidebarToolPackage; same ID, capabilities, requires",
+    "promotion": "PASS original --out > gates > --promote-from > --check-project",
+    "lateServiceAndEnvironmentCoverage": "Existing network-diagnostics/favorite-http-runtime tests inspected and reused; not rerun because service/environment inputs unchanged.",
+    "notRun": [
+      "root full suite",
+      "full Browser build",
+      "production",
+      "95+ scoring",
+      "pressure or cross-version matrix",
+      "AI login/model"
+    ]
+  },
+  "nativeSameInstanceCancellation": {
+    "status": "PASS_WITH_SCOPE",
+    "taskSpace": 129,
+    "installedVersion": "0.3.30",
+    "target": "https://www.gnu.org/",
+    "newExplicitRequests": 1,
+    "cancelClicks": 1,
+    "actions": [
+      "Opened the installed AI Proxy from the original Extensions entry on the owned public GNU tab.",
+      "Clicked current-site check once; observed disabled Check, 正在检测 and a single 取消检测 control.",
+      "Clicked that freshly observed cancel control once; progress disappeared and Check became enabled.",
+      "Without navigation, reload or remount, later observed the same quick panel and GNU root still 尚未测试 with no HTTP receipt."
+    ],
+    "noRemountObserved": true,
+    "newFixWasRunning": false,
+    "boundary": "This validates current installed UI cancel behavior, not the new busy-only source fix, actual arrival/discard of a late network response, or transport abort."
+  },
+  "package": {
+    "previousVersion": "0.3.31",
+    "version": "0.3.32",
+    "file": "ai-proxy.opendesk-tool.json",
+    "bytes": 716952,
+    "sha256": "3ae522a33c4a1e6c07cb4355b9f1bda02b055e23e1f3ecdb902350fd7cf94c52",
+    "sameIdCapabilitiesRequires": true,
+    "formalEqualsCandidateAndCurrentBuild": true,
+    "installed": false
+  },
+  "currentRuntime": {
+    "mode": "existing serve-generated development output",
+    "path": "/Users/shopme/Documents/workspace/opendesk-browser/dist/development",
+    "extensionId": "ccfcjegpkdlgbclopjmadlcjedelidmf",
+    "installedVersion": "0.3.30",
+    "fixedTrustedBundleRebuilt": false,
+    "newBusyOnlyNativeStatus": "NOT_TESTED",
+    "boundary": "JSON upgrade cannot replace the fixed trusted Browser code. Existing runtime fingerprint/resource evidence remains in previousReusableEvidence; no fresh fingerprint claimed."
+  },
+  "dataAndResources": {
+    "entryEqualsPreviousFinal": true,
+    "completeFinalEqualsEntry": true,
+    "namespaceKeys": 4,
+    "namespaceSha256": "4eace3fce23324aafa7933cf508cb8a52e45c5144ad576aabdcf5ff09f05ee25",
+    "hashMethod": "SHA-256(JSON.stringify(namespace)), original key order",
+    "originalFiveP1FavoritesRetained": true,
+    "installedObjectUnchanged": true,
+    "proxyMode": "system",
+    "proxyControl": "controllable_by_this_extension",
+    "temporaryDataCreated": false,
+    "nativeSidebarClosed": true,
+    "taskSpaceFinished": true,
+    "keptPages": [],
+    "nativeUiOwnerReleased": true,
+    "privateReadbackFileModes": "0600; parent 0700",
+    "subscriptionReadDownloadedOrSent": false,
+    "clashModified": false,
+    "parallelServicesModified": false,
+    "privateReadbackFiles": [
+      "artifacts/ai-proxy/core-goal-20261117/entry-readback.private.json",
+      "artifacts/ai-proxy/core-goal-20261117/final-readback.private.json"
+    ]
+  },
+  "notTested": [
+    "New busy-only fix in native UI; no artificial delay/state injection",
+    "Native late-response isolation; no actual late response captured",
+    "Transport abort or Chrome revocation",
+    "0.3.32 native installation",
+    "New fixed trusted Browser output",
+    "Real rule transport split, arbitrary PAC and authenticated proxy",
+    "Usage, exit IP, throughput, account or model availability"
+  ],
+  "nextNativeOperation": "Use the existing Browser development entry and safe update to compile/apply the new reviewed trusted code before verifying the busy-only fix. Only update the JSON through original installation review when installation is the target; do not claim it updates fixed code.",
+  "sourceAndPackageCommit": "714b592dcb1a0c9f21d8028a1fcd5df3abc48ac4",
+  "commitBoundary": "A parallel main synchronization commit captured this task source, formal package and documentation before its own commit step. Verified current scoped worktree matches that commit; no rewrite. This task commits the remaining sanitized evidence only and does not push."
+}
