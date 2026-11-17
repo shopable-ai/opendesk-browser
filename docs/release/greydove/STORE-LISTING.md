@@ -86,7 +86,7 @@ GreyDove does not claim compatibility with every userscript or GM API. Some feat
 | --- | --- | --- |
 | Tampermonkey | 成熟 userscript 管理、编辑、运行、更新、发现及同步 | 不能宣传 GreyDove 具备完整 GM API、脚本迁移兼容或云同步 |
 | Violentmonkey | 开源用户脚本管理、网页定制、外部编辑及同步 | GreyDove 重点是另一种 Controller 任务工作台，而非脚本生态更成熟 |
-| ScriptCat | 用户脚本、后台和定时脚本、兼容层与脚本社区 | GreyDove 的 Controller 任务不等于 ScriptCat @background/@crontab |
+| ScriptCat | 用户脚本、后台/定时脚本、社区；2026 年的 Agent 文档亦提供测试阶段的网页操作能力 | GreyDove Controller 与 ScriptCat Agent 存在自动化能力重叠，区别应落在 GreyDove 当前工作台与受审阅任务流程，不能声称独家或更强 |
 | Greasemonkey | Firefox 的经典网页脚本管理生态 | Chrome 产品不应宣传 Firefox/GM 完整兼容 |
 
 来源：Tampermonkey https://www.tampermonkey.net/；Violentmonkey https://violentmonkey.github.io/；ScriptCat https://docs.scriptcat.org/；Greasemonkey https://addons.mozilla.org/en-US/firefox/addon/greasemonkey/
@@ -109,10 +109,11 @@ GreyDove does not claim compatibility with every userscript or GM API. Some feat
 ## 8. 发布限制、权限与验收门禁
 
 - Manifest 英文 name 和 short_name 使用 GreyDove；Developer 通过现有 scripts/browser-editions-r245.mjs 派生 GreyDove Developer。不要添加独立 Developer 商品。
-- Manifest description 长度须 <=132；Chrome Web Store 完整描述在后台单独录入；“副标题”不作为确定存在的后台字段。
-- 当前 Manifest 有 <all_urls>、debugger、userScripts、cookies、proxy、downloads 等必需权限。请按真实源码调用点评估必要性、用途和隐私披露；文案不能代替权限合规。
+- Manifest name 长度须符合 Chrome Web Store 现行 75 字符限制（2024 年已从 45 调整）；short_name 遵守仓库 12 字符限制；description <=132 字符。Chrome Web Store 完整描述在后台单独录入；“副标题”不作为确定存在的后台字段。
+- 当前 Manifest 有 `<all_urls>`、`debugger`、`userScripts`、`cookies`、`proxy`、`downloads` 等必需权限。请按真实源码调用点评估必要性、用途和隐私披露；文案不能代替权限合规。
 - Chrome 138+ 的 User Scripts 需要用户在扩展详情页开启 “Allow User Scripts”；只声明 userScripts 权限不代表用户已经启用。
 - 暂缺同一 Standard ZIP 的构建/包哈希/真实 Chrome 功能及撤权测试、正式图标及真实截图、对外隐私政策 URL 和商店账号审核结果。所有项独立记录在 RELEASE-CHECKLIST.zh-CN.md / RELEASE-RECORD.md。
-- 官方参考：https://developer.chrome.com/docs/webstore/program-policies/listing-requirements；https://developer.chrome.com/docs/webstore/program-policies/policies；https://developer.chrome.com/docs/webstore/cws-dashboard-listing；https://developer.chrome.com/docs/extensions/reference/api/userScripts；https://developer.chrome.com/docs/extensions/reference/api/i18n 。
+- **2026-07-01 政策更新、2026-08-01 生效：** 数据收集必须严格服务披露的单一主要用途，并且向用户显著披露；产品如含 AI 网站自动化，不得以绕过第三方 AI 服务安全防护或用量限制为卖点或实现目的。项目中可选的 Cookie、代理、广告过滤等工具与主用途的关系、相应敏感权限和网络传输应逐项核查，不得因工具均处于侧栏就推定满足“单一主要用途”。
+- 官方参考：https://developer.chrome.com/blog/cws-policy-updates-2026；https://developer.chrome.com/docs/extensions/whats-new；https://developer.chrome.com/docs/webstore/program-policies/listing-requirements；https://developer.chrome.com/docs/webstore/program-policies/policies；https://developer.chrome.com/docs/webstore/cws-dashboard-listing；https://developer.chrome.com/docs/extensions/reference/api/userScripts；https://developer.chrome.com/docs/extensions/reference/api/i18n；https://docs.scriptcat.org/en/docs/dev/agent/ 。
 
 **交付状态：文案候选已收敛，NOT READY TO SUBMIT。** 任何正式提交前，都要将正文动词逐条对照真实 Standard 发行包，去掉未通过的能力并补齐必要的披露。
