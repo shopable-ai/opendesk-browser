@@ -113,7 +113,7 @@ T7 商业化规划独立进行，不是首发上架的前置条件。
 - **T1.1 品牌名称**
   - 状态：IN_PROGRESS（用户明确原拼写未最终确定，当前以 GrayDove 为发行候选）
   - 英文：`GrayDove`；中文：`灰鸽`。
-  - 当前候选使用 GrayDove；GreyDove 保留为历史名称，正式上架前仍须完成商标检索。
+  - 当前候选使用 GrayDove；旧英式拼写保留在历史提交中，正式上架前仍须完成商标检索。
 - **T1.2 产品定位和语言**
   - 状态：IN_PROGRESS
   - 英文方向：Browser Automation & Scripts。

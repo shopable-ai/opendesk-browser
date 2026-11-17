@@ -12,7 +12,7 @@
 | Standard 对外名称 | GrayDove |
 | Developer 内部发行名称 | GrayDove Developer（待最终确认是否保留该显示名称） |
 
-当前拟采用美式拼写 `GrayDove`，中文暂用「灰鸽」。这不是商标或域名已验证通过的最终定名。旧 `GreyDove` 仍作为历史候选保留；不可把同音两种拼写视为商标自动安全。
+当前拟采用美式拼写 `GrayDove`，中文暂用「灰鸽」。这不是商标或域名已验证通过的最终定名。此前英式拼写方案仍留在 Git 历史提交中；不可把同音两种拼写视为商标自动安全。
 
 ## 2. 品牌定位
 
@@ -103,11 +103,11 @@ short_name 当前有 <=12 字符的构建约束；`GrayDove` 长度符合该限�
 - [ ] 商标、域名和素材权利风险有记录。
 
 
-## 8. R1 历史 GreyDove 域名预选（仅作旧方案留档）
+## 8. R1 历史英式拼写域名预选（仅作旧方案留档）
 
-> 本节为旧拼写 GreyDove 的候选记录，不能代替 GrayDove 当前域名的实时可注册性与商标核验。
+> 本节为旧英式拼写下的候选记录，不能代替 GrayDove 当前域名的实时可注册性与商标核验。
 
-品牌继续使用 GreyDove，不因为主域名当前无法取得而改名。这里记录 **40 个 .com 名称候选**，不是宣布这些域名可注册。2026-11-17 查询时，实时 RDAP 页面与注册商逐域名报价无法通过现有查询通道取得可归属的注册状态证据；因此任何未确认的状态一律为 UNKNOWN。没有网站或 DNS 不解析绝不是 AVAILABLE。
+当时计划继续采用英式拼写方案，不因为主域名当前无法取得而改名。这里记录 **40 个 .com 名称候选**，不是宣布这些域名可注册。2026-11-17 查询时，实时 RDAP 页面与注册商逐域名报价无法通过现有查询通道取得可归属的注册状态证据；因此任何未确认的状态一律为 UNKNOWN。没有网站或 DNS 不解析绝不是 AVAILABLE。
 
 **主域名 greydove.com：** 暂按“暂不可直接注册”做商业决策，但本轮 RDAP / ICANN / 注册商实时证据不足，正式注册状态、公开出售与具体报价仍为 UNKNOWN；不发起购买询价。
 
@@ -169,9 +169,9 @@ short_name 当前有 <=12 字符的构建约束；`GrayDove` 长度符合该限�
 
 1. 先在 ICANN Lookup / registry RDAP 查注册状态与更新时间，并保存结果；对 .com 选择 Verisign 注册局数据与 ICANN 查询交叉核验。
 2. 在一个实际注册商按候选查询购物车状态、首年价格、续费、溢价与税费，并对另外一家注册商复核；查询失败保持 UNKNOWN。
-3. 在 USPTO、WIPO Global Brand Database 和目标市场官方商标系统检索 GreyDove 的文字、近似拼写和软件/浏览器相关类别；同名/近似的重大风险为硬阻断，不得用加后缀域名来豁免商标权。
+3. 在 USPTO、WIPO Global Brand Database 和目标市场官方商标系统检索当时英式拼写品牌的文字、近似拼写和软件/浏览器相关类别；同名/近似的重大风险为硬阻断，不得用加后缀域名来豁免商标权。
 4. 通过以上硬门槛后，再由品牌、增长、域名投资、商标、国际化专家独立评分并加权平均；不能把“尚未查询”写成“已核验”。
-5. 未获得“可购买 + 价格合理 + 商标冲突已评估”三项证据，结论是 **暂不注册、继续使用 GreyDove 品牌**。不购买、不修改 DNS、不把未知域名写入任何生产配置。
+5. 未获得“可购买 + 价格合理 + 商标冲突已评估”三项证据，结论是 **暂不注册、继续沿用当时的品牌方案**。不购买、不修改 DNS、不把未知域名写入任何生产配置。
 
 参考入口：https://lookup.icann.org/en/；https://rdap.verisign.com/com/v1/；https://www.namecheap.com/domains/；https://www.uspto.gov/trademarks/search；https://www.wipo.int/en/web/global-brand-database/index 。
 
@@ -251,11 +251,11 @@ short_name 当前有 <=12 字符的构建约束；`GrayDove` 长度符合该限�
 
 ## 10. R4 英文拼写重新开放：GrayDove（2026-11-17）
 
-用户明确此前并未最终选定 GreyDove，授权直接修改。**当前发行候选临时采用 GrayDove（美式常见拼写），中文仍为灰鸽；但正式商标/域名尚未核实，因此不表述为“不可更改的既定品牌”。**
+用户明确此前并未最终决定英文品牌拼写，授权直接修改。**当前发行候选临时采用 GrayDove（美式常见拼写），中文仍为灰鸽；但正式商标/域名尚未核实，因此不表述为“不可更改的既定品牌”。**
 
 - 已知同名事实：Steam 的《Momento Isles》开发者与发行商显示为 **GrayDove**（来源：https://store.steampowered.com/app/4059460/）。这是软件/游戏领域的真实同名风险，不等于已证明商标侵权；须核查商标权、使用时间、类别和目标市场。不可在未经核查前声称名称独占。
 - 对比：Gray 属美式主流写法，Grey 属英式/澳式主流写法（来源：https://www.dictionary.com/articles/gray-vs-grey）；**词典里的频率不等于品牌搜索量或商标可用性**。
-- 需要独立查询：graydove.com、graydoveai.com、getgraydove.com、usegraydove.com、graydove.app、graydove.dev，并同时保留原 GreyDove 方案作为回退。上述域名均未通过本轮注册商/RDAP 实时确认，状态为 UNKNOWN；未取得的域名不得写入生产配置。
+- 需要独立查询：graydove.com、graydoveai.com、getgraydove.com、usegraydove.com、graydove.app、graydove.dev，并同时保留原英式拼写方案作为回退。上述域名均未通过本轮注册商/RDAP 实时确认，状态为 UNKNOWN；未取得的域名不得写入生产配置。
 - 产品名称暂为 **GrayDove / 灰鸽**；Standard 由根 Manifest 提供，Developer 继续按原派生器生成 GrayDove Developer；无须改动内部仓库、API、Storage、Native Messaging、扩展 ID、签名或既有协议。路径 docs/release/greydove 是历史稳定引用，不在此次重命名中迁移。
 - 所有 CWS 商店正文和用户可见标题在本候选中统一 GrayDove；如 USPTO/WIPO/CNIPA 等官方检索发现不可接受的近似冲突，应在正式上传审核前重新选名、重建 ZIP，而不是使用该候选绕过商标风险。
 - 商店发版继续受真实 128px 图标、截图、隐私数据流、权限及同源 Chrome 验收门禁约束。名称修改本身不意味着已可提交审核。
