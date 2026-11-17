@@ -49,12 +49,12 @@ function ReleaseDetail({row,onUpdate,onOpenReview,busy,verified,surface='sidebar
     <div className="od-update-release-head"><strong>{row.title}</strong>
       <span className="od-update-release-status">{status}</span></div>
     <div className="od-update-release-meta">
-      {row.kind==='browser'?'OpenDesk 浏览器本体':'扩展工具'}
+      {row.kind==='browser'?'GreyDove 浏览器本体':'扩展工具'}
       {row.fromVersion?' · v'+row.fromVersion+' → v'+row.version:' · v'+row.version}
       {row.source?' · '+row.source:''}
     </div>
     <p className="od-update-release-description">
-      {row.kind==='browser'?'此更新由 Chrome 管理，无须通过 OpenDesk 工具安装器操作。':
+      {row.kind==='browser'?'此更新由 Chrome 管理，无须通过 GreyDove 工具安装器操作。':
         row.status==='unknown'?'来源、版本或安装结果尚未确认，不能据此安装。':
         row.description?'官方目录简介：'+row.description:
           '官方目录未提供逐条版本说明。审阅更新不会自动安装。'}

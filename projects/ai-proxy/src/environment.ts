@@ -97,7 +97,7 @@ export function configureEnvironment(bridge:any,sdk:any,{trusted=false,preview:p
   if(comparableJson(committed)!==comparableJson(JSON.parse(serialized)))fail('E_CONFLICT','配置在保存后已改变，请重新读取；未重放写入。');
   emit({[key]:{newValue:committed}});
  };
- const managed=()=>{assertLive();return sdk?.browser?.proxy?.managed??fail('E_NOT_CONNECTED','OpenDesk 受管代理服务未接入');};
+ const managed=()=>{assertLive();return sdk?.browser?.proxy?.managed??fail('E_NOT_CONNECTED','GreyDove 受管代理服务未接入');};
  const networkRequest=(input:any)=>{
   assertLive();
   return bridge.request('browser.network.request',input);

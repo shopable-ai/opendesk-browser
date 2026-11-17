@@ -223,7 +223,7 @@ export function createAdblockService({
     const approvalValid=state.approvedHash===hash&&state.approvedEpoch===auth.epoch;
     if(hasPermission&&!dnrReady){
       if(operation==='adblock.enable')
-        fail('E_ADBLOCK_RESTART_REQUIRED','Chrome 广告过滤会话尚未就绪，请保存工作并重新加载 OpenDesk Browser 扩展，然后手动开启过滤');
+        fail('E_ADBLOCK_RESTART_REQUIRED','Chrome 广告过滤会话尚未就绪，请保存工作并重新加载 GreyDove 扩展，然后手动开启过滤');
       if(operation!=='adblock.status')
         fail('E_OUTCOME_UNKNOWN','Chrome DNR 尚未完成会话初始化，无法确认规则变更');
       return {installed:true,toolEnabled:true,enabled:false,
@@ -241,7 +241,7 @@ export function createAdblockService({
       }
     }
     if(operation==='adblock.enable'){
-      if(!hasPermission)fail('E_ADBLOCK_PERMISSION','扩展必选广告过滤权限不可用，请保存工作并重新加载或启用 OpenDesk Browser 扩展');
+      if(!hasPermission)fail('E_ADBLOCK_PERMISSION','扩展必选广告过滤权限不可用，请保存工作并重新加载或启用 GreyDove 扩展');
       // Only a fresh trusted click can renew a natively revoked approval.
       // A permission-onAdded event alone never clears the revoked fence.
       state={...state,enabled:true,approvedHash:hash,approvedEpoch:auth.epoch};

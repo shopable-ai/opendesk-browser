@@ -255,7 +255,7 @@ test('a result check refreshes the configured browser receiver without replaying
   const original=h.sent[0].message.intentId;
   h.context.chrome.runtime.lastError={message:'Could not establish connection. Receiving end does not exist.'};
   h.sent[0].callback();delete h.context.chrome.runtime.lastError;await installing;
-  assert.match(h.first.state.textContent,/OpenDesk Browser 浏览器扩展/);
+  assert.match(h.first.state.textContent,/GreyDove 浏览器扩展/);
   assert.match(h.nodes.get('#handoff-code').textContent,new RegExp('E_NO_RECEIVER.*'+ 'a'.repeat(32)));
   assert.equal(h.nodes.get('#handoff-details').hidden,false);
   h.setChannel({extensionId:'b'.repeat(32)});
@@ -283,12 +283,12 @@ test('R6.2 a disabled refreshed channel cannot fall back to a cached receiver fo
 test('R6.2 installation help starts on HTTP and explains the automatic trusted confirmation',()=>{
   const html=helpPage({...channel,extensionId:'a'.repeat(32)});
   assert.match(html,/从本网站选择应用/);
-  assert.match(html,/在 OpenDesk 侧边栏安装面板 中核对版本/);
+  assert.match(html,/在 GreyDove 侧边栏安装面板 中核对版本/);
   assert.match(html,/打开面板不表示已批准/);
   assert.match(html,/本市场指定的扩展 ID/);
   assert(html.includes('a'.repeat(32)));
   assert.match(html,/网页成功回执仅说明本次事务完成/);
-  assert.match(html,/当前安装与使用请在 OpenDesk 侧边栏核对/);
+  assert.match(html,/当前安装与使用请在 GreyDove 侧边栏核对/);
 });
 
 test('R6.1 multiple cards use distinct fixed intents; double-click has one in-flight request and retry is idempotent',async()=>{

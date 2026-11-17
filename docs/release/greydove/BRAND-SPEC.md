@@ -10,7 +10,7 @@
 | 中文产品定位 | 浏览器自动化与脚本工作台 |
 | 首发产品 | Chrome Extension |
 | Standard 对外名称 | GreyDove |
-| Developer 内部发行名称 | GreyDove Developer（待最终确认是否保留该显示名称） |
+| Developer 发行名称 | GreyDove Developer（名称已确定；是否单独公开上架另行决定） |
 
 品牌大小写固定为 `GreyDove`。中文固定为「灰鸽」。不要使用 Grey Dove、GrayDove、Grey Pigeon 等变体。
 
@@ -71,7 +71,7 @@ GreyDove 是面向浏览器自动化、JavaScript 脚本开发和网页工具使
 
 当前仓库从根 `manifest.json` 读取 Standard 品牌，并在 `scripts/browser-editions-r245.mjs` 中派生 Developer 名称。
 
-建议：
+已确定的命名与首发分发边界：
 - Standard：GreyDove，作为首发公开商品候选。
 - Developer：GreyDove Developer，优先作为内部开发/验证发行。
 - 是否需要第二个公开商品必须有独立用户定位、独立商品价值和政策审查，不能仅因为构建产物不同就单独上架。
@@ -83,7 +83,7 @@ short_name 当前有 <=12 字符的构建约束；`GreyDove` 长度符合该限�
 以下事项尚未完成：
 - 目标国家/地区的商标数据库检索。
 - 同类软件、浏览器扩展和科技服务的近似名称检索。
-- 域名可用性和持有人核查。
+- 域名注册商可购买状态、价格和归属确认；本轮 RDAP 只读结果见 [商店资料](STORE-LISTING.md#7-域名已被注册时怎样继续)，不等于已注册或已完成权利核查。
 - 社交媒体账号名称核查。
 - 图标与字体、素材的商业使用权核查。
 - Chrome Web Store 同名/近似商品核查。

@@ -27,7 +27,7 @@ export function validateDeclaredMarketInstall(href,pageUrl,channel,releases){
     throw fail('E_DISCOVERY_CATALOG','官方发行目录不可用，无法核验安装声明。');
   const release=releases.find(row=>row?.id===subject.marketId&&row?.version===subject.version);
   if(!release||release.kind!=='sidebar-tool'||release.toolId!==subject.marketId.slice('opendesk/'.length))
-    throw fail('E_DISCOVERY_RELEASE','该固定应用版本未随当前 OpenDesk 发行，无法从此网页安装。');
+    throw fail('E_DISCOVERY_RELEASE','该固定应用版本未随当前 GreyDove 发行，无法从此网页安装。');
   return Object.freeze({subject,release,href:install.href,pageOrigin:page.origin});
 }
 
@@ -48,7 +48,7 @@ export async function discoverCurrentPageMarketInstall({api,currentPageTarget,ch
   if(!api?.scripting?.executeScript||!currentPageTarget?.capture||!currentPageTarget?.revalidate)
     throw fail('E_DISCOVERY_UNAVAILABLE','当前扩展无法读取活动网页的安装声明。');
   if(channel?.enabled!==true)
-    throw fail('E_CHANNEL_DISABLED','当前 OpenDesk 尚未启用受信任网页安装通道。');
+    throw fail('E_CHANNEL_DISABLED','当前 GreyDove 尚未启用受信任网页安装通道。');
   if(!initialTarget)await currentPageTarget.ready;
   const target=initialTarget||currentPageTarget.capture();
   // Caller may freeze the document at the actual click, before loading the
@@ -70,7 +70,7 @@ export async function discoverCurrentPageMarketInstall({api,currentPageTarget,ch
     !Array.isArray(executions[0].result.links))
     throw fail('E_DISCOVERY_DOCUMENT','当前网页文档身份未得到核对，请重新检测。');
   const links=executions[0].result.links;
-  if(links.length===0)throw fail('E_DISCOVERY_MISSING','当前网页未声明 OpenDesk 可安装应用。');
+  if(links.length===0)throw fail('E_DISCOVERY_MISSING','当前网页未声明 GreyDove 可安装应用。');
   if(links.length!==1||typeof links[0]!=='string')
     throw fail('E_DISCOVERY_AMBIGUOUS','当前网页有多个或无效的安装声明，不能自动选择一个应用。');
   return Object.freeze({...validateDeclaredMarketInstall(links[0],target.url,channel,releases),target});

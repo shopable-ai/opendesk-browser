@@ -581,11 +581,11 @@ export function ToolHost({view,concealed=false,debugPreview=false,onStopDebug,
 </ToolField>}
 </ImportSheet>
 
-<aside className="sidebar-tool-development-panel od-stack" aria-label="OpenDesk 开发工具"
+<aside className="sidebar-tool-development-panel od-stack" aria-label="GreyDove 开发工具"
   hidden={concealed||previewStatus.hidden!==false}>
   <div className="od-toolbar" role="group" aria-label="应用调试控制">
     <details className="od-disclosure od-disclosure--flat sidebar-tool-development-info">
-      <summary>OpenDesk 开发信息</summary>
+      <summary>GreyDove 开发信息</summary>
       <ToolField as="p" id="sidebar-tool-readonly-banner" className="hint" role="note" hidden={true}/>
       <p className="hint">调试使用隔离测试数据，不会使用正式应用数据。</p>
     </details>

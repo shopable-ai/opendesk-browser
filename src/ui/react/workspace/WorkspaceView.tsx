@@ -48,7 +48,7 @@ export function WorkspaceView({controller}: {controller: WorkspaceController}) {
   const hasTarget = !demo && state.targets.some(target => String(target.tabId) === state.targetId);
   const canPreviewPage = !busy && connected && !!file && hasTarget;
   return <main id="file-workspace" className="min-w-0" data-workspace-ui="svg-r3" aria-busy={busy}>
-    <header className="workspace-header"><div className="wordmark"><span className="brand-icon" aria-hidden="true">O</span><div><strong>OpenDesk</strong><span className="header-subtitle">{t('workspace.heading')}</span></div></div>
+    <header className="workspace-header"><div className="wordmark"><div><strong>GreyDove</strong><span className="header-subtitle">{t('workspace.heading')}</span></div></div>
       <div className="header-actions"><label className="locale-switcher"><span>{t('common.language')}</span>
         <select id="workspace-locale" aria-label={t('common.language')} value={getLocalePreference()} onChange={event => setLocalePreference(event.target.value)}>
           <option value="auto">{t('common.browserLanguage')}</option>{SUPPORTED_LOCALES.map(locale => <option key={locale} value={locale}>{LOCALE_NAMES[locale]}</option>)}

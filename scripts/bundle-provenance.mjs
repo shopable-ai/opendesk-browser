@@ -1,3 +1,5 @@
+// GreyDove 2026-11-17: reviewed display-only brand changes retain every original
+// source/target boundary. The file-result parser also accepts the old brand prefix.
 // Fixed-entry source admission and optional build evidence. Never emitted into
 // dist or imported by extension code; serve must enforce the same source gate.
 import {readFile,writeFile,readdir,mkdir} from 'node:fs/promises';
@@ -16,7 +18,7 @@ import {FIXED_OUTPUTS} from './build-contract.mjs';
 // separate runtime admission validates the actual reviewed installation.
 const compiledTimeReviewInputs=Object.freeze({
   'projects/time-review/src/index.html':'fcaec7808b606c8f4484e20bd4c82a7d66e66fa5',
-  'projects/time-review/src/main.js':'c0d8dc0ce6d42a0ff08ce8012dec3e66a2840ed0'
+  'projects/time-review/src/main.js':'f40b4b420a16092875a15fb7936dbc1aa46dff16'
 });
 // Fixed Task packages are JSON data consumed by the original Task installer.
 // Their sourceUtf8 stays frozen data; only Controller may execute it after
@@ -57,8 +59,8 @@ const compiledWebFlowInputs=Object.freeze({
   // 2026-11-09 reviewed UNKNOWN diagnostics and before-click cancellation;
   // exact Host/SW ownership, after-click no-replay and safe-refresh fences remain.
   // Reviewed optional display adapter init/dispose; Task bridge is unchanged.
-  'projects/webflow/trusted/chatgpt-bridge-page.js':'8b69919c9d477ca92acfca4ecc521e2e74cdb1b7',
-  'projects/webflow/trusted/legacy-chatgpt-panel.js':'c25df281a5df633afad53c94c8dc1ad04ba1d0da',
+  'projects/webflow/trusted/chatgpt-bridge-page.js':'98c92321a183d708f86db5df7f7bac3d9f48d0f2',
+  'projects/webflow/trusted/legacy-chatgpt-panel.js':'56bf87da42445f32d37df21dda099546b620ac45',
   // Reviewed read-only display preference; no Task dispatch or grant writes.
   'projects/webflow/trusted/page-panel-ui.js':'4ba1e76028ed9afee2692e5853d08df5d360af87',
   // Reviewed fixed Side Panel controls and exact-document projection; never loaded from tool JSON.
@@ -69,7 +71,7 @@ const compiledWebFlowInputs=Object.freeze({
   // original native gestures, authority and unknown-result fences are unchanged.
   // 2026-11-15 reviewed: remove the unrelated file experiment link from both
   // runtime/settings summaries; original Task controls and admission stay unchanged.
-  'projects/webflow/trusted/AutoSettings.tsx':'a31362d8deefe6d8d1501b03d435e64fd074b5e9',
+  'projects/webflow/trusted/AutoSettings.tsx':'85a98f25145a41da3622c099ce5b07de21db3f98',
   // Reviewed read-only projection: correlate the same request, prefer its Run,
   // distinguish reserved IDs/persistence/delivery/release; UNKNOWN never replays.
   // Reviewed same-receipt, owner-bound Toast projection; execution stays unchanged.
@@ -144,9 +146,9 @@ function reviewedCompiledWebflowMedia(target,path,root){
 const compiledChatGPTImageInputs=Object.freeze({
   // Reviewed import-only separation: Native image helpers use the original
   // generic ChatGPT document reader, without importing Task admission policy.
-  'projects/webflow/trusted/chatgpt-images.js':'f80b8e57b541aea6f44d1c85994cc98791d42f0f',
+  'projects/webflow/trusted/chatgpt-images.js':'1a3a09ac31f812d5fc75b30a57246226e93e4832',
   'projects/webflow/trusted/chatgpt-image-page.js':'ae234cd786494feaa4ac3d5aac708e41df174198',
-  'projects/webflow/trusted/chatgpt-images-ui.js':'f68a49905b2870b7f1fd9be4691d1e26d4196ed8'
+  'projects/webflow/trusted/chatgpt-images-ui.js':'71dcf046f76709e171645569fe78a55c462c27f0'
 });
 function reviewedCompiledChatGPTImages(target,path,root){
   if(!Object.hasOwn(compiledChatGPTImageInputs,path)||
@@ -182,7 +184,7 @@ function reviewedIndependentTaskResult(target,path,root){
 const compiledChatGPTFilesInputs=Object.freeze({
   'projects/webflow/trusted/chatgpt-files-service.js':'65a9aee1d533a85bc9bbf5c529a7993859a657a5',
   // Reviewed generic-reader import separation; Stop/dispatch behavior unchanged.
-  'projects/webflow/trusted/chatgpt-files-controller.js':'f6cc7f0a10bbc47654bf9f614a1cd768680d0f85',
+  'projects/webflow/trusted/chatgpt-files-controller.js':'ba84c4514ec0c94436d37f5e8a0d7f7413f11792',
   'projects/webflow/trusted/chatgpt-project-policy.js':'647fcd233f662e9239c46d348205329b39db15e9',
   'projects/webflow/trusted/chatgpt-file-intent-page.js':'5de3861f877efc97235f1831c7d6826c16ac8c80',
   'projects/webflow/trusted/chatgpt-files-settings-ui.js':'2553160d9625c694a3ea77537daa4e83aac8a558',
@@ -190,10 +192,10 @@ const compiledChatGPTFilesInputs=Object.freeze({
   // The file hint gate needs only the shared URL helper, never Task policy.
   'projects/webflow/trusted/chatgpt-file-intent-gate.js':'cac31e1824b7e9dcc2fdc8c2bd0078fd75d8d866',
   'projects/webflow/trusted/chatgpt-files-config.js':'622509c3ecf38fa40b32275b705e068a49c6c530',
-  'projects/webflow/trusted/chatgpt-files.html':'b8a723d99b97130a9f3fb7f75f2a9e29b34977e8',
+  'projects/webflow/trusted/chatgpt-files.html':'e69f796aa7760bfc0480af7ca94845f8424897ec',
   // Reviewed display-only correction: a Stop acknowledgement does not prove rollback.
   'projects/webflow/trusted/chatgpt-project-runtime-ui.js':'33ca63abba0fa7453902f4713bfd856a25596ab8',
-  'projects/webflow/trusted/chatgpt-conversation-route.js':'8e28adedd8cc2b49ff34897c0857d33cf2478c87',
+  'projects/webflow/trusted/chatgpt-conversation-route.js':'9b89333df1393bc7a772416a531611e2acd63bd7',
   // Reviewed pure result validation/formatting, including strict string IDs.
   // Its existing Host consumers alone may compile it; no Content/Native entry.
   'projects/webflow/src/chatgpt-conversation-result.js':'edbf68264b5aaa17d0c2f323baf88f4d99a79b71',
@@ -329,12 +331,12 @@ function reviewedCompiledVideoDownloader(target,path,root){
 // a single output and independently enforced release/package identity.
 const compiledAdblockInputs=Object.freeze({
   'projects/adblock/trusted/dnr-session.js':'6cf976c7f89ab6e9aec04bf7bc92b5189e8b3cca',
-  'projects/adblock/trusted/service.js':'9e63fc863e310c94ff0233192c9c57f0ba548e9d',
+  'projects/adblock/trusted/service.js':'c4c46d1fb37f09358e9ea5ba4ea0e7c97bca9450',
   'projects/adblock/trusted/policy.js':'1ba80150d930f51130ceb7806371f7542f35871b',
   'projects/adblock/trusted/rules.js':'4bebe24f991783d6ceb14dd80aa507f8497fce61',
   'projects/adblock/trusted/lifecycle.js':'50143f14fa3a1e9434f5c79bd2df37db83c245bb',
   'projects/adblock/trusted/tool-host.js':'e5e9962a63bb929560aab4701107dc9e275358a2',
-  'projects/adblock/trusted/host-controls.js':'79dbe97eaf1eb61315e634384d922079f2d4b136',
+  'projects/adblock/trusted/host-controls.js':'21f4abfdd4837d130fb9339621a1896cb7412b42',
   'projects/adblock/rules/domains.js':'b6b2ad8bb2085018f355f046d9b2a787601039bd',
   'projects/adblock/trusted/cosmetic.js':'da37f1f0e8f40860ac059ef2f43a27daeeb6d3d3',
   'projects/adblock/trusted/page.js':'8f723ff1feb98ee40d680f4e6cf87f39892c1c06',
@@ -554,7 +556,7 @@ const compiledPromptShortcutInputs=Object.freeze({
   'projects/prompt-shortcuts/trusted/policy.js':'6a837d85880378262b21b8e51bb18d81e52d0a90',
   // OD entry restored from ed7ceb65; first built-in rail button only, using already pinned SW gesture bridge.
   // No origin, permission, storage, navigation arrows, sender scope or injection surface changed.
-  'projects/prompt-shortcuts/trusted/page.js':'3a9d4aac86b5c5d7ba12e58100b8cdc3e2fbf602',
+  'projects/prompt-shortcuts/trusted/page.js':'d91f95a87d138a1b603752a62a845f2a67c708de',
   'projects/prompt-shortcuts/trusted/asset-contract.js':'86e95bff786e52efb9089f97126542430f39a716',
   'projects/prompt-shortcuts/trusted/asset-host.js':'8de12e8e40c083392a58e07a5cc4a45eab79c56f',
   // The first-party OD gesture bridge is fixed SW code, never an installed package.
@@ -587,7 +589,7 @@ function reviewedCompiledPromptShortcuts(target,path,root){
 const compiledStayFocusInputs=Object.freeze({
   // R6.10: reviewed b8c0596e4; only two shared presentation class names changed.
   'projects/stay-focus/trusted/react-controls.tsx':'0c14d175188a33532004be0869fd6b237f9f6fb7',
-  'projects/stay-focus/trusted/blocked.js':'2c2147226ccd3d31eaa0b605a15ec6846ce0f451',
+  'projects/stay-focus/trusted/blocked.js':'9c6e9f478bf324dcfd8a2790ffd48e33f5d3fd47',
   'projects/stay-focus/trusted/catalog.js':'0b46b62e097cc84fa29fd942c7d1480a9f44d0f8',
   'projects/stay-focus/trusted/host-controls.js':'65346648494b88fbf434a5a951769edba445c32e',
   'projects/stay-focus/trusted/lifecycle.js':'77afc647cf1345462751964d7c74c2ee8b0fbce2',
@@ -776,7 +778,7 @@ const compiledReadingTocInputs=Object.freeze({
   // Legacy metadata/admission only. Webpage algorithms and view styles are
   // delivered by the reviewed application Page module, never fixed bundles.
   'projects/reading-toc/trusted/policy.js':'80fc351e9afc0cd94eedbc93c014cc4098f8b0b7',
-  'projects/reading-toc/trusted/locales.generated.js':'e494a458a006adeb90697aca8dd8957bc90e2ef3'
+  'projects/reading-toc/trusted/locales.generated.js':'230fba110080617ef537f4b81c0a2e8242c9a352'
 });
 function reviewedCompiledReadingToc(target,path,root){
   if(!Object.hasOwn(compiledReadingTocInputs,path))return null;

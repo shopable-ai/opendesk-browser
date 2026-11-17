@@ -132,11 +132,11 @@ test('a pending native open does not route until Chrome confirms it',async()=>{
   assert.deepEqual(responses,[{ok:true,data:{opened:true}}]);
 });
 
-test('Built-in prompt rail has one first OD management entry but no collapsers or transcript arrows',async()=>{
+test('Built-in prompt rail has one first GreyDove management entry but no collapsers or transcript arrows',async()=>{
   const source=await readFile('projects/prompt-shortcuts/trusted/page.js','utf8');
   assert.ok(source.includes("for(const row of items)"),'saved items remain directly usable');
-  assert.ok(source.includes("brand.title='打开提示词快捷按钮管理侧栏'"),
-    'the single first OD brand entry has its accessible management purpose');
+  assert.ok(source.includes("brand.title='打开 GreyDove 提示词快捷按钮管理侧栏'"),
+    'the single first GreyDove brand entry has its accessible management purpose');
   assert.ok(source.includes("brand.addEventListener('click',openSidebar)"),
     'the restored brand uses the pre-existing user-gesture Side Panel bridge');
   assert.ok(!source.includes("compactExpanded"),'no collapse state');

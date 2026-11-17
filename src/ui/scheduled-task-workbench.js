@@ -202,7 +202,7 @@ export function createScheduledTaskWorkbench({client,host,taskWorkbench,api=glob
         (value/1048576).toFixed(1)+' MiB';
       const percentage=100*usage/quota;
       const pressure=percentage>=80?'存储接近 Chrome 配额，请保留重要数据并检查整个扩展空间。 ':'';
-      text(display,pressure+'整个 OpenDesk 扩展来源约使用 '+units(usage)+' / '+units(quota)+
+      text(display,pressure+'整个 GreyDove 扩展来源约使用 '+units(usage)+' / '+units(quota)+
         '（'+percentage.toFixed(1)+'%）。并非仅定时任务占用。'+policy);
     }catch{
       if(!disposed&&serial===storageProbeRevision)

@@ -29,9 +29,9 @@ test('every site page uses external scripts and has no in-page review container 
     assert.match(html,/<script type="module" src="\/client.js"><\/script>/);
     assert.doesNotMatch(html,/<script(?![^>]*\bsrc=)|\bonclick=|unsafe-inline|官方应用/);
     assert.doesNotMatch(html,/<iframe\b/);
-    assert.match(html,/仅发起安装审阅；应用请在 OpenDesk 侧边栏安装面板 中确认安装/);
-    assert.match(html,/请在 OpenDesk 侧边栏打开使用；敏感权限仍遵守原有检查/);
-    assert.doesNotMatch(html,/connection-state|connect-button|已连接 OpenDesk|正在连接|重新连接/);
+    assert.match(html,/仅发起安装审阅；应用请在 GreyDove 侧边栏安装面板 中确认安装/);
+    assert.match(html,/请在 GreyDove 侧边栏打开使用；敏感权限仍遵守原有检查/);
+    assert.doesNotMatch(html,/connection-state|connect-button|已连接 GreyDove|正在连接|重新连接/);
     assert.match(html,/套装仍使用原扩展审阅页/);
   }
 });
@@ -40,8 +40,8 @@ test('single app buttons request external review with separate return/open contr
   for(const body of [home([app]),appDetail(app,{current:app,versions:[app]}),installPage(subject,app.title)]){
     const html=render(body,{installSubject:subject});
     assert.match(html,/>安装到浏览器<\/button>/);
-    assert.match(html,/OpenDesk 侧边栏安装面板 中/);
-    assert.match(html,/点击 OpenDesk Browser 浏览器扩展的工具栏图标继续安装/);
+    assert.match(html,/GreyDove 侧边栏安装面板 中/);
+    assert.match(html,/点击 GreyDove 浏览器扩展的工具栏图标继续安装/);
     assert.match(html,/打开面板不表示已批准/);
     assert.doesNotMatch(html,/在本页审阅|在本页提供安装审阅|官方应用/);
     assert.match(html,/data-return-review hidden>返回同一审阅<\/button>/);
@@ -61,9 +61,9 @@ test('single app buttons request external review with separate return/open contr
 
 test('help distinguishes app review from collection handoff and preserves distribution guidance',()=>{
   const html=render(helpPage(channel),{section:'help',path:'/how-to-install/'});
-  assert.doesNotMatch(html,/安装小窗|在 OpenDesk 中审阅安装/);
-  assert.match(html,/网页仅发起审阅；在 OpenDesk 侧边栏安装面板 中核对/);
-  assert.match(html,/点击 OpenDesk Browser 浏览器扩展的工具栏图标继续安装；打开面板不表示已批准/);
+  assert.doesNotMatch(html,/安装小窗|在 GreyDove 中审阅安装/);
+  assert.match(html,/网页仅发起审阅；在 GreyDove 侧边栏安装面板 中核对/);
+  assert.match(html,/点击 GreyDove 浏览器扩展的工具栏图标继续安装；打开面板不表示已批准/);
   assert.match(html,/版本、来源（Origin）与能力后确认或取消/);
   assert.match(html,/套装仍通过原扩展审阅页逐项确认/);
   assert.match(html,/无需重新编译或安装主扩展/);
@@ -79,14 +79,14 @@ test('collection bodies retain their existing review buttons, identity and exten
   for(const body of [collectionList([col]),collectionDetail(col,{releases:[app],current:[app]}),installPage(collectionSubject,col.title)]){
     const html=render(body,{section:'collections'});
     assert.ok(main(html).startsWith(body),'collection presentation is unchanged');
-    assert.doesNotMatch(main(html),/在本页审阅安装|侧边栏安装面板|点击 OpenDesk 工具栏/);
+    assert.doesNotMatch(main(html),/在本页审阅安装|侧边栏安装面板|点击 GreyDove 工具栏/);
   }
   const html=render(installPage(collectionSubject,col.title),{section:'collections'});
-  assert.match(html,/在 OpenDesk 中确认安装/);
+  assert.match(html,/在 GreyDove 中确认安装/);
   assert.match(html,/&quot;kind&quot;:&quot;collection&quot;/);
-  assert.match(html,/>打开 OpenDesk 安装审阅<\/button>/);
+  assert.match(html,/>打开 GreyDove 安装审阅<\/button>/);
   const detail=render(collectionDetail(col,{releases:[app],current:[app]}),{section:'collections'});
-  assert.match(detail,/>在 OpenDesk 中审阅套装<\/button>/);
+  assert.match(detail,/>在 GreyDove 中审阅套装<\/button>/);
   assert.match(detail,/在扩展中审阅并确认；安装后由你打开。/);
 });
 
@@ -103,7 +103,7 @@ test('namespace and self-reported publisher never become official certification'
   const untrusted={...app,id:'opendesk/counter',publisher:'OpenDesk',official:true,verified:true};
   for(const body of [home([untrusted]),appDetail(untrusted,{current:untrusted,versions:[untrusted]})]){
     const html=render(body);
-    assert.doesNotMatch(html,/官方应用|官方认证<|<dt>发布者<\/dt><dd>OpenDesk<\/dd>/);
+    assert.doesNotMatch(html,/官方应用|官方认证<|<dt>发布者<\/dt><dd>GreyDove<\/dd>/);
     assert.match(html,/市场发布来源（Origin）：http:\/\/127\.0\.0\.1:43132。来源地址不表示官方认证/);
     assert.match(html,/应用/);
   }

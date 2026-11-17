@@ -14,8 +14,8 @@ function allowAutomaticRead(){
 function problem(code,message){return Object.assign(new Error(message),{code});}
 function noReceiver(target){
   return Object.assign(problem('E_NO_RECEIVER',target?.mode==='development'?
-    '无法发起安装审阅。请在当前 Chrome 个人资料中启用本市场指定的 OpenDesk Browser 浏览器扩展。请查看「安装帮助」核对开发窗口；无需 OpenDesk 桌面应用。':
-    '无法发起安装审阅。请使用桌面版 Chrome，并在同一个人资料中安装、启用 OpenDesk Browser 浏览器扩展；无需 OpenDesk 桌面应用。详情见「安装帮助」。'),{extensionId:target?.extensionId});
+    '无法发起安装审阅。请在当前 Chrome 个人资料中启用本市场指定的 GreyDove 浏览器扩展。请查看「安装帮助」核对开发窗口；无需 OpenDesk 桌面应用。':
+    '无法发起安装审阅。请使用桌面版 Chrome，并在同一个人资料中安装、启用 GreyDove 浏览器扩展；无需 OpenDesk 桌面应用。详情见「安装帮助」。'),{extensionId:target?.extensionId});
 }
 function send(message,target=channel){
   return new Promise((resolve,reject)=>{
@@ -24,7 +24,7 @@ function send(message,target=channel){
     try{chrome.runtime.sendMessage(target.extensionId,message,response=>{
       clearTimeout(timer);
       if(chrome.runtime.lastError)return reject(noReceiver(target));
-      if(response?.protocol!==protocol)return reject(problem('E_PROTOCOL','OpenDesk 安装协议不兼容，请更新扩展。'));
+      if(response?.protocol!==protocol)return reject(problem('E_PROTOCOL','GreyDove 安装协议不兼容，请更新扩展。'));
       if(response.ok!==true)return reject(problem(response.error?.code||'E_HANDOFF',String(response.error?.message||'无法完成交接。').slice(0,400)));
       const expected={OPEN_INSTALL_REVIEW:'REVIEW_OPENED',
         GET_INSTALL_STATUS:'INSTALL_STATUS',GET_APP_STATUS:'APP_STATUS'}[message.action];
@@ -64,7 +64,7 @@ async function configuration(refresh=false){
   if(value.protocol!==protocol||value.schema!=='opendesk.market.channel.v1')throw problem('E_PROTOCOL','市场安装配置不兼容。');
   if(!value.enabled)throw problem('E_CHANNEL_DISABLED','此网站尚未启用安装交接，请使用扩展内市场。');
   if(value.origin!==location.origin)throw problem('E_ORIGIN','此页面地址与受信任市场来源不一致，请使用配置中的地址。');
-  if(!/^[a-p]{32}$/.test(value.extensionId))throw problem('E_EXTENSION_ID','市场未配置有效的 OpenDesk Browser 浏览器扩展，请联系市场维护者。');
+  if(!/^[a-p]{32}$/.test(value.extensionId))throw problem('E_EXTENSION_ID','市场未配置有效的 GreyDove 浏览器扩展，请联系市场维护者。');
   channel=value;return value;
 }
 function showError(error,target=status){
@@ -104,7 +104,7 @@ function unresolved(entry){return entry.intent&&!['installed','cancelled','faile
 function render(entry){
   if(entry.returnButton)entry.returnButton.hidden=!unresolved(entry);
   if(unresolved(entry)){entry.button.textContent='核对安装结果';return;}
-  entry.button.textContent=entry.baseLabel||(entry.subject.kind==='app'?'安装到浏览器':'打开 OpenDesk 安装审阅');
+  entry.button.textContent=entry.baseLabel||(entry.subject.kind==='app'?'安装到浏览器':'打开 GreyDove 安装审阅');
 }
 function feedback(entry,text,state='pending'){
   if(entry.localStatus){entry.localStatus.hidden=false;entry.localStatus.textContent=text;entry.localStatus.dataset.state=state;}
@@ -119,7 +119,7 @@ async function openInstalled(entry,resume=null){
   const result=await send({protocol,action:'OPEN_INSTALLED_APP',subject:entry.subject});
   if(result.status!=='APP_OPENED'){
     feedback(entry,result.status==='PANEL_REQUIRED'||result.status==='NAVIGATION_PENDING'?
-      '应用打开请求已保留，请在 OpenDesk 工具栏继续；原领取链接仍在当前页面，不会自动领取。':
+      '应用打开请求已保留，请在 GreyDove 工具栏继续；原领取链接仍在当前页面，不会自动领取。':
       '应用未能确认打开，请在原 Side Panel 手动继续；不会重装或重新领取。','pending');
     return false;
   }
@@ -138,9 +138,9 @@ async function openInstalled(entry,resume=null){
 }
 function appReviewFeedback(handoff){
   return handoff==='panel-required'?
-    '安装审阅请求已保留，请点击 OpenDesk 工具栏继续安装，或在侧边栏处理当前审阅，在侧边栏安装面板 中核对并确认；打开面板不表示已批准或已安装。':
-    handoff==='panel-opening'?'正在打开 OpenDesk 侧边栏安装面板，请在面板中核对并确认；打开面板不表示已批准，发起审阅不表示已安装。':
-    (handoff==='panel-open'?'已打开 OpenDesk 侧边栏安装面板，请核对并确认；':'请在 OpenDesk 侧边栏安装面板 中核对并确认；')+'打开面板不表示已批准，发起审阅不表示已安装。';
+    '安装审阅请求已保留，请点击 GreyDove 工具栏继续安装，或在侧边栏处理当前审阅，在侧边栏安装面板 中核对并确认；打开面板不表示已批准或已安装。':
+    handoff==='panel-opening'?'正在打开 GreyDove 侧边栏安装面板，请在面板中核对并确认；打开面板不表示已批准，发起审阅不表示已安装。':
+    (handoff==='panel-open'?'已打开 GreyDove 侧边栏安装面板，请核对并确认；':'请在 GreyDove 侧边栏安装面板 中核对并确认；')+'打开面板不表示已批准，发起审阅不表示已安装。';
 }
 async function checkInstallation(entry){
   if(!entry.intent)return;
@@ -158,7 +158,7 @@ async function checkInstallation(entry){
   entry.intent.installation=result.installation;
   const completedAndRemoved=entry.subject.kind==='app'&&result.handoffClosed===true&&
     result.installation==='unknown'&&result.progress==='succeeded'&&result.currentInstallation==='not-installed';
-  const labels={installed:'本次安装成功（仅为本次事务回执，不代表当前仍已安装）。请在 OpenDesk 侧边栏核对并打开使用。',review:entry.subject.kind==='app'?appReviewFeedback(result.handoff):'请在 OpenDesk 审阅页核对并确认。',
+  const labels={installed:'本次安装成功（仅为本次事务回执，不代表当前仍已安装）。请在 GreyDove 侧边栏核对并打开使用。',review:entry.subject.kind==='app'?appReviewFeedback(result.handoff):'请在 GreyDove 审阅页核对并确认。',
     cancelled:'本次安装已取消。再次点击安装将发起新审阅。',failed:'本次安装失败。可显式重新发起审阅。',
     unknown:'本次安装结果未知。请核对结果，或显式返回同一审阅；不会自动重装。',installing:'正在安装，请等待并核对结果。'};
   const endedUnknown=result.handoffClosed===true&&result.installation==='unknown';
@@ -228,7 +228,7 @@ async function perform(entry,operation){
         return;
       }
       if(state.currentInstallation==='installed'&&state.enabled!==true){
-        feedback(entry,'应用已安装但未启用，请在 OpenDesk 中手动启用；网站不会代为授权。','error');
+        feedback(entry,'应用已安装但未启用，请在 GreyDove 中手动启用；网站不会代为授权。','error');
         return;
       }
     }
@@ -240,13 +240,13 @@ async function perform(entry,operation){
       saveIntent(entry);
     }
     // Persist before sending: timeout or navigation must never replay the action.
-    render(entry);feedback(entry,'正在打开 OpenDesk 安装审阅…');
+    render(entry);feedback(entry,'正在打开 GreyDove 安装审阅…');
     const result=await send({protocol,action:'OPEN_INSTALL_REVIEW',intentId:entry.intent.id,subject:entry.subject});
     // The backend may recover a pre-existing unresolved operation for this subject.
     entry.intent.id=result.intentId;saveIntent(entry);
     feedback(entry,entry.subject.kind==='app'?appReviewFeedback(result.status==='REVIEW_OPENED'?'panel-open':
       result.status==='REVIEW_PENDING'?'panel-opening':'panel-required'):
-      '已打开 OpenDesk 安装审阅，请核对并确认；发起审阅不表示已安装。');
+      '已打开 GreyDove 安装审阅，请核对并确认；发起审阅不表示已安装。');
     if($('#handoff-details'))$('#handoff-details').hidden=true;
   }catch(error){
     channel=undefined;showError(error,entry.localStatus);

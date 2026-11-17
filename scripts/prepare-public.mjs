@@ -19,6 +19,8 @@ const pageFrameworks=Object.values(PAGE_FRAMEWORK_RUNTIMES);
 const edition=resolveBrowserEdition();
 const browserCompilerFiles=compilerResourcesForEdition(edition);
 export const STATIC_RESOURCES=Object.freeze({
+  'src/_locales/en/messages.json':'_locales/en/messages.json',
+  'src/_locales/zh_CN/messages.json':'_locales/zh_CN/messages.json',
   ...Object.fromEntries(PACKAGED_TASK_RESOURCES.map(row=>[row.sourcePath,row.path])),
   'src/native-agent/http-relay.html':'native-agent/http-relay.html',
   'src/platform/chrome/network-request.html':'network-request.html',

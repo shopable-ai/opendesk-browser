@@ -35,7 +35,7 @@ export function installManagedSiteNoticePage({api=globalThis.chrome,doc=globalTh
     const notice=doc.createElement('section');notice.setAttribute('role','status');
     const close=doc.createElement('button');close.type='button';close.textContent='×';
     close.setAttribute('aria-label','关闭网站限时提醒');close.addEventListener('click',remove);
-    const title=doc.createElement('strong');title.textContent='OpenDesk · 网站使用提醒';
+    const title=doc.createElement('strong');title.textContent='GreyDove · 网站使用提醒';
     const body=doc.createElement('p');
     body.textContent='当前网站的计量额度大约还剩 '+message.minutes+' 分钟。';
     notice.append(close,title,body);shadow.append(style,notice);

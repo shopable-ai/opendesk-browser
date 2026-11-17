@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width,initial-scale=1">
-  <title>OpenDesk · 项目连接与诊断</title>
+  <title>GreyDove · 项目连接与诊断</title>
   <link rel="stylesheet" href="../ui/design-tokens.css">
   <link rel="stylesheet" href="settings.css">
   <style>
@@ -18,7 +18,7 @@
 </head>
 <body>
 <main id="chatgpt-files-root" class="settings-page" aria-busy="false">
-  <header class="settings-header"><div><p class="settings-eyebrow">OpenDesk · 可信扩展页面</p><h1>项目连接与诊断</h1></div></header>
+  <header class="settings-header"><div><p class="settings-eyebrow">GreyDove · 可信扩展页面</p><h1>项目连接与诊断</h1></div></header>
   <details class="settings-card" aria-label="本地任务提示词">
     <summary>可选：本地整理提示词</summary>
     <label>项目任务<textarea id="files-task-description" rows="3" placeholder="描述你希望在项目中完成的任务"></textarea></label>
@@ -33,7 +33,7 @@
     <p>项目：<span id="files-project-name"></span></p>
     <p>接收对话：<span id="files-project-target"></span></p>
     <p>当前对话用途：<span id="files-project-task"></span></p>
-    <p>连接后，扩展可以通过 Native 程序接口读取此项目内任务明确指定的一个已有普通文本文件，并将真实状态与结果保存在扩展可信任务记录中。修改所需文件上下文可以填入原对话草稿，由你决定是否发送；任务明确要求修改且 Native 允许写入时，扩展仍校验版本、保存并独立读回，最终回执在 OpenDesk 扩展的项目文件管理或本可信审阅页查看，不再向 ChatGPT 网页注入悬浮文件面板。此连接仅覆盖当前具体对话，不包含敏感文件、创建、删除、重命名或命令执行。可随时停止任务或撤销连接；不自动发送 ChatGPT 消息。</p>
+    <p>连接后，扩展可以通过 Native 程序接口读取此项目内任务明确指定的一个已有普通文本文件，并将真实状态与结果保存在扩展可信任务记录中。修改所需文件上下文可以填入原对话草稿，由你决定是否发送；任务明确要求修改且 Native 允许写入时，扩展仍校验版本、保存并独立读回，最终回执在 GreyDove 扩展的项目文件管理或本可信审阅页查看，不再向 ChatGPT 网页注入悬浮文件面板。此连接仅覆盖当前具体对话，不包含敏感文件、创建、删除、重命名或命令执行。可随时停止任务或撤销连接；不自动发送 ChatGPT 消息。</p>
     <p id="files-project-message" role="status"></p>
     <div class="connection-actions"><button id="files-connect-project" type="button" disabled>连接此项目</button><button id="files-revoke-project" type="button" class="secondary" disabled>撤销此项目连接</button></div>
   </section>

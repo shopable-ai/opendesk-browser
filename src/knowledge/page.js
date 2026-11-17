@@ -110,13 +110,13 @@ export function initKnowledgeCapture({api=globalThis.chrome,doc=globalThis.docum
     const style=doc.createElement('style');
     style.textContent=':host{color-scheme:light dark;font:12px/1.5 system-ui,sans-serif;color:#64748b}.row{display:flex;align-items:center;gap:4px;flex-wrap:wrap}button{font:inherit;color:inherit;background:transparent;border:1px solid transparent;border-radius:6px;padding:3px 7px;cursor:pointer}button:hover,button:focus-visible{background:light-dark(#f1f5f9,#263141);color:light-dark(#172033,#e2e8f0);outline:2px solid transparent}button:focus-visible{outline-color:#3b82f6}button:disabled{opacity:.45;cursor:wait}.brand{font-size:10px;letter-spacing:.03em;margin-right:2px}.menu{display:flex;gap:4px;flex-wrap:wrap;margin:5px 0;padding:6px;border:1px solid light-dark(#e2e8f0,#374151);border-radius:8px}.menu[hidden]{display:none}.status{display:block;font-size:11px;overflow-wrap:anywhere;max-width:38em}';
     const row=doc.createElement('div');row.className='row';
-    const brand=doc.createElement('span');brand.className='brand';brand.textContent='OpenDesk';
+    const brand=doc.createElement('span');brand.className='brand';brand.textContent='GreyDove';
     const menu=doc.createElement('div');menu.className='menu';menu.hidden=true;
     const status=doc.createElement('span');status.className='status';status.setAttribute('role','status');
     const entry={reply,host,status,menu,busy:false,lastEdit:Date.now(),buttons:[]};
     const action=(parent,label,title,handler)=>{
       const button=doc.createElement('button');button.type='button';button.textContent=label;button.title=title;
-      button.setAttribute('aria-label','OpenDesk：'+title);
+      button.setAttribute('aria-label','GreyDove：'+title);
       button.addEventListener('click',event=>{if(event.isTrusted)handler(event);});
       parent.append(button);return button;
     };

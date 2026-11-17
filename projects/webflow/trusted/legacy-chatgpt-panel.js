@@ -12,7 +12,7 @@ export function createLegacyChatGPTTaskPanel({doc,visible=false,fixedTaskId,baid
   style.textContent=':host{all:initial}*{box-sizing:border-box}.panel{font:12px/1.45 system-ui,-apple-system,sans-serif;background:#fff;color:#1b2c49;border:1px solid #e1e8f1;border-radius:12px;box-shadow:0 4px 16px #0002;padding:12px;max-width:330px;max-height:calc(100vh - 96px);overflow:auto}.heading{font-weight:650;font-size:13px;margin-bottom:8px}.fields{display:grid;gap:8px;margin-bottom:8px}.field{display:grid;gap:4px}.field[hidden]{display:none}.field span,.hint,.status,.selection{color:#53647e}.hint,.selection{margin:8px 0;overflow-wrap:anywhere;white-space:pre-wrap}select,input,textarea{font:inherit;width:100%;min-width:0;min-height:36px;padding:8px;border:1px solid #7f8da1;border-radius:8px;background:inherit;color:inherit}textarea{resize:vertical;min-height:64px}select:focus-visible,input:focus-visible,textarea:focus-visible,button:focus-visible,summary:focus-visible{outline:2px solid #365eda;outline-offset:2px}.bar{display:flex;gap:8px;align-items:center;flex-wrap:wrap}button{font:inherit;min-height:36px;background:#f5f7fb;border:1px solid #7f8da1;border-radius:8px;cursor:pointer;padding:8px;color:inherit}button:disabled,select:disabled,input:disabled,textarea:disabled{opacity:.55;cursor:default}.run{background:#365eda;color:#fff;border-color:#365eda}.status{margin-top:8px;overflow-wrap:anywhere;white-space:pre-wrap}.error{color:#ae3d4b}details{margin-top:8px}summary{cursor:pointer}pre{font:11px/1.45 ui-monospace,monospace;white-space:pre-wrap;overflow-wrap:anywhere;max-height:120px;overflow:auto}@media(prefers-color-scheme:dark){.panel{background:#151c28;color:#e9eef7;border-color:#374457}.status,.field span,.hint,.selection{color:#b3c1d3}button{background:#222d3e;border-color:#6d809b;color:#e9eef7}select,input,textarea{border-color:#6d809b}.run{background:#3566ba;color:white}.error{color:#ff9ea6}}';
   const panel=doc.createElement('div');panel.className='panel';
   const heading=doc.createElement('div');heading.className='heading';
-  heading.textContent='OpenDesk · 浏览器任务';
+  heading.textContent='GreyDove · 浏览器任务';
   const fields=doc.createElement('div');fields.className='fields';
   const taskField=doc.createElement('label');taskField.className='field';
   const taskCaption=doc.createElement('span');taskCaption.textContent='选择已安装脚本';
@@ -44,7 +44,7 @@ export function createLegacyChatGPTTaskPanel({doc,visible=false,fixedTaskId,baid
   argsField.append(argsCaption,argsInput,argsHelp);fields.append(taskField,queryField,targetField,argsField);
   const selection=doc.createElement('div');selection.className='selection';
   const hint=doc.createElement('div');hint.className='hint';
-  hint.textContent='由 OpenDesk 自动化脚本操作浏览器，结果发送到当前聊天。请先核对脚本、网址和参数。';
+  hint.textContent='由 GreyDove 自动化脚本操作浏览器，结果发送到当前聊天。请先核对脚本、网址和参数。';
   const bar=doc.createElement('div');bar.className='bar';
   const prepareButton=doc.createElement('button');prepareButton.textContent='建立请求';
   const autoButton=doc.createElement('button');autoButton.textContent='批准本次自动执行';

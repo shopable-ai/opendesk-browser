@@ -5,7 +5,7 @@
 const hasFileProtocol=text=>typeof text==='string'&&/opendesk\.(?:workspace|chatgpt)\./.test(
   text.replace(/\\u([a-f0-9]{4})/gi,(_escape,unit)=>String.fromCharCode(parseInt(unit,16))));
 export const isChatGPTFileTask=text=>typeof text==='string'&&new TextEncoder().encode(text).length<=4096&&
-  !/opendesk\.(?:workspace|chatgpt)\.|OpenDesk 文件请求结果/.test(text)&&
+  !/opendesk\.(?:workspace|chatgpt)\.|(?:OpenDesk|GreyDove) 文件请求结果/.test(text)&&
   /读取|查看|编辑|修改|替换|改为|更新|写入|\b(?:read|inspect|view|edit|update|modify|change|replace)\b/i.test(text)&&
   /\.(?:md|markdown|txt|html|htm|json|css|js|jsx|ts|tsx|mjs)(?=$|[^A-Za-z0-9])/i.test(text);
 

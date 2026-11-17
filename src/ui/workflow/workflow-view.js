@@ -1673,7 +1673,7 @@ export function createWorkflowView({api=globalThis.chrome,document:doc=globalThi
       ?'Codex 在本机管理对话，模型推理可能联网；任务需要的有限网页摘要会随发送直接提供，无需再次确认，可能保存在 Codex 本机对话中。使用官方 CLI 登录，请勿填写 Codex 登录凭据。任务逐次绑定当前文档。'
       :cloud?'发送任务后，所需有限网页摘要直接提供给指定 Responses HTTPS 接口，无需再次确认。store:false，不使用 previous_response_id。API Key 不保存。'
       :custom?'HTTPS Chat Completions 仅支持单轮 JSON 规划；发送任务后直接提供所需有限网页摘要，无需再次确认。Locator 仍由本轮可信摘要校验。API Key 不保存。'
-      :'OpenDesk 官方 AI 服务目前尚未开放。';
+      :'GreyDove 官方 AI 服务目前尚未开放。';
     syncSharedProviderSettings();
     updateLocalStatus();updateButtons();
   }

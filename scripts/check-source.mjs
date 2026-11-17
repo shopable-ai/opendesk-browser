@@ -1,6 +1,6 @@
 import {execFileSync} from 'node:child_process';
 import {readFile, stat} from 'node:fs/promises';
-import {filesAt, PACKAGE_ENTRIES, FIXED_OUTPUTS, SANDBOX_HTML, SANDBOX_META_CSP, TOOL_SANDBOX_HTML, TOOL_SANDBOX_META_CSP, FIXED_ASSETS, verifyManifest, inspectScript, BUILD_CONTRACT_SOURCE} from './verify-package.mjs';
+import {filesAt, PACKAGE_ENTRIES, FIXED_OUTPUTS, SANDBOX_HTML, SANDBOX_META_CSP, TOOL_SANDBOX_HTML, TOOL_SANDBOX_META_CSP, FIXED_ASSETS, verifyManifest, verifyExtensionLocales, inspectScript, BUILD_CONTRACT_SOURCE} from './verify-package.mjs';
 import {PINNED_USER_SCRIPT_LIBRARIES} from './build-contract.mjs';
 import {JQUERY_371} from '../src/scripting/user-scripts/page-program-package.js';
 import {SDK_FILES} from '../src/framework/sdk/registry.js';
@@ -43,6 +43,7 @@ const aliases = ['assets/js/core/brige.js', 'assets/js/core/common.js', 'assets/
 if (!Object.isFrozen(SDK_RESOURCE_ALIASES) || JSON.stringify(Object.keys(SDK_RESOURCE_ALIASES).sort()) !== JSON.stringify([...aliases].sort()) || Object.values(SDK_RESOURCE_ALIASES).some(path => path !== SDK_FILES.main)) throw new Error('SDK resource legacy aliases changed');
 for (const source of Object.values(PACKAGE_ENTRIES)) if (!(await stat(source)).isFile()) throw new Error(`Missing fixed entry: ${source}`);
 verifyManifest(JSON.parse(await readFile('manifest.json', 'utf8')),{source:true});
+await verifyExtensionLocales('src');
 const sandboxHTML = await readFile(`src/${SANDBOX_HTML}`, 'utf8');
 if (!sandboxHTML.includes(`content="${SANDBOX_META_CSP}"`) || !sandboxHTML.includes('<script src="sandbox.js"></script>')) throw new Error('Source opaque sandbox resource/CSP contract changed');
 inspectScript(await readFile('src/scripting/sandbox/sandbox.js', 'utf8'), 'scripting/sandbox/sandbox.js', {sourceType: 'module'});

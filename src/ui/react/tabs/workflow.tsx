@@ -1,6 +1,5 @@
 import * as React from 'react';
 import {Confirmation} from '../components/confirmation.tsx';
-import './workflow.css';
 import {SharedProviderSettingsSheet as WorkflowSettingsSheet} from '../components/provider-settings.tsx';
 export {SharedProviderSettingsSheet as WorkflowSettingsSheet} from '../components/provider-settings.tsx';
 import {SharedConversationFrame,ConversationTranscript} from '../components/conversation.tsx';

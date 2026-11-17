@@ -571,14 +571,14 @@ export function createScriptEditor({client, currentPageTarget, development=false
     if (!event.isTrusted || disposed || scriptsRecovery.hidden) return;
     const url = userScriptsSettingsURL(api);
     if (!url || typeof api.tabs?.create !== 'function') {
-      showUserScriptsRecovery('blocked', '请手动打开 chrome://extensions，进入 OpenDesk Browser 详情并开启「允许用户脚本」。');
+      showUserScriptsRecovery('blocked', '请手动打开 chrome://extensions，进入 GreyDove 详情并开启「允许用户脚本」。');
       return;
     }
     try {
       Promise.resolve(api.tabs.create({url})).catch(() =>
-        showUserScriptsRecovery('blocked', 'Chrome 未打开扩展设置；请手动进入 chrome://extensions 的 OpenDesk Browser 详情。'));
+        showUserScriptsRecovery('blocked', 'Chrome 未打开扩展设置；请手动进入 chrome://extensions 的 GreyDove 详情。'));
     } catch {
-      showUserScriptsRecovery('blocked', 'Chrome 未打开扩展设置；请手动进入 chrome://extensions 的 OpenDesk Browser 详情。');
+      showUserScriptsRecovery('blocked', 'Chrome 未打开扩展设置；请手动进入 chrome://extensions 的 GreyDove 详情。');
     }
   });
   listen(scriptsCheck, 'click', event => {

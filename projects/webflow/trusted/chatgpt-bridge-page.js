@@ -187,10 +187,10 @@ export function bridgePrompt(requestId,taskId=FIXED_PAGE_TASK_ID,args={},selecti
     '用户目标：调用已安装脚本“'+request.taskId+'”的已选版本，目标网址和参数以如下 JSON 为准。浏览器动作由该脚本决定。':request.taskId===BAIDU_TASK_ID?
     '用户目标：使用已安装的百度搜索 Task 搜索关键词“'+request.args.query+
       '”，只提取真实百度页面中最多三条通过自然结果过滤的标题、摘要和链接。':
-    '用户目标：使用 OpenDesk 打开固定 Task 绑定的 httpbingo HTML 示例网页，读取标题与一段正文。';
+    '用户目标：使用 GreyDove 打开固定 Task 绑定的 httpbingo HTML 示例网页，读取标题与一段正文。';
   return [
-    '请在当前官方 ChatGPT 对话中提出一个 OpenDesk 自动化任务候选。这不是你已注册的 MCP 工具，',
-    '也不是任何模型或网页可以直接批准执行的权限；真正运行需要我点击 OpenDesk 执行，或由我单独批准一次自动触发。',
+    '请在当前官方 ChatGPT 对话中提出一个 GreyDove 自动化任务候选。这不是你已注册的 MCP 工具，',
+    '也不是任何模型或网页可以直接批准执行的权限；真正运行需要我点击 GreyDove 执行，或由我单独批准一次自动触发。',
     goal,
     '待扩展把真实结果发送回这段原始对话后，再根据实际读取结果总结；不要提前虚构网页内容。',
     '现在只输出下面这一段唯一的 opendesk-request JSON 代码块，不要输出第二个请求、模拟执行结果、授权声称或其他代码块。',
@@ -398,7 +398,7 @@ export function initChatGPTFixedBridgePage({api=chrome,doc=document,win=window,
     if(reply?.ok!==true)throw fail(reply?.error?.code||'E_BRIDGE_TRANSPORT',
       reply?.error?.message||(state?.backgroundOwner||message.kind==='auto-task'?
         '可信任务宿主未响应；本次回执为 UNKNOWN，请在运行与授权查询原请求，不要重新发送':
-        '可信任务宿主未响应，请确认同一窗口的 OpenDesk 侧栏保持打开；本次回执为 UNKNOWN，请按原请求核查'));
+        '可信任务宿主未响应，请确认同一窗口的 GreyDove 侧栏保持打开；本次回执为 UNKNOWN，请按原请求核查'));
     if(panelRequest&&bridgeHostId&&reply?.bridgeHostId!==bridgeHostId)
       throw fail('E_BRIDGE_OUTCOME_UNKNOWN','任务宿主回执不匹配；本次回执为 UNKNOWN，不会改由其他宿主重放');
     return reply.data&&typeof reply.data==='object'&&!Array.isArray(reply.data)

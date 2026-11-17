@@ -29,19 +29,19 @@ export function installStayFocusBlockedPage({
   doc.getElementById('settings').addEventListener('click',event=>{
     if(event?.isTrusted!==true)return;
     if(windowId===null||typeof api.sidePanel?.open!=='function'){
-      hint.textContent='请点击 OpenDesk 扩展图标，在「工具」打开 Stay Focus 的设置。';
+      hint.textContent='请点击 GreyDove 扩展图标，在「工具」打开 Stay Focus 的设置。';
       return;
     }
     let action;
     try{action=api.sidePanel.open({windowId});}
     catch(error){
-      hint.textContent='侧边栏暂不可用。请从 OpenDesk 扩展图标打开。';
+      hint.textContent='侧边栏暂不可用。请从 GreyDove 扩展图标打开。';
       return;
     }
     Promise.resolve(action).then(()=>{
       hint.textContent='侧边栏已打开，请进入「工具」→ Stay Focus → 设置。';
     },()=>{
-      hint.textContent='侧边栏暂不可用。请从 OpenDesk 扩展图标打开。';
+      hint.textContent='侧边栏暂不可用。请从 GreyDove 扩展图标打开。';
     });
   });
 }

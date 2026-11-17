@@ -12,16 +12,16 @@ const prefix='projects/webflow/trusted/';
 // and re-pinning here and in the gate; never auto-approve current working bytes.
 const sources={
   'chatgpt-files-service.js':{pin:'65a9aee1d533a85bc9bbf5c529a7993859a657a5',targets:['native-agent/transport.js']},
-  'chatgpt-files-controller.js':{pin:'ca202ad9d2b8e4586bd4582b9a78ac07d9e379b7',targets:['native-agent/transport.js']},
+  'chatgpt-files-controller.js':{pin:'ba84c4514ec0c94436d37f5e8a0d7f7413f11792',targets:['native-agent/transport.js']},
   'chatgpt-project-policy.js':{pin:'647fcd233f662e9239c46d348205329b39db15e9',targets:['native-agent/transport.js']},
   'chatgpt-file-intent-page.js':{pin:'5de3861f877efc97235f1831c7d6826c16ac8c80',targets:['agents/chatgpt-fixed-bridge.js']},
   'chatgpt-files-settings-ui.js':{pin:'2553160d9625c694a3ea77537daa4e83aac8a558',targets:['native-agent/settings.js']},
   'chatgpt-files-ui.js':{pin:'6f19ea933b4eaf1e7f7274bb8629d55545529d5a',targets:['native-agent/settings.js']},
-  'chatgpt-file-intent-gate.js':{pin:'1222d7775877b78ba5d42ecf76367f2a1ddc035b',targets:['native-agent/transport.js']},
+  'chatgpt-file-intent-gate.js':{pin:'cac31e1824b7e9dcc2fdc8c2bd0078fd75d8d866',targets:['native-agent/transport.js']},
   'chatgpt-files-config.js':{pin:'622509c3ecf38fa40b32275b705e068a49c6c530',targets:['native-agent/transport.js','agents/chatgpt-fixed-bridge.js']},
-  'chatgpt-files.html':{pin:'b8a723d99b97130a9f3fb7f75f2a9e29b34977e8',targets:['native-agent/settings.js']},
-  'chatgpt-project-runtime-ui.js':{pin:'b775438992847dabc2f43ff5f42531d7a207389d',targets:['native-agent/settings.js']},
-  'chatgpt-conversation-route.js':{pin:'8e28adedd8cc2b49ff34897c0857d33cf2478c87',targets:['sw.js','ui/tool-shell.js','agents/chatgpt-fixed-bridge.js']}
+  'chatgpt-files.html':{pin:'e69f796aa7760bfc0480af7ca94845f8424897ec',targets:['native-agent/settings.js']},
+  'chatgpt-project-runtime-ui.js':{pin:'33ca63abba0fa7453902f4713bfd856a25596ab8',targets:['native-agent/settings.js']},
+  'chatgpt-conversation-route.js':{pin:'9b89333df1393bc7a772416a531611e2acd63bd7',targets:['sw.js','ui/tool-shell.js','agents/chatgpt-fixed-bridge.js','native-agent/settings.js']}
 };
 const blob=bytes=>createHash('sha1').update('blob '+bytes.length+'\0').update(bytes).digest('hex');
 const describe=(root,path,target)=>describeBundle({root,lock:{packages:{}},chunk:{

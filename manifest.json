@@ -1,9 +1,10 @@
 {
   "manifest_version": 3,
-  "name": "OpenDesk Browser",
-  "short_name": "OD",
+  "name": "GreyDove",
+  "short_name": "GreyDove",
   "version": "0.1.0",
-  "description": "OpenDesk Browser 浏览器自动化框架。",
+  "description": "__MSG_extensionDescription__",
+  "default_locale": "en",
   "minimum_chrome_version": "138",
   "permissions": [
     "storage",
@@ -41,7 +42,7 @@
     "service_worker": "sw.js"
   },
   "action": {
-    "default_title": "打开侧边栏"
+    "default_title": "打开 GreyDove"
   },
   "content_security_policy": {
     "extension_pages": "script-src 'self'; object-src 'self'",

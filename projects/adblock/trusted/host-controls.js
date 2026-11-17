@@ -1,7 +1,7 @@
 // Fixed first-party Side Panel UI. Never import this module from an installed tool.
 import {ADBLOCK_ID,ADBLOCK_CAPABILITY,ADBLOCK_PERMISSION,ADBLOCK_STORE,ADBLOCK_DNR_CLEANUP_STORE} from './policy.js';
 import {adblockDnrCleanupPending} from './dnr-session.js';
-const SESSION_RESTART_COPY='全局保护：扩展过滤能力尚未就绪，过滤尚未开启。请先保存当前工作并重新加载 OpenDesk Browser 扩展；也可完整退出并重新打开 Chrome。完成后手动开启全局保护。';
+const SESSION_RESTART_COPY='全局保护：扩展过滤能力尚未就绪，过滤尚未开启。请先保存当前工作并重新加载 GreyDove 扩展；也可完整退出并重新打开 Chrome。完成后手动开启全局保护。';
 const SITE_STATUS_COPY={
   navigating:['当前页面正在导航','页面加载完成后将自动更新当前网站。'],
   incognito:['当前页面为隐身页面','隐身页面不可管理当前网站过滤，请切换到普通窗口。'],
@@ -12,7 +12,7 @@ const SITE_STATUS_COPY={
 export async function prepareAdblockUninstallCleanup({api,event}){
   if(event?.isTrusted!==true)throw Object.assign(new Error('请在可信扩展页面恢复清理'),{code:'E_ADBLOCK_TRUSTED_CLICK'});
   if(!await adblockDnrCleanupPending(api)||await api.permissions.contains({permissions:[ADBLOCK_PERMISSION]}))return;
-  throw Object.assign(new Error('广告过滤为扩展必选权限，无法单独重新授权。请保存工作并重新加载或启用 OpenDesk Browser 扩展后恢复清理；清理记录保留，过滤不会自动开启。'),{code:'E_ADBLOCK_PERMISSION'});
+  throw Object.assign(new Error('广告过滤为扩展必选权限，无法单独重新授权。请保存工作并重新加载或启用 GreyDove 扩展后恢复清理；清理记录保留，过滤不会自动开启。'),{code:'E_ADBLOCK_PERMISSION'});
 }
 
 // Business state stays in the existing trusted controller. React alone owns its DOM.

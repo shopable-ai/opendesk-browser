@@ -40,7 +40,7 @@ export function createManagedUIPreview({worlds,assertHost,verifyTarget}){
       (row.managed?.bindingId===value.bindingId||
         browserBinding&&/^browser-v1-[a-f0-9]{24}$/.test(row.managed?.bindingId||'')));
     invariant(!browserBinding||prior.every(row=>row.managed.bindingId===value.bindingId),
-      'E_UI_OWNER','其他 OpenDesk 编辑器仍拥有此网页中的受管组件；请刷新网页后重试');
+      'E_UI_OWNER','其他 GreyDove 编辑器仍拥有此网页中的受管组件；请刷新网页后重试');
     if(value.enabled===false){invariant(!prior.length,'E_UI_MODE_CONFLICT','移除 UI SDK 前请先停止旧受管预览，或重新加载目标网页');return null;}
     invariant(prior.length<=1,'E_UI_OWNER','旧受管预览仍需原工作台确认清理');
     const previous=prior.length?await read(prior[0].managed.previewId,host):null;

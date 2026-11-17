@@ -704,7 +704,7 @@ export function initPromptShortcuts({api=globalThis.chrome,doc=globalThis.docume
       host.hidden||!builtInPage(win.location.href))return;
     hideTip();
     if(typeof api.runtime?.sendMessage!=='function'){
-      showFeedback('请点击浏览器工具栏的 OpenDesk 图标打开侧边栏','error');return;
+      showFeedback('请点击浏览器工具栏的 GreyDove 图标打开侧边栏','error');return;
     }
     try{
       // User activation must cross to the existing worker without async preflight.
@@ -712,13 +712,13 @@ export function initPromptShortcuts({api=globalThis.chrome,doc=globalThis.docume
         protocol:PROMPT_RAIL_OPEN_PROTOCOL,expectedUrl:win.location.href
       })).then(reply=>{
         if(!disposed&&!paused&&visible&&host?.isConnected&&!host.hidden&&
-          reply?.ok!==true)showFeedback('未能打开侧边栏，请点击浏览器工具栏的 OpenDesk 图标','error');
+          reply?.ok!==true)showFeedback('未能打开侧边栏，请点击浏览器工具栏的 GreyDove 图标','error');
       },()=>{
         if(!disposed&&!paused&&host?.isConnected&&!host.hidden)
-          showFeedback('请点击浏览器工具栏的 OpenDesk 图标打开侧边栏','error');
+          showFeedback('请点击浏览器工具栏的 GreyDove 图标打开侧边栏','error');
       });
     }catch{
-      showFeedback('请点击浏览器工具栏的 OpenDesk 图标打开侧边栏','error');
+      showFeedback('请点击浏览器工具栏的 GreyDove 图标打开侧边栏','error');
     }
   };
   function render(){
@@ -752,8 +752,8 @@ export function initPromptShortcuts({api=globalThis.chrome,doc=globalThis.docume
     // extra management button, or transcript arrows are added to this rail.
     if(builtInPage(win.location.href)){
       const brand=doc.createElement('button');brand.type='button';brand.className='brand';
-      brand.textContent='OD';brand.title='打开提示词快捷按钮管理侧栏';
-      brand.setAttribute('aria-label','打开提示词快捷按钮管理侧栏');
+      brand.textContent='灰鸽';brand.title='打开 GreyDove 提示词快捷按钮管理侧栏';
+      brand.setAttribute('aria-label','打开 GreyDove 提示词快捷按钮管理侧栏');
       brand.addEventListener('click',openSidebar);rail.append(brand);
     }
     for(const row of items){

@@ -20,7 +20,7 @@ export function TaskCatalogPage({view,hidden=false,standalone=false}){
           {standalone&&
             <MyControl view={view} as="button" type="button" id="catalog-open-dev-sidebar"
               onClick={event=>view.actions.catalogOpenSidebarClick?.(event.nativeEvent)}
-              className="od-button od-button--secondary">打开 OpenDesk 侧栏</MyControl>}
+              className="od-button od-button--secondary">打开 GreyDove 侧栏</MyControl>}
         </div>
       </header>
       {standalone&&

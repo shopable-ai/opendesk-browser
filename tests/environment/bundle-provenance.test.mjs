@@ -230,7 +230,7 @@ test('reviewed ChatGPT route guard enters Native Settings Workspace only as pinn
   const make=target=>describeBundle({chunk:{fileName:target,modules},lock:{packages:{}}});
   for(const target of ['sw.js','ui/tool-shell.js','agents/chatgpt-fixed-bridge.js',
     'native-agent/settings.js'])
-    assert.equal(make(target).modules[0].reviewedFirstPartyBlob,'8e28adedd8cc2b49ff34897c0857d33cf2478c87');
+    assert.equal(make(target).modules[0].reviewedFirstPartyBlob,'9b89333df1393bc7a772416a531611e2acd63bd7');
   for(const target of ['native-agent/transport.js','agents/page-relay.js',
     'ui/sidebar-tool-host.js','scripting/sandbox/worker-runtime.js'])
     assert.throws(()=>make(target),/cannot enter a privileged fixed bundle/);
@@ -828,7 +828,7 @@ test('Reading TOC generated locale keeps exact source, target and symlink fences
   const make=(target,root=process.cwd())=>describeBundle({root,lock:{packages:{}},chunk:{
     fileName:target,modules:{[resolve(root,path)]:{originalLength:100,renderedLength:20}}
   }});
-  const pin='e494a458a006adeb90697aca8dd8957bc90e2ef3';
+  const pin='230fba110080617ef537f4b81c0a2e8242c9a352';
   assert.equal(make('sw.js').modules[0].reviewedFirstPartyBlob,pin);
   assert.throws(()=>make('scripting/sandbox/worker-runtime.js'),/cannot enter a privileged fixed bundle/);
   const tmp=await realpath(await mkdtemp(join(tmpdir(),'reading-toc-locale-pin-')));

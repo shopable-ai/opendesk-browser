@@ -178,7 +178,7 @@ test('missing Host receipt gives same-window guidance and never replays an attem
   };
   await h.prepare();await h.click(2);await flush();
   assert.match(h.status.textContent,/UNKNOWN/);
-  assert.match(h.status.textContent,/同一窗口的 OpenDesk 侧栏保持打开/);
+  assert.match(h.status.textContent,/同一窗口的 GreyDove 侧栏保持打开/);
   assert.match(h.status.textContent,/不会自动重放/);
   await h.click(2);h.poll();await flush();
   assert.equal(h.sends.filter(x=>x.kind==='execute').length,1);

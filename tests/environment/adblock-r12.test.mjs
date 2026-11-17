@@ -570,7 +570,7 @@ test('first optional DNR grant requires reload before enabling or writing Chrome
   assert.equal(status.enabled,false);assert.equal(status.rules.verified,false);
   await assert.rejects(f.service.dispatch(f.message('adblock.enable'),sender),error=>{
     assert.equal(error.code,'E_ADBLOCK_RESTART_REQUIRED');
-    assert.match(error.message,/保存.*重新加载 OpenDesk Browser 扩展/);
+    assert.match(error.message,/保存.*重新加载 GreyDove 扩展/);
     return true;
   });
   assert.deepEqual([...f.stored],before,'first grant must not persist enabled intent');

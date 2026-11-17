@@ -41,7 +41,7 @@ export function setLocalePreference(next,options){
 }
 export function loadLocalePreference({api=globalThis.chrome}={}){return controller.load(api);}
 export function verifyLocaleCatalogs(){
-  const missing={},extras={},placeholders={};
+  const en=CATALOGS.en,missing={},extras={},placeholders={};
   const signature=text=>[...text.matchAll(/\{([a-zA-Z][a-zA-Z0-9_]*)\}/g)].map(v=>v[1]).sort().join(',');
   for(const locale of SUPPORTED_LOCALES){
     const catalog=CATALOGS[locale];

@@ -8,7 +8,7 @@ export function validatePageInstallMessage(value){
   if(!value||value.protocol!==MARKET_PAGE_PROTOCOL||value.action!=='STATUS'||
     Object.keys(value).sort().join(',')!==['protocol','action','intentId','subject'].sort().join(',')||
     typeof value.intentId!=='string'||!UUID.test(value.intentId))
-    throw marketError('E_REVIEW_REQUIRED','请在 OpenDesk 通用可信页确认安装；网页仅可查询原结果。');
+    throw marketError('E_REVIEW_REQUIRED','请在 GreyDove 通用可信页确认安装；网页仅可查询原结果。');
   const subject=validateMarketSubject(value.subject);
   if(subject.kind!=='app')throw marketError('E_INTENT_FIELDS','此查询只支持应用。');
   return {...value,subject};

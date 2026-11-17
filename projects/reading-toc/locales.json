@@ -44,11 +44,11 @@
       "promoRecruit": "合作招募",
       "promoOfficial": "官方推荐",
       "promoExternal": "第三方广告",
-      "recruitBrand": "OpenDesk · 合作计划",
+      "recruitBrand": "GreyDove · 合作计划",
       "recruitKind": "合作招募",
       "recruitTitle": "广告位开放合作",
       "recruitDescription": "欢迎阅读、效率和开发工具相关品牌合作",
-      "officialBrand": "OpenDesk · 阅读工具",
+      "officialBrand": "GreyDove · 阅读工具",
       "officialKind": "官方推荐",
       "officialTitle": "先体验完整目录",
       "officialDescription": "免费查看当前网页的全部章节。",
@@ -230,8 +230,8 @@
         "text": "Sponsored placement"
       },
       "recruitBrand": {
-        "source": "OpenDesk · 合作计划",
-        "text": "OpenDesk · Partnership"
+        "source": "GreyDove · 合作计划",
+        "text": "GreyDove · Partnership"
       },
       "recruitKind": {
         "source": "合作招募",
@@ -246,8 +246,8 @@
         "text": "Reading, productivity and developer brands are welcome"
       },
       "officialBrand": {
-        "source": "OpenDesk · 阅读工具",
-        "text": "OpenDesk · Reading tools"
+        "source": "GreyDove · 阅读工具",
+        "text": "GreyDove · Reading tools"
       },
       "officialKind": {
         "source": "官方推荐",
@@ -460,8 +460,8 @@
         "text": "第三者広告"
       },
       "recruitBrand": {
-        "source": "OpenDesk · 合作计划",
-        "text": "OpenDesk · パートナープログラム"
+        "source": "GreyDove · 合作计划",
+        "text": "GreyDove · パートナープログラム"
       },
       "recruitKind": {
         "source": "合作招募",
@@ -476,8 +476,8 @@
         "text": "読書・生産性・開発ツール関連ブランドの参加を歓迎します"
       },
       "officialBrand": {
-        "source": "OpenDesk · 阅读工具",
-        "text": "OpenDesk · 読書ツール"
+        "source": "GreyDove · 阅读工具",
+        "text": "GreyDove · 読書ツール"
       },
       "officialKind": {
         "source": "官方推荐",

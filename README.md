@@ -1,8 +1,20 @@
-# OpenDesk Browser
+# GreyDove（灰鸽）
 
-> **从这里理解产品与下一步**：[R8 用户目标、188 项能力取舍与真实验收](docs/product/browser-automation-r8-product-guide.zh-CN.md)。先读用户能做什么，再按 [188 项能力总账本](docs/product/browser-automation-feature-catalog-r8.zh-CN.md) 与 [40 项工程任务](docs/product/browser-automation-r8-implementation-plan.zh-CN.md) 追踪实现；规划不代表功能已交付。
+**Browser Automation & Scripts · 浏览器自动化与脚本工作台**
 
-**定位：Chrome MV3 的浏览器自动化与网页增强工作台。** 跨页面操作走 Controller / RunHost / ChromePage；页面 JavaScript 走 User Scripts API 的 USER_SCRIPT。两者共享可信宿主，但不是同一个运行环境。
+GreyDove 是 Chrome 浏览器扩展，用于创建、运行和管理浏览器自动化任务、JavaScript 脚本与网页工具。你可以编写或导入脚本，在网页中试运行，审阅固定版本与网站权限，再安装并重复使用；运行状态、结果和错误通过工作台查看。
+
+- **网页脚本**：在获准的网站增强页面；支持符合当前规则的脚本安装、匹配运行、停用和卸载。
+- **自动化任务**：用 JavaScript 组织页面定位、点击、填写和等待操作，管理任务版本及运行结果。
+- **网页工具**：在侧栏或相应工具的完整页面中使用和管理已安装工具。
+
+**版本名称：** Standard 为 `GreyDove`；Developer 为 `GreyDove Developer`，后者额外包含浏览器内 JSX/Vue SFC 编译资源。页面脚本支持有明确范围，不能据此声称全面兼容 Tampermonkey 或全部 `GM_*` / `GM.*` API。源码中的功能与本轮候选的真实 Chrome 验收分别记录。
+
+**发布资料与品牌规则：** [GreyDove 中英文商店资料、功能证据及域名决策](docs/release/greydove/STORE-LISTING.md)。产品英文名称固定为 GreyDove，中文品牌为灰鸽；GitHub 仓库、`opendesk-browser` 工程名、`OpenDeskTool` 等 API、协议及数据键继续保留内部技术名称。候选域名尚未注册确认前，不作为正式官网或隐私政策地址。
+
+> **研究与后续规划：** [R8 用户目标与能力取舍](docs/product/browser-automation-r8-product-guide.zh-CN.md)、[188 项能力总账本](docs/product/browser-automation-feature-catalog-r8.zh-CN.md)及[40 项工程任务](docs/product/browser-automation-r8-implementation-plan.zh-CN.md)保留历史研究与实施导航；规划数量不表示已交付功能数量，旧阶段结论须对照当前源码核实。
+
+技术上，跨页面操作走 Controller / RunHost / ChromePage；页面 JavaScript 走 User Scripts API 的 USER_SCRIPT。两者共享可信宿主，但不是同一个运行环境。
 
 ## 我想写 JavaScript，先看哪份说明？
 
@@ -10,7 +22,7 @@
 
 **另一种开发对象：可安装的 Side Panel 小工具。** 制作自己的「工具」选项卡页面，请看 [统一开发规范、打包与验收](docs/api/sidebar-tool-development.zh-CN.md) → [工具包 API](docs/api/sidebar-tools.zh-CN.md) → [React/Vue/原生示例](examples/sidebar-tools/README.zh-CN.md)；AI/Codex 复用 [小工具开发 Skill](.agents/skills/opendesk-sidebar-tool-dev/SKILL.md)。它的 `.opendesk-tool.json` 与下面的 Controller/Page 项目不是同一种格式，日常工具导入也不需要重复构建整个 Chrome 扩展。
 
-五个随扩展分发的官方工具均需用户按需安装；源码、生成资源、网站授权与更新合同见 [官方工具 Catalog](docs/api/official-tools-catalog.zh-CN.md)。
+随扩展分发的官方工具按现有 Catalog 与安装规则提供；源码、生成资源、网站授权与更新合同见 [官方工具 Catalog](docs/api/official-tools-catalog.zh-CN.md)。
 
 - 普通 JavaScript：Sidebar「开发」直接写代码；Controller 用「运行草稿」，Page DOM 用「网页 JavaScript 试运行」。
 - Codex 编辑本地项目：先完成 [Native/MCP 授权与 Sidebar 本地目录连接](docs/framework/local-development-r22.zh-CN.md)，相对静态 ESM 每次运行读取最新保存源码；不需要手动构建上传 JSON。
@@ -24,7 +36,7 @@
 
 ## 当前框架与真实进度（先读这里）
 
-**日常操作首选：[保留 Sidebar R6 的单文件运行与多文件项目使用指南](docs/product/program-development-dual-format-and-sidebar.zh-CN.md)**。此文档明确三页签原样保留、旧有按钮位置和「发现 → 导入」的真实路径；不要把示意图当作产品替代设计。
+**日常操作首选：[保留 Sidebar R6 的单文件运行与多文件项目使用指南](docs/product/program-development-dual-format-and-sidebar.zh-CN.md)**。按该文档核对既有操作入口、旧有按钮位置和「发现 → 导入」的真实路径；不要把示意图当作产品替代设计。
 
 复杂脚本优先使用 **多文件 ESM + package.json 的 opendesk 字段**，传统单文件 JS 仍在 Sidebar「开发」直接运行。`npm run build:program -- <目录>` 将页面项目构建为本地 `program.js`，将 Controller 项目构建为 `program.js` 与可导入的 Task v1 Candidate JSON；**构建和导入仍不意味着已通过 Chrome 验证或已安装**。
 
@@ -37,9 +49,9 @@
 - [现代 Page API：Locator / fill / waitFor / page.observe](docs/framework/modern-page-api.zh-CN.md)：Controller 新任务的默认写法及安全边界；[R5.2 组件证据与真实 Chrome 待验收项](docs/framework/workstreams/r5-2-modern-page-api-acceptance.md)。旧 `page.type` 的追加语义保持兼容。
 - [D1 依赖 ADR](docs/architecture/browser-framework/userscript-dependencies-d1-adr.zh-CN.md)：@require、哈希、授权与缓存的细节。
 
-**现在可做**：编辑页脚本、识别标准 @require、明确审核并锁定内容字节、进入不保存草稿的 USER_SCRIPT 预览代码路径；具备定向组件和双构建 CI。**尚未验收**：真实 Chrome 用户流程与断网运行。**尚未正式实现**：Page Program 的自动匹配安装、启停、重启注册对账。生成 register 描述符不等于已安装任务。
+**当前源码已接通**：页面脚本试运行、固定候选、验证、安装、启停、卸载和 Chrome 注册对账。对应实现为 [installed-programs.js](src/scripting/user-scripts/installed-programs.js) 与 [page-program-library.js](src/ui/page-program-library.js)；旧 R8/D1 文档中“只有 register 描述符、尚无安装”的结论不再代表当前源码。**本轮未验证**：品牌候选在真实 Chrome 中的完整安装、重启、权限撤销和离线使用；已有源码或历史测试不能替代同一候选的原生验收。
 
-Controller 的 @require 不会被偷偷下载并运行进 Worker 或 Service Worker；第三方脚本仅进入受控 USER_SCRIPT 页面环境。
+Controller 与 Page 的依赖分别由各自的受控运行环境处理。支持的 `@require`、ESM 和锁定方式以[当前依赖使用合同](docs/framework/universal-dependency-runtime-usage-contract.zh-CN.md)及对应源码为准；Page 脚本不会因此获得任意后台 Chrome 权限，受控 SDK 也不等于油猴 GM API 兼容层。
 
 ## 历史：02A 环境交付范围
 
@@ -95,13 +107,13 @@ npm run pack:dev
 
 先构建再执行包安全回归测试。Node仅构建/测试，扩展运行无需Node服务。开发/生产包分别位于dist/development与dist/production；zip在artifacts。每次构建检查classic语法、资源闭包、CSP与禁止动态代码，产物hash recipe在docs/environment/build-*.json。开发使用外部source-map，生产不发source-map；不使用eval devtool、共享runtime或动态chunk。
 
-## 环境安装与检查
+## 历史：02A 环境安装与检查
 
 开发浏览器的扩展管理页启用开发者模式，加载对应dist目录。点击扩展工具栏入口打开一个工具窗口；并发重复入口复用同一窗口。扩展在安装/更新时请求全部网站访问和核心浏览器 API。工具窗口的“授权并创建检查页”仍在用户点击中核验或恢复被 Chrome 限制的 origin 权限，并新建专用HTTP(S)标签；原页面不翻页。健康检查只返回readyState与目标绑定，不读取业务数据。原页面检查依赖工具栏点击获得的activeTab，不能假定该权限转移给新tab。目标重载/关闭/跨origin、站点权限撤销或受限页面会明确报错，不自动重新绑定旧文档。
 
 静态选区入口agents/selection-entry.js只声明MODULE_NOT_INSTALLED。健康脚本文件的求值返回值从未被当作选区结果，真实HEALTH消息才构成环境通信证据。
 
-## 后续接口与责任
+## 历史：02A 后续接口与责任
 
 src/run-host.js固定导入src/features/scraping/index.js一次。createScrapingModule的注入参数及返回方法遵循docs/contracts/contract.json；本阶段只有mountToolPanel/dispose与明确缺席handshake，所有业务方法抛MODULE_NOT_INSTALLED，底座参数为null。02B在同一入口实现生产controller与唯一公共服务；03只填领域模块和UI。不存在第二owner/broker/DB或模拟成功流程。
 

@@ -176,7 +176,7 @@ export function createMarketHandoff({api=globalThis.chrome,channel,lockManager=g
       if(visible){intent.phase='opened';await persist(state);}
       return {ok:true,protocol:MARKET_INTENT_PROTOCOL,
         status:!opened?'PANEL_REQUIRED':visible?'REVIEW_OPENED':'REVIEW_PENDING',intentId:intent.intentId,
-        ...(!opened?{message:'请点击 Chrome 工具栏中的 OpenDesk 图标打开侧边栏，继续审阅原安装请求。'}:{})};
+        ...(!opened?{message:'请点击 Chrome 工具栏中的 GreyDove 图标打开侧边栏，继续审阅原安装请求。'}:{})};
     }
     const url=marketReviewURL(api,intent.reviewId,intent.subject);
     const tabs=await api.tabs.query({});
@@ -186,7 +186,7 @@ export function createMarketHandoff({api=globalThis.chrome,channel,lockManager=g
       else tab=await api.tabs.create({url,active:true});
       if(!Number.isSafeInteger(tab?.id))throw Error('Missing created tab identity');
       intent.tabId=tab.id;intent.phase='opened';await persist(state);
-    }catch{throw marketError('E_HANDOFF_UNKNOWN','审阅交接结果待核对。请查看已打开的 OpenDesk 标签页，或用同一请求重试连接。');}
+    }catch{throw marketError('E_HANDOFF_UNKNOWN','审阅交接结果待核对。请查看已打开的 GreyDove 标签页，或用同一请求重试连接。');}
     // This says nothing about the installed registry, permissions, or tool data.
     return {ok:true,protocol:MARKET_INTENT_PROTOCOL,status:'REVIEW_OPENED',intentId:intent.intentId};
   }

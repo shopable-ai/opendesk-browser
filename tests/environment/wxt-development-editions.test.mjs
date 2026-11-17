@@ -1,16 +1,23 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import {readFile,writeFile,mkdir,mkdtemp,rm} from 'node:fs/promises';
+import {readFile,writeFile,mkdir,mkdtemp,rm,cp} from 'node:fs/promises';
 import {join} from 'node:path';
 import {tmpdir} from 'node:os';
 import {publishDevelopment} from '../../scripts/wxt-development.mjs';
-import {BROWSER_EDITION_RECORD,editionRecordText,DEVELOPER_BROWSER_NAME} from '../../scripts/browser-editions-r245.mjs';
+import {BROWSER_EDITION_RECORD,editionRecordText,DEVELOPER_BROWSER_NAME,STANDARD_BROWSER_NAME} from '../../scripts/browser-editions-r245.mjs';
 import {resolveMarketChannel,marketExternalConnectable} from '../../scripts/market-channel.mjs';
+import {PACKAGED_TASK_RESOURCES,preparePackagedTaskResources} from '../../scripts/packaged-task-resources.mjs';
 
 async function fixture(edition,name){
   const root=await mkdtemp(join(tmpdir(),'opendesk-dev-edition-'));
   const outDir=join(root,'dist','development');
   await mkdir(join(outDir,'framework'),{recursive:true});
+  for(const row of PACKAGED_TASK_RESOURCES){
+    const destination=join(root,row.sourcePath);
+    await mkdir(join(destination,'..'),{recursive:true});
+    await cp(row.sourcePath,destination);
+  }
+  await preparePackagedTaskResources(outDir,{root});
   const source=JSON.parse(await readFile('manifest.json','utf8'));
   const manifest={...source,name,action:{...source.action,default_title:'打开 '+name}};
   const external=marketExternalConnectable(resolveMarketChannel({mode:'development'}));
@@ -23,7 +30,7 @@ async function fixture(edition,name){
 }
 
 test('Daily publisher accepts either reviewed edition in the same development directory',async()=>{
-  for(const [edition,name] of [['standard','OpenDesk Browser'],['developer',DEVELOPER_BROWSER_NAME]]){
+  for(const [edition,name] of [['standard',STANDARD_BROWSER_NAME],['developer',DEVELOPER_BROWSER_NAME]]){
     const f=await fixture(edition,name);
     try{
       // Stop at the deliberately absent official catalog: this tests the real

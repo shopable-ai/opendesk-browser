@@ -1,5 +1,13 @@
 # Cookie Editor · 正式 Cookies SDK 安装工具
 
+## GreyDove 品牌源码与发行边界（2026-11-17）
+
+当前源码 `app/components/CookieBusinessPanels.jsx` 的企业定制需求标题和社群说明已改为 GreyDove；`OpenDesk` 服务协议仍使用原技术名称。本轮未修改 Cookie、账号、网络、授权或存储行为。
+
+**SOURCE_UPDATED_PACKAGE_BLOCKED**：原编译器生成的 2.0.82 候选除品牌文字外，还包含本轮开始前已在 main 中的 Cookie 列表、筛选栏、变化监听／App 组件及共享样式变化，不能作为“仅品牌”发行包晋升。因此唯一正式包、`tool.config.json` 和工程版本继续保持 **2.0.81**；没有回滚 main 的既有开发源码，也没有手改正式包。正式包为 **397,815 bytes**，SHA-256 `e217ca83a6d41eab11d60ffb25c05b9eea9f9eef599cba7863ffe912319a2be2`。
+
+本轮候选和结构差异证据仅保存在忽略的 `artifacts/greydove/releases/`；版本回退后该候选不再与当前配置同源，不可直接晋升，原编译回执也未伪造为有效。候选阶段来源漂移拒绝、React 编译／规范包三项检查通过，不构成对附带业务变化的发布批准。Browser 构建继续从现有正式 JSON 复制原 2.0.81，因此该包的两处旧品牌仍可能显示；需由后续项目发行任务核验既有业务变化，再重新构建、验证并晋升更高版本。本轮没有执行 Chrome 安装或更新。
+
 ## 当前项目入口（2026-11-08 目录迁移）
 
 唯一源码 owner 为 `projects/cookie-editor/`；项目自有测试、依赖、预览和忽略产物一同迁移，旧目录不保留副本或符号链接。以下命令从仓库根运行：

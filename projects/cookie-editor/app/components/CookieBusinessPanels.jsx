@@ -104,7 +104,7 @@ export function CookieCustomizePanel({onCommunity=()=>{},draft,onDraftChange,onC
   const {need,note,brief}=draft;
   const updateDraft=patch=>{setCopyStatus('');onDraftChange(previous=>({...previous,...patch}));};
   const prepare=()=>updateDraft({brief:
-    ['OpenDesk Browser · 企业 AI 定制需求',
+    ['GreyDove · 企业 AI 定制需求',
      '需求方向：'+need,
      '场景说明：'+(note.trim()||'待沟通'),
      '要求：基于现有正式授权的 AI 工具和账号资源，降低日常切换、维护与人工重复操作成本。',
@@ -204,7 +204,7 @@ export function CookieCommunityPanel(){
     </div>
     <section className="cookie-business-callout cookie-business-circle-note">
       <strong>信息在社群中交流</strong>
-      <p>高价值资料、合作机会或交易线索由外部社群独立讨论和核验。OpenDesk 不托管交易、不担保第三方信息，也不提供账号凭据或 Cookie 的买卖渠道。</p>
+      <p>高价值资料、合作机会或交易线索由外部社群独立讨论和核验。GreyDove 不托管交易、不担保第三方信息，也不提供账号凭据或 Cookie 的买卖渠道。</p>
     </section>
     <p className="cookie-business-muted">本页为社群入口占位。群组链接与微信联系方式尚未配置，不代表已经有真实社群或客服。</p>
   </div></Page>;

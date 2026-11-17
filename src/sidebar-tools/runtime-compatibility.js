@@ -2,7 +2,7 @@ import {SIDEBAR_TOOL_PROTOCOL,sidebarToolPackageContractHash} from '../ui/sideba
 import {resolveToolSender,isToolSender} from '../environment.js';
 
 const failure=(code,message)=>Object.assign(new Error(message),{code});
-const recovery='请等待开发安全更新完成后重新打开侧栏；静态安装请核对扩展 ID 和加载目录，再更新对应的 OpenDesk Browser。原安装和数据保留。';
+const recovery='请等待开发安全更新完成后重新打开侧栏；静态安装请核对扩展 ID 和加载目录，再更新对应的 GreyDove。原安装和数据保留。';
 
 // Read-only compatibility query on the existing tool protocol. It neither
 // installs packages nor grants capabilities; all original admission checks stay.

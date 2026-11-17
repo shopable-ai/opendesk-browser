@@ -354,7 +354,7 @@ function App(){
             onChange={value=>void operate(value?'adblock.enable':'adblock.disable')}
             aria-label="全局广告拦截"/>
         </div>
-        {state?.restartRequired?<p className="adblock-help">过滤尚未就绪。请保存工作并重新加载 OpenDesk Browser 扩展，然后手动开启。</p>:null}
+        {state?.restartRequired?<p className="adblock-help">过滤尚未就绪。请保存工作并重新加载 GreyDove 扩展，然后手动开启。</p>:null}
         {state?.permissions?.dnr===false?<p className="adblock-help">Chrome 必选广告过滤权限不可用，无法确认清理完成；请检查扩展状态后重新读取。</p>:null}
       </CardContent></Card>
       <Card><CardContent className="adblock-card">
@@ -494,7 +494,7 @@ function App(){
     </>:<>
       {!sharedNavigation?<div className="adblock-page-head">{back}<strong>设置说明</strong></div>:null}
       <Card><CardContent className="adblock-card">
-        <strong>过滤范围</strong><p className="adblock-help">使用 OpenDesk Browser 内置离线 DNR 规则，仅对符合规则的第三方请求生效。</p>
+        <strong>过滤范围</strong><p className="adblock-help">使用 GreyDove 内置离线 DNR 规则，仅对符合规则的第三方请求生效。</p>
         <strong>网站例外</strong><p className="adblock-help">关闭本站过滤可加入例外；例外列表支持逐个恢复。</p>
         <strong>手动屏蔽</strong><p className="adblock-help">点击「选择网页元素」后，在网页上单击区域立即隐藏并保存到本地；下次访问仍然生效。误选可直接撤销，或在列表逐条恢复。</p>
         <Button variant="secondary" onClick={()=>setView('cosmetics')}>管理手动屏蔽规则</Button>

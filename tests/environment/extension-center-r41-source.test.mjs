@@ -10,7 +10,7 @@ test('installed source uses the original market record only for the same fixed p
   const sha256=await sidebarToolPackageHash(tool);
   const record={marketId:'opendesk/source-test',version:'1.0.0',sha256};
   assert.deepEqual(await describeInstalledAppSource(tool,record),
-    {kind:'market',label:'OpenDesk 官方市场 · opendesk/source-test',sha256});
+    {kind:'market',label:'GreyDove 官方市场 · opendesk/source-test',sha256});
   for(const changed of [{...record,sha256:'0'.repeat(64)},
     {...record,version:'2.0.0'},{...record,marketId:'opendesk/another-tool'}]){
     const source=await describeInstalledAppSource(tool,changed);

@@ -192,7 +192,7 @@ export function createNativeAgentService({api=globalThis.chrome,hostPorts=new Ma
       reply=data?.kind==='response'?data:response(id,{result:data});
     }catch(e){reply=response(id,{error:error(e)});}finally{finish?.();}
     if(new TextEncoder().encode(JSON.stringify(reply)).length>AGENT_MAX_BYTES)
-      reply=response(id,{error:{code:'E_RESULT_LIMIT',message:'Native result exceeds 60 KiB; inspect the original run in OpenDesk. The program was not repeated.',outcome:'FAILED_CONFIRMED',...(req.params?.runId?{runId:req.params.runId}:{})}});
+      reply=response(id,{error:{code:'E_RESULT_LIMIT',message:'Native result exceeds 60 KiB; inspect the original run in GreyDove. The program was not repeated.',outcome:'FAILED_CONFIRMED',...(req.params?.runId?{runId:req.params.runId}:{})}});
     if(port===source&&ready)try{source.postMessage(reply);}catch{}
   }
   function connect() {

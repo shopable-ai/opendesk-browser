@@ -253,7 +253,7 @@ export default function LocaleManager({model}){
       <section className="od-locale-section od-stack" aria-label={t('globalLabel')}>
         <h3>{t('uiLanguage')}</h3>
         <label className="od-locale-field" htmlFor="od-locale-global">
-          <span className="od-locale-label">OpenDesk</span>
+          <span className="od-locale-label">GreyDove</span>
           <select id="od-locale-global" className="od-field" value={preference}
             disabled={busy||!localeController||globalUnknown} onChange={event=>{
               if(localeController?.getError?.()?.code==='E_UI_LOCALE_OUTCOME_UNKNOWN')return;

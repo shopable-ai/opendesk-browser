@@ -1,5 +1,13 @@
 # AdBlock · 正式 React 产品（R2.11）
 
+## GreyDove 品牌文案 · 1.2.5（2026-11-17）
+
+正式独立包由 **1.2.4 → 1.2.5**。本次仅将产品界面中的扩展重启指引与过滤范围说明统一为 GreyDove；工具 ID、`adblock.control` 能力、安装数据结构、过滤规则和授权流程不变。使用原 React 编译器、规范候选打包器、`--promote-from` 与 `--check-project` 完成晋升和同源核对，没有手工编辑正式 JSON。原 1.2.4 字节保留在 Git 历史及本轮忽略的基线证据目录。
+
+新包为 **30,473 bytes**，SHA-256 `b3fc5b878db7e06ff086c027fde8decdaa4962a3df018a0888cfa6af98a4ec6c`。编译来源／产物一致性、源码漂移拒绝、包身份和相关模型检查通过；组合 Node 检查为 69 通过、2 项既存源码文字断言失败，分别是通用工具页旧 48px 样式断言和预览构建器旧 `FRAME_BASE64` 连续字符串断言，两处受测源文件与 HEAD 一致，本轮没有放宽它们。与 1.2.4 比较，CSS 和全部非版本元数据相同；JS 的变化为两条品牌文案及编译器生成的局部变量名。
+
+状态为 **PACKAGE_READY_INSTALL_NOT_TESTED**：本轮没有执行真实 Chrome 安装、升级或 DNR 验收；Node 与同源包检查不代表真实广告阻断通过。下文 1.2.4 及 R2 的记录保留各自原版本证据。
+
 > **唯一正式 UI：** `src/App.jsx`（React JSX）及 `src/main.jsx`、`src/model.js`、`src/layout.css`。改 UI 只改这里。**不要编辑生成的 JS/CSS，也不要编辑历史 HTML 原型。**
 
 ## 1.2.4：安装即用与更新保留状态（2026-10-24）

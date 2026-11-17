@@ -1095,7 +1095,7 @@
   "pcPrivacySecurity": "隱私與安全",
   "pcMaintained": "已維持",
   "pcAppearance": "外觀",
-  "pcAppearanceHelp": "跟隨 OpenDesk 的介面配色。",
+  "pcAppearanceHelp": "跟隨 GreyDove 的介面配色。",
   "pcHostTheme": "跟隨宿主",
   "pcShowStatus": "開啟擴充功能時顯示狀態",
   "pcShowStatusHelp": "保留執行摘要的展開偏好；異常和待套用狀態一律顯示。",

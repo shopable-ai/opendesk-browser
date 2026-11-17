@@ -2,7 +2,7 @@ import {IMAGE_PROTOCOL} from './chatgpt-images.js';
 
 // Packaged first-party settings surface; never loaded into a sandbox tool.
 export function initChatGPTImagesUI({doc=document,api=chrome}={}){
-  doc.title='OpenDesk · 保存 ChatGPT 生成图片';
+  doc.title='GreyDove · 保存 ChatGPT 生成图片';
   const main=doc.createElement('main');main.className='settings-page';
   main.innerHTML=`<header class="settings-header"><div><h1>保存 ChatGPT 生成图片</h1><p>只处理你选择的完整生成图片。另存为时选择已授权目录和新文件。</p></div></header>
   <section class="settings-card"><h2>1. 选择来源与目标</h2>

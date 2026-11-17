@@ -498,6 +498,20 @@ test('history, unsent drafts, synthetic sends, IME, attachments and result packe
   }
 });
 
+test('legacy and GreyDove file result prefixes never initiate a new file task',async()=>{
+  for(const brand of ['OpenDesk','GreyDove']){
+    for(const protocol of ['', ' opendesk.workspace.result.v1']){
+      const h=conversationFixture();
+      try{
+        await h.ready;
+        h.submit(brand+' 文件请求结果'+protocol+' 读取 demo.txt');
+        h.tick();await h.settle();
+        assert.deepEqual(h.calls,[],brand+(protocol||' without protocol'));
+      }finally{h.entry.dispose();}
+    }
+  }
+});
+
 test('normal project send waits for the same complete answer and is cancelled on native Stop or navigation',async()=>{
   for(const mode of ['complete','stop','navigate','draft']){
     const h=conversationFixture();

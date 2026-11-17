@@ -1,3 +1,12 @@
+## GreyDove 品牌接线（2026-11-17）
+
+- **范围：** 基于远端 main `ec8766088b4f290386cf05d5848b56f767ce6d06`，在独立 `feat/greydove-brand` 分支统一 Browser 用户可见品牌；本项目仅更新现有可信设置、ChatGPT 指引及文件/图片页面中的品牌文案，不恢复或接续下方历史业务目标。
+- **复用与兼容：** 继续使用原固定编译入口、Task/Host/Authority、Native 协议、安装身份及 UNKNOWN 不重放边界。`chatgpt-conversation-route.js` 同时识别 `OpenDesk 文件请求结果` 与 `GreyDove 文件请求结果`，防止新品牌回执被当成新文件请求；原协议标记不变。`legacy-chatgpt-panel.js` 的搜索参数示例及不可变工具包保持原值。
+- **历史序列化格式保留：** `src/chatgpt-conversation-result.js` 的 0.2.x 结果头参与已冻结 `contentSha256` 的重建和只读恢复，因此按旧协议原字节保留 OpenDesk；不对旧/新文案做哈希等价化，不改旧 UNKNOWN 记录。新的浏览器界面品牌不改变历史交付证明。
+- **源码准入：** 仅在实际审阅本轮显示文案与上述兼容改动后更新对应 Git blob pin；原允许目标集合、符号链接拒绝、未知源码拒绝及漂移检查全部保留。同步原 provenance 测试中已滞后的快照，未扩展生产准入。
+- **定向结果：** 8 个受影响测试文件 229 项中 227 通过、2 失败；新增新旧回执前缀 × 有/无协议的四种拒绝用例通过。两个手动投递 `null.route` / `E_BRIDGE_DELIVERY` 失败已用 main 的 47 个实际依赖文件隔离复现。本轮不修改无关投递行为。
+- **验收边界：** 本轮未执行真实 Chrome、真实文件读写或 A/B 投递验收；不沿用旧候选的 PASS。完整品牌构建、包与未完成事项统一记录于 [GreyDove 工作记录](../../../docs/framework/workstreams/greydove-brand.md)。
+
 ## 项目文件入口收敛（2026-11-15）
 
 **当前范围：** 项目文件读写是非核心实验能力，尚未完成可行性验证；本轮完善其定位和展示，不补做文件功能、不恢复历史正式验收或评分。

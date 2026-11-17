@@ -87,7 +87,7 @@ export function strictTransfer(value,releases=[]) {
 export function initMarketplace({api=globalThis.chrome,root=globalThis.document?.getElementById('market-root'),
   lockManager=globalThis.navigator?.locks}={}){
   if(globalThis.location?.pathname==='/ui/market-install.html')return initMarketInstall({api,root,lockManager});
-  if(!api?.runtime?.getURL||!root)throw fail('请在已安装的 OpenDesk 扩展内使用应用市场');
+  if(!api?.runtime?.getURL||!root)throw fail('请在已安装的 GreyDove 扩展内使用应用市场');
   let matchGeneration=0,localReadGeneration=0,navigationGeneration=0,disposed=false;
   const reviewId=new URLSearchParams(location.search||'').get('intent');
   const state={installed:[],catalog:null,apps:[],notice:'',error:false,review:null,busy:false,batchPlan:null,batch:null,
@@ -126,7 +126,7 @@ export function initMarketplace({api=globalThis.chrome,root=globalThis.document?
       DETAIL_OPENED:'已在侧边栏打开应用详情。',
       REVIEW_REQUEST_ACCEPTED:'安装审阅已在侧边栏打开，请在侧边栏核对安装结果。',
       NAVIGATION_PENDING:'已提交侧边栏导航请求，等待目标面板确认。',
-      PANEL_REQUIRED:'导航请求已保存；请打开当前 Chrome 窗口的 OpenDesk 侧边栏继续。',
+      PANEL_REQUIRED:'导航请求已保存；请打开当前 Chrome 窗口的 GreyDove 侧边栏继续。',
       NAVIGATION_BLOCKED:'侧边栏已保留导航请求；请先处理未保存编辑或安装审阅。',
       IDENTITY_CHANGED:'应用身份已变化，本次导航未执行；请重新核对。'};
     say((notices[response.status]||'导航结果未知，请在 Side Panel 核对。')+
@@ -362,7 +362,7 @@ export function initMarketplace({api=globalThis.chrome,root=globalThis.document?
     const list=elem('dl','spec-list');
     for(const [key,value] of [
       ['版本','v'+app.version],['发布者',app.author],['适用网页',app.sites],
-      ['运行位置',app.surfaces.join('、')],['交付方式','随 OpenDesk 扩展打包；可离线安装'],
+      ['运行位置',app.surfaces.join('、')],['交付方式','随 GreyDove 扩展打包；可离线安装'],
       ['站点授权',app.toolId==='reading-toc'?'启用后 HTTP(S) 网页默认可用，可停用网站或排除单页':'安装后独立授权，不自动读取网页']
     ])list.append(elem('dt','',key),elem('dd','',value));
     return list;
@@ -397,7 +397,7 @@ export function initMarketplace({api=globalThis.chrome,root=globalThis.document?
     return content;
   }
   function handoffDetail(app){
-    const content=container('OPENDESK · 可信安装审阅',app.title,'固定版本 v'+app.version+' · '+app.surfaces.join('、'));
+    const content=container('GreyDove · 可信安装审阅',app.title,'固定版本 v'+app.version+' · '+app.surfaces.join('、'));
     content.append(para('来自 '+state.handoff.origin+' 的安装请求。此候选不会被其他网页请求替换。','minor'));
     if(state.review)content.append(renderReview(state.review));
     else if(state.matched.has(app.id)&&recordedOfficialSource(app)){
@@ -465,7 +465,7 @@ export function initMarketplace({api=globalThis.chrome,root=globalThis.document?
   function renderReview(review){
     const parent=elem('section','surface review');parent.tabIndex=-1;parent.append(elem('h2','','安装审阅 · '+review.app.title));
     const current=review.baseline,tool=review.tool,samePackage=Boolean(current&&sameSidebarToolPackage(current,tool));
-    parent.append(para('发布者：OpenDesk · 制品来源：当前扩展内的官方发行包。网站只负责提出安装请求。','minor'));
+    parent.append(para('发布者：GreyDove · 制品来源：当前扩展内的官方发行包。网站只负责提出安装请求。','minor'));
     parent.append(para('当前：'+(current?'v'+current.version:'未安装')+' → 发行：v'+tool.version));
     parent.append(para('申请能力：'+(capabilityNames(tool.capabilities)+taskDelegationReview(tool))));
     if(current){
@@ -619,7 +619,7 @@ export function initMarketplace({api=globalThis.chrome,root=globalThis.document?
     if(state.catalogStatus!=='ready'){exportButtons.children[0].disabled=true;exportButtons.children[1].disabled=true;}
     listing.append(exportButtons);
     const form=elem('div','surface');form.append(elem('h2','','导入迁移清单'),
-      para('粘贴由 OpenDesk 导出的纯数据 JSON。导入只校验与选择，不执行安装或恢复授权。','minor'));
+      para('粘贴由 GreyDove 导出的纯数据 JSON。导入只校验与选择，不执行安装或恢复授权。','minor'));
     const field=elem('textarea');field.setAttribute('aria-label','迁移清单 JSON');
     field.value=state.transfer;field.addEventListener('input',()=>{state.transfer=field.value;});
     const check=button('检查并选择清单',importTransfer);check.disabled=state.catalogStatus!=='ready';
@@ -688,7 +688,7 @@ export function initMarketplace({api=globalThis.chrome,root=globalThis.document?
   function renderBatchPlan(){
     const plan=state.batchPlan,box=elem('section','surface review');
     box.append(elem('h2','','批量安装审阅'),
-      para('发布者：OpenDesk · 制品来源：当前扩展内的官方发行包。安装保留已有工具数据，不自动运行，也不授予网站权限。','minor'));
+      para('发布者：GreyDove · 制品来源：当前扩展内的官方发行包。安装保留已有工具数据，不自动运行，也不授予网站权限。','minor'));
     for(const row of plan.rows)box.append(para(row.app.title+' · v'+row.app.version+' · '+
       (BATCH_STATUS_NAMES[row.status]||row.status)+' · '+row.reason));
     const actions=elem('div','actions'),start=button('确认逐项安装',()=>runBatch(plan),true);

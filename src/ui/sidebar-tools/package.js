@@ -89,7 +89,7 @@ export function validateSidebarToolPackageMetadata(value) {
   if (unsupportedCapabilities.length) {
     const names=unsupportedCapabilities.slice(0,4).map(item=>item.length>80?item.slice(0,80)+'…':item).join('、');
     fail('当前安装器不支持此工具格式的能力：'+names+(unsupportedCapabilities.length>4?'等 '+unsupportedCapabilities.length+' 项':'')+
-      '。请核对工具包格式与扩展运行身份；确认新版支持这些能力后再更新 OpenDesk Browser。','E_TOOL_CAPABILITY_UNSUPPORTED');
+      '。请核对工具包格式与扩展运行身份；确认新版支持这些能力后再更新 GreyDove。','E_TOOL_CAPABILITY_UNSUPPORTED');
   }
 }
 

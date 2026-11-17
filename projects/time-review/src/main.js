@@ -170,7 +170,7 @@
     const host=state?.paused?null:state?.trackingHost||null;
     $('site-host').textContent=host||'当前没有正在记录的网站';
     const reasons={paused:'记录已暂停', 'site-not-authorized':'当前网站未单独授权记录',
-      'chrome-site-permission':'OpenDesk 缺少该站点的 Chrome 权限',
+      'chrome-site-permission':'GreyDove 缺少该站点的 Chrome 权限',
       'idle-permission':'请授权空闲检测后开始记录',idle:'Chrome 检测到用户空闲',
       'window-inactive':'Chrome 当前不在前台',excluded:'该网站已排除',
       'unsupported-page':'仅支持普通非隐身网页', 'observation-error':'暂时无法核实网页活动'};
@@ -244,7 +244,7 @@
     $('pause').title='暂停记录';
     $('pause').setAttribute('aria-label','暂停记录');
     const grants=state.siteGrants||{allSites:false,origins:[]};
-    $('site-grant-summary').textContent=!compatible?'后台版本不支持独立网站授权，请先升级 OpenDesk 主扩展。':
+    $('site-grant-summary').textContent=!compatible?'后台版本不支持独立网站授权，请先升级 GreyDove 主扩展。':
       grants.allSites?'已同意记录全部普通网站（可在工具详情撤销）':
       grants.origins?.length?'已单独授权 '+grants.origins.length+' 个网站（在工具详情管理）':
       '尚未授权网站；请在「工具详情 → 设置」先授权当前网站或全部普通网站。';

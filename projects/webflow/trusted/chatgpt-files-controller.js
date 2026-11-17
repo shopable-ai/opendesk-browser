@@ -494,7 +494,7 @@ export function createChatGPTFilesController({api,files,readAnswer=readChatGPTEd
       // Only the trusted choice grants proposal staging. The model echoes the
       // same six-field request, with no permission or dispatch decisions.
       const prompt=[
-        '请将下方 JSON 原样放入唯一的 opendesk-request 代码块，所有字段和值保持不变，不添加解释、不调用工具。文件操作由现有 OpenDesk 扩展执行；不要声称已经读取。',
+        '请将下方 JSON 原样放入唯一的 opendesk-request 代码块，所有字段和值保持不变，不添加解释、不调用工具。文件操作由现有 GreyDove 扩展执行；不要声称已经读取。',
         s.allowEdit?'本轮先读取文件。收到真实结果后，仅使用其中的 editProposal 提出完整新正文；写入仍须我在可信页面确认。':'本轮只读，结果回填后结束，不生成修改提案。',
         ...(message.task?.trim()?['任务说明（JSON 字符串）：'+promptJSON(message.task.trim())+'。']:[]),
         '请保留 JSON 转义，将下面 JSON 原样放入回答代码块：',promptJSON(request.request)

@@ -2,7 +2,7 @@
   "name": "opendesk-browser",
   "version": "0.1.0",
   "private": true,
-  "description": "OpenDesk Browser MV3 extension; stage 02A environment",
+  "description": "GreyDove browser automation, JavaScript scripts, and web tools workspace",
   "type": "module",
   "engines": {
     "node": ">=22.12.0"

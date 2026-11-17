@@ -103,7 +103,7 @@ export function createTrustedHistoryWorkbench({
       publish({visits:null,status:({
         E_CHROME_PERMISSION_REQUIRED:'需要 Chrome history 可选权限；请重新点击查询并在浏览器权限框中允许。',
         E_DOCUMENT_CHANGED:'Side Panel 文档已变化；请重新打开后查询。',
-        E_OWNER:'当前页面不是可信 OpenDesk Side Panel。',
+        E_OWNER:'当前页面不是可信 GreyDove Side Panel。',
         E_SCHEMA:'查询条件无效。',
         E_BROWSER:'浏览器未能完成历史查询。'
       })[code]||('历史查询未完成（'+code.slice(0,65)+'）。')});

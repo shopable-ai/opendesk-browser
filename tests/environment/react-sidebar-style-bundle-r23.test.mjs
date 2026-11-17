@@ -5,8 +5,9 @@ import {resolve} from 'node:path';
 import {build} from 'vite';
 import {parse} from 'acorn';
 
-test('trusted React classic bundle includes locale styles without an unreferenced CSS asset',async()=>{
+test('trusted React classic bundle includes locale and workflow styles without an unreferenced CSS asset',async()=>{
   const result=await build({configFile:false,logLevel:'error',
+    resolve:{dedupe:['react','react-dom'],alias:{'@opendesk/ui':resolve('src/ui/react/components/ui/button.tsx')}},
     define:{'process.env.NODE_ENV':JSON.stringify('production')},
     build:{write:false,target:'es2022',minify:false,sourcemap:false,cssCodeSplit:false,
       lib:{entry:resolve('src/ui/react/main.tsx'),formats:['iife'],name:'OpenDeskSidebarStyleCheck'}}});
@@ -15,19 +16,19 @@ test('trusted React classic bundle includes locale styles without an unreference
     'classic Side Panel scripts must not emit CSS outside the referenced fixed stylesheet catalog');
   const script=outputs.find(item=>item.type==='chunk'&&item.isEntry);
   assert.ok(script,'production React entry must be retained');
-  const css=await readFile('src/ui/react/tabs/locale-manager.css','utf8');
+  const styles=await Promise.all(['locale-manager','workflow'].map(name=>readFile('src/ui/react/tabs/'+name+'.css','utf8')));
   const nodes=[parse(script.code,{ecmaVersion:'latest',sourceType:'script'})];
-  let canonicalStylesFound=false;
+  const found=new Set();
   while(nodes.length){
     const node=nodes.pop();
     const text=node?.type==='Literal'?node.value:
       node?.type==='TemplateLiteral'&&node.expressions.length===0?node.quasis[0].value.cooked:null;
-    if(text===css){canonicalStylesFound=true;break;}
+    if(styles.includes(text))found.add(text);
     for(const value of Object.values(node||{})){
       if(Array.isArray(value))nodes.push(...value.filter(item=>item?.type));
       else if(value?.type)nodes.push(value);
     }
   }
-  assert.ok(canonicalStylesFound,
-    'the exact canonical locale styles must travel inside the existing trusted React bundle');
+  assert.equal(found.size,styles.length,
+    'the exact canonical locale and workflow styles must travel inside the existing trusted React bundle');
 });

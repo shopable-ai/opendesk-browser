@@ -31,7 +31,7 @@ export function validateMarketSubject(value){
 }
 export function validateMarketMessage(value){
   // Check fields before serialization so oversized extraneous data is not copied.
-  if(value?.protocol!==MARKET_INTENT_PROTOCOL)throw marketError('E_PROTOCOL','此网站与 OpenDesk 安装协议不兼容，请更新后重试。');
+  if(value?.protocol!==MARKET_INTENT_PROTOCOL)throw marketError('E_PROTOCOL','此网站与 GreyDove 安装协议不兼容，请更新后重试。');
   if(value.action==='PROBE'&&fields(value,['protocol','action']))return {protocol:MARKET_INTENT_PROTOCOL,action:'PROBE'};
   if(['GET_APP_STATUS','OPEN_INSTALLED_APP'].includes(value.action)&&fields(value,['protocol','action','subject'])){
     const subject=validateMarketSubject(value.subject);

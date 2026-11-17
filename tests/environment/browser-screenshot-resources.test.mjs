@@ -25,7 +25,7 @@ test('private screenshot handoff returns only a download-start acknowledgement',
  assert.equal(f.calls.length,1);
  assert.equal(f.calls[0].saveAs,true);
  assert.equal(f.calls[0].conflictAction,'uniquify');
- assert.match(f.calls[0].filename,/^OpenDesk-screenshot-.*\.png$/);
+ assert.match(f.calls[0].filename,/^GreyDove-screenshot-.*\.png$/);
  assert.equal(f.calls[0].url,png);
  assert(!JSON.stringify(got).includes('base64'));
  assert.deepEqual(f.store.diagnostics(),{pending:0});

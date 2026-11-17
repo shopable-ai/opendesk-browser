@@ -1095,7 +1095,7 @@
   "pcPrivacySecurity": "Privacy and security",
   "pcMaintained": "Maintained",
   "pcAppearance": "Appearance",
-  "pcAppearanceHelp": "Follows the OpenDesk appearance.",
+  "pcAppearanceHelp": "Follows the GreyDove appearance.",
   "pcHostTheme": "Host theme",
   "pcShowStatus": "Show status when opening the extension",
   "pcShowStatusHelp": "Keep the status summary expanded. Errors and pending changes always remain visible.",

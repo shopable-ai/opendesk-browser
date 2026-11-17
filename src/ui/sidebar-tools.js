@@ -216,7 +216,7 @@ function createSidebarToolsController({api=globalThis.chrome,doc=globalThis.docu
        !Array.isArray(focus.operations)||!focus.operations.includes('focus.status')||
        typeof focus.request!=='function'||typeof focus.runTrustedOperation!=='function'||
        typeof focus.createPermissionControls!=='function'||typeof focus.probe!=='function')
-      throw Object.assign(new Error('当前 OpenDesk Browser 缺少 Stay Focus 所需的可信运行能力；请升级扩展后再安装或打开工具。'),
+      throw Object.assign(new Error('当前 GreyDove 缺少 Stay Focus 所需的可信运行能力；请升级扩展后再安装或打开工具。'),
         {code:'E_TOOL_RUNTIME_UNAVAILABLE'});
   }
   const nativeTimeReview=globalThis.__opendeskTrustedTimeReviewUI||null;
@@ -489,7 +489,7 @@ function createSidebarToolsController({api=globalThis.chrome,doc=globalThis.docu
     'browser.siteBudget':'仅限已审阅网站的每日前台额度与固定时段，关闭工具 UI 后继续生效',
     'browser.scheduler':'经确认定时执行已安装的固定任务版本，只管理本工具的计划',
     'browser.tabs':'经用户单次批准打开或聚焦自己获准的标签页',
-    'browser.sidePanel':'经真实点击打开 OpenDesk 自己的侧边栏',
+    'browser.sidePanel':'经真实点击打开 GreyDove 自己的侧边栏',
     'network':'经用户单次批准向指定 Origin 发送受控 HTTP 请求',
     'browser.network.observe':'经用户授权观察自己打开的网页 HTTP 元数据（最多30秒）',
     'browser.events':'读取和关闭此工具持有的有界网络观察会话',
@@ -1004,7 +1004,7 @@ function createSidebarToolsController({api=globalThis.chrome,doc=globalThis.docu
     patchToolField(view, actionContinue, {textContent: button});
     patchToolField(view, actionReview, {hidden,data:{title,cancelLabel,tone,id:choice.id,
       source:kind==='confirmation'?'应用请求 · '+(active?.title||toolId)+' ('+toolId+')':
-        toolId?(active?.title||toolId):'OpenDesk'}});
+        toolId?(active?.title||toolId):'GreyDove'}});
     return choice;
   }
   async function applyActionReview(event){
@@ -1489,7 +1489,7 @@ function createSidebarToolsController({api=globalThis.chrome,doc=globalThis.docu
     try{
       const {tool}=await loadOfficialTool(release,{api,fetcher});
       if(disposed||selection!==fileSelection)return;
-      await reviewCandidate(tool,'来源：OpenDesk 官方发行 · 原始文件 SHA-256 '+release.sha256,release,selection);
+      await reviewCandidate(tool,'来源：GreyDove 官方发行 · 原始文件 SHA-256 '+release.sha256,release,selection);
     }catch(error){
       if(disposed||selection!==fileSelection)return;
       setFileError((error.code||'E_PACKAGE')+'：'+String(error.message||error));
@@ -2366,9 +2366,9 @@ function createSidebarToolsController({api=globalThis.chrome,doc=globalThis.docu
       try{
         const {pkg,release:checked}=await loadOfficialPagePackage(release,{api,fetcher});
         if(disposed||selection!==fileSelection)return;
-        await reviewPagePackage(pkg,{name:'OpenDesk 内置发行：'+pkg.programId},selection);
+        await reviewPagePackage(pkg,{name:'GreyDove 内置发行：'+pkg.programId},selection);
         if(disposed||selection!==fileSelection)return;
-        patchToolField(view,previewFile,{textContent:'OpenDesk 内置固定发行 · '+checked.programId+
+        patchToolField(view,previewFile,{textContent:'GreyDove 内置固定发行 · '+checked.programId+
           ' · 包 SHA-256：'+checked.sha256+' · 源码 SHA-256：'+checked.sourceHash+
           ' · Page packageHash：'+checked.packageHash});
         notice('已核验官方来源。请检查网站范围，再明确点击确认安装。');
@@ -3180,7 +3180,7 @@ function createSidebarToolsController({api=globalThis.chrome,doc=globalThis.docu
         }});
         const prepared=await coordinator.prepare({toolId:tool.id,hostInstanceId,windowId:windowInfo?.id});
         try{return await requestBrowserClick({toolId:tool.id,
-          message:'「'+tool.title+'」请求打开 OpenDesk 自己的侧边栏。仅此一次。',
+          message:'「'+tool.title+'」请求打开 GreyDove 自己的侧边栏。仅此一次。',
           button:'打开侧边栏',run:event=>coordinator.confirm(prepared.requestRef,event)});
         }finally{coordinator.dispose();}
       }
@@ -4859,7 +4859,7 @@ function createSidebarToolsController({api=globalThis.chrome,doc=globalThis.docu
     if(disposed||selection!==fileSelection)return;
     requireToolRuntime(candidate);
     if(candidate.pageModule){
-      if(!foundationClient?.request||!pageConsent)throw new Error('应用网页安装服务未连接，请重新打开 OpenDesk。');
+      if(!foundationClient?.request||!pageConsent)throw new Error('应用网页安装服务未连接，请重新打开 GreyDove。');
       await pageConsent.prepare({origins:pageHostPermissionOrigins(candidate.pageModule.pageRules.matches)});
       if(disposed||selection!==fileSelection)return;
     }
@@ -4889,7 +4889,7 @@ function createSidebarToolsController({api=globalThis.chrome,doc=globalThis.docu
     patchToolField(view, previewCapabilities, {textContent: candidate.capabilities.length
       ?candidate.capabilities.map(readableCapability).join('、'):'无需额外能力'});
     patchToolField(view, previewSource, {textContent: release
-      ?'OpenDesk 官方发行 · 安装包已校验':'本地安装包 · 请确认文件来源可信'});
+      ?'GreyDove 官方发行 · 安装包已校验':'本地安装包 · 请确认文件来源可信'});
     patchToolField(view, previewFile, {textContent: sourceLabel+' · 候选包 SHA-256（规范序列化）：'+candidateHash+
       (previousHash?' · 当前包 SHA-256（规范序列化）：'+previousHash:'')+
       (candidate.background?' · 后台源码 SHA-256：'+candidate.background.sha256:'')+
@@ -4942,7 +4942,7 @@ function createSidebarToolsController({api=globalThis.chrome,doc=globalThis.docu
   async function reviewPagePackage(value,file,selection,{deferConfirmation=false}={}) {
     const pkg=await validatePageInstallPackage(value);
     if(disposed||selection!==fileSelection)return;
-    if(!foundationClient?.request||!pageConsent)throw new Error('网页增强安装服务未连接，请重新打开 OpenDesk。');
+    if(!foundationClient?.request||!pageConsent)throw new Error('网页增强安装服务未连接，请重新打开 GreyDove。');
     const [response,access]=await Promise.all([
       foundationClient.request('listPagePrograms',{}),pageConsent.prepare({origins:pageHostPermissionOrigins(pkg.pageRules.matches)})
     ]);

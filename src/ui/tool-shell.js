@@ -726,7 +726,7 @@ Promise.resolve(chrome.tabs.getCurrent?.()).then(async tab => {
       if(shellClosed||!event.isTrusted||button.disabled)return;
       const windowId=Number.isSafeInteger(tab.windowId)?tab.windowId:currentPageTarget.windowId;
       if(!Number.isSafeInteger(windowId)||typeof chrome.sidePanel?.open!=='function'){
-        status('无法打开侧栏，请从 Chrome 扩展按钮打开 OpenDesk');return;
+        status('无法打开侧栏，请从 Chrome 扩展按钮打开 GreyDove');return;
       }
       button.disabled=true;status('正在打开侧栏…');
       let request;
@@ -734,7 +734,7 @@ Promise.resolve(chrome.tabs.getCurrent?.()).then(async tab => {
       catch(error){status('侧栏不可用：'+(error.message||error));button.disabled=false;return;}
       return Promise.resolve(request).then(()=>{
         if(shellClosed)return;
-        status('已打开 OpenDesk 侧栏，请选择「开发」');
+        status('已打开 GreyDove 侧栏，请选择「开发」');
       },error=>{if(!shellClosed)status('侧栏不可用：'+(error.message||error));})
         .finally(()=>{if(!shellClosed)button.disabled=false;});
     });

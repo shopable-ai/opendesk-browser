@@ -206,7 +206,7 @@ test('collection retains external review and read-only status recovery',async()=
 });
 test('missing receiver and channel errors never claim installation or send fallback page messages',async()=>{
   const absent=client({receiver:false});await tick();await absent.act();
-  assert.match(absent.controls[0].status.textContent,/OpenDesk Browser.*扩展/);assert.equal(absent.sent.length,0);
+  assert.match(absent.controls[0].status.textContent,/GreyDove.*扩展/);assert.equal(absent.sent.length,0);
   assert.match(absent.controls[0].status.textContent,/Chrome|浏览器/);
   for(const options of [{fetchError:new TypeError('Failed to fetch')},{configuration:null},
     {configuration:{...config,origin:'http://127.0.0.1:43133'}},{configuration:{...config,enabled:false}}]){
@@ -357,15 +357,15 @@ test('app review handoffs accept opened, required and pending panel receipts wit
     assert.match(h.controls[0].status.textContent,/侧边栏安装面板/);
     assert.match(h.controls[0].status.textContent,/打开面板不表示已批准/);
     if(status==='PANEL_REQUIRED'){
-      assert.match(h.controls[0].status.textContent,/请求已保留.*点击 OpenDesk 工具栏继续安装.*在侧边栏处理当前审阅/);
+      assert.match(h.controls[0].status.textContent,/请求已保留.*点击 GreyDove 工具栏继续安装.*在侧边栏处理当前审阅/);
       assert.doesNotMatch(h.controls[0].status.textContent,/已打开/);
     }else if(status==='REVIEW_PENDING'){
-      assert.match(h.controls[0].status.textContent,/正在打开 OpenDesk 侧边栏安装面板/);
+      assert.match(h.controls[0].status.textContent,/正在打开 GreyDove 侧边栏安装面板/);
       assert.doesNotMatch(h.controls[0].status.textContent,/已打开|点击 OpenDesk 工具栏/);
-    }else assert.match(h.controls[0].status.textContent,/已打开 OpenDesk 侧边栏安装面板/);
+    }else assert.match(h.controls[0].status.textContent,/已打开 GreyDove 侧边栏安装面板/);
     const query=await respond(h,h.act(),'GET_INSTALL_STATUS',{installation:'review',handoff:'panel-required'});
     assert.equal(query.message.intentId,recovered);
-    assert.match(h.controls[0].status.textContent,/点击 OpenDesk 工具栏继续安装/);
+    assert.match(h.controls[0].status.textContent,/点击 GreyDove 工具栏继续安装/);
     assert.equal(h.sent.filter(row=>row.message.action==='OPEN_INSTALL_REVIEW').length,1);
     const back=await respond(h,h.back(),'OPEN_INSTALL_REVIEW',{status});
     assert.equal(back.message.intentId,recovered);whitelist(h);
@@ -378,7 +378,7 @@ test('restored panel handoff status only queries the original intent and keeps u
     const query=h.sent.at(-1);assert.equal(query.message.action,'GET_INSTALL_STATUS');
     assert.equal(query.message.intentId,id);h.reply(query,{installation,handoff});await tick();
     assert.match(h.controls[0].status.textContent,/侧边栏安装面板.*打开面板不表示已批准/);
-    if(handoff==='panel-required')assert.match(h.controls[0].status.textContent,/点击 OpenDesk 工具栏继续安装/);
+    if(handoff==='panel-required')assert.match(h.controls[0].status.textContent,/点击 GreyDove 工具栏继续安装/);
     if(installation==='unknown')assert.match(h.controls[0].status.textContent,/本次安装结果未知/);
     assert.equal(h.controls[0].status.dataset.state,'pending');
     h.advance(16000);h.emit('focus');await ready(h);
@@ -394,7 +394,7 @@ test('collection rejects app-only required and pending panel receipts and retain
   assert.equal(h.controls[0].status.dataset.state,'error');
   const query=await respond(h,h.act(),'GET_INSTALL_STATUS',{installation:'review'});
   assert.equal(query.message.intentId,request.message.intentId);
-  assert.match(h.controls[0].status.textContent,/OpenDesk 审阅页/);
+  assert.match(h.controls[0].status.textContent,/GreyDove 审阅页/);
   assert.doesNotMatch(h.controls[0].status.textContent,/侧边栏安装面板|工具栏/);whitelist(h);
   }
 });
@@ -408,14 +408,14 @@ test('pending receipt survives refresh with backend status lacking handoff and n
   const query=restored.sent.find(row=>row.message.action==='GET_INSTALL_STATUS');
   assert.equal(query.message.intentId,request.message.intentId);
   await respond(restored,restored.act(),'GET_INSTALL_STATUS',{installation:'review'});
-  assert.match(restored.controls[0].status.textContent,/请在 OpenDesk 侧边栏安装面板 中核对并确认/);
+  assert.match(restored.controls[0].status.textContent,/请在 GreyDove 侧边栏安装面板 中核对并确认/);
   assert.doesNotMatch(restored.controls[0].status.textContent,/已打开/);
   assert.equal(restored.controls[0].status.dataset.state,'pending');
   restored.advance(16000);restored.emit('focus');await ready(restored);
   assert.ok(restored.sent.every(row=>['PROBE','GET_INSTALL_STATUS'].includes(row.message.action)));
   const back=await respond(restored,restored.back(),'OPEN_INSTALL_REVIEW',{status:'REVIEW_PENDING'});
   assert.equal(back.message.intentId,request.message.intentId);
-  assert.match(restored.controls[0].status.textContent,/正在打开 OpenDesk 侧边栏安装面板/);
+  assert.match(restored.controls[0].status.textContent,/正在打开 GreyDove 侧边栏安装面板/);
   assert.doesNotMatch(restored.controls[0].status.textContent,/点击 OpenDesk 工具栏/);
   whitelist(h);whitelist(restored);
 });
@@ -435,7 +435,7 @@ test('receiver disconnect preserves the original uncertain intent and never resu
   const checking=h.act();await tick();h.answer(h.sent.at(-1),undefined,'No receiver');await checking;
   assert.equal(h.controls[0].button.textContent,'核对安装结果');
   assert.equal(JSON.parse(h.storage.get(key(app))).id,first.message.intentId);
-  assert.match(h.controls[0].status.textContent,/OpenDesk Browser.*扩展/);
+  assert.match(h.controls[0].status.textContent,/GreyDove.*扩展/);
   assert.equal(h.nodes.get('#connection-state').textContent,'');
   const query=await respond(h,h.act(),'GET_INSTALL_STATUS');
   assert.equal(query.message.intentId,first.message.intentId);
@@ -445,7 +445,7 @@ test('receiver disconnect preserves the original uncertain intent and never resu
 
 test('public templates direct app use to Side Panel and describe only original transaction recovery',()=>{
   assert.doesNotMatch(templates,/data-open-installed|或「更新」/);
-  assert.match(templates,/安装后请在 OpenDesk 侧边栏打开使用/);
+  assert.match(templates,/安装后请在 GreyDove 侧边栏打开使用/);
   assert.match(templates,/网页仅展示本次安装事务回执，不同步当前安装状态/);
   assert.match(templates,/仅恢复未结束的原事务回执/);
 });

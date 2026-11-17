@@ -1,8 +1,8 @@
 # 扩展源码开发：持续编译与自动刷新（R13.1）
 
-> **维护者/管理员专用。** 本页中的 WXT、`npm run dev`、`dist/development`、Chrome 扩展 ID 和生产包验收，都是 OpenDesk Browser 插件本体的开发操作。**普通用户在「扩展」里创建、修改、更新应用，不需要执行这些命令**；请用 [扩展应用普通用户指南](../product/extension-app-user-workflow.zh-CN.md)，由 Codex 通过原 Sidebar App 构建器准备包，再由原安装界面确认更新。涉及 `trusted/` 固定入口改动时仍需管理员处理 Browser 本体。
+> **维护者/管理员专用。** 本页中的 WXT、`npm run dev`、`dist/development`、Chrome 扩展 ID 和生产包验收，都是 GreyDove 插件本体的开发操作。**普通用户在「扩展」里创建、修改、更新应用，不需要执行这些命令**；请用 [扩展应用普通用户指南](../product/extension-app-user-workflow.zh-CN.md)，由 Codex 通过原 Sidebar App 构建器准备包，再由原安装界面确认更新。涉及 `trusted/` 固定入口改动时仍需管理员处理 Browser 本体。
 
-这页用于修改 OpenDesk 扩展自身的 `src/` 源码。Sidebar 编写用户脚本、Native/MCP 读取本地项目，请继续使用[程序开发指南](../product/program-development-dual-format-and-sidebar.zh-CN.md)。源码更新不会替你运行用户脚本。
+这页用于修改 GreyDove 扩展自身的 `src/` 源码。Sidebar 编写用户脚本、Native/MCP 读取本地项目，请继续使用[程序开发指南](../product/program-development-dual-format-and-sidebar.zh-CN.md)。源码更新不会替你运行用户脚本。
 
 ## 先确认当前运行方式（2026-10-14）
 
@@ -26,7 +26,7 @@ Standard/Developer edition 是另一个打包维度；当前 `npm run dev` 默�
 
 ## 已有扩展迭代与内部页限制处理（2026-11-09）
 
-已安装 OpenDesk 后，先按本次修改的真实代码归属选择现有入口，不重复执行下文的首次加载流程。
+已安装 GreyDove 后，先按本次修改的真实代码归属选择现有入口，不重复执行下文的首次加载流程。
 
 | 本次修改 | 继续使用的入口 | 如何确认生效 |
 | --- | --- | --- |
@@ -64,7 +64,7 @@ npm run dev
 /Users/shopme/Documents/workspace/opendesk-browser/dist/development
 ```
 
-打开任意可使用扩展的 HTTP(S) 网页，点击工具栏的 OpenDesk 入口打开 Sidebar。在「调试」页展开「本地开发服务」，可查看连接状态和构建指纹；开发诊断不显示在正常页签顶部。
+打开任意可使用扩展的 HTTP(S) 网页，点击工具栏的 GreyDove 入口打开 Sidebar。在「调试」页展开「本地开发服务」，可查看连接状态和构建指纹；开发诊断不显示在正常页签顶部。
 
 如果此前已从同一个目录加载过 `build:dev` 的静态包，在首次切换到持续开发时，点击扩展卡片的「重新加载」一次，再打开 Sidebar。以后保留同一加载目录，不需重复安装或打包 ZIP。
 

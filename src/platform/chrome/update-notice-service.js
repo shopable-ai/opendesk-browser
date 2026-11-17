@@ -348,7 +348,7 @@ export function installUpdateNoticeService({api=globalThis.chrome,now=()=>Date.n
   async function recordBrowser(status,versionValue,fromVersion=null){
     const id=api.runtime.id,entry={kind:'browser',
       key:browserUpdateReleaseKey(id,versionValue),id,version:versionValue,
-      title:manifest().name||'OpenDesk Browser',status,
+      title:manifest().name||'浏览器扩展',status,
       source:'Chrome',fromVersion,requiresReview:false};
     await mutate(state=>appendTrustedRelease(state,entry,now()));
   }

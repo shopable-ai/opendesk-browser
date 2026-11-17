@@ -1,4 +1,4 @@
-# OpenDesk Browser：单文件即时运行与多文件项目开发
+# GreyDove（灰鸽）：单文件即时运行与多文件项目开发
 
 更新：2026-10-11（ESM R2 补充 HTTPS 首次审阅与入口规则）。**本页中 R12“尚未交付”的断言属于当时历史快照；当前正式 Page 状态以 [Page USER_SCRIPT 开发与安装分级合同](../api/page-userscript.zh-CN.md)、真实安装身份和定向测试为准。**
 
@@ -59,7 +59,7 @@ async function main() {
 
 1. 在 Mac 上准备 Node 22.12+、构建并加载当前扩展，按 [Native 安装说明](../framework/local-development-r22.zh-CN.md#首次配置)为真实扩展 ID 完成 `node native-agent/cli.mjs setup --extension-id "扩展ID"`。
 2. 在仓库根目录配置 `codex mcp add opendesk-dev -- node "/Users/shopme/Documents/workspace/opendesk-browser/native-agent/local-dev/mcp.mjs" --allow-project "/Users/shopme/Documents/workspace/opendesk-browser/examples/programs/local-controller"`；`--allow-project` 的绝对路径是明确的读取授权范围。
-3. 在目标网页及同窗口 OpenDesk 工作台完成权限批准；可由 Codex 依次调用 `opendesk.dev.attach → status → run → result`，或在 Sidebar「开发」开启「本地项目」开关、点击「刷新」并选择已授权项目，再明确点击运行。
+3. 在目标网页及同窗口 GreyDove 工作台完成权限批准；可由 Codex 依次调用 `opendesk.dev.attach → status → run → result`，或在 Sidebar「开发」开启「本地项目」开关、点击「刷新」并选择已授权项目，再明确点击运行。
 4. Codex 修改 `src/*.js` 后使用**新的、有意执行的**请求，再次检查真实 `sourceHash / runId / resultId / documentId`。未知效果、断连或页面导航时不要盲目重试。单纯修改代码不自动重跑有副作用的任务。
 
 **重要边界：**`E_DEV_DEPENDENCY` 针对直接连接的独立单文件等未通过项目锁定的外部依赖，并非整个本地 Resolver 不支持 npm/HTTPS。多文件项目使用自己的 `package-lock.json` 和已安装 `node_modules`；HTTPS 另需 `opendesk.remote-lock.json` 与正确哈希的 `.opendesk/remote-cache`。`dev.run` 每次验证所需闭包并在内存中构建，严禁 `eval`、临时 CDN 注入或绕过既有授权。

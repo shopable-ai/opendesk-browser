@@ -488,7 +488,7 @@ export const SIDEBAR_TOOL_FIELDS = {
 
 export const SIDEBAR_TOOL_LABELS = {
   "settingsTitle": "工具设置",
-  "followLanguage": "跟随 OpenDesk 默认语言",
+  "followLanguage": "跟随 GreyDove 默认语言",
   "overlayName": "悬浮目录",
   "appManagement": "应用管理",
   "openTabLabel": "在新标签页打开",

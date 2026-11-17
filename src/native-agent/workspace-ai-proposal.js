@@ -30,7 +30,7 @@ export function createEditContext(record,{task='',source=null,authority=null,bin
     '修改要求：'+(task.trim()||'请先结合当前对话确认需要的修改，再输出完整文件。'),
     '只返回一个标记为 opendesk-edit 的 JSON 代码块，字段严格保持下面的返回结构；只改 content。',
     'content 必须是修改后的完整文件，用 JSON 字符串转义换行，最多 32768 个 UTF-8 字节。不要输出 diff、命令、多文件计划或省略号占位。',
-    '这是一个待我审阅的提案；只有我在 OpenDesk 采用并保存后才会修改本地文件。',
+    '这是一个待我审阅的提案；只有我在 GreyDove 采用并保存后才会修改本地文件。',
     '当前文件及返回结构：','```json',JSON.stringify(envelope,null,2),'```'
   ].join('\n\n');
   return {context,prompt};

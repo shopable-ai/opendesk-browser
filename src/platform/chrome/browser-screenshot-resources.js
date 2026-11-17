@@ -70,7 +70,7 @@ export function createBrowserScreenshotResources({api=globalThis.chrome,clock=Da
   try{
    const timestamp=new Date(now()).toISOString().replace(/[:.]/g,'-');
    downloadId=await api.downloads.download({url:row.data,
-    filename:'OpenDesk-screenshot-'+timestamp+'.png',
+    filename:'GreyDove-screenshot-'+timestamp+'.png',
     conflictAction:'uniquify',saveAs:true});
   }catch{throw fail('E_OUTCOME_UNKNOWN','Screenshot download outcome is unknown; check Chrome downloads before retrying')}
   if(!Number.isSafeInteger(downloadId)||downloadId<0)

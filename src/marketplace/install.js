@@ -140,7 +140,7 @@ export function createMarketInstallReview({api=globalThis.chrome,reviewId,lockMa
     baseline=(await getInstalledSidebarTools(api)).find(tool=>tool.id===candidate.tool.id)||null;
     const page=candidate.tool.pageModule;
     if(page){
-      if(!pageClient?.request||!pageConsent)throw marketError('E_HOST_UNAVAILABLE','应用网页安装服务或网站权限服务未连接，请重新打开 OpenDesk。');
+      if(!pageClient?.request||!pageConsent)throw marketError('E_HOST_UNAVAILABLE','应用网页安装服务或网站权限服务未连接，请重新打开 GreyDove。');
       const prepared=await pageConsent.prepare({origins:pageHostPermissionOrigins(page.pageRules.matches)});
       if(closed)return;
       if(!prepared)throw marketError('E_PERMISSION_CHECK_REQUIRED','网站权限状态已变化，请重新加载审阅。');
@@ -205,6 +205,6 @@ export function initMarketInstall({root=document.getElementById('market-root')}=
   root.replaceChildren();
   const heading=document.createElement('h1');heading.textContent='在侧边栏继续安装';
   const message=document.createElement('p');message.setAttribute('role','status');
-  message.textContent='请回到市场所在的 Chrome 窗口，点击 OpenDesk 工具栏图标。同一安装请求会在侧边栏内呈现；打开侧边栏不会批准安装。';
+  message.textContent='请回到市场所在的 Chrome 窗口，点击 GreyDove 工具栏图标。同一安装请求会在侧边栏内呈现；打开侧边栏不会批准安装。';
   root.append(heading,message);return {ready:Promise.resolve(),dispose(){}};
 }

@@ -72,6 +72,8 @@ export const SDK_AUTOMATIC_CONTENT_SCRIPTS = Object.freeze([
   {matches:['http://*/*','https://*/*'],js:['framework/sdk-main.js'],run_at:'document_start',all_frames:true,world:'MAIN'}
 ]);
 export const FIXED_ASSETS = Object.freeze({
+  '_locales/en/messages.json': {bytes: 124, sha256: 'e9f2d3bbffa9f5f9f74e6ff2766f9ab0c57d582006a67fd0a8eb1ca97a495f84'},
+  '_locales/zh_CN/messages.json': {bytes: 158, sha256: 'fa7f43cf0e5a46b3e298bb1612de3e3bafa8ab80774bebd3323a3688cfb0857c'},
   'licenses/video-downloader-mux-Apache-2.0.txt': {bytes: 11342, sha256: '1a3c5bb355ae9ea7f0e8e92836b72189c7acf85a487dd8706d5f1dfff9bf7d3d'},
   'licenses/shared-ui-third-party-notices.txt': {bytes: 12986, sha256: 'e4135b8c9ef1f90616ebf63e55708a91f020f5a726f2bc7c5484aac00bafdcb8'},
   'icons/notification.png': {bytes: 595, sha256: 'efb5caddc95697204e98f9e7319119095ea195fa02448904bc985e90e96d4de6'},
@@ -225,9 +227,11 @@ export function verifyManifest(manifest,{mode='production',source=false,edition=
     throw Error('Extension manifest name differs from root manifest.json branding');
   if(manifest.short_name!==BROWSER_MENU_SHORT_NAME)
     throw Error('Extension short_name differs from root manifest.json branding');
-  if(manifest.action?.default_title!==(source?'打开侧边栏':'打开 '+manifest.name))
+  if(manifest.action?.default_title!=='打开 '+manifest.name)
     throw Error('Extension toolbar label must follow emitted manifest brand');
-  const fields = ['manifest_version', 'name', 'short_name', 'version', 'description', 'minimum_chrome_version', 'permissions', 'optional_permissions', 'host_permissions', 'background', 'action', 'side_panel', 'options_ui', 'content_security_policy', 'incognito', 'sandbox', 'web_accessible_resources', 'content_scripts'];
+  if(manifest.default_locale!=='en'||manifest.description!=='__MSG_extensionDescription__')
+    throw Error('Extension description must use the reviewed en/zh_CN metadata');
+  const fields = ['manifest_version', 'name', 'short_name', 'version', 'description', 'default_locale', 'minimum_chrome_version', 'permissions', 'optional_permissions', 'host_permissions', 'background', 'action', 'side_panel', 'options_ui', 'content_security_policy', 'incognito', 'sandbox', 'web_accessible_resources', 'content_scripts'];
   if (manifest.manifest_version !== 3 || manifest.background?.type || manifest.action?.default_popup) throw new Error('Expected MV3 worker and action window entry');
   if (manifest.minimum_chrome_version !== '138') throw new Error('Expected independently qualified minimum Chrome 138');
   if (!same(manifest.permissions, REQUIRED_BROWSER_API_PERMISSIONS)) throw new Error('Unexpected required browser API permissions');
@@ -249,6 +253,28 @@ export function verifyManifest(manifest,{mode='production',source=false,edition=
   if(!same(manifest.externally_connectable,external))throw new Error('Unapproved market external origin or build mode');
   if(external)fields.push('externally_connectable');
   if (!same(Object.keys(manifest).sort(), fields.sort())) throw new Error('Unexpected manifest entry/exposure');
+}
+// Chrome Store metadata is a closed, byte-pinned data set, not an executable
+// resource or a second product-name configuration. Keep both descriptions
+// valid before publishing source or a package; the name still comes from the
+// root Manifest and the existing Developer suffix derivation.
+export async function verifyExtensionLocales(directory) {
+  const resources=Object.keys(FIXED_ASSETS).filter(path=>path.startsWith('_locales/'));
+  for(const file of resources){
+    const bytes=await readFile(join(directory,file)),expected=FIXED_ASSETS[file];
+    if(bytes.length!==expected.bytes||digest(bytes)!==expected.sha256)
+      throw new Error(`Asset integrity mismatch in ${file}`);
+    let messages;
+    try { messages=JSON.parse(new TextDecoder('utf-8',{fatal:true}).decode(bytes)); }
+    catch { throw new Error(`Invalid extension locale JSON: ${file}`); }
+    const entry=messages?.extensionDescription,text=entry?.message;
+    if(!same(Object.keys(messages||{}),['extensionDescription'])||
+       !same(Object.keys(entry||{}),['message'])||typeof text!=='string'||
+       !text||text.trim()!==text||[...text].length>132||
+       /[\u0000-\u001f\u007f-\u009f\u061c\u200b-\u200f\u202a-\u202e\u2060\u2066-\u2069\ufeff]/.test(text))
+      throw new Error(`Invalid extension description metadata: ${file}`);
+  }
+  return resources;
 }
 const property = node => node?.type === 'MemberExpression' ? node.computed ? node.property.value : node.property.name : undefined;
 const isMember = (node, object, name) => node?.type === 'MemberExpression' && node.object.type === 'Identifier' && node.object.name === object && property(node) === name && !node.computed;
@@ -613,6 +639,7 @@ export async function verifyPackage(directory, {mode: requestedMode} = {}) {
   const actualChannel=JSON.parse(await readFile(join(root,MARKET_CHANNEL_PATH),'utf8'));
   if(!same(actualChannel,marketChannel))throw Error('Packaged market channel differs from reviewed build configuration');
   const manifest = JSON.parse(await readFile(join(root, 'manifest.json'), 'utf8')); verifyManifest(manifest,{mode,edition,channel:marketChannel});
+  await verifyExtensionLocales(root);
   const boundaries = [];
   for (const file of js) {
     const bytes = await readFile(join(root, file));

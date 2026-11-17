@@ -189,7 +189,7 @@ export function inspectChatGPTEditsOnPage({expectedUrl,requestId,identityOnly=fa
       if(blocks.length>1)return error('E_EDIT_AMBIGUOUS','当前回答包含多个请求或提案，请让模型只返回一个。');
     }
   }
-  if(blocks.length!==1)return error('E_CHAT_FORMAT','本轮完整回答没有唯一的 OpenDesk 请求或提案。');
+  if(blocks.length!==1)return error('E_CHAT_FORMAT','本轮完整回答没有唯一的 GreyDove 请求或提案。');
   if(unmarkedRequest)return error('E_CHAT_REQUEST_MARKER',taskIntent?'对话任务必须在明确标记的 opendesk-task 代码块中。':'读取请求必须在明确标记的 opendesk-request 代码块中，未执行正文中的示例。');
   if(taskIntent){
     let value;try{value=JSON.parse(blocks[0]);}catch{return error('E_CHAT_FORMAT','任务意图必须是完整 JSON。');}

@@ -64,7 +64,7 @@ for(const [language,check] of [['zh-CN','重新检测'],['en','Check again'],['j
     assert.equal(card.querySelector('button').textContent,check);
     doc.getElementById('extension-preinstall-info').dispatch('click');
     const help=doc.getElementById('extension-preinstall-explanation');
-    assert.ok(help.querySelector('[role="alert"]').textContent.includes('OpenDesk Browser'));
+    assert.ok(help.querySelector('[role="alert"]').textContent.includes('GreyDove'));
     assert.equal(help.querySelector('details').hasAttribute('open'),false);
   });
 

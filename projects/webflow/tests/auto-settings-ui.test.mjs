@@ -709,7 +709,7 @@ test('one-time ChatGPT instructions distinguish installed Schema capabilities fr
  assert.match(instructions.value,/省略默认 true/);assert.match(instructions.value,/严格 boolean/);
  assert.match(instructions.value,/仍创建后台页、搜索并返回真实回执/);
  assert.ok(instructions.value.includes('尚未批准'));assert.ok(instructions.value.includes('等待本机可信审阅'));
- assert.ok(instructions.value.includes('OpenDesk'));assert.ok(instructions.value.includes('每次'));
+ assert.ok(instructions.value.includes('GreyDove'));assert.ok(instructions.value.includes('每次'));
  assert.ok(!instructions.value.includes(installation.installationId));
  let copied='';const original=Object.getOwnPropertyDescriptor(globalThis,'navigator');
  Object.defineProperty(globalThis,'navigator',{configurable:true,value:{clipboard:{writeText:async text=>{copied=text;}}}});

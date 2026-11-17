@@ -93,7 +93,7 @@ export function displayPagePreview({html,title,remove=false}){
   style.textContent=':host{all:initial}.panel{height:100%;display:flex;flex-direction:column;background:#fff;border:1px solid #d4ddeb;border-radius:12px;box-shadow:0 18px 70px #122a4d40;overflow:hidden;color:#233449;font:13px system-ui}header{display:flex;align-items:center;justify-content:space-between;gap:8px;padding:12px 16px;background:#f4f7fc}strong{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}button{border:1px solid #cfdae9;background:#fff;border-radius:6px;padding:4px 9px;color:#233449;font:inherit}iframe{width:100%;flex:1;border:0;background:#fff}';
   const panel=document.createElement('section');panel.className='panel';
   const header=document.createElement('header'),label=document.createElement('strong'),close=document.createElement('button');
-  label.textContent='OpenDesk · '+title;close.textContent='关闭';close.type='button';
+  label.textContent='GreyDove · '+title;close.textContent='关闭';close.type='button';
   const frame=document.createElement('iframe');frame.title='本地文件静态预览';frame.setAttribute('sandbox','');frame.referrerPolicy='no-referrer';frame.srcdoc=html;
   close.addEventListener('click',cleanup,{signal:lifecycle.signal});
   header.append(label,close);panel.append(header,frame);root.append(style,panel);document.documentElement.append(host);globalThis[key]={remove:cleanup};

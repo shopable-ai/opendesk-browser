@@ -26,7 +26,7 @@ export function showTrustedUpdateToast(payload){
     const style=document.createElement('style');
     style.textContent='*{box-sizing:border-box}.notice{font:14px/1.5 system-ui,-apple-system,sans-serif;color:#202b39;background:#fff;border:1px solid #cbd5e1;border-radius:12px;box-shadow:0 8px 32px #0f172a33;padding:12px 14px;pointer-events:auto}.line{display:flex;align-items:flex-start;gap:12px}.text{flex:1;min-width:0;font-weight:600;overflow-wrap:anywhere}.close{border:0;background:transparent;color:#475569;cursor:pointer;font-size:20px;padding:0 3px;line-height:1}.actions{display:flex;gap:8px;margin-top:10px}.actions button{font:inherit;border-radius:7px;padding:6px 10px;cursor:pointer;border:1px solid #cbd5e1;background:#fff;color:#0f172a}.actions button:first-child{background:#1d4ed8;color:#fff;border-color:#1d4ed8}button:focus-visible{outline:2px solid #2563eb;outline-offset:2px}@media(prefers-reduced-motion:no-preference){.notice{animation:enter .15s ease-out}@keyframes enter{from{opacity:0;transform:translateY(5px)}to{opacity:1;transform:none}}}';
     const panel=document.createElement('section');
-    panel.className='notice';panel.setAttribute('role','status');panel.setAttribute('aria-label','OpenDesk 更新通知');
+    panel.className='notice';panel.setAttribute('role','status');panel.setAttribute('aria-label','GreyDove 更新通知');
     const line=document.createElement('div');line.className='line';
     const message=document.createElement('span');message.className='text';message.textContent=payload.message;
     const close=document.createElement('button');close.className='close';close.type='button';

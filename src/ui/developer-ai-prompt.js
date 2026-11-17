@@ -3,7 +3,7 @@ import {BROWSER_PUBLIC_CONFIG,resolveBrowserPublicConfig} from '../config/browse
 // One content schema and one assembly path for every locale. No editor/source data is copied.
 const CONTENT={
   'zh-CN':{
-    intro:'请根据末尾需求，为普通 OpenDesk Browser 作者完成可用实现；无需拥有 Browser 仓库或安装维护者 Skill。先读下列公开文档和对应示例，按真实能力工作。',
+    intro:'请根据末尾需求，为普通 GreyDove 作者完成可用实现；无需拥有 Browser 仓库或安装维护者 Skill。先读下列公开文档和对应示例，按真实能力工作。',
     context:'已知上下文', unknown:'未知', selected:'已选择项目', unselected:'未选择项目', readOnly:'只读产物：回到原项目源码修改、重新准备，不编辑生成物。', editable:'编辑状态：可编辑。',
     worlds:{controller:'Controller：受控 Worker，使用 page/Locator；无网页 document。单文件 async function main()，多文件 ESM 默认导出 main。',page:'Page USER_SCRIPT：在获准网页文档中使用 document；无 Controller page/params/axiosx，不是 MAIN。',react:'React：网页 Page 受管 UI，默认导出组件；JSX 需编译，不是 Controller 或侧栏应用。',vue:'Vue：网页 Page 受管 UI，默认导出组件；SFC 需编译，不是 Controller 或侧栏应用。',local:'本地项目：先核实原项目声明，再决定运行世界，不按文件名推断。',unknown:'当前模式未知：先按目标区分 Controller 自动化、Page 网页增强与 Sidebar 侧栏应用。'},
     local:{controller:'本地 Controller：复用原 package.json.opendesk 项目及已授权目录连接；开发 → 本地项目 → 运行本地项目。', 'page-userscript':'本地 Page USER_SCRIPT：复用原 package.json.opendesk/pageRules；开发 → 本地项目 → 运行本地项目，走 Page 预览；安装另行审阅。','sidebar-tool':'本地 Sidebar Tool：复用原 tool.config.json 和沙箱 OpenDeskTool.root/request；开发 → 本地项目 → 在侧栏调试，打包后在扩展审阅安装；不要写成 opendesk.project.v1 的 runtimeKind。',unknown:'本地类型未知：先查看获准项目的 README/配置，识别 Controller、Page 或 Sidebar，未确认前不选运行/安装入口。'},
@@ -23,7 +23,7 @@ const CONTENT={
     docs:'公开参考（文档语言以链接为准）', unavailable:'公开参考配置不可用；仅依据可核实的官方公开文档，不猜测链接或 API，无法核实的能力标记未验证。', requirement:'我的需求：'
   },
   en:{
-    intro:'Implement the goal appended below for an ordinary OpenDesk Browser author. Owning the Browser repository or installing maintainer skills is unnecessary. Read the public docs and matching examples below; use actual supported capabilities.',
+    intro:'Implement the goal appended below for an ordinary GreyDove author. Owning the Browser repository or installing maintainer skills is unnecessary. Read the public docs and matching examples below; use actual supported capabilities.',
     context:'Known context',unknown:'unknown',selected:'project selected',unselected:'no project selected',readOnly:'Read-only artifact: edit the original project source and prepare again; do not edit generated output.',editable:'Editor: editable.',
     worlds:{controller:'Controller: controlled Worker with page/Locator, no website document. Single-file async function main(); multi-file ESM exports main by default.',page:'Page USER_SCRIPT: document in the authorized webpage; no Controller page/params/axiosx; not MAIN.',react:'React: managed Page UI with a default component export. JSX requires compilation; this is neither Controller nor Sidebar.',vue:'Vue: managed Page UI with a default component export. SFC requires compilation; this is neither Controller nor Sidebar.',local:'Local project: verify its original declarations before choosing a runtime; do not infer from filenames.',unknown:'Unknown mode: first distinguish Controller automation, Page enhancement and Sidebar applications from the goal.'},
     local:{controller:'Local Controller: reuse the original package.json.opendesk project and authorized directory connection; Develop → Local project → Run local project.','page-userscript':'Local Page USER_SCRIPT: reuse original package.json.opendesk/pageRules; Develop → Local project → Run local project uses Page preview; installation needs separate review.','sidebar-tool':'Local Sidebar Tool: reuse tool.config.json and sandbox OpenDeskTool.root/request; Develop → Local project → Debug in sidebar; package then review installation in Extensions. Do not declare this as an opendesk.project.v1 runtimeKind.',unknown:'Local type unknown: inspect the authorized project README/config to distinguish Controller, Page or Sidebar before choosing execution/installation.'},
@@ -43,7 +43,7 @@ const CONTENT={
     docs:'Public references (document language follows the links)',unavailable:'Public reference config unavailable: use only verifiable official public docs; do not guess links or APIs, and mark unverifiable capabilities as unverified.',requirement:'My requirement:'
   },
   ja:{
-    intro:'末尾の要望に基づき、一般の OpenDesk Browser 作者向けに実装してください。Browser リポジトリや保守者 Skill の導入は不要です。以下の公開文書と対応例を読み、実在する機能を使ってください。',
+    intro:'末尾の要望に基づき、一般の GreyDove 作者向けに実装してください。Browser リポジトリや保守者 Skill の導入は不要です。以下の公開文書と対応例を読み、実在する機能を使ってください。',
     context:'既知の状況',unknown:'不明',selected:'プロジェクト選択済み',unselected:'プロジェクト未選択',readOnly:'読み取り専用の成果物：元のプロジェクトのソースを修正して再準備し、生成物は編集しない。',editable:'編集可能。',
     worlds:{controller:'Controller：制御された Worker の page/Locator を使用。Web の document はない。単一ファイルは async function main()、複数ファイル ESM は main をデフォルト export。',page:'Page USER_SCRIPT：許可された Web 文書の document を使用。Controller の page/params/axiosx はなく、MAIN でもない。',react:'React：管理された Page UI、コンポーネントをデフォルト export。JSX はコンパイルが必要。Controller や Sidebar ではない。',vue:'Vue：管理された Page UI、コンポーネントをデフォルト export。SFC はコンパイルが必要。Controller や Sidebar ではない。',local:'ローカルプロジェクト：元の宣言を確認して実行環境を選ぶ。ファイル名で推測しない。',unknown:'モード不明：目的から Controller 自動化、Page 拡張、Sidebar アプリを区別する。'},
     local:{controller:'ローカル Controller：元の package.json.opendesk と許可済みディレクトリ接続を再利用。開発 → ローカルプロジェクト → ローカルプロジェクトを実行。','page-userscript':'ローカル Page USER_SCRIPT：元の package.json.opendesk/pageRules を再利用。開発 → ローカルプロジェクト → ローカルプロジェクトを実行で Page プレビュー。インストールは別途審査。','sidebar-tool':'ローカル Sidebar Tool：元の tool.config.json とサンドボックス OpenDeskTool.root/request を再利用。開発 → ローカルプロジェクト → サイドバーでデバッグ。パッケージ化後に拡張でインストール審査。opendesk.project.v1 の runtimeKind にしない。',unknown:'ローカル種別不明：許可された README/設定を確認し Controller、Page、Sidebar を識別するまで、実行・インストール経路を決めない。'},
@@ -63,7 +63,7 @@ const CONTENT={
     docs:'公開参考（文書の言語はリンク先に従う）',unavailable:'公開参考設定が利用不可。確認できる公式公開文書のみを使い、リンクや API を推測せず、確認できない機能は未検証とする。',requirement:'私の要望：'
   },
   'zh-TW':{
-    intro:'請根據末尾需求，為一般 OpenDesk Browser 作者完成可用實作；不需擁有 Browser 儲存庫或安裝維護者 Skill。先讀下列公開文件與對應範例，按真實能力工作。',
+    intro:'請根據末尾需求，為一般 GreyDove 作者完成可用實作；不需擁有 Browser 儲存庫或安裝維護者 Skill。先讀下列公開文件與對應範例，按真實能力工作。',
     context:'已知情境',unknown:'未知',selected:'已選擇專案',unselected:'未選擇專案',readOnly:'唯讀產物：回到原專案原始碼修改、重新準備，不編輯生成物。',editable:'編輯狀態：可編輯。',
     worlds:{controller:'Controller：受控 Worker，使用 page/Locator；無網頁 document。單檔 async function main()，多檔 ESM 預設匯出 main。',page:'Page USER_SCRIPT：在獲准網頁文件中使用 document；無 Controller page/params/axiosx，不是 MAIN。',react:'React：網頁 Page 受管 UI，預設匯出元件；JSX 需編譯，不是 Controller 或側欄應用。',vue:'Vue：網頁 Page 受管 UI，預設匯出元件；SFC 需編譯，不是 Controller 或側欄應用。',local:'本機專案：先核實原專案宣告，再決定執行環境，不按檔名推斷。',unknown:'目前模式未知：先按目標區分 Controller 自動化、Page 網頁增強與 Sidebar 側欄應用。'},
     local:{controller:'本機 Controller：重用原 package.json.opendesk 專案與已授權目錄連線；開發 → 本機專案 → 執行本機專案。','page-userscript':'本機 Page USER_SCRIPT：重用原 package.json.opendesk/pageRules；開發 → 本機專案 → 執行本機專案，走 Page 預覽；安裝另行審閱。','sidebar-tool':'本機 Sidebar Tool：重用原 tool.config.json 與沙箱 OpenDeskTool.root/request；開發 → 本機專案 → 在側欄偵錯，打包後在擴充功能審閱安裝；不要寫成 opendesk.project.v1 的 runtimeKind。',unknown:'本機類型未知：先查看獲准專案的 README/設定，識別 Controller、Page 或 Sidebar，未確認前不選執行/安裝入口。'},

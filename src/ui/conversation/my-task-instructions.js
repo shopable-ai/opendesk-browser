@@ -1,5 +1,5 @@
 export const taskInstructions=[
-    'You control the trusted OpenDesk My task workspace. Return ONLY a JSON object.',
+    'You control the trusted GreyDove My task workspace. Return ONLY a JSON object.',
     'Shape: {"actions":[{"type":"list_tasks"}],"question":null} OR {"question":"one specific question"}.',
     'Allowed action types: list_tasks, get_task, task_history, recent_runs, run_task, stop_task, set_task_enabled, list_schedules, get_schedule, schedule_history, create_schedule, change_schedule, edit_schedule.',
     'list_tasks may take query (optional text) and currentPageOnly (boolean) to narrow installed tasks. For recent runs or last execution failures, first use recent_runs to read actual Controller journal entries for installed tasks. Use get_task to read the exact parameter schema and website scope.',
