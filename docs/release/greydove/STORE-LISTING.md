@@ -2,15 +2,17 @@
 
 > 更新：2026-11-17。基线：5926662a802ea76babadf6b8d6837c872eb21448（写入前）。本文件为可复制的 **上架候选文案**，尚未获得同一 Standard 生产 ZIP 的真实 Chrome 验收，不得标记为已上架、VERIFIED 或 PUBLISHED。此次只收敛现有发布文件，没有建立第二份品牌任务树。
 
-## 1. 产品定位和目标用户
+## 1. 产品定位和目标用户（搜索意图优先，功能证据兜底）
 
-**单一主要用途：** 在一个 Chrome 工作台中编写/试运行 JavaScript 网页增强代码，并运行和管理经过审阅的浏览器自动化任务。
+**用户的问题：** 经常在网页上反复点击、填写表单、读取页面信息，或者希望在常用网站中添加一个按钮、调整显示或自定义操作。
 
-**用户价值：** 无需为每个小型网页增强或重复网页操作都制作独立扩展，使用 GreyDove 的 Side Panel 管理脚本、任务和相关工具。
+**GreyDove 的单一主要用途：** 帮助用户通过 JavaScript 脚本和经过安装/授权审阅的浏览器自动化任务，自定义网页功能、处理重复网页操作，并在一个 Chrome 侧边栏中管理相关脚本、任务和结果。
 
-**首批目标用户：** 经常定制网页、重复操作网站的高级浏览器用户，以及会写少量 JavaScript 的开发者。对完全不会写脚本的普通用户，应优先解释“使用已有且受审阅的任务”，不得承诺自动理解任意网站。
+**一句话价值：** 把重复网页操作变成可审阅、可运行的脚本与任务，减少每个小功能都要开发独立浏览器扩展的负担。
 
-**差异化限于已找到的源码方向：** GreyDove 同时提供 Page USER_SCRIPT 和 Controller/Task 两种有不同权限边界的执行流程，并有 Side Panel 工具工作台；这不是 Tampermonkey 兼容替代品。
+**首批目标用户：** 在网页上进行重复操作的进阶用户、熟悉少量 JavaScript 的用户，以及需要自定义网站交互的开发者。一般用户可使用已有任务，但不暗示无需配置、无需脚本或自动理解任意网站。
+
+**差异化：** GreyDove 同时有网页脚本与 Controller 自动化任务两种执行方式，加上 Side Panel 工具管理；它不是完整 Tampermonkey/GM API 兼容管理器，也不应与脚本猫的自动化能力做不实独家对比。此处说的是源码定位，仍须以最终 Standard 包真实 Chrome 验收决定宣传白名单。
 
 ## 2. 商品字段（直接复制候选）
 
@@ -26,39 +28,51 @@ GreyDove
 
 ### English short description (Manifest / listing, <=132 characters)
 
-Write JavaScript to customize web pages and run browser automation tasks in one workspace.
+Reduce repeat clicks and form filling: customize websites with JavaScript and run browser automation tasks in one workspace.
 
 ### 中文短描述候选（同功能范围）
 
-编写 JavaScript 增强网页，并在一个工作台中运行和管理浏览器自动化任务。
+减少反复点击、填写表单等网页操作：编写 JavaScript 脚本定制网页，运行和管理浏览器自动化任务，并查看结果。
 
 ## 3. Detailed description — English (copy)
 
-GreyDove is a workspace for JavaScript webpage customization and browser automation.
+GreyDove helps you handle repetitive website tasks and customize the pages you use, using JavaScript scripts and browser automation in one Chrome Side Panel.
 
-Write and test JavaScript to adjust how a web page looks or behaves. Work with reviewed browser automation tasks for actions such as navigating pages, filling forms, and reading page content. Inspect task parameters, execution status, results, and errors.
+Do you repeat the same clicks, fill out forms, or read information from webpages? Or wish a website had a button or interaction that better suited your workflow? GreyDove brings the scripts and reviewed tasks for those jobs into one workspace.
 
-Use the Side Panel to develop scripts, work with installed tasks, and access optional browser tools. GreyDove brings these related workflows into one extension instead of requiring a separate Chrome extension for each small web customization.
+What you can do:
+- Customize websites with JavaScript. Write and test scripts to add buttons, adjust what a page displays, or create your own interactions.
+- Run repetitive webpage steps. Use installed, reviewed automation tasks to click, fill forms, and read page information on approved websites.
+- Manage scripts and results. Review installed scripts and enable or disable them. Check a task's target website, parameters, execution status, result, and errors. Open optional related web tools from the same Side Panel.
 
-Getting started: Open the GreyDove Side Panel, try a small JavaScript change on a webpage, or select an installed automation task. Review its target website and parameters before running it. To use page user scripts, you may need to enable "Allow User Scripts" in Chrome's extension details.
+Getting started: Open the GreyDove Side Panel. Try JavaScript on the current page or select a task that has been installed. Review the website, parameters, and permissions before running.
 
-Website access is requested for scripting and browser automation. Depending on the feature, browser capabilities such as tabs, downloads, cookies, proxy settings, and other permissions may be involved. Review the relevant permissions and privacy information before using a feature.
+GreyDove is for people who frequently work with websites and for developers who want more control over how pages behave. Some workflows require writing a script or installing a suitable task; GreyDove does not automatically understand every website.
 
-GreyDove does not claim compatibility with every userscript or GM API. Some features depend on website permissions, Chrome settings, and the installed release version.
+Some user-script features require enabling "Allow User Scripts" in Chrome. GreyDove does not promise compatibility with all userscripts or GM APIs. Website access is required for scripting and browser automation; individual tools may also involve tabs, downloads, cookies, or proxy settings. Please review permissions and privacy disclosures before using these features.
 
 ## 4. 完整介绍 — 简体中文（复制）
 
-灰鸽（GreyDove）是一款用于 JavaScript 网页增强与浏览器自动化的工作台。
+经常在网页上反复点击、填写表单、查看页面信息？或者希望常用网站能多一个按钮、少几个手动步骤？
 
-你可以编写和试运行 JavaScript，让网页呈现或执行自己需要的功能；也可以使用经过安装与授权审阅的浏览器自动化任务，完成页面跳转、表单填写、网页内容读取等操作，并查看任务参数、执行状态、结果和错误。
+GreyDove（灰鸽）是一款 Chrome 浏览器自动化与 JavaScript 脚本工作台。它把网页脚本、自动化任务和相关网页工具集中在侧边栏，帮助你定制网站功能、处理重复操作，而不必为每个小需求单独开发浏览器扩展。
 
-通过侧边栏，可以在同一个地方处理脚本开发、已安装任务与按需使用的网页小工具。对于小型网页定制需求，不必每次都单独开发和打包一个 Chrome 扩展。
+你可以用灰鸽做什么？
 
-开始使用：打开灰鸽侧边栏，在当前网页尝试一段 JavaScript，或选择一个已安装的自动化任务；执行前核对目标网站、参数与权限。网页用户脚本可能还需要在 Chrome 的扩展详情页开启“允许用户脚本”。
+1. **按自己的习惯使用网页。** 编写、试运行 JavaScript 脚本，在网页中添加按钮、调整页面显示或实现自定义操作。
+2. **减少重复点击和表单填写。** 使用已安装、经过授权审阅的浏览器自动化任务，在获准的网站执行点击、填写表单、读取页面信息等步骤。
+3. **集中管理脚本和任务。** 查看已安装脚本并启用或停用；运行前确认目标网站与参数，运行后查看任务状态、执行结果和错误。需要时，也可从侧边栏打开相关网页小工具。
 
-为实现网页脚本和自动化功能，扩展会请求网站访问权限。特定功能还可能涉及标签页、下载、Cookie、代理设置等浏览器能力。使用前请核对相应授权和隐私说明。
+**适合谁？**
+适合经常处理重复网页操作的用户，以及希望用 JavaScript 定制网站功能的开发者。你可以使用现有脚本与任务，也可以按自己的需要编写代码。
 
-灰鸽不承诺兼容所有油猴脚本或全部 GM API；某些功能受网站权限、Chrome 设置和实际安装版本限制。
+**如何开始？**
+打开 GreyDove 侧边栏，在当前网页试运行一段 JavaScript，或者选择一个已经安装的自动化任务。确认目标网站、参数和权限后再执行。
+
+**使用前请了解：**
+灰鸽不是无需设置就能自动处理所有网站的工具。部分操作需要自行编写脚本或安装合适的任务；Chrome 网页用户脚本功能可能需要开启“允许用户脚本”。本产品不保证兼容全部油猴脚本或 GM API。
+
+执行网页脚本和自动化任务需要相应的网站访问权限。个别工具还可能涉及标签页、下载、Cookie 或代理等浏览器能力，具体用途以实际功能及隐私披露为准。
 
 ## 5. 功能证据白名单（未完成同包 Chrome 验收，暂不提升为 VERIFIED）
 
@@ -93,18 +107,46 @@ GreyDove does not claim compatibility with every userscript or GM API. Some feat
 
 ## 7. 关键词、真实场景和截图规划
 
-关键词（自然融入正文，不堆砌）：JavaScript, webpage customization, browser automation, task runner, user scripts, script workspace；网页增强、浏览器自动化、脚本工作台、自动填写表单、任务运行结果。
+关键词与用户意图（**仅为语义归类，没有搜索量、排名或转化统计**）：
+
+| 用户可能搜索 | 期望完成的事情 | 对应首发真实能力 | 表述处理 |
+| --- | --- | --- | --- |
+| 浏览器自动化、网页自动操作、自动点击网页 | 减少重复网页操作 | Controller/已安装任务、执行回执 | 首要搜索意图，自然出现 |
+| 自动填写表单、重复填写 | 减少重复录入 | 经授权任务在指定网页填写表单 | 只写“使用已安装任务”，不能承诺任意网站一键填写 |
+| JavaScript 脚本、网页脚本、用户脚本 | 编写/运行脚本改变网页 | 脚本试运行、受限安装管理 | 保留准确技术词，但先解释用途 |
+| 自定义网站、网页功能定制 | 添加按钮或改变页面交互 | Page USER_SCRIPT 网页定制 | 推荐“自定义网页功能”，不单独用难懂的“增强网页” |
+| 脚本管理、任务运行结果 | 启停、审阅、排错 | 已安装程序与任务工作台 | 在功能点解释，不堆砌关键词 |
+
+不使用“AI 自动帮我操作所有网站”“零代码一键自动化”“全套油猴兼容”“不限网站批量操作”等缺少交付证据或可能引发误解的词。搜索排名取决于实际商店索引与用户行为，不能单凭文案保证。
 
 适合的用户场景：在当前网页试运行一段按钮增强 JS；用户审阅并启动表单自动化 Task；执行后查看结果与错误；在一个侧边栏打开可选工具。不要把隐式后台自动操作、跨站无限权限或批量注册作为默认能力。
 
 建议截图（全部须来自真实、同候选 Chrome）：
-1. Side Panel 的脚本工作区：英文 “Customize pages with JavaScript”；中文“用 JavaScript 定制网页”
-2. 任务参数与运行授权：英文 “Review before you run”；中文“审阅任务后再运行”
-3. 执行状态/结果/错误：英文 “Know what happened”；中文“执行状态与结果清晰可见”
-4. 已安装的脚本/任务管理：英文 “Keep scripts and tasks organized”；中文“集中管理脚本与任务”
-5. 可选网页工具入口：英文 “Tools in one workspace”；中文“相关网页工具统一管理”
+1. 在当前网页编写/试运行 JavaScript：英文 “Customize a website with JavaScript”；中文“让网页按你的习惯工作”
+2. 任务参数和网站授权：英文 “Review each task before running”；中文“执行前先确认网站和操作”
+3. 点击/填写任务与执行结果：英文 “Automate steps and see the result”；中文“减少重复操作，查看执行结果”
+4. 已安装网页脚本与启停管理：英文 “Manage your installed scripts”；中文“集中管理已安装脚本”
+5. 侧边栏的相关网页工具：英文 “Web tools in one Side Panel”；中文“常用网页工具集中管理”
 
 不得用 HTML 预览、概念设计或 Node 模拟截图冒充正式产品截图。
+
+
+### R2：文案质量评审与证据限制（2026-11-17）
+
+先按用户场景组织语言，再保留真实的产品类型与搜索词；不是简单删除技术词，也不能依赖未经核验的“高流量关键词”。
+
+| 模拟独立专业审阅视角 | 文案质量分（100） | 判定依据 |
+| --- | ---: | --- |
+| 用户理解与任务价值 | 97 | 首屏先说重复点击/表单、自定义网页，且不承诺无需配置 |
+| 搜索意图和关键词自然性 | 96 | 保留“浏览器自动化、JavaScript、脚本”等准确词；缺少真实搜索量数据 |
+| 竞品差异化 | 96 | 主打脚本 + 审阅后运行的任务 + 侧栏管理，避免声称独占能力 |
+| 与源码证据一致性 | 95 | 有实现和组件测试路径，但功能仍需最终生产包 Chrome 验收 |
+| 商店文本政策与中英文一致性 | 97 | 概览 + 3 个用户功能点 + 使用说明，避免关键词堆砌；权限披露仍待独立合规审计 |
+| **等权算术平均** | **96.2** | **仅代表文字方案的内部模拟审查，不等于真实专家访谈、流量 A/B 或可上架认证** |
+
+**硬门槛（与分数无关）：** 当前无同源 Standard ZIP 的真实 Chrome 功能验收、最终图标/截图与隐私合规结论；因此即使文案内部评分超过 95，整款产品仍是 **NOT READY TO SUBMIT**。此评分不得替换此前的发布准备度评分或测试证据。
+
+官方来源：[Creating a great listing page](https://developer.chrome.com/docs/webstore/best-listing)、[Chrome Web Store discovery](https://developer.chrome.com/docs/webstore/discovery/)、[Listing requirements](https://developer.chrome.com/docs/webstore/program-policies/listing-requirements)、[2026 policy update](https://developer.chrome.com/blog/cws-policy-updates-2026)。
 
 ## 8. 发布限制、权限与验收门禁
 
