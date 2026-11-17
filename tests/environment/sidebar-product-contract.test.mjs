@@ -130,8 +130,8 @@ test('developer mode uses one accessible switch and keeps page details folded by
 
 test('Sidebar starts at its five tabs without repeating Chrome extension identity',async()=>{
   const [manifest,$,css]=await Promise.all([read('manifest.json').then(JSON.parse),rendered(),read('src/ui/tool-shell.css')]);
-  assert.equal(manifest.name,'OpenDesk Browser');
-  assert.equal($('title').text(),'OpenDesk Browser');
+  assert.equal(manifest.name,'GreyDove');
+  assert.equal($('title').text(),manifest.name);
   assert.equal($('#opendesk-react-app').children().first().is('nav.workbench-nav[role=tablist]'),true);
   assert.equal($('.workspace-header,.workspace-brand,.workspace-logo').length,0);
   assert.doesNotMatch(css,/\.workspace-(?:header|brand|logo)\b/);
