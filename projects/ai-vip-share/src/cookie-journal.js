@@ -21,7 +21,8 @@ function bounded(value){
 }
 // Storage-only dictionaries: APIs and all policy checks continue to see schema 2.
 // v4 uses slot tuples; v5 removes attempt field names; v6 uses result tuples,
-// v7 interns scope fields and stores verified result prefixes as a count.
+// v7 interns scope fields and stores verified result prefixes as a count;
+// v8 shares the domain/host/path/store/partition tuple across named Cookie slots.
 // Each is used only when the previous encoding exceeds the SAME 8 KiB quota.
 // No history is pruned, and exact readback still establishes each CAS outcome.
 const SLOT_FIELDS=['name','domain','hostOnly','path','storeId','partitionKey'];
@@ -76,7 +77,7 @@ function encodeJournal(value,version){
     if(value.legacy.record!==null)encoded.legacy={...value.legacy,
       record:{...value.legacy.record,results:encodeResults(value.legacy.record.results)}};
   }
-  if(version===7||(version===undefined&&new TextEncoder().encode(JSON.stringify(encoded)).length>MAX_BYTES)){
+  if(version>=7||(version===undefined&&new TextEncoder().encode(JSON.stringify(encoded)).length>MAX_BYTES)){
     encoded.schemaVersion=7;
     const fields=[],ids=new Map();
     encoded.scopes=scopes.map(key=>{
@@ -87,14 +88,22 @@ function encodeJournal(value,version){
     encoded.attempts=encoded.attempts.map((tuple,index)=>tuple.map((item,i)=>
       ATTEMPT_FIELDS[i]==='results'?encodeResultRun(value.attempts[index].results):item));
   }
+  if(version===8||(version===undefined&&new TextEncoder().encode(JSON.stringify(encoded)).length>MAX_BYTES)){
+    encoded.schemaVersion=8;
+    const slotScopes=[],ids=new Map();
+    encoded.slots=encoded.slots.map(list=>list.map(([name,...scope])=>
+      [name,intern(slotScopes,ids,scope)]));
+    encoded.slotScopes=slotScopes;
+  }
   return encoded;
 }
 function journalBounded(value){bounded(encodeJournal(value));return value;}
 function decodeJournal(value){
   bounded(value);
-  const v7=value.schemaVersion===7;
-  if(!exact(value,['schemaVersion','legacy','scopes','slots','attempts',...(v7?['scopeFields']:[])])||
-    ![3,4,5,6,7].includes(value.schemaVersion)||
+  const v7=value.schemaVersion>=7,v8=value.schemaVersion===8;
+  if(!exact(value,['schemaVersion','legacy','scopes','slots','attempts',...(v7?['scopeFields']:[]),
+    ...(v8?['slotScopes']:[])])||
+    ![3,4,5,6,7,8].includes(value.schemaVersion)||
     !Array.isArray(value.scopes)||!Array.isArray(value.slots)||!Array.isArray(value.attempts)||
     value.attempts.length>128||value.scopes.length>128||value.slots.length>128||
     (!v7&&value.scopes.some(s=>typeof s!=='string'||s.length>8192))||
@@ -105,13 +114,20 @@ function decodeJournal(value){
   };
   if(v7&&(!Array.isArray(value.scopeFields)||value.scopeFields.length>1536||
     value.scopeFields.some(s=>typeof s!=='string'||s.length>2048)))fail();
+  if(v8&&(!Array.isArray(value.slotScopes)||value.slotScopes.length>6400||
+    value.slotScopes.some(s=>!Array.isArray(s)||s.length!==SLOT_FIELDS.length-1)))fail();
   const scopes=v7?value.scopes.map(scope=>{
     if(!Array.isArray(scope)||scope.length!==8||!Array.isArray(scope[7])||
       ![2,5].includes(scope[7].length))fail();
     return JSON.stringify([...scope.slice(0,7).map(i=>ref(value.scopeFields,i)),
       scope[7].map(i=>ref(value.scopeFields,i))]);
   }):value.scopes;
-  const slots=value.schemaVersion>=4?value.slots.map(list=>list.map(tuple=>{
+  const slots=value.schemaVersion>=4?value.slots.map(list=>list.map(stored=>{
+    let tuple=stored;
+    if(v8){
+      if(!Array.isArray(tuple)||tuple.length!==2)fail();
+      tuple=[tuple[0],...ref(value.slotScopes,tuple[1])];
+    }
     if(!Array.isArray(tuple)||tuple.length!==SLOT_FIELDS.length)fail();
     return Object.fromEntries(SLOT_FIELDS.map((field,index)=>[field,tuple[index]]));
   })):value.slots;
@@ -397,7 +413,7 @@ export async function readCookieJournal(request){
   const result=await request('storage.get',{key:COOKIE_JOURNAL_KEY,withEtag:true});
   if(!plain(result)||result.preview===true||!Object.hasOwn(result,'value')||
     typeof result.etag!=='string'||! /^[a-f0-9]{64}$/.test(result.etag))fail();
-  return {etag:result.etag,value:[3,4,5,6,7].includes(result.value?.schemaVersion)?decodeJournal(result.value):
+  return {etag:result.etag,value:[3,4,5,6,7,8].includes(result.value?.schemaVersion)?decodeJournal(result.value):
     result.value?.schemaVersion===2?validateMigratedCookieJournal(bounded(result.value)):
     validateLegacyCookieRecord(result.value)};
 }

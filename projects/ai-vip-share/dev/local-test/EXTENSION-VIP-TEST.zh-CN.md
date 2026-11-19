@@ -1,5 +1,31 @@
 # AI VIP Share：完善扩展到模拟 VIP 网站的真实操作链
 
+<a id="cookie-recovery-20261119"></a>
+
+## 2026-11-19 Cookie Editor 清理后恢复的修复与续测
+
+用户确认自建站和 ChatGPT 均曾清理，并要求主要在原生侧边栏完成。本轮复用 ego TaskSpace 167、`AI VIP Share Test 20261106`（Profile 1）和原「扩展 → AI VIP Share」。独立 `app.html` 只曾用于早期非秘密日志诊断；用户纠正后已关闭，安装、会员及登录操作均回到侧边栏，不将独立页当正常入口。
+
+| 当前操作 | 实际结果与证据边界 |
+| --- | --- |
+| 1.4.34 已有权益直接打开自建站 | 7903 `/session/` 显示未登录，原会员为 20 次额度、1 条兑换，分配 B。直接打开未恢复会话；不把开站当作登录 |
+| 取得新交付并继续登录 | 服务提供 B 的两项新交付。侧边栏在可信确认前报「恢复记录容量不足，未提交 Cookie；原记录已保留」。无 Cookie 派发，没有再次兑换 |
+| 原日志与修复 | schema7 为 8030 字节，22 次尝试（9 次 failed/not-submitted，13 次 success），8 个作用域、4 组槽位，无 unknown/partial/legacy。只读捕获的非秘密事实摘要为 `e6db6305b62cb80eeb6763626722ecdaa30865db44192c684a520dd7d9597305`。schema8 在 v7 超预算时共享槽位的 domain/hostOnly/path/storeId/partitionKey，展开合同仍为 schema2，不删除尝试或重写旧事实 |
+| 原数据的定向验证 | 对捕获日志在内存执行新 reserve/明确未提交结算，schema8 为 7638 字节，23 次尝试；前 22 次展开事实逐项相同，两次 CAS 写入，无浏览器写入。这是原数据的 Node 证据，**不是修复后真实 Cookie 写入** |
+| 同源包与侧栏安装 | 项目预编译、候选检查、原打包器显式晋升和 `--check-project` 均通过。原侧栏导入审阅更新到 **1.4.36**，权限未变化、数据保留；安装详情读回与正式 JSON 同一摘要 |
+| 固定 Host 开发准入 | 本工具的测试入口依赖既有固定开发 HTTP 例外的精确源审阅。只更新原 `browser-managed-proxy-profiles.js` 的包摘要到 1.4.36；不增域名、端口、权限或生产准入。5 项检查证明错误 owner/包、撤权/STOP 和 production 继续拒绝 |
+| 持续开发运行 | 实际原生管理页读回扩展 ID `ccfcjegpkdlgbclopjmadlcjedelidmf`、启用状态和原 `~/文稿/workspace/opendesk-browser/dist/development` 路径。「调试 → 本地开发服务」显示连接和 revision `7df8093214f2de9f91b97689241d9d05d4d488aff369323a7869aabcc9a51020`。只读 Worker Sources 查找证明当时实际生成脚本仍含旧 pin，不能凭新 source map 或 revision 推断 Worker 一致。经原管理界面重载该原扩展一次，见「已重新加载」，随后关闭诊断页和 DevTools；原侧栏重开后显示 1.4.36 和原 20 次/1 条兑换。未重启共享 watcher 或原服务 |
+| 原授权到期 | 原回执 `139fac14-705c-48af-abca-3dec523921e8`、账号 `native-local-20261119-b` 保留。其 feature 到期时间为 `1795082275389`（17:57:55.389 北京时间）；18:01 后会员只读回读仍为 20 次/1 条兑换，但无 sharedAccounts，侧栏提示无会话分配。没有改写期限、放宽过期校验或再次兑换 |
+| 用户允许的独立实验 | 新建 `http://127.0.0.1:7898`，测试账号 `cookie-recovery-1436-b`，独立内存账本，模拟券 `RECOVERY-1436-B` 仅绑定 shared-b。原 PID24325/7903 和原交易未动。新 PID41659 于 18:07 启动时，会员/预检/兑换/会话/代理均为零；尚未从侧栏选取、激活或写入，不能计 PASS |
+| 当前原生阻塞 | 对侧栏上下文操作及后续 `cua.getApp` 连续超时并重置控制会话；ego 普通页面 API 仍能读取原 TaskSpace 和未登录站点。未盲发粘贴/Return、未改其他窗口、未把 `app.html` 当替代业务入口。修复后首次激活→Cookie Editor 定向清理→恢复→重开仍为 **NOT_TESTED** |
+| 真实 ChatGPT | 原 p2 仍为 `https://chatgpt.com/auth/login?next=%2F`，仅有未登录基线。`REVIEWED_SERVICE=null`；没有绑定当笔分配的获批服务、合法测试账号/登录方式及可比较身份。没有读取 Cookie 文件内容、向 ChatGPT 写入或发送消息；新登录、身份匹配、Plus/VIP 均未通过 |
+
+**定向检查。** journal/storage、Controller 原样会员 HTTP、service-flow、server-session 及本地 fixture 共 **107/107 PASS**；Host 开发 pin **5/5 PASS**。新回归先在原 codec 复现 E_COOKIE_LIMIT，再验证 v7 8091 字节的历史在取消和主动恢复后无损存为 v8（约 7428 字节）。真实超限、写前最坏回执预算、错误字典引用、旧 schema、unknown/partial、已见交付重放和 CAS 丢回执继续定向验证。补充合法 Partition 与非分区 Cookie 身份的 roundtrip 后，storage 文件 **23/23 PASS**。独立只读审查未发现阻断项；当前检查不证明原生确认/写入或真实网站登录。
+
+**交付身份。** 唯一正式 JSON **1.4.36 / 159860 字节 / SHA-256 `a64b2d51e9a062477127cbab87116feb965620086e166c9db08144cac60c1524`**，沿用原 7 项能力。源码、包和实装版本分层记录；历史 1.4.34 首次激活/登录仍只属于下节原实验，不能与当前恢复源码拼成同一候选全链 PASS。
+
+**下一条最短侧栏操作。** 恢复原生控制后，先核对本次窗口/URL/侧栏及无未决操作，再以受支持的测试服务选择准备独立实验（不改原交易或 Cookie journal）。在 1.4.36 侧栏预检/取消零兑换，再明确激活一笔并核对 B；完成原可信两项 Cookie 确认，页面应显示 B 的有效受控会话。随后从同一侧栏打开 Cookie Editor，仅选择本次自建站的两项 `/session/` 合成 Cookie，清理后观察未登录，再回 AI VIP Share 主动重新登录；兑换保持该实验 1 条。重开工具零自动写入/重兑，直接打开仍为 B。新旧端口共享 Cookie 域，不能把 Space 或端口当 Cookie 隔离，不清整个 Profile。商业后端、生产、完整矩阵及评分不开展。
+
 <a id="activation-login-audit-20261115"></a>
 
 ## 2026-11-15 当前阶段：需求与证据梳理，未继续执行登录
