@@ -3,7 +3,7 @@ import {createProxyService} from './service';
 import {freshConfig,validateConfig} from './domain/config';
 import {toManagedRoute,configForManagedRoute} from './domain/managed-config';
 import {createNavigation} from './ui/navigation';
-import {OPTIONS_SECTIONS} from './ui/optionsRoute';
+import {OPTIONS_SECTIONS,optionsHash,parseOptionsHash} from './ui/optionsRoute';
 import {checkDiagnosticSite} from './diagnostics/http';
 import {safePublicDomain} from './diagnostics/catalog';
 import {migrateFavorites} from './diagnostics/favorites';
@@ -41,8 +41,28 @@ export function configureEnvironment(bridge:any,sdk:any,{trusted=false,preview:p
   publishDrafts();return true;
  };
  const pageHint=bridge?.initialPage;
- const knownSection=pageHint?.view==='settings'&&OPTIONS_SECTIONS.some(section=>section===pageHint.section);
- const navigation=createNavigation({initialRoute:knownSection?'#/'+pageHint.section:trusted?'':location.hash});
+ const entrySection=pageHint?.view==='settings'?OPTIONS_SECTIONS.find(section=>section===pageHint.section):undefined;
+ const rememberSection=trusted&&bridge?.surface==='page'&&entrySection!==undefined;
+ const sectionKey='opendesk.ai-proxy.pc-section.v1';
+ let initialRoute=entrySection?optionsHash(entrySection):trusted?'':location.hash;
+ if(rememberSection){
+  try{
+   const [entry]=performance.getEntriesByType('navigation') as PerformanceNavigationTiming[];
+   if(entry?.type==='reload'){
+    const saved=sessionStorage.getItem(sectionKey);
+    const section=OPTIONS_SECTIONS.find(item=>item===saved);
+    if(section)initialRoute=optionsHash(section);
+   }
+  }catch{/* Tab storage is optional. */}
+ }
+ const navigation=createNavigation({initialRoute});
+ if(rememberSection){
+  const saveSection=(route:string)=>{
+   try{sessionStorage.setItem(sectionKey,parseOptionsHash(route));}catch{/* Tab storage is optional. */}
+  };
+  saveSection(initialRoute);
+  navigation.subscribe(saveSection);
+ }
  // One adapter for the trusted pilot and the public sandbox bridge.
  const navigationBridge=bridge?.toolNavigation??bridge;
  const navigationSubscriptions=new Set<()=>void>();

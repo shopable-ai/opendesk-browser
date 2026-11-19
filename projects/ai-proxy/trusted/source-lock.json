@@ -21,7 +21,7 @@
   "projects/ai-proxy/src/domain/pac-starters.ts": "619271c748e0f964e95881f30cd3b88dab57ee06",
   "projects/ai-proxy/src/domain/pac.ts": "fc1102cb27f63a455e2e1bc21a183d5127ba5691",
   "projects/ai-proxy/src/domain/proxy-entry.ts": "35b36b5b56af4ffeb194722d63dce46ec8843e8e",
-  "projects/ai-proxy/src/environment.ts": "fecf51466dad62a0afd3bf4241f29726673355be",
+  "projects/ai-proxy/src/environment.ts": "6876a7109efa7c53bdf8f4070e31eb4cf7dbb009",
   "projects/ai-proxy/src/i18n/LocaleProvider.tsx": "f60fc23240354382534fb46d4d81cd9a87ac2127",
   "projects/ai-proxy/src/i18n/errors.ts": "5bd55461ee679d869260c3b34e08c32415101e0d",
   "projects/ai-proxy/src/i18n/locale.ts": "2f5391ea8b381753fd7eb6f2e4c0364e5856b058",

@@ -554,6 +554,42 @@ test('PC initial section is an app-validated display hint and cannot apply a pro
   }finally{env.dispose();}
 });
 
+test('PC reload restores only the last accepted section and a fresh entry honors the link',t=>{
+ const storage=new Map();
+ let navigationType='navigate';
+ const priorStorage=Object.getOwnPropertyDescriptor(globalThis,'sessionStorage');
+ Object.defineProperty(globalThis,'sessionStorage',{configurable:true,value:{
+  getItem(key){return storage.get(key)??null;},
+  setItem(key,value){storage.set(key,value);}
+ }});
+ t.after(()=>{
+  if(priorStorage)Object.defineProperty(globalThis,'sessionStorage',priorStorage);
+  else delete globalThis.sessionStorage;
+ });
+ t.mock.method(globalThis.performance,'getEntriesByType',()=>[{type:navigationType}]);
+ const f=fixture();
+ f.bridge.surface='page';
+ f.bridge.initialPage={view:'settings',section:'profiles'};
+ let env=f.open();
+ try{
+  assert.equal(env.navigation.navigate('#/subscriptions/source/private-source'),true);
+  env.navigation.setGuard(()=>false);
+  assert.equal(env.navigation.navigate('#/rules'),false);
+  assert.deepEqual([...storage.values()],['subscriptions']);
+ }finally{env.dispose();}
+ navigationType='reload';
+ env=f.open();
+ try{assert.equal(env.navigation.getRoute(),'#/subscriptions');}finally{env.dispose();}
+ navigationType='navigate';
+ f.bridge.initialPage.section='diagnostic';
+ env=f.open();
+ try{assert.equal(env.navigation.getRoute(),'#/diagnostic');}finally{env.dispose();}
+ navigationType='reload';
+ env=f.open();
+ try{assert.equal(env.navigation.getRoute(),'#/diagnostic');}finally{env.dispose();}
+ assert.deepEqual(f.calls,[]);
+});
+
 test('rule list mutations preserve an unrelated stale default draft baseline',async()=>{
  for(const patch of [{enabled:false},{priority:7}]){
   const f=fixture(),env=f.open();
