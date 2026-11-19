@@ -23,11 +23,14 @@ function bounded(value){
 // v4 uses slot tuples; v5 removes attempt field names; v6 uses result tuples,
 // v7 interns scope fields and stores verified result prefixes as a count;
 // v8 shares the domain/host/path/store/partition tuple across named Cookie slots.
+// v9 stores each validated state/resolution pair as a fixed outcome tag.
 // Each is used only when the previous encoding exceeds the SAME 8 KiB quota.
 // No history is pruned, and exact readback still establishes each CAS outcome.
 const SLOT_FIELDS=['name','domain','hostOnly','path','storeId','partitionKey'];
 const ATTEMPT_FIELDS=['scopeKey','attemptId','requestId','deliveryId','policyVersion','payloadHash',
   'expiresAt','count','slots','state','resolution','results'];
+const OUTCOMES=[['unknown','pending'],['failed','not-submitted'],['success','receipt'],
+  ['partial','receipt'],['failed','receipt'],['unknown','receipt']];
 const encodeResults=results=>results.map(r=>r.code===undefined?
   [r.index,r.saved,r.verified]:[r.index,r.saved,r.verified,r.code]);
 function decodeResults(results){
@@ -88,22 +91,27 @@ function encodeJournal(value,version){
     encoded.attempts=encoded.attempts.map((tuple,index)=>tuple.map((item,i)=>
       ATTEMPT_FIELDS[i]==='results'?encodeResultRun(value.attempts[index].results):item));
   }
-  if(version===8||(version===undefined&&new TextEncoder().encode(JSON.stringify(encoded)).length>MAX_BYTES)){
+  if(version>=8||(version===undefined&&new TextEncoder().encode(JSON.stringify(encoded)).length>MAX_BYTES)){
     encoded.schemaVersion=8;
     const slotScopes=[],ids=new Map();
     encoded.slots=encoded.slots.map(list=>list.map(([name,...scope])=>
       [name,intern(slotScopes,ids,scope)]));
     encoded.slotScopes=slotScopes;
   }
+  if(version>=9||(version===undefined&&new TextEncoder().encode(JSON.stringify(encoded)).length>MAX_BYTES)){
+    encoded.schemaVersion=9;
+    encoded.attempts=encoded.attempts.map(tuple=>[...tuple.slice(0,9),
+      OUTCOMES.findIndex(([state,resolution])=>state===tuple[9]&&resolution===tuple[10]),tuple[11]]);
+  }
   return encoded;
 }
 function journalBounded(value){bounded(encodeJournal(value));return value;}
 function decodeJournal(value){
   bounded(value);
-  const v7=value.schemaVersion>=7,v8=value.schemaVersion===8;
+  const v7=value.schemaVersion>=7,v8=value.schemaVersion>=8,v9=value.schemaVersion===9;
   if(!exact(value,['schemaVersion','legacy','scopes','slots','attempts',...(v7?['scopeFields']:[]),
     ...(v8?['slotScopes']:[])])||
-    ![3,4,5,6,7,8].includes(value.schemaVersion)||
+    ![3,4,5,6,7,8,9].includes(value.schemaVersion)||
     !Array.isArray(value.scopes)||!Array.isArray(value.slots)||!Array.isArray(value.attempts)||
     value.attempts.length>128||value.scopes.length>128||value.slots.length>128||
     (!v7&&value.scopes.some(s=>typeof s!=='string'||s.length>8192))||
@@ -132,6 +140,11 @@ function decodeJournal(value){
     return Object.fromEntries(SLOT_FIELDS.map((field,index)=>[field,tuple[index]]));
   })):value.slots;
   const attempts=value.attempts.map(stored=>{
+    if(v9){
+      if(!Array.isArray(stored)||stored.length!==11||!Number.isSafeInteger(stored[9])||
+        stored[9]<0||stored[9]>=OUTCOMES.length)fail();
+      stored=[...stored.slice(0,9),...OUTCOMES[stored[9]],stored[10]];
+    }
     if(value.schemaVersion>=5&&(!Array.isArray(stored)||stored.length!==ATTEMPT_FIELDS.length))fail();
     const row=value.schemaVersion>=5?Object.fromEntries(ATTEMPT_FIELDS.map((field,index)=>[field,stored[index]])):stored;
     if(!plain(row))fail();
@@ -413,7 +426,7 @@ export async function readCookieJournal(request){
   const result=await request('storage.get',{key:COOKIE_JOURNAL_KEY,withEtag:true});
   if(!plain(result)||result.preview===true||!Object.hasOwn(result,'value')||
     typeof result.etag!=='string'||! /^[a-f0-9]{64}$/.test(result.etag))fail();
-  return {etag:result.etag,value:[3,4,5,6,7,8].includes(result.value?.schemaVersion)?decodeJournal(result.value):
+  return {etag:result.etag,value:[3,4,5,6,7,8,9].includes(result.value?.schemaVersion)?decodeJournal(result.value):
     result.value?.schemaVersion===2?validateMigratedCookieJournal(bounded(result.value)):
     validateLegacyCookieRecord(result.value)};
 }

@@ -1,5 +1,22 @@
 # AI VIP Share：完善扩展到模拟 VIP 网站的真实操作链
 
+<a id="manual-success-20261119"></a>
+
+## 2026-11-19 19:45 原侧栏登录实际成功：1.4.37
+
+本轮继续用户要求的「确保成功」，只验证当前自建站核心链。原TaskSpace167/Profile1、扩展ID `ccfcjegpkdlgbclopjmadlcjedelidmf`、加载目录 `dist/development`；未新建Profile或替换安装身份。真实ChatGPT不在本次成功范围。
+
+1. 原UI刷新会员后，为独立 `manual-20261119-191004-b` 实验预检新码 `MANUAL-20261119-191004-B`，明确确认激活一次。服务器记录账户同名、兑换ID `13a709cf-3e68-4d52-916b-4e7130c0960c`，19:25:57生效、20:25:57到期；分配shared-b、20次额度。没有重建或延长原7903、旧7898实验。
+2. 继续登录时真实复现「恢复记录容量不足，未提交Cookie」；原schema8日志24次/8026字节，确认前零Cookie提交。1.4.37使用六种既有state/resolution的固定标签进行无损schema9编码，不扩大8KiB、不删除历史、不更改预留最坏回执或CAS流程。
+3. 经原「扩展 → 导入扩展」审阅1.4.36→1.4.37，权限未变化、保留应用数据。原dev服务已退出，端口空闲后以LaunchAgent恢复唯一 `scripts/dev.mjs`，PID79275；安全重载后通过原目录「打开OpenDesk侧栏」恢复原生侧栏，未在独立标签页运行工具业务。调试页实读「开发服务已连接」、revision `2e8098f29a9dd4fd6882830b551c24fcef0c91164938275abbf5ae5792036f95`。
+4. 同笔权益「登录并打开网站 → 继续登录并打开网站」，原可信Host明确显示目标7898、两项Cookie、既有Store/Partition和不可自动重试；确认一次后打开结果页p8。网站19:44–19:45实际显示「受控会话有效」、`b***@fixture.test`、公司共享账号B、模拟VIP有效。Cookie日志25次/7869字节，最新两项saved/verified均true，原24次和legacy逐字段完全一致。兑换调用仍1次、账本仅1笔。
+
+**当前手测。** 保留原ego窗口p8，在同一窗口访问 `http://127.0.0.1:7898/session/` 或点击「立即重新核验」，应显示上述B身份。侧栏现有权益可「直接打开网站」，不再兑换测试码。失效后仅由用户主动走同一登录确认链；分配20:25:57到期后不能强行恢复。7898与43119/43120最后实测均监听，健康HTTP200。后台独立于Codex命令存活，不配置内存实验自动重建；机器/进程退出后的保留不承诺。
+
+**交付与检查。** 唯一正式JSON为1.4.37 / 160379字节 / SHA-256 `23eeead29e473ec9cb0125987fc4bb6ecab3ed6f2c1014ca22183e0804027ff4`，沿用7项能力，候选→定向检查→原打包器晋升→check-project通过，已实读原安装标题v1.4.37。新容量回归先在旧codec红测，修复后journal/storage共48项通过；新分配保留全部历史、六种状态、恶意标签、真实超限零写入、丢回执/CAS冲突和回放保护均有针对性检查。相关Controller与开发Host检查通过。根sidebar-tools另有现有53px侧栏头部与48px字符串断言不符的一项失败，属于并行样式/断言问题，未改动其owner；不宣称根测试全部通过。真实ChatGPT、商业Plus/VIP、production及全矩阵仍NOT_TESTED。
+
+**本机原始证据。** `artifacts/sidebar-tools/ai-vip-share/manual-backend-20261119-191004/` 中 `site-after-login.png/txt`、`journal-after-login.json`、`evidence-summary.json`、`development-status.txt` 和 `ledger.json`；后台配置/日志在同目录，dev配置/日志在相邻 `manual-dev-20261119-1437/`。这些是临时证据，唯一正式JSON仍在项目根。以下段落保留历史观察，不覆盖本轮结果。
+
 <a id="cookie-recovery-20261119"></a>
 
 ## 2026-11-19 Cookie Editor 清理后恢复的修复与续测

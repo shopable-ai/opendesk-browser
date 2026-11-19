@@ -124,6 +124,86 @@ function v8(value) {
   return wire;
 }
 
+function v9(value) {
+  const wire = v8(value), outcomes = ['unknown/pending', 'failed/not-submitted',
+    'success/receipt', 'partial/receipt', 'failed/receipt', 'unknown/receipt'];
+  wire.schemaVersion = 9;
+  wire.attempts = wire.attempts.map(tuple => [...tuple.slice(0, 9),
+    outcomes.indexOf(tuple[9] + '/' + tuple[10]), tuple[11]]);
+  return wire;
+}
+
+function history24() {
+  const journal = empty();
+  journal.attempts = Array.from({length: 24}, (_, i) => ({...row(i),
+    attemptId: `history-${i}`.padEnd(36, 'a'), requestId: `request-${i}`.padEnd(36, 'b'),
+    deliveryId: `delivery-${i}`.padEnd(36, 'c'),
+    state: 'success', resolution: 'receipt',
+    results: [0, 1].map(index => ({index, saved: true, verified: true})),
+  }));
+  // A distinct new allocation must fit alongside a near-full, settled v8 journal.
+  for (let i = 0; bytes(v8(journal)) < 8000; i++) {
+    const n = i % journal.attempts.length;
+    journal.attempts[n].policyVersion += 'x';
+  }
+  return journal;
+}
+
+test('new allocation after 24 settled attempts preserves all history through reserve, receipt and reopen', async t => {
+  const journal = history24(), initial = v8(journal), candidate = {...row(99),
+    scopeKey: row(99).scopeKey.replaceAll('account', 'new-member').replaceAll('grant', 'new-allocation'),
+    requestId: 'new-request'.padEnd(36, 'd'), deliveryId: 'new-delivery'.padEnd(36, 'e'),
+    state: 'unknown', resolution: 'pending'};
+  assert.ok(bytes(v8({...journal, attempts: [...journal.attempts, candidate]})) > 8192);
+  const s = storage(initial, {lost: true}), reserved = await reserveCookieAttempt(s.request, candidate);
+  assert.equal(s.value.schemaVersion, 9);
+  assert.deepEqual(reserved.value.attempts.slice(0, -1), journal.attempts);
+  const settled = await saveCookieReceipt(s.request, reserved.reference, {receipt: {saved: 2, verified: 2,
+    results: candidate.slots.map((_, index) => ({index, saved: true, verified: true}))}});
+  assert.deepEqual(settled.value.attempts.slice(0, -1), journal.attempts);
+  assert.deepEqual((await readCookieJournal(s.request)).value, settled.value);
+  const writes = s.writes;
+  await assert.rejects(reserveCookieAttempt(s.request, candidate), {code: 'E_COOKIE_REPLAY'});
+  assert.equal(s.writes, writes);
+  const conflict = storage(initial, {conflict: true});
+  await assert.rejects(reserveCookieAttempt(conflict.request, candidate), {code: 'E_COOKIE_MARKER_UNCONFIRMED'});
+  assert.equal(conflict.writes, 1);
+  assert.deepEqual(conflict.value, initial);
+  t.diagnostic(`v8 history=${bytes(initial)}; v9 settled=${bytes(s.value)}; quota=8192`);
+});
+
+test('schema9 outcome tags preserve all six states and reject malformed or inconsistent receipts', async () => {
+  const base = row(1), variants = [
+    {state: 'unknown', resolution: 'pending', results: []},
+    {state: 'failed', resolution: 'not-submitted', results: []},
+    {state: 'success', resolution: 'receipt', results: [0, 1].map(index => ({index, saved: true, verified: true}))},
+    {state: 'partial', resolution: 'receipt', results: [{index: 0, saved: true, verified: true},
+      {index: 1, saved: false, verified: false, code: 'E_GRANT_REVOKED'}]},
+    {state: 'failed', resolution: 'receipt', results: [{index: 0, saved: false, verified: false, code: 'E_GRANT_REVOKED'}]},
+    {state: 'unknown', resolution: 'receipt', results: [{index: 0, saved: true, verified: false, code: 'E_OUTCOME_UNKNOWN'}]},
+  ];
+  for (const variant of variants) {
+    const journal = {...empty(), attempts: [{...base, ...variant}]}, raw = v9(journal);
+    assert.deepEqual((await readCookieJournal(storage(raw).request)).value, journal);
+    if (['unknown', 'partial'].includes(variant.state)) {
+      const s = storage(raw);
+      await assert.rejects(reserveCookieAttempt(s.request, {...row(2), state: 'unknown', resolution: 'pending'}),
+        {code: 'E_COOKIE_UNRESOLVED'});
+      assert.equal(s.writes, 0);
+    }
+  }
+  const raw = v9({...empty(), attempts: [{...base, ...variants[2]}]});
+  for (const mutate of [
+    ...[-1, 0.5, 6, '2', true, null].map(tag => v => v.attempts[0][9] = tag),
+    v => v.attempts[0].push('extra'), v => v.attempts[0].pop(),
+    v => v.attempts[0][9] = 1, v => v.slotScopes.push(v.slotScopes[0]),
+  ]) {
+    const bad = clone(raw); mutate(bad); const s = storage(bad);
+    await assert.rejects(readCookieJournal(s.request), {code: 'E_COOKIE_STORAGE'});
+    assert.equal(s.writes, 0);
+  }
+});
+
 test('cookie-cleared login can append a fresh delivery to near-full history without losing facts', async t => {
   const {candidate} = batch21(), journal = empty();
   for (let i = 0; ; i++) {
@@ -349,7 +429,7 @@ test('schema6 rejects corrupt result indexes, tuples and noncanonical encodings 
   }
 });
 
-test('true schema8 overflow reserves zero writes even though the pending marker fits', async t => {
+test('true schema9 overflow reserves zero writes even though the pending marker fits', async t => {
   const candidate = {...row(99), count: 50, state: 'unknown', resolution: 'pending'};
   const results = Array.from({length: 50}, (_, index) => ({index, saved: true, verified: true}));
   results[49] = {index: 49, saved: false, verified: false, code: 'E_CHROME_PERMISSION_REQUIRED'};
@@ -357,8 +437,8 @@ test('true schema8 overflow reserves zero writes even though the pending marker 
   for (let extra = 0; extra < 7000; extra++) {
     candidate.slots = Array.from({length: 50}, (_, i) => ({...row(0).slots[0],
       name: ('cookie' + i).padEnd(60 + Math.floor(extra / 50) + Number(i < extra % 50), 'x')}));
-    marker = v8({...empty(), attempts: [candidate]});
-    final = v8({...empty(), attempts: [{...candidate, state: 'partial', resolution: 'receipt', results}]});
+    marker = v9({...empty(), attempts: [candidate]});
+    final = v9({...empty(), attempts: [{...candidate, state: 'partial', resolution: 'receipt', results}]});
     if (bytes(final) > 8192) break;
   }
   assert.ok(bytes(marker) <= 8192);
@@ -370,7 +450,7 @@ test('true schema8 overflow reserves zero writes even though the pending marker 
   const oversized = storage(final);
   await assert.rejects(readCookieJournal(oversized.request), {code: 'E_COOKIE_LIMIT'});
   assert.equal(oversized.writes, 0);
-  t.diagnostic(`v8 pending=${bytes(marker)} bytes; worst receipt=${bytes(final)} bytes`);
+  t.diagnostic(`v9 pending=${bytes(marker)} bytes; worst receipt=${bytes(final)} bytes`);
 });
 
 test('schema8 keeps normal and partitioned Cookie identities distinct after storage roundtrip', async () => {
