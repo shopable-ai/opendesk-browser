@@ -22,6 +22,7 @@ interface Props {
   act: (message: Request) => Promise<Response | null>;
   openLocal: () => void;
   initialUrl?: string;
+  onInitialUrlUsed?: (sourceId: string, url: string) => void;
 }
 export const SUBSCRIPTION_UI_MAX_BYTES = 1024 * 1024;
 export const SUBSCRIPTION_REPORT_SCHEMA = 'ai-proxy-subscription-report-v1';
@@ -96,12 +97,11 @@ export function subscriptionNativeEndpoint(node: Node, sourceId: string, id: str
     port: node.port, sourceId });
 }
 
-export function SubscriptionReader({ source, config, busy, act, openLocal, initialUrl = '' }: Props) {
+export function SubscriptionReader({ source, config, busy, act, openLocal, initialUrl = '', onInitialUrlUsed }: Props) {
   const { t } = useI18n();
   const [expanded, setExpanded] = useState(false);
   const [text, setText] = useState('');
-  const [downloadUrl, setDownloadUrl] = useState(initialUrl);
-  const lastInitialUrl = useRef(initialUrl);
+  const [downloadUrl, setDownloadUrl] = useState('');
   const [status, setStatus] = useState<ReadStatus>('unread');
   const [report, setReport] = useState<Report | null>(null);
   const [errorKey, setErrorKey] = useState<TranslationKey | null>(null);
@@ -125,7 +125,6 @@ export function SubscriptionReader({ source, config, busy, act, openLocal, initi
     return () => {
       mounted.current = false; generation.current++;
       downloadWait.current?.abort(); downloadWait.current = null;
-      lastInitialUrl.current = '';
       if (input.current) input.current.value = '';
       if (fileInput.current) fileInput.current.value = '';
     };
@@ -139,10 +138,10 @@ export function SubscriptionReader({ source, config, busy, act, openLocal, initi
     trigger.current?.focus();
   }, [expanded, disabled]);
   useEffect(() => {
-    if (initialUrl === lastInitialUrl.current) return;
-    lastInitialUrl.current = initialUrl;
+    if (!initialUrl) return;
     changeDownloadUrl(initialUrl);
-  }, [initialUrl]);
+    onInitialUrlUsed?.(source.id, initialUrl);
+  }, [initialUrl, onInitialUrlUsed, source.id]);
 
   function close() {
     // The keyboard and visible Cancel action share the same save boundary.

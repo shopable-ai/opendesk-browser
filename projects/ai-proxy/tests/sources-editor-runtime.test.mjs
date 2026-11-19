@@ -22,6 +22,7 @@ function fixture(route={kind:'local'},quickEntry='local') {
     confirm:message=>new Promise(resolve=>confirmations.push({message,resolve}))};
   navigation.setGuard(()=>!drafts.size);
   const react={useState(initial){const i=cursor++;if(!(i in hooks))hooks[i]=initial;return [hooks[i],value=>{hooks[i]=typeof value==='function'?value(hooks[i]):value;}];},
+    useCallback(fn){const i=cursor++;return hooks[i]??=fn;},
     useRef(initial){const i=cursor++;return hooks[i]??={current:initial};},
     useEffect(fn,deps){const i=cursor++,previous=hooks[i];if(!previous||deps.some((v,n)=>v!==previous.deps[n]))effects.push(()=>{previous?.cleanup?.();hooks[i]={deps,cleanup:fn()};});}};
   const jsx=(type,props)=>({type,props:props??{}});
@@ -76,6 +77,31 @@ test('subscription gesture submission retains invalid-field, busy and IME guards
  f.render({busy:true});const busyForm=f.find(n=>n.type==='form');currentTarget.reportValidity=()=>true;
  busyForm.props.onClick({currentTarget,target:{closest:()=>({form:currentTarget})},preventDefault(){}});
  assert.equal(f.confirmations.length,0);
+});
+
+test('a saved subscription URL is handed to its reader once and never restored on return',async()=>{
+ const url='https://provider.example.com/private?token=disposable';
+ const f=fixture({kind:'new'},'subscription');
+ f.render();
+ f.change('r72-sub-name','Provider');
+ f.change('r72-sub-url',url);
+ const form=f.find(node=>node.type==='form');
+ form.props.onKeyDown({currentTarget:{reportValidity:()=>true},target:{tagName:'INPUT'},
+   key:'Enter',nativeEvent:{isComposing:false},preventDefault(){}});
+ f.confirmations[0].resolve(true);
+ await new Promise(setImmediate);
+
+ const source=f.actions[0].source;
+ assert.equal(JSON.stringify(source).includes(url),false);
+ f.props.config.sources.push(source);
+ const detail={kind:'source',id:source.id};
+ const reader=()=>f.find(node=>node.type==='SubscriptionReader');
+ f.render({route:detail,quickEntry:null});
+ assert.equal(reader().props.initialUrl,url);
+ reader().props.onInitialUrlUsed(source.id,url);
+ f.render({route:{kind:'list'}});
+ f.render({route:detail});
+ assert.equal(reader().props.initialUrl,'');
 });
 
 test('safe local endpoint routes round trip, copy and navigate; malformed IDs never reach guards',()=>{

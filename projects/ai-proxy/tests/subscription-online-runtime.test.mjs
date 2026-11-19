@@ -83,6 +83,20 @@ test('close clears private drafts, aborts local wait and ignores late success af
   f.calls[1].resolve('new input');await flush();f.render();assert.deepEqual(f.parses,['new input']);
 });
 
+test('a consumed editor URL remains only in the open reader until it is closed',()=>{
+  const f=fixture(), consumed=[];
+  f.render({onInitialUrlUsed:(sourceId,url)=>consumed.push({sourceId,url})});
+  assert.deepEqual(consumed,[{sourceId:'sub',url:privateUrl}]);
+  f.render({initialUrl:''});
+  f.open();
+  assert.equal(f.field().props.value,privateUrl);
+  f.close();
+  f.open();
+  assert.equal(f.field().props.value,'');
+  f.render({initialUrl:privateUrl});
+  assert.equal(f.field().props.value,privateUrl,'an explicit new edit can pass the same address again');
+});
+
 test('URL replacement and unmount invalidate generations and stop late failures/results',async()=>{
   const f=fixture();f.render();f.open();f.gesture();f.render();
   f.render({initialUrl:'https://provider.example.com/replacement'});

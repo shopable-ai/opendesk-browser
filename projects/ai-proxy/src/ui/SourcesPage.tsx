@@ -3,7 +3,7 @@ import {getEnvironment} from '../environment';
 import {Button} from '@opendesk/ui';
 import { useI18n } from '../i18n/LocaleProvider';
 import type { TranslationKey } from '../i18n/locale';
-import { useEffect, useRef, useState, type FormEvent } from 'react';
+import { useCallback, useEffect, useRef, useState, type FormEvent } from 'react';
 import type { Request, Response } from '../domain/messages';
 import type { ConfigState, ProxyScheme, RuntimeStatus, SubscriptionFormat } from '../domain/types';
 import { validateSubscriptionUrlShape } from '../subscription/download';
@@ -56,7 +56,7 @@ function SourceIcon({ kind }: { kind: SourceIconKind }) {
 
 /**
  * A browser extension settings section, not a full-screen onboarding app.
- * Editing is progressive disclosure; no subscription URL ever leaves this component.
+ * Only source metadata is saved. The reader can receive the draft URL once.
  */
 export function SourcesPage({ config, configEtag, runtime, busy, act, setError, setErrorKey, navigate,
   route, navigateSubscription, quickEntry = null, presentation = 'sidebar' }: Props) {
@@ -73,7 +73,10 @@ export function SourcesPage({ config, configEtag, runtime, busy, act, setError, 
   const returnFocus = useRef<Editor>(null);
   const editorOpener = useRef<HTMLElement | null>(null);
   const routeEditorOpened = useRef(false);
-  const subscriptionUrls = useRef(new Map<string, string>());
+  const [readerPrefill, setReaderPrefill] = useState<{sourceId:string; url:string} | null>(null);
+  const clearReaderPrefill = useCallback((sourceId:string, url:string) => {
+    setReaderPrefill(current => current?.sourceId === sourceId && current.url === url ? null : current);
+  }, []);
   const listTitle = useRef<HTMLHeadingElement>(null);
   const detailTitle = useRef<HTMLHeadingElement>(null);
   const previousRoute = useRef<string | null>(null);
@@ -223,7 +226,7 @@ export function SourcesPage({ config, configEtag, runtime, busy, act, setError, 
     };
     if (await act({ type:'SAVE_SUBSCRIPTION', draftScope:'source-editor', source })) {
       if(!getEnvironment().setDraftDirty(false,'source-editor',revision))return;
-      if (sub.url.trim()) subscriptionUrls.current.set(source.id, sub.url.trim());
+      if (sub.url.trim()) setReaderPrefill({sourceId:source.id, url:sub.url.trim()});
       closeEditor(true);
       if (!subId) navigateSubscription({kind:'source',id:source.id});
     }
@@ -330,10 +333,7 @@ export function SourcesPage({ config, configEtag, runtime, busy, act, setError, 
           </article>;
         })}</div>}
     </section></>;
-  const cliGuidance = <>
-      <p>{t('subscriptionCliNotice')}</p>
-      <p className="subscriptionCliCommand"><code>node --experimental-strip-types scripts/probe-subscription.mjs --report /tmp/ai-proxy-subscription-report.json</code></p>
-    </>;
+  const cliGuidance = <p>{t('subscriptionCliNotice')}</p>;
   const helpMarkup = management ? <section className="listSection sourceIntegrationHelp">
       <div className="sectionHeading"><h2>{t('protocolSupportAndIntegrationNotes')}</h2></div>
       <p className="hint">{t('subscriptionMetadataNotice')}</p>
@@ -423,7 +423,8 @@ export function SourcesPage({ config, configEtag, runtime, busy, act, setError, 
       <section className="subscriptionReadSection" aria-label={t('subscriptionReadLocalTitle')}>
         <SubscriptionReader key={selectedSource.id} source={selectedSource} config={config}
           busy={busy} act={act} openLocal={() => openLocal()}
-          initialUrl={subscriptionUrls.current.get(selectedSource.id) ?? ''}/>
+          initialUrl={readerPrefill?.sourceId === selectedSource.id ? readerPrefill.url : ''}
+          onInitialUrlUsed={clearReaderPrefill}/>
       </section>
       {helpMarkup}
     </> : <section className="sourceEmpty subscriptionMissing" role="status">
