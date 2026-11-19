@@ -1,0 +1,389 @@
+{
+  "date": "2026-11-19",
+  "matrix": "../progress/UI-FUNCTIONAL-TESTS.zh-CN.md",
+  "environment": {
+    "browser": "Chrome/155.0.8059.39",
+    "sidePanel": "Chrome SIDE_PANEL",
+    "isolation": "Fresh Profile per run, no serve connection, loopback-only routing fixtures",
+    "appliedBaseMarker": "af14bff22dfe7a88c9e6f297b57a5550a5893c77ac14377ae95a6f6d65f3efa1",
+    "markerScope": "Identifies the copied base build; the rebuilt trusted shell was hashed independently",
+    "candidate035": {
+      "packageSha256": "559528ea3ce8561bff6fb34d7f9140ff9659265cbcf6f4630b000f9bbfe440cb",
+      "usedToolShellSha256": "926800e73d99c533b051bbdb6167cf0dfe3bda641531c1c80c98cb74f7b22f8f"
+    },
+    "release036": {
+      "packageSha256": "724a08e800508a36af376ec2e45815b1e593769bd2198a383c4b5994835e113b",
+      "usedToolShellSha256": "16d003c9c144bf5107d54bebeca2a4f2e58acb54164828ff5be572eb3555bf81",
+      "installedBy": "original local package review",
+      "roundTripBytesMatched": true
+    },
+    "dailyEgoAtIntake": {
+      "taskSpace": 166,
+      "version": "0.3.30",
+      "revision": "af14bff22dfe7a88c9e6f297b57a5550a5893c77ac14377ae95a6f6d65f3efa1",
+      "usedToolShellSha256": "0c0f853d2f60610300a488e4a402d75f79ec46daaca9e76820b1222de0364498"
+    }
+  },
+  "runs": [
+    {
+      "run": "nav-035-r2",
+      "cases": "N01 D01",
+      "finishedAt": "2026-11-19T08:05:38.685Z",
+      "resourcesReleased": true,
+      "fixtureListenersClosed": true,
+      "restoredChromeBaseline": true,
+      "profileRemoved": true,
+      "originRequestsByRoute": {}
+    },
+    {
+      "run": "pc-035",
+      "cases": "A01 A02",
+      "finishedAt": "2026-11-19T08:05:17.815Z",
+      "restoredChromeBaseline": true,
+      "resourcesReleased": true,
+      "fixtureListenersClosed": true,
+      "profileRemoved": true,
+      "originRequestsByRoute": {
+        "direct": 7,
+        "socks5": 3
+      }
+    },
+    {
+      "run": "nav-036",
+      "cases": "N01 N02 D01",
+      "finishedAt": "2026-11-19T08:18:41.600Z",
+      "resourcesReleased": true,
+      "fixtureListenersClosed": true,
+      "restoredChromeBaseline": true,
+      "profileRemoved": true,
+      "originRequestsByRoute": {}
+    },
+    {
+      "run": "backup-full-036-r2",
+      "cases": "P02 B01 B02 B03 B04",
+      "finishedAt": "2026-11-19T08:21:39.101Z",
+      "restoredChromeBaseline": true,
+      "resourcesReleased": true,
+      "fixtureListenersClosed": true,
+      "profileRemoved": true,
+      "originRequestsByRoute": {
+        "direct": 7
+      }
+    },
+    {
+      "run": "unknown-two-036-r3",
+      "cases": "A01 A02 A03",
+      "finishedAt": "2026-11-19T08:23:45.265Z",
+      "restoredChromeBaseline": true,
+      "resourcesReleased": true,
+      "fixtureListenersClosed": true,
+      "profileRemoved": true,
+      "originRequestsByRoute": {
+        "direct": 8,
+        "socks5": 5
+      }
+    },
+    {
+      "run": "sidebar-036-r5",
+      "cases": "N03 N04 P01",
+      "finishedAt": "2026-11-19T08:27:42.757Z",
+      "restoredChromeBaseline": true,
+      "resourcesReleased": true,
+      "fixtureListenersClosed": true,
+      "profileRemoved": true,
+      "originRequestsByRoute": {}
+    },
+    {
+      "run": "surfaces-036-r3",
+      "cases": "N04 P04",
+      "finishedAt": "2026-11-19T08:36:09.408Z",
+      "restoredChromeBaseline": true,
+      "resourcesReleased": true,
+      "fixtureListenersClosed": true,
+      "profileRemoved": true,
+      "originRequestsByRoute": {
+        "direct": 9,
+        "socks5": 4
+      }
+    },
+    {
+      "run": "rules-final-036",
+      "cases": "P03 R02",
+      "finishedAt": "2026-11-19T08:30:51.870Z",
+      "restoredChromeBaseline": true,
+      "resourcesReleased": true,
+      "fixtureListenersClosed": true,
+      "profileRemoved": true,
+      "originRequestsByRoute": {
+        "direct": 7,
+        "https": 1,
+        "socks5": 15
+      }
+    },
+    {
+      "run": "diagnostics-timing-036",
+      "cases": "D02 D03 D05",
+      "finishedAt": "2026-11-19T08:37:21.033Z",
+      "restoredChromeBaseline": true,
+      "resourcesReleased": true,
+      "fixtureListenersClosed": true,
+      "profileRemoved": true,
+      "originRequestsByRoute": {}
+    },
+    {
+      "run": "current-site-036-r2",
+      "cases": "D04",
+      "finishedAt": "2026-11-19T08:32:14.879Z",
+      "restoredChromeBaseline": true,
+      "resourcesReleased": true,
+      "fixtureListenersClosed": true,
+      "profileRemoved": true,
+      "originRequestsByRoute": {}
+    },
+    {
+      "run": "preferences-036",
+      "cases": "G01 O01",
+      "finishedAt": "2026-11-19T08:25:00.837Z",
+      "restoredChromeBaseline": true,
+      "resourcesReleased": true,
+      "fixtureListenersClosed": true,
+      "profileRemoved": true,
+      "originRequestsByRoute": {}
+    },
+    {
+      "run": "subscription-online-036-r2",
+      "cases": "S01 S02 S03",
+      "finishedAt": "2026-11-19T08:33:28.113Z",
+      "restoredChromeBaseline": true,
+      "resourcesReleased": true,
+      "fixtureListenersClosed": true,
+      "profileRemoved": true,
+      "originRequestsByRoute": {}
+    }
+  ],
+  "observations": {
+    "conflict": {
+      "refusal": "代理控制权冲突，未自动夺权",
+      "native": {
+        "mode": "direct",
+        "level": "controlled_by_other_extensions",
+        "pacSha256": null
+      }
+    },
+    "revoke": {
+      "receipt": "已撤销线路授权并停止本工具的代理；下次启用需重新审阅。",
+      "native": {
+        "mode": "system",
+        "level": "controllable_by_this_extension",
+        "pacSha256": null
+      }
+    },
+    "lostReceipt": {
+      "receipt": "操作结果无法确认。先读取实际状态，不自动重复保存、应用或停止。",
+      "native": {
+        "mode": "pac_script",
+        "level": "controlled_by_this_extension",
+        "pacSha256": "e734211e99525ba821b6c4a3f2a3d2dfeb37ef42387af7142bb0e27245b3a407"
+      },
+      "storageUnchanged": true,
+      "sent": 1,
+      "completed": 1
+    },
+    "freshSurfaceAfterLostReceipt": {
+      "routeInfo": "浏览器状态\n停止未完成 · 仍持有代理控制权\n已选：Fixture SOCKS5。\n查看真实控制状态 →",
+      "side": {
+        "toggle": "暂停",
+        "route": "Fixture SOCKS5"
+      },
+      "native": {
+        "mode": "pac_script",
+        "level": "controlled_by_this_extension",
+        "pacSha256": "e734211e99525ba821b6c4a3f2a3d2dfeb37ef42387af7142bb0e27245b3a407"
+      },
+      "sent": 1,
+      "completed": 1
+    },
+    "releaseAfterLostReceipt": {
+      "native": {
+        "mode": "system",
+        "level": "controllable_by_this_extension",
+        "pacSha256": null
+      }
+    },
+    "lateDiagnostic": {
+      "events": [
+        {
+          "domain": "chatgpt.com",
+          "phase": "sent",
+          "at": 1793.8999996185303
+        },
+        {
+          "domain": "chatgpt.com",
+          "phase": "nativeReply",
+          "at": 1843.1999998092651,
+          "ok": false,
+          "errorCode": "E_NETWORK",
+          "status": null
+        },
+        {
+          "domain": "claude.ai",
+          "phase": "sent",
+          "at": 2578.0999994277954
+        },
+        {
+          "domain": "claude.ai",
+          "phase": "nativeReply",
+          "at": 2623.5999994277954,
+          "ok": false,
+          "errorCode": "E_NETWORK",
+          "status": null
+        },
+        {
+          "domain": "chatgpt.com",
+          "phase": "delivered",
+          "at": 2729.699999809265
+        },
+        {
+          "domain": "claude.ai",
+          "phase": "delivered",
+          "at": 2737
+        },
+        {
+          "domain": "chatgpt.com",
+          "phase": "sent",
+          "at": 3736
+        },
+        {
+          "domain": "chatgpt.com",
+          "phase": "nativeReply",
+          "at": 3784.8999996185303,
+          "ok": false,
+          "errorCode": "E_NETWORK",
+          "status": null
+        },
+        {
+          "domain": "chatgpt.com",
+          "phase": "delivered",
+          "at": 3784.8999996185303
+        }
+      ],
+      "results": {
+        "a": "尚未测试",
+        "b": "网络请求失败（具体原因未知）\n2026/11/19 16:37"
+      },
+      "retryResult": "网络请求失败（具体原因未知）\n2026/11/19 16:37",
+      "nativeUnchanged": true
+    },
+    "backupExport": {
+      "sha256": "53b26f5ee1ae9e6d30e9d6f98682b38581dd8ccd03ef912011bcce986e9f5be0",
+      "credentialsFieldsAbsent": true,
+      "pacAndSourceCanariesAbsent": true,
+      "storageUnchanged": true
+    },
+    "backupRejectAndCancel": [
+      {
+        "name": "B02-EXAMPLE",
+        "storageSha256": "cc1b9d318cc69717317cace34c2381cf271a3bd7b11de380c1443b9cc11871a8",
+        "storageUnchanged": true,
+        "nativeUnchanged": true,
+        "directRequest": true
+      },
+      {
+        "name": "B03-BAD-JSON",
+        "storageSha256": "cc1b9d318cc69717317cace34c2381cf271a3bd7b11de380c1443b9cc11871a8",
+        "storageUnchanged": true,
+        "nativeUnchanged": true,
+        "directRequest": true
+      },
+      {
+        "name": "B03-RULE-MISSING",
+        "storageSha256": "cc1b9d318cc69717317cace34c2381cf271a3bd7b11de380c1443b9cc11871a8",
+        "storageUnchanged": true,
+        "nativeUnchanged": true,
+        "directRequest": true
+      },
+      {
+        "name": "B03-DEFAULT-MISSING",
+        "storageSha256": "cc1b9d318cc69717317cace34c2381cf271a3bd7b11de380c1443b9cc11871a8",
+        "storageUnchanged": true,
+        "nativeUnchanged": true,
+        "directRequest": true
+      },
+      {
+        "name": "B02-CANCEL-PASTE",
+        "storageSha256": "cc1b9d318cc69717317cace34c2381cf271a3bd7b11de380c1443b9cc11871a8",
+        "storageUnchanged": true,
+        "nativeUnchanged": true,
+        "directRequest": true
+      },
+      {
+        "name": "B02-KEEP-EDITING",
+        "storageSha256": "cc1b9d318cc69717317cace34c2381cf271a3bd7b11de380c1443b9cc11871a8",
+        "storageUnchanged": true,
+        "nativeUnchanged": true,
+        "directRequest": true
+      }
+    ],
+    "backupReplace": {
+      "exactDurableMatch": true,
+      "nativeUnchanged": true,
+      "directRequest": true
+    },
+    "twoSurfaces": {
+      "oldContextDestroyed": true,
+      "priorSidebar": {
+        "toggle": "启用",
+        "route": "跟随系统"
+      },
+      "readback": "Fixture SOCKS5"
+    },
+    "twoSurfacesStops": {
+      "sideObservedPcApply": true,
+      "pcObservedSidebarStop": true,
+      "diagnosticStopRealDirect": true,
+      "native": {
+        "mode": "system",
+        "level": "controllable_by_this_extension",
+        "pacSha256": null
+      }
+    },
+    "https": {
+      "transport": "TLSv1.3",
+      "matchedProxyAndOrigin": true
+    },
+    "rules": {
+      "enabledChanged": true,
+      "proxyDefaultRejected": true,
+      "actualRequestsVerified": true
+    },
+    "subscription": {
+      "totalHostDispatches": 2,
+      "networkStarts": 2,
+      "storageUnchanged": true,
+      "urlClearedOnReopen": true,
+      "lateReceiptFromCanceledReadDiscarded": true
+    }
+  },
+  "validation": {
+    "projectFocused": 242,
+    "sourceAndPackageFocused": 5,
+    "isolatedTrustedEntryBuild": "PASS",
+    "formalCanonicalBytesCheck": "PASS"
+  },
+  "cleanup": {
+    "closedOwnedRuns": 43,
+    "profilesRemoved": 43,
+    "downloadFoldersRemoved": 3,
+    "ownedChromeProcessesRemaining": 0,
+    "fixtureListenersClosed": true,
+    "egoTaskSpace166Released": true,
+    "dailyWatcherPid": 72436,
+    "productionInstallation": "NOT_TESTED"
+  },
+  "bounds": [
+    "Previous successful public HTTP and subscription reads remain applicable",
+    "Public site checks in the isolated runs intentionally cannot complete external network access",
+    "Daily development extension had read-only inspection",
+    "Production package install NOT_TESTED"
+  ]
+}

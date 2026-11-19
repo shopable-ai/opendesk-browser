@@ -308,7 +308,9 @@ test('no startup Enable or fabricated active snapshot; conflict and read failure
   const conflict = await ok(f.service, { type: 'GET_STATE' });
   assert.equal(conflict.state.runtime.control, 'controlled_by_other_extensions');
   assert.equal(conflict.state.runtime.reason, 'Other owner');
-  assert.equal((await f.service.request({ type: 'APPLY' })).ok, false);
+  const refusedApply = await f.service.request({ type: 'APPLY' });
+  assert.equal(refusedApply.ok, false);
+  assert.equal(refusedApply.errorCode, 'errProxyControlConflict');
   f.options.status = async () => { throw Error('No connection'); };
   const unavailable = await ok(f.service, { type: 'GET_STATE' });
   assert.equal(unavailable.state.config.endpoints.length, 1);

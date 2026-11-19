@@ -34,7 +34,7 @@ function render({preview=false,httpDiagnostics=false,panel='ai',busy=false,confi
       removeEventListener(name,fn){assert.equal(name,'ai-proxy-page-changed');siteListeners.delete(fn);}},
     proxy:{settings:{onChange:noopEvents}},getDraftRevision:()=>0,setDraftDirty:()=>true};
   const config={profiles:[],selection:{mode:'system'},endpoints:[],rules:[],defaultTarget:{action:'direct'},...configPatch};
-  const state={config,runtime:{managedIntent:false,control:'controllable_by_this_extension',
+  const state={config,configEtag:'config-1',runtime:{managedIntent:false,control:'controllable_by_this_extension',
     applied:false,pendingChanges:false,credentialRequired:false,proxyError:null,activeSelection:null,
     browserMode:'system',desired:{mode:'system'},canStop:false,probe:null,...runtime}};
   const module={exports:{}};
@@ -89,6 +89,7 @@ function render({preview=false,httpDiagnostics=false,panel='ai',busy=false,confi
   rerender();
   return {get html(){return html;},calls,commands,nodes,buttons,routes,rerender,flushEffects,
     poll(){let count=0;for(const timer of intervals.values())if(timer.delay===650){timer.fn();count++;}return count;},
+    refreshConfig(configEtag=state.configEtag){state.config=structuredClone(state.config);state.configEtag=configEtag;rerender();flushEffects();},
     refreshSite(){currentSiteRevision++;rerender();flushEffects();},
     pageChanged(){for(const fn of [...siteListeners])void fn();},
     unmount(){unmounted=true;for(const effect of effects)effect?.cleanup?.();},
@@ -355,6 +356,22 @@ test('live HTTP checks and favorite writes are explicit while usage stays unavai
  assert.doesNotMatch(speed.html,/diagSpeedCaveat|simulated-usage/);
 });
 
+test('diagnostic overview names its priority websites without promising a usage ranking',()=>{
+ for(const presentation of ['management','sidebar']){
+  const result=render({httpDiagnostics:true,panel:'overview',presentation,language:'zh-CN'});
+  assert.match(result.html,/<h3>关键网站<\/h3>/);
+  assert.doesNotMatch(result.html,/Top 5\/10/);
+  assert.match(result.html,/使用统计尚未接入/);
+  const open=result.buttons.find(item=>item['data-testid']==='usage-manage');
+  assert.ok(open);
+  result.flushEffects();
+  open.onClick();
+  result.rerender();
+  assert.match(result.html,/<h3>我的收藏<\/h3>/);
+  result.unmount();
+ }
+});
+
 test('translated live evidence is neutral while preview results retain an explicit simulation prefix',()=>{
  for(const language of Object.keys(translations)){
   const snapshot={configRevision:'r',favorites:[],observations:[{siteId:'chatgpt',configRevision:'r',checkedAt:Date.now(),kind:'http_ok',httpStatus:200,elapsedMs:3}],statistics:{},activeRun:null};
@@ -515,6 +532,21 @@ test('GET replies older than an explicit favorite save cannot overwrite its pers
  result.buttons.find(item=>item.id==='diagnostic-tab-top').onClick();result.rerender();assert.match(result.html,/saved.example/);
  for(const resolve of pending)resolve({ok:true,diagnostics:emptySnapshot()});await tick();result.rerender();
  assert.match(result.html,/saved.example/);assert.doesNotMatch(result.html,/diagLoadFailed/);result.unmount();
+});
+
+test('same-revision status refresh preserves a running diagnostic and its polling',async()=>{
+ const data={...emptySnapshot(),activeRun:{startedAt:Date.now(),completed:0,total:1}};
+ const result=render({panel:'ai',httpDiagnostics:true,dispatch:async()=>({ok:true,diagnostics:data})});
+ result.flushEffects();await tick();result.rerender();result.flushEffects();
+ assert.match(result.html,/diagnosticRunProgress/);
+ const reads=result.commands.length;
+ result.refreshConfig();result.rerender();
+ assert.match(result.html,/diagnosticRunProgress/);
+ assert.equal(result.commands.length,reads);
+ result.refreshConfig('config-2');
+ assert.equal(result.commands.at(-1).type,'GET_DIAGNOSTICS');
+ assert.equal(result.commands.length,reads+1);
+ await tick();result.unmount();
 });
 
 test('cancel invalidates old GET observations as well as the pending run response',async()=>{

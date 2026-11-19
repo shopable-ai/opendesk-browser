@@ -265,16 +265,16 @@ test('trusted AI Proxy checks nested CSS even when Rollup omits it from chunk.mo
 
 test('reviewed AI Proxy form and diagnostics keep exact source locks and reject altered locale bytes',async t=>{
  const changed=[
-  ['projects/ai-proxy/src/Settings.tsx','c5cedca843a7cda2430df916fd3c167903c090b6'],
-  ['projects/ai-proxy/src/service.ts','36279f234c4cbc1d379698767a9c71ac2620938e'],
+  ['projects/ai-proxy/src/Settings.tsx','36c7f0e39fd8e1d06ae4f684c19011c73f9cc278'],
+  ['projects/ai-proxy/src/service.ts','9122c9beffa45744d3e12f9862de1fd3b452b2b6'],
   ['projects/ai-proxy/src/ui/ProxyEntry.tsx','46f4bdef3a11cc6040fa857225b032e3bb6f5faa'],
-  ['projects/ai-proxy/src/i18n/locales/en.json','0c44b780cc021729bda79b6b1cd8a8a76087ab3b'],
-  ['projects/ai-proxy/src/i18n/locales/zh-CN.json','434b43d96e2bd0eaf2b539313c721e71a776fa9a'],
-  ['projects/ai-proxy/src/i18n/locales/zh-TW.json','7dbd2d25f854543df6e153e77aaef245f8f90245'],
-  ['projects/ai-proxy/src/styles/management.css','2a197ab877770e43a1d8a6f65f17926e1d471037'],
+  ['projects/ai-proxy/src/i18n/locales/en.json','62a87a6f40ce0cff3fd9de43259febb9b0cfb232'],
+  ['projects/ai-proxy/src/i18n/locales/zh-CN.json','e79985e1821314386d3ba43f0a87e6c47b0366bc'],
+  ['projects/ai-proxy/src/i18n/locales/zh-TW.json','91d4533243cd36d7c6ac21790a2b2cb0f99d0e5a'],
+  ['projects/ai-proxy/src/styles/management.css','2748ccf9d70b288e4a4ba55445dadda5041c9610'],
   ['projects/ai-proxy/src/styles/options.css','c2da39181a88348a7be4e7ae93862098f7d61edf'],
-  ['projects/ai-proxy/src/styles/sidebar-settings.css','128730e443bfb4a35e77090940bf255e19802dd6'],
-  ['projects/ai-proxy/src/ui/DiagnosticsPage.tsx','97538e5a13569339c44a016951b507cdc686ee9a']
+  ['projects/ai-proxy/src/styles/sidebar-settings.css','feadf72a8c8f34ddc1c9b1070b82ed7838900b2c'],
+  ['projects/ai-proxy/src/ui/DiagnosticsPage.tsx','bd54f9854f878a589a19f98eb05fff12a1a9dfa3']
  ];
  const locks=JSON.parse(await readFile(resolve('projects/ai-proxy/trusted/source-lock.json'),'utf8'));
  for(const [path,pin] of changed)assert.equal(locks[path],pin,'Current reviewed AI Proxy source changed: '+path);

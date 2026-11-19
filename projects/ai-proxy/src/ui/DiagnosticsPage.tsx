@@ -190,8 +190,9 @@ export function DiagnosticsPage({ state, busy, onRefresh, onStop, onProfiles, pr
     return () => clearInterval(timer);
   }, [running, snapshot?.activeRun, load]);
   // On a route/settings transition, show old observations as stale until the new
-  // context digest is read; never reuse an old success as a new route's result.
-  useEffect(() => { setSnapshot(null); void load(); }, [state.config, state.runtime.control, state.runtime.applied, load]);
+  // context digest is read. A status refresh clones config even when its ETag
+  // is unchanged, so use the revision to avoid interrupting active polling.
+  useEffect(() => { setSnapshot(null); void load(); }, [state.configEtag, state.runtime.control, state.runtime.applied, load]);
 
   const submit = useCallback(async (command: Request, page?: number): Promise<boolean> => {
     if (!httpDiagnostics) { setError(t('diagProductionUnavailable')); return false; }
@@ -385,7 +386,7 @@ export function DiagnosticsPage({ state, busy, onRefresh, onStop, onProfiles, pr
           </article>
         </div>
         <div className="diagnosticOverviewShortcuts">
-          <article><span className="diagnosticShortcutGlyph" aria-hidden="true">☆</span><div><small>{t('pcDiagFavorites')}</small><h3>{t('prioritySitesTop510')}</h3><p>{httpDiagnostics?t('diagFavoritesCount',{count:favorites.length}):t('notAvailable')}</p></div><Button data-testid="usage-manage" onClick={()=>openPanel('top')}>{t('pcDiagView')}</Button></article>
+          <article><span className="diagnosticShortcutGlyph" aria-hidden="true">☆</span><div><small>{t('pcDiagFavorites')}</small><h3>{t('prioritySites')}</h3><p>{httpDiagnostics?t('diagFavoritesCount',{count:favorites.length}):t('notAvailable')}</p></div><Button data-testid="usage-manage" onClick={()=>openPanel('top')}>{t('pcDiagView')}</Button></article>
           <article><span className="diagnosticShortcutGlyph" aria-hidden="true">↗</span><div><small>{t('connectionSpeed')}</small><h3>{t('pcDiagQuality')}</h3><p>{t(httpDiagnostics?'diagHttpTiming':'diagSpeedNotConnected')}</p></div><Button onClick={()=>openPanel('speed')}>{t('pcDiagTest')}</Button></article>
         </div>
       </div>}
@@ -420,7 +421,7 @@ export function DiagnosticsPage({ state, busy, onRefresh, onStop, onProfiles, pr
           </div>
         </article>
         <article className={'diagnosticFeature' + (simulatedDiagnostics ? '' : ' diagnosticFeatureSecondary')}>
-          <small>{t('customTargets')}</small><h3>{t('prioritySitesTop510')}</h3>
+          <small>{t('customTargets')}</small><h3>{t('prioritySites')}</h3>
           <p>{httpDiagnostics ? t('diagFavoritesCount', {count: favorites.length}) : t('notAvailable')}</p>
           <Button variant="secondary" data-testid="usage-manage" onClick={() => openPanel('top')}>{t('usageManage')}</Button>
         </article>

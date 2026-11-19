@@ -423,7 +423,8 @@ export function createProxyService({ load, save, status, validateApply, apply, s
         if (actual.statusErrorCode) fail(actual.statusErrorCode, 'Managed status unavailable; Apply refused');
         if (actual.permission === false) fail('E_PERMISSION_DENIED', 'Managed proxy permission denied');
         if (unknown) fail('E_OUTCOME_UNKNOWN', 'Confirm STOP or disabled status before applying again');
-        if (actual.state === 'conflict' || actual.state === 'unavailable') fail('E_NOT_CONNECTED', actual.reason ?? 'Managed proxy unavailable');
+        if (actual.state === 'conflict') throw new Error('代理控制权冲突，未自动夺权');
+        if (actual.state === 'unavailable') fail('E_NOT_CONNECTED', actual.reason ?? 'Managed proxy unavailable');
         if (config.selection.mode === 'system') {
           // Following the system releases only our exact owned preference. It is
           // not an unmarked native system override, and never implies ownership.
