@@ -81,7 +81,7 @@ test('preview forwards to the only official React root and embeds source-owned n
  assert.match(outer,/prototypes\/sidebar\/react-preview\/index.html/);
  assert.doesNotMatch(outer,/demo-tool-head|<iframe/);
  const scripts=[...stage.matchAll(/src="data:text\/javascript;base64,([^"]+)"/g)].map(m=>Buffer.from(m[1],'base64').toString());
- assert.match(scripts[0],/setNavigation\(\{page\}/);
+ assert.match(scripts[0],/setNavigation\(\{page,headerActions\}/);
  assert.match(scripts[0],/opendesk-tool-navigation/);
  assert.equal(scripts[1],await src('projects/web-markdown-clipper/src/notes.js'));
  assert.equal(scripts[2],await src('projects/web-markdown-clipper/src/main.js'));

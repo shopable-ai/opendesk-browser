@@ -161,7 +161,10 @@ function previewPick(id){
 globalThis.OpenDeskTool={
  root:document.querySelector('.clip'),
  setState({dirty,busy}={}){post('edit-state',{dirty:dirty===true,busy:busy===true});},
- setNavigation({page}={}){post('navigation-state',{page});},
+ ...(instance?{
+  navigationFeatures:{headerActions:true},
+  setNavigation({page,headerActions}){post('navigation-state',{page,headerActions});return true;}
+ }:{}),
  async request(operation,args={}){
   if(latencyMs&&operation.startsWith('clipNotes.'))await new Promise(resolve=>setTimeout(resolve,latencyMs));
   if(operation==='clip.region.cancel'){
@@ -260,9 +263,10 @@ window.addEventListener('message',({source:sender,origin,data})=>{
  if(sender!==parent||origin!==parentOrigin||!instance||data?.protocol!==protocol||
     data.toolId!==toolId||data.instance!==instance)return;
  if(data.kind==='navigation-action'){
-  if(['back','primary'].includes(data.action))
+  if(['back','primary','header'].includes(data.action))
    document.querySelector('.clip').dispatchEvent(
-    new CustomEvent('opendesk-tool-navigation',{detail:{action:data.action}}));
+    new CustomEvent('opendesk-tool-navigation',{detail:{action:data.action,
+     ...(data.action==='header'?{actionId:data.actionId,page:data.page}:{})}}));
   return;
  }
  if(data.kind!=='control')return;

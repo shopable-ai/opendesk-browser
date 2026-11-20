@@ -20,7 +20,9 @@ test('token-only tool styling compiles the canonical palette without host layout
 
 function preview(location={origin:'http://127.0.0.1:43115',protocol:'http:'}){
   const messages=[],listeners=new Map(),center={hidden:false};
-  const root={nodeType:1,ownerDocument:{},hidden:false,replaceChildren(frame){this.frame=frame;frame.isConnected=true;}};
+  const root={nodeType:1,ownerDocument:{},hidden:false,replaceChildren(frame){
+    this.frame=frame;if(frame)frame.isConnected=true;
+  }};
   const view=createSidebarToolsView();view.attachRuntime({frameRoot:root,settingsControl:{nodeType:1,ownerDocument:{}}});
   const doc={defaultView:{location,
     addEventListener:(name,fn)=>listeners.set(name,fn),removeEventListener:name=>listeners.delete(name)},
@@ -56,22 +58,41 @@ test('file preview binds the serialized null message origin without relaxing sou
   p.app.dispose();p.view.dispose();
 });
 
+test('the clipper preview projects and routes the current help action through ToolHost',()=>{
+  const p=preview(),field='sidebar-tool-header-actions';
+  const home={...p.valid,data:{...p.valid.data,page:'home',
+    headerActions:[{id:'help',label:'剪藏帮助',icon:'diagnostics'}]}};
+  p.receive(home);
+  const action={actionId:'help',scope:p.view.fields[field].data.scope};
+  assert.equal(p.view.fields[field].hidden,false);
+  p.view.dispatch(field,'activate',action);
+  assert.equal(p.messages.at(-1).action,'header');
+  assert.equal(p.messages.at(-1).page,'home');
+  assert.equal(p.messages.at(-1).actionId,'help');
+  p.receive(p.valid);
+  assert.equal(p.view.fields[field].hidden,true);
+  p.receive(home);
+  p.view.dispatch(field,'activate',action);
+  assert.equal(p.messages.length,1,'an action from the earlier home snapshot is dropped');
+  p.app.dispose();p.view.dispose();
+});
+
 test('preview settings retain the iframe and dirty/busy block dangerous navigation',()=>{
   const p=preview();p.receive(p.valid);
-  p.view.dispatch('sidebar-tool-settings-open','click',{});
+  p.view.dispatch('sidebar-tool-settings-open','click',{isTrusted:true});
   assert.equal(p.view.fields['sidebar-tool-settings-view'].hidden,false);
   for(const id of ['generic-site-scope','generic-site-binary','generic-site-advanced'])
     assert.equal(p.view.fields['sidebar-tool-'+id].hidden,true,'preview hides inapplicable site authority controls');
-  p.view.dispatch('sidebar-tool-back','click',{});
+  p.view.dispatch('sidebar-tool-back','click',{isTrusted:true});
   assert.equal(p.root.frame,p.frame);assert.equal(p.frame.isConnected,true);
   assert.equal(p.view.fields['sidebar-tool-title'].textContent,'摘录详情');
   p.receive({...p.valid,data:{...p.valid.data,kind:'edit-state',dirty:true,busy:true}});
-  p.view.dispatch('sidebar-tool-settings-open','click',{});
-  p.view.dispatch('sidebar-tool-back','click',{});
+  p.view.dispatch('sidebar-tool-settings-open','click',{isTrusted:true});
+  p.view.dispatch('sidebar-tool-back','click',{isTrusted:true});
   assert.equal(p.view.fields['sidebar-tool-settings-view'].hidden,true);
   assert.equal(p.messages.length,0);
   p.receive({...p.valid,data:{...p.valid.data,kind:'edit-state',dirty:true,busy:false}});
-  p.view.dispatch('sidebar-tool-back','click',{});
+  p.view.dispatch('sidebar-tool-back','click',{isTrusted:true});
   assert.equal(p.messages.at(-1).kind,'navigation-action');
   assert.equal(p.messages.at(-1).action,'back','business owner decides dirty confirmation');
   p.app.dispose();p.view.dispose();
@@ -81,7 +102,8 @@ test('sandbox preview actions require the bound parent, origin, protocol and ins
   const code=await readFile('projects/web-markdown-clipper/preview/mock-host.js','utf8');
   let receive;const dispatched=[],parent={postMessage(){}};
   const root={dispatchEvent:event=>dispatched.push(event)};
-  runInNewContext(code,{parent,document:{documentElement:{dataset:{previewInstance:'current',previewParentOrigin:'http://localhost:43115'}},querySelector:()=>root},
+  runInNewContext(code,{parent,document:{documentElement:{dataset:{previewInstance:'current',previewParentOrigin:'http://localhost:43115'}},
+    querySelector:()=>root,createElement:()=>({dataset:{},style:{},append(){},addEventListener(){},setAttribute(){}}),body:{append(){}}},
     window:{addEventListener:(type,handler)=>{receive=handler;}},TextEncoder,URL,URLSearchParams,
     CustomEvent:class{constructor(type,values){this.type=type;Object.assign(this,values);}}});
   const event={source:parent,origin:'http://localhost:43115',data:{kind:'navigation-action',action:'back',

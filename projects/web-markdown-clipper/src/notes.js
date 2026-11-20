@@ -92,10 +92,20 @@ function create({root,request,sdk,onStatus,renderMarkdown,onSaveBusy}){
  const dirty=()=>editing!==null&&q('clip-note-body').value!==baseline;
  const notify=()=>g.OpenDeskTool?.setState?.({dirty:dirty(),busy});
  const publishNavigation=()=>{
-  if(!hostedNavigation)return;
+  const home=q('clip-home');
   const page=editing?(editing.id?'edit':'new'):reading?'reader':
-   q('clip-notes').hidden?'home':'library';
-  g.OpenDeskTool.setNavigation({page});
+   home.hidden?'library':'home';
+  if(page!=='home'){
+   const help=q('clip-context-help');
+   if(help)help.open=false;
+  }
+  if(!hostedNavigation)return;
+  const tool=g.OpenDeskTool;
+  const headerHelp=page==='home'&&tool.navigationFeatures?.headerActions===true&&
+   tool.setNavigation({page,title:'网页剪藏',canBack:false,
+    headerActions:[{id:'help',label:'剪藏帮助',icon:'diagnostics'}]})===true;
+  home.dataset.headerHelp=String(headerHelp);
+  if(!headerHelp)tool.setNavigation({page});
  };
  const scrollParent=()=>doc.scrollingElement||doc.documentElement||root.parentElement||null;
  const scrollNow=()=>scrollParent()?.scrollTop||0;

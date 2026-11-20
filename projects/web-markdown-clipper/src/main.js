@@ -6,6 +6,14 @@ const input=q('clip-source'),display=q('clip-preview'),state=q('clip-status');
 const modes=Array.from(root.querySelectorAll('[data-clip-mode]'));
 const help=q('clip-context-help');
 if(help){
+ const home=q('clip-home');
+ const hasHeaderHelp=()=>home.dataset.headerHelp==='true';
+ root.addEventListener('opendesk-tool-navigation',({detail})=>{
+  if(detail?.action!=='header'||detail.actionId!=='help'||
+     (detail.page!==undefined&&detail.page!=='home')||home.hidden||!hasHeaderHelp()||saving)return;
+  help.open=!help.open;
+  if(help.open)help.querySelector('.clip-help-panel').focus();
+ });
  root.addEventListener('pointerdown',event=>{
   if(help.open&&!help.contains(event.target))help.open=false;
  });
@@ -15,7 +23,8 @@ if(help){
  root.addEventListener('keydown',event=>{
   if(event.key!=='Escape'||!help.open)return;
   event.preventDefault();event.stopPropagation();help.open=false;
-  help.querySelector('summary').focus();
+  const target=hasHeaderHelp()?modes.find(button=>button.dataset.clipMode===mode):help.querySelector('summary');
+  target?.focus();
  });
 }
 let mode='article',version=0,pageEpoch=0,pageKey='',pageInfo=null;
@@ -34,6 +43,13 @@ const emptyHints=Object.freeze({
 });
 const actions=Object.freeze({article:'提取当前文章',selection:'提取选中文字',
  quote:'生成引用',link:'生成链接',region:'点选网页区域'});
+const helpHints=Object.freeze({
+ article:'在要剪藏的网页点击「提取当前文章」，将文章正文转换为 Markdown。',
+ selection:'先在网页选中文字，再点击「提取选中文字」。也可在网页右键选择「保存选中内容到我的摘录」。',
+ quote:'先在网页选中文字，再点击「生成引用」，为所选内容加上引用格式。',
+ link:'点击「生成链接」，将当前页面的标题和地址组合成 Markdown 链接。',
+ region:'点击「点选网页区域」后，在网页移动鼠标高亮内容，单击提取；↑/↓ 调整范围，Esc 取消。'
+});
 const say=(value,error=false)=>{state.textContent=String(value);state.dataset.error=String(error);};
 const setExportBusy=busy=>{exportBusy=busy;updateExportButtons();};
 const notes=globalThis.OpenDeskClipNotes?.create?.({
@@ -162,11 +178,7 @@ function updateFetchButton(){
  }
  q('clip-meta').disabled=saving;
  const hint=q('clip-selection-hint');
- if(hint)hint.textContent=mode==='region'
-  ?'在授权网页移动鼠标高亮内容，单击一次提取整块；↑/↓ 调整范围，Esc 取消。'
-  :mode==='selection'||mode==='quote'
-  ?'请先在网页中选中文字；也可右键直接进入摘录保存流程。'
-  :'在网页选中文字后，也可右键选择「保存选中内容到我的摘录」。';
+ if(hint)hint.textContent=helpHints[mode];
 }
 function onSaveBusyChange(busy){
  saving=Boolean(busy);updateFetchButton();updateExportButtons();

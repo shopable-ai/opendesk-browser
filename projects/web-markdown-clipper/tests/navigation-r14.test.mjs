@@ -28,7 +28,7 @@ const articles=[
  {id:'note-a',kind:'note',title:'正文 A',body:'正文 A 的完整内容',createdAt:'2026-10-21T00:00:00Z',updatedAt:'2026-10-21T00:00:00Z'},
  {id:'note-b',kind:'note',title:'正文 B',body:'正文 B 的完整内容',createdAt:'2026-10-21T00:00:00Z',updatedAt:'2026-10-21T00:00:00Z'}
 ];
-async function setup(){
+async function setup({headerActions=false,acceptHeader=true}={}){
  const source=await readFile(new URL('../src/notes.js',import.meta.url),'utf8');
  const ids=[...source.matchAll(/q\('([^']+)'\)/g)].map(match=>match[1]);
  const elements=Object.fromEntries([...new Set(ids)].map(id=>[id,new Element(id)]));
@@ -40,7 +40,7 @@ async function setup(){
  root.querySelector=key=>elements[key.slice(1)];root.matches=()=>false;
  elements['clip-home'].hidden=false;elements['clip-notes'].hidden=true;
  elements['clip-kind-filter'].value='all';
- const timers=[],navigation=[],states=[],getCalls=[],editCalls=[];
+ const timers=[],navigation=[],snapshots=[],states=[],getCalls=[],editCalls=[];
  const stored=new Map(articles.map(item=>[item.id,{...item}]));
  let manualGet=false,holdEdit=null;
  const snapshot=id=>({item:{...stored.get(id)},etag:'etag-v1'});
@@ -71,7 +71,12 @@ async function setup(){
   throw new Error('Unexpected Host request: '+operation);
  };
  const context={OpenDeskTool:{
-  setNavigation:state=>navigation.push(state.page),
+  navigationFeatures:{headerActions},
+  setNavigation(state){
+   snapshots.push(state);
+   if(state.headerActions&&!acceptHeader)return false;
+   navigation.push(state.page);return true;
+  },
   setState:state=>states.push(state)
  }};
  runInNewContext(source,{globalThis:context,document,TextEncoder,URL,Date,Math,
@@ -81,7 +86,7 @@ async function setup(){
  const notes=context.OpenDeskClipNotes.create({root,request,sdk:{},
   renderMarkdown:(body,target)=>{target.textContent=body;}});
  await flush();
- return {elements,root,document,notes,navigation,states,timers,getCalls,editCalls,snapshot,
+ return {elements,root,document,notes,navigation,snapshots,states,timers,getCalls,editCalls,snapshot,
   setManualGet(value){manualGet=value;},
   holdEdit(){holdEdit=defer();return holdEdit;},
   reader(){return elements['clip-note-read-title'].textContent;},
@@ -89,6 +94,25 @@ async function setup(){
   recent(index=0){return elements['clip-recent-list'].children[index];}
  };
 }
+test('the help action only belongs to the supported home header and falls back when rejected',async()=>{
+ const f=await setup({headerActions:true});
+ const {elements:e,notes,root,snapshots}=f;
+ assert.equal(snapshots.at(-1).headerActions[0].id,'help');
+ assert.equal(e['clip-home'].dataset.headerHelp,'true');
+ e['clip-context-help'].open=true;
+ await notes.showLibrary();
+ assert.equal(snapshots.at(-1).headerActions,undefined);
+ assert.equal(e['clip-context-help'].open,false);
+ await root.fire('opendesk-tool-navigation',{detail:{action:'back'}});
+ assert.equal(snapshots.at(-1).headerActions[0].id,'help');
+
+ for(const options of [{headerActions:false},{headerActions:true,acceptHeader:false}]){
+  const fallback=await setup(options);
+  assert.equal(fallback.snapshots.at(-1).page,'home');
+  assert.equal(fallback.snapshots.at(-1).headerActions,undefined);
+  assert.equal(fallback.elements['clip-home'].dataset.headerHelp,'false');
+ }
+});
 test('R1.4: 180ms search debounce cannot cancel an already selected 240ms detail read',async()=>{
  const f=await setup(),e=f.elements;
  await f.notes.showLibrary();f.document.scrollingElement.scrollTop=170;
