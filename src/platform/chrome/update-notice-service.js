@@ -1,9 +1,11 @@
 // The existing MV3 Service Worker is the sole writer of cross-tab update notices.
 // This sidecar reuses the official catalog, installed Tool registry, verified
 // storage helper and original Installer. It never installs or grants permissions.
-import {loadOfficialCatalog,matchesOfficialRelease} from '../../sidebar-tools/official-catalog.js';
+import {matchesOfficialRelease} from '../../sidebar-tools/official-catalog.js';
+import {createMarketUpdateDiscovery,MARKET_UPDATE_INDEX_STORE} from '../../marketplace/update-discovery.js';
 import {compareToolVersions,getInstalledSidebarTools,MARKET_PROVENANCE_STORE,
-  MARKET_OPERATIONS_STORE} from '../../ui/sidebar-tools/installation.js';
+  MARKET_OPERATIONS_STORE,requireCompleteInstalledSidebarTools,sameSidebarToolPackage}
+  from '../../ui/sidebar-tools/installation.js';
 import {sidebarToolPackageHash,SIDEBAR_TOOL_STORE} from '../../ui/sidebar-tools/package.js';
 import {SIDEBAR_TOOL_ENABLE_STORE,requireToolEnableRecords,sidebarToolEnabled}
   from '../../ui/sidebar-tools/lifecycle.js';
@@ -18,7 +20,7 @@ import {UPDATE_NOTICE_PROTOCOL,UPDATE_NOTICE_STORE,UPDATE_NOTICE_LOCK,
   readUpdateNoticeState,appendTrustedRelease,trustedUpdateReleaseKey,
   browserUpdateReleaseKey,claimUpdateToast,acknowledgeUpdateToast,
   actOnUpdateToast,setNoticePreference,updateNoticeSnapshot,
-  formatUpdateBadgeCount} from './update-notice-state.js';
+  formatUpdateBadgeCount,sameUpdateSource} from './update-notice-state.js';
 
 const safeOrigins=new Set(['https://chatgpt.com','https://chat.deepseek.com',
   'https://gemini.google.com']);
@@ -28,7 +30,8 @@ const isPlain=value=>value!==null&&typeof value==='object'&&!Array.isArray(value
 const errorText=error=>String(error?.code||error?.message||'E_UPDATE_UNKNOWN').slice(0,140);
 
 export function installUpdateNoticeService({api=globalThis.chrome,now=()=>Date.now(),
-  lockManager=globalThis.navigator?.locks,development=false,loadCatalog=loadOfficialCatalog,
+  lockManager=globalThis.navigator?.locks,development=false,loadCatalog=null,
+  marketDiscovery=null,discoveryOptions={},
   loadInstalled=getInstalledSidebarTools,
   // Only the trusted framework may attest an active tool in an exact document.
   // Without a live attestor page Toast fails closed; the global Badge is unaffected.
@@ -36,7 +39,24 @@ export function installUpdateNoticeService({api=globalThis.chrome,now=()=>Date.n
   if(!api?.runtime?.onMessage||!api?.storage?.local||!api?.runtime?.getURL)
     throw fail('E_UPDATE_HOST');
   let writeUnknown=false,verifiedInventory=false,lastInventoryAt=0,lastError=null;
-  let reconciling=null,kicking=null;
+  // A failed explicit check is an outcome, independent of the cached signature.
+  // Passive reads must not relabel that failure as a successful new check.
+  // This is Worker-local check state; lastInventoryAt means local attestation.
+  let lastFreshFailure=null,freshCheckSequence=0;
+  const discovery=marketDiscovery||(loadCatalog?null:createMarketUpdateDiscovery({
+    ...discoveryOptions,api,lockManager,now}));
+  let reconciling=null,reconcilingFresh=false,kicking=null,lastCatalog=null,expiryTimer=null;
+  let inventoryRevision=0,reconcileAgain=false;
+  const inventoryValid=()=>verifiedInventory&&!lastFreshFailure&&now()-lastInventoryAt<300000&&
+    (!lastCatalog?.expiresAt||Date.parse(lastCatalog.expiresAt)>now());
+  function watchExpiry(){
+    if(expiryTimer!==null)clearTimeout(expiryTimer);
+    expiryTimer=null;
+    if(!lastCatalog?.expiresAt)return;
+    expiryTimer=setTimeout(()=>{verifiedInventory=false;lastError=lastFreshFailure||'E_UPDATE_INDEX_EXPIRED';
+      void syncBadge();},Math.max(0,Date.parse(lastCatalog.expiresAt)-now()));
+    expiryTimer?.unref?.();
+  }
   let authorityRevision=0;
   let badgeSequence=0,badgeWork=Promise.resolve();
   const liveClaims=new Map();
@@ -49,7 +69,7 @@ export function installUpdateNoticeService({api=globalThis.chrome,now=()=>Date.n
       if(sequence!==badgeSequence)return;
       let count=0;
       try{
-        if(verifiedInventory&&!writeUnknown&&now()-lastInventoryAt<300000)
+        if(inventoryValid()&&!writeUnknown)
           count=updateNoticeSnapshot(await read()).badgeCount;
       }catch{/* Corrupt or unavailable storage fails closed to no number. */}
       if(sequence!==badgeSequence)return;
@@ -125,72 +145,117 @@ export function installUpdateNoticeService({api=globalThis.chrome,now=()=>Date.n
       ids.push(prompt.id);
     return ids;
   }
-  function isPublishedSource(tool,record,hash){
-    return record?.marketId==='opendesk/'+tool.id&&record.version===tool.version&&record.sha256===hash;
+  function isPublishedSource(tool,record,hash,updateSource=null){
+    return record?.marketId==='opendesk/'+tool.id&&record.version===tool.version&&record.sha256===hash&&
+      (!updateSource||sameUpdateSource(updateSource,record&&{sourceId:record.sourceId,
+        kind:record.kind,channel:record.channel,origin:record.origin}));
   }
-  async function inventory(){
+  async function inventory({fresh=false}={}){
     const [catalog,installed,data]=await Promise.all([
-      loadCatalog({api}),loadInstalled(api),
+      discovery?discovery.check({fresh}):loadCatalog({api,fresh}),loadInstalled(api),
       api.storage.local.get([MARKET_PROVENANCE_STORE,MARKET_OPERATIONS_STORE,
         SIDEBAR_TOOL_ENABLE_STORE,SIDEBAR_TOOL_STORE])
     ]);
-    const sources=data[MARKET_PROVENANCE_STORE]||{};
-    const operations=data[MARKET_OPERATIONS_STORE]||{};
+    const sources=data[MARKET_PROVENANCE_STORE]===undefined?{}:data[MARKET_PROVENANCE_STORE];
+    const operations=data[MARKET_OPERATIONS_STORE]===undefined?{}:data[MARKET_OPERATIONS_STORE];
     const enabled=requireToolEnableRecords(data[SIDEBAR_TOOL_ENABLE_STORE]);
     if(!isPlain(sources)||!isPlain(operations))throw fail('E_UPDATE_READBACK');
-    const pending=Object.values(operations).filter(row=>isPlain(row)&&
+    if(Object.values(operations).some(row=>!isPlain(row)||typeof row.toolId!=='string'||
+      typeof row.state!=='string'))throw fail('E_UPDATE_READBACK');
+    // The Registry and provenance were read independently. A race between those
+    // reads cannot bind an old tool to a newer raw Registry observation.
+    const rawInstalled=requireCompleteInstalledSidebarTools(data[SIDEBAR_TOOL_STORE]);
+    if(rawInstalled.length!==installed.length||installed.some(tool=>!rawInstalled.some(row=>
+      row.id===tool.id&&sameSidebarToolPackage(tool,row))))throw fail('E_UPDATE_INVENTORY_CHANGED');
+    const pending=Object.values(operations).filter(row=>
       row.state!=='succeeded'&&row.state!=='failed'&&row.state!=='cancelled');
     const candidates=[];
+    // One latest signed entry per tool. A higher withdrawn/Host-dependent entry
+    // remains explanatory rather than silently selecting a lower package.
+    const latest=new Map();
     for(const release of catalog.apps){
+      const previous=latest.get(release.toolId);
+      if(!previous||compareToolVersions(release.version,previous.version)>0)
+        latest.set(release.toolId,release);
+    }
+    for(const release of latest.values()){
       const old=installed.find(row=>row.id===release.toolId);
       if(!old)continue; // This is an update center, not an auto-installer.
       const comparison=compareToolVersions(release.version,old.version);
       if(comparison<0)continue;
       const hash=await sidebarToolPackageHash(old);
-      const published=isPublishedSource(old,sources[old.id],hash);
+      const updateSource=release.sourceId?{sourceId:release.sourceId,kind:'sidebar-tool',
+        channel:release.channel,origin:release.origin}:null;
+      const published=isPublishedSource(old,sources[old.id],hash,updateSource);
+      const sourceReviewRequired=Boolean(updateSource&&!published);
+      const eligibilityReason=release.eligibility&&release.eligibility!=='package'?release.eligibility:
+        release.state==='withdrawn'?'withdrawn':
+        release.delivery==='browser-host'?'browser_update_required':null;
       const inFlight=pending.some(op=>op.toolId===old.id);
       const newCapabilities=release.capabilities.filter(cap=>!old.capabilities.includes(cap));
       let status;
       if(comparison>0){
-        status=!published||!sidebarToolEnabled(enabled,old.id)||inFlight?
-          'unknown':newCapabilities.length?'review_required':'available';
+        status=(!published&&!updateSource)||!sidebarToolEnabled(enabled,old.id)||inFlight||eligibilityReason?
+          'unknown':newCapabilities.length||sourceReviewRequired?'review_required':'available';
       }else{
         // The trusted market receipt AND current package bytes must match.
         // A same-string version or side-panel toast cannot prove installation.
         const journal=Object.values(operations).some(op=>op?.state==='succeeded'&&
           op.toolId===old.id&&op.marketId===release.id&&
-          op.version===release.version&&op.sha256===release.sha256);
+          op.version===release.version&&op.sha256===release.sha256&&
+          (!updateSource||sameUpdateSource(updateSource,{sourceId:op.sourceId,
+            kind:op.kind,channel:op.channel,origin:op.origin})));
         status=published&&journal&&await matchesOfficialRelease(release,old)?
           'applied':'unknown';
       }
       candidates.push({kind:'sidebar-tool',key:trustedUpdateReleaseKey({
-        id:release.toolId,version:release.version,sha256:release.sha256}),
+        id:release.toolId,version:release.version,sha256:release.sha256,updateSource}),
         id:release.toolId,version:release.version,sha256:release.sha256,
         title:release.packageTitle,description:release.description,
-        source:release.id,fromVersion:old.version,
+        source:release.id,fromVersion:old.version,fromSha256:hash,updateSource,
+        sourceReviewRequired,changelog:release.changelog||null,eligibilityReason,
         status,newCapabilities,requiresReview:comparison>0});
     }
-    return {candidates,registry:data[SIDEBAR_TOOL_STORE],
-      provenance:data[MARKET_PROVENANCE_STORE],enable:data[SIDEBAR_TOOL_ENABLE_STORE]};
+    return {candidates,catalog,registry:data[SIDEBAR_TOOL_STORE],
+      provenance:data[MARKET_PROVENANCE_STORE],operations:data[MARKET_OPERATIONS_STORE],
+      enable:data[SIDEBAR_TOOL_ENABLE_STORE]};
   }
-  async function reconcile(){
-    if(reconciling)return reconciling;
+  async function reconcile({fresh=false}={}){
+    if(reconciling){
+      if(!fresh||reconcilingFresh)return reconciling;
+      await reconciling;
+      return reconcile({fresh:true});
+    }
+    if(lastFreshFailure&&!fresh)return false;
+    const checkSequence=fresh?++freshCheckSequence:null;
+    reconcilingFresh=fresh;
     reconciling=(async()=>{
       try{
         await hideIneligibleClaims();
-        const observed=await inventory();
+        const observed=await inventory({fresh});
+        const observedRevision=inventoryRevision;
+        const requireSameInventory=()=>{
+          if(observedRevision!==inventoryRevision)throw fail('E_UPDATE_INVENTORY_CHANGED',
+            '安装或发行身份在核验期间变化，请重新检查更新');
+        };
         const expiredToastClaims=new Map();
         await mutate(async state=>{
           // Prevent a stale read from reviving an update after a concurrent
           // install, disable, source change or revocation in the original owner.
           const current=await api.storage.local.get([SIDEBAR_TOOL_STORE,
-            MARKET_PROVENANCE_STORE,SIDEBAR_TOOL_ENABLE_STORE]);
+            MARKET_PROVENANCE_STORE,MARKET_OPERATIONS_STORE,SIDEBAR_TOOL_ENABLE_STORE]);
           if(JSON.stringify(current[SIDEBAR_TOOL_STORE])!==JSON.stringify(observed.registry)||
              JSON.stringify(current[MARKET_PROVENANCE_STORE])!==JSON.stringify(observed.provenance)||
-             JSON.stringify(current[SIDEBAR_TOOL_ENABLE_STORE])!==JSON.stringify(observed.enable))
+             JSON.stringify(current[SIDEBAR_TOOL_ENABLE_STORE])!==JSON.stringify(observed.enable)||
+             JSON.stringify(current[MARKET_OPERATIONS_STORE])!==JSON.stringify(observed.operations))
             // A concurrent identity change is NOT a successful verification.
             // Returning null here allowed the stale candidate to stay verified.
             throw fail('E_UPDATE_INVENTORY_CHANGED','安装身份在核验期间变化，请重新检查更新');
+          // The index can change while installed hashes are computed. The
+          // discovery owner only reads here: this callback already holds its
+          // shared UPDATE_NOTICE_LOCK, so no recursive lock acquisition.
+          if(discovery)await discovery.assertCurrent(observed.catalog);
+          requireSameInventory();
           const time=now(),active=new Set(observed.candidates.map(row=>row.key));
           let next=state,dirty=false;
           for(const candidate of observed.candidates){
@@ -198,22 +263,29 @@ export function installUpdateNoticeService({api=globalThis.chrome,now=()=>Date.n
             if(old?.claim?.ackedAt>0&&['applied','unknown'].includes(candidate.status))
               expiredToastClaims.set(old.claim.token,old.claim.tabId);
             if(old&&old.status===candidate.status&&old.title===candidate.title&&
-               old.description===candidate.description&&
+               old.description===candidate.description&&old.fromSha256===candidate.fromSha256&&
+               old.sourceReviewRequired===candidate.sourceReviewRequired&&
+               old.changelog===candidate.changelog&&old.eligibilityReason===candidate.eligibilityReason&&
+               sameUpdateSource(old.updateSource,candidate.updateSource)&&
                JSON.stringify(old.newCapabilities)===JSON.stringify(candidate.newCapabilities))continue;
             next=appendTrustedRelease(next,candidate,time);dirty=true;
           }
           for(const row of Object.values(next.records)){
-            if(row.kind!=='sidebar-tool'||active.has(row.key)||row.status==='unknown'||
-               row.status==='applied')continue;
+            if(row.kind!=='sidebar-tool'||active.has(row.key)||row.status==='applied'||
+               row.status==='unknown'&&row.eligibilityReason==='not_listed')continue;
             if(row.claim?.ackedAt>0)expiredToastClaims.set(row.claim.token,row.claim.tabId);
-            next=appendTrustedRelease(next,{kind:'sidebar-tool',key:row.key,id:row.id,
-              version:row.version,sha256:row.sha256,title:row.title,
-              description:row.description,fromVersion:row.fromVersion,status:'unknown',
-              newCapabilities:row.newCapabilities,requiresReview:row.requiresReview},time);dirty=true;
+            next=appendTrustedRelease(next,{...row,status:'unknown',eligibilityReason:'not_listed'},time);dirty=true;
           }
           return dirty?next:null;
         });
+        requireSameInventory();
+        lastCatalog=observed.catalog;
+        if(fresh&&checkSequence===freshCheckSequence)lastFreshFailure=null;
+        if(lastFreshFailure){
+          verifiedInventory=false;lastError=lastFreshFailure;await syncBadge();return false;
+        }
         lastInventoryAt=now();verifiedInventory=true;lastError=null;
+        watchExpiry();
         await syncBadge();
         for(const [token,tabId] of expiredToastClaims){
           liveClaims.delete(token);
@@ -224,14 +296,20 @@ export function installUpdateNoticeService({api=globalThis.chrome,now=()=>Date.n
       }catch(error){
         // Never use a cached catalog as proof of a newly offered update.
         verifiedInventory=false;lastError=errorText(error);
+        if(fresh&&checkSequence===freshCheckSequence)lastFreshFailure=lastError;
+        else if(lastFreshFailure)lastError=lastFreshFailure;
         await syncBadge();
         return false;
-      }finally{reconciling=null;}
+      }finally{
+        reconciling=null;reconcilingFresh=false;
+        if(reconcileAgain){reconcileAgain=false;
+          queueMicrotask(()=>{void reconcile().then(ok=>{if(ok)void checkToast();});});}
+      }
     })();
     return reconciling;
   }
   async function ensureInventory(){
-    return verifiedInventory&&now()-lastInventoryAt<300000?true:reconcile();
+    return inventoryValid()?true:reconcile();
   }
   async function eligibleTab(tab){
     if(!tab||!Number.isSafeInteger(tab.id)||tab.incognito||!tab.active||!tab.url)return null;
@@ -334,16 +412,18 @@ export function installUpdateNoticeService({api=globalThis.chrome,now=()=>Date.n
   async function replyList({fresh=false}={}){
     // An actual review click must re-read the installed/source identity now.
     // Passive badge/panel refreshes may use the existing bounded cache.
-    const verified=fresh?await reconcile():await ensureInventory();
+    const verified=fresh?await reconcile({fresh:true}):await ensureInventory();
     const value=updateNoticeSnapshot(await read());
-    const trusted=verified===true&&!writeUnknown;
-    return {...value,verified:trusted,
+    const trusted=verified===true&&inventoryValid()&&!writeUnknown;
+    return {...value,verified:trusted,lastVerifiedAt:lastInventoryAt||null,
+      expiresAt:lastCatalog?.expiresAt||null,
+      sourceId:lastCatalog?.sourceId||null,channel:lastCatalog?.channel||null,
       // A stale persisted candidate is not an actionable, verified update.
       actionableCount:trusted?value.actionableCount:0,
       unreadCount:trusted?value.unreadCount:0,
       badgeCount:trusted?value.badgeCount:0,
       newCount:trusted?value.newCount:0,
-      problem:writeUnknown?'E_UPDATE_WRITE_UNKNOWN':verified?null:lastError};
+      problem:writeUnknown?'E_UPDATE_WRITE_UNKNOWN':trusted?null:lastError||'E_UPDATE_INDEX_EXPIRED'};
   }
   async function recordBrowser(status,versionValue,fromVersion=null){
     const id=api.runtime.id,entry={kind:'browser',
@@ -362,6 +442,23 @@ export function installUpdateNoticeService({api=globalThis.chrome,now=()=>Date.n
     const ui=trustedUi(sender),page=trustedPage(sender);
     if(!ui&&!page)throw fail('E_UPDATE_SENDER');
     if(ui){
+      if(message.kind==='market-index'){
+        if(message.fresh!==undefined&&message.fresh!==true)throw fail('E_UPDATE_OPERATION');
+        if(!discovery)throw fail('E_UPDATE_NOT_CONFIGURED');
+        const checkSequence=message.fresh===true?++freshCheckSequence:null;
+        let catalog;
+        try{catalog=await discovery.check({fresh:message.fresh===true});}
+        catch(error){
+          verifiedInventory=false;lastError=errorText(error);
+          if(message.fresh===true&&checkSequence===freshCheckSequence)lastFreshFailure=lastError;
+          else if(lastFreshFailure)lastError=lastFreshFailure;
+          void syncBadge();throw error;
+        }
+        if(message.fresh===true&&checkSequence===freshCheckSequence)lastFreshFailure=null;
+        if(lastCatalog&&(lastCatalog.sequence!==catalog.sequence||
+          lastCatalog.payloadSha256!==catalog.payloadSha256))verifiedInventory=false;
+        return catalog;
+      }
       if(message.kind==='list'){
         if(message.fresh!==undefined&&message.fresh!==true)throw fail('E_UPDATE_OPERATION');
         return replyList({fresh:message.fresh===true});
@@ -495,12 +592,17 @@ export function installUpdateNoticeService({api=globalThis.chrome,now=()=>Date.n
       .catch(error=>console.warn('[update-notice browser]',errorText(error)));
   });
   api.storage.onChanged?.addListener((changes,area)=>{
-    if(area!=='local'||![SIDEBAR_TOOL_STORE,MARKET_PROVENANCE_STORE,
+    const indexChange=changes[MARKET_UPDATE_INDEX_STORE];
+    const indexChanged=indexChange&&['sourceId','channel','origin','sequence','payloadSha256'].some(key=>
+      indexChange.oldValue?.[key]!==indexChange.newValue?.[key]);
+    if(area!=='local'||!indexChanged&&![SIDEBAR_TOOL_STORE,MARKET_PROVENANCE_STORE,
       MARKET_OPERATIONS_STORE,SIDEBAR_TOOL_ENABLE_STORE,READING_TOC_SITE_STORE,PROMPT_SITE_STORE]
       .some(key=>Object.hasOwn(changes,key)))return;
     if([SIDEBAR_TOOL_STORE,SIDEBAR_TOOL_ENABLE_STORE,READING_TOC_SITE_STORE,PROMPT_SITE_STORE]
       .some(key=>Object.hasOwn(changes,key)))invalidateSiteClaims();
     verifiedInventory=false;
+    inventoryRevision++;
+    if(reconciling)reconcileAgain=true;
     void reconcile().then(ok=>{if(ok)void checkToast();});
   });
   api.permissions?.onRemoved?.addListener(invalidateSiteClaims);

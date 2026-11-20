@@ -4471,6 +4471,127 @@ test('extension import still refuses to replace an active installed application'
   assert.equal(f.runtime.frameRoot.firstElementChild,frame);
 });
 
+// Actual ToolHost, downloader and Installer; only the already verified Worker
+// RPC and browser storage are adapters. These are not native Chrome assertions.
+async function onlineMarketHostFixture(t,{catalogUnavailable=false}={}){
+  const extensionId='a'.repeat(32),origin='http://127.0.0.1:43132';
+  const source={sourceId:'opendesk-official',kind:'sidebar-tool',channel:'stable',origin};
+  const candidate={...sample,version:'99.0.1',description:'Online fixed release'};
+  const bytes=new TextEncoder().encode(serializeSidebarToolPackage(candidate));
+  const sha256=await sidebarToolPackageHash(candidate),marketId='opendesk/'+candidate.id;
+  const base='/releases/'+marketId+'/'+candidate.version+'/';
+  const descriptor={schema:'opendesk.market.release.v1',marketId,version:candidate.version,
+    bytes:bytes.length,sha256,packagePath:base+'package.opendesk-tool.json'};
+  const release={...source,id:marketId,marketId,toolId:candidate.id,version:candidate.version,
+    state:'published',delivery:'package',packageTitle:candidate.title,description:candidate.description,
+    capabilities:[...candidate.capabilities],requirements:{format:candidate.format,browserSdk:null,uiRuntime:null},
+    descriptor,bytes:bytes.length,sha256,packagePath:descriptor.packagePath,
+    changelog:'新的固定版本说明',updateSource:source};
+  const prior={marketId,version:sample.version,sha256:await sidebarToolPackageHash(sample),...source};
+  const dataKey=sidebarToolStorageKey(sample.id),store=new Map([
+    [SIDEBAR_TOOL_STORE,[sample]],[MARKET_PROVENANCE_STORE,{[sample.id]:prior}],
+    [TOOL_REVOCATION_EPOCHS_STORE,{[sample.id]:'original-installed-epoch'}],
+    [dataKey,{sentinel:'original user data'}]
+  ]);
+  const downloads=[],indexReads=[],writes=[];
+  let operationReads=0;
+  const f=await hostFixture(t,{store,startTool:false,
+    configureApi(api){api.runtime.id=extensionId;api.runtime.getURL=path=>'chrome-extension://'+extensionId+'/'+path;},
+    getHook(key){if(key===MARKET_OPERATIONS_STORE)operationReads++;},
+    setHook(value){writes.push(structuredClone(value));},
+    async hostReply(message){
+      if(message.kind==='runtime-contract')return {ok:true,data:{extensionId,version:'0.1.0',
+        contractHash:await sidebarToolPackageContractHash()}};
+      if(message.kind==='market-index'){
+        indexReads.push(structuredClone(message));
+        return {ok:true,data:{...source,sequence:1,payloadSha256:'e'.repeat(64),
+          expiresAt:new Date(Date.now()+60000).toISOString(),apps:[structuredClone(release)]}};
+      }
+    },
+    async fetcher(url,options){
+      const parsed=new URL(url);
+      if(parsed.pathname==='/marketplace/channel.json')return new Response(JSON.stringify({
+        schema:'opendesk.market.channel.v1',protocol:'opendesk.market.intent.v1',
+        mode:'development',enabled:true,origin,extensionId}));
+      if(parsed.origin===origin){
+        downloads.push({url,options});
+        if(parsed.pathname===base+'descriptor.json')return new Response(JSON.stringify(descriptor));
+        if(parsed.pathname===descriptor.packagePath)return new Response(bytes);
+        assert.fail('unexpected market download '+url);
+      }
+      if(catalogUnavailable&&parsed.pathname==='/official-tools/catalog.json')return new Response('unavailable',{status:503});
+      return officialFixtureFetch(url);
+    }});
+  return {...f,candidate,release,source,prior,dataKey,downloads,indexReads,writes,
+    get operationReads(){return operationReads;}};
+}
+
+for(const catalogUnavailable of [false,true])
+test('online update Host opens a fresh original review with an older or unavailable bundled catalog: '+catalogUnavailable,async t=>{
+  const f=await onlineMarketHostFixture(t,{catalogUnavailable});
+  assert.equal(f.host.openOfficialReview(f.candidate.id,f.release),true);
+  await settle(()=>!f.elements['sidebar-tool-preview'].hidden||!f.elements['sidebar-tool-file-error'].hidden);
+  assert.equal(f.elements['sidebar-tool-file-error'].hidden,true,f.elements['sidebar-tool-file-error'].textContent);
+  assert.equal(f.elements['sidebar-tool-preview-version'].textContent,'v99.0.1');
+  assert.match(f.elements['sidebar-tool-preview-description'].textContent,/新的固定版本说明/);
+  assert.match(f.elements['sidebar-tool-preview-source'].textContent,/127\.0\.0\.1:43132/);
+  assert.match(f.elements['sidebar-tool-update-versions'].textContent,/当前 v1\.0\.0 → 新 v99\.0\.1/);
+  assert.ok(f.indexReads.length>=1&&f.indexReads.every(message=>message.fresh===true));
+  assert.equal(f.downloads.length,2,'one fixed descriptor and package are read by the original downloader');
+  assert.ok(f.downloads.every(row=>row.options.redirect==='error'&&row.options.credentials==='omit'));
+  assert.deepEqual(f.store.get(SIDEBAR_TOOL_STORE),[sample],'opening the review cannot install');
+  assert.deepEqual(f.store.get(f.dataKey),{sentinel:'original user data'});
+  assert.equal(f.runtime.frameRoot.children.length,0,'review cannot run package code');
+});
+
+test('online update Host visibly reviews a mismatched prior market identity',async t=>{
+  const f=await onlineMarketHostFixture(t);
+  f.store.set(MARKET_PROVENANCE_STORE,{[sample.id]:{...f.prior,marketId:'opendesk/other-tool'}});
+  assert.equal(f.host.openOfficialReview(f.candidate.id,f.release),true);
+  await settle(()=>!f.elements['sidebar-tool-preview'].hidden);
+  assert.match(f.elements['sidebar-tool-preview-source'].textContent,/旧来源缺失或不同.*来源替换审阅/);
+  assert.deepEqual(f.store.get(SIDEBAR_TOOL_STORE),[sample]);
+});
+
+test('online update Host recovers the original UNKNOWN operation instead of the newly reviewed version',async t=>{
+  const f=await onlineMarketHostFixture(t),originalOperationId=crypto.randomUUID();
+  const earlier={...f.candidate,version:'99.0.0'},earlierHash=await sidebarToolPackageHash(earlier);
+  const original={toolId:earlier.id,marketId:f.release.marketId,version:earlier.version,sha256:earlierHash,
+    ...f.source,state:'outcome-unknown',installEpoch:'earlier-online-epoch',previousProvenance:f.prior};
+  assert.equal(f.host.openOfficialReview(f.candidate.id,f.release),true);
+  await settle(()=>!f.elements['sidebar-tool-preview'].hidden);
+  f.store.set(MARKET_OPERATIONS_STORE,{[originalOperationId]:original});
+  f.emit(f.elements['sidebar-tool-install'],'click',{isTrusted:true});
+  await settle(()=>f.elements['sidebar-tool-install'].textContent==='核对原更新'&&
+    !f.elements['sidebar-tool-install'].disabled);
+  assert.match(f.elements['sidebar-tool-update-versions'].textContent,/原安装事务待核对 · v99\.0\.0/);
+  assert.deepEqual(Object.keys(f.store.get(MARKET_OPERATIONS_STORE)),[originalOperationId]);
+  const requests=f.indexReads.length,downloads=f.downloads.length,reads=f.operationReads;
+  f.emit(f.elements['sidebar-tool-install'],'click',{isTrusted:false});
+  await pause();assert.equal(f.operationReads,reads,'synthetic recovery cannot inspect or finalize a transaction');
+  f.emit(f.elements['sidebar-tool-install'],'click',{isTrusted:true});
+  f.emit(f.elements['sidebar-tool-install'],'click',{isTrusted:true});
+  await settle(()=>/原更新仍需核对/.test(f.elements['page-install-import-status'].textContent));
+  assert.equal(f.store.get(MARKET_OPERATIONS_STORE)[originalOperationId].state,'outcome-unknown');
+  assert.equal(f.writes.filter(value=>Object.hasOwn(value,SIDEBAR_TOOL_STORE)).length,0);
+  // Simulate the original transaction's late persistence, then explicitly read
+  // it back through the original recovery API. No new installation is replayed.
+  f.store.set(SIDEBAR_TOOL_STORE,[earlier]);
+  f.store.set(TOOL_REVOCATION_EPOCHS_STORE,{[earlier.id]:original.installEpoch});
+  f.emit(f.elements['sidebar-tool-install'],'click',{isTrusted:true});
+  await settle(()=>f.store.get(MARKET_OPERATIONS_STORE)[originalOperationId].state==='succeeded');
+  await settle(()=>f.elements['sidebar-tool-import'].hidden);
+  assert.deepEqual(Object.keys(f.store.get(MARKET_OPERATIONS_STORE)),[originalOperationId]);
+  assert.equal(f.store.get(MARKET_PROVENANCE_STORE)[earlier.id].version,'99.0.0');
+  assert.equal(f.store.get(MARKET_PROVENANCE_STORE)[earlier.id].sha256,earlierHash);
+  assert.equal(f.store.get(MARKET_PROVENANCE_STORE)[earlier.id].origin,f.source.origin);
+  assert.equal(f.writes.filter(value=>Object.hasOwn(value,SIDEBAR_TOOL_STORE)).length,0);
+  assert.equal(f.indexReads.length,requests,'UNKNOWN recovery never checks or downloads a new candidate');
+  assert.equal(f.downloads.length,downloads);
+  assert.deepEqual(f.store.get(f.dataKey),{sentinel:'original user data'});
+  assert.equal(f.runtime.frameRoot.children.length,0);
+});
+
 test('R4.5 two official review windows share the original installation lock and reject stale approvals',async t=>{
   const originalWindow=globalThis.window,originalConfirm=globalThis.confirm;
   const store=new Map(),locks=sharedLocks(),release=(await officialFixtures()).catalog.apps[0];

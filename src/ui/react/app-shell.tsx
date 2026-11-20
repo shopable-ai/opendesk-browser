@@ -80,6 +80,10 @@ export function SidebarAppShell({
   const inlineRowsModel={...list,rows:inlineRows,
     onInlineUpdate:(record,event)=>event?.isTrusted===true?onOpenUpdateReview(record):false};
   const inlineToolbarModel={...controls,
+    onReload:event=>{
+      if(event?.isTrusted!==true)return;
+      controls.onReload?.(event);void updateNotice.refresh({fresh:true});
+    },
     onUpdateHistory:event=>{
       if(event?.isTrusted!==true)return;
       controls.onCloseMenu?.(false);openUpdateHistory();

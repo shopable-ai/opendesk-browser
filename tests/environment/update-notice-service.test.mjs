@@ -23,7 +23,7 @@ function event(){
     emit(...args){for(const fn of listeners)fn(...args);}};
 }
 async function fixture({provenance=true,capabilities=[],toolId='prompt-shortcuts',
-  savedNotice=null,activeToolIds=null}={}){
+  savedNotice=null,activeToolIds=null,online=false,sourceProof=true}={}){
   // Use real reviewed legacy page.toc / current page.prompts packages:
   // the package is validated and its ACTUAL installed digest is used as provenance.
   const packagePath=toolId==='reading-toc'?'../fixtures/reading-toc-reviewed-1.0.15.opendesk-tool.json':
@@ -46,6 +46,26 @@ async function fixture({provenance=true,capabilities=[],toolId='prompt-shortcuts
   const changed=event(),onMessage=event(),onInstalled=event(),onUpdateAvailable=event(),
     onStartup=event(),onActivated=event(),onUpdated=event(),onRemoved=event();
   let time=100000;
+  const updateSource={sourceId:'opendesk-official',kind:'sidebar-tool',channel:'stable',
+    origin:'https://market.example'};
+  if(online){
+    Object.assign(release,updateSource,{state:'published',delivery:'package',eligibility:'package',
+      changelog:'此次发行的真实说明',updateSource});
+    if(sourceProof&&store[MARKET_PROVENANCE_STORE][tool.id])
+      Object.assign(store[MARKET_PROVENANCE_STORE][tool.id],updateSource);
+  }
+  const catalog={apps:[release],sourceId:updateSource.sourceId,channel:'stable',
+    origin:updateSource.origin,sequence:1,payloadSha256:'c'.repeat(64),
+    expiresAt:new Date(time+60000).toISOString()};
+  const catalogReads=[];
+  const discovery={async check({fresh=false}={}){
+    catalogReads.push(fresh);
+    if(Date.parse(catalog.expiresAt)<=time)throw Object.assign(Error('expired'),{code:'E_UPDATE_EXPIRED'});
+    return structuredClone(catalog);
+  },async assertCurrent(observed){
+    if(observed.sequence!==catalog.sequence||observed.payloadSha256!==catalog.payloadSha256)
+      throw Object.assign(Error('changed'),{code:'E_UPDATE_INDEX_CHANGED'});
+  }};
   const views=[],opens=[],hides=[],badgeWrites=[],badgeTitles=[];
   const api={
     runtime:{id:extensionId,getManifest:()=>({version:'0.1.0',name:'OpenDesk Browser'}),
@@ -87,7 +107,8 @@ async function fixture({provenance=true,capabilities=[],toolId='prompt-shortcuts
   const lockManager={request(_name,_options,fn){
     const result=queue.then(fn);queue=result.catch(()=>{});return result;
   }};
-  const service=installUpdateNoticeService({api,loadCatalog:async()=>({apps:[release]}),
+  const service=installUpdateNoticeService({api,
+    ...(online?{marketDiscovery:discovery}:{loadCatalog:async()=>({apps:[release]})}),
     loadInstalled:async()=>[tool],lockManager,now:()=>time,
     // Test-only trusted document attestation; production fails closed without it.
     getActiveDocumentTools:async()=>activeToolIds??[tool.id]});
@@ -95,7 +116,7 @@ async function fixture({provenance=true,capabilities=[],toolId='prompt-shortcuts
     return new Promise(resolve=>onMessage.emit({protocol:UPDATE_NOTICE_PROTOCOL,...message},sender,resolve));
   }
   return {api,service,store,views,opens,hides,badgeWrites,badgeTitles,
-    release,tool,source,send,lockManager,at(value){time=value;},
+    release,tool,source,send,lockManager,catalog,catalogReads,discovery,at(value){time=value;},
     async settled(){await service.reconcile();await queue;}};
 }
 
@@ -350,8 +371,8 @@ test('R5 concurrent registry or source drift invalidates the in-flight inventory
   const read=f.api.storage.local.get.bind(f.api.storage.local);
   let injected=false;
   f.api.storage.local.get=async keys=>{
-    if(!injected&&Array.isArray(keys)&&keys.length===3&&
-      keys.includes(SIDEBAR_TOOL_STORE)&&
+    if(!injected&&Array.isArray(keys)&&keys[0]===SIDEBAR_TOOL_STORE&&
+      keys.includes(MARKET_OPERATIONS_STORE)&&
       keys.includes(MARKET_PROVENANCE_STORE)&&
       keys.includes(SIDEBAR_TOOL_ENABLE_STORE)){
       injected=true;
@@ -384,4 +405,177 @@ test('R5 trusted review list forces a fresh installed-source comparison',async()
   assert.equal(result.data.verified,true);
   assert.equal(result.data.actionableCount,0);
   assert.equal(result.data.records.find(row=>row.id===f.tool.id).status,'unknown');
+});
+
+
+test('online identity includes the configured source and legacy receipts require source review',async()=>{
+  for(const sourceProof of [true,false]){
+    const f=await fixture({online:true,sourceProof});await f.settled();
+    const list=await f.service.replyList();
+    const row=list.records.find(row=>row.id===f.tool.id);
+    assert.equal(list.verified,true);
+    assert.equal(row.sourceReviewRequired,!sourceProof);
+    assert.equal(row.status,sourceProof?'available':'review_required');
+    assert.equal(row.updateSource.sourceId,'opendesk-official');
+    assert.equal(row.updateSource.origin,'https://market.example');
+    assert.equal(row.fromSha256,await sidebarToolPackageHash(f.tool));
+    assert.equal(row.changelog,'此次发行的真实说明');
+    assert.ok(row.key.includes(':opendesk-official:'));
+    if(!sourceProof)assert.equal(f.store[MARKET_PROVENANCE_STORE][f.tool.id].sourceId,undefined,
+      'checking never fabricates a legacy source record');
+  }
+});
+
+test('online inventory chooses the highest signed version and explains blocked delivery',async()=>{
+  for(const eligibility of ['browser_update_required','compatibility_unknown','withdrawn']){
+    const f=await fixture({online:true});await f.settled();
+    const later={...f.release,version:'999.0.0',eligibility,
+      state:eligibility==='withdrawn'?'withdrawn':'published',
+      delivery:eligibility==='browser_update_required'?'browser-host':'package'};
+    f.catalog.apps.push(later);
+    await f.service.reconcile({fresh:true});
+    const result=await f.service.replyList();
+    assert.equal(result.verified,true);
+    assert.equal(result.actionableCount,0);
+    assert.equal(result.records.find(row=>row.version==='999.0.0').eligibilityReason,eligibility);
+    assert.equal(result.records.find(row=>row.version==='999.0.0').status,'unknown');
+  }
+});
+
+test('operations and index acceptance are rechecked inside the original notice lock',async()=>{
+  for(const drift of ['operations','index']){
+    const f=await fixture({online:true});await f.settled();
+    const read=f.api.storage.local.get.bind(f.api.storage.local);let injected=false;
+    f.api.storage.local.get=async keys=>{
+      if(!injected&&Array.isArray(keys)&&keys[0]===SIDEBAR_TOOL_STORE){
+        injected=true;
+        if(drift==='operations')f.store[MARKET_OPERATIONS_STORE]={
+          pending:{toolId:f.tool.id,state:'unknown'}};
+        else{f.catalog.sequence=2;f.catalog.payloadSha256='d'.repeat(64);}
+      }
+      return read(keys);
+    };
+    assert.equal(await f.service.reconcile({fresh:true}),false,drift);
+    await f.service.syncBadge();
+    assert.equal(f.badgeWrites.at(-1),'',drift);
+  }
+});
+
+test('fresh checking waits for a passive in-flight inventory then performs a fresh read',async()=>{
+  const f=await fixture({online:true});await f.settled();f.catalogReads.length=0;
+  const read=f.discovery.check.bind(f.discovery);let release,entered;
+  const started=new Promise(resolve=>{entered=resolve;});
+  f.discovery.check=async options=>{
+    const observed=await read(options);
+    if(!options.fresh){entered();await new Promise(resolve=>{release=resolve;});}
+    return observed;
+  };
+  const passive=f.service.reconcile();await started;
+  const forced=f.service.replyList({fresh:true});
+  release();await passive;
+  assert.equal((await forced).verified,true);
+  assert.deepEqual(f.catalogReads,[false,true]);
+});
+
+test('expired or failed online checks clear verified counts without changing installed data',async()=>{
+  const f=await fixture({online:true});await f.settled();
+  const old=structuredClone(f.store[SIDEBAR_TOOL_STORE]);
+  f.at(160001);
+  const result=await f.service.replyList();
+  assert.equal(result.verified,false);assert.equal(result.actionableCount,0);
+  assert.equal(result.badgeCount,0);assert.equal(result.problem,'E_UPDATE_EXPIRED');
+  assert.deepEqual(f.store[SIDEBAR_TOOL_STORE],old);
+});
+
+for(const route of ['list','market-index'])
+test('failed fresh '+route+' remains failed on passive reads until an actual fresh success',async()=>{
+  const f=await fixture({online:true});await f.settled();
+  const sender={id:extensionId,url:'chrome-extension://'+extensionId+'/sidepanel.html',frameId:0};
+  const before=await f.service.replyList({fresh:true}),check=f.discovery.check.bind(f.discovery);
+  let offline=true;
+  f.discovery.check=async options=>{
+    if(options.fresh&&offline)throw Object.assign(Error('offline'),{code:'E_UPDATE_NETWORK'});
+    return check(options);
+  };
+  f.at(101000);
+  const failed=await f.send({kind:route,fresh:true},sender);
+  if(route==='list')assert.equal(failed.data.verified,false);
+  else assert.equal(failed.error.code,'E_UPDATE_NETWORK');
+  f.at(102000);
+  const passive=await f.service.replyList();
+  assert.equal(passive.verified,false);
+  assert.equal(passive.problem,'E_UPDATE_NETWORK');
+  assert.equal(passive.lastVerifiedAt,before.lastVerifiedAt,'cached bytes cannot advance the check receipt');
+  assert.equal(passive.badgeCount,0);assert.equal(passive.actionableCount,0);
+  assert.equal(passive.records.length,before.records.length,'failure does not erase reviewed history');
+  offline=false;f.at(103000);
+  const fresh=await f.send({kind:route,fresh:true},sender);
+  assert.equal(fresh.ok,true);
+  const recovered=await f.service.replyList();
+  assert.equal(recovered.verified,true);assert.equal(recovered.problem,null);
+  assert.equal(recovered.lastVerifiedAt,103000);
+});
+
+test('a passive inventory finishing after a fresh RPC failure cannot erase that failure',async()=>{
+  const f=await fixture({online:true});await f.settled();
+  const before=await f.service.replyList(),read=f.discovery.check.bind(f.discovery);
+  let enter,release;const started=new Promise(resolve=>{enter=resolve;});
+  const gate=new Promise(resolve=>{release=resolve;});
+  f.discovery.check=async options=>{
+    if(options.fresh)throw Object.assign(Error('offline'),{code:'E_UPDATE_NETWORK'});
+    const catalog=await read(options);enter();await gate;return catalog;
+  };
+  const passive=f.service.reconcile();await started;
+  const sender={id:extensionId,url:'chrome-extension://'+extensionId+'/sidepanel.html',frameId:0};
+  assert.equal((await f.send({kind:'market-index',fresh:true},sender)).error.code,'E_UPDATE_NETWORK');
+  release();assert.equal(await passive,false);
+  const current=await f.service.replyList();
+  assert.equal(current.verified,false);assert.equal(current.problem,'E_UPDATE_NETWORK');
+  assert.equal(current.lastVerifiedAt,before.lastVerifiedAt);assert.equal(current.badgeCount,0);
+});
+
+test('market index RPC is limited to trusted UI and preserves a requested fresh read',async()=>{
+  const f=await fixture({online:true});await f.settled();f.catalogReads.length=0;
+  const sender={id:extensionId,url:'chrome-extension://'+extensionId+'/sidepanel.html',frameId:0};
+  const reply=await f.send({kind:'market-index',fresh:true},sender);
+  assert.equal(reply.ok,true);assert.equal(reply.data.sourceId,'opendesk-official');
+  assert.equal(reply.data.apps[0].sha256,f.release.sha256);
+  assert.deepEqual(f.catalogReads,[true]);
+  assert.equal((await f.send({kind:'market-index',fresh:true},source())).ok,false);
+  assert.equal((await f.send({kind:'market-index',fresh:false},sender)).error.code,'E_UPDATE_OPERATION');
+});
+
+test('identity changes during index attestation or notice write cannot restore stale verified state',async()=>{
+  for(const phase of ['attestation','write']){
+    const f=await fixture({online:true});await f.settled();let once=false;
+    const replace=async()=>{if(once)return;once=true;
+      await f.api.storage.local.set({[MARKET_PROVENANCE_STORE]:{}});};
+    if(phase==='attestation'){
+      const before=f.discovery.assertCurrent.bind(f.discovery);
+      f.discovery.assertCurrent=async observed=>{await before(observed);await replace();};
+    }else{
+      const before=f.api.storage.local.set.bind(f.api.storage.local);
+      f.release.changelog='此变化要求写入原通知 Store';
+      f.api.storage.local.set=async values=>{
+        await before(values);if(Object.hasOwn(values,UPDATE_NOTICE_STORE))await replace();
+      };
+    }
+    assert.equal(await f.service.reconcile({fresh:true}),false,phase);
+    assert.equal(once,true);
+    await f.settled();
+    assert.equal((await f.service.replyList()).verified,false,'passive checks preserve the failed outcome');
+    const current=await f.service.replyList({fresh:true});
+    assert.equal(current.records.find(row=>row.id===f.tool.id).sourceReviewRequired,true,
+      'only the later recheck may establish a candidate, with explicit source review');
+  }
+});
+
+test('corrupt provenance or operation records are never treated as empty successful state',async()=>{
+  for(const [key,value] of [[MARKET_PROVENANCE_STORE,null],[MARKET_OPERATIONS_STORE,null],
+    [MARKET_OPERATIONS_STORE,{bad:null}],[MARKET_OPERATIONS_STORE,{bad:{state:'unknown'}}]]){
+    const f=await fixture({online:true});await f.settled();f.store[key]=value;
+    const current=await f.service.replyList({fresh:true});
+    assert.equal(current.verified,false);assert.equal(current.actionableCount,0);
+    assert.equal(current.problem,'E_UPDATE_READBACK');
+  }
 });

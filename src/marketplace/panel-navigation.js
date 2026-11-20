@@ -2,6 +2,7 @@
 import {marketError,validateMarketSubject} from './intent.js';
 import {validToolId} from '../ui/sidebar-tools/navigation.js';
 import {toolDocumentIdentity} from '../tool-document-url.js';
+import {validUpdateSource,sameUpdateSource} from '../platform/chrome/update-notice-state.js';
 
 export const MARKET_PANEL_NAV_PROTOCOL='opendesk.market.panel-navigation.v1';
 export const MARKET_PANEL_NAV_PREFIX='opendesk.market.panel-navigation.v1.';
@@ -29,7 +30,7 @@ export function marketPanelNavigationKey(windowId){
   return MARKET_PANEL_NAV_PREFIX+windowId;
 }
 export function createMarketPanelNavigation({windowId,tabId,source,action,toolId,version,
-  marketId=null,sha256=null,sourceDocumentId,sourceUrl,
+  marketId=null,sha256=null,updateSource=null,sourceDocumentId,sourceUrl,
   requestId=crypto.randomUUID(),issuedAt=Date.now()}={}){
   if(!id(windowId)||!id(tabId)||!validToolId(toolId)||
     !['built-in','external'].includes(source)||!['review','detail','open','open-local'].includes(action)||
@@ -46,9 +47,12 @@ export function createMarketPanelNavigation({windowId,tabId,source,action,toolId
   }
   if(source==='built-in'&&new URL(sourceUrl).pathname==='/app.html'&&action!=='review')
     throw marketError('E_NAV_FIELDS','应用更新入口仅允许打开固定候选审阅。');
+  if(updateSource!==null&&(source!=='built-in'||action!=='review'||!validUpdateSource(updateSource)))
+    throw marketError('E_NAV_FIELDS','在线更新来源身份不完整。');
   return {version:1,windowId,tabId,source,sourceDocumentId,sourceUrl,
     action,toolId,marketId,releaseVersion:version,
-    sha256,requestId,issuedAt,status:'NAVIGATION_PENDING'};
+    sha256,...(updateSource?{updateSource:structuredClone(updateSource)}:{}),
+    requestId,issuedAt,status:'NAVIGATION_PENDING'};
 }
 export function validMarketPanelNavigation(value,{windowId,now=Date.now()}={}){
   if(!value||value.version!==1||value.windowId!==windowId||!id(windowId)||
@@ -59,7 +63,7 @@ export function validMarketPanelNavigation(value,{windowId,now=Date.now()}={}){
   try{
     const parsed=createMarketPanelNavigation({windowId:value.windowId,tabId:value.tabId,
       source:value.source,action:value.action,toolId:value.toolId,version:value.releaseVersion,
-      marketId:value.marketId,sha256:value.sha256,
+      marketId:value.marketId,sha256:value.sha256,updateSource:value.updateSource??null,
       sourceDocumentId:value.sourceDocumentId,sourceUrl:value.sourceUrl,
       requestId:value.requestId,issuedAt:value.issuedAt});
     return parsed.requestId===value.requestId;
@@ -67,6 +71,7 @@ export function validMarketPanelNavigation(value,{windowId,now=Date.now()}={}){
 }
 const sameTarget=(a,b)=>a.source===b.source&&a.action===b.action&&a.toolId===b.toolId&&
   a.marketId===b.marketId&&a.releaseVersion===b.releaseVersion&&a.sha256===b.sha256&&
+  sameUpdateSource(a.updateSource,b.updateSource)&&
   a.tabId===b.tabId&&a.sourceDocumentId===b.sourceDocumentId&&a.sourceUrl===b.sourceUrl;
 // Verify Chrome's browser-owned source document immediately before presenting.
 export async function verifyMarketPanelNavigationSource(api,request){
@@ -212,12 +217,13 @@ export function registerTrustedMarketNavigation(api=globalThis.chrome){
     try{opening=Promise.resolve(api.sidePanel.open({windowId:sender.tab.windowId})).then(()=>true,()=>false);}
     catch{opening=Promise.resolve(false);}
     void (async()=>{
-      if(!exact(message,['protocol','action','target','toolId','version','marketId','sha256'])||
+      if(!exact(message,['protocol','action','target','toolId','version','marketId','sha256',
+        ...(message.updateSource===undefined?[]:['updateSource'])])||
         message.action!=='NAVIGATE')
         throw marketError('E_NAV_FIELDS','内部市场导航契约无效。');
       const request=createMarketPanelNavigation({windowId:sender.tab.windowId,tabId:sender.tab.id,source:'built-in',
         action:message.target,toolId:message.toolId,version:message.version,
-        marketId:message.marketId,sha256:message.sha256,
+        marketId:message.marketId,sha256:message.sha256,updateSource:message.updateSource??null,
         sourceDocumentId:sender.documentId,sourceUrl:sender.tab.url});
       if(!await verifyMarketPanelNavigationSource(api,request))
         throw marketError('E_NAV_DOCUMENT','市场文档或窗口已经变化，请重新点击。');

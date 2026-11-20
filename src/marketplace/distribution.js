@@ -3,6 +3,8 @@
 import {loadMarketChannel} from './external.js';
 import {validateMarketSubject,marketError} from './intent.js';
 import {validateSidebarToolPackage,serializeSidebarToolPackage,sidebarToolPackageHash} from '../ui/sidebar-tools/package.js';
+import {MAX_MARKET_PACKAGE_BYTES} from './update-index.js';
+import {sameStorageValue} from '../ui/sidebar-tools/storage-state.js';
 export const marketReleaseBase=subject=>'/releases/'+subject.marketId+'/'+subject.version+'/';
 const fields=(v,keys)=>v&&typeof v==='object'&&!Array.isArray(v)&&Object.keys(v).sort().join(',')===[...keys].sort().join(',');
 export async function marketResource(url,limit,fetcher=globalThis.fetch){
@@ -26,7 +28,7 @@ export async function marketResource(url,limit,fetcher=globalThis.fetch){
 }
 // The descriptor is the release's fixed published identity, scoped to the
 // compiled market channel. Reads/open actions do not download or execute code.
-export async function loadMarketReleaseDescriptor(subject,{api=globalThis.chrome,fetcher=globalThis.fetch,origin}={}){
+export async function loadMarketReleaseDescriptor(subject,{api=globalThis.chrome,fetcher=globalThis.fetch,origin,expectedDescriptor}={}){
   subject=validateMarketSubject(subject);
   if(subject.kind!=='app')throw marketError('E_INTENT_FIELDS','此操作只支持单个应用。');
   const channel=await loadMarketChannel(api,fetcher);
@@ -39,6 +41,10 @@ export async function loadMarketReleaseDescriptor(subject,{api=globalThis.chrome
     release.packagePath!==base+'package.opendesk-tool.json'||!Number.isSafeInteger(release.bytes)||release.bytes<1||
     typeof release.sha256!=='string'||!(/^[a-f0-9]{64}$/).test(release.sha256))
     throw marketError('E_PACKAGE_IDENTITY','市场发行描述与所选应用或版本不一致。');
+  if(expectedDescriptor&&!sameStorageValue(release,expectedDescriptor))
+    throw marketError('E_PACKAGE_IDENTITY','固定发行描述与已验证的签名索引不一致。');
+  if(release.bytes>MAX_MARKET_PACKAGE_BYTES)
+    throw marketError('E_TOOL_LIMIT','发行包超过当前下载预算；原安装保留。');
   return {release,base};
 }
 export async function loadMarketTool(subject,options={}){

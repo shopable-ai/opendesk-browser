@@ -60,9 +60,9 @@ async function configuration(refresh=false){
     if(response.ok!==true)throw Error('Channel HTTP error');
     value=await response.json();
     if(!value||typeof value!=='object'||Array.isArray(value))throw Error('Channel JSON error');
-  }catch{throw problem('E_CHANNEL','暂时无法读取市场安装配置。请检查网络后重试，或使用浏览器扩展内市场。');}
+  }catch{throw problem('E_CHANNEL','暂时无法读取市场安装配置。请检查网络后重试；已安装的应用仍可在 OpenDesk 扩展列表中使用。');}
   if(value.protocol!==protocol||value.schema!=='opendesk.market.channel.v1')throw problem('E_PROTOCOL','市场安装配置不兼容。');
-  if(!value.enabled)throw problem('E_CHANNEL_DISABLED','此网站尚未启用安装交接，请使用扩展内市场。');
+  if(!value.enabled)throw problem('E_CHANNEL_DISABLED','此网站尚未启用安装交接。请等待市场来源配置完成；已安装的应用仍可在 OpenDesk 扩展列表中使用。');
   if(value.origin!==location.origin)throw problem('E_ORIGIN','此页面地址与受信任市场来源不一致，请使用配置中的地址。');
   if(!/^[a-p]{32}$/.test(value.extensionId))throw problem('E_EXTENSION_ID','市场未配置有效的 OpenDesk Browser 浏览器扩展，请联系市场维护者。');
   channel=value;return value;

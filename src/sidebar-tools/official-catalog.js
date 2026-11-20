@@ -3,6 +3,7 @@
 import {validateSidebarToolPackage,validateSidebarToolPackageMetadata,SIDEBAR_TOOL_FORMAT_V2,serializeSidebarToolPackage} from '../ui/sidebar-tools/package.js';
 import {compareToolVersions,sameSidebarToolPackage} from '../ui/sidebar-tools/installation.js';
 import {sameStorageValue} from '../ui/sidebar-tools/storage-state.js';
+import {loadOnlineUpdateTool} from '../marketplace/update-client.js';
 
 export const OFFICIAL_SOURCE_SCHEMA='opendesk.official-tools.sources.v1';
 export const OFFICIAL_RELEASE_SCHEMA='opendesk.official-tools.releases.v1';
@@ -233,6 +234,8 @@ export async function loadOfficialCatalog({api=globalThis.chrome,fetcher=globalT
     apps:base.apps.map(row=>row.toolId==='stay-focus'?release:row)});
 }
 export async function loadOfficialTool(release,{api=globalThis.chrome,fetcher=globalThis.fetch}={}){
+  if(release?.sourceId!==undefined||release?.updateSource!==undefined)
+    return loadOnlineUpdateTool(release,{api,fetcher});
   const row=validateOfficialReleaseCatalog({schema:OFFICIAL_RELEASE_SCHEMA,
     sourceRepository:OFFICIAL_SOURCE_REPOSITORY,apps:[release]}).apps[0];
   if(row.remoteCommit){

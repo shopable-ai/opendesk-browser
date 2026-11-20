@@ -12,6 +12,9 @@ import {compareToolVersions} from '../src/ui/sidebar-tools/installation.js';
 import {resolveMarketChannel,marketOrigin} from './market-channel.mjs';
 import {loadMarketSnapshots,mergeMarketReleases} from './market-release-snapshots.mjs';
 import {marketScreenshots} from '../src/market-site/media.mjs';
+import {verifySignedUpdateIndex,sameUpdateRelease,parseUpdateIndexJSON,decodeUpdateIndexBase64,
+  MAX_UPDATE_INDEX_BYTES,MAX_UPDATE_PAYLOAD_BYTES} from '../src/marketplace/update-index.js';
+import {readMarketSnapshotFile,MARKET_INDEX_FILE} from './market-index-response.mjs';
 import {layout,home,appDetail,appPath,collectionPath,collectionList,collectionDetail,
   installPage,installPath,helpPage,escapeHTML} from '../src/market-site/templates.mjs';
 const hash=bytes=>createHash('sha256').update(bytes).digest('hex');
@@ -29,7 +32,8 @@ async function inputIdentity(){
   const paths=[...await officialToolInputs()];
   for(const dir of ['src/market-site','official-tools/releases'])paths.push(...(await filesAt(dir)).map(p=>dir+'/'+p));
   paths.push('src/ui/design-tokens.css','src/marketplace/catalog.js','src/marketplace/channel-config.json',
-    'scripts/build-market-site.mjs','scripts/build-sidebar-tool.mjs','scripts/market-channel.mjs','scripts/market-release-snapshots.mjs','scripts/build-official-tools.mjs','package-lock.json');
+    'scripts/build-market-site.mjs','scripts/market-index-response.mjs','src/marketplace/update-index.js',
+    'scripts/build-sidebar-tool.mjs','scripts/market-channel.mjs','scripts/market-release-snapshots.mjs','scripts/build-official-tools.mjs','package-lock.json');
   return Promise.all([...new Set(paths)].sort().map(async path=>{const bytes=await readFile(path);return {path,bytes:bytes.length,sha256:hash(bytes)};}));
 }
 export const MARKET_HEADERS={
@@ -90,7 +94,62 @@ async function previousMarketRelease(dest){
     const unavailable=catalog.unavailableReleases.some(item=>item.id===row.id&&item.version===row.version);
     if(unavailable===packages.has(releaseKey(row)))throw Error('Invalid previous market release availability');
   }
-  return {exists:true,identity:buildId,snapshots,packages};
+  return {exists:true,identity:buildId,snapshots,packages,indexBytes:verified.get(MARKET_INDEX_FILE)||null};
+}
+async function marketUpdateInput({env,signedUpdateIndex,updatePublicKeys}){
+  let supplied=signedUpdateIndex;
+  if(supplied===null&&env.OPENDESK_MARKET_SIGNED_INDEX_FILE)
+    supplied=await readMarketSnapshotFile(env.OPENDESK_MARKET_SIGNED_INDEX_FILE);
+  if(supplied!==null&&typeof supplied!=='string'&&!(supplied instanceof Uint8Array))
+    throw Error('Market signed index must be exact UTF-8 bytes');
+  const bytes=supplied===null?null:Buffer.from(supplied);
+  if(bytes&&(bytes.length<1||bytes.length>MAX_UPDATE_INDEX_BYTES))throw Error('Invalid market signed index size');
+  let publicKeys=updatePublicKeys;
+  if(publicKeys===null&&env.OPENDESK_MARKET_UPDATE_KEYS_FILE)
+    publicKeys=JSON.parse(await readMarketSnapshotFile(env.OPENDESK_MARKET_UPDATE_KEYS_FILE,{limit:65536}));
+  publicKeys=JSON.parse(JSON.stringify(publicKeys||{}));
+  return {bytes,publicKeys,identity:{snapshotSha256:bytes?hash(bytes):null,publicKeysSha256:hash(JSON.stringify(publicKeys))}};
+}
+const sameJSON=(left,right)=>JSON.stringify(left)===JSON.stringify(right);
+async function verifyMarketUpdate(input,previous,now){
+  if(!input.bytes){
+    if(previous.indexBytes)throw Error('A signed channel cannot be removed by an unsigned market rebuild');
+    return null;
+  }
+  const verified=await verifySignedUpdateIndex(input.bytes,{publicKeys:input.publicKeys,now});
+  if(previous.indexBytes){
+    // A previous expired snapshot is history, never a valid HTTP cache. Its
+    // signed issuedAt supplies a historical verification instant only; keys
+    // still come exclusively from the publisher's explicit trusted config.
+    const oldEnvelope=parseUpdateIndexJSON(previous.indexBytes);
+    const issuedAt=parseUpdateIndexJSON(decodeUpdateIndexBase64(oldEnvelope.payload,MAX_UPDATE_PAYLOAD_BYTES),MAX_UPDATE_PAYLOAD_BYTES).issuedAt;
+    const prior=await verifySignedUpdateIndex(previous.indexBytes,{publicKeys:input.publicKeys,now:Date.parse(issuedAt)});
+    if(verified.payload.sequence<prior.payload.sequence||verified.payload.sequence===prior.payload.sequence&&verified.payloadSha256!==prior.payloadSha256)
+      throw Error('Market update sequence rollback or conflicting payload');
+    for(const before of prior.payload.releases){
+      const after=verified.payload.releases.find(row=>row.kind===before.kind&&row.marketId===before.marketId&&row.version===before.version);
+      if(after&&!sameUpdateRelease(before,after))throw Error('Immutable signed release conflict: '+releaseKey({id:before.marketId,version:before.version}));
+    }
+  }
+  return verified;
+}
+function verifyUpdateArtifacts(index,downloads,packages){
+  if(!index)return;
+  for(const release of index.payload.releases){
+    const descriptor=downloads.find(row=>row.marketId===release.marketId&&row.version===release.version);
+    if(!descriptor){
+      if(release.state==='withdrawn')continue;
+      throw Error('Published index release has no verified package: '+release.marketId+'@'+release.version);
+    }
+    if(!Object.keys(descriptor).every(key=>descriptor[key]===release.descriptor[key]))
+      throw Error('Signed descriptor differs from built immutable release');
+    const bytes=packages.get(release.marketId+'@'+release.version);
+    const tool=validateSidebarToolPackage(JSON.parse(bytes));
+    const requirements={format:tool.format,browserSdk:tool.requires?.browserSdk??null,uiRuntime:tool.uiRuntime??null};
+    if(tool.id!==release.toolId||tool.version!==release.version||tool.title!==release.packageTitle||tool.description!==release.description||
+      !sameJSON(tool.capabilities,release.capabilities)||!Object.keys(requirements).every(key=>requirements[key]===release.requirements[key]))
+      throw Error('Signed release metadata differs from actual package');
+  }
 }
 async function projectPackages(projects){
   if(!Array.isArray(projects)||projects.length>64||projects.some(p=>typeof p!=='string'||!p.trim()))
@@ -104,7 +163,7 @@ async function projectPackages(projects){
   }
   return result;
 }
-export async function buildMarketSite({env=process.env,projects=[]}={}){
+export async function buildMarketSite({env=process.env,projects=[],signedUpdateIndex=null,updatePublicKeys=null,now=Date.now}={}){
   const mode=env.OPENDESK_MARKET_BUILD_MODE||'development';
   const channel=resolveMarketChannel({mode,env});
   // Legacy deployment metadata never opens installation trust by itself.
@@ -120,6 +179,8 @@ export async function buildMarketSite({env=process.env,projects=[]}={}){
   // Reuse the fixed-release conflict and metadata validator for every supplied
   // version, including multiple versions of the same independent project.
   const previous=await previousMarketRelease(dest),snapshots=await loadMarketSnapshots();
+  const updateInput=await marketUpdateInput({env,signedUpdateIndex,updatePublicKeys});
+  const signedIndex=await verifyMarketUpdate(updateInput,previous,now);
   for(const {project,row} of external)snapshots.push({schema:'opendesk.market.release-snapshot.v1',
     source:{kind:'official-builder',identity:'sha256:'+hash(project)},
     catalog:{...official.catalog,apps:[row]},collections:[]});
@@ -169,6 +230,8 @@ export async function buildMarketSite({env=process.env,projects=[]}={}){
       await write(descriptor.packagePath.slice(1),bytes);
       downloads.push(descriptor);
     }
+    verifyUpdateArtifacts(signedIndex,downloads,packages);
+    if(signedIndex)await write(MARKET_INDEX_FILE,updateInput.bytes);
     await write('catalog.json',JSON.stringify({format:'opendesk.market.public.v1',releases:archived.releases,
       downloads,unavailableReleases:releases.filter(row=>!row.downloadable).map(({id,version})=>({id,version})),
       recommended:[...latest.values()].map(({id,version})=>({id,version})),collections:archived.collections},null,2)+'\n');
@@ -203,17 +266,22 @@ export async function buildMarketSite({env=process.env,projects=[]}={}){
     }
     await page('/how-to-install/','安装帮助','在浏览器中审阅安装应用，无需 OpenDesk 桌面应用。',helpPage(channel),'help');
     await write('404.html',layout({title:'页面不存在',description:'请检查应用与固定版本地址。',body:'<section class="hero"><h1>找不到这个页面</h1><p class="lead">请检查链接。已有固定版本不会自动改为其他版本。</p><p><a href="/">返回应用市场</a></p></section>',path:'/404.html',channel,origin,clientRevision}));
-    await write('_headers','/*\n'+Object.entries({...MARKET_HEADERS,...(mode==='production'?{'Strict-Transport-Security':'max-age=31536000'}:{})}).map(([key,value])=>'  '+key+': '+value).join('\n')+'\n');
+    await write('_headers','/*\n'+Object.entries({...MARKET_HEADERS,...(mode==='production'?{'Strict-Transport-Security':'max-age=31536000'}:{})}).map(([key,value])=>'  '+key+': '+value).join('\n')+'\n'+
+      '/api/market/v1/channels/stable/index\n  Content-Type: application/json; charset=utf-8\n  Cache-Control: public, max-age=0, must-revalidate\n');
     await write('robots.txt','User-agent: *\n'+(mode==='development'?'Disallow: /\n':'Allow: /\n')+(origin?'Sitemap: '+origin+'/sitemap.xml\n':''));
     await write('sitemap.xml','<?xml version="1.0" encoding="UTF-8"?><urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">'+(origin?routes.filter(p=>!p.startsWith('/install/')).map(p=>'<url><loc>'+escapeHTML(origin+p)+'</loc></url>').join(''):'')+'</urlset>\n');
     const after=await inputIdentity();if(JSON.stringify(before)!==JSON.stringify(after))throw Error('Market inputs changed during build');
+    if(!sameJSON(updateInput.identity,(await marketUpdateInput({env,signedUpdateIndex,updatePublicKeys})).identity))
+      throw Error('Signed market update input changed during build');
+    if(signedIndex)await verifySignedUpdateIndex(updateInput.bytes,{publicKeys:updateInput.publicKeys,now});
     const projectInputs=rows=>rows.map(({project,row})=>({path:project,bytes:row.bytes,sha256:row.sha256}));
     if(JSON.stringify(projectInputs(external))!==JSON.stringify(projectInputs(await projectPackages(projects))))
       throw Error('Market project packages changed during build');
     const manifest={schema:'opendesk.market.build.v1',mode,channel,origin,apps:current.length,archivedReleases:releases.length,unresolvedReleaseReferences:[...unresolved.values()],
       externalInstall:channel.enabled?'CONFIGURED':'NOT_CONFIGURED',routes,sourceInputs:before,projectPackages:projectInputs(external),
+      updateIndex:signedIndex?{...updateInput.identity,sourceId:signedIndex.payload.sourceId,channel:signedIndex.payload.channel,sequence:signedIndex.payload.sequence,expiresAt:signedIndex.payload.expiresAt}:null,
       screenshots:media.map(({bytes,...row})=>row),
-      sourceFingerprint:hash(JSON.stringify({sourceInputs:before,projectPackages:projectInputs(external)})),catalogSha256:hash(JSON.stringify(official.catalog)),
+      sourceFingerprint:hash(JSON.stringify({sourceInputs:before,projectPackages:projectInputs(external),updateIndex:updateInput.identity})),catalogSha256:hash(JSON.stringify(official.catalog)),
       files:outputFiles.sort((a,b)=>a.path.localeCompare(b.path))};
     manifest.buildId=hash(JSON.stringify(manifest));
     await writeFile(resolve(stage,'site-build.json'),JSON.stringify(manifest,null,2)+'\n');
@@ -225,7 +293,7 @@ export async function buildMarketSite({env=process.env,projects=[]}={}){
     try{await rename(stage,dest);}catch(error){if(old)await rename(old,dest);throw error;}
     if(old)await rm(old,{recursive:true,force:true});
     return {output:dest,buildId:manifest.buildId,apps:current.length,releases:releases.length,origin,mode,
-      extensionId:channel.extensionId,externalInstall:manifest.externalInstall};
+      extensionId:channel.extensionId,externalInstall:manifest.externalInstall,updateIndex:manifest.updateIndex};
   }catch(error){await rm(stage,{recursive:true,force:true});throw error;}
 }
 if(import.meta.url===pathToFileURL(process.argv[1]||'').href)console.log(JSON.stringify(await buildMarketSite({

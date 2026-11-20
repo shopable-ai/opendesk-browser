@@ -1,5 +1,200 @@
 # OpenDesk 应用市场网站与可信安装交接 · R5
 
+## 2026-11-20：签名发行索引与 Payload 接入（OD-MARKET-UPDATE-PAYLOAD-CONTRACT）
+
+**原始目标：** 用户从原扩展列表打开独立外站；维护者发布固定工具版本后，用户仍在原列表检查、查看说明和权限变化，经原审阅与 Installer 原位更新，保留数据，并读回真实版本、来源和 SHA。下面是对既有网站、下载器和更新链的增量，不是第二个市场或安装器。
+
+唯一机器合同是 [`docs/api/opendesk-market-update-v1.openapi.json`](../../api/opendesk-market-update-v1.openapi.json)。旧 `/api/opendesk-market/v1/update-index/stable` 和 `/api/market/v1/update-index/stable` 不是 HTTP 语法错误，但没有表达渠道资源的归属。对本轮基线 `3a9677ab403a83859bf088b2ca6d38799f857268` 的相关源码搜索未找到其真实消费者，本轮直接收敛为一个入口，不提供重定向别名。若以后发现独立部署的旧消费者，须单独核实并设计有截止条件的兼容，不能据此声称已迁移。
+
+| 层次 | 唯一值或含义 |
+| --- | --- |
+| 公共 HTTP | `GET /api/market/v1/channels/stable/index` |
+| OpenAPI | `/api/market/v1/channels/{channel}/index`；一期 `enum: [stable]` |
+| `servers` | Origin 或 `/`，不重复加入 `/api` |
+| Payload 根 Config `endpoints[].path` | `/market/v1/channels/:channel/index` |
+| Payload 默认 `routes.api` | `/api`；不为单个市场接口修改全站前缀 |
+| 路径含义 | `api` 接口入口，`market` 业务域，`v1` HTTP 合同版本，`stable` 发布渠道，`index` 完整发行快照 |
+
+HTTP API 版本、签名 envelope schema、payload schema、快照 sequence、应用 version 和 Payload 软件版本独立。路径收敛不改 `opendesk.market.intent.v1`、`opendesk.market.signed-index.v1` 或 `opendesk.market.update-index.v1`。第一阶段仅 `opendesk-official` 来源、stable、Sidebar Tool，来源与类型进入受验证数据和可信客户端配置，不增加 publisher/type URL 层级。
+
+### 当前源码调用关系与可宣称范围
+
+原 `scripts/build-market-site.mjs` 接收已经签好的快照，核对签名、时效、已知 sequence、现有固定包原件及安全元数据，然后与网站一起生成。原 `scripts/serve-market-site.mjs` 在静态资源分派前调用 `scripts/market-index-response.mjs`，直接返回存储的 envelope 原始字节。索引读取、验签和本地比较由 `src/marketplace/update-index.js` / `update-discovery.js` 接入原 Worker 更新服务；原列表仍消费原 Store，安装仍使用原下载器和 Installer。具体接线与未测项以当前源码、定向测试和本轮交付记录为准；只有 URL 修订不算已接线。
+
+`/catalog.json` 继续用于外站展示；以下六字段固定 descriptor 和包仍在 `/api` 之外：
+
+- `/releases/opendesk/{toolId}/{version}/descriptor.json`
+- `/releases/opendesk/{toolId}/{version}/package.opendesk-tool.json`
+
+descriptor 严格保持 `schema、marketId、version、bytes、sha256、packagePath`。包内 ID、版本、能力、运行需求和规范字节须与索引、descriptor 对齐；市场页面不能提供任意下载 URL。对象存储可在批准市场 Origin 后通过同源代理响应，不能要求当前下载器跟随 S3 跨源重定向。
+
+### HTTP、快照与缓存
+
+| 状态 | 语义 |
+| --- | --- |
+| 200 | 完整、当前有效的已存储签名快照，`application/json`，直接响应，无重定向 |
+| 304 | 服务器也先验证当前快照；客户端只复用尚未过期且已验证的同一快照 |
+| 404 | 不支持的渠道或索引路由，无 stable 回落 |
+| 429 | 限流，带有界 `Retry-After`；部署方接入 limiter 或受控代理 |
+| 503 | 快照不存在、无可信密钥、签名/时效不合法、读取超时或服务未就绪；不返回成功空列表 |
+
+静态适配器输出强 ETag 和 `Cache-Control: public, max-age=0, must-revalidate`。ETag 只描述缓存字节，不能续签或证明全网最新。快照读入上限 1 MiB，服务等待上限 5 秒；客户端另有自己的有界网络预算和 payload/条目限制。完整指当次可选择发行及明确撤回，不是无界历史；缺少旧安装不代表最新、撤回或应卸载。`where/depth/page` 等参数不改变返回的签名清单，不能分页拼接。
+
+`/index` 是扩展名为空的资源，必须明确 JSON MIME。原开发服务拥有 `/api/market/v1/` 路径，错误不会落回 HTML。静态平台的 `_headers` 只是一份配置输入，不能独自实现过期检查、304、503、未知渠道与限流；生产必须将这个接口交给同合同的响应器/Route Handler/同源代理。不能只上传一个文件就声称 API 已部署。实测必须包含 `basePath`、`trailingSlash` 和代理转发，确保没有 `/api/api`、额外 Collection/Global slug、HTML fallback 或 301/302/307/308。
+
+跨域消费时显式配置允许 Origin；响应器支持 OPTIONS、`If-None-Match` 预检与暴露 `ETag, Retry-After`，不启用凭据。CORS 只约束浏览器读取，不构成发布源信任、签名授权或安装批准。
+
+### 当前构建与本地 HTTP 入口
+
+使用原构建函数的 `signedUpdateIndex`（原始 UTF-8 字节）和 `updatePublicKeys`（`keyId → 标准 Base64 的 32 字节 Ed25519 公钥`），或原 CLI 的两个输入文件：
+
+```bash
+OPENDESK_MARKET_SIGNED_INDEX_FILE=/absolute/path/stable.signed.json \
+OPENDESK_MARKET_UPDATE_KEYS_FILE=/absolute/path/trusted-public-keys.json \
+npm run dev:market
+```
+
+上述路径是维护者提供的输入示意，不是本仓库已有生产密钥或已发布制品。签名由 `scripts/sign-market-update-index.mjs` 在离线发布步骤生成，网站构建器不接收私钥、不自动生成生产信任根。扩展的可信公钥配置必须另经批准并进入本体构建；网站给出的公钥不能自授权客户端。
+
+离线签名命令如下；payload 是符合唯一 OpenAPI 的完整快照原始 UTF-8 文件，输出文件必须尚不存在。签名器保留该 payload 的精确字节，并用派生公钥自验后输出 envelope；它不上传文件或切换发布渠道。
+
+```bash
+node scripts/sign-market-update-index.mjs \
+  --payload /absolute/path/stable.payload.json \
+  --private-key /absolute/path/release-signing-key.pem \
+  --key-id MAINTAINER_CONFIGURED_KEY_ID \
+  --out /absolute/path/new-stable.signed.json
+```
+
+`OPENDESK_MARKET_INDEX_CORS_ORIGINS` 可给开发服务提供显式 Origin JSON 数组。`OPENDESK_MARKET_PROJECTS` 继续沿用现有独立项目构建输入。单独运行 `npm run build:market-site` 时也可以传入上述两个签名相关环境变量；仅构建不启动 HTTP 服务。
+
+构建验证每条 published 发行在本次输出中有对应原件，核对大小、SHA、六字段 descriptor、真实标题/描述/能力/运行需求后才写索引；withdrawn 可保留无可下载原件的明确撤回。已有签名渠道不能被一次无签名重建静默移除。对上一份已验证输出检查 sequence、同序号 payload 冲突以及已知同版本安全身份冲突；过期旧快照只可在签名验证后用于历史比较，绝不用于 200/304。无法验证旧密钥时失败并保留旧输出。它不是完整历史发行账本，不能声称检测了没有留存证据的全部历史冲突。
+
+全部输入验证后才替换输出目录，失败保留原输出，替换过程不暴露半份快照；如目录切换间资源暂时缺失，索引准确返回 503。构建时和最后替换前再次核对签名输入与有效期。部署端仍需独立完成发布指针的原子更新。
+
+### Payload 的实际状态和接入设计
+
+本轮基线的 `package.json`、锁文件与市场服务没有 Payload/Next 依赖，也没有实际 Payload `routes.api`、Next `basePath` / `trailingSlash` 或生产代理配置。因此**没有可声称已安装的 Payload 软件版本或已验证的 Payload HTTP 部署**。设计依据是 [Payload 当前 REST API / Custom Endpoints 官方文档](https://payloadcms.com/docs/rest-api/overview#custom-endpoints) 和 [3.0 迁移文档](https://payloadcms.com/docs/migration-guide/overview)：采用根 Config 的端点、Web Request/Response 形态；实现前须锁定真实 Payload 版本及部署参数再联调，不把示例当部署事实。
+
+根 Config 在默认 `/api` 下注册 `/market/v1/channels/:channel/index`，handler 读取已发布不可变快照并调用相同响应合同。不要放入某个 Collection/Global，避免追加 slug；不要修改全站 API prefix。根路径 catalog/releases 继续由静态服务、同源代理或独立 Next Route Handler 提供。Payload 自定义端点不会自动加 CORS 响应头，应按实际版本使用官方 `headersWithCors` 或同合同显式头，并验证 OPTIONS 和条件请求。
+
+Payload 后台分别管理应用资料、软件 release、不可变制品元数据、已签名快照与渠道当前指针；CMS Versions/Drafts 只管理编辑历史，不等于软件发行版本。公开 GET 只取渠道指针引用的已签名快照，不查询或返回管理员会话、草稿及任意分页 CRUD 结果。不能把登录态作为安装合同。
+
+发布顺序是：准备固定原件 → 上传并从批准同源读回验证 → 生成完整 payload → 离线签名并验签 → 保存不可变快照 → 在数据库事务中按预期 sequence 原子切换渠道指针。数据库事务不覆盖对象存储上传；上传或验证失败时不切换指针。撤回/回滚发布也采用更高 sequence 的新快照，不回退 sequence。私钥不作为公开 CMS 字段，不从索引或网页动态添加可信公钥。
+
+### 验收边界与下一条用户操作
+
+本轮补齐了实际调用断点：在线完整发行可以通过原 `openOfficialReview` 进入审阅，不再要求随包目录已有同一新版本。缺失旧 provenance 或来源身份不一致时，原界面明确展示来源替换；UI 与 Installer 共用完整来源记录校验。权限变更仍由原审阅处理，来源更换不继承敏感授权，也不误删用户的站点拒绝记录。
+
+最后一次 fresh 核验后，Installer 在原工具/目录锁内短暂取得原 `UPDATE_NOTICE_LOCK`，重新比较 Worker 核验票据与持久快照的 sequence、原 payload SHA、来源、渠道和时效，再记录原事务首写。网络不在该短锁内；已被本机接受的新撤回快照会阻止旧审阅开始事务。UNKNOWN 恢复绑定原 operationId，不重下载、不重放安装。
+
+显式 fresh 检查失败后，被动缓存读取不会清掉失败提示或推进成功核验时间，只有实际 fresh 成功才清除。该失败记录目前只在 Worker 生命周期内锁存；重启可重新验证尚未过期的签名缓存。`lastVerifiedAt` 是本机核验时间，不是全网最新证明。历史身份记录达到 4096 条、展示状态达到安全容量时明确失败，不以截断伪造成功。
+
+### 本轮最终验证与独立审查（2026-11-20）
+
+基线为 `main@3a9677ab403a83859bf088b2ca6d38799f857268`，本节描述包含这些变更的 Git 候选。是否交付到远端，以实际 commit 和远端 `main` 引用为准；本文不能代替推送证据。没有继承旧临时工作区的“88 PASS”，没有运行全仓 `npm test` 或把历史 Chrome 回执绑定到本候选。
+
+| 层次 | 实际结果 | 证据边界 |
+| --- | --- | --- |
+| 协议、更新服务、Store、UI、签名发现、原安装器、HTTP/构建、安全与 Page companion 定向验证 | 213 / 213 PASS | 下列 14 个测试文件的同一最终候选运行；Chrome storage/锁等由测试适配 |
+| 原 Host 在线审阅及 UNKNOWN 恢复 | 4 / 4 PASS | 真实 Host 模块；Worker 回执与浏览器环境为适配器 |
+| 原 app-shell 受影响行为 | 2 / 2 PASS | SSR/组件证据，不是原生 Chrome |
+| 唯一用例合计 | **219 / 219 PASS，0 FAIL、0 SKIPPED** | 不累加之前重复运行及独立复核的重叠用例 |
+| localhost HTTP 联调 | PASS | 实际 TCP、原服务子进程、200/304/404/429/503、无重定向；并有真实签名→Worker→下载器→Installer 数据保留回读 |
+| 真实 Chrome 原位更新 | **NOT_TESTED** | 尚无本候选的真实点击、权限、Registry/provenance/SHA/原数据回读 |
+| Payload 运行与生产部署 | **NOT_TESTED** | 未安装 Payload；生产 channel 与客户端签名公钥仍未配置 |
+
+可复现的定向命令（仓库根目录，依赖沿用锁文件）：
+
+```bash
+node --test --test-concurrency=1 \
+  tests/environment/update-notice-state.test.mjs \
+  tests/environment/update-notice-service.test.mjs \
+  tests/environment/extension-inline-update-r4.test.mjs \
+  tests/environment/market-panel-navigation-r691.test.mjs \
+  tests/environment/market-update-contract.test.mjs \
+  tests/environment/update-notice-ui.test.mjs \
+  tests/environment/extension-inline-update-visibility.test.mjs \
+  tests/environment/market-update-discovery.test.mjs \
+  tests/environment/market-trusted-install.test.mjs \
+  tests/environment/market-update-http.test.mjs \
+  tests/environment/market-dynamic-site.test.mjs \
+  tests/environment/market-update-security.test.mjs \
+  tests/environment/sidebar-tool-page-module-install.test.mjs \
+  tests/environment/market-update-admission-audit.test.mjs
+node --test --test-name-pattern='online update Host' \
+  tests/environment/sidebar-tools-host.test.mjs
+node --test --test-name-pattern='app.html SSR|standalone app' \
+  tests/environment/react-sidebar-app-shell-r351.test.mjs
+```
+
+本次执行工作区原始日志为 `artifacts/market-update-payload-contract/final-candidate.tap`、`final-host.tap`、`final-app-shell.tap`；日志遵循原忽略规则，不随源码提交。独立签名竞态用例确实在旧实现失败、修复后通过；不能将其内存浏览器适配器称为 Chrome 实机。
+
+另有已记录失败，未伪装成全仓通过：`marketplace-source-review.test.mjs` 的 9 条旧内置市场 UI 测试在本候选和只读加载的基线 main 均失败；没有为此恢复已退役 UI。一次误选的 `app-page-programs.test.mjs` 额外运行出现 40 条失败，代表性的 `preview.beginInstalledAllocation is not a function` 在基线复现，其余未逐项归因；没有扩大本任务去修该 Page 框架。它们不计入上述 219 条定向通过，也不构成全仓绿色声明。
+
+三个评审者分别独立读取最终相关源码；没有参与对应生产实现。以下为**独立 AI 设计审查**，不是外部人工认证或产品验收。随后 API 与安全视角进行了反方复现，实际修复了 fresh 失败被旧缓存清除、同字节来源漂移、原审阅只选随包旧版、原 UNKNOWN 身份错配、敏感授权迁移、当前受阻状态被历史裁剪，以及事务开始前已接受撤回仍可安装等问题；当前已发现的 P0/P1 无未决项。
+
+| 独立视角 | 最终评分 | 剩余条件与扣分依据 |
+| --- | ---: | --- |
+| API / 架构 | 96 / 100 | fresh 失败历史仅内存；Payload 部署参数、生产密钥轮换/历史容量恢复、固定 Host 依赖矩阵尚未实证，各扣 1 |
+| Payload / 数据 / 部署 | 96 / 100 | 实际版本、生产代理/CORS/限流、对象存储与数据库发布切换、生产信任根/轮换，各扣 1 |
+| 安装安全 / 生命周期 | 96 / 100 | Chrome 多窗/Worker/存储时序扣 2；原生授权迁移和真实数据回读扣 1；生产来源与签名者未验扣 1 |
+| 算术平均 | **(96 + 96 + 96) / 3 = 96 / 100** | 设计达标不替代 HTTP、Chrome 或部署验收 |
+
+当前生产 channel 仍为空；Payload 运行、真实 Chrome 旧版→新版更新和生产部署须分别记录为 `NOT_TESTED`，不能由设计分、构建或 Node 回执替代。下一条原生验收是：一个可独立更新的官方工具，原列表检查 → 原审阅更新 → 从真实 Registry/provenance/回执读回新版本、来源、SHA → 重开工具核对原数据。没有来源证据不得补造，UNKNOWN 沿原事务核对；检查失败不能阻止旧安装按原授权使用。
+
+### 本地 Codex 接续：先验收这一份实现，按证据修复
+
+下面的任务在包含本节的代码已经同步到本地 `main` 后执行。不要把重新设计接口或再写一份协议作为验收前置。
+
+```text
+任务：OD-MARKET-UPDATE-PAYLOAD-CONTRACT 的真实本地验收与必要修复。
+仓库：shopable-ai/opendesk-browser；只用 main，不创建分支、worktree、PR。
+
+1. 读取实际 AGENTS.md、当前 main SHA、git status 和本文件 2026-11-20 章节。
+   保留本机并行改动；不要 reset/clean/覆盖已有 watcher、Chrome Profile 或生产配置。
+   若本地没有上述签名发现与原 Installer 接线，先核对远端 main 和交付 commit，
+   不假定它已经存在，不用旧临时 ZIP 或上轮88 PASS替代当前源码。
+
+2. 以 docs/api/opendesk-market-update-v1.openapi.json 为唯一合同。
+   API 只用 /api/market/v1/channels/stable/index；固定六字段 descriptor、
+   原 intent v1、Page/Controller 各自安装合同保持兼容。
+   先核对相关输入与本节219项证据；有相关差异时只重跑受影响组，失败先定位再修。
+
+3. 核对现有 Chrome 实际加载目录、扩展ID、Worker、开发服务及构建指纹。
+   遵守仓库真实浏览器资源占用规则；日常开发沿用原 npm run dev，
+   隔离验收沿用已有 CFT/Profile 流程，不替换用户日常扩展。
+
+4. 生产 channel 和 MARKET_UPDATE_PUBLIC_KEYS 尚未配置，这是明确未完成条件。
+   若已有经核验的开发公钥/签名快照，复用它；否则生成只用于本地验收的独立密钥，
+   私钥留在仓库外，并在受控的本地开发构建中明确配置该公钥和批准的市场同源。
+   不从 HTTP、CMS 登录态或 localStorage 自动建立信任，不提交测试私钥，
+   不改生产信任根。记录并在结束时恢复自己临时的测试信任配置。
+
+5. 选择一项真实可独立更新的官方 Sidebar Tool，准备原打包器生成的旧/新固定发行。
+   新版必须确实只依赖当前可验证的 Browser SDK/Host；需要固定代码更新时，
+   显示“需更新Browser/兼容性待核对”，不通过改 contractHash 强行放行。
+   先安装旧版并写入可复核的测试数据，记录版本、来源、SHA和安装epoch。
+   通过原构建器、离线签名器和原市场HTTP服务提供新快照及同源原件。
+
+6. 在真实原扩展列表执行：打开商店 → 检查更新 → 查看新版本说明、来源与权限变化
+   → 原审阅确认 → 原 Installer 更新。读回真实 Registry、provenance、操作回执，
+   验证新版本/完整来源/SHA、原数据与原工具仍可使用，保留候选SHA和原始回执。
+   先验证取消确实不改变安装；UNKNOWN只能核对原 operationId，不能重放。
+
+7. 对本次实际改动做必要故障验证：坏签名、过期、未知渠道、检查离线、有效/过期304、
+   迟到低sequence及已接受撤回；检查失败不能显示最新，旧安装继续按原授权使用。
+   可以复用本节源码/HTTP回归，但不要将适配器结果冒充真实Chrome故障验收。
+
+8. 发现本链实际缺陷就沿现有模块最小修复并补定向回归，复验后更新本文件同一记录。
+   不建立第二个市场/Installer/后端，不扩展到支付、评价、第三方作者或静默批量升级。
+   Payload没有部署时，只确认接入合同；实际Payload/代理/生产发布仍标NOT_TESTED。
+
+9. 最终分别报告：代码与候选SHA、定向测试、真实HTTP、真实Chrome、Payload、生产。
+   给出测试前后版本/来源/SHA/数据的原始证据和未完成原因，不以设计96分替代验收。
+   commit/push按该本地会话明确授权与仓库规则办理，不自动发布生产。
+```
+
 ## 2026-11-10：VIP-only 网页市场接续与开发 SQLite Provider（增量，非生产发行）
 
 **边界：** 不改 `opendesk.market.intent.v1`、Source Policy、原 Market Host、原安装器、官方 Catalog 安装身份；后续实机证明必要的通用app.html修复见第13节。网页市场现有静态发布/固定发行继续沿用 `scripts/build-market-site.mjs`；它现在同时输出受控 `vip-continuation.js`。只有 `opendesk/ai-vip-share` 的网站客户端会读取当前已安装状态并尝试复用原 `OPEN_INSTALLED_APP`。同页合法开发 `#vip-ref` 从不交给扩展安装协议；挂起安装只保存原 `intentId` 和参考摘要，安装确认后必须经 Host `APP_OPENED` 才导航到固定的 `127.0.0.1:7898/activate`，然后由工具内原业务 Controller 执行预检和一次确认。取消、过期、未知和面板未打开不自动重复安装或领取。
@@ -70,7 +265,7 @@
 
 生成：首页和应用列表、搜索及三个实际分类、当前推荐详情、固定版本详情、套装列表及固定 revision、安装交接说明、主扩展／连接帮助、404、robots、sitemap、逐页 title／description／OG／canonical。每个分享路径都有实际 `index.html`，不依赖服务端 SPA fallback。当前推荐路径与固定版本路径分开。
 
-完整产物先生成到唯一临时目录，通过后替换已识别的网站产物；不读取旧网站页面，不把扩展包目录当网站目录，不覆盖未经识别的用户目录。`site-build.json` 记录 source inputs、输出文件 hash、目录身份、构建模式、真实配置及 build ID；它不包含安装清单或用户数据。公开目录不含可执行工具 JSON 包。
+完整产物先生成到唯一临时目录，通过后替换已识别的网站产物；不读取旧网站页面，不把扩展包目录当网站目录，不覆盖未经识别的用户目录。`site-build.json` 记录 source inputs、输出文件 hash、目录身份、构建模式、真实配置及 build ID；它不包含安装清单或用户数据。当前公开目录包含经原构建器验证的固定工具 JSON 包，沿 `/releases/opendesk/{toolId}/{version}/` 分发；网页不会执行这些包，安装继续由扩展原可信链完成。
 
 源模板对动态文本及属性转义；客户端只使用文本和固定 DOM 更新。无第三方脚本、远程字体、分析 SDK、Cookie 或用户上传执行入口。真实截图只接受仓库受控 PNG；没有媒体时不把结构示意冒充实际截图。截图及响应式实测是否完成以工作流为准。
 

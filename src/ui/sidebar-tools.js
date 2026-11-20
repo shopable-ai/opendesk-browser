@@ -36,10 +36,12 @@ import {SIDEBAR_TOOL_ENABLE_STORE,requireToolRevocationEpochs,requireToolEnableR
 import {SIDEBAR_TOOL_PROTOCOL,SIDEBAR_TOOL_STORE,SIDEBAR_TOOL_DATA_LIMITS,
   sidebarToolStorageKey,sidebarToolPackageHash,validateSidebarToolPackage} from './sidebar-tools/package.js';
 import {assertSidebarToolRuntime} from '../sidebar-tools/runtime-compatibility.js';
-import {writeVerifiedLocalValue} from './sidebar-tools/storage-state.js';
+import {writeVerifiedLocalValue,sameStorageValue} from './sidebar-tools/storage-state.js';
 import {describeSidebarToolBackgroundPolicyChange} from './sidebar-tools/background-policy-review.js';
 import {toolPageHref,normalizeOwnPageTarget} from './sidebar-tools/navigation.js';
 import {loadOfficialCatalog,loadOfficialTool,verifyReviewedOfficialTool} from '../sidebar-tools/official-catalog.js';
+import {onlineUpdateSource} from '../marketplace/update-client.js';
+import {recoverMarketOperation} from './sidebar-tools/installation.js';
 import {normalizeToolNavigation} from '../sidebar-tools/navigation-state.js';
 import {normalizeToolUiNotice,createToolUiNoticeRateGate,
   TOOL_UI_NOTICE_HANDLE_TTL_MS,TOOL_UI_NOTICE_HANDLE_MAX_UPDATES} from '../sidebar-tools/ui-notice.js';
@@ -58,7 +60,7 @@ import {inspectUserScriptsAccess,userScriptsSettingsURL} from './user-scripts-ac
 import {resumeDefaultPreinstall,DEFAULT_PREINSTALL_STORE} from '../sidebar-tools/default-preinstall.js';
 import {installReviewedSidebarTool,admittedSidebarToolPackages,sameSidebarToolPackage,admitsInstalledSidebarTool,compareToolVersions,
   recordToolUninstall,cleanupUninstalledToolLocked,retryUninstalledToolCleanup,getPendingToolCleanups,TOOL_REVOCATION_EPOCHS_STORE,
-  requireCompleteInstalledSidebarTools,setInstalledSidebarToolEnabled,MARKET_PROVENANCE_STORE} from './sidebar-tools/installation.js';
+  requireCompleteInstalledSidebarTools,setInstalledSidebarToolEnabled,MARKET_PROVENANCE_STORE,validMarketProvenance} from './sidebar-tools/installation.js';
 import {READING_TOC_SITE_STORE,READING_TOC_TOOL_ID,READING_TOC_PROTOCOL,TOC_CAPABILITY,
   websiteOrigin,tocSiteAllowed,tocGrantAllowed,verifyOfficialReadingToc,blockedTocOrigins,changeTocSiteAllowed,READING_TOC_PLACEMENT_PREFIX,
   READING_TOC_VISIBILITY_STORE,readingTocPageScope,readingTocDisplayState,
@@ -322,7 +324,7 @@ function createSidebarToolsController({api=globalThis.chrome,doc=globalThis.docu
   let clipGrants={},clipSiteEpoch=0;
   let taskDelegationHost=null;
   let installed=[], pending=null, pendingBaseline=null, pendingRelease=null,pendingOperationId=null, active=null, frame=null, nativeUI=null, nativePending=false, instance=null, disposed=false, readOnlyPreview=false, previewDirty=false;
-  let pendingSourceLabel=null,pendingBaselineEpoch=undefined,cleanupReview=null;
+  let pendingSourceLabel=null,pendingBaselineEpoch=undefined,pendingBaselineProvenance=undefined,cleanupReview=null;
   let developmentStorage=null;
   let pagePackageReviewReturn=null;
   let bookmarkFallbackNotice='';
@@ -889,7 +891,7 @@ function createSidebarToolsController({api=globalThis.chrome,doc=globalThis.docu
   const addedCapabilities=(next,prior)=>next.capabilities.filter(id=>!prior.capabilities.includes(id));
   function resetReview() {
     pending=null;pendingBaseline=null;pendingRelease=null;pendingOperationId=null;pendingPage=null;pendingProduct=null;
-    pendingSourceLabel=null;pendingBaselineEpoch=undefined;cleanupReview=null;
+    pendingSourceLabel=null;pendingBaselineEpoch=undefined;pendingBaselineProvenance=undefined;cleanupReview=null;
     patchToolField(view, pageInstallStatus, {textContent: ''});patchToolField(view, pageInstallStatus, {hidden: true});
     setToolFieldAttribute(view, pageInstallStatus, 'data-state', null);
     setToolFieldAttribute(view, pageInstallStatus, 'data-installation-id', null);setToolFieldAttribute(view, pageInstallStatus, 'data-manifest-hash', null);
@@ -1487,9 +1489,10 @@ function createSidebarToolsController({api=globalThis.chrome,doc=globalThis.docu
     setImportOpen(true);clearImport();notice('');
     const selection=++fileSelection;
     try{
-      const {tool}=await loadOfficialTool(release,{api,fetcher});
+      const {tool,release:verified}=await loadOfficialTool(release,{api,fetcher});
       if(disposed||selection!==fileSelection)return;
-      await reviewCandidate(tool,'来源：OpenDesk 官方发行 · 原始文件 SHA-256 '+release.sha256,release,selection);
+      await reviewCandidate(tool,'来源：OpenDesk 官方发行'+(verified.origin?' · '+verified.origin:'')+
+        ' · 原始文件 SHA-256 '+verified.sha256,verified,selection);
     }catch(error){
       if(disposed||selection!==fileSelection)return;
       setFileError((error.code||'E_PACKAGE')+'：'+String(error.message||error));
@@ -2281,9 +2284,14 @@ function createSidebarToolsController({api=globalThis.chrome,doc=globalThis.docu
     show();return true;
   }
   function openOfficialReview(id,expectedRelease=null){
-    if(disposed||busy||!visible||active||!officialLoaded||view.getSnapshot().market?.review)return false;
-    const release=officialReleases.find(row=>row.toolId===id);
-    if(!release)return false;
+    if(disposed||busy||!visible||active||view.getSnapshot().market?.review)return false;
+    const online=onlineUpdateSource(expectedRelease);
+    if(expectedRelease&&(expectedRelease.sourceId!==undefined||expectedRelease.updateSource!==undefined)&&!online)return false;
+    // The bundled catalog may be unavailable or older than this verified online
+    // version. reviewOfficial still resolves the fixed candidate freshly in the
+    // original Worker and downloader before showing the original review sheet.
+    const release=online?expectedRelease:officialLoaded?officialReleases.find(row=>row.toolId===id):null;
+    if(!release||release.toolId!==id)return false;
     if(expectedRelease&&(release.id!==expectedRelease.id||
       release.version!==expectedRelease.version||release.sha256!==expectedRelease.sha256))return false;
     void reviewOfficial(release);
@@ -4867,11 +4875,16 @@ function createSidebarToolsController({api=globalThis.chrome,doc=globalThis.docu
     // discovery must not turn it into a restricted official update or require
     // the bundled release to match the user's reviewed bytes.
     const previous=toolById(candidate.id);
-    const [candidateHash,previousHash]=await Promise.all([
+    const [candidateHash,previousHash,sources]=await Promise.all([
       sidebarToolPackageHash(candidate),previous?sidebarToolPackageHash(previous):null,
+      release?.sourceId?api.storage.local.get(MARKET_PROVENANCE_STORE):Promise.resolve({})
     ]);
     if(disposed||selection!==fileSelection)return;
     const current=toolById(candidate.id);
+    const oldSource=sources[MARKET_PROVENANCE_STORE]?.[candidate.id],nextSource=onlineUpdateSource(release);
+    const sourceReview=Boolean(nextSource&&previous&&(!validMarketProvenance(oldSource)||oldSource.marketId!==release.id||
+      !sameStorageValue(onlineUpdateSource(oldSource),nextSource)||
+      oldSource?.sha256!==previousHash||oldSource?.version!==previous.version));
     if(Boolean(previous)!==Boolean(current)||(previous&&!samePackage(previous,current)))
       throw new Error('工具安装状态已变化，请重新选择安装包');
     if(expectedInstallEpoch!==undefined&&(revocationEpochs[candidate.id]??null)!==expectedInstallEpoch)
@@ -4879,9 +4892,11 @@ function createSidebarToolsController({api=globalThis.chrome,doc=globalThis.docu
     pending=candidate;pendingBaseline=previous?structuredClone(previous):null;
     pendingRelease=release;pendingOperationId=release?crypto.randomUUID():null;
     pendingSourceLabel=sourceLabel;pendingBaselineEpoch=revocationEpochs[candidate.id]??null;
+    pendingBaselineProvenance=nextSource?structuredClone(oldSource??null):undefined;
     patchToolField(view, previewTitle, {textContent: candidate.title});
     patchToolField(view, previewVersion, {textContent: 'v'+candidate.version});
-    patchToolField(view, previewDescription, {textContent: candidate.description+taskDelegationReview(candidate)+appControllerReview(candidate)+(candidate.pageModule?
+    patchToolField(view, previewDescription, {textContent: candidate.description+
+      (release?.changelog?'\n版本说明：'+release.changelog:'')+taskDelegationReview(candidate)+appControllerReview(candidate)+(candidate.pageModule?
       '\n网页模块：安装后在 '+candidate.pageModule.pageRules.matches.join('、')+' 自动运行；'+
       (candidate.pageModule.pageRules.excludeMatches.length?'排除 '+candidate.pageModule.pageRules.excludeMatches.join('、')+'；':'')+
       '关闭侧栏后继续可用。停用或卸载应用会同时停止网页模块。':'')+(candidate.background?
@@ -4889,7 +4904,9 @@ function createSidebarToolsController({api=globalThis.chrome,doc=globalThis.docu
     patchToolField(view, previewCapabilities, {textContent: candidate.capabilities.length
       ?candidate.capabilities.map(readableCapability).join('、'):'无需额外能力'});
     patchToolField(view, previewSource, {textContent: release
-      ?'OpenDesk 官方发行 · 安装包已校验':'本地安装包 · 请确认文件来源可信'});
+      ?nextSource?'官方发行 · '+nextSource.origin+' · '+nextSource.channel+
+        (sourceReview?'；旧来源缺失或不同，本次确认包含来源替换审阅':' · 安装包已校验'):
+        'OpenDesk 官方发行 · 安装包已校验':'本地安装包 · 请确认文件来源可信'});
     patchToolField(view, previewFile, {textContent: sourceLabel+' · 候选包 SHA-256（规范序列化）：'+candidateHash+
       (previousHash?' · 当前包 SHA-256（规范序列化）：'+previousHash:'')+
       (candidate.background?' · 后台源码 SHA-256：'+candidate.background.sha256:'')+
@@ -4915,7 +4932,8 @@ function createSidebarToolsController({api=globalThis.chrome,doc=globalThis.docu
         ?'新增 '+added.length+' 项权限 · 请核对'
         :removed.length?'权限减少 · 查看范围':'权限未变化 · 查看范围'});
       patchToolField(view, permissionDetails, {open: Boolean(added.length||removed.length)});
-      const risks=[...(policyReview?[policyReview]:[]),...(change<0?['版本回退']:[]),
+      const risks=[...(sourceReview?['确认更新将采用上方发行来源；原数据保留，网站授权可能需要重新确认']:[]),
+        ...(policyReview?[policyReview]:[]),...(change<0?['版本回退']:[]),
         ...(added.length?['新增权限需要核对']:[]),
         ...(change===0&&!samePackage(candidate,previous)?['相同版本的代码内容发生变化']:[])];
       patchToolField(view, updateWarning, {textContent: risks.join('；')});
@@ -5270,8 +5288,10 @@ function createSidebarToolsController({api=globalThis.chrome,doc=globalThis.docu
       if(candidate.capabilities.includes(ADBLOCK_CAPABILITY))await adblock.probe({api,tool:candidate});
       const result=await installReviewedSidebarTool({api,lockManager,candidate,
         baseline,baselineInstallEpoch:pendingBaselineEpoch,reviewApproved:true,pageClient:foundationClient,
+        baselineProvenance:pendingBaselineProvenance,
         repairMissingPageModule:Boolean(candidate.pageModule)&&Boolean(baseline)&&samePackage(candidate,baseline),
-        market:release?{marketId:release.id,sha256:release.sha256,operationId}:null,
+        market:release?{marketId:release.id,sha256:release.sha256,operationId,
+          ...(onlineUpdateSource(release)||{})}:null,
         // The visible review includes the replacement source and exact bytes.
         // Its confirmation approves a local override as well as an official
         // update; a changed or cancelled review cannot reuse that approval.
@@ -5306,6 +5326,22 @@ function createSidebarToolsController({api=globalThis.chrome,doc=globalThis.docu
         // presentation cannot turn those installed bytes into an invalid file.
         refreshFailed=true;
         notice('安装已完成，但界面刷新失败：'+String(error?.message||error)+'。请重新打开扩展列表核对；无需重复安装。',true);
+      }else if(error?.code==='E_OUTCOME_UNKNOWN'&&(pendingRelease?.sourceId||error.marketOperation)){
+        const original=error.marketOperation||{operationId:pendingOperationId,toolId:pending.id,
+          marketId:pendingRelease.id,version:pending.version,sha256:pendingRelease.sha256,...onlineUpdateSource(pendingRelease)};
+        cleanupReview={kind:'market-outcome',candidate:pending,release:pendingRelease,
+          operationId:original.operationId,identity:original,checking:false};
+        fileSelection++;pending=null;pendingBaseline=null;pendingRelease=null;pendingOperationId=null;
+        pendingSourceLabel=null;pendingBaselineEpoch=undefined;
+        setFileError();
+        patchToolField(view,updatePanel,{hidden:false});
+        patchToolField(view,updateVersions,{textContent:'原安装事务待核对 · v'+original.version});
+        patchToolField(view,updateImpact,{textContent:'只核对原安装事务与真实本机状态，不重新下载或安装。原数据保留。'});
+        patchToolField(view,pageInstallStatus,{hidden:false,textContent:'安装结果尚未确认。请点击「核对原更新」，本次批准已结束，不会自动重试。'});
+        setToolFieldAttribute(view,pageInstallStatus,'data-state','outcome-unknown');
+        patchToolField(view,installButton,{textContent:'核对原更新'});
+        try{await loadInstalled();}catch{/* Preserve original operation identity. */}
+        return;
       }else if(error?.code==='E_OUTCOME_UNKNOWN'&&!pendingRelease){
         cleanupReview={kind:'outcome',candidate:pending,baseline:pendingBaseline,
           baselineEpoch:pendingBaselineEpoch,expectedEpoch:error.installationEpoch,
@@ -5387,7 +5423,8 @@ function createSidebarToolsController({api=globalThis.chrome,doc=globalThis.docu
     if(disposed||busy||!recovery||recovery.checking||installButton.disabled)return;
     const uninstall=recovery.kind==='uninstall';
     const outcome=recovery.kind==='outcome';
-    if(uninstall&&!event?.isTrusted)return;
+    const marketOutcome=recovery.kind==='market-outcome';
+    if((uninstall||marketOutcome)&&!event?.isTrusted)return;
     const selection=++fileSelection;
     const current=()=>!disposed&&cleanupReview===recovery&&selection===fileSelection;
     recovery.checking=true;patchToolField(view,installButton,{disabled:true,
@@ -5395,6 +5432,20 @@ function createSidebarToolsController({api=globalThis.chrome,doc=globalThis.docu
     try{
       if(!await loadInstalled(current))throw new Error('安装状态在读取期间变化，请重新核对。');
       if(!current())return;
+      if(marketOutcome){
+        const result=await recoverMarketOperation({api,lockManager,operationId:recovery.operationId,
+          expectedIdentity:recovery.identity,pageClient:foundationClient});
+        if(!current())return;
+        if(result.state!=='succeeded'){
+          patchToolField(view,pageInstallStatus,{hidden:false,textContent:'原更新仍需核对（'+result.state+'）。不会创建新事务或重新安装。'});
+          patchToolField(view,installButton,{disabled:false,textContent:'核对原更新'});
+          return;
+        }
+        if(!await loadInstalled(current)||!current())return;
+        cleanupReview=null;setImportOpen(false);render();
+        successNotice('更新结果已核对','已读回 v'+result.installedVersion+' 的安装、来源和包摘要；未重新执行安装。');
+        return;
+      }
       if(uninstall){
         const changed=()=>Object.assign(new Error('应用已在其他窗口重新安装；未清理当前安装的数据，请重新选择安装包核对。'),{code:'E_TOOL_CHANGED'});
         if(toolById(recovery.candidate.id))throw changed();
@@ -5437,7 +5488,7 @@ function createSidebarToolsController({api=globalThis.chrome,doc=globalThis.docu
       pendingSourceLabel=null;pendingBaselineEpoch=undefined;
       patchToolField(view,pageInstallStatus,{hidden:false,textContent:(uninstall?'无法完成卸载清理：':'无法重新核对安装：')+String(error?.message||error)+
         ' 本次安装不会自动重试。'});
-      patchToolField(view,installButton,{textContent:uninstall?'恢复卸载清理':'重新核对安装',
+      patchToolField(view,installButton,{textContent:marketOutcome?'核对原更新':uninstall?'恢复卸载清理':'重新核对安装',
         disabled:(uninstall||outcome)&&error?.code==='E_TOOL_CHANGED'});
     }finally{
       recovery.checking=false;

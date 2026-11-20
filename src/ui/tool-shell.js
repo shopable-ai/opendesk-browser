@@ -21,7 +21,8 @@ import {createSidebarTools} from './sidebar-tools-loader.js';
 import {createPanelToolIntentReceiver} from './sidebar-tools/panel-tool-intent.js';
 import {createMarketPanelNavigationReceiver,verifyMarketPanelNavigationSource,MARKET_PANEL_NAV_PROTOCOL} from '../marketplace/panel-navigation.js';
 import {loadOfficialCatalog} from '../sidebar-tools/official-catalog.js';
-import {UPDATE_NOTICE_PROTOCOL} from '../platform/chrome/update-notice-state.js';
+import {UPDATE_NOTICE_PROTOCOL,sameUpdateSource} from '../platform/chrome/update-notice-state.js';
+import {resolveOnlineUpdateRelease} from '../marketplace/update-client.js';
 import {createMarketInstallSheet} from './market-install-sheet.js';
 import {createExtensionCenter} from './extension-center.js';
 import {mountSidebarApp} from './react/main.tsx';
@@ -225,7 +226,8 @@ const openTrustedUpdateReview=row=>{
       try{
         const pending=chrome.runtime.sendMessage({protocol:MARKET_PANEL_NAV_PROTOCOL,
           action:'NAVIGATE',target:'review',toolId:row.id,version:row.version,
-          marketId:row.source,sha256:row.sha256});
+          marketId:row.source,sha256:row.sha256,
+          ...(row.updateSource?{updateSource:row.updateSource}:{})});
         return Promise.resolve(pending).then(reply=>reply?.ok===true&&
           reply.protocol===MARKET_PANEL_NAV_PROTOCOL&&reply.status==='REVIEW_REQUEST_ACCEPTED');
       }catch{return false;}
@@ -239,17 +241,18 @@ const openTrustedUpdateReview=row=>{
           item.id===row.id&&item.version===row.version&&
           item.sha256===row.sha256&&item.source===row.source&&
           item.fromVersion===row.fromVersion&&
+          sameUpdateSource(item.updateSource,row.updateSource)&&
+          (!row.updateSource||item.fromSha256===row.fromSha256)&&
           ['available','review_required'].includes(item.status));
       if(!currentRecord)return false;
-      const {apps}=await loadOfficialCatalog({api:chrome});
-      const current=apps.some(release=>release.toolId===row.id&&
-        release.version===row.version&&release.sha256===row.sha256&&
-        release.id===row.source);
+      const current=row.updateSource?await resolveOnlineUpdateRelease({toolId:row.id,
+        version:row.version,sha256:row.sha256,updateSource:row.updateSource},{api:chrome}):
+        (await loadOfficialCatalog({api:chrome})).apps.find(release=>release.toolId===row.id&&
+          release.version===row.version&&release.sha256===row.sha256&&release.id===row.source);
       if(!current||taskWorkbench.navigate('tools')===false)return false;
       await sidebarTools.ready;
       if(!sidebarTools.canPresentMarketReview())return false;
-      return sidebarTools.openOfficialReview(row.id,
-        {id:row.source,version:row.version,sha256:row.sha256})===true;
+      return sidebarTools.openOfficialReview(row.id,current)===true;
     })();
   };
 extensionList=mountSidebarApp(document,{debugEnabled,developerView,myView,toolView,providerSettings,
@@ -634,12 +637,15 @@ Promise.resolve(chrome.tabs.getCurrent?.()).then(async tab => {
           if(shellClosed||!verifiedSidePanel)return blocked('真实 Side Panel 已关闭，原请求仍可恢复。');
           if(!await verifyMarketPanelNavigationSource(chrome,request))
             return changed('来源窗口或浏览器文档身份已变化，旧导航请求不会执行。');
+          let reviewedRelease=null;
           if(request.source==='built-in'&&request.action!=='open-local'){
-            const {apps}=await loadOfficialCatalog({api:chrome});
-            const release=apps.find(row=>row.id===request.marketId&&
+            const release=request.updateSource?await resolveOnlineUpdateRelease({toolId:request.toolId,
+              version:request.releaseVersion,sha256:request.sha256,updateSource:request.updateSource},
+              {api:chrome}):(await loadOfficialCatalog({api:chrome})).apps.find(row=>row.id===request.marketId&&
               row.toolId===request.toolId&&row.version===request.releaseVersion&&
               row.sha256===request.sha256);
             if(!release)return changed('本机内置官方发行版本或摘要已变化；旧请求未执行。');
+            reviewedRelease=release;
           }
           if(request.action==='review'){
             if(request.source!=='built-in')return changed('外部市场不能要求安装内置官方发行。');
@@ -654,16 +660,16 @@ Promise.resolve(chrome.tabs.getCurrent?.()).then(async tab => {
                   row.kind==='sidebar-tool'&&row.id===request.toolId&&
                   row.source===request.marketId&&row.version===request.releaseVersion&&
                   row.sha256===request.sha256&&
+                  sameUpdateSource(row.updateSource,request.updateSource)&&
                   row.requiresReview===true&&typeof row.fromVersion==='string'&&
                   ['available','review_required'].includes(row.status)&&
-                  (row.status==='review_required')===(row.newCapabilities?.length>0)):[];
+                  (row.status==='review_required')===Boolean(row.newCapabilities?.length||row.sourceReviewRequired)):[];
               if(candidates.length!==1)
                 return changed('已安装更新候选或可信来源已变化，请重新打开更新记录。');
             }
             if(!sidebarTools.canPresentMarketReview())return blocked('已有草稿或其他安装审阅，请完成后重新发起。');
             if(taskWorkbench.navigate('tools')===false)return blocked('当前工作区拒绝导航，草稿已保留。');
-            return sidebarTools.openOfficialReview(request.toolId,
-              {id:request.marketId,version:request.releaseVersion,sha256:request.sha256})===true
+            return sidebarTools.openOfficialReview(request.toolId,reviewedRelease)===true
               ?{status:'REVIEW_REQUEST_ACCEPTED',message:'正式安装审阅入口已接收；安装结果请以侧边栏与本机记录为准。'}
               :blocked('安装审阅入口暂不可用，原请求未提交。');
           }
