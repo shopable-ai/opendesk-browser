@@ -2,6 +2,7 @@ import {scrollNavigationText} from '../../projects/ai-scroll-navigation/trusted/
 import {extensionCenterText} from './extension-center-localization.js';
 // Read-only unified view of existing installed registries and bundled official releases.
 import {sidebarToolPackageHash} from './sidebar-tools/package.js';
+import {validUpdateSource} from '../platform/chrome/update-notice-state.js';
 import {SEND_QUEUE_PIN,admitsPinnedQueuePage,admitsPinnedQueueTool} from '../platform/host/send-queue-admission.js';
 import {describeSendQueueProduct,queuePageIdentity} from './send-queue-product.js';
 import {SCROLL_CONFIG_PROGRAM_ID,SCROLL_SITE_REVISION_BASE}
@@ -285,18 +286,33 @@ export function projectTrustedInlineUpdates(rows=[],snapshot=null,{promote=false
       matches.push(item);releases.set(item.id,matches);
     }
   const result=rows.map(row=>{
-    const identity=row.updateIdentity,matched=identity&&releases.get(identity.id);
-    const candidate=matched?.length===1?matched[0]:null;
-    const valid=Boolean(row.installed&&row.kind==='app'&&candidate&&
+    const identity=row.updateIdentity,installed=row.installedUpdateIdentity;
+    const matched=releases.get(installed?.id||identity?.id);
+    const active=matched?.filter(item=>item.eligibilityReason!=='not_listed');
+    const candidate=active?.length===1?active[0]:
+      active?.length===0&&matched?.length===1?matched[0]:null;
+    const online=Boolean(candidate?.updateSource);
+    const onlineValid=Boolean(online&&installed&&validUpdateSource(candidate.updateSource)&&
+      candidate.id===installed.id&&candidate.fromVersion===installed.version&&
+      candidate.fromSha256===installed.sha256&&candidate.source==='opendesk/'+installed.id&&
+      /^[a-f0-9]{64}$/.test(candidate.sha256||'')&&
+      (candidate.status==='unknown'||(candidate.status==='review_required')===
+        Boolean(candidate.newCapabilities?.length||candidate.sourceReviewRequired)));
+    const bundledValid=Boolean(!online&&identity&&candidate&&
       candidate.id===identity.id&&candidate.fromVersion===identity.fromVersion&&
       candidate.version===identity.version&&candidate.source===identity.source&&
       candidate.sha256===identity.sha256&&
       (candidate.status==='unknown'||
         (candidate.status==='review_required')===(candidate.newCapabilities?.length>0)));
+    const valid=Boolean(row.installed&&row.kind==='app'&&(onlineValid||bundledValid));
     const reason=snapshot?.verified!==true?'更新状态待核验，请刷新后核对。':
+      candidate?.eligibilityReason==='browser_update_required'?'此版本需要先更新 OpenDesk Browser。':
+      candidate?.eligibilityReason==='compatibility_unknown'?'此版本的 Host 兼容性尚待核对。':
+      candidate?.eligibilityReason==='withdrawn'?'此发行已撤回，不能启动新的更新。':
+      candidate?.eligibilityReason==='not_listed'?'当前发行快照未列出此候选，请重新核对。':
       candidate?.status==='unknown'?'更新暂不可执行，请核对安装状态；不会自动重试。':'';
     return {...row,inlineUpdate:valid?{
-      record:candidate,label:candidate.newCapabilities?.length>0?'审阅':'更新',
+      record:candidate,label:candidate.newCapabilities?.length>0||candidate.sourceReviewRequired?'审阅':'更新',
       disabled:Boolean(reason),reason
     }:null};
   });

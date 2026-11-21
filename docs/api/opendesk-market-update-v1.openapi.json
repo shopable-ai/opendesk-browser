@@ -1,0 +1,1092 @@
+{
+  "openapi": "3.1.0",
+  "jsonSchemaDialect": "https://json-schema.org/draft/2020-12/schema",
+  "info": {
+    "title": "OpenDesk 独立扩展市场 · 在线发行与更新发现基础协议",
+    "version": "0.2.0",
+    "summary": "既有市场与 Installer 的签名发行快照合同；静态服务与 Payload 使用同一 HTTP 语义。",
+    "description": "本规范由原 0.1.0-draft 差量收敛，唯一权威位置为 docs/api/opendesk-market-update-v1.openapi.json。当前实现基于 main@3a9677ab403a83859bf088b2ca6d38799f857268（2026-11-20）补齐；实际通过项见定向测试及原市场架构文档，不将源码接线等同于真实 Chrome 更新或生产上线。第一阶段仅官方 opendesk-official、stable、Sidebar Tool；客户端本地比较，不上传安装清单。复用外部市场、opendesk.market.intent.v1、严格六字段 opendesk.market.release.v1 descriptor、原同源下载器、Installer、原位更新行和通知 Store；Payload 管理员登录态及普通 CRUD 不成为安装授权。"
+  },
+  "servers": [
+    {
+      "url": "/",
+      "description": "相对于维护者核实并静态配置的 HTTPS 市场 Origin。网站导航 URL、安装通道和更新签名信任根分别配置；本文件未指定生产域名。"
+    }
+  ],
+  "security": [],
+  "tags": [
+    {
+      "name": "Update discovery",
+      "description": "已接入原 Worker 与静态市场的只读更新发现合同，生产部署尚未验证。"
+    },
+    {
+      "name": "Existing distribution",
+      "description": "沿用当前固定制品接口与严格 v1 descriptor。"
+    },
+    {
+      "name": "Market presentation",
+      "description": "沿用现有展示目录，目录本身不构成安装授权。"
+    }
+  ],
+  "paths": {
+    "/api/market/v1/channels/{channel}/index": {
+      "get": {
+        "tags": [
+          "Update discovery"
+        ],
+        "operationId": "getChannelReleaseIndex",
+        "summary": "读取指定渠道的完整预签名发行快照",
+        "description": "公开只读、无 Cookie、无安装清单；静态服务与 Payload 根 Config 自定义端点返回同一已存储签名 envelope 原字节。未知渠道 404，不回落 stable。where/depth/page 等 CMS 参数不改变快照；禁止分页或静默截断。规范 URI 直接返回 application/json，无 HTML fallback 或 301/302/307/308 重定向。",
+        "x-implementation-status": "SOURCE_WIRED_DEPLOYMENT_NOT_VERIFIED",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/Channel"
+          },
+          {
+            "$ref": "#/components/parameters/IfNoneMatch"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "完整已签名索引；验签及本地判断后才能生成候选。",
+            "headers": {
+              "ETag": {
+                "$ref": "#/components/headers/ETag"
+              },
+              "Cache-Control": {
+                "$ref": "#/components/headers/CacheControl"
+              }
+            },
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SignedUpdateIndex"
+                }
+              }
+            }
+          },
+          "304": {
+            "description": "无响应体；仅复用此前验证通过且现在仍未过期的同一快照。不得更新 issuedAt/expiresAt 或使过期签名重新有效。",
+            "headers": {
+              "ETag": {
+                "$ref": "#/components/headers/ETag"
+              }
+            }
+          },
+          "429": {
+            "$ref": "#/components/responses/RateLimited"
+          },
+          "503": {
+            "$ref": "#/components/responses/Unavailable"
+          },
+          "404": {
+            "$ref": "#/components/responses/ChannelNotFound"
+          }
+        }
+      }
+    },
+    "/releases/opendesk/{toolId}/{version}/descriptor.json": {
+      "parameters": [
+        {
+          "$ref": "#/components/parameters/ToolId"
+        },
+        {
+          "$ref": "#/components/parameters/Version"
+        }
+      ],
+      "get": {
+        "tags": [
+          "Existing distribution"
+        ],
+        "operationId": "getFixedReleaseDescriptor",
+        "summary": "读取既有六字段固定发行描述",
+        "description": "当前源码已实现读取，生产部署未核验。必须从已批准 Origin 返回 200 实体，不得重定向。新在线更新路径同时与已验证索引内 descriptor 全字段相等；不能以此对象单独替代索引签名。",
+        "x-implementation-status": "EXISTING_SOURCE_DEPLOYMENT_NOT_VERIFIED",
+        "responses": {
+          "200": {
+            "description": "严格 v1 descriptor（最大 4096 字节），不得增加 CMS 字段。",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ReleaseDescriptor"
+                }
+              }
+            }
+          },
+          "404": {
+            "$ref": "#/components/responses/NotFound"
+          }
+        }
+      }
+    },
+    "/releases/opendesk/{toolId}/{version}/package.opendesk-tool.json": {
+      "parameters": [
+        {
+          "$ref": "#/components/parameters/ToolId"
+        },
+        {
+          "$ref": "#/components/parameters/Version"
+        }
+      ],
+      "get": {
+        "tags": [
+          "Existing distribution"
+        ],
+        "operationId": "getFixedToolPackage",
+        "summary": "下载不可变工具包原始字节",
+        "description": "继续采用原打包器和包验证器。HTTPS 市场同源返回完整原件，不 302/307 跳转到 S3 临时 URL。对象存储在同源反向代理/CDN后面。读取预算由可信客户端控制，不能仅把远端 bytes 当作内存预算。下载完成核对 bytes、SHA-256、包 metadata 与规范化字节；下载完成不表示安装成功。",
+        "x-implementation-status": "EXISTING_SOURCE_DEPLOYMENT_NOT_VERIFIED",
+        "responses": {
+          "200": {
+            "description": "与已签名 descriptor 完全相同的原始工具 JSON 字节。",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "description": "完整格式继续由既有 validateSidebarToolPackage 校验，本协议不重定义执行包。"
+                }
+              }
+            }
+          },
+          "404": {
+            "$ref": "#/components/responses/NotFound"
+          }
+        }
+      }
+    },
+    "/catalog.json": {
+      "get": {
+        "tags": [
+          "Market presentation"
+        ],
+        "operationId": "getMarketDisplayCatalog",
+        "summary": "读取现有市场展示目录",
+        "description": "复用 src/market-site 与原网站构建器。字段用于展示，不将展示内容当成已验证更新或本机安装事实。",
+        "x-implementation-status": "EXISTING_SOURCE_DEPLOYMENT_NOT_VERIFIED",
+        "responses": {
+          "200": {
+            "description": "既有公开目录。",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/MarketCatalog"
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "schemas": {
+      "ToolId": {
+        "type": "string",
+        "pattern": "^[a-z][a-z0-9-]{1,39}$",
+        "maxLength": 40,
+        "description": "沿用包的稳定 id；不使用 Payload 数据库 id。"
+      },
+      "Version": {
+        "type": "string",
+        "pattern": "^(0|[1-9]\\d{0,5})\\.(0|[1-9]\\d{0,5})\\.(0|[1-9]\\d{0,5})$",
+        "maxLength": 20,
+        "description": "沿用当前三段数字版本与 compareToolVersions；第一阶段不接受 prerelease、latest 或通配版本。"
+      },
+      "MarketId": {
+        "type": "string",
+        "pattern": "^opendesk/[a-z][a-z0-9-]{1,39}$",
+        "maxLength": 49
+      },
+      "Sha256": {
+        "type": "string",
+        "pattern": "^[a-f0-9]{64}$"
+      },
+      "Timestamp": {
+        "type": "string",
+        "format": "date-time",
+        "pattern": "^\\d{4}-\\d\\d-\\d\\dT\\d\\d:\\d\\d:\\d\\d(?:\\.\\d{1,3})?Z$",
+        "description": "UTC RFC3339 秒或1–3位毫秒、以Z结尾；客户端还验证实际日历日期。时效与跨字段约束见 x-client-verification。",
+        "maxLength": 24
+      },
+      "ReleaseDescriptor": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "schema",
+          "marketId",
+          "version",
+          "bytes",
+          "sha256",
+          "packagePath"
+        ],
+        "properties": {
+          "schema": {
+            "const": "opendesk.market.release.v1"
+          },
+          "marketId": {
+            "$ref": "#/components/schemas/MarketId"
+          },
+          "version": {
+            "$ref": "#/components/schemas/Version"
+          },
+          "bytes": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 9007199254740991,
+            "description": "原始包的精确字节数。数值合法不等于允许分配相同大小内存；受客户端独立网络读取预算约束。"
+          },
+          "sha256": {
+            "$ref": "#/components/schemas/Sha256"
+          },
+          "packagePath": {
+            "type": "string",
+            "pattern": "^/releases/opendesk/[a-z][a-z0-9-]{1,39}/(?:0|[1-9]\\d{0,5})\\.(?:0|[1-9]\\d{0,5})\\.(?:0|[1-9]\\d{0,5})/package\\.opendesk-tool\\.json$",
+            "maxLength": 180
+          }
+        },
+        "description": "既有严格六字段对象，新增签名/兼容性等信息放到外层索引。运行时还须核对 packagePath === '/releases/'+marketId+'/'+version+'/package.opendesk-tool.json'。",
+        "examples": [
+          {
+            "schema": "opendesk.market.release.v1",
+            "marketId": "opendesk/example-tool",
+            "version": "1.0.1",
+            "bytes": 4096,
+            "sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+            "packagePath": "/releases/opendesk/example-tool/1.0.1/package.opendesk-tool.json"
+          }
+        ]
+      },
+      "PackageRequirements": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "format",
+          "browserSdk",
+          "uiRuntime"
+        ],
+        "properties": {
+          "format": {
+            "enum": [
+              "opendesk.sidebar-tool.v1",
+              "opendesk.sidebar-tool.v2"
+            ]
+          },
+          "browserSdk": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "enum": [
+              "1.0.0",
+              null
+            ],
+            "description": "v2 必须为包内 requires.browserSdk；v1 为 null。未来 SDK 标识需明确升级此协议和消费者。"
+          },
+          "uiRuntime": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "enum": [
+              "opendesk.react-ui.v1",
+              null
+            ],
+            "description": "与包内声明逐项核对；null 表示未声明。"
+          }
+        },
+        "description": "投影当前已存在的包字段；不是完整可信 Host 源码兼容证明。",
+        "allOf": [
+          {
+            "if": {
+              "properties": {
+                "format": {
+                  "const": "opendesk.sidebar-tool.v2"
+                }
+              }
+            },
+            "then": {
+              "properties": {
+                "browserSdk": {
+                  "const": "1.0.0"
+                }
+              }
+            }
+          },
+          {
+            "if": {
+              "properties": {
+                "format": {
+                  "const": "opendesk.sidebar-tool.v1"
+                }
+              }
+            },
+            "then": {
+              "properties": {
+                "browserSdk": {
+                  "type": "null"
+                }
+              }
+            }
+          }
+        ]
+      },
+      "Release": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "toolId",
+          "marketId",
+          "kind",
+          "version",
+          "state",
+          "packageTitle",
+          "description",
+          "capabilities",
+          "requirements",
+          "delivery",
+          "publishedAt",
+          "changelog",
+          "descriptor"
+        ],
+        "properties": {
+          "toolId": {
+            "$ref": "#/components/schemas/ToolId"
+          },
+          "marketId": {
+            "$ref": "#/components/schemas/MarketId"
+          },
+          "kind": {
+            "const": "sidebar-tool"
+          },
+          "version": {
+            "$ref": "#/components/schemas/Version"
+          },
+          "state": {
+            "enum": [
+              "published",
+              "withdrawn"
+            ],
+            "description": "withdrawn 仅禁止新的安装/升级候选；不自动卸载、停用或回滚已安装版本。"
+          },
+          "packageTitle": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 80
+          },
+          "description": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 300
+          },
+          "capabilities": {
+            "type": "array",
+            "uniqueItems": true,
+            "maxItems": 128,
+            "items": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 160
+            },
+            "description": "包内真实能力清单，不采用服务器的 requiresReview 布尔值；新增能力由客户端计算并走原权限审阅。"
+          },
+          "requirements": {
+            "$ref": "#/components/schemas/PackageRequirements"
+          },
+          "delivery": {
+            "enum": [
+              "package",
+              "browser-host"
+            ],
+            "description": "package 只在发布流程确认不需要更换 Browser 固定可信代码时使用。browser-host 只展示需要先更新 Browser 的信息；第一阶段不自动将其转换为可安装包。"
+          },
+          "publishedAt": {
+            "$ref": "#/components/schemas/Timestamp"
+          },
+          "changelog": {
+            "type": "string",
+            "maxLength": 12000,
+            "description": "纯文本发行说明。按文本安全显示，不执行 HTML/脚本。"
+          },
+          "descriptor": {
+            "$ref": "#/components/schemas/ReleaseDescriptor"
+          }
+        },
+        "description": "toolId、marketId、version 与 descriptor、下载包三方一致；marketId 必须等于 opendesk/ + toolId。同一 sourceId/kind/marketId/version 对应不可变制品与安全元数据。"
+      },
+      "UpdateIndex": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "schema",
+          "sourceId",
+          "channel",
+          "sequence",
+          "issuedAt",
+          "expiresAt",
+          "complete",
+          "releases"
+        ],
+        "properties": {
+          "schema": {
+            "const": "opendesk.market.update-index.v1"
+          },
+          "sourceId": {
+            "const": "opendesk-official",
+            "description": "固定官方发布源标识；实际可信 Origin 与 keyId/publicKey 由宿主构建配置。响应和 CMS 字段不能自授权。"
+          },
+          "channel": {
+            "const": "stable"
+          },
+          "sequence": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 9007199254740991
+          },
+          "issuedAt": {
+            "$ref": "#/components/schemas/Timestamp"
+          },
+          "expiresAt": {
+            "$ref": "#/components/schemas/Timestamp"
+          },
+          "complete": {
+            "const": true,
+            "description": "本次可供发行选择的完整快照，不分页、不截断。没有列出某旧安装不等于被撤回或已经最新。"
+          },
+          "releases": {
+            "type": "array",
+            "maxItems": 256,
+            "items": {
+              "$ref": "#/components/schemas/Release"
+            },
+            "description": "所有当前提供的稳定候选及需声明撤回的发行；可同时保留多个版本供兼容选择。若容量不够，发布失败并升级协议，不截断为成功。"
+          }
+        },
+        "description": "解码后签名 payload 的严格 Schema。issuedAt <= expiresAt，寿命最多 24h；相同序号相同 payload 才可重用。服务器失败不能返回空数组冒充成功。",
+        "examples": [
+          {
+            "schema": "opendesk.market.update-index.v1",
+            "sourceId": "opendesk-official",
+            "channel": "stable",
+            "sequence": 1,
+            "issuedAt": "2026-11-14T00:00:00Z",
+            "expiresAt": "2026-11-15T00:00:00Z",
+            "complete": true,
+            "releases": [
+              {
+                "toolId": "example-tool",
+                "marketId": "opendesk/example-tool",
+                "kind": "sidebar-tool",
+                "version": "1.0.1",
+                "state": "published",
+                "packageTitle": "示例工具（非真实发行）",
+                "description": "仅用于说明协议字段，没有对应线上安装包。",
+                "capabilities": [],
+                "requirements": {
+                  "format": "opendesk.sidebar-tool.v2",
+                  "browserSdk": "1.0.0",
+                  "uiRuntime": null
+                },
+                "delivery": "package",
+                "publishedAt": "2026-11-14T00:00:00Z",
+                "changelog": "演示版本；SHA和字节数为说明值。",
+                "descriptor": {
+                  "schema": "opendesk.market.release.v1",
+                  "marketId": "opendesk/example-tool",
+                  "version": "1.0.1",
+                  "bytes": 4096,
+                  "sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+                  "packagePath": "/releases/opendesk/example-tool/1.0.1/package.opendesk-tool.json"
+                }
+              }
+            ]
+          }
+        ]
+      },
+      "SignedUpdateIndex": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "schema",
+          "algorithm",
+          "keyId",
+          "payload",
+          "signature"
+        ],
+        "properties": {
+          "schema": {
+            "const": "opendesk.market.signed-index.v1"
+          },
+          "algorithm": {
+            "const": "Ed25519"
+          },
+          "keyId": {
+            "type": "string",
+            "pattern": "^[a-z0-9][a-z0-9.-]{0,79}$",
+            "description": "仅选择客户端预置公钥；不从本响应或 Payload 字段下载并信任公钥。"
+          },
+          "payload": {
+            "type": "string",
+            "contentEncoding": "base64",
+            "contentMediaType": "application/json",
+            "maxLength": 699052,
+            "pattern": "^(?:[A-Za-z0-9+/]{4})*(?:[A-Za-z0-9+/]{2}==|[A-Za-z0-9+/]{3}=)?$",
+            "description": "UpdateIndex 的原始 UTF-8 JSON 字节，标准含 padding Base64；解码上限 512 KiB。验证签名后解析，禁止重复 JSON 键。",
+            "contentSchema": {
+              "$ref": "#/components/schemas/UpdateIndex"
+            }
+          },
+          "signature": {
+            "type": "string",
+            "contentEncoding": "base64",
+            "pattern": "^[A-Za-z0-9+/]{86}==$",
+            "minLength": 88,
+            "maxLength": 88,
+            "description": "64 字节 Ed25519 签名的标准 Base64；须解码并重新编码验证规范形式。"
+          }
+        },
+        "description": "只签一次再分发，API 不接收安装清单也不逐请求签名。明确签名输入及信任规则见 x-signature-contract。"
+      },
+      "Error": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "error"
+        ],
+        "properties": {
+          "error": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "code",
+              "message"
+            ],
+            "properties": {
+              "code": {
+                "enum": [
+                  "INDEX_UNAVAILABLE",
+                  "RELEASE_NOT_FOUND",
+                  "RELEASE_WITHDRAWN",
+                  "RATE_LIMITED",
+                  "BAD_REQUEST",
+                  "INTERNAL_ERROR",
+                  "CHANNEL_NOT_FOUND"
+                ]
+              },
+              "message": {
+                "type": "string",
+                "description": "用户可读纯文本原因。",
+                "maxLength": 300
+              }
+            }
+          }
+        }
+      },
+      "MarketCatalog": {
+        "type": "object",
+        "required": [
+          "format",
+          "releases",
+          "downloads",
+          "unavailableReleases",
+          "recommended",
+          "collections"
+        ],
+        "properties": {
+          "format": {
+            "const": "opendesk.market.public.v1"
+          },
+          "releases": {
+            "type": "array",
+            "items": {
+              "type": "object"
+            }
+          },
+          "downloads": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ReleaseDescriptor"
+            }
+          },
+          "unavailableReleases": {
+            "type": "array",
+            "items": {
+              "type": "object"
+            }
+          },
+          "recommended": {
+            "type": "array",
+            "items": {}
+          },
+          "collections": {
+            "type": "array",
+            "items": {
+              "type": "object"
+            }
+          }
+        },
+        "additionalProperties": true,
+        "description": "既有网站展示目录的兼容投影，不替换原 catalog validator，也不赋予发行信任。其余已有字段与对象形状保留原构建器合同。"
+      }
+    },
+    "parameters": {
+      "ToolId": {
+        "name": "toolId",
+        "in": "path",
+        "required": true,
+        "schema": {
+          "$ref": "#/components/schemas/ToolId"
+        }
+      },
+      "Version": {
+        "name": "version",
+        "in": "path",
+        "required": true,
+        "schema": {
+          "$ref": "#/components/schemas/Version"
+        }
+      },
+      "IfNoneMatch": {
+        "name": "If-None-Match",
+        "in": "header",
+        "required": false,
+        "schema": {
+          "type": "string",
+          "maxLength": 200
+        },
+        "description": "只提交当前来源/渠道已核验缓存的 ETag。"
+      },
+      "Channel": {
+        "name": "channel",
+        "in": "path",
+        "required": true,
+        "schema": {
+          "type": "string",
+          "enum": [
+            "stable"
+          ]
+        },
+        "description": "一期仅 stable；路由值必须等于验签 payload.channel。未知渠道返回 404，不静默回落。"
+      }
+    },
+    "headers": {
+      "ETag": {
+        "schema": {
+          "type": "string"
+        },
+        "description": "对应完整 envelope 字节的强实体标签；缓存标识不是签名或新鲜度证明。"
+      },
+      "CacheControl": {
+        "schema": {
+          "type": "string"
+        },
+        "description": "索引使用 public, max-age=0, must-revalidate，或不超过签名剩余有效期的有界缓存。缓存头不能延长签名有效期；安装前必须 fresh 核对。"
+      },
+      "RetryAfter": {
+        "schema": {
+          "type": "string"
+        },
+        "description": "有界重试提示。客户端限定延迟上限，不影响已装工具运行。"
+      }
+    },
+    "responses": {
+      "Unavailable": {
+        "description": "503：尚无完整已签名快照或服务暂时不可用。保留旧已安装应用，检查状态显示失败/未配置。",
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "#/components/schemas/Error"
+            }
+          }
+        }
+      },
+      "NotFound": {
+        "description": "404：固定资源不存在。原静态服务返回 404.html；响应体不作为发行撤回或安装授权证据。撤回只由签名索引的明确状态表达，不宣称此静态路径已实现 410 API。",
+        "content": {
+          "text/html": {
+            "schema": {
+              "type": "string"
+            }
+          }
+        }
+      },
+      "RateLimited": {
+        "description": "429：检查频率过高。",
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "#/components/schemas/Error"
+            }
+          }
+        },
+        "headers": {
+          "Retry-After": {
+            "$ref": "#/components/headers/RetryAfter"
+          }
+        }
+      },
+      "ChannelNotFound": {
+        "description": "404：未知或未支持渠道，错误码 CHANNEL_NOT_FOUND；不能返回 stable 的快照。",
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "#/components/schemas/Error"
+            }
+          }
+        }
+      }
+    }
+  },
+  "x-delivery-status": {
+    "repositoryBase": "3a9677ab403a83859bf088b2ca6d38799f857268",
+    "reviewedAt": "2026-11-20",
+    "protocol": "SOURCE_WIRED_DEPLOYMENT_NOT_VERIFIED",
+    "productSourceChanges": "SOURCE_WIRED",
+    "repositoryDeliveryEvidence": "以包含本文件的实际 Git commit 及远端 main 引用为交付证据；规范自身不证明已推送。",
+    "payloadService": "NOT_IMPLEMENTED",
+    "onlineDiscoveryConsumer": "SOURCE_WIRED",
+    "productionDeployment": "NOT_TESTED",
+    "chromeUpdateRoundtrip": "NOT_TESTED"
+  },
+  "x-signature-contract": {
+    "input": "UTF8(schema + '\\n' + algorithm + '\\n' + keyId + '\\n') || BASE64_DECODE(payload)",
+    "explanation": "|| 表示字节拼接，LF 固定为 0x0A。签名绑定协议域、算法、keyId 和精确 payload 字节；不解析后重排 JSON 再验签。",
+    "sequence": [
+      "网络 envelope 上限 1 MiB；在解析/分配前做流式字节上限与超时。",
+      "只接受本地配置的 HTTPS endpoint、固定 sourceId、channel 和 keyId；不接受响应自报公钥、任意 URL 或重定向。",
+      "Schema校验 envelope，标准Base64解码并重新编码核对；签名64字节，预置Ed25519公钥32字节，payload解码最大512KiB。",
+      "按 input 构造精确签名字节，验证 Ed25519；失败不使用 payload 产生候选。",
+      "UTF-8严格解码且拒绝重复键，解析并校验 UpdateIndex，再执行跨字段/版本/路径/时效规则。",
+      "只有全项通过、且 sourceId/channel 最高 sequence 和 payload SHA 可持久读回时，标记本次核验成功。"
+    ],
+    "keyLifecycle": "生产私钥由独立受控发行流程持有，不放公开数据库/客户端包；Payload 管理员身份不自动获得签名权。初期密钥轮换随明确宿主版本更新交付，禁止远程即时替换信任根。",
+    "limits": "签名 envelope 最多 1 MiB、解码 payload 最多 512 KiB、完整快照最多 256 条。包下载另设可信网络预算 16 MiB；超过预算报告网络策略不支持，不扩充或改变原包格式。",
+    "cryptoStatus": "按固定 Ed25519 字节合同实现；生产信任根仍需维护者离线管理和明确配置。不生成或发布生产私钥。"
+  },
+  "x-client-verification": {
+    "sourceBinding": "候选身份 = sourceId + kind + marketId + version + sha256。相同 marketId 不自动跨 origin/sourceId 迁移信任。旧来源缺失/不同的更新走原来源替换审阅，不补造 provenance；旧安装照常运行。",
+    "monotonicity": "按 sourceId+channel 保存最高 sequence 与 payloadSha256；小序号拒绝，同序号不同 payload 拒绝。同序号同payload可复用，但仍检查有效期。清除本机数据后的首次客户端没有历史高水位，依预置信任根与有效期建立首个基线，不宣称绝对防冻结。",
+    "time": "expiresAt 必须晚于 issuedAt 且差值 <= 86400s；允许 issuedAt 最多领先本机300s，不允许延长 expiresAt。时钟异常/过期独立报告，阻止新在线候选生效但不影响旧安装。重新签发即便无版本变化也递增 sequence。",
+    "uniqueness": "同一索引 (marketId,version) 唯一；marketId='opendesk/'+toolId；descriptor marketId/version须与外层一致；packagePath由固定身份计算。相同版本不同摘要、bytes或安全metadata拒绝；state从published到withdrawn通过新索引表达。",
+    "selection": "只从签名有效、来源一致的完整快照进行本地版本比较。第一阶段保守选择每个工具的最高广告版本；withdrawn、browser-host 或不能验证的 Host 依赖保留明确不可安装原因，不静默退选低版本或显示已最新。可安装候选必须 state=published、delivery=package 且原包格式/SDK/UI runtime可支持；不自动降级或静默切换来源。",
+    "hostBoundary": "当前 runtime-contract 的 extensionId/version/contractHash 只证明可信页面与Worker合同一致，并非完整 trusted 源码指纹。Browser显示版本号或服务器compatible布尔值都不足以证明固定Host功能存在。原Runtime匹配保护继续执行；缺可核验Host依赖时标兼容性待核对。",
+    "review": "点击原位更新时重新核对本地安装身份/版本、原事务状态与最新有效发行快照；固定候选仍published，descriptor逐项匹配后下载原件，验证大小/摘要/包ID/版本/能力/SDK。权限变化由原Installer显式审阅。服务器变更不静默替换用户已审阅候选。在原安装锁内再次确认本机基线与被审阅候选；首次写原安装journal时短暂持有既有UPDATE_NOTICE_LOCK，重新核对fresh回执绑定的sequence、原payload摘要、来源、渠道和时效，再记录原reviewed事务。网络请求和整次安装不持有该锁；此前本机已接受的新快照使旧审阅失败，事务开始后仍按原生命周期处理，不承诺瞬时全球撤回。",
+    "installation": "仅原安装事务成功并读回实际版本、包摘要、来源和原数据后记录applied。取消、拒绝或网络失败不写成功。UNKNOWN先沿原事务对账，重复检查版本不自动重放安装。",
+    "availability": "网络/API/签名/时钟/未配置/缓存过期分别记录检查原因。退回随包目录不能声称在线已检查且全部最新。索引未列出某旧安装为not_listed，不自动撤回、禁用或强制升级。",
+    "freshness": "ETag不授予信任。304仅重新使用未过期的已验证缓存，不能续签；安装前主动重新验证源。撤回可见性受索引有效期和缓存/网络时延影响，不保证瞬时全球撤回；离线不启动新在线安装。",
+    "existingAuthority": "网站继续opendesk.market.intent.v1的固定app/collection交接。网页字段、CMS登录态、服务器成功响应和下载完成均不能确认本地安装或绕过真实用户手势/权限。"
+  },
+  "x-client-state": {
+    "checkStates": [
+      "not_configured",
+      "checking",
+      "verified",
+      "network_error",
+      "untrusted",
+      "expired",
+      "clock_error",
+      "storage_unknown"
+    ],
+    "candidateStates": [
+      "available",
+      "review_required",
+      "current_verified",
+      "not_listed",
+      "local_ahead",
+      "source_review_required",
+      "browser_update_required",
+      "compatibility_unknown",
+      "withdrawn"
+    ],
+    "installStates": "复用原Installer状态与UNKNOWN，不新建另一份安装状态机。",
+    "timestamps": [
+      "lastVerifiedAt",
+      "expiresAt"
+    ],
+    "scheduling": "当前接入原 Worker 启动/原存储事件与手动 fresh 检查；单源请求合并且 fresh 不复用被动缓存请求。无无限自动重试，不增加常驻轮询。周期 alarms 另按真实需求与授权接入，不声称已实施12小时调度。",
+    "ui": "复用现有原位按钮、Badge、更新记录/偏好与共享通知。忽略/稍后只改变提醒，不抹除同版本可用更新。检查失败保留上次核验时间与原因，不呈现全部最新。",
+    "projection": "复用原通知 Store 的 available/review_required/unknown/applied 展示状态；updateSource/sourceReviewRequired/eligibilityReason 表达在线来源与不可安装原因，实际安装事务仍独立沿原 journal。候选状态名是业务语义，不表示另建安装状态机或所有未来展示都已实现。",
+    "checkOutcome": "显式 fresh 检查失败后，本 Worker 内保留失败原因并清除 verified/actionable Badge；被动缓存读取不能将失败改称成功或推进 lastVerifiedAt，实际 fresh 成功后才能恢复。lastVerifiedAt 表示本机快照及安装身份核验，不是全网最新时间；检查失败锁存尚不跨 Worker 重启持久化，重启可重新核验未过期签名缓存。"
+  },
+  "x-payload-model": {
+    "recommendedStack": "先复用当前独立静态市场构建与响应器；Payload 尚未部署时不另建第二个后端。后续 Payload 数据库/对象存储在实际工程确定版本与映射后接入相同业务协议。",
+    "collections": [
+      {
+        "name": "extensions",
+        "purpose": "市场资料",
+        "key": "marketId唯一；toolId不可随重命名变化",
+        "fields": [
+          "marketId",
+          "toolId",
+          "title",
+          "description",
+          "screenshots",
+          "listingState"
+        ],
+        "rule": "展示资料可使用Payload Drafts/Versions；不能改变已发行制品身份。"
+      },
+      {
+        "name": "releases",
+        "purpose": "不可变软件发行",
+        "key": "marketId+version数据库复合唯一；同版本跨channel保持相同制品",
+        "fields": [
+          "marketId",
+          "version",
+          "artifact",
+          "capabilities",
+          "requirements",
+          "delivery",
+          "changelog",
+          "publishedAt",
+          "lifecycleState"
+        ],
+        "rule": "published后的制品/包身份/安全元数据不允许通过普通CRUD改写；撤回是新发行索引状态，修复发布新版本。"
+      },
+      {
+        "name": "artifacts",
+        "purpose": "包、签名索引与展示资产的存储元数据",
+        "key": "对象键及内容摘要",
+        "fields": [
+          "kind",
+          "storageKey",
+          "bytes",
+          "sha256",
+          "mediaType"
+        ],
+        "rule": "包与签名快照按内容或固定版本不可变保存；数据库只存元数据，原始字节在对象存储。"
+      },
+      {
+        "name": "users",
+        "purpose": "既有Payload管理员认证",
+        "key": "使用Payload auth集合",
+        "fields": [
+          "role"
+        ],
+        "rule": "初期只管理员维护发行；公开只读API不暴露管理员与草稿。"
+      }
+    ],
+    "global": {
+      "name": "marketDistribution",
+      "purpose": "唯一official/stable活动指针及单调序号",
+      "fields": [
+        "sourceId",
+        "channel",
+        "activeSnapshotArtifact",
+        "sequence"
+      ],
+      "rule": "compare-and-swap/数据库事务串行发布；CMS恢复文档历史不允许降低sequence或替换同序号payload。"
+    },
+    "publishSteps": [
+      "按原打包器生成制品，并核对字节、摘要、包身份/能力/运行需求；先准备对象存储不可变原件。",
+      "准备下一份完整索引并通过受控签名流程签名，签名/存储失败保留旧活动索引。",
+      "在数据库事务中校验期望旧sequence，提交不可变发行和新的活动快照指针；并发冲突重新生成更高序号，不覆盖另一发布。",
+      "自定义API按同一活动指针读取已签名原字节；不得每次查询临时从多个CRUD结果拼装或重签。",
+      "所有公开目录与详情从已发布记录/活动快照生成；缺制品不成为可更新候选。"
+    ],
+    "accessRules": [
+      "明确锁定实施时的Payload版本；用户上下文Local API显式overrideAccess:false并传req/user，不能依赖跨版本默认值。",
+      "发布接口为管理员独立操作，公开目录/索引只读；限制readVersions和草稿泄漏。",
+      "Payload自定义endpoint明确处理CORS；公开可读不是安装授权，Chrome网络权限和externally_connectable仍分别核验。",
+      "对象存储的预签名下载URL与软件发行签名不同；现有下载器要求已批准市场同源且不重定向。",
+      "数据库事务不覆盖对象存储上传。先准备字节，再提交发布指针；失败不能让半成品可发现。",
+      "Payload文档Versions不是软件SemVer；恢复文案历史不回滚已发布包、渠道序号或用户安装。"
+    ]
+  },
+  "x-validation": {
+    "status": "PASS_FOR_DOCUMENT_STRUCTURE",
+    "scope": "不继承旧临时工作区测试或评分。JSON/Schema、签名与发现、Worker/Installer、实际 HTTP、真实 Chrome、Payload 部署和生产发布分别报告。",
+    "chrome": "NOT_TESTED",
+    "payloadRuntime": "NOT_TESTED",
+    "production": "NOT_TESTED",
+    "checked": "12 项组件Schema、41 个内部引用、2 个示意对象；原严格 descriptor Schema 与签名 input 保持完全相同。",
+    "behaviorTests": "tests/environment/market-update-contract.test.mjs：挂载映射、原示例被运行时接受、原 payload 字节签名输入三项通过。"
+  },
+  "x-concurrency-and-history": {
+    "atomicAcceptance": "使用现有可信Worker与共享锁：响应验签后进入锁，重新读取 sourceId/channel 高水位与已接受payloadSha256，再比较并通过原verified-write持久写入和读回；迟到低序号不能覆盖高序号。写入未知只允许只读核对，不标verified。锁仅覆盖状态接受过程，不持锁等待网络。",
+    "historicalIdentity": "复用原安装来源记录和已验证发行缓存，保存已接受的(sourceId,kind,marketId,version)对应制品与安全metadata身份。跨快照逐项比对sha256/bytes/packagePath/toolId/capabilities/requirements/delivery；state撤回变化不更换制品身份。只有sequence高水位而没有历史身份记录，不能声称已检测所有同版本历史冲突；首次未知来源仍走原审阅。 历史账本有界，达到容量时明确失败，不能静默驱逐后宣称覆盖全部历史；现有未知来源不能追溯补造。"
+  },
+  "x-existing-code-audit": [
+    {
+      "path": "src/config/browser-config.json",
+      "finding": "extensionStore=https://codexproxy.com/；仅配置事实，未核验站点部署。"
+    },
+    {
+      "path": "src/marketplace/store-website.js",
+      "finding": "外站导航已有，禁止回退内部市场。"
+    },
+    {
+      "path": "src/marketplace/legacy-market-entry.js",
+      "finding": "旧内部市场入口转外站，合法intent保留可信安装审阅。"
+    },
+    {
+      "path": "src/market-site/",
+      "finding": "已有独立市场模板/客户端；延用。"
+    },
+    {
+      "path": "scripts/build-market-site.mjs",
+      "finding": "已有catalog、固定descriptor和包输出；可作为第一阶段快照数据源。"
+    },
+    {
+      "path": "src/marketplace/distribution.js",
+      "finding": "已有同源下载/15秒超时/严格六字段descriptor/大小与摘要和包身份复核。"
+    },
+    {
+      "path": "src/marketplace/channel-config.json",
+      "finding": "production的origin/extensionId/acquireUrl/verifiedAt均null；未启用生产交接。"
+    },
+    {
+      "path": "src/platform/chrome/update-notice-service.js",
+      "finding": "本轮默认读取签名 discovery；原 Worker/UPDATE_NOTICE_LOCK/Store 与 fresh 列表审阅继续复用，最终接受核对安装来源、操作记录和索引高水位。测试保留显式 loadCatalog 注入，不把随包目录冒充在线核验。"
+    },
+    {
+      "path": "src/sidebar-tools/official-catalog.js",
+      "finding": "随包与既有 Stay Focus 目录保持原合同；loadOfficialTool 新增已验证在线发行薄适配，实际包继续经同源 distribution 和原 Installer。"
+    },
+    {
+      "path": "src/sidebar-tools/runtime-compatibility.js",
+      "finding": "可信UI与Worker的contractHash握手不等于全部trusted源码兼容。"
+    }
+  ],
+  "x-incremental-implementation": [
+    {
+      "step": 1,
+      "scope": "服务与协议",
+      "work": "按本协议从原发行构建产物产生预签名索引；可先静态同源部署，后由Payload返回相同字节。",
+      "doneWhen": "新增真实候选可被HTTP读取且签名/固定descriptor/原件一致。"
+    },
+    {
+      "step": 2,
+      "scope": "现有发行读取层",
+      "work": "在src/marketplace与src/sidebar-tools既有读取职责补薄的通用远程索引适配；保持来源身份、固定包下载与验签。不要给全部工具套用StayFocus专用remoteCommit。",
+      "doneWhen": "update-notice-service通过原loadCatalog职责得到可验证候选；安装时解析的是同一来源/版本/摘要。"
+    },
+    {
+      "step": 3,
+      "scope": "检查过程",
+      "work": "接入手动/启动/必要周期检查、持久高水位与错误状态；现有React原位UI消费结果。",
+      "doneWhen": "未配置/失败不显示最新，旧安装正常用；本地来源变动不恢复过期候选。"
+    },
+    {
+      "step": 4,
+      "scope": "安装闭环",
+      "work": "原行内入口→fresh复核→原Installer审阅→安装事务→版本/SHA/来源/数据读回；Host依赖单独提示。",
+      "doneWhen": "一项真实官方工具完成旧版到新版，取消/权限拒绝保持旧版；UNKNOWN不自动重试。"
+    },
+    {
+      "step": 5,
+      "scope": "相关遗留纠偏",
+      "work": "src/market-site/client.js中“使用扩展内市场”错误提示改为安装通道未启用/查看帮助；在原app-market-website-r5文档修正实际远端包分发事实。",
+      "doneWhen": "不再引导用户寻找已退役的市场入口；可信安装审阅保留。"
+    }
+  ],
+  "x-acceptance": [
+    {
+      "case": "discovery_roundtrip",
+      "expect": "服务发布新索引→客户端验证→原行内按钮出现→原审阅→实际版本/来源/SHA读回且旧数据保留。",
+      "level": "真实Chrome"
+    },
+    {
+      "case": "offline_or_unconfigured",
+      "expect": "准确显示未配置/检查失败/上次核验时间，已安装应用照常可用。",
+      "level": "客户端集成"
+    },
+    {
+      "case": "integrity_and_origin",
+      "expect": "坏签名、未知key、同版本不同SHA、跨源重定向、超读取预算被拒绝。",
+      "level": "读取层行为"
+    },
+    {
+      "case": "index_replay",
+      "expect": "低sequence、相同sequence不同payload、过期payload、过期缓存304被拒绝；旧安装不受影响。",
+      "level": "协议行为"
+    },
+    {
+      "case": "withdrawal",
+      "expect": "新索引withdrawn阻止新安装，不自动卸载；审阅期间撤回重新核验失败。",
+      "level": "安装集成"
+    },
+    {
+      "case": "approval_and_unknown",
+      "expect": "新增权限由原Installer审阅，取消/拒绝保留旧安装；UNKNOWN沿原事务只读对账。",
+      "level": "真实Chrome"
+    },
+    {
+      "case": "host_dependency",
+      "expect": "delivery=browser-host不被当作独立JSON更新；原运行合同不匹配继续拦截，不能宣称固定源码已更新。",
+      "level": "客户端集成"
+    },
+    {
+      "case": "payload_publish",
+      "expect": "半成品/未签名不公开；并发发布只保留合法更高sequence；已发布同版本制品不可替换。",
+      "level": "服务集成"
+    }
+  ],
+  "x-non-goals-first-phase": [
+    "第三方作者入驻与自动审核",
+    "支付/评价/推荐系统",
+    "批量静默更新",
+    "用户安装遥测数据库",
+    "Page Program/Controller Task复用Sidebar Installer",
+    "远程JSON替换Chrome扩展SW/Host/trusted源码"
+  ],
+  "x-sources": [
+    {
+      "title": "本轮当前源码基线",
+      "url": "https://github.com/shopable-ai/opendesk-browser/tree/3a9677ab403a83859bf088b2ca6d38799f857268"
+    },
+    {
+      "title": "Payload configuration/collections",
+      "url": "https://payloadcms.com/docs/configuration/collections"
+    },
+    {
+      "title": "Payload rest-api/overview",
+      "url": "https://payloadcms.com/docs/rest-api/overview"
+    },
+    {
+      "title": "Payload database/postgres",
+      "url": "https://payloadcms.com/docs/database/postgres"
+    },
+    {
+      "title": "Payload upload/storage-adapters",
+      "url": "https://payloadcms.com/docs/upload/storage-adapters"
+    },
+    {
+      "title": "Payload versions/overview",
+      "url": "https://payloadcms.com/docs/versions/overview"
+    },
+    {
+      "title": "Payload local-api/access-control",
+      "url": "https://payloadcms.com/docs/local-api/access-control"
+    },
+    {
+      "title": "Payload database/transactions",
+      "url": "https://payloadcms.com/docs/database/transactions"
+    },
+    {
+      "title": "Chrome远程代码边界",
+      "url": "https://developer.chrome.com/docs/extensions/develop/migrate/remote-hosted-code"
+    }
+  ],
+  "x-http-mount": {
+    "publicPath": "/api/market/v1/channels/stable/index",
+    "payloadRootEndpointPath": "/market/v1/channels/:channel/index",
+    "payloadRoutesApi": "/api",
+    "openapiServer": "/",
+    "meaning": {
+      "api": "HTTP API 入口",
+      "market": "市场业务域",
+      "v1": "公共 HTTP API 版本",
+      "channel": "发布渠道，一期仅 stable",
+      "index": "完整预签名发行快照"
+    },
+    "versionIndependence": "HTTP API 版本、签名 schema、快照 sequence、应用 version 与 Payload 软件版本独立。URI 改名不改变旧 intent、descriptor 或签名字节。",
+    "payloadStatus": "当前仓库无 Payload 依赖、Config 或部署；映射按 Payload 3 官方文档设计，接入时锁定实际软件版本并验证 routes.api/basePath/trailingSlash/代理，不以示例冒充部署。",
+    "registration": "仅注册根 Config endpoints，不放到 Collection/Global 后增加 slug，不为一个市场接口改全站 API 前缀。",
+    "cors": "自定义端点显式处理允许的跨域 Origin、OPTIONS/If-None-Match，以及 ETag/Retry-After 暴露；CORS 不授予发布源信任、安装或权限。",
+    "rootAssets": [
+      "/catalog.json",
+      "/releases/opendesk/{toolId}/{version}/descriptor.json",
+      "/releases/opendesk/{toolId}/{version}/package.opendesk-tool.json"
+    ],
+    "migration": "两个旧路径在核对的 main 中无真实消费者，仅原未部署草案引用；本轮同步规范、配置、实现和测试，不发布别名或重定向。发现后续真实消费者必须另给有界迁移证据。"
+  }
+}

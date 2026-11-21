@@ -618,6 +618,12 @@ export function createExtensionCenter({api,client,doc,sidebarTools,taskWorkbench
         rows:rows.map(row=>({
           key:row.key,title:titleOf(row),kind:row.kind,type:typeOf(row),
           description:rowDescription(row),installed:row.installed,stateKnown:row.stateKnown,pinned:row.pinned,
+          // Bind a verified online candidate to the actual installed bytes.
+          // The bundled Catalog need not contain the newer online version.
+          installedUpdateIdentity:row.kind==='app'&&row.installed&&appStatusKnown&&
+            row.stateKnown!==false&&!row.queueReviewRelease&&!row.queueProduct&&!row.cleanupPending&&
+            /^[a-f0-9]{64}$/.test(sources[row.id]?.sha256||'')?
+            {id:row.id,version:row.version,sha256:sources[row.id].sha256}:null,
           updateIdentity:row.kind==='app'&&row.installed&&appStatusKnown&&
             row.stateKnown!==false&&!row.queueReviewRelease&&
             !row.queueProduct&&!row.cleanupPending&&row.update===true&&

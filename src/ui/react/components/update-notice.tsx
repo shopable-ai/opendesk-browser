@@ -8,12 +8,16 @@ const modeLabels={'toast+inbox':'网页提醒 + 数字角标','inbox-only':'仅�
 const statuses={available:'有新版本，等待审阅',review_required:'需要审阅新增能力',
   pending_browser_apply:'Chrome 等待应用新版',applied:'已安装（有可信回执）',
   unknown:'状态未知，需人工核对'};
-function call(kind,params={}){
-  if(typeof chrome?.runtime?.sendMessage!=='function')return Promise.reject(Error('更新中心暂不可用'));
-  return chrome.runtime.sendMessage({protocol:PROTOCOL,kind,...params}).then(reply=>{
-    if(!reply?.ok)throw Error(reply?.error?.message||reply?.error?.code||'更新中心响应异常');
+async function call(kind,params={}){
+  if(typeof globalThis.chrome?.runtime?.sendMessage!=='function')throw Error('更新中心暂不可用');
+  let timer;
+  try{
+    const reply=await Promise.race([chrome.runtime.sendMessage({protocol:PROTOCOL,kind,...params}),
+      new Promise((_,reject)=>{timer=setTimeout(()=>reject(Error('更新检查响应超时')),20000);})]);
+    if(!reply?.ok)throw Object.assign(Error(reply?.error?.message||reply?.error?.code||'更新中心响应异常'),
+      {code:reply?.error?.code});
     return reply.data;
-  });
+  }finally{clearTimeout(timer);}
 }
 function shortStamp(time){
   if(!Number.isFinite(time)||!time)return '—';
@@ -56,12 +60,15 @@ function ReleaseDetail({row,onUpdate,onOpenReview,busy,verified,surface='sidebar
     <p className="od-update-release-description">
       {row.kind==='browser'?'此更新由 Chrome 管理，无须通过 OpenDesk 工具安装器操作。':
         row.status==='unknown'?'来源、版本或安装结果尚未确认，不能据此安装。':
+        row.changelog?row.changelog:
         row.description?'官方目录简介：'+row.description:
           '官方目录未提供逐条版本说明。审阅更新不会自动安装。'}
     </p>
     {row.sha256&&<details className="od-update-release-technical">
       <summary>来源与包校验</summary>
-      <p>{row.source||'官方目录'}</p>
+      <p>{row.updateSource?row.updateSource.sourceId+' · '+row.updateSource.channel+' · '+
+        row.updateSource.origin:row.source||'官方目录'}</p>
+      {row.sourceReviewRequired&&<p>当前安装缺少相同来源证明；更新须经过原来源替换审阅。</p>}
       <code>{row.sha256}</code>
     </details>}
     {row.newCapabilities?.length>0&&<div className="od-update-release-permissions">
@@ -90,29 +97,40 @@ export function useUpdateNoticeController(onOpenRequested=()=>{},{enabled=true}=
   const [filter,setFilter]=React.useState('pending');
   const [error,setError]=React.useState('');
   const [busy,setBusy]=React.useState(false);
-  const mounted=React.useRef(false),refreshing=React.useRef(false),dirty=React.useRef(false);
+  const mounted=React.useRef(false),refreshing=React.useRef(null),dirty=React.useRef(false);
+  const freshPending=React.useRef(false);
   const openRef=React.useRef(onOpenRequested);
   const handledOpen=React.useRef(0);
   openRef.current=onOpenRequested;
-  const refresh=React.useCallback(async()=>{
-    if(!enabled)return;
-    if(refreshing.current){dirty.current=true;return;}
-    refreshing.current=true;
-    try{
-      const next=await call('list');
-      if(!mounted.current)return;
-      setState(next);setError('');
-      if(next.openRequestedAt>0&&next.openRequestedAt!==handledOpen.current){
-        handledOpen.current=next.openRequestedAt;
-        setFilter('pending');setOpened(false);
-        openRef.current?.(next);
-        void call('clear-open').catch(()=>{});
-      }
-    }catch(e){if(mounted.current)setError(String(e?.message||e).slice(0,160));}
-    finally{
-      refreshing.current=false;
-      if(dirty.current){dirty.current=false;if(mounted.current)void refresh();}
-    }
+  const refresh=React.useCallback(({fresh=false}={})=>{
+    if(!enabled)return Promise.resolve();
+    freshPending.current||=fresh;
+    if(refreshing.current){dirty.current=true;return refreshing.current;}
+    const pending=(async()=>{
+      do{
+        dirty.current=false;
+        const force=freshPending.current;freshPending.current=false;
+        if(force&&mounted.current)setBusy(true);
+        try{
+          const next=await call('list',force?{fresh:true}:{});
+          if(!mounted.current)return;
+          setState(next);setError('');
+          if(next.openRequestedAt>0&&next.openRequestedAt!==handledOpen.current){
+            handledOpen.current=next.openRequestedAt;
+            setFilter('pending');setOpened(false);
+            openRef.current?.(next);
+            void call('clear-open').catch(()=>{});
+          }
+        }catch(e){if(mounted.current){
+          const problem=String(e?.code||e?.message||e).slice(0,160);
+          setError(problem);
+          setState(previous=>({...previous,verified:false,problem,newCount:0,
+            unreadCount:0,actionableCount:0,badgeCount:0}));
+        }}finally{if(force&&mounted.current)setBusy(false);}
+      }while(dirty.current&&mounted.current);
+    })().finally(()=>{refreshing.current=null;});
+    refreshing.current=pending;
+    return pending;
   },[enabled]);
   React.useEffect(()=>{
     if(!enabled)return;
@@ -123,6 +141,15 @@ export function useUpdateNoticeController(onOpenRequested=()=>{},{enabled=true}=
     chrome?.storage?.onChanged?.addListener(listener);
     return ()=>{mounted.current=false;chrome?.storage?.onChanged?.removeListener(listener);};
   },[enabled,refresh]);
+  React.useEffect(()=>{
+    if(!enabled||!state.verified||!state.expiresAt)return;
+    const remaining=Date.parse(state.expiresAt)-Date.now();
+    const invalidate=()=>setState(previous=>({...previous,verified:false,
+      problem:'E_UPDATE_INDEX_EXPIRED',newCount:0,unreadCount:0,actionableCount:0,badgeCount:0}));
+    if(!Number.isFinite(remaining)||remaining<=0){invalidate();return;}
+    const timer=setTimeout(invalidate,remaining);
+    return ()=>clearTimeout(timer);
+  },[enabled,state.verified,state.expiresAt]);
   const act=async(key,action)=>{
     setBusy(true);
     try{await call('action',{key,action});await refresh();}
@@ -195,8 +222,14 @@ export function UpdateNoticeSlot({surface='sidebar',controller,onOpenReview=()=>
       </div><button type="button" aria-label="关闭更新中心"
         onClick={()=>{focusReturn();setOpened(false);}}>×</button></header>
       {error&&<p role="alert" className="od-update-error">{error}</p>}
+      <button type="button" disabled={busy} onClick={()=>void refresh({fresh:true})}>
+        {busy?'正在检查…':'检查更新'}
+      </button>
+      {state.lastVerifiedAt&&<p className="od-update-release-meta">上次核验：{shortStamp(state.lastVerifiedAt)}</p>}
       {!state.verified&&<p className="od-update-warning" role="status">
-        更新核验尚未完成。历史记录可以查看，当前不可执行更新。
+        {state.problem?.includes('UNCONFIGURED')||state.problem?.includes('NOT_CONFIGURED')?
+          '在线更新来源尚未配置。':busy?'正在检查发行与安装状态。':'本次更新核验未完成。'}
+        历史记录可以查看，原安装仍可使用，当前不可执行在线更新。
         {state.problem?'（'+state.problem+'）':''}
       </p>}
       <div className="od-update-tabs" role="group" aria-label="更新记录类型">
@@ -208,7 +241,7 @@ export function UpdateNoticeSlot({surface='sidebar',controller,onOpenReview=()=>
         {shown.length?shown.map(row=><ReleaseDetail key={row.key} row={row}
           onUpdate={act} onOpenReview={onOpenReview} surface={surface}
           verified={state.verified} busy={busy}/>)
-          :<p className="od-update-empty">{filter==='pending'?'暂无待处理更新':
+          :<p className="od-update-empty">{filter==='pending'?(state.verified?'当前快照未提供可处理的更新':'尚未完成更新检查'):
              filter==='history'?'暂无更新历史':'暂无浏览器本体更新记录'}</p>}
       </div>
       <details className="od-update-preferences">

@@ -31,6 +31,8 @@ import {assertManagedSitePolicySupported} from '../../platform/host/managed-site
 import {prepareLegacyFocusUpgrade,writeLegacyFocusUpgradeSnapshot,
   finishLegacyFocusUpgradeLocked} from './legacy-focus-upgrade.js';
 import {prepareLegacyReadingTocUpgrade,writeLegacyReadingTocUpgrade} from './legacy-reading-toc-upgrade.js';
+import {onlineUpdateSource,verifyOnlineMarketCandidate} from '../../marketplace/update-client.js';
+import {UPDATE_NOTICE_LOCK} from '../../platform/chrome/update-notice-state.js';
 
 export const MARKET_OPERATIONS_STORE='opendesk.market.operations.v1';
 export {TOOL_CLEANUP_STORE,requirePendingToolCleanups} from './lifecycle.js';
@@ -180,7 +182,44 @@ function marketIdentity(value,candidate) {
   if(!marketIdPattern.test(value.marketId)||!shaPattern.test(value.sha256)||
       !opPattern.test(value.operationId)||value.marketId.split('/')[1]!==candidate.id)
     throw error('市场安装身份、哈希或事务 ID 无效','E_MARKET_IDENTITY');
+  if(hasOnlineSource(value)&&!onlineUpdateSource(value))
+    throw error('在线发行必须携带完整已验证来源','E_MARKET_IDENTITY');
   return value;
+}
+const sourceKeys=['sourceId','kind','channel','origin'];
+const hasOnlineSource=value=>Boolean(value&&sourceKeys.some(key=>Object.hasOwn(value,key)));
+const sourceFields=value=>hasOnlineSource(value)?onlineUpdateSource(value):{};
+const sameMarketSource=(a,b)=>hasOnlineSource(a)||hasOnlineSource(b)
+  ?Boolean(onlineUpdateSource(a)&&onlineUpdateSource(b)&&sameStorageValue(onlineUpdateSource(a),onlineUpdateSource(b)))
+  :true;
+export function validMarketProvenance(value){
+  return Boolean(value&&typeof value==='object'&&!Array.isArray(value)&&
+    Object.keys(value).length===(hasOnlineSource(value)?7:3)&&
+    marketIdPattern.test(value.marketId)&&shaPattern.test(value.sha256)&&
+    typeof value.version==='string'&&/^(0|[1-9]\d*)\.(0|[1-9]\d*)\.(0|[1-9]\d*)$/.test(value.version)&&
+    (!hasOnlineSource(value)||onlineUpdateSource(value)));
+}
+async function assertNoPendingOnlineOperation(api,tool,identity){
+  const raw=(await api.storage.local.get(MARKET_OPERATIONS_STORE))[MARKET_OPERATIONS_STORE];
+  if(raw===undefined)return;
+  if(!raw||typeof raw!=='object'||Array.isArray(raw))
+    throw error('安装事务记录无法核对；未提交新安装','E_STORAGE_CORRUPT');
+  for(const [op,row] of Object.entries(raw)){
+    if(hasOnlineSource(identity)&&(!opPattern.test(op)||!row||typeof row!=='object'||
+      Array.isArray(row)||!marketIdPattern.test(row.marketId)||!shaPattern.test(row.sha256)))
+      throw error('安装事务记录损坏；未提交在线安装','E_STORAGE_CORRUPT');
+    if((row?.toolId===tool.id||row?.marketId==='opendesk/'+tool.id)&&
+      !['succeeded','failed','cancelled'].includes(row?.state)&&
+      (hasOnlineSource(identity)||hasOnlineSource(row))){
+      const valid=opPattern.test(op)&&row.toolId===tool.id&&marketIdPattern.test(row.marketId)&&
+        shaPattern.test(row.sha256)&&typeof row.version==='string'&&/^(0|[1-9]\d*)\.(0|[1-9]\d*)\.(0|[1-9]\d*)$/.test(row.version)&&
+        (!hasOnlineSource(row)||onlineUpdateSource(row));
+      if(!valid)throw error('此工具的未决事务身份损坏，请核对原始记录','E_STORAGE_CORRUPT');
+      throw Object.assign(error('此工具仍有未决安装事务；请核对原事务，不能新建安装重放','E_OUTCOME_UNKNOWN'),{
+        marketOperation:{operationId:op,toolId:row.toolId,marketId:row.marketId,version:row.version,sha256:row.sha256,
+          ...Object.fromEntries(sourceKeys.map(key=>[key,row[key]]))}});
+    }
+  }
 }
 function recoverableOperations(value) {
   if(!value||typeof value!=='object'||Array.isArray(value))return {};
@@ -428,13 +467,15 @@ async function transferReviewedSiteScopeLocked(api,lockManager,{id,source,toEpoc
 // Submit package bytes and their generation together through the existing
 // storage/locks. Chrome writes are not a cross-call transaction: partial or
 // unreadable outcomes stay unknown and must never trigger an automatic replay.
-async function commitInstalledSidebarTools(api,next,previous,nextEpochs,previousEpochs,menuUpdate,adblockUpdate){
+async function commitInstalledSidebarTools(api,next,previous,nextEpochs,previousEpochs,menuUpdate,adblockUpdate,sourceGrantUpdates=[]){
   const updates={[SIDEBAR_TOOL_STORE]:next,[TOOL_REVOCATION_EPOCHS_STORE]:nextEpochs,
     ...(menuUpdate?{[BROWSER_MENU_GRANTS_STORE]:menuUpdate.next}:{}),
-    ...(adblockUpdate?{[ADBLOCK_STORE]:adblockUpdate.next}:{})};
+    ...(adblockUpdate?{[ADBLOCK_STORE]:adblockUpdate.next}:{}),
+    ...Object.fromEntries(sourceGrantUpdates.map(row=>[row.key,row.next]))};
   const prior={[SIDEBAR_TOOL_STORE]:previous,[TOOL_REVOCATION_EPOCHS_STORE]:previousEpochs,
     ...(menuUpdate?{[BROWSER_MENU_GRANTS_STORE]:menuUpdate.previous}:{}),
-    ...(adblockUpdate?{[ADBLOCK_STORE]:adblockUpdate.previous}:{})};
+    ...(adblockUpdate?{[ADBLOCK_STORE]:adblockUpdate.previous}:{}),
+    ...Object.fromEntries(sourceGrantUpdates.map(row=>[row.key,row.previous]))};
   let failure=null;
   try{await api.storage.local.set(updates);}
   catch(cause){failure=cause;}
@@ -451,10 +492,7 @@ async function commitInstalledSidebarTools(api,next,previous,nextEpochs,previous
 }
 function matchesPreviousProvenance(row,source){
   const previous=row.previousProvenance;
-  return Boolean(previous&&typeof previous==='object'&&!Array.isArray(previous)&&
-    Object.keys(previous).length===3&&previous.marketId===row.marketId&&
-    typeof previous.version==='string'&&/^(0|[1-9]\d*)\.(0|[1-9]\d*)\.(0|[1-9]\d*)$/.test(previous.version)&&
-    shaPattern.test(previous.sha256)&&sameStorageValue(previous,source));
+  return validMarketProvenance(previous)&&previous.marketId===row.marketId&&sameStorageValue(previous,source);
 }
 // Never replay an unknown operation. The installed package and local provenance,
 // not the market directory, are the only inputs for recovery.
@@ -478,7 +516,8 @@ export async function reconcileMarketOperation(api,operationId,expectedPackage=n
     }
   }
   const source=(provenance[MARKET_PROVENANCE_STORE]||{})[row.toolId];
-  const sourceMatched=source?.marketId===row.marketId&&source.sha256===row.sha256&&source.version===row.version;
+  const sourceMatched=source?.marketId===row.marketId&&source.sha256===row.sha256&&source.version===row.version&&
+    sameMarketSource(source,row);
   const sourceConflicts=Boolean(source&&!sourceMatched&&!matchesPreviousProvenance(row,source));
   let appPageVerified=!current?.pageModule;
   if(matched&&current?.pageModule){
@@ -499,13 +538,13 @@ export async function recoverMarketOperation({api,lockManager,operationId,expect
   const stored=await api.storage.local.get(MARKET_OPERATIONS_STORE);
   const row=recoverableOperations(stored[MARKET_OPERATIONS_STORE])[operationId];
   if(!row)return {state:'missing',operationId};
-  if(expectedIdentity&&['toolId','marketId','version','sha256'].some(key=>
+  if(expectedIdentity&&['toolId','marketId','version','sha256',...sourceKeys].some(key=>
     Object.hasOwn(expectedIdentity,key)&&expectedIdentity[key]!==row[key]))
     throw error('安装事务与所选固定版本不一致','E_MARKET_IDENTITY');
   if(!lockManager?.request)throw error('浏览器缺少安全存储锁','E_TOOL_LOCK');
   return lockManager.request('opendesk.sidebar-tools:tool:'+row.toolId,()=>
     lockManager.request('opendesk.sidebar-tools:catalog',async()=>{
-      const matchesIdentity=active=>active&&['toolId','marketId','version','sha256'].every(key=>active[key]===row[key])&&
+      const matchesIdentity=active=>active&&['toolId','marketId','version','sha256',...sourceKeys].every(key=>active[key]===row[key])&&
         Object.hasOwn(active,'installEpoch')===Object.hasOwn(row,'installEpoch')&&active.installEpoch===row.installEpoch&&
         Object.hasOwn(active,'previousProvenance')===Object.hasOwn(row,'previousProvenance')&&
         sameStorageValue(active.previousProvenance,row.previousProvenance)&&
@@ -521,7 +560,8 @@ export async function recoverMarketOperation({api,lockManager,operationId,expect
       // advance to this already committed release. Older journals fail closed.
       if(saved[row.toolId]&&!checked.provenanceVerified&&!matchesPreviousProvenance(row,saved[row.toolId]))
         return {...checked,state:'outcome-unknown'};
-      const identity={marketId:row.marketId,sha256:row.sha256,version:row.version};
+      if(hasOnlineSource(row)&&!onlineUpdateSource(row))throw unknownStorageOutcome(null,'在线安装来源');
+      const identity={marketId:row.marketId,sha256:row.sha256,version:row.version,...sourceFields(row)};
       if(!checked.provenanceVerified)await writeVerifiedLocalValue(api,MARKET_PROVENANCE_STORE,
         {...saved,[row.toolId]:identity},saved,'市场来源恢复');
       // A partial package commit can already have advanced the installed
@@ -586,10 +626,24 @@ async function verifyConcurrentPreinstall(api,tool,pageClient){
 }
 export async function installReviewedSidebarTool({api,lockManager,candidate,baseline=null,
   market=null,reviewApproved=false,approveUpdate=()=>true,approveSourceChange=null,commitIntent=null,
-  fetcher=globalThis.fetch,pageClient=null,repairMissingPageModule=false,baselineInstallEpoch=undefined}){
+  fetcher=globalThis.fetch,pageClient=null,repairMissingPageModule=false,baselineInstallEpoch=undefined,
+  baselineProvenance=undefined,verifyMarketCandidate=verifyOnlineMarketCandidate}){
   if(reviewApproved!==true)throw error('必须先经过用户明确安装审阅','E_REVIEW_REQUIRED');
   const tool=await verifySidebarToolBackground(candidate);
   const identity=marketIdentity(market,tool);
+  await assertNoPendingOnlineOperation(api,tool,identity);
+  let onlineVerification=null;
+  const verifyOnline=async()=>{if(hasOnlineSource(identity))onlineVerification=await verifyMarketCandidate(tool,identity,{api,fetcher});};
+  const beginVerifiedOperation=async work=>{
+    if(!hasOnlineSource(identity))return work();
+    if(typeof onlineVerification?.assertCurrent!=='function')
+      throw error('在线发行缺少安装前核验回执','E_UPDATE_INDEX_CHANGED');
+    return lockManager.request(UPDATE_NOTICE_LOCK,{mode:'exclusive'},async()=>{
+      await onlineVerification.assertCurrent();
+      return work();
+    });
+  };
+  await verifyOnline();
   if(tool.pageModule)await requestAppLifecycle(pageClient,'prepareAppPage',{tool});
   // Managed policy compatibility is decided by the running, precompiled Worker
   // BEFORE the registry's commit boundary. Installation never executes package JS.
@@ -605,7 +659,7 @@ export async function installReviewedSidebarTool({api,lockManager,candidate,base
   // Official provenance needs a verified release. A user-reviewed local file
   // can use any tool ID without claiming that provenance; source replacement
   // below clears the old official record only after the package commits.
-  if(identity&&tool.id===OFFICIAL_READING_TOC_RELEASE.id&&
+  if(identity&&!hasOnlineSource(identity)&&tool.id===OFFICIAL_READING_TOC_RELEASE.id&&
      (identity?.marketId!==OFFICIAL_READING_TOC_RELEASE.marketId||
       identity.sha256!==OFFICIAL_READING_TOC_RELEASE.sha256||
       tool.version!==OFFICIAL_READING_TOC_RELEASE.version)){
@@ -622,6 +676,7 @@ export async function installReviewedSidebarTool({api,lockManager,candidate,base
   if(!lockManager?.request)throw error('浏览器缺少安全存储锁','E_TOOL_LOCK');
   const lock=(name,work)=>lockManager.request('opendesk.sidebar-tools:'+name,work);
   return lock('tool:'+tool.id,()=>lock('catalog',async()=>{
+    await assertNoPendingOnlineOperation(api,tool,identity);
     let pageCleanupPending=false,pageActivationPending=false;
     const installed=await getInstalledSidebarTools(api);
     const existing=installed.find(row=>row.id===tool.id)||null;
@@ -642,6 +697,10 @@ export async function installReviewedSidebarTool({api,lockManager,candidate,base
         throw error('安装实例已发生变化，请重新审阅','E_TOOL_CHANGED');
     }
     const provenance=(await api.storage.local.get(MARKET_PROVENANCE_STORE))[MARKET_PROVENANCE_STORE]||{};
+    if(typeof provenance!=='object'||Array.isArray(provenance))
+      throw error('安装来源记录损坏；未修改安装','E_STORAGE_CORRUPT');
+    if(baselineProvenance!==undefined&&!sameStorageValue(provenance[tool.id]??null,baselineProvenance))
+      throw error('安装来源在审阅后变化，请重新审阅','E_TOOL_CHANGED');
     let sourceChanged=false;
     if(!identity&&existing&&provenance[tool.id]&&!sameSidebarToolPackage(existing,tool)){
       if(typeof approveSourceChange!=='function')
@@ -651,8 +710,10 @@ export async function installReviewedSidebarTool({api,lockManager,candidate,base
     }
     if(identity&&existing&&!sameSidebarToolPackage(existing,tool)){
       const record=provenance[tool.id];
-      if(record?.marketId!==identity.marketId||!shaPattern.test(record?.sha256)){
-        if(record||typeof approveSourceChange!=='function')
+      const verifiedSource=validMarketProvenance(record)&&record.marketId===identity.marketId&&
+        record.version===existing.version&&record.sha256===await canonicalSha256(existing)&&sameMarketSource(record,identity);
+      if(!verifiedSource){
+        if(typeof approveSourceChange!=='function')
           throw error('此工具 ID 已被其他来源使用，必须明确审核来源替换','E_PUBLISHER_CONFLICT');
         if(await approveSourceChange(existing,tool)!==true)return {state:'cancelled',tool};
         sourceChanged=true;
@@ -660,14 +721,34 @@ export async function installReviewedSidebarTool({api,lockManager,candidate,base
     }
     if(identity&&await canonicalSha256(tool)!==identity.sha256)
       throw error('待安装包的规范化摘要与市场审阅记录不一致','E_MARKET_IDENTITY');
+    const readFreshInstallationState=async()=>{
+      await assertNoPendingOnlineOperation(api,tool,identity);
+      if(hasOnlineSource(identity)){
+        const sourceNow=(await api.storage.local.get(MARKET_PROVENANCE_STORE))[MARKET_PROVENANCE_STORE]?.[tool.id];
+        if(!sameStorageValue(provenance[tool.id]??null,sourceNow??null)||
+          !sameStorageValue(installed,await getInstalledSidebarTools(api)))
+          throw error('本机安装或来源在核验期间变化，请重新审阅','E_TOOL_CHANGED');
+      }
+      const rawEpochs=(await api.storage.local.get(TOOL_REVOCATION_EPOCHS_STORE))[TOOL_REVOCATION_EPOCHS_STORE];
+      const epochs=requireToolRevocationEpochs(rawEpochs);
+      if(baselineInstallEpoch!==undefined&&(epochs[tool.id]??null)!==baselineInstallEpoch)
+        throw error('安装实例在核验期间变化，请重新审阅','E_TOOL_CHANGED');
+      return {rawEpochs,epochs};
+    };
     if(existing&&sameSidebarToolPackage(existing,tool)){
+      if((hasOnlineSource(identity)||hasOnlineSource(provenance[tool.id]))&&
+        (!identity||!validMarketProvenance(provenance[tool.id])||!sameMarketSource(identity,provenance[tool.id])||
+          provenance[tool.id].marketId!==identity.marketId||
+          provenance[tool.id].sha256!==identity.sha256||provenance[tool.id].version!==tool.version))
+        throw error('同版本安装不能补造或更换发行来源；请审阅新版本','E_PUBLISHER_CONFLICT');
+      await verifyOnline();
+      const {epochs}=await readFreshInstallationState();
       // Ordinary reconciliation only verifies. A fresh explicit package review
       // may complete a missing companion after original cleanup is confirmed;
       // an existing/unknown installation must never be resubmitted.
       const original=identity?(await api.storage.local.get(MARKET_OPERATIONS_STORE))[MARKET_OPERATIONS_STORE]||{}:null;
       if(identity&&original[identity.operationId])throw error('事务已存在，请先核对原结果','E_OUTCOME_UNKNOWN');
-      const epochs=requireToolRevocationEpochs((await api.storage.local.get(TOOL_REVOCATION_EPOCHS_STORE))[TOOL_REVOCATION_EPOCHS_STORE]);
-      const journal=identity?{marketId:identity.marketId,sha256:identity.sha256,toolId:tool.id,version:tool.version,
+      const journal=identity?{marketId:identity.marketId,sha256:identity.sha256,toolId:tool.id,version:tool.version,...sourceFields(identity),
         ...(epochs[tool.id]?{installEpoch:epochs[tool.id]}:{}),reason:'already-installed'}:null;
       let journalStarted=false,repairAttempted=false;
       const writeJournal=async state=>{
@@ -677,9 +758,12 @@ export async function installReviewedSidebarTool({api,lockManager,candidate,base
         if(receipt.acknowledgementLost)throw unknownStorageOutcome(null,'市场事务写入回执');
       };
       const beginJournal=async()=>{
-        if(commitIntent)await commitIntent();
-        journalStarted=true;
-        await writeJournal('reviewed');
+        await beginVerifiedOperation(async()=>{
+          await readFreshInstallationState();
+          if(commitIntent)await commitIntent();
+          journalStarted=true;
+          await writeJournal('reviewed');
+        });
       };
       try{
         if(tool.pageModule){
@@ -704,7 +788,7 @@ export async function installReviewedSidebarTool({api,lockManager,candidate,base
         if(identity){
           if(!journalStarted)await beginJournal();
           const receipt=await writeVerifiedLocalValue(api,MARKET_PROVENANCE_STORE,{
-            ...provenance,[tool.id]:{marketId:identity.marketId,sha256:identity.sha256,version:tool.version}
+            ...provenance,[tool.id]:{marketId:identity.marketId,sha256:identity.sha256,version:tool.version,...sourceFields(identity)}
           },provenance,'市场来源');
           if(receipt.acknowledgementLost)throw unknownStorageOutcome(null,'市场来源写入回执');
           await writeJournal('succeeded');
@@ -741,20 +825,23 @@ export async function installReviewedSidebarTool({api,lockManager,candidate,base
         throw error('市场不允许同版本替换或自动降级','E_VERSION_CONFLICT');
       if(!(await approveUpdate(existing,tool)))return {state:'cancelled',tool};
     }
-    const rawEpochs=(await api.storage.local.get(TOOL_REVOCATION_EPOCHS_STORE))[TOOL_REVOCATION_EPOCHS_STORE];
-    const epochs=requireToolRevocationEpochs(rawEpochs),nextEpoch=crypto.randomUUID();
+    // User review and lock waits cannot carry an old/withdrawn candidate across
+    // the commit boundary. This only reads the original Worker and package.
+    await verifyOnline();
+    const {rawEpochs,epochs}=await readFreshInstallationState(),nextEpoch=crypto.randomUUID();
     const ops=identity?recoverableOperations((await api.storage.local.get(MARKET_OPERATIONS_STORE))[MARKET_OPERATIONS_STORE]):null;
     if(identity&&ops[identity.operationId])
       throw error('事务已存在，请先恢复核对，不能再次提交','E_OUTCOME_UNKNOWN');
     const prior=provenance[tool.id];
-    const previousProvenance=identity&&existing&&prior?.marketId===identity.marketId&&
-      prior.version===existing.version&&shaPattern.test(prior.sha256)&&Object.keys(prior).length===3&&
+    const previousProvenance=identity&&existing&&validMarketProvenance(prior)&&prior.marketId===identity.marketId&&
+      prior.version===existing.version&&
       await canonicalSha256(existing)===prior.sha256
-      ?{marketId:prior.marketId,version:prior.version,sha256:prior.sha256}:null;
+      ?structuredClone(prior):null;
+    const previousSameSource=previousProvenance&&!sourceChanged&&sameMarketSource(previousProvenance,identity);
     // Independent v3 apps may retain EXACTLY their previous approved site
     // scope, but only when both releases have verified same-source provenance.
     // No candidate JS runs and no new domain can be authorized by this path.
-    const scopeTransfer=identity&&previousProvenance&&
+    const scopeTransfer=identity&&previousSameSource&&
       existing.backgroundPolicy?.kind==='site-budget.v3'&&
       tool.backgroundPolicy?.kind==='site-budget.v3'&&
       existing.capabilities.includes(MANAGED_SITE_BUDGET_CAPABILITY)&&
@@ -770,7 +857,7 @@ export async function installReviewedSidebarTool({api,lockManager,candidate,base
     // package/ledger mutation; candidate JavaScript is never evaluated.
     let legacyFocusUpgrade=null;
     if(requiresLegacyFocusMigration){
-      if(!identity||!previousProvenance)
+      if(!identity||!previousSameSource)
         throw error('旧网站限制升级必须有相同官方来源的可验证历史包','E_MIGRATION_REQUIRED');
       legacyFocusUpgrade=await prepareLegacyFocusUpgrade({
         api,existing,candidate:tool,source:identity.marketId,
@@ -778,12 +865,10 @@ export async function installReviewedSidebarTool({api,lockManager,candidate,base
         operationId:identity.operationId
       });
     }
-    // Consume an external handoff only AFTER read-only migration preflight.
-    if(identity&&commitIntent)await commitIntent();
     const writeOp=async(state,reason='',migrationReceipt=null)=>{
       if(!identity)return;
       const original=(await api.storage.local.get(MARKET_OPERATIONS_STORE))[MARKET_OPERATIONS_STORE]||{};
-      const updated={...original,[identity.operationId]:{marketId:identity.marketId,sha256:identity.sha256,
+      const updated={...original,[identity.operationId]:{marketId:identity.marketId,sha256:identity.sha256,...sourceFields(identity),
         toolId:tool.id,version:tool.version,installEpoch:nextEpoch,...(previousProvenance?{previousProvenance}:{}),
         ...(scopeTransfer?{scopeTransfer}:{}),
         ...(legacyFocusUpgrade?{legacyFocusUpgrade:legacyFocusUpgrade.descriptor}:{}),
@@ -791,12 +876,19 @@ export async function installReviewedSidebarTool({api,lockManager,candidate,base
         state,reason:reason.slice(0,140),updatedAt:Date.now()}};
       await writeVerifiedLocalValue(api,MARKET_OPERATIONS_STORE,trimmedOperations(updated),original,'市场事务记录');
     };
-    let registryAttempted=false,registryCommitted=false,seeded=false;
+    let operationStarted=false,registryAttempted=false,registryCommitted=false,seeded=false;
     try{
       // The registry write is the commit boundary. Preserve the installed
       // tool's data and valid grants if that write fails. Orphan grants for
       // capabilities it never held must disappear before a new package is visible.
-      await writeOp('reviewed');
+      await beginVerifiedOperation(async()=>{
+        await readFreshInstallationState();
+        // Consume the original handoff only after migration preflight and the
+        // current local signed snapshot have both passed admission.
+        if(identity&&commitIntent)await commitIntent();
+        operationStarted=true;
+        await writeOp('reviewed');
+      });
       if(legacyFocusUpgrade){
         await writeLegacyFocusUpgradeSnapshot(api,legacyFocusUpgrade);
         await writeOp('migration-prepared');
@@ -818,6 +910,20 @@ export async function installReviewedSidebarTool({api,lockManager,candidate,base
       const siteStores=[[READING_TOC_SITE_STORE,'page.toc'],[READING_TOC_PAGE_RULES_STORE,'page.toc'],
         [CLIP_SITE_STORE,'page.clip'],[CAPTURE_SITE_STORE,'page.capture'],
         [PROMPT_SHORTCUTS_SITE_CLEANUP_STORE,'page.prompts']];
+      // Only the legacy non-official TOC positive allowlist grants access by ID.
+      // Clear it in the SAME verified registry commit on a source change.
+      // Official TOC/clip/capture/page-rule records include user opt-outs:
+      // deleting those would expand access under the installation-once contract.
+      const sourceGrantUpdates=[];
+      for(const [key,capability] of siteStores)if(sourceChanged&&existing?.capabilities.includes(capability)&&
+        key===READING_TOC_SITE_STORE&&tool.id!==READING_TOC_TOOL_ID){
+        const previous=(await api.storage.local.get(key))[key];
+        if(previous!==undefined&&(!previous||typeof previous!=='object'||Array.isArray(previous)))
+          throw error('旧来源网站授权记录损坏','E_STORAGE_CORRUPT');
+        if(previous&&Object.hasOwn(previous,tool.id)){
+          const next={...previous};delete next[tool.id];sourceGrantUpdates.push({key,previous,next});
+        }
+      }
       const clearGrant=async store=>{
         const value=(await api.storage.local.get(store))[store]||{};
         if(Object.hasOwn(value,tool.id)){
@@ -835,7 +941,7 @@ export async function installReviewedSidebarTool({api,lockManager,candidate,base
       const oldCookieCaps=existing?cookieCaps(existing):[],newCookieCaps=cookieCaps(tool);
       const mayPreserveCookies=existing&&!sourceChanged&&oldCookieCaps.length>0&&
         sameStorageValue(oldCookieCaps,newCookieCaps);
-      const mayPreserveMenu=existing?.capabilities.includes('browser.contextMenu')&&tool.capabilities.includes('browser.contextMenu');
+      const mayPreserveMenu=!sourceChanged&&existing?.capabilities.includes('browser.contextMenu')&&tool.capabilities.includes('browser.contextMenu');
       let rawBrowserGrants,browserGrants,previousBrowserGrant,previousMenu,preserveMenu=false,preserveCookies=false;
       if(mayPreserveCookies||mayPreserveMenu){
         rawBrowserGrants=(await api.storage.local.get(BROWSER_MENU_GRANTS_STORE))[BROWSER_MENU_GRANTS_STORE];
@@ -881,14 +987,14 @@ export async function installReviewedSidebarTool({api,lockManager,candidate,base
         if(reboundMenu)row.contextMenu=reboundMenu;
         menuUpdate={previous:rawBrowserGrants,next:{...browserGrants,[tool.id]:row}};
       }
-      const adblockUpdate=await prepareReviewedAdblockUpdate(api,{
+      const adblockUpdate=sourceChanged?null:await prepareReviewedAdblockUpdate(api,{
         existing,candidate:tool,oldEpoch:epochs[tool.id]??null,newEpoch:nextEpoch});
       const next=existing?installed.map(row=>row.id===tool.id?tool:row):[...installed,tool];
       // A new installation epoch cannot inherit an old local service credential
       // or leave its previous owner executing after replacement.
       if(existing?.capabilities.includes('localTasks'))await revokeLocalTasks(api,tool.id);
       registryAttempted=true;
-      const registry=await commitInstalledSidebarTools(api,next,installed,{...epochs,[tool.id]:nextEpoch},rawEpochs,menuUpdate,adblockUpdate);
+      const registry=await commitInstalledSidebarTools(api,next,installed,{...epochs,[tool.id]:nextEpoch},rawEpochs,menuUpdate,adblockUpdate,sourceGrantUpdates);
       registryCommitted=true;
       // Even if the local readback is durable, an unacknowledged package commit
       // must require explicit recovery of provenance and operation state.
@@ -900,7 +1006,7 @@ export async function installReviewedSidebarTool({api,lockManager,candidate,base
            !(legacyReadingUpgrade&&[READING_TOC_SITE_STORE,READING_TOC_PAGE_RULES_STORE].includes(store)))await clearGrant(store);
       if(identity){
         await writeVerifiedLocalValue(api,MARKET_PROVENANCE_STORE,{...provenance,[tool.id]:{
-          marketId:identity.marketId,sha256:identity.sha256,version:tool.version}},provenance,'市场来源');
+          marketId:identity.marketId,sha256:identity.sha256,version:tool.version,...sourceFields(identity)}},provenance,'市场来源');
       }else if(Object.hasOwn(provenance,tool.id)){
         const updated={...provenance};delete updated[tool.id];
         await writeVerifiedLocalValue(api,MARKET_PROVENANCE_STORE,updated,provenance,'旧市场来源清理');
@@ -943,6 +1049,7 @@ export async function installReviewedSidebarTool({api,lockManager,candidate,base
         ...(pageActivationPending?{pageActivationPending:true}:{}),
         ...(migrationReceipt?{migrationReceipt}:{})};
     }catch(cause){
+      if(!operationStarted)throw cause;
       // A confirmed pre-commit failure must not strand default data as an orphan,
       // but an unknown/committed registry outcome must NEVER delete it.
       if(seeded&&!registryCommitted&&cause?.code!=='E_OUTCOME_UNKNOWN'){

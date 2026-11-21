@@ -15,6 +15,17 @@ const digest=/^[a-f0-9]{64}$/;
 const plain=value=>value!==null&&typeof value==='object'&&!Array.isArray(value);
 const fail=(code='E_UPDATE_STATE')=>{throw Object.assign(new Error(code),{code});};
 const finiteTime=value=>Number.isSafeInteger(value)&&value>=0;
+// Presentation identity, supplied only by the trusted Worker's verified catalog.
+// This does not provision a publisher or authorize an installation.
+export function validUpdateSource(value){
+  if(!plain(value)||Object.keys(value).sort().join(',')!=='channel,kind,origin,sourceId'||
+    value.sourceId!=='opendesk-official'||value.kind!=='sidebar-tool'||value.channel!=='stable')return false;
+  try{const url=new URL(value.origin);return url.origin===value.origin&&
+    (url.protocol==='https:'||url.protocol==='http:'&&['127.0.0.1','localhost','[::1]'].includes(url.hostname));}
+  catch{return false;}
+}
+export const sameUpdateSource=(a,b)=>a==null&&b==null||validUpdateSource(a)&&validUpdateSource(b)&&
+  ['sourceId','kind','channel','origin'].every(key=>a[key]===b[key]);
 export const defaultUpdateNoticeState=()=>({
   schema:UPDATE_NOTICE_SCHEMA,revision:0,globalMode:'toast+inbox',
   toolModes:{},records:{},lastToastAt:0,openRequestedAt:0
@@ -24,7 +35,7 @@ export function readUpdateNoticeState(value){
   if(!plain(value)||value.schema!==UPDATE_NOTICE_SCHEMA||
      !Number.isSafeInteger(value.revision)||value.revision<0||
      !modeSet.has(value.globalMode)||!plain(value.toolModes)||
-     !plain(value.records)||Object.keys(value.records).length>128||
+     !plain(value.records)||Object.keys(value.records).length>512||
      !finiteTime(value.lastToastAt)||!finiteTime(value.openRequestedAt))
     fail('E_UPDATE_STATE_CORRUPT');
   for(const [toolId,mode] of Object.entries(value.toolModes))
@@ -33,6 +44,8 @@ export function readUpdateNoticeState(value){
     if(typeof key!=='string'||key.length>200||!plain(row)||row.key!==key||
        !statusSet.has(row.status)||!['sidebar-tool','browser'].includes(row.kind)||
        typeof row.id!=='string'||typeof row.version!=='string'||
+       (row.updateSource!=null&&!validUpdateSource(row.updateSource))||
+       (row.fromSha256!=null&&!digest.test(row.fromSha256))||
        !finiteTime(row.discoveredAt)||!Number.isSafeInteger(row.impressionCount)||
        row.impressionCount<0||row.impressionCount>NOTICE_MAX_IMPRESSIONS||
        !['viewedAt','ignoredAt','dismissedAt','snoozeUntil'].every(field=>
@@ -46,8 +59,10 @@ export function readUpdateNoticeState(value){
 }
 export function trustedUpdateReleaseKey(release){
   if(!plain(release)||!id.test(release.id)||!version.test(release.version)||
-     !digest.test(release.sha256))fail('E_UPDATE_CANDIDATE');
-  return 'sidebar-tool:'+release.id+':'+release.version+':'+release.sha256;
+     !digest.test(release.sha256)||
+     (release.updateSource!=null&&!validUpdateSource(release.updateSource)))fail('E_UPDATE_CANDIDATE');
+  return 'sidebar-tool:'+(release.updateSource?release.updateSource.sourceId+':':'')+
+    release.id+':'+release.version+':'+release.sha256;
 }
 export function browserUpdateReleaseKey(browserId,versionValue){
   if(typeof browserId!=='string'||!/^[a-p]{32}$/.test(browserId)||
@@ -62,7 +77,7 @@ export function appendTrustedRelease(previous,candidate,now){
      typeof candidate.version!=='string'||typeof candidate.key!=='string')
     fail('E_UPDATE_CANDIDATE');
   const validKey=candidate.kind==='sidebar-tool'?
-    trustedUpdateReleaseKey({id:candidate.id,version:candidate.version,sha256:candidate.sha256}):
+    trustedUpdateReleaseKey(candidate):
     browserUpdateReleaseKey(candidate.id,candidate.version);
   if(validKey!==candidate.key)fail('E_UPDATE_CANDIDATE');
   const existing=state.records[validKey];
@@ -70,6 +85,7 @@ export function appendTrustedRelease(previous,candidate,now){
   if(candidate.kind==='sidebar-tool'){
     for(const row of Object.values(state.records))if(row.kind==='sidebar-tool'&&
       row.id===candidate.id&&row.version===candidate.version&&row.key!==validKey&&
+      sameUpdateSource(row.updateSource,candidate.updateSource)&&
       row.status!=='unknown')fail('E_UPDATE_RELEASE_CONFLICT');
   }
   const row=existing?{...existing}:{key:validKey,kind:candidate.kind,id:candidate.id,
@@ -81,6 +97,13 @@ export function appendTrustedRelease(previous,candidate,now){
     candidate.description.slice(0,360):null;
   row.fromVersion=typeof candidate.fromVersion==='string'?candidate.fromVersion.slice(0,32):null;
   row.source=typeof candidate.source==='string'?candidate.source.slice(0,160):null;
+  row.updateSource=candidate.updateSource?structuredClone(candidate.updateSource):null;
+  if(candidate.fromSha256!=null&&!digest.test(candidate.fromSha256))fail('E_UPDATE_CANDIDATE');
+  row.fromSha256=candidate.fromSha256||null;
+  row.sourceReviewRequired=candidate.sourceReviewRequired===true;
+  row.changelog=typeof candidate.changelog==='string'?candidate.changelog.slice(0,12000):null;
+  row.eligibilityReason=typeof candidate.eligibilityReason==='string'?
+    candidate.eligibilityReason.slice(0,160):null;
   row.sha256=candidate.kind==='sidebar-tool'?candidate.sha256:null;
   row.newCapabilities=Array.isArray(candidate.newCapabilities)?
     candidate.newCapabilities.filter(item=>typeof item==='string').slice(0,40):[];
@@ -90,13 +113,17 @@ export function appendTrustedRelease(previous,candidate,now){
     if(candidate.status==='applied')row.dismissedAt??=now;
   }
   state.records[validKey]=row;
-  // Keep the complete live inventory; retain a bounded amount of applied history.
+  // Only terminal/apparently absent history is eligible for pruning. A current
+  // withdrawn, incompatible or unresolved release is still part of this check.
   const keys=Object.keys(state.records);
   if(keys.length>96){
     for(const old of Object.values(state.records).filter(item=>item.status==='applied'||
-      item.status==='unknown').sort((a,b)=>a.discoveredAt-b.discoveredAt).slice(0,keys.length-96))
+      item.status==='unknown'&&item.eligibilityReason==='not_listed')
+      .sort((a,b)=>a.discoveredAt-b.discoveredAt).slice(0,keys.length-96))
       delete state.records[old.key];
   }
+  // Never silently truncate a live inventory to report a successful check.
+  if(Object.keys(state.records).length>512)fail('E_UPDATE_CAPACITY');
   state.revision++;
   return state;
 }

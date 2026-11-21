@@ -75,3 +75,34 @@ test('R4 search/filter projection preserves original order when promotion disabl
   const viewed=projectTrustedInlineUpdates(rows,state(makeCandidate('tool-b')));
   assert.deepEqual(viewed.map(row=>row.id),['tool-c','tool-a','tool-b']);
 });
+
+test('verified online candidate binds installed bytes without needing its version in the bundled catalog',()=>{
+  const installed={key:'app:tool-one',id:'tool-one',kind:'app',installed:true,
+    updateIdentity:null,installedUpdateIdentity:{id:'tool-one',version:'1.0.0',sha256:'d'.repeat(64)}};
+  const updateSource={sourceId:'opendesk-official',kind:'sidebar-tool',channel:'stable',origin:'https://market.example'};
+  const online={...makeCandidate('tool-one'),updateSource,fromSha256:'d'.repeat(64),
+    sourceReviewRequired:true,status:'review_required'};
+  const projected=projectTrustedInlineUpdates([installed],state(online))[0];
+  assert.equal(projected.inlineUpdate.label,'审阅');
+  assert.equal(projected.inlineUpdate.disabled,false);
+  for(const bad of [{fromSha256:'e'.repeat(64)},{fromVersion:'0.9.0'},
+    {updateSource:{...updateSource,sourceId:'other'}},{source:'opendesk/other-tool'}]){
+    assert.equal(projectTrustedInlineUpdates([installed],state({...online,...bad}))[0].inlineUpdate,null);
+  }
+  for(const reason of ['browser_update_required','compatibility_unknown','withdrawn','not_listed']){
+    const blocked=projectTrustedInlineUpdates([installed],state({...online,status:'unknown',eligibilityReason:reason}))[0];
+    assert.equal(blocked.inlineUpdate.disabled,true);assert.ok(blocked.inlineUpdate.reason);
+  }
+  assert.equal(projectTrustedInlineUpdates([installed],{verified:false,records:[online]})[0].inlineUpdate.disabled,true);
+});
+
+test('a historical not-listed candidate does not hide the single current online release',()=>{
+  const installed={key:'app:tool-one',id:'tool-one',kind:'app',installed:true,
+    installedUpdateIdentity:{id:'tool-one',version:'1.0.0',sha256:'d'.repeat(64)}};
+  const current={...makeCandidate('tool-one'),fromSha256:'d'.repeat(64),
+    updateSource:{sourceId:'opendesk-official',kind:'sidebar-tool',channel:'stable',origin:'https://market.example'}};
+  const historical={...current,version:'1.0.1',status:'unknown',eligibilityReason:'not_listed'};
+  const projected=projectTrustedInlineUpdates([installed],state(historical,current))[0];
+  assert.equal(projected.inlineUpdate.record.version,'1.1.0');
+  assert.equal(projected.inlineUpdate.disabled,false);
+});

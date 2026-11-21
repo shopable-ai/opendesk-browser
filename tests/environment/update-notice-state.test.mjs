@@ -198,3 +198,42 @@ test('per-tool silent hides only that tool badge, with history still queryable',
   assert.equal(updateNoticeSnapshot(state).badgeCount,1);
   assert.equal(updateNoticeSnapshot(state).records.length,2);
 });
+
+test('online notice identity preserves the full source and never borrows a legacy reminder identity',()=>{
+  const legacy=release(),updateSource={sourceId:'opendesk-official',kind:'sidebar-tool',channel:'stable',origin:'https://market.example'};
+  const online={...legacy,updateSource,fromSha256:'c'.repeat(64),sourceReviewRequired:true,
+    status:'review_required',changelog:'版本说明',eligibilityReason:null};
+  online.key=trustedUpdateReleaseKey(online);
+  assert.notEqual(online.key,legacy.key);
+  const initial=appendTrustedRelease(defaultUpdateNoticeState(),legacy,100000);
+  const accepted=appendTrustedRelease(initial,online,100001);
+  const current=readUpdateNoticeState(accepted).records[online.key];
+  assert.deepEqual(current.updateSource,updateSource);
+  assert.equal(current.fromSha256,'c'.repeat(64));assert.equal(current.sourceReviewRequired,true);
+  assert.equal(current.changelog,'版本说明');
+  assert.throws(()=>trustedUpdateReleaseKey({...online,updateSource:{...updateSource,channel:'beta'}}),
+    {code:'E_UPDATE_CANDIDATE'});
+  const corrupt=structuredClone(accepted);corrupt.records[online.key].updateSource.origin='https://market.example/path';
+  assert.throws(()=>readUpdateNoticeState(corrupt),{code:'E_UPDATE_STATE_CORRUPT'});
+});
+
+test('current blocked and unresolved releases remain complete beyond the historical retention count',()=>{
+  let state=defaultUpdateNoticeState();
+  const reasons=['withdrawn','browser_update_required','compatibility_unknown',null];
+  for(let index=0;index<100;index++)state=appendTrustedRelease(state,{
+    ...release('current-tool-'+index),status:'unknown',eligibilityReason:reasons[index%reasons.length]
+  },100000+index);
+  assert.equal(Object.keys(readUpdateNoticeState(state).records).length,100);
+  assert.equal(updateNoticeSnapshot(state).records.length,100);
+  assert.equal(updateNoticeSnapshot(state).actionableCount,0);
+  state=appendTrustedRelease(state,{...release('historical-tool'),status:'unknown',
+    eligibilityReason:'not_listed'},100200);
+  assert.equal(Object.keys(state.records).length,100,'only the explicitly absent historical row is pruned');
+  for(let index=100;index<512;index++)state=appendTrustedRelease(state,{
+    ...release('current-tool-'+index),status:'unknown',eligibilityReason:'compatibility_unknown'
+  },100200+index);
+  assert.equal(Object.keys(state.records).length,512);
+  assert.throws(()=>appendTrustedRelease(state,{...release('over-capacity'),status:'unknown',
+    eligibilityReason:'withdrawn'},101000),{code:'E_UPDATE_CAPACITY'});
+  assert.equal(Object.keys(state.records).length,512,'a rejected check cannot truncate the prior inventory');
+});

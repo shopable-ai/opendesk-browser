@@ -305,3 +305,16 @@ test('production single-app entry points do not create tool tabs or bypass confi
   assert.match(shell,/openInstalledApp:async identity/);
   assert.match(shell,/extensionCenter\.openInstalledMarketApp\(identity\)/);
 });
+
+test('online review navigation preserves source identity and cannot coalesce a different source',async()=>{
+  const h=fixture(),updateSource={sourceId:'opendesk-official',kind:'sidebar-tool',channel:'stable',origin:'https://market.example'};
+  const request=sample({action:'review',updateSource});
+  assert.deepEqual(request.updateSource,updateSource);
+  assert.equal(validMarketPanelNavigation(request,{windowId:7}),true);
+  await queueMarketPanelNavigation(h.api,request);
+  await assert.rejects(queueMarketPanelNavigation(h.api,sample({action:'review',
+    updateSource:{...updateSource,origin:'https://other.example'}})),{code:'E_NAV_BUSY'});
+  assert.throws(()=>sample({action:'review',updateSource:{...updateSource,channel:'beta'}}),{code:'E_NAV_FIELDS'});
+  assert.throws(()=>sample({source:'external',sourceUrl:'https://market.example/',action:'review',updateSource}),{code:'E_NAV_FIELDS'});
+  assert.throws(()=>sample({action:'detail',updateSource}),{code:'E_NAV_FIELDS'});
+});
