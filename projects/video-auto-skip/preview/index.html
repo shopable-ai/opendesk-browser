@@ -3,19 +3,406 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<meta name="color-scheme" content="light dark">
-<title>连播助手 · 最小交互预览</title>
-<style>body{margin:0;padding:24px 12px;background:light-dark(#f4f5f7,#16191d);color-scheme:light dark}#od-watch-preview{max-width:800px;margin:0 auto}@media(max-width:400px){body{padding:12px 4px}}</style>
+<meta name="color-scheme" content="light">
+<title>连播助手 · OpenDesk 规范化离线预览</title>
+<meta name="od-canonical-tokens-sha" content="d015149145fa93a1d37beffe4778b4bed5576a97">
+<meta name="od-canonical-components-sha" content="9fe8e3c38f770c8fb843d13913d6d09c803567db">
+<meta name="od-preview-status" content="DESIGN_MOCK_NOT_SOURCE_BOUND">
+<style id="od-canonical-tokens">
+/* R23: single, page-agnostic OpenDesk semantic tokens.
+ * No resets, selectors for host pages, remote resources or page scroll policy.
+ * Trusted extension UI only; never inject into tools, iframes or web pages. */
+:root{
+  --od-ink:#1b2c49;
+  --od-sub:#5b6e86;
+  --od-line:#dfe6ef;
+  --od-brand:#365eda;
+  --od-paper:#fff;
+  --od-bg:#fff;
+  --od-input-border:#7f8da1;
+  --od-accent-ink:var(--od-brand);
+  --od-focus:var(--od-brand);
+  --od-light-warning:#80510d;
+  --od-warning:var(--od-light-warning);
+  --od-muted:#f5f7fb;
+  --od-light-positive:#117a5d;
+  --od-positive:var(--od-light-positive);
+  --od-negative:#ae3d4b;
+  --space-1:4px;
+  --space-2:8px;
+  --space-3:12px;
+  --space-4:16px;
+  --radius-control:8px;
+  --radius-surface:12px;
+  --radius-pill:999px;
+  --od-icon-size:34px;
+  --od-body-size:13px;
+  --od-note-size:12px;
+  --od-meta-size:11px;
+  --od-on-brand:#fff;
+  --od-action-bg:var(--od-muted);
+  --od-action-border:var(--od-input-border);
+  --od-action-ink:var(--od-ink);
+  --od-light-warning-bg:#fff9ec;
+  --od-light-warning-border:#dcc58a;
+  --od-light-warning-ink:#76501b;
+  --od-warning-bg:var(--od-light-warning-bg);
+  --od-warning-border:var(--od-light-warning-border);
+  --od-warning-ink:var(--od-light-warning-ink);
+  --od-negative-bg:#fff0f1;
+  /* Host horizontal inset, used once; sandbox tool content owns its own inner inset. */
+  --od-page-gutter:12px;
+  /* Dark-mode palette is registered here; shared primitives only reference tokens. */
+  --od-dark-ink:#e9eef7;
+  --od-dark-sub:#b3c1d3;
+  --od-dark-line:#374457;
+  --od-dark-brand:#3566ba;
+  --od-dark-paper:#151c28;
+  --od-dark-bg:#101722;
+  --od-dark-input-border:#6d809b;
+  --od-dark-accent-ink:#9dc1ff;
+  --od-dark-warning:#ffd08a;
+  --od-dark-warning-bg:#392d21;
+  --od-dark-warning-border:#8b6841;
+  --od-dark-warning-ink:#f6dca8;
+  --od-dark-muted:#222d3e;
+  --od-dark-positive:#a1f3cc;
+  --od-dark-negative:#ff9ea6;
+  /* Existing Sidebar aliases; do not redeclare palette values per page. */
+  --ink:var(--od-ink);
+  --sub:var(--od-sub);
+  --line:var(--od-line);
+  --blue:var(--od-brand);
+  --paper:var(--od-paper);
+}
+
+/* Dark palette stays with the canonical tokens; design-system.css owns layout only. */
+@media(prefers-color-scheme:dark){
+  :root{
+    --od-ink:var(--od-dark-ink);
+    --od-sub:var(--od-dark-sub);
+    --od-line:var(--od-dark-line);
+    --od-brand:var(--od-dark-brand);
+    --od-paper:var(--od-dark-paper);
+    --od-bg:var(--od-dark-bg);
+    --od-input-border:var(--od-dark-input-border);
+    --od-accent-ink:var(--od-dark-accent-ink);
+    --od-focus:var(--od-dark-accent-ink);
+    --od-warning:var(--od-dark-warning);
+    --od-muted:var(--od-dark-muted);
+    --od-positive:var(--od-dark-positive);
+    --od-negative:var(--od-dark-negative);
+    --od-warning-bg:var(--od-dark-warning-bg);
+    --od-warning-border:var(--od-dark-warning-border);
+    --od-warning-ink:var(--od-dark-warning-ink);
+    --od-negative-bg:#442632;
+  }
+}
+
+/* shadcn/ui aria-nova + Neutral, opt-in. Values from official themes.ts
+ * 24a16429815cc4d691f38b49d0f4ffc11a9daef4. No host/global replacement.
+ * Explicit light/dark allows previews to keep the surrounding host light. */
+.od-theme-shadcn{
+  --background:oklch(1 0 0);--foreground:oklch(.145 0 0);
+  --card:oklch(1 0 0);--card-foreground:var(--foreground);
+  --primary:oklch(.205 0 0);--primary-foreground:oklch(.985 0 0);
+  --secondary:oklch(.97 0 0);--secondary-foreground:oklch(.205 0 0);
+  --muted:oklch(.97 0 0);--muted-foreground:oklch(.556 0 0);
+  --accent:var(--muted);--accent-foreground:var(--foreground);
+  --destructive:oklch(.577 .245 27.325);--border:oklch(.922 0 0);--input:oklch(.922 0 0);--ring:oklch(.708 0 0);
+  --radius:10px;--od-body-size:14px;--od-note-size:12px;--od-meta-size:11px;
+  --od-ink:var(--foreground);--od-sub:var(--muted-foreground);--od-line:var(--border);
+  --od-brand:var(--primary);--od-on-brand:var(--primary-foreground);--od-paper:var(--background);--od-bg:var(--muted);
+  --od-input-border:var(--input);--od-focus:var(--ring);--od-accent-ink:var(--foreground);--od-muted:var(--muted);
+  --od-negative:var(--destructive);--od-negative-bg:color-mix(in oklch,var(--destructive) 10%,transparent);
+  --od-warning:var(--od-light-warning);--od-positive:var(--od-light-positive);
+  --od-warning-bg:var(--od-light-warning-bg);--od-warning-border:var(--od-light-warning-border);--od-warning-ink:var(--od-light-warning-ink);
+  --od-action-bg:var(--secondary);--od-action-border:transparent;--od-action-ink:var(--secondary-foreground);
+  --radius-control:var(--radius);--radius-surface:calc(var(--radius)*1.4);--od-icon-size:32px;
+  color-scheme:light;color:var(--foreground);background:var(--background);font-size:var(--od-body-size);line-height:1.5;
+}
+.od-theme-shadcn[data-preview-theme="dark"],.od-theme-shadcn[data-theme="dark"]{
+  --background:oklch(.145 0 0);--foreground:oklch(.985 0 0);--card:oklch(.205 0 0);
+  --primary:oklch(.922 0 0);--primary-foreground:oklch(.205 0 0);
+  --secondary:oklch(.269 0 0);--secondary-foreground:oklch(.985 0 0);
+  --muted:oklch(.269 0 0);--muted-foreground:oklch(.708 0 0);
+  --destructive:oklch(.704 .191 22.216);--border:oklch(1 0 0 / 10%);--input:oklch(1 0 0 / 15%);--ring:oklch(.556 0 0);
+  --od-negative-bg:color-mix(in oklch,var(--destructive) 20%,transparent);color-scheme:dark;
+  --od-warning:var(--od-dark-warning);--od-positive:var(--od-dark-positive);
+  --od-warning-bg:var(--od-dark-warning-bg);--od-warning-border:var(--od-dark-warning-border);--od-warning-ink:var(--od-dark-warning-ink);
+}
+
+</style><style id="od-canonical-components">
+/* R20/R23 Sidebar primitives and page base; semantic values are in design-tokens.css.
+ * Scoped to the trusted Sidebar and tool tab, NOT reusable in Workspace/Options. */
+:root{font-family:-apple-system,BlinkMacSystemFont,"SF Pro Text","PingFang SC",system-ui,sans-serif;font-size:13px;line-height:1.45;color:var(--od-ink);background:var(--od-bg);color-scheme:light}
+*{box-sizing:border-box}
+[hidden]{display:none!important}
+html,body{height:100%;overflow:hidden;min-width:0}
+body{display:flex;flex-direction:column;margin:0;background:var(--od-bg)}
+/* Chrome's extension stylesheet sets body to 75%; keep the trusted workbench at its semantic baseline. */
+:root body{font-family:inherit;font-size:var(--od-body-size);line-height:1.5}
+h1,h2,h3{margin:0;letter-spacing:-.015em}
+p{margin:var(--space-2) 0;overflow-wrap:anywhere}
+/* Emphasis inside a paragraph changes weight, never its size or semantic ink. */
+p :is(strong,b){font-size:inherit;color:inherit;font-weight:650}
+main{min-width:0}
+section{min-width:0}
+.hint,aside{font-size:var(--od-note-size);color:var(--od-sub)}
+.identity{font:var(--od-meta-size)/1.5 ui-monospace,monospace;overflow-wrap:anywhere}
+.row{display:flex;align-items:center;gap:var(--space-2);flex-wrap:wrap;margin:var(--space-2) 0;min-width:0}
+label{display:block;margin:var(--space-2) 0 var(--space-1)}
+input,select,textarea{width:100%;min-width:0;border:1px solid var(--od-input-border);border-radius:var(--radius-control);background:var(--od-paper);color:var(--od-ink);font:inherit;padding:var(--space-2) var(--space-3)}
+input,select{min-height:36px}
+input[type=checkbox]{width:auto;min-height:0;margin-right:6px}
+textarea{display:block;margin:var(--space-2) 0 var(--space-3);font:var(--od-note-size)/1.55 ui-monospace,SFMono-Regular,Consolas,monospace;resize:vertical;tab-size:2}
+pre{white-space:pre-wrap;overflow-wrap:anywhere;min-width:0;max-height:300px;overflow:auto;background:var(--od-muted);padding:var(--space-2);border-radius:var(--radius-control);font:var(--od-meta-size)/1.55 ui-monospace,monospace}
+button{max-width:100%;border:0;border-radius:var(--radius-control);background:var(--od-brand);color:var(--od-on-brand);padding:var(--space-2) var(--space-3);min-height:34px;font:inherit;cursor:pointer;overflow-wrap:anywhere}
+button:disabled{opacity:.48;cursor:not-allowed}
+button:hover:not(:disabled){filter:brightness(.97)}
+details{margin:var(--space-2) 0}
+summary{cursor:pointer;color:var(--od-ink);overflow-wrap:anywhere}
+details>section{margin-top:var(--space-3)}
+:focus-visible{outline:2px solid var(--od-focus);outline-offset:2px}
+.visually-hidden{position:absolute!important;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap;clip-path:inset(50%)}
+
+/* Shared primitives: semantics here; state-specific geometry stays in tool-shell.css. */
+.od-page{min-width:0}
+.od-toolbar{display:flex;align-items:center;gap:var(--space-2);min-width:0}
+.od-page-head{display:flex;align-items:center;justify-content:space-between;gap:var(--space-2);min-height:var(--od-icon-size);min-width:0}
+.od-page-title{min-width:0;margin:0;color:var(--od-ink);font-size:var(--od-note-size);font-weight:600;line-height:1.5;overflow-wrap:anywhere}
+.od-page-actions{display:flex;align-items:center;justify-content:flex-end;gap:var(--space-2);min-width:0;flex:none;margin-inline-start:auto}
+/* Tools Index/Detail is the trusted Tab header baseline; narrow actions wrap as a group. */
+@media(max-width:240px){.od-page-head{flex-wrap:wrap}.od-page-actions{flex-wrap:wrap;max-width:100%}}
+.od-stack{display:grid;gap:var(--space-2);min-width:0}
+/* Public component contract: semantic appearance lives only here; pages own layout. */
+.od-surface{min-width:0;background:var(--od-paper);border:1px solid var(--od-line);border-radius:var(--radius-surface)}
+.od-surface--padded{padding:var(--space-3)}
+/* One frame per collection; rows keep their own actions and selection semantics. */
+.od-collection{min-width:0;margin:0;padding:0;list-style:none;overflow:hidden;border:1px solid var(--od-line);border-radius:var(--radius-surface);background:var(--od-paper)}
+.od-collection-row{position:relative;min-width:0}
+.od-collection-row+.od-collection-row{border-top:1px solid var(--od-line)}
+.od-button{display:inline-flex;align-items:center;justify-content:center;gap:var(--space-1);max-width:100%;min-height:36px;padding:var(--space-2) var(--space-3);font:inherit;font-weight:650;border:1px solid var(--od-brand);border-radius:var(--radius-control);background:var(--od-brand);color:var(--od-on-brand);text-align:center}
+.od-button--secondary{background:var(--od-action-bg);border-color:var(--od-action-border);color:var(--od-action-ink)}
+.od-button--danger{background:var(--od-negative-bg);border-color:var(--od-negative);color:var(--od-negative)}
+.od-button--quiet{background:transparent;border-color:transparent;color:var(--od-ink)}
+/* Opt-in compact navigation tab: shared focus/disabled semantics, no tool-private button skin. */
+.od-button--tab{min-height:0;padding:0;border:0;border-radius:0}
+.od-icon-button{position:relative;display:inline-grid;place-items:center;flex:none;width:var(--od-icon-size);height:var(--od-icon-size);min-width:var(--od-icon-size);min-height:var(--od-icon-size);padding:0;border:1px solid var(--od-line);border-radius:var(--radius-control);background:var(--od-paper);color:var(--od-sub)}
+.od-icon-button--primary{border-color:var(--od-brand);background:var(--od-brand);color:var(--od-on-brand)}
+.od-icon-button--danger{border-color:var(--od-negative);background:var(--od-negative-bg);color:var(--od-negative)}
+/* Sandbox consumers receive this public slice without the document button reset. */
+.od-button:disabled,.od-icon-button:disabled{opacity:.48;cursor:not-allowed}
+/* Opt-in unframed icon action for compact product toolbars.
+   Keeps the trusted 34px hit target, focus, disabled and danger semantics. */
+.od-icon-button--quiet{border-color:transparent;background:transparent}
+.od-icon-button--quiet:hover:not(:disabled){border-color:transparent;background:var(--od-muted)}
+.od-icon-button--quiet[aria-expanded=true]{border-color:transparent}
+.od-icon-button svg{width:18px;height:18px;display:block;pointer-events:none;fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
+.od-icon-button:hover:not(:disabled):not(.od-icon-button--primary):not(.od-icon-button--danger){background:var(--od-muted)}
+.od-icon-button[aria-expanded=true]{background:var(--od-muted);border-color:var(--od-focus);color:var(--od-accent-ink)}
+/* R40: Tool/Page header actions are ghost by default; hit targets remain 34px.
+   Only hover, focus and expanded state receive a subtle surface. */
+.od-page-head .od-icon-button{border-color:transparent;background:transparent;color:var(--od-sub)}
+.od-page-head .od-icon-button--primary{color:var(--od-brand)}
+.od-page-head .od-icon-button:hover:not(:disabled){border-color:transparent;background:var(--od-muted);color:var(--od-accent-ink)}
+.od-page-head .od-icon-button[aria-expanded=true]{border-color:transparent;background:var(--od-muted);color:var(--od-accent-ink)}
+
+:is(input,select,textarea).od-field{min-width:0;border:1px solid var(--od-input-border);border-radius:var(--radius-control);background:var(--od-paper);color:var(--od-ink);font-size:var(--od-body-size)}
+:is(input,select,textarea).od-field:disabled,
+:is(input,textarea).od-field[readonly]{background:var(--od-muted);color:var(--od-sub)}
+:is(input,select,textarea).od-field[aria-invalid="true"]{border-color:var(--od-negative)}
+.od-form-field{display:grid;gap:var(--space-1);min-width:0}
+.od-field-label{margin:0;font-size:var(--od-note-size);font-weight:650;line-height:1.5;color:var(--od-ink)}
+.od-field-help{margin:0;font-size:var(--od-note-size);line-height:1.55;color:var(--od-sub)}
+.od-field-error{margin:0;font-size:var(--od-note-size);line-height:1.55;color:var(--od-negative)}
+.od-body{color:var(--od-ink);font-size:var(--od-body-size);line-height:1.55;font-weight:400}
+.od-note{color:var(--od-sub);font-size:var(--od-note-size);line-height:1.55;font-weight:400}
+.od-title{color:var(--od-ink);font-size:var(--od-body-size);line-height:1.5;font-weight:650}
+.od-technical{font-size:var(--od-meta-size);line-height:1.55;color:var(--od-sub);font-weight:400;overflow-wrap:anywhere}
+.od-result{min-width:0;margin:0;border:1px solid var(--od-line);background:var(--od-muted);border-radius:var(--radius-control);padding:var(--space-2);color:var(--od-ink)}
+.od-alert{margin:0;padding:var(--space-3);border:1px solid var(--od-line);border-radius:var(--radius-control);color:var(--od-ink);background:var(--od-muted)}
+.od-alert--warning{background:var(--od-warning-bg);border-color:var(--od-warning-border);color:var(--od-warning-ink)}
+.od-alert--error{background:var(--od-negative-bg);border-color:var(--od-negative);color:var(--od-negative)}
+.od-disclosure{min-width:0;margin:0;border:1px solid var(--od-line);border-radius:var(--radius-surface);background:var(--od-paper);color:var(--od-ink)}
+/* All trusted disclosures use the same centered header, marker and type scale.
+ * Keep the lighter --flat and emphasis-only --info variants on this one component. */
+.od-disclosure>summary{display:flex;align-items:center;flex-wrap:wrap;gap:var(--space-2);min-height:44px;padding:var(--space-2) var(--space-3);list-style:none;cursor:pointer;font-size:var(--od-note-size);line-height:1.5;font-weight:600;color:var(--od-ink);overflow-wrap:anywhere}
+.od-disclosure>summary::-webkit-details-marker{display:none}
+.od-disclosure>summary::before{content:"";flex:none;width:7px;height:7px;border-right:1.5px solid currentColor;border-bottom:1.5px solid currentColor;transform:rotate(-45deg)}
+.od-disclosure[open]>summary::before{transform:rotate(45deg)}
+.od-disclosure>summary>*{min-width:0}
+.od-disclosure>summary>span:only-child{flex:1 1 0}
+.od-disclosure>summary :is(strong,b){font-size:inherit;font-weight:inherit;color:inherit}
+.od-disclosure[open]>summary{border-bottom:1px solid var(--od-line)}
+/* One hover contract for every trusted first-level disclosure. */
+.od-disclosure>summary:hover{background:var(--od-muted)}
+.od-disclosure:not([open])>summary:hover{border-radius:var(--radius-surface)}
+.od-disclosure[open]>summary:hover{border-radius:var(--radius-surface) var(--radius-surface) 0 0}
+/** Allow 100%-width form fields inside a disclosure without their 12px margins
+ * pushing their right edge outside a narrow Side Panel. */
+.od-disclosure>:not(summary){min-width:0;max-width:calc(100% - var(--space-3) - var(--space-3));margin:var(--space-2) var(--space-3) 0}
+.od-disclosure>:last-child:not(summary){margin-bottom:var(--space-3)}
+/* Icon-led first-level groups: task history and installed website scope. */
+.od-disclosure--icon>summary{flex-wrap:nowrap}
+.od-disclosure--icon>summary::before{display:none}
+.od-disclosure--icon>summary>svg{flex:none;width:18px;height:18px;fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
+.od-disclosure--icon>summary>.od-disclosure-chevron{width:15px;height:15px;margin-left:auto;color:var(--od-sub)}
+.od-disclosure--icon[open]>summary>.od-disclosure-chevron{transform:rotate(90deg)}
+.od-disclosure--icon>:not(summary){margin-top:var(--space-3)}
+.od-disclosure--info>summary{color:var(--od-brand)}
+.od-disclosure--info[open]>summary{background:var(--od-muted)}
+.od-disclosure--flat{border:0;border-radius:0;background:transparent}
+.od-disclosure--flat>summary{min-height:36px;padding:var(--space-2) 0;font-size:var(--od-note-size);color:var(--od-sub)}
+.od-disclosure--flat[open]>summary{border-bottom:1px solid var(--od-line);background:transparent}
+.od-disclosure--flat>:not(summary){max-width:100%;margin:var(--space-2) 0 0}
+.od-disclosure--flat>:last-child:not(summary){margin-bottom:0}
+/* Technical disclosures stay frameless, including hover treatment. */
+.od-disclosure--flat:is(:not([open]),[open])>summary:hover{background:var(--od-muted);border-radius:var(--radius-control)}
+.od-segmented{display:flex;width:max-content;max-width:100%;gap:2px;padding:3px;background:var(--od-muted);border:1px solid var(--od-input-border);border-radius:var(--radius-surface)}
+.od-segmented>button{min-height:32px;border-radius:var(--radius-control)}
+
+/* Collapsible rows are interactive controls, including nested technical details. */
+@media(pointer:coarse){.od-disclosure>summary{min-height:44px}}
+
+/* Opt-in shadcn/ui aria-nova classes translated to canonical selectors.
+ * Palette/mapped semantic values remain in design-tokens.css. No Preflight. */
+.od-theme-shadcn :is(.od-button,.od-icon-button){box-sizing:border-box}
+.od-theme-shadcn .od-button{min-height:32px;padding:0 10px;gap:6px;font-size:14px;font-weight:500;line-height:20px;border:1px solid transparent;box-shadow:none;outline:none;cursor:default;transition:background-color .1s,box-shadow .1s}
+.od-theme-shadcn .od-button:hover:not(:disabled){background:color-mix(in oklch,var(--primary) 80%,transparent)}
+.od-theme-shadcn .od-button--primary{background:var(--primary);color:var(--primary-foreground)}
+.od-theme-shadcn .od-button--primary:hover:not(:disabled){background:color-mix(in oklch,var(--primary) 80%,transparent)}
+.od-theme-shadcn .od-button--secondary{background:var(--secondary);color:var(--secondary-foreground)}
+.od-theme-shadcn .od-button--secondary:hover:not(:disabled){background:color-mix(in oklch,var(--secondary) 95%,var(--foreground))}
+.od-theme-shadcn .od-button--outline{background:var(--background);border-color:var(--border);color:var(--foreground);box-shadow:0 1px 2px #0000000d}
+.od-theme-shadcn .od-button--quiet{background:transparent;color:var(--foreground)}
+.od-theme-shadcn .od-button--danger{background:var(--od-negative-bg);color:var(--destructive)}
+.od-theme-shadcn .od-button--danger:hover:not(:disabled){background:color-mix(in oklch,var(--destructive) 20%,transparent)}
+.od-theme-shadcn .od-button--link{background:transparent;color:var(--primary);text-underline-offset:4px}
+.od-theme-shadcn .od-button--link:hover:not(:disabled){background:transparent;text-decoration:underline}
+.od-theme-shadcn :is(.od-button--quiet,.od-button--outline,.od-icon-button):hover:not(:disabled){background:var(--muted)}
+.od-theme-shadcn :is(.od-button,.od-icon-button):hover:not(:disabled){filter:none}
+.od-theme-shadcn .od-button[data-size="xs"]{min-height:24px;padding:0 8px;font-size:12px}
+.od-theme-shadcn .od-button[data-size="sm"]{min-height:28px;padding:0 10px;font-size:12.8px}
+.od-theme-shadcn .od-button[data-size="lg"]{min-height:36px;padding:0 10px}
+.od-theme-shadcn :is(.od-button,.od-icon-button):disabled{opacity:.5;cursor:default}
+.od-theme-shadcn :is(input,select,textarea).od-field{box-sizing:border-box;width:100%;min-width:0;min-height:32px;padding:4px 10px;font-family:inherit;font-size:14px;line-height:22px;color:var(--foreground);background:transparent;border:1px solid var(--input);border-radius:var(--radius);box-shadow:0 1px 2px #0000000d;outline:none}
+.od-theme-shadcn :is(input,select,textarea).od-field::placeholder{color:var(--muted-foreground)}
+.od-theme-shadcn :is(input,select,textarea).od-field:disabled{background:var(--muted);opacity:.5;cursor:not-allowed}
+.od-theme-shadcn :is(input,textarea).od-field[readonly]{color:var(--foreground);background:var(--muted)}
+.od-theme-shadcn :is(.od-button,.od-icon-button,.od-field):focus-visible{outline:none;border-color:var(--ring);box-shadow:0 0 0 3px color-mix(in oklch,var(--ring) 50%,transparent)}
+.od-theme-shadcn .od-field[aria-invalid="true"]{border-color:var(--destructive);box-shadow:0 0 0 3px color-mix(in oklch,var(--destructive) 20%,transparent)}
+.od-theme-shadcn .od-field-label{font-size:14px;font-weight:500;line-height:20px}
+.od-theme-shadcn .od-form-field{gap:8px}
+.od-theme-shadcn :is(.od-title,.od-page-title){font-size:14px;font-weight:600;line-height:20px}
+.od-theme-shadcn .od-disclosure>summary{font-weight:500}
+.od-theme-shadcn :is(strong,b){font-weight:500}
+.od-theme-shadcn .od-shared-card{background:var(--card);border-color:var(--border);box-shadow:none}
+.od-theme-shadcn .od-shared-switch{width:32px;height:18.4px;background:var(--input)}
+.od-theme-shadcn .od-shared-switch[data-selected]{background:var(--primary)}
+.od-theme-shadcn .od-shared-switch-thumb{width:16px;height:16px;margin-left:1px;background:var(--background)}
+.od-theme-shadcn .od-shared-switch[data-selected] .od-shared-switch-thumb{transform:translateX(14px)}
+.od-theme-shadcn .od-shared-switch[data-focus-visible]{outline:none;box-shadow:0 0 0 3px color-mix(in oklch,var(--ring) 50%,transparent)}
+.od-theme-shadcn .od-shared-switch[data-size="sm"]{width:24px;height:14px}
+.od-theme-shadcn .od-shared-switch[data-size="sm"] .od-shared-switch-thumb{width:12px;height:12px}
+.od-theme-shadcn .od-shared-switch[data-size="sm"][data-selected] .od-shared-switch-thumb{transform:translateX(10px)}
+.od-theme-shadcn:is([data-theme="dark"],[data-preview-theme="dark"]) .od-field{background:color-mix(in oklch,var(--input) 30%,transparent)}
+.od-theme-shadcn:is([data-theme="dark"],[data-preview-theme="dark"]) .od-field[aria-invalid="true"]{box-shadow:0 0 0 3px color-mix(in oklch,var(--destructive) 40%,transparent)}
+.od-theme-shadcn [role="tablist"]{gap:4px}
+.od-theme-shadcn [role="tab"]{font-size:14px;font-weight:500}
+.od-theme-shadcn [role="tab"][aria-selected="true"]{color:var(--foreground)}
+.od-theme-shadcn .od-button--tab{border:0;border-bottom:2px solid transparent;border-radius:0;background:transparent;box-shadow:none}
+.od-theme-shadcn .od-button--tab[aria-selected="true"]{border-bottom-color:var(--foreground)}
+@media(prefers-reduced-motion:reduce){.od-theme-shadcn .od-button{transition:none}}
+
+/* Keep the trusted tool host aligned with tools that follow the OS theme. */
+@media(prefers-color-scheme:dark){
+  :root{color-scheme:dark}
+}
+
+/* Shared compact input contract; action buttons remain real consumer actions. */
+.od-input-group{display:flex;align-items:stretch;min-width:0;border:1px solid var(--od-input-border);border-radius:var(--radius-control);background:var(--od-paper);color:var(--od-ink);overflow:hidden}
+.od-input-group:focus-within{outline:2px solid var(--od-focus);outline-offset:2px}
+.od-input-group .od-field{flex:1 1 auto;width:100%;min-width:0;border:0!important;border-radius:0!important;outline:0!important;background:transparent}
+.od-input-prefix,.od-input-suffix{display:flex;align-items:center;flex:none;padding:0 var(--space-2);font-size:var(--od-note-size);color:var(--od-sub);white-space:nowrap}
+.od-input-action{min-width:36px;min-height:36px;border:0;border-left:1px solid var(--od-line);background:transparent;color:var(--od-accent-ink);cursor:pointer;font:inherit}
+.od-input-action:hover:not(:disabled){background:var(--od-muted)}
+.od-input-action:disabled{opacity:.4;cursor:not-allowed}
+.od-input-action:focus-visible{outline:2px solid var(--od-focus);outline-offset:-3px}
+.od-input-group:has(.od-field:disabled){background:var(--od-muted)}
+
+</style><style id="od-video-auto-skip-layout">
+
+/* Layout only: inherited appearance and semantic values from canonical OpenDesk CSS. */
+html,body{height:auto;min-height:100%;overflow:auto}
+body{display:block;background:var(--od-muted)}
+#od-watch-preview{max-width:468px;margin:auto;padding:20px 10px 32px;--od-side-width:360px}
+#od-preview-meta{width:min(100%,var(--od-side-width));margin:0 auto 10px;color:var(--od-sub);font-size:12px;text-align:center}
+#od-sidebar{width:min(100%,var(--od-side-width));margin:auto;background:var(--od-paper);overflow:hidden}
+#od-sidebar .vas-identity{display:flex;justify-content:space-between;flex-wrap:wrap;align-items:baseline;gap:4px 8px;padding:14px 16px 8px;font-size:14px;font-weight:650}
+#od-sidebar .vas-identity .od-note{font-weight:400}
+#od-sidebar .vas-rules{display:grid;gap:16px;padding:12px 16px 16px}
+#od-sidebar .vas-rule{min-width:0}
+#od-sidebar .vas-rule-head{display:flex;gap:8px;align-items:center;min-height:32px}
+#od-sidebar .vas-rule-head .vas-hint{margin-left:auto;white-space:nowrap}
+#od-sidebar .vas-check{width:17px;height:17px;flex:none;margin:0 1px 0 4px;accent-color:var(--od-brand);cursor:pointer}
+#od-sidebar .od-dual-track{position:relative;height:34px;margin:8px 10px 0}
+#od-sidebar .od-dual-line{position:absolute;left:0;right:0;top:15px;height:4px;background:var(--od-line);border-radius:100px}
+#od-sidebar .od-dual-fill{position:absolute;top:15px;height:4px;background:var(--od-brand);border-radius:100px;pointer-events:none}
+#od-sidebar .od-dual-range{position:absolute;left:-10px;top:0;width:calc(100% + 20px);height:34px;margin:0;padding:0;appearance:none;-webkit-appearance:none;background:transparent;pointer-events:none}
+#od-sidebar .od-dual-range.od-active-point{z-index:2}
+#od-sidebar .od-dual-range::-webkit-slider-runnable-track{height:4px;border:0;background:transparent}
+#od-sidebar .od-dual-range::-webkit-slider-thumb{appearance:none;-webkit-appearance:none;width:19px;height:19px;margin-top:-7px;border:2px solid var(--od-brand);border-radius:50%;background:var(--od-paper);box-shadow:0 1px 3px #0002;pointer-events:auto;cursor:ew-resize}
+#od-sidebar .od-dual-range[data-endpoint=end]::-webkit-slider-thumb{border-radius:6px}
+#od-sidebar .od-dual-range::-moz-range-track{height:4px;border:0;background:transparent}
+#od-sidebar .od-dual-range::-moz-range-thumb{height:16px;width:16px;border:2px solid var(--od-brand);border-radius:50%;background:var(--od-paper);pointer-events:auto;cursor:ew-resize}
+#od-sidebar .od-dual-range:focus-visible{outline:2px solid var(--od-focus);outline-offset:2px;border-radius:3px}
+#od-sidebar .vas-endpoints{display:flex;align-items:flex-start;justify-content:space-between;gap:12px}
+#od-sidebar .vas-endpoint{display:grid;gap:4px;min-width:0}
+#od-sidebar .vas-endpoint:last-child{justify-items:end;text-align:right}
+#od-sidebar .vas-time-input{width:82px;min-height:36px;padding:6px 8px;text-align:center;font-size:14px;font-variant-numeric:tabular-nums}
+#od-sidebar .vas-endpoint.od-selected .od-field-label{color:var(--od-brand)}
+#od-sidebar .vas-error{margin-top:6px}
+#od-sidebar .vas-auto{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:0 16px 14px}
+#od-sidebar .vas-footer{display:flex;align-items:center;gap:8px;padding:12px 16px 16px;border-top:1px solid var(--od-line)}
+#od-sidebar #od-save{flex:1;min-width:80px}
+#od-sidebar .vas-status{display:flex;align-items:center;justify-content:space-between;gap:6px;padding:0 16px 12px;color:var(--od-sub);font-size:12px}
+#od-sidebar .vas-status-warning{color:var(--od-warning)}
+#od-sidebar .vas-status-error{color:var(--od-negative)}
+#od-sidebar #od-status-actions{display:flex;gap:4px}
+#od-sidebar .od-transition{border-top:1px solid var(--od-line);padding:12px 16px;background:var(--od-muted);font-size:12px}
+#od-sidebar .od-transition-actions{display:flex;gap:8px;margin-top:8px}
+#od-simulator{width:min(100%,var(--od-side-width));margin:16px auto 0;padding:12px}
+#od-watch-preview .od-player-toolbar{display:flex;flex-wrap:wrap;align-items:center;gap:8px}
+#od-watch-preview .od-player-toolbar #od-episode{max-width:86px;min-height:36px;margin-left:auto}
+#od-watch-preview .od-clock{color:var(--od-sub);font-variant-numeric:tabular-nums}
+#od-watch-preview .od-play-progress{width:100%;margin:10px 0;accent-color:var(--od-brand)}
+#od-watch-preview .od-player-caption{display:flex;justify-content:space-between;color:var(--od-sub);font-size:12px}
+#od-watch-preview .od-demo{margin-top:12px;padding-top:10px;border-top:1px solid var(--od-line)}
+#od-watch-preview .od-demo summary{cursor:pointer;color:var(--od-sub);font-size:12px}
+#od-watch-preview .od-demo-content{padding-top:10px;font-size:12px}
+#od-watch-preview .od-demo-content label{display:block;color:var(--od-sub)}
+#od-watch-preview .od-demo-content select,#od-watch-preview .od-demo-content input[type=text]{display:block;width:100%;min-height:34px;margin-top:4px}
+#od-watch-preview .od-demo-row{display:flex;gap:8px;margin-top:8px}
+#od-watch-preview .od-demo-row>label{flex:1;min-width:0}
+#od-watch-preview .od-demo-buttons{display:flex;flex-wrap:wrap;gap:8px;margin-top:10px}
+#od-watch-preview .od-demo-buttons button{min-height:34px}
+#od-watch-preview .od-saved{margin-top:10px;font-size:12px;color:var(--od-sub)}
+#od-watch-preview .od-saved-row{display:flex;justify-content:space-between;gap:8px}
+#od-watch-preview .od-adapter-note{margin-top:8px;font-size:11px;color:var(--od-sub)}
+@media(max-width:390px){#od-watch-preview{padding:12px 8px 24px}#od-sidebar .vas-identity{padding:12px 12px 6px}#od-sidebar .vas-rules{padding:10px 12px 12px}#od-sidebar .vas-auto{padding:0 12px 12px}#od-sidebar .vas-footer{padding:12px}}
+
+</style>
 </head>
 <body>
 <div id="od-watch-preview" class="viz-dotted-background">
-  <div id="od-preview-meta" class="od-preview-meta">独立交互预览 · 模拟数据 · 非正式功能</div>
-  <aside id="od-sidebar" class="od-sidebar" aria-label="连播助手侧栏"></aside>
-  <section class="od-simulator" aria-label="模拟播放器">
-    <div class="od-player-toolbar"><button id="od-play" type="button">播放</button><span class="od-clock"><span id="od-current-time">00:30</span><span class="od-muted"> / </span><span id="od-total-time">45:00</span></span><select id="od-episode" aria-label="模拟集数"><option value="3">第03集</option><option value="4">第04集</option><option value="5">第05集</option></select></div>
+  <div id="od-preview-meta" class="od-preview-meta">连播助手 · 离线模拟 · 非正式功能</div>
+  <aside id="od-sidebar" class="od-surface od-theme-shadcn" aria-label="连播助手侧栏"></aside>
+  <section id="od-simulator" class="od-simulator od-surface" aria-label="模拟播放器">
+    <div class="od-player-toolbar"><button id="od-play" class="od-button od-button--secondary" type="button">播放</button><span class="od-clock"><span id="od-current-time">00:30</span><span class="od-muted"> / </span><span id="od-total-time">45:00</span></span><select class="od-field" id="od-episode" aria-label="模拟集数"><option value="3">第03集</option><option value="4">第04集</option><option value="5">第05集</option></select></div>
     <input id="od-progress" class="od-play-progress" type="range" min="0" max="2700" value="30" step="1" aria-label="模拟播放器播放位置">
     <div class="od-player-caption"><span>模拟播放</span><span id="od-play-state">暂停</span></div>
-    <details class="od-demo" id="od-demo"><summary>演示场景</summary><div class="od-demo-content">
+    <details class="od-demo" id="od-demo"><summary>演示场景（侧栏外）</summary><div class="od-demo-content">
       <label for="od-scenario">场景<select id="od-scenario"><option value="empty">首次空白</option><option value="standard">常用片头 / 片尾</option><option value="short">短视频 · 3分钟</option><option value="interval">特殊区间 / 保留彩蛋</option><option value="exception">本集关闭片头</option><option value="unknown">时长未知</option><option value="invalid">非法区间</option><option value="autodemonstration">自动跳过 / 撤销</option></select></label>
       <div class="od-demo-row"><label for="od-width">侧栏宽度<select id="od-width"><option value="360">360 px</option><option value="320">320 px</option><option value="400">400 px</option></select></label><label for="od-speed">模拟速度<select id="od-speed"><option value="1">1×</option><option value="10">10×</option><option value="60">60×</option></select></label></div>
       <div class="od-demo-row"><input id="od-seek-time" type="text" inputmode="numeric" value="00:30" aria-label="模拟定位时间（分:秒）"><button id="od-seek" type="button">定位播放</button></div>
@@ -25,97 +412,7 @@
     </div></details>
   </section>
 </div>
-<style>
 
-#od-watch-preview{--od-bg:light-dark(#ffffff,#20242b);--od-text:light-dark(#242b35,#edf1f7);--od-muted:light-dark(#697380,#b6c0cc);--od-line:light-dark(#e5e8ed,#3a424e);--od-soft:light-dark(#f4f6f8,#2a3039);--od-accent:light-dark(#354a69,#b2c8eb);--od-on-accent:light-dark(#ffffff,#1c2a3d);--od-error:light-dark(#a32735,#ffacb6);--od-warning:light-dark(#78571b,#ebce91);font:14px/1.5 -apple-system,BlinkMacSystemFont,"Segoe UI","PingFang SC","Microsoft YaHei",sans-serif;color:var(--od-text);width:100%;padding:12px 0;box-sizing:border-box}
-#od-watch-preview *{box-sizing:border-box}#od-watch-preview [hidden]{display:none!important}
-#od-watch-preview button,#od-watch-preview input,#od-watch-preview select{font:inherit;color:var(--od-text)}
-#od-watch-preview button{background:var(--od-bg);border:1px solid var(--od-line);border-radius:6px;padding:6px 10px;min-height:32px;cursor:pointer;line-height:1.4}
-#od-watch-preview button:hover:not(:disabled){background:var(--od-soft)}#od-watch-preview button:disabled{opacity:.45;cursor:default}
-#od-watch-preview input:not([type=range]):not([type=checkbox]),#od-watch-preview select{min-width:0;border:1px solid var(--od-line);border-radius:6px;background:var(--od-bg);padding:6px 8px;min-height:34px}
-#od-watch-preview :focus-visible{outline:2px solid var(--od-accent);outline-offset:3px}
-#od-watch-preview input[aria-invalid=true]{border-color:var(--od-error)!important}
-#od-watch-preview .od-preview-meta{max-width:var(--od-side-width,360px);margin:0 auto 12px;font-size:12px;color:var(--od-muted);padding-right:44px}
-#od-watch-preview .od-sidebar{width:min(100%,var(--od-side-width,360px));margin:auto;background:var(--od-bg);border:1px solid var(--od-line);border-radius:12px;overflow:hidden}
-#od-watch-preview .od-header{padding:16px 16px 12px}
-#od-watch-preview .od-title-row{display:flex;align-items:center;justify-content:space-between;gap:8px}
-#od-watch-preview h3{font-size:16px;line-height:1.4;font-weight:600;margin:0}
-#od-watch-preview .od-link{border:0;background:transparent;padding:2px 0;min-height:28px;font-size:12px;color:var(--od-muted)}
-#od-watch-preview .od-link:hover:not(:disabled){background:transparent;color:var(--od-text);text-decoration:underline}
-#od-watch-preview .od-work{color:var(--od-muted);font-size:12px;margin-top:4px}
-#od-watch-preview .od-rows{display:flex;flex-direction:column;gap:16px;padding:0 16px}
-#od-watch-preview .od-time-section{padding:0;border:0}
-#od-watch-preview .od-row-title{display:flex;align-items:center;gap:8px;min-height:28px}
-#od-watch-preview .od-row-title>label:first-child{font-weight:500;flex:none}
-#od-watch-preview .od-window-label{flex:1;min-width:0;font-size:11px;line-height:1.3;color:var(--od-muted)}
-#od-watch-preview .od-row-title .od-calibrate-toggle{flex:none;font-size:12px;padding:2px 0;min-height:28px;white-space:nowrap}
-#od-watch-preview .od-exception{font-size:11px;color:var(--od-muted);white-space:nowrap}
-#od-watch-preview .od-switch{width:36px;height:24px;position:relative;display:flex;align-items:center;justify-content:center;flex-shrink:0}
-#od-watch-preview .od-switch input{appearance:none;-webkit-appearance:none;width:32px;height:18px;border-radius:10px;margin:0;background:var(--od-line);border:0;cursor:pointer}
-#od-watch-preview .od-switch input:before{content:"";position:absolute;width:12px;height:12px;top:6px;left:5px;border-radius:50%;background:var(--od-bg)}
-#od-watch-preview .od-switch input:checked{background:var(--od-accent)}#od-watch-preview .od-switch input:checked:before{transform:translateX(14px);background:var(--od-on-accent)}
-#od-watch-preview .od-dual-track{position:relative;height:26px;margin:8px 9px 0}
-#od-watch-preview .od-dual-line,#od-watch-preview .od-dual-fill{position:absolute;top:11px;height:4px;border-radius:3px;pointer-events:none}
-#od-watch-preview .od-dual-line{left:0;right:0;background:var(--od-line)}#od-watch-preview .od-dual-fill{background:var(--od-accent)}
-#od-watch-preview .od-dual-range{position:absolute;left:-9px;top:0;width:calc(100% + 18px);height:26px;margin:0;appearance:none;-webkit-appearance:none;background:transparent;pointer-events:none;z-index:1}
-#od-watch-preview .od-dual-range.od-active-point{z-index:2}
-#od-watch-preview .od-dual-range.od-active-point:not(.od-empty)::-webkit-slider-thumb{background:var(--od-accent)}
-#od-watch-preview .od-dual-range.od-active-point:not(.od-empty)::-moz-range-thumb{background:var(--od-accent)}
-#od-watch-preview .od-dual-range::-webkit-slider-runnable-track{height:4px;background:transparent;border:0}
-#od-watch-preview .od-dual-range::-webkit-slider-thumb{appearance:none;-webkit-appearance:none;height:18px;width:18px;border:2px solid var(--od-accent);border-radius:50%;background:var(--od-bg);margin-top:-7px;pointer-events:auto;cursor:ew-resize}
-#od-watch-preview .od-dual-range[data-endpoint=end]::-webkit-slider-thumb{border-radius:5px}
-#od-watch-preview .od-dual-range::-moz-range-track{height:4px;background:transparent;border:0}
-#od-watch-preview .od-dual-range::-moz-range-thumb{height:14px;width:14px;border:2px solid var(--od-accent);border-radius:50%;background:var(--od-bg);pointer-events:auto;cursor:ew-resize}
-#od-watch-preview .od-dual-range[data-endpoint=end]::-moz-range-thumb{border-radius:3px}
-#od-watch-preview .od-dual-range.od-empty::-webkit-slider-thumb{border-color:var(--od-muted);box-shadow:none}
-#od-watch-preview .od-dual-range.od-empty::-moz-range-thumb{border-color:var(--od-muted);box-shadow:none}
-#od-watch-preview .od-dual-range:disabled{opacity:.5}
-#od-watch-preview .od-dual-range:disabled::-webkit-slider-thumb{pointer-events:none;cursor:default}
-#od-watch-preview .od-dual-range:disabled::-moz-range-thumb{pointer-events:none;cursor:default}
-#od-watch-preview .od-endpoint-readouts{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:16px;margin-top:4px}
-#od-watch-preview .od-endpoint-readouts label{display:flex;align-items:center;gap:8px;justify-self:start;min-width:0;font-size:12px;color:var(--od-muted);line-height:18px}
-#od-watch-preview .od-endpoint-readouts label:last-child{justify-self:end}
-#od-watch-preview .od-endpoint-readouts input[type=text]{display:block;width:76px;max-width:100%;height:32px;min-height:32px;padding:3px 4px;border:0;border-bottom:1px solid var(--od-line);border-radius:0;background:transparent;font-size:16px;font-variant-numeric:tabular-nums;cursor:text}
-#od-watch-preview .od-endpoint-readouts input[type=text]:hover:not(:disabled){border-bottom-color:var(--od-muted);background:var(--od-soft)}
-#od-watch-preview .od-endpoint-readouts input[type=text]:focus{border-bottom-color:var(--od-accent);background:var(--od-soft)}
-#od-watch-preview .od-endpoint-readouts input::placeholder{font-size:12px;color:var(--od-muted)}
-#od-watch-preview .od-endpoint-readouts .od-selected>span{color:var(--od-accent)}
-#od-watch-preview input:disabled{color:var(--od-muted);background:var(--od-soft)}
-#od-watch-preview .od-error{color:var(--od-error);font-size:12px;margin-top:8px}
-#od-watch-preview .od-calibration{margin-top:8px;padding:8px;background:var(--od-soft);border-radius:8px;display:flex;flex-direction:column;gap:8px}
-#od-watch-preview .od-calibration-targets{display:flex;gap:8px}
-#od-watch-preview .od-calibration-targets button{flex:1;font-size:12px;min-height:30px;padding:4px 8px}
-#od-watch-preview .od-calibration-targets button[aria-pressed=true]{border-color:var(--od-accent);color:var(--od-accent);font-weight:500}
-#od-watch-preview .od-calibration-actions{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.5fr);gap:8px}
-#od-watch-preview .od-calibration-actions button{font-size:12px;padding:5px 4px;min-height:32px}
-#od-watch-preview .od-auto{display:flex;align-items:center;justify-content:space-between;min-height:32px;gap:8px}
-#od-watch-preview .od-auto label:first-child{flex:1}
-#od-watch-preview .od-save-zone{border-top:1px solid var(--od-line);margin-top:12px;padding:12px 16px 16px}
-#od-watch-preview .od-save-actions{display:flex;align-items:center;gap:8px}
-#od-watch-preview .od-primary{background:var(--od-accent)!important;color:var(--od-on-accent)!important;border-color:var(--od-accent)!important;flex:1;min-height:36px;font-size:13px}
-#od-watch-preview .od-save-actions>.od-link{min-height:36px;flex:none;font-size:12px}
-#od-watch-preview .od-status{padding:0 16px 12px;color:var(--od-muted);font-size:12px;line-height:1.6}
-#od-watch-preview .od-status.od-warning{color:var(--od-warning)}#od-watch-preview .od-status.od-error-state{color:var(--od-error)}
-#od-watch-preview .od-status-actions{display:flex;gap:12px;flex-wrap:wrap;margin-top:4px}#od-watch-preview .od-status-actions button{font-size:12px;border:0;padding:2px 0;min-height:28px;color:var(--od-accent);background:transparent}
-#od-watch-preview .od-more{margin:8px 0 0;padding:12px;background:var(--od-soft);border-radius:8px}
-#od-watch-preview .od-restore-row{display:flex;gap:12px;flex-wrap:wrap}
-#od-watch-preview .od-version-note{font-size:11px;color:var(--od-muted);margin:0 0 8px}
-#od-watch-preview .od-transition{border-top:1px solid var(--od-line);padding:12px 16px;background:var(--od-soft);font-size:12px}
-#od-watch-preview .od-transition-actions{display:flex;gap:8px;margin-top:8px}#od-watch-preview .od-transition-actions button{font-size:12px}
-#od-watch-preview .od-closed{padding:16px;display:flex;align-items:center;justify-content:space-between;gap:12px;font-size:13px}
-#od-watch-preview .od-simulator{width:min(100%,var(--od-side-width,360px));margin:16px auto 0;padding:0 4px;color:var(--od-muted)}
-#od-watch-preview .od-player-toolbar{display:flex;align-items:center;gap:8px}#od-watch-preview .od-player-toolbar>button{font-size:12px;padding:4px 10px}#od-watch-preview .od-player-toolbar select{margin-left:auto;font-size:12px;min-height:32px;padding:4px 6px;max-width:96px}
-#od-watch-preview .od-clock{font-size:13px;font-variant-numeric:tabular-nums;color:var(--od-text);white-space:nowrap}
-#od-watch-preview .od-play-progress{display:block;width:100%;height:18px;margin:8px 0 0;accent-color:var(--od-accent)}
-#od-watch-preview .od-player-caption{display:flex;justify-content:space-between;font-size:11px;margin-top:2px}
-#od-watch-preview .od-demo{margin-top:12px;font-size:12px}#od-watch-preview summary{cursor:pointer}
-#od-watch-preview .od-demo-content{padding:12px 0 0}#od-watch-preview .od-demo-content>label{display:block}#od-watch-preview .od-demo-content select{display:block;width:100%;margin-top:4px;font-size:12px}
-#od-watch-preview .od-demo-row{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:8px}#od-watch-preview .od-demo-row input{width:100%}#od-watch-preview .od-demo-row button{font-size:12px}
-#od-watch-preview .od-demo-buttons{display:flex;gap:8px;flex-wrap:wrap;margin-top:8px}#od-watch-preview .od-demo-buttons button{font-size:12px}
-#od-watch-preview .od-saved{margin-top:12px}#od-watch-preview .od-saved-row{display:flex;justify-content:space-between;gap:12px;margin-top:6px}#od-watch-preview .od-saved-row span:last-child{color:var(--od-text);text-align:right;font-variant-numeric:tabular-nums}
-#od-watch-preview .od-adapter-note{font-size:11px;margin-top:12px;overflow-wrap:anywhere;color:var(--od-muted)}
-@media(pointer:coarse){#od-watch-preview button{min-height:44px!important}#od-watch-preview input:not([type=range]):not([type=checkbox]),#od-watch-preview select{font-size:16px!important;min-height:44px}#od-watch-preview .od-switch{height:44px;width:44px}#od-watch-preview .od-switch input:before{top:16px;left:9px}#od-watch-preview .od-play-progress,#od-watch-preview .od-dual-track,#od-watch-preview .od-dual-range{height:44px}#od-watch-preview .od-dual-line,#od-watch-preview .od-dual-fill{top:20px}}
-</style>
 <script>
 /* Local interaction simulator only. No browser-extension or website APIs. */
 class ContinuityModel {
@@ -476,8 +773,12 @@ function windowFor(key,expand=false){
  if(Number.isFinite(d))span=Math.min(span,d);
  ui.windows[key]=key==='outro'?[Math.max(0,d-span),d]:[0,span];return ui.windows[key];
 }
-function windowLabel(key){if(unavailable(key))return '';const w=windowFor(key),seconds=w[1]-w[0],minutes=Math.floor(seconds/60),rest=seconds%60;return '显示'+(key==='intro'?'前':'末')+(rest?minutes?minutes+'分'+rest+'秒':rest+'秒':minutes+'分钟');}
-function identityText(){const s=model.s;return '星海航线 · 第1季 · 第'+String(s.episode).padStart(2,'0')+'集 · '+(Number.isFinite(s.duration)?'全长'+fmt(s.duration):'时长待获取');}
+function windowLabel(key){
+ if(unavailable(key))return '时长待获取';
+ const w=windowFor(key),t=w[1]-w[0],m=Math.floor(t/60),s=t%60;
+ return (key==='intro'?'前':'末')+(s?`${m}分${s}秒`:`${m}分钟`);
+}
+function identityText(){const s=model.s;return `星海航线 <span class="od-note">第1季 · 第${String(s.episode).padStart(2,'0')}集${Number.isFinite(s.duration)?' · '+fmt(s.duration):''}</span>`;}
 function constrainHandle(key,part,n){
  const w=windowFor(key),other=value(key,part==='start'?'end':'start');let lo=w[0],hi=w[1];
  if(part==='start'&&Number.isFinite(other))hi=Math.min(hi,other-1);
@@ -492,48 +793,49 @@ function validation(){const v=model.validation(),e=model.validation(model._prosp
 function rangeText(key,rules=model.s.draft){const a=value(key,'start',rules),b=value(key,'end',rules);return Number.isFinite(a)&&Number.isFinite(b)?fmt(a)+' — '+fmt(b):'—';}
 function endpointLabel(key,part){return part==='end'&&key==='outro'&&model.s.draft.outro.mode==='tail'?'结尾':part==='start'?'开始':'结束';}
 function fieldAria(key,part){return names[key]+(part==='start'?'开始':'结束')+'时间（'+(key==='outro'&&part==='end'&&model.s.draft.outro.mode==='tail'?'跟随视频结尾，':'')+'分:秒）';}
-function fieldHTML(key,part){const disabled=unavailable(key);return `<label class="${ui.selected[key]===part?'od-selected':''}" data-endpoint-label="${key}-${part}" for="od-${key}-${part}"><span id="od-label-${key}-${part}">${endpointLabel(key,part)}</span><input id="od-${key}-${part}" type="text" inputmode="numeric" autocomplete="off" spellcheck="false" data-time-key="${key}" data-time-part="${part}" value="${disabled?'':esc(inputValue(key,part))}" placeholder="${disabled?'—':'分:秒'}" ${disabled?'disabled':''} aria-label="${fieldAria(key,part)}" aria-describedby="od-error-${key}"></label>`;}
+function fieldHTML(key,part){
+ const disabled=unavailable(key);
+ return `<label class="vas-endpoint ${ui.selected[key]===part?'od-selected':''}" data-endpoint-label="${key}-${part}" for="od-${key}-${part}"><span class="od-field-label" id="od-label-${key}-${part}">${part==='start'?'开始':'结束'}</span><input id="od-${key}-${part}" class="od-field vas-time-input" type="text" inputmode="numeric" autocomplete="off" spellcheck="false" data-time-key="${key}" data-time-part="${part}" value="${disabled?'':esc(inputValue(key,part))}" placeholder="${disabled?'—':'分:秒'}" ${disabled?'disabled':''} aria-label="${fieldAria(key,part)}" aria-describedby="od-error-${key}"></label>`;
+}
 function trackHTML(key){
  const w=windowFor(key,true),a=value(key,'start'),b=value(key,'end'),disabled=unavailable(key),valid=!disabled&&Number.isFinite(a)&&Number.isFinite(b)&&a<b;
  const pct=n=>Math.max(0,Math.min(100,(n-w[0])/(w[1]-w[0])*100));
  return `<div class="od-dual-track"><span class="od-dual-line"></span><span id="od-dual-fill-${key}" class="od-dual-fill" style="left:${valid?pct(a):0}%;width:${valid?Math.max(0,pct(b)-pct(a)):0}%"></span>${['start','end'].map(part=>{const n=value(key,part),set=Number.isFinite(n)&&!disabled;return `<input id="od-range-${key}-${part}" class="od-dual-range ${set?'':'od-empty'} ${ui.selected[key]===part?'od-active-point':''}" type="range" data-interval-key="${key}" data-endpoint="${part}" min="${w[0]}" max="${w[1]}" step="1" value="${set?n:part==='start'?w[0]:w[1]}" ${disabled?'disabled':''} aria-label="${names[key]}${part==='start'?'开始':'结束'}时间拖动手柄" aria-valuetext="${disabled?'时长未知':set?fmt(n):'未设置，拖动建立端点'}" aria-describedby="od-window-label-${key} od-error-${key}">`;}).join('')}</div>`;
 }
-function calibrationHTML(key){
- if(ui.calibrating!==key)return '';
- return `<div id="od-calibration-${key}" class="od-calibration"><div class="od-calibration-targets" role="group" aria-label="选择${names[key]}校准端点">${['start','end'].map(part=>`<button id="od-target-${key}-${part}" type="button" data-action="target" data-key="${key}" data-part="${part}" aria-pressed="${ui.selected[key]===part}">${part==='start'?'开始':'结束'}</button>`).join('')}</div><div class="od-calibration-actions"><button id="od-mark-${key}" type="button" data-action="mark" data-key="${key}">用当前时间</button><button id="od-preview-${key}" type="button" data-action="preview" data-key="${key}">查看位置</button></div></div>`;
-}
+function calibrationHTML(){return '';}
 function rowHTML(key){
- const r=model.s.draft[key],v=validation(),overridden=Object.prototype.hasOwnProperty.call(model.s.overrides[model.identity()]||{},key),track=trackHTML(key);
- return `<section class="od-time-section" data-section="${key}"><div class="od-row-title"><label for="od-toggle-${key}">${names[key]}</label><span id="od-window-label-${key}" class="od-window-label">${windowLabel(key)}</span>${overridden?'<span class="od-exception">本集例外</span>':''}<button id="od-calibrate-${key}" class="od-link od-calibrate-toggle" type="button" data-action="calibrate" data-key="${key}" aria-expanded="${ui.calibrating===key}" ${unavailable(key)&&ui.calibrating!==key?'disabled':''}>${ui.calibrating===key?'收起校准':'校准'}</button><label class="od-switch"><input id="od-toggle-${key}" type="checkbox" data-toggle="${key}" ${r.enabled?'checked':''} aria-label="跳过${names[key]}"></label></div>${track}<div class="od-endpoint-readouts">${fieldHTML(key,'start')}${fieldHTML(key,'end')}</div>${calibrationHTML(key)}<div id="od-error-${key}" class="od-error" ${v[key].length?'':'hidden'}>${esc(v[key][0]||'')}</div></section>`;
+ const r=model.s.draft[key],v=validation();
+ return `<section class="vas-rule" data-section="${key}"><div class="vas-rule-head"><label class="od-title" for="od-toggle-${key}">${names[key]}</label><span id="od-window-label-${key}" class="od-note vas-hint">${windowLabel(key)}</span><input class="vas-check" id="od-toggle-${key}" type="checkbox" data-toggle="${key}" ${r.enabled?'checked':''} aria-label="跳过${names[key]}"></div>${trackHTML(key)}<div class="od-endpoint-readouts vas-endpoints">${fieldHTML(key,'start')}${fieldHTML(key,'end')}</div><div class="od-field-error vas-error" id="od-error-${key}" role="alert" ${v[key].length?'':'hidden'}>${esc(v[key][0]||'')}</div></section>`;
 }
-function moreHTML(){const s=model.s,o=s.overrides[model.identity()]||{};return `<div class="od-more" id="od-more-panel" ${ui.more?'':'hidden'}><div class="od-version-note">适用：${esc(s.version)}</div><div class="od-restore-row">${s.scope==='episode'?['intro','outro','autoNext'].filter(k=>Object.prototype.hasOwnProperty.call(o,k)).map(k=>`<button id="od-restore-${k}" type="button" class="od-link" data-action="restore" data-key="${k}">恢复${names[k]||'连播'}默认</button>`).join(''):Object.keys(o).length?'<button id="od-adjust-episode" type="button" class="od-link" data-action="adjust-episode">查看本集例外</button>':''}<button id="od-close" type="button" class="od-link" data-action="close">收起侧栏</button></div></div>`;}
+function moreHTML(){return '';}
 function statusHTML(){return '<div id="od-status" class="od-status" hidden><div id="od-status-text" role="status" aria-live="polite"></div><div id="od-status-actions" class="od-status-actions"></div></div>';}
 function transitionHTML(){const t=model.s.transition;return t?`<div class="od-transition" role="group" aria-label="处理未保存修改">当前修改尚未保存。<div class="od-transition-actions"><button id="od-stay" type="button" data-action="stay">继续编辑</button><button id="od-discard" type="button" data-action="discard">舍弃并${t.kind==='close'?'收起':'切换'}</button></div></div>`:'';}
 function sidebarHTML(){
  const s=model.s,v=validation();
- if(s.closed)return '<div class="od-closed"><span>连播助手已收起</span><button id="od-open" type="button" data-action="open">打开设置</button></div>'+statusHTML();
- return `<header class="od-header"><div class="od-title-row"><h3>连播助手</h3><button id="od-more" type="button" class="od-link" data-action="more" aria-expanded="${ui.more}" aria-controls="od-more-panel">${ui.more?'收起更多':'更多'}</button></div><div id="od-content-identity" class="od-work">${identityText()}</div>${moreHTML()}</header><div class="od-rows">${rowHTML('intro')}${rowHTML('outro')}<div class="od-auto"><label for="od-auto-next">自动下一集</label>${Object.prototype.hasOwnProperty.call(s.overrides[model.identity()]||{},'autoNext')?'<span class="od-exception">本集例外</span>':''}<label class="od-switch"><input id="od-auto-next" type="checkbox" data-toggle="autoNext" ${s.draft.autoNext?'checked':''} aria-label="自动下一集"></label></div></div><footer class="od-save-zone"><div class="od-save-actions"><button id="od-save" type="button" class="od-primary" data-action="save" ${s.dirty&&v.valid?'':'disabled'}>${s.scope==='work'?'保存本作品设置':'仅保存本集'}</button><button id="od-scope-switch" type="button" class="od-link" data-action="scope">${s.scope==='work'?'调整本集':'作品默认'}</button><button id="od-cancel" type="button" class="od-link" data-action="cancel" ${s.dirty?'':'hidden'}>取消修改</button></div></footer>${statusHTML()}${transitionHTML()}`;
+ if(s.closed)return `<div class="vas-identity"><strong>连播助手</strong><button class="od-button od-button--secondary" type="button" data-action="open">打开</button></div>${statusHTML()}`;
+ return `<div class="vas-identity">${identityText()}</div><div class="vas-rules">${rowHTML('intro')}${rowHTML('outro')}</div><div class="vas-auto"><label class="od-title" for="od-auto-next">自动下一集</label><input id="od-auto-next" class="vas-check" type="checkbox" data-toggle="autoNext" ${s.draft.autoNext?'checked':''} aria-label="自动下一集"></div><div class="vas-footer"><button id="od-save" class="od-button od-button--primary" type="button" data-action="save" ${s.dirty&&v.valid?'':'disabled'}>保存</button><button id="od-scope-switch" class="od-button od-button--secondary" type="button" data-action="scope" aria-label="${s.scope==='work'?'当前保存范围：本作品；切换到本集':'当前保存范围：仅本集；切换到作品'}">${s.scope==='work'?'本作品':'仅本集'}</button><button id="od-cancel" class="od-button od-button--quiet" type="button" data-action="cancel" ${s.dirty?'':'hidden'}>取消</button></div>${statusHTML()}${transitionHTML()}`;
 }
 function syncStatus(){
- const s=model.s,v=validation(),host=q('#od-status');if(!host)return;let text='',kind='',actions=[];
- if(s.transition)text='';
- else if(v.general.length){text=v.general[0];kind='od-error-state';}
- else if(v.intro.length||v.outro.length)text='';
- else if(s.exempt.length)text=Number.isFinite(s.duration)&&s.time>=s.duration?'本集结束，查看保护保留。':'正在查看'+s.exempt.map(k=>names[k]).join('、');
- else if(!Number.isFinite(s.duration)){text='时长未知，片尾暂不可校准或跳过。';kind='od-warning';}
- else if(v.warnings.length){text=v.warnings[0];kind='od-warning';}
- else if(s.dirty)text='有未保存修改';
- else if(s.pending)text='准备进入第'+s.pending.nextEpisode+'集';
- else if(s.statusKind==='warning'){text=s.status;kind='od-warning';}
- else if(s.undo)text='已跳过'+names[s.undo.key];
- else if(Number.isFinite(s.duration)&&s.time>=s.duration&&!s.playing)text='本集已结束';
- else if(s.statusKind==='error'){text=s.status;kind='od-error-state';}
- if(s.returnAnchor)actions.push('<button id="od-return" type="button" data-action="return">返回原位置</button>');else if(s.undo)actions.push('<button id="od-undo" type="button" data-action="undo">撤销跳过</button>');
- if(s.exempt.length)actions.push('<button id="od-resume-auto" type="button" data-action="resume-auto">恢复自动跳过</button>');
- host.hidden=!text&&!actions.length;host.className='od-status '+kind;q('#od-status-text').textContent=text;
- const actionHost=q('#od-status-actions'),html=actions.join('');if(ui.actionsHost!==actionHost||ui.actionsSignature!==html){actionHost.innerHTML=html;ui.actionsHost=actionHost;ui.actionsSignature=html;}
+ const s=model.s,v=validation(),host=q('#od-status');if(!host)return;
+ let message='',type='',actions=[];
+ if(s.transition)message='';
+ else if(v.general.length){message=v.general[0];type='error';}
+ else if(s.statusKind==='error'){message=s.status;type='error';}
+ else if(s.statusKind==='warning'&&!Number.isFinite(s.duration)){message='本集时长未知，片尾暂不可跳过';type='warning';}
+ else if(s.undo){message='已跳过'+names[s.undo.key];actions.push('<button class="od-button od-button--quiet" type="button" data-action="undo">撤销</button>');}
+ else if(s.pending){message='准备进入第'+s.pending.nextEpisode+'集';}
+ if(s.returnAnchor&&!s.undo)actions.push('<button class="od-button od-button--quiet" type="button" data-action="return">返回原位置</button>');
+ host.hidden=!message&&!actions.length;host.className='vas-status '+(type?'vas-status-'+type:'');
+ q('#od-status-text').textContent=message;
+ const h=q('#od-status-actions'),fragment=actions.join('');
+ if(ui.actionsHost!==h||ui.actionsSignature!==fragment){h.innerHTML=fragment;ui.actionsHost=h;ui.actionsSignature=fragment;}
 }
-function syncSave(){const s=model.s,v=validation(),b=q('#od-save');if(b){b.disabled=!s.dirty||!v.valid;b.textContent=!s.dirty&&ui.savedContext===contextKey()?(s.scope==='work'?'本作品设置已保存':'本集设置已保存'):(s.scope==='work'?'保存本作品设置':'仅保存本集');}const c=q('#od-cancel');if(c)c.hidden=!s.dirty;syncStatus();}
+function syncSave(){
+ const s=model.s,v=validation(),b=q('#od-save');
+ if(b){b.disabled=!s.dirty||!v.valid;b.textContent='保存';}
+ const cancel=q('#od-cancel');if(cancel)cancel.hidden=!s.dirty;
+ syncStatus();
+}
 function syncCalibration(){
  for(const key of ['intro','outro']){
   const part=ui.selected[key],suffix=part==='start'?'开始':'结束',n=value(key,part),v=validation(),mark=q('#od-mark-'+key),preview=q('#od-preview-'+key);
@@ -570,8 +872,8 @@ function selectPoint(key,part){ui.selected[key]=part;syncCalibration();}
 function commitInput(el){const key=el.dataset.timeKey;if(!key)return;const part=el.dataset.timePart;if(Number.isFinite(value(key,part))){clearRaw(key,part);el.value=inputValue(key,part);}windowFor(key,true);syncRow(key,el);}
 root.addEventListener('click',event=>{
  const b=event.target.closest('button');if(!b||!root.contains(b)||b.disabled)return;const action=b.dataset.action,key=b.dataset.key;
- if(action==='more'){ui.more=!ui.more;render();return;}
- if(action==='calibrate'){ui.calibrating=ui.calibrating===key?null:key;render();return;}
+ 
+ 
  if(action==='target'){selectPoint(key,b.dataset.part);return;}
  if(action==='save'){take(()=>{const c=contextKey();if(model.save()){ui.savedContext=c;ui.raw={};}});return;}
  if(action==='scope'){take(()=>model.requestScope(model.s.scope==='work'?'episode':'work'));return;}
