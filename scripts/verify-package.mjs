@@ -4,7 +4,7 @@ import {createHash} from 'node:crypto';
 import {createRequire} from 'node:module';
 import {pathToFileURL} from 'node:url';
 import {load} from 'cheerio';
-import {PACKAGE_ENTRIES, FIXED_OUTPUTS, BUILD_POLICY, PINNED_USER_SCRIPT_LIBRARIES, RESOURCE_LIMITS, entryByteBudget, SIDEPANEL_DOCUMENT_PATH, APP_DOCUMENT_PATH} from './build-contract.mjs';
+import {PACKAGE_ENTRIES, FIXED_OUTPUTS, BUILD_POLICY, PINNED_USER_SCRIPT_LIBRARIES, RESOURCE_LIMITS, entryByteBudget, SIDEPANEL_DOCUMENT_PATH, APP_DOCUMENT_PATH, BRAND_ICONS} from './build-contract.mjs';
 import {REQUIRED_BROWSER_API_PERMISSIONS, OPTIONAL_PLUGIN_API_PERMISSIONS, REQUIRED_HOST_PATTERNS} from '../src/platform/chrome/permission-gate.js';
 import {SDK_RESOURCE_PATHS, SDK_RESOURCE_MANIFEST} from '../src/framework/sdk/resource-contract.js';
 import {BUILTIN_CATALOG,BUILTIN_RESOURCE_PATHS,BUILTIN_RUNTIME_CATALOG} from '../src/libs/catalog.js';
@@ -72,6 +72,7 @@ export const SDK_AUTOMATIC_CONTENT_SCRIPTS = Object.freeze([
   {matches:['http://*/*','https://*/*'],js:['framework/sdk-main.js'],run_at:'document_start',all_frames:true,world:'MAIN'}
 ]);
 export const FIXED_ASSETS = Object.freeze({
+  ...Object.fromEntries(BRAND_ICONS.map(({output,bytes,sha256})=>[output,{bytes,sha256}])),
   'licenses/video-downloader-mux-Apache-2.0.txt': {bytes: 11342, sha256: '1a3c5bb355ae9ea7f0e8e92836b72189c7acf85a487dd8706d5f1dfff9bf7d3d'},
   'licenses/shared-ui-third-party-notices.txt': {bytes: 12986, sha256: 'e4135b8c9ef1f90616ebf63e55708a91f020f5a726f2bc7c5484aac00bafdcb8'},
   'icons/notification.png': {bytes: 595, sha256: 'efb5caddc95697204e98f9e7319119095ea195fa02448904bc985e90e96d4de6'},
@@ -227,7 +228,12 @@ export function verifyManifest(manifest,{mode='production',source=false,edition=
     throw Error('Extension short_name differs from root manifest.json branding');
   if(manifest.action?.default_title!==(source?'打开侧边栏':'打开 '+manifest.name))
     throw Error('Extension toolbar label must follow emitted manifest brand');
-  const fields = ['manifest_version', 'name', 'short_name', 'version', 'description', 'minimum_chrome_version', 'permissions', 'optional_permissions', 'host_permissions', 'background', 'action', 'side_panel', 'options_ui', 'content_security_policy', 'incognito', 'sandbox', 'web_accessible_resources', 'content_scripts'];
+  const fields = ['manifest_version', 'name', 'short_name', 'version', 'description', 'minimum_chrome_version', 'permissions', 'optional_permissions', 'host_permissions', 'background', 'icons', 'action', 'side_panel', 'options_ui', 'content_security_policy', 'incognito', 'sandbox', 'web_accessible_resources', 'content_scripts'];
+  if(Object.hasOwn(manifest,'version_name')){
+    if(typeof manifest.version_name!=='string'||!manifest.version_name.trim())
+      throw new Error('Invalid extension display version');
+    fields.push('version_name');
+  }
   if (manifest.manifest_version !== 3 || manifest.background?.type || manifest.action?.default_popup) throw new Error('Expected MV3 worker and action window entry');
   if (manifest.minimum_chrome_version !== '138') throw new Error('Expected independently qualified minimum Chrome 138');
   if (!same(manifest.permissions, REQUIRED_BROWSER_API_PERMISSIONS)) throw new Error('Unexpected required browser API permissions');
@@ -236,7 +242,10 @@ export function verifyManifest(manifest,{mode='production',source=false,edition=
   if (!same(manifest.content_security_policy, {extension_pages: EXTENSION_CSP, sandbox: SANDBOX_CSP})) throw new Error('Unexpected CSP');
   if (!same(manifest.sandbox, {pages: [SANDBOX_HTML, TOOL_SANDBOX_HTML]})) throw new Error('Unexpected sandbox boundary');
   if (!same(manifest.background, {service_worker: 'sw.js'})) throw new Error('Unexpected or missing worker entry');
-  if (!same(Object.keys(manifest.action || {}), ['default_title'])) throw new Error('Unexpected action resource/entry');
+  const icons=Object.fromEntries(BRAND_ICONS.map(row=>[row.size,row.output]));
+  if (!same(manifest.icons,icons)) throw new Error('Unexpected extension brand icons');
+  if (!same(Object.keys(manifest.action || {}).sort(), ['default_icon','default_title']) ||
+      !same(manifest.action.default_icon,icons)) throw new Error('Unexpected action resource/entry');
   if (!same(manifest.side_panel, {default_path: SIDEPANEL_DOCUMENT_PATH})) throw new Error('Unexpected or missing Side Panel entry');
   if (!same(manifest.options_ui, {page:'native-agent/settings.html',open_in_tab:true})) throw new Error('Unexpected Native Agent settings exposure');
   if (manifest.incognito !== 'not_allowed') throw new Error('Unexpected incognito policy');
@@ -594,9 +603,15 @@ export async function verifyPackage(directory, {mode: requestedMode} = {}) {
   const root = resolve(directory);
   const expectedMode=requestedMode??(['production','development'].includes(basename(root))?basename(root):undefined);
   if(expectedMode!==undefined&&!['production','development'].includes(expectedMode))throw new Error('Invalid package mode');
+  const files = await filesAt(root);
+  // Chrome Web Store treats nested manifest.json files as extra extensions.
+  // Check independently of the allowed resource set so catalog changes cannot
+  // accidentally admit another manifest into build or pack.
+  const manifests=files.filter(path=>basename(path).toLowerCase()==='manifest.json');
+  if(!same(manifests,['manifest.json']))
+    throw new Error('Expected exactly one root manifest.json; found: '+manifests.join(', '));
   const edition=readEditionRecord(await readFile(join(root,BROWSER_EDITION_RECORD),'utf8'));
   const {compilerFiles,expectedJS,required}=editionFiles(edition);
-  const files = await filesAt(root);
   for (const file of required) if (!files.includes(file)) throw new Error(`Missing required resource: ${file}`);
   const js = files.filter(path => path.endsWith('.js'));
   if (!same(js, expectedJS)) throw new Error(`Unexpected JS/chunks: ${js}`);

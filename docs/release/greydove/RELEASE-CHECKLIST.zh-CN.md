@@ -2,6 +2,8 @@
 
 > 本文保留完整验收要求，但优先帮助完成 **Standard 首发审核**。勾选项必须有证据；任何 ZIP 的生成或商店 Draft 上传均不等于审核通过。
 
+> 用于候选准备和正式提交；合规、真实 Chrome 及后台要求未满足前不能提交。勾选项必须有证据。2026-11-17 用户确认首发 Standard，Developer 内部发行；支持邮箱 `thinkido666@gmail.com`，中文文案已登记，官网/隐私政策 URL/发布者名称待定。
+
 ## 0. 首发最短链路：先生成 ZIP、再补齐审核条件
 
 **目标：仅上传 Standard，不上传 Developer。** 请先确保工作区已经同步远端 `main`，并保存/协调其他 Agent 的未提交改动，不要为发布执行 `reset --hard` 或 `clean -fd`。
@@ -15,12 +17,12 @@ npm run cws:package
 shasum -a 256 artifacts/opendesk-browser-production.zip
 ```
 
-`npm run cws:package` 等同于执行现有 `npm run build` 后执行 `npm run pack`。**打包器会对 `dist/production` 执行 `verifyPackage`；无需为只做 Standard 的本轮额外执行检查 `dist/development` 的 `npm run verify`。** 失败时停止上传，核查原日志；不得关闭包验证器或更改脚本/权限安全检查绕过失败。
+`npm run cws:package` 按顺序执行 `npm run check:brand`、现有 `npm run build` 与 `npm run pack`。**打包器会对 `dist/production` 执行 `verifyPackage`；无需为只做 Standard 的本轮额外执行检查 `dist/development` 的 `npm run verify`。** 失败时停止上传，核查原日志；不得关闭包验证器或更改脚本/权限安全检查绕过失败。
 
 **先上传 Draft（非提交审核）：** 只有构建/包检查通过，才能在 Chrome Web Store 开发者后台上传 ZIP，以利用 Google 的上传后安装预检反馈。此动作不会自动公开上架；若预检失败先修复再上传。
 
 **点击 Submit for Review 前，必须具备的最小人工条件：**
-- [ ] 已选定的正式灰鸽品牌图标（商店 128×128 PNG），不是 `icons/notification.png`；当前源码并无已确认的正式品牌原图，也未在根 Manifest 中声明品牌图标。必须补入已批准的品牌资产，不得新造占位图。
+- [ ] 已选定的正式灰鸽品牌图标（商店 128×128 PNG），不是 `icons/notification.png`；本地已保留母版、六个 PNG 与根 Manifest 图标接入；仍须核对它们与当前发行候选同源及真实视觉，不得用旧候选记录代替。
 - [ ] 至少一张来自**同一发行候选、真实 Chrome 页面**的 1280×800 PNG/JPEG 截图，显示核心“脚本/任务”操作；不使用 HTML 原型图冒充截图。
 - [ ] 可公开访问且与真实本地/网络数据处理相符的隐私政策 URL；后端、AI Provider、Native 和云端传输若存在，必须如实披露。没有已审计数据流时，不得填写“完全不收集数据”。
 - [ ] `<all_urls>`、`debugger`、`cookies`、`proxy`、`userScripts` 等权限的必要性、数据用途、授权入口已逐项审核。无关权限可能违反单一主要用途政策，不能为了通过审核简单删除或隐藏。
@@ -73,12 +75,20 @@ shasum -a 256 artifacts/opendesk-browser-production.zip
 
 ### Standard 发行
 
+在冻结的独立源码副本中使用原流水线；它不是 Git worktree。默认以已提交 main 加明确登记的本轮发布改动生成副本，未完成的并行工作保留在原工作区，不自动纳入发行；记录所含/排除路径及真实文件哈希。依赖使用锁定版本，副本不得共享可写 node_modules。主仓库已有 dev writer 时，不在主仓库重装依赖或覆盖 `.wxt/public` / `dist/development`。守卫端口需核实空闲：
+
 ```bash
-npm ci --ignore-scripts
 npm run check
-npm run cws:package
-# 按改动执行相关定向测试；全量 npm test 的既有失败须单独记录并评估
+npm run check:brand
+node --test tests/environment/branding-assets.test.mjs tests/environment/browser-editions-r245.test.mjs tests/environment/react-sidebar-style-bundle-r23.test.mjs
+OPENDESK_BROWSER_EDITION=standard OPENDESK_OUTPUT_GUARD_PORT=43130 OPENDESK_BUILD_EVIDENCE_DIR=evidence/builds node scripts/build.mjs production
+node scripts/verify-package.mjs dist/production production
+OPENDESK_BROWSER_EDITION=standard OPENDESK_PACKAGE_OUTPUT_DIR=artifacts OPENDESK_PACKAGE_EVIDENCE_DIR=evidence/packages node scripts/pack.mjs production
+# 上述命令保留冻结候选的独立守卫与证据目录；普通入口仍可用 npm run cws:package。
+# 按改动执行相关定向测试；全量 npm test 的既有失败单独记录和评估。
 ```
+
+其他受影响回归按最终改动选择并记录。根 `npm test` 有跨工具 pretest，不作为重复打包的默认前置；正式发布若要求完整 CI，应在冻结候选单独执行并保留结果。
 
 已知脚本行为：
 - `npm run build`：生产 Standard 构建，默认输出 `dist/production`。
@@ -100,32 +110,36 @@ Developer 构建由现有脚本设置 Developer edition；它不是 Standard 包
 
 ## 4. 包内容检查
 
-- [ ] Manifest V3 正确。
-- [ ] name、short_name、description 与品牌规范一致。
-- [ ] icons 字段和实际图标资源齐全。
-- [ ] 16/32/48/128 等扩展图标资源存在且正确。
-- [ ] 通知图标和品牌图标用途分离。
-- [ ] Side Panel、Service Worker、Options 页面路径正确。
-- [ ] CSP 和资源闭包验证通过。
+以下已勾选项仅绑定 RELEASE-RECORD.md §5 的 r5 冻结 Standard ZIP；不适用于整个并行工作区，也不证明合并后的 GrayDove 元数据已通过验证。
+
+- [x] Manifest V3 正确。
+- [x] name、short_name、description 与品牌规范一致。
+- [x] icons 字段和实际图标资源齐全。
+- [x] 16/20/24/32/48/128 六个品牌 PNG 存在，大小/哈希与统一登记一致；1024 WebP 母版不在 ZIP。
+- [x] 通知图标和品牌图标用途分离。
+- [x] Side Panel、Service Worker、Options 页面路径正确。
+- [x] CSP 和资源闭包验证通过。
 - [ ] 不存在未批准的远程可执行代码或动态加载。
-- [ ] 所有必需资源都在 ZIP 中。
+- [x] 所有必需资源都在 ZIP 中。
 - [ ] ZIP 不包含 source map、开发调试文件、密钥或临时文件。
-- [ ] 固定资源哈希和 packageHash 与本次候选一致。
+- [x] 固定资源哈希和 packageHash 与本次候选一致。
 
 ## 5. 自动化与真实 Chrome 验收
 
 ### 自动化验证
 
+以下已勾选记录同样仅适用于上述历史 r5 候选，不是本次同步后重新执行的结果。
+
 - [ ] `npm run check` 通过。
-- [ ] 相关定向测试通过。
-- [ ] `npm test` 结果已记录，失败项未被忽略。
-- [ ] `npm run verify` 通过。
-- [ ] `npm run pack` 成功。
-- [ ] 产物 SHA-256 已记录。
+- [x] 相关定向测试通过。
+- [ ] 所选回归/CI 范围、未执行项及失败分类已记录，不隐藏失败。
+- [x] 当前 Standard production 目录通过原严格 `verify-package`。
+- [x] `npm run pack` 成功。
+- [x] 产物 SHA-256 已记录。
 
 ### 真实 Chrome
 
-使用独立、干净的测试 Profile 安装最终 ZIP：
+使用验收专属浏览器/Profile 加载从最终 ZIP 解压的原字节 production 包（Chrome 普通 UI 不直接加载 ZIP）。记录实际浏览器版本、路径、扩展 ID 和 Native 配对；普通 ego 网页测试不能替代扩展专项能力证据：
 
 - [ ] 安装成功。
 - [ ] Chrome 扩展管理页显示 GrayDove。
@@ -146,11 +160,12 @@ Node 测试、构建成功或 ZIP 校验通过，都不能替代真实 Chrome �
 
 - [ ] 上传正确的 Standard ZIP。
 - [ ] 商品名称和描述准确。
-- [ ] 图标、截图和宣传素材真实。
-- [ ] 支持网站和支持邮箱可用。
+- [ ] 128×128 正式图标、至少一张 1280×800 真实核心流程截图（最多五张）；宣传图/视频为可选。
+- [ ] 支持邮箱 `thinkido666@gmail.com` 已核对可收信；网站如填写须可用。
 - [ ] 隐私政策 URL 可公开访问。
 - [ ] Privacy 字段与真实数据流一致。
-- [ ] 单一主要用途明确。
+- [ ] 单一主要用途明确；按真实执行路径填写 Remote Code，准确披露 Native/AI 的安装、账号、联网与第三方费用条件。
+- [ ] 开发者注册、发布资格和两步验证已核实。
 - [ ] 每项敏感权限都有合理说明。
 - [ ] Trader / Non-Trader 和地区要求已确认。
 - [ ] Distribution 国家/地区和可见范围正确。

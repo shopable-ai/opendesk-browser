@@ -35,7 +35,7 @@ function fixture({preflight={ok:true},clear={ok:false,needsRecovery:true,text:'p
   const snap={ok:true,route:'c/12345678',editor,draft:reclaim?'':'private draft',rich:false,users:[],assistants:[],
     busy:true,sendButton:null};
   const state={items:reclaim||queued?[{id:'q1',text:'private draft',state:'queued'}]:[],route:snap.route,phase:'waiting',inFlight:null};
-  const site={inspect(){calls.inspects++;calls.onInspect?.();return snap;},clearForQueue(){calls.clear++;calls.onClear?.();if(clear.ok)snap.draft='';return clear;},
+  const site={inspect(){calls.inspects++;calls.onInspect?.();return {...snap};},clearForQueue(){calls.clear++;calls.onClear?.();if(clear.ok)snap.draft='';return clear;},
     sameHistory(before,after){return before.users.length===after.users.length&&before.users.every((node,i)=>node===after.users[i]);},
     reclaimToComposer(){if(reclaim?.ok)snap.draft='private draft';calls.onWrite?.();return reclaim;},
     restore(){calls.restores++;if(restore)snap.draft='private draft';return restore;}};
@@ -75,7 +75,7 @@ function fixture({preflight={ok:true},clear={ok:false,needsRecovery:true,text:'p
     createQueueView:options=>{actions=options.actions;getBackup=options.getBackup;return view;},
      createSendQueueRemote:()=>({changed(){calls.onChanged?.();}})});
   vm.runInContext(entry.replace(/^import .*;\n/gm,'')
-    .replace('export default async function main','async function main'),ctx);
+    .replace(/^export (?:default )?/gm,''),ctx);
   return {calls,snap,state,listeners,storage,timers,advance,runTimer,change:()=>change(),
     stopTimer(ms){timers.filter(timer=>timer.ms===ms).forEach(timer=>timer.enabled=false);},
     event(target,type,patch){event(target==='document'?doc:win,type,patch);},
@@ -85,13 +85,40 @@ function fixture({preflight={ok:true},clear={ok:false,needsRecovery:true,text:'p
       preventDefault(){this.prevented=true;},stopImmediatePropagation(){this.stopped=true;},...patch};
       listeners.get('keydown').callback(event);return event;},
     composition(type){listeners.get(type).callback();},
-    run:()=>ctx.main(),backup:()=>getBackup(),enqueue:(event={})=>actions.enqueue(event),edit:()=>actions.edit('q1'),poll:()=>runTimer(650),destroy:()=>owner.destroy(),
+    run:()=>ctx.main(),runFixed:authorize=>ctx.runQueue({fixed:{authorize,own(){}}}),
+    backup:()=>getBackup(),enqueue:(event={})=>actions.enqueue(event),edit:()=>actions.edit('q1'),poll:()=>runTimer(650),destroy:()=>owner.destroy(),
     beforeinput(patch={}){const event={target:snap.editor,isTrusted:true,defaultPrevented:false,...patch};listeners.get('beforeinput').callback(event);return event;},
     input(patch={}){listeners.get('input')?.callback({target:snap.editor,isTrusted:true,...patch});},get actions(){return actions;},unload:()=>{
     const event={preventDefault(){calls.unloadPrevented=true;}};
     unload(event);return event;
   }};
 }
+
+test('fixed queue preserves changed drafts and waits for a grant before taking ownership',async()=>{
+  const h=fixture({clear:{ok:true,text:'private draft'}});
+  let resolveGrant;
+  await h.runFixed(()=>new Promise(resolve=>{resolveGrant=resolve;}));
+  const denied=h.enqueue();
+  assert.equal(h.calls.clear,0);
+  resolveGrant(false);
+  assert.equal(await denied,false);
+  assert.equal(h.snap.draft,'private draft');
+  const changed=h.enqueue();
+  h.snap.draft='new text entered while checking';
+  resolveGrant(true);
+  assert.equal(await changed,false);
+  assert.equal(h.snap.draft,'new text entered while checking');
+  assert.equal(h.calls.clear,0);
+  assert.equal(h.calls.enqueued,0);
+  h.snap.draft='private draft';
+  const allowed=h.enqueue();
+  assert.equal(h.calls.enqueued,0);
+  resolveGrant(true);
+  assert.equal(await allowed,true);
+  assert.equal(h.calls.clear,1);
+  assert.equal(h.calls.enqueued,1);
+  assert.equal(h.snap.draft,'');
+});
 
 test('preflight denial preserves the native draft and never invokes clearing',async()=>{
   const h=fixture({preflight:{ok:false,reason:'发送队列已满'}});

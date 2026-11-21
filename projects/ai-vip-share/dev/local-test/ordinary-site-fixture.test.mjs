@@ -67,6 +67,7 @@ test('VIP page is a server-verified snapshot with masked identity, deadlines and
       ...first.cookieDelivery.cookies.map(c => c.value), ...second.cookieDelivery.cookies.map(c => c.value)]
       .some(secret => response.text.includes(secret)), 'page omits all credentials and delivery secrets');
     assert.doesNotMatch(response.text, /<script\b|localStorage|document\.cookie/);
+    assert.doesNotMatch(response.text, /立即重新核验|http-equiv="refresh"/i);
     return response.text;
   };
   assert.doesNotMatch(await show(undefined, 'missing'), /data-vip-state="active"|data-identity=/);
@@ -76,7 +77,6 @@ test('VIP page is a server-verified snapshot with masked identity, deadlines and
   assert.match(html, /o\*\*\*@fixture\.test/);
   assert.match(html, /本地体验 VIP/);
   assert.ok(html.includes(new Date(g.authorization.expiresAt).toISOString()), 'actual server deadline is visible');
-  assert.match(html, /http-equiv="refresh" content="5"/);
   for (const cookies of [cookieHeader({cookies: [first.cookieDelivery.cookies[0]]}),
     cookieHeader({cookies: [first.cookieDelivery.cookies[0], second.cookieDelivery.cookies[1]]}),
     `${full}; ${first.cookieDelivery.cookies[0].name}=duplicate`]) {
@@ -88,13 +88,13 @@ test('VIP page is a server-verified snapshot with masked identity, deadlines and
   assert.doesNotMatch(await show(full, 'revoked'), /data-vip-state="active"|data-identity=/);
 });
 
-test('VIP disappears at exact Cookie/auth expiry and on authorization replacement', async t => {
+test('the next visit reflects exact Cookie/auth expiry and authorization replacement', async t => {
   let now = 1800000000000;
   const f = await fixture(t, {now: () => now, cookieLifetimeMs: 1000});
   const g = f.app.authorize({expiresAt: now + 60000});
   const delivery = (await deliver(f, g)).json.cookieDelivery;
   const full = cookieHeader(delivery);
-  assert.match((await page(f, full)).text, /http-equiv="refresh" content="1"/);
+  validPage(await page(f, full));
   now += 1000;
   let html = (await page(f, full)).text;
   assert.match(html, /data-session-reason="expired"/);

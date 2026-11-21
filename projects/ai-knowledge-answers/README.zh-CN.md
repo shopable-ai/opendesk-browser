@@ -1,6 +1,26 @@
 # AI 客服（AI 知识问答）· 正式源码、同源交互预览与实测说明
 
-独立 Sidebar Tool v2，ID `ai-knowledge-answers`，当前版本 `0.1.7`。复用原 Tool Host、存储、Shared AI Provider 和唯一 React root。真实 Mac Chrome 已完成本地固定知识自动发送、知识保存失效、UNKNOWN 只读恢复与审核回复去重；其他第三方网站不在本轮范围。下方历史章节保留当时的版本和验证状态，以「本地 MVP 差量验证」的最新证据为准。
+独立 Sidebar Tool v2，ID `ai-knowledge-answers`，安装包版本 `0.1.7`。复用原 Tool Host、存储、Shared AI Provider 和唯一 React root。下方「本地 MVP 差量验证」记录 2026-10-28 的真实 Mac Chrome 客服链路。
+
+## AI 客服六页交互预览（2026-11-19）
+
+浏览器侧栏的设计参考采用桌面原型的六个业务页。各页保留原来的列表、详情和操作，设置从右上角进入。预览在桌面宽度同时展示模拟聊天和助手，在窄屏可切换两者。380px 和 320px 下六个标签均可直接点击。[OpenDesk 桌面版 380px 客服交互原型](https://github.com/shopable-ai/opendesk/tree/master/examples/ai-customer-support/preview)
+
+在 Browser 仓库根目录执行以下命令，将旁边 `opendesk` 仓库的离线原型生成到 `artifacts/ai-customer-service-ui/preview.html`。可用两个可选参数指定源 HTML 和输出路径。生成器沿用桌面原型的组件与示例数据，只调整浏览器预览的标题和标签排布。六页均使用演示数据。
+
+```sh
+node projects/ai-knowledge-answers/preview/build-browser-copilot.mjs
+```
+
+## 现有浏览器侧栏实现（2026-11-19）
+
+可信扩展工作台提供「接待 / 知识库 / 手动问答」，覆盖现有本地客服监听和知识工作。六页交互预览中的客户档案、商品、图片与订单仍依赖各自的真实业务数据接入。
+
+- 「接待」一次聚焦一条消息。新消息进入选择列表，当前审核对象保持稳定。底部显示本条操作，暂停、切换消息和回复更新都会使审核失效。发送结果待确认时可对原网页回执做只读核对。
+- 「知识库」承载原沙箱编辑和导入。切到其他入口再回来时保留同一编辑实例。「手动问答」提供独立输入、知识依据及共享 AI 数据审阅。
+- 实现位于 `trusted/Workspace.jsx` 和 `trusted/workspace.css`，随 Browser 固定入口编译。客服渠道限已批准的本地测试页。浏览器侧栏中的回复和回执使用原 Host 合同，桌面版填草稿流程适用于其原生聊天窗口。
+- 本轮通过 92 项客服 Runtime、逐题来源、Host 和准入定向测试。隔离固定入口编译通过源码准入、CSP AST 和 classic IIFE 检查。ego-browser 在模拟服务上验证了审核、只读回执、知识库编辑状态及 320px 暗色长文本。
+- 知识管理补充检查通过 46 项。现有安装包内的共享 CSS 与当前公共样式生成字节不一致，包一致性检查失败。共享开发服务仍持有旧源码指纹，本轮未发布新的开发 revision。新版已安装 Chrome 侧栏和真实模型仍待验证。
 
 ## 本地 MVP 差量验证（2026-10-28）
 

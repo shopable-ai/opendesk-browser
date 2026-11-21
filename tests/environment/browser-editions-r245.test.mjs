@@ -7,6 +7,7 @@ import {
 } from '../../scripts/browser-editions-r245.mjs';
 import {PAGE_BROWSER_PRIVATE_FILES} from '../../src/libs/page-frameworks/contract.js';
 import {readFileSync} from 'node:fs';
+import {createHash} from 'node:crypto';
 
 test('R24.5 Standard is the default and ships zero browser compiler assets',()=>{
   assert.equal(resolveBrowserEdition(undefined),'standard');
@@ -20,10 +21,14 @@ test('R24.5 Standard is the default and ships zero browser compiler assets',()=>
 test('R24.5 Developer bundles exactly the pinned browser compiler closure',()=>{
   const expected=PAGE_BROWSER_PRIVATE_FILES;
   assert.equal(compilerResourcesForEdition('developer'),expected);
-  // Independent fixed total for the nine reviewed compiler files; per-file
-  // bytes and SHA-256 remain locked in PAGE_BROWSER_PRIVATE_FILES and verifyPackage.
+  // Check each real source against its reviewed size/hash. A historical
+  // aggregate total becomes stale after a reviewed linker/helper update.
   assert.equal(expected.length,9);
-  assert.equal(expected.reduce((n,row)=>n+row.bytes,0),4288565);
+  for(const row of expected){
+    const bytes=readFileSync(new URL('../../'+row.source,import.meta.url));
+    assert.equal(bytes.length,row.bytes,row.id+' source size');
+    assert.equal(createHash('sha256').update(bytes).digest('hex'),row.sha256,row.id+' source integrity');
+  }
   assert.equal(editionOutputName('production','developer'),'production-developer');
   assert.equal(editionOutputName('development','developer'),'development-developer');
   const source=JSON.parse(readFileSync(new URL('../../manifest.json',import.meta.url),'utf8'));

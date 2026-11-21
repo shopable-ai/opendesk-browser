@@ -12,13 +12,13 @@ async function main() {
   };
 }`,
   react: `import React, { useState } from 'react';
-import max from 'https://raw.githubusercontent.com/d3/d3-array/v3.2.4/src/max.js';
+const max = values => Math.max(...values);
 
 export default function App() {
   const [values, setValues] = useState([2, 5, 3]);
   return (
     <section>
-      <h3>React + D3 网络 Import</h3>
+      <h3>React 数据示例</h3>
       <p>数据：{values.join('、')}</p>
       <p>最大值：<strong>{max(values)}</strong></p>
       <button type="button" onClick={() => setValues(items => [...items, max(items) + 1])}>

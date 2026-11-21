@@ -1,6 +1,8 @@
 // Isolated, non-network, non-Chrome SDK Fixture for the production React App.
 // The installed JSON never imports or packages this module.
-const development=new URL(location.href).searchParams.get('scene')==='development';
+const previewParams=new URL(location.href).searchParams;
+const development=previewParams.get('scene')==='development';
+const expiredAssignment=development&&previewParams.get('allocation')==='expired';
 const ORIGIN=development?'http://127.0.0.1:7903':'https://vip.example.com';
 const SITE=development?ORIGIN+'/session/':'https://chatgpt.com/';
 export const PREVIEW_SERVICE=Object.freeze({id:'preview-only',label:'演示服务（无真实网络）',url:ORIGIN+'/',
@@ -30,13 +32,23 @@ const fakeHash=value=>{
 export function installPreviewFixture(root){
   // Only the preview owns this scenario selector. The installed package
   // cannot import this file, enable localhost or obtain a developmentProfile.
-  const scene=new URL(location.href).searchParams.get('scene');
+  const params=new URL(location.href).searchParams;
+  const scene=params.get('scene');
   const offline=['offline','unconfigured'].includes(scene);
   let serviceError=scene==='error';
-  const values=new Map();
-  if(!['connect','unconfigured','offline','development'].includes(scene))values.set('aiVipServiceConnectionR1',{schemaVersion:1,serviceId:PREVIEW_SERVICE.id,url:PREVIEW_SERVICE.url});
-  let granted=!['redeem','empty','first','link','offline','unconfigured','guest','error','connect'].includes(scene);
-  let assigned='A',serial=0,lastReceipt=null;
+  const run=params.get('run');
+  // An opt-in run survives a tab reload and keeps both sides of the synthetic transaction.
+  const runKey=['connect','recovery'].includes(scene)&&/^[a-z0-9-]{1,64}$/.test(run??'')?
+    'ai-vip-preview-run:'+scene+':'+run:null;
+  const saved=runKey?JSON.parse(sessionStorage.getItem(runKey)):null;
+  const values=new Map(saved?.storage);
+  if(!saved&&!['connect','unconfigured','offline','development'].includes(scene))values.set('aiVipServiceConnectionR1',{schemaVersion:1,serviceId:PREVIEW_SERVICE.id,url:PREVIEW_SERVICE.url});
+  let granted=saved?.granted??!['redeem','empty','first','link','offline','unconfigured','guest','error','connect','recovery'].includes(scene);
+  let assigned='A',serial=0,lastReceipt=saved?.receipt??null;
+  const calls=saved?.calls??{redeem:0,lookup:0,sharedSession:0,write:0};
+  const saveRun=()=>{
+    if(runKey)sessionStorage.setItem(runKey,JSON.stringify({storage:[...values],granted,receipt:lastReceipt,calls}));
+  };
   let proxyState=idle(),proxyScenario='disabled',stopResolve=null;
   const devProfile=Object.freeze({endpoint:{scheme:'http',host:'127.0.0.1',port:7897},
     domains:[...DOMAIN_LIST]});
@@ -49,18 +61,21 @@ export function installPreviewFixture(root){
     if(op==='storage.get')return {value:clone(before),etag:fakeHash(before)};
     if(op!=='storage.set'||args.ifMatch!==fakeHash(before))throw Error('E_FIXTURE_CAS');
     values.set(args.key,clone(args.value));
+    saveRun();
     return {saved:true};
   };
   const member=()=>({
     schemaVersion:1,serverNow:Date.now(),
     account:['guest','first'].includes(scene)?{state:'guest'}:
       {state:'bound',id:'preview-member',displayNameMasked:'vip***@example.test'},
-    entitlements:['guest','first'].includes(scene)?[]:scene==='expired'?[{...time(),
+    entitlements:expiredAssignment?[quota(),{...access(),status:'expired',expiresAt:Date.now()-60000}]:
+      ['guest','first'].includes(scene)?[]:scene==='expired'?[{...time(),
       status:'expired',expiresAt:Date.now()-86400000}]:
       granted?(scene==='quota'?[quota(),access()]:[time(),quota(),access()]):[],
     redemptions:granted?[{redemptionId:'demo-r1',skuTitle:'AI 会员体验权益',
-      redeemedAt:Date.now()-1000,status:'redeemed',idempotencyKey:'preview-only'}]:[],
-    ...(granted&&['session','link','connect','development'].includes(scene)?
+      redeemedAt:lastReceipt?.redeemedAt??Date.now()-1000,status:'redeemed',
+      idempotencyKey:lastReceipt?.idempotencyKey??'preview-only'}]:[],
+    ...(granted&&!expiredAssignment&&['session','link','connect','development','recovery'].includes(scene)?
       {sharedAccounts:{schemaVersion:1,companyId:'preview-company',
         assignedAccountId:'account-'+assigned,redemptionId:'demo-r1',
         accounts:[{id:'account-'+assigned,label:'网站体验账号 '+assigned,
@@ -83,15 +98,21 @@ export function installPreviewFixture(root){
           voucherPreviewMasked:'DEMO-****-01',expiresAt:Date.now()+120000}};
       }
       if(method==='POST'&&url===ORIGIN+'/api/redeem'){
+        calls.redeem++;
+        saveRun();
         if(data?.accountId!=='preview-member'||data?.previewId!=='preview-v1'||
           typeof data.idempotencyKey!=='string')throw Error('E_PREVIEW_INTENT');
         granted=true;
         lastReceipt={status:'redeemed',accountId:'preview-member',
           idempotencyKey:data.idempotencyKey,redemptionId:'demo-r1',
           redeemedAt:Date.now(),grantedEntitlements:[time(),quota(),access()]};
-        return {status:200,data:lastReceipt};
+        saveRun();
+        return scene==='recovery'?{status:504,data:{error:'E_PREVIEW_REDEEM_ACK_LOST'}}:
+          {status:200,data:lastReceipt};
       }
       if(method==='POST'&&url===ORIGIN+'/api/status'&&data?.operation==='sharedSession'){
+        calls.sharedSession++;
+        saveRun();
         if(!granted||data.accountId!=='preview-member'||data.redemptionId!=='demo-r1')
           throw Error('E_PREVIEW_NO_ASSIGNMENT');
         return {status:200,data:{schemaVersion:1,accountId:'preview-member',
@@ -102,8 +123,12 @@ export function installPreviewFixture(root){
             cookies:[{name:'demo-session',value:'fixture-'+assigned,path:'/'},
               {name:'demo-nonce',value:'preview',path:'/'}]}}};
       }
-      if(method==='POST'&&url===ORIGIN+'/api/status'&&data?.idempotencyKey&&lastReceipt)
-        return {status:200,data:lastReceipt};
+      if(method==='POST'&&url===ORIGIN+'/api/status'){
+        calls.lookup++;
+        saveRun();
+        if(lastReceipt&&data?.accountId===lastReceipt.accountId&&data?.idempotencyKey===lastReceipt.idempotencyKey)
+          return {status:200,data:lastReceipt};
+      }
       throw Error('E_PREVIEW_UNSUPPORTED_REQUEST');
     }},
     cookies:{
@@ -116,6 +141,8 @@ export function installPreviewFixture(root){
         return {partitionKey:{topLevelSite:'https://chatgpt.com',hasCrossSiteAncestor:false},preview:true};
       },
       setMany:async({url,cookies})=>{
+      calls.write++;
+      saveRun();
       if(url!==SITE||!Array.isArray(cookies)||cookies.length!==2)
         throw Error('E_PREVIEW_INVALID_DELIVERY');
       const outcome=preview.cookieOutcome;
@@ -169,5 +196,6 @@ export function installPreviewFixture(root){
     preview.setProxyScenario(scene==='proxy-on'?'enabled':scene);
   globalThis.OpenDeskTool=Object.freeze({root,request:store,setState:()=>{}});
   globalThis.OpenDeskSDK=Object.freeze({browser:api});
+  saveRun();
   return preview;
 }

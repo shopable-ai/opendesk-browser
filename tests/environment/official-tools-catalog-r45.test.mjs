@@ -44,7 +44,9 @@ test('R2.1 migrated official source locations are exact and preserve unmigrated 
   assert.equal(current.tools.find(row=>row.id==='stay-focus').project,'projects/stay-focus');
   assert.equal(current.tools.find(row=>row.id==='ai-knowledge-answers').project,'projects/ai-knowledge-answers');
   assert.equal(current.tools.find(row=>row.id==='cookie-editor').project,'projects/cookie-editor');
+  assert.equal(current.tools.find(row=>row.id==='webflow').project,'projects/webflow');
   for(const [id,project] of [
+    ['webflow','examples/sidebar-tools/webflow'],
     ['cookie-editor','examples/sidebar-tools/cookie-editor'],
     ['ai-knowledge-answers','examples/sidebar-tools/ai-knowledge-answers'],
     ['ai-knowledge-answers','projects/ai-knowledge-answers/../ai-knowledge-answers'],
@@ -85,13 +87,34 @@ async function fixture(t){
   }
   return {root,catalog,config,write,save};
 }
-test('R4.8 authored catalog includes default Cookie Editor and optional AI VIP Share UI',async()=>{
+test('official candidates disclose only explicit About fields bound to the package',async t=>{
+  const {root,catalog,config,write}=await fixture(t);
+  const [first]=catalog.tools;
+  const about={author:'  Test team  ',homepage:'HTTPS://Example.com/Info',supportUrl:''};
+  await write(first.project+'/tool.config.json',JSON.stringify({...config(first.id),...about}));
+  const {catalog:releaseCatalog,resources}=await createOfficialToolResources({root});
+  const [release,other]=releaseCatalog.apps;
+  for(const [key,value] of Object.entries(about)){
+    assert.equal(release[key],value);
+    assert.equal(Object.hasOwn(other,key),false);
+  }
+  assert.equal(Object.hasOwn(release,'publisher'),false);
+  const fetcher=async url=>new Response(resources.get(new URL(url).pathname.slice(1)));
+  const {tool}=await loadOfficialTool(release,{api,fetcher});
+  for(const [key,value] of Object.entries(about))assert.equal(tool[key],value);
+  const withRow=row=>({...releaseCatalog,apps:[row]});
+  assert.throws(()=>validateOfficialReleaseCatalog(withRow({...release,publisher:'OpenDesk'})),{code:'E_OFFICIAL_CATALOG'});
+  assert.throws(()=>validateOfficialReleaseCatalog(withRow({...release,homepage:['https://example.com']})),{code:'E_TOOL_LIMIT'});
+  await assert.rejects(loadOfficialTool({...release,author:about.author.trim()},{api,fetcher}),{code:'E_PACKAGE_IDENTITY'});
+  await assert.rejects(loadOfficialTool({...other,supportUrl:''},{api,fetcher}),{code:'E_PACKAGE_IDENTITY'});
+});
+test('official catalog preinstalls Web Flow and AI Send Queue alongside existing defaults',async()=>{
   const source=await readOfficialSources();
   assert.deepEqual(source.tools.map(row=>row.id).sort(),
-    ['adblock','ai-knowledge-answers','ai-send-queue','ai-vip-share','bookmark-manager','cookie-editor','knowledge-inbox','markdown-workbench','prompt-shortcuts','quick-notes','reading-toc','stay-focus','time-review','video-downloader','video-speed-controller','video-svip','web-markdown-clipper']);
+    ['adblock','ai-knowledge-answers','ai-send-queue','ai-vip-share','bookmark-manager','cookie-editor','knowledge-inbox','markdown-workbench','prompt-shortcuts','quick-notes','reading-toc','stay-focus','time-review','video-downloader','video-speed-controller','video-svip','web-markdown-clipper','webflow']);
   const policies=Object.fromEntries(source.tools.map(row=>[row.id,row.installationPolicy]));
-  assert.deepEqual(policies,{'ai-send-queue':'optional','ai-knowledge-answers':'optional','reading-toc':'preinstalled','web-markdown-clipper':'optional',
-    'quick-notes':'preinstalled','markdown-workbench':'optional','knowledge-inbox':'optional','time-review':'optional','stay-focus':'optional','adblock':'optional','cookie-editor':'preinstalled','ai-vip-share':'optional','bookmark-manager':'optional','prompt-shortcuts':'preinstalled','video-speed-controller':'optional','video-svip':'optional','video-downloader':'optional'});
+  assert.deepEqual(policies,{'ai-send-queue':'preinstalled','ai-knowledge-answers':'optional','reading-toc':'preinstalled','web-markdown-clipper':'optional',
+    'quick-notes':'preinstalled','markdown-workbench':'optional','knowledge-inbox':'optional','time-review':'optional','stay-focus':'optional','adblock':'optional','cookie-editor':'preinstalled','ai-vip-share':'optional','bookmark-manager':'optional','prompt-shortcuts':'preinstalled','video-speed-controller':'optional','video-svip':'optional','video-downloader':'optional','webflow':'preinstalled'});
   for(const row of source.tools){
     assert(['optional','preinstalled'].includes(row.installationPolicy));
     assert.equal(Object.hasOwn(row,'version'),false);assert.equal(Object.hasOwn(row,'capabilities'),false);
@@ -114,8 +137,6 @@ test('AI Proxy stays independently installable without Browser offline distribut
   assert.equal(resources.has(officialPackagePath('ai-proxy')),false);
   assert.equal(JSON.parse(resources.get(OFFICIAL_CATALOG_PATH)).apps.some(row=>row.toolId==='ai-proxy'),false);
   assert.equal(sourceInputs.some(row=>row.path.startsWith('projects/ai-proxy/')),false);
-  assert.deepEqual(catalog.apps.filter(row=>row.installationPolicy==='preinstalled').map(row=>row.toolId),
-    ['reading-toc','quick-notes','cookie-editor','prompt-shortcuts']);
   const tool=validateSidebarToolPackage(JSON.parse(await readFile('projects/ai-proxy/ai-proxy.opendesk-tool.json','utf8')));
   assert.equal(tool.id,'ai-proxy');
   assert(tool.capabilities.includes('browser.proxy.managed'));

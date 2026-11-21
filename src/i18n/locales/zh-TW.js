@@ -1,6 +1,7 @@
 // OpenDesk trusted-page UI strings. Keep protocol codes, file contents and user paths untranslated.
 // New locale packs use the same semantic keys and named {placeholders}.
 export default Object.freeze({
+  "develop.appDebug.stop": "停止偵錯",
   "develop.editor.controller": "自動化 JS",
   "develop.prompt.copy": "複製 AI 開發提示詞",
   "develop.prompt.copying": "正在複製開發提示詞…",
@@ -21,7 +22,7 @@ export default Object.freeze({
   "develop.editor.examples": "{mode} · 範例（新分頁）",
   "develop.editor.help": "{mode} · API 文件（新分頁）",
   "common.language": "介面語言",
-  "workspace.documentTitle": "OpenDesk · 本機檔案工作區",
+  "workspace.documentTitle": "GrayDove · 本機檔案工作區",
   "workspace.heading": "本機檔案工作區",
   "workspace.connecting": "連線中",
   "workspace.refreshConnection": "重新整理連線",
@@ -166,7 +167,7 @@ export default Object.freeze({
   "settings.captionOff": "本機連線已關閉，需要時再啟用。",
   "settings.captionPastOff": "先前成功連線：{time}；目前已關閉。",
   "settings.captionOnline": "OpenDesk 本機通訊正常，無需重複配對；Codex 仍須於使用時確認。",
-  "settings.captionReload": "本機連線已啟用，但 Chrome API 尚未就緒；請重新載入擴充功能。",
+  "settings.captionReload": "請先結束執行中的工作，完整結束並重新開啟 Chrome，再回到「開發 → 專案連線」檢查。只按「重新偵測」不會套用權限。",
   "settings.captionConnecting": "設定已儲存，正在等待 OpenDesk 回應，無需重複授權。",
   "settings.captionPastOffline": "上次成功連線：{time}。",
   "settings.captionOffline": "請確認 OpenDesk 已執行，或點擊重新偵測。",
@@ -174,7 +175,7 @@ export default Object.freeze({
   "settings.invalidStatus": "連線狀態回覆無效",
   "settings.permissionRequired": "未授予瀏覽器本機通訊權限，原設定維持不變",
   "settings.diagnosticLastSeen": "上次成功連線：{time}",
-  "settings.documentTitle": "OpenDesk Browser · 本機連線",
+  "settings.documentTitle": "GrayDove · 本機連線",
   "settings.heading": "本機連線",
   "settings.intro": "連接 OpenDesk，供已授權的 AI 對話與本機工作區按需使用。",
   "settings.permissionsNote": "外部請求仍需網站授權，並共用相同的 RunHost、Worker、任務槽及持久化結果。此設定",
@@ -242,7 +243,7 @@ export default Object.freeze({
   "settings.connected": "已連線",
   "settings.hostCount": "已註冊工作台：{count}",
   "settings.extensionId": "Extension ID：{id}",
-  "settings.requiresReload": "權限已授予，但目前瀏覽器尚未更新 Native API。完成執行中的任務後，請到 chrome://extensions 重新載入擴充功能，再重新整理狀態。",
+  "settings.requiresReload": "權限已授予，等待 Chrome 套用。",
   "settings.trying": "正在嘗試與本機 OpenDesk 建立連線…",
   "settings.notConnected": "尚未連線。請確認已安裝本機程式並完成可信擴充功能配對，再按「檢查連線」。",
   "settings.pairWait": "等待 OpenDesk 原生程式確認。請求兩分鐘後逾期；請比對此視窗的擴充功能 ID。確認後返回並按「檢查連線」。\nExtension ID：{id}",

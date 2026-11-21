@@ -4,13 +4,13 @@
 
 ## 1. 当前审计基线
 
-审计参考：远端 `main`，本轮基线 `ec8766088b4f290386cf05d5848b56f767ce6d06`。
+源码审计快照：2026-11-17 的 [CURRENT-STATE-AUDIT.md](CURRENT-STATE-AUDIT.md)，本地 main `0faddb6bb7293705bc6b4c257d8cea4936aab619`，含未提交修改；旧 `ec876608…` 仅为历史。2026-11-17 后续品牌集成不改变权限、CSP 或数据流；生产候选身份以发布记录为准。
 
 当前 `manifest.json`：
 - Manifest V3
 - version：`0.1.0`
-- name：`OpenDesk Browser`
-- short_name：`OD`
+- name：`GrayDove`
+- short_name：`GrayDove`
 - minimum_chrome_version：`138`
 - host_permissions：`<all_urls>`
 
@@ -106,6 +106,8 @@ Chrome 要求请求实现产品功能所必需的最窄权限；不能为了未�
 
 ## 4. Chrome Web Store 关键政策
 
+2026-11-17 已按官方文档复核以下提交要求；这是政策依据，不能代替当前包的数据流、账号及真实 Chrome 证据。公开支持邮箱为用户确认的 `thinkido666@gmail.com`；隐私政策 URL 仍待定。
+
 提交前必须重新核对 Google 官方最新政策：
 
 ### 4.1 单一主要用途
@@ -114,7 +116,7 @@ Chrome 要求请求实现产品功能所必需的最窄权限；不能为了未�
 
 ### 4.2 Privacy Policy 与 Disclosure
 
-如果扩展处理用户数据，需要提供准确、可访问且持续更新的隐私政策，并在商店指定字段提交链接。安装前披露、商店 Privacy 字段、隐私政策和真实行为必须一致。
+如果扩展处理用户数据，即使仅在本地处理，也需要准确、可公开访问且持续更新的隐私政策，并在商店指定字段提交链接。说明数据类型、用途、接收方、保存/删除方式；在网站作出符合 Limited Use 的声明，并完成后台认证。安装前披露、商店 Privacy 字段、隐私政策和真实行为必须一致。不得仅因统计默认关闭就填写“无数据处理”。
 
 ### 4.3 Limited Use
 
@@ -126,7 +128,9 @@ Chrome 要求请求实现产品功能所必需的最窄权限；不能为了未�
 
 ### 4.4 用户脚本与 Manifest V3
 
-审查用户脚本的来源、执行世界、动态代码、远程内容、依赖固定、权限和撤销边界。不能把用户编写脚本的能力误写为扩展可以绕过 MV3 限制任意下载并执行远程代码。
+审查用户脚本的来源、执行世界、动态代码、远程内容、依赖固定、权限和撤销边界。扩展自身可执行逻辑必须随包，不能用远程 JS/WASM、eval 或远程命令解释器规避 MV3；`userScripts` / `debugger` 的政策例外按其精确适用范围审查，不能泛化到可信宿主或第三方工具。用户提供的网页脚本使用原 userScripts 合同，后台 Remote Code 字段按真实行为填写。
+
+Chrome 138 起用户可在扩展详情开启“允许用户脚本”；商店文案不应笼统宣称必须打开浏览器开发者模式。用户脚本开关、站点访问与安装审阅属于不同条件。
 
 ### 4.5 付费功能
 
@@ -145,6 +149,26 @@ Chrome 要求请求实现产品功能所必需的最窄权限；不能为了未�
 - 不得干扰第三方网站原有广告或功能。
 - 联盟链接、代码和 Cookie 必须提前披露；每次加入都需要相关用户操作，并提供直接、透明的用户利益。
 - 不得使用浏览活动等受限用户数据进行个性化广告定向。
+
+
+### 4.7 本次提交准备的明确缺口
+
+| 项目 | 当前状态 / 完成条件 |
+|---|---|
+| 敏感权限 | 已有调用映射，尚需对 debugger/cookies/proxy/全站访问逐项写明实际功能、触发和更窄替代方案；不无证据删核心能力或宣称一定获批 |
+| 远程代码 | 原 CSP/包扫描保留；还需逐项核对任务、用户脚本、市场和 AI 返回内容的真实执行路径，源码扫描不等于 Google 批准 |
+| 隐私政策 | URL、真实部署服务、接收方及保存/删除机制待核；不得填虚构链接或笼统“零上传” |
+| Native / AI | 说明哪些功能需要本地程序、支持 OS、额外安装、Provider/密钥、联网和第三方费用；不把依赖隐藏在未宣传的随包功能中 |
+| 账号 | 注册、一次性注册费、发布资格与两步验证待真实后台核对；免费发行也需要 2SV |
+| 商店视觉 | 正式 128 PNG 已导出；尚需至少一张 1280×800 真实候选截图（最多五张），不使用原型图冒充运行界面 |
+| 审核说明 | 建议提供无需私人凭证的可复现核心操作和 Native/AI 测试条件；后台 Test instructions 不是所有商品一律必填 |
+
+官方依据（复核于 2026-11-17）：
+
+- [MV3 requirements](https://developer.chrome.com/docs/webstore/program-policies/mv3-requirements)、[userScripts API](https://developer.chrome.com/docs/extensions/reference/api/userScripts)
+- [Use of permissions](https://developer.chrome.com/docs/webstore/program-policies/permissions)、[Privacy](https://developer.chrome.com/docs/webstore/program-policies/privacy)、[User data FAQ](https://developer.chrome.com/docs/webstore/program-policies/user-data-faq)、[Limited Use](https://developer.chrome.com/docs/webstore/program-policies/limited-use)
+- [后台隐私声明](https://developer.chrome.com/docs/webstore/cws-dashboard-privacy)、[商品图标与截图](https://developer.chrome.com/docs/webstore/cws-dashboard-listing)、[审核测试说明](https://developer.chrome.com/docs/webstore/cws-dashboard-test-instructions)
+- [开发者注册](https://developer.chrome.com/docs/webstore/register)、[两步验证要求](https://developer.chrome.com/docs/webstore/program-policies/policies#2-step-verification)
 
 ## 5. 开发者身份和地区要求
 

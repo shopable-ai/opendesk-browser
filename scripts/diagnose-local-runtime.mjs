@@ -49,7 +49,7 @@ async function main(){
     dev:{},services:[]};
   for(const path of ['manifest.json','framework/sdk-main.js','agents/page-relay.js',
     'scripting/sandbox/worker-runtime.js','libs/runtime/page-core.js',
-    'libs/manifest.json']){
+    'libs/builtin-resources.json']){
     const bytes=await read('dist/development/'+path);
     record.dev[path]=bytes?{bytes:bytes.length,sha256:hash(bytes)}:{status:'MISSING'};
   }

@@ -461,6 +461,8 @@ Host→app 复用 `navigation-action`，root 的 `opendesk-tool-navigation` 新 
 
 普通 `storage.local` 当前最多 32 个键，每项 JSON ≤8,192 字节，工具数据对象总 JSON ≤32,768 字节。`key` 须以英文字母开头，仅允许英文字母/数字/点/下划线/连字符，最长 60 字符。`withEtag/ifMatch` 是可选的条件更新；发生冲突应重新读回并让用户决定，不自动覆盖。
 
+声明 `browser.proxy.managed` 的工具在确认释放线路后，可为带 `ifMatch` 的 `storage.set` 添加 `ifProxyReleased:true`。宿主在写入前持有与代理切换相同的工具锁，并核对 Chrome 当前控制级别。若另一窗口已重新启用线路，即使配置内容与 ETag 完全相同，也会拒绝写入并保留最新配置。
+
 `browser.clipboard.writeText`、`browser.downloads.text` 的文本须非空且 UTF-8 ≤150,000 bytes。`browser.downloads.text` 仅允许不含路径分隔符等危险字符、且不以点开头的 `.md`、`.txt`、`.json` 或 `.csv` 文件名（长度 ≤90）；一般网络下载、二进制文件和任意绝对路径写入都**不是**此 API 的能力。工具不使用宿主的任意网络代理。
 
 ### 应用包内固定 Controller（v2）

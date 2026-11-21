@@ -7,6 +7,7 @@ import {createWebflowMediaVault} from '../projects/webflow/trusted/media-vault.j
 import {projectSubagentPageTaskResult} from '../projects/subagent/trusted/page-task-result.js';
 import {registerDownloadEvents} from './platform/downloads/events.js';
 import {PAGE_BOOT_PROTOCOL} from './scripting/user-scripts/installed-programs.js';
+import {FIXED_QUEUE_PROTOCOL} from './scripting/user-scripts/fixed-send-queue.js';
 import {reportBrowserCleanupError} from './platform/chrome/lifecycle-errors.js';
 import {installStayFocusService} from '../projects/stay-focus/trusted/service.js';
 import {installManagedSiteBudgetService} from './platform/chrome/browser-managed-site-budget.js';
@@ -298,7 +299,17 @@ chrome.runtime.onInstalled?.addListener(details=>{
 });
 chrome.runtime.onUserScriptMessage?.addListener((message,sender,sendResponse)=>{
   if(message?.protocol!==PAGE_BOOT_PROTOCOL)return false;
-  if(development?.held){sendResponse({ok:false,error:{code:'E_DEV_RELOADING',message:'开发更新正在核对空闲宿主；本次自动执行未派发'}});return false;}
+  if(development?.held){
+    // The automatic native bootstrap belongs to this worker/document pair.
+    // Give it priority over a pending update, without unfreezing Page RPCs or
+    // treating this ingress check as authorization to run the installed code.
+    const automatic=!Object.hasOwn(message,'action')&&typeof message.nativeId==='string'&&typeof message.token==='string'&&
+      sender?.id===chrome.runtime.id&&sender.frameId===0&&typeof sender.documentId==='string'&&
+      Number.isSafeInteger(sender.tab?.id)&&!sender.tab.incognito;
+    if(!automatic||!development.tryStartPageBootstrap()){
+      sendResponse({ok:false,error:{code:'E_DEV_RELOADING',message:'开发更新正在核对空闲宿主；本次自动执行未派发'}});return false;
+    }
+  }
   pendingFoundation++;
   foundation.then(broker=>broker.handleInstalledPageBoot(message,sender)).then(
     data=>sendResponse({ok:true,data}),error=>sendResponse({ok:false,error:projectFoundationError(error)})).finally(()=>pendingFoundation--);
@@ -342,6 +353,15 @@ chrome.tabs.onRemoved.addListener(tabId => {
       label:`[page preview cleanup ${error.code || 'E_WORLD_ISOLATION'}] ${error.message}`}));
 });
 chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
+  if(message?.protocol===FIXED_QUEUE_PROTOCOL){
+    if(development?.held){sendResponse({ok:false,error:{code:'E_DEV_RELOADING'}});return false;}
+    pendingFoundation++;
+    foundation.then(broker=>broker.authorizeFixedQueue(message,sender)).then(
+      data=>sendResponse(development?.held?{ok:false,error:{code:'E_DEV_RELOADING'}}:{ok:true,data}),
+      error=>sendResponse({ok:false,error:projectFoundationError(error)}))
+      .finally(()=>pendingFoundation--);
+    return true;
+  }
   if(handleSidebarToolRuntimeQuery({api:chrome,message,sender,respond:sendResponse,isUpdating:()=>Boolean(development?.held)}))return true;
   if(handlePromptRailOpen({api:chrome,message,sender,respond:sendResponse}))return true;
   // The independent fixed health-host listener owns only the environment

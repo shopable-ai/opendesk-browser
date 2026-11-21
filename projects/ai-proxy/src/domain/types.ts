@@ -63,6 +63,7 @@ export interface ProbeResult {
   scope: 'extension-request-only';
 }
 export interface RuntimeStatus {
+  routeVersion?: string | null;
   desired: RouteSelection;
   /** Last route verified against Chrome API, which may differ from an edited selection. */
   activeSelection?: RouteSelection;

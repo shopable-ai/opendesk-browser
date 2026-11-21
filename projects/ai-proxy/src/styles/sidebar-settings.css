@@ -71,7 +71,7 @@
   :scope .options .sectionHeading > .textAction { flex: none; font-size: 12px; }
   :scope .options .profileRecords { margin: 0; gap: 0; border: 0; border-radius: 0; overflow: visible; }
   :scope .options .profileRecords .proxyRecord {
-    display: grid; grid-template-columns: 34px minmax(0,1fr) auto; align-items: center;
+    display: grid; grid-template-columns: minmax(0,1fr) auto; align-items: center;
     gap: var(--space-2); min-height: 64px; padding: var(--space-3) 0;
     border: 0; border-radius: 0;
   }
@@ -102,7 +102,7 @@
   :scope .options .officialEmptyIcon { display:none; }
   :scope .options .settingsRuntimeStatus { margin: 0; }
   :scope .options .settingsRuntimeStatus .controlChip { display: inline-flex; white-space: normal; font-size: 12px; }
-  :scope .options .optionsModeGrid { grid-template-columns: repeat(2,minmax(0,1fr)); gap: var(--space-2); margin: 0; }
+  :scope .options .optionsModeGrid { grid-template-columns: repeat(3,minmax(0,1fr)); gap: var(--space-2); margin: 0; }
   :scope .options .optionsModeGrid button { min-height: 36px; padding: 7px; border-radius: 8px; }
   :scope .options .modeActions { gap: var(--space-2); margin: 0; }
   :scope .options .modeActions > button { min-height: 36px; }

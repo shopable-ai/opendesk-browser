@@ -103,13 +103,15 @@ test('revoked assignment and changed Store stop a prepared server batch before d
     assert.equal(e.get('cookie-install').hidden,true);
   }
 });
-test('late first-batch success cannot open ChatGPT or submit an expired remainder',async()=>{
+test('late first-batch success cannot open ChatGPT or submit an expired remainder',{timeout:3000},async()=>{
   let now=Date.now();class Clock extends Date{static now(){return now;}}
-  let elapsed=0;const gate=deferred();
+  let elapsed=0;const firstBatchStarted=deferred(),gate=deferred();
   const e=await activated({dateClock:Clock,performanceClock:{now:()=>elapsed},cookieSetMany:async args=>{
+    firstBatchStarted.resolve();
     await gate.promise;return {saved:args.cookies.length,verified:args.cookies.length,
       results:args.cookies.map((_,index)=>({index,saved:true,verified:true}))};}});
-  await e.click('cookie-install');assert.equal(e.cookieCalls.length,1);
+  await e.click('cookie-install');
+  await firstBatchStarted.promise;
   elapsed=120001;now+=120001;gate.resolve();await settle(e);
   assert.equal(e.cookieCalls.length,1);assert.equal(e.tabCalls.length,0);
   assert.match(e.get('site-status').textContent,/已到期.*剩余 1 项未提交/);

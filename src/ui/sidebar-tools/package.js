@@ -38,7 +38,9 @@ export async function sidebarToolPackageContractHash(){
   return Array.from(new Uint8Array(await crypto.subtle.digest('SHA-256',bytes)),
     value=>value.toString(16).padStart(2,'0')).join('');
 }
-const PACKAGE_FIELDS=Object.freeze(['format','id','version','title','description','capabilities','html','css','js','uiRuntime','backgroundPolicy','localization']);
+const ABOUT_FIELD_LIMITS=Object.freeze({author:160,homepage:2048,supportUrl:2048});
+export const SIDEBAR_TOOL_ABOUT_FIELDS=Object.freeze(Object.keys(ABOUT_FIELD_LIMITS));
+const PACKAGE_FIELDS=Object.freeze(['format','id','version','title','description',...SIDEBAR_TOOL_ABOUT_FIELDS,'capabilities','html','css','js','uiRuntime','backgroundPolicy','localization']);
 const V2_FIELDS=Object.freeze([...PACKAGE_FIELDS,'requires','contributes','scripts','initialData','background','delegatedTasks','controller','pageModule']);
 const MENU_CONTEXTS=Object.freeze(['page','selection','link']);
 const fail = (message,code='E_TOOL_SCHEMA') => { const error=new Error(message);error.code=code;throw error; };
@@ -46,6 +48,12 @@ const plain = value => value!==null && typeof value==='object' && !Array.isArray
   (Object.getPrototypeOf(value)===Object.prototype || Object.getPrototypeOf(value)===null);
 const fields=(obj,keys) => Object.keys(obj).every(key=>keys.includes(key));
 const validText=(text,max,optional=false) => typeof text==='string' && text.length<=max && (optional || text.trim().length>0);
+
+// Copy declared data verbatim. Display normalization must not change package identity.
+export function pickSidebarToolAboutFields(value){
+  return Object.fromEntries(SIDEBAR_TOOL_ABOUT_FIELDS.filter(key=>Object.hasOwn(value,key))
+    .map(key=>[key,value[key]]));
+}
 
 // Shape-only admission has no dependency on installed Page authority. Full
 // source/package digest and executable-source checks run at the async boundary.
@@ -80,6 +88,9 @@ export function validateSidebarToolPackageMetadata(value) {
     fail('工具格式、ID 或版本无效');
   for (const name of ['title','description'])
     if (!validText(value[name],LIMITS[name])) fail('工具字段过大或无效：'+name,'E_TOOL_LIMIT');
+  for (const name of SIDEBAR_TOOL_ABOUT_FIELDS)
+    if (Object.hasOwn(value,name)&&!validText(value[name],ABOUT_FIELD_LIMITS[name],true))
+      fail('工具字段过大或无效：'+name,'E_TOOL_LIMIT');
   const supportedCapabilities=v2?V2_CAPABILITIES:CAPABILITIES;
   if (!Array.isArray(value.capabilities)) fail('工具能力声明必须是数组');
   if (value.capabilities.length>supportedCapabilities.length) fail('工具能力声明数量超出当前支持范围');

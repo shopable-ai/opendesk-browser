@@ -83,7 +83,7 @@ export function createLocalInstallUI({client,api,doc,view=null,currentPageTarget
     verificationReason='当前源码尚无可复用的可信运行证明';
     try{
       if(local.connected()&&!isBusy()){
-        binding=local.capture();source=await local.resolve(binding);
+        binding=local.capture();source=await local.resolve(binding,{background:true});
         if(!same())return;
         // A project switch or stale Provider result must never borrow the
         // previous binding's Run/result evidence, even if a UI fixture or

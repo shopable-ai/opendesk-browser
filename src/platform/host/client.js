@@ -104,7 +104,7 @@ export function createHostClient(api = chrome, {requestTimeoutMs = 35000, reconn
   // These methods share this document's one registration and transport. A UI
   // injects this client into RunHost instead of registering a second owner.
   const controller = Object.fromEntries(['commitControllerScript','getControllerScript','listControllerScripts','tombstoneControllerScript','garbageCollectControllerScript','startControllerRun',
-    'controllerOperation','stopControllerRun','finishControllerRun','snapshotControllerRun','retireControllerTarget']
+    'controllerOperation','stopControllerRun','finishControllerRun','snapshotControllerRun','fenceControllerAdmission','retireControllerTarget']
     .map(method => [method, request => send(method, request)]));
   return {get ready(){return connect();}, request:send, reconnect:connect,
     requestLocalProject:async(method,params)=>{await connect();return localProjects.request(method,params);},

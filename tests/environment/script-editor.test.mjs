@@ -622,13 +622,13 @@ test('Developer shows one terminal status line and hides it for unrelated feedba
   const f=await fixture();t.after(()=>f.dispose());
   await f.click('script-run');await f.finish(7);
   assert.equal(f.find('script-status').dataset.state,'results');
-  assert.equal(f.find('script-status').textContent,'任务状态：');
+  assert.equal(f.find('script-status').textContent,'已完成');
   assert.equal(f.find('script-task-status').textContent,'已完成 · 资源已释放');
   assert.equal(f.find('script-task-status').hidden,false);
   await f.click('script-save-version');
-  assert.match(f.find('script-status').textContent,/已持久保存/);
+  assert.match(f.find('script-status').textContent,/已保存/);
   assert.equal(f.find('script-task-status').hidden,true);
-  assert.match(f.notices.at(-1).message,/已持久保存/,'the durable receipt also reaches the shared non-blocking feedback');
+  assert.match(f.notices.at(-1).message,/已保存/,'the durable receipt also reaches the shared non-blocking feedback');
 });
 
 async function componentFixture(t,framework,{compilerError,previewError,compileGate}={}) {
@@ -1260,7 +1260,7 @@ test('Save persists revision/hash without requesting permission, creating a Run,
   assert.equal(f.persisted.scripts[0].revision,1);assert.match(f.persisted.scripts[0].contentHash,/^[a-f0-9]{64}$/);
   assert.equal(f.find('script-list').options.some(row=>row.value==='my-script'),true);
   assert.equal(f.permissions.length,0);assert.equal(f.starts.length,0);assert.equal(f.executions.length,0);
-  f.find('script-source').value='unsaved changes';f.find('script-source').fire('input');await tick();assert.match(f.find('script-version').textContent,/存在未保存修改/);
+  f.find('script-source').value='unsaved changes';f.find('script-source').fire('input');await tick();assert.match(f.find('script-version').textContent,/有未保存修改/);
 });
 
 test('reopened editor lists saved scripts without running and loads the selected latest head explicitly',async t=>{
@@ -1377,7 +1377,7 @@ test('pagehide invokes RunHost host-close; reopened editor only reads the durabl
 test('late Save/Load replies do not overwrite another script selection or edits made during loading',async t=>{
   const f=await fixture();t.after(()=>f.dispose());const save=deferred();f.setSaveGate(save);await f.click('script-save-version');
   f.find('script-id').value='another-script';f.find('script-id').fire('input');save.resolve();await tick();
-  assert.equal(f.find('script-revision').value,'');assert.match(f.find('script-version').textContent,/当前源码可直接运行/);
+  assert.equal(f.find('script-revision').value,'');assert.match(f.find('script-version').textContent,/草稿尚未保存/);
   f.find('script-id').value='my-script';const load=deferred();f.setLoadGate(load);await f.click('script-load');
   f.find('script-source').value='new edit while loading';load.resolve();await tick();
   assert.equal(f.find('script-source').value,'new edit while loading');assert.match(f.find('script-status').textContent,/E_REVISION/);
@@ -2115,15 +2115,20 @@ for(const framework of ['react','vue'])test(`Page ${framework} save and reopen r
     if(method==='listPagePrograms')return {catalog:saved?[saved]:[],installed:[]};
     if(method==='getPageCandidate'){
       const sourceHash=createHash('sha256').update(saved.sourceUtf8).digest('hex');
-      return {...structuredClone(saved),manifest:{entryFormat:'async-main',sourceHash},
+      return {...structuredClone(saved),manifest:{programId:payload.programId,revision:payload.revision,entryFormat:'async-main',sourceHash},
         authoring:{...saved.authoring,sourceHash,
           authorSourceHash:createHash('sha256').update(saved.authoring.sourceUtf8).digest('hex')}};
     }
     return original(method,payload);
   };
+  assert.equal(f.find('script-revision').value,'','new Page component starts without an explicit revision');
   await f.click('page-candidate-save');
   await waitForComponentUI(()=>f.find('page-candidate-status').dataset.state==='saved',
     'author Candidate was not saved: '+f.find('page-candidate-status').textContent);
+  assert.equal(saved.revision,1,'blank revision saves the default first version');
+  assert.equal(f.find('script-revision').value,String(saved.revision),'unchanged editor adopts the actual saved revision');
+  assert.deepEqual(f.find('script-source').loadedScript,{kind:'page',id:saved.programId,
+    revision:saved.revision,framework,source:author},'saved identity can drive the current-script marker');
   assert.deepEqual(saved.authoring,{framework,sourceUtf8:author});
   assert.notEqual(saved.sourceUtf8,author,'execution bytes stay separate from editable source');
   assert.equal(saved.authorSourceUtf8,undefined,'component must not pretend to be esm-page');
@@ -2191,7 +2196,8 @@ test('browser component Save prepares a frozen Candidate with zero Page executio
   assert.equal(f.starts.length,0);assert.equal(f.commits.length,0);assert.equal(f.permissions.length,0);
   assert.match(f.find('page-component-status').textContent,/尚未进行网页运行验收/);
   await f.click('script-run');
-  await waitForComponentUI(()=>f.find('page-preview-status').dataset.state==='completed','explicit Run should receive managed result');
+  await waitForComponentUI(()=>f.find('page-preview-status').dataset.state==='completed',
+    'explicit Run should receive managed result: '+f.find('script-status').textContent+' / '+f.find('page-preview-status').textContent+' / '+f.find('page-component-status').textContent);
   const dispatch=requests.find(row=>row.method==='previewPageScript');assert.ok(dispatch.payload.managedUI.previewId);
   assert.equal(dispatch.payload.sourceUtf8,requests[0].payload.sourceUtf8);
   await f.click('script-stop');
@@ -2463,7 +2469,7 @@ test('loading a saved Page import restores author bytes and Page lock without ru
   f.client.request=async(method,input)=>{
     if(method==='listPagePrograms')return {catalog:[row]};
     if(method==='getPageCandidate')return {sourceUtf8:'async function main(){return 7;}',authorSourceUtf8:f.sourceUtf8,
-      manifest:{compilation:{sourceFormat:'esm-page',authorSourceHash:createHash('sha256').update(f.sourceUtf8).digest('hex'),
+      manifest:{programId:input.programId,revision:input.revision,compilation:{sourceFormat:'esm-page',authorSourceHash:createHash('sha256').update(f.sourceUtf8).digest('hex'),
         dependencyLockId:frozen.lockId,dependencyManifestDigest:frozen.manifestDigest}}};
     return original(method,input);
   };
@@ -2652,7 +2658,7 @@ test('cancelling a Page library load preserves the current draft and never claim
     pageRules:{matches:['https://a.example/*'],excludeMatches:[],runAt:'document_idle',allFrames:false,world:'USER_SCRIPT'}};
   f.client.request=async(method,input)=>{
     if(method==='listPagePrograms')return {catalog:[row]};
-    if(method==='getPageCandidate')return {sourceUtf8:'async function main(){return "page";}'};
+    if(method==='getPageCandidate')return {manifest:{programId:input.programId,revision:input.revision},sourceUtf8:'async function main(){return "page";}'};
     return original(method,input);
   };
   await f.click('page-program-refresh');for(let n=0;n<5;n++)await tick();
@@ -2666,7 +2672,7 @@ test('cancelling a Page library load preserves the current draft and never claim
 });
 
 for(const change of ['navigation','source','identity'])
-test(`Page dependency restoration cannot override a later ${change} or announce stale success`,async t=>{
+test(`Page dependency restoration cannot override a later ${change} or announce stale success`,{timeout:5000},async t=>{
   const f=await staticESMFixture(t);await f.page();
   await f.click('script-run');await f.settle();
   const frozen=f.compiled[0],original=f.client.request,gate=deferred(),restoring=deferred();
@@ -2676,9 +2682,9 @@ test(`Page dependency restoration cannot override a later ${change} or announce 
   f.client.request=async(method,input)=>{
     if(method==='listPagePrograms')return {catalog:[row]};
     if(method==='getPageCandidate')return {sourceUtf8:'async function main(){return 7;}',authorSourceUtf8:f.sourceUtf8,
-      manifest:{compilation:{sourceFormat:'esm-page',authorSourceHash:sha256(f.sourceUtf8),
+      manifest:{programId:input.programId,revision:input.revision,compilation:{sourceFormat:'esm-page',authorSourceHash:sha256(f.sourceUtf8),
         dependencyLockId:frozen.lockId,dependencyManifestDigest:frozen.manifestDigest}}};
-    if(method==='inspectPageDependencies'&&input.programId==='saved-esm'){
+    if(method==='inspectPageDependencies'&&input.sourceFormat==='esm-page'&&f.find('script-id').value==='saved-esm'){
       restoring.resolve();await gate.promise;
     }
     return original(method,input);
@@ -2700,4 +2706,232 @@ test(`Page dependency restoration cannot override a later ${change} or announce 
   assert.equal(f.notices.some(row=>row.message.includes('已加载')),false);
   assert.doesNotMatch(f.find('page-program-status').textContent,/已加载为/);
   assert.equal(f.starts.length,0);assert.equal(f.previews.length,1);assert.equal(f.commits.length,0);
+});
+
+// paused_unknown recovery reads the selected durable run; it never runs source.
+for(const scenario of ['original','missing-id','changed-id','changed-state','missing-record','wrong-record','late-navigation','late-error','late-selection','hidden','disposed'])
+test(`unknown original-run action: ${scenario}`,async t=>{
+  const run={runId:'unknown-original',state:'paused_unknown',retirementState:'not-started',
+    terminalReason:{code:'E_EFFECT_UNKNOWN',message:'Verify original receipt'}};
+  const f=await fixture({scripts:[],runs:[run],results:[]});t.after(()=>f.dispose());
+  assert.equal(f.projection.fields['script-task-status'].data.runId,run.runId);
+  const read=f.client.controller.snapshotControllerRun,gate=deferred();
+  const calls=[];
+  f.client.controller.snapshotControllerRun=async request=>{
+    calls.push(request);
+    if(request.runId===run.runId&&['late-navigation','late-error','late-selection','hidden','disposed'].includes(scenario))await gate.promise;
+    if(scenario==='late-error')throw Object.assign(new Error('STALE_READ_ERROR'),{code:'E_RUN'});
+    if(scenario==='missing-record')return {run:null,runs:[],results:[],downloads:[]};
+    if(scenario==='wrong-record')return {run:{...run,runId:'decoy'},runs:[],results:[],downloads:[]};
+    return read(request);
+  };
+  if(scenario==='changed-state'){
+    // A run-state event may settle the same run between rendering and clicking.
+    run.state='completed';
+    await f.editor.openRun(run.runId);
+  }
+  calls.length=0;
+  if(scenario==='changed-state')f.projection.patch('script-history-panel',{open:false});
+  const clicked=scenario==='missing-id'?undefined:scenario==='changed-id'?'stale-run':run.runId;
+  const pending=f.projection.actions['developer-unknown-history'](clicked);
+  await tick();
+  if(['late-navigation','late-error'].includes(scenario))f.projection.navigate('diagnostics');
+  if(scenario==='hidden')f.projection.setPresentationActive(false);
+  if(scenario==='late-selection'){
+    f.persisted.runs.push({runId:'new-selection',state:'completed'});
+    await f.editor.openRun('new-selection');
+  }
+  if(scenario==='disposed')f.editor.dispose();
+  gate.resolve();await pending;
+  assert.equal(f.projection.getSnapshot().section,scenario==='original'?'history':['late-navigation','late-error'].includes(scenario)?'diagnostics':'editor');
+  assert.equal(f.projection.fields['script-history-panel'].open,['original','late-selection'].includes(scenario));
+  if(scenario==='original'){
+    assert.deepEqual(calls,[{runId:run.runId}]);
+    assert.match(f.find('script-history').textContent,/E_EFFECT_UNKNOWN/);
+    assert.equal(f.projection.getSnapshot().returnFocusId,'developer-unknown-history');
+  }
+  if(['missing-id','changed-id','changed-state'].includes(scenario))assert.deepEqual(calls,[]);
+  if(['missing-record','wrong-record','missing-id','changed-id','changed-state'].includes(scenario))
+    assert.match(f.find('script-status').textContent,/原始运行记录/);
+  assert.doesNotMatch(f.find('script-status').textContent,/STALE_READ_ERROR/);
+  if(scenario==='late-selection')assert.equal(f.projection.fields['script-task-status'].data.runId,'new-selection');
+  assert.equal(f.starts.length,0);assert.equal(f.executions.length,0);
+  assert.equal(f.permissions.length,0);assert.equal(f.commits.length,0);
+});
+
+// UI_PREVIEW_ONLY: simulated saved-history records, never user history or workspace files.
+// Exercise the production picker adapter and original revision/Page owners.
+const editorDraft=f=>Object.fromEntries(['script-source','script-id','script-revision','script-params',
+  'script-list','page-program-list','script-javascript-world'].map(id=>[id,f.find(id).value]).concat([
+  ['loadedScript',f.find('script-source').loadedScript],
+  ['frameworks',['javascript','react','vue'].map(kind=>f.find('page-component-'+kind).checked)]
+]));
+const pickerOption=(f,kind,id)=>{
+  const option=f.find(kind==='controller'?'script-list':'page-program-list').options.find(row=>row.scriptId===id);
+  assert.ok(option,'picker option comes from the owner catalog: '+id);
+  return option;
+};
+const openPicker=(f,option)=>{
+  f.projection.setScriptPickerOpen(true);
+  return f.projection.actions['developer-script-open'](option);
+};
+const noPickerExecution=f=>{
+  assert.equal(f.starts.length,0);assert.equal(f.executions.length,0);
+  assert.equal(f.previews.length,0);assert.equal(f.commits.length,0);assert.equal(f.permissions.length,0);
+};
+async function pickerFixture(t,kind,{confirmDecision,read}={}){
+  const controllerSource='return "saved controller";';
+  const f=await fixture({scripts:[{scriptId:'saved-controller',revision:3,sourceUtf8:controllerSource,
+    contentHash:sha256(controllerSource)}],runs:[],results:[]},undefined,{confirmDecision});
+  t.after(()=>f.dispose());
+  if(kind==='controller')return f;
+  const row={programId:'saved-'+kind,revision:4,stage:'Candidate',manifestHash:'f'.repeat(64),
+    pageRules:{matches:['https://a.example/*'],excludeMatches:[],runAt:'document_idle',allFrames:false,world:'USER_SCRIPT'}};
+  const original=f.client.request;
+  f.client.request=async(method,input)=>{
+    if(method==='listPagePrograms')return {catalog:[row],installed:[]};
+    if(method==='getPageCandidate'){
+      if(read)return read(input);
+      const sourceUtf8='async function main(){return "saved page";}',sourceHash=sha256(sourceUtf8);
+      const author=kind==='react'?'export default function App(){return <b>saved</b>}':'<template><b>saved</b></template>';
+      return {sourceUtf8,manifestHash:row.manifestHash,
+        manifest:{programId:input.programId,revision:input.revision,entryFormat:'async-main',sourceHash},
+        ...(kind==='page'?{}:{authoring:{framework:kind,sourceUtf8:author,sourceHash,authorSourceHash:sha256(author)}})};
+    }
+    return original(method,input);
+  };
+  await f.click('page-program-refresh');
+  await waitForComponentUI(()=>f.find('page-program-list').options.some(option=>option.scriptId===row.programId),'Page picker catalog missing');
+  return f;
+}
+for(const kind of ['controller','page','react','vue'])test(`owner picker loads ${kind} source and type without execution`,async t=>{
+  const f=await pickerFixture(t,kind),option=pickerOption(f,kind==='controller'?'controller':'page','saved-'+kind);
+  assert.equal(await openPicker(f,option),true,f.projection.getSnapshot().scriptPicker.error);
+  assert.equal(f.find('script-id').value,'saved-'+kind);
+  assert.equal(f.find('script-revision').value,kind==='controller'?'3':'4');
+  const framework=['react','vue'].includes(kind)?kind:'javascript';
+  assert.equal(f.find('page-component-'+framework).checked,true);
+  if(framework==='javascript')assert.equal(f.find('script-javascript-world').value,kind==='controller'?'controller':'page');
+  const expectedSource=kind==='controller'?'return "saved controller";':kind==='page'?
+    'async function main(){return "saved page";}':kind==='react'?
+    'export default function App(){return <b>saved</b>}':'<template><b>saved</b></template>';
+  assert.equal(f.find('script-source').value,expectedSource);
+  const loaded=f.find('script-source').loadedScript;
+  assert.deepEqual(loaded,{kind:kind==='controller'?'controller':'page',id:option.scriptId,
+    revision:option.revision,framework,source:f.find('script-source').value});
+  assert.equal(f.projection.getSnapshot().scriptPicker.open,false);
+  noPickerExecution(f);
+});
+for(const kind of ['controller','page'])for(const outcome of ['cancel','failure'])
+test(`owner picker ${kind} ${outcome} preserves selected source and complete draft`,async t=>{
+  const f=await pickerFixture(t,kind,{confirmDecision:async()=>({action:outcome==='cancel'?'cancel':'confirm'}),
+    ...(outcome==='failure'?{read:async()=>{throw {code:'E_READ',message:'Read failed'};}}:{})});
+  const option=pickerOption(f,kind,'saved-'+kind);
+  if(kind==='controller'&&outcome==='failure')f.client.controller.getControllerScript=async()=>{throw {code:'E_READ',message:'Read failed'};};
+  f.find('script-list').value='';f.find('page-program-list').value='';
+  const before=editorDraft(f);
+  assert.equal(await openPicker(f,option),false);
+  assert.deepEqual(editorDraft(f),before);
+  assert.equal(f.projection.getSnapshot().scriptPicker.open,true);
+  assert.equal(f.projection.getSnapshot().scriptPicker.pending,'');
+  if(outcome==='failure')assert.match(f.projection.getSnapshot().scriptPicker.error,/E_READ/);
+  else assert.equal(f.projection.getSnapshot().scriptPicker.error,'');
+  assert.equal(f.notices.some(row=>row.message.includes('已加载')),false);
+  noPickerExecution(f);
+});
+for(const kind of ['controller','page'])for(const change of ['close','refresh'])
+test(`owner picker rejects late ${kind} response after ${change}`,async t=>{
+  const gate=deferred(),started=deferred();t.after(()=>gate.resolve());
+  const f=await pickerFixture(t,kind,{read:async input=>{
+    started.resolve();await gate.promise;
+    return {sourceUtf8:'async function main(){return 1;}',manifest:{programId:input.programId,revision:input.revision}};
+  }});
+  if(kind==='controller'){
+    const read=f.client.controller.getControllerScript;
+    f.client.controller.getControllerScript=async input=>{started.resolve();await gate.promise;return read(input);};
+  }
+  const before=editorDraft(f),pending=openPicker(f,pickerOption(f,kind,'saved-'+kind));
+  await started.promise;
+  if(change==='close'){
+    f.projection.setScriptPickerOpen(false);
+    f.projection.setScriptPickerOpen(true); // An old generation cannot affect the new menu.
+  }else await f.click(kind==='controller'?'script-list-refresh':'page-program-refresh');
+  gate.resolve();assert.equal(await pending,false);
+  assert.deepEqual(editorDraft(f),before);
+  assert.equal(f.projection.getSnapshot().scriptPicker.open,true);
+  assert.equal(f.projection.getSnapshot().scriptPicker.pending,'');
+  assert.equal(f.notices.some(row=>row.message.includes('已加载')),false);
+  noPickerExecution(f);
+});
+test('owner picker Page dependency restore failure rolls back draft, type and loaded identity',async t=>{
+  const f=await pickerFixture(t,'page',{read:async input=>({sourceUtf8:'async function main(){return 7;}',
+    authorSourceUtf8:'import value from "https://library.example.org/value.js";\nexport default async function main(){return value;}',
+    manifest:{programId:input.programId,revision:input.revision,compilation:{sourceFormat:'esm-page',
+      authorSourceHash:'0'.repeat(64),dependencyLockId:null,dependencyManifestDigest:'a'.repeat(64)}}})});
+  f.find('script-list').value='';f.find('page-program-list').value='';
+  const before=editorDraft(f);
+  assert.equal(await openPicker(f,pickerOption(f,'page','saved-page')),false);
+  assert.deepEqual(editorDraft(f),before);
+  assert.match(f.projection.getSnapshot().scriptPicker.error,/E_SOURCE_HASH/);
+  assert.equal(f.notices.some(row=>row.message.includes('已加载')),false);
+  noPickerExecution(f);
+});
+test('owner picker Page dependency lookup failure rolls back a valid author attachment and loaded draft',async t=>{
+  const authorSource='import value from "https://library.example.org/value.js";\nexport default async function main(){return value;}',
+    lookupRequests=[];
+  const f=await pickerFixture(t,'page',{read:async input=>({sourceUtf8:'async function main(){return 7;}',
+    authorSourceUtf8:authorSource,
+    manifest:{programId:input.programId,revision:input.revision,compilation:{sourceFormat:'esm-page',
+      authorSourceHash:sha256(authorSource),dependencyLockId:'dep-lock-'+ 'b'.repeat(64),
+      dependencyManifestDigest:'a'.repeat(64)}}})});
+  // Roll back a real loaded identity as well as its subsequent unsaved changes.
+  assert.equal(await openPicker(f,pickerOption(f,'controller','saved-controller')),true);
+  f.find('script-source').value='return "unsaved controller draft";';f.find('script-source').fire('input');
+  f.find('script-params').value='{"保留":"参数"}';f.find('script-params').fire('input');
+  const original=f.client.request;
+  f.client.request=async(method,input)=>{
+    if(method==='inspectPageDependencies'&&input.sourceFormat==='esm-page'){
+      lookupRequests.push(structuredClone(input));
+      assert.equal(input.sourceUtf8,authorSource);
+      assert.equal(f.find('script-id').value,'saved-page','failure occurs after staging the Page identity');
+      throw {code:'E_LOOKUP_OFFLINE',message:'saved dependency lookup unavailable'};
+    }
+    return original(method,input);
+  };
+  const before=editorDraft(f),noticeCount=f.notices.length;
+  assert.equal(await openPicker(f,pickerOption(f,'page','saved-page')),false);
+  assert.ok(lookupRequests.length>0,'valid author hash reaches the original dependency lookup');
+  assert.deepEqual(editorDraft(f),before);
+  assert.equal(f.projection.getSnapshot().scriptPicker.open,true);
+  assert.equal(f.projection.getSnapshot().scriptPicker.pending,'');
+  assert.match(f.projection.getSnapshot().scriptPicker.error,/E_DEPENDENCY_INSPECT.*saved dependency lookup unavailable/);
+  assert.equal(f.notices.slice(noticeCount).some(row=>row.message.includes('已加载')),false);
+  noPickerExecution(f);
+});
+test('Controller Save updates loaded identity and catalog revision without refresh refilling the draft',async t=>{
+  const f=await fixture();t.after(()=>f.dispose());
+  for(const revision of [1,2]){
+    const source='return '+revision+';';f.find('script-source').value=source;f.find('script-source').fire('input');
+    await f.click('script-save-version');
+    assert.deepEqual(f.find('script-source').loadedScript,{kind:'controller',id:'my-script',revision,framework:'javascript',source});
+    assert.equal(pickerOption(f,'controller','my-script').revision,revision);
+    assert.match(pickerOption(f,'controller','my-script').label,new RegExp('r'+revision+'$'));
+  }
+  const loaded=f.find('script-source').loadedScript;
+  f.find('script-source').value='// unsaved after r2';f.find('script-source').fire('input');
+  const before=editorDraft(f);await f.click('script-list-refresh');
+  assert.deepEqual(editorDraft(f),before);assert.deepEqual(f.find('script-source').loadedScript,loaded);
+  assert.equal(f.commits.length,2);assert.equal(f.starts.length,0);assert.equal(f.previews.length,0);
+});
+
+for(const kind of ['controller','page'])test(`owner picker rejects mismatched ${kind} response identity`,async t=>{
+  const f=await pickerFixture(t,kind,{read:async input=>({sourceUtf8:'async function main(){return 1;}',
+    manifest:{programId:input.programId,revision:input.revision+1}})});
+  if(kind==='controller')f.client.controller.getControllerScript=async input=>({scriptId:input.scriptId,
+    revision:99,sourceUtf8:'return "wrong revision";'});
+  const before=editorDraft(f);
+  assert.equal(await openPicker(f,pickerOption(f,kind,'saved-'+kind)),false);
+  assert.deepEqual(editorDraft(f),before);
+  assert.match(f.projection.getSnapshot().scriptPicker.error,/E_REVISION/);
+  noPickerExecution(f);
 });

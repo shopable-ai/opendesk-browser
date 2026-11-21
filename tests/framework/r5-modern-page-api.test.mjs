@@ -681,6 +681,39 @@ test('ARIA readonly, disabled, pointer-events and animation prevent a commit',as
   }finally{f.dispose();}
 });
 
+test('partially clipped controls scroll before hit testing and still reject an overlay',async()=>{
+  const dom=new JSDOM('<header></header><button>Click</button>',{pretendToBeVisual:true});
+  try {
+    const {window:win}=dom,doc=win.document,button=doc.querySelector('button'),overlay=doc.querySelector('header');
+    let box={left:49,top:-31,width:84,height:38,right:133,bottom:7},scrolls=0,clicks=0,covered=false;
+    button.getBoundingClientRect=()=>box;
+    win.requestAnimationFrame=cb=>queueMicrotask(cb);
+    win.Element.prototype.scrollIntoView=function(){
+      assert.equal(this,button);scrolls++;box={...box,top:100,bottom:138};
+    };
+    doc.elementFromPoint=()=>covered||box.top<0?overlay:button;
+    button.addEventListener('click',()=>clicks++);
+    const api=createLocatorDOM({document:doc,window:win}),locator=createLocatorDescriptor('role','button',{name:'Click',exact:true}),op={action:'click'};
+    const first=await api.prepare(locator,op);
+    assert.equal(first.ready,true);
+    assert.equal(first.scrollOnly,true);
+    assert.equal(scrolls,0,'prepare must stay read-only');
+    assert.deepEqual(api.commit(locator,op,first.token),{committed:true,scrolled:true});
+    assert.equal(clicks,0,'scroll commit must not also click');
+    covered=true;
+    assert.deepEqual(await api.prepare(locator,op),{ready:false,reason:'E_ELEMENT_OBSCURED'});
+    assert.equal(clicks,0);
+    covered=false;
+    const second=await api.prepare(locator,op);
+    assert.deepEqual(api.commit(locator,op,second.token),{committed:true});
+    assert.equal(scrolls,1);assert.equal(clicks,1);
+    // An element wider than the viewport cannot be made fully visible.
+    box={left:-50,top:100,width:win.innerWidth+100,height:38,right:win.innerWidth+50,bottom:138};
+    const oversized=await api.prepare(locator,op);
+    assert.equal(oversized.ready,true);assert.equal(oversized.scrollOnly,undefined);
+  } finally {dom.window.close();}
+});
+
 test('subpixel movement across frame checks prevents a locator commit',async()=>{
   const f=fixture();
   try {

@@ -24,6 +24,9 @@ function bounded(value){
 // v7 interns scope fields and stores verified result prefixes as a count;
 // v8 shares the domain/host/path/store/partition tuple across named Cookie slots.
 // v9 stores each validated state/resolution pair as a fixed outcome tag.
+// v10 packs UUIDs and the SHA-256 digest without changing their decoded values.
+// v11 shares one binary string across those four fields when all three IDs are UUIDs.
+// v12 shares exact intents and payload digests and packs UUID scope fields.
 // Each is used only when the previous encoding exceeds the SAME 8 KiB quota.
 // No history is pruned, and exact readback still establishes each CAS outcome.
 const SLOT_FIELDS=['name','domain','hostOnly','path','storeId','partitionKey'];
@@ -31,6 +34,30 @@ const ATTEMPT_FIELDS=['scopeKey','attemptId','requestId','deliveryId','policyVer
   'expiresAt','count','slots','state','resolution','results'];
 const OUTCOMES=[['unknown','pending'],['failed','not-submitted'],['success','receipt'],
   ['partial','receipt'],['failed','receipt'],['unknown','receipt']];
+const WIRE_VERSIONS=[3,4,5,6,7,8,9,10,11,12];
+const UUID=/^[a-f0-9]{8}(?:-[a-f0-9]{4}){3}-[a-f0-9]{12}$/;
+function packHex(hex){
+  return btoa(hex.match(/../g).map(byte=>String.fromCharCode(parseInt(byte,16))).join(''))
+    .replaceAll('+','-').replaceAll('/','_').replace(/=+$/,'');
+}
+function unpackHex(value,length){
+  if(typeof value!=='string'||value.length!==Math.ceil(length*8/6)||!/^[A-Za-z0-9_-]+$/.test(value))fail();
+  return Array.from(atob(value.replaceAll('-','+').replaceAll('_','/')),
+    byte=>byte.charCodeAt(0).toString(16).padStart(2,'0')).join('');
+}
+function packId(value){
+  if(UUID.test(value))return '~'+packHex(value.replaceAll('-',''));
+  return value.startsWith('~')?'~'+value:value;
+}
+function unpackId(value){
+  if(typeof value!=='string')fail();
+  if(value.startsWith('~~'))return value.slice(1);
+  if(!value.startsWith('~'))return value;
+  return formatUuid(unpackHex(value.slice(1),16));
+}
+function formatUuid(hex){
+  return [hex.slice(0,8),hex.slice(8,12),hex.slice(12,16),hex.slice(16,20),hex.slice(20)].join('-');
+}
 const encodeResults=results=>results.map(r=>r.code===undefined?
   [r.index,r.saved,r.verified]:[r.index,r.saved,r.verified,r.code]);
 function decodeResults(results){
@@ -103,15 +130,44 @@ function encodeJournal(value,version){
     encoded.attempts=encoded.attempts.map(tuple=>[...tuple.slice(0,9),
       OUTCOMES.findIndex(([state,resolution])=>state===tuple[9]&&resolution===tuple[10]),tuple[11]]);
   }
+  if(version>=10||(version===undefined&&new TextEncoder().encode(JSON.stringify(encoded)).length>MAX_BYTES)){
+    encoded.schemaVersion=10;
+    encoded.attempts=encoded.attempts.map(([scope,attempt,request,delivery,policy,hash,...rest])=>
+      [scope,packId(attempt),packId(request),packId(delivery),policy,packHex(hash),...rest]);
+  }
+  const individualAttempts=encoded.attempts;
+  if(version===11||(version===undefined&&new TextEncoder().encode(JSON.stringify(encoded)).length>MAX_BYTES)){
+    encoded.schemaVersion=11;
+    encoded.attempts=encoded.attempts.map((tuple,index)=>{
+      const {attemptId,requestId,deliveryId,payloadHash}=value.attempts[index];
+      const ids=[attemptId,requestId,deliveryId];
+      if(!ids.every(id=>UUID.test(id)))return tuple;
+      const [scope,,,,policy,,...rest]=tuple;
+      const hex=ids.map(id=>id.replaceAll('-','')).join('')+payloadHash;
+      return [scope,packHex(hex),policy,...rest];
+    });
+  }
+  if(version===12||(version===undefined&&new TextEncoder().encode(JSON.stringify(encoded)).length>MAX_BYTES)){
+    encoded.schemaVersion=12;
+    const intents=[],intentIds=new Map(),digests=[],digestIds=new Map();
+    encoded.scopeFields=encoded.scopeFields.map(packId);
+    encoded.attempts=individualAttempts.map(([scope,attempt,request,delivery,policy,digest,expiry,count,slots,outcome,results])=>{
+      const intent=[scope,request,delivery,policy,intern(digests,digestIds,digest),expiry,count,slots];
+      return [intern(intents,intentIds,intent),attempt,outcome,results];
+    });
+    encoded.intents=intents;
+    encoded.digests=digests;
+  }
   return encoded;
 }
 function journalBounded(value){bounded(encodeJournal(value));return value;}
 function decodeJournal(value){
   bounded(value);
-  const v7=value.schemaVersion>=7,v8=value.schemaVersion>=8,v9=value.schemaVersion===9;
+  const v7=value.schemaVersion>=7,v8=value.schemaVersion>=8,v9=value.schemaVersion>=9;
+  const v12=value.schemaVersion===12;
   if(!exact(value,['schemaVersion','legacy','scopes','slots','attempts',...(v7?['scopeFields']:[]),
-    ...(v8?['slotScopes']:[])])||
-    ![3,4,5,6,7,8,9].includes(value.schemaVersion)||
+    ...(v8?['slotScopes']:[]),...(v12?['intents','digests']:[])])||
+    !WIRE_VERSIONS.includes(value.schemaVersion)||
     !Array.isArray(value.scopes)||!Array.isArray(value.slots)||!Array.isArray(value.attempts)||
     value.attempts.length>128||value.scopes.length>128||value.slots.length>128||
     (!v7&&value.scopes.some(s=>typeof s!=='string'||s.length>8192))||
@@ -124,11 +180,15 @@ function decodeJournal(value){
     value.scopeFields.some(s=>typeof s!=='string'||s.length>2048)))fail();
   if(v8&&(!Array.isArray(value.slotScopes)||value.slotScopes.length>6400||
     value.slotScopes.some(s=>!Array.isArray(s)||s.length!==SLOT_FIELDS.length-1)))fail();
+  if(v12&&(!Array.isArray(value.intents)||value.intents.length>value.attempts.length||
+    value.intents.some(intent=>!Array.isArray(intent)||intent.length!==8)||
+    !Array.isArray(value.digests)||value.digests.length>value.intents.length))fail();
+  const scopeFields=v12?value.scopeFields.map(unpackId):value.scopeFields;
   const scopes=v7?value.scopes.map(scope=>{
     if(!Array.isArray(scope)||scope.length!==8||!Array.isArray(scope[7])||
       ![2,5].includes(scope[7].length))fail();
-    return JSON.stringify([...scope.slice(0,7).map(i=>ref(value.scopeFields,i)),
-      scope[7].map(i=>ref(value.scopeFields,i))]);
+    return JSON.stringify([...scope.slice(0,7).map(i=>ref(scopeFields,i)),
+      scope[7].map(i=>ref(scopeFields,i))]);
   }):value.scopes;
   const slots=value.schemaVersion>=4?value.slots.map(list=>list.map(stored=>{
     let tuple=stored;
@@ -140,10 +200,27 @@ function decodeJournal(value){
     return Object.fromEntries(SLOT_FIELDS.map((field,index)=>[field,tuple[index]]));
   })):value.slots;
   const attempts=value.attempts.map(stored=>{
+    if(v12){
+      if(!Array.isArray(stored)||stored.length!==4)fail();
+      const [intent,attempt,outcome,results]=stored;
+      const [scope,request,delivery,policy,digest,expiry,count,slots]=ref(value.intents,intent);
+      stored=[scope,attempt,request,delivery,policy,ref(value.digests,digest),expiry,count,slots,outcome,results];
+    }
+    const jointlyPacked=value.schemaVersion===11&&Array.isArray(stored)&&stored.length===8;
+    if(jointlyPacked){
+      const [scope,packed,policy,...rest]=stored;
+      const hex=unpackHex(packed,80);
+      stored=[scope,...[0,32,64].map(offset=>formatUuid(hex.slice(offset,offset+32))),
+        policy,hex.slice(96),...rest];
+    }
     if(v9){
       if(!Array.isArray(stored)||stored.length!==11||!Number.isSafeInteger(stored[9])||
         stored[9]<0||stored[9]>=OUTCOMES.length)fail();
       stored=[...stored.slice(0,9),...OUTCOMES[stored[9]],stored[10]];
+    }
+    if(value.schemaVersion>=10&&!jointlyPacked){
+      const [scope,attempt,request,delivery,policy,hash,...rest]=stored;
+      stored=[scope,unpackId(attempt),unpackId(request),unpackId(delivery),policy,unpackHex(hash,32),...rest];
     }
     if(value.schemaVersion>=5&&(!Array.isArray(stored)||stored.length!==ATTEMPT_FIELDS.length))fail();
     const row=value.schemaVersion>=5?Object.fromEntries(ATTEMPT_FIELDS.map((field,index)=>[field,stored[index]])):stored;
@@ -426,7 +503,7 @@ export async function readCookieJournal(request){
   const result=await request('storage.get',{key:COOKIE_JOURNAL_KEY,withEtag:true});
   if(!plain(result)||result.preview===true||!Object.hasOwn(result,'value')||
     typeof result.etag!=='string'||! /^[a-f0-9]{64}$/.test(result.etag))fail();
-  return {etag:result.etag,value:[3,4,5,6,7,8,9].includes(result.value?.schemaVersion)?decodeJournal(result.value):
+  return {etag:result.etag,value:WIRE_VERSIONS.includes(result.value?.schemaVersion)?decodeJournal(result.value):
     result.value?.schemaVersion===2?validateMigratedCookieJournal(bounded(result.value)):
     validateLegacyCookieRecord(result.value)};
 }
@@ -472,4 +549,12 @@ export async function migrateCookieJournal(request,mappings=[]){
   // Persisting an unattributed wrapper would strand it behind the v2 fast path.
   if(next.legacy.record&&!next.legacy.attribution)fail('E_COOKIE_LEGACY_UNATTRIBUTED');
   return save(request,before,next,'E_COOKIE_MIGRATION_UNCONFIRMED');
+}
+
+/** Initialize an empty, separately scoped journal with already verified rows. */
+export async function seedCookieJournal(request,attempts){
+  const before=await read(request);
+  if(before.value?.schemaVersion===2)return before;
+  if(before.value!==null)fail('E_COOKIE_MIGRATION_REQUIRED');
+  return save(request,before,{...planCookieJournalMigration(null),attempts},'E_COOKIE_MIGRATION_UNCONFIRMED');
 }

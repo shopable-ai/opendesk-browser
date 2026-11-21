@@ -6,7 +6,7 @@ OpenDesk Browser 中的独立 Sidebar Tool + 受管 Page USER_SCRIPT（不是第
 
 - 完成安装及网页范围审阅后默认开启；在侧边栏中可一键暂停/恢复。
 - “在当前网站启用”只修改该 HTTP(S) origin 的例外，不影响其他站点。
-- 目标是恢复静态网页文本选择、原生右键菜单、Ctrl+C / Cmd+C 和原生复制结果；已实测恢复 CSS / `selectstart` 禁选。`copy`、`contextmenu`、快捷键拦截已有 Node 证据，真实剪贴板及菜单仍为 NOT_TESTED，不能保证覆盖所有事件注册顺序。
+- 对获准网站的静态文字，恢复拖选、复制快捷键和原生右键复制。macOS 上已用审阅安装的工具验证两种复制路径及粘贴原文；见下方实测。不能保证覆盖所有网站或事件注册顺序。
 - 不读取、保存或发送选中文字，不读写系统剪贴板，不访问网络、不请求原生 Tab/剪贴板权限。
 - 暂停时移除本工具注入的样式；事件监听在受管 Page 生命周期结束时清理。轮询私有设置用于侧栏关闭后、其他网页标签页的设置收敛，约 1.2s；失败安全停用。
 
@@ -26,12 +26,54 @@ OpenDesk Browser 中的独立 Sidebar Tool + 受管 Page USER_SCRIPT（不是第
 
 功能范围：P0 开关、选择/复制/右键恢复；P1 站点例外已实现。OCR、图片、PDF、跨 iframe、强制复制按钮及剪贴板历史不属于首版。
 
+当前安装包：[v0.1.5](free-copy.opendesk-tool.json)，网页模块 Revision 6。侧栏的待开启提示指向「扩展 → 更多 → 网页功能帮助」。网页脚本只更新生成的版本头部，复制逻辑、权限和站点范围不变。更新时在「扩展 → 更多 → 导入扩展」重新选择此文件，审阅后确认更新，无需先卸载。下方的复制快捷键与原生菜单实测来自 v0.1.3。此前 v0.1.1 → v0.1.2 的升级证据见[运行状态复验](../../docs/framework/web-feature-status-verification-20261121.zh-CN.md)。
+
+## 快速自测与已安装 Chrome 实测（2026-11-21）
+
+用现有服务打开[局域网限制复制测试页](http://192.168.28.244:8000/blocked-copy.html)。如需在自己的机器单独自测，从项目目录运行下方命令，打开[本地测试页](http://127.0.0.1:8876/blocked-copy.html)，测试后用 Ctrl+C 停止自己启动的服务。页面源码在 [tests/blocked-copy.html](tests/blocked-copy.html)。使用 HTTP；直接双击打开的 `file://` 不属于工具作用范围。
+
+```sh
+python3 -m http.server 8876 --bind 127.0.0.1 --directory tests
+```
+
+从侧栏「扩展」审阅安装现有 JSON，并确认 Chrome 允许扩展访问该网站。如果安装后显示「网页功能待开启」，进入「扩展 → 更多 → 网页功能帮助」：通过「打开 Chrome 扩展设置」开启「允许用户脚本」，再返回点自由复制这一行的「检查网页功能」。如果已打开的测试页还未加载模块，先保存网页内容，再刷新一次。
+
+日常只做顶部的「综合测试」。保持总开关开启，只切换「在当前网站启用」：暂停时，蓝框正文选不中，右键也不弹菜单；开启后，拖选 A，用 ⌘C 或 Ctrl+C 复制并粘贴出 A 原文；再拖选 B，在高亮上右键点浏览器的「复制」，粘贴出 B 原文。使用两行不同文字，避免把上一次的粘贴结果算作通过。结果异常再展开「故障排查」。
+
+**v0.1.3/r4 局域网实测。** ego Lite 在同一地址确认蓝框不可拖选，右键拦截计数增加；该环境没有挂载自由复制，本轮未修改共享 Profile。隔离 macOS Chrome for Testing 155.0.8059.39 通过原生侧栏审阅安装正式 JSON（SHA-256 `be528a2270dd526d7e2f3619f24d9a8f88d5873391b37603809987e62e8f2487`），加载仓库 `dist/development`，开发服务已连接，构建指纹 `5b47b77c2aac`。Chrome 网站访问已允许。未开启「允许用户脚本」时，安装后两个偏好开关均打开，但网页没有挂载；打开 Chrome 开关后仍须执行该应用的「检查网页功能」。应用显示网页功能已开启后，旧文档仍未挂载，刷新后才生效。
+
+| 同一已挂载文档 | 真实结果 |
+| --- | --- |
+| 当前站点暂停 | A 拖选为空，右键拦截计数增加，原生菜单未出现 |
+| 当前站点开启，拖选 A → ⌘C → ⌘V | 粘贴 `A 原文：雨后街角有一盏蓝灯。` |
+| 保持开启，拖选 B → Chrome 原生「复制」 → ⌘V | 粘贴 `B 原文：窗边的书翻到了第七页。`，替换了 A |
+| 当前站点再次暂停 | A 再次拖选为空，原生菜单不出现；总开关仍开启 |
+
+本轮保留现有安装包、权限和网页模块；运行回执见本机 `artifacts/free-copy-lan-20261121/native.json`。未核实用户原浏览器 Profile，也未测试 Windows/Linux、撤权或生产包。下方是旧版分项的历史实测。
+
+隔离 macOS Chrome for Testing 155.0.8059.39，使用本仓库 `dist/development` 和原生 Side Panel。侧栏读回开发服务已连接，已应用指纹 `5b47b77c2aac994096e9fc652ec0d7a5b1423d263a1020a760b0f4acfcdfe402`。通过「扩展 → 导入 → 审阅 → 安装」安装 v0.1.2/r3；包 SHA-256 `921f58f836cc959c55c0d8e24bae5fd82c3f16a398be95be059137cd7bc6cffd`。安装时已打开的旧文档需刷新才挂载。以下对照始终保持站点访问及「允许用户脚本」开启，在同一已挂载文档操作站点开关。
+
+| 测试区与操作 | 首次暂停 | 开启 | 再次暂停 |
+| --- | --- | --- | --- |
+| 1 · CSS 禁选，真实鼠标拖整行 | 选不中 | 完整选中 | 选不中 |
+| 2 · `selectstart`，真实鼠标拖整行 | 选不中，计数加 1 | 完整选中 | 此次落点未校准，不计 |
+| 3 · 快捷键拦截，⌘C → ⌘V | 粘贴第 0 区基准 | 粘贴第 3 区原文 | 粘贴第 0 区基准 |
+| 4 · 篡改复制，⌘C → ⌘V | 粘贴篡改标记 | 粘贴第 4 区原文 | 粘贴篡改标记 |
+| 4 · 篡改复制，点原生菜单「复制」→ ⌘V | 粘贴篡改标记，计数加 1 | 粘贴第 4 区原文，计数不变 | 未重复点击菜单 |
+| 5 · 禁右键，点选中文字 | 不弹原生菜单，计数加 1 | 点原生「复制」后粘贴第 5 区完整原文 | 不弹原生菜单，计数加 1 |
+| 5 · ⌘C → ⌘V 对照 | 正常粘贴第 5 区原文 | 正常 | 正常 |
+| 7 · 普通 input、textarea、富文本 | 可编辑、全选、复制并粘贴核对 | 同左；另见输入框原生剪切/粘贴菜单，按钮点击及拖动计数各加 1 | 可编辑、全选、复制并粘贴核对 |
+
+快捷键测试先建立精确选区再发送键盘输入；拖选单独使用真实鼠标。原生菜单测试使用整行鼠标拖选、在高亮上右键、点击 Chrome「复制」，以粘贴结果和该区计数核对。早期驱动点到了其他位置，曾出现通用网页菜单、未选中文字或点不到侧栏开关；这些记录没有用来判定产品。第 6 区 `mousedown.preventDefault` 在开启后仍能阻止起始拖选，属于现有适用边界。测试页这次只补快速入口、原生菜单指引及就近粘贴框，测试事件和 v0.1.2/r3 的运行代码未改。
+
+本机原始回执在 `artifacts/free-copy-native-20261121/native.json`。更新后的测试页用 ego 核对了跳转、粘贴框和 CSS 禁选基准；项目 Node 19/19、正式 JSON 同源核对通过。Windows、Linux 的 Ctrl+C 仍缺真实平台证据；Node 只覆盖 `ctrlKey` 分支。第 3 区的原生菜单复制未单独实点，两站点的已安装 Chrome、鼠标手势右拖组合、独立站点撤权及生产验收均未验证。本节实测覆盖的是普通获准 HTTP(S) 顶层网页上的本地用例。
+
 
 ## 需求、交互与验收交接（唯一持续记录）
 
 > 更新：2026-11-12，任务 `OD-FREE-COPY-WORKFLOW-GAP-CLOSURE-R3`。复用现行 [Extension Creation Workflow（九环节、四关卡）](../../.agents/workflows/extension-creation.md)、[Skills 路由](../../.agents/skills/README.md)、[HTML 预览 Skill](../../.agents/skills/opendesk-ui-preview/SKILL.md)。**本段是项目的功能树、已知缺口和下一动作的唯一持续记录；下一轮先读最新 main 与真实 CI/原生证据，只补未完成项，不新建 R3/R4 总文档。**
 
-**当前结论：可交互同源 HTML 预览、限制复制 fixture 和可导入 0.1.1 包已存在；离线晋升门禁通过，尚未证明真实安装后可用，R3 最终验收未完成。** 两个真实网站的源码浏览器测试通过选择恢复对照，不等于 Chrome 安装、权限、原生复制或撤权通过。当前模式为离线预览 + ego 浏览器源码测试，没有启动 Browser 构建、替换 `dist/development` 或重载日常扩展。
+**以下为 v0.1.1 历史记录。** 离线晋升门禁与两个公开演示站点的源码拖选对照通过。当时没有真实审阅安装证据；v0.1.2 已安装证据见上节。历史记录中的 NOT_TESTED 仅代表当时的状态。
 
 ### 原始目标与用户操作
 
@@ -86,7 +128,7 @@ node scripts/preview/build-preview.mjs --tool free-copy --out projects/free-copy
 
 ### 实测证据与未通过项
 
-[tests/fixtures/blocked-copy.html](tests/fixtures/blocked-copy.html) 已存在，分别设置 CSS 禁选、`selectstart`、Cmd/Ctrl+C、复制篡改、右键拦截、`mousedown.preventDefault` 和普通 input/textarea/contenteditable/button/draggable；不内置 Free Copy 或虚假 ON/OFF。可在仓库根用本地 HTTP 服务打开它。下列浏览器测试以**当前 `src/page/unlock.js` 原模块和受控测试生命周期**挂载，再用真实浏览器鼠标拖选；没有调用安装 Authority，统一标记 `BROWSER_SOURCE_HARNESS_NOT_INSTALLED`。
+[tests/blocked-copy.html](tests/blocked-copy.html) 分别设置 CSS 禁选、`selectstart`、Cmd/Ctrl+C、复制篡改、右键拦截、`mousedown.preventDefault` 和普通 input/textarea/contenteditable/button/draggable；不内置 Free Copy 或虚假 ON/OFF。可用本地 HTTP 服务打开它。下列历史浏览器测试以 **`src/page/unlock.js` 原模块和受控测试生命周期**挂载，再用真实浏览器鼠标拖选；没有调用安装 Authority，统一标记 `BROWSER_SOURCE_HARNESS_NOT_INSTALLED`。
 
 | 页面/机制 | OFF → ON → OFF 实际读回 | 证据边界 |
 | --- | --- | --- |

@@ -14,28 +14,31 @@ export function DevelopLocalProject(){
           <div className="local-project-controls od-toolbar">
             <DevelopField as="select" id="local-project-select" className="od-field"/>
             <DevelopPromptButton local/>
-            <DevelopField as="button" id="local-project-refresh" type="button" className="od-icon-button" title="刷新已授权本地项目" aria-label="刷新已授权本地项目">
-              <svg viewBox="0 0 24 24" aria-hidden="true">
-                <path d="M20 11a8 8 0 1 0-2.4 5.7M20 4v7h-7">
-                </path>
-              </svg>
-            </DevelopField>
           </div>
           </div>
           </div>
           <div className="od-stack">
-          <DevelopField as="p" id="local-project-status" role="status" aria-live="polite">
+          <DevelopField as="p" id="local-project-status" role="status" aria-live="polite"/>
+          <DevelopField as="button" id="local-project-refresh" aria-describedby="local-project-preview-hint" type="button" className="od-button od-button--secondary local-project-refresh">
+            检查连接与项目
           </DevelopField>
           <p id="local-project-intro" className="local-project-intro od-note">在外部编辑器修改源码，这里运行或调试。</p>
           <DevelopField as="p" id="local-project-tool-pointer" className="od-field-help" role="status" aria-live="polite"/>
-          <DevelopField as="div" id="local-project-recovery" className="local-project-recovery">
-            <DevelopField as="button" id="local-project-connect" className="local-project-connect od-button od-button--secondary" type="button">
-              {"连接本机 OpenDesk ↗"}
+          <div className="local-project-actions">
+            <DevelopField as="div" id="local-project-recovery" className="local-project-recovery">
+              <DevelopField as="button" id="local-project-connect" className="local-project-connect od-button od-button--secondary" type="button">
+                {"连接本机 OpenDesk ↗"}
+              </DevelopField>
             </DevelopField>
-          </DevelopField>
-          <div className="od-toolbar">
-            <DevelopField as="button" id="local-project-preview" type="button" className="od-button od-button--secondary">在侧栏调试 ↗</DevelopField>
+            <DevelopField as="button" id="local-project-preview" aria-describedby="local-project-preview-hint" type="button" className="od-button od-button--secondary">在侧栏调试 ↗</DevelopField>
           </div>
+          <DevelopField as="p" id="local-project-preview-hint" className="od-field-help"/>
+          <DevelopField as="details" id="local-project-guide" className="local-project-guide od-disclosure od-disclosure--info">
+            <summary>连接方法：单文件与目录</summary>
+            <p>重新打开侧栏时，会找回当前连接中已授权的单文件。若本机连接已关闭，请用 <code>opendesk browser project add</code> 为新连接重新授权。</p>
+            <p>要调试侧栏工具，先生成工具的开发构建。在源码目录运行 <code>opendesk browser dev .</code>，或按示例用 <code>opendesk browser workspace add</code> 授权目录，再回来选择它。</p>
+            <DevelopField as="button" id="local-project-guide-open" type="button" className="od-button od-button--secondary">查看授权与构建示例 ↗</DevelopField>
+          </DevelopField>
           </div>
 
           <DevelopField as="section" id="local-install-review" className="local-install-review od-surface" aria-label="固定版本安装确认" aria-describedby="local-install-summary local-install-warning" tabIndex="-1">
@@ -73,58 +76,6 @@ export function DevelopLocalProject(){
             <DevelopOptionsSummary>项目设置与连接</DevelopOptionsSummary>
             <div className="developer-option-body od-stack">
               <p className="od-note">模块、依赖和资源在本地项目维护，源码历史由 Git 管理。</p>
-            <DevelopField as="details" id="local-project-guide" className="local-project-guide od-disclosure od-disclosure--info">
-              <summary>
-                {"首次使用：连接方法"}
-              </summary>
-              <ol>
-                <li>
-                  {"首次使用时安装并配对 OpenDesk 原生程序；仅在 Native 未连接时点击「连接本机 OpenDesk」完成可信授权。"}
-                </li>
-                <li>
-                  {"在要授权的目录执行"}
-                  <code>
-                    {"opendesk browser dev ."}
-                  </code>
-                  {"或"}
-                  <code>
-                    {"opendesk-dev ."}
-                  </code>
-                  {"；单文件使用原有的"}
-                  <code>
-                    {"opendesk browser project add"}
-                  </code>
-                  {"命令。"}
-                </li>
-                <li>
-                  {"已授权项目会自动出现、自动准备；多个项目可切换，再点击「运行本地项目」。"}
-                </li>
-                <li>
-                  Sidebar Tool 从 <code>examples/sidebar-tools/react-starter/README.md</code> 的现有示例开始；
-                  在项目目录运行 <code>npm run build:watch</code>，另一个终端运行
-                  <code>node ../../../scripts/watch-sidebar-tool.mjs "$PWD"</code>，再选择目录并点击「在侧栏调试 ↗」。
-                  这些命令由开发者执行，此入口不会运行 npm 或安装工具。
-                </li>
-              </ol>
-              <p>
-                {"Native 连接、源码 Provider 和"}
-                <code>
-                  {"127.0.0.1:43111"}
-                </code>
-                {"测试网页互不等价；已有授权不必重新配对，网站权限仍在运行时独立确认。"}
-              </p>
-              <DevelopField as="button" id="local-project-guide-open" type="button" className="od-button od-button--secondary">
-                {"查看首次配置命令和示例 ↗"}
-              </DevelopField>
-
-              <p>
-                {"查看"}
-                <code>
-                  {"docs/api/local-projects.zh-CN.md"}
-                </code>
-                {"中的正式授权示例。"}
-              </p>
-              </DevelopField>
           <DevelopField as="details" id="local-project-params-tools" className="od-disclosure">
             <summary>
               {"项目参数 JSON（Controller 可选）"}

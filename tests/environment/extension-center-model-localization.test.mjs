@@ -2,11 +2,38 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import {describeInstalledPageControl} from '../../src/ui/extension-center-model.js';
 
+test('installed Page identifies the switch without conflating suspended, disabled, or unknown state',()=>{
+  for(const programId of ['test-page','opendesk.ai-scroll-navigation']){
+    const page={programId,enabled:true,nativeState:'blocked',authorization:{status:'active'},
+      error:{code:'E_USER_SCRIPTS_UNAVAILABLE'},pageRules:{matches:['https://example.com/*']}};
+    const state=describeInstalledPageControl(page);
+    assert.equal(state.state,'restricted');
+    assert.match(state.note,/允许用户脚本.*刷新可信状态/);
+    for(const override of [{enabled:false},{authorization:{status:'suspended'}},{error:{code:'E_EFFECT_UNKNOWN'}}]){
+      const result=describeInstalledPageControl({...page,...override});
+      assert.doesNotMatch(result.note,/允许用户脚本/);
+    }
+  }
+});
+
 test('state translation keeps permission and cleanup decisions unchanged',()=>{
   const page={programId:'reader',enabled:true,nativeState:'registered',authorization:{status:'active'},pageRules:{matches:['https://example.com/*']}};
   const zh=describeInstalledPageControl(page),en=describeInstalledPageControl(page,[],'en');
   assert.equal(en.status,'Auto-run requirements are ready');
   for(const key of ['state','enabled','enabledKnown','canRestore','legacyProgramId'])assert.equal(en[key],zh[key]);
+});
+
+test('approved Page installations waiting for browser capability or readback do not ask for access again',()=>{
+  for(const programId of ['test-page','opendesk.ai-scroll-navigation']){
+    const page={programId,enabled:true,authorization:{status:'active'},pageRules:{matches:['https://example.com/*']}};
+    const waiting=describeInstalledPageControl({...page,nativeState:'waiting-user-scripts'});
+    assert.equal(waiting.state,'pending');assert.equal(waiting.canRestore,false);
+    assert.match(waiting.note,/浏览器当前无法运行用户脚本.*无需重新安装或授权/);
+    const unknown=describeInstalledPageControl({...page,nativeState:'activation-unconfirmed'});
+    assert.equal(unknown.canRestore,false);assert.match(unknown.note,/不会自动重新提交/);
+    const revoked=describeInstalledPageControl({...page,nativeState:'waiting-user-scripts',authorization:{status:'suspended'}});
+    assert.equal(revoked.canRestore,true);assert.equal(revoked.state,'restricted');
+  }
 });
 
 

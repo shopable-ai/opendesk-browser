@@ -5,6 +5,7 @@ import {createHash} from 'node:crypto';
 import vm from 'node:vm';
 import {parseHTML} from 'linkedom';
 import * as React from 'react';
+import {readReviewedSearchTask} from './fixtures/reviewed-search-tasks.mjs';
 
 // Real React and delegated DOM events, with ONLY the SDK transport substituted.
 // These checks do not establish Chrome user activation, IDB or installation.
@@ -14,8 +15,7 @@ bootstrap.document.oninput=null;
 const {createRoot}=await import('react-dom/client');
 const source=name=>readFileSync(new URL('../src/ui/'+name,import.meta.url),'utf8');
 const config=JSON.parse(readFileSync(new URL('../tool.config.json',import.meta.url),'utf8'));
-const manifests=new Map(config.delegatedTasks.map(pin=>[pin.taskId,JSON.parse(readFileSync(
-  new URL('../../../examples/tasks/'+pin.taskId+'.v1.opendesk-task.json',import.meta.url),'utf8')).manifest]));
+const manifests=new Map(config.delegatedTasks.map(pin=>[pin.taskId,readReviewedSearchTask(pin).manifest]));
 const deferred=()=>{let resolve,reject;const promise=new Promise((a,b)=>{resolve=a;reject=b;});return {promise,resolve,reject};};
 const problem=code=>Object.assign(Error(code),{code});
 function sdk(){
@@ -80,12 +80,12 @@ async function mount(t,host=sdk()){
     const found=[...scope.querySelectorAll('button')].filter(n=>{
       const name=n.getAttribute('aria-label')||'';
       return n.textContent===label||name===label||
-        label==='运行'&&(name.startsWith('准备运行 ')||name.startsWith('无法运行 '))||
-        label==='刷新'&&name==='刷新脚本安装状态';
+        label==='运行'&&(name.startsWith('准备运行 ')||name.startsWith('无法运行 '));
     });
     assert.equal(found.length,1,'Unique visible control: '+label);return found[0];
   };
   const f={host,window,document,errors,close,find,text:()=>document.body.textContent,
+    async refreshScripts(){await f.click('筛选脚本');await f.click('刷新脚本安装状态');},
     async click(label,scope){const node=find(label,scope);assert.equal(node.disabled,false,label+' enabled');
       await React.act(async()=>{host.inClick=true;
         try{node.dispatchEvent(new window.Event('click',{bubbles:true}));}finally{host.inClick=false;}});},
@@ -417,7 +417,7 @@ test('uninstalled or disabled task has a readable recovery path, manifest detail
   assert.doesNotMatch(taskCard(f).textContent,/Task is disabled or not installed/);
   assert.match(taskCard(f).textContent,/任务说明待核对/);
   const pending=deferred();host.taskRead=id=>id==='baidu.search.top3'?pending.promise:{task:host.pins[1]};
-  await f.click('刷新');
+  await f.refreshScripts();
   assert.ok(!taskCard(f).textContent.includes('此任务尚未安装或已停用'),'refresh clears the previous failure');
   assert.equal(f.find('运行',taskCard(f)).disabled,true);
   await f.flush(()=>pending.resolve({task:host.pins[0]}));
@@ -481,8 +481,8 @@ test('runtime mismatch explains recovery, stays in attention and only becomes ru
   await f.click('更多操作：百度搜索 · 前三条自然结果',taskCard(f));
   await f.click('宿主管理',taskCard(f));
   assert.deepEqual(host.calls.filter(c=>c.name==='tasks.open').map(c=>c.args),[{taskId:'baidu.search.top3'}]);
-  await f.click('刷新');assert.match(taskCard(f).textContent,/待重新验证/);
-  stale=false;await f.click('刷新');
+  await f.refreshScripts();assert.match(taskCard(f).textContent,/待重新验证/);
+  stale=false;await f.refreshScripts();
   assert.match(f.text(),/没有匹配的固定任务/);
   await f.click('清除筛选');
   assert.match(taskCard(f).textContent,/可手动运行/);
@@ -540,12 +540,12 @@ test('page event payload cannot grant permission and a late closed-page read can
 test('configuration requires a complete fixed installation and refresh invalidates stale pins',async t=>{
   const host=sdk(),f=await mount(t,host);await f.click('脚本');
   const pending=deferred();host.taskRead=id=>id===host.pins[0].taskId?pending.promise:{task:host.pins[1]};
-  await f.click('刷新');assert.equal(f.find('运行',taskCard(f)).disabled,true);
+  await f.refreshScripts();assert.equal(f.find('运行',taskCard(f)).disabled,true);
   await f.flush(()=>pending.resolve({task:{...host.pins[0],installationId:''}}));
   assert.equal(f.find('运行',taskCard(f)).disabled,true);
   assert.match(taskCard(f).textContent,/任务不可用/);
   host.taskRead=null;host.pins[0]={...host.pins[0],version:'99.0.0'};
-  await f.click('刷新');assert.match(taskCard(f).textContent,/固定版本不匹配/);
+  await f.refreshScripts();assert.match(taskCard(f).textContent,/固定版本不匹配/);
   assert.equal(host.calls.some(c=>c.name==='tasks.configure'),false);
 });
 

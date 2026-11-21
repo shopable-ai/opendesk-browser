@@ -4,17 +4,21 @@ import {Button,IconButton} from '../components/ui/button.tsx';
 import {presentSchedulePlan,formatScheduleTime,scheduleFireLabel} from '../../schedule-plan-presentation.js';
 import {scheduleStatusGuidance} from '../../scheduled-task-workbench.js';
 
-export function MyTaskParams({view,disabled=false}){
+export function MyTaskParams({view,disabled=false,clarifyExecutionTab=false}){
   return (view.data.taskParams||[]).map(({name,rule,required})=>{
-    const id='task-param-'+name,help=rule.description?id+'-help':undefined;
-    const fullTitle=rule.title||name;
-    // Presentation alias only: keep the installed Task Schema and accessible name intact.
-    const shortTitle=name==='showExecutionTab'&&fullTitle==='显示执行标签页'?'显示标签页':fullTitle;
+    const id='task-param-'+name;
+    const executionTab=name==='showExecutionTab'&&rule.type==='boolean'&&!rule.enum&&rule.title==='显示执行标签页';
     const fixed=Array.isArray(rule.enum)&&rule.enum.length===1;
+    const topThree=name==='limit'&&rule.type==='integer'&&rule.title==='结果数量'&&fixed&&rule.enum[0]===3&&rule.default===3;
+    const fullTitle=executionTab?(clarifyExecutionTab?'运行时切到执行标签页':'切到执行标签页'):topThree?'结果上限':rule.title||name;
+    const help=rule.description||executionTab?id+'-help':undefined;
     const field=view.field(id),toggle=rule.type==='boolean'&&!rule.enum;
+    const isFixedValue=fixed&&(required||Object.hasOwn(rule,'default'))&&!field.error&&!field.omitted&&
+      field.value===String(rule.enum[0]);
     const optionalToggle=toggle&&!required&&!Object.hasOwn(rule,'default');
     // maxLength validates content; it must not silently change a plain text field to textarea.
-    const error=field.error,describedBy=[help,toggle?id+'-state':null,error?id+'-error':null].filter(Boolean).join(' ')||undefined;
+    const showToggleState=toggle&&(!executionTab||optionalToggle);
+    const error=field.error,describedBy=[help,showToggleState?id+'-state':null,error?id+'-error':null].filter(Boolean).join(' ')||undefined;
     const clearError=()=>{
       const field=view.field(id),status=view.field('task-status');
       field.omitted=false;
@@ -25,18 +29,19 @@ export function MyTaskParams({view,disabled=false}){
         field.error='';view.publish();
       }
     };
-    return <div key={name} className="od-form-field task-param-field">
+    return <div key={name} className={'od-form-field task-param-field'+(executionTab?' task-param-field--execution-tab':'')}>
       <div className={'od-input-group task-param-control'+(toggle?' task-param-control--check':'')}>
-      <label className="od-field-label" htmlFor={id} title={fullTitle}>{shortTitle}{required&&<span className="task-param-required" aria-hidden="true"> *</span>}</label>
-      {rule.enum?<MyControl view={view} as="select" id={id} className="od-field" disabled={disabled}
+      {isFixedValue?<span className="od-field-label task-param-fixed-label">{fullTitle}</span>:
+        <label className="od-field-label" htmlFor={id} title={fullTitle}>{fullTitle}{required&&<span className="task-param-required" aria-hidden="true"> *</span>}</label>}
+      {isFixedValue?<span className="task-param-fixed-value">{field.value}</span>:rule.enum?<MyControl view={view} as="select" id={id} className="od-field" disabled={disabled}
         name={name} data-task-param={name} data-task-type={rule.type} aria-label={fullTitle} aria-required={required||undefined} aria-readonly={fixed||undefined} aria-describedby={describedBy} aria-invalid={error?'true':undefined}
         onChange={clearError}>
         {!required&&rule.default===undefined&&<option value="">（不填写）</option>}
         {rule.enum.map(value=><option key={String(value)} value={String(value)}>{String(value)}</option>)}
       </MyControl>:toggle?<span className="task-param-toggle">
-        <span id={id+'-state'} className="task-param-toggle-state">{field.omitted?'未填写':field.checked?'是':'否'}</span>
+        {showToggleState&&<span id={id+'-state'} className="task-param-toggle-state">{field.omitted?'未填写':field.checked?'是':'否'}</span>}
         <MyControl view={view} as="input" controlBase="switch" id={id} name={name} type="checkbox" disabled={disabled}
-          data-task-param={name} data-task-type="boolean" aria-label={rule.title||name}
+          data-task-param={name} data-task-type="boolean" aria-label={fullTitle}
           aria-required={required||undefined} aria-describedby={describedBy} aria-invalid={error?'true':undefined}
           onChange={()=>{clearError();view.actions.taskParamsFormChange?.();}}/>
         {optionalToggle&&!field.omitted&&<Button variant="quiet" disabled={disabled||field.disabled}
@@ -46,6 +51,7 @@ export function MyTaskParams({view,disabled=false}){
       </span>:<MyControl view={view} controlBase="aria" as="input" id={id} name={name} className="od-field" disabled={disabled}
         data-task-param={name} data-task-type={rule.type} aria-label={fullTitle} aria-required={rule.type!=='boolean'&&required||undefined} aria-describedby={describedBy} aria-invalid={error?'true':undefined} onInput={clearError} onChange={clearError}
         type={rule.type==='boolean'?'checkbox':['number','integer'].includes(rule.type)?'number':'text'}
+        onCompositionCommit={rule.type==='string'?event=>view.actions.taskParamsFormInput?.(event.nativeEvent):undefined}
         onPaste={event=>{
           if(rule.type!=='string')return;
           const text=event.clipboardData?.getData('text/plain');
@@ -56,7 +62,7 @@ export function MyTaskParams({view,disabled=false}){
         step={rule.type==='integer'?'1':'any'} minLength={rule.minLength} maxLength={rule.maxLength}
         min={rule.minimum} max={rule.maximum} required={required}/>}
       </div>
-      {help&&<p id={help} className="visually-hidden">{rule.description}</p>}
+      {help&&<p id={help} className={executionTab?'od-field-help':'visually-hidden'}>{executionTab&&(clarifyExecutionTab?'关闭仍会搜索，只是不主动切换标签页。':'关闭开关仍会运行。')}{rule.description&&<span className={executionTab?'visually-hidden':undefined}>{rule.description}</span>}</p>}
       {error&&<p id={id+'-error'} className="od-field-help task-param-error" role="alert">{error}</p>}
     </div>;
   });

@@ -140,7 +140,8 @@ test(`${file}: mode selection does not silently pause browser; conflict stays bl
   h.click('set-mode', {value: 'direct'});
   assert.equal(h.state().applied, true);
   assert.equal(h.state().activeMode, 'profile');
-  assert.match(h.markup(), /应用更改/);
+  if (portable) assert.equal(load(h.markup())('button[data-action="status"]').text(), '应用');
+  else assert.match(h.markup(), /应用更改/);
   h.click('status-button');
   assert.equal(h.state().activeMode, 'direct');
   h.click('select-profile', {value: 'p2'});

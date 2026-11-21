@@ -208,7 +208,7 @@ test('Local rejected preparation keeps its error while Controller history remain
   await controllerResults.read(oldRun.runId,{reveal:true});assert.match(text,/A_OLD_VALUE/);
   assert.equal(f.find('script-task-id').textContent,'runId：'+oldRun.runId);
 });
-function fixture(t,{nativeConnected=true,connected=false,saved,files=[],tools=[],preparationDelayMs=0}={}){
+function fixture(t,{nativeConnected=true,connected=false,saved,files=[],tools=[],document,preparationDelayMs=0}={}){
   const developerView=createDeveloperView(),find=developerTestFields(developerView);
   find('local-project-mode').checked=true;
   let state={connected,nativeConnected,providerEpoch:connected?'epoch-a':null},projects=[project],listener;
@@ -216,7 +216,7 @@ function fixture(t,{nativeConnected=true,connected=false,saved,files=[],tools=[]
   const client={requestLocalProject:async method=>{calls.push(method);return method==='status'?state:method==='workspaces.list'?fileCatalog(files):{providerEpoch:state.providerEpoch,projects};},
     subscribeLocalProjects:callback=>{listener=callback;return ()=>{listener=null;};}};
   const api={runtime:{getURL:path=>'chrome-extension://test/'+path,openOptionsPage:async()=>opened.push('options')},tabs:{create:async value=>opened.push(value)},storage:{local:{get:async()=>({'opendesk.sidebar-tools.installed.v1':tools,...(saved?{'opendesk.local-project.selection.v1':saved}:{})}),set:async value=>{writes.push(value);}}}};
-  const view=createLocalProjectView({client,api,view:developerView,onChange:()=>changes++,preparationDelayMs});
+  const view=createLocalProjectView({client,api,document,view:developerView,onChange:()=>changes++,preparationDelayMs});
   t.after(()=>view.dispose());
   return {view,developerView,api,find,calls,writes,opened,client,setState:value=>{state=value;},setProjects:value=>{projects=value;},setFiles:value=>{files=value;},notify:value=>listener(value),
     activity:()=>{
@@ -485,7 +485,7 @@ test('file-only catalog stays metadata-only and opens only through a trusted exp
   assert.match(f.find('local-project-select').options[1].label,/prompt-shortcuts · 文件工作区/);
   assert.equal(f.find('local-project-select').disabled,false);
   assert.equal(f.find('local-project-status').dataset.state,'entry-unavailable');
-  assert.match(f.find('local-project-status').textContent,/所选目录已连接.*实时开发预览.*不要求可运行源码 Provider/);
+  assert.match(f.find('local-project-status').textContent,/所选目录可在侧栏调试.*打开文件工作区/);
   assert.equal(f.find('local-project-connect').textContent,'打开文件工作区 ↗');
   assert.equal(f.view.connected(),false);
   assert.throws(()=>f.view.capture(),{code:'E_DEV_DISCONNECTED'});
@@ -587,7 +587,7 @@ test('quiet discovery and revocation update availability without changing an emp
     assert.equal(f.find('local-project-select').disabled,false);
     assert.equal(f.view.selectedBindingId(),saved?.bindingId||'');
     assert.equal(f.find('local-project-status').dataset.state,'selection-needed');
-    assert.match(f.find('local-project-status').textContent,/请选择已授权项目/);
+    assert.match(f.find('local-project-status').textContent,saved?/重新授权.*选择其他已授权项目/:/请选择已授权项目/);
     f.setFiles([]);t.mock.timers.tick(2000);await tick();
     assert.equal(f.find('local-project-select').disabled,true);
     assert.equal(f.view.selectedBindingId(),saved?.bindingId||'');
@@ -702,7 +702,8 @@ test('Native online without a source provider is distinct from a disconnected br
   const f=fixture(t);await tick();
   assert.equal(f.find('local-project-status').dataset.state,'source-unavailable');
   assert.match(f.find('local-project-status').textContent,/本机 OpenDesk 已连接/);
-  assert.match(f.find('local-project-status').textContent,/opendesk-dev/);
+  assert.match(f.find('local-project-status').textContent,/连接方法.*授权单文件或目录/);
+  assert.doesNotMatch(f.find('local-project-status').textContent,/Provider|opendesk-dev/);
   assert.match(f.find('local-project-status').title,/E_DEV_PROVIDER_UNAVAILABLE/);
   assert.equal(f.find('local-project-select').disabled,true);
   assert.equal(f.view.connected(),false);
@@ -710,11 +711,38 @@ test('Native online without a source provider is distinct from a disconnected br
   assert.deepEqual(f.calls,['status','workspaces.list']);
   assert.equal(f.find('local-project-refresh').disabled,false);
 });
+test('returning from connection settings checks Native, and the user can retry a timeout',async t=>{
+  const document=Object.assign(new EventTarget(),{defaultView:new EventTarget(),hidden:false});
+  const f=fixture(t,{nativeConnected:false,document});await tick();
+  const status=f.find('local-project-status'),opened=deferred(),probe=deferred();
+  f.api.runtime.openOptionsPage=()=>opened.promise;
+  f.api.runtime.sendMessage=()=>probe.promise;
+  f.find('local-project-connect').fire('click');
+  assert.match(status.textContent,/正在打开/);
+  opened.resolve();await tick();assert.match(status.textContent,/返回/);
+  document.defaultView.dispatchEvent(new Event('focus'));
+  assert.equal(status.dataset.state,'checking');
+  probe.resolve({ok:false,error:{code:'E_DEV_TIMEOUT'}});await tick();
+  assert.equal(status.dataset.state,'check-failed');assert.match(status.textContent,/超时.*重试/);
+  f.api.runtime.sendMessage=async()=>({ok:true});
+  f.setState({nativeConnected:true,connected:false});
+  f.find('local-project-refresh').fire('click');await tick();
+  assert.equal(status.dataset.state,'source-unavailable');
+  assert.match(status.textContent,/已连接，暂无可用项目/);
+  assert.equal(f.find('local-project-preview').disabled,true);
+});
 test('a disconnected Native bridge retains the connection recovery message',async t=>{
   const f=fixture(t,{nativeConnected:false});await tick();
   assert.equal(f.find('local-project-status').dataset.state,'disconnected');
   assert.match(f.find('local-project-status').textContent,/本地项目服务未连接/);
   assert.match(f.find('local-project-status').title,/E_DEV_DISCONNECTED/);
+});
+test('a new Native connection without the saved project explains how to restore access',async t=>{
+  const f=fixture(t,{saved:{bindingId:project.bindingId,name:project.name,localMode:true}});await tick();
+  assert.equal(f.find('local-project-select').value,project.bindingId);
+  assert.match(f.find('local-project-status').textContent,/当前连接中不可用.*重新授权/);
+  assert.equal(f.find('local-project-preview').disabled,true);
+  assert.throws(()=>f.view.capture(),{code:'E_DEV_DISCONNECTED'});
 });
 test('refresh after the provider registers enables and selects the authorized project without executing',async t=>{
   const f=fixture(t);await tick();
@@ -782,7 +810,8 @@ test('a failed status request clears stale Native connectivity without inferring
     throw Object.assign(new Error('catalog unavailable'),{code:'E_DEV_CATALOG'});
   };
   f.find('local-project-refresh').fire('click');await tick();
-  assert.equal(f.find('local-project-status').dataset.state,'source-unavailable');
+  assert.equal(f.find('local-project-status').dataset.state,'check-failed');
+  assert.match(f.find('local-project-status').textContent,/检查连接与项目.*重试/);
   f.client.requestLocalProject=async()=>{throw Object.assign(new Error('offline'),{code:'E_DEV_DISCONNECTED'});};
   f.find('local-project-refresh').fire('click');await tick();
   assert.equal(f.find('local-project-status').dataset.state,'disconnected');

@@ -136,6 +136,10 @@ export const SIDEBAR_TOOL_FIELDS = {
     "textContent": "",
     "className": "sidebar-tool-file-error"
   },
+  "sidebar-tool-user-scripts-recovery": {
+    "hidden": true,
+    "data": {"opening": false, "openFailed": false}
+  },
   "sidebar-tool-update": {
     "hidden": true,
     "className": "sidebar-tool-update"

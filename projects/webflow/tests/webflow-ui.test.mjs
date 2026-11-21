@@ -6,6 +6,7 @@ import {fileURLToPath} from 'node:url';
 import vm from 'node:vm';
 import {validateSidebarToolPackage} from '../../../src/ui/sidebar-tools/package.js';
 import {verifyTaskPackage,validateTaskParams} from '../../../src/platform/tasks/contract.js';
+import {readReviewedSearchTask} from './fixtures/reviewed-search-tasks.mjs';
 
 const project=resolve(dirname(fileURLToPath(import.meta.url)),'..');
 const modelCode=readFileSync(resolve(project,'src/ui/model.js'),'utf8');
@@ -125,7 +126,7 @@ test('consumer keeps reviewed dependencies and delegates new runs to trusted con
 
 test('current delegated consumers match verified search packages and their strict optional visibility Schema',async()=>{
  for(const pin of config.delegatedTasks){
-  const pkg=await verifyTaskPackage(JSON.parse(readFileSync(resolve(project,'../../examples/tasks',pin.taskId+'.v1.opendesk-task.json'),'utf8')));
+  const pkg=await verifyTaskPackage(readReviewedSearchTask(pin));
   assert.equal(pin.version,pkg.manifest.version);
   assert.equal(pin.manifestHash,pkg.manifestHash);
   assert.equal(pin.contentHash,pkg.manifest.program.sourceHash);

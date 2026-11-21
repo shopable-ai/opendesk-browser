@@ -9,6 +9,7 @@ const base='projects/ai-vip-share/';
 const [html,script]=await Promise.all(['src/App.jsx','src/main.js'].map(p=>readFile(base+p,'utf8')));
 const ORIGIN='http://127.0.0.1:7898',EXTENSION_ORIGIN='chrome-extension://ccfcjegpkdlgbclopjmadlcjedelidmf';
 const NEW_ORIGIN='http://127.0.0.1:7903';
+const MANUAL_ORIGIN='http://127.0.0.1:7904',LOCAL_ORIGINS=[ORIGIN,NEW_ORIGIN,MANUAL_ORIGIN];
 const PREFERENCE='aiVipLocalDevelopmentR136',RECOVERY='aiVipRedeemR52';
 const domains=['chatgpt.com','openai.com','claude.ai','anthropic.com','gemini.google.com',
   'generativelanguage.googleapis.com','perplexity.ai'];
@@ -40,7 +41,7 @@ function fixtureRequest(fixture,{method,url,data,headers}){
 }
 async function runtime({store=new Map(),fixture=createLocalFixture({extensionOrigin:EXTENSION_ORIGIN,
   sessionTarget:(store.get(PREFERENCE)?.schemaVersion===1?ORIGIN:store.get(PREFERENCE)?.serviceOrigin??NEW_ORIGIN)+'/session/'}),
-  developmentProfile=profile,getStatus,network,wireNetwork=false,beforeStorageGet,afterStorageSet,receiptTransform,cookieSetMany,
+  developmentProfile=profile,getStatus,network,wireNetwork=false,beforeStorageGet,afterStorageSet,receiptTransform,cookieSetMany,createTab,
   performanceClock=performance,cookieScopeOverride,currentPage,pollTimers=false,
   developmentControls=false,shippedDom=false,reviewedService,productionNetwork,ordinaryNetwork,documentState,proxyDisable,cookieContext,dateClock=Date}={}){
   // Historical VM business tests simulate a development panel that now exists
@@ -78,7 +79,7 @@ async function runtime({store=new Map(),fixture=createLocalFixture({extensionOri
     wireCalls.push(clone(args));
     // Legacy in-memory business fixtures model logical GET. Real HTTP integration
     // uses wireNetwork and observes the unmodified SDK request (no Origin on GET).
-    if(!wireNetwork&&[ORIGIN,NEW_ORIGIN].includes(new URL(args.url).origin)&&
+    if(!wireNetwork&&LOCAL_ORIGINS.includes(new URL(args.url).origin)&&
       new URL(args.url).pathname==='/api/member'&&args.method==='POST'&&
       args.config.headers?.['X-OpenDesk-Local-Test']==='1'){
       assert.deepEqual(Object.keys(args.data),[]);
@@ -86,9 +87,9 @@ async function runtime({store=new Map(),fixture=createLocalFixture({extensionOri
     }
     calls.push(clone(args));
     if(productionNetwork)return productionNetwork(args,fixture);
-    if(ordinaryNetwork&&![ORIGIN,NEW_ORIGIN].includes(new URL(args.url).origin))return ordinaryNetwork(args);
+    if(ordinaryNetwork&&!LOCAL_ORIGINS.includes(new URL(args.url).origin))return ordinaryNetwork(args);
     assert.equal(args.config.headers?.['X-OpenDesk-Local-Test'],'1');
-    assert.ok([ORIGIN,NEW_ORIGIN].includes(new URL(args.url).origin));
+    assert.ok(LOCAL_ORIGINS.includes(new URL(args.url).origin));
     assert(['/api/member','/api/preview','/api/redeem','/api/status'].includes(new URL(args.url).pathname));
     if(network)return network(args,fixture);
     const result=await fixtureRequest(fixture,{...args,headers:args.config.headers});
@@ -110,7 +111,9 @@ async function runtime({store=new Map(),fixture=createLocalFixture({extensionOri
       cookieCalls.push(clone(args));return cookieSetMany?cookieSetMany(args):{
         saved:args.cookies.length,verified:args.cookies.length,
         results:args.cookies.map((_,index)=>({index,saved:true,verified:true}))};
-    }},tabs:{create:async args=>{tabCalls.push(clone(args));return {tabRef:'fixture-tab'};}}}}};
+    }},tabs:{create:async args=>{
+      tabCalls.push(clone(args));return createTab?createTab(args):{tabRef:'fixture-tab'};
+    }}}}};
   // Capture polling without creating timers; each check is driven explicitly below.
   if(pollTimers)window.setInterval=(callback,ms)=>{timers.push({callback,ms});return timers.length;};
   // Test-only instrumentation remains INSIDE mountController after the React
@@ -159,4 +162,4 @@ async function runtime({store=new Map(),fixture=createLocalFixture({extensionOri
 }
 
 
-export {runtime,profile,domains,released,owned,flush,deferred,clone,ORIGIN,EXTENSION_ORIGIN,PREFERENCE,RECOVERY,fixtureRequest};
+export {runtime,profile,domains,released,owned,flush,deferred,clone,ORIGIN,NEW_ORIGIN,MANUAL_ORIGIN,EXTENSION_ORIGIN,PREFERENCE,RECOVERY,fixtureRequest};

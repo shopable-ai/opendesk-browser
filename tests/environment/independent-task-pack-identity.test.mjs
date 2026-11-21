@@ -14,7 +14,8 @@ const fixtures=[
   ['baidu.search/src/baidu-search-top3.js',
    'baidu.search/releases/baidu.search.top3.v1.opendesk-task.json',
    'f1268505de622c3aa5725c5be6049002e524b707',
-   '7ed543cb4c46a688b6fb2f1a6943a10065b6c172'],
+   '7ed543cb4c46a688b6fb2f1a6943a10065b6c172',
+   'baidu.search/releases/baidu.search.top3.1.1.5.opendesk-task.json'],
   ['google.search/src/google-search-top3.js',
    'google.search/releases/google.search.top3.v1.opendesk-task.json',
    '85bbaab356792903ced6423aa65f6f80a9dc15ca',
@@ -59,10 +60,10 @@ test('all seven reviewed Task sources and package bytes retain pre-migration Git
 
 test('directory names never become Task IDs; reviewed identities and private resource paths are stable',()=>{
   assert.deepEqual(BUILTIN_TASK_RELEASES.map(x=>[x.taskId,x.version]),
-    [['baidu.search.top3','1.1.5'],['google.search.top3','1.0.7']]);
+    [['baidu.search.top3','1.1.6'],['google.search.top3','1.0.7']]);
   assert.deepEqual(OPTIONAL_TASK_RELEASES.map(x=>[x.taskId,x.version]),
     [['chatgpt.conversation.create','0.2.2']]);
-  assert.equal(PACKAGED_TASK_RESOURCES.length,fixtures.length+4);
+  assert.equal(PACKAGED_TASK_RESOURCES.length,fixtures.length+5);
   for(const row of PACKAGED_TASK_RESOURCES){
     assert.ok(row.sourcePath.startsWith('task-packs/'));
     assert.equal(row.path,`tasks/builtin/${row.taskId}/${row.version}.json`);

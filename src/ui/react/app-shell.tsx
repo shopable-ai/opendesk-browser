@@ -158,7 +158,7 @@ export function SidebarAppShell({
             trustedControls={<WebflowAutoControls webflowAuto={webflowAuto} noticeView={toolView}
               display={toolSnapshot.fields['sidebar-tool-display']}
               visible={activeTab==='tools'&&!isPanelPreview&&!localeOpen&&!providerSettingsOpen}/>}
-            debugPreview={activeTab==='app-debug'&&isPanelPreview} onStopDebug={onStopAppDebug}
+            debugPreview={activeTab==='app-debug'&&isPanelPreview} onStopDebug={onStopAppDebug} locale={uiLocale}
             active={activeTab==='tools'||activeTab==='app-debug'}/>}
         </section>
       </div>

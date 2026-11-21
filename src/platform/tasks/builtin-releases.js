@@ -5,13 +5,15 @@ import {TASK_PACKAGE_LIMIT} from '../source-budgets.js';
 // Build-owned bytes and immutable release pins. Author/source labels and IDs
 // supplied by importers never confer this trust. No native run is asserted.
 const releases=[
-  {taskId:'baidu.search.top3',version:'1.1.5',manifestHash:'f49e274aadfeed12540aff028ff267b3772ebe35a2f16c154008542b76a5bf38',
-    sourceHash:'2b0f31c0d485355576cac11968170bb9eb41c9076df5bb6659f93d0173286181',sourcePath:'task-packs/baidu.search/releases/baidu.search.top3.v1.opendesk-task.json'},
+  {taskId:'baidu.search.top3',version:'1.1.6',manifestHash:'de2b3109c27d180be0bc0bf45390658b2164dfef4b4bf4d3e41dac45951c259e',
+    sourceHash:'69dd4ed34521585610bcf041ff3677b47b1f3be2de0457289124e44743f67709',sourcePath:'task-packs/baidu.search/releases/baidu.search.top3.v1.opendesk-task.json'},
   {taskId:'google.search.top3',version:'1.0.7',manifestHash:'16f2dc3e1349d232d3a7ff2b51f3155d636d8f0550741cd52ac44bc686041f06',
     sourceHash:'3a4b7a55e459e675e7cd3b741af2bf35da27a3054598aedd6ff168e1c19df356',sourcePath:'task-packs/google.search/releases/google.search.top3.v1.opendesk-task.json'}
 
 ];
 const historicalReleases=[
+  {taskId:'baidu.search.top3',version:'1.1.5',manifestHash:'f49e274aadfeed12540aff028ff267b3772ebe35a2f16c154008542b76a5bf38',
+    sourceHash:'2b0f31c0d485355576cac11968170bb9eb41c9076df5bb6659f93d0173286181',sourcePath:'task-packs/baidu.search/releases/baidu.search.top3.1.1.5.opendesk-task.json'},
   {taskId:'google.search.top3',version:'1.0.6',manifestHash:'b490addb1c57d1f983df85782afb547aef8168cd35498dd8b421531de1220c8b',
     sourceHash:'134cdc2a58a7f3d389a8db1b2a00967bfb6aa1d358dd95f9b104a27b83cd7a0f',sourcePath:'task-packs/google.search/releases/google.search.top3.1.0.6.opendesk-task.json'},
   {taskId:'google.search.top3',version:'1.0.5',manifestHash:'494d831de8ef55517b58df5147ba6b9a7b9d575f059a1a3c492e34bebb6ed79f',

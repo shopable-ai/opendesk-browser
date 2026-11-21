@@ -30,7 +30,7 @@ test.before(async()=>{
 });
 test.after(()=>rm(artifacts,{recursive:true,force:true}));
 
-async function fixture({twoTasks=false,paramsSchema,otherParamsSchema,pageDiscovery=false,configure,notify,taskNotify,importDraft=()=>{},developerView}={}){
+async function fixture({twoTasks=false,paramsSchema,otherParamsSchema,pageDiscovery=false,pageSnapshot,configure,notify,taskNotify,importDraft=()=>{},developerView}={}){
   const {document:doc,window}=parseHTML('<html><body><nav class="workbench-nav"></nav><div id="outside"></div><div id="mount"></div></body></html>');
   // Advertise the input events used by this fixture so React does not select
   // its legacy IE key-event value tracker (not implemented by linkedom).
@@ -71,28 +71,34 @@ async function fixture({twoTasks=false,paramsSchema,otherParamsSchema,pageDiscov
     installationId:'11111111-1111-4111-8111-111111111111',generation:1};
   const candidate={...installed,manifest,stage:'available',installed:true};
   const state={catalog:[candidate],installed:[installed],plans:[],runs:[],results:[],calls:[],starts:[],stops:[],
-    changeResolved:false,failHistory:false,unknownSave:false,pendingPermission:null,permissionCalls:[]};
+    changeResolved:false,failHistory:false,unknownSave:false,pendingPermission:null,permissionCalls:[],catalogOpens:[]};
   if(twoTasks){state.catalog.push({...candidate,taskId:'other.task',manifest:{...manifest,taskId:'other.task',title:'第二任务',paramsSchema:otherParamsSchema??manifest.paramsSchema}});
     state.installed.push({...installed,taskId:'other.task',scriptId:'task:other.task:1.0.0',installationId:'22222222-2222-4222-8222-222222222222'});}
   const runSubscribers=new Set(),pageSubscribers=new Set(),installedSubscribers=new Set(),connectionSubscribers=new Set();
   const pageTaskSubscribers=new Set();
   let runId=null,resolveCompletion;
   const host={get currentRun(){return runId;},subscribe(fn){runSubscribers.add(fn);return ()=>runSubscribers.delete(fn);},
-    async start(input){state.starts.push(input);runId='run-'+state.starts.length;host.completion=new Promise(resolve=>resolveCompletion=resolve);
+    async start(input){state.starts.push(input);if(state.startError)throw state.startError(input);
+      runId='run-'+state.starts.length;host.completion=new Promise(resolve=>resolveCompletion=resolve);
       for(const fn of runSubscribers)fn({runId,state:'running'});return {runId};},
     async stop(input){state.stops.push(input);const id=runId;runId=null;
-      state.runs.push({runId:id,state:'stopped',revision:{scriptId:installed.scriptId}});
+      state.runs.push({runId:id,state:'stopped',retirementState:'released',taskInstallation:installed,
+        revision:{scriptId:installed.scriptId,sourceHash}});
       for(const fn of runSubscribers)fn({runId:id,state:'stopped'});resolveCompletion?.({});},
-    finish({failed=false,value='done'}={}){const id=runId;runId=null;
+    finish({failed=false,value='done',error={code:'E_TEST',message:'可控运行错误'}}={}){const id=runId;runId=null;
       state.runs.push({runId:id,state:failed?'failed':'completed',revision:{scriptId:installed.scriptId}});
-      state.results.push({runId:id,resultId:'result-'+id,state:failed?'failed':'completed',revision:{scriptId:installed.scriptId},
-        outcome:failed?{ok:false,error:{code:'E_TEST',message:'可控运行错误'}}:{ok:true,valueWire:encodeValue(value)}});
-      for(const fn of runSubscribers)fn({runId:id,state:failed?'failed':'completed'});resolveCompletion?.({});},
-    forceRun(id){runId=id;for(const fn of runSubscribers)fn({runId:id,state:'running'});}};
+      const result={runId:id,resultId:'result-'+id,state:failed?'failed':'completed',revision:{scriptId:installed.scriptId},
+        outcome:failed?{ok:false,error}:{ok:true,valueWire:encodeValue(value)}};
+      state.results.push(result);
+      const completion={runId:id,state:result.state,result};
+      for(const fn of runSubscribers)fn(completion);resolveCompletion?.(completion);},
+    forceRun(id){runId=id;for(const fn of runSubscribers)fn({runId:id,state:'running'});},
+    pauseUnknown(){const event={runId,state:'paused_unknown',pendingSettlement:true};
+      for(const fn of runSubscribers)fn(event);resolveCompletion?.(event);}};
   const client={ready:Promise.resolve(),subscribeConnection(fn){connectionSubscribers.add(fn);return ()=>connectionSubscribers.delete(fn);},
     ...(pageDiscovery?{subscribePageTasks(fn){pageTaskSubscribers.add(fn);return ()=>pageTaskSubscribers.delete(fn);}}:{}),
     subscribeInstalledTasks(fn){installedSubscribers.add(fn);return ()=>installedSubscribers.delete(fn);},
-    controller:{async snapshotControllerRun(){return structuredClone({runs:state.runs,results:state.results});}},
+    controller:{async snapshotControllerRun(){return structuredClone({runs:state.runs,results:state.results,slotAvailable:state.slotAvailable});}},
     async request(action,input){state.calls.push({action,input:structuredClone(input)});
       if(['setInstalledTaskEnabled','uninstallTask','getTaskCandidate'].includes(action)&&state.managerRequest)return state.managerRequest(action,input);
       if(['inspectTaskRun','cancelTaskRun','prepareTaskRun'].includes(action)&&state.taskRunRequest)return state.taskRunRequest(action,input);
@@ -107,8 +113,11 @@ async function fixture({twoTasks=false,paramsSchema,otherParamsSchema,pageDiscov
           manifestHash:state.importDuplicate?'a'.repeat(64):'c'.repeat(64)};
       }
       if(action==='listSchedules')return {schedules:structuredClone(state.plans)};
-      if(action==='resolveInstalledTask')return {...structuredClone(installed),manifest,manifestHash,sourceHash,contentHash:sourceHash,
-        revision:1,generation:state.changeResolved?2:1};
+      if(action==='resolveInstalledTask'){
+        const row=state.installed.find(row=>row.taskId===input.taskId);
+        return {...structuredClone(row),manifest,manifestHash,sourceHash,contentHash:sourceHash,
+          revision:1,generation:state.changeResolved?2:row.generation};
+      }
       if(action==='saveSchedule'){
         if(state.unknownSave)throw Object.assign(Error('timeout after possible commit'),{code:'E_EFFECT_UNKNOWN'});
         const prior=state.plans.find(plan=>plan.scheduleId===input.scheduleId);
@@ -131,8 +140,11 @@ async function fixture({twoTasks=false,paramsSchema,otherParamsSchema,pageDiscov
       if(action==='uninstallTask'){assert.equal(input.expectedInstallationId,installed.installationId);state.installed=[];return {};}
       throw Error('Unexpected RPC '+action);
     }};
-  const snapshot={status:'available',url:'https://example.com/form',tabId:3,windowId:7,documentId:'doc-3'};
-  const currentPageTarget={snapshot,ready:Promise.resolve(),capture:()=>({...snapshot}),revalidate:async()=>{},
+  const snapshot=pageSnapshot??{status:'available',url:'https://example.com/form',tabId:3,windowId:7,documentId:'doc-3'};
+  const currentPageTarget={snapshot,ready:Promise.resolve(),capture:()=>{
+    if(snapshot.status!=='available')throw Object.assign(Error('No runnable document'),{code:snapshot.reason});
+    return {...snapshot};
+  },revalidate:async()=>{},
     subscribe(fn){pageSubscribers.add(fn);return ()=>pageSubscribers.delete(fn);}};
   const permissionAdded=new Set(),permissionRemoved=new Set();
   const api={permissions:{contains:async input=>{state.permissionCalls.push({action:'contains',input});return state.pendingPermission?await state.pendingPermission:true;},
@@ -140,7 +152,7 @@ async function fixture({twoTasks=false,paramsSchema,otherParamsSchema,pageDiscov
     onAdded:{addListener:fn=>permissionAdded.add(fn),removeListener:fn=>permissionAdded.delete(fn)},
     onRemoved:{addListener:fn=>permissionRemoved.add(fn),removeListener:fn=>permissionRemoved.delete(fn)}},
     runtime:{getURL:path=>'chrome-extension://test/'+path,sendMessage:async()=>({ok:true})},
-    tabs:{create:async()=>({id:4})}};
+    tabs:{create:async input=>{state.catalogOpens.push(input);return {id:4};}}};
   const view=createMyWorkbenchView({document:doc});
   configure?.({state,installed,candidate});
   const workbench=createTaskWorkbench({developerView:developerView??createDeveloperView(),client,host,currentPageTarget,api,document:doc,myView:view,
@@ -162,6 +174,7 @@ async function fixture({twoTasks=false,paramsSchema,otherParamsSchema,pageDiscov
     return event;
   };
   return {state,host,view,workbench,scheduler,doc,dispatch,input,mount,fire,
+    setCurrentPage(next){Object.assign(snapshot,next);for(const listener of pageSubscribers)listener({...snapshot});},
     notifyInstalledTasks(taskId){for(const listener of installedSubscribers)listener({type:'installed-task-changed',taskId});},
     notifyPageTasks(){for(const listener of pageTaskSubscribers)listener();},
     counts:()=>[runSubscribers.size,pageSubscribers.size,installedSubscribers.size,connectionSubscribers.size,permissionAdded.size,permissionRemoved.size],
@@ -320,7 +333,7 @@ test('main task workspace keeps empty history discoverable and management availa
   const f=await fixture();let root;
   try{
     root=await f.mount();
-    assert.deepEqual(f.view.data.taskSelection,{label:'就绪',tone:'positive'});
+    assert.match(f.doc.getElementById('task-current-site').textContent,/当前网站在任务范围内，运行时核对具体页面/);
     assert.equal(f.doc.getElementById('task-history-panel').hidden,false);
     assert.match(f.doc.getElementById('task-history').textContent,/还没有运行记录/);
     assert.equal(f.doc.getElementById('task-result-panel').hidden,true);
@@ -432,19 +445,21 @@ test('task raw value controls reset on refreshed results and stay hidden for ord
   }finally{if(root)await React.act(async()=>root.unmount());f.dispose();}
 });
 
-test('main task failure preserves the real error and its recovery hint',async()=>{
-  const f=await fixture({configure({state,installed}){
-    state.runs.push({runId:'failed-task',state:'failed',revision:{scriptId:installed.scriptId}});
-    state.results.push({runId:'failed-task',revision:{scriptId:installed.scriptId},
-      outcome:{ok:false,error:{code:'E_TARGET',message:'找不到文章正文'}}});
-  }});let root;
+test('main task failure shows the real error and recovery hint once outside history',async()=>{
+  const f=await fixture();let root;
   try{
     root=await f.mount();
-    const notice=f.doc.querySelector('.task-outcome-notice[role=alert]');
-    assert.equal(notice.dataset.tone,'error');
-    assert.match(notice.textContent,/上次运行失败.*E_TARGET.*找不到文章正文.*请检查目标网页/s);
-    assert.match(f.doc.getElementById('task-result').textContent,/E_TARGET/);
-    assert.equal(f.state.starts.length,0);
+    await f.fire(f.doc.getElementById('task-parameters-open'),'click',{isTrusted:true});
+    await f.fire(f.doc.getElementById('task-run'),'click',{isTrusted:true});
+    assert.equal(f.state.starts.length,1);
+    await React.act(async()=>{f.host.finish({failed:true,
+      error:{code:'E_TARGET',message:'Expected the approved Baidu homepage or exact query'}});await tick();});
+    const notice=f.doc.querySelector('#task-result-panel[role=alert]');
+    assert.match(notice.textContent,/最近运行结果.*失败.*E_TARGET.*Baidu homepage or exact query.*建议/s);
+    const workspace=f.doc.getElementById('task-selected-workspace').cloneNode(true);
+    workspace.querySelector('#task-history-panel').remove();
+    assert.equal(workspace.textContent.match(/E_TARGET/g)?.length,1);
+    assert.match(f.doc.getElementById('task-history').textContent,/E_TARGET/);
   }finally{if(root)await React.act(async()=>root.unmount());f.dispose();}
 });
 
@@ -452,7 +467,8 @@ for(const scenario of ['disabled','unmatched','unknown'])test(`main task summary
   const f=await fixture({configure({state,installed,candidate}){
     if(scenario==='disabled')installed.enabled=false;
     if(scenario==='unmatched')candidate.manifest.siteOrigins=['https://other.example'];
-    if(scenario==='unknown')state.runs.push({runId:'unknown-task',state:'paused_unknown',revision:{scriptId:installed.scriptId}});
+    if(scenario==='unknown')state.runs.push({runId:'unknown-task',state:'paused_unknown',retirementState:'not-started',
+      taskInstallation:installed,revision:{scriptId:installed.scriptId,sourceHash:candidate.manifest.program.sourceHash}});
   }});let root;
   try{
     assert.equal(f.view.data.taskSelection.label,{disabled:'已停用',unmatched:'其他网站',unknown:'结果未知'}[scenario]);
@@ -831,7 +847,7 @@ test('page request renders one locked Sheet with source, fixed version and owned
 });
 
 test('page request preserves explicit send true through both approval stages when the Task schema defaults to false',async()=>{
-  const pkg=JSON.parse(await readFile('projects/webflow/tasks/chatgpt.conversation.create.0.2.2.opendesk-task.json','utf8'));
+  const pkg=JSON.parse(await readFile(new URL('../../task-packs/chatgpt.conversation.create/releases/chatgpt.conversation.create.0.2.2.opendesk-task.json',import.meta.url),'utf8'));
   assert.equal(pkg.manifest.paramsSchema.properties.send.default,false);
   const f=await fixture({paramsSchema:pkg.manifest.paramsSchema});let root;
   try{
@@ -1045,14 +1061,19 @@ test('boolean enums keep select values and typed drafts across representation an
 
 const realTaskFiles=['baidu.search.top3.v1','google.search.top3.v1','form-fill.v1','modern-search.v1','page.read.fixed.v1','visible-search-navigation'];
 for(const file of realTaskFiles)test(`real task schema dynamically renders and round-trips: ${file}`,async()=>{
-  const {manifest}=JSON.parse(await readFile(new URL('../../examples/tasks/'+file+'.opendesk-task.json',import.meta.url),'utf8'));
+  const pack=file.endsWith('.search.top3.v1')?file.split('.').slice(0,2).join('.'):null;
+  const directory=pack?'../../task-packs/'+pack+'/releases/':'../../examples/tasks/';
+  const {manifest}=JSON.parse(await readFile(new URL(directory+file+'.opendesk-task.json',import.meta.url),'utf8'));
   const other=JSON.parse(await readFile(new URL('../../tests/fixtures/tasks/ui-readonly/ui-readonly.opendesk-task.json',import.meta.url),'utf8')).manifest.paramsSchema;
   const f=await fixture({twoTasks:true,paramsSchema:manifest.paramsSchema,otherParamsSchema:other});let root;
   try{
     root=await f.mount();const expected={};
-    assert.equal(f.doc.querySelectorAll('[data-task-param]').length,Object.keys(manifest.paramsSchema.properties).length);
+    const form=f.doc.getElementById('task-params-form');
+    assert.equal(form.querySelectorAll('[data-task-param], .task-param-fixed-value').length,Object.keys(manifest.paramsSchema.properties).length);
     for(const [name,rule]of Object.entries(manifest.paramsSchema.properties)){
-      if(rule.enum)assert.equal(f.doc.getElementById('task-param-'+name).tagName,'SELECT');
+      if(rule.enum?.length===1&&(Object.hasOwn(rule,'default')||manifest.paramsSchema.required.includes(name)))
+        assert.ok([...form.querySelectorAll('.task-param-fixed-value')].some(field=>field.textContent===String(rule.enum[0])));
+      else if(rule.enum)assert.equal(f.doc.getElementById('task-param-'+name).tagName,'SELECT');
       if(Object.hasOwn(rule,'default'))expected[name]=rule.default;
       else if(manifest.paramsSchema.required.includes(name)){
         expected[name]=rule.enum?.[0]??'用户输入';await f.input('task-param-'+name,String(expected[name]));
@@ -1205,18 +1226,58 @@ test('hiding My leaves the hoisted parameter Sheet visible with the same draft o
 });
 
 for(const key of ['Enter','Escape']){
-  test(`composing ${key} is prevented and cannot run or close the parameter Sheet`,async()=>{
+  test(`composing ${key} stays available to the IME without running or closing the parameter Sheet`,async()=>{
     const f=await fixture();let root;
     try{
       root=await f.mount();await f.fire(f.doc.getElementById('task-parameters-open'),'click',{isTrusted:true});
       const sheet=f.doc.getElementById('task-parameters-sheet'),name=f.doc.getElementById('task-param-name');
       const permissions=f.state.permissionCalls.length;
-      const event=await f.fire(name,'keydown',{key,isComposing:true});
-      assert.equal(event.defaultPrevented,true);assert.equal(sheet.open,true);
+      await f.fire(name,'compositionstart');
+      const event=await f.fire(name,'keydown',{key});
+      assert.equal(event.defaultPrevented,false);assert.equal(sheet.open,true);
+      await f.fire(name,'compositionend');
+      if(key==='Escape'){
+        const cancel=await f.fire(sheet,'cancel');
+        assert.equal(cancel.defaultPrevented,true);
+        assert.equal(sheet.open,true,'the candidate Escape may outlive compositionend');
+        await f.fire(name,'keydown',{key:'Escape'});
+        await f.fire(sheet,'cancel');
+        assert.equal(sheet.open,false,'a fresh Escape still dismisses the sheet');
+      }
       assert.equal(f.state.permissionCalls.length,permissions);assert.equal(f.state.starts.length,0);
     }finally{if(root)await React.act(async()=>root.unmount());f.dispose();}
   });
 }
+
+for(const mode of ['form','json'])test(
+  'task '+mode+' keeps live IME text separate from the saved draft until commit',async()=>{
+  const f=await fixture();let root;
+  try{
+    root=await f.mount();await f.fire(f.doc.getElementById('task-parameters-open'),'click',{isTrusted:true});
+    if(mode==='json')await React.act(async()=>f.view.actions.taskParamsModeChange('json'));
+    const id=mode==='form'?'task-param-name':'task-params-json';
+    const input=f.doc.getElementById(id),initial=input.value;
+    const persist=f.view.actions.taskParamsFormInput;
+    let saves=0;
+    f.view.actions.taskParamsFormInput=(...args)=>{saves++;return persist(...args);};
+    await f.fire(input,'compositionstart');
+    input.value='zhongwen';
+    await f.fire(input,'input',{isComposing:true});
+    await React.act(async()=>f.view.publish());
+    assert.equal(input.value,'zhongwen','an intervening render preserves preedit');
+    assert.equal(f.view.field(id).value,initial);
+    assert.equal(saves,0);
+    const committed=mode==='form'?'中文':JSON.stringify({name:'中文',count:2,accept:true,mode:'a'});
+    input.value=committed;
+    await f.fire(input,'compositionend',{data:'中文'});
+    assert.equal(f.view.field(id).value,committed);
+    assert.equal(saves,1);
+    await f.fire(f.doc.getElementById('task-parameters-sheet'),'cancel');
+    await f.fire(f.doc.getElementById('task-parameters-open'),'click',{isTrusted:true});
+    assert.equal(f.doc.getElementById(id).value,committed);
+    assert.equal(f.state.starts.length,0);
+  }finally{if(root)await React.act(async()=>root.unmount());f.dispose();}
+});
 
 test('leaving a Chinese IME field clears stale composition before an explicit Run click',async()=>{
   const f=await fixture();let root;
@@ -1236,16 +1297,18 @@ test('leaving a Chinese IME field clears stale composition before an explicit Ru
   }finally{if(root)await React.act(async()=>root.unmount());f.dispose();}
 });
 
-test('My can explicitly start one approved owned tab while the current site is unrelated',async()=>{
-  const f=await fixture({configure({candidate}){candidate.manifest.siteOrigins=['https://target.example'];}});let root;
+for(const [reason,pageSnapshot] of [
+  ['the current site is unrelated',undefined],
+  ['the current document is unavailable',{status:'unavailable',reason:'E_UNSUPPORTED_SCHEME',windowId:7}]
+])test('My defaults to one approved owned tab when '+reason,async()=>{
+  const f=await fixture({pageSnapshot,configure({candidate}){candidate.manifest.siteOrigins=['https://target.example'];}});let root;
   try{
     root=await f.mount();await f.fire(f.doc.getElementById('task-parameters-open'),'click',{isTrusted:true});
-    assert.equal(f.view.field('task-run').disabled,true);
     const pin=f.view.data.taskRunSheet.identity;
-    await React.act(async()=>f.view.actions.taskSheetTargetChange(native(),'owned',pin));
     assert.equal(f.doc.getElementById('task-run-target-url').value,'https://target.example/');
     assert.equal(f.view.field('task-run').disabled,false);
-    assert.equal(f.state.starts.length,0,'selecting a target never creates or runs a tab');
+    assert.equal(f.state.starts.length,0,'opening the parameter sheet never creates or runs a tab');
+    assert.equal(f.state.permissionCalls.length,0);
     await f.fire(f.doc.getElementById('task-run'),'click',{isTrusted:true});
     assert.equal(f.state.starts.length,1);
     assert.deepEqual(f.state.starts[0].target,{mode:'owned',url:'https://target.example/'});
@@ -1254,6 +1317,27 @@ test('My can explicitly start one approved owned tab while the current site is u
     assert.equal(f.view.field('task-run').disabled,true,'busy still blocks another run');
     await React.act(async()=>{f.host.finish();await tick();await tick();});
     assert.equal(f.view.field('task-run').disabled,true,'closing the sheet restores the current-site restriction');
+  }finally{if(root)await React.act(async()=>root.unmount());f.dispose();}
+});
+
+test('My keeps the current-tab choice after navigation and shows the recovery beside Run',async()=>{
+  const f=await fixture();let root;
+  try{
+    root=await f.mount();await f.fire(f.doc.getElementById('task-parameters-open'),'click',{isTrusted:true});
+    const mode=f.doc.getElementById('task-run-target-mode'),run=f.doc.getElementById('task-run');
+    assert.equal(mode.value,'current');
+    assert.equal(run.disabled,false);
+    await React.act(async()=>f.setCurrentPage({url:'https://unrelated.example/'}));
+    assert.equal(mode.value,'current','an open sheet retains its target choice');
+    assert.equal(run.disabled,true);
+    const blocker=f.doc.getElementById(run.getAttribute('aria-describedby'));
+    assert.ok(blocker.closest('footer'));
+    assert.match(blocker.textContent,/请选择「新建标签页」/);
+    await React.act(async()=>f.setCurrentPage({url:'https://example.com/another-page'}));
+    assert.equal(mode.value,'current');
+    assert.equal(run.disabled,false);
+    assert.equal(blocker.textContent,'');
+    assert.equal(f.state.permissionCalls.length,0);
   }finally{if(root)await React.act(async()=>root.unmount());f.dispose();}
 });
 
@@ -1266,6 +1350,8 @@ test('My owned target rejects invalid or unapproved URLs before permissions and 
     for(const url of ['', 'not a URL','javascript:alert(1)','https://evil.example/','https://user:pass@example.com/']){
       await React.act(async()=>f.view.actions.taskSheetTargetUrlInput(native(),url,pin));
       assert.equal(f.view.field('task-run').disabled,true);
+      assert.equal(f.doc.getElementById('task-run-target-url').getAttribute('aria-invalid'),'true');
+      assert.match(f.doc.querySelector('footer #task-run-blocker').textContent,/修正起始网址/);
       assert.equal(f.view.actions.taskRunClick(native(),pin),false);
     }
     assert.equal(f.state.permissionCalls.length,0);assert.equal(f.state.starts.length,0);
@@ -1275,6 +1361,9 @@ test('My owned target rejects invalid or unapproved URLs before permissions and 
     await React.act(async()=>f.view.actions.taskSheetTargetChange(native(),'current',pin));
     assert.equal(f.view.data.taskRunSheet.target,undefined);
     assert.equal(f.doc.getElementById('task-run-target-url'),null);
+    await React.act(async()=>f.view.actions.taskSheetTargetChange(native(),'owned',pin));
+    assert.equal(f.doc.getElementById('task-run-target-url').value,'https://example.com/start');
+    assert.equal(f.doc.getElementById('task-run-target-url').getAttribute('aria-invalid'),null);
   }finally{if(root)await React.act(async()=>root.unmount());f.dispose();}
 });
 
@@ -1351,18 +1440,73 @@ test('correcting a parameter clears its obsolete summary without clearing other 
   }finally{if(root)await React.act(async()=>root.unmount());f.dispose();}
 });
 
-for(const stale of ['installed','candidate','stage'])test(`runtime recovery explains ${stale} blocking without enabling Run`,async()=>{
+for(const [stale,label,reason,accessibleGuidance] of [
+  ['installed','更新安装',/运行环境已更新.*需更新安装/,/审阅.*确认更新安装/],
+  ['candidate','打开开发草稿',/运行环境已更新.*试运行原任务源码/,/打开开发草稿/],
+  ['stage','打开任务目录',/已通过验证.*任务目录设为可用/,/任务目录.*设为可用/]
+])test(`runtime recovery explains ${stale} blocking without enabling Run`,async()=>{
   const f=await fixture({configure({installed,candidate}){
-    if(stale==='stage')candidate.stage='verified';else (stale==='installed'?installed:candidate).runtimeCurrent=false;
+    if(stale==='installed'){
+      installed.runtimeCurrent=false;candidate.verification={...candidate.verification,kind:'builtin-release'};
+    }else if(stale==='stage')candidate.stage='verified';else candidate.runtimeCurrent=false;
   }});let root;
   try{
     root=await f.mount();await f.fire(f.doc.getElementById('task-parameters-open'),'click');
     const sheet=f.doc.getElementById('task-parameters-sheet');
-    assert.match(sheet.textContent,stale==='stage'?/尚未设为可用/:/运行时已更新.*同一固定版本.*确认安装/);
-    assert.equal([...sheet.querySelectorAll('button')].some(b=>b.textContent==='在开发中重新验证'),stale!=='stage');
-    assert.equal(f.doc.getElementById('task-run').disabled,true);
+    assert.match(sheet.textContent,reason);
+    const description=f.doc.getElementById(sheet.getAttribute('aria-describedby')).textContent;
+    assert.match(description,accessibleGuidance);
+    assert.doesNotMatch(description,/点击“运行任务”|可直接运行/);
+    assert.equal([...sheet.querySelectorAll('footer button')].find(b=>b.textContent===label)?.disabled,false);
+    assert.equal(f.doc.getElementById('task-run'),null);
     await React.act(async()=>assert.equal(f.view.actions.taskRunClick(native(),f.view.data.taskRunSheet.identity),false));
     assert.equal(f.state.starts.length,0);assert.equal(f.state.permissionCalls.length,0);
+  }finally{if(root)await React.act(async()=>root.unmount());f.dispose();}
+});
+
+test('My reviews a verified fixed version for update, then runs in an owned tab under the new installation',async()=>{
+  const f=await fixture({configure({installed,candidate}){
+    installed.runtimeCurrent=false;candidate.runtimeCurrent=true;
+    candidate.manifest.siteOrigins=['https://www.baidu.com'];
+  }});let root;
+  try{
+    root=await f.mount();await f.fire(f.doc.getElementById('task-parameters-open'),'click');
+    await f.input('task-param-name','保留参数');
+    const previous=f.view.data.taskRunSheet.identity;
+    await React.act(async()=>f.view.actions.taskSheetTargetChange(native(),'owned',previous));
+    assert.equal(f.doc.getElementById('task-run-target-url').value,'https://www.baidu.com/');
+    assert.equal(f.doc.getElementById('task-run'),null);
+    const update=[...f.doc.querySelectorAll('#task-parameters-sheet footer button')].find(button=>button.textContent==='更新安装');
+    await f.fire(update,'click');
+    assert.deepEqual(f.state.catalogOpens,[],'synthetic clicks do not open review');
+    const before=f.state.calls.length;
+    await f.fire(update,'click',{isTrusted:true});
+    assert.deepEqual(f.state.catalogOpens,[{url:'chrome-extension://test/sidepanel.html?taskReviewId=test.task&taskReviewVersion=1.0.0'}]);
+    assert.ok(f.state.calls.slice(before).every(call=>call.action==='inspectTaskRun'));
+    assert.equal(f.state.permissionCalls.length,0);assert.equal(f.state.starts.length,0);
+    assert.equal(f.doc.getElementById('task-parameters-sheet').open,false);
+
+    // Model the existing separate catalog's explicit reinstall (and the
+    // workbench refresh), with a new generation minted by the task service.
+    f.state.installed[0]={...f.state.installed[0],runtimeCurrent:true,generation:previous.generation+1,
+      installationId:'44444444-4444-4444-8444-444444444444'};
+    await React.act(async()=>f.workbench.refresh());
+    await f.fire(f.doc.getElementById('task-parameters-open'),'click');
+    const current=f.view.data.taskRunSheet.identity;
+    assert.equal(f.doc.getElementById('task-param-name').value,'Alice','drafts remain scoped to the original installation');
+    await f.input('task-param-name','待搜索关键词');
+    await React.act(async()=>{
+      assert.equal(await f.view.actions.taskSheetRuntimeRecoveryClick(native(),previous,'update'),false);
+      f.view.actions.taskSheetTargetChange(native(),'owned',current);
+    });
+    assert.equal(f.doc.getElementById('task-run').disabled,false);
+    await f.fire(f.doc.getElementById('task-run'),'click',{isTrusted:true});
+    assert.equal(f.state.starts.length,1);
+    assert.deepEqual(f.state.starts[0].target,{mode:'owned',url:'https://www.baidu.com/'});
+    assert.equal(f.state.starts[0].params.name,'待搜索关键词');
+    assert.equal(f.state.starts[0].expectedTaskInstallationId,current.installationId);
+    assert.equal(f.state.starts[0].expectedTaskGeneration,current.generation);
+    await React.act(async()=>{f.host.finish();await tick();});
   }finally{if(root)await React.act(async()=>root.unmount());f.dispose();}
 });
 
@@ -1391,10 +1535,12 @@ for(const outcome of ['success','cancel','error','navigation cancelled','generat
       if(outcome==='shared preparation')f.state.taskRunRequest=async()=>({preparation:{preparationId:'other',state:'prepared'}});
       const start=f.state.calls.length;
       await React.act(async()=>{
-        assert.equal(await f.view.actions.taskSheetRuntimeRecoveryClick({isTrusted:false},identity),false);
-        await f.view.actions.taskSheetRuntimeRecoveryClick(native(),identity);await tick();
+        assert.equal(await f.view.actions.taskSheetRuntimeRecoveryClick({isTrusted:false},identity,'edit'),false);
+        await f.view.actions.taskSheetRuntimeRecoveryClick(native(),identity,'edit');await tick();
       });
       assert.equal(f.doc.getElementById('task-parameters-sheet').open,outcome!=='success');
+      if(outcome==='error')assert.match(f.doc.querySelector('footer #task-run-blocker').textContent,/编辑器拒绝导入/);
+      if(outcome==='cancel')assert.match(f.doc.querySelector('footer #task-run-blocker').textContent,/未打开开发草稿.*已保留参数/);
       assert.equal(f.doc.documentElement.dataset.opendeskTab,outcome==='success'?'develop':'tasks');
       assert.equal(f.view.field('task-param-name').value,'保留参数');
       assert.deepEqual(drafts,['success','navigation cancelled'].includes(outcome)?['fixed source']:[]);
@@ -1422,10 +1568,10 @@ for(const transition of ['repeat','close and reopen','host starts'])test(`runtim
   try{
     root=await f.mount();await f.fire(f.doc.getElementById('task-parameters-open'),'click');
     const identity={...f.view.data.taskRunSheet.identity};
-    await React.act(async()=>{pending=f.view.actions.taskSheetRuntimeRecoveryClick(native(),identity);await tick();});
+    await React.act(async()=>{pending=f.view.actions.taskSheetRuntimeRecoveryClick(native(),identity,'edit');await tick();});
     assert.equal(typeof release,'function');
     assert.equal(f.view.data.taskRunSheet.busy,true);
-    await React.act(async()=>assert.equal(await f.view.actions.taskSheetRuntimeRecoveryClick(native(),identity),false));
+    await React.act(async()=>assert.equal(await f.view.actions.taskSheetRuntimeRecoveryClick(native(),identity,'edit'),false));
     if(transition==='close and reopen'){
       await React.act(async()=>f.view.actions.taskSheetClose());
       await f.fire(f.doc.getElementById('task-parameters-open'),'click');
@@ -1472,7 +1618,7 @@ test('disabled task shows its disabled reason despite matching the current site'
     assert.equal(f.view.field('task-current-site').dataset.state,'matched');
     assert.equal(f.doc.getElementById('task-run').disabled,true);
     assert.match(f.view.data.taskRunBlockedReason,/已停用/);
-    assert.ok(f.doc.querySelector('#task-parameters-sheet [role="status"]').textContent.includes(f.view.data.taskRunBlockedReason));
+    assert.equal(f.doc.querySelector('footer #task-run-blocker[role="status"]').textContent,f.view.data.taskRunBlockedReason);
     await f.dispatch('task-toggle');
     assert.equal(f.doc.getElementById('task-run').disabled,false);
     assert.equal(f.view.data.taskRunBlockedReason,'');
@@ -1487,14 +1633,155 @@ test('a busy host shows the running reason and clears it when the host finishes'
     await React.act(async()=>{f.host.forceRun('other-owner-run');await tick();});
     assert.equal(f.view.field('task-current-site').dataset.state,'matched');
     assert.equal(f.doc.getElementById('task-run').disabled,true);
+    assert.equal(f.doc.getElementById('task-sheet-stop'),null,'an unrelated run has no Stop in this sheet');
     assert.match(f.view.data.taskRunBlockedReason,/已有任务正在运行/);
-    assert.ok(f.doc.querySelector('#task-parameters-sheet [role="status"]').textContent.includes(f.view.data.taskRunBlockedReason));
+    assert.equal(f.doc.querySelector('footer #task-run-blocker[role="status"]').textContent,f.view.data.taskRunBlockedReason);
     const permissions=f.state.permissionCalls.length;
     await React.act(async()=>{assert.equal(f.view.actions.taskRunClick(native(),{...f.view.data.taskRows.identity}),false);await tick();});
     assert.equal(f.state.permissionCalls.length,permissions);assert.equal(f.state.starts.length,0);
     await React.act(async()=>{f.host.finish();await tick();});
     assert.equal(f.doc.getElementById('task-run').disabled,false);
     assert.equal(f.view.data.taskRunBlockedReason,'');
+  }finally{if(root)await React.act(async()=>root.unmount());f.dispose();}
+});
+
+test('My sheet stops the original unknown run once, keeps the draft and requires review before a new run',async()=>{
+  const f=await fixture();let root;
+  try{
+    root=await f.mount();
+    const open=()=>f.fire(f.doc.getElementById('task-parameters-open'),'click',{isTrusted:true});
+    await open();await f.input('task-param-name','保留的关键词');
+    await f.fire(f.doc.getElementById('task-run'),'click',{isTrusted:true});
+    await React.act(async()=>{f.host.pauseUnknown();await tick();});
+    await open();
+    const sheet=f.doc.getElementById('task-parameters-sheet'),stop=f.doc.getElementById('task-sheet-stop');
+    assert.equal(sheet.open,true);
+    assert.match(stop.getAttribute('aria-label'),/停止并收尾.*已验证任务/);
+    assert.equal(f.doc.getElementById('task-run'),null);
+    const {token,sheet:sequence}=f.view.data.taskSheetRunControl;
+    await f.fire(stop,'click',{isTrusted:false});
+    assert.equal(f.state.stops.length,0);
+    await f.fire(stop,'click',{isTrusted:true});
+    await React.act(async()=>f.view.actions.taskSheetStopOwnedClick(native(),token,sequence));
+    assert.deepEqual(f.state.stops,[{runId:'run-1',controller:true}]);
+    assert.equal(sheet.open,true);
+    assert.equal(f.doc.getElementById('task-param-name').value,'保留的关键词');
+    assert.equal(f.doc.getElementById('task-run').disabled,true);
+    await f.fire(f.doc.getElementById('task-sheet-review'),'click',{isTrusted:true});
+    assert.equal(f.state.starts.length,1,'acknowledgment does not submit');
+    await f.fire(f.doc.getElementById('task-run'),'click',{isTrusted:true});
+    assert.equal(f.state.starts.length,2);
+    assert.equal(f.state.starts[1].params.name,'保留的关键词');
+    await React.act(async()=>{f.host.finish();await tick();});
+  }finally{if(root)await React.act(async()=>root.unmount());f.dispose();}
+});
+
+test('a lost manual start receipt cancels only the original request and waits for durable release',async()=>{
+  const f=await fixture();let root;
+  try{
+    root=await f.mount();
+    const open=()=>f.fire(f.doc.getElementById('task-parameters-open'),'click',{isTrusted:true});
+    const queries=[];
+    f.state.startError=({requestId})=>Object.assign(Error('No admission reply'),{code:'E_EFFECT_UNKNOWN',admissionRequestId:requestId});
+    f.host.reconcileControllerAdmission=async requestId=>{
+      queries.push(requestId);
+      return {requestId,admissionState:'admitted',runId:'run-original',retirement:{state:queries.length===1?'pending':'released'}};
+    };
+    await open();await f.fire(f.doc.getElementById('task-run'),'click',{isTrusted:true});
+    await open();
+    const query=()=>[...f.doc.querySelectorAll('#task-parameters-sheet footer button')].find(b=>b.textContent==='取消原启动');
+    const run=()=>f.doc.getElementById('task-run');
+    assert.equal(run().disabled,true);
+    assert.equal(f.doc.getElementById('task-sheet-stop'),null);
+    await f.fire(query(),'click',{isTrusted:false});
+    assert.equal(queries.length,0);
+    await f.fire(query(),'click',{isTrusted:true});
+    assert.equal(run().disabled,true);
+    await f.fire(query(),'click',{isTrusted:true});
+    assert.deepEqual(queries,[f.state.starts[0].requestId,f.state.starts[0].requestId]);
+    assert.equal(f.state.starts.length,1,'cancellation never submits a replacement');
+    assert.equal(run().disabled,false);
+  }finally{if(root)await React.act(async()=>root.unmount());f.dispose();}
+});
+
+test('opening a fresh sheet reads stopped uncertainty and requires release of the original run',async()=>{
+  const f=await fixture({configure({state,installed,candidate}){
+    state.runs.push({runId:'original-stopped',state:'stopped',outcomeUncertain:true,retirementState:'fenced',
+      taskInstallation:installed,revision:{scriptId:installed.scriptId,sourceHash:candidate.manifest.program.sourceHash}});
+    state.slotAvailable=false;
+  }});let root;
+  try{
+    root=await f.mount();await f.fire(f.doc.getElementById('task-parameters-open'),'click',{isTrusted:true});
+    const review=()=>f.doc.getElementById('task-sheet-review');
+    assert.equal(f.doc.getElementById('task-sheet-stop'),null,'another Host owns the previous execution');
+    assert.equal(review().disabled,true);
+    f.state.slotAvailable=true;
+    const query=()=>[...f.doc.querySelectorAll('#task-parameters-sheet footer button')].find(b=>b.textContent==='查询原运行');
+    await f.fire(query(),'click',{isTrusted:true});
+    assert.equal(review().disabled,true,'a global slot report is not a release receipt for the original run');
+    f.state.runs[0].retirementState='released';
+    await f.fire(query(),'click',{isTrusted:true});
+    assert.equal(review().disabled,false);
+    await f.fire(review(),'click',{isTrusted:true});
+    assert.equal(f.doc.getElementById('task-run').disabled,false);
+    assert.equal(f.state.starts.length,0);
+  }finally{if(root)await React.act(async()=>root.unmount());f.dispose();}
+});
+
+test('an open My sheet stays invalid after an installation change until the user opens a new review',async()=>{
+  const f=await fixture();let root;
+  try{
+    root=await f.mount();await f.fire(f.doc.getElementById('task-parameters-open'),'click',{isTrusted:true});
+    const old=f.view.data.taskRunSheet.identity;
+    await React.act(async()=>{
+      f.view.actions.taskSheetTargetChange(native(),'owned',old);
+      f.view.actions.taskSheetTargetUrlInput(native(),'https://unapproved.example/',old);
+    });
+    assert.equal(f.doc.getElementById('task-run-target-url').getAttribute('aria-invalid'),'true');
+    f.state.installed[0]={...f.state.installed[0],generation:old.generation+1};
+    await React.act(async()=>f.workbench.refresh());
+    assert.equal(f.view.data.taskSelection.label,'需重新核对');
+    assert.match(f.doc.getElementById('task-run-blocker').textContent,/本次未开始运行.*重新打开/);
+    assert.equal(f.doc.getElementById('task-run').disabled,true);
+    assert.equal(f.doc.getElementById('task-run-target-mode').disabled,true);
+    assert.equal(f.doc.getElementById('task-run-target-url').getAttribute('aria-invalid'),null);
+    assert.equal(f.doc.getElementById('task-run-target-error'),null);
+    assert.equal(f.view.actions.taskRunClick(native(),old),false);
+    assert.equal(f.state.permissionCalls.length,0);assert.equal(f.state.starts.length,0);
+    await React.act(async()=>f.view.actions.taskSheetClose());
+    await f.fire(f.doc.getElementById('task-parameters-open'),'click',{isTrusted:true});
+    assert.equal(f.doc.getElementById('task-run').disabled,false);
+    await f.fire(f.doc.getElementById('task-run'),'click',{isTrusted:true});
+    assert.equal(f.state.starts.length,1);
+    assert.equal(f.state.starts[0].expectedTaskGeneration,old.generation+1);
+    await React.act(async()=>{f.host.finish();await tick();});
+  }finally{if(root)await React.act(async()=>root.unmount());f.dispose();}
+});
+
+test('revision rejection during admission preserves the previous result and clears on a new review',async()=>{
+  const f=await fixture({configure({state,installed}){
+    state.runs.push({runId:'earlier-success',state:'completed',revision:{scriptId:installed.scriptId}});
+    state.results.push({runId:'earlier-success',state:'completed',revision:{scriptId:installed.scriptId},
+      outcome:{ok:true,valueWire:encodeValue({count:3})}});
+  }});let root;
+  try{
+    root=await f.mount();await f.fire(f.doc.getElementById('task-parameters-open'),'click',{isTrusted:true});
+    f.state.changeResolved=true;
+    await f.fire(f.doc.getElementById('task-run'),'click',{isTrusted:true});
+    assert.equal(f.state.starts.length,0);
+    assert.equal(f.view.data.taskSelection.label,'需重新核对');
+    assert.match(f.doc.getElementById('task-status').textContent,/本次未开始运行.*重新打开/);
+    assert.match(f.doc.getElementById('task-result').textContent, /"count": 3/);
+    assert.equal(f.view.data.taskHistory.length,1);
+    f.state.installed[0].generation++;
+    await React.act(async()=>f.workbench.refresh());
+    await f.fire(f.doc.getElementById('task-parameters-open'),'click',{isTrusted:true});
+    assert.doesNotMatch(f.doc.getElementById('task-parameters-sheet').textContent,/本次未开始运行/);
+    assert.match(f.doc.getElementById('task-result').textContent, /"count": 3/);
+    await f.fire(f.doc.getElementById('task-run'),'click',{isTrusted:true});
+    assert.equal(f.state.starts.length,1);
+    assert.equal(f.state.starts[0].expectedTaskGeneration,2);
+    await React.act(async()=>{f.host.finish();await tick();});
   }finally{if(root)await React.act(async()=>root.unmount());f.dispose();}
 });
 

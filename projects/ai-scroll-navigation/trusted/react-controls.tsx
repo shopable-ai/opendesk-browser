@@ -378,8 +378,9 @@ export function ScrollSiteManager({model,pageControl,title,detail,onNavigation,P
     aria-label={t('managerAria')} aria-busy={loading||busy}>
     <div className="ec-scroll-content" ref={contentRef}>
     {view==='home'&&<div className="ec-scroll-home">
-      {pageControl?<PageControl locale={locale} description={t('autoRunDescription')} control={pageControl} title={title} heading={t('autoRun')} compact onDetails={openManagement}/>:
-        <p role="status">{t('autoRunUnconfirmed')}</p>}
+      {pageControl?<PageControl locale={locale} description={t('autoRunDescription')} control={pageControl}
+        title={title} heading={t('autoRun')} compact hasOldPageCleanup={Boolean(detail?.oldPageCleanup)}
+        onDetails={openManagement}/>:<p role="status">{t('autoRunUnconfirmed')}</p>}
       <section className="ec-scroll-group" aria-labelledby="scroll-builtins-title">
         <div className="ec-scroll-title"><h3 id="scroll-builtins-title">{t('builtinsTitle')}</h3>
           <IconButton id="scroll-builtins" label={t('viewBuiltins')} title={t('viewBuiltinsCount',{count:SCROLL_BUILTINS.length})}

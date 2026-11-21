@@ -22,9 +22,30 @@ const compiledTimeReviewInputs=Object.freeze({
 // Their sourceUtf8 stays frozen data; only Controller may execute it after
 // installation and run authorization. Never admit their JS source modules.
 const packagedTaskInputs=Object.freeze({
-  'task-packs/baidu.search/releases/baidu.search.top3.v1.opendesk-task.json':'7ed543cb4c46a688b6fb2f1a6943a10065b6c172',
+  'task-packs/baidu.search/releases/baidu.search.top3.v1.opendesk-task.json':'627a671c3673985e5ed2f434f584cc8ca340698b',
   'task-packs/google.search/releases/google.search.top3.v1.opendesk-task.json':'acc7df905e0376a94385b7176c34a4081c536612'
 });
+// Queue Page source and assets are statically compiled into the scoped ChatGPT
+// script. Sidebar source and installation JSON may never enter this bundle.
+const compiledSendQueueInputs=Object.freeze({
+  'projects/ai-send-queue/assets/crown-premium.webp':'46ea350497498f7854fcecc9c31b0593081c7e68',
+  'projects/ai-send-queue/assets/queue.css':'de1cb65f9627ca063e19717f1c9609fd5422e726',
+  'projects/ai-send-queue/src/page/cache.js':'9510781e472804494cb5576cb7d1b516292ddb8a',
+  'projects/ai-send-queue/src/page/engine.js':'a815c6792b75ddf6095bd9ee6d84913ad825edc8',
+  'projects/ai-send-queue/src/page/main.js':'9ab01594feb43b23b624e5766b08e40b290889b2',
+  'projects/ai-send-queue/src/page/site.js':'f15404479bcf959d4cdbc6a0537919f2ddd2c030',
+  'projects/ai-send-queue/src/page/status.js':'20736cee7a780f8d8c86aa0cd85a8f0b6d834141',
+  'projects/ai-send-queue/src/page/view.js':'06377b74f5cb55d4330931b8a2c336f9b1ee10e7',
+  'projects/ai-send-queue/trusted/fixed-page.js':'ab70981a9241f6af86cea411eadae0391816689f'
+});
+function reviewedCompiledSendQueue(target,path,root){
+  if(target!=='agents/chatgpt-fixed-bridge.js'||!Object.hasOwn(compiledSendQueueInputs,path))return null;
+  const file=resolve(root,path);
+  if(realpathSync(file)!==file)throw Error('Trusted Send Queue source must not be a symlink: '+path);
+  const bytes=readFileSync(file),hash=createHash('sha1').update('blob '+bytes.length+'\0').update(bytes).digest('hex');
+  if(hash!==compiledSendQueueInputs[path])throw Error('Trusted Send Queue source changed; review and re-pin before fixed build: '+path);
+  return hash;
+}
 function reviewedPackagedTask(target,path,root){
   if(target!=='sw.js'||!Object.hasOwn(packagedTaskInputs,path))return null;
   const file=resolve(root,path);
@@ -489,8 +510,8 @@ const compiledKnowledgeInputs=Object.freeze({
   'projects/ai-knowledge-answers/trusted/ai-request.js':'d74df23166adc1ee10952db847cbd1202bdeb3ae',
   'projects/ai-knowledge-answers/trusted/local-test-runtime.js':'2605e9d4825f3d95140a1eaccc73c1cc62ee6cda',
   'projects/ai-knowledge-answers/trusted/local-test-adapter.js':'25c43a64db60933c61f16a569afbfd376a5f8ac5',
-  'projects/ai-knowledge-answers/trusted/Workspace.jsx':'9fa5a0e47805bfbbd092dbab7f78bb346588058b',
-  'projects/ai-knowledge-answers/trusted/workspace.css':'3f11650babfd3e1a490907b33e2f722bd97fa53d',
+  'projects/ai-knowledge-answers/trusted/Workspace.jsx':'ccb99469d9226c021f7356f1872caa63453474ae',
+  'projects/ai-knowledge-answers/trusted/workspace.css':'72f369bb4bdd2e8064c17c4e084f01f1c4d6a5c4',
   'projects/ai-knowledge-answers/trusted/multi-intent.js':'82d4b49d194783e04844e36df78d757955e31378'
 });
 function reviewedCompiledKnowledge(target,path,root){
@@ -673,10 +694,12 @@ function reviewedCompiledAppOwnedBackground(target,path,root){
 // strings and visible settings feedback only; trusted gesture checks retained.
 // 2026-11-13 recovery UI review: existing cleanup presentation moves into
 // runtime diagnostics, with four-locale labels; no new authority or output target.
+// 2026-11-20: the compact scroll view passes the existing cleanup status to
+// the shared Page control so the existing management entry stays discoverable.
 const compiledExtensionSettingsInputs=Object.freeze({
   'projects/ai-scroll-navigation/trusted/ai-configuration.js':'c97137a3a871fb6c19fd3594fc627fafd67d03f8',
   'projects/ai-scroll-navigation/trusted/ai-controls.tsx':'ba7e94499c399aba685b7c80cf004bb56e2888f0',
-  'projects/ai-scroll-navigation/trusted/react-controls.tsx':'dfe565119cf1e8da869785e6f6bb6dba0c471b92',
+  'projects/ai-scroll-navigation/trusted/react-controls.tsx':'0c254d06dfa15181601cddf3215ace767d6d566d',
   'projects/ai-scroll-navigation/trusted/host-localization.js':'e2d8f50cf676e4fc902202bfb24caa36de221837',
   'projects/time-review/trusted/react-controls.tsx':'2a9155f4a6c56969d1aebcd7420405b84fd4eaf4',
   'projects/time-review/trusted/localization.js':'7478e9c91f33317c8e1fe08f33d2e49c47b47818',
@@ -776,7 +799,8 @@ const compiledReadingTocInputs=Object.freeze({
   // Legacy metadata/admission only. Webpage algorithms and view styles are
   // delivered by the reviewed application Page module, never fixed bundles.
   'projects/reading-toc/trusted/policy.js':'80fc351e9afc0cd94eedbc93c014cc4098f8b0b7',
-  'projects/reading-toc/trusted/locales.generated.js':'e494a458a006adeb90697aca8dd8957bc90e2ef3'
+  // 2026-11-21: generated catalog adds only the activation guidance in zh-CN, en and ja.
+  'projects/reading-toc/trusted/locales.generated.js':'eaff0dfa2f57a2a1b6344963d7599037995786df'
 });
 function reviewedCompiledReadingToc(target,path,root){
   if(!Object.hasOwn(compiledReadingTocInputs,path))return null;
@@ -892,6 +916,7 @@ export function describeBundle({chunk,root=process.cwd(),lock}) {
     assertLibraryModuleBoundary(chunk.fileName,path);
     const reviewedSource=reviewedPackagedTask(chunk.fileName,path,root)||
       reviewedCompiledTimeReview(chunk.fileName,path,root)||
+      reviewedCompiledSendQueue(chunk.fileName,path,root)||
       reviewedCompiledWebFlow(chunk.fileName,path,root)||
       reviewedCompiledSubagentResult(chunk.fileName,path,root)||
       reviewedIndependentTaskResult(chunk.fileName,path,root)||

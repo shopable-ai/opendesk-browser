@@ -35,6 +35,7 @@ test('value-only overwrite is detected once without publishing values or a false
     assert.equal(change.name,'theme');assert.equal(change.kind,'updated');
     assert.deepEqual(change.fields,['内容或属性']);
     assert.equal(f.controller.snapshot().changes.length,1);
+    assert.equal(f.observer.snapshot().detected,true);
     await f.observer.poll();assert.equal(f.controller.snapshot().changes[0].revision,change.revision);
     assert.doesNotMatch(JSON.stringify(f.snapshots),/sess_demo_only|secret_preview_never_real|"value"|"light"|"night"/);
     assert.equal(f.mock.inspect().calls.some(({op,args})=>op==='get'||op==='set'||args?.includeValues),false);
@@ -115,6 +116,7 @@ test('event gaps trigger a fresh metadata read and an explicit incomplete-histor
     f.mock.simulateCookieChange('added');
     f.adapter.observeRead=async()=>({sessionRef,events:[],nextCursor:'51',gapCount:50});
     await f.observer.poll();assert.equal(f.observer.snapshot().gap,true);
+    assert.equal(f.observer.snapshot().detected,false);
     assert.equal(f.controller.snapshot().changes[0].name,'live_demo');
   }finally{f.dispose();}
 });
@@ -129,6 +131,24 @@ test('the observation expires without renewal or background reads',async()=>{
     clock=observer.snapshot().expiresAt;await observer.poll();
     assert.equal(observer.snapshot().phase,'ended');
     await Promise.resolve();assert.deepEqual(f.mock.inspect().observations,[]);
+  }finally{observer.dispose();f.dispose();}
+});
+test('expiry ends the countdown even if a read is still pending',async()=>{
+  const f=fixture(),pending=deferred();let clock=Date.now();
+  const observer=createCookieObservation({adapter:f.adapter,controller:f.controller,canRun:()=>true,now:()=>clock});
+  try{
+    await f.controller.load();clock=Date.now();
+    f.adapter.observeStart=async()=>({sessionRef:'slow',expiresAt:clock+30000});
+    f.adapter.observeRead=()=>pending.promise;
+    await observer.start();
+    const reading=observer.poll();
+    clock+=30000;await observer.poll();
+    assert.equal(observer.snapshot().phase,'ended');
+    assert.equal(observer.snapshot().gap,true);
+    pending.resolve({sessionRef:'slow',events:[{name:'theme'}],nextCursor:'1',gapCount:0});
+    await reading;
+    assert.equal(observer.snapshot().detected,false);
+    assert.deepEqual(f.controller.snapshot().changes,[]);
   }finally{observer.dispose();f.dispose();}
 });
 test('change marks stay bounded and snapshot consumers cannot mutate their baseline',async()=>{
@@ -218,7 +238,8 @@ test('first accepted observer event notifies once across polls, restarts and epo
     assert.equal(notices[0].type,'success');
     f.adapter.list=list;
     f.mock.simulateCookieChange('value');await f.observer.poll();
-    f.observer.stop();await f.observer.start();
+    f.observer.stop('stopped');assert.equal(f.observer.snapshot().detected,true);
+    await f.observer.start();assert.equal(f.observer.snapshot().detected,false);
     f.mock.simulateCookieChange('added');await f.observer.poll();
     f.observer.dispose();
     remounted=createCookieObservation({adapter:f.adapter,controller:f.controller,canRun:()=>true,

@@ -42,6 +42,7 @@ const DOC_REPLACED = 'E_DOCUMENT_REPLACED';
 const REQUEST_CONFLICT = 'E_REQUEST_CONFLICT';
 const EFFECT_UNKNOWN = 'E_EFFECT_UNKNOWN';
 const CANCELLED_CODE = 'E_CANCELLED';
+const ADMISSION_FENCE_TAG = 'controller-start-fence';
 const REVOKED_MESSAGE = 'Run permission revoked';
 const stores = [RUN_STORE, COMMAND_JOURNAL, 'results', 'frameworkKV'];
 const live = new Set(['preparing', 'running']);
@@ -52,6 +53,7 @@ const wireCanonicalOptions = Object.freeze({maxDepth: 48});
 const pinBindingFields = ['namespace', 'principal', 'grantIncarnation', 'runId', 'opId', 'requestId', 'resultId', 'browserSessionIncarnation'];
 const scriptKey = (namespace, id, revision) => `script:${canonical(revision === undefined ? [namespace, id] : [namespace, id, revision])}`;
 const opKey = (runId, requestId) => `controller-op:${canonical([runId, requestId])}`;
+const controllerStartKey = (registrationId, requestId) => `controller-start:${canonical([registrationId, requestId])}`;
 function originMatches(pattern, origin) {
   if (pattern === '<all_urls>') return true;
   const match = typeof pattern === 'string' && pattern.match(/^(\*|https?):\/\/([^/]+)\//);
@@ -77,6 +79,10 @@ function same(a, b) { return canonical(a, wireCanonicalOptions) === canonical(b,
 function typed(error) { return {code: error?.code || 'E_CONTROL_EXECUTION', name: error?.name || 'Error', message: String(error?.message || error)}; }
 function hasNativeEffect(operation) {
   return operation?.nativeReceipts?.some(receipt => receipt.stage !== 'webNavigation.getAllFrames') === true;
+}
+function unsettledControllerEffect(operation) {
+  return ['controller-operation', 'controller-navigation'].includes(operation.tag) &&
+    ['dispatched', 'effect_unknown'].includes(operation.state);
 }
 
 // Delegate of the unique authority. Every durable fence is ordered by its
@@ -246,6 +252,7 @@ export function controllerMethods({storage, api, session, clock, assertHost, cur
       'target', 'targetQuarantine', 'revision', 'deadlineAt', 'retirementId', 'retirementState', 'resultId', 'terminalReason', 'workerRetired',
       'scriptId', 'contentHash', 'sourceKind', 'networkOrigins','profile','appBinding',
       'targetDisposition','retainedTarget','retainedFrom','retainedContinuation','taskPreparationId'].filter(key => run[key] !== undefined).map(key => [key, run[key]]))),
+      outcomeUncertain:run.outcomeUncertain===true,
       ...(taskInstallation?{taskInstallation}:{})};
   }
   async function snapshotControllerRun(request, sender) {
@@ -1181,6 +1188,24 @@ export function controllerMethods({storage, api, session, clock, assertHost, cur
     return inspectTaskRun(request,sender);
   }
 
+  async function fenceControllerAdmission(request, sender) {
+    fields(request, ['requestId'], ['requestId']);
+    const {requestId} = request;
+    id(requestId);
+    const host = await assertHost(sender);
+    const key = controllerStartKey(host.registrationId, requestId);
+    return tx(RUN_WRITE, async transaction => {
+      await currentHost(transaction, host, sender);
+      const entry = await transaction.get(COMMAND_JOURNAL, key);
+      if (!entry) await transaction.put(COMMAND_JOURNAL,
+        {tag:ADMISSION_FENCE_TAG, registrationId:host.registrationId, requestId}, key);
+      if (!entry || entry.tag === ADMISSION_FENCE_TAG) return {requestId, state:'not-admitted'};
+      invariant(entry.tag === 'controller-start', CONTROLLER_OWNER_ERROR);
+      const run = await owner(transaction, await transaction.get(RUN_STORE, entry.runId), host, sender);
+      invariant(run.requestId === requestId, CONTROLLER_OWNER_ERROR);
+      return {requestId, state:'admitted', run:project(run)};
+    }, [RUN_STORE, COMMAND_JOURNAL]);
+  }
   async function startControllerRun(request, sender) {
     request=structuredClone(request);
     if(request?.taskPreparationId!==undefined)id(request.taskPreparationId);
@@ -1404,12 +1429,15 @@ export function controllerMethods({storage, api, session, clock, assertHost, cur
       await scheduled.prepareAdmission(request.scheduledFireId,request.expectedScheduleOwner):undefined;
     const admissionKey = request.taskPreparationId ? preparationStartKey(namespace(host),request.taskPreparationId) : request.taskDelegationStep ? 'delegated-start:'+request.taskDelegationStep.operationRef :
       request.scheduledFireId ? `scheduled-start:${request.scheduledFireId}` :
-      request.cloudRequestId ? `cloud-start:${request.cloudRequestId}` : `controller-start:${canonical([host.registrationId, request.requestId])}`;
+      request.cloudRequestId ? `cloud-start:${request.cloudRequestId}` : controllerStartKey(host.registrationId, request.requestId);
     invariant(!request.cloudRequestId || isInstalledTask && request.requestId===request.cloudRequestId && request.target.mode==='owned','E_TASK');
     const runDelegation=request.taskDelegation&&request.taskPreparationId?
       {...await readTaskDelegationApp(api,request.taskDelegation.appId),...request.taskDelegation}:request.taskDelegation;
     const admitted = await tx(RUN_WRITE, async transaction => {
       await currentHost(transaction, host, sender);
+      // Read the same journal key used by Stop before writing a Run or pin.
+      const old = await transaction.get(COMMAND_JOURNAL, admissionKey);
+      invariant(old?.tag !== ADMISSION_FENCE_TAG, CANCELLED_CODE, 'Controller admission was cancelled');
       assertCandidate();
       const installedTask=isInstalledTask?await assertInstalledTask(transaction,namespace(host),{
         scriptId:saved.scriptId,contentHash:saved.contentHash,
@@ -1462,7 +1490,6 @@ export function controllerMethods({storage, api, session, clock, assertHost, cur
           'Task preparation does not match admission');
         assertBuiltinIdentity(preparation.builtinIdentity,environment);
       }
-      const old = await transaction.get(COMMAND_JOURNAL, admissionKey);
       if (old) {
         if(preparation){
           const run=await transaction.get(RUN_STORE,old.runId);
@@ -2034,16 +2061,20 @@ export function controllerMethods({storage, api, session, clock, assertHost, cur
       const terminal = run.cancelSeq ? (run.terminalReason === 'E_HOST_CLOSED' ? 'interrupted' : 'stopped') : status;
       invariant(terminals.has(terminal), CONTROLLER_SCHEMA_ERROR);
       const expired = now() >= run.deadlineAt;
-      const state = expired && terminal === 'completed' ? 'stopped' : terminal;
+      let state = expired && terminal === 'completed' ? 'stopped' : terminal;
+      if (!run.outcomeUncertain && (await transaction.all(COMMAND_JOURNAL)).some(value =>
+        value.runId === runId && unsettledControllerEffect(value))) run.outcomeUncertain = true;
+      // Uncertainty rules out success without replacing a Stop or interruption.
+      if (state === 'completed' && run.outcomeUncertain) {
+        state = 'failed';
+        outcome = {error: typed(new FoundationError(EFFECT_UNKNOWN, 'Unsettled effects prevent success'))};
+      }
       const result = {tag: 'controller-result', resultId: run.resultId, runId, namespace: run.namespace, principal: run.principal,
         ...(run.pageRequestId?{pageRequestId:run.pageRequestId,taskPreparationId:run.taskPreparationId,requestId:run.requestId}:{}),
         revision: run.revision, builtinIdentity:run.builtinIdentity, sourceKind: run.sourceKind, state, outcome: state === 'completed' ? {ok: true, valueWire: outcome.valueWire} :
           {ok: false, error: run.cancelSeq || expired ? typed(new FoundationError(expired ? CONTROLLER_TIMEOUT_ERROR : run.terminalReason || CANCELLED_CODE, 'Controller fenced')) : outcome.error},
         committedAt: now()};
       if (result.outcome.ok) decodeValue(result.outcome.valueWire);
-      if (state === 'completed') invariant(!(await transaction.all(COMMAND_JOURNAL)).some(value => value.runId === runId &&
-        ['controller-operation', 'controller-navigation'].includes(value.tag) && ['dispatched', 'effect_unknown'].includes(value.state)),
-      EFFECT_UNKNOWN, 'Unsettled effects prevent success');
       run.state = state; run.cancelSeq++; run.ownerEpoch++; run.runRevision++; run.eventSeq++;
       run.workerRetired = workerRetired; run.retirementId = newId(); run.retirementState = 'fenced';
       run.terminalReason = result.outcome.ok ? null : result.outcome.error;
@@ -2227,6 +2258,7 @@ export function controllerMethods({storage, api, session, clock, assertHost, cur
         }
         await tx(RUN_WRITE, async transaction => {
           const current = await transaction.get(RUN_STORE, run.runId);
+          if (current.cancelSeq || terminals.has(current.state)) return;
           current.cancelSeq++; current.ownerEpoch++; current.terminalReason = 'E_HOST_CLOSED';
           await transaction.put(RUN_STORE, current, current.runId);
           await lease(transaction, current);
@@ -2334,17 +2366,28 @@ export function controllerMethods({storage, api, session, clock, assertHost, cur
   }
   async function recoverControllers() {
     const result=await tx(RUN_WRITE, async transaction => {
-      for (const operation of await transaction.all(COMMAND_JOURNAL)) {
+      const uncertainRuns = new Set();
+      const journal = await transaction.all(COMMAND_JOURNAL);
+      const activeHosts = new Set(journal.filter(row=>row.tag === 'host' && row.active && !row.revoked &&
+        row.browserSessionIncarnation === session).map(row=>row.registrationId));
+      for (const operation of journal) {
+        // Same-session reconnects keep the fence; a dead registration cannot admit again.
+        if (operation.tag === ADMISSION_FENCE_TAG && !activeHosts.has(operation.registrationId))
+          await transaction.delete(COMMAND_JOURNAL, controllerStartKey(operation.registrationId, operation.requestId));
+        if (unsettledControllerEffect(operation)) uncertainRuns.add(operation.runId);
         if (['controller-operation', 'controller-navigation', 'controller-target-create'].includes(operation.tag) && operation.state === 'dispatched') {
           operation.state = 'effect_unknown'; await transaction.put(COMMAND_JOURNAL, operation,
             operation.tag === 'controller-target-create' ? `controller-create:${operation.runId}` : opKey(operation.runId, operation.envelope.requestId));
         }
       }
       for (const run of await transaction.all(RUN_STORE)) if (run.tag === CONTROLLER_RUN_TAG) {
+        const needsUncertainty = uncertainRuns.has(run.runId) && !run.outcomeUncertain;
+        if (needsUncertainty) run.outcomeUncertain = true;
         if (!terminals.has(run.state)) {
-          run.state = 'paused_unknown'; run.runRevision++; run.terminalReason = 'worker-restart';
-          await transaction.put(RUN_STORE, run, run.runId);
+          run.state = 'paused_unknown'; run.runRevision++;
+          if (!run.cancelSeq) run.terminalReason = 'worker-restart';
         }
+        if (needsUncertainty || !terminals.has(run.state)) await transaction.put(RUN_STORE, run, run.runId);
         // Upgrade pre-binding leases from their original authority-issued run.
         // Preserve terminal/retirement facts and never resume execution.
         await lease(transaction, run);
@@ -2366,6 +2409,6 @@ export function controllerMethods({storage, api, session, clock, assertHost, cur
   return Object.freeze({commitControllerScript, getControllerScript, listControllerScripts, tombstoneControllerScript, garbageCollectControllerScript,
     handlePageTaskRequest,listPageTaskRequests,readPageTaskRequest,repreparePageTaskRequest,invalidatePageTaskSource,
     prepareDelegatedStep, inspectDelegatedStep, cancelDelegatedStep,prepareTaskRun,inspectTaskRun,cancelTaskRun,listTaskRunPreparations,
-    startControllerRun, controllerOperation, stopControllerRun,
+    startControllerRun, fenceControllerAdmission, controllerOperation, stopControllerRun,
     finishControllerRun, snapshotControllerRun, retireControllerTarget, loseControllerHost, invalidateControllerTarget, invalidateAppServices, recoverControllers});
 }

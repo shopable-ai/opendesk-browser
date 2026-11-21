@@ -28,7 +28,7 @@ export function DevelopExecution({section='editor',children}={}){
             </div>
           </DevelopField>
           {section==='editor'&&unknown&&<button type="button" id="developer-unknown-history" className="od-button od-button--quiet"
-            onClick={()=>model.navigate('history',{returnFocusId:'developer-unknown-history'})}>查看原运行记录</button>}
+            onClick={()=>model.actions['developer-unknown-history']?.(snapshot.fields['script-task-status'].data.runId)}>查看原运行记录</button>}
           <div hidden={!['editor','history','diagnostics'].includes(section)}>
             <DevelopField as="section" id="developer-results-panel" className="developer-results" aria-label="运行结果">
               <div className="developer-result-head"><h2>{section==='editor'?'运行结果':'所选运行结果'}</h2>

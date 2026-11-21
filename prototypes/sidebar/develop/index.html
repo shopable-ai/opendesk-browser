@@ -1,4 +1,4 @@
-<!doctype html><html lang="zh-CN"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'unsafe-inline'; style-src 'unsafe-inline'; img-src data:; connect-src 'none'; form-action 'none'; base-uri 'none'; object-src 'none'"><title>OpenDesk 开发 · A 离线提案</title><style>/* Frozen canonical light tokens: src/ui/design-tokens.css sha256 56c113caf0c47a4ee1f1dca242727c42ef573b21e6aa87a6626fec9e68e7b606 */
+<!doctype html><html lang="zh-CN"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'unsafe-inline'; style-src 'unsafe-inline'; img-src data:; connect-src 'none'; form-action 'none'; base-uri 'none'; object-src 'none'"><title>OpenDesk 开发 · 编辑交互预览</title><style>/* Frozen canonical light tokens: src/ui/design-tokens.css sha256 56c113caf0c47a4ee1f1dca242727c42ef573b21e6aa87a6626fec9e68e7b606 */
 :root{
   --od-ink:#1b2c49;
   --od-sub:#5b6e86;
@@ -82,7 +82,7 @@ button:disabled{opacity:.48;cursor:not-allowed}button:hover:not(:disabled){backg
 .source-head{display:flex;flex-wrap:wrap;justify-content:space-between;align-items:center;gap:var(--space-2);min-height:var(--od-icon-size)}.switch{display:inline-flex;align-items:center;min-height:var(--od-icon-size);gap:var(--space-2);color:var(--od-sub);font-size:var(--od-note-size);cursor:pointer}.switch input{position:absolute;opacity:0;width:1px;height:1px}.track{display:flex;align-items:center;width:34px;height:20px;border-radius:var(--radius-pill);background:var(--od-line);padding:3px}.track:after{content:"";width:14px;height:14px;border-radius:50%;background:var(--od-paper);box-shadow:0 1px 3px #0001}.switch input:checked+.track{background:var(--od-brand)}.switch input:checked+.track:after{transform:translateX(14px)}.switch input:focus-visible+.track{outline:2px solid var(--od-focus);outline-offset:2px}
 .mode-row{display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:var(--space-2);min-height:36px}.inline-label{display:flex;align-items:center;gap:var(--space-2);font-size:var(--od-meta-size);color:var(--od-sub);white-space:nowrap}.segment{display:inline-flex;gap:0;padding:var(--space-1);border-radius:var(--radius-control);background:var(--od-muted)}.segment button,.segment label span{display:flex;align-items:center;min-height:28px;padding:var(--space-1) var(--space-2);border:0;border-radius:6px;background:transparent;font-size:12px;color:var(--od-sub)}.segment button[aria-pressed=true],.segment input:checked+span{background:var(--od-paper);color:var(--od-ink);font-weight:650;box-shadow:0 1px 4px #1b2c4918}.segment label{position:relative;cursor:pointer}.segment input[type=radio]{position:absolute;inset:0;width:100%;height:100%;min-height:0;margin:0;padding:0;opacity:0;cursor:pointer}.segment input:focus-visible+span{outline:2px solid var(--od-focus);outline-offset:2px}.segment input:disabled+span{opacity:.48;cursor:not-allowed}
 select,input:not([type=checkbox]),textarea:not(.code-editor){display:block;width:100%;min-height:36px;padding:var(--space-2);border:1px solid var(--od-line);border-radius:var(--radius-control);background:var(--od-paper);color:var(--od-ink)}textarea{resize:vertical}textarea:not(.code-editor){font:12px/1.6 ui-monospace,Menlo,monospace}.option-body label{font-size:12px;font-weight:600}.option-body input:disabled,.option-body select:disabled{color:var(--od-sub);background:var(--od-muted)}
-.input-group,.field-group{display:grid;grid-template-columns:minmax(0,1fr);gap:var(--space-1);min-width:0}.source-input{gap:var(--space-2)}.editor-card{min-width:0;border:1px solid var(--od-line);border-radius:var(--radius-surface);background:var(--od-paper)}.editor-head{display:flex;align-items:center;justify-content:space-between;gap:var(--space-2);min-height:36px;padding:0 var(--space-2) 0 var(--space-3);border-bottom:1px solid var(--od-line);background:var(--od-muted);border-radius:var(--radius-surface) var(--radius-surface) 0 0;font-size:11px;color:var(--od-sub)}#filename{min-width:0;overflow:hidden;white-space:nowrap;text-overflow:ellipsis}.editor-actions{display:flex;align-items:center;gap:var(--space-1);flex:none}.editor-actions .icon-button:hover{background:var(--od-line);color:var(--od-ink)}.code-editor{display:block;width:100%;height:164px;min-height:120px;padding:var(--space-3);border:0;border-radius:var(--radius-surface);background:transparent;color:var(--od-ink);font:12px/1.65 ui-monospace,SFMono-Regular,Menlo,monospace;tab-size:2;white-space:pre;overflow:auto}.input-note{display:grid;gap:var(--space-1)}.input-note .technical:empty{display:none}
+.input-group,.field-group{display:grid;grid-template-columns:minmax(0,1fr);gap:var(--space-1);min-width:0}.source-input{gap:var(--space-2)}.editor-card{min-width:0;border:1px solid var(--od-line);border-radius:var(--radius-surface);background:var(--od-paper)}.editor-actions{display:flex;align-items:center;gap:var(--space-1);flex:none;margin-right:auto}.editor-actions .icon-button:hover{background:var(--od-line);color:var(--od-ink)}.code-editor{display:block;width:100%;height:164px;min-height:120px;padding:var(--space-3);border:0;border-radius:var(--radius-surface);background:transparent;color:var(--od-ink);font:12px/1.65 ui-monospace,SFMono-Regular,Menlo,monospace;tab-size:2;white-space:pre;overflow:auto}.sr-only{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip-path:inset(50%);white-space:nowrap;border:0}
 .options{min-width:0;border:1px solid var(--od-line);border-radius:var(--radius-surface)}.options summary{display:flex;align-items:center;gap:var(--space-2);min-height:44px;padding:var(--space-2) var(--space-3);font-size:12px;font-weight:600}.options summary>span:first-of-type{flex:1}.options summary .icon{width:15px;height:15px}.options summary>.icon:last-child{color:var(--od-sub)}.options[open] summary>.icon:last-child{transform:rotate(90deg)}.option-body{display:grid;gap:var(--space-3);padding:var(--space-3);border-top:1px solid var(--od-line)}code{font-size:11px;overflow-wrap:anywhere}
 .result-head{display:flex;align-items:center;gap:var(--space-2);flex-wrap:wrap}.result-state{margin-left:auto;color:var(--od-sub);font-size:12px}.result{min-height:64px;max-height:195px;overflow:auto;border:1px solid var(--od-line);border-radius:var(--radius-control);padding:var(--space-3);background:var(--od-muted);color:var(--od-sub);font:12px/1.65 ui-monospace,Menlo,monospace;white-space:pre-wrap;overflow-wrap:anywhere}.result-section{display:grid;gap:var(--space-2)}.text-button{padding:var(--space-1) 0;min-height:34px;border:0;background:transparent;color:var(--od-sub);font-size:12px;text-decoration:none;text-align:left;border-radius:var(--space-1)}.text-button:hover:not(:disabled){color:var(--od-brand);text-decoration:underline;background:transparent}.utility-row{display:flex;align-items:center;flex-wrap:wrap;gap:var(--space-4)}
 .footer-dock{grid-area:dock;display:flex;flex-wrap:wrap;align-items:center;gap:var(--space-2);padding:var(--space-2) var(--od-page-gutter);border-top:1px solid var(--od-line);background:var(--od-paper)}.button{display:inline-flex;align-items:center;justify-content:center;gap:var(--space-1);min-height:36px;padding:var(--space-2) var(--space-3);border:1px solid var(--od-line);border-radius:var(--radius-control);font-size:12px;font-weight:600;white-space:normal;overflow-wrap:anywhere;background:var(--od-paper);color:var(--od-sub)}.primary{background:var(--od-brand);color:var(--od-on-brand);border-color:var(--od-brand);flex:1 1 120px;min-width:0}.primary:hover:not(:disabled){background:var(--od-brand);filter:brightness(.97)}.button .icon{width:15px;height:15px}.primary.stopping{background:var(--od-negative);border-color:var(--od-negative)}
@@ -123,6 +123,8 @@ select,input:not([type=checkbox]),textarea:not(.code-editor){display:block;width
 #debug-count{margin-left:auto}.debug-body h3{margin:0;font-size:var(--od-note-size);font-weight:600}.debug-body .result{min-height:0;max-height:220px}
 .sdk-form{display:grid;gap:var(--space-3);min-width:0}.sdk-services{min-width:0;margin:0;padding:0;border:0}.sdk-services legend{padding:0;margin-bottom:var(--space-1);font-size:var(--od-note-size);font-weight:600}.sdk-service-list{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));column-gap:var(--space-2)}.sub-card .sdk-service{display:flex;align-items:center;gap:var(--space-2);min-height:34px;font-weight:400}.sdk-service input{flex:none;margin:0;accent-color:var(--od-brand)}.sdk-service:has(input:disabled){grid-column:1/-1;color:var(--od-sub)}
 .sdk-target{display:flex;align-items:center;gap:var(--space-2);min-width:0}.sdk-target strong{display:block;font-size:var(--od-note-size);font-weight:600}.sdk-actions{display:flex;flex-wrap:wrap;gap:var(--space-2)}.sdk-review{display:grid;gap:var(--space-1)}.sdk-review p{overflow-wrap:anywhere}.sdk-selection-count{margin-left:auto;font-weight:400}.sdk-lifecycle{display:grid;gap:var(--space-2)}.sdk-lifecycle .text-button{justify-self:start}.sub-card .sdk-cookie{font-weight:400}
+.save-indicator{width:5px;height:5px;flex:none;border-radius:50%;background:var(--od-warning-ink)}.sub-card h2,.version-excerpt{overflow-wrap:anywhere}.save-form{display:grid;gap:var(--space-3)}.version-excerpt{padding:var(--space-2);border-radius:var(--radius-control);background:var(--od-muted);font:var(--od-meta-size)/1.6 ui-monospace,Menlo,monospace;white-space:pre-wrap}.save-form [aria-invalid=true]{border-color:var(--od-negative)}
+.saved-confirm{width:calc(100vw - 24px);max-width:336px;max-height:calc(100dvh - 24px);overflow:auto;border:1px solid var(--od-line);border-radius:var(--radius-surface);padding:var(--space-4);color:var(--od-ink);background:var(--od-paper)}.saved-confirm[open]{display:grid;gap:var(--space-4)}.saved-confirm::backdrop{background:rgb(16 26 42 / 48%)}.saved-confirm .note{white-space:pre-wrap;overflow-wrap:anywhere;color:var(--od-ink)}.saved-confirm .sdk-actions{justify-content:flex-end}.saved-confirm .primary{flex:0 1 auto}.saved-actions{display:flex;flex-wrap:wrap;gap:var(--space-2)}
 @media(max-width:340px){.brand small{display:none}.inline-label{gap:var(--space-1)}.segment button{padding-inline:6px}.footer-dock{padding-inline:var(--space-3)}.button{padding-inline:8px}.mode-row{flex-wrap:wrap}.offline{font-size:11px}}
 @media(pointer:coarse){.icon-button,.text-button,.segment button,.segment label span,.switch{min-height:44px}.icon-button{width:44px}.button{min-height:44px}.source-head{min-height:44px}}
 @media(prefers-reduced-motion:reduce){*{scroll-behavior:auto}}
@@ -155,14 +157,14 @@ select,input:not([type=checkbox]),textarea:not(.code-editor){display:block;width
 <div id="editor-view">
 <div class="stack compose-group">
 <section class="section" aria-label="当前网页"><details class="target" id="target"><summary><span class="target-icon"><svg class="icon" aria-hidden="true"><use href="#i-globe"/></svg></span><span class="grow"><strong>OpenDesk Browser · Browser Test Lab</strong><span class="target-url">127.0.0.1:43111 / demo-form.html</span></span><span class="target-state">示例</span><svg class="icon" aria-hidden="true"><use href="#i-chevron"/></svg></summary><div class="target-detail"><p class="note">示例目标。正式运行前仍须检查实际网页与权限。</p><p class="technical">http://127.0.0.1:43111/demo-form.html<br>document: doc-demo-1 · frame: 0</p></div></details></section>
-<section class="section input-section" aria-label="脚本输入"><div class="source-head"><h1 id="source-title">直接编辑</h1><label class="switch"><input id="local-toggle" type="checkbox" role="switch" aria-label="使用本地项目" aria-controls="manual-area local-area"><span class="track" aria-hidden="true"></span><span>本地项目</span></label></div>
-<div id="manual-area" class="stack"><div class="mode-row"><div class="segment" role="group" aria-label="代码类型"><button type="button" data-format="js" aria-pressed="true">JS</button><button type="button" data-format="react" aria-pressed="false">React</button><button type="button" data-format="vue" aria-pressed="false">Vue</button></div><div class="inline-label" id="world-label"><span id="world-title">运行位置</span><div class="segment" id="world" role="radiogroup" aria-labelledby="world-title"><label for="world-controller"><input id="world-controller" type="radio" name="world" value="controller" checked><span>自动化</span></label><label for="world-page"><input id="world-page" type="radio" name="world" value="page"><span>网页</span></label></div></div><span id="component-world" class="note" hidden>网页组件</span></div>
-<div class="input-group source-input"><div class="editor-card"><div class="editor-head"><span class="technical" id="filename">main.js</span><div class="editor-actions" role="group" aria-label="脚本参考"><a class="icon-button" id="source-examples" href="https://github.com/shopable-ai/opendesk-browser/blob/main/examples/programs/single-file/controller-globals-zero-arg.js" target="_blank" rel="noopener noreferrer" title="自动化 JS · 示例（新标签页）" aria-label="自动化 JS · 示例（新标签页）"><svg class="icon" aria-hidden="true"><use href="#i-code"/></svg></a><a class="icon-button" id="source-help" href="https://github.com/shopable-ai/opendesk-browser/blob/main/docs/api/controller.zh-CN.md" target="_blank" rel="noopener noreferrer" title="自动化 JS · API 文档（新标签页）" aria-label="自动化 JS · API 文档（新标签页）"><svg class="icon" aria-hidden="true"><use href="#i-help"/></svg></a></div></div><textarea id="source" class="code-editor" spellcheck="false" aria-label="脚本" aria-describedby="source-hint draft-state">async function main() {
+<section class="section input-section" aria-label="脚本输入"><div class="source-head"><h1 id="source-title">直接编辑</h1><div class="editor-actions" id="source-references" role="group" aria-label="脚本参考"><a class="icon-button" id="source-examples" href="https://github.com/shopable-ai/opendesk-browser/blob/main/examples/programs/single-file/controller-globals-zero-arg.js" target="_blank" rel="noopener noreferrer" title="自动化 JS · 示例（新标签页）" aria-label="自动化 JS · 示例（新标签页）"><svg class="icon" aria-hidden="true"><use href="#i-code"/></svg></a><a class="icon-button" id="source-help" href="https://github.com/shopable-ai/opendesk-browser/blob/main/docs/api/controller.zh-CN.md" target="_blank" rel="noopener noreferrer" title="自动化 JS · API 文档（新标签页）" aria-label="自动化 JS · API 文档（新标签页）"><svg class="icon" aria-hidden="true"><use href="#i-help"/></svg></a></div><label class="switch"><input id="local-toggle" type="checkbox" role="switch" aria-label="使用本地项目" aria-controls="manual-area local-area"><span class="track" aria-hidden="true"></span><span>本地项目</span></label></div>
+<div id="manual-area" class="stack"><div class="mode-row"><div class="segment" role="group" aria-label="代码类型"><button type="button" data-format="js" aria-pressed="true">JS</button><button type="button" data-format="react" aria-pressed="false">React</button><button type="button" data-format="vue" aria-pressed="false">Vue</button></div><div class="inline-label" id="world-label"><span id="world-title">运行位置</span><div class="segment" id="world" role="radiogroup" aria-labelledby="world-title"><label for="world-controller"><input id="world-controller" type="radio" name="world" value="controller" checked><span>自动化</span></label><label for="world-page"><input id="world-page" type="radio" name="world" value="page"><span>网页</span></label></div></div></div>
+<div class="input-group source-input"><div class="editor-card"><textarea id="source" class="code-editor" spellcheck="false" aria-label="脚本源码" aria-describedby="script-name filename source-hint draft-state">async function main() {
   return {
     title: await page.title(),
     url: await page.url()
   };
-}</textarea></div><div class="input-note"><p class="note" id="source-hint">使用 page 操作网页；点击运行才执行。</p><span class="technical" id="draft-state" role="status"></span></div></div>
+}</textarea></div><div class="sr-only"><span id="script-name">未命名脚本</span><span id="filename">自动化 · JS</span><p id="source-hint">使用 page 操作网页；点击运行才执行。</p><span class="note" id="draft-state" role="status">草稿未自动保存；点击「保存脚本」保留版本。</span></div></div>
 <details id="run-options" class="options"><summary><svg class="icon" aria-hidden="true"><use href="#i-settings"/></svg><span>运行选项</span><span class="meta">可选</span><svg class="icon" aria-hidden="true"><use href="#i-chevron"/></svg></summary><div class="option-body"><div class="field-group"><label for="params">参数 JSON</label><textarea id="params" rows="3" spellcheck="false" aria-describedby="params-error">{}</textarea><p id="params-error" class="error" role="alert" hidden></p></div><div class="field-group" id="deadline-group"><label id="deadline-label" for="deadline">下次草稿最长运行时间</label><select id="deadline"><option value="30000">30 秒（默认）</option><option value="60000">60 秒</option></select><p class="note" id="deadline-help">只影响下次草稿，不改变已保存任务。</p></div></div></details>
 </div>
 <div id="local-area" class="stack" hidden><div class="input-group"><div class="project-row"><select id="project" aria-label="已授权本地项目（示例）"><option value="">选择本地项目（示例）</option><option value="controller">browser-lab · 自动化</option><option value="page">reading-tool · 网页</option><option value="sidebar">reading-tool · 侧栏应用</option></select><button class="icon-button outline" type="button" id="project-refresh" aria-label="刷新示例项目"><svg class="icon" aria-hidden="true"><use href="#i-refresh"/></svg></button></div><p id="local-status" class="note" role="status">示例项目列表 · 请选择项目</p><p class="note" id="local-purpose">在外部编辑器修改源码，这里运行或调试。</p></div><div id="local-recovery" class="stack" hidden><p class="error">示例：本机未连接，项目暂不可用。</p><button type="button" class="button secondary" disabled>连接本机 OpenDesk（离线不可用）</button></div><details id="project-options" class="options"><summary><svg class="icon" aria-hidden="true"><use href="#i-settings"/></svg><span>项目设置与连接</span><svg class="icon" aria-hidden="true"><use href="#i-chevron"/></svg></summary><div class="option-body"><p class="note">模块、依赖和资源在本地项目维护，源码历史由 Git 管理。</p><p class="note">真实目录授权与首次配对沿现有可信入口；本预览不连接本机。</p><code>opendesk browser dev .</code><div class="field-group"><label for="binding">关联已安装工具（可选）</label><select id="binding" disabled><option>离线提案不读取已安装工具</option></select></div><div id="local-params-group" class="field-group" hidden><label for="local-params">项目参数 JSON（可选）</label><textarea id="local-params" rows="3" spellcheck="false">{}</textarea></div></div></details></div>
@@ -170,13 +172,14 @@ select,input:not([type=checkbox]),textarea:not(.code-editor){display:block;width
 </div>
 <div class="stack output-group">
 <section class="section result-section" id="result-section" aria-label="运行结果" data-state="idle"><div class="result-head"><h2>运行结果</h2><span class="result-state" id="result-state" role="status" aria-live="polite">尚未运行</span></div><pre class="result" id="result" aria-label="本次返回值或异常">点击「模拟运行」，只演示状态与结果。</pre><p class="note" id="result-owner" hidden></p><p class="error" id="run-error" role="alert" hidden></p><details class="od-disclosure od-disclosure--flat" id="result-debug" hidden><summary><span>调试详情</span><span class="meta" id="debug-count">回执 · 堆栈 · 日志</span></summary><div class="debug-body stack"><p class="note">以下为本次模拟数据，非框架返回协议；真实信息以运行回执为准。长内容可在框内滚动查看。</p><div class="field-group"><h3>原始回执（示例）</h3><pre class="result" id="debug-receipt" aria-label="原始回执示例"></pre></div><div class="field-group" id="debug-stack-group" hidden><h3>异常堆栈</h3><pre class="result" id="debug-stack" aria-label="异常堆栈"></pre></div><div class="field-group"><h3>运行日志（示例）</h3><pre class="result" id="debug-logs" aria-label="本次运行日志"></pre><p class="note">只展示本次已捕获的日志；未捕获不代表脚本没有输出。</p></div></div></details><div id="unknown-actions" hidden><button type="button" class="text-button" data-view="history" >查看原运行记录</button></div></section>
-<div class="utility-row"><button type="button" class="text-button" data-view="saved" >已保存脚本</button><button type="button" class="text-button" data-view="diagnostics" >权限与诊断</button></div>
+<div class="utility-row"><button type="button" class="text-button" data-view="diagnostics" >权限与诊断</button></div>
 </div>
 </div>
 <section id="subview" hidden aria-labelledby="subview-title"><header class="sub-head"><button type="button" class="icon-button" id="back" aria-label="返回编辑"><svg class="icon" aria-hidden="true"><use href="#i-chevron"/></svg></button><h1 id="subview-title" tabindex="-1"></h1></header><div id="subview-body" class="stack"></div></section>
 </main>
-<footer class="footer-dock" id="dock"><button type="button" class="button primary" id="run"><svg class="icon" aria-hidden="true"><use href="#i-play"/></svg><span>模拟运行</span></button><button type="button" class="button secondary" id="save" data-view="save"><svg class="icon" aria-hidden="true"><use href="#i-save"/></svg><span>保存脚本</span></button><button type="button" class="icon-button outline" id="more" aria-label="更多操作" aria-expanded="false" aria-controls="more-menu"><svg class="icon" aria-hidden="true"><use href="#i-dots"/></svg></button></footer>
-<div class="more-menu" id="more-menu" hidden><button type="button" data-view="saved">已保存脚本</button><button type="button" data-view="install">安装与发布</button><button type="button" data-view="history">过去运行</button><button type="button" data-view="diagnostics">权限与诊断</button></div>
+<footer class="footer-dock" id="dock"><button type="button" class="button primary" id="run"><svg class="icon" aria-hidden="true"><use href="#i-play"/></svg><span>模拟运行</span></button><button type="button" class="button secondary" id="save" data-view="save" aria-describedby="draft-state"><svg class="icon" aria-hidden="true"><use href="#i-save"/></svg><span>保存脚本</span><i id="save-indicator" class="save-indicator" aria-hidden="true"></i></button><button type="button" class="icon-button outline" id="more" aria-label="更多操作" aria-expanded="false" aria-controls="more-menu"><svg class="icon" aria-hidden="true"><use href="#i-dots"/></svg></button></footer>
+<div class="more-menu" id="more-menu" hidden><button type="button" data-view="install">安装与发布</button><button type="button" data-view="history">过去运行</button><button type="button" data-view="diagnostics">权限与诊断</button></div>
+<dialog id="saved-confirm" class="saved-confirm" aria-labelledby="saved-confirm-title" aria-describedby="saved-confirm-message"><h2 id="saved-confirm-title"></h2><p id="saved-confirm-message" class="note"></p><div class="sdk-actions"><button type="button" id="saved-cancel" class="button secondary">继续编辑</button><button type="button" id="saved-continue" class="button primary">打开并替换</button></div></dialog>
 <p class="toast" id="toast" role="status" hidden></p>
 </div><script>// Presentation-only state. No eval, Host, SDK, network, storage, clipboard or download.
 (() => {
@@ -212,7 +215,7 @@ export default function App() {
     'page:react':{label:'React JSX',help:'docs/api/page-ui-frameworks.zh-CN.md',examples:'examples/programs/page-ui-toc-react-direct/README.md#react-network-import-example'},
     'page:vue':{label:'Vue SFC',help:'docs/api/page-ui-frameworks.zh-CN.md',examples:'examples/programs/page-ui-vue/src/App.vue'}
   };
-  const state = {local:false,format:'js',world:'controller',scripts:{...demos},draftStates:{},running:false,view:null,returnFocus:null,scroll:0,sourceAtRun:'',current:null,history:[],saved:[],localConnected:true};
+  const state = {local:false,format:'js',world:'controller',scripts:{...demos},draftStates:{},running:false,view:null,returnFocus:null,scroll:0,sourceAtRun:'',current:null,history:[],saved:[],projectVersions:[],loaded:{},generation:0,localConnected:true};
   // UI-only draft and receipt. Never passed to an SDK, Chrome or Authority.
   const sdkServices=[['network','HTTP 网络请求'],['storage.session','会话存储'],['storage.persistent','持久存储'],['notifications','通知'],['device.id','稳定应用 ID'],['service.log','开发日志'],['service.time','后台时间'],['resources.packaged','读取内置资源']];
   const sdk = {frame:'main',document:1,drafts:{},receipts:{},expanded:false,cookie:true};
@@ -222,7 +225,7 @@ export default function App() {
   function switchSource(format=state.format,world=state.world){
     state.scripts[draftKey()]=$('source').value;
     state.draftStates[draftKey()]=$('draft-state').textContent;
-    state.format=format;state.world=world;
+    state.format=format;state.world=world;state.generation++;
     $('source').value=state.scripts[draftKey()];
     $('draft-state').textContent=state.draftStates[draftKey()]||'';
     update();
@@ -230,18 +233,18 @@ export default function App() {
   const sampleResult = {title:'OpenDesk Browser · Browser Test Lab',url:'http://127.0.0.1:43111/demo-form.html'};
   const formatValue=value=>value===undefined?'undefined':typeof value==='string'?value:JSON.stringify(value,null,2);
   const currentContext=()=>state.local?$('project').selectedOptions[0].textContent:(state.format==='js'?state.world==='page'?'网页 · JS':'自动化 · JS':'网页 · '+state.format);
-  const captureContext=()=>{state.sourceAtRun=$('source').value;state.contextAtRun={label:currentContext(),file:state.local?'本地项目（示例）':$('filename').textContent};};
+  const captureContext=()=>{state.sourceAtRun=$('source').value;state.contextAtRun={label:currentContext(),file:state.local?'本地项目（示例）':$('script-name').textContent};};
   const text = (tag, value, className='') => {const el=document.createElement(tag);el.textContent=value;if(className)el.className=className;return el;};
   let toastTimer;
   function notify(message){clearTimeout(toastTimer);$('toast').textContent=message;$('toast').hidden=false;toastTimer=setTimeout(()=>$('toast').hidden=true,2400);}
   function update(){
     $('manual-area').hidden=state.local;$('local-area').hidden=!state.local;$('source-title').textContent=state.local?'本地项目':'直接编辑';
-    const component=state.format!=='js';$('world-label').hidden=component;$('component-world').hidden=!component;
+    const component=state.format!=='js';$('world-label').hidden=component;
     $('world').querySelectorAll('input').forEach(input=>{input.checked=input.value===state.world;input.disabled=state.running;});
     $('source-hint').textContent=component?'组件显示在网页；各代码类型分别保留草稿。':state.world==='page'?'使用 document 修改网页；点击运行才执行。':'使用 page 操作网页；点击运行才执行。';
     $('deadline-group').hidden=component||state.world==='page';$('deadline').hidden=$('deadline-group').hidden;$('deadline-label').hidden=$('deadline').hidden;$('deadline-help').hidden=$('deadline').hidden;
     document.querySelectorAll('[data-format]').forEach(el=>el.setAttribute('aria-pressed',String(el.dataset.format===state.format)));
-    if($('filename')){$('filename').textContent=component?(state.format==='react'?'App.jsx':'App.vue'):state.world==='page'?'page.js':'main.js';$('filename').title=$('filename').textContent;}
+    draftStatus();
     const reference=references[draftKey()];
     for(const [kind,label] of [['examples','示例'],['help','API 文档']]){
       const link=$('source-'+kind);link.href=referenceBase+reference[kind];
@@ -254,6 +257,7 @@ export default function App() {
     $('run').querySelector('use').setAttribute('href',state.running?'#i-square':'#i-play');
     document.querySelectorAll('[data-view]').forEach(el=>el.disabled=state.running);
     [$('demo-open'),$('more'),$('project-refresh')].forEach(el=>el.disabled=state.running);
+    $('source-references').hidden=state.local;
     $('save').disabled=state.running||(state.local&&!kind);
     $('save').querySelector('span').textContent=state.local?'保存项目':'保存脚本';
     [$('local-toggle'),$('format'),$('project'),$('source'),$('params'),$('local-params'),$('deadline')].filter(Boolean).forEach(el=>el.disabled=state.running);
@@ -266,7 +270,7 @@ export default function App() {
     if(state.current)state.history.push(state.current);
     state.running=false;
     const kind=status==='模拟失败'?'error':status==='模拟结果未知'?'unknown':status==='模拟已停止'?'stopped':'success';
-    const context=state.contextAtRun||{label:currentContext(),file:$('filename').textContent};
+    const context=state.contextAtRun||{label:currentContext(),file:$('script-name').textContent};
     const logs=diagnostic.logs||[];
     const receipt={previewOnly:true,status,stage:diagnostic.stage||'执行',context,target:sampleResult.url,runId:null,...(kind==='success'?{result:{type:value===undefined?'undefined':value===null?'null':typeof value,...(value!==undefined?{value}:{})}}:{}),...(diagnostic.error?{error:diagnostic.error}:{}),message:error||null,logs};
     const summary=diagnostic.error?[diagnostic.error.name+': '+diagnostic.error.message,receipt.stage+' · '+diagnostic.error.origin,diagnostic.error.location||'未提供源码位置'].join('\n'):formatValue(value);
@@ -355,10 +359,10 @@ export default function App() {
   }
   function show(view,trigger){
     if(!state.view){state.returnFocus=$('more-menu').contains(trigger)?$('more'):trigger;state.scroll=$('viewport').scrollTop;}
-    state.view=view;$('more-menu').hidden=true;$('more').setAttribute('aria-expanded','false');
+    state.view=view;state.generation++;$('more-menu').hidden=true;$('more').setAttribute('aria-expanded','false');
     $('editor-view').hidden=true;$('subview').hidden=false;$('shell').classList.add('subview-active');
     $('subview-body').replaceChildren();
-    const titles={saved:'已保存脚本',save:state.local?'保存本地项目':'保存脚本',history:'过去运行',diagnostics:'权限与诊断',install:'安装与发布',demo:'演示状态'};
+    const titles={saved:'管理脚本与版本',save:state.local?'保存本地项目':'保存脚本',history:'过去运行',diagnostics:'权限与诊断',install:'安装与发布',demo:'演示状态'};
     $('subview-title').textContent=titles[view];
     const body=$('subview-body');
     const note=message=>body.append(text('p',message,'note'));
@@ -366,13 +370,63 @@ export default function App() {
     const disabled=(parent,label)=>{const el=text('button',label,'button secondary');el.type='button';el.disabled=true;parent.append(el);};
     if(view==='save'){
       note('保存供下次复用，不会运行或安装。此处仅在当前页面内存中演示。');
-      const el=card(state.local?'保存执行版本':'给脚本起个名字',state.local?'源码仍在本地项目；这里保存执行所需固定版本，不操作 Git。':'底层保存固定源码快照，revision 与 hash 无须手工填写。');
-      const label=text('label','脚本名称');label.htmlFor='save-name';const input=document.createElement('input');input.id='save-name';input.value=state.local?$('project').selectedOptions[0].textContent:'网页标题';const field=text('div','','field-group');field.append(label,input);el.append(field);
-      const save=text('button','模拟保存（仅本页）','button primary');save.type='button';save.onclick=()=>{if(!input.value.trim()){input.focus();notify('请填写脚本名称。');return;}state.saved.push({name:input.value.trim(),source:state.local?'离线提案未读取本地源码。':$('source').value,format:state.format,world:state.world,local:state.local,project:$('project').value});back();notify('模拟已保存；未写入正式脚本库。');$('draft-state').textContent='已模拟保存';};el.append(save);
+      const el=card(state.local?'保存执行版本':'保存当前脚本',state.local?'本地项目版本独立记录，保留手工编辑的草稿。':$('script-name').textContent+' · '+$('filename').textContent);
+      if(!state.local){const status=text('p',$('draft-state').textContent,'note');status.id='save-current-status';el.append(status);}
+      const form=document.createElement('form');form.className='save-form';form.noValidate=true;
+      const label=text('label','脚本标识');label.htmlFor='save-name';
+      const input=document.createElement('input');input.id='save-name';input.value=state.local?$('project').value:state.loaded[draftKey()]?.name||'';input.placeholder='例如 title-reader';input.autocomplete='off';input.spellcheck=false;input.required=true;
+      input.setAttribute('aria-describedby','save-name-help save-name-error save-intent');
+      const help=text('p','1–128 个字符，以字母或数字开头，可含点、短横线、下划线。','note');help.id='save-name-help';
+      const error=text('p','','error');error.id='save-name-error';error.hidden=true;error.setAttribute('role','alert');
+      const field=text('div','','field-group');field.append(label,input,help,error);
+      const intent=text('p','','note');intent.id='save-intent';intent.setAttribute('role','status');
+      const versionsFor=name=>state.saved.filter(entry=>entry.name===name&&savedKind(entry)===(state.format==='js'&&state.world==='controller'?'controller':'page'));
+      const nextRevision=name=>Math.max(0,...versionsFor(name).map(value=>value.revision))+1;
+      const validate=()=>{
+        const name=input.value.trim();
+        const message=!name?'请填写脚本标识。':name.length>128?'脚本标识最多 128 个字符。':!/^[A-Za-z0-9][A-Za-z0-9_.-]*$/.test(name)?'以字母或数字开头，只能使用字母、数字、点、短横线或下划线。':'';
+        error.textContent=message;error.hidden=!message;
+        if(message)input.setAttribute('aria-invalid','true');else input.removeAttribute('aria-invalid');
+        return !message;
+      };
+      const describeSave=()=>{
+        const name=input.value.trim(),valid=/^[A-Za-z0-9][A-Za-z0-9_.-]{0,127}$/.test(name);
+        intent.textContent=state.local?'项目版本独立保存，不进入脚本历史。':!valid?'填写标识后保存当前 '+typeLabel({format:state.format,world:state.world})+' 草稿。':typeLabel({format:state.format,world:state.world})+' · '+name+' · 将'+(versionsFor(name).length?'新增':'创建')+' r'+nextRevision(name)+(versionsFor(name).length?'，已有版本保留。':'。');
+      };
+      input.oninput=()=>{if(input.hasAttribute('aria-invalid'))validate();describeSave();};
+      const save=text('button','模拟保存（仅本页）','button primary');save.type='submit';save.id='save-confirm';
+      form.onsubmit=event=>{
+        event.preventDefault();if(!validate()){input.focus();return;}
+        const name=input.value.trim();
+        if(state.local){state.projectVersions.push({name,project:$('project').value});back();notify('已模拟保存项目版本；未写入脚本历史。');return;}
+        const entry={name,revision:nextRevision(name),savedAt:Date.now(),source:$('source').value,format:state.format,world:state.world};
+        state.saved.push(entry);state.loaded[draftKey()]=entry;state.generation++;
+        state.scripts[draftKey()]=entry.source;back();notify('已模拟保存 r'+entry.revision+'。');
+      };
+      form.append(field,intent,save);el.append(form);describeSave();
     } else if(view==='saved'){
-      note('保存源码供日后复用；版本与安装是独立操作。');
-      if(!state.saved.length)note('本页尚未模拟保存脚本。可返回编辑，点击「保存脚本」。');
-      state.saved.forEach(entry=>{const el=card(entry.name,entry.local?'本地项目执行版本（模拟）':'脚本固定版本（模拟）');const info=document.createElement('details');info.className='options';info.append(text('summary','源码与版本详情（只读）'),text('pre',entry.source,'result'));el.append(info);disabled(el,'加载 / 版本管理（待正式接入）');});
+      note('这里管理你明确保存的脚本。打开只填入编辑器，不运行、不安装。所有记录仅在本页内存，刷新后清空。');
+      if(!state.saved.length)note('还没有保存的脚本。返回编辑后点击「保存脚本」。');
+      for(const entry of latestSaved()){
+        const el=card(entry.name,versionsCount(entry)+' 个保存版本 · 最新 r'+entry.revision);
+        const label=text('label','打开版本');const select=document.createElement('select');select.id='saved-version-'+state.saved.indexOf(entry);label.htmlFor=select.id;
+        const versions=state.saved.filter(value=>savedKey(value)===savedKey(entry)).sort((a,b)=>b.revision-a.revision);
+        for(const version of versions){const option=text('option','r'+version.revision+(version===entry?'（最新）':'')+' · '+typeLabel(version)+' · '+savedTime(version));option.value=String(version.revision);select.append(option);}
+        const selectedInfo=text('p','','note');selectedInfo.id=select.id+'-info';selectedInfo.setAttribute('role','status');select.setAttribute('aria-describedby',selectedInfo.id);
+        const excerpt=text('p','','version-excerpt');
+        const detail=text('details','','od-disclosure od-disclosure--flat'),code=text('pre','','result');detail.append(text('summary','查看所选版本源码（只读）'),code);
+        const describeVersion=()=>{const version=versions.find(value=>value.revision===Number(select.value));selectedInfo.textContent=savedType(version)+' · '+savedTime(version)+' · '+version.source.length+' 字符';excerpt.textContent=sourceSummary(version);code.textContent=version.source;};
+        select.onchange=describeVersion;describeVersion();
+        const field=text('div','','field-group');field.append(label,select,selectedInfo,excerpt);el.append(field,detail);
+        const actions=text('div','','saved-actions');const load=text('button','打开所选版本','button secondary');load.type='button';load.onclick=()=>loadSaved(versions.find(value=>value.revision===Number(select.value)));
+        const remove=text('button','删除脚本','button secondary');remove.type='button';remove.onclick=async()=>{
+          const generation=state.generation;
+          if(!await decide('删除这个已保存脚本？',entry.name+' 的全部 '+versions.length+' 个保存版本将被删除。当前编辑内容保留。\n本页模拟操作无法撤销。','删除脚本','取消'))return;
+          if(generation!==state.generation)return;
+          state.saved=state.saved.filter(value=>savedKey(value)!==savedKey(entry));
+          draftStatus();show('saved',$('save'));notify('已删除模拟保存记录；编辑内容已保留。');
+        };actions.append(load,remove);el.append(actions);
+      }
     } else if(view==='history'){
       note('过去的模拟记录，不代表当前草稿已重新运行。');
       if(!state.history.length)note('本页尚无过去运行记录。结果未知时应核查原记录，不重新执行。');
@@ -433,9 +487,60 @@ export default function App() {
     else {state.current=null;$('result-section').dataset.state='idle';$('result-state').textContent='尚未运行';$('result').textContent='点击「模拟运行」，只演示状态与结果。';$('result-owner').hidden=true;$('run-error').hidden=true;$('unknown-actions').hidden=true;$('result-debug').hidden=true;$('result-debug').open=false;state.localConnected=true;update();}
     if(!['idle','disconnected'].includes(key))$('result-section').scrollIntoView({block:'start'});
   }
-  $('source').addEventListener('input',()=>$('draft-state').textContent='草稿已修改 · 仅本页');
+  const savedKind=entry=>entry.format==='js'&&entry.world==='controller'?'controller':'page';
+  const savedKey=entry=>savedKind(entry)+':'+entry.name;
+  const typeLabel=entry=>savedKind(entry)==='controller'?'自动化 · JS':'网页 · '+({js:'JS',react:'React',vue:'Vue'}[entry.format]);
+  const savedType=entry=>typeLabel(entry)+' · r'+entry.revision;
+  const savedTime=entry=>new Date(entry.savedAt).toLocaleString('zh-CN',{month:'numeric',day:'numeric',hour:'2-digit',minute:'2-digit',second:'2-digit',hour12:false});
+  const sourceSummary=entry=>entry.source.split('\n').find(line=>line.trim())?.trim().slice(0,140)||'（空脚本）';
+  const versionsCount=entry=>state.saved.filter(value=>savedKey(value)===savedKey(entry)).length;
+  function latestSaved(){const latest=new Map();for(const entry of state.saved)latest.set(savedKey(entry),entry);return [...latest.values()].reverse();}
+  function draftStatus(){
+    const loaded=state.loaded[draftKey()],retained=loaded&&state.saved.includes(loaded);
+    $('script-name').textContent=loaded?.name||'未命名脚本';
+    $('filename').textContent=typeLabel({format:state.format,world:state.world})+(loaded?' · r'+loaded.revision:' · 新草稿');
+    const status=loaded?!retained?'保存记录已删除 · 当前内容保留，请重新保存。':loaded.source===$('source').value?'已保存 · 仅本页，刷新后清空。':'有未保存修改 · 基于 r'+loaded.revision+'，保存将新增版本。':'尚未保存 · 点击「保存脚本」保留版本；刷新后清空。';
+    if($('draft-state').textContent!==status)$('draft-state').textContent=status;
+    state.draftStates[draftKey()]=status;
+    const dirty=!retained||loaded.source!==$('source').value;
+    $('save-indicator').hidden=state.local||!dirty;
+    $('save').title=state.local?'保存项目':status;
+    $('save').setAttribute('aria-describedby',state.local?'local-status':'draft-state');
+  }
+  let decision=null;
+  function decide(title,message,confirmLabel='打开并替换',cancelLabel='继续编辑'){
+    if(decision)return Promise.resolve(false);
+    $('saved-confirm-title').textContent=title;$('saved-confirm-message').textContent=message;
+    $('saved-continue').textContent=confirmLabel;$('saved-cancel').textContent=cancelLabel;
+    return new Promise(resolve=>{decision=resolve;$('saved-confirm').showModal();$('saved-cancel').focus();});
+  }
+  function settleDecision(value){const resolve=decision;if(!resolve)return;decision=null;$('saved-confirm').close();resolve(value);}
+  $('saved-cancel').onclick=()=>settleDecision(false);$('saved-continue').onclick=()=>settleDecision(true);
+  $('saved-confirm').addEventListener('cancel',event=>{event.preventDefault();settleDecision(false);});
+  async function loadSaved(entry){
+    if(!entry||state.running||state.local)return;
+    const generation=state.generation,source=$('source').value,currentKey=draftKey();
+    const targetKey=(entry.format==='js'?entry.world:'page')+':'+entry.format;
+    const targetSource=targetKey===currentKey?source:state.scripts[targetKey];
+    const loaded=state.loaded[targetKey];
+    const dirty=targetSource!==entry.source&&(!loaded||!state.saved.includes(loaded)||loaded.source!==targetSource);
+    if(dirty){
+      const returnFocus=document.activeElement;
+      const targetLabel=typeLabel(entry);
+      const preserve=targetKey===currentKey?'请取消并先保存当前草稿。':'请取消后切换到「'+targetLabel+'」保存；当前类型的草稿会保留。';
+      if(!await decide('替换未保存的草稿？','打开 '+entry.name+' · r'+entry.revision+' 将替换「'+targetLabel+'」中未保存的草稿。\n要保留该草稿，'+preserve+'打开不会运行脚本。')){
+        if(generation===state.generation)(returnFocus?.isConnected?returnFocus:$('source'))?.focus();
+        return;
+      }
+    }
+    if(generation!==state.generation||source!==$('source').value||targetSource!==(targetKey===draftKey()?$('source').value:state.scripts[targetKey])||!state.saved.includes(entry))return;
+    switchSource(entry.format,entry.world);$('source').value=entry.source;state.scripts[draftKey()]=entry.source;
+    state.loaded[draftKey()]=entry;draftStatus();if(state.view)back();update();$('source').focus();
+    notify('已打开 '+savedType(entry)+'；未运行、未安装。');
+  }
+  $('source').addEventListener('input',()=>{state.generation++;draftStatus();});
   $('params').addEventListener('input',()=>{$('params').removeAttribute('aria-invalid');$('params-error').hidden=true;});
-  $('local-toggle').addEventListener('change',()=>{state.local=$('local-toggle').checked;update();});
+  $('local-toggle').addEventListener('change',()=>{state.local=$('local-toggle').checked;state.generation++;update();});
   $('project').addEventListener('change',update);$('project-refresh').onclick=()=>notify('仅刷新示例列表，未连接本机。');
   $('world').addEventListener('change',event=>switchSource(state.format,event.target.value));
   $('format')?.addEventListener('change',()=>switchSource($('format').value));
@@ -445,7 +550,7 @@ export default function App() {
   $('more').onclick=()=>{const open=$('more-menu').hidden;$('more-menu').hidden=!open;$('more').setAttribute('aria-expanded',String(open));if(open)$('more-menu').querySelector('button').focus();};
   for(const owner of [$('more'),$('more-menu')])owner.addEventListener('focusout',event=>{if(!$('more-menu').contains(event.relatedTarget)&&event.relatedTarget!==$('more')){$('more-menu').hidden=true;$('more').setAttribute('aria-expanded','false');}});
   document.addEventListener('keydown',event=>{
-    if(event.isComposing||event.keyCode===229)return;
+    if(event.isComposing||event.keyCode===229||event.defaultPrevented||$('saved-confirm').open)return;
     if(!$('more-menu').hidden){
       const buttons=[...$('more-menu').querySelectorAll('button')];const index=buttons.indexOf(document.activeElement);
       if(['ArrowDown','ArrowUp','Home','End'].includes(event.key)){event.preventDefault();const next=event.key==='Home'?0:event.key==='End'?buttons.length-1:(index+(event.key==='ArrowDown'?1:-1)+buttons.length)%buttons.length;buttons[next].focus();}

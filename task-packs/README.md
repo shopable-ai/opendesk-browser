@@ -20,7 +20,7 @@ manifestHash, sourceHash, site permissions and installation records. The build s
 `tasks/builtin/<taskId>/<version>.json` through the existing packaging service.
 
 Current frozen families:
-- `baidu.search` owns `baidu.search.top3@1.1.5` (limit must remain exactly 3);
+- `baidu.search` owns `baidu.search.top3@1.1.6` (retains 1.1.5; limit must remain exactly 3);
 - `google.search` owns `google.search.top3@1.0.3` (limit must remain exactly 3);
 - `chatgpt.conversation.create` retains 0.1.0, 0.2.0, 0.2.1, 0.2.2, 0.3.0
   as separate reviewed bytes (not a silent upgrade path).

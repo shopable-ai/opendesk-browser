@@ -100,6 +100,8 @@ description: Engineer Chrome MV3/WXT Background/Content/MAIN, SDK/Host/Authority
 5. **构建目标**由 `WXT` 和既有静态输出合同管理：不私自增加 Manifest 权限、SW bundle、动态 loader、CDN 或第二 Node/Go Runtime。变化触及固定入口体积、资源哈希、独立 Standard/Developer 产物时分别审查，不只看 JS 文件编译成功。
 6. **权限最小化**：区分 `permissions`、`optional_permissions`、`host_permissions`、用户网页脚本开关和各 Program/Tool 的独立许可，避免从扩展“拥有全站权限”推导所有工具可以全站读取。
 
+固定网页入口和动态 Page 混用入口或安装管理时，按[网页功能的加载与授权](../../../docs/architecture/browser-framework/site-permission-onboarding.zh-CN.md#网页功能的加载与授权)追踪状态检查直到真实加载者。固定功能不将 `chrome.userScripts` 当作准入条件；涉及迁移时验证开关关闭下的挂载与核心操作、Chrome 限权和旧文档拒绝，以及动态 Page 仍受开关约束。
+
 ## 一次工程变更的最短闭环
 
 工作流真实本机 Codex 的中文两轮复测，使用[唯一核心冒烟手册](../../../docs/framework/guides/workflow-core-smoke.zh-CN.md)。它包含真实 SIDE_PANEL、同一对话、独立 DOM、Run/Result/sourceHash、唯一填写及资源释放的判定；已有证据先按相关输入复用。只解释结果或整理经验时不启动模型／浏览器；该用例不自动触发正式验收，也不把历史 Profile、CLI 版本或 RunId 固化为默认配置。

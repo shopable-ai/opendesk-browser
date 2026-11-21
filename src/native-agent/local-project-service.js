@@ -17,16 +17,16 @@ export function createLocalProjectService({api,hostPorts,connection,files}) {
     pending.delete(id);clearTimeout(row.timer);
     send(row.host,{type:'native-agent.dev.response',requestId:row.requestId,...data});
   }
-  function disconnected(){
+  function disconnected({notify=true}={}){
     providerEpoch=null;
     for(const id of pending.keys())settle(id,{error:{code:'E_DEV_DISCONNECTED',message:'Local project connection closed'}});
-    publish();
+    if(notify)publish();
   }
   function receive(message){
     if(message?.v!==1)return false;
     if(message.kind==='dev.state'){
       if(typeof message.connected!=='boolean'||message.connected&&typeof message.providerEpoch!=='string')return false;
-      if(!message.connected||providerEpoch!==message.providerEpoch)disconnected();
+      if(!message.connected||providerEpoch!==message.providerEpoch)disconnected({notify:false});
       providerEpoch=message.connected?message.providerEpoch:null;publish();return true;
     }
     if(message.kind!=='dev.response')return false;
@@ -86,5 +86,5 @@ export function createLocalProjectService({api,hostPorts,connection,files}) {
     })().catch(fail);return true;
   }
   function dropHost(host){for(const [id,row] of pending)if(row.host===host){clearTimeout(row.timer);pending.delete(id);}}
-  return {receive,acceptHostRequest,disconnected,dropHost,negotiateSource(version){sourceTransfers=version===1;}};
+  return {receive,acceptHostRequest,disconnected,dropHost,publish,negotiateSource(version){sourceTransfers=version===1;}};
 }

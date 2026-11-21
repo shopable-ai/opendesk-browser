@@ -32,9 +32,7 @@ export const OPTIONAL_PLUGIN_API_PERMISSIONS = Object.freeze([
   "bookmarks",
   "history",
   "contextMenus",
-  "clipboardRead",
   "clipboardWrite",
-  "tabGroups",
   "webRequest",
   "nativeMessaging",
   "idle"
@@ -169,9 +167,7 @@ const TRUSTED_CAPABILITY_TO_PERMISSION=Object.freeze({
   'browser.contextMenu':{toolCapability:'browser.contextMenu',permission:'contextMenus'},
   'browser.contextMenu.register':{toolCapability:'browser.contextMenu',permission:'contextMenus'},
   'browser.network.observe':{toolCapability:'browser.network.observe',permission:'webRequest'},
-  'browser.clipboard.read':{toolCapability:'user.export',permission:'clipboardRead'},
   'browser.clipboard.write':{toolCapability:'user.export',permission:'clipboardWrite'},
-  'browser.tabs.groups':{toolCapability:'browser.tabs',permission:'tabGroups'},
   'browser.nativeMessaging':{toolCapability:'tasks.open',permission:'nativeMessaging'},
   'browser.idle':{toolCapability:'focus.control',permission:'idle'}
 });

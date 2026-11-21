@@ -8,7 +8,7 @@
 
 `scripts/build-page-install-package.mjs` 从现有编译器生成并校验过的 Page 草稿中提取同一份源码，不重编译、不改源码字节。实际安装通过原 Host 的 `importPageInstallPackage`，复用 Candidate、固定 manifest、Verification、Available、Installed、安装 Authority 和 Chrome `userScripts` 注册机制。系统核验源码、资源、内置运行时及网站范围，并准备原注册描述符；本机生成的 `package-validated` 仅证明固定离线内容与注册材料校验，不冒充 `preview-evaluated` 的真实网站执行证据。Service Worker 不为安装校验执行用户源码。
 
-确认按钮复用原 Chrome 权限手势。安装仍核对 `expectedInstalledManifestHash`、`expectedGeneration`，升级沿既有固定 Revision 和权限范围规则执行。相同已安装 manifest 返回原安装和当前 Chrome 注册状态，保留 installationId、token、generation、enabled，不重新执行或创建身份；主动停用、撤权或缺失注册不会显示为可自动使用的成功。成功界面要求原安装授权 active、enabled、Chrome registered 的回执，详情可查看安装 ID 和 manifest 摘要。请求结果未知时先查询 `listPagePrograms`，不自动重放写操作。
+确认按钮复用原 Chrome 权限手势。安装仍核对 `expectedInstalledManifestHash`、`expectedGeneration`，升级沿既有固定 Revision 和权限范围规则执行。首次导入独立 Page 安装包时，若已批准的网站权限有效、浏览器声明了用户脚本能力但暂未开放，可保存原安装为 `waiting-user-scripts`。界面按同一 programId、版本、源码、固定清单、安装 ID 和授权代数读回，显示已安装且网页功能暂不可用。能力恢复后，匹配网页的导航或 Worker 核对可注册原安装；浏览器按审核的时点注入，若本次已错过注入时点，请再刷新一次。无需再次安装或授权。`activation-unconfirmed` 表示注册可能已派发，后续仅核对精确注册，不重发；只有授权仍有效且注册读回一致时才显示网页功能就绪。已确认从未派发的安装可直接停用或卸载。撤权继续暂停原授权；新权限需原手势批准。相同已安装 manifest 不会创建新身份或重跑源码。安装请求结果未知时先查询 `listPagePrograms`，不自动重放写操作。
 
 安装就绪与旧网页清理分别确认。已有网页存活、BFCache 或清理 `unknown` 不阻止安装、升级、同包重新导入及主动恢复；成功仍须核对真实安装身份、授权和 Chrome 注册。旧卸载记录在新安装写入的同一事务中归档为原 Authority 的 `page-cleanup-v1`，保留原 installationId、generation、token 及清理证据，新安装获得独立身份；连续重装不覆盖更早的待清理记录。清理未知只约束原文档中的再次执行，新文档可按新授权运行；既不重放旧清理或源码，也不把旧实例视为新安装。
 

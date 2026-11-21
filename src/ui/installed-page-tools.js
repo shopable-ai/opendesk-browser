@@ -29,6 +29,17 @@ export async function setInstalledPageProgramEnabled({api,client,row,enabled}){
     programId:row.programId,manifestHash:installed.manifestHash,enabled:targetEnabled,
     installationId:installed.authorization?.installationId,
     expectedGeneration:installed.authorization?.generation??null});
-  if(result.error)throw result.error;
+  // Authority returns the persisted installation even when Chrome unregister
+  // fails. An error-only rejection does not attest that the setting was saved.
+  if(result?.error){
+    const confirmedDisable=targetEnabled===false&&result.enabled===false&&
+      result.programId===row.programId&&result.manifestHash===installed.manifestHash&&
+      typeof installed.authorization?.installationId==='string'&&
+      Number.isSafeInteger(installed.authorization.generation)&&
+      result.authorization?.installationId===installed.authorization.installationId&&
+      result.authorization.generation===installed.authorization.generation+1&&
+      result.authorization.status==='disabled';
+    if(!confirmedDisable)throw result.error;
+  }
   return result;
 }

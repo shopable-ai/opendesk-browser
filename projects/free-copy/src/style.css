@@ -14,6 +14,5 @@ body{margin:0;background:var(--od-bg)}
 .fc-switch:focus-visible{outline:2px solid var(--od-brand);outline-offset:3px}
 .fc-divider{border-top:1px solid var(--od-line);margin:15px 0}
 .fc-status{margin:15px 0 0;color:var(--od-accent-ink);font-size:12px;font-weight:600}
-.fc-hint{margin:9px 0 0;color:var(--od-sub);font-size:12px;line-height:1.6}
 .fc-error{margin:12px 0 0;color:var(--od-negative);font-size:12px}
 @media(prefers-reduced-motion:reduce){.fc-switch:before,.fc-switch:after{transition:none}}

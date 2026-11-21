@@ -1302,7 +1302,7 @@ test('trusted tool host installs only by explicit click, scopes messages and rem
 
 const deferred=()=>{let resolve,reject;const promise=new Promise((r,j)=>{resolve=r;reject=j;});return {promise,resolve,reject};};
 
-test('Final R2 cancellation preserves a dirty iframe and pending saves block navigation',async t=>{
+test('Final R2 cancellation preserves a dirty iframe and pending saves block direct tab switching',async t=>{
   const f=await hostFixture(t);
   const state=(dirty,busy)=>f.win.emit('message',{origin:'null',source:f.frame.contentWindow,
     data:{protocol:f.loaded.protocol,toolId:sample.id,instance:f.loaded.instance,kind:'edit-state',dirty,busy}});
@@ -1312,7 +1312,6 @@ test('Final R2 cancellation preserves a dirty iframe and pending saves block nav
   f.emit(f.elements['sidebar-tool-action-cancel'],'click');
   assert.equal(f.view.getSnapshot().toast.message,'已取消，原内容仍保留。');
   assert.notEqual(f.elements['sidebar-tool-status'].textContent,'已取消，原内容仍保留。');
-  f.emit(f.elements['sidebar-tool-back'],'click');
   assert.equal(f.elements['sidebar-tool-frame'].children[0],f.frame);
   state(true,true);
   assert.equal(f.host.setVisible(false),false);
@@ -1453,10 +1452,38 @@ test('Host Back preserves a busy sandbox while returning to the list and other t
   assert.equal(f.runtime.frameRoot.children.length,0,'ordinary close resumes only after confirmed idle');
 });
 
-test('returning a busy sandbox to the list keeps installation revocation effective',async t=>{
+for(const destination of ['list','develop'])
+test(`sidebar navigation to ${destination} preserves a sandbox draft without review`,async t=>{
+  const other={...sample,id:'other-app'};
+  const f=await hostFixture(t,{store:new Map([[SIDEBAR_TOOL_STORE,[sample,other]]])});
+  editMessage(f,{dirty:true,busy:false});
+  if(destination==='list'){
+    f.emit(f.elements['sidebar-tool-back'],'click');
+    assert.equal(f.elements['sidebar-tool-display'].hidden,true);
+  }else{
+    assert.notEqual(f.host.setVisible(false,destination),false);
+    f.host.setVisible(true,'tools');
+    assert.equal(f.elements['sidebar-tool-display'].hidden,false,'returning to Extensions restores the editor');
+  }
+  assert.equal(f.elements['sidebar-tool-action-review'].hidden,true,'navigation does not ask to discard the draft');
+  assert.equal(f.runtime.frameRoot.firstElementChild,f.frame);
+  assert.equal(f.host.isDirty(),true,'development reload still sees the draft');
+  assert.equal(f.store.has(sidebarToolStorageKey(sample.id)),false,'navigation does not save the draft as tool data');
+  f.host.openTool(other.id);
+  assert.equal(f.elements['sidebar-tool-action-review'].hidden,false,'replacing the editor still requires a decision');
+  f.emit(f.elements['sidebar-tool-action-cancel'],'click');
+  assert.equal(f.runtime.frameRoot.firstElementChild,f.frame);
+  const token=f.host.openTool(sample.id);
+  assert.equal(token,f.loaded.instance,'reopening the same tool resumes the draft');
+  assert.equal(f.elements['sidebar-tool-display'].hidden,false);
+  assert.equal(f.runtime.frameRoot.firstElementChild,f.frame);
+  assert.equal(f.frame.contentWindow.sent.filter(row=>row.kind==='load').length,1);
+});
+
+for(const state of [{dirty:false,busy:true},{dirty:true,busy:false}])
+test(`returning a ${state.busy?'busy':'dirty'} sandbox to the list keeps installation revocation effective`,async t=>{
   const f=await hostFixture(t);
-  f.win.emit('message',{origin:'null',source:f.frame.contentWindow,data:{protocol:f.loaded.protocol,
-    toolId:sample.id,instance:f.loaded.instance,kind:'edit-state',dirty:false,busy:true}});
+  editMessage(f,state);
   f.emit(f.elements['sidebar-tool-back'],'click');
   assert.equal(f.elements['sidebar-tool-display'].hidden,true);
   f.change([{...sample,js:'void 1;'}]);
@@ -3505,6 +3532,83 @@ async function compoundToolFixture(){
     requires:{browserSdk:'1.0.0'},contributes:{contextMenus:[]},pageModule:{...page,packageHash:await digest(page)}};
 }
 
+test('compound import keeps the review when Chrome user scripts are unavailable and retries only on confirmation',async t=>{
+  const tool=await compoundToolFixture(),store=new Map(),opened=[],writes=[];
+  const extensionId='a'.repeat(32),url='chrome://extensions/?id='+extensionId;
+  let accessible=false,preflights=0,submitCount=0;
+  const open=deferred();
+  const hash=await sidebarToolPackageHash(tool);
+  const f=await hostFixture(t,{store,startTool:false,setHook:value=>writes.push(value),
+    configureApi(api){api.runtime.id=extensionId;api.tabs={create(request){opened.push(request);return open.promise;}};},
+    async hostReply(message){if(message.kind==='runtime-contract')return {ok:true,data:{extensionId,version:'0.1.0',
+      contractHash:await sidebarToolPackageContractHash()}};},
+    chromePermissions:{contains:async()=>true,request:async()=>true},
+    foundationClient:{async request(type,payload){
+      if(type==='prepareAppPage'){
+        preflights++;
+        if(!accessible)throw Object.assign(Error('请打开允许用户脚本'),{code:'E_USER_SCRIPTS_UNAVAILABLE'});
+        return {status:'prepared',toolId:tool.id,packageHash:hash,
+          programId:tool.pageModule.programId,sourceHash:tool.pageModule.sourceHash};
+      }
+      if(type==='synchronizeAppPages')return {status:'synchronized',retired:[],cleanupPending:[]};
+      assert.equal(type,'importAppPage');submitCount++;
+      return {status:'installed',appOwner:payload,programId:tool.pageModule.programId,
+        sourceHash:tool.pageModule.sourceHash,manifestHash:'a'.repeat(64),nativeState:'registered',ready:true};
+    }}});
+  const recovery=f.elements['sidebar-tool-user-scripts-recovery'],install=f.elements['sidebar-tool-install'];
+  const file=f.elements['sidebar-tool-file'],filename='target-fixture.opendesk-tool.json';
+  f.host.openImport();
+  const select=()=>{
+    const text=JSON.stringify(tool);
+    f.view.patch(file.key,{value:filename});
+    f.selectFile({name:filename,size:Buffer.byteLength(text),text:async()=>text});
+  };
+  select();
+  await settle(()=>!install.disabled);
+  const before=writes.length;
+  f.emit(install,'click',{isTrusted:true});
+  await settle(()=>!recovery.hidden&&!install.disabled);
+  assert.equal(file.value,filename);
+  assert.notEqual(file.attributes['aria-invalid'],'true');
+  assert.equal(f.elements['sidebar-tool-preview'].hidden,false);
+  assert.equal(f.elements['sidebar-tool-file-error'].hidden,true);
+  assert.equal(install.textContent,'重试安装');
+  assert.equal(writes.length,before);
+  f.emit(recovery,'settings',{isTrusted:false});
+  assert.deepEqual(opened,[]);
+  f.emit(recovery,'settings',{isTrusted:true});
+  f.emit(recovery,'settings',{isTrusted:true});
+  assert.deepEqual(opened,[{url}]);
+  open.reject(Error('Chrome could not open settings'));
+  await settle(()=>recovery.data.openFailed);
+  assert.equal(file.value,filename);
+  assert.equal(preflights,1);
+  assert.equal(submitCount,0);
+  assert.equal(writes.length,before);
+
+  const late=deferred();
+  f.api.tabs.create=()=>late.promise;
+  f.emit(recovery,'settings',{isTrusted:true});
+  select();
+  await settle(()=>recovery.hidden&&!install.disabled);
+  late.reject(Error('stale settings failure'));
+  await pause();
+  assert.equal(recovery.data.openFailed,false,'replacing the file clears the old recovery and ignores its pending callback');
+
+  f.emit(install,'click',{isTrusted:true});
+  await settle(()=>!recovery.hidden&&!install.disabled);
+  accessible=true;
+  f.api.tabs.create=async()=>({id:1});
+  f.emit(recovery,'settings',{isTrusted:true});
+  await settle(()=>!recovery.data.opening);
+  assert.equal(preflights,2,'opening settings never re-runs the preflight');
+  assert.equal(submitCount,0,'opening settings never submits an install');
+  f.emit(install,'click',{isTrusted:true});
+  await settle(()=>f.view.getSnapshot().toasts.some(row=>row.type==='success'));
+  assert.equal(submitCount,1);
+  assert.equal(store.get(SIDEBAR_TOOL_STORE).find(row=>row.id===tool.id)?.version,tool.version);
+});
+
 async function pendingCompoundImport(t,{official=false,nativeRevoked=false,uninstallPending=false,importError=null}={}){
   const tool=await compoundToolFixture(),calls=[],writes=[];
   const bytes=serializeSidebarToolPackage(tool),release={id:'opendesk/'+tool.id,toolId:tool.id,
@@ -3561,15 +3665,16 @@ async function pendingCompoundImport(t,{official=false,nativeRevoked=false,unins
 
 test('local compound unknown outcome retains the package and reason, then rechecks without replay',async t=>{
   const f=await pendingCompoundImport(t,{nativeRevoked:true,
-    importError:Object.assign(Error('Companion native registration unverified'),{code:'E_PAGE_INSTALLATION'})});
+    importError:Object.assign(Error('Companion native registration unverified'),{code:'E_USER_SCRIPTS_UNAVAILABLE'})});
   const status=f.elements['page-install-import-status'];
   assert.equal(f.view.fields['page-install-import-status'].attributes['data-state'],'outcome-unknown');
+  assert.equal(f.elements['sidebar-tool-user-scripts-recovery'].hidden,true,'a lost post-commit result cannot offer the preflight retry');
   assert.equal(f.elements['sidebar-tool-file-error'].hidden,true,'an installation failure is not an invalid file');
   assert.equal(f.elements['sidebar-tool-preview'].hidden,false);
   assert.notEqual(f.elements['sidebar-tool-file'].value,'');
   assert.match(status.textContent,/安装.*核对/);
   assert.doesNotMatch(status.textContent,/本机事务记录/);
-  assert.match(f.elements['page-install-import-receipt-text'].textContent,/E_PAGE_INSTALLATION.*Companion native registration unverified/);
+  assert.match(f.elements['page-install-import-receipt-text'].textContent,/E_USER_SCRIPTS_UNAVAILABLE.*Companion native registration unverified/);
   assert.equal(f.elements['sidebar-tool-install'].textContent,'重新核对安装');
   const writes=f.writes.length,imports=()=>f.calls.filter(([type])=>type==='importAppPage').length;
   assert.equal(imports(),1);
@@ -6831,6 +6936,34 @@ async function queueReviewFixture(t,{mode='success',existingTool=false}={}){
   };
   return {...f,tool,pkg,release,calls,review,click,pendingRead,readEntered,status:f.elements['page-install-import-status']};
 }
+
+test('standalone Page import confirms the durable waiting receipt without asking for an existing website grant',async t=>{
+  const raw=await readFile(new URL('../../projects/ai-scroll-navigation/ai-scroll-navigation.opendesk-page.json',import.meta.url),'utf8');
+  const pkg=JSON.parse(raw),calls=[];
+  let installed=[];
+  const f=await hostFixture(t,{startTool:false,
+    chromePermissions:{contains:async()=>true,request:async()=>assert.fail('the approved sites need no second permission prompt')},
+    foundationClient:{async request(method,args){
+      calls.push(method);
+      if(method==='listPagePrograms')return {catalog:[],installed:structuredClone(installed)};
+      assert.equal(method,'importPageInstallPackage');
+      assert.equal(args.expectedInstalledManifestHash,null);
+      assert.equal(args.expectedGeneration,null);
+      assert.equal(args.package.packageHash,pkg.packageHash);
+      const row={programId:pkg.programId,version:pkg.version,revision:pkg.revision,sourceHash:pkg.sourceHash,
+        manifestHash:'a'.repeat(64),pageRules:pkg.pageRules,enabled:true,ready:false,nativeState:'waiting-user-scripts',
+        authorization:{installationId:'original-installation',generation:1,status:'active'}};
+      installed=[row];return structuredClone(row);
+    }}});
+  assert.equal(f.host.openImportFiles([{name:'ai-scroll-navigation.opendesk-page.json',size:raw.length,text:async()=>raw}]),true);
+  await settle(()=>!f.elements['sidebar-tool-preview'].hidden&&!f.elements['sidebar-tool-install'].disabled);
+  f.emit(f.elements['sidebar-tool-install'],'click',{isTrusted:true});
+  await settle(()=>f.view.getSnapshot().toast?.type==='success');
+  assert.deepEqual(calls,['listPagePrograms','importPageInstallPackage','listPagePrograms']);
+  assert.match(f.view.getSnapshot().toast.message,/已安装/);
+  assert.match(f.view.getSnapshot().toast.caption,/浏览器暂不能运行用户脚本/);
+  assert.equal(f.elements['sidebar-tool-import'].hidden,true);
+});
 
 test('queue joint review: Page review must finish before either installer can run',async t=>{
   const f=await queueReviewFixture(t,{mode:'review-pending'});

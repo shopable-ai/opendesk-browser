@@ -14,16 +14,16 @@ test('development pairing contains only a fresh untrusted claim',()=>{
 });
 
 test('pairing rejects synthetic clicks and creates no Native or project request',async()=>{
- const nodes=new Map(['bridge-status','bridge-enable','bridge-disable','bridge-refresh','bridge-pair'].map(id=>[id,{listeners:{},addEventListener(type,fn){this.listeners[type]=fn;}}]));
+ const nodes=new Map(['bridge-status','bridge-caption','bridge-toggle','bridge-refresh','bridge-pair','bridge-feedback','bridge-details'].map(id=>[id,{listeners:{},addEventListener(type,fn){this.listeners[type]=fn;}}]));
  const requests=[];let permissions=0;
  const api={runtime:{id:'a'.repeat(32),sendMessage:async msg=>{requests.push(msg.type);return {ok:true,data:{enabled:false,nativeConnected:false,extensionId:'a'.repeat(32),hostCount:0}};}},permissions:{request(){permissions++;return Promise.resolve(true);}}};
  const navigations=[];
- initNativeAgentSettings({api,document:{hidden:false,getElementById:id=>nodes.get(id)},navigate:url=>navigations.push(url)});
+ initNativeAgentSettings({api,document:{hidden:false,getElementById:id=>nodes.get(id),querySelector:()=>({dataset:{}}),addEventListener(){}},navigate:url=>navigations.push(url)});
  await Promise.resolve();await Promise.resolve();requests.length=0;
  const pair=nodes.get('bridge-pair');let prevented=0;
  pair.listeners.click({isTrusted:false,preventDefault(){prevented++;}});
  assert.equal(prevented,1);assert.deepEqual(navigations,[]);
  pair.listeners.click({isTrusted:true,preventDefault(){throw Error('trusted navigation prevented');}});
  assert.equal(navigations.length,1);assert.match(navigations[0],/^opendesk:\/\/browser-pair\?/);assert.equal(permissions,0);assert.deepEqual(requests,[]);
- assert.match(nodes.get('bridge-status').textContent,/等待 OpenDesk 原生确认/);
+ assert.match(nodes.get('bridge-feedback').textContent,/等待 OpenDesk 原生确认/);
 });

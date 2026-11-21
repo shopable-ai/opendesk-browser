@@ -3,6 +3,25 @@ import {validToolId,validPreviewId,validHostInstanceId,SIDEPANEL_DOCUMENT_PATH,
   SIDEPANEL_DOCUMENT_PATHNAME,APP_DOCUMENT_PATH,APP_DOCUMENT_PATHNAME} from '../../tool-document-url.js';
 export {validToolId};
 const SLUG=/^[a-z][a-z0-9-]{0,39}$/;
+const TASK_REVIEW_KEY='opendesk.task-catalog.review.v1';
+
+// Carry the read-only selection through the host identity redirect without
+// introducing query parameters to the URL used by the trusted host.
+export function stageTaskCatalogReview(storage,address,canonicalAddress){
+  const input=new URL(address),canonical=new URL(canonicalAddress);
+  if(input.pathname!==SIDEPANEL_DOCUMENT_PATHNAME||canonical.pathname!==SIDEPANEL_DOCUMENT_PATHNAME||
+     !input.searchParams.has('taskReviewId')||canonical.searchParams.size!==1||
+     [...input.searchParams.keys()].some(key=>!['taskReviewId','taskReviewVersion'].includes(key)))return;
+  try{storage.setItem(TASK_REVIEW_KEY,JSON.stringify({address:canonical.href,query:input.search}));}catch{/* Manual review stays available. */}
+}
+export function takeTaskCatalogReview(storage,address){
+  try{
+    const hint=JSON.parse(storage.getItem(TASK_REVIEW_KEY));
+    if(hint?.address!==address||typeof hint.query!=='string')return null;
+    storage.removeItem(TASK_REVIEW_KEY);
+    return new URLSearchParams(hint.query);
+  }catch{return null;}
+}
 const plain=value=>value&&typeof value==='object'&&!Array.isArray(value)&&
   (Object.getPrototypeOf(value)===Object.prototype||Object.getPrototypeOf(value)===null);
 export function normalizeOwnPageTarget(value){

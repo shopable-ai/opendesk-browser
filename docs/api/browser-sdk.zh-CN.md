@@ -25,7 +25,9 @@
 
 只读状态现返回 `browserMode`（有效 Chrome 原生模式或 null）和 `activeConfig`（本安装精确 PAC/Journal 已确认的声明式配置或 null）。其他安装、未知结果、未确认控制权或缺失权限不返回线路配置；不得用保存的选择替代它。该扩展补齐了沙箱无法读取 Chrome 代理设置的公共缺口，也供其他代理管理工具复用；未新增写权限、后台或任意 PAC。
 
-“跟随系统”消费者可通过原 `requestDisable()` 释放自己的精确代理覆盖，再确认 `state:disabled`、`control:controllable_by_this_extension` 和 `browserMode:system`。`clear` 与显式原生 `mode:system` 不等价；本 SDK 不开放无法携带安装标记的 system 覆盖。回读其他模式、控制冲突或 unknown 时不得宣称系统模式成功。参考 [Chrome 代理模式](https://developer.chrome.com/docs/extensions/reference/api/proxy#proxy-modes) 与 [ChromeSetting 优先级](https://developer.chrome.com/docs/extensions/reference/api/types#precedence)。
+需要从已验证线路直接切换的工具，可在 `requestEnable({config,ifCurrent:{activeConfig,key,etag}})` 中传入最近一次 `getStatus()` 回读的完整 `activeConfig`，以及用于生成目标线路的本工具存储键和 ETag。ETag 由 `OpenDeskTool.request('storage.get',{key,withEtag:true})` 返回。Chrome 空闲时 `activeConfig` 为 `null`。此参数需要支持受控切换的 Browser 宿主。用户完成审阅后，宿主在工具存储锁内核对 ETag，并在全局代理锁内核对安装身份和 Chrome 正在使用的精确线路。版本或线路变化时拒绝操作并保留当时的生效线路。守卫通过后，Chrome 以一次写入替换线路，再回读确认。结果未知时仍需显式停止，恢复仅能清理本安装的精确旧线路或新线路。
+
+“跟随系统”消费者可通过 `requestDisable({ifCurrent:{activeConfig,key,etag}})` 释放自己刚确认的线路。宿主同样核对 ETag、安装身份及 Chrome 当前的精确线路，防止撤掉另一窗口刚切换的新线路。显式停止和未知结果恢复仍使用 `requestDisable()`。释放后需回读 `state:disabled`、`control:controllable_by_this_extension` 和 `browserMode:system` 才能确认跟随系统。保存新选择时可复用原 ETag 和 [`storage.set` 的 `ifProxyReleased` 条件](sidebar-tools.zh-CN.md)。Chrome 的 `clear` 将设置交回其正常优先级处理，实际回读也可能是其他模式、控制冲突或 unknown。参考 [Chrome 代理模式](https://developer.chrome.com/docs/extensions/reference/api/proxy#proxy-modes) 与 [ChromeSetting 优先级](https://developer.chrome.com/docs/extensions/reference/api/types#precedence)。
 
 新增显式配置：`{mode:"direct"}` 让全部标签页直连；`{mode:"fixed_servers",endpoint}` 为全部网站使用同一端点；`{mode:"rules",endpoint,domains}` 按有限域名分流。显式端点允许原 HTTPS/SOCKS5 公共 DNS，或 HTTP/SOCKS5 的精确 `127.0.0.1:1–65535` 本机客户端；其他 IP、localhost 别名、认证与任意 PAC 继续拒绝。三种模式仍编译为带安装身份的受管 PAC；STOP 只清除可验证的自有配置，恢复 Chrome 继承的系统设置。
 

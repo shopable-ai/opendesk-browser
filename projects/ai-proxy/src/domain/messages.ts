@@ -18,9 +18,10 @@ export type Request = (
   | { type: 'SET_DEFAULT'; target: ConfigState['defaultTarget'] }
   | { type: 'SET_HEADER_ACTIONS'; actions: HeaderActionId[] }
   | { type: 'SELECT'; selection: RouteSelection }
-  /** One-click use: select and apply a saved route in one serialized background operation. */
+  /** Legacy selection-only command. */
   | { type: 'SELECT_AND_APPLY'; selection: RouteSelection; approvedPac?: boolean }
   | { type: 'APPLY'; approvedPac?: boolean }
+  | { type: 'SWITCH_ROUTE'; selection: RouteSelection; ifMatch: string; ifRoute?: string | null; approvedPac?: boolean }
   | { type: 'STOP' }
   | { type: 'SET_CREDENTIAL'; endpointId: string; username: string; password: string }
   | { type: 'PROBE' }

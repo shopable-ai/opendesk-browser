@@ -68,7 +68,7 @@ export default async function main() {
 
 标签激活后，窗口焦点在有界只读核对中仍未确认时返回 `E_WINDOW_FOCUS_UNCONFIRMED`；这不是回执格式错误，也不证明窗口已显示。原效果未知栅栏保留，调用方不能继续业务动作或自动重发置前。
 
-「我的 → 参数与运行」可选择**当前网页**或**新建标签页**。当前网页绑定点击运行时核对的原标签及文档；脚本可通过已有 `page.goto(url,{waitUntil:'domcontentloaded',timeout:15000})` 在获准网站内导航。新建标签页使用原 `owned` 目标，起始网址必须属于任务 manifest 的 `siteOrigins`，仅在明确点击运行后创建；填写或切换选项不执行。两条路径都复用原 RunHost、安装身份、权限与 Stop/未知效果保护。
+「我的 → 参数与运行」打开时会检查当前标签页。能确认页面且网站在任务批准范围内时，默认选**当前标签页**；否则默认选**新建标签页**，预填第一个已批准网站的首页。可手动改选，例如当前网站匹配但具体页面不适合脚本时，可以新建标签页从首页运行。当前标签页绑定点击运行时核对的原标签及文档；脚本可通过 `page.goto(url,{waitUntil:'domcontentloaded',timeout:15000})` 在获准网站内导航。新建标签页使用原 `owned` 目标，起始网址必须属于任务 manifest 的 `siteOrigins`，只有明确点击运行后才创建。两条路径均保留原安装身份、权限和停止保护；已尝试的运行不会因连接失败或结果未知而另开标签页重试。
 
 目标页不需要固定或置顶；`showExecutionTab` 仅控制搜索任务是否调用 `bringToFront()` 显示执行过程。Google 搜索任务接受 `https://www.google.com` 的 `/`、`/webhp` 首页及其语言/导航参数；新关键词通过一次 `page.goto` 导航到同一获准 Origin 的 `/search?q=…`，精确匹配的结果页继续只读，不依赖首页建议框或搜索按钮。其他网站或不支持的 Google 页面可选择“新建标签页”，起始网址为 `https://www.google.com/`。导航失败或回执未知停止，不自动重试。
 
@@ -134,7 +134,9 @@ Stop 走原 RunHost，停止原因 E_CANCELLED；完成回执后继续查询原 
 
 ### 固定版本与执行资格
 
-随 Browser 固定发行的百度 1.1.5 与 Google 1.0.7 在首次目录读取、任务解析或后台候选准入时，由同一 Task 安装事务初始化真实安装。发行证明 `verification.kind='builtin-release'`、`source='packaged'` 绑定原包双 hash 与运行库身份，不携带虚构 runId/resultId/原生回执，不授予网站或执行权限。重复访问保留安装身份、数据与停用状态；主动卸载持久保留，原目录可明确审阅恢复。已有合法安装不要求继续匹配当前发行目录。`resolveInstalledTask` 分别返回 `E_TASK_NOT_INSTALLED`、`E_TASK_REMOVED`、`E_TASK_DISABLED`、`E_TASK_INITIALIZATION`；目录的 `initialization` 单独报告 ready/failed 与失败原因，ready 不代表每个任务均已安装。以下普通导入 Task 的真实运行验证仍适用。
+随 Browser 固定发行的百度 1.1.6 与 Google 1.0.7 在首次目录读取、任务解析或后台候选准入时，由同一 Task 安装事务初始化真实安装。发行证明 `verification.kind='builtin-release'`、`source='packaged'` 绑定原包双 hash 与运行库身份，不携带虚构 runId/resultId/原生回执，不授予网站或执行权限。重复访问保留安装身份、数据与停用状态；主动卸载持久保留，原目录可明确审阅恢复。已有合法安装不要求继续匹配当前发行目录。`resolveInstalledTask` 分别返回 `E_TASK_NOT_INSTALLED`、`E_TASK_REMOVED`、`E_TASK_DISABLED`、`E_TASK_INITIALIZATION`；目录的 `initialization` 单独报告 ready/failed 与失败原因，ready 不代表每个任务均已安装。以下普通导入 Task 的真实运行验证仍适用。
+
+运行库更新后，目录可刷新与当前内置发行逐字节一致的同版本候选证明。原安装仍暂停运行，直到用户在任务目录审阅并点击「确认更新安装」；不会自动更改原授权或重放任务。依赖本机运行证据的任务仍需以同一固定源码重新验证。
 
 Task `siteOrigins` 接受 1–8 个唯一 canonical 精确 HTTP(S) origin；拒绝空、重复、超限、credentials、路径、opaque origin 与通配（包括 `<all_urls>`）。在列表内任一 origin 上，同一固定源码的成功 run、持久结果及匹配 native receipt 即可通过 `verifyTaskCandidate({taskId,version,runId})` 进入 verified → Available → 安装；安装审阅覆盖完整列表。`verification.origin` 记录真实验证站点，不表示其余站点运行成功，localhost fixture 也必须在列表内。单 origin 旧流程保持可用。证据绑定 sourceHash、manifestHash 和内置运行库身份；改动列表须新版本重新验证。安装/委托逐次校验真实目标 origin、固定 Revision 与安装代际，跨站 navigation 继续走原目标 session/Authority，列表不扩充网络授权。
 

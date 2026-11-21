@@ -2,10 +2,14 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import http from 'node:http';
 import {createLocalFixture} from '../dev/local-test/local-fixture-server.mjs';
-import {runtime,ORIGIN,EXTENSION_ORIGIN,RECOVERY} from './helpers/controller-fixture.mjs';
+import {runtime,EXTENSION_ORIGIN,RECOVERY} from './helpers/controller-fixture.mjs';
+
+const serviceOrigin='http://127.0.0.1:7903';
 
 async function setup(t,{dropAck=false}={}){
-  const fixture=createLocalFixture({extensionOrigin:EXTENSION_ORIGIN});
+  let assignmentAllowed=true;
+  const fixture=createLocalFixture({extensionOrigin:EXTENSION_ORIGIN,sessionTarget:`${serviceOrigin}/session/`,
+    isSharedAccessAllowed:()=>assignmentAllowed});
   t.after(()=>new Promise((resolve,reject)=>fixture.server.close(error=>error?reject(error):resolve())));
   await new Promise((resolve,reject)=>{
     fixture.server.once('error',reject);
@@ -14,12 +18,15 @@ async function setup(t,{dropAck=false}={}){
   const origin=`http://127.0.0.1:${fixture.server.address().port}`;
   const trace=[],received=[];
   let inFlight=0;
-  fixture.server.on('request',req=>received.push(`${req.method} ${new URL(req.url,origin).pathname}`));
+  fixture.server.on('request',req=>{
+    const {pathname}=new URL(req.url,origin);
+    if(pathname.startsWith('/api/'))received.push(`${req.method} ${pathname}`);
+  });
   // Only the test SDK transport maps the fixed development origin to our own
   // listener. Response bodies and controller endpoint validation stay intact.
   const network=async args=>{
     const url=new URL(args.url);
-    assert.equal(url.origin,ORIGIN);
+    assert.equal(url.origin,serviceOrigin);
     assert.equal(args.config.headers['X-OpenDesk-Local-Test'],'1');
     const row={method:args.method,path:url.pathname,operation:args.data?.operation,
       accountId:args.data?.accountId,key:args.data?.idempotencyKey,status:null};
@@ -36,7 +43,18 @@ async function setup(t,{dropAck=false}={}){
           let data='';res.setEncoding('utf8');
           res.on('error',reject);res.on('data',chunk=>data+=chunk);
           res.on('end',()=>{
-            try{resolve({status:res.statusCode,data:JSON.parse(data)});}
+            try{
+              const payload=JSON.parse(data);
+              if(url.pathname==='/api/member'&&res.statusCode===200){
+                row.member={accountId:payload.account.id,redemptionId:payload.sharedAccounts?.redemptionId,
+                  assignedAccountId:payload.sharedAccounts?.assignedAccountId};
+              }
+              if(row.operation==='sharedSession'&&res.statusCode>=400){
+                row.error=payload.error;
+                reject(Object.assign(Error('HTTP '+res.statusCode),{code:'E_HTTP'}));return;
+              }
+              resolve({status:res.statusCode,data:payload});
+            }
             catch{reject(Error('fixture response is not JSON'));}
           });
         });
@@ -45,23 +63,25 @@ async function setup(t,{dropAck=false}={}){
       });
     }finally{inFlight--;}
   };
-  const open=()=>runtime({fixture,network,store});
   const store=new Map();
+  const open=()=>runtime({fixture,network,store,wireNetwork:true});
   const settle=async(e,predicate=()=>true)=>{
     for(let i=0;i<400;i++){
       await e.flush();
       if(inFlight===0&&!e.toolStates.at(-1)?.busy&&predicate())return;
       await new Promise(resolve=>setTimeout(resolve,5));
     }
-    assert.fail('controller HTTP operation did not settle');
+    assert.fail(`controller HTTP operation did not settle: ${trace.map(row=>`${row.method} ${row.path} ${row.status}`).join(', ')}`);
   };
   const e=await open();await settle(e);
-  await e.click('local-connect');await settle(e,()=>!e.get('redeem-code').disabled);
+  await e.click('local-connect');await settle(e,()=>typeof trace[0]?.status==='number');
+  assert.equal(trace[0].status,200,'initial member request must succeed');
+  assert.equal(e.get('redeem-code').disabled,false);
   const redeems=()=>trace.filter(row=>row.path==='/api/redeem');
   const statuses=()=>trace.filter(row=>row.path==='/api/status'&&!row.operation);
   t.after(()=>assert.deepEqual(received,trace.map(row=>`${row.method} ${row.path}`),
     'every SDK request reached the real HTTP listener'));
-  return {e,fixture,store,trace,open,settle,redeems,statuses};
+  return {e,fixture,origin,store,trace,open,settle,redeems,statuses,revokeAssignment(){assignmentAllowed=false;}};
 }
 
 function member(e){
@@ -75,9 +95,13 @@ function noPrivilegedEffects(e){
   assert.equal(e.tabCalls.length,0);
 }
 
-test('HTTP member -> invalid input -> cancel preview -> explicit single consumption -> refresh and reopen',async t=>{
+test('HTTP member -> link preview and cancel -> one redemption -> assignment, refresh and reopen',async t=>{
   const h=await setup(t),{e,fixture,trace,store}=h;
+  const health=await fetch(h.origin+'/health');
+  assert.equal(health.status,200);
+  assert.equal((await health.json()).mode,'LOCAL_FIXTURE_NOT_PRODUCTION');
   assert.equal(trace.length,1);assert.equal(trace[0].path,'/api/member');
+  assert.equal(trace[0].method,'POST');
   assert.equal(trace[0].status,200);
   assert.equal(e.get('account-name').textContent,'l***@fixture.test');
   assert.equal(e.get('history-list').children.length,0);
@@ -91,10 +115,10 @@ test('HTTP member -> invalid input -> cancel preview -> explicit single consumpt
   assert.equal(e.get('redeem-error').hidden,false);
   assert.equal(fixture.ledger.size,0);assert.equal(h.redeems().length,0);
 
-  // Enter exercises the actual controller input handler, rather than calling
-  // private activation functions or fabricating a successful preview response.
-  e.get('redeem-code').value='DEMO-VIP-01';e.get('redeem-code').listeners.input();
-  e.get('redeem-code').listeners.keydown({key:'Enter',isTrusted:true,preventDefault(){}});
+  const baseline=await fetch(h.origin+'/session/');
+  assert.match(await baseline.text(),/data-session-reason="missing"/);
+  e.setPage({status:'available',url:'http://127.0.0.1:7898/activate?activation_code=DEMO-VIP-01'});
+  await e.checkPage();
   await h.settle(e,()=>!e.get('redeem-preview').hidden);
   assert.equal(trace.filter(row=>row.path==='/api/preview').length,2);
   assert.match(e.get('preview-account').textContent,/l\*\*\*@fixture\.test/);
@@ -105,21 +129,79 @@ test('HTTP member -> invalid input -> cancel preview -> explicit single consumpt
   assert.equal(fixture.ledger.size,0);assert.equal(h.redeems().length,0);
   assert.equal(store.get(RECOVERY)??null,null);
 
-  await e.preview();await h.settle(e,()=>!e.get('redeem-preview').hidden);
+  e.get('redeem-code').value='DEMO-VIP-01';e.get('redeem-code').listeners.input();
+  e.get('redeem-code').listeners.keydown({key:'Enter',isTrusted:true,preventDefault(){}});
+  await h.settle(e,()=>!e.get('redeem-preview').hidden);
   await e.click('redeem-confirm',false);await h.settle(e);
   assert.equal(h.redeems().length,0,'untrusted confirmation does not submit');
   await e.click('redeem-confirm');await e.click('redeem-confirm');
   await h.settle(e,()=>e.get('history-list').children.length===1);
   assert.equal(h.redeems().length,1);assert.equal(fixture.ledger.size,1);
   assert.equal(h.redeems()[0].status,200);
-  assert.equal([...fixture.ledger.values()][0].receipt.status,'redeemed');
+  const [transaction]=fixture.ledger.values();
+  assert.equal(transaction.receipt.status,'redeemed');
   assert.equal(store.get(RECOVERY),null);member(e);noPrivilegedEffects(e);
   await e.click('refresh');await h.settle(e);member(e);
   const before=trace.length,reopened=await h.open();
   await h.settle(reopened,()=>reopened.get('history-list').children.length===1);
   member(reopened);noPrivilegedEffects(reopened);
-  assert.deepEqual(trace.slice(before).map(row=>[row.method,row.path]),[['GET','/api/member']]);
+  assert.deepEqual(trace.slice(before).map(row=>[row.method,row.path]),[['POST','/api/member']]);
+  assert.deepEqual(trace[before].member,{accountId:transaction.receipt.accountId,
+    redemptionId:transaction.receipt.redemptionId,assignedAccountId:transaction.sharedAccountId});
+
+  await reopened.click('site-receive');
+  await h.settle(reopened,()=>!reopened.get('cookie-install').disabled);
+  noPrivilegedEffects(reopened);
+  const preConfirm=await fetch(h.origin+'/session/');
+  assert.match(await preConfirm.text(),/data-session-reason="missing"/);
+  await reopened.click('cookie-install');
+  await h.settle(reopened,()=>reopened.tabCalls.length===1);
+  assert.deepEqual(reopened.tabCalls,[{url:serviceOrigin+'/session/'}]);
+  assert.equal(reopened.cookieCalls.length,1);
+  // The test transport forwards only the synthetic batch that the controller
+  // actually submitted. The loopback server independently decides login.
+  const cookie=reopened.cookieCalls[0].cookies.map(row=>`${row.name}=${row.value}`).join('; ');
+  const target=await fetch(h.origin+'/session/',{headers:{Cookie:cookie}});
+  const page=await target.text();
+  assert.match(page,/data-session-state="valid"/);
+  assert.equal(page.match(/data-shared-account="([^"]+)"/)?.[1],trace[before].member.assignedAccountId);
+  assert.match(page,/data-vip-state="active"/);
+  const afterLogin=trace.length;
+  const refreshed=await fetch(h.origin+'/session/',{headers:{Cookie:cookie}});
+  assert.equal(refreshed.headers.get('set-cookie'),null);
+  assert.match(await refreshed.text(),/data-session-state="valid"/);
+  assert.equal(trace.length,afterLogin);
+  h.revokeAssignment();
+  const revoked=await fetch(h.origin+'/session/',{headers:{Cookie:cookie}});
+  assert.match(await revoked.text(),/data-session-reason="revoked"/);
+  await reopened.click('refresh');await h.settle(reopened);
+  member(reopened);
+  assert.equal(reopened.cookieCalls.length,1);assert.equal(reopened.tabCalls.length,1);
+  assert.equal(reopened.proxyCalls.length,0);
+  assert.equal(trace.at(-1).member.assignedAccountId,undefined);
+  assert.match(reopened.get('login-flow').textContent,/请联系服务方/);
   assert.equal(h.redeems().length,1);assert.equal(fixture.ledger.size,1);
+});
+
+test('HTTP refusal after revocation rechecks the assignment without retrying the delivery or redemption',async t=>{
+  const h=await setup(t);
+  await h.e.preview();await h.settle(h.e,()=>!h.e.get('redeem-confirm').hidden);
+  await h.e.click('redeem-confirm');await h.settle(h.e,()=>h.fixture.ledger.size===1);
+  const reopened=await h.open();
+  await h.settle(reopened,()=>!reopened.get('site-receive').disabled);
+  h.revokeAssignment();
+  const start=h.trace.length;
+  await reopened.click('site-receive');await h.settle(reopened);
+
+  assert.deepEqual(h.trace.slice(start).map(row=>[row.path,row.operation??null,row.status]),[
+    ['/api/status','sharedSession',403],['/api/member',null,200],
+  ]);
+  assert.equal(h.trace[start].error,'E_SHARED_ACCESS_DENIED');
+  assert.equal(reopened.get('site-receive').disabled,true);
+  assert.equal(reopened.get('cookie-install').hidden,true);
+  assert.match(reopened.get('login-flow').textContent,/没有可用的网站会话分配/);
+  member(reopened);noPrivilegedEffects(reopened);
+  assert.equal(h.redeems().length,1);assert.equal(h.fixture.ledger.size,1);
 });
 
 test('HTTP lost receipt persists across reopen and only explicit original-transaction status resolves it',async t=>{
@@ -139,7 +221,7 @@ test('HTTP lost receipt persists across reopen and only explicit original-transa
   assert.equal(h.statuses().length,0);assert.deepEqual(store.get(RECOVERY),saved);
   const before=trace.length,reopened=await h.open();
   await h.settle(reopened,()=>!reopened.get('recovery-check').disabled);
-  assert.deepEqual(trace.slice(before).map(row=>[row.method,row.path]),[['GET','/api/member']]);
+  assert.deepEqual(trace.slice(before).map(row=>[row.method,row.path]),[['POST','/api/member']]);
   assert.deepEqual(store.get(RECOVERY),saved);assert.equal(reopened.get('redeem').disabled,true);
   member(reopened);noPrivilegedEffects(reopened);
   await reopened.click('recovery-check',false);await h.settle(reopened);

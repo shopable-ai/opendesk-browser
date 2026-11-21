@@ -1,7 +1,9 @@
 /** @jsx h */
 import * as React from 'react';
 import {createPortal} from 'react-dom';
+import {translateUiText} from '../../../i18n/strings.js';
 import {TimeReviewSettings,StayFocusSettings,StayFocusQuickAdd,AiAccessSettings} from './trusted-settings.tsx';
+import {ExtensionAbout} from '../components/extension-about.tsx';
 import {UninstallDialog} from './tools.tsx';
 import {TrustedConversationHeaderSlot} from '../components/conversation.tsx';
 import {Button,IconButton} from '../components/ui/button.tsx';
@@ -231,7 +233,7 @@ function ToolHeaderActions({view,field,available}) {
 }
 
 
-export function ToolHost({view,concealed=false,debugPreview=false,onStopDebug,
+export function ToolHost({view,concealed=false,debugPreview=false,onStopDebug,locale='zh-CN',
   trustedControls=null,active=true,showListBack=true,renderNotifications=true}) {
   const snapshot = React.useSyncExternalStore(view.subscribe, view.getSnapshot, view.getSnapshot);
   const previewStatus=snapshot.fields['sidebar-tool-readonly-banner'];
@@ -245,6 +247,8 @@ export function ToolHost({view,concealed=false,debugPreview=false,onStopDebug,
     } else view.dispatch('sidebar-tool-import-close', 'click');
   };
   const reviewing = snapshot.fields['sidebar-tool-preview']?.hidden === false;
+  const scriptsRecovery = snapshot.fields['sidebar-tool-user-scripts-recovery'];
+  const scriptsSettings = React.useRef(null);
   const topAction = snapshot.fields['sidebar-tool-primary-action']?.data?.action || '';
   const secondaryAction = snapshot.fields['sidebar-tool-secondary-action']?.data?.action || '';
   const managementActionsVisible=['sidebar-tool-settings-open','sidebar-tool-remove']
@@ -310,6 +314,12 @@ export function ToolHost({view,concealed=false,debugPreview=false,onStopDebug,
       target?.[effect.method]?.(options);
     }
   }, [view, snapshot.effectVersion]);
+  React.useLayoutEffect(() => {
+    if(!importOpen||scriptsRecovery.hidden)return;
+    const button=scriptsSettings.current,doc=button?.ownerDocument;
+    if(doc&&(doc.activeElement===doc.body||doc.activeElement===refs.current.get('sidebar-tool-install')))
+      button.focus();
+  },[importOpen,scriptsRecovery.hidden]);
   // Keep the trusted installer single-owned; the drawer changes only its layout.
   React.useEffect(() => {
     if(!importOpen)return;
@@ -356,19 +366,24 @@ export function ToolHost({view,concealed=false,debugPreview=false,onStopDebug,
       }
     };
   },[importOpen,marketReview !== null,view]);
-  const actionReviewVisible=snapshot.fields['sidebar-tool-action-review']?.hidden===false;
+  const actionReviewField=snapshot.fields['sidebar-tool-action-review'];
+  const actionReviewVisible=actionReviewField?.hidden===false;
+  const actionReview={
+    open:actionReviewVisible,
+    identity:actionReviewField?.data?.id,
+    title:actionReviewField?.data?.title||'确认操作',
+    source:actionReviewField?.data?.source,
+    message:snapshot.fields['sidebar-tool-action-summary']?.textContent||'',
+    confirmLabel:snapshot.fields['sidebar-tool-action-continue']?.textContent||'继续',
+    cancelLabel:actionReviewField?.data?.cancelLabel||'取消',
+    tone:actionReviewField?.data?.tone,
+    onConfirm:event=>view.dispatch('sidebar-tool-action-continue','click',event),
+    onCancel:reason=>view.dispatch('sidebar-tool-action-cancel','click',{reason})
+  };
+  const inlineActionReview=actionReviewField?.data?.inline===true;
   const context = React.useMemo(() => ({view, snapshot, refs}), [view, snapshot]);
   return <ToolContext.Provider value={context}><div className="sidebar-tool-host od-stack">
-<Confirmation open={actionReviewVisible}
-  identity={snapshot.fields['sidebar-tool-action-review']?.data?.id}
-  title={snapshot.fields['sidebar-tool-action-review']?.data?.title||'确认操作'}
-  source={snapshot.fields['sidebar-tool-action-review']?.data?.source}
-  message={snapshot.fields['sidebar-tool-action-summary']?.textContent||''}
-  confirmLabel={snapshot.fields['sidebar-tool-action-continue']?.textContent||'继续'}
-  cancelLabel={snapshot.fields['sidebar-tool-action-review']?.data?.cancelLabel||'取消'}
-  tone={snapshot.fields['sidebar-tool-action-review']?.data?.tone}
-  onConfirm={event=>view.dispatch('sidebar-tool-action-continue','click',event)}
-  onCancel={reason=>view.dispatch('sidebar-tool-action-cancel','click',{reason})}/>
+{!inlineActionReview&&<Confirmation {...actionReview}/>}
 
 <ImportSheet open={importOpen} blockFiles={marketReview !== null} busy={Boolean(marketReview?.busy)}
   onBackdrop={event=>marketReview ? dismissImport() : view.dispatch('sidebar-tool-import-close','click',event.nativeEvent)}
@@ -535,6 +550,18 @@ export function ToolHost({view,concealed=false,debugPreview=false,onStopDebug,
 <ToolFileInput value={snapshot.fields['sidebar-tool-file'].value} disabled={snapshot.fields['sidebar-tool-file'].disabled}
   onChoose={actions.chooseFile} onCancel={actions.cancelFile}/>
 <ToolField as="p" id="sidebar-tool-file-error" className="sidebar-tool-file-error" role="alert" hidden={true}/>
+<ToolField as="div" id="sidebar-tool-user-scripts-recovery" className="od-import-scripts-recovery">
+  <div>
+    <strong className="od-title" role="alert">需要核对旧版网页功能</strong>
+    <p>请在<button ref={scriptsSettings} type="button" className="od-import-scripts-settings"
+      aria-label="打开 Chrome 扩展设置" aria-describedby="sidebar-tool-user-scripts-guide" aria-disabled={scriptsRecovery.data.opening}
+      onClick={event=>view.dispatch('sidebar-tool-user-scripts-recovery','settings',event.nativeEvent)}>
+      Chrome 扩展设置
+    </button>中<span id="sidebar-tool-user-scripts-guide">开启「允许用户脚本」，然后返回重试。更新前需要核对旧版网页功能已撤销。已选安装包会保留。</span></p>
+  </div>
+  {scriptsRecovery.data.openFailed&&
+    <p role="status">无法打开设置。请在 Chrome 地址栏输入 <code>chrome://extensions</code>，找到当前扩展，点击「详情」后开启该开关。</p>}
+</ToolField>
 {!reviewing && <p className="sidebar-tool-import-hint">也可将 .opendesk-tool.json 或 .opendesk-page.json 拖入此窗口。</p>}
 <ToolField as="div" id="sidebar-tool-preview" className="sidebar-tool-preview" hidden={true}>
 <div className="sidebar-tool-preview-heading">
@@ -589,7 +616,10 @@ export function ToolHost({view,concealed=false,debugPreview=false,onStopDebug,
       <ToolField as="p" id="sidebar-tool-readonly-banner" className="hint" role="note" hidden={true}/>
       <p className="hint">调试使用隔离测试数据，不会使用正式应用数据。</p>
     </details>
-    {debugPreview&&<Button variant="secondary" onClick={onStopDebug}>停止调试</Button>}
+    {debugPreview&&<IconButton className="sidebar-tool-stop-debug" label={translateUiText('develop.appDebug.stop',{},locale)}
+      onClick={onStopDebug}>
+      <svg viewBox="0 0 24 24" aria-hidden="true"><rect x="6" y="6" width="12" height="12" rx="2" style={{fill:'currentColor',stroke:'none'}}/></svg>
+    </IconButton>}
   </div>
   {previewStatus.data?.state==='error'&&!previewStatus.hidden&&
     <p className="sidebar-tool-status" data-state="error" role="status">{previewStatus.textContent}</p>}
@@ -663,6 +693,7 @@ export function ToolHost({view,concealed=false,debugPreview=false,onStopDebug,
 
 </div>
 {trustedControls}
+{inlineActionReview&&<Confirmation {...actionReview} inline/>}
 <section id="sidebar-tool-adblock-native" hidden={!snapshot.legacyAdblockVisible}>此版本 AdBlock 的旧控制界面已退役。请在扩展中心更新至正式 React 版本；你仍可停用或卸载，可信服务负责清理该工具自有规则。</section><StayFocusQuickAdd model={snapshot.trustedSettings.stayFocus} actions={view.trustedSettingsActions.stayFocus}/><div id="sidebar-tool-frame" className="sidebar-tool-frame" ref={runtimeRefs.frameRoot}/><section id="sidebar-tool-ai-proxy-native" className="sidebar-tool-ai-proxy-native" aria-label="AI 智能访问可信设置" hidden={!snapshot.trustedSettings.aiAccess?.visible}><AiAccessSettings model={snapshot.trustedSettings.aiAccess} actions={view.trustedSettingsActions.aiAccess}/></section><ToolField as="button" type="button" id="sidebar-tool-launch" className="od-button" hidden={true}>
 {"打开工具"}
 </ToolField>
@@ -678,6 +709,7 @@ export function ToolHost({view,concealed=false,debugPreview=false,onStopDebug,
 
 </ToolField>
 <ToolField as="section" id="sidebar-tool-settings-view" className="sidebar-tool-settings-view od-surface" aria-label="工具设置" hidden={true}>
+{snapshot.extensionAbout&&<ExtensionAbout {...snapshot.extensionAbout}/>}
 <section className="sidebar-tool-settings-product" aria-label="扩展设置">
 <ToolField as="button" type="button" id="sidebar-tool-adblock-product-settings"
   className="od-button od-button--secondary" hidden={true}>{"广告拦截设置"}</ToolField>

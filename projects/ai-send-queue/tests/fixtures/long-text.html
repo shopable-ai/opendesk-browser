@@ -51,7 +51,13 @@
   let view;
   const engine=createQueueEngine({site,change:()=>view?.render()});
   for(let i=0;i<4;i++){engine.enqueue('完整队列正文🙂 '+i,site.inspect().route);engine.pause('q'+(i+1));}
-  view=createQueueView({owner,createPageUI,assets:[],engine,actions:{enqueue(){}}});
+  view=createQueueView({owner,createPageUI,assets:[],engine,trustedActions:true,actions:{
+    enqueue({paused}){
+      const snap=site.inspect(),taken=site.clearForQueue(snap);
+      if(taken.ok)engine.enqueue(taken.text,snap.route,{paused});
+    },
+    pause:engine.pause,resume:engine.resume
+  }});
   let clicks=0;document.querySelector('#native-send').addEventListener('click',()=>clicks++);
   const frame=()=>new Promise(requestAnimationFrame);
   const check=(value,message)=>{if(!value)throw Error(message);};
@@ -114,6 +120,12 @@
     check(clicks===0,'waiting feedback sent a message');
     engine.wait(text);view.render();
     return {status:'PASS',results,sendClicks:clicks,evidence:'LOCAL_SOURCE_NOT_INSTALLED'};
+  };
+  // No automatic dispatch. Expose only the fixture controls and readback.
+  window.queueFixture={
+    fit:()=>view.place(site.inspect()),
+    clear:()=>view.hide(),
+    state:()=>({queue:engine.view().items.map(({text,state})=>({text,state})),draft:site.inspect().draft,sendClicks:clicks})
   };
   window.fixtureReady=true;
 </script>

@@ -117,6 +117,8 @@
 
 - `id` 必须匹配源码中的 `^[a-z][a-z0-9-]{1,39}$`，发布后保持稳定；更改 ID 会形成另一个工具及数据命名空间。
 - `version` 使用非负整数的 `major.minor.patch`（例如 `1.0.1`，不能带 `v`、预发布标签）；更新用户可见功能/权限/数据结构时明确升级版本、审查兼容性。版本号与代码哈希是不同维度。
+- v1/v2 的 `tool.config.json` 顶层均可选填 `author`、`homepage`、`supportUrl`。它们是自报展示资料，分别接受最多 160、2048、2048 个 UTF-16 代码单元的字符串。打包和安装原样保留已提供的值，计入包摘要；空白及不合格的链接只在展示时隐藏，不产生权限或发布者认证。省略字段时，旧包的规范字节与摘要不变。
+- 兼容性：含这些字段的包最低要求支持新版「关于此扩展」包校验的 OpenDesk Browser 构建（尚未分配独立发行版本号）；旧版严格校验器会拒绝含新字段的包。面向旧版分发时省略这些字段。
 - `title/description/capabilities/files/assets` 属于 **tool.config.json 源清单**；最终包的基础字段为 `format/id/version/title/description/capabilities/html/css/js`；v2 的 `requires/contributes/scripts`、显式 `uiRuntime` 等受限字段按 [公开工具 API](sidebar-tools.zh-CN.md) 及当前 Schema 校验，不能将这份基础列表当作全部版本的字段全集。不要给严格 JSON 加 `permissions`、`native`、`packageUrl`、`marketId` 等未实现的字段。
 - `files` 的 html/css/js 三个源路径均为项目根下的相对路径；v2 可选 dependencies 按上文受限顺序构建，v1 不接受该字段。打包器会检查路径穿越和软链接越界；`assets` 最多 16 个，允许 PNG/JPEG/WebP，不设单张大小上限。通过 `{{asset:assets/icon.png}}` 引用，打包器嵌为 `data:` URL；不是 HTTP/CDN 资源。
 - 当前合同：最终包、HTML/CSS/JS、固定依赖及后台源码不设固定大小上限；编译回执最多 96 个 source 并逐项验证 SHA/字节。框架无安装数量硬限制；依据见 [容量政策](../architecture/browser-ui-r23.zh-CN.md#2026-11-01取消安装包与源码大小上限)及[来源回执项数](../architecture/browser-ui-r23.zh-CN.md#2026-11-14编译来源回执项数)。官方与市场下载仍必须匹配固定发行声明的实际字节和 SHA，Native 单次读取仍受原传输合同约束；来源、权限、沙箱检查与工具运行数据配额继续生效。

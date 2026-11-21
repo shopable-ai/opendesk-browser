@@ -35,5 +35,10 @@
 @media(pointer:coarse){.od-conversation-composer{min-height:69px}}
 @media(pointer:coarse) and (max-height:520px){.od-conversation-composer{min-height:64px}}
 
+/* Split workspace composers place the action alongside their own footer controls. */
+.od-conversation-composer--input-only{display:block;min-height:0;padding:0;border:0}
+.od-conversation-composer--input-only .od-conversation-input{min-height:0;max-height:112px;padding:8px 8px 4px;border:0;border-radius:0;background:transparent;font-size:var(--od-body-size)}
+@media(max-height:520px){.od-conversation-composer--input-only .od-conversation-input{max-height:76px}}
+
 .od-conversation-phase{flex:none;padding:4px 10px;color:var(--od-sub);font-size:var(--od-meta-size);line-height:1.45}
 

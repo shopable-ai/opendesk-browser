@@ -77,6 +77,26 @@ test('history response started before a new run cannot replace its identity',asy
   assert.equal(f.text,'');
 });
 
+for(const change of ['state','retirement'])
+test(`same-run ${change} observation invalidates an older history response`,async t=>{
+  let resolve;const response=new Promise(done=>{resolve=done;});
+  const f=fixture(t,async()=>response);
+  const old={runId:'same-run',state:change==='state'?'paused_unknown':'completed',retirementState:'not-started'};
+  f.owner.renderTask(old);
+  const pending=f.owner.read(old.runId,{reveal:true});
+  const latest={...old,state:'completed',retirementState:'released'};
+  f.owner.renderTask(latest);
+  const currentProjection={slotAvailable:true};
+  f.owner.setProjection(currentProjection);
+  resolve({run:old,runs:[old],results:[],downloads:[],slotAvailable:false});
+  assert.equal(await pending,undefined,'superseded read cannot navigate its caller');
+  assert.deepEqual(f.owner.currentTask,latest);
+  assert.equal(f.owner.projection,currentProjection,'old response cannot lock the newly available slot');
+  assert.equal(f.view.fields['script-task-status'].textContent,'已完成 · 资源已释放');
+  assert.equal(f.view.fields['script-history-panel'].open,false);
+  assert.equal(f.text,'');
+});
+
 test('history explicitly selected after a new run starts stays on that selection',async t=>{
   const f=fixture(t,async()=>snapshot('chosen-history'));
   f.startRun({runId:'new-run',state:'running'});

@@ -219,7 +219,7 @@ export function createNativeAgentService({api=globalThis.chrome,hostPorts=new Ma
          void store.set({[AGENT_LAST_CONNECTED_AT_KEY]:lastConnectedAt}).catch(()=>{});
          settleConnection();
         }catch{connected.disconnect();}
-        workflowAI.publish();
+        projects.publish();workflowAI.publish();
       }else if(ready&&workflowAI.receive(msg)){ /* isolated workflow AI protocol */ }
       else if(ready&&projects.receive(msg)){ /* read-only project transport */ }
       else if(ready&&files.receive(msg)){ /* trusted file workspace transport */ }

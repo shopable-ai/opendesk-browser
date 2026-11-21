@@ -90,6 +90,29 @@ test('login confirmation opens once and unrelated renders preserve user collapse
   assert.deepEqual(e.cookieCalls,[]);assert.deepEqual(e.tabCalls,[]);
 });
 
+test('a tab launch failure after a verified write exposes a navigation-only retry',async()=>{
+  let failOpen=true;
+  const e=await runtime({createTab:async()=>{
+    if(failOpen)throw Error('launch failed');
+    return {tabRef:'fixture-tab'};
+  }});
+  await e.click('local-connect');await e.preview();await e.click('redeem-confirm');
+  await e.chooseSite('commercial');await e.click('site-receive');
+  await e.click('cookie-install');
+  assert.equal(e.cookieCalls.length,1);
+  assert.equal(e.get('cookie-section').open,true);
+  assert.match(e.get('cookie-status').textContent,/网页未能打开.*重新打开网站/);
+  assert.equal(e.get('cookie-open').hidden,false);
+  assert.equal(e.get('cookie-open').textContent,'重新打开网站');
+  const requests=e.calls.length,writes=e.storageCalls.length;
+  failOpen=false;
+  await e.click('cookie-open');
+  assert.deepEqual(e.tabCalls,[{url:'http://127.0.0.1:7903/session/'},{url:'http://127.0.0.1:7903/session/'}]);
+  assert.equal(e.cookieCalls.length,1);
+  assert.equal(e.calls.length,requests);assert.equal(e.storageCalls.length,writes);
+  assert.match(e.get('cookie-status').textContent,/网站登录及身份仍需.*核对/);
+});
+
 test('activation delivery shows its actual target and missing website identity before any site selection',async()=>{
   const e=await runtime({network:async(args,fixture)=>{
     const response=await fixtureRequest(fixture,{...args,headers:args.config.headers});
@@ -107,7 +130,7 @@ test('activation delivery shows its actual target and missing website identity b
   assert.deepEqual(e.tabCalls,[{url:'http://127.0.0.1:7903/session/'}]);
   assert.deepEqual(e.cookieCalls,[],'opening for website authorization does not write');
   await e.click('site-cancel');
-  assert.equal(e.get('site-account-row').hidden,true);
+  assert.match(e.get('site-account').textContent,/网站身份未核验/);
   assert.equal(e.get('cookie-install').hidden,true);
   assert.equal(e.fixture.ledger.size,1,'cancelling a session does not undo or repeat redemption');
 });
@@ -122,7 +145,7 @@ test('server masked identity is reviewable without claiming website verification
   const before=JSON.stringify([...e.store]);
   assert(!before.includes('a***@fixture.test'),'review identity stays out of recovery storage');
   await e.click('site-cancel');
-  assert.equal(e.get('site-account-row').hidden,true);
+  assert.match(e.get('site-account').textContent,/a\*\*\*@fixture\.test.*网站身份未核验/);
   assert.equal(e.get('cookie-install').hidden,true);
   assert.equal(JSON.stringify([...e.store]),before,'display metadata never enters secret or recovery storage');
 });
@@ -139,7 +162,7 @@ test('unchanged reviewed identity permits one explicit write and reopening does 
   assert.equal(reopened.cookieCalls.length,0);assert.equal(reopened.tabCalls.length,0);
   assert.equal(reopened.proxyCalls.length,0);
   assert.equal(reopened.calls.filter(row=>row.method==='POST').length,0);
-  assert.equal(reopened.get('site-account-row').hidden,true);
+  assert.match(reopened.get('site-account').textContent,/网站身份未核验/);
   assert.equal(JSON.stringify([...e.store]),before);
 });
 
@@ -159,7 +182,7 @@ test('changed or removed website identity invalidates a prepared delivery before
     changed=true;await e.click('cookie-install');await e.flush();
     assert.equal(e.cookieCalls.length,0,'the pre-dispatch member refresh must cancel the old review');
     assert.equal(e.get('cookie-install').hidden,true);
-    assert.equal(e.get('site-account-row').hidden,true);
+    assert.match(e.get('site-account').textContent,/网站身份未核验/);
     assert.equal(e.fixture.ledger.size,1);
     assert.deepEqual(e.tabCalls,[]);assert.deepEqual(e.proxyCalls,[]);
   }
@@ -177,7 +200,8 @@ test('unmasked or misleading identity metadata fails closed and cannot be submit
     changed=true;await e.click('refresh');
     assert.equal(e.get('cookie-install').hidden,true);
     assert.equal(e.get('site-account-row').hidden,true);
-    assert.match(e.get('redeem-status').textContent,/权益刷新失败/);
+    assert.match(e.get('redeem-status').textContent,/会员无法核验/);
+    assert.match(e.get('login-flow').textContent,/当前网站授权待核验/);
     await e.click('cookie-install');
     assert.deepEqual(e.cookieCalls,[]);assert.deepEqual(e.tabCalls,[]);
     assert.equal(e.fixture.ledger.size,1);
@@ -193,7 +217,9 @@ test('lost or expired allocation is explained without denying retained quota or 
     await e.click('local-connect');await e.preview();await e.click('redeem-confirm');
     if(reason==='revoked')allowed=false;else now+=3600001;
     await e.click('refresh');
-    assert.match(e.get('login-flow').textContent,/没有可用的网站会话分配.*服务方.*不会自动重复兑换/);
+    assert.match(e.get('login-flow').textContent,reason==='expired'?
+      /网站会话分配已到期.*服务方.*额度和兑换记录/:
+      /没有可用的网站会话分配.*服务方.*无需重复激活/);
     assert.doesNotMatch(e.get('login-flow').textContent,/激活权益 →/);
     assert.equal(e.get('remaining').textContent,'20','retained quota is a separate fact');
     assert.equal(e.get('cookie-install').hidden,true);
@@ -202,4 +228,73 @@ test('lost or expired allocation is explained without denying retained quota or 
     assert.equal(e.calls.filter(row=>new URL(row.url).pathname==='/api/redeem').length,1);
     assert.deepEqual(e.cookieCalls,[]);assert.deepEqual(e.tabCalls,[]);assert.deepEqual(e.proxyCalls,[]);
   }
+});
+
+test('an open panel stops offering expired local website access without another request',async()=>{
+  const start=Date.now();
+  let elapsed=0;
+  const fixture=createLocalFixture({extensionOrigin:EXTENSION_ORIGIN,sessionTarget:'http://127.0.0.1:7903/session/',
+    now:()=>start+elapsed});
+  const e=await runtime({fixture,pollTimers:true,performanceClock:{now:()=>elapsed}});
+  await e.click('local-connect');await e.preview();await e.click('redeem-confirm');
+  await e.click('site-cancel');
+  assert.equal(e.get('site-receive').disabled,false);
+  await e.click('site-open');
+  assert.deepEqual(e.tabCalls,[{url:'http://127.0.0.1:7903/session/'}]);
+  const calls=e.calls.length;
+  const tick=e.timers.find(timer=>timer.ms===1200).callback;
+  elapsed=3600000-1;
+  tick();await e.flush();
+  assert.equal(e.get('site-receive').disabled,false);
+  elapsed++;
+  tick();await e.flush();
+  assert.equal(e.get('site-receive').disabled,true);
+  assert.match(e.get('login-flow').textContent,/网站会话分配已到期/);
+  assert.match(e.get('secondary-metrics').textContent,/本地开发代理：已到期/);
+  assert.match(e.get('proxy-detail').textContent,/本地网络加速权益已到期/);
+  assert.equal(e.get('member-state').textContent,'额度有效');
+  assert.equal(e.get('usage-help').hidden,true);
+  assert.equal(e.get('remaining').textContent,'20');
+  await e.click('site-receive');
+  assert.equal(e.calls.length,calls);
+  const renewal=e.get('login-recovery');
+  assert.equal(renewal?.hidden,false);
+  assert.equal(renewal.textContent,'输入续期码');
+  let focused=false;
+  e.get('redeem-code').focus=()=>{focused=true;};
+  e.get('redeem-details').open=false;
+  await e.click('login-recovery',false);
+  assert.equal(focused,false);
+  await e.click('login-recovery');
+  assert.equal(focused,true);
+  assert.equal(e.get('redeem-details').open,true);
+  assert.equal(e.calls.length,calls);
+  assert.equal(fixture.ledger.size,1);
+  assert.deepEqual(e.cookieCalls,[]);assert.deepEqual(e.proxyCalls,[]);
+});
+
+test('explicit login after an idle panel refreshes the provider before requesting a delivery',async()=>{
+  const start=Date.now();
+  let elapsed=0,allowed=true;
+  const fixture=createLocalFixture({extensionOrigin:EXTENSION_ORIGIN,sessionTarget:'http://127.0.0.1:7903/session/',
+    now:()=>start+elapsed,isSharedAccessAllowed:()=>allowed});
+  const e=await runtime({fixture,performanceClock:{now:()=>elapsed}});
+  await e.click('local-connect');await e.preview();await e.click('redeem-confirm');
+  await e.click('site-cancel');
+  const calls=e.calls.length;
+  elapsed=6*60000;
+  await e.click('site-receive');
+  assert.deepEqual(e.calls.slice(calls).map(row=>[row.method,new URL(row.url).pathname]),
+    [['GET','/api/member'],['POST','/api/status']]);
+  assert.equal(e.get('cookie-install').hidden,false);
+
+  await e.click('site-cancel');
+  const beforeRevocation=e.calls.length;
+  allowed=false;elapsed+=6*60000;
+  await e.click('site-receive');
+  assert.deepEqual(e.calls.slice(beforeRevocation).map(row=>[row.method,new URL(row.url).pathname]),
+    [['GET','/api/member']]);
+  assert.equal(e.get('site-receive').disabled,true);
+  assert.equal(fixture.ledger.size,1);
+  assert.deepEqual(e.cookieCalls,[]);assert.deepEqual(e.tabCalls,[]);
 });

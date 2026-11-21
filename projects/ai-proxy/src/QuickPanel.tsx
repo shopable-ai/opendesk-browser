@@ -4,9 +4,10 @@ import {Button} from '@opendesk/ui';
 import { useEffect, useMemo, useRef, useState, type FormEvent } from 'react';
 import { useI18n } from './i18n/LocaleProvider';
 import { freshConfig, normalizeRuleSiteInput, priorityForSiteQuickRule } from './domain/config';
-import type { Profile, RouteMode, SiteRule } from './domain/types';
+import type { Profile, RouteMode, RouteSelection, SiteRule } from './domain/types';
 import { useProxy } from './ui/useProxy';
-import { Status } from './ui/Status';
+import { ConnectionButton, ConnectionSyncStatus } from './ui/ConnectionSync';
+import { activeStopLabel, confirmedRouteMode, connectionAction, connectionActionLabel, needsProxyRelease, routeSwitchBlocked, Status } from './ui/Status';
 import { ClearableInput } from './ui/ProxyEntry';
 import { isValidProxyPort } from './domain/proxy-entry';
 import { ProxyEditor } from './ui/ProxyEditor';
@@ -24,7 +25,7 @@ const emptyLocal = { name:'', scheme:'http' as 'http' | 'socks5', port:'' };
 export default function App(_props:{headerNavigation?:boolean;settingsFallback?:boolean;savedProxy?:boolean}={}) {
   const { t } = useI18n();
   const statusDisplay=useStatusDisplay();
-  const { state, error, busy, act, refresh, setError, setErrorKey } = useProxy();
+  const { state, error, busy, operationBusy, syncing, slowSync, routeFeedback, routeTarget, act, refresh, setError, setErrorKey } = useProxy();
   const modes: {mode:RouteMode;name:string;description:string}[] = [
     {mode:'profile',name:t('sideModeProfile'),description:t('yourOwnProxyOrLocalPac')},
     {mode:'rules',name:t('sideModeRules'),description:t('routeAutomaticallyByDomain')},
@@ -50,7 +51,8 @@ export default function App(_props:{headerNavigation?:boolean;settingsFallback?:
   const [proxyEditorEtag,setProxyEditorEtag] = useState('');
   const proxyEditorOrigin=useRef<HTMLElement|null>(null);
   const [local,setLocal] = useState(emptyLocal);
-  const [savedHint,setSavedHint] = useState<'saved'|'selected'|false>(_props.savedProxy?'saved':false);
+  const [savedHint,setSavedHint] = useState(_props.savedProxy===true);
+  const [recentProfileId,setRecentProfileId] = useState('');
   const [ruleHint,setRuleHint] = useState(false);
   const [ruleTarget,setRuleTarget] = useState<RouteTarget>('endpoint');
   const [ruleEndpoint,setRuleEndpoint] = useState('');
@@ -67,20 +69,29 @@ export default function App(_props:{headerNavigation?:boolean;settingsFallback?:
   const entryOrigin = useRef<'header'|'primary'|'local'>('header');
   const returnTarget = useRef<'header'|'primary'|'local'|'after-save'>('header');
   const primaryActionButton = useRef<HTMLButtonElement>(null);
-  const applyPendingButton = useRef<HTMLButtonElement>(null);
+  const modeGroup = useRef<HTMLDivElement>(null);
+  const [restoreActionFocus,setRestoreActionFocus] = useState<HTMLButtonElement | null>(null);
   const localEntryButton = useRef<HTMLButtonElement>(null);
   const firstProfileButton = useRef<HTMLButtonElement>(null);
   useEffect(() => {
+    if (busy || !restoreActionFocus) return;
+    setRestoreActionFocus(null);
+    if (document.activeElement !== document.body) return;
+    const button = primaryActionButton.current;
+    (restoreActionFocus.isConnected && !restoreActionFocus.disabled ? restoreActionFocus
+      : button?.getClientRects().length ? button
+      : modeGroup.current?.querySelector<HTMLButtonElement>('[aria-pressed="true"]'))?.focus();
+  },[busy,restoreActionFocus]);
+  useEffect(() => {
     if (!addKind && returnFocus.current) {
-      const target = returnTarget.current === 'after-save'
-        ? applyPendingButton.current ?? primaryActionButton.current
-        : returnTarget.current === 'primary' ? primaryActionButton.current
+      const target = returnTarget.current === 'after-save' || returnTarget.current === 'primary'
+        ? returnTarget.current==='after-save' ? document.getElementById('quick-use-'+recentProfileId) : primaryActionButton.current
           : returnTarget.current === 'local' ? localEntryButton.current
             : fallbackAddButton.current ?? addButton.current;
       (target ?? addButton.current)?.focus();
       returnFocus.current = false;
     }
-  },[addKind]);
+  },[addKind,recentProfileId]);
   useEffect(() => {
     if (addKind) document.getElementById('quick-port')?.focus();
   },[addKind,entryFocusRequest]);
@@ -149,11 +160,10 @@ export default function App(_props:{headerNavigation?:boolean;settingsFallback?:
         : config.defaultTarget.action==='endpoint'
           ? endpoints.find(e=>e.id===config.defaultTarget.endpointId)?.name ?? t('missingProxy2')
           : t('directConnection2');
-  // Keep selected and confirmed active records visible, then preserve data order.
-  const priority = (profile: Profile) => profile.id===config.selection.profileId ? 0
-    : profile.id===state?.runtime.activeSelection?.profileId ? 1 : 2;
-  const orderedProfiles = [...profiles].sort((a,b)=>priority(a)-priority(b));
-  const visibleProfiles = orderedProfiles.slice(0,4);
+  // Keep the visible list stable when switching between its rows.
+  const pinned = new Set([recentProfileId,config.selection.profileId,state?.runtime.activeSelection?.profileId]);
+  const pinnedOutside = profiles.slice(4).filter(profile=>pinned.has(profile.id));
+  const visibleProfiles = [...profiles.slice(0,4-pinnedOutside.length),...pinnedOutside];
 
   async function saveProxy(event:FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -177,12 +187,12 @@ export default function App(_props:{headerNavigation?:boolean;settingsFallback?:
         id,name,scheme:local.scheme,port:Number(local.port)
       }})) return;
       if (!keepAdding) {
-        if (!await act({type:'SELECT',draftScope:'quick-'+addKind,selection:{mode:'profile',profileId:'profile-'+id}})) return;
         if(!getEnvironment().setDraftDirty(false,'quick-'+addKind,draftRevision))return;
         setLocal(emptyLocal);
         setNameExpanded(previous=>({...previous,[addKind]:false}));
         closeAdd(true);
-        setSavedHint('selected');
+        setRecentProfileId('profile-'+id);
+        setSavedHint(true);
       } else {
         if(!getEnvironment().setDraftDirty(false,'quick-'+addKind,draftRevision))return;
         setLocal(emptyLocal);
@@ -224,10 +234,12 @@ export default function App(_props:{headerNavigation?:boolean;settingsFallback?:
       setRuleHint(true);
     }
   }
-  async function apply() {
-    if (config.selection.mode==='profile' && selected?.kind==='pac-inline'
+  async function apply(selection: RouteSelection, profile?: Profile) {
+    const ifMatch=state.configEtag;
+    if (profile?.kind==='pac-inline'
       && !await getEnvironment().confirm(t('chromeWillRunTheLocalPacScriptYouProvided'))) return;
-    if (await act({type:'APPLY',approvedPac:selected?.kind==='pac-inline'})) {
+    if (await act({type:'SWITCH_ROUTE',selection,ifMatch,
+      ...(selection.mode==='system'?{ifRoute:state.runtime.routeVersion}:{}),approvedPac:profile?.kind==='pac-inline'})) {
       setSavedHint(false);
       setRuleHint(false);
     }
@@ -236,38 +248,24 @@ export default function App(_props:{headerNavigation?:boolean;settingsFallback?:
     // Focus scrolls the first visible saved proxy into view.
     firstProfileButton.current?.focus();
   }
-  function showControlReason() {
-    if (typeof document === 'undefined') return;
-    const details = document.querySelector<HTMLDetailsElement>('.r86StatusDetails');
-    if (!details) return;
-    details.open = true;
-    details.querySelector('summary')?.focus();
+  async function selectRoute(selection: RouteSelection) {
+    await act({type:'SELECT',selection,ifMatch:state.configEtag});
   }
-  async function useProfile(profile: Profile) {
-    // Persist SELECT only; Chrome continues to run its last confirmed route.
-    // The next APPLY remains an explicit separate Host-reviewed operation.
-    if (await act({type:'SELECT',selection:{mode:'profile',profileId:profile.id}})) {
-      setSavedHint(false);
-      setRuleHint(false);
-    }
-  }
-  async function useMode(mode: RouteMode) {
-    const selection={...config.selection,mode};
-    const live=Boolean(state?.runtime.managedIntent ||
-      state?.runtime.control==='controlled_by_this_extension');
-    if (!live || (mode==='profile' && !selected)) {
-      if (await act({type:'SELECT',selection})) {
-        setSavedHint(false);
-        setRuleHint(false);
-      }
+  async function useMode(mode: RouteMode, event: React.MouseEvent<HTMLButtonElement>) {
+    if (mode==='rules' && rulesNeedSetup) {
+      await openOptions('rules');
       return;
     }
-    if (mode===config.selection.mode && state?.runtime.applied && !state.runtime.pendingChanges &&
-        state.runtime.activeSelection?.mode===mode) return;
-    if (await act({type:'SELECT',selection})) {
-      setSavedHint(false);
-      setRuleHint(false);
+    if (mode!==config.selection.mode) {
+      await performRouteAction(event,()=>selectRoute({...config.selection,mode}));
     }
+    if (mode==='profile' && profiles.length) focusProxyChoice();
+  }
+  async function performRouteAction(event: React.MouseEvent<HTMLButtonElement>, action: () => Promise<unknown>) {
+    const button=event.currentTarget;
+    const keepFocus=event.detail===0 || document.activeElement===button;
+    await action();
+    if (keepFocus) setRestoreActionFocus(button);
   }
   async function openOptions(section:'profiles'|'rules'|'subscriptions'|'official'|'diagnostic', rotation = false, action?: 'add' | 'new' | 'local') {
     try {
@@ -409,44 +407,31 @@ export default function App(_props:{headerNavigation?:boolean;settingsFallback?:
   </main>;
 
   const managing = state.runtime.managedIntent || state.runtime.control === 'controlled_by_this_extension';
-  const blocked = state.runtime.control === 'controlled_by_other_extensions' ||
-    state.runtime.control === 'not_controllable';
-  const followingSystem = config.selection.mode==='system' && !managing &&
-    state.runtime.control==='controllable_by_this_extension' && state.runtime.browserMode==='system' &&
-    state.runtime.canStop===false && state.runtime.pendingChanges===false &&
-    !state.runtime.outcomeUnknown && !state.runtime.statusErrorCode && !state.runtime.proxyError &&
-    state.runtime.permission!==false;
+  const needsRelease = needsProxyRelease(state.runtime);
+  const blocked = routeSwitchBlocked(state.runtime);
+  const activeMode = confirmedRouteMode(state.runtime);
+  const rulesNeedSetup = activeMode !== 'rules' && !config.rules.some(rule=>rule.enabled);
   const needsProxySelection = config.selection.mode === 'profile' && !selected;
   const needsNewProxy = needsProxySelection && profiles.length === 0;
-  const cannotEnable = needsProxySelection || blocked;
-  // Keep the primary action actionable, even on a fresh installation.
-  const canApplyPending = managing && state.runtime.applied && state.runtime.pendingChanges &&
-    state.runtime.control==='controlled_by_this_extension' && !state.runtime.outcomeUnknown &&
-    !state.runtime.statusErrorCode && !state.runtime.proxyError && !needsProxySelection;
-  const primaryAction = state.runtime.stopFinalizationPending ? 'finalize' : blocked ? 'details' : followingSystem ? 'refresh' :
-    canApplyPending ? 'apply' : managing && state.runtime.canStop ? 'pause'
-    : needsProxySelection ? (needsNewProxy ? 'add' : 'choose')
-    : state.runtime.proxyError ? 'retry' : 'enable';
-  const primaryLabels = {
-    finalize:'apFinishStop', pause: 'r83Pause', apply:config.selection.mode==='direct'?'apApplyDirect':'applySelection', details: 'sideProxyViewReason',
-    add: 'sideAddProxyTitle', choose: 'sideProxyChooseAction',
-    refresh:'apRefreshStatus', retry: state.runtime.statusErrorCode || state.runtime.outcomeUnknown ? 'apRefreshStatus' : 'retry', enable: config.selection.mode==='direct'?'apEnableDirect':'r83Enable'
-  } as const;
-  const idleStatusLabel = !managing && !blocked && !state.runtime.proxyError &&
-    config.selection.mode === 'profile'
-    ? needsNewProxy ? 'sideProxyNotConfigured'
-      : needsProxySelection ? 'sideProxyNeedsSelection' : 'sideProxyPaused'
-    : undefined;
+  const primaryAction = connectionAction(state.runtime, Boolean(selected));
+  const stopLabel = (primaryAction === 'apply' || primaryAction === 'choose') && activeStopLabel(state.runtime);
+  const primaryLabel = primaryAction === 'choose'
+    ? needsNewProxy ? 'sideAddProxyTitle' : 'sideProxyChooseAction'
+    : primaryAction && connectionActionLabel[primaryAction];
+  const idleStatusLabel = !managing && needsNewProxy ? 'sideProxyNotConfigured' : undefined;
   const appliedSelection = state.runtime.activeSelection;
-  function handlePrimaryAction() {
-    if (primaryAction === 'refresh') { void refresh(); return; }
-    if (primaryAction === 'pause'||primaryAction === 'finalize') { void act({type:'STOP'}); return; }
-    if (primaryAction === 'apply') { void apply(); return; }
-    if (primaryAction === 'add') { beginAdd('server','primary'); return; }
-    if (primaryAction === 'choose') { focusProxyChoice(); return; }
-    if (primaryAction === 'details') { showControlReason(); return; }
-    if (primaryAction === 'retry' && (state.runtime.statusErrorCode || state.runtime.outcomeUnknown)) { void refresh(); return; }
-    void apply(); // Only a configured route can reach Apply.
+  async function handlePrimaryAction(event: React.MouseEvent<HTMLButtonElement>) {
+    if (primaryAction === 'choose') {
+      if (needsNewProxy) beginAdd('server','primary');
+      else focusProxyChoice();
+      return;
+    }
+    if (primaryAction === 'refresh') await refresh();
+    else if (primaryAction) {
+      await performRouteAction(event,()=>primaryAction==='apply'||primaryAction==='enable'
+        ? apply(config.selection,config.selection.mode==='profile'?selected:undefined)
+        : act({type:'STOP'}));
+    }
   }
   const browserRoutes: Record<string, string> = {
     system: t('sideRouteSystem'), direct: t('sideRouteDirect'),
@@ -456,16 +441,9 @@ export default function App(_props:{headerNavigation?:boolean;settingsFallback?:
   };
   const browserRoute = browserRoutes[state.runtime.browserMode ?? ''] ?? t('unableToVerify');
   const compactBrowserRoute = modes.find(m=>m.mode===state.runtime.browserMode)?.name||browserRoute;
-  const confirmedRoute = appliedSelection?.mode==='profile'
-    ? profiles.find(p=>p.id===appliedSelection.profileId)?.name||browserRoute
-    : modes.find(m=>m.mode===appliedSelection?.mode)?.name||compactBrowserRoute;
-  const selectedRoute = config.selection.mode==='profile'
-    ? selected?.name||t('noProfileSelected') : modes.find(m=>m.mode===config.selection.mode)?.name||compactBrowserRoute;
-  const preselected = !managing && !blocked && !state.runtime.outcomeUnknown && !state.runtime.statusErrorCode &&
-    !state.runtime.proxyError && config.selection.mode==='profile' && Boolean(selected);
   const knownControl=state.runtime.control==='controlled_by_this_extension'||state.runtime.control==='controllable_by_this_extension';
   const strandedControl=!state.runtime.managedIntent&&state.runtime.control==='controlled_by_this_extension';
-  const RuntimeContainer=!statusDisplay.show&&knownControl&&!strandedControl&&!state.runtime.credentialRequired&&state.runtime.permission!==false&&!busy&&!blocked&&!error&&!state.runtime.pendingChanges&&!state.runtime.outcomeUnknown&&!state.runtime.statusErrorCode&&!state.runtime.proxyError&&!state.runtime.stopFinalizationPending&&!cannotEnable?'details':'section';
+  const RuntimeContainer=!statusDisplay.show&&knownControl&&!strandedControl&&!state.runtime.credentialRequired&&state.runtime.permission!==false&&!operationBusy&&!blocked&&!error&&!routeFeedback&&!state.runtime.pendingChanges&&!state.runtime.outcomeUnknown&&!state.runtime.statusErrorCode&&!state.runtime.proxyError&&!state.runtime.stopFinalizationPending&&!needsProxySelection?'details':'section';
   return <main className="popup sidepanel r86Panel" data-ui-version="R18">
     <div className="r86Scroll" ref={mainScroll}>
       <section className="r86Section" data-r86-section="modes">
@@ -474,54 +452,42 @@ export default function App(_props:{headerNavigation?:boolean;settingsFallback?:
           <div className="quickFallbackActions">
             <Button ref={fallbackAddButton} className="quickManagementIcon" disabled={busy} title={t('sideAddProxyTitle')} aria-label={t('sideAddProxyTitle')}
               onClick={()=>beginAdd('server','header')}><SideIcon name="plus"/></Button>
-            <Button id="quick-settings" className="quickManagementIcon" disabled={busy} title={t('apManageSettings')} aria-label={t('openSettings')}
+            <Button id="quick-settings" className="quickManagementIcon" disabled={busy||needsRelease} title={t('apManageSettings')} aria-label={t('openSettings')}
               onClick={()=>void openOptions('profiles')}><SideIcon name="settings"/></Button>
           </div>
         </div>
-        <div className="r86Modes modeGrid" role="group" aria-label={t('proxyMode')}>
-          {modes.map(m=><Button type="button" key={m.mode} variant={config.selection.mode===m.mode?'primary':'secondary'} disabled={busy||blocked}
-            className={'modeButton '+(config.selection.mode===m.mode?'selected':'')}
-            aria-label={m.name} aria-pressed={config.selection.mode===m.mode}
-            title={m.description} onClick={()=>void useMode(m.mode)}>
-            <SideIcon name={m.mode}/><span className="sideModeLabel">{m.name}</span>
-          </Button>)}
+        <div className="r86Modes modeGrid" role="group" aria-label={t('proxyMode')} ref={modeGroup}>
+          {modes.map(m=>{
+            const actionOnly=m.mode==='rules'&&rulesNeedSetup;
+            const selectedMode=config.selection.mode===m.mode;
+            return <ConnectionButton syncing={syncing} type="button" key={m.mode} variant={selectedMode?'primary':'secondary'} disabled={operationBusy||(blocked&&!actionOnly)}
+            className={'modeButton '+(selectedMode?'selected':'')}
+            aria-label={m.name} aria-pressed={actionOnly?undefined:selectedMode}
+            aria-describedby={m.mode==='direct'?'quick-direct-scope':undefined}
+            title={actionOnly?t('connectionSetUpRules'):m.description} onClick={event=>void useMode(m.mode,event)}>
+            <SideIcon name={m.mode}/><span className="sideModeLabel">{!actionOnly&&routeTarget?.mode===m.mode?t('connectionSwitchingShort'):m.name}</span>
+          </ConnectionButton>;})}
         </div>
+        <ConnectionSyncStatus show={slowSync}/>
+        <p id="quick-direct-scope" className="r86Help" data-testid="side-direct-hint">
+          {t(activeMode==='direct'?'sideDirectAppliedHint':'apDirectScope')}
+        </p>
       </section>
       <RuntimeContainer className="r86Section r86Runtime" data-r86-section="status" aria-label={t('browserStatus')}>
         {RuntimeContainer==='details'&&<summary>{t('browserStatus')}</summary>}
-        <div className="r86StatusCard">
-          <div className="r86StatusCopy">
-            <Status status={state.runtime} compact quiet labelOverride={idleStatusLabel}/>
-            <p className="quickActual" title={browserRoute}>{preselected
-              ? t('sideSelectedInactive',{route:selectedRoute})
-              : <>{t('sideCurrentRoute')}<strong data-testid="side-current-route">{confirmedRoute}</strong></>}</p>
-          </div>
-          <Button type="button" variant="primary" ref={primaryActionButton} data-testid="side-proxy-toggle"
-            className={'r86Toggle sideProxyToggle '+(managing?'isRunning':'isPaused')}
-            title={t(primaryLabels[primaryAction])}
-            aria-label={t(primaryLabels[primaryAction])}
-            disabled={busy}
-            onClick={handlePrimaryAction}>
-            <span>{t(primaryLabels[primaryAction])}</span>
-          </Button>
+        <div className={'connectionControls'+(primaryLabel&&stopLabel?' connectionControlsTwoActions':'')}>
+          <Status status={state.runtime} compact quiet profiles={profiles} labelOverride={idleStatusLabel} operationErrorShown={Boolean(error)}/>
+          {primaryLabel && <ConnectionButton syncing={syncing} type="button" variant={primaryAction === 'apply' || primaryAction === 'enable' || primaryAction === 'choose' ? 'primary' : 'secondary'}
+            ref={primaryActionButton} data-testid="side-proxy-toggle"
+            className={'connectionButton'+(primaryAction === 'apply' || primaryAction === 'enable' || primaryAction === 'choose' ? ' primary' : '')}
+            disabled={operationBusy} onClick={handlePrimaryAction}>{t(primaryLabel)}</ConnectionButton>}
+          {stopLabel && <ConnectionButton syncing={syncing} type="button" className="connectionButton" disabled={operationBusy}
+            onClick={event=>void performRouteAction(event,()=>act({type:'STOP'}))}>{t(stopLabel)}</ConnectionButton>}
         </div>
-        {preselected?<p className="r86Help">{t('sidePreselectedHelp')}</p>:
-          !followingSystem&&(!managing||state.runtime.pendingChanges)&&<p className="quickSelection">{t('apPendingSelection')} · {selectedRoute}</p>}
-        {config.selection.mode==='direct'&&!blocked&&!state.runtime.proxyError&&
-          <p className="r86Help" data-testid="side-direct-hint">
-          {t(state.runtime.applied && !state.runtime.pendingChanges && appliedSelection?.mode==='direct' ? 'sideDirectAppliedHint'
-            : managing ? 'sideDirectPendingHint' : 'sideDirectPausedHint')}
-        </p>}
-        {managing&&(!state.runtime.applied||state.runtime.pendingChanges)&&!cannotEnable&&!canApplyPending&&
-          !state.runtime.outcomeUnknown&&!state.runtime.statusErrorCode&&<Button type="button"
-          ref={applyPendingButton} className="r86ApplyPending" disabled={busy} onClick={()=>void apply()}>
-          {t(config.selection.mode==='direct'?'apApplyDirect':'applySelection')}
-        </Button>}
-        {canApplyPending&&state.runtime.canStop&&<Button type="button" className="r86PendingPause"
-          disabled={busy} onClick={()=>void act({type:'STOP'})}>{t('r83Pause')}</Button>}
+        {routeFeedback && <p className="r86Help" role="status">{t(routeFeedback)}</p>}
         {error&&<p className="notice error" role="alert">{error}</p>}
       </RuntimeContainer>
-      {savedHint&&<p className="r86Notice" role="status">{t(savedHint==='selected'?'sideProxySavedNotApplied':'apProxySavedNotice')}</p>}
+      {savedHint&&<p className="r86Notice" role="status">{t('apProxySavedNotice')}</p>}
       <section className="r86Section" data-r86-section="proxies" aria-label={t('quickProxySelection')}>
         <div className="r86Head">
           <h2>{t(profiles.length ? 'sideSavedProxies' : 'sideProxySources')}{profiles.length>0&&<span className="countTag">{profiles.length}</span>}</h2>
@@ -545,18 +511,25 @@ export default function App(_props:{headerNavigation?:boolean;settingsFallback?:
             const applied=state.runtime.applied &&
               state.runtime.control==='controlled_by_this_extension' &&
               appliedSelection?.mode==='profile' && appliedSelection.profileId===profile.id;
-            return <Button type="button" key={profile.id} ref={index===0?firstProfileButton:undefined} disabled={busy||blocked}
+            const switching=routeTarget?.mode==='profile'&&routeTarget.profileId===profile.id;
+            return <ConnectionButton syncing={syncing} type="button" key={profile.id} id={'quick-use-'+profile.id} ref={index===0?firstProfileButton:undefined} disabled={operationBusy||blocked}
+              aria-busy={switching||undefined}
               title={profile.name} aria-pressed={chosen}
+              aria-label={t(state.runtime.applied?'connectionUseNamed':'connectionSelectNamed',{name:profile.name})}
               className={'r86Profile '+(applied?'active applied':chosen?'selectedPending':'')}
-              onClick={()=>void useProfile(profile)}>
+              onClick={event=>{
+                const selection:RouteSelection={mode:'profile',profileId:profile.id};
+                if (state.runtime.applied && !applied) return performRouteAction(event,()=>apply(selection,profile));
+                if (!chosen) return performRouteAction(event,()=>selectRoute(selection));
+              }}>
               <span className="sideProfileBadge" aria-hidden="true">
                 {ep?(ep.scheme.startsWith('socks')?'S':'H'):'P'}
               </span>
               <span className="sideProfileInfo"><strong>{profile.name}</strong>
                 <small>{ep?ep.scheme.toUpperCase()+' · '+ep.host+':'+ep.port:'PAC'}</small></span>
               <span className={'quickChoice'+(applied?' current':'')}>{applied?<><SideIcon name="check"/>{t('sideUsing')}</>:
-                chosen&&managing?t('apPendingSelection'):chosen?t('sideWaitingEnable'):t('sideChoiceSelect')}</span>
-            </Button>;
+                t(switching?'connectionSwitchingShort':chosen?'selected':state.runtime.applied?'connectionUse':'sideProxyChooseAction')}</span>
+            </ConnectionButton>;
           })}
         </div>}
         {profiles.length>visibleProfiles.length&&
@@ -579,7 +552,6 @@ export default function App(_props:{headerNavigation?:boolean;settingsFallback?:
           <div><dt title={t('expectedRouteNotTested')}>{t('sideExpectedRoute')}</dt><dd data-testid="side-selected-route" title={t('expectedRouteNotTested')}>{site?expectedRoute:t('apSiteRouteUnknown')}</dd></div>
         </dl>
         {site&&config.selection.mode==='rules'&&currentRule&&<p className="r86Help">{t('apMatchedSavedRule',{domain:currentRule.domain})}</p>}
-        <p className="r86Help">{t('sideSiteApplyHelp')}</p>
         <div className="r86Actions">
           <Button ref={siteEditorButton} id="quick-site-rule" type="button" onClick={beginSiteRule}>
             <SideIcon name={currentRule?'edit':'plus'}/>{t(currentRule?'apEditMatchedRule':'sideAddSiteRule')}
@@ -589,7 +561,7 @@ export default function App(_props:{headerNavigation?:boolean;settingsFallback?:
           </Button>
         </div>
         {ruleHint&&<p role="status" className="r86Notice">{t('r86Saved')}</p>}
-        <DiagnosticsPage state={state} busy={entryBusy} onRefresh={refresh} onProbe={refresh}
+        <DiagnosticsPage state={state} busy={entryBusy} onRefresh={refresh}
           onStop={refresh} onProfiles={()=>void openOptions('profiles')} presentation="quick" currentSiteRevision={siteRefreshRevision}/>
       </section>
       <details className="quickAdvanced"><summary>{t('apAdvancedProxy')}</summary>
@@ -597,7 +569,7 @@ export default function App(_props:{headerNavigation?:boolean;settingsFallback?:
       <p className="r86Legal" title={t('managesBrowserProxySettingsOnlyNotADeviceWide')}>{t('sideLegal')}</p>
     </div>
     {proxyEditorOpen&&<div className="options proxyQuickEditor"><ProxyEditor openingEtag={proxyEditorEtag} onClose={saved=>{
-      setProxyEditorOpen(false);if(saved)setSavedHint('saved');
+      setProxyEditorOpen(false);if(saved)setSavedHint(true);
       requestAnimationFrame(()=>proxyEditorOrigin.current?.isConnected&&proxyEditorOrigin.current.focus({preventScroll:true}));
     }}/></div>}
   </main>;

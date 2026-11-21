@@ -28,13 +28,11 @@ function fixture({info=available,result=ready,error}={}){
   return {calls,states,checker};
 }
 
-test('initial render waits for the first check and retains the instructions and retry action',()=>{
+test('initial render waits for the first check before offering another action',()=>{
   assert.equal(INITIAL_STATUS.status,'idle');
   const html=renderToStaticMarkup(createElement(App));
   assert.match(html,/正在连接网页/);
-  assert.match(html,/重新检查/);
-  assert.match(html,/<button[^>]+disabled/);
-  assert.match(html,/Ctrl \+ Enter/);
+  assert.doesNotMatch(html,/<button/);
   assert.doesNotMatch(html,/队列已就绪/);
 });
 
@@ -58,16 +56,17 @@ for(const url of ['https://example.com/','https://chatgpt.com.evil.test/','http:
     await f.checker.check();
     assert.equal(f.calls.length,1);
     assert.equal(f.states.at(-1).status,'unsupported');
-    assert.match(f.states.at(-1).message,/切换到 ChatGPT/);
+    assert.equal(f.states.at(-1).title,'请打开 ChatGPT');
   });
 }
 
-test('unavailable current target retains its actual explanation without assuming page readiness',async()=>{
-  const f=fixture({info:{status:'unavailable',message:'没有当前目标'}});
-  await f.checker.check();
-  assert.equal(f.calls.length,1);
-  assert.equal(f.states.at(-1).status,'unavailable');
-  assert.equal(f.states.at(-1).message,'没有当前目标');
+test('a browser-only page or missing active tab needs a site prompt, with no page request',async()=>{
+  for(const reasonCode of ['E_UNSUPPORTED_SCHEME','E_NO_ACTIVE_TAB']){
+    const f=fixture({info:{status:'unavailable',reasonCode,message:'内部网页诊断'}});
+    await f.checker.check();
+    assert.deepEqual(f.calls,[{operation:'currentPage.info',payload:{}}]);
+    assert.deepEqual(f.states.at(-1),{status:'unsupported',title:'请打开 ChatGPT',message:''});
+  }
 });
 
 for(const result of [null,{data:ready},{...ready,status:'unknown'},{status:'ready'},
@@ -138,6 +137,41 @@ test('pending suppresses duplicate checks; new failure and pending cannot retain
   await checker.check();
   assert.equal(calls.length,count+2,'manual retry unlocks after rejection');
   assert.equal(states.at(-1).status,'error');
+});
+
+test('page changes invalidate old readiness and coalesce checks for the latest target',async()=>{
+  const root=new EventTarget(),states=[],calls=[],previous=deferred();
+  const flush=()=>new Promise(resolve=>setImmediate(resolve));
+  let info=available,holdPageStatus=false;
+  const checker=createStatusCheck(async operation=>{
+    calls.push(operation);
+    return operation==='currentPage.info'?info:holdPageStatus?previous.promise:ready;
+  },state=>states.push(state),root);
+  await checker.check();
+  assert.equal(states.at(-1).status,'ready');
+
+  holdPageStatus=true;
+  root.dispatchEvent(new Event('opendesk-page-changed'));
+  assert.equal(states.at(-1).status,'pending');
+  await flush();
+  assert.equal(calls.at(-1),'page.request');
+
+  info={status:'unavailable',reasonCode:'E_DOCUMENT_UNRESOLVED',message:'当前网页正在导航'};
+  const before=calls.length,statesBefore=states.length;
+  root.dispatchEvent(new Event('opendesk-page-changed'));
+  root.dispatchEvent(new Event('opendesk-page-changed'));
+  assert.equal(calls.length,before);
+  previous.resolve(ready);
+  await flush();
+  assert.deepEqual(calls.slice(before),['currentPage.info']);
+  assert.ok(states.slice(statesBefore).every(row=>row.status!=='ready'));
+  assert.equal(states.at(-1).status,'unavailable');
+  assert.match(states.at(-1).message,/等网页加载完成后重试/);
+
+  checker.dispose();
+  root.dispatchEvent(new Event('opendesk-page-changed'));
+  await flush();
+  assert.equal(calls.length,before+1);
 });
 
 for(const phase of ['currentPage.info','page.request']){

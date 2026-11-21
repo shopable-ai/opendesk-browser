@@ -4,11 +4,11 @@
     "extensionStore": "https://codexproxy.com/",
     "developerReferences": {
       "controller": {
-        "examples": "https://github.com/shopable-ai/opendesk-browser/blob/main/examples/programs/single-file/controller-globals-zero-arg.js",
+        "examples": "https://github.com/shopable-ai/opendesk-browser/blob/main/examples/programs/single-file/README.md#controller",
         "help": "https://github.com/shopable-ai/opendesk-browser/blob/main/docs/api/controller.zh-CN.md#developer-controller-quickstart"
       },
       "page": {
-        "examples": "https://github.com/shopable-ai/opendesk-browser/blob/main/examples/programs/single-file/page-globals-zero-arg.js",
+        "examples": "https://github.com/shopable-ai/opendesk-browser/blob/main/examples/programs/single-file/README.md#page",
         "help": "https://github.com/shopable-ai/opendesk-browser/blob/main/docs/api/page-userscript.zh-CN.md#developer-page-quickstart"
       },
       "react": {

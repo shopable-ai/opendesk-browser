@@ -1,6 +1,7 @@
 // Shared contract for trusted offline releases. Catalog policy controls only new installs. Reading these bytes
 // never installs a tool, changes site grants or creates a sandbox instance.
-import {validateSidebarToolPackage,validateSidebarToolPackageMetadata,SIDEBAR_TOOL_FORMAT_V2,serializeSidebarToolPackage} from '../ui/sidebar-tools/package.js';
+import {validateSidebarToolPackage,validateSidebarToolPackageMetadata,SIDEBAR_TOOL_FORMAT_V2,serializeSidebarToolPackage,
+  SIDEBAR_TOOL_ABOUT_FIELDS,pickSidebarToolAboutFields} from '../ui/sidebar-tools/package.js';
 import {compareToolVersions,sameSidebarToolPackage} from '../ui/sidebar-tools/installation.js';
 import {sameStorageValue} from '../ui/sidebar-tools/storage-state.js';
 
@@ -28,13 +29,13 @@ const gitSha=value=>typeof value==='string'&&/^[a-f0-9]{40}$/.test(value);
 const idPattern=/^[a-z][a-z0-9-]{1,39}$/;
 const error=(message,code='E_OFFICIAL_CATALOG')=>Object.assign(new Error(message),{code});
 // An exact source-location allowlist; migration never authorizes arbitrary repository paths.
-const migratedOfficialToolIds=new Set(['ai-vip-share','cookie-editor','ai-send-queue','browser-fingerprint','scrapyjs','ai-proxy','markdown-workbench','quick-notes','bookmark-manager','knowledge-inbox','web-markdown-clipper','reading-toc','time-review','prompt-shortcuts','adblock','stay-focus','video-speed-controller','ai-knowledge-answers','video-svip','video-downloader']);
+const migratedOfficialToolIds=new Set(['ai-vip-share','cookie-editor','ai-send-queue','browser-fingerprint','scrapyjs','ai-proxy','markdown-workbench','quick-notes','bookmark-manager','knowledge-inbox','web-markdown-clipper','reading-toc','time-review','prompt-shortcuts','adblock','stay-focus','video-speed-controller','ai-knowledge-answers','video-svip','video-downloader','webflow']);
 export function officialSourceProjectPath(id){
   if(typeof id!=='string'||!idPattern.test(id))throw error('官方工具资源身份无效');
   return (migratedOfficialToolIds.has(id)?'projects/':'examples/sidebar-tools/')+id;
 }
 const fields=(value,keys)=>value&&typeof value==='object'&&!Array.isArray(value)&&
-  Object.keys(value).sort().join(',')===[...keys].sort().join(',');
+  Object.keys(value).length===keys.length&&keys.every(key=>Object.hasOwn(value,key));
 function list(value){
   if(!Array.isArray(value)||!value.length||value.length>64)throw error('官方工具目录数量无效');
   return value;
@@ -69,6 +70,7 @@ export function validateOfficialReleaseCatalog(value){
   for(const row of list(value.apps)){
     if(!fields(row,['id','toolId','kind','installationPolicy','version','packageTitle','description',
       'capabilities','packagePath','bytes','sha256',
+       ...SIDEBAR_TOOL_ABOUT_FIELDS.filter(key=>row&&Object.hasOwn(row,key)),
        ...(row?.remoteCommit===undefined?[]:['remoteCommit'])])||
       (row.remoteCommit!==undefined&&
        (row.toolId!=='stay-focus'||!gitSha(row.remoteCommit)))||
@@ -81,7 +83,8 @@ export function validateOfficialReleaseCatalog(value){
     // against the bounded, digest-verified package by loadOfficialTool.
     validateSidebarToolPackageMetadata({format:SIDEBAR_TOOL_FORMAT_V2,
       id:row.toolId,version:row.version,
-      title:row.packageTitle,description:row.description,capabilities:row.capabilities});
+      title:row.packageTitle,description:row.description,capabilities:row.capabilities,
+      ...pickSidebarToolAboutFields(row)});
     seen.add(row.id);
   }
   return structuredClone(value);
@@ -252,8 +255,9 @@ export async function loadOfficialTool(release,{api=globalThis.chrome,fetcher=gl
   if(bytes.length!==row.bytes||hash!==row.sha256)throw error('官方工具包大小或摘要不匹配','E_PACKAGE_INTEGRITY');
   const tool=validateSidebarToolPackage(json(bytes));
   if(tool.id!==row.toolId||tool.version!==row.version||tool.title!==row.packageTitle||
-      tool.description!==row.description||JSON.stringify(tool.capabilities)!==JSON.stringify(row.capabilities))
-    throw error('官方工具身份、版本或能力与目录不一致','E_PACKAGE_IDENTITY');
+      tool.description!==row.description||JSON.stringify(tool.capabilities)!==JSON.stringify(row.capabilities)||
+      SIDEBAR_TOOL_ABOUT_FIELDS.some(key=>Object.hasOwn(row,key)&&row[key]!==tool[key]))
+    throw error('官方工具身份、版本、能力或关于信息与目录不一致','E_PACKAGE_IDENTITY');
   return {tool,release:row};
 }
 export async function verifyReviewedOfficialTool(release,candidate,options={}){

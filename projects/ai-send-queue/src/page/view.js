@@ -101,7 +101,7 @@ function composerSurface(editor,nativeButton,form,win){
   }
   return null;
 }
-export function createQueueView({owner,createPageUI,assets,engine,actions,getBackup=()=>'',onRecoveryChange=()=>{}}){
+export function createQueueView({owner,createPageUI,assets,engine,actions,getBackup=()=>'',onRecoveryChange=()=>{},trustedActions=false}){
   const doc=owner.content.ownerDocument,css=owner.getAsset('assets/queue.css');
   // Reference the declared image at runtime so the frozen source contains its
   // data URL once, rather than duplicating it inside both CSS and image assets.
@@ -117,6 +117,7 @@ export function createQueueView({owner,createPageUI,assets,engine,actions,getBac
   let lastSignature='',recoveryText=null,recoveryReason='';
   let cacheWarning='',cacheNotice=null,copyingBackup=false;
   let expandedScrollTop=0;
+  let detachedLayout=null;
   function reset(){
     for(const prop of ['margin-left','margin-bottom'])list?.host.style.removeProperty(prop);
     root?.style.removeProperty('--sq-surface-radius');
@@ -130,6 +131,7 @@ export function createQueueView({owner,createPageUI,assets,engine,actions,getBac
       root.setAttribute('aria-label','发送队列');list.content.append(root);
       list.host.style.setProperty('display','none','important');
       list.on(root,'click',e=>{
+        if(trustedActions&&e.isTrusted!==true)return;
         const b=e.target.closest?.('button[data-action]');if(!b)return;
         switch(b.dataset.action){
           case 'now':actions.sendNow(b.dataset.id);break;
@@ -184,10 +186,13 @@ export function createQueueView({owner,createPageUI,assets,engine,actions,getBac
       toastNode.setAttribute('role','status');toastNode.hidden=true;
       button.content.append(toastNode);
       button.host.style.setProperty('display','none','important');
-      button.on(blue,'click',event=>actions.enqueue({paused:event.shiftKey===true}));
+      button.on(blue,'click',event=>{
+        if(!trustedActions||event.isTrusted===true)actions.enqueue({paused:event.shiftKey===true});
+      });
       // Recovery content is transient and never auto-enqueued or auto-sent.
       // Clipboard access happens only after an explicit user gesture.
       button.on(toastNode,'click',async event=>{
+        if(trustedActions&&event.isTrusted!==true)return;
         const target=event.target.closest?.('button[data-recovery]');
         if(!target||recoveryText===null)return;
         event.stopPropagation();
@@ -400,7 +405,12 @@ export function createQueueView({owner,createPageUI,assets,engine,actions,getBac
     if(!snap?.ok||!snap.form?.isConnected)return fail();
     const nativeButton=snap.stopButton||snap.sendButton||snap.anchorButton;
     if(!nativeButton||!snap.form.contains(nativeButton)||!nativeButton.parentElement)return fail();
-    const form=snap.form,win=doc.defaultView,prior=form.getBoundingClientRect();
+    const form=snap.form,win=doc.defaultView;
+    // On resize, the old crown may already be squeezing native controls.
+    // Measure without its flex footprint; keep the connected control focused.
+    if(button?.host.parentElement===nativeButton.parentElement)
+      button.host.style.setProperty('position','absolute','important');
+    const prior=form.getBoundingClientRect();
     const size=win.matchMedia('(pointer:coarse)').matches?42:34;
     const surface=composerSurface(snap.editor,nativeButton,form,win);
     if(!surface)return fail();
@@ -408,12 +418,13 @@ export function createQueueView({owner,createPageUI,assets,engine,actions,getBac
     const controls=[...form.querySelectorAll('button')].map(node=>[node,visibleRect(node,win)])
       .filter(([,rect])=>rect);
     const overlaps=(a,b)=>a.left<b.right&&a.right>b.left&&a.top<b.bottom&&a.bottom>b.top;
+    let detachedToolbar=false;
     const safe=()=>{
       const current=editorViewport(snap.editor,form,win),own=blue.getBoundingClientRect();
-      return form.getBoundingClientRect().width>=prior.width-1&&current&&
+      return form.getBoundingClientRect().width>=prior.width-1&&current&&own.width>=size-1&&
       // Single-line composers share their row with the action controls. The
       // added button may consume its own width and gap, but no more space.
-      current.width>=Math.min(input.width,Math.max(120,input.width-size-6))-1&&
+      current.width>=(detachedToolbar?input.width:Math.min(input.width,Math.max(120,input.width-size-6)))-1&&
       current.height>=input.height-1&&!overlaps(own,current)&&
       controls.every(([node,before])=>{
         const after=visibleRect(node,win);
@@ -422,18 +433,37 @@ export function createQueueView({owner,createPageUI,assets,engine,actions,getBac
       });
     };
     ensure();
+    const restoreFocus=button.content.getRootNode?.()?.activeElement===blue;
     awaitingConversation=snap.newConversation===true;
     inline(button.host,size);button.host.style.setProperty('overflow','visible','important');
     blue.hidden=false;toastNode.style.removeProperty('bottom');
     button.host.style.setProperty('display','inline-flex','important');
     button.host.style.setProperty('flex','0 0 '+size+'px','important');
-    button.host.style.setProperty('margin-right','6px','important');
-    if(button.host.nextSibling!==nativeButton)nativeButton.parentElement.insertBefore(button.host,nativeButton);
-    if(!safe())return fail('等待安全显示队列按钮，避免缩窄原生输入框或遮挡原生按钮');
+    const parent=form.parentElement;if(!parent||parent.closest('[contenteditable]'))return fail();
+    // Use coordinates relative to the form so scrolling and queue height don't
+    // invalidate the last inline-fit check or move a focused crown on each poll.
+    const relative=r=>[r.left-prior.left,r.top-prior.top,r.width,r.height];
+    const layout=[size,prior.width,prior.height,...relative(input),...relative(surface.rect),
+      ...controls.flatMap(([,r])=>relative(r))].join(',');
+    detachedToolbar=detachedLayout?.native===nativeButton&&detachedLayout.layout===layout&&
+      button.host.parentElement===parent&&button.host.nextSibling===list.host;
+    if(!detachedToolbar){
+      button.host.style.removeProperty('margin-left');
+      button.host.style.setProperty('margin-right','6px','important');
+      if(button.host.nextSibling!==nativeButton)nativeButton.parentElement.insertBefore(button.host,nativeButton);
+      detachedToolbar=!safe();
+    }
+    if(detachedToolbar) {
+      if(prior.width>480)return fail('等待安全显示队列按钮，避免缩窄原生输入框或遮挡原生按钮');
+      // Keep the same action and handler in a separate row above the queue.
+      // The website toolbar gets back all of its space.
+      button.host.style.setProperty('margin-right','0','important');
+      if(button.host.parentElement!==parent||button.host.nextSibling!==list.host)
+        parent.insertBefore(button.host,list.host.parentElement===parent?list.host:form);
+    }
     const state=engine.view();
     // Size the 18px cue before measuring the docked top tangent span.
     if(!state.items.length)render();
-    const parent=form.parentElement;if(!parent||parent.closest('[contenteditable]'))return fail();
     reset();
     inline(list.host,surface.width);
     list.host.style.setProperty('display','block','important');
@@ -445,22 +475,33 @@ export function createQueueView({owner,createPageUI,assets,engine,actions,getBac
       return fail('等待安全显示队列，避免改变原生输入宽度');
     inline(list.host,updated.width);
     root.style.setProperty('--sq-surface-radius',updated.radius);
+    if(detachedToolbar){
+      if(updated.width<size)return fail('等待安全显示队列按钮，避免覆盖原生输入区');
+      button.host.style.removeProperty('margin-left');
+      const crownOffset=updated.left+updated.width-size-button.host.getBoundingClientRect().left;
+      button.host.style.setProperty('margin-left',crownOffset+'px','important');
+    }else button.host.style.removeProperty('margin-left');
     const offset=updated.left-list.host.getBoundingClientRect().left;
     list.host.style.setProperty('margin-left',offset+'px','important');
     const gap=updated.rect.top-list.host.getBoundingClientRect().bottom;
     list.host.style.setProperty('margin-bottom',-gap+'px','important');
     const finalSurface=composerSurface(snap.editor,nativeButton,form,win);
     const placed=list.host.getBoundingClientRect();
+    const crown=detachedToolbar?blue.getBoundingClientRect():null;
     if(!finalSurface||!safe()||Math.abs(placed.left-finalSurface.left)>1||
-      Math.abs(placed.bottom-finalSurface.rect.top)>1)
+      Math.abs(placed.bottom-finalSurface.rect.top)>1||
+      (crown&&(crown.bottom>placed.top+1||crown.left<placed.left-1||crown.right>placed.right+1)))
       return fail('等待安全显示队列，避免覆盖原生输入区');
+    detachedLayout=detachedToolbar?{native:nativeButton,layout}:null;
+    if(restoreFocus&&button.content.getRootNode?.()?.activeElement!==blue)blue.focus?.({preventScroll:true});
     return true;
   }
   function destroy(){reset();recoveryText=null;list?.destroy();button?.destroy();list=null;button=null;}
   function isPlaced(snap){
     if(!snap?.ok||!list?.active()||!button?.active())return false;
     const native=snap.stopButton||snap.sendButton||snap.anchorButton,win=doc.defaultView;
-    return !!native&&list.host.nextSibling===snap.form&&button.host.nextSibling===native&&
+    return !!native&&list.host.nextSibling===snap.form&&
+      (button.host.nextSibling===native||button.host.nextSibling===list.host)&&
       list.host.style.getPropertyValue('display')!=='none'&&
       button.host.style.getPropertyValue('display')!=='none'&&
       !!visibleRect(list.host,win)&&!!visibleRect(button.host,win)&&

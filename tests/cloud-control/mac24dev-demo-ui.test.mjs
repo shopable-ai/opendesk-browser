@@ -87,7 +87,7 @@ function fixture({storage = new Map(), catalogData = structuredClone(catalog), h
   $('login-form').reset = () => { $('username').value = ''; $('password').value = ''; };
   function Option(label, value) { const option = document.createElement('option'); option.textContent = label; option.value = value; return option; }
   const calls = [];
-  runInNewContext(script, {document, Option, crypto: webcrypto, AbortController,
+  runInNewContext(script, {document, Option, URL, crypto: webcrypto, AbortController,
     setTimeout: (...args) => setTimeout(...args).unref(), clearTimeout,
     localStorage: {getItem: k => storage.get(k) ?? null, setItem: (k, v) => storage.set(k, v)},
     fetch: async (path, options) => {
@@ -282,4 +282,148 @@ test('a successful UNKNOWN observation translates safe reason codes without clai
   assert.equal(f.$('state').textContent, 'UNKNOWN');
   assert.equal(f.$('retirement').textContent, '未提供释放事实');
   assert.equal(f.$('receipt').textContent, '未确认（false）');
+});
+
+
+test('READY catalog never advertises submission for a recovered original key with locked inputs', async () => {
+  const data = structuredClone(catalog);
+  data.devices[0].nickname = '当前 Mac Chrome（待配对）';
+  for (const restoreFromStorage of [true, false]) {
+    const storage = new Map(restoreFromStorage ? [[storedKey, key]] : []);
+    const f = fixture({storage, catalogData: data});
+    await f.login();
+    if (restoreFromStorage) await f.click('status-refresh');
+    else await f.lookup();
+    await f.click('catalog-refresh');
+    assert.equal(f.$('device').value, '1288');
+    assert.equal(f.$('device').disabled, true);
+    assert.equal(f.$('name').disabled, true);
+    assert.equal(f.$('submit').disabled, true);
+    assert.match(f.$('device-status').textContent, /READY/);
+    for (const id of ['device-status', 'request-hint']) {
+      assert.match(f.$(id).textContent, /设备和姓名已锁定.*只查询原键/);
+      assert.doesNotMatch(f.$(id).textContent, /可以明确提交一次/);
+    }
+    assert.match(f.$('catalog-hint').textContent, /只读取当前业务账号的设备.*不会自动配对或绑定/);
+    assert.match(f.$('catalog-hint').textContent, /昵称仅作备注.*不能用于判断真实配对/);
+    await f.submit('submit-form');
+    assert.equal(f.calls.some(c => c.path.endsWith('/submit') || c.path.endsWith('/cancel')), false);
+    assert.deepEqual(f.calls.filter(c => c.path.endsWith('/status')).map(c => c.input.requestKey), [key]);
+    assert.equal(storage.get(storedKey), key);
+  }
+});
+
+test('device guidance distinguishes no new request, an empty catalog and a failed read', async () => {
+  let failed = false;
+  const data = structuredClone(catalog);
+  const f = fixture({catalogData: data, handle: path => path.endsWith('/catalog') && failed ? new Error('offline') : undefined});
+  await f.login();
+  f.input('device', '1288');
+  assert.match(f.$('device-status').textContent, /尚未新建请求，不能提交.*READY/);
+  data.devices = [];
+  await f.click('catalog-refresh');
+  assert.match(f.$('device-status').textContent, /设备目录为空/);
+  failed = true;
+  await f.click('catalog-refresh');
+  assert.match(f.$('device-status').textContent, /设备目录读取失败/);
+  assert.match(f.$('task-label').textContent, /读取失败/);
+  assert.doesNotMatch(f.$('device-status').textContent, /READY|可以明确提交一次/);
+  assert.equal(f.$('submit').disabled, true);
+});
+
+const custody = {
+  source: 'provider-client-scope', bindingState: 'bound', bindingReason: 'BOUND', executorSuffix: 'f686',
+  transport: 'wss', readinessReason: 'CONNECTED', checkedAt: '2026-11-19T09:00:00.000Z',
+  tasks: [{ taskId: 'sample.form-fill', version: '1.0.2', siteOrigins: ['http://127.0.0.1:43111'], resultAccess: 'status-only' }],
+};
+const triggerFor = f => f.$('device-directory').querySelector('button');
+
+test('custody is independently readable when the original request is locked, including with an older directory', async () => {
+  for (const detail of [undefined, custody]) {
+    const data = structuredClone(catalog);
+    data.devices[0].detail = detail;
+    const f = fixture({catalogData:data, storage:new Map([[storedKey,key]])});
+    await f.login();
+    await f.click('status-refresh');
+    await f.click('catalog-refresh');
+    const trigger = triggerFor(f);
+    assert.equal(trigger.disabled, false);
+    trigger.click();
+    const panel = f.$('custody-1288');
+    assert.equal(panel.hidden, false);
+    assert.equal(trigger.getAttribute('aria-expanded'), 'true');
+    if (detail) {
+      assert.match(panel.textContent, /f686.*sample\.form-fill@1\.0\.2.*127\.0\.0\.1:43111.*正文不回传.*WSS.*本机准入待确认/s);
+      assert.match(panel.textContent, /2026-11-19T09:00:00.000Z/);
+    } else {
+      assert.match(panel.textContent, /关联详情未提供/);
+      assert.doesNotMatch(panel.textContent, /WSS|f686/);
+    }
+    assert.match(panel.textContent, /OpenDesk 侧栏 → 云控/);
+    panel.querySelector('.custody-close').click();
+    assert.equal(panel.hidden, true);
+    assert.equal(trigger.getAttribute('aria-expanded'), 'false');
+    assert.equal(f.$('device').value, '1288');
+    assert.equal(f.$('device').disabled, true);
+    assert.equal(f.$('name').disabled, true);
+    assert.equal(f.$('request-key').textContent, key);
+    assert.deepEqual(f.calls.filter(c => c.path.startsWith('/app/operate/')).map(c => c.path.split('/').at(-1)),
+      ['catalog', 'status', 'catalog']);
+  }
+});
+
+test('custody displays bounded states and drops old facts on read failure', async () => {
+  for (const [extra, label] of [
+    [{readinessReason:'OFFLINE', transport:'none'}, /未连接/],
+    [{readinessReason:'PAUSED', transport:'none'}, /已暂停/],
+    [{readinessReason:'UNCONFIRMED', transport:null}, /连接状态待确认/],
+    [{bindingState:'unbound', bindingReason:'UNBOUND'}, /尚未关联执行端/],
+    [{bindingState:'unknown', bindingReason:'CONFIG_UNAVAILABLE'}, /关联配置读取失败/],
+    [{bindingState:'unknown', bindingReason:'SCOPE_UNVERIFIED'}, /当前委托范围未能确认/],
+  ]) {
+    let fail = false;
+    const data = structuredClone(catalog);
+    data.devices[0].detail = {...custody, ...extra, result: 'private-result', token: 'secret-token'};
+    if (extra.readinessReason === 'OFFLINE') data.devices[0].readiness = 'NOT_CONNECTED';
+    if (extra.readinessReason === 'PAUSED') data.devices[0].readiness = 'NOT_AUTHORIZED';
+    const f = fixture({catalogData:data, handle: path => path.endsWith('/catalog') && fail ? Error('private-error') : undefined});
+    await f.login();
+    triggerFor(f).click();
+    const panel = f.$('custody-1288');
+    assert.match(panel.textContent, label);
+    assert.doesNotMatch(panel.textContent, /已连接|私密|private-result|secret-token|可以执行/);
+    if (extra.bindingState) assert.doesNotMatch(panel.textContent, /f686|sample\.form-fill/);
+    fail = true;
+    await f.click('catalog-refresh');
+    assert.equal(f.$('custody-1288'), null);
+    assert.equal(triggerFor(f), null);
+    assert.match(f.$('device-directory-status').textContent, /读取失败/);
+    assert.doesNotMatch(f.$('notice').textContent, /private-error/);
+  }
+});
+
+test('a late catalog from the previous account cannot restore its device or open details', async () => {
+  const previous = deferred();
+  const original = structuredClone(catalog);
+  original.devices[0].detail = custody;
+  let read = 0, account = 569;
+  const f = fixture({handle: path => {
+    if (path.endsWith('/person')) return ok({id:account, username:'fixture'});
+    if (path.endsWith('/catalog')) {
+      read += 1;
+      return read === 1 ? ok(original) : read === 2 ? previous.promise : ok({...catalog, devices:[]});
+    }
+  }});
+  await f.login();
+  triggerFor(f).click();
+  assert.equal(f.$('custody-1288').hidden, false);
+  await f.click('catalog-refresh');
+  assert.equal(f.$('custody-1288'), null);
+  await f.click('logout');
+  account = 570;
+  await f.login();
+  previous.resolve(ok(original));
+  await f.flush();
+  assert.equal(f.$('custody-1288'), null);
+  assert.match(f.$('device-directory-status').textContent, /没有设备/);
 });

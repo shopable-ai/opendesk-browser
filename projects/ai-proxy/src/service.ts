@@ -21,16 +21,18 @@ export interface ManagedStatus {
   browserMode?: string | null;
   /** Adapter resolves only the native-verified route; never saved intent alone. */
   activeConfig?: ConfigState | null;
+  routeVersion?: string | null;
 }
 export interface ProxyServiceOptions {
   load(): Promise<{ config: ConfigState; etag: string }>;
   /** Return the confirmed new ETag (or {etag}); otherwise the service reloads. */
-  save(config: ConfigState, etag: string): Promise<unknown>;
+  save(config: ConfigState, etag: string, ifProxyReleased?: boolean): Promise<unknown>;
   status(): Promise<ManagedStatus>;
-  /** Pure adapter validation, before releasing a working route for replacement. */
+  /** Pure adapter validation, before requesting a new route. */
   validateApply?(config: ConfigState): void;
   apply(config: ConfigState): Promise<ManagedStatus>;
-  stop(): Promise<ManagedStatus>;
+  switchRoute?(config: ConfigState, etag: string): Promise<ManagedStatus>;
+  stop(ifCurrentEtag?: string): Promise<ManagedStatus>;
   preview?: boolean;
   checkSite?(id:string):Promise<HttpCheck>;
   loadFavorites?():Promise<{favorites:DiagnosticSite[];etag:string}>;
@@ -79,7 +81,7 @@ function routeSignature(config: ConfigState): string {
   return JSON.stringify([mode]);
 }
 
-export function createProxyService({ load, save, status, validateApply, apply, stop, checkSite, loadFavorites, saveFavorites, currentTarget, preview = false }: ProxyServiceOptions) {
+export function createProxyService({ load, save, status, validateApply, apply, switchRoute, stop, checkSite, loadFavorites, saveFavorites, currentTarget, preview = false }: ProxyServiceOptions) {
   let config: ConfigState;
   let etag: string;
   let active: ConfigState | null = null;
@@ -155,12 +157,12 @@ export function createProxyService({ load, save, status, validateApply, apply, s
     if (config && JSON.stringify(config) !== JSON.stringify(next)) invalidate();
     config = clone(next); etag = loaded.etag;
   }
-  async function persist(next: ConfigState) {
+  async function persist(next: ConfigState, ifProxyReleased?: boolean) {
     assertLive();
     const checked = validateConfig(next);
     // Drop the old ETag before awaiting a write; an unknown write is never replayed.
     const prior = etag; etag = '';
-    const receipt = await save(clone(checked), prior);
+    const receipt = await save(clone(checked), prior, ifProxyReleased);
     assertLive();
     const nextEtag = typeof receipt === 'string' ? receipt : receipt && typeof receipt === 'object' && 'etag' in receipt ? receipt.etag : undefined;
     if (typeof nextEtag === 'string' && nextEtag) { config = clone(checked); etag = nextEtag; }
@@ -202,6 +204,7 @@ export function createProxyService({ load, save, status, validateApply, apply, s
       reason: typeof value.reason === 'string' ? value.reason : null,
       ...(value.browserMode !== undefined ? { browserMode: value.browserMode } : {}),
       ...(value.permission !== undefined ? { permission: value.permission } : {}),
+      ...(value.routeVersion !== undefined ? { routeVersion: value.routeVersion } : {}),
       ...(value.statusErrorCode !== undefined ? { statusErrorCode: value.statusErrorCode } : {}) };
     if(previous!==JSON.stringify([actual.control,actual.state,actual.browserMode,actual.permission,actual.statusErrorCode,active]))invalidate();
     // A newly observed own route supersedes the historical release receipt.
@@ -252,39 +255,55 @@ export function createProxyService({ load, save, status, validateApply, apply, s
   }
   function previewOnly() { if (!preview) fail('E_NOT_CONNECTED', 'E_NOT_CONNECTED: this capability has no connected runtime'); }
 
+  async function releaseCurrent(ifCurrentEtag?: string) {
+    assertLive();
+    if (stopFinalizationPending) {
+      // Refresh observation only: a config retry must never replay Disable.
+      // Status failure remains unknown but does not prevent storage cleanup.
+      try { await refresh(); } catch { assertLive(); }
+      if (!stopFinalizationPending)
+        fail('E_CONTROL_HELD', 'Own proxy control changed; confirm a new STOP before release');
+    } else {
+      // Only a previously observed own capability permits release, even offline.
+      if (!actual.canStop) fail('E_CONTROL_HELD', 'No confirmed own proxy control to stop');
+      invalidate();
+      try { observe(await stop(ifCurrentEtag)); }
+      catch (error) {
+        assertLive();
+        if (!(ifCurrentEtag && error && typeof error === 'object' && 'code' in error && error.code === 'E_CONFLICT'))
+          unknown = true;
+        throw error;
+      }
+      const refusal = statusRefusal(actual);
+      if (refusal) { unknown = true; fail(refusal, 'Managed proxy stop refused'); }
+      if (!confirmedDisabled(actual)) { unknown = true; fail('E_OUTCOME_UNKNOWN', 'STOP did not confirm disabled status'); }
+      stopFinalizationPending = true;
+    }
+    // A guarded switch must commit against the same revision that authorized
+    // the release. Only explicit STOP may reload and finalize a newer record.
+    if (ifCurrentEtag !== undefined) {
+      stopFinalizationPending = false;
+      return;
+    }
+    await read();
+    if (config.managed) await persist({ ...config, managed: false });
+    if (config.managed) fail('E_OUTCOME_UNKNOWN', 'STOP configuration finalization was not confirmed');
+    stopFinalizationPending = false;
+    latestError = null;
+  }
   async function dispatch(message: Request, requestEpoch: number): Promise<ServiceResponse> {
     if (message.type === 'STOP') {
-      assertLive();
-      if (stopFinalizationPending) {
-        // Refresh observation only: a config retry must never replay Disable.
-        // Status failure remains unknown but does not prevent storage cleanup.
-        try { await refresh(); } catch { assertLive(); }
-        if (!stopFinalizationPending)
-          fail('E_CONTROL_HELD', 'Own proxy control changed; confirm a new STOP before release');
-      } else {
-        // Only a previously observed own capability permits release, even offline.
-        if (!actual.canStop) fail('E_CONTROL_HELD', 'No confirmed own proxy control to stop');
-        invalidate();
-        try { observe(await stop()); }
-        catch (error) { assertLive(); unknown = true; throw error; }
-        const refusal = statusRefusal(actual);
-        if (refusal) { unknown = true; fail(refusal, 'Managed proxy stop refused'); }
-        if (!confirmedDisabled(actual)) { unknown = true; fail('E_OUTCOME_UNKNOWN', 'STOP did not confirm disabled status'); }
-        stopFinalizationPending = true;
-      }
-      await read();
-      if (config.managed) await persist({ ...config, managed: false });
-      if (config.managed) fail('E_OUTCOME_UNKNOWN', 'STOP configuration finalization was not confirmed');
-      stopFinalizationPending = false;
-      latestError = null;
+      await releaseCurrent();
       return { ok: true, state: view(), preview };
     }
     await read();
     assertLive();
+    const routeVersion = message.type === 'SWITCH_ROUTE' && message.ifRoute !== undefined
+      ? message.ifRoute : actual.routeVersion;
     if (message.ifMatch !== undefined && message.ifMatch !== etag)
       fail('E_CONFLICT', 'Draft configuration changed; reopen the editor');
     const edit = (change: (state: ConfigState) => ConfigState) => editConfig(change, message.ifMatch);
-    if (message.type === 'GET_STATE' || message.type === 'APPLY' ||
+    if (message.type === 'GET_STATE' || message.type === 'APPLY' || message.type === 'SWITCH_ROUTE' ||
         message.type === 'IMPORT' || message.type === 'DELETE_ENDPOINT' || message.type === 'DELETE_PROFILE') {
       try { await refresh(); }
       catch (error) { assertLive(); if (message.type !== 'GET_STATE') throw error; }
@@ -419,45 +438,66 @@ export function createProxyService({ load, save, status, validateApply, apply, s
         break;
       case 'SET_CREDENTIAL':
       case 'PROBE': fail('E_NOT_CONNECTED', 'E_NOT_CONNECTED: authentication and network probes are not connected');
+      case 'SWITCH_ROUTE':
       case 'APPLY': {
+        if (message.type === 'SWITCH_ROUTE' && typeof message.ifMatch !== 'string')
+          fail('E_CONFLICT', 'Read the saved route before switching');
+        if (message.type === 'SWITCH_ROUTE' && message.selection == null)
+          fail('E_INVALID_ARGUMENT', 'A route selection is required');
         if (actual.statusErrorCode) fail(actual.statusErrorCode, 'Managed status unavailable; Apply refused');
         if (actual.permission === false) fail('E_PERMISSION_DENIED', 'Managed proxy permission denied');
         if (unknown) fail('E_OUTCOME_UNKNOWN', 'Confirm STOP or disabled status before applying again');
         if (actual.state === 'conflict') throw new Error('代理控制权冲突，未自动夺权');
         if (actual.state === 'unavailable') fail('E_NOT_CONNECTED', actual.reason ?? 'Managed proxy unavailable');
-        if (config.selection.mode === 'system') {
+        const previous = clone(config);
+        const submitted = message.type === 'SWITCH_ROUTE'
+          ? validateConfig({ ...previous, selection: message.selection }) : previous;
+        const checkSavedRoute = () => {
+          const withoutIntent = (value: ConfigState) => JSON.stringify({ ...value, managed: false });
+          if (withoutIntent(config) !== withoutIntent(previous))
+            fail('E_CONFLICT', 'Configuration changed while releasing the previous route');
+        };
+        if (submitted.selection.mode === 'system') {
+          if (routeVersion !== undefined && routeVersion !== actual.routeVersion)
+            fail('E_CONFLICT', 'Chrome route changed; choose Follow system again after checking it');
           // Following the system releases only our exact owned preference. It is
           // not an unmarked native system override, and never implies ownership.
-          if (actual.canStop || stopFinalizationPending) await dispatch({ type: 'STOP' });
+          const released = actual.canStop || stopFinalizationPending;
+          if (released) await releaseCurrent(switchRoute ? etag : undefined);
+          if (!switchRoute) checkSavedRoute();
           if (!confirmedDisabled(actual)) fail('E_CONTROL_HELD', 'System fallback is not confirmed');
-          if (config.managed) await persist({ ...config, managed: false });
-          if (actual.browserMode !== 'system')
+          const followsSystem = actual.browserMode === 'system';
+          if (config.managed || (followsSystem && config.selection.mode !== 'system')) {
+            try { await persist({ ...(followsSystem ? submitted : config), managed: false }, Boolean(switchRoute)); }
+            catch (error) {
+              if (!switchRoute || !released) throw error;
+              assertLive();
+              fail('E_PROXY_ROUTE_NOT_SAVED', 'Chrome released the route; configuration was not confirmed saved');
+            }
+          }
+          if (!followsSystem)
             fail('E_SYSTEM_NOT_CONFIRMED', 'Released proxy does not report system mode');
           latestError = null;
           break;
         }
-        if (config.selection.mode === 'profile') {
-          const selected = config.profiles.find(profile => profile.id === config.selection.profileId);
+        if (submitted.selection.mode === 'profile') {
+          const selected = submitted.profiles.find(profile => profile.id === submitted.selection.profileId);
           if (!selected) throw new Error('请先选择要使用的配置');
           if (selected.kind === 'pac-inline' && message.approvedPac !== true) throw new Error('启用用户 PAC 必须明确确认');
         }
-        const submitted = clone(config);
         validateApply?.(clone(submitted));
-        if (actual.canStop || stopFinalizationPending) {
-          // Keep the original ownership protocol: release the exact old route,
-          // then ask the Host to review a new Enable. Never overwrite or replay.
-          await dispatch({ type: 'STOP' });
+        if (!switchRoute && (actual.canStop || stopFinalizationPending)) {
+          // Legacy in-memory service adapters only support separate STOP and Enable.
+          await releaseCurrent();
           if (unknown || !confirmedDisabled(actual))
             fail('E_OUTCOME_UNKNOWN', 'Confirm native release before enabling the replacement route');
-          const withoutIntent = (value: ConfigState) => JSON.stringify({ ...value, managed: false });
-          if (withoutIntent(config) !== withoutIntent(submitted))
-            fail('E_CONFLICT', 'Configuration changed while releasing the previous route');
+          checkSavedRoute();
         }
         invalidate();
         // A new Enable attempt invalidates any previous release confirmation.
         stopFinalizationPending = false;
         try {
-          observe(await apply(clone(submitted)));
+          observe(await (switchRoute ? switchRoute(clone(submitted), etag) : apply(clone(submitted))));
         } catch (error) {
           assertLive();
           const code = error && typeof error === 'object' && 'code' in error ? error.code : undefined;
@@ -474,7 +514,12 @@ export function createProxyService({ load, save, status, validateApply, apply, s
         }
         active = submitted;
         latestError = null;
-        await persist({ ...submitted, managed: true });
+        try { await persist({ ...submitted, managed: true }); }
+        catch (error) {
+          if (!switchRoute) throw error;
+          assertLive();
+          fail('E_PROXY_ROUTE_NOT_SAVED', 'Chrome confirmed the route but the saved configuration could not be confirmed');
+        }
         break;
       }
       case 'IMPORT': {
@@ -517,8 +562,11 @@ export function createProxyService({ load, save, status, validateApply, apply, s
         if (!preview && !checkSite) previewOnly();
         const favoriteWrite = ['SAVE_DIAGNOSTIC_SITE','REMOVE_DIAGNOSTIC_SITE','MOVE_DIAGNOSTIC_SITE'].includes(message.type);
         if (!preview && favoriteWrite && !saveFavorites) previewOnly();
-        if (message.type === 'GET_DIAGNOSTICS' || (loadFavorites && favoritesEtag === null &&
-            !['CANCEL_DIAGNOSTICS','RUN_CURRENT_DIAGNOSTIC'].includes(message.type))) await readFavorites();
+        // Refresh cross-view edits before starting a current-page check. The
+        // first status poll would otherwise invalidate its still-current result.
+        const refreshFavorites = message.type === 'GET_DIAGNOSTICS' || message.type === 'RUN_CURRENT_DIAGNOSTIC';
+        if (refreshFavorites || (loadFavorites && favoritesEtag === null && message.type !== 'CANCEL_DIAGNOSTICS'))
+          await readFavorites();
         if (message.type === 'SAVE_DIAGNOSTIC_SITE') {
           if (!['P0', 'P1'].includes(message.priority) || (message.name !== undefined && typeof message.name !== 'string')) throw new Error('Invalid diagnostic site');
           const site = siteForDomain(message.domain, message.priority, message.name);

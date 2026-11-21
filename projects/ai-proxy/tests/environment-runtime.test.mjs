@@ -1,6 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import {build} from 'esbuild';
+import {etagFor} from '../../../src/ui/sidebar-tools/storage-state.js';
 
 // Exercise the environment imported by main.jsx, not the historical adapter.
 const bundle=await build({entryPoints:[new URL('../src/environment.ts',import.meta.url).pathname],bundle:true,write:false,platform:'node',format:'esm'});
@@ -11,17 +12,19 @@ const enabled={...disabled,state:'enabled',control:'controlled_by_this_extension
 const endpoint={id:'core',name:'Core',scheme:'https',host:'proxy.example.com',port:8443,sourceId:'manual'};
 const rule={id:'site',domain:'target.example.com',action:'endpoint',endpointId:'core',includeSubdomains:true,priority:10,enabled:true};
 function config(){return structuredClone({schemaVersion:2,sources:[{id:'manual',kind:'manual',displayName:'Manual',trustedByUser:true}],endpoints:[endpoint],profiles:[{id:'profile-core',name:'Core',kind:'endpoint',endpointId:'core',sourceId:'manual'}],rules:[rule],defaultTarget:{action:'direct'},selection:{mode:'rules'},managed:false});}
-function fixture(initial=config()){
+function fixture(initial=config(),contentEtag=false){
  let stored=structuredClone(initial),revision=0,native={...disabled,browserMode:"system",activeConfig:null};
  const calls=[];
+ const currentEtag=()=>contentEtag?etagFor(stored):`v${revision}`;
  const f={calls,afterWrite:null,readReply:null,writeReply:{saved:true},
   bridge:{setState(){},async request(action,input){
    calls.push([action,structuredClone(input)]);
-   if(action==='storage.get')return f.readReply??{value:structuredClone(stored),etag:`v${revision}`};
-   assert.equal(action,'storage.set');assert.equal(input.key,key);assert.equal(input.ifMatch,`v${revision}`);
+   if(action==='storage.get')return f.readReply??{value:structuredClone(stored),etag:await currentEtag()};
+   assert.equal(action,'storage.set');assert.equal(input.key,key);assert.equal(input.ifMatch,await currentEtag());
+   if(input.ifProxyReleased&&native.control!=='controllable_by_this_extension')throw Object.assign(Error('Re-enabled'),{code:'E_CONFLICT'});
    stored=structuredClone(input.value);revision++;f.afterWrite?.();return f.writeReply;
   }},
-  sdk:{browser:{proxy:{managed:{async getStatus(){calls.push(['status']);return native;},async requestEnable(input){calls.push(['enable',input]);native={...enabled,browserMode:'pac_script',activeConfig:structuredClone(input.config)};return native;},async requestDisable(){calls.push(['disable']);native={...disabled,browserMode:'system',activeConfig:null};return native;}}}}},
+  sdk:{browser:{proxy:{managed:{async getStatus(){calls.push(['status']);return native;},async requestEnable(input){calls.push(['enable',input]);native={...enabled,browserMode:'pac_script',activeConfig:structuredClone(input.config)};return native;},async requestDisable(input){calls.push(['disable',input]);native={...disabled,browserMode:'system',activeConfig:null};return native;}}}}},
   stored:()=>structuredClone(stored),replace(value){stored=structuredClone(value);revision++;},
   open(){return configureEnvironment(f.bridge,f.sdk,{trusted:true});}
  };return f;
@@ -133,7 +136,7 @@ test('legal rule route sends only public endpoint and domains through the actual
  try{
   const result=await env.request({type:'APPLY'});
   assert.equal(result.ok,true,JSON.stringify(result));
-  assert.deepEqual(f.calls.filter(([name])=>name==='enable'),[['enable',{config:{endpoint:{scheme:'https',host:'proxy.example.com',port:8443},domains:['target.example.com']}}]]);
+  assert.deepEqual(f.calls.filter(([name])=>name==='enable').map(([name,{config}])=>[name,{config}]),[['enable',{config:{endpoint:{scheme:'https',host:'proxy.example.com',port:8443},domains:['target.example.com']}}]]);
   assert.equal(result.state.runtime.permission,true);
   assert.equal(result.state.runtime.applied,true);
  }finally{env.dispose();}
@@ -230,7 +233,7 @@ test('direct Apply sends direct alone, with no endpoint or rules required',async
  const f=fixture(c),env=f.open();
  try{
   assert.equal((await env.request({type:'APPLY'})).ok,true);
-  assert.deepEqual(enables(f),[['enable',{config:{mode:'direct'}}]]);
+  assert.deepEqual(enables(f).map(([name,{config}])=>[name,{config}]),[['enable',{config:{mode:'direct'}}]]);
  }finally{env.dispose();}
 });
 test('selected remote endpoint profiles use fixed_servers for HTTPS and SOCKS5',async()=>{
@@ -239,7 +242,7 @@ test('selected remote endpoint profiles use fixed_servers for HTTPS and SOCKS5',
   const f=fixture(c),env=f.open();
   try{
    assert.equal((await env.request({type:'APPLY'})).ok,true);
-   assert.deepEqual(enables(f),[['enable',{config:{mode:'fixed_servers',endpoint:{scheme,host:endpoint.host,port:8443}}}]]);
+   assert.deepEqual(enables(f).map(([name,{config}])=>[name,{config}]),[['enable',{config:{mode:'fixed_servers',endpoint:{scheme,host:endpoint.host,port:8443}}}]]);
   }finally{env.dispose();}
  }
 });
@@ -254,7 +257,7 @@ test('SAVE_LOCAL_CLIENT and SELECT persist without routing; Apply uses selected 
    assert.equal(f.calls.filter(([name])=>name==='disable').length,0);
    assert.equal(f.stored().sources.find(s=>s.id==='local-clash').kind,'local-client');
    assert.equal((await env.request({type:'APPLY'})).ok,true);
-   assert.deepEqual(enables(f),[['enable',{config:{mode:mode==='profile'?'fixed_servers':'rules',endpoint:{scheme,host:'127.0.0.1',port:7897},...(mode==='rules'?{domains:['target.example.com']}:{})}}]]);
+   assert.deepEqual(enables(f).map(([name,{config}])=>[name,{config}]),[['enable',{config:{mode:mode==='profile'?'fixed_servers':'rules',endpoint:{scheme,host:'127.0.0.1',port:7897},...(mode==='rules'?{domains:['target.example.com']}:{})}}]]);
   }finally{env.dispose();}
  }
 });
@@ -374,20 +377,18 @@ test('reopened route is verified from SDK, preserves pending selection, and syst
  }finally{env.dispose();}
 });
 
-test('changing an owned route releases it before the next separately reviewed Enable',async()=>{
- const f=fixture(),managed=f.sdk.browser.proxy.managed,enable=managed.requestEnable;
- let held=false;
- managed.requestEnable=async input=>{assert.equal(held,false,'Enable must not overwrite an owned route');const result=await enable(input);held=true;return result;};
- const disable=managed.requestDisable;
- managed.requestDisable=async()=>{const result=await disable();held=false;return result;};
- const env=f.open();
+test('switching an owned route passes the exact prior route and ETag without STOP',async()=>{
+ const f=fixture(),env=f.open();
  try{
-  assert.equal((await env.request({type:'APPLY'})).ok,true);
-  assert.equal((await env.request({type:'SELECT',selection:{mode:'direct'}})).ok,true);
-  const result=await env.request({type:'APPLY'});
+  const active=(await env.request({type:'APPLY'})).state;
+  const result=await env.request({type:'SWITCH_ROUTE',selection:{mode:'direct'},ifMatch:active.configEtag});
   assert.equal(result.ok,true,JSON.stringify(result));
-  assert.deepEqual(f.calls.filter(([name])=>['enable','disable'].includes(name)).map(([name])=>name),['enable','disable','enable']);
+  assert.deepEqual(enables(f).at(-1)[1],{config:{mode:'direct'},ifCurrent:{
+    activeConfig:enables(f)[0][1].config,key,etag:active.configEtag
+  }});
+  assert.equal(f.calls.filter(([name])=>name==='disable').length,0);
   assert.equal(result.state.runtime.activeSelection.mode,'direct');
+  assert.equal(f.stored().selection.mode,'direct');
  }finally{env.dispose();}
 });
 test('unsupported credential attachment is rejected before saving or releasing the working route',async()=>{
@@ -401,48 +402,117 @@ test('unsupported credential attachment is rejected before saving or releasing t
   assert.equal(enables(f).length,1);
  }finally{env.dispose();}
 });
-test('cancelled replacement Enable leaves the confirmed release disabled without replay',async()=>{
+test('cancelled replacement keeps the original confirmed route and saved configuration',async()=>{
  const f=fixture(),env=f.open();
  try{
-  assert.equal((await env.request({type:'APPLY'})).ok,true);
-  assert.equal((await env.request({type:'SELECT',selection:{mode:'direct'}})).ok,true);
+  const active=(await env.request({type:'APPLY'})).state;
   f.sdk.browser.proxy.managed.requestEnable=async()=>{throw Object.assign(Error('Cancelled'),{code:'E_CANCELLED'});};
-  assert.equal((await env.request({type:'APPLY'})).errorCode,'E_CANCELLED');
+  assert.equal((await env.request({type:'SWITCH_ROUTE',selection:{mode:'direct'},ifMatch:active.configEtag})).errorCode,'E_CANCELLED');
   const state=(await env.request({type:'GET_STATE'})).state;
-  assert.equal(state.runtime.state,'disabled');assert.equal(state.runtime.outcomeUnknown,false);
-  assert.equal(state.config.managed,false);
-  assert.equal(f.calls.filter(([name])=>name==='disable').length,1);
-  assert.equal(enables(f).length,1);
+  assert.equal(state.runtime.applied,true);
+  assert.equal(state.runtime.outcomeUnknown,false);
+  assert.equal(state.runtime.activeSelection.mode,'rules');
+  assert.deepEqual(state.config,active.config);
+  assert.equal(f.calls.filter(([name])=>name==='disable').length,0);
  }finally{env.dispose();}
 });
 
-test('unconfirmed replacement STOP never reaches the new Enable or replays a native request',async()=>{
- for(const code of ['E_OUTCOME_UNKNOWN','E_CANCELLED']){
-  const f=fixture(),env=f.open();
-  try{
-   assert.equal((await env.request({type:'APPLY'})).ok,true);
-   assert.equal((await env.request({type:'SELECT',selection:{mode:'direct'}})).ok,true);
-   let stops=0;
-   f.sdk.browser.proxy.managed.requestDisable=async()=>{stops++;throw Object.assign(Error('Stop not confirmed'),{code});};
-   assert.equal((await env.request({type:'APPLY'})).errorCode,code);
-   assert.equal(stops,1);assert.equal(enables(f).length,1);
-   assert.equal(f.stored().managed,true);
-  }finally{env.dispose();}
- }
-});
-test('another writer during release prevents enabling or overwriting its new selection',async()=>{
- const f=fixture(),disable=f.sdk.browser.proxy.managed.requestDisable,env=f.open();
+test('stale displayed target is rejected before review or native dispatch',async()=>{
+ const f=fixture(),env=f.open();
  try{
-  assert.equal((await env.request({type:'APPLY'})).ok,true);
-  assert.equal((await env.request({type:'SELECT',selection:{mode:'direct'}})).ok,true);
-  f.sdk.browser.proxy.managed.requestDisable=async()=>{const result=await disable();f.replace({...f.stored(),selection:{mode:'system'}});return result;};
-  const result=await env.request({type:'APPLY'});
+  const active=(await env.request({type:'APPLY'})).state;
+  f.replace({...f.stored(),selection:{mode:'system'}});
+  const result=await env.request({type:'SWITCH_ROUTE',selection:{mode:'direct'},ifMatch:active.configEtag});
   assert.equal(result.errorCode,'E_CONFLICT');
-  assert.equal(enables(f).length,1);assert.equal(f.stored().selection.mode,'system');
-  assert.equal(f.stored().managed,false);
+  assert.equal(enables(f).length,1);
+  assert.equal(f.calls.filter(([name])=>name==='disable').length,0);
  }finally{env.dispose();}
 });
 
+test('Follow System refuses a stale displayed Chrome route before sending a guarded release',async()=>{
+ const f=fixture(),env=f.open();
+ try{
+  const active=(await env.request({type:'APPLY'})).state;
+  await f.sdk.browser.proxy.managed.requestEnable({config:{mode:'direct'}});
+  const message={type:'SWITCH_ROUTE',selection:{mode:'system'},ifMatch:active.configEtag};
+  const stale=await env.request({...message,ifRoute:active.runtime.routeVersion});
+  assert.equal(stale.errorCode,'E_CONFLICT');
+  assert.equal(f.calls.filter(([name])=>name==='disable').length,0);
+  const {state}=await env.request({type:'GET_STATE'});
+  const fresh=await env.request({...message,ifRoute:state.runtime.routeVersion});
+  assert.equal(fresh.ok,true,JSON.stringify(fresh));
+  assert.deepEqual(f.calls.filter(([name])=>name==='disable'),[['disable',{
+   ifCurrent:{activeConfig:{mode:'direct'},key,etag:state.configEtag}
+  }]]);
+ }finally{env.dispose();}
+});
+
+test('Follow System does not rebase a confirmed release onto a newer window’s saved route',async()=>{
+ const f=fixture(),env=f.open();
+ try{
+  const active=(await env.request({type:'APPLY'})).state;
+  const stop=f.sdk.browser.proxy.managed.requestDisable;
+  f.sdk.browser.proxy.managed.requestDisable=async input=>{
+   const released=await stop(input);
+   await f.sdk.browser.proxy.managed.requestEnable({config:{mode:'direct'}});
+   f.replace({...f.stored(),selection:{mode:'direct'},managed:true});
+   return released;
+  };
+  const result=await env.request({type:'SWITCH_ROUTE',selection:{mode:'system'},
+   ifMatch:active.configEtag,ifRoute:active.runtime.routeVersion});
+  assert.equal(result.errorCode,'E_PROXY_ROUTE_NOT_SAVED');
+  assert.equal(f.stored().managed,true);
+  assert.equal(f.stored().selection.mode,'direct');
+  assert.equal(f.calls.filter(([name])=>name==='disable').length,1);
+  const {state}=await env.request({type:'GET_STATE'});
+  assert.equal(state.runtime.activeSelection.mode,'direct');
+ }finally{env.dispose();}
+});
+
+test('Follow System guards the save when another window re-enables the exact same configuration',async()=>{
+ const f=fixture(config(),true),env=f.open();
+ try{
+  const active=(await env.request({type:'APPLY'})).state;
+  const managedSdk=f.sdk.browser.proxy.managed;
+  const route=(await managedSdk.getStatus()).activeConfig, stop=managedSdk.requestDisable;
+  managedSdk.requestDisable=async input=>{
+   const released=await stop(input);
+   await managedSdk.requestEnable({config:route});
+   await f.bridge.request('storage.set',{key,value:f.stored(),ifMatch:active.configEtag});
+   return released;
+  };
+  const result=await env.request({type:'SWITCH_ROUTE',selection:{mode:'system'},
+   ifMatch:active.configEtag,ifRoute:active.runtime.routeVersion});
+  assert.equal(result.errorCode,'E_PROXY_ROUTE_NOT_SAVED');
+  assert.equal(await etagFor(f.stored()),active.configEtag);
+  assert.ok(f.calls.some(([operation,input])=>operation==='storage.set'&&input.ifProxyReleased===true));
+  const {state}=await env.request({type:'GET_STATE'});
+  assert.equal(state.config.managed,true);
+  assert.equal(state.runtime.activeSelection.mode,'rules');
+ }finally{env.dispose();}
+});
+
+test('confirmed Chrome switch with a racing configuration save has a distinct receipt and still offers STOP',async()=>{
+ const f=fixture(),env=f.open();
+ try{
+  const active=(await env.request({type:'APPLY'})).state;
+  const enable=f.sdk.browser.proxy.managed.requestEnable;
+  f.sdk.browser.proxy.managed.requestEnable=async input=>{
+   const result=await enable(input);
+   f.replace({...f.stored(),selection:{mode:'system'}});
+   return result;
+  };
+  const result=await env.request({type:'SWITCH_ROUTE',selection:{mode:'direct'},ifMatch:active.configEtag});
+  assert.equal(result.errorCode,'E_PROXY_ROUTE_NOT_SAVED');
+  assert.equal(f.stored().selection.mode,'system');
+  const {state}=await env.request({type:'GET_STATE'});
+  assert.equal(state.runtime.applied,true);
+  assert.equal(state.runtime.activeSelection.mode,'direct');
+  assert.equal(state.runtime.canStop,true);
+  assert.equal(enables(f).length,2);
+  assert.equal((await env.request({type:'STOP'})).ok,true);
+ }finally{env.dispose();}
+});
 
 test('R14 environment adapts trusted and sandbox navigation, falls back immediately and disposes subscriptions',()=>{
  for(const trusted of [true,false])for(const feature of [true,false])for(const reject of [true,false]){

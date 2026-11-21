@@ -1,6 +1,7 @@
 // OpenDesk trusted-page UI strings. Keep protocol codes, file contents and user paths untranslated.
 // New locale packs use the same semantic keys and named {placeholders}.
 export default Object.freeze({
+  "develop.appDebug.stop": "Stop debugging",
   "develop.editor.controller": "Automation JS",
   "develop.prompt.copy": "Copy AI development prompt",
   "develop.prompt.copying": "Copying development prompt…",
@@ -21,7 +22,7 @@ export default Object.freeze({
   "develop.editor.examples": "{mode} · Examples (new tab)",
   "develop.editor.help": "{mode} · API documentation (new tab)",
   "common.language": "Interface language",
-  "workspace.documentTitle": "OpenDesk · Local File Workspace",
+  "workspace.documentTitle": "GrayDove · Local File Workspace",
   "workspace.heading": "Local File Workspace",
   "workspace.connecting": "Connecting",
   "workspace.refreshConnection": "Refresh connection",
@@ -166,7 +167,7 @@ export default Object.freeze({
   "settings.captionOff": "The local connection is off. Enable it when needed.",
   "settings.captionPastOff": "Previously connected: {time}; currently off.",
   "settings.captionOnline": "OpenDesk is connected; no need to pair again. Codex readiness is checked when used.",
-  "settings.captionReload": "Connection is enabled, but the Chrome API is not ready. Reload the extension.",
+  "settings.captionReload": "Finish any active tasks, quit Chrome completely, then reopen it and check Project Connection in Develop. Checking again alone will not apply the permission.",
   "settings.captionConnecting": "The setting is saved. Waiting for OpenDesk; no need to grant permission again.",
   "settings.captionPastOffline": "Last successful connection: {time}.",
   "settings.captionOffline": "Check that OpenDesk is running, or select Check again.",
@@ -174,7 +175,7 @@ export default Object.freeze({
   "settings.invalidStatus": "Invalid connection status response",
   "settings.permissionRequired": "Native Messaging permission was denied; the setting is unchanged",
   "settings.diagnosticLastSeen": "Last successful connection: {time}",
-  "settings.documentTitle": "OpenDesk Browser · Local connection",
+  "settings.documentTitle": "GrayDove · Local connection",
   "settings.heading": "Local connection",
   "settings.intro": "Connect OpenDesk for authorized AI conversations and local workspaces.",
   "settings.permissionsNote": "External requests still require site permissions and use the same RunHost, Worker, task slots and persistent results. This setting",
@@ -242,7 +243,7 @@ export default Object.freeze({
   "settings.connected": "Connected",
   "settings.hostCount": "Registered workbenches: {count}",
   "settings.extensionId": "Extension ID: {id}",
-  "settings.requiresReload": "Permission granted, but this browser has not refreshed the Native API. Finish active tasks, reload the extension in chrome://extensions, then refresh the status.",
+  "settings.requiresReload": "Permission granted. Waiting for Chrome to apply it.",
   "settings.trying": "Trying to connect to local OpenDesk…",
   "settings.notConnected": "Not connected. Confirm that the desktop app is installed and the trusted extension is paired, then select “Check connection”.",
   "settings.pairWait": "Waiting for OpenDesk desktop confirmation. The request expires in two minutes; verify this window's extension ID. After confirming, return here and select “Check connection”.\nExtension ID: {id}",

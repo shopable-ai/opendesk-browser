@@ -39,6 +39,7 @@
 - `toolId`、`kind`、`installationPolicy`：固定身份和已有运行类型。
 - `version`、`packageTitle`、`description`、`capabilities`：来自实际正式包；未指定 `packageFile` 时先选项目根唯一 `<id>.opendesk-tool.json`，没有正式包才由配置和源码打包派生。
 - `packagePath`：`official-tools/<toolId>/<toolId>.opendesk-tool.json`。
+- 可选 `author`、`homepage`、`supportUrl`：只从绑定该发行的实际包逐字复制已声明字段，安装核对已声明值。未声明时，候选详情不从其他记录补齐；这些字段不证明发布者身份。
 - `bytes`、`sha256`：最终文件原始 UTF-8 字节的长度和 SHA-256。
 
 发行清单不是另一个安装数据库。摘要证明实际资源与可信目录一致；根信任来自已加载的可信扩展，不能把该摘要机制当作远程市场签名或抵御整个恶意扩展包的保证。
@@ -80,7 +81,11 @@ npm run verify
 | Site Authorized | 现有逐工具、逐 HTTP(S) origin 的专用授权存储 | 网站 A 不授权网站 B；不同 capability 不相互借权 |
 | Active | 实际存活的工具 iframe，或已授权的可信网页组件 | 不能通过一个全局 `enabled` 布尔值推断 |
 
-R4.5 原始合同不主动预装；R4.8 之后的当前首次安装策略以源码 Catalog 为准，七项工具中 TOC 和网页笔记预装，其余五项可选。读取官方 JSON 本身不会创建工具 iframe 或执行包 JavaScript。工具安装、启停和网站访问分别管理：内置 `reading-toc` 安装并启用后默认可用于 HTTP(S) 网页，支持网站停用和单页排除；其他工具仍使用各自显式网站授权。关闭 Side Panel 销毁工具 iframe，网页组件按其原合同继续管理，网站停用或撤权应立即清除相关网页能力。默认预装与卸载后的不自动重装规则见 [Side Panel API](sidebar-tools.zh-CN.md)。
+首次安装策略以仓库源码 Catalog 为准。Web Flow 和 AI 消息发送队列随 Browser 分发，使用各自项目的唯一正式包。Web Flow 在首次安装后可从「扩展」打开，预装不会开启任务自动触发。AI 消息发送队列由可信 Side Panel 安装同包绑定的 ChatGPT 网页模块，仍要求 Chrome 已允许访问 ChatGPT 并开启用户脚本；条件未满足时保持待完成，其他不依赖该权限的侧栏工具仍会安装。
+
+AI 对话滚动导航沿用 [Page 官方目录](../../official-pages/sources.json) 的默认预装策略。只有通过发行门禁的 Page 包才参与预装；目录若标为 `blocked`，构建只包含其说明，不包含安装包。
+
+读取官方 JSON 本身不会创建工具 iframe 或执行包 JavaScript。工具安装、启停和网站访问分别管理：内置 `reading-toc` 安装并启用后默认可用于 HTTP(S) 网页，支持网站停用和单页排除；其他工具仍使用各自显式网站授权。关闭 Side Panel 销毁工具 iframe，网页组件按其原合同继续管理，网站停用或撤权应立即清除相关网页能力。默认预装与卸载后的不自动重装规则见 [Side Panel API](sidebar-tools.zh-CN.md)。
 
 ## 5. 共用安装、升级和卸载
 
@@ -133,7 +138,7 @@ node --test tests/environment/official-tools-catalog-r45.test.mjs \
 
 ## R4.8：预装与发现（2026-10-11）
 
-- 当前可信源码声明：`reading-toc`、`quick-notes` 为 `preinstalled`；`web-markdown-clipper`、`markdown-workbench`、`knowledge-inbox`、`time-review`、`cookie-editor` 为 `optional`。后续调整只需变更并审核 `official-tools/catalog.json`，构建时自动传播到发行清单。
+- 侧栏应用的当前默认项以 [源码 Catalog](../../official-tools/catalog.json) 中的 `preinstalled` 项为准；构建时自动传播到发行清单。
 - Service Worker 只在 `chrome.runtime.onInstalled` 的 `details.reason === "install"` 注册首次初始化意图，受信的固定后台资源立即复用安装器完成预装，Side Panel 在中断后负责幂等恢复（主 SW 仍受体积限制）。使用 `opendesk.sidebar-tools.bootstrap.v1` 记录版本固定的待办计划、进度与异常；这一标记**不是安装清单**。扩展升级及旧 Profile 不会静默补装。
 - 真正的安装记录继续使用 `opendesk.sidebar-tools.installed.v1`。受信宿主通过 `loadOfficialCatalog/loadOfficialTool` 校验固定发行包，再使用现有 `installReviewedSidebarTool` 的锁、容量、写入读回、市场来源及事务恢复；没有新的安装器或旁路权限。
 - 安装不执行 JS、不创建 iframe。内置 `reading-toc` 安装并启用后默认可用于 HTTP(S) 网页，支持网站停用和单页排除；其他工具仍需各自显式网站授权。已安装状态优先于市场异步加载；用户卸载产生的持久撤销代际和清理标记禁止初始化恢复重装。
@@ -147,4 +152,4 @@ R4.5 的原候选证据保持原有身份，不因本页更新自动升级为 R4
 
 ## AI Proxy 独立分发（2026-11-11）
 
-AI Proxy 是独立项目扩展，已从 `official-tools/catalog.json` 移除，不再随 Browser 离线分发，也不是默认安装项；`optional` 仍参与离线打包，不能用它表示“不随包分发”。保留 `projects/ai-proxy/` 及唯一正式独立包 `projects/ai-proxy/ai-proxy.opendesk-tool.json`，可通过原本地工具包审阅链安装。已有安装、数据、固定可信能力及 Host/安装链不因移除目录登记而删除或停用。默认预装仍为 `reading-toc`、`quick-notes`、`cookie-editor`、`prompt-shortcuts`。本次仅调整生成资源输入，不代表已有开发/生产输出已刷新或 Chrome 已验证。
+AI Proxy 是独立项目扩展，已从 `official-tools/catalog.json` 移除，不再随 Browser 离线分发，也不是默认安装项；`optional` 仍参与离线打包，不能用它表示“不随包分发”。保留 `projects/ai-proxy/` 及唯一正式独立包 `projects/ai-proxy/ai-proxy.opendesk-tool.json`，可通过原本地工具包审阅链安装。已有安装、数据、固定可信能力及 Host/安装链不因移除目录登记而删除或停用。移除 AI Proxy 时的默认预装为 `reading-toc`、`quick-notes`、`cookie-editor`、`prompt-shortcuts`。本次仅调整生成资源输入，不代表已有开发/生产输出已刷新或 Chrome 已验证。

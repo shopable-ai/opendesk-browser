@@ -5,7 +5,7 @@ import { useI18n } from '../i18n/LocaleProvider';
 import type { TranslationKey } from '../i18n/locale';
 import { useCallback, useEffect, useRef, useState, type FormEvent } from 'react';
 import type { Request, Response } from '../domain/messages';
-import type { ConfigState, ProxyScheme, RuntimeStatus, SubscriptionFormat } from '../domain/types';
+import type { ConfigState, Profile, ProxyScheme, RouteSelection, RuntimeStatus, SubscriptionFormat } from '../domain/types';
 import { validateSubscriptionUrlShape } from '../subscription/download';
 import type { OptionsSection, SubscriptionRoute } from './optionsRoute';
 import { OfficialServicePage } from './OfficialServicePage';
@@ -15,12 +15,17 @@ import { SubscriptionReader } from './SubscriptionReader';
 import { ClearableInput, LocalClientQuickPreset } from './ProxyEntry';
 import { isValidProxyPort } from '../domain/proxy-entry';
 import { ProxyIcon } from './ProxyIcon';
+import { ConnectionButton } from './ConnectionSync';
 
 interface Props {
   config: ConfigState;
   configEtag?: string;
   runtime: RuntimeStatus;
   busy: boolean;
+  syncing?: boolean;
+  routeBlocked: boolean;
+  routeTarget?: RouteSelection | null;
+  useProfile: (profile: Profile, event: React.MouseEvent<HTMLButtonElement>) => Promise<unknown>;
   act: (message: Request) => Promise<Response | null>;
   setError: (message: string) => void;
   setErrorKey: (key: TranslationKey) => void;
@@ -58,7 +63,7 @@ function SourceIcon({ kind }: { kind: SourceIconKind }) {
  * A browser extension settings section, not a full-screen onboarding app.
  * Only source metadata is saved. The reader can receive the draft URL once.
  */
-export function SourcesPage({ config, configEtag, runtime, busy, act, setError, setErrorKey, navigate,
+export function SourcesPage({ config, configEtag, runtime, busy, syncing = false, routeBlocked, routeTarget, useProfile, act, setError, setErrorKey, navigate,
   route, navigateSubscription, quickEntry = null, presentation = 'sidebar' }: Props) {
   const { t } = useI18n();
   const management = presentation === 'management';
@@ -308,9 +313,10 @@ export function SourcesPage({ config, configEtag, runtime, busy, act, setError, 
       {!locals.length ? <div className="sourceEmpty">{t('noLocalClientsYetAddAListeningPortTo')}</div> :
         <div className="records sourceCards">{locals.map(endpoint => {
           const profile=config.profiles.find(item=>item.kind==='endpoint'&&item.endpointId===endpoint.id);
-          const chosen=config.selection.mode==='profile'&&config.selection.profileId===profile?.id;
+          const chosen=Boolean(profile)&&config.selection.mode==='profile'&&config.selection.profileId===profile?.id;
           const applied=runtime.applied&&runtime.activeSelection?.mode==='profile'
             &&runtime.activeSelection.profileId===profile?.id;
+          const switching=routeTarget?.mode==='profile'&&routeTarget.profileId===profile?.id;
           return <article className={'record sourceRecord' + (applied ? ' isApplied' : chosen ? ' isSelected' : '')}
             key={endpoint.id}>
             <div className="sourceCardTop">
@@ -321,9 +327,10 @@ export function SourcesPage({ config, configEtag, runtime, busy, act, setError, 
             <div className="rowBadges"><span>{t('portNotTested')}</span>{chosen&&<span>{t('selected')}</span>}
               {applied&&<span className="appliedBadge">{t('appliedToChrome2')}</span>}</div>
             <div className="recordActions">
-              <Button disabled={busy||!profile} aria-label={t('selectNamedLocal',{name:endpoint.name})}
-                onClick={()=>void act({ type:'SELECT', selection:{mode:'profile',profileId:profile?.id} })}>
-                {chosen?t('selected'):t('select2')}</Button>
+              <ConnectionButton syncing={syncing} type="button" disabled={(busy&&!syncing)||routeBlocked||!profile} aria-pressed={chosen} aria-busy={switching||undefined}
+                aria-label={t('connectionSelectNamed',{name:endpoint.name})}
+                onClick={event=>{if(profile&&!chosen)void useProfile(profile,event);}}>
+                {t(switching?'connectionSwitchingShort':applied?'sideUsing':chosen?'selected':'sideProxyChooseAction')}</ConnectionButton>
               <Button disabled={busy} aria-label={t('editNamedLocal',{name:endpoint.name})}
                 onClick={()=>openLocal(endpoint.id)}>{t('edit')}</Button>
               <Button disabled={busy||config.managed} className="quietDanger"

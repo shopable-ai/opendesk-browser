@@ -29,7 +29,6 @@
 }
 
 #workbench-workflow .workflow-feedback p,
-#workbench-workflow .workflow-welcome-suggestions p,
 #workbench-workflow .workflow-plan-label {
   margin: var(--space-2) 0;
   font-size: var(--od-note-size);
@@ -38,18 +37,86 @@
   overflow-wrap: anywhere;
 }
 
-#workbench-workflow .workflow-welcome-suggestions,
 #workbench-workflow .workflow-plan-label {
   min-width: 0;
   color: var(--od-sub);
 }
 
-#workbench-workflow .workflow-welcome-suggestions {
-  padding-block: var(--space-2);
+/* The content scrolls inside the editor; the composer is its final flex row. */
+#workbench-workflow .workflow-editor {
+  container: workflow-editor / size;
+}
+
+#workbench-workflow .workflow-scroll {
+  padding-inline-end: var(--space-2);
+}
+
+#workbench-workflow .workflow-scroll > * {
+  flex-shrink: 0;
+}
+
+#workbench-workflow .workflow-editor[data-starting] .workflow-chat {
+  padding: 0;
+  border: 0;
+  box-shadow: none;
+  background: transparent;
+}
+
+#workbench-workflow .workflow-welcome {
+  padding-block: clamp(var(--space-3), calc(20cqh - 42px), 58px) var(--space-2);
+}
+
+@media (prefers-color-scheme: light) {
+  #workbench-workflow .workflow-chat-transcript {
+    --od-conversation-user-bg: color-mix(in srgb, var(--od-brand) 9%, var(--od-paper));
+    --od-conversation-user-ink: var(--od-ink);
+  }
+}
+
+#workbench-workflow .workflow-welcome-mark {
+  display: grid;
+  place-items: center;
+  width: var(--od-icon-size);
+  height: var(--od-icon-size);
+  margin-block-end: var(--space-3);
+  border: 1px solid var(--od-line);
+  border-radius: var(--radius-control);
+  background: var(--od-paper);
+  color: var(--od-accent-ink);
+}
+
+#workbench-workflow .workflow-welcome-mark svg {
+  width: 20px;
+  height: 20px;
+}
+
+#workbench-workflow .workflow-welcome h3 {
+  margin: 0;
+  color: var(--od-ink);
+  font-size: 1.375rem;
+  font-weight: 700;
+  line-height: 1.35;
+}
+
+#workbench-workflow .workflow-welcome p {
+  margin: var(--space-2) 0 0;
+  color: var(--od-sub);
+  font-size: var(--od-body-size);
+  line-height: 1.55;
+}
+
+#workbench-workflow .workflow-composer {
+  margin-block-start: var(--space-2);
+  border-color: color-mix(in srgb, var(--od-input-border) 45%, var(--od-line));
+}
+
+@container workflow-editor (max-height: 360px) {
+  #workbench-workflow .workflow-composer .od-conversation-input {
+    max-height: 64px;
+  }
 }
 
 #workbench-workflow .workflow-feedback-actions,
-#workbench-workflow .workflow-suggestion-actions,
 #workbench-workflow .workflow-history-navigation {
   display: flex;
   flex-wrap: wrap;
@@ -57,14 +124,124 @@
   min-width: 0;
 }
 
-#workbench-workflow .workflow-feedback-actions .od-button,
-#workbench-workflow .workflow-suggestion-actions .od-button {
+#workbench-workflow .workflow-feedback-actions .od-button {
   min-width: 0;
   max-width: 100%;
   height: auto;
   white-space: normal;
   overflow-wrap: anywhere;
   text-align: start;
+}
+
+#workbench-workflow .workflow-examples {
+  margin-block-start: var(--space-3);
+}
+
+#workbench-workflow .workflow-examples > summary {
+  min-height: 44px;
+  padding-inline: var(--space-2);
+  border-radius: var(--radius-control);
+  color: var(--od-accent-ink);
+}
+
+#workbench-workflow .workflow-examples > summary:focus-visible {
+  outline-offset: -2px;
+}
+
+#workbench-workflow .workflow-suggestion-actions {
+  display: grid;
+}
+
+#workbench-workflow .workflow-suggestion-actions .od-button {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  gap: var(--space-2);
+  align-items: center;
+  min-height: 44px;
+  min-width: 0;
+  padding: var(--space-1) var(--space-2);
+  border: 0;
+  background: transparent;
+  color: var(--od-ink);
+  font-size: var(--od-body-size);
+  font-weight: 500;
+  text-align: start;
+  white-space: normal;
+  overflow-wrap: anywhere;
+}
+
+#workbench-workflow .workflow-suggestion-actions .od-button:not(:disabled):is(:hover, :focus-visible) {
+  background: var(--od-muted);
+}
+
+#workbench-workflow .workflow-suggestion-actions .od-button:focus-visible {
+  outline-offset: -2px;
+}
+
+#workbench-workflow .workflow-suggestion-actions svg {
+  width: 18px;
+  height: 18px;
+  color: var(--od-sub);
+}
+
+#workbench-workflow .workflow-suggestion-actions .workflow-example-insert {
+  color: var(--od-sub);
+  font-size: var(--od-meta-size);
+  font-weight: 400;
+}
+
+#workbench-workflow .workflow-source-trigger {
+  min-width: 0;
+  max-width: 100%;
+  padding: 0 var(--space-2);
+  color: var(--od-sub);
+  font-size: var(--od-note-size);
+  font-weight: 600;
+}
+
+#workbench-workflow .workflow-composer-hint {
+  margin-inline-start: auto;
+  color: var(--od-sub);
+  font-size: var(--od-meta-size);
+  text-align: end;
+}
+
+#workbench-workflow .workflow-source-trigger span {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+#workbench-workflow .workflow-source-trigger svg {
+  width: 14px;
+  height: 14px;
+  flex: none;
+}
+
+#workbench-workflow .workflow-source-trigger:hover:not(:disabled),
+#workbench-workflow .workflow-source-trigger[aria-expanded="true"] {
+  border-color: transparent;
+  background: var(--od-muted);
+  color: var(--od-ink);
+}
+
+#workbench-workflow .workflow-composer-action .od-conversation-action {
+  width: 36px;
+  height: 36px;
+}
+
+#workbench-workflow .workflow-composer-action .od-conversation-action--primary:disabled {
+  background: var(--od-muted);
+  border-color: transparent;
+  color: var(--od-sub);
+  opacity: .58;
+}
+
+@media (pointer: coarse) {
+  #workbench-workflow .workflow-source-trigger {
+    min-height: 44px;
+  }
 }
 
 /* Keep every real step summary readable without a nested clipped list. */
@@ -85,10 +262,14 @@
 #workbench-workflow #workflow-plan-panel:focus-visible,
 #workbench-workflow #workflow-params-panel:focus-visible,
 #workbench-workflow #workflow-manage-panel:focus-visible,
-#workbench-workflow #workflow-feedback:focus-visible,
 #workbench-workflow #workflow-history-panel:focus-visible {
   outline: 2px solid var(--od-focus);
   outline-offset: 2px;
+}
+
+#workbench-workflow #workflow-feedback:focus-visible {
+  outline: 2px solid var(--od-focus);
+  outline-offset: -2px;
 }
 
 @media (max-width: 360px) {
@@ -96,8 +277,7 @@
     padding: var(--space-2);
   }
 
-  #workbench-workflow .workflow-feedback-actions .od-button,
-  #workbench-workflow .workflow-suggestion-actions .od-button {
+  #workbench-workflow .workflow-feedback-actions .od-button {
     flex: 1 1 100%;
   }
 }

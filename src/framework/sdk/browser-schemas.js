@@ -112,6 +112,10 @@ const managedProxyConfig={anyOf:[standardManagedProxyConfig,
   obj({mode:{const:'fixed_servers'},endpoint:explicitManagedProxyEndpoint},['mode','endpoint']),
   obj({mode:{const:'rules'},endpoint:explicitManagedProxyEndpoint,domains:standardManagedProxyConfig.properties.domains},['mode','endpoint','domains']),
   ...(MANAGED_PROXY_DEVELOPMENT_ENABLED?[developmentManagedProxyConfig]:[])]};
+const managedProxyCurrent=obj({
+  activeConfig:{anyOf:[managedProxyConfig,{type:'null'}]},
+  key:str(60,'^[a-zA-Z][a-zA-Z0-9._-]{0,59}$'),etag:str(64,'^[a-f0-9]{64}$')
+},['activeConfig','key','etag']);
 const managedProxyStatus=obj({
   state:{enum:['enabled','disabled','unavailable','conflict']},
   control:{enum:['not_controllable','controlled_by_other_extensions',
@@ -254,8 +258,8 @@ const ops=Object.freeze({
  'browser.tabs.removeOwned':[obj({tabRef:ref},['tabRef']),obj({closed:bool},['closed'])],
  'browser.sidePanel.openSelf':[empty,obj({opened:bool},['opened'])],
  'browser.proxy.managed.getStatus':[empty,managedProxyStatus],
- 'browser.proxy.managed.requestEnable':[obj({config:managedProxyConfig},['config']),managedProxyStatus],
- 'browser.proxy.managed.requestDisable':[empty,managedProxyStatus],
+ 'browser.proxy.managed.requestEnable':[obj({config:managedProxyConfig,ifCurrent:managedProxyCurrent},['config']),managedProxyStatus],
+ 'browser.proxy.managed.requestDisable':[obj({ifCurrent:managedProxyCurrent}),managedProxyStatus],
  'browser.network.request':[obj({method:{enum:['GET','POST','PUT','DELETE']},url:http,
    data:{},config:obj({timeout:num(1,60000),responseType:{enum:['json','text']},
      headers:{type:'object',additionalProperties:{type:'string'}}})},['method','url']),

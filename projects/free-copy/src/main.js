@@ -10,6 +10,7 @@
     throw Error('E_FREE_COPY_TOOL_CONTEXT');
   const KEY='preferences';
   let closed=false,busy=false,reading=false,epoch=0,loaded=false,origin=null;
+  let pageStatus='',pageGeneration=0,unknownPageResult=false,checkingPage=false,checkAgain=false;
   let settings={enabled:true,disabledOrigins:[]};
   const message=text=>{errorView.textContent=text;errorView.hidden=!text;};
   function checkedSettings(value) {
@@ -45,14 +46,44 @@
     globalSwitch.disabled=!loaded||busy||reading;
     siteSwitch.disabled=!loaded||busy||reading||!origin;
     originView.textContent=origin||'当前页面不支持或未授权';
-    status.textContent=busy?'正在保存设置…':reading?'正在读取设置…':
-      !loaded?'设置不可用':!settings.enabled?'已全局暂停 · 网站设置将在恢复后生效':
-      !origin?'全局已开启 · 当前页面不可用':
-      siteSwitch.checked?'设置已开启 · 在已授权网页上生效':'当前网站已暂停';
+    const notice=busy?'正在保存设置…':reading?'正在读取设置…':loaded?pageStatus:'';
+    status.textContent=notice;
+    status.hidden=!notice;
+  }
+  async function checkPage() {
+    if(closed||busy||reading||!loaded||!origin||unknownPageResult)return;
+    if(checkingPage){checkAgain=true;return;}
+    checkingPage=true;
+    const turn=epoch,generation=pageGeneration;
+    let result;
+    try {
+      const receipt=await request('page.request',{operation:'copy.refresh',payload:{}});
+      const expected=settings.enabled&&!settings.disabledOrigins.includes(origin);
+      result=receipt?.enabled===expected?'':
+        '未确认当前网页采用了此设置';
+    }catch(error){
+      switch(error?.code){
+        case 'E_APP_PAGE_ACTIVATION_REQUIRED':
+        case 'E_USER_SCRIPTS_UNAVAILABLE': result='网页功能待开启。请前往「扩展 → 更多 → 网页功能帮助」，按说明开启 Chrome 的「允许用户脚本」，再返回检查自由复制。';break;
+        case 'E_PERMISSION': result='当前网站访问受限，请在扩展中核对网站权限。';break;
+        case 'E_APP_PAGE_RELOAD_REQUIRED': result='当前网页仍在使用旧文档。请先保存网页内容，再刷新网页。';break;
+        case 'E_EFFECT_UNKNOWN':
+        case 'E_OUTCOME_UNKNOWN':
+        case 'E_TOOL_TIMEOUT': result='网页请求结果未知。请先检查网页，再决定是否重新打开工具。';break;
+        default: result='未确认当前网页已应用设置。若网页先于功能打开，请先保存内容，再刷新网页。';
+      }
+      if(!closed&&['E_EFFECT_UNKNOWN','E_OUTCOME_UNKNOWN','E_TOOL_TIMEOUT'].includes(error?.code)){
+        unknownPageResult=true;pageStatus=result;render();
+      }
+    }
+    checkingPage=false;
+    if(!closed&&turn===epoch&&generation===pageGeneration&&!unknownPageResult){pageStatus=result;render();}
+    if(checkAgain){checkAgain=false;void checkPage();}
   }
   async function refresh() {
     if(closed||busy)return;
     const turn=++epoch;
+    if(!unknownPageResult)pageStatus='';
     reading=true;render();
     const [saved,site]=await Promise.allSettled([readSettings(),currentOrigin()]);
     if(closed||turn!==epoch)return;
@@ -65,12 +96,15 @@
     }
     origin=site.status==='fulfilled'?site.value:null;
     render();
+    void checkPage();
   }
   async function update(which,desired) {
     if(closed||busy||!loaded)return;
     const expectedOrigin=origin;
     if(which==='site'&&!expectedOrigin)return;
     busy=true;epoch++;tool.setState?.({busy:true,dirty:true});
+    checkAgain=false;
+    if(!unknownPageResult)pageStatus='';
     message('');render();
     let writeConfirmed=false;
     try {
@@ -95,13 +129,11 @@
           if(error?.code!=='E_STORAGE_CONFLICT'||attempt===2)throw error;
         }
       }
-      if(!closed)void request('page.request',{operation:'copy.refresh',payload:{}}).catch(()=>{});
     }catch(e) {
       if(!closed)message(e?.message==='E_FREE_COPY_SITE_CHANGED'?
         '当前网站已变化，请刷新设置后重试':'设置保存未确认，请检查状态后重试');
     }finally {
       if(!closed){
-        busy=false;tool.setState?.({busy:false,dirty:false});
         const verified=await Promise.allSettled([readSettings(),currentOrigin()]);
         if(closed)return;
         if(verified[0].status==='fulfilled') {
@@ -114,7 +146,9 @@
           expectedOrigin!==null&&settings.disabledOrigins.includes(expectedOrigin)===!desired;
         if(writeConfirmed&&persisted&&loaded)message('');
         else if(loaded&&!errorView.textContent)message('设置未按预期生效，请重新操作');
+        busy=false;tool.setState?.({busy:false,dirty:false});
         render();
+        if(writeConfirmed&&persisted)void checkPage();
       }
     }
   }
@@ -124,7 +158,9 @@
   siteSwitch.addEventListener('change',()=>{
     if(!closed)void update('site',siteSwitch.checked);
   });
-  root.addEventListener('opendesk-page-changed',()=>void refresh());
+  root.addEventListener('opendesk-page-changed',()=>{
+    pageGeneration++;if(!unknownPageResult)pageStatus='';void refresh();
+  });
   window.addEventListener('focus',()=>void refresh());
   window.addEventListener('pagehide',()=>{closed=true;epoch++;},{once:true});
   void refresh();

@@ -6,6 +6,11 @@ export function stableStorageString(value){
     ?Object.fromEntries(Object.keys(row).sort().map(key=>[key,row[key]])):row);
 }
 export function sameStorageValue(a,b){return stableStorageString(a)===stableStorageString(b);}
+export async function etagFor(value){
+  const digest=await globalThis.crypto.subtle.digest('SHA-256',
+    new TextEncoder().encode(stableStorageString(value)));
+  return Array.from(new Uint8Array(digest),v=>v.toString(16).padStart(2,'0')).join('');
+}
 export function classifyStorageWriteError(cause,scope='扩展本地存储'){
   if(cause?.code&&String(cause.code).startsWith('E_'))return cause;
   const message=String(cause?.message||cause||'');

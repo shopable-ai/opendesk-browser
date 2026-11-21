@@ -108,12 +108,36 @@ const EXTENSION_SEARCH_ALIASES=Object.freeze({
   'opendesk.chatgpt-mindmap':'旧版 ChatGPT 思维导图 XMind',
   'opendesk.chatgpt-send-queue':'旧版 ChatGPT 消息发送队列 Queue'
 });
+export function matchesExtensionSearch(row,query){
+  const needle=lower(query);
+  return !needle||[row.title,row.description,row.id,row.version,EXTENSION_SEARCH_ALIASES[row.id]]
+    .some(value=>lower(value).includes(needle));
+}
 // Presentation-only metadata for the two independent AI Page Programs.
 // Legacy installations remain separate Authority records, never aliases.
 const AI_PAGE_LEGACY_IDS=Object.freeze({
   'opendesk.ai-scroll-navigation':'opendesk.chatgpt-jump-top',
   'opendesk.ai-reply-mindmap':'opendesk.chatgpt-mindmap'
 });
+
+export function describePageDisableStatus(page,locale='zh-CN'){
+  if(page?.enabled!==false)return null;
+  const nativePending=page.authorization?.status!=='disabled'||
+    page.nativeState!=='disabled'||Boolean(page.error);
+  const cleanupPending=Boolean(page.managedCleanup&&page.managedCleanup.state!=='retired');
+  if(!nativePending&&!cleanupPending)return null;
+  const key=nativePending?(cleanupPending?'disabledBothPending':'disabledPending'):'disabledCleanupPending';
+  return {nativePending,cleanupPending,status:extensionCenterText(locale,key)};
+}
+
+function deferredPagePresentation(page,t){
+  if(page?.enabled!==true||page.authorization?.status!=='active')return null;
+  if(page.nativeState==='waiting-user-scripts')return {
+    status:t('pageInstalledWaiting'),note:t('pageInstalledWaitingNote')};
+  if(page.nativeState==='activation-unconfirmed')return {
+    status:t('pageRegistrationUnconfirmed'),note:t('pageRegistrationUnconfirmedNote')};
+  return null;
+}
 
 export function describeManagedAiPage(page,installedPrograms=[],locale='zh-CN'){
   const t=(key,params)=>extensionCenterText(locale,key,params);
@@ -125,20 +149,27 @@ export function describeManagedAiPage(page,installedPrograms=[],locale='zh-CN'){
   const native=page.nativeState;
   const sitesKnown=Array.isArray(page.pageRules?.matches)&&page.pageRules.matches.length>0;
   const error=Boolean(page.error);
+  const disableStatus=describePageDisableStatus(page,locale);
+  const deferred=deferredPagePresentation(page,t);
   let state='pending',status=t('runPending'),note=t('recheckNote');
   if(!enabledKnown){status=t('autoPending');}
   else if(!enabled){
-    if(authorization==='disabled'&&native==='disabled'&&!error){
-      state='off';status=t('autoOff');note='';
+    if(!disableStatus?.nativePending){
+      state='off';status=disableStatus?.status||t('autoOff');note='';
     }else{
-      status=t('offPending');
-      note=t('removedPending');
+      status=disableStatus.status;
+      note=t('recheckNote');
     }
   }else if(sitesKnown&&authorization==='active'&&native==='registered'&&!error){
     state='ready';status=t('autoOn');note='';
   }else if(authorization==='suspended'){
     state='restricted';status=t('accessSuspended');
     note=t('accessRestoreNote');
+  }else if(deferred){
+    ({status,note}=deferred);
+  }else if(authorization==='active'&&page.error?.code==='E_USER_SCRIPTS_UNAVAILABLE'){
+    state='restricted';status=t('pageUserScriptsUnavailable');
+    note=t('pageUserScriptsRecovery');
   }else if(native==='blocked'){
     state='restricted';status=t('autoUnavailable');
     note=t('chromeBlockedNote');
@@ -153,10 +184,10 @@ export function describeManagedAiPage(page,installedPrograms=[],locale='zh-CN'){
   const legacyInstalled=installedPrograms.some(row=>
     (row?.installed??row)?.programId===legacyProgramId);
   return {
-    enabled,enabledKnown,state,status,note,
+    enabled,enabledKnown,state,status,note,cleanupPending:disableStatus?.cleanupPending===true,
     evidenceNote:t('aiEvidence'),
     legacyProgramId:legacyInstalled?legacyProgramId:null,
-    canRestore:enabledKnown&&enabled&&
+    canRestore:enabledKnown&&enabled&&!deferred&&
       (authorization==='suspended'||
         (authorization==='active'&&(native!=='registered'||error)))
   };
@@ -184,31 +215,36 @@ export function describeInstalledPageControl(page,installedPrograms=[],locale='z
   const authorization=page?.authorization?.status,native=page?.nativeState;
   const sitesKnown=Array.isArray(page?.pageRules?.matches)&&page.pageRules.matches.length>0;
   const error=Boolean(page?.error);
+  const scriptsUnavailable=authorization==='active'&&page?.error?.code==='E_USER_SCRIPTS_UNAVAILABLE';
+  const disableStatus=describePageDisableStatus(page,locale);
+  const deferred=deferredPagePresentation(page,t);
   let state='pending',status=t('conditionsPending');
   if(!enabledKnown)status=t('enabledPending');
   else if(!enabled){
-    if(authorization==='disabled'&&native==='disabled'&&!error){
-      state='off';status=t('disabledConfirmed');
-    }else status=t('disabledPending');
+    if(!disableStatus?.nativePending)state='off';
+    status=disableStatus?.status||t('disabledConfirmed');
   }else if(sitesKnown&&authorization==='active'&&native==='registered'&&!error){
     state='ready';status=t('conditionsReady');
   }else if(authorization==='suspended'){
     state='restricted';status=t('accessSuspended');
+  }else if(deferred){
+    status=deferred.status;
+  }else if(scriptsUnavailable){
+    state='restricted';status=t('pageUserScriptsUnavailable');
   }else if(native==='blocked'){
     state='restricted';status=t('registrationBlocked');
   }else if(error){
     state='restricted';status=t('registrationIssue');
   }else status=t('enableRequested');
-  return {enabled,enabledKnown,state,status,
-    note:t('pageEvidence'),
+  return {enabled,enabledKnown,state,status,cleanupPending:disableStatus?.cleanupPending===true,
+    note:deferred?.note||(scriptsUnavailable&&enabled?t('pageUserScriptsRecovery'):t('pageEvidence')),
     legacyProgramId:null,
-    canRestore:enabledKnown&&enabled&&
+    canRestore:enabledKnown&&enabled&&!deferred&&
       (authorization==='suspended'||(authorization==='active'&&(native!=='registered'||error)))
   };
 }
 
 export function filterExtensionEntries(entries,{query='',kind='all',scope='smart'}={}){
-  const needle=lower(query);
   // Default list: one product. The explicit Page filter retains the
   // original independently revocable Page Authority controls.
   const hasQueueApp=entries.some(row=>row.kind==='app'&&
@@ -222,7 +258,7 @@ export function filterExtensionEntries(entries,{query='',kind='all',scope='smart
     (kind==='all'||row.kind===kind)&&
     (scope==='available'?(!row.installed||row.update===true||['partial','version-mismatch'].includes(row.queueProduct?.state)):
       row.installed===true||row.queueProduct?.pageInstalled===true)&&
-    (!needle||[row.title,row.description,row.id,String(row.version),EXTENSION_SEARCH_ALIASES[row.id]].some(s=>lower(s).includes(needle))));
+    matchesExtensionSearch(row,query));
 }
 
 // Per-extension local keys avoid read/modify/write races between the PC page and Side Panel.

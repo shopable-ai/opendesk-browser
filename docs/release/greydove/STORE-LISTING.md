@@ -16,6 +16,8 @@
 
 ## 2. 商品字段（直接复制候选）
 
+2026-11-17 本地确认：首发仅 Standard，Developer 暂作内部发行；支持邮箱 `thinkido666@gmail.com`（公开支持联系方式）。发布者显示名称、官网、隐私政策 URL、目标地区和账号状态仍待确认。当前商品名称与 Manifest 使用上方的 GrayDove。
+
 ### English product name / Chrome Manifest
 
 GrayDove
@@ -144,3 +146,54 @@ GrayDove（灰鸽）是一款 Chrome 浏览器脚本与自动化工作台。你�
 - 官方参考：https://developer.chrome.com/blog/cws-policy-updates-2026；https://developer.chrome.com/docs/extensions/whats-new；https://developer.chrome.com/docs/webstore/program-policies/listing-requirements；https://developer.chrome.com/docs/webstore/program-policies/policies；https://developer.chrome.com/docs/webstore/cws-dashboard-listing；https://developer.chrome.com/docs/extensions/reference/api/userScripts；https://developer.chrome.com/docs/extensions/reference/api/i18n；https://docs.scriptcat.org/en/docs/dev/agent/ 。
 
 **交付状态：首发文案已收敛，可复制到商店 Draft；生产包、图标/截图、隐私、权限和真实 Chrome 证据未全部齐备前，NOT READY TO SUBMIT。** 任何正式提交前，都要将正文动词逐条对照真实 Standard 发行包，去掉未通过的能力并补齐必要的披露。
+
+
+## 9. 本地确认资料与中文原稿（合并保留）
+
+以下为 2026-11-17 本地文案记录，品牌名随当前规范统一。当前 Manifest 英文元数据及上方收敛文案仍为发行依据；本地原稿不能替代当前候选复核或真实 Chrome 验收。
+
+### 用户提供的中文短描述
+
+`减少反复点击、填写表单等网页操作：编写 JavaScript 脚本定制网页，运行和管理浏览器自动化任务，并查看结果。`
+
+此为当时提供的 58 字符原稿；当前 Manifest 使用第 2 节英文描述，尚未完成 Chrome i18n 本地化。
+
+### 用户提供的中文完整介绍
+
+经常在网页上反复点击、填写表单、查看页面信息？或者希望常用网站能多一个按钮、少几个手动步骤？
+
+GrayDove（灰鸽）是一款 Chrome 浏览器自动化与 JavaScript 脚本工作台。它把网页脚本、自动化任务和相关网页工具集中在侧边栏，帮助你定制网站功能、处理重复操作，而不必为每个小需求单独开发浏览器扩展。
+
+**你可以用灰鸽做什么？**
+
+1. **按自己的习惯使用网页。** 编写、试运行 JavaScript 脚本，在网页中添加按钮、调整页面显示或实现自定义操作。
+2. **减少重复点击和表单填写。** 使用已安装、经过授权审阅的浏览器自动化任务，在获准的网站执行点击、填写表单、读取页面信息等步骤。
+3. **集中管理脚本和任务。** 查看已安装脚本并启用或停用；运行前确认目标网站与参数，运行后查看任务状态、执行结果和错误。需要时，也可从侧边栏打开相关网页小工具。
+
+**适合谁？**
+
+适合经常处理重复网页操作的用户，以及希望用 JavaScript 定制网站功能的开发者。你可以使用现有脚本与任务，也可以按自己的需要编写代码。
+
+**如何开始？**
+
+打开 GrayDove 侧边栏，在当前网页试运行一段 JavaScript，或者选择一个已经安装的自动化任务。确认目标网站、参数和权限后再执行。
+
+**使用前请了解：**
+
+灰鸽不是无需设置就能自动处理所有网站的工具。部分操作需要自行编写脚本或安装合适的任务；Chrome 网页用户脚本功能可能需要开启“允许用户脚本”。本产品不保证兼容全部油猴脚本或 GM API。
+
+执行网页脚本和自动化任务需要相应的网站访问权限。个别工具还可能涉及标签页、下载、Cookie 或代理等浏览器能力，具体用途以实际功能及隐私披露为准。
+
+提交前仍需补充实际首发中 Native 安装、AI 账号/API Key、第三方网络或费用前提的准确披露；不能仅因中文主介绍未宣传这些能力而略去实际包的数据流与依赖。
+
+### 本地素材进度
+
+以下已勾选项仅绑定 RELEASE-RECORD.md §5 的旧 r5 候选，不自动适用于合并后的 GrayDove 发行包。
+
+- [ ] 128×128 商店图标，符合当前商店要求。
+- [x] 16/20/24/32/48/128 六个正式 PNG 已导出，两版 production 与 Standard ZIP 的大小/哈希验证通过；商店/Chrome 视觉仍待验收。
+- [ ] 至少一张 1280×800 真实候选截图（最多五张），展示核心流程。
+- [ ] 截图来自实际候选包和真实 UI，不得使用概念图冒充产品截图。
+- [ ] 如使用宣传图/视频，检查当前后台要求、尺寸和内容政策。
+- [ ] 英文和中文素材分别校对。
+- [ ] 截图中的名称、版本、UI 和商店描述一致。

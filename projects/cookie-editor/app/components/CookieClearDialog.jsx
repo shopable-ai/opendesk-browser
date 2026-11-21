@@ -37,8 +37,8 @@ export default function CookieClearDialog({
       </label>
       <p id={descriptionId} aria-live="polite">{count===null?'正在计算清理范围…':<>将清理 <strong>{count}</strong> 条 Cookie。</>}</p>
       <p className="cookie-clear-dialog-scope">{includeShared?
-        '包括本主机全部路径，不清理父域 Cookie；共享 Cookie 可能影响其他子域登录。'+
-          (excluded?' '+excluded+' 条 Cookie 因权限或连接限制保留。':''):
+        '清理本主机全部路径、当前存储区和当前分区内的 Cookie。共享 Cookie 可能影响其他子域登录。'+
+          (excluded?' 保留 '+excluded+' 条超出当前清理范围的 Cookie。':''):
         '仅清理当前主机专用的 Cookie，保留共享及分区 Cookie。'}
         {' '}可能退出登录；刷新后网站也可能重新设置 Cookie。</p>
       <div className="cookie-clear-dialog-actions">

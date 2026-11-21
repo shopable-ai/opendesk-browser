@@ -1,6 +1,18 @@
 import {BUILTIN_CATALOG} from '../src/libs/catalog.js';
 // Two exact HTML surfaces, only ONE audited fixed classic Host.
 export {SIDEPANEL_DOCUMENT_PATH,APP_DOCUMENT_PATH} from '../src/tool-document-url.js';
+// Only reviewed PNG exports are public assets. The SVG source and original
+// WebP artwork stay under src/, outside the package.
+export const BRAND_ICONS=Object.freeze([
+  {size:16,bytes:808,sha256:'5688d422fb18b92a4ea1f16807e2c5e64ebece7843b4e8b64343f4d54c6dd847'},
+  {size:20,bytes:1058,sha256:'750df1f4a147cd231fcf71d3a1da1c789627b938430150698603f68fc54548f9'},
+  {size:24,bytes:1328,sha256:'6fdf4c09d94862fa85f5f19c090300ad4b790bc5767dcb1a14d27c13b2d0a65f'},
+  {size:32,bytes:1900,sha256:'8f7deef948a4b9e9ab7f3b06193df51a64ba967d959e731ffa91acc78a9912fa'},
+  {size:48,bytes:3161,sha256:'eb660014b92c1bdcccb112e6ccec96eb7a9d7d56297c1c4ebb61eb4c1d4881f3'},
+  {size:128,bytes:12225,sha256:'6037c2f151b419ddfc766c6e7e9865d8ed794090a95094d355bfe7318d5c0ef0'}
+].map(row=>Object.freeze({...row,
+  source:`src/assets/branding/graydove-${row.size}.png`,output:`icons/graydove-${row.size}.png`
+})));
 export const PACKAGE_ENTRIES = Object.freeze({
   'native-agent/http-relay-settings': './src/native-agent/http-relay-settings.js',
   'network-request': './src/platform/chrome/network-request.js',

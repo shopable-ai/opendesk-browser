@@ -191,7 +191,11 @@ function fixture(){
     if(details.storeId!==undefined&&row.storeId!==details.storeId)return false;
     if(!samePartition(row.partitionKey,details.partitionKey))return false;
     if(details.name!==undefined&&row.name!==details.name)return false;
-    if(details.domain!==undefined&&row.domain.replace(/^\./,'')!==details.domain)return false;
+    if(details.domain!==undefined){
+      const domain=row.domain.replace(/^\./,'');
+      if(domain!==details.domain&&!domain.endsWith('.'+details.domain))return false;
+    }
+    if(details.path!==undefined&&row.path!==details.path)return false;
     if(details.url){
       const url=new URL(details.url),domain=row.domain.replace(/^\./,'');
       if(url.hostname!==domain&& (row.hostOnly||!url.hostname.endsWith('.'+domain)))return false;
@@ -315,21 +319,67 @@ test('R9 host-only site cleanup is previewed, count-fenced and preserves domain/
     reject('E_COOKIE_STALE'),'A consumed preview must not permit a second deletion');
 });
 
-test('visible cleanup covers exact-host domain and partitioned cookies, preserves parent and other stores',async()=>{
+test('all 13 listed exact-host cookies can be previewed and cleared, with unrelated cookies preserved',async()=>{
   const f=fixture();
+  const regular=f.state.records[0],shared=f.state.records[2];
+  f.state.records.push(
+    {...regular,name:'host-only-other-path',path:'/other'},
+    {...regular,name:'partitioned-other-path',path:'/other',partitionKey},
+    {...shared,name:regular.name,path:regular.path},
+    ...Array.from({length:6},(_,i)=>({...shared,name:'shared-'+i,path:'/other/'+i}))
+  );
   f.state.records.push(
     {name:'parent-site',value:'PRIVATE',domain:'.example.test',path:'/',storeId:'0',hostOnly:false,secure:true,session:true},
-    {name:'other-path',value:'PRIVATE',domain:'.shop.example.test',path:'/other',storeId:'0',hostOnly:false,secure:true,session:true},
-    {name:'other-partition',value:'PRIVATE',domain:'.shop.example.test',path:'/',storeId:'0',hostOnly:false,secure:true,session:true,partitionKey:{topLevelSite:'https://other.test'}}
+    {...shared,name:'other-partition',partitionKey:{topLevelSite:'https://other.test'}},
+    {...shared,name:'cross-site-ancestor',partitionKey:{...partitionKey,hasCrossSiteAncestor:true}},
+    {...regular,name:'child-site',domain:'child.shop.example.test'},
+    {...regular,name:'other-site',domain:'unrelated.test'}
   );
-  const scope='site-exact-host',preview=await f.run('clearSite',{scope,preview:true,maxCookies:50});
+  const scope='site-exact-host';
+  const normal=await f.run('getAllPage',{scope});
+  const partitioned=await f.run('getAllPage',{scope,partitionKey});
+  assert.equal(normal.cookies.length+partitioned.cookies.length,13);
+  assert.equal((await f.run('clearSite',{preview:true,maxCookies:50})).matched,3);
+  const preview=await f.run('clearSite',{scope,preview:true,maxCookies:50});
   assert.equal(preview.scope,'SITE_EXACT_HOST');
-  assert.equal(preview.matched,5);assert.equal(preview.excluded,1);
+  assert.equal(preview.matched,13);assert.equal(preview.excluded,1);
+  assert(!f.state.native.includes('set'),'Neither preview changes Cookie state');
   assert(!JSON.stringify(preview).includes('PRIVATE'));
-  const receipt=await f.run('clearSite',{scope,previewRef:preview.previewRef,expectedCount:5,maxCookies:50});
-  assert.equal(receipt.removed,5);assert.equal(receipt.remaining,0);assert.equal(receipt.excluded,1);
-  assert.deepEqual(f.state.records.map(row=>row.name).sort(),['foreign','other-partition','parent-site']);
-  await assert.rejects(f.run('clearSite',{scope,previewRef:preview.previewRef,expectedCount:5,maxCookies:50}),reject('E_COOKIE_STALE'));
+  const args={scope,previewRef:preview.previewRef,expectedCount:13,maxCookies:50};
+  const receipt=await f.run('clearSite',args);
+  assert.deepEqual(receipt,{matched:13,removed:13,remaining:0,excluded:1,preview:false,scope:'SITE_EXACT_HOST'});
+  assert.deepEqual(f.state.records.map(row=>row.name).sort(),
+    ['child-site','cross-site-ancestor','foreign','other-partition','other-site','parent-site']);
+  assert.equal(f.state.native.filter(method=>method==='set').length,13);
+  assert(!f.state.native.includes('remove'),'URL/name-only deletion cannot address exact Cookie identities');
+  await assert.rejects(f.run('clearSite',args),reject('E_COOKIE_STALE'));
+});
+
+test('exact-host cleanup reports revoked access before the first expiration and consumes the preview',async()=>{
+  const f=fixture(),scope='site-exact-host';
+  const preview=await f.run('clearSite',{scope,preview:true});
+  const getAll=f.api.cookies.getAll;
+  f.api.cookies.getAll=(query,callback)=>getAll(query,rows=>{
+    if(query.name)f.state.allowed=false;
+    callback(rows);
+  });
+  const args={scope,previewRef:preview.previewRef,expectedCount:preview.matched};
+  await assert.rejects(f.run('clearSite',args),reject('E_GRANT_REVOKED'));
+  assert(!f.state.native.includes('set'));
+  f.state.allowed=true;
+  await assert.rejects(f.run('clearSite',args),reject('E_COOKIE_STALE'));
+});
+
+test('exact-host cleanup stops after revocation during a native expiration',async()=>{
+  const f=fixture(),scope='site-exact-host';
+  const preview=await f.run('clearSite',{scope,preview:true});
+  const args={scope,previewRef:preview.previewRef,expectedCount:preview.matched};
+  f.state.revokeOnSet=true;
+  await assert.rejects(f.run('clearSite',args),reject('E_OUTCOME_UNKNOWN'));
+  assert.equal(f.state.native.filter(method=>method==='set').length,1);
+  f.state.allowed=true;
+  await assert.rejects(f.run('clearSite',args),reject('E_COOKIE_STALE'));
+  assert.equal(f.state.native.filter(method=>method==='set').length,1);
 });
 
 test('visible cleanup refuses changed cookie values and mismatched preview scope before deleting',async()=>{

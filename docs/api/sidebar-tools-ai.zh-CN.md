@@ -155,6 +155,8 @@ Frame 从单一 `conversation-frame.css` 渲染固定 CSS 文本，与可信 Doc
 
 已有高级布局可使用 Frame 的 `splitTargets`、`transcriptTarget`、`composerTarget`，把同一个 Frame 的消息与输入放入调用方自己的文档容器；这些内容仍属于同一 React Root 和原信任边界，不是将沙箱内容 portal 到可信 Host 的通道。普通接入优先默认布局。每个实例分别持有会话、请求和业务状态，复用组件不共享授权或跨扩展草稿。
 
+可信工作流的全宽多行编辑区使用 `inputRows` 与 `composerActionTarget`，让同一个 Frame 把发送／停止按钮放入输入框下方的操作栏。该目标只接收公共按钮节点；输入法、键盘发送与可信事件继续由 Frame 处理。未传目标的 Dock 保持默认布局。
+
 先用上述插槽和 props 解决消费者差异；确有跨扩展价值且现有接口无法覆盖时，按[通用能力例外](../../AGENTS.md)记录复现、最小公开 API、生命周期、权限及兼容影响，由平台 owner 修改唯一组件、同步本合同并运行受影响交互测试。HTML/Vue 等原有自定义 UI 继续可用，不为接入共享 Chat 强制迁移 React。
 
 ### 沙箱工具的公共页头入口与底部 Dock

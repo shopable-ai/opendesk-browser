@@ -5,6 +5,8 @@ import {readFile} from 'node:fs/promises';
 import {load} from 'cheerio';
 import {programDraft} from '../fixtures/program-draft.mjs';
 import {createTaskWorkbench} from '../../src/ui/task-workbench.js';
+import {canonicalToolHostUrl,stageTaskCatalogReview,takeTaskCatalogReview} from '../../src/ui/sidebar-tools/navigation.js';
+import {toolDocumentIdentity} from '../../src/tool-document-url.js';
 import {createDeveloperView} from '../../src/ui/develop-view.js';
 import {createTaskReviewHandoff,taskReviewHandoffKey} from '../../src/ui/workflow/task-review-handoff.js';
 import {encodeValue} from '../../src/platform/page-port/codec.js';
@@ -18,6 +20,20 @@ import {createBusinessConversation} from '../../src/ui/conversation/provider-con
 // Task business tests exercise registered React actions and view projections.
 // The only document stub below records focus requests; it is not a DOM event engine.
 const tick=()=>new Promise(resolve=>setTimeout(resolve,0));
+function openReviewPage(f,query){
+  const base='chrome-extension://extension/sidepanel.html',address=base+'?'+query;
+  const canonical=canonicalToolHostUrl(address,'test-catalog-host');
+  const items=new Map(),storage={setItem:(key,value)=>items.set(key,value),
+    getItem:key=>items.get(key),removeItem:key=>items.delete(key)};
+  stageTaskCatalogReview(storage,address,canonical);
+  assert.equal(toolDocumentIdentity(base,canonical)?.hostInstanceId,'test-catalog-host');
+  assert.equal(takeTaskCatalogReview(storage,base+'?hostInstanceId=different-host'),null);
+  const review=takeTaskCatalogReview(storage,canonical);
+  assert.ok(review);
+  assert.equal(takeTaskCatalogReview(storage,canonical),null);
+  f.doc.location={href:canonical};
+  f.ui.showCatalogPage(review);
+}
 // Diagnostic only: the Node test worker must exit after all per-test disposals.
 // Keep the original assertions; report actual live resource kinds before any
 // runner timeout, rather than force-closing the process or hiding a leak.
@@ -27,7 +43,7 @@ after(()=>{
     activeHandles:process._getActiveHandles?.().map(handle=>handle.constructor?.name)??[]
   }));
 });
-const make=({installedInitially=true,secondTask=false,sharedStore=null,draftStorage,deadlineMs,notify,appTab}={})=>{
+const make=({installedInitially=true,secondTask=false,sharedStore=null,draftStorage,deadlineMs,notify,appTab,builtinPackage,verification}={})=>{
   const nodes=new Map();
   const doc={...(appTab?{location:{href:'chrome-extension://extension/app.html'}}:{}),documentElement:{dataset:{}},activeElement:null,querySelector:()=>null};
   const get=id=>{
@@ -38,11 +54,13 @@ const make=({installedInitially=true,secondTask=false,sharedStore=null,draftStor
     return nodes.get(id);
   };
   doc.getElementById=get;
-  const programId='task:demo.form:1.0.0',hash='a'.repeat(64),manifestHash='b'.repeat(64);
-  const manifest={title:'表单任务',description:'输入表单',author:'OpenDesk',source:'local',siteOrigins:['https://a.example'],
+  const taskId=builtinPackage?.manifest.taskId??'demo.form',version=builtinPackage?.manifest.version??'1.0.0';
+  const programId='task:'+taskId+':'+version,hash=builtinPackage?.manifest.program.sourceHash??'a'.repeat(64),
+    manifestHash=builtinPackage?.manifestHash??'b'.repeat(64);
+  const manifest=builtinPackage?.manifest??{title:'表单任务',description:'输入表单',author:'OpenDesk',source:'local',siteOrigins:['https://a.example'],
     permissions:['page.automation'],...(deadlineMs===undefined?{}:{deadlineMs}),program:{sourceHash:hash},paramsSchema:{type:'object',
       properties:{name:{type:'string',title:'姓名',minLength:1,maxLength:30,default:'Alice'}},required:['name'],additionalProperties:false}};
-  const row={taskId:'demo.form',version:'1.0.0',manifest,manifestHash,stage:'available',installed:installedInitially,enabled:true};
+  const row={taskId,version,manifest,manifestHash,stage:'available',installed:installedInitially,enabled:true,...(verification?{verification}:{})};
   const installed={taskId:row.taskId,version:row.version,scriptId:programId,manifestHash,enabled:true,
     installationId:'11111111-1111-4111-8111-111111111111',generation:1};
   const other=secondTask?{...row,taskId:'demo.second',
@@ -524,6 +542,146 @@ test('installed task refuses stale target after async installed-version lookup',
   assert.match(f.field('task-status').text,/E_DOCUMENT_STALE/);
 });
 
+const readBaidu=version=>readFile(new URL('../../task-packs/baidu.search/releases/baidu.search.top3.'+
+  (version==='1.1.6'?'v1':version)+'.opendesk-task.json',import.meta.url),'utf8').then(JSON.parse);
+const builtinEvidence=pkg=>({kind:'builtin-release',manifestHash:pkg.manifestHash,sourceHash:pkg.manifest.program.sourceHash});
+const baiduPage={status:'available',url:'https://www.baidu.com/',origin:'https://www.baidu.com',
+  tabId:9,windowId:7,frameId:0,documentId:'baidu-doc'};
+const openBaidu=f=>{
+  assert.equal(f.myView.actions.taskParametersOpen('baidu.search.top3',{isTrusted:true}),true);
+  f.field('task-param-query').value='开源浏览器';
+  f.action('taskParamsFormInput');
+  return f.myView.data.taskRunSheet.identity;
+};
+
+test('Baidu manual Run freezes the same approved document and keeps the foreground switch independent',async t=>{
+  const pkg=await readBaidu('1.1.6'),f=make({builtinPackage:pkg,verification:builtinEvidence(pkg)});
+  t.after(()=>f.ui.dispose());await tick();
+  f.page.setSnapshot(baiduPage);
+  const expected=openBaidu(f);
+  const checked=[];f.page.revalidate=async target=>checked.push(target);
+  for(const page of [{...baiduPage,tabId:10,documentId:'other-tab'},
+    {...baiduPage,documentId:'reloaded'}, {...baiduPage,url:'https://www.baidu.com/s?wd=changed'},
+    {...baiduPage,url:'https://a.example/',origin:'https://a.example'}]){
+    f.page.setSnapshot(page);
+    assert.equal(f.myView.data.baiduRunTargetState.changed,true);
+    assert.match(f.myView.data.taskRunBlockedReason,/原标签页已变化/);
+    assert.equal(f.myView.actions.taskRunClick({isTrusted:true},expected),false);
+  }
+  assert.equal(f.starts.length,0);
+  f.page.setSnapshot(baiduPage);
+  f.field('task-param-showExecutionTab').checked=false;
+  assert.equal(f.myView.actions.taskRunClick({isTrusted:false},expected),false);
+  assert.equal(f.myView.actions.taskRunClick({isTrusted:true},expected),true);
+  await tick();
+  assert.deepEqual(checked,[baiduPage,baiduPage]);
+  assert.deepEqual(f.starts[0].target,{mode:'borrowed',tabId:9,frameId:0,documentId:'baidu-doc',
+    expectedUrl:baiduPage.url,expectedWindowId:7});
+  assert.deepEqual(f.starts[0].params,{query:'开源浏览器',limit:3,showExecutionTab:false});
+  f.host.complete({ok:true});
+});
+
+test('Baidu parameter sheet cancels only the original lost admission and never restarts it',async t=>{
+  const pkg=await readBaidu('1.1.6'),f=make({builtinPackage:pkg,verification:builtinEvidence(pkg)});
+  t.after(()=>f.ui.dispose());await tick();
+  f.page.setSnapshot(baiduPage);
+  const expected=openBaidu(f),click={isTrusted:true},reconciled=[];
+  const start=f.host.start.bind(f.host);
+  f.host.start=async request=>{
+    f.starts.push(request);
+    throw {code:'E_EFFECT_UNKNOWN',admissionRequestId:request.requestId};
+  };
+  assert.equal(f.myView.actions.taskRunClick(click,expected),true);
+  await tick();await tick();
+  const original=f.myView.data.taskSheetReconcile,id=f.starts[0].requestId;
+  assert.equal(original.requestId,id);
+  assert.equal(f.myView.actions.taskRunClick(click,expected),false);
+  const reconcile=f.myView.actions.taskSheetReconcileClick;
+  let receipt={requestId:'other',state:'not-admitted'};
+  f.host.reconcileControllerAdmission=async id=>{reconciled.push(id);return receipt;};
+  await reconcile({isTrusted:false},original.sheet,id);
+  await reconcile(click,original.sheet+1,id);
+  await reconcile(click,original.sheet,'other');
+  assert.deepEqual(reconciled,[]);
+  await reconcile(click,original.sheet,id);
+  assert.equal(f.field('task-run').disabled,true);
+  receipt={requestId:id,state:'not-admitted'};
+  await Promise.all([reconcile(click,original.sheet,id),reconcile(click,original.sheet,id)]);
+  assert.deepEqual(reconciled,[id,id]);
+  assert.equal(f.field('task-run').disabled,false);
+  assert.match(f.field('task-status').text,/后台确认未接纳/);
+  assert.equal(f.starts.length,1);
+  assert.equal(f.field('task-param-query').value,'开源浏览器');
+  f.host.start=start;
+  assert.equal(f.myView.actions.taskRunClick(click,expected),true);
+  await tick();
+  assert.equal(f.starts.length,2);
+  assert.notEqual(f.starts[1].requestId,id);
+  f.host.complete({ok:true});
+});
+
+test('Baidu explicit current-page choice rebinds only by a trusted action and Auto restores the original page',async t=>{
+  const pkg=await readBaidu('1.1.6'),f=make({builtinPackage:pkg,verification:builtinEvidence(pkg)});
+  t.after(()=>f.ui.dispose());await tick();
+  f.page.setSnapshot(baiduPage);
+  const expected=openBaidu(f),change=(mode,isTrusted=true)=>f.myView.actions.taskSheetTargetChange({isTrusted},mode,expected);
+  const second={...baiduPage,tabId:10,documentId:'other-tab'};
+  f.page.setSnapshot(second);
+  change('current',false);
+  assert.equal(f.myView.data.baiduRunTargetState.changed,true);
+  change('current');
+  assert.deepEqual(f.myView.data.baiduRunTargetState,{currentAvailable:true,changed:false});
+  assert.deepEqual(f.myView.data.taskRunSheet.target.page,second);
+  change('auto');
+  assert.deepEqual(f.myView.data.taskRunSheet.target.page,baiduPage);
+  assert.equal(f.field('task-run').disabled,true);
+  f.page.setSnapshot({...second,url:'https://a.example/',origin:'https://a.example'});
+  change('current');
+  assert.deepEqual(f.myView.data.baiduRunTargetState,{currentAvailable:false,changed:true});
+  assert.deepEqual(f.myView.data.taskRunSheet.target.page,baiduPage);
+  f.page.setSnapshot(second);
+  change('current');
+  assert.equal(f.myView.actions.taskRunClick({isTrusted:true},expected),true);
+  await tick();
+  assert.deepEqual(f.starts[0].target,{mode:'borrowed',tabId:10,frameId:0,documentId:'other-tab',
+    expectedUrl:baiduPage.url,expectedWindowId:7});
+  f.host.complete({ok:true});
+});
+
+test('Baidu manual Run keeps the default homepage and checks explicit new-tab URLs',async t=>{
+  const pkg=await readBaidu('1.1.6'),f=make({builtinPackage:pkg,verification:builtinEvidence(pkg)});
+  t.after(()=>f.ui.dispose());await tick();
+  const expected=openBaidu(f),change=mode=>f.myView.actions.taskSheetTargetChange({isTrusted:true},mode,expected),
+    input=url=>f.myView.actions.taskSheetTargetUrlInput({isTrusted:true},url,expected);
+  f.page.setSnapshot(baiduPage);
+  change('owned');
+  for(const url of ['https://a.example/','https://name:secret@www.baidu.com/']){
+    input(url);
+    assert.ok(f.myView.data.taskTargetUrlError);
+    assert.equal(f.myView.actions.taskRunClick({isTrusted:true},expected),false);
+  }
+  input('https://www.baidu.com/s?wd=another');
+  assert.equal(f.field('task-run').disabled,false);
+  change('auto');
+  assert.equal(f.myView.actions.taskRunClick({isTrusted:true},expected),true);
+  await tick();
+  assert.equal(f.starts.length,1);
+  assert.deepEqual(f.starts[0].target,{mode:'owned',url:baiduPage.url});
+  assert.equal(f.starts[0].params.showExecutionTab,true);
+  f.host.complete({ok:true});
+});
+
+test('Baidu history and a custom import with matching display identity keep the general target controls',async t=>{
+  const old=await readBaidu('1.1.5'),pkg=await readBaidu('1.1.6');
+  for(const [builtinPackage,verification] of [[old,builtinEvidence(old)],[pkg,{kind:'local-run'}],
+    [{...pkg,manifestHash:'d'.repeat(64)},builtinEvidence(pkg)]]){
+    const f=make({builtinPackage,verification});t.after(()=>f.ui.dispose());await tick();
+    openBaidu(f);
+    assert.equal(f.myView.data.taskRunSheet.automaticTarget,undefined);
+    assert.deepEqual(f.myView.data.taskRunSheet.target,{mode:'owned',url:baiduPage.url});
+  }
+});
+
 test('task cards retain readable selection and do not surface raw IDs as the main UI',async t=>{
   const f=make();t.after(()=>f.ui.dispose());await tick();await tick();
   const rows=f.myView.data.taskRows;
@@ -547,7 +705,7 @@ test('task cards retain readable selection and do not surface raw IDs as the mai
     'React owns exactly one shared task workspace, not a duplicated form');
 });
 
-test('shared Task run sheet shortens visual labels without changing accessible names or action labels',async t=>{
+test('shared Task run sheet distinguishes foreground focus from target choice with a matching accessible label',async t=>{
   const f=make();t.after(()=>f.ui.dispose());await tick();await tick();
   f.myView.project('taskParams',[...f.myView.data.taskParams,{
     name:'showExecutionTab',rule:{type:'boolean',title:'显示执行标签页',default:true},required:false
@@ -557,9 +715,9 @@ test('shared Task run sheet shortens visual labels without changing accessible n
   const {renderSidebarReact}=await import('../helpers/sidebar-react-fixture.mjs');
   const $=load(await renderSidebarReact({myView:f.myView}));
   const label=$('label[for="task-param-showExecutionTab"]');
-  assert.equal(label.text().trim(),'显示标签页');
-  assert.equal(label.attr('title'),'显示执行标签页');
-  assert.equal($('#task-param-showExecutionTab').attr('aria-label'),'显示执行标签页');
+  assert.equal(label.text().trim(),'切到执行标签页');
+  assert.equal($('#task-param-showExecutionTab').attr('aria-label'),label.text().trim());
+  assert.match($('#task-param-showExecutionTab-help').text(),/关闭开关仍会运行/);
   assert.equal($('input#task-param-prompt').length,1,'long string is a single-line input by default');
   assert.equal($('textarea#task-param-prompt').length,0,'maxLength does not force a multiline editor');
   assert.equal($('input#task-param-prompt').attr('aria-label'),'待发送提示词');
@@ -750,14 +908,17 @@ test('R4 idle Extensions has no fixed footer and My task search import still ope
   assert.equal(f.starts.length,0);assert.equal(f.permissions.length,0);
 });
 
-test('R5 result/history stay out of sight until a task has runs',async t=>{
+test('R5 keeps empty history discoverable and hides the result until a task has runs',async t=>{
   const f=make();t.after(()=>f.ui.dispose());await tick();await tick();
   assert.equal(f.field('task-result-panel').hidden,true);
-  assert.equal(f.field('task-history-panel').hidden,true);
+  assert.equal(f.field('task-history-panel').hidden,false);
+  assert.equal(f.field('task-history-panel').open,false);
+  assert.deepEqual(f.myView.data.taskHistory,[]);
   await f.click('tab-tools');
   assert.equal(f.field('task-result-panel').hidden,true);
   await f.click('tab-my-tasks');
-  assert.equal(f.field('task-history-panel').hidden,true);
+  assert.equal(f.field('task-history-panel').hidden,false);
+  assert.deepEqual(f.myView.data.taskHistory,[]);
 });
 
 test('card view retains original action identities, history and parameter form across tab changes',async t=>{
@@ -929,7 +1090,8 @@ test('R6 previous-version notices and results do not leak after installed upgrad
   f.catalogState.installed[0].scriptId='task:demo.form:2.0.0';
   await f.ui.refresh();await tick();
   assert.equal(f.field('task-status').text,'','new installation identity has no prior run notice');
-  assert.equal(f.field('task-history-panel').hidden,true);
+  assert.equal(f.field('task-result-panel').hidden,true,'new installation does not show the old latest result');
+  assert.equal(f.myView.data.taskResultMeta,null);
   assert.equal(f.myView.data.taskHistory.length,0,'old-version durable results remain isolated');
 });
 
@@ -1110,7 +1272,8 @@ test('R8 R2 task history masks sensitive values and exposes only durable technic
   assert.match(history.fullText,/must-not-display/,'full result is retained only for explicit reveal');
   const {renderSidebarReact}=await import('../helpers/sidebar-react-fixture.mjs');
   const markup=await renderSidebarReact({myView:f.myView});
-  assert.match(markup,/class="task-result-reveal[^"]*"/,
+  const $=load(markup);
+  assert.equal($('.task-history-entry button.task-result-reveal').length,1,
     'production React renders the optional per-history reveal action');
   assert.doesNotMatch(markup,/must-not-display|another-secret/,
     'initial React render never exposes redacted secret content');
@@ -1509,7 +1672,7 @@ test('runtime recovery requires fresh proof and explicit same-version reinstall 
   assert.equal(f.field('task-run').disabled,true);
   await f.click('task-publish');
   assert.equal(f.field('task-install').disabled,false);
-  assert.equal(f.field('task-install').text,'确认更新运行时安装');
+  assert.equal(f.field('task-install').text,'确认更新安装');
   assert.equal(f.field('task-run').disabled,true,'fresh candidate proof does not repair the old installation');
   assert.equal(calls.some(([method])=>method==='installTask'),false);
   assert.equal(f.starts.length,0);
@@ -1558,8 +1721,7 @@ test('full-page recovery selects latest reviewable fixed candidate and presents 
     {version:'20.0.0',stage:'candidate'},
     {version:'30.0.0',stage:'available',runtimeCurrent:false}
   ].map(extra=>({...base,...extra}))];
-  f.doc.location={href:'chrome-extension://extension/sidepanel.html?taskReviewId=demo.form'};
-  f.ui.showCatalogPage();await tick();await tick();
+  openReviewPage(f,'taskReviewId=demo.form');await tick();await tick();
   assert.equal(f.myView.data.catalogRows.selectedKey,'demo.form@10.0.0');
   assert.equal(f.doc.documentElement.dataset.opendeskTab,'catalog');
   assert.match(f.myView.data.catalogDetail.facts.find(fact=>fact.name==='来源').value,/内置发行/);
@@ -1568,6 +1730,11 @@ test('full-page recovery selects latest reviewable fixed candidate and presents 
   assert.equal(f.field('task-verify').disabled,true);
   assert.equal(f.field('catalog-verification').hidden,true);
   assert.equal(f.field('task-install').disabled,false,'available builtin can use the original install review without runId');
+  openReviewPage(f,'taskReviewId=demo.form&taskReviewVersion=1.0.0');await tick();await tick();
+  assert.equal(f.myView.data.catalogRows.selectedKey,'demo.form@1.0.0','update review stays on the installed fixed version');
+  openReviewPage(f,'taskReviewId=demo.form&taskReviewVersion=30.0.0');await tick();await tick();
+  assert.equal(f.myView.data.catalogRows.selectedKey,'','an expired pinned version cannot silently select another version');
+  assert.equal(f.field('task-install').disabled,true);
   assert.equal(f.catalogOpens.length,0);assert.deepEqual(f.catalogState.installed,[]);
   await f.ui.openTaskReview('demo.missing');
   assert.equal(f.myView.data.catalogRows.selectedKey,'');
@@ -1579,12 +1746,10 @@ test('full-page recovery selects latest reviewable fixed candidate and presents 
 
 test('full-page recovery treats hostile URL hints as invalid and preserves a choice made while loading',async t=>{
   const f=make({installedInitially:false});t.after(()=>f.ui.dispose());await f.ui.refresh();
-  f.doc.location={href:'chrome-extension://extension/sidepanel.html?taskReviewId=%3Cimg%20src=x%3E'};
-  f.ui.showCatalogPage();await tick();await tick();
+  openReviewPage(f,'taskReviewId=%3Cimg%20src=x%3E');await tick();await tick();
   assert.equal(f.myView.data.catalogRows.selectedKey,'');
   assert.match(f.field('task-catalog-status').text,/任务标识无效/);
-  f.doc.location.href='chrome-extension://extension/sidepanel.html?taskReviewId=demo.missing';
-  f.ui.showCatalogPage();
+  openReviewPage(f,'taskReviewId=demo.missing');
   f.action('taskCatalogSelect','demo.form@1.0.0');
   await tick();await tick();
   assert.equal(f.myView.data.catalogRows.selectedKey,'demo.form@1.0.0');
@@ -1603,8 +1768,7 @@ test('directory refresh exposes initialization failure details and never equates
   };
   await f.ui.refresh(undefined,{skipUnchanged:true});
   assert.match(f.field('task-catalog-status').text,/E_TASK_INITIALIZATION.*E_STORAGE.*demo.form.*内置目录写入失败/);
-  f.doc.location={href:'chrome-extension://extension/sidepanel.html?taskReviewId=demo.missing'};
-  f.ui.showCatalogPage();await tick();await tick();
+  openReviewPage(f,'taskReviewId=demo.missing');await tick();await tick();
   assert.match(f.field('task-catalog-status').text,/E_TASK_NOT_AVAILABLE/);
   assert.match(f.field('task-catalog-status').text,/E_TASK_INITIALIZATION.*E_STORAGE.*demo.form/);
   assert.deepEqual(f.catalogState.installed,[]);

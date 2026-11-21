@@ -66,7 +66,7 @@ test('offline reopen restores ordinary choice and successful history, never sess
   assert.equal(e.get('sites-section').hidden,false);
   assert.equal(e.get('site-select').value,'ordinary-1');
   assert.match(e.get('site-source').textContent,/127\.0\.0\.1:7902/);
-  assert.match(e.get('cookie-status').textContent,/全部 Cookie 已写入并核验/);
+  assert.match(e.get('cookie-status').textContent,/上次批次 Cookie 已写入并核验；网站登录及身份仍需在目标页面核对/);
   assert.match(e.get('site-account').textContent,/尚未取得会话/);
   verifiedCookieRows(e);
   assert.equal(JSON.stringify([...e.store]),saved);

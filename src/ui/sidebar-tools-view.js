@@ -15,7 +15,7 @@ export function createSidebarToolsView() {
   const runtime = Object.seal({frameRoot: null, settingsControl: null});
   const trustedSettingsActions=Object.create(null);
   let snapshot = {fields: Object.fromEntries(Object.entries(fields).map(([key, state]) => [key, {...state}])),
-    market: {pending: [], review: null, error: ''}, toast: null, toasts: [], labels: {...labels}, effectVersion: 0, legacyAdblockVisible:false, trustedSettings:{timeReview:null,stayFocus:null,aiAccess:null}};
+    market: {pending: [], review: null, error: ''}, toast: null, toasts: [], labels: {...labels}, effectVersion: 0, legacyAdblockVisible:false, extensionAbout:null, trustedSettings:{timeReview:null,stayFocus:null,aiAccess:null}};
   let nextToastId = 0, nextToastRevision = 0;
   let marketInstallActions = null;
   let disposed = false, queued = false, attachment = null, connection = null;
@@ -187,6 +187,10 @@ export function createSidebarToolsView() {
       if(disposed||snapshot.legacyAdblockVisible===visible)return;
       snapshot={...snapshot,legacyAdblockVisible:Boolean(visible)};notify();
     },
+    setExtensionAbout(extensionAbout){
+      if(disposed||snapshot.extensionAbout===extensionAbout)return;
+      snapshot={...snapshot,extensionAbout};notify();
+    },
     getSnapshot: () => snapshot,
     subscribe(handler) {
       if (disposed) return () => {};
@@ -272,7 +276,7 @@ export function createSidebarToolsView() {
       finally {
         subscribers.clear();
         marketInstallActions = null;
-        snapshot={...snapshot,toast:null,toasts:[],trustedSettings:{timeReview:null,stayFocus:null,aiAccess:null}};
+        snapshot={...snapshot,toast:null,toasts:[],extensionAbout:null,trustedSettings:{timeReview:null,stayFocus:null,aiAccess:null}};
         for(const key of Object.keys(trustedSettingsActions))delete trustedSettingsActions[key];
         for (const key of Object.keys(actions)) delete actions[key];
         rowActions.clear(); effects.length = 0;

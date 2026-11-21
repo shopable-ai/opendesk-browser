@@ -4,7 +4,7 @@ import {createHash} from 'node:crypto';
 import {SANDBOX_HTML} from './verify-package.mjs';
 import {BUILTIN_CATALOG} from '../src/libs/catalog.js';
 import {PAGE_FRAMEWORK_RUNTIMES,PAGE_FRAMEWORK_RESOURCE_LIMIT,PAGE_BROWSER_PRIVATE_FILES,PAGE_BROWSER_COMPILER_RESOURCE_LIMIT,PAGE_BROWSER_COMPILER} from '../src/libs/page-frameworks/contract.js';
-import {RESOURCE_LIMITS,SIDEPANEL_DOCUMENT_PATH,APP_DOCUMENT_PATH} from './build-contract.mjs';
+import {RESOURCE_LIMITS,SIDEPANEL_DOCUMENT_PATH,APP_DOCUMENT_PATH,BRAND_ICONS} from './build-contract.mjs';
 import {resolveBrowserEdition,compilerResourcesForEdition,BROWSER_EDITION_RECORD,editionRecordText} from './browser-editions-r245.mjs';
 import {compileWorkspaceStyle} from './build-workspace-style.mjs';
 import {buildOfficialTools} from './build-official-tools.mjs';
@@ -19,6 +19,7 @@ const pageFrameworks=Object.values(PAGE_FRAMEWORK_RUNTIMES);
 const edition=resolveBrowserEdition();
 const browserCompilerFiles=compilerResourcesForEdition(edition);
 export const STATIC_RESOURCES=Object.freeze({
+  ...Object.fromEntries(BRAND_ICONS.map(row=>[row.source,row.output])),
   ...Object.fromEntries(PACKAGED_TASK_RESOURCES.map(row=>[row.sourcePath,row.path])),
   'src/native-agent/http-relay.html':'native-agent/http-relay.html',
   'src/platform/chrome/network-request.html':'network-request.html',
@@ -70,6 +71,7 @@ export async function preparePublic() {
   // A hand-added classic JS is copied byte-for-byte. Its hash and metadata
   // must be registered BEFORE a WXT build, not inferred from arbitrary files.
   await assertBytes('src/libs/runtime/bootstrap.js',undefined,BUILTIN_CATALOG.bootstrapSha256);
+  for(const row of BRAND_ICONS)await assertBytes(row.source,row.bytes,row.sha256);
   for(const row of vendors) {
     if(!Number.isSafeInteger(row.bytes)||row.bytes<1||row.bytes>RESOURCE_LIMITS.vendorBytes)
       throw new Error('Fixed vendor exceeds byte budget: '+row.source);

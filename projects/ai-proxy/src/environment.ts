@@ -103,14 +103,15 @@ export function configureEnvironment(bridge:any,sdk:any,{trusted=false,preview:p
   if(!r||!Object.hasOwn(r,'value')||typeof r.etag!=='string'||!r.etag)fail('E_OUTCOME_UNKNOWN','Storage read not confirmed');
   entries.set(key,r.etag);return r.value;
  };
- const write=async(key:string,value:any)=>{
+ const write=async(key:string,value:any,ifProxyReleased?:boolean)=>{
   assertLive();
   if(preview)return preview.write(key,value);
   if(!entries.has(key))await read(key);
   assertLive();
   const serialized=JSON.stringify(value);
   if(new TextEncoder().encode(serialized).length>8192)fail('E_QUOTA','配置超过当前受管存储的 8 KiB 单项额度；未保存。');
-  const r=await bridge.request('storage.set',{key,value:JSON.parse(serialized),ifMatch:entries.get(key)});
+  const r=await bridge.request('storage.set',{key,value:JSON.parse(serialized),ifMatch:entries.get(key),
+    ...(ifProxyReleased?{ifProxyReleased:true}:{})});
   assertLive();
   if(r?.saved!==true)fail('E_OUTCOME_UNKNOWN','Storage write outcome unknown; do not replay');
   const committed=await read(key);
@@ -141,15 +142,28 @@ export function configureEnvironment(bridge:any,sdk:any,{trusted=false,preview:p
   return {status:'unavailable',host:'',source:'currentPage',diagnosticDomain:null,diagnosticReason:'unavailable'};
  }
  let loadedConfig:any=null;
+ let lastConfirmed:Parameters<typeof toManagedRoute>[0]|null=null;
+ let rawActiveConfig:unknown=null;
  const observedStatus=(value:any,config=loadedConfig)=>{
   assertLive();
   if(!value||!Object.hasOwn(value,'activeConfig'))return value;
-  return {...value,activeConfig:value.state==='enabled'&&value.control==='controlled_by_this_extension'&&
-   value.permission!==false&&config?configForManagedRoute(config,value.activeConfig):null};
+  rawActiveConfig=value.state==='enabled'&&value.control==='controlled_by_this_extension'&&
+    value.permission!==false?value.activeConfig:null;
+  // A route may be verified even if another window edited its saved record.
+  const match=rawActiveConfig&&config
+    ?(lastConfirmed&&configForManagedRoute(lastConfirmed,rawActiveConfig))??configForManagedRoute(config,rawActiveConfig)
+    :null;
+  lastConfirmed=match;
+  return {...value,activeConfig:match,routeVersion:rawActiveConfig?comparableJson(rawActiveConfig):null};
  };
- const service=createProxyService(preview?{...preview.service,validateApply:toManagedRoute,currentTarget:async()=> (await currentSite()).diagnosticDomain}:{
+ const service=createProxyService(preview?{...preview.service,switchRoute:preview.service.apply,
+  validateApply:toManagedRoute,currentTarget:async()=> (await currentSite()).diagnosticDomain}:{
   async load(){const raw=await read(configKey);loadedConfig=raw==null?freshConfig():validateConfig(raw);return {config:loadedConfig,etag:entries.get(configKey)};},
-  async save(config:any,etag:string){if(etag!==entries.get(configKey))fail('E_CONFLICT','配置已改变，请重新读取');await write(configKey,config);return entries.get(configKey);},
+  async save(config:any,etag:string,ifProxyReleased){
+   if(etag!==entries.get(configKey))fail('E_CONFLICT','配置已改变，请重新读取');
+   await write(configKey,config,ifProxyReleased);
+   return entries.get(configKey);
+  },
   status:async()=>observedStatus(await managed().getStatus()),
   checkSite:async(id:string)=>{const result=await checkDiagnosticSite(id,networkRequest);assertLive();return result;},
   async loadFavorites(){
@@ -170,7 +184,16 @@ export function configureEnvironment(bridge:any,sdk:any,{trusted=false,preview:p
   validateApply:toManagedRoute,
   async apply(config:any){
    return observedStatus(await managed().requestEnable({config:toManagedRoute(config)}),config);
-  },stop:async()=>observedStatus(await managed().requestDisable())
+  },async switchRoute(config,etag){
+   const input={config:toManagedRoute(config),ifCurrent:{activeConfig:rawActiveConfig,key:configKey,etag}};
+   const profileName=config.selection.mode==='profile'
+     ?config.profiles.find(profile=>profile.id===config.selection.profileId)?.name:undefined;
+   const result=await managed().requestEnable(input, trusted&&profileName?{routeName:profileName}:undefined);
+   lastConfirmed=null;
+   return observedStatus(result,config);
+  },stop:async etag=>observedStatus(await (etag
+    ? managed().requestDisable({ifCurrent:{activeConfig:rawActiveConfig,key:configKey,etag}})
+    : managed().requestDisable()))
  });
  const storage={onChanged:changed,local:{
   async get(key:string){return {[key]:await read(key)};},
@@ -187,7 +210,9 @@ export function configureEnvironment(bridge:any,sdk:any,{trusted=false,preview:p
   void service.request({type:'CANCEL_DIAGNOSTICS'}).catch(()=>{});
   events.dispatchEvent(new Event('ai-proxy-page-changed'));
  };
+ const storageChanged=()=>events.dispatchEvent(new Event('ai-proxy-storage-changed'));
  bridge?.root?.addEventListener('opendesk-page-changed',pageChanged);
+ if(trusted)bridge?.root?.addEventListener('opendesk-ai-proxy-storage-changed',storageChanged);
  const current={service,storage,navigation,toolNavigation,events,trusted,preview:!!preview,httpDiagnostics:!preview,request:async(m:any)=>{
    assertLive();
    const mutation=!['GET_STATE','GET_DIAGNOSTICS','GET_USAGE','EXPORT','RUN_DIAGNOSTICS','RUN_CURRENT_DIAGNOSTIC','CANCEL_DIAGNOSTICS'].includes(m.type);
@@ -284,7 +309,9 @@ export function configureEnvironment(bridge:any,sdk:any,{trusted=false,preview:p
   captureDraftFrom:(target:any)=>{const source=target?.closest?.('[data-draft-scope]')?.getAttribute('data-draft-scope');if(source)beginDraft(source);},
   markDraftFrom:(target:any)=>{const source=target?.closest?.('[data-draft-scope]')?.getAttribute('data-draft-scope');if(source)setDraftDirty(true,source);},
   setState:(_state:any)=>{uiState();},
-  dispose(){if(disposed)return;disposed=true;confirmation?.abort();bridge?.root?.removeEventListener('opendesk-page-changed',pageChanged);navigation.destroy();service.dispose();listeners.clear();
+  dispose(){if(disposed)return;disposed=true;confirmation?.abort();bridge?.root?.removeEventListener('opendesk-page-changed',pageChanged);
+   if(trusted)bridge?.root?.removeEventListener('opendesk-ai-proxy-storage-changed',storageChanged);
+   navigation.destroy();service.dispose();listeners.clear();
    for(const unsubscribe of navigationSubscriptions)unsubscribe();
    for(const unsubscribe of proxyListeners.values())unsubscribe();proxyListeners.clear();confirmHandler=null;
    if(environment===current)environment=null;

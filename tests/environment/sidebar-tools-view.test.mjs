@@ -516,6 +516,27 @@ test('React layout supplies real runtime refs, preserves opaque children, dispat
   assert.equal(document.getElementById('trusted-business-owner'), trusted);
   assert.equal(document.getElementById('sidebar-tool-title').textContent, '保留运行实例');
   assert.deepEqual(focused, [{preventScroll: true}]); assert.deepEqual(scrolls, [{block: 'nearest'}]);
+  const acceptCookie = view.bind('sidebar-tool-action-continue','click',event=>calls.push(['cookie',event]));
+  const cancelCookie = view.bind('sidebar-tool-action-cancel','click',result=>calls.push(['cancel-cookie',result]));
+  await React.act(async()=>{
+    view.patch('sidebar-tool-action-review',{hidden:false,data:{id:1,inline:true,title:'写入网站 Cookie'}});
+    view.patch('sidebar-tool-action-summary',{textContent:'https://one.test · 批量写入 2 条 Cookie'});
+    view.patch('sidebar-tool-action-continue',{textContent:'写入并继续'});
+  });
+  const review=document.querySelector('#sidebar-tool-display .od-confirm-inline');
+  assert.ok(review);
+  assert.match(review.textContent,/https:\/\/one\.test · 批量写入 2 条 Cookie/);
+  assert.equal(document.querySelector('[role="alertdialog"],[aria-modal="true"]:not([hidden])'),null);
+  assert.equal(view.runtime.frameRoot.firstChild,frame);
+  document.getElementById('sidebar-tool-action-cancel').click();
+  assert.deepEqual(calls.at(-1),['cancel-cookie',{reason:'user'}]);
+  const cookieEvent = new window.Event('click',{bubbles:true});
+  document.getElementById('sidebar-tool-action-continue').dispatchEvent(cookieEvent);
+  assert.deepEqual(calls.at(-1),['cookie',cookieEvent]);
+  await React.act(async()=>view.patch('sidebar-tool-action-review',{hidden:true}));
+  assert.equal(document.querySelector('.od-confirm-inline'),null);
+  assert.equal(view.runtime.frameRoot.firstChild,frame);
+  acceptCookie();cancelCookie();
   const installEvent = new window.Event('click', {bubbles: true});
   document.getElementById('sidebar-tool-install').dispatchEvent(installEvent);
   assert.deepEqual(calls.at(-1), ['install', installEvent]);

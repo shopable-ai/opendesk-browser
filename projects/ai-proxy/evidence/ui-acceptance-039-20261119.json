@@ -1,0 +1,541 @@
+{
+  "schema": 1,
+  "date": "2026-11-19",
+  "matrix": {
+    "total": 38,
+    "businessPassed": 29,
+    "uiPassed": 37,
+    "businessFailed": [
+      "A04"
+    ],
+    "businessUnimplemented": [
+      "P02",
+      "P05",
+      "P06",
+      "R02",
+      "D06",
+      "D07",
+      "O01",
+      "S04"
+    ],
+    "uiPartial": [
+      "D07"
+    ]
+  },
+  "candidate": {
+    "version": "0.3.39",
+    "sha256": "00604b6b207549aa5211f9cea422cadb45a4f4ca64bd2cd295441e81fd3486e6",
+    "extensionId": "gpclekmmnglmlpnffemppedbhgmfpiin",
+    "loadedToolShellSha256": "6eb145c5cf7676edd309041848863b8e69aa37959934013ebed0c1d13f566a9c",
+    "bytes": 717991,
+    "chrome": "Chrome/155.0.8059.39",
+    "packagePath": "projects/ai-proxy/ai-proxy.opendesk-tool.json",
+    "fixedExtensionPath": "artifacts/ai-proxy/acceptance-current/extension-039",
+    "profile": "disposable isolated CFT",
+    "serveConnected": false,
+    "copiedBaseBuildMarker": "af14bff22dfe7a88c9e6f297b57a5550a5893c77ac14377ae95a6f6d65f3efa1",
+    "loadedServiceWorkerSha256": "8e3cb8dbece97aeb013548b1943fa1096ab9ee8d21c9535f50d6a16dc188272a",
+    "sidePanelContext": "SIDE_PANEL",
+    "sdkMock": false,
+    "trustedRootCount": 1,
+    "reviewCancelledWithoutInstallRecord": true,
+    "reviewApprovedWithExactBytes": true,
+    "promotion": "PROJECT_PACKAGE_PROMOTED",
+    "sameSource": "PROJECT_PACKAGE_MATCH"
+  },
+  "priorCandidates": [
+    {
+      "version": "0.3.36",
+      "sha256": "724a08e800508a36af376ec2e45815b1e593769bd2198a383c4b5994835e113b",
+      "extensionId": "bcklohibckakdgngfakpjlkidnpjmjhp",
+      "loadedToolShellSha256": "16d003c9c144bf5107d54bebeca2a4f2e58acb54164828ff5be572eb3555bf81"
+    },
+    {
+      "version": "0.3.37",
+      "sha256": "9d240a758bc5f4bfe35c70c32d4b9daae392ca712324635b86bd9ce8f14ced47",
+      "extensionId": "idojipadgaafoeeojonbofbfedmbplne",
+      "loadedToolShellSha256": "8d555d1c2a46265d4aef27eb1d8513323e75c66f5f5cbc97602f7b067f6bdc75"
+    },
+    {
+      "version": "0.3.38",
+      "sha256": "9429078847eb491d0075c40730341453d7e3b228ed6932bc42315204d74fa859",
+      "extensionId": "iknpeddjchklkgbfphjlndchoplnpgkj",
+      "loadedToolShellSha256": "e51aecb2bdd3b10b439f0be66bd7ee0535b609d30c70f0571046657f72ded6fe"
+    }
+  ],
+  "runs": [
+    {
+      "rows": [
+        "A04",
+        "A05"
+      ],
+      "version": "0.3.39",
+      "path": "artifacts/ai-proxy/acceptance-current/handoff-a04-039-r2/result.json",
+      "runnerResult": "READY",
+      "checks": [
+        "INSTALL_CANCEL_HAS_NO_RECORD",
+        "INSTALLED_LOCAL_REVIEW_CURRENT_BYTES",
+        "A04_PRE_RESTART",
+        "A04_COLD_READBACK",
+        "A04_COLD_SIDE_STATUS",
+        "A04_COLD_GEAR_FENCED",
+        "A04_COLD_PC_ENTRY",
+        "A04_COLD_PC_STATUS",
+        "A04_OPEN_DID_NOT_REPLAY",
+        "A04_EXPLICIT_RELEASE",
+        "A04_GEAR_AVAILABLE_AFTER_RELEASE",
+        "A04_MANUAL_RESUME",
+        "A04_PC_AFTER_MANUAL_RESUME",
+        "A04_ROW_MENU",
+        "A04_DISABLE",
+        "A04_ROW_MENU",
+        "A04_UNINSTALL_UNDER_COMPETING_OWNER"
+      ],
+      "chromeAndFixturesReleased": true
+    },
+    {
+      "rows": [
+        "A03"
+      ],
+      "version": "0.3.39",
+      "path": "artifacts/ai-proxy/acceptance-current/handoff-a03-039-r2/result.json",
+      "runnerResult": "READY",
+      "checks": [
+        "TAB_unknown-native-applied",
+        "A03_LOST_ROUTE_RECEIPT",
+        "A03_SECOND_SURFACE_READ",
+        "A03_MANUAL_STOP",
+        "TAB_unknown-manual-stop",
+        "A03_MANUAL_RETRY",
+        "TAB_unknown-manual-retry",
+        "A03_RESTORED"
+      ],
+      "chromeAndFixturesReleased": true
+    },
+    {
+      "rows": [
+        "D03",
+        "D04"
+      ],
+      "version": "0.3.39",
+      "path": "artifacts/ai-proxy/acceptance-current/handoff-http-039-r6/result.json",
+      "runnerResult": "READY",
+      "checks": [
+        "D03_SINGLE_HTTP_RECEIPT",
+        "D03_FAVORITES_BATCH_HTTP",
+        "D03_SELECTED_AI_PAIR",
+        "D03_LIVE_THREE_SAMPLE_TIMING",
+        "D03_BASIC_HTTPS",
+        "D04_CURRENT_PAGE_HTTP",
+        "D04_CURRENT_PAGE_HTTP",
+        "D04_UNREADABLE_TAB"
+      ],
+      "chromeAndFixturesReleased": true
+    },
+    {
+      "rows": [
+        "D05"
+      ],
+      "version": "0.3.39",
+      "path": "artifacts/ai-proxy/acceptance-current/handoff-late-039-r1/result.json",
+      "runnerResult": "READY",
+      "checks": [
+        "D05_NATIVE_LATE_REPLY"
+      ],
+      "chromeAndFixturesReleased": true
+    },
+    {
+      "rows": [
+        "N03",
+        "N04",
+        "P01"
+      ],
+      "version": "0.3.39",
+      "path": "artifacts/ai-proxy/acceptance-current/handoff-sidebar-039-r1/result.json",
+      "runnerResult": "READY",
+      "checks": [
+        "N03_SIDEBAR_KEYBOARD_FOCUS_RESTORED",
+        "P01_N04_SIDEBAR_SAVE_AND_CONTINUE",
+        "N03_PC_FOCUS_AND_DRAFT",
+        "N03_SWITCH_COLUMN_WITH_DIRTY_FORM"
+      ],
+      "chromeAndFixturesReleased": true
+    },
+    {
+      "rows": [
+        "P02",
+        "B01",
+        "B02",
+        "B03",
+        "B04"
+      ],
+      "version": "0.3.39",
+      "path": "artifacts/ai-proxy/acceptance-current/handoff-backup-039-r1/result.json",
+      "runnerResult": "READY",
+      "checks": [
+        "P02_AUTH_REFUSAL",
+        "B01_DOWNLOAD_PRIVACY",
+        "B02-EXAMPLE",
+        "B03-BAD-JSON",
+        "B03-RULE-MISSING",
+        "B03-DEFAULT-MISSING",
+        "B02-CANCEL-PASTE",
+        "B02-KEEP-EDITING",
+        "B04_REOPENED_NATIVE_SIDEBAR",
+        "B04_CONFIRMED_REPLACEMENT"
+      ],
+      "chromeAndFixturesReleased": true
+    },
+    {
+      "rows": [
+        "P02",
+        "P03",
+        "P06",
+        "R01",
+        "R02"
+      ],
+      "version": "0.3.39",
+      "path": "artifacts/ai-proxy/acceptance-current/handoff-rules-039-r3/result.json",
+      "runnerResult": "READY",
+      "checks": [
+        "P03_CONTROLLED_HTTPS_GATEWAY",
+        "CHROME_PAC_READBACK",
+        "P02_REQUIRED_ADDRESS_REJECTED",
+        "P02_DISCARD_EMPTY_FORM",
+        "P06_PAC_CONFIRM_CANCEL",
+        "P06_PAC_SCRIPT_CONFIRM",
+        "P06_ARBITRARY_PAC_REFUSED",
+        "R01_DELETE_CANCELLED",
+        "R01_INLINE_ENTER_AND_CANCEL_PERSISTED",
+        "SAME_TARGET_OVERLAP_REVIEW_ACTIVE",
+        "CHROME_PAC_READBACK",
+        "COMPETING_OVERLAP_EXACT_DIRECT_REFUSED",
+        "COMPETING_OVERLAP_DIFFERENT_ENDPOINT_REFUSED",
+        "CHROME_PAC_READBACK",
+        "UNSUPPORTED_PROXY_DEFAULT_REFUSED",
+        "CHROME_PAC_READBACK",
+        "R02_RULE_ENABLE_AND_DEFAULT",
+        "CHROME_PAC_READBACK",
+        "TAB_cleanup-baseline"
+      ],
+      "chromeAndFixturesReleased": true
+    },
+    {
+      "rows": [
+        "N01",
+        "N02",
+        "D01",
+        "D06"
+      ],
+      "version": "0.3.38",
+      "path": "artifacts/ai-proxy/acceptance-current/handoff-nav-038-r1/result.json",
+      "runnerResult": "READY",
+      "checks": [
+        "NAV_PC_OPENED",
+        "NAV_RULES_BEFORE_RELOAD",
+        "NAV_RULES_AFTER_RELOAD",
+        "RELOAD_SUBSCRIPTIONS",
+        "RELOAD_BACKUP",
+        "RELOAD_DIAGNOSTIC",
+        "RELOAD_GENERAL",
+        "RELOAD_OFFICIAL",
+        "RELOAD_PROFILES",
+        "PC_PRIORITY_SITES_COPY_VERIFIED",
+        "NAV_NEW_ENTRY",
+        "NAV_SIDEBAR_MENU",
+        "NAV_NEW_ENTRY",
+        "NAV_SIDEBAR_MENU",
+        "NAV_NEW_ENTRY",
+        "PC_RULES_RELOAD_COMPLETE"
+      ],
+      "chromeAndFixturesReleased": true
+    },
+    {
+      "rows": [
+        "N04",
+        "A01",
+        "A02",
+        "P04"
+      ],
+      "version": "0.3.37",
+      "path": "artifacts/ai-proxy/acceptance-current/handoff-permissions-037-r2/result.json",
+      "runnerResult": "READY",
+      "checks": [
+        "CONFLICT_DIAGNOSTIC_READ",
+        "CONFLICT_APPLY_REFUSED",
+        "ACTIVE_CONTROL_LOST",
+        "ROUTE_CONSENT_REVOKED",
+        "AFTER_REVOKE_READ",
+        "FRESH_REVIEW_AFTER_REVOKE",
+        "FRESH_EXPLICIT_APPROVAL_AFTER_REVOKE",
+        "PAUSE_RELEASED"
+      ],
+      "chromeAndFixturesReleased": true
+    },
+    {
+      "rows": [
+        "S01",
+        "D02"
+      ],
+      "version": "0.3.37",
+      "path": "artifacts/ai-proxy/acceptance-current/handoff-s01d02-native-r5/result.json",
+      "runnerResult": "READY",
+      "checks": [
+        "S01_CREATE_METADATA_ONLY_AND_REJECT_HTTP",
+        "S01_CANCEL_EDIT_PRESERVES_ORIGINAL",
+        "S01_EDIT_CONFIRMED_AND_REOPENED",
+        "S01_DELETE_CANCEL_AND_CONFIRM",
+        "D02_ELEVEN_FAVORITES_AND_GROUP_BOUNDARIES",
+        "D02_INVALID_AND_DUPLICATE",
+        "D02_ORDER_PRIORITY_AND_REOPEN",
+        "D02_DELETED_AND_REOPENED"
+      ],
+      "chromeAndFixturesReleased": true
+    },
+    {
+      "rows": [
+        "N02"
+      ],
+      "version": "0.3.37",
+      "path": "artifacts/ai-proxy/acceptance-current/handoff-p01g02-n02-214804/result.json",
+      "runnerResult": "READY",
+      "checks": [
+        "N02_PINNED_BUTTONS_VISIBLE",
+        "N02_PINNED_DESTINATION",
+        "N02_PINNED_DESTINATION",
+        "N02_PINNED_TEST_TABS_CLOSED",
+        "N02_PINNED_PASS"
+      ],
+      "chromeAndFixturesReleased": true
+    },
+    {
+      "rows": [
+        "P01"
+      ],
+      "version": "0.3.37",
+      "path": "artifacts/ai-proxy/acceptance-current/handoff-p01g02-214422/result.json",
+      "runnerResult": "FAIL",
+      "checks": [
+        "P01_SIDE_SAVE_AND_CONTINUE",
+        "P01_PC_READBACK_AFTER_SIDE_SAVE_AND_CLEANUP",
+        "P01_HTTP_CREATED_WITHOUT_APPLY",
+        "P01_DISCARD_REVIEW_VISIBLE",
+        "P01_DIRTY_KEEP_AND_DISCARD",
+        "P01_EDITED_FIELDS_PERSISTED_AFTER_REFRESH",
+        "P01_FAVORITE_PERSISTED_AND_REMOVED",
+        "P01_DELETE_CANCELLED_THEN_CONFIRMED",
+        "P01_PASS"
+      ],
+      "chromeAndFixturesReleased": true
+    },
+    {
+      "rows": [
+        "G02"
+      ],
+      "version": "0.3.37",
+      "path": "artifacts/ai-proxy/acceptance-current/handoff-p01g02-214131/result.json",
+      "runnerResult": "FAIL",
+      "checks": [
+        "G02_CANCEL_RESTORED_VISIBILITY_AND_ORDER",
+        "G02_REORDER_AND_DISPLAY_SAVED_AND_REFRESHED",
+        "G02_EXISTING_SIDE_PANEL_OBSERVED",
+        "G02_SIDE_PANEL_CLOSED_AND_REOPENED",
+        "G02_DEFAULTS_RESTORED_IN_PC_AND_REOPENED_SIDE_PANEL",
+        "G02_PASS"
+      ],
+      "chromeAndFixturesReleased": true
+    },
+    {
+      "rows": [
+        "S01",
+        "D02"
+      ],
+      "version": "0.3.39",
+      "path": "artifacts/ai-proxy/acceptance-current/handoff-http-039-r9/result.json",
+      "runnerResult": "READY",
+      "checks": [
+        "S01_CREATE_METADATA_ONLY_AND_REJECT_HTTP",
+        "S01_CANCEL_EDIT_PRESERVES_ORIGINAL",
+        "S01_EDIT_CONFIRMED_AND_REOPENED",
+        "S01_DELETE_CANCEL_AND_CONFIRM",
+        "D02_ELEVEN_FAVORITES_AND_GROUP_BOUNDARIES",
+        "D02_INVALID_AND_DUPLICATE",
+        "D02_ORDER_PRIORITY_AND_REOPEN",
+        "D02_DELETED_AND_REOPENED"
+      ],
+      "chromeAndFixturesReleased": true
+    },
+    {
+      "rows": [
+        "D03",
+        "D04",
+        "D07"
+      ],
+      "version": "0.3.39",
+      "path": "artifacts/ai-proxy/acceptance-current/handoff-http-039-r10/result.json",
+      "runnerResult": "READY",
+      "checks": [
+        "D03_SINGLE_HTTP_RECEIPT",
+        "D03_FAVORITES_BATCH_HTTP",
+        "D03_SELECTED_AI_PAIR",
+        "D03_LIVE_THREE_SAMPLE_TIMING",
+        "D03_BASIC_HTTPS",
+        "D07_EXIT_CONTROL_UNAVAILABLE",
+        "D04_CURRENT_PAGE_HTTP",
+        "D04_CURRENT_PAGE_HTTP",
+        "D04_UNREADABLE_TAB"
+      ],
+      "chromeAndFixturesReleased": true
+    }
+  ],
+  "observed": {
+    "A04": {
+      "baselineArtifact": "artifacts/ai-proxy/acceptance-current/handoff-a04-036-r3/result.json",
+      "baselineSidebarLabel": "代理操作失败",
+      "beforeRestartRequest": "socks5",
+      "actualChromeRestart": true,
+      "coldReadback": {
+        "mode": "system",
+        "owner": "controllable_by_this_extension",
+        "journalPhase": "enabled",
+        "exactJournalPreserved": true,
+        "request": "direct"
+      },
+      "sidebarLabel": "线路待恢复",
+      "pcLabel": "线路待恢复",
+      "noReplayOnOpen": {
+        "mode": "system",
+        "request": "direct"
+      },
+      "manualReleasePhase": "released",
+      "gearAvailableAfterRelease": true,
+      "manualResume": {
+        "mode": "pac_script",
+        "request": "socks5"
+      },
+      "disable": {
+        "installationPreserved": true,
+        "dataPreserved": true,
+        "nativeReleased": true
+      },
+      "uninstall": {
+        "installationRemoved": true,
+        "dataRemoved": true,
+        "ownedJournalAndConsentRemoved": true,
+        "competingOwnerPreserved": true
+      }
+    },
+    "A03": {
+      "sent": 1,
+      "completed": 1,
+      "modeWhileReceiptUnknown": "pac_script",
+      "pcOwnershipLabel": "Chrome 代理仍由 AI Proxy 管理",
+      "sidebarAction": "暂停",
+      "manualStopMode": "system",
+      "manualRetryMode": "pac_script",
+      "cleanupMode": "system"
+    },
+    "D03": {
+      "scope": "Host GET against isolated HTTPS fixtures",
+      "threeSampleTiming": [
+        "HTTP 成功 3 / 检测 3",
+        "p50: 138 ms",
+        "p95: 146 ms"
+      ],
+      "basicHttpsReceipt": [
+        "HTTP 200",
+        "132 ms"
+      ],
+      "selectedBatchRequests": 2
+    },
+    "D04": {
+      "scope": "Existing Side Panel after PC favorites mutation, switched fixture tabs",
+      "visibleReceipts": [
+        [
+          "HTTP 200",
+          "142 ms"
+        ],
+        [
+          "HTTP 200",
+          "155 ms"
+        ]
+      ],
+      "rootRequests": [
+        {
+          "method": "GET",
+          "path": "/",
+          "httpStatus": 200,
+          "tls": "TLSv1.3"
+        },
+        {
+          "method": "GET",
+          "path": "/",
+          "httpStatus": 200,
+          "tls": "TLSv1.3"
+        }
+      ],
+      "switchResetBeforeDetection": true,
+      "unreadableTabDisabled": true
+    },
+    "D05": {
+      "nativeUnchanged": true,
+      "deliveryPhases": [
+        "sent",
+        "nativeReply",
+        "sent",
+        "nativeReply",
+        "delivered",
+        "delivered",
+        "sent",
+        "nativeReply",
+        "delivered"
+      ]
+    },
+    "N03": {
+      "visibleFocus": true,
+      "keepAndDiscard": true,
+      "storageUnchanged": true,
+      "focusOutline": {
+        "outlineWidth": "2px",
+        "outlineStyle": "solid"
+      }
+    },
+    "D07": {
+      "ui": "PARTIAL",
+      "disabledControlLabel": "模拟出口探测",
+      "productExitAndThroughput": "UNIMPLEMENTED",
+      "aiLoginAndModel": "NOT_TESTED",
+      "disabledControl": true,
+      "uiExplanation": "当前仅模拟出口探测，不请求 api.ipify.org；真实网络探测尚未接入。"
+    }
+  },
+  "egoOfflinePreview": {
+    "version": "0.3.39",
+    "sourceInputs": 92,
+    "stagedSha256": "7e3e14d5a976a45ea92d9dbe28818e5f9f7ce32d998fc24a6042bcb7f70048a2",
+    "observations": [
+      "Seven PC routes",
+      "Allow-scripts opaque iframe",
+      "Zero HTTP resource entries in top documents",
+      "Mock review cancel, denial, revocation and selection sent no Apply",
+      "One explicit mock Apply and one mock Stop"
+    ],
+    "taskSpaceClosed": true,
+    "sharedProfileInstallation": "NOT_TESTED"
+  },
+  "historicalRealSubscription": {
+    "row": "S-REAL",
+    "evidence": "s-real-20261119.json",
+    "version": "0.3.36",
+    "sha256": "724a08e800508a36af376ec2e45815b1e593769bd2198a383c4b5994835e113b",
+    "loadedShellSha256": "ee2cdd66f1195c792c6bda95213b07ea9b37e92fe0cb649de27e4f50dccd5d50",
+    "developmentAppliedRevision": "2e8098f29a9dd4fd6882830b551c24fcef0c91164938275abbf5ae5792036f95",
+    "reuse": "Previously authorized redacted receipt only"
+  },
+  "verification": {
+    "projectPass": 219,
+    "scopedPackagePass": 11,
+    "fixedSourceProtectionPass": 3,
+    "broaderFrameworkFailure": "R14 header expects 48px; HEAD declares 53px"
+  }
+}

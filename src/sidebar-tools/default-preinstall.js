@@ -51,7 +51,7 @@ export async function resumeDefaultPreinstall({api,lockManager,fetcher=globalThi
       marker=await save(api,marker,{...marker,plan});
     }
     validPlan(plan,apps);
-    let needsHost=false;
+    let needsHost=false,needsSiteAccess=false,scriptAccessError=null;
     for(const entry of plan){
       if(marker.completed.includes(entry.toolId))continue;
       const release=apps.find(row=>row.toolId===entry.toolId);
@@ -108,12 +108,16 @@ export async function resumeDefaultPreinstall({api,lockManager,fetcher=globalThi
       if(tool.pageModule&&!pageClient?.request){needsHost=true;continue;}
       try{
         const result=await installReviewedSidebarTool({api,lockManager,candidate:tool,
-          baseline:null,reviewApproved:true,pageClient,
+          baseline:null,reviewApproved:true,pageClient,fetcher,
           market:{marketId:release.id,sha256:release.sha256,operationId:entry.operationId},
           approveUpdate:()=>false,approveSourceChange:()=>false});
         if(!['installed','already-installed'].includes(result.state))
           throw fail('官方预装未成功提交');
       }catch(error){
+        // A companion may fail preflight on Chrome access. Leave its pinned
+        // intent pending, but keep installing tools that can work without it.
+        if(tool.pageModule&&error?.code==='E_PERMISSION'){needsSiteAccess=true;continue;}
+        if(tool.pageModule&&error?.code==='E_USER_SCRIPTS_UNAVAILABLE'){scriptAccessError=error;continue;}
         if(['E_OUTCOME_UNKNOWN','E_PAGE_CLEANUP_PENDING','E_TOOL_CHANGED','E_MARKET_IDENTITY'].includes(error?.code)){
           // Do not replay unknown effects or undo user changes.
           marker=await save(api,marker,{...marker,state:'attention'});
@@ -123,6 +127,8 @@ export async function resumeDefaultPreinstall({api,lockManager,fetcher=globalThi
       }
       marker=await save(api,marker,{...marker,completed:[...marker.completed,entry.toolId]});
     }
+    if(scriptAccessError)throw scriptAccessError;
+    if(needsSiteAccess)return {state:'permission-required'};
     if(needsHost)return {state:'pending',reason:'host-required',installed:marker.completed.length};
     marker=await save(api,marker,{...marker,state:'complete'});
     return {state:'complete',installed:marker.completed.length};

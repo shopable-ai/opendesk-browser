@@ -1,0 +1,26 @@
+<!doctype html>
+<html lang="zh-CN">
+<meta charset="utf-8">
+<title>AI 消息发送队列 · 模拟 Host 状态</title>
+<link rel="stylesheet" href="/dist/development/ui/design-tokens.css">
+<div id="tool-app"></div>
+<script src="/dist/development/libs/page-frameworks/react-19.2.0.js"></script>
+<script type="module">
+  // Real compiled sidebar and React; only the Host responses are simulated.
+  const build=new URLSearchParams(location.search).get('build')||'/projects/ai-send-queue/dist';
+  if(!build.startsWith('/projects/ai-send-queue/')&&!build.startsWith('/artifacts/sidebar-tools/ai-send-queue/'))
+    throw Error('Expected a local queue build path');
+  const root=document.querySelector('#tool-app'),calls=[];
+  let origin='https://chatgpt.com',status='ready';
+  window.sidebarFixture={calls,target(nextOrigin,nextStatus){origin=nextOrigin;status=nextStatus;}};
+  window.OpenDeskTool=Object.freeze({root:document.body,async request(method){
+    calls.push(method);
+    if(method==='currentPage.info')return {status:'available',url:origin+'/'};
+    if(method==='page.request')return {status,version:'0.1.37',reason:status==='composer-unavailable'?'未找到输入框':''};
+    throw Error('Unexpected request: '+method);
+  }});
+  const css=document.createElement('link');css.rel='stylesheet';css.href=build+'/tool.css';
+  document.head.append(css);
+  const entry=document.createElement('script');entry.src=build+'/tool.js';root.after(entry);
+</script>
+</html>

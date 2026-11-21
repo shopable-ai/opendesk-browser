@@ -64,9 +64,10 @@ for(const [name,path,ready]of [
  if(name==='Sidebar')url.search='?tab=workflow';
  await page.goto(url.href);
  await page.waitForFunction(({ready,name})=>document.documentElement.dataset[ready]===(name==='Workflow'?'true':'ready'),{ready,name});
- // Regress the real bottom-row defect: Source must stay alongside the draft
- // and Send, including when the draft grows, rather than reserve another row.
  const input=page.locator('#workflow-ai-request'),send=page.locator('#workflow-ai-plan');
+ // The six-tab historical snapshot may still use the compact composer.
+ const multiline=Number(await input.getAttribute('rows'))>1;
+ if(name==='Workflow')assert.equal(multiline,true,'Workflow shows a multiline editor');
  const checkComposer=async(actionSelector='#workflow-ai-plan')=>{
   const boxes=await page.evaluate(actionSelector=>{
    const box=selector=>{const r=document.querySelector(selector).getBoundingClientRect();
@@ -75,11 +76,17 @@ for(const [name,path,ready]of [
     input:box('#workflow-ai-request'),send:box(actionSelector)};
   },actionSelector);
   assert.ok(boxes.input.right<=boxes.composer.right,'draft stays inside the composer');
-  assert.ok(boxes.source.right<=boxes.input.left,'Source sits before the input');
-  assert.ok(boxes.source.top>=boxes.input.top&&boxes.source.bottom<=boxes.input.bottom,
-   'Source shares the input row');
+  if(multiline){
+   assert.ok(boxes.input.bottom<=boxes.source.top,'full-width draft sits above the controls');
+   assert.ok(boxes.source.left>=boxes.input.left&&boxes.send.right<=boxes.input.right+1,
+    'draft spans the controls below');
+   assert.ok(boxes.input.height<=112,'long drafts scroll within the editor');
+  }else{
+   assert.ok(boxes.source.right<=boxes.input.left,'Source sits before the compact input');
+   assert.ok(boxes.source.top>=boxes.input.top&&boxes.source.bottom<=boxes.input.bottom,
+    'Source shares the compact input row');
+  }
   assert.ok(Math.abs(boxes.source.bottom-boxes.send.bottom)<=4,'Source aligns with Send');
-  assert.ok(boxes.composer.height<=boxes.input.height+12,'no independent bottom action row');
  };
  await checkComposer();assert.equal(await send.isDisabled(),true);
  await input.fill('只检查布局，不发送');await checkComposer();
@@ -88,10 +95,16 @@ for(const [name,path,ready]of [
  await input.fill(Array.from({length:10},(_,i)=>`第 ${i+1} 行布局检查`).join('\n'));
  await checkComposer();assert.equal(await send.isVisible(),true);
  await input.fill('');await checkComposer();
- await page.locator('#workflow-provider-toggle').focus();await page.keyboard.press('Tab');
- assert.equal(await input.evaluate(node=>node===document.activeElement),true,
-  'keyboard order follows the visible Source → input → Send row');
- await page.keyboard.press('Shift+Tab');await page.keyboard.press('Enter');
+ if(multiline){
+  await input.focus();await page.keyboard.press('Tab');
+  assert.equal(await page.locator('#workflow-provider-toggle').evaluate(node=>node===document.activeElement),true,
+   'keyboard order follows the draft then Source');
+ }else{
+  await page.locator('#workflow-provider-toggle').focus();await page.keyboard.press('Tab');
+  assert.equal(await input.evaluate(node=>node===document.activeElement),true);
+  await page.keyboard.press('Shift+Tab');
+ }
+ await page.keyboard.press('Enter');
  assert.equal(await page.getByRole('menuitemradio').count(),2);
  const menuBox=await page.locator('#workflow-source-menu').boundingBox();
  const triggerBox=await page.locator('#workflow-provider-toggle').boundingBox();
@@ -105,7 +118,7 @@ for(const [name,path,ready]of [
   .evaluate(node=>node===document.activeElement),true);
  if(name==='Workflow'){
   await page.locator('#od-workflow-preview-scenario').selectOption('planning');
-  assert.equal(await page.getByRole('button',{name:'停止对话',exact:true}).isVisible(),true);
+  assert.equal(await page.getByRole('button',{name:'停止规划',exact:true}).isVisible(),true);
   await checkComposer('#workflow-ai-cancel');
   await page.locator('#od-workflow-preview-scenario').selectOption('empty');
  }
@@ -409,7 +422,7 @@ test('Shared Workflow transcript preserves escaped speaker semantics and native 
   assert.match(frameCss,/\.od-conversation-entry\[data-speaker="user"\]\{[^}]*background:var\(--od-conversation-user-bg\)/);
   assert.match(css,/\.workflow-chat-transcript\{[^}]*max-height:none;overflow:visible\}/);
   assert.ok(!css.includes('max-height:210px'));
-  assert.ok(css.includes('.workflow-composer:focus-within'));
+  assert.ok(css.includes('.workflow-composer:has(.od-conversation-input:focus-visible)'));
   assert.ok(builder.includes('src/ui/react/components/conversation.tsx'));
   assert.ok(!view.includes("appendChat('模型来源'"));
   assert.ok(!view.includes("execution.runId+' / '+execution.resultId+effectMessage"));

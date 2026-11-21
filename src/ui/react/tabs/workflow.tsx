@@ -1,6 +1,5 @@
 import * as React from 'react';
 import {Confirmation} from '../components/confirmation.tsx';
-import './workflow.css';
 import {SharedProviderSettingsSheet as WorkflowSettingsSheet} from '../components/provider-settings.tsx';
 export {SharedProviderSettingsSheet as WorkflowSettingsSheet} from '../components/provider-settings.tsx';
 import {SharedConversationFrame,ConversationTranscript} from '../components/conversation.tsx';
@@ -67,7 +66,7 @@ const readEmptyProviderSettings=()=>EMPTY_PROVIDER_SNAPSHOT;
 // credentials, generation/Lease changes, cancellation and authorization.
 export function WorkflowSourceMenu({snapshot=EMPTY_PROVIDER_SNAPSHOT,providerSettings=null,
   onOpenSettings=null,active=true,doc=globalThis.document,idPrefix='workflow',
-  focusComposer=null,placement='top-start',triggerIcon='settings'}){
+  focusComposer=null,placement='top-start',triggerIcon='settings',showSourceLabel=false}){
  const root=React.useRef(null),menu=React.useRef(null);
  const [open,setOpen]=React.useState(false),[notice,setNotice]=React.useState('');
  const selectedMode=snapshot.source==='local_codex'?'local_codex':'https';
@@ -132,17 +131,21 @@ export function WorkflowSourceMenu({snapshot=EMPTY_PROVIDER_SNAPSHOT,providerSet
    (at+(event.key==='ArrowDown'?1:-1)+options.length)%options.length;
   options[next]?.focus({preventScroll:true});
  };
+ const Trigger=showSourceLabel?Button:IconButton;
+ const triggerLabel=`AI 来源：${selected}；选择来源`;
  return <div className="workflow-source-picker" ref={root} onBlur={event=>{
   if(!event.currentTarget.contains(event.relatedTarget))setOpen(false);
  }}>
-  <IconButton id={`${idPrefix}-provider-toggle`} label={`AI 来源：${selected}；选择来源`}
+  <Trigger id={`${idPrefix}-provider-toggle`} {...(showSourceLabel?
+   {variant:'quiet',className:'workflow-source-trigger','aria-label':triggerLabel}:{label:triggerLabel})}
    title={`当前来源：${selected} · 点击切换`}
    aria-haspopup="menu" aria-expanded={open} aria-controls={`${idPrefix}-source-menu`}
    disabled={!active} onClick={()=>{setNotice('');setOpen(value=>!value);}}>
-   {triggerIcon==='chevron'?<svg viewBox="0 0 24 24" fill="none" stroke="currentColor"
+   {showSourceLabel&&<span>{selected}</span>}
+   {showSourceLabel||triggerIcon==='chevron'?<svg viewBox="0 0 24 24" fill="none" stroke="currentColor"
     strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
     <path d="m6 9 6 6 6-6"/></svg>:<Glyph kind="settings"/>}
-  </IconButton>
+  </Trigger>
   {open&&<div id={`${idPrefix}-source-menu`} className="workflow-source-menu"
     role="menu" aria-label="选择 AI 来源" style={popupStyle} ref={menu} onKeyDown={onMenuKeyDown}>
     {Object.entries(SOURCE_LABELS).map(([value,label])=>
@@ -232,6 +235,25 @@ function Glyph({kind='edit'}) {
       'M12 20h9M16.5 3.5a2.1 2.1 0 0 1 3 3L9 17l-4 1 1-4 10.5-10.5Z'}/>
   </svg>;
 }
+const WORKFLOW_EXAMPLES=[
+  ['fill','填写网页表单','M5 4h14v16H5zM8 8h8M8 12h8m-8 4h4'],
+  ['read','提取网页正文','M6 3h9l4 4v14H6zM14 3v5h5M9 12h7m-7 4h7'],
+  ['check','核对网页信息','M21 11.1V12a9 9 0 1 1-5.3-8.2M9 11l3 3 8-8'],
+];
+function WorkflowExamples({disabled,onChoose}){
+  return <details className="workflow-examples od-disclosure od-disclosure--flat">
+    <summary id="workflow-example-label">查看任务示例</summary>
+    <div className="workflow-suggestion-actions" role="group" aria-label="选择示例填入草稿">
+      {WORKFLOW_EXAMPLES.map(([id,label,path])=><Button key={id} variant="quiet" disabled={disabled}
+        onClick={event=>{if(event.nativeEvent?.isTrusted)onChoose?.(id,event.nativeEvent);}}>
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round"
+          strokeLinejoin="round" aria-hidden="true"><path d={path}/></svg>
+        <span>{label}</span>
+        <span className="workflow-example-insert">填入草稿</span>
+      </Button>)}
+    </div>
+  </details>;
+}
 function StepField({step,field,label,actions,options,maxLength=512,type='text',placeholder,disabled=false}) {
   const id=`workflow-step-${step.stepId}-${field}`;
   return <label className="workflow-field" htmlFor={id}><span>{label}</span>
@@ -306,6 +328,7 @@ export function WorkflowPage({controller=null,model:providedModel=EMPTY_MODEL,ac
   const nearBottom=React.useRef(true);
    const [transcriptTarget,setTranscriptTarget]=React.useState(null);
    const [composerTarget,setComposerTarget]=React.useState(null);
+   const [composerActionTarget,setComposerActionTarget]=React.useState(null);
   const c=id=>model.controls?.[id]||{};
   const click=(id,event)=>actions.click?.(id,event.nativeEvent);
   const field=(id,value,event,eventName='input')=>actions.input?.(id,value,event.nativeEvent,eventName);
@@ -383,6 +406,7 @@ export function WorkflowPage({controller=null,model:providedModel=EMPTY_MODEL,ac
         }} {...props}/>}
   </>;
   const text=(id,props={})=><p id={id} hidden={c(id).hidden} {...props}>{c(id).text||''}</p>;
+  const starting=!model.messages?.length&&model.phase==='idle'&&!model.history?.open&&!model.hasSteps;
   return <div id="workbench-workflow" ref={page} role="tabpanel" aria-labelledby="tab-workflow"
     className="od-page" data-workbench-page="workflow" hidden={!active} data-opendesk-react-owner="workflow-page"
     onFocusCapture={event=>{
@@ -394,7 +418,8 @@ export function WorkflowPage({controller=null,model:providedModel=EMPTY_MODEL,ac
         index:(model.params||[]).findIndex(row=>row.name===param.dataset.workflowParam)}:null;
     }}>
     <section id="workflow-editor" className="workflow-editor" aria-label="AI 语义工作流"
-      data-view-state={c('workflow-editor').dataset?.viewState||'empty'} data-history-open={Boolean(model.history?.open)}>
+      data-view-state={c('workflow-editor').dataset?.viewState||'empty'} data-history-open={Boolean(model.history?.open)}
+      data-starting={starting||undefined}>
       <header className="workflow-head od-toolbar od-page-head">
         <div className="workflow-head-copy"><h2 id="workflow-display-title" className="od-page-title">{c('workflow-display-title').text||'新工作流'}</h2></div>
         <div className="workflow-head-actions od-page-actions" role="group" aria-label="工作流快捷操作">
@@ -403,20 +428,20 @@ export function WorkflowPage({controller=null,model:providedModel=EMPTY_MODEL,ac
       </header>
       <WorkflowHistory model={model.history||{open:false}} actions={actions}/>
       <div className="workflow-scroll" ref={scroller}>
+        {starting&&<section className="workflow-welcome" aria-labelledby="workflow-welcome-title">
+          <span className="workflow-welcome-mark" aria-hidden="true">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round">
+              <rect x="3" y="4" width="18" height="16" rx="3"/><path d="M3 9h18m-14 4 2 2-2 2m5 0h4"/>
+            </svg>
+          </span>
+          <h3 id="workflow-welcome-title">想让浏览器做什么？</h3>
+          <p>描述任务目标，AI 会生成可执行的步骤。</p>
+          <WorkflowExamples disabled={Boolean(model.busy)} onChoose={actions.chooseExample}/>
+        </section>}
         <section className="workflow-card od-surface--padded workflow-chat od-surface" aria-label="AI 对话">
           <div id="workflow-ai-transcript" ref={setTranscriptTarget}
             className="workflow-chat-transcript" role="log"
             aria-label="浏览器任务对话与执行记录" aria-live="polite"/>
-          {!model.messages?.length&&model.phase==='idle'&&!model.history?.open&&
-            <div className="workflow-welcome-suggestions" role="group" aria-label="选择任务示例，只填入草稿">
-              <p>选择一个示例开始，也可以直接描述任务。</p>
-              <div className="workflow-suggestion-actions">
-                {[['fill','填写网页表单'],['read','读取网页内容'],['check','检查页面内容']].map(([id,label])=>
-                  <Button key={id} disabled={Boolean(model.busy)} onClick={event=>{
-                    if(event.nativeEvent?.isTrusted)actions.chooseExample?.(id,event.nativeEvent);
-                  }}>{label}</Button>)}
-              </div>
-            </div>}
           {text('workflow-planning-indicator',{className:'workflow-planning-indicator',role:'status'})}
           <ol id="workflow-ai-progress" className="workflow-ai-progress" aria-label="Codex 实时规划进度" hidden={c('workflow-ai-progress').hidden}>
             {model.progress?.map((item,index)=><li key={index} data-state={item.state}>{item.text}</li>)}
@@ -532,22 +557,24 @@ export function WorkflowPage({controller=null,model:providedModel=EMPTY_MODEL,ac
           </details>
         </section>
       </div>
-      <div className="workflow-composer">
-         <div className="workflow-composer-actions">
-           {sharedProviderSettings&&providerSettings?
-             <WorkflowSourceMenu snapshot={settingsSnapshot} providerSettings={providerSettings}
-               onOpenSettings={onOpenProviderSettings} active={active} doc={doc}/>:
-             <>
-              {action('workflow-provider-toggle','AI 设置',{icon:true,kind:'settings','aria-expanded':openSettings,'aria-controls':'workflow-provider-settings'})}
-              <WorkflowSourceName value={model.sourceName||'本机 Codex'}/>
-             </>}
-         </div>
-         <div className="workflow-composer-frame" ref={setComposerTarget}/>
-       </div>
-       <div id="workflow-page-actions" className="workflow-actions od-toolbar" hidden={Boolean(model.history?.open)||Boolean(model.awaitingReview)||(!model.hasSteps&&model.phase!=='running')}>
+      <div id="workflow-page-actions" className="workflow-actions od-toolbar" hidden={Boolean(model.history?.open)||Boolean(model.awaitingReview)||(!model.hasSteps&&model.phase!=='running')}>
         {action('workflow-run',c('workflow-run').text||'再次运行',{primary:true})}{action('workflow-save','保存工作流')}{action('workflow-stop',c('workflow-stop').text||'停止')}
       </div>
       {text('workflow-status',{className:'workflow-status',role:'status','aria-live':'polite','data-state':c('workflow-status').dataset?.state})}
+      <div className="workflow-composer">
+        <div className="workflow-composer-frame" ref={setComposerTarget}/>
+        <div className="workflow-composer-actions">
+          {sharedProviderSettings&&providerSettings?
+            <WorkflowSourceMenu snapshot={settingsSnapshot} providerSettings={providerSettings}
+              onOpenSettings={onOpenProviderSettings} active={active} doc={doc} showSourceLabel/>:
+            <>
+              {action('workflow-provider-toggle','AI 设置',{icon:true,kind:'settings','aria-expanded':openSettings,'aria-controls':'workflow-provider-settings'})}
+              <WorkflowSourceName value={model.sourceName||'本机 Codex'}/>
+            </>}
+          <span className="workflow-composer-hint">Shift+Enter 换行</span>
+        </div>
+        <div className="workflow-composer-action" ref={setComposerActionTarget}/>
+      </div>
     </section>
     {!sharedProviderSettings&&<WorkflowSettingsSheet open={openSettings} onClose={closeSettings} doc={doc}>
       <details id="workflow-provider-settings" className="workflow-provider od-disclosure od-disclosure--flat" open>
@@ -593,9 +620,11 @@ export function WorkflowPage({controller=null,model:providedModel=EMPTY_MODEL,ac
      blocked={Boolean(c('workflow-ai-plan').disabled)}
      canSend={c('workflow-ai-plan').hidden!==true}
      inputId="workflow-ai-request" inputLabel="描述任务，或告诉 AI 怎样修改步骤"
-     placeholder="描述要完成的操作…" emptyPrompt="想让浏览器做什么？"
+     placeholder="描述要完成的任务…"
+     sendTitle="发送（Enter）"
      stopLabel={model.phase==='planning'?'停止规划':model.phase==='running'?'停止后续执行':undefined}
-     inputRows={1}
+     inputRows={2}
+     composerActionTarget={composerActionTarget}
      sendId="workflow-ai-plan" stopId="workflow-ai-cancel"
      splitTargets transcriptTarget={transcriptTarget} composerTarget={composerTarget}
      autoScroll={false} focusOnOpen={false} entryClassName="od-conversation-entry workflow-chat-entry"

@@ -1,5 +1,7 @@
 # 开发 Tab UI/UX 关键测试条件 R1
 
+**最新增量（2026-11-17）：** 以[第14节](#developer-results-saved-tests-20261117)的结果、手动保存及同源码组件验证为本轮完成条件；旧原生矩阵保留证据边界。
+
 **当前独立增量（2026-11-15）：** 本轮离线原型按[第13节D01–D09](#developer-prototype-permissions-tests-20261115)验证；下方正式产品实施与旧评分保留各自证据范围。
 
 日期：2026-11-14。对应[优化目标](developer-ui-ux-r1-20261114.zh-CN.md)与 [DESIGN.md](../../DESIGN.md#开发-tab-uiux2026-11-14独立作用域)。**当前以11.5的核心实施验证为准，覆盖此前仅离线/待确认及第1–10节冲突的矩阵与95+要求。** 旧分数不证明当前产品达标；源码/Node/实际侧栏DOM与原生动作分别报告，安装和production仍NOT_TESTED。
@@ -433,3 +435,70 @@ P01–P03、P06、P07、P09、P12 为全预选/Cookie默认值改动直接触发
 现有静态检查17项通过，其中3项当前原型、14项历史R2.6；动态ID/label/ARIA由本轮浏览器另查。8处新链接/显式锚点及定向diff空白检查通过。首轮滚动断言引用与定向PageDown等待方式属于测试驱动修正；实际发现的菜单触发器焦点移出问题已修复并复测，不改产品迎合断言。
 
 [范围、截图与复核记录](../../artifacts/develop-permissions-ui-20261115/review.md) · [42项行为](../../artifacts/develop-permissions-ui-20261115/browser-report.json) · [10项补查](../../artifacts/develop-permissions-ui-20261115/visual-report.json)。TaskSpace98已释放。真实SDK/Chrome授权、Cookie读取、原生Side Panel/安装/IME/Native及production均NOT_TESTED；合成composition事件只验证guard。未构建、提交、推送或操作并行服务。
+
+<a id="developer-results-saved-tests-20261117"></a>
+## 14. 结果与已保存脚本：本轮关键条件（2026-11-17）
+
+对应[目标第14节](developer-ui-ux-r1-20261114.zh-CN.md#developer-results-saved-management-20261117)。本轮只验证改动的真实组件与原业务owner，不将内存Host模拟等同真实安装态。
+
+| ID | 用户行为与保护 | 当前证据 |
+| --- | --- | --- |
+| M01 | 唯一结果复制图标具名，复制原显示值；完成资源默认折叠，历史/下载保留且不执行 | React交互、原clipboard成功/失败handler测试；Ego36项中的结果/历史操作，真实系统clipboard未测 |
+| M02 | 明确无自动保存；子视图保留完整草稿；手动保存走原版本CAS且不运行/授权 | 原script-editor定向集成与Ego手动保存内存回执，不模拟跨重启持久化 |
+| M03 | 列表所选加载/删除与编辑器ID分清；未保存覆盖先确认；取消零覆盖/删除；同字节但未保存身份仍确认 | Controller revision管理45项及Controller/Page取消集成 |
+| M04 | 确认后身份/版本/编辑上下文/选择/代际变化拒绝；隐藏/卸载/超时结算一次，不出现迟到弹框；Page恢复不抢回页面或覆盖后续编辑 | view/真实React交互10项；script-editor定向14项（含3项Page恢复迟到回归） |
+| M05 | 失败/未知持久可见、原记录可达且未知不重放；管理期间Stop仍转发原owner动作 | Ego组件操作与原结果拒绝/历史重载等待的15项定向检查，不等同实际Run/Stop |
+| M06 | 默认360px与320×540无横向页面溢出；确认safe focus/inert/Tab/Escape、返回及加载焦点；通知在视口可见可关闭 | Ego真实JSX/CSS+revision owner，36项PASS；实体IME未测 |
+
+临时证据目录：`artifacts/develop-simplify-20261117/`。`source-inputs.json`记录40个实际编译输入的SHA256；`browser-verification.json`包含36项行为、5条内存操作回执和明确模拟边界；`results-clean-360.png`、`library-360.png`、`replace-360.png`、`delete-360.png`、`failure-360.png`与`delete-320-short.png`为同候选关键截图。成功Toast沿原共享通知可关闭/自动消失，浏览器逐条读回回执后再关闭继续下一步，不以脚本点击穿透通知。
+
+产品运行环境未切换：`dist/development`目录存在，但本轮未确认连续开发连接、实际加载路径和已应用revision。Ego发现原扩展ID `ccfcjegpkdlgbclopjmadlcjedelidmf` 的Side Panel目标；本任务自有普通扩展页回落目录，不能冒充原生侧栏。当前安装态、真实Chrome权限/安装/执行/系统剪贴板、Native、实体IME与production均为NOT_TESTED。未启动第二watcher、重装或替换目录。
+
+续修证据：`followup-browser-verification.json`绑定当前41个真实JSX/CSS/Controller管理owner输入，22项Ego操作通过；长脚本名在360px完整换行，320×540弹窗与按钮完整可达，取消不删对象/不覆盖草稿，显式保存、列表加载、精确删除与结果复制各有内存回执。对应截图为 `followup-library-360.png`、`followup-delete-360.png`、`followup-delete-320-short.png`、`followup-save-360.png`、`followup-results-360.png`。本轮发现旧预览遗漏正式入口已加载的 `confirmation.css`，补齐预览来源后才复核遮罩与排版；这不是产品新增另一套弹窗。旧36项记录保留为上个快照，不与当前输入混算。
+
+对应Node证据：Controller管理45项、更新后的React交互1项、保存/迟到Save/Load/简短完成状态3项通过；原记录定位及拒绝/旧结果保护14项通过，结果重载/view/React相关21项由独立实现owner核对。重叠检查不相加。原“任务状态：”断言已过时，按当前简短“已完成”行为修正。浏览器复制只核对动作参数，不读写系统剪贴板。未新增产品构建、安装或运行环境切换；原生与production边界保持NOT_TESTED。
+
+独立设计复核结果写入 `design-review-final.json`：信息清晰度96、主流程95、保存管理96、可访问性96、窄屏布局96，均分95.8；五维均≥95，仅适用于UI_PREVIEW_ONLY。初评指出保存名称/标识混淆及长值难核对，已改为「脚本标识」并从同一草稿字段显示完整保存目标，最终同候选22项包含此改进。历史位于更多菜单的首次发现成本保留为轻微扣分，不增加重复入口。41项源码指纹无漂移；真实安装态与production未评分。
+
+独立代码复核发现同一runId的迟到快照可能覆盖较新的完成/资源状态；已在原结果owner中让状态或资源状态变化一并使待决读取失效。新增两项回归先复现失败、修复后通过，相关结果读取13项、未知/拒绝/旧结果14项以及正常完成与保存相关5项通过。此补修不改变UI快照输入，也不启动新的执行或环境。
+
+<a id="developer-saved-history-prototype-tests-20261117"></a>
+## 15. 已保存脚本交互原型证据（2026-11-17）
+
+对应[需求第15节](developer-ui-ux-r1-20261114.zh-CN.md#developer-saved-history-prototype-20261117)。上轮HTML SHA256：`44ba5a23db501a841d0d714e0aaf64ddbbb1d1b00a04e446fd1cd46618d55894`。所有本节证据只属OFFLINE_PROTOTYPE，数据由真实UI模拟保存创建，不预填历史。
+
+`artifacts/develop-open-20261117/prototype-verification.json`绑定同SHA，8组Ego行为通过：空历史到明确保存；同标识追加版本且快捷入口只显示最新；覆盖取消／确认与焦点、零运行；Controller／Page分组及React身份、键盘和旧版加载；删除取消／确认保留编辑字节；本地项目版本隔离；320px长标识换行和弹层边界；模拟Run／Stop忙碌保护。测试脚本为同目录`prototype-checks.mjs`。
+
+独立评审指出跨类型覆盖风险后，`prototype-cross-mode.mjs`先动态复现React目标草稿未确认即被替换。最小修复后4组通过，`prototype-cross-mode-verification.json`绑定最终SHA：React、Vue、网页JS分别证明目标草稿确认、取消保留双方、确认加载精确字节且不运行；另证明切换会保留当前脏草稿，目标干净时无需丢弃确认。原8组也在最终候选重跑通过。
+
+关键截图：`prototype-empty-360.png`、`prototype-history-360.png`、`prototype-confirm-360.png`、`prototype-history-320.png`及`prototype-cross-mode-confirm-360.png`。最终关键画面已目视核对；320px页面scrollWidth=320，弹层left=8/right=312且不超出视口。现有静态合同17/17通过，其中仅3项检查当前原型语法／ID关联／离线CSP，14项为R2.6历史快照，不作为当前交互通过数。首轮覆盖取消焦点落到body的问题已修复，最终取消回到原编辑区。
+
+`prototype-design-review.json`记录独立只读评审85.6：对应修复前SHA`70baba1d…88356`及当时四图／8组证据；不能当作最终修复候选已重新评分。旧正式组件预览95.8同样不适用于本HTML。后续改善当前身份、旧版本辨认、保存就近校验、打开点击区。
+
+此前正式React未提交WIP单独保留：原owner定向84/84与React交互1/1通过；扩大后的editor选择组29通过1失败，显式Run遇到`E_REMOTE_PERMISSION_PENDING`，需开始时核对是就绪等待还是产品问题，不报全绿，也不作为本轮HTML的前置。证据分别为本目录`owner-tests.log`、`react-tests.log`、`save-run-diagnostic.log`；`source-preview.html`只是真实JSX＋内存服务预览。正式加载、真实持久化、Chrome权限／Run／安装／系统剪贴板、Native、实体IME和production均NOT_TESTED。未启动第二构建writer或重装，TaskSpace137已释放，不提交推送。
+
+### 15.1 本轮身份、版本与草稿保护的最终证据
+
+最终HTML SHA256：`c7eeb313496b597d279d6bf659c66f8c02915b6442f49f4970788fb68c463b6c`。证据归 `artifacts/develop-open-20261117/identity-v2/`：`verification.json`绑定同候选，`manifest.json`记录12张最终截图及各自SHA；`checks.mjs`为本轮Ego操作脚本。记录由UI明确保存创建，无预填历史、真实存储或输入源码执行。TaskSpace138已释放；重放须新建TaskSpace并更新脚本顶部ID。
+
+最终10组通过：新稿与空历史／打开点击区；必填、字符、长度的字段持久校验及ARIA、Enter保存；同标识追加r2和快捷最新、取消／确认；旧版类型／时间／摘要／只读源码与零执行；React／Vue／网页JS跨槽位保护；同一网页身份跨格式旧版恢复；删除取消／保稿／删除后的覆盖保护；本地项目隔离与模拟运行忙碌保护；320px长标识、菜单／管理边界和键盘；主动清空／纯空白／隐藏槽位保稿及128字符确认换行。320px页面scrollWidth=320，弹层left=8/right=312/bottom=692，textarea高164px；打开点击区实测56×36px。动态ARIA引用无缺失。
+
+当前语法／静态ID关联／离线CSP三项通过；同一静态命令17/17中另外14项仍为R2.6历史快照，不计当前交互覆盖。命令为 `node --test prototypes/sidebar/develop/preview-contract.test.mjs`，输出在 `identity-v2/static-tests.log`。只检查本轮文件diff空白与上述行为，无产品构建、根CI或真实运行验收。
+
+一次独立AI设计复评90.8（清晰度92、主流程86、保存历史94、可访问性92、窄屏90）属于修复前 `e009976c…c54a7`，详情 `identity-v2/design-review.json`。评审未独立操作浏览器，截图在评审时顺序更新，其材料边界已记录。指出的空内容草稿保护和确认缺少格式均已实际复现／修复；额外复现的128字符确认scrollWidth880/clientWidth294溢出也已修复。最终候选通过上述定向操作并目视核对，不重新追分或冒称最终独立复评分。
+
+普通保存／打开Toast缩短；完整标识与版本持续留在编辑器。最终截图包括 `saved-360.png`、`old-version-360.png`、`save-error-360.png`、`deleted-draft-confirm-360.png`、`long-identity-320.png`、`latest-320.png`、`manage-320.png`、`long-empty-confirm-320.png`。`long-confirm-before-320.png`与`pre-final-defects.json`只保留修复前缺陷证据，不混入最终截图清单。
+
+仍为OFFLINE_PROTOTYPE_ONLY：真实持久化、当前安装侧栏生效、真实Run／Stop、Chrome权限／安装、系统剪贴板、实体IME、读屏、Native、production和正式验收均NOT_TESTED。未改正式React WIP、运行服务或并行发行文件，未提交／推送。
+
+### 15.2 编辑区减法：最新候选与证据
+
+**撤销打开后的正式源码证据（覆盖下方旧布局）：** `artifacts/develop-open-20261117/editor-clean-v7/verification.json`记录6组Ego操作及42份实际JSX/CSS/原revision owner输入指纹。编辑区无打开／浮层／虚构文件名，说明仅供读屏；360px无横向溢出且源码164px；更多→管理→返回保留草稿和焦点；显式保存、所选版本加载沿原owner，保存回执不再指向已撤除入口。默认源码截图已目视检查，TaskSpace143已释放。`developer-editor-interaction.test.mjs`与原`script-editor.test.mjs`保存反馈定向回归各1项通过。未更改原型HTML，未启动产品构建、安装、提交或推送；实际安装态、真实持久化／执行、Native、production和独立评分仍NOT_TESTED。
+
+用户最新纠偏覆盖15.1的常驻标题／下方说明布局。最终HTML SHA256：`992f3b8f069b7c855a1f813d5e4d4d91500c45a1bc9f9bf3565326eaf30c267f`。证据归 `artifacts/develop-open-20261117/compact-v3/`，`verification.json`与`manifest.json`绑定当前HTML及最终截图。临时CSS试排先确认效果，再落入同一源码；不是仅临时修改页面。
+
+5组定向检查通过：工具栏只保留打开／参考图标，无可见身份和代码下方说明；保存页保留当前身份、版本、字段错误与Enter提交，按钮状态点随编辑／保存变化；空内容取消／确认、打开旧版及跨类型目标草稿保护；本地模式隐藏手工状态点并关联自身说明，模拟运行仍禁止打开；320px长标识仅在列表换行，各格式和打开→示例→文档→源码的Tab顺序可用，ARIA引用完整。没有重跑旧完整矩阵或启动产品构建。
+
+360px实测：源码高164px，工具栏外高37px（含1px边框），编辑卡片到运行选项8px；运行选项顶部从535.1875px移至469.5px，减少65.6875px。320px文档scrollWidth=320，弹层left=8/right=312；128字符身份不再撑高编辑器工具栏。最终 `editor-360.png`、`editor-320.png`、`save-context-360.png`、`open-320.png`已目视检查。
+
+当前静态语法／ID与ARIA引用／离线CSP三项通过；同命令17/17中的14项仍为历史R2.6快照，不能算当前交互。原型刷新清空，真实产品、持久化、读屏／实体IME、权限、Native、安装与production仍NOT_TESTED。本轮无独立重评分、不改正式React、不构建／安装／提交／推送。TaskSpace139已释放。

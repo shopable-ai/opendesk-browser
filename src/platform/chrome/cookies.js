@@ -251,13 +251,13 @@ export function createCookieService({api = globalThis.chrome, authorize, resolve
     // Native lookup may await a callback while the tool/site is revoked.
     // Recheck immediately before dispatching the exact expiration.
     await verified(details.url,'remove','pre',context);
+    if(expected&&context?.expectedCookieCheck){
+      const latest=await exactRows(before);
+      if(latest.length!==1||!await context.expectedCookieCheck(latest[0]))
+        throw fail('E_COOKIE_STALE','Cookie changed after cleanup preview');
+      await verified(details.url,'remove','pre',context);
+    }
     try{
-      if(expected&&context?.expectedCookieCheck){
-        const latest=await exactRows(before);
-        if(latest.length!==1||!await context.expectedCookieCheck(latest[0]))
-          throw Error('Cookie changed after cleanup preview');
-        await verified(details.url,'remove','pre',context);
-      }
       await expireExact(before,details.url);
       await verified(details.url,'remove','post',context);
       if(await exactExists(before))throw Error('Exact Cookie still exists after remove');

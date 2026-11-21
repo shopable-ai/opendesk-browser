@@ -2,7 +2,7 @@
 
 <a id="current-test-entry"></a>
 
-## 当前测试入口（1.4.35，2026-11-15）
+## 当前测试入口（1.4.35，2026-11-19）
 
 复用本目录 `index.html` / `main.jsx`，它们消费原 `src/App.jsx` / `src/main.js`。从仓库根构建并启动静态预览，打开命令输出的本机 URL：
 
@@ -12,8 +12,23 @@ node node_modules/vite/bin/vite.js preview --config projects/ai-vip-share/previe
 ```
 
 1. 场景选 **开发实验（非安装版）**：初始未连接；点「连接本地开发」，会员卡应显示权益有效；点「测试网站登录」展开原两个测试网站选项。下方“已选择”只表示选择，不证明真实服务连接。普通工作台的实际登录需要原测试服务及已安装工具，此场景不模拟其完整后端。
-2. 场景选 **首次连接服务** 或 **待兑换**：连接/查看激活内容 → 核对 → 取消或确认激活；已有权益不必再次激活。
+2. 场景选 **首次连接服务**。输入 `https://vip.example.com/activate?activation_code=DEMO-VIP-01`，连接后核对激活内容。先取消，再输入 `DEMO-VIP-01` 重新预检并确认。确认后有一条兑换记录和分配账号。再次连接同一链接时复用有效权益。
 3. 场景选 **网站登录测试**：登录并打开网站 → 查看合成写入回执及“到网站核对实际登录”提示。预览不会打开真实网站、写 Cookie 或出现真实 Host 逐批确认。
+4. 场景选 **兑换回执待核对**。用同一体验激活码完成预检并确认。模拟后端记录兑换后丢失回执，工具应保留待核对状态。点「核对上次兑换」后应读回原笔。
+
+从 URL 打开 `?scene=connect&width=390&run=core-1` 或 `?scene=recovery&width=390&run=core-2`，可在同一标签页重载后继续原合成账本。新的 `run` 值创建独立账本，通过场景下拉框切换时恢复默认临时场景。测试浏览器的既有 Cookie 和登录不参与夹具。
+
+用 ego-browser 复用本任务的测试页。将下例的 TaskSpace ID、文件绝对路径和端口替换为当前值，然后执行核心断言。
+
+```sh
+ego-browser nodejs <<'EOF'
+const task = await taskSpace(123);
+const {testCoreUi} = await import('file:///path/to/opendesk-browser/projects/ai-vip-share/preview/test-core-ui.mjs');
+await testCoreUi(task.page('p1'), 'http://127.0.0.1:4173/');
+EOF
+```
+
+浏览器取证见[核心 UI 验收账本](../dev/local-test/EXTENSION-VIP-TEST.zh-CN.md#core-ui-20261119)。
 
 所有场景仅用隔离合成数据。开发场景现在使用原控制器的新连接端口 7903，并接受原只读会员 POST，不再预选旧 7898；没有连接真实 Provider。两开发按钮只在 `dev/main.jsx` 中组装，正式 `src/main.jsx` 不导入它们。真实网络/Cookie/代理应从已安装工具原权限链测试；本轮未验证安装更新、双 Surface、第三方身份或 VIP。最新事实见[唯一账本](../dev/local-test/EXTENSION-VIP-TEST.zh-CN.md#test-entrances-20261115)。以下为历史记录。
 

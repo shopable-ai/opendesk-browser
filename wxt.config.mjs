@@ -9,7 +9,7 @@ import {readFileSync} from 'node:fs';
 import {resolve, dirname} from 'node:path';
 // Build and package verification share the exact fixed-entry byte budgets.
 import {FIXED_OUTPUTS,entryByteBudget} from './scripts/build-contract.mjs';
-import {configureDevelopment,closeDevelopment,publishDevelopment,waitDevelopmentPublication} from './scripts/wxt-development.mjs';
+import {configureDevelopment,closeDevelopment,publishDevelopment,waitDevelopmentPublication,developmentWatchOptions} from './scripts/wxt-development.mjs';
 import {outputGuardPort} from './scripts/development-lock.mjs';
 import {resolveMarketChannel,marketExternalConnectable} from './scripts/market-channel.mjs';
 import {resolveBrowserEdition,DEVELOPER_BROWSER_NAME} from './scripts/browser-editions-r245.mjs';
@@ -42,6 +42,7 @@ export default defineConfig({
   manifestVersion: 3,
   imports: false,
   webExt: {disabled: true},
+  watchOptions: developmentWatchOptions(),
   dev: {reloadCommand: false, server: {host:'127.0.0.1',port:outputGuardPort(process.env.OPENDESK_DEV_PORT??43119)}},
   manifest: structuredClone(manifest),
   vite: () => ({resolve:{dedupe:['react','react-dom']},define:{__OPENDESK_MARKET_ORIGIN__:JSON.stringify(resolveMarketChannel({mode:process.env.OPENDESK_BUILD_MODE||'production'}).origin),__OPENDESK_AI_LOCAL_TEST__:JSON.stringify(aiLocalTest),__OPENDESK_AI_LOCAL_PACKAGE_HASH__:JSON.stringify(aiLocalPackageHash),__OPENDESK_BROWSER_COMPILER_ENABLED__:JSON.stringify(browserEdition==='developer'),__OPENDESK_TRUSTED_BOOKMARK_VERSION__:JSON.stringify(trustedBookmarkVersion)},optimizeDeps:{noDiscovery:true,include:[],entries:[]},build: {minify: 'terser', terserOptions: {ecma:2022, compress:{passes:3}, format: {comments: false}},
@@ -123,6 +124,11 @@ export default defineConfig({
          // existing fail-closed CSP AST gate. Keep sourcemaps and every other
          // development integration unchanged; do NOT weaken the scanner.
          config.define={...config.define,'process.env.NODE_ENV':JSON.stringify('production')};
+      }
+      if(target==='agents/chatgpt-fixed-bridge.js'){
+        // The compiled queue uses the same Page UI implementation as its package.
+        config.resolve={...config.resolve,alias:{...config.resolve?.alias,
+          '@opendesk/ui':resolve('src/scripting/user-scripts/page-ui.js')}};
       }
       if (target === 'ui/tool-shell.js') {
          // Compile-time shared Button for audited project sources. Sandboxed

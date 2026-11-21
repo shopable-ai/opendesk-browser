@@ -111,13 +111,13 @@ async function installedFixture(){
 test('trusted development MODE and reviewed source pin emit fixed HTTP PAC for website/API hosts',()=>{
   runIsolated(`
     assert.equal(profiles.MANAGED_PROXY_DEVELOPMENT_ENABLED,true);
-    assert.equal(tool.version,'1.4.37');
-    assert.equal(packageHash,'23eeead29e473ec9cb0125987fc4bb6ecab3ed6f2c1014ca22183e0804027ff4');
+    assert.equal(tool.version,'1.4.44');
+    assert.equal(packageHash,'a17b43ce0f9487cc2ddf4a5699849006d3e44453b3bcd599624295b88bcef9d7');
     assert.deepEqual(profiles.REVIEWED_MANAGED_PROXY_PROFILES,[]);
     assert(Object.isFrozen(profiles.REVIEWED_MANAGED_PROXY_PROFILES));
     assert.deepEqual(profiles.getDevelopmentManagedProxyProfile(owner),config);
     assert.equal(profiles.getDevelopmentManagedProxyProfile({...owner,
-      packageHash:'2edc509ca45a853fdfe09786cd5fd448d3935e8affb1245a73b30fefc963d4d0'}),null);
+      packageHash:'9a4dd875e2b51a3d44d55531d6fe9b73242bc4a41a6110d09434ab2e1208a7c8'}),null);
     assert.equal(profiles.getDevelopmentManagedProxyProfile({...owner,packageHash:'f'.repeat(64)}),null);
     assert.equal(profiles.getDevelopmentManagedProxyProfile({...owner,toolId:'proxy-peer'}),null);
     const pac=compileManagedProxyPac(config,{...owner,installEpoch:null});

@@ -3,7 +3,7 @@ import {createCookieObservation} from '../controller/cookie-observation.js';
 import CookieMonitorPopover from './CookieMonitorPopover.jsx';
 
 export default function CookieChangeMonitor({adapter,controller,available,canApply=()=>true,onObservedChange=()=>{}}){
-  const [state,setState]=React.useState({phase:'idle',expiresAt:0,gap:false});
+  const [state,setState]=React.useState({phase:'idle',expiresAt:0,gap:false,detected:false});
   const [clock,setClock]=React.useState(Date.now);
   const gate=React.useRef(false);
   gate.current={available,canApply,onObservedChange};
@@ -28,7 +28,7 @@ export default function CookieChangeMonitor({adapter,controller,available,canApp
     return ()=>window.clearInterval(timer);
   },[observer,state.phase]);
   const remaining=Math.min(30,Math.max(0,Math.ceil((state.expiresAt-clock)/1000)));
-  return <CookieMonitorPopover phase={state.phase} remaining={remaining} gap={state.gap}
+  return <CookieMonitorPopover phase={state.phase} remaining={remaining} gap={state.gap} detected={state.detected}
     supported={adapter.supportsObservation()} available={available}
-    onStart={()=>void observer.start()} onStop={()=>observer.stop('ended')}/>;
+    onStart={()=>void observer.start()} onStop={()=>observer.stop('stopped')}/>;
 }

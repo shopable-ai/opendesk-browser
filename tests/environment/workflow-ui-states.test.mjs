@@ -58,7 +58,8 @@ test('workflow default structure prioritizes the real shared composer and hides 
   assert.equal(workflow.find('#workflow-provider-settings').length,0,
     'the old Workflow-specific Provider form is not a second settings owner');
   assert.equal($('.workflow-sheet-overlay').length,0,'closed settings do not mount a dialog');
-  assert.match(workflow.find('#workflow-ai-request').attr('placeholder'),/描述要完成的操作/);
+  assert.equal(workflow.find('#workflow-ai-request').attr('rows'),'3');
+  assert.match(workflow.find('#workflow-ai-request').attr('placeholder'),/描述要完成的任务/);
   const settings=await workflowDOM({settings:true});
   assert.equal(settings.$('.workflow-sheet-overlay [role="dialog"][aria-modal="true"]').length,1);
   assert.equal(settings.$('.od-shared-provider-form').length,1,'one shared Provider Settings form');

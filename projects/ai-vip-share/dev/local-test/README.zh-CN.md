@@ -1,5 +1,19 @@
 # 在仓库中直接运行 AI VIP Share 本地联调
 
+<a id="manual-test-7904"></a>
+
+## 7904 本机模拟手测
+
+先复用正在运行的 7904 进程。仅在该端口空闲时启动。下列参数取测试浏览器的实际扩展 Origin。
+
+```sh
+npm --prefix projects/ai-vip-share run start:manual-test -- chrome-extension://<扩展 ID>
+```
+
+服务只监听 `127.0.0.1:7904`，启动时输出六枚一次性模拟码，交替分配模拟账号 A 和 B。它使用独立内存账本，重启会生成新一批码和新的模拟会员。保持进程运行可保留当前兑换和会话。两个固定的会话条目只用于 `/manual-session/`。完整操作和成功条件见[模拟站手测与验收](../../README.zh-CN.md#模拟站手测与验收)。
+
+如果侧栏没有「连接本机手测服务」，先核对 1.4.44 已安装，并查看 **调试 → 本地开发服务** 是否已应用对应宿主。若按钮不可用，先完成原服务的待核对操作。遇到网页「会话已到期」时，从当前 7904 服务取新码走一次兑换。7904 的回执独立保存，原回执和无法确认的事务继续保留。真实 ChatGPT 和商业包月仍需单独验收。
+
 ## 当前入口与前置条件（2026-11-15）
 
 先按[项目顶部测试步骤](../../README.zh-CN.md#user-journey-current)选择场景。两个开发按钮在[同源预览的开发场景](../../preview/README.zh-CN.md#current-test-entry)；日常本地项目调试只支持隔离存储/网页信息，不能用于真实网络、Cookie 或代理验证。
@@ -86,7 +100,9 @@ node --test examples/sidebar-tools/ai-vip-share/tests/controller-lan-activation.
 
 原有两个服务器的 `/session/` 共用 `vip-session-page.mjs` 渲染。先由服务端核对完整 Cookie 对与原账本，再核验有效期、来源授权和（共享账号时）当前分配；只有全部有效才展示脱敏账号、模拟等级和到期时间。普通站的体验 VIP 不需要 AI VIP Share 会员或代理权益。无 Cookie、缺失 / 混配、到期及撤权均不展示有效 VIP；浏览器自然过期后不再发送 Cookie 时显示「未登录」，若仍发送过期完整 Cookie 对则显示「会话已到期」。
 
-页面每 5 秒只读刷新，临近已知到期时提前刷新，并提供「立即重新核验」链接；撤权结果在下一次成功核验后显示，不承诺浏览器挂起或断网时实时更新。页面不执行 JS、不读取 HttpOnly Cookie、不使用查询参数或 localStorage 判断登录，不设置 Cookie。固定 CSS 由 CSP 摘要允许，其他资源、脚本、表单和框架嵌入继续禁止，响应禁止缓存。页面及启动日志不输出 Cookie、Bearer 或交付内容。
+通过正常打开或浏览器刷新触发请求。页面展示该次访问时的状态和服务端时间，到期或撤权在下一次请求时体现。恢复登录从 AI VIP Share 侧栏发起。[手测步骤与验收标准](EXTENSION-VIP-TEST.zh-CN.md#normal-target-navigation)
+
+页面不执行 JS、不读取 HttpOnly Cookie、不使用查询参数或 localStorage 判断登录，不设置 Cookie。固定 CSS 由 CSP 摘要允许，其他资源、脚本、表单和框架嵌入继续禁止，响应禁止缓存。页面及启动日志不输出 Cookie、Bearer 或交付内容。
 
 仅查看页面时，从仓库根目录运行下列命令，使用系统分配的独立端口及新账本，**不占用或重启现有 7898 / 7901 / 7902 服务**：
 

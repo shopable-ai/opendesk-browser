@@ -52,7 +52,7 @@ test('file-only Develop preview uses the existing catalog and installed metadata
   const f=fixture(t);await settle();
   assert.equal(f.owner.canAttemptRun(),false);
   assert.equal(f.find('local-project-preview').disabled,false);
-  assert.match(f.find('local-project-status').textContent,/可打开文件工作区.*在侧栏调试/);
+  assert.match(f.find('local-project-status').textContent,/在侧栏调试.*打开文件工作区/);
   assert.deepEqual(f.find('local-project-tool').options.map(row=>row.value),['',tool.id]);
   assert.equal(f.find('local-project-tool').options[1].label,tool.title+' · v'+tool.version);
   assert.deepEqual(f.effects,[]);
@@ -180,8 +180,13 @@ test('existing React Develop fragment renders preview fields and starter guidanc
     .code.replaceAll('"react"',JSON.stringify(import.meta.resolve('react')));
   const controls=moduleURL(await compile('../../src/ui/react/tabs/develop-controls.tsx'));
   const {DevelopProvider}=await import(controls);
+  const prompt=moduleURL((await compile('../../src/ui/react/tabs/develop-ai-prompt.tsx'))
+    .replace('"./develop-controls.tsx"',JSON.stringify(controls))
+    .replace('"../../developer-ai-prompt.js"',JSON.stringify(new URL('../../src/ui/developer-ai-prompt.js',import.meta.url)))
+    .replace('"../../../i18n/strings.js"',JSON.stringify(new URL('../../src/i18n/strings.js',import.meta.url))));
   const {DevelopLocalProject}=await import(moduleURL((await compile('../../src/ui/react/tabs/develop-local.tsx'))
-    .replace('"./develop-controls.tsx"',JSON.stringify(controls))));
+    .replace('"./develop-controls.tsx"',JSON.stringify(controls))
+    .replace('"./develop-ai-prompt.tsx"',JSON.stringify(prompt))));
   const model=createDeveloperView();model.patch('local-project-tools',{hidden:false});
   try{
     const html=renderToStaticMarkup(React.createElement(DevelopProvider,{view:model},React.createElement(DevelopLocalProject)));
@@ -189,6 +194,6 @@ test('existing React Develop fragment renders preview fields and starter guidanc
     assert.match(html,/独立本地项目/);assert.match(html,/在侧栏调试 ↗/);
     assert.match(html,/保存源码关联/);assert.doesNotMatch(html,/保存显示关联/);
     assert.match(html,/关联只记住此工具要打开的目录，不证明它是正式安装包的源码，也不授予安装权限/);
-    assert.match(html,/react-starter\/README.md/);assert.match(html,/npm run build:watch/);assert.match(html,/scripts\/watch-sidebar-tool.mjs/);
+    assert.match(html,/opendesk browser project add/);assert.match(html,/opendesk browser workspace add/);
   }finally{model.dispose();}
 });

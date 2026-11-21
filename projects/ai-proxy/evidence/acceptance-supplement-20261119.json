@@ -1,0 +1,103 @@
+{
+  "browser": "Chrome/155.0.8059.39",
+  "candidate": {
+    "version": "0.3.36",
+    "packageSha256": "724a08e800508a36af376ec2e45815b1e593769bd2198a383c4b5994835e113b",
+    "installedThroughNativeLocalReview": true,
+    "appliedRevision": "af14bff22dfe7a88c9e6f297b57a5550a5893c77ac14377ae95a6f6d65f3efa1",
+    "shellSha256": "16d003c9c144bf5107d54bebeca2a4f2e58acb54164828ff5be572eb3555bf81",
+    "developmentServeConnected": false
+  },
+  "backup": [
+    {
+      "name": "B05_LEGACY_V1",
+      "at": "2026-11-19T13:04:57.440Z",
+      "previewAndCancelUnchanged": true,
+      "replacementAfterReload": true,
+      "schema": 2,
+      "selection": {
+        "mode": "system"
+      },
+      "endpointAndRuleReferencesMatch": true,
+      "nativeUnchanged": true,
+      "newRequest": "direct"
+    },
+    {
+      "name": "B05_LEGACY_V2",
+      "at": "2026-11-19T13:04:59.659Z",
+      "previewAndCancelUnchanged": true,
+      "replacementAfterReload": true,
+      "schema": 2,
+      "selection": {
+        "mode": "system"
+      },
+      "endpointAndRuleReferencesMatch": true,
+      "nativeUnchanged": true,
+      "newRequest": "direct"
+    }
+  ],
+  "coldStart": {
+    "result": "FAIL",
+    "entry": {
+      "name": "A04_COLD_CHROME_READBACK",
+      "at": "2026-11-19T13:00:28.612Z",
+      "oldPid": 59415,
+      "newPid": 59709,
+      "installed": true,
+      "knownJournalExact": true,
+      "native": "system",
+      "owner": "controllable_by_this_extension",
+      "request": "direct",
+      "autoResumed": false
+    },
+    "nativeSidePanelRecreated": true,
+    "manualRecoveryUi": "NOT_TESTED"
+  },
+  "lifecycle": [
+    {
+      "name": "A04_ACTIVE_BEFORE_DISABLE",
+      "at": "2026-11-19T13:05:01.588Z",
+      "native": "pac_script",
+      "owner": "controlled_by_this_extension",
+      "request": "socks5",
+      "approvalCount": 1
+    },
+    {
+      "name": "A04_DISABLE",
+      "at": "2026-11-19T13:05:02.535Z",
+      "installationPreserved": true,
+      "dataPreserved": true,
+      "nativeReleased": true,
+      "request": "direct"
+    },
+    {
+      "name": "A04_UNINSTALL_UNDER_COMPETING_OWNER",
+      "at": "2026-11-19T13:05:03.382Z",
+      "installationRemoved": true,
+      "dataRemoved": true,
+      "ownedJournalAndConsentRemoved": true,
+      "competingOwnerPreserved": true,
+      "request": "direct"
+    }
+  ],
+  "ownedChromeProcessesExited": true,
+  "preview": {
+    "at": "2026-11-19T13:10:41.429Z",
+    "currentSources": true,
+    "sevenRoutes": true,
+    "opaqueFrame": true,
+    "simulated": {
+      "reviews": 0,
+      "apply": 1,
+      "stop": 1,
+      "save": 3
+    },
+    "externalRequests": 0,
+    "browserStorageUnchanged": true,
+    "chromeExtensionApiAvailable": false,
+    "chromeForTesting": "155.0.8059.39",
+    "sha256": "d651d0bac0f23f203900b21c263c5f7074a48f4b0d548c60569794a61634c323",
+    "pinnedInputs": 92,
+    "targetedNodeChecksPassed": 20
+  }
+}

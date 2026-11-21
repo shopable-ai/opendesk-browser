@@ -17,14 +17,14 @@ import {REVIEWED_MANAGED_PROXY_PROFILES} from './browser-managed-proxy-profiles.
 import {APPROVED_BROWSER_DIRECT_BINDINGS} from '../../framework/sdk/browser-direct.generated.js';
 import {validateTrustedScheduleIntent,validateTrustedAppServiceScheduleIntent} from '../tasks/schedule-contract.js';
 import {createBrowserHistoryHost} from './history.js';
-import {executeBrowserToolStorage} from '../../ui/sidebar-tools/storage-state.js';
+import {executeBrowserToolStorage,etagFor} from '../../ui/sidebar-tools/storage-state.js';
 import {readAppServiceInstallation,assertAppServiceBinding,APP_SERVICE_OPERATIONS} from '../tasks/app-service-installation.js';
 import {createTrustedCookieHost} from './browser-cookie-host.js';
 import {chromeCall} from './tabs.js';
 import {SIDEBAR_TOOL_ENABLE_STORE,requireToolEnableRecords,requireToolRevocationEpochs,sidebarToolEnabled} from '../../ui/sidebar-tools/lifecycle.js';
 // Trusted Chrome MV3 context-menu driver. No third-party code executes here.
 // Listener registration is synchronous; storage and install checks are async.
-import {SIDEBAR_TOOL_STORE,SIDEBAR_TOOL_FORMAT_V2,validateSidebarToolPackage,sidebarToolPackageHash} from '../../ui/sidebar-tools/package.js';
+import {SIDEBAR_TOOL_STORE,SIDEBAR_TOOL_FORMAT_V2,validateSidebarToolPackage,sidebarToolPackageHash,sidebarToolStorageKey} from '../../ui/sidebar-tools/package.js';
 // The installer owns the revocation store. Keep the SW's menu listener small:
  // importing installation.js here would bundle the entire tool installer in SW.
 const TOOL_REVOCATION_EPOCHS_STORE='opendesk.sidebar-tools.revocation-epochs.v1';
@@ -942,6 +942,14 @@ export function createContextMenuHost({api=globalThis.chrome,logger=console,lock
         if(operation==='browser.clipboard.writeText'||operation==='browser.downloads.text')
           return {authorized:true};
         if(scopedBindings.has(operation)){
+          if(operation.startsWith('browser.proxy.managed.')&&checked.ifCurrent){
+            // The tool storage lock stays held through the native mutation.
+            const {key,etag}=checked.ifCurrent,namespace=sidebarToolStorageKey(toolId);
+            const saved=(await api.storage.local.get(namespace))[namespace]??{};
+            if(!saved||typeof saved!=='object'||Array.isArray(saved)||
+               await etagFor(Object.hasOwn(saved,key)?saved[key]:null)!==etag)
+              throw failure('E_CONFLICT','Saved route changed; reconnect from the latest configuration');
+          }
           if(operation==='browser.proxy.managed.requestEnable'){
             if(intent.proxyGrantId)await requireProxyConsent(context,checked.config,intent.proxyGrantId);
             proxyConfigApprovals.set(context,{config:canonicalJSON(validateManagedProxyConfig(checked.config)),

@@ -74,20 +74,12 @@
   :scope .managementConnectionBar .textAction { margin-left:auto; font-size:11px; }
   :scope .managementFeedback { margin:0 12px 0 auto; color:var(--good); font-size:12px; }
   :scope .managementNav button { font-weight:500; }
-  :scope .optionsModeBar .settingsRuntimeStatus { display:none; }
   :scope .options .optionsModeBar { gap:12px; padding:20px; border:1px solid var(--line); border-radius:11px; background:var(--surface); }
-  :scope .options .modeSelectionRow { display:flex; flex-wrap:wrap; align-items:center; justify-content:space-between; gap:10px 16px; margin-top:4px; padding-top:11px; border-top:1px solid var(--line); }
-  :scope .managementRouteSummary { margin:0; font-size:11.5px; flex:1; }
-  :scope .options .modeActions > .primary { order:1; }
+  :scope .options .modeSelectionRow:empty { display:none; }
   :scope .proxyProtocolBadge { display:grid; place-items:center; width:34px; height:34px; border-radius:8px; background:var(--soft); color:var(--muted); }
   :scope .optionsProfileSelect { display:flex; flex:1; align-items:center; flex-wrap:wrap; gap:8px; }
   :scope .optionsProfileSelect label { flex:none; font-size:12px; }
   :scope .optionsProfileSelect select { flex:1; min-width:160px; max-width:360px; }
-  :scope .options .modeActions { display:flex; flex:none; align-items:center; flex-wrap:wrap; gap:8px; padding:0; border:0; }
-  :scope .options .modeActions button { min-height:30px; padding:5px 9px; font-size:11px; }
-  :scope .options .modeActions small { display:none; }
-  :scope .options .managementModeCaveat { margin-left:12px; color:var(--muted); font-size:11px; font-weight:400; }
-  :scope .options .runtimeDetails { margin:0; }
   /* R16 business workbench: presentation only. The existing Service owns all
    * saved selection, confirmed application, deletion and ETag semantics. */
   :scope .managementNavLabel {
@@ -229,10 +221,10 @@
     background:light-dark(#f6f9ff,var(--accentFill)); border-color:light-dark(#bdcce8,var(--control-line));
   }
   :scope .options .optionsPageHead .panelHeadActions > .primary,
-  :scope .options .modeActions > .primary {
+  :scope .options .connectionControls > .primary {
     background:light-dark(#365dd5,var(--primaryFill)); border-color:light-dark(#365dd5,var(--primaryFill)); color:var(--primaryText); border-radius:8px;
   }
-  :scope .options :is(.optionsPageHead .panelHeadActions > .primary,.modeActions > .primary):hover:not(:disabled) {
+  :scope .options :is(.optionsPageHead .panelHeadActions > .primary,.connectionControls > .primary):hover:not(:disabled) {
     background:light-dark(#2f50b7,var(--primaryFill)); border-color:light-dark(#2f50b7,var(--primaryFill)); color:var(--primaryText);
   }
   :scope .options :is(.optionsModeBar,.listSection,.rulesList,.rulesDefault,.backupCard,.generalInfoCard) {
@@ -243,8 +235,8 @@
     display:block; container-type:inline-size; border-top:1px solid var(--line);
   }
   :scope .options .profileRecords .proxyRecord {
-    position:relative; grid-template-columns:34px minmax(0,1fr);
-    gap:13px; min-height:66px; padding:11px 168px 11px 9px;
+    grid-template-columns:34px minmax(0,1fr) auto;
+    gap:13px; min-height:66px; padding:11px 9px;
   }
   :scope .options .profileRecords .proxyRecord .proxyRecordMain { min-width:0; overflow:hidden; }
   :scope .options .profileRecords .proxyRecord .proxyRecordText { min-width:0; }
@@ -254,7 +246,6 @@
     text-overflow:ellipsis; overflow-wrap:normal;
   }
   :scope .options .profileRecords .proxyRecord .recordActions {
-    position:absolute; right:8px; top:50%; transform:translateY(-50%);
     display:flex; align-items:center; justify-content:flex-end; flex-wrap:nowrap;
     gap:4px; padding:4px; border:1px solid var(--line); border-radius:9px;
     background:var(--surface); opacity:1; visibility:visible; pointer-events:auto;
@@ -396,7 +387,7 @@
       padding:10px 9px; gap:8px 10px;
     }
     :scope .options .profileRecords .proxyRecord .recordActions {
-      position:static; grid-column:2; grid-row:2; transform:none;
+      grid-column:2; grid-row:2;
       justify-self:start; width:max-content; max-width:100%;
     }
   }
@@ -404,13 +395,17 @@
     :scope .options .profileRecords .recordActions > button,
     :scope .options .profileRecords .proxySelect { width:36px; height:36px; min-height:36px; min-width:36px; }
   }
+  :scope .options .profileRecords .proxyRecord .recordActions > .connectionUse {
+    display:inline-flex; width:auto; padding-inline:8px; white-space:nowrap;
+    border-color:var(--line); color:var(--accent);
+  }
 
   @media(max-width:840px) and (min-width:721px) {
     :scope .options .layout { grid-template-columns:175px minmax(0,1fr); }
     :scope .options .panel.optionsContent { padding:24px 20px; }
   }
   @media(max-width:840px) {
-    :scope .options .optionsModeGrid { grid-template-columns:repeat(2,minmax(0,1fr)); }
+    :scope .options .optionsModeGrid { grid-template-columns:repeat(4,minmax(0,1fr)); }
   }
   @media(max-width:720px) {
     :scope .options .layout { grid-template-columns:152px minmax(0,1fr); }

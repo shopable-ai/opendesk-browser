@@ -48,9 +48,10 @@ function fixture({currentPage=async()=>({status:'available',url:site})}={}){
       operation==='cookieEditor.clear.begin'?{authorized:true,ref:1}:
       operation==='cookieEditor.export.finish'||operation==='cookieEditor.clear.finish'?
         {closed:true}:currentPage()});
-  const snapshots=[];
-  const controller=createCookieController({adapter,onChange:s=>snapshots.push(s)});
-  return {browser,cookies,adapter,controller,calls,snapshots,
+  const snapshots=[],notices=[];
+  const controller=createCookieController({adapter,onChange:s=>snapshots.push(s),
+    onSuccess:message=>notices.push(message)});
+  return {browser,cookies,adapter,controller,calls,snapshots,notices,
     rows:()=>copy(rows),replaceRows:value=>{rows=copy(value)},
     grant:value=>{allow=value}};
 }
@@ -343,7 +344,7 @@ test('clear scope changes replace the plan used for the confirmed operation',asy
   f.controller.dispose();
 });
 test('clear distinguishes incomplete receipts from cookies recreated after removal',async()=>{
-  for(const [removed,remaining,expected,type] of [[0,0,false,'error'],[1,1,true,'info']]){
+  for(const [removed,remaining,expected,type] of [[0,0,false,'error'],[1,1,true,'success']]){
     const f=fixture();await f.controller.load();
     f.cookies.clearSite=async opts=>opts.preview?
       {matched:1,excluded:0,scope:'SITE_EXACT_HOST',previewRef:'12345678-1234-1234-1234-123456789abc'}:
@@ -351,6 +352,28 @@ test('clear distinguishes incomplete receipts from cookies recreated after remov
     await f.controller.previewClear();
     assert.equal(await f.controller.executeClear(),expected);
     assert.equal(f.controller.snapshot().messageType,type);
+    assert.deepEqual(f.notices,expected?['已清理 1 条，当前范围剩余 1 条。']:[]);
+    f.controller.dispose();
+  }
+});
+test('cleanup distinguishes a stale preview or revoked grant from an uncertain native result',async()=>{
+  for(const [code,phase,text] of [
+    ['E_COOKIE_STALE','ready',/清理尚未执行.*E_COOKIE_STALE/],
+    ['E_GRANT_REVOKED','blocked',/授权.*失效/],
+    ['E_OUTCOME_UNKNOWN','ready',/清理可能部分生效.*勿自动重试/]
+  ]){
+    const f=fixture();await f.controller.load();
+    let attempts=0;
+    f.adapter.clearExecute=async()=>{
+      attempts++;
+      throw Object.assign(Error(code),{code});
+    };
+    await f.controller.previewClear();
+    assert.equal(await f.controller.executeClear(),false);
+    assert.equal(f.controller.snapshot().phase,phase);
+    assert.match(f.controller.snapshot().message,text);
+    assert.deepEqual(f.notices,[]);
+    assert.equal(attempts,1);
     f.controller.dispose();
   }
 });

@@ -38,6 +38,16 @@ test('technical metadata uses only actual identities and never invents source ma
   assert.match(unresolvedTaskRunMessage(),/不要直接重复执行/);
 });
 
+test('cloud cancellation directs users to original request facts without suggesting a task repair or replay', () => {
+  const error = formatTaskError({code:'E_CLOUD_CANCELLED',message:'Controller fenced; token=private-cancel'});
+  assert.match(error, /^E_CLOUD_CANCELLED：Controller fenced/);
+  assert.match(error, /云控 → 请求记录/);
+  assert.match(error, /分别核对原请求、回执确认和资源释放/);
+  assert.match(error, /不会回滚.*不要直接重复执行/);
+  assert.doesNotMatch(error, /private-cancel|检查当前网页和任务配置|资源已释放|回执已确认/);
+  assert.match(formatTaskError({code:'E_CANCELLED'}), /已收到停止或取消信号/);
+});
+
 test('multi-value credentials in free-text diagnostics are fully redacted', () => {
   const error = formatTaskError({code:'E_TIMEOUT',message:
     'Cookie: session_id=first-secret; csrftoken=second-secret\nAuthorization: Basic basic-secret'});

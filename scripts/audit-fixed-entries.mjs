@@ -138,7 +138,7 @@ export function summarizePackageResources(receipt,measuredFiles) {
     const budget=generated?.budgetBytes??(privateCompiler?PAGE_BROWSER_COMPILER_RESOURCE_LIMIT:
       kind==='raw-vendor-js'?RESOURCE_LIMITS.vendorBytes:
       kind==='raw-runtime-js'?(frameworkPaths.has(file.path)?PAGE_FRAMEWORK_RESOURCE_LIMIT:BUILD_POLICY.productionBytes):kind==='license'?(fixedLicense?.bytes??RESOURCE_LIMITS.licenseBytes):
-      ['libs/manifest.json','framework/sdk-resources.json'].includes(file.path)?RESOURCE_LIMITS.manifestBytes:null);
+      [BUILTIN_CATALOG.resourceManifest,'framework/sdk-resources.json'].includes(file.path)?RESOURCE_LIMITS.manifestBytes:null);
     if(budget!==null&&file.bytes>budget)throw Error('Package resource exceeds byte budget: '+file.path);
     const ratio=budget===null?null:file.bytes/budget;
     return {...file,kind,budgetBytes:budget,remainingBytes:budget===null?null:budget-file.bytes,

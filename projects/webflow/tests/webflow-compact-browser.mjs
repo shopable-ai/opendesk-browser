@@ -322,9 +322,9 @@ try{
     await key('Escape','Escape',27);
     await eventually('!document.querySelector("#wf-filter-options")','Escape closes filter');
     await expectFocus('#wf-filter-toggle');
-    // Native Tab reaches refresh; titles alone are not ARIA tooltips.
+    // Native Tab reaches Add; refresh remains in the filter popover.
     await key('Tab','Tab',9);
-    await expectFocus('button[aria-label="刷新脚本安装状态"]');
+    await expectFocus('#wf-add-script');
     tooltipEvidence.push({width,...await evaluate(`(()=>{const e=document.activeElement;
       return {title:e.title,describedBy:e.getAttribute('aria-describedby'),
         tooltipCount:document.querySelectorAll('[role=tooltip]').length}})()`)});
@@ -446,8 +446,9 @@ try{
   for(const width of [320,360,400]){
     await cdp('Emulation.setDeviceMetricsOverride',{width,height:850,deviceScaleFactor:1,mobile:false});
     await click('[data-page="scripts"]');
-    await click('button[aria-label="刷新脚本安装状态"]');
-    await eventually(`document.querySelectorAll(${JSON.stringify('.wf-row-error[role=status]')}).length===2&&!document.querySelector(${JSON.stringify('button[aria-label="刷新脚本安装状态"]')}).disabled`,'permission errors visible');
+    await click('#wf-filter-toggle');
+    await click('#wf-filter-options button:last-child');
+    await eventually('document.querySelectorAll(".wf-row-error[role=status]").length===2','permission errors visible');
     assert.equal(await evaluate('document.querySelectorAll(".wf-task-row .wf-primary:disabled").length'),2);
     await assertLayout(width,'Permission errors');
     await screenshot('errors-'+width);

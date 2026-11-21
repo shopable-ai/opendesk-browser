@@ -51,11 +51,17 @@
       <section class="surface stack" aria-labelledby="task-title">
         <div class="toolbar spread">
           <h2 id="task-title">发送表单任务</h2>
-          <button id="catalog-refresh" type="button">刷新设备</button>
+          <button id="catalog-refresh" type="button" aria-describedby="catalog-hint">刷新设备</button>
         </div>
+        <p id="catalog-hint" class="muted">刷新只读取当前业务账号的设备，不会自动配对或绑定。设备昵称仅作备注（可能是旧文本），不能用于判断真实配对；READY 仅为目录报告的就绪状态。</p>
         <p id="task-label">目录尚未读取。</p>
+        <div class="stack" aria-labelledby="device-directory-title">
+          <h3 id="device-directory-title">本人设备</h3>
+          <p id="device-directory-status" class="muted" role="status" tabindex="-1">目录尚未读取。</p>
+          <ul id="device-directory" class="history stack"></ul>
+        </div>
         <label>执行设备<select id="device" aria-describedby="device-status" disabled><option value="">请选择设备</option></select></label>
-        <p id="device-status" class="muted" role="status">请选择设备。只有 READY 设备可以提交。</p>
+        <p id="device-status" class="muted" role="status">设备目录尚未读取；尚未新建请求，不能提交。</p>
 
         <div class="toolbar"><button id="new-request" type="button">新建请求</button></div>
         <p>当前请求键：<code id="request-key">尚未新建</code></p>
@@ -121,6 +127,16 @@
         <ul id="history" class="history stack"></ul>
       </section>
     </div>
+    <template id="custody-template">
+      <section class="stack custody-detail" aria-labelledby="custody-title" hidden>
+        <div class="toolbar spread">
+          <h3 id="custody-title" tabindex="-1"></h3>
+          <button class="custody-close" type="button">关闭详情</button>
+        </div>
+        <dl class="facts"></dl>
+        <p class="muted">在关联的 Chrome 打开 OpenDesk 侧栏 → 云控。通过「连接设置与解除配对」和「运行环境与历史统计」核对连接、托管及执行端，再到「允许远程调用的任务」核对任务、站点权限和执行条件。业务设备的关联由维护者核对。</p>
+      </section>
+    </template>
   </main>
 </body>
 </html>

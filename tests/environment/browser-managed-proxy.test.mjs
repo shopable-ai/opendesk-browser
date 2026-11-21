@@ -153,6 +153,32 @@ test('unknown ENABLE acknowledgement is durably fenced, never repeated, and can 
   assert.equal((await f.driver.requestDisable({},owner())).state,'disabled');
   assert.equal(f.calls.clear.length,1);
 });
+test('unknown guarded switch allows explicit STOP of either exact route without retrying',async()=>{
+  const direct={...REVIEWED_FIXTURE_PROFILE,config:{mode:'direct'}};
+  for(const chromeApplied of [false,true]){
+    const f=fixture({reviewedProfiles:[REVIEWED_FIXTURE_PROFILE,direct]});
+    const active=await f.driver.requestEnable(input,owner());
+    const previous=f.native();
+    let attempts=0;
+    const set=f.api.proxy.settings.set;
+    f.api.proxy.settings.set=async row=>{
+      attempts++;
+      if(chromeApplied)await set(row);
+      throw Error('native set outcome uncertain');
+    };
+    const next={config:direct.config,ifCurrent:{activeConfig:active.activeConfig}};
+    await assert.rejects(f.driver.requestEnable(next,owner()),code('E_OUTCOME_UNKNOWN'));
+    assert.equal(f.calls.clear.length,0);
+    if(!chromeApplied)assert.deepEqual(f.native(),previous);
+    const status=await f.driver.getStatus({},owner());
+    assert.equal(status.state,'unavailable');
+    assert.equal(status.canStop,true);
+    await assert.rejects(f.driver.requestEnable(next,owner()),code('E_CONFLICT'));
+    assert.equal(attempts,1);
+    assert.equal((await f.driver.requestDisable({},owner())).state,'disabled');
+    assert.equal(f.calls.clear.length,1);
+  }
+});
 test('STOP writes intent before Chrome effect, and a worker wake completes a previously failed STOP',async()=>{
   const f=fixture();
   await f.driver.requestEnable(input,owner());

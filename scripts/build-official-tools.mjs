@@ -6,7 +6,7 @@ import {fileURLToPath,pathToFileURL} from 'node:url';
 import {createHash,randomUUID} from 'node:crypto';
 import {parse} from 'acorn';
 import {createSidebarToolPackage,encodeSidebarToolPackage} from './build-sidebar-tool.mjs';
-import {validateSidebarToolPackage} from '../src/ui/sidebar-tools/package.js';
+import {validateSidebarToolPackage,pickSidebarToolAboutFields} from '../src/ui/sidebar-tools/package.js';
 import {inspectSidebarToolProject} from './stage-sidebar-tool.mjs';
 import {validateOfficialSourceCatalog,validateOfficialReleaseCatalog,OFFICIAL_RELEASE_SCHEMA,
   OFFICIAL_CATALOG_PATH,officialPackagePath,officialSourceProjectPath} from '../src/sidebar-tools/official-catalog.js';
@@ -115,6 +115,7 @@ export async function createOfficialToolResources({root=REPOSITORY_ROOT}={}){
     resources.set(packagePath,bytes);
     apps.push({id:'opendesk/'+tool.id,toolId:tool.id,kind:row.kind,installationPolicy:row.installationPolicy,
       version:tool.version,packageTitle:tool.title,description:tool.description,
+      ...pickSidebarToolAboutFields(tool),
       capabilities:tool.capabilities,packagePath,bytes:bytes.length,sha256:digest(bytes)});
   }
   const after=await fingerprint(root);

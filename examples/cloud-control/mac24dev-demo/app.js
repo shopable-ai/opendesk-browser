@@ -26,6 +26,7 @@
   let epoch = 0;
   let busy = "";
   let catalog = null;
+  let catalogRead = "unread";
   let current = null;
   let pendingChoice = null;
 
@@ -91,6 +92,7 @@
     user = null;
     busy = "";
     catalog = null;
+    catalogRead = "unread";
     current = null;
     pendingChoice = null;
     $("login-form").reset();
@@ -101,6 +103,7 @@
     text("history-note", "尚未读取。");
     text("task-label", "目录尚未读取。");
     text("catalog-details", "尚未读取。");
+    clearDeviceDirectory("目录尚未读取。");
     text("person", "");
     $("cancel-confirm").hidden = true;
     $("switch-confirm").hidden = true;
@@ -174,7 +177,14 @@
       if (["E_AUTH", "E_SCOPE", "E_DEVICE", "E_BINDING_CHANGED", "E_CONFIG"].includes(error.businessCode)) {
         if (current) current.row = null;
         catalog = null;
+        clearDeviceDirectory("授权或关联待核对，请刷新设备。");
         clearHistory("当前授权或绑定未能确认，旧记录已隐藏；恢复后可重新读取。");
+      }
+      if (kind === "catalog") {
+        catalogRead = "failed";
+        text("task-label", "设备目录读取失败，暂不能提交。");
+        text("catalog-details", "读取失败，未保留旧目录。");
+        clearDeviceDirectory("设备目录读取失败，请刷新后核对。");
       }
       let message = businessMessage(error.businessCode) || messages[error.kind] || "操作未完成。";
       if ((kind === "submit" && current?.sent) || kind === "cancel") {
@@ -277,6 +287,7 @@
       ? "此键已按当前账号保存在本地，尚未提交。"
       : current.saved === false ? "当前查询键仅在本页，请复制保留；刷新后可从历史或手工输入恢复。"
       : "此键已锁定为原请求；刷新后重新登录可恢复查询，不会重新提交。");
+    if (current?.sent) text("request-hint", `${$("request-hint").textContent} 设备和姓名已锁定，只查询原键，不可再次提交此请求。`);
     const row = current?.row;
     const [description, tone] = stateInfo(row);
     text("state", !current ? "尚未新建" : draft ? "尚未提交" : row?.state || "UNKNOWN");
@@ -290,16 +301,26 @@
   }
 
   function renderDevice() {
-    if (!catalog) { text("device-status", "设备目录尚未确认，请刷新设备。当前无法提交。"); return; }
-    if (!catalogMatches()) { text("device-status", "固定任务的来源或参数约定不一致，无法提交。请维护者核对目录。"); return; }
     const device = selectedDevice();
     const descriptions = {
       NOT_CONNECTED: "设备未连接，请先在扩展端连接。",
       NOT_AUTHORIZED: "设备未授权，请在扩展端完成任务托管授权。",
-      READY: "设备就绪，可以明确提交一次。",
+      READY: "目录报告设备就绪。",
       UNKNOWN: "就绪情况未知，暂不能提交。",
     };
-    text("device-status", device ? `${device.readiness} · ${businessMessage(device.message) || descriptions[device.readiness] || descriptions.UNKNOWN}` : "请选择设备。只有 READY 设备可以提交。");
+    const deviceStatus = !catalog
+      ? catalogRead === "loading" ? "正在读取当前业务账号的设备。"
+        : catalogRead === "failed" ? "设备目录读取失败，请刷新后核对。"
+        : "设备目录尚未读取或已失效，请刷新后核对。"
+      : !catalogMatches() ? "固定任务的来源或参数约定不一致，无法提交。请维护者核对目录。"
+      : !catalog.devices.length ? "当前业务账号的设备目录为空。"
+      : device ? `${device.readiness} · ${businessMessage(device.message) || descriptions[device.readiness] || descriptions.UNKNOWN}`
+      : "请选择当前业务账号的设备。";
+    const requestStatus = current?.sent ? "设备和姓名已锁定，只查询原键，不可再次提交此请求。"
+      : !current ? "尚未新建请求，不能提交。"
+      : !$("submit").disabled ? "可以明确提交一次。"
+      : "尚未满足提交条件，请核对设备、固定任务和姓名。";
+    text("device-status", `${requestStatus} ${deviceStatus}`);
   }
 
   function validName() {
@@ -308,28 +329,152 @@
     return length >= 1 && length <= 40;
   }
 
+  function clearDeviceDirectory(message) {
+    const list = $("device-directory");
+    const hadFocus = list.contains(document.activeElement);
+    list.replaceChildren();
+    text("device-directory-status", message);
+    if (hadFocus && user) $("device-directory-status").focus();
+  }
+
+  function custodyFacts(device) {
+    const detail = device.detail;
+    if (!detail || !["bound", "unbound", "unknown"].includes(detail.bindingState)) {
+      return [["目录状态", "关联详情未提供。请刷新或请维护者核对业务目录来源。"],
+        ["本机准入", "待确认"]];
+    }
+    const labels = {
+      BOUND: "已关联，委托范围已核对", UNBOUND: "尚未关联执行端",
+      CONFIG_UNAVAILABLE: "关联配置读取失败", SCOPE_UNVERIFIED: "已有关联记录，当前委托范围未能确认",
+    };
+    const verified = detail.bindingState === "bound" && detail.bindingReason === "BOUND" &&
+      detail.source === "provider-client-scope";
+    const facts = [
+      ["关联", Object.hasOwn(labels, detail.bindingReason) ? labels[detail.bindingReason] : "待确认"],
+      ["执行 Chrome", verified && typeof detail.executorSuffix === "string" && /^[0-9a-f]{4}$/.test(detail.executorSuffix)
+        ? `Chrome · Executor 尾号 ${detail.executorSuffix}` : "待核对"],
+    ];
+    if (verified && Array.isArray(detail.tasks)) {
+      for (const task of detail.tasks) {
+        if (!task || typeof task.taskId !== "string" || typeof task.version !== "string" ||
+            !/^[a-z0-9][a-z0-9._-]{0,79}$/.test(task.taskId) ||
+            !/^\d+\.\d+\.\d+$/.test(task.version) || !Array.isArray(task.siteOrigins)) continue;
+        facts.push(["获准任务", `${task.taskId}@${task.version}`]);
+        facts.push(["精确站点", task.siteOrigins.filter(origin => {
+          if (typeof origin !== "string") return false;
+          try {
+            const url = new URL(origin);
+            return ["https:", "http:"].includes(url.protocol) && url.origin === origin;
+          } catch { return false; }
+        }).join("、") || "待确认"]);
+        facts.push(["任务结果", task.resultAccess === "status-only" ? "仅状态与回执，正文不回传" : "正文范围待确认"]);
+      }
+    }
+    let connection = "连接状态待确认";
+    if (verified) {
+      if (detail.transport === "none") {
+        if (device.readiness === "NOT_AUTHORIZED" && detail.readinessReason === "PAUSED") connection = "已暂停";
+        if (device.readiness === "NOT_CONNECTED" && detail.readinessReason === "OFFLINE") connection = "未连接";
+      }
+      if (device.readiness === "READY" && detail.readinessReason === "CONNECTED") {
+        if (detail.transport === "wss") connection = "已连接 · WSS";
+        if (detail.transport === "https-pull") connection = "已连接 · HTTPS Pull";
+      }
+      connection += "（Provider 委托范围）";
+    }
+    facts.push(["连接", connection]);
+    facts.push(["本机准入", "待确认。请核对 Chrome 中的任务安装、网站权限、托管、对账及执行槽。"]);
+    if (typeof detail.checkedAt === "string" && /^\d{4}-\d\d-\d\dT\d\d:\d\d:\d\d\.\d{3}Z$/.test(detail.checkedAt)) {
+      facts.push(["核对时间", detail.checkedAt]);
+    }
+    return facts;
+  }
+
+  function renderDeviceDirectory(devices) {
+    clearDeviceDirectory(devices.length ? "" : "当前业务账号没有设备。");
+    const list = $("device-directory");
+    let closeOpen = null;
+    for (const device of devices) {
+      const row = document.createElement("li");
+      const heading = document.createElement("div");
+      heading.className = "toolbar spread";
+      const name = document.createElement("span");
+      name.textContent = safeValue(`#${device.id} · ${device.nickname || "未命名设备"}（备注）`);
+      const trigger = document.createElement("button");
+      trigger.type = "button";
+      trigger.textContent = "查看托管详情";
+      trigger.setAttribute("aria-label", `查看设备 #${device.id} 的托管详情`);
+      const panel = $("custody-template").content.firstElementChild.cloneNode(true);
+      panel.id = `custody-${device.id}`;
+      trigger.setAttribute("aria-controls", panel.id);
+      trigger.setAttribute("aria-expanded", "false");
+      const title = panel.querySelector("h3");
+      title.id = `custody-title-${device.id}`;
+      title.textContent = `设备 #${device.id} · 托管详情`;
+      panel.setAttribute("aria-labelledby", title.id);
+      const close = (returnFocus) => {
+        panel.hidden = true;
+        panel.querySelector("dl").replaceChildren();
+        trigger.setAttribute("aria-expanded", "false");
+        closeOpen = null;
+        if (returnFocus) trigger.focus();
+      };
+      trigger.addEventListener("click", () => {
+        if (!panel.hidden) { close(true); return; }
+        closeOpen?.(false);
+        const facts = panel.querySelector("dl");
+        for (const [label, value] of custodyFacts(device)) {
+          const dt = document.createElement("dt");
+          const dd = document.createElement("dd");
+          dt.textContent = label;
+          dd.textContent = safeValue(value);
+          facts.append(dt, dd);
+        }
+        panel.hidden = false;
+        trigger.setAttribute("aria-expanded", "true");
+        closeOpen = close;
+        title.focus();
+      });
+      panel.querySelector(".custody-close").addEventListener("click", () => close(true));
+      panel.addEventListener("keydown", event => {
+        if (event.key === "Escape") { event.preventDefault(); close(true); }
+      });
+      heading.append(name, trigger);
+      row.append(heading, panel);
+      list.append(row);
+    }
+  }
+
   async function loadCatalog() {
+    const started = epoch;
     catalog = null; // A failed refresh must not leave a stale READY gate open.
+    catalogRead = "loading";
+    clearDeviceDirectory("正在读取本人设备。");
+    render();
     text("task-label", "正在读取目录；读取失败时不能提交。");
     text("catalog-details", "正在读取。");
     const data = await api(`${API_ROOT}catalog`, {});
+    if (started !== epoch) throw failure("stale");
     if (!data?.task || !Array.isArray(data.devices) || typeof data.providerId !== "string" ||
         typeof data.task.manifestHash !== "string" || typeof data.task.sourceHash !== "string" ||
-        !data.task.paramsSchema || data.devices.some((device) => !Number.isSafeInteger(device.id) || typeof device.readiness !== "string")) {
+        !data.task.paramsSchema || data.devices.some((device) => !Number.isSafeInteger(device?.id) || device.id <= 0 ||
+          typeof device.readiness !== "string") || new Set(data.devices.map(device => device.id)).size !== data.devices.length) {
       throw failure("contract");
     }
     catalog = data;
+    catalogRead = "ready";
     if (current?.deviceId && (!catalogMatches() || !data.devices.some((device) =>
       device.id === current.deviceId && device.readiness !== "NOT_AUTHORIZED"))) {
       current.row = null;
       clearHistory("原请求的设备或授权已变化，旧记录已隐藏；请核对后按原键查询。");
     }
-    const previous = $("device").value;
+    const previous = current?.sent && current.deviceId ? String(current.deviceId) : $("device").value;
     $("device").replaceChildren(new Option("请选择设备", ""));
     for (const device of data.devices) {
       $("device").add(new Option(String(safeValue(`${device.nickname || "未命名设备"} (#${device.id}) · ${device.readiness}`)), String(device.id)));
     }
     $("device").value = data.devices.some((device) => String(device.id) === previous) ? previous : "";
+    renderDeviceDirectory(data.devices);
     text("task-label", `${data.task.title || "表单任务"} · ${data.task.taskId}@${data.task.version}`);
     details("catalog-details", {
       providerId: data.providerId, taskId: data.task.taskId, version: data.task.version,
@@ -394,6 +539,7 @@
     event.preventDefault();
     if (busy) return;
     const credentials = { username: $("username").value.trim(), password: $("password").value };
+    const started = epoch;
     $("password").value = "";
     void action("login", async () => {
       let data;
@@ -411,7 +557,7 @@
         $("lookup-key").value = key;
       }
       notice(key ? "已登录并恢复原请求键。请查询原请求确认状态。" : "已登录。请先选择设备，再新建请求。");
-    }).then(() => { if (user && jwt) void action("catalog", loadCatalog); });
+    }).then(() => { if (started === epoch && user && jwt) void action("catalog", loadCatalog); });
   });
 
   $("logout").addEventListener("click", () => logout());

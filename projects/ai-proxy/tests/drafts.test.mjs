@@ -372,7 +372,7 @@ test('Settings atomic proxy commit refusal retains the original draft without a 
   }}]);assert.equal(env.isDraftDirty('settings-proxy'),true);
  }finally{env.dispose();}
 });
-test('QuickPanel local-client failed final selection retains the completed local draft for review',async()=>{
+test('QuickPanel local-client save refusal retains inputs and never tries to switch',async()=>{
  const {env}=fixture();
  try{
   env.setDraftDirty(true,'quick-local');const calls=[];
@@ -380,11 +380,11 @@ test('QuickPanel local-client failed final selection retains the completed local
    getEnvironment:()=>env,addKind:'local',entryBusy:false,savingRef:{current:false},
    local:{name:'draft',scheme:'http',port:'7890'},t:key=>key,
    isValidProxyPort:()=>true,crypto:{randomUUID:()=> 'new'},setAddedAnother(){},setSaving(){},setEntryFocusRequest(){},
-   act:async m=>{calls.push(m.type);return m.type!=='SELECT';},
+   act:async m=>{calls.push(m.type);return false;},
    setLocal:()=>assert.fail('partial save reset inputs'),closeAdd:()=>assert.fail('partial save closed editor')
   });
   await save({preventDefault(){},nativeEvent:{}});
-  assert.deepEqual(calls,['SAVE_LOCAL_CLIENT','SELECT']);assert.equal(env.isDraftDirty('quick-local'),true);
+  assert.deepEqual(calls,['SAVE_LOCAL_CLIENT']);assert.equal(env.isDraftDirty('quick-local'),true);
  }finally{env.dispose();}
 });
 test('PAC save acknowledges only its form and does not release a rotation draft',async()=>{
@@ -547,12 +547,12 @@ test('late local-client completion retains newer local input and sibling drafts 
     getEnvironment:()=>env,addKind:'local',entryBusy:false,savingRef:saving,
     local:{name:'Local',scheme:'http',port:'7890'},t:key=>key,isValidProxyPort:()=>true,crypto:{randomUUID:()=> 'local'},
     setAddedAnother(){},setSaving(){},setEntryFocusRequest(){},
-    act:async message=>{calls.push(message.type);if(keepAdding||message.type==='SELECT')env.setDraftDirty(true,'quick-local');return true;},
+    act:async message=>{calls.push(message.type);env.setDraftDirty(true,'quick-local');return true;},
     setLocal:()=>assert.fail('late save reset newer local inputs'),setNameExpanded:()=>assert.fail('late save changed the editor'),
     closeAdd:()=>assert.fail('late save closed newer local inputs'),setSavedHint:()=>assert.fail('late save announced newer input saved')
    });
    await save({preventDefault(){},nativeEvent:{submitter:{getAttribute:()=>String(keepAdding)}}});
-   assert.deepEqual(calls,keepAdding?['SAVE_LOCAL_CLIENT']:['SAVE_LOCAL_CLIENT','SELECT']);
+   assert.deepEqual(calls,['SAVE_LOCAL_CLIENT']);
    assert.equal(env.isDraftDirty('quick-local'),true);assert.equal(env.isDraftDirty('settings-proxy'),true);
    assert.equal(saving.current,false);
   }finally{env.dispose();}

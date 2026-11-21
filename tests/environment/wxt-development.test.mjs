@@ -117,7 +117,7 @@ test('fixed script safe reload persists the compiled revision before restarting 
   f.worker.dispose();
 });
 test('SDK MAIN, relay and built-in manifest changes are extension updates, not CSS hot swaps',()=>{
-  const previous={files:{'framework/sdk-main.js':'old','agents/page-relay.js':'old','libs/manifest.json':'old'}};
+  const previous={files:{'framework/sdk-main.js':'old','agents/page-relay.js':'old','libs/builtin-resources.json':'old'}};
   for(const file of Object.keys(previous.files)){
     const next={files:{...previous.files,[file]:'new'}};
     const changes=developmentChanges(previous,next);
@@ -135,7 +135,7 @@ test('official package data keeps the live Native preview while trusted or unkno
     await until(()=>f.messages.some(message=>message.type==='revision'&&message.revision===revision(3)));
     assert.equal(f.reloads,0);assert.equal(f.messages.some(message=>message.type==='prepare'),false);
     for(const file of ['official-tools/prompt-shortcuts/trusted.js',
-      'official-tools/prompt-shortcuts/other.opendesk-tool.json','libs/manifest.json','sw.js']){
+      'official-tools/prompt-shortcuts/other.opendesk-tool.json','libs/builtin-resources.json','sw.js']){
       assert.equal(developmentChanges({files:{}},{files:{[file]:'new'}}).extension,true,file);
     }
     f.change('sw.js','trusted-change');await until(()=>f.reloads===1);
@@ -362,4 +362,40 @@ test('an unanswered preparation leaves an interactive retry gap and still requir
     assert.equal(attempts.length,2);assert.notEqual(attempts[1].token,first.token);
     assert.equal((await f.api.storage.session.get())['opendesk.development.applied.v1'].revision,revision(2));
   }finally{f.worker.dispose();}
+});
+
+for(const phase of ['host acknowledgement','candidate revision write'])test('a Page bootstrap during '+phase+' keeps its original worker until settled',async()=>{
+  const f=workerFixture({retryDelayMs:150});
+  const baseline='opendesk.development.applied.v1';
+  const save=f.api.storage.session.set;
+  let release,waiting=false,intercepted=false;
+  const pause=()=>{waiting=true;return new Promise(resolve=>{release=resolve;});};
+  const post=f.port.postMessage.bind(f.port);
+  if(phase==='host acknowledgement')f.port.postMessage=message=>{
+    if(message.type==='prepare'&&!intercepted){
+      intercepted=true;f.messages.push(message);
+      void pause().then(()=>f.port.onMessage.emit({type:'ready',token:message.token,ready:true}));
+    }else post(message);
+  };
+  else f.api.storage.session.set=async values=>{
+    if(!intercepted&&values[baseline]?.revision===revision(2)){intercepted=true;await pause();}
+    await save(values);
+  };
+  try{
+    await f.connect();f.start();await until(()=>f.reads>1);
+    f.change('sw.js','new');await until(()=>waiting);
+    assert.equal(f.worker.held,true);
+    // The old guard refused the one-shot Chrome bootstrap and could retire
+    // its context before its next send. The real listener now accepts it and
+    // keeps the original sender in flight through the usual Foundation path.
+    const admitted=f.worker.tryStartPageBootstrap();
+    f.setIdle(false);release();
+    assert.equal(admitted,true,'Chrome must not have to resend the original bootstrap');
+    await until(()=>f.messages.some(message=>message.type==='abort'));
+    assert.equal(f.reloads,0);
+    assert.equal((await f.api.storage.session.get())[baseline].revision,revision(1));
+    f.setIdle(true);await until(()=>f.reloads===1);
+    assert.equal((await f.api.storage.session.get())[baseline].revision,revision(2));
+    assert.equal(f.worker.tryStartPageBootstrap(),false,'do not accept after calling Chrome reload');
+  }finally{release?.();f.worker.dispose();}
 });

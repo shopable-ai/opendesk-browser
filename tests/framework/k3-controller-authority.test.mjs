@@ -119,7 +119,16 @@ test('app-service Authority keeps a dispatched write without a receipt unknown a
   const before=f.counts();
   await assert.rejects(f.send(input),code('E_EFFECT_UNKNOWN'));
   assert.deepEqual(f.counts(),before);
-  await assert.rejects(f.finish(f.run),code('E_EFFECT_UNKNOWN'));
+  const finishRequest={requestId:'finish-unknown-write'};
+  const finished=await f.finish(f.run,'succeeded',finishRequest);
+  assert.equal(finished.run.state,'failed');
+  assert.equal(finished.result.state,'failed');
+  assert.equal(finished.result.outcome.ok,false);
+  assert.equal(finished.result.outcome.error.code,'E_EFFECT_UNKNOWN');
+  assert.deepEqual(await f.finish(f.run,'succeeded',finishRequest),finished);
+  await assert.rejects(f.finish(f.run,'succeeded',{...finishRequest,valueWire:encodeValue(true)}),code('E_REQUEST_CONFLICT'));
+  assert.deepEqual((await f.rows('commandJournal')).find(row=>row.envelope?.requestId===input.requestId),operation);
+  assert.deepEqual(f.counts(),before);
 });
 
 test('app-service Authority no-effect failure delivery and replay retain stop, deadline and installation fences',async t=>{
@@ -267,8 +276,9 @@ async function networkRunFixture(t, fetchImpl) {
     read:()=>f.authority.controllerOperation({envelope},f.sender)};
 }
 
-async function locatorNavigationFixture({dropCommit=false,redirect='https://a.example/results',stop=false}={}) {
-  const f=await fixture(),revision=await f.commit('async function main(){return await page.url();}'),run=await f.start(revision);
+async function locatorNavigationFixture({dropCommit=false,redirect='https://a.example/results',stop=false,installed=false}={}) {
+  const f=installed?await installedTaskFixture():await fixture();
+  const run=installed?await f.startTask():await f.start(await f.commit('async function main(){return await page.url();}'));
   const event=()=>{const listeners=new Set();return {addListener:fn=>listeners.add(fn),removeListener:fn=>listeners.delete(fn),
     emit:details=>{for(const fn of listeners)fn(details);}};};
   for(const key of ['onBeforeNavigate','onCommitted','onDOMContentLoaded','onCompleted','onErrorOccurred'])f.api.webNavigation[key]=event();
@@ -305,7 +315,9 @@ test('Locator navigation Authority persists one intent, native handoff and next-
     assert.equal(op.targetTransition.to.documentId,'after-click');
     const saved=(await f.rows('runs')).find(row=>row.runId===f.run.runId);
     assert.equal(saved.target.documentId,'after-click');assert.equal(saved.navigationRequestId,undefined);
-    await f.finish(f.run);await f.authority.retireControllerTarget({runId:f.run.runId},f.sender);
+    const finished=await f.finish(f.run);
+    assert.equal(finished.run.outcomeUncertain,false);
+    await f.authority.retireControllerTarget({runId:f.run.runId},f.sender);
   }finally{f.context.dispose();}
 });
 test('Locator navigation Authority lost callback stays unknown and cannot replay the click',async()=>{
@@ -317,6 +329,91 @@ test('Locator navigation Authority lost callback stays unknown and cannot replay
     await assert.rejects(f.authority.controllerOperation({envelope:op.envelope},f.sender),code('E_EFFECT_UNKNOWN'));
     assert.equal(f.clicks,1);
   }finally{f.context.dispose();}
+});
+test('unknown navigation remains visible after Stop or lost Host without replacing the terminal reason',async t=>{
+  for(const end of ['stop','host-gone','stop-then-host-gone'])await t.test(end,async t=>{
+    const f=await locatorNavigationFixture({dropCommit:true,installed:true});
+    t.after(()=>f.context.dispose());
+    const {runId}=f.run;
+    await assert.rejects(f.context.page.locator('#submit').click({waitUntil:'load',timeout:100}),code('E_TIMEOUT'));
+    if(end!=='host-gone')await f.authority.stopControllerRun({runId,requestId:'stop-original'},f.sender);
+    if(end==='stop'){
+      const finished=await f.finish(f.run,'succeeded');
+      assert.equal(finished.run.outcomeUncertain,true);
+      await f.authority.retireControllerTarget({runId},f.sender);
+    }else{
+      f.frames.delete(1);
+      await f.authority.recover();
+    }
+    const check=async sender=>{
+      const snapshot=await f.authority.snapshotControllerRun({runId},sender);
+      const state=end==='host-gone'?'interrupted':'stopped',reason=end==='host-gone'?'E_HOST_CLOSED':'E_CANCELLED';
+      assert.equal(snapshot.run.state,state);
+      assert.equal(snapshot.run.outcomeUncertain,true);
+      assert.deepEqual(snapshot.run.taskInstallation,
+        Object.fromEntries(['taskId','version','manifestHash','installationId','generation'].map(key=>[key,f.resolved[key]])));
+      assert.equal(snapshot.run.revision.sourceHash,f.resolved.contentHash);
+      assert.equal(snapshot.results.length,1);
+      assert.equal(snapshot.results[0].state,state);
+      assert.equal(snapshot.results[0].outcome.error.code,reason);
+      assert.equal(snapshot.slotAvailable,true);
+      return snapshot.results[0];
+    };
+    const sender={...f.sender,documentId:'refreshed-host'};
+    f.frames.set(1,[{frameId:0,documentId:sender.documentId,url:sender.url}]);
+    await f.register(sender,'refreshed-host');
+    const saved=await check(sender);
+    // An older, already settled Run can recover the bit from its journal.
+    await f.storage.transaction(['runs'],'readwrite',async tx=>{
+      const run=await tx.get('runs',runId);
+      assert.equal(run.outcomeUncertain,true);
+      delete run.outcomeUncertain;await tx.put('runs',run,runId);
+    });
+    await f.authority.recover();
+    assert.deepEqual(await check(sender),saved);
+    const effect=(await f.rows('commandJournal')).find(row=>row.tag==='controller-navigation');
+    assert.equal(effect.state,'effect_unknown');assert.equal(effect.submissionCount,1);assert.equal(f.clicks,1);
+    assert.equal(f.tabs.get(2)?.url,'https://a.example/results');
+  });
+});
+test('RunHost settles a caught lost navigation callback as a durable failure',async t=>{
+  for(const acknowledged of [true,false])await t.test(acknowledged?'Worker acknowledged':'Worker unacknowledged',async t=>{
+    const f=await locatorNavigationFixture({dropCommit:true});
+    t.after(()=>f.context.dispose());
+    let executes=0,unknown;
+    const controller=Object.fromEntries(['controllerOperation','stopControllerRun','finishControllerRun','snapshotControllerRun','retireControllerTarget']
+      .map(method=>[method,request=>f.authority[method](request,f.sender)]));
+    controller.startControllerRun=async()=>f.run;
+    const client={ready:Promise.resolve(f.registration),controller,storage:{},pagePort:{},exportBridge:{},entitlement:{},runCommands:{},subscribeRun:()=>()=>{}};
+    const host=createRunHost({api:f.api,client,document:undefined,templateModuleFactory:null,
+      controllerFactory:({context})=>({async execute(){
+        executes++;
+        await assert.rejects(context.page.locator('#submit').click({waitUntil:'load',timeout:100}),code('E_TIMEOUT'));
+        unknown=(await f.rows('commandJournal')).find(row=>row.tag==='controller-navigation');
+        return {status:'succeeded',value:controlEncode({status:'stopped'})};
+      },retired:Promise.resolve({acknowledged}),stop(){},close(){}})});
+    t.after(()=>host.dispose());
+    await host.start({scriptId:f.run.revision.scriptId,revision:f.run.revision.revision,
+      contentHash:f.run.revision.sourceHash,target:f.run.target,params:{}});
+    const finished=await host.completion;
+    assert.equal(finished.state,'failed');
+    assert.equal(finished.runId,f.run.runId);
+    assert.equal(finished.result.resultId,f.run.resultId);
+    assert.equal(finished.result.outcome.ok,false);
+    assert.equal(finished.result.outcome.error.code,'E_EFFECT_UNKNOWN');
+    assert.equal(unknown.state,'effect_unknown');assert.equal(unknown.submissionCount,1);
+    assert.deepEqual((await f.rows('commandJournal')).find(row=>row.tag==='controller-navigation'),unknown);
+    assert.deepEqual((await f.rows('results')).filter(row=>row.runId===f.run.runId),[finished.result]);
+    assert.equal(f.tabs.get(2)?.url,'https://a.example/results');
+    assert.equal(f.calls.some(row=>row.method==='remove'),false);
+    assert.equal(executes,1);assert.equal(f.clicks,1);
+    const saved=(await f.rows('runs')).find(row=>row.runId===f.run.runId);
+    assert.equal(saved.workerRetired,acknowledged);
+    assert.equal(saved.retirementState,acknowledged?'released':'fenced');
+    assert.equal(host.currentRun,acknowledged?null:f.run.runId);
+    assert.equal(finished.retirement.releaseCount,acknowledged?1:0);
+    if(!acknowledged)assert.equal(finished.retirement.reason,'worker-not-retired');
+  });
 });
 test('Locator navigation Authority never adopts a cross-origin click redirect',async()=>{
   const f=await locatorNavigationFixture({redirect:'https://other.example/results'});
@@ -1736,6 +1833,96 @@ test('Controller saved revision freezes runtime; old bytes cannot allocate a run
     assert.equal((await f.rows('runs')).filter(row=>row.tag==='controller-run').length,0);
     assert.equal((await f.rows('commandJournal')).filter(row=>row.tag==='script-revision-pin').length,0);
   }
+});
+
+test('Controller admission fence wins over an in-flight ordinary start and survives recovery',async()=>{
+  const f=await fixture(),requestId='stop-before-admission',request={requestId,
+    source:{kind:'draft',sourceUtf8:'return 1;'},paramsWire:encodeValue({}),
+    target:{mode:'owned',url:'https://a.example/page'},deadlineAt:Date.now()+30000};
+  const entered=Promise.withResolvers(),grant=Promise.withResolvers();
+  f.api.permissions.contains=async()=>{entered.resolve();return grant.promise;};
+  const fence=()=>f.authority.fenceControllerAdmission({requestId},f.sender);
+  const started=f.authority.startControllerRun(request,f.sender);
+  const cancelled=assert.rejects(started,code('E_CANCELLED'));
+  // Attach a rejection handler up front; the assertions below can fail first.
+  cancelled.catch(()=>{});
+  try{
+    await Promise.race([entered.promise,started]);
+    const receipt={requestId,state:'not-admitted'};
+    const journalKey='controller-start:'+canonical([f.registration.registrationId,requestId]);
+    assert.deepEqual(await fence(),receipt);
+    const writes=()=>f.storage.writes.filter(row=>row.store==='commandJournal'&&row.key===journalKey).length;
+    assert.equal(writes(),1);
+    await f.authority.recoverControllers();
+    assert.deepEqual(await fence(),receipt);
+    assert.equal(writes(),1);
+  }finally{grant.resolve(true);}
+  await cancelled;
+  await assert.rejects(f.authority.startControllerRun(request,f.sender),code('E_CANCELLED'));
+  assert.deepEqual(await f.rows('runs'),[]);
+  assert.deepEqual(await f.rows('results'),[]);
+  assert.deepEqual(f.calls,[]);
+});
+
+test('Controller admission fence returns the original Run only to its registered Host',async()=>{
+  const f=await fixture(),requestId='admission-first',request={requestId,
+    source:{kind:'draft',sourceUtf8:'return 1;'},paramsWire:encodeValue({}),
+    target:{mode:'borrowed',tabId:2,frameId:0,documentId:'doc-top'},deadlineAt:Date.now()+30000};
+  const admitted=await f.authority.startControllerRun(request,f.sender);
+  const {run}=await f.authority.snapshotControllerRun({runId:admitted.runId},f.sender);
+  const fence=(sender)=>f.authority.fenceControllerAdmission({requestId},sender);
+  const other={...f.sender,documentId:'other-host',tab:{id:3,incognito:false}};
+  await assert.rejects(fence(other),code('E_OWNER'));
+  f.frames.set(3,[{frameId:0,documentId:other.documentId,url:other.url}]);
+  await f.register(other,'host-two');
+  assert.deepEqual(await fence(other),{requestId,state:'not-admitted'});
+  await assert.rejects(f.authority.startControllerRun(request,other),code('E_CANCELLED'));
+  const writes=f.storage.writes.length;
+  const receipt={requestId,state:'admitted',run};
+  assert.equal(run.runId,admitted.runId);
+  assert.deepEqual(await fence(f.sender),receipt);
+  assert.deepEqual(await fence(f.sender),receipt);
+  assert.equal(f.storage.writes.length,writes);
+  assert.equal((await f.authority.startControllerRun(request,f.sender)).duplicate,true);
+  assert.deepEqual((await f.rows('runs')).filter(row=>row.tag==='controller-run').map(row=>row.runId),[run.runId]);
+});
+
+test('Controller admission fence permits retirement after site revocation without result delivery',async()=>{
+  const f=await fixture(),requestId='revoked-admission';
+  const admitted=await f.authority.startControllerRun({requestId,
+    source:{kind:'draft',sourceUtf8:'return 1;'},paramsWire:encodeValue({}),
+    target:{mode:'borrowed',tabId:2,frameId:0,documentId:'doc-top'},deadlineAt:Date.now()+30000},f.sender);
+  const {runId}=admitted;
+  f.setAllowed(false);
+  await f.authority.invalidateControllerTarget({permissionRemoved:true,origins:['https://a.example/*']});
+  const fenced=await f.authority.fenceControllerAdmission({requestId},f.sender);
+  assert.equal(fenced.state,'admitted');assert.equal(fenced.run.runId,runId);
+  assert.equal(fenced.run.terminalReason,'E_PERMISSION');
+  await assert.rejects(f.finish(admitted,'stopped'),code('E_PERMISSION'));
+  const retired=await f.authority.retireControllerTarget({runId},f.sender);
+  assert.equal(retired.state,'released');assert.equal(retired.releaseCount,1);
+  const observed=await f.authority.snapshotControllerRun({runId},f.sender);
+  assert.equal(observed.run.retirementState,'released');assert.equal(observed.slotAvailable,true);
+  assert.equal(observed.results.length,0);assert.ok(observed.resultDeliveryDenied.includes(runId));
+  assert.equal((await f.rows('results')).filter(result=>result.runId===runId).length,1);
+  assert.equal(f.calls.some(x=>x.method==='remove'),false);
+});
+
+test('Controller admission fence is pruned on recovery only after permanent Host loss',async()=>{
+  const f=await fixture(),revision=await f.commit(),requestId='stop-before-host-loss';
+  const fence=()=>f.authority.fenceControllerAdmission({requestId},f.sender);
+  const receipt=await fence();
+  const key='controller-start:'+canonical([f.registration.registrationId,requestId]);
+  const journalEntry=()=>f.storage.transaction(['commandJournal'],'readonly',tx=>tx.get('commandJournal',key));
+  await f.authority.loseHost(f.registration.registrationId,{documentGone:false});
+  await f.authority.recoverControllers();
+  assert.ok(await journalEntry());
+  assert.deepEqual(await fence(),receipt);
+  await f.authority.loseHost(f.registration.registrationId,{documentGone:true});
+  await f.authority.recoverControllers();
+  assert.equal(await journalEntry(),undefined);
+  await assert.rejects(fence(),code('E_OWNER'));
+  await assert.rejects(f.start(revision,undefined,{requestId}),code('E_OWNER'));
 });
 
 test('duplicate draft admissions require the original frozen runtime, without another run or dispatch',async()=>{

@@ -51,6 +51,120 @@ for (const cancelled of [true, false]) test(`RunHost ${cancelled ? 'cancels' : '
     ['finish', cancelled ? 'stopped' : 'host-closed', cancelled ? 'E_CANCELLED' : 'E_HOST_CLOSED', true], ['retire', 'pending-run']]);
 });
 
+test('lost manual admission retires the original accepted run without launching a Worker', async t => {
+  const events=[];
+  let observedRun=null;
+  const controller={
+    async startControllerRun({requestId}){
+      events.push(['start',requestId]);
+      throw Object.assign(new Error('response dropped'),{code:'E_EFFECT_UNKNOWN'});
+    },
+    async fenceControllerAdmission({requestId}){
+      events.push(['fence',requestId]);
+      return observedRun?{requestId,state:'admitted',run:observedRun}:null;
+    },
+    async finishControllerRun(input){
+      events.push(['finish',input.runId,input.status,input.workerRetired]);
+      return {run:{...observedRun,state:'stopped'},result:{runId:input.runId}};
+    },
+    async retireControllerTarget({runId}){events.push(['retire',runId]);return {state:'released'};},
+  };
+  const host=createRunHost({api,client:clientWithController(controller),document:undefined,templateModuleFactory:null,
+    controllerFactory(){assert.fail('An unobserved claim must not execute');}});
+  t.after(()=>host.dispose());
+  const start={requestId:'original',reconcileAdmission:true,source:{kind:'draft',sourceUtf8:'return false;'},params:{},
+    target:{mode:'borrowed',tabId:1,frameId:0,documentId:'doc'}};
+  await assert.rejects(host.start(start),{code:'E_EFFECT_UNKNOWN',admissionRequestId:'original'});
+  await assert.rejects(host.start({...start,requestId:'new'}),{code:'E_OWNER'});
+  assert.equal(await host.reconcileControllerAdmission('different'),null);
+  assert.equal(await host.reconcileControllerAdmission('original'),null);
+  assert.equal(host.executionPending,true);
+  observedRun={requestId:'original',runId:'durable-run',state:'running'};
+  const [first,second]=await Promise.all([host.reconcileControllerAdmission('original'),host.reconcileControllerAdmission('original')]);
+  assert.deepEqual(first,second);
+  assert.equal(first.retirement.state,'released');
+  assert.equal(host.executionPending,false);
+  assert.deepEqual(events,[['start','original'],['fence','original'],['fence','original'],['finish','durable-run','stopped',true],['retire','durable-run']]);
+});
+
+test('lost manual admission releases only on a matching durable not-admitted receipt', async t => {
+  const starts=[],fences=[];
+  let receipt={requestId:'different',state:'not-admitted'};
+  const controller={
+    async startControllerRun({requestId}){
+      starts.push(requestId);
+      throw Object.assign(new Error('response dropped'),{code:'E_EFFECT_UNKNOWN'});
+    },
+    async fenceControllerAdmission({requestId}){
+      fences.push(requestId);
+      if(!receipt)throw new Error('fence response dropped');
+      return receipt;
+    },
+  };
+  const host=createRunHost({api,client:clientWithController(controller),document:undefined,templateModuleFactory:null,
+    controllerFactory(){assert.fail('No Worker was admitted');}});
+  t.after(()=>host.dispose());
+  const start={requestId:'original',reconcileAdmission:true,source:{kind:'draft',sourceUtf8:'return false;'},params:{},
+    target:{mode:'borrowed',tabId:1,frameId:0,documentId:'doc'}};
+  await assert.rejects(host.start(start),{admissionRequestId:'original'});
+  assert.equal(await host.reconcileControllerAdmission('original'),null);
+  receipt=null;
+  await assert.rejects(host.reconcileControllerAdmission('original'),/response dropped/);
+  await assert.rejects(host.start({...start,requestId:'second'}),{code:'E_OWNER'});
+  receipt={requestId:'original',state:'not-admitted'};
+  assert.deepEqual(await host.reconcileControllerAdmission('original'),receipt);
+  assert.deepEqual(starts,['original']);
+  assert.equal(host.executionPending,false);
+  await assert.rejects(host.start({...start,requestId:'second'}),{admissionRequestId:'second'});
+  assert.deepEqual(starts,['original','second']);
+  assert.deepEqual(fences,['original','original','original']);
+});
+
+test('lost admission releases its own local slot after revocation, without recovering or delivering the result', async t => {
+  const starts=[],retired=[];
+  let releaseReceipt={state:'pending',releaseCount:0},finishCalls=0,fenceRequest='original';
+  const revoked=Object.assign(new Error('Grant revoked'),{code:'E_PERMISSION'});
+  const controller={
+    async startControllerRun({requestId}){
+      starts.push(requestId);
+      if(requestId==='original')throw Object.assign(new Error('Admission reply lost'),{code:'E_EFFECT_UNKNOWN'});
+      if(requestId==='blocked-by-permission')throw revoked;
+      throw Object.assign(new Error('New request receipt lost'),{code:'E_EFFECT_UNKNOWN'});
+    },
+    async fenceControllerAdmission(){return {requestId:fenceRequest,state:'admitted',
+      run:{requestId:fenceRequest,runId:'original-run',state:'paused_unknown',outcomeUncertain:true}};},
+    async finishControllerRun(request){
+      finishCalls++;assert.equal(request.runId,'original-run');assert.equal(request.workerRetired,true);throw revoked;
+    },
+    async snapshotControllerRun(){throw revoked;},
+    async retireControllerTarget({runId}){retired.push(runId);return releaseReceipt;},
+  };
+  const host=createRunHost({api,client:clientWithController(controller),document:undefined,templateModuleFactory:null,
+    controllerFactory(){assert.fail('No unchecked Worker may execute');}});
+  t.after(()=>host.dispose());
+  const start={requestId:'original',reconcileAdmission:true,source:{kind:'draft',sourceUtf8:'return false;'},
+    params:{},target:{mode:'borrowed',tabId:1,frameId:0,documentId:'doc'}};
+  await assert.rejects(host.start(start),{admissionRequestId:'original'});
+  fenceRequest='unrelated';
+  assert.equal(await host.reconcileControllerAdmission('original'),null);
+  assert.equal(finishCalls,0);
+  fenceRequest='original';
+  await assert.rejects(host.reconcileControllerAdmission('original'),{code:'E_PERMISSION'});
+  await assert.rejects(host.start({...start,requestId:'too-early'}),{code:'E_OWNER'});
+  releaseReceipt={state:'released',releaseCount:1};
+  const recovery=await host.reconcileControllerAdmission('original');
+  assert.deepEqual(recovery,{requestId:'original',runId:'original-run',admissionState:'admitted',
+    retirement:releaseReceipt,outcomeUncertain:true});
+  assert.deepEqual(starts,['original']);
+  assert.deepEqual(retired,['original-run','original-run']);assert.equal(finishCalls,1);
+  assert.equal(host.executionPending,false);
+  await assert.rejects(host.start({...start,requestId:'blocked-by-permission'}),{code:'E_PERMISSION'});
+  await assert.rejects(host.start({...start,requestId:'next'}),{admissionRequestId:'next'});
+  assert.equal(await host.reconcileControllerAdmission('original'),null);
+  assert.equal(host.executionPending,true);
+  assert.deepEqual(starts,['original','blocked-by-permission','next']);
+});
+
 test('RunHost recovers a durable finish result after the finish response is lost, then retires once', async () => {
   const events = [];
   const result = {tag: 'controller-result', runId: 'run-one', resultId: 'result-one', state: 'completed',

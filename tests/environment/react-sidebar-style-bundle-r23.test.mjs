@@ -7,6 +7,7 @@ import {parse} from 'acorn';
 
 test('trusted React classic bundle includes locale styles without an unreferenced CSS asset',async()=>{
   const result=await build({configFile:false,logLevel:'error',
+    resolve:{alias:{'@opendesk/ui':resolve('src/ui/react/components/ui/button.tsx')}},
     define:{'process.env.NODE_ENV':JSON.stringify('production')},
     build:{write:false,target:'es2022',minify:false,sourcemap:false,cssCodeSplit:false,
       lib:{entry:resolve('src/ui/react/main.tsx'),formats:['iife'],name:'OpenDeskSidebarStyleCheck'}}});

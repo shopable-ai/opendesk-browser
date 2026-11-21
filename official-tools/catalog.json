@@ -3,13 +3,6 @@
   "sourceRepository": "https://github.com/shopable-ai/opendesk-browser",
   "tools": [
     {
-      "id": "ai-send-queue",
-      "project": "projects/ai-send-queue",
-      "kind": "sidebar-tool",
-      "installationPolicy": "optional",
-      "packageFile": "ai-send-queue.opendesk-tool.json"
-    },
-    {
       "id": "ai-knowledge-answers",
       "project": "projects/ai-knowledge-answers",
       "kind": "sidebar-tool",
@@ -89,6 +82,20 @@
       "project": "projects/prompt-shortcuts",
       "kind": "sidebar-tool",
       "installationPolicy": "preinstalled"
+    },
+    {
+      "id": "webflow",
+      "project": "projects/webflow",
+      "kind": "sidebar-tool",
+      "installationPolicy": "preinstalled",
+      "packageFile": "webflow.opendesk-tool.json"
+    },
+    {
+      "id": "ai-send-queue",
+      "project": "projects/ai-send-queue",
+      "kind": "sidebar-tool",
+      "installationPolicy": "preinstalled",
+      "packageFile": "ai-send-queue.opendesk-tool.json"
     },
     {
       "id": "video-speed-controller",

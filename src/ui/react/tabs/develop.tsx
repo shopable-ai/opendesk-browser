@@ -9,7 +9,7 @@ import {DevelopPromptProvider} from './develop-ai-prompt.tsx';
 import {Confirmation} from '../components/confirmation.tsx';
 
 // Presentation shares the existing field store; controllers retain all execution authority.
-const sectionTitles={save:'保存脚本',library:'已保存脚本',history:'运行记录与下载',install:'安装与发布',diagnostics:'权限与诊断'};
+const sectionTitles={save:'保存脚本',library:'管理脚本',history:'运行记录与下载',install:'安装与发布',diagnostics:'权限与诊断'};
 export function DeveloperPage({model,view=model,actions=view.actions,hidden=false,locale='zh-CN',noticeView}){
   const snapshot=React.useSyncExternalStore(view.subscribe,view.getSnapshot,view.getSnapshot);
   const section=snapshot.section||'editor';
@@ -48,7 +48,6 @@ export function DeveloperPage({model,view=model,actions=view.actions,hidden=fals
         </DevelopPromptProvider>
         <DevelopExecution section={section}>
           <nav className="developer-management-links od-toolbar" aria-label="脚本管理" hidden={section!=='editor'}>
-            <DevelopSectionButton section="library" id="developer-library-entry">已保存脚本</DevelopSectionButton>
             <DevelopSectionButton section="diagnostics" id="developer-diagnostics-entry">权限与诊断</DevelopSectionButton>
           </nav>
         </DevelopExecution>
@@ -89,7 +88,7 @@ export function DeveloperDock({model,view=model,actions=view.actions,hidden=fals
           <button type="button" id="developer-more-button" ref={moreButton} className="od-icon-button" aria-label="更多操作" aria-expanded={more}
             aria-controls="developer-more-actions" onClick={()=>setMore(!more)}><DevelopIcon name="dots"/></button>
           <div id="developer-more-actions" className="developer-more-actions od-surface" hidden={!more} onClick={()=>setMore(false)}>
-            <DevelopSectionButton section="library">已保存脚本</DevelopSectionButton>
+            <DevelopSectionButton section="library" id="developer-library-entry" hidden={local}>管理脚本</DevelopSectionButton>
             <DevelopSectionButton section="history">运行记录与下载</DevelopSectionButton>
             <DevelopSectionButton section="install">安装与发布</DevelopSectionButton>
             <DevelopSectionButton section="diagnostics">权限与诊断</DevelopSectionButton>

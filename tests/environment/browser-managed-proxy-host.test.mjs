@@ -8,8 +8,9 @@ import {createBrowserSdk} from '../../src/framework/sdk/browser.js';
 import {createContextMenuHost} from '../../src/platform/chrome/context-menus.js';
 import {BROWSER_MENU_GRANTS_STORE} from '../../src/framework/sdk/browser-contract.js';
 import {requestManagedProxyIntent} from '../../src/ui/sidebar-tools/managed-proxy-consent.js';
-import {SIDEBAR_TOOL_STORE,sidebarToolPackageHash,validateSidebarToolPackage}
+import {SIDEBAR_TOOL_STORE,sidebarToolPackageHash,sidebarToolStorageKey,validateSidebarToolPackage}
   from '../../src/ui/sidebar-tools/package.js';
+import {etagFor} from '../../src/ui/sidebar-tools/storage-state.js';
 import {TOOL_REVOCATION_EPOCHS_STORE,SIDEBAR_TOOL_ENABLE_STORE}
   from '../../src/ui/sidebar-tools/lifecycle.js';
 
@@ -94,6 +95,48 @@ test('remembered exact proxy consent reuses review while issuing fresh one-use i
   for(const changed of [{mode:'direct'},{...config.config,domains:['example.org']},
     {...config.config,endpoint:{...config.config.endpoint,port:1081}}])
     await assert.rejects(actor.approve(operation,{config:changed},{proxyConsent:'reuse'}),code('E_PROXY_CONSENT_REQUIRED'));
+});
+
+test('guarded switch and release preserve the active route on a stale config or route',async()=>{
+  const f=await fixture(),actor=await f.user('proxy-owner');
+  const operation='browser.proxy.managed.requestEnable';
+  await actor.approve(operation,config,{proxyConsent:'remember'});
+  const active=await actor.sdk.proxy.managed.requestEnable(config);
+  const namespace=sidebarToolStorageKey(actor.identity.toolId),key='routes';
+  const saved={selection:'original'};
+  f.data.set(namespace,{[key]:saved});
+  const target={config:{mode:'direct'},ifCurrent:{activeConfig:active.activeConfig,key,etag:await etagFor(saved)}};
+  const changed={selection:'edited elsewhere'};
+  await actor.approve(operation,target,{proxyConsent:'remember'});
+  f.data.set(namespace,{[key]:changed});
+  await assert.rejects(actor.sdk.proxy.managed.requestEnable(target),code('E_CONFLICT'));
+  assert.deepEqual((await actor.sdk.proxy.managed.getStatus()).activeConfig,active.activeConfig);
+  assert.deepEqual(f.effects,{set:1,clear:0});
+
+  const disable='browser.proxy.managed.requestDisable';
+  const release={ifCurrent:{...target.ifCurrent}};
+  await actor.approve(disable,release);
+  await assert.rejects(actor.sdk.proxy.managed.requestDisable(release),code('E_CONFLICT'));
+  assert.deepEqual(f.effects,{set:1,clear:0});
+
+  target.ifCurrent.etag=await etagFor(changed);
+  await actor.approve(operation,target,{proxyConsent:'reuse'});
+  assert.deepEqual((await actor.sdk.proxy.managed.requestEnable(target)).activeConfig,{mode:'direct'});
+  assert.deepEqual(f.effects,{set:2,clear:0});
+  await assert.rejects(actor.sdk.proxy.managed.requestEnable(target),code('E_USER_GESTURE_REQUIRED'));
+  await actor.approve(operation,target,{proxyConsent:'reuse'});
+  await assert.rejects(actor.sdk.proxy.managed.requestEnable(target),code('E_CONFLICT'));
+  assert.deepEqual(f.effects,{set:2,clear:0});
+
+  release.ifCurrent.etag=target.ifCurrent.etag;
+  await actor.approve(disable,release);
+  await assert.rejects(actor.sdk.proxy.managed.requestDisable(release),code('E_CONFLICT'));
+  assert.deepEqual((await actor.sdk.proxy.managed.getStatus()).activeConfig,{mode:'direct'});
+  assert.deepEqual(f.effects,{set:2,clear:0});
+  release.ifCurrent.activeConfig={mode:'direct'};
+  await actor.approve(disable,release);
+  assert.equal((await actor.sdk.proxy.managed.requestDisable(release)).state,'disabled');
+  assert.deepEqual(f.effects,{set:2,clear:1});
 });
 
 test('revoking remembered proxy consent retires pending enable and releases only its owned PAC',async()=>{

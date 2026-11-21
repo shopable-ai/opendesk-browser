@@ -13,18 +13,17 @@ test('Sidebar only diagnoses status, never reads the Page queue, and has no para
   assert.equal(tool.uiRuntime,'opendesk.react-ui.v1');
   assert.deepEqual(tool.capabilities,['page.module','currentPage.read']);
   assert.equal(entry.match(/createRoot\(/g)?.length,1);
-  assert.doesNotMatch(entry+ui,/QUEUE_READ|QUEUE_WRITE|setInterval|setTimeout|opendesk-page-changed|sendQueue\.(?:snapshot|command)/);
+  assert.doesNotMatch(entry+ui,/QUEUE_READ|QUEUE_WRITE|setInterval|setTimeout|sendQueue\.(?:snapshot|command)/);
   assert.deepEqual([...ui.matchAll(/request\('([^']+)'/g)].map(match=>match[1]),
     ['currentPage.info','page.request']);
   assert.match(ui,/operation:'queue\.status',payload:\{\}/);
-  assert.match(ui,/在 ChatGPT 网页中使用/);
   assert.match(page,/import \{QUEUE_COMMANDS,QUEUE_MEMORY_ONLY\} from '\.\.\/shared\/queue-contract\.js'/);
   assert.match(shared,/sendQueue\.snapshot/);
   assert.match(shared,/sendQueue\.command/);
   assert.doesNotMatch(ui,/localStorage|sessionStorage|chrome\.storage|site\.prepare|site\.commit/);
 });
 
-test('Sidebar instructions use existing shared theme tokens',async()=>{
+test('Sidebar status uses existing shared theme tokens',async()=>{
   const [css,tokens,ui]=await Promise.all([
     source('src/sidebar/style.css'),
     readFile(new URL('../../src/ui/design-tokens.css',dir),'utf8'),

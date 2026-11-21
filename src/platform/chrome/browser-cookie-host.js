@@ -471,7 +471,10 @@ export function createTrustedCookieHost({api=globalThis.chrome,now=Date.now}={})
                 expectedCookieCheck:current=>contents(current)===expectedContents});
             if(receipt.removed!==true||receipt.verified!==true)throw error('E_OUTCOME_UNKNOWN');
             removed++;
-          }catch{throw error('E_OUTCOME_UNKNOWN','Partial Cookie cleanup possible; reconcile before retry');}
+          }catch(cause){
+            if(removed===0)throw cause;
+            throw error('E_OUTCOME_UNKNOWN','Partial Cookie cleanup possible; reconcile before retry');
+          }
         }
         try{
           const after=await readVisible();

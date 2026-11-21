@@ -1,10 +1,9 @@
 import * as React from 'react';
 import {Button,IconButton,Card,CardContent} from '@opendesk/ui';
-import toolConfig from '../tool.config.json';
 
 // This is the installable app's only UI tree. The v1.4.2 compatibility
-// controller mounts after React commits. Preview and developer controls
-// are never children of the installable product UI.
+// controller mounts after React commits. The local hand-test entry starts
+// hidden and requires the existing reviewed development profile.
 export default function VipApp({createDevelopmentControls,serviceDefinition}={}){
   React.useLayoutEffect(()=>{
     const dispose=globalThis.__OpenDeskVipStart?.({createDevelopmentControls,serviceDefinition});
@@ -30,6 +29,10 @@ export default function VipApp({createDevelopmentControls,serviceDefinition}={})
           <p id="ai-vip-connection-status" className="ai-vip-note" role="status" aria-live="polite">粘贴服务方提供的链接，连接后查看权益；激活前会先供你核对。</p>
         </CardContent>
       </Card>
+      <section id="ai-vip-manual-development" className="ai-vip-note" aria-label="本机手测" hidden>
+        <Button id="ai-vip-manual-connect" variant="secondary" type="button" aria-describedby="ai-vip-manual-status">连接本机手测服务</Button>
+        <p id="ai-vip-manual-status" role="status" aria-live="polite"></p>
+      </section>
       <Card id="ai-vip-member-card" className="ai-vip-membership" data-view="unconfigured" aria-labelledby="ai-vip-member-title">
         <CardContent className="ai-vip-card-inner">
           <div className="ai-vip-section-head">
@@ -69,14 +72,44 @@ export default function VipApp({createDevelopmentControls,serviceDefinition}={})
     
       <Card id="ai-vip-usage-card" className="ai-vip-redeem" aria-labelledby="ai-vip-redeem-title">
         <CardContent className="ai-vip-section-content">
-        <h2 id="ai-vip-redeem-title">使用服务</h2>
-        <p id="ai-vip-usage-help" className="ai-vip-redeem-subtitle">已有权益可直接打开网站；需要开通或续期时再激活。</p>
+        <h2 id="ai-vip-redeem-title">网站登录</h2>
+        <p id="ai-vip-usage-help" className="ai-vip-redeem-subtitle" hidden>网页显示未登录时，选择「登录并打开网站」。已有登录时可直接打开网站。</p>
         <p id="ai-vip-login-flow" className="ai-vip-note" role="status" aria-live="polite"></p>
+        <Button id="ai-vip-login-recovery" variant="secondary" type="button" hidden aria-describedby="ai-vip-login-flow">刷新网站授权</Button>
+      <div id="ai-vip-sites-section" className="ai-vip-sites" hidden>
+        <p id="ai-vip-site-source" className="ai-vip-note"></p>
+        <p className="ai-vip-note">登录会替换该网站当前账号。浏览器将请求必要授权；已有网站登录可直接打开。</p>
+        <div className="ai-vip-site-content">
+          <div id="ai-vip-site-options" className="ai-vip-site-options" role="group" aria-label="选择网站"></div>
+          <input id="ai-vip-site-select" type="hidden" defaultValue="" />
+          <div className="ai-vip-site-summary">
+            <div id="ai-vip-site-account-row" className="ai-vip-current-session" hidden>
+              <span>服务端分配</span>
+              <p id="ai-vip-site-account">尚未获取授权账号。</p>
+            </div>
+          </div>
+          <p id="ai-vip-session-validity" className="ai-vip-note" hidden></p>
+          <div className="ai-vip-site-actions">
+            <Button size="lg" variant="primary" id="ai-vip-site-receive" className="od-button ai-vip-primary" type="button" disabled>登录并打开网站</Button>
+            <Button size="lg" id="ai-vip-site-open" variant="quiet" type="button" disabled>直接打开网站 ↗</Button>
+            <Button size="lg" id="ai-vip-site-cancel" className="od-button od-button--secondary" type="button" hidden>取消本次操作</Button>
+          </div>
+          <p id="ai-vip-site-status" className="ai-vip-site-status" role="status" aria-live="polite" hidden></p>
+      <details id="ai-vip-cookie-section" className="ai-vip-review od-disclosure od-disclosure--flat" aria-label="网站使用进度" hidden><summary id="ai-vip-cookie-summary">查看上次网站操作</summary>
+        <p id="ai-vip-cookie-status" role="status" aria-live="polite">尚未取得网站会话。</p>
+        <p className="ai-vip-fine-print">完成后请在网站核对账号和套餐。网站实际显示为准。</p>
+        <details id="ai-vip-cookie-result-details" className="od-disclosure od-disclosure--flat" hidden><summary>查看操作记录</summary><ul id="ai-vip-cookie-results" className="ai-vip-list" aria-label="逐项操作结果"></ul></details>
+        <Button size="lg" variant="primary" id="ai-vip-cookie-install" className="od-button ai-vip-primary" type="button" disabled>设置并打开网站</Button>
+        <Button size="lg" id="ai-vip-cookie-open" className="od-button od-button--secondary" type="button" hidden>前往网站核验</Button>
+        <Button size="lg" id="ai-vip-shared-receive" className="od-button od-button--secondary ai-vip-session-retry" type="button" hidden disabled>重新获取网站会话</Button>
+      </details>
+        </div>
+      </div>
         <p id="ai-vip-redeem-intro" className="ai-vip-note od-field-help" hidden>先核对权益，再确认兑换。</p>
         <div id="ai-vip-activation-hint" className="ai-vip-link-hint" hidden>
           <strong>已识别专属激活链接 · 待确认</strong><p id="ai-vip-activation-detail"></p>
         </div>
-        <details id="ai-vip-redeem-details" className="od-disclosure od-disclosure--flat" open><summary>有激活码？开通或续期</summary>
+        <details id="ai-vip-redeem-details" className="od-disclosure od-disclosure--flat" open><summary>输入激活码</summary>
         <form id="ai-vip-redeem-form" className="ai-vip-redeem-form" noValidate hidden>
           <label className="ai-vip-sr-only" htmlFor="ai-vip-redeem-code">激活码</label>
           <div className="ai-vip-redeem-inputs">
@@ -110,35 +143,6 @@ export default function VipApp({createDevelopmentControls,serviceDefinition}={})
         <p id="ai-vip-redeem-status" className="ai-vip-note od-field-help" role="status" aria-live="polite">会员服务接入后可使用激活码。</p>
         <p id="ai-vip-redeem-error" className="ai-vip-error od-alert od-alert--error" role="alert" hidden></p>
         <p id="ai-vip-redeem-fine" className="ai-vip-fine-print" hidden>确认兑换后才会领取权益。</p>
-      <div id="ai-vip-sites-section" className="ai-vip-sites" hidden>
-        <p id="ai-vip-site-source" className="ai-vip-note"></p>
-        <p className="ai-vip-note">登录会替换该网站当前账号。浏览器将请求必要授权；已有网站登录可直接打开。</p>
-        <div className="ai-vip-site-content">
-          <div id="ai-vip-site-options" className="ai-vip-site-options" role="group" aria-label="选择网站"></div>
-          <input id="ai-vip-site-select" type="hidden" defaultValue="" />
-          <div className="ai-vip-site-summary">
-            <div id="ai-vip-site-account-row" className="ai-vip-current-session" hidden>
-              <span>服务端分配</span>
-              <p id="ai-vip-site-account">尚未获取授权账号。</p>
-            </div>
-          </div>
-          <p id="ai-vip-session-validity" className="ai-vip-note" hidden></p>
-          <div className="ai-vip-site-actions">
-            <Button size="lg" variant="primary" id="ai-vip-site-receive" className="od-button ai-vip-primary" type="button" disabled>登录并打开网站</Button>
-            <Button size="lg" id="ai-vip-site-open" variant="quiet" type="button" disabled>直接打开网站 ↗</Button>
-            <Button size="lg" id="ai-vip-site-cancel" className="od-button od-button--secondary" type="button" hidden>取消本次操作</Button>
-          </div>
-          <p id="ai-vip-site-status" className="ai-vip-site-status" role="status" aria-live="polite" hidden></p>
-      <details id="ai-vip-cookie-section" className="ai-vip-review od-disclosure od-disclosure--flat" aria-label="网站使用进度" hidden><summary id="ai-vip-cookie-summary">查看上次网站操作</summary>
-        <p id="ai-vip-cookie-status" role="status" aria-live="polite">尚未取得网站会话。</p>
-        <p className="ai-vip-fine-print">完成后请在网站核对账号和套餐。网站实际显示为准。</p>
-        <details id="ai-vip-cookie-result-details" className="od-disclosure od-disclosure--flat" hidden><summary>查看操作记录</summary><ul id="ai-vip-cookie-results" className="ai-vip-list" aria-label="逐项操作结果"></ul></details>
-        <Button size="lg" variant="primary" id="ai-vip-cookie-install" className="od-button ai-vip-primary" type="button" disabled>设置并打开网站</Button>
-        <Button size="lg" id="ai-vip-cookie-open" className="od-button od-button--secondary" type="button" hidden>前往网站核验</Button>
-        <Button size="lg" id="ai-vip-shared-receive" className="od-button od-button--secondary ai-vip-session-retry" type="button" hidden disabled>重新获取网站会话</Button>
-      </details>
-        </div>
-      </div>
         </CardContent>
       </Card>
 
@@ -183,15 +187,6 @@ export default function VipApp({createDevelopmentControls,serviceDefinition}={})
         <p id="ai-vip-desktop-status" className="ai-vip-fine-print" role="status" aria-live="polite" hidden></p>
         </CardContent>
       </Card>
-      <details className="ai-vip-service od-disclosure od-disclosure--flat">
-        <summary>适用网站与网络说明</summary>
-        <div className="ai-vip-service-detail">
-          <p>应用版本：{toolConfig.version}</p>
-          <p>本工具仅管理自身的 Chrome 代理请求，不会关闭系统 VPN 或其他扩展。使用现有网络不代表网站连通性已验证。</p>
-          <p>适用站点示例：ChatGPT · Claude · Gemini · Perplexity。实际网站及会员交付范围以正式服务为准；网络连通不代表第三方会员已开通。</p>
-          <p>非匹配网站按直连规则处理；系统 VPN / TUN 仍可能影响实际路由。</p>
-        </div>
-      </details>
     </main>
   );
 }

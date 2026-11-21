@@ -7,7 +7,9 @@ import {resolve,dirname,join,extname,basename} from 'node:path';
 import {pathToFileURL,fileURLToPath} from 'node:url';
 import {BUILTIN_CATALOG} from '../src/libs/catalog.js';
 import {createHash,randomUUID} from 'node:crypto';
-import {validateSidebarToolPackage,SIDEBAR_TOOL_FORMAT,SIDEBAR_TOOL_FORMAT_V2,serializeSidebarToolPackage,SIDEBAR_TOOL_SHARED_UI_RUNTIME,SIDEBAR_TOOL_BACKGROUND_KIND} from '../src/ui/sidebar-tools/package.js';
+import {validateSidebarToolPackage,SIDEBAR_TOOL_FORMAT,SIDEBAR_TOOL_FORMAT_V2,serializeSidebarToolPackage,
+  SIDEBAR_TOOL_SHARED_UI_RUNTIME,SIDEBAR_TOOL_BACKGROUND_KIND,SIDEBAR_TOOL_ABOUT_FIELDS,pickSidebarToolAboutFields}
+  from '../src/ui/sidebar-tools/package.js';
 import {compileSharedToolCss} from './preview/shared-tool-design.mjs';
 import {createToolLocalization} from '../src/ui/sidebar-tools/localization.js';
 import {compileToolLocaleCatalog} from '../src/ui/app-localization.js';
@@ -85,8 +87,8 @@ export async function createSidebarToolPackage(projectPath) {
     fail('unsupported shared UI runtime');
   if(!meta||typeof meta!=='object'||Array.isArray(meta)||
      Object.keys(meta).some(key=>!(v2
-       ?['format','id','version','title','description','capabilities','files','assets','requires','contributes','locales','uiRuntime','backgroundPolicy','initialData','delegatedTasks','controller','pageModule']
-       :['id','version','title','description','capabilities','files','assets','locales','uiRuntime','backgroundPolicy']).includes(key))||
+       ?['format','id','version','title','description',...SIDEBAR_TOOL_ABOUT_FIELDS,'capabilities','files','assets','requires','contributes','locales','uiRuntime','backgroundPolicy','initialData','delegatedTasks','controller','pageModule']
+       :['id','version','title','description',...SIDEBAR_TOOL_ABOUT_FIELDS,'capabilities','files','assets','locales','uiRuntime','backgroundPolicy']).includes(key))||
      (!v2&&Object.hasOwn(meta,'format'))||
      !meta.files||typeof meta.files!=='object'||Array.isArray(meta.files)||
      Object.keys(meta.files).some(key=>!['html','css','js','dependencies','background','controller'].includes(key))||
@@ -193,6 +195,7 @@ export async function createSidebarToolPackage(projectPath) {
   if(/\{\{asset:/.test(embeddedHtml+css))fail('unresolved local asset reference');
   const pkg=validateSidebarToolPackage({format:v2?SIDEBAR_TOOL_FORMAT_V2:SIDEBAR_TOOL_FORMAT,id:meta.id,version:meta.version,
     title:meta.title,description:meta.description,capabilities:meta.capabilities||[],html:embeddedHtml,css,js,
+    ...pickSidebarToolAboutFields(meta),
     ...(localization?{localization}:{}),
     ...(meta.uiRuntime?{uiRuntime:meta.uiRuntime}:{}),
     ...(meta.backgroundPolicy!==undefined?{backgroundPolicy:meta.backgroundPolicy}:{}),

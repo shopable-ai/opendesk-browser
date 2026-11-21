@@ -246,7 +246,7 @@ async function main() {
  -> node_modules（构建输入）
  -> src/libs/packages/<库>.js + WXT 审批入口
  -> dist/<mode>/libs/packages/<库>.js
- -> libs/manifest.json + 精确 SHA / ABI / 许可证
+ -> libs/builtin-resources.json + 精确 SHA / ABI / 许可证
  -> 受授权的 Controller / USER_SCRIPT / 独立工具执行世界
  -> 普通用户程序实际调用 + 失败关闭测试
 ```

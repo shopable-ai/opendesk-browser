@@ -60,7 +60,7 @@ async function fixture({busy=false,storage=memoryStorage(),route='c/12345678',fa
     },
     createSendQueueRemote:()=>({changed(){remoteChanges++;}})});
   vm.runInContext(entry.replace(/^import .*;\n/gm,'')
-    .replace('export default async function main','async function main'),context);
+    .replace(/^export (?:default )?/gm,''),context);
   await context.main();
   return {editor,state,sent,users,assistants,history,storage,win,toasts,poll:()=>poll(),get recovery(){return recovery;},get engine(){return engine;},
     get clears(){return clears;},get actions(){return actions;},get renders(){return renders;},get remoteChanges(){return remoteChanges;},

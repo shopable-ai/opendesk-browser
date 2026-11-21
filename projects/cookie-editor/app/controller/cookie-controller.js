@@ -349,8 +349,12 @@ export function createCookieController({adapter,onChange=()=>{},onSuccess=()=>{}
         p.remaining<0||p.remaining>50||plan.scope&&
         (!Number.isSafeInteger(p.excluded)||p.excluded<0))throw badReceipt();
       verified=true;report('已清理 '+p.removed+' 条，当前范围剩余 '+p.remaining+' 条。'+
-        (p.excluded?' '+p.excluded+' 条因权限或连接限制保留。':''),p.remaining?'info':'success');
+        (p.excluded?' 已保留 '+p.excluded+' 条超出当前清理范围的 Cookie。':''),'success');
     }catch(error){if(verifiedRead(guard)){
+      if(accessLossCodes.has(error?.code)||error?.code==='E_COOKIE_STALE'||error?.code==='E_CHROME_UNSUPPORTED'){
+        dispatched=false;
+        effectPending=false;
+      }
       if(rejectLostAccess(error))return false;
       report((dispatched?'清理可能部分生效':'清理尚未执行')+
         formatCode(error,'E_COOKIE_CLEAR')+

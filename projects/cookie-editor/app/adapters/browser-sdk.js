@@ -4,7 +4,7 @@ import {createCookieHttpServices} from '../domain/http-services.js';
 // This adapter is the ONLY Cookie transport used by the independent React
 // candidate. Host permission checks and native receipts remain authoritative.
 const safeCodes=new Set([
-  'E_CANCELLED','E_COOKIE_CONFLICT','E_OUTCOME_UNKNOWN','E_PERMISSION_REQUIRED',
+  'E_CANCELLED','E_COOKIE_CONFLICT','E_COOKIE_STALE','E_OUTCOME_UNKNOWN','E_PERMISSION_REQUIRED',
   'E_GRANT_REVOKED','E_SITE_GRANT_REQUIRED','E_SITE_PERMISSION_REVOKED','E_SESSION_EXPIRED','E_COOKIE_VALUES',
   'E_COOKIE_VALUES_REQUIRED',
   'E_COOKIE_READ','E_COOKIE_SET','E_COOKIE_REMOVE','E_COOKIE_CLEAR',

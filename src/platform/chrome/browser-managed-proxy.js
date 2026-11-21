@@ -58,13 +58,15 @@ function requireReviewedProfile(profiles,config,owner){
 }
 function parseState(raw){
   if(raw===undefined)return null;
-  if(!exact(raw,['schema','phase','owner','config'])||raw.schema!==1||
-     !['applying','enabled','stopping','released'].includes(raw.phase))
+  const replacing=plain(raw)&&Object.hasOwn(raw,'previousConfig');
+  if(!exact(raw,['schema','phase','owner','config',...(replacing?['previousConfig']:[])])||raw.schema!==1||
+     !(replacing?['applying','stopping']:['applying','enabled','stopping','released']).includes(raw.phase))
     throw fail('E_PROXY_STATE','Managed Proxy journal is damaged; native settings have not been changed');
   ownerOf({...raw.owner,epoch:raw.owner?.installEpoch});
   // A production restart or package update may still need to release the
   // exact old development PAC. This does not admit any new ENABLE request.
   validateConfig(raw.config,true);
+  if(replacing)validateConfig(raw.previousConfig,true);
   return raw;
 }
 function levelOf(row){
@@ -139,12 +141,14 @@ async function releaseLocked(api,record){
   if(record.phase!=='stopping')
     throw fail('E_PROXY_STATE','Only an explicitly persisted STOP may release Chrome proxy settings');
   const before=await chromeState(api),level=levelOf(before);
+  const {previousConfig,...released}=record;
   if(level==='controllable_by_this_extension'){
-    await persist(api,record,{...record,phase:'released'});
+    await persist(api,record,{...released,phase:'released'});
     await api.alarms?.clear?.(MANAGED_PROXY_ALARM);
     return;
   }
-  if(level!=='controlled_by_this_extension'||!matchesSettings(before.value,record))
+  if(level!=='controlled_by_this_extension'||!(matchesSettings(before.value,record)||
+      previousConfig&&matchesSettings(before.value,{...record,config:previousConfig})))
     throw fail('E_PROXY_OWNERSHIP','Chrome proxy belongs to another owner or is not verifiable; STOP remains pending');
   // Ownership = actual exact, approved, package-bound PAC, not levelOfControl alone.
   let error=null;
@@ -155,7 +159,7 @@ async function releaseLocked(api,record){
   }
   if(levelOf(after)!=='controllable_by_this_extension')
     throw fail('E_OUTCOME_UNKNOWN','Chrome has not confirmed exclusive proxy release');
-  await persist(api,record,{...record,phase:'released'});
+  await persist(api,record,{...released,phase:'released'});
   await api.alarms?.clear?.(MANAGED_PROXY_ALARM);
   // A lost native acknowledgement is settled only after independent readback.
   void error;
@@ -220,9 +224,14 @@ export function createBrowserManagedProxy({api=globalThis.chrome,
     async requestEnable(input,context){
       const config=validateManagedProxyConfig(input?.config);
       const owner=ownerOf(context);
+      const expected=input.ifCurrent?.activeConfig;
       return mutex(lockManager,async()=>{
         const current=await storageState(api);
-        if(current&&current.phase!=='released')
+        const replacing=expected!=null&&current?.phase==='enabled'&&sameOwner(current.owner,owner)&&
+          sameStorageValue(validateConfig(current.config,true),expected);
+        if(expected!=null&&!replacing)
+          throw fail('E_CONFLICT','The previously confirmed route changed');
+        if(!replacing&&current&&current.phase!=='released')
           throw fail('E_PROXY_OWNERSHIP','Another proxy operation or owner already exists');
         // Approval could have been issued before the global lock was acquired.
         if(typeof authorizeEnable!=='function')
@@ -230,31 +239,47 @@ export function createBrowserManagedProxy({api=globalThis.chrome,
         await authorizeEnable(context);
         await requireConfigAuthorization(context,config,owner);
         await legacyHold(api);
-        const before=await chromeState(api);
-        if(levelOf(before)!=='controllable_by_this_extension')
-          throw fail('E_PROXY_CONFLICT','Chrome proxy control must be exclusively available before ENABLE');
-        const applying={schema:1,phase:'applying',owner,config};
+        const verifyBefore=async()=>{
+          const before=await chromeState(api);
+          if(replacing?levelOf(before)!=='controlled_by_this_extension'||!matchesSettings(before.value,current):
+             levelOf(before)!=='controllable_by_this_extension')
+            throw fail('E_PROXY_CONFLICT','Chrome proxy control changed before ENABLE');
+        };
+        await verifyBefore();
+        const next={schema:1,phase:'enabled',owner,config};
+        const applying={...next,phase:'applying',...(replacing?{previousConfig:current.config}:{})};
         await persist(api,current,applying); // Durable uncertainty fence precedes native effect.
-        // A revoked install, permission or outside proxy must not be overwritten.
-        // Keep the applying journal for explicit STOP if this recheck fails.
-        await requireConfigAuthorization(context,config,owner);
-        await authorizeEnable(context);
-        const recheck=await chromeState(api);
-        if(levelOf(recheck)!=='controllable_by_this_extension')
-          throw fail('E_PROXY_CONFLICT','Chrome proxy control changed before ENABLE');
+        try{
+          await requireConfigAuthorization(context,config,owner);
+          await authorizeEnable(context);
+          await verifyBefore();
+        }catch(error){
+          // No native write has been attempted. Recover only the old journal.
+          if(replacing)try{await persist(api,applying,current);}
+          catch{throw fail('E_OUTCOME_UNKNOWN','Previous proxy journal could not be restored; explicit STOP required');}
+          throw error;
+        }
         try{await api.proxy.settings.set({value:desiredSettings(applying),scope:'regular'});}
         catch{throw fail('E_OUTCOME_UNKNOWN','Chrome proxy set outcome is unknown; explicit STOP required');}
         const after=await chromeState(api);
         if(levelOf(after)!=='controlled_by_this_extension'||!matchesSettings(after.value,applying))
           throw fail('E_OUTCOME_UNKNOWN','Chrome did not verify the exact Managed Proxy PAC');
-        await persist(api,applying,{...applying,phase:'enabled'});
+        await persist(api,applying,next);
         return getState(api,owner);
       });
     },
-    async requestDisable(_input={},context){
+    async requestDisable(input={},context){
       const owner=ownerOf(context);
       return mutex(lockManager,async()=>{
         const saved=await storageState(api);
+        if(input.ifCurrent){
+          if(saved?.phase!=='enabled'||!sameOwner(saved.owner,owner)||
+             !sameStorageValue(validateConfig(saved.config,true),input.ifCurrent.activeConfig))
+            throw fail('E_CONFLICT','The previously confirmed route changed before release');
+          const before=await chromeState(api);
+          if(levelOf(before)!=='controlled_by_this_extension'||!matchesSettings(before.value,saved))
+            throw fail('E_CONFLICT','Chrome proxy control changed before release');
+        }
         if(saved&&!sameOwner(saved.owner,owner))
           throw fail('E_PROXY_OWNERSHIP','Cannot STOP another installation proxy');
         if(saved)await stopLocked(api,saved);

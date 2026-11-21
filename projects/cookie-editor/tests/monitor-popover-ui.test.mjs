@@ -44,7 +44,7 @@ function mount(t,initial={}){
   };
   const click=node=>act(()=>node.click());
   const focus=node=>act(()=>node.focus());
-  const trigger=()=>container.querySelector('button[aria-haspopup="dialog"]');
+  const trigger=()=>container.querySelector('.cookie-monitor > button');
   const dialog=()=>container.querySelector('[role="dialog"]');
   const open=()=>{click(trigger());assert.ok(dialog());};
   const escape=()=>act(()=>document.activeElement.dispatchEvent(
@@ -60,13 +60,13 @@ test('default is a collapsed More action with no counters or change controls',t=
   assert.equal(ui.container.textContent.trim(),'');
   ui.open();
   assert.equal(ui.dialog().querySelectorAll('button').length,1);
-  assert.match(ui.dialog().textContent,/列表默认自动同步/);
+  assert.match(ui.dialog().textContent,/列表会自动同步.*当前页面.*最长 30 秒/);
   assert.doesNotMatch(ui.container.textContent,/新增|更新|删除|仅看变化|清除标记/);
 });
 
 test('opening focuses the sole action; starting once dismisses and restores focus',t=>{
   const ui=mount(t);ui.open();
-  const start=ui.button('监听 Cookie 变化（30 秒）');
+  const start=ui.button('监听当前网站');
   assert.equal(ui.document.activeElement,start);
   assert.equal(ui.calls.start,0,'opening must not activate listening');
   ui.click(start);
@@ -74,23 +74,23 @@ test('opening focuses the sole action; starting once dismisses and restores focu
   assert.equal(ui.dialog(),null);assert.equal(ui.document.activeElement,ui.trigger());
 });
 
-test('running stays visible without color and stopping is one action',t=>{
+test('running shows the countdown and stops from the toolbar in one action',t=>{
   const ui=mount(t,{phase:'running',remaining:24});
-  assert.match(ui.trigger().getAttribute('aria-label'),/监听中/);
-  assert.equal(ui.trigger().querySelector('.cookie-monitor-badge').textContent.trim(),'■');
-  ui.open();
-  assert.match(ui.dialog().textContent,/24 秒后自动停止/);
+  assert.equal(ui.trigger().textContent,'监听中 24 秒');
   const announcement=ui.container.querySelector('[aria-live]').textContent;
   ui.update({remaining:23});
+  assert.equal(ui.trigger().textContent,'监听中 23 秒');
   assert.equal(ui.container.querySelector('[aria-live]').textContent,announcement,'countdown is not announced every second');
-  ui.click(ui.button('停止监听'));
+  ui.focus(ui.trigger());ui.click(ui.button('监听中，停止监听'));
   assert.equal(ui.calls.stop,1);assert.equal(ui.calls.start,0);
+  ui.update({phase:'stopped',detected:true});
   assert.equal(ui.dialog(),null);assert.equal(ui.document.activeElement,ui.trigger());
+  ui.open();assert.match(ui.dialog().textContent,/已检测到 Cookie 变化/);
 });
 
 for(const dismissal of ['Escape','trigger','outside pointer','outside focus','window blur']){
-  test(`${dismissal} dismisses without stopping a running observer`,t=>{
-    const ui=mount(t,{phase:'running',remaining:20});ui.open();
+  test(`${dismissal} dismisses the result without starting another session`,t=>{
+    const ui=mount(t,{phase:'ended'});ui.open();
     if(dismissal==='Escape')ui.escape();
     else if(dismissal==='trigger')ui.click(ui.trigger());
     else if(dismissal==='outside pointer')act(()=>ui.outside.dispatchEvent(new ui.window.Event('pointerdown',{bubbles:true})));
@@ -102,7 +102,15 @@ for(const dismissal of ['Escape','trigger','outside pointer','outside focus','wi
   });
 }
 
-for(const [reason,props] of [['starting',{phase:'starting'}],['unsupported',{supported:false}],['editing',{available:false}]]){
+test('starting retains keyboard focus and blocks duplicate starts',t=>{
+  const ui=mount(t);ui.focus(ui.trigger());ui.update({phase:'starting'});
+  assert.equal(ui.document.activeElement,ui.trigger());
+  assert.equal(ui.trigger().getAttribute('aria-disabled'),'true');
+  ui.click(ui.trigger());
+  assert.equal(ui.dialog(),null);assert.equal(ui.calls.start,0);assert.equal(ui.calls.stop,0);
+});
+
+for(const [reason,props] of [['unsupported',{supported:false}],['editing',{available:false}]]){
   test(`${reason} prevents a start callback and remains keyboard dismissible`,t=>{
     const ui=mount(t,props);ui.open();
     const action=ui.dialog().querySelector('button');
@@ -114,17 +122,25 @@ for(const [reason,props] of [['starting',{phase:'starting'}],['unsupported',{sup
 
 test('failed listening leaves a persistent warning and an explicit retry',t=>{
   const ui=mount(t,{phase:'error'});
-  assert.equal(ui.trigger().querySelector('.cookie-monitor-badge').textContent.trim(),'!');
-  ui.open();assert.match(ui.dialog().textContent,/监听未完成/);
+  assert.equal(ui.trigger().textContent,'监听中断');
+  ui.open();assert.match(ui.dialog().textContent,/检查网站权限/);
   ui.escape();ui.open();
-  ui.click(ui.button('重试监听（30 秒）'));
+  ui.click(ui.button('重试监听'));
   assert.equal(ui.calls.start,1);assert.equal(ui.dialog(),null);
 });
 
-test('expiry removes the active badge, never reopens or restarts listening',t=>{
+test('expiry keeps a result and requires an explicit restart',t=>{
   const ui=mount(t,{phase:'running',remaining:1});
   ui.update({phase:'ended',remaining:0});
-  assert.equal(ui.dialog(),null);assert.equal(ui.trigger().querySelector('.cookie-monitor-badge'),null);
-  assert.match(ui.container.querySelector('[aria-live]').textContent,/监听已结束/);
+  assert.equal(ui.dialog(),null);assert.equal(ui.trigger().textContent,'监听结束');
+  assert.match(ui.container.querySelector('[aria-live]').textContent,/监听结束.*未检测到 Cookie 变化/);
   assert.equal(ui.calls.start,0);assert.equal(ui.calls.stop,0);
+  ui.open();assert.match(ui.dialog().textContent,/本次未检测到 Cookie 变化/);
+  ui.click(ui.button('再次监听'));assert.equal(ui.calls.start,1);
+});
+
+test('an incomplete observation never reports that no changes were found',t=>{
+  const ui=mount(t,{phase:'ended',gap:true});ui.open();
+  assert.match(ui.dialog().textContent,/监听记录不完整/);
+  assert.doesNotMatch(ui.dialog().textContent,/未检测到/);
 });

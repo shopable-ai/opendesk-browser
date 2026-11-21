@@ -130,17 +130,16 @@
 .cookie-editor-react .sort-field>.od-field{width:auto;max-width:100%;min-width:0;min-height:25px;padding:4px 6px;font-size:10px}
 .cookie-editor-react .cookie-list{border-top:1px solid var(--od-line)}
 .cookie-editor-react .cookie-row{border-bottom:1px solid var(--od-line)}
-/* Low-frequency listening stays in the rightmost More action. */
-.cookie-editor-react .cookie-monitor{display:flex;align-items:center;min-width:0}
-.cookie-editor-react .cookie-monitor-trigger{position:relative}
-.cookie-editor-react .cookie-monitor-trigger.is-listening{color:var(--od-positive)}
-.cookie-editor-react .cookie-monitor-trigger.has-warning{color:var(--od-negative)}
-.cookie-editor-react .cookie-monitor-badge{position:absolute;top:0;right:0;min-width:13px;padding:0 2px;border-radius:6px;background:var(--od-paper);color:var(--od-positive);font-size:10px;line-height:14px;font-weight:650;pointer-events:none}
-.cookie-editor-react .has-warning .cookie-monitor-badge{color:var(--od-negative)}
+/* Keep the session control beside the list it observes. */
+.cookie-editor-react .cookie-monitor{display:flex;align-items:center;flex:none}
+.cookie-editor-react .cookie-monitor-status{gap:var(--space-1);height:32px;min-height:32px;padding-inline:var(--space-1);white-space:nowrap;font-size:var(--od-meta-size)}
+.cookie-editor-react .cookie-monitor-status.is-listening{color:var(--od-brand);background:var(--od-brand-bg)}
+.cookie-editor-react .cookie-monitor-status.has-warning{color:var(--od-negative)}
+.cookie-editor-react .cookie-monitor-status svg{width:14px;height:14px;flex:none}
+.cookie-editor-react .cookie-monitor-time{font-variant-numeric:tabular-nums}
 .cookie-editor-react .cookie-monitor-popover{position:absolute;right:var(--space-2);top:100%;z-index:8;box-sizing:border-box;width:min(264px,calc(100% - 16px));max-height:60dvh;overflow:auto;overscroll-behavior:contain;display:grid;gap:var(--space-2);padding:var(--space-2);border:1px solid var(--od-line);border-radius:var(--radius-surface);background:var(--od-paper);color:var(--od-ink);box-shadow:0 8px 24px rgba(0,0,0,.12);font-size:var(--od-note-size)}
 .cookie-editor-react .cookie-monitor-action{justify-content:flex-start;width:100%;font-size:var(--od-note-size)}
 .cookie-editor-react .cookie-monitor-note{margin:0;padding:0 var(--space-2) var(--space-1);overflow-wrap:anywhere;line-height:1.5;font-size:var(--od-note-size);color:var(--od-sub)}
-.cookie-editor-react .cookie-monitor-error{color:var(--od-negative)}
 .cookie-editor-react .cookie-monitor-announcement{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip-path:inset(50%);white-space:nowrap;border:0}
 .cookie-editor-react .cookie-row-name{min-width:0;display:flex;align-items:center;gap:6px}
 .cookie-editor-react .cookie-change-badge{flex:none;font-size:9px;line-height:1.5;border-radius:4px;padding:1px 4px;background:var(--od-brand-bg);color:var(--od-brand)}

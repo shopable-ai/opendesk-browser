@@ -19,7 +19,7 @@ export function createManagedProxyActionGate(){
 
 // Presentation only: the existing Host owns grants, identity and one-use intents.
 export async function requestManagedProxyIntent({api,identity,title,operation,payload,
-  hasUserActivation,assertCurrent,requestReview,trustedDirectAction=false}){
+  hasUserActivation,assertCurrent,requestReview,trustedDirectAction=false,routeName}){
   const confirm=async proxyConsent=>{
     assertCurrent();
     const reply=await api.runtime.sendMessage({protocol:BROWSER_HOST_PROTOCOL,kind:'host',
@@ -33,7 +33,7 @@ export async function requestManagedProxyIntent({api,identity,title,operation,pa
   // STOP only releases exact owned state. It never grants another route.
   if(operation==='browser.proxy.managed.requestDisable')return confirm();
   // The admitted, statically compiled AI Proxy UI already presents the scope
-  // beside its explicit Apply button. That click authorizes this exact action,
+  // beside its explicit Direct button. That click authorizes this exact action,
   // not a durable route grant. Sandboxed callers cannot opt into this branch.
   if(trustedDirectAction&&payload.config.mode==='direct'){
     if(!hasUserActivation)throw Object.assign(new Error('请再次点击直连操作按钮'),{code:'E_USER_GESTURE_REQUIRED'});
@@ -48,8 +48,9 @@ export async function requestManagedProxyIntent({api,identity,title,operation,pa
   const direct=payload.config.mode==='direct';
   return requestReview({toolId:identity.toolId,
     title:direct?'切换为直连？':'允许使用此代理线路？',
-    message:(direct?'所有标签页将绕过系统代理，直接连接网络。':managedProxyReview(payload.config)+'。')+
-      '\n\n记住此安装的'+(direct?'直连':'线路')+'授权，之后手动切换可复用。更换线路或扩大范围需重新审阅；可在工具设置中撤销并停止。',
+    message:(routeName?'所选代理：'+routeName+'\n':'')+
+      (direct?'所有标签页将绕过系统代理，直接连接网络。':managedProxyReview(payload.config)+'。')+
+      '\n\n此安装会记住授权。已授权的线路可一键切换，只有尚未授权的设置或范围需要审阅。可在工具设置中撤销并停止。',
     button:direct?'允许直连':'允许此线路',run:event=>{
       if(!event?.isTrusted)throw Object.assign(new Error('请点击可信授权按钮'),{code:'E_USER_GESTURE_REQUIRED'});
       return confirm('remember');

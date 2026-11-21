@@ -194,7 +194,7 @@ try{
     await copyFile(path.join(root,source),full);
   }
   const builtins=await createBuiltinResourceManifest(extension);
-  await writeFile(path.join(extension,'libs/manifest.json'),JSON.stringify(builtins,null,2)+'\n');
+  await writeFile(path.join(extension,'libs/builtin-resources.json'),JSON.stringify(builtins,null,2)+'\n');
   await verifyBuiltinResourceManifest(extension);
   console.log(JSON.stringify({stage:'native-controller-builtin-resources',abi:builtins.abi,
     resources:builtins.resources.map(({path,bytes,sha256})=>({path,bytes,sha256}))}));

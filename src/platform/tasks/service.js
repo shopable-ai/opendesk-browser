@@ -197,18 +197,35 @@ export async function ensureBuiltinTasks({storage,namespace,environment:current,
         const stateKey=builtinTaskStateKey(ns,taskId);
         const installed=await tx.get(TASK_STORE,installedKey(ns,taskId));
         if(installed){
+          const key=taskKey(ns,taskId,version);
+          const existing=await tx.get(TASK_STORE,key);
+          // Refresh only the exact shipped candidate's packaged evidence. The
+          // installation and its authorization still require explicit review.
+          const rebind=installed.version===version&&installed.manifestHash===release.manifestHash&&
+            existing?.stage==='available'&&existing.verification?.kind==='builtin-release'&&
+            !runtimeCurrent(existing,current);
           // A newer immutable builtin version must be discoverable for an
           // explicit reviewed upgrade; never replace an existing installation
           // or its grant during catalog initialization.
-          if(installed.version!==version){
-            const key=taskKey(ns,taskId,version),pkg=await assertPackagedTask(await loadBuiltinTask(release));
-            const existing=await tx.get(TASK_STORE,key);
+          if(installed.version!==version||rebind){
+            const pkg=await assertPackagedTask(await loadBuiltinTask(release));
+            invariant(pkg.manifestHash===release.manifestHash&&pkg.manifest.program.sourceHash===release.sourceHash,
+              'E_VERIFICATION','Packaged task identity differs');
             if(existing){
               validCandidate(existing,ns);await verifyTaskPackage(existing.package);
               invariant(existing.taskId===taskId&&existing.version===version&&
                 existing.package.manifestHash===pkg.manifestHash&&existing.package.sourceUtf8===pkg.sourceUtf8,
                 'E_REQUEST_CONFLICT','New builtin version conflicts with existing candidate');
-            }else await tx.put(TASK_STORE,{
+            }
+            if(rebind){
+              requireVerificationEvidence(existing);
+              existing.runtimeHistory=[...(existing.runtimeHistory??[]),{
+                builtinIdentity:existing.builtinIdentity,stage:existing.stage,
+                verification:existing.verification,availableAt:existing.availableAt}];
+              existing.builtinIdentity=current;
+              existing.verification={...existing.verification,builtinIdentity:current,builtinAbi:BUILTIN_ABI};
+              await tx.put(TASK_STORE,existing,key);
+            }else if(!existing)await tx.put(TASK_STORE,{
               tag:'task-candidate-v1',namespace:ns,taskId,version,createdAt:clock.now(),
               package:pkg,builtinIdentity:current,stage:'available',availableAt:clock.now(),
               verification:{kind:'builtin-release',source:'packaged',sourceHash:pkg.manifest.program.sourceHash,

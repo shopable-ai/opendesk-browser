@@ -75,6 +75,50 @@ test('first list installs each reviewed builtin release with revisions and autho
   assert.deepEqual(await f.tx.all('runs'),[]);assert.deepEqual(await f.tx.all('results'),[]);
 });
 
+test('a stale shipped task can update the same version with explicit review and no invented run',async()=>{
+  const f=fixture();await f.ensure();
+  const key=taskKey(namespace,google.taskId,google.version),installKey=installedKey(namespace,google.taskId);
+  const oldIdentity={...environment,bundleSha256:'c'.repeat(64)};
+  const row=await f.installed(google.taskId),candidate=await f.candidate(google);
+  const revKey=scriptStorageKey(namespace,row.scriptId,1),revision=await f.tx.get('scriptRevisions',revKey);
+  const old={...row,builtinIdentity:oldIdentity};
+  const stale={...candidate,builtinIdentity:oldIdentity,verification:{...candidate.verification,builtinIdentity:oldIdentity}};
+  await f.tx.put('frameworkKV',stale,key);
+  await f.tx.put('frameworkKV',old,installKey);
+  await f.tx.put('scriptRevisions',{...revision,builtinIdentity:oldIdentity},revKey);
+  f.loader(release=>release.taskId===google.taskId?loadPackagedTask(baidu):loadPackagedTask(release));
+  assert.equal((await catalog(f)).initialization.causeCode,'E_VERIFICATION');
+  assert.deepEqual(await f.candidate(google),stale,'wrong release cannot refresh packaged evidence');
+  f.loader(loadPackagedTask);
+  const listed=await catalog(f);
+  assert.equal(listed.catalog.find(entry=>entry.taskId===google.taskId).runtimeCurrent,true);
+  assert.equal(listed.installed.find(entry=>entry.taskId===google.taskId).runtimeCurrent,false);
+  assert.deepEqual(await f.installed(google.taskId),old);
+  assert.equal((await f.candidate(google)).runtimeHistory[0].verification.builtinIdentity.bundleSha256,oldIdentity.bundleSha256);
+  await assert.rejects(resolve(f,google.taskId),{code:'E_BUILTIN_VERSION_UNAVAILABLE'});
+  const request={taskId:google.taskId,version:google.version,manifestHash:google.manifestHash,
+    expectedInstalledVersion:google.version,expectedInstallationId:row.authorization.installationId};
+  await assert.rejects(send(f,'installTask',{...request,expectedGeneration:0}),{code:'E_REVISION'});
+  await send(f,'installTask',{...request,expectedGeneration:row.authorization.generation});
+  const resolved=await resolve(f,google.taskId);
+  assert.equal(resolved.generation,row.authorization.generation+1);
+  assert.equal(resolved.installationId,row.authorization.installationId);
+  assert.equal(resolved.contentHash,google.sourceHash);
+  assert.deepEqual((await f.installed(google.taskId)).authorization.scope,row.authorization.scope);
+  assert.deepEqual(await f.tx.all('runs'),[]);assert.deepEqual(await f.tx.all('results'),[]);
+});
+
+test('catalog refresh preserves stale local verification for the same shipped bytes',async()=>{
+  const f=fixture();await f.ensure();
+  const row=await f.candidate(google),oldIdentity={...environment,bundleSha256:'c'.repeat(64)};
+  const {kind,source,...evidence}=row.verification;
+  row.builtinIdentity=oldIdentity;
+  row.verification={...evidence,builtinIdentity:oldIdentity,runId:'old-native-run'};
+  await f.tx.put('frameworkKV',row,taskKey(namespace,google.taskId,google.version));
+  assert.equal((await catalog(f)).catalog.find(entry=>entry.taskId===google.taskId).runtimeCurrent,false);
+  assert.deepEqual(await f.candidate(google),row);
+});
+
 test('direct resolve and background export initialize without first visiting catalog',async()=>{
   const f=fixture();await resolve(f,google.taskId);assert.ok(await f.installed(baidu.taskId));
   const background=fixture();assert.equal((await background.ensure()).status,'ready');

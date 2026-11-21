@@ -19,8 +19,8 @@ function MyTaskWorkspace({view}){
   const selection=view.data.taskSelection,result=view.data.taskResultMeta;
   const revealed=view.field('task-result-reveal').dataset.revealed==='true';
   const revealLabel=revealed?'隐藏完整原值':'查看完整原值';
-  const latest=view.data.taskHistory?.[0],unknown=selection?.label==='结果未知';
-  const failed=latest?.runState==='failed',historySummary=React.useRef(null);
+  const unknown=selection?.label==='结果未知';
+  const failed=view.data.taskHistory?.[0]?.runState==='failed',historySummary=React.useRef(null);
   const toolsOpen=view.field('task-tools').open;
   const tools=React.useRef(null),previousToolsOpen=React.useRef(false);
   React.useEffect(()=>{
@@ -35,17 +35,17 @@ function MyTaskWorkspace({view}){
 </div>
 <MyControl view={view} as="p" id="task-status" role="status" aria-live="polite">
 </MyControl>
-{(unknown||failed)&&<div className="task-outcome-notice" data-tone={unknown?'warning':'error'} role="alert">
-<strong>{unknown?'上次执行结果尚未确认':'上次运行失败'}</strong>
-<p>{unknown?'不能确定是否产生了效果。请核对原记录，暂不重新运行。':latest.text}</p>
-{unknown?<button type="button" className="od-button od-button--quiet" onClick={()=>{
+{unknown&&<div className="task-outcome-notice" data-tone="warning" role="alert">
+<strong>上次执行结果尚未确认</strong>
+<p>不能确定是否产生了效果。请核对原记录，暂不重新运行。</p>
+<button type="button" className="od-button od-button--quiet" onClick={()=>{
   view.field('task-history-panel').open=true;view.publish();
   queueMicrotask(()=>historySummary.current?.focus({preventScroll:true}));
-}}>查看原运行记录</button>:<p>请检查目标网页，再准备下一次运行。</p>}
+}}>查看原运行记录</button>
 </div>}
-<MyControl view={view} as="div" id="task-result-panel" className="task-result-panel">
+<MyControl view={view} as="div" id="task-result-panel" className="task-result-panel" role={failed?'alert':undefined}>
 <div className="task-result-controls">
-<h3 className="task-result-heading">{"最近结果"}</h3>
+<h3 className="task-result-heading">最近运行结果</h3>
 {result?.state&&<span className="task-result-state">{result.state}</span>}
 <MyControl view={view} as="button" type="button" id="task-result-reveal" onClick={event=>view.actions.taskResultRevealClick?.(event.nativeEvent)}
   title={revealed?revealLabel:revealLabel+'（可能包含敏感信息）'} aria-label={revealLabel} aria-pressed={revealed}

@@ -110,6 +110,21 @@ test('current website shows only a safe HTTPS root and revalidates before dispat
   assert.equal(networkCalls(f).length,1);assert.equal(f.values.size,0);
  }finally{env.dispose();}
 });
+test('current website result survives the first poll after favorites change in another view',async()=>{
+ const f=fixture(),sidebar=f.open();
+ try{
+  const before=(await ok(sidebar,{type:'GET_DIAGNOSTICS'})).diagnostics.favorites;
+  f.replace(favoriteKey,[...before,{id:'custom:www.iana.org',name:'www.iana.org',domain:'www.iana.org',
+   kind:'custom',priority:'P0',provenance:'user',pinnedByUser:true}]);
+  await ok(sidebar,{type:'RUN_CURRENT_DIAGNOSTIC',expectedDomain:'www.example.org'});
+  await tick();
+  const result=(await ok(sidebar,{type:'GET_DIAGNOSTICS'})).diagnostics;
+  assert.ok(result.favorites.some(site=>site.domain==='www.iana.org'));
+  assert.equal(result.observations[0]?.siteId,'current:www.example.org');
+  assert.equal(result.observations[0]?.httpStatus,200);
+  assert.equal(networkCalls(f).length,1);
+ }finally{sidebar.dispose();}
+});
 test('unsafe, unavailable and unauthorized current pages never send a diagnostic request',async()=>{
  const f=fixture(),env=f.open();
  try{

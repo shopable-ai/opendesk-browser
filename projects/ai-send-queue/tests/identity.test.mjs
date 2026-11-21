@@ -31,7 +31,7 @@ function harness({legacy=false,legacyMarker=legacySelector,origin='https://chatg
     createQueueView(options){calls.views++;actions=options.actions;
       return {place(){},render(){},hide(){},hasRecovery(){return false;}};},
     createSendQueueRemote:()=>({changed(){}})});
-  vm.runInContext(source.replace(/^import .*;\n/gm,'').replace('export default async function main','async function main'),context);
+  vm.runInContext(source.replace(/^import .*;\n/gm,'').replace(/^export (?:default )?/gm,''),context);
   return {calls,legacyHost,run:()=>context.main(),setLegacy(value){legacy=value;},
     readStatus:()=>statusHandler({operation:'queue.status',payload:{}}),unsubscribed:()=>unsubscribed,
     poll(){interval();},get actions(){return actions;}};

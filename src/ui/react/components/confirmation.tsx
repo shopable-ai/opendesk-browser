@@ -5,7 +5,7 @@ import {Button} from './ui/button.tsx';
 // Presentation only. The original Host owns pending requests and execution;
 // ordinary choices never carry a browser event back to an SDK consumer.
 export function Confirmation({open,identity,title,message,confirmLabel,cancelLabel='取消',
-  tone='neutral',source,onConfirm,onCancel}) {
+  tone='neutral',source,onConfirm,onCancel,inline=false}) {
   const panel=React.useRef(null),cancel=React.useRef(null);
   const pressedInside=React.useRef(new Set());
   const titleId=React.useId(),messageId=React.useId();
@@ -20,6 +20,21 @@ export function Confirmation({open,identity,title,message,confirmLabel,cancelLab
     // Install native capture listeners before browser button default actions.
     node.addEventListener('keydown',suppress,true);
     node.addEventListener('keyup',suppress,true);
+    const removeGuards=()=>{
+      node.removeEventListener('keydown',suppress,true);
+      node.removeEventListener('keyup',suppress,true);
+    };
+    const restoreFocus=()=>{
+      if(previous?.isConnected&&!previous.disabled&&!previous.closest?.('[inert],[hidden]'))
+        previous.focus?.({preventScroll:true});
+    };
+    if(inline){
+      node.focus();
+      return ()=>{
+        removeGuards();
+        if(node.contains(doc.activeElement)||doc.activeElement===doc.body)restoreFocus();
+      };
+    }
     let portal=node;
     while(portal.parentElement&&portal.parentElement!==doc.body)portal=portal.parentElement;
     const isolated=new Map(),overflow=doc.body.style.overflow;
@@ -35,14 +50,12 @@ export function Confirmation({open,identity,title,message,confirmLabel,cancelLab
     cancel.current?.focus({preventScroll:true});
     return ()=>{
       observer.disconnect();
-      node.removeEventListener('keydown',suppress,true);
-      node.removeEventListener('keyup',suppress,true);
+      removeGuards();
       for(const [sibling,inert] of isolated)sibling.inert=Boolean(inert);
       doc.body.style.overflow=overflow;
-      if(previous?.isConnected&&!previous.disabled&&!previous.closest?.('[inert],[hidden]'))
-        previous.focus?.({preventScroll:true});
+      restoreFocus();
     };
-  },[open,identity,returnFocus]);
+  },[open,identity,returnFocus,inline]);
   const suppress=event=>{
     // Composition and a held opening key cannot approve or escape this layer.
     if(!['Enter',' ','Escape'].includes(event.key))return;
@@ -56,6 +69,23 @@ export function Confirmation({open,identity,title,message,confirmLabel,cancelLab
       event.preventDefault();event.stopPropagation();
     }
   };
+  const details=<>
+    {source&&<p className="od-confirm-source">{source}</p>}
+    <p id={messageId} className="od-confirm-message">{message}</p>
+    <div className="sidebar-tool-action-buttons">
+      <Button ref={cancel} autoFocus={!inline} id="sidebar-tool-action-cancel" onClick={()=>onCancel?.('user')}>
+        {cancelLabel}
+      </Button>
+      <Button id="sidebar-tool-action-continue" variant={tone==='danger'?'danger':'primary'}
+        onClick={event=>onConfirm?.(event.nativeEvent||event)}>{confirmLabel}</Button>
+    </div>
+  </>;
+  if(inline)return open?<section ref={panel} tabIndex={-1} className="od-surface od-confirm-dialog od-confirm-inline"
+    aria-labelledby={titleId} aria-describedby={messageId}
+    onKeyDown={event=>{if(event.key==='Escape'){event.preventDefault();onCancel?.('escape');}}}>
+    <h2 id={titleId}>{title}</h2>
+    {details}
+  </section>:null;
   return <ModalOverlay isOpen={Boolean(open)} isDismissable={false}
     onOpenChange={next=>{if(!next)onCancel?.('escape');}}
     className="od-uninstall-overlay od-confirm-overlay">
@@ -63,15 +93,7 @@ export function Confirmation({open,identity,title,message,confirmLabel,cancelLab
       <Dialog ref={panel} role="alertdialog" aria-labelledby={titleId} aria-describedby={messageId}
         className="od-confirm-dialog">
         <Heading slot="title" id={titleId}>{title}</Heading>
-        {source&&<p className="od-confirm-source">{source}</p>}
-        <p id={messageId} className="od-confirm-message">{message}</p>
-        <div className="sidebar-tool-action-buttons">
-          <Button ref={cancel} autoFocus id="sidebar-tool-action-cancel" onClick={()=>onCancel?.('user')}>
-            {cancelLabel}
-          </Button>
-          <Button id="sidebar-tool-action-continue" variant={tone==='danger'?'danger':'primary'}
-            onClick={event=>onConfirm?.(event.nativeEvent||event)}>{confirmLabel}</Button>
-        </div>
+        {details}
       </Dialog>
     </Modal>
   </ModalOverlay>;

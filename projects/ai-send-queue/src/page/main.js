@@ -15,12 +15,17 @@ const legacyActive=()=>LEGACY_LIFECYCLES.some(selector=>document.querySelector(s
 const pageRules={matches:['https://chatgpt.com/*'],excludeMatches:[],
   runAt:'document_idle',allFrames:false,world:'USER_SCRIPT'};
 
-export default async function main({assets}={}) {
+export default function main({assets}={}) {
+  return runQueue({assets,createRemote:createSendQueueRemote});
+}
+
+export async function runQueue({assets,fixed,createRemote}={}) {
   if(window!==window.top||window.location.origin!=='https://chatgpt.com')
     return {programId:ID,status:'skipped'};
   if(legacyActive())
     return {programId:ID,status:'skipped',reason:'legacy-active'};
   const owner=createPageUI({id:ID+'.lifecycle',assets,pageRules,baseStyles:false});
+  fixed?.own(owner);
   owner.host.hidden=true;
   owner.host.style.setProperty('display','none','important');
   function retireForLegacy(){
@@ -417,15 +422,31 @@ export default async function main({assets}={}) {
       return parts.length?'发送队列备份 · 请核对原对话，备份不会自动发送\n对话：'+
         (state.route||cacheRoute)+'\n\n'+parts.join('\n\n'):'';
     }
+    function withGrant(run,{checkComposer=false}={}){
+      if(!fixed)return run();
+      const before=checkComposer?site.inspect():null,url=window.location.href;
+      return fixed.authorize().then(allowed=>{
+        if(!allowed||!owner.active()||retireForLegacy()||window.location.href!==url)return false;
+        if(before){
+          const after=site.inspect();
+          if(!sameComposer(before,after)||before.draft!==after.draft||before.rich!==after.rich||
+            !site.sameHistory(before,after)||composing){
+            notify('输入框已变化，草稿已保留，请重试');return false;
+          }
+        }
+        return run();
+      }).catch(()=>{notify('暂时无法确认队列授权，请重试');return false;});
+    }
     view=createQueueView({owner,createPageUI,assets,engine,getBackup,onRecoveryChange:checkpoint,
+      trustedActions:!!fixed,
       actions:Object.fromEntries(Object.entries(actions).map(([name,action])=>
         [name,(...args)=>{if(owner.active()&&!retireForLegacy()){
-          try{return action(...args);}finally{checkpoint();}
+          return withGrant(()=>{try{return action(...args);}finally{checkpoint();}},
+            {checkComposer:name==='enqueue'||name==='edit'});
         }}] ))});
-    // The fixed remote adapter is in USER_SCRIPT, not the website's JS world.
-    remote=createSendQueueRemote({owner,site,engine,actions,retireForLegacy});
-    if(globalThis.OpenDeskAppPage)
-      registerPageStatus({bridge:globalThis.OpenDeskAppPage,owner,site,view,version:'0.1.34'});
+    remote=createRemote?.({owner,site,engine,actions,retireForLegacy})??null;
+    const bridge=fixed?.bridge??globalThis.OpenDeskAppPage;
+    if(bridge)registerPageStatus({bridge,owner,site,view,version:'0.1.36'});
     // A native attempt may precede its DOM receipt. Subsequent editing cannot
     // prove that an externally initiated send was cancelled.
     owner.on(document,'click',event=>{
@@ -455,7 +476,9 @@ export default async function main({assets}={}) {
       if(queueShortcut){
         // Consume the key before enqueuing so ChatGPT cannot also submit it.
         event.preventDefault();event.stopImmediatePropagation();
-        if(!event.repeat&&actions.enqueue())notify('草稿已加入发送队列');
+        if(!event.repeat)void withGrant(()=>{
+          if(actions.enqueue())notify('草稿已加入发送队列');
+        },{checkComposer:true});
         return;
       }
       const send=snap.sendButton;
@@ -471,7 +494,9 @@ export default async function main({assets}={}) {
       if(state.phase==='unknown'||state.inFlight||state.items.some(item=>item.state==='unknown')){
         notify('当前发送尚未确认，请先核对原对话；草稿已保留');return;
       }
-      if(actions.enqueue())notify('官网当前无法发送，草稿已加入发送队列');
+      void withGrant(()=>{
+        if(actions.enqueue())notify('官网当前无法发送，草稿已加入发送队列');
+      },{checkComposer:true});
     },true);
     owner.on(window,'beforeunload',()=>{
       // Report failures while the page is usable; leaving never opens a native
@@ -479,7 +504,15 @@ export default async function main({assets}={}) {
       if(owner.active())checkpoint();
     });
     // All schedules share this gate and the original engine; no timeout proves a reply complete.
+    let authorizing=false;
     function poll(source='poll'){
+      if(!fixed||!hasWork())return pollAuthorized(source);
+      if(authorizing)return;
+      authorizing=true;
+      return fixed.authorize().then(allowed=>{if(allowed)pollAuthorized(source);})
+        .finally(()=>{authorizing=false;});
+    }
+    function pollAuthorized(source){
       if(checking){diagnostics.coalesced++;return;}
       if(!owner.active()||retireForLegacy())return;
       checking=true;checkFailed=false;needsRender=false;
@@ -550,7 +583,7 @@ export default async function main({assets}={}) {
       if(snap.ok){view.place(snap);view.render();}
     },'initial-layout');
     progress();
-    return {programId:ID,status:'active',runtime:'USER_SCRIPT',
+    return {programId:ID,status:'active',runtime:fixed?'ISOLATED':'USER_SCRIPT',
       persistence:'session-storage',cache:cacheStatus,composer:snap?.ok?'detected':'not-detected',diagnostics};
   }catch(error){owner.destroy();throw error;}
 }

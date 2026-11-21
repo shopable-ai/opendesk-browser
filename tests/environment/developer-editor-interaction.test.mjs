@@ -7,9 +7,23 @@ import {createDeveloperStarterSource} from '../../src/ui/developer-starter-sourc
 import browserConfig from '../../src/config/browser-config.json' with {type:'json'};
 
 test('developer native world radios and section navigation preserve drafts and dispatch only explicit owner actions',async t=>{
-  const dom=new JSDOM('<!doctype html><html><body><div id="root"></div></body></html>');
+  const dom=new JSDOM('<!doctype html><html><body><div id="root"></div></body></html>',{pretendToBeVisual:true});
   const {window}=dom,{document}=window;
-  const globals={window,document,Element:window.Element,HTMLElement:window.HTMLElement,
+  // JSDOM has no CSS.escape or layout observer; React Aria uses both even
+  // before a menu opens. Hex escapes also handle generated React IDs safely.
+  window.CSS??={escape:value=>Array.from(String(value),char=>
+    '\\'+(char.codePointAt(0)||0xfffd).toString(16)+' ').join('')};
+  window.ResizeObserver??=class {observe(){}unobserve(){}disconnect(){}};
+  window.HTMLElement.prototype.scrollTo=function(options){
+    this.scrollTop=options?.top??this.scrollTop;this.scrollLeft=options?.left??this.scrollLeft;
+  };
+  const globals={window,document,HTMLSelectElement:window.HTMLSelectElement,CSS:window.CSS,ResizeObserver:window.ResizeObserver,
+    MutationObserver:window.MutationObserver,NodeFilter:window.NodeFilter,
+    getComputedStyle:window.getComputedStyle.bind(window),
+    requestAnimationFrame:window.requestAnimationFrame.bind(window),
+    cancelAnimationFrame:window.cancelAnimationFrame.bind(window),
+    navigator:window.navigator,HTMLButtonElement:window.HTMLButtonElement,
+    Element:window.Element,HTMLElement:window.HTMLElement,
     SVGElement:window.SVGElement,Node:window.Node,HTMLInputElement:window.HTMLInputElement,
     HTMLTextAreaElement:window.HTMLTextAreaElement,IS_REACT_ACT_ENVIRONMENT:true};
   const previous=new Map(Object.keys(globals).map(key=>[key,Object.getOwnPropertyDescriptor(globalThis,key)]));
@@ -68,9 +82,20 @@ test('developer native world radios and section navigation preserve drafts and d
   const selectedWorld=()=>world.querySelector('input:checked').value;
   assert.equal(selectedWorld(),'controller');
   assert.equal(source.placeholder,'','examples are real source supplied by the editor owner');
+  assert.ok(source.getAttribute('aria-describedby').split(' ').includes('developer-draft-help'),
+    'editable source announces its manual-save policy');
   assert.match(source.value,/page.title/,'the example is editable source, not placeholder text');
   assert.equal(source.value,view.fields['script-source'].value);
   assert.equal(calls.length,0,'mounting must not invoke any action');
+  const noEditorLibrary=()=>{
+    assert.equal(get('developer-script-open-button'),null,'the editor has no Open dropdown');
+    assert.equal(document.querySelector('.developer-script-picker'),null,'the editor mounts no saved-script popover');
+    assert.equal(document.querySelector('[aria-label="打开已保存脚本"]'),null);
+  };
+  noEditorLibrary();
+  assert.ok(get('developer-more-actions').contains(get('developer-library-entry')),
+    'version management belongs to the existing More menu');
+  assert.equal(get('developer-more-actions').hidden,true,'saved versions do not occupy the default editor');
 
   const draft='// 完整中文草稿\nasync function main() {\n  const keep = "你好，网页";\n  return { keep, lines: [1, 2] };\n}\n';
   const inputEvent=new window.Event('input',{bubbles:true});
@@ -89,10 +114,12 @@ test('developer native world radios and section navigation preserve drafts and d
   };
   preserved();
 
-  const references=async(key,mode,filename)=>{
+  const references=async(key,mode)=>{
     const head=document.querySelector('.developer-editor-head');
-    assert.equal(head.querySelector('.developer-editor-filename').textContent,filename);
-    assert.equal(head.querySelector('.developer-editor-filename').title,filename);
+    assert.equal(head.querySelector('.developer-editor-filename'),null,'editable drafts have no synthetic filename');
+    assert.ok(get('developer-environment-hint').classList.contains('visually-hidden'));
+    assert.ok(get('developer-draft-help').classList.contains('visually-hidden'));
+    noEditorLibrary();
     assert.equal(head.textContent.includes('当前草稿'),false);
     const before=calls.length;
     for(const [kind,label] of [['examples','示例'],['help','API 文档']]){
@@ -113,7 +140,7 @@ test('developer native world radios and section navigation preserve drafts and d
     }
     assert.equal(calls.length,before,'reference links dispatch no editor or execution action');
   };
-  await references('controller','自动化 JS','main.js');
+  await references('controller','自动化 JS');
 
   const click=async(node,id)=>{
     let nativeClick;
@@ -145,7 +172,7 @@ test('developer native world radios and section navigation preserve drafts and d
     preserved();
   };
   await select('page');
-  await references('page','网页 JS','page.js');
+  await references('page','网页 JS');
   assert.equal(source.placeholder,'');
   await select('controller');
   assert.equal(source.placeholder,'');
@@ -174,8 +201,7 @@ test('developer native world radios and section navigation preserve drafts and d
     assert.deepEqual(frameworks.map(candidate=>get('page-component-'+candidate).checked),
       frameworks.map(candidate=>candidate===framework));
     assert.equal(source.placeholder,'');
-    if(framework!=='javascript')await references(framework,framework==='react'?'React JSX':'Vue SFC',
-      framework==='react'?'App.jsx':'App.vue');
+    if(framework!=='javascript')await references(framework,framework==='react'?'React JSX':'Vue SFC');
   }
   assert.deepEqual(calls.map(call=>call.id),[
     'script-source','script-javascript-world','script-javascript-world',
@@ -212,6 +238,9 @@ test('developer native world radios and section navigation preserve drafts and d
     view.patch('program-source-files',{value:fixedFile});
   });
   assert.equal(source.readOnly,true);
+  noEditorLibrary();
+  assert.equal(source.getAttribute('aria-describedby').split(' ').includes('developer-draft-help'),false,
+    'fixed source does not announce a hidden draft policy');
   assert.equal(document.querySelector('.developer-editor-readonly').textContent,'固定源码 · 只读');
   assert.equal(document.querySelector('.developer-editor-filename').title,fixedFile);
   assert.equal(document.querySelector('.developer-editor-filename').textContent,fixedFile);
@@ -251,11 +280,42 @@ test('developer native world radios and section navigation preserve drafts and d
   assert.equal(visible(get('script-list')),false);
   assert.equal(visible(get('page-program-install')),false);
   assert.equal(visible(get('site-access-grant')),false);
+  assert.equal(visible(get('script-version')),true,'draft save state belongs beside the save action');
   const back=()=>get('workbench-develop').querySelector('[aria-label="返回编辑"]');
   assert.equal(document.activeElement,back(),'management entry focuses its return action');
   await navigate(back());
   assert.equal(view.getSnapshot().section,'editor');
   assert.equal(document.activeElement,get('developer-save-entry'));
+  // UI_PREVIEW_ONLY: this saved-history record is synthetic, not real user history.
+  const selectedId='saved-script-with-a-long-name-independent-of-the-editor';
+  await React.act(async()=>{
+    view.patch('script-list',{options:[{label:'选择已保存脚本',value:''},
+      {label:selectedId+' · r12',value:selectedId,scriptId:selectedId,revision:12,
+        kind:'controller',typeLabel:'自动化 · Controller JS'}],value:selectedId});
+    view.patch('page-program-list',{options:[1,2].map(revision=>({
+      label:selectedId+' · r'+revision,value:selectedId+':'+revision,scriptId:selectedId,
+      revision,kind:'page',typeLabel:'网页脚本 · Page',manifestHash:'f'.repeat(64)
+    })),value:selectedId+':1'});
+  });
+  noEditorLibrary();
+  const managementMore=get('developer-more-button');
+  await navigate(managementMore);
+  assert.equal(get('developer-more-actions').hidden,false);
+  await navigate(get('developer-library-entry'));
+  assert.equal(view.getSnapshot().section,'library');
+  assert.equal(get('developer-more-actions').hidden,true);
+  assert.deepEqual(view.fields['page-program-list'].options.map(option=>option.revision),[1,2],
+    'management retains all Page revisions without a duplicate shortcut catalog');
+  assert.equal(get('developer-selected-script').textContent,'所选脚本：'+selectedId+' · r12');
+  assert.equal(visible(get('script-version')),false,'library never substitutes draft state for the selected saved object');
+  assert.equal(get('script-delete').getAttribute('aria-describedby'),'developer-selected-script');
+  await React.act(async()=>view.patch('script-version',{textContent:'编辑器中的其他版本'}));
+  assert.equal(get('developer-selected-script').textContent,'所选脚本：'+selectedId+' · r12');
+  await React.act(async()=>view.patch('script-list',{value:''}));
+  assert.equal(get('developer-selected-script').textContent,'请先选择一个已保存脚本。');
+  await navigate(back());
+  assert.equal(document.activeElement,managementMore,'returning from management restores the persistent More trigger');
+  noEditorLibrary();
   await React.act(async()=>{
     view.patch('script-status',{textContent:''});
     view.patch('script-task-status',{textContent:''});
@@ -318,9 +378,15 @@ test('developer native world radios and section navigation preserve drafts and d
   assert.equal(visible(get('script-task-status')),false);
   await React.act(async()=>{
     view.patch('script-status',{textContent:'运行结果未知，请先核对',data:{state:'unknown'}});
-    view.patch('script-task-status',{data:{state:'paused_unknown'}});
+    view.patch('script-task-status',{data:{state:'paused_unknown',runId:'original-unknown-run'}});
   });
+  const originalRunReads=[];
+  view.actions['developer-unknown-history']=runId=>{
+    originalRunReads.push(runId);
+    view.navigate('history',{returnFocusId:'developer-unknown-history'});
+  };
   await navigate(get('developer-unknown-history'));
+  assert.deepEqual(originalRunReads,['original-unknown-run'],'unknown action passes the rendered identity to its result owner');
   assert.equal(view.getSnapshot().section,'history');
   await navigate(back());
   assert.equal(document.activeElement,get('developer-unknown-history'));
@@ -381,6 +447,7 @@ test('developer native world radios and section navigation preserve drafts and d
   await React.act(async()=>view.patch('local-project-mode',{checked:true}));
   const localSave=get('script-save');
   assert.equal(visible(get('developer-save-entry')),false);
+  assert.equal(get('developer-library-entry').hidden,true,'local projects do not expose the manual script library');
   assert.equal(visible(localSave),true,'local save remains reachable from history');
   assert.ok(get('develop-dock').contains(localSave));
   const saveCall=await click(localSave,'script-save');
@@ -404,6 +471,7 @@ test('developer native world radios and section navigation preserve drafts and d
 
   await React.act(async()=>view.patch('script-source',{readOnly:true}));
   assert.equal(source.readOnly,true);
+  noEditorLibrary();
   assert.equal(source.placeholder,'','read-only source has no editable example hint');
   preserved();
   await React.act(async()=>view.patch('program-source-files',{value:'src/actual-entry.ts'}));

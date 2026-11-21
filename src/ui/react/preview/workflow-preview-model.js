@@ -98,7 +98,7 @@ export function createWorkflowPreviewSimulation(changed=()=>{}){
  function ready(){previousPlan=null;s.phase='idle';s.scene='conversation';s.pendingAutoRun=true;feedback('步骤已准备',
   `当前方案 · 修订 ${s.revision}。下方 ${s.steps.length} 个语义步骤可展开编辑。这里暂停便于检查；正式流程在原准入允许时可直接执行。`,
   [['run','继续执行演示',true],['edit','查看与编辑步骤']]);}
- function beginPlanning(){s.phase='planning';s.scene='planning';add('AI','没有匹配，开始为本轮请求整理语义步骤。尚未执行。');feedback('正在规划', '理解目标与当前网页范围；规划进度不代表动作完成。', [['advance','返回方案演示'],['cancel','停止规划']]);}
+ function beginPlanning(){s.phase='planning';s.scene='planning';add('AI','没有匹配，开始为本轮请求整理语义步骤。尚未执行。');feedback('正在规划', '理解目标与当前网页范围；规划进度不代表动作完成。', [['advance','返回方案演示']]);}
  // Explicit scene fixtures are real in-memory candidate records too. Ordinary
  // requests never synthesize a reusable candidate from an absent history row.
  function sceneCandidates(count){
@@ -141,7 +141,7 @@ export function createWorkflowPreviewSimulation(changed=()=>{}){
    !row.data.effectFence&&planSignature(row.data)===row.data.fixtureSignature):[];
   if(s.steps.length)add('系统',`开始第 ${s.round} 轮修订；前一轮步骤和结果保留在上方，新的方案尚未执行。`);
   s.steps=[];s.params=[];s.phase='searching';s.scene='searching';
-  feedback('正在查找可复用程序','先查询当前网站的保存版本与已安装 Task；查找不是执行。', [['advance','推进演示'],['cancel','取消查找']]);update();return true;
+  feedback('正在查找可复用程序','先查询当前网站的保存版本与已安装 Task；查找不是执行。', [['advance','推进演示']]);update();return true;
  }
  function advance(){
   if(s.phase==='searching'){
@@ -311,11 +311,11 @@ export function createWorkflowPreviewSimulation(changed=()=>{}){
    if(!s.draft&&!draftEdited)s.draft=s.messages.findLast(row=>row.speaker==='你')?.message||'';
    s.lookup='auto';reuseIntent=null;candidates=[];
    feedback('已返回草稿','任务请求和取消前正在编辑的输入均已保留，可修改后再次发送。', [['modify','继续编辑']]);
-  }else if(key==='retry-query'){s.lookup='none';s.phase='searching';feedback('正在重新查询','只重试目录查询；尚未进入 AI 规划。',[['advance','推进演示'],['cancel','取消']]);}
+  }else if(key==='retry-query'){s.lookup='none';s.phase='searching';feedback('正在重新查询','只重试目录查询；尚未进入 AI 规划。',[['advance','推进演示']]);}
   else if(key.startsWith('candidate-')){const index=candidates.findIndex(row=>key==='candidate-'+row.key);if(index<0)return;s.mode='commerce';
    if(reuseIntent&&!reuseIntent.productName){candidates=[candidates[index]];s.asking=true;feedback('还缺一个参数','请在下方回复商品完整名称。当前没有执行网页动作。',[['cancel','取消复用']]);}
    else{useCandidate(index);add('AI',`已明确选择第 ${index+1} 个候选：${s.title}。原语义准入通过，演示直接复跑。`);startRun(false,true);}}
-  else if(key==='retry-plan'){s.phase='planning';s.error='';feedback('正在重新规划','尚未执行网页动作。',[['advance','返回方案演示'],['cancel','停止规划']]);}
+  else if(key==='retry-plan'){s.phase='planning';s.error='';feedback('正在重新规划','尚未执行网页动作。',[['advance','返回方案演示']]);}
   else if(key==='restore'){s.sourceState='ready';s.error='';feedback('样例来源已恢复','仅恢复离线交互，不连接真实模型。输入草稿仍保留。',[['modify','返回输入']]);notify('离线样例已恢复');}
   else if(key==='modify'){s.notice='在底部输入修改要求；前一轮记录会保留。';}
   else if(key==='inspect')feedback('先核对，避免重复副作用','正式产品中请查看目标网页与服务器记录。此 Preview 没有真实网站可核对；可继续修改草稿，但不能把未知结果改成成功。',[['modify','继续修改草稿']],'warning');
@@ -347,7 +347,7 @@ export function createWorkflowPreviewSimulation(changed=()=>{}){
   if(['searching','single','multiple','clarify','query-failure','planning'].includes(name)){
    s.phase=name==='planning'?'planning':'searching';s.lookup={single:'single',multiple:'multiple',clarify:'clarify','query-failure':'error'}[name]||'auto';
    if(s.lookup!=='none')s.mode='commerce';
-   feedback(s.phase==='planning'?'正在规划':'正在查找可复用程序','内存样例，不连接真实来源。',[['advance','推进演示'],['cancel',s.phase==='planning'?'停止规划':'取消查找']]);update();return;
+   feedback(s.phase==='planning'?'正在规划':'正在查找可复用程序','内存样例，不连接真实来源。',[['advance','推进演示']]);update();return;
   }
   buildPlan();
   if(name==='planning-failure'){s.steps=[];s.params=[];s.error='规划失败：模型回复格式不符合语义步骤合同（样例）。未执行。';feedback('规划失败',s.error,[['retry-plan','重试规划演示'],['modify','修改请求']],'error');}

@@ -1,4 +1,4 @@
-// Fixed Controller Task. Homepage: one visible search; /s?wd=: read-only compatibility.
+// Fixed Controller Task. Homepage: one visible search; other Baidu pages: one same-origin navigation.
 // Locator operations are ISOLATED DOM actions, not operating-system keyboard/mouse events.
 async function main() {
   const query = params?.query;
@@ -9,9 +9,10 @@ async function main() {
   }
   let url = new URL(await page.url());
   const homepage = url.pathname === '/' && !url.search;
-  if (url.origin !== 'https://www.baidu.com' || url.username || url.password ||
-      (!homepage && (url.pathname !== '/s' || url.searchParams.get('wd') !== query))) {
-    throw Object.assign(new Error('Expected the approved Baidu homepage or exact query'), {code:'E_TARGET'});
+  const approvedOrigin = candidate => candidate.origin === 'https://www.baidu.com' && !candidate.username && !candidate.password;
+  const exactQuery = candidate => candidate.pathname === '/s' && candidate.searchParams.get('wd') === query;
+  if (!approvedOrigin(url)) {
+    throw Object.assign(new Error('Expected the approved Baidu website'), {code:'E_TARGET'});
   }
   const sample = (text,max) => Array.from(text).slice(0,max).join('');
   const bytes = value => new TextEncoder().encode(JSON.stringify(value)).length;
@@ -99,12 +100,23 @@ async function main() {
       const deadline=Date.now()+12000;
       do {
         url=new URL(await page.url());
-        if(url.origin !== 'https://www.baidu.com' || url.username || url.password)
+        if(!approvedOrigin(url))
           throw Object.assign(new Error('Unexpected navigation origin'),{code:'E_TARGET'});
-        if(url.pathname==='/s' && url.searchParams.get('wd')===query) break;
+        if(exactQuery(url)) break;
         await pause(200);
       } while(Date.now()<deadline);
-      if(url.pathname!=='/s' || url.searchParams.get('wd')!==query) throw Object.assign(new Error('Search navigation not observed'),{code:'E_SEARCH_NAVIGATION'});
+      if(!exactQuery(url)) throw Object.assign(new Error('Search navigation not observed'),{code:'E_SEARCH_NAVIGATION'});
+      record('navigation','observed',{url:url.href,...await observeDocument()});
+    } else if (!exactQuery(url)) {
+      const target = new URL('https://www.baidu.com/s');
+      target.searchParams.set('wd',query);
+      record('navigation','started',{url:target.href});
+      // The Controller adopts the new document through its existing authorized navigation path.
+      await page.goto(target.href,{waitUntil:'domcontentloaded',timeout:15000});
+      url = new URL(await page.url());
+      if(!approvedOrigin(url)) throw Object.assign(new Error('Unexpected navigation origin'),{code:'E_TARGET'});
+      if(blocked(await readBody())) return result('blocked');
+      if(!exactQuery(url)) throw Object.assign(new Error('Search navigation not observed'),{code:'E_SEARCH_NAVIGATION'});
       record('navigation','observed',{url:url.href,...await observeDocument()});
     }
     if(blocked(await readBody())) return result('blocked');

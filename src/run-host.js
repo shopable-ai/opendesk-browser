@@ -44,7 +44,7 @@ export function createRunHost({api = globalThis.chrome, client: suppliedClient, 
     return scraping ||= templateModuleFactory(services);
   };
   const controls = client.controller || Object.fromEntries(['commitControllerScript','getControllerScript','tombstoneControllerScript','garbageCollectControllerScript','startControllerRun',
-    'prepareTaskRun','inspectTaskRun','cancelTaskRun','controllerOperation','stopControllerRun','finishControllerRun','snapshotControllerRun','retireControllerTarget']
+    'prepareTaskRun','inspectTaskRun','cancelTaskRun','controllerOperation','stopControllerRun','finishControllerRun','snapshotControllerRun','fenceControllerAdmission','retireControllerTarget']
     .map(method => [method, request => client.request(method, request)]));
   async function start(request) {
     if (request?.profile === 'app-service' || request?.source !== undefined || request?.scriptId !== undefined)
@@ -87,6 +87,7 @@ export function createRunHost({api = globalThis.chrome, client: suppliedClient, 
       await client.ready;
       if (disposed) throw new FoundationError('E_HOST_CLOSED', 'RunHost disposed during admission');
       if (local.controller.signal.aborted) throw new FoundationError('E_CANCELLED', 'RunHost admission cancelled');
+      local.admissionDispatched = true;
       const claim = await controls.startControllerRun(admissionRequest);
       local.runId = claim.runId;
       if (claim.duplicate) throw new FoundationError('E_EFFECT_UNKNOWN', 'Existing run is observable; its script is never replayed');
@@ -114,6 +115,14 @@ export function createRunHost({api = globalThis.chrome, client: suppliedClient, 
       local.completion = lastCompletion = completeController(local, claim, controller);
       return claim;
     } catch (error) {
+      if (!admitted && !local.runId && !disposed && taskPreparationId === undefined && request.reconcileAdmission === true &&
+        (error.code === 'E_EFFECT_UNKNOWN' || !error.code) && local.admissionDispatched) {
+        // A lost reply never starts a second Worker. Hold this admission until
+        // we can observe and settle the exact Authority request.
+        local.admissionUncertain = true;
+        throw Object.assign(new FoundationError('E_EFFECT_UNKNOWN', 'Admission receipt unknown; check the original request'),
+          {admissionRequestId: local.requestId});
+      }
       if (admitted && !local.control) {
         error.runId=admitted.runId;error.resultId=admitted.resultId;
         local.context?.dispose(); contextResources.delete(local.context); local.runId=admitted.runId;
@@ -125,6 +134,33 @@ export function createRunHost({api = globalThis.chrome, client: suppliedClient, 
       }
       if (active === local && !local.pendingSettlement) active = undefined; throw error;
     } finally { admissions.delete(admission); admissionDone(); }
+  }
+  async function reconcileControllerAdmission(requestId) {
+    const local = active;
+    if (disposed || !local?.admissionUncertain || local.requestId !== requestId) return null;
+    if (local.reconciling) return local.reconciling;
+    const reconcile = (async () => {
+      const receipt = await controls.fenceControllerAdmission({requestId});
+      if (disposed || active !== local || receipt?.requestId !== requestId) return null;
+      if (receipt.state === 'not-admitted' && receipt.run === undefined && !local.runId) {
+        active = undefined;
+        return {requestId, state: 'not-admitted'};
+      }
+      const run = receipt.run;
+      if (receipt.state !== 'admitted' || run?.requestId !== requestId || !run.runId ||
+          (local.runId && local.runId !== run.runId)) return null;
+      local.runId = run.runId;
+      // No Worker was ever created for this claim. The existing target
+      // retirement path still verifies native release on the Authority side.
+      local.settlementRequest ||= {runId:run.runId,requestId:`${run.runId}:finish`,status:'stopped',workerRetired:true};
+      local.pendingSettlement = true;
+      const outcome = await settleController(local, {fencedAdmission: true});
+      if (disposed || (active && active !== local)) return null;
+      return {...outcome,requestId,admissionState:'admitted',outcomeUncertain:run.outcomeUncertain===true||outcome.outcomeUncertain===true};
+    })();
+    local.reconciling = reconcile;
+    try{return await reconcile;}
+    finally{if(local.reconciling===reconcile)local.reconciling=null;}
   }
   async function completeController(local, claim, controller) {
     try {
@@ -163,14 +199,26 @@ export function createRunHost({api = globalThis.chrome, client: suppliedClient, 
       notify(outcome); return outcome;
     } finally { local.context?.dispose(); contextResources.delete(local.context); if (active === local && !local.pendingSettlement) active = undefined; }
   }
-  async function settleController(local) {
+  async function settleController(local, {fencedAdmission = false} = {}) {
     let settled, failure;
     try {settled = await finishControllerRunWithRecovery(local.settlementRequest, local.finishAttempted);}
     catch (error) {failure=error;}
     local.finishAttempted = true;
     const retirement = await controls.retireControllerTarget({runId: local.settlementRequest.runId});
-    if (failure) {local.pendingSettlement=retirement.state!=='released';if(!local.pendingSettlement && active===local) active=undefined;throw failure;}
-    const outcome = {runId: local.settlementRequest.runId, state: settled.run.state, result: settled.result, retirement};
+    if (failure) {
+      if (fencedAdmission && !disposed && active === local && retirement?.state === 'released' && retirement.releaseCount === 1) {
+        // The fence matched this request and the retirement RPC was bound to its
+        // exact run. Authority can release it even if result delivery is revoked.
+        local.pendingSettlement = false;
+        active = undefined;
+        return {runId:local.runId, retirement, outcomeUncertain:true};
+      }
+      local.pendingSettlement = retirement.state !== 'released' || local.admissionUncertain === true;
+      if (!local.pendingSettlement && active === local) active = undefined;
+      throw failure;
+    }
+    const outcome = {runId: local.settlementRequest.runId, state: settled.run.state, result: settled.result, retirement,
+      ...(settled.run.outcomeUncertain===true?{outcomeUncertain:true}:{})};
     local.pendingSettlement = retirement.state !== 'released';
     local.state = local.pendingSettlement ? 'retiring' : 'settled';
     if (active === local && !local.pendingSettlement) active = undefined;
@@ -255,7 +303,7 @@ export function createRunHost({api = globalThis.chrome, client: suppliedClient, 
     const local = active;
     if (!local?.controllerRun) return;
     if (!event.connected) {local.control?.stop?.(); local.controller.abort(new FoundationError('E_EFFECT_UNKNOWN','Host observation disconnected'));}
-    else if (local.pendingSettlement && !local.reconciling) {
+    else if (local.pendingSettlement && !local.admissionUncertain && !local.reconciling) {
       local.reconciling=settleController(local).catch(error=>notify({runId:local.runId,state:'paused_unknown',pendingSettlement:true,error:{code:error.code||'E_EFFECT_UNKNOWN',message:error.message}}))
         .finally(()=>{local.reconciling=null;});
     }
@@ -297,7 +345,7 @@ export function createRunHost({api = globalThis.chrome, client: suppliedClient, 
       active.controller.abort(new FoundationError('E_CANCELLED','Admission cancelled'));
       return true;
     },
-    start, stop, subscribe:listener=>{observers.add(listener);return()=>observers.delete(listener);},
+    start, stop, reconcileControllerAdmission, subscribe:listener=>{observers.add(listener);return()=>observers.delete(listener);},
     resourceSnapshot: () => ({client: client.resourceSnapshot?.() ?? {}, blobs: artifactResources.resourceSnapshot?.() ?? {},
       controllers:[...controllerResources].map(control=>control.resourceSnapshot?.() || {}),
       contexts:[...contextResources].map(context=>context.resourceSnapshot()), host:{subscriptions:observers.size}}),

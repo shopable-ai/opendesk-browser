@@ -4,6 +4,8 @@
 
 **目录边界：** 此处同时保留冻结 Controller Task JSON、对应 JS、Browser Test Lab HTML/HTTP 服务和历史 Node 测试。可安装 Task 不等于独立 Page/Controller 项目；本机 43111 演示服务仍以 examples/tasks 为根，未核对消费者前不要搬走 demo-form.html、workflow-search.html、scrapyjs-fixtures 符号链接或测试文件。Task ID、版本和来源哈希不因目录美化而重写。
 
+标准测试页的原「开发」入口操作、可复用草稿和最新实测关联见 [脚本 UI 测试](SCRIPT-UI-TESTING.zh-CN.md)。
+
 
 > R10.1 当前中文使用入口：[快速入门](../../docs/api/quickstart.zh-CN.md)，[七个 MCP 工具](../../docs/api/mcp-local-development.zh-CN.md)。复用原候选证据，按相关输入判断是否需要重测；不以示例运行代替安装/F3。
 

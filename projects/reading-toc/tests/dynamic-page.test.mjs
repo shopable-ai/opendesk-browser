@@ -288,6 +288,18 @@ for(const code of ['E_APP_PAGE_OWNER','E_PAGE_INSTALLATION']){
   }finally{f.window.fire('pagehide');}
  });
 }
+for(const code of ['E_APP_PAGE_ACTIVATION_REQUIRED','E_USER_SCRIPTS_UNAVAILABLE'])
+test(`sidebar ${code} prompts for activation and waits for an explicit retry`,async()=>{
+ const f=await sidebarFixture({snapshotError:Object.assign(Error('Page activation unavailable'),{code})});
+ try{
+  assert.equal(f.nodes['toc-error'].textContent,appCatalog.messages.en.activationRequired.text);
+  assert.equal(f.timers.size,0);
+  f.setSnapshotError(null);
+  f.root.fire('opendesk-page-changed');await tick();await tick();
+  assert.equal(f.nodes['toc-error'].hidden,true);
+  assert.equal(f.nodes['toc-list'].children[0].children[0].disabled,false);
+ }finally{f.window.fire('pagehide');}
+});
 test('sidebar old-session recovery pauses polling and stale navigation until the page is ready',async()=>{
  const f=await sidebarFixture();
  try{

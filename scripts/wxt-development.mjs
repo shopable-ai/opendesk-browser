@@ -20,6 +20,12 @@ const marker='development-update.json';
 const sessions=new WeakMap();
 const sessionKey=Symbol.for('opendesk.development.session');
 const restartKey=Symbol.for('opendesk.development.restarts');
+export function developmentWatchOptions(root=process.cwd()) {
+  // Historical browser profiles and source snapshots are not development inputs.
+  // Exclude the directory itself so chokidar never traverses its descendants.
+  const artifacts=resolve(root,'artifacts');
+  return {ignored:path=>path===artifacts||path.startsWith(artifacts+'/')};
+}
 export function configureDevelopmentRestarts(server,{root=process.cwd(),isClosing=()=>false,
   onError=error=>console.error('[OpenDesk dev] Restart failed; fix the source and save to retry.',error)}={}) {
   const restart=server.restart.bind(server);

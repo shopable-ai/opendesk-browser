@@ -32,6 +32,11 @@ export function createPageCandidateActions({client,view,currentPageTarget,pageLi
     if(saved?.stage!=='Candidate'||typeof saved.candidateId!=='string'||typeof saved.manifestHash!=='string')
       throw {code:'E_PAGE_CANDIDATE',message:'未收到可信的固定候选身份'};
     const status=view.fields['page-candidate-status'],changed=!stillCurrent();
+    if(!changed){
+      view.patch('script-revision',{value:String(revision)});
+      view.patch('script-source',{loadedScript:{kind:'page',id:programId,revision,
+        framework:previous.componentMode||'javascript',source}});
+    }
     patchDeveloperField(view,status,{data:{...status.data,state:'saved'}});
     patchDeveloperField(view,status,{textContent:'已保存 Page Candidate：'+programId+' · r'+revision+' · '+saved.manifestHash.slice(0,12)+'…。 '+
       prepared.summary+(changed?' 保存期间编辑器已变化，请重新核对当前版本。':'')+

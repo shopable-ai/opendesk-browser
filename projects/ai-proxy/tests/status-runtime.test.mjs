@@ -46,13 +46,40 @@ test('unclassified E_TOOL status failure offers a read retry without blaming con
  }
 });
 
+test('an owned pending route reports verified system fallback and explicit recovery',()=>{
+ const interrupted={...status,statusErrorCode:undefined,permission:true,browserMode:'system',
+  managedIntent:true,control:'controllable_by_this_extension',canStop:true,outcomeUnknown:true};
+ for(locale of ['zh-CN','en','zh-TW']){
+  const render=patch=>renderToStaticMarkup(createElement(Status,{status:{...interrupted,...patch},quiet:true}));
+  const html=render({});
+  assert.ok(html.includes(translate(locale,'apRouteRecoveryNeeded')));
+  assert.ok(html.includes(translate(locale,'apRouteRecoveryHelp')));
+  assert.ok(!html.includes(translate(locale,'pendingRoutingAdvice')));
+  for (const patch of [{permission:false},{control:'controlled_by_other_extensions'},
+   {browserMode:null},{canStop:false},{statusErrorCode:'E_TOOL'}]) {
+   assert.ok(!render(patch).includes(translate(locale,'apRouteRecoveryHelp')));
+  }
+ }
+});
+
+test('verified ownership without saved intent offers pause without claiming a stop already happened',()=>{
+ const active={...status,statusErrorCode:undefined,permission:true,browserMode:'profile',
+  control:'controlled_by_this_extension',canStop:true,outcomeUnknown:true};
+ for(locale of ['zh-CN','en','zh-TW']){
+  const html=renderToStaticMarkup(createElement(Status,{status:active,quiet:true}));
+  assert.ok(html.includes(translate(locale,'proxyControlStillHeld')));
+  assert.ok(html.includes(translate(locale,'proxyControlStillHeldHelp')));
+  assert.doesNotMatch(html,/停止未完成|Stop incomplete/);
+ }
+});
+
 test('quiet sidebar keeps normal running and paused cards compact while uncertain states retain details',()=>{
  locale='en';
  const confirmed={...status,proxyError:null,statusErrorCode:undefined,permission:true,
   control:'controlled_by_this_extension',managedIntent:true,applied:true,pendingChanges:false,
   outcomeUnknown:false,activeSelection:{mode:'profile'},desired:{mode:'profile'}};
  const running=renderToStaticMarkup(createElement(Status,{status:confirmed,compact:true,quiet:true}));
- assert.ok(running.includes(translate(locale,'sideRunning')));
+ assert.ok(running.includes(translate(locale,'connectionApplied')));
  assert.doesNotMatch(running,/r86StatusDetails/);
  const paused={...confirmed,control:'controllable_by_this_extension',managedIntent:false,applied:false};
  const idle=renderToStaticMarkup(createElement(Status,{status:paused,compact:true,quiet:true,labelOverride:'sideProxyPaused'}));

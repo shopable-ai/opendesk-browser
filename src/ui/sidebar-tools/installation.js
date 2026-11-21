@@ -4,6 +4,7 @@ import {SIDEBAR_TOOL_STORE, validateSidebarToolPackage, sidebarToolStorageKey,se
 import {revokeLocalTasks} from '../../platform/host/local-tasks.js';
 import {MARKET_PROVENANCE_STORE,OFFICIAL_READING_TOC_RELEASE} from '../../sidebar-tools/official-reading-toc.js';
 import {loadOfficialCatalog,verifyReviewedOfficialTool} from '../../sidebar-tools/official-catalog.js';
+import {DEFAULT_PREINSTALL_STORE,validDefaultPreinstallMarker} from '../../sidebar-tools/preinstall-intent.js';
 export {MARKET_PROVENANCE_STORE} from '../../sidebar-tools/official-reading-toc.js';
 import {BROWSER_MENU_GRANTS_STORE,BOOKMARK_OWNED_STORE_PREFIX} from '../../framework/sdk/browser-contract.js';
 import {READING_TOC_SITE_STORE, READING_TOC_VISIBILITY_STORE, READING_TOC_PAGE_RULES_STORE, READING_TOC_PLACEMENT_PREFIX, READING_TOC_TOOL_ID} from '../../../projects/reading-toc/trusted/policy.js';
@@ -335,7 +336,8 @@ async function requestAppLifecycle(pageClient,type,payload,tool=null){
        result.programId!==payload.tool.pageModule.programId||result.sourceHash!==payload.tool.pageModule.sourceHash)
       throw error('应用网页模块预检回执不匹配','E_PAGE_INSTALL_PENDING');
   }else{
-    const validState=result?.nativeState==='registered'&&result.ready===true||result?.nativeState==='disabled';
+    const validState=['registered','fixed'].includes(result?.nativeState)&&result.ready===true||result?.nativeState==='disabled'||
+      result?.nativeState==='waiting-user-scripts'&&result.ready===false;
     if(result?.status!==(type==='importAppPage'?'installed':'verified')||!validState||
        !shaPattern.test(result.manifestHash)||result.appOwner?.toolId!==payload.toolId||
        result.appOwner?.packageHash!==payload.packageHash||result.appOwner?.installEpoch!==payload.installEpoch||
@@ -555,6 +557,33 @@ export async function recoverMarketOperation({api,lockManager,operationId,expect
       return reconcileMarketOperation(api,operationId,null,{pageClient});
     }));
 }
+// Granting the approved sites can unblock the first-run installer while the
+// local review is open. A completed, identical preinstall already satisfies
+// that first-time request. Verify under the same locks without reinstalling,
+// replacing its source, or treating a partial operation as success.
+async function verifyConcurrentPreinstall(api,tool,pageClient){
+  const saved=await api.storage.local.get([DEFAULT_PREINSTALL_STORE,MARKET_OPERATIONS_STORE,
+    MARKET_PROVENANCE_STORE,TOOL_REVOCATION_EPOCHS_STORE,TOOL_CLEANUP_STORE]);
+  if(!saved[DEFAULT_PREINSTALL_STORE])return null;
+  const marker=validDefaultPreinstallMarker(saved[DEFAULT_PREINSTALL_STORE]);
+  if(!Array.isArray(marker.plan)||marker.extensionVersion!==api.runtime?.getManifest?.().version)return null;
+  const entry=marker.plan.find(row=>row?.toolId===tool.id&&row.version===tool.version);
+  const operation=recoverableOperations(saved[MARKET_OPERATIONS_STORE])[entry?.operationId];
+  const epoch=requireToolRevocationEpochs(saved[TOOL_REVOCATION_EPOCHS_STORE])[tool.id];
+  if(!epoch||operation?.installEpoch!==epoch||operation.toolId!==tool.id||operation.version!==tool.version||
+     operation.marketId!=='opendesk/'+tool.id||operation.sha256!==entry.sha256||
+     requirePendingToolCleanups(saved[TOOL_CLEANUP_STORE])[tool.id])return null;
+  const hash=await canonicalSha256(tool);
+  if(hash!==operation.sha256)return null;
+  const source=saved[MARKET_PROVENANCE_STORE]?.[tool.id];
+  if(operation.state!=='succeeded'||source?.marketId!==operation.marketId||
+     source.sha256!==hash||source.version!==tool.version)return null;
+  const page=await requestAppLifecycle(pageClient,'verifyAppPage',{toolId:tool.id,
+    packageHash:await sidebarToolPackageHash(tool),installEpoch:epoch},tool);
+  if(page.nativeState==='disabled')return null;
+  return {state:'already-installed',tool,
+    ...(page.nativeState==='waiting-user-scripts'?{pageActivationPending:true}:{})};
+}
 export async function installReviewedSidebarTool({api,lockManager,candidate,baseline=null,
   market=null,reviewApproved=false,approveUpdate=()=>true,approveSourceChange=null,commitIntent=null,
   fetcher=globalThis.fetch,pageClient=null,repairMissingPageModule=false,baselineInstallEpoch=undefined}){
@@ -593,14 +622,19 @@ export async function installReviewedSidebarTool({api,lockManager,candidate,base
   if(!lockManager?.request)throw error('浏览器缺少安全存储锁','E_TOOL_LOCK');
   const lock=(name,work)=>lockManager.request('opendesk.sidebar-tools:'+name,work);
   return lock('tool:'+tool.id,()=>lock('catalog',async()=>{
-    let pageCleanupPending=false;
+    let pageCleanupPending=false,pageActivationPending=false;
     const installed=await getInstalledSidebarTools(api);
     const existing=installed.find(row=>row.id===tool.id)||null;
     if(existing?.pageModule&&!pageClient?.request)
       throw error('应用网页服务未连接；无法安全更换现有网页模块','E_HOST_UNAVAILABLE');
     if(Boolean(existing)!==Boolean(baseline)||
-       (existing&&!sameSidebarToolPackage(existing,baseline)))
+       (existing&&!sameSidebarToolPackage(existing,baseline))){
+      if(!baseline&&baselineInstallEpoch===null&&!identity&&tool.pageModule&&sameSidebarToolPackage(existing,tool)){
+        const confirmed=await verifyConcurrentPreinstall(api,tool,pageClient);
+        if(confirmed)return confirmed;
+      }
       throw error('安装状态已发生变化，请重新审阅','E_TOOL_CHANGED');
+    }
     // A same-byte reinstall still creates a different authority instance.
     if(baselineInstallEpoch!==undefined){
       const epochs=requireToolRevocationEpochs((await api.storage.local.get(TOOL_REVOCATION_EPOCHS_STORE))[TOOL_REVOCATION_EPOCHS_STORE]);
@@ -662,9 +696,10 @@ export async function installReviewedSidebarTool({api,lockManager,candidate,base
             if(identity){await beginJournal();await writeJournal('committing');}
             repairAttempted=true;
           }
-          await requestAppLifecycle(pageClient,missing?'importAppPage':'verifyAppPage',{
+          const page=await requestAppLifecycle(pageClient,missing?'importAppPage':'verifyAppPage',{
             toolId:tool.id,packageHash:await sidebarToolPackageHash(tool),
             installEpoch:epochs[tool.id]},tool);
+          pageActivationPending=page.nativeState==='waiting-user-scripts';
         }
         if(identity){
           if(!journalStarted)await beginJournal();
@@ -674,7 +709,8 @@ export async function installReviewedSidebarTool({api,lockManager,candidate,base
           if(receipt.acknowledgementLost)throw unknownStorageOutcome(null,'市场来源写入回执');
           await writeJournal('succeeded');
         }
-        return {state:'already-installed',tool,...(pageCleanupPending?{pageCleanupPending:true}:{})};
+        return {state:'already-installed',tool,...(pageCleanupPending?{pageCleanupPending:true}:{}),
+          ...(pageActivationPending?{pageActivationPending:true}:{})};
       }catch(cause){
         // A repair or journal write crossed the commit boundary. Consume the
         // approval even when the native/storage receipt was lost.
@@ -872,8 +908,9 @@ export async function installReviewedSidebarTool({api,lockManager,candidate,base
       if(tool.pageModule){
         const cleanup=await requestAppLifecycle(pageClient,'synchronizeAppPages',{toolId:tool.id},tool);
         pageCleanupPending=cleanup.cleanupPending.length>0;
-        await requestAppLifecycle(pageClient,'importAppPage',{
+        const page=await requestAppLifecycle(pageClient,'importAppPage',{
           toolId:tool.id,packageHash:await sidebarToolPackageHash(tool),installEpoch:nextEpoch},tool);
+        pageActivationPending=page.nativeState==='waiting-user-scripts';
       }
       else if(existing?.pageModule){
         const cleanup=await requestAppLifecycle(pageClient,'synchronizeAppPages',{toolId:tool.id},tool);
@@ -903,6 +940,7 @@ export async function installReviewedSidebarTool({api,lockManager,candidate,base
       await writeOp('succeeded','',migrationReceipt);
       return {state:'installed',tool,operationId:identity?.operationId||null,
         ...(pageCleanupPending?{pageCleanupPending:true}:{}),
+        ...(pageActivationPending?{pageActivationPending:true}:{}),
         ...(migrationReceipt?{migrationReceipt}:{})};
     }catch(cause){
       // A confirmed pre-commit failure must not strand default data as an orphan,

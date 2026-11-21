@@ -4,13 +4,14 @@ import {parseHTML} from 'linkedom';
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import {readFile} from 'node:fs/promises';
+import {reviewedQueue} from '../fixtures/ai-send-queue-reviewed.mjs';
 import {createExtensionCenter} from '../../src/ui/extension-center.js';
 import {OFFICIAL_STORE_WEBSITE} from '../../src/marketplace/store-website.js';
 import {extensionCenterPinStorageKey,prioritizePinnedExtensionEntries} from '../../src/ui/extension-center-model.js';
-import {extensionCenterText} from '../../src/ui/extension-center-localization.js';
-import {SIDEBAR_TOOL_FORMAT,SIDEBAR_TOOL_STORE} from '../../src/ui/sidebar-tools/package.js';
-import {SIDEBAR_TOOL_ENABLE_STORE} from '../../src/ui/sidebar-tools/lifecycle.js';
+import {SIDEBAR_TOOL_FORMAT,SIDEBAR_TOOL_STORE,sidebarToolPackageHash} from '../../src/ui/sidebar-tools/package.js';
+import {SIDEBAR_TOOL_ENABLE_STORE,TOOL_REVOCATION_EPOCHS_STORE} from '../../src/ui/sidebar-tools/lifecycle.js';
 import {TOOL_CLEANUP_STORE} from '../../src/ui/sidebar-tools/installation.js';
+import {digest,digestUtf8} from '../../src/platform/protocol.js';
 
 const tick=()=>new Promise(resolve=>setImmediate(resolve));
 async function settle(predicate){
@@ -36,6 +37,15 @@ const page=()=>({programId:'reader',manifestHash:'a'.repeat(64),installed:{
 
 function fixture(t,{disabled=false,readError=false,installedRows=[app],cleanupRows=null,notify=null}={}){
   const {doc,adapter,state}=createExtensionCenterDOM(t);
+  // linkedom omits textarea.defaultValue reflection. React initializes a
+  // controlled textarea through this browser property; mirror its text-only
+  // behavior for the read-only manual URL, without claiming native selection.
+  const textarea=doc.defaultView.HTMLTextAreaElement.prototype;
+  if(!('defaultValue' in textarea)){
+    Object.defineProperty(textarea,'defaultValue',{configurable:true,
+      get(){return this.textContent;},set(value){this.textContent=String(value);}});
+    t.after(()=>{delete textarea.defaultValue;});
+  }
   const nodes=new Proxy({}, {get:(_,id)=>doc.getElementById(id)});
   const store=new Map([[SIDEBAR_TOOL_STORE,structuredClone(installedRows)],
     [SIDEBAR_TOOL_ENABLE_STORE,{[app.id]:!disabled}]]);
@@ -94,8 +104,13 @@ function fixture(t,{disabled=false,readError=false,installedRows=[app],cleanupRo
           'E_PAGE_UNINSTALL_PENDING':'E_PAGE_CLEANUP_PENDING'});
       }
       programs.splice(index,1);
-      if(pageUninstallMode==='cleanup-pending')return {...receipt,cleanupPending:true,
-        managedCleanup:{scope:'managed-ui-only',state:'unknown',records:1}};
+      if(pageUninstallMode==='cleanup-pending'){
+        const managedCleanup={scope:'managed-ui-only',state:'unknown',records:1,pendingRecords:1,
+          pendingDocuments:[{tabId:42,documentId:'old-reader-page',tabTitle:'阅读草稿',state:'active'}]};
+        pageCleanupPending=[{programId:args.programId,title:program.installed.title,
+          revision:program.installed.revision,managedCleanup}];
+        return {...receipt,cleanupPending:true,managedCleanup};
+      }
       if(pageUninstallMode==='outcome-unknown')throw Object.assign(
         Error('Host reply lost'),{code:'E_EFFECT_UNKNOWN'});
       return receipt;
@@ -115,7 +130,7 @@ function fixture(t,{disabled=false,readError=false,installedRows=[app],cleanupRo
       if(['registered','disabled'].includes(program.installed.nativeState))
         program.installed.nativeState=args.enabled?'registered':'disabled';
     }
-    return {enabled:args.enabled};
+    return structuredClone(program.installed);
   }};
   const sidebarTools={
     openTool(id){invocations.push(['open',id]);return true;},
@@ -140,7 +155,7 @@ function fixture(t,{disabled=false,readError=false,installedRows=[app],cleanupRo
   const button=(key,action)=>buttons(key).find(node=>node.dataset.extensionAction===action);
   const rowMenu=()=>doc.getElementById('extension-center-row-menu');
   const menuItem=text=>rowMenu()?.children.find(node=>node.textContent.includes(text));
-  return {doc,nodes,ui,state,store,client,sidebarTools,invocations,writes,uninstalls,list,button,buttons,rowMenu,menuItem,programs,
+  return {doc,nodes,ui,state,store,api,client,sidebarTools,invocations,writes,uninstalls,list,button,buttons,rowMenu,menuItem,programs,
     setCorrupt:value=>{corrupt=value;},setFailPages:value=>{failPages=value;},
     setPageCatalog:value=>{pageCandidates=value;},setPageUninstallMode:value=>{pageUninstallMode=value;},
     setPageCleanupPending:value=>{pageCleanupPending=value;},
@@ -161,6 +176,300 @@ function openMenuUninstall(f,key){
   return trigger;
 }
 
+function assertQuietWebFeatureList(f){
+  const listView=f.nodes['extension-center-list-view'];
+  assert.equal(Boolean(f.doc.querySelector('.ec-list-setup')),false,'no setup banner above or inside the list');
+  assert.equal(f.nodes['extension-center-web-features-status'],null,'no affected count or names');
+  assert.equal(f.nodes['extension-center-web-features-pending'],null,'no alternate setup action');
+  assert.equal(listView.querySelector('.ec-companion'),null,'no web status inserted between extension rows');
+  assert.equal(listView.querySelector('[data-extension-action="companion-check"]'),null);
+  assert.equal(listView.querySelector('.ec-web-features-settings'),null);
+  const entry=f.nodes['extension-center-web-features'];
+  assert.ok(entry,'help remains discoverable in More');
+  assert.equal(entry.closest('#extension-center-menu')?.id,'extension-center-menu');
+}
+
+function assertWebFeatureSettings(f){
+  const view=f.nodes['extension-center-web-features-view'];
+  const button=view.querySelector('.ec-web-features-settings');
+  assert.ok(button,'settings remains available even when Chrome access is already enabled');
+  assert.equal(button.disabled,false);
+  assert.equal(button.closest('details,[hidden],[inert]'),null,'settings is directly accessible');
+  assert.equal(view.querySelector('details'),null,'no permanent manual entry');
+  const setup=view.querySelector('.ec-web-features-setup');
+  const state=setup.querySelector('[role="status"]');
+  assert.equal(state.closest('button,[role="switch"],[tabindex]'),null,'Chrome access is a read-only indicator');
+  return {button,setup,state};
+}
+
+for(const outcome of ['confirmed','receipt-lost','readback-unavailable'])test(
+  'checking an App companion separates the ready state from the action receipt: '+outcome,async t=>{
+  const sourceUtf8='void 0;';
+  const pageModule={format:'opendesk.page-install.v1',programId:'app.'+app.id,title:app.title,version:app.version,
+    revision:1,entryFormat:'classic-userscript',sourceUtf8,sourceHash:await digestUtf8(sourceUtf8),
+    pageRules:{matches:['https://example.com/*'],excludeMatches:[],runAt:'document_idle',allFrames:false,world:'USER_SCRIPT'}};
+  const tool={...app,format:'opendesk.sidebar-tool.v2',capabilities:['page.module'],requires:{browserSdk:'1.0.0'},
+    contributes:{contextMenus:[]},pageModule:{...pageModule,packageHash:await digest(pageModule)}};
+  const key='app:'+tool.id;
+  const notices=[];
+  const f=fixture(t,{installedRows:[tool],notify:(...args)=>notices.push(args)});
+  f.api.runtime.id='a'.repeat(32);
+  const owner={toolId:tool.id,installEpoch:'companion-fixture',packageHash:await sidebarToolPackageHash(tool)};
+  f.store.set(TOOL_REVOCATION_EPOCHS_STORE,{[tool.id]:owner.installEpoch});
+  const companion={programId:tool.pageModule.programId,revision:tool.pageModule.revision,
+    sourceHash:tool.pageModule.sourceHash,appOwner:owner,ready:false,nativeState:'waiting-user-scripts'};
+  const request=f.client.request.bind(f.client);
+  let checks=0,canRegister=outcome!=='confirmed';
+  f.client.request=async(name,args)=>{
+    if(name==='checkAppPage'){
+      checks++;
+      assert.deepEqual(args,owner);
+      if(!canRegister)return {status:'verified',appOwner:owner,nativeState:'waiting-user-scripts'};
+      companion.ready=true;companion.nativeState='registered';
+      if(outcome==='receipt-lost')throw Error('check receipt lost');
+      if(outcome==='readback-unavailable')f.setFailPages(true);
+      return {status:'verified',appOwner:owner,nativeState:'registered'};
+    }
+    const result=await request(name,args);
+    if(name==='listPagePrograms')result.installed.push(structuredClone(companion));
+    return result;
+  };
+  await f.ui.refresh();
+  const entry=f.nodes['extension-center-web-features'];
+  const selector='[data-web-feature-key="'+key+'"]';
+  const webRow=()=>f.nodes['extension-center-web-features-view']?.querySelector(selector);
+  const readState=()=>f.state.toolbarModel.webFeatures.rows.find(item=>item.key===key);
+  assertQuietWebFeatureList(f);
+  f.state.rowsModel.onMore(key,f.button(key,'more'));
+  f.state.rowMenuModel.items.find(item=>item.id==='detail').onClick({isTrusted:true});
+  assert.equal(f.nodes['extension-center-detail-body'].querySelector('.ec-companion'),null);
+  f.nodes['extension-center-back'].dispatch('click');
+  f.nodes['extension-center-more'].dispatch('click');entry.dispatch('click');
+  assert.equal(f.doc.activeElement.id,'extension-center-web-features-title');
+  assert.equal(f.nodes['extension-center-list-view'].hidden,true);
+  f.doc.dispatch('keydown',{key:'Escape'});
+  assert.equal(f.doc.activeElement,f.nodes['extension-center-more']);
+  assert.equal(f.nodes['extension-center-list-view'].hidden,false);
+  f.nodes['extension-center-more'].dispatch('click');entry.dispatch('click');
+  if(outcome==='confirmed'){
+    const view=f.nodes['extension-center-web-features-view'];
+    assert.equal(f.state.toolbarModel.webFeatures.chromeAccess,false);
+    const off=assertWebFeatureSettings(f);
+    assert.equal(off.state.textContent,'已关闭');
+    assert.equal(view.querySelector('.ec-web-features-path'),null,'direct navigation needs no manual address');
+    webRow().querySelector('[data-extension-action="companion-check"]').dispatch('click');
+    await settle(()=>readState()?.checking===false&&Boolean(readState()?.result));
+    assert.match(readState().result,/开启「允许用户脚本」后再检查/);
+    f.api.userScripts={execute(){throw Error('access read must not execute scripts');},
+      getScripts(){throw Error('permission read failed');}};
+    await f.ui.refresh();
+    assert.equal(f.state.toolbarModel.webFeatures.chromeAccess,null);
+    assert.equal(assertWebFeatureSettings(f).state.textContent,'未确认');
+    assert.equal(readState().result,null,'an unknown read does not repeat the old off instruction');
+    assert.match(f.nodes['web-features-setting-note'].textContent,/请在 Chrome 设置中核对/);
+    f.api.userScripts.getScripts=async()=>[];
+    canRegister=true;
+    await f.ui.refresh();
+    assert.equal(f.state.toolbarModel.webFeatures.chromeAccess,true);
+    const {button,setup,state}=assertWebFeatureSettings(f);
+    assert.equal(button,off.button,'Chrome state changes keep the same settings button');
+    assert.equal(setup,off.setup,'Chrome state changes keep the same setup section');
+    assert.equal(state.textContent,'已开启');
+    button.dispatch('click',{isTrusted:false});await tick();
+    assert.equal(f.invocations.length,0,'synthetic settings clicks remain rejected after access is enabled');
+    button.dispatch('click');await settle(()=>f.invocations.length===1);
+    assert.deepEqual(f.invocations[0],['market',{url:'chrome://extensions/?id='+f.api.runtime.id}]);
+    assert.equal(readState().result,null,'verified access invalidates the old off feedback');
+    assert.equal(webRow().querySelector('.ec-companion-feedback'),null);
+    assert.equal(webRow().querySelector('.ec-companion-status').textContent,'网页功能待检查');
+    assertQuietWebFeatureList(f);
+    assert.equal(checks,1,'reading the Chrome switch must not start registration');
+  }
+  const check=webRow().querySelector('[data-extension-action="companion-check"]');
+  assert.ok(check,'a companion that needs setup offers a direct check');
+  assert.equal(notices.length,0);
+  check.focus();check.dispatch('click');
+  // A ready row disappears before the check's receipt/finally settles.
+  // Wait for the whole chain before a manual refresh can compete with its readback.
+  await settle(()=>f.state.toolbarModel.webFeatures.busy===false);
+  assert.equal(checks,outcome==='confirmed'?2:1);
+  if(outcome==='readback-unavailable'){
+    assert.equal(readState().state,'unverified');
+    assert.equal(notices.length,0,'a receipt cannot bypass the readback');
+    f.setFailPages(false);
+  }
+  await f.ui.refresh();
+  assert.equal(f.state.toolbarModel.webFeatures.completed,outcome==='confirmed','only the same check receipt and readback establish completion');
+  assert.equal(readState(),undefined,'ready installations are removed from the recovery model');
+  assert.equal(webRow(),null,'successful readback removes the recovery row instead of adding a ready inventory');
+  assertWebFeatureSettings(f);
+  assert.ok(f.nodes['web-features-setup-title'],'the setting and its instructions remain available');
+  assert.equal(f.doc.activeElement.id,'extension-center-web-features-title','removed recovery action returns focus to help');
+  f.nodes['extension-center-web-features-back'].dispatch('click');
+  assert.equal(f.doc.activeElement,f.nodes['extension-center-more']);
+  assert.equal(f.list.querySelector('.ec-companion'),null);
+  if(outcome==='confirmed'){
+    assert.equal(notices.length,1,'readback and browsing details must not replay the check');
+    assert.match(notices[0][0],/Chrome 已注册.+的网页脚本/);
+    assert.equal(notices[0][1].position,'bottom-center');
+    assert.match(notices[0][1].caption,/先保存.*再刷新该网页/);
+  }else assert.equal(notices.length,0,'no success without both the check receipt and its readback');
+});
+
+test('web feature help stays in More without blocked apps and distinguishes the fixed queue from page execution',async t=>{
+  const queue=structuredClone(reviewedQueue);
+  const prompt=JSON.parse(await readFile('projects/prompt-shortcuts/prompt-shortcuts.opendesk-tool.json','utf8'));
+  const f=fixture(t,{installedRows:[prompt,queue]});
+  f.api.runtime.id='a'.repeat(32);
+  const owner={toolId:queue.id,installEpoch:'fixed-review',packageHash:await sidebarToolPackageHash(queue)};
+  f.store.set(TOOL_REVOCATION_EPOCHS_STORE,{[queue.id]:owner.installEpoch});
+  const request=f.client.request.bind(f.client);
+  f.client.request=async(name,args)=>{
+    const result=await request(name,args);
+    if(name==='listPagePrograms')result.installed.push({appOwner:owner,programId:queue.pageModule.programId,
+      revision:queue.pageModule.revision,sourceHash:queue.pageModule.sourceHash,runtimeKind:'fixed-content',
+      nativeState:'fixed',ready:true});
+    return result;
+  };
+  await f.ui.refresh();
+  assert.equal(f.doc.querySelector('.ec-list-setup'),null);
+  assert.equal(f.doc.querySelector('.ec-list-header'),null);
+  assert.equal(f.state.toolbarModel.webFeatures.rows.length,0,'fixed readiness is not page execution readiness');
+  assertQuietWebFeatureList(f);
+  f.nodes['extension-center-more'].dispatch('click');
+  f.nodes['extension-center-web-features'].dispatch('click');
+  const view=f.nodes['extension-center-web-features-view'];
+  assert.match(view.textContent,/没有待检查的应用/);
+  assert.equal(view.querySelector('.ec-web-features-path'),null);
+  assert.equal(view.textContent.includes(prompt.title),false,'help does not list independent applications');
+  assert.equal(view.textContent.includes(queue.title),false,'fixed runtime does not become a help inventory');
+  assertWebFeatureSettings(f);
+  assert.equal(view.querySelector('.ec-companion'),null,'no false ready or blocked row for the fixed queue');
+  assert.ok(f.nodes['web-features-setup-title'],'the setting is discoverable even without affected apps');
+  const settingNote=f.nodes['web-features-setting-note'];
+  const originalNote=settingNote.textContent;
+  f.api.userScripts={getScripts:async()=>[],execute(){throw Error('access read must not execute scripts');}};
+  const window=f.doc.defaultView;
+  window.dispatchEvent(new window.Event('focus'));
+  await settle(()=>f.state.toolbarModel.webFeatures.chromeAccess===true);
+  assert.equal(settingNote.textContent,originalNote,'returning without pending apps updates the state and retains the instructions');
+  const model=f.state.toolbarModel.webFeatures;
+  model.onSettings({isTrusted:false});await tick();
+  assert.equal(f.invocations.length,0,'synthetic clicks cannot navigate to Chrome settings');
+  model.onSettings({isTrusted:true});await settle(()=>f.invocations.length===1);
+  assert.deepEqual(f.invocations[0],['market',{url:'chrome://extensions/?id='+f.api.runtime.id}]);
+  f.doc.dispatch('keydown',{key:'Escape'});
+  assert.equal(f.doc.activeElement.id,'extension-center-more');
+  await f.ui.refresh();
+  assertQuietWebFeatureList(f);
+  f.nodes['extension-center-more'].dispatch('click');f.nodes['extension-center-web-features'].dispatch('click');
+  assert.equal(f.doc.activeElement.id,'extension-center-web-features-title','help can be found again after readback');
+});
+
+test('web feature help keeps mixed installed lists identical across affected and unaffected runtime states',async t=>{
+  const queue=structuredClone(reviewedQueue);
+  const f=fixture(t,{installedRows:[app,queue]});
+  const owner={toolId:queue.id,installEpoch:'list-review',packageHash:await sidebarToolPackageHash(queue)};
+  f.store.set(TOOL_REVOCATION_EPOCHS_STORE,{[queue.id]:owner.installEpoch});
+  let runtime={runtimeKind:'fixed-content',nativeState:'fixed',ready:true};
+  const request=f.client.request.bind(f.client);
+  f.client.request=async(name,args)=>{
+    const result=await request(name,args);
+    if(name==='listPagePrograms')result.installed.push({appOwner:owner,
+      programId:queue.pageModule.programId,revision:queue.pageModule.revision,
+      sourceHash:queue.pageModule.sourceHash,...runtime});
+    return result;
+  };
+  await f.ui.refresh();
+  const ordinaryList=f.list.innerHTML;
+  for(const state of [
+    {runtimeKind:'user-script',nativeState:'waiting-user-scripts',ready:false},
+    {runtimeKind:'user-script',nativeState:'activation-unconfirmed',ready:false},
+    {runtimeKind:'user-script',nativeState:'blocked',ready:false,error:{code:'E_PAGE_INSTALLATION'}},
+    {runtimeKind:'user-script',nativeState:'blocked',ready:false,error:{code:'E_PERMISSION'}},
+    {runtimeKind:'user-script',nativeState:'blocked',ready:false,authorization:{status:'suspended'},error:{code:'E_USER_SCRIPTS_UNAVAILABLE'}},
+    {runtimeKind:'user-script',nativeState:'unverified',ready:false},
+    {runtimeKind:'user-script',nativeState:'registered',ready:true},
+    {runtimeKind:'fixed-content',nativeState:'fixed',ready:true}
+  ]){
+    runtime=state;await f.ui.refresh();
+    assertQuietWebFeatureList(f);
+    assert.equal(f.list.innerHTML,ordinaryList,state.nativeState+' must not alter list content or controls');
+    f.nodes['extension-center-more'].dispatch('click');f.nodes['extension-center-web-features'].dispatch('click');
+    const row=f.nodes['extension-center-web-features-view'].querySelector('[data-web-feature-key="app:'+queue.id+'"]');
+    assert.equal(Boolean(row),!state.ready,'only unresolved installs appear as recovery items');
+    assertWebFeatureSettings(f);
+    f.doc.dispatch('keydown',{key:'Escape'});
+    assert.equal(f.doc.activeElement,f.nodes['extension-center-more']);
+  }
+  runtime={runtimeKind:'user-script',nativeState:'disabled',ready:false};
+  f.store.set(SIDEBAR_TOOL_ENABLE_STORE,{[queue.id]:false});await f.ui.refresh();
+  assertQuietWebFeatureList(f);
+  f.nodes['extension-center-more'].dispatch('click');f.nodes['extension-center-web-features'].dispatch('click');
+  assert.equal(f.nodes['extension-center-web-features-view'].querySelector('[data-web-feature-key]'),null,
+    'disabled installs do not become a help inventory');
+  assert.equal(f.invocations.length,0,'browsing help neither changes permissions nor runs an application');
+});
+
+test('web feature help reveals a copyable settings address only after navigation fails',async t=>{
+  const f=fixture(t);f.api.runtime.id='a'.repeat(32);
+  f.api.tabs.create=async()=>{throw Error('settings blocked');};
+  await f.ui.refresh();
+  f.nodes['extension-center-more'].dispatch('click');f.nodes['extension-center-web-features'].dispatch('click');
+  const {button}=assertWebFeatureSettings(f);
+  const view=f.nodes['extension-center-web-features-view'];
+  assert.equal(view.querySelector('.ec-web-features-path'),null);
+  button.dispatch('click');
+  await settle(()=>f.state.toolbarModel.webFeatures.settingsFailed===true);
+  await settle(()=>view.querySelector('.ec-web-features-path'));
+  const path=view.querySelector('.ec-web-features-path');
+  assert.equal(path.tagName,'TEXTAREA','manual URL can be selected for copying');
+  assert.ok(path.getAttributeNames().some(name=>name.toLowerCase()==='readonly'));
+  assert.equal(path.value,'chrome://extensions/?id='+f.api.runtime.id);
+  assert.equal(path.closest('[hidden],[inert]'),null);
+  assert.ok(view.querySelector('[role="alert"]')?.textContent.trim(),'opening failure stays visible alongside the manual path');
+  assert.match(view.textContent,/允许用户脚本/);
+  assertWebFeatureSettings(f);
+  f.api.tabs.create=async opts=>{f.invocations.push(['market',opts]);};
+  view.querySelector('.ec-web-features-settings').dispatch('click');
+  await settle(()=>f.state.toolbarModel.webFeatures.settingsFailed===false);
+  assert.deepEqual(f.invocations,[['market',{url:'chrome://extensions/?id='+f.api.runtime.id}]]);
+  assert.equal(view.querySelector('[role="alert"]'),null);
+  assert.equal(view.querySelector('.ec-web-features-path'),null);
+  f.nodes['extension-center-web-features-back'].dispatch('click');
+  assert.equal(f.doc.activeElement.id,'extension-center-more');
+});
+
+for(const state of ['activation-unconfirmed','blocked'])test('web feature help does not turn '+state+' into ready or an instruction to enable Chrome',async t=>{
+  const queue=structuredClone(reviewedQueue);
+  const other={...structuredClone(queue),id:'other-web-app',title:'另一个网页应用'};
+  other.pageModule.programId='app.other-web-app';
+  const {packageHash:previousHash,...pagePackage}=other.pageModule;
+  other.pageModule.packageHash=await digest(pagePackage);
+  const f=fixture(t,{installedRows:[queue,other]});
+  const owners=await Promise.all([queue,other].map(async tool=>({toolId:tool.id,installEpoch:tool.id+'-review',packageHash:await sidebarToolPackageHash(tool)})));
+  f.store.set(TOOL_REVOCATION_EPOCHS_STORE,Object.fromEntries(owners.map(owner=>[owner.toolId,owner.installEpoch])));
+  const request=f.client.request.bind(f.client);
+  f.client.request=async(name,args)=>{
+    const result=await request(name,args);
+    if(name==='listPagePrograms')for(const [index,tool] of [queue,other].entries())result.installed.push({appOwner:owners[index],programId:tool.pageModule.programId,
+      revision:tool.pageModule.revision,sourceHash:tool.pageModule.sourceHash,runtimeKind:'user-script',
+      nativeState:state,ready:false,...(state==='blocked'?{error:{code:'E_PAGE_INSTALLATION'}}:{})});
+    return result;
+  };
+  await f.ui.refresh();
+  assert.equal(f.state.toolbarModel.webFeatures.rows[0].state,state==='blocked'?'error':'unknown');
+  assertQuietWebFeatureList(f);
+  f.nodes['extension-center-more'].dispatch('click');f.nodes['extension-center-web-features'].dispatch('click');
+  const rows=[...f.nodes['extension-center-web-features-view'].querySelectorAll('[data-web-feature-key]')];
+  assert.equal(rows.length,2,'unresolved installations remain recoverable from help');
+  for(const row of rows){
+    assert.equal(row.dataset.companionState,state==='blocked'?'error':'unknown');
+    assert.doesNotMatch(row.querySelector('.ec-companion-status').textContent,/待开启|就绪/);
+  }
+  assert.equal(f.invocations.length,0,'reading recovery state does not replay an unknown registration');
+});
+
 test('old Page diagnostics remain accessible in details without inflating install feedback',async t=>{
   const f=fixture(t);
   const managedCleanup={state:'unknown',records:135,pendingRecords:1,
@@ -170,7 +479,8 @@ test('old Page diagnostics remain accessible in details without inflating instal
     {programId:'unrelated',revision:0,managedCleanup:{...managedCleanup,records:999}}]);
   await f.ui.refresh();
   f.button('page:reader','main').dispatch('click');
-  const disclosure=f.doc.querySelector('.ec-page-cleanup');
+  const detail=f.nodes['extension-center-detail-body'];
+  const disclosure=detail.querySelector('.ec-page-cleanup');
   assert.ok(disclosure,'installed detail owns a persistent recovery entry');
   assert.equal(disclosure.hasAttribute('open'),false);
   assert.equal(disclosure.querySelector('summary').textContent,'网页更新与恢复');
@@ -183,11 +493,11 @@ test('old Page diagnostics remain accessible in details without inflating instal
   assert.equal(f.state.detailModel.oldPageCleanup.records.length,2);
   f.nodes['extension-center-back'].dispatch('click');
   f.button('page:reader','main').dispatch('click');
-  assert.ok(f.doc.querySelector('.ec-page-cleanup'),'returning to details retains the recovery entry');
+  assert.ok(detail.querySelector('.ec-page-cleanup'),'returning to details retains the recovery entry');
   assert.equal(f.invocations.length,0,'viewing diagnostics does not invoke or replay installation');
   f.programs[0].installed.managedCleanup={state:'retired',records:0};
   f.setPageCleanupPending([]);await f.ui.refresh();
-  assert.equal(f.doc.querySelector('.ec-page-cleanup'),null,'fresh retired receipts clear the obsolete notice');
+  assert.equal(detail.querySelector('.ec-page-cleanup'),null,'fresh retired receipts clear the obsolete notice');
 });
 
 test('untitled old Pages use page numbers while full identifiers remain in technical details',async t=>{
@@ -201,7 +511,7 @@ test('untitled old Pages use page numbers while full identifiers remain in techn
   }}]);
   await f.ui.refresh();
   f.button('page:reader','main').dispatch('click');
-  const disclosure=f.doc.querySelector('.ec-page-cleanup');
+  const disclosure=f.nodes['extension-center-detail-body'].querySelector('.ec-page-cleanup');
   assert.ok(disclosure);
   const rows=[...disclosure.querySelectorAll('.ec-page-cleanup-documents li')];
   assert.deepEqual(rows.map(row=>row.querySelector('span').textContent),['页面 1','页面 2']);
@@ -247,7 +557,7 @@ for(const withCurrentCleanup of [false,true])test(
   assert.equal(f.state.detailModel.key,key,'diagnostics belong to the App detail');
   assert.ok(f.state.detailModel.actions.some(row=>row.id==='queue-toggle'),
     'the actual package digest and Page identity must earn joint product management');
-  const disclosure=f.doc.querySelector('.ec-page-cleanup');
+  const disclosure=f.nodes['extension-center-detail-body'].querySelector('.ec-page-cleanup');
   assert.ok(disclosure,'the App exposes cleanupPending for its existing Page companion');
   const expected=withCurrentCleanup?[currentDocument,oldDocument]:[oldDocument];
   assert.deepEqual(f.state.detailModel.oldPageCleanup.documents.map(({tabId,documentId})=>({tabId,documentId})),
@@ -421,7 +731,7 @@ test('unavailable notification retains a visible receipt before the list',async 
     f.nodes['extension-center-status']);
 });
 
-for(const mode of ['ack-only','cleanup-pending','outcome-unknown'])
+for(const mode of ['ack-only','outcome-unknown'])
 test('Page uninstall '+mode+' keeps its unresolved record and never emits success',async t=>{
   const notices=[];
   const f=fixture(t,{notify:(message,options)=>notices.push({message,options})});
@@ -431,7 +741,7 @@ test('Page uninstall '+mode+' keeps its unresolved record and never emits succes
   await settle(()=>f.uninstalls.length===1&&!f.state.uninstallModel);
   assert.deepEqual(notices,[]);
   assert.equal(f.nodes['extension-center-status'].hidden,false);
-  assert.match(f.nodes['extension-center-status'].textContent,/未得到完整确认|清理尚未确认|E_EFFECT_UNKNOWN/);
+  assert.match(f.nodes['extension-center-status'].textContent,/未得到完整确认|E_EFFECT_UNKNOWN/);
   assert.equal(f.nodes['extension-center-status'].parentElement.firstElementChild,
     f.nodes['extension-center-status'],'persistent recovery information precedes the long list');
   assert.equal(f.uninstalls.length,1,'an uncertain result cannot replay removal');
@@ -538,30 +848,106 @@ test('R5.5 stale Page generation invalidates an old uninstall confirmation befor
   assert.match(f.nodes['extension-center-status'].textContent,/卸载确认已失效/);
 });
 
-for(const entry of ['list','detail'])test('Page '+entry+' uninstall removes a revoked installation while reporting retained cleanup',async t=>{
-  const f=fixture(t);f.setPageUninstallMode('cleanup-pending');await f.ui.refresh();
+for(const entry of ['list','detail'])test('Page '+entry+' uninstall notifies once and leaves read-only cleanup recovery in the list',async t=>{
+  const notices=[];
+  const f=fixture(t,{notify:(message,options)=>notices.push({message,options})});
+  const programId=entry==='list'?'opendesk.chatgpt-jump-top':'reader';
+  const key='page:'+programId;
+  const search=f.nodes['extension-center-search'];
+  f.programs[0].programId=f.programs[0].installed.programId=programId;
+  f.setPageUninstallMode('cleanup-pending');await f.ui.refresh();
   if(entry==='list'){
-    f.button('page:reader','more').dispatch('click');
+    search.value='回顶';search.dispatch('input');
+    f.button(key,'more').dispatch('click');
     f.menuItem('卸载').dispatch('click');
   }else{
-    f.button('page:reader','main').dispatch('click');
+    f.button(key,'main').dispatch('click');
     f.doc.querySelector('[data-ec-detail-action="uninstall"]').dispatch('click');
   }
   f.doc.querySelector('.od-uninstall-confirm').dispatch('click');
-  await settle(()=>f.uninstalls.length===1&&f.state.statusModel.text.includes('清理记录会保留'));
-  assert.equal(f.state.statusModel.state,'info','revocation is confirmed, document cleanup is not');
+  await settle(()=>f.uninstalls.length===1&&notices.length===1&&!f.doc.querySelector('[role="dialog"]'));
+  assert.deepEqual(notices[0].options,{type:'info',position:'bottom-center'});
+  assert.match(notices[0].message,/已卸载.*旧网页清理待核对/);
+  assert.doesNotMatch(f.nodes['extension-center-status'].textContent,/旧网页清理待核对|卸载确认已失效/);
+  const recovery=f.nodes['extension-center-page-recoveries'];
+  assert.equal(f.list.nextElementSibling,recovery,'recovery stays below the installed list');
+  assert.match(recovery.querySelector('h3').textContent,/旧网页恢复记录/);
+  assert.match(recovery.querySelector('summary').textContent,/阅读增强.*旧网页清理待核对/s);
+  assert.match(recovery.textContent,/从已安装的扩展打开/);
+  assert.match(recovery.textContent,/阅读草稿/);
+  assert.equal(recovery.querySelector('.ec-page-cleanup-documents').closest('details'),
+    recovery.querySelector('[data-ec-page-recovery]'),'opening one disclosure shows affected pages');
+  assert.equal(recovery.querySelector('button'),null);
   assert.equal(f.programs.length,0);
-  assert.equal(f.button('page:reader','main'),undefined);
-  assert.deepEqual(f.uninstalls,[{programId:'reader',manifestHash:'a'.repeat(64),
+  assert.equal(f.button(key,'main'),undefined);
+  assert.deepEqual(f.uninstalls,[{programId,manifestHash:'a'.repeat(64),
     installationId:'original-installation',expectedGeneration:5}]);
   await f.ui.refresh();
-  assert.equal(f.button('page:reader','main'),undefined,'a retained cleanup is not an installed extension');
+  assert.equal(f.button(key,'main'),undefined,'a retained cleanup is not an installed extension');
+  assert.equal(notices.length,1,'passive refresh never replays the receipt');
+  assert.equal(recovery.isConnected,true,'the recovery record survives reading the list again');
   assert.equal(f.uninstalls.length,1,'readback never retries cleanup or uninstall');
-  assert.ok(f.button('app:quick-notes','main'),'unrelated installation remains');
+  if(entry==='list')assert.equal(search.value,'回顶','recovery remains visible with the original alias search');
+  else assert.ok(f.button('app:quick-notes','main'),'unrelated installation remains');
+  recovery.querySelector('summary').focus();
+  f.setPageCleanupPending([{programId,managedCleanup:{state:'unknown',pendingDocuments:[null]}}]);
+  await f.ui.refresh();
+  assert.match(recovery.querySelector('summary').textContent,/待重新核对/);
+  assert.match(recovery.textContent,/阅读草稿/,'a malformed document cannot erase the last good recovery snapshot');
+  assert.equal(notices.length,1);
+  f.setPageCleanupPending([{programId,managedCleanup:{state:'retired',
+    pendingRecords:1,pendingDocuments:[{tabId:42,documentId:'old-reader-page'}]}}]);
+  await f.ui.refresh();
+  assert.match(recovery.querySelector('summary').textContent,/待重新核对/);
+  assert.match(recovery.textContent,/阅读草稿/,'retired with pending documents cannot erase the last good snapshot');
+  f.setFailPages(true);await f.ui.refresh();
+  assert.match(recovery.querySelector('summary').textContent,/待重新核对/);
+  assert.equal(f.doc.activeElement,recovery.querySelector('summary'));
+  f.setFailPages(false);
+  f.setPageCleanupPending([]);await f.ui.refresh();
+  assert.equal(recovery.isConnected,false,'once Authority retires the record the recovery entry goes away');
+  assert.equal(f.doc.activeElement,f.nodes['extension-center-search']);
+});
+
+test('Page uninstall with malformed cleanup readback keeps an unconfirmed result',async t=>{
+  const notices=[];
+  const f=fixture(t,{notify:(message,options)=>notices.push({message,options})});
+  await f.ui.refresh();
+  f.setPageCleanupPending([{programId:'reader',managedCleanup:{state:'incomplete'}}]);
+  openMenuUninstall(f,'page:reader');
+  f.doc.querySelector('.od-uninstall-confirm').dispatch('click');
+  await settle(()=>f.uninstalls.length===1&&!f.state.uninstallModel);
+  assert.equal(f.button('page:reader','main'),undefined,'verified installation readback still removes the row');
+  assert.match(f.state.statusModel.text,/卸载结果未得到完整确认/);
+  assert.deepEqual(notices,[]);
+});
+
+test('Page uninstall uses current cleanup readback and excludes embedded pages from recovery',async t=>{
+  const notices=[];
+  const f=fixture(t,{notify:(message,options)=>notices.push({message,options})});
+  f.setPageUninstallMode('cleanup-pending');await f.ui.refresh();
+  const request=f.client.request.bind(f.client);
+  f.client.request=async(name,args)=>{
+    const result=await request(name,args);
+    if(name==='uninstallPageProgram'){
+      assert.equal(result.cleanupPending,true);
+      f.setPageCleanupPending([{programId:'app.embedded',title:'附属网页',managedCleanup:result.managedCleanup}]);
+    }
+    return result;
+  };
+  openMenuUninstall(f,'page:reader');
+  f.doc.querySelector('.od-uninstall-confirm').dispatch('click');
+  await settle(()=>notices.length===1&&!f.doc.querySelector('[role="dialog"]'));
+  assert.equal(notices[0].options.type,'success');
+  assert.doesNotMatch(notices[0].message,/旧网页清理待核对/);
+  assert.equal(f.nodes['extension-center-page-recoveries'],null);
+  assert.equal(f.uninstalls.length,1);
 });
 
 test('Page uninstall readback survives passive installation refresh without replaying removal',async t=>{
-  const f=fixture(t);f.setPageUninstallMode('cleanup-pending');await f.ui.refresh();
+  const notices=[];
+  const f=fixture(t,{notify:(message,options)=>notices.push({message,options})});
+  f.setPageUninstallMode('cleanup-pending');await f.ui.refresh();
   const request=f.client.request.bind(f.client);
   let release,reads=0;
   f.client.request=(name,args)=>{
@@ -577,8 +963,9 @@ test('Page uninstall readback survives passive installation refresh without repl
   await tick();
   release();
   await settle(()=>!f.doc.querySelector('[role="dialog"]'));
-  assert.equal(f.state.statusModel.state,'info');
-  assert.match(f.state.statusModel.text,/清理记录会保留/);
+  assert.equal(notices.length,1);
+  assert.match(notices[0].message,/旧网页清理待核对/);
+  assert.ok(f.nodes['extension-center-page-recoveries']);
   assert.equal(f.button('page:reader','main'),undefined);
   assert.equal(f.uninstalls.length,1,'notifications never replay the mutation');
   await settle(()=>reads===2);
@@ -652,7 +1039,9 @@ test('R33.3.4 extension menu arrows stay scoped and Tab restores focus',async t=
 
 
 test('R5.6 suspended Page offers direct restoration but cannot claim native success before readback',async t=>{
-  const f=fixture(t);f.programs[0].installed.authorization.status='suspended';
+  const notices=[];
+  const f=fixture(t,{notify:(message,options)=>notices.push({message,options})});
+  f.programs[0].installed.authorization.status='suspended';
   f.programs[0].installed.nativeState='blocked';await f.ui.refresh();
   f.button('page:reader','more').dispatch('click');
   const restore=f.menuItem('恢复自动运行');
@@ -663,9 +1052,11 @@ test('R5.6 suspended Page offers direct restoration but cannot claim native succ
   assert.deepEqual(f.writes[0],{
     programId:'reader',manifestHash:'a'.repeat(64),installationId:'original-installation',enabled:true,expectedGeneration:5
   });
-  assert.equal(f.nodes['extension-center-status'].dataset.state,'info',
+  assert.equal(notices.length,1);
+  assert.equal(notices[0].options.type,'info',
     'a still-blocked native registration must not be called a successful restore');
-  assert.match(f.nodes['extension-center-status'].textContent,/原生注册状态仍待核对/);
+  assert.match(notices[0].message,/原生注册状态仍待核对/);
+  assert.doesNotMatch(f.nodes['extension-center-status'].textContent,/原生注册状态仍待核对/);
 });
 
 test('R5.6 suspended Page with missing Chrome permission cannot change the installed generation',async t=>{
@@ -1031,8 +1422,15 @@ test('R4.8 historical reference preserves the production toolbar action contract
   // has its own source-bound generator and check. Product copy may advance.
   // The historical preview predates the shared locale manager and its R6.10
   // move into More. Its locale control is not the current manager contract.
+  const currentDoc=parseHTML(html).document;
+  const list=currentDoc.getElementById('extension-center-list');
+  const entry=currentDoc.getElementById('extension-center-web-features');
+  assert.equal(currentDoc.getElementById('extension-center-list-heading')?.textContent,'扩展列表');
+  assert.ok(currentDoc.getElementById('extension-center-menu').contains(entry),'help belongs to the existing More menu');
+  assert.equal(currentDoc.querySelector('.ec-list-setup'),null,'no affected apps means a quiet list');
+  assert.equal(entry.textContent,'网页功能帮助');
   const controls=source=>[...source.matchAll(/\bid="([^"]+)"/g)].map(match=>match[1])
-    .filter(id=>!['extension-center-language','extension-center-language-settings'].includes(id)).sort();
+    .filter(id=>!['extension-center-language','extension-center-language-settings','extension-center-web-features'].includes(id)).sort();
   // The same More-menu history/settings action has a different historical ID.
   assert.deepEqual(controls(demo.replaceAll('preview-','extension-center-')
     .replaceAll('extension-center-update-records','extension-center-update-history')),controls(formal));
@@ -1128,28 +1526,40 @@ test('R5.0 an unconfirmed launch is visible and does not claim that the tool ope
 
 
 test('R5.6 disabled setting with unconfirmed native unregister remains a pending result',async t=>{
-  const f=fixture(t);f.programs[0].installed.nativeState='blocked';await f.ui.refresh();
-  f.button('page:reader','more').dispatch('click');
-  f.menuItem('停用自动运行').dispatch('click');
+  const notices=[];
+  const f=fixture(t,{notify:(message,options)=>notices.push({message,options})});
+  f.programs[0].installed.nativeState='blocked';await f.ui.refresh();
+  f.button('page:reader','main').dispatch('click');
+  f.state.detailModel.pageControl.onToggle(false,{isTrusted:true});
   await settle(()=>f.writes.length===1);
-  await settle(()=>f.button('page:reader','more')?.disabled===false);
+  await settle(()=>f.state.detailModel.busy===false);
   assert.equal(f.programs[0].installed.enabled,false);
   assert.equal(f.programs[0].installed.nativeState,'blocked');
-  assert.equal(f.nodes['extension-center-status'].dataset.state,'info');
-  assert.match(f.nodes['extension-center-status'].textContent,/原生注销或受管清理仍待核对/);
+  assert.equal(notices.length,1);
+  assert.match(notices[0].message,/原生注销或受管清理仍待核对/);
+  assert.deepEqual(notices[0].options,{type:'info',position:'bottom-center'});
+  assert.doesNotMatch(f.nodes['extension-center-status'].textContent,/原生注销或受管清理仍待核对/);
+  assert.equal(f.state.detailModel.pageControl.state,'pending');
+  assert.equal(f.state.detailModel.pageControl.enabled,false);
+  await f.ui.refresh();
+  assert.equal(f.state.detailModel.pageControl.state,'pending');
+  assert.equal(notices.length,1,'passive refresh must not repeat the receipt');
+  assert.equal(f.writes.length,1,'passive refresh must not retry the write');
 });
 
 test('R5.6 unknown managed UI cleanup cannot be reported as completed after disabling',async t=>{
-  const f=fixture(t);f.programs[0].installed.managedCleanup={scope:'managed-ui-only',state:'unknown'};
+  const f=fixture(t,{notify:()=>{throw Error('notification unavailable');}});
+  f.programs[0].installed.managedCleanup={scope:'managed-ui-only',state:'unknown'};
   await f.ui.refresh();
   f.button('page:reader','more').dispatch('click');
   f.menuItem('停用自动运行').dispatch('click');
   await settle(()=>f.writes.length===1);
   await settle(()=>f.button('page:reader','more')?.disabled===false);
   assert.equal(f.programs[0].installed.nativeState,'disabled');
-  assert.equal(f.programs[0].installed.managedCleanup.state,'unknown');
-  assert.equal(f.nodes['extension-center-status'].dataset.state,'info');
-  assert.match(f.nodes['extension-center-status'].textContent,/原生注销或受管清理仍待核对/);
+  assert.doesNotMatch(f.nodes['extension-center-status'].textContent,/原生注销或受管清理仍待核对/);
+  f.button('page:reader','main').dispatch('click');
+  assert.equal(f.state.detailModel.oldPageCleanup.records[0].state,'unknown');
+  assert.equal(f.state.detailModel.pageControl.state,'off','native unregistration is independent of old-page cleanup');
 });
 
 test('R5.0 Page RPC acknowledgement without Authority state change cannot be reported successful',async t=>{
@@ -1164,7 +1574,8 @@ test('R5.0 Page RPC acknowledgement without Authority state change cannot be rep
 });
 
 test('R5.0 Page enabled setting must not masquerade as a verified native registration',async t=>{
-  const f=fixture(t);await f.ui.refresh();
+  const notices=[];
+  const f=fixture(t,{notify:(message,options)=>notices.push({message,options})});await f.ui.refresh();
   f.programs[0].installed.enabled=false;
   f.programs[0].installed.nativeState='pending';
   await f.ui.refresh();
@@ -1172,8 +1583,10 @@ test('R5.0 Page enabled setting must not masquerade as a verified native registr
   f.menuItem('启用自动运行').dispatch('click');
   await settle(()=>f.button('page:reader','more')?.disabled===false);
   assert.equal(f.programs[0].installed.enabled,true);
-  assert.equal(f.nodes['extension-center-status'].dataset.state,'info');
-  assert.match(f.nodes['extension-center-status'].textContent,/原生注册状态仍待核对/);
+  assert.equal(notices.length,1);
+  assert.equal(notices[0].options.type,'info');
+  assert.match(notices[0].message,/原生注册状态仍待核对/);
+  assert.doesNotMatch(f.nodes['extension-center-status'].textContent,/原生注册状态仍待核对/);
 });
 
 test('R5.0 official catalog stale responses and failures must be rejected by source guards',async()=>{
@@ -1277,7 +1690,7 @@ for(const transition of ['detail','back'])test('R1.8 action feedback clears on '
   assert.equal(f.programs[0].installed.enabled,false);
   assert.equal(f.programs[0].installed.managedCleanup.state,'unknown');
   assert.equal(f.state.detailModel.pageControl.enabled,false);
-  assert.match(f.state.detailModel.pageControl.status,/已停用.*清理待核对/);
+  assert.match(f.state.detailModel.pageControl.status,/停用设置已保存.*原生注销和网页清理待核对/);
   f.nodes['extension-center-back'].dispatch('click');
   f.button('page:mindmap','main').dispatch('click');
   assert.doesNotMatch(f.state.statusModel.text,/本机安装记录确认应用启用/);

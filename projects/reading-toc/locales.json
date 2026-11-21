@@ -57,6 +57,7 @@
       "externalKind": "广告 · 待审核",
       "externalTitle": "广告展示位",
       "externalDescription": "尚无经过审核的广告素材；当前不加载外部广告。",
+      "activationRequired": "网页目录待开启。请返回「扩展 → 网页功能设置」，按提示开启 Chrome 的「允许用户脚本」，然后选择「检查网页功能」。若目录还未出现，请保存网页内容后刷新网页。",
       "installationRepair": "网页模块尚未安装完整或已变化。请返回扩展，重新导入阅读目录安装包并选择「核对并恢复网页模块」，完成后刷新目录。",
       "pageReloadRequired": "网页仍使用上一次浏览器会话的目录模块，已暂停自动重试。请先保存草稿、等待当前操作结束，再刷新网页，目录会重新连接。"
     },
@@ -280,6 +281,10 @@
       "externalDescription": {
         "source": "尚无经过审核的广告素材；当前不加载外部广告。",
         "text": "No approved materials are available. No external ads are loaded."
+      },
+      "activationRequired": {
+        "source": "网页目录待开启。请返回「扩展 → 网页功能设置」，按提示开启 Chrome 的「允许用户脚本」，然后选择「检查网页功能」。若目录还未出现，请保存网页内容后刷新网页。",
+        "text": "The page outline is waiting for activation. Go to Extensions → Web feature settings, enable “Allow User Scripts” in Chrome if needed, then choose “Check web features”. If the outline still does not appear, save your work and reload the webpage."
       },
       "installationRepair": {
         "source": "网页模块尚未安装完整或已变化。请返回扩展，重新导入阅读目录安装包并选择「核对并恢复网页模块」，完成后刷新目录。",
@@ -510,6 +515,10 @@
       "externalDescription": {
         "source": "尚无经过审核的广告素材；当前不加载外部广告。",
         "text": "審査済みの広告素材はありません。現在、外部広告は読み込まれません。"
+      },
+      "activationRequired": {
+        "source": "网页目录待开启。请返回「扩展 → 网页功能设置」，按提示开启 Chrome 的「允许用户脚本」，然后选择「检查网页功能」。若目录还未出现，请保存网页内容后刷新网页。",
+        "text": "ページの目次は有効化待ちです。「拡張機能 → ウェブ機能の設定」に戻り、必要に応じて Chrome の「ユーザースクリプトを許可する」をオンにしてから、「ウェブ機能を確認」を選んでください。目次が表示されない場合は、作業を保存してページを再読み込みしてください。"
       },
       "installationRepair": {
         "source": "网页模块尚未安装完整或已变化。请返回扩展，重新导入阅读目录安装包并选择「核对并恢复网页模块」，完成后刷新目录。",

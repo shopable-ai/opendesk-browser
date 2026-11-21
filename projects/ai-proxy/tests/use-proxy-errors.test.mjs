@@ -14,8 +14,9 @@ const tick = () => new Promise(resolve => setImmediate(resolve));
 const success = state => ({ ok: true, state });
 
 async function fixture() {
-  const slots = [], effects = [], calls = [];
+  const slots = [], effects = [], calls = [], timers = new Map();
   let cursor = 0, locale = 'zh-CN', listener, unmounted = false, lateWrites = 0, unsubscribed = 0;
+  let clock = 0, timerId = 0;
   let request = async () => success({ revision: 1 });
   let dirty = false;
   const eventTarget = () => {
@@ -32,6 +33,7 @@ async function fixture() {
   };
   const testWindow = eventTarget();
   const testDocument = {...eventTarget(),visibilityState:'visible'};
+  const events = eventTarget();
   const react = {
     useState(initial) {
       const index = cursor++;
@@ -46,6 +48,7 @@ async function fixture() {
     useEffect(effect) { const index = cursor++; if (!(index in slots)) { slots[index] = true; effects.push(effect); } }
   };
   const env = {
+    events,
     request(message) { calls.push(message.type); return request(message); },
     service: { subscribe(fn) { listener = fn; return () => { listener = null; unsubscribed++; }; } },
     hasDrafts() { return dirty; }
@@ -53,6 +56,8 @@ async function fixture() {
   const module = { exports: {} };
   runInNewContext(bundle.outputFiles[0].text, {
     exports: module.exports, module, Error, window:testWindow, document:testDocument,
+    setTimeout(fn, delay) { timers.set(++timerId,{at:clock+delay,fn}); return timerId; },
+    clearTimeout(id) { timers.delete(id); },
     require(name) {
       if (name === 'react') return react;
       if (name === '../environment') return { getEnvironment: () => env };
@@ -72,10 +77,54 @@ async function fixture() {
     get resumeListeners() { return testWindow.listenerCount('focus')+testDocument.listenerCount('visibilitychange'); },
     respond(fn) { request = fn; },
     async notify() { listener?.(); await tick(); },
+    storageChanged() { events.dispatch('ai-proxy-storage-changed'); },
+    advance(ms) {
+      clock += ms;
+      for (const [id,{at,fn}] of timers) if (at<=clock) { timers.delete(id); fn(); }
+    },
     unmount() { unmounted = true; cleanups.forEach(cleanup => cleanup?.()); },
     get lateWrites() { return lateWrites; }, get unsubscribed() { return unsubscribed; }
   };
 }
+
+test('passive sync cues only slow waits and does not reset the cue on another storage event', async () => {
+  const f=await fixture(), pending=[];
+  f.respond(()=>new Promise(resolve=>pending.push(resolve)));
+  f.render().setError('Keep this feedback');
+  f.storageChanged();
+  assert.equal(f.render().syncing,true);
+  assert.equal(f.render().slowSync,false);
+  pending.shift()(success({revision:2}));
+  await tick();
+  f.advance(1000);
+  assert.equal(f.render().slowSync,false,'a fast read never leaves a pending announcement');
+  f.setDraft(true);
+  f.storageChanged();
+  assert.equal(pending.length,0,'an unsaved draft prevents passive storage refresh');
+  f.setDraft(false);
+  f.storageChanged();
+  f.advance(300);
+  f.storageChanged();
+  pending.shift()(success({revision:3}));
+  await tick();
+  assert.equal(f.render().busy,true,'first response does not rearm controls');
+  f.advance(150);
+  assert.equal(f.render().slowSync,true,'continuous wait is measured from the first event');
+  assert.equal(await f.render().act({type:'SWITCH_ROUTE'}),null);
+  assert.ok(!f.calls.includes('SWITCH_ROUTE'),'no mutation queued while waiting');
+  pending.shift()(success({revision:4}));
+  await tick();
+  assert.equal(f.render().busy,false);
+  assert.equal(f.render().slowSync,false);
+  assert.equal(f.render().state.revision,4);
+  assert.equal(f.render().error,'Keep this feedback');
+  f.storageChanged();
+  f.unmount();
+  f.advance(1000);
+  pending.shift()(success({revision:5}));
+  await tick();
+  assert.equal(f.lateWrites,0);
+});
 
 test('cancelling a route review returns normally without a failure alert or success',async()=>{
   for(const thrown of [false,true]){

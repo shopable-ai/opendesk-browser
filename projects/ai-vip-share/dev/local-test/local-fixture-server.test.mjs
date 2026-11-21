@@ -74,9 +74,14 @@ test('shared target VIP uses complete server session, current assignment and ent
     assert.equal(res.headers.get('set-cookie'),null);
     const html=await res.text();
     assert.ok(!delivery.cookies.some(cookie=>html.includes(cookie.value)),'HTML omits Cookie values');
+    assert.doesNotMatch(html,/立即重新核验|http-equiv="refresh"|<a href="\/session\/"/i);
     return html;
   };
-  assert.match(await read(),/data-session-reason="missing"/);
+  const missing=await read();
+  assert.match(missing,/data-session-reason="missing"/);
+  assert.match(missing,/本次请求缺少本站的会话 Cookie/);
+  assert.match(missing,/请在 AI VIP Share 侧栏登录/);
+  assert.match(missing,/扩展 → AI VIP Share.*登录并打开网站/);
   const full=cookieHeader(delivery);
   let html=await read(full);
   assert.match(html,/本地模拟网站/);
@@ -84,17 +89,27 @@ test('shared target VIP uses complete server session, current assignment and ent
   assert.match(html,/a\*\*\*@fixture\.test/);
   assert.match(html,/模拟标准 VIP/);
   assert.ok(html.includes(new Date(receipt.grantedEntitlements[1].expiresAt).toISOString()));
+  const originalLedgerSizes=[fixture.ledger.size,fixture.sharedRequests.size,fixture.sessions.size,fixture.leases.size];
+  serverNow+=1000;
+  const refreshed=await read(full);
+  assert.match(refreshed,/data-vip-state="active"/);
+  assert.match(refreshed,/a\*\*\*@fixture\.test/);
+  assert.ok(refreshed.includes(new Date(serverNow).toISOString()));
+  assert.deepEqual([fixture.ledger.size,fixture.sharedRequests.size,fixture.sessions.size,fixture.leases.size],originalLedgerSizes);
   const invalid=await read(cookieHeader({cookies:[delivery.cookies[0]]}));
   assert.match(invalid,/data-session-reason="invalid"/);
   assert.doesNotMatch(invalid,/data-vip-state="active"|data-identity=/);
   sharedAccess=false;
   html=await read(full);
   assert.match(html,/data-session-reason="revoked"/);
+  assert.match(html,/先在侧栏核对本站授权或账号分配/);
+  assert.match(html,/扩展 → AI VIP Share.*登录并打开网站/);
   assert.doesNotMatch(html,/data-vip-state="active"|data-identity=/);
   sharedAccess=true;
   serverNow=receipt.grantedEntitlements[1].expiresAt;
   html=await read(full);
   assert.match(html,/data-session-reason="expired"/);
+  assert.match(html,/授权有效时可重新获取会话/);
   assert.doesNotMatch(html,/data-vip-state="active"|data-identity=/);
   serverNow=SERVER_NOW;
   const next=await redeemSession('DEMO-VIP-02');
@@ -106,6 +121,46 @@ test('shared target VIP uses complete server session, current assignment and ent
   html=await read(cookieHeader({cookies:[delivery.cookies[0],next.receipt.cookieDelivery.cookies[1]]}));
   assert.match(html,/data-session-reason="invalid"/);
   assert.doesNotMatch(html,/data-vip-state="active"|data-identity=/);
+});
+test('terminal fixture history stays visible and spent without restoring a site session',async t=>{
+  const {receipt}=await redeemSession('DEMO-VIP-02');
+  const before=(await api('/api/member')).data;
+  const expiry=receipt.grantedEntitlements[1].expiresAt;
+  const expiredRedemption={accountId:boundAccount.id,code:'DEMO-VIP-02',
+    history:before.redemptions[0],entitlements:before.entitlements};
+  const options={expiredRedemption,voucherAssignments:{'NEW-MANUAL-B':'shared-b'}};
+  assert.throws(()=>createLocalFixture({...options,now:()=>expiry-1}),/Invalid expired/);
+  assert.throws(()=>createLocalFixture({expiredRedemption,now:()=>expiry}),/stay retired/);
+  const next=createLocalFixture({...options,now:()=>expiry});
+  await new Promise(resolve=>next.server.listen(0,'127.0.0.1',resolve));
+  t.after(()=>new Promise(resolve=>next.server.close(resolve)));
+  const origin='http://127.0.0.1:'+next.server.address().port;
+  const request=(path,body)=>fetch(origin+path,{method:body?'POST':'GET',headers:{
+    'X-OpenDesk-Local-Test':'1','Content-Type':'application/json'},
+    ...(body?{body:JSON.stringify(body)}:{})});
+  const archived=await (await request('/api/member')).json();
+  assert.deepEqual(archived.redemptions,before.redemptions);
+  assert.deepEqual(archived.entitlements[0],before.entitlements[0]);
+  assert.equal(archived.entitlements[1].status,'expired');
+  assert.equal(archived.sharedAccounts,undefined);
+  const retired=await request('/api/preview',{code:'DEMO-VIP-02'});
+  assert.equal(retired.status,409);
+  assert.deepEqual(await retired.json(),{error:'E_CODE_CONSUMED'});
+  const denied=await request('/api/status',{operation:'sharedSession',accountId:boundAccount.id,
+    redemptionId:receipt.redemptionId,requestId:randomUUID()});
+  assert.equal(denied.status,403);
+  assert.equal(next.sessions.size,0);
+  const retiredSite=await fetch(origin+'/session/',{headers:{Cookie:cookieHeader(receipt.cookieDelivery)}});
+  assert.doesNotMatch(await retiredSite.text(),/data-vip-state="active"/);
+  const preview=await (await request('/api/preview',{code:'NEW-MANUAL-B'})).json();
+  const newVoucher=await request('/api/redeem',{previewId:preview.previewId,
+    accountId:boundAccount.id,idempotencyKey:randomUUID()});
+  assert.equal(newVoucher.status,200);
+  const after=(await (await request('/api/member')).json());
+  assert.deepEqual(after.redemptions.slice(0,1),before.redemptions);
+  assert.equal(after.redemptions.length,2);
+  assert.equal(after.sharedAccounts.assignedAccountId,'shared-b');
+  assert.notEqual(after.sharedAccounts.redemptionId,receipt.redemptionId);
 });
 
 test('health is loopback only, mock mode is explicit',async()=>{
@@ -688,6 +743,30 @@ test('explicit isolated extension Origin opt-in never accepts another browser or
       assert.equal(response.status,origin===extensionOrigin?200:403);
     }
     assert.equal((await fetch(url,{method:'POST',headers:{Origin:extensionOrigin},body:'{}'})).status,403);
+    const memberUrl=new URL('/api/member',url);
+    const memberHeaders={'X-OpenDesk-Local-Test':'1','Content-Type':'application/json'};
+    const readMember=(body,headers)=>fetch(memberUrl,{method:'POST',headers,body});
+    for(const origin of [undefined,'null','https://other.invalid','chrome-extension://'+'b'.repeat(32)]){
+      const headers=origin===undefined?memberHeaders:{...memberHeaders,Origin:origin};
+      assert.equal((await readMember('{}',headers)).status,403);
+    }
+    assert.equal((await readMember('{}',{Origin:extensionOrigin,'Content-Type':'application/json'})).status,403);
+    const headers={...memberHeaders,Origin:extensionOrigin};
+    for(const body of ['', '{', '[]', 'null']){
+      const badJson=await readMember(body,headers);
+      assert.equal(badJson.status,400);assert.equal((await badJson.json()).error,'E_BAD_JSON');
+    }
+    const fields=await readMember('{"accountId":"another-account"}',headers);
+    assert.equal(fields.status,400);assert.equal((await fields.json()).error,'E_MEMBER_FIELDS');
+    const member=await readMember('{}',headers);
+    assert.equal(member.status,200);
+    assert.equal(member.headers.get('cache-control'),'no-store');
+    const getMember=await fetch(memberUrl,{headers});
+    const {serverNow:postTime,...postSnapshot}=await member.json();
+    const {serverNow:getTime,...getSnapshot}=await getMember.json();
+    assert.ok(Number.isFinite(postTime)&&Number.isFinite(getTime));
+    assert.deepEqual(postSnapshot,getSnapshot);
+    assert.equal(allowed.ledger.size,0);
     const sessionUrl=new URL('/session/',url);
     assert.equal((await fetch(sessionUrl)).status,200);
     for(const origin of [extensionOrigin,'chrome-extension://'+'b'.repeat(32),'null',

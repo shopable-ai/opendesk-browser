@@ -1,0 +1,161 @@
+{
+  "date": "2026-11-21",
+  "browser": "ego lite 0.6.3.14",
+  "taskSpace": 230,
+  "install": {
+    "toolId": "webflow",
+    "reviewedVersion": "0.3.41",
+    "reviewedCanonicalSha256": "5d05e9edaa5bf0c27d96b15ed039caab1d093fb731edab63b5e52c9ffb9706cc",
+    "receipt": "已安装「Web Flow」",
+    "reopenedVersion": "0.3.41",
+    "settingsVersion": "0.3.41",
+    "appRouteRecoveredAfterReload": true,
+    "previousSeparatePanelVersion": "0.3.11",
+    "downgradeConfirmed": false
+  },
+  "host": {
+    "extensionId": "ccfcjegpkdlgbclopjmadlcjedelidmf",
+    "extensionVersion": "0.1.0",
+    "nativeHostInstanceId": "3766b252-0582-4473-9601-f8c965aac5c3",
+    "devConnection": "开发服务已连接",
+    "reportedBuildRevision": "5b5ea11572b8095fe6a8ea739eca84e6afb7a3ef8c703d7bbe142b3ac025b73e",
+    "loadedPathIndependentlyVerified": false
+  },
+  "nativeUiObserved": [
+    "概览 / 脚本 / 记录",
+    "搜索 Google，清除后恢复两行",
+    "收藏筛选、重新打开后的收藏读回、还原测试前收藏",
+    "筛选面板内的计数与刷新、添加向导、行详情与宿主管理",
+    "帮助、工具设置及返回",
+    "隔离工具内的 Google 固定版本不匹配与禁用"
+  ],
+  "nativeManualRun": {
+    "task": "baidu.search.top3@1.1.5",
+    "openedTrustedDrawerViaNameAndRunButton": true,
+    "observedRequiredQueryValidation": "E_PARAMS",
+    "formJsonRoundTrip": true,
+    "draftRetainedAfterReopen": true,
+    "saveRejection": "E_BUILTIN_VERSION_UNAVAILABLE",
+    "readOnlyPreparationQuery": "原准备尚未查明；保留身份，可取消同一准备。",
+    "confirmExecutionClicked": false,
+    "runResult": "NOT_TESTED",
+    "stoppedCancelledOrReplayed": false,
+    "googleTaskMismatch": {
+      "pinnedVersion": "1.0.3",
+      "observedInstalledVersion": "1.0.7",
+      "runDisabled": true
+    },
+    "recovery": {
+      "task": "baidu.search.top3@1.1.5",
+      "manifestSha256": "f49e274aadfeed12540aff028ff267b3772ebe35a2f16c154008542b76a5bf38",
+      "sourceSha256": "2b0f31c0d485355576cac11968170bb9eb41c9076df5bb6659f93d0173286181",
+      "developerRun": {
+        "id": "d86049f6-efac-4c4d-ba61-2b6b1e7b8175",
+        "target": "https://www.baidu.com/s?wd=JavaScript%20MDN",
+        "state": "completed",
+        "resourceState": "released",
+        "displayedResultCount": 3,
+        "observedAt": "2026-11-21T01:37:43.102Z",
+        "isWebFlowRun": false
+      },
+      "catalogHostInstanceId": "c9fcb71d-ce22-4cfd-a473-925662dca138",
+      "catalogReceipt": "baidu.search.top3@1.1.5：已核对本机持久运行及页面原生回执；不代表第三方审核",
+      "catalogState": "本地可用 · v1.1.5 · 已安装",
+      "nextAction": "确认更新运行时安装",
+      "siteOrigin": "https://www.baidu.com",
+      "capability": "page.automation",
+      "runtimeInstallationUpdateClicked": false,
+      "verificationGate": "update awaiting scope-specific user confirmation; query original preparation read-only afterward"
+    }
+  },
+  "componentEvidence": {
+    "targetedNode": "108/108",
+    "sharedPackageChecks": "7/8; same 48px host header assertion fails at HEAD",
+    "mockSdkWidthsPx": [
+      320,
+      360,
+      400
+    ],
+    "mockSdkEvidenceDir": "artifacts/webflow/ego-20261121"
+  },
+  "notTested": [
+    "full native visual geometry and keyboard matrix",
+    "native IME",
+    "production"
+  ],
+  "installedAppEvidence": {
+    "viewportCssPx": [
+      [
+        320,
+        650
+      ],
+      [
+        360,
+        650
+      ],
+      [
+        400,
+        650
+      ]
+    ],
+    "outerScrollWidthCssPx": [
+      320,
+      360,
+      400
+    ],
+    "capturedViewsAt360": [
+      "scripts",
+      "overview",
+      "history",
+      "script-menu"
+    ],
+    "observedInteractionsAt360": [
+      "概览 → 记录 → 脚本",
+      "百度更多操作 → Escape"
+    ],
+    "keyboardAndGuidance": [
+      "Home / End / 方向键在三页间移动焦点，方向键可循环",
+      "筛选和百度行菜单可用 Enter / Space 打开，Escape 归还焦点",
+      "排序切换到按名称后恢复收藏优先",
+      "四条添加路径进入各自指引，Escape 归还添加按钮焦点并可再次打开"
+    ],
+    "rowStabilityAt360": {
+      "viewportCssPx": [360, 650],
+      "method": "Same installed APP_TAB, screenshot pixel difference against default; bounding boxes are [left, top, right exclusive, bottom exclusive].",
+      "hoverDiffBounds": [259, 172, 332, 188],
+      "keyboardDiffBounds": [259, 161, 332, 200],
+      "changedPixelsOutsideBaiduActions": 0,
+      "screenshots": [
+        "artifacts/webflow/ego-20261121/installed-app-row-default-360.png",
+        "artifacts/webflow/ego-20261121/installed-app-row-hover-360.png",
+        "artifacts/webflow/ego-20261121/installed-app-row-keyboard-360.png"
+      ]
+    },
+    "sameStructure": [
+      "搜索 / 筛选 / 添加",
+      "两层脚本行",
+      "☆ / ▶ / ⋯"
+    ],
+    "documentedDifferences": [
+      "实际两个固定脚本显示待重新验证和固定版本不匹配，预览三个演示脚本",
+      "实际记录和最近活动为空，预览有示例数据",
+      "自动化状态摘要是实际原生侧栏宿主控件，独立 app 不显示"
+    ],
+    "measurementEvidence": [
+      "artifacts/webflow/ego-20261121/installed-app-widths.json",
+      "artifacts/webflow/ego-20261121/installed-app-views-360.json",
+      "artifacts/webflow/ego-20261121/installed-app-keyboard.json"
+    ],
+    "screenshotDirectory": "artifacts/webflow/ego-20261121"
+  },
+  "acceptance": {
+    "WFUI-01-02": "partial: installed app and native structure; installed app row stable on hover and focus at 360px; native matching data geometry not tested",
+    "WFUI-03-04": "observed both trusted entries, validation and draft readback; full native state matrix not tested",
+    "WFUI-05": "BLOCKED",
+    "WFUI-06": "BLOCKED",
+    "WFUI-07-08": "partial: unknown query and version enforcement; revocation/stop not tested",
+    "WFUI-09-10": "observed installed core controls, sorting and all four add guides; no real run history",
+    "WFUI-11-12": "installed app compact widths, keyboard navigation and focus restoration observed; native matrix and IME not tested",
+    "WFUI-13": "install receipt and error observed; successful save, cancel and late response native cases not tested"
+  }
+}

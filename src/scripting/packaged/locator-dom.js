@@ -178,7 +178,13 @@ function actionability(el, op, doc, win) {
   const rect = rectOf(el), x = (Math.max(0, rect.left) + Math.min(rect.right, win.innerWidth)) / 2,
     y = (Math.max(0, rect.top) + Math.min(rect.bottom, win.innerHeight)) / 2;
   if (rect.right <= 0 || rect.bottom <= 0 || rect.left >= win.innerWidth || rect.top >= win.innerHeight ||
-      x >= win.innerWidth || y >= win.innerHeight) return 'E_ELEMENT_OUTSIDE_VIEWPORT';
+      x >= win.innerWidth || y >= win.innerHeight ||
+      rect.width <= win.innerWidth && (rect.left < 0 || rect.right > win.innerWidth) ||
+      rect.height <= win.innerHeight && (rect.top < 0 || rect.bottom > win.innerHeight))
+    return 'E_ELEMENT_OUTSIDE_VIEWPORT';
+  // A clipped sliver may sit under a fixed header. Scroll in the existing
+  // separate commit, then re-resolve and hit-test before any input effect.
+  // Oversized elements retain a reachable intersection instead of re-scrolling.
   if (typeof doc.elementFromPoint === 'function') {
     const hit = doc.elementFromPoint(x, y);
     if (!hit || hit !== el && !el.contains(hit)) return 'E_ELEMENT_OBSCURED';

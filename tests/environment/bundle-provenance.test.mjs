@@ -145,8 +145,12 @@ test('actual fixed entry graphs retain every reviewed WebFlow intent consumer',a
     .map(path=>'src/entrypoints/'+path);
   const {metafile}=await build({entryPoints:entries,bundle:true,write:false,metafile:true,
     outdir:join(tmpdir(),'opendesk-intent-graph'),treeShaking:false,format:'iife',platform:'browser',
-    loader:{'.html':'text','.dat':'text'},
-    alias:{'@opendesk/ui':resolve('src/ui/react/components/ui/button.tsx')},logLevel:'silent'});
+    loader:{'.html':'text','.dat':'text','.webp':'dataurl','.css':'text'},
+    plugins:[{name:'opendesk-ui-entry-owners',setup(builder){
+      builder.onResolve({filter:/^@opendesk\/ui$/},({importer})=>({path:resolve(
+        importer.endsWith('/ai-send-queue/src/page/main.js')?'src/scripting/user-scripts/page-ui.js':
+          'src/ui/react/components/ui/button.tsx')}));
+    }}],logLevel:'silent'});
   const path='projects/webflow/src/task-intent-contract.js';
   const consumers=Object.values(metafile.outputs).filter(output=>output.inputs[path]);
   assert.deepEqual(consumers.map(output=>basename(output.entryPoint,'.js')).sort(),
@@ -265,16 +269,16 @@ test('trusted AI Proxy checks nested CSS even when Rollup omits it from chunk.mo
 
 test('reviewed AI Proxy form and diagnostics keep exact source locks and reject altered locale bytes',async t=>{
  const changed=[
-  ['projects/ai-proxy/src/Settings.tsx','36c7f0e39fd8e1d06ae4f684c19011c73f9cc278'],
-  ['projects/ai-proxy/src/service.ts','9122c9beffa45744d3e12f9862de1fd3b452b2b6'],
+  ['projects/ai-proxy/src/Settings.tsx','0fbdf463441c40f5dd7466a318f5d32c4b5cb847'],
+  ['projects/ai-proxy/src/service.ts','24cf17b04e18a4336b1c42401ad72ec6b1f50de0'],
   ['projects/ai-proxy/src/ui/ProxyEntry.tsx','46f4bdef3a11cc6040fa857225b032e3bb6f5faa'],
-  ['projects/ai-proxy/src/i18n/locales/en.json','62a87a6f40ce0cff3fd9de43259febb9b0cfb232'],
-  ['projects/ai-proxy/src/i18n/locales/zh-CN.json','e79985e1821314386d3ba43f0a87e6c47b0366bc'],
-  ['projects/ai-proxy/src/i18n/locales/zh-TW.json','91d4533243cd36d7c6ac21790a2b2cb0f99d0e5a'],
-  ['projects/ai-proxy/src/styles/management.css','2748ccf9d70b288e4a4ba55445dadda5041c9610'],
+  ['projects/ai-proxy/src/i18n/locales/en.json','0255ce070beabfd2674e1a49e2ead4d0dd168027'],
+  ['projects/ai-proxy/src/i18n/locales/zh-CN.json','ea04409f9cac630f1f59033e884674c1cd9917e8'],
+  ['projects/ai-proxy/src/i18n/locales/zh-TW.json','0664a292e2f1f12924ef3fc4bc9a5d7bafc63fc8'],
+  ['projects/ai-proxy/src/styles/management.css','8f5612ac3a46bd4675fbcf65983b82d785425289'],
   ['projects/ai-proxy/src/styles/options.css','c2da39181a88348a7be4e7ae93862098f7d61edf'],
-  ['projects/ai-proxy/src/styles/sidebar-settings.css','feadf72a8c8f34ddc1c9b1070b82ed7838900b2c'],
-  ['projects/ai-proxy/src/ui/DiagnosticsPage.tsx','bd54f9854f878a589a19f98eb05fff12a1a9dfa3']
+  ['projects/ai-proxy/src/styles/sidebar-settings.css','c5b189933e441924a212af5d16064fa53462a1f5'],
+  ['projects/ai-proxy/src/ui/DiagnosticsPage.tsx','d5e8d04e041e4bc88ac490ef2c4e5d11db8f6b59']
  ];
  const locks=JSON.parse(await readFile(resolve('projects/ai-proxy/trusted/source-lock.json'),'utf8'));
  for(const [path,pin] of changed)assert.equal(locks[path],pin,'Current reviewed AI Proxy source changed: '+path);
@@ -828,7 +832,7 @@ test('Reading TOC generated locale keeps exact source, target and symlink fences
   const make=(target,root=process.cwd())=>describeBundle({root,lock:{packages:{}},chunk:{
     fileName:target,modules:{[resolve(root,path)]:{originalLength:100,renderedLength:20}}
   }});
-  const pin='e494a458a006adeb90697aca8dd8957bc90e2ef3';
+  const pin='eaff0dfa2f57a2a1b6344963d7599037995786df';
   assert.equal(make('sw.js').modules[0].reviewedFirstPartyBlob,pin);
   assert.throws(()=>make('scripting/sandbox/worker-runtime.js'),/cannot enter a privileged fixed bundle/);
   const tmp=await realpath(await mkdtemp(join(tmpdir(),'reading-toc-locale-pin-')));

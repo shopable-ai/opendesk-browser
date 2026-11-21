@@ -84,7 +84,7 @@ function render({preview=false,httpDiagnostics=false,panel='ai',busy=false,confi
   function rerender(){cursor=0;buttons.length=0;nodes.length=0;
     html=renderToStaticMarkup(React.createElement(module.exports.DiagnosticsPage,{
       state,busy,presentation,currentSiteRevision,onRefresh:async()=>calls.push('refresh'),
-      onProbe:async()=>calls.push('probe'),onStop:async()=>calls.push('stop'),onProfiles:()=>calls.push('profiles')}));return html;}
+      onStop:async()=>calls.push('stop'),onProfiles:()=>calls.push('profiles')}));return html;}
   function flushEffects(){for(const effect of effects)if(effect?.pending){effect.pending=false;effect.cleanup?.();effect.cleanup=effect.fn();}}
   rerender();
   return {get html(){return html;},calls,commands,nodes,buttons,routes,rerender,flushEffects,
@@ -119,7 +119,7 @@ test('isolated preview retains explicitly simulated actions; browser proxy tab k
   assert.match(simulated.html,/diagLeadExplanation/);
   const installed=render({preview:false,panel:'proxy'});
   assert.match(installed.html,/apFollowingSystem/);
-  assert.match(installed.html,/probeApiIpifyOrg/);
+  assert.match(installed.html,/diagExitAndThroughputUnavailable/);
   assert.match(installed.html,/stopManagingAndReleaseControl/);
   assert.deepEqual(installed.calls,[],'viewing control status must never APPLY or STOP');
 });
@@ -130,15 +130,15 @@ function button(result,label){
   return found;
 }
 
-test('PROBE stays disabled with a visible explanation even in preview or a managed route',()=>{
+test('unavailable exit IP and throughput are presented as text without a probe action',()=>{
   for(const preview of [false,true])for(const applied of [false,true]){
-    const result=render({panel:'proxy',preview,runtime:{applied,managedIntent:applied,canStop:applied}});
-    const probe=button(result,'probeApiIpifyOrg');
-    assert.equal(probe.disabled,true);
-    assert.equal(probe.onClick,undefined,'the rejected service action has no dispatch path');
-    assert.equal(probe['aria-describedby'],'diagnostic-probe-unavailable');
-    assert.match(result.html,/<p id="diagnostic-probe-unavailable"[^>]*>theProbeTargetsApiIpifyOrgExtensionRequestsAlone<\/p>/);
+    const result=render({panel:'proxy',preview,httpDiagnostics:true,runtime:{applied,managedIntent:applied,canStop:applied}});
+    const status=preview?'diagExitAndThroughputPreview':'diagExitAndThroughputUnavailable';
+    assert.match(result.html,new RegExp('<h4>diagExitAndThroughput</h4><p>'+status+'</p>'));
+    assert.doesNotMatch(result.html,/<button[^>]*>[^<]*(?:Probe|diagExitAndThroughput)/);
+    assert.equal(button(result,'diagPublicHttps').disabled,false);
     assert.deepEqual(result.calls,[]);
+    assert.deepEqual(result.commands,[]);
   }
 });
 
@@ -161,7 +161,6 @@ test('STOP is disabled while idle or busy, but stays explicit for recovery and f
       await stop.onClick();
       assert.deepEqual(result.calls,['stop'],'explicit STOP uses the existing callback exactly once');
     }
-    assert.equal(button(result,'probeApiIpifyOrg').disabled,true);
     assert.equal(button(result,'refreshState').disabled,Boolean(entry.busy));
   }
 });
@@ -261,6 +260,16 @@ test('only boolean preview true retains simulated diagnostics and the preview ov
     assert.equal(button(installed,'diagStartFive').disabled,true);
     assert.deepEqual(installed.calls,[]);
   }
+});
+
+test('HTTP timing reports measured attempts separately from offline simulation',()=>{
+  const snapshot={observations:[],statistics:{chatgpt:{successes:3,attempts:4,p50Ms:32,p95Ms:49}},favorites:[]};
+  const installed=render({panel:'speed',httpDiagnostics:true,snapshot,language:'en'}).html;
+  assert.match(installed,/HTTP successes 3 \/ attempts 4/);
+  assert.match(installed,/p50: 32 ms.*p95: 49 ms/);
+  assert.doesNotMatch(installed,/Simulated · Success/);
+  const preview=render({panel:'speed',preview:true,snapshot,language:'en'}).html;
+  assert.match(preview,/Simulated · Success 3 \/ attempts 4/);
 });
 
 test('management explains the page-sidebar entry without offering a misleading current-site check',()=>{

@@ -1,6 +1,92 @@
 # mac24dev 云控表单演示页面
 
-## 最新开发状态（2026-11-06，owner 01a1ad30）
+先看[云控能做什么、怎么判断做对了](../../../docs/architecture/browser-framework/cloud-control-r5.2-complete-function-tree.zh-CN.md)，或在[本机阅读页](http://127.0.0.1:43121/review.html#cloud-overview)直接查看。
+
+## 11 月 19 日 · 已有请求复核与框架设计
+
+从[业务页](http://127.0.0.1:38001/public/opendesk-cloud-demo/index.html)用账号 `test`（569）登录，密码沿原私有记录使用。选 #1288、查询原键 `378df70d-0d16-47a6-a69a-c85df871da8f`。在[请求管理的原 Job](http://127.0.0.1:43121/?job=05a6e7a2-a5b7-400b-a82a-4bab42d989d5#detail)对照 Provider completed、回执确认和 released，再看[网页效果](http://127.0.0.1:43111/cloud-proof.html)的一次提交。Chrome 原 Run / Result 与观察文档关联仍待核。复查已有结果只需查询；另一次有意手测的步骤见下文。
+
+直接在浏览器阅读[需求如何提出与确认](http://127.0.0.1:43121/review.html#cloud-needs)、[其他业务和故障用例](http://127.0.0.1:43121/review.html#cloud-acceptance)，或[看本次原表单的证据](http://127.0.0.1:43121/review.html?job=05a6e7a2-a5b7-400b-a82a-4bab42d989d5#review-evidence)。正式资料见[业务需求与实施顺序](../../../docs/architecture/browser-framework/cloud-control-business-design-20261119.zh-CN.md)、[测试计划与执行记录](../../../docs/framework/cloud-control-business-test-plan-20261119.zh-CN.md)和[本版独立设计评审](../../../docs/framework/cloud-control-business-design-review-20261119.zh-CN.md)。下方状态均以各自标注的观察日期为准。
+
+## 当前完整链路查看与单次实测（2026-11-18，owner 01a1eda2）
+
+当前仍为持续开发。用户可在 [本机请求管理](http://127.0.0.1:43121/) 搜索姓名 `CloudChain-1118-080652-eda2` 或原键 `992ac642-87c4-4923-b2d3-decad8bdf9ac`，点「查看」；同一详情展示准备条件、十个执行环节、预期/实际/关联/时间/来源，以及 PASS / FAIL / NOT_TESTED。自动查询只读，刷新保留搜索与选择，过期或失败不沿用 READY。
+
+本轮在 [原业务入口](http://127.0.0.1:38001/public/opendesk-cloud-demo/index.html) **仅新提交一次**，Job `906b236c-9e6f-4b79-8f3b-9ed8e7285a88`。已采集提交前保存原键、一次 submit、同姓名网页 ready → submit → done、Provider completed / 回执确认 / released，及同账号刷新重登后恢复同键、禁止重提、历史仍为同一 Job。原 huigege 键和证据保留，未重放。
+
+**完整链未通过：执行证据 7/10、准备条件 5/8；失败 0 项、未验证 6 项。** 本机详情已分别显示 Provider completed / 回执 / released 与核验状态；只有准备和执行全部 PASS 才能判完整。网页/native 证据与响应均绑定精确原键＋Job，旧缓存不会串入当前 Job。 未确认的是 Chrome 原宿主实际运行、原生文档与观察文档的关联、原 Run / Result 结束。Provider admission 引用、同姓名网页效果及最终 completed 不能替代这些证据。本轮没有可见填字事件或动画证据，也没有重新核验当前 Chrome 加载路径、revision、serve、安装审阅或权限；上轮值仅为历史。原生侧栏 URL 被浏览器工具安全策略拒绝（协议不允许），没有换控制面绕过。用户恢复后，原生证据访问阻塞连续三轮仍未解除，goal 已重新登记 blocked，完整目标仍未完成。blocked 是核验工作状态，不是本次业务执行失败。
+
+BFF 原键经原 `cloudcontrol.s.ts` 的固定命名空间哈希后，与 Provider 原持久幂等索引及同一 Client / Job 精确匹配；不是只按姓名或 Job 复用证明。私有读取只在原远端进程中进行，页面仅取得有限状态与关联是否匹配；不公开凭据、原生 Run / Result ID 或结果正文，`allowResult=false` 保持。新请求未回执数为 0；另外两项历史未回执记录保留，不能视为当前 Chrome 槽已实读空闲。
+
+逐步证据表、实际 UTC 时间、最短手测清单、文件与验证范围见 [本轮证据报告](../../../.runtime/cloud-ui-20261118-01a1eda2/REPORT.zh-CN.md)。本机查看页源码在 `.runtime/cloud-ui-20261118-01a1ecae/admin-view/`（忽略目录，本机交付，非正式后台）。仅重启本任务 43121 服务；43111、Provider/BFF 隧道与其他服务保留。远端业务页文案补丁仍未部署，未构建或重装 Browser，未提交/推送。production、全量矩阵及评分延期。
+
+## 上轮观察与手测说明（2026-11-18，owner 01a1ed6a；Chrome 与服务状态开始时重查）
+
+当前为持续开发的核心流程验证，不是 production 验收。下方 11 月 6 日及更早内容保留为历史，不能覆盖本节最新实读。真实 Chrome 扩展 ID 为 `ccfcjegpkdlgbclopjmadlcjedelidmf`，沿用 `dist/development`；本轮「调试 → 本地开发服务」显示已连接，运行 revision 为 `8c9fa26ba4a8816b799d9bbe6abeb74eaa1cc60edbb1b4d670a77c018c0c93c8`。单一 watcher 原 PID 89207 保留，未重建/重装扩展。
+
+用户反馈「刷新设备里没有云控客户端」后，本轮实际点击刷新：当前演示账号返回 **#1288 / READY**，昵称仍是「当前 Mac Chrome（待配对）」。原 `huigege` 请求恢复后设备和姓名被锁定，不能再次提交同键；旧页面却提示「可以明确提交一次」，这是已复现的 UI 误导。昵称不表示真实配对状态，业务目录也不是所有 Provider 客户端目录。
+
+已在真实 Chrome 展示「云控 → 连接设置与解除配对」并核对已配对、已连接、托管及对账完成、执行槽空闲、目标网站已授权；`sample.form-fill@1.0.2` 为当前已批准，结果正文不回传。连接区的空输入框是新配对表单；当前 Provider/Executor 在「运行环境与历史统计」，不能据空框要求重新配对。
+
+### 当前身份对应
+
+| 身份 | 本轮只读实读 |
+| --- | --- |
+| 业务账号 / userId | `opendesk-demo-20261030-4ac956` / `569` |
+| 本账号业务设备 | `1288`，旧昵称「当前 Mac Chrome（待配对）」 |
+| Provider | `9c4f182d-7a5f-403d-9b4d-c2144ef35e5b` |
+| 执行浏览器连接 URL | `http://127.0.0.1:43112`；后端仍使用原 CA 验证的 `https://127.0.0.1:43113/` |
+| 执行端 Executor | `460154c0-4cec-449a-8075-734d86f7f686` |
+| 后端 binding | `aeece16a-0c09-4c73-81c9-ad34954fafb5` |
+| Client / Grant | `55063ef9-2f7f-4ae3-8cc3-dcc90bacbf33` / `3d6cbea9-54b2-447b-8c8c-ada627759ee7` |
+| 托管范围 | `sample.form-fill@1.0.2`，固定包摘要不变；站点 `http://127.0.0.1:43111`；`allowResult=false` |
+
+设备归属、后端 binding、Provider 的原 Client scope 与 Chrome Executor 已核对一致。不是修改数据库、重复签发 Client 或重新配对所得。「刷新设备」携当前业务账号 JWT 读取 catalog，只返回本账号业务设备；配对成功不会自动登记到所有业务账号。不同账号/电脑/Profile 必须另核归属、安装、配对、托管和精确绑定。
+
+### 一次性准备（本演示设备已完成，无需重复授权）
+
+1. 使用系统 Google Chrome 中已有的 OpenDesk / GrayDove 扩展，打开侧栏「云控」并点刷新图标；应见「已连接」「托管已启用」「目标网站已授权」。保持侧栏打开。
+2. 展开「运行环境与历史统计」，核对上表 Provider 与 Executor。展开「连接设置与解除配对」查看可用状态；已有有效配对不填新码、不点解除配对。
+3. 在「允许远程调用的任务」找到「示例：网页表单填写 · v1.0.2 · 当前已批准」，展开「查看授权状态与固定版本详情」，核对任务、版本、原安装身份及站点。结果正文保持不回传，不为看状态扩大授权。
+4. 维护者已把账号 569 的设备 #1288 精确绑定到此 Executor/Client/Grant。只有新设备缺项时，才经原任务目录安装、原云控配对及批准、维护者原绑定入口逐项处理；刷新不是配对/安装/绑定按钮。本轮未执行这些写入操作。
+
+### 每次完整手测步骤
+
+1. 打开业务入口 [云控表单演示](http://127.0.0.1:38001/public/opendesk-cloud-demo/index.html)，使用演示账号 `test` 登录，账号 ID 仍为 `569`。使用单独提供的演示密码，刷新整页后需重登。
+2. 点「刷新设备」，选择/核对 **#1288**。READY 仅为当前固定范围和连接的目录状态，不代表任何请求已完成。找不到时先核页面账号是否一致；再用 [本机查看页](http://127.0.0.1:43121/) 的「设备与云控客户端关联」核对身份，不能以其他账号的 READY 代替。
+3. 先复制保留当前 requestKey。若恢复了原请求，设备与姓名锁定是保护行为，先「查询原请求」。真正决定新测试时才点「新建请求」；未确认收尾时切换会要求确认，切换不取消旧请求。
+4. 选择 #1288、填写本次唯一姓名（1–40 个 UTF-16 位置）、保存新 requestKey，再点一次「提交一次」。任务在已配对 Chrome 的 owned 页面执行，正常释放会关闭；不保证置前、持续显示或可见打字，不能以没有动画判断未执行。
+5. 业务页点「查询原请求」取 Provider 状态并由原 BFF 保存投影，业务页不自动轮询。也可在 [本机只读查看](http://127.0.0.1:43121/) 搜索姓名/原键、点「查看」；可见时每 5 秒查询，查询时间、Provider 结果与数据库快照分别显示。
+6. 打开 [原网页效果](http://127.0.0.1:43111/cloud-proof.html)，输入完全相同姓名并点「查询原网页记录」。核对同一原文档的连续 ready/submit/done、一次提交和完成文字；该页不自动查询，也不能单独证明原生回执。
+7. 同一原请求/Job 的 **completed + 回执已确认 + released** 仅证明 Provider 结果与收尾；同姓名效果仅证明原网页的被动观察。完整链还须在原 Chrome 可信诊断中将同一 assignment 的原 Run / Result、原生文档与观察文档关联，并逐项取得证据。缺原生关联时仍为 NOT_TESTED，不能据同姓名确认全链成功。accepted 只表示后台接单；assigned、HTTP 成功、设备 READY 都不等于完成。
+8. 超时、断线、UNKNOWN、查不到或缺证时保留原键，仅查询；不另建任务重试。刷新后重登同账号会恢复原键，也可「按请求键恢复」或「读取历史 → 查看原请求」。取消登记不等于已停止、回滚或释放。
+
+### 修复生效与验证边界
+
+- **已生效（本机查看页）**：增加实时设备→Executor→Client/Grant→托管范围展示及完整手测步骤；只读 `/v1/client-scope` 使用原服务端私有 Client 和 CA，浏览器不接触凭据。并发刷新曾复现 `E_READ_BUSY`（503）；现在重叠观察共享同轮查询，后续请求仍重新读取，不把历史快照当最新。仅重启本任务本机 43121 查看服务，保留 BFF、Provider、43111 和 dev watcher。
+- **仅本地源码，未部署**：本目录 `app.js` / `index.html` 修正原请求锁定时的 READY 误导，区分未新建、空目录和读取失败，明确刷新边界与旧昵称含义；现有 UI 定向测试 20/20 通过。远端处于非默认分支，未擅自覆盖业务页；当前业务入口仍可能显示旧文案。
+- **真实原请求复核**：`huigege` requestKey `301d8490-a9d2-4c61-abeb-0333ce118190`，Job `3be28edc-4fef-4e27-9d5f-83db9f2db39e`。本轮通过业务 UI 查询到 completed / 回执 true / released；原 BFF 正常将缓存由 assigned 更新为 completed（保存时间 `2026-11-18 14:59:40.790`），未手改数据库。Provider 原回执时间仍为 `2026-11-18T06:06:42.283Z`。同姓名原文档 `8f010330-87a9-461f-93f2-7823dda23302` 只有一次 submit/done；本轮未重跑。
+- **本轮重新登录**：在原业务页面退出后，以同一演示账号重新登录，密码输入已清空；自动恢复上述同一原请求键，设备、姓名和提交按钮保持锁定。「查询原请求」再次显示 completed / 回执 true / released，没有新建请求或任务。
+- **NOT_TESTED / 延期**：本轮新的任务提交、可见填表动画、远端文案部署、正式后台菜单/登录、production、全量矩阵、压力及评分。历史真实单次提交证据保留，不能说成本轮新执行。
+
+### 关键链路核对表
+
+以下证据文件均相对仓库根 `.runtime/cloud-ui-20261118-01a1ed6a/`；PASS 指本轮对应操作或原执行结果的复核，不代表本轮重新执行任务。
+
+| 操作 | 预期 | 本轮实际 | 状态 | 证据 |
+| --- | --- | --- | --- | --- |
+| 同账号重新登录、恢复原请求 | 登录成功，保留原键且不能重提 | 同一 huigege 键恢复，提交仍锁定 | PASS | `business-relogin.txt`、`business-completed.png` |
+| 刷新设备、核对客户端关联 | 本账号设备对应真实 Executor 与 Client/Grant | #1288、绑定及固定 1.0.2 范围匹配，连接 READY | PASS | `admin-browser-verified.json`、`device-client-visible.png` |
+| Chrome 核对配对、托管及开发连接 | 已配对、已连接、已批准、站点授权，serve 连接正常 | 原配对有效、任务已批准、执行槽空闲；原开发路径与 revision 已核对 | PASS | `chrome-cloud.ax.txt`、`chrome-development.ax.txt`、`chrome-pairing.png` |
+| 查询原请求与真实回执 | 同一 Job 完成、回执确认、资源释放 | completed / true / released；原 BFF 正常同步快照 | PASS | `post-status-read.json`、`business-relogin.txt` |
+| 查询原网页效果 | 同姓名原文档仅一次提交并完成 | ready/submit/done 连续，提交 1 次，显示「已提交：huigege」 | PASS（原执行复核） | `huigege-web-effect.txt`、`huigege-web-effect.png` |
+| 查看页加载、重叠及自动查询 | 无锁超时，显示本次读取结果 | 三个重叠请求均 200；可见页面自动更新 9 次，错误区隐藏 | PASS | `overlapping-reads-fixed.json`、`admin-browser-verified.json` |
+| 业务页误导文案修复 | 原请求锁定时不再提示可以提交，目录状态明确 | 本地源码和 20 项定向 UI 检查通过，远端仍为旧页面 | 本地 PASS / 未部署 | `business-ui.patch`、`tests/cloud-control/mac24dev-demo-ui.test.mjs` |
+| 新提交、可见打字及 production | 分别取得本轮新执行和正式候选证据 | 保留原执行，不为截图重放；当前阶段未开展 | NOT_TESTED | 以上步骤及验证边界 |
+
+本轮原始证据在忽略目录 `.runtime/cloud-ui-20261118-01a1ed6a/`；查看页源码及本机测试仍由原 `.runtime/cloud-ui-20261118-01a1ecae/admin-view/` 持有。未提交或推送，不影响并行源码。仅本机运行的查看入口不是正式后端功能。
+
+## 历史开发状态（2026-11-06，owner 01a1ad30）
 
 当前系统 Chrome 持续开发包为 `dist/development`，扩展 ID `ccfcjegpkdlgbclopjmadlcjedelidmf`；原生调试页确认 serve 已连接，观察指纹 `9a6427060a0f73117e391d721917feea914b0022113838940b68bb35a0d18fa2`。原 1.0.1 固定任务因内置运行时摘要变化正确拒绝重新批准；没有放宽身份保护。相同源码与权限的独立 1.0.2 已经源码审阅、真实单次试运行、验证、安装和重新批准，目前仅允许状态回传。
 

@@ -343,25 +343,10 @@ export function installFloatingNavigation({doc,win,owner,resolveConversation=nul
       }
     }
     const rect=next.main.getBoundingClientRect();
-    const compact=win.innerWidth<600;
-    buttons.stack.classList.toggle('compact',compact);
-    const turnSize=compact||coarsePointer?.matches?SIZE:TURN_SIZE;
-    buttons.stack.style.setProperty('--turn-height',turnSize+'px');
-    const compactPaging=directions.paging&&!compact&&!coarsePointer?.matches;
-    buttons.stack.classList.toggle('paging',compactPaging);
-    const gap=compact?COMPACT_GAP:compactPaging?3:GAP;
     const hasCount=options.includes(buttons.counter);
     // Keep short counts at the approved size, while fitting the full loaded
     // count in long transcripts. Reserve the same width for collision checks.
     const digits=hasCount?String(paging.pages.length).length:0;
-    const counterWidth=Math.max(compact?48:SIZE,digits>2?(digits*2+1)*7+8:0);
-    buttons.counter.style.setProperty('--counter-width',counterWidth+'px');
-    const count=options.length;
-    const extent=options.reduce((n,item)=>n+(item===buttons.counter?(compact?counterWidth:28):
-      item===buttons.previous||item===buttons.next?turnSize:SIZE),0)
-      +Math.max(0,count-1)*gap;
-    const width=compact?extent:hasCount?counterWidth:SIZE;
-    const height=compact?SIZE:extent;
     // The transcript content can extend far above/below the screen. Anchor to
     // its visible scroll port, never to moving message boxes or document edges.
     const viewport=win.visualViewport;
@@ -384,38 +369,53 @@ export function installFloatingNavigation({doc,win,owner,resolveConversation=nul
       top:Math.max(viewportTop,rect.top,scrollRect.top),
       right:Math.min(viewportRight,rect.right,scrollRect.right),
       bottom:Math.min(viewportBottom,rect.bottom,scrollRect.bottom)};
-    const minLeft=Math.ceil(port.left+8),maxLeft=Math.floor(port.right-width-8);
-    const minTop=Math.ceil(port.top+8);
-    const topPos=Math.floor(port.bottom-INSET-height);
-    if(maxLeft<minLeft||topPos<minTop){host.style.visibility='hidden';binding=null;return;}
+    const portWidth=port.right-port.left,portHeight=port.bottom-port.top;
+    const narrow=next.custom?win.innerWidth<600:portWidth<600;
     const chosenAnchor=next.custom?next.anchor?.getBoundingClientRect?.():null;
-    const alignChatGPT=!next.custom&&next.site==='chatgpt'&&!compact;
-    const desiredLeft=alignChatGPT
-      ?chatGPTGutterLeft(next.main,doc,win)
-      :chosenAnchor?chosenAnchor.left+12:minLeft;
-    const left=between(Math.round(desiredLeft),minLeft,maxLeft);
-    // Avoid collisions locally: exhaust the lower-left row before a small
-    // upward adjustment. A distant free gap is not a bottom-left dock.
-    const obstacles=controlObstacles(doc,win);
-    const limitLeft=Math.min(maxLeft,left+Math.min(160,(port.right-port.left)*.25));
-    const lowestTop=Math.max(minTop,Math.ceil(topPos-Math.min(SIZE+12,(port.bottom-port.top)*.15)));
-    const columns=[...new Set([left,...obstacles.flatMap(r=>[
-      Math.ceil(r.right+12),Math.floor(r.left-width-12)])])]
-      .filter(x=>x>=left&&x<=limitLeft).sort((a,b)=>a-b);
-    const rows=[...new Set([topPos,...obstacles.map(r=>Math.floor(r.top-height-12)),lowestTop])]
-      .filter(y=>y>=lowestTop&&y<=topPos).sort((a,b)=>b-a);
-    const candidates=rows.flatMap(y=>columns.map(x=>[x,y]));
-    const chosen=candidates.find(([x,y])=>
-      Number.isFinite(x)&&Number.isFinite(y)&&
-      x>=minLeft&&x+width<=port.right-8&&
-      y>=minTop&&y+height<=port.bottom-8&&
-      !obstacles.some(r=>r.left<x+width&&r.right>x&&r.top<y+height&&r.bottom>y));
+    let obstacles;
+    function findPlacement(compact) {
+      const turnSize=compact||coarsePointer?.matches?SIZE:TURN_SIZE;
+      const desktopPaging=directions.paging&&!compact&&!coarsePointer?.matches;
+      const gap=compact?COMPACT_GAP:desktopPaging?3:GAP;
+      const counterWidth=Math.max(compact?48:SIZE,digits>2?(digits*2+1)*7+8:0);
+      const extent=options.reduce((n,item)=>n+(item===buttons.counter?(compact?counterWidth:28):
+        item===buttons.previous||item===buttons.next?turnSize:SIZE),0)+(options.length-1)*gap;
+      const width=compact?extent:hasCount?counterWidth:SIZE;
+      const height=compact?SIZE:extent;
+      const minLeft=Math.ceil(port.left+8),maxLeft=Math.floor(port.right-width-8);
+      const minTop=Math.ceil(port.top+8),topPos=Math.floor(port.bottom-INSET-height);
+      if(maxLeft<minLeft||topPos<minTop)return null;
+      const desiredLeft=!next.custom&&next.site==='chatgpt'&&!compact
+        ?chatGPTGutterLeft(next.main,doc,win):chosenAnchor?chosenAnchor.left+12:minLeft;
+      const left=between(Math.round(desiredLeft),minLeft,maxLeft);
+      obstacles??=controlObstacles(doc,win);
+      const limitLeft=Math.min(maxLeft,left+Math.min(160,portWidth*.25));
+      // A narrow transcript can have a full-width composer across the bottom.
+      // Keep the dock in the lower part of the transcript, above that surface.
+      const clearance=narrow||compact?Math.min(160,portHeight/3):Math.min(SIZE+12,portHeight*.15);
+      const lowestTop=Math.max(minTop,Math.ceil(topPos-clearance));
+      const columns=[...new Set([left,...obstacles.flatMap(r=>[
+        Math.ceil(r.right+12),Math.floor(r.left-width-12)])])]
+        .filter(x=>x>=left&&x<=limitLeft).sort((a,b)=>a-b);
+      const rows=[...new Set([topPos,...obstacles.map(r=>Math.floor(r.top-height-12)),lowestTop])]
+        .filter(y=>y>=lowestTop&&y<=topPos).sort((a,b)=>b-a);
+      for(const y of rows)for(const x of columns) {
+        if(!obstacles.some(r=>r.left<x+width&&r.right>x&&r.top<y+height&&r.bottom>y))
+          return {x,y,compact,turnSize,desktopPaging,counterWidth};
+      }
+      return null;
+    }
+    const chosen=findPlacement(narrow)??(narrow&&!next.custom?findPlacement(false):null);
     if(!chosen){host.style.visibility='hidden';binding=null;return;}
+    buttons.stack.classList.toggle('compact',chosen.compact);
+    buttons.stack.classList.toggle('paging',chosen.desktopPaging);
+    buttons.stack.style.setProperty('--turn-height',chosen.turnSize+'px');
+    buttons.counter.style.setProperty('--counter-width',chosen.counterWidth+'px');
     host.classList.toggle('dark',doc.documentElement?.classList?.contains('dark')||
       doc.documentElement?.getAttribute('data-theme')==='dark');
     if (!host.isConnected) doc.documentElement?.append(host);
-    host.style.left=Math.round(chosen[0])+'px';
-    host.style.top=Math.round(chosen[1])+'px';
+    host.style.left=chosen.x+'px';
+    host.style.top=chosen.y+'px';
     host.style.visibility='visible';
     binding={href:win.location.href,main:next.main,scroller,root:doc.documentElement};
   }

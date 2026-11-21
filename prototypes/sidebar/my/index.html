@@ -40,6 +40,24 @@ dialog{color:var(--od-ink);border:1px solid var(--od-line);background:var(--od-p
 @media(max-width:340px){.brand small{display:none}.page-head{gap:var(--space-1)}.head-actions{gap:0}}
 @media(prefers-reduced-motion:reduce){*{scroll-behavior:auto}}
 .result-view{display:grid;gap:var(--space-1);min-width:0}.result-actions{display:flex;align-items:center;justify-content:space-between;gap:var(--space-2);flex-wrap:wrap}.result-actions .note{flex:1 1 140px}.result-reveal{display:inline-flex;align-items:center;gap:var(--space-1);flex:none;color:var(--od-brand)}.result-reveal .icon{width:15px;height:15px}.result-hint--sensitive{color:var(--od-warning)}
+.baidu-destination{min-width:0;padding:var(--space-1) var(--space-3) var(--space-3);border-radius:var(--radius-control);background:var(--od-muted)}
+.baidu-place-head{display:flex;align-items:center;justify-content:space-between;min-height:34px;gap:var(--space-2)}
+.baidu-place-head h3{font-size:12px;font-weight:500;color:var(--od-sub)}
+.baidu-destination .text-button{color:var(--od-brand);font-weight:600;padding-inline:var(--space-1)}
+.baidu-destination p{overflow-wrap:anywhere}
+.baidu-destination[data-state=changed] #baidu-target,.baidu-destination[data-state=blocked] #baidu-target{color:var(--od-negative)}
+#baidu-options{display:grid;gap:var(--space-2);min-width:0}
+#baidu-url-wrap{display:grid;gap:var(--space-1);min-width:0;margin-top:var(--space-1)}
+.baidu-front-field{display:flex;align-items:center;justify-content:space-between;gap:var(--space-2);min-height:40px;padding:var(--space-1) var(--space-2)}
+label.baidu-front-field{cursor:pointer;border-radius:var(--radius-control)}
+label.baidu-front-field:hover{background:var(--od-muted)}
+.baidu-front-field:has(input:focus-visible){outline:2px solid var(--od-focus);outline-offset:2px}
+.baidu-front-field input:checked+.switch-track{background:var(--od-brand);border-color:var(--od-brand);justify-content:flex-end}
+.baidu-front-field input{margin:0;accent-color:var(--od-brand)}
+#baidu-front-note{display:block}
+@media(hover:none),(pointer:coarse){.baidu-front-field,.baidu-place-head{min-height:44px}}
+@media(forced-colors:active){.baidu-front-field input{position:static;width:16px;height:16px;overflow:visible;clip-path:none}.baidu-front-field .switch-track{display:none}}
+.sheet:has(#baidu-options:not([hidden])) .dialog-body{grid-auto-rows:max-content;align-content:start}
 </style>
 </head>
 <body>
@@ -94,12 +112,32 @@ dialog{color:var(--od-ink);border:1px solid var(--od-line);background:var(--od-p
     <section id="subview" hidden aria-labelledby="sub-title"><header class="sub-head"><button class="icon-button back" id="sub-back" type="button" aria-label="返回我的任务" title="返回"><svg class="icon" aria-hidden="true"><use href="#i-chevron"/></svg></button><h1 id="sub-title" tabindex="-1"></h1><button class="icon-button" id="plan-manager-open" type="button" aria-label="管理执行任务" title="管理执行任务" data-open-manager aria-controls="subview" hidden><svg class="icon" aria-hidden="true"><use href="#i-manage"/></svg></button><button class="icon-button" id="plan-new" type="button" aria-label="新建定时计划" title="新建计划" hidden><svg class="icon" aria-hidden="true"><use href="#i-plus"/></svg></button></header><div id="sub-body" class="stack"></div></section>
   </main>
   <footer class="plan-footer" id="plan-footer" hidden aria-label="计划编辑操作"><button class="button" type="button" id="plan-cancel">取消</button><button class="button primary" type="submit" form="plan-form" id="plan-review">检查计划<svg class="icon" aria-hidden="true"><use href="#i-chevron"/></svg></button></footer>
-  <footer class="run-dock" id="run-dock" hidden aria-label="正在运行的任务"><div class="note"><strong id="run-owner"></strong><span>运行中</span></div><button class="button danger" id="stop-run" type="button"><svg class="icon" aria-hidden="true"><use href="#i-stop"/></svg>停止</button></footer>
+  <footer class="run-dock" id="run-dock" hidden aria-label="正在运行的任务"><div class="note"><strong id="run-owner"></strong><span id="run-progress">运行中</span></div><button class="button danger" id="stop-run" type="button"><svg class="icon" aria-hidden="true"><use href="#i-stop"/></svg>停止</button></footer>
   <p class="toast" id="toast" role="status" hidden></p>
 </div>
 <dialog class="sheet" id="params-dialog" aria-labelledby="params-title" aria-describedby="params-description">
   <header class="dialog-head"><span class="task-icon"><svg class="icon" aria-hidden="true"><use href="#i-task"/></svg></span><div class="grow"><p class="note params-kicker">参数与运行</p><h2 id="params-title"></h2></div><button class="icon-button" id="params-close" type="button" aria-label="关闭任务参数" title="关闭任务参数"><svg class="icon" aria-hidden="true"><use href="#i-x"/></svg></button></header>
-  <div class="dialog-body"><p class="note" id="params-context"></p><div class="toolbar"><h3 class="grow">运行参数</h3><div class="segment" role="group" aria-label="参数编辑方式"><button type="button" id="mode-form" aria-pressed="true">表单</button><button type="button" id="mode-json" aria-pressed="false">JSON</button></div></div><p class="note" id="params-description">关闭后保留草稿；点击“运行任务”才会执行。</p><div id="params-fields"></div><div id="params-json-wrap" hidden><label class="field" for="params-json">参数 JSON</label><textarea id="params-json" rows="7" spellcheck="false" aria-describedby="params-error"></textarea></div><p class="error" id="params-error" role="alert" hidden></p></div>
+  <div class="dialog-body"><p class="note" id="params-context"></p><div class="toolbar"><h3 class="grow">运行参数</h3><div class="segment" role="group" aria-label="参数编辑方式"><button type="button" id="mode-form" aria-pressed="true">表单</button><button type="button" id="mode-json" aria-pressed="false">JSON</button></div></div><p class="note" id="params-description">关闭后保留草稿；点击“运行任务”才会执行。</p><div id="params-fields"></div><div id="params-json-wrap" hidden><label class="field" for="params-json">参数 JSON</label><textarea id="params-json" rows="7" spellcheck="false" aria-describedby="params-error"></textarea></div><p class="error" id="params-error" role="alert" hidden></p>
+    <div id="baidu-options" hidden>
+      <section class="baidu-destination" id="baidu-destination" aria-labelledby="baidu-place-label">
+        <header class="baidu-place-head">
+          <h3 id="baidu-place-label">运行位置</h3>
+          <button type="button" class="text-button" id="baidu-new" hidden>本次新开</button>
+          <button type="button" class="text-button" id="baidu-recheck" hidden>重新检查</button>
+        </header>
+        <div role="status" aria-atomic="true"><strong id="baidu-target"></strong><p class="note" id="baidu-target-detail"></p></div>
+        <button type="button" class="text-button" id="baidu-url-open" aria-expanded="false" aria-controls="baidu-url-wrap" hidden>指定起始网址</button>
+        <div id="baidu-url-wrap" hidden>
+          <label class="field" for="baidu-url">百度起始网址</label>
+          <input type="text" inputmode="url" id="baidu-url" autocomplete="off" spellcheck="false" aria-describedby="baidu-url-help">
+          <p class="error" id="baidu-url-error" role="alert" hidden>请输入 https://www.baidu.com 下不含登录凭据的完整网址。</p>
+          <p class="note" id="baidu-url-help">仅限 https://www.baidu.com 下的完整网址。留空用首页，搜索关键词不变。</p>
+        </div>
+      </section>
+      <label id="baidu-front-field" class="baidu-front-field"><span><span>运行时切到执行标签页</span><span class="note" id="baidu-front-note" hidden>仍会取结果，不主动切换标签页。</span></span><input class="sr-only" type="checkbox" role="switch" id="param-showExecutionTab" data-param="showExecutionTab" aria-label="运行时切到执行标签页"><span class="switch-track" aria-hidden="true"></span></label>
+      <p id="baidu-front-json" class="baidu-front-field" hidden><span>运行时切到执行标签页</span><span class="note" id="baidu-front-json-state"></span></p>
+    </div>
+  </div>
   <footer class="dialog-foot"><button class="button" id="params-cancel" type="button"><svg class="icon" aria-hidden="true"><use href="#i-x"/></svg>取消</button><button class="button primary" id="params-run" type="button"><svg class="icon" aria-hidden="true"><use href="#i-play"/></svg>运行任务</button></footer>
 </dialog>
 <dialog class="modal" id="utility-dialog" aria-labelledby="utility-title"><header class="dialog-head"><h2 id="utility-title" tabindex="-1"></h2><button class="icon-button" id="utility-close" type="button" aria-label="关闭对话框" title="关闭"><svg class="icon" aria-hidden="true"><use href="#i-x"/></svg></button></header><div class="dialog-body" id="utility-body"></div></dialog>
@@ -110,11 +148,13 @@ dialog{color:var(--od-ink);border:1px solid var(--od-line);background:var(--od-p
   const $ = id => document.getElementById(id);
   const esc = value => String(value).replace(/[&<>"']/g, ch => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[ch]));
   const icon = name => `<svg class="icon" aria-hidden="true"><use href="#i-${name}"/></svg>`;
+  const BAIDU = 'baidu-preview', baiduHome = 'https://www.baidu.com/';
   const taskSeed = () => [
     {id:'summary',title:'提取网页摘要',description:'整理当前文章的要点与原文链接',site:'example.com',enabled:true,fields:[{key:'length',label:'摘要长度',type:'select',options:['简明','详细'],value:'简明'},{key:'includeLinks',label:'附上原文链接',type:'checkbox',value:true}]},
     {id:'links',title:'整理页面链接',description:'提取并去重当前网页中的链接',site:'example.com',enabled:true,fields:[{key:'limit',label:'最多条数',type:'number',value:20,min:1,max:100},{key:'externalOnly',label:'只保留站外链接',type:'checkbox',value:false}]},
     {id:'knowledge',title:'整理知识库页面',description:'提取文档标题、目录与正文',site:'docs.example.com',enabled:true,fields:[{key:'includeLinks',label:'附上原文链接',type:'checkbox',value:true}]},
-    {id:'search',title:'站内搜索',description:'按关键词收集站内搜索结果',site:'example.com',enabled:false,fields:[{key:'keyword',label:'搜索关键词',type:'text',value:'浏览器'},{key:'limit',label:'结果数量',type:'number',value:10,min:1,max:50}]}
+    {id:'search',title:'站内搜索',description:'按关键词收集站内搜索结果',site:'example.com',enabled:false,fields:[{key:'keyword',label:'搜索关键词',type:'text',value:'浏览器'},{key:'limit',label:'结果数量',type:'number',value:10,min:1,max:50}]},
+    {id:BAIDU,title:'百度搜索：前三条自然网页结果',description:'按关键词搜索，不含广告 · 模拟',site:'www.baidu.com',enabled:true,fields:[{key:'query',label:'搜索关键词',type:'text',value:''},{key:'limit',label:'结果数量',type:'number',value:3,min:3,max:3},{key:'showExecutionTab',label:'执行时切到前台',type:'checkbox',value:true}]}
   ];
   let tasks=taskSeed(),selected='summary',expanded=true,activeRow='summary',scene='normal',siteAvailable=true;
   let drafts={},records={},run=null,runTimer=null,toastTimer=null,route='tasks',routeTask=null,scrollTop=0,homeTrigger=null;
@@ -124,9 +164,122 @@ dialog{color:var(--od-ink);border:1px solid var(--od-line);background:var(--od-p
   let plans=[{id:'plan-1',name:'每日文章摘要',task:'summary',url:'https://example.com/articles/workflows',kind:'daily',time:'09:00',paused:false},{id:'plan-2',name:'每周链接整理',task:'links',url:'https://example.com/reading',kind:'weekly',time:'18:30',paused:true}];
   const findTask = id => tasks.find(task=>task.id===id);
   const hasUnknown = id => records[id]?.[0]?.state==='unknown';
-  const canRun = task => !!task&&task.enabled&&siteAvailable&&task.site==='example.com'&&!run&&!hasUnknown(task.id);
+  const canRun = task => !!task&&task.enabled&&siteAvailable&&(task.site==='example.com'||task.id===BAIDU)&&!run&&!hasUnknown(task.id);
   const initialParams = task => Object.fromEntries(task.fields.map(field=>[field.key,field.value]));
   function draftFor(task){return drafts[task.id]??(drafts[task.id]={values:initialParams(task),raw:JSON.stringify(initialParams(task),null,2)});}
+  // The offline demo controls model browser state; the sheet only previews it.
+  const baiduModes={auto:'A · 完全自动',manual:'B · 默认自动，可本次新开'};
+  const baiduScenarios={eligible:'有合适的当前百度页',absent:'没有合适的当前百度页',changes:'填词后原百度页丢失',blocked:'百度授权不可用',revokes:'填词后百度授权失效'};
+  const baiduOriginalQuery='周末徒步';
+  let baiduMode='manual',baiduScenario='eligible',baiduTarget='checking',baiduCheckTimer;
+  let baiduPageLost=false,baiduPermissionLost=false,baiduNeedsRecheck=false,baiduChangeQueued=false,baiduFixtureTimer;
+  let baiduNew=false,baiduUrl=null,baiduCurrentQuery=baiduOriginalQuery,baiduNextUnknown=false;
+  const baiduManualNew = () => baiduMode==='manual'&&baiduNew&&['eligible','changed'].includes(baiduTarget);
+  function baiduStartUrl(){
+    if(!baiduManualNew()||!baiduUrl?.trim())return baiduHome;
+    const value=baiduUrl.trim();
+    if(value.includes('\\')||/\s/.test(value))return null;
+    try{
+      const url=new URL(value);
+      if(value.toLowerCase().startsWith(baiduHome.slice(0,-1))&&url.origin===new URL(baiduHome).origin&&!url.username&&!url.password)return url.href;
+    }catch{}
+    return null;
+  }
+  function baiduDraftValues(){
+    const draft=draftFor(findTask(BAIDU));
+    if(paramsMode==='form')return draft.values;
+    try{return JSON.parse(draft.raw);}catch{return null;}
+  }
+  function baiduReadsExisting(query,start){
+    if(!start)return query===baiduCurrentQuery;
+    const url=new URL(start);
+    return url.pathname==='/s'&&url.searchParams.get('wd')===query;
+  }
+  function renderBaiduTarget(){
+    const manual=baiduManualNew(),start=baiduStartUrl();
+    const json=paramsMode==='json',values=baiduDraftValues(),query=values?.query;
+    let title,detail;
+    if(manual||baiduTarget==='absent'){
+      title=start&&start!==baiduHome?'新标签页 · 指定网址':'新标签页 · 百度首页';
+      detail=manual?'保留原标签页。':'当前页不可复用。';
+      if(!start){title='新标签页 · 起始网址有误';detail='请修正网址，或使用百度首页。';}
+      else if(start!==baiduHome)detail+=(baiduReadsExisting(query,start)?' 打开后直接读取同词结果。 ':' ')+baiduUrl.trim();
+    }else if(baiduTarget==='eligible'){
+      title='当前百度标签页';
+      if(baiduReadsExisting(query))detail='直接读取「'+baiduCurrentQuery+'」的前三条结果。';
+      else if(typeof query==='string'&&query.trim())detail='会替换「'+baiduCurrentQuery+'」的搜索结果。';
+      else detail='当前搜索：'+baiduCurrentQuery+'。换词会替换结果。';
+    }else if(baiduTarget==='changed'){
+      title='原百度标签页已不可用';detail='草稿已保留。请重新检查运行位置。';
+    }else if(baiduTarget==='blocked'){
+      title=baiduPermissionLost?'百度授权已失效':'百度授权不可用';
+      detail=baiduPermissionLost?'草稿已保留。恢复授权后才能运行。':'恢复授权后才能运行。';
+    }else{
+      title='正在检查当前页';detail='检查完成后会显示本次去向。';
+    }
+    $('baidu-destination').dataset.state=manual?'new':baiduTarget;
+    if($('baidu-target').textContent!==title)$('baidu-target').textContent=title;
+    if($('baidu-target-detail').textContent!==detail)$('baidu-target-detail').textContent=detail;
+    $('baidu-new').hidden=baiduMode!=='manual'||(baiduTarget!=='eligible'&&!manual);
+    $('baidu-new').textContent=manual?'恢复自动':'本次新开';
+    $('baidu-recheck').hidden=baiduTarget!=='changed'||manual;
+    const front=values?.showExecutionTab;
+    $('baidu-front-note').hidden=front!==false;
+    if(front===false)$('param-showExecutionTab').setAttribute('aria-describedby','baidu-front-note');
+    else $('param-showExecutionTab').removeAttribute('aria-describedby');
+    $('baidu-front-field').hidden=json;
+    $('baidu-front-json').hidden=!json;
+    if(json){
+      const state=!values||Array.isArray(values)||typeof values!=='object'||('showExecutionTab' in values&&typeof front!=='boolean')?'待校验':front===false?'关 · 不主动切页':front===true?'开':'开 · 默认';
+      if($('baidu-front-json-state').textContent!==state)$('baidu-front-json-state').textContent=state;
+    }
+    $('baidu-url-open').hidden=!manual;
+    $('baidu-url-open').textContent=baiduUrl===null?'指定起始网址':'改用百度首页';
+    $('baidu-url-open').setAttribute('aria-expanded',String(manual&&baiduUrl!==null));
+    $('baidu-url-wrap').hidden=!manual||baiduUrl===null;
+    $('baidu-url-error').hidden=!!start;
+    $('baidu-url-help').hidden=!start;
+    $('baidu-url').setAttribute('aria-invalid',String(!start));
+    $('baidu-url').setAttribute('aria-describedby',start?'baidu-url-help':'baidu-url-error');
+    $('params-run').disabled=!start||!(manual||['eligible','absent'].includes(baiduTarget));
+  }
+  function checkBaiduTarget(returnFocus=false){
+    clearTimeout(baiduCheckTimer);
+    baiduTarget='checking';renderBaiduTarget();
+    baiduCheckTimer=setTimeout(()=>{
+      if(returnFocus)baiduNeedsRecheck=false;
+      baiduTarget=baiduScenario==='blocked'||baiduPermissionLost?'blocked':baiduNeedsRecheck?'changed':baiduPageLost||baiduScenario==='absent'?'absent':'eligible';
+      renderBaiduTarget();
+      scheduleBaiduFixtureChange();
+    },450);
+    if(returnFocus)($('params-json-wrap').hidden?$('param-query'):$('params-json')).focus();
+  }
+  function changeBaiduTargetOnEdit(){
+    if(!['changes','revokes'].includes(baiduScenario)||baiduPageLost||baiduPermissionLost)return;
+    const query=baiduDraftValues()?.query;
+    if(typeof query!=='string'||!query.trim())return;
+    baiduChangeQueued=true;
+    scheduleBaiduFixtureChange();
+  }
+  function scheduleBaiduFixtureChange(){
+    // Even a quick edit must show the verified target before the demo takes it away.
+    if(!baiduChangeQueued||baiduTarget!=='eligible'||baiduFixtureTimer)return;
+    baiduFixtureTimer=setTimeout(()=>{
+      baiduFixtureTimer=null;baiduChangeQueued=false;
+      if(baiduScenario==='revokes'){baiduPermissionLost=true;baiduTarget='blocked';}
+      else{baiduPageLost=true;baiduNeedsRecheck=true;baiduTarget='changed';}
+      if(!$('params-dialog').open||paramsTask!==BAIDU)return;
+      const active=document.activeElement;
+      renderBaiduTarget();
+      if(!$('baidu-recheck').hidden&&['params-run','baidu-new'].includes(active.id))$('baidu-recheck').focus();
+      else if(baiduPermissionLost&&['baidu-new','baidu-url-open','baidu-url','params-run'].includes(active.id))
+        (paramsMode==='json'?$('params-json'):$('param-query')).focus();
+    },750);
+  }
+  function resetBaiduFixtureChange(){
+    clearTimeout(baiduFixtureTimer);baiduFixtureTimer=null;
+    baiduChangeQueued=baiduPageLost=baiduPermissionLost=baiduNeedsRecheck=false;
+  }
   function notify(message){clearTimeout(toastTimer);$('toast').textContent=message;$('toast').hidden=false;toastTimer=setTimeout(()=>$('toast').hidden=true,3600);}
   // Presentation fixtures only. Product values still use the original Codec and owner.
   function resultExample(kind){
@@ -164,7 +317,7 @@ dialog{color:var(--od-ink);border:1px solid var(--od-line);background:var(--od-p
     $('task-count').textContent=tasks.length+' 个';
     $('list-announcement').textContent=visible.length+' 个匹配任务';
     $('task-list').hidden=!visible.length;
-    $('task-list').innerHTML=visible.map(task=>`<li class="task-row${selected===task.id?' selected':''}${activeRow===task.id?' last-active':''}" data-row="${task.id}"><button class="task-main" type="button" data-select="${task.id}" aria-pressed="${selected===task.id}" aria-expanded="${selected===task.id&&expanded}" aria-controls="workspace" title="${esc(task.title)}"><span class="task-icon">${icon('task')}</span><span class="task-copy"><strong>${esc(task.title)}</strong><small>${!task.enabled?'已停用 · ':task.site!=='example.com'?'其他网站 · ':''}${esc(task.description)}</small></span></button><span class="task-actions"><button class="icon-button" type="button" data-prepare="${task.id}" aria-label="准备运行「${esc(task.title)}」" title="配置参数与准备运行" aria-haspopup="dialog">${icon('play')}</button><button class="icon-button" type="button" data-manage="${task.id}" aria-label="管理「${esc(task.title)}」" title="任务更多操作" aria-haspopup="dialog">${icon('dots')}</button></span></li>`).join('');
+    $('task-list').innerHTML=visible.map(task=>`<li class="task-row${selected===task.id?' selected':''}${activeRow===task.id?' last-active':''}" data-row="${task.id}"><button class="task-main" type="button" data-select="${task.id}" aria-pressed="${selected===task.id}" aria-expanded="${selected===task.id&&expanded}" aria-controls="workspace" title="${esc(task.title)}"><span class="task-icon">${icon('task')}</span><span class="task-copy"><strong>${esc(task.title)}</strong><small>${!task.enabled?'已停用 · ':task.site!=='example.com'&&task.id!==BAIDU?'其他网站 · ':''}${esc(task.description)}</small></span></button><span class="task-actions"><button class="icon-button" type="button" data-prepare="${task.id}" aria-label="准备运行「${esc(task.title)}」" title="配置参数与准备运行" aria-haspopup="dialog">${icon('play')}</button><button class="icon-button" type="button" data-manage="${task.id}" aria-label="管理「${esc(task.title)}」" title="任务更多操作" aria-haspopup="dialog">${icon('dots')}</button></span></li>`).join('');
     $('task-empty').hidden=!!visible.length;
     if(!visible.length){
       const empty=!tasks.length;
@@ -179,6 +332,7 @@ dialog{color:var(--od-ink);border:1px solid var(--od-line);background:var(--od-p
     let state='就绪',help='当前网页适用';
     if(!task.enabled){state='已停用';help='可在任务管理中恢复';}
     else if(!siteAvailable){state='网页不可用';help='打开普通网页后再试';}
+    else if(task.id===BAIDU){help='打开参数查看本次去向（模拟）';}
     else if(task.site!=='example.com'){state='其他网站';help='适用 '+task.site;}
     if(latest?.state==='unknown'){state='结果未知';help='先核对原运行记录';}
     if(ownRun){state='运行中';help=task.title;}
@@ -196,7 +350,7 @@ dialog{color:var(--od-ink);border:1px solid var(--od-line);background:var(--od-p
   }
   function renderDock(){
     $('run-dock').hidden=!run;$('shell').dataset.running=String(!!run);
-    if(run){$('run-owner').textContent=run.title;$('stop-run').setAttribute('aria-label','停止「'+run.title+'」的运行');}
+    if(run){$('run-owner').textContent=run.title;$('run-progress').textContent=run.task===BAIDU?(run.readsExisting?'模拟读取中':'模拟搜索中'):'运行中';$('stop-run').setAttribute('aria-label','停止「'+run.title+'」的运行');}
   }
   function setActive(id){activeRow=id;document.querySelectorAll('[data-row]').forEach(row=>row.classList.toggle('last-active',row.dataset.row===id));}
   function selectTask(id){expanded=selected===id?!expanded:true;selected=id;activeRow=id;renderTasks();document.querySelector(`[data-select="${id}"]`)?.focus({preventScroll:true});}
@@ -204,32 +358,41 @@ dialog{color:var(--od-ink);border:1px solid var(--od-line);background:var(--od-p
   function clearParamsError(){paramsErrorField=null;$('params-error').hidden=true;document.querySelectorAll('#params-dialog [aria-invalid]').forEach(node=>{node.removeAttribute('aria-invalid');node.removeAttribute('aria-describedby');});}
   function renderFields(task){
     const draft=draftFor(task);
-    $('params-fields').innerHTML=task.fields.map(field=>{
+    const baidu=task.id===BAIDU;
+    if(baidu)$('param-showExecutionTab').checked=draft.values.showExecutionTab!==false;
+    $('params-fields').innerHTML=task.fields.filter(field=>!baidu||field.key==='query').map(field=>{
       const value=draft.values[field.key],id='param-'+field.key;
       if(field.type==='checkbox')return `<div class="compact-field"><label for="${id}">${esc(field.label)}</label><span class="check-field"><input id="${id}" type="checkbox" data-param="${field.key}" ${value?'checked':''}></span></div>`;
       const control=field.type==='select'?`<select id="${id}" data-param="${field.key}">${field.options.map(option=>`<option${value===option?' selected':''}>${esc(option)}</option>`).join('')}</select>`:`<input id="${id}" data-param="${field.key}" type="${field.type}" value="${esc(value)}"${field.type==='number'?` min="${field.min}" max="${field.max}" step="1"`:''}>`;
       return `<div class="compact-field"><label for="${id}">${esc(field.label)}</label>${control}</div>`;
     }).join('');
   }
-  function validateParams(task,value,fieldKey){
+  function validateParams(task,value,fieldKey,editing=false){
     if(!value||Array.isArray(value)||typeof value!=='object')return {message:'参数必须是 JSON 对象，例如 {}。'};
     const extra=Object.keys(value).find(key=>!task.fields.some(field=>field.key===key));
     if(extra)return {message:'不支持的参数：'+extra+'。请使用本任务的字段。'};
     for(const field of task.fields){if(fieldKey&&field.key!==fieldKey)continue;const v=value[field.key];
+      if(task.id===BAIDU){
+        if(field.key==='limit'){if(v!==3)return {key:'limit',message:'结果数量固定为 3。'};continue;}
+        if(field.key==='showExecutionTab'&&!Object.hasOwn(value,field.key))continue;
+        if(field.key==='query'&&(typeof v!=='string'||v.length>120))return {key:'query',message:'搜索关键词须为不超过 120 字符的文本。'};
+        if(field.key==='query'&&editing)continue;
+      }
       if(field.type==='number'&&(!Number.isInteger(v)||v<field.min||v>field.max))return {key:field.key,message:field.label+'须为 '+field.min+'–'+field.max+' 的整数。'};
       if(field.type==='checkbox'&&typeof v!=='boolean')return {key:field.key,message:field.label+'须为 true 或 false。'};
       if(field.type==='select'&&!field.options.includes(v))return {key:field.key,message:'请选择有效的'+field.label+'。'};
       if(field.type==='text'&&(typeof v!=='string'||!v.trim()))return {key:field.key,message:'请填写'+field.label+'。'};
     }return null;
   }
-  function readJson(task){let value;try{value=JSON.parse($('params-json').value);}catch{paramsError('JSON 格式有误，请检查引号、逗号和括号。',$('params-json'));return null;}const error=validateParams(task,value);if(error){paramsError(error.message,$('params-json'));return null;}return value;}
+  function readJson(task,editing=false){let value;try{value=JSON.parse($('params-json').value);}catch{paramsError('JSON 格式有误，请检查引号、逗号和括号。',$('params-json'));return null;}const error=validateParams(task,value,undefined,editing);if(error){paramsError(error.message,$('params-json'));return null;}return value;}
   function setParamsMode(mode){
     if(mode===paramsMode)return;
     const task=findTask(paramsTask),draft=draftFor(task);
-    if(mode==='form'){const value=readJson(task);if(!value)return;draft.values=value;renderFields(task);}
+    if(mode==='form'){const value=readJson(task,task.id===BAIDU);if(!value)return;draft.values=value;if(task.id===BAIDU)draft.raw=JSON.stringify(value,null,2);renderFields(task);}
     else {draft.raw=JSON.stringify(draft.values,null,2);$('params-json').value=draft.raw;}
     paramsMode=mode;clearParamsError();$('params-fields').hidden=mode!=='form';$('params-json-wrap').hidden=mode!=='json';
     $('mode-form').setAttribute('aria-pressed',String(mode==='form'));$('mode-json').setAttribute('aria-pressed',String(mode==='json'));
+    if(task.id===BAIDU)renderBaiduTarget();
   }
   function openParams(id,trigger){
     const task=findTask(id);selected=id;expanded=true;activeRow=id;renderTasks();paramsTrigger=document.querySelector(`[data-prepare="${id}"]`)||trigger;
@@ -239,28 +402,53 @@ dialog{color:var(--od-ink);border:1px solid var(--od-line);background:var(--od-p
       paramsTrigger?.focus({preventScroll:true});return;
     }
     paramsTask=id;paramsMode='form';clearParamsError();renderFields(task);$('params-title').textContent=task.title;
-    $('params-context').textContent='适用网站：'+task.site;$('params-json').value=draftFor(task).raw;
+    const baidu=id===BAIDU;
+    $('params-context').textContent=baidu?'离线模拟 · 标签页、搜索和回执均为示例':'适用网站：'+task.site;
+    $('params-json').value=draftFor(task).raw;
     $('params-fields').hidden=false;$('params-json-wrap').hidden=true;$('mode-form').setAttribute('aria-pressed','true');$('mode-json').setAttribute('aria-pressed','false');
     // Restore invalid raw JSON as-is rather than silently losing that draft.
     if(draftFor(task).raw!==JSON.stringify(draftFor(task).values,null,2)){paramsMode='json';$('params-fields').hidden=true;$('params-json-wrap').hidden=false;$('mode-form').setAttribute('aria-pressed','false');$('mode-json').setAttribute('aria-pressed','true');}
+    $('baidu-options').hidden=!baidu;$('params-run').disabled=false;
+    if(baidu){$('baidu-url').value=baiduUrl??'';checkBaiduTarget();}
     $('params-dialog').showModal();
     (paramsMode==='json'?$('params-json'):$('params-fields').querySelector('input,select'))?.focus();
   }
-  function closeParams(){$('params-dialog').close();paramsTrigger?.focus({preventScroll:true});}
+  function closeParams(){clearTimeout(baiduCheckTimer);$('params-dialog').close();paramsTrigger?.focus({preventScroll:true});}
   function startRun(){
     const task=findTask(paramsTask);if(!canRun(task))return;
+    const baidu=task.id===BAIDU;if(baidu&&$('params-run').disabled)return;
     const draft=draftFor(task),value=paramsMode==='json'?readJson(task):draft.values;if(!value)return;
     const error=validateParams(task,value);if(error){paramsError(error.message,$('param-'+error.key));return;}
     draft.values={...value};draft.raw=JSON.stringify(value,null,2);
-    run={task:task.id,title:task.title,params:{...value},id:'preview-'+Date.now()};closeParams();renderWorkspace();renderDock();
+    run={task:task.id,title:task.title,params:{...value},id:'preview-'+Date.now()};
+    if(baidu){
+      const newTab=baiduManualNew()||baiduTarget==='absent';
+      const start=newTab?baiduStartUrl():null;
+      run.destination=newTab?'新开标签页，从 '+start+' 开始':'使用当前百度页（'+baiduCurrentQuery+'）';
+      run.readsExisting=baiduReadsExisting(value.query,start);
+      run.reusesCurrent=!newTab;
+      run.unknown=baiduNextUnknown;
+      baiduNextUnknown=false;
+      baiduNew=false;baiduUrl=null;
+    }
+    closeParams();renderWorkspace();renderDock();
     // Deliberately long enough to inspect selection changes and Stop ownership.
-    runTimer=setTimeout(()=>finishRun('success'),6500);
+    runTimer=setTimeout(()=>finishRun(run.unknown?'unknown':'success'),baidu?1800:6500);
   }
   function finishRun(state){
     if(!run)return;clearTimeout(runTimer);const owner=run;run=null;
     const result=state==='stopped'?'已停止这次模拟，未操作网页。':owner.task==='summary'?'文章围绕目标、步骤与复盘组织日常工作流。\n原文：https://example.com/articles/workflows':owner.task==='links'?'已整理 6 条示例链接；最多 '+owner.params.limit+' 条。':'已完成示例任务。';
-    (records[owner.task]??=[]).unshift({id:owner.id,state,label:state==='stopped'?'已停止':'成功',result,time:new Date().toLocaleTimeString('zh-CN',{hour:'2-digit',minute:'2-digit'})});
-    renderWorkspace();renderDock();if(route==='manager')renderManagerRows();notify(owner.title+' · '+(state==='stopped'?'已停止':'已完成'));
+    const baidu=owner.task===BAIDU, sim=baidu?'模拟':'';
+    if(baidu&&state==='success'&&owner.reusesCurrent&&!baiduPageLost)baiduCurrentQuery=owner.params.query;
+    const receipt=baidu&&state==='success'?[
+      '模拟回执 · '+owner.destination,
+      owner.readsExisting?'模拟操作：直接读取同词结果，未重新搜索。':'模拟操作：使用新关键词搜索。',
+      owner.params.showExecutionTab===false?'未主动切到执行标签页。':'请求切到执行标签页。',
+      '搜索关键词：'+owner.params.query,'示例自然网页结果（非实站）：',
+      '1. '+owner.params.query+'：入门指南','2. '+owner.params.query+'：常见问题','3. '+owner.params.query+'：参考资料'
+    ].join('\n'):state==='unknown'?'模拟回执 · 连接中断，无法确认是否完成。核对原记录前不能再次运行。':result;
+    (records[owner.task]??=[]).unshift({id:owner.id,state,label:sim+(state==='stopped'?'已停止':state==='unknown'?'结果未知':'成功'),result:receipt,...(baidu&&state!=='unknown'?{fullResult:receipt}:{}),time:new Date().toLocaleTimeString('zh-CN',{hour:'2-digit',minute:'2-digit'})});
+    renderWorkspace();renderDock();if(route==='manager')renderManagerRows();notify(owner.title+' · '+sim+(state==='stopped'?'已停止':state==='unknown'?'结果未知':'已完成'));
   }
   function openUtility(title,html,trigger){utilityTrigger=trigger||document.activeElement;$('utility-title').textContent=title;$('utility-body').innerHTML=html;$('utility-dialog').showModal();}
   function closeUtility(){discardAction=null;$('utility-dialog').close();const trigger=utilityTrigger?.isConnected?utilityTrigger:route==='manager'?document.querySelector(`[data-manager-more="${utilityTrigger?.dataset.managerMore}"]`):null;if(trigger)trigger.focus({preventScroll:true});else if(route!=='tasks')$('sub-title').focus({preventScroll:true});}
@@ -444,10 +632,21 @@ dialog{color:var(--od-ink);border:1px solid var(--od-line);background:var(--od-p
   function setScene(next){
     fileRevision++;$('add-panel').hidden=true;$('add-open').setAttribute('aria-expanded','false');
     clearTimeout(runTimer);run=null;tasks=next==='empty'?[]:taskSeed();drafts={};records={};selected=tasks[0]?.id;activeRow=selected;expanded=true;scene=next;siteAvailable=next!=='restricted';
+    baiduNew=false;baiduUrl=null;baiduCurrentQuery=baiduOriginalQuery;baiduNextUnknown=false;resetBaiduFixtureChange();
     $('task-search').value='';$('search-panel').hidden=true;$('search-toggle').setAttribute('aria-expanded','false');
     if(next==='failed'||next==='unknown')records.summary=[{id:'preview-original-run',state:next,label:next==='failed'?'模拟失败':'结果未知',time:'上次模拟',result:next==='failed'?'未找到文章正文，未返回摘要。':'连接中断，无法确认是否完成；不得自动重放。'}];
     if(['result-plain','result-long','result-sensitive'].includes(next))records.summary=[resultExample(next.slice(7))];
     closeUtility();home();renderTasks();notify('已切换演示状态，任务与参数恢复示例');
+  }
+  function openDemoMenu(trigger){
+    const demoButtons=(items,attr,current)=>Object.entries(items).map(([key,label])=>
+      '<button type="button" data-baidu-'+attr+'="'+key+'" aria-pressed="'+(current===key)+'">'+label+'</button>'
+    ).join('');
+    openUtility('演示状态',
+      '<h3>百度参数方案（仅演示）</h3><div class="scenario-list">'+demoButtons(baiduModes,'mode',baiduMode)+'</div>'+
+      '<h3>百度网页状态（仅演示）</h3><p class="note">切换后从百度任务行打开参数；这些选项保留关键词和脚本参数。</p><div class="scenario-list">'+demoButtons(baiduScenarios,'scenario',baiduPageLost?'absent':baiduScenario)+'</div>'+
+      '<h3>百度回执（仅演示）</h3><div class="scenario-list"><button type="button" id="demo-baidu-unknown" aria-pressed="'+baiduNextUnknown+'">下次运行结果未知</button></div>'+
+      '<h3>其他演示状态</h3><p class="note">下列选项会重置任务、参数与当前模拟；计划仍保留在本页。</p><div class="scenario-list"><button type="button" data-scene="normal">正常任务列表</button><button type="button" data-scene="result-plain">完整结果（无需展开）</button><button type="button" data-scene="result-long">长结果（查看完整结果）</button><button type="button" data-scene="result-sensitive">敏感字段（查看与再隐藏）</button><button type="button" data-scene="empty">没有已安装任务</button><button type="button" data-scene="restricted">当前网页不可用</button><button type="button" data-scene="failed">上次运行失败</button><button type="button" data-scene="unknown">上次结果未知</button></div>',trigger);
   }
   document.addEventListener('click',event=>{
     const link=event.target.closest('a[href]');
@@ -460,6 +659,11 @@ dialog{color:var(--od-ink);border:1px solid var(--od-line);background:var(--od-p
     if(button.dataset.prepare)return openParams(button.dataset.prepare,button);
     if(button.dataset.manage)return openManage(button.dataset.manage,button);
     if(button.dataset.catalogTask)return catalogDetail(button.dataset.catalogTask);
+    if(button.dataset.baiduMode||button.dataset.baiduScenario){
+      if(button.dataset.baiduMode){baiduMode=button.dataset.baiduMode;baiduNew=false;baiduUrl=null;}
+      else {baiduScenario=button.dataset.baiduScenario;baiduCurrentQuery=baiduOriginalQuery;resetBaiduFixtureChange();if(baiduScenario==='absent'||baiduScenario==='blocked'){baiduNew=false;baiduUrl=null;}}
+      closeUtility();notify(button.textContent+' · 参数草稿已保留');return;
+    }
     if(button.dataset.scene){const next=button.dataset.scene;if((route==='plan-form'||route==='manager'&&managerContext?.route==='plan-form')&&JSON.stringify(planDraft)!==planBaseline)return leavePlan(()=>setScene(next));return setScene(next);}
     if(button.hasAttribute('data-open-manager'))return openTaskManager(button);
     if(button.dataset.plan){detailReturnsManager=false;planManagerOrigin=null;planListScroll=$('viewport').scrollTop;planTrigger=button.dataset.plan;return planDetail(button.dataset.plan);}
@@ -517,12 +721,18 @@ dialog{color:var(--od-ink);border:1px solid var(--od-line);background:var(--od-p
       case 'plan-cancel':leavePlan();break;
       case 'mode-form':setParamsMode('form');break;
       case 'mode-json':setParamsMode('json');break;
+      case 'baidu-new':baiduNew=!baiduNew;renderBaiduTarget();if(button.hidden)$('baidu-recheck').focus();break;
+      case 'baidu-recheck':checkBaiduTarget(true);break;
+      case 'baidu-url-open':
+        baiduUrl=baiduUrl===null?'':null;$('baidu-url').value=baiduUrl??'';renderBaiduTarget();
+        if(baiduUrl!==null)$('baidu-url').focus();break;
       case 'params-close':case 'params-cancel':closeParams();break;
       case 'params-run':startRun();break;
       case 'stop-run':finishRun('stopped');break;
       case 'open-original':$('history-panel').open=true;$('history-panel').querySelector('summary').focus();break;
       case 'utility-close':closeUtility();break;
-      case 'demo-open':openUtility('演示状态','<p class="note">切换会重置任务、参数与当前模拟；计划仍保留在本页。</p><div class="scenario-list"><button type="button" data-scene="normal">正常任务列表</button><button type="button" data-scene="result-plain">完整结果（无需展开）</button><button type="button" data-scene="result-long">长结果（查看完整结果）</button><button type="button" data-scene="result-sensitive">敏感字段（查看与再隐藏）</button><button type="button" data-scene="empty">没有已安装任务</button><button type="button" data-scene="restricted">当前网页不可用</button><button type="button" data-scene="failed">上次运行失败</button><button type="button" data-scene="unknown">上次结果未知</button></div>',button);break;
+      case 'demo-baidu-unknown':baiduNextUnknown=!baiduNextUnknown;closeUtility();notify(baiduNextUnknown?'下次百度运行将模拟结果未知':'下次百度运行将模拟正常回执');break;
+      case 'demo-open':openDemoMenu(button);break;
     }
   });
   $('task-list').addEventListener('pointerover',event=>{const row=event.target.closest('[data-row]');if(row)setActive(row.dataset.row);});
@@ -560,7 +770,7 @@ dialog{color:var(--od-ink);border:1px solid var(--od-line);background:var(--od-p
   // control returns to the first instead of handing focus to browser chrome.
   for(const dialog of [$('params-dialog'),$('utility-dialog')])dialog.addEventListener('keydown',event=>{
     if(event.key!=='Tab')return;
-    const controls=[...dialog.querySelectorAll('button:not(:disabled),a[href],input:not(:disabled),select:not(:disabled),textarea:not(:disabled)')].filter(node=>node.getClientRects().length);
+    const controls=[...dialog.querySelectorAll('button:not(:disabled),a[href],input:not(:disabled),select:not(:disabled),textarea:not(:disabled),summary[data-params-control]')].filter(node=>node.getClientRects().length);
     const first=controls[0],last=controls.at(-1);
     if(!first)return;
     if(event.shiftKey&&document.activeElement===first){event.preventDefault();last.focus();}
@@ -572,6 +782,11 @@ dialog{color:var(--od-ink);border:1px solid var(--od-line);background:var(--od-p
     else if(input.dataset.param){draft.values[input.dataset.param]=input.type==='checkbox'?input.checked:input.type==='number'?Number(input.value):input.value;draft.raw=JSON.stringify(draft.values,null,2);}
     if(input.id===paramsErrorField){let error;try{error=input.id==='params-json'?validateParams(task,JSON.parse(input.value)):validateParams(task,draft.values,input.dataset.param);}catch{error={message:'JSON 格式有误，请检查引号、逗号和括号。'};}
       if(!error)clearParamsError();else $('params-error').textContent=error.message;}
+    if(task.id===BAIDU){
+      if(input.id==='baidu-url')baiduUrl=input.value;
+      if(input.id==='param-query'||input.id==='params-json')changeBaiduTargetOnEdit();
+      renderBaiduTarget();
+    }
   });
   $('sub-body').addEventListener('keydown',event=>{
     if(route!=='manager'||event.key!=='Escape'||event.defaultPrevented||event.isComposing||event.repeat||$('utility-dialog').open)return;

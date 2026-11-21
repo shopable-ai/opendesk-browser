@@ -9,10 +9,35 @@ import {MARKET_PROVENANCE_STORE,MARKET_OPERATIONS_STORE,TOOL_REVOCATION_EPOCHS_S
 import {READING_TOC_SITE_STORE} from '../../projects/reading-toc/trusted/policy.js';
 import {CLIP_SITE_STORE} from '../../projects/web-markdown-clipper/trusted/policy.js';
 import {CAPTURE_SITE_STORE} from '../../src/knowledge/policy.js';
-import {officialFixtures,officialFixtureFetch} from '../helpers/official-tools.mjs';
-import {OFFICIAL_READING_TOC_RELEASE,matchesOfficialReadingToc}
-  from '../../src/sidebar-tools/official-reading-toc.js';
+import {officialFixtures,officialFixtureFetch,officialToolFixture} from '../helpers/official-tools.mjs';
+import {matchesOfficialRelease} from '../../src/sidebar-tools/official-catalog.js';
 import {sidebarToolPackageHash} from '../../src/ui/sidebar-tools/package.js';
+import {WEBFLOW_AUTO_GRANTS_KEY} from '../../projects/webflow/src/auto-grants.js';
+
+const sidebarOnly=['quick-notes','cookie-editor','prompt-shortcuts','webflow'];
+const preinstalled=['reading-toc',...sidebarOnly,'ai-send-queue'];
+function companionHost({preflight=()=>{},cleanupPending=null}={}){
+  const prepared=new Map(),calls=[];
+  return {calls,async request(type,payload){
+    const toolId=payload.tool?.id??payload.toolId;
+    calls.push([type,toolId]);
+    if(type==='prepareAppPage'){
+      preflight(toolId);
+      const tool=payload.tool,packageHash=await sidebarToolPackageHash(tool);
+      const {programId,sourceHash}=tool.pageModule;
+      prepared.set(tool.id,{packageHash,programId,sourceHash});
+      return {status:'prepared',toolId,packageHash,programId,sourceHash};
+    }
+    const candidate=prepared.get(toolId);
+    assert.ok(candidate,'companion must be prepared before a write');
+    if(type==='synchronizeAppPages')return {status:'synchronized',retired:[],
+      cleanupPending:toolId===cleanupPending?[candidate.programId]:[]};
+    assert.equal(type,'importAppPage');
+    assert.equal(payload.packageHash,candidate.packageHash);
+    return {status:'installed',nativeState:'registered',ready:true,manifestHash:'a'.repeat(64),
+      appOwner:payload,programId:candidate.programId,sourceHash:candidate.sourceHash};
+  }};
+}
 
 function browser(initial=[]){
   const storage=new Map(initial);
@@ -42,30 +67,56 @@ function browser(initial=[]){
   const options={api,lockManager,fetcher:officialFixtureFetch};
   return {api,options,storage,writes};
 }
-test('R4.8 trusted catalog policy is the only default selection; metadata-only boot executes no code or site grant',async()=>{
+test('first install commits exact Sidebar releases before the trusted host installs their authorized companions',async()=>{
   const fixtures=await officialFixtures();
   assert.deepEqual(fixtures.catalog.apps.filter(a=>a.installationPolicy==='preinstalled').map(a=>a.toolId),
-    ['reading-toc','quick-notes','cookie-editor','prompt-shortcuts']);
+    preinstalled);
   const f=browser();
   assert.deepEqual(await registerDefaultPreinstall({...f.options,reason:'update'}),{state:'not-new-install'});
   assert.equal(f.storage.has(DEFAULT_PREINSTALL_STORE),false);
   assert.equal((await registerDefaultPreinstall({...f.options,reason:'install'})).state,'pending');
   assert.equal(f.storage.has(SIDEBAR_TOOL_STORE),false,'marking intent does not install');
   const result=await resumeDefaultPreinstall(f.options);
-  assert.equal(result.state,'complete');
-  assert.deepEqual(f.storage.get(SIDEBAR_TOOL_STORE).map(a=>a.id),['reading-toc','quick-notes','cookie-editor','prompt-shortcuts']);
-  assert.deepEqual(Object.keys(f.storage.get(MARKET_PROVENANCE_STORE)).sort(),['cookie-editor','prompt-shortcuts','quick-notes','reading-toc']);
-  const toc=f.storage.get(SIDEBAR_TOOL_STORE).find(tool=>tool.id==='reading-toc');
-  assert.equal(toc.version,OFFICIAL_READING_TOC_RELEASE.version);
-  assert.equal(matchesOfficialReadingToc(toc,f.storage.get(MARKET_PROVENANCE_STORE),
-    await sidebarToolPackageHash(toc)),true,'fresh preinstall must satisfy the current official identity gate');
-  for(const key of [READING_TOC_SITE_STORE,CLIP_SITE_STORE,CAPTURE_SITE_STORE])
+  assert.deepEqual(result,{state:'pending',reason:'host-required',installed:sidebarOnly.length});
+  assert.deepEqual(f.storage.get(SIDEBAR_TOOL_STORE).map(a=>a.id),sidebarOnly);
+  const pageClient=companionHost();
+  assert.equal((await resumeDefaultPreinstall({...f.options,pageClient})).state,'complete');
+  const installed=f.storage.get(SIDEBAR_TOOL_STORE);
+  assert.deepEqual(installed.map(a=>a.id),[...sidebarOnly,'reading-toc','ai-send-queue']);
+  assert.deepEqual(Object.keys(f.storage.get(MARKET_PROVENANCE_STORE)).sort(),[...preinstalled].sort());
+  for(const tool of installed){
+    const release=fixtures.catalog.apps.find(row=>row.toolId===tool.id);
+    assert.equal(await matchesOfficialRelease(release,tool),true);
+  }
+  assert.deepEqual(pageClient.calls.filter(([op])=>op==='importAppPage').map(([,id])=>id),['reading-toc','ai-send-queue']);
+  for(const key of [READING_TOC_SITE_STORE,CLIP_SITE_STORE,CAPTURE_SITE_STORE,WEBFLOW_AUTO_GRANTS_KEY])
     assert.equal(f.storage.has(key),false,'preinstall never grants a website');
   assert.equal(globalThis.__officialToolMustNotRun,undefined);
   assert.equal(f.storage.get(DEFAULT_PREINSTALL_STORE).state,'complete');
   const writes=f.writes.filter(a=>a.includes(SIDEBAR_TOOL_STORE)).length;
   await Promise.all([resumeDefaultPreinstall(f.options),resumeDefaultPreinstall(f.options)]);
   assert.equal(f.writes.filter(a=>a.includes(SIDEBAR_TOOL_STORE)).length,writes,'already initialized cannot write registry');
+});
+for(const code of ['E_PERMISSION','E_USER_SCRIPTS_UNAVAILABLE'])test('companion preflight waits for Chrome access: '+code,async()=>{
+  const f=browser();
+  let allowed=false;
+  const pageClient=companionHost({preflight:id=>{
+    if(!allowed&&(code==='E_USER_SCRIPTS_UNAVAILABLE'||id==='ai-send-queue'))throw Object.assign(new Error(code),{code});
+  }});
+  const options={...f.options,pageClient};
+  await registerDefaultPreinstall({...options,reason:'install'});
+  if(code==='E_PERMISSION')assert.deepEqual(await resumeDefaultPreinstall(options),{state:'permission-required'});
+  else await assert.rejects(resumeDefaultPreinstall(options),{code});
+  const pending=f.storage.get(DEFAULT_PREINSTALL_STORE);
+  assert.equal(pending.state,'pending');
+  assert.ok(pending.completed.includes('webflow'));
+  assert.ok(!pending.completed.includes('ai-send-queue'));
+  assert.ok(!f.storage.get(SIDEBAR_TOOL_STORE).some(row=>row.id==='ai-send-queue'));
+  assert.ok(!Object.values(f.storage.get(MARKET_OPERATIONS_STORE)).some(row=>row.toolId==='ai-send-queue'));
+  assert.ok(!pageClient.calls.some(([op,id])=>op!=='prepareAppPage'&&id==='ai-send-queue'));
+  allowed=true;
+  assert.equal((await resumeDefaultPreinstall(options)).state,'complete');
+  assert.equal(pageClient.calls.filter(([op,id])=>op==='importAppPage'&&id==='ai-send-queue').length,1);
 });
 test('R4.8 old profile, existing choices and update events never trigger automatic installation',async()=>{
   const f=browser([[SIDEBAR_TOOL_STORE,[]],[TOOL_REVOCATION_EPOCHS_STORE,{'reading-toc':'previous-epoch'}]]);
@@ -75,39 +126,25 @@ test('R4.8 old profile, existing choices and update events never trigger automat
   assert.deepEqual(f.storage.get(SIDEBAR_TOOL_STORE),[]);
   assert.equal((await resumeDefaultPreinstall(f.options)).state,'skipped-existing');
 });
-test('pending companion cleanup persists preinstall attention without retrying the package',async t=>{
-  t.mock.method(globalThis,'fetch',officialFixtureFetch);
+test('pending queue companion cleanup persists attention without retrying the package',async()=>{
   const f=browser();
   await registerDefaultPreinstall({...f.options,reason:'install'});
-  const calls=[];let candidate;
-  const pageClient={async request(type,payload){
-    calls.push(type);
-    if(type==='prepareAppPage'){
-      candidate=payload.tool;
-      return {status:'prepared',toolId:candidate.id,packageHash:await sidebarToolPackageHash(candidate),
-        programId:candidate.pageModule.programId,sourceHash:candidate.pageModule.sourceHash};
-    }
-    if(type==='synchronizeAppPages')return {status:'synchronized',retired:[],
-      cleanupPending:[candidate.pageModule.programId]};
-    assert.fail('preinstall must not import before cleanup: '+type);
-  }};
+  const pageClient=companionHost({cleanupPending:'ai-send-queue'});
   const options={...f.options,pageClient};
-  assert.deepEqual(await resumeDefaultPreinstall(options),{state:'attention',toolId:candidate.id});
+  assert.deepEqual(await resumeDefaultPreinstall(options),{state:'attention',toolId:'ai-send-queue'});
   assert.equal(f.storage.get(DEFAULT_PREINSTALL_STORE).state,'attention');
-  assert.deepEqual(f.storage.get(SIDEBAR_TOOL_STORE),[candidate]);
-  assert.equal(Object.values(f.storage.get(MARKET_OPERATIONS_STORE))[0].state,'outcome-unknown');
+  assert.deepEqual(f.storage.get(SIDEBAR_TOOL_STORE).find(tool=>tool.id==='ai-send-queue'),await officialToolFixture('ai-send-queue'));
+  assert.equal(Object.values(f.storage.get(MARKET_OPERATIONS_STORE)).find(row=>row.toolId==='ai-send-queue').state,'outcome-unknown');
   const writes=f.writes.length;
   assert.equal((await resumeDefaultPreinstall(options)).state,'attention');
   assert.equal(f.writes.length,writes);
-  assert.deepEqual(calls,['prepareAppPage','synchronizeAppPages']);
+  assert.deepEqual(pageClient.calls.filter(([,id])=>id==='ai-send-queue').map(([op])=>op),['prepareAppPage','synchronizeAppPages']);
 });
-test('R4.8 a newer bundled Reading TOC never silently replaces an existing 1.0.9 installation',async()=>{
-  const fixtures=await officialFixtures();
+test('R4.8 a newer bundled Reading TOC never silently replaces an earlier reviewed installation',async()=>{
   // Existing user state is preserved regardless of whether first-install intent
   // was registered before the package appeared (for example, another host).
-  const existing={...JSON.parse(fixtures.resources.get('official-tools/reading-toc/reading-toc.opendesk-tool.json')),
-    version:'1.0.9'};
-  const provenance={'reading-toc':{marketId:'opendesk/reading-toc',version:'1.0.9',
+  const existing=await officialToolFixture('reading-toc');
+  const provenance={'reading-toc':{marketId:'opendesk/reading-toc',version:existing.version,
     sha256:await sidebarToolPackageHash(existing)}};
   for(const pending of [false,true]){
     const f=browser();
@@ -123,24 +160,26 @@ test('R4.8 a newer bundled Reading TOC never silently replaces an existing 1.0.9
 });
 test('R4.8 concurrent install event and first boot commit each exact package only once',async()=>{
   const f=browser();
+  const options={...f.options,pageClient:companionHost()};
   await Promise.all(Array.from({length:4},()=>registerDefaultPreinstall({...f.options,reason:'install'})));
-  const results=await Promise.all([resumeDefaultPreinstall(f.options),resumeDefaultPreinstall(f.options)]);
+  const results=await Promise.all([resumeDefaultPreinstall(options),resumeDefaultPreinstall(options)]);
   assert(results.every(r=>r.state==='complete'));
-  assert.equal(f.storage.get(SIDEBAR_TOOL_STORE).length,4);
-  assert.equal(f.writes.filter(a=>a.includes(SIDEBAR_TOOL_STORE)).length,4);
+  assert.equal(f.storage.get(SIDEBAR_TOOL_STORE).length,preinstalled.length);
+  assert.equal(f.writes.filter(a=>a.includes(SIDEBAR_TOOL_STORE)).length,preinstalled.length);
 });
 test('R4.8 unavailable second package leaves a pinned, recoverable partial first install',async()=>{
   const f=browser();
+  const options={...f.options,pageClient:companionHost()};
   await registerDefaultPreinstall({...f.options,reason:'install'});
   let unavailable=true;
   const flaky=async url=>unavailable&&String(url).includes('/quick-notes/quick-notes.')?
     new Response('missing',{status:404}):officialFixtureFetch(url);
-  await assert.rejects(resumeDefaultPreinstall({...f.options,fetcher:flaky}),error=>error.code==='E_PACKAGE_MISSING');
+  await assert.rejects(resumeDefaultPreinstall({...options,fetcher:flaky}),error=>error.code==='E_PACKAGE_MISSING');
   assert.deepEqual(f.storage.get(SIDEBAR_TOOL_STORE).map(x=>x.id),['reading-toc']);
   assert.deepEqual(f.storage.get(DEFAULT_PREINSTALL_STORE).completed,['reading-toc']);
   unavailable=false;
-  assert.equal((await resumeDefaultPreinstall(f.options)).state,'complete');
-  assert.deepEqual(f.storage.get(SIDEBAR_TOOL_STORE).map(x=>x.id),['reading-toc','quick-notes','cookie-editor','prompt-shortcuts']);
+  assert.equal((await resumeDefaultPreinstall(options)).state,'complete');
+  assert.deepEqual(f.storage.get(SIDEBAR_TOOL_STORE).map(x=>x.id),preinstalled);
 });
 test('R4.8 confirmed user uninstall is never restored after worker restart',async()=>{
   const f=browser();

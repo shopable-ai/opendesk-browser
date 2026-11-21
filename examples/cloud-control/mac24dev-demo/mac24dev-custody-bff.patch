@@ -1,0 +1,124 @@
+--- a/scripts/upgrade-v8-operate/cloud-demo/component.test.cjs
++++ b/scripts/upgrade-v8-operate/cloud-demo/component.test.cjs
+@@ -428,3 +428,61 @@
+   await rejects(f.service.submit({...f.input,version:'1.0.1'}),'E_SCOPE');
+   assert.equal(f.rows.size,0);assert.equal(f.calls.some(c=>c.route==='/v1/submit'),false);
+ });
++
++test('custody catalog scopes disclosure to the session owner and makes no mutations', async t => {
++  const f = fixture(t);
++  f.binding.executorId = f.scope.executorId = '460154c0-4cec-449a-8075-734d86f7f686';
++  f.scope.result = {body:'private result'};
++  f.writeConfig();
++  const first = (await f.service.catalog({})).devices;
++  assert.deepEqual(Array.from(first, d => d.id), [10]);
++  const detail = JSON.parse(JSON.stringify(first[0].detail));
++  assert.match(detail.checkedAt, /^\d{4}-\d\d-\d\dT/);
++  delete detail.checkedAt;
++  assert.deepEqual(detail, {
++    bindingState:'bound', bindingReason:'BOUND', source:'provider-client-scope',
++    executorSuffix:'f686', transport:'wss', readinessReason:'CONNECTED',
++    tasks:[{taskId:pin.taskId, version:pin.version, siteOrigins:['http://127.0.0.1:43111'], resultAccess:'status-only'}],
++  });
++  const wire = JSON.stringify(first);
++  for (const secret of [f.binding.clientToken, f.binding.clientId, f.binding.grantId,
++    f.binding.bindingId, f.binding.executorId, 'private result']) assert.equal(wire.includes(secret), false);
++
++  f.user.id = f.service.ctx.user.userId = 2;
++  const second = (await f.service.catalog({})).devices;
++  assert.deepEqual(Array.from(second, d => d.id), [20]);
++  assert.equal(second[0].detail.bindingReason, 'UNBOUND');
++  assert.equal(second[0].detail.tasks, undefined);
++  await rejects(f.service.catalog({deviceId:10}), 'E_SCHEMA');
++  assert.deepEqual(f.calls.map(call => call.route), ['/v1/client-scope']);
++  assert.equal(f.rows.size, 0);
++  assert.equal(f.jobs.size, 0);
++});
++
++test('custody distinguishes verified pause, scope rejection, offline and unavailable sources', async t => {
++  const f = fixture(t);
++  for (const [state, transport, reason] of [
++    ['READY','wss','CONNECTED'], ['NOT_CONNECTED','none','OFFLINE'],
++    ['NOT_AUTHORIZED','none','PAUSED'], ['NOT_AUTHORIZED','wss','UNCONFIRMED'],
++  ]) {
++    f.scope.availability = {state,transport};
++    const {detail} = (await f.service.catalog({})).devices[0];
++    assert.equal(detail.readinessReason, reason);
++  }
++  f.scope.allowResult = true;
++  delete f.scope.availability;
++  let device = (await f.service.catalog({})).devices[0];
++  assert.equal(device.readiness, 'UNKNOWN');
++  assert.equal(device.detail.readinessReason, 'UNCONFIRMED');
++  assert.equal(device.detail.tasks[0].resultAccess, 'unconfirmed');
++  f.override(() => ({httpStatus:403,body:{error:{code:'E_AUTH',message:f.binding.clientToken}}}));
++  device = (await f.service.catalog({})).devices[0];
++  assert.equal(device.detail.bindingReason, 'SCOPE_UNVERIFIED');
++  assert.equal(device.detail.tasks, undefined);
++  assert.equal(device.detail.readinessReason, undefined);
++  assert.equal(JSON.stringify(device).includes(f.binding.clientToken), false);
++  fs.unlinkSync(f.configFile);
++  device = (await f.service.catalog({})).devices[0];
++  assert.equal(device.detail.bindingReason, 'CONFIG_UNAVAILABLE');
++  assert.equal(device.readiness, 'UNKNOWN');
++});
+--- a/src/modules/operate/service/cloudcontrol.s.ts
++++ b/src/modules/operate/service/cloudcontrol.s.ts
+@@ -406,24 +406,51 @@
+         const visible = [];
+         for (const device of devices) {
+           if (Number(device.userId) !== userId) fail('E_DEVICE');
+-          let readiness = 'NOT_CONNECTED', message = '设备尚未配对';
+-          if (!config) { readiness = 'UNKNOWN'; message = 'E_CONFIG'; }
+-          else {
++          let readiness = 'NOT_CONNECTED', message = '尚未关联执行端';
++          let detail: ObjectValue;
++          if (!config) {
++            readiness = 'UNKNOWN';
++            message = 'E_CONFIG';
++            detail = { bindingState: 'unknown', bindingReason: 'CONFIG_UNAVAILABLE', source: 'business-binding' };
++          } else {
+             const binding = config.bindings.find(b => b.userId === userId && b.deviceId === Number(device.id));
+             if (binding) {
+               try {
+-                readiness = this.availability(await this.scope(config, binding));
+-                message = ({ READY: '连接就绪，可提交演示任务', NOT_CONNECTED: '设备尚未连接',
++                const scope = await this.scope(config, binding);
++                const entry = scope.taskCatalog[0];
++                readiness = this.availability(scope);
++                message = ({ READY: '委托范围与连接就绪，本机准入待确认', NOT_CONNECTED: '设备尚未连接',
+                   NOT_AUTHORIZED: 'E_AUTH', UNKNOWN: 'E_PROVIDER' })[readiness];
++                const transport = readiness === 'UNKNOWN' ? null : scope.availability.transport;
++                // Only the authenticated Client scope supplies the Provider suspension
++                // signal. A rejected scope call below cannot establish suspension.
++                const readinessReason = readiness === 'READY' ? 'CONNECTED'
++                  : transport === 'none' && readiness === 'NOT_CONNECTED' ? 'OFFLINE'
++                  : transport === 'none' && readiness === 'NOT_AUTHORIZED' ? 'PAUSED' : 'UNCONFIRMED';
++                detail = {
++                  bindingState: 'bound', bindingReason: 'BOUND', source: 'provider-client-scope',
++                  executorSuffix: /^[0-9a-f]{4}$/i.test(binding.executorId.slice(-4))
++                    ? binding.executorId.slice(-4).toLowerCase() : null,
++                  transport: readinessReason === 'UNCONFIRMED' ? null : transport,
++                  readinessReason,
++                  tasks: [{
++                    taskId: entry.taskId, version: entry.version, siteOrigins: entry.siteOrigins,
++                    resultAccess: scope.allowResult === false ? 'status-only' : 'unconfirmed',
++                  }],
++                };
+               }
+               catch (error) {
+                 const code = safeCode(error);
+                 readiness = ['E_AUTH', 'E_SCOPE'].includes(code) ? 'NOT_AUTHORIZED' : 'UNKNOWN';
+                 message = code;
++                detail = { bindingState: 'unknown', bindingReason: 'SCOPE_UNVERIFIED', source: 'business-binding' };
+               }
++            } else {
++              detail = { bindingState: 'unbound', bindingReason: 'UNBOUND', source: 'business-binding' };
+             }
+           }
+-          visible.push({ id: Number(device.id), nickname: device.nickname || '', readiness, message });
++          visible.push({ id: Number(device.id), nickname: device.nickname || '', readiness, message,
++            detail: { ...detail, checkedAt: new Date().toISOString() } });
+         }
+         return { task: taskDescriptor(config?.taskPin || PIN), devices: visible, providerId: PROVIDER_ID };
+       });

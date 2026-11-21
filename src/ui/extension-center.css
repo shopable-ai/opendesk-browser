@@ -58,6 +58,30 @@
   background:var(--od-paper);color:var(--od-accent-ink);font-size:12px;font-weight:650;cursor:pointer}
 .ec-row-update:disabled{opacity:.55;cursor:default}
 .ec-update-error{margin:0;padding:0 12px 8px;color:var(--od-negative);font-size:11px;overflow-wrap:anywhere}
+.ec-web-features{display:grid;justify-items:start;gap:var(--space-4);min-width:0;line-height:1.5;overflow-wrap:anywhere}
+.ec-web-features-header{--ec-detail-back-size:var(--od-icon-size);display:flex;align-items:center;gap:var(--space-2)}
+.ec-web-features :is(h2,h3,h4,p){margin:0}
+.ec-web-features h3,.ec-web-features h4{font-size:var(--od-body-size);font-weight:650}
+.ec-web-features-setup,.ec-web-features-tools{display:grid;justify-items:start;width:100%;min-width:0;gap:var(--space-2)}
+.ec-web-features-setting{display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:var(--space-1) var(--space-2);width:100%;min-width:0}
+.ec-web-features-state{display:inline-flex;align-items:center;gap:var(--space-1);padding:2px var(--space-2);border:1px solid var(--od-line);border-radius:var(--radius-control);background:var(--od-bg);color:var(--od-sub);font-size:var(--od-note-size);font-weight:600}
+.ec-web-features-state svg{width:14px;height:14px;flex:none}
+.ec-web-features-state[data-state=on] svg{color:var(--od-positive)}
+.ec-web-features-note{color:var(--od-sub)}
+.ec-web-features-settings{margin-block-start:var(--space-1)}
+.ec-web-features-path{width:100%;min-width:0;resize:none;user-select:text;font-size:var(--od-note-size);line-height:1.5;overflow-wrap:anywhere}
+.ec-web-features [role=alert]{color:var(--od-negative)}
+.ec-web-features .od-button{max-width:100%;white-space:normal;overflow-wrap:anywhere}
+.ec-web-features .od-button[aria-disabled=true]{opacity:.65;cursor:default}
+.ec-companion-list{width:100%;min-width:0;list-style:none;margin:0;padding:0}
+.ec-companion{display:grid;gap:var(--space-1);min-width:0;padding-block:var(--space-2)}
+.ec-companion:first-child{padding-block-start:0}
+.ec-companion:last-child{padding-block-end:0}
+.ec-companion + .ec-companion{border-top:1px solid var(--od-line)}
+.ec-companion-copy{display:grid;gap:var(--space-1);min-width:0}
+.ec-companion-action{display:grid;justify-items:start;gap:var(--space-1);min-width:0}
+.ec-companion :is(.ec-companion-status,.ec-companion-id,.ec-companion-feedback){color:var(--od-sub);font-size:var(--od-note-size)}
+.ec-companion-feedback{min-width:0}
 /* Actions cover the row; neither visible nor hidden menus reserve a column. */
 .ec-row-actions:empty{display:none}
 .ec-glyph{display:grid;place-items:center;width:29px;height:29px;border-radius:var(--radius-control);background:color-mix(in srgb,var(--od-accent-ink) 8%,var(--od-paper));color:var(--od-accent-ink)}
@@ -108,6 +132,14 @@
 .ec-detail-card{margin:0;border:1px solid var(--od-line);border-radius:var(--radius-surface);padding:var(--space-3);overflow-wrap:anywhere}
 .ec-detail-card h3{font-size:13px;line-height:1.4;font-weight:650;margin:0}
 .ec-detail-card p{margin:0}
+.ec-extension-about{display:grid;gap:var(--space-2);min-width:0;overflow-wrap:anywhere}
+.ec-extension-about dl{margin:0;display:grid;gap:var(--space-2)}
+.ec-extension-about dl>div{display:flex;flex-wrap:wrap;align-items:baseline;gap:0 var(--space-2)}
+.ec-extension-about dt{color:var(--od-sub);flex:1 1 8rem}
+.ec-extension-about dd{margin:0;min-width:0;flex:2 1 10rem;user-select:text}
+.ec-extension-about dl>div:first-child dd{font-weight:650}
+.ec-extension-about a{color:inherit;text-decoration:underline;text-underline-offset:.16em}
+.ec-extension-about small{color:var(--od-sub)}
 /* R6.9: One grid owns the vertical rhythm in the official React detail.
    The existing back control remains mounted for loading and error states. */
 /* Back and cards share the shell gutter; reserve the actual hit area plus one gap. */
@@ -529,6 +561,10 @@
   .ec-scroll-title .od-icon-button,.ec-scroll-row-actions .od-icon-button{width:44px;min-width:44px;height:44px;min-height:44px}
   .ec-scroll-selector>.ec-scroll-picker{width:44px;min-width:44px;height:44px;min-height:44px}
 }
+.ec-page-recoveries{margin-block:var(--space-4);min-width:0}
+.ec-page-recoveries>h3{margin:0;font-size:var(--od-note-size);line-height:1.5;font-weight:600;color:var(--od-sub)}
+.ec-page-recovery-summary{display:grid;gap:var(--space-1)}
+.ec-page-recovery-summary>.ec-page-cleanup-meta{font-weight:400}
 .ec-page-cleanup{flex:none;min-width:0}
 .ec-page-cleanup-content{display:grid;gap:var(--space-2);font-size:12px;line-height:1.5;overflow-wrap:anywhere}
 .ec-page-cleanup-content p{margin:0}

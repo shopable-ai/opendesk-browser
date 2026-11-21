@@ -41,7 +41,7 @@ export function SharedConversationFrame({
  // Workflow preserves its native scrolling and sticky-composer layout. The
  // transcript and form still belong to this same trusted React Frame/root.
  splitTargets=false,transcriptTarget=null,composerTarget=null,
- autoScroll=true,focusOnOpen=true,inputRows=1,sendId=null,stopId=null
+ autoScroll=true,focusOnOpen=true,inputRows=1,sendId=null,stopId=null,composerActionTarget=null
 }){
  const localInput=React.useRef(null),localLog=React.useRef(null),composing=React.useRef(false);
  const input=inputRef||localInput,log=logRef||localLog;
@@ -55,7 +55,7 @@ export function SharedConversationFrame({
   const node=input.current;if(!open||!node)return;
   node.style.height='auto';
   node.style.height=Math.max(44,Math.min(112,node.scrollHeight))+'px';
- },[open,draft,input,composerTarget]);
+ },[open,draft,input,composerTarget,inputRows]);
  const submit=event=>{
   event.preventDefault();
   if(!open||busy||blocked||!canSend||!draft.trim()||
@@ -65,7 +65,19 @@ export function SharedConversationFrame({
  };
  const transcript=rows.length?<ConversationTranscript rows={rows} entryClassName={entryClassName} showSpeaker={false}/>:
   emptyPrompt?<p className="od-conversation-empty">{emptyPrompt}</p>:null;
- const composer=<form className="od-conversation-composer" onSubmit={submit}>
+ const action=busy?<OpenDeskIconButton id={stopId||undefined}
+      className="od-conversation-action od-conversation-action--stop"
+      type="button" label={stopLabel} title={stopLabel==='停止对话'?'停止 AI 后续操作':stopLabel}
+      onClick={event=>{event.preventDefault();onStop(event);}}>
+      <svg viewBox="0 0 24 24" aria-hidden="true"><rect x="6" y="6" width="12" height="12" rx="2"/></svg>
+     </OpenDeskIconButton>:
+    <OpenDeskIconButton id={sendId||undefined}
+      className="od-conversation-action od-conversation-action--primary"
+      type="button" onClick={submit} title={sendTitle} label={sendLabel}
+      disabled={blocked||!canSend||!draft.trim()}>
+      <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 19V5m-7 7 7-7 7 7"/></svg>
+     </OpenDeskIconButton>;
+ const composer=<form className={composerActionTarget?'od-conversation-composer od-conversation-composer--input-only':'od-conversation-composer'} onSubmit={submit}>
    <label className="od-conversation-sr" htmlFor={inputId}>{inputLabel}</label>
    <ConversationInput id={inputId} inputRef={input} value={draft}
     className="od-conversation-input" rows={inputRows} maxLength={maxLength}
@@ -77,18 +89,7 @@ export function SharedConversationFrame({
      if(event.key==='Enter'&&!event.shiftKey&&!event.nativeEvent?.isComposing&&
       !composing.current&&event.nativeEvent?.keyCode!==229){event.preventDefault();submit(event);}
     }}/>
-   {busy?<OpenDeskIconButton id={stopId||undefined}
-      className="od-conversation-action od-conversation-action--stop"
-      type="button" label={stopLabel} title={stopLabel==='停止对话'?'停止 AI 后续操作':stopLabel}
-      onClick={event=>{event.preventDefault();onStop(event);}}>
-      <svg viewBox="0 0 24 24" aria-hidden="true"><rect x="6" y="6" width="12" height="12" rx="2"/></svg>
-     </OpenDeskIconButton>:
-    <OpenDeskIconButton id={sendId||undefined}
-      className="od-conversation-action od-conversation-action--primary"
-      type="button" onClick={submit} title={sendTitle} label={sendLabel}
-      disabled={blocked||!canSend||!draft.trim()}>
-      <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 19V5m-7 7 7-7 7 7"/></svg>
-     </OpenDeskIconButton>}
+   {!composerActionTarget&&action}
   </form>;
  return <>
   {/* Fixed CSS only; both worlds use these exact rules without host/settings CSS. */}
@@ -104,6 +105,7 @@ export function SharedConversationFrame({
   {splitTargets
    ?composerTarget?createPortal(composer,composerTarget):null
    :composer}
+  {composerActionTarget&&createPortal(action,composerActionTarget)}
  </>;
 }
 

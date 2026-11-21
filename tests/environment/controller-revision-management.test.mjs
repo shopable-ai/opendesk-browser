@@ -144,6 +144,7 @@ for(const [name,change] of Object.entries({
 test('explicit revision load also protects draft and list selection while awaiting choice',async t=>{
   const shown=deferred(),choice=deferred(),f=setup(t,{confirm:()=>{shown.resolve();return choice.promise;}});
   await catalog(f);f.model.patch('script-id',{value:'saved-a'});f.setSource('draft');
+  f.model.patch('script-revision',{value:'3'});
   const pending=f.owner.load();await shown.promise;f.select('saved-b');choice.resolve({action:'confirm'});
   await assert.rejects(pending,{code:'E_REVISION'});noReplacement(f);
 });
@@ -195,4 +196,38 @@ for(const format of ['ESM','Classic'])test(`${format} verified author restoratio
   await catalog(f);await f.owner.loadLatest();assert.equal(f.source(),author);
   f.select('saved-b');await f.owner.loadLatest();
   assert.deepEqual(f.confirmations,[]);assert.equal(f.source(),'saved B');assert.deepEqual(f.requests,[]);
+});
+
+test('picker loads a pinned item without changing selection until successful application',async t=>{
+  const choice=deferred(),shown=deferred(),f=setup(t,{confirm:()=>{shown.resolve();return choice.promise;}});
+  await catalog(f);f.select('saved-b');f.setSource('draft');
+  const pending=f.owner.loadLatest({scriptId:'saved-a',revision:3,stillCurrent:()=>true});
+  await shown.promise;assert.equal(f.model.fields['script-list'].value,'saved-b');
+  choice.resolve({action:'confirm'});const row=await pending;
+  assert.equal(row.scriptId,'saved-a');assert.equal(f.model.fields['script-list'].value,'saved-a');
+  assert.equal(f.model.fields['script-source'].loadedScript.id,'saved-a');
+  assert.deepEqual(f.requests,[]);assert.deepEqual(f.writes,[]);
+});
+
+test('picker cancellation retains previous selection and current editing identity',async t=>{
+  const f=setup(t,{confirm:async()=>({action:'cancel'})});await catalog(f);f.select('saved-b');f.setSource('draft');
+  assert.equal(await f.owner.loadLatest({scriptId:'saved-a',revision:3}),false);
+  assert.equal(f.model.fields['script-list'].value,'saved-b');assert.equal(f.source(),'draft');noReplacement(f);
+});
+for(const stage of ['read','confirmation'])for(const change of ['close','same-head-refresh'])
+test(`picker ${change} invalidates a late ${stage} without replacing source`,async t=>{
+  const gate=deferred(),shown=deferred();let current=true;
+  const f=setup(t,{confirm:()=>{shown.resolve();return gate.promise;}});await catalog(f);f.setSource('draft');
+  if(stage==='read')f.setGet(()=>gate.promise);
+  const pending=f.owner.loadLatest({scriptId:'saved-a',revision:3,stillCurrent:()=>current});
+  if(stage==='confirmation')await shown.promise;
+  if(change==='close')current=false;else await f.owner.refresh({silent:true});
+  gate.resolve(stage==='read'?f.rows()[0]:{action:'confirm'});
+  await assert.rejects(pending,{code:'E_REVISION'});noReplacement(f);assert.equal(f.source(),'draft');
+});
+for(const change of ['id','revision','missing'])test(`picker rejects ${change} mismatch from storage`,async t=>{
+  const f=setup(t);await catalog(f);f.setSource('draft');
+  f.setGet(async()=>change==='missing'?null:{...f.rows()[0],...(change==='id'?{scriptId:'decoy'}:{revision:99})});
+  await assert.rejects(f.owner.loadLatest({scriptId:'saved-a',revision:3}),{code:'E_REVISION'});
+  noReplacement(f);assert.equal(f.source(),'draft');assert.deepEqual(f.confirmations,[]);
 });

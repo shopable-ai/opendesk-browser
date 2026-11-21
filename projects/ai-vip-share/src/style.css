@@ -86,8 +86,5 @@
 .ai-vip-desktop-copy{flex:1}
 .ai-vip-desktop-label{display:flex;gap:var(--space-2);align-items:center;margin:0 0 var(--space-1);color:var(--od-sub);font-size:var(--od-meta-size)}
 .ai-vip-desktop-copy>p:last-child{margin:var(--space-1) 0 0;color:var(--od-sub);font-size:var(--od-note-size);line-height:1.55}
-.ai-vip-service summary{color:var(--od-sub);font-size:var(--od-note-size)}
-.ai-vip-service-detail{padding:var(--space-2) var(--space-3);color:var(--od-sub);font-size:var(--od-note-size);line-height:1.55}
-.ai-vip-service-detail p{margin:0 0 var(--space-2)}
 @media(max-width:345px){.ai-vip-redeem-inputs{flex-wrap:wrap}.ai-vip-redeem-inputs>.od-button{width:100%}}
 @media(prefers-reduced-motion:reduce){.ai-vip-meter span{transition:none}}

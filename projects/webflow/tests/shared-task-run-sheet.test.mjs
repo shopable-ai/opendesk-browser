@@ -164,7 +164,6 @@ test('busy configuration keeps the complete safe reason readable and opens only 
   const main=f.document.querySelector('main');
   const order=[...main.querySelectorAll('*')];
   assert.ok(order.indexOf(main.querySelector('#wf-search'))<order.indexOf(feedback),'feedback follows search');
-  assert.match(feedback.previousElementSibling.textContent,/个固定脚本/);
   assert.ok(order.indexOf(feedback)<order.indexOf(f.row()),'feedback precedes rows');
   // linkedom does not implement native summary activation; expose the body
   // while exercising its real React action handlers below.
@@ -344,7 +343,7 @@ test('refresh drops original refs when Authority no longer returns them',async t
   await f.click('记录');
   assert.ok(f.find('查看原运行'));
   preparations.length=0;
-  await f.click('脚本');await f.click('刷新脚本安装状态');await f.click('记录');
+  await f.click('脚本');await f.click('筛选脚本');await f.click('刷新脚本安装状态');await f.click('记录');
   assert.doesNotMatch(f.text(),/no-longer-authorized|查看原运行/);
   assert.equal(f.calls.some(call=>call.name==='tasks.configure'),false);
   assertNoDispatch(f);

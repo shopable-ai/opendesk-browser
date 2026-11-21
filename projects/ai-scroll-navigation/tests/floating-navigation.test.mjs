@@ -488,11 +488,13 @@ test('long round counts reserve their full width before fitting a narrow scrollp
   f.rects.set(f.main,box(0,0,260,600));
   f.dock.refresh();
   assert.equal(f.host.shadowRoot.querySelector('.counter').textContent,'1/120');
-  assert.equal(f.host.style.visibility,'hidden',
-    'four buttons and the full count must not overlap the scrollport edge');
+  assert.equal(f.host.style.visibility,'visible');
+  assert.equal(f.host.shadowRoot.querySelector('.stack').classList.contains('compact'),false,
+    'use a vertical dock when four buttons and the full count do not fit horizontally');
   Object.assign(f.win,{innerWidth:390});
   f.rects.set(f.main,box(0,0,390,600));f.dock.refresh();
   assert.equal(f.host.style.visibility,'visible');
+  assert.equal(f.host.shadowRoot.querySelector('.stack').classList.contains('compact'),true);
   assert.equal(f.host.shadowRoot.querySelectorAll('button').length,4);
   f.owner.dispose();
 });

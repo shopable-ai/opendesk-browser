@@ -41,7 +41,6 @@ export function DiagnosticsPage({ state, busy, onRefresh, onStop, onProfiles, pr
   state: ViewState;
   busy: boolean;
   onRefresh: () => Promise<unknown>;
-  onProbe: () => Promise<unknown>;
   onStop: () => Promise<unknown>;
   onProfiles: () => void;
   presentation?: 'sidebar' | 'management' | 'quick';
@@ -497,12 +496,13 @@ export function DiagnosticsPage({ state, busy, onRefresh, onStop, onProfiles, pr
       {panel === 'speed' && <div className="diagnosticSection">
         <h3>{t(httpDiagnostics ? 'diagHttpTiming' : 'speedTest')}</h3>
         <p className="hint">{t(simulatedDiagnostics?'diagSpeedCaveat':httpDiagnostics?'diagLiveTiming':'diagSpeedNotConnected')}</p>
+        {httpDiagnostics && <p className="hint">{t(simulatedDiagnostics?'diagNoThroughput':'diagLiveNoThroughput')}</p>}
         {httpDiagnostics ? <div className="diagnosticSiteList">{AI_SITES.map(site => {
           const stats = snapshot?.statistics[site.id];
           return <article className="diagnosticSite" key={site.id}>
             <div className="diagnosticSiteName"><strong>{site.name}</strong><small>{site.domain}</small></div>
             <div className="diagnosticResult">
-              <small>{t('diagAttemptSummary', {success:stats?.successes ?? 0,
+              <small>{t(simulatedDiagnostics ? 'diagAttemptSummary' : 'diagLiveAttemptSummary', {success:stats?.successes ?? 0,
                 attempts:stats?.attempts ?? 0})}</small>
               <small>p50: {stats?.p50Ms === null || stats?.p50Ms === undefined ? '—' : stats.p50Ms + ' ms'}</small>
               <small>p95: {stats?.p95Ms === null || stats?.p95Ms === undefined ? '—' : stats.p95Ms + ' ms'}</small>
@@ -512,7 +512,6 @@ export function DiagnosticsPage({ state, busy, onRefresh, onStop, onProfiles, pr
         })}</div> : <div className="diagnosticUnavailable" role="status">
           <p>{t('diagSpeedNotConnected')}</p>
         </div>}
-        {httpDiagnostics && <p className="hint">{t(simulatedDiagnostics?'diagNoThroughput':'diagLiveNoThroughput')}</p>}
       </div>}
       {panel === 'proxy' && <div className="basicDiagnostic diagnosticSection">
         <h3>{t('basicProxyDiagnostics')}</h3>
@@ -524,11 +523,13 @@ export function DiagnosticsPage({ state, busy, onRefresh, onStop, onProfiles, pr
           <Button disabled={busy||locked} onClick={()=>void test([PUBLIC_HTTPS_CHECK.id])}>{t('diagPublicHttps')}</Button>
         </article>}
         <div className="actions">
-          <Button variant="primary" className="primary" disabled aria-describedby="diagnostic-probe-unavailable">{t('probeApiIpifyOrg')}</Button>
           <Button variant="secondary" disabled={busy} onClick={() => { void onRefresh(); void load(); }}>{t('refreshState')}</Button>
           <Button variant="secondary" className="diagnosticStopAction" disabled={busy || !(state.runtime.canStop || state.runtime.stopFinalizationPending)} onClick={() => void onStop()}>{t(state.runtime.stopFinalizationPending ? 'apFinishStop' : 'stopManagingAndReleaseControl')}</Button>
         </div>
-        <p id="diagnostic-probe-unavailable" className="hint">{t('theProbeTargetsApiIpifyOrgExtensionRequestsAlone')}</p>
+        <div className="diagnosticUnavailable">
+          <h4>{t('diagExitAndThroughput')}</h4>
+          <p>{t(simulatedDiagnostics ? 'diagExitAndThroughputPreview' : 'diagExitAndThroughputUnavailable')}</p>
+        </div>
       </div>}
       {(panel === 'proxy' || (panel === 'overview' && (!management || issues.some(code=>code!=='limited_evidence')))) && <div className="diagnosticIssues">
         <h3>{t('diagTroubleshoot')}</h3>

@@ -16,7 +16,7 @@ const tell=message=>{note.textContent=message+'（只修改隔离演示，未操
 const scene=document.getElementById('preview-scene');
 const allowed=new Set([
   'development','connect','first','empty','unconfigured','error','member','expired','link','permission',
-  'proxy-on','conflict','stop-pending','session','redeem','quota','guest','offline'
+  'proxy-on','conflict','stop-pending','session','redeem','recovery','quota','guest','offline'
 ]);
 const requested=new URL(location.href).searchParams.get('scene');
 scene.value=allowed.has(requested)?requested:'member';
@@ -25,6 +25,7 @@ scene.addEventListener('change',()=>{
   const url=new URL(location.href);
   if(scene.value==='member')url.searchParams.delete('scene');
   else url.searchParams.set('scene',scene.value);
+  url.searchParams.delete('run');
   url.searchParams.set('width',width.value);
   if(theme.value!=='system')url.searchParams.set('theme',theme.value);
   location.assign(url.href); // A new isolated Fixture, never a real account transition.

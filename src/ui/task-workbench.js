@@ -13,6 +13,7 @@ import {formatTaskValue, presentTaskValue, formatTaskError, formatTaskRunTechnic
 import {formatRunValue} from './run-value-format.js';
 import {matchTaskReviewHandoff,taskReviewHandoffKey} from './workflow/task-review-handoff.js';
 import {sameTaskPin} from '../platform/tasks/delegation-contract.js';
+import {BUILTIN_TASK_RELEASES} from '../platform/tasks/builtin-releases.js';
 import {TOOL_UI_CONFIRM_TIMEOUT_MS} from '../sidebar-tools/ui-confirm.js';
 
 const states={candidate:'待验证',verified:'本机验证通过',available:'本地可用'};
@@ -23,6 +24,17 @@ const candidateState=row=>row.runtimeCurrent===false?'运行时已更新，待�
 const terminal=new Set(['completed','failed','stopped','interrupted']);
 const runStateNames={preparing:'正在准备',running:'运行中',stopping:'正在停止',settling:'保存结果中',completed:'成功',failed:'失败',stopped:'已停止',interrupted:'已中断',paused_unknown:'状态待确认'};
 const textValue=formatTaskValue;
+const manualRevisionMessage='任务版本或安装授权已变化，本次未开始运行。请重新打开「参数与运行」，核对后再运行。';
+const baiduRunRelease=BUILTIN_TASK_RELEASES.find(pin=>pin.taskId==='baidu.search.top3'&&pin.version==='1.1.6');
+const baiduHome='https://www.baidu.com/';
+const changedTarget='原标签页已变化。请重新打开参数，或展开「更改执行标签页」重新选择。';
+const sameCurrentTarget=(a,b)=>a?.status==='available'&&b?.status==='available'&&
+  ['windowId','tabId','frameId','documentId','url','origin'].every(key=>a[key]===b[key]);
+const baiduRunPresentation=(row,info)=>Boolean(baiduRunRelease&&row?.taskId===baiduRunRelease.taskId&&
+  row.version===baiduRunRelease.version&&row.manifestHash===baiduRunRelease.manifestHash&&
+  info?.manifestHash===baiduRunRelease.manifestHash&&builtinRelease(info)&&
+  info.verification.manifestHash===baiduRunRelease.manifestHash&&info.verification.sourceHash===baiduRunRelease.sourceHash&&
+  info.manifest?.program.sourceHash===baiduRunRelease.sourceHash);
 
 export function createTaskWorkbench({client,host,currentPageTarget,api=globalThis.chrome,
   document:doc=globalThis.document,importDraft,executionSource,debugEnabled=false,
@@ -35,6 +47,9 @@ export function createTaskWorkbench({client,host,currentPageTarget,api=globalThi
   const developer=id=>developerView?.fields[id]??get(id);
   const editorSource=executionSource || (() => developer('script-source').value);
   let disposed=false, working=false, running=false, activeRunId=null, catalog=[], installed=[], renderKey=null;
+  let taskRunControl=null;
+  let taskRunSlotUnavailable=false;
+  let taskRunSequence=0;
   let toolActive=false, toolsViewListener=null, workflowRunId=null, workflowClaimPending=false;
   let agentStopRequested=false,agentStartSubmitted=false;
   let scheduledSurfaceActive=false, scheduledRunId=null;
@@ -62,6 +77,7 @@ export function createTaskWorkbench({client,host,currentPageTarget,api=globalThi
   const unknownUninstalls=new Map();
   const parameterDrafts=new Map();
   let sharedPreparation=null,sheetAuthorization=null,sheetBusy=false,sheetSequence=0,inspectionSequence=0;
+  let outcomeAcknowledgment=null;
   let sheetPageRequest=null,pageDiscovery=null;
   const dismissedPageRequests=new Set();
   const taskIdentity=row=>{
@@ -417,6 +433,40 @@ export function createTaskWorkbench({client,host,currentPageTarget,api=globalThi
       hidden:taskHidden&&developHidden});
 
   }
+  function ownedRunControl() {
+    const control=taskRunControl;
+    if(!control)return null;
+    if(control.runId)return host.currentRun===control.runId?control:null;
+    return running&&control.manual?control:null;
+  }
+  async function stopOwnedTask(control) {
+    if(disposed||ownedRunControl()!==control||control.stopPending||control.phase==='stopping')return;
+    if(!control.runId){
+      // The admission may already be on the wire. Remember this intent on the
+      // original attempt and fence only its returned run, never whatever runs next.
+      control.cancelRequested=true;
+      control.phase='stopping';
+      if(control.requestId)host.cancelStart?.(control.requestId);
+      update();
+      return;
+    }
+    control.stopPending=true;
+    control.stopIssue='';
+    update();
+    try{
+      const receipt=await host.stop({runId:control.runId,controller:true});
+      if(ownedRunControl()===control&&receipt?.state==='stopping'&&control.phase!=='unknown')control.phase='stopping';
+    }catch{
+      if(ownedRunControl()===control){
+        control.phase='unknown';
+        control.outcomeUncertain=true;
+        control.stopIssue='未能确认原任务已停止。请核对网页和运行记录，必要时只对这次运行再次请求停止。';
+      }
+    }finally{
+      control.stopPending=false;
+      if(!disposed&&taskRunControl===control)update();
+    }
+  }
   function catalogNotice(message='') {
     const state=catalogInitialization;
     const failure=state?.status==='failed'
@@ -424,12 +474,19 @@ export function createTaskWorkbench({client,host,currentPageTarget,api=globalThi
     ui('task-catalog-status').text=[message,failure].filter(Boolean).join('\n');
     myView.publish();
   }
-  function selectTaskReview(taskId) {
+  async function openCatalogTaskReview(taskId,version) {
+    const url=new URL(api.runtime.getURL(SIDEPANEL_DOCUMENT_PATH));
+    url.searchParams.set('taskReviewId',taskId);
+    if(version)url.searchParams.set('taskReviewVersion',version);
+    await api.tabs.create({url:url.href});
+  }
+  function selectTaskReview(taskId,version=null) {
     // URL data is only a selection hint. Resolve identity from the authoritative
     // catalog; no URL, source, permission or installation data is accepted.
     catalogQuery='';catalogFilter='all';
     ui('task-search').value='';
-    const matches=catalog.filter(row=>row.taskId===taskId&&row.runtimeCurrent!==false)
+    const matches=catalog.filter(row=>row.taskId===taskId&&row.runtimeCurrent!==false&&
+      (version===null||row.version===version))
       .sort((a,b)=>b.version.localeCompare(a.version,'en',{numeric:true}));
     const selected=matches.find(row=>row.stage==='available')||matches[0];
     catalogList.value=selected?identity(selected):'';
@@ -439,7 +496,7 @@ export function createTaskWorkbench({client,host,currentPageTarget,api=globalThi
       ? `已定位 ${identity(selected)} 固定版本；请审阅来源、源码与权限后确认安装。未自动安装、启用或运行。`
       : 'E_TASK_NOT_AVAILABLE：此任务暂无可审阅候选，请导入任务包或完成内置目录初始化后重试。');
   }
-  function showCatalogPage() {
+  function showCatalogPage(review=null) {
     const selectionAtOpen=catalogSelectionEpoch;
     catalogSurface=true;
     if(doc.documentElement?.dataset) doc.documentElement.dataset.opendeskSurface='catalog';
@@ -451,9 +508,9 @@ export function createTaskWorkbench({client,host,currentPageTarget,api=globalThi
       if(disposed||!catalogSurface)return;
       await refresh();
       if(disposed||!catalogSurface||catalogSelectionEpoch!==selectionAtOpen)return;
-      const reviewId=new URL(doc.location?.href||globalThis.location?.href||api.runtime.getURL(SIDEPANEL_DOCUMENT_PATH)).searchParams.get('taskReviewId');
-      if(reviewId!==null){
-        if(validTaskId(reviewId))selectTaskReview(reviewId);
+      if(review){
+        const ids=review.getAll('taskReviewId'),versions=review.getAll('taskReviewVersion');
+        if(ids.length===1&&validTaskId(ids[0])&&versions.length<=1)selectTaskReview(ids[0],versions[0]??null);
         else fail({code:'E_SCHEMA',message:'任务标识无效；请从目录重新选择或导入任务包'});
         return;
       }
@@ -569,23 +626,40 @@ export function createTaskWorkbench({client,host,currentPageTarget,api=globalThi
     return !localQuery || [info?.manifest.title,info?.manifest.description,
       row.taskId,...(info?.manifest.siteOrigins||[])].join(' ').toLocaleLowerCase().includes(localQuery);
   }
+  function runtimeRecovery(row,info) {
+    if(!row?.enabled||!info||info.manifestHash!==row.manifestHash)return null;
+    if(info.runtimeCurrent===false)return 'edit';
+    if(row.runtimeCurrent===false&&info.stage==='available')return 'update';
+    if(info.stage==='verified')return 'review';
+    return null;
+  }
+  function currentTaskOrigin(){
+    return currentPage?.status==='available'?new URL(currentPage.url).origin:'';
+  }
   function update() {
     if(disposed)return;
     const row=installedRow(),info=candidateFor(row),selected=candidate();
     const runtimeStale=row?.runtimeCurrent===false||info?.runtimeCurrent===false;
     const available=row?.enabled && !runtimeStale && info?.stage==='available';
-    myView.data.taskRuntimeRecovery=Boolean(row&&runtimeStale);
+    const recovery=runtimeRecovery(row,info);
+    myView.data.taskRuntimeRecovery=recovery;
     myView.data.taskRuntimeRecoveryDisabled=working||running||!!host.currentRun||!!sharedPreparation||sheetBusy;
-    let siteAvailable=false,origin='';
-    if(currentPage?.status==='available') {
-      origin=new URL(currentPage.url).origin;
-      siteAvailable=info?.manifest.siteOrigins.includes(origin)===true;
-    }
+    const origin=currentTaskOrigin();
+    const siteAvailable=info?.manifest.siteOrigins.includes(origin)===true;
     const siteState=origin?(siteAvailable?'matched':'unmatched'):'unavailable';
     const sheet=myView.data.taskRunSheet;
-    const ownedTarget=sheet?.source==='my'&&sameInstallation(sheet.identity,taskIdentity(row))&&sheet.target?.mode==='owned'
-      ?sheet.target:null;
-    let runSiteAvailable=siteAvailable;
+    const mySheet=sheet?.source==='my'?sheet:null;
+    const staleSheet=Boolean(mySheet&&(mySheet.phase==='stale'||!sameInstallation(mySheet.identity,taskIdentity(row))));
+    if(staleSheet&&mySheet.phase==='editing')
+      myView.data.taskRunSheet={...mySheet,phase:'stale',status:''};
+    const needsNewReview=staleSheet||row&&taskNotices.get(identity(row))===manualRevisionMessage;
+    const ownedTarget=mySheet?.target?.mode==='owned'?mySheet.target:null;
+    const frozenTarget=mySheet?.automaticTarget&&mySheet.target?.mode==='current';
+    myView.data.baiduRunTargetState=mySheet?.automaticTarget?{
+      currentAvailable:Boolean(siteTarget(mySheet.sites)),
+      changed:Boolean(frozenTarget&&!sameCurrentTarget(mySheet.target.page,currentPage)),
+    }:null;
+    let runSiteAvailable=siteAvailable&&(!frozenTarget||sameCurrentTarget(mySheet.target.page,currentPage));
     if(ownedTarget){
       runSiteAvailable=false;
       try{
@@ -599,27 +673,73 @@ export function createTaskWorkbench({client,host,currentPageTarget,api=globalThi
     ui('task-current-site').dataset.state=siteState;
     ui('task-current-site').title=origin || '';
     const otherPreparedTask=Boolean(sharedPreparation)&&myView.data.taskRunSheet?.source!=='tool';
-    // Presentation only; run/permission decisions below keep their existing owners.
-    const unknown=myView.data.taskHistory?.[0]?.runState==='paused_unknown'||
+    myView.data.taskTargetDisabled=working||running||!!host.currentRun||!!sharedPreparation||sheetBusy||staleSheet;
+    myView.data.taskTargetUrlError=ownedTarget&&!staleSheet&&!runSiteAvailable?'请输入已批准网站内的完整网址。':'';
+    myView.data.taskCurrentTargetOrigin=siteAvailable?origin:'';
+    const installation=taskIdentity(row);
+    const installedHistory=myView.data.taskHistory?.filter(run=>sameInstallation(run.installation,installation));
+    const latestRun=installedHistory?.[0];
+    const localUncertainty=taskRunControl?.outcomeUncertain&&taskRunControl.runId&&
+      sameInstallation(taskRunControl.installation,installation);
+    const uncertainRunId=localUncertainty?taskRunControl.runId:latestRun?.outcomeUncertain?latestRun.runId:null;
+    const uncertaintyRecord=uncertainRunId&&installedHistory?.find(run=>run.runId===uncertainRunId);
+    const unknown=Boolean(uncertainRunId)||
       row&&sameInstallation(myView.data.taskRunSheet?.identity,taskIdentity(row))&&myView.data.taskRunSheet?.phase==='unknown';
+    const control=ownedRunControl();
+    const sheetControl=control?.manual&&mySheet&&sameInstallation(control.installation,mySheet.identity)?control:null;
+    const admission=taskRunControl?.admissionUncertain?taskRunControl:null;
+    const sheetAdmission=admission&&mySheet&&sameInstallation(admission.installation,mySheet.identity)?admission:null;
+    const runHeld=Boolean(running||host.currentRun||taskRunSlotUnavailable||admission||uncertaintyRecord?.releasePending);
+    myView.data.taskSheetReconcile=mySheet&&!sheetControl&&(sheetAdmission||taskRunSlotUnavailable||uncertaintyRecord?.releasePending)?{
+      sheet:sheetSequence,requestId:sheetAdmission?.requestId,pending:sheetAdmission?.queryPending===true,
+    }:null;
+    const needsOutcomeReview=Boolean(uncertainRunId&&(!mySheet||
+      outcomeAcknowledgment?.sheet!==sheetSequence||outcomeAcknowledgment?.runId!==uncertainRunId));
+    myView.data.taskSheetOutcomeReview=mySheet&&!staleSheet&&uncertainRunId?{
+      sheet:sheetSequence,runId:uncertainRunId,required:needsOutcomeReview,
+      canConfirm:!runHeld&&uncertaintyRecord?.released===true,
+      record:uncertaintyRecord?[uncertaintyRecord.state,uncertaintyRecord.text].filter(Boolean).join('\n'):
+        '原运行记录尚未读回。请关闭参数，在任务详情刷新运行记录。',
+    }:null;
     myView.data.taskSelection=unknown?{label:'结果未知',tone:'warning'}:
       running||host.currentRun?{label:runOwnerKey=== (row&&identity(row))?'运行中':'其他任务运行中',tone:'muted'}:
-      working?{label:'处理中',tone:'muted'}:!row?.enabled?{label:'已停用',tone:'muted'}:
+      working?{label:'处理中',tone:'muted'}:needsNewReview?{label:'需重新核对',tone:'warning'}:!row?.enabled?{label:'已停用',tone:'muted'}:
       !origin?{label:'网页不可用',tone:'warning'}:!siteAvailable?{label:'其他网站',tone:'warning'}:
       !available?{label:'暂不可运行',tone:'warning'}:otherPreparedTask?{label:'等待原任务',tone:'muted'}:
-      {label:'就绪',tone:'positive'};
-    ui('task-current-site').text=unknown?'先核对原运行记录':!row?.enabled?'可在任务管理中恢复':
-      !origin?'打开普通网页后再试':!siteAvailable?'适用 '+(info?.manifest.siteOrigins.join('、')||'已批准的网站'):'当前网页适用';
-    ui('task-run').disabled=working||running||!!host.currentRun||otherPreparedTask||
+      {label:'待运行',tone:'positive'};
+    ui('task-current-site').text=unknown?'先核对原运行记录':needsNewReview?'请重新打开「参数与运行」':!row?.enabled?'可在任务管理中恢复':
+      !origin?'打开普通网页后再试':!siteAvailable?'适用 '+(info?.manifest.siteOrigins.join('、')||'已批准的网站'):'当前网站在任务范围内，运行时核对具体页面';
+    ui('task-run').disabled=working||runHeld||needsOutcomeReview||otherPreparedTask||staleSheet||Boolean(mySheet&&sheetBusy)||
       !available||!runSiteAvailable||!taskMatchesView(row,info);
-    myView.data.taskRunBlockedReason=working?'正在处理任务，请稍候':running||host.currentRun?'已有任务正在运行，请先停止或等待完成':
+    const runLabel=control&&'「'+control.title+'」';
+    myView.data.taskSheetRunControl=sheetControl?{
+      token:sheetControl.token, sheet:sheetSequence, title:sheetControl.title, pending:sheetControl.stopPending||sheetControl.phase==='stopping',
+      issue:sheetControl.stopIssue||'', label:sheetControl.phase==='unknown'?'停止并收尾':sheetControl.runId?'停止任务':'取消启动',
+    }:null;
+    myView.data.taskRunBlockedReason=control&&(!mySheet||sheetControl)?(control.phase==='unknown'
+      ?runLabel+'的运行结果待确认，执行槽还未释放。停止后仍需核对网页是否已变化。'
+      :control.stopPending||control.phase==='stopping'?runLabel+'正在停止。请等待原运行收尾。'
+      :control.phase==='settling'?runLabel+'正在收尾。请等待执行槽释放。'
+      :control.runId?runLabel+'正在运行。':runLabel+'正在准备启动。'):
+      admission?(sheetAdmission?'启动回执尚未确认。可取消原启动；如果已接纳，只会收尾原运行。':
+        '「'+admission.title+'」的启动回执尚未确认。请打开该任务的「参数与运行」处理。'):
+      working||mySheet&&sheetBusy?'正在处理任务，请稍候':running||host.currentRun?'已有任务正在运行。可关闭参数，到原执行入口查看或停止。':
       otherPreparedTask?'Web Flow 有尚未释放的准备或执行身份，请先核对原步骤，不能从「我的」另起任务':
+      staleSheet?manualRevisionMessage:
+      uncertaintyRecord?.releasePending?'原运行的资源尚未确认释放。请查看原运行记录。':
+      taskRunSlotUnavailable?'执行槽尚未释放。可查询最新状态，或回到原执行入口查看。':
+      needsOutcomeReview?'网页操作是否生效尚未确认。请核对目标网页和原运行记录，再决定是否发起一次新的运行。':
+      uncertainRunId?'已核对原运行。原网页效果仍未知；点击「运行任务」会开始一次新的运行。':
       !row?'请先选择任务':!row.enabled?'此任务已停用，请在「更多操作」中启用':
-      runtimeStale?'运行时已更新；需在开发中重新验证同一固定版本，再确认安装后才能运行':
+      recovery==='update'?(builtinRelease(info)?'浏览器运行环境已更新。此任务需更新安装。':'此版本已通过验证。请确认更新安装后再运行。'):
+      recovery==='review'?'此版本已通过验证。请在任务目录设为可用，再确认安装。':
+      recovery==='edit'?'浏览器运行环境已更新。请试运行原任务源码，再确认更新安装。':
+      runtimeStale?'此任务的运行时验证已过期，请在任务目录核对固定版本。':
       !available?'此固定版本尚未设为可用，请在任务目录核查验证及发布状态':!runSiteAvailable?
-      ownedTarget?'请输入此任务已批准网站内的完整网址':siteMessage:
+      ownedTarget?myView.data.taskTargetUrlError:frozenTarget?changedTarget:mySheet?.sites?.length?
+      (origin?'当前标签页不在适用网站内。请选择「新建标签页」。':'当前标签页不可用。请选择「新建标签页」。'):siteMessage:
       !taskMatchesView(row,info)?'此任务不在当前搜索结果中，请重新选择':'';
-    ui('task-stop').disabled=!activeRunId || host.currentRun!==activeRunId;
+    ui('task-stop').disabled=!activeRunId || host.currentRun!==activeRunId || Boolean(control?.stopPending||control?.phase==='stopping');
     ui('task-fork-draft').disabled=!row||working;
     ui('task-view-code').disabled=!row||!info;
     const toggleAction=ui('task-toggle'),toggleLabel=row?.enabled?'停用任务':'恢复任务';
@@ -638,7 +758,7 @@ export function createTaskWorkbench({client,host,currentPageTarget,api=globalThi
     ui('task-publish').disabled=working||!selected||selected.stage!=='verified'||selected.runtimeCurrent===false;
     ui('task-install').disabled=working||!selected||selected.stage!=='available'||selected.runtimeCurrent===false||
       selected.installed&&selected.enabled&&!needsReinstall||candidatePermission?.manifestHash!==selected?.manifestHash||!candidatePermission?.state;
-    ui('task-install').text=needsReinstall?'确认更新运行时安装':selected?.installed?'已安装':addedTaskSites(selected).length?'确认新增权限并安装':'安装确定版本';
+    ui('task-install').text=needsReinstall?'确认更新安装':selected?.installed?'已安装':addedTaskSites(selected).length?'确认新增权限并安装':'安装确定版本';
     patchDeveloperField(developerView,developer('task-create-candidate'),{disabled:working});
     }
     syncRunDock();myView.publish();
@@ -860,6 +980,15 @@ export function createTaskWorkbench({client,host,currentPageTarget,api=globalThi
       return {text:preview.text, fullText:preview.redacted||preview.truncated ? formatRunValue(decoded) : null};
     } catch {return {text:formatTaskError({code:'E_RESULT_FORMAT',message:'持久结果无法在当前界面解码'})};}
   }
+  function resultStateLabel(run,result,baidu) {
+    if(baidu&&run.state==='completed'&&result?.outcome?.ok){
+      try {
+        const value=decodeValue(result.outcome.valueWire);
+        if(value?.kind==='baidu.search.top3.result'&&value.status==='stopped')return '搜索未完成';
+      } catch { /* The result view handles unreadable output. */ }
+    }
+    return runStateNames[run.state]||run.state||'状态待确认';
+  }
   async function refreshHistory() {
     const seq=++historySequence,row=installedRow();
     if(!row){
@@ -878,6 +1007,7 @@ export function createTaskWorkbench({client,host,currentPageTarget,api=globalThi
     }
     if(disposed||seq!==historySequence||installedRow()?.taskId!==row.taskId)return;
     myView.data.taskHistoryState='ready';
+    taskRunSlotUnavailable=view.slotAvailable===false;
     const runs=view.runs.filter(value=>value.revision?.scriptId===row.scriptId).slice(-8).reverse();
     const matching=view.results.filter(value=>value.revision?.scriptId===row.scriptId);
     if(!runs.length){
@@ -886,9 +1016,13 @@ export function createTaskWorkbench({client,host,currentPageTarget,api=globalThi
       myView.data.taskResultMeta=null;
       ui('task-history-panel').hidden=false;ui('task-result-panel').hidden=true;update();return;
     }
+    const baidu=baiduRunPresentation(row,candidateFor(row));
     myView.project('taskHistory',runs.map((run,index)=>{
       const result=matching.find(value=>value.runId===run.runId);
-      return {runId:run.runId,runState:run.state,state:runStateNames[run.state]||run.state||'状态待确认',
+      return {runId:run.runId,runState:run.state,state:resultStateLabel(run,result,baidu),
+        installation:run.taskInstallation&&{...run.taskInstallation,contentHash:run.revision?.sourceHash},
+        outcomeUncertain:run.outcomeUncertain===true||run.state==='paused_unknown'||run.terminalReason?.code==='E_EFFECT_UNKNOWN'||result?.outcome?.error?.code==='E_EFFECT_UNKNOWN',
+        released:run.retirementState==='released',releasePending:run.retirementState!=='released',
         time:Number.isFinite(run.createdAt)?new Date(run.createdAt).toLocaleString([],{month:'numeric',day:'numeric',hour:'2-digit',minute:'2-digit'}):'',
         ordinal:index+1,...taskResultView(run,result),technical:formatTaskRunTechnical(run,result)};
     }));
@@ -896,16 +1030,17 @@ export function createTaskWorkbench({client,host,currentPageTarget,api=globalThi
     ui('task-result-panel').hidden=runs[0].state==='paused_unknown';
     const latest=matching.find(value=>value.runId===runs[0].runId);
     const presented=taskResultView(runs[0],latest);
-    myView.data.taskResultMeta={state:runStateNames[runs[0].state]||'状态待确认',
+    myView.data.taskResultMeta={state:resultStateLabel(runs[0],latest,baidu),
       owner:'任务：'+(candidateFor(row)?.manifest.title||row.taskId)+(myView.data.taskHistory[0]?.time?' · '+myView.data.taskHistory[0].time:'')};
     latestResultDisplay={...presented,taskKey:identity(row)};
     ui('task-result').text=presented.text;
     const reveal=ui('task-result-reveal');
     reveal.hidden=typeof presented.fullText!=='string';
     reveal.dataset.revealed='false';
-    if(activeRunId&&identity(row)===runOwnerKey&&runs.some(value=>value.runId===activeRunId)){
-      const live=matching.find(value=>value.runId===activeRunId);
-      if(live)setTaskNotice(identity(row),`本次任务：${runStateNames[live.state]||live.state}`);
+    if(activeRunId&&identity(row)===runOwnerKey){
+      const run=runs.find(value=>value.runId===activeRunId),result=matching.find(value=>value.runId===activeRunId);
+      if(run&&result&&run.state!=='paused_unknown')setTaskNotice(identity(row),
+        (baidu?'上次执行：':'本次任务：')+resultStateLabel(run,result,baidu));
     }
     update();
   }
@@ -1043,7 +1178,7 @@ export function createTaskWorkbench({client,host,currentPageTarget,api=globalThi
       return expectedIdentity?false:undefined;
     }
     const writeAuthorization=preparation?sheetAuthorization:null;
-    let chosen,params,site,permission,captured,runTarget;
+    let chosen,params,site,permission,captured,runTarget,startRequested=false;
     try {
       chosen=agentIntent?installed.find(row=>row.taskId===agentIntent.taskId):installedRow();
       if(!agentIntent)for(const {name}of myView.data.taskParams||[])ui('task-param-'+name).error='';
@@ -1058,12 +1193,15 @@ export function createTaskWorkbench({client,host,currentPageTarget,api=globalThi
       if(!chosen?.enabled||info?.stage!=='available')throw {code:'E_PERMISSION',message:'当前任务未启用或不可安装'};
       if(preparation&&(preparation.state!=='prepared'||!sameInstallation(preparation.task,expectedIdentity)))
         throw {code:'E_REVISION',message:'原准备任务身份已变化，只能查询原请求'};
+      const sheet=myView.data.taskRunSheet;
+      const manualTarget=expectedIdentity&&sheet?.source==='my'&&sameInstallation(sheet.identity,expectedIdentity)?sheet.target:null;
       if(preparation?.target?.mode==='owned')runTarget={...preparation.target};
-      else if(expectedIdentity&&myView.data.taskRunSheet?.source==='my'&&
-        sameInstallation(myView.data.taskRunSheet.identity,expectedIdentity)&&
-        myView.data.taskRunSheet.target?.mode==='owned')runTarget={...myView.data.taskRunSheet.target};
+      else if(manualTarget?.mode==='owned')runTarget={...manualTarget};
       else{
-        captured=currentPageTarget.capture();
+        const live=currentPageTarget.capture();
+        if(manualTarget?.mode==='current'&&!sameCurrentTarget(manualTarget.page,live))
+          throw {code:'E_DOCUMENT_STALE',message:changedTarget};
+        captured=manualTarget?.mode==='current'?manualTarget.page:live;
         if(preparation&&(preparation.target.tabId!==captured.tabId||preparation.target.documentId!==captured.documentId||
           preparation.target.expectedUrl!==captured.url||preparation.target.expectedWindowId!==captured.windowId))
           throw {code:'E_DOCUMENT_STALE',message:'保存后的任务或目标网页已变化，请取消准备后重新核对'};
@@ -1077,13 +1215,23 @@ export function createTaskWorkbench({client,host,currentPageTarget,api=globalThi
         paramsFromForm(info.manifest.paramsSchema);
       chosen={...chosen,manifestHash:info.manifestHash,title:info.manifest.title};
       permission=requireChromePermissions({api,request:{origins:[permissionPattern(targetUrl)]}});
-    }catch(error){fail(error);return agentIntent?Promise.reject(error):(expectedIdentity?false:undefined);}
+    }catch(error){
+      const sheet=myView.data.taskRunSheet;
+      if(error.code==='E_REVISION'&&!agentIntent&&!preparation&&sheet?.source==='my'&&
+        sameInstallation(sheet.identity,expectedIdentity)){
+        myView.data.taskRunSheet={...sheet,phase:'stale',status:''};
+        update();
+      }else fail(error);
+      return agentIntent?Promise.reject(error):(expectedIdentity?false:undefined);
+    }
     const sequence=sheetSequence;
     // A reopened preparation has the same ID but owns a new sheet instance.
     const currentSheet=()=>!disposed&&sequence===sheetSequence&&
       myView.data.taskRunSheet?.preparationId===preparation?.preparationId;
     running=true;activeRunId=null;agentStopRequested=false;agentStartSubmitted=false;
     runOwnerKey=identity(chosen);runOwnerTitle=chosen.title||chosen.taskId;
+    const control=taskRunControl={token:++taskRunSequence,title:runOwnerTitle,manual:!preparation&&!agentIntent,installation:taskIdentity(chosen),
+      runId:null,phase:'preparing'};
     ui('task-result-panel').hidden=true;update();
     setTaskNotice(runOwnerKey,'正在检查访问权限并验证目标网页');
     const pendingRun=(async()=>{
@@ -1113,14 +1261,22 @@ export function createTaskWorkbench({client,host,currentPageTarget,api=globalThi
         throw {code:'E_CANCELLED',message:'已请求停止，尚未启动任务'};
       if(writeAuthorization)await writeAuthorization();
       if(preparation&&captured)await currentPageTarget.revalidate(captured);
+      if(control.cancelRequested){
+        setTaskNotice(identity(chosen),'已取消启动，任务未执行。');
+        return null;
+      }
       agentStartSubmitted=Boolean(agentIntent);
+      startRequested=true;
+      if(control.manual)control.requestId=crypto.randomUUID();
       const claim=await host.start({source:{kind:'saved',scriptId:resolved.scriptId,revision:resolved.revision,
           contentHash:resolved.contentHash},params,expectedTaskGeneration:chosen.generation??null,expectedTaskInstallationId:chosen.installationId??null,
         target:runTarget,
+        ...(control.requestId?{requestId:control.requestId,reconcileAdmission:true}:{}),
         ...(preparation?{taskPreparationId:preparation.preparationId,
           requestId:preparation.preparationId,...(preparation.binding?{taskDelegation:preparation.binding}:{})}:{}),
         deadlineAt:preparation?.deadlineAt??Date.now()+(preparation?.executionDeadlineMs??resolved.manifest.deadlineMs??30000)});
-      activeRunId=claim.runId;agentStartSubmitted=false;
+      control.runId=activeRunId=claim.runId;control.phase='running';agentStartSubmitted=false;
+      const completionPromise=host.completion;
       if(preparation&&currentSheet())sheetStatus('已提交原运行；查询原请求查看真实结果。','submitted');
       if(agentIntent&&agentStopRequested){
         // Stop can arrive while the RunHost admission RPC has been sent but
@@ -1132,20 +1288,27 @@ export function createTaskWorkbench({client,host,currentPageTarget,api=globalThi
       }
       setTaskNotice(runOwnerKey,`运行中：${resolved.manifest.title} · v${resolved.version}`);
       update(); // Expose the owning Stop immediately; do not rely on a later host event.
-      const completion=await host.completion;
+      if(control.cancelRequested)void stopOwnedTask(control);
+      const completion=await completionPromise;
       reportTaskUsage('event.manual_result',resolved.taskId,claim.runId);
-      if(completion?.state==='paused_unknown'||completion?.pendingSettlement)
+      if(completion?.state==='paused_unknown'||completion?.pendingSettlement){
+        control.phase='unknown';
+        control.outcomeUncertain=true;
         setTaskNotice(runOwnerKey,unresolvedTaskRunMessage());
-      else if(completion?.error)setTaskNotice(runOwnerKey,formatTaskError(completion.error));
+      }else if(completion?.error)setTaskNotice(runOwnerKey,formatTaskError(completion.error));
       return {runId:claim.runId,completion,taskId:resolved.taskId,
         version:resolved.version,installationId:resolved.installationId};
     })().catch(async error=>{
+      if(control.requestId&&!control.runId&&error.admissionRequestId===control.requestId){
+        control.admissionUncertain=true;
+      }
       if(agentIntent&&agentStartSubmitted)
         error={code:'E_OUTCOME_UNKNOWN',
           message:'RunHost.start 已提交但未取得可靠 runId；可能已产生网页变化，请勿重放'};
       if(activeRunId)reportTaskUsage('event.manual_result',chosen.taskId,activeRunId);
       if(error.code==='E_REVISION'&&!disposed)await refresh(undefined,{skipUnchanged:true}).catch(fail);
-      setTaskNotice(identity(chosen),formatTaskError(error));
+      setTaskNotice(identity(chosen),!agentIntent&&!preparation&&!startRequested&&error.code==='E_REVISION'
+        ?manualRevisionMessage:formatTaskError(error));
       if(preparation&&currentSheet())sheetStatus(formatTaskError(error)+'；请查询原请求，不要重跑。','unknown');
       if(agentIntent)throw error;
       return null;
@@ -1466,16 +1629,30 @@ export function createTaskWorkbench({client,host,currentPageTarget,api=globalThi
   };
   registerAction('taskSheetTargetChange',(event,mode,expected)=>{
     const sheet=editableMyTarget(event,expected);
-    if(!sheet||!['current','owned'].includes(mode))return;
+    if(!sheet)return;
+    if(mode==='auto'&&sheet.automaticTarget){
+      myView.data.taskRunSheet={...sheet,target:sheet.automaticTarget,targetChoice:'auto'};update();return;
+    }
+    if(!['current','owned'].includes(mode)||mode==='owned'&&!sheet.sites?.length)return;
+    const current=mode==='current'&&sheet.automaticTarget?siteTarget(sheet.sites):null;
+    if(mode==='current'&&sheet.automaticTarget&&!current)return;
     const {target,...rest}=sheet;
-    myView.data.taskRunSheet={...rest,...(mode==='owned'?{target:{mode:'owned',url:sheet.sites[0]+'/'}}:{})};
+    const ownedUrl=sheet.ownedUrl??target?.url??(sheet.sites?.length?sheet.sites[0]+'/':'');
+    const next=mode==='owned'?{mode:'owned',url:ownedUrl}:
+      current?{mode:'current',page:current}:null;
+    myView.data.taskRunSheet={...rest,ownedUrl,...(next?{target:next}:{}),
+      ...(sheet.automaticTarget?{targetChoice:mode}:{})};
     update();
   });
   registerAction('taskSheetTargetUrlInput',(event,url,expected)=>{
     const sheet=editableMyTarget(event,expected);
     if(!sheet||sheet.target?.mode!=='owned'||typeof url!=='string')return;
-    myView.data.taskRunSheet={...sheet,target:{mode:'owned',url}};update();
+    myView.data.taskRunSheet={...sheet,ownedUrl:url,target:{mode:'owned',url}};update();
   });
+  function siteTarget(sites){
+    const page=currentPageTarget?.snapshot;
+    return page?.status==='available'&&sites?.includes(page.origin||new URL(page.url).origin)?Object.freeze({...page}):null;
+  }
   registerAction('taskParametersOpen',(taskId,event,trigger)=>{
     if(!event?.isTrusted||disposed||pendingTaskUninstall||sheetBusy)return false;
     const sequence=++sheetSequence;
@@ -1484,8 +1661,19 @@ export function createTaskWorkbench({client,host,currentPageTarget,api=globalThi
     }
     if(sharedPreparation){showPreparation(sharedPreparation);return true;}
     selectSheetTask(taskId);sheetAuthorization=null;sheetPageRequest=null;
-    myView.project('taskRunSheet',{identity:taskIdentity(installedRow()),title:candidateFor(installedRow())?.manifest.title,
-      source:'my',phase:'editing',trigger,sites:candidateFor(installedRow())?.manifest.siteOrigins,status:''});
+    const row=installedRow(),info=candidateFor(row),manifest=info?.manifest,sites=manifest?.siteOrigins;
+    // A new explicit review ends the prior revision rejection, not any run or its receipt.
+    if(taskNotices.get(identity(row))===manualRevisionMessage){
+      taskNotices.delete(identity(row));renderTaskStatus();
+    }
+    const baidu=baiduRunPresentation(row,info),page=baidu?siteTarget(sites):null;
+    const automaticTarget=baidu?(page?{mode:'current',page}:{mode:'owned',url:baiduHome}):null;
+    const target=automaticTarget||(sites?.length&&!sites.includes(currentTaskOrigin())?{mode:'owned',url:sites[0]+'/'}:null);
+    // Default the target once. Only the person's Run click can open the tab.
+    myView.data.taskRunSheet={identity:taskIdentity(row),title:manifest?.title,
+      source:'my',phase:'editing',trigger,sites,description:manifest?.description,status:'',...(target?{target}:{}),
+      ...(automaticTarget?{automaticTarget,targetChoice:'auto'}:{})};
+    update();
     // Discovery is read-only. A cross-host preparation is also enforced again
     // by Authority, even if this asynchronous hint has not reached the UI yet.
     void inspectPreparation(null,{show:true}).catch(error=>{
@@ -1498,25 +1686,38 @@ export function createTaskWorkbench({client,host,currentPageTarget,api=globalThi
     rememberParams();persistParams();sheetSequence++;sheetBusy=false;sheetValidation=null;sheetPageRequest=null;
     myView.project('taskRunSheet',null);update();
   });
-  registerAction('taskSheetRuntimeRecoveryClick',async(event,expected)=>{
+  registerAction('taskSheetRuntimeRecoveryClick',async(event,expected,action)=>{
     const sheet=myView.data.taskRunSheet,sequence=sheetSequence;
+    const row=installedRow(),recovery=runtimeRecovery(row,candidateFor(row));
     if(!event?.isTrusted||sheetBusy||working||disposed||sheet?.source!=='my'||sheet.phase!=='editing'||
-      running||host.currentRun||sharedPreparation||!myView.data.taskRuntimeRecovery||
-      !sameInstallation(sheet.identity,expected))return false;
+      running||host.currentRun||sharedPreparation||!recovery||recovery!==action||
+      !sameInstallation(sheet.identity,expected)||!sameInstallation(taskIdentity(row),expected))return false;
     const current=()=>!disposed&&sequence===sheetSequence&&myView.data.taskRunSheet?.source==='my';
+    const recoveryStatus=status=>{
+      if(!current())return;
+      myView.data.taskRunSheet={...myView.data.taskRunSheet,recoveryStatus:status,busy:sheetBusy};
+      update();
+    };
     const validate=()=>{
       if(!current()||!sameInstallation(expected,taskIdentity(installedRow())))
         throw {code:'E_TASK_CHANGED',message:'任务安装身份已变化，请重新打开核对'};
       if(working||running||host.currentRun||sharedPreparation)
         throw {code:'E_TASK_BUSY',message:'已有任务或共享准备，请先核对原操作'};
     };
-    sheetBusy=true;rememberParams();persistParams();sheetStatus('正在读取同一固定版本；只导入开发草稿，不运行或安装。');update();
+    sheetBusy=true;rememberParams();persistParams();
+    recoveryStatus(recovery==='edit'?'正在准备开发草稿…':'正在打开此版本的任务目录…');
     try{
       await inspectPreparation();validate();
-      const imported=await fork(event,{validate});
-      if(imported&&current())myView.actions.taskSheetClose();
-      return imported;
-    }catch(error){if(current())sheetStatus(formatTaskError(error));return false;}
+      if(runtimeRecovery(installedRow(),candidateFor(installedRow()))!==recovery)
+        throw {code:'E_TASK_CHANGED',message:'任务验证状态已变化，请核对当前可用操作'};
+      if(recovery==='edit'){
+        if(!await fork(event,{validate})){
+          recoveryStatus('未打开开发草稿，已保留参数。可以重试。');return false;
+        }
+      }else await openCatalogTaskReview(row.taskId,row.version);
+      if(current())myView.actions.taskSheetClose();
+      return true;
+    }catch(error){recoveryStatus('未完成恢复：'+formatTaskError(error));return false;}
     finally{if(current()){sheetBusy=false;myView.data.taskRunSheet={...myView.data.taskRunSheet,busy:false};update();}}
   });
   registerAction('taskSheetPrepareClick',prepareSheet);
@@ -1575,8 +1776,54 @@ export function createTaskWorkbench({client,host,currentPageTarget,api=globalThi
       if(current()){sheetBusy=false;myView.data.taskRunSheet={...myView.data.taskRunSheet,busy:false};myView.publish();}});
   });
   registerAction('taskSheetStopClick',event=>myView.actions.taskSheetCancelClick?.(event));
-  registerAction('taskStopClick',asyncAction(()=>activeRunId && host.currentRun===activeRunId?
-    host.stop({runId:activeRunId,controller:true}):Promise.resolve()));
+  registerAction('taskStopClick',event=>{
+    const control=ownedRunControl();
+    if(event?.isTrusted&&control?.runId)return stopOwnedTask(control);
+  });
+  registerAction('taskSheetStopOwnedClick',(event,token,sequence)=>{
+    const control=ownedRunControl(),sheet=myView.data.taskRunSheet;
+    if(event?.isTrusted&&sheet?.source==='my'&&sequence===sheetSequence&&control?.manual&&control.token===token&&
+      sameInstallation(control.installation,sheet.identity))return stopOwnedTask(control);
+  });
+  registerAction('taskSheetReviewOutcomeClick',(event,runId,sequence)=>{
+    const sheet=myView.data.taskRunSheet,review=myView.data.taskSheetOutcomeReview;
+    if(!event?.isTrusted||disposed||working||running||host.currentRun||sheet?.source!=='my'||sheet.phase!=='editing'||
+      sequence!==sheetSequence||review?.runId!==runId||!review.required||!review.canConfirm||
+      !sameInstallation(sheet.identity,taskIdentity(installedRow())))return;
+    outcomeAcknowledgment={sheet:sequence,runId};update();
+  });
+  registerAction('taskSheetReconcileClick',async(event,sequence,requestId)=>{
+    const review=myView.data.taskSheetReconcile,sheet=myView.data.taskRunSheet;
+    if(!event?.isTrusted||disposed||sheet?.source!=='my'||sequence!==sheetSequence||
+      review?.sheet!==sequence||review.requestId!==requestId)return;
+    const control=requestId?taskRunControl:null;
+    if(requestId&&(control?.requestId!==requestId||!control.admissionUncertain||control.queryPending||
+      !sameInstallation(control.installation,sheet.identity)))return;
+    if(control)control.queryPending=true;
+    update();
+    try{
+      if(control){
+        const receipt=await host.reconcileControllerAdmission(requestId);
+        if(disposed||taskRunControl!==control||receipt?.requestId!==requestId)return;
+        const taskKey=identity(control.installation);
+        if(receipt.state==='not-admitted'){
+          control.admissionUncertain=false;
+          setTaskNotice(taskKey,'原启动已取消，后台确认未接纳。');
+        }else if(receipt.admissionState==='admitted'&&receipt.runId&&receipt.retirement?.state==='released'){
+          control.admissionUncertain=false;
+          control.runId=receipt.runId;
+          control.outcomeUncertain=receipt.outcomeUncertain===true;
+          setTaskNotice(taskKey,control.outcomeUncertain?unresolvedTaskRunMessage():'原运行已收尾，资源已释放。');
+        }else setTaskNotice(taskKey,'原启动尚未确认收尾。请稍后重试取消。');
+      }
+    }catch{
+      if(control&&taskRunControl===control)setTaskNotice(identity(control.installation),'无法确认原启动已收尾。请稍后重试取消。');
+    }
+    finally{
+      if(control)control.queryPending=false;
+      if(!disposed){await refreshHistory().catch(fail);update();}
+    }
+  });
   registerAction('taskRefreshClick',asyncAction(()=>refresh()));
   registerAction('taskCatalogRefreshClick',asyncAction(()=>refresh()));
   registerAction('taskPackageFileChange',asyncAction(async()=>{
@@ -1641,14 +1888,22 @@ export function createTaskWorkbench({client,host,currentPageTarget,api=globalThi
   const unsubscribeRun=host.subscribe(value=>{
     if(disposed)return;
     if(value?.runId&&value.runId===activeRunId) {
-      setTaskNotice(runOwnerKey,`任务状态：${runStateNames[value.state]||value.state||'运行中'}`);
+      const control=taskRunControl;
+      if(control?.runId===value.runId){
+        if(value.state==='paused_unknown'||value.pendingSettlement||value.retirement?.state==='pending')control.phase='unknown';
+        else if(value.state==='stopping')control.phase='stopping';
+        else if(terminal.has(value.state))control.phase='settling';
+        if(value.state==='paused_unknown'||value.result?.outcome?.error?.code==='E_EFFECT_UNKNOWN')control.outcomeUncertain=true;
+      }
+      setTaskNotice(runOwnerKey,value.state==='paused_unknown'?unresolvedTaskRunMessage():
+        '任务状态：'+(runStateNames[value.state]||value.state||'运行中'));
       if(terminal.has(value.state))refreshHistory().catch(fail);
     }
     renderTaskStatus();update();
   });
   const unsubscribePageTasks=client.subscribePageTasks?.(()=>{void refreshPageTaskRequests().catch(fail);});
   const unsubscribeConn=client.subscribeConnection?.(state=>{if(state.connected){
-    refresh().catch(fail);void refreshPageTaskRequests().catch(fail);
+    refresh().then(()=>refreshHistory()).catch(fail);void refreshPageTaskRequests().catch(fail);
   }else dismissTaskUninstall();});
   client.ready.then(async()=>{
     await restoreParams().catch(error=>console.warn('Task parameter drafts could not be restored',error));
@@ -1700,9 +1955,7 @@ export function createTaskWorkbench({client,host,currentPageTarget,api=globalThi
     if(disposed)return false;
     if(installed.some(row=>row.taskId===taskId))return this.focusInstalledTask(taskId);
     if(catalogSurface){selectTaskReview(taskId);return true;}
-    const url=new URL(api.runtime.getURL(SIDEPANEL_DOCUMENT_PATH));
-    url.searchParams.set('taskReviewId',taskId);
-    await api.tabs.create({url:url.href});
+    await openCatalogTaskReview(taskId);
     return true;
   },focusInstalledTask(taskId) {
     // Selecting an installed task for management is safe even when it is disabled.

@@ -16,6 +16,7 @@ const DISPLAY_NAME='l***@fixture.test';
 const DEMO_CODE='DEMO-VIP-01';
 const DEMO_ASSIGNMENTS=Object.freeze({'DEMO-VIP-01':'shared-a','DEMO-VIP-02':'shared-b'});
 const maskedCode=code=>'****-'+code.slice(-2);
+const VOUCHER_CODE=/^[A-Z0-9][A-Z0-9_-]{3,63}$/;
 const LOCAL_DEV_CODE='LOCAL-DEV-ONLY';
 const TEST_HEADER='x-opendesk-local-test';
 const MAX_BODY=4096;
@@ -23,6 +24,7 @@ const MAX_VERIFY_DELAY_MS=5000;
 const SESSION_COOKIE_NAME='opendesk_fixture_session';
 const CONTEXT_COOKIE_NAME='opendesk_fixture_context';
 const SESSION_TARGET='http://127.0.0.1:7898/session/';
+const MANUAL_SESSION_TARGET='http://127.0.0.1:7904/manual-session/';
 const SHARED_ACCOUNTS=Object.freeze([
   {id:'shared-a',label:'公司共享账号 A',displayNameMasked:'a***@fixture.test'},
   {id:'shared-b',label:'公司共享账号 B',displayNameMasked:'b***@fixture.test'}
@@ -63,14 +65,40 @@ function pacFor({proxyPort,proxyKind}){
   ].join('\n');
 }
 
+function readExpiredRedemption(value,currentTime){
+  if(value===null)return null;
+  const {accountId,code,history,entitlements}=structuredClone(value);
+  if(!Array.isArray(entitlements)||entitlements.length!==2)throw Error('Invalid expired fixture redemption');
+  const quota=entitlements.find(row=>row?.type==='quota');
+  const feature=entitlements.find(row=>row?.type==='feature');
+  if(typeof accountId!=='string'||!accountId||typeof code!=='string'||!VOUCHER_CODE.test(code)||
+    typeof history?.redemptionId!=='string'||!history.redemptionId||history.status!=='redeemed'||
+    history.voucherPreviewMasked!==maskedCode(code)||history.skuTitle!=='本地测试配额'||
+    !Number.isSafeInteger(history.redeemedAt)||
+    quota?.status!=='active'||quota.title!=='本地测试配额'||quota.total!==20||quota.remaining!==20||quota.unit!=='次'||
+    feature?.featureId!=='local-managed-proxy'||feature.status!=='active'||feature.title!=='本地开发代理'||
+    feature.expiresAt!==history.redeemedAt+3600000||feature.expiresAt>currentTime)
+    throw Error('Invalid expired fixture redemption');
+  return {accountId,code,history:{redemptionId:history.redemptionId,skuTitle:history.skuTitle,
+    redeemedAt:history.redeemedAt,status:history.status,voucherPreviewMasked:history.voucherPreviewMasked},
+  quota:{type:quota.type,status:quota.status,title:quota.title,total:quota.total,remaining:quota.remaining,unit:quota.unit},
+  feature:{type:feature.type,status:'expired',featureId:feature.featureId,title:feature.title,
+    expiresAt:feature.expiresAt,detail:'仅限本机 HTTP 127.0.0.1:7897；演示权益，不是付费会员'}};
+}
+
 /** Start with a private in-memory ledger. Keep the server alive across sidebar/reload tests. */
 export function createLocalFixture({sessionTarget=SESSION_TARGET,cookieSource=null,proxyPort=7897,proxyKind='http',now=Date.now,extensionOrigin=null,
-  voucherAssignments=DEMO_ASSIGNMENTS,sessionLifetimeMs=3600000,
+  voucherAssignments=DEMO_ASSIGNMENTS,sessionLifetimeMs=3600000,expiredRedemption=null,
   getMemberState=()=>({account:{state:'bound',id:ACCOUNT_ID,displayNameMasked:DISPLAY_NAME},entitlements:[]}),
   // Test-only revocation policy, checked for both delivery and every target-page visit.
   isSharedAccessAllowed=()=>true}={}){
-  if(![SESSION_TARGET,'http://127.0.0.1:7903/session/'].includes(sessionTarget))
+  if(![SESSION_TARGET,'http://127.0.0.1:7903/session/'].includes(sessionTarget)&&
+    !(sessionTarget===MANUAL_SESSION_TARGET&&cookieSource===null&&extensionOrigin!==null))
     throw Error('sessionTarget must be an exact supported loopback session URL');
+  const sessionPath=new URL(sessionTarget).pathname;
+  const manual=sessionTarget===MANUAL_SESSION_TARGET;
+  const cookieNames=manual?['opendesk_manual_session','opendesk_manual_context']:[SESSION_COOKIE_NAME,CONTEXT_COOKIE_NAME];
+  const allocationFeature=manual?'local-manual-session':'local-managed-proxy';
   if(!Number.isInteger(proxyPort)||proxyPort<1||proxyPort>65535)throw Error('proxyPort out of range');
   if(!['http','socks5'].includes(proxyKind))throw Error('proxyKind must be http or socks5');
   if(extensionOrigin!==null&&!/^chrome-extension:\/\/[a-p]{32}$/.test(extensionOrigin))
@@ -81,9 +109,14 @@ export function createLocalFixture({sessionTarget=SESSION_TARGET,cookieSource=nu
   if(!voucherAssignments||typeof voucherAssignments!=='object'||Array.isArray(voucherAssignments)||
     !Object.keys(voucherAssignments).length||Object.keys(voucherAssignments).length>32||
     Object.entries(voucherAssignments).some(([code,assignment])=>
-      !/^[A-Z0-9][A-Z0-9_-]{3,63}$/.test(code)||!SHARED_ACCOUNTS.some(row=>row.id===assignment)))
+      !VOUCHER_CODE.test(code)||!SHARED_ACCOUNTS.some(row=>row.id===assignment)))
     throw Error('Invalid fixture voucher assignments');
   const assignments=Object.freeze({...voucherAssignments});
+  // A terminal synthetic receipt is for display and code consumption only.
+  // It never enters the active ledger or session maps.
+  const archive=readExpiredRedemption(expiredRedemption,now());
+  if(archive&&(cookieSource!==null||Object.hasOwn(assignments,archive.code)))
+    throw Error('Expired fixture voucher must stay retired');
   if(!Number.isSafeInteger(sessionLifetimeMs)||sessionLifetimeMs<1000||sessionLifetimeMs>3600000)
     throw Error('Invalid fixture session lifetime');
   let lastSourceRevision=null;
@@ -123,7 +156,7 @@ export function createLocalFixture({sessionTarget=SESSION_TARGET,cookieSource=nu
     const assignment=currentAssignment(accountId);
     return Boolean(assignment&&assignment.receipt.redemptionId===redemptionId&&
       SHARED_ACCOUNTS.some(row=>row.id===assignment.sharedAccountId)&&
-      assignment.receipt.grantedEntitlements.some(entitlement=>entitlement.featureId==='local-managed-proxy'&&
+      assignment.receipt.grantedEntitlements.some(entitlement=>entitlement.featureId===allocationFeature&&
         entitlement.status==='active'&&Number.isFinite(entitlement.expiresAt)&&entitlement.expiresAt>currentTime)&&
       isSharedAccessAllowed({accountId,redemptionId,sharedAccountId:assignment.sharedAccountId,serverNow:currentTime})===true);
   };
@@ -148,8 +181,8 @@ export function createLocalFixture({sessionTarget=SESSION_TARGET,cookieSource=nu
     const cookieDelivery=source?{schemaVersion:2,deliveryId:randomUUID(),targetUrl:'https://chatgpt.com/',
       expiresAt:Math.min(issuedAt+120000,source.checked.earliestExpiry??Infinity),cookies:source.cookies}:
       {schemaVersion:1,deliveryId:randomUUID(),targetUrl:sessionTarget,
-      expiresAt:issuedAt+120000,cookies:[SESSION_COOKIE_NAME,CONTEXT_COOKIE_NAME].map(name=>({
-        name,value:randomUUID(),path:'/session/',httpOnly:true,secure:false,sameSite:'lax',
+      expiresAt:issuedAt+120000,cookies:cookieNames.map(name=>({
+        name,value:randomUUID(),path:sessionPath,httpOnly:true,secure:false,sameSite:'lax',
         expirationDate:(issuedAt+sessionLifetimeMs)/1000
       }))};
     if(!source)sessions.set(cookieDelivery.deliveryId,{accountId,sharedAccountId,redemptionId,cookieDelivery});
@@ -157,6 +190,7 @@ export function createLocalFixture({sessionTarget=SESSION_TARGET,cookieSource=nu
   };
   const member=()=>{
     const state=getMemberState(),bound=state.account.state==='bound';
+    const archived=bound&&archive?.accountId===state.account.id?archive:null;
     const receipts=bound?[...ledger.values()]
       .filter(({receipt})=>receipt.accountId===state.account.id&&receipt.status==='redeemed'):[];
     const assignment=bound?currentAssignment(state.account.id):null;
@@ -165,17 +199,18 @@ export function createLocalFixture({sessionTarget=SESSION_TARGET,cookieSource=nu
     const accounts=sourceAvailable&&(!source||assignment?.sourceRevision===source.revision)&&assignment&&sharedAccessAllowed(state.account.id,assignment.receipt.redemptionId)?
       SHARED_ACCOUNTS.filter(row=>row.id===assignment.sharedAccountId):[];
     return {schemaVersion:1,serverNow:now(),account:state.account,
-      entitlements:bound?[...state.entitlements,...(assignment?.receipt.grantedEntitlements??[])]:[],
-      redemptions:receipts.map(({receipt,code})=>({
+      entitlements:bound?[...state.entitlements,...(archived?[archived.quota,...(!assignment?[archived.feature]:[])]:[]),
+        ...(assignment?.receipt.grantedEntitlements??[])]:[],
+      redemptions:[...(archived?[archived.history]:[]),...receipts.map(({receipt,code})=>({
       redemptionId:receipt.redemptionId,skuTitle:'本地测试配额',
         redeemedAt:receipt.redeemedAt,status:'redeemed',voucherPreviewMasked:maskedCode(code)
-      })),...(accounts.length?{sharedAccounts:{schemaVersion:1,companyId:'fixture-company',
+      }))],...(accounts.length?{sharedAccounts:{schemaVersion:1,companyId:'fixture-company',
         assignedAccountId:assignment.sharedAccountId,redemptionId:assignment.receipt.redemptionId,
       accounts:accounts.map(({displayNameMasked,...row})=>({...row,...(source?{cookieFormat:'chatgpt-export-v1',targetUrl:'https://chatgpt.com/',
         cookieScope:source.checked.batches.flatMap(batch=>batch.cookies.map(cookie=>
           Object.fromEntries(['name','path','domain','storeId','partitionKey'].filter(key=>Object.hasOwn(cookie,key))
             .map(key=>[key,cookie[key]]))))}:{displayNameMasked,targetUrl:sessionTarget,
-        cookieScope:[SESSION_COOKIE_NAME,CONTEXT_COOKIE_NAME].map(name=>({name,path:'/session/'}))})}))}}:{})};
+        cookieScope:cookieNames.map(name=>({name,path:sessionPath}))})}))}}:{})};
   };
   const server=http.createServer(async(req,res)=>{
     try{
@@ -184,6 +219,9 @@ export function createLocalFixture({sessionTarget=SESSION_TARGET,cookieSource=nu
     // Web origins, opaque sandboxes and every other extension remain refused.
     if(req.headers.origin&&(req.headers.origin!==extensionOrigin||req.headers[TEST_HEADER]!=='1')){
       json(res,403,{error:'E_BROWSER_ORIGIN_DISABLED'});return;
+    }
+    if(manual&&['/activate','/api/activate','/api/verify','/proxy.pac','/api/fixture/verify-delay'].includes(path)){
+      json(res,404,{error:'E_ROUTE_NOT_FOUND'});return;
     }
     if(req.method==='GET'&&path==='/activate'){
       const query=new URL(req.url,'http://127.0.0.1').searchParams;
@@ -196,7 +234,7 @@ export function createLocalFixture({sessionTarget=SESSION_TARGET,cookieSource=nu
         (valid?'本地开发激活入口：由已安装工具按可信授权流程处理。':'本地开发激活链接无效。')+
         '</p></body></html>');return;
     }
-    if(req.method==='GET'&&path==='/session/'){
+    if(req.method==='GET'&&path===sessionPath){
       const cookies=(req.headers.cookie||'').split(';').map(part=>part.trim());
       const currentTime=now();
       const matched=[...sessions.values()].find(row=>
@@ -205,10 +243,10 @@ export function createLocalFixture({sessionTarget=SESSION_TARGET,cookieSource=nu
           return matching.length===1&&matching[0]===cookie.name+'='+cookie.value;
         }));
       const assignment=matched&&currentAssignment(matched.accountId);
-      const entitlement=assignment?.receipt.grantedEntitlements.find(row=>row.featureId==='local-managed-proxy');
+      const entitlement=assignment?.receipt.grantedEntitlements.find(row=>row.featureId===allocationFeature);
       const expiresAt=matched?Math.min(...matched.cookieDelivery.cookies.map(cookie=>cookie.expirationDate*1000),
         entitlement?.expiresAt??0):0;
-      let reason=cookies.some(part=>[SESSION_COOKIE_NAME,CONTEXT_COOKIE_NAME].some(name=>part.startsWith(name+'=')))?
+      let reason=cookies.some(part=>cookieNames.some(name=>part.startsWith(name+'=')))?
         'invalid':'missing';
       if(matched)reason=expiresAt<=currentTime?'expired':sharedAccessAllowed(matched.accountId,matched.redemptionId)?'valid':'revoked';
       const sharedAccount=reason==='valid'&&SHARED_ACCOUNTS.find(row=>row.id===matched.sharedAccountId);
@@ -237,6 +275,13 @@ export function createLocalFixture({sessionTarget=SESSION_TARGET,cookieSource=nu
     if(req.method!=='POST'){json(res,404,{error:'E_ROUTE_NOT_FOUND'});return;}
     let data;
     try{data=await readBody(req);}catch(e){if(!res.headersSent)json(res,e.status||400,{error:'E_BAD_JSON'});return;}
+    // The synthetic fixture accepts the controller's read-only member request.
+    // Keep the external session source outside this development transport.
+    if(req.url==='/api/member'&&cookieSource===null){
+      if(req.headers.origin!==extensionOrigin){json(res,403,{error:'E_BROWSER_ORIGIN_DISABLED'});return;}
+      if(Object.keys(data).length){json(res,400,{error:'E_MEMBER_FIELDS'});return;}
+      json(res,200,member());return;
+    }
     if(path==='/api/fixture/verify-delay'){
       try{
         if(Object.keys(data).length!==1)throw Error('delayMs only');
@@ -249,6 +294,7 @@ export function createLocalFixture({sessionTarget=SESSION_TARGET,cookieSource=nu
       json(res,403,{error:'E_ACCOUNT_UNBOUND'});return;
     }
     if(path==='/api/preview'){
+      if(archive&&data.code===archive.code){json(res,409,{error:'E_CODE_CONSUMED'});return;}
       if(typeof data.code!=='string'||!Object.hasOwn(assignments,data.code)){
         json(res,422,{error:'E_DEMO_CODE_INVALID'});return;
       }
@@ -259,7 +305,8 @@ export function createLocalFixture({sessionTarget=SESSION_TARGET,cookieSource=nu
       const previewId=randomUUID(),expiresAt=now()+120000;
       previews.set(previewId,{accountId:account.id,expiresAt,code:data.code});
       json(res,200,{previewId,accountId:account.id,skuTitle:'本地测试配额',
-        grantSummary:'增加 20 次演示额度，开通仅限本机 HTTP 7897 的开发代理；不是付费会员',
+        grantSummary:manual?'领取 20 次演示额度和一小时本机模拟网站权限':
+          '增加 20 次演示额度，开通仅限本机 HTTP 7897 的开发代理；不是付费会员',
         voucherPreviewMasked:maskedCode(data.code),expiresAt});return;
     }
     if(path==='/api/redeem'){
@@ -295,8 +342,9 @@ export function createLocalFixture({sessionTarget=SESSION_TARGET,cookieSource=nu
       const receipt={status:'redeemed',accountId,idempotencyKey,
         redemptionId,redeemedAt,cookieDelivery:issueDelivery(accountId,sharedAccountId,redemptionId,source),grantedEntitlements:[{
           type:'quota',status:'active',title:'本地测试配额',remaining:20,total:20,unit:'次'},
-          {type:'feature',status:'active',featureId:'local-managed-proxy',title:'本地开发代理',expiresAt:redeemedAt+3600000,
-            detail:'仅限本机 HTTP 127.0.0.1:7897；演示权益，不是付费会员'}]};
+          {type:'feature',status:'active',featureId:allocationFeature,title:manual?'本机模拟网站':'本地开发代理',
+            expiresAt:redeemedAt+3600000,detail:manual?'仅供本机模拟账号手测':
+              '仅限本机 HTTP 127.0.0.1:7897；演示权益，不是付费会员'}]};
       ledger.set(idempotencyKey,{previewId,code:pre.code,sharedAccountId,receipt,...(source?{sourceRevision:source.revision}:{})});
       previews.delete(previewId);
       if(req.headers['x-fixture-drop-ack']==='1'){

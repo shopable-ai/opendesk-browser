@@ -9,7 +9,7 @@ import { copyableOptionsHash, diagnosticHash, optionsHash, parseOptionsHash, par
 import { OptionsPageHeader, OptionsNavIcon } from './ui/OptionsShell';
 import { ProxyIcon } from './ui/ProxyIcon';
 import { BACKUP_MAX_BYTES, BackupImportValidationError, parseBackupForImport } from './ui/backupImport';
-import { Status, statusLabelKey, statusTone } from './ui/Status';
+import { activeStopLabel, confirmedRouteMode, connectionAction, connectionActionLabel, routeSwitchBlocked, Status, statusLabelKey, statusTone } from './ui/Status';
 import { ProxyEditor } from './ui/ProxyEditor';
 import { FormField } from './ui/FormField';
 import { ClearableInput } from './ui/ProxyEntry';
@@ -21,7 +21,8 @@ import {useProfileFavorites} from './ui/ProfileFavorites';
 import {PcPreferences} from './ui/PcPreferences';
 import { HeaderActionsEditor } from './ui/HeaderActionsEditor';
 import { useProxy } from './ui/useProxy';
-import type { Profile, ProxyEndpoint, RouteMode, SiteRule } from './domain/types';
+import { ConnectionButton, ConnectionSyncStatus } from './ui/ConnectionSync';
+import type { Profile, ProxyEndpoint, RouteMode, RouteSelection, SiteRule } from './domain/types';
 import { createPacStarter, type PacStarterMode } from './domain/pac-starters';
 import { normalizeRuleSiteInput, priorityForSiteQuickRule } from './domain/config';
 import { explainRulesRoute } from './domain/pac';
@@ -46,7 +47,7 @@ const tabs: {id:Page; name:string; caption:string}[] = [
   {id:'official',name:t('officialNetwork'),caption:t('officialIntro')}
 ];
 
-  const {state, busy, error, setError, setErrorKey, clearErrorKey, act, refresh} = useProxy();
+  const {state, busy, operationBusy, syncing, slowSync, error, routeFeedback, routeTarget, setError, setErrorKey, clearErrorKey, act, refresh} = useProxy();
   const navigation = getEnvironment().navigation;
   const confirmationRequest=useRef<AbortController|null>(null);
   const editorGeneration=useRef(0);
@@ -102,6 +103,15 @@ const tabs: {id:Page; name:string; caption:string}[] = [
   const [proxyNotice,setProxyNotice] = useState<''|'apProxySavedNotice'|'apProxyDeletedNotice'>('');
   const pageLinkCopyRequest = useRef(0);
   const sectionContent=useRef<HTMLElement>(null);
+  const [restoreActionFocus,setRestoreActionFocus] = useState<HTMLButtonElement | null>(null);
+  useEffect(() => {
+    const button = restoreActionFocus;
+    if (busy || !button) return;
+    setRestoreActionFocus(null);
+    if (document.activeElement !== document.body) return;
+    (button.isConnected && !button.disabled ? button
+      : sectionContent.current?.querySelector<HTMLButtonElement>('.optionsModeGrid [aria-pressed="true"]'))?.focus();
+  },[busy,restoreActionFocus]);
   const lastSection=useRef(tab);
   const localEditOrigin=useRef<{top:number;focusId:string}|null>(null);
   const pacDetails=useRef<HTMLDetailsElement>(null);
@@ -288,6 +298,46 @@ const tabs: {id:Page; name:string; caption:string}[] = [
   try{ruleDomain=normalizeRuleSiteInput(rule.domain);}catch{/* Invalid input has no matching preview. */}
   const endpointRefs = (id:string) => profiles.filter(p => p.kind === 'endpoint' && p.endpointId === id);
   const selectedProfile = profiles.find(p => p.id === config.selection.profileId);
+  const routeAction = connectionAction(state.runtime, Boolean(selectedProfile));
+  const stopLabel = (routeAction === 'apply' || routeAction === 'choose') && activeStopLabel(state.runtime);
+  const routeLabel = routeAction === 'choose'
+    ? profiles.length === 0 ? 'sideAddProxyTitle' : 'sideProxyChooseAction'
+    : routeAction && connectionActionLabel[routeAction];
+  const activeMode = confirmedRouteMode(state.runtime);
+  const rulesNeedSetup = activeMode !== 'rules' && !config.rules.some(rule=>rule.enabled);
+  const routeBlocked = routeSwitchBlocked(state.runtime);
+  const routeName = (selection: RouteSelection) => selection.mode==='profile'
+    ? profiles.find(profile=>profile.id===selection.profileId)?.name??t('popupModeProfile')
+    : modes.find(item=>item.mode===selection.mode)?.name??t('unableToVerify');
+  const recoveryAction = routeAction === 'refresh' || routeAction === 'finalize' || routeAction === 'release' ||
+    (routeAction === 'stop' && (state.runtime.outcomeUnknown || !state.runtime.managedIntent));
+  function focusProfileChoice() {
+    if (!profiles.length) {
+      openEditor();
+      return;
+    }
+    const first=sectionContent.current?.querySelector<HTMLButtonElement>('.profileRecords .proxySelect:not(:disabled)');
+    if (first) first.focus();
+    else pacDetails.current?.querySelector('summary')?.focus();
+  }
+  async function performRouteAction(event: React.MouseEvent<HTMLButtonElement>, action: () => Promise<unknown>) {
+    const button=event.currentTarget;
+    const keepFocus=event.detail===0 || document.activeElement===button;
+    await action();
+    if (keepFocus) setRestoreActionFocus(button);
+  }
+  async function handleRouteAction(event: React.MouseEvent<HTMLButtonElement>) {
+    if (routeAction === 'choose') {
+      focusProfileChoice();
+      return;
+    }
+    if (routeAction === 'refresh') await refresh();
+    else if (routeAction) {
+      await performRouteAction(event,()=>routeAction==='apply'||routeAction==='enable'
+        ? applyRoute(config.selection,config.selection.mode==='profile'?selectedProfile:undefined)
+        : act({type:'STOP'}));
+    }
+  }
   async function insertPacStarter() {
     const revision = getEnvironment().getDraftRevision('settings-pac');
     const endpoint = endpoints.find(item => item.id === pacStarterEndpoint);
@@ -307,10 +357,27 @@ const tabs: {id:Page; name:string; caption:string}[] = [
     if (!pacName.trim()) setPacName(t('pacStarterDefaultName',{name:endpoint.name}));
     setPacStarterError('');
   }
-  async function applyRoute() {
-    if(config.selection.mode==='profile' && selectedProfile?.kind==='pac-inline' &&
+  async function applyRoute(selection: RouteSelection, profile?: Profile) {
+    const ifMatch=state.configEtag;
+    if(profile?.kind==='pac-inline' &&
       !await confirmIntent(t('chromeWillRunYourLocalPacScriptAndChange')))return;
-    await act({type:'APPLY',approvedPac:selectedProfile?.kind==='pac-inline'});
+    await act({type:'SWITCH_ROUTE',selection,ifMatch,
+      ...(selection.mode==='system'?{ifRoute:state.runtime.routeVersion}:{}),approvedPac:profile?.kind==='pac-inline'});
+  }
+  async function useMode(mode: RouteMode, event: React.MouseEvent<HTMLButtonElement>) {
+    if (mode==='rules' && rulesNeedSetup) {
+      navigate('rules');
+      return;
+    }
+    if (mode!==config.selection.mode)
+      await performRouteAction(event,()=>selectRoute({...config.selection,mode}));
+    if (mode==='profile' && profiles.length) focusProfileChoice();
+  }
+  async function selectRoute(selection: RouteSelection) {
+    await act({type:'SELECT',selection,ifMatch:state.configEtag});
+  }
+  function useProfile(profile: Profile, event: React.MouseEvent<HTMLButtonElement>) {
+    return performRouteAction(event,()=>selectRoute({mode:'profile',profileId:profile.id}));
   }
   async function editPac(profile: Profile) {
     if (profile.kind !== 'pac-inline') return;
@@ -556,7 +623,6 @@ const tabs: {id:Page; name:string; caption:string}[] = [
         {proxyNotice&&<p className="managementFeedback" role="status">{t(proxyNotice)}</p>}
         <div className="managementHeaderActions"><span className="subtleTag managementFreeTag">{t('pcFreeNoAccount')}</span>
           <Button className="settingsRefresh" disabled={busy||navigationBusy} onClick={()=>onClose?.()}><ProxyIcon name="back"/>{t('backToProxyProfiles')}</Button>
-          <Button className="proxyIconButton" disabled={busy} title={t('refreshStatus')} aria-label={t('refreshStatus')} onClick={()=>void refresh()}><ProxyIcon name="refresh"/></Button>
         </div>
       </>:<>
       <details className="settingsMore"><summary title={t('copyPageLink')+' / '+t('refreshStatus')} aria-label={t('copyPageLink')+' / '+t('refreshStatus')}><ProxyIcon name="more"/></summary><div className="optionsHeadActions">
@@ -573,15 +639,18 @@ const tabs: {id:Page; name:string; caption:string}[] = [
       {proxyNotice&&<p className="settingsProxyFeedback" role="status">{t(proxyNotice)}</p>}
       </>}
     </header>
-    {presentation==='management'&&<div className="managementConnectionBar" role="status" aria-label={t('browserStatus')}>
+    {presentation==='management'&&tab!=='profiles'&&<div className="managementConnectionBar" role="status" aria-label={t('browserStatus')}>
       <span className="managementConnectionLabel">{t('browserStatus')}</span>
       <strong className={'controlChip ' + (statusTone(state.runtime)==='ok'?'isApplied':statusTone(state.runtime)==='danger'?'isError':statusTone(state.runtime)==='pending'?'isPending':'')}>
         {t(statusLabelKey(state.runtime))}
       </strong>
-      <span className="managementSelectionLabel">{state.runtime.pendingChanges
-        ? t('apPendingSelection')+' · '+(config.selection.mode==='profile'?selectedProfile?.name??t('noProfileSelected'):modes.find(item=>item.mode===config.selection.mode)?.name ?? t('unableToVerify'))
-        : t('selectedModeLabel',{mode:config.selection.mode==='profile'?selectedProfile?.name??t('noProfileSelected'):modes.find(item=>item.mode===config.selection.mode)?.name ?? t('unableToVerify')})}</span>
-      <Button className="textAction" disabled={busy||navigationBusy} onClick={()=>getEnvironment().navigate(diagnosticHash('proxy'))}>{t('viewActualControlStatus')}</Button>
+      {state.runtime.applied && state.runtime.activeSelection && <span className="managementSelectionLabel">
+        {t('sideCurrentRoute')}{routeName(state.runtime.activeSelection)}</span>}
+      {state.runtime.managedIntent && state.runtime.pendingChanges && <span className="managementSelectionLabel">
+        {t('connectionPendingRoute',{route:routeName(config.selection)})}</span>}
+      {tab !== 'diagnostic' && recoveryAction && routeLabel
+        ? <ConnectionButton className="textAction" disabled={operationBusy} syncing={syncing} onClick={handleRouteAction}>{t(routeLabel)}</ConnectionButton>
+        : <Button className="textAction" disabled={busy||navigationBusy} onClick={()=>getEnvironment().navigate(diagnosticHash('proxy'))}>{t('viewActualControlStatus')}</Button>}
     </div>}
     <div className="layout">
       {presentation==='management'&&<nav className="managementNav" aria-label={t('settingsSections')}>
@@ -594,14 +663,16 @@ const tabs: {id:Page; name:string; caption:string}[] = [
       <section ref={sectionContent} className={'panel optionsContent optionsContent--' + tab}>
         {pageLinkCopyFailed && <p className="notice error" role="alert">{t('pageLinkCopyFailed')}</p>}
         {copiedPageLink && <p className="settingsCopyFeedback" role="status">{t('pageLinkCopied')}</p>}
-        {error && !editorOpen && !(tab==='rules' && ruleEditorOpen) && <p className="notice error" role="alert">{error}</p>}
+        {tab!=='profiles' && error && !editorOpen && !(tab==='rules' && ruleEditorOpen) && <p className="notice error" role="alert">{error}</p>}
+        {tab!=='profiles' && <ConnectionSyncStatus show={slowSync}/>}
+        {tab!=='profiles' && routeFeedback && <p className="hint" role="status">{t(routeFeedback)}</p>}
         {tab!=='official' && tab!=='rules' && !(tab==='subscriptions' && parseSubscriptionRoute(locationHash).kind==='official') &&
           <OptionsPageHeader
           title={tab==='profiles'&&presentation==='management'?t('pcProfilesTitle'):tabs.find(item=>item.id===tab)?.name ?? ''}
           eyebrow={presentation==='management'?t('settings'):undefined}
           description={tab==='profiles'?t(presentation==='management'?'pcProfilesIntro':'apProfileIntro'):tab==='general'&&presentation==='management'?t('pcGeneralIntro'):tab==='diagnostic'&&presentation==='management'?'':tabs.find(item=>item.id===tab)?.caption ?? ''}
           className={tab==='profiles'?'profilePanelHead':''}
-          actions={tab==='subscriptions'&&presentation==='management'?<Button variant="primary" className="primary" disabled={busy||navigationBusy} onClick={()=>navigateAction('subscriptions','new')}><ProxyIcon name="plus"/>{t('pcAddSubscription')}</Button>:tab==='profiles'?<>
+          actions={tab==='subscriptions'&&presentation==='management'?<Button variant="primary" className="primary" disabled={busy||navigationBusy} onClick={()=>navigateAction('subscriptions','new')}><ProxyIcon name="plus"/>{t('pcAddSubscription')}</Button>:tab==='profiles'&&!(routeAction==='choose'&&profiles.length===0)?<>
             <Button variant="primary" className="primary" onClick={()=>openEditor()}>{t('addProxy2')}</Button>
             {presentation!=='management'&&<Button id="settings-import" className="settingsImport" title={presentation==='management'?t('backupImportTitle'):t('importSettings')} aria-label={presentation==='management'?t('backupImportTitle'):t('importSettings')}
               onClick={()=>navigate('backup')}><ProxyIcon name="import"/>{presentation==='management'?t('backupImportTitle'):t('importSettings')}</Button>}
@@ -610,43 +681,36 @@ const tabs: {id:Page; name:string; caption:string}[] = [
         />}
         {tab==='profiles' && <>
           <section className="optionsModeBar" aria-label={t('browserRoutingMode')}>
-            <div className="settingsRuntimeStatus" role="status"><span className={'controlChip ' + (statusTone(state.runtime) === 'ok' ? 'isApplied' : statusTone(state.runtime) === 'danger' ? 'isError' : statusTone(state.runtime) === 'pending' ? 'isPending' : '')}>{t(statusLabelKey(state.runtime))}</span></div>
-            <div className="sectionHeading"><div><h2>{t(presentation==='management'?'pcProxyMode':'currentProxyMode')}</h2><p className="hint">{t(presentation==='management'?'pcModeHelp':'selectionSavesAPendingRouteOnlyApplySelectionRequests')}</p></div>
-              <span className="subtleTag">{presentation==='management'?t('pcManualApply'):t('ruleCount',{count:config.rules.filter(r=>r.enabled).length})}</span></div>
-            <div className="optionsModeGrid" role="group" aria-label={t('fourProxyModes')}>
-              {modes.map(item=><Button key={item.mode} variant={config.selection.mode===item.mode?'primary':'secondary'} disabled={busy}
+            <div className="sectionHeading"><div><h2>{t('sideChooseRoute')}</h2></div>
+              {profiles.length>0&&<ConnectionButton syncing={syncing} className="textAction" disabled={operationBusy||routeBlocked}
+                onClick={focusProfileChoice}>{t('connectionBrowseProxies')} <span aria-hidden="true">↓</span></ConnectionButton>}
+            </div>
+            <div className="optionsModeGrid" role="group" aria-label={t('proxyMode')}>
+              {modes.map(item=>{
+                const actionOnly=item.mode==='rules'&&rulesNeedSetup;
+                const modeLabel=({profile:'sideModeProfile',rules:'sideModeRules',direct:'sideModeDirect',system:'popupModeSystem'} as const)[item.mode];
+                return <ConnectionButton syncing={syncing} key={item.mode} type="button" variant={config.selection.mode===item.mode?'primary':'secondary'} disabled={operationBusy||(routeBlocked&&!actionOnly)}
                 className={config.selection.mode===item.mode?'selected':''}
-                aria-pressed={config.selection.mode===item.mode}
-                onClick={()=>void act({type:'SELECT',selection:{...config.selection,mode:item.mode}})}><ProxyIcon name={item.mode}/><span>{presentation==='management'?t(({profile:'pcModeProfile',rules:'pcModeRules',direct:'pcModeDirect',system:'popupModeSystem'} as const)[item.mode]):item.name}</span></Button>)}
+                aria-pressed={actionOnly?undefined:config.selection.mode===item.mode}
+                title={actionOnly?t('connectionSetUpRules'):undefined}
+                aria-describedby={item.mode==='direct'?'settings-direct-scope':undefined}
+                onClick={event=>void useMode(item.mode,event)}><ProxyIcon name={item.mode}/><span>{t(!actionOnly&&routeTarget?.mode===item.mode?'connectionSwitchingShort':modeLabel)}</span></ConnectionButton>;})}
             </div>
-            <div className="modeSelectionRow">
-            {presentation!=='management'&&config.selection.mode==='profile' && <div className="optionsProfileSelect">
-              <label htmlFor="options-profile">{t('useASavedProfile')}</label>
-              <select id="options-profile" disabled={busy} value={config.selection.profileId||''}
-                onChange={e=>void act({type:'SELECT',selection:{mode:'profile',profileId:e.target.value||undefined}})}>
-                <option value="">{t('selectASavedProxyOrPac')}</option>
-                {profiles.map(p=><option key={p.id} value={p.id}>{p.name} · {p.kind==='pac-inline'?t('localPac'):t('proxy')}</option>)}
-              </select>
-            </div>}
-            {presentation!=='management'&&config.selection.mode==='rules' && <Button className="textAction" onClick={()=>navigate('rules')}>
-              {t('viewAndEditWebsiteRules')}
-            </Button>}
-            {presentation!=='management'&&config.selection.mode==='direct'&&<p className="hint">{t('apDirectScope')}</p>}
-            {presentation==='management'&&<p className="hint managementRouteSummary" role="status">{t(statusLabelKey(state.runtime))} · {(config.selection.mode==='profile'?selectedProfile?.name:undefined)??modes.find(item=>item.mode===config.selection.mode)?.name}{state.runtime.pendingChanges?' · '+t('apPendingSelection'):''}</p>}
-            <div className="actions modeActions">
-              <Button variant="primary" className="primary" disabled={busy||(config.selection.mode==='profile'&&!selectedProfile)}
-                onClick={()=>void applyRoute()}>{t(config.selection.mode==='direct'?'apApplyDirect':presentation==='management'?'pcApplyConfig':'applySelection')}</Button>
-              <Button disabled={busy||!(state.runtime.canStop||state.runtime.stopFinalizationPending)} onClick={()=>void act({type:'STOP'})}>{t(state.runtime.stopFinalizationPending?'apFinishStop':presentation==='management'?'pcPause':'stopManagingProxy')}</Button>
-              <small>{t('appliedSettingsWebsiteAccess')}</small>
+            <div className="connectionControls">
+              <Status status={state.runtime} compact quiet profiles={profiles} operationErrorShown={Boolean(error) && !editorOpen}
+                labelOverride={routeAction === 'choose' && profiles.length === 0 ? 'sideProxyNotConfigured' : undefined}/>
+              {routeLabel && <ConnectionButton syncing={syncing} type="button" variant={routeAction === 'apply' || routeAction === 'enable' || routeAction === 'choose' ? 'primary' : 'secondary'}
+                className={'connectionButton'+(routeAction === 'apply' || routeAction === 'enable' || routeAction === 'choose' ? ' primary' : '')}
+                disabled={operationBusy} onClick={handleRouteAction}>{t(routeLabel)}</ConnectionButton>}
+              {stopLabel && <ConnectionButton syncing={syncing} type="button" className="connectionButton" disabled={operationBusy}
+                onClick={event=>void performRouteAction(event,()=>act({type:'STOP'}))}>{t(stopLabel)}</ConnectionButton>}
             </div>
-            </div>
-            {(presentation!=='management'||!!error||!!state.runtime.proxyError||state.runtime.credentialRequired||state.runtime.control==='unknown'||state.runtime.control==='controlled_by_other_extensions'||state.runtime.control==='not_controllable'||state.runtime.outcomeUnknown)&&<details className="runtimeDetails" open={!!error || !!state.runtime.proxyError || state.runtime.credentialRequired ||
-              state.runtime.control==='controlled_by_other_extensions' || state.runtime.control==='not_controllable' ||
-              (state.runtime.managedIntent&&!state.runtime.applied) ||
-              (!state.runtime.managedIntent&&state.runtime.control==='controlled_by_this_extension')}>
-              <summary>{t('controlAndApplicationDetails')}{presentation==='management'&&<small className="managementModeCaveat">{t('appliedSettingsWebsiteAccess')}</small>}</summary>
-              <Status status={state.runtime} compact/>
-            </details>}
+            <ConnectionSyncStatus show={slowSync}/>
+            <p id="settings-direct-scope" className="hint connectionDirectHint">
+              {t(activeMode==='direct'?'sideDirectAppliedHint':'apDirectScope')}
+            </p>
+            {routeFeedback && <p className="hint" role="status">{t(routeFeedback)}</p>}
+            {error && !editorOpen && <p className="notice error" role="alert">{error}</p>}
           </section>
           <section className="listSection">
             {presentation==='management'&&<div className="sectionHeading"><div><h2>{t('apProxyServers')} <span className="countTag">{endpoints.length}</span></h2><p className="hint">{t('apProxyServersHelp')}</p></div><Button className="textAction" onClick={()=>navigate('subscriptions')}>{t('pcImportSubscription')}</Button></div>}
@@ -654,29 +718,27 @@ const tabs: {id:Page; name:string; caption:string}[] = [
             {endpoints.length===0 ? (presentation==='management'
               ? <div className="managementEmptyState" role="status"><p className="hint">{t('sideNoProxiesHelp')}</p></div>
               : <p className="hint">{t('sideNoProxiesHelp')}</p>) : <div className="records profileRecords">{endpoints.map(p=>{
-              const profile=endpointRefs(p.id)[0];
+              const refs=endpointRefs(p.id);
+              const profile=refs[0];
               const source=config.sources.find(s=>s.id===p.sourceId);
-              const chosen=config.selection.mode==='profile'&&config.selection.profileId===profile?.id;
-              const applied=state.runtime.applied&&state.runtime.activeSelection?.mode==='profile'&&state.runtime.activeSelection.profileId===profile?.id;
+              const chosen=config.selection.mode==='profile'&&refs.some(ref=>ref.id===config.selection.profileId);
+              const applied=state.runtime.applied&&state.runtime.activeSelection?.mode==='profile'&&refs.some(ref=>ref.id===state.runtime.activeSelection.profileId);
+              const switching=routeTarget?.mode==='profile'&&routeTarget.profileId===profile?.id;
+              const connectLabel=t('connectionSelectNamed',{name:p.name});
               return <article className={'record proxyRecord'+(chosen?' isChosen':'')} key={p.id}>
-                {presentation==='management'?<span className="managementProtocolLetter proxyProtocolBadge" aria-hidden="true">{p.scheme.startsWith('socks')?'S':'H'}</span>:<Button className="proxyIconButton proxySelect" disabled={busy||!profile}
-                  title={chosen?t('selected'):t('selectNamedProxy',{name:p.name})}
-                  aria-label={t('selectNamedProxy',{name:p.name})} aria-pressed={chosen}
-                  onClick={()=>void act({type:'SELECT',selection:{mode:'profile',profileId:profile?.id}})}>{presentation==='management'
-                     ? <span className="managementProtocolLetter" aria-hidden="true">{p.scheme.startsWith('socks')?'S':'H'}</span>
-                     : <ProxyIcon name={chosen?'selected':'circle'}/>}</Button>}
+                {presentation==='management'&&<span className="managementProtocolLetter proxyProtocolBadge" aria-hidden="true">{p.scheme.startsWith('socks')?'S':'H'}</span>}
                 <div className="proxyRecordMain">
                   <div className="proxyRecordText"><div className="proxyRecordTitle"><strong title={p.name}>{p.name}</strong>
                     {source?.kind==='local-client'&&<span role="img" aria-label={t('localClientPortNotTested')} title={t('localClientPortNotTested')}><ProxyIcon name="system"/></span>}
                     {p.credentialRef&&<span role="img" aria-label={t('sessionAuthenticationRequired')} title={t('sessionAuthenticationRequired')}><ProxyIcon name="lock"/></span>}
                     {applied&&presentation!=='management'&&<span className="proxyApplied" role="img" aria-label={t('appliedToChrome2')} title={t('appliedToChrome2')}><ProxyIcon name="play"/></span>}
-                    {presentation==='management'&&chosen&&<span className="managementRecordTag">{t('selected')}</span>}
-                    {presentation==='management'&&applied&&<span className="managementRecordTag managementAppliedTag">{t('appliedToChrome2')}</span>}
                   </div><small className="mono" title={p.scheme.toUpperCase()+' · '+p.host+':'+p.port}>{p.scheme.toUpperCase()} · {p.host}:{p.port}</small></div>
                 </div>
                 <div className="recordActions">
                   {presentation==='management'&&<Button className="proxyIconButton proxyFavorite" disabled={busy||!profileFavorites.ready||profileFavorites.busy} aria-pressed={profileFavorites.ids.includes(p.id)} aria-label={t(profileFavorites.ids.includes(p.id)?'pcUnfavorite':'pcFavorite',{name:p.name})} title={t(profileFavorites.ids.includes(p.id)?'pcUnfavorite':'pcFavorite',{name:p.name})} onClick={()=>void profileFavorites.toggle(p.id)}><ProxyIcon name="star"/></Button>}
-                  {presentation==='management'&&<Button className="proxyIconButton proxySelect" disabled={busy||!profile} aria-label={t('selectNamedProxy',{name:p.name})} title={t('selectNamedProxy',{name:p.name})} aria-pressed={chosen} onClick={()=>void act({type:'SELECT',selection:{mode:'profile',profileId:profile?.id}})}><ProxyIcon name={chosen?'check':'profile'}/></Button>}
+                  <ConnectionButton syncing={syncing} type="button" className="proxySelect connectionUse" disabled={operationBusy||routeBlocked||!profile}
+                    aria-label={connectLabel} aria-pressed={chosen} aria-busy={switching||undefined} title={connectLabel}
+                    onClick={event=>{if(profile&&!chosen)void useProfile(profile,event);}}>{t(switching?'connectionSwitchingShort':applied?'sideUsing':chosen?'selected':'sideProxyChooseAction')}</ConnectionButton>
                   <Button id={'settings-proxy-'+p.id} className="proxyIconButton" disabled={busy} onClick={()=>source?.kind==='local-client'?editLocal(p):openEditor(p)}
                     title={t('editNamedProxy',{name:p.name})} aria-label={t('editNamedProxy',{name:p.name})}><ProxyIcon name="edit"/></Button>
                   <Button className="proxyIconButton quietDanger" disabled={busy||config.managed} title={config.managed?t('stopManagingTheProxyBeforeDeletingIt'):t('deleteNamedProxy',{name:p.name})}
@@ -742,7 +804,10 @@ const tabs: {id:Page; name:string; caption:string}[] = [
               <div className="records">{profiles.filter(p=>p.kind==='pac-inline').map(p=><article className="record pacRecord" key={p.id}>
                 <div><strong title={p.name}>{p.name}</strong><small title={t('localPacScriptConnectivityUnverified')}>{t('localPacScriptConnectivityUnverified')}</small></div>
                 <div className="recordActions">
-                  {presentation==='management'&&<Button className="proxyIconButton proxySelect" disabled={busy} aria-label={t('selectNamedProxy',{name:p.name})} title={t('selectNamedProxy',{name:p.name})} aria-pressed={config.selection.mode==='profile'&&config.selection.profileId===p.id} onClick={()=>void act({type:'SELECT',selection:{mode:'profile',profileId:p.id}})}><ProxyIcon name={config.selection.mode==='profile'&&config.selection.profileId===p.id?'check':'profile'}/></Button>}
+                  <ConnectionButton syncing={syncing} type="button" className="proxySelect connectionUse" disabled={operationBusy||routeBlocked}
+                    aria-label={t('connectionSelectNamed',{name:p.name})}
+                    aria-pressed={config.selection.mode==='profile'&&config.selection.profileId===p.id}
+                    onClick={event=>void useProfile(p,event)}>{t('sideProxyChooseAction')}</ConnectionButton>
                   <Button className="proxyIconButton" disabled={busy} title={t('editNamedProxy',{name:p.name})} aria-label={t('editNamedProxy',{name:p.name})} onClick={()=>void editPac(p)}><ProxyIcon name="edit"/></Button>
                   <Button className="proxyIconButton quietDanger" disabled={busy||config.managed} title={config.managed?t('stopManagingTheProxyBeforeDeletingIt'):t('deleteNamedProxy',{name:p.name})} aria-label={t('deleteNamedProxy',{name:p.name})} onClick={async()=>{
                     const ifMatch=state.configEtag;
@@ -774,10 +839,13 @@ const tabs: {id:Page; name:string; caption:string}[] = [
             badge={presentation==='management'?undefined:config.rules.length}
             actions={<Button id="settings-rule-add" variant="primary" className="primary"
               disabled={busy} onClick={()=>editRule()}>{presentation==='management'&&<ProxyIcon name="plus"/>}{t('addRule')}</Button>}/>}
-          {presentation!=='management'&&(!ruleEditorOpen||presentation==='management') && config.selection.mode !== 'rules' && <div className="rulesModeHint">
+          {presentation!=='management'&&!ruleEditorOpen && <div className="rulesModeHint">
             <span className="hint">{t('apRuleSaveNote')}</span>
-            <Button type="button" variant="secondary" disabled={busy}
-              onClick={()=>void act({type:'SELECT',selection:{...config.selection,mode:'rules'}})}>{t('apSwitchToRulesMode')}</Button>
+            {config.rules.some(r=>r.enabled) && (activeMode!=='rules'||state.runtime.pendingChanges) &&
+              <ConnectionButton syncing={syncing} type="button" variant="secondary" disabled={operationBusy||routeBlocked} aria-busy={routeTarget?.mode==='rules'||undefined}
+                onClick={event=>void performRouteAction(event,()=>applyRoute({mode:'rules'}))}>
+                {t(routeTarget?.mode==='rules'?'connectionSwitchingShort':activeMode==='rules'?'connectionApplyChanges':'apSwitchToRulesMode')}
+              </ConnectionButton>}
           </div>}
           <div className="rulesGrid">
             {(!ruleEditorOpen||presentation==='management')&&<section className="rulesList" aria-label={t('websiteRules2')}>
@@ -930,13 +998,21 @@ const tabs: {id:Page; name:string; caption:string}[] = [
               <strong>{ruleTest.target.action==='direct'?t('directConnection2'):endpoints.find(e=>e.id===ruleTest.target.endpointId)?.name}</strong>
               <span>{ruleTest.host} · {ruleTest.rule?ruleTest.rule.domain+' · '+t(ruleTest.rule.includeSubdomains?'apRuleSubdomainScope':'apRuleExactScope')+' · '+t('priority')+' '+ruleTest.rule.priority:t('whenNoRuleMatches')}</span>
             </div>}
-            <p className="hint">{t('apRuleTestLocal')}</p>{presentation==='management'&&config.selection.mode==='rules'&&<p className="hint">{t('apRuleSaveNote')}</p>}
-            {presentation==='management'&&config.selection.mode!=='rules'&&<div className="rulesModeHint"><span className="hint">{t('apRuleSaveNote')}</span><Button className="textAction" disabled={busy} onClick={()=>void act({type:'SELECT',selection:{...config.selection,mode:'rules'}})}>{t('apSwitchToRulesMode')} →</Button></div>}
+            <p className="hint">{t('apRuleTestLocal')}</p>
+            {presentation==='management'&&<div className="rulesModeHint">
+              <span className="hint">{t('apRuleSaveNote')}</span>
+              {config.rules.some(r=>r.enabled) && (activeMode!=='rules'||state.runtime.pendingChanges) &&
+                <ConnectionButton syncing={syncing} type="button" disabled={operationBusy||routeBlocked||ruleEditorOpen} aria-busy={routeTarget?.mode==='rules'||undefined}
+                  onClick={event=>void performRouteAction(event,()=>applyRoute({mode:'rules'}))}>
+                  {t(routeTarget?.mode==='rules'?'connectionSwitchingShort':activeMode==='rules'?'connectionApplyChanges':'apSwitchToRulesMode')}
+                </ConnectionButton>}
+            </div>}
           </section>}
           {presentation==='management'&&<p className="hint">{t('pcRuleScopeHelp')}</p>}
         </div>}
         {tab==='subscriptions' && <SourcesPage presentation={presentation} config={config} configEtag={state.configEtag} runtime={state.runtime}
           busy={busy} act={act} setError={setError} setErrorKey={setErrorKey} navigate={navigate}
+          useProfile={useProfile} syncing={syncing} routeBlocked={routeBlocked} routeTarget={routeTarget}
           route={parseSubscriptionRoute(locationHash)} navigateSubscription={navigateSubscription}
           quickEntry={parseSubscriptionRoute(locationHash).kind==='local'?'local':locationHash==='#/subscriptions/new'?'subscription':null}/>}
         {tab==='backup' && <div className="backupPage">
@@ -996,7 +1072,7 @@ const tabs: {id:Page; name:string; caption:string}[] = [
           </div>
         </div>}
         {tab==='diagnostic' && <DiagnosticsPage presentation={presentation} state={state} busy={busy}
-          onRefresh={refresh} onProbe={() => act({type:'PROBE'})}
+          onRefresh={refresh}
           onStop={() => act({type:'STOP'})} onProfiles={() => navigate('profiles')} />}
         {tab==='general' && <div className="generalPage">
           <div className="generalGrid">

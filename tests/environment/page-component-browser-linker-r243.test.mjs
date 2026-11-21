@@ -86,7 +86,7 @@ test('browser ESM inspector discovers literal transitive URLs without evaluating
   assert.deepEqual(built.remoteLock,completed.remoteLock);
 });
 
-test('editor React HTTPS starter compiles with pinned D3 bytes and renders its calculation',async t=>{
+test('editor React starter works offline and an explicit pinned HTTPS variant retains the same calculation',async t=>{
   const project='examples/programs/page-ui-toc-react-direct';
   const lock=JSON.parse(await readFile(project+'/opendesk.remote-lock.json','utf8'));
   const url='https://raw.githubusercontent.com/d3/d3-array/v3.2.4/src/max.js',row=lock.modules[url];
@@ -94,19 +94,23 @@ test('editor React HTTPS starter compiles with pinned D3 bytes and renders its c
   const code=await readFile(project+'/.opendesk/remote-cache/'+row.sha256+'.mjs','utf8');
   const view=createDeveloperView();t.after(()=>view.dispose());
   createDeveloperStarterSource(view).fill('react');
-  const source=view.fields['script-source'].value;
+  const starter=view.fields['script-source'].value;
+  for(const network of [false,true]){
+  const source=network?starter.replace('const max = values => Math.max(...values);',`import max from '${url}';`):starter;
   const inspection=await inspectBrowserPageComponent(inputFor(source));
-  assert.deepEqual(inspection.remoteRoots,[url]);
-  const prepared=await prepareBrowserPageComponent(inputFor(source,[{url,...row,code}]));
+  assert.deepEqual(inspection.remoteRoots,network?[url]:[]);
+  const prepared=await prepareBrowserPageComponent(inputFor(source,network?[{url,...row,code}]:[]));
   const context=vm.createContext({OpenDeskPageReact:React});
   vm.runInContext(prepared.sourceUtf8+'\nglobalThis.__component=__odComponentR243.default;',context);
   const markup=renderToStaticMarkup(React.createElement(context.__component));
   assert.match(markup,/数据：2、5、3/);
   assert.match(markup,/最大值：<strong>5<\/strong>/);
-  assert.equal(prepared.remoteModules.length,1);assert.equal(prepared.remoteModules[0].sha256,row.sha256);
+  assert.equal(prepared.remoteModules.length,network?1:0);
+  if(network)assert.equal(prepared.remoteModules[0].sha256,row.sha256);
   assert.match(prepared.sourceUtf8,/return globalThis.OpenDeskPageReact/);
   assert.doesNotMatch(prepared.sourceUtf8,/createElement\(['"]script|window\.React|@require|import\(/);
   assert.ok(Buffer.byteLength(prepared.sourceUtf8)<100000);
+  }
 });
 
 test('browser remote graph rejects missing locks, corruption, URL changes, unavailable exports, UMD and dynamic code before execution',async()=>{

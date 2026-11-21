@@ -1,5 +1,7 @@
 # mac24dev 运控接入与浏览器云控产品设计
 
+2026-11-19 业务扩展的需求、#1288 原键基线、设备托管及分期交接见[云控业务设计](cloud-control-business-design-20261119.zh-CN.md)。下文保留原接入方案与当时证据。
+
 日期：2026-10-30。阶段：**设计交付与源码核查**。本文是现有云控合同的产品接入补充，不创建另一套 Provider、Scheduler、RunHost、权限库或安装器。方案选择与分期为本次设计建议，尚未表示用户批准实施或生产验收通过。
 
 执行与权限仍归[唯一接口合同](cloud-control-r5.2-interface-security-contract.zh-CN.md)和[执行手册](../../framework/cloud-control-r5.2-execution-manual.zh-CN.md)；界面归[React 五 Tab 合同](../react-ui-shared-components-r33.zh-CN.md)。旧文档与当前源码冲突的具体条目见下文，不据旧描述删掉已实现能力。

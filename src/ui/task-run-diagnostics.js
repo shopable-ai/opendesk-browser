@@ -93,6 +93,8 @@ export function formatTaskError(error) {
       '请核对文件类型、真实 format 与内容，修正后重新选择；文件导入本身不会执行或安装。';
   else if (code === 'E_LIMIT' && /文件|草稿包|任务包/.test(message))
     advice = '请缩小或拆分文件，按合法格式重新导入；大项目文件夹/ZIP 请走后续安全项目导入流程。';
+  else if (code === 'E_CLOUD_CANCELLED')
+    advice = '已收到云请求取消或租约到期信号。请在「云控 → 请求记录」分别核对原请求、回执确认和资源释放；此前网页操作不会回滚，不要直接重复执行。';
   else if (code === 'E_CANCELLED')
     advice = '已收到停止或取消信号。此前操作是否已经生效，应以网页和持久结果为准。';
   else if (/^E_(?:HTTP|NETWORK|FETCH|REQUEST_FAILED)/.test(code))

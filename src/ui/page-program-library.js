@@ -80,11 +80,23 @@ export function createPageProgramLibrary({client,currentPageTarget,api,document:
     const seq=++sequence,result=await client.request('listPagePrograms',{});
     if(disposed||seq!==sequence)return;
     const previous=preferred??select.value;rows=result.catalog;
-    developerOptions(view,select,rows.length?rows.map(row=>({value:identity(row),label:`${row.programId} · r${row.revision} · ${row.stage}`})):[{value:'',label:'尚未保存网页脚本'}]);
+    developerOptions(view,select,rows.length?rows.map(row=>({value:identity(row),label:`${row.programId} · r${row.revision} · ${row.stage}`,
+      scriptId:row.programId,revision:row.revision,kind:'page',typeLabel:'网页脚本 · Page',manifestHash:row.manifestHash})):[{value:'',label:'尚未保存网页脚本'}]);
     if(rows.some(row=>identity(row)===previous))patchDeveloperField(view,select,{value:previous});
     render();await readAccess();
   }
   const listen=(node,event,callback)=>{listeners.push(developerAction(view,node,event,callback));};
+  async function load(value=select.value,{stillCurrent=()=>true}={}){
+    const row=rows.find(row=>identity(row)===value),ticket=sequence;
+    if(!row)throw {code:'E_REVISION',message:'请选择仍存在的网页脚本版本'};
+    const current=()=>!disposed&&ticket===sequence&&stillCurrent()&&
+      rows.some(now=>identity(now)===value&&now.manifestHash===row.manifestHash);
+    if(!current())throw {code:'E_REVISION',message:'打开请求已变化，请重新选择'};
+    const loaded=await onLoad(structuredClone(row),{stillCurrent:current});
+    if(loaded===false)return false;
+    if(!disposed)patchDeveloperField(view,select,{value});
+    return row;
+  }
   const operation=(name,work)=>listen(button(name),'click',event=>{
     if(!event.isTrusted||busy||disposed)return;
     const row=structuredClone(chosen());busy=true;render();patchDeveloperField(view,status,{textContent:'正在核对…'});
@@ -94,7 +106,7 @@ export function createPageProgramLibrary({client,currentPageTarget,api,document:
   });
   listen(select,'change',()=>{void readAccess().catch(showError);});
   operation('refresh',async()=>{await refresh();return '已读取持久版本和授权状态。';});
-  operation('load',async row=>{if(!row)throw new Error('请选择已保存版本');const loaded=await onLoad(row);return loaded===false?'已取消加载，草稿保持不变。':'已载入固定 Page 源码；编辑不会修改已安装版本。';});
+  operation('load',async row=>{if(!row)throw new Error('请选择已保存版本');const loaded=await load(identity(row));return loaded===false?'已取消加载，草稿保持不变。':'已载入固定 Page 源码；编辑不会修改已安装版本。';});
   operation('verify',async row=>{
     if(!row)throw new Error('请选择已保存版本');
     const captured=currentPageTarget.capture();await requireChromePermissions({api,request:requestFor(row)});assertOpen();
@@ -206,5 +218,5 @@ export function createPageProgramLibrary({client,currentPageTarget,api,document:
     })();
   });
   client.ready.then(()=>refresh()).catch(showError);
-  return {refresh,dispose(){disposed=true;sequence++;accessSequence++;consent.dispose();for(const remove of listeners)remove();}};
+  return {refresh,load,dispose(){disposed=true;sequence++;accessSequence++;consent.dispose();for(const remove of listeners)remove();}};
 }

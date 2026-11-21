@@ -11,6 +11,7 @@ const compile=async path=>(await transform(await readFile(new URL(path,import.me
   {loader:'tsx',format:'cjs',jsx:'automatic'})).code;
 const preferenceCode=await compile('../src/ui/PcPreferences.tsx');
 const quickCode=await compile('../src/QuickPanel.tsx');
+const statusCode=await compile('../src/ui/Status.tsx');
 const configBuild=await build({entryPoints:[new URL('../src/domain/config.ts',import.meta.url).pathname],
   bundle:true,write:false,platform:'node',format:'esm'});
 const domain=await import(`data:text/javascript;base64,${Buffer.from(configBuild.outputFiles[0].text).toString('base64')}`);
@@ -246,23 +247,27 @@ test('unrelated and non-local events do not suppress the initial persisted prefe
 
 function quickFixture({show=false,busy=false,error='',runtime={},mode='system'}={}){
   const config={...domain.freshConfig(),selection:{mode}};
-  const state={config,runtime:{control:'controllable_by_this_extension',managedIntent:false,
+  const state={config,runtime:{desired:config.selection,control:'controllable_by_this_extension',managedIntent:false,
     canStop:false,applied:false,pendingChanges:false,activeSelection:null,browserMode:'system',proxyError:null,...runtime}};
   const calls=[],module={exports:{}};
   const Status=()=>null,empty=()=>null;
   const hooks={...React,useState:initial=>[typeof initial==='function'?initial():initial,()=>{}],
     useRef:initial=>({current:initial}),useEffect(){},useMemo:fn=>fn()};
+  const statusModule={exports:{}};
+  runInNewContext(statusCode,{module:statusModule,exports:statusModule.exports,require:()=>({})});
   runInNewContext(quickCode,{exports:module.exports,module,require(name){
     if(name==='react')return hooks;
     if(name==='react/jsx-runtime')return jsxRuntime;
     if(name==='./ui/PcPreferences')return {useStatusDisplay:()=>({show})};
-    if(name==='./ui/useProxy')return {useProxy:()=>({state,busy,error,
+    if(name==='./ui/useProxy')return {useProxy:()=>({state,busy,operationBusy:busy,syncing:false,slowSync:false,error,
       act:message=>calls.push(message),refresh:()=>calls.push('refresh'),setError(){},setErrorKey(){}})};
     if(name==='./domain/config')return domain;
     if(name==='./i18n/LocaleProvider')return {useI18n:()=>({t:key=>key})};
     if(name==='./environment')return {getEnvironment:()=>{throw Error('render must not access browser or proxy');}};
     if(name==='@opendesk/ui')return {Button:empty};
-    if(name==='./ui/Status')return {Status};
+    if(name==='./ui/ConnectionSync')return {ConnectionButton:empty,ConnectionSyncStatus:empty};
+    if(name==='./ui/Status')return {...statusModule.exports,Status};
+    if(name==='./ui/DiagnosticsPage')return {DiagnosticsPage:empty};
     if(name==='./ui/ProxyEntry')return {ClearableInput:empty};
     if(name==='./domain/proxy-entry')return {isValidProxyPort:()=>true};
     if(name==='./ui/ProxyEditor')return {ProxyEditor:empty};
@@ -281,12 +286,12 @@ function quickFixture({show=false,busy=false,error='',runtime={},mode='system'}=
   return {container:find(node=>node.props?.['data-r86-section']==='status'),find,Status,state,calls};
 }
 
-test('hidden optional status is a closed, user-expandable details containing real status and the primary action',()=>{
+test('optional following-system status can collapse and contains no action',()=>{
   for(const show of [true,false]){
     const f=quickFixture({show});assert.equal(f.container.type,show?'section':'details');
     if(!show){assert.notEqual(f.container.props.open,true);assert.ok(f.find(node=>node.type==='summary'));}
     assert.equal(f.find(node=>node.type===f.Status).props.status,f.state.runtime);
-    assert.ok(f.find(node=>node.props?.['data-testid']==='side-proxy-toggle'));
+    assert.equal(f.find(node=>node.props?.['data-testid']==='side-proxy-toggle'),undefined);
     assert.deepEqual(f.calls,[],'presentation never invokes a proxy command or status refresh');
   }
 });
@@ -328,6 +333,9 @@ test('missing credentials and stranded control keep mandatory status and recover
     const f=quickFixture({runtime});assert.equal(f.container.type,'section',JSON.stringify(runtime));
     assert.equal(f.find(node=>node.type===f.Status).props.status,f.state.runtime);
     const action=f.find(node=>node.props?.['data-testid']==='side-proxy-toggle');
-    assert.ok(action);assert.equal(action.props.disabled,false);assert.deepEqual(f.calls,[]);
+    if (runtime.canStop) {
+      assert.ok(action);assert.equal(action.props.disabled,false);
+    } else assert.equal(action,undefined);
+    assert.deepEqual(f.calls,[]);
   }
 });

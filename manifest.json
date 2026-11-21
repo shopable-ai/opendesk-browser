@@ -2,7 +2,8 @@
   "manifest_version": 3,
   "name": "GrayDove",
   "short_name": "GrayDove",
-  "version": "0.1.0",
+  "version": "2.0.0",
+  "version_name": "v2",
   "description": "Reduce repetitive web work with installed browser automation tasks, and customize websites with JavaScript.",
   "minimum_chrome_version": "138",
   "permissions": [
@@ -27,9 +28,7 @@
     "bookmarks",
     "history",
     "contextMenus",
-    "clipboardRead",
     "clipboardWrite",
-    "tabGroups",
     "webRequest",
     "nativeMessaging",
     "idle"
@@ -40,8 +39,24 @@
   "background": {
     "service_worker": "sw.js"
   },
+  "icons": {
+    "16": "icons/graydove-16.png",
+    "20": "icons/graydove-20.png",
+    "24": "icons/graydove-24.png",
+    "32": "icons/graydove-32.png",
+    "48": "icons/graydove-48.png",
+    "128": "icons/graydove-128.png"
+  },
   "action": {
-    "default_title": "打开侧边栏"
+    "default_title": "打开侧边栏",
+    "default_icon": {
+      "16": "icons/graydove-16.png",
+      "20": "icons/graydove-20.png",
+      "24": "icons/graydove-24.png",
+      "32": "icons/graydove-32.png",
+      "48": "icons/graydove-48.png",
+      "128": "icons/graydove-128.png"
+    }
   },
   "content_security_policy": {
     "extension_pages": "script-src 'self'; object-src 'self'",

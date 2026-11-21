@@ -1,6 +1,7 @@
 // OpenDesk trusted-page UI strings. Keep protocol codes, file contents and user paths untranslated.
 // New locale packs use the same semantic keys and named {placeholders}.
 export default Object.freeze({
+  "develop.appDebug.stop": "デバッグを停止",
   "develop.editor.controller": "自動化 JS",
   "develop.prompt.copy": "AI 開発プロンプトをコピー",
   "develop.prompt.copying": "開発プロンプトをコピー中…",
@@ -21,7 +22,7 @@ export default Object.freeze({
   "develop.editor.examples": "{mode} · サンプル（新しいタブ）",
   "develop.editor.help": "{mode} · API ドキュメント（新しいタブ）",
   "common.language": "表示言語",
-  "workspace.documentTitle": "OpenDesk · ローカルファイルワークスペース",
+  "workspace.documentTitle": "GrayDove · ローカルファイルワークスペース",
   "workspace.heading": "ローカルファイルワークスペース",
   "workspace.connecting": "接続中",
   "workspace.refreshConnection": "接続を更新",
@@ -166,7 +167,7 @@ export default Object.freeze({
   "settings.captionOff": "ローカル接続はオフです。必要なときに有効にしてください。",
   "settings.captionPastOff": "以前の接続: {time}。現在は無効です。",
   "settings.captionOnline": "OpenDesk と接続済みです。再ペアリングは不要です。Codex の準備は使用時に確認します。",
-  "settings.captionReload": "接続は有効ですが Chrome API が準備できていません。拡張機能を再読み込みしてください。",
+  "settings.captionReload": "実行中のタスクを終了し、Chrome を完全に終了してから開き直し、開発のプロジェクト接続を確認してください。再検出だけでは権限は適用されません。",
   "settings.captionConnecting": "設定は保存済みです。OpenDesk の応答を待っています。再承認は不要です。",
   "settings.captionPastOffline": "最後の接続: {time}。",
   "settings.captionOffline": "OpenDesk が起動しているか確認するか、再確認してください。",
@@ -174,7 +175,7 @@ export default Object.freeze({
   "settings.invalidStatus": "接続状態の応答が不正です",
   "settings.permissionRequired": "Native Messaging 権限が許可されませんでした。設定は変わりません",
   "settings.diagnosticLastSeen": "最後の接続: {time}",
-  "settings.documentTitle": "OpenDesk Browser · ローカル接続",
+  "settings.documentTitle": "GrayDove · ローカル接続",
   "settings.heading": "ローカル接続",
   "settings.intro": "認可済みの AI 会話とローカル作業領域で OpenDesk を使用します。",
   "settings.permissionsNote": "外部要求には引き続きサイト権限が必要で、同じ RunHost、Worker、タスクスロット、永続結果を使用します。この設定",
@@ -242,7 +243,7 @@ export default Object.freeze({
   "settings.connected": "接続済み",
   "settings.hostCount": "登録済みワークベンチ: {count}",
   "settings.extensionId": "Extension ID: {id}",
-  "settings.requiresReload": "権限は許可されていますが、ブラウザーの Native API は未更新です。実行中のタスクを終了し、chrome://extensions で拡張機能を再読み込みしてから状態を更新してください。",
+  "settings.requiresReload": "権限は許可済みです。Chrome による適用を待っています。",
   "settings.trying": "ローカル OpenDesk に接続しています…",
   "settings.notConnected": "未接続です。デスクトップアプリのインストールと信頼済み拡張機能のペアリングを確認し、「接続を確認」を選択してください。",
   "settings.pairWait": "デスクトップ版 OpenDesk の確認を待っています。申請は2分後に期限切れになります。このウィンドウの拡張機能 ID を照合してください。確認後、ここで「接続を確認」を選択してください。\nExtension ID: {id}",

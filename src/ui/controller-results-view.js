@@ -15,12 +15,14 @@ export function createControllerResultsView({host,view,resultDownloads,isDispose
     retiring:'正在释放资源',completed:'已完成',failed:'失败',stopped:'已停止',interrupted:'已中断',paused_unknown:'状态待确认'};
   function renderTask(run) {
     if (isDisposed()) return;
-    // A newly started run supersedes reads begun under the previous selection.
-    // A history query started afterwards can still select its requested run.
-    if(currentTask?.runId!==run?.runId)++snapshotSequence;
+    // Run events can settle the same selected run while a snapshot is pending.
+    // A query begun before that observation must not restore its older state
+    // or slot availability. A later explicit query can still select history.
+    if(currentTask?.runId!==run?.runId||currentTask?.state!==run?.state||
+      currentTask?.retirementState!==run?.retirementState)++snapshotSequence;
     currentTask = run;
     patchDeveloperField(view,find('script-task-id'),{textContent:run ? `runId：${run.runId}` : '尚未运行'});
-    patchDeveloperField(view,find('script-task-status'),{data:{state:run?.state||'idle'},textContent:run ? `${stateLabels[run.state] || run.state} · ${run.retirementState === 'released' ? '资源已释放' : '以后台回执为准'}` : ''});
+    patchDeveloperField(view,find('script-task-status'),{data:{state:run?.state||'idle',runId:run?.runId||''},textContent:run ? `${stateLabels[run.state] || run.state} · ${run.retirementState === 'released' ? '资源已释放' : '以后台回执为准'}` : ''});
     patchDeveloperField(view,find('script-task-version'),{textContent:run?.revision
       ? run.sourceKind === 'draft' || run.revision.kind === 'draft'
         ? `草稿快照 · SHA-256 ${run.revision.sourceHash}`
@@ -78,7 +80,8 @@ export function createControllerResultsView({host,view,resultDownloads,isDispose
     const visibleResult = currentValues[0];
     setResultKind(!visibleResult ? '暂无返回值' : currentValues.length > 1
       ? `共 ${currentValues.length} 项结果` : Object.hasOwn(visibleResult,'value')
-        ? runValueKind(visibleResult.value) : '执行错误');
+        ? runValueKind(visibleResult.value)
+        : ['stopped','interrupted'].includes(focused?.state) ? stateLabels[focused.state] : '执行错误');
     patchDeveloperField(view,copyResult,{disabled:!visibleResult || deniedRuns.has(focused?.runId)});
     displayCopyResult('复制结果');
     if (visibleResult?.error?.code === 'E_USER_SCRIPTS_UNAVAILABLE') {
@@ -89,15 +92,17 @@ export function createControllerResultsView({host,view,resultDownloads,isDispose
     if (getOwnedRunId() && values.some(row => row.runId === getOwnedRunId()))
       patchDeveloperField(view,find('developer-results-panel'),{open:true});
   }
-  async function read(runId = find('script-run-id').value.trim(),{reveal=false}={}) {
-    if (isDisposed()) return;
+  async function read(runId = find('script-run-id').value.trim(),{reveal=false,isCurrent=()=>true}={}) {
+    if (isDisposed() || !isCurrent()) return;
+    if(reveal)invariant(typeof runId==='string'&&runId.trim()===runId&&runId.length>0&&runId.length<=200,
+      'E_RUN','请选择有效的原始运行记录');
     const token = ++snapshotSequence;
     try {
       let snapshot;
       // Development updates may refuse a read before dispatch. Wait briefly
       // for that fence without replaying any execution or changing its owner.
       for(let attempt=0;;attempt++){
-        if(isDisposed() || token !== snapshotSequence)return;
+        if(isDisposed() || token !== snapshotSequence || !isCurrent())return;
         try{
           snapshot = await host.controller.snapshotControllerRun(runId ? {runId} : {});
           break;
@@ -106,15 +111,16 @@ export function createControllerResultsView({host,view,resultDownloads,isDispose
           await new Promise(resolve=>setTimeout(resolve,75));
         }
       }
-      if (!isDisposed() && token === snapshotSequence){
+      if (!isDisposed() && token === snapshotSequence && isCurrent()){
         if(reveal)invariant(snapshot.run?.runId===runId,'E_RUN','原始运行记录不存在或身份已变化');
         showSnapshot(snapshot);
         if(reveal){
           patchDeveloperField(view,find('developer-results-panel'),{open:true});
           patchDeveloperField(view,find('script-history-panel'),{open:true});
         }
+        return true;
       }
-    } catch (error) {if (!isDisposed() && token === snapshotSequence) throw error;}
+    } catch (error) {if (!isDisposed() && token === snapshotSequence && isCurrent()) throw error;}
   }
   function clearProjection(){projection=undefined;}
   function setProjection(value){projection=value;}

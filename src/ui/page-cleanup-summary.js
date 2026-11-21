@@ -16,8 +16,11 @@ export function describePageCleanup(programId,current,pending=[]) {
       if(!documents.has(key))documents.set(key,{...document,key});
     }
   }
-  return {documents:[...documents.values()],records:records.map(row=>({
-    revision:row.revision,state:row.managedCleanup?.state||'unknown',
-    records:row.managedCleanup?.records,pendingRecords:row.managedCleanup?.pendingRecords
-  }))};
+  return {documents:[...documents.values()],records:records.map(row=>{
+    const cleanup=row.managedCleanup;
+    const error=cleanup?.error;
+    return {revision:row.revision,state:cleanup?.state||'unknown',
+      records:cleanup?.records,pendingRecords:cleanup?.pendingRecords,
+      ...(error?{error:{code:error.code,message:error.message}}:{})};
+  })};
 }

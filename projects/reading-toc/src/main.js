@@ -191,7 +191,8 @@ async function refresh(){
    const detail=String(e?.message||t('readFail')).slice(0,150);
    const installationBlocked=e?.code==='E_APP_PAGE_OWNER'||e?.code==='E_PAGE_INSTALLATION';
    const pageReloadRequired=e?.code==='E_APP_PAGE_RELOAD_REQUIRED';
-   recoveryBlocked=installationBlocked||pageReloadRequired;
+   const activationRequired=e?.code==='E_APP_PAGE_ACTIVATION_REQUIRED'||e?.code==='E_USER_SCRIPTS_UNAVAILABLE';
+   recoveryBlocked=installationBlocked||pageReloadRequired||activationRequired;
    // A reload can briefly have no live document/handler or no usable snapshot.
    // Retry only this read, with a bounded loading phase; stale links stay disabled.
    // Current Page Target reports navigation/loading as E_DOCUMENT_UNRESOLVED.
@@ -201,7 +202,7 @@ async function refresh(){
    waitingForPage=e?.code==='E_DOCUMENT_UNRESOLVED'?Date.now()-readinessSince<10000:
     failures<=3&&['E_TOC_SNAPSHOT','E_TARGET','E_DOCUMENT_STALE',
      'E_PAGE_AUTHORIZATION','E_APP_PAGE_NOT_READY'].includes(e?.code);
-   showStatus(installationBlocked?'installationRepair':pageReloadRequired?'pageReloadRequired':waitingForPage?'loading':stale?'stale':'retry',
+   showStatus(installationBlocked?'installationRepair':pageReloadRequired?'pageReloadRequired':activationRequired?'activationRequired':waitingForPage?'loading':stale?'stale':'retry',
     {detail},waitingForPage?'loading':'error');
   }
  }finally{

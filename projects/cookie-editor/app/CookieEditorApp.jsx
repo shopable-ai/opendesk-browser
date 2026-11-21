@@ -839,7 +839,7 @@ export default function CookieEditorApp({request,hostRoot,setState,previewMode=f
     if(!result||generation!==navigationGeneration.current||controller.snapshot().navigationPending)return;
     if(!result.count){
       controller.discardClear();
-      setStatus(result.excluded?'当前没有可清理的 Cookie；部分 Cookie 因权限或连接限制保留。':'当前清理范围内没有可删除的 Cookie。');
+      setStatus(result.excluded?'当前没有可清理的 Cookie，已保留超出清理范围的记录。':'当前清理范围内没有可删除的 Cookie。');
       return;
     }
     ask('',

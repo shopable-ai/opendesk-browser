@@ -10,6 +10,7 @@ const sdkErrorKeys: Record<string, TranslationKey> = {
   E_NOT_CONNECTED:'apProxyNotConnected', E_UNAVAILABLE:'apProxyNotConnected',
   E_UNSUPPORTED:'apProxyUnsupported', E_PROXY_PROFILE_NOT_APPROVED:'apProxyPermissionDenied',
   E_CONFLICT:'apConfigConflict', E_QUOTA:'apConfigQuota', E_OUTCOME_UNKNOWN:'apOutcomeUnknown',
+  E_PROXY_ROUTE_NOT_SAVED:'connectionRouteNotSaved',
   E_CONTROL_HELD:'apProxyControlHeld', E_SYSTEM_NOT_CONFIRMED:'apSystemNotConfirmed'
 };
 

@@ -1,6 +1,6 @@
 # GrayDove（灰鸽）品牌规范
 
-## 1. 当前品牌候选（尚未最终确定）
+## 1. 当前产品品牌（英文拼写已确认）
 
 | 项目 | 规范 |
 |---|---|
@@ -12,7 +12,7 @@
 | Standard 对外名称 | GrayDove |
 | Developer 内部发行名称 | GrayDove Developer（待最终确认是否保留该显示名称） |
 
-当前拟采用美式拼写 `GrayDove`，中文暂用「灰鸽」。这不是商标或域名已验证通过的最终定名。此前英式拼写方案仍留在 Git 历史提交中；不可把同音两种拼写视为商标自动安全。
+2026-11-18 用户明确要求英文品牌使用美式拼写 `GrayDove`，中文保持「灰鸽」。商标与域名核验仍未完成。此前英式拼写方案作为历史记录保留；不可把同音两种拼写视为商标自动安全。
 
 ## 2. 品牌定位
 
@@ -32,13 +32,13 @@ GrayDove 是面向浏览器自动化、JavaScript 脚本开发和网页工具使
 
 ## 3. 视觉基准
 
-用户已选定的主图标方向：
+Chrome 扩展图标方向（2026-11-21 更新）：
 
-- 深石墨灰、深蓝灰色的圆角方形背景。
+- 使用透明背景，让轮廓直接显示在浅色和深色工具栏上。原深色圆角底板版保留为品牌参考。
 - 中心为向右飞行的银灰色鸽子。
 - 鸽子使用简洁、现代、有速度感的几何羽翼结构。
 - 主体以银灰、浅灰、深灰层次为主。
-- 鸽子尾翼下方保留电光蓝色装饰。
+- 下侧羽翼保留蓝色点缀，外轮廓用灰蓝色描边，便于在浅色背景辨识。
 - 整体简洁、克制、具有科技感，重点保证小尺寸轮廓辨识度。
 
 避免：
@@ -47,7 +47,29 @@ GrayDove 是面向浏览器自动化、JavaScript 脚本开发和网页工具使
 - 16×16 尺寸下无法辨识的细线和小装饰。
 - 将通知图标当成扩展品牌图标。
 
-本文件只记录已选方向。正式实施必须核对原始参考图和源文件；若无法取得原图，不得假称已使用它，也不得擅自用另一张图替换。
+透明版以用户提供的原图为参考，保留向右飞行的灰鸽与蓝色羽翼，简化阴影和羽毛细节。
+
+### 3.1 源文件与构建资源
+
+品牌图像统一归属 [`src/assets/branding/`](../../../src/assets/branding/)，文件名与出包路径统一为 `graydove-*`。品牌规范、发布任务、商店资料与合规文档继续只在本 `docs/release/greydove/` 目录维护，不复制源图。
+
+- `graydove-master-1024.webp`：归档原始深底品牌图，1024×1024、53,864 字节，SHA-256 为 `f8167febd91e1767633a8e6cdbd4c291c0c319d1e59b99e3409147f39febc986`。来自用户提供的 `assets/branding/greydove/GreyDove-master-1024.webp`，字节未改动。
+- `graydove-icon.svg`：透明扩展图标的矢量源，用于导出 16、20、24、32、48、128 像素的 `graydove-<尺寸>.png`。
+- 源图及 PNG 由 `scripts/build.mjs` 的既有 `src/` 输入扫描记录大小和 SHA-256；只有六个 PNG 经 `scripts/prepare-public.mjs` 的 `STATIC_RESOURCES` 复制为 `icons/graydove-<尺寸>.png`。
+- 六个 PNG 的真实大小和 SHA-256 只在 [`scripts/build-contract.mjs`](../../../scripts/build-contract.mjs) 的 `BRAND_ICONS` 登记；准备资源时先核验源文件，包验证器的 `FIXED_ASSETS` 再核验构建输出。根 Manifest 的 `icons` 与 `action.default_icon` 引用全部六个尺寸，严格验证器只接受这些尺寸和路径。
+- Standard / Developer 共用同一组图像；`icons/notification.png` 继续保持原通知用途、字节和哈希。既有权限、CSP、发行选择与资源预算不变。
+
+如需重现导出，在 macOS 仓库根使用原系统 `sips`，逐尺寸执行以下命令；不得在正常构建中重新生成并自动接受新的哈希：
+
+```sh
+for size in 16 20 24 32 48 128; do
+  sips -s format png -z "$size" "$size" \
+    src/assets/branding/graydove-icon.svg \
+    --out "src/assets/branding/graydove-$size.png"
+done
+```
+
+此项仅完成资产与构建接入；真实 Chrome 工具栏/商店展示验收及素材商业使用权核查仍需各自证据，不能由构建通过代替。
 
 ## 4. 品牌与工程名称的边界
 

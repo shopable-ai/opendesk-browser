@@ -13,7 +13,7 @@ export function createDeveloperView(){
   const actions={},subscribers=new Set();
   let snapshot={fields:Object.fromEntries(Object.entries(fields).map(([key,state])=>[key,{...state}])),
     dependencies:{classic:null,network:null},section:'editor',confirmation:null,
-    presentationActive:true,navigationGeneration:0},disposed=false,queued=false;
+    presentationActive:true,navigationGeneration:0,scriptPicker:{open:false,generation:0,pending:'',error:''}},disposed=false,queued=false;
   let pendingConfirmation=null,confirmationSequence=0;
   function settleConfirmation(identity,action,reason='user'){
     if(!pendingConfirmation||identity!==pendingConfirmation.identity)return;
@@ -48,7 +48,14 @@ export function createDeveloperView(){
     if(!Object.hasOwn(snapshot.dependencies,section))throw new Error('E_DEVELOPER_DEPENDENCIES: '+section);
     snapshot={...snapshot,dependencies:{...snapshot.dependencies,[section]:value}};notify();
   }
+  function setScriptPickerOpen(open){
+    if(disposed||snapshot.scriptPicker.open===open)return;
+    snapshot={...snapshot,scriptPicker:{open,generation:snapshot.scriptPicker.generation+1,pending:'',error:''}};
+    notify(true);
+  }
   return Object.freeze({fields,actions,patch,patchDependencies,
+    setScriptPickerOpen,
+    patchScriptPicker(values){if(!disposed){snapshot={...snapshot,scriptPicker:{...snapshot.scriptPicker,...values}};notify();}},
     // Business owners retain target/revision checks; this is only a choice in
     // the existing trusted React tree, never execution or browser authority.
     requestConfirmation(options){
@@ -66,6 +73,7 @@ export function createDeveloperView(){
     settleConfirmation,cancelConfirmation,
     setPresentationActive(active,reason='hidden'){
       if(disposed||snapshot.presentationActive===active)return;
+      if(!active)setScriptPickerOpen(false);
       snapshot={...snapshot,presentationActive:active,navigationGeneration:snapshot.navigationGeneration+1};
       if(!active)cancelConfirmation(reason);
       notify(true);
@@ -73,6 +81,7 @@ export function createDeveloperView(){
     // Local presentation only; changing a section never dispatches a controller action.
     navigate(section,{returnFocusId=''}={}){
       if(disposed||!['editor','save','library','history','install','diagnostics'].includes(section))return;
+      setScriptPickerOpen(false);
       cancelConfirmation('navigation');
       if(section==='history')patch('script-history-panel',{open:true});
       snapshot={...snapshot,section,navigationGeneration:snapshot.navigationGeneration+1,
@@ -88,7 +97,7 @@ export function createDeveloperView(){
       for(const fn of subscribers)fn();
     },
     resourceSnapshot:()=>({subscriptions:subscribers.size,actions:Object.keys(actions).length}),
-    dispose(){disposed=true;cancelConfirmation('disposed');subscribers.clear();for(const key of Object.keys(actions))delete actions[key];}
+    dispose(){setScriptPickerOpen(false);disposed=true;cancelConfirmation('disposed');subscribers.clear();for(const key of Object.keys(actions))delete actions[key];}
   });
 }
 

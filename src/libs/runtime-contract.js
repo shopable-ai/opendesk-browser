@@ -12,7 +12,7 @@ export const BUILTIN_RUNTIME_CATALOG=Object.freeze({
   bootstrapSha256:'d8b6ff3a7a6a58a3ede0f630cd906f0af134307eeaa8a7db1f096ed24687868d',
   pageCore:'libs/runtime/page-core.js',
   controllerCore:'scripting/sandbox/worker-runtime.js',
-  resourceManifest:'libs/manifest.json',
+  resourceManifest:'libs/builtin-resources.json',
   libraries:Object.freeze({
     lodash:Object.freeze({id:'lodash',version:'4.18.1',output:'libs/packages/lodash.js',
       worlds:Object.freeze(['CONTROLLER','USER_SCRIPT']),default:true}),

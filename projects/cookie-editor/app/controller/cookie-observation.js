@@ -2,21 +2,21 @@
 // Cookie value reads, storage, native writes, or replacement authority.
 export function createCookieObservation({adapter,controller,canRun,onChange=()=>{},onObservedChange=()=>{},now=Date.now}){
   let generation=0,session=null,pending=false,closed=false;
-  let state={phase:'idle',expiresAt:0,gap:false};
+  let state={phase:'idle',expiresAt:0,gap:false,detected:false};
   const publish=patch=>{state={...state,...patch};if(!closed)onChange({...state});};
   const release=value=>{
     if(value)void Promise.resolve().then(()=>adapter.observeStop(value.target,value.ref)).catch(()=>{});
   };
-  function stop(phase='idle'){
+  function stop(phase='idle',gap=state.gap){
     generation++;pending=false;
     const old=session;session=null;release(old);
-    publish({phase,expiresAt:0});
+    publish({phase,expiresAt:0,gap});
   }
   async function start(){
     const target=controller.snapshot().target;
     if(closed||state.phase==='starting'||session||!canRun()||!target)return;
     const ticket=++generation,epoch=controller.snapshot().epoch;
-    publish({phase:'starting',gap:false});
+    publish({phase:'starting',gap:false,detected:false});
     try{
       const result=await adapter.observeStart(target);
       const value={target,ref:result?.sessionRef,cursor:'0',epoch};
@@ -30,9 +30,10 @@ export function createCookieObservation({adapter,controller,canRun,onChange=()=>
     }
   }
   async function poll(){
-    if(closed||pending||!session)return;
+    if(closed||!session)return;
     if(!canRun()||controller.snapshot().epoch!==session.epoch){stop();return;}
-    if(now()>=state.expiresAt){stop('ended');return;}
+    if(now()>=state.expiresAt){stop('ended',state.gap||pending);return;}
+    if(pending)return;
     const value=session,ticket=generation;
     const current=()=>!closed&&ticket===generation&&session===value&&
       controller.snapshot().epoch===value.epoch;
@@ -50,12 +51,14 @@ export function createCookieObservation({adapter,controller,canRun,onChange=()=>
         if(!valid()||!applied)return;
       }
       value.cursor=result.nextCursor;
-      if(gap)publish({gap:true});
+      if((gap&&!state.gap)||(result.events.length>0&&!state.detected))
+        publish({gap:state.gap||gap,detected:state.detected||result.events.length>0});
       if(result.events.length)onObservedChange();
     }catch(error){
       if(current()){
         controller.observationAccessLost(error);
-        stop(error?.code==='E_SESSION_EXPIRED'?'ended':'error');
+        const expired=error?.code==='E_SESSION_EXPIRED'&&now()>=state.expiresAt;
+        stop(expired?'ended':'error',state.gap||expired);
       }
     }finally{if(ticket===generation)pending=false;}
   }

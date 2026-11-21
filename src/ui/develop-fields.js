@@ -55,7 +55,7 @@ export const DEVELOPER_FIELDS = {
     "value": ""
   },
   "local-project-refresh": {
-    "title": "刷新已授权本地项目"
+    "title": "检查连接与项目"
   },
   "local-project-status": {},
   "local-project-tool": {
@@ -65,6 +65,7 @@ export const DEVELOPER_FIELDS = {
   "local-project-tool-bind": {"disabled": true},
   "local-project-tool-pointer": {hidden:true},
   "local-project-preview": {"disabled": true},
+  "local-project-preview-hint": {hidden:true},
   "local-install-review": {
     "hidden": true
   },
@@ -101,7 +102,7 @@ export const DEVELOPER_FIELDS = {
     "className": "local-project-guide od-disclosure od-disclosure--info"
   },
   "local-project-guide-open": {
-    "textContent": "查看首次配置命令和示例 ↗"
+    "textContent": "查看授权与构建示例 ↗"
   },
   "local-project-params-tools": {
     "hidden": true,
@@ -538,14 +539,15 @@ export const DEVELOPER_FIELDS = {
     "value": ""
   },
   "script-list-refresh": {},
+  "developer-script-open": {},
   "script-list-load": {
-    "textContent": "加载最新版本"
+    "textContent": "加载到编辑器"
   },
   "script-version": {
     "textContent": "尚未保存"
   },
   "script-save-version": {
-    "textContent": "保存 Controller 固定版本"
+    "textContent": "确认保存脚本"
   },
   "task-package-dev": {
     "className": "od-disclosure od-disclosure--flat"

@@ -1,0 +1,263 @@
+{
+  "schema": 1,
+  "date": "2026-11-19",
+  "scope": "D07 + affected D03 checks and package identity. The other matrix rows and S-REAL retain their original versioned evidence.",
+  "matrix": {
+    "total": 38,
+    "businessPassed": 29,
+    "businessPassRate": "76.3%",
+    "uiPassed": 38,
+    "uiPassRate": "100%",
+    "businessFailed": [
+      "A04"
+    ],
+    "businessUnimplemented": [
+      "P02",
+      "P05",
+      "P06",
+      "R02",
+      "S04",
+      "D06",
+      "D07",
+      "O01"
+    ],
+    "uiPartial": [],
+    "priorAcceptance": "projects/ai-proxy/evidence/ui-acceptance-039-20261119.json",
+    "sReal": "projects/ai-proxy/evidence/s-real-20261119.json"
+  },
+  "baseline": {
+    "version": "0.3.39",
+    "sha256": "00604b6b207549aa5211f9cea422cadb45a4f4ca64bd2cd295441e81fd3486e6",
+    "extensionId": "gpclekmmnglmlpnffemppedbhgmfpiin",
+    "disabledSimulation": {
+      "at": "2026-11-19T14:22:40.412Z",
+      "notice": {
+        "text": "当前仅模拟出口探测，不请求 api.ipify.org；真实网络探测尚未接入。",
+        "noticeVisible": true,
+        "httpsVisible": true,
+        "noticeTop": 634.265625,
+        "httpsTop": 477.625,
+        "viewport": 1000
+      },
+      "probe": {
+        "role": "button",
+        "name": "模拟出口探测",
+        "description": "当前仅模拟出口探测，不请求 api.ipify.org；真实网络探测尚未接入。",
+        "disabled": true
+      },
+      "httpsAx": {
+        "role": "button",
+        "name": "检测公共 HTTPS",
+        "description": null,
+        "disabled": false
+      },
+      "refreshAx": {
+        "role": "button",
+        "name": "重新读取状态",
+        "description": null,
+        "disabled": false
+      }
+    },
+    "basicHttps": {
+      "at": "2026-11-19T14:22:42.174Z",
+      "result": "HTTP 请求成功（非模型验证）\nHTTP 200\n149 ms\n2026/11/19 22:22",
+      "refreshClicked": false,
+      "fixture": {
+        "method": "GET",
+        "hostname": "www.cloudflare.com",
+        "path": "/cdn-cgi/trace",
+        "httpStatus": 200,
+        "tls": "TLSv1.3"
+      }
+    },
+    "screenshot": "artifacts/ai-proxy/d07-20261119/baseline-r3/d07-baseline.png",
+    "report": "artifacts/ai-proxy/d07-20261119/baseline-r3/result.json"
+  },
+  "formalPackage": {
+    "path": "projects/ai-proxy/ai-proxy.opendesk-tool.json",
+    "version": "0.3.40",
+    "sha256": "76ac45f2a183e4285a65706a008733f0722581bfac1024713a70609e69fe9620",
+    "bytes": 717925,
+    "promotion": "PROJECT_PACKAGE_PROMOTED",
+    "sameSource": "PROJECT_PACKAGE_MATCH",
+    "matchesInstalledCandidate": true
+  },
+  "trustedBuild": {
+    "path": "artifacts/ai-proxy/d07-20261119/extension-040",
+    "mode": "static development candidate",
+    "chrome": "Chrome/155.0.8059.39",
+    "extensionId": "dmplnllonnlkbmibofkjlebkajoedlah",
+    "serveConnected": false,
+    "copiedBaseVersion": "0.3.39",
+    "copiedBaseBuildMarker": "af14bff22dfe7a88c9e6f297b57a5550a5893c77ac14377ae95a6f6d65f3efa1",
+    "loadedAssets": {
+      "sw.js": "8e3cb8dbece97aeb013548b1943fa1096ab9ee8d21c9535f50d6a16dc188272a",
+      "ui/tool-shell.js": "dd1585a92133e9bd7a69659416d83527b83b978a6f24faf5b63f9cb8e2dbbb17",
+      "app.html": "034cdb157f12525fff484fa9689320c79fa6a5eeae25ff18b204083a48adaea3",
+      "sidepanel.html": "fcee25a08ff360bc17a16bff177baf0b4c7e070cd3140e9a870bf12863102fac"
+    },
+    "shellBytes": 3089452,
+    "rollupProvenance": "artifacts/ai-proxy/d07-20261119/tool-shell-provenance.json",
+    "changedReviewedSources": {
+      "projects/ai-proxy/src/i18n/locales/en.json": "68036d817178adf605d6bd24066b49181de2c81e",
+      "projects/ai-proxy/src/i18n/locales/zh-CN.json": "679d777bb0edf75587d4a2b1937d4325705acfc0",
+      "projects/ai-proxy/src/i18n/locales/zh-TW.json": "02c77cb001e1276feb86ab476ebcae6e17221922",
+      "projects/ai-proxy/src/QuickPanel.tsx": "2e6541083529d1b38d7b1a79210270e3c3de929c",
+      "projects/ai-proxy/src/Settings.tsx": "3f56b21f65a2a3c49841d87f0ee6a589e15486c3",
+      "projects/ai-proxy/src/ui/DiagnosticsPage.tsx": "d5e8d04e041e4bc88ac490ef2c4e5d11db8f6b59"
+    }
+  },
+  "installation": {
+    "source": "LOCAL_REVIEW",
+    "reviewCancelledWithoutInstallRecord": true,
+    "reviewApprovedWithExactBytes": true,
+    "sidePanelContext": "SIDE_PANEL",
+    "trustedRoots": 1,
+    "sdkMock": false,
+    "browserAndFixturesReleased": true
+  },
+  "d07": {
+    "entry": [
+      "扩展",
+      "AI Proxy",
+      "打开设置",
+      "网络诊断",
+      "基础诊断"
+    ],
+    "ui": "PASS",
+    "business": "未实现",
+    "availability": {
+      "at": "2026-11-19T14:29:21.274Z",
+      "notice": {
+        "text": "出口 IP 探测与下载吞吐测速\n\n尚未接入。",
+        "noticeVisible": true,
+        "httpsVisible": true,
+        "noticeTop": 520.265625,
+        "httpsTop": 363.625,
+        "viewport": 1000
+      },
+      "unavailable": {
+        "role": "heading",
+        "name": "出口 IP 探测与下载吞吐测速",
+        "description": null,
+        "disabled": false
+      },
+      "httpsAx": {
+        "role": "button",
+        "name": "检测公共 HTTPS",
+        "description": null,
+        "disabled": false
+      },
+      "refreshAx": {
+        "role": "button",
+        "name": "重新读取状态",
+        "description": null,
+        "disabled": false
+      },
+      "noProbeButtons": true
+    },
+    "keyboard": {
+      "at": "2026-11-19T14:29:21.313Z",
+      "tabFrom": "检测公共 HTTPS",
+      "tabTo": "重新读取状态",
+      "shiftTabTo": "检测公共 HTTPS",
+      "outboundBeforeHttps": 0,
+      "noticePointerClick": true
+    },
+    "basicHttps": {
+      "at": "2026-11-19T14:29:22.808Z",
+      "result": "HTTP 请求成功（非模型验证）\nHTTP 200\n128 ms\n2026/11/19 22:29",
+      "refreshClicked": true,
+      "fixture": {
+        "method": "GET",
+        "hostname": "www.cloudflare.com",
+        "path": "/cdn-cgi/trace",
+        "httpStatus": 200,
+        "tls": "TLSv1.3"
+      }
+    },
+    "measuredHttp": {
+      "at": "2026-11-19T14:29:26.606Z",
+      "timing": "HTTP 成功 3 / 检测 3\np50: 133 ms\np95: 135 ms",
+      "fixtureSamples": 3,
+      "throughputUnavailable": true,
+      "requestedHosts": [
+        "www.cloudflare.com",
+        "chatgpt.com"
+      ],
+      "requests": [
+        {
+          "method": "GET",
+          "host": "www.cloudflare.com",
+          "path": "/cdn-cgi/trace"
+        },
+        {
+          "method": "GET",
+          "host": "chatgpt.com",
+          "path": "/"
+        },
+        {
+          "method": "GET",
+          "host": "chatgpt.com",
+          "path": "/"
+        },
+        {
+          "method": "GET",
+          "host": "chatgpt.com",
+          "path": "/"
+        }
+      ]
+    },
+    "chromeProxyUnchanged": true,
+    "network": {
+      "externalNetworkBlocked": true,
+      "loopbackTlsFixture": true,
+      "exitProbeRequests": 0,
+      "diagnosticsRequests": 4,
+      "unrelatedFrameworkNetworkAttempts": [
+        {
+          "method": "GET",
+          "host": "raw.githubusercontent.com",
+          "path": "/shopable-ai/opendesk-browser/main/official-tools/stay-focus/latest.json"
+        },
+        {
+          "method": "GET",
+          "host": "raw.githubusercontent.com",
+          "path": "/shopable-ai/opendesk-browser/main/official-tools/stay-focus/latest.json"
+        }
+      ],
+      "netlogSummary": "artifacts/ai-proxy/d07-20261119/installed-r2/netlog-summary.json"
+    },
+    "report": "artifacts/ai-proxy/d07-20261119/installed-r2/result.json",
+    "screenshots": [
+      "artifacts/ai-proxy/d07-20261119/installed-r2/d07-unavailable.png",
+      "artifacts/ai-proxy/d07-20261119/installed-r2/d07-https-receipt.png",
+      "artifacts/ai-proxy/d07-20261119/installed-r2/d07-live-timing.png"
+    ]
+  },
+  "egoPreview": {
+    "sha256": "e71ce7d86e5d0343d11a59df8cfd7775e1f84e580e0075750a624f71f8f166b9",
+    "mode": "memory-only isolated preview",
+    "observations": {
+      "basic": [
+        "                        text \"检测公共 HTTPS\"",
+        "                      text \"出口 IP 探测与下载吞吐测速\"",
+        "                      text \"尚未接入。预览中的 HTTPS 检测与耗时均为模拟。\""
+      ],
+      "timing": [
+        "                      text \"仅展示模拟耗时，不是实测 HTTP、Ping 或下载速度。\"",
+        "                      text \"真实探测与吞吐测速尚未接入；预览耗时及分位数均为模拟。\""
+      ]
+    },
+    "taskSpaceReleased": true
+  },
+  "checks": {
+    "diagnosticsStatusHttpAndTrustedAdmission": "67/67",
+    "trustedSourceProtection": "3/3",
+    "focusedPacker": "4/4",
+    "existingFailures": [
+      "R14 shared tool header assertion expects 48px; observed source baseline is 53px.",
+      "Two legacy trusted-host integration fixtures expect the old currentPage result shape and omit clearClipRegions. The exercised Host and environment sources were outside the D07 change."
+    ]
+  }
+}

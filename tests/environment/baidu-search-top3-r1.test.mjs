@@ -12,8 +12,7 @@ const sha=text=>createHash('sha256').update(text).digest('hex');
 test('Baidu Task package is importable and pins identical source and manifest bytes',async()=>{
   await verifyTaskPackage(pkg);
   assert.equal(pkg.manifest.taskId,'baidu.search.top3');
-  // The frozen package is the reviewed 1.1.5 release, not the older 1.1.4 fixture.
-  assert.equal(pkg.manifest.version,'1.1.5');
+  assert.equal(pkg.manifest.version,'1.1.6');
   assert.equal(pkg.manifest.program.revision,1);
   assert.equal(pkg.manifest.deadlineMs,120000);
   assert.deepEqual(pkg.manifest.siteOrigins,['https://www.baidu.com']);
@@ -76,7 +75,8 @@ test('homepage refuses two visible submit controls and never retries an unknown 
  const unknown=await runHomepage({unknown:true});
  assert.equal(unknown.result.status,'stopped');assert.equal(unknown.result.error.code,'E_EFFECT_UNKNOWN');assert.equal(unknown.clicks,1);
 });
-async function run(rows,params={query:'关键词',limit:3},body='',{searchAreaAvailable=true}={}){
+async function run(rows,params={query:'关键词',limit:3},body='',{searchAreaAvailable=true,calls,nextUrl}={}){
+ let url='https://www.baidu.com/s?wd='+encodeURIComponent('关键词');
  const locator=items=>{
    const one=()=>{assert.equal(items.length,1,'Locator read must be strict');return items[0];};
    return {
@@ -93,8 +93,10 @@ async function run(rows,params={query:'关键词',limit:3},body='',{searchAreaAv
  const page={
    bringToFront:async()=>{},
    observe:async()=>({document:{documentId:'serp-document'}}),
-   url:async()=> 'https://www.baidu.com/s?wd='+encodeURIComponent('关键词'),
+   url:async()=>{calls?.push(['url',url]);return url;},
+   goto:async target=>{calls?.push(['goto',target]);url=nextUrl??target;},
    locator:selector=>{
+     calls?.push(['locator',selector]);
      if(selector==='body')return locator([{innerText:body}]);
      if(selector==='#content_left')return {waitFor:async()=>{
        if(!searchAreaAvailable)throw Object.assign(new Error('Search area did not become visible'),{code:'E_TIMEOUT'});
@@ -147,9 +149,36 @@ test('fixed task classifies captcha and missing or changed search DOM without in
    assert.equal(result.sourceUrl,'https://www.baidu.com/s?wd='+encodeURIComponent('关键词'));
  }
 });
-test('refuses query mismatch and non-three limits before reading results',async()=>{
- await assert.rejects(run([],{query:'other',limit:3}),{code:'E_TARGET'});
- await assert.rejects(run([],{query:'关键词',limit:2}),{code:'E_TASK_PARAMS'});
+test('same-site query mismatch navigates once to the exact approved search before reading results',async()=>{
+ const calls=[],query='新词 & 布局',target='https://www.baidu.com/s?wd=%E6%96%B0%E8%AF%8D+%26+%E5%B8%83%E5%B1%80';
+ const result=await run([row(1)],{query,limit:3},'',{calls});
+ assert.deepEqual(calls.filter(([,value])=>value!=='body'),[
+  ['url','https://www.baidu.com/s?wd='+encodeURIComponent('关键词')],
+  ['goto',target],['url',target],['locator','#content_left'],['locator','#content_left .result.c-container'],
+ ]);
+ assert.equal(result.status,'success');
+ assert.equal(result.sourceUrl,target);
+});
+
+for(const [condition,nextUrl,code] of [
+ ['a different origin','https://example.com/s?wd=other','E_TARGET'],
+ ['a different path','https://www.baidu.com/other?wd=other','E_SEARCH_NAVIGATION'],
+ ['a different query','https://www.baidu.com/s?wd=stale','E_SEARCH_NAVIGATION'],
+])test('stops without reading results when navigation lands on '+condition,async()=>{
+ const calls=[],target='https://www.baidu.com/s?wd=other';
+ const result=await run([row(1)],{query:'other',limit:3},'',{calls,nextUrl});
+ assert.deepEqual(calls.filter(([,value])=>value!=='body'),[
+  ['url','https://www.baidu.com/s?wd='+encodeURIComponent('关键词')],['goto',target],['url',nextUrl],
+ ]);
+ assert.equal(result.status,'stopped');
+ assert.equal(result.error.code,code);
+ assert.equal(result.count,0);
+});
+
+test('rejects a non-three limit before inspecting or navigating the page',async()=>{
+ const calls=[];
+ await assert.rejects(run([],{query:'关键词',limit:2},'',{calls}),{code:'E_TASK_PARAMS'});
+ assert.deepEqual(calls,[]);
 });
 
 test('scans beyond duplicate and invalid candidates before choosing three unique URLs',async()=>{

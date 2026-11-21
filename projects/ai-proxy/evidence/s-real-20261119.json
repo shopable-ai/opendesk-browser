@@ -1,0 +1,194 @@
+{
+  "result": "PASS",
+  "scope": "Native side panel to PC subscription and managed proxy in isolated ego browser Profile 2, TaskSpace 178",
+  "authorization": {
+    "originChat": "01a1db42-50a0-7432-bfae-406afefd6764",
+    "originTurn": "01a1de24-36a6-75c2-951c-7ef2783b2394",
+    "originMessage": "01a1de24-3ac8-7f10-9566-10162281d721",
+    "exactOriginalMatched": true
+  },
+  "package": {
+    "id": "ai-proxy",
+    "version": "0.3.36",
+    "sha256": "724a08e800508a36af376ec2e45815b1e593769bd2198a383c4b5994835e113b",
+    "installedObjectMatchesOfficialBytes": true
+  },
+  "host": {
+    "entry": "SIDE_PANEL",
+    "developmentAppliedRevision": "2e8098f29a9dd4fd6882830b551c24fcef0c91164938275abbf5ae5792036f95",
+    "loadedShellSha256": "ee2cdd66f1195c792c6bda95213b07ea9b37e92fe0cb649de27e4f50dccd5d50",
+    "production": "NOT_TESTED"
+  },
+  "nativeDownload": {
+    "startedAt": "2026-11-19T12:02:10.921Z",
+    "ok": true,
+    "summary": "格式：clash · 节点：1 · 无效：0 · 去重：0",
+    "protocols": "协议：vmess: 1",
+    "classes": [
+      "Chrome 原生 · 无认证: 0",
+      "需要本地客户端: 1",
+      "不支持: 0"
+    ],
+    "vmessRows": 1,
+    "finishedAt": "2026-11-19T12:02:11.468Z"
+  },
+  "localClient": {
+    "stage": "client-selected",
+    "at": "2026-11-19T12:06:41.981309+00:00",
+    "proxies": 1,
+    "protocol": "vmess",
+    "alias": "SREAL_SELECTED",
+    "onlyWitnessAllowed": "api.ipify.org",
+    "loopbackPort": 50021,
+    "independentHttpStatus": 200
+  },
+  "trustedReview": {
+    "at": "2026-11-19T12:10:38.462Z",
+    "exactLoopback": true,
+    "scopeAll": true,
+    "hasPriorBaselineChromeStatus": true
+  },
+  "browserHttpsWitness": {
+    "host": "api.ipify.org",
+    "sameTabAndProfile": true,
+    "distinctUncachedNavigations": true,
+    "rows": [
+      {
+        "phase": "baseline",
+        "startedAt": "2026-11-19T12:07:55.031Z",
+        "proxy": {
+          "mode": "system",
+          "control": "controllable_by_this_extension",
+          "loopbackPort": null
+        },
+        "http": 200,
+        "uncached": true,
+        "finishedAt": "2026-11-19T12:07:55.602Z"
+      },
+      {
+        "phase": "applied",
+        "startedAt": "2026-11-19T12:10:38.813Z",
+        "proxy": {
+          "mode": "pac_script",
+          "control": "controlled_by_this_extension",
+          "loopbackPort": 50021
+        },
+        "http": 200,
+        "uncached": true,
+        "transport": {
+          "protocol": "h2",
+          "securityState": "secure",
+          "throughChosenPort": true
+        },
+        "finishedAt": "2026-11-19T12:10:39.349Z"
+      },
+      {
+        "phase": "paused",
+        "startedAt": "2026-11-19T12:10:42.292Z",
+        "proxy": {
+          "mode": "system",
+          "control": "controllable_by_this_extension",
+          "loopbackPort": null
+        },
+        "http": 200,
+        "uncached": true,
+        "finishedAt": "2026-11-19T12:10:42.837Z"
+      }
+    ],
+    "egressAcrossAllThreeMatched": true,
+    "independentClientEvent": {
+      "at": "2026-11-19T12:10:38.909142+00:00",
+      "host": "api.ipify.org",
+      "nodeAlias": "SREAL_SELECTED",
+      "transport": "tcp",
+      "success": true,
+      "sourcePort": 51054
+    },
+    "noMatchingClientEventDuringBaselineOrPause": true
+  },
+  "reopenAndStorage": {
+    "at": "2026-11-19T12:11:58.124Z",
+    "closedManagementTabs": 2,
+    "newPage": "p5",
+    "sourceFound": true,
+    "sourceHostMatches": true,
+    "emptyURL": true,
+    "parsedReportRestored": false,
+    "savedSourceFound": true,
+    "exactURLAbsent": true,
+    "pathAbsent": true
+  },
+  "cleanup": {
+    "at": "2026-11-19T12:12:59.094Z",
+    "srealSourceRemoved": true,
+    "srealEndpointRemoved": true,
+    "historicBaselineEndpointPreserved": true,
+    "version": "0.3.36",
+    "servedMarker": "2e8098f29a9dd4fd6882830b551c24fcef0c91164938275abbf5ae5792036f95",
+    "servedShellSha": "ee2cdd66f1195c792c6bda95213b07ea9b37e92fe0cb649de27e4f50dccd5d50",
+    "originalPendingChoiceRestored": true,
+    "proxy": {
+      "mode": "system",
+      "control": "controllable_by_this_extension",
+      "loopbackPort": null
+    },
+    "appliedRevision": "2e8098f29a9dd4fd6882830b551c24fcef0c91164938275abbf5ae5792036f95",
+    "exactDormantRouteGrant": true,
+    "isolatedClientExited": true,
+    "isolatedPortClosed": true,
+    "sharedClientStayedListening": true
+  },
+  "theme": {
+    "system": {
+      "dark": false,
+      "scheme": "light",
+      "ink": "rgb(30, 41, 59)",
+      "canvas": "rgb(247, 249, 252)",
+      "checkboxLabel": true,
+      "languageLabel": true,
+      "enabled": true,
+      "languageEnabled": false,
+      "selectedNav": 1
+    },
+    "light": {
+      "dark": false,
+      "scheme": "light",
+      "ink": "rgb(30, 41, 59)",
+      "canvas": "rgb(247, 249, 252)",
+      "checkboxLabel": true,
+      "languageLabel": true,
+      "enabled": true,
+      "languageEnabled": false,
+      "selectedNav": 1
+    },
+    "dark": {
+      "dark": true,
+      "scheme": "dark",
+      "ink": "rgb(233, 238, 247)",
+      "canvas": "rgb(34, 45, 62)",
+      "checkboxLabel": true,
+      "languageLabel": true,
+      "enabled": true,
+      "languageEnabled": false,
+      "selectedNav": 1
+    },
+    "restored": {
+      "dark": false,
+      "scheme": "light",
+      "ink": "rgb(30, 41, 59)",
+      "canvas": "rgb(247, 249, 252)",
+      "checkboxLabel": true,
+      "languageLabel": true,
+      "enabled": true,
+      "languageEnabled": false,
+      "selectedNav": 1
+    }
+  },
+  "cleanup-resources": {
+    "deliveryAndRawEvidenceCheckedForExactUrlAndPath": true,
+    "privateInputCopiesRemoved": true,
+    "ephemeralCorrelationKeyRemoved": true,
+    "temporaryClientSocketRemoved": true,
+    "egoTaskSpacePresentAtFinalCheck": false
+  }
+}

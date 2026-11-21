@@ -58,8 +58,7 @@ export function DevelopSourceEditor({view,actions,locale='zh-CN'}){
   const page=fields['script-javascript-world'].value==='page';
   const longDraftRun=Number(fields['script-draft-deadline-ms'].value)>=60*60*1000;
   const readOnly=fields['script-source'].readOnly;
-  const filename=readOnly?(fields['program-source-files'].value||'program.js')
-    :framework==='react'?'App.jsx':framework==='vue'?'App.vue':page?'page.js':'main.js';
+  const filename=fields['program-source-files'].value||'program.js';
   const mode=framework==='javascript'?(page?'page':'controller'):framework;
   const reference=BROWSER_PUBLIC_CONFIG?.navigation.developerReferences[mode];
   const t=(key,params={})=>translateUiText('develop.editor.'+key,params,locale);
@@ -106,15 +105,14 @@ export function DevelopSourceEditor({view,actions,locale='zh-CN'}){
             <span className="page-component-label">运行位置</span>
             <DevelopWorldChoices/>
           </DevelopField>
-          <span className="developer-component-world od-note" hidden={framework==='javascript'}>网页组件</span>
           </div>
           <div className="developer-source-input">
           <div className="developer-editor-card">
           <div className="developer-editor-head">
-            <div className="developer-editor-identity">
-              {readOnly&&<span className="developer-editor-readonly">{t('readOnly')}</span>}
+            {readOnly&&<div className="developer-editor-identity">
+              <span className="developer-editor-readonly">{t('readOnly')}</span>
               <span className="developer-editor-filename od-technical" title={filename}>{filename}</span>
-            </div>
+            </div>}
             <div className="developer-editor-actions" role="group" aria-label={t('references')}>
               <DevelopPromptButton/>
               {reference&&['examples','help'].map(kind=>{
@@ -128,12 +126,12 @@ export function DevelopSourceEditor({view,actions,locale='zh-CN'}){
           <DevelopField as="label" htmlFor="script-source" className="visually-hidden" id="developer-source-label">
             {"JavaScript、React JSX 或 Vue SFC 源码编辑器"}
           </DevelopField>
-          <DevelopField as="textarea" id="script-source" data-opendesk-react-owner="developer-source" rows="6" wrap="off" spellCheck={false} autoCapitalize="off" className="od-field" aria-describedby="developer-environment-hint page-component-hint"/>
+          <DevelopField as="textarea" id="script-source" data-opendesk-react-owner="developer-source" rows="6" wrap="off" spellCheck={false} autoCapitalize="off" className="od-field" aria-describedby={`developer-environment-hint page-component-hint${readOnly?'':' developer-draft-help'}`}/>
           </div>
-          <p id="developer-environment-hint" className="od-field-help">
+          <p id="developer-environment-hint" className="visually-hidden">
             {framework==='react'?'React 组件显示在网页；点击运行才执行。':framework==='vue'?'Vue 组件显示在网页；点击运行才执行。':page?'使用 document 修改网页；点击运行才执行。':'使用 page 操作网页；点击运行才执行。'}
           </p>
-          {!readOnly&&<p className="od-field-help" id="developer-draft-help">草稿未自动保存；关闭或刷新后不恢复。请用「保存脚本」保留版本。</p>}
+          {!readOnly&&<p className="visually-hidden" id="developer-draft-help">草稿未自动保存；关闭或刷新后不恢复。请用「保存脚本」保留版本。</p>}
 
           </div>
           <DevelopField as="p" id="page-component-status" role="status" aria-live="polite"/>

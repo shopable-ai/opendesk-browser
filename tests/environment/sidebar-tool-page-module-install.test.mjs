@@ -2,6 +2,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import {digest,digestUtf8} from '../../src/platform/protocol.js';
 import {SIDEBAR_TOOL_STORE,sidebarToolPackageHash,sidebarToolStorageKey} from '../../src/ui/sidebar-tools/package.js';
+import {DEFAULT_PREINSTALL_STORE} from '../../src/sidebar-tools/preinstall-intent.js';
 import {installReviewedSidebarTool,reconcileMarketOperation,recoverMarketOperation,
   MARKET_OPERATIONS_STORE,MARKET_PROVENANCE_STORE,TOOL_REVOCATION_EPOCHS_STORE} from '../../src/ui/sidebar-tools/installation.js';
 
@@ -60,6 +61,51 @@ test('successful combined install binds the Page submission to the committed par
   const result=await installReviewedSidebarTool({...env,candidate,reviewApproved:true,pageClient:pageClient(env,candidate)});
   assert.equal(result.state,'installed');
   assert.equal(env.events[0][0],'prepareAppPage');
+  assert.equal(env.events.filter(([type])=>type==='importAppPage').length,1);
+});
+test('first local review can observe an exact completed preinstall without replaying it',async()=>{
+  for(const mode of ['verified','unresolved','replaced','different-bytes','foreign-page']){
+    const env=environment(),candidate=await tool(),hash=await sidebarToolPackageHash(candidate);
+    const operationId=crypto.randomUUID(),epoch=crypto.randomUUID(),marketId='opendesk/'+candidate.id;
+    const extensionVersion='1.0.0';
+    env.api.runtime={getManifest:()=>({version:extensionVersion})};
+    const client=pageClient(env,candidate,{verify:true,badReceipt:mode==='foreign-page'}),request=client.request;
+    client.request=async(type,payload)=>{
+      const receipt=await request(type,payload);
+      if(type==='prepareAppPage'){
+        // The site grant allows a first-run writer to finish between review
+        // and the local install's lock acquisition.
+        env.values[SIDEBAR_TOOL_STORE]=[mode==='different-bytes'?{...candidate,html:'<main>Other</main>'}:candidate];
+        env.values[TOOL_REVOCATION_EPOCHS_STORE]={[candidate.id]:mode==='replaced'?crypto.randomUUID():epoch};
+        env.values[MARKET_PROVENANCE_STORE]={[candidate.id]:{marketId,sha256:hash,version:candidate.version}};
+        env.values[MARKET_OPERATIONS_STORE]={[operationId]:{marketId,sha256:hash,version:candidate.version,
+          toolId:candidate.id,installEpoch:epoch,state:mode==='unresolved'?'outcome-unknown':'succeeded'}};
+        env.values[DEFAULT_PREINSTALL_STORE]={schema:DEFAULT_PREINSTALL_STORE,state:'pending',extensionVersion,completed:[],
+          plan:[{toolId:candidate.id,version:candidate.version,sha256:hash,operationId}]};
+      }
+      return type==='verifyAppPage'?{...receipt,nativeState:'waiting-user-scripts',ready:false}:receipt;
+    };
+    const result=installReviewedSidebarTool({...env,candidate,baselineInstallEpoch:null,reviewApproved:true,pageClient:client});
+    if(mode==='verified')assert.deepEqual(await result,{state:'already-installed',tool:candidate,pageActivationPending:true});
+    else await assert.rejects(result,{code:mode==='foreign-page'?'E_OUTCOME_UNKNOWN':'E_TOOL_CHANGED'});
+    assert.deepEqual(env.events.map(([name])=>name),['prepareAppPage',
+      ...(['verified','foreign-page'].includes(mode)?['verifyAppPage']:[])],mode+' never writes or resubmits');
+  }
+});
+for(const expected of [true,false])
+test('reviewed combined install requires an exact non-ready receipt to report deferred activation; valid='+expected,async()=>{
+  const env=environment(),candidate=await tool(),client=pageClient(env,candidate),request=client.request;
+  client.request=async(type,payload)=>{
+    const receipt=await request(type,payload);
+    return type==='importAppPage'?{...receipt,nativeState:'waiting-user-scripts',ready:!expected}:receipt;
+  };
+  const install=installReviewedSidebarTool({...env,candidate,reviewApproved:true,pageClient:client});
+  if(expected){
+    const receipt=await install;
+    assert.equal(receipt.state,'installed');
+    assert.equal(receipt.pageActivationPending,true);
+  }else await assert.rejects(install,{code:'E_OUTCOME_UNKNOWN'});
+  assert.deepEqual(env.values[SIDEBAR_TOOL_STORE],[candidate]);
   assert.equal(env.events.filter(([type])=>type==='importAppPage').length,1);
 });
 for(const cleanupPending of [false,true])

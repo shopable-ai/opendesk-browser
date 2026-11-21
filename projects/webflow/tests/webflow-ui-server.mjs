@@ -4,14 +4,10 @@ import {createServer} from 'node:http';
 import {readFile} from 'node:fs/promises';
 import {build} from 'esbuild';
 import {createHash} from 'node:crypto';
+import {readReviewedSearchTask} from './fixtures/reviewed-search-tasks.mjs';
 const project=new URL('../',import.meta.url);
 const config=JSON.parse(await readFile(new URL('tool.config.json',project),'utf8'));
-const taskPackages=new Map(await Promise.all(config.delegatedTasks.map(async pin=>{
- const task=JSON.parse(await readFile(new URL('../../examples/tasks/'+pin.taskId+'.v1.opendesk-task.json',project),'utf8'));
- if(task.manifest.version!==pin.version||task.manifestHash!==pin.manifestHash||
-    task.manifest.program.sourceHash!==pin.contentHash)throw Error('Fixture Task pin changed: '+pin.taskId);
- return [pin.taskId,task];
-})));
+const taskPackages=new Map(config.delegatedTasks.map(pin=>[pin.taskId,readReviewedSearchTask(pin)]));
 const files={'/model.js':'model.js','/md-workflow.js':'md-workflow.js','/main.js':'main.js','/style.css':'style.css'};
 const sources=new Map(await Promise.all(Object.entries(files).map(async([route,file])=>
  [route,await readFile(new URL('src/ui/'+file,project))])));

@@ -923,21 +923,19 @@ Web Flow 当前仅有安装包中已审阅的固定 delegatedTasks；不得自�
     function scripts(){
       return h('div',{className:'wf-stack'},
         h('div',{className:'wf-search-row'},
-          h('input',{id:'wf-search',type:'search',className:'wf-input wf-search-input',
-            'aria-label':'搜索脚本',placeholder:'搜索脚本或网站',
-            value:search,onChange:e=>setSearch(e.target.value)}),
+          h('div',{className:'wf-search-field'},Icon('search'),
+            h('input',{id:'wf-search',type:'search',className:'wf-input wf-search-input',
+              'aria-label':'搜索脚本',placeholder:'搜索脚本或网站',
+              value:search,onChange:e=>setSearch(e.target.value)})),
           Btn(Icon('filter'),()=>{setShowFilters(!showFilters);setMore(null);},
-            {key:'filter',id:'wf-filter-toggle',icon:true,ariaLabel:'筛选脚本',title:'筛选脚本',
+            {key:'filter',id:'wf-filter-toggle',icon:true,ariaLabel:'筛选脚本',title:'筛选、排序或刷新脚本',
               expanded:showFilters,popup:'true',controls:'wf-filter-options'}),
-          Btn(Icon('refresh'),()=>{void readTasks();void readCurrentPage();},
-            {key:'refresh',icon:true,ariaLabel:'刷新脚本安装状态',title:'刷新脚本安装状态',
-              disabled:loading}),
           Btn(Icon('plus'),()=>openScriptAdd('ways'),
-            {key:'add',id:'wf-add-script',icon:true,primary:true,ariaLabel:'添加脚本',title:'添加脚本',
+            {key:'add',id:'wf-add-script',icon:true,ariaLabel:'添加脚本',title:'添加脚本',
               expanded:Boolean(scriptAdd),controls:'wf-script-add-sheet'}),
           showFilters&&h('div',{id:'wf-filter-options',className:'wf-filter-popover',role:'group',
             'aria-label':'脚本状态筛选'},
-            h('strong',null,'显示任务'),
+            h('strong',null,'显示任务 · '+rows.length+' / '+tasks.length),
             ...[['all','全部'],['available','可运行'],['attention','需处理'],['favorite','收藏']]
               .map(([value,label])=>h('button',{key:value,type:'button',className:'wf-filter-option',
                 'aria-pressed':filter===value,onClick:()=>{
@@ -948,9 +946,13 @@ Web Flow 当前仅有安装包中已审阅的固定 delegatedTasks；不得自�
                h('select',{className:'wf-select',value:sort,'aria-label':'脚本排序方式',
                  onChange:e=>setSort(e.target.value)},
                  h('option',{value:'favorite'},'收藏优先'),
-                 h('option',{value:'name'},'按名称'))))),
+                 h('option',{value:'name'},'按名称'))),
+            Btn('刷新脚本安装状态',()=>{
+              setShowFilters(false);
+              tool.root.querySelector('#wf-filter-toggle')?.focus();
+              void readTasks();void readCurrentPage();
+            },{key:'refresh',disabled:loading}))),
         scriptAdd&&scriptOnboarding(),
-        h('p',{className:'wf-sub'},rows.length+' / '+tasks.length+' 个固定脚本'),
         configureFeedback(),
         rows.length?h('div',{className:'wf-task-list'},...rows.map(taskCard)):
           h(Card,{extra:'wf-empty',children:[

@@ -20,7 +20,7 @@ function fixture(){
       return {saved:true};
     }
     if(op==='currentPage.info')return {status:'available',url:store.origin+'/post'};
-    if(op==='page.request')throw Error('E_PAGE_RELOAD_REQUIRED');
+    if(op==='page.request')return store.page?.()??{enabled:store.value?.enabled!==false&&!store.value?.disabledOrigins?.includes(store.origin)};
     throw Error('E_UNKNOWN_OP');
   };
   const handlers=new Map(),windowHandlers=new Map();
@@ -99,7 +99,7 @@ test('site unavailable disables only site switch',async()=>{
   assert.equal(f.globalSwitch.disabled,false);
   f.close();
 });
-test('pending save reports progress, locks both switches and then shows verified pause',async()=>{
+test('pending save reports progress and locks both switches until the preference is saved',async()=>{
   const f=fixture();await f.settle();
   let release;f.store.saveGate=new Promise(resolve=>{release=resolve;});
   const change=f.changeGlobal(false);await f.settle();
@@ -107,7 +107,31 @@ test('pending save reports progress, locks both switches and then shows verified
   assert.equal(f.globalSwitch.disabled,true);
   assert.equal(f.siteSwitch.disabled,true);
   release();await change;await f.settle();
-  assert.match(f.status.textContent,/已全局暂停.*恢复后生效/);
+  assert.equal(f.globalSwitch.checked,false);
+  assert.equal(f.status.hidden,true);
   assert.equal(f.globalSwitch.disabled,false);
+  f.close();
+});
+
+test('confirmed preference and live document status are separate; unknown page request is not replayed',async()=>{
+  const f=fixture();await f.settle();
+  const unavailable=code=>()=>{throw Object.assign(Error(code),{code});};
+  f.store.page=unavailable('E_APP_PAGE_ACTIVATION_REQUIRED');
+  await f.changeSite(false);await f.changeSite(true);
+  assert.equal(f.store.value.disabledOrigins.length,0);
+  assert.equal(f.siteSwitch.checked,true);
+  assert.equal(f.status.hidden,false);
+  assert.match(f.status.textContent,/扩展 → 更多 → 网页功能帮助.*允许用户脚本.*返回检查自由复制/);
+  f.store.page=unavailable('E_PERMISSION');await f.reload();
+  assert.match(f.status.textContent,/网站访问受限/);
+  f.store.page=unavailable('E_APP_PAGE_RELOAD_REQUIRED');await f.reload();
+  assert.match(f.status.textContent,/旧文档.*保存.*刷新/);
+  f.store.page=undefined;await f.reload();
+  assert.equal(f.status.hidden,true);
+  f.store.page=unavailable('E_EFFECT_UNKNOWN');await f.reload();
+  const count=f.store.requests.filter(x=>x.op==='page.request').length;
+  await f.reload();
+  assert.equal(f.store.requests.filter(x=>x.op==='page.request').length,count);
+  assert.match(f.status.textContent,/结果未知/);
   f.close();
 });

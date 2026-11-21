@@ -49,6 +49,8 @@ R4 正式五 Tab 见 [产品规格](../../../docs/product/sidebar-ui-spec.zh-CN.
 
 扩展级 `chrome.*` 权限**不是每工具的权限**。当前 Manifest 的 declarativeNetRequestWithHostAccess 是必需权限，idle 是可选权限；可信点击、网站授权与已安装包身份仍分别核验。纯模型可以通过明确的 v2 files.dependencies 选入沙箱（Prompt Shortcuts 已使用 trusted/model.js），它在沙箱里不拥有可信入口权限；不得把 trusted/ 目录约定当作权限机制。`toolId`、`capabilities`、签名文字、Shadow DOM、ESM 闭包都不是可信代码来源证明；一旦把任意 JS 放到扩展特权页，简单 SDK 检查不能阻止其直接调用扩展 API。不得以优化 UI 为由打开这条通路。
 
+第一方网页功能先按[网页功能的加载与授权](../../../docs/architecture/browser-framework/site-permission-onboarding.zh-CN.md#网页功能的加载与授权)核定是否需要随 Browser 固定交付。经审计且不需要独立更新网页代码时，优先评估复用现有精确站点的固定 `ISOLATED` 入口；沙箱包继续独立交付。核对原安装身份、站点访问、启停、当前文档和操作授权，验证关闭「允许用户脚本」仍能挂载；同 ID 的动态代码不得据此进入固定世界。
+
 ## 最小职责划分（优先修已有文件）
 
 | 层 | 正确职责 | 反例 |

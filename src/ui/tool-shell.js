@@ -34,7 +34,8 @@ import {isActualSidePanelContext} from './sidepanel-context.js';
 import {ANALYTICS_PROTOCOL} from '../analytics/contract.js';
 import {createUiLocaleController} from './app-localization.js';
 import {createToolLocaleService} from './sidebar-tools/locale-packs.js';
-import {requestedToolId,requestedPreviewId,requestedOwnPageTarget,requestedAppPageLocator,canonicalToolHostUrl} from './sidebar-tools/navigation.js';
+import {requestedToolId,requestedPreviewId,requestedOwnPageTarget,requestedAppPageLocator,canonicalToolHostUrl,
+  stageTaskCatalogReview,takeTaskCatalogReview} from './sidebar-tools/navigation.js';
 import {resolveAppPageTarget} from './app-page-routes.js';
 import {initialToolSurface,verifiedToolSurface} from './tool-surface.js';
 import {subscribePreviewSession} from './sidebar-tools/live-preview.js';
@@ -104,7 +105,9 @@ export function initToolShell(installDevelopment=null,{debugEnabled=false}={}) {
   if (!hostInstanceId) {
     // Commit a new sender identity, preserving only a validated installed-tool
     // locator. Clearing all search parameters used to erase toolId on first load.
-    location.replace(canonicalToolHostUrl(hostUrl.href,crypto.randomUUID()));
+    const next=canonicalToolHostUrl(hostUrl.href,crypto.randomUUID());
+    stageTaskCatalogReview(globalThis.sessionStorage,hostUrl.href,next);
+    location.replace(next);
     return;
   }
   const foundationClient = createHostClient(chrome, {hostInstanceId});
@@ -719,14 +722,14 @@ Promise.resolve(chrome.tabs.getCurrent?.()).then(async tab => {
   }
   const toolId=requestedToolId(hostUrl.href),previewId=requestedPreviewId(hostUrl.href);
   if(!toolId&&!previewId){
-    taskWorkbench.showCatalogPage();
+    taskWorkbench.showCatalogPage(takeTaskCatalogReview(globalThis.sessionStorage,hostUrl.href));
     const button=myView.field('catalog-open-dev-sidebar');
     const status=text=>myView.setText('catalog-dev-sidebar-status',text);
     myView.actions.catalogOpenSidebarClick=myView.action(event=>{
       if(shellClosed||!event.isTrusted||button.disabled)return;
       const windowId=Number.isSafeInteger(tab.windowId)?tab.windowId:currentPageTarget.windowId;
       if(!Number.isSafeInteger(windowId)||typeof chrome.sidePanel?.open!=='function'){
-        status('无法打开侧栏，请从 Chrome 扩展按钮打开 OpenDesk');return;
+        status('无法打开侧栏，请从 Chrome 扩展按钮打开 GrayDove');return;
       }
       button.disabled=true;status('正在打开侧栏…');
       let request;
@@ -734,7 +737,7 @@ Promise.resolve(chrome.tabs.getCurrent?.()).then(async tab => {
       catch(error){status('侧栏不可用：'+(error.message||error));button.disabled=false;return;}
       return Promise.resolve(request).then(()=>{
         if(shellClosed)return;
-        status('已打开 OpenDesk 侧栏，请选择「开发」');
+        status('已打开 GrayDove 侧栏，请选择「开发」');
       },error=>{if(!shellClosed)status('侧栏不可用：'+(error.message||error));})
         .finally(()=>{if(!shellClosed)button.disabled=false;});
     });

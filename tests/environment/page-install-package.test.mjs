@@ -37,21 +37,30 @@ function fixture(){
   }};
   const f={granted:true,registers:0,executes:0,previews:0,cleanups:0,native:new Map(),host};
   const assertHost=async sender=>{assert.equal(sender?.id,'test');if(!host.active)throw Object.assign(Error('host inactive'),{code:'E_OWNER'});return structuredClone(host);};
-  const api={runtime:{id:'test',getURL:path=>'chrome-extension://test/'+path},
+  const api={runtime:{id:'test',getURL:path=>'chrome-extension://test/'+path,
+    getManifest:()=>({permissions:f.noScriptDeclaration?[]:['userScripts']})},
     permissions:{contains:async()=>f.granted},
-    userScripts:{getScripts:async filter=>{
+    tabs:{get:async id=>({id,active:true,incognito:false,url:f.navigation?.url})},
+    webNavigation:{getAllFrames:async()=>[f.navigation]},
+    get userScripts(){return f.scriptsOff?undefined:native;}};
+  const native={getScripts:async filter=>{
       if(f.nativeReadError)throw f.nativeReadError;
       if(f.unrelatedNative)return [{id:'unrelated-registration'}];
       return [...f.native.values()].filter(r=>!filter||filter.ids.includes(r.id)).map(v=>structuredClone(v));
     },
       configureWorld:async()=>{},register:async rows=>{f.registers++;if(!f.dropNativeReadback)rows.forEach(r=>f.native.set(r.id,structuredClone(r)));},
-      unregister:async({ids})=>ids.forEach(id=>f.native.delete(id)),execute:async()=>{f.executes++;throw Error('must not execute');}}};
+      unregister:async({ids})=>ids.forEach(id=>f.native.delete(id)),execute:async()=>{f.executes++;throw Error('must not execute');}};
   const dependencies=createDependencyManager({api,storage,assertHost,loadBuiltin:async()=>fakeBuiltinSource});
-  const preview={preview:async()=>{f.previews++;throw Error('must not preview');},
+  const preview={preview:async input=>{
+    f.previews++;
+    if(!f.allowPreview)throw Error('must not preview');
+    return {state:'preview-evaluated',world:'USER_SCRIPT',sourceHash:await digestUtf8(input.sourceUtf8),documentId:'fixture-preview',
+      builtinAbi:fakeBuiltinSource.abi,builtinCatalogSha256:fakeBuiltinSource.catalogSha256,builtinBundleSha256:fakeBuiltinSource.sha256};
+  },
     retireInstalled:async()=>{f.cleanups++;return {state:f.cleanupUncertain?'unknown':'retired',scope:'managed-ui-only'};}};
   const make=()=>createInstalledPagePrograms({api,storage,assertHost,dependencies,preview,admission:{},session:'session',loadBuiltin:async()=>fakeBuiltinSource});
   f.service=make();f.restart=()=>{f.service=make();};f.rows=()=>[...db.get('frameworkKV').values()];
-  f.installation=()=>f.rows().find(r=>r.tag==='page-installed-v1');f.storage=storage;
+  f.installation=()=>f.rows().find(r=>r.tag==='page-installed-v1');f.storage=storage;f.dependencies=dependencies;
   f.import=async(pkg,previous=null)=>f.service.importPageInstallPackage({package:pkg,expectedInstalledManifestHash:previous?.manifestHash??null,
     expectedGeneration:previous?.authorization?.generation??null},{id:'test'});
   return f;
@@ -109,10 +118,13 @@ test('fresh import persists registered installation and explicit local proof wit
   assert.equal(f.executes,0);assert.equal(f.registers,1);
 });
 
-test('installed list reads version from its exact fixed source without changing installation or authority',async()=>{
+test('legacy installed list reads its exact fixed source without changing installation or authority',async()=>{
   const f=fixture(),sourceUtf8=source.replace('// @match','// @version 0.4.17\n// @match');
   const pkg=await packageFor({version:'0.4.17',sourceUtf8,sourceHash:await digestUtf8(sourceUtf8)});
-  const installed=await f.import(pkg),before=structuredClone(f.rows());
+  const installed=await f.import(pkg),{version,about,...legacy}=f.installation();
+  await f.storage.transaction(['frameworkKV'],'readwrite',tx=>tx.put('frameworkKV',legacy,
+    'page-installed:'+canonical(['tool:test',pkg.programId])));
+  const before=structuredClone(f.rows());
   f.restart();
   const listed=await f.service.listPagePrograms({},{id:'test'});
   assert.equal(listed.installed[0].version,'0.4.17');
@@ -133,6 +145,64 @@ test('installed list reads version from its exact fixed source without changing 
     'page-candidate:'+canonical(['tool:test',pkg.programId,pkg.revision])));
   assert.equal((await f.service.listPagePrograms({},{id:'test'})).installed[0].version,undefined,
     'unverified source bytes must not advertise a newer compatible version');
+});
+
+test('offline Page About survives restart and repeat import, and absent fields disappear on upgrade',async()=>{
+  const f=fixture(),sourceUtf8=source.replace('// @match',
+    '// @version 0.4.17\n// @author Example Team\n// @homepageURL https://dev.example.com/project\n// @supportURL https://help.example.com/issues\n// @match');
+  const pkg=await packageFor({version:'1.2.3',revision:27,sourceUtf8,sourceHash:await digestUtf8(sourceUtf8)});
+  const installed=await f.import(pkg),before=structuredClone(f.rows());
+  const about={version:'1.2.3',revision:27,author:'Example Team',homepage:'https://dev.example.com/project',supportUrl:'https://help.example.com/issues'};
+  const pick=row=>Object.fromEntries(Object.keys(about).map(k=>[k,row[k]]));
+  assert.deepEqual(pick(installed),about);
+  f.restart();
+  assert.deepEqual(pick((await f.service.listPagePrograms({},{id:'test'})).installed[0]),about);
+  assert.deepEqual(await f.import(pkg,installed),installed);
+  assert.deepEqual(await f.import(await packageFor({version:'9.9.9',title:'Conflicting title',revision:27,
+    sourceUtf8,sourceHash:pkg.sourceHash}),installed),installed);
+  assert.deepEqual(f.rows(),before);
+  assert.equal(f.registers,1);
+
+  const upgraded=await f.import(await packageFor({version:'1.3.0',revision:28}),installed);
+  const listed=(await f.service.listPagePrograms({},{id:'test'})).installed[0];
+  assert.deepEqual(listed,upgraded);
+  assert.equal(listed.version,'1.3.0');assert.equal(listed.revision,28);
+  for(const field of ['author','homepage','supportUrl'])assert.equal(Object.hasOwn(listed,field),false);
+});
+
+test('a permission retry with a conflicting package version keeps the first revision receipt',async()=>{
+  const f=fixture(),pkg=await packageFor({version:'1.2.3'});
+  f.granted=false;
+  await assert.rejects(f.import(pkg),{code:'E_PERMISSION'});
+  assert.equal(f.installation(),undefined);
+  assert.equal(f.registers,0);
+  const proof=f.rows().find(row=>row.tag==='page-verification-v1');
+  f.granted=true;
+  const installed=await f.import(await packageFor({version:'9.9.9'}));
+  assert.equal(installed.version,'1.2.3');
+  assert.deepEqual(f.rows().find(row=>row.tag==='page-verification-v1'),proof);
+});
+
+test('an exact frozen direct script supplies About fields, while a package import can reuse preview proof',async()=>{
+  for(const packaged of [false,true]){
+    const f=fixture(),sender={id:'test'},programId='offline-test',revision=27;
+    f.allowPreview=true;
+    const sourceUtf8=source.replace('// @match',
+      '// @version 0.4.17\n// @author Example Team\n// @website https://dev.example.com/project\n// @supportURL javascript:invalid\n// @match');
+    const {manifestHash}=await f.dependencies.importPageCandidate({programId,revision,sourceUtf8,entryFormat:'async-main',
+      importSourceUrl:null,lockId:null,pageRules:rules},sender);
+    await f.service.verifyPageCandidate({programId,revision,target:{}},sender);
+    await f.service.makePageAvailable({programId,revision,manifestHash},sender);
+    const request={programId,revision,manifestHash,expectedInstalledManifestHash:null};
+    await assert.rejects(f.service.installPageProgram({...request,version:'9.9.9'},sender),{code:'E_SCHEMA'});
+    const installed=packaged?await f.import(await packageFor({programId,revision,version:'1.2.3',sourceUtf8,
+      sourceHash:await digestUtf8(sourceUtf8)})):await f.service.installPageProgram(request,sender);
+    assert.equal(installed.version,packaged?'1.2.3':'0.4.17');
+    assert.equal(installed.author,'Example Team');assert.equal(installed.homepage,'https://dev.example.com/project');
+    assert.equal(Object.hasOwn(installed,'supportUrl'),false);
+    assert.equal(f.rows().find(row=>row.tag==='page-verification-v1').receipt.state,'preview-evaluated');
+    assert.deepEqual((await f.service.listPagePrograms({},sender)).installed[0],installed);
+  }
 });
 
 test('same identity is a no-op including token/generation/proof/unknown cleanup; disabled stays disabled',async()=>{
@@ -215,11 +285,66 @@ test('pending managed UI cleanup is retained without blocking a disabled package
 test('native unknown readback is queryable and re-import never replays registration',async()=>{
   const f=fixture();f.dropNativeReadback=true;
   const pkg=await packageFor(),unknown=await f.import(pkg);
-  assert.equal(unknown.nativeState,'blocked');assert.equal(unknown.error.code,'E_EFFECT_UNKNOWN');
+  assert.equal(unknown.nativeState,'activation-unconfirmed');assert.equal(unknown.ready,false);
   const snapshot=structuredClone(f.rows()),registers=f.registers;
   await assert.rejects(f.import(pkg,unknown),{code:'E_PAGE_INSTALL_PENDING'});
   assert.deepEqual(f.rows(),snapshot);assert.equal(f.registers,registers);
-  assert.equal((await f.service.listPagePrograms({},{id:'test'})).installed[0].error.code,'E_EFFECT_UNKNOWN');
+  f.restart();await f.service.reconcile();
+  assert.equal((await f.service.listPagePrograms({},{id:'test'})).installed[0].nativeState,'activation-unconfirmed');
+  assert.equal(f.registers,1);
+});
+
+test('the project package survives unavailable scripts and a matching navigation registers the same installation',async()=>{
+  const f=fixture();f.scriptsOff=true;
+  const pkg=JSON.parse(await readFile(new URL('../../projects/ai-scroll-navigation/ai-scroll-navigation.opendesk-page.json',import.meta.url)));
+  const sender={id:'test'},loaded=async()=>(await f.service.listPagePrograms({},sender)).installed[0];
+  const waiting=await f.import(pkg);
+  assert.equal(waiting.programId,'opendesk.ai-scroll-navigation');assert.equal(waiting.version,pkg.version);assert.equal(waiting.revision,pkg.revision);
+  assert.equal(waiting.nativeState,'waiting-user-scripts');assert.equal(waiting.ready,false);
+  assert.equal(waiting.authorization.status,'active');assert.equal(f.registers,0);
+  f.restart();await f.service.reconcile();assert.deepEqual(await loaded(),waiting);
+  assert.deepEqual(await f.import(pkg,waiting),waiting);
+  f.scriptsOff=false;
+  const navigate=url=>f.service.hintPreparation(f.navigation={tabId:1,frameId:0,documentLifecycle:'active',documentId:url,url});
+  await navigate('https://example.com/');assert.equal(f.registers,0);
+  await navigate('https://chatgpt.com/');
+  const ready=await loaded();assert.equal(ready.ready,true);assert.equal(ready.nativeState,'registered');
+  assert.deepEqual(ready.authorization,waiting.authorization);
+  assert.equal(ready.manifestHash,waiting.manifestHash);assert.equal(ready.version,waiting.version);
+  await navigate('https://gemini.google.com/');assert.equal(f.registers,1);assert.equal(f.executes,0);
+});
+
+test('an undispatched installation can be disabled and removed while scripts are unavailable',async()=>{
+  const f=fixture();f.scriptsOff=true;
+  const pkg=await packageFor(),row=await f.import(pkg),sender={id:'test'};
+  const identity=r=>({programId:r.programId,manifestHash:r.manifestHash,
+    installationId:r.authorization.installationId,expectedGeneration:r.authorization.generation});
+  const disabled=await f.service.setInstalledPageEnabled({...identity(row),enabled:false},sender);
+  assert.equal(disabled.nativeState,'disabled');assert.equal(disabled.authorization.status,'disabled');
+  assert.equal((await f.service.listPagePrograms({},sender)).installed[0].nativeState,'disabled');
+  const enabled=await f.service.setInstalledPageEnabled({...identity(disabled),enabled:true},sender);
+  assert.equal(enabled.nativeState,'waiting-user-scripts');
+  assert.equal((await f.service.uninstallPageProgram(identity(enabled),sender)).uninstalled,true);
+  f.scriptsOff=false;await f.service.reconcile();
+  assert.deepEqual((await f.service.listPagePrograms({},sender)).installed,[]);assert.equal(f.registers,0);
+});
+
+test('the waiting receipt does not bypass real site revocation or misclassify unrelated native failures',async()=>{
+  const pkg=await packageFor(),f=fixture();f.scriptsOff=true;f.granted=false;
+  await assert.rejects(f.import(pkg),{code:'E_PERMISSION'});
+  assert.equal(f.installation(),undefined);
+  f.granted=true;f.noScriptDeclaration=true;
+  await assert.rejects(f.import(pkg),{code:'E_USER_SCRIPTS_UNAVAILABLE'});
+  f.scriptsOff=false;f.nativeReadError=Error('temporary native error');
+  await assert.rejects(f.import(pkg),{code:'E_USER_SCRIPTS_NATIVE'});
+  assert.equal(f.installation(),undefined);
+  f.nativeReadError=null;f.scriptsOff=true;f.noScriptDeclaration=false;
+  const waiting=await f.import(pkg);
+  f.granted=false;await f.service.revokePermissions({origins:pkg.pageRules.matches});
+  f.granted=true;f.scriptsOff=false;await f.service.reconcile();
+  const [row]=(await f.service.listPagePrograms({},{id:'test'})).installed;
+  assert.equal(row.authorization.status,'suspended');assert.equal(row.authorization.generation,waiting.authorization.generation+1);
+  assert.equal(row.ready,false);assert.equal(f.registers,0);
 });
 
 test('same-version import rejects missing or unrelated native registration without state changes or replay',async()=>{

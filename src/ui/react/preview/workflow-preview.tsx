@@ -44,7 +44,7 @@ function apply(){
  control('workflow-display-title').text=s.title;
  control('workflow-ai-request').value=s.draft;
  control('workflow-ai-progress').hidden=!planning;
- control('workflow-planning-indicator').hidden=!planning;
+ control('workflow-planning-indicator').hidden=!planning||Boolean(s.feedback);
  control('workflow-planning-indicator').text=planning?(s.phase==='searching'?'查找可复用程序…':'正在理解与规划…'):'';
  control('workflow-ai-plan').hidden=planning||executing;
  control('workflow-ai-plan').disabled=busy||s.sourceState!=='ready'||s.reviewPending||s.historyOpen;

@@ -30,6 +30,8 @@ description: Author and debug Controller automation, Page USER_SCRIPT 网页增�
 
 **独立 Page USER_SCRIPT 默认归 `examples/programs/<id>/`**，优先复用目标网页 DOM、公开 `@opendesk/ui`、现有站点授权与清理，不要求第三方阅读/修改 Browser Host。网页按钮、自动运行的用户需求仍须完整保留；正式安装由 `opendesk-program-publish` 接管而不是自动路由 runtime。缺少已证实公共能力记 `SDK_GAP_NOT_PROVEN`，第三方不能安全使用的特权动作记 `BLOCKED`，直接向 MAIN 注入临时 JS 不得冒充正式安装。
 
+用户要独立安装、编辑或更新的网页代码继续使用 Page USER_SCRIPT，按原站点授权与 Chrome「允许用户脚本」开关运行。维护随 Browser 发布的第一方网页按钮时，先按[网页功能的加载与授权](../../../docs/architecture/browser-framework/site-permission-onboarding.zh-CN.md#网页功能的加载与授权)和工作流 Gate A 核对真实入口；网页按钮本身并不要求采用 USER_SCRIPT，也不能为了去掉开关而把动态代码移进可信内容脚本。
+
 ## 作者决策表：JS / React / Vue 不等于一个执行世界
 
 | 用户要做什么 | 源码格式与默认入口 | 从哪儿运行 | 明确不能做的事 |

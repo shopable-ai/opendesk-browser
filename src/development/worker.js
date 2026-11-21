@@ -48,7 +48,9 @@ export function developmentChanges(previous,next) {
 }
 export function createDevelopmentWorker(api=globalThis.chrome,{fetch:read=globalThis.fetch,intervalMs=1000,retryDelayMs=5000}={}) {
   const ports=new Map();let held=false,applied,restored=false,timer,checking=false,checkIdle,lastReason,nativePending=0,reloading=false,retryAfter=0;
-  async function remember(value){await api.storage.session.set({[baselineKey]:value});applied=value;}
+  let pageBootstrapVersion=0;
+  const saveBaseline=value=>api.storage.session.set({[baselineKey]:value});
+  async function remember(value){await saveBaseline(value);applied=value;}
   async function connect(port){
     if(port.name!==protocol)return;
     let disconnected=false;port.onDisconnect.addListener(()=>{disconnected=true;});
@@ -86,31 +88,42 @@ export function createDevelopmentWorker(api=globalThis.chrome,{fetch:read=global
       if(Date.now()<retryAfter)return;
       if(!await checkIdle()){waiting('源码已编译；任务、原生请求或未知结果仍未释放，自动刷新已延后。');return;}
       held=true;
-      // Freeze new admissions, then re-read authority. Every live tool document
-      // must acknowledge its own draft; one host cannot vote for another.
+      const pageVersion=pageBootstrapVersion;
+      const interrupted=()=>{
+        if(pageBootstrapVersion===pageVersion)return false;
+        waiting('网页增强正在启动；开发更新将稍后重试。');return true;
+      };
+      // Freeze new interactive operations, then re-read authority. Chrome's
+      // automatic Page boot can still arrive and interrupt this attempt.
       if(!await checkIdle())return;
       const contexts=await api.runtime.getContexts({});
+      if(interrupted())return;
       const tools=contexts.filter(context=>{try{return new URL(context.documentUrl).pathname===SIDEPANEL_DOCUMENT_PATHNAME;}catch{return false;}});
       if(tools.some(context=>!ports.has(context.documentId))){waiting('等待全部工具页连接开发服务；没有响应的宿主不会被自动关闭。');return;}
       const rows=[...ports.values()];token=crypto.randomUUID();preparedRevision=next.revision;
       for(const row of rows){row.ready=null;row.token=token;row.port.postMessage({type:'prepare',token});}
       // A negative vote is final for this attempt. Release ready documents
       // immediately instead of holding their UI until the missing-ACK timeout.
-      for(let i=0;i<30&&rows.some(row=>row.ready===null)&&!rows.some(row=>row.ready===false);i++)await wait(50);
+      for(let i=0;i<30&&pageBootstrapVersion===pageVersion&&rows.some(row=>row.ready===null)&&!rows.some(row=>row.ready===false);i++)await wait(50);
+      if(interrupted())return;
       if(rows.some(row=>!row.ready)||!await checkIdle()){waiting('等待任务结束和草稿成功保存；源码更新已保留。');return;}
       // A new host opened during acknowledgement must also participate.
       const current=await api.runtime.getContexts({});
       if(current.some(context=>{try{return new URL(context.documentUrl).pathname===SIDEPANEL_DOCUMENT_PATHNAME&&!rows.some(row=>row.documentId===context.documentId);}catch{return false;}}))return;
       if(rows.some(row=>ports.get(row.documentId)!==row||!row.ready||row.token!==token))return;
+      if(interrupted())return;
       if(changes.extension){
+        // Chrome can start a Page while the session write is pending. Stage
+        // the baseline, then check the Page fence in the same turn as reload.
+        await saveBaseline(next);
+        if(interrupted()){
+          await saveBaseline(applied);return;
+        }
         console.info('[OpenDesk dev] Safe extension reload',changes.changed,next.revision);
         // This changes Chrome's loaded classic script bytes for FUTURE pages.
         // Existing business pages require a user-initiated normal refresh.
         send('waiting',{reason:'扩展固定脚本已更新；安全重载扩展后，请自行刷新需要新 SDK 的原网页（不自动重复业务操作）。'});
-        // Persist the compiled revision before Chrome replaces this worker;
-        // a surviving session baseline must not reload the same bytes again.
-        await remember(next);
-        api.runtime.reload();reloading=true;return;
+        api.runtime.reload();reloading=true;applied=next;return;
       }
       console.info('[OpenDesk dev] Safe tool page reload',changes.changed,next.revision);
       for(const row of rows)row.port.postMessage({type:'reload-page',token});
@@ -140,6 +153,7 @@ export function createDevelopmentWorker(api=globalThis.chrome,{fetch:read=global
     }
   }
   return {runHostIdle:developmentRunHostIdle,get held(){return held;},get nativePending(){return nativePending;},nativeStarted(){nativePending++;return ()=>nativePending--;},
+    tryStartPageBootstrap(){if(reloading)return false;pageBootstrapVersion++;return true;},
     start(canReload){checkIdle=canReload;tick();timer=setInterval(tick,intervalMs);},
     dispose(){clearInterval(timer);api.runtime.onConnect.removeListener(connect);for(const {port} of ports.values())port.disconnect();ports.clear();}};
 }

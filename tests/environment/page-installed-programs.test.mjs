@@ -9,10 +9,11 @@ import {createDependencyManager} from '../../src/scripting/user-scripts/dependen
 import {createInstalledPagePrograms,PAGE_BOOT_PROTOCOL,PAGE_BOOT_WORLD} from '../../src/scripting/user-scripts/installed-programs.js';
 import {createPreviewAdmission} from '../../src/platform/host/preview-admission.js';
 import {createPageScriptPreview} from '../../src/scripting/user-scripts/preview.js';
-import {canonical,digest,FoundationError} from '../../src/platform/protocol.js';
+import {canonical,digest,digestUtf8,FoundationError} from '../../src/platform/protocol.js';
 import {JQUERY_371} from '../../src/scripting/user-scripts/packaged-dependencies.js';
 import {pageInstallScope,pageInstallScopeDelta,pageInstallAffectedByRemoval} from '../../src/scripting/user-scripts/page-install-authorization.js';
 import {readPageTaskDelegations} from '../../src/scripting/user-scripts/page-task-contract.js';
+import {BUILTIN_RUNTIME_CATALOG} from '../../src/libs/runtime-contract.js';
 globalThis.crypto ||= webcrypto;
 
 // Transaction/native component doubles. These are not real Chrome evidence.
@@ -1787,6 +1788,39 @@ test('extension session reset and BFCache omission cannot release a surviving ex
   assert.equal(f.installation().lastExecution.state,'outcome-unknown');
   f.frameObservationError=true;await f.service.recoverExecutions();
   assert.equal((await f.storage.transaction(['runs'],'readonly',tx=>tx.get('runs','@slot'))).preview.nonce,'pending-nonce');
+});
+
+test('Page startup recovers the same installation after the built-in manifest file is renamed',async()=>{
+  const f=fixture();
+  const legacyCatalog=await digestUtf8(JSON.stringify({...BUILTIN_RUNTIME_CATALOG,resourceManifest:'libs/manifest.json'}));
+  // The filename is also embedded in the Page core, changing its bundle SHA.
+  const previousBundle='332a21665293c2988e201d304c4018184e15c2502516b18490dff72d002cfceb';
+  const currentBundle='302fde4fb0c3a7cf07352e00452bb15ebf5caa8d30274ebe0a30bf33d01e2860';
+  f.builtinSource={...fakeBuiltinSource,catalogSha256:legacyCatalog,sha256:previousBundle};
+  const installed=await f.install(),boot=f.message();
+  const proof=f.rows().find(row=>row.tag==='page-verification-v1');
+  f.builtinSource={...fakeBuiltinSource,catalogSha256:'c'.repeat(64),sha256:currentBundle};
+  await f.service.reconcile();
+  assert.equal(f.installation().error.code,'E_BUILTIN_VERSION_UNAVAILABLE');
+  assert.equal(f.native.size,0);
+  f.builtinSource={...fakeBuiltinSource,sha256:'b'.repeat(64)};
+  await f.service.reconcile();
+  assert.equal(f.installation().error.code,'E_BUILTIN_VERSION_UNAVAILABLE');
+  assert.equal(f.native.size,0);
+  f.builtinSource={...fakeBuiltinSource,sha256:currentBundle};
+  f.restart();
+
+  await f.service.reconcile();
+
+  assert.equal(f.installation().nativeState,'registered');
+  assert.equal(f.installation().error,null);
+  assert.deepEqual(f.installation().authorization,installed.authorization);
+  assert.deepEqual(f.rows().find(row=>row.tag==='page-verification-v1'),proof);
+  assert.equal(f.executeCalls,0);
+  // The fixture supplies the real digests with stub code. Registration can
+  // recover, but execution must still reject those nonmatching bytes.
+  await fails(f.service.handleBoot(boot,f.sender),'E_BUILTIN_HASH');
+  assert.equal(f.executeCalls,0);
 });
 
 test('installed Page rejects missing legacy identity and CORE byte/catalog/ABI upgrades before native dispatch',async()=>{

@@ -6,7 +6,7 @@ const panelSource=await fs.readFile(new URL('../src/main.js',import.meta.url),'u
 const tick=()=>new Promise(resolve=>setImmediate(resolve));
 
 function storeFixture(){
-  let value=null,revision=1,fail=false,conflictOnce=false,concurrent=null,lostReceipt=false;
+  let value=null,revision=1,fail=false,conflictOnce=false,concurrent=null,lostReceipt=false,page=null;
   const reads=[];
   const actions=[];
   const request=async (op,payload)=>{
@@ -24,10 +24,11 @@ function storeFixture(){
       if(lostReceipt)throw Error('E_RECEIPT_LOST');
       return {saved:true};
     }
-    if(op==='page.request')throw Error('E_PAGE_AUTHORIZATION');
+    if(op==='page.request')return page?.()??{enabled:value?.enabled!==false};
     throw Error('UNEXPECTED_OP');
   };
   return {request,actions,read:()=>value,fail(){fail=true;},conflict(next=null){conflictOnce=true;concurrent=next;},
+    page(next){page=next;},
     loseReceipt(){lostReceipt=true;},
     readNext(fn){reads.push(fn);},
     deferRead(){
@@ -47,17 +48,18 @@ function panel(store,ui){
   const menuHelp={textContent:''};
   const combo={value:'left-down',disabled:true,addEventListener(type,fn){listeners.set('combo:'+type,fn);}};
   const comboAction={value:'none',disabled:true,addEventListener(type,fn){listeners.set('comboAction:'+type,fn);}};
-  const hint={textContent:''},error={textContent:'',hidden:true};
+  const hint={textContent:''},error={textContent:'',hidden:true},pageStatus={textContent:''};
   const elements=new Map([['#gesture-enabled',toggle],['#gesture-trigger',trigger],
     ['#gesture-trace',trace],['#gesture-menu-help',menuHelp],
-    ['#gesture-combo',combo],['#gesture-combo-action',comboAction],['#gesture-help',hint],['#gesture-error',error]]);
+    ['#gesture-combo',combo],['#gesture-combo-action',comboAction],['#gesture-help',hint],['#gesture-error',error],
+    ['#gesture-page-status',pageStatus]]);
   const root={querySelector(id){return elements.get(id)||null;},
     addEventListener(type,fn){listeners.set('root:'+type,fn);}};
   const window={addEventListener(type,fn){windowHandlers.set(type,fn);}};
   const tool={root,ui,request:store.request,setState(state){states.push(state);}};
   vm.runInNewContext(panelSource,{globalThis:{OpenDeskTool:tool},window});
   const flush=async()=>{await tick();await tick();};
-  return {toggle,trigger,trace,menuHelp,combo,comboAction,hint,error,states,windowHandlers,
+  return {toggle,trigger,trace,menuHelp,combo,comboAction,hint,error,pageStatus,states,windowHandlers,
     async change(value){toggle.checked=value;listeners.get('enabled:change')();await flush();},
     async changeTrigger(value){trigger.value=value;listeners.get('trigger:change')();await flush();},
     async changeTrace(value){trace.checked=value;listeners.get('trace:change')();await flush();},
@@ -66,6 +68,28 @@ function panel(store,ui){
     async reload(){listeners.get('root:opendesk-page-changed')();await flush();},
     close(){windowHandlers.get('pagehide')?.();}};
 }
+
+test('saved gesture prefs never claim application when native access, document or receipt fails',async()=>{
+  const store=storeFixture(),one=panel(store);await tick();
+  const unavailable=code=>()=>{throw Object.assign(Error(code),{code});};
+  store.page(unavailable('E_USER_SCRIPTS_UNAVAILABLE'));
+  await one.changeTrigger('alt-left');
+  assert.equal(store.read().trigger,'alt-left');
+  assert.match(one.hint.textContent,/设置已保存/);
+  assert.match(one.pageStatus.textContent,/允许用户脚本.*网页功能设置/);
+  store.page(unavailable('E_PERMISSION'));await one.reload();
+  assert.match(one.pageStatus.textContent,/网站访问受限/);
+  store.page(unavailable('E_APP_PAGE_RELOAD_REQUIRED'));await one.reload();
+  assert.match(one.pageStatus.textContent,/旧文档.*保存.*刷新/);
+  store.page(null);await one.change(false);
+  assert.match(one.pageStatus.textContent,/已确认当前网页暂停手势/);
+  store.page(unavailable('E_TOOL_TIMEOUT'));await one.reload();
+  const count=store.actions.filter(x=>x.op==='page.request').length;
+  one.windowHandlers.get('focus')();await tick();
+  assert.equal(store.actions.filter(x=>x.op==='page.request').length,count);
+  assert.match(one.pageStatus.textContent,/结果未知/);
+  one.close();
+});
 
 test('Side Panel persists switch and restores it after reopening',async()=>{
   const store=storeFixture(),one=panel(store);

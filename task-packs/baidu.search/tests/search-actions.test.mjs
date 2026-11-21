@@ -6,7 +6,7 @@ import {verifyTaskPackage,validateTaskParams} from '../../../src/platform/tasks/
 import {assertPackagedTask} from '../../../src/platform/tasks/builtin-releases.js';
 
 async function run(file, options = {}) {
-  const calls = options.calls ?? [], pauses = [], observations = [], clickOptions = [];
+  const calls = options.calls ?? [], pauses = [], observations = [], clickOptions = [], navigations = [];
   let url = options.url ?? 'https://www.baidu.com/';
   let value = options.initialValue ?? '';
   let now = Date.parse('2026-11-01T00:00:00Z');
@@ -21,12 +21,18 @@ async function run(file, options = {}) {
     },
     observe:async opts=>{
       observations.push(JSON.parse(JSON.stringify(opts)));
-      const id=options.documents === null ? undefined : calls.includes('click') ? 'observed-after' : 'observed-before';
+      const id=options.documents === null ? undefined : calls.includes('click')||calls.includes('goto') ? 'observed-after' : 'observed-before';
       return {document:{documentId:id}};
     },
     url:async()=>{
       if(calls.includes('click') && options.urlErrorAfterClick)throw options.urlErrorAfterClick;
       return url;
+    },
+    goto:async(target,opts)=>{
+      calls.push('goto');
+      navigations.push({target,...JSON.parse(JSON.stringify(opts))});
+      if(options.gotoError)throw options.gotoError;
+      url=options.nextUrl ?? target;
     },
     locator(selector) {
       const field = selector === '#chat-textarea' || selector === '#kw';
@@ -57,7 +63,7 @@ async function run(file, options = {}) {
     page,params:options.params ?? {query:'OpenDesk Browser',limit:3},URL,Date:Clock,TextEncoder,
     setTimeout:(fn,ms)=>{pauses.push(ms);now+=ms;fn();return 0;},
   });
-  return {result:JSON.parse(JSON.stringify(result)),calls,pauses,observations,clickOptions};
+  return {result:JSON.parse(JSON.stringify(result)),calls,pauses,observations,clickOptions,navigations};
 }
 
 test('Baidu homepage fills and commits one search, with actual readback and navigation trace',async()=>{
@@ -91,6 +97,35 @@ test('Baidu unknown click is recorded and never retried or followed by result re
 test('existing Baidu result-page entry never resubmits search',async()=>{
   const {calls}=await run('baidu-search-top3.js',{url:'https://www.baidu.com/s?wd=OpenDesk%20Browser'});
   assert.deepEqual(calls,['bringToFront','results.wait']);
+});
+
+test('Baidu reuses a same-site tab by navigating once to the requested query',async()=>{
+  const query='CSS 网格 & 布局';
+  for(const url of ['https://www.baidu.com/s?wd=previous','https://www.baidu.com/?from=nav']){
+    const {result,calls,navigations}=await run('baidu-search-top3.js',{url,params:{query,limit:3,showExecutionTab:false}});
+    assert.deepEqual(calls,['goto','results.wait']);
+    assert.equal(navigations.length,1);
+    const target=new URL(navigations[0].target);
+    assert.equal(target.origin,'https://www.baidu.com');
+    assert.equal(target.pathname,'/s');
+    assert.deepEqual([...target.searchParams],[['wd',query]]);
+    assert.equal(result.sourceUrl,target.href);
+    assert.equal(result.trace.find(row=>row.state==='observed').documentId,'observed-after');
+  }
+});
+
+test('Baidu never retries navigation or extracts results from an unverified destination',async()=>{
+  for(const [options,code] of [
+    [{gotoError:Object.assign(new Error('ack lost'),{code:'E_EFFECT_UNKNOWN'})},'E_EFFECT_UNKNOWN'],
+    [{nextUrl:'https://www.baidu.com/s?wd=stale'},'E_SEARCH_NAVIGATION'],
+    [{nextUrl:'https://example.com/'},'E_TARGET'],
+  ]){
+    const {result,calls}=await run('baidu-search-top3.js',{url:'https://www.baidu.com/s?wd=previous',...options});
+    assert.deepEqual(calls,['bringToFront','goto']);
+    assert.equal(result.status,'stopped');
+    assert.equal(result.error.code,code);
+    assert.equal(result.trace.some(row=>row.state==='observed'),false);
+  }
 });
 
 test('Baidu rejects a different target origin before any search action',async()=>{
@@ -211,7 +246,7 @@ test('baidu invalid parameters reject before foregrounding or searching',async()
 });
 
 test('baidu target validation precedes foregrounding, including when explicitly disabled',async()=>{
-  for(const url of ['https://example.com/','https://www.baidu.com/s?wd=other']){
+  for(const url of ['https://example.com/','https://user@www.baidu.com/s?wd=other']){
     for(const showExecutionTab of [true,false]){
       const calls=[],options={url,calls,params:{query:'OpenDesk Browser',limit:3,showExecutionTab}};
       await assert.rejects(run('baidu-search-top3.js',options),{code:'E_TARGET'});
@@ -237,7 +272,7 @@ test('Baidu package matches source, version, schema defaults, and builtin releas
   await verifyTaskPackage(pkg);
   await assertPackagedTask(pkg);
   assert.equal(pkg.sourceUtf8,await readFile(new URL('../src/baidu-search-top3.js',import.meta.url),'utf8'));
-  assert.equal(pkg.manifest.version,'1.1.5');
+  assert.equal(pkg.manifest.version,'1.1.6');
   assert.deepEqual(pkg.manifest.siteOrigins,['https://www.baidu.com']);
   assert.deepEqual(pkg.manifest.permissions,['page.automation']);
   assert.equal(pkg.manifest.paramsSchema.required.includes('showExecutionTab'),false);

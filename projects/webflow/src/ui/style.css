@@ -135,8 +135,10 @@ html:has(#webflow-app),body:has(#webflow-app){margin:0}
 .wf-menu button:hover:not(:disabled){background:var(--tint)}
 .wf-row-error{margin-top:7px}
 .wf-task-detail{background:var(--tint);border-radius:8px;margin-top:8px;padding:10px;min-width:0}
-.wf-search-row{display:grid;grid-template-columns:minmax(0,1fr) repeat(3,34px);gap:6px;align-items:center;position:relative;min-width:0}
-.wf-search-input{min-width:0;min-height:36px}
+.wf-search-row{display:grid;grid-template-columns:minmax(0,1fr) repeat(2,34px);gap:6px;align-items:center;position:relative;min-width:0}
+.wf-search-field{position:relative;min-width:0}
+.wf-search-field>svg{position:absolute;left:9px;top:50%;transform:translateY(-50%);color:var(--sub);pointer-events:none}
+.wf-search-input{min-width:0;min-height:36px;padding:6px 10px 6px 31px}
 .wf-search-row>.wf-icon{width:34px;min-width:34px;height:34px;min-height:34px;padding:0}
 .wf-filter-popover{display:grid;gap:3px;position:absolute;z-index:19;right:0;top:43px;width:min(230px,100%);padding:10px;border:1px solid var(--line);border-radius:10px;background:var(--paper);box-shadow:0 12px 26px #142d4830}
 .wf-filter-popover>strong{font-size:11px}
@@ -200,4 +202,4 @@ html:has(#webflow-app),body:has(#webflow-app){margin:0}
 .wf-add-input{resize:vertical;min-height:66px}
 .wf-add-prompt{font:11px/1.55 ui-monospace,Consolas,monospace;min-height:150px;max-height:310px}
 .wf-add-sheet .wf-label{font-size:11px}
-@media(max-width:350px){.wf-search-row{gap:4px;grid-template-columns:minmax(0,1fr) repeat(3,32px)}.wf-search-row>.wf-icon{width:32px;min-width:32px;height:32px;min-height:32px}}
+@media(max-width:350px){.wf-search-row{gap:4px;grid-template-columns:minmax(0,1fr) repeat(2,32px)}.wf-search-row>.wf-icon{width:32px;min-width:32px;height:32px;min-height:32px}}

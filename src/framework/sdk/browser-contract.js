@@ -400,16 +400,16 @@ export function normalizeBrowserOperation(operation,args={}){
       return {tabRef:args.tabRef,pinned:args.pinned};
     case 'browser.tabs.listOwned':fields(args,[]);break;
     case 'browser.sidePanel.openSelf':fields(args,[]);break;
-    case 'browser.proxy.managed.getStatus':
-    case 'browser.proxy.managed.requestDisable':
-      fields(args,[]);return {};
-    case 'browser.proxy.managed.requestEnable':{
+    case 'browser.proxy.managed.getStatus':fields(args,[]);return {};
+    case 'browser.proxy.managed.requestEnable':
+    case 'browser.proxy.managed.requestDisable':{
       const checked=normalizeDirectBrowserArguments(operation,args);
       // Syntax admission is not profile approval. The existing trusted Host
       // and Driver still check the installed hash, one-use intent and Chrome.
-      if(MANAGED_PROXY_DEVELOPMENT_ENABLED&&isFixedDevelopmentManagedProxyConfig(checked.config))
-        return checked;
-      return {config:normalizeManagedProxyConfig(checked.config)};
+      const normalize=config=>MANAGED_PROXY_DEVELOPMENT_ENABLED&&isFixedDevelopmentManagedProxyConfig(config)
+        ?config:normalizeManagedProxyConfig(config);
+      return {...(checked.config?{config:normalize(checked.config)}:{}),...(checked.ifCurrent?{ifCurrent:{...checked.ifCurrent,
+        activeConfig:checked.ifCurrent.activeConfig===null?null:normalize(checked.ifCurrent.activeConfig)}}:{})};
     }
     case 'browser.network.request': {
       fields(args,['method','url','data','config'],['method','url']);

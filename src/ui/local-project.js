@@ -3,13 +3,14 @@ import {sha256Utf8} from '../scripting/user-scripts/page-program-package.js';
 import {sourceLabel,sourceName} from '../native-agent/source-label.js';
 import {SIDEBAR_TOOL_STORE,serializeSidebarToolPackage} from './sidebar-tools/package.js';
 import {openToolPreviewWorkspace} from './sidebar-tools/workspace-preview-intent.js';
+import {AGENT_CONFIG_PROTOCOL} from '../native-agent/protocol.js';
 
 const KEY='opendesk.local-project.selection.v1';
 const HELP_URL='https://github.com/shopable-ai/opendesk-browser/blob/main/docs/api/local-projects.zh-CN.md';
 const failure=(code,message)=>Object.assign(new Error(message),{code});
 const validSource=id=>typeof id==='string'&&/^source-[a-f0-9]{24}$/.test(id);
 const validTool=id=>typeof id==='string'&&/^[a-z][a-z0-9-]{1,39}$/.test(id);
-export function createLocalProjectView({client,api,document:doc,view=null,onChange=()=>{},preparationDelayMs=450}){
+export function createLocalProjectView({client,api,document:doc=globalThis.document,view=null,onChange=()=>{},preparationDelayMs=450}){
   const find=id=>view?view.fields[id]:doc.getElementById(id),mode=find('local-project-mode'),select=find('local-project-select'),status=find('local-project-status');
   let disposed=false,generation=0,selectionGeneration=0,connected=false,nativeConnected=false,epoch=null,projects=[],workspaces=[],selection='',savedName='',savedSourceId='',last=null,checking=false,diagnostic='';
   let backgroundTimer=null,backgroundRead=null,backgroundKey='',backgroundError=null,prepared=null,workspaceOpenError=null;
@@ -17,6 +18,7 @@ export function createLocalProjectView({client,api,document:doc,view=null,onChan
   // lives exclusively in durable Run results and installed Page/Task catalogs.
   let lastVerifiedProof=null,lastInstalledRef=null,lastUnknownInstall=null;
   let toolId='',toolPointers={},installedTools=[],toolChoices='',pointerMessage='',previewOpening=false,toolsLoading=true,toolsRead=0;
+  let settingsAttempt=null,settingsNotice='',connectionError=null;
   const previewSource=()=>{
     const row=selected();
     return validSource(row?.sourceId)&&workspaces.some(item=>item.sourceId===row.sourceId)?row.sourceId:null;
@@ -25,6 +27,19 @@ export function createLocalProjectView({client,api,document:doc,view=null,onChan
     (!toolId||installedTools.some(item=>item.id===toolId));
   const pointerStale=()=>{const pointer=toolPointers[previewSource()];return !!(toolId&&pointer?.toolId===toolId&&pointer.installedPackageHash!==installedTools.find(item=>item.id===toolId)?.installedPackageHash);};
   const canPreview=()=>canChoosePreview()&&!pointerStale();
+  function previewHint(){
+    const row=selected();
+    if(checking)return '检查完成后会更新调试按钮。';
+    if(!nativeConnected)return '连接本机后才能调试目录项目。';
+    if(!row)return rows().length?'先从上方选择要调试的目录。':'先连接一个目录项目，方法见下方。';
+    if(!previewSource())return row.fileOnly?'此目录不支持侧栏调试，可打开文件工作区。':
+      '要调试侧栏工具，请连接源码目录。运行单文件脚本前，请先打开项目允许的目标网页。';
+    if(toolsLoading)return '正在读取工具信息…';
+    if(pointerStale())return '工具包已更新，请在「源码关联」重新保存关联。';
+    if(toolId&&!installedTools.some(item=>item.id===toolId))return '关联的工具已不可用，请在「源码关联」选择「独立本地项目」。';
+    if(previewOpening)return '正在打开所选目录的侧栏调试…';
+    return '';
+  }
   function renderTools(){
     const field=find('local-project-tool');
     const identity=JSON.stringify([installedTools,toolId]);
@@ -39,6 +54,8 @@ export function createLocalProjectView({client,api,document:doc,view=null,onChan
     const source=previewSource(),bound=source&&toolPointers[source];
     if(find('local-project-tool-bind'))patchDeveloperField(view,find('local-project-tool-bind'),{disabled:!canChoosePreview()});
     if(find('local-project-preview'))patchDeveloperField(view,find('local-project-preview'),{disabled:!canPreview()});
+    const hint=find('local-project-preview-hint');
+    if(hint){const textContent=previewHint();patchDeveloperField(view,hint,{hidden:!textContent,textContent});}
     if(find('local-project-tool-pointer'))patchDeveloperField(view,find('local-project-tool-pointer'),{
       hidden:!(pointerStale()||pointerMessage||bound||savedSourceId&&!selected()),textContent:
       pointerStale()?'已安装工具包已更新，请点击「保存源码关联」重新确认目录。':pointerMessage||(bound?'已关联目录：'+sourceName(selected()?.name)+'。下次打开此工具时仍使用这个目录。':
@@ -62,7 +79,9 @@ export function createLocalProjectView({client,api,document:doc,view=null,onChan
     if(disposed||version!==toolsRead)return;
     installedTools=metadata;toolsLoading=false;renderTools();
   }
-  const sourceUnavailable='本机 OpenDesk 已连接，但可运行源码 Provider 尚未接入。已授权的单文件会自动恢复；目录项目可在原目录执行 opendesk browser dev . 或 opendesk-dev . 接入，无需重复 Native 配对。';
+  const disconnected='本地项目服务未连接。打开「连接本机 OpenDesk」检查设置，返回后再检查。';
+  const sourceUnavailable='本机 OpenDesk 已连接，暂无可用项目。请展开下方的连接方法，授权单文件或目录。';
+  const previousUnavailable='本机已连接。之前选择的项目在当前连接中不可用；请按下方方法重新授权，或选择其他已授权项目。';
   const listeners=[];
   let pollTimer=null,pollBusy=false,preparationCheck=null,preparationAgain=false,preparationError=null,nativeUpdateError=null,workspaceCheck=null,catalogVersion=null;
   const nativeUpdateMessage='本机 OpenDesk 版本不支持此项目的源码传输，请更新本机应用后刷新。项目源码未执行。';
@@ -96,7 +115,7 @@ export function createLocalProjectView({client,api,document:doc,view=null,onChan
     renderTools();
     const local=active(),row=selected(),preparation=row?.preparation,ready=readyForRun();
     const runtimeKind=row?.runtimeKind||prepared?.runtimeKind;
-    const identity=JSON.stringify([local,checking,connected,nativeConnected,epoch,selection,row,workspaces.length,row?.fileOnly?programsFor(row).length:null,diagnostic,last,preparationError?.code,nativeUpdateError?.code,backgroundError,prepared,workspaceOpenError,message]);
+    const identity=JSON.stringify([local,checking,connected,nativeConnected,epoch,selection,row,workspaces.length,projects.length,row?.fileOnly?programsFor(row).length:null,diagnostic,last,preparationError?.code,nativeUpdateError?.code,backgroundError,prepared,workspaceOpenError,settingsNotice,connectionError,message]);
     if(identity===rendered)return;
     rendered=identity;
     const switchHead=find('developer-source-switch');
@@ -107,31 +126,33 @@ export function createLocalProjectView({client,api,document:doc,view=null,onChan
     patchDeveloperField(view,find('manual-source-editor'),{hidden:local});
     patchDeveloperField(view,find('local-project-params-tools'),{hidden:!local||runtimeKind!=='controller'});
     patchDeveloperField(view,find('manual-project-params-tools'),{hidden:local});
-    patchDeveloperField(view,select,{disabled:checking||(!connected&&!workspaces.length),
+    patchDeveloperField(view,select,{disabled:checking||!rows().length,
       data:{...(select.data||select.dataset),promptProjectSelected:Boolean(row),
         promptRuntimeKind:['controller','page-userscript'].includes(runtimeKind)?runtimeKind:'unknown'}});
     patchDeveloperField(view,find('local-project-connect'),{textContent:row?.fileOnly?'打开文件工作区 ↗':'连接本机 OpenDesk ↗'});
     patchDeveloperField(view,find('local-project-connect'),{disabled:row?.fileOnly?!canOpenWorkspace():false});
-    const recovery=local&&(!connected||!projects.length||row?.fileOnly);
+    const recovery=local&&(!nativeConnected||row?.fileOnly);
     const recoveryPanel=find('local-project-recovery');
     if(recoveryPanel)patchDeveloperField(view,recoveryPanel,{hidden:!recovery});
-    patchDeveloperField(view,find('local-project-connect'),{hidden:!recovery||(nativeConnected&&!row?.fileOnly)});
-    patchDeveloperField(view,find('local-project-guide'),{hidden:!recovery});
-    patchDeveloperField(view,status,{data:{...(status.data||status.dataset),state:!local?'manual':checking?'checking':row?.fileOnly?'entry-unavailable':!connected?
+    patchDeveloperField(view,find('local-project-connect'),{hidden:!recovery});
+    patchDeveloperField(view,find('local-project-guide'),{hidden:!local||nativeConnected&&!!row&&!!previewSource()});
+    patchDeveloperField(view,status,{data:{...(status.data||status.dataset),state:!local?'manual':checking?'checking':row?.fileOnly?'entry-unavailable':connectionError?'check-failed':!connected?
       (workspaces.length?'selection-needed':nativeConnected?'source-unavailable':'disconnected'):nativeUpdateError?'update-required':
-      !row?'selection-needed':backgroundError||preparation?.state==='source-error'?'source-error':
+      !row?(projects.length?'selection-needed':'no-projects'):backgroundError||preparation?.state==='source-error'?'source-error':
       ready?'ready':'preparing'}});
-    patchDeveloperField(view,status,{textContent:!local?'':checking?'正在检查本机连接…':message||(
-      row?.fileOnly?(workspaceOpenError?.bindingId===row.bindingId?workspaceOpenError.message:'所选目录已连接，可打开文件工作区或点击「在侧栏调试 ↗」。预览不要求可运行源码 Provider，不会安装工具或运行 npm。'+(programsFor(row).length>1?'运行程序时请选择具体入口。':'')):
-      !connected&&workspaces.length?'请选择已授权项目；等待该项目的运行入口与源码 Provider 就绪。':
-      !connected?(nativeConnected?sourceUnavailable:'本地项目服务未连接；已授权的项目仍保留，恢复 Native 后自动检查。'):
-      !projects.length?'暂无可运行的已授权项目。目录授权使用 opendesk browser dev .；单文件授权使用 opendesk browser project add。':
-      !row?(selection?'此前项目已离线或授权变化，保留名称但不可运行；恢复来源或明确选择另一项目。':'请选择已授权项目'):
+    patchDeveloperField(view,status,{textContent:!local?'':checking?'正在检查本机连接和项目…':settingsNotice||(!row?.fileOnly&&connectionError)||message||(
+      row?.fileOnly?(workspaceOpenError?.bindingId===row.bindingId?workspaceOpenError.message:
+        previewSource()?'本机已连接。所选目录可在侧栏调试，也可打开文件工作区。':'本机已连接。可打开所选目录的文件工作区。'):
+      nativeConnected&&selection&&!row?previousUnavailable:
+      !connected&&workspaces.length?'本机已连接。请选择已授权项目。':
+      !connected?(nativeConnected?sourceUnavailable:disconnected):
+      !projects.length?sourceUnavailable:
+      !row?(selection?'此前项目已离线或授权变化。请重新连接原项目，或选择另一个已授权项目。':'本机已连接。请选择已授权项目。'):
       nativeUpdateError?nativeUpdateMessage:
       backgroundError||preparation?.state==='source-error'?
         '源码有错误：'+errorText(backgroundError||preparation?.error)+'；请修改所示入口或项目配置，保存后自动复查':
       preparationError?'准备状态暂不可用，正在重新核对…':
-      ready?(preparation?.state==='ready'?'已准备 · 点击「运行本地项目」才会执行':'源码已核验 · 运行前将再次读取最新版本'):
+      ready?(previewSource()?'本机已连接。所选项目可在侧栏调试。':'本机已连接，所选源码已就绪。打开项目允许的目标网页后，可点击「运行本地项目」。'):
       preparationLabels[preparation?.state]||'正在准备最新源码…'
     )});
     const report=prepared||(preparation?.state==='ready'?preparation:null);
@@ -276,18 +297,26 @@ export function createLocalProjectView({client,api,document:doc,view=null,onChan
       if(catalogVersion!==generation){choices();render();}
     }).finally(()=>{workspaceCheck=null;});
   }
-  async function refresh({quiet=false}={}){
+  async function refresh({quiet=false,probe=false}={}){
     if(!active()||!client.requestLocalProject||disposed)return;
     const version=quiet?generation:++generation;
-    let errorMessage,statusKnown=false;
+    let statusKnown=false,requiresReload=false;
     catalogVersion=version;
     if(!quiet){checking=true;diagnostic='';render();}
     try{
+      // Ask the existing settings authority to retry a missing transport. It
+      // never prompts for permission. Use only the Host catalog for readiness.
+      if(probe&&api.runtime?.sendMessage){
+        const response=await api.runtime.sendMessage({protocol:AGENT_CONFIG_PROTOCOL,type:'status'});
+        if(disposed||version!==generation)return;
+        if(!response?.ok)throw failure(response?.error?.code||'E_DEV_STATUS','本机连接检查未完成');
+        requiresReload=response.data?.requiresReload===true;
+      }
       const state=await client.requestLocalProject('status',{});
       if(disposed||version!==generation)return;
       nativeConnected=state.nativeConnected===true;
       if(nativeConnected)refreshWorkspaces();else workspaces=[];
-      statusKnown=true;
+      statusKnown=true;connectionError=null;
       if(!state.connected)throw failure(nativeConnected?'E_DEV_PROVIDER_UNAVAILABLE':'E_DEV_DISCONNECTED',nativeConnected?'本机已连接，但可运行源码 Provider 尚未注册':'本地开发连接尚未建立');
       const value=await client.requestLocalProject('projects.list',{});
       if(disposed||version!==generation)return;
@@ -303,12 +332,13 @@ export function createLocalProjectView({client,api,document:doc,view=null,onChan
       connected=false;epoch=null;projects=[];
       resetBackground();
       diagnostic=`${error?.code||'E_DEV_DISCONNECTED'}：${error?.message||'连接失败'}`;
-      errorMessage=error?.code==='E_DEV_PROVIDER_UNAVAILABLE'?sourceUnavailable:error?.code==='E_DEV_DISCONNECTED'
-        ?'本地项目服务未连接。请检查本机 OpenDesk 连接；文件工作区、Go 单文件和 MCP 来源可分别保持各自状态。'
-        :'连接失败，请检查本地服务或项目授权后重试。';
+      if(requiresReload&&!nativeConnected)connectionError='Chrome 尚未应用本机连接权限。请在连接设置中查看下一步。';
+      else if(error?.code==='E_DEV_PROVIDER_UNAVAILABLE'||error?.code==='E_DEV_DISCONNECTED'&&!nativeConnected)connectionError=null;
+      else
+        connectionError=error?.code==='E_DEV_TIMEOUT'?'连接检查超时。请点击「检查连接与项目」重试。':'未能完成连接检查。请点击「检查连接与项目」重试。';
     }}
     finally{if(catalogVersion===version)catalogVersion=null;if(!disposed&&version===generation){
-      checking=false;choices();syncPreparation();render(workspaces.length?undefined:errorMessage);
+      checking=false;choices();syncPreparation();render();
     }}
   }
   function capture(){if(!active()||checking||!connected||!runnable())throw failure('E_DEV_DISCONNECTED','请选择已连接的本地项目');if(nativeUpdateError)throw failure('E_NATIVE_UPDATE_REQUIRED',nativeUpdateMessage);if(preparationError||backgroundError||selected().preparation?.state==='source-error')throw failure('E_DEV_SOURCE','本地项目状态尚未通过核对，请修复后刷新');// Background readiness is a hint, not execution authority: a trusted Run
@@ -333,13 +363,13 @@ export function createLocalProjectView({client,api,document:doc,view=null,onChan
       expectedSourceHash&&/^[a-f0-9]{64}$/.test(preparation.sourceHash||'')&&expectedSourceHash!==preparation.sourceHash))
       throw failure('E_DEV_CONFLICT','准备版本在运行前发生变化；本次未运行，请重新运行最新源码');
   }
-  async function resolve(captured){
+  async function resolve(captured,{background=false}={}){
     assertCaptured(captured);
-    render('正在更新');
+    if(!background)render('正在更新');
     let value;try{value=await client.requestLocalProject('project.resolve',{bindingId:captured.bindingId});}catch(error){
       if(!disposed&&captured.generation===generation){
         if(error?.code==='E_NATIVE_UPDATE_REQUIRED'){nativeUpdateError=error;diagnostic=`${error.code}：${error.message||nativeUpdateMessage}`;render(nativeUpdateMessage);}
-        else render(`源码有错误：${error.code||'E_DEV_SOURCE'}`);
+        else if(!background)render(`源码有错误：${error.code||'E_DEV_SOURCE'}`);
       }
       throw error;
     }
@@ -364,9 +394,26 @@ export function createLocalProjectView({client,api,document:doc,view=null,onChan
       inputHash:value.inputHash,runtimeKind:value.runtimeKind};
     last={inputHash:value.inputHash,sourceHash:value.sourceHash,cacheHit:value.cacheHit,timings:value.timings};render();return value;
   }
-  listen(mode,'change',()=>{generation++;selectionGeneration++;checking=false;connected=false;nativeConnected=false;epoch=null;projects=[];workspaces=[];last=null;diagnostic='';nativeUpdateError=null;workspaceOpenError=null;resetBackground();persist();render();if(active())void refresh();});
+  listen(mode,'change',()=>{generation++;selectionGeneration++;checking=false;connected=false;nativeConnected=false;epoch=null;projects=[];workspaces=[];last=null;diagnostic='';settingsAttempt=null;settingsNotice='';connectionError=null;nativeUpdateError=null;workspaceOpenError=null;resetBackground();persist();render();if(active())void refresh();});
   listen(select,'change',()=>{generation++;selectionGeneration++;checking=false;if(selection!==select.value)savedSourceId='';selection=select.value;toolId=toolPointers[selected()?.sourceId]?.toolId||'';pointerMessage='';last=null;nativeUpdateError=null;workspaceOpenError=null;diagnostic='';resetBackground();persist();syncPreparation();render();});
-  listen(find('local-project-refresh'),'click',()=>{resetBackground();void loadTools();void refresh();});
+  listen(find('local-project-refresh'),'click',()=>{settingsAttempt=null;settingsNotice='';resetBackground();void loadTools();void refresh({probe:true});});
+  const checkOnReturn=({type}={})=>{
+    if(!settingsAttempt||settingsAttempt.opening||disposed||!active()||type==='visibilitychange'&&doc?.hidden)return;
+    settingsAttempt=null;settingsNotice='';void refresh({probe:true});
+  };
+  doc?.defaultView?.addEventListener('focus',checkOnReturn);
+  doc?.addEventListener('visibilitychange',checkOnReturn);
+  const checkActiveTab=async({tabId,windowId})=>{
+    const attempt=settingsAttempt;
+    if(!attempt||attempt.opening||attempt.windowId!==windowId)return;
+    try{
+      const tab=await api.tabs.get(tabId);
+      if(tab.active&&tab.url!==api.runtime.getURL('native-agent/settings.html')&&settingsAttempt===attempt)checkOnReturn();
+    }catch{/* A closed tab does not establish a return. */}
+  };
+  const checkClosedTab=tabId=>{if(settingsAttempt?.tabId===tabId)checkOnReturn();};
+  api.tabs?.onActivated?.addListener(checkActiveTab);
+  api.tabs?.onRemoved?.addListener(checkClosedTab);
   if(find('local-project-tool'))listen(find('local-project-tool'),'change',event=>{
     if(!event?.isTrusted||disposed||!active())return;
     const value=find('local-project-tool').value;
@@ -424,12 +471,23 @@ export function createLocalProjectView({client,api,document:doc,view=null,onChan
   }
   listen(find('local-project-connect'),'click',event=>{
     if(!event.isTrusted||!active()||disposed)return;
-    const unable=()=>{if(!disposed&&active())patchDeveloperField(view,status,{textContent:'未能打开本机连接设置。可在 Chrome 扩展详情中打开「扩展选项」。'});};
+    const row=selected();
+    if(row?.fileOnly){openWorkspace(event);return;}
+    if(settingsAttempt?.opening)return;
+    const attempt={opening:true};settingsAttempt=attempt;settingsNotice='正在打开本机连接设置…';render();
+    void api.windows?.getCurrent?.().then(window=>{attempt.windowId=window.id;}).catch(()=>{});
+    const current=()=>!disposed&&active()&&settingsAttempt===attempt;
+    const unable=()=>{if(current()){settingsAttempt=null;settingsNotice='未能打开本机连接设置。请再点一次「连接本机 OpenDesk」。';render();}};
     try{
-      const row=selected();
-      if(row?.fileOnly){openWorkspace(event);return;}
       if(typeof api.runtime?.openOptionsPage!=='function')return unable();
-      void Promise.resolve(api.runtime.openOptionsPage()).catch(unable);
+      void Promise.resolve(api.runtime.openOptionsPage()).then(()=>{
+        if(!current())return;
+        attempt.opening=false;settingsNotice='已打开连接设置。完成后返回，侧栏会重新检查。';render();
+        void api.tabs?.query?.({url:api.runtime.getURL('native-agent/settings.html')}).then(tabs=>{
+          const tab=tabs.find(tab=>tab.windowId===attempt.windowId)||tabs.find(tab=>tab.active);
+          if(tab){attempt.tabId=tab.id;attempt.windowId=tab.windowId;}
+        }).catch(()=>{});
+      },unable);
     }catch{unable();}
   });
   listen(find('local-project-guide-open'),'click',event=>{
@@ -444,6 +502,7 @@ export function createLocalProjectView({client,api,document:doc,view=null,onChan
   listen(find('local-project-params'),'input',persist);
   const unsubscribe=client.subscribeLocalProjects?.(state=>{
     if(disposed)return;
+    const nativeBecameReady=state.nativeConnected===true&&!nativeConnected;
     const same=state.connected===connected&&(state.nativeConnected===true)===nativeConnected&&(!state.connected||state.providerEpoch===epoch);
     if(same){if(active())void refreshPreparation(true);return;}
     nativeConnected=state.nativeConnected===true;
@@ -451,8 +510,13 @@ export function createLocalProjectView({client,api,document:doc,view=null,onChan
       if(!nativeConnected&&workspaces.length){workspaces=[];choices();render();}
       void refreshPreparation(true);return;
     }
+    const wasChecking=checking;
     generation++;checking=false;connected=false;epoch=null;projects=[];workspaces=[];resetBackground();
-    choices();render();if(active()&&state.connected)void refresh({quiet:true});
+    if(typeof state.nativeConnected==='boolean')connectionError=null;
+    if(state.nativeConnected||typeof state.nativeConnected==='boolean'&&!settingsAttempt)settingsNotice='';
+    choices();render();
+    if(active()&&(state.connected||nativeBecameReady))void refresh({quiet:!wasChecking});
+    else if(active()&&nativeConnected)refreshWorkspaces();
   });
   const unsubscribeConnection=client.subscribeConnection?.(state=>{if(state.connected&&!disposed&&active())void refreshPreparation(true);});
   const initial=selectionGeneration;
@@ -523,6 +587,6 @@ export function createLocalProjectView({client,api,document:doc,view=null,onChan
       lastInstalledRef=structuredClone(ref);persist();
     },
     capture,resolve,assertCaptured,assertReady,
-    dispose(){disposed=true;generation++;clearInterval(pollTimer);resetBackground();unsubscribe?.();unsubscribeConnection?.();api.storage?.onChanged?.removeListener(toolsChanged);for(const remove of listeners)remove();},
+    dispose(){disposed=true;generation++;clearInterval(pollTimer);resetBackground();unsubscribe?.();unsubscribeConnection?.();doc?.defaultView?.removeEventListener('focus',checkOnReturn);doc?.removeEventListener('visibilitychange',checkOnReturn);api.tabs?.onActivated?.removeListener(checkActiveTab);api.tabs?.onRemoved?.removeListener(checkClosedTab);api.storage?.onChanged?.removeListener(toolsChanged);for(const remove of listeners)remove();},
     resourceSnapshot:()=>({subscriptions:listeners.length+Number(!!unsubscribe)+Number(!!unsubscribeConnection)})};
 }
