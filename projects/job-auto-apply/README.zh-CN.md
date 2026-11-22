@@ -1,7 +1,7 @@
-# AI Job Auto Apply · AI 自动求职（R1 源码 / R2 命名）
+# AI Job Auto Apply · AI 自动求职（R3 源码增强，沿用 R1/R2 身份）
 
 项目 owner：projects/job-auto-apply/；产品 ID：job-auto-apply；当前目标站点：BOSS 直聘（www.zhipin.com）。
-工作分支：main。状态：SOURCE_WIRED；未构建正式工具包，未安装，未在真实 Chrome/BOSS 页面验收。
+工作分支：main。当前源码版本 0.1.1、Page revision 2。状态：R3_SOURCE_UPDATED / V8_SMOKE_PASS。已补充 Node 回归测试文件，尚无 Node 完整运行及候选构建回执；未安装、未在真实 Chrome/BOSS 页面验收。
 
 ## 解决什么问题
 
@@ -20,8 +20,21 @@
 - **SEO 边界**：OpenDesk 内部扩展检索是否索引 description/别名，要以实际内置检索实现为证据；目录名/应用 ID 本身不会让 Google 自动收录。外部搜索需要有可索引的产品落地页，配合真实功能介绍和合理标题，不靠无关堆砌。当前只改应用自身配置与源码，不改框架或新增未经验证的别名字段。
 - **改名时机**：上一轮虽已创建 R1 源码，但没有正式安装包与真实用户数据，所以现在统一 ID 不需要设计数据迁移；若日后出现已安装身份，改 ID 则必须走专门迁移，不能当作普通改标题。
 
+## R3 已落实的差量能力与限制
+
+- BOSS 职位 ID 移除 URL 的 .html 后缀及查询串影响；历史队列 ID 在内存中兼容。缺少稳定 ID 的卡片仅可阅读，不能加入待审。
+- 用户主动扫描时仅短暂等待异步 DOM（最长 1.4 秒）；页面或权限变化时拒绝旧请求，不自动翻页或发信。
+- 读取卡片中的经验、学历、招聘者和可见活跃信息；显式已沟通/猎头标记支持过滤。未识别字段与完整 JD 均标为待核实。
+- 规则匹配不是 AI；新用户默认不填写技能，默认草稿不虚构项目经验。
+- 待审队列保留 CAS 校验；写入未知时锁定本会话后续写入，满额不会静默删除历史岗位。
+- AI 简历匹配、真实发送、执行队列、暂停恢复、真实投递记录、图片简历与多平台仍未实现。
+
+可追溯的功能差距与源码依据统一维护在 REQUIREMENTS.zh-CN.md 的 R3 章节，不另建竞争性需求文件。
+
 ## 从哪些开源项目汲取设计思路
 
+- Get Jobs / 工作无忧：https://github.com/loks666/get_jobs （已核实当前源码中的 Boss.java、BossChatNavigator.java、Locators.java、AiService.java、BossJobService.java、front/app/boss/page.tsx；现行 LICENSE 为 PolyForm Noncommercial 1.0.0，不复制其源码到商业产品）
+- Python GetJobs：https://github.com/vvvsrx/get_jobs （架构参考，不作为运行依赖）
 - AutoCast-Boss海投助手：https://github.com/gstranded/autocast-boss-assistant （职位筛选、去重、回执/暂停；MIT；仅作为对照）
 - BossAutoApply：https://github.com/FanzhiZeng/BossAutoApply （轻量 Manifest V3 的 content/background 分工；MIT）
 - boss-zhipin-helper：https://github.com/ConsoleSun/boss-zhipin-helper （DOM 监听、简历信息、AI 草稿；MIT）
@@ -49,4 +62,4 @@ OpenDesk 公开试点：docs/api/sidebar-tool-page-module.zh-CN.md。暂不改 B
 
 先执行 JavaScript 语法/定向构建与页面 fixture 测试，再在已授权的真实 Chrome 上安装候选、刷新 BOSS 搜索列表，核对 Page module 的扫描结果。确认稳定才按既有打包 Skill 晋升唯一 job-auto-apply.opendesk-tool.json；不要因本说明直接认定安装已完成。
 
-**已知未完成**：真实 BOSS DOM 选择器覆盖验证、登录和授权实测、页面动态更新处理、AI 简历语义匹配、正式任务执行/Stop/回执、跨网站平台适配、历史已沟通检测、运行队列与简历上传。这些不得标为 PASS。自动发送和账号限制处理属于下一阶段独立审查。
+**已知未完成**：真实 BOSS DOM 选择器覆盖验证、登录及授权实测、动态页面长时间稳定性、AI 简历语义匹配、正式任务执行/Stop/回执、跨网站适配、跨页历史聊天核验、运行队列与简历上传。这些不得标为 PASS。自动发送和账号限制处理属于下一阶段独立审查。
