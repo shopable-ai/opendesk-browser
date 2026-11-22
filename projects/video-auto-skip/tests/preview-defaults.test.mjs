@@ -4,7 +4,7 @@ import test from 'node:test';
 import {runInNewContext} from 'node:vm';
 
 const preview = readFileSync(new URL('../preview/index.html', import.meta.url), 'utf8');
-const css = preview.slice(preview.indexOf('<style>') + 7, preview.indexOf('</style>'));
+const css = [...preview.matchAll(/<style[^>]*>([\\s\\S]*?)<\\/style>/g)].map(match => match[1]).join('\\n');
 const script = preview.slice(preview.indexOf('<script>') + 8, preview.indexOf('</script>'));
 const modelSource = script.slice(0, script.indexOf('(function(){'));
 
