@@ -141,7 +141,18 @@
       link.addEventListener("click", () => observeNavigation(link.href)));
   }
   autoplay.checked = store.autoPlay;
-  autoplay.addEventListener("change", () => { store.autoPlay = autoplay.checked; save(); });
+  let arrivalPlayRequested = false;
+  const maybePlayAfterArrival = () => {
+    if (arrivalPlayRequested || !startedFromNext || !store.autoPlay ||
+        video.readyState < HTMLMediaElement.HAVE_METADATA) return;
+    arrivalPlayRequested = true;
+    startedFromNext = false;
+    setTimeout(() => {
+      video.play().then(() => log("网站自动起播已获浏览器接受"),
+        error => log("网站自动起播失败：" + error.name));
+    }, 800);
+  };
+  autoplay.addEventListener("change", () => { store.autoPlay = autoplay.checked; save(); maybePlayAfterArrival(); });
   const events = ["loadstart", "loadedmetadata", "durationchange", "play", "playing", "pause", "seeking", "seeked", "ended", "error", "emptied"];
   let previousPosition = 0;
   let originOfSeek = null;
@@ -153,10 +164,7 @@
     } else if (name === "error") log("error code=" + (video.error?.code ?? "未知"));
     else if (name !== "durationchange") log(name + " @ " + time(video.currentTime) + " D=" + time(video.duration));
     update();
-    if (name === "loadedmetadata" && startedFromNext && store.autoPlay) {
-      startedFromNext = false;
-      setTimeout(() => { video.play().then(() => log("网站自动起播已获浏览器接受"), error => log("网站自动起播失败：" + error.name)); }, 800);
-    }
+    if (name === "loadedmetadata") maybePlayAfterArrival();
   });
   video.addEventListener("timeupdate", () => { previousPosition = video.currentTime; update(); });
   const play = () => video.play().catch(error => log("播放失败：" + error.name));
@@ -187,6 +195,8 @@
     save();
     logBox.textContent = "";
   });
+  // Fast local media may load metadata before the inline listener is attached.
+  maybePlayAfterArrival();
 })();
 </script>
 </body>
