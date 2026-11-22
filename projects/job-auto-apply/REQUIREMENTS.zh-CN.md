@@ -100,3 +100,81 @@
 - 本轮可用的 CodexPro 本地工作区连接失败；浏览器标签页无登录态 BOSS 搜索页面，因此 Node 正式运行、标准包构建、真实安装、真实网站均 NOT_TESTED。
 - 真实 AI、单岗位发送、执行任务、暂停恢复、历史聊天、简历上传、多平台均 NOT_IMPLEMENTED。不得将任何上述项目作为已完成或模拟 PASS。
 - 下一步顺序：先取得 Node/CI 与原候选打包回执；随后用用户已授权 BOSS 职位列表核实实际 DOM 并修正选择器；只有明确的单岗位身份、审批、Stop、幂等与真实回执全部满足，才继续实现发送，暂不启动自动海投。
+
+
+## R4 · 系统开源检索与 Browser/Desktop/CLI 架构决策（2026-11-23）
+
+**任务延续与原始目标**：仍为 AI Job Auto Apply（AI 自动求职），唯一 owner 是 projects/job-auto-apply/；本轮不重建项目、不改已有安装身份、不改原 R3 实现，不虚称 AI 或真实投递已上线。用户补充 boss-agent-cli，并明确 OpenDesk 自有 Browser 与独立 Desktop Runtime 可供组合，第三方后端应是选项而非必需品。本节专门回答哪些竞品遗漏、何时复用开源实现、后端如何组合、下一阶段应做什么。上述 R3 测试及 CI 回执保持有效；**R4 为代码与架构研究，不是安装或实站测试。**
+
+### 研究方法与可信度
+
+- 使用 GitHub 仓库搜索覆盖 BOSS 直聘/自动求职/AI Agent/浏览器扩展/油猴/CLI/MCP/桌面/Playwright/HR 回复/国际申请等 18 组关键词，多组结果去重。按「求职者侧 vs HR 招聘者侧」「源码可读 vs 仅 README」「许可证」「平台覆盖」「是否真的存在接口/业务分支」「长期运行/停止/回执」筛选；不是对所有 GitHub 项目的穷举。
+- 交叉核验关键项目的 LICENSE、源码路径、CLI schema、扩展 manifest 和现有 OpenDesk 公共 API。GitHub Stars 只是社区热度，不能替代代码质量、平台条款许可、运行稳定性、能力可用性或商业使用许可。
+- 证据标签：SOURCE_VERIFIED = 当前仓库具体文件/方法存在；DOC_CLAIM = 上游 README 声称；LICENSE_READ = 本轮读到实际 LICENSE；LIVE_NOT_TESTED = 本轮未登录/运行目标站；DEPENDENCY_UNAPPROVED = 尚未批准复制/安装/执行第三方程序。
+
+| 参考项目 | 已确认依据 | 最值得参考的模块/经验 | 许可及可复用性决策 |
+| --- | --- | --- | --- |
+| https://github.com/can4hou6joeng4/boss-agent-cli | LICENSE MIT；src/boss_agent_cli/commands/apply.py、greet.py、mcp_server.py、api/client.py；docs/architecture.md、capability-matrix.md | 7 键 JSON 信封、boss schema/availability、MCP 到子进程 CLI、停止/预算/checkpoint、错误/unknown 分级；目前只有 zhipin 平台已注册 | LICENSE_READ；可选的**本机只读后端候选**，不直接装为默认后端；需要能力/来源/账号/副作用审阅 |
+| https://github.com/YanQuan-dozzy/Boss-Claw | LICENSE Apache-2.0；desktop-app/electron/preload/platform-adapters.cjs、control-bridge.cjs | BOSS、猎聘、智联、51job 适配表；本地 Bridge、任务状态、身份与发送回执分离 | LICENSE_READ；优先参考多平台设计；README 说明部分发行版能力尚未全量开源，实际可复制范围需逐文件核对 |
+| https://github.com/impengpong/jitou | LICENSE MIT；zitou-extension/manifest.json、src/content/selectors.js、job-sender.js | Chrome MV3 Side Panel、候选筛选、详情/JD、消息验证、上传进度，纯扩展无作者云后端 | LICENSE_READ；最接近 OpenDesk Browser 前端形态；宿主权限与实际行为不同，不复制另一套安装/消息总线 |
+| https://github.com/InfernalAzazel/ghost-job | LICENSE PolyForm Noncommercial；README 明确源码不公开/个人非商业；公开目录主要为介绍与素材 | 求职 CRM、HR 沟通、企业风险、求职漏斗、结果可观测性、多账号隔离 | LICENSE_READ；**仅产品研究，不商用复制源码** |
+| https://github.com/FengLeo666/boss_react | src/、main.py、README 中 LangChain/nodriver/SQLite checkpoint | Agent 工具调用、错误恢复、交互状态 | 本轮未确认根许可证；不得默认商用复制；其反检测方案不是 OpenDesk 目标 |
+| https://github.com/chenyu152/BossFlow | backend/app.py、mcp_server.py、README 的 FastAPI/MCP/本地简历 | 本地持久化、岗位资料与简历、Agent API | README 声称 MIT，但本轮未读到实际 LICENSE 文件；源代码许可需再次确认 |
+| https://github.com/mucsbr/mcp-bosszp | LICENSE MIT、boss_zhipin_fastmcp_v2.py、README | MCP 接口拆分与用户登录状态 | 部分实现涉及直接平台 API / 自动安全验证；不可直接采用绕过流程 |
+| https://github.com/yangfeng20/boss_batch_push | LICENSE Apache-2.0，油猴脚本 | 轻量网页筛选及直接页面工作流 | 仅辅助参考；不以批量海投作为 P0 目标 |
+| https://github.com/aliu-ronin/boss-jobseeker | LICENSE GPL-3.0，manifest/content/background | 求职者专用 Chrome 辅助功能 | GPL 有分发义务；未经单独许可审查不混入商业产品 |
+| https://github.com/feder-cr/Jobs_Applier_AI_Agent | LICENSE MIT，Python 工作流 | 国际网站 job-apply Agent 与简历定制 | 海外产品参考；不直接等同 BOSS 合法可用 |
+| https://github.com/suxrobGM/jobpilot | LICENSE MIT，TypeScript 本地 JobPilot | 多招聘站点填表、真人接管与简历适配 | 跨境平台扩展候选；具体站点许可、登录与发送待审 |
+| https://github.com/loks666/get_jobs | R3 已核源码及 LICENSE PolyForm Noncommercial | 职位、HR、AI、沟通、图片简历业务流程 | 沿用 R3 决定：只研究、不复制到商业项目 |
+
+**关键行为校正**：
+1. boss-agent-cli 的 apply.py 最终调用 platform.apply；其 api/client.py 目前把 apply 映射到即时聊天/招呼端点，而不是具有独立「附件简历已提交」证据的统一申请动作。OpenDesk 必须区分 JOB_CONTACT_CONFIRMED、APPLICATION_SUBMITTED、RESUME_UPLOADED 三种事实；CLI return ok 或 HTTP 成功都不自动等同“投递成功”。
+2. boss-agent-cli 提供 CLI、stdio/MCP、Python API 与 JSON 输出，**并非天然提供适配 OpenDesk localTasks 的 HTTP 服务**。其 MCP server 内部通过子进程调用 CLI；新增集成必须先在可信本机端建立明确受控适配，不能让 Sidebar 沙箱执行任意命令、访问任意 localhost、获取原始 Cookie。
+3. Boss-Claw 声称四平台端到端链路，但本轮只核验到了公开适配表与相关源路径；当前网页实站及发行二进制并未运行验证。Ghost Job 的功能更丰富不意味着源码可商用。
+
+### OpenDesk 现有真实能力边界
+
+- Browser 项目已有 Side Panel v2 + 同包 Page USER_SCRIPT、OpenDeskTool.request(page.request)、安装/网站 Authority、受控 Controller page/Locator、runId/resultId/Stop、Native installed-task 调用与持久结果，不创建第二套浏览器执行器。
+- Desktop 独立仓库 shopable-ai/opendesk（默认分支 master）提供 Runtime、Desktop App、BrowserDOM、Command.run、MCP/AI CLI 等。但 Command.run 是**可信、本地且按 execution 授权**的进程执行能力；默认本地脚本/ai run 可用，HTTP/MCP/Scheduler 默认不开放。BrowserDOM 有受权真实标签与语义定位能力，但不是完整 Playwright，不支持任意 CSS selector / evaluate。不能让浏览器沙箱直接调用这些原生能力。
+- Browser 仓库 docs/api/local-task-bridge.zh-CN.md 描述已审阅 localTasks 服务的有限 HTTP 契约（/v1/runs、查询、stop、导出），**不是**对任意 Python/CLI 的透明代理。需要集成 CLI 时，由专用可信适配器转化/校验，必须独立证实已安装 Host 的真实能力、版本与授权。
+- 本轮没有证明 SDK 公共能力缺口：SDK_GAP_NOT_PROVEN。自有 Desktop 的存在不代表它天然已与当前 Sidebar 组成已授权后端。
+
+### 架构决策（逐层而不是二选一）
+
+**选择：Browser-first + optional Desktop enhancements + optional pinned CLI adapter。默认不安装 Python、MCP 或第二个浏览器。**
+
+| 模式 | 好处 | 代价/风险 | 结论 |
+| --- | --- | --- | --- |
+| A. Browser + Page/Controller 自研 | 安装边界清晰、复用现有任务和当前登录页面、依赖少 | DOM 改版/长任务/海量历史持久化需要迭代 | **P0 默认执行链路** |
+| B. 直接接 boss-agent-cli 作为唯一后端 | BOSS CLI、search/detail/AI/可恢复采集现成 | Python 环境和隐式 API、双账号/双 Cookie、服务协议变化、模型/任务重复、apply 语义不完整 | **不采用为唯一核心** |
+| C. 所有 BOSS 操作交 Desktop RPA | 利用已有 BrowserDOM、Command 和原生文件能力 | BrowserDOM 非完整 Playwright、另一个执行控制面可能竞争同一网站会话 | **仅明确需要原生能力时使用** |
+| D. 浏览器主链 + Desktop 可选服务 + CLI read-only provider | 默认简单、独立安装、可逐步增加大规模数据和更多平台、可比对 provider 质量 | 必须定义清晰单写者、数据所有权和授权边界 | **目标演进方案** |
+
+**分层业务契约（不创建新的公共 SDK）**：
+
+1. JobObservation（事实层）：platform、accountScope、jobId、URL、来源/DOM documentId、采集时间、JD 字段和字段级证据；缺值为 unknown。按 platform+accountScope+jobId 去重，不能用职位名称替代精确身份。
+2. MatchDecision（决策层）：hardFilters、softScore、aiAssessment、evidence、unknownFields、reasonCodes。规则分和 AI 分分开展示，AI 失败不补造事实。基于用户已确认真实简历；对外 AI 服务须有独立数据授权。
+3. ReviewApproval（人工批准）：岗位、公司、招聘者、当前账号、文本 SHA、候选修订、网站授权代次及有效期；其中任一变化让批准失效。批量审批不是隐式授权所有后续沟通。
+4. ExecutionAttempt（唯一副作用负责人）：单一 provider 固定 Browser Controller / approved Desktop adapter / future CLI adapter 之一，一次只允许一个已授权执行器拥有同账户/同岗位写 lease；执行失败不会换 provider 自动续发。
+5. EvidenceReceipt（回执层）：operationId、providerRunId、requestId、actualObservedAt、siteEvidence、businessState、uncertainty 和 stopCause。区分 DRAFT_READY、CONTACT_SENT_CONFIRMED、APPLICATION_SUBMITTED_CONFIRMED、RESUME_UPLOADED_CONFIRMED、UNKNOWN、FAILED、CANCELLED；发送 ACK、UI click 不是完成回执。
+6. JobRepository（存储层）：P0 沿用已通过测试的 CAS 本地清单；P1 需要更多历史与多终端协同才选择可信 Desktop SQLite。迁移时单一权威源、显式快照/校验/切换，不双写两个存储；boss-agent-cli 自带 data-dir 也只是外部 provider 状态，不直接当 OpenDesk 真相数据库。
+
+### 后端接入的最小验收（先只读，再单岗位）
+
+阶段 S0：**保留现有 P0 代码**，先在 BOSS 真网页完成 DOM/详情/JD/招聘者 ID/历史沟通的只读验收。这是 R3 尚未完成的依赖，不重做 60/60 Node PASS、项目命名和工具安装内核设计。
+
+阶段 S1：制作一个可选的“后端能力探测”**最小适配原型**：Desktop 可信执行 Command.getCapabilities → 对已安装、版本已锁定的本机 boss-agent-cli 使用允许列表运行 boss schema 和一条只读查询 → 对七键信封校验 schema_version/ok/error/recovery_action → 用只读 JobObservation 导入本地展示；**不得登录/导出 Cookie/打招呼/运行 batch-greet**。若用户没有 CLI，原 Browser 功能仍正常使用。
+
+阶段 S2：优先用 OpenDesk 已安装 Controller 完成**一个**用户确认岗位的草稿预填、身份检查与真实发送后观察。发现验证码、账号风险、身份漂移、授权撤销、超时或回执未知立即停止；未知只查询原会话/Run，禁止换 CLI/桌面重发。单岗位未通过前不部署自动投递。
+
+阶段 S3：真实单岗位可靠后，按需增加人工批准队列、止损、CRM、简历管理与桌面原生本地数据库。验证两执行器不会争夺同一账户/页面；先单机后跨设备，再扩猎聘/智联/51job，每个平台独立 adapter 和测试。
+
+阶段 S4：只在真实发送、暂停/恢复和回执都有证据后考虑批量、定时、后台、VIP 云同步或更大规模商业功能；尊重平台条款、验证码和明确授权，不采用反检测、账号池与不受控刷请求。
+
+### 拒绝的捷径、验收口径和下一动作
+
+- 不把“CLI/MCP 有命令”当成与 OpenDesk 已集成，不把第三方 README 功能表当作运行 PASS；不复制 Ghost Job / Get Jobs 的 PolyForm Noncommercial 源码，不默认导入 GPL 代码。
+- 不在 Sidebar iframe 中新建 fetch 任意 localhost 或直接 spawn Python；不将 AI 输出直接赋予发信权限，不让无权的 Page USER_SCRIPT 通过 DOM 事件伪造 Controller 审批。
+- 不同时启动 OpenDesk Controller 和外部 CLI 向同一账号同一岗位发送，不共享/导出网站 Cookie，不通过切换通道绕过平台限制。
+- 此阶段证据为 GitHub SOURCE_VERIFIED / LICENSE_READ / DESIGNED，**没有新的 Node/Chrome/Native/BOSS 实战验收**，R3 真实网站和正式安装仍 NOT_TESTED。
+- **下一最小工程任务**应是 BOSS 已授权页面的只读 JD/身份/活跃度实站 DOM 核验 + 单独的可选 Desktop/CLI 只读可行性 Spike。只有两个都满足证据后，才起 P1 单岗位可审核执行；不要跳过依赖直接新增批量任务。
