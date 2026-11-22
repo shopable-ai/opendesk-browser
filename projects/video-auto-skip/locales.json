@@ -1,0 +1,2080 @@
+{
+  "sourceLocale": "zh-CN",
+  "messages": {
+    "zh-CN": {
+      "toolTitle": "连播助手",
+      "refresh": "重新识别",
+      "connecting": "正在连接当前网页…",
+      "settingsLegend": "跳过与连播设置",
+      "timeRange": "时间轴范围",
+      "recommended": "推荐",
+      "restoreRecommended": "恢复推荐",
+      "rangeHelp": "只调整时间轴的显示范围，不改变规则或播放位置。",
+      "unsaved": "尚未保存的修改",
+      "discard": "放弃修改",
+      "saveSettings": "保存设置",
+      "saving": "正在保存…",
+      "savedShort": "已保存",
+      "playerStatus": "播放器状态",
+      "returnOriginal": "返回原位置",
+      "playbackCalibration": "播放与校准",
+      "introName": "片头",
+      "outroName": "片尾",
+      "introRule": "跳过片头",
+      "outroRule": "跳过片尾",
+      "nextRule": "自动下一集",
+      "autoSkip": "自动跳过",
+      "restoreInherited": "恢复继承",
+      "restoreRuleAria": "恢复继承：{rule}",
+      "timeStart": "开始",
+      "timeEnd": "结束",
+      "timePlaceholder": "分:秒",
+      "inputAria": "{name}{boundary}时间",
+      "resetIntroStart": "恢复片头开始为 00:00",
+      "resetOutroEnd": "恢复片尾结束跟随视频结尾",
+      "clearTime": "清空{name}{boundary}时间",
+      "markCurrentStart": "用当前时间标记起点",
+      "markCurrentEnd": "用当前时间标记终点",
+      "previewIntroEnd": "查看片头结束位置",
+      "previewOutroStart": "查看片尾开始位置",
+      "positionCalibration": "{name}位置校准",
+      "tailHelp": "End 跟随当前视频的实际结束位置，换集自动重算片尾开始；填入具体结束时间可保留后面的内容。",
+      "crossEpisodeMatch": "跨集匹配",
+      "frontWindow": "前 {time}",
+      "endWindow": "末 {time}",
+      "durationPendingShort": "时长待获取",
+      "trackAria": "{name}时间轨道",
+      "handleAria": "{name}{boundary}时间拖动手柄",
+      "sliderUnavailable": "当前不可调整",
+      "sliderEndBound": "End，跟随视频结尾；可在时间输入框修改",
+      "sliderIntroBound": "00:00，视频起点；可在时间输入框修改",
+      "sliderSuggested": "{time}，建议位置，尚未设置",
+      "sliderUnset": "{time}，尚无可用时间",
+      "windowMinutes": "{minutes}分钟",
+      "windowAutoAria": "{range}，自动推荐",
+      "windowManualAria": "{range}，手动设置",
+      "seasonLabel": "第{season}季",
+      "episodeLabel": "第{episode}集",
+      "lengthLabel": "全长{time}",
+      "scopeSeriesHelp": "保存至本作品当前季；已有本集例外继续优先。",
+      "scopeEpisodeHelp": "保存至当前集；未修改的项目继续沿用已保存规则。",
+      "scopeSeries": "本作品当前季",
+      "scopeEpisode": "当前集",
+      "summaryUnset": "未设置",
+      "summaryDisabled": "已关闭",
+      "summaryNextOn": "已开启 · 正常播完后按集序继续",
+      "summaryTimeMissing": "尚未填入时间",
+      "summaryLastSeconds": "最后 {seconds} 秒{interval}",
+      "summaryInherited": "沿用作品默认 · ",
+      "summaryOverride": "本集例外 · ",
+      "summaryPendingWork": "等待识别作品",
+      "summaryIyfNext": "由 iYF 处理下一集，助手不会重复切集。",
+      "summaryUnsaved": "未保存：{proposed} · {status}：{saved}",
+      "summaryActive": "当前生效",
+      "editWriteUnknown": "保存结果未确认。请重新识别以核对已存设置。",
+      "editConflict": "已读到其他窗口保存的版本。放弃修改后可基于最新设置重新编辑。",
+      "editOldDraft": "已保留旧播放器的草稿。只在确认是原播放器后恢复编辑。",
+      "editReadFailed": "无法读取已存设置。请重新识别。",
+      "mediaCurrent": "当前 {current} / {duration}{state}",
+      "mediaPaused": " · 已暂停",
+      "mediaPlaying": " · 播放中",
+      "undoSkip": "撤销自动跳过",
+      "seekUnknownLong": "定位结果未确认。重新识别只核对状态；若仍无法确认，请检查播放器后手动刷新网页并重开侧栏。",
+      "videoDurationUnknown": "本集时长未知，暂不执行时间规则。",
+      "reasonNoMedia": "尚未识别到唯一正片播放器。",
+      "reasonAuth": "当前网页未授权或访问已失效。请检查扩展权限。",
+      "reasonNavigation": "切集结果未确认，已停止重复切集。",
+      "reasonSiteNext": "网站正在处理连播，连播助手不会重复切集。",
+      "reasonListIncomplete": "选集尚未加载完整，暂不切集。",
+      "reasonListEnd": "当前选集没有列出后续剧集。",
+      "reasonListGap": "当前选集中找不到下一集，暂不跳到更后的剧集。",
+      "reasonLine": "下一集在当前线路没有可播放的入口。",
+      "reasonNextUnconfirmed": "无法唯一确认下一集，暂不切集。",
+      "reasonNotSeekable": "当前位置或目标时间暂不能定位。",
+      "reasonSeekUnconfirmed": "定位结果未确认，已暂停新的定位操作。",
+      "reasonDurationChanged": "播放器时长已变化，旧位置已经失效。",
+      "actionNextPending": "正在确认下一集…",
+      "actionSeekPending": "正在确认播放器位置…",
+      "actionSeekUnknown": "定位结果未确认。请在播放器核对；需要恢复时，请手动刷新网页并重开侧栏。",
+      "actionNextPlaying": "下一集已经开始播放。",
+      "actionNextArrived": "已进入下一集，尚未确认起播。",
+      "actionNextBlocked": "暂不能继续到下一集。",
+      "actionSeekUnavailable": "播放器暂不能执行这次定位。",
+      "actionPreviewed": "已定位至 {time}。",
+      "actionReturned": "已返回 {time}。",
+      "actionSkipped": "{rule}：{from} → {to}。",
+      "statusConnected": "播放器已连接",
+      "statusOffscreen": "播放器已连接 · 视频在屏幕外",
+      "statusUnsupported": "请在当前标签页打开支持的播放页。",
+      "statusLoading": "正在等待当前网页加载…",
+      "statusStarting": "网页功能尚未连接。若已打开支持的播放页，首次安装或更新后请刷新当前播放页一次；仍未连接时请检查网站访问权限。",
+      "statusReload": "网页功能需要重新加载。请保存网页内容，等当前操作结束后刷新当前播放页。",
+      "statusActivation": "请在「扩展 → 网页功能帮助」检查网页功能，再重新识别。",
+      "statusPermission": "无法访问当前网页。请检查连播助手的网站访问权限。",
+      "statusDisconnected": "暂时无法连接当前网页。请在播放页重新识别。",
+      "statusWaiting": "等待正片识别。",
+      "unknownMedia": "尚未识别当前播放器。",
+      "invalidTime": "请输入有效的时间，开始必须早于结束。",
+      "timeUnknownEdit": "本集时长未知，暂不能修改时间规则。",
+      "timeFormat": "请输入秒数或分:秒，例如 01:30。",
+      "timeMissing": "请填入开始和结束时间。",
+      "timeOutside": "时间不能超出本集时长。",
+      "timeOrder": "开始必须早于结束。",
+      "timeWhole": "该设置会跳过整集，请缩小范围。",
+      "validationDuration": "本集时长未知，暂不能启用时间规则。",
+      "validationOutside": "{name}时间超出本集时长，或覆盖了整集。",
+      "validationOverlap": "片头和片尾的区间不能重叠。",
+      "validationEntire": "片头和片尾合计会跳过整集。",
+      "tailWaitingDuration": "等待当前视频时长，暂无法换算。",
+      "tailSetStartSeries": "先设置片尾开始时间，保存后跨集复用。",
+      "tailSetStartEpisode": "先设置片尾开始时间，保存到当前集。",
+      "tailBadRange": "片尾区间有误，请核对时间。",
+      "tailFixed": "{pending}指定区间，不跟随视频结尾。",
+      "tailPendingPrefix": "待保存 · ",
+      "tailWillApply": "待保存 · 将按倒数 {time} 换算。",
+      "tailCanSave": "设置片尾开始时间后可保存。",
+      "tailSaved": "已保存 · {disabled}按倒数 {time} 换算{scope}",
+      "tailDisabled": "跳过已关闭 · ",
+      "tailScopeSeries": "，适用各集。",
+      "tailScopeInherited": "，沿用作品默认。",
+      "tailScopeEpisode": "，仅本集。",
+      "feedbackDraftLost": "页面或播放器已变化，旧草稿未保存。",
+      "feedbackPositionVerified": "已核对播放器位置。",
+      "feedbackReconcileFailed": "仍无法核对保存结果。请重新识别；不会自动重试保存。",
+      "feedbackPreviousUncertain": "无法确认上一播放器的保存；未再次写入。",
+      "feedbackReadDifferent": "已读回的设置与本次修改不一致，无法确认本次保存。请核对后重新编辑。",
+      "feedbackConflictPreserved": "设置已在其他窗口变化，未覆盖新版本。",
+      "feedbackQuota": "工具的本地存储空间不足，未保存修改。",
+      "feedbackInvalidated": "当前播放器时长或规则已变化，未保存修改。",
+      "feedbackSaveRejected": "当前设置暂不能保存，请重新识别后核对。",
+      "feedbackReceiptUnverified": "收到写入回执，但暂不能核对已存设置。请重新识别。",
+      "feedbackVersionChanged": "写入后设置又发生变化，请核对最新版本。",
+      "feedbackSaved": "设置已保存至{scope}。",
+      "feedbackPriorSaved": "上一播放器的设置已保存。",
+      "feedbackCannotReadPosition": "暂不能读取此标记所需的播放时间。",
+      "feedbackMarkedDraft": "已将当前时间填入草稿，播放器位置和已存设置不变。",
+      "feedbackSeekTargetChanged": "当前播放器或时长已变化，请核对后重新操作。",
+      "feedbackUndoChanged": "原来的跳过记录已变化，未撤销。",
+      "feedbackSeekReceiptLost": "定位回执未返回。将核对播放器状态，不会自动重试。",
+      "feedbackSeekChanged": "播放器已变化，无法确认该定位。",
+      "feedbackSeekPending": "定位结果尚未确认，将核对状态。",
+      "feedbackNoSeek": "没有确认新的定位。请查看播放器当前状态。",
+      "feedbackPageChangedPending": "网页已变化，正在核对旧网页的保存结果。",
+      "feedbackDiscarded": "已放弃修改，保留已保存的设置。"
+    },
+    "en": {
+      "toolTitle": {
+        "source": "连播助手",
+        "text": "Continuous Play Assistant"
+      },
+      "refresh": {
+        "source": "重新识别",
+        "text": "Detect again"
+      },
+      "connecting": {
+        "source": "正在连接当前网页…",
+        "text": "Connecting to the current page…"
+      },
+      "settingsLegend": {
+        "source": "跳过与连播设置",
+        "text": "Skip and continuous play settings"
+      },
+      "timeRange": {
+        "source": "时间轴范围",
+        "text": "Timeline range"
+      },
+      "recommended": {
+        "source": "推荐",
+        "text": "Recommended"
+      },
+      "restoreRecommended": {
+        "source": "恢复推荐",
+        "text": "Use recommended"
+      },
+      "rangeHelp": {
+        "source": "只调整时间轴的显示范围，不改变规则或播放位置。",
+        "text": "Only changes the displayed timeline range, not the rules or playback position."
+      },
+      "unsaved": {
+        "source": "尚未保存的修改",
+        "text": "Unsaved changes"
+      },
+      "discard": {
+        "source": "放弃修改",
+        "text": "Discard changes"
+      },
+      "saveSettings": {
+        "source": "保存设置",
+        "text": "Save settings"
+      },
+      "saving": {
+        "source": "正在保存…",
+        "text": "Saving…"
+      },
+      "savedShort": {
+        "source": "已保存",
+        "text": "Saved"
+      },
+      "playerStatus": {
+        "source": "播放器状态",
+        "text": "Player status"
+      },
+      "returnOriginal": {
+        "source": "返回原位置",
+        "text": "Return to original position"
+      },
+      "playbackCalibration": {
+        "source": "播放与校准",
+        "text": "Playback and calibration"
+      },
+      "introName": {
+        "source": "片头",
+        "text": "Opening"
+      },
+      "outroName": {
+        "source": "片尾",
+        "text": "Ending"
+      },
+      "introRule": {
+        "source": "跳过片头",
+        "text": "Skip opening"
+      },
+      "outroRule": {
+        "source": "跳过片尾",
+        "text": "Skip ending"
+      },
+      "nextRule": {
+        "source": "自动下一集",
+        "text": "Auto-play next episode"
+      },
+      "autoSkip": {
+        "source": "自动跳过",
+        "text": "Auto-skip"
+      },
+      "restoreInherited": {
+        "source": "恢复继承",
+        "text": "Restore inherited rule"
+      },
+      "restoreRuleAria": {
+        "source": "恢复继承：{rule}",
+        "text": "Restore inherited rule: {rule}"
+      },
+      "timeStart": {
+        "source": "开始",
+        "text": "Start"
+      },
+      "timeEnd": {
+        "source": "结束",
+        "text": "End"
+      },
+      "timePlaceholder": {
+        "source": "分:秒",
+        "text": "mm:ss"
+      },
+      "inputAria": {
+        "source": "{name}{boundary}时间",
+        "text": "{name} {boundary} time"
+      },
+      "resetIntroStart": {
+        "source": "恢复片头开始为 00:00",
+        "text": "Reset opening start to 00:00"
+      },
+      "resetOutroEnd": {
+        "source": "恢复片尾结束跟随视频结尾",
+        "text": "Set ending end to follow video end"
+      },
+      "clearTime": {
+        "source": "清空{name}{boundary}时间",
+        "text": "Clear {name} {boundary} time"
+      },
+      "markCurrentStart": {
+        "source": "用当前时间标记起点",
+        "text": "Set start to current time"
+      },
+      "markCurrentEnd": {
+        "source": "用当前时间标记终点",
+        "text": "Set end to current time"
+      },
+      "previewIntroEnd": {
+        "source": "查看片头结束位置",
+        "text": "Preview opening end position"
+      },
+      "previewOutroStart": {
+        "source": "查看片尾开始位置",
+        "text": "Preview ending start position"
+      },
+      "positionCalibration": {
+        "source": "{name}位置校准",
+        "text": "{name} position calibration"
+      },
+      "tailHelp": {
+        "source": "End 跟随当前视频的实际结束位置，换集自动重算片尾开始；填入具体结束时间可保留后面的内容。",
+        "text": "End follows the actual video end. The ending start is recalculated for each episode; enter a specific end time to keep later content."
+      },
+      "crossEpisodeMatch": {
+        "source": "跨集匹配",
+        "text": "Across-episode matching"
+      },
+      "frontWindow": {
+        "source": "前 {time}",
+        "text": "First {time}"
+      },
+      "endWindow": {
+        "source": "末 {time}",
+        "text": "Last {time}"
+      },
+      "durationPendingShort": {
+        "source": "时长待获取",
+        "text": "Waiting for duration"
+      },
+      "trackAria": {
+        "source": "{name}时间轨道",
+        "text": "{name} time track"
+      },
+      "handleAria": {
+        "source": "{name}{boundary}时间拖动手柄",
+        "text": "{name} {boundary} time slider"
+      },
+      "sliderUnavailable": {
+        "source": "当前不可调整",
+        "text": "Not adjustable now"
+      },
+      "sliderEndBound": {
+        "source": "End，跟随视频结尾；可在时间输入框修改",
+        "text": "End, follows video end; edit in the time field"
+      },
+      "sliderIntroBound": {
+        "source": "00:00，视频起点；可在时间输入框修改",
+        "text": "00:00, video start; edit in the time field"
+      },
+      "sliderSuggested": {
+        "source": "{time}，建议位置，尚未设置",
+        "text": "{time}, suggested position, not set"
+      },
+      "sliderUnset": {
+        "source": "{time}，尚无可用时间",
+        "text": "{time}, no usable time set"
+      },
+      "windowMinutes": {
+        "source": "{minutes}分钟",
+        "text": "{minutes} min"
+      },
+      "windowAutoAria": {
+        "source": "{range}，自动推荐",
+        "text": "{range}, automatically recommended"
+      },
+      "windowManualAria": {
+        "source": "{range}，手动设置",
+        "text": "{range}, manually selected"
+      },
+      "seasonLabel": {
+        "source": "第{season}季",
+        "text": "Season {season}"
+      },
+      "episodeLabel": {
+        "source": "第{episode}集",
+        "text": "Episode {episode}"
+      },
+      "lengthLabel": {
+        "source": "全长{time}",
+        "text": "Duration {time}"
+      },
+      "scopeSeriesHelp": {
+        "source": "保存至本作品当前季；已有本集例外继续优先。",
+        "text": "Save for this season of the series; episode overrides still take priority."
+      },
+      "scopeEpisodeHelp": {
+        "source": "保存至当前集；未修改的项目继续沿用已保存规则。",
+        "text": "Save for this episode; unchanged items keep using saved rules."
+      },
+      "scopeSeries": {
+        "source": "本作品当前季",
+        "text": "this season"
+      },
+      "scopeEpisode": {
+        "source": "当前集",
+        "text": "this episode"
+      },
+      "summaryUnset": {
+        "source": "未设置",
+        "text": "Not set"
+      },
+      "summaryDisabled": {
+        "source": "已关闭",
+        "text": "Off"
+      },
+      "summaryNextOn": {
+        "source": "已开启 · 正常播完后按集序继续",
+        "text": "On · continue in episode order after playback ends"
+      },
+      "summaryTimeMissing": {
+        "source": "尚未填入时间",
+        "text": "Time not entered"
+      },
+      "summaryLastSeconds": {
+        "source": "最后 {seconds} 秒{interval}",
+        "text": "Last {seconds} seconds{interval}"
+      },
+      "summaryInherited": {
+        "source": "沿用作品默认 · ",
+        "text": "Inherited series rule · "
+      },
+      "summaryOverride": {
+        "source": "本集例外 · ",
+        "text": "Episode override · "
+      },
+      "summaryPendingWork": {
+        "source": "等待识别作品",
+        "text": "Waiting to identify the series"
+      },
+      "summaryIyfNext": {
+        "source": "由 iYF 处理下一集，助手不会重复切集。",
+        "text": "iYF handles the next episode; the assistant will not advance again."
+      },
+      "summaryUnsaved": {
+        "source": "未保存：{proposed} · {status}：{saved}",
+        "text": "Unsaved: {proposed} · {status}: {saved}"
+      },
+      "summaryActive": {
+        "source": "当前生效",
+        "text": "Currently active"
+      },
+      "editWriteUnknown": {
+        "source": "保存结果未确认。请重新识别以核对已存设置。",
+        "text": "Save result is unconfirmed. Detect again to check the saved settings."
+      },
+      "editConflict": {
+        "source": "已读到其他窗口保存的版本。放弃修改后可基于最新设置重新编辑。",
+        "text": "Another window saved a newer version. Discard changes to edit from the latest settings."
+      },
+      "editOldDraft": {
+        "source": "已保留旧播放器的草稿。只在确认是原播放器后恢复编辑。",
+        "text": "Draft from the previous player is retained. Edit only after the original player is confirmed."
+      },
+      "editReadFailed": {
+        "source": "无法读取已存设置。请重新识别。",
+        "text": "Could not read saved settings. Detect again."
+      },
+      "mediaCurrent": {
+        "source": "当前 {current} / {duration}{state}",
+        "text": "Current {current} / {duration}{state}"
+      },
+      "mediaPaused": {
+        "source": " · 已暂停",
+        "text": " · Paused"
+      },
+      "mediaPlaying": {
+        "source": " · 播放中",
+        "text": " · Playing"
+      },
+      "undoSkip": {
+        "source": "撤销自动跳过",
+        "text": "Undo auto-skip"
+      },
+      "seekUnknownLong": {
+        "source": "定位结果未确认。重新识别只核对状态；若仍无法确认，请检查播放器后手动刷新网页并重开侧栏。",
+        "text": "Seek result is unconfirmed. Detect again only checks status; if still uncertain, inspect the player, refresh the page manually, and reopen the sidebar."
+      },
+      "videoDurationUnknown": {
+        "source": "本集时长未知，暂不执行时间规则。",
+        "text": "Episode duration is unknown; time rules are paused."
+      },
+      "reasonNoMedia": {
+        "source": "尚未识别到唯一正片播放器。",
+        "text": "Could not identify a single main video player."
+      },
+      "reasonAuth": {
+        "source": "当前网页未授权或访问已失效。请检查扩展权限。",
+        "text": "This page is not authorized or access has expired. Check extension permissions."
+      },
+      "reasonNavigation": {
+        "source": "切集结果未确认，已停止重复切集。",
+        "text": "Episode advance is unconfirmed; repeated advances are stopped."
+      },
+      "reasonSiteNext": {
+        "source": "网站正在处理连播，连播助手不会重复切集。",
+        "text": "The site is advancing episodes; the assistant will not advance again."
+      },
+      "reasonListIncomplete": {
+        "source": "选集尚未加载完整，暂不切集。",
+        "text": "Episode list is still loading; advance is paused."
+      },
+      "reasonListEnd": {
+        "source": "当前选集没有列出后续剧集。",
+        "text": "No later episode is listed."
+      },
+      "reasonListGap": {
+        "source": "当前选集中找不到下一集，暂不跳到更后的剧集。",
+        "text": "The next episode is missing; later episodes will not be skipped to."
+      },
+      "reasonLine": {
+        "source": "下一集在当前线路没有可播放的入口。",
+        "text": "The next episode is unavailable on the current source."
+      },
+      "reasonNextUnconfirmed": {
+        "source": "无法唯一确认下一集，暂不切集。",
+        "text": "Could not uniquely identify the next episode; advance is paused."
+      },
+      "reasonNotSeekable": {
+        "source": "当前位置或目标时间暂不能定位。",
+        "text": "Current or target position is not seekable."
+      },
+      "reasonSeekUnconfirmed": {
+        "source": "定位结果未确认，已暂停新的定位操作。",
+        "text": "Seek was not confirmed; new seeks are paused."
+      },
+      "reasonDurationChanged": {
+        "source": "播放器时长已变化，旧位置已经失效。",
+        "text": "Video duration changed; the previous position is invalid."
+      },
+      "actionNextPending": {
+        "source": "正在确认下一集…",
+        "text": "Confirming next episode…"
+      },
+      "actionSeekPending": {
+        "source": "正在确认播放器位置…",
+        "text": "Confirming player position…"
+      },
+      "actionSeekUnknown": {
+        "source": "定位结果未确认。请在播放器核对；需要恢复时，请手动刷新网页并重开侧栏。",
+        "text": "Seek unconfirmed. Check the player; to recover, manually refresh the page and reopen the sidebar."
+      },
+      "actionNextPlaying": {
+        "source": "下一集已经开始播放。",
+        "text": "Next episode started playing."
+      },
+      "actionNextArrived": {
+        "source": "已进入下一集，尚未确认起播。",
+        "text": "Reached the next episode; playback start is unconfirmed."
+      },
+      "actionNextBlocked": {
+        "source": "暂不能继续到下一集。",
+        "text": "Cannot advance to the next episode yet."
+      },
+      "actionSeekUnavailable": {
+        "source": "播放器暂不能执行这次定位。",
+        "text": "The player cannot seek to this position yet."
+      },
+      "actionPreviewed": {
+        "source": "已定位至 {time}。",
+        "text": "Moved to {time}."
+      },
+      "actionReturned": {
+        "source": "已返回 {time}。",
+        "text": "Returned to {time}."
+      },
+      "actionSkipped": {
+        "source": "{rule}：{from} → {to}。",
+        "text": "{rule}: {from} → {to}."
+      },
+      "statusConnected": {
+        "source": "播放器已连接",
+        "text": "Player connected"
+      },
+      "statusOffscreen": {
+        "source": "播放器已连接 · 视频在屏幕外",
+        "text": "Player connected · video is offscreen"
+      },
+      "statusUnsupported": {
+        "source": "请在当前标签页打开支持的播放页。",
+        "text": "Open a supported playback page in this tab."
+      },
+      "statusLoading": {
+        "source": "正在等待当前网页加载…",
+        "text": "Waiting for the page to load…"
+      },
+      "statusStarting": {
+        "source": "网页功能尚未连接。若已打开支持的播放页，首次安装或更新后请刷新当前播放页一次；仍未连接时请检查网站访问权限。",
+        "text": "Page feature not connected. After first install or update, refresh the supported playback page once. If it still fails, check site access permissions."
+      },
+      "statusReload": {
+        "source": "网页功能需要重新加载。请保存网页内容，等当前操作结束后刷新当前播放页。",
+        "text": "The page feature must reload. Save your page work, finish ongoing actions, then refresh the playback page."
+      },
+      "statusActivation": {
+        "source": "请在「扩展 → 网页功能帮助」检查网页功能，再重新识别。",
+        "text": "Check page features under Extensions → Page feature help, then detect again."
+      },
+      "statusPermission": {
+        "source": "无法访问当前网页。请检查连播助手的网站访问权限。",
+        "text": "Cannot access this page. Check the assistant’s site permissions."
+      },
+      "statusDisconnected": {
+        "source": "暂时无法连接当前网页。请在播放页重新识别。",
+        "text": "Cannot connect to this page right now. Detect again on the playback page."
+      },
+      "statusWaiting": {
+        "source": "等待正片识别。",
+        "text": "Waiting to detect main video."
+      },
+      "unknownMedia": {
+        "source": "尚未识别当前播放器。",
+        "text": "Current player not identified."
+      },
+      "invalidTime": {
+        "source": "请输入有效的时间，开始必须早于结束。",
+        "text": "Enter a valid time; start must be before end."
+      },
+      "timeUnknownEdit": {
+        "source": "本集时长未知，暂不能修改时间规则。",
+        "text": "Episode duration unknown; time rules cannot be edited yet."
+      },
+      "timeFormat": {
+        "source": "请输入秒数或分:秒，例如 01:30。",
+        "text": "Enter seconds or mm:ss, e.g. 01:30."
+      },
+      "timeMissing": {
+        "source": "请填入开始和结束时间。",
+        "text": "Enter both start and end times."
+      },
+      "timeOutside": {
+        "source": "时间不能超出本集时长。",
+        "text": "Time must stay within the episode duration."
+      },
+      "timeOrder": {
+        "source": "开始必须早于结束。",
+        "text": "Start must be before end."
+      },
+      "timeWhole": {
+        "source": "该设置会跳过整集，请缩小范围。",
+        "text": "This would skip the whole episode. Shorten the range."
+      },
+      "validationDuration": {
+        "source": "本集时长未知，暂不能启用时间规则。",
+        "text": "Episode duration unknown; time rules cannot be enabled yet."
+      },
+      "validationOutside": {
+        "source": "{name}时间超出本集时长，或覆盖了整集。",
+        "text": "{name} range exceeds the episode duration or covers the whole episode."
+      },
+      "validationOverlap": {
+        "source": "片头和片尾的区间不能重叠。",
+        "text": "Opening and ending ranges must not overlap."
+      },
+      "validationEntire": {
+        "source": "片头和片尾合计会跳过整集。",
+        "text": "Opening and ending ranges would skip the entire episode."
+      },
+      "tailWaitingDuration": {
+        "source": "等待当前视频时长，暂无法换算。",
+        "text": "Waiting for video duration; cannot calculate yet."
+      },
+      "tailSetStartSeries": {
+        "source": "先设置片尾开始时间，保存后跨集复用。",
+        "text": "Set ending start, then save to reuse across episodes."
+      },
+      "tailSetStartEpisode": {
+        "source": "先设置片尾开始时间，保存到当前集。",
+        "text": "Set ending start, then save for this episode."
+      },
+      "tailBadRange": {
+        "source": "片尾区间有误，请核对时间。",
+        "text": "Ending range is invalid; check the times."
+      },
+      "tailFixed": {
+        "source": "{pending}指定区间，不跟随视频结尾。",
+        "text": "{pending}Fixed range; does not follow the video end."
+      },
+      "tailPendingPrefix": {
+        "source": "待保存 · ",
+        "text": "Unsaved · "
+      },
+      "tailWillApply": {
+        "source": "待保存 · 将按倒数 {time} 换算。",
+        "text": "Unsaved · will calculate from last {time}."
+      },
+      "tailCanSave": {
+        "source": "设置片尾开始时间后可保存。",
+        "text": "Set ending start time to enable saving."
+      },
+      "tailSaved": {
+        "source": "已保存 · {disabled}按倒数 {time} 换算{scope}",
+        "text": "Saved · {disabled}calculated from last {time}{scope}"
+      },
+      "tailDisabled": {
+        "source": "跳过已关闭 · ",
+        "text": "Skipping off · "
+      },
+      "tailScopeSeries": {
+        "source": "，适用各集。",
+        "text": ", applies to all episodes."
+      },
+      "tailScopeInherited": {
+        "source": "，沿用作品默认。",
+        "text": ", inherited from series defaults."
+      },
+      "tailScopeEpisode": {
+        "source": "，仅本集。",
+        "text": ", this episode only."
+      },
+      "feedbackDraftLost": {
+        "source": "页面或播放器已变化，旧草稿未保存。",
+        "text": "Page or player changed; the previous draft was not saved."
+      },
+      "feedbackPositionVerified": {
+        "source": "已核对播放器位置。",
+        "text": "Player position verified."
+      },
+      "feedbackReconcileFailed": {
+        "source": "仍无法核对保存结果。请重新识别；不会自动重试保存。",
+        "text": "Still cannot verify save. Detect again; saving will not be retried automatically."
+      },
+      "feedbackPreviousUncertain": {
+        "source": "无法确认上一播放器的保存；未再次写入。",
+        "text": "Could not verify the previous player's save; no retry was made."
+      },
+      "feedbackReadDifferent": {
+        "source": "已读回的设置与本次修改不一致，无法确认本次保存。请核对后重新编辑。",
+        "text": "Saved settings differ from these changes; save cannot be confirmed. Check and edit again."
+      },
+      "feedbackConflictPreserved": {
+        "source": "设置已在其他窗口变化，未覆盖新版本。",
+        "text": "Settings changed in another window; the newer version was preserved."
+      },
+      "feedbackQuota": {
+        "source": "工具的本地存储空间不足，未保存修改。",
+        "text": "Not enough local storage space; changes were not saved."
+      },
+      "feedbackInvalidated": {
+        "source": "当前播放器时长或规则已变化，未保存修改。",
+        "text": "Player duration or rules changed; changes were not saved."
+      },
+      "feedbackSaveRejected": {
+        "source": "当前设置暂不能保存，请重新识别后核对。",
+        "text": "These settings cannot be saved yet. Detect again and verify."
+      },
+      "feedbackReceiptUnverified": {
+        "source": "收到写入回执，但暂不能核对已存设置。请重新识别。",
+        "text": "Write receipt received, but saved settings cannot be verified yet. Detect again."
+      },
+      "feedbackVersionChanged": {
+        "source": "写入后设置又发生变化，请核对最新版本。",
+        "text": "Settings changed again after writing; verify the latest version."
+      },
+      "feedbackSaved": {
+        "source": "设置已保存至{scope}。",
+        "text": "Settings saved for {scope}."
+      },
+      "feedbackPriorSaved": {
+        "source": "上一播放器的设置已保存。",
+        "text": "Previous player's settings were saved."
+      },
+      "feedbackCannotReadPosition": {
+        "source": "暂不能读取此标记所需的播放时间。",
+        "text": "Cannot read the playback time needed for this marker."
+      },
+      "feedbackMarkedDraft": {
+        "source": "已将当前时间填入草稿，播放器位置和已存设置不变。",
+        "text": "Current time added to draft; player position and saved settings are unchanged."
+      },
+      "feedbackSeekTargetChanged": {
+        "source": "当前播放器或时长已变化，请核对后重新操作。",
+        "text": "Player or duration changed. Verify before trying again."
+      },
+      "feedbackUndoChanged": {
+        "source": "原来的跳过记录已变化，未撤销。",
+        "text": "Original skip record changed; undo was not performed."
+      },
+      "feedbackSeekReceiptLost": {
+        "source": "定位回执未返回。将核对播放器状态，不会自动重试。",
+        "text": "Seek receipt was not returned. Player state will be checked; no automatic retry."
+      },
+      "feedbackSeekChanged": {
+        "source": "播放器已变化，无法确认该定位。",
+        "text": "Player changed; seek cannot be verified."
+      },
+      "feedbackSeekPending": {
+        "source": "定位结果尚未确认，将核对状态。",
+        "text": "Seek is still unconfirmed; checking player state."
+      },
+      "feedbackNoSeek": {
+        "source": "没有确认新的定位。请查看播放器当前状态。",
+        "text": "No new seek confirmed. Check the current player state."
+      },
+      "feedbackPageChangedPending": {
+        "source": "网页已变化，正在核对旧网页的保存结果。",
+        "text": "Page changed; checking the previous page's save."
+      },
+      "feedbackDiscarded": {
+        "source": "已放弃修改，保留已保存的设置。",
+        "text": "Changes discarded; saved settings retained."
+      }
+    },
+    "ja": {
+      "toolTitle": {
+        "source": "连播助手",
+        "text": "連続再生アシスタント"
+      },
+      "refresh": {
+        "source": "重新识别",
+        "text": "再検出"
+      },
+      "connecting": {
+        "source": "正在连接当前网页…",
+        "text": "現在のページに接続中…"
+      },
+      "settingsLegend": {
+        "source": "跳过与连播设置",
+        "text": "スキップと連続再生の設定"
+      },
+      "timeRange": {
+        "source": "时间轴范围",
+        "text": "タイムラインの範囲"
+      },
+      "recommended": {
+        "source": "推荐",
+        "text": "推奨"
+      },
+      "restoreRecommended": {
+        "source": "恢复推荐",
+        "text": "推奨値に戻す"
+      },
+      "rangeHelp": {
+        "source": "只调整时间轴的显示范围，不改变规则或播放位置。",
+        "text": "タイムラインの表示範囲のみ変更します。ルールや再生位置には影響しません。"
+      },
+      "unsaved": {
+        "source": "尚未保存的修改",
+        "text": "未保存の変更"
+      },
+      "discard": {
+        "source": "放弃修改",
+        "text": "変更を破棄"
+      },
+      "saveSettings": {
+        "source": "保存设置",
+        "text": "設定を保存"
+      },
+      "saving": {
+        "source": "正在保存…",
+        "text": "保存中…"
+      },
+      "savedShort": {
+        "source": "已保存",
+        "text": "保存済み"
+      },
+      "playerStatus": {
+        "source": "播放器状态",
+        "text": "プレーヤーの状態"
+      },
+      "returnOriginal": {
+        "source": "返回原位置",
+        "text": "元の位置に戻る"
+      },
+      "playbackCalibration": {
+        "source": "播放与校准",
+        "text": "再生と位置調整"
+      },
+      "introName": {
+        "source": "片头",
+        "text": "オープニング"
+      },
+      "outroName": {
+        "source": "片尾",
+        "text": "エンディング"
+      },
+      "introRule": {
+        "source": "跳过片头",
+        "text": "オープニングをスキップ"
+      },
+      "outroRule": {
+        "source": "跳过片尾",
+        "text": "エンディングをスキップ"
+      },
+      "nextRule": {
+        "source": "自动下一集",
+        "text": "次のエピソードを自動再生"
+      },
+      "autoSkip": {
+        "source": "自动跳过",
+        "text": "自動スキップ"
+      },
+      "restoreInherited": {
+        "source": "恢复继承",
+        "text": "継承ルールに戻す"
+      },
+      "restoreRuleAria": {
+        "source": "恢复继承：{rule}",
+        "text": "継承ルールに戻す：{rule}"
+      },
+      "timeStart": {
+        "source": "开始",
+        "text": "開始"
+      },
+      "timeEnd": {
+        "source": "结束",
+        "text": "終了"
+      },
+      "timePlaceholder": {
+        "source": "分:秒",
+        "text": "分:秒"
+      },
+      "inputAria": {
+        "source": "{name}{boundary}时间",
+        "text": "{name}の{boundary}時刻"
+      },
+      "resetIntroStart": {
+        "source": "恢复片头开始为 00:00",
+        "text": "オープニング開始を 00:00 に戻す"
+      },
+      "resetOutroEnd": {
+        "source": "恢复片尾结束跟随视频结尾",
+        "text": "エンディング終了を動画の末尾に合わせる"
+      },
+      "clearTime": {
+        "source": "清空{name}{boundary}时间",
+        "text": "{name}の{boundary}時刻をクリア"
+      },
+      "markCurrentStart": {
+        "source": "用当前时间标记起点",
+        "text": "現在時刻を開始点に設定"
+      },
+      "markCurrentEnd": {
+        "source": "用当前时间标记终点",
+        "text": "現在時刻を終了点に設定"
+      },
+      "previewIntroEnd": {
+        "source": "查看片头结束位置",
+        "text": "オープニング終了位置を確認"
+      },
+      "previewOutroStart": {
+        "source": "查看片尾开始位置",
+        "text": "エンディング開始位置を確認"
+      },
+      "positionCalibration": {
+        "source": "{name}位置校准",
+        "text": "{name}の位置調整"
+      },
+      "tailHelp": {
+        "source": "End 跟随当前视频的实际结束位置，换集自动重算片尾开始；填入具体结束时间可保留后面的内容。",
+        "text": "End は現在の動画の実際の終了位置に追従します。話が変わると開始位置を再計算します。終了時刻を指定すると以降の内容を残せます。"
+      },
+      "crossEpisodeMatch": {
+        "source": "跨集匹配",
+        "text": "エピソード間の適用"
+      },
+      "frontWindow": {
+        "source": "前 {time}",
+        "text": "冒頭 {time}"
+      },
+      "endWindow": {
+        "source": "末 {time}",
+        "text": "末尾 {time}"
+      },
+      "durationPendingShort": {
+        "source": "时长待获取",
+        "text": "再生時間を取得中"
+      },
+      "trackAria": {
+        "source": "{name}时间轨道",
+        "text": "{name}の時間トラック"
+      },
+      "handleAria": {
+        "source": "{name}{boundary}时间拖动手柄",
+        "text": "{name}の{boundary}時刻スライダー"
+      },
+      "sliderUnavailable": {
+        "source": "当前不可调整",
+        "text": "現在調整できません"
+      },
+      "sliderEndBound": {
+        "source": "End，跟随视频结尾；可在时间输入框修改",
+        "text": "End：動画の末尾に追従。時刻入力欄で変更できます"
+      },
+      "sliderIntroBound": {
+        "source": "00:00，视频起点；可在时间输入框修改",
+        "text": "00:00：動画の開始位置。時刻入力欄で変更できます"
+      },
+      "sliderSuggested": {
+        "source": "{time}，建议位置，尚未设置",
+        "text": "{time}：候補位置、未設定"
+      },
+      "sliderUnset": {
+        "source": "{time}，尚无可用时间",
+        "text": "{time}：有効な時刻が未設定"
+      },
+      "windowMinutes": {
+        "source": "{minutes}分钟",
+        "text": "{minutes}分"
+      },
+      "windowAutoAria": {
+        "source": "{range}，自动推荐",
+        "text": "{range}、自動推奨"
+      },
+      "windowManualAria": {
+        "source": "{range}，手动设置",
+        "text": "{range}、手動設定"
+      },
+      "seasonLabel": {
+        "source": "第{season}季",
+        "text": "シーズン{season}"
+      },
+      "episodeLabel": {
+        "source": "第{episode}集",
+        "text": "第{episode}話"
+      },
+      "lengthLabel": {
+        "source": "全长{time}",
+        "text": "全長{time}"
+      },
+      "scopeSeriesHelp": {
+        "source": "保存至本作品当前季；已有本集例外继续优先。",
+        "text": "この作品の現在のシーズンに保存します。各話の例外設定が優先されます。"
+      },
+      "scopeEpisodeHelp": {
+        "source": "保存至当前集；未修改的项目继续沿用已保存规则。",
+        "text": "この話に保存します。変更していない項目は保存済みルールを引き続き使用します。"
+      },
+      "scopeSeries": {
+        "source": "本作品当前季",
+        "text": "現在のシーズン"
+      },
+      "scopeEpisode": {
+        "source": "当前集",
+        "text": "現在の話"
+      },
+      "summaryUnset": {
+        "source": "未设置",
+        "text": "未設定"
+      },
+      "summaryDisabled": {
+        "source": "已关闭",
+        "text": "オフ"
+      },
+      "summaryNextOn": {
+        "source": "已开启 · 正常播完后按集序继续",
+        "text": "オン・再生終了後に順番どおり次の話へ"
+      },
+      "summaryTimeMissing": {
+        "source": "尚未填入时间",
+        "text": "時刻が未入力"
+      },
+      "summaryLastSeconds": {
+        "source": "最后 {seconds} 秒{interval}",
+        "text": "最後の{seconds}秒{interval}"
+      },
+      "summaryInherited": {
+        "source": "沿用作品默认 · ",
+        "text": "作品の既定ルールを継承・"
+      },
+      "summaryOverride": {
+        "source": "本集例外 · ",
+        "text": "この話の例外設定・"
+      },
+      "summaryPendingWork": {
+        "source": "等待识别作品",
+        "text": "作品の識別待ち"
+      },
+      "summaryIyfNext": {
+        "source": "由 iYF 处理下一集，助手不会重复切集。",
+        "text": "次の話への移動は iYF が処理します。アシスタントは重複して移動しません。"
+      },
+      "summaryUnsaved": {
+        "source": "未保存：{proposed} · {status}：{saved}",
+        "text": "未保存：{proposed}・{status}：{saved}"
+      },
+      "summaryActive": {
+        "source": "当前生效",
+        "text": "現在有効"
+      },
+      "editWriteUnknown": {
+        "source": "保存结果未确认。请重新识别以核对已存设置。",
+        "text": "保存結果を確認できません。再検出して保存済み設定を確認してください。"
+      },
+      "editConflict": {
+        "source": "已读到其他窗口保存的版本。放弃修改后可基于最新设置重新编辑。",
+        "text": "別のウィンドウで保存された新しい版があります。変更を破棄して最新設定から編集してください。"
+      },
+      "editOldDraft": {
+        "source": "已保留旧播放器的草稿。只在确认是原播放器后恢复编辑。",
+        "text": "前のプレーヤーの下書きを保持しています。元のプレーヤーを確認してから編集を再開してください。"
+      },
+      "editReadFailed": {
+        "source": "无法读取已存设置。请重新识别。",
+        "text": "保存済み設定を読み取れません。再検出してください。"
+      },
+      "mediaCurrent": {
+        "source": "当前 {current} / {duration}{state}",
+        "text": "現在 {current} / {duration}{state}"
+      },
+      "mediaPaused": {
+        "source": " · 已暂停",
+        "text": "・一時停止中"
+      },
+      "mediaPlaying": {
+        "source": " · 播放中",
+        "text": "・再生中"
+      },
+      "undoSkip": {
+        "source": "撤销自动跳过",
+        "text": "自動スキップを取り消す"
+      },
+      "seekUnknownLong": {
+        "source": "定位结果未确认。重新识别只核对状态；若仍无法确认，请检查播放器后手动刷新网页并重开侧栏。",
+        "text": "シーク結果を確認できません。再検出は状態確認のみです。解決しない場合はプレーヤーを確認し、手動でページを更新してサイドバーを開き直してください。"
+      },
+      "videoDurationUnknown": {
+        "source": "本集时长未知，暂不执行时间规则。",
+        "text": "この話の再生時間が不明なため、時刻ルールを実行しません。"
+      },
+      "reasonNoMedia": {
+        "source": "尚未识别到唯一正片播放器。",
+        "text": "メイン動画のプレーヤーを一つに特定できません。"
+      },
+      "reasonAuth": {
+        "source": "当前网页未授权或访问已失效。请检查扩展权限。",
+        "text": "このページは未承認かアクセスが失効しています。拡張機能の権限を確認してください。"
+      },
+      "reasonNavigation": {
+        "source": "切集结果未确认，已停止重复切集。",
+        "text": "話の切り替えを確認できないため、再実行を停止しました。"
+      },
+      "reasonSiteNext": {
+        "source": "网站正在处理连播，连播助手不会重复切集。",
+        "text": "サイトが連続再生を処理中のため、アシスタントは重複して切り替えません。"
+      },
+      "reasonListIncomplete": {
+        "source": "选集尚未加载完整，暂不切集。",
+        "text": "エピソード一覧の読み込みが完了するまで切り替えません。"
+      },
+      "reasonListEnd": {
+        "source": "当前选集没有列出后续剧集。",
+        "text": "後続のエピソードが一覧にありません。"
+      },
+      "reasonListGap": {
+        "source": "当前选集中找不到下一集，暂不跳到更后的剧集。",
+        "text": "次の話が一覧にないため、さらに後の話へは移動しません。"
+      },
+      "reasonLine": {
+        "source": "下一集在当前线路没有可播放的入口。",
+        "text": "現在の再生元に次の話の再生先がありません。"
+      },
+      "reasonNextUnconfirmed": {
+        "source": "无法唯一确认下一集，暂不切集。",
+        "text": "次の話を一つに特定できないため、切り替えを保留します。"
+      },
+      "reasonNotSeekable": {
+        "source": "当前位置或目标时间暂不能定位。",
+        "text": "現在位置または移動先へシークできません。"
+      },
+      "reasonSeekUnconfirmed": {
+        "source": "定位结果未确认，已暂停新的定位操作。",
+        "text": "シーク結果が未確認のため、新たなシークを停止しました。"
+      },
+      "reasonDurationChanged": {
+        "source": "播放器时长已变化，旧位置已经失效。",
+        "text": "動画の再生時間が変わり、以前の位置は無効になりました。"
+      },
+      "actionNextPending": {
+        "source": "正在确认下一集…",
+        "text": "次の話を確認中…"
+      },
+      "actionSeekPending": {
+        "source": "正在确认播放器位置…",
+        "text": "プレーヤーの位置を確認中…"
+      },
+      "actionSeekUnknown": {
+        "source": "定位结果未确认。请在播放器核对；需要恢复时，请手动刷新网页并重开侧栏。",
+        "text": "シーク結果が未確認です。プレーヤーで確認し、復旧する場合はページを手動更新してサイドバーを開き直してください。"
+      },
+      "actionNextPlaying": {
+        "source": "下一集已经开始播放。",
+        "text": "次の話の再生が始まりました。"
+      },
+      "actionNextArrived": {
+        "source": "已进入下一集，尚未确认起播。",
+        "text": "次の話に移動しましたが、再生開始は未確認です。"
+      },
+      "actionNextBlocked": {
+        "source": "暂不能继续到下一集。",
+        "text": "まだ次の話に進めません。"
+      },
+      "actionSeekUnavailable": {
+        "source": "播放器暂不能执行这次定位。",
+        "text": "現在この位置へシークできません。"
+      },
+      "actionPreviewed": {
+        "source": "已定位至 {time}。",
+        "text": "{time} に移動しました。"
+      },
+      "actionReturned": {
+        "source": "已返回 {time}。",
+        "text": "{time} に戻りました。"
+      },
+      "actionSkipped": {
+        "source": "{rule}：{from} → {to}。",
+        "text": "{rule}：{from} → {to}。"
+      },
+      "statusConnected": {
+        "source": "播放器已连接",
+        "text": "プレーヤー接続済み"
+      },
+      "statusOffscreen": {
+        "source": "播放器已连接 · 视频在屏幕外",
+        "text": "プレーヤー接続済み・動画は画面外"
+      },
+      "statusUnsupported": {
+        "source": "请在当前标签页打开支持的播放页。",
+        "text": "このタブで対応する再生ページを開いてください。"
+      },
+      "statusLoading": {
+        "source": "正在等待当前网页加载…",
+        "text": "ページの読み込み待ち…"
+      },
+      "statusStarting": {
+        "source": "网页功能尚未连接。若已打开支持的播放页，首次安装或更新后请刷新当前播放页一次；仍未连接时请检查网站访问权限。",
+        "text": "ページ機能が未接続です。初回インストールや更新後は対応する再生ページを一度更新してください。解決しない場合はサイトへのアクセス権限を確認してください。"
+      },
+      "statusReload": {
+        "source": "网页功能需要重新加载。请保存网页内容，等当前操作结束后刷新当前播放页。",
+        "text": "ページ機能の再読み込みが必要です。ページ上の作業を保存し、操作終了後に再生ページを更新してください。"
+      },
+      "statusActivation": {
+        "source": "请在「扩展 → 网页功能帮助」检查网页功能，再重新识别。",
+        "text": "「拡張機能 → ページ機能ヘルプ」でページ機能を確認してから再検出してください。"
+      },
+      "statusPermission": {
+        "source": "无法访问当前网页。请检查连播助手的网站访问权限。",
+        "text": "このページにアクセスできません。アシスタントのサイト権限を確認してください。"
+      },
+      "statusDisconnected": {
+        "source": "暂时无法连接当前网页。请在播放页重新识别。",
+        "text": "現在このページに接続できません。再生ページで再検出してください。"
+      },
+      "statusWaiting": {
+        "source": "等待正片识别。",
+        "text": "メイン動画の検出待ちです。"
+      },
+      "unknownMedia": {
+        "source": "尚未识别当前播放器。",
+        "text": "現在のプレーヤーを識別できません。"
+      },
+      "invalidTime": {
+        "source": "请输入有效的时间，开始必须早于结束。",
+        "text": "有効な時刻を入力してください。開始は終了より前にしてください。"
+      },
+      "timeUnknownEdit": {
+        "source": "本集时长未知，暂不能修改时间规则。",
+        "text": "この話の再生時間が不明なため、時刻ルールを編集できません。"
+      },
+      "timeFormat": {
+        "source": "请输入秒数或分:秒，例如 01:30。",
+        "text": "秒数または分:秒形式（例：01:30）で入力してください。"
+      },
+      "timeMissing": {
+        "source": "请填入开始和结束时间。",
+        "text": "開始時刻と終了時刻を入力してください。"
+      },
+      "timeOutside": {
+        "source": "时间不能超出本集时长。",
+        "text": "時刻はこの話の再生時間内に収めてください。"
+      },
+      "timeOrder": {
+        "source": "开始必须早于结束。",
+        "text": "開始は終了より前にしてください。"
+      },
+      "timeWhole": {
+        "source": "该设置会跳过整集，请缩小范围。",
+        "text": "この設定では全編がスキップされます。範囲を短くしてください。"
+      },
+      "validationDuration": {
+        "source": "本集时长未知，暂不能启用时间规则。",
+        "text": "この話の再生時間が不明なため、時刻ルールを有効にできません。"
+      },
+      "validationOutside": {
+        "source": "{name}时间超出本集时长，或覆盖了整集。",
+        "text": "{name}の時間範囲が再生時間を超えているか、全編を覆っています。"
+      },
+      "validationOverlap": {
+        "source": "片头和片尾的区间不能重叠。",
+        "text": "オープニングとエンディングの範囲は重複できません。"
+      },
+      "validationEntire": {
+        "source": "片头和片尾合计会跳过整集。",
+        "text": "オープニングとエンディングの合計で全編がスキップされます。"
+      },
+      "tailWaitingDuration": {
+        "source": "等待当前视频时长，暂无法换算。",
+        "text": "動画の再生時間待ちのため、まだ換算できません。"
+      },
+      "tailSetStartSeries": {
+        "source": "先设置片尾开始时间，保存后跨集复用。",
+        "text": "エンディング開始時刻を設定して保存すると、他の話でも再利用できます。"
+      },
+      "tailSetStartEpisode": {
+        "source": "先设置片尾开始时间，保存到当前集。",
+        "text": "エンディング開始時刻を設定して、この話に保存してください。"
+      },
+      "tailBadRange": {
+        "source": "片尾区间有误，请核对时间。",
+        "text": "エンディングの範囲が無効です。時刻を確認してください。"
+      },
+      "tailFixed": {
+        "source": "{pending}指定区间，不跟随视频结尾。",
+        "text": "{pending}指定範囲。動画の末尾には追従しません。"
+      },
+      "tailPendingPrefix": {
+        "source": "待保存 · ",
+        "text": "未保存・"
+      },
+      "tailWillApply": {
+        "source": "待保存 · 将按倒数 {time} 换算。",
+        "text": "未保存・末尾から {time} を逆算します。"
+      },
+      "tailCanSave": {
+        "source": "设置片尾开始时间后可保存。",
+        "text": "エンディング開始時刻を設定すると保存できます。"
+      },
+      "tailSaved": {
+        "source": "已保存 · {disabled}按倒数 {time} 换算{scope}",
+        "text": "保存済み・{disabled}末尾から {time} を逆算{scope}"
+      },
+      "tailDisabled": {
+        "source": "跳过已关闭 · ",
+        "text": "スキップはオフ・"
+      },
+      "tailScopeSeries": {
+        "source": "，适用各集。",
+        "text": "、各話に適用します。"
+      },
+      "tailScopeInherited": {
+        "source": "，沿用作品默认。",
+        "text": "、作品の既定値を継承します。"
+      },
+      "tailScopeEpisode": {
+        "source": "，仅本集。",
+        "text": "、この話だけに適用します。"
+      },
+      "feedbackDraftLost": {
+        "source": "页面或播放器已变化，旧草稿未保存。",
+        "text": "ページまたはプレーヤーが変わったため、以前の下書きは保存されていません。"
+      },
+      "feedbackPositionVerified": {
+        "source": "已核对播放器位置。",
+        "text": "プレーヤーの位置を確認しました。"
+      },
+      "feedbackReconcileFailed": {
+        "source": "仍无法核对保存结果。请重新识别；不会自动重试保存。",
+        "text": "保存結果をまだ確認できません。再検出してください。保存は自動再試行しません。"
+      },
+      "feedbackPreviousUncertain": {
+        "source": "无法确认上一播放器的保存；未再次写入。",
+        "text": "前のプレーヤーへの保存を確認できません。再書き込みはしていません。"
+      },
+      "feedbackReadDifferent": {
+        "source": "已读回的设置与本次修改不一致，无法确认本次保存。请核对后重新编辑。",
+        "text": "読み戻した設定が今回の変更と異なるため、保存を確認できません。確認してから再編集してください。"
+      },
+      "feedbackConflictPreserved": {
+        "source": "设置已在其他窗口变化，未覆盖新版本。",
+        "text": "別のウィンドウで設定が変更されました。新しい版は上書きしていません。"
+      },
+      "feedbackQuota": {
+        "source": "工具的本地存储空间不足，未保存修改。",
+        "text": "ローカル保存領域が不足しているため、変更を保存しませんでした。"
+      },
+      "feedbackInvalidated": {
+        "source": "当前播放器时长或规则已变化，未保存修改。",
+        "text": "プレーヤーの再生時間またはルールが変わったため、変更を保存しませんでした。"
+      },
+      "feedbackSaveRejected": {
+        "source": "当前设置暂不能保存，请重新识别后核对。",
+        "text": "現在の設定は保存できません。再検出して確認してください。"
+      },
+      "feedbackReceiptUnverified": {
+        "source": "收到写入回执，但暂不能核对已存设置。请重新识别。",
+        "text": "書き込み応答は受信しましたが、保存済み設定を確認できません。再検出してください。"
+      },
+      "feedbackVersionChanged": {
+        "source": "写入后设置又发生变化，请核对最新版本。",
+        "text": "保存後に設定が再度変更されました。最新版を確認してください。"
+      },
+      "feedbackSaved": {
+        "source": "设置已保存至{scope}。",
+        "text": "設定を{scope}に保存しました。"
+      },
+      "feedbackPriorSaved": {
+        "source": "上一播放器的设置已保存。",
+        "text": "前のプレーヤーの設定を保存しました。"
+      },
+      "feedbackCannotReadPosition": {
+        "source": "暂不能读取此标记所需的播放时间。",
+        "text": "マーカーに必要な再生時刻を取得できません。"
+      },
+      "feedbackMarkedDraft": {
+        "source": "已将当前时间填入草稿，播放器位置和已存设置不变。",
+        "text": "現在時刻を下書きに設定しました。再生位置と保存済み設定は変更されません。"
+      },
+      "feedbackSeekTargetChanged": {
+        "source": "当前播放器或时长已变化，请核对后重新操作。",
+        "text": "プレーヤーまたは再生時間が変わりました。確認してからやり直してください。"
+      },
+      "feedbackUndoChanged": {
+        "source": "原来的跳过记录已变化，未撤销。",
+        "text": "元のスキップ記録が変わったため、取り消しませんでした。"
+      },
+      "feedbackSeekReceiptLost": {
+        "source": "定位回执未返回。将核对播放器状态，不会自动重试。",
+        "text": "シークの応答がありません。プレーヤーの状態を確認し、自動再試行はしません。"
+      },
+      "feedbackSeekChanged": {
+        "source": "播放器已变化，无法确认该定位。",
+        "text": "プレーヤーが変わったため、シークを確認できません。"
+      },
+      "feedbackSeekPending": {
+        "source": "定位结果尚未确认，将核对状态。",
+        "text": "シーク結果が未確認のため、状態を確認します。"
+      },
+      "feedbackNoSeek": {
+        "source": "没有确认新的定位。请查看播放器当前状态。",
+        "text": "新しいシークを確認できません。現在のプレーヤー状態を確認してください。"
+      },
+      "feedbackPageChangedPending": {
+        "source": "网页已变化，正在核对旧网页的保存结果。",
+        "text": "ページが変わりました。前のページへの保存結果を確認中です。"
+      },
+      "feedbackDiscarded": {
+        "source": "已放弃修改，保留已保存的设置。",
+        "text": "変更を破棄しました。保存済み設定は維持されます。"
+      }
+    },
+    "zh-TW": {
+      "toolTitle": {
+        "source": "连播助手",
+        "text": "連播助手"
+      },
+      "refresh": {
+        "source": "重新识别",
+        "text": "重新識別"
+      },
+      "connecting": {
+        "source": "正在连接当前网页…",
+        "text": "正在連線至目前網頁…"
+      },
+      "settingsLegend": {
+        "source": "跳过与连播设置",
+        "text": "跳過與連播設定"
+      },
+      "timeRange": {
+        "source": "时间轴范围",
+        "text": "時間軸範圍"
+      },
+      "recommended": {
+        "source": "推荐",
+        "text": "建議"
+      },
+      "restoreRecommended": {
+        "source": "恢复推荐",
+        "text": "恢復建議值"
+      },
+      "rangeHelp": {
+        "source": "只调整时间轴的显示范围，不改变规则或播放位置。",
+        "text": "只調整時間軸的顯示範圍，不變更規則或播放位置。"
+      },
+      "unsaved": {
+        "source": "尚未保存的修改",
+        "text": "尚未儲存的變更"
+      },
+      "discard": {
+        "source": "放弃修改",
+        "text": "放棄變更"
+      },
+      "saveSettings": {
+        "source": "保存设置",
+        "text": "儲存設定"
+      },
+      "saving": {
+        "source": "正在保存…",
+        "text": "儲存中…"
+      },
+      "savedShort": {
+        "source": "已保存",
+        "text": "已儲存"
+      },
+      "playerStatus": {
+        "source": "播放器状态",
+        "text": "播放器狀態"
+      },
+      "returnOriginal": {
+        "source": "返回原位置",
+        "text": "返回原位置"
+      },
+      "playbackCalibration": {
+        "source": "播放与校准",
+        "text": "播放與校準"
+      },
+      "introName": {
+        "source": "片头",
+        "text": "片頭"
+      },
+      "outroName": {
+        "source": "片尾",
+        "text": "片尾"
+      },
+      "introRule": {
+        "source": "跳过片头",
+        "text": "跳過片頭"
+      },
+      "outroRule": {
+        "source": "跳过片尾",
+        "text": "跳過片尾"
+      },
+      "nextRule": {
+        "source": "自动下一集",
+        "text": "自動下一集"
+      },
+      "autoSkip": {
+        "source": "自动跳过",
+        "text": "自動跳過"
+      },
+      "restoreInherited": {
+        "source": "恢复继承",
+        "text": "恢復繼承"
+      },
+      "restoreRuleAria": {
+        "source": "恢复继承：{rule}",
+        "text": "恢復繼承：{rule}"
+      },
+      "timeStart": {
+        "source": "开始",
+        "text": "開始"
+      },
+      "timeEnd": {
+        "source": "结束",
+        "text": "結束"
+      },
+      "timePlaceholder": {
+        "source": "分:秒",
+        "text": "分:秒"
+      },
+      "inputAria": {
+        "source": "{name}{boundary}时间",
+        "text": "{name}{boundary}時間"
+      },
+      "resetIntroStart": {
+        "source": "恢复片头开始为 00:00",
+        "text": "將片頭開始恢復為 00:00"
+      },
+      "resetOutroEnd": {
+        "source": "恢复片尾结束跟随视频结尾",
+        "text": "將片尾結束恢復為跟隨影片結尾"
+      },
+      "clearTime": {
+        "source": "清空{name}{boundary}时间",
+        "text": "清空{name}{boundary}時間"
+      },
+      "markCurrentStart": {
+        "source": "用当前时间标记起点",
+        "text": "以目前時間標記起點"
+      },
+      "markCurrentEnd": {
+        "source": "用当前时间标记终点",
+        "text": "以目前時間標記終點"
+      },
+      "previewIntroEnd": {
+        "source": "查看片头结束位置",
+        "text": "查看片頭結束位置"
+      },
+      "previewOutroStart": {
+        "source": "查看片尾开始位置",
+        "text": "查看片尾開始位置"
+      },
+      "positionCalibration": {
+        "source": "{name}位置校准",
+        "text": "{name}位置校準"
+      },
+      "tailHelp": {
+        "source": "End 跟随当前视频的实际结束位置，换集自动重算片尾开始；填入具体结束时间可保留后面的内容。",
+        "text": "End 會跟隨目前影片的實際結束位置；換集時重新計算片尾開始。填入指定結束時間可保留後續內容。"
+      },
+      "crossEpisodeMatch": {
+        "source": "跨集匹配",
+        "text": "跨集比對"
+      },
+      "frontWindow": {
+        "source": "前 {time}",
+        "text": "前 {time}"
+      },
+      "endWindow": {
+        "source": "末 {time}",
+        "text": "末 {time}"
+      },
+      "durationPendingShort": {
+        "source": "时长待获取",
+        "text": "等待取得時長"
+      },
+      "trackAria": {
+        "source": "{name}时间轨道",
+        "text": "{name}時間軌道"
+      },
+      "handleAria": {
+        "source": "{name}{boundary}时间拖动手柄",
+        "text": "{name}{boundary}時間拖曳控制點"
+      },
+      "sliderUnavailable": {
+        "source": "当前不可调整",
+        "text": "目前無法調整"
+      },
+      "sliderEndBound": {
+        "source": "End，跟随视频结尾；可在时间输入框修改",
+        "text": "End，跟隨影片結尾；可在時間欄位修改"
+      },
+      "sliderIntroBound": {
+        "source": "00:00，视频起点；可在时间输入框修改",
+        "text": "00:00，影片起點；可在時間欄位修改"
+      },
+      "sliderSuggested": {
+        "source": "{time}，建议位置，尚未设置",
+        "text": "{time}，建議位置，尚未設定"
+      },
+      "sliderUnset": {
+        "source": "{time}，尚无可用时间",
+        "text": "{time}，尚無可用時間"
+      },
+      "windowMinutes": {
+        "source": "{minutes}分钟",
+        "text": "{minutes}分鐘"
+      },
+      "windowAutoAria": {
+        "source": "{range}，自动推荐",
+        "text": "{range}，自動建議"
+      },
+      "windowManualAria": {
+        "source": "{range}，手动设置",
+        "text": "{range}，手動設定"
+      },
+      "seasonLabel": {
+        "source": "第{season}季",
+        "text": "第{season}季"
+      },
+      "episodeLabel": {
+        "source": "第{episode}集",
+        "text": "第{episode}集"
+      },
+      "lengthLabel": {
+        "source": "全长{time}",
+        "text": "全長{time}"
+      },
+      "scopeSeriesHelp": {
+        "source": "保存至本作品当前季；已有本集例外继续优先。",
+        "text": "儲存至本作品目前季度；既有單集例外仍優先。"
+      },
+      "scopeEpisodeHelp": {
+        "source": "保存至当前集；未修改的项目继续沿用已保存规则。",
+        "text": "儲存至目前集數；未變更的項目繼續沿用已儲存規則。"
+      },
+      "scopeSeries": {
+        "source": "本作品当前季",
+        "text": "本作品目前季度"
+      },
+      "scopeEpisode": {
+        "source": "当前集",
+        "text": "目前集數"
+      },
+      "summaryUnset": {
+        "source": "未设置",
+        "text": "未設定"
+      },
+      "summaryDisabled": {
+        "source": "已关闭",
+        "text": "已關閉"
+      },
+      "summaryNextOn": {
+        "source": "已开启 · 正常播完后按集序继续",
+        "text": "已開啟・正常播完後依集數繼續"
+      },
+      "summaryTimeMissing": {
+        "source": "尚未填入时间",
+        "text": "尚未填入時間"
+      },
+      "summaryLastSeconds": {
+        "source": "最后 {seconds} 秒{interval}",
+        "text": "最後 {seconds} 秒{interval}"
+      },
+      "summaryInherited": {
+        "source": "沿用作品默认 · ",
+        "text": "沿用作品預設・"
+      },
+      "summaryOverride": {
+        "source": "本集例外 · ",
+        "text": "單集例外・"
+      },
+      "summaryPendingWork": {
+        "source": "等待识别作品",
+        "text": "等待識別作品"
+      },
+      "summaryIyfNext": {
+        "source": "由 iYF 处理下一集，助手不会重复切集。",
+        "text": "下一集由 iYF 處理，助手不會重複切換。"
+      },
+      "summaryUnsaved": {
+        "source": "未保存：{proposed} · {status}：{saved}",
+        "text": "未儲存：{proposed}・{status}：{saved}"
+      },
+      "summaryActive": {
+        "source": "当前生效",
+        "text": "目前生效"
+      },
+      "editWriteUnknown": {
+        "source": "保存结果未确认。请重新识别以核对已存设置。",
+        "text": "儲存結果尚未確認。請重新識別以核對已儲存設定。"
+      },
+      "editConflict": {
+        "source": "已读到其他窗口保存的版本。放弃修改后可基于最新设置重新编辑。",
+        "text": "偵測到其他視窗儲存的新版本。放棄變更後可依最新設定重新編輯。"
+      },
+      "editOldDraft": {
+        "source": "已保留旧播放器的草稿。只在确认是原播放器后恢复编辑。",
+        "text": "已保留舊播放器的草稿。確認為原播放器後才恢復編輯。"
+      },
+      "editReadFailed": {
+        "source": "无法读取已存设置。请重新识别。",
+        "text": "無法讀取已儲存設定。請重新識別。"
+      },
+      "mediaCurrent": {
+        "source": "当前 {current} / {duration}{state}",
+        "text": "目前 {current} / {duration}{state}"
+      },
+      "mediaPaused": {
+        "source": " · 已暂停",
+        "text": "・已暫停"
+      },
+      "mediaPlaying": {
+        "source": " · 播放中",
+        "text": "・播放中"
+      },
+      "undoSkip": {
+        "source": "撤销自动跳过",
+        "text": "復原自動跳過"
+      },
+      "seekUnknownLong": {
+        "source": "定位结果未确认。重新识别只核对状态；若仍无法确认，请检查播放器后手动刷新网页并重开侧栏。",
+        "text": "定位結果尚未確認。重新識別只會核對狀態；若仍無法確認，請檢查播放器、手動重新整理網頁並重開側欄。"
+      },
+      "videoDurationUnknown": {
+        "source": "本集时长未知，暂不执行时间规则。",
+        "text": "本集時長未知，暫不執行時間規則。"
+      },
+      "reasonNoMedia": {
+        "source": "尚未识别到唯一正片播放器。",
+        "text": "尚未識別到唯一正片播放器。"
+      },
+      "reasonAuth": {
+        "source": "当前网页未授权或访问已失效。请检查扩展权限。",
+        "text": "目前網頁未授權或存取已失效。請檢查擴充功能權限。"
+      },
+      "reasonNavigation": {
+        "source": "切集结果未确认，已停止重复切集。",
+        "text": "切集結果尚未確認，已停止重複切集。"
+      },
+      "reasonSiteNext": {
+        "source": "网站正在处理连播，连播助手不会重复切集。",
+        "text": "網站正在處理連播，連播助手不會重複切集。"
+      },
+      "reasonListIncomplete": {
+        "source": "选集尚未加载完整，暂不切集。",
+        "text": "集數清單尚未載入完成，暫不切集。"
+      },
+      "reasonListEnd": {
+        "source": "当前选集没有列出后续剧集。",
+        "text": "目前清單未列出後續集數。"
+      },
+      "reasonListGap": {
+        "source": "当前选集中找不到下一集，暂不跳到更后的剧集。",
+        "text": "目前清單找不到下一集，暫不跳往更後面的集數。"
+      },
+      "reasonLine": {
+        "source": "下一集在当前线路没有可播放的入口。",
+        "text": "下一集在目前線路沒有可播放的入口。"
+      },
+      "reasonNextUnconfirmed": {
+        "source": "无法唯一确认下一集，暂不切集。",
+        "text": "無法唯一確認下一集，暫不切集。"
+      },
+      "reasonNotSeekable": {
+        "source": "当前位置或目标时间暂不能定位。",
+        "text": "目前位置或目標時間暫時無法定位。"
+      },
+      "reasonSeekUnconfirmed": {
+        "source": "定位结果未确认，已暂停新的定位操作。",
+        "text": "定位結果尚未確認，已暫停新的定位操作。"
+      },
+      "reasonDurationChanged": {
+        "source": "播放器时长已变化，旧位置已经失效。",
+        "text": "播放器時長已變更，舊位置已失效。"
+      },
+      "actionNextPending": {
+        "source": "正在确认下一集…",
+        "text": "正在確認下一集…"
+      },
+      "actionSeekPending": {
+        "source": "正在确认播放器位置…",
+        "text": "正在確認播放器位置…"
+      },
+      "actionSeekUnknown": {
+        "source": "定位结果未确认。请在播放器核对；需要恢复时，请手动刷新网页并重开侧栏。",
+        "text": "定位結果尚未確認。請在播放器核對；需要恢復時請手動重新整理網頁並重開側欄。"
+      },
+      "actionNextPlaying": {
+        "source": "下一集已经开始播放。",
+        "text": "下一集已開始播放。"
+      },
+      "actionNextArrived": {
+        "source": "已进入下一集，尚未确认起播。",
+        "text": "已進入下一集，尚未確認起播。"
+      },
+      "actionNextBlocked": {
+        "source": "暂不能继续到下一集。",
+        "text": "暫時無法繼續到下一集。"
+      },
+      "actionSeekUnavailable": {
+        "source": "播放器暂不能执行这次定位。",
+        "text": "播放器暫時無法執行這次定位。"
+      },
+      "actionPreviewed": {
+        "source": "已定位至 {time}。",
+        "text": "已定位至 {time}。"
+      },
+      "actionReturned": {
+        "source": "已返回 {time}。",
+        "text": "已返回 {time}。"
+      },
+      "actionSkipped": {
+        "source": "{rule}：{from} → {to}。",
+        "text": "{rule}：{from} → {to}。"
+      },
+      "statusConnected": {
+        "source": "播放器已连接",
+        "text": "播放器已連線"
+      },
+      "statusOffscreen": {
+        "source": "播放器已连接 · 视频在屏幕外",
+        "text": "播放器已連線・影片位於畫面外"
+      },
+      "statusUnsupported": {
+        "source": "请在当前标签页打开支持的播放页。",
+        "text": "請在目前分頁開啟支援的播放頁。"
+      },
+      "statusLoading": {
+        "source": "正在等待当前网页加载…",
+        "text": "正在等待目前網頁載入…"
+      },
+      "statusStarting": {
+        "source": "网页功能尚未连接。若已打开支持的播放页，首次安装或更新后请刷新当前播放页一次；仍未连接时请检查网站访问权限。",
+        "text": "網頁功能尚未連線。如已開啟支援的播放頁，首次安裝或更新後請重新整理播放頁一次；仍無法連線時請檢查網站存取權限。"
+      },
+      "statusReload": {
+        "source": "网页功能需要重新加载。请保存网页内容，等当前操作结束后刷新当前播放页。",
+        "text": "網頁功能需要重新載入。請先儲存網頁內容，待目前操作結束後重新整理播放頁。"
+      },
+      "statusActivation": {
+        "source": "请在「扩展 → 网页功能帮助」检查网页功能，再重新识别。",
+        "text": "請至「擴充功能 → 網頁功能說明」檢查網頁功能，再重新識別。"
+      },
+      "statusPermission": {
+        "source": "无法访问当前网页。请检查连播助手的网站访问权限。",
+        "text": "無法存取目前網頁。請檢查連播助手的網站存取權限。"
+      },
+      "statusDisconnected": {
+        "source": "暂时无法连接当前网页。请在播放页重新识别。",
+        "text": "暫時無法連線至目前網頁。請在播放頁重新識別。"
+      },
+      "statusWaiting": {
+        "source": "等待正片识别。",
+        "text": "等待識別正片。"
+      },
+      "unknownMedia": {
+        "source": "尚未识别当前播放器。",
+        "text": "尚未識別目前播放器。"
+      },
+      "invalidTime": {
+        "source": "请输入有效的时间，开始必须早于结束。",
+        "text": "請輸入有效時間，開始必須早於結束。"
+      },
+      "timeUnknownEdit": {
+        "source": "本集时长未知，暂不能修改时间规则。",
+        "text": "本集時長未知，暫時無法修改時間規則。"
+      },
+      "timeFormat": {
+        "source": "请输入秒数或分:秒，例如 01:30。",
+        "text": "請輸入秒數或分:秒，例如 01:30。"
+      },
+      "timeMissing": {
+        "source": "请填入开始和结束时间。",
+        "text": "請填入開始與結束時間。"
+      },
+      "timeOutside": {
+        "source": "时间不能超出本集时长。",
+        "text": "時間不可超出本集時長。"
+      },
+      "timeOrder": {
+        "source": "开始必须早于结束。",
+        "text": "開始必須早於結束。"
+      },
+      "timeWhole": {
+        "source": "该设置会跳过整集，请缩小范围。",
+        "text": "此設定會跳過整集，請縮小範圍。"
+      },
+      "validationDuration": {
+        "source": "本集时长未知，暂不能启用时间规则。",
+        "text": "本集時長未知，暫時無法啟用時間規則。"
+      },
+      "validationOutside": {
+        "source": "{name}时间超出本集时长，或覆盖了整集。",
+        "text": "{name}時間超出本集時長，或涵蓋整集。"
+      },
+      "validationOverlap": {
+        "source": "片头和片尾的区间不能重叠。",
+        "text": "片頭與片尾區間不可重疊。"
+      },
+      "validationEntire": {
+        "source": "片头和片尾合计会跳过整集。",
+        "text": "片頭與片尾合計將跳過整集。"
+      },
+      "tailWaitingDuration": {
+        "source": "等待当前视频时长，暂无法换算。",
+        "text": "等待目前影片時長，暫時無法換算。"
+      },
+      "tailSetStartSeries": {
+        "source": "先设置片尾开始时间，保存后跨集复用。",
+        "text": "先設定片尾開始時間，儲存後可跨集重用。"
+      },
+      "tailSetStartEpisode": {
+        "source": "先设置片尾开始时间，保存到当前集。",
+        "text": "先設定片尾開始時間，再儲存至目前集數。"
+      },
+      "tailBadRange": {
+        "source": "片尾区间有误，请核对时间。",
+        "text": "片尾區間有誤，請核對時間。"
+      },
+      "tailFixed": {
+        "source": "{pending}指定区间，不跟随视频结尾。",
+        "text": "{pending}指定區間，不跟隨影片結尾。"
+      },
+      "tailPendingPrefix": {
+        "source": "待保存 · ",
+        "text": "待儲存・"
+      },
+      "tailWillApply": {
+        "source": "待保存 · 将按倒数 {time} 换算。",
+        "text": "待儲存・將依倒數 {time} 換算。"
+      },
+      "tailCanSave": {
+        "source": "设置片尾开始时间后可保存。",
+        "text": "設定片尾開始時間後即可儲存。"
+      },
+      "tailSaved": {
+        "source": "已保存 · {disabled}按倒数 {time} 换算{scope}",
+        "text": "已儲存・{disabled}依倒數 {time} 換算{scope}"
+      },
+      "tailDisabled": {
+        "source": "跳过已关闭 · ",
+        "text": "跳過已關閉・"
+      },
+      "tailScopeSeries": {
+        "source": "，适用各集。",
+        "text": "，適用各集。"
+      },
+      "tailScopeInherited": {
+        "source": "，沿用作品默认。",
+        "text": "，沿用作品預設。"
+      },
+      "tailScopeEpisode": {
+        "source": "，仅本集。",
+        "text": "，僅目前集數。"
+      },
+      "feedbackDraftLost": {
+        "source": "页面或播放器已变化，旧草稿未保存。",
+        "text": "網頁或播放器已變更，舊草稿未儲存。"
+      },
+      "feedbackPositionVerified": {
+        "source": "已核对播放器位置。",
+        "text": "已核對播放器位置。"
+      },
+      "feedbackReconcileFailed": {
+        "source": "仍无法核对保存结果。请重新识别；不会自动重试保存。",
+        "text": "仍無法核對儲存結果。請重新識別；不會自動重試儲存。"
+      },
+      "feedbackPreviousUncertain": {
+        "source": "无法确认上一播放器的保存；未再次写入。",
+        "text": "無法確認上一個播放器的儲存；未再次寫入。"
+      },
+      "feedbackReadDifferent": {
+        "source": "已读回的设置与本次修改不一致，无法确认本次保存。请核对后重新编辑。",
+        "text": "讀回的設定與這次變更不一致，無法確認儲存。請核對後重新編輯。"
+      },
+      "feedbackConflictPreserved": {
+        "source": "设置已在其他窗口变化，未覆盖新版本。",
+        "text": "設定已在其他視窗變更，未覆蓋新版本。"
+      },
+      "feedbackQuota": {
+        "source": "工具的本地存储空间不足，未保存修改。",
+        "text": "工具的本機儲存空間不足，變更未儲存。"
+      },
+      "feedbackInvalidated": {
+        "source": "当前播放器时长或规则已变化，未保存修改。",
+        "text": "目前播放器時長或規則已變更，修改未儲存。"
+      },
+      "feedbackSaveRejected": {
+        "source": "当前设置暂不能保存，请重新识别后核对。",
+        "text": "目前設定暫時無法儲存，請重新識別後核對。"
+      },
+      "feedbackReceiptUnverified": {
+        "source": "收到写入回执，但暂不能核对已存设置。请重新识别。",
+        "text": "已收到寫入回執，但暫時無法核對已儲存設定。請重新識別。"
+      },
+      "feedbackVersionChanged": {
+        "source": "写入后设置又发生变化，请核对最新版本。",
+        "text": "寫入後設定再次變更，請核對最新版本。"
+      },
+      "feedbackSaved": {
+        "source": "设置已保存至{scope}。",
+        "text": "設定已儲存至{scope}。"
+      },
+      "feedbackPriorSaved": {
+        "source": "上一播放器的设置已保存。",
+        "text": "上一個播放器的設定已儲存。"
+      },
+      "feedbackCannotReadPosition": {
+        "source": "暂不能读取此标记所需的播放时间。",
+        "text": "暫時無法讀取此標記所需的播放時間。"
+      },
+      "feedbackMarkedDraft": {
+        "source": "已将当前时间填入草稿，播放器位置和已存设置不变。",
+        "text": "已將目前時間填入草稿，播放器位置與已儲存設定不變。"
+      },
+      "feedbackSeekTargetChanged": {
+        "source": "当前播放器或时长已变化，请核对后重新操作。",
+        "text": "目前播放器或時長已變更，請核對後重新操作。"
+      },
+      "feedbackUndoChanged": {
+        "source": "原来的跳过记录已变化，未撤销。",
+        "text": "原本的跳過紀錄已變更，未復原。"
+      },
+      "feedbackSeekReceiptLost": {
+        "source": "定位回执未返回。将核对播放器状态，不会自动重试。",
+        "text": "定位回執未返回。將核對播放器狀態，不會自動重試。"
+      },
+      "feedbackSeekChanged": {
+        "source": "播放器已变化，无法确认该定位。",
+        "text": "播放器已變更，無法確認該次定位。"
+      },
+      "feedbackSeekPending": {
+        "source": "定位结果尚未确认，将核对状态。",
+        "text": "定位結果尚未確認，將核對狀態。"
+      },
+      "feedbackNoSeek": {
+        "source": "没有确认新的定位。请查看播放器当前状态。",
+        "text": "未確認新的定位。請查看播放器目前狀態。"
+      },
+      "feedbackPageChangedPending": {
+        "source": "网页已变化，正在核对旧网页的保存结果。",
+        "text": "網頁已變更，正在核對舊網頁的儲存結果。"
+      },
+      "feedbackDiscarded": {
+        "source": "已放弃修改，保留已保存的设置。",
+        "text": "已放棄變更，保留已儲存設定。"
+      }
+    }
+  }
+}

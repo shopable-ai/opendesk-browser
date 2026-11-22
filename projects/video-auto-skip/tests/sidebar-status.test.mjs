@@ -5,6 +5,9 @@ import {JSDOM} from 'jsdom';
 import {mountVideoSidebar} from '../src/main.js';
 
 const html = readFileSync(new URL('../src/index.html', import.meta.url), 'utf8');
+const author = JSON.parse(readFileSync(new URL('../locales.json', import.meta.url), 'utf8'));
+const sourceCatalog = {sourceLocale: author.sourceLocale,
+  messages: {[author.sourceLocale]: author.messages[author.sourceLocale]}};
 const linked = {state: 'ready', binding: 'player-1', draftTarget: 'draft-1', context: {
   seriesKey: 'iyf:series', episodeKey: 'episode-1', title: '测试作品', episode: '1',
 }, media: {duration: 1200, revision: 1, time: 42, paused: false}};
@@ -17,7 +20,7 @@ function mount(t, initial) {
   let poll, result = initial;
   window.setInterval = callback => { poll = callback; return 1; };
   const calls = [];
-  const dispose = mountVideoSidebar({root, async request(name, args) {
+  const dispose = mountVideoSidebar({root, messages: sourceCatalog, locale: 'zh-CN', async request(name, args) {
     calls.push(args.operation ?? name);
     if (name === 'storage.get') return {value: {series: {}}, etag: 'saved'};
     assert.equal(name, 'page.request');

@@ -1,5 +1,6 @@
 import {mountTimeTrack, ENDPOINTS} from './time-track.js';
 import {isEnabled} from './rules.js';
+import {t, localizeIssue} from './i18n.js';
 
 export const VIEWPORT_STOPS = [60, 120, 180, 300, 600];
 const present = Number.isFinite;
@@ -59,25 +60,29 @@ export function timeIssue(rule, lastSecond) {
 }
 
 export function tailMatchStatus({rule, saved, duration, changed, reusable, inherited}) {
-  const waiting = text => ({state: 'waiting', text});
-  if (!duration) return waiting('等待当前视频时长，暂无法换算。');
-  if (!rule || rule.kind === 'tail' && rule.seconds === undefined) return waiting(reusable
-    ? '先设置片尾开始时间，保存后跨集复用。' : '先设置片尾开始时间，保存到当前集。');
-  if (timeIssue(rule, duration)) return {state: 'error', text: '片尾区间有误，请核对时间。'};
-  if (rule.kind === 'fixed') return {state: 'interval', text: (changed ? '待保存 · ' : '') + '指定区间，不跟随视频结尾。'};
-  const offset = '按倒数 ' + formatTime(rule.seconds) + ' 换算';
-  if (changed) return waiting('待保存 · 将' + offset + '。');
-  if (saved?.kind !== 'tail') return waiting('设置片尾开始时间后可保存。');
-  return {state: 'matched', text: '已保存 · ' + (isEnabled(saved) ? '' : '跳过已关闭 · ') + offset +
-    (reusable ? '，适用各集。' : inherited ? '，沿用作品默认。' : '，仅本集。')};
+  const waiting = (key, values) => ({state: 'waiting', text: t(key, values)});
+  if (!duration) return waiting('tailWaitingDuration');
+  if (!rule || rule.kind === 'tail' && rule.seconds === undefined)
+    return waiting(reusable ? 'tailSetStartSeries' : 'tailSetStartEpisode');
+  if (timeIssue(rule, duration)) return {state: 'error', text: t('tailBadRange')};
+  if (rule.kind === 'fixed') return {state: 'interval', text: t('tailFixed',
+    {pending: changed ? t('tailPendingPrefix') : ''})};
+  const time = formatTime(rule.seconds);
+  if (changed) return waiting('tailWillApply', {time});
+  if (saved?.kind !== 'tail') return waiting('tailCanSave');
+  return {state: 'matched', text: t('tailSaved', {
+    disabled: isEnabled(saved) ? '' : t('tailDisabled'), time,
+    scope: t(reusable ? 'tailScopeSeries' : inherited ? 'tailScopeInherited' : 'tailScopeEpisode'),
+  })};
 }
 
-export function buildTimeEditor({el, button, row, template, calibrationHost, key, name, canEdit, onEdit, onClear, onMark, onPreview}) {
+export function buildTimeEditor({el, button, row, template, calibrationHost, key, canEdit, onEdit, onClear, onMark, onPreview}) {
+  const name = () => t(key === 'intro' ? 'introName' : 'outroName');
   const hint = el('span', 'vas-sr');
   hint.id = 'vas-window-' + key;
   row.querySelector('.vas-row-head').append(hint);
   const trackHost = el('div', 'vas-track-host');
-  const track = mountTimeTrack(template, trackHost, {key, name, format: formatTime,
+  const track = mountTimeTrack(template, trackHost, {key, format: formatTime,
     commit: (part, value) => edit(part, value), refresh: () => render(current)});
   const fields = el('div', 'vas-endpoints');
   const error = el('p', 'vas-field-error');
@@ -103,15 +108,16 @@ export function buildTimeEditor({el, button, row, template, calibrationHost, key
     input.autocomplete = 'off';
     input.spellcheck = false;
     input.placeholder = '分:秒';
-    input.setAttribute('aria-label', name + title.textContent + '时间');
+    input.setAttribute('aria-label', t('inputAria', {name: name(), boundary: title.textContent}));
     input.setAttribute('aria-describedby', error.id + (key === 'outro' && part === 'end' ? ' vas-tail-help' : ''));
     const clear = button('×');
     clear.id = 'vas-clear-' + key + '-' + part;
     clear.className = 'vas-clear-time';
-    const resetLabel = key === 'intro' && part === 'start' ? '恢复片头开始为 00:00' :
-      key === 'outro' && part === 'end' ? '恢复片尾结束跟随视频结尾' : '清空' + name + title.textContent + '时间';
-    clear.setAttribute('aria-label', resetLabel);
-    clear.title = resetLabel;
+    const labelReset = () => key === 'intro' && part === 'start' ? t('resetIntroStart') :
+      key === 'outro' && part === 'end' ? t('resetOutroEnd') : t('clearTime',
+        {name: name(), boundary: t(part === 'start' ? 'timeStart' : 'timeEnd')});
+    clear.setAttribute('aria-label', labelReset());
+    clear.title = labelReset();
     clear.addEventListener('click', () => {
       if (!canEdit()) return;
       // A cleared editable boundary removes the whole interval draft, so discard
@@ -151,7 +157,7 @@ export function buildTimeEditor({el, button, row, template, calibrationHost, key
   takeEnd.id = 'vas-mark-' + key + '-end';
   preview.id = 'vas-preview-' + key;
   actions.append(takeStart, takeEnd, preview);
-  const disclosure = el('summary', '', name + '位置校准');
+  const disclosure = el('summary', '', t('positionCalibration', {name: name()}));
   disclosure.id = 'vas-calibrate-' + key;
   details.append(disclosure, actions);
   takeStart.addEventListener('click', () => onMark('start'));
@@ -160,12 +166,12 @@ export function buildTimeEditor({el, button, row, template, calibrationHost, key
   row.append(trackHost, fields, error);
   const tailStatus = key === 'outro' ? el('span', 'vas-match-text') : null;
   if (tailStatus) {
-    const help = el('p', 'vas-sr', 'End 跟随当前视频的实际结束位置，换集自动重算片尾开始；填入具体结束时间可保留后面的内容。');
+    const help = el('p', 'vas-sr', t('tailHelp'));
     help.id = 'vas-tail-help';
     tailStatus.id = 'vas-tail-match';
     const matchPanel = el('p', 'vas-tail-match');
     matchPanel.setAttribute('role', 'status');
-    matchPanel.append(el('strong', 'vas-match-label', '跨集匹配'), tailStatus);
+    matchPanel.append(el('strong', 'vas-match-label', t('crossEpisodeMatch')), tailStatus);
     row.append(help, matchPanel);
   }
   calibrationHost.append(details);
@@ -186,7 +192,8 @@ export function buildTimeEditor({el, button, row, template, calibrationHost, key
     const reach = key === 'intro' ? Math.max(0, ...known) : d - Math.min(d, ...known);
     const width = Math.min(d, Math.max(span, Math.ceil(reach / 60) * 60));
     const range = !d ? [0, 1] : key === 'intro' ? [0, width] : [d - width, d];
-    hint.textContent = d ? (key === 'intro' ? '前 ' : '末 ') + formatTime(width) : key === 'intro' ? '前 ' + formatTime(span) : '时长待获取';
+    hint.textContent = d ? t(key === 'intro' ? 'frontWindow' : 'endWindow', {time: formatTime(width)}) :
+      key === 'intro' ? t('frontWindow', {time: formatTime(span)}) : t('durationPendingShort');
     const locked = !allowed || !d;
     const anchor = key === 'intro' && points.start === 0 ? 'start' : key === 'outro' && rule.kind === 'tail' ? 'end' : null;
     const suggestions = Object.fromEntries(ENDPOINTS.filter(part => points[part] === undefined)
@@ -196,7 +203,8 @@ export function buildTimeEditor({el, button, row, template, calibrationHost, key
       if (tailStatus.textContent !== match.text) tailStatus.textContent = match.text;
       tailStatus.parentElement.dataset.state = issue ? 'error' : match.state;
     }
-    if (error.textContent !== issue) error.textContent = issue;
+    const localized = localizeIssue(issue);
+    if (error.textContent !== localized) error.textContent = localized;
     error.hidden = !issue;
     for (const part of ENDPOINTS) {
       const input = inputs[part];
@@ -206,12 +214,31 @@ export function buildTimeEditor({el, button, row, template, calibrationHost, key
         d && present(points[part]) && points[part] >= 0 ? formatTime(points[part]) : '' : '');
       if (input.value !== value) input.value = value;
       const suggested = suggestions[part];
-      input.placeholder = part === 'end' && anchor === 'end' ? 'End' : present(suggested) ? formatTime(suggested) : '分:秒';
+      input.placeholder = part === 'end' && anchor === 'end' ? 'End' : present(suggested) ? formatTime(suggested) : t('timePlaceholder');
       input.parentElement.dataset.endpointState = part === anchor ? 'bound-' + part : present(suggested) ? 'suggested' : '';
       const resetAvailable = !(key === 'intro' && part === 'start' && rule.kind === 'fixed' &&
         points.start === 0 && !Object.hasOwn(raw, part));
       clears[part].disabled = locked;
       clears[part].hidden = locked || !value.trim() || !resetAvailable;
+    }
+    for (const part of ENDPOINTS) {
+      const label = inputs[part].previousElementSibling;
+      const boundary = t(part === 'start' ? 'timeStart' : 'timeEnd');
+      label.textContent = boundary;
+      inputs[part].setAttribute('aria-label', t('inputAria', {name: name(), boundary}));
+      const clear = clears[part];
+      const clearLabel = key === 'intro' && part === 'start' ? t('resetIntroStart') :
+        key === 'outro' && part === 'end' ? t('resetOutroEnd') : t('clearTime', {name: name(), boundary});
+      clear.title = clearLabel;
+      clear.setAttribute('aria-label', clearLabel);
+    }
+    takeStart.textContent = t('markCurrentStart');
+    takeEnd.textContent = t('markCurrentEnd');
+    preview.textContent = t(key === 'intro' ? 'previewIntroEnd' : 'previewOutroStart');
+    disclosure.textContent = t('positionCalibration', {name: name()});
+    if (tailStatus) {
+      row.querySelector('#vas-tail-help').textContent = t('tailHelp');
+      row.querySelector('.vas-match-label').textContent = t('crossEpisodeMatch');
     }
     takeStart.disabled = takeEnd.disabled = locked || !canMark;
     preview.disabled = locked || !canPreview;

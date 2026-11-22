@@ -2,12 +2,12 @@
 
 > 任务标识：OD-VIDEO-AUTO-SKIP-I18N-R1 ｜ 日期：2026-11-22  
 > Owner：`projects/video-auto-skip/` ｜ 目标分支：`main`  
-> 状态：**设计方案；未修改业务 i18n 源码、正式工具包或已安装 Chrome 实例。**
+> 状态：**SOURCE_WIRED（代码与翻译资源已接线）；Node/Vite 编译、正式包及真实 Chrome 安装验收均为 NOT_TESTED。**
 
 ## 1. 现场基线与技术决策
 
 - 当前产品属于 `opendesk.sidebar-tool.v2`，采用 `src/index.html`、`src/style.css`、`src/main.js`、`src/editor.js`、Vite 单 IIFE `dist/tool.js`。`src/page/main.js` 属于独立 USER_SCRIPT 网页模块。
-- `tool.config.json` 未包含 `locales`；产品目录未有 `locales.json`；静态 HTML、动态 UI 与时间编辑器均有用户可见的硬编码中文。
+- 实施前基线：`tool.config.json` 尚无 `locales`、项目无 `locales.json`，静态/动态界面存在硬编码中文。R1 已按本合同新增作者语言资源与源码接线；`src/page/main.js` 的网页提示仍是独立运行边界。
 - README 记录：开发源码为 0.2.10，唯一可导入正式工具包仍为 0.2.9；这两种状态不可混淆。`preview/index.html` 只是独立交互预览。
 - 仓库已有 [Sidebar Tool 正式本地化合同](../../docs/api/sidebar-tool-localization.zh-CN.md)、[应用开发 Skill](../../.agents/skills/opendesk-sidebar-tool-dev/SKILL.md) 和原生 HTML/JS 实例 [Reading TOC](../reading-toc/locales.json)、[Reading TOC 源码](../reading-toc/src/main.js)。
 - **架构结论**：HTML/JS 可直接多语言化。仅为多语言而切换 React 会引入不必要的组件迁移、构建与回归成本；未来若出现独立的复杂状态/组件重用需求，另行评估 React，不把两项工作捆绑。
@@ -38,7 +38,7 @@ Chrome 扩展原生 `_locales/*/messages.json` 和 OpenDesk 工具作者 `locale
 
 **建议投放顺序**：`zh-CN`（源语言）→ `en`（首个目标语言）→ `ja`、`zh-TW`。不能以源语言中文本来可读作为英文状态覆盖通过的证据。
 
-## 4. 源码接入步骤（待 Codex 实施）
+## 4. 源码接入步骤与核对项
 
 1. 在产品目录新增**唯一作者语言文件** `locales.json`。顶层为 `sourceLocale` 和 `messages`；中文源值为字符串，目标值含 `{source,text}`，键用语义 camelCase（如 `saveSettings`、`introStart`、`outroEnd`、`storageConflict`）。禁止以整句中文作为键。
 2. 在现有 `tool.config.json` 增加 `"locales": "locales.json"`，不更改 toolId、capabilities 或页面运行身份。继续由唯一 `scripts/build-sidebar-tool.mjs` 产生翻译 metadata 和离线内嵌资源，不创建第二个打包器。
@@ -74,4 +74,15 @@ Chrome 扩展原生 `_locales/*/messages.json` 和 OpenDesk 工具作者 `locale
 
 ## 7. 本轮边界
 
-本次只建立设计规范与 Skill 指引；不修改 `src/`、`preview/`、`tool.config.json`、`dist/`、网页模块、正式 `video-auto-skip.opendesk-tool.json`、宿主 manifest 或安装权限。后续实施按 A01–A10 从现有源码增量接线，不额外迁移 UI 框架。
+本次实施范围仅包含工具的 `locales.json`、侧栏 HTML/JS、Vite 指纹、定向测试及进度文档；`dist/`、正式 `video-auto-skip.opendesk-tool.json`、`src/page/main.js`、预览大文件、宿主 manifest、授权和播放器业务协议均未改动。未通过后续编译与原生验收前不宣称发布。
+
+## 8. R1 源码接线进度与未完成验收（2026-11-22）
+
+- 已新增作者语言表 `locales.json`，统一 159 个语义键，`zh-CN/en/ja/zh-TW` 四个语言均完整；复用 Host 的只读 `OpenDeskTool.locale/messages/onLocaleChange`，无 React 迁移、无新语言选择器。
+- `src/i18n.js` 使用唯一 `__OPENDESK_TOOL_MESSAGES__` 编译标记；`src/main.js`、`src/editor.js`、`src/time-track.js` 和 `src/index.html` 通过同一 `t(key, params)` 与 DOM 纯文本属性刷新，保留草稿、端点及 End 哨兵。
+- `tool.config.json` 增加 `locales`；`vite.config.mjs` 将语言源与 helper 纳入原有 build-ready 指纹。增加 `tests/i18n.test.mjs` 并调整 `tests/sidebar-status.test.mjs` 的测试宿主源语言 catalog。
+- 本轮只读在 GitHub 已确认 `src/page/main.js` 中仍有「连播助手：已跳过片头/片尾」网页 toast。该 USER_SCRIPT 尚无获证实的受控语言流，因此未向网页暴露 Sandbox Tool API，也未修改页面模块；此项明确属于**独立未完成**。
+- 静态源检查：四语言键和占位符闭包 159/159；调用仓库现有 `compileToolLocaleCatalog()` 校验成功；对侧栏主模块、编辑器、滑块及 helper 的 V8 语法解析成功。这些仅是静态校验，**不是 Node test PASS / Vite BUILD PASS / PACKAGE PASS / CHROME PASS**。
+- **仍需本机完成**：`npm --prefix projects/video-auto-skip test`、`npm --prefix projects/video-auto-skip run build`、现有打包器候选校验、320/360/400px 与 200% 缩放、未保存草稿/四端点/跨集/重开/旧数据、真实 Chrome 中同 ID 审核与升级。各项无当前候选的实际回执，统一 `NOT_TESTED`。
+- 现有 `0.2.9` 正式包未被替换，`0.2.10` 源码仍未晋升；通过 Builder 和受影响的 Node 测试后才有资格制作/晋升正式包。不要把此源码提交解释为本机安装成功。
+- 本地 Mac 的未提交工作区未核验：当前本机 CodexPro 与文件隧道不可用，远端 GitHub `main` 的可读/可写状态不能代替本地 `git status`。本地同步时必须先确认/保护 0.2.10 未提交修改。

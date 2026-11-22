@@ -1,16 +1,17 @@
+import {t} from './i18n.js';
+
 const INSET = 12;
 export const ENDPOINTS = ['start', 'end'];
 const clamp = (n, min, max) => Math.max(min, Math.min(max, n));
 
-export function mountTimeTrack(template, host, {key, name, format, commit, refresh}) {
+export function mountTimeTrack(template, host, {key, format, commit, refresh}) {
   const track = template.content.firstElementChild.cloneNode(true);
   const line = track.querySelector('.vas-track-line');
   const handles = Object.fromEntries(ENDPOINTS.map(part => [part, track.querySelector('[data-endpoint=' + part + ']')]));
-  track.setAttribute('aria-label', name + '时间轨道');
+  const ruleName = () => t(key === 'intro' ? 'introName' : 'outroName');
   for (const part of ENDPOINTS) {
     const handle = handles[part];
     handle.id = 'vas-' + key + '-' + part + '-slider';
-    handle.setAttribute('aria-label', name + (part === 'start' ? '开始' : '结束') + '时间拖动手柄');
     handle.setAttribute('aria-describedby', 'vas-window-' + key + ' vas-error-' + key);
   }
   host.append(track);
@@ -67,6 +68,11 @@ export function mountTimeTrack(template, host, {key, name, format, commit, refre
   return {
     dispose: () => observer?.disconnect(),
     update({range, start, end, suggestions, anchor: bound, locked, invalid}) {
+      track.setAttribute('aria-label', t('trackAria', {name: ruleName()}));
+      for (const part of ENDPOINTS) {
+        handles[part].setAttribute('aria-label', t('handleAria',
+          {name: ruleName(), boundary: t(part === 'start' ? 'timeStart' : 'timeEnd')}));
+      }
       disabled = locked;
       anchor = bound;
       // Keep the scale stable until the user releases the handle or commits typed text.
@@ -99,9 +105,10 @@ export function mountTimeTrack(template, host, {key, name, format, commit, refre
         handle.setAttribute('aria-valuemin', bound ? point : low);
         handle.setAttribute('aria-valuemax', bound ? point : high);
         handle.setAttribute('aria-valuenow', point);
-        handle.setAttribute('aria-valuetext', disabled ? '当前不可调整' : bound ?
-          part === 'end' ? 'End，跟随视频结尾；可在时间输入框修改' : '00:00，视频起点；可在时间输入框修改' :
-          format(point) + (suggested[part] ? '，建议位置，尚未设置' : proposed ? '，尚无可用时间' : ''));
+        handle.setAttribute('aria-valuetext', disabled ? t('sliderUnavailable') : bound ?
+          t(part === 'end' ? 'sliderEndBound' : 'sliderIntroBound') : suggested[part] ?
+          t('sliderSuggested', {time: format(point)}) : proposed ?
+          t('sliderUnset', {time: format(point)}) : format(point));
       }
     },
   };
