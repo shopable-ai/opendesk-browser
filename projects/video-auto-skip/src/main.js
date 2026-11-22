@@ -1,5 +1,5 @@
 import {EMPTY, cleanRules, isEnabled, resolveInterval, resolveRules, readScope, RULES_KEY, saveScope, updateScope, validateRules} from './rules.js';
-import {blankTiming, buildTimeEditor, changeEndpoint, endpointsFor, formatTime as time, recommendedSpan, tailMatchStatus, timeIssue, VIEWPORT_STOPS} from './editor.js';
+import {blankTiming, buildTimeEditor, changeEndpoint, clearTimeIntent, endpointsFor, formatTime as time, recommendedSpan, tailMatchStatus, timeIssue, VIEWPORT_STOPS} from './editor.js';
 
 const KEYS = ['intro', 'outro', 'next'];
 const NAMES = {intro: '跳过片头', outro: '跳过片尾', next: '自动下一集'};
@@ -98,6 +98,7 @@ export function mountVideoSidebar(tool) {
     if (key !== 'next') editors[key] = buildTimeEditor({row, el, button, key, name: NAMES[key].slice(2),
       template: find('time-track'), calibrationHost: find('calibrations'), canEdit: () => editingAllowed() && lastSecond() > 0,
       onEdit: (part, value) => setTime(key, part, value),
+      onClear: part => clearTime(key, part),
       onMark: part => void mark(key, part), onPreview: () => void previewRule(key)});
     row.append(source);
     toggle.addEventListener('change', () => {
@@ -147,6 +148,21 @@ export function mountVideoSidebar(tool) {
     render();
   }
 
+  // Clear is an explicit draft action; keyboard text deletion may be temporary while retyping.
+  // Removing an editable boundary unsets that rule. An inherited season rule needs an
+  // explicit local null override, otherwise clearing it would silently restore inheritance.
+  function clearTime(key, part) {
+    if (!editingAllowed() || !lastSecond()) return;
+    const intent = clearTimeIntent(key, part);
+    if (intent.kind === 'endpoint') {
+      setTime(key, part, intent.value);
+      return;
+    }
+    if (scope === 'episode' && storedDefault(key) !== undefined) draft[key] = null;
+    else delete draft[key];
+    render();
+  }
+
   function editorIssue(key, snap = snapshot) {
     const rule = draft[key];
     if (!rule || sameRule(rule, baseline[key])) return '';
@@ -186,7 +202,7 @@ export function mountVideoSidebar(tool) {
     if (key === 'next') return '已开启 · 正常播完后按集序继续';
     if (rule.kind === 'tail') {
       if (!present(rule.seconds)) return '尚未填入时间';
-      const interval = d && rule.seconds > 0 && rule.seconds < d ? ' · ' + time(d - rule.seconds) + '–' + time(d) : '';
+      const interval = d && rule.seconds > 0 && rule.seconds < d ? ' · ' + time(d - rule.seconds) + '–End (' + time(d) + ')' : '';
       return '最后 ' + rule.seconds + ' 秒' + interval;
     }
     return present(rule.start) && present(rule.end) ? time(rule.start) + '–' + time(rule.end) : '尚未填入时间';
