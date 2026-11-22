@@ -275,3 +275,74 @@ VIP 不是“更冒险地跳”；两个档次使用同一匹配安全门。商�
 以上是**同一模型模拟七种角色的设计覆盖度评分**，没有外部独立专家背书，也不是商用准备度/真实验收评分。任何正式发布必须再次验证，不能用 95.57 替代测试成绩。
 
 **给本地 Codex 的唯一下一阶段任务：R12-M0。** 只读核验本设计、REQUIREMENTS F9、rules.js、main.js、src/page/main.js、tests 与 dev 夹具；设计/实现无联网的最小 matchEvidence→matchDecision 纯函数模块，明确四态、reasonCode、身份/版本/来源分离、个人显式关闭优先、tail/fixed 复用原 validator。采用 A/B 不同 siteId 同 edition 的合法本机夹具，再加同片长异作品、异剪辑、合辑/特别篇、用户拒绝、冲突、未知时长/断网等负例。执行原 npm --prefix projects/video-auto-skip test 与新增定向测试，保留正式包、播放器与既有读写路径不改；输出真实修改文件/回执与所有 NOT_TESTED 范围。未具备真实 API 及两个不同实际站点证据不得宣称 R12-M1 完成。
+
+## 13. R12.1 · Payload CMS 最小模拟后端、按需请求与 VIP 配额前置（2026-11-22）
+
+> 状态：DESIGN_ONLY / NOT_IMPLEMENTED / NOT_TESTED。此节补齐此前遗漏的云查询触发/费用防护闭环；对于旧 M0「只实现纯函数，后做后端」的安排，以本节的 R12.1-S0/C0/E0 联调顺序为准。不能按旧 Codex R12-M0 提示词直接启动正式开发；不重复 R10/R11 或统一账号 R1–R3。
+
+### 13.1 问题、基线与决策
+
+最终用户收益是「一次设置，经验证的兼容视频复用，不误跳剧情」；后端的价值只在当前媒体没有足够本地规则时，提供受限的、可验证的公共候选。客户端**本地规则已足够 → 不发请求**；没有可信媒体身份、未经公共查询同意、会员权益不允许或缓存命中 → 同样不发请求。前一版方案有缓存、限流、VIP Entitlement 原则和候选 API，但尚未冻结每次请求的 eligibility 判定、计数预算、模拟服务端、完整端到端测试。现有 main 的 services/ 定向目录核验仅见 analytics 与 cookie-share-relay，未发现可直接复用的 Payload CMS 项目；共用云账号 R1–R3 明确 NOT_IMPLEMENTED。
+
+**推荐技术路线**：Payload CMS 负责 Admin 目录管理、作品与剪辑版映射、人工审核、修订状态以及服务器内部数据库读写；一个受控的自定义 HTTP API 负责身份、许可、VIP 权益、限流、索引匹配和最小字段返回。服务端身份/Entitlement 后期复用统一账号设计，**不为视频扩展另建真实用户账号、支付、同步引擎**。后端建议与其他工具共享单一部署，目录候选 services/cloud-api/（实际创建前确认项目 owner）；产品规则算法仍属于 video-auto-skip。M0 模拟环境可采用 Payload + SQLite，正式 Postgres 需独立验证迁移及事务；SQLite 默认不启用事务，不能以 SQLite 演示冒充正式并发修订/撤销事务验收。Payload 官方支持 SQLite 和 PostgreSQL；本阶段不做部署承诺。
+
+### 13.2 最小 Payload 集合与只读接口
+
+开发级五个集合：video-works、video-episodes、video-editions、video-site-assets、video-public-rules。保留作品、集、内容种类、剪辑版时间轴、siteId+脱敏稳定 assetKey、审核来源、时长依据、intro/outro（fixed / tail）、publicRuleRevision、status（LIVE/REVOKED/QUARANTINED）、licenseId。season/alias/细粒度 MatchEvidence/RuleRevision 作为已有 R12 概念模型，M0 不强制拆多张表；正式 M1/M2 需加约束/审计/修订历史。管理员录入两个虚构 siteId 的同一兼容 edition，另外存不同作品同名同片长、异剪辑、特别篇、合辑、冲突、撤销负例。
+
+仅暴露一个业务读接口：POST /api/video-rules/match。请求最小字段 protocolVersion、siteId、opaqueAssetKey、durationSeconds、neededFields（intro/outro）；可由可信请求上下文取得账号与权益，**禁止客户端上传 vip=true、accountId 并作为判权依据**。返回 MATCHED/NO_MATCH、经审核候选的规则/映射修订、evidenceRefs、内容/版本、revocationEpoch、cacheTtlSeconds 和安全错误码，客户端最后使用原规则验证器决定是否 seek。NO_MATCH 可返回 200 的业务状态供负缓存。CMS 自动生成的 Collection REST/GraphQL 不直接对普通扩展用户公开；非管理员 Collection CRUD 由访问控制拒绝，员工 Admin 登录仅为运营工作使用，不是第二套消费者账号。
+
+注意官方 Payload Local API 默认可能绕过 Collection Access Control。自定义 API 必须先做服务器身份、Entitlement、consent、quota、参数检查，再执行受控内部查询；若需要业务用户权限调用则显式 overrideAccess:false + 可信 user，若特权查询也必须仅限通过全部闸门后的内部代码。参考 https://payloadcms.com/docs/local-api/access-control 与 https://payloadcms.com/docs/rest-api/overview 。
+
+### 13.3 客户端何时发送？严格短路判定
+
+**仅在可靠的新媒体绑定完成后评估**；不可因 timeupdate、progress、pause、滑块、输入、侧栏开关、React 重渲染、相同 SPA 导航重复触发。可信宿主/cloud adapter 负责 HTTP；页面脚本不得持有用户 Token。
+
+顺序（任一失败，0 HTTP match 请求）：
+
+1. 已安装批准的受支持网站，已发现可信主视频，不是广告/预告/直播/受限 iframe；当前主媒体绑定稳定，duration 有限可信且可 seek。
+2. 站点适配器合法产生白名单 siteId + 非个人化稳定 opaqueAssetKey；仅网页标题或相同片长不能触发自动云查询。换源/换集先取消旧代际 pending，再稳定后判断。
+3. 读取当前本集显式覆盖和作品/季合法默认规则（含可用私人云规则已按共用 CAS 合并入本地）。按 intro/outro 逐字段求缺口：已有有效覆盖或用户显式 null/disabled/拒绝不算缺口；两个字段均解决 → 0 请求；仅 outro 缺失 → 只请求 outro。next 只走本地，不公开查询。
+4. 当前账号与产品已明确同意公共查询；只登录或者开启私有同步不等于允许公开查询。
+5. 客户端共用权益摘要明确拥有 video-rules.auto-match，且尚未过期；M0 推荐 VIP 才允许自动云查询，Free/Guest=0 自动请求。以后如允许 Free 手动查询，需单独用户点击 + 权益码 + 配额，不能悄悄扩大自动请求。
+6. 检查本机合法公共缓存、NO_MATCH 负缓存、同 key in-flight single-flight 去重、网络状态、403/429/503 的退避窗口、客户端节流。键包括 account/profile、site/asset、媒体版/时长基准、需要字段、consent/entitlement epoch；切换账号需严格分区，不复用旧账号候选/响应。
+7. 只有上述条件全部满足，发送**一次**限字段查询。返回后重新核对 mediaGeneration、当前视频、来源修订、缓存租约与本地优先级，再由原播放器实现负责真实 seek。用户手动回看/撤销与当前会话 pin 行为不改变。
+
+VIP 权益 bootstrap 仅在登录、账户/套餐改变、缓存到期或显式刷新时受控读取；不要每打开一集都请求一次权限服务。客户端权限判断只为省请求，不能替代**服务端每次匹配请求的最终授权**。
+
+### 13.4 服务端拒绝顺序与滥用防护
+
+先做请求大小/IP 粗限速 → 受信 Token/会话认证 → 服务端当前 account/product/query consent/Entitlement → 账号级原子配额与突发限流 → 校验 siteId/assetKey/duration/neededFields → **精确索引**查询 (siteId,opaqueAssetKey) 的 ACTIVE 映射 → 查相应 edition 的已审核 LIVE 合法规则 → 返回最少字段。已拒绝会员/配额的请求在昂贵作品查询之前终止；服务端不信任客户端自报的 VIP 值或局部覆盖判断。不可由不可信 X-Forwarded-For 伪装 IP。当前测试可用进程内限流器与仅 localhost 可用的 dev token（VIP/Free/Expired/Revoked），**仅适合单进程演示**；正式多实例需要共享原子计数（例如 Redis/数据库）和真正统一身份。未经真正授权时关闭公网监听、生产禁用模拟特权。
+
+错误与客户端处理：401 AUTH_REQUIRED，403 ENTITLEMENT_REQUIRED/PUBLIC_CONSENT_REQUIRED，429 RATE_LIMITED + Retry-After，400 INVALID_REQUEST，409 MAPPING_CONFLICT，410 RULE_REVOKED，503 SERVICE_UNAVAILABLE。403 失效本地权益摘要并避免同状态反复查询；429 尊重 Retry-After；503 指数退避；请求失败不影响本地跳过，不重放副作用。
+
+### 13.5 缓存与请求预算（均为待测实验初值）
+
+- 同一稳定媒体 + 所需字段 + 账号授权代际：有效期内最多一次 match HTTP，相同并发请求合并；相同 video 的播放进度/暂停/编辑/打开侧栏为零额外请求。
+- 正向自动采用租约可先用 10 分钟；租约到期/离线无法核验撤销，不得继续无条件自动采用旧公共规则。NO_MATCH 负缓存可先用 60 分钟；冲突候选仅供核对，短缓存如 5 分钟；真实 TTL/撤销 SLA 要由后续测试确定。
+- 示例服务端配额可先测试每账号 5 次/分钟、60 次/日（**不是正式会员权益承诺**），同时设置全局和网络来源保护；有实际请求成本和用户活跃度数据后再调。
+- 区分统计 mediaBindings、eligibleMedia、localCovered、clientDenied、cacheHit、negativeCacheHit、singleFlightSaved、httpMatchCalls、dbLookups、serverAuthDenied、serverQuotaDenied、falseSkipReports；只存脱敏聚合指标，不建立用户观影明细日志。
+- 撤销规则需修订号/失效水位及有限自动使用租约；不能凭很长 TTL 假称能及时撤销，紧急撤销停止尚未触发的公共自动 seek，不能逆转已经发生的 seek。
+
+### 13.6 真实最小联调验收与修订后的推进顺序
+
+每个用例需报告 **实际客户端 HTTP 次数 / 服务端 DB lookup 次数 / HTTP 状态 / 客户端四态或本地 fallback**，模拟与真实结果分开：
+
+| 输入场景 | 期望的 match HTTP |
+| --- | --- |
+| Guest、Free 默认自动匹配；VIP 未同意公共查询 | 0，伪造直调在服务端拒绝 |
+| 有效 VIP + 完整个人片头片尾/明确禁用 | 0 |
+| VIP + 可信媒体 + 仅一个字段缺口、未缓存 | 1，服务器只查该字段 |
+| 标题相似但无合法稳定资源 ID、未知时长、受限网站 | 0 |
+| 当前媒体频繁 timeupdate、反复开关侧栏、相同 SPA 路由 | 0 额外请求 |
+| 同 key 并发多个消费者、合法正缓存、NO_MATCH 负缓存 | 0 额外网络调用或合并为 1 |
+| 新 episode/edition 且合法授权 | 重新评估；必要时 1 |
+| VIP 到期、切换账号、撤销授权 | 预检 0 或服务端 403；不串号 |
+| 过多请求 | 429；不做昂贵作品 DB 查询 |
+| 后端断网/503 | 本地仍可跳过，退避不反复请求 |
+| 虚构 Site A 与 Site B 同版 | 能查到相同兼容性证据，旧规则通过客户端安全验证 |
+| 异剪辑、特别篇、合辑、冲突或公共撤销 | 无危险自动 seek |
+
+**调整实施顺序：** R12.1-D（当前仅形成设计）→ R12.1-S0（Payload 本地模拟服务端、Admin 种子和服务端权限/限流）→ R12.1-C0（客户端纯函数 + cloud eligibility + 缓存 + 可信传输适配）→ R12.1-E0（真实 localhost 两站 fixture 的 0/1 请求及 403/429/断网/兼容性联调）→ M1（两个不同的真实网站和正式授权后端）。S0/C0 可各自实现和单测，但在 E0 联调通过前不得宣称云匹配已实现。M2 社区投稿与 M3 统一账号/VIP 双机恢复后置。
+
+**已完成的只是本 R12.1 设计**，没有执行新代码、搭起 Payload 后端、购买套餐、正式部署、会员真实鉴权或完成本地/Chrome 联调。下一轮 Codex 应以本节取代之前纯本地版的旧 M0 提示词，避免跨对话重做。
