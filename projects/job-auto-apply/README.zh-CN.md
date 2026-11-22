@@ -31,6 +31,14 @@
 
 可追溯的功能差距与源码依据统一维护在 REQUIREMENTS.zh-CN.md 的 R3 章节，不另建竞争性需求文件。
 
+## R4 开源项目补全与技术选型
+
+2026-11-23 已根据 boss-agent-cli 扩展系统检索，补充 Boss-Claw、即投、Ghost Job、boss_react、BossFlow、mcp-bosszp、boss_batch_push、boss-jobseeker、AIHawk、JobPilot 等项目；按求职者侧能力、源码证据、许可证及执行安全分级。详细对照和行动方案见 [唯一需求文档 R4](REQUIREMENTS.zh-CN.md#r4--系统开源检索与-browserdesktopcli-架构决策2026-11-23)。
+
+**现阶段决定：Browser 现有 Page/Controller 为默认业务主链；OpenDesk Desktop 为可选本机原生增强；MIT 的 boss-agent-cli 仅为候选可插拔 CLI/MCP/JSON 读取适配器，不是默认后端。** CLI 的 apply 目前以即时沟通端点实现，不能将执行成功等同于完整简历投递。此决策不增加任何新默认权限、不创建第二套运行器、不预装 Python、不调用平台内部接口。
+
+本轮 R4 为仓库源码核验和设计文件变更；没有执行真实 BOSS 页面、原生 Desktop、CLI 集成或发布。原 R3 的 0.1.1、Node 60/60、候选同源证明不变；真实安装及对外沟通仍无通过证据。
+
 ## 从哪些开源项目汲取设计思路
 
 - Get Jobs / 工作无忧：https://github.com/loks666/get_jobs （已核实当前源码中的 Boss.java、BossChatNavigator.java、Locators.java、AiService.java、BossJobService.java、front/app/boss/page.tsx；现行 LICENSE 为 PolyForm Noncommercial 1.0.0，不复制其源码到商业产品）
