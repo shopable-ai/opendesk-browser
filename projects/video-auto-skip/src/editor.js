@@ -34,12 +34,19 @@ export function endpointsFor(rule, lastSecond) {
   return {start: rule.start, end: rule.end};
 }
 export function changeEndpoint(key, rule, part, value, lastSecond) {
-  const points = {...endpointsFor(rule, lastSecond), [part]: value};
+  const next = key === 'intro' && part === 'start' && value === undefined ? 0 : value;
+  const points = {...endpointsFor(rule, lastSecond), [part]: next};
   // The last displayable second means "follow the end", even if the duration is fractional.
   return key === 'outro' && (part === 'end' ? value === undefined || value === lastSecond : rule.kind === 'tail')
     ? {kind: 'tail', seconds: points.start === undefined ? undefined : lastSecond - points.start}
     : {kind: 'fixed', ...points};
 }
+export function clearTimeIntent(key, part) {
+  if (key === 'intro' && part === 'start') return {kind: 'endpoint', value: 0};
+  if (key === 'outro' && part === 'end') return {kind: 'endpoint', value: undefined};
+  return {kind: 'unset-rule'};
+}
+
 export function timeIssue(rule, lastSecond) {
   if (!lastSecond) return '本集时长未知，暂不能修改时间规则。';
   const {start, end} = endpointsFor(rule, lastSecond);
@@ -65,7 +72,7 @@ export function tailMatchStatus({rule, saved, duration, changed, reusable, inher
     (reusable ? '，适用各集。' : inherited ? '，沿用作品默认。' : '，仅本集。')};
 }
 
-export function buildTimeEditor({el, button, row, template, calibrationHost, key, name, canEdit, onEdit, onMark, onPreview}) {
+export function buildTimeEditor({el, button, row, template, calibrationHost, key, name, canEdit, onEdit, onClear, onMark, onPreview}) {
   const hint = el('span', 'vas-sr');
   hint.id = 'vas-window-' + key;
   row.querySelector('.vas-row-head').append(hint);
@@ -85,19 +92,35 @@ export function buildTimeEditor({el, button, row, template, calibrationHost, key
     else raw[part] = text;
     onEdit(part, value);
   }
+  const clears = {};
   const inputs = Object.fromEntries(ENDPOINTS.map(part => {
-    const label = el('label', 'vas-field');
-    const title = el('span', '', part === 'start' ? '开始' : '结束');
+    const field = el('div', 'vas-field');
+    const title = el('label', '', part === 'start' ? '开始' : '结束');
     const input = el('input');
     input.id = 'vas-' + key + '-' + part;
+    title.htmlFor = input.id;
     input.type = 'text';
     input.autocomplete = 'off';
     input.spellcheck = false;
     input.placeholder = '分:秒';
     input.setAttribute('aria-label', name + title.textContent + '时间');
     input.setAttribute('aria-describedby', error.id + (key === 'outro' && part === 'end' ? ' vas-tail-help' : ''));
-    label.append(title, input);
-    fields.append(label);
+    const clear = button('×');
+    clear.id = 'vas-clear-' + key + '-' + part;
+    clear.className = 'vas-clear-time';
+    const resetLabel = key === 'intro' && part === 'start' ? '恢复片头开始为 00:00' :
+      key === 'outro' && part === 'end' ? '恢复片尾结束跟随视频结尾' : '清空' + name + title.textContent + '时间';
+    clear.setAttribute('aria-label', resetLabel);
+    clear.title = resetLabel;
+    clear.addEventListener('click', () => {
+      if (!canEdit()) return;
+      delete raw[part];
+      onClear(part);
+      input.focus({preventScroll: true});
+    });
+    clears[part] = clear;
+    field.append(title, input, clear);
+    fields.append(field);
     const normalize = () => {
       if (Number.isNaN(parse(part, input.value))) return;
       delete raw[part];
@@ -131,10 +154,13 @@ export function buildTimeEditor({el, button, row, template, calibrationHost, key
   takeStart.addEventListener('click', () => onMark('start'));
   takeEnd.addEventListener('click', () => onMark('end'));
   preview.addEventListener('click', onPreview);
-  row.append(trackHost, fields, error);
+  const endHint = key === 'outro' ? el('p', 'vas-end-hint') : null;
+  row.append(trackHost, fields);
+  if (endHint) row.append(endHint);
+  row.append(error);
   const tailStatus = key === 'outro' ? el('span', 'vas-match-text') : null;
   if (tailStatus) {
-    const help = el('p', 'vas-sr', '留空或输入 End 跟随视频结尾；填入具体结束时间可保留后面的内容。');
+    const help = el('p', 'vas-sr', 'End 跟随当前视频的实际结束位置，换集自动重算片尾开始；填入具体结束时间可保留后面的内容。');
     help.id = 'vas-tail-help';
     tailStatus.id = 'vas-tail-match';
     const matchPanel = el('p', 'vas-tail-match');
@@ -172,6 +198,11 @@ export function buildTimeEditor({el, button, row, template, calibrationHost, key
     }
     if (error.textContent !== issue) error.textContent = issue;
     error.hidden = !issue;
+    if (endHint) {
+      endHint.hidden = rule.kind !== 'tail';
+      endHint.textContent = d ? 'End = 本集结尾 ' + formatTime(d) + ' · 换集自动适配' :
+        'End 会在获取视频时长后跟随结尾';
+    }
     for (const part of ENDPOINTS) {
       const input = inputs[part];
       input.disabled = locked;
@@ -182,6 +213,10 @@ export function buildTimeEditor({el, button, row, template, calibrationHost, key
       const suggested = suggestions[part];
       input.placeholder = part === 'end' && anchor === 'end' ? 'End' : present(suggested) ? formatTime(suggested) : '分:秒';
       input.parentElement.dataset.endpointState = part === anchor ? 'bound-' + part : present(suggested) ? 'suggested' : '';
+      const resetAvailable = !(key === 'intro' && part === 'start' && rule.kind === 'fixed' &&
+        points.start === 0 && !Object.hasOwn(raw, part));
+      clears[part].disabled = locked;
+      clears[part].hidden = locked || !value.trim() || !resetAvailable;
     }
     takeStart.disabled = takeEnd.disabled = locked || !canMark;
     preview.disabled = locked || !canPreview;
