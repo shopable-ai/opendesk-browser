@@ -44,7 +44,7 @@ function byteRange(header, size) {
   return Number.isSafeInteger(start) && start < size && start <= end ? {start, end} : null;
 }
 
-export async function startFixture({directory, port = 0, signal, durations = clips} = {}) {
+export async function startFixture({directory, port = 0, signal, durations = clips, renderPage = documentHtml} = {}) {
   // Generated media lives only in the caller's temporary directory.
   const files = new Map();
   const colors = ['navy', 'teal', 'purple', 'olive', 'indigo', 'maroon'];
@@ -83,7 +83,7 @@ export async function startFixture({directory, port = 0, signal, durations = cli
     const isScript = pathname === prefix + '/playback.js';
     if (!episode && !isScript) { response.writeHead(404).end(); return; }
     if (episode && request.method === 'GET') visits.set(pathname, (visits.get(pathname) ?? 0) + 1);
-    const body = isScript ? script : Buffer.from(documentHtml(origin, Number(episode[1]), episode[2] ? 'backup' : 'primary'));
+    const body = isScript ? script : Buffer.from(renderPage(origin, Number(episode[1]), episode[2] ? 'backup' : 'primary'));
     response.writeHead(200, {'Content-Type': isScript ? 'text/javascript; charset=utf-8' : 'text/html; charset=utf-8',
       'Content-Length': body.length, 'X-Content-Type-Options': 'nosniff'}).end(request.method === 'HEAD' ? undefined : body);
   });
