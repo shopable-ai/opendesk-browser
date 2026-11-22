@@ -4,8 +4,8 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <meta name="color-scheme" content="light">
-<title>连播助手 · R8 片尾跨集匹配与统一卡片宽度 · 离线侧栏预览</title>
-<meta name="od-design-variant" content="B-R8">
+<title>连播助手 · R9 单按钮保存与草稿保护 · 离线侧栏预览</title>
+<meta name="od-design-variant" content="B-R9">
 <meta name="od-preview-binding" content="outro.end=duration; outro.tail=relative seconds; absolute end only when interval mode">
 <meta name="od-preview-capability" content="offline-sidebar-only-viewport-slider-no-video-no-scenario">
 <style>body{margin:0;padding:20px 12px;background:#f2f5fa;color-scheme:light}#od-watch-preview{max-width:800px;margin:0 auto}@media(max-width:400px){body{padding:10px 4px}}</style>
@@ -474,6 +474,26 @@ html,body{background:#f2f5fa}
 #od-watch-preview .od-tail-match[data-state="interval"]{background:#f8faff}
 #od-watch-preview .od-viewport-auto-state{color:#4b729e;background:#f0f5fc}
 @media(max-width:340px){#od-watch-preview .od-window-preference{margin:0!important;padding:7px 8px}}
+
+/* R9: One primary action; discard is a low-emphasis contextual safety escape. */
+#od-watch-preview .od-save-zone{padding-top:9px}
+#od-watch-preview .od-save-actions{width:100%;display:block}
+#od-watch-preview .od-save-actions .od-primary{display:block;width:100%;min-height:37px}
+#od-watch-preview .od-unsaved-line{
+ display:flex;align-items:center;justify-content:space-between;
+ gap:12px;margin:0 0 4px;padding:0 2px;min-height:25px;
+ color:#738198;font-size:11px;line-height:1.35;
+}
+#od-watch-preview .od-unsaved-line button{
+ background:transparent!important;border:0;color:#566e9a;
+ font:550 11px/1.4 inherit;min-height:28px;padding:3px 2px;
+ text-decoration:underline;text-underline-offset:3px;cursor:pointer;
+}
+#od-watch-preview .od-unsaved-line button:hover{color:#284d99}
+#od-watch-preview .od-unsaved-line button:focus-visible{
+ outline:2px solid #5782dd;outline-offset:2px;border-radius:4px;
+}
+#od-watch-preview .od-unsaved-line[hidden]{display:none!important}
 </style>
 <script>
 /* Local interaction simulator only. No browser-extension or website APIs. The demo has a verified single-series identity; a real adapter must only use series-wide saving after identity is confirmed. */
@@ -1009,7 +1029,7 @@ function transitionHTML(){const t=model.s.transition;return t?`<div class="od-tr
 function sidebarHTML(){
  const s=model.s,v=validation();
  if(s.closed)return '<div class="od-closed"><span>连播助手已收起</span><button id="od-open" type="button" data-action="open">打开设置</button></div>'+statusHTML();
- return `<header class="od-header"><div class="od-identity-row"><div id="od-content-identity" class="od-work">${identityText()}</div></div></header><div class="od-rows">${rowHTML('intro')}${rowHTML('outro')}<div class="od-auto"><label for="od-auto-next">自动下一集</label>${Object.prototype.hasOwnProperty.call(s.overrides[model.identity()]||{},'autoNext')?'<span class="od-exception">本集例外</span>':''}<label class="od-switch"><input id="od-auto-next" type="checkbox" data-toggle="autoNext" ${s.draft.autoNext?'checked':''} aria-label="自动下一集"></label></div>${restoreAction('autoNext')?`<div class="od-auto-restore">${restoreAction('autoNext')}</div>`:''}${viewportHTML()}</div><footer class="od-save-zone"><div class="od-save-actions"><button id="od-save" type="button" class="od-primary" data-action="save" ${s.dirty&&v.valid?'':'disabled'}>保存设置</button><button id="od-cancel" type="button" class="od-link" data-action="cancel" ${s.dirty?'':'hidden'}>取消修改</button></div></footer>${statusHTML()}${transitionHTML()}`;
+ return `<header class="od-header"><div class="od-identity-row"><div id="od-content-identity" class="od-work">${identityText()}</div></div></header><div class="od-rows">${rowHTML('intro')}${rowHTML('outro')}<div class="od-auto"><label for="od-auto-next">自动下一集</label>${Object.prototype.hasOwnProperty.call(s.overrides[model.identity()]||{},'autoNext')?'<span class="od-exception">本集例外</span>':''}<label class="od-switch"><input id="od-auto-next" type="checkbox" data-toggle="autoNext" ${s.draft.autoNext?'checked':''} aria-label="自动下一集"></label></div>${restoreAction('autoNext')?`<div class="od-auto-restore">${restoreAction('autoNext')}</div>`:''}${viewportHTML()}</div><footer class="od-save-zone"><div id="od-unsaved-line" class="od-unsaved-line" ${s.dirty?'':'hidden'}><span>尚未保存的修改</span><button id="od-cancel" type="button" data-action="cancel" aria-label="放弃本次修改，恢复上次保存的设置">放弃修改</button></div><div class="od-save-actions"><button id="od-save" type="button" class="od-primary" data-action="save" ${s.dirty&&v.valid?'':'disabled'}>保存设置</button></div></footer>${statusHTML()}${transitionHTML()}`;
 }
 function syncStatus(){
  const s=model.s,v=validation(),host=q('#od-status');if(!host)return;let text='',kind='',actions=[];
@@ -1028,7 +1048,7 @@ function syncStatus(){
  host.hidden=!text&&!actions.length;host.className='od-status '+kind;q('#od-status-text').textContent=text;
  const actionHost=q('#od-status-actions'),html=actions.join('');if(ui.actionsHost!==actionHost||ui.actionsSignature!==html){actionHost.innerHTML=html;ui.actionsHost=actionHost;ui.actionsSignature=html;}
 }
-function syncSave(){const s=model.s,v=validation(),b=q('#od-save');if(b){b.disabled=!s.dirty||!v.valid;b.textContent=!s.dirty&&ui.savedContext===contextKey()?'已保存':'保存设置';}const c=q('#od-cancel');if(c)c.hidden=!s.dirty;syncStatus();}
+function syncSave(){const s=model.s,v=validation(),b=q('#od-save');if(b){b.disabled=!s.dirty||!v.valid;b.textContent=!s.dirty&&ui.savedContext===contextKey()?'已保存':'保存设置';}const line=q('#od-unsaved-line');if(line)line.hidden=!s.dirty;syncStatus();}
 function syncSelection(){
  for(const key of ['intro','outro']){
   const part=ui.selected[key],active=ui.activeKey===key;
