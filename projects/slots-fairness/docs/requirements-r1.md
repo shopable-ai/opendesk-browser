@@ -229,3 +229,13 @@ R1 文件本身不等于以上测试已通过。执行的实际测试与已知�
 - 以上评分仅表示需求设计维度的自评达到 96/100；正式功能进入开发前，需补上上述门禁证据，不能以高设计分绕过。
 
 **R1 结论**：仓库文档与交互预览的方案阶段完成，模拟状态逻辑 21/21 通过；可进入**受控正式开发准备**，但不代表具备上架、真实站点验证或安装验收条件。
+
+## 12. R1 交互预览入口纠偏（2026-11-23）
+
+用户要求**当前 ChatGPT 对话内直接可点击、左右两列（Side Panel + 模拟目标页面）预览**，而不是单给 GitHub 源码链接。GitHub `blob/main/.../index.html` 是源码查看页，并非可运行 HTML 预览入口；后续回复应优先在对话内呈现互动 UI，独立 HTML 仅作可打开/可保存的备用文件。
+
+**风格与证据边界的校准**：此前已读取 `.agents/skills/opendesk-ui-preview/SKILL.md`、`src/ui/design-tokens.css`、`src/ui/design-system.css`，但预览 `preview/index.html` 仍是人工编写的离线设计稿，尚未用 `node scripts/sidebar-preview-kit.mjs create` 生成受保护的完整宿主外壳，也未执行其 `check`。故不能标为 `SOURCE_PARITY_PASS` 或官方 UI Skill 静态门禁通过。对话内另行提供的交互适配也必须标明 `CHAT_ADAPTER_NOT_SOURCE_HTML`，不可把其测试自动算作仓库内预览源码验证。
+
+本轮额外提供一份离线 **Chat Adapter 交互实验文件**（会话附件），采用仓库批准的 Neutral / `od-*` 语义映射与浅色宿主视觉，不更改正式 Browser 源码。它在本轮隔离 Chromium 的 `page.set_content` 点击测试中覆盖九个模拟场景，**23/23 断言通过**（已验证字段发现、人工点选并保存、规则复用、MutationObserver 模拟更新、规则失效修复、无权限阻断/撤销、未公开种子、模拟结果差异、Canvas/iframe 降级、证据展开与 360px 无水平溢出；没有页面 JS 异常）。当前测试环境无法导航到文件 URL 或本机 HTTP（ERR_BLOCKED_BY_ADMINISTRATOR），因此使用 `set_content`；该隔离文档未提供 Web Crypto，算法显示清楚的“预置静态向量”降级，并非真实 SHA-256 在 Chromium 页面计算通过。
+
+**仍需补做**：可连接本机仓库工具或本地 Codex 时运行官方 `sidebar-preview-kit.mjs create/check`、按受保护区正确迁移业务 UI；再做来自源文件的浏览器点击与视觉校准。未完成上述步骤前不得标记“完全采用官方扩展规范”。
