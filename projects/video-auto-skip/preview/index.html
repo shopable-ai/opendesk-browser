@@ -880,7 +880,11 @@ class ContinuityModel {
   _finish(manualEnding=false) {
     if(manualEnding){this.s.playing=false;this.s.pending=null;this._notice('手动观看已到结尾，未自动换集。','warning');return;}
     if(!this.effective().autoNext||this.s.dirty){this.s.playing=false;this.s.pending=null;this._notice(this.s.dirty?'模拟本集结束；未保存草稿保留，不执行积压动作。':'模拟本集结束，自动下一集已关闭。');return;}
-    const n=({3:4,4:5})[this.s.episode];
+    if(this.r10?.context?.issueCode==='NEXT_NOT_FOUND'){
+     this.s.playing=false;this.s.pending=null;
+     this._notice('模拟本站下一集入口未找到；不会盲目切换。','warning');return;
+   }
+   const n=({3:4,4:5})[this.s.episode];
     if(n){this.s.pending={identity:this.identity(),nextEpisode:n,kind:'confirmed'};this._notice(`模拟已确认第 ${n} 集，准备进入；仍可暂停或撤销。`);}
     else {this.s.playing=false;this.s.pending=null;this._notice('下一集尚未找到；不能据此认定作品已看完。','warning');}
   }
@@ -1319,6 +1323,7 @@ function r10TailState(){
  if(s.dirty)return {kind:'waiting',text:'有未保存修改 · 暂不执行旧跳过规则'};
  if(d.declined)return {kind:'declined',text:'本集已选择不沿用历史规则'};
  if(d.compatibility==='APPLICABLE'){
+  if(model.r10.context.canSeek===false)return {kind:'risk',text:'规则已匹配 · 播放器无法定位，暂不执行'};
   if(draft.enabled===false)return {kind:'waiting',text:'规则适用 · 自动跳过已关闭'};
   if(draft.mode==='interval')return {kind:'interval',text:'本集指定区间 · 不跟随 End'};
   if(d.local)return {kind:'matched',text:'本集例外 · 最后'+fmt(d.candidateTail)};
@@ -1409,8 +1414,8 @@ function feedbackPayload(){
  },null,2);
 }
 function feedbackPanelHTML(){
- if(!feedbackIssue()||!ui.feedbackOpen||model.s.closed)return '';
- return '<section id="od-feedback-panel" class="od-feedback-panel" role="group" aria-label="反馈此页面无法运行">'+
+ if(!feedbackIssue()||model.s.closed)return '';
+ return '<section id="od-feedback-panel" class="od-feedback-panel" role="group" aria-label="反馈此页面无法运行"'+(ui.feedbackOpen?'':' hidden')+'>'+
   '<div class="od-feedback-title">反馈此页面问题</div>'+
   '<p class="od-feedback-explain">已识别的故障类型：'+esc(feedbackIssue().code)+'。可选补充说明，生成诊断文本供开发者排查。</p>'+
   '<label for="od-feedback-note">补充说明（选填）</label>'+
@@ -1601,7 +1606,7 @@ function r10Checks(){
  test('R10-FB01',()=>{const m=fixture('playerMissing'),d=m.r10Decision('outro');return m.r10.context.issueCode==='PLAYER_NOT_FOUND'&&!d.executionAllowed&&m.s.duration===null;});
  test('R10-FB02',()=>{const m=fixture('seekUnavailable'),d=m.r10Decision('outro');return d.compatibility==='APPLICABLE'&&!d.executionAllowed&&d.reason.includes('无法安全定位');});
  test('R10-FB03',()=>{const m=fixture('permissionBlocked');m.edit('intro',{end:90});return !m.save()&&m.s.dirty&&m.s.statusKind==='error';});
- test('R10-FB04',()=>{const m=fixture('nextUnavailable');return m.r10Decision('outro').executionAllowed&&m.r10.context.issueCode==='NEXT_NOT_FOUND';});
+ test('R10-FB04',()=>{const m=fixture('nextUnavailable');m.s.playing=true;m._finish(false);return m.r10Decision('outro').executionAllowed&&m.r10.context.issueCode==='NEXT_NOT_FOUND'&&!m.s.pending&&m.s.status.includes('未找到');});
  return {passed:results.filter(x=>x.pass).length,total:results.length,results,environment:'offline model only, not Chrome or persistent store'};
 }
 function r10LayoutChecks(){
