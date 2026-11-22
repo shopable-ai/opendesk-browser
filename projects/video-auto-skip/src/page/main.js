@@ -4,6 +4,7 @@ import {createIyfReader, isIyfBufferNudge, isIyfPage, iyfMediaSelector, nextIyfE
 import {identifyLocalPlayer, nextLocalEpisode} from './local-player.js';
 import {createNextReceipt} from './next-receipt.js';
 import {createPlayer} from './player.js';
+import {ensureWorkTitle} from '../work-index.js';
 
 const sameBinding = (a, b) => a && b.state === 'ready' && a.media === b.media && a.root === b.root &&
   a.source === b.source && a.href === b.href && a.context.seriesKey === b.context.seriesKey &&
@@ -19,6 +20,7 @@ export default function main({assets} = {}) {
 
   let closed = false, binding = null, draftTarget = null, stopRequests, cancelNavigation, writingRules = false;
   let stopArrival, lastNotifiedSkip;
+  const observedTitles = new Set();
   const nextReceipt = createNextReceipt({storage: bridge.storage, navigation: window.navigation,
     arrivalType: performance.getEntriesByType('navigation')[0]?.type});
   const loading = new WeakSet();
@@ -114,7 +116,12 @@ export default function main({assets} = {}) {
       if (validateRuleChange(saved, next, own.context, scope, own.media.duration)) {
         return {state: 'invalid'};
       }
-      return await bridge.storage.set({key: RULES_KEY, value: next, ifMatch});
+      const receipt = await bridge.storage.set({key: RULES_KEY, value: next, ifMatch});
+      if (receipt?.saved !== true) return receipt;
+      // Title metadata is non-authoritative: its failure cannot roll back or
+      // alter the committed rules. Read back is handled inside ensureWorkTitle.
+      const indexed = await ensureWorkTitle(bridge.storage, own.context);
+      return {...receipt, workIndex: indexed.state};
     } catch (error) {
       if (error?.code === 'E_STORAGE_CONFLICT') return {state: 'conflict'};
       if (['E_HOST_STORAGE_QUOTA', 'E_TOOL_DATA_LIMIT', 'E_TOOL_LIMIT'].includes(error?.code)) return {state: 'quota'};
@@ -140,6 +147,15 @@ export default function main({assets} = {}) {
         binding = next;
         player.bind(next);
         if (next && !iyf) observeArrival(next);
+        if (next && typeof next.context.title === 'string') {
+          const titleKey = JSON.stringify([next.context.seriesKey, next.context.title]);
+          if (!observedTitles.has(titleKey)) {
+            observedTitles.add(titleKey);
+            // Re-identified legacy works may be backfilled only when rules
+            // already exist. Failure must never alter playback authorization.
+            void ensureWorkTitle(bridge.storage, next.context).catch(() => {});
+          }
+        }
       }
     }
     const snapshot = player.snapshot();

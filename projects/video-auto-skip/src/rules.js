@@ -66,8 +66,12 @@ export function readScope(data, loc, scope) {
   throw new TypeError('无效规则范围。');
 }
 
+// iYF has no verified season/version cohort. Preserve historical defaults on
+// disk for later review; only explicit episode settings authorize playback.
+export const canInheritDefaults = loc => !loc?.seriesKey?.startsWith('iyf:');
+
 export function resolveRules(data, loc) {
-  return {...readScope(data, loc, 'series'), ...readScope(data, loc, 'episode')};
+  return {...(canInheritDefaults(loc) ? readScope(data, loc, 'series') : {}), ...readScope(data, loc, 'episode')};
 }
 
 export function updateScope(data, loc, scope, rules) {

@@ -1,4 +1,4 @@
-import {EMPTY, cleanRules, isEnabled, resolveInterval, resolveRules, readScope, RULES_KEY, saveScope, updateScope, validateRuleChange, validateRules} from './rules.js';
+import {EMPTY, canInheritDefaults, cleanRules, isEnabled, resolveInterval, resolveRules, readScope, RULES_KEY, saveScope, updateScope, validateRuleChange, validateRules} from './rules.js';
 import {blankTiming, buildTimeEditor, changeEndpoint, clearTimeIntent, endpointsFor, formatTime as time, outroInterval, recommendedSpan, tailMatchStatus, timeIssue, VIEWPORT_STOPS} from './editor.js';
 import {bindI18n, localizeIssue, t, translateStatic} from './i18n.js';
 
@@ -71,18 +71,24 @@ export function mountVideoSidebar(tool) {
   }
 
   const lastSecond = (snap = snapshot) => Math.floor(durationOf(snap) ?? 0);
-  const storedDefault = key => storage && lastLinked ? readScope(storage.data, lastLinked.context, 'series')[key] : undefined;
+  const legacyDefault = key => storage && lastLinked ? readScope(storage.data, lastLinked.context, 'series')[key] : undefined;
+  const storedDefault = key => lastLinked && canInheritDefaults(lastLinked.context) ? legacyDefault(key) : undefined;
+  // For R10's explicit "match original outro length" action, keep an old iYF
+  // default as a *reference*, never as an automatically enabled rule.
+  const archivedOutro = () => scope === 'episode' && ready(snapshot) &&
+    !canInheritDefaults(snapshot.context) && !Object.hasOwn(draft, 'outro') ? legacyDefault('outro') : undefined;
   const selected = key => scope === 'episode' && !Object.hasOwn(draft, key) ? storedDefault(key) : draft[key];
   const original = key => scope === 'episode' && !Object.hasOwn(baseline, key) ? storedDefault(key) : baseline[key];
   const timing = key => selected(key) ?? blankTiming(key);
   const unusableSavedOutro = () => {
+    if (archivedOutro()?.kind === 'fixed') return true;
     const rule = selected('outro'), d = durationOf(lastLinked);
     return Boolean(d && rule && (sameTiming(rule, original('outro')) ||
       scope === 'episode' && !Object.hasOwn(draft, 'outro')) && !outroInterval(rule, d));
   };
   const editorTiming = key => key === 'outro' && unusableSavedOutro() ? blankTiming(key) : timing(key);
   const reusableOutro = () => {
-    const rule = selected('outro');
+    const rule = archivedOutro() ?? selected('outro');
     if (!ready(snapshot) || rule?.kind !== 'fixed' || !unusableSavedOutro()) return;
     const tail = {kind: 'tail', seconds: rule.end - rule.start, ...(rule.enabled === false ? {enabled: false} : {})};
     if (!timeIssue(tail, lastSecond())) return tail;
@@ -197,7 +203,7 @@ export function mountVideoSidebar(tool) {
 
   function effectiveRules() {
     if (!storage || !ready(snapshot)) return {};
-    return scope === 'episode' ? {...readScope(storage.data, snapshot.context, 'series'), ...draft} : draft;
+    return scope === 'episode' ? {...(canInheritDefaults(snapshot.context) ? readScope(storage.data, snapshot.context, 'series') : {}), ...draft} : draft;
   }
 
   function validate(snap = snapshot, data = storage?.data) {
@@ -306,19 +312,25 @@ export function mountVideoSidebar(tool) {
     if (find('page-status').textContent !== statusText) find('page-status').textContent = statusText;
     find('page-status').classList.toggle('vas-sr', bound && !snapshot.offscreen);
     find('refresh').disabled = busy;
-    find('scope-help').textContent = !lastLinked ? '' : t(scope === 'series' ? 'scopeSeriesHelp' : 'scopeEpisodeHelp');
-    find('scope-help').classList.toggle('vas-sr', !hasEdits);
+    find('scope-help').textContent = !lastLinked ? '' : t(scope === 'series' ? 'scopeSeriesHelp' : iyf ? 'scopeEpisodeIyfHelp' : 'scopeEpisodeHelp');
+    find('scope-help').classList.toggle('vas-sr', !hasEdits && !(iyf && storage && Object.keys(readScope(storage.data, c, 'series')).length));
     const active = lastLinked && storage ? resolveRules(storage.data, c) : {};
     const hasEpisodeOutro = Boolean(lastLinked && storage && Object.hasOwn(readScope(storage.data, c, 'episode'), 'outro'));
     for (const key of KEYS) {
       const {toggle, summary, restore} = rows[key];
+      restore.textContent = t(iyf ? 'removeEpisodeOverride' : 'restoreInherited');
+      restore.setAttribute('aria-label', t(iyf ? 'removeEpisodeOverrideAria' : 'restoreRuleAria', {rule: t(NAMES[key])}));
       const raw = draft[key], effective = selected(key), siteHandlesNext = key === 'next' && iyf;
       toggle.checked = !siteHandlesNext && (key === 'next' ? isEnabled(effective) : timingOn(effective));
       toggle.disabled = !allowed || siteHandlesNext;
       const unusable = key === 'outro' && unusableSavedOutro();
       const reusable = unusable ? reusableOutro() : undefined;
-      const source = scope === 'episode' ? (raw === undefined ? (unusable ? '作品默认 · ' : t('summaryInherited')) : t('summaryOverride')) : '';
-      const proposed = source + (lastLinked ? caption(effective, key) : t('summaryPendingWork')) + (unusable ? '（当前视频未采用）' : '');
+      const archived = scope === 'episode' && iyf && raw === undefined && legacyDefault(key) !== undefined;
+      const source = scope === 'episode' ? (raw === undefined ?
+        (archived ? t('summaryArchivedDefault') : unusable ? '作品默认 · ' : canInheritDefaults(c) ? t('summaryInherited') : '') :
+        t('summaryOverride')) : '';
+      const proposed = source + (lastLinked ? caption(effective, key) : t('summaryPendingWork')) +
+        (unusable || archived ? '（当前视频未采用）' : '');
       const changed = !sameRule(raw, baseline[key]);
       const activeOutroUnavailable = key === 'outro' && bound && d && isEnabled(active[key]) && !outroInterval(active[key], d);
       const message = siteHandlesNext ? t('summaryIyfNext') : changed
@@ -327,7 +339,7 @@ export function mountVideoSidebar(tool) {
       if (summary.textContent !== message) summary.textContent = message;
       // Keep the effective rule available to assistive technology. Show source details when
       // there is an exception, a site restriction, or a draft differs from a saved rule.
-      summary.classList.toggle('vas-sr', key === 'outro' ? !unusable && !changed :
+      summary.classList.toggle('vas-sr', key === 'outro' ? !unusable && !changed && !archived :
         !siteHandlesNext && !(scope === 'episode' && (raw !== undefined || effective !== undefined)) && !(changed && active[key] !== undefined));
       restore.hidden = siteHandlesNext || scope !== 'episode' || raw === undefined;
       restore.disabled = !allowed;
@@ -547,7 +559,10 @@ export function mountVideoSidebar(tool) {
         }
         if (isCurrent()) {
           reset(wasScope);
-          saved(() => t('feedbackSaved', {scope: savedRange(wasScope)}));
+          if (result.workIndex && !['saved', 'removed', 'no-rules', 'newer-existing'].includes(result.workIndex)) {
+            wasSaved = true;
+            feedback(() => t('workTitlePending'), true, true);
+          } else saved(() => t('feedbackSaved', {scope: savedRange(wasScope)}));
         } else feedback(() => t('feedbackPriorSaved'));
       } else {
         await reconcileWrite(isCurrent);

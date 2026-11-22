@@ -25,7 +25,9 @@
       "nextRule": "自动下一集",
       "autoSkip": "自动跳过",
       "restoreInherited": "恢复继承",
+      "removeEpisodeOverride": "移除本集设置",
       "restoreRuleAria": "恢复继承：{rule}",
+      "removeEpisodeOverrideAria": "移除本集设置：{rule}",
       "timeStart": "开始",
       "timeEnd": "结束",
       "timePlaceholder": "分:秒",
@@ -58,6 +60,7 @@
       "lengthLabel": "全长{time}",
       "scopeSeriesHelp": "保存至本作品当前季；已有本集例外继续优先。",
       "scopeEpisodeHelp": "保存至当前集；未修改的项目继续沿用已保存规则。",
+      "scopeEpisodeIyfHelp": "仅保存至当前集；未经确认的历史作品默认规则保留但不会自动执行。",
       "scopeSeries": "本作品当前季",
       "scopeEpisode": "当前集",
       "summaryUnset": "未设置",
@@ -66,6 +69,7 @@
       "summaryTimeMissing": "尚未填入时间",
       "summaryLastSeconds": "最后 {seconds} 秒{interval}",
       "summaryInherited": "沿用作品默认 · ",
+      "summaryArchivedDefault": "历史作品默认 · ",
       "summaryOverride": "本集例外 · ",
       "summaryPendingWork": "等待识别作品",
       "summaryIyfNext": "由 iYF 处理下一集，助手不会重复切集。",
@@ -150,6 +154,7 @@
       "feedbackReceiptUnverified": "收到写入回执，但暂不能核对已存设置。请重新识别。",
       "feedbackVersionChanged": "写入后设置又发生变化，请核对最新版本。",
       "feedbackSaved": "设置已保存至{scope}。",
+      "workTitlePending": "规则已保存，但作品名称尚未确认写入；下次识别该作品时可安全补录。",
       "feedbackPriorSaved": "上一播放器的设置已保存。",
       "feedbackCannotReadPosition": "暂不能读取此标记所需的播放时间。",
       "feedbackMarkedDraft": "已将当前时间填入草稿，播放器位置和已存设置不变。",
@@ -255,9 +260,17 @@
         "source": "恢复继承",
         "text": "Restore inherited rule"
       },
+      "removeEpisodeOverride": {
+        "source": "移除本集设置",
+        "text": "Remove episode setting"
+      },
       "restoreRuleAria": {
         "source": "恢复继承：{rule}",
         "text": "Restore inherited rule: {rule}"
+      },
+      "removeEpisodeOverrideAria": {
+        "source": "移除本集设置：{rule}",
+        "text": "Remove episode setting: {rule}"
       },
       "timeStart": {
         "source": "开始",
@@ -387,6 +400,10 @@
         "source": "保存至当前集；未修改的项目继续沿用已保存规则。",
         "text": "Save for this episode; unchanged items keep using saved rules."
       },
+      "scopeEpisodeIyfHelp": {
+        "source": "仅保存至当前集；未经确认的历史作品默认规则保留但不会自动执行。",
+        "text": "Save only for this episode; unverified historical work defaults are retained but will not run automatically."
+      },
       "scopeSeries": {
         "source": "本作品当前季",
         "text": "this season"
@@ -418,6 +435,10 @@
       "summaryInherited": {
         "source": "沿用作品默认 · ",
         "text": "Inherited series rule · "
+      },
+      "summaryArchivedDefault": {
+        "source": "历史作品默认 · ",
+        "text": "Archived work default · "
       },
       "summaryOverride": {
         "source": "本集例外 · ",
@@ -755,6 +776,10 @@
         "source": "设置已保存至{scope}。",
         "text": "Settings saved for {scope}."
       },
+      "workTitlePending": {
+        "source": "规则已保存，但作品名称尚未确认写入；下次识别该作品时可安全补录。",
+        "text": "Rules were saved, but the work title could not be verified. It can be filled in next time this work is recognized."
+      },
       "feedbackPriorSaved": {
         "source": "上一播放器的设置已保存。",
         "text": "Previous player's settings were saved."
@@ -893,9 +918,17 @@
         "source": "恢复继承",
         "text": "継承ルールに戻す"
       },
+      "removeEpisodeOverride": {
+        "source": "移除本集设置",
+        "text": "この話の設定を削除"
+      },
       "restoreRuleAria": {
         "source": "恢复继承：{rule}",
         "text": "継承ルールに戻す：{rule}"
+      },
+      "removeEpisodeOverrideAria": {
+        "source": "移除本集设置：{rule}",
+        "text": "この話の設定を削除：{rule}"
       },
       "timeStart": {
         "source": "开始",
@@ -1025,6 +1058,10 @@
         "source": "保存至当前集；未修改的项目继续沿用已保存规则。",
         "text": "この話に保存します。変更していない項目は保存済みルールを引き続き使用します。"
       },
+      "scopeEpisodeIyfHelp": {
+        "source": "仅保存至当前集；未经确认的历史作品默认规则保留但不会自动执行。",
+        "text": "現在のエピソードのみに保存します。未確認の作品既定ルールは残しますが、自動実行しません。"
+      },
       "scopeSeries": {
         "source": "本作品当前季",
         "text": "現在のシーズン"
@@ -1056,6 +1093,10 @@
       "summaryInherited": {
         "source": "沿用作品默认 · ",
         "text": "作品の既定ルールを継承・"
+      },
+      "summaryArchivedDefault": {
+        "source": "历史作品默认 · ",
+        "text": "過去の作品既定値 · "
       },
       "summaryOverride": {
         "source": "本集例外 · ",
@@ -1393,6 +1434,10 @@
         "source": "设置已保存至{scope}。",
         "text": "設定を{scope}に保存しました。"
       },
+      "workTitlePending": {
+        "source": "规则已保存，但作品名称尚未确认写入；下次识别该作品时可安全补录。",
+        "text": "ルールは保存しましたが、作品名の保存を確認できませんでした。次回この作品を認識した際に補完できます。"
+      },
       "feedbackPriorSaved": {
         "source": "上一播放器的设置已保存。",
         "text": "前のプレーヤーの設定を保存しました。"
@@ -1531,9 +1576,17 @@
         "source": "恢复继承",
         "text": "恢復繼承"
       },
+      "removeEpisodeOverride": {
+        "source": "移除本集设置",
+        "text": "移除本集設定"
+      },
       "restoreRuleAria": {
         "source": "恢复继承：{rule}",
         "text": "恢復繼承：{rule}"
+      },
+      "removeEpisodeOverrideAria": {
+        "source": "移除本集设置：{rule}",
+        "text": "移除本集設定：{rule}"
       },
       "timeStart": {
         "source": "开始",
@@ -1663,6 +1716,10 @@
         "source": "保存至当前集；未修改的项目继续沿用已保存规则。",
         "text": "儲存至目前集數；未變更的項目繼續沿用已儲存規則。"
       },
+      "scopeEpisodeIyfHelp": {
+        "source": "仅保存至当前集；未经确认的历史作品默认规则保留但不会自动执行。",
+        "text": "僅儲存至目前集數；未確認的歷史作品預設規則保留但不會自動執行。"
+      },
       "scopeSeries": {
         "source": "本作品当前季",
         "text": "本作品目前季度"
@@ -1694,6 +1751,10 @@
       "summaryInherited": {
         "source": "沿用作品默认 · ",
         "text": "沿用作品預設・"
+      },
+      "summaryArchivedDefault": {
+        "source": "历史作品默认 · ",
+        "text": "歷史作品預設 · "
       },
       "summaryOverride": {
         "source": "本集例外 · ",
@@ -2030,6 +2091,10 @@
       "feedbackSaved": {
         "source": "设置已保存至{scope}。",
         "text": "設定已儲存至{scope}。"
+      },
+      "workTitlePending": {
+        "source": "规则已保存，但作品名称尚未确认写入；下次识别该作品时可安全补录。",
+        "text": "規則已儲存，但尚未確認作品名稱已寫入；下次識別此作品時可安全補錄。"
       },
       "feedbackPriorSaved": {
         "source": "上一播放器的设置已保存。",
