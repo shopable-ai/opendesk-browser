@@ -49,3 +49,54 @@
 6. 交互：窄侧栏的职位发现→待审→规则→草稿→复制完整走通；刷新重新读回待审队列；可读性和键盘焦点无阻塞。
 
 证据规则：静态源码存在记 SOURCE_WIRED；候选构建、Node、真实 Chrome/网站、正式包安装分开记。当前真实页面与本地构建：NOT_TESTED。下一步优先真实 DOM 取证和标准候选构建，不提前上生产。
+
+
+## R3 · Get Jobs 源码对标与功能差距矩阵
+
+本节是 OD-JOB-AUTO-APPLY-GETJOBS-R3 对同一需求文件的差量更新。参考 Get Jobs 为 loks666/get_jobs 的 2026-11-23 所读取 main 源码。**SOURCE_VERIFIED 仅表示代码路径及实现分支存在，不等于 Get Jobs 在现时 BOSS 页面实际成功执行。**
+
+| 用户问题 / 能力 | Get Jobs 源码证据（仅供对标） | 本项目 R3 真实状态与决策 | 优先级、主要文件与验收 |
+| --- | --- | --- | --- |
+| BOSS 职位列表识别 | Locators.java 的职位卡、岗位名与公司定位；Boss.java 的岗位解析 | 扩展了已加载卡片的字段，但真实 DOM 改版适配仍待实站核验 | P0；src/page/main.js；scan.test.mjs；实站 NOT_TESTED |
+| 稳定职位 ID、重复及历史队列 | Boss.java 的 encryptId/encryptUserId 与数据库存在性判断 | 已规范化 URL ID 的 .html 后缀，去掉查询串；旧队列内存兼容，身份不明的卡片不能加入；未完成跨账号历史去重 | P0；Page + Sidebar；scan/match/queue tests |
+| DOM 异步加载、SPA 变化 | Boss.java 的职位列表加载、重试、等待逻辑 | 用户点击后最多等待 1.4 秒；导航/销毁拒绝旧结果；不持续轮询、不自动翻页 | P0；Page；动态/销毁 fixture |
+| 城市、工资、岗位与排除词 | Boss.java 的工资范围识别与过滤 | 规则评分及硬过滤沿用，缺失薪资/城市是未知，不判定为达标 | P0；Sidebar；match.test.mjs |
+| 学历、工作经验和完整 JD | Locators.java 的详情描述定位；Boss.java 的详情提取 | 仅从卡片摘要尝试识别学历/经验；完整 JD 与真实个人经历尚未比对，不推断满足 | P0 初步识别 / P1 完整匹配；Page |
+| 不活跃 HR、猎头、曾沟通 | Boss.java 的活跃字段、黑名单；BossChatNavigator.java 的继续沟通判别 | 只在页面有明确标签时过滤猎头与已沟通；活跃度不可观察时为未知；未查历史聊天页 | P1；Page + Sidebar；match.test.mjs |
+| AI 简历匹配与个性化文案 | AiService.java 模型请求；Boss.java 对 AI 文案的使用 | 未接入真实 AI；需要本人确认的简历事实、用户同意、公开 AI SDK、失败降级；不能虚构经历 | P1；领域 adapter；NOT_IMPLEMENTED |
+| 人工待审及沟通草稿 | front/app/boss/page.tsx 配置招呼语与执行入口 | 已有待审 CAS、编辑、复制；默认话术不再宣称项目经验，复制不等于发送 | P0；Sidebar UI；match/queue tests |
+| 单岗位真实沟通与回执 | BossChatNavigator.java 的聊天入口；Boss.java 的发送与数据库状态更新 | **未实现**：须绑定岗位/公司/招聘者/实际文本/原批准，调用已授权的现有 Task/Controller，读回网站真实证据 | P1；单岗位受控执行；NOT_IMPLEMENTED |
+| Stop、暂停恢复、未知结果防重发 | BossJobService.java 的停止回调、状态查询；Boss.java 的停止点 | 目前仅只读扫描可取消，未知本地写入冻结。真实执行停止、恢复和未知发信核验未接入 | P1；Task + 持久回执；NOT_IMPLEMENTED |
+| 图片简历、批量、多平台 | BossResumeImageService、其他招聘平台 Worker、front/app/boss/page.tsx | 单岗位实站验收前暂缓；必须另审权限、账户安全和平台限制 | P2；NOT_IMPLEMENTED |
+| Side Panel 与 PC 管理/任务记录 | front/app/boss/page.tsx 有设置及任务入口 | R3 保留原有紧凑三 Tab 并增加风险可见性；不展示虚构的投递记录；PC 全管理延后 | P0/P1；index.html/style.css；真实 UI NOT_TESTED |
+
+上表的 Get Jobs 证据来自已实际读取的这些文件：
+- src/main/java/com/getjobs/worker/boss/Boss.java（岗位解析、历史映射、薪资、AI 调用、发送状态）
+- src/main/java/com/getjobs/worker/boss/BossChatNavigator.java（聊天导航与重复沟通）
+- src/main/java/com/getjobs/worker/boss/Locators.java（BOSS DOM 定位）
+- src/main/java/com/getjobs/application/service/AiService.java（AI 请求）
+- src/main/java/com/getjobs/worker/service/BossJobService.java（执行/停止与任务状态）
+- front/app/boss/page.tsx（前台配置、启动停止、图片简历设置）
+
+**许可证**：loks666/get_jobs 当前 LICENSE 明确为 PolyForm Noncommercial 1.0.0。未经另行取得可追溯的商业授权，不得直接复制、二次商业发行其源码。其他 GitHub 对照项目和 Python 分支仅为研究线索，原 README 中的许可证标签未经本轮逐仓确认，不代表可直接导入或运行稳定。所有产品算法均由 OpenDesk 独立实现。
+
+### R3 · 待开发的单岗位操作契约（设计，不是实际发送能力）
+
+用户完整旅程：当前已授权网页读取职位 → 硬性过滤 → 软性解释及未知提示 → 待审 → 核对真实个人简历事实 → 编辑草稿 → 用户审核当前公司、职位、招聘者、发送文本和权限 → 固定任务执行 → 在原招聘会话读取实际回执 → 持久结果。
+
+建议状态枚举：DISCOVERED / PENDING_REVIEW / APPROVED / IN_FLIGHT / CONFIRMED_SENT / FAILED / UNKNOWN / CANCELLED。**只有确认消息进入正确收件人会话且可核实后，才可记为 CONFIRMED_SENT。** 页面点击、任务 ACK、草稿复制、页面跳转或“可能发出”均不是完成。
+
+- 幂等身份要绑定站点、当前账号范围、职位 ID、招聘者 ID、消息 SHA、用户批准版本及任务 Run ID。关键身份缺失时拒绝发送；账号/标签页/网站权限变化时旧批准失效。
+- Stop 只能阻止之后的步骤，无法撤回网站已接受的消息。效果未知时保持 UNKNOWN，只允许查询原会话/Run 的只读回执，不自动发送第二次。
+- 真实个人简历、API 密钥、聊天记录和上传附件属于额外隐私与权限范围，不继承现有只读扫描授权。AI 的任何推断、JD 技能词匹配都不是用户曾拥有某项资历的证据。
+- 复用原 OpenDeskTool.request、storage.local CAS、OpenDeskAppPage.onRequest、受管 Page UI 和 Task/Controller + 持久结果体系。不新增后台执行内核、不在普通 USER_SCRIPT 中擅自提权；当前未证明通用 SDK 缺口，标注 SDK_GAP_NOT_PROVEN。
+- 网页站点条款、反自动化限制、验证码和异常登陆必须尊重，不能通过隐藏自动化/反检测规避。当前未做发送，也不应以本需求文档自动获取真实对外沟通授权。
+
+### R3 · 当前交付证据与最小后续动作
+
+- 已提交源码：src/page/main.js、src/main.js、src/index.html、src/style.css、tool.config.json、package.json；版本 0.1.1、Page revision 2。
+- 已提交定向测试：tests/scan.test.mjs（7 项）、tests/match.test.mjs（6 项）、tests/queue.test.mjs（4 项）。实际运行过独立 V8 动态检查，包括职位 ID/重号、工资/猎头/已沟通过滤、未知存储写入锁定；V8_SMOKE_PASS 不等于 Node 全部测试 PASS。
+- 仍需运行并保留回执：node --test projects/job-auto-apply/tests/*.test.mjs；通过原 scripts/build-sidebar-tool.mjs 生成候选并执行同源检查；之后在真实 Chrome 的用户授权安装/网页扫描/导航/撤权中验收。
+- 本轮可用的 CodexPro 本地工作区连接失败；浏览器标签页无登录态 BOSS 搜索页面，因此 Node 正式运行、标准包构建、真实安装、真实网站均 NOT_TESTED。
+- 真实 AI、单岗位发送、执行任务、暂停恢复、历史聊天、简历上传、多平台均 NOT_IMPLEMENTED。不得将任何上述项目作为已完成或模拟 PASS。
+- 下一步顺序：先取得 Node/CI 与原候选打包回执；随后用用户已授权 BOSS 职位列表核实实际 DOM 并修正选择器；只有明确的单岗位身份、审批、Stop、幂等与真实回执全部满足，才继续实现发送，暂不启动自动海投。
