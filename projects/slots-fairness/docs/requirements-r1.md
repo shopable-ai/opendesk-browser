@@ -21,7 +21,7 @@
   - SF-01 网站、权限与会话
     - SF-01.1 识别 URL / origin / route / 页面类型与已知游戏类型，不能以域名等同算法
     - SF-01.2 已知适配器 → 本地规则 → 通用 DOM 扫描（按证据质量选择），冲突不静默覆盖
-    - SF-01.3 首次用户手势授予 activeTab 会话扫描；网站自动检测需独立可选 host 授权及用户开关
+    - SF-01.3 首次使用通过 Chrome 认可的扩展调用（扩展图标/快捷键/菜单等）获取 activeTab 临时访问，再由用户在侧栏发起扫描；侧栏内部普通按钮**不得假定本身会重新授予 activeTab**；网站自动检测需独立可选 host 授权及用户开关
     - SF-01.4 未授予权限时保留明确的“未授权”，不自动读取；撤权、切站、禁用要取消任务
     - SF-01.5 没有发现字段与无法验证要区分呈现原因
   - SF-02 最小 DOM 智能匹配
@@ -98,7 +98,7 @@
 | 事件/条件 | 行为 | 停止 |
 | --- | --- | --- |
 | 尚无 host 授权，也未点击触发 | 不扫描、不监听，侧栏只提示权限 | 维持原状 |
-| 用户明确点“扫描页面”（activeTab 手势有效） | 当前页面短时注入/只读扫描一次；结果/证据降级展示 | 结束本次遍历后释放；手动停止可中止 |
+| 用户明确点“扫描页面”，且 Chrome 认可的 activeTab 授权仍有效或已有相应 host 授权 | 当前页面短时注入/只读扫描一次；结果/证据降级展示 | 结束本次遍历后释放；手动停止可中止 |
 | 已批准 host + 开启自动检测、命中 origin/URL | 首次进入扫描一次；匹配成功且静态页面不监听 | 成功/超时/预算耗尽即停止 |
 | 已授权，发现 SPA 异步区域未完成或明确变化 | 仅挂在可疑容器的 MutationObserver，批处理变化节点，短时活跃窗口 | 稳定 N 轮无变化、超过 15s 初次观察窗口、切路由/切站/后台暂停/禁用/撤权 |
 | 站点选区已保存且唯一匹配 | 优先廉价 selector 命中，无需全文扫描 | 匹配成功直接结束 |
@@ -163,7 +163,7 @@
 9. Chrome Web Store 当前政策明确禁止促进真钱赌博；即便工具自称审计、若被认定促进线上赌场也可能拒审/下架。官方表述：https://developer.chrome.com/docs/webstore/program-policies/regulated-goods-and-services 与 https://developer.chrome.com/docs/webstore/troubleshooting ，最终须单独核实发布决策，不能保证上架。
 10. 保持验证核心为独立可复用的本地纯函数模块，未来可独立网页（用户手动提供公开证据）或离线本地应用实现；没有 host 权限的网页工具不能跨网站读取 DOM。发布渠道与法律审查是独立决策，不应成为绕过浏览器安全限制的借口。
 
-参考：Chrome activeTab 和可选权限：https://developer.chrome.com/docs/extensions/develop/security-privacy/user-privacy ；frames 与 ISOLATED：https://developer.chrome.com/docs/extensions/reference/manifest/content-scripts ；scripting：https://developer.chrome.com/docs/extensions/reference/api/scripting 。
+参考：Chrome activeTab 授权触发方式：https://developer.chrome.com/docs/extensions/get-started/tutorial/scripts-activetab ；activeTab 和可选 host 权限：https://developer.chrome.com/docs/extensions/develop/security-privacy/user-privacy ；frames 与 ISOLATED：https://developer.chrome.com/docs/extensions/reference/manifest/content-scripts ；scripting：https://developer.chrome.com/docs/extensions/reference/api/scripting 。
 
 ## 8. 离线交互预览场景与验证矩阵
 
