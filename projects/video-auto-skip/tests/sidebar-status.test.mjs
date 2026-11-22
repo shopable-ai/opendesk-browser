@@ -12,6 +12,9 @@ const sourceCatalog = {sourceLocale: author.sourceLocale,
 const linked = {state: 'ready', binding: 'player-1', draftTarget: 'draft-1', context: {
   seriesKey: 'iyf:series', episodeKey: 'episode-1', title: '测试作品', episode: '1',
 }, media: {duration: 1200, revision: 1, time: 42, paused: false}};
+const localLinked = {...linked, context: {
+  ...linked.context, seriesKey: 'local:series:season-1', season: 'season-1', line: 'primary',
+}};
 const failure = code => Object.assign(new Error(code), {code});
 const settle = () => new Promise(resolve => setImmediate(resolve));
 
@@ -21,7 +24,8 @@ function mount(t, initial, defaults = {}, episodes = {}) {
   let poll, result = initial;
   window.setInterval = callback => { poll = callback; return 1; };
   const calls = [], writes = [];
-  let stored = {series: {'iyf:series': {defaults, episodes}}};
+  const seriesKey = initial?.context?.seriesKey ?? linked.context.seriesKey;
+  let stored = {series: {[seriesKey]: {defaults, episodes}}};
   const dispose = mountVideoSidebar({root, messages: sourceCatalog, locale: 'zh-CN', async request(name, args) {
     calls.push(args.operation ?? name);
     if (name === 'storage.get') return {value: stored, etag: 'saved'};
@@ -113,11 +117,12 @@ test('a required webpage reload is not retried until the browser reports a new p
 });
 
 test('the same inherited tail displays both points for the currently bound duration without saving again', async t => {
-  const ui = mount(t, {...linked, media: {...linked.media, duration: 1243.563}}, {outro: {kind: 'tail', seconds: 88}});
+  const ui = mount(t, {...localLinked, media: {...localLinked.media, duration: 1243.563}},
+    {outro: {kind: 'tail', seconds: 88}}, {'episode-1': {next: false}});
   const points = () => [ui.get('outro-start').value, ui.get('outro-end').value];
   await settle();
   assert.deepEqual(points(), ['19:15', 'End']);
-  await ui.next({...linked, media: {...linked.media, duration: 1156.011, revision: 2}});
+  await ui.next({...localLinked, media: {...localLinked.media, duration: 1156.011, revision: 2}});
   assert.deepEqual(points(), ['17:48', 'End']);
   assert.match(ui.get('tail-match').textContent, /当前视频 17:48–19:16.*自动计算.*来自作品规则.*已生效/);
   assert.equal(ui.get('outro-start').disabled, false);
@@ -127,7 +132,7 @@ test('the same inherited tail displays both points for the currently bound durat
   assert.match(ui.get('tail-match').textContent, /本集无自定义开始时间可清除/);
   assert.equal(ui.get('save').disabled, true);
   assert.equal(ui.get('preview-outro').disabled, false);
-  await ui.next({...linked, media: {...linked.media, duration: null, revision: 3}});
+  await ui.next({...localLinked, media: {...localLinked.media, duration: null, revision: 3}});
   assert.deepEqual(points(), ['', '']);
   assert.match(ui.get('tail-match').textContent, /等待当前视频时长/);
   assert.equal(ui.get('preview-outro').disabled, true);
@@ -148,7 +153,8 @@ test('a suggested start is a placeholder and never reads as an active rule', asy
 });
 
 test('an out-of-bounds fixed default is only a reference and can be corrected for the current episode', async t => {
-  const ui = mount(t, {...linked, media: {...linked.media, duration: 1156.011}}, {outro: {kind: 'fixed', start: 1155, end: 1243}});
+  const ui = mount(t, {...localLinked, media: {...localLinked.media, duration: 1156.011}},
+    {outro: {kind: 'fixed', start: 1155, end: 1243}}, {'episode-1': {next: false}});
   await settle();
   assert.equal(ui.get('outro-start').value, '');
   assert.equal(ui.get('outro-end').value, '');
@@ -169,8 +175,8 @@ test('an out-of-bounds fixed default is only a reference and can be corrected fo
 
 test('matching an unavailable fixed default uses its length as a draft and requires a valid duration', async t => {
   const defaults = {outro: {kind: 'fixed', start: 1155, end: 1243}};
-  const withDuration = duration => ({...linked, media: {...linked.media, duration}});
-  const ui = mount(t, withDuration(1156.011), defaults);
+  const withDuration = duration => ({...localLinked, media: {...localLinked.media, duration}});
+  const ui = mount(t, withDuration(1156.011), defaults, {'episode-1': {next: false}});
   const match = ui.get('match-outro-length');
   await settle();
   assert.equal(match.hidden, false);
@@ -198,7 +204,7 @@ test('matching an unavailable fixed default uses its length as a draft and requi
 });
 
 for (const method of ['clear button', 'empty input']) test('episode outro ' + method + ' restores the work End rule after saving', async t => {
-  const ui = mount(t, linked, {outro: {kind: 'tail', seconds: 88}},
+  const ui = mount(t, localLinked, {outro: {kind: 'tail', seconds: 88}},
     {'episode-1': {outro: {kind: 'fixed', start: 1050, end: 1160}}});
   await settle();
   if (method === 'clear button') ui.get('clear-outro-start').click();
@@ -211,9 +217,9 @@ for (const method of ['clear button', 'empty input']) test('episode outro ' + me
   assert.equal(ui.get('restore-outro').hidden, true);
 });
 
-test('legacy disabled exception stays off until explicitly restored', async t => {
-  const ui = mount(t, {...linked, media: {...linked.media, duration: 1156.011}},
-    {outro: {kind: 'tail', seconds: 88}}, {'episode-1': {outro: null}});
+test('verified local disabled exception stays off until explicitly restored', async t => {
+  const ui = mount(t, {...localLinked, media: {...localLinked.media, duration: 1156.011}},
+    {outro: {kind: 'tail', seconds: 88}}, {'episode-1': {outro: null, next: false}});
   await settle();
   assert.match(ui.get('tail-match').textContent, /自动跳过已关闭/);
   assert.equal(ui.get('restore-outro').hidden, false);
@@ -221,11 +227,38 @@ test('legacy disabled exception stays off until explicitly restored', async t =>
   ui.get('restore-outro').click();
   ui.get('save').click();
   await settle();
-  assert.deepEqual(ui.writes.at(-1), {scope: 'episode', rules: {}});
+  assert.deepEqual(ui.writes.at(-1), {scope: 'episode', rules: {next: false}});
   assert.match(ui.get('tail-match').textContent, /17:48–19:16.*自动计算.*来自作品规则/);
   ui.get('rule-outro').click();
   ui.get('save').click();
   await settle();
-  assert.deepEqual(ui.writes.at(-1), {scope: 'episode', rules: {outro: {kind: 'tail', seconds: 88, enabled: false}}});
+  assert.deepEqual(ui.writes.at(-1), {scope: 'episode', rules: {next: false, outro: {kind: 'tail', seconds: 88, enabled: false}}});
   assert.match(ui.get('tail-match').textContent, /自动跳过已关闭/);
+});
+
+test('R13: archived iYF work defaults do not silently become active episode rules', async t => {
+  const ui = mount(t, linked, {
+    intro: {kind: 'fixed', start: 0, end: 140},
+    outro: {kind: 'tail', seconds: 88},
+  });
+  await settle();
+  assert.deepEqual([ui.get('outro-start').value, ui.get('outro-end').value], ['', '']);
+  assert.match(ui.get('tail-match').textContent, /尚未设置片尾规则，不会自动跳过/);
+  assert.match(ui.get('scope-help').textContent, /兼容验证/);
+  assert.match(ui.get('summary-outro').textContent, /当前视频未采用/);
+  assert.equal(ui.get('save').disabled, true);
+});
+
+test('R13: archived iYF fixed outro remains usable only as an explicit R10 episode draft', async t => {
+  const ui = mount(t, {...linked, media: {...linked.media, duration: 1156.011}},
+    {outro: {kind: 'fixed', start: 1155, end: 1243}});
+  await settle();
+  const match = ui.get('match-outro-length');
+  assert.equal(match.hidden, false);
+  assert.match(match.textContent, /01:28/);
+  assert.match(ui.get('tail-match').textContent, /不会自动跳过/);
+  match.click();
+  assert.deepEqual([ui.get('outro-start').value, ui.get('outro-end').value], ['17:48', 'End']);
+  assert.equal(ui.get('save').disabled, false);
+  assert.deepEqual(ui.writes, [], 'preview and match must not persist a rule before Save');
 });
