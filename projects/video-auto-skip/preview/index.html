@@ -4,8 +4,8 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <meta name="color-scheme" content="light">
-<title>连播助手 · R10 跨集规则兼容与历史核对 · 离线侧栏预览</title>
-<meta name="od-design-variant" content="B-R10">
+<title>连播助手 · R10.1 跨集识别与片尾换算 · 离线侧栏预览</title>
+<meta name="od-design-variant" content="B-R10.1">
 <meta name="od-preview-binding" content="outro.end=duration; outro.tail=relative seconds; absolute end only when interval mode">
 <meta name="od-preview-capability" content="offline-sidebar-r10-compatibility-fixtures-no-real-video">
 <style>body{margin:0;padding:20px 12px;background:#f2f5fa;color-scheme:light}#od-watch-preview{max-width:800px;margin:0 auto}@media(max-width:400px){body{padding:10px 4px}}</style>
@@ -494,6 +494,26 @@ html,body{background:#f2f5fa}
  outline:2px solid #5782dd;outline-offset:2px;border-radius:4px;
 }
 #od-watch-preview .od-unsaved-line[hidden]{display:none!important}
+
+
+/* R10.1: visible identity evidence, never assume title text proves a series. */
+#od-watch-preview .od-identity-row{align-items:flex-start;}
+#od-watch-preview .od-identity-info{min-width:0;width:100%;overflow-wrap:anywhere;}
+#od-watch-preview .od-identity-info .od-work{display:block;color:#263c62;font-weight:670;font-size:12.5px;line-height:1.4;}
+#od-watch-preview .od-identity-detail{margin-top:1px;font-size:10.5px;line-height:1.4;color:#6b7e97;}
+#od-watch-preview .od-identity-info[data-identity-state="hint"] .od-work{color:#795d35;}
+#od-watch-preview .od-identity-info[data-identity-state="unknown"] .od-work{color:#42536a;}
+#od-watch-preview .od-time-section[data-section="outro"][data-compatibility="NEEDS_CONFIRMATION"] .od-dual-line,
+#od-watch-preview .od-time-section[data-section="outro"][data-compatibility="UNKNOWN"] .od-dual-line,
+#od-watch-preview .od-time-section[data-section="outro"][data-compatibility="NOT_APPLICABLE"] .od-dual-line{
+ background:repeating-linear-gradient(90deg,#b4c0d3 0 8px,transparent 8px 13px);
+}
+#od-watch-preview .od-time-section[data-section="outro"][data-compatibility="NEEDS_CONFIRMATION"] .od-row-title::after,
+#od-watch-preview .od-time-section[data-section="outro"][data-compatibility="UNKNOWN"] .od-row-title::after,
+#od-watch-preview .od-time-section[data-section="outro"][data-compatibility="NOT_APPLICABLE"] .od-row-title::after{
+ content:"待核对";font-size:10px;color:#8a6337;border-radius:4px;background:#fff6e8;padding:1px 4px;white-space:nowrap;
+}
+#od-watch-preview .od-time-section[data-section="outro"][data-compatibility="NOT_APPLICABLE"] .od-row-title::after{content:"不适用";}
 
 /* R10_REVIEW_UI: context only; the existing two time tracks, next episode,
    five-stop viewport slider and single Save button remain unchanged. */
@@ -1201,7 +1221,32 @@ function windowFor(key,expand=false){
  ui.windows[key]=key==='outro'?[Math.max(0,d-span),d]:[0,span];return ui.windows[key];
 }
 function windowLabel(key){if(unavailable(key))return '';const w=windowFor(key),seconds=w[1]-w[0],d=model.s.duration,base=Number.isFinite(d)?Math.min(d,requestedSpan(d)):requestedSpan(d);if(Math.abs(seconds-base)<1)return '';const minutes=Math.floor(seconds/60),rest=seconds%60;return '显示'+(key==='intro'?'前':'末')+(rest?minutes?minutes+'分'+rest+'秒':rest+'秒':minutes+'分钟');}
-function identityText(){const s=model.s,c=model.r10.context;const kind=c.kind==='merged'?'第03–04集合并版':c.kind==='special'?'特别篇':'第'+String(s.episode).padStart(2,'0')+'集';return '星海航线 · 第1季 · '+kind+(c.edition==='cut-B'?' · 剪辑B':'')+' · '+(Number.isFinite(s.duration)?'全长'+fmt(s.duration):'时长待获取');}
+function identityInfo(){
+ const c=model.r10.context,d=model.s.duration,video='视频时长 '+(r10FiniteDuration(d)?fmt(d):'待获取');
+ let title='当前视频',detail=video+' · 作品未识别',level='unknown';
+ if(c.seriesVerified){
+  const base=c.seriesName||'已核实的系列';
+  const season=c.seasonVerified?'第1季':'季待确认';
+  const episode=c.kind==='merged'?'第03–04集合并版':c.kind==='special'?'特别篇':
+    c.episodeVerified?'第'+String(c.episode).padStart(2,'0')+'集':'集数待确认';
+  title=base+' · '+season+' · '+episode;
+  level=c.playlistVerified?'verified':'partial';
+  detail=video+' · '+(c.playlistVerified?'站内剧集关系已核实':'剧集关系待确认');
+ }else if(c.titleHint){
+  title='疑似作品：'+c.titleHint;
+  detail=video+' · 仅有标题线索，尚未确认';
+  level='hint';
+ }
+ if(c.edition==='cut-B')detail+=' · 剪辑B';
+ return {title,detail,level};
+}
+function identityText(){return identityInfo().title;}
+function identityHTML(){
+ const x=identityInfo();
+ return '<div class="od-identity-info" data-identity-state="'+x.level+'">'+
+  '<strong id="od-content-identity" class="od-work">'+esc(x.title)+'</strong>'+
+  '<div id="od-identity-detail" class="od-identity-detail">'+esc(x.detail)+'</div></div>';
+}
 function constrainHandle(key,part,n){
  const w=windowFor(key),other=value(key,part==='start'?'end':'start');let lo=w[0],hi=w[1];
  if(part==='start'&&Number.isFinite(other))hi=Math.min(hi,other-1);
@@ -1239,7 +1284,7 @@ function trackHTML(key){
 }
 function rowHTML(key){
  const r=model.s.draft[key],v=validation(),overridden=Object.prototype.hasOwnProperty.call(model.s.overrides[model.identity()]||{},key),track=trackHTML(key);
- return `<section class="od-time-section od-ui-card" data-section="${key}"><div class="od-row-title"><label for="od-toggle-${key}">${names[key]}</label><span class="od-unset-badge" ${model.isUnconfigured(key)?'':'hidden'}>待设置</span><span id="od-window-label-${key}" class="od-window-label">${windowLabel(key)}</span>${overridden?'<span class="od-exception">本集例外</span>':''}<label class="od-toggle-couple"><span class="od-toggle-copy">自动跳过</span><span class="od-switch"><input id="od-toggle-${key}" type="checkbox" data-toggle="${key}" ${r.enabled?'checked':''} aria-label="跳过${names[key]}"></span></label></div>${track}<div class="od-endpoint-readouts">${fieldHTML(key,'start')}${fieldHTML(key,'end')}</div>${restoreAction(key)?`<div class="od-restore-inline">${restoreAction(key)}</div>`:''}${key==='outro'?r10MatchHTML()+'<span id="od-end-binding-help" class="od-sr-only">End 表示自动使用本视频实际结束时间。输入具体结束时间会变为指定区间；清空或填写 End 可恢复绑定；同一规则在视频时长变化时自动重新计算。这里复用已保存片尾规则，并非自动分析视频内容。</span>':''}<div id="od-error-${key}" class="od-error" ${v[key].length?'':'hidden'}>${esc(v[key][0]||'')}</div></section>`;
+ return `<section class="od-time-section od-ui-card" data-section="${key}" data-compatibility="${key==='outro'?model.r10Decision('outro').compatibility:''}"><div class="od-row-title"><label for="od-toggle-${key}">${names[key]}</label><span class="od-unset-badge" ${model.isUnconfigured(key)?'':'hidden'}>待设置</span><span id="od-window-label-${key}" class="od-window-label">${windowLabel(key)}</span>${overridden?'<span class="od-exception">本集例外</span>':''}<label class="od-toggle-couple"><span class="od-toggle-copy">自动跳过</span><span class="od-switch"><input id="od-toggle-${key}" type="checkbox" data-toggle="${key}" ${r.enabled?'checked':''} aria-label="跳过${names[key]}"></span></label></div>${track}<div class="od-endpoint-readouts">${fieldHTML(key,'start')}${fieldHTML(key,'end')}</div>${restoreAction(key)?`<div class="od-restore-inline">${restoreAction(key)}</div>`:''}${key==='outro'?r10MatchHTML()+'<span id="od-end-binding-help" class="od-sr-only">End 表示自动使用本视频实际结束时间。输入具体结束时间会变为指定区间；清空或填写 End 可恢复绑定；同一规则在视频时长变化时自动重新计算。这里复用已保存片尾规则，并非自动分析视频内容。</span>':''}<div id="od-error-${key}" class="od-error" ${v[key].length?'':'hidden'}>${esc(v[key][0]||'')}</div></section>`;
 }
 function restoreAction(key){
  const s=model.s,o=s.overrides[model.identity()]||{};
@@ -1261,7 +1306,10 @@ function r10TailState(){
  if(d.compatibility==='APPLICABLE'){
   if(draft.enabled===false)return {kind:'waiting',text:'规则适用 · 自动跳过已关闭'};
   if(draft.mode==='interval')return {kind:'interval',text:'本集指定区间 · 不跟随 End'};
-  return {kind:'matched',text:(d.local?'本集例外':'已确认可沿用')+' · 倒数'+fmt(d.candidateTail)};
+  if(d.local)return {kind:'matched',text:'本集例外 · 最后'+fmt(d.candidateTail)};
+  const origin=model.r10.context.ruleOriginEpisode;
+  const src=origin&&model.s.episode!==origin?'沿用第'+String(origin).padStart(2,'0')+'集':'已确认沿用';
+  return {kind:'matched',text:src+' · 倒数'+fmt(d.candidateTail)};
  }
  if(d.compatibility==='NEEDS_CONFIRMATION')return {kind:'risk',text:'规则待核对 · 暂不自动跳过'};
  if(d.compatibility==='NOT_APPLICABLE')return {kind:'risk',text:'当前视频不适用 · 不自动跳过'};
@@ -1277,11 +1325,13 @@ function r10ReviewHTML(){
  const end=Number.isFinite(d.currentEnd)?(candidate.mode==='tail'?'End':fmt(d.currentEnd)):'—';
  const hist=Number.isFinite(x.historyTail)?x.historyTail:Number.isFinite(d.candidateTail)?d.candidateTail:90;
  const history=candidate.mode==='tail'?'倒数'+fmt(hist):'指定区间';
+ const origin=x.ruleOriginEpisode?('第'+String(x.ruleOriginEpisode).padStart(2,'0')+'集 · '):'';
+ const sourceVideo=r10FiniteDuration(x.ruleOriginDuration)?' · 片长'+fmt(x.ruleOriginDuration):'';
  const local=d.local;
  const canConfirm=d.compatibility==='NEEDS_CONFIRMATION'&&x.versionVerified&&x.edition===x.ruleEdition&&x.resourceVerified&&x.kind==='regular';
  return '<div id="od-r10-review" class="od-r10-review" role="group" aria-label="当前片尾规则的历史核对">'+
  '<p class="od-r10-reason">'+esc(d.reason)+'</p>'+
- '<dl class="od-r10-compare"><div><dt>历史来源</dt><dd>'+esc(d.source)+'</dd><dd>'+esc(history)+'</dd></div>'+
+ '<dl class="od-r10-compare"><div><dt>历史来源</dt><dd>'+esc(origin+d.source)+'</dd><dd>'+esc(history+sourceVideo)+'</dd></div>'+
  '<div><dt>当前视频</dt><dd>'+esc(r10FiniteDuration(model.s.duration)?fmt(model.s.duration):'时长未知')+'</dd><dd>'+esc(start+' — '+end)+'</dd></div></dl>'+
  (x.branchConflict||x.syncConflict?'<p class="od-r10-meta">另有同级历史候选：倒数'+fmt(x.alternativeTail)+'，不自动覆盖。</p>':'')+
  (x.historicalDuration!==null&&x.historicalDuration!==model.s.duration?'<p class="od-r10-meta">上次记录：'+fmt(x.historicalDuration)+'；当前：'+fmt(model.s.duration)+'，可能换源或重剪。</p>':'')+
@@ -1323,7 +1373,7 @@ function transitionHTML(){const t=model.s.transition;return t?`<div class="od-tr
 function sidebarHTML(){
  const s=model.s,v=validation();
  if(s.closed)return '<div class="od-closed"><span>连播助手已收起</span><button id="od-open" type="button" data-action="open">打开设置</button></div>'+statusHTML();
- return `<header class="od-header"><div class="od-identity-row"><div id="od-content-identity" class="od-work">${identityText()}</div></div></header><div class="od-rows">${rowHTML('intro')}${rowHTML('outro')}<div class="od-auto"><label for="od-auto-next">自动下一集</label>${Object.prototype.hasOwnProperty.call(s.overrides[model.identity()]||{},'autoNext')?'<span class="od-exception">本集例外</span>':''}<label class="od-switch"><input id="od-auto-next" type="checkbox" data-toggle="autoNext" ${s.draft.autoNext?'checked':''} aria-label="自动下一集"></label></div>${restoreAction('autoNext')?`<div class="od-auto-restore">${restoreAction('autoNext')}</div>`:''}${viewportHTML()}</div><footer class="od-save-zone"><div id="od-unsaved-line" class="od-unsaved-line" ${s.dirty?'':'hidden'}><span>尚未保存的修改</span><button id="od-cancel" type="button" data-action="cancel" aria-label="放弃本次修改，恢复上次保存的设置">放弃修改</button></div><div class="od-save-actions"><button id="od-save" type="button" class="od-primary" data-action="save" ${s.dirty&&v.valid?'':'disabled'}>保存设置</button></div></footer>${statusHTML()}${transitionHTML()}`;
+ return `<header class="od-header"><div class="od-identity-row">${identityHTML()}</div></header><div class="od-rows">${rowHTML('intro')}${rowHTML('outro')}<div class="od-auto"><label for="od-auto-next">自动下一集</label>${Object.prototype.hasOwnProperty.call(s.overrides[model.identity()]||{},'autoNext')?'<span class="od-exception">本集例外</span>':''}<label class="od-switch"><input id="od-auto-next" type="checkbox" data-toggle="autoNext" ${s.draft.autoNext?'checked':''} aria-label="自动下一集"></label></div>${restoreAction('autoNext')?`<div class="od-auto-restore">${restoreAction('autoNext')}</div>`:''}${viewportHTML()}</div><footer class="od-save-zone"><div id="od-unsaved-line" class="od-unsaved-line" ${s.dirty?'':'hidden'}><span>尚未保存的修改</span><button id="od-cancel" type="button" data-action="cancel" aria-label="放弃本次修改，恢复上次保存的设置">放弃修改</button></div><div class="od-save-actions"><button id="od-save" type="button" class="od-primary" data-action="save" ${s.dirty&&v.valid?'':'disabled'}>保存设置</button></div></footer>${statusHTML()}${transitionHTML()}`;
 }
 function syncStatus(){
  const s=model.s,v=validation(),host=q('#od-status');if(!host)return;let text='',kind='',actions=[];
@@ -1374,7 +1424,7 @@ function syncRow(key,origin){
  const toggle=q('#od-toggle-'+key);if(toggle)toggle.checked=model.s.draft[key].enabled;
  syncErrors();syncSelection();syncSave();if(key==='outro')syncTailMatch();
 }
-function syncIdentity(){const identity=q('#od-content-identity');if(identity)identity.textContent=identityText();}
+function syncIdentity(){const x=identityInfo(),identity=q('#od-content-identity'),detail=q('#od-identity-detail');if(identity)identity.textContent=x.title;if(detail)detail.textContent=x.detail;}
 function render(keepFocus=true){const old=document.activeElement,id=old&&root.contains(old)?old.id:null;let selection=null;try{selection=[old.selectionStart,old.selectionEnd];}catch(e){}ui.rendering=true;q('#od-sidebar').innerHTML=sidebarHTML();syncErrors();syncSelection();syncSave();syncTailMatch();syncIdentity();for(const selector of ['button','summary','input[type=checkbox]'])all(selector).forEach(el=>el.classList.add('cursor-interaction'));if(keepFocus&&id){let el=q('#'+id);if(!el||el.disabled)el=q('#od-save')||q('#od-window-range')||q('#od-open');if(el){el.focus({preventScroll:true});if(el.id===id&&selection&&selection[0]!==null&&el.setSelectionRange)try{el.setSelectionRange(selection[0],selection[1]);}catch(e){}}}ui.rendering=false;}
 function resetUI(){ui.r10Open=false;ui.selected={intro:'end',outro:'start'};ui.activeKey='intro';ui.raw={};ui.windows={};ui.savedContext=null;}
 function take(fn){const id=model.identity(),sc=model.s.scenario,scope=model.s.scope;fn();if(id!==model.identity()||sc!==model.s.scenario)resetUI();else if(scope!==model.s.scope){ui.raw={};ui.windows={};ui.savedContext=null;}render();}
