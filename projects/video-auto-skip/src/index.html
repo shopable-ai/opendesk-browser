@@ -1,0 +1,40 @@
+<main class="vas" aria-label="连播助手">
+  <header class="vas-header">
+    <div>
+      <h1 id="vas-work">连播助手</h1>
+      <p id="vas-context" class="vas-note">正在识别当前播放器…</p>
+    </div>
+    <button type="button" id="vas-refresh">重新识别</button>
+  </header>
+  <p id="vas-feedback" class="vas-feedback" role="status" aria-atomic="true" tabindex="-1" hidden></p>
+  <fieldset id="vas-settings" disabled hidden>
+    <legend class="vas-sr">跳过与连播设置</legend>
+    <label class="vas-field" for="vas-scope">
+      <span>保存范围</span>
+      <select id="vas-scope" aria-describedby="vas-scope-help">
+        <option value="series">本作品当前季</option>
+        <option value="episode">仅本集</option>
+      </select>
+    </label>
+    <p id="vas-scope-help" class="vas-note"></p>
+    <h2>跳过与连播</h2>
+    <div id="vas-rules" class="vas-rules"></div>
+    <div class="vas-actions">
+      <button type="button" id="vas-save" class="vas-primary" aria-describedby="vas-edit-status">保存本作品设置</button>
+      <button type="button" id="vas-cancel" hidden>取消修改</button>
+    </div>
+    <p id="vas-edit-status" class="vas-note" aria-live="polite"></p>
+  </fieldset>
+  <section id="vas-player" class="vas-player" aria-label="播放器状态" hidden>
+    <p id="vas-media" class="vas-note"></p>
+    <p id="vas-action" class="vas-note" role="status"></p>
+    <button type="button" id="vas-undo" hidden>返回原位置</button>
+  </section>
+  <template id="vas-time-field">
+    <div class="vas-endpoint">
+      <label class="vas-field"><span></span><input type="text" inputmode="numeric" autocomplete="off" spellcheck="false" placeholder="秒或分:秒"></label>
+      <small class="vas-field-error" hidden></small>
+      <label class="vas-range"><span class="vas-sr"></span><input type="range" step="1"><small></small></label>
+    </div>
+  </template>
+</main>

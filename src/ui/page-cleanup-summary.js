@@ -24,3 +24,36 @@ export function describePageCleanup(programId,current,pending=[]) {
       ...(error?{error:{code:error.code,message:error.message}}:{})};
   })};
 }
+
+function isCleanup(cleanup){
+  if(!cleanup||!['unknown','retired'].includes(cleanup.state))return false;
+  const {pendingDocuments,pendingRecords}=cleanup;
+  return !(cleanup.state==='retired'&&(pendingRecords>0||pendingDocuments?.length))&&
+    (pendingDocuments===undefined||(Array.isArray(pendingDocuments)&&pendingDocuments.every(document=>
+      Number.isSafeInteger(document?.tabId)&&typeof document.documentId==='string'&&
+      (document.tabTitle===undefined||typeof document.tabTitle==='string'))));
+}
+
+export function isPageCleanupHistory(rows){
+  return Array.isArray(rows)&&rows.every(row=>typeof row?.programId==='string'&&row.programId.length>0&&
+    (row.title===undefined||typeof row.title==='string')&&isCleanup(row.managedCleanup));
+}
+
+export function describePageCleanupGroups(response){
+  if(!Array.isArray(response?.installed)||!isPageCleanupHistory(response.cleanupPending))return null;
+  const byProgram=new Map();
+  for(const row of response.installed){
+    const page=row?.installed??row;
+    if(typeof page?.programId!=='string'||!page.programId||
+      (page.managedCleanup!=null&&!isCleanup(page.managedCleanup)))return null;
+    if(page.managedCleanup?.state==='unknown')byProgram.set(page.programId,{page,history:[]});
+  }
+  for(const row of response.cleanupPending){
+    if(row.managedCleanup.state==='retired')continue;
+    if(!byProgram.has(row.programId))byProgram.set(row.programId,{history:[]});
+    byProgram.get(row.programId).history.push(row);
+  }
+  return [...byProgram].map(([id,{page,history}])=>({id,
+    title:[page?.title,...history.map(row=>row.title)].find(title=>typeof title==='string'&&title.trim())||id,
+    cleanup:describePageCleanup(id,page,history)}));
+}

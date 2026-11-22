@@ -1,5 +1,13 @@
 # AI 消息发送队列 UI 验证
 
+## 当前候选接续预检：0.1.37 / r36（2026-11-22 01:05，中国标准时间）
+
+- **磁盘身份已核对。** `main` HEAD 为 `13936b528`，原 watcher PID 79176 同时监听 43119（开发服务）和 43120（输出守卫）。工作树唯一正式包与 `dist/development/official-tools` 中的预装副本逐字节一致：应用 `ai-send-queue` 0.1.37，网页模块 `app.ai-send-queue` r36，包 SHA-256 `4970d71603648bde9d0e850ecf17010a21c226824e94e0f6230ce11f7275b282`。磁盘更新清单 revision 为 `96f250d6f5c904c3738a965393cf5ffaa002f68e083df5cdc15a3ce5d01faf0c`；Chrome 的实际 applied revision、新版安装审阅身份和固定桥均待实读。以上标识须在正式采样前重查。
+- **运行验收尚未开始。** Ego Lite TaskSpace 14 仍为 `agentDelegatedToUser`；专用对话的归档目标哈希为 `99db9372c7f7`。本次只读取空间归属，未接管、查看其他标签、触碰文件框，或改变安装、站点权限、草稿及队列。上次观察到的文件框归属和另外两张 ChatGPT 标签的草稿、待发及流式状态仍待用户处理或确认；2026-11-22 的旧安装登录、侧栏与权限读回记录保留在下节，不能计入新版。
+- **刷新：NOT_TESTED。** 计划 20 次，执行 0 次，有效样本 0，通过 0/20，通过率 NOT_TESTED；尚无挂载慢、缺挂载或重复实例样本。**入队、暂停、草稿、流式、安装路径、停用与撤权：NOT_TESTED。真实 FIFO 发送：NOT_TESTED，0 条。独立专家评分：NOT_TESTED。**
+
+01:07 追加包同源检查：原打包器 `--check-project` 返回 `PROJECT_PACKAGE_MATCH`（142651 字节；SHA-256 同上，`installed: false`）。原 watcher 仍在运行，磁盘清单已更新为 `51b21da95538c06068d4860a6c309ed06cc41e02a087854f1a4b31bb2bd1c398`；这次磁盘更新也没有 Chrome applied revision 读回。
+
 ## Ego Lite 登录接续（2026-11-22）
 
 **PASS（登录、旧安装实体侧栏就绪）；NOT_TESTED（0.1.36 正式轮）。** 改回用户已有的 Ego 登录入口，TaskSpace 14 的网页能看到账号菜单，并从历史 FIFO 实测回执打开原专用测试对话（脱敏目标 `99db9372c7f7`）。可操作输入框、单皇冠、单生命周期、单队列，空草稿、零条目，无流式回复。Ego 与其他空间共用 Profile；没有导入 Cookie 或改账号。实体侧栏「扩展 → AI 消息发送队列 → 重新检查」实读应用仍为 0.1.34，并显示「队列已就绪」。扩展实际 applied revision 与当时 watcher 磁盘产物一致；实读 `chrome.userScripts` 不可用、ChatGPT 网站权限已授予。旧侧栏未读回网页固定桥的精确模块版本。详见[脱敏预检回执](artifacts/refresh-20-ego-20261122/ego-preflight.json)。

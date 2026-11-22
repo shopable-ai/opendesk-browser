@@ -1,0 +1,556 @@
+{
+  "task": "OD-VIDEO-AUTO-SKIP-FEASIBILITY-R1",
+  "date": "2026-11-22",
+  "gitHead": "13936b528ac2b7d3192ce24fc49fb9439018a521",
+  "target": {
+    "browser": "ego(lite), Chrome/156.0.0.0",
+    "space": 17,
+    "page": "p1",
+    "documentTitle": "请稍候…",
+    "visibleText": [
+      "正在进行安全验证",
+      "请验证您是真人"
+    ],
+    "topLevelVideosInChallenge": 0,
+    "playerPageReached": false,
+    "episodeListObserved": false,
+    "seekDispatched": false,
+    "nextEpisodeNavigationDispatched": false,
+    "status": {
+      "T01": "BLOCKED",
+      "T02": "BLOCKED",
+      "T03": "BLOCKED",
+      "T04": "BLOCKED"
+    }
+  },
+  "fixtureRun": {
+    "status": "passed",
+    "manifest": {
+      "name": "GrayDove Developer",
+      "version": "2.0.0",
+      "sha256": "68b854b17e4444eb998ec61ef2a0547aef923804dd9660fb0841979607974888"
+    },
+    "buildFiles": {
+      "manifest.json": "68b854b17e4444eb998ec61ef2a0547aef923804dd9660fb0841979607974888",
+      "sw.js": "203cddb88dc5064cccfb082188451585f96058f34db7c3f78b043a7d89df5b62",
+      "sidepanel.html": "fcee25a08ff360bc17a16bff177baf0b4c7e070cd3140e9a870bf12863102fac",
+      "ui/tool-shell.js": "58420f74b02eeafd54d38f4370c0c0572929f11bc204b3632bffb217aa60d8b7",
+      "development-update.json": "48e51ac18cdf1c72e6f920bc9392e0410b98d81f4d7a9d15316bc4a1429de66c"
+    },
+    "sourceSha256": "db1616c2ce78449bba9f36e4b17511b9f60e053e81fef233908e38c4af668073",
+    "fixtureSha256": "d337507134b52f14039b4fe9799e5470c676fb718ff465f9b5c06e0b84ab8f29",
+    "chromeVersion": "Chrome/155.0.8059.39",
+    "extensionId": "ccfcjegpkdlgbclopjmadlcjedelidmf",
+    "userScriptsToggleChanged": true,
+    "nativeSidePanel": true,
+    "sidePanelObserved": true,
+    "editorSourceSha256": "db1616c2ce78449bba9f36e4b17511b9f60e053e81fef233908e38c4af668073",
+    "previewControl": "page-mode-run",
+    "previewClickAttempted": true,
+    "lastFixtureStage": "done",
+    "drag": {
+      "input": "right-to-left",
+      "dispatched": true
+    },
+    "fixture": {
+      "stage": "done",
+      "report": {
+        "observed": [
+          {
+            "type": "seeking",
+            "count": 8,
+            "firstTime": 30,
+            "trusted": true
+          },
+          {
+            "type": "timeupdate",
+            "count": 25,
+            "firstTime": 30,
+            "trusted": true
+          },
+          {
+            "type": "seeked",
+            "count": 8,
+            "firstTime": 30,
+            "trusted": true
+          },
+          {
+            "type": "play",
+            "count": 4,
+            "firstTime": 30,
+            "trusted": true
+          },
+          {
+            "type": "pause",
+            "count": 3,
+            "firstTime": 95,
+            "trusted": true
+          },
+          {
+            "type": "durationchange",
+            "count": 1,
+            "firstTime": 0,
+            "trusted": true
+          },
+          {
+            "type": "ended",
+            "count": 1,
+            "firstTime": 210,
+            "trusted": true
+          }
+        ],
+        "T01": {
+          "fixtureIdentity": {
+            "work": "local-test-pattern",
+            "season": "1",
+            "episode": "3",
+            "line": "loopback",
+            "version": "A"
+          },
+          "selected": "feature",
+          "currentTime": 30,
+          "duration": 180,
+          "topLevelVideos": 2,
+          "frames": [
+            {
+              "sandboxed": false,
+              "readable": true,
+              "videos": 1
+            },
+            {
+              "sandboxed": true,
+              "readable": false,
+              "videos": null
+            }
+          ],
+          "ambiguousRejected": true,
+          "versionAfterSourceChange": "B (测试素材)",
+          "replacement": {
+            "reboundByDetector": true,
+            "staleBindingRejected": true
+          }
+        },
+        "T02": {
+          "pausedSave": {
+            "time": 30,
+            "paused": true,
+            "attempts": 0
+          },
+          "intro": {
+            "name": "intro",
+            "before": 30.26,
+            "requested": 90,
+            "seeking": true,
+            "landed": 90
+          },
+          "manual": {
+            "before": 90.155,
+            "requested": 30,
+            "trustedDrag": true,
+            "returned": 30.037,
+            "continuedAt": 30.888,
+            "paused": false,
+            "attempts": 1
+          },
+          "pastEnd": {
+            "start": 95,
+            "at": 95.421,
+            "attempts": 1
+          }
+        },
+        "T03": {
+          "firstBounds": [
+            90,
+            180
+          ],
+          "partial": {
+            "name": "partial-tail",
+            "outside": 161.896,
+            "before": 162.161,
+            "requested": 172,
+            "seeking": true,
+            "landed": 172,
+            "continuedAt": 172.372,
+            "paused": false,
+            "ended": false,
+            "sameDocument": true
+          },
+          "unknown": {
+            "durationIsNaN": true,
+            "bounds": null,
+            "oldBindingRejected": true,
+            "attempts": 2
+          },
+          "changed": {
+            "duration": 210,
+            "bounds": [
+              120,
+              210
+            ],
+            "oldBindingRejected": true
+          },
+          "last90": {
+            "name": "last-90",
+            "outside": 119.895,
+            "before": 120.16,
+            "requested": 210,
+            "seeking": true,
+            "landed": 210,
+            "ended": true,
+            "sameDocument": true
+          }
+        },
+        "status": "PASS"
+      }
+    },
+    "preview": {
+      "uiState": "completed",
+      "state": "preview-evaluated",
+      "world": "USER_SCRIPT",
+      "sourceHash": "db1616c2ce78449bba9f36e4b17511b9f60e053e81fef233908e38c4af668073",
+      "documentId": "75969B52188DA4295624A22A51ABA87D"
+    },
+    "buildFilesUnchanged": true
+  },
+  "earlierFixtureRun": {
+    "chromeVersion": "Chrome/155.0.8059.39",
+    "preview": "preview-evaluated",
+    "world": "USER_SCRIPT",
+    "failure": "未收到真实回拖或落点未确认",
+    "runnerDrag": "scrub did not reach 30",
+    "intro": {
+      "name": "intro",
+      "before": 30.263,
+      "requested": 90,
+      "seeking": true,
+      "landed": 90
+    }
+  },
+  "continuation": {
+    "date": "2026-11-22",
+    "branch": "main",
+    "gitHead": "13936b528ac2b7d3192ce24fc49fb9439018a521",
+    "target": {
+      "space": 17,
+      "page": "p1",
+      "ownership": "agentDelegatedToUser",
+      "ownershipRechecked": true,
+      "userPageObservedThisRound": false,
+      "seekDispatched": false,
+      "nextEpisodeNavigationDispatched": false,
+      "actualSiteNativeReceipt": "NOT_TESTED",
+      "status": {
+        "T01": "BLOCKED",
+        "T02": "BLOCKED",
+        "T03": "BLOCKED",
+        "T04": "BLOCKED"
+      },
+      "blockedOn": "USER_HAND_BACK_AFTER_HUMAN_VERIFICATION"
+    },
+    "readOnlyProbe": {
+      "file": "inspect-iyf.js",
+      "sourceSha256": "ef608b033c0db29f6a0ce128b495c095c3933e8802e44dbbad9ea7b5a57a3f3f",
+      "syntheticChecks": "PASS",
+      "iYFRun": "NOT_TESTED"
+    },
+    "fixtureStatus": {
+      "T01": "PASS",
+      "T02": "PASS",
+      "T03": "PASS",
+      "T04": "NOT_TESTED"
+    },
+    "fixtureRun": {
+      "scope": "loopback-fixture",
+      "status": "passed",
+      "manifest": {
+        "name": "GrayDove Developer",
+        "version": "2.0.0",
+        "sha256": "68b854b17e4444eb998ec61ef2a0547aef923804dd9660fb0841979607974888"
+      },
+      "buildFiles": {
+        "manifest.json": "68b854b17e4444eb998ec61ef2a0547aef923804dd9660fb0841979607974888",
+        "sw.js": "203cddb88dc5064cccfb082188451585f96058f34db7c3f78b043a7d89df5b62",
+        "sidepanel.html": "fcee25a08ff360bc17a16bff177baf0b4c7e070cd3140e9a870bf12863102fac",
+        "ui/tool-shell.js": "6c3a571845d92d08ddce9d15c90a9e72cbc0f05724e385c48d5734f7a0e0432f",
+        "development-update.json": "80f356b930f1445c9a67daab5cebfe10fa16451fcfc458270e5b4887fb5ee514"
+      },
+      "gitHead": "13936b528ac2b7d3192ce24fc49fb9439018a521",
+      "inputs": {
+        "projects/video-auto-skip/demo/experiment.js": "3aa9e6f38b1bf439cdabf32b1220030e24e2d523c0e78fa8bd5b322b5fb0ba7f",
+        "projects/video-auto-skip/demo/fixture.html": "d337507134b52f14039b4fe9799e5470c676fb718ff465f9b5c06e0b84ab8f29",
+        "projects/video-auto-skip/demo/run-chrome.mjs": "0951d477039deea4c920a69f3b55f7709f99efdc93fcfd73d2e3eb7fa8e5a074",
+        "scripts/dev-chrome-config.mjs": "3939f7b83cb75a27eca31106b62a59f998fdb62b043ee1927498cbe2b1cd374b"
+      },
+      "sourceSha256": "3aa9e6f38b1bf439cdabf32b1220030e24e2d523c0e78fa8bd5b322b5fb0ba7f",
+      "fixtureSha256": "d337507134b52f14039b4fe9799e5470c676fb718ff465f9b5c06e0b84ab8f29",
+      "chromeVersion": "Chrome/155.0.8059.39",
+      "extensionId": "ccfcjegpkdlgbclopjmadlcjedelidmf",
+      "userScriptsToggleChanged": true,
+      "nativeSidePanel": true,
+      "sidePanelObserved": true,
+      "editorSourceSha256": "3aa9e6f38b1bf439cdabf32b1220030e24e2d523c0e78fa8bd5b322b5fb0ba7f",
+      "previewControl": "page-mode-run",
+      "previewClickAttempted": true,
+      "lastFixtureStage": "done",
+      "drag": {
+        "input": "right-to-left",
+        "dispatched": true
+      },
+      "fixture": {
+        "stage": "done",
+        "report": {
+          "observed": [
+            {
+              "type": "seeking",
+              "count": 13,
+              "firstTime": 30,
+              "trusted": true
+            },
+            {
+              "type": "timeupdate",
+              "count": 32,
+              "firstTime": 30,
+              "trusted": true
+            },
+            {
+              "type": "seeked",
+              "count": 12,
+              "firstTime": 30,
+              "trusted": true
+            },
+            {
+              "type": "play",
+              "count": 6,
+              "firstTime": 30,
+              "trusted": true
+            },
+            {
+              "type": "pause",
+              "count": 4,
+              "firstTime": 95,
+              "trusted": true
+            },
+            {
+              "type": "durationchange",
+              "count": 1,
+              "firstTime": 0,
+              "trusted": true
+            },
+            {
+              "type": "ended",
+              "count": 1,
+              "firstTime": 210,
+              "trusted": true
+            }
+          ],
+          "T01": {
+            "fixtureIdentity": {
+              "work": "local-test-pattern",
+              "season": "1",
+              "episode": "3",
+              "line": "loopback",
+              "version": "A"
+            },
+            "selected": "feature",
+            "currentTime": 30,
+            "duration": 180,
+            "seekable": [
+              [
+                0,
+                180
+              ]
+            ],
+            "topLevelVideos": 2,
+            "frames": [
+              {
+                "sandboxed": false,
+                "readable": true,
+                "videos": 1
+              },
+              {
+                "sandboxed": true,
+                "readable": false,
+                "videos": null
+              }
+            ],
+            "ambiguousRejected": true,
+            "versionAfterSourceChange": "B (测试素材)",
+            "sameMediaNewEpisode": {
+              "continuedAt": 30.417,
+              "oldBindingDisarmed": true,
+              "attempts": 3
+            },
+            "replacement": {
+              "reboundByDetector": true,
+              "staleBindingRejected": true
+            }
+          },
+          "T02": {
+            "pausedSave": {
+              "time": 30,
+              "paused": true,
+              "attempts": 0
+            },
+            "intro": {
+              "name": "intro",
+              "before": 30.252,
+              "requested": 90,
+              "seekingEvents": 1,
+              "outcome": "CONFIRMED",
+              "seekingAfterWrite": true,
+              "landed": 90
+            },
+            "manual": {
+              "before": 90.158,
+              "requested": 30,
+              "trustedDrag": true,
+              "returned": 30.007,
+              "continuedAt": 30.464,
+              "paused": false,
+              "attempts": 1
+            },
+            "pastEnd": {
+              "start": 95,
+              "at": 95.421,
+              "attempts": 1
+            },
+            "freshRuleManual": {
+              "advancedTo": 30.452,
+              "attempts": 1,
+              "suppressed": true
+            }
+          },
+          "T03": {
+            "firstBounds": [
+              90,
+              180
+            ],
+            "partial": {
+              "name": "partial-tail",
+              "outside": 161.894,
+              "before": 162.16,
+              "requested": 172,
+              "seekingEvents": 1,
+              "outcome": "CONFIRMED",
+              "seekingAfterWrite": true,
+              "landed": 172,
+              "continuedAt": 172.392,
+              "paused": false,
+              "ended": false,
+              "sameDocument": true
+            },
+            "unknown": {
+              "durationIsNaN": true,
+              "bounds": null,
+              "oldBindingRejected": true,
+              "attempts": 2
+            },
+            "changed": {
+              "duration": 210,
+              "bounds": [
+                120,
+                210
+              ],
+              "oldBindingRejected": true
+            },
+            "last90": {
+              "name": "last-90",
+              "outside": 119.891,
+              "before": 120.156,
+              "requested": 210,
+              "seekingEvents": 1,
+              "outcome": "CONFIRMED",
+              "seekingAfterWrite": true,
+              "landed": 210,
+              "ended": true,
+              "sameDocument": true
+            }
+          },
+          "seeks": [
+            {
+              "name": "intro",
+              "before": 30.252,
+              "requested": 90,
+              "seekingEvents": 1,
+              "outcome": "CONFIRMED",
+              "seekingAfterWrite": true,
+              "landed": 90
+            },
+            {
+              "name": "partial-tail",
+              "outside": 161.894,
+              "before": 162.16,
+              "requested": 172,
+              "seekingEvents": 1,
+              "outcome": "CONFIRMED",
+              "seekingAfterWrite": true,
+              "landed": 172
+            },
+            {
+              "name": "last-90",
+              "outside": 119.891,
+              "before": 120.156,
+              "requested": 210,
+              "seekingEvents": 1,
+              "outcome": "CONFIRMED",
+              "seekingAfterWrite": true,
+              "landed": 210
+            },
+            {
+              "name": "overlap",
+              "before": 30.254,
+              "requested": 90,
+              "seekingEvents": 2,
+              "outcome": "UNKNOWN",
+              "seekingAfterWrite": true,
+              "reason": "COMPETING_SEEK"
+            }
+          ],
+          "seekConflict": {
+            "outcome": "UNKNOWN",
+            "reason": "COMPETING_SEEK",
+            "observedAt": 45.411,
+            "attempts": 4,
+            "rearmRejected": true
+          },
+          "status": "PASS"
+        }
+      },
+      "preview": {
+        "uiState": "completed",
+        "state": "preview-evaluated",
+        "world": "USER_SCRIPT",
+        "sourceHash": "3aa9e6f38b1bf439cdabf32b1220030e24e2d523c0e78fa8bd5b322b5fb0ba7f",
+        "idDigest": null,
+        "targetMatched": true
+      },
+      "candidateUnchanged": true
+    },
+    "review": {
+      "scope": "Independent read-only R1 audit and R2 source/evidence verification; no independent rerun",
+      "reviewers": [
+        {
+          "name": "Huygens",
+          "areas": [
+            "player engineering",
+            "interaction safety"
+          ]
+        },
+        {
+          "name": "Noether",
+          "areas": [
+            "extension architecture",
+            "counter-audit"
+          ]
+        }
+      ],
+      "finalCandidate": "NOT_FROZEN",
+      "finalScores": null,
+      "requiredMean": 95
+    },
+    "decision": {
+      "genericPrototype": "READY_FOR_FURTHER_DESIGN",
+      "iYFProductionDevelopment": "BLOCKED"
+    }
+  }
+}

@@ -39,20 +39,20 @@ test('one product projects real independent records, partial recovery and blocke
   assert.equal(filterExtensionEntries(untrusted).length,2,'same ID cannot hide Page authority');
 });
 
-test('cleanup warning is independent of readiness and retains the original Authority record',()=>{
+test('old-page diagnostics stay out of queue readiness and preserve the original Authority record',()=>{
   const page={...makePage(),managedCleanup:{state:'unknown',scope:'managed-ui-only',records:150}};
   const before=structuredClone(page),options={toolInstalled:true,toolEnabled:true,page};
   const ready=describeSendQueueProduct(options);
   assert.equal(ready.state,'ready');assert.equal(ready.pageState,'registered');
-  assert.equal(ready.cleanupWarning,true);assert.match(ready.summary,/旧页面清理待核对/);
-  assert.equal(describeSendQueueProduct({...options,page:{...page,managedCleanup:{state:'retired',records:0}}}).cleanupWarning,false);
+  assert.deepEqual(ready,describeSendQueueProduct({...options,page:{...page,managedCleanup:{state:'retired',records:0}}}));
+  assert.doesNotMatch(ready.summary,/旧页面|清理待核对/);
   for(const override of [{nativeState:'blocked'},{nativeState:'unregistered'},
     {authorization:{...page.authorization,status:'suspended'}},
     {authorization:{...page.authorization,status:'disabled'}},
     {authorization:{status:'active'}},{error:{code:'E_REGISTER'}}]){
     const result=describeSendQueueProduct({...options,page:{...page,...override}});
     assert.equal(result.state,'restricted',JSON.stringify(override));
-    assert.equal(result.cleanupWarning,true);assert.match(result.summary,/旧页面清理待核对/);
+    assert.doesNotMatch(result.summary,/旧页面|清理待核对/);
   }
   assert.equal(describeSendQueueProduct({...options,pageStatusKnown:false}).state,'unknown');
   assert.equal(describeSendQueueProduct({...options,appStatusKnown:false}).state,'unknown');
@@ -64,7 +64,7 @@ for(const disabled of [false,true])test('product cleanup unknown does not block 
   const f=await fixture(t,{disabled});
   f.pages[0].managedCleanup={state:'unknown',scope:'managed-ui-only'};
   await f.ui.refresh();
-  assert.match(f.state.detailModel.usageText,/旧页面清理待核对/);
+  assert.doesNotMatch(f.state.detailModel.usageText,/旧页面|清理待核对/);
   f.state.detailModel.actions.find(a=>a.id==='queue-toggle').onClick(trusted);
   await settle(()=>f.state.statusModel.state==='success');
   assert.equal(f.enabled,disabled);assert.equal(f.pages[0].enabled,disabled);
@@ -98,13 +98,13 @@ async function fixture(t,{mode='success',disabled=false,missingPage=false,missin
     storage:{local:{get:async()=>({[SIDEBAR_TOOL_STORE]:tools,[SIDEBAR_TOOL_ENABLE_STORE]:{[tool.id]:enabled}})},
       onChanged:{addListener(){},removeListener(){}}}};
   const client={async request(name,args){
-    if(name==='listPagePrograms')return {installed:structuredClone(pages)};
+    if(name==='listPagePrograms')return {installed:structuredClone(pages),cleanupPending:[]};
     calls.push([name,args]);
     if(name==='uninstallPageProgram'){
       const page=pages[0];assert.deepEqual(args,queuePageIdentity(page));
       pages=[];
       if(mode==='unknown')throw Object.assign(new Error('lost response'),{code:'E_EFFECT_UNKNOWN'});
-      return {uninstalled:true,nativeState:'unregistered',manifestHash:page.manifestHash,
+      return {uninstalled:true,nativeState:'unregistered',programId:page.programId,manifestHash:page.manifestHash,
         installationId:page.authorization.installationId};
     }
     assert.equal(name,'setInstalledPageEnabled');

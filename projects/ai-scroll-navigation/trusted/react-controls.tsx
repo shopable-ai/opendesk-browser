@@ -56,7 +56,7 @@ const message=(key,parameters={})=>({key,parameters});
 const failure=key=>Object.assign(new Error(key),{scrollMessage:message(key)});
 const errorDetail=error=>error?.scrollMessage||String(error?.message||error);
 const readErrorDetail=error=>error?.scrollMessage||error?.code||errorDetail(error);
-export function ScrollSiteManager({model,pageControl,title,detail,onNavigation,PageControl,Diagnostics,CleanupDetails}){
+export function ScrollSiteManager({model,pageControl,title,detail,onNavigation,PageControl,Diagnostics}){
   const locale=model.locale||'zh-CN';
   const canShowFlag=key=>(key!=='turnPaging'||model.turnPagingSupported)&&
     (key!=='showTurnCount'||model.showTurnCountSupported);
@@ -379,7 +379,7 @@ export function ScrollSiteManager({model,pageControl,title,detail,onNavigation,P
     <div className="ec-scroll-content" ref={contentRef}>
     {view==='home'&&<div className="ec-scroll-home">
       {pageControl?<PageControl locale={locale} description={t('autoRunDescription')} control={pageControl}
-        title={title} heading={t('autoRun')} compact hasOldPageCleanup={Boolean(detail?.oldPageCleanup)}
+        title={title} heading={t('autoRun')} compact
         onDetails={openManagement}/>:<p role="status">{t('autoRunUnconfirmed')}</p>}
       <section className="ec-scroll-group" aria-labelledby="scroll-builtins-title">
         <div className="ec-scroll-title"><h3 id="scroll-builtins-title">{t('builtinsTitle')}</h3>
@@ -448,7 +448,6 @@ export function ScrollSiteManager({model,pageControl,title,detail,onNavigation,P
             onClick={event=>pageControl.onRefresh?.(event.nativeEvent)}>{t('recheck')}</Button>
         </div>
       </section>}
-      {CleanupDetails&&<CleanupDetails cleanup={detail.oldPageCleanup} locale={locale}/>}
       <p>{t('installationRevision',{installation:detail.installationText,version:detail.version})}</p>
       {pageControl?.evidenceNote&&<p>{pageControl.evidenceNote}</p>}
       {detail.pageInfo&&<div className="ec-scroll-diagnostics"><Diagnostics info={detail.pageInfo} locale={locale}/></div>}

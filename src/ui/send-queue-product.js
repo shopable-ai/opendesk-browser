@@ -8,7 +8,6 @@ export function describeSendQueueProduct({toolInstalled=false,toolEnabled=false,
   const pageInstalled=Boolean(page?.manifestHash);
   // Old-document retirement is diagnostic; native/auth readiness belongs to
   // the current installation and the runtime keeps its same-document fence.
-  const cleanupWarning=page?.managedCleanup?.state==='unknown';
   const pageState=!pageStatusKnown?'unknown':!pageInstalled?'missing':
     !admitsPinnedQueuePage(page)?'version-mismatch':
     page.enabled!==true?(page.nativeState==='disabled'&&page.authorization?.status==='disabled'&&
@@ -17,11 +16,10 @@ export function describeSendQueueProduct({toolInstalled=false,toolEnabled=false,
   const state=!appStatusKnown||!pageStatusKnown?'unknown':cleanupPending?'cleanup-pending':
     !toolInstalled||!pageInstalled?'partial':pageState==='version-mismatch'?'version-mismatch':
     !toolEnabled||pageState!=='registered'?'restricted':'ready';
-  return {state,pageState,toolInstalled,pageInstalled,cleanupWarning,
+  return {state,pageState,toolInstalled,pageInstalled,
     summary:'侧栏：'+(!appStatusKnown?'待核对':!toolInstalled?'未安装':toolEnabled?'已启用':'已停用')+
       '；网页能力：'+({unknown:'待核对',missing:'未安装','version-mismatch':'版本不匹配',
         disabled:'已停用',restricted:'授权或注册待核对',registered:'已注册'}[pageState])+
-      (cleanupWarning?'。部分旧页面清理待核对；请保存网页内容后刷新该页面以安全切换':'')+
       '。两份独立安装记录；唯一消息队列保留在网页内存，更新和恢复不迁移或重发消息。'};
 }
 

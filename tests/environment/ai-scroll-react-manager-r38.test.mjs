@@ -75,111 +75,41 @@ const assertReadOnly=requests=>assert.deepEqual(
   ['listPagePrograms','readScrollSiteConfig'],
   'viewing and rechecking status must not mutate or replay any operation');
 
-test('AI Scroll ready and off homes show durable cleanup status with one recovery entry',async t=>{
-  for(const installed of [{},{enabled:false,nativeState:'disabled',authorization:{status:'disabled',generation:4,
-    installationId:'installation-r8'}}]){
-    await t.test(installed.enabled===false?'off':'ready',async t=>{
-      const f=await fixture(t,{installed:{...installed,managedCleanup:{state:'unknown',
-        error:{code:'E_REAL_CLEANUP',message:'Recorded cleanup issue'}}}});await tick();
-      const find=id=>f.doc.getElementById(id);
-      const home=()=>f.doc.querySelector('.ec-scroll-home');
-      const status=()=>home().querySelector('.ec-page-control [role="status"]');
-      const opener=()=>find('scroll-status-details');
-      const nativeState=installed.enabled===false?'off':'ready';
-      const statusText=nativeState==='off'?/停用设置已保存.*网页清理待核对/:/受管页面清理待核对/;
-      assert.match(status().textContent,statusText);
-      assert.equal(f.state.detailModel.pageControl.state,nativeState);
-      assert.equal(home().querySelectorAll('.ec-page-control-actions button').length,1);
-      assert.equal(buttonWithText(f.doc,'查看详情'),opener());
-      assert.equal(find('scroll-management'),null);
-      assert.doesNotMatch(home().textContent,/并非|Chrome 注册|SHA-256|刷新可信状态|已实际运行/);
-      assert.equal(find('scroll-refresh-state'),null);
-      assert.equal(f.doc.querySelector('.ec-page-cleanup'),null,
-        'recovery records belong in management');
-      opener().focus();opener().dispatch('click');await tick();
-      assert.equal(f.doc.activeElement.id,'scroll-page-title');
-      const cleanup=f.doc.querySelector('.ec-scroll-management .ec-page-cleanup');
-      assert.ok(cleanup);
-      const disclosure=cleanup.querySelector('details');
-      assert.equal(disclosure.querySelector('summary').textContent,'页面恢复记录');
-      assert.equal(disclosure.hasAttribute('open'),false);
-      assert.match(cleanup.querySelector(':scope > p + p').textContent,/未定位到具体网页.*功能正常时无需操作.*保存草稿/);
-      assert.equal(cleanup.querySelector('.ec-page-cleanup-documents'),null);
-      assert.match(disclosure.textContent,/E_REAL_CLEANUP · Recorded cleanup issue/);
-      find('scroll-refresh-state').dispatch('click');await tick();await tick();
-      find('extension-center-back').dispatch('click');await tick();
-      assert.equal(f.doc.activeElement,opener());
-      assert.match(status().textContent,statusText);
-      assert.equal(f.state.detailModel.pageControl.state,nativeState);
-      opener().dispatch('click');await tick();
-      f.installed.managedCleanup={state:'retired'};
-      find('scroll-refresh-state').dispatch('click');await tick();await tick();
-      find('extension-center-back').dispatch('click');await tick();
-      assert.equal(opener(),null);
-      assert.equal(status(),null);
-      assert.equal(f.state.detailModel.pageControl.state,nativeState);
-      assert.equal(f.doc.activeElement.id,'scroll-page-title');
-      assertReadOnly(f.requests);
-    });
-  }
-});
-
-test('AI Scroll historical cleanup shares one home entry with any native pending status',async t=>{
-  for(const [nativeState,installed,statusText] of [
-    ['ready',{},/^受管页面清理待核对$/],
-    ['pending',{authorization:{status:'unknown',generation:3,installationId:'installation-r8'}},
-      /运行状态待确认.*受管页面清理待核对/]
-  ]){
-    await t.test(nativeState,async t=>{
-      const f=await fixture(t,{installed,cleanupPending:[{programId:id,revision:7,
-        managedCleanup:{state:'unknown'}}]});await tick();
-      const control=f.doc.querySelector('.ec-scroll-home .ec-page-control');
-      assert.equal(f.state.detailModel.pageControl.state,nativeState);
-      assert.equal(f.state.detailModel.pageControl.cleanupPending,false);
-      assert.match(control.querySelector('[role="status"]').textContent,statusText);
-      const actions=control.querySelectorAll('.ec-page-control-actions button');
-      assert.equal(actions.length,1);
-      assert.equal(actions[0].id,'scroll-status-details');
-      assertReadOnly(f.requests);
-    });
-  }
-});
-
-test('AI Scroll page recovery stays in diagnostics and clears only after confirmed readback',async t=>{
-  const f=await fixture(t,{installed:{managedCleanup:{state:'unknown',records:2,pendingRecords:1,
-    pendingDocuments:[{tabId:42,documentId:'old-document',tabTitle:'保留草稿的对话',state:'active'}]}}});
-  await tick();
-  assert.equal(f.doc.querySelector('.ec-page-cleanup'),null);
-  assert.ok(f.doc.getElementById('scroll-status-details'));
-  assert.equal(f.doc.getElementById('scroll-management'),null);
-  f.doc.querySelector('button[aria-label="导航设置"]').dispatch('click');await tick();
-  assert.equal(f.doc.querySelector('.ec-page-cleanup'),null);
-  assert.equal(f.doc.getElementById('scroll-status-details'),null);
-  const settingsOpener=f.doc.getElementById('scroll-management');
-  settingsOpener.focus();settingsOpener.dispatch('click');await tick();
-  assert.equal(f.doc.activeElement.id,'scroll-page-title');
-  const cleanup=f.doc.querySelector('.ec-scroll-management .ec-page-cleanup');
-  assert.ok(cleanup);
-  assert.equal(cleanup.querySelector('summary').textContent,'网页更新与恢复');
-  assert.match(cleanup.textContent,/保留草稿的对话/);
-  assert.match(cleanup.textContent,/保存.*草稿.*刷新/);
-  assert.equal(cleanup.querySelector('details').hasAttribute('open'),false);
-  f.doc.querySelector('#scroll-refresh-state').dispatch('click');await tick();await tick();
-  assert.ok(f.doc.querySelector('.ec-page-cleanup'),'unconfirmed recheck keeps recovery evidence');
-  f.doc.querySelector('#extension-center-back').dispatch('click');await tick();
-  assert.equal(f.doc.activeElement.id,'scroll-management');
-  assert.equal(f.doc.querySelector('.ec-page-cleanup'),null);
-  f.doc.querySelector('#extension-center-back').dispatch('click');await tick();
-  f.doc.querySelector('button[aria-label="添加自定义网站"]').dispatch('click');await tick();
-  assert.equal(f.doc.querySelector('.ec-scroll-site-manager').dataset.view,'editor');
-  assert.equal(f.doc.querySelector('.ec-page-cleanup'),null);
-  f.doc.querySelector('#extension-center-back').dispatch('click');await tick();
-  f.doc.querySelector('button[aria-label="导航设置"]').dispatch('click');await tick();
-  f.doc.querySelector('#scroll-management').dispatch('click');await tick();
-  f.installed.managedCleanup={state:'retired',records:2,pendingRecords:0};
-  f.doc.querySelector('#scroll-refresh-state').dispatch('click');await tick();await tick();
-  assert.equal(f.doc.querySelector('.ec-page-cleanup'),null);
-  assertReadOnly(f.requests);
+test('AI Scroll home, management and editor omit old Page cleanup',async t=>{
+  for(const [state,installed] of [
+    ['ready',{}],['off',{enabled:false,nativeState:'disabled',authorization:{status:'disabled',generation:4,
+      installationId:'installation-r8'}}]
+  ])await t.test(state,async t=>{
+    const f=await fixture(t,{installed:{...installed,managedCleanup:{state:'unknown',
+      error:{code:'E_REAL_CLEANUP',message:'Recorded cleanup issue'},
+      pendingDocuments:[{tabId:42,documentId:'old-document',tabTitle:'保留草稿的对话'}]}},
+      cleanupPending:[{programId:id,revision:7,managedCleanup:{state:'unknown'}}]});
+    await tick();
+    const find=id=>f.doc.getElementById(id);
+    const assertNoCleanup=()=>assert.doesNotMatch(find('extension-center-detail-body').textContent,
+      /清理待核对|受管界面清理|页面恢复记录|保留草稿的对话|old-document|E_REAL_CLEANUP/);
+    assert.equal(f.state.detailModel.pageControl.state,state);
+    assert.equal(find('scroll-status-details'),null,'old cleanup alone is not a runtime status');
+    assert.equal(f.doc.querySelector('.ec-scroll-home .ec-page-control [role="status"]'),null);
+    assertNoCleanup();
+    f.doc.querySelector('button[aria-label="导航设置"]').dispatch('click');await tick();
+    const management=find('scroll-management');
+    management.focus();management.dispatch('click');await tick();
+    assert.equal(f.doc.querySelector('.ec-scroll-site-manager').dataset.view,'management');
+    assert.equal(f.doc.activeElement.id,'scroll-page-title');
+    assert.match(f.doc.querySelector('.ec-scroll-content').textContent,/Chrome 注册/);
+    assertNoCleanup();
+    find('extension-center-back').dispatch('click');await tick();
+    assert.equal(f.doc.activeElement.id,'scroll-management');
+    find('extension-center-back').dispatch('click');await tick();
+    const addSite=f.doc.querySelector('button[aria-label="添加自定义网站"]');
+    if(state==='ready'){
+      addSite.dispatch('click');await tick();
+      assert.equal(f.doc.querySelector('.ec-scroll-site-manager').dataset.view,'editor');
+      assertNoCleanup();
+    }else assert.equal(addSite.disabled,true,'disabled Page cannot enter the editor');
+    assertReadOnly(f.requests);
+  });
 });
 
 test('AI Scroll uncertain home opens technical details and rechecks without writes or lost focus',async t=>{
@@ -196,7 +126,7 @@ test('AI Scroll uncertain home opens technical details and rechecks without writ
   const opener=details.id;details.focus();details.dispatch('click');await tick();
   assert.equal(f.doc.querySelector('.ec-scroll-site-manager').dataset.view,'management');
   assert.equal(f.doc.querySelector('#extension-center-back').getAttribute('aria-label'),'返回应用首页');
-  assert.match(f.doc.querySelector('.ec-scroll-content').textContent,/受管界面清理：unknown/);
+  assert.doesNotMatch(f.doc.querySelector('.ec-scroll-content').textContent,/受管界面清理|清理待核对/);
   assert.match(f.doc.querySelector('.ec-scroll-content').textContent,/安装身份：installation-r8/);
   assert.match(f.doc.querySelector('.ec-scroll-content').textContent,/Chrome 注册：registered/);
   const readCount=()=>f.requests.filter(request=>request.method==='listPagePrograms').length;
@@ -207,7 +137,7 @@ test('AI Scroll uncertain home opens technical details and rechecks without writ
   recheck.dispatch('click');await tick();await tick();
   assert.equal(readCount(),before+1);
   assert.equal(f.doc.querySelector('.ec-scroll-site-manager').dataset.view,'management');
-  assert.match(f.doc.querySelector('.ec-scroll-content').textContent,/受管界面清理：unknown/);
+  assert.doesNotMatch(f.doc.querySelector('.ec-scroll-content').textContent,/受管界面清理|清理待核对/);
   assert.equal(f.state.detailModel.pageControl.state,'pending','a fresh unknown readback must not advertise ready');
   assert.equal(f.installed.enabled,true);
   assertReadOnly(f.requests);

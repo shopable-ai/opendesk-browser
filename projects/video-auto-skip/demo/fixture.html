@@ -1,0 +1,15 @@
+<!doctype html>
+<html lang="zh-CN">
+<meta charset="utf-8">
+<title>连播助手 R1 · 本地媒体验证</title>
+<main data-fixture="video-auto-skip-r1" data-work="local-test-pattern" data-season="1" data-episode="3" data-line="loopback" data-version="A">
+  <h1>连播助手 R1 · 本地媒体验证</h1>
+  <video id="feature" width="320" height="180" muted playsinline controls preload="auto" src="clip-a.webm"></video>
+  <video id="decoy" aria-label="干扰视频" width="96" height="54" muted preload="none" src="clip-b.webm"></video>
+  <iframe hidden title="同源框架样本" srcdoc="<video></video>"></iframe>
+  <iframe hidden title="隔离框架样本" sandbox srcdoc="<video></video>"></iframe>
+  <p>看到回拖提示后，从右端拖到左端并松开。</p>
+  <button id="scrub" type="button" style="width: min(320px, 90vw); min-height: 36px; touch-action: none; user-select: none">30 秒 ← 回拖验证 → 95 秒</button>
+  <pre id="report" aria-live="polite" data-stage="idle">等待从 OpenDesk 开发面板试运行。</pre>
+</main>
+</html>

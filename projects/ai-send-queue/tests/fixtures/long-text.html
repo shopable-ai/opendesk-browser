@@ -18,6 +18,7 @@
     <div id="toolbar"><button id="native-send" type="button" data-testid="send-button" aria-label="Send">↑</button></div>
   </div></form>
 </div>
+<div id="simulated-history"></div>
 <script type="module">
   import {createQueueView} from '../../src/page/view.js';
   import {createChatGPTSite} from '../../src/page/site.js';
@@ -48,9 +49,11 @@
     event.preventDefault();document.execCommand('insertText',false,event.clipboardData.getData('text/plain'));
   });
   const site=createChatGPTSite({doc:document,win});
+  const fifoMode=new URLSearchParams(location.search).has('fifo');
+  let time=0;
   let view;
-  const engine=createQueueEngine({site,change:()=>view?.render()});
-  for(let i=0;i<4;i++){engine.enqueue('完整队列正文🙂 '+i,site.inspect().route);engine.pause('q'+(i+1));}
+  const engine=createQueueEngine({site,clock:()=>time,change:()=>view?.render()});
+  if(!fifoMode)for(let i=0;i<4;i++){engine.enqueue('完整队列正文🙂 '+i,site.inspect().route);engine.pause('q'+(i+1));}
   view=createQueueView({owner,createPageUI,assets:[],engine,trustedActions:true,actions:{
     enqueue({paused}){
       const snap=site.inspect(),taken=site.clearForQueue(snap);
@@ -58,7 +61,20 @@
     },
     pause:engine.pause,resume:engine.resume
   }});
-  let clicks=0;document.querySelector('#native-send').addEventListener('click',()=>clicks++);
+  const send=document.querySelector('#native-send');
+  const replies=[],simulatedSends=[];
+  let clicks=0;
+  if(fifoMode)send.addEventListener('click',()=>{
+    const {editor,draft}=site.inspect();
+    const history=document.querySelector('#simulated-history');
+    const user=document.createElement('p'),reply=document.createElement('p');
+    user.dataset.messageAuthorRole='user';user.textContent=draft;
+    reply.dataset.messageAuthorRole='assistant';reply.dataset.talvtTurnState='in_progress';
+    reply.textContent='模拟回复';history.append(user,reply);
+    simulatedSends.push(draft);replies.push(reply);editor.replaceChildren();
+    send.dataset.testid='stop-button';send.setAttribute('aria-label','Stop');
+  });
+  else send.addEventListener('click',()=>clicks++);
   const frame=()=>new Promise(requestAnimationFrame);
   const check=(value,message)=>{if(!value)throw Error(message);};
   const body=length=>{
@@ -121,7 +137,15 @@
     engine.wait(text);view.render();
     return {status:'PASS',results,sendClicks:clicks,evidence:'LOCAL_SOURCE_NOT_INSTALLED'};
   };
-  // No automatic dispatch. Expose only the fixture controls and readback.
+  if(fifoMode)window.fifoFixture={
+    step(ms){time+=ms;engine.tick();},
+    finishReply(){
+      replies.at(-1).dataset.talvtTurnState='complete';
+      send.dataset.testid='send-button';send.setAttribute('aria-label','Send');
+    },
+    state:()=>({sends:[...simulatedSends],draft:site.inspect().draft,
+      items:engine.view().items.map(({text,state})=>({text,state})), reason:engine.view().reason})
+  };
   window.queueFixture={
     fit:()=>view.place(site.inspect()),
     clear:()=>view.hide(),

@@ -6,7 +6,6 @@ import {ScrollSiteManager} from '../../../../projects/ai-scroll-navigation/trust
 import {ConversationAiGlyph} from '../components/conversation.tsx';
 import {extensionCenterText} from '../../extension-center-localization.js';
 import {localeManagerText} from '../../locale-manager-localization.js';
-import {PageCleanupDetails} from '../components/page-cleanup.tsx';
 import {ExtensionAbout} from '../components/extension-about.tsx';
 
 const LocaleManager=React.lazy(()=>import('./locale-manager.tsx'));
@@ -196,6 +195,10 @@ function WebFeaturesView({model,t,onBack,titleRef}){
           value={model.settingsURL||'chrome://extensions'} onFocus={event=>event.currentTarget.select()}/>
       </>}
     </section>
+    <details className="ec-web-features-help od-disclosure">
+      <summary>{t('oldPagesHelpTitle')}</summary>
+      <div><p>{t('oldPagesGuide')}</p></div>
+    </details>
     <section className="ec-web-features-tools" aria-labelledby="web-features-tools-title">
       <h3 id="web-features-tools-title">{t('webFeaturesCheckTitle')}</h3>
       {rows.length>0&&<ul className="ec-companion-list">
@@ -362,12 +365,10 @@ function extensionActionGlyph(id,enabled=false){
 // Capture the real gesture within the same React subtree and require it
 // before delegating to the original Controller/Authority. Never optimistically
 // change the displayed persisted state.
-export function ManagedPageControl({control,title,heading,description,compact=false,hasOldPageCleanup=false,onDetails,locale='zh-CN'}){
+export function ManagedPageControl({control,title,heading,description,compact=false,onDetails,locale='zh-CN'}){
   const t=(key,params={})=>extensionCenterText(locale,key,params);
   const runtimePending=control.state==='pending'||control.state==='restricted';
-  const cleanupPending=control.cleanupPending||(compact&&hasOldPageCleanup);
-  const showControlStatus=!compact||runtimePending||Boolean(control.cleanupPending);
-  const showOldPageStatus=compact&&hasOldPageCleanup&&!control.cleanupPending;
+  const showControlStatus=!compact||runtimePending;
   const gesture=React.useRef(null);
   const capture=event=>{
     gesture.current=event.nativeEvent?.isTrusted===true?event.nativeEvent:null;
@@ -391,15 +392,14 @@ export function ManagedPageControl({control,title,heading,description,compact=fa
         isSelected={control.enabled} isDisabled={control.busy||!control.enabledKnown}
         onChange={onChange}/>
     </div>
-    {(showControlStatus||showOldPageStatus)&&<p className="ec-page-state" data-state={showControlStatus?control.state:undefined} role="status" aria-live="polite">
-      {showControlStatus&&control.status}
-      {showOldPageStatus&&((showControlStatus?' · ':'')+t('oldPagesUnconfirmed'))}
+    {showControlStatus&&<p className="ec-page-state" data-state={control.state} role="status" aria-live="polite">
+      {control.status}
     </p>}
     {control.note&&control.state!=='ready'&&<p>{control.note}</p>}
     {control.legacyProgramId&&<p className="ec-page-legacy">
       {t('legacy',{id:control.legacyProgramId})}
     </p>}
-    {(control.canRestore||runtimePending||cleanupPending)&&
+    {(control.canRestore||runtimePending)&&
       <div className="ec-page-control-actions">
         {control.canRestore&&<Button disabled={control.busy}
           onClick={event=>control.onRestore?.(event.nativeEvent)}>
@@ -458,7 +458,6 @@ export function PageDiagnostics({info,locale='zh-CN'}){
     {info?.sourceHash&&<p>{t('sourceHash')}{info.sourceHash}</p>}
     {info?.manifestHash&&<p>{t('manifestHash')}{info.manifestHash}</p>}
     {info?.packageHash&&<p>{t('packageHash')}{info.packageHash}</p>}
-    {info?.cleanupState&&<p>{t('cleanupState')}{info.cleanupState}</p>}
     {info?.error&&<p role="status">{t('registrationError')}{info.error}</p>}
     <p>{t('excluded')}{info?.excluded?.join('、')||t('none')}</p>
     <p>{t('capabilities')}{info?.capabilities?.join('、')||t('notRecorded')}</p>
@@ -534,11 +533,9 @@ export function ExtensionDetail({model,container,onScrollNavigation,scrollNaviga
     {model.description&&!model.scrollManager&&<p className="ec-detail-description">{model.description}</p>}
     <ExtensionAbout model={model.about} locale={locale}/>
     {managed&&!model.scrollManager&&<ManagedPageControl locale={locale} control={model.pageControl} title={model.title}/>}
-    {!model.scrollManager&&<PageCleanupDetails key={model.key} cleanup={model.oldPageCleanup} locale={locale}/>}
     {model.scrollManager&&<ScrollSiteManager key={model.scrollManager.identityKey}
       locale={locale} model={model.scrollManager} pageControl={model.pageControl} title={model.title} detail={model}
-      onNavigation={onScrollNavigation} PageControl={ManagedPageControl} Diagnostics={PageDiagnostics}
-      CleanupDetails={PageCleanupDetails}/>}
+      onNavigation={onScrollNavigation} PageControl={ManagedPageControl} Diagnostics={PageDiagnostics}/>}
     {!managed&&!model.scrollManager&&<DetailActions locale={locale} model={model} actions={bodyActions}/>}
     {!managed&&<section className="ec-detail-card">
       <h3>{t('installationSource')}</h3>
@@ -874,17 +871,18 @@ export function ExtensionDiscovery({model,onDiscover,showEntry=false,locale=mode
 export function ExtensionCenterPage({
   rowsModel={rows:[],busy:false,pendingKey:null,onOpenRow:()=>{},onMore:()=>{}},
   toolbarModel=null,detailModel=null,uninstallModel=null,feedbackModel=null,recoveryModel=null,discoveryModel=null,
-  statusModel=null,preinstallModel=null,onPreinstallAction=null,menuKey=null,rowMenuModel=null,updateCenter=null,view='list',onBack=()=>{}
+  statusModel=null,preinstallModel=null,onPreinstallAction=null,menuKey=null,rowMenuModel=null,updateCenter=null,view='list',onBack=()=>{},
+  openWebFeaturesOnLoad=false
 }){
   const locale=toolbarModel?.locale||toolbarModel?.language||detailModel?.locale||'zh-CN';
   const t=(key,params={})=>extensionCenterText(locale,key,params);
   const languageVisible=Boolean(toolbarModel?.localeManager);
   const detailVisible=view==='detail'&&!languageVisible;
   const [preinstallInfo,setPreinstallInfo]=React.useState(false);
-  const [webFeatures,setWebFeatures]=React.useState(false);
+  const [webFeaturesOverride,setWebFeatures]=React.useState(null);
+  const webFeatures=webFeaturesOverride??openWebFeaturesOnLoad;
   const webFeaturesVisible=webFeatures&&!detailVisible&&!languageVisible;
   const webFeaturesTitle=React.useRef(null),webFeaturesReturn=React.useRef(null);
-  const webFeaturesTrigger=React.useRef(null);
   const [preinstallSettingsVisited,setPreinstallSettingsVisited]=React.useState(false);
   const preinstallHelpVisible=preinstallInfo&&!detailVisible&&!languageVisible;
   const preinstallTitleRef=React.useRef(null),preinstallReturn=React.useRef(null);
@@ -898,19 +896,24 @@ export function ExtensionCenterPage({
     preinstallReturn.current=scroll;setPreinstallInfo(true);
   };
   const openWebFeatures=event=>{
-    webFeaturesTrigger.current=event?.currentTarget?.id;
     toolbarModel?.onCloseMenu?.(false);
     const scroll=[];
     for(let node=pageRef.current;node;node=node.parentElement)scroll.push([node,node.scrollTop]);
-    webFeaturesReturn.current=scroll;setWebFeatures(true);
+    webFeaturesReturn.current={scroll,triggerId:event?.currentTarget?.id};
+    setWebFeatures(true);
+  };
+  const closeWebFeatures=()=>{
+    webFeaturesReturn.current??={scroll:[]};
+    setWebFeatures(false);
   };
   React.useLayoutEffect(()=>{
     if(webFeaturesVisible)webFeaturesTitle.current?.focus();
     else if(!webFeatures&&webFeaturesReturn.current){
-      for(const [node,top] of webFeaturesReturn.current)node.scrollTop=top;
+      const {scroll,triggerId}=webFeaturesReturn.current;
+      for(const [node,top] of scroll)node.scrollTop=top;
       webFeaturesReturn.current=null;
       const doc=pageRef.current?.ownerDocument;
-      const trigger=doc?.getElementById(webFeaturesTrigger.current);
+      const trigger=triggerId&&doc?.getElementById(triggerId);
       (trigger?.getClientRects().length&&!trigger.closest('[hidden],[inert]')?trigger:
         doc?.getElementById('extension-center-more'))?.focus({preventScroll:true});
     }
@@ -974,7 +977,7 @@ export function ExtensionCenterPage({
         webFeaturesTitle.current.closest('[hidden],[inert]')))return;
       if(toolbarModel?.menuOpen){event.preventDefault();toolbarModel.onCloseMenu?.(true);}
       else if(preinstallHelpVisible){event.preventDefault();setPreinstallInfo(false);}
-      else if(webFeaturesVisible){event.preventDefault();setWebFeatures(false);}
+      else if(webFeaturesVisible){event.preventDefault();closeWebFeatures();}
       else if(detailVisible){event.preventDefault();detailBackRef.current(event);}
     };
     doc.addEventListener('click',clickOutside);doc.addEventListener('keydown',keyDown);
@@ -1010,17 +1013,6 @@ export function ExtensionCenterPage({
         aria-busy={Boolean(rowsModel.busy||rowsModel.pendingKey)}>
         <ExtensionRows {...rowsModel} locale={locale} menuKey={menuKey}/>
       </ul>
-      {recoveryModel?.pages?.length>0&&<section id="extension-center-page-recoveries"
-        className="ec-page-recoveries od-stack" aria-labelledby="extension-center-page-recoveries-title">
-        <h3 id="extension-center-page-recoveries-title">{t('oldPagesRecoveryTitle')}</h3>
-        {recoveryModel.pages.map(({id,title,cleanup})=><details key={id} className="od-disclosure" data-ec-page-recovery={id}>
-          <summary><span className="ec-page-recovery-summary">
-            <span>{title}</span>
-            <span className="ec-page-cleanup-meta">{t(recoveryModel.checking?'oldPagesReadPending':'oldPagesCleanupPending')}</span>
-          </span></summary>
-          <PageCleanupDetails cleanup={cleanup} locale={locale} showDocuments/>
-        </details>)}
-      </section>}
       <div id="extension-center-cleanups" hidden={!recoveryModel?.ids?.length}>
         <ExtensionRecoveries locale={locale} model={recoveryModel}/>
       </div>
@@ -1032,7 +1024,7 @@ export function ExtensionCenterPage({
       onBack={()=>setPreinstallInfo(false)} onAction={preinstallAction}
       settingsVisited={preinstallSettingsVisited} titleRef={preinstallTitleRef}/>}
     {webFeaturesVisible&&<WebFeaturesView model={toolbarModel?.webFeatures} t={t}
-      onBack={()=>setWebFeatures(false)} titleRef={webFeaturesTitle}/>}
+      onBack={closeWebFeatures} titleRef={webFeaturesTitle}/>}
     <section id="extension-center-detail" className="ec-detail" aria-label={t('detailAria')}
       data-scroll-app={detailModel?.scrollManager?'true':undefined}
       hidden={!detailVisible}>

@@ -44,6 +44,7 @@ const pageCleanup=await compile('../../src/ui/react/components/page-cleanup.tsx'
   'react':import.meta.resolve('react'),
   '../../extension-center-localization.js':new URL('../../src/ui/extension-center-localization.js',import.meta.url).href
 });
+const {PageCleanupDiagnostics}=await import(pageCleanup);
 const extensionAbout=await compile('../../src/ui/react/components/extension-about.tsx',{
   'react':import.meta.resolve('react'),
   '../../extension-about-localization.js':new URL('../../src/ui/extension-about-localization.js',import.meta.url).href
@@ -77,7 +78,7 @@ const {createRoot}=await import('react-dom/client');
 // window fallback alive while leaving document absent for server-render tests.
 globalThis.window=original.window||initial.window;globalThis.document=original.document;
 
-export function createExtensionCenterDOM(t,{component=ExtensionCenterPage,props={}}={}){
+export function createExtensionCenterDOM(t,{component=ExtensionCenterPage,props={},debug=false}={}){
   const {window,document:doc}=parseHTML('<html><body><main id="workspace-content"><div id="opendesk-react-app"></div></main><input id="sidebar-tool-file"></body></html>');
   const activate=()=>activateDOM(window);
   activate();doc.activeElement=doc.body;
@@ -115,7 +116,8 @@ export function createExtensionCenterDOM(t,{component=ExtensionCenterPage,props=
   const root=createRoot(doc.getElementById('opendesk-react-app'));
   const state={rowsModel:{rows:[]},...props};
   let disposed=false;
-  const paint=()=>{if(disposed)return;activate();flushSync(()=>root.render(React.createElement(component,state)));};
+  const paint=()=>{if(disposed)return;activate();flushSync(()=>root.render(React.createElement(React.Fragment,null,
+    React.createElement(component,state),debug&&React.createElement(PageCleanupDiagnostics,{model:state.pageCleanup}))));};
   paint();
   const list=doc.getElementById('extension-center-list');
   if(list)list.dataset.opendeskReactOwner='extension-list';
@@ -125,6 +127,7 @@ export function createExtensionCenterDOM(t,{component=ExtensionCenterPage,props=
     renderFeedback:'feedbackModel',renderStatus:'statusModel',renderView:'view',connectBack:'onBack',setMenuKey:'menuKey'}))
     adapter[method]=value=>{state[key]=value;paint();};
   adapter.renderRowMenu=(items,options)=>{state.rowMenuModel=items.length?{...options,items}:null;paint();};
+  if(debug)adapter.renderPageCleanupDiagnostics=model=>{state.pageCleanup=model;paint();};
   t.after(async()=>{activate();disposed=true;flushSync(()=>root.unmount());
     // Drain deferred focus restoration while this fixture still owns document.
     await new Promise(resolve=>setTimeout(resolve,0));

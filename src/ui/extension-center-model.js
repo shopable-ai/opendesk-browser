@@ -125,10 +125,7 @@ export function describePageDisableStatus(page,locale='zh-CN'){
   if(page?.enabled!==false)return null;
   const nativePending=page.authorization?.status!=='disabled'||
     page.nativeState!=='disabled'||Boolean(page.error);
-  const cleanupPending=Boolean(page.managedCleanup&&page.managedCleanup.state!=='retired');
-  if(!nativePending&&!cleanupPending)return null;
-  const key=nativePending?(cleanupPending?'disabledBothPending':'disabledPending'):'disabledCleanupPending';
-  return {nativePending,cleanupPending,status:extensionCenterText(locale,key)};
+  return nativePending?{status:extensionCenterText(locale,'disabledPending')}:null;
 }
 
 function deferredPagePresentation(page,t){
@@ -155,8 +152,8 @@ export function describeManagedAiPage(page,installedPrograms=[],locale='zh-CN'){
   let state='pending',status=t('runPending'),note=t('recheckNote');
   if(!enabledKnown){status=t('autoPending');}
   else if(!enabled){
-    if(!disableStatus?.nativePending){
-      state='off';status=disableStatus?.status||t('autoOff');note='';
+    if(!disableStatus){
+      state='off';status=t('autoOff');note='';
     }else{
       status=disableStatus.status;
       note=t('recheckNote');
@@ -185,7 +182,7 @@ export function describeManagedAiPage(page,installedPrograms=[],locale='zh-CN'){
   const legacyInstalled=installedPrograms.some(row=>
     (row?.installed??row)?.programId===legacyProgramId);
   return {
-    enabled,enabledKnown,state,status,note,cleanupPending:disableStatus?.cleanupPending===true,
+    enabled,enabledKnown,state,status,note,
     evidenceNote:t('aiEvidence'),
     legacyProgramId:legacyInstalled?legacyProgramId:null,
     canRestore:enabledKnown&&enabled&&!deferred&&
@@ -222,7 +219,7 @@ export function describeInstalledPageControl(page,installedPrograms=[],locale='z
   let state='pending',status=t('conditionsPending');
   if(!enabledKnown)status=t('enabledPending');
   else if(!enabled){
-    if(!disableStatus?.nativePending)state='off';
+    if(!disableStatus)state='off';
     status=disableStatus?.status||t('disabledConfirmed');
   }else if(sitesKnown&&authorization==='active'&&native==='registered'&&!error){
     state='ready';status=t('conditionsReady');
@@ -237,7 +234,7 @@ export function describeInstalledPageControl(page,installedPrograms=[],locale='z
   }else if(error){
     state='restricted';status=t('registrationIssue');
   }else status=t('enableRequested');
-  return {enabled,enabledKnown,state,status,cleanupPending:disableStatus?.cleanupPending===true,
+  return {enabled,enabledKnown,state,status,
     note:deferred?.note||(scriptsUnavailable&&enabled?t('pageUserScriptsRecovery'):t('pageEvidence')),
     legacyProgramId:null,
     canRestore:enabledKnown&&enabled&&!deferred&&

@@ -1,0 +1,49 @@
+<section id="vas-content" class="od-stack" aria-labelledby="vas-work">
+  <div class="od-page-head">
+    <div>
+      <h2 id="vas-work" class="od-title">星海航线</h2>
+      <div id="vas-episode-summary" class="od-note"></div>
+    </div>
+    <button type="button" class="od-button od-button--quiet" id="vas-context-toggle" aria-expanded="false" aria-controls="vas-context" data-size="sm">更正集数</button>
+  </div>
+  <div id="vas-context" class="od-form-field" hidden>
+    <label for="vas-episode" class="od-field-label">当前集数</label>
+    <select id="vas-episode" class="od-field" aria-describedby="vas-episode-help">
+      <option value="3">第 03 集 · 45:00</option>
+      <option value="4">第 04 集 · 48:00</option>
+      <option value="5">第 05 集 · 时长未知</option>
+    </select>
+    <p id="vas-episode-help" class="od-field-help">只更正当前设置对应的集数。</p>
+  </div>
+</section>
+<p id="vas-warning" class="od-alert od-alert--warning" role="status" hidden></p>
+<section id="vas-scope-section" class="od-form-field" aria-labelledby="vas-scope-label">
+  <label for="vas-scope" class="od-field-label" id="vas-scope-label">保存范围</label>
+  <select id="vas-scope" class="od-field" aria-describedby="vas-scope-help">
+    <option value="work">本作品当前季</option>
+    <option value="episode">仅本集</option>
+  </select>
+  <p id="vas-scope-help" class="od-field-help"></p>
+</section>
+<section id="vas-rules-section" class="od-stack" aria-labelledby="vas-rules-title">
+  <h2 id="vas-rules-title" class="od-page-title">跳过与连播</h2>
+  <ul id="vas-rules" class="od-collection"></ul>
+</section>
+<section id="vas-save-section" class="od-stack" aria-label="保存和取消">
+  <p id="vas-save-warning" class="od-alert od-alert--warning" role="status" tabindex="-1" hidden></p>
+  <button id="vas-use-episode" type="button" class="od-button od-button--secondary" aria-describedby="vas-save-warning" hidden>带入本集草稿</button>
+  <div class="preview-actions">
+    <button id="vas-save" type="button" class="od-button od-button--primary" aria-describedby="vas-scope-help vas-draft-state vas-save-warning" disabled>保存当前季设置</button>
+    <button id="vas-cancel" type="button" class="od-button od-button--quiet" hidden>取消修改</button>
+  </div>
+  <div id="vas-draft-state" class="od-note" hidden>有未保存的修改。</div>
+  <div id="vas-status" class="od-note" role="status" aria-atomic="true" tabindex="-1" hidden></div>
+</section>
+<dialog id="vas-confirm" class="preview-confirm od-surface" aria-labelledby="vas-confirm-title" aria-describedby="vas-confirm-detail">
+  <h2 id="vas-confirm-title">放弃未保存的修改？</h2>
+  <p id="vas-confirm-detail"></p>
+  <div class="preview-confirm-actions">
+    <button id="vas-stay" class="od-button od-button--secondary" type="button" autofocus>继续编辑</button>
+    <button id="vas-discard" class="od-button od-button--danger" type="button">放弃修改</button>
+  </div>
+</dialog>

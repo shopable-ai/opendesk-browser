@@ -6,6 +6,23 @@ import {load} from 'cheerio';
 import {act} from 'react';
 import {mountWorkflowClient} from './workflow-mounted-ui.mjs';
 
+test('the React shell mounts old Page cleanup diagnostics only inside development Debug',async()=>{
+  const debugModel={pageCleanup:{groups:[{id:'archived.page',title:'已卸载的测试网页增强',
+    cleanup:{documents:[],records:[{revision:7,state:'unknown'}]}}],known:true,checking:false,onRefresh(){}}};
+  for(const debugEnabled of [false,true]){
+    const $=load(await renderSidebarFixture({activeTab:debugEnabled?'debug':'tools',debugEnabled,debugModel}));
+    assert.equal($('#debug-page-cleanup').length,debugEnabled?1:0);
+    assert.doesNotMatch($('#workbench-tools').text(),/已卸载的测试网页增强|网页清理诊断/);
+    if(debugEnabled){
+      const diagnostics=$('#workbench-debug #debug-page-cleanup');
+      assert.equal(diagnostics.length,1);
+      assert.equal(diagnostics.children('summary').text(),'网页清理诊断');
+      assert.equal(diagnostics.find('button').text(),'重新核对');
+      assert.match(diagnostics.text(),/已卸载的测试网页增强/);
+    }
+  }
+});
+
 // Repository source-level guard. Rendered style equivalence is checked separately
 // by scripts/tests/sidebar-r19-layout-visual.mjs in controlled Chrome.
 const read = path => readFileSync(new URL('../../' + path, import.meta.url), 'utf8');

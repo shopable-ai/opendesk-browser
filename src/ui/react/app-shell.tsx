@@ -175,7 +175,7 @@ export function SidebarAppShell({
         setupModel={cloudSetupModel}
         pageModel={cloudPageModel}
         hidden={activeTab!=='cloud'}/>
-      {debugEnabled&&<DebugPage model={debugModel} actions={debugActions} development={development}
+      {debugEnabled&&<DebugPage model={debugModel} actions={debugActions} development={development} locale={uiLocale}
         browserHistoryModel={browserHistoryModel} browserHistoryActions={browserHistoryActions}
         hidden={activeTab!=='debug'}/>}
     </main>

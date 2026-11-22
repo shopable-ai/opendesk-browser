@@ -1,7 +1,7 @@
 import {scrollNavigationCatalog,scrollNavigationText,scrollNavigationMessageText} from '../../projects/ai-scroll-navigation/trusted/host-localization.js';
 import {extensionCenterText} from './extension-center-localization.js';
 import {describeExtensionAbout} from './extension-about.js';
-import {describePageCleanup} from './page-cleanup-summary.js';
+import {describePageCleanupGroups,isPageCleanupHistory} from './page-cleanup-summary.js';
 import {SIDEBAR_TOOL_STORE,sidebarToolPackageHash} from './sidebar-tools/package.js';
 import {requireCompleteInstalledSidebarTools,requirePendingToolCleanups,MARKET_PROVENANCE_STORE,TOOL_CLEANUP_STORE,sameSidebarToolPackage} from './sidebar-tools/installation.js';
 import {SIDEBAR_TOOL_ENABLE_STORE,requireToolEnableRecords,TOOL_REVOCATION_EPOCHS_STORE,requireToolRevocationEpochs} from './sidebar-tools/lifecycle.js';
@@ -9,7 +9,7 @@ import {inspectUserScriptsAccess,userScriptsSettingsURL} from './user-scripts-ac
 import {loadOfficialCatalog} from '../sidebar-tools/official-catalog.js';
 import {loadOfficialPageCatalog} from '../scripting/user-scripts/official-page-catalog.js';
 import {installedPageEnableAction,setInstalledPageProgramEnabled} from './installed-page-tools.js';
-import {composeExtensionEntries,isPinnedQueueRelease,filterExtensionEntries,matchesExtensionSearch,describeInstalledAppSource,resolveExtensionRowIntent,resolveExtensionPrimaryAction,describeInstalledPageControl,describePageDisableStatus,prioritizePinnedExtensionEntries,EXTENSION_CENTER_PIN_STORAGE_PREFIX,extensionCenterPinStorageKey} from './extension-center-model.js';
+import {composeExtensionEntries,isPinnedQueueRelease,filterExtensionEntries,describeInstalledAppSource,resolveExtensionRowIntent,resolveExtensionPrimaryAction,describeInstalledPageControl,describePageDisableStatus,prioritizePinnedExtensionEntries,EXTENSION_CENTER_PIN_STORAGE_PREFIX,extensionCenterPinStorageKey} from './extension-center-model.js';
 import readingTocCatalog from '../../projects/reading-toc/trusted/locales.generated.js';
 import {OFFICIAL_READING_TOC_RELEASE} from '../sidebar-tools/official-reading-toc.js';
 import {uiMessage} from './app-localization.js';
@@ -33,8 +33,8 @@ export function createExtensionCenter({api,client,doc,sidebarTools,taskWorkbench
   if(!extensionList||extensionList.owner!=='extension-list'||list?.dataset.opendeskReactOwner!=='extension-list')
     throw new Error('E_REACT_LIST_OWNERSHIP');
   let disposed=false,sequence=0,officialSequence=0,pageOfficialSequence=0,busy=false,pendingKey=null,installed=[],pages=[],enabled={},official=[],officialPages=[];
-  let appStatusKnown=false,pageStatusKnown=false,pendingCleanups=new Set(),pageCleanupPending=[];
-  let installedPageIds=new Set(),pageCleanupStatusKnown=false;
+  let appStatusKnown=false,pageStatusKnown=false,pendingCleanups=new Set(),freshPageCleanupIds=new Set();
+  let lastPageDiagnostics=[],pageDiagnosticsKnown=false,pageDiagnosticsRead=0;
   let appPages=[],appPageOwners={};
   const appPageFeedback=new Map();
   let companionSettingsOpening=false,companionSettingsFailed=false,companionChromeAccess;
@@ -587,7 +587,6 @@ export function createExtensionCenter({api,client,doc,sidebarTools,taskWorkbench
     const key=list.contains(active)?active?.dataset?.extensionKey:null;
     const action=active?.dataset?.extensionAction;
     const menuFocusKey=get('extension-center-row-menu')?.contains(active)?rowMenuKey:null;
-    const recoveryFocus=active?.closest?.('[data-ec-page-recovery]')?.dataset.ecPageRecovery;
     closeRowMenu();
     const rows=prioritizePinnedExtensionEntries(
       filterExtensionEntries(all().map(row=>({...row,title:titleOf(row),description:descriptionOf(row)})),{query,kind,scope}),pinnedKeys);
@@ -598,20 +597,8 @@ export function createExtensionCenter({api,client,doc,sidebarTools,taskWorkbench
         (!query||id.toLocaleLowerCase().replace(/[\s-]+/g,'').includes(
           query.toLocaleLowerCase().replace(/[\s-]+/g,''))||
           t('cleanupPending').includes(query))):[];
-    const removedPages=[];
-    if(kind!=='app'){
-      const removedTitles=new Map();
-      for(const row of pageCleanupPending){
-        if(row.programId.startsWith('app.')||installedPageIds.has(row.programId))continue;
-        removedTitles.set(row.programId,row.title||row.programId);
-      }
-      for(const [id,title] of removedTitles){
-        if(!matchesExtensionSearch({id,title},query))continue;
-        removedPages.push({id,title,cleanup:describePageCleanup(id,null,pageCleanupPending)});
-      }
-    }
     extensionList.renderRecoveries({
-      ids:orphaned,pages:removedPages,checking:!pageCleanupStatusKnown,busy:Boolean(busy||pendingKey),
+      ids:orphaned,busy:Boolean(busy||pendingKey),
       onRetry(id,event){void retryCleanup({id,key:'app:'+id,cleanupPending:true},event);}
     });
     extensionList.renderRows({
@@ -636,7 +623,7 @@ export function createExtensionCenter({api,client,doc,sidebarTools,taskWorkbench
         busy:Boolean(busy||pendingKey),pendingKey,
         onOpenRow:openRow,onMore:showRowMenu
       });
-    const showEmpty=rows.length===0&&orphaned.length===0&&removedPages.length===0&&hasLoaded;
+    const showEmpty=rows.length===0&&orphaned.length===0&&hasLoaded;
     const emptyText=dataError?
       t('readStateFailed'):
       query?t('noMatches'):scope==='available'?t('noCandidates'):
@@ -646,7 +633,6 @@ export function createExtensionCenter({api,client,doc,sidebarTools,taskWorkbench
     extensionList.renderFeedback({showEmpty,emptyText,countText});
     syncFilters();
     syncListUninstallReview();
-    if(recoveryFocus&&!removedPages.some(row=>row.id===recoveryFocus))search?.focus();
     if(!busy&&!pendingKey){
       if(key)restoreRowFocus(key,action);
       else if(menuFocusKey&&!restoreRowFocus(menuFocusKey,'more'))
@@ -981,9 +967,6 @@ export function createExtensionCenter({api,client,doc,sidebarTools,taskWorkbench
     }
     const pendingReview=uninstallReview?.key===row.key?uninstallReview:null;
     const page=row.kind==='page'?row.record?.installed:null;
-    const cleanupProgramId=page?.programId||row.pageCompanion?.programId;
-    const cleanupRecord=pages.find(item=>(item.installed??item).programId===cleanupProgramId);
-    const cleanupPage=page||cleanupRecord?.installed||cleanupRecord;
     const pageControl=page&&pageStatusKnown&&!pageReadPending?describeInstalledPageControl(page,pages,language()):null;
     const confirmation=pendingReview?{
       text:t('pageUninstallConsequence'),
@@ -1074,7 +1057,6 @@ export function createExtensionCenter({api,client,doc,sidebarTools,taskWorkbench
           }
         }:null,
         installed:row.installed,enabled:row.enabled,cleanupPending:row.cleanupPending,
-        oldPageCleanup:describePageCleanup(cleanupProgramId,cleanupPage,pageCleanupPending),
         version:row.version,source:sources[row.id]?{...sources[row.id],label:
           sources[row.id].kind==='unknown'?t('unknownSource'):sources[row.id].kind==='market'?
             t('sourceMarket',{id:'opendesk/'+row.id}):t('sourceMismatch')}:null,
@@ -1286,7 +1268,6 @@ export function createExtensionCenter({api,client,doc,sidebarTools,taskWorkbench
           installationId:page.authorization?.installationId||null,
           sourceHash:page.sourceHash||null,
           manifestHash:page.manifestHash||null,packageHash:page.packageHash||null,
-          cleanupState:page.managedCleanup?.state||null,
           error:page.error?.message||null,
           dataRule:t('pageDataRule')
         }:null,
@@ -1448,8 +1429,9 @@ export function createExtensionCenter({api,client,doc,sidebarTools,taskWorkbench
         String(operationError.message||operationError)+
         t('verifyBeforeRetry'),'error');
       else if(confirmedPageRemoval(outcome,expected)&&
-        readback&&pageStatusKnown&&pageCleanupStatusKnown&&!find(expected.key)?.installed){
-        if(pageCleanupPending.some(row=>row.programId===expected.programId))
+        readback&&pageStatusKnown&&!find(expected.key)?.installed){
+        // Historical cleanup only selects optional recovery advice after success.
+        if(freshPageCleanupIds.has(expected.programId))
           message(()=>t('pageRemovedCleanupNotice'),'info','action',{notifyOnly:true});
         else message(()=>t('pageUninstallConfirmed'),'success');
       }else message(()=>t('pageUninstallUnconfirmed'),'error');
@@ -1535,6 +1517,26 @@ export function createExtensionCenter({api,client,doc,sidebarTools,taskWorkbench
     else message(()=>t('cleanupUnconfirmed'),'error');
     draw();if(selectedKey)renderDetail();
   }
+  function startPageDiagnosticsRead(){
+    if(!extensionList.renderPageCleanupDiagnostics||disposed)return null;
+    const revision=++pageDiagnosticsRead;
+    const publish=checking=>extensionList.renderPageCleanupDiagnostics({groups:lastPageDiagnostics,
+      known:pageDiagnosticsKnown,checking,onRefresh:refreshPageDiagnostics});
+    publish(true);
+    return response=>{
+      if(disposed||revision!==pageDiagnosticsRead)return;
+      const groups=describePageCleanupGroups(response);
+      pageDiagnosticsKnown=groups!==null;
+      if(groups!==null)lastPageDiagnostics=groups;
+      publish(false);
+    };
+  }
+  async function refreshPageDiagnostics(){
+    const finish=startPageDiagnosticsRead();
+    if(!finish)return;
+    const response=await client.request('listPagePrograms',{}).catch(()=>null);
+    finish(response);
+  }
   async function refresh({pageReadback=false,appReadback=false}={}){
     if(disposed)return false;
     const id=++sequence;
@@ -1592,31 +1594,21 @@ export function createExtensionCenter({api,client,doc,sidebarTools,taskWorkbench
       appsError={key:'appsError',error};
     }
     appsDone=true;publish();})();
-    const readPages=(async()=>{pendingPageReads++;try{
+    const readPages=(async()=>{const finishDiagnostics=startPageDiagnosticsRead();pendingPageReads++;try{
       const response=await client.request('listPagePrograms',{});
       if(!current())return;
       if(!Array.isArray(response?.installed))throw uiError('invalidPageList');
       // Embedded Page modules share their parent application's install and
       // lifecycle; they are not a second independently manageable extension.
-      installedPageIds=new Set(response.installed.map(row=>(row?.installed??row)?.programId));
       appPages=response.installed.filter(row=>row?.appOwner);
       pages=response.installed.filter(row=>!row.appOwner);pageStatusKnown=true;
-      // Keep the last cleanup snapshot if the read cannot establish every record's state.
-      pageCleanupStatusKnown=Array.isArray(response.cleanupPending)&&response.cleanupPending.every(row=>
-        typeof row?.programId==='string'&&row.programId.length>0&&
-        (row.title===undefined||typeof row.title==='string')&&
-        ['unknown','retired'].includes(row.managedCleanup?.state)&&
-        (row.managedCleanup.state!=='retired'||
-          !(row.managedCleanup.pendingRecords>0||row.managedCleanup.pendingDocuments?.length))&&
-        (row.managedCleanup.pendingDocuments===undefined||(Array.isArray(row.managedCleanup.pendingDocuments)&&
-          row.managedCleanup.pendingDocuments.every(document=>Number.isSafeInteger(document?.tabId)&&
-            typeof document.documentId==='string'))));
-      if(pageCleanupStatusKnown){
-        pageCleanupPending=response.cleanupPending.filter(row=>row.managedCleanup.state!=='retired');
-      }
+      freshPageCleanupIds=new Set(isPageCleanupHistory(response.cleanupPending)
+        ?response.cleanupPending.filter(row=>row.managedCleanup.state!=='retired').map(row=>row.programId):[]);
+      finishDiagnostics?.(response);
     }catch(error){
       if(!current())return;
-      pages=[];appPages=[];pageStatusKnown=false;pageCleanupStatusKnown=false;pagesError={key:'pagesError',error};
+      pages=[];appPages=[];pageStatusKnown=false;freshPageCleanupIds=new Set();pagesError={key:'pagesError',error};
+      finishDiagnostics?.(null);
     }finally{pendingPageReads--;if(current())pageReadPending=false;}
     pagesDone=true;publish();})();
     await Promise.all([readApps,readPages]);

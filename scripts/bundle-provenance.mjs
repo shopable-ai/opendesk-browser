@@ -32,10 +32,10 @@ const compiledSendQueueInputs=Object.freeze({
   'projects/ai-send-queue/assets/queue.css':'de1cb65f9627ca063e19717f1c9609fd5422e726',
   'projects/ai-send-queue/src/page/cache.js':'9510781e472804494cb5576cb7d1b516292ddb8a',
   'projects/ai-send-queue/src/page/engine.js':'a815c6792b75ddf6095bd9ee6d84913ad825edc8',
-  'projects/ai-send-queue/src/page/main.js':'9ab01594feb43b23b624e5766b08e40b290889b2',
+  'projects/ai-send-queue/src/page/main.js':'87d006737df943a9e9e23b755fd5fd8d3f41c44b',
   'projects/ai-send-queue/src/page/site.js':'f15404479bcf959d4cdbc6a0537919f2ddd2c030',
   'projects/ai-send-queue/src/page/status.js':'20736cee7a780f8d8c86aa0cd85a8f0b6d834141',
-  'projects/ai-send-queue/src/page/view.js':'06377b74f5cb55d4330931b8a2c336f9b1ee10e7',
+  'projects/ai-send-queue/src/page/view.js':'2fe6edc7bacfd9e30ffc18e3d7f5fc291a837ad0',
   'projects/ai-send-queue/trusted/fixed-page.js':'ab70981a9241f6af86cea411eadae0391816689f'
 });
 function reviewedCompiledSendQueue(target,path,root){
@@ -694,12 +694,12 @@ function reviewedCompiledAppOwnedBackground(target,path,root){
 // strings and visible settings feedback only; trusted gesture checks retained.
 // 2026-11-13 recovery UI review: existing cleanup presentation moves into
 // runtime diagnostics, with four-locale labels; no new authority or output target.
-// 2026-11-20: the compact scroll view passes the existing cleanup status to
-// the shared Page control so the existing management entry stays discoverable.
+// 2026-11-22 review: old webpage cleanup moved to the development Debug tab.
+// The scroll view keeps its original registration, permissions and actions.
 const compiledExtensionSettingsInputs=Object.freeze({
   'projects/ai-scroll-navigation/trusted/ai-configuration.js':'c97137a3a871fb6c19fd3594fc627fafd67d03f8',
   'projects/ai-scroll-navigation/trusted/ai-controls.tsx':'ba7e94499c399aba685b7c80cf004bb56e2888f0',
-  'projects/ai-scroll-navigation/trusted/react-controls.tsx':'0c254d06dfa15181601cddf3215ace767d6d566d',
+  'projects/ai-scroll-navigation/trusted/react-controls.tsx':'0716d19acbfc04edc418b8c5f43e0f78b3934266',
   'projects/ai-scroll-navigation/trusted/host-localization.js':'e2d8f50cf676e4fc902202bfb24caa36de221837',
   'projects/time-review/trusted/react-controls.tsx':'2a9155f4a6c56969d1aebcd7420405b84fd4eaf4',
   'projects/time-review/trusted/localization.js':'7478e9c91f33317c8e1fe08f33d2e49c47b47818',

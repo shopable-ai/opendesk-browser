@@ -35,8 +35,8 @@ const page=()=>({programId:'reader',manifestHash:'a'.repeat(64),installed:{
   pageRules:{matches:['https://example.com/*'],excludeMatches:[]}
 }});
 
-function fixture(t,{disabled=false,readError=false,installedRows=[app],cleanupRows=null,notify=null}={}){
-  const {doc,adapter,state}=createExtensionCenterDOM(t);
+function fixture(t,{disabled=false,readError=false,installedRows=[app],cleanupRows=null,notify=null,debug=false}={}){
+  const {doc,adapter,state}=createExtensionCenterDOM(t,{debug});
   // linkedom omits textarea.defaultValue reflection. React initializes a
   // controlled textarea through this browser property; mirror its text-only
   // behavior for the read-only manual URL, without claiming native selection.
@@ -470,69 +470,121 @@ for(const state of ['activation-unconfirmed','blocked'])test('web feature help d
   assert.equal(f.invocations.length,0,'reading recovery state does not replay an unknown registration');
 });
 
-test('old Page diagnostics remain accessible in details without inflating install feedback',async t=>{
+test('old Page cleanup is absent from ordinary list and details; More offers generic help',async t=>{
   const f=fixture(t);
   const managedCleanup={state:'unknown',records:135,pendingRecords:1,
+    error:{code:'E_OLD_PAGE_CLEANUP',message:'Historical cleanup failure'},
     pendingDocuments:[{tabId:42,documentId:'old-document',tabTitle:'未保存草稿的旧页面',state:'active'}]};
   f.programs[0].installed.managedCleanup=managedCleanup;
-  f.setPageCleanupPending([{programId:'reader',revision:0,managedCleanup},
-    {programId:'unrelated',revision:0,managedCleanup:{...managedCleanup,records:999}}]);
+  f.setPageCleanupPending([{programId:'removed',title:'已移除的测试扩展',revision:0,managedCleanup}]);
   await f.ui.refresh();
+  const passive=/已移除的测试扩展|未保存草稿的旧页面|old-document|E_OLD_PAGE_CLEANUP|Historical cleanup failure|受管界面清理|清理待核对|网页恢复记录|标签页 #42|历史记录数/;
+  assert.doesNotMatch(f.nodes['extension-center-list-view'].textContent,passive);
+  assert.equal(f.nodes['debug-page-cleanup'],null);
+  assert.equal(f.nodes['extension-center-page-recoveries'],null);
   f.button('page:reader','main').dispatch('click');
   const detail=f.nodes['extension-center-detail-body'];
-  const disclosure=detail.querySelector('.ec-page-cleanup');
-  assert.ok(disclosure,'installed detail owns a persistent recovery entry');
-  assert.equal(disclosure.hasAttribute('open'),false);
-  assert.equal(disclosure.querySelector('summary').textContent,'网页更新与恢复');
-  assert.match(disclosure.textContent,/保存.*草稿.*刷新/);
-  assert.equal(disclosure.querySelectorAll('.ec-page-cleanup-documents li').length,1,
-    'duplicate document references do not become duplicate page rows');
-  assert.match(disclosure.textContent,/未保存草稿的旧页面/);
-  assert.doesNotMatch(disclosure.textContent,/999/);
-  assert.equal(disclosure.querySelector('details').hasAttribute('open'),false);
-  assert.equal(f.state.detailModel.oldPageCleanup.records.length,2);
+  const diagnostics=detail.querySelector('details.ec-page-diagnostics');
+  assert.ok(diagnostics?.querySelector('summary'),'ordinary Page has a technical disclosure');
+  assert.equal(diagnostics.hasAttribute('open'),false);
+  // Linkedom does not perform the native summary toggle.
+  diagnostics.setAttribute('open','');
+  assert.match(diagnostics.textContent,/Chrome 注册/);
+  assert.doesNotMatch(detail.textContent,passive);
   f.nodes['extension-center-back'].dispatch('click');
-  f.button('page:reader','main').dispatch('click');
-  assert.ok(detail.querySelector('.ec-page-cleanup'),'returning to details retains the recovery entry');
-  assert.equal(f.invocations.length,0,'viewing diagnostics does not invoke or replay installation');
-  f.programs[0].installed.managedCleanup={state:'retired',records:0};
-  f.setPageCleanupPending([]);await f.ui.refresh();
-  assert.equal(detail.querySelector('.ec-page-cleanup'),null,'fresh retired receipts clear the obsolete notice');
+  f.nodes['extension-center-more'].dispatch('click');
+  f.nodes['extension-center-web-features'].dispatch('click');
+  const webFeatures=f.nodes['extension-center-web-features-view'];
+  assert.ok(webFeatures);
+  const help=[...webFeatures.querySelectorAll('summary')].find(row=>row.textContent==='网页仍显示旧功能？');
+  assert.ok(help,'generic help belongs in the Web Features page');
+  assert.equal(help.parentElement.hasAttribute('open'),false);
+  assert.match(help.parentElement.textContent,/保存草稿.*刷新网页/);
+  assert.doesNotMatch(help.parentElement.textContent,passive);
+  assert.deepEqual(f.invocations,[]);
 });
 
-test('untitled old Pages use page numbers while full identifiers remain in technical details',async t=>{
-  const f=fixture(t);
-  const documents=[
-    {tabId:987654,documentId:'full-document-id-without-title',state:'active'},
-    {tabId:876543,documentId:'another-full-document-id',state:'unobservable'}
-  ];
-  f.setPageCleanupPending([{programId:'reader',revision:0,managedCleanup:{
-    state:'unknown',records:135,pendingRecords:2,pendingDocuments:documents
-  }}]);
+test('debug recheck is read-only, deduplicates documents and preserves the last valid snapshot',async t=>{
+  const f=fixture(t,{debug:true});
+  const documents=[{tabId:42,documentId:'old-document',tabTitle:'未保存草稿的旧页面',state:'active'},
+    {tabId:43,documentId:'untitled-document',state:'unobservable'}];
+  const managedCleanup={state:'unknown',records:135,pendingRecords:2,pendingDocuments:documents};
+  f.programs[0].installed.managedCleanup=managedCleanup;
+  f.setPageCleanupPending([{programId:'reader',revision:0,managedCleanup},
+    {programId:'removed',title:'已移除的测试扩展',revision:4,managedCleanup:{state:'unknown'}}]);
   await f.ui.refresh();
-  f.button('page:reader','main').dispatch('click');
-  const disclosure=f.nodes['extension-center-detail-body'].querySelector('.ec-page-cleanup');
-  assert.ok(disclosure);
-  const rows=[...disclosure.querySelectorAll('.ec-page-cleanup-documents li')];
-  assert.deepEqual(rows.map(row=>row.querySelector('span').textContent),['页面 1','页面 2']);
-  const mainList=disclosure.querySelector('.ec-page-cleanup-documents');
-  const technical=disclosure.querySelector('details');
-  assert.ok(technical,'technical records remain accessible separately');
-  for(const {tabId,documentId} of documents){
-    assert.equal(mainList.textContent.includes(String(tabId)),false);
-    assert.equal(mainList.textContent.includes(documentId),false);
-    assert.ok(technical.textContent.includes(`标签页 #${tabId} · ${documentId}`),
-      'technical records retain the complete tab and document identifiers');
+  const debug=f.nodes['debug-page-cleanup'];
+  assert.ok(debug);
+  assert.equal(debug.hasAttribute('open'),false);
+  debug.setAttribute('open','');
+  const status=()=>debug.querySelector('[role="status"]').textContent;
+  const recheck=debug.querySelector('button');
+  assert.equal(recheck.textContent,'重新核对');
+  assert.equal(f.state.pageCleanup.known,true);
+  const reader=f.state.pageCleanup.groups.find(({id})=>id==='reader');
+  assert.equal(reader.title,'阅读增强');
+  assert.deepEqual(reader.cleanup.records.map(({revision})=>revision),[1,0]);
+  const group=[...debug.querySelectorAll('section')].find(node=>node.querySelector('h3').textContent==='阅读增强');
+  const rows=[...group.querySelectorAll('ul[aria-label="可能受影响的网页"] li')];
+  assert.deepEqual(rows.map(row=>row.querySelector('span').textContent),['未保存草稿的旧页面','页面 2']);
+  for(const [index,{tabId,documentId}] of documents.entries())
+    assert.ok(rows[index].textContent.includes('标签页 #'+tabId+' · '+documentId));
+  assert.match(debug.textContent,/已移除的测试扩展.*暂未定位到具体网页/);
+
+  const calls=[];
+  let reply,release,appReads=0;
+  f.client.request=(name,args)=>{
+    calls.push([name,args]);
+    if(name!=='listPagePrograms')assert.fail('unexpected debug request: '+name);
+    if(reply instanceof Error)return Promise.reject(reply);
+    return new Promise(resolve=>{release=()=>resolve(reply);});
+  };
+  const storageRead=f.api.storage.local.get;
+  f.api.storage.local.get=(...args)=>{appReads++;return storageRead(...args);};
+  t.after(()=>release?.());
+  const snapshot=f.state.pageCleanup.groups;
+  const recheckWith=async (value,{known})=>{
+    const before=calls.length;
+    reply=value;release=null;
+    recheck.dispatch('click');
+    if(!(value instanceof Error)){
+      await settle(()=>Boolean(release));
+      assert.equal(f.state.pageCleanup.checking,true);
+      assert.equal(recheck.getAttribute('aria-disabled'),'true');
+      assert.deepEqual(f.state.pageCleanup.groups,snapshot);
+      recheck.dispatch('click');
+      release();
+    }
+    await settle(()=>!f.state.pageCleanup.checking);
+    assert.equal(f.state.pageCleanup.known,known);
+    assert.deepEqual(calls.slice(before),[['listPagePrograms',{}]]);
+  };
+  const listed={installed:[f.programs[0].installed]};
+  for(const invalid of [undefined,[{programId:'reader',managedCleanup:{state:'unknown',pendingDocuments:[null]}}],
+    [{programId:'reader',managedCleanup:{state:'retired',pendingRecords:1}}]]){
+    await recheckWith({...listed,cleanupPending:invalid},{known:false});
+    assert.deepEqual(f.state.pageCleanup.groups,snapshot);
+    assert.match(status(),/上次|未能|待重新核对/);
   }
+  await recheckWith(new Error('Page authority disconnected'),{known:false});
+  assert.match(debug.textContent,/未保存草稿的旧页面/);
+  assert.ok(f.button('page:reader','main'),'a failed diagnostic read does not withdraw the product list');
+  await recheckWith({installed:[{...listed.installed[0],managedCleanup:{state:'retired'}}],cleanupPending:[]},{known:true});
+  assert.deepEqual(f.state.pageCleanup.groups,[]);
+  assert.match(status(),/没有|暂无|无待/);
+  assert.doesNotMatch(debug.textContent,/未保存草稿的旧页面|已移除的测试扩展/);
+  assert.equal(debug.hasAttribute('open'),true);
+  assert.equal(appReads,0,'debug recheck does not refresh App storage');
+  assert.deepEqual([f.writes,f.uninstalls,f.invocations],[[],[],[]]);
 });
 
 for(const withCurrentCleanup of [false,true])test(
-  'joint App details show companion cleanup history '+(withCurrentCleanup?'with its current receipt':'without a current cleanup receipt'),async t=>{
+  'debug groups companion cleanup outside App details '+(withCurrentCleanup?'with its current receipt':'without a current cleanup receipt'),async t=>{
   // Reuse the archived, source-bound dual-installation fixture. The real
   // controller computes its package digest and decides companion ownership.
   const {tool}=await import('../../projects/ai-send-queue/tests/fixtures/legacy-installation.mjs');
   const {SEND_QUEUE_PIN}=await import('../../src/platform/host/send-queue-admission.js');
-  const f=fixture(t,{installedRows:[tool]});
+  const f=fixture(t,{installedRows:[tool],debug:true});
   const current={programId:SEND_QUEUE_PIN.pageProgramId,revision:SEND_QUEUE_PIN.pageRevision,
     sourceHash:SEND_QUEUE_PIN.pageSourceHash,manifestHash:'a'.repeat(64),
     enabled:true,nativeState:'registered',
@@ -554,20 +606,19 @@ for(const withCurrentCleanup of [false,true])test(
   const key='app:'+tool.id;
   f.state.rowsModel.onMore(key,f.button(key,'more'));
   f.state.rowMenuModel.items.find(row=>row.id==='detail').onClick({isTrusted:true});
-  assert.equal(f.state.detailModel.key,key,'diagnostics belong to the App detail');
+  assert.equal(f.state.detailModel.key,key);
   assert.ok(f.state.detailModel.actions.some(row=>row.id==='queue-toggle'),
     'the actual package digest and Page identity must earn joint product management');
-  const disclosure=f.nodes['extension-center-detail-body'].querySelector('.ec-page-cleanup');
-  assert.ok(disclosure,'the App exposes cleanupPending for its existing Page companion');
+  const detail=f.nodes['extension-center-detail-body'];
+  assert.doesNotMatch(detail.textContent,/队列旧页面|队列当前页面|不相关页面|清理待核对/);
   const expected=withCurrentCleanup?[currentDocument,oldDocument]:[oldDocument];
-  assert.deepEqual(f.state.detailModel.oldPageCleanup.documents.map(({tabId,documentId})=>({tabId,documentId})),
+  const groups=f.state.pageCleanup.groups;
+  assert.deepEqual(groups.map(({id})=>id),[current.programId,'unrelated-program']);
+  const {cleanup}=groups[0];
+  assert.deepEqual(cleanup.documents.map(({tabId,documentId})=>({tabId,documentId})),
     expected.map(({tabId,documentId})=>({tabId,documentId})));
-  assert.deepEqual(f.state.detailModel.oldPageCleanup.records.map(row=>row.revision),
+  assert.deepEqual(cleanup.records.map(row=>row.revision),
     withCurrentCleanup?[current.revision,current.revision-1]:[current.revision-1]);
-  const list=disclosure.querySelector('.ec-page-cleanup-documents');
-  assert.equal(list.querySelectorAll('li').length,expected.length);
-  for(const document of expected)assert.ok(list.textContent.includes(document.tabTitle));
-  assert.equal(disclosure.textContent.includes('不相关页面'),false);
 });
 
 test('extension toolbar shop keeps Host feedback intact when opening a configured site',async t=>{
@@ -680,7 +731,7 @@ test('R5.5 Page uninstall confirmation cancels without writes then deletes only 
   await settle(()=>f.uninstalls.length===1);
   assert.deepEqual(f.uninstalls[0],{programId:'reader',manifestHash:'a'.repeat(64),
     installationId:'original-installation',expectedGeneration:5});
-  await settle(()=>f.nodes['extension-center-status'].textContent.includes('已从 Page Authority 回执'));
+  await settle(()=>f.nodes['extension-center-status'].textContent.includes('已卸载。'));
   assert.equal(f.programs.length,0);
   assert.equal(f.button('page:reader','main'),undefined);
   assert.deepEqual(f.writes,[],'uninstall never toggles an unrelated grant');
@@ -710,11 +761,11 @@ test('Page uninstall notifies once after readback without leaving a success regi
   await settle(()=>f.uninstalls.length===1&&!f.state.uninstallModel);
   assert.equal(f.programs.length,0);
   assert.equal(notices.length,1);
-  assert.match(notices[0].message,/持久安装列表确认卸载/);
+  assert.match(notices[0].message,/已卸载。/);
   assert.deepEqual(notices[0].options,{type:'success',position:'bottom-center',
     timeout:5000,pauseOnInteraction:false});
   assert.notEqual(f.state.statusModel.state,'success');
-  assert.doesNotMatch(f.nodes['extension-center-status'].textContent,/持久安装列表确认卸载/);
+  assert.doesNotMatch(f.nodes['extension-center-status'].textContent,/已卸载。/);
   assert.equal(f.nodes['extension-center-status'].hidden,true,'a clean receipt needs no separate status region');
   await f.ui.refresh();
   assert.equal(notices.length,1,'passive refresh must not repeat the receipt');
@@ -848,7 +899,7 @@ test('R5.5 stale Page generation invalidates an old uninstall confirmation befor
   assert.match(f.nodes['extension-center-status'].textContent,/卸载确认已失效/);
 });
 
-for(const entry of ['list','detail'])test('Page '+entry+' uninstall notifies once and leaves read-only cleanup recovery in the list',async t=>{
+for(const entry of ['list','detail'])test('Page '+entry+' uninstall notifies once without putting cleanup in the list',async t=>{
   const notices=[];
   const f=fixture(t,{notify:(message,options)=>notices.push({message,options})});
   const programId=entry==='list'?'opendesk.chatgpt-jump-top':'reader';
@@ -867,17 +918,10 @@ for(const entry of ['list','detail'])test('Page '+entry+' uninstall notifies onc
   f.doc.querySelector('.od-uninstall-confirm').dispatch('click');
   await settle(()=>f.uninstalls.length===1&&notices.length===1&&!f.doc.querySelector('[role="dialog"]'));
   assert.deepEqual(notices[0].options,{type:'info',position:'bottom-center'});
-  assert.match(notices[0].message,/已卸载.*旧网页清理待核对/);
+  assert.match(notices[0].message,/已卸载.*如果网页仍显示旧功能.*保存.*刷新/);
   assert.doesNotMatch(f.nodes['extension-center-status'].textContent,/旧网页清理待核对|卸载确认已失效/);
-  const recovery=f.nodes['extension-center-page-recoveries'];
-  assert.equal(f.list.nextElementSibling,recovery,'recovery stays below the installed list');
-  assert.match(recovery.querySelector('h3').textContent,/旧网页恢复记录/);
-  assert.match(recovery.querySelector('summary').textContent,/阅读增强.*旧网页清理待核对/s);
-  assert.match(recovery.textContent,/从已安装的扩展打开/);
-  assert.match(recovery.textContent,/阅读草稿/);
-  assert.equal(recovery.querySelector('.ec-page-cleanup-documents').closest('details'),
-    recovery.querySelector('[data-ec-page-recovery]'),'opening one disclosure shows affected pages');
-  assert.equal(recovery.querySelector('button'),null);
+  assert.equal(f.nodes['extension-center-page-recoveries'],null);
+  assert.doesNotMatch(f.nodes['extension-center-list-view'].textContent,/阅读草稿|旧网页清理待核对/);
   assert.equal(f.programs.length,0);
   assert.equal(f.button(key,'main'),undefined);
   assert.deepEqual(f.uninstalls,[{programId,manifestHash:'a'.repeat(64),
@@ -885,41 +929,25 @@ for(const entry of ['list','detail'])test('Page '+entry+' uninstall notifies onc
   await f.ui.refresh();
   assert.equal(f.button(key,'main'),undefined,'a retained cleanup is not an installed extension');
   assert.equal(notices.length,1,'passive refresh never replays the receipt');
-  assert.equal(recovery.isConnected,true,'the recovery record survives reading the list again');
+  assert.equal(f.nodes['extension-center-page-recoveries'],null);
   assert.equal(f.uninstalls.length,1,'readback never retries cleanup or uninstall');
-  if(entry==='list')assert.equal(search.value,'回顶','recovery remains visible with the original alias search');
+  if(entry==='list')assert.equal(search.value,'回顶','uninstall preserves the original alias search');
   else assert.ok(f.button('app:quick-notes','main'),'unrelated installation remains');
-  recovery.querySelector('summary').focus();
-  f.setPageCleanupPending([{programId,managedCleanup:{state:'unknown',pendingDocuments:[null]}}]);
-  await f.ui.refresh();
-  assert.match(recovery.querySelector('summary').textContent,/待重新核对/);
-  assert.match(recovery.textContent,/阅读草稿/,'a malformed document cannot erase the last good recovery snapshot');
-  assert.equal(notices.length,1);
-  f.setPageCleanupPending([{programId,managedCleanup:{state:'retired',
-    pendingRecords:1,pendingDocuments:[{tabId:42,documentId:'old-reader-page'}]}}]);
-  await f.ui.refresh();
-  assert.match(recovery.querySelector('summary').textContent,/待重新核对/);
-  assert.match(recovery.textContent,/阅读草稿/,'retired with pending documents cannot erase the last good snapshot');
-  f.setFailPages(true);await f.ui.refresh();
-  assert.match(recovery.querySelector('summary').textContent,/待重新核对/);
-  assert.equal(f.doc.activeElement,recovery.querySelector('summary'));
-  f.setFailPages(false);
-  f.setPageCleanupPending([]);await f.ui.refresh();
-  assert.equal(recovery.isConnected,false,'once Authority retires the record the recovery entry goes away');
-  assert.equal(f.doc.activeElement,f.nodes['extension-center-search']);
 });
 
-test('Page uninstall with malformed cleanup readback keeps an unconfirmed result',async t=>{
+test('Page uninstall confirms a valid removal independently of malformed cleanup history',async t=>{
   const notices=[];
   const f=fixture(t,{notify:(message,options)=>notices.push({message,options})});
   await f.ui.refresh();
   f.setPageCleanupPending([{programId:'reader',managedCleanup:{state:'incomplete'}}]);
   openMenuUninstall(f,'page:reader');
   f.doc.querySelector('.od-uninstall-confirm').dispatch('click');
-  await settle(()=>f.uninstalls.length===1&&!f.state.uninstallModel);
+  await settle(()=>notices.length===1&&!f.state.uninstallModel);
   assert.equal(f.button('page:reader','main'),undefined,'verified installation readback still removes the row');
-  assert.match(f.state.statusModel.text,/卸载结果未得到完整确认/);
-  assert.deepEqual(notices,[]);
+  assert.equal(notices[0].options.type,'success');
+  assert.match(notices[0].message,/已卸载/);
+  assert.doesNotMatch(f.state.statusModel.text,/卸载结果未得到完整确认/);
+  assert.equal(f.uninstalls.length,1);
 });
 
 test('Page uninstall uses current cleanup readback and excludes embedded pages from recovery',async t=>{
@@ -939,7 +967,7 @@ test('Page uninstall uses current cleanup readback and excludes embedded pages f
   f.doc.querySelector('.od-uninstall-confirm').dispatch('click');
   await settle(()=>notices.length===1&&!f.doc.querySelector('[role="dialog"]'));
   assert.equal(notices[0].options.type,'success');
-  assert.doesNotMatch(notices[0].message,/旧网页清理待核对/);
+  assert.doesNotMatch(notices[0].message,/如果网页仍显示旧功能.*保存/);
   assert.equal(f.nodes['extension-center-page-recoveries'],null);
   assert.equal(f.uninstalls.length,1);
 });
@@ -964,8 +992,8 @@ test('Page uninstall readback survives passive installation refresh without repl
   release();
   await settle(()=>!f.doc.querySelector('[role="dialog"]'));
   assert.equal(notices.length,1);
-  assert.match(notices[0].message,/旧网页清理待核对/);
-  assert.ok(f.nodes['extension-center-page-recoveries']);
+  assert.match(notices[0].message,/已卸载.*如果网页仍显示旧功能.*保存.*刷新/);
+  assert.equal(f.nodes['extension-center-page-recoveries'],null);
   assert.equal(f.button('page:reader','main'),undefined);
   assert.equal(f.uninstalls.length,1,'notifications never replay the mutation');
   await settle(()=>reads===2);
@@ -984,7 +1012,7 @@ for(const mode of ['native-fail','cleanup-unknown','ack-only','outcome-unknown']
     await settle(()=>f.nodes['extension-center-status'].dataset.state==='error'&&
       !f.nodes['extension-center-status'].textContent.includes('卸载确认已失效'));
     assert.equal(f.uninstalls.length,1,'no implicit retry of an unknown native operation');
-    assert.doesNotMatch(f.nodes['extension-center-status'].textContent,/已从 Page Authority 回执/);
+    assert.doesNotMatch(f.nodes['extension-center-status'].textContent,/已卸载/);
     if(mode==='cleanup-unknown'){
       assert.equal(f.programs[0].installed.managedCleanup.state,'unknown');
       assert.ok(f.button('page:reader','main'),'unknown cleanup retains recovery path');
@@ -1530,24 +1558,27 @@ test('R5.6 disabled setting with unconfirmed native unregister remains a pending
   const f=fixture(t,{notify:(message,options)=>notices.push({message,options})});
   f.programs[0].installed.nativeState='blocked';await f.ui.refresh();
   f.button('page:reader','main').dispatch('click');
+  await settle(()=>Boolean(f.state.detailModel?.pageControl));
   f.state.detailModel.pageControl.onToggle(false,{isTrusted:true});
   await settle(()=>f.writes.length===1);
   await settle(()=>f.state.detailModel.busy===false);
   assert.equal(f.programs[0].installed.enabled,false);
   assert.equal(f.programs[0].installed.nativeState,'blocked');
   assert.equal(notices.length,1);
-  assert.match(notices[0].message,/原生注销或受管清理仍待核对/);
+  assert.match(notices[0].message,/Chrome (?:原生)?注销.*待核对/);
+  assert.doesNotMatch(notices[0].message,/受管清理|网页清理/);
   assert.deepEqual(notices[0].options,{type:'info',position:'bottom-center'});
   assert.doesNotMatch(f.nodes['extension-center-status'].textContent,/原生注销或受管清理仍待核对/);
   assert.equal(f.state.detailModel.pageControl.state,'pending');
   assert.equal(f.state.detailModel.pageControl.enabled,false);
+  assert.equal(f.state.detailModel.pageControl.status,'停用设置已保存 · Chrome 原生注销待核对');
   await f.ui.refresh();
   assert.equal(f.state.detailModel.pageControl.state,'pending');
   assert.equal(notices.length,1,'passive refresh must not repeat the receipt');
   assert.equal(f.writes.length,1,'passive refresh must not retry the write');
 });
 
-test('R5.6 unknown managed UI cleanup cannot be reported as completed after disabling',async t=>{
+test('R5.6 old Page cleanup does not change the confirmed native disable status',async t=>{
   const f=fixture(t,{notify:()=>{throw Error('notification unavailable');}});
   f.programs[0].installed.managedCleanup={scope:'managed-ui-only',state:'unknown'};
   await f.ui.refresh();
@@ -1558,7 +1589,9 @@ test('R5.6 unknown managed UI cleanup cannot be reported as completed after disa
   assert.equal(f.programs[0].installed.nativeState,'disabled');
   assert.doesNotMatch(f.nodes['extension-center-status'].textContent,/原生注销或受管清理仍待核对/);
   f.button('page:reader','main').dispatch('click');
-  assert.equal(f.state.detailModel.oldPageCleanup.records[0].state,'unknown');
+  await settle(()=>Boolean(f.state.detailModel?.pageControl));
+  assert.equal(f.programs[0].installed.managedCleanup.state,'unknown');
+  assert.doesNotMatch(f.nodes['extension-center-detail-body'].textContent,/清理待核对/);
   assert.equal(f.state.detailModel.pageControl.state,'off','native unregistration is independent of old-page cleanup');
 });
 
@@ -1650,11 +1683,10 @@ test('R1.5 successful Page uninstall is confirmed while its official candidate r
   const f=fixture(t),row=f.programs[0];
   row.programId=row.installed.programId='opendesk.ai-scroll-navigation';
   await f.ui.refresh();
-  await settle(()=>f.state.toolbarModel?.countText!==undefined||f.list.children.length>0);
-  // Let the asynchronous bundled-catalog read finish before entering details.
-  await tick();await tick();
   f.button('page:'+row.programId,'main').dispatch('click');
-  assert.ok(f.state.detailModel.pageControl.officialBlock,'the real catalog candidate is loaded');
+  // A focus-triggered Page read can clear the control briefly. Wait for the
+  // actual installed control and catalog result, rather than a fixed tick count.
+  await settle(()=>f.state.detailModel?.pageControl?.officialBlock);
   f.doc.getElementById('scroll-settings').dispatch('click');
   f.doc.querySelector('#scroll-management').dispatch('click');
   await settle(()=>{const action=f.doc.querySelector('[data-ec-detail-action="uninstall"]');return action&&!action.disabled;});
@@ -1663,7 +1695,7 @@ test('R1.5 successful Page uninstall is confirmed while its official candidate r
   await settle(()=>f.uninstalls.length===1&&f.state.statusModel.text.includes('卸载'));
   assert.equal(f.programs.length,0);
   assert.equal(f.state.statusModel.state,'success');
-  assert.match(f.state.statusModel.text,/持久安装列表确认卸载/);
+  assert.match(f.state.statusModel.text,/已卸载。/);
 });
 
 for(const transition of ['detail','back'])test('R1.8 action feedback clears on '+transition+' without changing Page authority',async t=>{
@@ -1687,10 +1719,11 @@ for(const transition of ['detail','back'])test('R1.8 action feedback clears on '
   assert.doesNotMatch(f.state.statusModel.text,/本机安装记录确认应用启用/,'old action cannot describe another view');
   assert.notEqual(f.state.statusModel.state,'success');
   if(transition==='back')f.button('page:reader','main').dispatch('click');
+  await settle(()=>Boolean(f.state.detailModel?.pageControl));
   assert.equal(f.programs[0].installed.enabled,false);
   assert.equal(f.programs[0].installed.managedCleanup.state,'unknown');
   assert.equal(f.state.detailModel.pageControl.enabled,false);
-  assert.match(f.state.detailModel.pageControl.status,/停用设置已保存.*原生注销和网页清理待核对/);
+  assert.equal(f.state.detailModel.pageControl.status,'停用设置已保存 · Chrome 原生注销待核对');
   f.nodes['extension-center-back'].dispatch('click');
   f.button('page:mindmap','main').dispatch('click');
   assert.doesNotMatch(f.state.statusModel.text,/本机安装记录确认应用启用/);

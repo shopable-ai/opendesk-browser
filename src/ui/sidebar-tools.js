@@ -5079,17 +5079,6 @@ function createSidebarToolsController({api=globalThis.chrome,doc=globalThis.docu
     patchToolField(view, installButton, {textContent: installed?.revision===pkg.revision&&installed.sourceHash===pkg.sourceHash?'确认安装并核对':installed?'确认更新':'确认安装'});
     patchToolField(view, installButton, {disabled: deferConfirmation});patchToolField(view, preview, {hidden: false});
   }
-  function pageCleanupDescription(cleanup){
-    if(!cleanup||cleanup.state==='retired')return '';
-    const documents=Array.isArray(cleanup.pendingDocuments)?cleanup.pendingDocuments:[];
-    const counts=Number.isSafeInteger(cleanup.pendingRecords)
-      ?'；待核对 '+cleanup.pendingRecords+' 条，'+documents.length+' 个旧文档':'';
-    const tabs=[...new Set(documents.map(row=>(row.tabTitle?'「'+row.tabTitle+'」 · ':'')+'标签页 #'+row.tabId+'（'+
-      (row.state==='cached'?'浏览器缓存':row.state==='unobservable'?'暂无法观察':'旧网页仍存在')+'）'))];
-    return '旧受管清理待核对：'+cleanup.state+'（历史记录数：'+(cleanup.records??'未知')+counts+'）。'+
-      (tabs.length?' 待处理：'+tabs.slice(0,8).join('、')+(tabs.length>8?'等':'')+'。':'')+
-      ' 该旧页面待刷新以安全切换；请先保存网页草稿，必要时关闭并重新打开相关标签页。旧页面清理不影响安装、升级或重装确认。';
-  }
   function requireConfirmedPageInstall(pkg,result,{allowWaiting=false}={}) {
     const active=result?.enabled===true&&result.nativeState==='registered'&&
       result.authorization?.status==='active';
@@ -5104,20 +5093,13 @@ function createSidebarToolsController({api=globalThis.chrome,doc=globalThis.docu
         {code:'E_PAGE_INSTALL_PENDING'});
     return {disabled,waiting};
   }
-  function pageCleanupPendingDescription(programId,pending=[]) {
-    const records=pending.filter(row=>row.programId===programId);
-    if(!records.length)return '';
-    return '旧页面清理待核对：'+records.length+' 份历史安装。'+records.map(row=>
-      '旧安装 r'+row.revision+' 已卸载，旧网页清理尚未确认。'+pageCleanupDescription(row.managedCleanup)).join(' ');
-  }
-  function pageInstallCleanupDescription(result,pending=[]) {
-    return [pageCleanupDescription(result.managedCleanup),
-      pageCleanupPendingDescription(result.programId,pending)].filter(Boolean).join(' ');
+  function pageCleanupPendingDescription(programId,pending=[],result=null) {
+    return describePageCleanup(programId,result,pending)
+      ?extensionCenterText(localeController?.getLocale?.()||'zh-CN','oldPagesReceipt'):'';
   }
   function showPageInstallReceipt(pkg,result,pending=[],options) {
     const {disabled,waiting}=requireConfirmedPageInstall(pkg,result,options);
-    const cleanupNote=describePageCleanup(pkg.programId,result,pending)
-      ?extensionCenterText(localeController?.getLocale?.()||'zh-CN','oldPagesReceipt'):'';
+    const cleanupNote=pageCleanupPendingDescription(pkg.programId,pending,result);
     setToolFieldAttribute(view, pageInstallStatus, 'data-state', disabled?'installed-disabled':waiting?'installed-waiting':'installed');
     setToolFieldAttribute(view, pageInstallStatus, 'data-installation-id', result.authorization.installationId);
     setToolFieldAttribute(view, pageInstallStatus, 'data-manifest-hash', result.manifestHash);
@@ -5244,7 +5226,7 @@ function createSidebarToolsController({api=globalThis.chrome,doc=globalThis.docu
           :current)});
         readback=' 审阅时基线：'+baseline+'；当前读回版本：'+current+'；'+(result
           ?'Chrome 注册：'+(result.nativeState||'未知')+'；授权：'+(result.authorization?.status||'未知')+'。'+
-            pageInstallCleanupDescription(result,response.cleanupPending)+
+            pageCleanupPendingDescription(pkg.programId,response.cleanupPending,result)+
             (matches?' 版本与源码匹配导入目标，但只读回读不能确认本次请求成功。'
               :' 当前记录与导入目标的版本或源码不匹配，不能确认目标已安装。')
           :cleanupNote+'不能确认目标已安装。')+' 本次请求仍未确认。';

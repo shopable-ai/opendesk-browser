@@ -68,6 +68,7 @@
 .ec-web-features-state svg{width:14px;height:14px;flex:none}
 .ec-web-features-state[data-state=on] svg{color:var(--od-positive)}
 .ec-web-features-note{color:var(--od-sub)}
+.ec-web-features-help{width:100%}
 .ec-web-features-settings{margin-block-start:var(--space-1)}
 .ec-web-features-path{width:100%;min-width:0;resize:none;user-select:text;font-size:var(--od-note-size);line-height:1.5;overflow-wrap:anywhere}
 .ec-web-features [role=alert]{color:var(--od-negative)}
@@ -561,13 +562,10 @@
   .ec-scroll-title .od-icon-button,.ec-scroll-row-actions .od-icon-button{width:44px;min-width:44px;height:44px;min-height:44px}
   .ec-scroll-selector>.ec-scroll-picker{width:44px;min-width:44px;height:44px;min-height:44px}
 }
-.ec-page-recoveries{margin-block:var(--space-4);min-width:0}
-.ec-page-recoveries>h3{margin:0;font-size:var(--od-note-size);line-height:1.5;font-weight:600;color:var(--od-sub)}
-.ec-page-recovery-summary{display:grid;gap:var(--space-1)}
-.ec-page-recovery-summary>.ec-page-cleanup-meta{font-weight:400}
-.ec-page-cleanup{flex:none;min-width:0}
-.ec-page-cleanup-content{display:grid;gap:var(--space-2);font-size:12px;line-height:1.5;overflow-wrap:anywhere}
-.ec-page-cleanup-content p{margin:0}
-.ec-page-cleanup-documents{display:grid;gap:var(--space-2);max-height:240px;overflow:auto;overscroll-behavior:contain;margin:0;padding-inline-start:var(--space-4)}
-.ec-page-cleanup-documents li>span{display:block}
-.ec-page-cleanup-meta{color:var(--od-sub);font-size:12px}
+#debug-page-cleanup .ec-page-cleanup-content{display:grid;gap:var(--space-3);overflow-wrap:anywhere}
+.ec-page-cleanup-content p,.ec-page-cleanup-group h3{margin:0}
+.ec-page-cleanup-status{display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:var(--space-2)}
+.ec-page-cleanup-group{display:grid;gap:var(--space-2);padding-block-start:var(--space-3);border-block-start:1px solid var(--od-line)}
+.ec-page-cleanup-group h3{font-size:var(--od-note-size);line-height:1.5}
+.ec-page-cleanup-group ul{display:grid;gap:var(--space-2);margin:0;padding-inline-start:var(--space-4)}
+.ec-page-cleanup-meta{color:var(--od-sub)}

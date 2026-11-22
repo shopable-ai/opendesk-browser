@@ -3,7 +3,7 @@ const assert=(ok,message)=>{if(!ok)throw Error(message);};
 const t=await taskSpace(EGO_TEST_SPACE);
 const p=await t.newPage();
 const base='http://127.0.0.1:62824';
-const build='/artifacts/sidebar-tools/ai-send-queue/adaptive-r36/project/dist';
+const build='/projects/ai-send-queue/dist';
 await p.goto(base+'/projects/ai-send-queue/tests/fixtures/sidebar-status.html?build='+encodeURIComponent(build));
 const expectStatus=text=>p.waitForFunction(s=>document.querySelector('[role=status]')?.textContent===s,text,{timeout:4000});
 await expectStatus('队列已就绪');

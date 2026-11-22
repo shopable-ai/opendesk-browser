@@ -4,6 +4,24 @@ import {validToolId,validPreviewId,validHostInstanceId,SIDEPANEL_DOCUMENT_PATH,
 export {validToolId};
 const SLUG=/^[a-z][a-z0-9-]{0,39}$/;
 const TASK_REVIEW_KEY='opendesk.task-catalog.review.v1';
+const WEB_FEATURES_KEY='opendesk.web-features.help.v1';
+
+// The copyable address selects UI only. Carry it across the redirect without
+// adding a new parameter to the trusted host's sender identity.
+export function stageWebFeaturesHelp(storage,address,canonicalAddress){
+  const url=new URL(address);
+  if(url.protocol!=='chrome-extension:'||url.pathname!==SIDEPANEL_DOCUMENT_PATHNAME||
+     url.username||url.password||url.hash||url.searchParams.size!==1||
+     url.searchParams.get('panel')!=='web-features')return;
+  try{storage.setItem(WEB_FEATURES_KEY,canonicalAddress);}catch{/* The menu remains available. */}
+}
+export function takeWebFeaturesHelp(storage,address){
+  try{
+    if(storage.getItem(WEB_FEATURES_KEY)!==address)return false;
+    storage.removeItem(WEB_FEATURES_KEY);
+    return true;
+  }catch{return false;}
+}
 
 // Carry the read-only selection through the host identity redirect without
 // introducing query parameters to the URL used by the trusted host.

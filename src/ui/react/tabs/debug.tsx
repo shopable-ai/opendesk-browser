@@ -1,6 +1,7 @@
 import * as React from 'react';
 import {DEBUG_INITIAL_STATE} from '../../debug-workbench.js';
 import {BrowserHistory} from './browser-history.tsx';
+import {PageCleanupDiagnostics} from '../components/page-cleanup.tsx';
 
 // Trusted diagnostics are always rendered as escaped text.
 export function DebugDiagnosticText({value=''}) {
@@ -8,7 +9,7 @@ export function DebugDiagnosticText({value=''}) {
 }
 
 // The single app root owns the development gate, model subscription and actions.
-export function DebugPage({model={},actions=null,hidden=false,development=null,
+export function DebugPage({model={},actions=null,hidden=false,development=null,locale='zh-CN',
   browserHistoryModel=null,browserHistoryActions=null}) {
   const state={...DEBUG_INITIAL_STATE,...model};
   const unavailable=state.disposed;
@@ -54,6 +55,7 @@ export function DebugPage({model={},actions=null,hidden=false,development=null,
       {development&&<details className="debug-detail od-disclosure"><summary>本地开发服务</summary>
         <output id="opendesk-development-status" className="hint" title={development.title}>{development.text}</output>
       </details>}
+      <PageCleanupDiagnostics model={state.pageCleanup} locale={locale}/>
       <details className="debug-detail od-disclosure"><summary>脱敏诊断快照</summary>
         <pre id="debug-snapshot" className="od-result" aria-label="诊断快照"><DebugDiagnosticText value={state.snapshot}/></pre>
       </details>

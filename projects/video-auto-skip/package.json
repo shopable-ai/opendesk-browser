@@ -1,0 +1,28 @@
+{
+  "name": "@opendesk-apps/video-auto-skip",
+  "version": "0.1.1",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "build": "vite build",
+    "build:watch": "vite build --watch",
+    "test": "node --test tests/*.test.mjs"
+  },
+  "opendesk": {
+    "format": "opendesk.project.v1",
+    "id": "app.video-auto-skip",
+    "runtimeKind": "page-userscript",
+    "sourceFormat": "esm",
+    "entry": "src/page/main.js",
+    "pageRules": {
+      "matches": [
+        "http://127.0.0.1/video-auto-skip-fixture/*"
+      ],
+      "excludeMatches": [],
+      "runAt": "document_idle",
+      "allFrames": false,
+      "world": "USER_SCRIPT"
+    }
+  },
+  "description": "连播助手的同包网页模块。"
+}

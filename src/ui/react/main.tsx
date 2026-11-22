@@ -72,6 +72,7 @@ export function mountSidebarApp(doc,{debugEnabled=false,onNavigate,onStopAppDebu
   mountedDocuments.add(doc);
   let disposed=false,navigationTab=initialTab,appDebugEnabled=false,workflowController=null,myAgent=null,settingsOpen=false;
   let extensionView='list',onExtensionBack=()=>{},menuKey=null,detailModel=null,uninstallModel=null;
+  let openWebFeaturesOnLoad=false;
   let model={rows:[],busy:false,pendingKey:null,onOpenRow:()=>{},onMore:()=>{}};
   let toolbarModel={query:'',kind:'all',scope:'smart',language:'zh-CN',menuOpen:false};
   let discoveryModel=null;
@@ -107,7 +108,7 @@ export function mountSidebarApp(doc,{debugEnabled=false,onNavigate,onStopAppDebu
   function paint(){
     if(disposed)return;
     const extensionProps={rowsModel:model,menuKey,rowMenuModel,detailModel,uninstallModel,toolbarModel,feedbackModel,recoveryModel,statusModel,discoveryModel,
-      view:extensionView,onBack:onExtensionBack};
+      view:extensionView,onBack:onExtensionBack,openWebFeaturesOnLoad};
     flushSync(()=>root.render(<>
       <style data-opendesk-trusted-react-css="">{trustedSettingsCSS+'\n'+timeReviewHostCSS+'\n'+bookmarkManagerHostCSS+'\n'+cookieEditorHostCSS+'\n'+aiVipShareHostCSS+'\n'+promptShortcutsHostCSS+'\n'+readingTocHostCSS+'\n'+sharedUiCSS+'\n'+bookmarkPilotLayoutCSS+'\n'+conversationLayoutCSS+'\n'+conversationDockCSS+'\n'+myAgentCSS+'\n'+localeManagerCSS+'\n'+knowledgeWorkspaceCSS+'\n'+updateNoticeCSS+'\n'+confirmationCSS+'\n'+workflowCSS}</style>
       <SidebarAppShell activeTab={navigationTab} pageSurface={pageSurface} localeController={localeController}
@@ -188,6 +189,7 @@ export function mountSidebarApp(doc,{debugEnabled=false,onNavigate,onStopAppDebu
       onExtensionBack=handler;paint();},
     renderView(view){if(disposed||!['list','detail'].includes(view))throw new Error('E_REACT_EXTENSION_VIEW');
       extensionView=view;paint();},
+    openWebFeatures(){if(disposed||openWebFeaturesOnLoad)return;openWebFeaturesOnLoad=true;paint();},
     mountAIProxyPilot({container,request,locale,onStateChange,toolNavigation,ui,displaySurface='sidebar',initialPage=null,openOwnPage=null}={}){
       if(disposed||aiProxyPilot||!container||container.ownerDocument!==doc||
         container.childNodes.length||container.dataset.opendeskReactOwner||
@@ -358,6 +360,9 @@ export function mountSidebarApp(doc,{debugEnabled=false,onNavigate,onStopAppDebu
     renderFeedback(next){if(disposed)return;feedbackModel=next;paint();},
     renderDiscovery(next){if(disposed)return;discoveryModel=next;paint();},
     renderRecoveries(next){if(disposed)return;recoveryModel=next;paint();},
+    ...(debugEnabled?{renderPageCleanupDiagnostics(next){
+      if(disposed)return;debugModel={...debugModel,pageCleanup:next};paint();
+    }}:{}),
     renderStatus(next){if(disposed)return;statusModel=next;paint();},
     dispose
   });
