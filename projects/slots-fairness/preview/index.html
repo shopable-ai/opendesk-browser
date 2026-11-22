@@ -118,7 +118,7 @@ const helpers={
  boundary:"模拟跨域 iframe 或 Canvas：DOM 无法提取。不能跳过权限读取。"
 };
 const $=id=>document.getElementById(id);
-const s={scene:"known",granted:false,auto:false,fields:{},sources:{},rules:{},invalid:new Set(),picking:false,chosen:null,obs:null,timer:null,hasScanned:false,appended:false,verification:null,scanCount:0};
+const s={scene:"known",granted:false,auto:false,fields:{},sources:{},rules:{},invalid:new Set(),picking:false,chosen:null,obs:null,timer:null,hasScanned:false,appended:false,verification:null,scanCount:0,generation:0};
 function safeText(v){return String(v==null?"":v).trim();}
 function row(label,value,attr,valueId){
  const div=document.createElement("div");div.className="evidence-row";
@@ -216,7 +216,7 @@ function report(text,level){
  if(level) $("feedback").dataset.level=level;
 }
 function emptyVerification(){
- s.verification=null;$("result-heading").textContent="尚未验证";$("result-scope").textContent="字段识别不代表游戏公平。";$("evidence-button").disabled=true;$("evidence-button").setAttribute("aria-expanded","false");$("evidence").hidden=true;$("evidence").replaceChildren();
+ s.verification=null;$("evidence-button").textContent="查看验证证据";$("result-heading").textContent="尚未验证";$("result-scope").textContent="字段识别不代表游戏公平。";$("evidence-button").disabled=true;$("evidence-button").setAttribute("aria-expanded","false");$("evidence").hidden=true;$("evidence").replaceChildren();
 }
 function addStatus(text,level){
  $("result").textContent=text;$("result").className="help-status"+(level?" "+level:"");
@@ -246,16 +246,24 @@ function scan(reason){
   s.fields={};s.sources={};s.invalid.clear();s.hasScanned=false;emptyVerification();renderFields();
   addStatus("尚未授权本网站。不会执行自动扫描。","warn");report("需要先点击“授予演示权限”。");return;
  }
- s.scanCount++;const out={},src={},invalid=new Set(),site=$("mock-site");
+ s.scanCount++;s.generation++;const out={},src={},invalid=new Set(),site=$("mock-site");
  if(s.scene!=="boundary"){
   for(const spec of FIELDS){
    const key=spec.key,stored=s.rules[key];
    if(stored){
     let matches=[];try{matches=[...site.querySelectorAll(stored.selector)];}catch(_){}
-    if(matches.length!==1||!isVisible(matches[0])||!valid(key,safeText(matches[0].textContent))){
+    if(matches.length!==1||!isVisible(matches[0])||!valid(key,safeText(matches[0].textContent))||
+       (stored.label&&safeText(matches[0].closest(".evidence-row")?.querySelector(".evidence-label")?.textContent)!==safeText(stored.label))){
      invalid.add(key);continue;
     }
     out[key]=safeText(matches[0].textContent);src[key]="rule";continue;
+   }
+   const adapterSelectors={serverSeedHash:"server-hash",serverSeed:"server-seed",clientSeed:"client-seed",nonce:"nonce",randomResult:"random-result"};
+   if(s.scene==="known"){
+    const matches=[...site.querySelectorAll('[data-testid="'+adapterSelectors[key]+'"]')];
+    if(matches.length===1&&isVisible(matches[0])&&valid(key,safeText(matches[0].textContent))){
+     out[key]=safeText(matches[0].textContent);src[key]="adapter";continue;
+    }
    }
    const hits=[];
    for(const el of site.querySelectorAll(".evidence-row")){
@@ -345,6 +353,9 @@ async function verify(){
  if(s.scene==="boundary"){
   drawVerification("能力边界","Canvas / 模拟跨域 iframe 中无可读 DOM 字段，不能验证。","warn",[["状态","UNREADABLE_FRAME_OR_CANVAS"]]);return;
  }
+ if(s.scene==="boundary"){
+  drawVerification("能力边界","Canvas / 模拟跨域 iframe 中无可读 DOM 字段，不能验证。","warn",[["状态","UNREADABLE_FRAME_OR_CANVAS"]]);return;
+ }
  if(!vals.serverSeedHash||!vals.clientSeed||!vals.nonce){
   drawVerification("证据不完整","缺少公开必要字段，请通过选区补齐后重试。","warn",[["缺失",FIELDS.filter(f=>!vals[f.key]).map(f=>f.name).join(", ")]]);
   return;
@@ -352,11 +363,15 @@ async function verify(){
  if(!vals.serverSeed){
   drawVerification("等待公开 Server Seed","目前只能记录页面上的模拟哈希承诺；不能事后复算种子、RNG 或奖金。","warn",[["L1 承诺","仅演示页面声明；不等于可信第三方事前公证"],["L2-L4","尚未执行"]]);return;
  }
+ const ticket=s.generation;
  let hashed,computed;
  try{
   hashed=await digest(vals.serverSeed);
+  if(ticket!==s.generation||!s.granted)return;
   computed=await digest(vals.serverSeed+":"+vals.clientSeed+":"+vals.nonce);
+  if(ticket!==s.generation||!s.granted)return;
  }catch(err){
+  if(ticket!==s.generation||!s.granted)return;
   drawVerification("算法不可用","Web Crypto 不可用；没有执行真实 SHA-256，不能冒充验证成功。","bad",[["原因",err.message]]);return;
  }
  const hashOK=hashed.toLowerCase()===vals.serverSeedHash.toLowerCase();
@@ -378,7 +393,7 @@ async function verify(){
  report("已执行浏览器 Web Crypto 的 SHA-256 模拟计算；未访问任何真实博彩服务。");
 }
 function switchScenario(name){
- cancelObserve();stopPick(true);s.scene=name;s.granted=name!=="denied";s.auto=name==="known"||name==="dynamic"||name==="broken";s.fields={};s.sources={};s.rules={};s.invalid.clear();s.hasScanned=false;s.appended=false;s.scanCount=0;
+ cancelObserve();stopPick(true);s.generation++;s.scene=name;s.granted=name!=="denied";s.auto=name==="known"||name==="dynamic"||name==="broken";s.fields={};s.sources={};s.rules={};s.invalid.clear();s.hasScanned=false;s.appended=false;s.scanCount=0;
  if(name==="broken")s.rules.serverSeedHash={selector:'[data-testid="server-hash-v1"]',extract:"textContent",confirmed:true};
  $("scenario-help").textContent=helpers[name];$("scenario").value=name;
  renderSite();updateAuto();emptyVerification();renderFields();report("");
@@ -388,7 +403,7 @@ function switchScenario(name){
 $("scenario").addEventListener("change",e=>switchScenario(e.target.value));
 $("grant").addEventListener("click",()=>{
  if(s.granted){
-  s.granted=false;s.auto=false;cancelObserve();stopPick(true);s.fields={};s.sources={};s.invalid.clear();s.hasScanned=false;emptyVerification();renderFields();addStatus("已撤销演示权限；不会继续扫描或监听 DOM。","warn");report("停止观察器并清除当前扫描结果。");
+  s.granted=false;s.auto=false;s.generation++;cancelObserve();stopPick(true);s.fields={};s.sources={};s.invalid.clear();s.hasScanned=false;emptyVerification();renderFields();addStatus("已撤销演示权限；不会继续扫描或监听 DOM。","warn");report("停止观察器并清除当前扫描结果。");
  }else{
   s.granted=true;addStatus("已授予本次模拟站点权限。点击扫描页面或开启自动检测。");report("此按钮不申请真实 Chrome 权限。");
  }
