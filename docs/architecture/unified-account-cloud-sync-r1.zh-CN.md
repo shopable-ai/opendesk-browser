@@ -1,4 +1,4 @@
-# OpenDesk / GrayDove · 统一账号、VIP 云同步与备份（R1 基线 + R2 需求收敛）
+# OpenDesk / GrayDove · 统一账号、VIP 云同步与备份（R1–R3 权威设计）
 
 > 状态：DESIGN_PROPOSAL / NOT_IMPLEMENTED。2026-11-22。仅为方案与接入契约，不代表任何账号、同步、会员后端或自动恢复功能已实现或通过验收。任务：OD-UNIFIED-ACCOUNT-CLOUD-SYNC-R1。
 
@@ -376,3 +376,176 @@ Side Panel 只需单行摘要：未开启／已同步／N 项待同步／登录�
 - https://developer.chrome.com/docs/extensions/develop/concepts/service-workers/lifecycle
 - https://developer.chrome.com/docs/extensions/reference/api/identity
 - https://www.rfc-editor.org/rfc/rfc10017.html
+
+
+---
+
+## R3 · 实施架构与接口合同（2026-11-22）
+
+> 阶段：DESIGN_PROPOSAL / NOT_IMPLEMENTED / NOT_TESTED。仅收敛可开发选型和服务端/客户端合同，不提交 SDK、业务代码、数据库迁移、不部署远端资源。R1/R2 继续保存历史决策；R3 对下述选型、接线、数据表和验收前置条件优先。
+
+### R3.1 二次仓库审计：真正的存储归属
+
+开始只读检查时 main 为 3eb43c3dd35f5fc29a726a635e955107f2f1363a；此 SHA 不是持续锁定的 HEAD，实施前必须重新读取目标文件。
+
+**必须同时核对的三个现有写入口**，不是只在侧栏添加监听：
+
+1. 侧栏宿主：src/ui/sidebar-tools.js 中 storage.get / storage.set，经原有工具级锁、安装身份、ifMatch、verified write 写入 sidebarToolStorageKey(tool.id)。
+2. 网页伴随模块：src/scripting/user-scripts/app-page-contract.js 的 appPageStorage，受安装 owner、包 Hash、installEpoch、Web Lock 与 ETag 保护，也使用 sidebarToolStorageKey(owner.toolId)。连播助手 src/page/main.js 正在通过 bridge.storage.get/set 读写 rules.v1。
+3. Browser SDK 工具级存储：src/ui/sidebar-tools/storage-state.js 的 executeBrowserToolStorage 使用同一个工具命名空间及额度边界。不同权限和请求形式不能绕过一致性要求。
+
+工具数据键由 src/ui/sidebar-tools/package.js 的 sidebarToolStorageKey 函数生成；配额 SIDEBAR_TOOL_DATA_LIMITS 为单项 8192 字节、总量 32768 字节、最多 32 键。安装、卸载、升级在 src/ui/sidebar-tools/installation.js 内也读取/清理现有工具数据。开发预览与正式安装存储隔离，实施时不能把调试预览误当正式用户数据。
+
+现有 src/sw.js 已有 chrome.storage.onChanged、alarms、onStartup，但没有据本轮核验而可宣称已经实现的公共账号同步监听。src/platform/storage/index.js 中的 IndexedDB 及事务实现属于已有 Foundation 持久化职责，**不是**已经可复用的云同步数据库/登录数据仓库；不要为了新功能覆盖它既有 Schema。
+
+直接结论：引入云同步必须由可信平台 owner 为三个写入口和安装/撤销路径设计**统一的受控存储路由/记录观察点**，或证明它们都通过同一个可观察的原生命名空间。新增监听不能假装能捕获仅在某个 UI 生命周期中发生的写入；必须在侧栏关闭时仍可捕捉网页写入，并且账户切换时所有读入口都被 fencing。
+
+现有项目还包含 services/analytics（匿名分析 Worker/D1）和 services/cookie-share-relay（Cookie 分享 Relay/SQLite）。两者不能不经身份、授权及事务审计就当作统一账号/VIP 后端。根 manifest.json 当前未声明 identity 权限；正式 OAuth 扩展登录若需要 chrome.identity，须单独评估 manifest 变更、稳定 Extension ID 与真实回调。
+
+### R3.2 账号与后端选型（条件式决策，而非假称已部署）
+
+| 路线 | 适用条件 | 优点 | 风险/成本 | R3 判定 |
+| --- | --- | --- | --- | --- |
+| A. 复用**已经实际部署**的自有身份 + SQL API | 有可核实账号、审计、备份、生产运维能力 | 最少新系统和跨业务迁移 | 当前仓库尚无证据证明这套服务存在 | **最高优先级先验证** |
+| B. Supabase Auth + PostgreSQL + 薄 API / SQL 事务函数 | 无可复用服务、希望快速构建可恢复数据 MVP | 托管用户/数据库、Postgres 事务和 RLS，易做测试环境 | 平台依赖、权限与密钥管理；其 OAuth 2.1 Server 在本次官方文档仍为 Beta，独立扩展回调需专项验证 | **默认新建候选** |
+| C. Better Auth + PostgreSQL + 自有 Node API | 已有可靠 Node/SQL 部署及维护者，重视控制权 | 更易与既有 Node 后端同部署；官方 OAuth Provider 支持 OIDC、PKCE、公有客户端 | 邮件、运行、监控、密钥、故障恢复均由团队维护，Provider 版本与安全配置须核验 | **备选** |
+| D. 专业托管 OIDC（如 Auth0/ZITADEL）+ 自有 SQL API | 独立扩展/多客户端 SSO 现在就必须正式商用 | 身份服务成熟、OIDC 职责清晰 | 两种平台、账单与管理流程 | 独立扩展 SSO 提前时评估 |
+
+**暂定落地策略**：先对现有后端做短平快审计；若没有可复用身份/数据库，就以 B 作为 M0 开发和成本验证候选。M0 仅做 OpenDesk 单宿主真实登录和产品同步；如必须在首个生产版本支持多个真正独立的 Chrome 扩展，须先完成 B 的 OAuth 2.1 Beta 回调、会话与撤销专项验证，未通过则升级到成熟 OIDC 方案，不带 Beta 风险直接宣称生产 SSO 完成。
+
+**最小运行部署**：身份服务、PostgreSQL、一个 HTTPS API/BFF（或 Edge Function 调用一条强校验的事务性 SQL RPC）。云业务写入只经服务端鉴权/API/数据库事务，不让扩展以持有公开 anon key 为理由直接绕过业务版本检查、权益/同意检查和幂等约束。是否用 Supabase Edge Functions、现有 Node 服务或其他运行时，实施时按已部署资源和成本选一个，禁止重复部署两套同步后端。生产/开发数据库、客户端 ID、密钥、日志严格隔离。
+
+参考：Supabase OAuth 2.1 Server Getting Started（2026-11 官方文档标注 Beta）https://supabase.com/docs/guides/auth/oauth-server/getting-started ；Supabase OAuth Flows https://supabase.com/docs/guides/auth/oauth-server/oauth-flows ；Better Auth OAuth Provider https://better-auth.com/docs/plugins/oauth-provider 。
+
+### R3.3 身份、会话、产品同意和权益的最小真相来源
+
+A. **一个用户身份**：用户 ID 从已验证的 IdP subject/sub 得到，服务端按 issuer + sub 映射内部 accountId。浏览器传入 userId 不能控制查询归属；不以电子邮箱作为不可变主键。
+
+B. **两个不同的授权**：
+- OAuth client consent：某个可信 Chrome 客户端是否有权向 GrayDove API 申请 token；
+- product sync consent：该账号明确允许哪些产品、哪些数据类别做云同步。登录本身不授予全产品内容上传权。新设备已登录且目标产品在原账户范围中启用时，只对当前实际已安装、可合法接入的产品自动恢复。
+
+C. **VIP 与数据不混同**：服务端按 account + product + feature 查询 entitlement，云写入只凭服务端状态放行，前端缓存用于展示/离线提示，不授权写云。非 VIP 或到期时本地编辑和导出仍正常；续费先拉新基线并做合并，不能回传旧整体快照覆盖。
+
+D. **会话与设备**：逻辑 deviceId 使用随机持久 ID，不采集强浏览器指纹；sessionId 单独绑定 issuer/sub/clientId/deviceId；刷新令牌须轮换与撤销，服务端实际验证会话与设备撤销，短期 access token 的剩余有效期/强制阻断策略须测试。设备被撤销不代表自动销毁本地规则。
+
+E. **令牌边界**：OAuth 授权码 + PKCE（S256）、随机 state、OIDC nonce/issuer 校验、准确 redirect URI；Chrome 端在用户明确操作后用可信固定代码发起 launchWebAuthFlow。不要把 Token 放进沙箱、content script、规则 JSON、URL 查询参数或日志。短期 access token 可存可信 extension storage.session/内存；若重启后要求自动续期，需设计仅可信后台可访问的持久 refresh 凭证存储、轮换与撤销，不能把 chrome.storage.local 宣称为加密保险箱。Chrome storage.local.setAccessLevel 影响**整个 storage area**，不能不审计现有 content script 消费者就全局更改访问权限；可评估仅可信后台访问的 extension-origin IndexedDB 作为令牌存储，仍不防本机磁盘/已被攻破的扩展代码，安全等级与生命周期必须实测。
+
+官方：Chrome Identity https://developer.chrome.com/docs/extensions/reference/api/identity ；Chrome Storage https://developer.chrome.com/docs/extensions/reference/api/storage ；OAuth 安全 BCP（RFC 9700）https://www.rfc-editor.org/rfc/rfc9700.html 。
+
+### R3.4 服务端数据模型——最少且可事务性一致
+
+身份供应商自己的 user/session 表由 IdP 维护，不复制密码和邮箱到业务表作为第二套身份系统。同步最小逻辑表如下，具体 SQL DDL 在后续实施任务中冻结：
+
+| 表 | 主键/唯一约束核心 | 责任 |
+| --- | --- | --- |
+| app_clients | client_id 唯一；允许的 productId 集合/应用类型 | 区分宿主和真正独立扩展 |
+| app_device_sessions | session_id、issuer/sub、client_id、device_id，revoked_at | 设备级云服务撤销与审计 |
+| product_sync_consents | (account_id, product_id) 唯一 | scope、consent_revision、enabled、granted_at |
+| product_entitlements | (account_id, product_id, feature_code) | 有效期、状态、权益来源与修订 |
+| sync_clocks | (account_id, product_id) | 事务内单调 change_seq、snapshot_epoch |
+| sync_records | (account_id, product_id, record_id) | payload JSON、schema_version、record_revision、tombstone |
+| sync_op_receipts | (account_id, client_id, operation_id) 唯一 | 请求 digest、原回执、去重/结果恢复 |
+| sync_changes | (account_id, product_id, change_seq) 唯一 | 不可变增量记录、变更版本、删除 |
+| record_history | (account_id, product_id, record_id, revision) | 可恢复的合法旧版本、原因、时间 |
+| audit_events | 独立 event_id | 低敏感度的授权/恢复/撤销审计，不记录 Cookie/Token 或原始网页正文 |
+
+每次有效修改**必须在一次数据库事务中**：
+1. 校验身份、设备/客户端可用、产品授权和服务端 entitlement，检查 opId 去重与 digest；
+2. 锁定当前 sync_clock/record，比较 baseRevision（无记录时采用明确初始修订 0；有 tombstone 不能误当成从未存在）；
+3. 版本匹配则写 record、新的 recordRevision、不可变 changeSeq 和必要历史前镜像；
+4. 记录 operation receipt 后提交；冲突返回当前版本与有限候选，绝不先改 record 再返回冲突。
+
+一个用户 + 产品的递增 seq 可以用单行 clock 锁协调；M0 数据规模小，避免分布式队列。需要设置每请求大小、每用户记录/历史上限与速率限制，实际值在测试负载、Unicode 字节数及成本确认后公布。
+
+**增量历史与用户历史是两种东西**：sync_changes 为同步游标服务，可按明确规则压缩；record_history 为用户恢复服务，不能被同步日志压缩顺手删除。服务端数据库灾备/恢复是第三种基础设施职责，不能拿 record_history 冒充故障灾备。
+
+### R3.5 HTTP API 草案 v1（所有路径均尚未实现）
+
+- GET /v1/bootstrap：账号资料最小摘要、server-side entitlements、当前产品同意列表、会话元数据；**不返回其他产品的原始数据**。
+- PUT /v1/product-consents/{productId}：仅当前登录账号、明确来源的产品启用/暂停及 dataScopeRevision；暂停不删除云端。
+- GET /v1/sync/{productId}/snapshot：权威小规模记录全集 + snapshot_watermark + snapshot_epoch。M0 使用一致事务快照，若超单次预算则增加稳定分页/barrier，不能分页过程中混用不同版本。
+- GET /v1/sync/{productId}/changes?afterSeq=...&limit=...：返回有序记录、nextSeq、hasMore、epoch；序列缺口/游标过期明确 REBASE_REQUIRED，不得悄悄返回空列表。
+- POST /v1/sync/{productId}/operations：M0 每请求先只接受一个 record 操作，最小请求结构为 (protocolVersion, operationId, recordId, baseRevision, schemaVersion, deleted, payload)。响应区分 APPLIED / ALREADY_APPLIED / CONFLICT / ENTITLEMENT_REQUIRED / CONSENT_REQUIRED / SCHEMA_UNSUPPORTED / REBASE_REQUIRED；需返回服务端准确 revision 和 seq。账号由 token 确定，clientId 的 product 授权由服务端注册表确定。
+- GET /v1/sync/{productId}/history?recordId=...：只列出有权访问的用户历史元信息与可恢复版本。
+- POST /v1/sync/{productId}/restore：输入选定历史版本、当前 baseRevision、operationId；先保存当前版本，恢复创建**新的**最新 recordRevision/changeSeq，传播到其他设备；并发冲突返回 CONFLICT。
+- POST /v1/device-sessions/{sessionId}/revoke：持有者撤销自身旧设备的云访问，须验证实际 Token/refresh 失效策略，不等于清理旧设备磁盘。
+- GET /v1/health：不泄漏账户数据的只读服务健康；健康 200 不是同步验收。
+
+建议请求示意：
+~~~json
+{
+  "protocolVersion": 1,
+  "operationId": "uuid-generated-once",
+  "recordId": "opaque-scope-record",
+  "baseRevision": 7,
+  "schemaVersion": 1,
+  "deleted": false,
+  "payload": {
+    "seriesKey": "iyf:verified-work",
+    "scope": "episode",
+    "episodeKey": "verified-episode",
+    "rules": {
+      "intro": {"kind":"fixed","start":0,"end":90},
+      "outro": {"kind":"tail","seconds":90},
+      "next": true
+    }
+  }
+}
+~~~
+仅为 Schema 形状示意，媒体键是假设样本，不是合法实站媒体标识或现有实现。recordId 应由产品适配器基于合法稳定键确定生成；云端不允许任意调用方通过 productId 参数取得其它工具数据。
+
+### R3.6 客户端所有权：分区化、存储观察与副作用边界
+
+**优先方案：按账号分区的可信存储路由，而非在一个工具数据键里混放 A/B 两份规则。** 用固定可信 Broker 解析 activeAccountNamespace = guest 或经过验证的 issuer/sub；所有正式安装工具的允许云同步存储入口统一路由。具体本机 key 设计为内部实现细节；原 sidebarToolStorageKey(toolId) 作为旧的 guest/legacy 数据入口进行受保护迁移，不擅自批量修改现有业务数据。
+
+必须完成以下接线安全门：
+- 侧栏 storage.get/set、网页伴随 appPageStorage readContext/get/set、Browser SDK browser.storage.local、安装/卸载/升级/备份、既有临时开发预览使用同一「哪个安装、哪个账户、哪个产品、哪个代际」判断。现有旁路若无法控制，则 P0 不开放账号切换，不宣称全局隔离。
+- 不重写原包运行资格、网站权限或安装器；云同步权限是额外的产品级 consent，普通工具无需因云服务未开通而失去本地运行能力。
+- 请求包含并核验 accountEpoch + installEpoch/sessionGeneration；切换账号后旧请求不能使用新的 active namespace，不可将 A 迟到响应写进 B 或新安装代际。
+- 第一次登录迁移旧 guest 规则时，先保留保护副本，再询问是把 guest 数据合并到当前账号，还是只恢复云端；不得在用户登录后自动把某个旧账户的本机分区当作匿名数据上传到另一账户。
+- 工具本地写和同步 outbox 位于两套存储时，本机失电窗口不可假称原子化。记录级 projection + 已确认基线 + 启动/变更事件对账能恢复最终 dirty；临时草稿和中间历史不保证入云。
+- 工具侧本地规则仍做播放器业务校验，云客户端不得用服务器全量结果直接覆盖整个 rules.v1；必须对局部 scope 进行 CAS 读回、合并、范围验证、额度预检。
+- 在线同步获得规则后仅更新数据，不重放别的设备曾发生的 seek、下一集导航、播放暂停等外部动作。
+- 对真正独立安装的扩展单独实现 OAuth 客户端与 SDK transport；同账号网站 Cookie 可能减少登录步骤，但不能让它借用 GrayDove 宿主 Token。
+
+**持久队列最小状态**：accountSub、productId、recordId、operationId、baseRevision、payloadDigest、payload/tombstone、consentEpoch、credentialEpoch、installEpoch、retryCount、lastAttempt；加 (account, product) 粒度的 lastAckedBaseline、nextSeq、snapshotEpoch。outbox 与业务规则、Token 在权限/存储上应区分。客户端操作从 UNKNOWN 恢复时复用 opId 和 digest，先查服务端结果，不新生成不同内容重试。
+
+### R3.7 实施任务树（各任务的输入/输出/验收）
+
+| ID | 最小任务 | 输入 | 可验收输出 | 前置 |
+| --- | --- | --- | --- | --- |
+| S00 | 审计现有已部署账号/数据库及固定工具存储入口 | R3 文档 + 源码入口 | 证据表：实际可复用服务/三个业务写入口/真实 Chrome 权限/独立扩展清单 | 无 |
+| S01 | 认证技术 spike | 一个已选 Identity Provider、开发与正式稳定 Extension ID | 两个测试 Profile 各自登录/过期/回调/取消；核验 manifest identity 需求和 Token 存储风险；未通过不得冻结 provider | S00 |
+| S02 | 最小服务端 Schema 和事务 API | productId 注册表、R3.4/5 合同 | DB migration + 同一 opId 恢复、版本冲突、撤销、授权拒绝的服务端测试 | S01 |
+| S03 | 可信本地 namespace 及账号隔离 | 三个存储入口、安装/撤销状态 | guest / A / B 不串号，旧请求 fencing，旧工具数据可逆迁移 | S00；可与 S02 合同并行 |
+| S04 | 连播助手 Product Adapter | rules.v1、当前业务 validator、样本规则 | scope projection / join / tombstone / schemaVersion / 8 KiB 限额保护测试 | S00 |
+| S05 | 一台设备的云备份与首次合并 | S01–S04 | 显式产品授权、云空首传、有云首拉、不丢 guest 保护副本 | S01–S04 |
+| S06 | 双设备可靠同步 | S05 | outbox、changeSeq、断网、重启、删除、冲突、lost ACK；真实 Chrome 双 Profile | S05 |
+| S07 | 最小历史恢复与 VIP 服务端闸门 | S02、S06 | 误删/误改恢复出新 revision；非 VIP 与到期不误上传，旧数据仍可本机使用 | S06 |
+| S08 | 鼠标手势第二接入 | 同一 Engine + preferences Adapter | 不复制账号/同步/重试/恢复逻辑且两设备可同步 | S06 |
+| S09 | 用户界面与验收签收 | 现有 Side Panel/PC Tokens/notify | 一行同步摘要、简单账号/同步开关、冲突选择；测试证明而非预览宣称 | S05–S08 |
+
+**可称 M0-A 的条件**：S01–S07 连播助手真实闭环；**可称共用 M0 完成的条件**：S08 结构不同的第二消费者也通过。S09 仅需最小可用入口，复杂设备管理和账单 UI 在 M1/M2。
+
+### R3.8 严格验收与不可提前宣布完成的负例
+
+- 认证/权限：Chrome 真实扩展 ID 的 OAuth 登录取消、PKCE 失败、重定向伪造、过期与设备撤销；静态恶意工具 ID 不得借用正式同步的产品授权。
+- 存储：侧栏关闭但网页模块仍写入、Browser SDK 另一路写入、安装/升级/卸载/不同调试 Profile；每一路均不能绕过 guest/A/B 真实数据分区。
+- 初次导入：本地空/默认值不得覆盖云；本地有且云有时不同记录合并，冲突保留两侧；guest 与 A 不自动转入 B。
+- 并发：不同 scope 编辑并发恢复、同 scope CAS 冲突、同 opId 不同 digest 拒绝、服务端提交后客户端回执丢失、cursor 截断或过期重建。
+- 生命周期：SW 在本地写→outbox 两步之间终止、待上传时退出浏览器、重启后继续；历史旧设备删除不复活。
+- 业务：不复制播放行为；相对尾段仍根据新视频可信 duration 动态计算；媒体键缺失不冒充有效规则；本地存储超限绝不静默丢失。
+- 会员：离线本地照常使用，VIP 到期只控制云端权益；恢复的保护副本和正式云数据保留/取回策略一致。
+- 证据：Schema/单元、事务 API、Chrome 两 Profile、真实两台电脑四类结果分别记录；本轮全部 **NOT_TESTED**。
+
+建议在线性能目标沿用 R1：两端浏览器实际运行、网络健康时跨端生效 P95 不超过 120 秒；SW 休眠时以唤醒后恢复为主，浏览器关闭期间不保证实时。产品可见正常状态不显示游标/修订，仅在诊断中出现。
+
+### R3.9 本轮结论与真正待决问题
+
+1. **可以冻结**：可信宿主作为账号和同步 owner、产品独立 Adapter、记录级 CAS/增量/历史的协议方向、服务器鉴权与 product consent 分开、guest/A/B 数据隔离、三入口审计、第二产品是共用能力验收门槛。
+2. **不能冻结**：生产 IdP 供应商（先审计已有服务；默认候选 Supabase Auth + Postgres，但 OAuth Server 当前 Beta）、正式存储分区具体重构位置、公开 SDK 命名、线上数据保留/付费政策、容量限值。
+3. **明确后置**：正式收款套餐、全部跨浏览器客户端一键登录、大文件、同步网站登录会话、公开共享规则、CRDT/实时协作。
+4. **绝对禁止宣称已完成**：本轮没有新的运行代码、已创建的线上账号服务、生产登录成功、真实两机同步或历史恢复 PASS。
+
+新增参考入口不另建方案文件，统一从本文件继续。实施前再核验最新 main、目标文件归属及并行任务，所有跨平台公开 API 更新必须回写既有权威合同，不能在业务工具直接调用本方案中的假定 API。
