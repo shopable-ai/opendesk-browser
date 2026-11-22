@@ -2,7 +2,7 @@
 
 在 OpenDesk 原生侧栏给当前作品保存片头、片尾和连播规则。作品默认适用于同季，单集只覆盖单独设置的项目。已保存的规则由网页模块执行，关闭侧栏后仍有效。
 
-> **多语言接入 R1（SOURCE_WIRED，尚未打包）**：继续使用原生 HTML + JavaScript + Vite，不迁移 React。现已新增作者语言表 `locales.json`（159 个语义键，简体中文/英语/日语/繁体中文）、最小 `src/i18n.js`，接入侧栏、四个时间输入框、滑块、状态/错误/ARIA、`OpenDeskTool.locale/messages/onLocaleChange` 只读刷新以及原有 Vite/Sidebar Tool 构建器。**当前尚无本轮 Node/Vite 正式通过、受控打包或真实 Chrome 安装回执，正式 0.2.9 安装包未替换。** 独立 USER_SCRIPT 网页 toast 暂未接入语言桥，按权限边界保留原行为。详见 [多语言 R1 实施与验收状态](LOCALIZATION-PLAN.zh-CN.md)。沙箱工具不调用 `chrome.i18n`。
+> **多语言接入 R1（SOURCE_WIRED，尚未打包）**：继续使用原生 HTML + JavaScript + Vite，不迁移 React。现已新增作者语言表 `locales.json`（159 个语义键，简体中文/英语/日语/繁体中文）、最小 `src/i18n.js`，接入侧栏、四个时间输入框、滑块、状态/错误/ARIA、`OpenDeskTool.locale/messages/onLocaleChange` 只读刷新以及原有 Vite/Sidebar Tool 构建器。**同源码提交的 GitHub App CI 已完成 Vite+Builder 同源候选、组合 Node 104/104 PASS（[验收工作流](https://github.com/shopable-ai/opendesk-browser/actions/runs/45035680976)）；正式 0.2.9 安装包未替换，真实 Chrome 安装/升级与 320–400px 小屏验收仍为 NOT_TESTED。** 独立 USER_SCRIPT 网页 toast 暂未接入语言桥，按权限边界保留原行为。详见 [多语言 R1 实施与验收状态](LOCALIZATION-PLAN.zh-CN.md)。沙箱工具不调用 `chrome.i18n`。
 
 > **统一账号、VIP 云同步与跨设备恢复（R1 方案，尚未实施）：** 本工具是公共账号与同步平台的首个接入候选，未来按产品范围同步已保存的片头、片尾与连播规则，保留本地优先、原存储身份和播放安全校验；不上传网页 Cookie、密码、浏览历史、播放动作或临时运行态。当前 rules.v1 仍仅使用工具私有本地存储，**登录、云同步、新设备恢复和历史恢复尚不可用**。公共需求树、功能树、冲突/数据契约与验收草案见[统一账号与云同步 R1 设计](../../docs/architecture/unified-account-cloud-sync-r1.zh-CN.md)。
 

@@ -2,7 +2,7 @@
 
 > 任务标识：OD-VIDEO-AUTO-SKIP-I18N-R1 ｜ 日期：2026-11-22  
 > Owner：`projects/video-auto-skip/` ｜ 目标分支：`main`  
-> 状态：**SOURCE_WIRED（代码与翻译资源已接线）；Node/Vite 编译、正式包及真实 Chrome 安装验收均为 NOT_TESTED。**
+> 状态：**SOURCE_WIRED + NODE_PASS + CANDIDATE_PASS**（同提交 GitHub App CI 已成功）；正式包晋升、真实 Chrome 安装、全部语言小屏布局验收仍为 **NOT_TESTED**。
 
 ## 1. 现场基线与技术决策
 
@@ -74,7 +74,7 @@ Chrome 扩展原生 `_locales/*/messages.json` 和 OpenDesk 工具作者 `locale
 
 ## 7. 本轮边界
 
-本次实施范围仅包含工具的 `locales.json`、侧栏 HTML/JS、Vite 指纹、定向测试及进度文档；`dist/`、正式 `video-auto-skip.opendesk-tool.json`、`src/page/main.js`、预览大文件、宿主 manifest、授权和播放器业务协议均未改动。未通过后续编译与原生验收前不宣称发布。
+本次实施范围仅包含工具的 `locales.json`、侧栏 HTML/JS、Vite 指纹、定向测试及进度文档；`dist/`、正式 `video-auto-skip.opendesk-tool.json`、`src/page/main.js`、预览大文件、宿主 manifest、授权和播放器业务协议均未改动。GitHub CI 已构建但未晋升同源候选，**未通过真实 Chrome 安装/升级和布局验收前不宣称发布**。
 
 ## 8. R1 源码接线进度与未完成验收（2026-11-22）
 
@@ -82,7 +82,7 @@ Chrome 扩展原生 `_locales/*/messages.json` 和 OpenDesk 工具作者 `locale
 - `src/i18n.js` 使用唯一 `__OPENDESK_TOOL_MESSAGES__` 编译标记；`src/main.js`、`src/editor.js`、`src/time-track.js` 和 `src/index.html` 通过同一 `t(key, params)` 与 DOM 纯文本属性刷新，保留草稿、端点及 End 哨兵。
 - `tool.config.json` 增加 `locales`；`vite.config.mjs` 将语言源与 helper 纳入原有 build-ready 指纹。增加 `tests/i18n.test.mjs` 并调整 `tests/sidebar-status.test.mjs` 的测试宿主源语言 catalog。
 - 本轮只读在 GitHub 已确认 `src/page/main.js` 中仍有「连播助手：已跳过片头/片尾」网页 toast。该 USER_SCRIPT 尚无获证实的受控语言流，因此未向网页暴露 Sandbox Tool API，也未修改页面模块；此项明确属于**独立未完成**。
-- 静态源检查：四语言键和占位符闭包 159/159；调用仓库现有 `compileToolLocaleCatalog()` 校验成功；对侧栏主模块、编辑器、滑块及 helper 的 V8 语法解析成功。这些仅是静态校验，**不是 Node test PASS / Vite BUILD PASS / PACKAGE PASS / CHROME PASS**。
-- **仍需本机完成**：`npm --prefix projects/video-auto-skip test`、`npm --prefix projects/video-auto-skip run build`、现有打包器候选校验、320/360/400px 与 200% 缩放、未保存草稿/四端点/跨集/重开/旧数据、真实 Chrome 中同 ID 审核与升级。各项无当前候选的实际回执，统一 `NOT_TESTED`。
-- 现有 `0.2.9` 正式包未被替换，`0.2.10` 源码仍未晋升；通过 Builder 和受影响的 Node 测试后才有资格制作/晋升正式包。不要把此源码提交解释为本机安装成功。
+- 静态源检查：四语言键和占位符闭包 159/159；调用仓库现有 `compileToolLocaleCatalog()` 校验成功；对侧栏主模块、编辑器、滑块及 helper 的 V8 语法解析成功。**同一提交随后经 GitHub App CI 完成 Vite 编译与现有 Builder 产生同源未晋升候选；组合 Node 测试 104/104 PASS（含四语言资源、回退、转义安全、动态切换与 End/草稿断言）。** [工作流与原始日志](https://github.com/shopable-ai/opendesk-browser/actions/runs/45035680976)，源码提交 `0810fd059caeddace0fff78d9aca1e2df030a3f8`。
+- **CI 已完成**：项目编译、原 Builder 同源候选和组合 Node 回归。CI 候选 `0.2.10` 的 SHA-256 为 `0222a480ef1674fd4b4a104e9707ac64e61f4834dd32cb5da51ef1421dbbeee7`，状态 `CANDIDATE_SOURCE_IDENTICAL`。**仍未完成**：本机独立复跑、320/360/400px 与 200% 缩放、真实安装后的四语言切换/保存/跨集/重开、原生 Chrome 同 ID 升级与前后规则读回。CI 的 Chromium UI 和网页操作步骤被测试配置跳过，不能标记为通过。
+- 现有 `0.2.9` 正式包未被替换，`0.2.10` 源码仍未晋升；**尽管 Builder/Node 门禁已通过，仍须真实侧栏/播放与跨语言人工验收后，才能决定是否按既有发行 Skill 晋升**。不要把 CI 候选或源码提交解释为本机安装成功。
 - 本地 Mac 的未提交工作区未核验：当前本机 CodexPro 与文件隧道不可用，远端 GitHub `main` 的可读/可写状态不能代替本地 `git status`。本地同步时必须先确认/保护 0.2.10 未提交修改。
