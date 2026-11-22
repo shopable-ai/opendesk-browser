@@ -45,7 +45,7 @@ OpenDesk 公开试点：docs/api/sidebar-tool-page-module.zh-CN.md。暂不改 B
 
 在仓库根目录按既有命令构建到忽略的候选路径，不直接生成正式包：
 
-    node scripts/build-sidebar-tool.mjs projects/job-assistant --out artifacts/sidebar-tools/job-auto-apply/candidate.opendesk-tool.json
+    node scripts/build-sidebar-tool.mjs projects/job-auto-apply --out artifacts/sidebar-tools/job-auto-apply/candidate.opendesk-tool.json
 
 先执行 JavaScript 语法/定向构建与页面 fixture 测试，再在已授权的真实 Chrome 上安装候选、刷新 BOSS 搜索列表，核对 Page module 的扫描结果。确认稳定才按既有打包 Skill 晋升唯一 job-auto-apply.opendesk-tool.json；不要因本说明直接认定安装已完成。
 
