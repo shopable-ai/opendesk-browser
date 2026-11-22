@@ -66,7 +66,7 @@ test('unknown CAS storage response locks further writes, avoiding replay',async(
   assert.equal(state.qa.isWriteLocked(),true);
   await state.qa.enqueue(sample());
   assert.equal(state.writes.length,1);
-  assert.match(state.elements.get('ja-status').textContent,/锁定写入/);
+  assert.match(state.elements.get('#ja-status').textContent,/锁定写入/);
 });
 test('full review queue is never silently truncated by adding another job',async()=>{
   const existing=Array.from({length:24},(_,i)=>sample('demo'+String(i).padStart(5,'0')));
@@ -75,7 +75,7 @@ test('full review queue is never silently truncated by adding another job',async
   await state.qa.enqueue(sample('next12345'));
   assert.equal(state.qa.snapshot().length,24);
   assert.equal(state.writes.length,0);
-  assert.match(state.elements.get('ja-status').textContent,/已满/);
+  assert.match(state.elements.get('#ja-status').textContent,/已满/);
 });
 test('successful explicit enqueue persists pending_review under original CAS token',async()=>{
   const state=await app();
