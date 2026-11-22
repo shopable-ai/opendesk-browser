@@ -4,10 +4,10 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <meta name="color-scheme" content="light">
-<title>连播助手 · R6 精细时间轴与相对片尾 · 离线侧栏预览</title>
-<meta name="od-design-variant" content="B-R6">
+<title>连播助手 · R7 单滑块时间轴与简化保存 · 离线侧栏预览</title>
+<meta name="od-design-variant" content="B-R7">
 <meta name="od-preview-binding" content="outro.end=duration; outro.tail=relative seconds; absolute end only when interval mode">
-<meta name="od-preview-capability" content="offline-sidebar-only-duration-slider-no-video-no-scenario">
+<meta name="od-preview-capability" content="offline-sidebar-only-viewport-slider-no-video-no-scenario">
 <style>body{margin:0;padding:20px 12px;background:#f2f5fa;color-scheme:light}#od-watch-preview{max-width:800px;margin:0 auto}@media(max-width:400px){body{padding:10px 4px}}</style>
 </head>
 <body>
@@ -381,18 +381,66 @@ html,body{background:#f2f5fa}
 }
 @media(max-width:340px){#od-watch-preview .od-window-preference{padding-left:8px;padding-right:8px;}}
 
-/* R6 offline-only duration input; distinct from the two range editors. */
-#od-watch-preview .od-duration-preview{margin:3px 11px 6px;padding:8px 10px 8px;border:1px solid #e3eaf4;border-radius:8px;background:#f8fafd;}
-#od-watch-preview .od-duration-preview-top{display:flex;align-items:baseline;justify-content:space-between;gap:10px;margin-bottom:3px;}
-#od-watch-preview .od-duration-preview-top label{font-size:11px;font-weight:570;color:#60738d;}
-#od-watch-preview .od-duration-preview-top output{font:650 12px/1.4 ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;font-variant-numeric:tabular-nums;color:#29476e;white-space:nowrap;}
-#od-watch-preview #od-duration-range{display:block;width:100%;height:19px;padding:0;margin:0;border:0;background:transparent;accent-color:#718bb4;cursor:ew-resize;}
-#od-watch-preview .od-duration-preview-help{font-size:10px;line-height:1.4;color:#8190a4;margin-top:1px;}
-#od-watch-preview .od-duration-preview:focus-within{border-color:#abc3ed;}
-@media(max-width:340px){#od-watch-preview .od-duration-preview{margin-left:8px;margin-right:8px;padding:7px 8px;}}
+/* R7: one compact snapping timeline-viewport control, no video-duration demo. */
+#od-watch-preview .od-window-preference{
+  display:block;margin:6px 11px 4px;padding:7px 11px 6px;
+  border:1px solid #e3e9f2;border-radius:9px;background:#f8fafd;
+}
+#od-watch-preview .od-viewport-top{
+  display:flex;align-items:center;justify-content:space-between;min-height:23px;gap:10px;
+}
+#od-watch-preview .od-viewport-top label{
+  color:#536987;font-size:12px;font-weight:610;flex:none;
+}
+#od-watch-preview .od-viewport-value{
+  display:flex;gap:8px;align-items:center;justify-content:flex-end;
+  min-width:0;font-variant-numeric:tabular-nums;white-space:nowrap;
+}
+#od-watch-preview #od-window-current{
+  font:650 12px/1.4 ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;color:#315b9d;
+}
+#od-watch-preview .od-viewport-auto-state{
+  color:#4d77ad;background:#eaf1fe;border-radius:5px;padding:2px 5px;font-size:10px;font-weight:580;
+}
+#od-watch-preview #od-window-auto{
+  appearance:none;border:0;background:transparent;color:#4464a3;
+  padding:3px 0;font-size:10px;text-decoration:underline;text-underline-offset:2px;
+  cursor:pointer;min-height:24px;
+}
+#od-watch-preview #od-window-auto:focus-visible{
+  outline:2px solid #416cdd;outline-offset:2px;border-radius:4px;
+}
+#od-watch-preview #od-window-range{
+  display:block;width:100%;height:24px;margin:3px 0 0;
+  padding:0;border:0;background:transparent;accent-color:#4269e0;cursor:ew-resize;
+}
+#od-watch-preview #od-window-range::-webkit-slider-runnable-track{
+  height:4px;border-radius:3px;background:#d8e1f0;
+}
+#od-watch-preview #od-window-range::-webkit-slider-thumb{
+  appearance:none;-webkit-appearance:none;width:17px;height:17px;margin-top:-7px;
+  background:#416cda;border:2px solid #fff;border-radius:50%;
+  box-shadow:0 0 0 1px #6b8de8,0 1px 3px #193b7c44;
+}
+#od-watch-preview #od-window-range::-moz-range-track{height:4px;border-radius:3px;background:#d8e1f0}
+#od-watch-preview #od-window-range::-moz-range-thumb{
+  width:13px;height:13px;border-radius:50%;background:#416cda;border:2px solid #fff;
+  box-shadow:0 0 0 1px #6b8de8,0 1px 3px #193b7c44;
+}
+#od-watch-preview #od-window-range:focus-visible{outline:2px solid #8facf3;outline-offset:2px;border-radius:5px}
+#od-watch-preview .od-viewport-ticks{
+  display:flex;justify-content:space-between;gap:0;margin:0 1px;
+  color:#7f8da2;font-size:10px;line-height:1.25;font-variant-numeric:tabular-nums;
+}
+#od-watch-preview .od-viewport-ticks span{display:block;text-align:center;min-width:24px}
+#od-watch-preview .od-viewport-ticks span:first-child{text-align:left}
+#od-watch-preview .od-viewport-ticks span:last-child{text-align:right}
+@media(max-width:340px){
+ #od-watch-preview .od-window-preference{margin-left:8px;margin-right:8px;padding:6px 8px}
+}
 </style>
 <script>
-/* Local interaction simulator only. No browser-extension or website APIs. */
+/* Local interaction simulator only. No browser-extension or website APIs. The demo has a verified single-series identity; a real adapter must only use series-wide saving after identity is confirmed. */
 class ContinuityModel {
   constructor() {
     this._bases = {};
@@ -844,7 +892,7 @@ function windowFor(key,expand=false){
  if(Number.isFinite(d))span=Math.min(span,d);
  ui.windows[key]=key==='outro'?[Math.max(0,d-span),d]:[0,span];return ui.windows[key];
 }
-function windowLabel(key){if(unavailable(key))return '';const w=windowFor(key),seconds=w[1]-w[0],minutes=Math.floor(seconds/60),rest=seconds%60;return '显示'+(key==='intro'?'前':'末')+(rest?minutes?minutes+'分'+rest+'秒':rest+'秒':minutes+'分钟');}
+function windowLabel(key){if(unavailable(key))return '';const w=windowFor(key),seconds=w[1]-w[0],d=model.s.duration,base=Number.isFinite(d)?Math.min(d,requestedSpan(d)):requestedSpan(d);if(Math.abs(seconds-base)<1)return '';const minutes=Math.floor(seconds/60),rest=seconds%60;return '显示'+(key==='intro'?'前':'末')+(rest?minutes?minutes+'分'+rest+'秒':rest+'秒':minutes+'分钟');}
 function identityText(){const s=model.s;return '星海航线 · 第1季 · 第'+String(s.episode).padStart(2,'0')+'集 · '+(Number.isFinite(s.duration)?'全长'+fmt(s.duration):'时长待获取');}
 function constrainHandle(key,part,n){
  const w=windowFor(key),other=value(key,part==='start'?'end':'start');let lo=w[0],hi=w[1];
@@ -889,26 +937,28 @@ function restoreAction(key){
  const s=model.s,o=s.overrides[model.identity()]||{};
  return s.scope==='episode'&&Object.prototype.hasOwnProperty.call(o,key)?`<button type="button" class="od-restore-action" data-action="restore" data-key="${key}">恢复${names[key]||'连播'}默认</button>`:'';
 }
+const viewportStops=[60,120,180,300,600];
+function viewportIndex(){
+ const n=ui.spanPref==='auto'?recommendedSpan(model.s.duration):Number(ui.spanPref);
+ const found=viewportStops.findIndex(v=>v>=n);
+ return found<0?viewportStops.length-1:found;
+}
 function viewportHTML(){
- const d=model.s.duration,auto=recommendedSpan(d);
- const f=n=>n%60===0?Math.floor(n/60)+'分钟':fmt(n);
- const values=[['auto','自动（'+f(auto)+'）'],['60','1分钟'],['120','2分钟'],['180','3分钟'],['300','5分钟'],['600','10分钟']];
- return `<div class="od-window-preference"><label for="od-window-preference">时间轴范围</label><select id="od-window-preference" aria-label="时间轴可视范围，只调整滑块，不修改跳过区间" title="只调整拖动时可见的时间范围，不改变已保存的跳过规则">${values.map(([v,t])=>`<option value="${v}" ${ui.spanPref===v?'selected':''}>${t}</option>`).join('')}</select></div>`;
-}
-function durationPreviewHTML(){
- const d=model.s.duration,shown=Number.isFinite(d)?Math.max(180,Math.min(18000,Math.round(d/60)*60)):2700;
- return `<div class="od-duration-preview" role="group" aria-label="离线预览：切换当前视频时长"><div class="od-duration-preview-top"><label for="od-duration-range">视频时长（仅预览）</label><output id="od-duration-value" for="od-duration-range">${Number.isFinite(d)?fmt(d):'未知'}</output></div><input type="range" id="od-duration-range" min="180" max="18000" step="60" value="${shown}" aria-label="切换模拟视频总时长，用于验证片尾相对起点" aria-valuetext="${Number.isFinite(d)?fmt(d):'未知'}" aria-describedby="od-duration-help"><div id="od-duration-help" class="od-duration-preview-help">只切换视频时长，不改变片头片尾规则；End 随之重算</div></div>`;
-}
-function scopeHTML(){
- const scope=model.s.scope;
- return `<div class="od-scope-row"><span class="od-scope-caption">保存范围</span><div class="od-scope-controls" role="group" aria-label="保存范围"><button id="od-scope-work" type="button" class="od-scope-choice" aria-pressed="${scope==='work'}" data-action="scope" data-scope="work" title="本作品当前季设置">本作品</button><button id="od-scope-episode" type="button" class="od-scope-choice" aria-pressed="${scope==='episode'}" data-action="scope" data-scope="episode">本集</button></div></div>`;
+ const index=viewportIndex(),isAuto=ui.spanPref==='auto';
+ const label=viewportStops[index]/60+'分钟';
+ return `<div class="od-window-preference" role="group" aria-label="调整片头和片尾时间轴的显示范围">
+  <div class="od-viewport-top"><label for="od-window-range">时间轴范围</label>
+  <div class="od-viewport-value"><output id="od-window-current" for="od-window-range">${label}</output><span id="od-window-auto-state" class="od-viewport-auto-state" ${isAuto?'':'hidden'}>自动</span><button id="od-window-auto" type="button" data-action="viewport-auto" ${isAuto?'hidden':''} title="按当前视频自动推荐时间轴范围">恢复自动</button></div></div>
+  <input type="range" id="od-window-range" min="0" max="4" step="1" value="${index}" aria-label="时间轴范围，从1分钟到10分钟，分档调整" aria-valuetext="${label}${isAuto?'，自动推荐':'，手动设置'}" aria-describedby="od-window-ticks">
+  <div id="od-window-ticks" class="od-viewport-ticks" aria-hidden="true"><span>1分</span><span>2分</span><span>3分</span><span>5分</span><span>10分</span></div>
+ </div>`;
 }
 function statusHTML(){return '<div id="od-status" class="od-status" hidden><div id="od-status-text" role="status" aria-live="polite"></div><div id="od-status-actions" class="od-status-actions"></div></div>';}
 function transitionHTML(){const t=model.s.transition;return t?`<div class="od-transition" role="group" aria-label="处理未保存修改">当前修改尚未保存。<div class="od-transition-actions"><button id="od-stay" type="button" data-action="stay">继续编辑</button><button id="od-discard" type="button" data-action="discard">舍弃并${t.kind==='close'?'收起':'切换'}</button></div></div>`:'';}
 function sidebarHTML(){
  const s=model.s,v=validation();
  if(s.closed)return '<div class="od-closed"><span>连播助手已收起</span><button id="od-open" type="button" data-action="open">打开设置</button></div>'+statusHTML();
- return `<header class="od-header"><div class="od-identity-row"><div id="od-content-identity" class="od-work">${identityText()}</div></div></header><div class="od-rows">${rowHTML('intro')}${rowHTML('outro')}<div class="od-auto"><label for="od-auto-next">自动下一集</label>${Object.prototype.hasOwnProperty.call(s.overrides[model.identity()]||{},'autoNext')?'<span class="od-exception">本集例外</span>':''}<label class="od-switch"><input id="od-auto-next" type="checkbox" data-toggle="autoNext" ${s.draft.autoNext?'checked':''} aria-label="自动下一集"></label></div>${restoreAction('autoNext')?`<div class="od-auto-restore">${restoreAction('autoNext')}</div>`:''}${viewportHTML()}${durationPreviewHTML()}</div><footer class="od-save-zone">${scopeHTML()}<div class="od-save-actions"><button id="od-save" type="button" class="od-primary" data-action="save" ${s.dirty&&v.valid?'':'disabled'}>${s.scope==='work'?'保存本作品设置':'仅保存本集'}</button><button id="od-cancel" type="button" class="od-link" data-action="cancel" ${s.dirty?'':'hidden'}>取消修改</button></div></footer>${statusHTML()}${transitionHTML()}`;
+ return `<header class="od-header"><div class="od-identity-row"><div id="od-content-identity" class="od-work">${identityText()}</div></div></header><div class="od-rows">${rowHTML('intro')}${rowHTML('outro')}<div class="od-auto"><label for="od-auto-next">自动下一集</label>${Object.prototype.hasOwnProperty.call(s.overrides[model.identity()]||{},'autoNext')?'<span class="od-exception">本集例外</span>':''}<label class="od-switch"><input id="od-auto-next" type="checkbox" data-toggle="autoNext" ${s.draft.autoNext?'checked':''} aria-label="自动下一集"></label></div>${restoreAction('autoNext')?`<div class="od-auto-restore">${restoreAction('autoNext')}</div>`:''}${viewportHTML()}</div><footer class="od-save-zone"><div class="od-save-actions"><button id="od-save" type="button" class="od-primary" data-action="save" ${s.dirty&&v.valid?'':'disabled'}>保存设置</button><button id="od-cancel" type="button" class="od-link" data-action="cancel" ${s.dirty?'':'hidden'}>取消修改</button></div></footer>${statusHTML()}${transitionHTML()}`;
 }
 function syncStatus(){
  const s=model.s,v=validation(),host=q('#od-status');if(!host)return;let text='',kind='',actions=[];
@@ -922,11 +972,12 @@ function syncStatus(){
  else if(s.undo)text='已跳过'+names[s.undo.key];
  else if(Number.isFinite(s.duration)&&s.time>=s.duration&&!s.playing)text='本集已结束';
  else if(s.statusKind==='error'){text=s.status;kind='od-error-state';}
+ else if(s.statusKind==='ok'&&!s.dirty){text='设置已保存';kind='od-saved-ok';}
  if(s.undo)actions.push('<button id="od-undo" type="button" data-action="undo">撤销跳过</button>');
  host.hidden=!text&&!actions.length;host.className='od-status '+kind;q('#od-status-text').textContent=text;
  const actionHost=q('#od-status-actions'),html=actions.join('');if(ui.actionsHost!==actionHost||ui.actionsSignature!==html){actionHost.innerHTML=html;ui.actionsHost=actionHost;ui.actionsSignature=html;}
 }
-function syncSave(){const s=model.s,v=validation(),b=q('#od-save');if(b){b.disabled=!s.dirty||!v.valid;b.textContent=!s.dirty&&ui.savedContext===contextKey()?(s.scope==='work'?'本作品设置已保存':'本集设置已保存'):(s.scope==='work'?'保存本作品设置':'仅保存本集');}const c=q('#od-cancel');if(c)c.hidden=!s.dirty;syncStatus();}
+function syncSave(){const s=model.s,v=validation(),b=q('#od-save');if(b){b.disabled=!s.dirty||!v.valid;b.textContent=!s.dirty&&ui.savedContext===contextKey()?'已保存':'保存设置';}const c=q('#od-cancel');if(c)c.hidden=!s.dirty;syncStatus();}
 function syncSelection(){
  for(const key of ['intro','outro']){
   const part=ui.selected[key],active=ui.activeKey===key;
@@ -959,7 +1010,7 @@ function syncRow(key,origin){
  syncErrors();syncSelection();syncSave();
 }
 function syncIdentity(){const identity=q('#od-content-identity');if(identity)identity.textContent=identityText();}
-function render(keepFocus=true){const old=document.activeElement,id=old&&root.contains(old)?old.id:null;let selection=null;try{selection=[old.selectionStart,old.selectionEnd];}catch(e){}ui.rendering=true;q('#od-sidebar').innerHTML=sidebarHTML();syncErrors();syncSelection();syncSave();syncIdentity();for(const selector of ['button','summary','input[type=checkbox]'])all(selector).forEach(el=>el.classList.add('cursor-interaction'));if(keepFocus&&id){let el=q('#'+id);if(!el||el.disabled)el=q('#od-save')||q('#od-scope-work')||q('#od-open');if(el){el.focus({preventScroll:true});if(el.id===id&&selection&&selection[0]!==null&&el.setSelectionRange)try{el.setSelectionRange(selection[0],selection[1]);}catch(e){}}}ui.rendering=false;}
+function render(keepFocus=true){const old=document.activeElement,id=old&&root.contains(old)?old.id:null;let selection=null;try{selection=[old.selectionStart,old.selectionEnd];}catch(e){}ui.rendering=true;q('#od-sidebar').innerHTML=sidebarHTML();syncErrors();syncSelection();syncSave();syncIdentity();for(const selector of ['button','summary','input[type=checkbox]'])all(selector).forEach(el=>el.classList.add('cursor-interaction'));if(keepFocus&&id){let el=q('#'+id);if(!el||el.disabled)el=q('#od-save')||q('#od-window-range')||q('#od-open');if(el){el.focus({preventScroll:true});if(el.id===id&&selection&&selection[0]!==null&&el.setSelectionRange)try{el.setSelectionRange(selection[0],selection[1]);}catch(e){}}}ui.rendering=false;}
 function resetUI(){ui.selected={intro:'end',outro:'start'};ui.activeKey='intro';ui.raw={};ui.windows={};ui.savedContext=null;}
 function take(fn){const id=model.identity(),sc=model.s.scenario,scope=model.s.scope;fn();if(id!==model.identity()||sc!==model.s.scenario)resetUI();else if(scope!==model.s.scope){ui.raw={};ui.windows={};ui.savedContext=null;}render();}
 function selectPoint(key,part){ui.activeKey=key;ui.selected[key]=part;syncSelection();}
@@ -972,7 +1023,7 @@ root.addEventListener('click',event=>{
  }
  const b=event.target.closest('button');if(!b||!root.contains(b)||b.disabled)return;const action=b.dataset.action,key=b.dataset.key;
  if(action==='save'){take(()=>{const c=contextKey();if(model.save()){ui.savedContext=c;ui.raw={};}});return;}
- if(action==='scope'){take(()=>model.requestScope(b.dataset.scope));return;}
+ if(action==='viewport-auto'){ui.spanPref='auto';ui.windows={};render(true);return;}
  if(action==='cancel'){ui.raw={};ui.windows={};take(()=>model.cancel());return;}
  if(action==='mark'){clearRaw(key,ui.selected[key]);take(()=>model.mark(key,ui.selected[key]));windowFor(key,true);syncRow(key);return;}
  if(action==='preview'){take(()=>model.preview(key,ui.selected[key]));return;}
@@ -984,19 +1035,17 @@ root.addEventListener('click',event=>{
  if(action==='stay'){take(()=>model.resolveTransition('stay'));return;}
  if(action==='discard'){ui.raw={};ui.windows={};take(()=>model.resolveTransition('discard'));return;}
 });
-function syncViewportAutoLabel(){
- const opt=q('#od-window-preference option[value="auto"]');
- if(opt){const n=recommendedSpan(model.s.duration);opt.textContent='自动（'+(n%60===0?Math.floor(n/60)+'分钟':fmt(n))+'）';}
-}
 root.addEventListener('input',event=>{
  const el=event.target;if(el.disabled)return;
- if(el.id==='od-duration-range'){
-  const next=Number(el.value);
-  if(!Number.isInteger(next)||next<180||next>18000||!model.setDuration(next))return;
-  ui.windows={}; // Duration change is NOT an edit to the saved rule.
-  const out=q('#od-duration-value');if(out)out.textContent=fmt(next);
-  el.setAttribute('aria-valuetext',fmt(next));
-  syncViewportAutoLabel();syncRow('intro');syncRow('outro');syncIdentity();
+ if(el.id==='od-window-range'){
+  const n=viewportStops[Number(el.value)];
+  if(!n)return;
+  ui.spanPref=String(n);ui.windows={};
+  const out=q('#od-window-current');if(out)out.textContent=n/60+'分钟';
+  const state=q('#od-window-auto-state');if(state)state.hidden=true;
+  const reset=q('#od-window-auto');if(reset)reset.hidden=false;
+  el.setAttribute('aria-valuetext',n/60+'分钟，手动设置');
+  syncRow('intro');syncRow('outro');
   return;
  }
  if(el.dataset.timeKey){const key=el.dataset.timeKey,part=el.dataset.timePart;ui.raw[el.id]=el.value;setEndpoint(key,part,parseField(key,part,el.value));ui.savedContext=null;selectPoint(key,part);syncRow(key,el);return;}
@@ -1004,10 +1053,6 @@ root.addEventListener('input',event=>{
 });
 root.addEventListener('change',event=>{
  const el=event.target;if(el.disabled)return;
- if(el.id==='od-window-preference'){
-  if(!['auto','60','120','180','300','600'].includes(el.value))return;
-  ui.spanPref=el.value;ui.windows={};render(true);return;
- }
  if(el.dataset.toggle){const key=el.dataset.toggle;ui.savedContext=null;take(()=>model.edit(key,key==='autoNext'?el.checked:{enabled:el.checked}));}
  else if(el.dataset.timeKey)commitInput(el);
 });
