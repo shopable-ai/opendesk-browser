@@ -28,3 +28,7 @@
 .ja-status[data-state=error]{color:var(--od-negative,#b42318)}
 .ja-status[data-state=success]{color:var(--od-positive,#087443)}
 @media(min-width:800px){.ja-app{max-width:800px;margin-inline:auto}}
+
+.ja-check{display:flex!important;align-items:center;gap:8px;font-size:12px}
+.ja-check input{width:auto!important;min-width:auto!important;accent-color:var(--od-accent,#1767b0)}
+.ja-status[data-state=warning]{color:var(--od-warning,#946200)}
