@@ -494,6 +494,32 @@ html,body{background:#f2f5fa}
  outline:2px solid #5782dd;outline-offset:2px;border-radius:4px;
 }
 #od-watch-preview .od-unsaved-line[hidden]{display:none!important}
+
+/* R10_REVIEW_UI: context only; the existing two time tracks, next episode,
+   five-stop viewport slider and single Save button remain unchanged. */
+#od-watch-preview .od-tail-match{min-width:0;flex-wrap:wrap;column-gap:5px;row-gap:2px;padding:6px 7px;margin:5px 0 0;align-items:center;}
+#od-watch-preview .od-tail-match-text{white-space:normal;overflow:visible;text-overflow:clip;line-height:1.35;overflow-wrap:anywhere;font-size:11px;}
+#od-watch-preview .od-tail-match-label{font-size:10px;}
+#od-watch-preview .od-tail-match[data-state="risk"]{background:#fffaf1;border-color:#eddfc4;color:#795f35;}
+#od-watch-preview .od-tail-match[data-state="risk"] .od-tail-match-label{color:#856128;}
+#od-watch-preview .od-tail-match[data-state="declined"]{background:#f7f8fa;border-color:#e2e7ef;color:#5c6a7e;}
+#od-watch-preview button.od-r10-expand{flex:none;border:0!important;background:transparent!important;color:#365d9b;font-size:11px;font-weight:600;text-decoration:underline;text-underline-offset:2px;min-height:25px;padding:2px 0 2px 3px;white-space:nowrap;}
+#od-watch-preview .od-r10-review{border:1px solid #e4e8ef;background:#fbfcff;border-radius:7px;padding:8px 9px;margin-top:5px;color:#485b73;font-size:11px;line-height:1.45;overflow-wrap:anywhere;}
+#od-watch-preview .od-r10-reason{margin:0 0 6px;color:#536a88;}
+#od-watch-preview .od-r10-compare{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:6px;margin:0 0 7px;}
+#od-watch-preview .od-r10-compare>div{min-width:0;padding:6px;background:white;border:1px solid #e7ecf4;border-radius:6px;}
+#od-watch-preview .od-r10-compare dt{color:#718198;font-size:10px;margin:0 0 2px;}
+#od-watch-preview .od-r10-compare dd{margin:0;color:#253d5c;font-variant-numeric:tabular-nums;overflow-wrap:anywhere;font-weight:600;}
+#od-watch-preview .od-r10-meta{margin:0 0 6px;font-size:10px;color:#6b7b91;}
+#od-watch-preview .od-r10-actions{display:flex;gap:5px;flex-wrap:wrap;}
+#od-watch-preview .od-r10-actions button{min-height:29px;padding:4px 8px;border-radius:6px;font-size:11px;flex:0 1 auto;max-width:100%;white-space:normal;}
+#od-watch-preview .od-r10-actions .od-r10-confirm{border-color:#b9caed;background:#f0f5ff;color:#2d518f;}
+@media(max-width:340px){
+ #od-watch-preview .od-r10-compare{gap:4px;}
+ #od-watch-preview .od-r10-review{padding:7px 6px;}
+ #od-watch-preview .od-r10-actions button{padding:4px 6px;}
+}
+
 </style>
 <script>
 /* Local interaction simulator only. No browser-extension or website APIs. The demo has a verified single-series identity; a real adapter must only use series-wide saving after identity is confirmed. */
@@ -1109,7 +1135,7 @@ const root=document.getElementById('od-watch-preview');if(!root)return;
 const model=new ContinuityModel();
 const q=s=>root.querySelector(s),all=s=>Array.from(root.querySelectorAll(s));
 const names={intro:'片头',outro:'片尾'};
-const ui={selected:{intro:'end',outro:'start'},activeKey:'intro',spanPref:'auto',windows:{},raw:{},rendering:false,dragging:null,savedContext:null,actionsHost:null,actionsSignature:''};
+const ui={selected:{intro:'end',outro:'start'},activeKey:'intro',spanPref:'auto',windows:{},raw:{},rendering:false,dragging:null,savedContext:null,actionsHost:null,actionsSignature:'',r10Open:false};
 const esc=x=>String(x??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const fmt=n=>Number.isFinite(n)&&n>=0?String(Math.floor(n/60)).padStart(2,'0')+':'+String(Math.floor(n%60)).padStart(2,'0'):'—';
 function parseTime(value){const s=String(value).trim();if(!s)return null;if(/^\d+$/.test(s))return Number(s);if(/^\d{1,4}:[0-5]\d$/.test(s)){const a=s.split(':').map(Number);return a[0]*60+a[1];}return NaN;}
@@ -1158,7 +1184,7 @@ function windowFor(key,expand=false){
  ui.windows[key]=key==='outro'?[Math.max(0,d-span),d]:[0,span];return ui.windows[key];
 }
 function windowLabel(key){if(unavailable(key))return '';const w=windowFor(key),seconds=w[1]-w[0],d=model.s.duration,base=Number.isFinite(d)?Math.min(d,requestedSpan(d)):requestedSpan(d);if(Math.abs(seconds-base)<1)return '';const minutes=Math.floor(seconds/60),rest=seconds%60;return '显示'+(key==='intro'?'前':'末')+(rest?minutes?minutes+'分'+rest+'秒':rest+'秒':minutes+'分钟');}
-function identityText(){const s=model.s;return '星海航线 · 第1季 · 第'+String(s.episode).padStart(2,'0')+'集 · '+(Number.isFinite(s.duration)?'全长'+fmt(s.duration):'时长待获取');}
+function identityText(){const s=model.s,c=model.r10.context;const kind=c.kind==='merged'?'第03–04集合并版':c.kind==='special'?'特别篇':'第'+String(s.episode).padStart(2,'0')+'集';return '星海航线 · 第1季 · '+kind+(c.edition==='cut-B'?' · 剪辑B':'')+' · '+(Number.isFinite(s.duration)?'全长'+fmt(s.duration):'时长待获取');}
 function constrainHandle(key,part,n){
  const w=windowFor(key),other=value(key,part==='start'?'end':'start');let lo=w[0],hi=w[1];
  if(part==='start'&&Number.isFinite(other))hi=Math.min(hi,other-1);
@@ -1196,7 +1222,7 @@ function trackHTML(key){
 }
 function rowHTML(key){
  const r=model.s.draft[key],v=validation(),overridden=Object.prototype.hasOwnProperty.call(model.s.overrides[model.identity()]||{},key),track=trackHTML(key);
- return `<section class="od-time-section od-ui-card" data-section="${key}"><div class="od-row-title"><label for="od-toggle-${key}">${names[key]}</label><span class="od-unset-badge" ${model.isUnconfigured(key)?'':'hidden'}>待设置</span><span id="od-window-label-${key}" class="od-window-label">${windowLabel(key)}</span>${overridden?'<span class="od-exception">本集例外</span>':''}<label class="od-toggle-couple"><span class="od-toggle-copy">自动跳过</span><span class="od-switch"><input id="od-toggle-${key}" type="checkbox" data-toggle="${key}" ${r.enabled?'checked':''} aria-label="跳过${names[key]}"></span></label></div>${track}<div class="od-endpoint-readouts">${fieldHTML(key,'start')}${fieldHTML(key,'end')}</div>${restoreAction(key)?`<div class="od-restore-inline">${restoreAction(key)}</div>`:''}${key==='outro'?'<div id="od-tail-match" class="od-tail-match" data-state="waiting" role="status" aria-live="polite" aria-label="片尾跨集匹配状态"><span class="od-tail-match-label">跨集匹配</span><span id="od-tail-match-text" class="od-tail-match-text">保存片尾后，按视频时长换算</span></div><span id="od-end-binding-help" class="od-sr-only">End 表示自动使用本视频实际结束时间。输入具体结束时间会变为指定区间；清空或填写 End 可恢复绑定；同一规则在视频时长变化时自动重新计算。这里复用已保存片尾规则，并非自动分析视频内容。</span>':''}<div id="od-error-${key}" class="od-error" ${v[key].length?'':'hidden'}>${esc(v[key][0]||'')}</div></section>`;
+ return `<section class="od-time-section od-ui-card" data-section="${key}"><div class="od-row-title"><label for="od-toggle-${key}">${names[key]}</label><span class="od-unset-badge" ${model.isUnconfigured(key)?'':'hidden'}>待设置</span><span id="od-window-label-${key}" class="od-window-label">${windowLabel(key)}</span>${overridden?'<span class="od-exception">本集例外</span>':''}<label class="od-toggle-couple"><span class="od-toggle-copy">自动跳过</span><span class="od-switch"><input id="od-toggle-${key}" type="checkbox" data-toggle="${key}" ${r.enabled?'checked':''} aria-label="跳过${names[key]}"></span></label></div>${track}<div class="od-endpoint-readouts">${fieldHTML(key,'start')}${fieldHTML(key,'end')}</div>${restoreAction(key)?`<div class="od-restore-inline">${restoreAction(key)}</div>`:''}${key==='outro'?r10MatchHTML()+'<span id="od-end-binding-help" class="od-sr-only">End 表示自动使用本视频实际结束时间。输入具体结束时间会变为指定区间；清空或填写 End 可恢复绑定；同一规则在视频时长变化时自动重新计算。这里复用已保存片尾规则，并非自动分析视频内容。</span>':''}<div id="od-error-${key}" class="od-error" ${v[key].length?'':'hidden'}>${esc(v[key][0]||'')}</div></section>`;
 }
 function restoreAction(key){
  const s=model.s,o=s.overrides[model.identity()]||{};
@@ -1208,21 +1234,63 @@ function viewportIndex(){
  const found=viewportStops.findIndex(v=>v>=n);
  return found<0?viewportStops.length-1:found;
 }
-function tailMatchState(){
- const s=model.s,draft=s.draft.outro,saved=model.effective().outro;
- if(!Number.isFinite(s.duration))return {kind:'waiting',text:'等待当前视频时长，暂无法换算'};
- if(validation().outro.length)return {kind:'error',text:'片尾区间有误，修正后再保存'};
- if(draft.mode==='interval')return {kind:'interval',text:s.dirty?'自定义区间待保存，不跟随视频结尾':'指定区间，不按视频时长换算'};
- if(!Number.isFinite(draft.tail))return {kind:'waiting',text:'先设置片尾开始时间，保存后跨集复用'};
- if(s.dirty)return {kind:'waiting',text:'待保存 · 将按倒数 '+fmt(draft.tail)+' 换算'};
- if(saved.mode==='tail'&&Number.isFinite(saved.tail))return {kind:'matched',text:'已保存 · 按倒数 '+fmt(saved.tail)+' 在各集换算'};
- return {kind:'waiting',text:'保存片尾后，将按当前时长自动换算'};
+
+/* R10 context-specific status and history comparison (not another settings panel). */
+function r10TailState(){
+ const d=model.r10Decision('outro'),s=model.s,draft=s.draft.outro;
+ if(!d.exists)return {kind:'waiting',text:'未设置 · 保存后才能考虑跨集复用'};
+ if(s.dirty)return {kind:'waiting',text:'有未保存修改 · 暂不执行旧跳过规则'};
+ if(d.declined)return {kind:'declined',text:'本集已选择不沿用历史规则'};
+ if(d.compatibility==='APPLICABLE'){
+  if(draft.enabled===false)return {kind:'waiting',text:'规则适用 · 自动跳过已关闭'};
+  if(draft.mode==='interval')return {kind:'interval',text:'本集指定区间 · 不跟随 End'};
+  return {kind:'matched',text:(d.local?'本集例外':'已确认可沿用')+' · 倒数'+fmt(d.candidateTail)};
+ }
+ if(d.compatibility==='NEEDS_CONFIRMATION')return {kind:'risk',text:'规则待核对 · 暂不自动跳过'};
+ if(d.compatibility==='NOT_APPLICABLE')return {kind:'risk',text:'当前视频不适用 · 不自动跳过'};
+ return {kind:'risk',text:'缺少可靠版本或时长 · 暂不自动跳过'};
+}
+function r10ShowReview(){
+ const d=model.r10Decision('outro');
+ return d.exists&&!model.s.dirty&&(d.declined||d.compatibility!=='APPLICABLE');
+}
+function r10ReviewHTML(){
+ const d=model.r10Decision('outro'),x=model.r10.context,candidate=model.effective().outro;
+ const start=Number.isFinite(d.currentStart)?fmt(d.currentStart):'—';
+ const end=Number.isFinite(d.currentEnd)?(candidate.mode==='tail'?'End':fmt(d.currentEnd)):'—';
+ const hist=Number.isFinite(x.historyTail)?x.historyTail:90;
+ const history=candidate.mode==='tail'?'倒数'+fmt(hist):'指定区间';
+ const local=d.local;
+ const canConfirm=d.compatibility==='NEEDS_CONFIRMATION'&&x.versionVerified&&x.edition===x.ruleEdition&&x.resourceVerified&&x.kind==='regular';
+ return '<div id="od-r10-review" class="od-r10-review" role="group" aria-label="当前片尾规则的历史核对">'+
+ '<p class="od-r10-reason">'+esc(d.reason)+'</p>'+
+ '<dl class="od-r10-compare"><div><dt>历史来源</dt><dd>'+esc(d.source)+'</dd><dd>'+esc(history)+'</dd></div>'+
+ '<div><dt>当前视频</dt><dd>'+esc(r10FiniteDuration(model.s.duration)?fmt(model.s.duration):'时长未知')+'</dd><dd>'+esc(start+' — '+end)+'</dd></div></dl>'+
+ (x.branchConflict||x.syncConflict?'<p class="od-r10-meta">另有同级历史候选：倒数'+fmt(x.alternativeTail)+'，不自动覆盖。</p>':'')+
+ (x.historicalDuration!==null&&x.historicalDuration!==model.s.duration?'<p class="od-r10-meta">上次记录：'+fmt(x.historicalDuration)+'；当前：'+fmt(model.s.duration)+'，可能换源或重剪。</p>':'')+
+ (x.kind==='merged'?'<p class="od-r10-meta">未取得第03/04集内部片段边界，不能由总长推算第一段片尾。</p>':'')+
+ '<div class="od-r10-actions">'+
+ (d.declined?'<button type="button" data-action="r10-reconsider">重新核对</button>':
+  (canConfirm?'<button type="button" class="od-r10-confirm" data-action="r10-confirm">已核对 · 仅本集采用</button>':'')+
+  '<button type="button" data-action="r10-decline">本集不使用</button>')+
+ (!local?'<button type="button" data-action="r10-episode">仅本集重新设置</button>':'')+
+ '</div></div>';
+}
+function r10MatchHTML(){
+ const state=r10TailState();
+ return '<div id="od-tail-match" class="od-tail-match" data-state="'+state.kind+'" role="status" aria-live="polite" aria-label="片尾跨集匹配状态">'+
+ '<span class="od-tail-match-label">跨集匹配</span><span id="od-tail-match-text" class="od-tail-match-text">'+esc(state.text)+'</span>'+
+ (r10ShowReview()?'<button type="button" id="od-r10-expand" class="od-r10-expand" data-action="r10-review" aria-expanded="'+String(Boolean(ui.r10Open))+'" aria-controls="od-r10-review">'+(ui.r10Open?'收起':'核对')+'</button>':'')+
+ '</div>'+(ui.r10Open&&r10ShowReview()?r10ReviewHTML():'');
 }
 function syncTailMatch(){
- const el=q('#od-tail-match'),textEl=q('#od-tail-match-text');
- if(!el||!textEl)return;
- const state=tailMatchState();el.dataset.state=state.kind;textEl.textContent=state.text;
+ const el=q('#od-tail-match'),value=q('#od-tail-match-text');
+ if(!el||!value)return;
+ const state=r10TailState();el.dataset.state=state.kind;value.textContent=state.text;
+ const btn=q('#od-r10-expand');if(btn)btn.hidden=!r10ShowReview();
+ const details=q('#od-r10-review');if(details)details.hidden=!r10ShowReview();
 }
+
 function viewportHTML(){
  const index=viewportIndex(),isAuto=ui.spanPref==='auto';
  const label=viewportStops[index]/60+'分钟';
@@ -1291,7 +1359,7 @@ function syncRow(key,origin){
 }
 function syncIdentity(){const identity=q('#od-content-identity');if(identity)identity.textContent=identityText();}
 function render(keepFocus=true){const old=document.activeElement,id=old&&root.contains(old)?old.id:null;let selection=null;try{selection=[old.selectionStart,old.selectionEnd];}catch(e){}ui.rendering=true;q('#od-sidebar').innerHTML=sidebarHTML();syncErrors();syncSelection();syncSave();syncTailMatch();syncIdentity();for(const selector of ['button','summary','input[type=checkbox]'])all(selector).forEach(el=>el.classList.add('cursor-interaction'));if(keepFocus&&id){let el=q('#'+id);if(!el||el.disabled)el=q('#od-save')||q('#od-window-range')||q('#od-open');if(el){el.focus({preventScroll:true});if(el.id===id&&selection&&selection[0]!==null&&el.setSelectionRange)try{el.setSelectionRange(selection[0],selection[1]);}catch(e){}}}ui.rendering=false;}
-function resetUI(){ui.selected={intro:'end',outro:'start'};ui.activeKey='intro';ui.raw={};ui.windows={};ui.savedContext=null;}
+function resetUI(){ui.r10Open=false;ui.selected={intro:'end',outro:'start'};ui.activeKey='intro';ui.raw={};ui.windows={};ui.savedContext=null;}
 function take(fn){const id=model.identity(),sc=model.s.scenario,scope=model.s.scope;fn();if(id!==model.identity()||sc!==model.s.scenario)resetUI();else if(scope!==model.s.scope){ui.raw={};ui.windows={};ui.savedContext=null;}render();}
 function selectPoint(key,part){ui.activeKey=key;ui.selected[key]=part;syncSelection();}
 function commitInput(el){const key=el.dataset.timeKey;if(!key)return;const part=el.dataset.timePart;if(Number.isFinite(value(key,part))){clearRaw(key,part);el.value=inputValue(key,part);}windowFor(key,true);syncRow(key,el);}
@@ -1302,6 +1370,11 @@ root.addEventListener('click',event=>{
   if(Number.isFinite(n)&&!Number.isFinite(value(key,part))){setEndpoint(key,part,n);clearRaw(key,part);ui.savedContext=null;selectPoint(key,part);syncRow(key);}
  }
  const b=event.target.closest('button');if(!b||!root.contains(b)||b.disabled)return;const action=b.dataset.action,key=b.dataset.key;
+ if(action==='r10-review'){ui.r10Open=!ui.r10Open;render();return;}
+ if(action==='r10-decline'){ui.r10Open=false;take(()=>model.r10Decline('outro'));return;}
+ if(action==='r10-reconsider'){ui.r10Open=false;take(()=>model.r10Reconsider('outro'));return;}
+ if(action==='r10-confirm'){ui.r10Open=false;take(()=>model.r10ConfirmForEpisode('outro'));return;}
+ if(action==='r10-episode'){ui.r10Open=false;take(()=>model.requestScope('episode'));return;}
  if(action==='save'){take(()=>{const c=contextKey();if(model.save()){ui.savedContext=c;ui.raw={};}});return;}
  if(action==='viewport-auto'){ui.spanPref='auto';ui.windows={};render(true);return;}
  if(action==='cancel'){ui.raw={};ui.windows={};take(()=>model.cancel());return;}
@@ -1361,7 +1434,52 @@ function updateVideoDuration(seconds){
  render(true);
  return true;
 }
-root.preview={model,ui,render,parseTime,formatTime:fmt,commitInput,windowFor,recommendedSpan,updateVideoDuration};
+
+function r10Checks(){
+ const results=[];
+ function test(id,fn){try{const ok=Boolean(fn());results.push({id,pass:ok});}catch(e){results.push({id,pass:false,error:String(e)});}}
+ function fixture(name){const m=new ContinuityModel();if(!m.r10LoadFixture(name))throw Error('fixture '+name);return m;}
+ test('R10-01',()=>{const m=fixture('normal03'),d=m.r10Decision('outro');return d.compatibility==='APPLICABLE'&&d.currentStart===2610&&d.executionAllowed;});
+ test('R10-02',()=>{const m=fixture('normal04'),d=m.r10Decision('outro');return d.compatibility==='APPLICABLE'&&d.currentStart===2790&&d.candidateTail===90;});
+ test('R10-03',()=>{const m=fixture('history'),d=m.r10Decision('outro');return d.local&&d.currentStart===2820&&m.s.base.outro.tail===90&&m.s.overrides['demo:星海航线|s1|e5|标准版 A'].outro.tail===120;});
+ test('R10-04',()=>fixture('merged').r10Decision('outro').compatibility==='NOT_APPLICABLE');
+ test('R10-05',()=>fixture('special').r10Decision('outro').compatibility==='NOT_APPLICABLE');
+ test('R10-06',()=>{const d=fixture('credits').r10Decision('outro');return d.compatibility==='APPLICABLE'&&d.currentStart===4800&&d.currentEnd===4890;});
+ test('R10-07',()=>fixture('edition').r10Decision('outro').compatibility==='NOT_APPLICABLE');
+ test('R10-08',()=>fixture('unknown').r10Decision('outro').compatibility==='UNKNOWN');
+ test('R10-09',()=>fixture('drift').r10Decision('outro').compatibility==='NEEDS_CONFIRMATION');
+ test('R10-10',()=>{const m=fixture('declined'),d=m.r10Decision('outro');return d.compatibility==='APPLICABLE'&&!d.executionAllowed&&m.r10DeclineKey('outro')===m.r10DeclineKey('outro');});
+ test('R10-11',()=>{const m=fixture('history');m.restore('outro');const ok=m.save();return ok&&m.s.base.outro.tail===90&&!m.s.overrides[m.identity()]?.outro&&m.r10.history.some(e=>e.event==='RESTORE_DEFAULT');});
+ test('R10-12',()=>{const m=fixture('normal03');const id=m.identity();m.edit('outro',{tail:80});const moved=m.r10LoadFixture('normal04');return !moved&&m.identity()===id&&m.s.dirty&&m.s.transition.kind==='r10Fixture';});
+ test('R10-13',()=>{const m=fixture('normal04');m.s.base.outro.enabled=false;const d=m.r10Decision('outro');return d.compatibility==='APPLICABLE'&&!d.executionAllowed&&m.s.base.autoNext===true;});
+ test('R10-14',()=>{const a=fixture('unknownDuration').r10Decision('outro'),b=fixture('invalidTail').r10Decision('outro');return !a.executionAllowed&&!b.executionAllowed;});
+ test('R10-15',()=>{const a=fixture('failedSave'),b=fixture('unknownSave');a.edit('outro',{tail:80});b.edit('outro',{tail:80});return !a.save()&&!b.save()&&a.s.dirty&&b.s.dirty&&a.s.base.outro.tail===90&&b.s.base.outro.tail===90&&b.r10.lastWriteOutcome==='UNKNOWN';});
+ return {passed:results.filter(x=>x.pass).length,total:results.length,results,environment:'offline model only, not Chrome or persistent store'};
+}
+function r10LayoutChecks(){
+ const old=root.style.getPropertyValue('--od-side-width'),out=[];
+ for(const width of [320,360,400]){
+  root.style.setProperty('--od-side-width',width+'px');
+  const selectors=['[data-section="intro"]','[data-section="outro"]','.od-auto','.od-window-preference'];
+  const els=selectors.map(q),rects=els.map(el=>el&&el.getBoundingClientRect());
+  const lefts=rects.map(r=>r&&r.left),rights=rects.map(r=>r&&r.right);
+  const maxError=Math.max(...lefts)-Math.min(...lefts,...rights.filter(Number.isFinite).map(()=>Infinity));
+  const leftError=Math.max(...lefts)-Math.min(...lefts),rightError=Math.max(...rights)-Math.min(...rights);
+  const side=q('#od-sidebar');
+  out.push({width,leftError,rightError,noHorizontalOverflow:side.scrollWidth<=side.clientWidth+1,pass:leftError<=1&&rightError<=1&&side.scrollWidth<=side.clientWidth+1});
+ }
+ if(old)root.style.setProperty('--od-side-width',old);else root.style.removeProperty('--od-side-width');
+ return out;
+}
+root.preview={model,ui,render,parseTime,formatTime:fmt,commitInput,windowFor,recommendedSpan,updateVideoDuration,
+ r10:{fixtures:Object.keys(R10_FIXTURES),
+  loadFixture:name=>{const ok=model.r10LoadFixture(name);if(ok){resetUI();render(false);}else render();return ok;},
+  decision:key=>model.r10Decision(key||'outro'),
+  history:()=>model.r10.history.slice(),
+  simulateSaveOutcome:outcome=>{if(!['COMMITTED','FAILED','UNKNOWN','CONFLICT'].includes(outcome))return false;model.r10.nextSaveOutcome=outcome;return true;},
+  runChecks:r10Checks,layoutChecks:r10LayoutChecks}};
+const initialFixture=new URLSearchParams(location.search).get('r10');
+if(initialFixture&&R10_OWN.call(R10_FIXTURES,initialFixture))model.r10LoadFixture(initialFixture);
 render(false);
 })();
 
