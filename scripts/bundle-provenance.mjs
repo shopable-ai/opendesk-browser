@@ -32,7 +32,7 @@ const compiledSendQueueInputs=Object.freeze({
   'projects/ai-send-queue/assets/queue.css':'de1cb65f9627ca063e19717f1c9609fd5422e726',
   'projects/ai-send-queue/src/page/cache.js':'9510781e472804494cb5576cb7d1b516292ddb8a',
   'projects/ai-send-queue/src/page/engine.js':'a815c6792b75ddf6095bd9ee6d84913ad825edc8',
-  'projects/ai-send-queue/src/page/main.js':'ad0caca612da066d68ab8785af36edc39e025de9',
+  'projects/ai-send-queue/src/page/main.js':'54fa800c84309ee62f36ad8b36954f0950b5c8b2',
   'projects/ai-send-queue/src/page/site.js':'f15404479bcf959d4cdbc6a0537919f2ddd2c030',
   'projects/ai-send-queue/src/page/status.js':'20736cee7a780f8d8c86aa0cd85a8f0b6d834141',
   'projects/ai-send-queue/src/page/view.js':'2fe6edc7bacfd9e30ffc18e3d7f5fc291a837ad0',

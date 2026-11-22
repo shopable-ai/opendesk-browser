@@ -46,7 +46,7 @@ export async function runNativeR9({c, page, media, appRead, openApp, closePanel,
       width: bytes.readUInt32BE(16), height: bytes.readUInt32BE(20)};
     return seen;
   };
-  const tail = (s, start) => s.start === start && s.end === 'End';
+  const tail = (s, start) => s.start === start && s.end === (start === '43:30' ? '45:00' : '48:00');
   await check('r9-360-initial', async () => {
     assert.equal((await contexts()).length, 1);
     report.originalPanel = await panelSize();

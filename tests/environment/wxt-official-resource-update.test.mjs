@@ -138,13 +138,20 @@ test('official catalog data and declared source edits publish without restarting
 
 async function changeScrollPackage(f){
   const path='projects/ai-scroll-navigation/ai-scroll-navigation.opendesk-page.json';
-  const old=JSON.parse(await readFile(join(f.root,path),'utf8'));
+  const catalog=JSON.parse(await readFile(join(f.root,OFFICIAL_PAGE_SOURCE_PATH),'utf8'));
+  const row=catalog.programs[0];
+  const prefix='official-pages/preinstalled/'+row.programId+'/';
+  const releasePath=prefix+'release.json';
+  const approved=JSON.parse(await readFile(join(f.root,releasePath),'utf8'));
+  const old=JSON.parse(await readFile(join(f.root,prefix+approved.version+'-r'+approved.revision+'.opendesk-page.json'),'utf8'));
   const {packageHash,...payload}=old;payload.revision++;
   const pkg={...payload,packageHash:await payloadDigest(payload)};
-  const catalog=JSON.parse(await readFile(join(f.root,OFFICIAL_PAGE_SOURCE_PATH),'utf8'));
-  catalog.programs.find(row=>row.programId===pkg.programId).revision=pkg.revision;
-  await f.write(path,JSON.stringify(pkg));await f.write(OFFICIAL_PAGE_SOURCE_PATH,JSON.stringify(catalog));
-  return {path,pkg,catalog};
+  const bytes=JSON.stringify(pkg),archivePath=prefix+pkg.version+'-r'+pkg.revision+'.opendesk-page.json';
+  row.version=pkg.version;row.revision=pkg.revision;row.publication='approved';delete row.blockedReason;
+  await f.write(path,bytes);await f.write(archivePath,bytes);
+  await f.write(releasePath,JSON.stringify({version:pkg.version,revision:pkg.revision,sha256:digest(bytes)}));
+  await f.write(OFFICIAL_PAGE_SOURCE_PATH,JSON.stringify(catalog));
+  return {path,pkg,catalog,archivePath,releasePath};
 }
 
 test('frozen Page package and catalog edits update the live development resources without restarting',async t=>{
@@ -217,21 +224,21 @@ test('failed Page configuration retries after repairing '+source,async()=>{
   }finally{control.stop();}
 });
 
-test('invalid frozen Page bytes block publication until repaired; blocked releases remove only their owned package',async t=>{
+test('tampered archive blocks development publication; a later blocked candidate keeps the approved package',async t=>{
   const f=await fixture(t,{pages:true}),before=await f.marker();
-  const {path,pkg,catalog}=await changeScrollPackage(f);
-  await f.write(path,'{"broken":true}');f.change(path);f.change(OFFICIAL_PAGE_SOURCE_PATH);await f.flush();
+  const {pkg,catalog,archivePath,releasePath}=await changeScrollPackage(f);
+  await f.write(archivePath,JSON.stringify(pkg)+'\n');f.change(releasePath);await f.flush();
   assert.equal((await f.marker()).revision,before.revision);
-  assert(f.errors.length>0);
-  await f.write(path,JSON.stringify(pkg));f.change(path);await f.flush();
+  assert(f.errors.some(error=>error.includes('已批准预装包 SHA-256 不符')));
+  await f.write(archivePath,JSON.stringify(pkg));f.change(archivePath);await f.flush();
   const good=await f.marker();assert.notEqual(good.revision,before.revision);
   const row=JSON.parse(await readFile(join(f.outDir,OFFICIAL_PAGE_CATALOG_PATH),'utf8')).apps[0];
-  const scope=catalog.programs[0];scope.publication='blocked';scope.blockedReason='fixture release withdrawn';
+  const scope=catalog.programs[0];scope.revision++;scope.publication='blocked';scope.blockedReason='fixture candidate awaiting approval';
   await f.write(OFFICIAL_PAGE_SOURCE_PATH,JSON.stringify(catalog));f.change(OFFICIAL_PAGE_SOURCE_PATH);await f.flush();
   const blocked=await f.marker();
-  assert.equal(blocked.files[row.packagePath],undefined);
-  assert.equal(f.output.publicAssets.some(asset=>asset.fileName===row.packagePath),false);
-  await assert.rejects(readFile(join(f.outDir,row.packagePath)),{code:'ENOENT'});
+  assert.equal(blocked.files[row.packagePath],good.files[row.packagePath]);
+  assert.equal(f.output.publicAssets.filter(asset=>asset.fileName===row.packagePath).length,1);
+  assert.deepEqual(JSON.parse(await readFile(join(f.outDir,row.packagePath),'utf8')),pkg);
   await f.assertIntact();
 });
 

@@ -26,7 +26,7 @@ OpenDesk Browser 中的独立 Sidebar Tool + 受管 Page USER_SCRIPT（不是第
 
 功能范围：P0 开关、选择/复制/右键恢复；P1 站点例外已实现。OCR、图片、PDF、跨 iframe、强制复制按钮及剪贴板历史不属于首版。
 
-当前安装包：[v0.1.5](free-copy.opendesk-tool.json)，网页模块 Revision 6。侧栏的待开启提示指向「扩展 → 更多 → 网页功能帮助」。网页脚本只更新生成的版本头部，复制逻辑、权限和站点范围不变。更新时在「扩展 → 更多 → 导入扩展」重新选择此文件，审阅后确认更新，无需先卸载。下方的复制快捷键与原生菜单实测来自 v0.1.3。此前 v0.1.1 → v0.1.2 的升级证据见[运行状态复验](../../docs/framework/web-feature-status-verification-20261121.zh-CN.md)。
+当前安装包：[v0.1.6](free-copy.opendesk-tool.json)，网页模块 Revision 7。侧栏的待开启提示指向「扩展 → 更多 → 网页功能帮助」。网页脚本只更新生成的版本头部，复制逻辑、权限和站点范围不变。更新时在「扩展 → 更多 → 导入扩展」重新选择此文件，审阅后确认更新，无需先卸载。下方的复制快捷键与原生菜单实测来自 v0.1.3。此前 v0.1.1 → v0.1.2 的升级证据见[运行状态复验](../../docs/framework/web-feature-status-verification-20261121.zh-CN.md)。
 
 ## 快速自测与已安装 Chrome 实测（2026-11-21）
 

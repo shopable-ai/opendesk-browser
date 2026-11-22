@@ -1,11 +1,12 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import {approvedPageFixtureResources} from '../helpers/official-pages.mjs';
+import {createOfficialPageResources} from '../../scripts/build-official-pages.mjs';
 import {resumeDefaultPagePreinstall} from '../../src/scripting/user-scripts/default-preinstall.js';
 import {registerDefaultPreinstall,DEFAULT_PREINSTALL_STORE} from '../../src/sidebar-tools/preinstall-intent.js';
 
-const resources=(await approvedPageFixtureResources()).resources;
+const {resources,catalog:bundled}=await createOfficialPageResources();
 const id='opendesk.ai-scroll-navigation';
+const release=bundled.apps.find(row=>row.programId===id);
 function fixture(){
   let marker={schema:DEFAULT_PREINSTALL_STORE,state:'complete',extensionVersion:'1.0.0',
     plan:[],completed:[],pageState:'pending'};
@@ -33,6 +34,8 @@ function fixture(){
     assert.equal(method,'importPageInstallPackage');
     assert.equal(marker.pageState,'attention','durable fence precedes Authority mutation');
     assert.equal(args.package.programId,id);
+    assert.equal(args.package.revision,release.revision);
+    assert.equal(args.package.sourceHash,release.sourceHash);
     assert.equal(args.expectedInstalledManifestHash,null);
     assert.equal(args.expectedGeneration,null);
     if(failImport)throw Object.assign(Error('lost reply'),{code:'E_OUTCOME_UNKNOWN'});
@@ -53,6 +56,10 @@ test('fresh intent installs bundled Scroll once through Page Authority, then nev
   assert.equal(results[0].installed,1);
   assert.equal(f.marker.pageState,'complete');
   assert.equal(f.installed[0].programId,id);
+  assert.equal(f.installed[0].revision,14);
+  f.installed[0].enabled=false;
+  await resumeDefaultPagePreinstall(f.options);
+  assert.equal(f.installed[0].enabled,false);
   f.installed.length=0;
   await resumeDefaultPagePreinstall(f.options);
   assert.equal(f.calls.filter(m=>m==='importPageInstallPackage').length,1);
@@ -85,8 +92,8 @@ test('old profiles, skipped history and changed extension versions cannot create
   }
 });
 
-test('existing older/local/disabled/unknown installations and uninstalled candidates win over catalog',async()=>{
-  for(const row of [{programId:id,revision:1,enabled:false},
+test('existing older, newer, disabled and unknown installations win over catalog',async()=>{
+  for(const row of [{programId:id,revision:1,enabled:false},{programId:id,revision:28,enabled:true},
     {programId:id,managedCleanup:{state:'unknown'}},
     {programId:id,authorization:{status:'suspended'}}]){
     const f=fixture();f.installed.push(row);

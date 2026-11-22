@@ -14,6 +14,7 @@ on:
       - 'package.json'
       - 'package-lock.json'
       - 'official-pages/sources.json'
+      - 'official-pages/preinstalled/**'
       - '.github/workflows/ai-scroll-navigation-r131.yml'
   workflow_dispatch:
 permissions:
@@ -142,7 +143,7 @@ jobs:
           outputs=(projects/ai-scroll-navigation/ai-scroll-navigation.opendesk-page.json official-pages/sources.json)
           # Match the trigger closure; outputs are checked separately below.
           inputs=(projects/ai-scroll-navigation examples/sidebar-tools src scripts schemas native-agent/local-dev tests
-            package.json package-lock.json .github/workflows/ai-scroll-navigation-r131.yml
+            package.json package-lock.json official-pages/preinstalled .github/workflows/ai-scroll-navigation-r131.yml
             ':(exclude)projects/ai-scroll-navigation/ai-scroll-navigation.opendesk-page.json')
           git config user.name 'github-actions[bot]'
           git config user.email '41898282+github-actions[bot]@users.noreply.github.com'

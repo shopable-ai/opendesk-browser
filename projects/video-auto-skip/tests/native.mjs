@@ -26,7 +26,7 @@ const report = {scope: 'local-loopback-only', result: 'BLOCKED', checks: {}, not
 class Blocked extends Error {}
 class Stopped extends Error {}
 let phase = 'arguments', client, child, exited, temp, fixture, build, candidateSource, control, controlInput;
-const segments = ['rules', 'playback', 'next', 'boundaries', 'sources', 'revocation', 'guards'];
+const segments = ['rules', 'playback', 'next', 'boundaries', 'sources', 'revocation', 'guards', 'timeline'];
 const fingerprints = async () => Object.fromEntries(await Promise.all(
   ['manifest.json', 'sw.js', 'sidepanel.html', 'ui/tool-shell.js', 'development-update.json'].map(async name => {
     try { return [name, sha256(await readFile(path.join(dist, name)))]; }
@@ -288,7 +288,7 @@ async function native(values) {
     await wait(async () => {const v = await media(); return v?.ready >= 2 && v.paused && v.duration === (values.segment === 'r9' ? 2700 : clips.one);});
     await wait(() => runtime('chrome.sidePanel.getPanelBehavior().then(x=>x.openPanelOnActionClick)'));
     await openPanel();
-    if (values.segment === 'r9' && await shown('#tab-debug')) {
+    if (['r9', 'timeline'].includes(values.segment) && await shown('#tab-debug')) {
       await shell('#tab-debug');
       report.developmentService = await read(c, side, '(()=>{const status=document.querySelector("#opendesk-development-status");return status&&{text:status.textContent,detail:status.title}})()');
     }
@@ -415,7 +415,7 @@ async function native(values) {
       });
       await openApp();
       observations.frameOpened = true;
-      await wait(() => appRead('document.body.innerText.includes("Local Series")'));
+      observations.seriesVisible = await wait(() => appRead('document.body.innerText.includes("Local Series")'));
     } catch (error) {
       observations.siteGranted = await runtime('chrome.permissions.contains({origins:["http://127.0.0.1/*"]})').catch(() => null);
       observations.nativeRegistrationCount = await registrationCount().catch(() => null);
@@ -551,6 +551,7 @@ async function playbackChecks({page, media, pageRead, appRead, openApp, closePan
   };
   const summary = name => appRead('(' + q(ui.summary(name)) + ').textContent');
   const calibrate = async name => {
+    if (await appRead('!!document.querySelector("#vas-playback:not([open])")')) await tap('#vas-playback > summary');
     if (!await appRead('(' + q(ui.calibrate(name)) + ').parentElement.open')) await tap(ui.calibrate(name));
   };
   const sliderValue = async selector => Number(await attr(selector, 'aria-valuenow'));
@@ -624,10 +625,19 @@ async function playbackChecks({page, media, pageRead, appRead, openApp, closePan
     assert.match(await summary('outro'), new RegExp('最后 ' + seconds + ' 秒'));
   };
   const readyApp = duration => wait(() => appRead('document.querySelector("#vas-work")?.textContent==="Local Series" && ' +
-    '!document.querySelector("#vas-settings")?.hidden && document.querySelector("#vas-scope")?.disabled===false' +
+    '!!document.querySelector("#vas-settings:not([hidden]) #vas-intro-end:enabled")' +
     (duration ? ' && document.querySelector("#vas-media")?.textContent.includes(' + j(' / ' + duration) + ')' : '')));
-  await readyApp();
   if (scope === 'page-toast') {
+    await check('sidebar-ready-for-page-toast', () => wait(() => appRead(
+      'document.querySelector("#vas-work")?.textContent==="Local Series" && ' +
+      ['intro', 'outro'].map(kind => '(' + q(ui.choice(kind)) + ')?.matches(":enabled")').join(' && '))));
+    await pageRead(`(() => {
+      window.fixtureToastOpens = 0;
+      document.addEventListener('beforetoggle', event => {
+        if (event.newState === 'open' && event.target.matches?.('[data-opendesk-page-toast]')) window.fixtureToastOpens++;
+      }, true);
+    })()`);
+    const toastOpens = () => pageRead('window.fixtureToastOpens');
     const toastOnPage = () => pageRead(`(() => {
       const hosts = document.querySelectorAll('[data-opendesk-page-toast]');
       if (!hosts.length) return null;
@@ -647,6 +657,7 @@ async function playbackChecks({page, media, pageRead, appRead, openApp, closePan
       const receipt = await reached(90, cursor);
       assert.equal(receipt.paused, true);
       assert.equal(await toastOnPage(), null);
+      assert.equal(await toastOpens(), 0);
       return {preview: receipt, toast: false};
     });
     await closePanel();
@@ -654,6 +665,7 @@ async function playbackChecks({page, media, pageRead, appRead, openApp, closePan
       await check('confirmed-' + kind + '-toast-with-panel-closed', async () => {
         const cursor = await nextSeconds(start - 0.7, 'before automatic ' + kind);
         assert.equal(await toastOnPage(), null);
+        const before = await toastOpens();
         await player('#fixture-play');
         const receipt = await reached(end, cursor, from => from >= start - 1 && from < start + 2);
         assert.equal(receipt.paused, false);
@@ -667,11 +679,14 @@ async function playbackChecks({page, media, pageRead, appRead, openApp, closePan
         const after = await media();
         assert.ok(!after.paused && after.time > end + 0.3, 'playback continues after toast dismissal');
         assert.equal(after.events.slice(cursor).filter(e => e.type === 'seeking').length, 1);
-        return {receipt, message, ...toast, dismissed: true, advanced: after.time};
+        const openings = await toastOpens() - before;
+        assert.equal(openings, 1);
+        return {receipt, message, ...toast, openings, dismissed: true, advanced: after.time};
       });
     }
     return;
   }
+  await check('sidebar-editor-ready', () => readyApp());
   const inspect = async () => {
     const identity = await verifyInstalled();
     const player = await wait(media);
@@ -684,6 +699,69 @@ async function playbackChecks({page, media, pageRead, appRead, openApp, closePan
   const enter = name => checkpoint(name, inspect);
   const covered = name => { delete report.notCovered[name]; };
   const receiptText = () => appRead('document.querySelector("#vas-action")?.textContent ?? ""');
+  if (scope === 'timeline') {
+    await enter('timeline');
+    const intro = ui.slider('intro', 'start'), outro = ui.slider('outro', 'end');
+    const end = (await media()).duration;
+    const format = value => [Math.floor(value / 60), value % 60].map(n => String(n).padStart(2, '0')).join(':');
+    const readTimes = () => Promise.all(['intro', 'outro'].flatMap(rule =>
+      ['start', 'end'].map(part => readValue(ui.field(rule, part)))));
+    const reopen = async () => {
+      await closePanel();
+      await openPanel();
+      await openApp();
+      await readyApp();
+    };
+    await check('native-default-anchors-drag-and-reset', async () => {
+      const initial = await readTimes();
+      assert.deepEqual(await Promise.all([sliderValue(intro), sliderValue(outro)]), [0, end]);
+      const anchors = () => Promise.all([attr(intro, 'data-bound'), attr(outro, 'data-bound')]);
+      assert.deepEqual(await anchors(), ['true', 'true']);
+      await dragHandle(intro, 1);
+      const start = await sliderValue(intro);
+      assert.equal(await readValue(ui.field('intro', 'start')), format(start));
+      await key(side(), 'Home', 36);
+      assert.equal(await sliderValue(intro), 0);
+      await dragHandle(outro, -1);
+      const finish = await sliderValue(outro);
+      assert.equal(await readValue(ui.field('outro', 'end')), format(finish));
+      await key(side(), 'End', 35);
+      assert.equal(await sliderValue(outro), end);
+      assert.deepEqual(await anchors(), ['true', 'true']);
+      assert.deepEqual(await readTimes(), initial);
+      await dragHandle(intro, 1);
+      await tap(ui.cancel);
+      await reopen();
+      assert.deepEqual(await readTimes(), initial);
+      return {start, finish, duration: end, afterDiscardAndReopen: initial};
+    });
+    await check('native-timeline-save-and-reopen', async () => {
+      await setInterval('intro', 20, 90);
+      await setInterval('outro', 120, 190);
+      const sliders = [intro, ui.slider('intro', 'end'), ui.slider('outro', 'start'), outro];
+      assert.deepEqual(await Promise.all(sliders.map(sliderValue)), [20, 90, 120, 190]);
+      const times = [];
+      for (const [i, slider] of sliders.entries()) {
+        await dragHandle(slider, i % 2 === 0 ? 1 : -1);
+        assert.equal(await appRead('document.activeElement?.id'), slider.slice(1));
+        const dragged = await sliderValue(slider);
+        assert.equal((await readTimes())[i], format(dragged));
+        await key(side(), 'ArrowLeft', 37);
+        assert.equal(await sliderValue(slider), dragged - 1);
+        times.push(format(dragged - 1));
+      }
+      assert.deepEqual(await readTimes(), times);
+      const feedback = await save();
+      await reopen();
+      assert.deepEqual(await readTimes(), times);
+      const player = await media();
+      assert.equal(player.paused, true);
+      assert.equal(player.time, 0);
+      return {times, feedback, paused: player.paused};
+    });
+    covered('timeline');
+    return;
+  }
   if (scope === 'guards') {
     await enter('guards');
     await check('long-media-tab-order-and-numeric-endpoints', async () => {
@@ -1184,11 +1262,11 @@ try {
     console.log('node projects/video-auto-skip/tests/native.mjs --verify-fixture\n' +
       'Native (leader go-ahead required): --allow-browser --allow-user-scripts --package <candidate.json> [--install-only] [--chrome <CFT155>]\n' +
       'Optional: --mode developer or --mode both; direct debug requires an authorized local Native workspace in the temporary profile.\n' +
-      'Optional: --interactive or --segment rules|guards|sidebar-status|page-toast|r9 (r9 requires --screenshots <dir>).\n' +
+      'Optional: --interactive or --segment rules|guards|sidebar-status|page-toast|r9|timeline (r9 requires --screenshots <dir>).\n' +
       'Optional: --port <fixed loopback port> for a tightly scoped candidate. Node 22+, ffmpeg, ffprobe (fixture-only).');
   } else {
     assert.ok(['developer', 'installed', 'both'].includes(values.mode), 'invalid mode');
-    assert.ok(['all', 'rules', 'guards', 'sidebar-status', 'page-toast', 'r9'].includes(values.segment), 'invalid segment');
+    assert.ok(['all', 'rules', 'guards', 'sidebar-status', 'page-toast', 'r9', 'timeline'].includes(values.segment), 'invalid segment');
     if (values.segment === 'r9') assert.ok(values.screenshots && values.package && values.mode === 'installed');
     if (['sidebar-status', 'page-toast'].includes(values.segment)) {
       assert.ok(values.package && values.mode === 'installed' && !values['install-only'], values.segment + ' requires an installed candidate and playback');

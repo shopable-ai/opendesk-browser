@@ -24,7 +24,7 @@ const routes = new Map([
   ['/sdk.js', ['text/javascript', mock]],
 ]);
 const server = createServer(({url, method}, res) => {
-  const route = method === 'GET' && routes.get(url);
+  const route = method === 'GET' && routes.get(url.split('?')[0]);
   if (!route) { res.writeHead(404).end(); return; }
   res.writeHead(200, {'Content-Type': route[0] + '; charset=utf-8', 'Cache-Control': 'no-store'}).end(route[1]);
 });

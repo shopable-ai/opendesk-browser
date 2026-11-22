@@ -131,7 +131,7 @@ function fixture(offMode='namespace absent',{toolId:targetId=toolId,origin=hostO
 
 const queueTool=()=>readFile(process.env.SEND_QUEUE_PACKAGE_PATH||new URL(
   '../../projects/ai-send-queue/ai-send-queue.opendesk-tool.json',import.meta.url),'utf8').then(JSON.parse);
-const queueFixture=()=>fixture('namespace absent',{toolId:'ai-send-queue',origin:'https://chatgpt.com/*'});
+const queueFixture=(offMode='namespace absent')=>fixture(offMode,{toolId:'ai-send-queue',origin:'https://chatgpt.com/*'});
 
 const originalQueueTool=async()=>structuredClone(reviewedQueue);
 
@@ -213,6 +213,31 @@ test('reviewed Send Queue reports status on the exact document with User Scripts
   await assert.rejects(f.authorize({token}),{code:'E_DOCUMENT_STALE'});
   f.documentId='queue-document';f.disable();
   await assert.rejects(f.authorize({token}),{code:'E_APP_PAGE_OWNER'});
+  assert.deepEqual(f.calls,[]);
+});
+
+test('reviewed fixed queue install does not need a native probe if no prior registration can exist',async()=>{
+  const f=queueFixture('guarded namespace'),tool=await queueTool();
+  f.beforeReadScripts=()=>{throw Error('Chrome temporarily failed to read registrations');};
+  f.siteGranted=false;
+  await assert.rejects(f.prepare(tool),{code:'E_PERMISSION'});
+  f.siteGranted=true;
+  assert.equal((await f.prepare(tool)).status,'prepared');
+  const owner=await f.setParent(tool);
+  assert.equal((await f.import(owner)).nativeState,'fixed');
+  assert.equal((await f.verify(owner)).nativeState,'fixed');
+  // The current fixed row never registered a native bootstrap either.
+  assert.equal((await f.prepare(tool)).status,'prepared');
+  assert.deepEqual(f.calls,[]);
+});
+
+test('fixed queue preflight still requires access if an old native registration may exist',async()=>{
+  const f=queueFixture('guarded namespace'),tool=await queueTool();
+  await f.import(await f.setParent(tool));
+  f.patchInstalled({nativeState:'registered'});
+  const previous=f.row();
+  await assert.rejects(f.prepare(tool),{code:'E_APP_PAGE_REVOCATION_REQUIRES_USER_SCRIPTS'});
+  assert.deepEqual(f.row(),previous);
   assert.deepEqual(f.calls,[]);
 });
 

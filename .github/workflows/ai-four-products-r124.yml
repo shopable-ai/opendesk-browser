@@ -16,6 +16,7 @@ on:
       - 'scripts/prepare-public.mjs'
       - 'scripts/verify-package.mjs'
       - 'tests/environment/official-page-catalog-r124.test.mjs'
+      - 'tests/environment/page-default-preinstall.test.mjs'
       - 'tests/environment/extension-center-official-pages-r124.test.mjs'
       - 'package.json'
       - 'package-lock.json'
@@ -59,6 +60,7 @@ jobs:
       - name: Validate trust, blocked discovery and old installation identity
         run: |
           node --test tests/environment/official-page-catalog-r124.test.mjs \
+            tests/environment/page-default-preinstall.test.mjs \
             tests/environment/extension-center-official-pages-r124.test.mjs \
             tests/environment/sidebar-default-preinstall-r48.test.mjs
       - name: Generate noninstalling Page discovery bundle from pinned source

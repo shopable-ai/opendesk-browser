@@ -16,7 +16,7 @@ const root='/repo';
 test('AI Scroll R4.2 reviewed settings sources admit only exact bytes to the original tool-shell',async t=>{
   const inputs=[
     ['projects/ai-scroll-navigation/trusted/ai-configuration.js','c97137a3a871fb6c19fd3594fc627fafd67d03f8'],
-    ['projects/ai-scroll-navigation/trusted/react-controls.tsx','dfe565119cf1e8da869785e6f6bb6dba0c471b92'],
+    ['projects/ai-scroll-navigation/trusted/react-controls.tsx','0716d19acbfc04edc418b8c5f43e0f78b3934266'],
     ['projects/ai-scroll-navigation/trusted/host-localization.js','e2d8f50cf676e4fc902202bfb24caa36de221837']
   ];
   const project=await realpath(await mkdtemp(join(tmpdir(),'ai-scroll-r42-settings-pin-')));
@@ -637,7 +637,7 @@ test('reviewed Scroll settings keep exact blobs and shell-only admission',async 
   const pins={
     'projects/ai-scroll-navigation/trusted/ai-configuration.js':'c97137a3a871fb6c19fd3594fc627fafd67d03f8',
     'projects/ai-scroll-navigation/trusted/host-localization.js':'e2d8f50cf676e4fc902202bfb24caa36de221837',
-    'projects/ai-scroll-navigation/trusted/react-controls.tsx':'dfe565119cf1e8da869785e6f6bb6dba0c471b92'
+    'projects/ai-scroll-navigation/trusted/react-controls.tsx':'0716d19acbfc04edc418b8c5f43e0f78b3934266'
   };
   const root=await realpath(await mkdtemp(join(tmpdir(),'scroll-settings-source-pin-')));
   ctx.after(()=>rm(root,{recursive:true,force:true}));

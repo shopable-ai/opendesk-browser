@@ -114,6 +114,7 @@
   font-variant-numeric: tabular-nums; letter-spacing: -.035em;
 }
 .vas-field input::placeholder { color: var(--sub); opacity: 1; }
+.vas-field[data-endpoint-state="calculated"] input[type="text"] { color: var(--sub); }
 .vas button.vas-clear-time {
   flex: 0 0 26px; inline-size: 26px; min-inline-size: 26px; min-block-size: 28px;
   margin-inline-end: 3px; padding: 0; border: 0; border-radius: 5px;
@@ -157,8 +158,8 @@
   font-size: 11px; line-height: 1.25;
 }
 .vas-match-label { color: var(--end); font-weight: 650; white-space: nowrap; }
-.vas-match-label::before { content: '↻'; margin-inline-end: 4px; }
 .vas-match-text { min-inline-size: 0; font-variant-numeric: tabular-nums; }
+.vas button.vas-match-length { justify-self: start; font-size: 12px; }
 .vas-tail-match[data-state="matched"] { background: var(--match-bg); border-color: var(--match-line); }
 .vas-tail-match[data-state="matched"] .vas-match-label { color: var(--match-ink); }
 .vas-tail-match[data-state="error"] { background: var(--warning-bg); border-color: var(--warning); }

@@ -1,10 +1,23 @@
 const main = document.querySelector('main');
 const media = main.querySelector('video[data-od-feature]');
 const record = document.querySelector('#media-evidence');
+const status = document.querySelector('#fixture-status');
+const lastSeek = document.querySelector('#fixture-last-seek');
 const events = [];
 let stableTime = 0;
 let seekOrigin;
 const render = () => { record.textContent = JSON.stringify(events); };
+const seconds = time => Number.isFinite(time) ? time.toFixed(2) + ' 秒' : '未知';
+function renderStatus() {
+  const state = media.error ? '媒体出错' : media.readyState < 1 ? '等待媒体' : media.seeking ? '定位中' :
+    media.ended ? '已结束' : media.paused ? '暂停' : '播放中';
+  status.textContent = state + ' · ' + seconds(media.currentTime) + ' / ' + seconds(media.duration);
+}
+media.addEventListener('durationchange', renderStatus);
+media.addEventListener('emptied', () => {
+  lastSeek.textContent = '—';
+  renderStatus();
+});
 for (const type of ['loadedmetadata', 'play', 'playing', 'pause', 'seeking', 'seeked', 'timeupdate', 'ended', 'error']) {
   media.addEventListener(type, () => {
     if (type === 'seeking') seekOrigin ??= stableTime;
@@ -13,10 +26,13 @@ for (const type of ['loadedmetadata', 'play', 'playing', 'pause', 'seeking', 'se
         duration: Number.isFinite(media.duration) ? media.duration : null, paused: media.paused});
       render();
     }
+    if (type === 'seeked') lastSeek.textContent = seconds(seekOrigin ?? stableTime) + ' → ' + seconds(media.currentTime);
     if (type === 'seeked' || type === 'loadedmetadata') seekOrigin = undefined;
     if (!media.seeking) stableTime = media.currentTime;
+    renderStatus();
   });
 }
+renderStatus();
 document.querySelector('#fixture-play').addEventListener('click', () => {
   if (media.paused) void media.play().catch(() => {});
   else media.pause();

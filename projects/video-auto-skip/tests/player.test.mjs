@@ -2,6 +2,7 @@ import assert from 'node:assert/strict';
 import {setImmediate as drain} from 'node:timers/promises';
 import test from 'node:test';
 import {createPlayer} from '../src/page/player.js';
+import {isIyfBufferNudge} from '../src/page/iyf-player.js';
 
 const fixed = (start, end) => ({kind: 'fixed', start, end});
 const tail = seconds => ({kind: 'tail', seconds});
@@ -26,6 +27,10 @@ class Media {
   }
   get seekable() {
     return {length: this.ranges.length, start: i => this.ranges[i][0], end: i => this.ranges[i][1]};
+  }
+  get buffered() {
+    const ranges = this.bufferedRanges ?? [];
+    return {length: ranges.length, start: i => ranges[i][0], end: i => ranges[i][1]};
   }
   addEventListener(type, listener) {
     if (!this.listeners.has(type)) this.listeners.set(type, new Set());
@@ -59,21 +64,22 @@ class Media {
   }
 }
 
-function setup(t, {rules = {}, media = new Media(), authorize, selectNext, navigate} = {}) {
+function setup(t, {rules = {}, media = new Media(), authorize, selectNext, navigate, iyf = false, onOutroDecision} = {}) {
   const statuses = [];
+  const root = new Media();
   let binding;
   let seq = 0;
   const player = createPlayer({getBinding: () => binding, authorize: input => authorize ? authorize(input) : rules,
-    selectNext, navigate, onStatus: state => statuses.push(state)});
+    selectNext, navigate, onOutroDecision, acceptBufferNudge: iyf ? isIyfBufferNudge : undefined, onStatus: state => statuses.push(state)});
   t.after(() => player.dispose());
   const bind = (video, context = {}) => {
-    binding = {id: 'document-' + ++seq, media: video,
+    binding = {id: 'document-' + ++seq, media: video, root,
       context: {seriesKey: 'show:1', episodeKey: 'ep:' + seq, title: 'Show', ...context}};
     player.bind(binding);
     return binding;
   };
   bind(media);
-  return {player, media, rules, statuses, bind, binding: () => binding};
+  return {player, media, rules, statuses, bind, root, binding: () => binding};
 }
 
 const expectedMedia = player => {
@@ -374,8 +380,37 @@ for (const [mode, rule, from, to] of [
   assert.equal(statuses.filter(s => s.action?.state === 'confirmed' && s.action.kind === 'outro').length, 1);
 });
 
+test('outro diagnostics distinguish an invalid saved rule from a confirmed natural skip', async t => {
+  const entries = [];
+  const media = new Media();
+  media.duration = 1156.011;
+  media.ranges = [[0, media.duration]];
+  const {rules, player} = setup(t, {media, rules: {outro: fixed(1155, 1243)},
+    onOutroDecision: entry => entries.push(entry)});
+  media.time = 1067;
+  await play(media);
+  await tick(media, 1067.4);
+  assert.deepEqual(entries.map(e => e.decision), ['invalid-interval']);
+  assert.deepEqual(media.writes, []);
+  rules.outro = tail(88);
+  rules.outroSource = 'series';
+  player.refresh();
+  await tick(media, 1067.9);
+  await tick(media, 1068.167);
+  assert.deepEqual(media.writes, [1156.011]);
+  media.land();
+  assert.deepEqual(entries.map(e => e.decision), ['invalid-interval', 'before-start', 'triggered', 'confirmed']);
+  assert.equal(entries[2].from, 1068.167);
+  assert.equal(entries[2].start, 1068.011);
+  assert.equal(entries[2].to, 1156.011);
+  assert.equal(entries[2].id, entries[3].id);
+  assert.equal(entries[2].entry, 'natural-crossing');
+  assert.equal(entries[2].source, 'series');
+  assert.equal(entries[3].landed, 1156.011);
+});
+
 test('without an applicable outro, playback ends without a seek or skip feedback and next can still run', async t => {
-  for (const [label, outro] of [['no outro', undefined], ['outro beyond the media duration', fixed(230, 250)]]) {
+  for (const [label, outro] of [['no outro', undefined], ['explicitly disabled', null], ['outro beyond the media duration', fixed(230, 250)]]) {
     await t.test(label, async t => {
       const target = {episodeKey: 'next'};
       const calls = [];
@@ -451,6 +486,55 @@ test('rewind or competing seek during a pending operation never retries an unkno
   await previewAt(player, binding(), 52);
   await undoSkip(player, binding());
   assert.deepEqual(media.writes, [60]);
+});
+
+test('iYF confirms one buffer correction and can still skip the last 90 seconds naturally', async t => {
+  const media = new Media();
+  media.duration = 1243.563;
+  media.ranges = [[0, media.duration]];
+  media.time = 50.204667;
+  const {player} = setup(t, {media, iyf: true, rules: {intro: fixed(0, 140), outro: tail(90)}});
+  await play(media);
+  assert.deepEqual(media.writes, [140]);
+  media.emit('seeking');
+  media.bufferedRanges = [[50.154667, 65], [140.154667, 151]];
+  media.time = 140.204667;
+  media.emit('seeking');
+  assert.equal(player.snapshot().action.state, 'pending');
+  media.seeking = false;
+  media.emit('seeked');
+  assert.equal(player.snapshot().action.state, 'confirmed');
+  media.drag(1149.563);
+  await tick(media, 1153.519065);
+  await tick(media, 1153.591349);
+  assert.deepEqual(media.writes, [140, 1243.563]);
+  media.land();
+  assert.deepEqual(player.snapshot().action,
+    {id: 2, kind: 'outro', state: 'confirmed', from: 1153.591349, to: 1243.563});
+});
+
+test('iYF keeps unknown results fenced when a repeat seek is not a confirmed buffer correction', async t => {
+  for (const [label, ranges, extra, landed = 140.204667] of [
+    ['target already buffered', [[139, 150]]],
+    ['redirect into unbuffered content', [[140.22, 150]]],
+    ['third seek', [[140.154667, 151]], 'seeking'],
+    ['different landing', [[140.154667, 151]], null, 141],
+    ['player control input', [[140.154667, 151]], 'pointerdown'],
+  ]) await t.test(label, async t => {
+    const {player, media, root} = setup(t, {iyf: true, rules: {intro: fixed(0, 140)}});
+    await play(media);
+    media.emit('seeking');
+    media.bufferedRanges = ranges;
+    media.time = 140.204667;
+    media.emit('seeking');
+    if (extra === 'pointerdown') root.emit(extra);
+    else if (extra) media.emit(extra);
+    media.time = landed;
+    media.seeking = false;
+    media.emit('seeked');
+    assert.equal(player.snapshot().action.state, 'unknown');
+    assert.deepEqual(media.writes, [140]);
+  });
 });
 
 test('a seek without confirmation fences new sources on the same document', async t => {

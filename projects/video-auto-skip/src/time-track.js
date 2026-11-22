@@ -37,7 +37,6 @@ export function mountTimeTrack(template, host, {key, format, commit, refresh}) {
     const handle = event.target.closest('[data-endpoint]');
     if (!handle || disabled || grip || event.button !== 0) return;
     const part = handle.dataset.endpoint;
-    if (part === anchor) return;
     handle.focus({preventScroll: true});
     handle.setPointerCapture(event.pointerId);
     grip = {part, id: event.pointerId, offset: x(points[part]) - localX(event), near: track.dataset.near === 'true'};
@@ -45,7 +44,8 @@ export function mountTimeTrack(template, host, {key, format, commit, refresh}) {
   });
   track.addEventListener('pointermove', event => {
     if (disabled || grip?.id !== event.pointerId) return;
-    move(grip.part, Math.round(window[0] + (localX(event) + grip.offset - INSET) * (window[1] - window[0]) / length()));
+    const value = Math.round(window[0] + (localX(event) + grip.offset - INSET) * (window[1] - window[0]) / length());
+    if (value !== points[grip.part]) move(grip.part, value);
   });
   track.addEventListener('pointerup', event => {
     if (!disabled && grip?.id === event.pointerId && suggested[grip.part]) move(grip.part, points[grip.part]);
@@ -57,7 +57,7 @@ export function mountTimeTrack(template, host, {key, format, commit, refresh}) {
   });
   track.addEventListener('keydown', event => {
     const part = event.target.dataset.endpoint;
-    if (!part || part === anchor || disabled || event.altKey || event.ctrlKey || event.metaKey) return;
+    if (!part || disabled || event.altKey || event.ctrlKey || event.metaKey) return;
     const [min, max] = bounds(part);
     const moves = {ArrowLeft: points[part] - 1, ArrowDown: points[part] - 1,
       ArrowRight: points[part] + 1, ArrowUp: points[part] + 1, Home: min, End: max};
@@ -100,10 +100,10 @@ export function mountTimeTrack(template, host, {key, format, commit, refresh}) {
         suggested[part] = suggestions[part] !== undefined;
         handle.setAttribute('data-bound', String(bound));
         handle.setAttribute('data-unset', String(!valid(value)));
-        handle.setAttribute('aria-disabled', String(disabled || bound));
-        handle.setAttribute('tabindex', disabled || bound ? '-1' : '0');
-        handle.setAttribute('aria-valuemin', bound ? point : low);
-        handle.setAttribute('aria-valuemax', bound ? point : high);
+        handle.setAttribute('aria-disabled', String(disabled));
+        handle.setAttribute('tabindex', disabled ? '-1' : '0');
+        handle.setAttribute('aria-valuemin', low);
+        handle.setAttribute('aria-valuemax', high);
         handle.setAttribute('aria-valuenow', point);
         handle.setAttribute('aria-valuetext', disabled ? t('sliderUnavailable') : bound ?
           t(part === 'end' ? 'sliderEndBound' : 'sliderIntroBound') : suggested[part] ?

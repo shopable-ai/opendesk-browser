@@ -14,23 +14,26 @@ export const route = (episode, line = 'primary') => prefix + '/ep-' + episode + 
 
 function documentHtml(origin, episode, line) {
   const clip = name => origin + prefix + '/media/' + name + '.webm';
+  const lineLabel = item => item === 'primary' ? '主线路' : '备用线路';
   const links = [3, 2, 1].flatMap(number => [...lines].reverse().map(item =>
     '<li><a data-od-episode="' + number + '" data-od-order="' + number + '" data-od-line="' + item +
-      '" href="' + route(number, item) + '">Episode ' + number + ' (' + item + ')</a></li>')).join('');
-  return '<!doctype html><html lang="en"><meta charset="utf-8"><title>Local series fixture</title>' +
+      '" href="' + route(number, item) + '">第 ' + number + ' 集（' + lineLabel(item) + '）</a></li>')).join('');
+  return '<!doctype html><html lang="zh-CN"><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>连播助手本地测试页</title>' +
     '<style>body{font:16px system-ui;margin:20px}video{display:block;background:#111;max-width:100%}[hidden]{display:none!important}button{margin:4px}</style>' +
     '<main data-od-series="native-series" data-od-title="Local Series" data-od-season="1" data-od-episode="' + episode +
     '" data-od-order="' + episode + '" data-od-line="' + line + '">' +
-    '<h1>Local Series · Season 1 · Episode ' + episode + ' · ' + line + '</h1>' +
+    '<h1>Local Series · 第 1 季第 ' + episode + ' 集 · ' + lineLabel(line) + '</h1>' +
     '<video data-od-feature controls playsinline preload="auto" muted width="480" height="270" src="' + clip(titles[episode - 1]) + '"></video>' +
-    '<button id="fixture-play">Play / pause</button>' +
-    '<form id="fixture-seek"><label>Seek seconds <input id="fixture-time" type="number" min="0" step="any" required></label><button id="fixture-seek-submit">Seek</button></form>' +
-    '<button id="fixture-source" data-src="' + clip('alternate') + '">Replace feature source</button>' +
-    '<button id="fixture-long-source" data-src="' + clip('long') + '">Use a seven-minute source</button>' +
-    '<button id="fixture-open-stream" data-src="' + clip('alternate') + '">Open stream with no declared end</button>' +
-    '<label><input id="fixture-autoplay" type="checkbox"> Start subsequent episodes on arrival</label>' +
+    '<p id="fixture-status">正在读取媒体…</p>' +
+    '<p>最近一次定位（含手动）：<span id="fixture-last-seek">—</span></p>' +
+    '<button id="fixture-play">播放 / 暂停</button>' +
+    '<form id="fixture-seek"><label>定位到第几秒 <input id="fixture-time" type="number" min="0" step="any" required></label><button id="fixture-seek-submit">定位</button></form>' +
+    '<button id="fixture-source" data-src="' + clip('alternate') + '">换源（195 秒）</button>' +
+    '<button id="fixture-long-source" data-src="' + clip('long') + '">换源（420 秒）</button>' +
+    '<button id="fixture-open-stream" data-src="' + clip('alternate') + '">换源（时长未知）</button>' +
+    '<label><input id="fixture-autoplay" type="checkbox"> 到达下一集后由测试页自动起播</label>' +
     '<ul data-od-playlist-complete>' + links + '</ul></main>' +
-    '<aside aria-label="Advertisement"><video controls muted preload="metadata" width="192" height="108" src="' + clip('ad') + '"></video>' +
+    '<aside aria-label="模拟广告"><video controls muted preload="metadata" width="192" height="108" src="' + clip('ad') + '"></video>' +
     '<video hidden muted preload="none" src="' + clip('ad') + '"></video></aside>' +
     '<output id="media-evidence" hidden>[]</output><script src="' + prefix + '/playback.js"></script></html>';
 }

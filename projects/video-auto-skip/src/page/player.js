@@ -39,7 +39,7 @@ function sameSeekDuration(media, pending) {
  * player or source changes. Authorization must recheck the bridge on every call.
  * Navigation is dispatched once; its adapter reconciles it to arrived/playing/failed/unknown.
  */
-export function createPlayer({getBinding, authorize, selectNext, navigate, onStatus} = {}) {
+export function createPlayer({getBinding, authorize, selectNext, navigate, onStatus, onOutroDecision, acceptBufferNudge} = {}) {
   let current = null, disposed = false, navigation = null, uncertainSeek = null, seekSequence = 0;
   const active = scope => Boolean(scope && !disposed && current === scope && !scope.retired &&
     getBinding?.() === scope.binding);
@@ -83,6 +83,18 @@ export function createPlayer({getBinding, authorize, selectNext, navigate, onSta
     scope.queued = null;
   }
 
+  function reportOutro(scope, decision, range, receipt) {
+    if (!onOutroDecision) return;
+    const {start, end} = range ?? {};
+    const signature = [decision, start, end, durationOf(scope.media), scope.outroSource, scope.outroKind, receipt?.id].join(':');
+    if (scope.outroDecision === signature) return;
+    scope.outroDecision = signature;
+    try {
+      onOutroDecision({decision, episode: scope.binding.context?.episode, time: timeOf(scope.media),
+        duration: durationOf(scope.media), source: scope.outroSource, ruleKind: scope.outroKind, ...(range && {start, end}), ...receipt});
+    } catch { /* Diagnostics cannot affect playback. */ }
+  }
+
   async function readRules(scope, revision) {
     let rules;
     try { rules = await authorize?.(scope.binding); } catch { /* Treat a rejected read as unavailable. */ }
@@ -112,10 +124,11 @@ export function createPlayer({getBinding, authorize, selectNext, navigate, onSta
     if (checked && (kind === 'preview' || kind === 'undo')) holdAt(scope, scope.previous);
     if (checked && intent === 'outro') scope.inspection = to;
     if (checked && intent === 'return') scope.inspection = null;
+    if (kind === 'outro') reportOutro(scope, checked ? 'confirmed' : 'unconfirmed', pending.range, {id, from, to, reason, landed: checked ? scope.previous : undefined});
     pending.resolve(publish());
   }
 
-  function startSeek(scope, kind, from, to, duration, intent, id = ++seekSequence) {
+  function startSeek(scope, kind, from, to, duration, intent, id = ++seekSequence, range) {
     invalidate(scope);
     scope.natural = false;
     scope.terminal = to === duration;
@@ -124,7 +137,7 @@ export function createPlayer({getBinding, authorize, selectNext, navigate, onSta
     scope.reason = undefined;
     scope.action = {id, kind, state: 'pending', from, to};
     return new Promise(resolve => {
-      const pending = {id, kind, from, to, duration, intent, interval: scope.intervals[kind], resolve, seekingEvents: 0};
+      const pending = {id, kind, from, to, duration, intent, range, interval: scope.intervals[kind], resolve, seekingEvents: 0};
       scope.pending = pending;
       pending.timer = setTimeout(() => settleSeek(scope, false, 'seek-unconfirmed'), 5000);
       try {
@@ -190,41 +203,70 @@ export function createPlayer({getBinding, authorize, selectNext, navigate, onSta
     const {media} = scope, revision = scope.revision;
     if (blocked(scope) || media.seeking) return;
     const rules = await readRules(scope, revision);
-    if (!rules || blocked(scope) || media.seeking) return;
+    if (!rules || blocked(scope) || media.seeking) {
+      if (fenced(scope, revision) && scope.denied) reportOutro(scope, 'rules-unavailable');
+      return;
+    }
+    scope.outroSource = rules.outroSource;
+    scope.outroKind = rules.outro?.kind;
     if (signal.ended) {
       await maybeNavigate(scope, revision, rules);
       return;
     }
     if (media.paused || media.ended) return;
     const time = timeOf(media), duration = durationOf(media);
-    if (duration === null || time === null) return;
+    if (duration === null || time === null) {
+      reportOutro(scope, duration === null ? 'duration-unavailable' : 'position-unavailable');
+      return;
+    }
     const ranges = Object.fromEntries(timedKinds.map(kind => [kind, resolveInterval(rules[kind], duration)]));
     const {intro, outro} = ranges;
     if (intro && outro && (intro.start < outro.end && outro.start < intro.end ||
         Math.min(intro.start, outro.start) === 0 && Math.max(intro.end, outro.end) === duration &&
-        (intro.end === outro.start || outro.end === intro.start))) return;
+        (intro.end === outro.start || outro.end === intro.start))) {
+      reportOutro(scope, 'conflicting-intervals', outro);
+      return;
+    }
     const landedIn = range => inside(time, range) && inside(scope.landing?.time, range);
     if (!Object.values(ranges).some(landedIn)) scope.landing = null;
     for (const kind of timedKinds) {
       const range = ranges[kind];
-      const signature = !range ? null : rules[kind].kind === 'tail' ? 'tail:' + rules[kind].seconds : range.start + ':' + range.end;
+      const signature = rules[kind]?.kind === 'tail' ? 'tail:' + rules[kind].seconds :
+        range ? range.start + ':' + range.end : null;
       const initial = !Object.hasOwn(scope.intervals, kind);
       const changed = !initial && scope.intervals[kind] !== signature;
       scope.intervals[kind] = signature;
       const held = inside(time, range) && inside(scope.hold[kind], range);
       if (!held) scope.hold[kind] = null;
-      if (!inside(time, range) || held) continue;
+      const diagnose = decision => { if (kind === 'outro') reportOutro(scope, decision, range); };
+      if (!inside(time, range) || held) {
+        diagnose(held ? 'held-for-review' : range ? (time < range.start ? 'before-start' : 'past-end') :
+          rules.outro === null || rules.outro?.enabled === false ? 'disabled' : rules.outro ? 'invalid-interval' : 'no-active-rule');
+        continue;
+      }
       // A browser seek is a rewatch only after this same interval has already skipped.
       const landedHere = landedIn(range);
-      if (scope.skipped[kind] === signature && (kind === 'outro' || landedHere)) continue;
+      if (scope.skipped[kind] === signature && (kind === 'outro' || landedHere)) {
+        diagnose('already-skipped');
+        continue;
+      }
       const crossing = !changed && signal.previous !== null && signal.previous < range.start && time > signal.previous;
       const startup = kind === 'intro' && range.start === 0 && scope.startup && time < 3;
       const firstLanding = landedHere && scope.landing.pending;
-      if (!(signal.play || crossing || startup || firstLanding) || !sharesSeekableSpan(media, time, range.end)) continue;
+      if (!(signal.play || crossing || startup || firstLanding)) {
+        diagnose('waiting-for-entry');
+        continue;
+      }
+      if (!sharesSeekableSpan(media, time, range.end)) {
+        diagnose('target-not-seekable');
+        continue;
+      }
       // No await between the final ownership check and the seek.
       if (fenced(scope, revision) && !media.paused && !media.seeking && !media.ended) {
         scope.startup = false;
-        void startSeek(scope, kind, time, range.end, duration);
+        const id = ++seekSequence;
+        if (kind === 'outro') reportOutro(scope, 'triggered', range, {id, from: time, to: range.end, entry: crossing ? 'natural-crossing' : firstLanding ? 'seek-entry' : 'play', previous: signal.previous});
+        void startSeek(scope, kind, time, range.end, duration, undefined, id, range);
       }
       return;
     }
@@ -252,10 +294,10 @@ export function createPlayer({getBinding, authorize, selectNext, navigate, onSta
 
   function listen(scope) {
     const {media, listeners} = scope;
-    function on(type, fn) {
+    function on(type, fn, target = media, capture = false) {
       const listener = event => { if (event.isTrusted && active(scope)) fn(); };
-      listeners.set(type, listener);
-      media.addEventListener(type, listener);
+      target.addEventListener(type, listener, capture);
+      listeners.push(() => target.removeEventListener(type, listener, capture));
     }
     on('play', () => {
       if (!scope.wasPaused || media.paused || media.seeking || media.ended) return;
@@ -295,7 +337,15 @@ export function createPlayer({getBinding, authorize, selectNext, navigate, onSta
       scope.natural = false;
       const pending = scope.pending;
       if (pending) {
-        if (++pending.seekingEvents !== 1 || !close(timeOf(media) ?? Infinity, pending.to)) {
+        const position = timeOf(media);
+        const count = ++pending.seekingEvents;
+        if (count === 1 && close(position ?? Infinity, pending.to)) {
+          pending.firstPosition = position;
+        } else if (count === 2 && timedKinds.includes(pending.kind) && media.seeking &&
+            Math.abs(pending.firstPosition - pending.to) <= 0.01 && sameSeekDuration(media, pending) &&
+            acceptBufferNudge?.(media, pending.to, position)) {
+          pending.correctedPosition = position;
+        } else {
           settleSeek(scope, false, 'competing-seek');
         }
       } else {
@@ -308,8 +358,10 @@ export function createPlayer({getBinding, authorize, selectNext, navigate, onSta
       const pending = scope.pending;
       const landed = timeOf(media);
       if (pending) {
-        const confirmed = pending.seekingEvents === 1 && !media.seeking && sameSeekDuration(media, pending) &&
-          landed !== null && close(landed, pending.to);
+        const confirmed = !media.seeking && sameSeekDuration(media, pending) && landed !== null &&
+          (pending.seekingEvents === 1 && close(landed, pending.to) ||
+            pending.correctedPosition !== undefined && Math.abs(landed - pending.correctedPosition) <= 0.05 &&
+            acceptBufferNudge(media, pending.to, landed));
         settleSeek(scope, confirmed, confirmed ? undefined : 'seek-unconfirmed');
       } else {
         invalidate(scope);
@@ -324,7 +376,7 @@ export function createPlayer({getBinding, authorize, selectNext, navigate, onSta
     for (const type of ['pointerdown', 'keydown']) on(type, () => {
       if (scope.pending) settleSeek(scope, false, 'user-input-during-seek');
       if (media.ended) invalidate(scope);
-    });
+    }, acceptBufferNudge ? scope.binding.root : media, Boolean(acceptBufferNudge));
     on('ended', () => {
       const duration = durationOf(media), now = timeOf(media);
       const endWindow = Math.max(1, (media.playbackRate || 1) * 2);
@@ -352,8 +404,7 @@ export function createPlayer({getBinding, authorize, selectNext, navigate, onSta
   function retire(scope) {
     scope.retired = true;
     invalidate(scope);
-    for (const [type, listener] of scope.listeners) scope.media.removeEventListener(type, listener);
-    scope.listeners.clear();
+    for (const remove of scope.listeners.splice(0)) remove();
     if (scope.pending) settleSeek(scope, false, 'media-binding-changed');
   }
 
@@ -364,7 +415,7 @@ export function createPlayer({getBinding, authorize, selectNext, navigate, onSta
     if (binding?.media && getBinding?.() === binding) {
       const media = binding.media;
       current = {
-        binding, media, listeners: new Map(), revision: 0, mediaRevision: 0, previous: timeOf(media),
+        binding, media, listeners: [], revision: 0, mediaRevision: 0, previous: timeOf(media),
         wasPaused: media.paused, startup: !media.paused && timeOf(media) !== null && timeOf(media) < 0.75,
         intervals: {}, skipped: {}, hold: {intro: null, outro: null}, landing: null, denied: false, inspection: null,
       };

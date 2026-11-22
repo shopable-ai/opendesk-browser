@@ -39,6 +39,22 @@ function entry(link) {
 const entries = '.n-media-list app-media-button a.media-button';
 const unavailable = reason => ({state: 'unavailable', reason});
 
+// iYF's HLS player can move a cold seek from just before a segment to
+// just inside it. A nearby position alone does not establish that correction.
+export function isIyfBufferNudge(media, target, position) {
+  if (!(position > target && position - target <= 0.25)) return false;
+  try {
+    const ranges = media.buffered;
+    let atSegmentStart = false;
+    for (let i = 0; i < ranges.length; i++) {
+      const start = ranges.start(i), end = ranges.end(i);
+      if (start <= target && target < end) return false;
+      if (target < start && start <= position && position < end && position - start <= 0.1) atSegmentStart = true;
+    }
+    return atSegmentStart;
+  } catch { return false; }
+}
+
 export function identifyIyfPlayer(doc, href, previous) {
   const current = route(href);
   const info = only(doc, 'app-video-info .video-detail');

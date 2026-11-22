@@ -14,6 +14,9 @@
 <div id="od-watch-preview" class="viz-dotted-background">
   <aside id="od-sidebar" class="od-sidebar" aria-label="连播助手侧栏"></aside>
   <p class="od-preview-disclaimer">离线侧栏预览 · 未连接实际视频</p>
+  <nav class="od-preview-disclaimer" aria-label="连播演示场景">
+    <a href="?site=assistant" data-next-demo="assistant">助手连播</a> · <a href="?site=iyf" data-next-demo="iyf">iYF 接管</a>
+  </nav>
 </div>
 <style>
 
@@ -340,7 +343,7 @@ html,body{background:#f2f5fa}
 
 /* R5: visual semantics are independent of save/dirty/toggle state.
    Editable positions are colorful filled thumbs, including ghost suggestions;
-   00:00 and End are fixed-reference hollow thumbs. */
+   00:00 and End use hollow thumbs but can also be dragged. */
 #od-watch-preview .od-dual-range.od-movable::-webkit-slider-thumb,
 #od-watch-preview .od-dual-range.od-movable.od-empty::-webkit-slider-thumb{
   background:#4269e0!important;border:2px solid #4269e0!important;
@@ -361,11 +364,6 @@ html,body{background:#f2f5fa}
 #od-watch-preview .od-dual-range.od-bound-start::-moz-range-thumb{background:#fff!important;border-color:#4269e0!important;}
 #od-watch-preview .od-dual-range.od-bound-end::-webkit-slider-thumb,
 #od-watch-preview .od-dual-range.od-bound-end::-moz-range-thumb{background:#fff!important;border-color:#1189ac!important;}
-/* Default 00:00 / End slider anchors are fixed; numeric fields can override their modes. */
-#od-watch-preview .od-dual-range:is(.od-bound-start,.od-bound-end)::-webkit-slider-thumb,
-#od-watch-preview .od-dual-range:is(.od-bound-start,.od-bound-end)::-moz-range-thumb{
- pointer-events:none!important;cursor:default!important;
-}
 /* Disabling automatic skipping does not disable editing its endpoints. */
 #od-watch-preview .od-time-section:has(.od-toggle-couple input:not(:checked)) .od-dual-range:not(.od-active-point){opacity:1;}
 #od-watch-preview .od-window-preference{
@@ -560,7 +558,8 @@ html,body{background:#f2f5fa}
 <script>
 /* Local interaction simulator only. No browser-extension or website APIs. The demo has a verified single-series identity; a real adapter must only use series-wide saving after identity is confirmed. */
 class ContinuityModel {
-  constructor() {
+  constructor({siteHandlesNext=false}={}) {
+    this.siteHandlesNext = siteHandlesNext;
     this._bases = {};
     this._restored = new Set();
     this._manualPasses = [];
@@ -891,6 +890,7 @@ class ContinuityModel {
   openPanel() {this.s.closed=false;return true;}
   _finish(manualEnding=false) {
     if(manualEnding){this.s.playing=false;this.s.pending=null;this._notice('手动观看已到结尾，未自动换集。','warning');return;}
+    if(this.siteHandlesNext){this.s.playing=false;this.s.pending=null;this._notice('模拟本集结束；由 iYF 处理下一集。');return;}
     if(!this.effective().autoNext||this.s.dirty){this.s.playing=false;this.s.pending=null;this._notice(this.s.dirty?'模拟本集结束；未保存草稿保留，不执行积压动作。':'模拟本集结束，自动下一集已关闭。');return;}
     if(this.r10?.context?.issueCode==='NEXT_NOT_FOUND'){
      this.s.playing=false;this.s.pending=null;
@@ -1200,7 +1200,9 @@ ContinuityModel.prototype.setDuration=function(n){
 (function(){
 'use strict';
 const root=document.getElementById('od-watch-preview');if(!root)return;
-const model=new ContinuityModel();
+const siteHandlesNext = new URLSearchParams(location.search).get('site') === 'iyf';
+root.querySelector('[data-next-demo="'+(siteHandlesNext?'iyf':'assistant')+'"]').setAttribute('aria-current','page');
+const model=new ContinuityModel({siteHandlesNext});
 const q=s=>root.querySelector(s),all=s=>Array.from(root.querySelectorAll(s));
 const names={intro:'片头',outro:'片尾'};
 const ui={selected:{intro:'end',outro:'start'},activeKey:'intro',spanPref:'auto',windows:{},raw:{},rendering:false,dragging:null,savedContext:null,actionsHost:null,actionsSignature:'',r10Open:false,feedbackOpen:false,feedbackNote:'',feedbackPayload:''};
@@ -1284,8 +1286,6 @@ function identityHTML(){
   '<div id="od-identity-detail" class="od-identity-detail">'+esc(x.detail)+'</div></div>';
 }
 function constrainHandle(key,part,n){
- // Bound 00:00 / End are reference anchors; customize them in the text boxes.
- if(followsVideoStart(key,part)||followsVideoEnd(key,part))return null;
  const w=windowFor(key),other=value(key,part==='start'?'end':'start');let lo=w[0],hi=w[1];
  if(part==='start'&&Number.isFinite(other))hi=Math.min(hi,other-1);
  if(part==='end'&&Number.isFinite(other))lo=Math.max(lo,other+1);
@@ -1317,7 +1317,7 @@ function trackHTML(key){
  return `<div class="od-dual-track ${near?'od-near':''} ${reverse?'od-inverted':''}" data-track="${key}"><span class="od-dual-line" aria-hidden="true"></span>${['start','end'].map(part=>{
   const n=value(key,part), shown=visualTime(key,part),set=Number.isFinite(n)&&!disabled&&!followsVideoEnd(key,part);
   const bound=followsVideoEnd(key,part),fixedStart=followsVideoStart(key,part),movable=!disabled&&!bound&&!fixedStart&&Number.isFinite(shown);
-  return `<input id="od-range-${key}-${part}" class="od-dual-range ${set?'od-set':'od-empty'} ${bound?'od-bound-end':''} ${fixedStart?'od-bound-start':''} ${movable?'od-movable':''} ${ui.activeKey===key&&ui.selected[key]===part?'od-active-point':''}" type="range" data-interval-key="${key}" data-endpoint="${part}" min="${w[0]}" max="${w[1]}" step="1" value="${Number.isFinite(shown)?shown:part==='start'?w[0]:w[1]}" ${disabled?'disabled':''} ${bound||fixedStart?'tabindex="-1" aria-disabled="true"':'aria-disabled="false"'} aria-label="${names[key]}${part==='start'?'开始':'结束'}时间拖动手柄" aria-valuetext="${disabled?'时长未知':bound?'视频结尾，跟随时长':fixedStart?'00:00，绑定视频起点':set?fmt(n):Number.isFinite(shown)?'建议位置 '+fmt(shown)+'，尚未设置':'未设置'}" aria-describedby="od-window-label-${key} od-error-${key}">`;
+  return `<input id="od-range-${key}-${part}" class="od-dual-range ${set?'od-set':'od-empty'} ${bound?'od-bound-end':''} ${fixedStart?'od-bound-start':''} ${movable?'od-movable':''} ${ui.activeKey===key&&ui.selected[key]===part?'od-active-point':''}" type="range" data-interval-key="${key}" data-endpoint="${part}" min="${w[0]}" max="${w[1]}" step="1" value="${Number.isFinite(shown)?shown:part==='start'?w[0]:w[1]}" ${disabled?'disabled':''} aria-disabled="${disabled}" aria-label="${names[key]}${part==='start'?'开始':'结束'}时间拖动手柄" aria-valuetext="${disabled?'时长未知':bound?'视频结尾，跟随时长':fixedStart?'00:00，绑定视频起点':set?fmt(n):Number.isFinite(shown)?'建议位置 '+fmt(shown)+'，尚未设置':'未设置'}" aria-describedby="od-window-label-${key} od-error-${key}">`;
  }).join('')}</div>`;
 }
 function rowHTML(key){
@@ -1450,7 +1450,7 @@ function transitionHTML(){const t=model.s.transition;return t?`<div class="od-tr
 function sidebarHTML(){
  const s=model.s,v=validation();
  if(s.closed)return '<div class="od-closed"><span>连播助手已收起</span><button id="od-open" type="button" data-action="open">打开设置</button></div>'+statusHTML();
- return `<header class="od-header"><div class="od-identity-row">${identityHTML()}</div></header><div class="od-rows">${rowHTML('intro')}${rowHTML('outro')}<div class="od-auto"><label for="od-auto-next">自动下一集</label>${Object.prototype.hasOwnProperty.call(s.overrides[model.identity()]||{},'autoNext')?'<span class="od-exception">本集例外</span>':''}<label class="od-switch"><input id="od-auto-next" type="checkbox" data-toggle="autoNext" ${s.draft.autoNext?'checked':''} aria-label="自动下一集"></label></div>${restoreAction('autoNext')?`<div class="od-auto-restore">${restoreAction('autoNext')}</div>`:''}${viewportHTML()}</div><footer class="od-save-zone"><div id="od-unsaved-line" class="od-unsaved-line" ${s.dirty?'':'hidden'}><span>尚未保存的修改</span><button id="od-cancel" type="button" data-action="cancel" aria-label="放弃本次修改，恢复上次保存的设置">放弃修改</button></div><div class="od-save-actions"><button id="od-save" type="button" class="od-primary" data-action="save" ${s.dirty&&v.valid?'':'disabled'}>保存设置</button></div></footer>${statusHTML()}${feedbackPanelHTML()}${transitionHTML()}`;
+ return `<header class="od-header"><div class="od-identity-row">${identityHTML()}</div></header><div class="od-rows">${rowHTML('intro')}${rowHTML('outro')}<div class="od-auto"><label for="od-auto-next">自动下一集</label>${!siteHandlesNext&&Object.prototype.hasOwnProperty.call(s.overrides[model.identity()]||{},'autoNext')?'<span class="od-exception">本集例外</span>':''}<label class="od-switch"><input id="od-auto-next" type="checkbox" data-toggle="autoNext" ${!siteHandlesNext&&s.draft.autoNext?'checked':''} ${siteHandlesNext?'disabled aria-describedby="od-next-site-note"':''} aria-label="自动下一集"></label></div>${siteHandlesNext?'<p id="od-next-site-note" class="od-preview-disclaimer">由 iYF 处理下一集，助手不会重复切集。</p>':''}${!siteHandlesNext&&restoreAction('autoNext')?`<div class="od-auto-restore">${restoreAction('autoNext')}</div>`:''}${viewportHTML()}</div><footer class="od-save-zone"><div id="od-unsaved-line" class="od-unsaved-line" ${s.dirty?'':'hidden'}><span>尚未保存的修改</span><button id="od-cancel" type="button" data-action="cancel" aria-label="放弃本次修改，恢复上次保存的设置">放弃修改</button></div><div class="od-save-actions"><button id="od-save" type="button" class="od-primary" data-action="save" ${s.dirty&&v.valid?'':'disabled'}>保存设置</button></div></footer>${statusHTML()}${feedbackPanelHTML()}${transitionHTML()}`;
 }
 function syncStatus(){
  const s=model.s,v=validation(),host=q('#od-status'),issue=feedbackIssue();if(!host)return;let text='',kind='',actions=[];
@@ -1494,7 +1494,7 @@ function syncRow(key,origin){
  all(`[data-interval-key="${key}"]`).forEach(el=>{
   const part=el.dataset.endpoint,n=value(key,part),shown=visualTime(key,part),bound=followsVideoEnd(key,part),fixedStart=followsVideoStart(key,part),set=Number.isFinite(n)&&!disabled&&!bound;
   el.min=w[0];el.max=w[1];if(el!==origin)el.value=Number.isFinite(shown)?shown:part==='start'?w[0]:w[1];
-  el.disabled=disabled;el.tabIndex=bound||fixedStart?-1:0;el.setAttribute('aria-disabled',String(disabled||bound||fixedStart));el.classList.toggle('od-empty',!set);el.classList.toggle('od-set',set);el.classList.toggle('od-bound-end',bound);el.classList.toggle('od-bound-start',fixedStart);el.classList.toggle('od-movable',!disabled&&!bound&&!fixedStart&&Number.isFinite(shown));
+  el.disabled=disabled;el.setAttribute('aria-disabled',String(disabled));el.classList.toggle('od-empty',!set);el.classList.toggle('od-set',set);el.classList.toggle('od-bound-end',bound);el.classList.toggle('od-bound-start',fixedStart);el.classList.toggle('od-movable',!disabled&&!bound&&!fixedStart&&Number.isFinite(shown));
   el.setAttribute('aria-valuetext',disabled?'时长未知':bound?'视频结尾，跟随时长':fixedStart?'00:00，绑定视频起点':set?fmt(n):Number.isFinite(shown)?'建议位置 '+fmt(shown)+'，尚未设置':'未设置');
  });
  const track=q('[data-track="'+key+'"]'),a=value(key,'start'),b=value(key,'end'),x=visualTime(key,'start'),y=visualTime(key,'end');
@@ -1574,7 +1574,6 @@ root.addEventListener('input',event=>{
  }
  if(el.dataset.timeKey){const key=el.dataset.timeKey,part=el.dataset.timePart;ui.raw[el.id]=el.value;setEndpoint(key,part,parseField(key,part,el.value));ui.savedContext=null;selectPoint(key,part);syncRow(key,el);return;}
  if(el.dataset.intervalKey){const key=el.dataset.intervalKey,part=el.dataset.endpoint;
-  if(followsVideoStart(key,part)||followsVideoEnd(key,part)){el.value=value(key,part);return;}
   const intended=Number(el.value),n=constrainHandle(key,part,intended);if(n===null){el.value=Number.isFinite(value(key,part))?value(key,part):windowFor(key)[part==='start'?0:1];return;}el.value=n;setEndpoint(key,part,n,intended);clearRaw(key,part);ui.savedContext=null;selectPoint(key,part);syncRow(key,el);}
 });
 root.addEventListener('change',event=>{
@@ -1584,15 +1583,10 @@ root.addEventListener('change',event=>{
 });
 // Keep selection stable during Tab navigation; only explicit editing activates an endpoint.
 root.addEventListener('pointerdown',event=>{const el=event.target,key=el.dataset.timeKey||el.dataset.intervalKey;if(key&&!el.disabled){
-  if(el.dataset.intervalKey&&(followsVideoStart(key,el.dataset.endpoint)||followsVideoEnd(key,el.dataset.endpoint)))return;
   if(el.dataset.intervalKey)ui.dragging=key;selectPoint(key,el.dataset.timePart||el.dataset.endpoint);}});
 root.addEventListener('pointerup',()=>{ui.dragging=null;});
 root.addEventListener('keydown',event=>{
  const el=event.target,key=el.dataset.timeKey||el.dataset.intervalKey;if(!key||el.disabled)return;
- if(el.dataset.intervalKey&&(followsVideoStart(key,el.dataset.endpoint)||followsVideoEnd(key,el.dataset.endpoint))){
-  if(['ArrowLeft','ArrowRight','ArrowUp','ArrowDown','Home','End'].includes(event.key))event.preventDefault();
-  return;
- }
  if(event.key==='Enter'){event.preventDefault();selectPoint(key,el.dataset.timePart||el.dataset.endpoint);if(el.dataset.timeKey)commitInput(el);return;}
  if(!['ArrowLeft','ArrowRight','ArrowUp','ArrowDown'].includes(event.key)||(el.dataset.timeKey&&['ArrowLeft','ArrowRight'].includes(event.key)))return;
  event.preventDefault();const part=el.dataset.timePart||el.dataset.endpoint,step=['ArrowUp','ArrowRight'].includes(event.key)?1:-1,w=windowFor(key),base=Number.isFinite(value(key,part))?value(key,part):Number.isFinite(visualTime(key,part))?visualTime(key,part):part==='start'?w[0]:w[1];

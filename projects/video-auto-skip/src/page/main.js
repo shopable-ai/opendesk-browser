@@ -1,6 +1,6 @@
 import {createPageUI} from '@opendesk/ui';
-import {cleanRules, readScope, resolveRules, RULES_KEY, saveScope, updateScope, validateRules} from '../rules.js';
-import {createIyfReader, isIyfPage, iyfMediaSelector, nextIyfEpisode} from './iyf-player.js';
+import {cleanRules, readScope, resolveRules, RULES_KEY, saveScope, updateScope, validateRuleChange} from '../rules.js';
+import {createIyfReader, isIyfBufferNudge, isIyfPage, iyfMediaSelector, nextIyfEpisode} from './iyf-player.js';
 import {identifyLocalPlayer, nextLocalEpisode} from './local-player.js';
 import {createNextReceipt} from './next-receipt.js';
 import {createPlayer} from './player.js';
@@ -29,6 +29,8 @@ export default function main({assets} = {}) {
   const selectNext = iyf ? nextIyfEpisode : nextLocalEpisode;
   const player = createPlayer({
     getBinding: () => isCurrent(binding) ? binding : null,
+    acceptBufferNudge: iyf ? isIyfBufferNudge : undefined,
+    onOutroDecision: entry => console.debug('[连播助手][片尾]', JSON.stringify(entry)),
     onStatus({state, action}) {
       if (state !== 'ready' || action?.state !== 'confirmed' ||
           (action.kind !== 'intro' && action.kind !== 'outro') || action.id === lastNotifiedSkip) return;
@@ -39,7 +41,11 @@ export default function main({assets} = {}) {
       if (writingRules || !isCurrent(own)) return null;
       // The app bridge checks the live installation, permission and precise document on each read.
       const {value} = await bridge.storage.get({key: RULES_KEY});
-      return !writingRules && binding === own && isCurrent(own) ? resolveRules(cleanRules(value), own.context) : null;
+      if (writingRules || binding !== own || !isCurrent(own)) return null;
+      const data = cleanRules(value);
+      const rules = resolveRules(data, own.context);
+      return {...rules, outroSource: Object.hasOwn(readScope(data, own.context, 'episode'), 'outro') ? 'episode' :
+        Object.hasOwn(rules, 'outro') ? 'series' : 'none'};
     },
     selectNext,
     async navigate(own, target, canDispatch) {
@@ -105,14 +111,7 @@ export default function main({assets} = {}) {
       let next;
       try { next = updateScope(saved, own.context, scope, rules); }
       catch { return {state: 'invalid'}; }
-      const existing = readScope(saved, own.context, scope);
-      const updated = readScope(next, own.context, scope);
-      const oldEffective = resolveRules(saved, own.context);
-      const effective = resolveRules(next, own.context);
-      const timed = ['intro', 'outro'];
-      const changed = (a, b, key) => JSON.stringify(a[key]) !== JSON.stringify(b[key]);
-      if ((scope === 'series' && timed.some(key => updated[key] && changed(existing, updated, key)) && validateRules(updated, own.media.duration)) ||
-          (timed.some(key => effective[key] && changed(oldEffective, effective, key)) && validateRules(effective, own.media.duration))) {
+      if (validateRuleChange(saved, next, own.context, scope, own.media.duration)) {
         return {state: 'invalid'};
       }
       return await bridge.storage.set({key: RULES_KEY, value: next, ifMatch});

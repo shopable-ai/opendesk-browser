@@ -177,7 +177,8 @@ export function configureDevelopment(wxt,server) {
     const official=!task&&(input===resolve(wxt.config.root,OFFICIAL_CATALOG_PATH)||
       input.startsWith(toolRoot+'/')||input.startsWith(projectRoot+'/'));
     const page=input===resolve(wxt.config.root,OFFICIAL_PAGE_SOURCE_PATH)||
-      input.endsWith('.opendesk-page.json')&&[toolRoot,projectRoot,programRoot].some(root=>input.startsWith(root+'/'));
+      input.startsWith(pageRoot+'/preinstalled/')&&input.endsWith('/release.json')||
+      input.endsWith('.opendesk-page.json')&&[toolRoot,projectRoot,programRoot,pageRoot].some(root=>input.startsWith(root+'/'));
     if(!dest&&!style&&!official&&!page)return;
     const version=++changeId;sourceVersions.set(input,version);
     const errorKey=page?'official-pages':official?'official':input;

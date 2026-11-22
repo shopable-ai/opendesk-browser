@@ -174,6 +174,8 @@ for(const [label,path,value,pass] of [
   ['unrelated update','README.md','raced\n',true],
   ['other Program update',catalogPath,catalog(row,'raced'),true],
   ['changed Broker','src/platform/host/broker.js','raced\n',false],
+
+  ['updated preinstall approval','official-pages/preinstalled/opendesk.ai-scroll-navigation/release.json','{}',false],
   ['same package from another publisher',packagePath,pkg,true]
 ]){
   test(`push retry handles ${label}`,t=>{

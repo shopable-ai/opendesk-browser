@@ -111,3 +111,19 @@ export function validateRules(rules, duration) {
       (a.end === b.start || b.end === a.start)) return '片头和片尾合计会跳过整集。';
   return null;
 }
+
+// Removing an exception reveals existing data; it does not author or validate it again.
+export function validateRuleChange(before, after, context, scope, duration) {
+  const previous = readScope(before, context, scope);
+  const updated = readScope(after, context, scope);
+  const authored = ['intro', 'outro'].filter(key => isEnabled(updated[key]) &&
+    JSON.stringify(updated[key]) !== JSON.stringify(previous[key]));
+  if (!authored.length) return null;
+  if (scope !== 'episode') {
+    const problem = validateRules(readScope(after, context, 'series'), duration);
+    if (problem) return problem;
+  }
+  const episode = readScope(after, context, 'episode');
+  return authored.some(key => scope === 'episode' || !Object.hasOwn(episode, key))
+    ? validateRules(resolveRules(after, context), duration) : null;
+}

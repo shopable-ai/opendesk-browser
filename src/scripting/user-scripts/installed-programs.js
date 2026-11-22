@@ -2098,12 +2098,13 @@ export function createInstalledPagePrograms({api,storage,assertHost,dependencies
         'E_REQUEST_CONFLICT','网页模块的固定 Revision 已用于其他源码或规则；请使用新 Revision 重新打包，原安装与数据未改变');
       assertBuiltinIdentity(candidate.builtinIdentity,builtinIdentity(await loadBuiltin({runtime:api.runtime})));
     });
-    if(!await deferrableNativeAPI()){
-      const previous=await read(tx=>tx.get(PAGE_STORE,key(INSTALL_KEY_KIND,namespace,pkg.programId)));
-      // An older bootstrap which may have run must still pass native revocation
-      // before replacement. A companion that never dispatched needs no such step.
-      invariant(!previous||previous.nativeState==='waiting-user-scripts'||
-        previous.tag===PAGE_UNINSTALL_TAG&&previous.nativeState==='disabled',
+    const previous=await read(tx=>tx.get(PAGE_STORE,key(INSTALL_KEY_KIND,namespace,pkg.programId)));
+    // An older bootstrap which may have run must still pass native revocation
+    // before replacement. The reviewed fixed source never needs to register.
+    const noNativeCleanup=!previous||previous.nativeState==='waiting-user-scripts'||
+      previous.tag===PAGE_UNINSTALL_TAG&&previous.nativeState==='disabled';
+    if(!(noNativeCleanup&&usesFixedSendQueue(tool.id,pkg))&&!await deferrableNativeAPI()){
+      invariant(noNativeCleanup,
         'E_APP_PAGE_REVOCATION_REQUIRES_USER_SCRIPTS','请先开启「允许用户脚本」，以核对旧版网页功能已撤销');
     }
     return {status:'prepared',toolId:tool.id,packageHash:await sidebarToolPackageHash(tool),programId:pkg.programId,sourceHash:pkg.sourceHash};

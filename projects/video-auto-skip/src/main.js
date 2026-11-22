@@ -1,5 +1,5 @@
-import {EMPTY, cleanRules, isEnabled, resolveInterval, resolveRules, readScope, RULES_KEY, saveScope, updateScope, validateRules} from './rules.js';
-import {blankTiming, buildTimeEditor, changeEndpoint, clearTimeIntent, endpointsFor, formatTime as time, recommendedSpan, tailMatchStatus, timeIssue, VIEWPORT_STOPS} from './editor.js';
+import {EMPTY, cleanRules, isEnabled, resolveInterval, resolveRules, readScope, RULES_KEY, saveScope, updateScope, validateRuleChange, validateRules} from './rules.js';
+import {blankTiming, buildTimeEditor, changeEndpoint, clearTimeIntent, endpointsFor, formatTime as time, outroInterval, recommendedSpan, tailMatchStatus, timeIssue, VIEWPORT_STOPS} from './editor.js';
 import {bindI18n, localizeIssue, t, translateStatic} from './i18n.js';
 
 const KEYS = ['intro', 'outro', 'next'];
@@ -19,8 +19,9 @@ const sameDraftTarget = (a, b) => sameTarget(a, b) || ready(a) && ready(b) &&
   typeof a.draftTarget === 'string' && Boolean(a.draftTarget) && a.draftTarget === b.draftTarget &&
   a.context.seriesKey === b.context.seriesKey && a.context.episodeKey === b.context.episodeKey && a.context.line === b.context.line;
 const sameMedia = (a, b) => sameTarget(a, b) && a.media?.revision === b.media?.revision && durationOf(a) === durationOf(b);
-const sameRule = (a, b) => a === b || Boolean(a && b && a.kind === b.kind &&
-  a.start === b.start && a.end === b.end && a.seconds === b.seconds && a.enabled === b.enabled);
+const sameTiming = (a, b) => a === b || Boolean(a && b && a.kind === b.kind &&
+  a.start === b.start && a.end === b.end && a.seconds === b.seconds);
+const sameRule = (a, b) => sameTiming(a, b) && a?.enabled === b?.enabled;
 const code = error => typeof error?.code === 'string' ? error.code : '';
 const safeText = value => typeof value === 'string' ? value.replace(/(?:[a-z]+:\/\/|(?:data|blob):|\/\/)[^\s]+/gi, '').trim().slice(0, 120) : '';
 
@@ -74,6 +75,18 @@ export function mountVideoSidebar(tool) {
   const selected = key => scope === 'episode' && !Object.hasOwn(draft, key) ? storedDefault(key) : draft[key];
   const original = key => scope === 'episode' && !Object.hasOwn(baseline, key) ? storedDefault(key) : baseline[key];
   const timing = key => selected(key) ?? blankTiming(key);
+  const unusableSavedOutro = () => {
+    const rule = selected('outro'), d = durationOf(lastLinked);
+    return Boolean(d && rule && (sameTiming(rule, original('outro')) ||
+      scope === 'episode' && !Object.hasOwn(draft, 'outro')) && !outroInterval(rule, d));
+  };
+  const editorTiming = key => key === 'outro' && unusableSavedOutro() ? blankTiming(key) : timing(key);
+  const reusableOutro = () => {
+    const rule = selected('outro');
+    if (!ready(snapshot) || rule?.kind !== 'fixed' || !unusableSavedOutro()) return;
+    const tail = {kind: 'tail', seconds: rule.end - rule.start, ...(rule.enabled === false ? {enabled: false} : {})};
+    if (!timeIssue(tail, lastSecond())) return tail;
+  };
   // An unset interval is ready to configure; only a valid saved interval can run.
   const timingOn = rule => rule === undefined || isEnabled(rule);
   const iyfNext = () => snapshot?.context?.seriesKey?.startsWith('iyf:');
@@ -91,14 +104,14 @@ export function mountVideoSidebar(tool) {
     toggle.setAttribute('role', 'switch');
     const summary = el('p', 'vas-note');
     summary.id = 'vas-summary-' + key;
-    toggle.setAttribute('aria-describedby', summary.id);
+    toggle.setAttribute('aria-describedby', key === 'outro' ? 'vas-tail-match' : summary.id);
     const restore = button(t('restoreInherited'));
     restore.id = 'vas-restore-' + key;
     restore.setAttribute('aria-label', t('restoreRuleAria', {rule: t(NAMES[key])}));
     const source = el('div', 'vas-source');
     source.append(summary, restore);
     head.append(title);
-    if (key !== 'next') head.append(el('label', 'vas-toggle-label', t('autoSkip')));
+    if (key !== 'next') head.append(el('label', 'vas-toggle-label', key === 'outro' ? '启用规则' : t('autoSkip')));
     if (key !== 'next') head.lastElementChild.htmlFor = toggle.id;
     head.append(toggle);
     row.append(head);
@@ -106,6 +119,13 @@ export function mountVideoSidebar(tool) {
       template: find('time-track'), calibrationHost: find('calibrations'), canEdit: () => editingAllowed() && lastSecond() > 0,
       onEdit: (part, value) => setTime(key, part, value),
       onClear: part => clearTime(key, part),
+      onMatch: () => {
+        if (!editingAllowed()) return;
+        const rule = reusableOutro();
+        if (!rule) return;
+        draft.outro = rule;
+        render();
+      },
       onMark: part => void mark(key, part), onPreview: () => void previewRule(key)});
     row.append(source);
     toggle.addEventListener('change', () => {
@@ -137,7 +157,7 @@ export function mountVideoSidebar(tool) {
 
   // Only inputs and explicit position markers call this. Neither changes the player or storage.
   function setTime(key, part, value) {
-    const d = lastSecond(), old = timing(key);
+    const d = lastSecond(), old = editorTiming(key);
     if (!d) return;
     const wantEndBinding = key === 'outro' && part === 'end' && (value === d || value === undefined);
     if (value === endpointsFor(old, d)[part] && !(wantEndBinding && old.kind !== 'tail')) {
@@ -155,9 +175,6 @@ export function mountVideoSidebar(tool) {
     render();
   }
 
-  // Clear is an explicit draft action; keyboard text deletion may be temporary while retyping.
-  // Removing an editable boundary unsets that rule. An inherited season rule needs an
-  // explicit local null override, otherwise clearing it would silently restore inheritance.
   function clearTime(key, part) {
     if (!editingAllowed() || !lastSecond()) return;
     const intent = clearTimeIntent(key, part);
@@ -165,7 +182,7 @@ export function mountVideoSidebar(tool) {
       setTime(key, part, intent.value);
       return;
     }
-    if (scope === 'episode' && storedDefault(key) !== undefined) draft[key] = null;
+    if (key !== 'outro' && scope === 'episode' && storedDefault(key) !== undefined) draft[key] = null;
     else delete draft[key];
     render();
   }
@@ -186,32 +203,23 @@ export function mountVideoSidebar(tool) {
   function validate(snap = snapshot, data = storage?.data) {
     if (!data || !ready(snap)) return t('unknownMedia');
     const d = durationOf(snap);
-    const before = resolveRules(data, snap.context);
     const oldScope = readScope(data, snap.context, scope);
     const changed = ['intro', 'outro'].filter(key => !sameRule(draft[key], oldScope[key]));
     const fieldIssue = changed.map(key => editorIssue(key, snap)).find(Boolean);
     if (fieldIssue) return fieldIssue;
-    if (scope === 'series' && changed.some(key => draft[key])) {
-      const problem = validateRules(draft, d);
-      if (problem) return problem;
-    }
     let candidate;
     try { candidate = updateScope(data, snap.context, scope, draft); }
     catch { return t('invalidTime'); }
-    const effective = resolveRules(candidate, snap.context);
-    return changed.some(key => effective[key] && !sameRule(effective[key], before[key]))
-      ? validateRules(effective, d) : null;
+    return validateRuleChange(data, candidate, snap.context, scope, d);
   }
 
-  function caption(rule, key, d) {
+  function caption(rule, key) {
     if (rule === undefined) return t('summaryUnset');
     if (rule === null || rule === false) return t('summaryDisabled');
     if (key === 'next') return t('summaryNextOn');
     if (rule.kind === 'tail') {
       if (!present(rule.seconds)) return t('summaryTimeMissing');
-      const interval = d && rule.seconds > 0 && rule.seconds < d ?
-        ' · ' + time(d - rule.seconds) + '–End (' + time(d) + ')' : '';
-      return t('summaryLastSeconds', {seconds: rule.seconds, interval});
+      return t('summaryLastSeconds', {seconds: rule.seconds, interval: ''});
     }
     return present(rule.start) && present(rule.end) ? time(rule.start) + '–' + time(rule.end) : t('summaryTimeMissing');
   }
@@ -301,26 +309,33 @@ export function mountVideoSidebar(tool) {
     find('scope-help').textContent = !lastLinked ? '' : t(scope === 'series' ? 'scopeSeriesHelp' : 'scopeEpisodeHelp');
     find('scope-help').classList.toggle('vas-sr', !hasEdits);
     const active = lastLinked && storage ? resolveRules(storage.data, c) : {};
+    const hasEpisodeOutro = Boolean(lastLinked && storage && Object.hasOwn(readScope(storage.data, c, 'episode'), 'outro'));
     for (const key of KEYS) {
       const {toggle, summary, restore} = rows[key];
       const raw = draft[key], effective = selected(key), siteHandlesNext = key === 'next' && iyf;
       toggle.checked = !siteHandlesNext && (key === 'next' ? isEnabled(effective) : timingOn(effective));
       toggle.disabled = !allowed || siteHandlesNext;
-      const source = scope === 'episode' ? t(raw === undefined ? 'summaryInherited' : 'summaryOverride') : '';
-      const proposed = source + (lastLinked ? caption(effective, key, d) : t('summaryPendingWork'));
+      const unusable = key === 'outro' && unusableSavedOutro();
+      const reusable = unusable ? reusableOutro() : undefined;
+      const source = scope === 'episode' ? (raw === undefined ? (unusable ? '作品默认 · ' : t('summaryInherited')) : t('summaryOverride')) : '';
+      const proposed = source + (lastLinked ? caption(effective, key) : t('summaryPendingWork')) + (unusable ? '（当前视频未采用）' : '');
       const changed = !sameRule(raw, baseline[key]);
-      const message = siteHandlesNext ? t('summaryIyfNext') : changed ?
-        t('summaryUnsaved', {proposed, status: t(bound ? 'summaryActive' : 'savedShort'),
-          saved: caption(active[key], key, d)}) : proposed;
+      const activeOutroUnavailable = key === 'outro' && bound && d && isEnabled(active[key]) && !outroInterval(active[key], d);
+      const message = siteHandlesNext ? t('summaryIyfNext') : changed
+        ? t('summaryUnsaved', {proposed, status: t(bound && !activeOutroUnavailable ? 'summaryActive' : 'savedShort'),
+          saved: caption(active[key], key) + (activeOutroUnavailable ? '（当前视频未采用）' : '')}) : proposed;
       if (summary.textContent !== message) summary.textContent = message;
-      summary.classList.toggle('vas-sr', !siteHandlesNext && !(scope === 'episode' && (raw !== undefined || effective !== undefined)) &&
-        !(changed && active[key] !== undefined));
+      // Keep the effective rule available to assistive technology. Show source details when
+      // there is an exception, a site restriction, or a draft differs from a saved rule.
+      summary.classList.toggle('vas-sr', key === 'outro' ? !unusable && !changed :
+        !siteHandlesNext && !(scope === 'episode' && (raw !== undefined || effective !== undefined)) && !(changed && active[key] !== undefined));
       restore.hidden = siteHandlesNext || scope !== 'episode' || raw === undefined;
       restore.disabled = !allowed;
-      editors[key]?.render({rule: timing(key), lastSecond: dSeconds, allowed, span,
-        issue: editorIssue(key, lastLinked), canMark: present(player?.time), canPreview: canSeek() && previewPosition(key, snapshot).valid,
-        match: key === 'outro' ? tailMatchStatus({rule: timing(key), saved: scope === 'episode' ? active[key] : baseline[key],
-          duration: lastSecond(), changed, reusable: scope === 'series', inherited: scope === 'episode' && raw === undefined}) : undefined});
+      editors[key]?.render({rule: editorTiming(key), lastSecond: dSeconds, allowed, span,
+        issue: editorIssue(key, lastLinked), canMark: present(player?.time), canPreview: canSeek() && previewPosition(key, snapshot).valid, reusable,
+        match: key === 'outro' ? tailMatchStatus({rule: effective, duration: durationOf(snapshot), changed, scope,
+          inherited: scope === 'episode' && raw === undefined, overridden: scope === 'series' && hasEpisodeOutro,
+          connected: bound && Boolean(storage), reusable}) : undefined});
     }
     find('save').disabled = !allowed || !hasEdits || Boolean(validation);
     find('save').textContent = busy && pendingWrite ? t('saving') :
@@ -458,7 +473,7 @@ export function mountVideoSidebar(tool) {
       if (ready(snapshot)) reset();
       feedback(() => t(matched ? 'feedbackPriorSaved' : 'feedbackPreviousUncertain'), !matched, true);
     } else if (matched) {
-      reset();
+      reset(attempt.scope);
       saved(() => t('feedbackSaved', {scope: savedRange(attempt.scope)}));
     } else {
       conflict = true;
@@ -531,7 +546,7 @@ export function mountVideoSidebar(tool) {
           return;
         }
         if (isCurrent()) {
-          reset();
+          reset(wasScope);
           saved(() => t('feedbackSaved', {scope: savedRange(wasScope)}));
         } else feedback(() => t('feedbackPriorSaved'));
       } else {
@@ -727,7 +742,7 @@ export function mountVideoSidebar(tool) {
       nodes.toggle.setAttribute('aria-label', t(NAMES[key]));
       nodes.restore.textContent = t('restoreInherited');
       nodes.restore.setAttribute('aria-label', t('restoreRuleAria', {rule: t(NAMES[key])}));
-      if (nodes.autoLabel) nodes.autoLabel.textContent = t('autoSkip');
+      if (nodes.autoLabel) nodes.autoLabel.textContent = key === 'outro' ? '启用规则' : t('autoSkip');
     }
     paintFeedback(); // No new request, save, seek, video refresh, or focus movement.
     render(); // Display-only DOM updates preserve the input draft and playback position.

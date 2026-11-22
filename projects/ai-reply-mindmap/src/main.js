@@ -28,7 +28,7 @@ return async function main({assets}={}) {
     const installedFactory=frameFactory??createInstalledXmindFrameFactory(owner);
     const registry=createAnswerRegistry({document,window,owner,
       css:owner.getAsset('assets/ui.css'),
-      programRevision:{version:'0.2.8',revision:5},
+      programRevision:{version:'0.2.9',revision:6},
       createView:options=>createAnswerView({...options,
         rendererFactory:input=>createXmindFrameRenderer({...input,frameFactory:installedFactory})})});
     owner.onDispose(()=>registry.destroy());

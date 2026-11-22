@@ -1,7 +1,7 @@
 // Copies only explicitly approved, already frozen .opendesk-page.json bytes.
 // No compilation, installation, license override or implicit ID migration.
 import {readFile,realpath,lstat,mkdir,writeFile,rename,rm} from 'node:fs/promises';
-import {resolve,dirname,relative} from 'node:path';
+import {resolve,dirname} from 'node:path';
 import {fileURLToPath,pathToFileURL} from 'node:url';
 import {createHash,randomUUID} from 'node:crypto';
 import {validatePageInstallPackage,PAGE_INSTALL_INPUT_LIMIT} from '../src/scripting/user-scripts/page-install-package.js';
@@ -21,9 +21,10 @@ async function fileAt(path,max){
     fail('资源不是受限的真实普通文件: '+path);
   return readFile(path);
 }
+const parseSources=bytes=>validateOfficialPageSources(JSON.parse(bytes.toString('utf8')));
+const sourceFile=root=>fileAt(resolve(root,OFFICIAL_PAGE_SOURCE_PATH),32768);
 export async function readOfficialPageSources(root=ROOT){
-  root=await realpath(root);
-  return validateOfficialPageSources(JSON.parse((await fileAt(resolve(root,OFFICIAL_PAGE_SOURCE_PATH),32768)).toString('utf8')));
+  return parseSources(await sourceFile(await realpath(root)));
 }
 function exactScope(pkg,row){
   return pkg.programId===row.programId&&pkg.version===row.version&&
@@ -32,51 +33,79 @@ function exactScope(pkg,row){
     ['document_end','document_idle'].includes(pkg.pageRules.runAt)&&pkg.pageRules.world==='USER_SCRIPT'&&
     pkg.pageRules.allFrames===false;
 }
-async function approvedFile(root,row){
-  if(row.programId==='opendesk.ai-reply-mindmap')
+async function approvedInputs(row,read){
+  if(row.programId==='opendesk.ai-reply-mindmap'&&row.publication==='approved')
     fail('XMind 资源再分发许可尚未通过独立生产门禁，禁止晋升正式安装');
-  const directory=resolve(root,row.project);
-  const scrollNavigationProduct=row.programId==='opendesk.ai-scroll-navigation'&&
-    directory===resolve(root,'projects/ai-scroll-navigation');
-  if(await realpath(directory)!==directory||
-    !(directory.startsWith(root+'/examples/programs/')||scrollNavigationProduct))
-    fail('项目目录越过许可的 Page 源码范围');
-  const path=resolve(directory,row.packageFile);
-  if(!path.startsWith(directory+'/'))fail('正式包路径越界');
-  return {path,bytes:await fileAt(path,PAGE_INSTALL_INPUT_LIMIT)};
+  // Project and package paths were checked against the fixed allowlist by parseSources.
+  const projectPath=row.publication==='approved'?row.project+'/'+row.packageFile:null;
+  if(row.installationPolicy!=='preinstalled')return {path:projectPath};
+
+  // Candidate metadata can advance without changing the last approved release.
+  const prefix='official-pages/preinstalled/'+row.programId+'/';
+  const releasePath=prefix+'release.json';
+  const release=JSON.parse((await read(releasePath)).toString('utf8'));
+  if(!release||Object.keys(release).length!==3||typeof release.version!=='string'||
+    !/^(0|[1-9]\d*)\.(0|[1-9]\d*)\.(0|[1-9]\d*)$/.test(release.version)||
+    !Number.isSafeInteger(release.revision)||release.revision<1||typeof release.sha256!=='string'||
+    !/^[a-f0-9]{64}$/.test(release.sha256))fail('已批准预装记录无效: '+row.programId);
+  const {version,revision}=release;
+  const candidate=row.version.split('.').map(BigInt),approved=version.split('.').map(BigInt);
+  const diff=approved.findIndex((part,index)=>part!==candidate[index]);
+  if(projectPath?(version!==row.version||revision!==row.revision):
+    (revision>=row.revision||diff!==-1&&approved[diff]>candidate[diff])){
+    fail('已批准预装版本与候选状态不符: '+row.programId);
+  }
+  return {path:prefix+version+'-r'+revision+'.opendesk-page.json',projectPath,releasePath,release};
 }
+const readInput=(root,path)=>fileAt(resolve(root,path),path.endsWith('.opendesk-page.json')?PAGE_INSTALL_INPUT_LIMIT:32768);
 export async function officialPageInputs(root=ROOT){
   root=await realpath(root);
   const rows=(await readOfficialPageSources(root)).programs;
-  return [OFFICIAL_PAGE_SOURCE_PATH,...await Promise.all(rows.filter(row=>row.publication==='approved')
-    .map(async row=>relative(root,(await approvedFile(root,row)).path)))].sort();
+  const entries=await Promise.all(rows.map(row=>approvedInputs(row,path=>readInput(root,path))));
+  return [OFFICIAL_PAGE_SOURCE_PATH,...entries.flatMap(({path,projectPath,releasePath})=>
+    [path,projectPath,releasePath].filter(Boolean))].sort();
 }
 export async function createOfficialPageResources({root=ROOT}={}){
   root=await realpath(root);
-  const source=await readOfficialPageSources(root);
-  const inputs=await officialPageInputs(root);
-  const before=await Promise.all(inputs.map(async path=>[path,sha(await readFile(resolve(root,path)))]));
+  const sourceBytes=await sourceFile(root),source=parseSources(sourceBytes);
+  const inputs=new Map([[OFFICIAL_PAGE_SOURCE_PATH,sha(sourceBytes)]]);
+  const read=async path=>{
+    const bytes=await readInput(root,path);
+    inputs.set(path,sha(bytes));
+    return bytes;
+  };
   const resources=new Map(),apps=[];
   for(const row of source.programs){
     const descriptor={programId:row.programId,kind:'page-program',version:row.version,revision:row.revision,
       title:row.title,description:row.description,sites:row.sites,
       installationPolicy:row.installationPolicy};
-    if(row.publication==='blocked'){
+    const {path,projectPath,release}=await approvedInputs(row,read);
+    if(!path){
       apps.push({...descriptor,status:'blocked',blockedReason:row.blockedReason});
       continue;
     }
-    const {bytes}=await approvedFile(root,row);
+    // A blocked candidate cannot remove or replace the last approved default.
+    if(release){
+      descriptor.version=release.version;
+      descriptor.revision=release.revision;
+    }
+    const bytes=await read(path);
+    if(release&&inputs.get(path)!==release.sha256)
+      fail('已批准预装包 SHA-256 不符: '+row.programId);
+    if(release&&projectPath&&!bytes.equals(await read(projectPath)))
+      fail('已批准预装包与项目正式包不一致: '+row.programId);
     let value;
     try{value=JSON.parse(new TextDecoder('utf-8',{fatal:true}).decode(bytes));}
     catch{fail('已批准 Page 正式包 JSON 无法解析: '+row.programId);}
     const pkg=await validatePageInstallPackage(value);
-    if(!exactScope(pkg,row))fail('正式包身份或网站范围与批准目录不符: '+row.programId);
+    if(!exactScope(pkg,descriptor))fail('正式包身份或网站范围与批准目录不符: '+row.programId);
     const packagePath=officialPagePackagePath(row.programId);
     resources.set(packagePath,bytes);
     apps.push({...descriptor,status:'available',packagePath,bytes:bytes.length,
-      sha256:sha(bytes),sourceHash:pkg.sourceHash,packageHash:pkg.packageHash});
+      sha256:inputs.get(path),sourceHash:pkg.sourceHash,packageHash:pkg.packageHash});
   }
-  const after=await Promise.all(inputs.map(async path=>[path,sha(await readFile(resolve(root,path)))]));
+  const before=[...inputs].sort(([a],[b])=>a.localeCompare(b));
+  const after=await Promise.all(before.map(async ([path])=>[path,sha(await readInput(root,path))]));
   if(!same(before,after))fail('发布过程中受信任的 Page 输入发生变化');
   const catalog=validateOfficialPageReleases({schema:OFFICIAL_PAGE_RELEASE_SCHEMA,
     sourceRepository:source.sourceRepository,apps});

@@ -13,7 +13,9 @@ const reviewedSources=new Set([
   '7f08a09d7022a6bd03b9b3a162b998f7f39aaa7c802208a32c99803811609591',
   '171b39b844698e8425dad470e930c3d2aa9a8ea1b438be80e891a1545e5cc6dd',
   // 0.1.38 only changes the generated header and reported Page version.
-  '0f37bcf523058854b1aa040d5481606ba9e178508b6cd99295c2d86af48a82f8'
+  '0f37bcf523058854b1aa040d5481606ba9e178508b6cd99295c2d86af48a82f8',
+  // 0.1.39 has the same Page logic and updates only the two version strings.
+  '242250dea5acb9e14c724cea17a88da704dcd0fdbe0f7820c4be51d186d0cd9e'
 ]);
 export function usesFixedSendQueue(toolId,row){
   const rules=row?.pageRules;

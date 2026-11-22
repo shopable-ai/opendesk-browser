@@ -37,12 +37,12 @@ import {CAPTURE_SITE_STORE} from '../../src/knowledge/policy.js';
 import {READING_TOC_SITE_STORE,READING_TOC_VISIBILITY_STORE,READING_TOC_PAGE_RULES_STORE,READING_TOC_PLACEMENT_PREFIX,changeReadingTocVisibility,changeTocSiteAllowed,tocSiteAllowed} from '../../projects/reading-toc/trusted/policy.js';
 import {createSidebarToolsView} from '../../src/ui/sidebar-tools-view.js';
 import {parseHTML} from 'linkedom';
-import {approvedPageFixtureResources} from '../helpers/official-pages.mjs';
+import {createOfficialPageResources} from '../../scripts/build-official-pages.mjs';
 import {DEFAULT_PREINSTALL_STORE} from '../../src/sidebar-tools/preinstall-intent.js';
 
 let preinstallPageResources;
 async function preinstallRecoveryFixture(t,{importError=null,pageState='pending'}={}){
-  const resources=await (preinstallPageResources||=approvedPageFixtureResources());
+  const resources=await (preinstallPageResources||=createOfficialPageResources());
   const calls=[],installed=[],settings=[];
   const marker={schema:DEFAULT_PREINSTALL_STORE,state:'complete',extensionVersion:'0.1.0',
     plan:[],completed:[],pageState};
@@ -65,6 +65,8 @@ async function preinstallRecoveryFixture(t,{importError=null,pageState='pending'
         authorization:{installationId:'authority-install',status:'active'},enabled:true,nativeState:'registered'};
       installed.push(row);return structuredClone(row);
     }}});
+  await settle(()=>f.view.fields['sidebar-tool-preinstall'].data.state===
+    (pageState==='attention'?'attention':'user-scripts-required'));
   return {...f,calls,installed,settings,get recovery(){return f.view.fields['sidebar-tool-preinstall'];},
     act(action,isTrusted=true){return f.view.dispatch('sidebar-tool-preinstall',action,{isTrusted});}};
 }

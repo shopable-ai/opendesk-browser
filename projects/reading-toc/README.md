@@ -12,7 +12,7 @@
 - 网页模块通过 `globalThis.OpenDeskAppPage.readContext()` 读取语言、目录与应用数据，通过 `onRequest(({operation,payload}) => ...)` 响应侧栏，并使用同命名空间的 `storage.get/set` 和 ETag/CAS 保存偏好；只在明确 CAS 冲突时重读并合并本次字段变更。容量或未知写入失败不截断数据、不自动重放。
 - `@opendesk/ui` 的 `createPageUI/onDispose` 管理资源清理；授权读取失败立即停止。位置和折叠按完整 Origin 校验，页面设置按 `Origin + pathname` 匹配，忽略查询参数和锚点。
 
-版本以 [`tool.config.json`](tool.config.json) 为准，并须与 [`package.json`](package.json) 的 Page 项目版本一致；唯一正式包是 `reading-toc.opendesk-tool.json`。已安装版本、候选编译通过和正式包晋升是不同状态，不能用 README 中的历史版本号替代核对。
+版本以 [`tool.config.json`](tool.config.json) 为准，并须与 [`package.json`](package.json) 的 Page 项目版本一致；唯一正式包是 [`1.1.15 / revision 15`](reading-toc.opendesk-tool.json)。已安装版本、候选编译通过和正式包晋升是不同状态，不能用 README 中的历史版本号替代核对。
 
 2026-11-13 按用户要求重新编译并交付 **1.1.12 → 1.1.13**，唯一正式包为 [reading-toc.opendesk-tool.json](reading-toc.opendesk-tool.json)。Page revision 同步升为 **13**，网页源码仅变更编译器生成的版本头，业务、能力及网站范围保持不变。应用与组合包定向检查 **63/63 通过**，候选已验证、同源晋升并通过 `--check-project`；正式包 142298 bytes，SHA-256 `be6b7085490aa769a0615030cd66eb63be1c1e04832a7804c62e9099c47cf3c3`。本次未执行浏览器安装/升级，运行状态为 `NOT_TESTED`；后文旧版本与安装结果仅对应各自历史候选。
 

@@ -31,10 +31,10 @@
     "height": 760
   },
   "source": {
-    "commit": "4db0dec007fd5c586a4ad2a2d0da5c9fd4eae6c0",
+    "commit": "aa97984bc8fdde413017a299f0a039f1a28d75fa",
     "designSha256": "9fe6e3ccbce74058fe142bcdd54ec14e7ae3cbc7ef0046c9ea90a532555fa99b",
     "shellSha256": "5af8efe7aac49044c868b1008ccac346cb061e808c06ddd99b9878deb8cfe86f",
-    "uiSha256": "ca07da0aad524fa776cc0bf71f6af4d6a5c81c1dd6055179e826fc3e6494f81b"
+    "uiSha256": "899e02b6f95cdd38dde9f020d3d6504386339f3b3ef51687a0d3fe498635bcdd"
   },
   "adapterSources": {
     "mock-host.js": "f35b24ad11a034eec1e863b27fe73d4154b1d13961b9befea404424203f7de28",

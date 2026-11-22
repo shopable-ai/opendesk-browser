@@ -2,7 +2,8 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import {readFile,mkdtemp,mkdir,writeFile,rm} from 'node:fs/promises';
 import {tmpdir} from 'node:os';
-import {join} from 'node:path';
+import {dirname,join} from 'node:path';
+import {createHash} from 'node:crypto';
 import {digest,digestUtf8} from '../../src/platform/protocol.js';
 import {
   createOfficialPageResources,officialPageInputs,readOfficialPageSources,writeOfficialPageResources
@@ -16,6 +17,10 @@ import {
 
 const clone=value=>structuredClone(value);
 const expectedIds=['opendesk.ai-scroll-navigation','opendesk.ai-reply-mindmap'];
+const approvalDir='official-pages/preinstalled/'+expectedIds[0];
+const approvedPath=approvalDir+'/0.4.10-r14.opendesk-page.json';
+const releasePath=approvalDir+'/release.json';
+const sha256=bytes=>createHash('sha256').update(bytes).digest('hex');
 
 test('R1.2.4 official Page source keeps exact independent IDs, sites and default installation policy',async()=>{
   const source=await readOfficialPageSources();
@@ -28,40 +33,49 @@ test('R1.2.4 official Page source keeps exact independent IDs, sites and default
   ]);
   assert.deepEqual(source.programs.map(row=>row.publication),['blocked','blocked']);
   assert.equal(source.programs[0].project,'projects/ai-scroll-navigation');
-  assert.deepEqual(await officialPageInputs(),[OFFICIAL_PAGE_SOURCE_PATH]);
+  assert.deepEqual(await officialPageInputs(),[approvedPath,releasePath,OFFICIAL_PAGE_SOURCE_PATH]);
   assert.equal(source.programs[0].installationPolicy,'preinstalled');
   for(const row of source.programs.slice(1))assert.match(row.blockedReason,/./);
 });
 
-test('standalone Page builder only includes its remaining approved project',async t=>{
+test('approval requires the archived preinstall bytes and the project release to match',async t=>{
   const root=await mkdtemp(join(tmpdir(),'official-scroll-project-'));
   t.after(()=>rm(root,{recursive:true,force:true}));
   const source=clone(await readOfficialPageSources());
   const scroll=source.programs.find(row=>row.programId==='opendesk.ai-scroll-navigation');
   scroll.publication='approved';
   delete scroll.blockedReason;
-  await mkdir(join(root,'official-pages'),{recursive:true});
+  const projectPath=join(scroll.project,scroll.packageFile);
+  const bytes=await readFile(projectPath);
+  const pin={version:scroll.version,revision:scroll.revision,sha256:sha256(bytes)};
+  const archivePath=approvalDir+'/'+scroll.version+'-r'+scroll.revision+'.opendesk-page.json';
+  await mkdir(join(root,dirname(archivePath)),{recursive:true});
+  await mkdir(join(root,scroll.project),{recursive:true});
   await writeFile(join(root,OFFICIAL_PAGE_SOURCE_PATH),JSON.stringify(source,null,2)+'\n');
-  for(const row of [scroll]){
-    const directory=join(root,row.project);
-    await mkdir(directory,{recursive:true});
-    await writeFile(join(directory,row.packageFile),await readFile(join(row.project,row.packageFile)));
-  }
-  const inputs=await officialPageInputs(root);
-  assert.ok(inputs.includes('projects/ai-scroll-navigation/ai-scroll-navigation.opendesk-page.json'));
-  assert.equal(inputs.some(path=>path.includes('ai-send-queue')),false);
+  await writeFile(join(root,releasePath),JSON.stringify(pin));
+  await writeFile(join(root,archivePath),bytes);
+  await writeFile(join(root,projectPath),Buffer.concat([bytes,Buffer.from('\n')]));
+  await assert.rejects(createOfficialPageResources({root}),/已批准预装包与项目正式包不一致/);
+  await writeFile(join(root,projectPath),bytes);
+  assert.deepEqual(await officialPageInputs(root),[archivePath,releasePath,OFFICIAL_PAGE_SOURCE_PATH,projectPath]);
+  const {catalog,resources}=await createOfficialPageResources({root});
+  assert.equal(catalog.apps[0].revision,scroll.revision);
+  assert.deepEqual(resources.get(catalog.apps[0].packagePath),bytes);
 });
 
-test('remaining blocked releases provide metadata without standalone queue resources',async()=>{
+test('a blocked navigation candidate ships the exact approved preinstall; Mind Map remains blocked',async()=>{
   const {catalog,resources}=await createOfficialPageResources();
-  assert.deepEqual([...resources.keys()],[OFFICIAL_PAGE_CATALOG_PATH]);
-  assert.equal(catalog.apps.length,2);
-  for(const row of catalog.apps){
-    assert.equal(row.kind,'page-program');
-    assert.equal(row.status,'blocked');
-    assert.equal('packagePath' in row,false);
-    assert.equal('sha256' in row,false);
-    assert.equal('sourceHash' in row,false);
+  const [scroll,mindMap]=catalog.apps;
+  assert.deepEqual(catalog.apps.map(row=>row.programId),expectedIds);
+  assert.equal(scroll.status,'available');
+  assert.equal(scroll.version,'0.4.10');
+  assert.equal(scroll.revision,14);
+  assert.deepEqual([...resources.keys()],[scroll.packagePath,OFFICIAL_PAGE_CATALOG_PATH]);
+  assert.deepEqual(resources.get(scroll.packagePath),await readFile(approvedPath));
+  assert.equal(scroll.sha256,sha256(resources.get(scroll.packagePath)));
+  assert.equal(mindMap.status,'blocked');
+  for(const key of ['packagePath','sha256','sourceHash']){
+    assert.equal(key in mindMap,false);
   }
   assert.deepEqual(validateOfficialPageReleases(catalog),catalog);
 });
@@ -111,7 +125,9 @@ test('R1.2.4 extension-origin catalog fetch never authorizes a blocked install',
   assert.deepEqual(await loadOfficialPageCatalog({api,fetcher}),catalog);
   await assert.rejects(loadOfficialPagePackage(catalog.apps[1],{api,fetcher}),
     {code:'E_PAGE_RELEASE_CHANGED'});
-  assert.equal(requests.length,2,'blocked candidates only read catalog, never package bytes');
+  const candidate={...catalog.apps[0],version:'0.4.25',revision:28};
+  await assert.rejects(loadOfficialPagePackage(candidate,{api,fetcher}),{code:'E_PAGE_RELEASE_CHANGED'});
+  assert.equal(requests.length,3,'blocked candidates only read catalog, never package bytes');
 });
 
 test('document_end official Page builder and loader preserve catalog identity and byte integrity',async t=>{
@@ -119,15 +135,18 @@ test('document_end official Page builder and loader preserve catalog identity an
   t.after(()=>rm(root,{recursive:true,force:true}));
   const source=clone(await readOfficialPageSources()),base=source.programs[0];
   base.publication='approved';delete base.blockedReason;
-  await mkdir(join(root,'official-pages'),{recursive:true});
-  await mkdir(join(root,base.project),{recursive:true});
-  await writeFile(join(root,OFFICIAL_PAGE_SOURCE_PATH),JSON.stringify(source));
   const sourceUtf8='async function main(){return "DOM ready";}';
   const payload={format:'opendesk.page-install.v1',programId:base.programId,version:base.version,
     title:base.title,revision:base.revision,entryFormat:'async-main',sourceUtf8,
     sourceHash:await digestUtf8(sourceUtf8),pageRules:{matches:base.sites,excludeMatches:[],
       runAt:'document_end',allFrames:false,world:'USER_SCRIPT'}};
   const pkg={...payload,packageHash:await digest(payload)},bytes=JSON.stringify(pkg);
+  const archivePath=approvalDir+'/'+base.version+'-r'+base.revision+'.opendesk-page.json';
+  await mkdir(join(root,dirname(archivePath)),{recursive:true});
+  await mkdir(join(root,base.project),{recursive:true});
+  await writeFile(join(root,OFFICIAL_PAGE_SOURCE_PATH),JSON.stringify(source));
+  await writeFile(join(root,releasePath),JSON.stringify({version:base.version,revision:base.revision,sha256:sha256(bytes)}));
+  await writeFile(join(root,archivePath),bytes);
   await writeFile(join(root,base.project,base.packageFile),bytes);
   const {catalog,resources}=await createOfficialPageResources({root}),release=catalog.apps[0];
   assert.equal(release.status,'available');

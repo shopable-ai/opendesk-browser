@@ -3,13 +3,17 @@ const response = await fetch('/tool.html');
 if (!response.ok) throw new Error('Candidate HTML was not served');
 root.innerHTML = await response.text();
 
-const context = {seriesKey: 'local:ego-fixture:season-1', episodeKey: 'episode-1', title: '测试作品', season: 1, episode: 1, line: '测试线路'};
+const iyf = new URLSearchParams(location.search).get('site') === 'iyf';
+const context = iyf ? {seriesKey: 'iyf:ego-fixture', episodeKey: 'episode-200', title: 'iYF 测试作品', episode: 200} :
+  {seriesKey: 'local:ego-fixture:season-1', episodeKey: 'episode-1', title: '测试作品', season: 1, episode: 1, line: '测试线路'};
 const binding = {id: 'ego-ui-binding'};
 const key = 'rules.v1';
 const receipt = [];
-let duration = 2700;
+let duration = iyf ? 1243.563 : 2700;
 const read = () => JSON.parse(localStorage.getItem(key)) ?? {etag: '0', value: {series: {}}};
-document.querySelector('#source-length').addEventListener('click', () => { duration = 2880; });
+const source = document.querySelector('#source-length');
+if (iyf) source.textContent = '换到 19:16 线路';
+source.addEventListener('click', () => { duration = iyf ? 1156.011 : 2880; });
 
 // This fixture provides only the public SDK calls exercised by the shipped editor.
 globalThis.OpenDeskTool = {
@@ -45,7 +49,12 @@ globalThis.OpenDeskTool = {
     notify({message}) { receipt.push({op: 'ui.notify', message}); },
   },
 };
-globalThis.egoUiFixture = {receipt, read, seedEpisode(rules) {
+globalThis.egoUiFixture = {receipt, read, seedDefault(rules) {
+  const record = read();
+  record.value.series[context.seriesKey] = {defaults: rules, episodes: {}};
+  record.etag = String(Number(record.etag) + 1);
+  localStorage.setItem(key, JSON.stringify(record));
+}, seedEpisode(rules) {
   const record = read();
   record.value.series[context.seriesKey].episodes[context.episodeKey] = rules;
   record.etag = String(Number(record.etag) + 1);

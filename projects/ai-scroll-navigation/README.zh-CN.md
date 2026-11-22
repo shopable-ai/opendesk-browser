@@ -1,5 +1,9 @@
 # AI 对话滚动导航 · AI Chat Scroll Navigation
 
+**随 OpenDesk Browser 内置并默认预装。** 全新安装后，无需手动导入。当前预装的是已批准的 **0.4.10/r14**；本地可导入候选 **0.4.26/r29** 尚未晋升预装。滚动导航继续使用 Chrome 的网站访问权限和「允许用户脚本」开关。升级 Browser 不会替换已有安装，也不会恢复主动停用或卸载的程序。
+
+发布维护：通过正式验收的新版本，在更新 [Page 发行状态](../../official-pages/sources.json) 时，同步保存原安装包字节并更新 [预装版本记录](../../official-pages/preinstalled/opendesk.ai-scroll-navigation/release.json)。构建器核对 SHA-256 及项目包字节；仅生成新候选时继续保留已批准预装包。
+
 ## 2026-11-14 · 编译与版本更新（0.4.24 / r27）
 
 按用户要求，将 `0.4.23/r26` 提升为 **`0.4.24/r27`**，通过原 Program Builder 的 production 模式和 Page 打包器更新唯一正式安装包 [`ai-scroll-navigation.opendesk-page.json`](./ai-scroll-navigation.opendesk-page.json)，项目与官方目录版本同步。
