@@ -209,3 +209,23 @@ R1 文件本身不等于以上测试已通过。执行的实际测试与已知�
 - R1 仅完成需求设计和**本地模拟交互预览**；独立文档链接与单文件预览必须存在于 main、可读回。
 - 预览应覆盖 S01-S09 的路径、核心按钮、元素 Hover / 点击、映射、保存、规则复用及失效修复；明确本地模拟，不访问赌场、不请求 Chrome 权限、不写用户真实存储。
 - 正式开发 Gate：先审核 OpenDesk 现有公开 Page API 与 owner；确定最小权限方案；拿到获许可的公开算法规格和合法 fixture；定义预验证哈希捕获/轮次合同；建立真实 Chrome 权限与 DOM 性能测试、错误匹配负例、商店发布与法规评估。**当前一律 NOT_TESTED。**
+
+
+## 11. 本轮真实执行记录（2026-11-22；不是 Chrome 安装验收）
+
+**已执行并通过**
+
+- GitHub：确认仓库 shopable-ai/opendesk-browser，默认且唯一写入分支 main；项目此前不存在；已读取 AGENTS.md、UI Preview Skill、共享 design-tokens 与 design-system，并新建本文及 ../preview/index.html；以 GitHub 文件 API 重新读回两个文件及 blob SHA。
+- 代码静态检查：读取提交后的单文件 HTML 并用 JavaScript Function 语法解析其唯一 script：PASS；9 个场景 option 值齐全；HTML id 无重复；无外部 script、网络请求、真实 chrome.permissions / scripting、localStorage / indexedDB、innerHTML 赋值：PASS。
+- 交互状态机检查：从 GitHub 最新真实 HTML 提取脚本，在隔离 V8 环境以受控 DOM/MutationObserver/Web Crypto 测试替身执行（**不是 Chromium**），共 **21/21 PASS**。分别验证 S01 自动识别及模拟 RNG、S02 手动扫描及未知算法阻断、S03 缺字段→选区→映射→保存→再次扫描、S04 增量变更、S05 失效阻断→修复、S06 未授权→授权→撤销、S07 未公开种子、S08 不一致、S09 iframe/Canvas 限制。
+- 算法 fixture 独立比对：用 Python hashlib 验算模拟种子哈希为 025d9953b16a88c2a5853a59dea1c200f309a9507d3d64a8b02c64eb1f16158f，模拟 RNG 哈希为 a59e86c16443192e69d289bcab70f746f5747f5b5b83b2b5e1231b256f9d5e48；首 8 个 hex 取模 100 = **25**，与预览期望一致。模拟错误结果场景故意显示 **26**。
+- 本次审查在脚本中修正：Canvas/iframe 场景的状态优先级、失效规则对字段 label 的复核、模拟已知适配器的明确 selector 路径、异步计算后的页面状态版本检查、证据面板重置文案。
+
+**没有执行 / 不宣称**
+
+- 没有运行项目现有 sidebar-preview-kit.mjs 生成器或其 check 命令；当前 HTML 是**参照仓库 Token / od-* 控件的独立设计模拟稿**，并非官方宿主生成器的字节同源结果，须在本机项目环境再做模板和视觉比对。
+- 没有实际 Chromium / Playwright / Mac 真实文件加载、鼠标 Hover、键盘 Escape、窄侧栏渲染或 Accessibility 验收；V8 DOM 替身不等于真实浏览器。以上均记 **NOT_TESTED**。
+- 没有正式扩展 manifest、网站 host 权限调用、跨源 frame、Canvas、真实 Provably Fair 算法、网站兼容性/性能/安全渗透、Chrome Web Store 提交；均 **NOT_TESTED**。
+- 以上评分仅表示需求设计维度的自评达到 96/100；正式功能进入开发前，需补上上述门禁证据，不能以高设计分绕过。
+
+**R1 结论**：仓库文档与交互预览的方案阶段完成，模拟状态逻辑 21/21 通过；可进入**受控正式开发准备**，但不代表具备上架、真实站点验证或安装验收条件。
