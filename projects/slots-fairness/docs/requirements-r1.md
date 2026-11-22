@@ -217,7 +217,7 @@ R1 文件本身不等于以上测试已通过。执行的实际测试与已知�
 
 - GitHub：确认仓库 shopable-ai/opendesk-browser，默认且唯一写入分支 main；项目此前不存在；已读取 AGENTS.md、UI Preview Skill、共享 design-tokens 与 design-system，并新建本文及 ../preview/index.html；以 GitHub 文件 API 重新读回两个文件及 blob SHA。
 - 代码静态检查：读取提交后的单文件 HTML 并用 JavaScript Function 语法解析其唯一 script：PASS；9 个场景 option 值齐全；HTML id 无重复；无外部 script、网络请求、真实 chrome.permissions / scripting、localStorage / indexedDB、innerHTML 赋值：PASS。
-- 交互状态机检查：从 GitHub 最新真实 HTML 提取脚本，在隔离 V8 环境以受控 DOM/MutationObserver/Web Crypto 测试替身执行（**不是 Chromium**），共 **21/21 PASS**。分别验证 S01 自动识别及模拟 RNG、S02 手动扫描及未知算法阻断、S03 缺字段→选区→映射→保存→再次扫描、S04 增量变更、S05 失效阻断→修复、S06 未授权→授权→撤销、S07 未公开种子、S08 不一致、S09 iframe/Canvas 限制。
+- 交互状态机检查：从 GitHub 对应提交的真实 HTML 提取脚本，在隔离 V8 环境以受控 DOM/MutationObserver/Web Crypto 测试替身执行（**不是 Chromium**）。首版 **21/21 PASS**；按目标把已授权未知站与缺字段站改成默认自动发现后，针对**最新 HTML**重新执行 **19/19 PASS**。覆盖 S01 已知适配器/RNG、S02 未知站自动发现+未知算法阻断、S03 缺字段自动提示→选区→映射→保存→再次扫描、S04 增量变更、S05 失效阻断→修复、S06 未授权→授权→撤销、S07 未公开种子、S08 不一致、S09 iframe/Canvas 限制。两轮断言颗粒度不同，不应累加为一个用例数。
 - 算法 fixture 独立比对：用 Python hashlib 验算模拟种子哈希为 025d9953b16a88c2a5853a59dea1c200f309a9507d3d64a8b02c64eb1f16158f，模拟 RNG 哈希为 a59e86c16443192e69d289bcab70f746f5747f5b5b83b2b5e1231b256f9d5e48；首 8 个 hex 取模 100 = **25**，与预览期望一致。模拟错误结果场景故意显示 **26**。
 - 本次审查在脚本中修正：Canvas/iframe 场景的状态优先级、失效规则对字段 label 的复核、模拟已知适配器的明确 selector 路径、异步计算后的页面状态版本检查、证据面板重置文案。
 
