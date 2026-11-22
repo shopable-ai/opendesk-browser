@@ -157,10 +157,7 @@ export function buildTimeEditor({el, button, row, template, calibrationHost, key
   takeStart.addEventListener('click', () => onMark('start'));
   takeEnd.addEventListener('click', () => onMark('end'));
   preview.addEventListener('click', onPreview);
-  const endHint = key === 'outro' ? el('p', 'vas-end-hint') : null;
-  row.append(trackHost, fields);
-  if (endHint) row.append(endHint);
-  row.append(error);
+  row.append(trackHost, fields, error);
   const tailStatus = key === 'outro' ? el('span', 'vas-match-text') : null;
   if (tailStatus) {
     const help = el('p', 'vas-sr', 'End 跟随当前视频的实际结束位置，换集自动重算片尾开始；填入具体结束时间可保留后面的内容。');
@@ -201,11 +198,6 @@ export function buildTimeEditor({el, button, row, template, calibrationHost, key
     }
     if (error.textContent !== issue) error.textContent = issue;
     error.hidden = !issue;
-    if (endHint) {
-      endHint.hidden = rule.kind !== 'tail';
-      endHint.textContent = d ? 'End = 本集结尾 ' + formatTime(d) + ' · 换集自动适配' :
-        'End 会在获取视频时长后跟随结尾';
-    }
     for (const part of ENDPOINTS) {
       const input = inputs[part];
       input.disabled = locked;
