@@ -544,7 +544,7 @@ class ContinuityModel {
     return {intro:{enabled:true,mode:'start',start:0,end:90},outro:{enabled:true,mode:'tail',tail:90,start:null,end:null},autoNext:true};
   }
   copy(v) { return ContinuityModel.copy(v); }
-  identity() { return `demo:星海航线|s1|e${this.s.episode}|${this.s.version}`; }
+  identity() { const base=`demo:星海航线|s1|e${this.s.episode}|${this.s.version}`; const x=this.r10&&this.r10.context; return x&&(x.kind!=='regular'||x.siteOrigin!=='https://demo.invalid'||!x.edition)?base+'|'+x.mediaKey:base; }
   _workIdentity() { return `demo:星海航线|s1|${this.s.version}`; }
   _notice(text, kind='info') { this.s.status=text; this.s.statusKind=kind; }
   _duration(n=this.s.episode) { return ({3:2700,4:2880,5:null})[n] ?? null; }
@@ -955,7 +955,7 @@ function r10Context(name){
   sourceFingerprint:'confirmed-playlist-A',playlistVerified:true,patternConfirmed:false,
   branchConflict:false,syncConflict:false,segmentMap:null
  },f);
- ctx.mediaKey=ctx.siteOrigin+'|demo-series:s1:e'+ctx.episode+':'+String(ctx.edition||'unknown');
+ ctx.mediaKey=ctx.siteOrigin+'|demo-series:s1:e'+ctx.episode+':'+ctx.kind+':'+String(ctx.edition||'unknown');
  ctx.historicalDuration=R10_OWN.call(f,'historicalDuration')?f.historicalDuration:ctx.duration;
  return ctx;
 }
@@ -973,6 +973,7 @@ ContinuityModel.prototype.r10LoadFixture=function(name){
  // Do not silently migrate a current unsaved draft into a new video fixture.
  if(this.s.dirty){this.s.transition={kind:'r10Fixture',target:name};this._notice('当前有未保存修改：先继续编辑或放弃再切换模拟视频。','warning');return false;}
  this._loadScenario(name==='empty'?'empty':'standard');
+ this.r10.context=cfg; // Bind the edition/kind-specific identity before writing an exact-video exception.
  this.s.episode=cfg.episode;
  this.s.version=cfg.edition==='cut-B'?'版本 B':'标准版 A';
  this.s.duration=cfg.duration;
@@ -1458,6 +1459,8 @@ function r10Checks(){
  test('R10-13',()=>{const m=fixture('normal04');m.s.base.outro.enabled=false;const d=m.r10Decision('outro');return d.compatibility==='APPLICABLE'&&!d.executionAllowed&&m.s.base.autoNext===true;});
  test('R10-14',()=>{const a=fixture('unknownDuration').r10Decision('outro'),b=fixture('invalidTail').r10Decision('outro');return !a.executionAllowed&&!b.executionAllowed;});
  test('R10-15',()=>{const a=fixture('failedSave'),b=fixture('unknownSave');a.edit('outro',{tail:80});b.edit('outro',{tail:80});return !a.save()&&!b.save()&&a.s.dirty&&b.s.dirty&&a.s.base.outro.tail===90&&b.s.base.outro.tail===90&&b.r10.lastWriteOutcome==='UNKNOWN';});
+ test('R10-I01',()=>{const m=fixture('merged');const mergeId=m.identity();m.edit('outro',{tail:120});const saved=m.save();m.r10.context.kind='regular';m.r10.context.mediaKey='https://demo.invalid|demo-series:s1:e3:regular:cut-A';return saved&&mergeId!==m.identity()&&!m.s.overrides[m.identity()]?.outro;});
+ test('R10-I02',()=>{const m=fixture('normal03');m.setDuration(2800);const d=m.r10Decision('outro');m.s.time=2700;return d.compatibility==='NEEDS_CONFIRMATION'&&!d.executionAllowed&&!m._skipAt(2700);});
  return {passed:results.filter(x=>x.pass).length,total:results.length,results,environment:'offline model only, not Chrome or persistent store'};
 }
 function r10LayoutChecks(){
