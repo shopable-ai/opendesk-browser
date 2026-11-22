@@ -19,3 +19,15 @@
 - 变更范围：仅公共方案本文、此工作流记录；未修改业务源码、工具包、后端或测试。
 - 后续实施闸门：先核实宿主跨工具合法存储观察与写回、真实已部署后端、跨设备媒体键稳定性及存储额度。**M0a 连播助手第一消费者验证不等于公共 MVP 已完成，第二消费者接入是 M0b 共用能力验收闭环。**
 - 测试：R2 T16–T27 与 R1 T01–T15 仍全部 NOT_TESTED。
+
+
+## R3 技术设计推进（2026-11-22）
+
+- 继续用户确认的设计阶段：R1–R3 继续共用 docs/architecture/unified-account-cloud-sync-r1.zh-CN.md 这一权威文件，不建立第二套方案、不修改业务实现代码或发行资产。
+- 本次只读核验 main 初始 HEAD：3eb43c3dd35f5fc29a726a635e955107f2f1363a；并行 main 在写入期间可能前进。
+- 关键证据：工具侧 src/ui/sidebar-tools.js、网页伴随模块 src/scripting/user-scripts/app-page-contract.js、Browser SDK src/ui/sidebar-tools/storage-state.js 都可触达同一工具私有键；仅观察 Sidebar Save 按钮绝不充分。src/sw.js 有生命周期事件但不代表已有云同步。services/analytics 与 services/cookie-share-relay 不是现成身份/会员系统。
+- 选型优先验证已部署后端；若没有，Supabase Auth + PostgreSQL + 最小 API 是首轮候选，但其 OAuth 2.1 Server 当前官方文档标为 Beta，正式独立扩展 OAuth 不得跳过专项验证。Better Auth+Postgres 为有 Node 运维能力的备选。
+- R3 交付：可实施 SQL 逻辑表、API 草案、账号/产品同意/权益三级安全域、可信客户端本地分区、持久 outbox、S00–S09 开发任务树及负例验收。
+- 本轮写入只为 docs/architecture/unified-account-cloud-sync-r1.zh-CN.md、当前进度记录；所有实现、供应商申请/购买、部署、域名、OAuth 客户端创建、测试仍 NOT_IMPLEMENTED/NOT_TESTED。
+- 进入实现之前先取证 S00：三个存储入口归属和真实设备/Extension ID、已部署后端、8 KiB 单键/32 KiB 总配额增长风险。通过 S01 认证 spike 再冻结供应商与生产 API。
+- 公共 MVP 合格要有连播助手首个消费者和 mouse-gestures 第二个独立 Adapter 的真实验收；无 S08 仅可称单消费者样板，不宣称跨产品公用平台完成。
