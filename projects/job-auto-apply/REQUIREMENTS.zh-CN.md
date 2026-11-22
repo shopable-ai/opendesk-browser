@@ -1,6 +1,6 @@
-# AI Job Auto Apply · 需求与验收（R1 / 命名 R2）
+# AI Job Auto Apply · 需求与验收（R1–R4 统一权威文档）
 
-原始实现任务：OD-JOB-ASSISTANT-OPEN-SOURCE-MVP-R1；本次改名任务：OD-JOB-AUTO-APPLY-NAMING-R2。身份：OpenDesk Browser main / projects/job-auto-apply/。
+原始实现任务：OD-JOB-ASSISTANT-OPEN-SOURCE-MVP-R1；改名：OD-JOB-AUTO-APPLY-NAMING-R2；源码增强：OD-JOB-AUTO-APPLY-GETJOBS-R3；开源生态与 Browser/Desktop/CLI 选型：R4。身份固定为 OpenDesk Browser main / projects/job-auto-apply/。后续仅对本文件做差量需求维护，不复制总设计。
 
 ## R2 名称、搜索意图与交付真实性
 
@@ -8,7 +8,7 @@
 
 选择依据：`Job Auto Apply` 对应用途和搜索意图更直接；`AI` 表示计划中的智能匹配能力；`AutoJob` 更短但语义稍泛。名称选择是产品判断，不是实测 SEO 排名或用户行为研究。内部搜索的别名仅在真实检索机制支持后接入；此阶段不为 SEO 直接改宿主。
 
-当前版本仍为 **SOURCE_WIRED、NOT_INSTALLED、NOT_CHROME_TESTED**。所有功能介绍必须区分现在可做的只读扫描和人工草稿，与后续规划的真实自动投递/AI/多平台。不要制造虚假投递回执、把规则评分说成 AI 或宣称已完成自动发送。
+当前业务源码为 **0.1.1 / Page revision 2**。在源码提交 959e6b13 上，GitHub [App CI run 45045931312](https://github.com/shopable-ai/opendesk-browser/actions/runs/45045931312) 证实候选与源码一致，**Node 60/60 PASS**；之后 R4 仅修改文档。**NOT_INSTALLED / NOT_CHROME_TESTED / BOSS_LIVE_NOT_TESTED / REAL_SEND_NOT_IMPLEMENTED**。现有只读扫描和人工草稿不能冒充真实 BOSS 网站成功，更不能将确定性规则分说成 AI 或伪造投递回执。
 
 ## 原始目标与边界
 
@@ -48,7 +48,7 @@
 5. 生命周期：页面变化旧快照失效；存储冲突/回执未知不重发写入；未安装/未授权/撤销权限提示失败。
 6. 交互：窄侧栏的职位发现→待审→规则→草稿→复制完整走通；刷新重新读回待审队列；可读性和键盘焦点无阻塞。
 
-证据规则：静态源码存在记 SOURCE_WIRED；候选构建、Node、真实 Chrome/网站、正式包安装分开记。当前真实页面与本地构建：NOT_TESTED。下一步优先真实 DOM 取证和标准候选构建，不提前上生产。
+证据规则：SOURCE_WIRED 指源码存在；R3 GitHub CI 候选构建与 Node 60/60 为 PASS；正式包晋升、Chrome 安装与 BOSS 实站仍为 NOT_TESTED；发送为 NOT_IMPLEMENTED。R1 初始状态不覆盖较新的 R3 测试证据。下一步优先真实 DOM 取证与合法安装审阅，不提前上线。
 
 
 ## R3 · Get Jobs 源码对标与功能差距矩阵
@@ -178,3 +178,25 @@
 - 不同时启动 OpenDesk Controller 和外部 CLI 向同一账号同一岗位发送，不共享/导出网站 Cookie，不通过切换通道绕过平台限制。
 - 此阶段证据为 GitHub SOURCE_VERIFIED / LICENSE_READ / DESIGNED，**没有新的 Node/Chrome/Native/BOSS 实战验收**，R3 真实网站和正式安装仍 NOT_TESTED。
 - **下一最小工程任务**应是 BOSS 已授权页面的只读 JD/身份/活跃度实站 DOM 核验 + 单独的可选 Desktop/CLI 只读可行性 Spike。只有两个都满足证据后，才起 P1 单岗位可审核执行；不要跳过依赖直接新增批量任务。
+
+
+### R4 · 可交接的最小实施任务与验收矩阵
+
+**目标**：下一轮从尚未验证的关键步骤继续，而不是重做 R1/R2/R3 或重新开展无边界 GitHub 搜索。本表是 R4 研究的执行摘要，上方开源矩阵、权限边界及六层数据契约保持权威。
+
+| ID / 业务问题 | 最小动作（主要 owner 为当前项目） | 验证 / 完成条件 |
+| --- | --- | --- |
+| J01 / BOSS 页面字段是否真的准确 | 在用户已授权的真实职位搜索页只读核验 jobId、URL、职位名称、公司、城市、薪资、JD、招聘者、活跃度与已沟通标记；必要时仅更新 src/page/main.js | 实测动态加载、重复卡、SPA、页面变化、撤权及空状态；fixture 不等于 BOSS LIVE PASS |
+| J02 / 卡片摘要不是完整 JD | J01 真实页面已证实后，按授权范围读取**单个经过审阅的岗位**完整 JD，记录每字段来源、采集时间、未知字段 | 字段与原网页可复核；不全站自动滚动抓取、不擅用隐藏接口 |
+| J03 / 匹配结果是否可解释 | 项目内完善 JobObservation → MatchDecision → ReviewApproval 的数据契约；先硬性过滤，再基于本人确认的履历做 AI 提议 | 规则分与 AI 分分开；AI 不造履历；未经独立数据授权不上传简历；覆盖未知与反例 |
+| J04 / 是否需要 CLI 后端 | **独立只读 Spike**：仅在已获权限的可信 Desktop 本地进程检查 Command.getCapabilities、已有 CLI 的版本、boss schema 及 JSON 信封，映射到 JobObservation | 不自动安装 Python，不扫码登录、抓取 Cookie、调用 greet/apply；CLI 不可用时 Browser 正常运行 |
+| J05 / 如何证明真实沟通 | J01–J03 确认后，由已授权 Controller 先做**一个**用户审核过岗位/招聘者/文本的受控操作 | 比对当前账号、岗位、招聘者与消息 SHA，原 Run/Result/Stop 完整，网页实际发送回执存在才记录 CONTACT_SENT_CONFIRMED |
+| J06 / 防重复与未知回执 | 统一执行账本：同一账号/同一岗位一次仅允许一个 provider 写入；分开 CONTACT_SENT、APPLICATION_SUBMITTED、RESUME_UPLOADED | UNKNOWN 只读核对原 Run 和会话，不跨 Browser/Desktop/CLI 重发；覆盖双启动、撤权、身份漂移与 Stop |
+| J07 / 长期历史存储 | 先判断当前 24 条 CAS 队列是否真的不足；若不足才计划转移至 Desktop 本机数据库，采用快照验证、原子切换 | 仅一个权威事实来源，不把 CLI data-dir 和 Browser 本地队列同时当真相；迁移无丢失 |
+| J08 / 多平台与正式交付 | 先让 BOSS 真实单岗位读取/匹配/审核/回执通过，再逐站增加猎聘、智联、51job adapter 和 PC 展示 | 每个平台独立权限、字段、状态及回归；不复制非商业许可证代码；发布需经过正式安装审阅 |
+
+**冻结技术选择**：Browser-first（默认）→ Desktop optional（可信原生增强）→ CLI optional（可插拔、初始只读）。任何命令可用性声明都不自动授予对外发送权限。
+
+**下轮最短路线**：复用已有候选和 Node 测试证据 → 合法安装审阅 → BOSS 真网页只读扫描 → 核实字段与未知状态 → 定向修复项目代码并回归 → 待身份、授权和真实回执可证明后才做单岗位审批发送。没有实站/本机环境则继续 J03/J04 可逆的离线或只读工作，并明确 J01/J02 NOT_TESTED。
+
+**不做**：不重创新的 job-assistant 项目、不生成第二套 Host/Runner/Installer、不默认安装 Python 或启动隐式接口服务、不将按钮点击/CLI apply 成功解释成已经投递简历；没有证据的 Browser Framework 通用缺口标记 SDK_GAP_NOT_PROVEN，避免越权扩改。
