@@ -1,7 +1,7 @@
 {
   "format": "opendesk.sidebar-tool.v2",
   "id": "job-auto-apply",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "title": "AI Job Auto Apply",
   "description": "AI 自动求职：BOSS直聘职位扫描、岗位匹配、待审清单和沟通草稿。自动投递功能开发中，当前不会自动发送。",
   "capabilities": [
@@ -13,7 +13,7 @@
     "browserSdk": "1.0.0"
   },
   "pageModule": {
-    "revision": 1
+    "revision": 2
   },
   "files": {
     "html": "src/index.html",
