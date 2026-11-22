@@ -333,48 +333,133 @@ details>section{margin-top:var(--space-3)}
 
 </style><style id="od-video-auto-skip-layout">
 
-/* Layout only: inherited appearance and semantic values from canonical OpenDesk CSS. */
+/* This offline preview already embeds OpenDesk's Neutral tokens and native controls. */
 html,body{height:auto;min-height:100%;overflow:auto}
-body{display:block;background:var(--od-muted)}
+body{display:block;min-height:100vh;background:var(--od-muted)}
 #od-watch-preview{max-width:468px;margin:auto;padding:20px 10px 32px;--od-side-width:360px}
-#od-preview-meta{width:min(100%,var(--od-side-width));margin:0 auto 10px;color:var(--od-sub);font-size:12px;text-align:center}
-#od-sidebar{width:min(100%,var(--od-side-width));margin:auto;background:var(--od-paper);overflow:hidden}
-#od-sidebar .vas-identity{display:flex;justify-content:space-between;flex-wrap:wrap;align-items:baseline;gap:4px 8px;padding:14px 16px 8px;font-size:14px;font-weight:650}
-#od-sidebar .vas-identity .od-note{font-weight:400}
-#od-sidebar .vas-rules{display:grid;gap:16px;padding:12px 16px 16px}
+#od-preview-meta{width:min(100%,var(--od-side-width));margin:0 auto 10px;color:var(--od-sub);font-size:var(--od-note-size);text-align:center}
+#od-sidebar{
+  --vas-inset:var(--space-4);
+  --vas-empty-edge:color-mix(in oklch,var(--od-ink) 43%,var(--od-paper));
+  --vas-focus:color-mix(in oklch,var(--od-focus) 82%,var(--od-ink));
+  --vas-focus-halo:color-mix(in oklch,var(--od-focus) 65%,transparent);
+  width:min(100%,var(--od-side-width));margin:auto;background:var(--od-paper);overflow:hidden
+}
+#od-sidebar .vas-identity{
+  display:flex;justify-content:space-between;flex-wrap:wrap;align-items:baseline;gap:var(--space-1) var(--space-2);
+  padding:var(--space-3) var(--vas-inset);font-size:16px;font-weight:650;line-height:1.5;
+  background:color-mix(in oklch,var(--od-muted) 65%,var(--od-paper));border-bottom:1px solid var(--od-line)
+}
+#od-sidebar .vas-identity .od-note{font-variant-numeric:tabular-nums}
+#od-sidebar .vas-rules{display:grid;gap:var(--space-3);padding:var(--space-2) var(--vas-inset) var(--space-3)}
 #od-sidebar .vas-rule{min-width:0}
-#od-sidebar .vas-rule-head{display:flex;gap:8px;align-items:center;min-height:32px}
-#od-sidebar .vas-rule-head .vas-hint{margin-left:auto;white-space:nowrap}
-#od-sidebar .vas-check{width:17px;height:17px;flex:none;margin:0 1px 0 4px;accent-color:var(--od-brand);cursor:pointer}
-#od-sidebar .od-dual-track{position:relative;height:34px;margin:8px 10px 0}
-#od-sidebar .od-dual-line{position:absolute;left:0;right:0;top:15px;height:4px;background:var(--od-line);border-radius:100px}
-#od-sidebar .od-dual-fill{position:absolute;top:15px;height:4px;background:var(--od-brand);border-radius:100px;pointer-events:none}
-#od-sidebar .od-dual-range{position:absolute;left:-10px;top:0;width:calc(100% + 20px);height:34px;margin:0;padding:0;appearance:none;-webkit-appearance:none;background:transparent;pointer-events:none}
+#od-sidebar .vas-rule+.vas-rule{border-top:1px solid var(--od-line);padding-top:var(--space-2)}
+#od-sidebar .vas-rule-head{display:flex;gap:var(--space-2);align-items:center;min-height:32px}
+#od-sidebar :is(.vas-rule-head,.vas-auto) label{margin:0}
+#od-sidebar .vas-rule-head .vas-hint{margin-inline-start:auto;white-space:nowrap}
+/* Keep the browser's checkbox indicator, label, and keyboard behavior. */
+#od-sidebar .vas-check{
+  width:18px;height:18px;flex:none;margin:0;accent-color:var(--od-brand);cursor:pointer
+}
+#od-sidebar .vas-check:focus-visible{outline:2px solid var(--vas-focus);outline-offset:2px;border-radius:3px}
+#od-sidebar .vas-check:disabled{cursor:not-allowed}
+#od-sidebar .od-dual-track{position:relative;height:34px;margin:var(--space-1) 10px 0}
+#od-sidebar :is(.od-dual-line,.od-dual-fill){position:absolute;top:15px;height:4px;border-radius:var(--radius-pill)}
+#od-sidebar .od-dual-line{left:0;right:0;background:var(--od-line)}
+#od-sidebar .od-dual-fill{background:color-mix(in oklch,var(--od-accent-ink) 80%,var(--od-paper));pointer-events:none}
+/* A transparent border preserves the native range's thumb travel and hit geometry. */
+#od-sidebar .od-dual-range{
+  --vas-thumb-ink:var(--od-accent-ink);--vas-thumb-fill:var(--vas-thumb-ink);--vas-thumb-radius:50%;--vas-thumb-ring:0 0 0 1.5px var(--od-paper);
+  position:absolute;left:-10px;top:0;width:calc(100% + 20px);height:34px;margin:0;padding:0;
+  appearance:none;border-color:transparent;background:transparent;pointer-events:none
+}
 #od-sidebar .od-dual-range.od-active-point{z-index:2}
+#od-sidebar .od-dual-range[data-endpoint=end]{--vas-thumb-radius:4px}
+#od-sidebar .od-dual-range.od-empty{--vas-thumb-ink:var(--vas-empty-edge);--vas-thumb-fill:var(--od-paper)}
+#od-sidebar .od-dual-range:active{--vas-thumb-ink:var(--od-brand)}
+#od-sidebar .od-dual-range:focus-visible{
+  outline:none;--vas-thumb-ring:0 0 0 2px var(--od-paper),0 0 0 4px var(--vas-focus)
+}
+#od-sidebar .od-dual-range:disabled{--vas-thumb-ink:var(--od-line);--vas-thumb-fill:var(--od-muted)}
 #od-sidebar .od-dual-range::-webkit-slider-runnable-track{height:4px;border:0;background:transparent}
-#od-sidebar .od-dual-range::-webkit-slider-thumb{appearance:none;-webkit-appearance:none;width:19px;height:19px;margin-top:-7px;border:2px solid var(--od-brand);border-radius:50%;background:var(--od-paper);box-shadow:0 1px 3px #0002;pointer-events:auto;cursor:ew-resize}
-#od-sidebar .od-dual-range[data-endpoint=end]::-webkit-slider-thumb{border-radius:6px}
+#od-sidebar .od-dual-range::-webkit-slider-thumb{
+  appearance:none;width:19px;height:19px;margin-top:-7px;border:2px solid var(--vas-thumb-ink);border-radius:var(--vas-thumb-radius);
+  background:var(--vas-thumb-fill);box-shadow:var(--vas-thumb-ring);pointer-events:auto;cursor:ew-resize
+}
 #od-sidebar .od-dual-range::-moz-range-track{height:4px;border:0;background:transparent}
-#od-sidebar .od-dual-range::-moz-range-thumb{height:16px;width:16px;border:2px solid var(--od-brand);border-radius:50%;background:var(--od-paper);pointer-events:auto;cursor:ew-resize}
-#od-sidebar .od-dual-range:focus-visible{outline:2px solid var(--od-focus);outline-offset:2px;border-radius:3px}
-#od-sidebar .vas-endpoints{display:flex;align-items:flex-start;justify-content:space-between;gap:12px}
-#od-sidebar .vas-endpoint{display:grid;gap:4px;min-width:0}
+#od-sidebar .od-dual-range::-moz-range-thumb{
+  height:16px;width:16px;border:2px solid var(--vas-thumb-ink);border-radius:var(--vas-thumb-radius);
+  background:var(--vas-thumb-fill);box-shadow:var(--vas-thumb-ring);pointer-events:auto;cursor:ew-resize
+}
+#od-sidebar .vas-endpoints{display:flex;align-items:flex-start;justify-content:space-between;gap:var(--space-3)}
+#od-sidebar .vas-endpoint{display:grid;gap:var(--space-1);min-width:0;margin:var(--space-1) 0 0}
 #od-sidebar .vas-endpoint:last-child{justify-items:end;text-align:right}
-#od-sidebar .vas-time-input{width:82px;min-height:36px;padding:6px 8px;text-align:center;font-size:14px;font-variant-numeric:tabular-nums}
-#od-sidebar .vas-endpoint.od-selected .od-field-label{color:var(--od-brand)}
-#od-sidebar .vas-error{margin-top:6px}
-#od-sidebar .vas-auto{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:0 16px 14px}
-#od-sidebar .vas-footer{display:flex;align-items:center;gap:8px;padding:12px 16px 16px;border-top:1px solid var(--od-line)}
+#od-sidebar .vas-endpoint .od-field-label{font-size:var(--od-note-size);color:var(--od-sub)}
+#od-sidebar .vas-endpoint:focus-within .od-field-label{color:var(--od-ink)}
+#od-sidebar .vas-time-input{
+  width:82px;min-height:36px;padding:6px var(--space-2);text-align:center;font-size:var(--od-body-size);
+  font-variant-numeric:tabular-nums;border-color:var(--od-input-border);background:var(--od-paper)
+}
+#od-sidebar .vas-time-input:disabled{background:var(--od-muted)}
+#od-sidebar .vas-time-input[aria-invalid=true]{border-color:var(--od-negative)}
+#od-sidebar :is(.vas-time-input,.od-button,.od-transition-actions button):focus-visible{
+  outline:2px solid transparent;border-color:var(--vas-focus);box-shadow:0 0 0 3px var(--vas-focus-halo)
+}
+#od-sidebar .vas-time-input[aria-invalid=true]:focus-visible{border-color:var(--od-negative)}
+#od-sidebar .vas-error{
+  margin-top:var(--space-2);padding:var(--space-1) var(--space-2);border-inline-start:2px solid var(--od-negative);
+  border-radius:var(--space-1);background:var(--od-negative-bg);overflow-wrap:anywhere
+}
+#od-sidebar .vas-auto{
+  display:flex;align-items:center;justify-content:space-between;gap:var(--space-2);
+  padding:var(--space-2) var(--vas-inset) var(--space-3);border-top:1px solid var(--od-line)
+}
+#od-sidebar .vas-footer{
+  display:flex;align-items:center;gap:var(--space-2);padding:var(--space-3) var(--vas-inset) var(--space-4);
+  border-top:1px solid var(--od-line)
+}
 #od-sidebar #od-save{flex:1;min-width:80px}
-#od-sidebar .vas-status{display:flex;align-items:center;justify-content:space-between;gap:6px;padding:0 16px 12px;color:var(--od-sub);font-size:12px}
-#od-sidebar .vas-status-warning{color:var(--od-warning)}
-#od-sidebar .vas-status-error{color:var(--od-negative)}
-#od-sidebar #od-status-actions{display:flex;gap:4px}
-#od-sidebar .od-transition{border-top:1px solid var(--od-line);padding:12px 16px;background:var(--od-muted);font-size:12px}
-#od-sidebar .od-transition-actions{display:flex;gap:8px;margin-top:8px}
-@media(max-width:390px){#od-watch-preview{padding:12px 8px 24px}#od-sidebar .vas-identity{padding:12px 12px 6px}#od-sidebar .vas-rules{padding:10px 12px 12px}#od-sidebar .vas-auto{padding:0 12px 12px}#od-sidebar .vas-footer{padding:12px}}
-
-</style>
+/* While the existing scope decision is open, give it visual priority. */
+#od-sidebar:has(.od-transition) #od-save{background:var(--od-muted);color:var(--od-ink);border-color:var(--od-line)}
+#od-sidebar #od-save:disabled{opacity:1;background:var(--od-muted);color:var(--od-sub);border-color:var(--od-line);cursor:default}
+#od-sidebar #od-scope-switch{background:var(--od-paper);border-color:var(--od-input-border);box-shadow:0 1px 2px #0000000d}
+#od-sidebar #od-scope-switch:hover{background:var(--od-muted)}
+#od-sidebar #od-scope-switch:focus-visible{border-color:var(--vas-focus);box-shadow:0 0 0 3px var(--vas-focus-halo)}
+#od-sidebar .vas-status{
+  display:flex;align-items:center;justify-content:space-between;gap:var(--space-2);
+  margin:0 var(--vas-inset) var(--space-3);padding:var(--space-2) var(--space-3);border-radius:var(--radius-control);
+  border:1px solid var(--od-line);background:var(--od-muted);color:var(--od-ink);font-size:var(--od-note-size);overflow-wrap:anywhere
+}
+#od-sidebar .vas-status-warning{color:var(--od-warning-ink);background:var(--od-warning-bg);border-color:var(--od-warning-border)}
+#od-sidebar .vas-status-error{color:var(--od-negative);background:var(--od-negative-bg);border-color:var(--od-negative)}
+#od-sidebar #od-status-actions{display:flex;gap:var(--space-1)}
+#od-sidebar #od-status-actions:empty{display:none}
+#od-sidebar .od-transition{border-top:1px solid var(--od-line);padding:var(--space-3) var(--vas-inset);background:var(--od-muted);font-size:var(--od-note-size)}
+#od-sidebar .od-transition-actions{display:flex;gap:var(--space-2);margin-top:var(--space-2)}
+#od-sidebar .od-transition-actions button{min-height:32px;padding:0 10px;border:1px solid var(--od-input-border);background:var(--od-paper);color:var(--od-ink);font-weight:500}
+#od-sidebar #od-stay{border-color:transparent;background:var(--od-brand);color:var(--od-on-brand)}
+#od-sidebar #od-stay:focus-visible{border-color:var(--vas-focus)}
+#od-sidebar #od-stay:hover{background:color-mix(in oklch,var(--od-brand) 80%,var(--od-paper))}
+#od-sidebar #od-discard{color:var(--od-negative);border-color:transparent;background:var(--od-negative-bg)}
+#od-sidebar #od-discard:hover{background:color-mix(in oklch,var(--od-negative) 16%,var(--od-paper))}
+@media(max-width:390px){
+  #od-watch-preview{padding:12px 8px 24px}
+  #od-sidebar{--vas-inset:var(--space-3)}
+  #od-sidebar .vas-footer{padding-bottom:var(--space-3)}
+}
+@media(forced-colors:active){
+  #od-sidebar .vas-check{accent-color:auto}
+  #od-sidebar .od-dual-line{background:GrayText;forced-color-adjust:none}
+  #od-sidebar .od-dual-fill{background:Highlight;forced-color-adjust:none}
+  #od-sidebar .od-dual-range{--vas-thumb-ink:ButtonText;--vas-thumb-fill:ButtonText;border-color:transparent}
+  #od-sidebar .od-dual-range.od-empty{--vas-thumb-fill:Canvas}
+  #od-sidebar .od-dual-range:disabled{--vas-thumb-ink:GrayText}
+  #od-sidebar .od-dual-range{--vas-thumb-ring:0 0 0 1.5px Canvas}
+  #od-sidebar .od-dual-range:focus-visible{--vas-thumb-ring:0 0 0 2px Canvas,0 0 0 4px Highlight}
+  #od-sidebar .od-dual-range::-webkit-slider-thumb{forced-color-adjust:none}
+  #od-sidebar .od-dual-range::-moz-range-thumb{forced-color-adjust:none}
+}
+  </style>
 </head>
 <body>
 <div id="od-watch-preview" class="viz-dotted-background">

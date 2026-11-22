@@ -678,7 +678,15 @@ async function playbackChecks({page, media, pageRead, appRead, openApp, closePan
     return {feedback: status, before: before.time, after: after.time, paused: after.paused, actions: actions.length};
   });
   await check('reopen-saved-rules', async () => {
-    await closePanel(); await openPanel(); await openApp(); await readyApp();
+    const observation = report.panelReopening = {step: 'close-panel'};
+    await closePanel();
+    observation.step = 'open-panel';
+    await openPanel();
+    observation.step = 'open-installed-tool';
+    await openApp();
+    observation.step = 'wait-for-player-binding';
+    await readyApp();
+    observation.step = 'read-saved-rules';
     assert.equal(await readValue(ui.choice('intro')), 'on');
     assert.equal(await readValue(ui.choice('next')), 'off');
     await edit('intro');
@@ -688,6 +696,7 @@ async function playbackChecks({page, media, pageRead, appRead, openApp, closePan
     await edit('outro');
     assert.equal(await readValue(ui.field('outro', 'start')), '02:00');
     assert.equal(await readValue(ui.field('outro', 'end')), '02:10');
+    delete report.panelReopening;
     return {intro: ['00:30', '01:30'], outro: ['02:00', '02:10'], next: 'off'};
   });
   covered('rules');

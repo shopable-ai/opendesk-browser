@@ -361,6 +361,7 @@ export function mountVideoSidebar(tool) {
   function render(keep) {
     const bound = ready(snapshot);
     const c = bound ? snapshot.context : {};
+    const iyf = c.seriesKey?.startsWith('iyf:');
     const player = snapshot?.media;
     const d = durationOf(snapshot);
     const hasEdits = dirty();
@@ -370,7 +371,7 @@ export function mountVideoSidebar(tool) {
     find('work').textContent = safeText(c.title) || '连播助手';
     find('context').textContent = bound ? [
       c.season != null && (typeof c.season === 'number' ? '第 ' + c.season + ' 季' : safeText(c.season)),
-      c.episode != null && (typeof c.episode === 'number' ? '第 ' + c.episode + ' 集' : safeText(c.episode)),
+      c.episode != null && (iyf || typeof c.episode === 'number' ? '第 ' + c.episode + ' 集' : safeText(c.episode)),
       safeText(c.line),
     ].filter(Boolean).join(' · ') || '已识别当前作品和集数' :
       reasons[snapshot?.reason] ?? (snapshot?.state === 'unsupported' ? '当前网页不支持连播助手。' : snapshot ? '尚未确认当前正片。' : '正在识别当前播放器…');
@@ -378,7 +379,8 @@ export function mountVideoSidebar(tool) {
     find('settings').hidden = !bound;
     scopeSelect.value = scope;
     scopeSelect.disabled = !allowed;
-    find('scope-help').textContent = scope === 'series' ? '同一季默认使用这组规则。本集独立设置优先。' : '只覆盖此集单独设置的项目，其余沿用作品默认。';
+    find('scope-help').textContent = scope === 'series' ? (iyf ? 'iYF 此作品默认使用这组规则。本集独立设置优先。' :
+      '同一季默认使用这组规则。本集独立设置优先。') : '只覆盖此集单独设置的项目，其余沿用作品默认。';
     const effective = effectiveRules();
     const active = bound && storage ? resolveRules(storage.data, c) : {};
     for (const key of KEYS) {
@@ -388,6 +390,12 @@ export function mountVideoSidebar(tool) {
       choice.options[0].textContent = scope === 'episode' ? '沿用作品默认' : '未设置';
       choice.value = raw === undefined ? 'inherit' : enabled ? 'on' : 'off';
       choice.disabled = !allowed;
+      if (key === 'next' && iyf) {
+        choice.value = 'off';
+        choice.disabled = true;
+        summary.textContent = '由 iYF 处理下一集，助手不会重复切集。';
+        continue;
+      }
       const proposed = (raw === undefined && scope === 'episode' ? '沿用作品默认 · ' : '') + caption(effective[key], key);
       summary.textContent = editors[key]?.invalid || !sameRule(raw, baseline[key])
         ? '未保存：' + proposed + ' · 当前生效：' + caption(active[key], key) : proposed;

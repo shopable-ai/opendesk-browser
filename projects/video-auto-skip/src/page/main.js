@@ -1,12 +1,14 @@
 import {createPageUI} from '@opendesk/ui';
 import {cleanRules, readScope, resolveRules, RULES_KEY, updateScope, validateRules} from '../rules.js';
+import {createIyfReader, isIyfPage, iyfMediaSelector, nextIyfEpisode} from './iyf-player.js';
 import {identifyLocalPlayer, nextLocalEpisode} from './local-player.js';
 import {createNextReceipt} from './next-receipt.js';
 import {createPlayer} from './player.js';
 
 const sameBinding = (a, b) => a && b.state === 'ready' && a.media === b.media && a.root === b.root &&
   a.source === b.source && a.href === b.href && a.context.seriesKey === b.context.seriesKey &&
-  a.context.episodeKey === b.context.episodeKey && a.context.line === b.context.line;
+  a.context.episodeKey === b.context.episodeKey && a.context.line === b.context.line &&
+  a.context.title === b.context.title && a.context.episode === b.context.episode;
 
 export default function main({assets} = {}) {
   const bridge = globalThis.OpenDeskAppPage;
@@ -20,8 +22,11 @@ export default function main({assets} = {}) {
   const nextReceipt = createNextReceipt({storage: bridge.storage, navigation: window.navigation,
     arrivalType: performance.getEntriesByType('navigation')[0]?.type});
   const loading = new WeakSet();
-  const readPlayer = () => identifyLocalPlayer(document, location.href);
+  const iyf = isIyfPage(location.href);
+  const readIyf = iyf && createIyfReader(document);
+  const readPlayer = () => iyf ? readIyf(location.href) : identifyLocalPlayer(document, location.href);
   const isCurrent = own => !closed && own && !loading.has(own.media) && sameBinding(own, readPlayer());
+  const selectNext = iyf ? nextIyfEpisode : nextLocalEpisode;
   const player = createPlayer({
     getBinding: () => isCurrent(binding) ? binding : null,
     async authorize(own) {
@@ -30,13 +35,14 @@ export default function main({assets} = {}) {
       const {value} = await bridge.storage.get({key: RULES_KEY});
       return !writingRules && binding === own && isCurrent(own) ? resolveRules(cleanRules(value), own.context) : null;
     },
-    selectNext: nextLocalEpisode,
+    selectNext,
     async navigate(own, target, canDispatch) {
+      if (iyf) return 'failed'; // This site still owns its native episode transition.
       let token;
       try { token = await nextReceipt.prepare(target); }
       catch { return 'failed'; } // No navigation was dispatched.
       if (!token || !await canDispatch()) return 'failed';
-      const selected = isCurrent(own) && nextLocalEpisode(own).target;
+      const selected = isCurrent(own) && selectNext(own).target;
       if (!selected || selected.href !== target.href || selected.episodeKey !== target.episodeKey ||
           selected.seriesKey !== target.seriesKey || selected.line !== target.line) return 'failed';
       return new Promise(resolve => {
@@ -124,7 +130,7 @@ export default function main({assets} = {}) {
         nextReceipt.clear();
         binding = next;
         player.bind(next);
-        if (next) observeArrival(next);
+        if (next && !iyf) observeArrival(next);
       }
     }
     const snapshot = player.snapshot();
@@ -137,7 +143,7 @@ export default function main({assets} = {}) {
   function mediaLifecycle(event) {
     const media = event.target;
     if (!event.isTrusted || !(media instanceof HTMLVideoElement) ||
-        (!media.matches('video[data-od-feature]') && media !== binding?.media)) return;
+        (!media.matches(iyf ? iyfMediaSelector : 'video[data-od-feature]') && media !== binding?.media)) return;
     if (event.type === 'loadedmetadata') loading.delete(media);
     else loading.add(media);
     sync();
@@ -146,6 +152,9 @@ export default function main({assets} = {}) {
   const observer = new MutationObserver(sync);
   const mediaEvents = ['emptied', 'loadstart', 'loadedmetadata', 'abort', 'error'];
   const pageEvents = ['popstate', 'hashchange'];
+  const observeIyfMotion = event => {
+    if (event.isTrusted && event.target === binding?.media && !loading.has(event.target)) readPlayer();
+  };
   function dispose() {
     if (closed) return;
     closed = true;
@@ -157,15 +166,24 @@ export default function main({assets} = {}) {
     observer.disconnect();
     for (const event of mediaEvents) document.removeEventListener(event, mediaLifecycle, true);
     for (const event of pageEvents) window.removeEventListener(event, sync);
+    if (iyf) {
+      document.removeEventListener('timeupdate', observeIyfMotion, true);
+      window.navigation?.removeEventListener('currententrychange', sync);
+    }
     window.removeEventListener('pagehide', dispose);
   }
   owner.onDispose(dispose);
   try {
-    observer.observe(document.documentElement, {subtree: true, childList: true, attributes: true,
+    observer.observe(document.documentElement, {subtree: true, childList: true, attributes: true, characterData: iyf,
       attributeFilter: ['src', 'hidden', 'inert', 'aria-hidden', 'class', 'style', 'data-od-feature',
-        'data-od-title', 'data-od-series', 'data-od-season', 'data-od-episode', 'data-od-order', 'data-od-line']});
+        'data-od-title', 'data-od-series', 'data-od-season', 'data-od-episode', 'data-od-order', 'data-od-line',
+        ...(iyf ? ['href', 'title', 'id', 'target', 'download', 'aria-disabled'] : [])]});
     for (const event of mediaEvents) document.addEventListener(event, mediaLifecycle, true);
     for (const event of pageEvents) window.addEventListener(event, sync);
+    if (iyf) {
+      document.addEventListener('timeupdate', observeIyfMotion, true);
+      window.navigation?.addEventListener('currententrychange', sync);
+    }
     window.addEventListener('pagehide', dispose, {once: true});
     stopRequests = bridge.onRequest(({operation, payload}) => {
       const snapshot = sync();

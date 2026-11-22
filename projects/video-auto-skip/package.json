@@ -1,6 +1,6 @@
 {
   "name": "@opendesk-apps/video-auto-skip",
-  "version": "0.1.1",
+  "version": "0.2.0",
   "private": true,
   "type": "module",
   "scripts": {
@@ -16,7 +16,8 @@
     "entry": "src/page/main.js",
     "pageRules": {
       "matches": [
-        "http://127.0.0.1/video-auto-skip-fixture/*"
+        "http://127.0.0.1/video-auto-skip-fixture/*",
+        "https://www.iyf.tv/play/*"
       ],
       "excludeMatches": [],
       "runAt": "document_idle",

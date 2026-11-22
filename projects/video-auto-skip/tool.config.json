@@ -1,9 +1,9 @@
 {
   "format": "opendesk.sidebar-tool.v2",
   "id": "video-auto-skip",
-  "version": "0.1.1",
+  "version": "0.2.0",
   "title": "连播助手",
-  "description": "设置片头、片尾与下一集规则。当前候选仅支持本机验收播放器。",
+  "description": "为本机验收播放器和 iYF 播放页设置片头、片尾及连播规则；iYF 的站点切集继续由站点处理。",
   "capabilities": [
     "storage.local",
     "page.module"
