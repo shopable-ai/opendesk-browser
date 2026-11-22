@@ -1,0 +1,24 @@
+{
+  "format": "opendesk.sidebar-tool.v2",
+  "id": "job-assistant",
+  "version": "0.1.0",
+  "title": "AI 求职助手",
+  "description": "在授权的 BOSS 职位列表中发现岗位、解释匹配、保存待审清单及准备沟通草稿；不自动发送。",
+  "capabilities": [
+    "page.module",
+    "storage.local",
+    "user.export"
+  ],
+  "requires": {
+    "browserSdk": "1.0.0"
+  },
+  "pageModule": {
+    "revision": 1
+  },
+  "files": {
+    "html": "src/index.html",
+    "css": "src/style.css",
+    "js": "src/main.js"
+  },
+  "assets": []
+}

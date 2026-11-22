@@ -1,0 +1,43 @@
+<main class="ja-app od-page" aria-label="AI 求职助手">
+  <section class="ja-summary" aria-label="产品状态">
+    <div><strong>求职工作台</strong><p class="od-note">职位扫描 · 解释匹配 · 人工审核</p></div>
+    <span class="ja-pill">仅辅助，不自动发送</span>
+  </section>
+  <nav class="ja-tabs" aria-label="工作台页面">
+    <button type="button" class="od-button od-button--secondary" data-view="jobs" aria-current="page">职位发现</button>
+    <button type="button" class="od-button od-button--secondary" data-view="queue">待审核 <span id="ja-queue-count">0</span></button>
+    <button type="button" class="od-button od-button--secondary" data-view="settings">匹配规则</button>
+  </nav>
+  <section id="ja-jobs" class="ja-view" aria-label="职位发现">
+    <div class="ja-toolbar"><button id="ja-scan" type="button" class="od-button od-button--primary">扫描当前页面</button>
+      <span id="ja-scan-count" class="od-note">尚未扫描</span></div>
+    <p class="od-note">打开 BOSS 直聘职位搜索列表，授权后点击扫描。只读取当前已加载的卡片，不翻页、不发消息。</p>
+    <div id="ja-list" class="ja-list" aria-live="polite"></div>
+    <p id="ja-jobs-empty" class="ja-empty od-note">当前没有岗位。点击“扫描当前页面”开始。</p>
+  </section>
+  <section id="ja-queue" class="ja-view" aria-label="待审核清单" hidden>
+    <p class="od-note">这里记录本地待审核岗位，不代表已沟通或已投递。</p>
+    <div id="ja-queue-list" class="ja-list"></div>
+    <p id="ja-queue-empty" class="ja-empty od-note">没有待审核岗位。</p>
+  </section>
+  <section id="ja-settings" class="ja-view" aria-label="匹配规则" hidden>
+    <form id="ja-prefs" class="ja-form">
+      <label>意向岗位（逗号分隔）<input class="od-field" id="ja-roles" maxlength="160" placeholder="Android,前端,全栈"></label>
+      <label>意向城市（留空不限）<input class="od-field" id="ja-cities" maxlength="120" placeholder="北京,上海,远程"></label>
+      <label>最低月薪，单位 K（0 表示不限）<input class="od-field" type="number" id="ja-salary" min="0" max="200" step="1"></label>
+      <label>排除关键词（职位、公司、标签）<input class="od-field" id="ja-exclude" maxlength="200" placeholder="培训,外包,驻场"></label>
+      <label>自身技能（用于解释匹配及话术）<input class="od-field" id="ja-skills" maxlength="200" placeholder="Kotlin,JavaScript,Vue"></label>
+      <label>沟通话术模板<textarea class="od-field" id="ja-template" rows="4" maxlength="500"></textarea></label>
+      <p class="od-note">支持 {岗位}、{公司}、{技能}。此处的规则评分是确定性的，不是 AI 评估。</p>
+      <button id="ja-save-prefs" class="od-button od-button--primary" type="submit">保存匹配规则</button>
+    </form>
+  </section>
+  <section id="ja-review" class="ja-review" aria-label="人工审核话术" hidden>
+    <div class="ja-review-head"><strong id="ja-review-title">沟通草稿</strong><button type="button" id="ja-close-review" class="od-button od-button--quiet" aria-label="关闭草稿">关闭</button></div>
+    <label for="ja-draft">请先核对岗位、个人经历与沟通内容</label>
+    <textarea id="ja-draft" class="od-field" rows="5" maxlength="800"></textarea>
+    <div class="ja-review-actions"><button type="button" id="ja-copy" class="od-button od-button--primary">复制草稿</button></div>
+    <p class="od-note">仅复制，不会打开聊天、点击沟通或发送简历。</p>
+  </section>
+  <p id="ja-status" class="ja-status od-note" role="status" aria-live="polite"></p>
+</main>
