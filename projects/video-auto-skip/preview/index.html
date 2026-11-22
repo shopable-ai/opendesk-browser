@@ -544,6 +544,21 @@ html,body{background:#f2f5fa}
  #od-watch-preview .od-r10-actions button{padding:4px 6px;}
 }
 
+/* Clear buttons are hidden for default 00:00/End positions where clicking X would do nothing. */
+#od-watch-preview .od-endpoint-readouts .od-time-entry{position:relative;min-width:0;width:100%}
+#od-watch-preview .od-endpoint-readouts .od-time-entry>label.od-time-field{width:100%;padding-inline-end:24px}
+#od-watch-preview .od-endpoint-readouts .od-time-entry:first-child>label.od-time-field{box-shadow:inset 2px 0 0 #9aaff6}
+#od-watch-preview .od-endpoint-readouts .od-time-entry:last-child>label.od-time-field{box-shadow:inset 2px 0 0 #79b9cf}
+#od-watch-preview .od-endpoint-readouts .od-time-entry>label.od-time-field>input[type=text]{padding-inline-end:1px}
+#od-watch-preview button.od-time-clear{
+ position:absolute;inset-inline-end:1px;top:50%;transform:translateY(-50%);
+ min-width:24px;min-height:28px;padding:0!important;border:0!important;border-radius:5px;
+ background:transparent!important;color:#657892;font:18px/1 system-ui,sans-serif;z-index:2;
+}
+#od-watch-preview button.od-time-clear:hover,#od-watch-preview button.od-time-clear:focus-visible{background:#e7eef9!important;color:#1d426e}
+#od-watch-preview button.od-time-clear[hidden]{display:none!important}
+#od-watch-preview .od-end-binding-caption{margin:3px 2px 0;color:#657892;font-size:11px;line-height:1.35}
+@media(pointer:coarse){#od-watch-preview button.od-time-clear{min-height:40px;min-width:28px}}
 </style>
 <script>
 /* Local interaction simulator only. No browser-extension or website APIs. The demo has a verified single-series identity; a real adapter must only use series-wide saving after identity is confirmed. */
@@ -1211,6 +1226,17 @@ function suggestion(key,part){
 }
 function visualTime(key,part){const n=value(key,part);return Number.isFinite(n)?n:suggestion(key,part);}
 function inputValue(key,part){const id=rawID(key,part);if(ui.raw[id]!==undefined)return ui.raw[id];if(followsVideoEnd(key,part))return '';const n=value(key,part);return Number.isFinite(n)?fmt(n):'';}
+function clearLabel(key,part){return key==='intro'&&part==='start'?'恢复片头开始为 00:00':key==='outro'&&part==='end'?'恢复片尾结束跟随视频结尾':'清空'+names[key]+(part==='start'?'开始':'结束')+'时间';}
+function clearable(key,part){
+ if(followsVideoStart(key,part)||followsVideoEnd(key,part))return false;
+ return String(inputValue(key,part)).trim().length>0;
+}
+function endCaptionHTML(key){
+ if(key!=='outro')return '';
+ const d=model.s.duration,visible=model.s.draft.outro.mode==='tail';
+ return '<p class="od-end-binding-caption" id="od-end-binding-caption"'+(visible?'':' hidden')+'>'+
+  (Number.isFinite(d)?'End = 本集结尾 '+fmt(d)+' · 换集自动适配':'End 在获取时长后跟随视频结尾')+'</p>';
+}
 function timePlaceholder(key,part){if(followsVideoEnd(key,part))return 'End';const n=suggestion(key,part);return Number.isFinite(n)?fmt(n):'分:秒';}
 function parseField(key,part,text){if(key==='outro'&&part==='end'&&/^(end|结束|结尾)$/i.test(String(text).trim()))return null;return parseTime(text);}
 
@@ -1287,7 +1313,7 @@ function endpointLabel(key,part){return part==='start'?'开始':'结束';}
 function fieldAria(key,part){return names[key]+(part==='start'?'开始':'结束')+'时间（'+(followsVideoStart(key,part)?'00:00 为视频起点，修改后成为指定区间':followsVideoEnd(key,part)?'留空跟随视频结尾，可输入具体时间':'分:秒')+'）';}
 function fieldHTML(key,part){
  const disabled=unavailable(key),ghost=Number.isFinite(suggestion(key,part)),bound=followsVideoEnd(key,part),fixedStart=followsVideoStart(key,part);
- return `<label class="od-time-field ${ui.activeKey===key&&ui.selected[key]===part?'od-selected':''} ${ghost?'od-suggested':''} ${bound?'od-auto-end':''} ${fixedStart?'od-auto-start':''}" data-endpoint-label="${key}-${part}" for="od-${key}-${part}"><span id="od-label-${key}-${part}">${endpointLabel(key,part)}</span><input id="od-${key}-${part}" type="text" inputmode="numeric" autocomplete="off" spellcheck="false" aria-keyshortcuts="Enter" data-time-key="${key}" data-time-part="${part}" value="${disabled?'':esc(inputValue(key,part))}" placeholder="${bound?'End':disabled?'—':esc(timePlaceholder(key,part))}" ${disabled?'disabled':''} aria-label="${fieldAria(key,part)}" aria-describedby="od-error-${key} ${key==='outro'&&part==='end'?'od-end-binding-help':''}" title="${bound?'End 跟随视频全长；输入时间改为指定结束点':key==='outro'&&part==='end'?'清空或输入 End 可重新绑定视频结尾':ghost?'建议位置，点击可采用并继续编辑':'输入分:秒；上下方向键逐秒调整'}"></label>`;
+ return `<div class="od-time-entry"><label class="od-time-field ${ui.activeKey===key&&ui.selected[key]===part?'od-selected':''} ${ghost?'od-suggested':''} ${bound?'od-auto-end':''} ${fixedStart?'od-auto-start':''}" data-endpoint-label="${key}-${part}" for="od-${key}-${part}"><span id="od-label-${key}-${part}">${endpointLabel(key,part)}</span><input id="od-${key}-${part}" type="text" inputmode="numeric" autocomplete="off" spellcheck="false" aria-keyshortcuts="Enter" data-time-key="${key}" data-time-part="${part}" value="${disabled?'':esc(inputValue(key,part))}" placeholder="${bound?'End':disabled?'—':esc(timePlaceholder(key,part))}" ${disabled?'disabled':''} aria-label="${fieldAria(key,part)}" aria-describedby="od-error-${key} ${key==='outro'&&part==='end'?'od-end-binding-help':''}" title="${bound?'End 跟随视频全长；输入时间改为指定结束点':key==='outro'&&part==='end'?'清空或输入 End 可重新绑定视频结尾':ghost?'建议位置，点击可采用并继续编辑':'输入分:秒；上下方向键逐秒调整'}"></label><button type="button" class="od-time-clear" data-action="clear-time" data-key="${key}" data-part="${part}" aria-label="${clearLabel(key,part)}" title="${clearLabel(key,part)}" ${clearable(key,part)&&!disabled?"":"hidden"}>×</button></div>`;
 }
 function trackHTML(key){
  const w=windowFor(key,true),a=value(key,'start'),b=value(key,'end'),disabled=unavailable(key);
@@ -1303,7 +1329,7 @@ function trackHTML(key){
 }
 function rowHTML(key){
  const r=model.s.draft[key],v=validation(),overridden=Object.prototype.hasOwnProperty.call(model.s.overrides[model.identity()]||{},key),track=trackHTML(key);
- return `<section class="od-time-section od-ui-card" data-section="${key}" data-compatibility="${key==='outro'?model.r10Decision('outro').compatibility:''}"><div class="od-row-title"><label for="od-toggle-${key}">${names[key]}</label><span class="od-unset-badge" ${model.isUnconfigured(key)?'':'hidden'}>待设置</span><span id="od-window-label-${key}" class="od-window-label">${windowLabel(key)}</span>${overridden?'<span class="od-exception">本集例外</span>':''}<label class="od-toggle-couple"><span class="od-toggle-copy">自动跳过</span><span class="od-switch"><input id="od-toggle-${key}" type="checkbox" data-toggle="${key}" ${r.enabled?'checked':''} aria-label="跳过${names[key]}"></span></label></div>${track}<div class="od-endpoint-readouts">${fieldHTML(key,'start')}${fieldHTML(key,'end')}</div>${restoreAction(key)?`<div class="od-restore-inline">${restoreAction(key)}</div>`:''}${key==='outro'?r10MatchHTML()+'<span id="od-end-binding-help" class="od-sr-only">End 表示自动使用本视频实际结束时间。输入具体结束时间会变为指定区间；清空或填写 End 可恢复绑定；同一规则在视频时长变化时自动重新计算。这里复用已保存片尾规则，并非自动分析视频内容。</span>':''}<div id="od-error-${key}" class="od-error" ${v[key].length?'':'hidden'}>${esc(v[key][0]||'')}</div></section>`;
+ return `<section class="od-time-section od-ui-card" data-section="${key}" data-compatibility="${key==='outro'?model.r10Decision('outro').compatibility:''}"><div class="od-row-title"><label for="od-toggle-${key}">${names[key]}</label><span class="od-unset-badge" ${model.isUnconfigured(key)?'':'hidden'}>待设置</span><span id="od-window-label-${key}" class="od-window-label">${windowLabel(key)}</span>${overridden?'<span class="od-exception">本集例外</span>':''}<label class="od-toggle-couple"><span class="od-toggle-copy">自动跳过</span><span class="od-switch"><input id="od-toggle-${key}" type="checkbox" data-toggle="${key}" ${r.enabled?'checked':''} aria-label="跳过${names[key]}"></span></label></div>${track}<div class="od-endpoint-readouts">${fieldHTML(key,'start')}${fieldHTML(key,'end')}</div>${endCaptionHTML(key)}${restoreAction(key)?`<div class="od-restore-inline">${restoreAction(key)}</div>`:''}${key==='outro'?r10MatchHTML()+'<span id="od-end-binding-help" class="od-sr-only">End 表示自动使用本视频实际结束时间。输入具体结束时间会变为指定区间；清空或填写 End 可恢复绑定；同一规则在视频时长变化时自动重新计算。这里复用已保存片尾规则，并非自动分析视频内容。</span>':''}<div id="od-error-${key}" class="od-error" ${v[key].length?'':'hidden'}>${esc(v[key][0]||'')}</div></section>`;
 }
 function restoreAction(key){
  const s=model.s,o=s.overrides[model.identity()]||{};
@@ -1469,6 +1495,8 @@ function syncRow(key,origin){
   el.disabled=disabled;el.placeholder=disabled?'—':timePlaceholder(key,part);
   el.setAttribute('aria-label',fieldAria(key,part));
   const wrapper=el.closest('.od-time-field');if(wrapper){wrapper.classList.toggle('od-suggested',ghost);wrapper.classList.toggle('od-auto-end',bound);wrapper.classList.toggle('od-auto-start',fixedStart);}
+  const clear=q('[data-action="clear-time"][data-key="'+key+'"][data-part="'+part+'"]');
+  if(clear){clear.hidden=disabled||!clearable(key,part);clear.disabled=disabled;}
  });
  all(`[data-interval-key="${key}"]`).forEach(el=>{
   const part=el.dataset.endpoint,n=value(key,part),shown=visualTime(key,part),bound=followsVideoEnd(key,part),fixedStart=followsVideoStart(key,part),set=Number.isFinite(n)&&!disabled&&!bound;
@@ -1480,6 +1508,9 @@ function syncRow(key,origin){
  if(track){track.classList.toggle('od-near',Number.isFinite(x)&&Number.isFinite(y)&&Math.abs(pct(x)-pct(y))<9);track.classList.toggle('od-inverted',Number.isFinite(a)&&Number.isFinite(b)&&a>=b);}
  const windowTag=q('#od-window-label-'+key);if(windowTag)windowTag.textContent=windowLabel(key);
  const label=q('#od-label-'+key+'-end');if(label)label.textContent=endpointLabel(key,'end');
+ const endHint=key==='outro'&&q('#od-end-binding-caption');
+ if(endHint){endHint.hidden=model.s.draft.outro.mode!=='tail';endHint.textContent=Number.isFinite(model.s.duration)?
+  'End = 本集结尾 '+fmt(model.s.duration)+' · 换集自动适配':'End 在获取时长后跟随视频结尾';}
  const section=q('[data-section="'+key+'"]'),badge=section&&section.querySelector('.od-unset-badge');if(badge)badge.hidden=!model.isUnconfigured(key);
  const toggle=q('#od-toggle-'+key);if(toggle)toggle.checked=model.s.draft[key].enabled;
  syncErrors();syncSelection();syncSave();if(key==='outro')syncTailMatch();
@@ -1497,6 +1528,18 @@ root.addEventListener('click',event=>{
   if(Number.isFinite(n)&&!Number.isFinite(value(key,part))){setEndpoint(key,part,n);clearRaw(key,part);ui.savedContext=null;selectPoint(key,part);syncRow(key);}
  }
  const b=event.target.closest('button');if(!b||!root.contains(b)||b.disabled)return;const action=b.dataset.action,key=b.dataset.key;
+ if(action==='clear-time'){
+  const part=b.dataset.part;
+  if((key==='intro'&&part==='end')||(key==='outro'&&part==='start'))clearRaw(key);
+  else clearRaw(key,part);
+  if(key==='intro'&&part==='start')setEndpoint(key,part,0);
+  else if(key==='outro'&&part==='end')setEndpoint(key,part,null);
+  else if(key==='intro')model.edit('intro',{mode:'start',start:0,end:null});
+  else model.edit('outro',{mode:'tail',tail:null,start:null,end:null});
+  ui.savedContext=null;selectPoint(key,part);windowFor(key,true);syncRow(key);
+  q('#od-'+key+'-'+part)?.focus({preventScroll:true});
+  return;
+ }
  if(action==='feedback-open'){ui.feedbackOpen=!ui.feedbackOpen;if(!ui.feedbackOpen)ui.feedbackPayload='';render();return;}
  if(action==='feedback-copy'){
   if(!feedbackIssue())return;
