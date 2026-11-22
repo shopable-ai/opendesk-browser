@@ -361,6 +361,11 @@ html,body{background:#f2f5fa}
 #od-watch-preview .od-dual-range.od-bound-start::-moz-range-thumb{background:#fff!important;border-color:#4269e0!important;}
 #od-watch-preview .od-dual-range.od-bound-end::-webkit-slider-thumb,
 #od-watch-preview .od-dual-range.od-bound-end::-moz-range-thumb{background:#fff!important;border-color:#1189ac!important;}
+/* Default 00:00 / End slider anchors are fixed; numeric fields can override their modes. */
+#od-watch-preview .od-dual-range:is(.od-bound-start,.od-bound-end)::-webkit-slider-thumb,
+#od-watch-preview .od-dual-range:is(.od-bound-start,.od-bound-end)::-moz-range-thumb{
+ pointer-events:none!important;cursor:default!important;
+}
 /* Disabling automatic skipping does not disable editing its endpoints. */
 #od-watch-preview .od-time-section:has(.od-toggle-couple input:not(:checked)) .od-dual-range:not(.od-active-point){opacity:1;}
 #od-watch-preview .od-window-preference{
@@ -1279,6 +1284,8 @@ function identityHTML(){
   '<div id="od-identity-detail" class="od-identity-detail">'+esc(x.detail)+'</div></div>';
 }
 function constrainHandle(key,part,n){
+ // Bound 00:00 / End are reference anchors; customize them in the text boxes.
+ if(followsVideoStart(key,part)||followsVideoEnd(key,part))return null;
  const w=windowFor(key),other=value(key,part==='start'?'end':'start');let lo=w[0],hi=w[1];
  if(part==='start'&&Number.isFinite(other))hi=Math.min(hi,other-1);
  if(part==='end'&&Number.isFinite(other))lo=Math.max(lo,other+1);
@@ -1310,7 +1317,7 @@ function trackHTML(key){
  return `<div class="od-dual-track ${near?'od-near':''} ${reverse?'od-inverted':''}" data-track="${key}"><span class="od-dual-line" aria-hidden="true"></span>${['start','end'].map(part=>{
   const n=value(key,part), shown=visualTime(key,part),set=Number.isFinite(n)&&!disabled&&!followsVideoEnd(key,part);
   const bound=followsVideoEnd(key,part),fixedStart=followsVideoStart(key,part),movable=!disabled&&!bound&&!fixedStart&&Number.isFinite(shown);
-  return `<input id="od-range-${key}-${part}" class="od-dual-range ${set?'od-set':'od-empty'} ${bound?'od-bound-end':''} ${fixedStart?'od-bound-start':''} ${movable?'od-movable':''} ${ui.activeKey===key&&ui.selected[key]===part?'od-active-point':''}" type="range" data-interval-key="${key}" data-endpoint="${part}" min="${w[0]}" max="${w[1]}" step="1" value="${Number.isFinite(shown)?shown:part==='start'?w[0]:w[1]}" ${disabled?'disabled':''} aria-label="${names[key]}${part==='start'?'开始':'结束'}时间拖动手柄" aria-valuetext="${disabled?'时长未知':bound?'视频结尾，跟随时长':fixedStart?'00:00，绑定视频起点':set?fmt(n):Number.isFinite(shown)?'建议位置 '+fmt(shown)+'，尚未设置':'未设置'}" aria-describedby="od-window-label-${key} od-error-${key}">`;
+  return `<input id="od-range-${key}-${part}" class="od-dual-range ${set?'od-set':'od-empty'} ${bound?'od-bound-end':''} ${fixedStart?'od-bound-start':''} ${movable?'od-movable':''} ${ui.activeKey===key&&ui.selected[key]===part?'od-active-point':''}" type="range" data-interval-key="${key}" data-endpoint="${part}" min="${w[0]}" max="${w[1]}" step="1" value="${Number.isFinite(shown)?shown:part==='start'?w[0]:w[1]}" ${disabled?'disabled':''} ${bound||fixedStart?'tabindex="-1" aria-disabled="true"':'aria-disabled="false"'} aria-label="${names[key]}${part==='start'?'开始':'结束'}时间拖动手柄" aria-valuetext="${disabled?'时长未知':bound?'视频结尾，跟随时长':fixedStart?'00:00，绑定视频起点':set?fmt(n):Number.isFinite(shown)?'建议位置 '+fmt(shown)+'，尚未设置':'未设置'}" aria-describedby="od-window-label-${key} od-error-${key}">`;
  }).join('')}</div>`;
 }
 function rowHTML(key){
@@ -1487,7 +1494,7 @@ function syncRow(key,origin){
  all(`[data-interval-key="${key}"]`).forEach(el=>{
   const part=el.dataset.endpoint,n=value(key,part),shown=visualTime(key,part),bound=followsVideoEnd(key,part),fixedStart=followsVideoStart(key,part),set=Number.isFinite(n)&&!disabled&&!bound;
   el.min=w[0];el.max=w[1];if(el!==origin)el.value=Number.isFinite(shown)?shown:part==='start'?w[0]:w[1];
-  el.disabled=disabled;el.classList.toggle('od-empty',!set);el.classList.toggle('od-set',set);el.classList.toggle('od-bound-end',bound);el.classList.toggle('od-bound-start',fixedStart);el.classList.toggle('od-movable',!disabled&&!bound&&!fixedStart&&Number.isFinite(shown));
+  el.disabled=disabled;el.tabIndex=bound||fixedStart?-1:0;el.setAttribute('aria-disabled',String(disabled||bound||fixedStart));el.classList.toggle('od-empty',!set);el.classList.toggle('od-set',set);el.classList.toggle('od-bound-end',bound);el.classList.toggle('od-bound-start',fixedStart);el.classList.toggle('od-movable',!disabled&&!bound&&!fixedStart&&Number.isFinite(shown));
   el.setAttribute('aria-valuetext',disabled?'时长未知':bound?'视频结尾，跟随时长':fixedStart?'00:00，绑定视频起点':set?fmt(n):Number.isFinite(shown)?'建议位置 '+fmt(shown)+'，尚未设置':'未设置');
  });
  const track=q('[data-track="'+key+'"]'),a=value(key,'start'),b=value(key,'end'),x=visualTime(key,'start'),y=visualTime(key,'end');
@@ -1566,7 +1573,9 @@ root.addEventListener('input',event=>{
   return;
  }
  if(el.dataset.timeKey){const key=el.dataset.timeKey,part=el.dataset.timePart;ui.raw[el.id]=el.value;setEndpoint(key,part,parseField(key,part,el.value));ui.savedContext=null;selectPoint(key,part);syncRow(key,el);return;}
- if(el.dataset.intervalKey){const key=el.dataset.intervalKey,part=el.dataset.endpoint,intended=Number(el.value),n=constrainHandle(key,part,intended);if(n===null){el.value=Number.isFinite(value(key,part))?value(key,part):windowFor(key)[part==='start'?0:1];return;}el.value=n;setEndpoint(key,part,n,intended);clearRaw(key,part);ui.savedContext=null;selectPoint(key,part);syncRow(key,el);}
+ if(el.dataset.intervalKey){const key=el.dataset.intervalKey,part=el.dataset.endpoint;
+  if(followsVideoStart(key,part)||followsVideoEnd(key,part)){el.value=value(key,part);return;}
+  const intended=Number(el.value),n=constrainHandle(key,part,intended);if(n===null){el.value=Number.isFinite(value(key,part))?value(key,part):windowFor(key)[part==='start'?0:1];return;}el.value=n;setEndpoint(key,part,n,intended);clearRaw(key,part);ui.savedContext=null;selectPoint(key,part);syncRow(key,el);}
 });
 root.addEventListener('change',event=>{
  const el=event.target;if(el.disabled)return;
@@ -1574,16 +1583,20 @@ root.addEventListener('change',event=>{
  else if(el.dataset.timeKey)commitInput(el);
 });
 // Keep selection stable during Tab navigation; only explicit editing activates an endpoint.
-root.addEventListener('pointerdown',event=>{const el=event.target,key=el.dataset.timeKey||el.dataset.intervalKey;if(key&&!el.disabled){if(el.dataset.intervalKey)ui.dragging=key;selectPoint(key,el.dataset.timePart||el.dataset.endpoint);}});
+root.addEventListener('pointerdown',event=>{const el=event.target,key=el.dataset.timeKey||el.dataset.intervalKey;if(key&&!el.disabled){
+  if(el.dataset.intervalKey&&(followsVideoStart(key,el.dataset.endpoint)||followsVideoEnd(key,el.dataset.endpoint)))return;
+  if(el.dataset.intervalKey)ui.dragging=key;selectPoint(key,el.dataset.timePart||el.dataset.endpoint);}});
 root.addEventListener('pointerup',()=>{ui.dragging=null;});
 root.addEventListener('keydown',event=>{
  const el=event.target,key=el.dataset.timeKey||el.dataset.intervalKey;if(!key||el.disabled)return;
+ if(el.dataset.intervalKey&&(followsVideoStart(key,el.dataset.endpoint)||followsVideoEnd(key,el.dataset.endpoint))){
+  if(['ArrowLeft','ArrowRight','ArrowUp','ArrowDown','Home','End'].includes(event.key))event.preventDefault();
+  return;
+ }
  if(event.key==='Enter'){event.preventDefault();selectPoint(key,el.dataset.timePart||el.dataset.endpoint);if(el.dataset.timeKey)commitInput(el);return;}
  if(!['ArrowLeft','ArrowRight','ArrowUp','ArrowDown'].includes(event.key)||(el.dataset.timeKey&&['ArrowLeft','ArrowRight'].includes(event.key)))return;
  event.preventDefault();const part=el.dataset.timePart||el.dataset.endpoint,step=['ArrowUp','ArrowRight'].includes(event.key)?1:-1,w=windowFor(key),base=Number.isFinite(value(key,part))?value(key,part):Number.isFinite(visualTime(key,part))?visualTime(key,part):part==='start'?w[0]:w[1];
- // Bound "End" is already the maximum. ArrowUp must not create an invalid absolute endpoint.
- if(key==='outro'&&part==='end'&&followsVideoEnd(key,part)&&step>0)return;
- const intended=Math.max(0,base+step);let n=intended;
+  const intended=Math.max(0,base+step);let n=intended;
  if(el.dataset.intervalKey){n=constrainHandle(key,part,n);if(n===null)return;el.value=n;}
  setEndpoint(key,part,n,intended);clearRaw(key,part);ui.savedContext=null;selectPoint(key,part);if(el.dataset.timeKey)windowFor(key,true);syncRow(key);
 });
