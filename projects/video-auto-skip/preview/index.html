@@ -4,10 +4,10 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <meta name="color-scheme" content="light">
-<title>连播助手 · R9 单按钮保存与草稿保护 · 离线侧栏预览</title>
-<meta name="od-design-variant" content="B-R9">
+<title>连播助手 · R10 跨集规则兼容与历史核对 · 离线侧栏预览</title>
+<meta name="od-design-variant" content="B-R10">
 <meta name="od-preview-binding" content="outro.end=duration; outro.tail=relative seconds; absolute end only when interval mode">
-<meta name="od-preview-capability" content="offline-sidebar-only-viewport-slider-no-video-no-scenario">
+<meta name="od-preview-capability" content="offline-sidebar-r10-compatibility-fixtures-no-real-video">
 <style>body{margin:0;padding:20px 12px;background:#f2f5fa;color-scheme:light}#od-watch-preview{max-width:800px;margin:0 auto}@media(max-width:400px){body{padding:10px 4px}}</style>
 </head>
 <body>
@@ -762,7 +762,7 @@ class ContinuityModel {
     if(!v.valid)return false;
     for(const key of ['intro','outro']) {
       const range=this.range(key,rules);
-      if(!rules[key].enabled||!this._inside(t,range)||this._isProtected(key,t)||(key==='outro'&&!Number.isFinite(this.s.duration)))continue;
+      if(!rules[key].enabled||!this._inside(t,range)||this._isProtected(key,t)||!this.r10Decision(key).executionAllowed||(key==='outro'&&!Number.isFinite(this.s.duration)))continue;
       this.s.undo={identity:this.identity(),from:t,to:range[1],playing:this.s.playing,key,range:this.copy(range),remaining:8};
       this.s.time=range[1];
       this._notice(`模拟已跳过${key==='intro'?'片头':'片尾'}；可以撤销。`,'ok');return true;
@@ -893,6 +893,215 @@ class ContinuityModel {
   }
 }
 if(typeof module!=='undefined') module.exports=ContinuityModel;
+
+/* R10_COMPATIBILITY_ENGINE */
+/* P0 only: deterministic in-memory fixtures, not website detection or durable RuleStore. */
+const R10_FIXTURES = Object.freeze({
+ empty:{episode:3,duration:2700,noSaved:true,patternConfirmed:true},
+ normal03:{episode:3,duration:2700,patternConfirmed:true},
+ normal04:{episode:4,duration:2880,patternConfirmed:true},
+ history:{episode:4,duration:2880,patternConfirmed:true,localTail:60,historyTail:90},
+ merged:{episode:3,duration:5400,kind:'merged',patternConfirmed:false,segmentMap:null},
+ special:{episode:3,duration:6000,kind:'special',patternConfirmed:false},
+ credits:{episode:3,duration:6000,kind:'special',localInterval:[4800,4890],patternConfirmed:false},
+ edition:{episode:3,duration:2700,edition:'cut-B',ruleEdition:'cut-A',patternConfirmed:true},
+ unknown:{episode:3,duration:2700,edition:null,versionVerified:false,patternConfirmed:false},
+ drift:{episode:3,duration:2800,historicalDuration:2700,patternConfirmed:true},
+ conflict:{episode:4,duration:2880,patternConfirmed:true,branchConflict:true,alternativeTail:120},
+ sync:{episode:4,duration:2880,patternConfirmed:true,syncConflict:true,alternativeTail:120},
+ declined:{episode:4,duration:2880,patternConfirmed:true,declined:true},
+ unknownDuration:{episode:3,duration:null,patternConfirmed:true},
+ invalidTail:{episode:3,duration:40,patternConfirmed:true,tail:90},
+ failedSave:{episode:3,duration:2700,patternConfirmed:true,saveOutcome:'FAILED'},
+ unknownSave:{episode:3,duration:2700,patternConfirmed:true,saveOutcome:'UNKNOWN'}
+});
+const R10_OWN=Object.prototype.hasOwnProperty;
+const r10FiniteDuration=n=>Number.isFinite(n)&&Number.isInteger(n)&&n>0;
+function r10Context(name){
+ const f=R10_FIXTURES[name];if(!f)return null;
+ const ctx=Object.assign({
+  episode:3,duration:2700,kind:'regular',edition:'cut-A',ruleEdition:'cut-A',
+  versionVerified:true,resourceVerified:true,siteOrigin:'https://demo.invalid',
+  sourceFingerprint:'confirmed-playlist-A',playlistVerified:true,patternConfirmed:false,
+  branchConflict:false,syncConflict:false,segmentMap:null
+ },f);
+ ctx.mediaKey='demo-series:s1:e'+ctx.episode+':'+String(ctx.edition||'unknown');
+ ctx.historicalDuration=R10_OWN.call(f,'historicalDuration')?f.historicalDuration:ctx.duration;
+ return ctx;
+}
+const r9OriginalScenario=ContinuityModel.prototype._loadScenario;
+ContinuityModel.prototype._loadScenario=function(name){
+ const ok=r9OriginalScenario.call(this,name);
+ this.r10={
+  name:'empty',context:r10Context('empty'),history:[],declines:new Set(),confirmedFields:new Set(),
+  candidateRevision:7,ruleId:'demo-rule-series-s1',nextSaveOutcome:'COMMITTED',lastWriteOutcome:null
+ };
+ return ok;
+};
+ContinuityModel.prototype.r10LoadFixture=function(name){
+ const cfg=r10Context(name);if(!cfg)return false;
+ // Do not silently migrate a current unsaved draft into a new video fixture.
+ if(this.s.dirty){this.s.transition={kind:'r10Fixture',target:name};this._notice('当前有未保存修改：先继续编辑或放弃再切换模拟视频。','warning');return false;}
+ this._loadScenario(name==='empty'?'empty':'standard');
+ this.s.episode=cfg.episode;
+ this.s.version=cfg.edition==='cut-B'?'版本 B':'标准版 A';
+ this.s.duration=cfg.duration;
+ if(R10_OWN.call(R10_FIXTURES[name],'tail'))this.s.base.outro={enabled:true,mode:'tail',tail:cfg.tail,start:null,end:null};
+ if(cfg.localTail!==undefined||cfg.localInterval||cfg.kind!=='regular'||!cfg.versionVerified||!cfg.resourceVerified)this.s.scope='episode';
+ // Three values coexist: E03 default 90, E04 override 60, E05 override 120.
+ if(name==='history'){
+  this.s.overrides['demo:星海航线|s1|e4|'+this.s.version]={outro:{enabled:true,mode:'tail',tail:60,start:null,end:null}};
+  this.s.overrides['demo:星海航线|s1|e5|'+this.s.version]={outro:{enabled:true,mode:'tail',tail:120,start:null,end:null}};
+ }
+ if(cfg.localInterval)this.s.overrides[this.identity()]={outro:{enabled:true,mode:'interval',start:cfg.localInterval[0],end:cfg.localInterval[1],tail:null}};
+ this.r10={
+  name,context:cfg,history:[],declines:new Set(),confirmedFields:new Set(),
+  candidateRevision:7,ruleId:'demo-rule-series-s1',nextSaveOutcome:cfg.saveOutcome||'COMMITTED',lastWriteOutcome:null
+ };
+ if(cfg.declined)this.r10.declines.add(this.r10DeclineKey('outro'));
+ this.s.time=0;this.s.playing=false;this.s.pending=null;this.s.transition=null;
+ this._loadDraft();
+ this._notice('R10 '+name+' · 仅供离线规则核对，未连接视频/持久化。');
+ return true;
+};
+const r9OriginalTransition=ContinuityModel.prototype._transition;
+ContinuityModel.prototype._transition=function(kind,target){
+ if(kind==='r10Fixture')return this.r10LoadFixture(target);
+ return r9OriginalTransition.call(this,kind,target);
+};
+ContinuityModel.prototype.r10DeclineKey=function(key){
+ const x=this.r10.context;
+ return [x.mediaKey,x.edition||'unknown',this.r10.ruleId,this.r10.candidateRevision,key].join('|');
+};
+ContinuityModel.prototype.r10Decision=function(key){
+ const x=this.r10.context,overrides=this.s.overrides[this.identity()]||{};
+ const local=R10_OWN.call(overrides,key),saved=this.effective(),value=saved[key];
+ const exists=key==='autoNext'||!this.isUnconfigured(key,saved);
+ const d=this.s.duration,declined=this.r10.declines.has(this.r10DeclineKey(key));
+ const result={exists,compatibility:'UNKNOWN',executionAllowed:false,declined,
+  source:local?'本集独立规则':'本作品已保存规则',reason:'证据不足，不能自动沿用',
+  mediaKey:x.mediaKey,ruleId:this.r10.ruleId,revision:this.r10.candidateRevision,
+  durationSeconds:d,historyDurationSeconds:x.historicalDuration,
+  candidateTail:value&&value.mode==='tail'?value.tail:null,
+  currentStart:null,currentEnd:null,range:null,local};
+ if(!exists){result.reason='当前没有已保存的'+(key==='intro'?'片头':'片尾')+'规则';return result;}
+ const range=key==='autoNext'?null:this.range(key,saved);
+ if(range){result.range=range;result.currentStart=range[0];result.currentEnd=range[1];}
+ if(!x.resourceVerified||!x.mediaKey){
+  result.reason='主媒体资源身份未核实';return result;
+ }
+ if(!r10FiniteDuration(d)){
+  result.reason='视频总时长未知或非法';return result;
+ }
+ if(key!=='autoNext'&&(!range||range[0]<0||range[0]>=range[1]||range[1]>d||range[0]===0&&range[1]===d)){
+  result.compatibility='NOT_APPLICABLE';result.reason='当前时长无法容纳有效规则区间';return result;
+ }
+ if(key==='outro'&&value.mode==='tail'&&(!Number.isInteger(value.tail)||value.tail<=0||value.tail>=d)){
+  result.compatibility='NOT_APPLICABLE';result.reason='历史倒数秒数越界';return result;
+ }
+ // An explicit exact-media rule is independent of the series/edition inference,
+ // but only after a stable resource + unchanged observed cut are confirmed.
+ if(local){
+  if(x.historicalDuration!==null&&x.historicalDuration!==d){
+   result.compatibility='NEEDS_CONFIRMATION';result.reason='本集历史时长与当前资源不同';return result;
+  }
+  if(x.localInterval||x.localTail!==undefined||this.r10.confirmedFields.has(key)){
+   result.compatibility='APPLICABLE';
+   result.reason='本集已确认的独立规则，保留其他项目继承';
+  }else if(x.versionVerified&&x.edition===x.ruleEdition){
+   result.compatibility='APPLICABLE';result.reason='本集规则适用于当前已确认版本';
+  }else {result.reason='独立规则的当前版本证据不足';return result;}
+ }else{
+  if(x.kind!=='regular'){
+   result.compatibility='NOT_APPLICABLE';
+   result.reason=x.kind==='merged'?'合并集缺少已核实的内部分段，普通集规则不适用':'特别篇／花絮／合集不自动使用普通集规则';
+   return result;
+  }
+  if(!x.versionVerified||!x.edition){
+   result.reason='当前剪辑版本未确认';return result;
+  }
+  if(x.edition!==x.ruleEdition||x.sourceFingerprint!=='confirmed-playlist-A'){
+   result.compatibility='NOT_APPLICABLE';result.reason='剪辑版本或片源与历史规则不同';return result;
+  }
+  if(x.historicalDuration!==null&&x.historicalDuration!==d){
+   result.compatibility='NEEDS_CONFIRMATION';result.reason='同一资源历史时长变化，请核对剪辑/广告/版本';return result;
+  }
+  if(x.branchConflict||x.syncConflict){
+   result.compatibility='NEEDS_CONFIRMATION';
+   result.reason=x.syncConflict?'两设备对同一规则产生不同修改，需保留冲突分支':'同优先级历史规则存在90秒／120秒差异';
+   return result;
+  }
+  if(!x.playlistVerified||!x.patternConfirmed){
+   result.compatibility='NEEDS_CONFIRMATION';
+   result.reason='站内关系或片头片尾规律还没有可信确认';return result;
+  }
+  result.compatibility='APPLICABLE';result.reason='同站已确认剧集关系、剪辑版本及复用范围';
+ }
+ if(result.compatibility==='APPLICABLE'&&!declined&&value&&value.enabled!==false&&!this.s.dirty&&this.validation(saved).valid)
+  result.executionAllowed=true;
+ if(declined)result.reason='本集已拒绝这条历史规则；需主动重新核对';
+ else if(value&&value.enabled===false)result.reason='规则兼容，但自动跳过已关闭';
+ else if(this.s.dirty)result.reason='有未保存修改，暂不执行旧跳过任务';
+ return result;
+};
+ContinuityModel.prototype.r10Decline=function(key){
+ const d=this.r10Decision(key);if(!d.exists||this.s.dirty)return false;
+ this.r10.declines.add(this.r10DeclineKey(key));
+ this.r10.history.push({event:'DECLINE',ruleId:d.ruleId,revision:d.revision,mediaKey:d.mediaKey,field:key,verified:'memory-only'});
+ this._notice('本集不使用该候选规则；本页内存已记录，不会重复要求核对。','warning');
+ return true;
+};
+ContinuityModel.prototype.r10Reconsider=function(key){
+ if(this.s.dirty)return false;
+ this.r10.declines.delete(this.r10DeclineKey(key));
+ this.r10.history.push({event:'RECONSIDER',mediaKey:this.r10.context.mediaKey,field:key,verified:'memory-only'});
+ this._notice('已清除本次拒绝；规则仍需通过兼容性检查。');return true;
+};
+ContinuityModel.prototype.r10ConfirmForEpisode=function(key){
+ const d=this.r10Decision(key),x=this.r10.context;
+ if(this.s.dirty||!d.exists||d.compatibility!=='NEEDS_CONFIRMATION'||
+   !x.resourceVerified||!x.versionVerified||x.edition!==x.ruleEdition||x.kind!=='regular'){
+  this._notice('当前来源/剪辑证据不足，不能强行确认跨集兼容；请为本媒体单独标记。','warning');return false;
+ }
+ this.s.scope='episode';this._loadDraft();
+ this.edit(key,this.copy(this.effective()[key]));
+ this.r10.pendingConfirmField=key;
+ this._notice('已将候选复制为本集待保存草稿；请核对时间并点击“保存设置”。');
+ return true;
+};
+const r9OriginalSave=ContinuityModel.prototype.save;
+ContinuityModel.prototype.save=function(){
+ if(this.s.dirty&&this.r10&&this.r10.nextSaveOutcome!=='COMMITTED'){
+  const result=this.r10.nextSaveOutcome;
+  this.r10.lastWriteOutcome=result;
+  this._notice(result==='UNKNOWN'?'保存结果未知，需先读回核对，不能重复提交或显示成功。':
+    result==='CONFLICT'?'规则修订冲突，保留原值和草稿，请核对后再保存。':
+    '模拟写入失败，旧规则仍在，草稿保留。','error');
+  return false;
+ }
+ const before=this.s.ruleRevision,touched=this.s.touched.slice(),restored=new Set(this._restored),oldScope=this.s.scope;
+ const result=r9OriginalSave.call(this);
+ if(result&&this.s.ruleRevision!==before&&this.r10){
+  for(const key of touched){
+   if(restored.has(key))this.r10.confirmedFields.delete(key);
+   else if(oldScope==='episode')this.r10.confirmedFields.add(key);
+   this.r10.history.push({event:restored.has(key)?'RESTORE_DEFAULT':'SAVE_PATCH',
+    field:key,ruleId:this.r10.ruleId,revision:this.s.ruleRevision,mediaKey:this.r10.context.mediaKey,
+    scope:oldScope==='episode'?'current-media':'confirmed-season',verified:'memory-readback'});
+  }
+  // Store just a confirmed rule and an event, not per-episode copies of every season field.
+  this.r10.lastWriteOutcome='COMMITTED';
+  this.r10.context.historicalDuration=this.s.duration;
+  this._notice('离线模拟已保存并读回本页内存（'+(oldScope==='episode'?'仅本集':'已确认当前季')+'）；非浏览器持久化。','ok');
+ }
+ return result;
+};
+const r9OriginalDuration=ContinuityModel.prototype.setDuration;
+ContinuityModel.prototype.setDuration=function(n){
+ const ok=r9OriginalDuration.call(this,n);
+ if(ok&&this.r10)this.r10.context.duration=n;
+ return ok;
+};
 
 (function(){
 'use strict';
