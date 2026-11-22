@@ -4,8 +4,8 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <meta name="color-scheme" content="light">
-<title>连播助手 · R7 单滑块时间轴与简化保存 · 离线侧栏预览</title>
-<meta name="od-design-variant" content="B-R7">
+<title>连播助手 · R8 片尾跨集匹配与统一卡片宽度 · 离线侧栏预览</title>
+<meta name="od-design-variant" content="B-R8">
 <meta name="od-preview-binding" content="outro.end=duration; outro.tail=relative seconds; absolute end only when interval mode">
 <meta name="od-preview-capability" content="offline-sidebar-only-viewport-slider-no-video-no-scenario">
 <style>body{margin:0;padding:20px 12px;background:#f2f5fa;color-scheme:light}#od-watch-preview{max-width:800px;margin:0 auto}@media(max-width:400px){body{padding:10px 4px}}</style>
@@ -444,6 +444,36 @@ html,body{background:#f2f5fa}
 @media(max-width:340px){
  #od-watch-preview .od-window-preference{margin-left:8px;margin-right:8px;padding:6px 8px}
 }
+
+/* R8: card-edge alignment + separate rule-matching status, not a viewport action. */
+#od-watch-preview .od-window-preference{
+  box-sizing:border-box;width:100%;align-self:stretch;
+  margin:0!important;padding:7px 10px 8px;
+  border:1px solid #e3e9f3;border-radius:9px;background:#fff;
+  box-shadow:0 2px 7px #21457809;
+}
+#od-watch-preview .od-window-preference .od-viewport-top{min-height:23px}
+#od-watch-preview .od-viewport-note{position:absolute!important;width:1px!important;height:1px!important;overflow:hidden!important;clip-path:inset(50%)!important;white-space:nowrap!important}
+#od-watch-preview .od-tail-match{
+  box-sizing:border-box;display:flex;align-items:center;gap:6px;
+  margin:4px 2px 0;padding:4px 5px;
+  border:1px solid #eaf0f5;border-radius:5px;background:#f8fbfc;
+  font-size:10.5px;line-height:1.25;color:#60758c;
+}
+#od-watch-preview .od-tail-match-label{
+  color:#397b91;font-size:10.5px;font-weight:650;white-space:nowrap;flex:none;
+}
+#od-watch-preview .od-tail-match-label::before{
+  content:'↻';font-size:12px;margin-right:4px;vertical-align:-.3px;color:#1481a2;
+}
+#od-watch-preview .od-tail-match-text{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-variant-numeric:tabular-nums}
+#od-watch-preview .od-tail-match[data-state="matched"]{background:#f1faf8;border-color:#cce9e3}
+#od-watch-preview .od-tail-match[data-state="matched"] .od-tail-match-label{color:#137864}
+#od-watch-preview .od-tail-match[data-state="error"]{background:#fff7f8;border-color:#f1cdd3;color:#b23d4f}
+#od-watch-preview .od-tail-match[data-state="error"] .od-tail-match-label{color:#ac384a}
+#od-watch-preview .od-tail-match[data-state="interval"]{background:#f8faff}
+#od-watch-preview .od-viewport-auto-state{color:#4b729e;background:#f0f5fc}
+@media(max-width:340px){#od-watch-preview .od-window-preference{margin:0!important;padding:7px 8px}}
 </style>
 <script>
 /* Local interaction simulator only. No browser-extension or website APIs. The demo has a verified single-series identity; a real adapter must only use series-wide saving after identity is confirmed. */
@@ -937,7 +967,7 @@ function trackHTML(key){
 }
 function rowHTML(key){
  const r=model.s.draft[key],v=validation(),overridden=Object.prototype.hasOwnProperty.call(model.s.overrides[model.identity()]||{},key),track=trackHTML(key);
- return `<section class="od-time-section od-ui-card" data-section="${key}"><div class="od-row-title"><label for="od-toggle-${key}">${names[key]}</label><span class="od-unset-badge" ${model.isUnconfigured(key)?'':'hidden'}>待设置</span><span id="od-window-label-${key}" class="od-window-label">${windowLabel(key)}</span>${overridden?'<span class="od-exception">本集例外</span>':''}<label class="od-toggle-couple"><span class="od-toggle-copy">自动跳过</span><span class="od-switch"><input id="od-toggle-${key}" type="checkbox" data-toggle="${key}" ${r.enabled?'checked':''} aria-label="跳过${names[key]}"></span></label></div>${track}<div class="od-endpoint-readouts">${fieldHTML(key,'start')}${fieldHTML(key,'end')}</div>${restoreAction(key)?`<div class="od-restore-inline">${restoreAction(key)}</div>`:''}${key==='outro'?'<span id="od-end-binding-help" class="od-sr-only">End 表示自动使用本视频实际结束时间。输入具体结束时间会变为指定区间；清空或填写 End 可恢复绑定；同一规则在视频时长变化时自动重新计算。</span>':''}<div id="od-error-${key}" class="od-error" ${v[key].length?'':'hidden'}>${esc(v[key][0]||'')}</div></section>`;
+ return `<section class="od-time-section od-ui-card" data-section="${key}"><div class="od-row-title"><label for="od-toggle-${key}">${names[key]}</label><span class="od-unset-badge" ${model.isUnconfigured(key)?'':'hidden'}>待设置</span><span id="od-window-label-${key}" class="od-window-label">${windowLabel(key)}</span>${overridden?'<span class="od-exception">本集例外</span>':''}<label class="od-toggle-couple"><span class="od-toggle-copy">自动跳过</span><span class="od-switch"><input id="od-toggle-${key}" type="checkbox" data-toggle="${key}" ${r.enabled?'checked':''} aria-label="跳过${names[key]}"></span></label></div>${track}<div class="od-endpoint-readouts">${fieldHTML(key,'start')}${fieldHTML(key,'end')}</div>${restoreAction(key)?`<div class="od-restore-inline">${restoreAction(key)}</div>`:''}${key==='outro'?'<div id="od-tail-match" class="od-tail-match" data-state="waiting" role="status" aria-live="polite" aria-label="片尾跨集匹配状态"><span class="od-tail-match-label">跨集匹配</span><span id="od-tail-match-text" class="od-tail-match-text">保存片尾后，按视频时长换算</span></div><span id="od-end-binding-help" class="od-sr-only">End 表示自动使用本视频实际结束时间。输入具体结束时间会变为指定区间；清空或填写 End 可恢复绑定；同一规则在视频时长变化时自动重新计算。这里复用已保存片尾规则，并非自动分析视频内容。</span>':''}<div id="od-error-${key}" class="od-error" ${v[key].length?'':'hidden'}>${esc(v[key][0]||'')}</div></section>`;
 }
 function restoreAction(key){
  const s=model.s,o=s.overrides[model.identity()]||{};
@@ -949,14 +979,29 @@ function viewportIndex(){
  const found=viewportStops.findIndex(v=>v>=n);
  return found<0?viewportStops.length-1:found;
 }
+function tailMatchState(){
+ const s=model.s,draft=s.draft.outro,saved=model.effective().outro;
+ if(!Number.isFinite(s.duration))return {kind:'waiting',text:'等待当前视频时长，暂无法换算'};
+ if(validation().outro.length)return {kind:'error',text:'片尾区间有误，修正后再保存'};
+ if(draft.mode==='interval')return {kind:'interval',text:s.dirty?'自定义区间待保存，不跟随视频结尾':'指定区间，不按视频时长换算'};
+ if(!Number.isFinite(draft.tail))return {kind:'waiting',text:'先设置片尾开始时间，保存后跨集复用'};
+ if(s.dirty)return {kind:'waiting',text:'待保存 · 将按倒数 '+fmt(draft.tail)+' 换算'};
+ if(saved.mode==='tail'&&Number.isFinite(saved.tail))return {kind:'matched',text:'已保存 · 按倒数 '+fmt(saved.tail)+' 在各集换算'};
+ return {kind:'waiting',text:'保存片尾后，将按当前时长自动换算'};
+}
+function syncTailMatch(){
+ const el=q('#od-tail-match'),textEl=q('#od-tail-match-text');
+ if(!el||!textEl)return;
+ const state=tailMatchState();el.dataset.state=state.kind;textEl.textContent=state.text;
+}
 function viewportHTML(){
  const index=viewportIndex(),isAuto=ui.spanPref==='auto';
  const label=viewportStops[index]/60+'分钟';
  return `<div class="od-window-preference" role="group" aria-label="调整片头和片尾时间轴的显示范围">
   <div class="od-viewport-top"><label for="od-window-range">时间轴范围</label>
-  <div class="od-viewport-value"><output id="od-window-current" for="od-window-range">${label}</output><span id="od-window-auto-state" class="od-viewport-auto-state" ${isAuto?'':'hidden'}>自动</span><button id="od-window-auto" type="button" data-action="viewport-auto" ${isAuto?'hidden':''} title="按当前视频自动推荐时间轴范围">恢复自动</button></div></div>
-  <input type="range" id="od-window-range" min="0" max="4" step="1" value="${index}" aria-label="时间轴范围，从1分钟到10分钟，分档调整" aria-valuetext="${label}${isAuto?'，自动推荐':'，手动设置'}" aria-describedby="od-window-ticks">
-  <div id="od-window-ticks" class="od-viewport-ticks" aria-hidden="true"><span>1分</span><span>2分</span><span>3分</span><span>5分</span><span>10分</span></div>
+  <div class="od-viewport-value"><output id="od-window-current" for="od-window-range">${label}</output><span id="od-window-auto-state" class="od-viewport-auto-state" ${isAuto?'':'hidden'}>推荐</span><button id="od-window-auto" type="button" data-action="viewport-auto" ${isAuto?'hidden':''} title="恢复由视频长度推荐的编辑视野，不改变跳过时间">恢复推荐</button></div></div>
+  <input type="range" id="od-window-range" min="0" max="4" step="1" value="${index}" aria-label="时间轴范围，从1分钟到10分钟，分档调整" aria-valuetext="${label}${isAuto?'，自动推荐':'，手动设置'}" aria-describedby="od-window-ticks od-viewport-help">
+  <span id="od-viewport-help" class="od-viewport-note">只改变片头片尾拖动滑块的可见分钟数，不识别或修改片尾。</span><div id="od-window-ticks" class="od-viewport-ticks" aria-hidden="true"><span>1分</span><span>2分</span><span>3分</span><span>5分</span><span>10分</span></div>
  </div>`;
 }
 function statusHTML(){return '<div id="od-status" class="od-status" hidden><div id="od-status-text" role="status" aria-live="polite"></div><div id="od-status-actions" class="od-status-actions"></div></div>';}
@@ -1013,10 +1058,10 @@ function syncRow(key,origin){
  const label=q('#od-label-'+key+'-end');if(label)label.textContent=endpointLabel(key,'end');
  const section=q('[data-section="'+key+'"]'),badge=section&&section.querySelector('.od-unset-badge');if(badge)badge.hidden=!model.isUnconfigured(key);
  const toggle=q('#od-toggle-'+key);if(toggle)toggle.checked=model.s.draft[key].enabled;
- syncErrors();syncSelection();syncSave();
+ syncErrors();syncSelection();syncSave();if(key==='outro')syncTailMatch();
 }
 function syncIdentity(){const identity=q('#od-content-identity');if(identity)identity.textContent=identityText();}
-function render(keepFocus=true){const old=document.activeElement,id=old&&root.contains(old)?old.id:null;let selection=null;try{selection=[old.selectionStart,old.selectionEnd];}catch(e){}ui.rendering=true;q('#od-sidebar').innerHTML=sidebarHTML();syncErrors();syncSelection();syncSave();syncIdentity();for(const selector of ['button','summary','input[type=checkbox]'])all(selector).forEach(el=>el.classList.add('cursor-interaction'));if(keepFocus&&id){let el=q('#'+id);if(!el||el.disabled)el=q('#od-save')||q('#od-window-range')||q('#od-open');if(el){el.focus({preventScroll:true});if(el.id===id&&selection&&selection[0]!==null&&el.setSelectionRange)try{el.setSelectionRange(selection[0],selection[1]);}catch(e){}}}ui.rendering=false;}
+function render(keepFocus=true){const old=document.activeElement,id=old&&root.contains(old)?old.id:null;let selection=null;try{selection=[old.selectionStart,old.selectionEnd];}catch(e){}ui.rendering=true;q('#od-sidebar').innerHTML=sidebarHTML();syncErrors();syncSelection();syncSave();syncTailMatch();syncIdentity();for(const selector of ['button','summary','input[type=checkbox]'])all(selector).forEach(el=>el.classList.add('cursor-interaction'));if(keepFocus&&id){let el=q('#'+id);if(!el||el.disabled)el=q('#od-save')||q('#od-window-range')||q('#od-open');if(el){el.focus({preventScroll:true});if(el.id===id&&selection&&selection[0]!==null&&el.setSelectionRange)try{el.setSelectionRange(selection[0],selection[1]);}catch(e){}}}ui.rendering=false;}
 function resetUI(){ui.selected={intro:'end',outro:'start'};ui.activeKey='intro';ui.raw={};ui.windows={};ui.savedContext=null;}
 function take(fn){const id=model.identity(),sc=model.s.scenario,scope=model.s.scope;fn();if(id!==model.identity()||sc!==model.s.scenario)resetUI();else if(scope!==model.s.scope){ui.raw={};ui.windows={};ui.savedContext=null;}render();}
 function selectPoint(key,part){ui.activeKey=key;ui.selected[key]=part;syncSelection();}
