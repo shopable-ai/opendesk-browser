@@ -81,7 +81,6 @@ export function mountVideoSidebar(tool) {
     title.htmlFor = toggle.id;
     toggle.setAttribute('aria-label', NAMES[key]);
     toggle.setAttribute('role', 'switch');
-    const unset = el('span', 'vas-unset', '待设置');
     const summary = el('p', 'vas-note');
     summary.id = 'vas-summary-' + key;
     toggle.setAttribute('aria-describedby', summary.id);
@@ -91,7 +90,7 @@ export function mountVideoSidebar(tool) {
     const source = el('div', 'vas-source');
     source.append(summary, restore);
     head.append(title);
-    if (key !== 'next') head.append(unset, el('label', 'vas-toggle-label', '自动跳过'));
+    if (key !== 'next') head.append(el('label', 'vas-toggle-label', '自动跳过'));
     if (key !== 'next') head.lastElementChild.htmlFor = toggle.id;
     head.append(toggle);
     row.append(head);
@@ -120,7 +119,7 @@ export function mountVideoSidebar(tool) {
       toggle.focus();
     });
     find('rules').append(row);
-    return [key, {toggle, summary, restore, unset}];
+    return [key, {toggle, summary, restore}];
   }));
 
   function resetEditor(key) {
@@ -292,7 +291,7 @@ export function mountVideoSidebar(tool) {
     find('scope-help').classList.toggle('vas-sr', !hasEdits);
     const active = lastLinked && storage ? resolveRules(storage.data, c) : {};
     for (const key of KEYS) {
-      const {toggle, summary, restore, unset} = rows[key];
+      const {toggle, summary, restore} = rows[key];
       const raw = draft[key], effective = selected(key), siteHandlesNext = key === 'next' && iyf;
       toggle.checked = !siteHandlesNext && (key === 'next' ? isEnabled(effective) : timingOn(effective));
       toggle.disabled = !allowed || siteHandlesNext;
@@ -302,7 +301,6 @@ export function mountVideoSidebar(tool) {
       const message = siteHandlesNext ? '由 iYF 处理下一集，助手不会重复切集。' : changed
         ? '未保存：' + proposed + (bound ? ' · 当前生效：' : ' · 已保存：') + caption(active[key], key, d) : proposed;
       if (summary.textContent !== message) summary.textContent = message;
-      unset.hidden = !lastLinked || (key === 'outro' ? present(effective?.seconds) || present(effective?.start) : present(effective?.end));
       // Keep the effective rule available to assistive technology. Show source details when
       // there is an exception, a site restriction, or a draft differs from a saved rule.
       summary.classList.toggle('vas-sr', !siteHandlesNext && !(scope === 'episode' && (raw !== undefined || effective !== undefined)) &&
