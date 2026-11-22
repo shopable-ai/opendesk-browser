@@ -402,14 +402,6 @@ html,body{background:#f2f5fa}
 #od-watch-preview .od-viewport-auto-state{
   color:#4d77ad;background:#eaf1fe;border-radius:5px;padding:2px 5px;font-size:10px;font-weight:580;
 }
-#od-watch-preview #od-window-auto{
-  appearance:none;border:0;background:transparent;color:#4464a3;
-  padding:3px 0;font-size:10px;text-decoration:underline;text-underline-offset:2px;
-  cursor:pointer;min-height:24px;
-}
-#od-watch-preview #od-window-auto:focus-visible{
-  outline:2px solid #416cdd;outline-offset:2px;border-radius:4px;
-}
 #od-watch-preview #od-window-range{
   display:block;width:100%;height:24px;margin:3px 0 0;
   padding:0;border:0;background:transparent;accent-color:#4269e0;cursor:ew-resize;
@@ -948,6 +940,8 @@ const R10_FIXTURES = Object.freeze({
  empty:{episode:3,duration:2700,noSaved:true,patternConfirmed:true},
  normal03:{episode:3,duration:2700,patternConfirmed:true},
  normal04:{episode:4,duration:2880,patternConfirmed:true,ruleOriginEpisode:3,ruleOriginDuration:2700},
+ sameDuration:{episode:4,duration:2700,patternConfirmed:true,ruleOriginEpisode:3,ruleOriginDuration:2700},
+ sameDurationException:{episode:4,duration:2700,patternConfirmed:true,localTail:60,ruleOriginEpisode:3,ruleOriginDuration:2700},
  samePlaylistUnknownEpisode:{episode:4,duration:2880,patternConfirmed:true,episodeVerified:false,ruleOriginEpisode:3,ruleOriginDuration:2700},
  partialIdentity:{episode:4,duration:2880,patternConfirmed:true,seasonVerified:false,episodeVerified:false,ruleOriginEpisode:3,ruleOriginDuration:2700},
  titleHint:{episode:4,duration:2880,seriesVerified:false,seasonVerified:false,episodeVerified:false,playlistVerified:false,patternConfirmed:false,titleHint:'星海航线'},
@@ -1015,6 +1009,7 @@ ContinuityModel.prototype.r10LoadFixture=function(name){
   this.s.overrides['demo:星海航线|s1|e5|'+this.s.version]={outro:{enabled:true,mode:'tail',tail:120,start:null,end:null}};
  }
  if(cfg.localInterval)this.s.overrides[this.identity()]={outro:{enabled:true,mode:'interval',start:cfg.localInterval[0],end:cfg.localInterval[1],tail:null}};
+ if(name==='sameDurationException')this.s.overrides[this.identity()]={outro:{enabled:true,mode:'tail',tail:60,start:null,end:null}};
  this.r10={
   name,context:cfg,history:[],declines:new Set(),confirmedFields:new Set(),
   candidateRevision:7,ruleId:'demo-rule-series-s1',nextSaveOutcome:cfg.saveOutcome||'COMMITTED',lastWriteOutcome:null
@@ -1363,7 +1358,7 @@ function viewportHTML(){
  const label=viewportStops[index]/60+'分钟';
  return `<div class="od-window-preference" role="group" aria-label="调整片头和片尾时间轴的显示范围">
   <div class="od-viewport-top"><label for="od-window-range">时间轴范围</label>
-  <div class="od-viewport-value"><output id="od-window-current" for="od-window-range">${label}</output><span id="od-window-auto-state" class="od-viewport-auto-state" ${isAuto?'':'hidden'}>推荐</span><button id="od-window-auto" type="button" data-action="viewport-auto" ${isAuto?'hidden':''} title="恢复由视频长度推荐的编辑视野，不改变跳过时间">恢复推荐</button></div></div>
+  <div class="od-viewport-value"><output id="od-window-current" for="od-window-range">${label}</output><span id="od-window-auto-state" class="od-viewport-auto-state" ${isAuto?'':'hidden'}>推荐</span></div></div>
   <input type="range" id="od-window-range" min="0" max="4" step="1" value="${index}" aria-label="时间轴范围，从1分钟到10分钟，分档调整" aria-valuetext="${label}${isAuto?'，自动推荐':'，手动设置'}" aria-describedby="od-window-ticks od-viewport-help">
   <span id="od-viewport-help" class="od-viewport-note">只改变片头片尾拖动滑块的可见分钟数，不识别或修改片尾。</span><div id="od-window-ticks" class="od-viewport-ticks" aria-hidden="true"><span>1分</span><span>2分</span><span>3分</span><span>5分</span><span>10分</span></div>
  </div>`;
@@ -1443,7 +1438,6 @@ root.addEventListener('click',event=>{
  if(action==='r10-confirm'){ui.r10Open=false;take(()=>model.r10ConfirmForEpisode('outro'));return;}
  if(action==='r10-episode'){ui.r10Open=false;take(()=>model.requestScope('episode'));return;}
  if(action==='save'){take(()=>{const c=contextKey();if(model.save()){ui.savedContext=c;ui.raw={};}});return;}
- if(action==='viewport-auto'){ui.spanPref='auto';ui.windows={};render(true);return;}
  if(action==='cancel'){ui.raw={};ui.windows={};take(()=>model.cancel());return;}
  if(action==='mark'){clearRaw(key,ui.selected[key]);take(()=>model.mark(key,ui.selected[key]));windowFor(key,true);syncRow(key);return;}
  if(action==='preview'){take(()=>model.preview(key,ui.selected[key]));return;}
@@ -1463,7 +1457,6 @@ root.addEventListener('input',event=>{
   ui.spanPref=String(n);ui.windows={};
   const out=q('#od-window-current');if(out)out.textContent=n/60+'分钟';
   const state=q('#od-window-auto-state');if(state)state.hidden=true;
-  const reset=q('#od-window-auto');if(reset)reset.hidden=false;
   el.setAttribute('aria-valuetext',n/60+'分钟，手动设置');
   syncRow('intro');syncRow('outro');
   return;
@@ -1528,6 +1521,9 @@ function r10Checks(){
  test('R10-ID03',()=>{const m=fixture('titleHint'),d=m.r10Decision('outro');return !m.r10.context.seriesVerified&&m.r10.context.titleHint==='星海航线'&&d.compatibility==='UNKNOWN'&&!d.executionAllowed;});
  test('R10-ID04',()=>fixture('wrongSeries').r10Decision('outro').compatibility==='NOT_APPLICABLE');
  test('R10-ID05',()=>{const m=fixture('unidentified');m.edit('outro',{enabled:true,mode:'tail',tail:90,start:null,end:null});const saved=m.save(),d=m.r10Decision('outro');return saved&&d.local&&d.compatibility==='APPLICABLE'&&d.executionAllowed;});
+ test('R10-EQ01',()=>{const m=fixture('sameDuration'),i=m.r10Decision('intro'),o=m.r10Decision('outro');return i.compatibility==='APPLICABLE'&&o.compatibility==='APPLICABLE'&&i.currentStart===0&&i.currentEnd===90&&o.currentStart===2610&&o.currentEnd===2700&&m.s.base.outro.tail===90&&Object.keys(m.s.overrides).length===0;});
+ test('R10-EQ02',()=>{const m=fixture('sameDurationException'),o=m.r10Decision('outro');return o.local&&o.compatibility==='APPLICABLE'&&o.currentStart===2640&&o.currentEnd===2700&&m.s.base.outro.tail===90&&m.effective().outro.tail===60;});
+ test('R10-EQ03',()=>{const m=fixture('sameDuration');m.edit('outro',{tail:75});const moved=m.r10LoadFixture('sameDurationException');return moved===false&&m.s.dirty&&m.s.base.outro.tail===90&&m.s.transition.kind==='r10Fixture';});
  return {passed:results.filter(x=>x.pass).length,total:results.length,results,environment:'offline model only, not Chrome or persistent store'};
 }
 function r10LayoutChecks(){
