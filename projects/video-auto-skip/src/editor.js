@@ -114,7 +114,10 @@ export function buildTimeEditor({el, button, row, template, calibrationHost, key
     clear.title = resetLabel;
     clear.addEventListener('click', () => {
       if (!canEdit()) return;
-      delete raw[part];
+      // A cleared editable boundary removes the whole interval draft, so discard
+      // both raw strings; otherwise stale text could reappear after reset.
+      if (clearTimeIntent(key, part).kind === 'unset-rule') raw = {};
+      else delete raw[part];
       onClear(part);
       input.focus({preventScroll: true});
     });
