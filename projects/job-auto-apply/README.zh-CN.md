@@ -1,7 +1,7 @@
-# AI Job Auto Apply · AI 自动求职（R3 源码增强，沿用 R1/R2 身份）
+# AI Job Auto Apply · AI 自动求职（R3 工程基线 / R4 技术选型）
 
 项目 owner：projects/job-auto-apply/；产品 ID：job-auto-apply；当前目标站点：BOSS 直聘（www.zhipin.com）。
-工作分支：main。当前源码版本 0.1.1、Page revision 2。状态：R3_SOURCE_UPDATED / V8_SMOKE_PASS / APP_CI_BUILD_PASS / NODE_PASS。GitHub App CI 于提交 f539b1e379fc2dbd30d2a1f5d41acd811c093309 生成 0.1.1 同源候选包（SHA-256：37a1873ad220ca5ca1ceb79859475a2595a0c2896cdcd678c5556cf43a21862a，52,321 字节），60 项 Node 测试全通过；尚未晋升正式包、未安装、未在真实 Chrome/BOSS 页面验收。后续只改动测试夹具并已恢复至通过时的内容，最新 HEAD 对应 CI 需单独读回。
+工作分支：main。当前源码版本 0.1.1、Page revision 2。状态：R3_SOURCE_UPDATED / V8_SMOKE_PASS / APP_CI_BUILD_PASS / NODE_PASS。GitHub App CI run [45045931312](https://github.com/shopable-ai/opendesk-browser/actions/runs/45045931312) 已在业务源码提交 `959e6b13f9c07e90d0be191ad1c7a977c08ff535` 生成 0.1.1 同源候选包（SHA-256：`37a1873ad220ca5ca1ceb79859475a2595a0c2896cdcd678c5556cf43a21862a`，52,321 字节），**60/60 项 Node 测试通过**。其后的 R4 修改仅为本项目文档；尚未晋升正式包、未安装、未在真实 Chrome/BOSS 页面验收，更未执行对外求职操作。
 
 ## 解决什么问题
 
@@ -38,6 +38,16 @@
 **现阶段决定：Browser 现有 Page/Controller 为默认业务主链；OpenDesk Desktop 为可选本机原生增强；MIT 的 boss-agent-cli 仅为候选可插拔 CLI/MCP/JSON 读取适配器，不是默认后端。** CLI 的 apply 目前以即时沟通端点实现，不能将执行成功等同于完整简历投递。此决策不增加任何新默认权限、不创建第二套运行器、不预装 Python、不调用平台内部接口。
 
 本轮 R4 为仓库源码核验和设计文件变更；没有执行真实 BOSS 页面、原生 Desktop、CLI 集成或发布。原 R3 的 0.1.1、Node 60/60、候选同源证明不变；真实安装及对外沟通仍无通过证据。
+
+### R4 决策与下一轮执行入口
+
+- **保留什么**：`job-auto-apply` 身份、现有 HTML/CSS/JS 侧栏、同包 USER_SCRIPT、`page.request`、CAS 待审队列与原 Browser SDK/Controller/Stop/Result；不重创独立宿主或安装器。
+- **优先做什么**：在用户已授权的真实 BOSS 搜索页面验证当前 DOM 识别与完整 JD、职位/招聘者身份、重复/历史沟通、异步加载、导航和撤权。当前 Node 测试只是 fixture，不能当作网站 PASS。
+- **可选研究什么**：从 Desktop 可信边界只读探测已安装的 `boss-agent-cli` 的版本、`boss schema` 与结构化返回；不能自动安装、登录、提取凭据或发送。CLI 不可用时原 Browser 工作台仍应可用。
+- **先不做什么**：未经单岗位真实验收，不进入批量发信、自动回复、定时投递、上传附件、跨平台调用、云端同步；不得把 `apply` 命令成功或点击按钮等同“已投简历”。
+- **怎样验收**：Browser 单岗位提交必须单独验证审批身份、原 Run、网页实际消息及回执；任何 UNKNOWN 不自动重试，不切换 Browser/Desktop/CLI 补发。
+
+需求、开源项目对照、业务状态契约、许可证和下一轮验收门禁统一保存在同目录 [REQUIREMENTS.zh-CN.md](REQUIREMENTS.zh-CN.md) 的 R3/R4 章节；不创建第二套总需求或竞品文件。
 
 ## 从哪些开源项目汲取设计思路
 
