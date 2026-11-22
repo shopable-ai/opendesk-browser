@@ -4,10 +4,10 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <meta name="color-scheme" content="light">
-<title>连播助手 · R9 单按钮保存与草稿保护 · 离线侧栏预览</title>
-<meta name="od-design-variant" content="B-R9">
+<title>连播助手 · R10.1 跨集识别与片尾换算 · 离线侧栏预览</title>
+<meta name="od-design-variant" content="B-R10.1">
 <meta name="od-preview-binding" content="outro.end=duration; outro.tail=relative seconds; absolute end only when interval mode">
-<meta name="od-preview-capability" content="offline-sidebar-only-viewport-slider-no-video-no-scenario">
+<meta name="od-preview-capability" content="offline-sidebar-r10-compatibility-fixtures-no-real-video">
 <style>body{margin:0;padding:20px 12px;background:#f2f5fa;color-scheme:light}#od-watch-preview{max-width:800px;margin:0 auto}@media(max-width:400px){body{padding:10px 4px}}</style>
 </head>
 <body>
@@ -402,14 +402,6 @@ html,body{background:#f2f5fa}
 #od-watch-preview .od-viewport-auto-state{
   color:#4d77ad;background:#eaf1fe;border-radius:5px;padding:2px 5px;font-size:10px;font-weight:580;
 }
-#od-watch-preview #od-window-auto{
-  appearance:none;border:0;background:transparent;color:#4464a3;
-  padding:3px 0;font-size:10px;text-decoration:underline;text-underline-offset:2px;
-  cursor:pointer;min-height:24px;
-}
-#od-watch-preview #od-window-auto:focus-visible{
-  outline:2px solid #416cdd;outline-offset:2px;border-radius:4px;
-}
 #od-watch-preview #od-window-range{
   display:block;width:100%;height:24px;margin:3px 0 0;
   padding:0;border:0;background:transparent;accent-color:#4269e0;cursor:ew-resize;
@@ -494,6 +486,52 @@ html,body{background:#f2f5fa}
  outline:2px solid #5782dd;outline-offset:2px;border-radius:4px;
 }
 #od-watch-preview .od-unsaved-line[hidden]{display:none!important}
+
+
+/* R10.1: visible identity evidence, never assume title text proves a series. */
+#od-watch-preview .od-identity-row{align-items:flex-start;}
+#od-watch-preview .od-identity-info{min-width:0;width:100%;overflow-wrap:anywhere;}
+#od-watch-preview .od-identity-info .od-work{display:block;color:#263c62;font-weight:670;font-size:12.5px;line-height:1.4;}
+#od-watch-preview .od-identity-detail{margin-top:1px;font-size:10.5px;line-height:1.4;color:#6b7e97;}
+#od-watch-preview .od-identity-info[data-identity-state="hint"] .od-work{color:#795d35;}
+#od-watch-preview .od-identity-info[data-identity-state="unknown"] .od-work{color:#42536a;}
+#od-watch-preview .od-time-section[data-section="outro"][data-compatibility="NEEDS_CONFIRMATION"] .od-dual-line,
+#od-watch-preview .od-time-section[data-section="outro"][data-compatibility="UNKNOWN"] .od-dual-line,
+#od-watch-preview .od-time-section[data-section="outro"][data-compatibility="NOT_APPLICABLE"] .od-dual-line{
+ background:repeating-linear-gradient(90deg,#b4c0d3 0 8px,transparent 8px 13px);
+}
+#od-watch-preview .od-time-section[data-section="outro"][data-compatibility="NEEDS_CONFIRMATION"] .od-row-title::after,
+#od-watch-preview .od-time-section[data-section="outro"][data-compatibility="UNKNOWN"] .od-row-title::after,
+#od-watch-preview .od-time-section[data-section="outro"][data-compatibility="NOT_APPLICABLE"] .od-row-title::after{
+ content:"待核对";font-size:10px;color:#8a6337;border-radius:4px;background:#fff6e8;padding:1px 4px;white-space:nowrap;
+}
+#od-watch-preview .od-time-section[data-section="outro"][data-compatibility="NOT_APPLICABLE"] .od-row-title::after{content:"不适用";}
+
+/* R10_REVIEW_UI: context only; the existing two time tracks, next episode,
+   five-stop viewport slider and single Save button remain unchanged. */
+#od-watch-preview .od-tail-match{min-width:0;flex-wrap:wrap;column-gap:5px;row-gap:2px;padding:6px 7px;margin:5px 0 0;align-items:center;}
+#od-watch-preview .od-tail-match-text{white-space:normal;overflow:visible;text-overflow:clip;line-height:1.35;overflow-wrap:anywhere;font-size:11px;}
+#od-watch-preview .od-tail-match-label{font-size:10px;}
+#od-watch-preview .od-tail-match[data-state="risk"]{background:#fffaf1;border-color:#eddfc4;color:#795f35;}
+#od-watch-preview .od-tail-match[data-state="risk"] .od-tail-match-label{color:#856128;}
+#od-watch-preview .od-tail-match[data-state="declined"]{background:#f7f8fa;border-color:#e2e7ef;color:#5c6a7e;}
+#od-watch-preview button.od-r10-expand{flex:none;border:0!important;background:transparent!important;color:#365d9b;font-size:11px;font-weight:600;text-decoration:underline;text-underline-offset:2px;min-height:25px;padding:2px 0 2px 3px;white-space:nowrap;}
+#od-watch-preview .od-r10-review{border:1px solid #e4e8ef;background:#fbfcff;border-radius:7px;padding:8px 9px;margin-top:5px;color:#485b73;font-size:11px;line-height:1.45;overflow-wrap:anywhere;}
+#od-watch-preview .od-r10-reason{margin:0 0 6px;color:#536a88;}
+#od-watch-preview .od-r10-compare{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:6px;margin:0 0 7px;}
+#od-watch-preview .od-r10-compare>div{min-width:0;padding:6px;background:white;border:1px solid #e7ecf4;border-radius:6px;}
+#od-watch-preview .od-r10-compare dt{color:#718198;font-size:10px;margin:0 0 2px;}
+#od-watch-preview .od-r10-compare dd{margin:0;color:#253d5c;font-variant-numeric:tabular-nums;overflow-wrap:anywhere;font-weight:600;}
+#od-watch-preview .od-r10-meta{margin:0 0 6px;font-size:10px;color:#6b7b91;}
+#od-watch-preview .od-r10-actions{display:flex;gap:5px;flex-wrap:wrap;}
+#od-watch-preview .od-r10-actions button{min-height:29px;padding:4px 8px;border-radius:6px;font-size:11px;flex:0 1 auto;max-width:100%;white-space:normal;}
+#od-watch-preview .od-r10-actions .od-r10-confirm{border-color:#b9caed;background:#f0f5ff;color:#2d518f;}
+@media(max-width:340px){
+ #od-watch-preview .od-r10-compare{gap:4px;}
+ #od-watch-preview .od-r10-review{padding:7px 6px;}
+ #od-watch-preview .od-r10-actions button{padding:4px 6px;}
+}
+
 </style>
 <script>
 /* Local interaction simulator only. No browser-extension or website APIs. The demo has a verified single-series identity; a real adapter must only use series-wide saving after identity is confirmed. */
@@ -518,7 +556,9 @@ class ContinuityModel {
     return {intro:{enabled:true,mode:'start',start:0,end:90},outro:{enabled:true,mode:'tail',tail:90,start:null,end:null},autoNext:true};
   }
   copy(v) { return ContinuityModel.copy(v); }
-  identity() { return `demo:星海航线|s1|e${this.s.episode}|${this.s.version}`; }
+  identity() { const x=this.r10&&this.r10.context; if(x&&!x.seriesVerified)return 'demo:current-media|'+x.mediaKey;
+    const base=`demo:星海航线|s1|e${this.s.episode}|${this.s.version}`;
+    return x&&(x.kind!=='regular'||x.siteOrigin!=='https://demo.invalid'||!x.edition)?base+'|'+x.mediaKey:base; }
   _workIdentity() { return `demo:星海航线|s1|${this.s.version}`; }
   _notice(text, kind='info') { this.s.status=text; this.s.statusKind=kind; }
   _duration(n=this.s.episode) { return ({3:2700,4:2880,5:null})[n] ?? null; }
@@ -762,7 +802,7 @@ class ContinuityModel {
     if(!v.valid)return false;
     for(const key of ['intro','outro']) {
       const range=this.range(key,rules);
-      if(!rules[key].enabled||!this._inside(t,range)||this._isProtected(key,t)||(key==='outro'&&!Number.isFinite(this.s.duration)))continue;
+      if(!rules[key].enabled||!this._inside(t,range)||this._isProtected(key,t)||!this.r10Decision(key).executionAllowed||(key==='outro'&&!Number.isFinite(this.s.duration)))continue;
       this.s.undo={identity:this.identity(),from:t,to:range[1],playing:this.s.playing,key,range:this.copy(range),remaining:8};
       this.s.time=range[1];
       this._notice(`模拟已跳过${key==='intro'?'片头':'片尾'}；可以撤销。`,'ok');return true;
@@ -894,13 +934,240 @@ class ContinuityModel {
 }
 if(typeof module!=='undefined') module.exports=ContinuityModel;
 
+/* R10_COMPATIBILITY_ENGINE */
+/* P0 only: deterministic in-memory fixtures, not website detection or durable RuleStore. */
+const R10_FIXTURES = Object.freeze({
+ empty:{episode:3,duration:2700,noSaved:true,patternConfirmed:true},
+ normal03:{episode:3,duration:2700,patternConfirmed:true},
+ normal04:{episode:4,duration:2880,patternConfirmed:true,ruleOriginEpisode:3,ruleOriginDuration:2700},
+ sameDuration:{episode:4,duration:2700,patternConfirmed:true,ruleOriginEpisode:3,ruleOriginDuration:2700},
+ sameDurationException:{episode:4,duration:2700,patternConfirmed:true,localTail:60,ruleOriginEpisode:3,ruleOriginDuration:2700},
+ samePlaylistUnknownEpisode:{episode:4,duration:2880,patternConfirmed:true,episodeVerified:false,ruleOriginEpisode:3,ruleOriginDuration:2700},
+ partialIdentity:{episode:4,duration:2880,patternConfirmed:true,seasonVerified:false,episodeVerified:false,ruleOriginEpisode:3,ruleOriginDuration:2700},
+ titleHint:{episode:4,duration:2880,seriesVerified:false,seasonVerified:false,episodeVerified:false,playlistVerified:false,patternConfirmed:false,titleHint:'星海航线'},
+ unidentified:{episode:4,duration:2880,noSaved:true,seriesVerified:false,seasonVerified:false,episodeVerified:false,playlistVerified:false,patternConfirmed:false},
+ wrongSeries:{episode:4,duration:2880,seriesName:'另一部作品',seriesKey:'unrelated',playlistVerified:false,patternConfirmed:false},
+ history:{episode:4,duration:2880,patternConfirmed:true,localTail:60,historyTail:90},
+ merged:{episode:3,duration:5400,kind:'merged',patternConfirmed:false,segmentMap:null},
+ special:{episode:3,duration:6000,kind:'special',patternConfirmed:false},
+ credits:{episode:3,duration:6000,kind:'special',localInterval:[4800,4890],patternConfirmed:false},
+ edition:{episode:3,duration:2700,edition:'cut-B',ruleEdition:'cut-A',patternConfirmed:true},
+ crossSite:{episode:3,duration:2700,siteOrigin:'https://other.invalid',patternConfirmed:true},
+ preview:{episode:3,duration:2700,kind:'preview'},
+ collection:{episode:3,duration:5400,kind:'collection'},
+ extra:{episode:3,duration:360,kind:'extra'},
+ unknown:{episode:3,duration:2700,edition:null,versionVerified:false,patternConfirmed:false},
+ drift:{episode:3,duration:2800,historicalDuration:2700,patternConfirmed:true},
+ conflict:{episode:4,duration:2880,patternConfirmed:true,branchConflict:true,alternativeTail:120},
+ sync:{episode:4,duration:2880,patternConfirmed:true,syncConflict:true,alternativeTail:120},
+ declined:{episode:4,duration:2880,patternConfirmed:true,declined:true},
+ unknownDuration:{episode:3,duration:null,patternConfirmed:true},
+ invalidTail:{episode:3,duration:40,patternConfirmed:true,tail:90},
+ failedSave:{episode:3,duration:2700,patternConfirmed:true,saveOutcome:'FAILED'},
+ unknownSave:{episode:3,duration:2700,patternConfirmed:true,saveOutcome:'UNKNOWN'}
+});
+const R10_OWN=Object.prototype.hasOwnProperty;
+const r10FiniteDuration=n=>Number.isFinite(n)&&Number.isInteger(n)&&n>0;
+function r10Context(name){
+ const f=R10_FIXTURES[name];if(!f)return null;
+ const ctx=Object.assign({
+  episode:3,duration:2700,kind:'regular',edition:'cut-A',ruleEdition:'cut-A',
+  versionVerified:true,resourceVerified:true,siteOrigin:'https://demo.invalid',
+  sourceFingerprint:'confirmed-playlist-A',playlistVerified:true,patternConfirmed:false,
+  seriesName:'星海航线',seriesKey:'demo-series',seasonKey:'s1',ruleSeriesKey:'demo-series',ruleSeasonKey:'s1',
+  seriesVerified:true,seasonVerified:true,episodeVerified:true,ruleOriginEpisode:3,ruleOriginDuration:2700,
+  branchConflict:false,syncConflict:false,segmentMap:null
+ },f);
+ ctx.mediaKey=ctx.siteOrigin+'|demo-series:s1:e'+ctx.episode+':'+ctx.kind+':'+String(ctx.edition||'unknown');
+ ctx.historicalDuration=R10_OWN.call(f,'historicalDuration')?f.historicalDuration:ctx.duration;
+ return ctx;
+}
+const r9OriginalScenario=ContinuityModel.prototype._loadScenario;
+ContinuityModel.prototype._loadScenario=function(name){
+ const ok=r9OriginalScenario.call(this,name);
+ this.r10={
+  name:'empty',context:r10Context('empty'),history:[],declines:new Set(),confirmedFields:new Set(),
+  candidateRevision:7,ruleId:'demo-rule-series-s1',nextSaveOutcome:'COMMITTED',lastWriteOutcome:null
+ };
+ return ok;
+};
+ContinuityModel.prototype.r10LoadFixture=function(name){
+ const cfg=r10Context(name);if(!cfg)return false;
+ // Do not silently migrate a current unsaved draft into a new video fixture.
+ if(this.s.dirty){this.s.transition={kind:'r10Fixture',target:name};this._notice('当前有未保存修改：先继续编辑或放弃再切换模拟视频。','warning');return false;}
+ this._loadScenario(cfg.noSaved?'empty':'standard');
+ this.r10.context=cfg; // Bind the edition/kind-specific identity before writing an exact-video exception.
+ this.s.episode=cfg.episode;
+ this.s.version=cfg.edition==='cut-B'?'版本 B':'标准版 A';
+ this.s.duration=cfg.duration;
+ if(R10_OWN.call(R10_FIXTURES[name],'tail'))this.s.base.outro={enabled:true,mode:'tail',tail:cfg.tail,start:null,end:null};
+ if(cfg.localTail!==undefined||cfg.localInterval||cfg.kind!=='regular'||!cfg.versionVerified||!cfg.resourceVerified||
+    (!cfg.seriesVerified&&!cfg.playlistVerified)||!cfg.seasonVerified)this.s.scope='episode';
+ // Three values coexist: E03 default 90, E04 override 60, E05 override 120.
+ if(name==='history'){
+  this.s.overrides['demo:星海航线|s1|e4|'+this.s.version]={outro:{enabled:true,mode:'tail',tail:60,start:null,end:null}};
+  this.s.overrides['demo:星海航线|s1|e5|'+this.s.version]={outro:{enabled:true,mode:'tail',tail:120,start:null,end:null}};
+ }
+ if(cfg.localInterval)this.s.overrides[this.identity()]={outro:{enabled:true,mode:'interval',start:cfg.localInterval[0],end:cfg.localInterval[1],tail:null}};
+ if(name==='sameDurationException')this.s.overrides[this.identity()]={outro:{enabled:true,mode:'tail',tail:60,start:null,end:null}};
+ this.r10={
+  name,context:cfg,history:[],declines:new Set(),confirmedFields:new Set(),
+  candidateRevision:7,ruleId:'demo-rule-series-s1',nextSaveOutcome:cfg.saveOutcome||'COMMITTED',lastWriteOutcome:null
+ };
+ if(cfg.declined)this.r10.declines.add(this.r10DeclineKey('outro'));
+ this.s.time=0;this.s.playing=false;this.s.pending=null;this.s.transition=null;
+ this._loadDraft();
+ this._notice('R10 '+name+' · 仅供离线规则核对，未连接视频/持久化。');
+ return true;
+};
+const r9OriginalTransition=ContinuityModel.prototype._transition;
+ContinuityModel.prototype._transition=function(kind,target){
+ if(kind==='r10Fixture')return this.r10LoadFixture(target);
+ return r9OriginalTransition.call(this,kind,target);
+};
+ContinuityModel.prototype.r10DeclineKey=function(key){
+ const x=this.r10.context;
+ return [x.mediaKey,x.edition||'unknown',this.r10.ruleId,this.r10.candidateRevision,key].join('|');
+};
+ContinuityModel.prototype.r10Decision=function(key){
+ const x=this.r10.context,overrides=this.s.overrides[this.identity()]||{};
+ const local=R10_OWN.call(overrides,key),saved=this.effective(),value=saved[key];
+ const exists=key==='autoNext'||!this.isUnconfigured(key,saved);
+ const d=this.s.duration,declined=this.r10.declines.has(this.r10DeclineKey(key));
+ const result={exists,compatibility:'UNKNOWN',executionAllowed:false,declined,
+  source:local?'本集独立规则':'本作品已保存规则',reason:'证据不足，不能自动沿用',
+  mediaKey:x.mediaKey,ruleId:this.r10.ruleId,revision:this.r10.candidateRevision,
+  durationSeconds:d,historyDurationSeconds:x.historicalDuration,
+  candidateTail:value&&value.mode==='tail'?value.tail:null,
+  currentStart:null,currentEnd:null,range:null,local};
+ if(!exists){result.reason='当前没有已保存的'+(key==='intro'?'片头':'片尾')+'规则';return result;}
+ const range=key==='autoNext'?null:this.range(key,saved);
+ if(range){result.range=range;result.currentStart=range[0];result.currentEnd=range[1];}
+ if(!x.resourceVerified||!x.mediaKey){
+  result.reason='主媒体资源身份未核实';return result;
+ }
+ if(!r10FiniteDuration(d)){
+  result.reason='视频总时长未知或非法';return result;
+ }
+ if(key!=='autoNext'&&(!range||range[0]<0||range[0]>=range[1]||range[1]>d||range[0]===0&&range[1]===d)){
+  result.compatibility='NOT_APPLICABLE';result.reason='当前时长无法容纳有效规则区间';return result;
+ }
+ if(key==='outro'&&value.mode==='tail'&&(!Number.isInteger(value.tail)||value.tail<=0||value.tail>=d)){
+  result.compatibility='NOT_APPLICABLE';result.reason='历史倒数秒数越界';return result;
+ }
+ // An explicit exact-media rule is independent of the series/edition inference,
+ // but only after a stable resource + unchanged observed cut are confirmed.
+ if(local){
+  if(x.historicalDuration!==null&&x.historicalDuration!==d){
+   result.compatibility='NEEDS_CONFIRMATION';result.reason='本集历史时长与当前资源不同';return result;
+  }
+  if(x.localInterval||x.localTail!==undefined||this.r10.confirmedFields.has(key)){
+   result.compatibility='APPLICABLE';
+   result.reason='本集已确认的独立规则，保留其他项目继承';
+  }else if(x.versionVerified&&x.edition===x.ruleEdition){
+   result.compatibility='APPLICABLE';result.reason='本集规则适用于当前已确认版本';
+  }else {result.reason='独立规则的当前版本证据不足';return result;}
+ }else{
+  if(x.kind!=='regular'){
+   result.compatibility='NOT_APPLICABLE';
+   result.reason=x.kind==='merged'?'合并集缺少已核实的内部分段，普通集规则不适用':'特别篇／花絮／合集不自动使用普通集规则';
+   return result;
+  }
+  if(!x.versionVerified||!x.edition){
+   result.reason='当前剪辑版本未确认';return result;
+  }
+  if(x.siteOrigin!=='https://demo.invalid'||x.edition!==x.ruleEdition||x.sourceFingerprint!=='confirmed-playlist-A'||
+     (x.seriesVerified&&x.seriesKey!==x.ruleSeriesKey)||
+     (x.seasonVerified&&x.seasonKey!==x.ruleSeasonKey)){
+   result.compatibility='NOT_APPLICABLE';result.reason='作品、季、剪辑版本或片源与历史规则不一致';return result;
+  }
+  if(x.historicalDuration!==null&&x.historicalDuration!==d){
+   result.compatibility='NEEDS_CONFIRMATION';result.reason='同一资源历史时长变化，请核对剪辑/广告/版本';return result;
+  }
+  if(x.branchConflict||x.syncConflict){
+   result.compatibility='NEEDS_CONFIRMATION';
+   result.reason=x.syncConflict?'两设备对同一规则产生不同修改，需保留冲突分支':'同优先级历史规则存在90秒／120秒差异';
+   return result;
+  }
+  if(!x.playlistVerified||!x.patternConfirmed){
+   result.compatibility='UNKNOWN';
+   result.reason='无法核实站内剧集关系或该范围的片头片尾规律';return result;
+  }
+  result.compatibility='APPLICABLE';result.reason='同站已确认剧集关系、剪辑版本及复用范围';
+ }
+ if(result.compatibility==='APPLICABLE'&&!declined&&value&&value.enabled!==false&&!this.s.dirty&&this.validation(saved).valid)
+  result.executionAllowed=true;
+ if(declined)result.reason='本集已拒绝这条历史规则；需主动重新核对';
+ else if(value&&value.enabled===false)result.reason='规则兼容，但自动跳过已关闭';
+ else if(this.s.dirty)result.reason='有未保存修改，暂不执行旧跳过任务';
+ return result;
+};
+ContinuityModel.prototype.r10Decline=function(key){
+ const d=this.r10Decision(key);if(!d.exists||this.s.dirty)return false;
+ this.r10.declines.add(this.r10DeclineKey(key));
+ this.r10.history.push({event:'DECLINE',ruleId:d.ruleId,revision:d.revision,mediaKey:d.mediaKey,field:key,verified:'memory-only'});
+ this._notice('本集不使用该候选规则；本页内存已记录，不会重复要求核对。','warning');
+ return true;
+};
+ContinuityModel.prototype.r10Reconsider=function(key){
+ if(this.s.dirty)return false;
+ this.r10.declines.delete(this.r10DeclineKey(key));
+ this.r10.history.push({event:'RECONSIDER',mediaKey:this.r10.context.mediaKey,field:key,verified:'memory-only'});
+ this._notice('已清除本次拒绝；规则仍需通过兼容性检查。');return true;
+};
+ContinuityModel.prototype.r10ConfirmForEpisode=function(key){
+ const d=this.r10Decision(key),x=this.r10.context;
+ if(this.s.dirty||!d.exists||d.compatibility!=='NEEDS_CONFIRMATION'||
+   !x.resourceVerified||!x.versionVerified||x.edition!==x.ruleEdition||x.kind!=='regular'){
+  this._notice('当前来源/剪辑证据不足，不能强行确认跨集兼容；请为本媒体单独标记。','warning');return false;
+ }
+ this.s.scope='episode';this._loadDraft();
+ this.edit(key,this.copy(this.effective()[key]));
+ this.r10.pendingConfirmField=key;
+ this._notice('已将候选复制为本集待保存草稿；请核对时间并点击“保存设置”。');
+ return true;
+};
+const r9OriginalSave=ContinuityModel.prototype.save;
+ContinuityModel.prototype.save=function(){
+ if(this.s.dirty&&this.r10&&this.r10.nextSaveOutcome!=='COMMITTED'){
+  const result=this.r10.nextSaveOutcome;
+  this.r10.lastWriteOutcome=result;
+  this._notice(result==='UNKNOWN'?'保存结果未知，需先读回核对，不能重复提交或显示成功。':
+    result==='CONFLICT'?'规则修订冲突，保留原值和草稿，请核对后再保存。':
+    '模拟写入失败，旧规则仍在，草稿保留。','error');
+  return false;
+ }
+ const before=this.s.ruleRevision,touched=this.s.touched.slice(),restored=new Set(this._restored),oldScope=this.s.scope;
+ const result=r9OriginalSave.call(this);
+ if(result&&this.s.ruleRevision!==before&&this.r10){
+  for(const key of touched){
+   if(restored.has(key))this.r10.confirmedFields.delete(key);
+   else if(oldScope==='episode')this.r10.confirmedFields.add(key);
+   this.r10.history.push({event:restored.has(key)?'RESTORE_DEFAULT':'SAVE_PATCH',
+    field:key,ruleId:this.r10.ruleId,revision:this.s.ruleRevision,mediaKey:this.r10.context.mediaKey,
+    scope:oldScope==='episode'?'current-media':'confirmed-season',verified:'memory-readback'});
+  }
+  // Store just a confirmed rule and an event, not per-episode copies of every season field.
+  this.r10.lastWriteOutcome='COMMITTED';
+  this.r10.context.historicalDuration=this.s.duration;
+  this._notice('离线模拟已保存并读回本页内存（'+(oldScope==='episode'?'仅本集':'已确认当前季')+'）；非浏览器持久化。','ok');
+ }
+ return result;
+};
+const r9OriginalDuration=ContinuityModel.prototype.setDuration;
+ContinuityModel.prototype.setDuration=function(n){
+ const ok=r9OriginalDuration.call(this,n);
+ if(ok&&this.r10)this.r10.context.duration=n;
+ return ok;
+};
+
 (function(){
 'use strict';
 const root=document.getElementById('od-watch-preview');if(!root)return;
 const model=new ContinuityModel();
 const q=s=>root.querySelector(s),all=s=>Array.from(root.querySelectorAll(s));
 const names={intro:'片头',outro:'片尾'};
-const ui={selected:{intro:'end',outro:'start'},activeKey:'intro',spanPref:'auto',windows:{},raw:{},rendering:false,dragging:null,savedContext:null,actionsHost:null,actionsSignature:''};
+const ui={selected:{intro:'end',outro:'start'},activeKey:'intro',spanPref:'auto',windows:{},raw:{},rendering:false,dragging:null,savedContext:null,actionsHost:null,actionsSignature:'',r10Open:false};
 const esc=x=>String(x??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const fmt=n=>Number.isFinite(n)&&n>=0?String(Math.floor(n/60)).padStart(2,'0')+':'+String(Math.floor(n%60)).padStart(2,'0'):'—';
 function parseTime(value){const s=String(value).trim();if(!s)return null;if(/^\d+$/.test(s))return Number(s);if(/^\d{1,4}:[0-5]\d$/.test(s)){const a=s.split(':').map(Number);return a[0]*60+a[1];}return NaN;}
@@ -949,7 +1216,32 @@ function windowFor(key,expand=false){
  ui.windows[key]=key==='outro'?[Math.max(0,d-span),d]:[0,span];return ui.windows[key];
 }
 function windowLabel(key){if(unavailable(key))return '';const w=windowFor(key),seconds=w[1]-w[0],d=model.s.duration,base=Number.isFinite(d)?Math.min(d,requestedSpan(d)):requestedSpan(d);if(Math.abs(seconds-base)<1)return '';const minutes=Math.floor(seconds/60),rest=seconds%60;return '显示'+(key==='intro'?'前':'末')+(rest?minutes?minutes+'分'+rest+'秒':rest+'秒':minutes+'分钟');}
-function identityText(){const s=model.s;return '星海航线 · 第1季 · 第'+String(s.episode).padStart(2,'0')+'集 · '+(Number.isFinite(s.duration)?'全长'+fmt(s.duration):'时长待获取');}
+function identityInfo(){
+ const c=model.r10.context,d=model.s.duration,video='视频时长 '+(r10FiniteDuration(d)?fmt(d):'待获取');
+ let title='当前视频',detail=video+' · 作品未识别',level='unknown';
+ if(c.seriesVerified){
+  const base=c.seriesName||'已核实的系列';
+  const season=c.seasonVerified?'第1季':'季待确认';
+  const kindLabel={merged:'第03–04集合并版',special:'特别篇',preview:'预告',collection:'合集',extra:'花絮'};
+  const episode=kindLabel[c.kind]||(c.episodeVerified?'第'+String(c.episode).padStart(2,'0')+'集':'集数待确认');
+  title=base+' · '+season+' · '+episode;
+  level=c.playlistVerified?'verified':'partial';
+  detail=video+' · '+(c.playlistVerified?'站内剧集关系已核实':'剧集关系待确认');
+ }else if(c.titleHint){
+  title='疑似作品：'+c.titleHint;
+  detail=video+' · 仅有标题线索，尚未确认';
+  level='hint';
+ }
+ if(c.edition==='cut-B')detail+=' · 剪辑B';
+ return {title,detail,level};
+}
+function identityText(){return identityInfo().title;}
+function identityHTML(){
+ const x=identityInfo();
+ return '<div class="od-identity-info" data-identity-state="'+x.level+'">'+
+  '<strong id="od-content-identity" class="od-work">'+esc(x.title)+'</strong>'+
+  '<div id="od-identity-detail" class="od-identity-detail">'+esc(x.detail)+'</div></div>';
+}
 function constrainHandle(key,part,n){
  const w=windowFor(key),other=value(key,part==='start'?'end':'start');let lo=w[0],hi=w[1];
  if(part==='start'&&Number.isFinite(other))hi=Math.min(hi,other-1);
@@ -987,7 +1279,7 @@ function trackHTML(key){
 }
 function rowHTML(key){
  const r=model.s.draft[key],v=validation(),overridden=Object.prototype.hasOwnProperty.call(model.s.overrides[model.identity()]||{},key),track=trackHTML(key);
- return `<section class="od-time-section od-ui-card" data-section="${key}"><div class="od-row-title"><label for="od-toggle-${key}">${names[key]}</label><span class="od-unset-badge" ${model.isUnconfigured(key)?'':'hidden'}>待设置</span><span id="od-window-label-${key}" class="od-window-label">${windowLabel(key)}</span>${overridden?'<span class="od-exception">本集例外</span>':''}<label class="od-toggle-couple"><span class="od-toggle-copy">自动跳过</span><span class="od-switch"><input id="od-toggle-${key}" type="checkbox" data-toggle="${key}" ${r.enabled?'checked':''} aria-label="跳过${names[key]}"></span></label></div>${track}<div class="od-endpoint-readouts">${fieldHTML(key,'start')}${fieldHTML(key,'end')}</div>${restoreAction(key)?`<div class="od-restore-inline">${restoreAction(key)}</div>`:''}${key==='outro'?'<div id="od-tail-match" class="od-tail-match" data-state="waiting" role="status" aria-live="polite" aria-label="片尾跨集匹配状态"><span class="od-tail-match-label">跨集匹配</span><span id="od-tail-match-text" class="od-tail-match-text">保存片尾后，按视频时长换算</span></div><span id="od-end-binding-help" class="od-sr-only">End 表示自动使用本视频实际结束时间。输入具体结束时间会变为指定区间；清空或填写 End 可恢复绑定；同一规则在视频时长变化时自动重新计算。这里复用已保存片尾规则，并非自动分析视频内容。</span>':''}<div id="od-error-${key}" class="od-error" ${v[key].length?'':'hidden'}>${esc(v[key][0]||'')}</div></section>`;
+ return `<section class="od-time-section od-ui-card" data-section="${key}" data-compatibility="${key==='outro'?model.r10Decision('outro').compatibility:''}"><div class="od-row-title"><label for="od-toggle-${key}">${names[key]}</label><span class="od-unset-badge" ${model.isUnconfigured(key)?'':'hidden'}>待设置</span><span id="od-window-label-${key}" class="od-window-label">${windowLabel(key)}</span>${overridden?'<span class="od-exception">本集例外</span>':''}<label class="od-toggle-couple"><span class="od-toggle-copy">自动跳过</span><span class="od-switch"><input id="od-toggle-${key}" type="checkbox" data-toggle="${key}" ${r.enabled?'checked':''} aria-label="跳过${names[key]}"></span></label></div>${track}<div class="od-endpoint-readouts">${fieldHTML(key,'start')}${fieldHTML(key,'end')}</div>${restoreAction(key)?`<div class="od-restore-inline">${restoreAction(key)}</div>`:''}${key==='outro'?r10MatchHTML()+'<span id="od-end-binding-help" class="od-sr-only">End 表示自动使用本视频实际结束时间。输入具体结束时间会变为指定区间；清空或填写 End 可恢复绑定；同一规则在视频时长变化时自动重新计算。这里复用已保存片尾规则，并非自动分析视频内容。</span>':''}<div id="od-error-${key}" class="od-error" ${v[key].length?'':'hidden'}>${esc(v[key][0]||'')}</div></section>`;
 }
 function restoreAction(key){
  const s=model.s,o=s.overrides[model.identity()]||{};
@@ -999,27 +1291,74 @@ function viewportIndex(){
  const found=viewportStops.findIndex(v=>v>=n);
  return found<0?viewportStops.length-1:found;
 }
-function tailMatchState(){
- const s=model.s,draft=s.draft.outro,saved=model.effective().outro;
- if(!Number.isFinite(s.duration))return {kind:'waiting',text:'等待当前视频时长，暂无法换算'};
- if(validation().outro.length)return {kind:'error',text:'片尾区间有误，修正后再保存'};
- if(draft.mode==='interval')return {kind:'interval',text:s.dirty?'自定义区间待保存，不跟随视频结尾':'指定区间，不按视频时长换算'};
- if(!Number.isFinite(draft.tail))return {kind:'waiting',text:'先设置片尾开始时间，保存后跨集复用'};
- if(s.dirty)return {kind:'waiting',text:'待保存 · 将按倒数 '+fmt(draft.tail)+' 换算'};
- if(saved.mode==='tail'&&Number.isFinite(saved.tail))return {kind:'matched',text:'已保存 · 按倒数 '+fmt(saved.tail)+' 在各集换算'};
- return {kind:'waiting',text:'保存片尾后，将按当前时长自动换算'};
+
+/* R10 context-specific status and history comparison (not another settings panel). */
+function r10TailState(){
+ const d=model.r10Decision('outro'),s=model.s,draft=s.draft.outro;
+ if(!d.exists)return {kind:'waiting',text:'未设置 · 保存后才能考虑跨集复用'};
+ if(s.dirty)return {kind:'waiting',text:'有未保存修改 · 暂不执行旧跳过规则'};
+ if(d.declined)return {kind:'declined',text:'本集已选择不沿用历史规则'};
+ if(d.compatibility==='APPLICABLE'){
+  if(draft.enabled===false)return {kind:'waiting',text:'规则适用 · 自动跳过已关闭'};
+  if(draft.mode==='interval')return {kind:'interval',text:'本集指定区间 · 不跟随 End'};
+  if(d.local)return {kind:'matched',text:'本集例外 · 最后'+fmt(d.candidateTail)};
+  const origin=model.r10.context.ruleOriginEpisode;
+  const src=origin&&model.s.episode!==origin?'沿用第'+String(origin).padStart(2,'0')+'集':'已确认沿用';
+  return {kind:'matched',text:src+' · 倒数'+fmt(d.candidateTail)};
+ }
+ if(d.compatibility==='NEEDS_CONFIRMATION')return {kind:'risk',text:'规则待核对 · 暂不自动跳过'};
+ if(d.compatibility==='NOT_APPLICABLE')return {kind:'risk',text:'当前视频不适用 · 不自动跳过'};
+ return {kind:'risk',text:'缺少可靠版本或时长 · 暂不自动跳过'};
+}
+function r10ShowReview(){
+ const d=model.r10Decision('outro');
+ return d.exists&&!model.s.dirty&&(d.declined||d.compatibility!=='APPLICABLE');
+}
+function r10ReviewHTML(){
+ const d=model.r10Decision('outro'),x=model.r10.context,candidate=model.effective().outro;
+ const start=Number.isFinite(d.currentStart)?fmt(d.currentStart):'—';
+ const end=Number.isFinite(d.currentEnd)?(candidate.mode==='tail'?'End':fmt(d.currentEnd)):'—';
+ const hist=Number.isFinite(x.historyTail)?x.historyTail:Number.isFinite(d.candidateTail)?d.candidateTail:90;
+ const history=candidate.mode==='tail'?'倒数'+fmt(hist):'指定区间';
+ const origin=x.ruleOriginEpisode?('第'+String(x.ruleOriginEpisode).padStart(2,'0')+'集 · '):'';
+ const sourceVideo=r10FiniteDuration(x.ruleOriginDuration)?' · 片长'+fmt(x.ruleOriginDuration):'';
+ const local=d.local;
+ const canConfirm=d.compatibility==='NEEDS_CONFIRMATION'&&x.versionVerified&&x.edition===x.ruleEdition&&x.resourceVerified&&x.kind==='regular';
+ return '<div id="od-r10-review" class="od-r10-review" role="group" aria-label="当前片尾规则的历史核对">'+
+ '<p class="od-r10-reason">'+esc(d.reason)+'</p>'+
+ '<dl class="od-r10-compare"><div><dt>历史来源</dt><dd>'+esc(origin+d.source)+'</dd><dd>'+esc(history+sourceVideo)+'</dd></div>'+
+ '<div><dt>当前视频</dt><dd>'+esc(r10FiniteDuration(model.s.duration)?fmt(model.s.duration):'时长未知')+'</dd><dd>'+esc(start+' — '+end)+'</dd></div></dl>'+
+ (x.branchConflict||x.syncConflict?'<p class="od-r10-meta">另有同级历史候选：倒数'+fmt(x.alternativeTail)+'，不自动覆盖。</p>':'')+
+ (x.historicalDuration!==null&&x.historicalDuration!==model.s.duration?'<p class="od-r10-meta">上次记录：'+fmt(x.historicalDuration)+'；当前：'+fmt(model.s.duration)+'，可能换源或重剪。</p>':'')+
+ (x.kind==='merged'?'<p class="od-r10-meta">未取得第03/04集内部片段边界，不能由总长推算第一段片尾。</p>':'')+
+ '<div class="od-r10-actions">'+
+ (d.declined?'<button type="button" data-action="r10-reconsider">重新核对</button>':
+  (canConfirm?'<button type="button" class="od-r10-confirm" data-action="r10-confirm">已核对 · 仅本集采用</button>':'')+
+  '<button type="button" data-action="r10-decline">本集不使用</button>')+
+ (!local?'<button type="button" data-action="r10-episode">仅本集重新设置</button>':'')+
+ '</div></div>';
+}
+function r10MatchHTML(){
+ const state=r10TailState();
+ return '<div id="od-tail-match" class="od-tail-match" data-state="'+state.kind+'" role="status" aria-live="polite" aria-label="片尾跨集匹配状态">'+
+ '<span class="od-tail-match-label">跨集匹配</span><span id="od-tail-match-text" class="od-tail-match-text">'+esc(state.text)+'</span>'+
+ (r10ShowReview()?'<button type="button" id="od-r10-expand" class="od-r10-expand" data-action="r10-review" aria-expanded="'+String(Boolean(ui.r10Open))+'" aria-controls="od-r10-review">'+(ui.r10Open?'收起':'核对')+'</button>':'')+
+ '</div>'+(ui.r10Open&&r10ShowReview()?r10ReviewHTML():'');
 }
 function syncTailMatch(){
- const el=q('#od-tail-match'),textEl=q('#od-tail-match-text');
- if(!el||!textEl)return;
- const state=tailMatchState();el.dataset.state=state.kind;textEl.textContent=state.text;
+ const el=q('#od-tail-match'),value=q('#od-tail-match-text');
+ if(!el||!value)return;
+ const state=r10TailState();el.dataset.state=state.kind;value.textContent=state.text;
+ const btn=q('#od-r10-expand');if(btn)btn.hidden=!r10ShowReview();
+ const details=q('#od-r10-review');if(details)details.hidden=!r10ShowReview();
 }
+
 function viewportHTML(){
  const index=viewportIndex(),isAuto=ui.spanPref==='auto';
  const label=viewportStops[index]/60+'分钟';
  return `<div class="od-window-preference" role="group" aria-label="调整片头和片尾时间轴的显示范围">
   <div class="od-viewport-top"><label for="od-window-range">时间轴范围</label>
-  <div class="od-viewport-value"><output id="od-window-current" for="od-window-range">${label}</output><span id="od-window-auto-state" class="od-viewport-auto-state" ${isAuto?'':'hidden'}>推荐</span><button id="od-window-auto" type="button" data-action="viewport-auto" ${isAuto?'hidden':''} title="恢复由视频长度推荐的编辑视野，不改变跳过时间">恢复推荐</button></div></div>
+  <div class="od-viewport-value"><output id="od-window-current" for="od-window-range">${label}</output><span id="od-window-auto-state" class="od-viewport-auto-state" ${isAuto?'':'hidden'}>推荐</span></div></div>
   <input type="range" id="od-window-range" min="0" max="4" step="1" value="${index}" aria-label="时间轴范围，从1分钟到10分钟，分档调整" aria-valuetext="${label}${isAuto?'，自动推荐':'，手动设置'}" aria-describedby="od-window-ticks od-viewport-help">
   <span id="od-viewport-help" class="od-viewport-note">只改变片头片尾拖动滑块的可见分钟数，不识别或修改片尾。</span><div id="od-window-ticks" class="od-viewport-ticks" aria-hidden="true"><span>1分</span><span>2分</span><span>3分</span><span>5分</span><span>10分</span></div>
  </div>`;
@@ -1029,7 +1368,7 @@ function transitionHTML(){const t=model.s.transition;return t?`<div class="od-tr
 function sidebarHTML(){
  const s=model.s,v=validation();
  if(s.closed)return '<div class="od-closed"><span>连播助手已收起</span><button id="od-open" type="button" data-action="open">打开设置</button></div>'+statusHTML();
- return `<header class="od-header"><div class="od-identity-row"><div id="od-content-identity" class="od-work">${identityText()}</div></div></header><div class="od-rows">${rowHTML('intro')}${rowHTML('outro')}<div class="od-auto"><label for="od-auto-next">自动下一集</label>${Object.prototype.hasOwnProperty.call(s.overrides[model.identity()]||{},'autoNext')?'<span class="od-exception">本集例外</span>':''}<label class="od-switch"><input id="od-auto-next" type="checkbox" data-toggle="autoNext" ${s.draft.autoNext?'checked':''} aria-label="自动下一集"></label></div>${restoreAction('autoNext')?`<div class="od-auto-restore">${restoreAction('autoNext')}</div>`:''}${viewportHTML()}</div><footer class="od-save-zone"><div id="od-unsaved-line" class="od-unsaved-line" ${s.dirty?'':'hidden'}><span>尚未保存的修改</span><button id="od-cancel" type="button" data-action="cancel" aria-label="放弃本次修改，恢复上次保存的设置">放弃修改</button></div><div class="od-save-actions"><button id="od-save" type="button" class="od-primary" data-action="save" ${s.dirty&&v.valid?'':'disabled'}>保存设置</button></div></footer>${statusHTML()}${transitionHTML()}`;
+ return `<header class="od-header"><div class="od-identity-row">${identityHTML()}</div></header><div class="od-rows">${rowHTML('intro')}${rowHTML('outro')}<div class="od-auto"><label for="od-auto-next">自动下一集</label>${Object.prototype.hasOwnProperty.call(s.overrides[model.identity()]||{},'autoNext')?'<span class="od-exception">本集例外</span>':''}<label class="od-switch"><input id="od-auto-next" type="checkbox" data-toggle="autoNext" ${s.draft.autoNext?'checked':''} aria-label="自动下一集"></label></div>${restoreAction('autoNext')?`<div class="od-auto-restore">${restoreAction('autoNext')}</div>`:''}${viewportHTML()}</div><footer class="od-save-zone"><div id="od-unsaved-line" class="od-unsaved-line" ${s.dirty?'':'hidden'}><span>尚未保存的修改</span><button id="od-cancel" type="button" data-action="cancel" aria-label="放弃本次修改，恢复上次保存的设置">放弃修改</button></div><div class="od-save-actions"><button id="od-save" type="button" class="od-primary" data-action="save" ${s.dirty&&v.valid?'':'disabled'}>保存设置</button></div></footer>${statusHTML()}${transitionHTML()}`;
 }
 function syncStatus(){
  const s=model.s,v=validation(),host=q('#od-status');if(!host)return;let text='',kind='',actions=[];
@@ -1043,7 +1382,7 @@ function syncStatus(){
  else if(s.undo)text='已跳过'+names[s.undo.key];
  else if(Number.isFinite(s.duration)&&s.time>=s.duration&&!s.playing)text='本集已结束';
  else if(s.statusKind==='error'){text=s.status;kind='od-error-state';}
- else if(s.statusKind==='ok'&&!s.dirty){text='设置已保存';kind='od-saved-ok';}
+ else if(s.statusKind==='ok'&&!s.dirty){text=s.status.includes('离线模拟已保存')?s.status:'设置已保存';kind='od-saved-ok';}
  if(s.undo)actions.push('<button id="od-undo" type="button" data-action="undo">撤销跳过</button>');
  host.hidden=!text&&!actions.length;host.className='od-status '+kind;q('#od-status-text').textContent=text;
  const actionHost=q('#od-status-actions'),html=actions.join('');if(ui.actionsHost!==actionHost||ui.actionsSignature!==html){actionHost.innerHTML=html;ui.actionsHost=actionHost;ui.actionsSignature=html;}
@@ -1080,9 +1419,9 @@ function syncRow(key,origin){
  const toggle=q('#od-toggle-'+key);if(toggle)toggle.checked=model.s.draft[key].enabled;
  syncErrors();syncSelection();syncSave();if(key==='outro')syncTailMatch();
 }
-function syncIdentity(){const identity=q('#od-content-identity');if(identity)identity.textContent=identityText();}
+function syncIdentity(){const x=identityInfo(),identity=q('#od-content-identity'),detail=q('#od-identity-detail');if(identity)identity.textContent=x.title;if(detail)detail.textContent=x.detail;}
 function render(keepFocus=true){const old=document.activeElement,id=old&&root.contains(old)?old.id:null;let selection=null;try{selection=[old.selectionStart,old.selectionEnd];}catch(e){}ui.rendering=true;q('#od-sidebar').innerHTML=sidebarHTML();syncErrors();syncSelection();syncSave();syncTailMatch();syncIdentity();for(const selector of ['button','summary','input[type=checkbox]'])all(selector).forEach(el=>el.classList.add('cursor-interaction'));if(keepFocus&&id){let el=q('#'+id);if(!el||el.disabled)el=q('#od-save')||q('#od-window-range')||q('#od-open');if(el){el.focus({preventScroll:true});if(el.id===id&&selection&&selection[0]!==null&&el.setSelectionRange)try{el.setSelectionRange(selection[0],selection[1]);}catch(e){}}}ui.rendering=false;}
-function resetUI(){ui.selected={intro:'end',outro:'start'};ui.activeKey='intro';ui.raw={};ui.windows={};ui.savedContext=null;}
+function resetUI(){ui.r10Open=false;ui.selected={intro:'end',outro:'start'};ui.activeKey='intro';ui.raw={};ui.windows={};ui.savedContext=null;}
 function take(fn){const id=model.identity(),sc=model.s.scenario,scope=model.s.scope;fn();if(id!==model.identity()||sc!==model.s.scenario)resetUI();else if(scope!==model.s.scope){ui.raw={};ui.windows={};ui.savedContext=null;}render();}
 function selectPoint(key,part){ui.activeKey=key;ui.selected[key]=part;syncSelection();}
 function commitInput(el){const key=el.dataset.timeKey;if(!key)return;const part=el.dataset.timePart;if(Number.isFinite(value(key,part))){clearRaw(key,part);el.value=inputValue(key,part);}windowFor(key,true);syncRow(key,el);}
@@ -1093,8 +1432,12 @@ root.addEventListener('click',event=>{
   if(Number.isFinite(n)&&!Number.isFinite(value(key,part))){setEndpoint(key,part,n);clearRaw(key,part);ui.savedContext=null;selectPoint(key,part);syncRow(key);}
  }
  const b=event.target.closest('button');if(!b||!root.contains(b)||b.disabled)return;const action=b.dataset.action,key=b.dataset.key;
+ if(action==='r10-review'){ui.r10Open=!ui.r10Open;render();return;}
+ if(action==='r10-decline'){ui.r10Open=false;take(()=>model.r10Decline('outro'));return;}
+ if(action==='r10-reconsider'){ui.r10Open=false;take(()=>model.r10Reconsider('outro'));return;}
+ if(action==='r10-confirm'){ui.r10Open=false;take(()=>model.r10ConfirmForEpisode('outro'));return;}
+ if(action==='r10-episode'){ui.r10Open=false;take(()=>model.requestScope('episode'));return;}
  if(action==='save'){take(()=>{const c=contextKey();if(model.save()){ui.savedContext=c;ui.raw={};}});return;}
- if(action==='viewport-auto'){ui.spanPref='auto';ui.windows={};render(true);return;}
  if(action==='cancel'){ui.raw={};ui.windows={};take(()=>model.cancel());return;}
  if(action==='mark'){clearRaw(key,ui.selected[key]);take(()=>model.mark(key,ui.selected[key]));windowFor(key,true);syncRow(key);return;}
  if(action==='preview'){take(()=>model.preview(key,ui.selected[key]));return;}
@@ -1114,7 +1457,6 @@ root.addEventListener('input',event=>{
   ui.spanPref=String(n);ui.windows={};
   const out=q('#od-window-current');if(out)out.textContent=n/60+'分钟';
   const state=q('#od-window-auto-state');if(state)state.hidden=true;
-  const reset=q('#od-window-auto');if(reset)reset.hidden=false;
   el.setAttribute('aria-valuetext',n/60+'分钟，手动设置');
   syncRow('intro');syncRow('outro');
   return;
@@ -1152,7 +1494,61 @@ function updateVideoDuration(seconds){
  render(true);
  return true;
 }
-root.preview={model,ui,render,parseTime,formatTime:fmt,commitInput,windowFor,recommendedSpan,updateVideoDuration};
+
+function r10Checks(){
+ const results=[];
+ function test(id,fn){try{const ok=Boolean(fn());results.push({id,pass:ok});}catch(e){results.push({id,pass:false,error:String(e)});}}
+ function fixture(name){const m=new ContinuityModel();if(!m.r10LoadFixture(name))throw Error('fixture '+name);return m;}
+ test('R10-01',()=>{const m=fixture('normal03'),d=m.r10Decision('outro');return d.compatibility==='APPLICABLE'&&d.currentStart===2610&&d.executionAllowed;});
+ test('R10-02',()=>{const m=fixture('normal04'),d=m.r10Decision('outro');return d.compatibility==='APPLICABLE'&&d.currentStart===2790&&d.candidateTail===90;});
+ test('R10-03',()=>{const m=fixture('history'),d=m.r10Decision('outro');return d.local&&d.currentStart===2820&&m.s.base.outro.tail===90&&m.s.overrides['demo:星海航线|s1|e5|标准版 A'].outro.tail===120;});
+ test('R10-04',()=>fixture('merged').r10Decision('outro').compatibility==='NOT_APPLICABLE');
+ test('R10-05',()=>['special','preview','collection','extra'].every(n=>fixture(n).r10Decision('outro').compatibility==='NOT_APPLICABLE'));
+ test('R10-06',()=>{const d=fixture('credits').r10Decision('outro');return d.compatibility==='APPLICABLE'&&d.currentStart===4800&&d.currentEnd===4890;});
+ test('R10-07',()=>fixture('edition').r10Decision('outro').compatibility==='NOT_APPLICABLE'&&fixture('crossSite').r10Decision('outro').compatibility==='NOT_APPLICABLE');
+ test('R10-08',()=>fixture('unknown').r10Decision('outro').compatibility==='UNKNOWN');
+ test('R10-09',()=>fixture('drift').r10Decision('outro').compatibility==='NEEDS_CONFIRMATION');
+ test('R10-10',()=>{const m=fixture('declined'),d=m.r10Decision('outro');const before=m.r10.declines.size;return d.compatibility==='APPLICABLE'&&!d.executionAllowed&&d.declined&&before===1&&m.r10Reconsider('outro')&&m.r10Decision('outro').executionAllowed;});
+ test('R10-11',()=>{const m=fixture('history');m.restore('outro');const ok=m.save();return ok&&m.s.base.outro.tail===90&&!m.s.overrides[m.identity()]?.outro&&m.r10.history.some(e=>e.event==='RESTORE_DEFAULT');});
+ test('R10-12',()=>{const m=fixture('normal03');const id=m.identity();m.edit('outro',{tail:80});const moved=m.r10LoadFixture('normal04');return !moved&&m.identity()===id&&m.s.dirty&&m.s.transition.kind==='r10Fixture';});
+ test('R10-13',()=>{const m=fixture('normal04');m.s.base.outro.enabled=false;const d=m.r10Decision('outro');return d.compatibility==='APPLICABLE'&&!d.executionAllowed&&m.s.base.autoNext===true;});
+ test('R10-14',()=>{const a=fixture('unknownDuration').r10Decision('outro'),b=fixture('invalidTail').r10Decision('outro');return !a.executionAllowed&&!b.executionAllowed;});
+ test('R10-15',()=>{const a=fixture('failedSave'),b=fixture('unknownSave');a.edit('outro',{tail:80});b.edit('outro',{tail:80});return !a.save()&&!b.save()&&a.s.dirty&&b.s.dirty&&a.s.base.outro.tail===90&&b.s.base.outro.tail===90&&b.r10.lastWriteOutcome==='UNKNOWN';});
+ test('R10-I01',()=>{const m=fixture('merged');const mergeId=m.identity();m.edit('outro',{tail:120});const saved=m.save();m.r10.context.kind='regular';m.r10.context.mediaKey='https://demo.invalid|demo-series:s1:e3:regular:cut-A';return saved&&mergeId!==m.identity()&&!m.s.overrides[m.identity()]?.outro;});
+ test('R10-I02',()=>{const m=fixture('normal03');m.setDuration(2800);const d=m.r10Decision('outro');m.s.time=2700;return d.compatibility==='NEEDS_CONFIRMATION'&&!d.executionAllowed&&!m._skipAt(2700);});
+ test('R10-ID01',()=>{const m=fixture('unidentified'),d=m.r10Decision('outro');return m.s.scope==='episode'&&!d.exists&&!d.executionAllowed;});
+ test('R10-ID02',()=>{const m=fixture('samePlaylistUnknownEpisode'),d=m.r10Decision('outro');return m.r10.context.episodeVerified===false&&d.compatibility==='APPLICABLE'&&d.currentStart===2790&&d.executionAllowed;});
+ test('R10-ID03',()=>{const m=fixture('titleHint'),d=m.r10Decision('outro');return !m.r10.context.seriesVerified&&m.r10.context.titleHint==='星海航线'&&d.compatibility==='UNKNOWN'&&!d.executionAllowed;});
+ test('R10-ID04',()=>fixture('wrongSeries').r10Decision('outro').compatibility==='NOT_APPLICABLE');
+ test('R10-ID05',()=>{const m=fixture('unidentified');m.edit('outro',{enabled:true,mode:'tail',tail:90,start:null,end:null});const saved=m.save(),d=m.r10Decision('outro');return saved&&d.local&&d.compatibility==='APPLICABLE'&&d.executionAllowed;});
+ test('R10-EQ01',()=>{const m=fixture('sameDuration'),i=m.r10Decision('intro'),o=m.r10Decision('outro');return i.compatibility==='APPLICABLE'&&o.compatibility==='APPLICABLE'&&i.currentStart===0&&i.currentEnd===90&&o.currentStart===2610&&o.currentEnd===2700&&m.s.base.outro.tail===90&&Object.keys(m.s.overrides).length===0;});
+ test('R10-EQ02',()=>{const m=fixture('sameDurationException'),o=m.r10Decision('outro');return o.local&&o.compatibility==='APPLICABLE'&&o.currentStart===2640&&o.currentEnd===2700&&m.s.base.outro.tail===90&&m.effective().outro.tail===60;});
+ test('R10-EQ03',()=>{const m=fixture('sameDuration');m.edit('outro',{tail:75});const moved=m.r10LoadFixture('sameDurationException');return moved===false&&m.s.dirty&&m.s.base.outro.tail===90&&m.s.transition.kind==='r10Fixture';});
+ return {passed:results.filter(x=>x.pass).length,total:results.length,results,environment:'offline model only, not Chrome or persistent store'};
+}
+function r10LayoutChecks(){
+ const old=root.style.getPropertyValue('--od-side-width'),out=[];
+ for(const width of [320,360,400]){
+  root.style.setProperty('--od-side-width',width+'px');
+  const selectors=['[data-section="intro"]','[data-section="outro"]','.od-auto','.od-window-preference'];
+  const els=selectors.map(q),rects=els.map(el=>el&&el.getBoundingClientRect());
+  const lefts=rects.map(r=>r&&r.left),rights=rects.map(r=>r&&r.right);
+  const leftError=Math.max(...lefts)-Math.min(...lefts),rightError=Math.max(...rights)-Math.min(...rights);
+  const side=q('#od-sidebar');
+  out.push({width,leftError,rightError,noHorizontalOverflow:side.scrollWidth<=side.clientWidth+1,pass:leftError<=1&&rightError<=1&&side.scrollWidth<=side.clientWidth+1});
+ }
+ if(old)root.style.setProperty('--od-side-width',old);else root.style.removeProperty('--od-side-width');
+ return out;
+}
+root.preview={model,ui,render,parseTime,formatTime:fmt,commitInput,windowFor,recommendedSpan,updateVideoDuration,
+ r10:{fixtures:Object.keys(R10_FIXTURES),
+  loadFixture:name=>{const ok=model.r10LoadFixture(name);if(ok){resetUI();render(false);}else render();return ok;},
+  decision:key=>model.r10Decision(key||'outro'),
+  history:()=>model.r10.history.slice(),
+  simulateSaveOutcome:outcome=>{if(!['COMMITTED','FAILED','UNKNOWN','CONFLICT'].includes(outcome))return false;model.r10.nextSaveOutcome=outcome;return true;},
+  runChecks:r10Checks,layoutChecks:r10LayoutChecks}};
+const initialFixture=new URLSearchParams(location.search).get('r10');
+if(initialFixture&&R10_OWN.call(R10_FIXTURES,initialFixture))model.r10LoadFixture(initialFixture);
 render(false);
 })();
 
