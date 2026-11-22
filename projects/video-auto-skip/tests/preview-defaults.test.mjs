@@ -29,6 +29,9 @@ test('preview still constrains both handles to a valid interval', () => {
   assert.match(script, /if\(part==='start'&&Number\.isFinite\(other\)\)hi=Math\.min\(hi,other-1\)/);
   assert.match(script, /if\(part==='end'&&Number\.isFinite\(other\)\)lo=Math\.max\(lo,other\+1\)/);
   assert.match(script, /key==='outro'&&part==='end'&&Number\.isFinite\(d\)&&intended===d&&n===d/);
+  assert.ok(script.includes("if(followsVideoStart(key,part)||followsVideoEnd(key,part))return null;"));
+  assert.ok(script.includes('tabindex="-1" aria-disabled="true"'));
+  assert.ok(css.includes('pointer-events:none!important;cursor:default!important'));
 });
 
 test('existing relative outro rule follows duration without rewriting saved offset', () => {
