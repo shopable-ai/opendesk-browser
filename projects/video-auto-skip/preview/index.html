@@ -952,7 +952,7 @@ const R10_FIXTURES = Object.freeze({
  partialIdentity:{episode:4,duration:2880,patternConfirmed:true,seasonVerified:false,episodeVerified:false,ruleOriginEpisode:3,ruleOriginDuration:2700},
  titleHint:{episode:4,duration:2880,seriesVerified:false,seasonVerified:false,episodeVerified:false,playlistVerified:false,patternConfirmed:false,titleHint:'星海航线'},
  unidentified:{episode:4,duration:2880,noSaved:true,seriesVerified:false,seasonVerified:false,episodeVerified:false,playlistVerified:false,patternConfirmed:false},
- wrongSeries:{episode:4,duration:2880,seriesKey:'unrelated',playlistVerified:false,patternConfirmed:false},
+ wrongSeries:{episode:4,duration:2880,seriesName:'另一部作品',seriesKey:'unrelated',playlistVerified:false,patternConfirmed:false},
  history:{episode:4,duration:2880,patternConfirmed:true,localTail:60,historyTail:90},
  merged:{episode:3,duration:5400,kind:'merged',patternConfirmed:false,segmentMap:null},
  special:{episode:3,duration:6000,kind:'special',patternConfirmed:false},
@@ -1227,8 +1227,8 @@ function identityInfo(){
  if(c.seriesVerified){
   const base=c.seriesName||'已核实的系列';
   const season=c.seasonVerified?'第1季':'季待确认';
-  const episode=c.kind==='merged'?'第03–04集合并版':c.kind==='special'?'特别篇':
-    c.episodeVerified?'第'+String(c.episode).padStart(2,'0')+'集':'集数待确认';
+  const kindLabel={merged:'第03–04集合并版',special:'特别篇',preview:'预告',collection:'合集',extra:'花絮'};
+  const episode=kindLabel[c.kind]||(c.episodeVerified?'第'+String(c.episode).padStart(2,'0')+'集':'集数待确认');
   title=base+' · '+season+' · '+episode;
   level=c.playlistVerified?'verified':'partial';
   detail=video+' · '+(c.playlistVerified?'站内剧集关系已核实':'剧集关系待确认');
@@ -1523,6 +1523,11 @@ function r10Checks(){
  test('R10-15',()=>{const a=fixture('failedSave'),b=fixture('unknownSave');a.edit('outro',{tail:80});b.edit('outro',{tail:80});return !a.save()&&!b.save()&&a.s.dirty&&b.s.dirty&&a.s.base.outro.tail===90&&b.s.base.outro.tail===90&&b.r10.lastWriteOutcome==='UNKNOWN';});
  test('R10-I01',()=>{const m=fixture('merged');const mergeId=m.identity();m.edit('outro',{tail:120});const saved=m.save();m.r10.context.kind='regular';m.r10.context.mediaKey='https://demo.invalid|demo-series:s1:e3:regular:cut-A';return saved&&mergeId!==m.identity()&&!m.s.overrides[m.identity()]?.outro;});
  test('R10-I02',()=>{const m=fixture('normal03');m.setDuration(2800);const d=m.r10Decision('outro');m.s.time=2700;return d.compatibility==='NEEDS_CONFIRMATION'&&!d.executionAllowed&&!m._skipAt(2700);});
+ test('R10-ID01',()=>{const m=fixture('unidentified'),d=m.r10Decision('outro');return m.s.scope==='episode'&&!d.exists&&!d.executionAllowed;});
+ test('R10-ID02',()=>{const m=fixture('samePlaylistUnknownEpisode'),d=m.r10Decision('outro');return m.r10.context.episodeVerified===false&&d.compatibility==='APPLICABLE'&&d.currentStart===2790&&d.executionAllowed;});
+ test('R10-ID03',()=>{const m=fixture('titleHint'),d=m.r10Decision('outro');return !m.r10.context.seriesVerified&&m.r10.context.titleHint==='星海航线'&&d.compatibility==='UNKNOWN'&&!d.executionAllowed;});
+ test('R10-ID04',()=>fixture('wrongSeries').r10Decision('outro').compatibility==='NOT_APPLICABLE');
+ test('R10-ID05',()=>{const m=fixture('unidentified');m.edit('outro',{enabled:true,mode:'tail',tail:90,start:null,end:null});const saved=m.save(),d=m.r10Decision('outro');return saved&&d.local&&d.compatibility==='APPLICABLE'&&d.executionAllowed;});
  return {passed:results.filter(x=>x.pass).length,total:results.length,results,environment:'offline model only, not Chrome or persistent store'};
 }
 function r10LayoutChecks(){
