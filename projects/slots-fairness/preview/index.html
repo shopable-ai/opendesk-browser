@@ -145,8 +145,8 @@ function renderSite(){
  $("site-hint").textContent=boundary?"无法通过普通 DOM 提取这部分画面。":s.scene==="dynamic"?"页面渲染后可能新增字段；只演示授权范围内观察。":"鼠标点选仅限模拟的证据数值。";
  const tips={
  known:"查看左侧自动识别到的字段，然后点“验证结果”。",
- unknown:"先点“扫描页面”再点“验证结果”，留意“算法不支持”。",
- missing:"扫描→选择页面区域→点击“玩家参数 X”的值→确认映射→保存→再扫描→验证。",
+ unknown:"已授权的未知站点自动尝试语义扫描；点“验证结果”，留意“算法不支持”。",
+ missing:"查看自动检测缺失字段→选择页面区域→点击“玩家参数 X”的值→确认映射→保存→再扫描→验证。",
  dynamic:"观察左侧缺失状态，点击“模拟 SPA 新增字段”，查看 Observer 是否发现新增值。",
  broken:"先看失效提示，再点“选择页面区域”修复 Server Seed Hash，保存后再扫描。",
  denied:"尝试“扫描页面”；再按“授予演示权限”并手动扫描。开关需要单独开启。",
@@ -393,7 +393,7 @@ async function verify(){
  report("已执行浏览器 Web Crypto 的 SHA-256 模拟计算；未访问任何真实博彩服务。");
 }
 function switchScenario(name){
- cancelObserve();stopPick(true);s.generation++;s.scene=name;s.granted=name!=="denied";s.auto=name==="known"||name==="dynamic"||name==="broken";s.fields={};s.sources={};s.rules={};s.invalid.clear();s.hasScanned=false;s.appended=false;s.scanCount=0;
+ cancelObserve();stopPick(true);s.generation++;s.scene=name;s.granted=name!=="denied";s.auto=["known","unknown","missing","dynamic","broken"].includes(name);s.fields={};s.sources={};s.rules={};s.invalid.clear();s.hasScanned=false;s.appended=false;s.scanCount=0;
  if(name==="broken")s.rules.serverSeedHash={selector:'[data-testid="server-hash-v1"]',extract:"textContent",confirmed:true};
  $("scenario-help").textContent=helpers[name];$("scenario").value=name;
  renderSite();updateAuto();emptyVerification();renderFields();report("");
