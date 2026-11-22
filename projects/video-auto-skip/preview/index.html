@@ -4,476 +4,401 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <meta name="color-scheme" content="light">
-<title>连播助手 · OpenDesk 规范化离线预览</title>
-<meta name="od-canonical-tokens-sha" content="d015149145fa93a1d37beffe4778b4bed5576a97">
-<meta name="od-canonical-components-sha" content="9fe8e3c38f770c8fb843d13913d6d09c803567db">
-<meta name="od-preview-status" content="DESIGN_MOCK_NOT_SOURCE_BOUND">
-<style id="od-canonical-tokens">
-/* R23: single, page-agnostic OpenDesk semantic tokens.
- * No resets, selectors for host pages, remote resources or page scroll policy.
- * Trusted extension UI only; never inject into tools, iframes or web pages. */
-:root{
-  --od-ink:#1b2c49;
-  --od-sub:#5b6e86;
-  --od-line:#dfe6ef;
-  --od-brand:#365eda;
-  --od-paper:#fff;
-  --od-bg:#fff;
-  --od-input-border:#7f8da1;
-  --od-accent-ink:var(--od-brand);
-  --od-focus:var(--od-brand);
-  --od-light-warning:#80510d;
-  --od-warning:var(--od-light-warning);
-  --od-muted:#f5f7fb;
-  --od-light-positive:#117a5d;
-  --od-positive:var(--od-light-positive);
-  --od-negative:#ae3d4b;
-  --space-1:4px;
-  --space-2:8px;
-  --space-3:12px;
-  --space-4:16px;
-  --radius-control:8px;
-  --radius-surface:12px;
-  --radius-pill:999px;
-  --od-icon-size:34px;
-  --od-body-size:13px;
-  --od-note-size:12px;
-  --od-meta-size:11px;
-  --od-on-brand:#fff;
-  --od-action-bg:var(--od-muted);
-  --od-action-border:var(--od-input-border);
-  --od-action-ink:var(--od-ink);
-  --od-light-warning-bg:#fff9ec;
-  --od-light-warning-border:#dcc58a;
-  --od-light-warning-ink:#76501b;
-  --od-warning-bg:var(--od-light-warning-bg);
-  --od-warning-border:var(--od-light-warning-border);
-  --od-warning-ink:var(--od-light-warning-ink);
-  --od-negative-bg:#fff0f1;
-  /* Host horizontal inset, used once; sandbox tool content owns its own inner inset. */
-  --od-page-gutter:12px;
-  /* Dark-mode palette is registered here; shared primitives only reference tokens. */
-  --od-dark-ink:#e9eef7;
-  --od-dark-sub:#b3c1d3;
-  --od-dark-line:#374457;
-  --od-dark-brand:#3566ba;
-  --od-dark-paper:#151c28;
-  --od-dark-bg:#101722;
-  --od-dark-input-border:#6d809b;
-  --od-dark-accent-ink:#9dc1ff;
-  --od-dark-warning:#ffd08a;
-  --od-dark-warning-bg:#392d21;
-  --od-dark-warning-border:#8b6841;
-  --od-dark-warning-ink:#f6dca8;
-  --od-dark-muted:#222d3e;
-  --od-dark-positive:#a1f3cc;
-  --od-dark-negative:#ff9ea6;
-  /* Existing Sidebar aliases; do not redeclare palette values per page. */
-  --ink:var(--od-ink);
-  --sub:var(--od-sub);
-  --line:var(--od-line);
-  --blue:var(--od-brand);
-  --paper:var(--od-paper);
-}
-
-/* Dark palette stays with the canonical tokens; design-system.css owns layout only. */
-@media(prefers-color-scheme:dark){
-  :root{
-    --od-ink:var(--od-dark-ink);
-    --od-sub:var(--od-dark-sub);
-    --od-line:var(--od-dark-line);
-    --od-brand:var(--od-dark-brand);
-    --od-paper:var(--od-dark-paper);
-    --od-bg:var(--od-dark-bg);
-    --od-input-border:var(--od-dark-input-border);
-    --od-accent-ink:var(--od-dark-accent-ink);
-    --od-focus:var(--od-dark-accent-ink);
-    --od-warning:var(--od-dark-warning);
-    --od-muted:var(--od-dark-muted);
-    --od-positive:var(--od-dark-positive);
-    --od-negative:var(--od-dark-negative);
-    --od-warning-bg:var(--od-dark-warning-bg);
-    --od-warning-border:var(--od-dark-warning-border);
-    --od-warning-ink:var(--od-dark-warning-ink);
-    --od-negative-bg:#442632;
-  }
-}
-
-/* shadcn/ui aria-nova + Neutral, opt-in. Values from official themes.ts
- * 24a16429815cc4d691f38b49d0f4ffc11a9daef4. No host/global replacement.
- * Explicit light/dark allows previews to keep the surrounding host light. */
-.od-theme-shadcn{
-  --background:oklch(1 0 0);--foreground:oklch(.145 0 0);
-  --card:oklch(1 0 0);--card-foreground:var(--foreground);
-  --primary:oklch(.205 0 0);--primary-foreground:oklch(.985 0 0);
-  --secondary:oklch(.97 0 0);--secondary-foreground:oklch(.205 0 0);
-  --muted:oklch(.97 0 0);--muted-foreground:oklch(.556 0 0);
-  --accent:var(--muted);--accent-foreground:var(--foreground);
-  --destructive:oklch(.577 .245 27.325);--border:oklch(.922 0 0);--input:oklch(.922 0 0);--ring:oklch(.708 0 0);
-  --radius:10px;--od-body-size:14px;--od-note-size:12px;--od-meta-size:11px;
-  --od-ink:var(--foreground);--od-sub:var(--muted-foreground);--od-line:var(--border);
-  --od-brand:var(--primary);--od-on-brand:var(--primary-foreground);--od-paper:var(--background);--od-bg:var(--muted);
-  --od-input-border:var(--input);--od-focus:var(--ring);--od-accent-ink:var(--foreground);--od-muted:var(--muted);
-  --od-negative:var(--destructive);--od-negative-bg:color-mix(in oklch,var(--destructive) 10%,transparent);
-  --od-warning:var(--od-light-warning);--od-positive:var(--od-light-positive);
-  --od-warning-bg:var(--od-light-warning-bg);--od-warning-border:var(--od-light-warning-border);--od-warning-ink:var(--od-light-warning-ink);
-  --od-action-bg:var(--secondary);--od-action-border:transparent;--od-action-ink:var(--secondary-foreground);
-  --radius-control:var(--radius);--radius-surface:calc(var(--radius)*1.4);--od-icon-size:32px;
-  color-scheme:light;color:var(--foreground);background:var(--background);font-size:var(--od-body-size);line-height:1.5;
-}
-.od-theme-shadcn[data-preview-theme="dark"],.od-theme-shadcn[data-theme="dark"]{
-  --background:oklch(.145 0 0);--foreground:oklch(.985 0 0);--card:oklch(.205 0 0);
-  --primary:oklch(.922 0 0);--primary-foreground:oklch(.205 0 0);
-  --secondary:oklch(.269 0 0);--secondary-foreground:oklch(.985 0 0);
-  --muted:oklch(.269 0 0);--muted-foreground:oklch(.708 0 0);
-  --destructive:oklch(.704 .191 22.216);--border:oklch(1 0 0 / 10%);--input:oklch(1 0 0 / 15%);--ring:oklch(.556 0 0);
-  --od-negative-bg:color-mix(in oklch,var(--destructive) 20%,transparent);color-scheme:dark;
-  --od-warning:var(--od-dark-warning);--od-positive:var(--od-dark-positive);
-  --od-warning-bg:var(--od-dark-warning-bg);--od-warning-border:var(--od-dark-warning-border);--od-warning-ink:var(--od-dark-warning-ink);
-}
-
-</style><style id="od-canonical-components">
-/* R20/R23 Sidebar primitives and page base; semantic values are in design-tokens.css.
- * Scoped to the trusted Sidebar and tool tab, NOT reusable in Workspace/Options. */
-:root{font-family:-apple-system,BlinkMacSystemFont,"SF Pro Text","PingFang SC",system-ui,sans-serif;font-size:13px;line-height:1.45;color:var(--od-ink);background:var(--od-bg);color-scheme:light}
-*{box-sizing:border-box}
-[hidden]{display:none!important}
-html,body{height:100%;overflow:hidden;min-width:0}
-body{display:flex;flex-direction:column;margin:0;background:var(--od-bg)}
-/* Chrome's extension stylesheet sets body to 75%; keep the trusted workbench at its semantic baseline. */
-:root body{font-family:inherit;font-size:var(--od-body-size);line-height:1.5}
-h1,h2,h3{margin:0;letter-spacing:-.015em}
-p{margin:var(--space-2) 0;overflow-wrap:anywhere}
-/* Emphasis inside a paragraph changes weight, never its size or semantic ink. */
-p :is(strong,b){font-size:inherit;color:inherit;font-weight:650}
-main{min-width:0}
-section{min-width:0}
-.hint,aside{font-size:var(--od-note-size);color:var(--od-sub)}
-.identity{font:var(--od-meta-size)/1.5 ui-monospace,monospace;overflow-wrap:anywhere}
-.row{display:flex;align-items:center;gap:var(--space-2);flex-wrap:wrap;margin:var(--space-2) 0;min-width:0}
-label{display:block;margin:var(--space-2) 0 var(--space-1)}
-input,select,textarea{width:100%;min-width:0;border:1px solid var(--od-input-border);border-radius:var(--radius-control);background:var(--od-paper);color:var(--od-ink);font:inherit;padding:var(--space-2) var(--space-3)}
-input,select{min-height:36px}
-input[type=checkbox]{width:auto;min-height:0;margin-right:6px}
-textarea{display:block;margin:var(--space-2) 0 var(--space-3);font:var(--od-note-size)/1.55 ui-monospace,SFMono-Regular,Consolas,monospace;resize:vertical;tab-size:2}
-pre{white-space:pre-wrap;overflow-wrap:anywhere;min-width:0;max-height:300px;overflow:auto;background:var(--od-muted);padding:var(--space-2);border-radius:var(--radius-control);font:var(--od-meta-size)/1.55 ui-monospace,monospace}
-button{max-width:100%;border:0;border-radius:var(--radius-control);background:var(--od-brand);color:var(--od-on-brand);padding:var(--space-2) var(--space-3);min-height:34px;font:inherit;cursor:pointer;overflow-wrap:anywhere}
-button:disabled{opacity:.48;cursor:not-allowed}
-button:hover:not(:disabled){filter:brightness(.97)}
-details{margin:var(--space-2) 0}
-summary{cursor:pointer;color:var(--od-ink);overflow-wrap:anywhere}
-details>section{margin-top:var(--space-3)}
-:focus-visible{outline:2px solid var(--od-focus);outline-offset:2px}
-.visually-hidden{position:absolute!important;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap;clip-path:inset(50%)}
-
-/* Shared primitives: semantics here; state-specific geometry stays in tool-shell.css. */
-.od-page{min-width:0}
-.od-toolbar{display:flex;align-items:center;gap:var(--space-2);min-width:0}
-.od-page-head{display:flex;align-items:center;justify-content:space-between;gap:var(--space-2);min-height:var(--od-icon-size);min-width:0}
-.od-page-title{min-width:0;margin:0;color:var(--od-ink);font-size:var(--od-note-size);font-weight:600;line-height:1.5;overflow-wrap:anywhere}
-.od-page-actions{display:flex;align-items:center;justify-content:flex-end;gap:var(--space-2);min-width:0;flex:none;margin-inline-start:auto}
-/* Tools Index/Detail is the trusted Tab header baseline; narrow actions wrap as a group. */
-@media(max-width:240px){.od-page-head{flex-wrap:wrap}.od-page-actions{flex-wrap:wrap;max-width:100%}}
-.od-stack{display:grid;gap:var(--space-2);min-width:0}
-/* Public component contract: semantic appearance lives only here; pages own layout. */
-.od-surface{min-width:0;background:var(--od-paper);border:1px solid var(--od-line);border-radius:var(--radius-surface)}
-.od-surface--padded{padding:var(--space-3)}
-/* One frame per collection; rows keep their own actions and selection semantics. */
-.od-collection{min-width:0;margin:0;padding:0;list-style:none;overflow:hidden;border:1px solid var(--od-line);border-radius:var(--radius-surface);background:var(--od-paper)}
-.od-collection-row{position:relative;min-width:0}
-.od-collection-row+.od-collection-row{border-top:1px solid var(--od-line)}
-.od-button{display:inline-flex;align-items:center;justify-content:center;gap:var(--space-1);max-width:100%;min-height:36px;padding:var(--space-2) var(--space-3);font:inherit;font-weight:650;border:1px solid var(--od-brand);border-radius:var(--radius-control);background:var(--od-brand);color:var(--od-on-brand);text-align:center}
-.od-button--secondary{background:var(--od-action-bg);border-color:var(--od-action-border);color:var(--od-action-ink)}
-.od-button--danger{background:var(--od-negative-bg);border-color:var(--od-negative);color:var(--od-negative)}
-.od-button--quiet{background:transparent;border-color:transparent;color:var(--od-ink)}
-/* Opt-in compact navigation tab: shared focus/disabled semantics, no tool-private button skin. */
-.od-button--tab{min-height:0;padding:0;border:0;border-radius:0}
-.od-icon-button{position:relative;display:inline-grid;place-items:center;flex:none;width:var(--od-icon-size);height:var(--od-icon-size);min-width:var(--od-icon-size);min-height:var(--od-icon-size);padding:0;border:1px solid var(--od-line);border-radius:var(--radius-control);background:var(--od-paper);color:var(--od-sub)}
-.od-icon-button--primary{border-color:var(--od-brand);background:var(--od-brand);color:var(--od-on-brand)}
-.od-icon-button--danger{border-color:var(--od-negative);background:var(--od-negative-bg);color:var(--od-negative)}
-/* Sandbox consumers receive this public slice without the document button reset. */
-.od-button:disabled,.od-icon-button:disabled{opacity:.48;cursor:not-allowed}
-/* Opt-in unframed icon action for compact product toolbars.
-   Keeps the trusted 34px hit target, focus, disabled and danger semantics. */
-.od-icon-button--quiet{border-color:transparent;background:transparent}
-.od-icon-button--quiet:hover:not(:disabled){border-color:transparent;background:var(--od-muted)}
-.od-icon-button--quiet[aria-expanded=true]{border-color:transparent}
-.od-icon-button svg{width:18px;height:18px;display:block;pointer-events:none;fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
-.od-icon-button:hover:not(:disabled):not(.od-icon-button--primary):not(.od-icon-button--danger){background:var(--od-muted)}
-.od-icon-button[aria-expanded=true]{background:var(--od-muted);border-color:var(--od-focus);color:var(--od-accent-ink)}
-/* R40: Tool/Page header actions are ghost by default; hit targets remain 34px.
-   Only hover, focus and expanded state receive a subtle surface. */
-.od-page-head .od-icon-button{border-color:transparent;background:transparent;color:var(--od-sub)}
-.od-page-head .od-icon-button--primary{color:var(--od-brand)}
-.od-page-head .od-icon-button:hover:not(:disabled){border-color:transparent;background:var(--od-muted);color:var(--od-accent-ink)}
-.od-page-head .od-icon-button[aria-expanded=true]{border-color:transparent;background:var(--od-muted);color:var(--od-accent-ink)}
-
-:is(input,select,textarea).od-field{min-width:0;border:1px solid var(--od-input-border);border-radius:var(--radius-control);background:var(--od-paper);color:var(--od-ink);font-size:var(--od-body-size)}
-:is(input,select,textarea).od-field:disabled,
-:is(input,textarea).od-field[readonly]{background:var(--od-muted);color:var(--od-sub)}
-:is(input,select,textarea).od-field[aria-invalid="true"]{border-color:var(--od-negative)}
-.od-form-field{display:grid;gap:var(--space-1);min-width:0}
-.od-field-label{margin:0;font-size:var(--od-note-size);font-weight:650;line-height:1.5;color:var(--od-ink)}
-.od-field-help{margin:0;font-size:var(--od-note-size);line-height:1.55;color:var(--od-sub)}
-.od-field-error{margin:0;font-size:var(--od-note-size);line-height:1.55;color:var(--od-negative)}
-.od-body{color:var(--od-ink);font-size:var(--od-body-size);line-height:1.55;font-weight:400}
-.od-note{color:var(--od-sub);font-size:var(--od-note-size);line-height:1.55;font-weight:400}
-.od-title{color:var(--od-ink);font-size:var(--od-body-size);line-height:1.5;font-weight:650}
-.od-technical{font-size:var(--od-meta-size);line-height:1.55;color:var(--od-sub);font-weight:400;overflow-wrap:anywhere}
-.od-result{min-width:0;margin:0;border:1px solid var(--od-line);background:var(--od-muted);border-radius:var(--radius-control);padding:var(--space-2);color:var(--od-ink)}
-.od-alert{margin:0;padding:var(--space-3);border:1px solid var(--od-line);border-radius:var(--radius-control);color:var(--od-ink);background:var(--od-muted)}
-.od-alert--warning{background:var(--od-warning-bg);border-color:var(--od-warning-border);color:var(--od-warning-ink)}
-.od-alert--error{background:var(--od-negative-bg);border-color:var(--od-negative);color:var(--od-negative)}
-.od-disclosure{min-width:0;margin:0;border:1px solid var(--od-line);border-radius:var(--radius-surface);background:var(--od-paper);color:var(--od-ink)}
-/* All trusted disclosures use the same centered header, marker and type scale.
- * Keep the lighter --flat and emphasis-only --info variants on this one component. */
-.od-disclosure>summary{display:flex;align-items:center;flex-wrap:wrap;gap:var(--space-2);min-height:44px;padding:var(--space-2) var(--space-3);list-style:none;cursor:pointer;font-size:var(--od-note-size);line-height:1.5;font-weight:600;color:var(--od-ink);overflow-wrap:anywhere}
-.od-disclosure>summary::-webkit-details-marker{display:none}
-.od-disclosure>summary::before{content:"";flex:none;width:7px;height:7px;border-right:1.5px solid currentColor;border-bottom:1.5px solid currentColor;transform:rotate(-45deg)}
-.od-disclosure[open]>summary::before{transform:rotate(45deg)}
-.od-disclosure>summary>*{min-width:0}
-.od-disclosure>summary>span:only-child{flex:1 1 0}
-.od-disclosure>summary :is(strong,b){font-size:inherit;font-weight:inherit;color:inherit}
-.od-disclosure[open]>summary{border-bottom:1px solid var(--od-line)}
-/* One hover contract for every trusted first-level disclosure. */
-.od-disclosure>summary:hover{background:var(--od-muted)}
-.od-disclosure:not([open])>summary:hover{border-radius:var(--radius-surface)}
-.od-disclosure[open]>summary:hover{border-radius:var(--radius-surface) var(--radius-surface) 0 0}
-/** Allow 100%-width form fields inside a disclosure without their 12px margins
- * pushing their right edge outside a narrow Side Panel. */
-.od-disclosure>:not(summary){min-width:0;max-width:calc(100% - var(--space-3) - var(--space-3));margin:var(--space-2) var(--space-3) 0}
-.od-disclosure>:last-child:not(summary){margin-bottom:var(--space-3)}
-/* Icon-led first-level groups: task history and installed website scope. */
-.od-disclosure--icon>summary{flex-wrap:nowrap}
-.od-disclosure--icon>summary::before{display:none}
-.od-disclosure--icon>summary>svg{flex:none;width:18px;height:18px;fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
-.od-disclosure--icon>summary>.od-disclosure-chevron{width:15px;height:15px;margin-left:auto;color:var(--od-sub)}
-.od-disclosure--icon[open]>summary>.od-disclosure-chevron{transform:rotate(90deg)}
-.od-disclosure--icon>:not(summary){margin-top:var(--space-3)}
-.od-disclosure--info>summary{color:var(--od-brand)}
-.od-disclosure--info[open]>summary{background:var(--od-muted)}
-.od-disclosure--flat{border:0;border-radius:0;background:transparent}
-.od-disclosure--flat>summary{min-height:36px;padding:var(--space-2) 0;font-size:var(--od-note-size);color:var(--od-sub)}
-.od-disclosure--flat[open]>summary{border-bottom:1px solid var(--od-line);background:transparent}
-.od-disclosure--flat>:not(summary){max-width:100%;margin:var(--space-2) 0 0}
-.od-disclosure--flat>:last-child:not(summary){margin-bottom:0}
-/* Technical disclosures stay frameless, including hover treatment. */
-.od-disclosure--flat:is(:not([open]),[open])>summary:hover{background:var(--od-muted);border-radius:var(--radius-control)}
-.od-segmented{display:flex;width:max-content;max-width:100%;gap:2px;padding:3px;background:var(--od-muted);border:1px solid var(--od-input-border);border-radius:var(--radius-surface)}
-.od-segmented>button{min-height:32px;border-radius:var(--radius-control)}
-
-/* Collapsible rows are interactive controls, including nested technical details. */
-@media(pointer:coarse){.od-disclosure>summary{min-height:44px}}
-
-/* Opt-in shadcn/ui aria-nova classes translated to canonical selectors.
- * Palette/mapped semantic values remain in design-tokens.css. No Preflight. */
-.od-theme-shadcn :is(.od-button,.od-icon-button){box-sizing:border-box}
-.od-theme-shadcn .od-button{min-height:32px;padding:0 10px;gap:6px;font-size:14px;font-weight:500;line-height:20px;border:1px solid transparent;box-shadow:none;outline:none;cursor:default;transition:background-color .1s,box-shadow .1s}
-.od-theme-shadcn .od-button:hover:not(:disabled){background:color-mix(in oklch,var(--primary) 80%,transparent)}
-.od-theme-shadcn .od-button--primary{background:var(--primary);color:var(--primary-foreground)}
-.od-theme-shadcn .od-button--primary:hover:not(:disabled){background:color-mix(in oklch,var(--primary) 80%,transparent)}
-.od-theme-shadcn .od-button--secondary{background:var(--secondary);color:var(--secondary-foreground)}
-.od-theme-shadcn .od-button--secondary:hover:not(:disabled){background:color-mix(in oklch,var(--secondary) 95%,var(--foreground))}
-.od-theme-shadcn .od-button--outline{background:var(--background);border-color:var(--border);color:var(--foreground);box-shadow:0 1px 2px #0000000d}
-.od-theme-shadcn .od-button--quiet{background:transparent;color:var(--foreground)}
-.od-theme-shadcn .od-button--danger{background:var(--od-negative-bg);color:var(--destructive)}
-.od-theme-shadcn .od-button--danger:hover:not(:disabled){background:color-mix(in oklch,var(--destructive) 20%,transparent)}
-.od-theme-shadcn .od-button--link{background:transparent;color:var(--primary);text-underline-offset:4px}
-.od-theme-shadcn .od-button--link:hover:not(:disabled){background:transparent;text-decoration:underline}
-.od-theme-shadcn :is(.od-button--quiet,.od-button--outline,.od-icon-button):hover:not(:disabled){background:var(--muted)}
-.od-theme-shadcn :is(.od-button,.od-icon-button):hover:not(:disabled){filter:none}
-.od-theme-shadcn .od-button[data-size="xs"]{min-height:24px;padding:0 8px;font-size:12px}
-.od-theme-shadcn .od-button[data-size="sm"]{min-height:28px;padding:0 10px;font-size:12.8px}
-.od-theme-shadcn .od-button[data-size="lg"]{min-height:36px;padding:0 10px}
-.od-theme-shadcn :is(.od-button,.od-icon-button):disabled{opacity:.5;cursor:default}
-.od-theme-shadcn :is(input,select,textarea).od-field{box-sizing:border-box;width:100%;min-width:0;min-height:32px;padding:4px 10px;font-family:inherit;font-size:14px;line-height:22px;color:var(--foreground);background:transparent;border:1px solid var(--input);border-radius:var(--radius);box-shadow:0 1px 2px #0000000d;outline:none}
-.od-theme-shadcn :is(input,select,textarea).od-field::placeholder{color:var(--muted-foreground)}
-.od-theme-shadcn :is(input,select,textarea).od-field:disabled{background:var(--muted);opacity:.5;cursor:not-allowed}
-.od-theme-shadcn :is(input,textarea).od-field[readonly]{color:var(--foreground);background:var(--muted)}
-.od-theme-shadcn :is(.od-button,.od-icon-button,.od-field):focus-visible{outline:none;border-color:var(--ring);box-shadow:0 0 0 3px color-mix(in oklch,var(--ring) 50%,transparent)}
-.od-theme-shadcn .od-field[aria-invalid="true"]{border-color:var(--destructive);box-shadow:0 0 0 3px color-mix(in oklch,var(--destructive) 20%,transparent)}
-.od-theme-shadcn .od-field-label{font-size:14px;font-weight:500;line-height:20px}
-.od-theme-shadcn .od-form-field{gap:8px}
-.od-theme-shadcn :is(.od-title,.od-page-title){font-size:14px;font-weight:600;line-height:20px}
-.od-theme-shadcn .od-disclosure>summary{font-weight:500}
-.od-theme-shadcn :is(strong,b){font-weight:500}
-.od-theme-shadcn .od-shared-card{background:var(--card);border-color:var(--border);box-shadow:none}
-.od-theme-shadcn .od-shared-switch{width:32px;height:18.4px;background:var(--input)}
-.od-theme-shadcn .od-shared-switch[data-selected]{background:var(--primary)}
-.od-theme-shadcn .od-shared-switch-thumb{width:16px;height:16px;margin-left:1px;background:var(--background)}
-.od-theme-shadcn .od-shared-switch[data-selected] .od-shared-switch-thumb{transform:translateX(14px)}
-.od-theme-shadcn .od-shared-switch[data-focus-visible]{outline:none;box-shadow:0 0 0 3px color-mix(in oklch,var(--ring) 50%,transparent)}
-.od-theme-shadcn .od-shared-switch[data-size="sm"]{width:24px;height:14px}
-.od-theme-shadcn .od-shared-switch[data-size="sm"] .od-shared-switch-thumb{width:12px;height:12px}
-.od-theme-shadcn .od-shared-switch[data-size="sm"][data-selected] .od-shared-switch-thumb{transform:translateX(10px)}
-.od-theme-shadcn:is([data-theme="dark"],[data-preview-theme="dark"]) .od-field{background:color-mix(in oklch,var(--input) 30%,transparent)}
-.od-theme-shadcn:is([data-theme="dark"],[data-preview-theme="dark"]) .od-field[aria-invalid="true"]{box-shadow:0 0 0 3px color-mix(in oklch,var(--destructive) 40%,transparent)}
-.od-theme-shadcn [role="tablist"]{gap:4px}
-.od-theme-shadcn [role="tab"]{font-size:14px;font-weight:500}
-.od-theme-shadcn [role="tab"][aria-selected="true"]{color:var(--foreground)}
-.od-theme-shadcn .od-button--tab{border:0;border-bottom:2px solid transparent;border-radius:0;background:transparent;box-shadow:none}
-.od-theme-shadcn .od-button--tab[aria-selected="true"]{border-bottom-color:var(--foreground)}
-@media(prefers-reduced-motion:reduce){.od-theme-shadcn .od-button{transition:none}}
-
-/* Keep the trusted tool host aligned with tools that follow the OS theme. */
-@media(prefers-color-scheme:dark){
-  :root{color-scheme:dark}
-}
-
-/* Shared compact input contract; action buttons remain real consumer actions. */
-.od-input-group{display:flex;align-items:stretch;min-width:0;border:1px solid var(--od-input-border);border-radius:var(--radius-control);background:var(--od-paper);color:var(--od-ink);overflow:hidden}
-.od-input-group:focus-within{outline:2px solid var(--od-focus);outline-offset:2px}
-.od-input-group .od-field{flex:1 1 auto;width:100%;min-width:0;border:0!important;border-radius:0!important;outline:0!important;background:transparent}
-.od-input-prefix,.od-input-suffix{display:flex;align-items:center;flex:none;padding:0 var(--space-2);font-size:var(--od-note-size);color:var(--od-sub);white-space:nowrap}
-.od-input-action{min-width:36px;min-height:36px;border:0;border-left:1px solid var(--od-line);background:transparent;color:var(--od-accent-ink);cursor:pointer;font:inherit}
-.od-input-action:hover:not(:disabled){background:var(--od-muted)}
-.od-input-action:disabled{opacity:.4;cursor:not-allowed}
-.od-input-action:focus-visible{outline:2px solid var(--od-focus);outline-offset:-3px}
-.od-input-group:has(.od-field:disabled){background:var(--od-muted)}
-
-</style><style id="od-video-auto-skip-layout">
-
-/* This offline preview already embeds OpenDesk's Neutral tokens and native controls. */
-html,body{height:auto;min-height:100%;overflow:auto}
-body{display:block;min-height:100vh;background:var(--od-muted)}
-#od-watch-preview{max-width:468px;margin:auto;padding:20px 10px 32px;--od-side-width:360px}
-#od-preview-meta{width:min(100%,var(--od-side-width));margin:0 auto 10px;color:var(--od-sub);font-size:var(--od-note-size);text-align:center}
-#od-sidebar{
-  --vas-inset:var(--space-4);
-  --vas-empty-edge:color-mix(in oklch,var(--od-ink) 43%,var(--od-paper));
-  --vas-focus:color-mix(in oklch,var(--od-focus) 82%,var(--od-ink));
-  --vas-focus-halo:color-mix(in oklch,var(--od-focus) 65%,transparent);
-  width:min(100%,var(--od-side-width));margin:auto;background:var(--od-paper);overflow:hidden
-}
-#od-sidebar .vas-identity{
-  display:flex;justify-content:space-between;flex-wrap:wrap;align-items:baseline;gap:var(--space-1) var(--space-2);
-  padding:var(--space-3) var(--vas-inset);font-size:16px;font-weight:650;line-height:1.5;
-  background:color-mix(in oklch,var(--od-muted) 65%,var(--od-paper));border-bottom:1px solid var(--od-line)
-}
-#od-sidebar .vas-identity .od-note{font-variant-numeric:tabular-nums}
-#od-sidebar .vas-rules{display:grid;gap:var(--space-3);padding:var(--space-2) var(--vas-inset) var(--space-3)}
-#od-sidebar .vas-rule{min-width:0}
-#od-sidebar .vas-rule+.vas-rule{border-top:1px solid var(--od-line);padding-top:var(--space-2)}
-#od-sidebar .vas-rule-head{display:flex;gap:var(--space-2);align-items:center;min-height:32px}
-#od-sidebar :is(.vas-rule-head,.vas-auto) label{margin:0}
-#od-sidebar .vas-rule-head .vas-hint{margin-inline-start:auto;white-space:nowrap}
-/* Keep the browser's checkbox indicator, label, and keyboard behavior. */
-#od-sidebar .vas-check{
-  width:18px;height:18px;flex:none;margin:0;accent-color:var(--od-brand);cursor:pointer
-}
-#od-sidebar .vas-check:focus-visible{outline:2px solid var(--vas-focus);outline-offset:2px;border-radius:3px}
-#od-sidebar .vas-check:disabled{cursor:not-allowed}
-#od-sidebar .od-dual-track{position:relative;height:34px;margin:var(--space-1) 10px 0}
-#od-sidebar :is(.od-dual-line,.od-dual-fill){position:absolute;top:15px;height:4px;border-radius:var(--radius-pill)}
-#od-sidebar .od-dual-line{left:0;right:0;background:var(--od-line)}
-#od-sidebar .od-dual-fill{background:color-mix(in oklch,var(--od-accent-ink) 80%,var(--od-paper));pointer-events:none}
-/* A transparent border preserves the native range's thumb travel and hit geometry. */
-#od-sidebar .od-dual-range{
-  --vas-thumb-ink:var(--od-accent-ink);--vas-thumb-fill:var(--vas-thumb-ink);--vas-thumb-radius:50%;--vas-thumb-ring:0 0 0 1.5px var(--od-paper);
-  position:absolute;left:-10px;top:0;width:calc(100% + 20px);height:34px;margin:0;padding:0;
-  appearance:none;border-color:transparent;background:transparent;pointer-events:none
-}
-#od-sidebar .od-dual-range.od-active-point{z-index:2}
-#od-sidebar .od-dual-range[data-endpoint=end]{--vas-thumb-radius:4px}
-#od-sidebar .od-dual-range.od-empty{--vas-thumb-ink:var(--vas-empty-edge);--vas-thumb-fill:var(--od-paper)}
-#od-sidebar .od-dual-range:active{--vas-thumb-ink:var(--od-brand)}
-#od-sidebar .od-dual-range:focus-visible{
-  outline:none;--vas-thumb-ring:0 0 0 2px var(--od-paper),0 0 0 4px var(--vas-focus)
-}
-#od-sidebar .od-dual-range:disabled{--vas-thumb-ink:var(--od-line);--vas-thumb-fill:var(--od-muted)}
-#od-sidebar .od-dual-range::-webkit-slider-runnable-track{height:4px;border:0;background:transparent}
-#od-sidebar .od-dual-range::-webkit-slider-thumb{
-  appearance:none;width:19px;height:19px;margin-top:-7px;border:2px solid var(--vas-thumb-ink);border-radius:var(--vas-thumb-radius);
-  background:var(--vas-thumb-fill);box-shadow:var(--vas-thumb-ring);pointer-events:auto;cursor:ew-resize
-}
-#od-sidebar .od-dual-range::-moz-range-track{height:4px;border:0;background:transparent}
-#od-sidebar .od-dual-range::-moz-range-thumb{
-  height:16px;width:16px;border:2px solid var(--vas-thumb-ink);border-radius:var(--vas-thumb-radius);
-  background:var(--vas-thumb-fill);box-shadow:var(--vas-thumb-ring);pointer-events:auto;cursor:ew-resize
-}
-#od-sidebar .vas-endpoints{display:flex;align-items:flex-start;justify-content:space-between;gap:var(--space-3)}
-#od-sidebar .vas-endpoint{display:grid;gap:var(--space-1);min-width:0;margin:var(--space-1) 0 0}
-#od-sidebar .vas-endpoint:last-child{justify-items:end;text-align:right}
-#od-sidebar .vas-endpoint .od-field-label{font-size:var(--od-note-size);color:var(--od-sub)}
-#od-sidebar .vas-endpoint:focus-within .od-field-label{color:var(--od-ink)}
-#od-sidebar .vas-time-input{
-  width:82px;min-height:36px;padding:6px var(--space-2);text-align:center;font-size:var(--od-body-size);
-  font-variant-numeric:tabular-nums;border-color:var(--od-input-border);background:var(--od-paper)
-}
-#od-sidebar .vas-time-input:disabled{background:var(--od-muted)}
-#od-sidebar .vas-time-input[aria-invalid=true]{border-color:var(--od-negative)}
-#od-sidebar :is(.vas-time-input,.od-button,.od-transition-actions button):focus-visible{
-  outline:2px solid transparent;border-color:var(--vas-focus);box-shadow:0 0 0 3px var(--vas-focus-halo)
-}
-#od-sidebar .vas-time-input[aria-invalid=true]:focus-visible{border-color:var(--od-negative)}
-#od-sidebar .vas-error{
-  margin-top:var(--space-2);padding:var(--space-1) var(--space-2);border-inline-start:2px solid var(--od-negative);
-  border-radius:var(--space-1);background:var(--od-negative-bg);overflow-wrap:anywhere
-}
-#od-sidebar .vas-auto{
-  display:flex;align-items:center;justify-content:space-between;gap:var(--space-2);
-  padding:var(--space-2) var(--vas-inset) var(--space-3);border-top:1px solid var(--od-line)
-}
-#od-sidebar .vas-footer{
-  display:flex;align-items:center;gap:var(--space-2);padding:var(--space-3) var(--vas-inset) var(--space-4);
-  border-top:1px solid var(--od-line)
-}
-#od-sidebar #od-save{flex:1;min-width:80px}
-/* While the existing scope decision is open, give it visual priority. */
-#od-sidebar:has(.od-transition) #od-save{background:var(--od-muted);color:var(--od-ink);border-color:var(--od-line)}
-#od-sidebar #od-save:disabled{opacity:1;background:var(--od-muted);color:var(--od-sub);border-color:var(--od-line);cursor:default}
-#od-sidebar #od-scope-switch{background:var(--od-paper);border-color:var(--od-input-border);box-shadow:0 1px 2px #0000000d}
-#od-sidebar #od-scope-switch:hover{background:var(--od-muted)}
-#od-sidebar #od-scope-switch:focus-visible{border-color:var(--vas-focus);box-shadow:0 0 0 3px var(--vas-focus-halo)}
-#od-sidebar .vas-status{
-  display:flex;align-items:center;justify-content:space-between;gap:var(--space-2);
-  margin:0 var(--vas-inset) var(--space-3);padding:var(--space-2) var(--space-3);border-radius:var(--radius-control);
-  border:1px solid var(--od-line);background:var(--od-muted);color:var(--od-ink);font-size:var(--od-note-size);overflow-wrap:anywhere
-}
-#od-sidebar .vas-status-warning{color:var(--od-warning-ink);background:var(--od-warning-bg);border-color:var(--od-warning-border)}
-#od-sidebar .vas-status-error{color:var(--od-negative);background:var(--od-negative-bg);border-color:var(--od-negative)}
-#od-sidebar #od-status-actions{display:flex;gap:var(--space-1)}
-#od-sidebar #od-status-actions:empty{display:none}
-#od-sidebar .od-transition{border-top:1px solid var(--od-line);padding:var(--space-3) var(--vas-inset);background:var(--od-muted);font-size:var(--od-note-size)}
-#od-sidebar .od-transition-actions{display:flex;gap:var(--space-2);margin-top:var(--space-2)}
-#od-sidebar .od-transition-actions button{min-height:32px;padding:0 10px;border:1px solid var(--od-input-border);background:var(--od-paper);color:var(--od-ink);font-weight:500}
-#od-sidebar #od-stay{border-color:transparent;background:var(--od-brand);color:var(--od-on-brand)}
-#od-sidebar #od-stay:focus-visible{border-color:var(--vas-focus)}
-#od-sidebar #od-stay:hover{background:color-mix(in oklch,var(--od-brand) 80%,var(--od-paper))}
-#od-sidebar #od-discard{color:var(--od-negative);border-color:transparent;background:var(--od-negative-bg)}
-#od-sidebar #od-discard:hover{background:color-mix(in oklch,var(--od-negative) 16%,var(--od-paper))}
-@media(max-width:390px){
-  #od-watch-preview{padding:12px 8px 24px}
-  #od-sidebar{--vas-inset:var(--space-3)}
-  #od-sidebar .vas-footer{padding-bottom:var(--space-3)}
-}
-@media(forced-colors:active){
-  #od-sidebar .vas-check{accent-color:auto}
-  #od-sidebar .od-dual-line{background:GrayText;forced-color-adjust:none}
-  #od-sidebar .od-dual-fill{background:Highlight;forced-color-adjust:none}
-  #od-sidebar .od-dual-range{--vas-thumb-ink:ButtonText;--vas-thumb-fill:ButtonText;border-color:transparent}
-  #od-sidebar .od-dual-range.od-empty{--vas-thumb-fill:Canvas}
-  #od-sidebar .od-dual-range:disabled{--vas-thumb-ink:GrayText}
-  #od-sidebar .od-dual-range{--vas-thumb-ring:0 0 0 1.5px Canvas}
-  #od-sidebar .od-dual-range:focus-visible{--vas-thumb-ring:0 0 0 2px Canvas,0 0 0 4px Highlight}
-  #od-sidebar .od-dual-range::-webkit-slider-thumb{forced-color-adjust:none}
-  #od-sidebar .od-dual-range::-moz-range-thumb{forced-color-adjust:none}
-}
-  </style>
+<title>连播助手 · R6 精细时间轴与相对片尾 · 离线侧栏预览</title>
+<meta name="od-design-variant" content="B-R6">
+<meta name="od-preview-binding" content="outro.end=duration; outro.tail=relative seconds; absolute end only when interval mode">
+<meta name="od-preview-capability" content="offline-sidebar-only-duration-slider-no-video-no-scenario">
+<style>body{margin:0;padding:20px 12px;background:#f2f5fa;color-scheme:light}#od-watch-preview{max-width:800px;margin:0 auto}@media(max-width:400px){body{padding:10px 4px}}</style>
 </head>
 <body>
 <div id="od-watch-preview" class="viz-dotted-background">
-  <div id="od-preview-meta" class="od-preview-meta">聊天交互候选 · 非正式模板 · 模拟数据</div>
-  <aside id="od-sidebar" class="od-surface od-theme-shadcn" aria-label="连播助手侧栏"></aside>
+  <aside id="od-sidebar" class="od-sidebar" aria-label="连播助手侧栏"></aside>
+  <p class="od-preview-disclaimer">离线侧栏预览 · 未连接实际视频</p>
 </div>
+<style>
 
+#od-watch-preview{--od-bg:light-dark(#ffffff,#20242b);--od-text:light-dark(#242b35,#edf1f7);--od-muted:light-dark(#697380,#b6c0cc);--od-line:light-dark(#e5e8ed,#3a424e);--od-soft:light-dark(#f4f6f8,#2a3039);--od-accent:light-dark(#354a69,#b2c8eb);--od-on-accent:light-dark(#ffffff,#1c2a3d);--od-error:light-dark(#a32735,#ffacb6);--od-warning:light-dark(#78571b,#ebce91);font:14px/1.5 -apple-system,BlinkMacSystemFont,"Segoe UI","PingFang SC","Microsoft YaHei",sans-serif;color:var(--od-text);width:100%;padding:12px 0;box-sizing:border-box}
+#od-watch-preview *{box-sizing:border-box}#od-watch-preview [hidden]{display:none!important}
+#od-watch-preview button,#od-watch-preview input,#od-watch-preview select{font:inherit;color:var(--od-text)}
+#od-watch-preview button{background:var(--od-bg);border:1px solid var(--od-line);border-radius:6px;padding:6px 10px;min-height:32px;line-height:1.4}
+#od-watch-preview button:hover:not(:disabled){background:var(--od-soft)}#od-watch-preview button:disabled{opacity:.45;cursor:default}
+#od-watch-preview input:not([type=range]):not([type=checkbox]),#od-watch-preview select{min-width:0;border:1px solid var(--od-line);border-radius:6px;background:var(--od-bg);padding:6px 8px;min-height:34px}
+#od-watch-preview :focus-visible{outline:2px solid var(--od-accent);outline-offset:3px}
+#od-watch-preview input[aria-invalid=true]{border-color:var(--od-error)!important}
+#od-watch-preview .od-preview-meta{max-width:var(--od-side-width,360px);margin:0 auto 12px;font-size:12px;color:var(--od-muted);padding-right:44px}
+#od-watch-preview .od-sidebar{width:min(100%,var(--od-side-width,360px));margin:auto;background:var(--od-bg);border:1px solid var(--od-line);border-radius:12px;overflow:hidden}
+#od-watch-preview .od-header{padding:16px 16px 12px}
+#od-watch-preview .od-identity-row{display:flex;align-items:center;justify-content:space-between;gap:12px}#od-watch-preview .od-identity-row>.od-link{flex:none}
+#od-watch-preview .od-link{border:0;background:transparent;padding:2px 0;min-height:28px;font-size:12px;color:var(--od-muted)}
+#od-watch-preview .od-link:hover:not(:disabled){background:transparent;color:var(--od-text);text-decoration:underline}
+#od-watch-preview .od-work{color:var(--od-text);font-size:12px;line-height:1.6}
+#od-watch-preview .od-rows{display:flex;flex-direction:column;gap:16px;padding:0 16px}
+#od-watch-preview .od-time-section{padding:0;border:0}
+#od-watch-preview .od-row-title{display:flex;align-items:center;gap:8px;min-height:28px}
+#od-watch-preview .od-row-title>label:first-child{font-weight:500;flex:none}
+#od-watch-preview .od-window-label{flex:1;min-width:0;font-size:11px;line-height:1.3;color:var(--od-muted)}
+#od-watch-preview .od-exception{font-size:11px;color:var(--od-muted);white-space:nowrap}
+#od-watch-preview .od-switch{width:36px;height:24px;position:relative;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+#od-watch-preview .od-switch input{appearance:none;-webkit-appearance:none;width:32px;height:18px;border-radius:10px;margin:0;background:var(--od-line);border:0}
+#od-watch-preview .od-switch input:before{content:"";position:absolute;width:12px;height:12px;top:6px;left:5px;border-radius:50%;background:var(--od-bg)}
+#od-watch-preview .od-switch input:checked{background:var(--od-accent)}#od-watch-preview .od-switch input:checked:before{transform:translateX(14px);background:var(--od-on-accent)}
+#od-watch-preview .od-dual-track{position:relative;height:26px;margin:8px 9px 0}
+#od-watch-preview .od-dual-line,#od-watch-preview .od-dual-fill{position:absolute;top:11px;height:4px;border-radius:3px;pointer-events:none}
+#od-watch-preview .od-dual-line{left:0;right:0;background:var(--od-line)}#od-watch-preview .od-dual-fill{background:var(--od-accent)}
+#od-watch-preview .od-dual-range{position:absolute;left:-9px;top:0;width:calc(100% + 18px);height:26px;margin:0;appearance:none;-webkit-appearance:none;background:transparent;pointer-events:none;z-index:1}
+#od-watch-preview .od-dual-range.od-active-point{z-index:2}
+#od-watch-preview .od-dual-range.od-active-point:not(.od-empty)::-webkit-slider-thumb{background:var(--od-accent)}
+#od-watch-preview .od-dual-range.od-active-point:not(.od-empty)::-moz-range-thumb{background:var(--od-accent)}
+#od-watch-preview .od-dual-range::-webkit-slider-runnable-track{height:4px;background:transparent;border:0}
+#od-watch-preview .od-dual-range::-webkit-slider-thumb{appearance:none;-webkit-appearance:none;height:18px;width:18px;border:2px solid var(--od-accent);border-radius:50%;background:var(--od-bg);margin-top:-7px;pointer-events:auto;cursor:ew-resize}
+#od-watch-preview .od-dual-range[data-endpoint=end]::-webkit-slider-thumb{border-radius:5px}
+#od-watch-preview .od-dual-range::-moz-range-track{height:4px;background:transparent;border:0}
+#od-watch-preview .od-dual-range::-moz-range-thumb{height:14px;width:14px;border:2px solid var(--od-accent);border-radius:50%;background:var(--od-bg);pointer-events:auto;cursor:ew-resize}
+#od-watch-preview .od-dual-range[data-endpoint=end]::-moz-range-thumb{border-radius:3px}
+#od-watch-preview .od-dual-range.od-empty::-webkit-slider-thumb{border-color:var(--od-muted);box-shadow:none}
+#od-watch-preview .od-dual-range.od-empty::-moz-range-thumb{border-color:var(--od-muted);box-shadow:none}
+#od-watch-preview .od-dual-range:disabled{opacity:.5}
+#od-watch-preview .od-dual-range:disabled::-webkit-slider-thumb{pointer-events:none;cursor:default}
+#od-watch-preview .od-dual-range:disabled::-moz-range-thumb{pointer-events:none;cursor:default}
+#od-watch-preview .od-endpoint-readouts{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:16px;margin-top:4px}
+#od-watch-preview .od-endpoint-readouts label{display:flex;align-items:center;gap:8px;justify-self:start;min-width:0;font-size:12px;color:var(--od-muted);line-height:18px}
+#od-watch-preview .od-endpoint-readouts label:last-child{justify-self:end}
+#od-watch-preview .od-endpoint-readouts input[type=text]{display:block;width:76px;max-width:100%;height:32px;min-height:32px;padding:3px 4px;border:0;border-bottom:1px solid var(--od-line);border-radius:0;background:transparent;font-size:16px;font-variant-numeric:tabular-nums;cursor:text}
+#od-watch-preview .od-endpoint-readouts input[type=text]:hover:not(:disabled){border-bottom-color:var(--od-muted);background:var(--od-soft)}
+#od-watch-preview .od-endpoint-readouts input[type=text]:focus{border-bottom-color:var(--od-accent);background:var(--od-soft)}
+#od-watch-preview .od-endpoint-readouts input::placeholder{font-size:12px;color:var(--od-muted)}
+#od-watch-preview .od-endpoint-readouts .od-selected>span{color:var(--od-accent)}
+#od-watch-preview input:disabled{color:var(--od-muted);background:var(--od-soft)}
+#od-watch-preview .od-error{color:var(--od-error);font-size:12px;margin-top:8px}
+#od-watch-preview .od-auto{display:flex;align-items:center;justify-content:space-between;min-height:32px;gap:8px}
+#od-watch-preview .od-auto label:first-child{flex:1}
+#od-watch-preview .od-save-zone{border-top:1px solid var(--od-line);margin-top:12px;padding:12px 16px 16px}
+#od-watch-preview .od-save-actions{display:flex;align-items:center;gap:8px}
+#od-watch-preview .od-primary{background:var(--od-accent)!important;color:var(--od-on-accent)!important;border-color:var(--od-accent)!important;flex:1;min-height:36px;font-size:13px}
+#od-watch-preview .od-save-actions>.od-link{min-height:36px;flex:none;font-size:12px}
+#od-watch-preview .od-status{padding:0 16px 12px;color:var(--od-muted);font-size:12px;line-height:1.6}
+#od-watch-preview .od-status.od-warning{color:var(--od-warning)}#od-watch-preview .od-status.od-error-state{color:var(--od-error)}
+#od-watch-preview .od-status-actions{display:flex;gap:12px;flex-wrap:wrap;margin-top:4px}#od-watch-preview .od-status-actions button{font-size:12px;border:0;padding:2px 0;min-height:28px;color:var(--od-accent);background:transparent}
+#od-watch-preview .od-transition{border-top:1px solid var(--od-line);padding:12px 16px;background:var(--od-soft);font-size:12px}
+#od-watch-preview .od-transition-actions{display:flex;gap:8px;margin-top:8px}#od-watch-preview .od-transition-actions button{font-size:12px}
+#od-watch-preview .od-closed{padding:16px;display:flex;align-items:center;justify-content:space-between;gap:12px;font-size:13px}
+#od-watch-preview .od-simulator{width:min(100%,var(--od-side-width,360px));margin:16px auto 0;padding:0 4px;color:var(--od-muted)}
+#od-watch-preview .od-player-toolbar{display:flex;align-items:center;gap:8px}#od-watch-preview .od-player-toolbar>button{font-size:12px;padding:4px 10px}#od-watch-preview .od-player-toolbar select{margin-left:auto;font-size:12px;min-height:32px;padding:4px 6px;max-width:96px}
+#od-watch-preview .od-clock{font-size:13px;font-variant-numeric:tabular-nums;color:var(--od-text);white-space:nowrap}
+#od-watch-preview .od-play-progress{display:block;width:100%;height:18px;margin:8px 0 0;accent-color:var(--od-accent)}
+#od-watch-preview .od-player-caption{display:flex;justify-content:space-between;font-size:11px;margin-top:2px}
+#od-watch-preview .od-demo{margin-top:12px;font-size:12px}
+#od-watch-preview .od-demo-content{padding:12px 0 0}#od-watch-preview .od-demo-content>label{display:block}#od-watch-preview .od-demo-content select{display:block;width:100%;margin-top:4px;font-size:12px}
+#od-watch-preview .od-demo-row{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:8px}#od-watch-preview .od-demo-row input{width:100%}#od-watch-preview .od-demo-row button{font-size:12px}
+#od-watch-preview .od-demo-buttons{display:flex;gap:8px;flex-wrap:wrap;margin-top:8px}#od-watch-preview .od-demo-buttons button{font-size:12px}
+#od-watch-preview .od-saved{margin-top:12px}#od-watch-preview .od-saved-row{display:flex;justify-content:space-between;gap:12px;margin-top:6px}#od-watch-preview .od-saved-row span:last-child{color:var(--od-text);text-align:right;font-variant-numeric:tabular-nums}
+#od-watch-preview .od-adapter-note{font-size:11px;margin-top:12px;overflow-wrap:anywhere;color:var(--od-muted)}
+@media(pointer:coarse){#od-watch-preview button{min-height:44px!important}#od-watch-preview input:not([type=range]):not([type=checkbox]),#od-watch-preview select{font-size:16px!important;min-height:44px}#od-watch-preview .od-switch{height:44px;width:44px}#od-watch-preview .od-switch input:before{top:16px;left:9px}#od-watch-preview .od-play-progress,#od-watch-preview .od-dual-track,#od-watch-preview .od-dual-range{height:44px}#od-watch-preview .od-dual-line,#od-watch-preview .od-dual-fill{top:20px}}
+
+/* Shared offline design primitives — no external packages, no native app shell.
+   Scoped to the original preview, attached after original CSS. */
+html,body{color-scheme:light;background:#f4f6fa}
+#od-watch-preview {
+  color-scheme:light;
+  --ui-ink:#1c2d49;--ui-sub:#6b7b93;--ui-accent:#365ed9;--ui-paper:#fff;
+  --ui-line:#dfe5ef;--ui-focus:#4669dc;--ui-bad:#b8324a;
+  --od-bg:#fff;--od-text:var(--ui-ink);--od-muted:var(--ui-sub);
+  --od-line:var(--ui-line);--od-soft:#f5f8fc;--od-accent:var(--ui-accent);
+  --od-on-accent:#fff;--od-error:var(--ui-bad);
+  font:13px/1.45 -apple-system,BlinkMacSystemFont,"Segoe UI","PingFang SC","Microsoft YaHei",sans-serif;
+  -webkit-font-smoothing:antialiased;
+}
+#od-watch-preview .od-preview-meta{font-size:11px;margin-bottom:9px;padding:0;letter-spacing:0}
+#od-watch-preview .od-sidebar{background:var(--ui-paper);border-color:var(--ui-line);box-shadow:0 12px 32px #2034580d;isolation:isolate}
+#od-watch-preview .od-identity-row{min-height:24px;gap:8px;align-items:center}
+#od-watch-preview .od-work{font-weight:550;letter-spacing:-.01em;line-height:1.45;font-size:12px}
+#od-watch-preview .od-rows{gap:0}
+#od-watch-preview .od-row-title{min-height:27px;gap:5px}
+#od-watch-preview .od-row-title>label:first-child{font-size:14px;line-height:1.2;font-weight:650;color:var(--ui-ink);white-space:nowrap}
+#od-watch-preview .od-window-label{font-size:10px;color:var(--ui-sub);flex:1;line-height:1.1}
+#od-watch-preview .od-exception{font-size:10px}
+#od-watch-preview .od-toggle-couple{display:inline-flex;align-items:center;gap:5px;min-height:30px;cursor:pointer;user-select:none;flex:none}
+#od-watch-preview .od-toggle-copy{font-size:12px;color:var(--ui-sub);white-space:nowrap;font-weight:520;line-height:1}
+#od-watch-preview .od-toggle-couple:hover .od-toggle-copy{color:var(--ui-ink)}
+#od-watch-preview .od-toggle-couple:focus-within .od-toggle-copy{color:var(--ui-accent)}
+#od-watch-preview .od-switch{width:34px;height:30px;flex:0 0 34px}
+#od-watch-preview .od-switch input{width:32px;height:18px;background:#c6cfde;border:1px solid #bdc7d7;border-radius:12px;cursor:pointer;position:relative}
+#od-watch-preview .od-switch input:before{top:2px;left:2px;width:12px;height:12px;background:#fff;border-radius:50%;box-shadow:0 1px 2px #13243b35;transition:transform .12s}
+#od-watch-preview .od-switch input:checked{background:var(--ui-accent);border-color:var(--ui-accent)}
+#od-watch-preview .od-switch input:checked:before{transform:translateX(14px);background:#fff}
+#od-watch-preview .od-switch input:focus-visible{outline:2px solid #6592ff;outline-offset:3px}
+/* Exactly one *visual* time source: values in editable input boxes.
+   Track shows geometry only, with no text, tick values, S/E letters, tooltips, or duplicates. */
+#od-watch-preview .od-dual-track{height:36px;position:relative;margin:2px 9px 0;overflow:visible}
+#od-watch-preview .od-dual-line,#od-watch-preview .od-dual-fill{
+  position:absolute;top:18px;height:4px;border-radius:999px;pointer-events:none;
+}
+#od-watch-preview .od-dual-line{left:0;right:0;background:#dce4f0}
+#od-watch-preview .od-dual-fill{background:#9db8fa}
+#od-watch-preview .od-dual-track.od-inverted .od-dual-line{background:#f1cbd3}
+#od-watch-preview .od-dual-range{top:2px;height:36px;left:-9px;width:calc(100% + 18px);pointer-events:none;z-index:2;}
+#od-watch-preview .od-dual-range.od-active-point{z-index:3}
+#od-watch-preview .od-dual-range::-webkit-slider-runnable-track{height:4px;background:transparent;border:0}
+#od-watch-preview .od-dual-range::-webkit-slider-thumb{
+  appearance:none;-webkit-appearance:none;width:18px;height:18px;box-sizing:border-box;
+  border:2px solid var(--ui-accent);border-radius:50%;background:var(--ui-accent);
+  margin-top:-7px;pointer-events:auto;cursor:ew-resize;
+  box-shadow:0 0 0 2px var(--ui-paper),0 1px 3px #102b5660;
+}
+#od-watch-preview .od-dual-range::-moz-range-track{height:4px;background:transparent;border:0}
+#od-watch-preview .od-dual-range::-moz-range-thumb{
+  width:14px;height:14px;box-sizing:content-box;border:2px solid var(--ui-accent);
+  border-radius:50%;background:var(--ui-accent);pointer-events:auto;cursor:ew-resize;
+  box-shadow:0 0 0 2px var(--ui-paper),0 1px 3px #102b5660;
+}
+/* Equal round thumb silhouettes; solid = set, hollow = unset. Start/end subtly color-linked to fields. */
+#od-watch-preview .od-dual-range[data-endpoint=start]::-webkit-slider-thumb{border-color:#4066ce;background:#4066ce}
+#od-watch-preview .od-dual-range[data-endpoint=start]::-moz-range-thumb{border-color:#4066ce;background:#4066ce}
+#od-watch-preview .od-dual-range[data-endpoint=end]::-webkit-slider-thumb{border-color:#147fa6;background:#147fa6;border-radius:50%}
+#od-watch-preview .od-dual-range[data-endpoint=end]::-moz-range-thumb{border-color:#147fa6;background:#147fa6;border-radius:50%}
+#od-watch-preview .od-dual-range.od-empty::-webkit-slider-thumb{background:var(--ui-paper);border-color:#8391a7}
+#od-watch-preview .od-dual-range.od-empty::-moz-range-thumb{background:var(--ui-paper);border-color:#8391a7}
+#od-watch-preview .od-dual-range.od-active-point:not(.od-empty)::-webkit-slider-thumb{
+ box-shadow:0 0 0 2px var(--ui-paper),0 0 0 5px #b9cbff,0 1px 3px #1f387150}
+#od-watch-preview .od-dual-range.od-active-point:not(.od-empty)::-moz-range-thumb{
+ box-shadow:0 0 0 2px var(--ui-paper),0 0 0 5px #b9cbff,0 1px 3px #1f387150}
+#od-watch-preview .od-dual-range:focus-visible{outline:0}
+#od-watch-preview .od-dual-range:focus-visible::-webkit-slider-thumb{
+ outline:2px solid var(--ui-focus);outline-offset:5px}
+#od-watch-preview .od-dual-range:focus-visible::-moz-range-thumb{
+ outline:2px solid var(--ui-focus);outline-offset:5px}
+#od-watch-preview .od-dual-range:disabled{opacity:.48}
+/* Near or crossed thumbs: stagger vertical hit targets rather than cover either thumb. */
+#od-watch-preview .od-dual-track.od-near{height:54px}
+#od-watch-preview .od-dual-track.od-near .od-dual-line,#od-watch-preview .od-dual-track.od-near .od-dual-fill{top:24px}
+#od-watch-preview .od-dual-track.od-near .od-dual-range{top:8px}
+#od-watch-preview .od-dual-track.od-near .od-dual-range[data-endpoint=start]::-webkit-slider-thumb{transform:translateY(-12px)}
+#od-watch-preview .od-dual-track.od-near .od-dual-range[data-endpoint=end]::-webkit-slider-thumb{transform:translateY(12px)}
+#od-watch-preview .od-dual-track.od-near .od-dual-range[data-endpoint=start]::-moz-range-thumb{transform:translateY(-12px)}
+#od-watch-preview .od-dual-track.od-near .od-dual-range[data-endpoint=end]::-moz-range-thumb{transform:translateY(12px)}
+#od-watch-preview .od-endpoint-readouts{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:8px;margin-top:3px}
+#od-watch-preview .od-endpoint-readouts label.od-time-field{
+ display:flex;align-items:center;justify-self:stretch;gap:0;overflow:hidden;min-width:0;width:100%;
+ height:36px;border:1px solid var(--ui-line);border-radius:7px;background:#fbfcff;
+ transition:border-color .12s,box-shadow .12s,background .12s;
+}
+#od-watch-preview .od-endpoint-readouts label.od-time-field:last-child{justify-self:stretch}
+#od-watch-preview .od-endpoint-readouts label.od-time-field>span{
+ font-size:11px;white-space:nowrap;font-weight:520;flex:0 0 auto;line-height:17px;
+ padding:0 7px 0 9px;color:var(--ui-sub);border-right:1px solid #e6eaf1;
+}
+#od-watch-preview .od-endpoint-readouts label.od-time-field:first-child{box-shadow:inset 2px 0 0 #9aaff6}
+#od-watch-preview .od-endpoint-readouts label.od-time-field:last-child{box-shadow:inset 2px 0 0 #79b9cf}
+#od-watch-preview .od-endpoint-readouts label.od-time-field>input[type=text]{
+ display:block;flex:1;min-width:0;width:100%;height:34px;min-height:34px;margin:0;
+ font:650 15px/1.1 ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;
+ font-variant-numeric:tabular-nums;letter-spacing:-.035em;
+ color:#1f3354;border:0!important;border-radius:0!important;outline:0!important;
+ box-shadow:none!important;background:transparent!important;padding:0 8px 0 8px;
+ cursor:text;
+}
+#od-watch-preview .od-endpoint-readouts label.od-time-field>input::placeholder{font:400 12px/1.2 -apple-system,BlinkMacSystemFont,"Segoe UI","PingFang SC",sans-serif;color:#61758f;letter-spacing:0}
+#od-watch-preview .od-endpoint-readouts label.od-selected{background:#f4f8ff;border-color:#abc0ef}
+#od-watch-preview .od-endpoint-readouts label.od-time-field:focus-within{
+ background:#fff;border-color:var(--ui-focus);box-shadow:0 0 0 3px #416dd822}
+#od-watch-preview .od-endpoint-readouts label.od-time-field:has(input[aria-invalid=true]){
+ border-color:#df8391;background:#fff4f6;box-shadow:inset 2px 0 0 #d44960}
+#od-watch-preview .od-endpoint-readouts label.od-time-field:has(input[aria-invalid=true]) input{color:#b52b40}
+#od-watch-preview .od-error{margin:5px 1px 1px;font-size:11px;line-height:1.38}
+#od-watch-preview .od-auto{min-height:33px;padding:2px 0;font-size:13px;font-weight:550}
+#od-watch-preview .od-auto>label:first-child{font-weight:600}
+#od-watch-preview .od-save-actions{gap:7px}
+#od-watch-preview .od-primary{border-radius:7px;min-height:35px;font-weight:650;letter-spacing:.005em;box-shadow:0 1px 2px #112f5b0e}
+#od-watch-preview .od-primary:disabled{background:#e2e8f1!important;color:#52657e!important;border-color:#d3ddea!important;box-shadow:none!important;opacity:1}
+#od-watch-preview .od-link{border-radius:6px;color:#64768f;font-size:11px;min-height:27px;padding:3px 5px}
+#od-watch-preview .od-link:focus-visible,#od-watch-preview .od-primary:focus-visible{outline:2px solid var(--ui-focus);outline-offset:2px}
+#od-watch-preview .od-status{font-size:11px;line-height:1.45}
+#od-watch-preview .od-transition{font-size:11px;line-height:1.45}
+#od-watch-preview .od-transition-actions button{min-height:33px}
+#od-watch-preview .od-time-section:has(.od-toggle-couple input:not(:checked)) .od-dual-fill{opacity:.45}
+#od-watch-preview .od-time-section:has(.od-toggle-couple input:not(:checked)) .od-range-needle{opacity:.4}
+@media(pointer:coarse){
+ #od-watch-preview .od-dual-track{height:56px}
+ #od-watch-preview .od-dual-track .od-dual-line,#od-watch-preview .od-dual-track .od-dual-fill{top:26px}
+ #od-watch-preview .od-dual-track .od-dual-range{top:3px;height:48px}
+ #od-watch-preview .od-dual-track.od-near{height:70px}
+ #od-watch-preview .od-dual-track.od-near .od-dual-line,#od-watch-preview .od-dual-track.od-near .od-dual-fill{top:31px}
+ #od-watch-preview .od-dual-track.od-near .od-dual-range{top:8px;height:48px}
+ #od-watch-preview .od-time-field{height:44px!important}
+ #od-watch-preview .od-time-field>input{height:42px!important;min-height:42px!important}
+}
+@media(prefers-reduced-motion:reduce){
+ #od-watch-preview .od-switch input:before,#od-watch-preview .od-time-field{transition:none!important}
+}
+
+
+/* B · Design-token-aligned OpenDesk blue-gray, card hierarchy. */
+html,body{background:#f2f5fa}
+#od-watch-preview{--ui-ink:#1c304f;--ui-sub:#647692;--ui-accent:#365eda;--ui-line:#dfe6f0;--ui-focus:#4167db;}
+#od-watch-preview .od-sidebar{border:1px solid #d9e3f3;border-radius:13px;box-shadow:0 16px 36px #29477513;background:#fcfdff}
+#od-watch-preview .od-header{padding:8px 12px 6px;background:linear-gradient(180deg,#fff 0%,#f8faff 100%)}
+#od-watch-preview .od-identity-row{padding:2px 6px;border-left:3px solid #416be2}
+#od-watch-preview .od-rows{padding:0 10px 0;gap:4px;background:#fcfdff}
+#od-watch-preview .od-time-section{padding:4px 9px 5px;background:#fff;border:1px solid #e3e9f3;border-radius:9px;box-shadow:0 2px 7px #21457809}
+#od-watch-preview .od-row-title{padding-bottom:1px;min-height:26px}
+#od-watch-preview .od-time-section[data-section=intro] .od-row-title>label:first-child::before,
+#od-watch-preview .od-time-section[data-section=outro] .od-row-title>label:first-child::before{
+ content:'';display:inline-block;width:3px;height:13px;border-radius:4px;margin-right:7px;vertical-align:-1px;background:#4268dd}
+#od-watch-preview .od-time-section[data-section=outro] .od-row-title>label:first-child::before{background:#1483a5}
+#od-watch-preview .od-endpoint-readouts{margin-top:1px}
+#od-watch-preview .od-dual-track{height:34px}
+#od-watch-preview .od-endpoint-readouts label.od-time-field{background:#f9fbff;border-radius:7px}
+#od-watch-preview .od-auto{margin-top:0;padding:4px 11px;min-height:34px;border:1px solid #e2e9f4;border-radius:9px;background:#f7faff}
+#od-watch-preview .od-save-zone{margin-top:5px;padding:8px 12px 9px;background:#fff;border-top:1px solid #e5ebf4}
+#od-watch-preview .od-primary{background:#365eda!important;border-color:#365eda!important;box-shadow:0 2px 5px #365eda20}
+#od-watch-preview .od-status{padding:0 12px 12px}
+
+
+/* R2: explicit interaction semantics — no filled selection rectangle or extra needle. */
+#od-watch-preview{--od-side-width:360px;padding:0;max-width:none;}
+#od-watch-preview .od-sidebar{width:min(var(--od-side-width),100%);margin:0 auto;}
+#od-watch-preview .od-preview-disclaimer{width:min(var(--od-side-width),100%);margin:8px auto 0;font:11px/1.45 -apple-system,BlinkMacSystemFont,"Segoe UI","PingFang SC",sans-serif;text-align:center;color:#7b8ca5;}
+#od-watch-preview .od-window-label{font-size:10px;white-space:nowrap;}
+#od-watch-preview .od-unset-badge{flex:none;font-size:10px;line-height:17px;border-radius:5px;padding:0 5px;border:1px solid #e0e7f2;background:#f6f8fb;color:#73839b;}
+#od-watch-preview .od-row-title{gap:5px;}
+#od-watch-preview .od-dual-track{height:35px;margin:2px 11px 0;overflow:visible;}
+#od-watch-preview .od-dual-line{position:absolute;top:18px;left:0;right:0;height:3px;background:#e0e7f1;border-radius:99px;pointer-events:none;}
+#od-watch-preview .od-dual-fill,#od-watch-preview .od-range-needle{display:none!important}
+#od-watch-preview .od-dual-range{height:35px;top:2px;}
+#od-watch-preview .od-dual-range::-webkit-slider-runnable-track{background:transparent!important;box-shadow:none!important;}
+#od-watch-preview .od-dual-range::-webkit-slider-thumb{height:18px;width:18px;box-shadow:0 0 0 3px #fff,0 1px 3px #213d5d38!important;}
+#od-watch-preview .od-dual-range.od-empty::-webkit-slider-thumb{background:#fff!important;border-color:#8b9db9!important;}
+#od-watch-preview .od-dual-range.od-bound-end::-webkit-slider-thumb{background:#fff!important;border-color:#147fa6!important;}
+#od-watch-preview .od-dual-range.od-set.od-active-point::-webkit-slider-thumb{box-shadow:0 0 0 3px #fff,0 0 0 6px #dce7ff!important;}
+#od-watch-preview .od-dual-range::-moz-range-track{background:transparent!important;}
+#od-watch-preview .od-dual-range::-moz-range-thumb{box-shadow:0 0 0 3px #fff,0 1px 3px #213d5d38!important;}
+#od-watch-preview .od-dual-range.od-empty::-moz-range-thumb{background:#fff!important;border-color:#8b9db9!important;}
+#od-watch-preview .od-dual-range.od-bound-end::-moz-range-thumb{background:#fff!important;border-color:#147fa6!important;}
+#od-watch-preview .od-dual-track.od-near{height:54px;}
+#od-watch-preview .od-dual-track.od-near .od-dual-line{top:25px;}
+#od-watch-preview .od-dual-track.od-near .od-dual-range{top:10px;}
+#od-watch-preview .od-dual-track.od-inverted .od-dual-line{background:linear-gradient(90deg,#e0e7f1,#e1a5b0,#e0e7f1);}
+#od-watch-preview .od-time-field.od-suggested{background:#fbfcfe;border-style:dashed;}
+#od-watch-preview .od-time-field.od-suggested input::placeholder{font:550 14px/1.2 ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;color:#8a97ad;}
+#od-watch-preview .od-time-field.od-auto-end input::placeholder{font:600 14px/1.2 ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;color:#7b899e;letter-spacing:0;}
+#od-watch-preview .od-endpoint-readouts label.od-time-field:focus-within{border-color:#4268dd;outline:2px solid #dbe4ff;outline-offset:1px;}
+#od-watch-preview .od-time-section:has(.od-toggle-couple input:not(:checked)) .od-dual-line{background:#e1e5ec;}
+#od-watch-preview .od-time-section:has(.od-toggle-couple input:not(:checked)) .od-dual-range:not(.od-active-point){opacity:.72;}
+#od-watch-preview .od-error{font-weight:520;}
+@media(pointer:coarse){#od-watch-preview .od-dual-track{height:50px}#od-watch-preview .od-dual-line{top:25px}#od-watch-preview .od-dual-range{height:45px;top:3px}}
+
+/* R3 refinements: bound End is neither a fixed timestamp nor an unset suggestion. */
+#od-watch-preview .od-time-field.od-auto-end:not(:has(input[aria-invalid="true"])){border-color:#c1dae8;background:#f6fbff;box-shadow:inset 2px 0 0 #4c9bb7}
+#od-watch-preview .od-time-field.od-auto-end input::placeholder{color:#167698;font-weight:650;font-size:14px;opacity:1}
+#od-watch-preview .od-time-field.od-auto-end:focus-within:not(:has(input[aria-invalid="true"])){border-color:#416bd6;box-shadow:0 0 0 3px #416dd826}
+#od-watch-preview .od-dual-range.od-bound-end::-webkit-slider-thumb{border-color:#167d9e!important;background:#fff!important}
+#od-watch-preview .od-dual-range.od-bound-end::-moz-range-thumb{border-color:#167d9e!important;background:#fff!important}
+#od-watch-preview .od-time-field.od-suggested input::placeholder{opacity:.75}
+#od-watch-preview .od-unset-badge{border-color:#e1e6ef;background:#f5f7fb}
+#od-watch-preview .od-row-title{gap:6px}
+#od-watch-preview .od-identity-row>.od-work{font-variant-numeric:tabular-nums}
+#od-watch-preview .od-sr-only{position:absolute!important;width:1px!important;height:1px!important;padding:0!important;margin:-1px!important;overflow:hidden!important;clip:rect(0 0 0 0)!important;white-space:nowrap!important;border:0!important}
+@media(max-width:360px){#od-watch-preview .od-toggle-copy{font-size:11px}#od-watch-preview .od-row-title{gap:4px}#od-watch-preview .od-time-section{padding-left:8px;padding-right:8px}}
+
+/* R4: fixed endpoints (00:00 / End) are hollow; user-selected endpoints stay solid.
+   Unset suggested endpoints remain neutral hollow, unlike actual bound fixed endpoints. */
+#od-watch-preview .od-dual-range.od-bound-start::-webkit-slider-thumb{
+  background:#fff!important;border-color:#4066ce!important;border-width:2px!important;
+}
+#od-watch-preview .od-dual-range.od-bound-start::-moz-range-thumb{
+  background:#fff!important;border-color:#4066ce!important;border-width:2px!important;
+}
+#od-watch-preview .od-time-field.od-auto-start:not(:has(input[aria-invalid="true"])){
+  border-color:#cbdaf6;background:#f7faff;
+}
+#od-watch-preview .od-time-field.od-auto-start input{color:#355bad;font-variant-numeric:tabular-nums}
+/* The only visible saving-scope affordance replaces hidden navigation in More. */
+#od-watch-preview .od-identity-row{justify-content:flex-start;}
+#od-watch-preview .od-scope-row{
+ display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:8px;min-height:28px;
+}
+#od-watch-preview .od-scope-caption{color:#6a7b94;font-size:11px;white-space:nowrap;font-weight:500}
+#od-watch-preview .od-scope-controls{
+ display:inline-flex;align-items:center;gap:2px;padding:2px;background:#f1f4fa;
+ border:1px solid #e1e7f1;border-radius:8px;
+}
+#od-watch-preview button.od-scope-choice{
+ border:0;background:transparent;min-height:24px;line-height:1.2;padding:5px 11px;
+ border-radius:6px;font-size:11px;white-space:nowrap;color:#687c99;
+}
+#od-watch-preview button.od-scope-choice[aria-pressed="true"]{
+ color:#284d9c;background:#fff;font-weight:650;box-shadow:0 1px 4px #1a37691d;
+}
+#od-watch-preview button.od-scope-choice:focus-visible{outline:2px solid #5176df;outline-offset:2px}
+#od-watch-preview .od-restore-inline{display:flex;justify-content:flex-end;margin-top:3px}
+#od-watch-preview button.od-restore-action{
+ background:transparent;border:0;min-height:24px;padding:2px 0;color:#516eab;font-size:11px;
+}
+#od-watch-preview button.od-restore-action:hover{text-decoration:underline;background:transparent}
+#od-watch-preview .od-auto-restore{display:flex;justify-content:flex-end;padding:0 3px}
+@media(pointer:coarse){
+ #od-watch-preview button.od-scope-choice,#od-watch-preview button.od-restore-action{min-height:36px!important}
+}
+
+/* R5: visual semantics are independent of save/dirty/toggle state.
+   Editable positions are colorful filled thumbs, including ghost suggestions;
+   00:00 and End are fixed-reference hollow thumbs. */
+#od-watch-preview .od-dual-range.od-movable::-webkit-slider-thumb,
+#od-watch-preview .od-dual-range.od-movable.od-empty::-webkit-slider-thumb{
+  background:#4269e0!important;border:2px solid #4269e0!important;
+}
+#od-watch-preview .od-time-section[data-section=outro] .od-dual-range.od-movable::-webkit-slider-thumb,
+#od-watch-preview .od-time-section[data-section=outro] .od-dual-range.od-movable.od-empty::-webkit-slider-thumb{
+  background:#1189ac!important;border-color:#1189ac!important;
+}
+#od-watch-preview .od-dual-range.od-movable::-moz-range-thumb,
+#od-watch-preview .od-dual-range.od-movable.od-empty::-moz-range-thumb{
+  background:#4269e0!important;border:2px solid #4269e0!important;
+}
+#od-watch-preview .od-time-section[data-section=outro] .od-dual-range.od-movable::-moz-range-thumb,
+#od-watch-preview .od-time-section[data-section=outro] .od-dual-range.od-movable.od-empty::-moz-range-thumb{
+  background:#1189ac!important;border-color:#1189ac!important;
+}
+#od-watch-preview .od-dual-range.od-bound-start::-webkit-slider-thumb,
+#od-watch-preview .od-dual-range.od-bound-start::-moz-range-thumb{background:#fff!important;border-color:#4269e0!important;}
+#od-watch-preview .od-dual-range.od-bound-end::-webkit-slider-thumb,
+#od-watch-preview .od-dual-range.od-bound-end::-moz-range-thumb{background:#fff!important;border-color:#1189ac!important;}
+/* Disabling automatic skipping does not disable editing its endpoints. */
+#od-watch-preview .od-time-section:has(.od-toggle-couple input:not(:checked)) .od-dual-range:not(.od-active-point){opacity:1;}
+#od-watch-preview .od-window-preference{
+ display:flex;align-items:center;justify-content:space-between;gap:8px;
+ min-height:32px;padding:1px 11px 1px 12px;
+ font-size:11px;color:#63748e;
+}
+#od-watch-preview .od-window-preference label{flex:1;min-width:0;font-size:11px;font-weight:520;white-space:nowrap;}
+#od-watch-preview .od-window-preference select{
+ width:auto;max-width:170px;min-height:28px!important;height:28px;
+ border:1px solid #dfe6f1;border-radius:7px;padding:4px 24px 4px 9px;
+ background:#fff;color:#274670;font-size:11px;font-weight:570;cursor:pointer;
+}
+#od-watch-preview .od-window-preference select:focus-visible{
+ outline:2px solid #8eaff5;outline-offset:1px;
+}
+@media(max-width:340px){#od-watch-preview .od-window-preference{padding-left:8px;padding-right:8px;}}
+
+/* R6 offline-only duration input; distinct from the two range editors. */
+#od-watch-preview .od-duration-preview{margin:3px 11px 6px;padding:8px 10px 8px;border:1px solid #e3eaf4;border-radius:8px;background:#f8fafd;}
+#od-watch-preview .od-duration-preview-top{display:flex;align-items:baseline;justify-content:space-between;gap:10px;margin-bottom:3px;}
+#od-watch-preview .od-duration-preview-top label{font-size:11px;font-weight:570;color:#60738d;}
+#od-watch-preview .od-duration-preview-top output{font:650 12px/1.4 ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;font-variant-numeric:tabular-nums;color:#29476e;white-space:nowrap;}
+#od-watch-preview #od-duration-range{display:block;width:100%;height:19px;padding:0;margin:0;border:0;background:transparent;accent-color:#718bb4;cursor:ew-resize;}
+#od-watch-preview .od-duration-preview-help{font-size:10px;line-height:1.4;color:#8190a4;margin-top:1px;}
+#od-watch-preview .od-duration-preview:focus-within{border-color:#abc3ed;}
+@media(max-width:340px){#od-watch-preview .od-duration-preview{margin-left:8px;margin-right:8px;padding:7px 8px;}}
+</style>
 <script>
 /* Local interaction simulator only. No browser-extension or website APIs. */
 class ContinuityModel {
   constructor() {
     this._bases = {};
     this._restored = new Set();
-    this._zeroOpportunity = false;
+    this._manualPasses = [];
+    this._blockedPasses = [];
     this.s = {};
     this._loadScenario('empty');
   }
@@ -523,11 +448,12 @@ class ContinuityModel {
     if(this.s.draftContext.identity!==this.identity()||this.s.draftContext.scope!==this.s.scope) {
       this._notice('草稿属于其他内容或保存范围，请返回原内容处理。','error'); return false;
     }
+    this._blockCurrent();
     if(key==='autoNext') this.s.draft[key]=Boolean(patch);
     else this.s.draft[key]={...this.s.draft[key],...patch};
     this._restored.delete(key);
     if(!this.s.touched.includes(key)) this.s.touched.push(key);
-    this.s.dirty=true; this.s.pending=null; this._zeroOpportunity=false;
+    this.s.dirty=true; this.s.pending=null;
     this._notice('有未保存修改；调整不会移动播放位置。');
     return true;
   }
@@ -648,16 +574,18 @@ class ContinuityModel {
       for(const k of this.s.touched) {if(this._restored.has(k))delete o[k];else o[k]=this.copy(this.s.draft[k]);}
       if(Object.keys(o).length)this.s.overrides[this.identity()]=o;else delete this.s.overrides[this.identity()];
     }
-    this.s.ruleRevision++;this.s.pending=null;this.s.transition=null;this._zeroOpportunity=false;this._loadDraft();
+    this._blockCurrent();
+    this.s.ruleRevision++;this.s.pending=null;this.s.transition=null;this._loadDraft();
     this._notice((this.s.scope==='work'?'已保存本作品当前季设置':'已保存本集例外')+'；播放位置不变，不补跳。','ok');
     return true;
   }
-  cancel() { this._loadDraft();this.s.pending=null;this.s.transition=null;this._zeroOpportunity=false;this._notice('已取消修改，原有规则与本次手动查看豁免保留。');return true; }
+  cancel() { if(this.s.dirty)this._blockCurrent();this._loadDraft();this.s.pending=null;this.s.transition=null;this._notice('已取消修改，原有规则与本次手动查看豁免保留。');return true; }
   restore(key) {
     if(this.s.scope!=='episode'||!['intro','outro','autoNext'].includes(key))return false;
+    this._blockCurrent();
     this.s.draft[key]=this.copy(this.s.base[key]);this._restored.add(key);
     if(!this.s.touched.includes(key))this.s.touched.push(key);
-    this.s.dirty=true;this.s.pending=null;this._zeroOpportunity=false;
+    this.s.dirty=true;this.s.pending=null;
     this._notice('保存后，该项目恢复继承作品默认。');return true;
   }
   _request(kind,target) {
@@ -673,9 +601,10 @@ class ContinuityModel {
     this.s.transition=null;
     if(action==='stay'){this._notice('保留草稿，继续在原内容与范围编辑。');return true;}
     if(action!=='discard')return false;
+    if(this.s.dirty)this._blockCurrent();
     this._loadDraft();return this._transition(t.kind,t.target);
   }
-  _clearPlaybackContext() {this.s.pending=null;this.s.returnAnchor=null;this.s.undo=null;this.s.exempt=[];this._zeroOpportunity=true;}
+  _clearPlaybackContext() {this.s.pending=null;this.s.returnAnchor=null;this.s.undo=null;this._manualPasses=[];this._blockedPasses=[];this.s.exempt=[];}
   _transition(kind,target) {
     this.s.transition=null;
     if(kind==='scenario'){this._loadScenario(target);return true;}
@@ -691,24 +620,69 @@ class ContinuityModel {
       Number.isFinite(this.s.duration)?'模拟已进入本集，等待开始播放；已按本集时长重算片尾。':'模拟已进入本集，等待开始播放；时长未知，片尾暂不可用。',
       Number.isFinite(this.s.duration)?'info':'warning');return true;
   }
-  _exempt(key){if(!this.s.exempt.includes(key))this.s.exempt.push(key);}
+  _inside(t,range) {return !!range&&t>=range[0]&&t<range[1];}
+  _rememberPass(list,key,range) {
+    if(!range||!Number.isFinite(range[0])||!Number.isFinite(range[1])||range[0]>=range[1])return;
+    const identity=this.identity(),[start,end]=range;
+    if(!list.some(p=>p.identity===identity&&p.key===key&&p.start===start&&p.end===end))list.push({identity,key,start,end});
+  }
+  _syncExempt() {this.s.exempt=[...new Set(this._manualPasses.filter(p=>p.identity===this.identity()).map(p=>p.key))];}
+  _exempt(key,range=this.range(key)) {this._rememberPass(this._manualPasses,key,range);this._syncExempt();}
+  _blockCurrent(t=this.s.time,rules=this.effective()) {
+    for(const key of ['intro','outro']) {
+      const range=this.range(key,rules);
+      if(rules[key].enabled&&this._inside(t,range))this._rememberPass(this._blockedPasses,key,range);
+    }
+  }
+  _releasePassed(t) {
+    const identity=this.identity();
+    this._manualPasses=this._manualPasses.filter(p=>p.identity===identity&&t<p.end);
+    this._blockedPasses=this._blockedPasses.filter(p=>p.identity===identity&&t>=p.start&&t<p.end);
+    this._syncExempt();
+  }
+  _isProtected(key,t) {
+    return this._manualPasses.some(p=>p.identity===this.identity()&&p.key===key)||
+      this._blockedPasses.some(p=>p.identity===this.identity()&&p.key===key&&t>=p.start&&t<p.end);
+  }
+  _protectManualLocation(t) {
+    this._manualPasses=[];
+    for(const rules of [this.effective(),this.s.draft])for(const key of ['intro','outro']) {
+      const range=this.range(key,rules);
+      if(this._inside(t,range))this._exempt(key,range);
+    }
+    this._syncExempt();
+  }
+  _skipAt(t) {
+    const rules=this.effective(),v=this.validation(rules);
+    if(this.s.dirty){this._blockCurrent(t,rules);return false;}
+    if(!v.valid)return false;
+    for(const key of ['intro','outro']) {
+      const range=this.range(key,rules);
+      if(!rules[key].enabled||!this._inside(t,range)||this._isProtected(key,t)||(key==='outro'&&!Number.isFinite(this.s.duration)))continue;
+      this.s.undo={identity:this.identity(),from:t,to:range[1],playing:this.s.playing,key,range:this.copy(range),remaining:8};
+      this.s.time=range[1];
+      this._notice(`模拟已跳过${key==='intro'?'片头':'片尾'}；可以撤销。`,'ok');return true;
+    }
+    return false;
+  }
+  _ageUndo(seconds) {
+    if(!this.s.undo)return;
+    this.s.undo.remaining-=seconds;
+    if(this.s.undo.remaining<=0)this.s.undo=null;
+  }
   seek(t) {
     if(!Number.isFinite(t)||t<0||(Number.isFinite(this.s.duration)&&t>this.s.duration)){this._notice('播放位置超出本集可用范围。','error');return false;}
-    const before=this.s.time;
-    for(const rules of [this.effective(),this.s.draft])for(const key of ['intro','outro']) {
-      const r=this.range(key,rules);
-      if(r&&((t>=r[0]&&t<=r[1])||(t<before&&before>=r[0]&&t<=r[1])))this._exempt(key);
-    }
-    this.s.time=t;this.s.pending=null;this._zeroOpportunity=false;
-    this._notice(this.s.exempt.length?'已手动定位；本集手动查看过的区间暂不自动跳过。':'已手动定位，规则未改变。');return true;
+    this._protectManualLocation(t);
+    this.s.time=t;this.s.pending=null;this.s.returnAnchor=null;this.s.undo=null;
+    this._notice(this.s.exempt.length?'已手动定位；本次经过的区间暂不自动跳过，向前离开后自动恢复。':'已手动定位，规则未改变。');return true;
   }
   preview(key,endpoint) {
     const r=this.s.draft[key],range=this.range(key),v=this.validation();
     if(!range||v[key].length||!['start','end'].includes(endpoint)||(key==='outro'&&!Number.isFinite(this.s.duration))){this._notice('当前标记暂不可定位，请先核对时间。','warning');return false;}
     if(key==='outro'&&endpoint==='end'&&Number.isFinite(this.s.duration)&&range[1]>=this.s.duration){this._notice('视频结尾不提供定位，请查看片尾开始位置。','warning');return false;}
     if(!this.s.returnAnchor)this.s.returnAnchor={identity:this.identity(),time:this.s.time,playing:this.s.playing};
-    this.s.time=range[endpoint==='start'?0:1];this._exempt(key);this.s.pending=null;this._zeroOpportunity=false;
-    this._notice('已查看标记位置；查看不会保存设置，本集该区间暂不自动跳过。');return true;
+    this.s.time=range[endpoint==='start'?0:1];this._exempt(key,range);this.s.pending=null;
+    this._notice('已查看标记位置；本次经过该区间暂不跳过，向前离开后自动恢复。');return true;
   }
   mark(key,endpoint) {
     if(!['intro','outro'].includes(key)||!['start','end'].includes(endpoint))return false;
@@ -720,29 +694,35 @@ class ContinuityModel {
   returnPosition() {
     const a=this.s.returnAnchor;if(!a||a.identity!==this.identity()){this.s.returnAnchor=null;return false;}
     if(Number.isFinite(this.s.duration)&&a.time>this.s.duration){this.s.returnAnchor=null;this._notice('本集时长已变化，原返回位置不再有效。','warning');return false;}
-    this.s.time=a.time;this.s.returnAnchor=null;this.s.pending=null;this._zeroOpportunity=false;
-    this._notice('已返回校准前位置；本次查看豁免继续保留。');return true;
+    this._protectManualLocation(a.time);
+    this.s.time=a.time;this.s.returnAnchor=null;this.s.pending=null;this.s.undo=null;
+    this._notice('已返回原位置；若仍在跳过范围内，本次经过暂不跳走。');return true;
   }
   undoSkip() {
     const u=this.s.undo;if(!u||u.identity!==this.identity()){this.s.undo=null;return false;}
     if(Number.isFinite(this.s.duration)&&u.from>this.s.duration){this.s.undo=null;this._notice('本集时长已变化，旧撤销位置不再有效。','warning');return false;}
-    this.s.time=u.from;this._exempt(u.key);this.s.pending=null;this.s.undo=null;this._zeroOpportunity=false;
-    this._notice('已撤销自动跳过；本集该区间不会立即再次跳走。','ok');return true;
+    this.s.time=u.from;this._exempt(u.key,u.range||this.range(u.key,this.effective()));this.s.pending=null;this.s.undo=null;this.s.returnAnchor=null;
+    this._notice('已撤销自动跳过；本次经过该区间不再跳走，向前离开后自动恢复。','ok');return true;
   }
   resumeAutomatic() {
-    this.s.exempt=[];this.s.pending=null;this.s.undo=null;this.s.returnAnchor=null;this._zeroOpportunity=false;
+    this._blockCurrent();this._manualPasses=[];this._syncExempt();this.s.pending=null;this.s.undo=null;this.s.returnAnchor=null;
     this._notice('已结束手动查看；后续按当前实际进度判断，不补跳或重放旧切换。','ok');return true;
   }
   togglePlay() {
     if(!this.s.playing&&Number.isFinite(this.s.duration)&&this.s.time>=this.s.duration){this.s.pending=null;this._notice('模拟本集已结束；旧切换不会重放，可手动选择下一集。');return false;}
     this.s.playing=!this.s.playing;
     if(!this.s.playing)this.s.pending=null;
-    this._notice(this.s.playing?'模拟播放中。':'已暂停，旧待切换动作已取消。');return true;
+    this._notice(this.s.playing?'模拟播放中。':'已暂停，旧待切换动作已取消。');
+    if(this.s.playing) {
+      this._releasePassed(this.s.time);
+      if(this._skipAt(this.s.time)&&Number.isFinite(this.s.duration)&&this.s.time>=this.s.duration)this._finish(false);
+    }
+    return true;
   }
   closePanel() {return this._request('close',true);}
   openPanel() {this.s.closed=false;return true;}
-  _finish() {
-    if(this.s.returnAnchor||this.s.exempt.length){this.s.playing=false;this.s.pending=null;this._notice('手动查看期间已到本集结尾，已暂停；不自动切集或补执行旧切换。');return;}
+  _finish(manualEnding=false) {
+    if(manualEnding){this.s.playing=false;this.s.pending=null;this._notice('手动观看已到结尾，未自动换集。','warning');return;}
     if(!this.effective().autoNext||this.s.dirty){this.s.playing=false;this.s.pending=null;this._notice(this.s.dirty?'模拟本集结束；未保存草稿保留，不执行积压动作。':'模拟本集结束，自动下一集已关闭。');return;}
     const n=({3:4,4:5})[this.s.episode];
     if(n){this.s.pending={identity:this.identity(),nextEpisode:n,kind:'confirmed'};this._notice(`模拟已确认第 ${n} 集，准备进入；仍可暂停或撤销。`);}
@@ -750,35 +730,38 @@ class ContinuityModel {
   }
   advance(seconds=1) {
     if(!this.s.playing||!Number.isFinite(seconds)||seconds<=0)return false;
-    if(this.s.pending){const p=this.s.pending;this.s.pending=null;if(p.identity===this.identity()&&!this.s.dirty){this._transition('episode',p.nextEpisode);return true;}}
+    if(this.s.pending){const p=this.s.pending;this.s.pending=null;if(p.identity===this.identity()&&!this.s.dirty&&this.effective().autoNext){this._transition('episode',p.nextEpisode);return true;}}
     const before=this.s.time,d=this.s.duration;
-    let target=before+seconds;if(Number.isFinite(d))target=Math.min(d,target);
-    const r=this.effective(),v=this.validation(r);
-    if(!this.s.dirty&&v.valid)for(const key of ['intro','outro']) {
-      const range=this.range(key,r);
-      if(!r[key].enabled||!range||this.s.exempt.includes(key)||(key==='outro'&&!Number.isFinite(d)))continue;
-      const crossed=before<range[0]&&target>=range[0];
-      const atZero=key==='intro'&&range[0]===0&&before===0&&this._zeroOpportunity;
-      if(crossed||atZero) {
-        this.s.undo={identity:this.identity(),from:before,to:range[1],playing:this.s.playing,key};
-        target=range[1];this._notice(`模拟已跳过${key==='intro'?'片头':'片尾'}；可以撤销。`,'ok');break;
-      }
+    this._releasePassed(before);
+    if(this._skipAt(before)) {
+      if(Number.isFinite(d)&&this.s.time>=d)this._finish(false);
+      return true;
     }
-    this._zeroOpportunity=false;this.s.time=target;
-    if(Number.isFinite(d)&&before<d&&target>=d)this._finish();
+    let target=before+seconds;if(Number.isFinite(d))target=Math.min(d,target);
+    const manualEnding=Number.isFinite(d)&&before<d&&target>=d&&this._manualPasses.some(p=>p.identity===this.identity()&&p.start<=d&&p.end>=d);
+    this._ageUndo(Math.max(0,target-before));
+    this.s.time=target;
+    this._releasePassed(target);
+    this._skipAt(target);
+    if(Number.isFinite(d)&&before<d&&this.s.time>=d) {
+      if(manualEnding){this._manualPasses=[];this._syncExempt();}
+      this._finish(manualEnding);
+    }
     return true;
   }
   setDuration(duration) {
     if(duration!==null&&(!Number.isInteger(duration)||duration<=0))return false;
-    this.s.duration=duration;this.s.pending=null;this._zeroOpportunity=false;
+    this._blockCurrent();
+    this.s.duration=duration;this.s.pending=null;
     if(Number.isFinite(duration)&&this.s.time>duration){this.s.time=duration;this.s.playing=false;}
+    this._blockCurrent();
     this._notice(duration===null?'模拟时长未知；配置与草稿保留，片尾暂不可执行。':'模拟时长已可用；重新核对当前规则。');return true;
   }
   loadScenario(name){return this._request('scenario',name);}
   _loadScenario(name) {
     const base=ContinuityModel.blank();
     this.s={episode:3,version:'标准版 A',duration:2700,time:30,playing:false,scope:'work',base,overrides:{},draft:this.copy(base),dirty:false,touched:[],exempt:[],returnAnchor:null,undo:null,status:'模拟首次使用：时间未设置，没有启用示例规则。',statusKind:'info',pending:null,transition:null,closed:false,ruleRevision:0,scenario:name};
-    this._bases={};this._restored=new Set();this._zeroOpportunity=false;
+    this._bases={};this._restored=new Set();this._manualPasses=[];this._blockedPasses=[];
     if(name!=='empty') {
       this.s.base=ContinuityModel.standard();
       this._notice('已载入明确标注的演示规则，不代表自动识别结果。');
@@ -788,13 +771,18 @@ class ContinuityModel {
       this.s.base.outro={enabled:true,mode:'interval',start:2520,end:2610,tail:null};
       this.s.time=110;
     }
+    if(name==='outro'){this.s.time=2605;this._notice('模拟播放即将进入片尾；片尾跳过与自动下一集分别控制。');}
+    if(name==='postcredits') {
+      this.s.base.outro={enabled:true,mode:'interval',start:2520,end:2610,tail:null};
+      this.s.time=2515;this._notice('模拟片尾区间 42:00—43:30；跳过后继续播放最后90秒剧情。');
+    }
     if(name==='exception') {
       this.s.overrides[this.identity()]={intro:{...this.s.base.intro,enabled:false}};
       this.s.scope='episode';this._notice('演示：本集片头关闭，片尾与自动下一集仍继承作品默认。');
     }
     if(name==='unknown'){this.s.episode=5;this.s.duration=null;this._notice('模拟时长未知；已有配置保留，片尾暂不可定位或执行。','warning');}
     if(name==='short'){this.s.duration=180;this.s.base.intro.end=10;this.s.base.outro.tail=10;this.s.time=5;this._notice('模拟3分钟短视频；10秒片头和片尾仅为演示标记。');}
-    if(name==='autodemonstration'){this.s.time=0;this._zeroOpportunity=true;}
+    if(name==='autodemonstration')this.s.time=0;
     this._bases[this._workIdentity()]=this.copy(this.s.base);this._loadDraft();
     if(name==='invalid'){this.edit('intro',{enabled:true,mode:'interval',start:120,end:60});this._notice('模拟非法草稿：起点晚于终点，需要修正。','error');}
     return true;
@@ -808,31 +796,56 @@ const root=document.getElementById('od-watch-preview');if(!root)return;
 const model=new ContinuityModel();
 const q=s=>root.querySelector(s),all=s=>Array.from(root.querySelectorAll(s));
 const names={intro:'片头',outro:'片尾'};
-const ui={selected:{intro:'end',outro:'start'},calibrating:null,more:false,windows:{},raw:{},rendering:false,dragging:null,savedContext:null,actionsHost:null,actionsSignature:''};
+const ui={selected:{intro:'end',outro:'start'},activeKey:'intro',spanPref:'auto',windows:{},raw:{},rendering:false,dragging:null,savedContext:null,actionsHost:null,actionsSignature:''};
 const esc=x=>String(x??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const fmt=n=>Number.isFinite(n)&&n>=0?String(Math.floor(n/60)).padStart(2,'0')+':'+String(Math.floor(n%60)).padStart(2,'0'):'—';
 function parseTime(value){const s=String(value).trim();if(!s)return null;if(/^\d+$/.test(s))return Number(s);if(/^\d{1,4}:[0-5]\d$/.test(s)){const a=s.split(':').map(Number);return a[0]*60+a[1];}return NaN;}
 function value(key,part,rules){return model.endpointValue(key,part,rules);}
 function unavailable(key){return key==='outro'&&!Number.isFinite(model.s.duration);}
 function rawID(key,part){return 'od-'+key+'-'+part;}
-function inputValue(key,part){const id=rawID(key,part);if(ui.raw[id]!==undefined)return ui.raw[id];const n=value(key,part);return Number.isFinite(n)?fmt(n):'';}
+// The End binding has no stored absolute timestamp; display a placeholder, resolve dynamically from duration.
+function followsVideoEnd(key,part){return key==='outro'&&part==='end'&&model.s.draft.outro.mode==='tail';}
+function followsVideoStart(key,part){return key==='intro'&&part==='start'&&model.s.draft.intro.mode==='start'&&value('intro','start')===0;}
+function suggestion(key,part){
+ const inputId=rawID(key,part),raw=ui.raw[inputId];
+ if(raw!==undefined&&String(raw).trim()!==''&&Number.isNaN(parseTime(raw)))return null;
+ const d=model.s.duration;
+ if(key==='intro'&&part==='end'&&!Number.isFinite(value(key,part)))return Number.isFinite(d)?d<=10?null:Math.min(300,Math.max(1,Math.floor(d/4))):300;
+ if(key==='outro'&&part==='start'&&!Number.isFinite(value(key,part))&&Number.isFinite(d))return d<=10?null:Math.max(1,d-Math.min(90,Math.max(1,Math.floor(d/4))));
+ return null;
+}
+function visualTime(key,part){const n=value(key,part);return Number.isFinite(n)?n:suggestion(key,part);}
+function inputValue(key,part){const id=rawID(key,part);if(ui.raw[id]!==undefined)return ui.raw[id];if(followsVideoEnd(key,part))return '';const n=value(key,part);return Number.isFinite(n)?fmt(n):'';}
+function timePlaceholder(key,part){if(followsVideoEnd(key,part))return 'End';const n=suggestion(key,part);return Number.isFinite(n)?fmt(n):'分:秒';}
+function parseField(key,part,text){if(key==='outro'&&part==='end'&&/^(end|结束|结尾)$/i.test(String(text).trim()))return null;return parseTime(text);}
+
 function clearRaw(key,part){for(const id of Object.keys(ui.raw))if(part?id===rawID(key,part):id.startsWith('od-'+key+'-'))delete ui.raw[id];}
 function contextKey(){return model.s.scope+'|'+(model.s.scope==='work'?model.s.version:model.identity());}
+// UI viewport only. Total video length alone cannot identify intro/outro content.
+function recommendedSpan(d){
+ if(!Number.isFinite(d))return 300;
+ if(d<=300)return d;           // Very short video: entire length (<=5 minutes).
+ if(d<=1800)return 180;        // 5–30 minutes: focus on 3 minutes.
+ if(d<=7200)return 300;        // 30–120 minutes: focus on 5 minutes.
+ return 600;                   // Feature film/long video: 10-minute viewport only.
+}
+function requestedSpan(d){
+ if(ui.spanPref==='full')return Number.isFinite(d)?d:300;
+ return ui.spanPref==='auto'?recommendedSpan(d):Number(ui.spanPref);
+}
 function windowFor(key,expand=false){
  const d=model.s.duration;
  if(unavailable(key)){ui.windows[key]=[0,1];return ui.windows[key];}
  const old=ui.windows[key],values=['start','end'].filter(part=>ui.raw[rawID(key,part)]===undefined).map(part=>value(key,part)).filter(n=>Number.isFinite(n)&&n>=0);
- let span=Math.max(300,old?old[1]-old[0]:0);
- if(expand&&values.length){const reach=key==='outro'?d-Math.min(...values):Math.max(...values);span=Math.max(span,Math.ceil(reach/300)*300);}
+ let span=Math.max(1,requestedSpan(d),old?old[1]-old[0]:0);
+ // Never clip a configured endpoint. A manually selected time may grow the view
+ // but never changes rule time, mode, value, toggle, or saving scope.
+ if(expand&&values.length){const reach=key==='outro'?d-Math.min(...values):Math.max(...values);span=Math.max(span,Math.ceil(reach/60)*60);}
  if(Number.isFinite(d))span=Math.min(span,d);
  ui.windows[key]=key==='outro'?[Math.max(0,d-span),d]:[0,span];return ui.windows[key];
 }
-function windowLabel(key){
- if(unavailable(key))return '时长待获取';
- const w=windowFor(key),t=w[1]-w[0],m=Math.floor(t/60),s=t%60;
- return (key==='intro'?'前':'末')+(s?`${m}分${s}秒`:`${m}分钟`);
-}
-function identityText(){const s=model.s;return `星海航线 <span class="od-note">第1季 · 第${String(s.episode).padStart(2,'0')}集${Number.isFinite(s.duration)?' · '+fmt(s.duration):''}</span>`;}
+function windowLabel(key){if(unavailable(key))return '';const w=windowFor(key),seconds=w[1]-w[0],minutes=Math.floor(seconds/60),rest=seconds%60;return '显示'+(key==='intro'?'前':'末')+(rest?minutes?minutes+'分'+rest+'秒':rest+'秒':minutes+'分钟');}
+function identityText(){const s=model.s;return '星海航线 · 第1季 · 第'+String(s.episode).padStart(2,'0')+'集 · '+(Number.isFinite(s.duration)?'全长'+fmt(s.duration):'时长待获取');}
 function constrainHandle(key,part,n){
  const w=windowFor(key),other=value(key,part==='start'?'end':'start');let lo=w[0],hi=w[1];
  if(part==='start'&&Number.isFinite(other))hi=Math.min(hi,other-1);
@@ -840,124 +853,190 @@ function constrainHandle(key,part,n){
  return lo>hi?null:Math.max(lo,Math.min(hi,n));
 }
 function setEndpoint(key,part,n,intended=n){
- const bind=key==='outro'&&part==='end'&&Number.isFinite(model.s.duration)&&intended===model.s.duration&&n===model.s.duration;
+ const d=model.s.duration;
+ if(key==='outro'&&part==='end'&&n===null&&Number.isFinite(d)){
+  const st=value('outro','start');
+  return model.edit('outro',{mode:'tail',tail:Number.isFinite(st)?d-st:null,start:null,end:null});
+ }
+ const bind=key==='outro'&&part==='end'&&Number.isFinite(d)&&intended===d&&n===d;
  return model.setEndpoint(key,part,n,{bindEnd:bind});
 }
 function validation(){const v=model.validation(),e=model.validation(model._prospectiveEffective());if(v.valid&&!e.valid){v.general.push('与本集例外冲突，请先检查本集设置。');v.valid=false;}return v;}
-function endpointLabel(key,part){return part==='end'&&key==='outro'&&model.s.draft.outro.mode==='tail'?'结尾':part==='start'?'开始':'结束';}
-function fieldAria(key,part){return names[key]+(part==='start'?'开始':'结束')+'时间（'+(key==='outro'&&part==='end'&&model.s.draft.outro.mode==='tail'?'跟随视频结尾，':'')+'分:秒）';}
+function rangeText(key,rules=model.s.draft){const a=value(key,'start',rules),b=value(key,'end',rules);return Number.isFinite(a)&&Number.isFinite(b)?fmt(a)+' — '+fmt(b):'—';}
+function endpointLabel(key,part){return part==='start'?'开始':'结束';}
+function fieldAria(key,part){return names[key]+(part==='start'?'开始':'结束')+'时间（'+(followsVideoStart(key,part)?'00:00 为视频起点，修改后成为指定区间':followsVideoEnd(key,part)?'留空跟随视频结尾，可输入具体时间':'分:秒')+'）';}
 function fieldHTML(key,part){
- const disabled=unavailable(key);
- return `<label class="vas-endpoint ${ui.selected[key]===part?'od-selected':''}" data-endpoint-label="${key}-${part}" for="od-${key}-${part}"><span class="od-field-label" id="od-label-${key}-${part}">${part==='start'?'开始':'结束'}</span><input id="od-${key}-${part}" class="od-field vas-time-input" type="text" inputmode="numeric" autocomplete="off" spellcheck="false" data-time-key="${key}" data-time-part="${part}" value="${disabled?'':esc(inputValue(key,part))}" placeholder="${disabled?'—':'分:秒'}" ${disabled?'disabled':''} aria-label="${fieldAria(key,part)}" aria-describedby="od-error-${key}"></label>`;
+ const disabled=unavailable(key),ghost=Number.isFinite(suggestion(key,part)),bound=followsVideoEnd(key,part),fixedStart=followsVideoStart(key,part);
+ return `<label class="od-time-field ${ui.activeKey===key&&ui.selected[key]===part?'od-selected':''} ${ghost?'od-suggested':''} ${bound?'od-auto-end':''} ${fixedStart?'od-auto-start':''}" data-endpoint-label="${key}-${part}" for="od-${key}-${part}"><span id="od-label-${key}-${part}">${endpointLabel(key,part)}</span><input id="od-${key}-${part}" type="text" inputmode="numeric" autocomplete="off" spellcheck="false" aria-keyshortcuts="Enter" data-time-key="${key}" data-time-part="${part}" value="${disabled?'':esc(inputValue(key,part))}" placeholder="${bound?'End':disabled?'—':esc(timePlaceholder(key,part))}" ${disabled?'disabled':''} aria-label="${fieldAria(key,part)}" aria-describedby="od-error-${key} ${key==='outro'&&part==='end'?'od-end-binding-help':''}" title="${bound?'End 跟随视频全长；输入时间改为指定结束点':key==='outro'&&part==='end'?'清空或输入 End 可重新绑定视频结尾':ghost?'建议位置，点击可采用并继续编辑':'输入分:秒；上下方向键逐秒调整'}"></label>`;
 }
 function trackHTML(key){
- const w=windowFor(key,true),a=value(key,'start'),b=value(key,'end'),disabled=unavailable(key),valid=!disabled&&Number.isFinite(a)&&Number.isFinite(b)&&a<b;
+ const w=windowFor(key,true),a=value(key,'start'),b=value(key,'end'),disabled=unavailable(key);
+ const x=visualTime(key,'start'),y=visualTime(key,'end');
  const pct=n=>Math.max(0,Math.min(100,(n-w[0])/(w[1]-w[0])*100));
- return `<div class="od-dual-track"><span class="od-dual-line"></span><span id="od-dual-fill-${key}" class="od-dual-fill" style="left:${valid?pct(a):0}%;width:${valid?Math.max(0,pct(b)-pct(a)):0}%"></span>${['start','end'].map(part=>{const n=value(key,part),set=Number.isFinite(n)&&!disabled;return `<input id="od-range-${key}-${part}" class="od-dual-range ${set?'':'od-empty'} ${ui.selected[key]===part?'od-active-point':''}" type="range" data-interval-key="${key}" data-endpoint="${part}" min="${w[0]}" max="${w[1]}" step="1" value="${set?n:part==='start'?w[0]:w[1]}" ${disabled?'disabled':''} aria-label="${names[key]}${part==='start'?'开始':'结束'}时间拖动手柄" aria-valuetext="${disabled?'时长未知':set?fmt(n):'未设置，拖动建立端点'}" aria-describedby="od-window-label-${key} od-error-${key}">`;}).join('')}</div>`;
+ const near=Number.isFinite(x)&&Number.isFinite(y)&&Math.abs(pct(x)-pct(y))<9;
+ const reverse=Number.isFinite(a)&&Number.isFinite(b)&&a>=b;
+ return `<div class="od-dual-track ${near?'od-near':''} ${reverse?'od-inverted':''}" data-track="${key}"><span class="od-dual-line" aria-hidden="true"></span>${['start','end'].map(part=>{
+  const n=value(key,part), shown=visualTime(key,part),set=Number.isFinite(n)&&!disabled&&!followsVideoEnd(key,part);
+  const bound=followsVideoEnd(key,part),fixedStart=followsVideoStart(key,part),movable=!disabled&&!bound&&!fixedStart&&Number.isFinite(shown);
+  return `<input id="od-range-${key}-${part}" class="od-dual-range ${set?'od-set':'od-empty'} ${bound?'od-bound-end':''} ${fixedStart?'od-bound-start':''} ${movable?'od-movable':''} ${ui.activeKey===key&&ui.selected[key]===part?'od-active-point':''}" type="range" data-interval-key="${key}" data-endpoint="${part}" min="${w[0]}" max="${w[1]}" step="1" value="${Number.isFinite(shown)?shown:part==='start'?w[0]:w[1]}" ${disabled?'disabled':''} aria-label="${names[key]}${part==='start'?'开始':'结束'}时间拖动手柄" aria-valuetext="${disabled?'时长未知':bound?'视频结尾，跟随时长':fixedStart?'00:00，绑定视频起点':set?fmt(n):Number.isFinite(shown)?'建议位置 '+fmt(shown)+'，尚未设置':'未设置'}" aria-describedby="od-window-label-${key} od-error-${key}">`;
+ }).join('')}</div>`;
 }
-function calibrationHTML(){return '';}
 function rowHTML(key){
- const r=model.s.draft[key],v=validation();
- return `<section class="vas-rule" data-section="${key}"><div class="vas-rule-head"><label class="od-title" for="od-toggle-${key}">${names[key]}</label><span id="od-window-label-${key}" class="od-note vas-hint">${windowLabel(key)}</span><input class="vas-check" id="od-toggle-${key}" type="checkbox" data-toggle="${key}" ${r.enabled?'checked':''} aria-label="跳过${names[key]}"></div>${trackHTML(key)}<div class="od-endpoint-readouts vas-endpoints">${fieldHTML(key,'start')}${fieldHTML(key,'end')}</div><div class="od-field-error vas-error" id="od-error-${key}" role="alert" ${v[key].length?'':'hidden'}>${esc(v[key][0]||'')}</div></section>`;
+ const r=model.s.draft[key],v=validation(),overridden=Object.prototype.hasOwnProperty.call(model.s.overrides[model.identity()]||{},key),track=trackHTML(key);
+ return `<section class="od-time-section od-ui-card" data-section="${key}"><div class="od-row-title"><label for="od-toggle-${key}">${names[key]}</label><span class="od-unset-badge" ${model.isUnconfigured(key)?'':'hidden'}>待设置</span><span id="od-window-label-${key}" class="od-window-label">${windowLabel(key)}</span>${overridden?'<span class="od-exception">本集例外</span>':''}<label class="od-toggle-couple"><span class="od-toggle-copy">自动跳过</span><span class="od-switch"><input id="od-toggle-${key}" type="checkbox" data-toggle="${key}" ${r.enabled?'checked':''} aria-label="跳过${names[key]}"></span></label></div>${track}<div class="od-endpoint-readouts">${fieldHTML(key,'start')}${fieldHTML(key,'end')}</div>${restoreAction(key)?`<div class="od-restore-inline">${restoreAction(key)}</div>`:''}${key==='outro'?'<span id="od-end-binding-help" class="od-sr-only">End 表示自动使用本视频实际结束时间。输入具体结束时间会变为指定区间；清空或填写 End 可恢复绑定；同一规则在视频时长变化时自动重新计算。</span>':''}<div id="od-error-${key}" class="od-error" ${v[key].length?'':'hidden'}>${esc(v[key][0]||'')}</div></section>`;
 }
-function moreHTML(){return '';}
+function restoreAction(key){
+ const s=model.s,o=s.overrides[model.identity()]||{};
+ return s.scope==='episode'&&Object.prototype.hasOwnProperty.call(o,key)?`<button type="button" class="od-restore-action" data-action="restore" data-key="${key}">恢复${names[key]||'连播'}默认</button>`:'';
+}
+function viewportHTML(){
+ const d=model.s.duration,auto=recommendedSpan(d);
+ const f=n=>n%60===0?Math.floor(n/60)+'分钟':fmt(n);
+ const values=[['auto','自动（'+f(auto)+'）'],['60','1分钟'],['120','2分钟'],['180','3分钟'],['300','5分钟'],['600','10分钟']];
+ return `<div class="od-window-preference"><label for="od-window-preference">时间轴范围</label><select id="od-window-preference" aria-label="时间轴可视范围，只调整滑块，不修改跳过区间" title="只调整拖动时可见的时间范围，不改变已保存的跳过规则">${values.map(([v,t])=>`<option value="${v}" ${ui.spanPref===v?'selected':''}>${t}</option>`).join('')}</select></div>`;
+}
+function durationPreviewHTML(){
+ const d=model.s.duration,shown=Number.isFinite(d)?Math.max(180,Math.min(18000,Math.round(d/60)*60)):2700;
+ return `<div class="od-duration-preview" role="group" aria-label="离线预览：切换当前视频时长"><div class="od-duration-preview-top"><label for="od-duration-range">视频时长（仅预览）</label><output id="od-duration-value" for="od-duration-range">${Number.isFinite(d)?fmt(d):'未知'}</output></div><input type="range" id="od-duration-range" min="180" max="18000" step="60" value="${shown}" aria-label="切换模拟视频总时长，用于验证片尾相对起点" aria-valuetext="${Number.isFinite(d)?fmt(d):'未知'}" aria-describedby="od-duration-help"><div id="od-duration-help" class="od-duration-preview-help">只切换视频时长，不改变片头片尾规则；End 随之重算</div></div>`;
+}
+function scopeHTML(){
+ const scope=model.s.scope;
+ return `<div class="od-scope-row"><span class="od-scope-caption">保存范围</span><div class="od-scope-controls" role="group" aria-label="保存范围"><button id="od-scope-work" type="button" class="od-scope-choice" aria-pressed="${scope==='work'}" data-action="scope" data-scope="work" title="本作品当前季设置">本作品</button><button id="od-scope-episode" type="button" class="od-scope-choice" aria-pressed="${scope==='episode'}" data-action="scope" data-scope="episode">本集</button></div></div>`;
+}
 function statusHTML(){return '<div id="od-status" class="od-status" hidden><div id="od-status-text" role="status" aria-live="polite"></div><div id="od-status-actions" class="od-status-actions"></div></div>';}
 function transitionHTML(){const t=model.s.transition;return t?`<div class="od-transition" role="group" aria-label="处理未保存修改">当前修改尚未保存。<div class="od-transition-actions"><button id="od-stay" type="button" data-action="stay">继续编辑</button><button id="od-discard" type="button" data-action="discard">舍弃并${t.kind==='close'?'收起':'切换'}</button></div></div>`:'';}
 function sidebarHTML(){
  const s=model.s,v=validation();
- if(s.closed)return `<div class="vas-identity"><strong>连播助手</strong><button class="od-button od-button--secondary" type="button" data-action="open">打开</button></div>${statusHTML()}`;
- return `<div class="vas-identity">${identityText()}</div><div class="vas-rules">${rowHTML('intro')}${rowHTML('outro')}</div><div class="vas-auto"><label class="od-title" for="od-auto-next">自动下一集</label><input id="od-auto-next" class="vas-check" type="checkbox" data-toggle="autoNext" ${s.draft.autoNext?'checked':''} aria-label="自动下一集"></div><div class="vas-footer"><button id="od-save" class="od-button od-button--primary" type="button" data-action="save" ${s.dirty&&v.valid?'':'disabled'}>保存</button><button id="od-scope-switch" class="od-button od-button--secondary" type="button" data-action="scope" aria-label="${s.scope==='work'?'当前保存范围：本作品；切换到本集':'当前保存范围：仅本集；切换到作品'}">${s.scope==='work'?'本作品':'仅本集'}</button><button id="od-cancel" class="od-button od-button--quiet" type="button" data-action="cancel" ${s.dirty?'':'hidden'}>取消</button></div>${statusHTML()}${transitionHTML()}`;
+ if(s.closed)return '<div class="od-closed"><span>连播助手已收起</span><button id="od-open" type="button" data-action="open">打开设置</button></div>'+statusHTML();
+ return `<header class="od-header"><div class="od-identity-row"><div id="od-content-identity" class="od-work">${identityText()}</div></div></header><div class="od-rows">${rowHTML('intro')}${rowHTML('outro')}<div class="od-auto"><label for="od-auto-next">自动下一集</label>${Object.prototype.hasOwnProperty.call(s.overrides[model.identity()]||{},'autoNext')?'<span class="od-exception">本集例外</span>':''}<label class="od-switch"><input id="od-auto-next" type="checkbox" data-toggle="autoNext" ${s.draft.autoNext?'checked':''} aria-label="自动下一集"></label></div>${restoreAction('autoNext')?`<div class="od-auto-restore">${restoreAction('autoNext')}</div>`:''}${viewportHTML()}${durationPreviewHTML()}</div><footer class="od-save-zone">${scopeHTML()}<div class="od-save-actions"><button id="od-save" type="button" class="od-primary" data-action="save" ${s.dirty&&v.valid?'':'disabled'}>${s.scope==='work'?'保存本作品设置':'仅保存本集'}</button><button id="od-cancel" type="button" class="od-link" data-action="cancel" ${s.dirty?'':'hidden'}>取消修改</button></div></footer>${statusHTML()}${transitionHTML()}`;
 }
 function syncStatus(){
- const s=model.s,v=validation(),host=q('#od-status');if(!host)return;
- let message='',type='',actions=[];
- if(s.transition)message='';
- else if(v.general.length){message=v.general[0];type='error';}
- else if(s.statusKind==='error'){message=s.status;type='error';}
- else if(s.statusKind==='warning'&&!Number.isFinite(s.duration)){message='本集时长未知，片尾暂不可跳过';type='warning';}
- else if(s.undo){message='已跳过'+names[s.undo.key];actions.push('<button class="od-button od-button--quiet" type="button" data-action="undo">撤销</button>');}
- else if(s.pending){message='准备进入第'+s.pending.nextEpisode+'集';}
- else if(!s.dirty&&s.statusKind==='ok'&&ui.savedContext===contextKey())message=s.status;
- if(s.returnAnchor&&!s.undo)actions.push('<button class="od-button od-button--quiet" type="button" data-action="return">返回原位置</button>');
- host.hidden=!message&&!actions.length;host.className='vas-status '+(type?'vas-status-'+type:'');
- q('#od-status-text').textContent=message;
- const h=q('#od-status-actions'),fragment=actions.join('');
- if(ui.actionsHost!==h||ui.actionsSignature!==fragment){h.innerHTML=fragment;ui.actionsHost=h;ui.actionsSignature=fragment;}
+ const s=model.s,v=validation(),host=q('#od-status');if(!host)return;let text='',kind='',actions=[];
+ if(s.transition)text='';
+ else if(v.general.length){text=v.general[0];kind='od-error-state';}
+ else if(v.intro.length||v.outro.length)text='';
+ else if(!Number.isFinite(s.duration)){text='时长未知，片尾暂不可定位或跳过。';kind='od-warning';}
+ else if(v.warnings.length){text=v.warnings[0];kind='od-warning';}
+ else if(s.pending)text='准备进入第'+s.pending.nextEpisode+'集';
+ else if(s.statusKind==='warning'){text=s.status;kind='od-warning';}
+ else if(s.undo)text='已跳过'+names[s.undo.key];
+ else if(Number.isFinite(s.duration)&&s.time>=s.duration&&!s.playing)text='本集已结束';
+ else if(s.statusKind==='error'){text=s.status;kind='od-error-state';}
+ if(s.undo)actions.push('<button id="od-undo" type="button" data-action="undo">撤销跳过</button>');
+ host.hidden=!text&&!actions.length;host.className='od-status '+kind;q('#od-status-text').textContent=text;
+ const actionHost=q('#od-status-actions'),html=actions.join('');if(ui.actionsHost!==actionHost||ui.actionsSignature!==html){actionHost.innerHTML=html;ui.actionsHost=actionHost;ui.actionsSignature=html;}
 }
-function syncSave(){
- const s=model.s,v=validation(),b=q('#od-save');
- if(b){b.disabled=!s.dirty||!v.valid;b.textContent='保存';}
- const cancel=q('#od-cancel');if(cancel)cancel.hidden=!s.dirty;
- syncStatus();
-}
-function syncCalibration(){
+function syncSave(){const s=model.s,v=validation(),b=q('#od-save');if(b){b.disabled=!s.dirty||!v.valid;b.textContent=!s.dirty&&ui.savedContext===contextKey()?(s.scope==='work'?'本作品设置已保存':'本集设置已保存'):(s.scope==='work'?'保存本作品设置':'仅保存本集');}const c=q('#od-cancel');if(c)c.hidden=!s.dirty;syncStatus();}
+function syncSelection(){
  for(const key of ['intro','outro']){
-  const part=ui.selected[key],suffix=part==='start'?'开始':'结束',n=value(key,part),v=validation(),mark=q('#od-mark-'+key),preview=q('#od-preview-'+key);
-  all(`[data-endpoint-label^="${key}-"]`).forEach(el=>el.classList.toggle('od-selected',el.dataset.endpointLabel===key+'-'+part));
-  all(`[data-interval-key="${key}"]`).forEach(el=>el.classList.toggle('od-active-point',el.dataset.endpoint===part));
-  for(const p of ['start','end']){const b=q('#od-target-'+key+'-'+p);if(b)b.setAttribute('aria-pressed',String(p===part));}
-  if(mark){mark.setAttribute('aria-label','用当前播放时间标记'+names[key]+suffix);mark.disabled=unavailable(key);}
-  if(preview){const finalEnd=key==='outro'&&part==='end'&&Number.isFinite(model.s.duration)&&n===model.s.duration;preview.textContent=finalEnd?'不定位视频结尾':'查看'+names[key]+suffix+(Number.isFinite(n)?' '+fmt(n):'');preview.disabled=unavailable(key)||finalEnd||!model.range(key)||v[key].length>0;}
+  const part=ui.selected[key],active=ui.activeKey===key;
+  all(`[data-endpoint-label^="${key}-"]`).forEach(el=>el.classList.toggle('od-selected',active&&el.dataset.endpointLabel===key+'-'+part));
+  all(`[data-interval-key="${key}"]`).forEach(el=>el.classList.toggle('od-active-point',active&&el.dataset.endpoint===part));
  }
 }
 function syncErrors(){const v=validation();for(const key of ['intro','outro']){const e=q('#od-error-'+key);if(e){e.hidden=!v[key].length;e.textContent=v[key][0]||'';}all(`[data-time-key="${key}"]`).forEach(el=>el.setAttribute('aria-invalid',String(v[key].length>0)));all(`[data-interval-key="${key}"]`).forEach(el=>el.setAttribute('aria-invalid',String(v[key].length>0)));}}
 function syncRow(key,origin){
- const w=windowFor(key),a=value(key,'start'),b=value(key,'end'),disabled=unavailable(key),valid=!disabled&&Number.isFinite(a)&&Number.isFinite(b)&&a<b,pct=n=>Math.max(0,Math.min(100,(n-w[0])/(w[1]-w[0])*100));
- all(`[data-time-key="${key}"]`).forEach(el=>{if(el!==origin)el.value=disabled?'':inputValue(key,el.dataset.timePart);el.disabled=disabled;el.setAttribute('placeholder',disabled?'—':'分:秒');el.setAttribute('aria-label',fieldAria(key,el.dataset.timePart));});
- all(`[data-interval-key="${key}"]`).forEach(el=>{const part=el.dataset.endpoint,n=value(key,part),set=Number.isFinite(n)&&!disabled;el.min=w[0];el.max=w[1];if(el!==origin)el.value=set?n:part==='start'?w[0]:w[1];el.disabled=disabled;el.classList.toggle('od-empty',!set);el.setAttribute('aria-valuetext',disabled?'时长未知':set?fmt(n):'未设置，拖动建立端点');});
- const fill=q('#od-dual-fill-'+key);if(fill){fill.style.left=(valid?pct(a):0)+'%';fill.style.width=(valid?Math.max(0,pct(b)-pct(a)):0)+'%';}
+ const w=windowFor(key,true),disabled=unavailable(key),pct=n=>Math.max(0,Math.min(100,(n-w[0])/(w[1]-w[0])*100));
+ all(`[data-time-key="${key}"]`).forEach(el=>{
+  const part=el.dataset.timePart,ghost=Number.isFinite(suggestion(key,part)),bound=followsVideoEnd(key,part),fixedStart=followsVideoStart(key,part);
+  if(el!==origin)el.value=disabled?'':inputValue(key,part);
+  el.disabled=disabled;el.placeholder=disabled?'—':timePlaceholder(key,part);
+  el.setAttribute('aria-label',fieldAria(key,part));
+  const wrapper=el.closest('.od-time-field');if(wrapper){wrapper.classList.toggle('od-suggested',ghost);wrapper.classList.toggle('od-auto-end',bound);wrapper.classList.toggle('od-auto-start',fixedStart);}
+ });
+ all(`[data-interval-key="${key}"]`).forEach(el=>{
+  const part=el.dataset.endpoint,n=value(key,part),shown=visualTime(key,part),bound=followsVideoEnd(key,part),fixedStart=followsVideoStart(key,part),set=Number.isFinite(n)&&!disabled&&!bound;
+  el.min=w[0];el.max=w[1];if(el!==origin)el.value=Number.isFinite(shown)?shown:part==='start'?w[0]:w[1];
+  el.disabled=disabled;el.classList.toggle('od-empty',!set);el.classList.toggle('od-set',set);el.classList.toggle('od-bound-end',bound);el.classList.toggle('od-bound-start',fixedStart);el.classList.toggle('od-movable',!disabled&&!bound&&!fixedStart&&Number.isFinite(shown));
+  el.setAttribute('aria-valuetext',disabled?'时长未知':bound?'视频结尾，跟随时长':fixedStart?'00:00，绑定视频起点':set?fmt(n):Number.isFinite(shown)?'建议位置 '+fmt(shown)+'，尚未设置':'未设置');
+ });
+ const track=q('[data-track="'+key+'"]'),a=value(key,'start'),b=value(key,'end'),x=visualTime(key,'start'),y=visualTime(key,'end');
+ if(track){track.classList.toggle('od-near',Number.isFinite(x)&&Number.isFinite(y)&&Math.abs(pct(x)-pct(y))<9);track.classList.toggle('od-inverted',Number.isFinite(a)&&Number.isFinite(b)&&a>=b);}
  const windowTag=q('#od-window-label-'+key);if(windowTag)windowTag.textContent=windowLabel(key);
  const label=q('#od-label-'+key+'-end');if(label)label.textContent=endpointLabel(key,'end');
+ const section=q('[data-section="'+key+'"]'),badge=section&&section.querySelector('.od-unset-badge');if(badge)badge.hidden=!model.isUnconfigured(key);
  const toggle=q('#od-toggle-'+key);if(toggle)toggle.checked=model.s.draft[key].enabled;
- syncErrors();syncCalibration();syncSave();
+ syncErrors();syncSelection();syncSave();
 }
-function render(keepFocus=true){const old=document.activeElement,id=old&&root.contains(old)?old.id:null;let selection=null;try{selection=[old.selectionStart,old.selectionEnd];}catch(e){}ui.rendering=true;q('#od-sidebar').innerHTML=sidebarHTML();syncErrors();syncCalibration();syncSave();if(keepFocus&&id){let el=q('#'+id);if(!el||el.disabled)el=q('#od-scope-switch')||q('#od-open');if(el){el.focus({preventScroll:true});if(el.id===id&&selection&&selection[0]!==null&&el.setSelectionRange)try{el.setSelectionRange(selection[0],selection[1]);}catch(e){}}}ui.rendering=false;}
-function resetUI(){ui.selected={intro:'end',outro:'start'};ui.calibrating=null;ui.more=false;ui.raw={};ui.windows={};ui.savedContext=null;}
+function syncIdentity(){const identity=q('#od-content-identity');if(identity)identity.textContent=identityText();}
+function render(keepFocus=true){const old=document.activeElement,id=old&&root.contains(old)?old.id:null;let selection=null;try{selection=[old.selectionStart,old.selectionEnd];}catch(e){}ui.rendering=true;q('#od-sidebar').innerHTML=sidebarHTML();syncErrors();syncSelection();syncSave();syncIdentity();for(const selector of ['button','summary','input[type=checkbox]'])all(selector).forEach(el=>el.classList.add('cursor-interaction'));if(keepFocus&&id){let el=q('#'+id);if(!el||el.disabled)el=q('#od-save')||q('#od-scope-work')||q('#od-open');if(el){el.focus({preventScroll:true});if(el.id===id&&selection&&selection[0]!==null&&el.setSelectionRange)try{el.setSelectionRange(selection[0],selection[1]);}catch(e){}}}ui.rendering=false;}
+function resetUI(){ui.selected={intro:'end',outro:'start'};ui.activeKey='intro';ui.raw={};ui.windows={};ui.savedContext=null;}
 function take(fn){const id=model.identity(),sc=model.s.scenario,scope=model.s.scope;fn();if(id!==model.identity()||sc!==model.s.scenario)resetUI();else if(scope!==model.s.scope){ui.raw={};ui.windows={};ui.savedContext=null;}render();}
-function selectPoint(key,part){ui.selected[key]=part;syncCalibration();}
+function selectPoint(key,part){ui.activeKey=key;ui.selected[key]=part;syncSelection();}
 function commitInput(el){const key=el.dataset.timeKey;if(!key)return;const part=el.dataset.timePart;if(Number.isFinite(value(key,part))){clearRaw(key,part);el.value=inputValue(key,part);}windowFor(key,true);syncRow(key,el);}
 root.addEventListener('click',event=>{
+ const suggestionField=event.target.closest('input[data-time-key]');
+ if(suggestionField&&!suggestionField.disabled){
+  const key=suggestionField.dataset.timeKey,part=suggestionField.dataset.timePart,n=suggestion(key,part);
+  if(Number.isFinite(n)&&!Number.isFinite(value(key,part))){setEndpoint(key,part,n);clearRaw(key,part);ui.savedContext=null;selectPoint(key,part);syncRow(key);}
+ }
  const b=event.target.closest('button');if(!b||!root.contains(b)||b.disabled)return;const action=b.dataset.action,key=b.dataset.key;
-
-
- if(action==='target'){selectPoint(key,b.dataset.part);return;}
  if(action==='save'){take(()=>{const c=contextKey();if(model.save()){ui.savedContext=c;ui.raw={};}});return;}
- if(action==='scope'){take(()=>model.requestScope(model.s.scope==='work'?'episode':'work'));return;}
+ if(action==='scope'){take(()=>model.requestScope(b.dataset.scope));return;}
  if(action==='cancel'){ui.raw={};ui.windows={};take(()=>model.cancel());return;}
  if(action==='mark'){clearRaw(key,ui.selected[key]);take(()=>model.mark(key,ui.selected[key]));windowFor(key,true);syncRow(key);return;}
  if(action==='preview'){take(()=>model.preview(key,ui.selected[key]));return;}
  if(action==='restore'){clearRaw(key);ui.windows={};take(()=>model.restore(key));return;}
- if(action==='adjust-episode'){take(()=>model.requestScope('episode'));return;}
  if(action==='return'){take(()=>model.returnPosition());return;}
  if(action==='undo'){take(()=>model.undoSkip());return;}
- if(action==='resume-auto'){take(()=>model.resumeAutomatic());return;}
  if(action==='close'){take(()=>model.closePanel());return;}
  if(action==='open'){take(()=>model.openPanel());return;}
  if(action==='stay'){take(()=>model.resolveTransition('stay'));return;}
  if(action==='discard'){ui.raw={};ui.windows={};take(()=>model.resolveTransition('discard'));return;}
 });
+function syncViewportAutoLabel(){
+ const opt=q('#od-window-preference option[value="auto"]');
+ if(opt){const n=recommendedSpan(model.s.duration);opt.textContent='自动（'+(n%60===0?Math.floor(n/60)+'分钟':fmt(n))+'）';}
+}
 root.addEventListener('input',event=>{
  const el=event.target;if(el.disabled)return;
- if(el.dataset.timeKey){const key=el.dataset.timeKey,part=el.dataset.timePart;ui.raw[el.id]=el.value;setEndpoint(key,part,parseTime(el.value));ui.savedContext=null;selectPoint(key,part);syncRow(key,el);return;}
+ if(el.id==='od-duration-range'){
+  const next=Number(el.value);
+  if(!Number.isInteger(next)||next<180||next>18000||!model.setDuration(next))return;
+  ui.windows={}; // Duration change is NOT an edit to the saved rule.
+  const out=q('#od-duration-value');if(out)out.textContent=fmt(next);
+  el.setAttribute('aria-valuetext',fmt(next));
+  syncViewportAutoLabel();syncRow('intro');syncRow('outro');syncIdentity();
+  return;
+ }
+ if(el.dataset.timeKey){const key=el.dataset.timeKey,part=el.dataset.timePart;ui.raw[el.id]=el.value;setEndpoint(key,part,parseField(key,part,el.value));ui.savedContext=null;selectPoint(key,part);syncRow(key,el);return;}
  if(el.dataset.intervalKey){const key=el.dataset.intervalKey,part=el.dataset.endpoint,intended=Number(el.value),n=constrainHandle(key,part,intended);if(n===null){el.value=Number.isFinite(value(key,part))?value(key,part):windowFor(key)[part==='start'?0:1];return;}el.value=n;setEndpoint(key,part,n,intended);clearRaw(key,part);ui.savedContext=null;selectPoint(key,part);syncRow(key,el);}
 });
 root.addEventListener('change',event=>{
  const el=event.target;if(el.disabled)return;
+ if(el.id==='od-window-preference'){
+  if(!['auto','60','120','180','300','600'].includes(el.value))return;
+  ui.spanPref=el.value;ui.windows={};render(true);return;
+ }
  if(el.dataset.toggle){const key=el.dataset.toggle;ui.savedContext=null;take(()=>model.edit(key,key==='autoNext'?el.checked:{enabled:el.checked}));}
  else if(el.dataset.timeKey)commitInput(el);
 });
-root.addEventListener('focusin',event=>{if(ui.rendering)return;const el=event.target,key=el.dataset.timeKey||el.dataset.intervalKey;if(key)selectPoint(key,el.dataset.timePart||el.dataset.endpoint);});
-root.addEventListener('pointerdown',event=>{const el=event.target;if(el.dataset.intervalKey&&!el.disabled){ui.dragging=el.dataset.intervalKey;selectPoint(el.dataset.intervalKey,el.dataset.endpoint);}});
+// Keep selection stable during Tab navigation; only explicit editing activates an endpoint.
+root.addEventListener('pointerdown',event=>{const el=event.target,key=el.dataset.timeKey||el.dataset.intervalKey;if(key&&!el.disabled){if(el.dataset.intervalKey)ui.dragging=key;selectPoint(key,el.dataset.timePart||el.dataset.endpoint);}});
 root.addEventListener('pointerup',()=>{ui.dragging=null;});
 root.addEventListener('keydown',event=>{
  const el=event.target,key=el.dataset.timeKey||el.dataset.intervalKey;if(!key||el.disabled)return;
- if(event.key==='Enter'&&el.dataset.timeKey){event.preventDefault();commitInput(el);return;}
+ if(event.key==='Enter'){event.preventDefault();selectPoint(key,el.dataset.timePart||el.dataset.endpoint);if(el.dataset.timeKey)commitInput(el);return;}
  if(!['ArrowLeft','ArrowRight','ArrowUp','ArrowDown'].includes(event.key)||(el.dataset.timeKey&&['ArrowLeft','ArrowRight'].includes(event.key)))return;
- event.preventDefault();const part=el.dataset.timePart||el.dataset.endpoint,step=['ArrowUp','ArrowRight'].includes(event.key)?1:-1,w=windowFor(key),base=Number.isFinite(value(key,part))?value(key,part):part==='start'?w[0]:w[1],intended=Math.max(0,base+step);let n=intended;
+ event.preventDefault();const part=el.dataset.timePart||el.dataset.endpoint,step=['ArrowUp','ArrowRight'].includes(event.key)?1:-1,w=windowFor(key),base=Number.isFinite(value(key,part))?value(key,part):Number.isFinite(visualTime(key,part))?visualTime(key,part):part==='start'?w[0]:w[1];
+ // Bound "End" is already the maximum. ArrowUp must not create an invalid absolute endpoint.
+ if(key==='outro'&&part==='end'&&followsVideoEnd(key,part)&&step>0)return;
+ const intended=Math.max(0,base+step);let n=intended;
  if(el.dataset.intervalKey){n=constrainHandle(key,part,n);if(n===null)return;el.value=n;}
  setEndpoint(key,part,n,intended);clearRaw(key,part);ui.savedContext=null;selectPoint(key,part);if(el.dataset.timeKey)windowFor(key,true);syncRow(key);
 });
-root.preview={model,ui,render,parseTime,formatTime:fmt,commitInput,windowFor};
+// Offline adapter seam for testing durationchanged events; not hooked to real websites.
+function updateVideoDuration(seconds){
+ const d=seconds===null?null:Number(seconds);
+ if(d!==null&&(!Number.isInteger(d)||d<=0))return false;
+ if(!model.setDuration(d))return false;
+ ui.windows={}; // Preserve uncommitted raw text while duration metadata changes.
+ model._notice(d===null?'视频时长未知，规则保留；暂不执行依赖时长的片尾动作。':
+   '已更新当前视频时长；End 始终绑定实际结尾，片尾开始按规则重新计算。');
+ render(true);
+ return true;
+}
+root.preview={model,ui,render,parseTime,formatTime:fmt,commitInput,windowFor,recommendedSpan,updateVideoDuration};
 render(false);
 })();
 
