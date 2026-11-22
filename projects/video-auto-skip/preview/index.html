@@ -931,6 +931,10 @@ const R10_FIXTURES = Object.freeze({
  special:{episode:3,duration:6000,kind:'special',patternConfirmed:false},
  credits:{episode:3,duration:6000,kind:'special',localInterval:[4800,4890],patternConfirmed:false},
  edition:{episode:3,duration:2700,edition:'cut-B',ruleEdition:'cut-A',patternConfirmed:true},
+ crossSite:{episode:3,duration:2700,siteOrigin:'https://other.invalid',patternConfirmed:true},
+ preview:{episode:3,duration:2700,kind:'preview'},
+ collection:{episode:3,duration:5400,kind:'collection'},
+ extra:{episode:3,duration:360,kind:'extra'},
  unknown:{episode:3,duration:2700,edition:null,versionVerified:false,patternConfirmed:false},
  drift:{episode:3,duration:2800,historicalDuration:2700,patternConfirmed:true},
  conflict:{episode:4,duration:2880,patternConfirmed:true,branchConflict:true,alternativeTail:120},
@@ -951,7 +955,7 @@ function r10Context(name){
   sourceFingerprint:'confirmed-playlist-A',playlistVerified:true,patternConfirmed:false,
   branchConflict:false,syncConflict:false,segmentMap:null
  },f);
- ctx.mediaKey='demo-series:s1:e'+ctx.episode+':'+String(ctx.edition||'unknown');
+ ctx.mediaKey=ctx.siteOrigin+'|demo-series:s1:e'+ctx.episode+':'+String(ctx.edition||'unknown');
  ctx.historicalDuration=R10_OWN.call(f,'historicalDuration')?f.historicalDuration:ctx.duration;
  return ctx;
 }
@@ -1046,7 +1050,7 @@ ContinuityModel.prototype.r10Decision=function(key){
   if(!x.versionVerified||!x.edition){
    result.reason='当前剪辑版本未确认';return result;
   }
-  if(x.edition!==x.ruleEdition||x.sourceFingerprint!=='confirmed-playlist-A'){
+  if(x.siteOrigin!=='https://demo.invalid'||x.edition!==x.ruleEdition||x.sourceFingerprint!=='confirmed-playlist-A'){
    result.compatibility='NOT_APPLICABLE';result.reason='剪辑版本或片源与历史规则不同';return result;
   }
   if(x.historicalDuration!==null&&x.historicalDuration!==d){
@@ -1258,7 +1262,7 @@ function r10ReviewHTML(){
  const d=model.r10Decision('outro'),x=model.r10.context,candidate=model.effective().outro;
  const start=Number.isFinite(d.currentStart)?fmt(d.currentStart):'—';
  const end=Number.isFinite(d.currentEnd)?(candidate.mode==='tail'?'End':fmt(d.currentEnd)):'—';
- const hist=Number.isFinite(x.historyTail)?x.historyTail:90;
+ const hist=Number.isFinite(x.historyTail)?x.historyTail:Number.isFinite(d.candidateTail)?d.candidateTail:90;
  const history=candidate.mode==='tail'?'倒数'+fmt(hist):'指定区间';
  const local=d.local;
  const canConfirm=d.compatibility==='NEEDS_CONFIRMATION'&&x.versionVerified&&x.edition===x.ruleEdition&&x.resourceVerified&&x.kind==='regular';
@@ -1320,7 +1324,7 @@ function syncStatus(){
  else if(s.undo)text='已跳过'+names[s.undo.key];
  else if(Number.isFinite(s.duration)&&s.time>=s.duration&&!s.playing)text='本集已结束';
  else if(s.statusKind==='error'){text=s.status;kind='od-error-state';}
- else if(s.statusKind==='ok'&&!s.dirty){text='设置已保存';kind='od-saved-ok';}
+ else if(s.statusKind==='ok'&&!s.dirty){text=s.status.includes('离线模拟已保存')?s.status:'设置已保存';kind='od-saved-ok';}
  if(s.undo)actions.push('<button id="od-undo" type="button" data-action="undo">撤销跳过</button>');
  host.hidden=!text&&!actions.length;host.className='od-status '+kind;q('#od-status-text').textContent=text;
  const actionHost=q('#od-status-actions'),html=actions.join('');if(ui.actionsHost!==actionHost||ui.actionsSignature!==html){actionHost.innerHTML=html;ui.actionsHost=actionHost;ui.actionsSignature=html;}
@@ -1443,12 +1447,12 @@ function r10Checks(){
  test('R10-02',()=>{const m=fixture('normal04'),d=m.r10Decision('outro');return d.compatibility==='APPLICABLE'&&d.currentStart===2790&&d.candidateTail===90;});
  test('R10-03',()=>{const m=fixture('history'),d=m.r10Decision('outro');return d.local&&d.currentStart===2820&&m.s.base.outro.tail===90&&m.s.overrides['demo:星海航线|s1|e5|标准版 A'].outro.tail===120;});
  test('R10-04',()=>fixture('merged').r10Decision('outro').compatibility==='NOT_APPLICABLE');
- test('R10-05',()=>fixture('special').r10Decision('outro').compatibility==='NOT_APPLICABLE');
+ test('R10-05',()=>['special','preview','collection','extra'].every(n=>fixture(n).r10Decision('outro').compatibility==='NOT_APPLICABLE'));
  test('R10-06',()=>{const d=fixture('credits').r10Decision('outro');return d.compatibility==='APPLICABLE'&&d.currentStart===4800&&d.currentEnd===4890;});
- test('R10-07',()=>fixture('edition').r10Decision('outro').compatibility==='NOT_APPLICABLE');
+ test('R10-07',()=>fixture('edition').r10Decision('outro').compatibility==='NOT_APPLICABLE'&&fixture('crossSite').r10Decision('outro').compatibility==='NOT_APPLICABLE');
  test('R10-08',()=>fixture('unknown').r10Decision('outro').compatibility==='UNKNOWN');
  test('R10-09',()=>fixture('drift').r10Decision('outro').compatibility==='NEEDS_CONFIRMATION');
- test('R10-10',()=>{const m=fixture('declined'),d=m.r10Decision('outro');return d.compatibility==='APPLICABLE'&&!d.executionAllowed&&m.r10DeclineKey('outro')===m.r10DeclineKey('outro');});
+ test('R10-10',()=>{const m=fixture('declined'),d=m.r10Decision('outro');const before=m.r10.declines.size;return d.compatibility==='APPLICABLE'&&!d.executionAllowed&&d.declined&&before===1&&m.r10Reconsider('outro')&&m.r10Decision('outro').executionAllowed;});
  test('R10-11',()=>{const m=fixture('history');m.restore('outro');const ok=m.save();return ok&&m.s.base.outro.tail===90&&!m.s.overrides[m.identity()]?.outro&&m.r10.history.some(e=>e.event==='RESTORE_DEFAULT');});
  test('R10-12',()=>{const m=fixture('normal03');const id=m.identity();m.edit('outro',{tail:80});const moved=m.r10LoadFixture('normal04');return !moved&&m.identity()===id&&m.s.dirty&&m.s.transition.kind==='r10Fixture';});
  test('R10-13',()=>{const m=fixture('normal04');m.s.base.outro.enabled=false;const d=m.r10Decision('outro');return d.compatibility==='APPLICABLE'&&!d.executionAllowed&&m.s.base.autoNext===true;});
@@ -1463,7 +1467,6 @@ function r10LayoutChecks(){
   const selectors=['[data-section="intro"]','[data-section="outro"]','.od-auto','.od-window-preference'];
   const els=selectors.map(q),rects=els.map(el=>el&&el.getBoundingClientRect());
   const lefts=rects.map(r=>r&&r.left),rights=rects.map(r=>r&&r.right);
-  const maxError=Math.max(...lefts)-Math.min(...lefts,...rights.filter(Number.isFinite).map(()=>Infinity));
   const leftError=Math.max(...lefts)-Math.min(...lefts),rightError=Math.max(...rights)-Math.min(...rights);
   const side=q('#od-sidebar');
   out.push({width,leftError,rightError,noHorizontalOverflow:side.scrollWidth<=side.clientWidth+1,pass:leftError<=1&&rightError<=1&&side.scrollWidth<=side.clientWidth+1});
