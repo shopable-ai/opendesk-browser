@@ -259,7 +259,6 @@ html,body{background:#f2f5fa}
 #od-watch-preview .od-sidebar{width:min(var(--od-side-width),100%);margin:0 auto;}
 #od-watch-preview .od-preview-disclaimer{width:min(var(--od-side-width),100%);margin:8px auto 0;font:11px/1.45 -apple-system,BlinkMacSystemFont,"Segoe UI","PingFang SC",sans-serif;text-align:center;color:#7b8ca5;}
 #od-watch-preview .od-window-label{font-size:10px;white-space:nowrap;}
-#od-watch-preview .od-unset-badge{flex:none;font-size:10px;line-height:17px;border-radius:5px;padding:0 5px;border:1px solid #e0e7f2;background:#f6f8fb;color:#73839b;}
 #od-watch-preview .od-row-title{gap:5px;}
 #od-watch-preview .od-dual-track{height:35px;margin:2px 11px 0;overflow:visible;}
 #od-watch-preview .od-dual-line{position:absolute;top:18px;left:0;right:0;height:3px;background:#e0e7f1;border-radius:99px;pointer-events:none;}
@@ -278,7 +277,7 @@ html,body{background:#f2f5fa}
 #od-watch-preview .od-dual-track.od-near .od-dual-line{top:25px;}
 #od-watch-preview .od-dual-track.od-near .od-dual-range{top:10px;}
 #od-watch-preview .od-dual-track.od-inverted .od-dual-line{background:linear-gradient(90deg,#e0e7f1,#e1a5b0,#e0e7f1);}
-#od-watch-preview .od-time-field.od-suggested{background:#fbfcfe;border-style:dashed;}
+#od-watch-preview .od-time-field.od-suggested{background:#fbfcfe;border-style:solid;}
 #od-watch-preview .od-time-field.od-suggested input::placeholder{font:550 14px/1.2 ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;color:#8a97ad;}
 #od-watch-preview .od-time-field.od-auto-end input::placeholder{font:600 14px/1.2 ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;color:#7b899e;letter-spacing:0;}
 #od-watch-preview .od-endpoint-readouts label.od-time-field:focus-within{border-color:#4268dd;outline:2px solid #dbe4ff;outline-offset:1px;}
@@ -294,7 +293,6 @@ html,body{background:#f2f5fa}
 #od-watch-preview .od-dual-range.od-bound-end::-webkit-slider-thumb{border-color:#167d9e!important;background:#fff!important}
 #od-watch-preview .od-dual-range.od-bound-end::-moz-range-thumb{border-color:#167d9e!important;background:#fff!important}
 #od-watch-preview .od-time-field.od-suggested input::placeholder{opacity:.75}
-#od-watch-preview .od-unset-badge{border-color:#e1e6ef;background:#f5f7fb}
 #od-watch-preview .od-row-title{gap:6px}
 #od-watch-preview .od-identity-row>.od-work{font-variant-numeric:tabular-nums}
 #od-watch-preview .od-sr-only{position:absolute!important;width:1px!important;height:1px!important;padding:0!important;margin:-1px!important;overflow:hidden!important;clip:rect(0 0 0 0)!important;white-space:nowrap!important;border:0!important}
@@ -488,18 +486,13 @@ html,body{background:#f2f5fa}
 #od-watch-preview .od-unsaved-line[hidden]{display:none!important}
 
 
-/* R10.1: visible identity evidence, never assume title text proves a series. */
+/* R10.1: identity and cross-episode status remain informational; both time tracks share a solid rail. */
 #od-watch-preview .od-identity-row{align-items:flex-start;}
 #od-watch-preview .od-identity-info{min-width:0;width:100%;overflow-wrap:anywhere;}
 #od-watch-preview .od-identity-info .od-work{display:block;color:#263c62;font-weight:670;font-size:12.5px;line-height:1.4;}
 #od-watch-preview .od-identity-detail{margin-top:1px;font-size:10.5px;line-height:1.4;color:#6b7e97;}
 #od-watch-preview .od-identity-info[data-identity-state="hint"] .od-work{color:#795d35;}
 #od-watch-preview .od-identity-info[data-identity-state="unknown"] .od-work{color:#42536a;}
-#od-watch-preview .od-time-section[data-section="outro"][data-compatibility="NEEDS_CONFIRMATION"] .od-dual-line,
-#od-watch-preview .od-time-section[data-section="outro"][data-compatibility="UNKNOWN"] .od-dual-line,
-#od-watch-preview .od-time-section[data-section="outro"][data-compatibility="NOT_APPLICABLE"] .od-dual-line{
- background:repeating-linear-gradient(90deg,#b4c0d3 0 8px,transparent 8px 13px);
-}
 #od-watch-preview .od-time-section[data-section="outro"][data-compatibility="NEEDS_CONFIRMATION"] .od-row-title::after,
 #od-watch-preview .od-time-section[data-section="outro"][data-compatibility="UNKNOWN"] .od-row-title::after,
 #od-watch-preview .od-time-section[data-section="outro"][data-compatibility="NOT_APPLICABLE"] .od-row-title::after{
@@ -557,7 +550,6 @@ html,body{background:#f2f5fa}
 }
 #od-watch-preview button.od-time-clear:hover,#od-watch-preview button.od-time-clear:focus-visible{background:#e7eef9!important;color:#1d426e}
 #od-watch-preview button.od-time-clear[hidden]{display:none!important}
-#od-watch-preview .od-end-binding-caption{margin:3px 2px 0;color:#657892;font-size:11px;line-height:1.35}
 @media(pointer:coarse){#od-watch-preview button.od-time-clear{min-height:40px;min-width:28px}}
 </style>
 <script>
@@ -1231,12 +1223,6 @@ function clearable(key,part){
  if(followsVideoStart(key,part)||followsVideoEnd(key,part))return false;
  return String(inputValue(key,part)).trim().length>0;
 }
-function endCaptionHTML(key){
- if(key!=='outro')return '';
- const d=model.s.duration,visible=model.s.draft.outro.mode==='tail';
- return '<p class="od-end-binding-caption" id="od-end-binding-caption"'+(visible?'':' hidden')+'>'+
-  (Number.isFinite(d)?'End = 本集结尾 '+fmt(d)+' · 换集自动适配':'End 在获取时长后跟随视频结尾')+'</p>';
-}
 function timePlaceholder(key,part){if(followsVideoEnd(key,part))return 'End';const n=suggestion(key,part);return Number.isFinite(n)?fmt(n):'分:秒';}
 function parseField(key,part,text){if(key==='outro'&&part==='end'&&/^(end|结束|结尾)$/i.test(String(text).trim()))return null;return parseTime(text);}
 
@@ -1329,7 +1315,7 @@ function trackHTML(key){
 }
 function rowHTML(key){
  const r=model.s.draft[key],v=validation(),overridden=Object.prototype.hasOwnProperty.call(model.s.overrides[model.identity()]||{},key),track=trackHTML(key);
- return `<section class="od-time-section od-ui-card" data-section="${key}" data-compatibility="${key==='outro'?model.r10Decision('outro').compatibility:''}"><div class="od-row-title"><label for="od-toggle-${key}">${names[key]}</label><span class="od-unset-badge" ${model.isUnconfigured(key)?'':'hidden'}>待设置</span><span id="od-window-label-${key}" class="od-window-label">${windowLabel(key)}</span>${overridden?'<span class="od-exception">本集例外</span>':''}<label class="od-toggle-couple"><span class="od-toggle-copy">自动跳过</span><span class="od-switch"><input id="od-toggle-${key}" type="checkbox" data-toggle="${key}" ${r.enabled?'checked':''} aria-label="跳过${names[key]}"></span></label></div>${track}<div class="od-endpoint-readouts">${fieldHTML(key,'start')}${fieldHTML(key,'end')}</div>${endCaptionHTML(key)}${restoreAction(key)?`<div class="od-restore-inline">${restoreAction(key)}</div>`:''}${key==='outro'?r10MatchHTML()+'<span id="od-end-binding-help" class="od-sr-only">End 表示自动使用本视频实际结束时间。输入具体结束时间会变为指定区间；清空或填写 End 可恢复绑定；同一规则在视频时长变化时自动重新计算。这里复用已保存片尾规则，并非自动分析视频内容。</span>':''}<div id="od-error-${key}" class="od-error" ${v[key].length?'':'hidden'}>${esc(v[key][0]||'')}</div></section>`;
+ return `<section class="od-time-section od-ui-card" data-section="${key}" data-compatibility="${key==='outro'?model.r10Decision('outro').compatibility:''}"><div class="od-row-title"><label for="od-toggle-${key}">${names[key]}</label><span id="od-window-label-${key}" class="od-window-label">${windowLabel(key)}</span>${overridden?'<span class="od-exception">本集例外</span>':''}<label class="od-toggle-couple"><span class="od-toggle-copy">自动跳过</span><span class="od-switch"><input id="od-toggle-${key}" type="checkbox" data-toggle="${key}" ${r.enabled?'checked':''} aria-label="跳过${names[key]}"></span></label></div>${track}<div class="od-endpoint-readouts">${fieldHTML(key,'start')}${fieldHTML(key,'end')}</div>${restoreAction(key)?`<div class="od-restore-inline">${restoreAction(key)}</div>`:''}${key==='outro'?r10MatchHTML()+'<span id="od-end-binding-help" class="od-sr-only">End 表示自动使用本视频实际结束时间。输入具体结束时间会变为指定区间；清空或填写 End 可恢复绑定；同一规则在视频时长变化时自动重新计算。这里复用已保存片尾规则，并非自动分析视频内容。</span>':''}<div id="od-error-${key}" class="od-error" ${v[key].length?'':'hidden'}>${esc(v[key][0]||'')}</div></section>`;
 }
 function restoreAction(key){
  const s=model.s,o=s.overrides[model.identity()]||{};
@@ -1508,10 +1494,6 @@ function syncRow(key,origin){
  if(track){track.classList.toggle('od-near',Number.isFinite(x)&&Number.isFinite(y)&&Math.abs(pct(x)-pct(y))<9);track.classList.toggle('od-inverted',Number.isFinite(a)&&Number.isFinite(b)&&a>=b);}
  const windowTag=q('#od-window-label-'+key);if(windowTag)windowTag.textContent=windowLabel(key);
  const label=q('#od-label-'+key+'-end');if(label)label.textContent=endpointLabel(key,'end');
- const endHint=key==='outro'&&q('#od-end-binding-caption');
- if(endHint){endHint.hidden=model.s.draft.outro.mode!=='tail';endHint.textContent=Number.isFinite(model.s.duration)?
-  'End = 本集结尾 '+fmt(model.s.duration)+' · 换集自动适配':'End 在获取时长后跟随视频结尾';}
- const section=q('[data-section="'+key+'"]'),badge=section&&section.querySelector('.od-unset-badge');if(badge)badge.hidden=!model.isUnconfigured(key);
  const toggle=q('#od-toggle-'+key);if(toggle)toggle.checked=model.s.draft[key].enabled;
  syncErrors();syncSelection();syncSave();if(key==='outro')syncTailMatch();
 }
