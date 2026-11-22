@@ -427,7 +427,13 @@ html,body{background:#f2f5fa}
   width:13px;height:13px;border-radius:50%;background:#416cda;border:2px solid #fff;
   box-shadow:0 0 0 1px #6b8de8,0 1px 3px #193b7c44;
 }
-#od-watch-preview #od-window-range:focus-visible{outline:2px solid #8facf3;outline-offset:2px;border-radius:5px}
+#od-watch-preview #od-window-range:focus-visible{outline:none}
+#od-watch-preview #od-window-range:focus-visible::-webkit-slider-thumb{
+  box-shadow:0 0 0 3px #e6efff,0 0 0 5px #6f90e2;
+}
+#od-watch-preview #od-window-range:focus-visible::-moz-range-thumb{
+  box-shadow:0 0 0 3px #e6efff,0 0 0 5px #6f90e2;
+}
 #od-watch-preview .od-viewport-ticks{
   display:flex;justify-content:space-between;gap:0;margin:0 1px;
   color:#7f8da2;font-size:10px;line-height:1.25;font-variant-numeric:tabular-nums;
