@@ -1,9 +1,9 @@
 {
   "format": "opendesk.sidebar-tool.v2",
-  "id": "job-assistant",
+  "id": "job-auto-apply",
   "version": "0.1.0",
-  "title": "AI 求职助手",
-  "description": "在授权的 BOSS 职位列表中发现岗位、解释匹配、保存待审清单及准备沟通草稿；不自动发送。",
+  "title": "AI Job Auto Apply",
+  "description": "AI 自动求职：BOSS直聘职位扫描、岗位匹配、待审清单和沟通草稿。自动投递功能开发中，当前不会自动发送。",
   "capabilities": [
     "page.module",
     "storage.local",

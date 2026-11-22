@@ -1,12 +1,12 @@
 {
-  "name": "@opendesk-apps/job-assistant",
+  "name": "@opendesk-apps/job-auto-apply",
   "version": "0.1.0",
   "private": true,
   "type": "module",
-  "description": "AI 求职助手的同包、只读 BOSS 职位发现 Page 模块",
+  "description": "AI Job Auto Apply 的同包、只读 BOSS 职位发现 Page 模块",
   "opendesk": {
     "format": "opendesk.project.v1",
-    "id": "app.job-assistant",
+    "id": "app.job-auto-apply",
     "runtimeKind": "page-userscript",
     "sourceFormat": "esm",
     "entry": "src/page/main.js",

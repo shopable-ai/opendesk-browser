@@ -43,7 +43,7 @@ function scan(limit=60){
 }
 export default async function main(){
   if(window.top!==window)return {state:'skipped_frame'};
-  const owner=createPageUI({id:'app.job-assistant',baseStyles:false});
+  const owner=createPageUI({id:'app.job-auto-apply',baseStyles:false});
   owner.host.style.setProperty('display','none','important');
   let disposed=false,off=null;
   const close=()=>{disposed=true;try{off?.();}catch{/* only our own listener */}};

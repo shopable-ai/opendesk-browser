@@ -1,6 +1,14 @@
-# AI 求职助手 · 需求与验收 R1
+# AI Job Auto Apply · 需求与验收（R1 / 命名 R2）
 
-任务 ID：OD-JOB-ASSISTANT-OPEN-SOURCE-MVP-R1。身份：OpenDesk Browser main / projects/job-assistant/。
+原始实现任务：OD-JOB-ASSISTANT-OPEN-SOURCE-MVP-R1；本次改名任务：OD-JOB-AUTO-APPLY-NAMING-R2。身份：OpenDesk Browser main / projects/job-auto-apply/。
+
+## R2 名称、搜索意图与交付真实性
+
+产品英文名 `AI Job Auto Apply`；中文名“AI 自动求职”；唯一工具 ID `job-auto-apply`；页面模块 ID `app.job-auto-apply`；项目目录 `projects/job-auto-apply/`。原 R1 名称 `job-assistant` 作为 Git 历史，不保留第二个实体或安装包。
+
+选择依据：`Job Auto Apply` 对应用途和搜索意图更直接；`AI` 表示计划中的智能匹配能力；`AutoJob` 更短但语义稍泛。名称选择是产品判断，不是实测 SEO 排名或用户行为研究。内部搜索的别名仅在真实检索机制支持后接入；此阶段不为 SEO 直接改宿主。
+
+当前版本仍为 **SOURCE_WIRED、NOT_INSTALLED、NOT_CHROME_TESTED**。所有功能介绍必须区分现在可做的只读扫描和人工草稿，与后续规划的真实自动投递/AI/多平台。不要制造虚假投递回执、把规则评分说成 AI 或宣称已完成自动发送。
 
 ## 原始目标与边界
 
@@ -24,7 +32,7 @@
 ## 技术与安全决策
 
 - Type：Combined Application。Sidebar Tool (opaque origin) + 应用内 page.module (USER_SCRIPT)；两者仅用批准的 page.request 跨界，不新建第二套 Host/Worker。
-- 当前平台匹配路径：https://www.zhipin.com/*；网页内额外要求 /web/geek/job 前缀；不访问简历、聊天和账号设置。
+- 当前安装匹配路径：https://www.zhipin.com/web/geek/job*；网页内额外要求 /web/geek/job 前缀；不访问简历、聊天和账号设置。
 - 页面模块只读当前 DOM；不使用 fetch/XHR 劫持、隐藏接口、验证码绕过、Cookie 或密码采集；不模拟发送或随机隐藏自动化行为。
 - 规则匹配当前是确定性启发式；薪资解析仅支持 K 的显式区间，不作单位混合推断。未知薪资/缺少稳定 ID 不应当被视为已验证。
 - 本地只存偏好与最多 24 条待审职位摘要，不存账户凭证、聊天记录或完整简历。单键 8 KiB、总 32 KiB；CAS 冲突/未知写入必须停下核对。
