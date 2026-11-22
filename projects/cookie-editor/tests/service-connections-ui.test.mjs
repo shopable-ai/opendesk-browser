@@ -62,6 +62,17 @@ test('sandbox review buttons save configuration, rename and review an associatio
   assert.ok(association.button('保存待连接关联'));assert.deepEqual(association.calls,[]);
 });
 
+test('unverified page withdraws the local account review without removing the service',async()=>{
+  const h=mount();startAssociation(h);await h.submit();
+  const approve=h.button('保存待连接关联').props.onClick;
+  h.update({pageVerified:false});
+  assert.doesNotMatch(text(h.tree),/acct_1|同名账号|保存待连接关联/);
+  assert.match(text(h.tree),/公司服务/);
+  await approve();h.update({pageVerified:true});await approve();h.render();
+  assert.doesNotMatch(text(h.tree),/保存待连接关联/);
+  assert.deepEqual(h.calls,[]);
+});
+
 test('unavailable production capabilities disclose real states and terminal entry, with inert management',()=>{
   const h=mount({state:{revision:7,connections:[connection,{...connection,id:'c2',label:'断开服务',status:'DISCONNECTED'},
     {...connection,id:'c3',label:'过期服务',status:'INVALIDATED',reasonCode:'E_REVOKED'}],associations:[]}});

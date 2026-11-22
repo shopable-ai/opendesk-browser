@@ -3,16 +3,17 @@
 const sdk=globalThis.OpenDeskTool;
 if(!sdk?.root||typeof sdk.request!=='function')return;
 const {root,request}=sdk,$=id=>root.querySelector('#'+id);
-const list=$('vd-list'),detect=$('vd-detect'),stop=$('vd-stop');
+const list=$('vd-list'),detect=$('vd-detect'),stop=$('vd-stop'),check=$('vd-check');
 const initialInfo=$('vd-info').textContent;
 const finished=new Set(['complete','complete_unverified','cancelled','interrupted']);
-let phase='idle',taskId=null,jobEpoch=0,scanEpoch=0,closed=false,timer=null,scanning=false,stopWanted=false,controls=[];
+let phase='idle',taskId=null,candidateRef=null,jobEpoch=0,scanEpoch=0,readEpoch=0,closed=false,timer=null,scanning=false,checking=false,stopWanted=false,detached=false,controls=[];
 const active=()=>phase!=='idle'&&!finished.has(phase);
 function message(value,error=false){$('vd-message').textContent=value;$('vd-message').dataset.error=String(error);}
 function refreshControls(){
  detect.disabled=scanning||active();
  for(const {button,select,ready} of controls){button.disabled=!ready||scanning||active();if(select)select.disabled=scanning||active();}
- stop.disabled=!active()||phase==='cancel_requested';
+ stop.disabled=!active()||phase==='unknown'||phase==='cancel_requested'||stopWanted||detached;
+ check.hidden=phase!=='unknown';check.disabled=checking||!(taskId||candidateRef);
 }
 function label(state){
  return {starting:'正在启动',segments:'下载分段',assembling:'正在合并',remuxing:'正在封装 MP4',saving:'正在保存',started:'已启动',in_progress:'下载中',cancel_requested:'停止中',
@@ -45,20 +46,28 @@ function status(data){
  if(finished.has(phase)||phase==='unknown')clearPoll();
 }
 function resetJob(){
- ++jobEpoch;clearPoll();taskId=null;phase='idle';stopWanted=false;
+ ++jobEpoch;++readEpoch;clearPoll();taskId=null;candidateRef=null;phase='idle';stopWanted=false;detached=false;checking=false;
  $('vd-state').textContent='未开始';$('vd-progress').value=0;$('vd-info').textContent=initialInfo;
 }
 function clearPoll(){if(timer!==null){clearTimeout(timer);timer=null;}}
+const canRead=()=>Boolean(taskId||candidateRef);
+async function readStatus(){
+ if(closed||checking||!canRead())return;
+ const current=jobEpoch,reading=++readEpoch;
+ const live=()=>!closed&&current===jobEpoch&&reading===readEpoch;
+ checking=true;refreshControls();
+ try{
+  const data=await request('media.status',taskId?{taskId}:{candidateId:candidateRef});
+  if(live()){
+   if(typeof data.taskId==='string')taskId=data.taskId;
+   status(data);if(active()&&phase!=='unknown')poll();
+  }
+ }catch(error){if(live()){status({state:'unknown'});message('状态不可确认：'+String(error?.message||error).slice(0,120),true);}}
+ finally{if(live()){checking=false;refreshControls();}}
+}
 function poll(){
- clearPoll();if(closed||!taskId)return;
- const current=jobEpoch,id=taskId;
- timer=setTimeout(async()=>{
-  if(closed||current!==jobEpoch)return;
-  try{
-   const data=await request('media.status',{taskId:id});
-   if(!closed&&current===jobEpoch){status(data);if(!finished.has(phase)&&phase!=='unknown')poll();}
-  }catch(error){if(!closed&&current===jobEpoch){status({state:'unknown'});message('状态不可确认：'+String(error?.message||error).slice(0,120),true);}}
- },800);
+ clearPoll();if(closed||!canRead())return;
+ timer=setTimeout(readStatus,800);
 }
 function describe(item){
  if(item.hls){
@@ -116,18 +125,18 @@ async function scan(){
 }
 async function start(candidateId,variantId){
  if(closed||scanning||active())return;
- const current=++jobEpoch;taskId=null;stopWanted=false;
+ const current=++jobEpoch;taskId=null;candidateRef=candidateId;stopWanted=false;detached=false;
  status({state:'starting'});message('正在启动下载…');
  try{
   const receipt=await request('media.start',{candidateId,...(variantId?{variantId}:{})});
   if(closed||current!==jobEpoch)return;
   if(typeof receipt?.taskId!=='string'||!receipt.taskId)throw Error('未返回可核对的下载任务');
   taskId=receipt.taskId;
-  if(!stopWanted){status(receipt);if(!finished.has(phase)&&phase!=='unknown')message(receipt.state==='segments'?'正在下载所选清晰度的完整分段。':'已提交 Chrome，正在核对下载记录。');}
-  if(!finished.has(phase))poll();
+  if(!stopWanted&&!detached){status(receipt);if(!finished.has(phase)&&phase!=='unknown')message(receipt.state==='segments'?'正在下载所选清晰度的完整分段。':'已提交 Chrome，正在核对下载记录。');}
+  if(active()&&phase!=='unknown')poll();
  }catch(error){
   if(!closed&&current===jobEpoch){
-   const known=typeof error?.code==='string'&&error.code.startsWith('E_')&&error.code!=='E_OUTCOME_UNKNOWN';
+   const known=['E_SCHEMA','E_MEDIA_BUSY','E_MEDIA_STALE','E_MEDIA_TARGET','E_MEDIA_TRUST','E_MEDIA_PERMISSION','E_MEDIA_UNAVAILABLE','E_MEDIA_CAPABILITY','E_MEDIA_UNSUPPORTED','E_DOCUMENT_STALE'].includes(error?.code);
    if(stopWanted&&taskId){poll();return;}
    status({state:stopWanted&&known?'cancelled':known?'interrupted':'unknown',error:error.code});
    message((known?'下载未启动：':'启动结果未确认：')+String(error?.message||error).slice(0,140),true);
@@ -135,19 +144,24 @@ async function start(candidateId,variantId){
  }
 }
 async function stopDownload(){
- if(closed||!active()||phase==='cancel_requested')return;
- const current=jobEpoch;stopWanted=true;status({state:'cancel_requested'});
+ if(closed||stop.disabled)return;
+ const current=jobEpoch;stopWanted=true;++readEpoch;checking=false;clearPoll();status({state:'cancel_requested'});
  try{
   const result=await request('media.stop',taskId?{taskId}:{});
   if(closed||current!==jobEpoch)return;
   if(typeof result.taskId==='string')taskId=result.taskId;
-  status({state:result.state||'cancel_requested'});if(taskId&&!finished.has(phase)&&phase!=='unknown')poll();
+  status(result);if(active()&&phase!=='unknown')poll();
  }catch(error){if(!closed&&current===jobEpoch){status({state:'unknown'});message('停止回执未知：'+String(error?.message||error).slice(0,130),true);}}
 }
 detect.addEventListener('click',()=>void scan());
 stop.addEventListener('click',()=>void stopDownload());
-root.addEventListener('opendesk-page-changed',()=>{++scanEpoch;resetJob();scanning=false;controls=[];
- list.replaceChildren();refreshControls();message('网页已切换，旧媒体候选及任务已失效。');});
+check.addEventListener('click',()=>void readStatus());
+root.addEventListener('opendesk-page-changed',()=>{
+ ++scanEpoch;scanning=false;controls=[];list.replaceChildren();detached=phase!=='idle';
+ if(phase==='idle')message('网页已切换，请重新检测当前网页的媒体。');
+ else if(active()&&phase!=='unknown')poll();
+ refreshControls();
+});
 window.addEventListener('pagehide',()=>{closed=true;++scanEpoch;++jobEpoch;clearPoll();},{once:true});
 // Opening the installed UI is enough to reveal candidates; saving still needs a click.
 void scan();

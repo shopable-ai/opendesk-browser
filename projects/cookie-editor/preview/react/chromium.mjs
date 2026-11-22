@@ -767,14 +767,14 @@ await test('export floats above the list, uses two tabs and closes on outside fo
   await scene('valuesDenied');await ready();
   await button('导出 Cookie').click();await popup.waitFor();
   await popup.getByRole('button',{name:'复制'}).click();
-  await popup.getByRole('alert').filter({hasText:/E_COOKIE_VALUES/}).waitFor();await reset();
+  await popup.getByRole('alert').filter({hasText:/未取得完整 Cookie 值/}).waitFor();await reset();
  });
  await test('one-shot export failure remains in the popover and manual retry succeeds',async()=>{
   await page.getByTestId('failure').selectOption('copy');
   await button('导出 Cookie').click();
   const popup=page.getByRole('dialog',{name:'导出 Cookie'});await popup.waitFor();
   await popup.getByRole('button',{name:'复制'}).click();
-  await popup.getByRole('alert').filter({hasText:/E_CLIPBOARD/}).waitFor();
+  await popup.getByRole('alert').filter({hasText:/无法写入剪贴板；请检查剪贴板权限，或改用下载/}).waitFor();
   assert.equal(await page.locator('.cookie-row').count(),8);
   await popup.getByRole('button',{name:'复制'}).click();await ready();
   await popup.waitFor({state:'detached'});

@@ -5,7 +5,7 @@ import {fileURLToPath} from 'node:url';
 import {defineConfig} from 'vite';
 
 const root = fileURLToPath(new URL('.', import.meta.url));
-const sources = ['src/index.html', 'src/style.css', 'src/main.js', 'src/rules.js', 'vite.config.mjs'];
+const sources = ['src/index.html', 'src/style.css', 'src/main.js', 'src/rules.js', 'src/editor.js', 'src/time-track.js', 'vite.config.mjs'];
 const files = ['src/style.css', 'dist/tool.js'];
 const fingerprints = async names => Object.fromEntries(await Promise.all(names.map(async name => {
   const bytes = await readFile(join(root, name));

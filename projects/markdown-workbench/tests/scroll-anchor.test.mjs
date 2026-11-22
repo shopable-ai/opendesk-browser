@@ -6,7 +6,7 @@ import {parseHTML} from 'linkedom';
 
 const source=await readFile(new URL('../src/main.js',import.meta.url),'utf8');
 const html=await readFile(new URL('../src/index.html',import.meta.url),'utf8');
-function fixture(){
+function fixture({download,clipboard}={}){
  const {document}=parseHTML('<html><body><div id="tool-root">'+html+'</div></body></html>');
  const root=document.querySelector('#tool-root'),editor=root.querySelector('#mdw-source');
  const geometry={width:380,height:200,extent:6044,top:0};
@@ -21,14 +21,16 @@ function fixture(){
  });
  Object.defineProperty(document,'activeElement',{get:()=>active});
  editor.focus=()=>{active=editor;};
+ const states=[];
  runInNewContext(source,{document,TextEncoder,URL,
-  OpenDeskTool:{root,request:async()=>{}},
+  OpenDeskTool:{root,setState:state=>states.push({...state})},
+  OpenDeskSDK:{browser:{downloads:{text:download},clipboard:{writeText:clipboard}}},
   ResizeObserver:class {constructor(fn){callback=fn;}observe(){}disconnect(){disconnected=true;}},
   addEventListener:(type,fn)=>events.set(type,fn),
   setTimeout:()=>{pendingTimer=true;return 1;},clearTimeout:()=>{pendingTimer=false;}
  });
  editor.value='x'.repeat(4342);
- return {editor,root,emit,geometry,
+ return {editor,root,emit,geometry,states,
   bottom(){editor.scrollTop=geometry.extent;},
   resize(width,height,extent,nativeTop=geometry.top){
    Object.assign(geometry,{width,height,extent,top:nativeTop});
@@ -39,6 +41,33 @@ function fixture(){
   get disconnected(){return disconnected;},get pendingTimer(){return pendingTimer;}
  };
 }
+
+test('dirty guard survives an unknown download and blocks reissuing it',async()=>{
+ let reject,calls=0;
+ const f=fixture({download:()=>{calls++;return new Promise((_,no)=>{reject=no;});}});
+ const button=f.root.querySelector('#mdw-download');
+ f.emit('input');assert.deepEqual(f.states.at(-1),{dirty:true,busy:false});
+ button.click();button.click();
+ assert.equal(calls,1);assert.deepEqual(f.states.at(-1),{dirty:true,busy:true});
+ reject(Object.assign(Error('timeout'),{code:'E_OUTCOME_UNKNOWN'}));
+ await new Promise(resolve=>setImmediate(resolve));
+ assert.equal(button.disabled,true);button.click();assert.equal(calls,1);
+ assert.deepEqual(f.states.at(-1),{dirty:true,busy:false});
+ assert.match(f.root.querySelector('#mdw-status').textContent,/下载结果未知/);
+ assert.equal(f.editor.value.length,4342);
+});
+
+test('a late clipboard failure cannot select or override a newer draft',async()=>{
+ let reject;
+ const f=fixture({clipboard:()=>new Promise((_,no)=>{reject=no;})});
+ f.root.querySelector('#mdw-copy').click();
+ f.editor.value='new draft';f.emit('input');
+ reject(Error('clipboard unavailable'));
+ await new Promise(resolve=>setImmediate(resolve));
+ assert.equal(f.editor.value,'new draft');
+ assert.equal(f.editor.selectionStart,4342);
+ assert.match(f.root.querySelector('#mdw-status').textContent,/有未保存/);
+});
 
 test('combined zoom and splitter reflow keeps an existing end anchor without changing draft or selection',()=>{
  const f=fixture();f.bottom();

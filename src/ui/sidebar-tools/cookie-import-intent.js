@@ -44,10 +44,10 @@ export function createCookieImportIntentGate({now=()=>Date.now()}={}){
         intent=null;throw denied('E_LIMIT','本次最多导入 1000 条 Cookie');
       }
       intent.inFlight=true;
-      return true;
+      return intent.ref;
     },
-    settle({owner,count,confirmed}){
-      if(!intent||intent.owner!==owner)return;
+    settle({owner,ref,count,confirmed}){
+      if(!intent||intent.owner!==owner||intent.ref!==ref)return;
       if(confirmed!==true||!intent.inFlight){intent=null;return;}
       intent.used+=count;
       if(intent.used>=COOKIE_IMPORT_INTENT_LIMIT)intent=null;

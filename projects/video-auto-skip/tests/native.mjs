@@ -10,6 +10,7 @@ import {fileURLToPath} from 'node:url';
 import {developmentChromeArgs} from '../../../scripts/dev-chrome-config.mjs';
 import {attach, click, connect, nativeSelectToolPackage, nativeText, queryExpression as q, read, sha256, sleep, visible} from '../../../tests/native/dynamic-app-r14-helper.mjs';
 import {clips, prefix, route, startFixture} from './fixtures/server.mjs';
+import {runNativeR9} from './native-r9.mjs';
 import {serializeSidebarToolPackage} from '../../../src/ui/sidebar-tools/package.js';
 
 const exec = promisify(execFile), j = JSON.stringify;
@@ -114,13 +115,12 @@ async function verifyFixture() {
 }
 
 // Keep the app locator contract independent of the OpenDesk host locators.
-const ruleLabel = {intro: '跳过片头', outro: '跳过片尾', next: '自动下一集'};
 const ui = {
   status: '#vas-context', feedback: '#vas-feedback', scope: '#vas-scope',
   save: '#vas-save', cancel: '#vas-cancel', undo: '#vas-undo', refresh: '#vas-refresh',
   choice: name => '#vas-rule-' + name,
-  mode: name => '#vas-mode-' + name,
-  edit: name => 'button[aria-controls="vas-editor-' + name + '"]',
+  restore: name => '#vas-restore-' + name,
+  calibrate: name => '#vas-calibrate-' + name,
   field: (name, end) => '#vas-' + name + '-' + end,
   slider: (name, end) => '#vas-' + name + '-' + end + '-slider',
   summary: name => '#vas-summary-' + name,
@@ -178,6 +178,7 @@ async function native(values) {
   });
   await c.ready;
   report.chrome = (await c.send('Browser.getVersion')).product;
+  report.extensionSource = await realpath(dist);
   assert.equal(report.chrome, 'Chrome/' + version.split(' ').at(-1));
   const targets = async filter => (await c.send('Target.getTargets', filter ? {filter} : {})).targetInfos;
   const worker = await wait(async () => {
@@ -280,13 +281,17 @@ async function native(values) {
       }
       return false;
     });
-    await wait(() => visible(c, frame, ui.status));
+    await wait(() => visible(c, frame, values.segment === 'sidebar-status' ? '#vas-page-status' : ui.status));
   }
   const appRead = expression => read(c, frame, expression);
   await check('native-side-panel', async () => {
-    await wait(async () => {const v = await media(); return v?.ready >= 2 && v.paused && v.duration === clips.one;});
+    await wait(async () => {const v = await media(); return v?.ready >= 2 && v.paused && v.duration === (values.segment === 'r9' ? 2700 : clips.one);});
     await wait(() => runtime('chrome.sidePanel.getPanelBehavior().then(x=>x.openPanelOnActionClick)'));
     await openPanel();
+    if (values.segment === 'r9' && await shown('#tab-debug')) {
+      await shell('#tab-debug');
+      report.developmentService = await read(c, side, '(()=>{const status=document.querySelector("#opendesk-development-status");return status&&{text:status.textContent,detail:status.title}})()');
+    }
   });
   if (values.mode !== 'installed') {
     try { await check('developer-entry', async () => {
@@ -368,6 +373,12 @@ async function native(values) {
     await shell('[data-extension-key="app:' + id + '"][data-extension-action="main"]');
     await currentFrame();
   }
+  if (values.segment === 'sidebar-status') {
+    await openApp();
+    await sidebarStatusChecks({c, page, pageRead, appRead, media, side, frame, contexts,
+      firstUrl: url(1), secondUrl: url(2), loads: episode => fixture.episodeLoads(episode, 'primary')});
+    return;
+  }
   async function revokeChromeSiteAccess() {
     const permission = siteAllowed;
     assert.equal(await permission(), true);
@@ -423,10 +434,102 @@ async function native(values) {
     const v = await wait(async () => {const m = await media(); return m?.episode === 1 && m.line === 'primary' && m.paused && m.ready >= 2 && m;});
     return {episode: v.episode, line: v.line, duration: v.duration};
   });
+  if (values.segment === 'r9') {
+    await runNativeR9({c, page, media, appRead, openApp, closePanel, openPanel, contexts, report, check, wait,
+      side: () => side, frame: () => frame, output: values.screenshots, baseline: values.baseline,
+      nextUrl: url(2), verifyInstalled, key});
+    return;
+  }
   if (!values['install-only']) await playbackChecks({page, media, pageRead, appRead, openApp, closePanel, openPanel,
     expectedTarget: url(2, 'primary'),
     verifyInstalled, revokeChromeSiteAccess, episodeLoads: () => fixture.episodeLoads(2, 'primary'),
     side: () => side, frame: () => frame, scope: values.segment});
+}
+
+async function sidebarStatusChecks({c, page, pageRead, appRead, media, side, frame, contexts, firstUrl, secondUrl, loads}) {
+  const panelDocument = (await contexts())[0].documentId;
+  const state = () => appRead(`(()=>{
+    const el = name => document.querySelector('#vas-' + name);
+    return {status:el('page-status').textContent, work:el('work').textContent, context:el('context').textContent,
+      visible:el('settings').getBoundingClientRect().height > 0, editDisabled:el('scope').disabled,
+      saveDisabled:el('save').disabled, previewDisabled:el('preview-intro').disabled,
+      introEnd:el('intro-end').value, draft:!el('cancel').hidden, feedback:el('feedback').textContent};
+  })()`);
+  const observe = test => wait(async () => {
+    const seen = report.lastSidebarState = await state();
+    return test(seen) && seen;
+  });
+  const connected = seen => seen.status.startsWith('播放器已连接') && seen.visible && !seen.editDisabled;
+  const episode = (seen, number) => seen.work === 'Local Series' && seen.context.split(' · ')[1] === String(number);
+  const loader = async () => (await c.send('Page.getFrameTree', {}, page.session)).frameTree.frame;
+  const samePanel = async () => assert.equal((await contexts())[0].documentId, panelDocument);
+  const editIntro = async value => {
+    await nativeText(c, frame, ui.field('intro', 'end'), value, side);
+    await key(side, 'Enter', 13);
+    return observe(s => s.draft && !s.saveDisabled && s.introEnd === value);
+  };
+  await check('first-install-on-open-player', async () => {
+    assert.equal(report.installSubmission, 'CONFIRMED');
+    const before = await loader(), visits = loads(1);
+    assert.equal(before.url, firstUrl);
+    assert.equal(visits, 1);
+    const initial = await observe(s => connected(s) || s.status.includes('刷新当前播放页'));
+    report.firstInstallInitial = initial;
+    assert.ok(initial.visible);
+    if (!connected(initial)) {
+      assert.ok(initial.editDisabled && initial.saveDisabled);
+      await c.send('Page.reload', {}, page.session);
+      await wait(async () => (await loader()).loaderId !== before.loaderId && (await media())?.ready >= 2);
+    }
+    const after = await observe(s => connected(s) && episode(s, 1));
+    assert.equal((await loader()).url, firstUrl);
+    assert.equal(loads(1) - visits, Number(!connected(initial)));
+    await samePanel();
+    return {initial, after, reloads: loads(1) - visits, sidebarRemainedOpen: true};
+  });
+  await check('scroll-playback-offscreen', async () => {
+    const viewport = () => pageRead(`(()=>{const r=document.querySelector('video[data-od-feature]').getBoundingClientRect();
+      return {top:r.top,bottom:r.bottom,scrollY,viewport:innerHeight};})()`);
+    const before = await viewport();
+    assert.ok(before.bottom > 0 && before.top < before.viewport);
+    await pageRead('document.body.style.minHeight="250vh"; true');
+    await click(c, page.session, '#fixture-play');
+    await c.send('Input.dispatchMouseEvent', {type: 'mouseWheel', x: 620, y: 400, deltaX: 0, deltaY: 650}, page.session);
+    const offscreen = await wait(async () => {const v = await viewport(); return v.bottom <= 0 && v.scrollY > 0 && v;});
+    await observe(s => connected(s) && s.status.includes('视频在屏幕外'));
+    await click(c, frame, ui.choice('intro'), side);
+    const edited = await editIntro('00:30');
+    const playing = await wait(async () => {const v = await media(); return !v?.paused && v?.time > 0.2 && v;});
+    return {before, offscreen, edited, playbackSeconds: playing.time};
+  });
+  await check('temporary-detection-loss-keeps-draft', async () => {
+    const before = await state();
+    assert.ok(before.draft && !before.previewDisabled);
+    await pageRead('document.querySelector("video[data-od-feature]").hidden=true; true');
+    const missing = await observe(s => s.status.includes('等待正片识别'));
+    assert.ok(missing.visible && missing.draft && missing.saveDisabled && missing.previewDisabled && missing.editDisabled);
+    assert.equal(missing.work, before.work);
+    assert.equal(missing.context, before.context);
+    assert.equal(missing.introEnd, before.introEnd);
+    await pageRead('document.querySelector("video[data-od-feature]").hidden=false; true');
+    const recovered = await observe(connected);
+    report.recoveryObservation = recovered;
+    assert.equal(recovered.introEnd, before.introEnd, 'same player must recover the pending draft');
+    assert.ok(recovered.draft && !recovered.saveDisabled && !recovered.previewDisabled);
+    return {missing, recovered, editedAgain: await editIntro('00:35')};
+  });
+  await check('different-episode-does-not-reuse-draft', async () => {
+    const before = await loader();
+    const link = 'a[data-od-episode="2"][data-od-line="primary"]';
+    await pageRead('document.querySelector(' + j(link) + ').scrollIntoView({block:"center"}); true');
+    await click(c, page.session, link);
+    await wait(async () => {const current = await loader(); return current.url === secondUrl && current.loaderId !== before.loaderId;});
+    const after = await observe(s => connected(s) && episode(s, 2));
+    assert.ok(!after.draft && after.saveDisabled && after.introEnd === '');
+    assert.equal(loads(2), 1);
+    await samePanel();
+    return {after, sidebarRemainedOpen: true, secondEpisodeLoads: loads(2)};
+  });
 }
 
 async function playbackChecks({page, media, pageRead, appRead, openApp, closePanel, openPanel, expectedTarget,
@@ -435,69 +538,53 @@ async function playbackChecks({page, media, pageRead, appRead, openApp, closePan
   const player = selector => click(client, page.session, selector);
   const set = (selector, value) => nativeText(client, frame(), selector, String(value), side());
   const readValue = selector => appRead('(' + q(selector) + ')?.value');
-  const dragRange = async selector => {
-    // Put the real editor in view before calculating the thumb and frame bounds.
-    await tap(selector);
-    const track = await appRead('(()=>{const n=(' + q(selector) + '),r=n.getBoundingClientRect();return {left:r.left,right:r.right,y:r.y+r.height/2}})()');
+  const attr = (selector, name) => appRead('(' + q(selector) + ')?.getAttribute(' + j(name) + ')');
+  const scopeValue = () => attr(ui.scope, 'data-scope');
+  const checked = name => appRead('(' + q(ui.choice(name)) + ')?.checked');
+  const toggle = async (name, enabled) => {
+    if (await checked(name) !== enabled) await tap(ui.choice(name));
+    assert.equal(await checked(name), enabled);
+  };
+  const switchTo = async wanted => {
+    if (await scopeValue() !== wanted) await tap(ui.scope);
+    await wait(async () => await scopeValue() === wanted);
+  };
+  const summary = name => appRead('(' + q(ui.summary(name)) + ').textContent');
+  const calibrate = async name => {
+    if (!await appRead('(' + q(ui.calibrate(name)) + ').parentElement.open')) await tap(ui.calibrate(name));
+  };
+  const sliderValue = async selector => Number(await attr(selector, 'aria-valuenow'));
+  const dragHandle = async (selector, direction) => {
+    await appRead('(' + q(selector) + ').scrollIntoView({block:"center"})');
+    const track = await appRead('(()=>{const n=(' + q(selector) + '),r=n.getBoundingClientRect();' +
+      'const x=r.x+r.width/2,y=r.y+r.height/2;return {x,y,width:n.ownerSVGElement.getBoundingClientRect().width,hit:n.contains(document.elementFromPoint(x,y))};})()');
     const frameBox = await read(client, side(), '(()=>{const f=document.querySelector("#sidebar-tool-frame iframe"),r=f.getBoundingClientRect();return {x:r.x,y:r.y,width:innerWidth,height:innerHeight}})()');
     const y = track.y + frameBox.y;
-    const from = (track.left + track.right) / 2 + frameBox.x;
-    const to = from + (track.right - track.left) / 5;
-    assert.ok(y > 0 && y < frameBox.height && from > 0 && to < frameBox.width);
+    const from = track.x + frameBox.x, to = from + direction * track.width / 10;
+    assert.ok(track.hit && y > 0 && y < frameBox.height && Math.min(from, to) > 0 && Math.max(from, to) < frameBox.width);
     assert.equal(await read(client, side(), 'document.elementFromPoint(' + from + ',' + y + ')===document.querySelector("#sidebar-tool-frame iframe")'), true);
-    const before = await readValue(selector);
+    const before = await sliderValue(selector);
     await client.send('Input.dispatchMouseEvent', {type: 'mousePressed', x: from, y, button: 'left', buttons: 1, clickCount: 1}, side());
     for (let step = 1; step <= 4; step++) {
       const x = from + (to - from) * step / 4;
       await client.send('Input.dispatchMouseEvent', {type: 'mouseMoved', x, y, button: 'left', buttons: 1}, side());
     }
     await client.send('Input.dispatchMouseEvent', {type: 'mouseReleased', x: to, y, button: 'left', buttons: 0, clickCount: 1}, side());
-    assert.notEqual(await readValue(selector), before);
+    assert.ok((await sliderValue(selector) - before) * direction > 0, 'pointer moves the focused endpoint');
   };
-  const lastSelection = new Map();
-  const select = async (selector, wanted, expected = wanted) => {
-    // Type the first (unique) character into the closed native select, so no Mac popup or
-    // global keyboard focus is needed. Observe a browser-generated input on the exact control.
-    const previous = await readValue(selector);
-    if (previous === wanted) return previous;
-    const delay = 1100 - (performance.now() - (lastSelection.get(selector) ?? -Infinity));
-    if (delay > 0) await sleep(delay, undefined, {signal: abort.signal});
-    const sandbox = frame(), panel = side();
-    const character = await appRead('(()=>{const e=(' + q(selector) + '),o=e?.options,b=[...o??[]].find(x=>x.value===' + j(wanted) +
-      '),first=[...b?.textContent.trim()??""][0];if(!first||e.disabled||!e.getClientRects().length||' +
-      '[...o].filter(x=>x.textContent.trim().startsWith(first)).length!==1)return null;' +
-      'delete e.dataset.testTrustedChoice;e.addEventListener("input",event=>{if(event.isTrusted)e.dataset.testTrustedChoice=e.value;},{once:true});' +
-      'e.focus();return document.activeElement===e?first:null;})()');
-    assert.ok(character && sandbox === frame() && panel === side());
-    assert.equal(await read(client, panel, 'document.activeElement===document.querySelector("#sidebar-tool-frame iframe")'), true);
-    report.selectInput = 'native-select-keyboard-typeahead';
-    report.lastSelection = {control: selector, wanted, expected};
-    await client.send('Input.dispatchKeyEvent', {type: 'char', key: character, text: character, unmodifiedText: character}, panel);
-    lastSelection.set(selector, performance.now());
-    try {
-      await wait(() => appRead('(' + q(selector) + ')?.dataset.testTrustedChoice===' + j(wanted)), 2500);
-      assert.equal(await readValue(selector), expected);
-      delete report.lastSelection;
-      return expected;
-    } catch (error) {
-      report.lastSelection.observed = await readValue(selector);
-      throw error;
-    }
-  };
-  const edit = async name => {
-    if (await visible(client, frame(), ui.mode(name))) return;
-    const selector = ui.edit(name);
-    try {
-      await wait(() => visible(client, frame(), selector), 2500);
-      await appRead('(' + q(selector) + ').scrollIntoView({block:"center",inline:"nearest"})');
-      if (!await visible(client, frame(), ui.mode(name))) await tap(selector);
-    } catch (error) {
-      report.editObservation = await appRead('(()=>{const b=(' + q(selector) + '),r=b.getBoundingClientRect();' +
-        'return {hidden:b.hidden,disabled:b.disabled,scope:document.querySelector("#vas-scope").value,' +
-        'modeHidden:document.querySelector(b.getAttribute("aria-controls")?"#"+b.getAttribute("aria-controls"):"template").hidden,' +
-        'choice:document.querySelector(' + j(ui.choice(name)) + ').value,top:Math.round(r.top),height:Math.round(r.height),viewport:innerHeight};})()');
-      throw error;
-    }
+  const decideScope = async discard => {
+    const local = '#vas-scope-confirm[open] button[value="' + (discard ? 'discard' : 'stay') + '"]';
+    const shared = discard ? '#sidebar-tool-action-continue' : '#sidebar-tool-action-cancel';
+    const target = await wait(async () => {
+      if (await visible(client, frame(), local)) return 'local';
+      if (await visible(client, side(), shared) &&
+          await read(client, side(), '(' + q(shared) + ').textContent.trim()===' + j(discard ? '放弃并切换' : '继续编辑'))) return 'host';
+      return false;
+    });
+    if (target === 'local') await tap(local);
+    else await click(client, side(), shared);
+    await wait(() => appRead('(' + q(ui.scope) + ').disabled===false'));
+    return target;
   };
   const feedback = matcher => wait(() => appRead('(' + String(matcher) + ').test((' + q(ui.feedback) + ')?.textContent||"")'));
   const save = async () => {
@@ -525,22 +612,70 @@ async function playbackChecks({page, media, pageRead, appRead, openApp, closePan
     assert.ok(anchored.paused, label);
     return anchored.events.length;
   };
-  const zeroTo = async (name, start, end) => {
-    await select(ui.choice(name), 'on');
-    await edit(name);
-    await select(ui.mode(name), 'fixed');
-    // Set end first so entering a positive start can leave the range valid.
+  const setInterval = async (name, start, end) => {
+    await toggle(name, true);
     await set(ui.field(name, 'end'), end);
     await set(ui.field(name, 'start'), start);
+  };
+  const setTail = async seconds => {
+    const duration = (await media()).duration;
+    assert.ok(Number.isFinite(duration));
+    await setInterval('outro', duration - seconds, duration);
+    assert.match(await summary('outro'), new RegExp('最后 ' + seconds + ' 秒'));
   };
   const readyApp = duration => wait(() => appRead('document.querySelector("#vas-work")?.textContent==="Local Series" && ' +
     '!document.querySelector("#vas-settings")?.hidden && document.querySelector("#vas-scope")?.disabled===false' +
     (duration ? ' && document.querySelector("#vas-media")?.textContent.includes(' + j(' / ' + duration) + ')' : '')));
   await readyApp();
+  if (scope === 'page-toast') {
+    const toastOnPage = () => pageRead(`(() => {
+      const hosts = document.querySelectorAll('[data-opendesk-page-toast]');
+      if (!hosts.length) return null;
+      const host = hosts[0], rect = host.getBoundingClientRect();
+      return {count: hosts.length, visible: host.matches(':popover-open') && rect.width > 0 && rect.height > 0 &&
+        rect.left >= 0 && rect.right <= innerWidth && rect.top >= 0 && rect.bottom <= innerHeight,
+        pointerEvents: getComputedStyle(host).pointerEvents, focus: document.activeElement?.id};
+    })()`);
+    await check('idle-and-manual-preview-have-no-skip-toast', async () => {
+      await setInterval('intro', 30, 90);
+      await setInterval('outro', 120, 130);
+      await save();
+      const cursor = await nextSeconds(28, 'before manual preview');
+      assert.equal(await toastOnPage(), null);
+      await calibrate('intro');
+      await tap(ui.preview('intro'));
+      const receipt = await reached(90, cursor);
+      assert.equal(receipt.paused, true);
+      assert.equal(await toastOnPage(), null);
+      return {preview: receipt, toast: false};
+    });
+    await closePanel();
+    for (const [kind, start, end, label] of [['intro', 30, 90, '片头'], ['outro', 120, 130, '片尾']]) {
+      await check('confirmed-' + kind + '-toast-with-panel-closed', async () => {
+        const cursor = await nextSeconds(start - 0.7, 'before automatic ' + kind);
+        assert.equal(await toastOnPage(), null);
+        await player('#fixture-play');
+        const receipt = await reached(end, cursor, from => from >= start - 1 && from < start + 2);
+        assert.equal(receipt.paused, false);
+        const toast = await wait(toastOnPage, 3000);
+        assert.deepEqual(toast, {count: 1, visible: true, pointerEvents: 'none', focus: 'fixture-play'});
+        // Read the rendered message through Chromium's accessibility tree; the toast uses closed Shadow DOM.
+        const message = '连播助手：已跳过' + label;
+        const {nodes} = await client.send('Accessibility.getFullAXTree', {}, page.session);
+        assert.equal(nodes.filter(n => !n.ignored && n.role?.value === 'StaticText' && n.name?.value === message).length, 1);
+        await wait(async () => !await toastOnPage(), 4000);
+        const after = await media();
+        assert.ok(!after.paused && after.time > end + 0.3, 'playback continues after toast dismissal');
+        assert.equal(after.events.slice(cursor).filter(e => e.type === 'seeking').length, 1);
+        return {receipt, message, ...toast, dismissed: true, advanced: after.time};
+      });
+    }
+    return;
+  }
   const inspect = async () => {
     const identity = await verifyInstalled();
     const player = await wait(media);
-    const panel = frame() ? await appRead('(()=>{const el=id=>document.getElementById("vas-"+id);return {work:el("work")?.textContent,scope:el("scope")?.value,dirty:!el("cancel")?.hidden}})()') : null;
+    const panel = frame() ? await appRead('(()=>{const el=id=>document.getElementById("vas-"+id);return {work:el("work")?.textContent,scope:el("scope")?.dataset.scope,dirty:!el("cancel")?.hidden}})()') : null;
     assert.ok(player.ready >= 2 && panel?.work === 'Local Series', 'Checkpoint needs a bound player and open native app');
     return {...identity, work: panel.work, season: 1, episode: player.episode, line: player.line,
       duration: player.duration, time: Number(player.time.toFixed(3)), paused: player.paused,
@@ -556,38 +691,37 @@ async function playbackChecks({page, media, pageRead, appRead, openApp, closePan
       await readyApp('07:00');
       const order = [];
       for (const [name, start, end] of [['intro', 30, 90], ['outro', 320, 360]]) {
-        await zeroTo(name, start, end);
+        await setInterval(name, start, end);
         const input = ui.field(name, 'start');
-        const limit = await appRead('(()=>{const s=(' + q(ui.slider(name, 'end')) + ');return [+s.min,+s.max];})()');
-        assert.equal(limit[1] - limit[0], 300);
-        await tap(input);
-        for (const selector of [input, ui.slider(name, 'start'), ui.field(name, 'end'), ui.slider(name, 'end')]) {
+        const first = ui.slider(name, 'start'), last = ui.field(name, 'end');
+        assert.equal(Number(await attr(ui.slider(name, 'end'), 'aria-valuemax')) - Number(await attr(first, 'aria-valuemin')), 300);
+        await tap(first);
+        for (const selector of [first, ui.slider(name, 'end'), input, last]) {
           const focus = await appRead('document.activeElement?.id');
           assert.equal(focus, selector.slice(1));
           order.push(focus);
-          if (selector !== ui.slider(name, 'end')) await key(side(), 'Tab', 9);
+          if (selector !== last) await key(side(), 'Tab', 9);
         }
         await tap(ui.cancel);
       }
-      await zeroTo('intro', 325, 335);
+      await setInterval('intro', 325, 335);
       await set(ui.field('intro', 'end'), 421);
       assert.equal(await appRead('document.querySelector("#vas-save").disabled'), true);
-      assert.match(await appRead('(()=>{const f=document.querySelector("#vas-intro-end"),e=document.querySelector("#vas-intro-end-error");' +
+      assert.match(await appRead('(()=>{const f=document.querySelector("#vas-intro-end"),e=document.querySelector("#vas-error-intro");' +
         'return f.getAttribute("aria-invalid")==="true"&&!e.hidden&&e.textContent;})()'), /超出/);
       await set(ui.field('intro', 'end'), 335);
       await save();
       await closePanel(); await openPanel(); await openApp(); await readyApp('07:00');
-      await edit('intro');
       const saved = [await readValue(ui.field('intro', 'start')), await readValue(ui.field('intro', 'end'))];
       assert.deepEqual(saved, ['05:25', '05:35']);
       return {order, window: 300, rejected: 421, saved};
     });
     await check('same-source-new-element-discards-old-draft-and-return', async () => {
-      await zeroTo('intro', 0, 5);
-      await select(ui.choice('next'), 'on');
+      await setInterval('intro', 0, 5);
+      await toggle('next', true);
       await save();
-      await edit('intro');
       const before = await seek(2);
+      await calibrate('intro');
       await tap(ui.preview('intro'));
       await reached(5, before.events.length);
       await wait(() => appRead('document.querySelector("#vas-undo")?.hidden===false'));
@@ -600,7 +734,6 @@ async function playbackChecks({page, media, pageRead, appRead, openApp, closePan
       await feedback(/旧草稿未保存/);
       assert.equal(await appRead('document.querySelector("#vas-undo")?.hidden'), true);
       assert.equal(await appRead('document.querySelector("#vas-cancel")?.hidden'), true);
-      await edit('intro');
       assert.equal(await readValue(ui.field('intro', 'end')), '00:05');
       return {duration: changed.duration, time: changed.time, paused: changed.paused, savedEnd: '00:05'};
     });
@@ -608,14 +741,13 @@ async function playbackChecks({page, media, pageRead, appRead, openApp, closePan
       await player('a[data-od-episode="' + episode + '"][data-od-line="' + line + '"]');
       await wait(async () => {const v = await media(); return v?.episode === episode && v.line === line && v.ready >= 2 && v.paused;});
       await readyApp();
-      await wait(() => appRead('document.querySelector("#vas-context").textContent.endsWith(' + j(line) + ')'));
+      await wait(() => appRead('document.querySelector("#vas-context").textContent.split(" · ").includes(' + j(line) + ')'));
     };
     await check('different-line-document-does-not-inherit-a-draft', async () => {
       await set(ui.field('intro', 'end'), 6);
       await navigateManually(1, 'backup');
       assert.equal(await appRead('document.querySelector("#vas-cancel")?.hidden'), true);
       assert.equal(await appRead('document.querySelector("#vas-undo")?.hidden'), true);
-      await edit('intro');
       assert.equal(await readValue(ui.field('intro', 'end')), '00:05');
       await navigateManually(1, 'primary');
       return {line: 'backup', savedEnd: '00:05'};
@@ -660,14 +792,19 @@ async function playbackChecks({page, media, pageRead, appRead, openApp, closePan
   }
   await enter('rules');
   await check('initial-rules-unset', async () => {
-    for (const name of Object.keys(ruleLabel)) assert.equal(await readValue(ui.choice(name)), 'inherit');
+    for (const name of ['intro', 'outro', 'next']) {
+      assert.equal(await checked(name), false);
+      assert.equal(await summary(name), '未设置');
+    }
+    assert.equal(await appRead('document.querySelectorAll(".vas-track [role=slider]").length'), 4);
   });
   await check('save-paused-without-seek', async () => {
     const before = await seek(32);
-    await zeroTo('intro', 30, 90);
-    await zeroTo('outro', 120, 130);
-    await select(ui.choice('next'), 'off');
-    assert.match(await appRead('(' + q(ui.summary('next')) + ').textContent'), /未保存.*当前生效/);
+    await setInterval('intro', 30, 90);
+    await setInterval('outro', 120, 130);
+    await toggle('next', true);
+    await toggle('next', false);
+    assert.match(await summary('intro'), /未保存.*当前生效/);
     const status = await save();
     assert.doesNotMatch(await appRead('(' + q(ui.summary('next')) + ').textContent'), /未保存/);
     const after = await media();
@@ -687,13 +824,11 @@ async function playbackChecks({page, media, pageRead, appRead, openApp, closePan
     observation.step = 'wait-for-player-binding';
     await readyApp();
     observation.step = 'read-saved-rules';
-    assert.equal(await readValue(ui.choice('intro')), 'on');
-    assert.equal(await readValue(ui.choice('next')), 'off');
-    await edit('intro');
+    assert.equal(await checked('intro'), true);
+    assert.equal(await checked('next'), false);
     assert.equal(await readValue(ui.field('intro', 'start')), '00:30');
     assert.equal(await readValue(ui.field('intro', 'end')), '01:30');
-    assert.equal(await readValue(ui.choice('outro')), 'on');
-    await edit('outro');
+    assert.equal(await checked('outro'), true);
     assert.equal(await readValue(ui.field('outro', 'start')), '02:00');
     assert.equal(await readValue(ui.field('outro', 'end')), '02:10');
     delete report.panelReopening;
@@ -736,12 +871,14 @@ async function playbackChecks({page, media, pageRead, appRead, openApp, closePan
   covered('playback');
   await openPanel(); await openApp(); await readyApp();
   await check('episode-off-overrides-only-intro', async () => {
-    await select(ui.scope, 'episode');
-    await select(ui.choice('intro'), 'off');
+    await switchTo('episode');
+    await toggle('intro', false);
     await save();
-    assert.equal(await readValue(ui.choice('intro')), 'off');
-    assert.equal(await readValue(ui.choice('outro')), 'inherit');
-    assert.equal(await readValue(ui.choice('next')), 'inherit');
+    assert.equal(await checked('intro'), false);
+    assert.match(await summary('intro'), /本集例外.*已关闭/);
+    assert.equal(await checked('outro'), true);
+    assert.equal(await checked('next'), false);
+    assert.match(await summary('next'), /沿用作品默认/);
     assert.match(await appRead('(' + q(ui.summary('outro')) + ').textContent'), /沿用作品默认/);
   });
   await enter('next');
@@ -751,8 +888,8 @@ async function playbackChecks({page, media, pageRead, appRead, openApp, closePan
   await check('next-target-arrival', async () => {
     // The saved fixed tail ends before the duration: finish this episode by natural playback.
     await tap(ui.refresh); await readyApp();
-    await select(ui.scope, 'series');
-    await select(ui.choice('next'), 'on');
+    await switchTo('series');
+    await toggle('next', true);
     await save();
     observation.rulesSaved = true;
     await player('#fixture-autoplay');
@@ -808,11 +945,11 @@ async function playbackChecks({page, media, pageRead, appRead, openApp, closePan
   });
   await check('next-episode-inherits-series-not-prior-override', async () => {
     await readyApp();
-    assert.equal(await readValue(ui.scope), 'series');
-    assert.equal(await readValue(ui.choice('intro')), 'on');
-    await select(ui.scope, 'episode');
-    assert.equal(await readValue(ui.choice('intro')), 'inherit');
-    assert.match(await appRead('(' + q(ui.summary('intro')) + ').textContent'), /沿用作品默认/);
+    assert.equal(await scopeValue(), 'series');
+    assert.equal(await checked('intro'), true);
+    await switchTo('episode');
+    assert.equal(await checked('intro'), true);
+    assert.match(await summary('intro'), /沿用作品默认/);
   });
   covered('next');
   await check('return-to-episode-one-for-boundaries', async () => {
@@ -821,56 +958,68 @@ async function playbackChecks({page, media, pageRead, appRead, openApp, closePan
     await player('a[data-od-episode="1"][data-od-line="primary"]');
     await wait(async () => {const v = await media(); return v?.episode === 1 && v.line === 'primary' && v.paused && v.ready >= 2;});
     await openPanel(); await openApp(); await readyApp();
-    await select(ui.scope, 'episode');
-    await select(ui.choice('intro'), 'inherit');
+    await switchTo('episode');
+    await tap(ui.restore('intro'));
     await save();
-    await select(ui.scope, 'series');
-    await select(ui.choice('next'), 'off');
+    await switchTo('series');
+    await toggle('next', false);
     await save();
   });
   await enter('boundaries');
   await check('reject-invalid-interval', async () => {
-    await zeroTo('intro', 6, 5);
+    await setInterval('intro', 6, 5);
     assert.equal(await appRead('(' + q(ui.save) + ').disabled'), true);
     assert.match(await appRead('document.querySelector("#vas-edit-status").textContent'), /早于|晚于|小于/);
-    const invalidEnd = await appRead('(()=>{const e=document.querySelector("#vas-intro-end"),n=document.querySelector("#vas-intro-end-error");' +
+    const invalidEnd = await appRead('(()=>{const e=document.querySelector("#vas-intro-end"),n=document.querySelector("#vas-error-intro");' +
       'return !n.hidden&&e.getAttribute("aria-invalid")==="true"&&e.getAttribute("aria-describedby").split(" ").includes(n.id)&&n.textContent;})()');
-    assert.match(invalidEnd, /终点必须晚于起点/);
+    assert.match(invalidEnd, /开始必须早于结束/);
     await set(ui.field('intro', 'end'), 8);
-    assert.equal(await appRead('document.querySelector("#vas-intro-end-error").hidden'), true);
+    assert.equal(await appRead('document.querySelector("#vas-error-intro").hidden'), true);
     await tap(ui.cancel);
-    assert.equal(await readValue(ui.choice('intro')), 'on');
+    assert.equal(await checked('intro'), true);
   });
   await check('dirty-draft-does-not-cross-scopes', async () => {
-    await zeroTo('intro', 1, 5);
-    await select(ui.scope, 'episode', 'series');
-    assert.equal(await readValue(ui.scope), 'series');
-    await tap(ui.cancel);
-    await select(ui.scope, 'episode');
-    assert.equal(await readValue(ui.choice('intro')), 'inherit');
-    await select(ui.scope, 'series');
-    assert.equal(await readValue(ui.choice('intro')), 'on');
+    await setInterval('intro', 1, 5);
+    await tap(ui.scope);
+    const cancelSurface = await decideScope(false);
+    assert.equal(await scopeValue(), 'series');
+    assert.equal(await readValue(ui.field('intro', 'end')), '00:05');
+    await tap(ui.scope);
+    const confirmSurface = await decideScope(true);
+    assert.equal(await scopeValue(), 'episode');
+    assert.equal(await readValue(ui.field('intro', 'end')), '01:30');
+    assert.equal(await checked('intro'), true);
+    assert.match(await summary('intro'), /沿用作品默认/);
+    await switchTo('series');
+    assert.equal(await checked('intro'), true);
+    return {cancelSurface, confirmSurface};
   });
   await check('both-timed-ranges-accept-pointer-and-focused-keys', async () => {
     const values = {};
     for (const name of ['intro', 'outro']) {
-      if (name === 'intro') await zeroTo(name, 20, 190);
-      else await zeroTo(name, 30, 180);
+      if (name === 'intro') await setInterval(name, 20, 190);
+      else await setInterval(name, 30, 180);
       for (const field of ['start', 'end']) {
         const slider = ui.slider(name, field);
-        await dragRange(slider);
+        await dragHandle(slider, field === 'start' ? 1 : -1);
         assert.equal(await appRead('document.activeElement?.id'), slider.slice(1));
-        const before = Number(await readValue(slider));
+        const before = await sliderValue(slider);
         await key(side(), 'ArrowLeft', 37);
-        const value = Number(await readValue(slider));
+        const value = await sliderValue(slider);
         assert.equal(value, before - 1);
         const label = String(Math.floor(value / 60)).padStart(2, '0') + ':' + String(value % 60).padStart(2, '0');
         assert.equal(await readValue(ui.field(name, field)), label);
         values[name + '.' + field] = value;
       }
+      const end = await sliderValue(ui.slider(name, 'end'));
+      await tap(ui.slider(name, 'start'));
+      await key(side(), 'End', 35);
+      assert.equal(await sliderValue(ui.slider(name, 'start')), end - 1);
+      await key(side(), 'ArrowRight', 39);
+      assert.equal(await sliderValue(ui.slider(name, 'start')), end - 1);
     }
     await tap(ui.cancel);
-    assert.equal(await readValue(ui.choice('outro')), 'on');
+    assert.equal(await checked('outro'), true);
     return values;
   });
   await check('manual-seek-inside-intro-does-not-retrigger', async () => {
@@ -902,8 +1051,8 @@ async function playbackChecks({page, media, pageRead, appRead, openApp, closePan
     return {skip, undoTime: back.time, paused: back.paused, resumedAt: after.time, repeated: false};
   });
   await check('mark-time-updates-only-draft', async () => {
-    await edit('intro');
     const before = await seek(45);
+    await calibrate('intro');
     await tap(ui.markEnd);
     await feedback(/填入草稿/);
     assert.equal(await readValue(ui.field('intro', 'end')), '00:45');
@@ -911,11 +1060,11 @@ async function playbackChecks({page, media, pageRead, appRead, openApp, closePan
     assert.equal(after.time, before.time);
     assert.equal(after.paused, true);
     await tap(ui.cancel);
-    if (!await visible(client, frame(), ui.field('intro', 'end'))) await edit('intro');
     assert.equal(await readValue(ui.field('intro', 'end')), '01:30');
   });
   await check('preview-and-return-preserve-paused', async () => {
     const before = await seek(32);
+    await calibrate('intro');
     await tap(ui.preview('intro'));
     await reached(90, before.events.length);
     assert.equal((await media()).paused, true);
@@ -931,15 +1080,13 @@ async function playbackChecks({page, media, pageRead, appRead, openApp, closePan
     await player('#fixture-play');
   });
   await check('manual-tail-preview-does-not-advance', async () => {
-    await edit('outro');
-    await select(ui.mode('outro'), 'common');
-    await set(ui.field('outro', 'seconds'), 3);
-    await select(ui.choice('next'), 'on');
+    await setTail(3);
+    await toggle('next', true);
     await save();
     const stillPaused = await media();
     assert.ok(stillPaused.episode === 1 && stillPaused.paused);
     const before = await seek(clips.one - 6);
-    await edit('outro');
+    await calibrate('outro');
     await tap(ui.preview('outro'));
     const receipt = await reached(clips.one - 3, before.events.length);
     assert.equal(receipt.paused, true);
@@ -953,10 +1100,8 @@ async function playbackChecks({page, media, pageRead, appRead, openApp, closePan
   covered('boundaries');
   await enter('sources');
   await check('relative-outro-source-duration-recomputed', async () => {
-    await select(ui.scope, 'series');
-    await edit('outro');
-    await select(ui.mode('outro'), 'common');
-    await set(ui.field('outro', 'seconds'), 90);
+    await switchTo('series');
+    await setTail(90);
     await save();
     const firstCursor = await nextSeconds(clips.one - 90 - 0.9, 'before initial relative outro');
     await player('#fixture-play');
@@ -973,12 +1118,11 @@ async function playbackChecks({page, media, pageRead, appRead, openApp, closePan
     await wait(() => pageRead('(()=>{const v=document.querySelector("video[data-od-feature]");return v.duration===Infinity&&v.readyState>=2&&v.seekable.length===1&&v.seekable.end(0)>106;})()'));
     await tap(ui.refresh);
     await readyApp('—');
-    await select(ui.scope, 'series');
-    await edit('outro');
-    assert.equal(await readValue(ui.mode('outro')), 'common');
-    assert.equal(await readValue(ui.field('outro', 'seconds')), '01:30');
+    await switchTo('series');
+    assert.match(await summary('outro'), /最后 90 秒/);
+    assert.equal(await readValue(ui.field('outro', 'start')), '');
     assert.equal(await appRead('(' + q(ui.preview('outro')) + ').disabled'), true);
-    assert.equal(await appRead('(' + q(ui.slider('outro', 'seconds')) + ').disabled'), true);
+    assert.equal(await attr(ui.slider('outro', 'end'), 'aria-disabled'), 'true');
     const anchor = clips.alternate - 90 - 0.8;
     const cursor = await nextSeconds(anchor, 'before the finite source’s relative outro point');
     await player('#fixture-play');
@@ -991,9 +1135,10 @@ async function playbackChecks({page, media, pageRead, appRead, openApp, closePan
     await wait(async () => {const v = await media(); return v?.duration === clips.alternate && v.ready >= 2 && v.paused;});
     await tap(ui.refresh);
     await readyApp('03:15');
-    await select(ui.scope, 'series');
-    await edit('outro');
-    assert.equal(await readValue(ui.field('outro', 'seconds')), '01:30');
+    await switchTo('series');
+    assert.match(await summary('outro'), /最后 90 秒/);
+    assert.equal(await readValue(ui.field('outro', 'start')), '01:45');
+    assert.equal(await readValue(ui.field('outro', 'end')), '03:15');
     const restoredCursor = await nextSeconds(anchor, 'before the restored relative outro point');
     await player('#fixture-play');
     const restored = await reached(clips.alternate, restoredCursor, from => Math.abs(from - (clips.alternate - 90)) < 2);
@@ -1004,8 +1149,8 @@ async function playbackChecks({page, media, pageRead, appRead, openApp, closePan
   if (!(await media()).paused) await player('#fixture-play');
   await wait(async () => (await media())?.paused);
   await enter('revocation');
-  await select(ui.scope, 'series');
-  await select(ui.choice('outro'), 'off');
+  await switchTo('series');
+  await toggle('outro', false);
   await save();
   await check('chrome-site-access-revoked-stops-live-playback-actions', async () => {
     const control = await nextSeconds(29.3, 'before inherited intro');
@@ -1033,16 +1178,21 @@ try {
     'allow-user-scripts': {type: 'boolean'}, 'install-only': {type: 'boolean'}, chrome: {type: 'string'},
     package: {type: 'string'}, mode: {type: 'string', default: 'installed'}, port: {type: 'string', default: '0'},
     interactive: {type: 'boolean'}, segment: {type: 'string', default: 'all'},
+    screenshots: {type: 'string'}, baseline: {type: 'boolean'},
   }});
   if (values.help) {
     console.log('node projects/video-auto-skip/tests/native.mjs --verify-fixture\n' +
       'Native (leader go-ahead required): --allow-browser --allow-user-scripts --package <candidate.json> [--install-only] [--chrome <CFT155>]\n' +
       'Optional: --mode developer or --mode both; direct debug requires an authorized local Native workspace in the temporary profile.\n' +
-      'Optional: --interactive or --segment rules|guards (guards covers long fields and binding/receipt checks).\n' +
+      'Optional: --interactive or --segment rules|guards|sidebar-status|page-toast|r9 (r9 requires --screenshots <dir>).\n' +
       'Optional: --port <fixed loopback port> for a tightly scoped candidate. Node 22+, ffmpeg, ffprobe (fixture-only).');
   } else {
     assert.ok(['developer', 'installed', 'both'].includes(values.mode), 'invalid mode');
-    assert.ok(['all', 'rules', 'guards'].includes(values.segment), 'invalid segment');
+    assert.ok(['all', 'rules', 'guards', 'sidebar-status', 'page-toast', 'r9'].includes(values.segment), 'invalid segment');
+    if (values.segment === 'r9') assert.ok(values.screenshots && values.package && values.mode === 'installed');
+    if (['sidebar-status', 'page-toast'].includes(values.segment)) {
+      assert.ok(values.package && values.mode === 'installed' && !values['install-only'], values.segment + ' requires an installed candidate and playback');
+    }
     for (const segment of segments) report.notCovered[segment] = 'NOT_TESTED';
     report.requestedSegment = values.segment;
     assert.ok(/^\d+$/.test(values.port) && Number(values.port) <= 65535, 'invalid port');
@@ -1055,7 +1205,8 @@ try {
     }
     temp = await mkdtemp(path.join(tmpdir(), 'video-auto-skip-native-'));
     phase = 'fixture-start';
-    fixture = await startFixture({directory: temp, port: Number(values.port), signal: abort.signal});
+    const durations = values.segment === 'r9' ? {...clips, one: 2700, two: 2880} : clips;
+    fixture = await startFixture({directory: temp, port: Number(values.port), signal: abort.signal, durations});
     if (values['verify-fixture']) await check('webm-and-loopback-http', verifyFixture);
     else await native(values);
     report.result = 'PASS';

@@ -32,7 +32,7 @@ const compiledSendQueueInputs=Object.freeze({
   'projects/ai-send-queue/assets/queue.css':'de1cb65f9627ca063e19717f1c9609fd5422e726',
   'projects/ai-send-queue/src/page/cache.js':'9510781e472804494cb5576cb7d1b516292ddb8a',
   'projects/ai-send-queue/src/page/engine.js':'a815c6792b75ddf6095bd9ee6d84913ad825edc8',
-  'projects/ai-send-queue/src/page/main.js':'87d006737df943a9e9e23b755fd5fd8d3f41c44b',
+  'projects/ai-send-queue/src/page/main.js':'ad0caca612da066d68ab8785af36edc39e025de9',
   'projects/ai-send-queue/src/page/site.js':'f15404479bcf959d4cdbc6a0537919f2ddd2c030',
   'projects/ai-send-queue/src/page/status.js':'20736cee7a780f8d8c86aa0cd85a8f0b6d834141',
   'projects/ai-send-queue/src/page/view.js':'2fe6edc7bacfd9e30ffc18e3d7f5fc291a837ad0',
@@ -271,7 +271,7 @@ function reviewedCompiledTimeReview(target,path,root){
 const compiledVideoSpeedInputs=Object.freeze({
   'projects/video-speed-controller/trusted/policy.js':'45c5531da48e44cb8170d4e0766a834591db3903',
   'projects/video-speed-controller/trusted/host.js':'bd0024ed057e86fa4a0cc2309ed59f09ceacec65',
-  'projects/video-speed-controller/trusted/admission.js':'eb2e47f56b28a53c4771cc1152507f7e54f058c2',
+  'projects/video-speed-controller/trusted/admission.js':'f2b5b1977dbbac72fdaeb28d948169dc55043eca',
   'projects/video-speed-controller/trusted/page.js':'5ab8b5ad8c07c8eabb360807c40e336e3e5c840e',
   'projects/video-speed-controller/trusted/service.js':'6224c5cb254a1504cd7989db91beb4ce5f2cf3b8'
 });
@@ -297,7 +297,7 @@ function reviewedCompiledVideoSpeed(target,path,root){
 // enter ONLY the existing Side Panel Host; never the SW, sandbox or Page Relay.
 // Runtime admission independently checks official package SHA and revoke epoch.
 const compiledVideoSVIPInputs=Object.freeze({
-  'projects/video-svip/trusted/policy.js':'39678897d66bc0aa52609952a42a12bff442fc80',
+  'projects/video-svip/trusted/policy.js':'d4e15a9ef998a4d2e0c28fdf63accfdd0b081484',
   'projects/video-svip/trusted/host.js':'a395a0b0a3453993627890cf580061f96e2a8fb5',
   'projects/video-svip/trusted/admission.js':'6f28e8a0892dc2057c1110827c5da093c7d618e5'
 });
@@ -323,11 +323,11 @@ function reviewedCompiledVideoSVIP(target,path,root){
 // keeps old manifest records only for a blob video in the same bounded snapshot;
 // no observers, persistent URL collection, or new executable target is admitted.
 const compiledVideoDownloaderInputs=Object.freeze({
-  'projects/video-downloader/trusted/policy.js':'22ff60adeb2746b0c2b3a7621323c78d7321a6c7',
+  'projects/video-downloader/trusted/policy.js':'b52342b2d129e760d8db524714aa72ba1baa2017',
   'projects/video-downloader/trusted/hls.js':'e3eaebc20fc3dffb0884ef14d2f61164e7099ea0',
   'projects/video-downloader/trusted/stream.js':'3707eff88789e6a93f9603400937e4dcaee78719',
   'projects/video-downloader/trusted/discovery.js':'43c79f8d502fd3d2697f4486ba9cc328653b82d6',
-  'projects/video-downloader/trusted/host.js':'bd527e971c757ec79855bfd98ab7e35e55150279',
+  'projects/video-downloader/trusted/host.js':'5b2326173debc43435aad1f41966b5f19c805c05',
   'projects/video-downloader/trusted/admission.js':'9ff692570de52587d910adb3e8c526188f01b276',
   'projects/video-downloader/trusted/remux.js':'bf099118512fc86923c94bea222f155ebe4a7a63',
   'projects/video-downloader/trusted/vendor/mux-transmuxer.js':'4c49d31aa7936c774f3c2d73e1bd2aa283dce7ae'

@@ -150,7 +150,13 @@ async function read(background=false){
     const result=await request('videoSpeed.status',{});
     if(ticket!==seq||closed)return;
     receive(result);
-  }catch(error){if(ticket===seq&&!closed)classify(error);}
+  }catch(error){
+    if(ticket===seq&&!closed){
+      if(error?.code==='E_DOCUMENT_UNRESOLVED'){
+        actual=null;available=false;requested=null;phase='detecting';notice='';noticeKind='';
+      }else classify(error);
+    }
+  }
   finally{
     if(readTicket===ticket)readTicket=0;
     if(ticket===seq&&!closed){busy=false;render();drainGlobalRead();}

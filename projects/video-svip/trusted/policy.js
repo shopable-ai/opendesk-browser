@@ -1,6 +1,6 @@
 // Video SVIP R0.3: fixed read-only capability, never a caller-provided script or selector.
 export const VIDEO_SVIP_ID='video-svip';
-export const VIDEO_SVIP_VERSION='0.3.2';
+export const VIDEO_SVIP_VERSION='0.3.3';
 export const VIDEO_SVIP_CAPABILITY='page.videoContext';
 export const VIDEO_SVIP_OPERATIONS=Object.freeze(['videoSVIP.inspect','videoSVIP.watch','videoSVIP.stop']);
 export const VIDEO_SVIP_WATCH_PORT='opendesk.video-svip.watch.v1';

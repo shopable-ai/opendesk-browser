@@ -11,7 +11,9 @@ const reviewedSources=new Set([
   '280ef188e7f94d13f9502e7ee5d7c3cf45d39c7abae57dbc38b3bbc44c84f982',
   '2fd4ed6f63d1c09a73050733725f46e5a8419f024e48d8139cf2010fb2813126',
   '7f08a09d7022a6bd03b9b3a162b998f7f39aaa7c802208a32c99803811609591',
-  '171b39b844698e8425dad470e930c3d2aa9a8ea1b438be80e891a1545e5cc6dd'
+  '171b39b844698e8425dad470e930c3d2aa9a8ea1b438be80e891a1545e5cc6dd',
+  // 0.1.38 only changes the generated header and reported Page version.
+  '0f37bcf523058854b1aa040d5481606ba9e178508b6cd99295c2d86af48a82f8'
 ]);
 export function usesFixedSendQueue(toolId,row){
   const rules=row?.pageRules;

@@ -236,8 +236,10 @@ function selectMode(next){
 modes.forEach(button=>button.addEventListener('click',()=>selectMode(button.dataset.clipMode)));
 q('clip-meta').addEventListener('change',()=>{
  if(saving)return;
- if(activePickId){stopRegionPick();extracting=false;}
- version++;refresh();
+ if(activePickId){stopRegionPick();extracting=false;version++;}
+ else if(!extracting)version++;
+ refresh();
+ if(extracting)return; // Format the pending read when it arrives; do not strand its busy state.
  say(record?'已按来源格式更新完整 Markdown':emptyHints[mode]);
 });
 q('clip-fetch').addEventListener('click',async()=>{

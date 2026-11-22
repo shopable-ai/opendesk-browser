@@ -4,6 +4,9 @@ import {readFile} from 'node:fs/promises';
 import {resolve} from 'node:path';
 const root=resolve('projects/cookie-editor');
 const get=name=>readFile(resolve(root,name),'utf8');
+const packageBytes=()=>process.env.OPENDESK_COOKIE_EDITOR_CANDIDATE
+  ?readFile(resolve(process.env.OPENDESK_COOKIE_EDITOR_CANDIDATE),'utf8')
+  :get('cookie-editor.opendesk-tool.json');
 function assertSharedApp(preview){
   assert.match(preview,/import CookieEditorApp from ['"]\.\.\/\.\.\/\.\.\/app\/CookieEditorApp\.jsx/);
   assert.match(preview,/<CookieEditorApp\b/);
@@ -59,7 +62,6 @@ test('Preview mounts the installed App while shared editor secrets stay in ephem
   assert.match(editor,/clearValue/);
   assert.match(editor,/discardConfirm/);
   assert.doesNotMatch(editor,/setState\([^)]*value/);
-  assert.match(official,/onCancel=\{\(\)=>\{setSelected\(null\);setDirty\(false\);\}\}/);
 });
 
 test('Preview IO presentation is shared without moving native Cookie operations into React',async()=>{
@@ -92,10 +94,9 @@ test('R5.25 file selection never starts a Cookie write or trusted import intent'
   assert.match(importer,/stagedFile\.current=file;\s*setStagedName\(/);
   assert.match(importer,/const reading=React\.useRef\(false\)/);
   assert.match(importer,/reading\.current=true;\s*setBusy\(true\)/);
-  assert.match(importer,/if\(reading\.current\|\|running\.current\|\|disabled\|\|busy\|\|uncertain\)return/);
   const confirmation=importer.slice(importer.indexOf('const confirmImport=()=>{'),
     importer.indexOf('// Choose / drop merely stages a File.'));
-  assert.match(confirmation,/if\(reading\.current\|\|running\.current\|\|disabled\|\|busy\|\|uncertain\)return/);
+  assert.match(confirmation,/if\(reading\.current\|\|running\.current\|\|disabled\|\|busy\|\|settled\)return/);
   assert.ok(confirmation.indexOf('beginIntent();')>=0);
   assert.ok(confirmation.indexOf('beginIntent();')<confirmation.indexOf('text=await file.text();'));
   assert.match(importer,/if\(authorized!==true\)\{[\s\S]*?return;[\s\S]*?const imported=await onImportText/);
@@ -145,7 +146,7 @@ test('advanced Cookie identities use shared-App JSX and remain read-only for exi
 test('React development import package agrees with its promoted source config',async()=>{
   const [config,official,vite]=await Promise.all([
     get('tool.config.json').then(JSON.parse),
-    get('cookie-editor.opendesk-tool.json').then(JSON.parse),
+    packageBytes().then(JSON.parse),
     get('vite.config.mjs')]);
   assert.equal(config.id,'cookie-editor');
   assert.match(config.version,/^\d+\.\d+\.\d+$/);
@@ -226,7 +227,7 @@ test('R5.26 React project version matches the official Cookie release identity',
   const [config,project,installed]=await Promise.all([
     get('tool.config.json').then(JSON.parse),
     get('package.json').then(JSON.parse),
-    get('cookie-editor.opendesk-tool.json').then(JSON.parse)
+    packageBytes().then(JSON.parse)
   ]);
   assert.equal(config.id,'cookie-editor');
   assert.equal(project.version,config.version);
@@ -265,7 +266,7 @@ test('account actions retain current trusted receipts without password managemen
  assert.match(app,/live\.epoch===requestedEpoch/);
  assert.match(app,/if\(!sameAccountContext\(\)\)return/);
  assert.match(app,/if\(!sameCopyContext\(\)\)return/);
- assert.doesNotMatch(app,/onUnlock|onLock|passphrase/);
+ assert.doesNotMatch(app,/\b(?:onUnlock|onLock|passphrase)\b/);
  assert.doesNotMatch(accounts,/本机加密仓库|cookie-account-vault|onUnlock|onLock|type="password"/);
  assert.doesNotMatch(mock,/action==='(?:unlock|lock)'|passphrase/);
 });

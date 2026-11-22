@@ -243,6 +243,19 @@ test('disposal during save page validation prevents a later storage write',async
   assert.equal(writes(app).length,0,'retired document must not begin a write');
   assert.equal(app.states.length,count,'late validation must not publish state');
 });
+test('same-URL document change during validation preserves the draft and allows an offline save',async()=>{
+  const gate=deferred(),app=launch({pageGate:gate,
+    page:{status:'available',title:'原页面',url:'https://example.com/'}});
+  await app.flush();app.nodes['add-note'].emit('click');draft(app);
+  const attach=app.nodes['attach-page'];attach.checked=true;attach.emit('change');
+  app.nodes['save-note'].emit('click');await tick();
+  app.root.emit('opendesk-page-changed');gate.resolve();await app.flush();
+  assert.equal(writes(app).length,0);
+  assert.equal(app.nodes['note-text'].value,'未保存🙂');
+  assert.equal(attach.disabled,false);
+  attach.checked=false;attach.emit('change');app.nodes['save-note'].emit('click');await app.flush();
+  assert.equal(writes(app).length,1);assert.equal(app.data.notes[0].pageUrl,'');
+});
 for(const operation of ['save','delete']){
   for(const terminal of ['success','rejection']){
     test(`${operation}: ${terminal} after disposal cannot update the retired editor`,async()=>{

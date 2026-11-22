@@ -39,7 +39,7 @@ function entry(link) {
 const entries = '.n-media-list app-media-button a.media-button';
 const unavailable = reason => ({state: 'unavailable', reason});
 
-export function identifyIyfPlayer(doc, href) {
+export function identifyIyfPlayer(doc, href, previous) {
   const current = route(href);
   const info = only(doc, 'app-video-info .video-detail');
   const list = only(doc, listSelector);
@@ -50,14 +50,21 @@ export function identifyIyfPlayer(doc, href) {
   const title = text(heading[0]), number = text(heading[1]);
   const activeLink = only(list, entries + '.active');
   const active = activeLink && entry(activeLink);
-  if (heading.length !== 2 || playerHeading.length !== 2 || !title || title.length > 100 ||
+  if (heading.length !== 2 || !title || title.length > 100 ||
       /[\u0000-\u001f\u007f]/.test(title) || !episodeNumber.test(number ?? '') ||
-      title !== text(playerHeading[0]) || number !== text(playerHeading[1]) ||
       active?.href !== current.href || String(active.order) !== number) {
     return unavailable('iYF 的网页、选集和播放器剧集尚未一致。');
   }
 
   const media = only(doc, iyfMediaSelector);
+  const hasMatchingTitle = playerHeading.length === 2 &&
+    title === text(playerHeading[0]) && number === text(playerHeading[1]);
+  // The floating layout removes the title bar without reloading the video.
+  const sameFloatingVideo = previous && !root.querySelector(':scope > .player-title-bar') &&
+    root.querySelector(':scope > .floating-player-controls .close-small-player-button') &&
+    previous.root === root && previous.media === media && previous.source === media?.currentSrc &&
+    previous.href === current.href && previous.context.title === title && previous.context.episode === number;
+  if (!hasMatchingTitle && !sameFloatingVideo) return unavailable('iYF 的网页、选集和播放器剧集尚未一致。');
   if (!media || media.error || !visible(media) || !media.currentSrc || media.readyState < 1 ||
       media.videoWidth <= 0 || media.videoHeight <= 0 || root.querySelector('iframe') ||
       [...root.querySelectorAll('video')].some(video => video !== media &&
@@ -75,9 +82,10 @@ export function identifyIyfPlayer(doc, href) {
 // iYF can load the next source before it updates the URL and episode labels.
 // A new media identity near the end cannot inherit the old episode's rules.
 export function createIyfReader(doc) {
-  let last;
-  return href => {
-    const own = identifyIyfPlayer(doc, href);
+  let last, continuous = false;
+  const read = href => {
+    const own = identifyIyfPlayer(doc, href, continuous ? last : null);
+    continuous = false;
     if (own.state !== 'ready') return own;
     const {media} = own;
     if (last?.href === own.href && (last.media !== media || last.source !== own.source) && last.nearEnd) {
@@ -85,9 +93,12 @@ export function createIyfReader(doc) {
     }
     const nearEnd = media.ended || (Number.isFinite(media.duration) && media.duration > 0 &&
       media.duration - media.currentTime <= 10);
-    last = {href: own.href, media, source: own.source, nearEnd};
+    last = {...own, nearEnd};
+    continuous = true;
     return own;
   };
+  read.invalidate = media => { if (last?.media === media) continuous = false; };
+  return read;
 }
 
 export function nextIyfEpisode(own) {

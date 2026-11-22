@@ -28,7 +28,7 @@
     const title=note?.pageTitle;
     el('note-attachment').textContent=title?'已关联：'+title:'';
     el('note-attachment').hidden=!title;
-    el('attach-page').disabled=!ready||busy||Boolean(confirmation)||(!pageInfo&&!note?.pageUrl);
+    el('attach-page').disabled=!ready||busy||Boolean(confirmation)||(!pageInfo&&!note?.pageUrl&&!el('attach-page').checked);
   }
   function renderView(){
     const index=el('notes-list-view'),edit=el('notes-edit-view');
@@ -229,12 +229,16 @@
     if(!text.trim()){show('请输入笔记内容再保存。','error');return;}
     if(!prior&&notes.length>=MAX_NOTES){show('最多保存 '+MAX_NOTES+' 条笔记。','error');return;}
     const linked=pageInfo;
+    const epoch=pageEpoch;
     let writing=false;
     busy=true;renderList();
     try{
       if(include&&linked){
         const live=await request('currentPage.info');
         if(disposed)return;
+        if(epoch!==pageEpoch){
+          show('网页已变化，当前笔记未保存；请核对网页或取消关联。','error');return;
+        }
         if(live?.status!=='available'||live.url!==linked.url){
           pageEpoch++;pageInfo=null;
           el('page-summary').textContent='网页已切换，请刷新网页信息。';
@@ -327,7 +331,7 @@
     }
   });
   el('note-text').addEventListener('input',()=>{if(!ready||deleting)return;draftRevision++;dirty=true;reportState();show('当前修改尚未保存。');});
-  el('attach-page').addEventListener('change',()=>{if(!ready||busy)return;draftRevision++;dirty=true;reportState();show('当前修改尚未保存。');});
+  el('attach-page').addEventListener('change',()=>{if(!ready||busy)return;draftRevision++;dirty=true;attachment();reportState();show('当前修改尚未保存。');});
   el('refresh-page').addEventListener('click',()=>void refreshPage());
   el('add-note').addEventListener('click',createNote);
   el('back-to-notes')?.addEventListener('click',backToList);

@@ -53,6 +53,8 @@ description: Author, iterate and preview sandboxed 扩展 center Sidebar App UI 
 
 迁移同时检查 Promise/then、旧 boolean/callback adapter、return/await、reject 消费、重入、卸载时 resolver 结算、finally 与晚回包；确认对象只按 action 判断，等待后再核对原目标/版本。`void` 不等于捕获异常，then 本身不是缺陷。只增加能证明受影响业务行为的项目测试，不批量重写异步代码或在 Host 写业务判断。
 
+读取或操作当前网页时，按[网页刷新与换页合同](../../../docs/architecture/browser-framework/confirmation-and-feedback.zh-CN.md#网页刷新与换页)验证既有工作区与安全草稿能继续使用、旧文档数据与动作失效、自动核验和就近重试有效、已发回执不丢不重发。在工具内先复用公开 SDK；只有证实通用缺口后才交平台 owner。
+
 ## 工具项目归属与演进顺序（2026-10-30 更新）
 
 **目录与测试只遵守[扩展项目目录与测试归属合同](../../../docs/architecture/extension-project-layout.zh-CN.md)**：新正式 Sidebar 产品默认 `projects/<id>/`，教学示例留 `examples/sidebar-tools/<id>/`；以下历史 examples 路径仅表示尚未迁移项目或示例，不覆盖这个新默认。先找真实 owner，不重建副本。业务测试/fixture 放 `<owner>/tests/`，框架公共安全/接线测试留根目录；当前 native.tests 的框架路径限制保持。明确现有行为覆盖缺口才加测试，不为可逆文案/样式或每轮版本新增正则文件；日常直接选相关测试，不默认根 npm test 或完整 CI。自动发现、app:update 的支持范围及迁移顺序以该合同第 6–7 节为准；app:update 已按配置 id 在 projects/ 与 examples/sidebar-tools/ 唯一发现，拒绝重复 owner/ID 和符号链接（主代理 2026-11-08 回报：相关 7 项测试通过），但仍不自动发现全部业务 tests，须显式核对并执行。

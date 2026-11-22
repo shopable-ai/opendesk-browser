@@ -1,22 +1,12 @@
-import {EMPTY, cleanRules, resolveRules, readScope, RULES_KEY, updateScope, validateRules} from './rules.js';
+import {EMPTY, cleanRules, isEnabled, resolveInterval, resolveRules, readScope, RULES_KEY, saveScope, updateScope, validateRules} from './rules.js';
+import {blankTiming, buildTimeEditor, changeEndpoint, endpointsFor, formatTime as time, recommendedSpan, tailMatchStatus, timeIssue, VIEWPORT_STOPS} from './editor.js';
 
 const KEYS = ['intro', 'outro', 'next'];
 const NAMES = {intro: '跳过片头', outro: '跳过片尾', next: '自动下一集'};
-const WINDOW_SECONDS = 300;
 const present = Number.isFinite;
+const configured = rule => rule?.kind === 'tail' ? rule.seconds !== undefined : rule?.end !== undefined ||
+  (rule?.start !== undefined && rule.start !== 0);
 const durationOf = snap => present(snap?.media?.duration) && snap.media.duration > 0 ? snap.media.duration : undefined;
-const time = seconds => {
-  if (!present(seconds) || seconds < 0) return '—';
-  const whole = Math.floor(seconds);
-  return String(Math.floor(whole / 60)).padStart(2, '0') + ':' + String(whole % 60).padStart(2, '0');
-};
-const parseTime = raw => {
-  const s = raw.trim();
-  if (!/^\d+(?::[0-5]\d)?$/.test(s)) return NaN;
-  const [a, b] = s.split(':').map(Number);
-  const result = b === undefined ? a : a * 60 + b;
-  return Number.isSafeInteger(result) ? result : NaN;
-};
 const ready = snap => snap?.state === 'ready' && snap.binding != null &&
   typeof snap.context?.seriesKey === 'string' && Boolean(snap.context.seriesKey) &&
   typeof snap.context?.episodeKey === 'string' && Boolean(snap.context.episodeKey);
@@ -24,10 +14,12 @@ const bindingId = binding => typeof binding === 'object' ? binding?.id : binding
 const sameTarget = (a, b) => ready(a) && ready(b) && bindingId(a.binding) != null &&
   bindingId(a.binding) === bindingId(b.binding) && a.context.seriesKey === b.context.seriesKey &&
   a.context.episodeKey === b.context.episodeKey && a.context.line === b.context.line;
+const sameDraftTarget = (a, b) => sameTarget(a, b) || ready(a) && ready(b) &&
+  typeof a.draftTarget === 'string' && Boolean(a.draftTarget) && a.draftTarget === b.draftTarget &&
+  a.context.seriesKey === b.context.seriesKey && a.context.episodeKey === b.context.episodeKey && a.context.line === b.context.line;
 const sameMedia = (a, b) => sameTarget(a, b) && a.media?.revision === b.media?.revision && durationOf(a) === durationOf(b);
 const sameRule = (a, b) => a === b || Boolean(a && b && a.kind === b.kind &&
-  a.start === b.start && a.end === b.end && a.seconds === b.seconds);
-const sameScope = (a, b) => KEYS.every(key => sameRule(a?.[key], b?.[key]));
+  a.start === b.start && a.end === b.end && a.seconds === b.seconds && a.enabled === b.enabled);
 const code = error => typeof error?.code === 'string' ? error.code : '';
 const safeText = value => typeof value === 'string' ? value.replace(/(?:[a-z]+:\/\/|(?:data|blob):|\/\/)[^\s]+/gi, '').trim().slice(0, 120) : '';
 
@@ -46,20 +38,14 @@ export function mountVideoSidebar(tool) {
     node.type = 'button';
     return node;
   };
-  const option = (value, caption) => {
-    const node = el('option', '', caption);
-    node.value = value;
-    return node;
-  };
-
-  let snapshot, storage, busy = false, disposed = false, generation = 0, readVersion = 0;
-  let scope = 'series', baseline = {}, draft = {}, opened, storageError = false;
+  let snapshot, lastLinked, storage, busy = false, disposed = false, generation = 0, readVersion = 0;
+  let scope = 'episode', baseline = {}, draft = {}, storageError = false, viewport, wasSaved = false;
   let conflict = false, pendingWrite, uncertainAction, queuedRead = false, autoRead = true, reading = false;
   let returnPoint, seekInProgress, publishedState, draftOwner;
   const editors = {};
-  const dirty = () => KEYS.some(key => editors[key]?.invalid || !sameRule(draft[key], baseline[key]));
+  const dirty = () => KEYS.some(key => !sameRule(draft[key], baseline[key]));
   const editingAllowed = () => !busy && !conflict && !pendingWrite && ready(snapshot) && Boolean(storage);
-  const canSeek = () => !uncertainAction && Boolean(durationOf(snapshot)) &&
+  const canSeek = () => ready(snapshot) && !uncertainAction && Boolean(durationOf(snapshot)) &&
     !['pending', 'unknown'].includes(snapshot?.action?.state);
   const feedback = (message, error = false, focus = false) => {
     const node = find('feedback');
@@ -75,215 +61,98 @@ export function mountVideoSidebar(tool) {
     return {data: cleanRules(result.value ?? EMPTY), etag: result.etag};
   }
 
-  function buildEditor(key, row) {
-    const panel = el('div', 'vas-editor');
-    panel.id = 'vas-editor-' + key;
-    const modeLabel = el('label', 'vas-field');
-    const mode = el('select');
-    mode.id = 'vas-mode-' + key;
-    modeLabel.append(el('span', '', key === 'intro' ? '片头范围' : '片尾范围'), mode);
-    mode.append(option('common', key === 'intro' ? '从 00:00 开始' : '最后 N 秒'), option('fixed', '指定区间'));
-    const help = el('p', 'vas-note');
-    help.id = 'vas-time-help-' + key;
-    const endpoints = el('div', 'vas-endpoints');
-    const actions = el('div', 'vas-actions');
-    const takeStart = button('用当前时间标记起点');
-    const takeEnd = button('用当前时间标记终点');
-    const preview = button(key === 'intro' ? '查看片头结束位置' : '查看片尾开始位置');
-    takeStart.id = 'vas-mark-' + key + '-start';
-    takeEnd.id = 'vas-mark-' + key + '-end';
-    preview.id = 'vas-preview-' + key;
-    actions.append(takeStart, takeEnd, preview);
-    panel.append(modeLabel, help, endpoints, actions);
-    row.append(panel);
-    const state = {panel, mode, help, endpoints, takeStart, takeEnd, preview, fields: {}, invalid: false};
-    editors[key] = state;
-    mode.addEventListener('change', () => {
-      if (!editingAllowed()) return;
-      const before = state.previousMode;
-      const old = draft[key];
-      const d = durationOf(snapshot);
-      let rule;
-      if (key === 'intro') {
-        rule = {kind: 'fixed', start: mode.value === 'common' || before === 'common' ? 0 : old?.start, end: old?.end};
-      } else if (mode.value === 'common') {
-        rule = {kind: 'tail', seconds: d && present(old?.start) ? Math.floor(d - old.start) : undefined};
-      } else {
-        rule = {kind: 'fixed', start: d && present(old?.seconds) ? Math.floor(d - old.seconds) : undefined, end: d ? Math.floor(d) : undefined};
-      }
-      draft[key] = rule;
-      populateEditor(key, rule, mode.value);
-      render();
-    });
-    takeStart.addEventListener('click', () => void mark(key, state.mode.value === 'common' && key === 'outro' ? 'seconds' : 'start'));
-    takeEnd.addEventListener('click', () => void mark(key, 'end'));
-    preview.addEventListener('click', () => void previewRule(key));
-    return state;
-  }
+  const lastSecond = (snap = snapshot) => Math.floor(durationOf(snap) ?? 0);
+  const storedDefault = key => storage && lastLinked ? readScope(storage.data, lastLinked.context, 'series')[key] : undefined;
+  const selected = key => scope === 'episode' && !Object.hasOwn(draft, key) ? storedDefault(key) : draft[key];
+  const original = key => scope === 'episode' && !Object.hasOwn(baseline, key) ? storedDefault(key) : baseline[key];
+  const timing = key => selected(key) ?? blankTiming(key);
+  // An unset interval is ready to configure; only a valid saved interval can run.
+  const timingOn = rule => rule === undefined || isEnabled(rule);
+  const iyfNext = () => snapshot?.context?.seriesKey?.startsWith('iyf:');
 
   const rows = Object.fromEntries(KEYS.map(key => {
     const row = el('section', 'vas-row');
-    const title = el('strong', '', NAMES[key]);
+    row.dataset.rule = key;
+    const head = el('div', 'vas-row-head');
+    const toggle = el('input');
+    toggle.type = 'checkbox';
+    toggle.id = 'vas-rule-' + key;
+    const title = el('label', 'vas-rule-title', key === 'next' ? NAMES[key] : NAMES[key].slice(2));
+    title.htmlFor = toggle.id;
+    toggle.setAttribute('aria-label', NAMES[key]);
+    toggle.setAttribute('role', 'switch');
+    const unset = el('span', 'vas-unset', '待设置');
     const summary = el('p', 'vas-note');
     summary.id = 'vas-summary-' + key;
-    const desc = el('div');
-    desc.append(title, summary);
-    const choice = el('select');
-    choice.id = 'vas-rule-' + key;
-    choice.setAttribute('aria-label', NAMES[key] + '规则');
-    choice.setAttribute('aria-describedby', summary.id);
-    choice.append(option('inherit', '未设置'), option('on', '开启'), option('off', '关闭'));
-    row.append(desc);
-    let edit;
-    if (key !== 'next') {
-      edit = button('调整时间');
-      edit.setAttribute('aria-label', '调整' + NAMES[key].slice(2) + '时间');
-      edit.setAttribute('aria-controls', 'vas-editor-' + key);
-      edit.addEventListener('click', () => {
-        if (!editingAllowed() || draft[key] == null) return;
-        opened = opened === key ? undefined : key;
-        render();
-      });
-      row.append(edit);
-    }
-    row.append(choice);
-    if (edit) buildEditor(key, row);
-    choice.addEventListener('change', () => {
-      if (!editingAllowed()) return;
-      if (choice.value === 'inherit') {
-        delete draft[key];
-      } else if (key === 'next') {
-        draft[key] = choice.value === 'on';
-      } else if (choice.value === 'off') {
-        draft[key] = null;
-      } else {
-        const inherited = effectiveRules()?.[key];
-        draft[key] = inherited ?? baseline[key] ?? (key === 'intro' ? {kind: 'fixed', start: 0} : {kind: 'tail'});
-        opened = key;
-      }
-      if (edit) {
-        if (draft[key] == null && opened === key) opened = undefined;
-        populateEditor(key, draft[key]);
+    toggle.setAttribute('aria-describedby', summary.id);
+    const restore = button('恢复继承');
+    restore.id = 'vas-restore-' + key;
+    restore.setAttribute('aria-label', '恢复继承：' + NAMES[key]);
+    const source = el('div', 'vas-source');
+    source.append(summary, restore);
+    head.append(title);
+    if (key !== 'next') head.append(unset, el('label', 'vas-toggle-label', '自动跳过'));
+    if (key !== 'next') head.lastElementChild.htmlFor = toggle.id;
+    head.append(toggle);
+    row.append(head);
+    if (key !== 'next') editors[key] = buildTimeEditor({row, el, button, key, name: NAMES[key].slice(2),
+      template: find('time-track'), calibrationHost: find('calibrations'), canEdit: () => editingAllowed() && lastSecond() > 0,
+      onEdit: (part, value) => setTime(key, part, value),
+      onMark: part => void mark(key, part), onPreview: () => void previewRule(key)});
+    row.append(source);
+    toggle.addEventListener('change', () => {
+      if (!editingAllowed() || key === 'next' && iyfNext()) return;
+      if (key === 'next') draft.next = toggle.checked;
+      else {
+        const {enabled, ...rule} = timing(key);
+        if (configured(rule)) draft[key] = toggle.checked ? rule : {...rule, enabled: false};
+        else if (toggle.checked && (scope !== 'episode' || timingOn(storedDefault(key)))) delete draft[key];
+        else draft[key] = toggle.checked ? rule : null;
       }
       render();
     });
+    restore.addEventListener('click', () => {
+      if (!editingAllowed() || scope !== 'episode' || key === 'next' && iyfNext()) return;
+      delete draft[key];
+      resetEditor(key);
+      render();
+      toggle.focus();
+    });
     find('rules').append(row);
-    return [key, {choice, summary, edit}];
+    return [key, {toggle, summary, restore, unset}];
   }));
 
-  function populateEditor(key, rule, explicitMode) {
-    const editor = editors[key];
-    const common = explicitMode ? explicitMode === 'common' : key === 'intro' ? rule?.start === 0 || !rule : rule?.kind !== 'fixed';
-    const fields = common ? key === 'intro' ? ['end'] : ['seconds'] : ['start', 'end'];
-    editor.mode.value = editor.previousMode = common ? 'common' : 'fixed';
-    editor.help.textContent = common
-      ? key === 'intro' ? '起点固定为 00:00。' : '终点跟随本集时长。请确认片尾没有要保留的剧情。'
-      : '分别输入起点和终点，或用滑块微调。';
-    editor.takeStart.hidden = common && key === 'intro';
-    editor.takeStart.textContent = common && key === 'outro' ? '用当前时间标记片尾开始' : '用当前时间标记起点';
-    editor.takeEnd.hidden = common && key === 'outro';
-    editor.endpoints.replaceChildren();
-    editor.fields = {};
-    editor.invalid = false;
-    for (const field of fields) {
-      const entry = find('time-field').content.firstElementChild.cloneNode(true);
-      const [label, rangeLabel] = entry.querySelectorAll('span');
-      const [input, slider] = entry.querySelectorAll('input');
-      const [error, limits] = entry.querySelectorAll('small');
-      const name = NAMES[key].slice(2) + ({start: '起点', end: '终点', seconds: '剩余时长'})[field];
-      const prefix = 'vas-' + key + '-' + field;
-      label.textContent = name;
-      rangeLabel.textContent = '微调' + name;
-      input.id = prefix;
-      slider.id = prefix + '-slider';
-      limits.id = prefix + '-limits';
-      error.id = prefix + '-error';
-      input.setAttribute('aria-describedby', editor.help.id + ' ' + error.id);
-      slider.setAttribute('aria-describedby', limits.id);
-      input.value = present(rule?.[field]) ? time(rule[field]) : '';
-      const endpoint = editor.fields[field] = {input, slider, limits, error, dragging: false};
-      input.addEventListener('input', () => editTime(key));
-      input.addEventListener('change', () => {
-        if (!editingAllowed()) return;
-        if (present(parseTime(input.value))) input.value = time(parseTime(input.value));
-        updateSliders(key);
-      });
-      input.addEventListener('keydown', event => {
-        if (!editingAllowed() || !['ArrowUp', 'ArrowDown'].includes(event.key) || !present(parseTime(input.value))) return;
-        event.preventDefault();
-        input.value = time(Math.max(0, parseTime(input.value) + (event.key === 'ArrowUp' ? 1 : -1)));
-        editTime(key);
-      });
-      slider.addEventListener('input', () => {
-        if (!editingAllowed()) return;
-        const peer = ruleFromFields(key);
-        let value = Number(slider.value);
-        if (field === 'start' && present(peer.end)) value = Math.min(value, peer.end - 1);
-        if (field === 'end' && present(peer.start)) value = Math.max(value, peer.start + 1);
-        if (value < Number(slider.min) || value > Number(slider.max)) return;
-        input.value = time(value);
-        editTime(key, field);
-      });
-      slider.addEventListener('pointerdown', () => { endpoint.dragging = true; });
-      for (const event of ['pointerup', 'pointercancel', 'blur']) {
-        slider.addEventListener(event, () => { endpoint.dragging = false; updateSliders(key); });
-      }
-      slider.addEventListener('change', () => updateSliders(key));
-      editor.endpoints.append(entry);
+  function resetEditor(key) {
+    if (!editors[key]) return;
+    editors[key].reset();
+  }
+
+  // Only inputs and explicit position markers call this. Neither changes the player or storage.
+  function setTime(key, part, value) {
+    const d = lastSecond(), old = timing(key);
+    if (!d) return;
+    const wantEndBinding = key === 'outro' && part === 'end' && (value === d || value === undefined);
+    if (value === endpointsFor(old, d)[part] && !(wantEndBinding && old.kind !== 'tail')) {
+      render();
+      return;
     }
-    editor.preview.textContent = key === 'intro' ? '查看片头结束位置' : '查看片尾开始位置';
+    const rule = changeEndpoint(key, old, part, value, d);
+    const on = timingOn(selected(key));
+    const blank = !configured(rule) && (rule.kind === 'tail' || key === 'intro' && rule.start === 0);
+    if (blank && !configured(original(key))) {
+      const inherited = scope === 'episode' ? storedDefault(key) : undefined;
+      if (timingOn(inherited) === on) delete draft[key];
+      else draft[key] = on ? rule : null;
+    } else draft[key] = on ? rule : {...rule, enabled: false};
+    render();
   }
 
-  function ruleFromFields(key) {
-    const {fields, mode} = editors[key];
-    const number = field => parseTime(fields[field]?.input.value ?? '');
-    if (fields.seconds) return {kind: 'tail', seconds: number('seconds')};
-    return {kind: 'fixed', start: key === 'intro' && mode.value === 'common' ? 0 : number('start'), end: number('end')};
-  }
-
-  function editTime(key, keepWindow) {
-    if (!editingAllowed() || draft[key] == null) return;
-    const editor = editors[key];
-    draft[key] = ruleFromFields(key);
-    editor.invalid = Object.keys(editor.fields).some(field => !present(draft[key][field]));
-    render(keepWindow && {key, field: keepWindow});
-  }
-
-  function updateSliders(key, keepWindow) {
-    const duration = durationOf(snapshot) ?? 0;
-    const d = Math.floor(duration);
+  function editorIssue(key, snap = snapshot) {
     const rule = draft[key];
-    for (const [field, {slider, limits, input, error, dragging}] of Object.entries(editors[key].fields)) {
-      const value = rule?.[field];
-      const exclusive = field === 'seconds' || field === 'start';
-      const upper = exclusive ? Math.max(0, Math.ceil(duration) - 1) : d;
-      const defaultStart = key === 'outro' && field !== 'seconds' ? Math.max(0, upper - WINDOW_SECONDS) : 0;
-      if (keepWindow !== field && !dragging) {
-        const a = rule?.start, b = rule?.end;
-        const shared = key === 'outro' || editors[key].mode.value === 'fixed';
-        const near = shared && present(a) && present(b) && b >= a && b - a <= WINDOW_SECONDS;
-        const center = near ? (a + b) / 2 : value;
-        const outside = near ? a < defaultStart || b > defaultStart + WINDOW_SECONDS
-          : center < defaultStart || center > defaultStart + WINDOW_SECONDS;
-        const localStart = present(center) && outside
-          ? Math.max(0, Math.min(upper - WINDOW_SECONDS, Math.round(center - WINDOW_SECONDS / 2))) : defaultStart;
-        slider.min = localStart;
-        slider.max = Math.min(upper, localStart + WINDOW_SECONDS);
-      }
-      const position = present(value) ? Math.min(Number(slider.max), Math.max(Number(slider.min), value)) : Number(slider.min);
-      slider.value = position;
-      slider.setAttribute('aria-valuetext', present(value) && position === value ? time(value) : time(position) + '，滑块位置');
-      slider.disabled = d <= 1 || Number(slider.min) >= Number(slider.max);
-      limits.textContent = d > 0 ? '微调 ' + time(Number(slider.min)) + '–' + time(Number(slider.max)) : '时长未知，无法微调';
-      const reversed = present(rule?.start) && present(rule?.end) && rule.start >= rule.end;
-      const problem = input.value && !present(value) ? '请输入秒数或分:秒。'
-        : duration > 0 && (exclusive ? value >= duration : value > duration) ? field === 'seconds' ? '剩余时长必须小于本集时长。' : '时间超出可用范围。'
-        : field === 'seconds' && value === 0 ? '剩余时长必须大于 0。'
-        : reversed ? field === 'start' ? '起点必须早于终点。' : '终点必须晚于起点。' : '';
-      input.setAttribute('aria-invalid', String(Boolean(problem)));
-      if (error.textContent !== problem) error.textContent = problem;
-      error.hidden = !problem;
-    }
+    if (!rule || sameRule(rule, baseline[key])) return '';
+    // A previously saved interval can be turned off even after the source gets shorter.
+    if (!isEnabled(rule) && sameRule({...rule, enabled: undefined}, {...original(key), enabled: undefined})) return '';
+    return timeIssue(rule, lastSecond(snap));
   }
 
   function effectiveRules() {
@@ -297,7 +166,8 @@ export function mountVideoSidebar(tool) {
     const before = resolveRules(data, snap.context);
     const oldScope = readScope(data, snap.context, scope);
     const changed = ['intro', 'outro'].filter(key => !sameRule(draft[key], oldScope[key]));
-    if (changed.some(key => editors[key].invalid)) return '请输入有效的时间，例如 01:30。';
+    const fieldIssue = changed.map(key => editorIssue(key, snap)).find(Boolean);
+    if (fieldIssue) return fieldIssue;
     if (scope === 'series' && changed.some(key => draft[key])) {
       const problem = validateRules(draft, d);
       if (problem) return problem;
@@ -310,13 +180,12 @@ export function mountVideoSidebar(tool) {
       ? validateRules(effective, d) : null;
   }
 
-  function caption(rule, key) {
+  function caption(rule, key, d) {
     if (rule === undefined) return '未设置';
     if (rule === null || rule === false) return '已关闭';
     if (key === 'next') return '已开启 · 正常播完后按集序继续';
     if (rule.kind === 'tail') {
       if (!present(rule.seconds)) return '尚未填入时间';
-      const d = durationOf(snapshot);
       const interval = d && rule.seconds > 0 && rule.seconds < d ? ' · ' + time(d - rule.seconds) + '–' + time(d) : '';
       return '最后 ' + rule.seconds + ' 秒' + interval;
     }
@@ -358,76 +227,88 @@ export function mountVideoSidebar(tool) {
     return '';
   }
 
-  function render(keep) {
+  function pageStatus() {
+    if (ready(snapshot)) return snapshot.offscreen ? '播放器已连接 · 视频在屏幕外' : '播放器已连接';
+    if (!snapshot) return '正在连接当前网页…';
+    switch (snapshot.state) {
+      case 'unsupported': return '请在当前标签页打开支持的播放页。';
+      case 'connecting': return '正在等待当前网页加载…';
+      case 'starting': return '网页功能尚未连接。若已打开支持的播放页，首次安装或更新后请刷新当前播放页一次；仍未连接时请检查网站访问权限。';
+      case 'reload-required': return '网页功能需要重新加载。请保存网页内容，等当前操作结束后刷新当前播放页。';
+      case 'activation-required': return '请在「扩展 → 网页功能帮助」检查网页功能，再重新识别。';
+      case 'permission': return '无法访问当前网页。请检查连播助手的网站访问权限。';
+      case 'disconnected': return '暂时无法连接当前网页。请在播放页重新识别。';
+      default: return ['等待正片识别。', reasons[snapshot.reason] ?? safeText(snapshot.reason)].filter(Boolean).join(' ');
+    }
+  }
+
+  function render() {
     const bound = ready(snapshot);
-    const c = bound ? snapshot.context : {};
+    const c = lastLinked?.context ?? {};
     const iyf = c.seriesKey?.startsWith('iyf:');
-    const player = snapshot?.media;
-    const d = durationOf(snapshot);
+    const player = bound ? snapshot.media : undefined;
+    const d = durationOf(lastLinked);
     const hasEdits = dirty();
     const allowed = editingAllowed();
     const validation = allowed && hasEdits ? validate() : null;
-    const scopeSelect = find('scope');
+    const dSeconds = lastSecond(lastLinked);
+    const span = viewport ?? recommendedSpan(dSeconds);
+    const windowRange = find('window-range');
+    const stop = Math.max(0, VIEWPORT_STOPS.findIndex(value => value >= span));
+    const windowLabel = VIEWPORT_STOPS[stop] / 60 + '分钟';
+    windowRange.value = stop;
+    windowRange.setAttribute('aria-valuetext', windowLabel + (viewport === undefined ? '，自动推荐' : '，手动设置'));
+    find('window-value').textContent = windowLabel;
+    find('window-auto').hidden = viewport !== undefined;
+    find('window-reset').hidden = viewport === undefined;
     find('work').textContent = safeText(c.title) || '连播助手';
-    find('context').textContent = bound ? [
-      c.season != null && (typeof c.season === 'number' ? '第 ' + c.season + ' 季' : safeText(c.season)),
-      c.episode != null && (iyf || typeof c.episode === 'number' ? '第 ' + c.episode + ' 集' : safeText(c.episode)),
-      safeText(c.line),
-    ].filter(Boolean).join(' · ') || '已识别当前作品和集数' :
-      reasons[snapshot?.reason] ?? (snapshot?.state === 'unsupported' ? '当前网页不支持连播助手。' : snapshot ? '尚未确认当前正片。' : '正在识别当前播放器…');
+    find('context').textContent = lastLinked ? [
+      c.season != null && (typeof c.season === 'number' ? '第' + c.season + '季' : safeText(c.season)),
+      c.episode != null && (iyf || typeof c.episode === 'number' ? '第' + String(c.episode).padStart(2, '0') + '集' : safeText(c.episode)),
+      safeText(c.line), d && '全长' + time(d),
+    ].filter(Boolean).join(' · ') : '';
+    const statusText = pageStatus();
+    if (find('page-status').textContent !== statusText) find('page-status').textContent = statusText;
+    find('page-status').classList.toggle('vas-sr', bound && !snapshot.offscreen);
     find('refresh').disabled = busy;
-    find('settings').hidden = !bound;
-    scopeSelect.value = scope;
-    scopeSelect.disabled = !allowed;
-    find('scope-help').textContent = scope === 'series' ? (iyf ? 'iYF 此作品默认使用这组规则。本集独立设置优先。' :
-      '同一季默认使用这组规则。本集独立设置优先。') : '只覆盖此集单独设置的项目，其余沿用作品默认。';
-    const effective = effectiveRules();
-    const active = bound && storage ? resolveRules(storage.data, c) : {};
+    find('scope-help').textContent = !lastLinked ? '' : scope === 'series' ? '保存至本作品当前季；已有本集例外继续优先。' :
+      '保存至当前集；未修改的项目继续沿用已保存规则。';
+    find('scope-help').classList.toggle('vas-sr', !hasEdits);
+    const active = lastLinked && storage ? resolveRules(storage.data, c) : {};
     for (const key of KEYS) {
-      const {choice, edit, summary} = rows[key];
-      const raw = draft[key];
-      const enabled = raw != null && raw !== false;
-      choice.options[0].textContent = scope === 'episode' ? '沿用作品默认' : '未设置';
-      choice.value = raw === undefined ? 'inherit' : enabled ? 'on' : 'off';
-      choice.disabled = !allowed;
-      if (key === 'next' && iyf) {
-        choice.value = 'off';
-        choice.disabled = true;
-        summary.textContent = '由 iYF 处理下一集，助手不会重复切集。';
-        continue;
-      }
-      const proposed = (raw === undefined && scope === 'episode' ? '沿用作品默认 · ' : '') + caption(effective[key], key);
-      summary.textContent = editors[key]?.invalid || !sameRule(raw, baseline[key])
-        ? '未保存：' + proposed + ' · 当前生效：' + caption(active[key], key) : proposed;
-      if (!edit) continue;
-      const editor = editors[key];
-      const isOpen = opened === key && enabled;
-      edit.hidden = !enabled;
-      edit.disabled = !allowed;
-      edit.textContent = isOpen ? '收起时间编辑' : '调整时间';
-      edit.setAttribute('aria-label', isOpen ? '收起' + NAMES[key].slice(2) + '时间编辑' : '调整' + NAMES[key].slice(2) + '时间');
-      edit.setAttribute('aria-expanded', String(isOpen));
-      editor.panel.hidden = !isOpen;
-      editor.mode.disabled = !allowed;
-      updateSliders(key, keep?.key === key ? keep.field : undefined);
-      for (const {input, slider} of Object.values(editor.fields)) {
-        input.disabled = !allowed;
-        if (!allowed) slider.disabled = true;
-      }
-      editor.takeStart.disabled = editor.takeEnd.disabled = !allowed || !present(player?.time);
-      editor.preview.disabled = !allowed || !canSeek() || !previewPosition(key, snapshot).valid;
+      const {toggle, summary, restore, unset} = rows[key];
+      const raw = draft[key], effective = selected(key), siteHandlesNext = key === 'next' && iyf;
+      toggle.checked = !siteHandlesNext && (key === 'next' ? isEnabled(effective) : timingOn(effective));
+      toggle.disabled = !allowed || siteHandlesNext;
+      const source = scope === 'episode' ? (raw === undefined ? '沿用作品默认 · ' : '本集例外 · ') : '';
+      const proposed = source + (lastLinked ? caption(effective, key, d) : '等待识别作品');
+      const changed = !sameRule(raw, baseline[key]);
+      const message = siteHandlesNext ? '由 iYF 处理下一集，助手不会重复切集。' : changed
+        ? '未保存：' + proposed + (bound ? ' · 当前生效：' : ' · 已保存：') + caption(active[key], key, d) : proposed;
+      if (summary.textContent !== message) summary.textContent = message;
+      unset.hidden = !lastLinked || (key === 'outro' ? present(effective?.seconds) || present(effective?.start) : present(effective?.end));
+      // Keep the effective rule available to assistive technology. Show source details when
+      // there is an exception, a site restriction, or a draft differs from a saved rule.
+      summary.classList.toggle('vas-sr', !siteHandlesNext && !(scope === 'episode' && (raw !== undefined || effective !== undefined)) &&
+        !(changed && active[key] !== undefined));
+      restore.hidden = siteHandlesNext || scope !== 'episode' || raw === undefined;
+      restore.disabled = !allowed;
+      editors[key]?.render({rule: timing(key), lastSecond: dSeconds, allowed, span,
+        issue: editorIssue(key, lastLinked), canMark: present(player?.time), canPreview: canSeek() && previewPosition(key, snapshot).valid,
+        match: key === 'outro' ? tailMatchStatus({rule: timing(key), saved: scope === 'episode' ? active[key] : baseline[key],
+          duration: lastSecond(), changed, reusable: scope === 'series', inherited: scope === 'episode' && raw === undefined}) : undefined});
     }
-    find('settings').disabled = !bound;
-    find('save').textContent = scope === 'series' ? '保存本作品设置' : '仅保存本集';
     find('save').disabled = !allowed || !hasEdits || Boolean(validation);
-    find('cancel').hidden = !hasEdits && !conflict;
+    find('save').textContent = busy && pendingWrite ? '正在保存…' : wasSaved && !hasEdits && !conflict ? '已保存' : '保存设置';
+    find('unsaved').hidden = find('cancel').hidden = !hasEdits && !conflict;
     find('cancel').disabled = busy || Boolean(pendingWrite) || !storage;
     const editStatus = validation ?? (pendingWrite ? '保存结果未确认。请重新识别以核对已存设置。' : conflict
-      ? '已读到其他窗口保存的版本。取消修改后可基于最新设置重新编辑。' : hasEdits
-      ? bound ? '有未保存的修改。要切换范围，请先保存或取消。' : '已保留旧播放器的草稿。只在确认是原播放器后恢复编辑。'
+      ? '已读到其他窗口保存的版本。放弃修改后可基于最新设置重新编辑。' : hasEdits
+      ? bound ? '' : '已保留旧播放器的草稿。只在确认是原播放器后恢复编辑。'
       : storageError ? '无法读取已存设置。请重新识别。' : '');
     if (find('edit-status').textContent !== editStatus) find('edit-status').textContent = editStatus;
-    find('player').hidden = !bound && !snapshot?.action;
+    find('player').hidden = !bound && !snapshot?.action && !uncertainAction;
+    find('playback').hidden = !bound;
     find('media').textContent = bound ? '当前 ' + time(player?.time) + ' / ' + time(d) + (player?.paused === true ? ' · 已暂停' : player?.paused === false ? ' · 播放中' : '') : '';
     const actionStatus = uncertainAction ? '定位结果未确认。重新识别只核对状态；若仍无法确认，请检查播放器后手动刷新网页并重开侧栏。' :
       actionText(snapshot) || (bound && !d ? '本集时长未知，暂不执行时间规则。' : '');
@@ -445,27 +326,28 @@ export function mountVideoSidebar(tool) {
     }
   }
 
-  function reset(nextScope = scope) {
-    scope = nextScope;
+  function reset() {
+    scope = storage && ready(snapshot) ? saveScope(storage.data, snapshot.context) : 'episode';
+    wasSaved = false;
     draftOwner = ready(snapshot) ? snapshot : undefined;
     baseline = storage && ready(snapshot) ? {...readScope(storage.data, snapshot.context, scope)} : {};
     draft = {...baseline};
-    opened = undefined;
     conflict = false;
-    for (const key of ['intro', 'outro']) populateEditor(key, draft[key]);
+    for (const key of ['intro', 'outro']) resetEditor(key);
   }
 
   function acceptSnapshot(next) {
     const previous = snapshot;
     const changed = !sameTarget(previous, next) && (ready(previous) || ready(next));
     snapshot = next;
+    if (ready(next)) lastLinked = next;
     if (changed) {
       generation++;
       returnPoint = undefined;
       if (seekInProgress) uncertainAction = seekInProgress;
-      if (ready(next) && !sameTarget(draftOwner, next)) {
+      if (ready(next) && !sameDraftTarget(draftOwner, next)) {
         const hadDraft = dirty();
-        reset(storage && KEYS.some(key => Object.hasOwn(readScope(storage.data, next.context, 'episode'), key)) ? 'episode' : 'series');
+        reset();
         if (hadDraft) feedback('播放器或集数已变化，旧草稿未保存。', true);
       }
     } else if (returnPoint && !sameMedia(previous, next)) {
@@ -480,10 +362,16 @@ export function mountVideoSidebar(tool) {
   }
 
   function pageFailure(error) {
-    autoRead = false;
-    acceptSnapshot({state: 'unavailable'});
-    feedback(code(error) === 'E_APP_PAGE_RELOAD_REQUIRED' ? '请让当前播放操作结束后刷新网页，再重新识别。'
-      : '无法连接当前网页中的连播助手。请确认页面已打开且扩展拥有访问权限。', true);
+    const state = {
+      E_APP_PAGE_RELOAD_REQUIRED: 'reload-required', E_APP_PAGE_ACTIVATION_REQUIRED: 'activation-required',
+      E_PERMISSION: 'permission', E_PAGE_AUTHORIZATION: 'starting', E_APP_PAGE_NOT_READY: 'starting',
+      E_DOCUMENT_UNRESOLVED: 'connecting', E_DOCUMENT_STALE: 'connecting', E_TARGET: 'connecting',
+      E_NO_ACTIVE_TAB: 'unsupported', E_UNSUPPORTED_SCHEME: 'unsupported', E_INCOGNITO: 'unsupported',
+    }[code(error)] ?? 'disconnected';
+    // A late document or module can recover without a click. Only observe status;
+    // never repeat a save, seek, or reload the browser tab from the tool.
+    autoRead = state === 'starting' || state === 'connecting';
+    acceptSnapshot({state});
   }
 
   async function readPage() {
@@ -521,7 +409,10 @@ export function mountVideoSidebar(tool) {
     }
   }
 
+  const savedRange = targetScope => targetScope === 'series' ? '本作品当前季' : '当前集';
+
   function saved(message) {
+    wasSaved = true;
     feedback(message, false, true);
     tool.ui?.notify?.({message, type: 'success'});
   }
@@ -542,7 +433,7 @@ export function mountVideoSidebar(tool) {
       feedback(matched ? '已核对上一播放器的设置，修改已保存。' : '无法确认上一播放器的保存；未再次写入。', !matched, true);
     } else if (matched) {
       reset();
-      saved('已读回并确认设置已保存。');
+      saved('已读回并确认设置已保存至' + savedRange(attempt.scope) + '。');
     } else {
       conflict = true;
       feedback('已读回的设置与本次修改不一致，无法确认本次保存。请核对后重新编辑。', true, true);
@@ -613,8 +504,10 @@ export function mountVideoSidebar(tool) {
           feedback('写入后设置又发生变化，请核对最新版本。', true, true);
           return;
         }
-        if (isCurrent()) reset();
-        saved(wasScope === 'series' ? '已保存本作品当前季的设置。' : '已保存本集设置。');
+        if (isCurrent()) {
+          reset();
+          saved('设置已保存至' + savedRange(wasScope) + '。');
+        } else feedback('上一播放器的设置已保存。');
       } else {
         await reconcileWrite(isCurrent);
       }
@@ -622,10 +515,11 @@ export function mountVideoSidebar(tool) {
   }
 
   function previewPosition(key, snap) {
-    const rule = draft[key];
+    const rules = effectiveRules();
+    const rule = rules[key];
     const d = durationOf(snap);
-    const valid = rule && !validateRules(effectiveRules(), d);
-    const seconds = valid ? (key === 'intro' ? rule.end : rule.kind === 'tail' ? d - rule.seconds : rule.start) : undefined;
+    const interval = rule && !validateRules(rules, d) ? resolveInterval({...rule, enabled: undefined}, d) : null;
+    const seconds = key === 'intro' ? interval?.end : interval?.start;
     return {valid: present(seconds), seconds};
   }
 
@@ -644,17 +538,12 @@ export function mountVideoSidebar(tool) {
       }
       const d = durationOf(checked);
       const at = checked.media?.time;
-      if (!present(at) || at < 0 || field === 'seconds' && !d) {
+      if (!present(at) || at < 0 || Math.floor(d ?? 0) < 1) {
         feedback('暂不能读取此标记所需的播放时间。', true);
         return;
       }
-      const value = Math.floor(field === 'seconds' ? d - at : at);
-      const input = editors[key].fields[field]?.input;
-      if (!input || value < 0) return;
-      input.value = time(value);
-      const state = editors[key];
-      draft[key] = ruleFromFields(key);
-      state.invalid = Object.keys(state.fields).some(name => !present(draft[key][name]));
+      editors[key].clear(field);
+      setTime(key, field, Math.floor(at));
       feedback('已将当前时间填入草稿，播放器位置和已存设置不变。');
     });
   }
@@ -763,29 +652,28 @@ export function mountVideoSidebar(tool) {
     generation++;
     ++readVersion;
     autoRead = true;
-    snapshot = undefined;
+    snapshot = lastLinked = undefined;
     returnPoint = undefined;
     if (seekInProgress) uncertainAction = seekInProgress;
-    reset('series');
+    reset();
     feedback(pendingWrite ? '网页已变化，正在核对旧网页的保存结果。' : hasEdits ? '网页已变化，旧草稿未保存。' : '', Boolean(pendingWrite) || hasEdits);
     render();
     void readPage();
   }
 
-  find('scope').addEventListener('change', event => {
-    if (!editingAllowed() || dirty()) {
-      event.target.value = scope;
-      if (dirty()) feedback('请先保存或取消修改，再切换范围。', true, true);
-      return;
-    }
-    reset(event.target.value);
-    feedback('');
+  find('window-range').addEventListener('input', event => {
+    viewport = VIEWPORT_STOPS[Number(event.target.value)];
     render();
+  });
+  find('window-reset').addEventListener('click', () => {
+    viewport = undefined;
+    render();
+    find('window-range').focus();
   });
   find('cancel').addEventListener('click', () => {
     if (busy || pendingWrite || !storage) return;
     reset();
-    feedback('已取消修改，保留已保存的设置。', false, true);
+    feedback('已放弃修改，保留已保存的设置。', false, true);
     render();
   });
   find('save').addEventListener('click', () => void save());
@@ -796,6 +684,7 @@ export function mountVideoSidebar(tool) {
   const poll = win.setInterval(() => { if (autoRead && !busy && !reading && !root.ownerDocument.hidden) void readPage(); }, 2500);
   function dispose() {
     disposed = true;
+    for (const editor of Object.values(editors)) editor.dispose();
     generation++;
     ++readVersion;
     win.clearInterval(poll);

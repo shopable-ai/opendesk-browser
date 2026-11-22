@@ -5,6 +5,7 @@
 import assert from 'node:assert/strict';
 import {spawn,execFileSync} from 'node:child_process';
 import {createHash} from 'node:crypto';
+import {createServer} from 'node:http';
 import {readFile,mkdir,mkdtemp,rm,writeFile} from 'node:fs/promises';
 import {resolve,join} from 'node:path';
 import {tmpdir} from 'node:os';
@@ -14,9 +15,11 @@ import {SIDEBAR_TOOL_ENABLE_STORE,sidebarToolEnabled} from '../../src/ui/sidebar
 import {verifyPackage} from '../verify-package.mjs';
 
 const extension=resolve(process.env.OPENDESK_SHARED_UI_EXTENSION_DIR||'dist/development');
-const paths=[
+const attachmentLoss=process.env.OPENDESK_QN_ATTACHMENT_LOSS==='1';
+const reactPath=resolve(process.env.OPENDESK_QN_REACT_TOOL_FILE||'artifacts/sidebar-tools/quick-notes-react/react-candidate.opendesk-tool.json');
+const paths=attachmentLoss?[reactPath]:[
   resolve(process.env.OPENDESK_QN_NATIVE_TOOL_FILE||'artifacts/sidebar-tools/quick-notes/native-candidate.opendesk-tool.json'),
-  resolve(process.env.OPENDESK_QN_REACT_TOOL_FILE||'artifacts/sidebar-tools/quick-notes-react/react-candidate.opendesk-tool.json')
+  reactPath
 ];
 const out=resolve(process.argv[2]||'artifacts/sidebar-tools/quick-notes-react/installed-chrome');
 await mkdir(out,{recursive:true});
@@ -167,7 +170,7 @@ async function importTool(tool,{update=false}={}){
   result.operations.push((update?'TRUSTED_UI_UPDATE_':'TRUSTED_UI_IMPORT_')+tool.id);
 }
 async function openTool(id){
-  const row='#extension-center-list button[data-extension-key="app:'+id+'"][data-extension-action="primary"]';
+  const row='#extension-center-list button[data-extension-key="app:'+id+'"]:is([data-extension-action="main"],[data-extension-action="primary"])';
   await click(host,row);
   const target=await until(async()=>{
     const items=(await call('Target.getTargets')).targetInfos;
@@ -432,6 +435,58 @@ async function pageAssociationCheck(){
   await call('Target.closeTarget',{targetId:page.targetId});
   result.operations.push('REAL_HTTP_PAGE_ASSOCIATION');
 }
+async function pageAttachmentLossCheck(){
+  const fixture=createServer((req,res)=>{
+    res.writeHead(200,{'content-type':'text/html; charset=utf-8'});
+    res.end('<!doctype html><title>Quick Notes React attachment fixture</title>');
+  });
+  await new Promise((ok,fail)=>{fixture.once('error',fail);fixture.listen(0,'127.0.0.1',ok);});
+  try{
+    const url='http://127.0.0.1:'+fixture.address().port+'/attachment.html';
+    const page=await call('Target.createTarget',{url});
+    const pageSession=await attach(page.targetId);
+    const {frame}=await openTool('quick-notes-react');
+    const refresh='button[aria-label="更新网页信息"]';
+    const text='网页关联丢失后保存的离线草稿';
+    const notes=()=>sdk(frame,'storage.get',{key:'notes',withEtag:true});
+    const checkbox='document.querySelector("#attach-page")';
+    const before=await notes();
+    assert.ok(!before.value?.length,'fresh isolated note storage');
+    await click(frame,refresh);
+    await until(()=>evaluate(frame,'document.querySelector(".page-url")?.textContent==='+JSON.stringify(url)),
+      'real loopback page is available');
+    await replaceText(frame,text);
+    await click(frame,'#attach-page');
+    assert.equal(await evaluate(frame,checkbox+'.checked'),true);
+    const navigation=await call('Page.navigate',{url:'about:blank'},pageSession);
+    assert.equal(navigation.errorText,undefined);
+    await until(()=>evaluate(frame,'!document.querySelector(".page-url")&&'+checkbox+'.checked'),
+      'native page change clears current context while preserving pending attachment');
+    await click(frame,refresh);
+    await until(()=>evaluate(frame,'!document.querySelector('+JSON.stringify(refresh)+').disabled&&'+
+      '!document.querySelector(".page-url")'),'unsupported current page after real SDK refresh');
+    assert.equal(await evaluate(frame,'document.querySelector("#note-text").value'),text);
+    assert.deepEqual(await notes(),before,'navigation must not save or replay the draft');
+    assert.equal(await evaluate(frame,checkbox+'.disabled'),false,'checked attachment can be removed after context loss');
+    await click(frame,'#attach-page');
+    assert.equal(await evaluate(frame,checkbox+'.checked'),false);
+    await click(frame,'button[aria-label="保存笔记"]');
+    await until(()=>evaluate(frame,'/已保存/.test(document.querySelector(".note-status")?.textContent)'),
+      'explicit offline save acknowledgement');
+    const saved=await notes();
+    assert.notEqual(saved.etag,before.etag);
+    assert.deepEqual(saved.value.map(n=>({text:n.text,pageUrl:n.pageUrl,pageTitle:n.pageTitle})),[{text,pageUrl:'',pageTitle:''}]);
+    await closeTool();
+    await reopenVerify('quick-notes-react',text);
+    await call('Target.closeTarget',{targetId:page.targetId});
+    result.pageAttachmentLoss={from:url,to:'about:blank',draftPreserved:true,
+      storageUnchangedBeforeSave:true,offlineNotes:1,pageUrl:'',reopened:true};
+    result.operations.push('REAL_PAGE_ATTACHMENT_LOSS_DETACH_AND_SAVE_OFFLINE');
+  }finally{
+    fixture.closeAllConnections();
+    await new Promise(ok=>fixture.close(ok));
+  }
+}
 async function layoutAndZoomChecks(){
   const opened=await openTool('quick-notes-react');
   result.layouts=[];
@@ -558,6 +613,8 @@ async function startHost(options){
   processChrome.stderr.on('data',data=>browserLog.push(String(data)));
   await connect();
   result.chrome=await call('Browser.getVersion');
+  if(attachmentLoss)assert.equal(result.chrome.product,'Chrome/'+process.env.OPENDESK_QN_CHROME_VERSION,
+    'attachment-loss gate must run on the pinned Chrome version');
   const manifest=JSON.parse(await readFile(resolve(extension,'manifest.json')));
   const worker=await until(async()=>{
     const all=(await call('Target.getTargets')).targetInfos;
@@ -624,16 +681,30 @@ try{
     result.packages.push({id:pkg.id,sha256:sha,bytes:bytes.length,version:pkg.version});
     return {file,id:pkg.id,title:pkg.title,version:pkg.version,sha};
   }));
-  assert.deepEqual(packages.map(x=>x.id),['quick-notes','quick-notes-react']);
+  assert.deepEqual(packages.map(x=>x.id),attachmentLoss?['quick-notes-react']:['quick-notes','quick-notes-react']);
+  if(attachmentLoss){
+    result.testMode='page-attachment-loss';
+    assert.ok(process.env.CHROME_BIN&&process.env.OPENDESK_QN_HEADFUL&&process.env.OPENDESK_QN_CHROME_VERSION&&
+      process.env.OPENDESK_SHARED_UI_EXTENSION_DIR&&process.env.OPENDESK_QN_REACT_TOOL_FILE,
+      'explicit headful Chrome pin, isolated Host and candidate are required');
+    assert.equal(packages[0].version,'1.0.1');
+    assert.equal(packages[0].sha,process.env.OPENDESK_QN_REACT_TOOL_SHA256,'exact candidate SHA-256');
+  }
   profile=await mkdtemp(join(tmpdir(),'opendesk-r21-installed-'));
   const options=['--disable-gpu','--disable-dev-shm-usage','--no-first-run',
     '--use-mock-keychain','--password-store=basic',
     '--no-default-browser-check','--user-data-dir='+profile,'--remote-debugging-port=0',
     '--disable-extensions-except='+extension,'--load-extension='+extension,
     ...(!process.env.OPENDESK_QN_HEADFUL?['--headless=new']:[]),'about:blank'];
+  if(attachmentLoss)options.unshift('--disable-background-networking','--proxy-server=http://127.0.0.1:9');
   if(process.getuid?.()===0||(process.platform==='linux'&&process.env.GITHUB_ACTIONS==='true'))
     options.unshift('--no-sandbox');
   await startHost(options);
+  if(attachmentLoss){
+    assert.equal(await persistedPackage('quick-notes-react'),null,'candidate must start uninstalled');
+    await importTool(packages[0]);
+    await pageAttachmentLossCheck();
+  }else{
   // Import React independently. Native original is generally a preinstall.
   for(const pkg of packages)await importTool(pkg);
   assert.ok(await persistedPackage('quick-notes'));
@@ -711,6 +782,7 @@ try{
   assert.equal(await storageDigest('quick-notes'),nativeDigest,'React uninstall must preserve native data');
   assert.ok(await persistedPackage('quick-notes'),'native package must remain installed');
   result.operations.push('NATIVE_PACKAGE_AND_DATA_UNCHANGED');
+  }
   assert.deepEqual(browserErrors,[],'No uncaught runtime errors from observed extension targets');
   assert.deepEqual(networkFailures,[],'No failed observed extension resources');
   assert.equal((await verifyPackage(extension)).packageHash,result.hostPackage.sha256,

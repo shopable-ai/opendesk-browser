@@ -14,9 +14,9 @@ test('untrusted requests cannot authorize a save without a user click',()=>{
 test('a Save grants one bound request, then it cannot be reused',()=>{
   const gate=createCookieWriteIntentGate();
   const first=gate.start({...args,verifiedUserActivation:true});
-  assert.equal(gate.acquire(args),true);
+  assert.equal(gate.acquire(args),first.ref);
   assert.throws(()=>gate.acquire(args),{code:'E_BUSY'});
-  gate.settle({owner});
+  gate.settle({owner,ref:first.ref});
   assert.equal(gate.acquire(args),false);
   assert.deepEqual(gate.close(owner,first.ref),{closed:false});
 });
@@ -60,14 +60,16 @@ test('rename permits one old-name removal only after the new name is verified',(
   const gate=createCookieWriteIntentGate(),renamed='next_session';
   const ref=gate.start({...args,name:renamed,renameFrom:args.name,verifiedUserActivation:true});
   assert.equal(ref.authorized,true);
-  assert.equal(gate.acquire({...args,name:renamed,action:'set'}),true);
+  assert.equal(gate.acquire({...args,name:renamed,action:'set'}),ref.ref);
   assert.throws(()=>gate.acquire({...args,name:args.name,action:'remove'}),{code:'E_DOCUMENT_CHANGED'});
   // The previous mismatch must revoke the stale intent before another click.
   const next=gate.start({...args,name:renamed,renameFrom:args.name,verifiedUserActivation:true});
-  assert.equal(gate.acquire({...args,name:renamed,action:'set'}),true);
-  gate.settle({owner,confirmed:true});
-  assert.equal(gate.acquire({...args,name:args.name,action:'remove'}),true);
-  gate.settle({owner});
+  assert.equal(gate.acquire({...args,name:renamed,action:'set'}),next.ref);
+  gate.settle({owner,ref:ref.ref,confirmed:true});
+  assert.throws(()=>gate.acquire({...args,name:renamed,action:'set'}),{code:'E_BUSY'});
+  gate.settle({owner,ref:next.ref,confirmed:true});
+  assert.equal(gate.acquire({...args,name:args.name,action:'remove'}),next.ref);
+  gate.settle({owner,ref:next.ref});
   assert.equal(gate.acquire({...args,name:args.name,action:'remove'}),false);
   assert.deepEqual(gate.close(owner,next.ref),{closed:false});
 });
@@ -76,13 +78,13 @@ test('unverified rename and wrong old identity never gain deletion authority',()
   const gate=createCookieWriteIntentGate();
   assert.throws(()=>gate.start({...args,renameFrom:args.name,verifiedUserActivation:true}),
     {code:'E_SCHEMA'});
-  gate.start({...args,name:'next',renameFrom:args.name,verifiedUserActivation:true});
-  assert.equal(gate.acquire({...args,name:'next',action:'set'}),true);
-  gate.settle({owner,confirmed:false});
+  const first=gate.start({...args,name:'next',renameFrom:args.name,verifiedUserActivation:true});
+  assert.equal(gate.acquire({...args,name:'next',action:'set'}),first.ref);
+  gate.settle({owner,ref:first.ref,confirmed:false});
   assert.equal(gate.acquire({...args,name:args.name,action:'remove'}),false);
-  gate.start({...args,name:'next',renameFrom:args.name,verifiedUserActivation:true});
-  assert.equal(gate.acquire({...args,name:'next',action:'set'}),true);
-  gate.settle({owner,confirmed:true});
+  const second=gate.start({...args,name:'next',renameFrom:args.name,verifiedUserActivation:true});
+  assert.equal(gate.acquire({...args,name:'next',action:'set'}),second.ref);
+  gate.settle({owner,ref:second.ref,confirmed:true});
   assert.throws(()=>gate.acquire({...args,name:'different',action:'remove'}),
     {code:'E_DOCUMENT_CHANGED'});
   assert.equal(gate.acquire({...args,name:args.name,action:'remove'}),false);
@@ -106,9 +108,9 @@ test('one trusted Delete click authorizes only the exact Cookie removal',()=>{
   assert.equal(remove.authorized,true);
   assert.throws(()=>gate.acquire({...args,action:'set'}),{code:'E_DOCUMENT_CHANGED'});
   assert.equal(gate.acquire({...args,action:'remove'}),false);
-  gate.start({...args,action:'remove',verifiedUserActivation:true});
-  assert.equal(gate.acquire({...args,action:'remove'}),true);
-  gate.settle({owner});
+  const next=gate.start({...args,action:'remove',verifiedUserActivation:true});
+  assert.equal(gate.acquire({...args,action:'remove'}),next.ref);
+  gate.settle({owner,ref:next.ref});
   assert.equal(gate.acquire({...args,action:'remove'}),false);
 });
 test('single-delete React and Host use the existing write-intent gate',async()=>{

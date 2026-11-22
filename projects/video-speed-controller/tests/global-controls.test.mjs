@@ -96,6 +96,23 @@ test('configure failure never falls through to page set or auto-retries',async()
   await flush();f.preset(2);await flush();assert.equal(f.writes().length,1);assert.equal(f.value(),'—');
   assert.match(f.get('message').textContent,/unknown/);await flush();assert.equal(f.writes().length,1);
 });
+test('a slow reload keeps video speed in a checking state until a new document is confirmed',async()=>{
+  const f=fixture({state:pref(false),actual:2});
+  await flush();assert.equal(f.value(),'2.00');
+  f.handlers['videoSpeed.status']=()=>{
+    throw Object.assign(Error('当前网页正在导航，请等待文档加载完成'),{code:'E_DOCUMENT_UNRESOLVED'});
+  };
+  const pageChanged=()=>f.root.dispatchEvent(new f.window.Event('opendesk-page-changed'));
+  pageChanged();await flush();
+  assert.equal(f.value(),'—');
+  assert.equal(f.get('plus').disabled,true);
+  const pendingStatus=f.get('verification').textContent;
+  f.handlers['videoSpeed.status']=()=>({status:'available',speed:1});
+  pageChanged();await flush();
+  assert.equal(f.value(),'1.00');
+  assert.equal(f.writes().length,0);
+  assert.equal(pendingStatus,'检测中');
+});
 test('failed stop keeps confirmed state and reports unknown restoration',async()=>{
   const f=fixture({state:pref(true,2),handlers:{'videoSpeed.global.configure':()=>{throw Error('offline');}}});
   await flush();f.click('global-toggle');await flush();assert.equal(f.get('global-toggle').getAttribute('aria-checked'),'true');

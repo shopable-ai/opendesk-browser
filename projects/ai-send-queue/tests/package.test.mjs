@@ -6,6 +6,7 @@ import {resolve} from 'node:path';
 import {fileURLToPath} from 'node:url';
 import {createSidebarToolPackage,encodeSidebarToolPackage} from '../../../scripts/build-sidebar-tool.mjs';
 import {verifySidebarToolBackground} from '../../../src/ui/sidebar-tools/package.js';
+import {usesFixedSendQueue} from '../../../src/scripting/user-scripts/fixed-send-queue.js';
 
 const root=fileURLToPath(new URL('../',import.meta.url));
 const path=process.env.SEND_QUEUE_PACKAGE_PATH||resolve(root,'ai-send-queue.opendesk-tool.json');
@@ -27,6 +28,8 @@ test('one reviewed Sidebar package contains the complete crown and FIFO Page mod
   assert.match(pkg.pageModule.sourceUtf8,/data:image\/webp;base64,/,'packaged crown image');
   assert.deepEqual(bytes,encodeSidebarToolPackage(await createSidebarToolPackage(root)),
     'current Page source and all assets must reproduce the delivered package');
+  assert.equal(usesFixedSendQueue(pkg.id,pkg.pageModule),true,
+    'updating the sidebar must preserve the reviewed fixed Page entry');
 });
 
 test('current distribution offers only the composite package and no independent Page candidate',async()=>{

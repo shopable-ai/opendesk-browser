@@ -21,17 +21,24 @@ const directory=path.resolve(process.env.COOKIE_NATIVE_EVIDENCE||path.join(root,
 const fixture='http://127.0.0.1:43111/demo-form.html';
 const mode=process.env.COOKIE_NATIVE_MODE||(extension===path.join(root,'dist/development')?'development':'production');
 const stage=process.env.COOKIE_NATIVE_STAGE||'baseline';
-assert(['development','production'].includes(mode));
-assert(['baseline','core','upgrade','diagnose','recheck','restart-dev'].includes(stage));
-const targets=process.env.COOKIE_NATIVE_TARGETS?.split(',')||[fixture,'http://localhost:43111/demo-form.html','http://cookie-r5303.localhost:43111/demo-form.html'];
-assert(targets.length===3&&new Set(targets.map(url=>new URL(url).hostname)).size===3,'Three distinct hostnames required');
-const requiredCases=stage==='restart-dev'?['actual-entry','official-installed-open','all-sites-grant','independent-values-grant','same-profile-restart','fixture-cookie-cleanup','all-sites-revoke']:stage==='recheck'?['actual-entry','same-id-development-update','official-installed-open','all-sites-grant','independent-values-grant','automatic-site-lists','edit-save-readback','export-inline-workspace','single-click-copy','single-click-download','all-sites-revoke']:stage==='diagnose'?['actual-entry','official-installed-open','all-sites-grant','independent-values-grant','development-reread-observation']:['actual-entry','official-installed-open','all-sites-grant','independent-values-grant','edit-save-readback','export-inline-workspace','single-click-copy','single-click-download',
+assert(['development','static-development','production'].includes(mode));
+assert(['baseline','core','upgrade','diagnose','recheck','restart-dev','slow-reload'].includes(stage));
+const slowReload=stage==='slow-reload';
+assert(mode!=='static-development'||slowReload,'Static development is for the isolated slow reload candidate');
+const reloadCandidate=slowReload&&process.env.COOKIE_NATIVE_TOOL_CANDIDATE;
+const reloadCandidateSha=process.env.COOKIE_NATIVE_TOOL_SHA256;
+if(reloadCandidate)assert(/^[a-f0-9]{64}$/.test(reloadCandidateSha||''),'Pin the raw candidate JSON with COOKIE_NATIVE_TOOL_SHA256');
+const targets=slowReload?[]:process.env.COOKIE_NATIVE_TARGETS?.split(',')||[fixture,'http://localhost:43111/demo-form.html','http://cookie-r5303.localhost:43111/demo-form.html'];
+assert(slowReload||(targets.length===3&&new Set(targets.map(url=>new URL(url).hostname)).size===3),'Three distinct hostnames required');
+const requiredCases=slowReload?['actual-entry','official-installed-open','reload-fixture-grant','reload-stable-controls','reload-document-fence','reload-compact-status','reload-automatic-recovery','reload-hard-site-switch']:stage==='restart-dev'?['actual-entry','official-installed-open','all-sites-grant','independent-values-grant','same-profile-restart','fixture-cookie-cleanup','all-sites-revoke']:stage==='recheck'?['actual-entry','same-id-development-update','official-installed-open','all-sites-grant','independent-values-grant','automatic-site-lists','edit-save-readback','export-inline-workspace','single-click-copy','single-click-download','all-sites-revoke']:stage==='diagnose'?['actual-entry','official-installed-open','all-sites-grant','independent-values-grant','development-reread-observation']:['actual-entry','official-installed-open','all-sites-grant','independent-values-grant','edit-save-readback','export-inline-workspace','single-click-copy','single-click-download',
   ...(stage==='baseline'?[]:['three-site-list-reuse','same-profile-restart','all-sites-revoke']),
   ...(stage==='upgrade'?['same-id-upgrade']:[])];
 const report={startedAt:new Date().toISOString(),mode,stage,extension,directory,targets,cases:[],
   results:Object.fromEntries(requiredCases.map(name=>[name,'NOT_TESTED'])),complete:false};
+if(slowReload)for(const name of ['reload-manual-recovery-control','reload-attribute-draft'])report.results[name]='NOT_TESTED';
 let launched,client,side,sideTargetId,tool,ownedFixture,release,control,pendingEdit;
 const reuseReport=process.env.COOKIE_NATIVE_REUSE_REPORT;
+if(slowReload)assert(!reuseReport&&process.env.COOKIE_NATIVE_STAY!=='1','Slow reload requires a fresh owned browser and automatic cleanup');
 if(stage==='recheck')assert(reuseReport,'Development recheck must reuse an owned browser');
 if(stage==='restart-dev')assert(reuseReport&&process.env.COOKIE_NATIVE_OWNER_INSPECTOR&&process.env.COOKIE_NATIVE_CORE_REPORT,'Restart reuses the original owned launcher and fixture evidence');
 const contexts=new Map(),observedSessions=new Set(),attachedTargets=new Map(),downloads=[],fileChoosers=[];
@@ -129,8 +136,9 @@ async function openPanel(url=targets[0]){
   sideTargetId=selected.target.targetId;side=await attach(selected.target);report.sidePanel=selected.context;
   report.developmentConnection=mode==='development'?await until(()=>read(side,
     '(()=>{const n=document.querySelector("#opendesk-development-status");return n?.textContent.includes("开发服务已连接")?{text:n.textContent,identity:n.title}:null;})()'),
-    'Watcher connection'):{status:'OUT_OF_SCOPE',reason:'production static candidate'};
+    'Watcher connection'):{status:'OUT_OF_SCOPE',reason:mode==='static-development'?'isolated static development candidate':'production static candidate'};
   await client.send('Target.activateTarget',{targetId:website.targetId});await click(side,'#tab-tools');
+  return website;
 }
 async function visit(url){
   const target=await client.send('Target.createTarget',{url});
@@ -315,6 +323,280 @@ async function automaticLists(){
   }
   await checkpoint('automatic-site-lists',{origins:targets,includesSameDomain:true,manualRereads:0,grantEpoch:epoch});
 }
+const reloadQuery='od_slow_reload_';
+const reloadCookie=suffix=>reloadQuery+suffix;
+const reloadValue='fictional-before-reload';
+async function grantReloadFixture(){
+  assert(!granted(await grantRecord()),'Fresh fixture must have no existing Cookie consent');
+  await click(side,'#sidebar-tool-cookie-consent-allow');
+  const row=await until(async()=>{
+    const grant=await grantRecord();
+    return granted(grant)&&grant.cookieAllSites.values===true&&grant.cookieAllSites.valueConsent===true?grant:null;
+  },'Reviewed Cookie Editor permission includes native Cookie values');
+  await bindTool();
+  await checkpoint('reload-fixture-grant',{version:row.version,values:true});
+}
+async function importReloadCandidate(file){
+  const bytes=await readFile(file), candidate=JSON.parse(bytes);
+  assert.equal(candidate.id,'cookie-editor');
+  assert.equal(createHash('sha256').update(bytes).digest('hex'),reloadCandidateSha,'Candidate SHA-256 changed');
+  const pinnedPath=path.join(directory,'cookie-editor.candidate.opendesk-tool.json');
+  await writeFile(pinnedPath,bytes,{flag:'wx'});
+  const previous=await installed();
+  await click(side,'#extension-center-more');await click(side,'#extension-center-import');
+  await client.send('Page.enable',{},side);
+  await client.send('Page.setInterceptFileChooserDialog',{enabled:true},side);
+  try{
+    const first=fileChoosers.length;
+    await click(side,'#sidebar-tool-file');
+    const chooser=await until(()=>fileChoosers.slice(first).find(event=>event.sessionId===side),'Reviewed local candidate file chooser');
+    assert(chooser.backendNodeId);
+    await client.send('DOM.setFileInputFiles',{files:[pinnedPath],backendNodeId:chooser.backendNodeId},side);
+  }finally{await client.send('Page.setInterceptFileChooserDialog',{enabled:false},side);}
+  const version=await until(()=>read(side,'document.querySelector("#sidebar-tool-preview-version")?.innerText'),'Local candidate installation review');
+  assert(version.includes(candidate.version));
+  await click(side,'#sidebar-tool-install');
+  await until(async()=>(await installed())?.version===candidate.version,'Reviewed candidate installed');
+  const actual=await read(side,'chrome.storage.local.get("opendesk.sidebar-tools.installed.v1").then(v=>v["opendesk.sidebar-tools.installed.v1"].find(t=>t.id==="cookie-editor"))');
+  for(const key of ['id','version','html','css','js'])assert.equal(actual[key],candidate[key],'Installed candidate '+key+' matches pinned JSON');
+  report.importedCandidate={version:candidate.version,sha256:reloadCandidateSha,path:pinnedPath};
+  release={...release,version:candidate.version};
+  if(!await read(side,'Boolean(document.querySelector("#sidebar-tool-frame iframe")?.getClientRects().length)'))await openOfficial();
+  await checkpoint('official-installed-open',{installation:'reviewed-local-candidate',previous,installed:await installed(),candidate:report.importedCandidate});
+}
+async function startSlowReloadFixture(){
+  let gate;
+  const requests=[];
+  function hold(hostname){
+    assert(!gate,'Only one held navigation at a time');
+    const current=gate={hostname,request:null,release:null};
+    return current;
+  }
+  ownedFixture=createServer((req,res)=>{
+    if(req.url!=='/slow-reload.html'){res.writeHead(404).end();return;}
+    const hostname=req.headers.host?.split(':')[0];
+    if(!['127.0.0.1','localhost'].includes(hostname)){res.writeHead(400).end();return;}
+    const current=gate?.hostname===hostname?gate:null;
+    const suffix=hostname==='localhost'?'other':current?'new':'old';
+    const entry={hostname,suffix,at:Date.now(),held:Boolean(current),fetchMode:req.headers['sec-fetch-mode'],fetchDest:req.headers['sec-fetch-dest']};
+    requests.push(entry);
+    const respond=()=>{
+      entry.releasedAt=Date.now();
+      res.writeHead(200,{'Content-Type':'text/html; charset=utf-8','Cache-Control':'no-store',
+        'Set-Cookie':[
+          reloadCookie(suffix)+'='+(suffix==='old'?reloadValue:'fictional-'+suffix)+'; Path=/; SameSite=Lax',
+          ...(hostname==='127.0.0.1'?[reloadCookie('stable')+'=fictional-stable; Path=/; SameSite=Lax']:[]),
+          ...(suffix==='new'?[reloadCookie('old')+'=expired; Max-Age=0; Path=/']:[])
+        ]});
+      res.end('<!doctype html><meta charset="utf-8"><title>Cookie reload fixture</title><main id="'+suffix+'">Cookie reload fixture</main>');
+    };
+    if(current&&!current.request){
+      current.request=entry;
+      current.release=()=>{gate=null;respond();};
+    }else respond();
+  });
+  await new Promise((resolve,reject)=>{ownedFixture.once('error',reject);ownedFixture.listen(0,'127.0.0.1',resolve);});
+  const port=ownedFixture.address().port;
+  targets.push(...['127.0.0.1','localhost'].map(host=>'http://'+host+':'+port+'/slow-reload.html'));
+  report.fixtureServer={owned:true,urls:targets,requests};
+  return {hold};
+}
+async function verifySlowReload(website,fixtureDriver){
+  const websiteSession=await attach(website);
+  const search='[aria-label="搜索 Cookie"]', filter='button[aria-label="筛选与排序"]';
+  const activeTab='#cookie-product-tab-cookie';
+  const scope=['.site-bar','.cookie-editor-workspace','#cookie-product-panel-cookie',activeTab,search,filter];
+  const actions=['重新读取 Cookie','导入 Cookie','导出 Cookie','新建 Cookie','安全清理本站 Cookie','删除 Cookie'];
+  const tab=await until(()=>read(side,'chrome.tabs.query({active:true,currentWindow:true}).then(t=>t.find(tab=>tab.url==='+JSON.stringify(targets[0])+'))'),'Active owned fixture tab');
+  const documentId=()=>read(side,'chrome.webNavigation.getFrame({tabId:'+tab.id+',frameId:0}).then(f=>f?.documentId).catch(()=>null)');
+  const appState=()=>read(tool,'('+((search,filter,actions,value)=>{
+    const find=s=>document.querySelector(s), visible=n=>Boolean(n?.getClientRects().length);
+    const header=find('.site-bar'), body=document.body.innerText;
+    return {site:find('.site-hostname')?.textContent,header:header?.innerText,
+      permission:[...document.querySelectorAll('.cookie-permission')].filter(visible).map(n=>n.innerText),
+      technicalCode:/E_[A-Z_]{3,}|错误代码|读取诊断/.test(body),
+      status:[...document.querySelectorAll('[role=status],[role=alert]')].filter(visible).map(n=>n.innerText).filter(t=>/网页|文档|E_/.test(t)),
+      query:find(search)?.value,filterOpen:find(filter)?.getAttribute('aria-pressed'),
+      focused:document.activeElement?.getAttribute('aria-label')||document.activeElement?.id,
+      rows:[...document.querySelectorAll('.row-trigger')].map(n=>n.innerText),
+      editor:Boolean(find('.cookie-inline-editor')),
+      oldValue:[...document.querySelectorAll('input,textarea')].some(n=>n.value===value)||body.includes(value),
+      actions:[...document.querySelectorAll('button')].filter(n=>visible(n)&&!n.disabled&&n.getAttribute('aria-disabled')!=='true')
+        .map(n=>n.getAttribute('aria-label')).filter(n=>actions.includes(n)),
+      saveEnabled:[...document.querySelectorAll('.cookie-editor-save')].some(n=>visible(n)&&!n.disabled)};
+  }).toString()+')('+[search,filter,actions,reloadValue].map(value=>JSON.stringify(value)).join(',')+')');
+  const hasRow=(s,suffix)=>s.rows.some(text=>text.includes(reloadCookie(suffix)));
+  const ready=(s,host,suffix)=>s.site===host&&hasRow(s,suffix)&&s.actions.includes('新建 Cookie');
+  const clickRow=async suffix=>{
+    const selector=await until(()=>read(tool,'('+((name)=>{
+      const row=[...document.querySelectorAll('.row-trigger')].find(n=>n.querySelector('.cookie-row-name strong')?.textContent===name);
+      return row?'.row-trigger[data-row='+CSS.escape(row.dataset.row)+']':null;
+    }).toString()+')('+JSON.stringify(reloadCookie(suffix))+')'),'Fixture Cookie '+suffix);
+    await click(tool,selector);
+  };
+  const oldDoc=await until(documentId,'Original Chrome documentId');
+  await until(async()=>ready(await appState(),'127.0.0.1','old'),'Original fixture Cookie row');
+  await fill(search,reloadQuery);
+  await clickRow('old');
+  await until(async()=>(await appState()).oldValue,'Original value in the expanded Cookie Editor');
+  await click(tool,search);
+  const context=typeof tool==='string'?tool:tool.sessionId;
+  const {result:reference}=await client.send('Runtime.evaluate',{
+    expression:'('+JSON.stringify(scope)+').map(s=>document.querySelector(s))',
+    ...(typeof tool==='string'?{}:{contextId:tool.contextId}),objectGroup:'slow-reload-controls'
+  },context);
+  assert(reference?.objectId,'Retain original DOM controls through CDP');
+  const sameNodes=async()=>{
+    const identity=await client.send('Runtime.callFunctionOn',{objectId:reference.objectId,
+      functionDeclaration:'function(selectors){return this.map((n,i)=>Boolean(n?.isConnected&&n===document.querySelector(selectors[i])));}',
+      arguments:[{value:scope}],returnByValue:true},context);
+    if(identity.exceptionDetails)throw Error('Original tool DOM context was lost');
+    return identity.result.value;
+  };
+  const key=async(key,modifiers=0)=>{
+    const windowsVirtualKeyCode={Tab:9,Enter:13,End:35,Backspace:8,ArrowLeft:37,ArrowRight:39}[key];
+    for(const type of ['keyDown','keyUp'])await client.send('Input.dispatchKeyEvent',{type,key,code:key,modifiers,windowsVirtualKeyCode,
+      ...(type==='keyDown'&&key==='Enter'?{text:'\r'}:{})},side);
+  };
+  const tabTo=async(selector,back=false)=>{
+    for(let i=0;i<12;i++){
+      if(await read(tool,'document.activeElement?.matches('+JSON.stringify(selector)+')'))return true;
+      await key('Tab',back?8:0);
+    }
+    return false;
+  };
+  const failures=[];
+  async function verify(name,errors,data){
+    errors=errors.filter(Boolean);
+    if(errors.length){report.results[name]='FAIL';failures.push(...errors);}
+    await checkpoint(errors.length?name+'-failed':name,{...data,errors});
+  }
+  const observe=async(predicate,label,timeout)=>{
+    try{return await until(async()=>{const s=await appState();return predicate(s)?s:null;},label,timeout);}
+    catch(error){if(!error.message.startsWith('Timeout:'))throw error;return appState();}
+  };
+  const fenced=s=>!s.rows.length&&!s.oldValue&&!s.editor&&!s.actions.length&&!s.saveEnabled;
+  const compact=s=>/正在确认当前网页[…⋯]/.test(s.header||'')&&!s.header.includes('127.0.0.1')&&!s.technicalCode&&!s.permission.length;
+  const held=fixtureDriver.hold('127.0.0.1');
+  let intentionallyChangedPane=false;
+  try{
+    await client.send('Page.reload',{ignoreCache:true},websiteSession);
+    const request=await until(()=>held.request,'Same-URL top-level HTTP reload reached the fixture');
+    assert.equal(request.fetchMode,'navigate');assert.equal(request.fetchDest,'document');
+    const waiting=await observe(s=>/确认当前网页|E_DOCUMENT_UNRESOLVED/.test(JSON.stringify([s.header,s.permission,s.status]))||!hasRow(s,'old'),
+      'Reload becomes unresolved while its main response is held',2200);
+    const identity=await sameNodes();
+    const searchFocused=waiting.focused==='搜索 Cookie';
+    let acceptedText=false,filterKeyboard=false,tabKeyboard=false;
+    if(identity[4]&&searchFocused&&waiting.query===reloadQuery){
+      await key('End');await client.send('Input.insertText',{text:'x'},side);
+      acceptedText=(await appState()).query===reloadQuery+'x';
+      if(acceptedText)await key('Backspace');
+      if(await tabTo(filter)){
+        const before=(await appState()).filterOpen;
+        await key('Enter');filterKeyboard=(await appState()).filterOpen!==before;
+      }
+    }
+    const afterKeys=await sameNodes();
+    if((await tabTo(activeTab,true))){
+      const selected=id=>read(tool,'document.querySelector('+JSON.stringify(id)+')?.getAttribute("aria-selected")==="true"&&document.activeElement?.matches('+JSON.stringify(id)+')');
+      await key('ArrowRight');
+      intentionallyChangedPane=await selected('#cookie-product-tab-accounts');
+      if(intentionallyChangedPane){await key('ArrowLeft');tabKeyboard=await selected(activeTab);}
+    }
+    // Allow the native target resolver to settle while remaining inside the UI's 4s grace.
+    await sleep(Math.max(0,1650-(Date.now()-request.at)));
+    const stillWaiting=await appState(), pendingDoc=await documentId();
+    assert(!request.releasedAt&&(!pendingDoc||pendingDoc===oldDoc),'Pending observations must precede replacement document');
+    await verify('reload-stable-controls',[
+      !(identity.every(Boolean)&&afterKeys.every(Boolean))&&'site bar, workspace, tab and search/filter must retain their DOM nodes until deliberate pane navigation',
+      !(searchFocused&&acceptedText)&&'focused search must retain focus and accept keyboard text',
+      !filterKeyboard&&'filter must operate by keyboard',!tabKeyboard&&'ArrowRight and ArrowLeft must navigate the product tabs'
+    ],{identity:Object.fromEntries(scope.map((s,i)=>[s,identity[i]])),searchFocused,acceptedText,filterKeyboard,tabKeyboard});
+    await verify('reload-document-fence',[![waiting,stillWaiting].every(fenced)&&'reload must clear live rows/value editor and fence document actions'],
+      {waiting,stillWaiting,oldDoc,pendingDoc,request});
+    await verify('reload-compact-status',[![waiting,stillWaiting].every(compact)&&'show compact 正在确认当前网页… in the stable site header without technical code or error card'],
+      {header:waiting.header,permission:waiting.permission,status:waiting.status,technicalCode:waiting.technicalCode});
+  }finally{held.release?.();}
+  const recovered=await observe(s=>ready(s,'127.0.0.1','new'),'New rows load without retry after replacement document commits',12000);
+  const newDoc=await documentId(),afterIdentity=await sameNodes();
+  const browserReload=await read(websiteSession,'location.href==='+JSON.stringify(targets[0])+'&&Boolean(document.querySelector("#new"))&&performance.getEntriesByType("navigation")[0]?.type==="reload"');
+  await verify('reload-automatic-recovery',[
+    !(browserReload&&newDoc&&newDoc!==oldDoc)&&'same-tab, same-URL reload must commit a new Chrome document',
+    !(ready(recovered,'127.0.0.1','new')&&!hasRow(recovered,'old')&&!recovered.oldValue&&!recovered.permission.length&&!/正在确认当前网页/.test(recovered.header||''))&&'new document must become usable and clear pending status automatically',
+    recovered.query!==reloadQuery&&'same-origin reload must preserve the search text',
+    !(intentionallyChangedPane?[afterIdentity[0],afterIdentity[3]]:afterIdentity).every(Boolean)&&'recovery must keep controls outside any deliberately changed pane'
+  ],{oldDoc,newDoc,browserReload,recovered,afterIdentity,manualRereads:0});
+  const attr='.cookie-inline-editor .toggles label:last-child input';
+  const valueField='#opendesk-cookie-attribute-data';
+  const unsaved='fictional-never-save-this';
+  const draftState=()=>read(tool,'('+((attr,valueField,unsaved)=>{
+    const editor=document.querySelector('.cookie-inline-editor');
+    const httpOnly=document.querySelector(attr);
+    return {editor:editor?.getAttribute('aria-label'),httpOnly:httpOnly?.checked,
+      dirty:Boolean(editor?.querySelector('.cookie-dirty-note')),
+      restored:editor?.querySelector('.editor-hint[role=status]')?.textContent.includes('已恢复可保留的属性修改')??false,
+      typedValue:[...document.querySelectorAll('input,textarea')].some(n=>n.value===unsaved),
+      valueEmpty:document.querySelector(valueField)?.value==='',
+      canSave:Boolean(editor?.querySelector('.cookie-editor-save:not(:disabled)'))};
+  }).toString()+')('+[attr,valueField,unsaved].map(value=>JSON.stringify(value)).join(',')+')');
+  await clickRow('stable');
+  await until(async()=>await read(tool,'document.querySelector('+JSON.stringify(valueField)+')?.value==="fictional-stable"'),
+    'Read the original value of the stable fixture Cookie');
+  await fill(valueField,unsaved);
+  await click(tool,'.cookie-inline-editor .cookie-editor-details > summary');
+  await click(tool,attr);
+  const edited=await draftState();
+  assert(edited.dirty&&edited.httpOnly&&edited.typedValue&&edited.canSave,'Native inputs changed the attribute draft and unsaved value');
+  const draftGate=fixtureDriver.hold('127.0.0.1');
+  let pendingDraft,draftFenced;
+  try{
+    await client.send('Page.reload',{ignoreCache:true},websiteSession);
+    await until(()=>draftGate.request,'Second same-URL reload reached the fixture');
+    const pending=await observe(fenced,'The current draft editor hides during reload',5000);
+    pendingDraft=await draftState();
+    draftFenced=fenced(pending)&&!pendingDraft.editor&&!pendingDraft.typedValue&&!draftGate.request.releasedAt;
+  }finally{draftGate.release?.();}
+  const resumed=await until(async()=>{const state=await draftState();return state.restored?state:null;},
+    'Restore the reviewed attribute draft automatically after the same Cookie is verified',12000);
+  const draftDoc=await documentId();
+  const native=(await nativeRows('127.0.0.1')).find(row=>row.name===reloadCookie('stable'));
+  await verify('reload-attribute-draft',[
+    !(draftDoc&&draftDoc!==newDoc&&draftFenced)&&'the same-URL reload must hide the previous draft editor and commit a new document',
+    !(resumed.editor?.endsWith(reloadCookie('stable'))&&resumed.httpOnly&&resumed.dirty&&resumed.canSave)&&'the same verified Cookie must reopen with the unsaved HttpOnly attribute',
+    resumed.typedValue&&'the user-entered value must never be restored',
+    !(native?.value==='fictional-stable'&&native.httpOnly===false)&&'the native store must remain unchanged without an explicit save'
+  ],{edited,pendingDraft,draftFenced,resumed,draftDoc,nativeUnchanged:native?.value==='fictional-stable'&&native.httpOnly===false});
+  const switchGate=fixtureDriver.hold('localhost');
+  const navigation=client.send('Page.navigate',{url:targets[1]},websiteSession).then(result=>({result}),error=>({error}));
+  let duringSwitch,recovery;
+  try{
+    await until(()=>switchGate.request,'Hard site switch reached the fixture');
+    duringSwitch=await observe(fenced,'Old site rows fenced before hard switch commits',5000);
+    const retry='.cookie-check-recovery button';
+    const control=await until(async()=>read(tool,'Boolean(document.querySelector('+JSON.stringify(retry)+')?.getClientRects().length)'),
+      'Retry appears while the replacement document is still blocked',7500).catch(()=>false);
+    const reachable=control&&await tabTo(retry);
+    if(reachable)await key('Enter');
+    const afterRetry=await appState();
+    recovery={control,reachable,afterRetry};
+    await verify('reload-manual-recovery-control',[
+      !control&&'a lasting page check must expose inline Retry',
+      !reachable&&'Retry must be keyboard reachable',
+      !fenced(afterRetry)&&'Retry must not restore old private data before commit',
+      afterRetry.technicalCode&&'technical codes must stay collapsed'
+    ],recovery);
+  }finally{switchGate.release?.();}
+  const nav=await navigation;if(nav.error)throw nav.error;assert(!nav.result.errorText,nav.result.errorText);
+  const switched=await observe(s=>ready(s,'localhost','other'),'Different hostname automatically loads its own Cookie row',12000);
+  const switchedDoc=await documentId();
+  await verify('reload-hard-site-switch',[
+    !(switchedDoc&&switchedDoc!==draftDoc&&ready(switched,'localhost','other'))&&'hard switch must commit a new document and display its own data',
+    !(fenced(duringSwitch)&&!hasRow(switched,'old')&&!hasRow(switched,'new')&&!hasRow(switched,'stable')&&!switched.oldValue&&!switched.editor)&&'hard switch must fence previous-site data and draft'
+  ],{duringSwitch,switched,switchedDoc,manualRereads:recovery?.reachable?1:0});
+  await client.send('Runtime.releaseObjectGroup',{objectGroup:'slow-reload-controls'},context);
+  assert(!failures.length,failures.join('; '));
+}
 async function restartDevelopment(){
   const before=await grantRecord(),previous=launched.metadata;
   const candidateBefore=await readFile(path.join(extension,release.packagePath));
@@ -433,6 +715,8 @@ async function stay(){
 await mkdir(directory,{recursive:true});
 try{
   assert.equal(process.platform,'darwin');
+  const reloadFixture=slowReload?await startSlowReloadFixture():null;
+  if(!slowReload){
   const fixtureAvailable=await fetch(fixture,{signal:AbortSignal.timeout(1500)}).then(r=>r.ok).catch(()=>false);
   if(!fixtureAvailable){
     const html=await readFile(path.join(root,'examples/tasks/demo-form.html'));
@@ -440,30 +724,32 @@ try{
     await new Promise((resolve,reject)=>{ownedFixture.once('error',reject);ownedFixture.listen(43111,'127.0.0.1',resolve);});
     report.fixtureServer={owned:true,url:fixture};
   }else report.fixtureServer={owned:false,url:fixture};
+  }
   report.sourceHead=execFileSync('git',['rev-parse','HEAD'],{cwd:root,encoding:'utf8'}).trim();
   report.manifestSha256=createHash('sha256').update(await readFile(path.join(extension,'manifest.json'))).digest('hex');
   const catalog=JSON.parse(await readFile(path.join(extension,'official-tools/catalog.json'),'utf8'));
   release=catalog.apps.find(row=>row.toolId==='cookie-editor');assert(release,'Official Cookie release missing');
   report.release={version:release.version,sha256:release.sha256};
   const toolBytes=await readFile(path.join(extension,release.packagePath));assert.equal(createHash('sha256').update(toolBytes).digest('hex'),release.sha256);
-  if(mode==='production')report.packageBefore=await packageFingerprint(extension);
+  if(mode!=='development')report.packageBefore=await packageFingerprint(extension);
   try{const dev=JSON.parse(await readFile(path.join(extension,'development-update.json'),'utf8'));report.developmentRevision=dev.revision;}catch{}
   report.watcherProcesses=execFileSync('/bin/ps',['-axo','pid,ppid,command'],{encoding:'utf8'}).split('\n').filter(l=>l.includes('node scripts/dev.mjs'));
   if(reuseReport){const prior=JSON.parse(await readFile(path.resolve(reuseReport),'utf8'));assert.equal(prior.extension,extension);assert.equal(prior.mode,'development');launched={metadata:prior.launch,endpoint:prior.cdpEndpoint};report.reusedOwnedBrowser={report:path.resolve(reuseReport),pid:prior.launch.pid,profile:prior.launch.profile};}
-  else launched=await launchChrome({root,binary,extension,headed:true,directory,label:'cookie-r5303',sameProfileRestart:true});
+  else launched=await launchChrome({root,binary,extension,headed:true,directory,label:'cookie-r5303',sameProfileRestart:!slowReload});
   report.launch=launched.metadata;await save();
   console.log(JSON.stringify({launched:true,pid:launched.metadata.pid,profile:launched.metadata.profile,extension,endpoint:launched.endpoint}));
   await wire(launched.endpoint);
   report.browserVersion=await client.send('Browser.getVersion');await save();
   report.cdpEndpoint=launched.endpoint;await save();
-  await openPanel();
+  const website=await openPanel();
   await checkpoint('actual-entry',{extensionId:report.extensionId,developmentConnection:report.developmentConnection});
   if(stage==='recheck')await developmentUpdate();
-  await openOfficial();
+  if(reloadCandidate)await importReloadCandidate(path.resolve(reloadCandidate));else await openOfficial();
   if(stage==='upgrade')await upgradeSameId();
-  await grantAll();
-  await grantValues();
-  if(stage==='restart-dev')await restartDevelopment();
+  if(slowReload)await grantReloadFixture();
+  else{await grantAll();await grantValues();}
+  if(slowReload)await verifySlowReload(website,reloadFixture);
+  else if(stage==='restart-dev')await restartDevelopment();
   else if(stage==='diagnose'){
     const observe=async(label)=>{
       let previous;
@@ -525,7 +811,7 @@ try{
   }
   }
   assert(Object.values(report.results).every(value=>value==='PASS'),'Every selected core case completed');
-  if(mode==='production'){report.packageAfter=await packageFingerprint(extension);assert.equal(report.packageAfter.packageHash,report.packageBefore.packageHash,'Static candidate must remain immutable');}
+  if(mode!=='development'){report.packageAfter=await packageFingerprint(extension);assert.equal(report.packageAfter.packageHash,report.packageBefore.packageHash,'Static candidate must remain immutable');}
   report.complete=true;
   await save();
 }catch(error){const message=error.code==='ERR_ASSERTION'?error.message.split('\n')[0]:error.message;report.error={message,stack:String(error.stack).split('\n').filter(line=>/^\s+at /.test(line)).join('\n')};if(client)try{report.lastTargets=(await client.send('Target.getTargets')).targetInfos;}catch{};if(side)try{report.lastSide=await state(side);}catch{};if(tool)try{report.lastTool=await state(tool);}catch{};console.error(JSON.stringify({error:message,directory}));process.exitCode=1;

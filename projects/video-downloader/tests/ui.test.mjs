@@ -14,7 +14,7 @@ class Element {
   async fire(name){if(name==='click'&&this.disabled)return;for(const fn of this.listeners[name]||[])fn({target:this});await settle();}
 }
 function ui(handler){
-  const ids=Object.fromEntries(['list','detect','stop','message','state','progress','info'].map(id=>['vd-'+id,new Element()]));
+  const ids=Object.fromEntries(['list','detect','stop','check','message','state','progress','info'].map(id=>['vd-'+id,new Element()]));
   const root=new Element();root.querySelector=selector=>ids[selector.slice(1)];
   let counter=0;const timers=new Map(),calls=[];
   runInNewContext(source,{
@@ -80,8 +80,8 @@ test('Stop while start is pending adopts the task receipt and cannot be overwrit
   await app.tick();assert.equal(app.ids['vd-state'].textContent,'已取消');
   assert.doesNotMatch(app.ids['vd-message'].textContent,/正在下载|正在启动/);
   await app.root.fire('opendesk-page-changed');
-  assert.equal(app.ids['vd-state'].textContent,'未开始');
-  assert.doesNotMatch(app.ids['vd-info'].textContent,/下载已取消/,'navigation must clear the retired task details');
+  assert.equal(app.ids['vd-state'].textContent,'已取消');
+  assert.match(app.ids['vd-info'].textContent,/下载已取消/,'navigation preserves the original receipt');
   assert.equal(app.calls.filter(x=>x.operation==='media.start').length,1);
 });
 test('navigation discards a late scan and restores detection without replay',async()=>{
@@ -92,10 +92,45 @@ test('navigation discards a late scan and restores detection without replay',asy
   assert.equal(app.find('button').length,0);assert.equal(app.ids['vd-detect'].disabled,false);
   assert.equal(app.calls.length,1);
 });
-test('unknown start outcome blocks repeat downloads and leaves Stop available',async()=>{
+test('unknown start outcome blocks repeat downloads and offers read-only reconciliation',async()=>{
   const app=ui(operation=>{if(operation==='media.detect')return {candidates:[candidate]};throw Error('transport disconnected');});
   await settle();await app.find('button')[0].fire('click');
   assert.equal(app.ids['vd-state'].textContent,'结果未知');assert.equal(app.ids['vd-detect'].disabled,true);
-  assert.equal(app.ids['vd-stop'].disabled,false);
+  assert.equal(app.ids['vd-stop'].disabled,true);
+  assert.equal(app.ids['vd-check'].disabled,false);
   await app.find('button')[0].fire('click');assert.equal(app.calls.filter(x=>x.operation==='media.start').length,1);
+});
+test('late download acknowledgement after Stop stays pending until Chrome confirms cancellation',async()=>{
+  let rejectStart;
+  const app=ui(operation=>{
+    if(operation==='media.detect')return {candidates:[candidate]};
+    if(operation==='media.start')return new Promise((_,reject)=>{rejectStart=reject;});
+    if(operation==='media.stop')return {taskId:'task',state:'cancel_requested'};
+    return {taskId:'task',state:'cancel_requested'};
+  });
+  await settle();await app.find('button')[0].fire('click');
+  await app.click('stop');
+  rejectStart(Object.assign(Error('已请求取消迟到的下载回执；请检查 Chrome 下载列表'),{code:'E_MEDIA_STOPPED'}));
+  await settle();
+  assert.equal(app.ids['vd-state'].textContent,'停止中');
+  assert.equal(app.ids['vd-detect'].disabled,true);
+  await app.tick();
+  assert.equal(app.calls.filter(x=>x.operation==='media.start').length,1);
+});
+
+test('a lost Stop receipt remains visible after navigation and is reconciled without repeating Stop',async()=>{
+  const app=ui(operation=>{
+    if(operation==='media.detect')return {candidates:[candidate]};
+    if(operation==='media.start')return {taskId:'task',state:'started'};
+    if(operation==='media.stop')throw Error('transport disconnected');
+    return {taskId:'task',state:'complete',bytesReceived:50,totalBytes:50};
+  });
+  await settle();await app.find('button')[0].fire('click');await app.click('stop');
+  await app.root.fire('opendesk-page-changed');
+  assert.equal(app.find('button').length,0);
+  assert.equal(app.ids['vd-state'].textContent,'结果未知');
+  assert.equal(app.ids['vd-stop'].disabled,true);
+  await app.click('stop');await app.click('check');
+  assert.equal(app.ids['vd-state'].textContent,'Chrome 下载完成');
+  assert.equal(app.calls.filter(row=>row.operation==='media.stop').length,1);
 });

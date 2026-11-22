@@ -14,6 +14,22 @@ export function siteHost(v){
 export function readyToOperate(v){
   return verified(v)&&v.toolEnabled===true&&!v.restartRequired;
 }
+// The trusted write response has already read back persisted rules. Use it
+// only as a receipt for the submitted target, never as the active page state.
+export function confirmedSiteWrite(result,operation,{host,filtering,selector,oldSelector}){
+  if(!host||!readyToOperate(result))return false;
+  if(operation==='adblock.site.set')return typeof filtering==='boolean'&&result.enabled===true&&
+    result.exceptions.includes(host)===!filtering;
+  if(operation==='adblock.site.restore')return !result.exceptions.includes(host);
+  if(!selector||siteHost(result)!==host||result.cosmeticError||!Array.isArray(result.cosmeticRules)||
+    !result.cosmeticRules.every(row=>typeof row?.selector==='string'))return false;
+  const has=value=>result.cosmeticRules.some(row=>row.selector===value);
+  if(operation==='adblock.cosmetic.restore')return !has(selector);
+  if(operation==='adblock.cosmetic.add')return has(selector);
+  if(operation==='adblock.cosmetic.replace')return Boolean(oldSelector)&&has(selector)&&
+    (oldSelector===selector||!has(oldSelector));
+  return false;
+}
 export function confirmed(result,checked,operation,payload={}){
   if(!readyToOperate(result)||!readyToOperate(checked)||
     result.enabled!==checked.enabled||

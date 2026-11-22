@@ -446,7 +446,7 @@ export async function runQueue({assets,fixed,createRemote}={}) {
         }}] ))});
     remote=createRemote?.({owner,site,engine,actions,retireForLegacy})??null;
     const bridge=fixed?.bridge??globalThis.OpenDeskAppPage;
-    if(bridge)registerPageStatus({bridge,owner,site,view,version:'0.1.37'});
+    if(bridge)registerPageStatus({bridge,owner,site,view,version:'0.1.38'});
     // A native attempt may precede its DOM receipt. Subsequent editing cannot
     // prove that an externally initiated send was cancelled.
     owner.on(document,'click',event=>{

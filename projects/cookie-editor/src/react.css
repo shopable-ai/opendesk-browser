@@ -105,6 +105,8 @@
 .cookie-editor-react .cookie-offline-site input{width:100%}
 .cookie-editor-react .cookie-offline>div.cookie-editor-actions{padding:var(--space-3) 0}
 .cookie-editor-react .site-bar{position:relative;z-index:2;flex:0 0 auto;display:flex;align-items:center;gap:8px;height:46px;min-height:46px;padding:6px 13px;border-bottom:1px solid var(--od-line)}
+.cookie-editor-react .cookie-site-context{display:flex;flex:1;min-width:0}
+.cookie-editor-react .cookie-site-progress{color:var(--od-sub);font-size:var(--od-note-size);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .cookie-editor-react .site-symbol{display:grid;place-items:center;color:var(--od-sub);width:24px;height:24px;flex-shrink:0}
 .cookie-editor-react .site-symbol svg{width:18px;height:18px}
 .cookie-editor-react .site-name{flex:1;min-width:0;display:flex;flex-direction:column;line-height:1.35}

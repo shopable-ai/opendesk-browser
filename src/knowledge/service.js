@@ -130,7 +130,11 @@ export function createKnowledgeService({api=globalThis.chrome,lockManager=global
         await authorize();return {downloadId,records:store.records.length};
       }
       const row=store.records.find(record=>record.id===payload.id);
-      if(!row)throw new Error('记录已不存在，请刷新');
+      if(!row){
+        const error=new Error('记录已不存在，请刷新');
+        if(message.operation==='knowledge.get')error.code='E_KNOWLEDGE_NOT_FOUND';
+        throw error;
+      }
       if(message.operation==='knowledge.get')return {record:row,markdown:knowledgeMarkdown(row),filename:knowledgeFilename(row.title)};
       if(message.operation==='knowledge.openSource'){
         if(!row.source)throw new Error('手动创建的记录没有来源对话');
@@ -169,7 +173,12 @@ export function createKnowledgeService({api=globalThis.chrome,lockManager=global
         {store:{version:1,records:store.records.filter(record=>record.id!==row.id)}};
       await authorize();
       await writeVerifiedLocalValue(api,KNOWLEDGE_DATA_KEY,result.store,store,'知识收件箱');
-      await authorize();return {saved:true,...(result.record?{record:result.record}:{removed:true})};
+      try{await authorize();}
+      catch(error){
+        if(message.operation!=='knowledge.remove')throw error;
+        throw Object.assign(new Error('删除回执无法交付，请核对记录，勿重复删除'),{code:'E_OUTCOME_UNKNOWN',cause:error});
+      }
+      return {saved:true,...(result.record?{record:result.record}:{removed:true})};
     });}finally{pending--;}
   }
   return Object.freeze({dispatch});

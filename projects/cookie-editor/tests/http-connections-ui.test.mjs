@@ -200,6 +200,17 @@ test('stale origin, account identity/version/readiness, revision and binding inv
     assert.match(text(h.tree),/已变化/);
   }
 });
+test('unverified page hides the binding review and never restores its approval',async()=>{
+  const h=mount();choose(h);await invoke(h,'核对绑定');
+  const confirm=h.button('确认绑定').props.onClick;
+  assert.match(text(h.tree),/本地账号|acct_1/);
+  h.update({pageVerified:false});
+  assert.doesNotMatch(text(h.tree),/本地账号|acct_1|确认绑定/);
+  assert.ok(h.find(n=>n.type==='article'&&n.props['aria-label']==='服务：HTTP 服务'));
+  await confirm();h.update({pageVerified:true});await confirm();h.render();
+  assert.doesNotMatch(text(h.tree),/确认绑定/);
+  assert.deepEqual(h.calls,[]);
+});
 test('unknown freezes all services, allows receipts and cached usage, and archives open manually without replay',async()=>{
   const h=mount({state:{revision:7,connections:[{...connection,status:'OUTCOME_UNKNOWN',pending:{action:'serviceOpen',operationId:'op1',canArchive:true}},
     {...connection,id:'c2',label:'另一个服务',resources:[{...resource,remoteAccountId:'r2'}]}]}});

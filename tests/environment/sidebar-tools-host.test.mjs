@@ -5324,12 +5324,111 @@ test('Cookie batch review cancellation proves no dispatch while later cancellati
     f.emit(f.elements['sidebar-tool-action-continue'],'click',{isTrusted:true});
     const result=await reply(id);
     if(lateFailure)assert.equal(result.error.code,{
-      'cancel-after':'E_CANCELLED','grant-after':'E_SITE_GRANT_REQUIRED','lost-after':'E_TIMEOUT'
+      'cancel-after':'E_CANCELLED','grant-after':'E_SITE_GRANT_REQUIRED','lost-after':'E_OUTCOME_UNKNOWN'
     }[id],'post-dispatch uncertainty is not relabelled');
     else assert.equal(result.result.verified,1);
   }
   assert.deepEqual(messages.map(row=>row.operation),Array.from({length:4},()=>
     ['browser.intent.confirm','browser.cookies.setMany']).flat());
+});
+
+test('Cookie import delivers verified counts after replacement and never sends another old batch',async t=>{
+  cookieTestLocation(t);
+  const tool=await officialToolFixture('cookie-editor'),base=cookieTestTarget();
+  const observers=new Set(),target={snapshot:base.snapshot,capture:()=>({...target.snapshot}),
+    subscribe(fn){observers.add(fn);return ()=>observers.delete(fn);},async revalidate(captured){
+      if(captured.documentId!==target.snapshot.documentId)
+        throw Object.assign(Error('Original document is stale'),{code:'E_DOCUMENT_STALE'});
+      return target.snapshot;
+    }};
+  const navigate=()=>{
+    target.snapshot={...target.snapshot,documentId:target.snapshot.documentId+'-next'};
+    for(const fn of observers)fn();
+  };
+  const store=await verifiedCookieStore(tool,{storeId:'0',read:true,write:true,observe:true,
+    clear:true,values:true,valueConsent:true,grantEpoch:'import-receipt'});
+  const ownNavigator=Object.getOwnPropertyDescriptor(globalThis,'navigator');let trusted=false;
+  Object.defineProperty(globalThis,'navigator',{configurable:true,value:{userActivation:{get isActive(){return trusted;}}}});
+  t.after(()=>ownNavigator?Object.defineProperty(globalThis,'navigator',ownNavigator):delete globalThis.navigator);
+  const writes=[],approvals=[];let native,approval;
+  const f=await hostFixture(t,{tool,store,target,chromePermissions:{contains:async()=>true},hostReply:async message=>{
+    if(message.operation==='browser.intent.confirm'){
+      approvals.push(message);if(approval)await approval.promise;
+      return {ok:true,data:{approvalRef:'a'.repeat(32)}};
+    }
+    if(message.operation==='browser.cookies.setMany'){writes.push(message);return native.promise;}
+  }});
+  await settle(()=>f.elements['sidebar-tool-cookie-site-toggle'].textContent==='撤销授权');
+  const reply=async id=>{await settle(()=>f.frame.contentWindow.sent.some(row=>row.requestId===id));
+    return f.frame.contentWindow.sent.find(row=>row.requestId===id);};
+  const payload={url:target.snapshot.url,cookies:[{name:'fixture_one',value:'fictional'},
+    {name:'fixture_two',value:'fictional'}]};
+  const begin=async id=>{
+    trusted=true;f.ask('cookieEditor.import.begin',{url:payload.url},id);trusted=false;
+    const r=await reply(id);assert.equal(r.ok,true,JSON.stringify(r.error));return r.result.ref;
+  };
+  const first={index:0,saved:true,verified:true};
+  for(const [i,data] of [
+    {saved:2,verified:2,results:[first,{index:1,saved:true,verified:true}]},
+    {saved:1,verified:1,results:[first,{index:1,saved:false,verified:false,code:'E_OUTCOME_UNKNOWN'}],stopped:true}
+  ].entries()){
+    const oldRef=await begin('begin-'+i);
+    native=deferred();f.ask('browser.cookies.setMany',payload,'batch-'+i);
+    await settle(()=>writes.length===i+1);
+    navigate();
+    f.ask('browser.cookies.setMany',payload,'old-next-'+i);
+    assert.equal((await reply('old-next-'+i)).error.code,'E_USER_GESTURE_REQUIRED');
+    const newRef=await begin('new-click-'+i);
+    native.resolve({ok:true,data});
+    const received=await reply('batch-'+i);
+    assert.deepEqual(received.result,data,'the original sandbox keeps exact counts after replacement');
+    f.ask('cookieEditor.import.finish',{ref:oldRef},'close-old-'+i);
+    assert.equal((await reply('close-old-'+i)).result.closed,false);
+    f.ask('cookieEditor.import.finish',{ref:newRef},'close-new-'+i);
+    assert.equal((await reply('close-new-'+i)).result.closed,true,'a late receipt cannot close a new click');
+  }
+  await begin('approval-only');approval=deferred();
+  f.ask('browser.cookies.setMany',payload,'not-submitted');
+  await settle(()=>approvals.length===3);
+  navigate();approval.resolve();
+  assert.equal((await reply('not-submitted')).error.code,'E_COOKIE_NOT_SUBMITTED');
+  assert.equal(writes.length,2,'new document stops an approved but undispatched batch');
+});
+
+test('Cookie set, remove and clear distinguish missing write receipts from explicit Host denial',async t=>{
+  cookieTestLocation(t);
+  const tool={...sample,format:'opendesk.sidebar-tool.v2',id:'cookie-receipt-test',
+    capabilities:['browser.cookies.write','browser.cookies.clear'],requires:{browserSdk:'1.0.0'},contributes:{contextMenus:[]}};
+  const target=cookieTestTarget(),url=target.snapshot.url,origin=new URL(url).origin,writes=[];
+  const store=new Map([[SIDEBAR_TOOL_STORE,[tool]],[BROWSER_MENU_GRANTS_STORE,{[tool.id]:{
+    version:tool.version,packageHash:await sidebarToolPackageHash(tool),installEpoch:null,
+    cookieSites:{[origin]:{write:true,clear:true,storeId:'0',grantEpoch:'receipt-test'}}}}]]);
+  let mode;
+  const f=await hostFixture(t,{tool,store,target,hostReply:async message=>{
+    if(message.operation==='browser.intent.confirm')return {ok:true,data:{approvalRef:'a'.repeat(32)}};
+    if(message.kind!=='tool')return;
+    writes.push(message);
+    if(mode==='disconnect')throw Error('Transport closed after dispatch');
+    if(mode==='missing')return undefined;
+    if(mode==='malformed')return {ok:true,data:{verified:true}};
+    return {ok:false,error:{code:'E_SITE_GRANT_REQUIRED',message:'Grant missing'}};
+  }});
+  const requests=[['browser.cookies.set',{url,name:'fixture',value:'fictional'}],
+    ['browser.cookies.remove',{url,name:'fixture',domain:new URL(url).hostname,path:'/'}],
+    ['browser.cookies.clearSite',{url,previewRef:'12345678-1234-1234-1234-123456789abc',expectedCount:2,maxCookies:50}]];
+  for(const [operation,payload] of requests)for(const outcome of ['disconnect','missing','malformed','denied']){
+    mode=outcome;const id=String(writes.length+1);
+    f.ask(operation,payload,id);
+    await settle(()=>f.elements['sidebar-tool-action-review'].hidden===false||
+      f.frame.contentWindow.sent.some(row=>row.requestId===id));
+    assert.equal(f.elements['sidebar-tool-action-review'].hidden,false,
+      operation+':'+mode+': '+JSON.stringify(f.frame.contentWindow.sent.find(row=>row.requestId===id)?.error));
+    f.emit(f.elements['sidebar-tool-action-continue'],'click',{isTrusted:true});
+    await settle(()=>f.frame.contentWindow.sent.some(row=>row.requestId===id));
+    const result=f.frame.contentWindow.sent.find(row=>row.requestId===id);
+    assert.equal(result.error.code,mode==='denied'?'E_SITE_GRANT_REQUIRED':'E_OUTCOME_UNKNOWN',operation+':'+mode);
+  }
+  assert.equal(writes.length,12,'each explicit click dispatches at most once');
 });
 
 async function cookieExportNavigationFixture(t){
@@ -6051,6 +6150,68 @@ async function verifiedCookieStore(tool,baseGrant,other=[]){
   ]);
 }
 
+test('Cookie Editor discards late reads and revokes native access even while the page is pending',async t=>{
+  cookieTestLocation(t);
+  const tool=await officialToolFixture('cookie-editor'),page=cookieTestTarget().snapshot;
+  const grant={storeId:'0',grantEpoch:'fixture',read:true,values:true,valueConsent:true,
+    write:true,observe:true,clear:true};
+  const store=await verifiedCookieStore(tool,grant),removals=new Set(),observers=new Set();
+  const target={snapshot:page,subscribe(fn){observers.add(fn);fn();return ()=>observers.delete(fn);},
+    revalidate:async()=>target.snapshot};
+  const setPage=p=>{target.snapshot=p;for(const fn of observers)fn();};
+  const entered=deferred(),late=deferred(),row={value:'TEST_ONLY_LATE_COOKIE'};
+  t.after(()=>late.resolve());
+  let calls=0;
+  const f=await hostFixture(t,{tool,store,target,
+    chromePermissions:{contains:async()=>true,onRemoved:{addListener:fn=>removals.add(fn),removeListener:fn=>removals.delete(fn)}},
+    hostReply:async message=>{
+      if(message.operation!=='browser.cookies.get')return;
+      if(++calls===2){entered.resolve();await late.promise;}
+      return {ok:true,data:row};
+    }});
+  await settle(()=>f.elements['sidebar-tool-cookie-site-toggle'].textContent==='撤销授权');
+  const receipt=async id=>{
+    await settle(()=>f.frame.contentWindow.sent.some(r=>r.requestId===id));
+    return f.frame.contentWindow.sent.find(r=>r.requestId===id);
+  };
+  const payload={url:page.url,name:'test',includeValues:true};
+  f.ask('browser.cookies.get',payload,'current-cookie-read');
+  assert.deepEqual((await receipt('current-cookie-read')).result,row);
+  f.ask('browser.cookies.get',payload,'late-cookie-read');await entered.promise;
+  setPage({status:'unavailable',windowId:page.windowId,tabId:page.tabId,reason:'E_DOCUMENT_UNRESOLVED'});
+  late.resolve();assert.equal((await receipt('late-cookie-read')).error.code,'E_DOCUMENT_CHANGED');
+  assert.equal(f.runtime.frameRoot.children[0],f.frame,'pending alone leaves the workspace mounted');
+  for(const fn of removals)fn({origins:['http://*/*','https://unrelated.example/*']});
+  assert.equal(f.runtime.frameRoot.children[0],f.frame,'unrelated host permissions do not retire the workspace');
+  for(const fn of removals)fn({origins:['https://*/*']});
+  assert.notEqual(f.runtime.frameRoot.children[0],f.frame,'the old sandbox cannot retain its sensitive values');
+});
+
+test('Knowledge Inbox host distinguishes a lost save reply from a definite failure or a read error',async t=>{
+  const tool=await officialToolFixture('knowledge-inbox');
+  const store=new Map([[SIDEBAR_TOOL_STORE,[tool]]]);
+  let outcome='lost',requests=0;
+  const f=await hostFixture(t,{tool,store,hostReply:async message=>{
+    if(!message.operation?.startsWith('knowledge.'))return;
+    requests++;
+    if(outcome==='lost')throw Object.assign(Error('transport disconnected'),{code:'E_TRANSPORT'});
+    if(outcome==='invalid')return {};
+    if(outcome==='denied')return {ok:false,error:{code:'E_KNOWLEDGE_CONFLICT',message:'conflict'}};
+    return {ok:true,data:{id:'saved'}};
+  }});
+  const ask=async(operation,id)=>{
+    f.ask(operation,{},id);
+    await settle(()=>f.frame.contentWindow.sent.some(r=>r.requestId===id));
+    return f.frame.contentWindow.sent.find(r=>r.requestId===id);
+  };
+  assert.equal((await ask('knowledge.create','lost-create')).error.code,'E_OUTCOME_UNKNOWN');
+  assert.equal((await ask('knowledge.list','lost-read')).error.code,'E_TRANSPORT');
+  outcome='invalid';assert.equal((await ask('knowledge.update','bad-update')).error.code,'E_OUTCOME_UNKNOWN');
+  outcome='denied';assert.equal((await ask('knowledge.update','denied-update')).error.code,'E_KNOWLEDGE_CONFLICT');
+  outcome='saved';assert.deepEqual((await ask('knowledge.create','saved')).result,{id:'saved'});
+  assert.equal(requests,5);
+});
+
 
 function cookieChromeFixture({grant=true}={}){
   let allowed=false;const requests=[];
@@ -6276,7 +6437,8 @@ test('R5.38 one clear preview dialog mints one exact native Host approval withou
     observe:true,clear:true,values:true,valueConsent:true};
   const store=await verifiedCookieStore(tool,grant);
   const f=await hostFixture(t,{tool,store,target,chromePermissions:{contains:async()=>true}});
-  await settle(()=>!f.elements['sidebar-tool-frame'].hidden);
+  await settle(()=>f.elements['sidebar-tool-cookie-site-toggle'].textContent==='撤销授权'&&
+    !f.elements['sidebar-tool-cookie-site-toggle'].disabled);
   const old=Object.getOwnPropertyDescriptor(globalThis,'navigator');
   let trusted=false;
   Object.defineProperty(globalThis,'navigator',{configurable:true,
@@ -6284,9 +6446,11 @@ test('R5.38 one clear preview dialog mints one exact native Host approval withou
   t.after(()=>{if(old)Object.defineProperty(globalThis,'navigator',old);
     else delete globalThis.navigator;});
   const approvals=[],native=[];
+  let pendingApproval=null;
   f.api.runtime.sendMessage=async message=>{
     if(message.operation==='browser.intent.confirm'){
       approvals.push(message);
+      if(pendingApproval)await pendingApproval.promise;
       return {ok:true,data:{approvalRef:'one-use-clear-approval'}};
     }
     if(message.operation==='browser.cookies.clearSite'&&message.kind==='tool'){
@@ -6325,6 +6489,17 @@ test('R5.38 one clear preview dialog mints one exact native Host approval withou
   assert.equal((await receipt('replay')).error.code,'E_USER_GESTURE_REQUIRED');
   assert.equal(native.length,1,'one first click cannot remove twice');
   assert.equal(approvals.length,1);
+  trusted=true;
+  f.ask('cookieEditor.clear.begin',{url:exact.url,previewRef:exact.previewRef,expectedCount:2},'second-click');
+  trusted=false;
+  assert.equal((await receipt('second-click')).ok,true);
+  pendingApproval=deferred();t.after(()=>pendingApproval.resolve());
+  f.ask('browser.cookies.clearSite',exact,'pending-execute');
+  await settle(()=>approvals.length===2);
+  target.snapshot={...target.snapshot,documentId:'replacement-doc'};
+  pendingApproval.resolve();
+  assert.equal((await receipt('pending-execute')).error.code,'E_COOKIE_NOT_SUBMITTED');
+  assert.equal(native.length,1,'replacement document prevents dispatch of the pending clear');
 });
 
 test('R5.38 forged clear size or revoked site grant never falls through to a duplicate review',async t=>{
@@ -6530,9 +6705,11 @@ test('R5.25 Cookie Editor settings keeps one live sandbox through ten returns an
     assert.equal(settings.hidden,false,'dedicated Cookie permissions remain visible');
     assert.equal(f.elements['sidebar-tool-back'].title,'返回上一页');
     f.emit(f.elements['sidebar-tool-back'],'click');
+    assert.equal(f.elements['sidebar-tool-settings-view'].hidden,true,'return closes shared settings');
+    // The workspace returns synchronously, but Cookie admission can still be refreshing.
+    await settle(()=>settings.hidden===true);
     assert.equal(f.runtime.frameRoot.children[0],original,'return keeps the original form and draft');
     assert.equal(f.elements['sidebar-tool-frame'].hidden,false,'return must restore the real workspace');
-    assert.equal(settings.hidden,true);
   }
   f.emit(f.elements['sidebar-tool-back'],'click');
   assert.equal(f.elements['sidebar-tool-display'].hidden,true,'second back returns to extension list');

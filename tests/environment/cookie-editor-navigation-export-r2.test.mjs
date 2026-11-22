@@ -231,31 +231,49 @@ test('navigation failure reports only a fixed read stage and allowlisted error c
     f.controller.dispose();
   }
 });
-test('unknown Clipboard outcome is not replayed; ten sanitized diagnostics survive success',async()=>{
+test('unknown Clipboard outcome is not replayed and stays visible through later success',async()=>{
   const f=fixture();await f.controller.load();
   f.copyResult(Object.assign(Error('PRIVATE_BROWSER_DETAIL'),{code:'E_OUTCOME_UNKNOWN'}));
   assert.equal(await f.controller.exportTo({format:'json',method:'copy'}),false);
   assert.equal(f.copies.length,1);
-  let history=f.controller.snapshot().exportDiagnostics;
-  assert.equal(history[0].code,'E_OUTCOME_UNKNOWN');
-  assert.equal(history[0].outcomeUnknown,true);
-  assert.equal(history[0].stage,'clipboard');
+  assert.deepEqual(f.controller.snapshot().unknownEffects,['copy']);
+  assert.match(f.controller.snapshot().message,/先核对剪贴板或下载记录/);
   f.copyResult({copied:true});
   assert.equal(await f.controller.exportTo({format:'json',method:'copy'}),true);
-  history=f.controller.snapshot().exportDiagnostics;
-  assert.equal(history.length,2);
-  assert.equal(history[0].outcomeUnknown,true);
-  assert.equal(history[1].code,'OK');
-  const diagnosticText=f.controller.exportDiagnosticText();
-  assert.doesNotMatch(diagnosticText,/TEST_ONLY_SECRET|PRIVATE_BROWSER_DETAIL|https:\/\/shop/);
-  assert.equal(await f.controller.copyExportDiagnostics(),true);
-  assert.match(f.copies.at(-1),/opendesk.cookie-export-diagnostic.v1/);
-  for(let i=0;i<12;i++)await f.controller.exportTo({format:'json',method:'copy'});
-  assert.equal(f.controller.snapshot().exportDiagnostics.length,10);
+  assert.equal(f.copies.length,2);
+  assert.deepEqual(f.controller.snapshot().unknownEffects,['copy']);
   f.controller.invalidate('permission revoked');
-  assert.equal(f.controller.snapshot().exportDiagnostics.length,10);
+  assert.deepEqual(f.controller.snapshot().unknownEffects,['copy']);
+  f.controller.acknowledgeUnknown('copy');
+  assert.deepEqual(f.controller.snapshot().unknownEffects,[]);
   assert.doesNotMatch(JSON.stringify(f.controller.snapshot()),/TEST_ONLY_SECRET|PRIVATE_BROWSER_DETAIL/);
   f.controller.dispose();
+});
+test('a dispatched export settles across document replacement without replay or losing its receipt',async()=>{
+  for(const method of ['copy','download'])for(const known of [true,false]){
+    const f=fixture();await f.controller.load();
+    const entered=deferred(),receipt=deferred();let effects=0;
+    f.adapter[method]=async()=>{effects++;entered.resolve();return receipt.promise;};
+    const exporting=f.controller.exportTo({method});await entered.promise;
+    f.controller.invalidate('document replaced');
+    assert.equal(f.controller.snapshot().settlingPrevious,true);
+    assert.deepEqual(f.controller.snapshot().unknownEffects,[]);
+    f.allow(false);await f.controller.load();
+    assert.equal(f.controller.snapshot().phase,'blocked');
+    if(known)receipt.resolve(method==='copy'?{copied:true}:{started:true});
+    else receipt.reject(Object.assign(Error(),{code:'E_OUTCOME_UNKNOWN'}));
+    assert.equal(await exporting,known);
+    assert.equal(f.controller.snapshot().phase,'blocked');
+    assert.equal(f.controller.snapshot().previousReceipt.type,known?'success':'error');
+    f.allow(true);await f.controller.load();
+    assert.equal(f.controller.snapshot().phase,'ready');
+    assert.deepEqual(f.controller.snapshot().unknownEffects,known?[]:[method]);
+    assert.equal(f.controller.snapshot().previousReceipt.type,known?'success':'error');
+    assert.equal(effects,1);
+    f.controller.acknowledgeUnknown(method);
+    assert.deepEqual(f.controller.snapshot().unknownEffects,[]);
+    f.controller.dispose();
+  }
 });
 test('Host preserves generic navigation; Cookie export gate survives same-document path only',async()=>{
   const [host,bridge,app]=await Promise.all([

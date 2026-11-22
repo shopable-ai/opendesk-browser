@@ -6,7 +6,7 @@ import {readFile} from 'node:fs/promises';
 
 const context = vm.createContext({TextEncoder, URL, crypto: webcrypto});
 vm.runInContext(await readFile(new URL('../src/app-model.js', import.meta.url), 'utf8'), context);
-const {createApp} = context.ScrapyAppModel;
+const {createApp, DEFAULT_CONFIG} = context.ScrapyAppModel;
 const deferred = () => {let resolve; const promise = new Promise(r => {resolve = r;}); return {promise, resolve};};
 const page = {status: 'available', url: 'http://127.0.0.1:43111/demo-form.html'};
 function setup(overrides = {}, onChange) {
@@ -82,14 +82,17 @@ test('pending profile confirmation prevents cancellation from clearing dirty', a
 });
 
 test('saving blocks draft cancellation and preserves the conditional save', async () => {
-  const write = deferred(); let writes = 0;
-  const app = setup({save: async () => {writes++; return write.promise;}});
+  const write = deferred(); let writes = 0, stored = DEFAULT_CONFIG, etag = '0';
+  const app = setup({load: async () => ({value: stored, etag}), save: async (value, ifMatch) => {
+    assert.equal(ifMatch, '0'); writes++; await write.promise;
+    stored = value; etag = '1'; return {saved: true};
+  }});
   await app.load(); const checkpoint = app.checkpointDraft(); app.touch();
   const saving = app.save('Draft');
   assert.equal(app.state.saving, true);
   assert.equal(app.cancelDraft(checkpoint), false);
   assert.equal(app.state.dirty, true);
-  write.resolve({saved: true}); await saving;
+  write.resolve(); assert.equal(await saving, true);
   assert.equal(writes, 1);
 });
 
@@ -101,9 +104,11 @@ for (const outcome of ['active', 'unknown']) {
       if (outcome === 'unknown') throw Error('unknown send');
       return {clientRequestId, runId: 'original', status: 'running'};
     }, read: async clientRequestId => ({clientRequestId, runId: 'original', status: 'running', retired: false})});
+    app.edit(DEFAULT_CONFIG);
     await app.refreshTarget(); const checkpoint = app.checkpointDraft(); app.touch();
     await app.start(page.url);
     const identity = app.state.clientRequestId, config = app.state.config;
+    assert.ok(identity);
     assert.equal(app.state.phase, outcome === 'unknown' ? 'unknown' : 'running');
     assert.equal(app.cancelDraft(checkpoint), false);
     assert.equal(app.state.dirty, true);

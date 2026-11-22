@@ -2,13 +2,15 @@ import * as React from 'react';
 import {Button} from '@opendesk/ui';
 import {CookieFormField,CookieValueField,CookieAdvancedFields,CookieExpirationField,CookieIconButton} from './CookieEditorView.jsx';
 import {localExpirationText,parseLocalExpiration} from '../domain/cookie-expiration.js';
+import {applyCookieAttributePatch,cookieAttributePatch} from '../domain/cookie-editor-draft.js';
 
 // Cookie Value is deliberately an uncontrolled DOM input. React state, props,
 // app snapshots and diagnostics never receive the sensitive value.
 // Expiration converts from the user's local wall time to Unix seconds only
 // after rejecting DST gaps and overlapping local times. Never infer a date.
 export default function CookieInlineEditor({row=null,target,disabled=false,
-  readValue,onSave,onCancel,onDelete,onDirty,navigationRevision=0,navigationPending=false}){
+  readValue,onSave,onCancel,onDelete,onDirty,navigationRevision=0,navigationPending=false,
+  restoredAttributes,onAttributeDraft}){
   const valueRef=React.useRef(null),nameRef=React.useRef(null);
   // Raw Cookie values never enter React state, props or snapshots.
   const originalValueRef=React.useRef(null),valueEditedRef=React.useRef(false);
@@ -21,10 +23,11 @@ export default function CookieInlineEditor({row=null,target,disabled=false,
   const [newValueDirty,setNewValueDirty]=React.useState(false);
   const [readStatus,setReadStatus]=React.useState(row?'loading':'new');
   const [message,setMessage]=React.useState('');
-  const [navigationNotice,setNavigationNotice]=React.useState('');
+  const [navigationNotice,setNavigationNotice]=React.useState(restoredAttributes?
+    '已恢复可保留的属性修改。未保存的文本和值已清除，请核对后重新保存。':'');
   const lastNavigationRevision=React.useRef(navigationRevision);
   const [discardConfirm,setDiscardConfirm]=React.useState(false);
-  const [draft,setDraft]=React.useState(()=>({
+  const [initial]=React.useState(()=>({
     name:row?.name||'',domain:row?.domain||target?.hostname||'',
     path:row?.path||'/',hostOnly:row?.hostOnly!==false,
     secure:row?.secure??target?.origin?.startsWith('https:'),
@@ -33,14 +36,14 @@ export default function CookieInlineEditor({row=null,target,disabled=false,
     expiration:localExpirationText(row?.expirationDate),
     storeId:row?.storeId,partitionKey:row?.partitionKey
   }));
+  const [draft,setDraft]=React.useState(()=>applyCookieAttributePatch(initial,restoredAttributes));
   const edited=!!row;
-  const initial=React.useRef(draft);
   const comparable=input=>{
     const parsed=input.session?null:parseLocalExpiration(input.expiration);
     return JSON.stringify({...input,expiration:input.session?null:
       parsed.status==='valid'?parsed.seconds:input.expiration});
   };
-  const isDirty=()=>comparable(draft)!==comparable(initial.current)||
+  const isDirty=()=>comparable(draft)!==comparable(initial)||
     (edited?valueEdited:newValueDirty);
   const dirty=isDirty();
   React.useEffect(()=>{onDirty?.(dirty);},[dirty,onDirty]);
@@ -55,8 +58,7 @@ export default function CookieInlineEditor({row=null,target,disabled=false,
     setValueEdited(false);setValuePresent(false);setNewValueDirty(false);
     setDiscardConfirm(false);setMessage('');
     if(lastNavigationRevision.current!==navigationRevision)
-      setNavigationNotice('页面已变化，原敏感值与未保存值已清除；属性草稿保留，请核对后继续。');
-    else setNavigationNotice('');
+      setNavigationNotice('页面已变化，未保存的值已清除。');
     lastNavigationRevision.current=navigationRevision;
     setReadStatus(row?'loading':'new');
   },[row?.id,target?.url,navigationRevision]);
@@ -101,7 +103,11 @@ export default function CookieInlineEditor({row=null,target,disabled=false,
       if(valueRef.current)valueRef.current.value='';
     };
   },[row?.id,target?.url,navigationRevision,navigationPending]);
-  const update=(key,value)=>{setDraft(old=>({...old,[key]:value}));setMessage('');};
+  const update=(key,value)=>{
+    const next={...draft,[key]:value};
+    if(onAttributeDraft)onAttributeDraft(cookieAttributePatch(initial,next));
+    setDraft(next);setMessage('');
+  };
   const setInputEdited=()=>{
     // A late Host answer must never replace a newer keystroke.
     inputRevision.current++;

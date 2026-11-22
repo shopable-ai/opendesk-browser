@@ -19,7 +19,7 @@ export default function CookieImport({disabled=false,onClose,onImportText,onBegi
   const reading=React.useRef(false);
   const intentRef=React.useRef(null);
   const [busy,setBusy]=React.useState(false);
-  const [uncertain,setUncertain]=React.useState(false);
+  const [settled,setSettled]=React.useState(false);
   const [dragging,setDragging]=React.useState(false);
   const [confirmDiscard,setConfirmDiscard]=React.useState(false);
   const headingId=React.useId();
@@ -66,8 +66,15 @@ export default function CookieImport({disabled=false,onClose,onImportText,onBegi
     if(admission)await admission.catch(()=>false);
     onAbandonIntent?.();
   };
+  const settle=()=>{
+    stagedFile.current=null;
+    setStagedName('');
+    if(sourceRef.current)sourceRef.current.value='';
+    onPendingChange?.(false);
+    setSettled(true);
+  };
   const importText=async text=>{
-    if(running.current||disabled||uncertain){
+    if(running.current||disabled||settled){
       await releaseUnusedIntent();
       return;
     }
@@ -91,14 +98,16 @@ export default function CookieImport({disabled=false,onClose,onImportText,onBegi
         return;
       }
       const imported=await onImportText?.(text,{overwrite});
-      if(imported==='unknown')setUncertain(true);
+      if(!active.current)return;
+      if(imported==='partial'||imported==='unknown')settle();
       if(imported===true){
         stagedFile.current=null;
         if(sourceRef.current)sourceRef.current.value='';
         onClose?.({committed:true});
       }
     }catch{
-      setUncertain(true);
+      if(!active.current)return;
+      settle();
       // Do not auto-retry a possible native effect.
       onNotice?.('导入结果未知，请先核对 Chrome，不要直接重试。','error');
     }finally{
@@ -107,7 +116,7 @@ export default function CookieImport({disabled=false,onClose,onImportText,onBegi
     }
   };
   const confirmImport=()=>{
-    if(reading.current||running.current||disabled||busy||uncertain)return;
+    if(reading.current||running.current||disabled||busy||settled)return;
     if(onBeforeSubmit?.()===false)return;
     const file=stagedFile.current;
     const pasted=file?'':sourceRef.current?.value||'';
@@ -140,7 +149,7 @@ export default function CookieImport({disabled=false,onClose,onImportText,onBegi
   };
   // Choose / drop merely stages a File. Neither action starts admission or a write.
   const stageFile=file=>{
-    if(!file||disabled||uncertain||running.current||reading.current)return;
+    if(!file||disabled||settled||running.current||reading.current)return;
     if(file.size>MAX_FILE){
       onNotice?.('文件超过 8 MiB，请分批导入。','error');
       if(fileRef.current)fileRef.current.value='';
@@ -163,7 +172,7 @@ export default function CookieImport({disabled=false,onClose,onImportText,onBegi
     if(!hasDraggedFile(event))return;
     event.preventDefault();
     setDragging(false);
-    if(!busy&&!disabled&&!uncertain)stageFile(event.dataTransfer?.files?.[0]);
+    if(!busy&&!disabled&&!settled)stageFile(event.dataTransfer?.files?.[0]);
   };
   const onBackdropClick=event=>{
     // An internal click (including the programmatic hidden file input click)
@@ -194,10 +203,10 @@ export default function CookieImport({disabled=false,onClose,onImportText,onBegi
       <p id={hintId} className="cookie-import-hint">文件只会暂存，点击「确认导入」后才会校验并写入。</p>
       <input ref={fileRef} type="file" hidden
         accept=".json,.txt,.cookies,text/plain,application/json"
-        disabled={disabled||busy||uncertain}
+        disabled={disabled||busy||settled}
         onChange={event=>stageFile(event.currentTarget.files?.[0])}/>
       <CookieImportDropzone dragging={dragging} fileName={stagedName}
-        disabled={disabled||busy||uncertain} maxSize="8 MiB"
+        disabled={disabled||busy||settled} maxSize="8 MiB"
         onPick={()=>{if(fileRef.current)fileRef.current.value='';fileRef.current?.click();}}/>
       {stagedName&&<p className="cookie-import-selected" role="status">
         已选择 {stagedName} · 点击「确认导入」后才会写入
@@ -208,7 +217,7 @@ export default function CookieImport({disabled=false,onClose,onImportText,onBegi
           className="od-field" rows={4} aria-label="粘贴 Cookie 内容"
           placeholder="JSON、Cookie Header 或 Netscape"
           autoComplete="off" spellCheck={false} data-cookie-secret-input="true" data-sensitive="true"
-          disabled={disabled||busy||uncertain}
+          disabled={disabled||busy||settled}
           onInput={event=>{
             if(stagedFile.current){stagedFile.current=null;setStagedName('');}
             setConfirmDiscard(false);
@@ -218,7 +227,7 @@ export default function CookieImport({disabled=false,onClose,onImportText,onBegi
       </label>
       <label className="cookie-import-overwrite">
         <input type="checkbox" checked={overwrite}
-          disabled={disabled||busy||uncertain}
+          disabled={disabled||busy||settled}
           onChange={event=>{
             setOverwrite(event.currentTarget.checked);
             setConfirmDiscard(false);
@@ -242,8 +251,8 @@ export default function CookieImport({disabled=false,onClose,onImportText,onBegi
           onClick={()=>onClose?.()}>放弃内容</Button>
       </div>:<div className="cookie-import-actions">
         <Button type="button" variant="secondary" disabled={disabled||busy}
-          onClick={close}>取消</Button>
-        <Button type="button" variant="primary" disabled={disabled||busy||uncertain}
+          onClick={close}>{settled?'关闭':'取消'}</Button>
+        <Button type="button" variant="primary" disabled={disabled||busy||settled}
           onClick={confirmImport}>
           {busy?'处理中…':'确认导入'}
         </Button>

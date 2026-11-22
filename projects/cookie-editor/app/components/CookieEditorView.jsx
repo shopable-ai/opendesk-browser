@@ -251,9 +251,12 @@ export function CookieAdvancedFields({draft,existing=false,disabled=false,onChan
   </details>;
 }
 // Pure presentation shared by Preview and official React.
-export function CookieSiteBar({site,loading=false,readonly=false,busy=false,granted=true,syncStale=false,onRefresh}){
+export function CookieSiteBar({site,pageStatus='',loading=false,readonly=false,busy=false,granted=true,syncStale=false,onRefresh}){
   return <header className="site-bar">
-    <strong className="site-hostname" title={site} aria-label={'网站 '+site}>{site}</strong>
+    <div className="cookie-site-context">
+      {site&&<strong className="site-hostname" title={site} aria-label={'网站 '+site}>{site}</strong>}
+      <span className="cookie-site-progress" role="status" tabIndex={-1}>{pageStatus}</span>
+    </div>
     {loading&&<span className="site-status muted">读取中</span>}
     {readonly&&<span className="site-status limited">只读</span>}
     {syncStale&&<span className="site-status limited" title="自动同步暂不可用">未同步</span>}
@@ -359,10 +362,11 @@ export function cookieRowExpiryLabel(row,nowSeconds=Date.now()/1000){
 export function CookieRows({
   rows=[],totalCount=rows.length,selected=null,onSelect=()=>{},
   pinnedNote=false,beforeRows=null,newEditor=null,renderEditor=null,idPrefix='editor-',site='',unavailable=false,
-  changes=[]
+  changes=[],pending=false,recovery=null
 }){
   const changeMap=new Map(changes.map(change=>[change.id,change]));
   return <section className="cookie-list" aria-label="Cookie 列表">
+    {recovery}
     {beforeRows}
     {newEditor}
     {pinnedNote&&<p className="pinned-note">当前编辑项不符合筛选条件，暂时保留显示。</p>}
@@ -411,7 +415,7 @@ export function CookieRows({
         </div>}
       </article>;
     })}
-    {rows.length===0&&!newEditor&&<div className="empty-list">
+    {!pending&&rows.length===0&&!newEditor&&<div className="empty-list">
       <strong>{unavailable?'尚未读取 Cookie':totalCount===0?'本站暂无 Cookie':'没有匹配的 Cookie'}</strong>
       <span>{unavailable?'授权后显示真实 Cookie 数据。':totalCount===0?'可以新建或导入。':'尝试更换关键词或筛选条件。'}</span>
     </div>}
@@ -423,7 +427,7 @@ export function CookieEditorView({
   onSort=()=>{},expandedFilters=false,onToggleFilters=()=>{},
   onImport,onExport,onNew,onClear,clearDisabled=false,exportOpen=false,
   exportContent=null,onCloseExport,importOpen=false,
-  editor=null,newEditor=null,busy=false,readonly=false,unavailable=false,
+  editor=null,newEditor=null,busy=false,readonly=false,unavailable=false,listPending=false,listRecovery=null,
   page=1,pageSize=40,onPage=()=>{},showSiteBar=true,changes=[],changesOnly=false,monitor=null
 }){
   const changedIds=new Set(changes.filter(row=>row.kind!=='removed').map(row=>row.id));
@@ -451,16 +455,17 @@ export function CookieEditorView({
     <CookieSearch query={query} onQuery={onQuery}
       expandedFilters={expandedFilters} onToggleFilters={onToggleFilters}
       filter={filter} onFilter={onFilter} sort={sort} onSort={onSort}/>
-    <CookieToolbar count={unavailable?'—':rows.length} onImport={onImport} onExport={onExport}
+    <CookieToolbar count={unavailable||listPending?'—':rows.length} onImport={onImport} onExport={onExport}
       onNew={onNew} onClear={onClear} clearDisabled={clearDisabled}
       exportOpen={exportOpen} exportContent={exportContent} onCloseExport={onCloseExport}
       importOpen={importOpen} busy={busy} readonly={readonly} monitor={monitor}/>
     <CookieRows site={site} rows={currentPage} totalCount={rows.length} selected={selected}
       changes={changes}
+      pending={listPending} recovery={listRecovery}
       newEditor={newEditor} unavailable={unavailable}
       onSelect={id=>onSelect(id===selected?null:id)} renderEditor={editor}
       idPrefix="cookie-react-editor-"/>
-    {pages>1&&<nav className="cookie-pages" aria-label="Cookie 分页">
+    {!listPending&&pages>1&&<nav className="cookie-pages" aria-label="Cookie 分页">
       <button type="button" className="od-button od-button--secondary" disabled={safePage===1||busy}
         onClick={()=>onPage(safePage-1)}>上一页</button>
       <span>{safePage} / {pages}</span>

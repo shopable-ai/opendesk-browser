@@ -23,6 +23,16 @@ function sharesSeekableSpan(media, from, to) {
   return false;
 }
 
+function sameSeekDuration(media, pending) {
+  const duration = durationOf(media);
+  if (duration === pending.duration) return true;
+  // Some players refine the end timestamp when fetching the final segment.
+  // Keep the original target; this alone is not evidence that the seek landed.
+  return pending.kind === 'outro' && pending.duration - pending.to <= 1 &&
+    duration > pending.duration && close(duration, pending.duration) &&
+    sharesSeekableSpan(media, pending.to, pending.to);
+}
+
 /**
  * A trusted adapter owns identity, rule resolution and the bridge. Bindings have a unique
  * opaque id (or token), context and media. Rebind with a new object on document, episode,
@@ -90,12 +100,15 @@ export function createPlayer({getBinding, authorize, selectNext, navigate, onSta
     if (!pending) return;
     clearTimeout(pending.timer);
     scope.pending = null;
-    const {id, kind, from, to, intent} = pending;
+    const {id, kind, from, to, intent, interval} = pending;
     scope.action = {id, kind, state: checked ? 'confirmed' : 'unknown', from, to};
     scope.reason = reason;
     if (!checked) uncertainSeek = {action: scope.action, reason};
     scope.previous = timeOf(scope.media);
-    if (checked && timedKinds.includes(kind)) scope.undo = {id, from};
+    if (checked && timedKinds.includes(kind)) {
+      scope.skipped[kind] = interval;
+      scope.undo = {id, from};
+    }
     if (checked && (kind === 'preview' || kind === 'undo')) holdAt(scope, scope.previous);
     if (checked && intent === 'outro') scope.inspection = to;
     if (checked && intent === 'return') scope.inspection = null;
@@ -106,11 +119,12 @@ export function createPlayer({getBinding, authorize, selectNext, navigate, onSta
     invalidate(scope);
     scope.natural = false;
     scope.terminal = to === duration;
+    scope.landing = null;
     scope.undo = null;
     scope.reason = undefined;
     scope.action = {id, kind, state: 'pending', from, to};
     return new Promise(resolve => {
-      const pending = {id, kind, from, to, duration, intent, resolve, seekingEvents: 0};
+      const pending = {id, kind, from, to, duration, intent, interval: scope.intervals[kind], resolve, seekingEvents: 0};
       scope.pending = pending;
       pending.timer = setTimeout(() => settleSeek(scope, false, 'seek-unconfirmed'), 5000);
       try {
@@ -189,18 +203,24 @@ export function createPlayer({getBinding, authorize, selectNext, navigate, onSta
     if (intro && outro && (intro.start < outro.end && outro.start < intro.end ||
         Math.min(intro.start, outro.start) === 0 && Math.max(intro.end, outro.end) === duration &&
         (intro.end === outro.start || outro.end === intro.start))) return;
+    const landedIn = range => inside(time, range) && inside(scope.landing?.time, range);
+    if (!Object.values(ranges).some(landedIn)) scope.landing = null;
     for (const kind of timedKinds) {
       const range = ranges[kind];
-      const signature = range ? range.start + ':' + range.end : null;
+      const signature = !range ? null : rules[kind].kind === 'tail' ? 'tail:' + rules[kind].seconds : range.start + ':' + range.end;
       const initial = !Object.hasOwn(scope.intervals, kind);
       const changed = !initial && scope.intervals[kind] !== signature;
       scope.intervals[kind] = signature;
       const held = inside(time, range) && inside(scope.hold[kind], range);
       if (!held) scope.hold[kind] = null;
       if (!inside(time, range) || held) continue;
+      // A browser seek is a rewatch only after this same interval has already skipped.
+      const landedHere = landedIn(range);
+      if (scope.skipped[kind] === signature && (kind === 'outro' || landedHere)) continue;
       const crossing = !changed && signal.previous !== null && signal.previous < range.start && time > signal.previous;
       const startup = kind === 'intro' && range.start === 0 && scope.startup && time < 3;
-      if (!(signal.play || crossing || startup) || !sharesSeekableSpan(media, time, range.end)) continue;
+      const firstLanding = landedHere && scope.landing.pending;
+      if (!(signal.play || crossing || startup || firstLanding) || !sharesSeekableSpan(media, time, range.end)) continue;
       // No await between the final ownership check and the seek.
       if (fenced(scope, revision) && !media.paused && !media.seeking && !media.ended) {
         scope.startup = false;
@@ -260,7 +280,7 @@ export function createPlayer({getBinding, authorize, selectNext, navigate, onSta
       if (media.paused || media.ended) return;
       if (previous !== null && now !== null && now > previous) {
         const duration = durationOf(media);
-        if (duration !== null && now < duration) {
+        if (duration !== null && now < duration && (!scope.terminal || !close(now, duration))) {
           scope.terminal = false;
           scope.natural = true;
           scope.lastMotion = now;
@@ -270,6 +290,7 @@ export function createPlayer({getBinding, authorize, selectNext, navigate, onSta
     });
     on('seeking', () => {
       invalidate(scope);
+      scope.landing = null;
       scope.startup = false;
       scope.natural = false;
       const pending = scope.pending;
@@ -281,23 +302,23 @@ export function createPlayer({getBinding, authorize, selectNext, navigate, onSta
         scope.undo = null;
         if (scope.action?.state === 'confirmed' && timedKinds.includes(scope.action.kind)) scope.action = null;
         scope.previous = null;
-        holdAt(scope, timeOf(media));
       }
     });
     on('seeked', () => {
       const pending = scope.pending;
       const landed = timeOf(media);
       if (pending) {
-        const confirmed = pending.seekingEvents === 1 && !media.seeking && durationOf(media) === pending.duration &&
+        const confirmed = pending.seekingEvents === 1 && !media.seeking && sameSeekDuration(media, pending) &&
           landed !== null && close(landed, pending.to);
         settleSeek(scope, confirmed, confirmed ? undefined : 'seek-unconfirmed');
       } else {
         invalidate(scope);
         scope.previous = landed;
         scope.natural = false;
-        holdAt(scope, landed);
+        scope.landing = {time: landed, pending: true};
         if (landed !== null && scope.inspection !== null && landed < scope.inspection) scope.inspection = null;
         if (landed !== null && landed === durationOf(media)) scope.terminal = true;
+        if (!media.paused && !media.seeking && !media.ended) queue(scope, {previous: landed});
       }
     });
     for (const type of ['pointerdown', 'keydown']) on(type, () => {
@@ -320,7 +341,7 @@ export function createPlayer({getBinding, authorize, selectNext, navigate, onSta
       scope.natural = false;
       scope.previous = timeOf(media);
       scope.undo = null;
-      if (scope.pending) settleSeek(scope, false, 'duration-changed');
+      if (scope.pending && !sameSeekDuration(media, scope.pending)) settleSeek(scope, false, 'duration-changed');
       else if (scope.action?.state === 'confirmed') scope.action = null;
     });
     for (const type of ['emptied', 'loadstart', 'abort', 'error']) {
@@ -345,7 +366,7 @@ export function createPlayer({getBinding, authorize, selectNext, navigate, onSta
       current = {
         binding, media, listeners: new Map(), revision: 0, mediaRevision: 0, previous: timeOf(media),
         wasPaused: media.paused, startup: !media.paused && timeOf(media) !== null && timeOf(media) < 0.75,
-        intervals: {}, hold: {intro: null, outro: null}, denied: false, inspection: null,
+        intervals: {}, skipped: {}, hold: {intro: null, outro: null}, landing: null, denied: false, inspection: null,
       };
       listen(current);
     }
@@ -359,6 +380,7 @@ export function createPlayer({getBinding, authorize, selectNext, navigate, onSta
       current.denied = false;
       current.previous = timeOf(current.media);
       current.intervals = {};
+      if (current.landing) current.landing.pending = false;
     }
     return publish();
   }

@@ -2,7 +2,7 @@
 import {admitsInstalledSidebarTool} from '../../../src/ui/sidebar-tools/installation.js';
 import {VIDEO_SPEED_ID,VIDEO_SPEED_CAPABILITY} from './policy.js';
 
-export const VIDEO_SPEED_VERSION='1.2.3';
+export const VIDEO_SPEED_VERSION='1.2.4';
 export const VIDEO_SPEED_MARKET_ID='opendesk/video-speed-controller';
 export async function admitsOfficialVideoSpeed({
   tool,installed,enableRecords,epochs,expectedEpoch

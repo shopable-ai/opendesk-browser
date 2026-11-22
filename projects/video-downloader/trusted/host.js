@@ -51,22 +51,30 @@ export function createVideoDownloaderHost({api,currentPageTarget,fetcher=globalT
       if(row.nativeUnknown)row.state='unknown';
       return;
     }
+    if(row.cancelSent)return;
+    row.cancelSent=true;
     try{
       await api.downloads.cancel(row.downloadId);
       const hits=await api.downloads.search({id:row.downloadId});
       if(hits?.some(data=>data.id===row.downloadId&&['complete','interrupted'].includes(data.state)))settledNative(row);
     }catch{row.cancelUnknown=true;row.state='unknown';}
   };
-  function invalidate(){
+  function invalidate({pageChanged=false}={}){
     scanAbort?.abort();scanAbort=null;
     generation++;cache.clear();context=null;
-    const old=task;task=null;
-    if(old&&!terminal.has(old.state)){
+    const old=task;
+    if(pageChanged&&old)old.detached=true;
+    else task=null;
+    if(old&&!terminal.has(old.state)&&!old.stopRequested){
       old.stopRequested=true;if(old.state!=='unknown')old.state='cancel_requested';
       void cancel(old);
     }
   }
   async function inspect(assertCurrent,assertInstalled){
+    // Older installed UIs do not poll after navigation. Reconcile the one
+    // detached job before deciding whether their explicit detection may proceed.
+    if(task?.detached&&!terminal.has(task.state))
+      await status({taskId:task.taskId},assertCurrent,assertInstalled);
     refuseUnresolved();
     if(task&&!['complete','complete_unverified','interrupted','cancelled'].includes(task.state))
       throw fail('E_MEDIA_BUSY','请先完成或停止当前下载');
@@ -192,7 +200,7 @@ export function createVideoDownloaderHost({api,currentPageTarget,fetcher=globalT
     const target=currentPageTarget.capture();
     if(!sameDocument(target,selected.target))
       throw fail('E_DOCUMENT_STALE','网页已变化，请重新检测');
-    const row={taskId:uuid(),target,downloadId:null,stopRequested:false,abort:new AbortController(),
+    const row={taskId:uuid(),candidateId:payload.candidateId,target,downloadId:null,stopRequested:false,abort:new AbortController(),
       state:'starting',cancelUnknown:false,blobUrl:null,nativeUnknown:false};
     task=row;cache.delete(payload.candidateId);const ticket=generation;
     try{await recheck(target,assertCurrent,assertInstalled);}
@@ -266,19 +274,27 @@ export function createVideoDownloaderHost({api,currentPageTarget,fetcher=globalT
     return {taskId:row.taskId,downloadId,state:'started'};
   }
   async function status(payload,assertCurrent,assertInstalled){
-    if(!isPlain(payload)||Object.keys(payload).sort().join(',')!=='taskId'||
-       typeof payload.taskId!=='string'||task?.taskId!==payload.taskId)
+    const key=Object.keys(payload).join(',');
+    if(!isPlain(payload)||!['taskId','candidateId'].includes(key)||
+       typeof payload[key]!=='string'||task?.[key]!==payload[key])
       throw fail('E_MEDIA_TASK','任务不存在或已经失效');
     const row=task;
-    await ensure(assertCurrent,assertInstalled);
-    if(task!==row)throw fail('E_MEDIA_STALE','任务已失效');
-    await recheck(row.target,assertCurrent,assertInstalled);
-    if(task!==row)throw fail('E_MEDIA_STALE','任务已失效');
+    // A detached receipt is a read of this installation's own download, not a
+    // read of the former document. Do not return that document's media details.
+    const verify=async()=>{
+      await ensure(assertCurrent,assertInstalled);
+      if(task!==row)throw fail('E_MEDIA_STALE','任务已失效');
+      if(!row.detached){
+        try{await recheck(row.target,assertCurrent,assertInstalled);}
+        catch(error){if(!row.detached)throw error;await ensure(assertCurrent,assertInstalled);}
+      }
+      if(task!==row)throw fail('E_MEDIA_STALE','任务已失效');
+    };
+    await verify();
     if(!Number.isInteger(row.downloadId))
-      return {taskId:row.taskId,...row.progress,state:row.state,error:row.error||null,playbackVerified:false};
+      return {taskId:row.taskId,...(row.detached?{}:row.progress),state:row.state,error:row.error||null,playbackVerified:false};
     const hits=await api.downloads.search({id:row.downloadId});
-    await recheck(row.target,assertCurrent,assertInstalled);
-    if(task!==row)throw fail('E_MEDIA_STALE','任务已失效');
+    await verify();
     const data=hits?.find(x=>x?.id===row.downloadId);
     if(!data){row.state='unknown';return {taskId:row.taskId,downloadId:row.downloadId,state:'unknown'};}
     const bytes=Math.max(0,Number(data.bytesReceived)||0);
@@ -288,12 +304,12 @@ export function createVideoDownloaderHost({api,currentPageTarget,fetcher=globalT
     else if(data.state==='interrupted')
       row.state=row.stopRequested&&data.error==='USER_CANCELED'?'cancelled':'interrupted';
     else if(data.state==='in_progress')
-      row.state=row.stopRequested?'cancel_requested':'in_progress';
+      row.state=row.cancelUnknown?'unknown':row.stopRequested?'cancel_requested':'in_progress';
     else row.state='unknown';
     if(terminal.has(row.state))settledNative(row);
     return {taskId:row.taskId,downloadId:row.downloadId,state:row.state,
       bytesReceived:bytes,totalBytes:total,
-      filePresent:data.exists===true,playbackVerified:false,stream:row.integrity||null,
+      filePresent:data.exists===true,playbackVerified:false,stream:row.detached?null:row.integrity||null,
       error:row.state==='interrupted'?String(data.error||'E_DOWNLOAD_INTERRUPTED').slice(0,80):null};
   }
   async function stop(payload,assertCurrent){
@@ -308,7 +324,9 @@ export function createVideoDownloaderHost({api,currentPageTarget,fetcher=globalT
     if(!task){
       return {taskId:null,state:nativeSaves.size?'unknown':'cancel_requested',cancelUnknown:nativeSaves.size>0};
     }
-    const row=task;row.stopRequested=true;
+    const row=task;
+    if(row.detached||row.stopRequested)return {taskId:row.taskId,state:row.state,cancelUnknown:row.cancelUnknown};
+    row.stopRequested=true;
     if(!['complete','complete_unverified','interrupted','cancelled'].includes(row.state)){
       if(row.state!=='unknown')row.state='cancel_requested';await cancel(row);
     }

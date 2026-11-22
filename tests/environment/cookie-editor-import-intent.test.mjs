@@ -20,22 +20,22 @@ test('untrusted operations cannot mint an import intent without user activation'
 test('one trusted user action covers 25, 50 and 100 bounded batches',()=>{
   const gate=createCookieImportIntentGate();
   const owner='official/instance',origin='https://example.com';
-  assert.equal(gate.start({owner,origin,verifiedUserActivation:true}).authorized,true);
+  const {ref}=gate.start({owner,origin,verifiedUserActivation:true});
   for(const count of [25,50,25]){
-    assert.equal(gate.acquire({owner,origin,count}),true);
+    assert.equal(gate.acquire({owner,origin,count}),ref);
     assert.throws(()=>gate.acquire({owner,origin,count:1}),{code:'E_BUSY'});
-    gate.settle({owner,count,confirmed:true});
+    gate.settle({owner,ref,count,confirmed:true});
   }
-  assert.equal(gate.acquire({owner,origin,count:900}),true);
-  gate.settle({owner,count:900,confirmed:true});
+  assert.equal(gate.acquire({owner,origin,count:900}),ref);
+  gate.settle({owner,ref,count:900,confirmed:true});
   assert.equal(gate.acquire({owner,origin,count:1}),false);
 });
 test('one official click admits destination domains only while the source remains unchanged',()=>{
   const gate=createCookieImportIntentGate(),owner='official/cookie-editor';
   const source='https://shop.example.com',destination='https://accounts.example.net';
   const session=gate.start({owner,origin:source,verifiedUserActivation:true,multiOrigin:true});
-  assert.equal(gate.acquire({owner,origin:destination,sourceOrigin:source,count:30}),true);
-  gate.settle({owner,count:30,confirmed:true});
+  assert.equal(gate.acquire({owner,origin:destination,sourceOrigin:source,count:30}),session.ref);
+  gate.settle({owner,ref:session.ref,count:30,confirmed:true});
   assert.throws(()=>gate.acquire({owner,origin:destination,sourceOrigin:'https://wrong.example',count:1}),
     {code:'E_DOCUMENT_CHANGED'});
   assert.equal(gate.acquire({owner,origin:destination,sourceOrigin:source,count:1}),false);
@@ -49,9 +49,9 @@ test('wrong owner, wrong origin, expiration and unknown failures cannot reuse a 
   assert.equal(gate.acquire({owner:'b',origin:'https://a.test',count:1}),false);
   assert.throws(()=>gate.acquire({owner:'a',origin:'https://b.test',count:1}),{code:'E_DOCUMENT_CHANGED'});
   assert.equal(gate.acquire({owner:'a',origin:'https://a.test',count:1}),false);
-  gate.start({owner:'a',origin:'https://a.test',verifiedUserActivation:true});
-  assert.equal(gate.acquire({owner:'a',origin:'https://a.test',count:25}),true);
-  gate.settle({owner:'a',count:25,confirmed:false});
+  const {ref}=gate.start({owner:'a',origin:'https://a.test',verifiedUserActivation:true});
+  assert.equal(gate.acquire({owner:'a',origin:'https://a.test',count:25}),ref);
+  gate.settle({owner:'a',ref,count:25,confirmed:false});
   assert.equal(gate.acquire({owner:'a',origin:'https://a.test',count:1}),false);
   gate.start({owner:'a',origin:'https://a.test',verifiedUserActivation:true});
   time+=120000;
@@ -74,8 +74,10 @@ test('a delayed finish from an earlier click cannot cancel a newer import',()=>{
   const second=gate.start({owner,origin,verifiedUserActivation:true});
   assert.notEqual(first.ref,second.ref);
   assert.deepEqual(gate.close(owner,first.ref),{closed:false});
-  assert.equal(gate.acquire({owner,origin,count:25}),true);
-  gate.settle({owner,count:25,confirmed:true});
+  assert.equal(gate.acquire({owner,origin,count:25}),second.ref);
+  gate.settle({owner,ref:first.ref,count:25,confirmed:false});
+  assert.throws(()=>gate.acquire({owner,origin,count:25}),{code:'E_BUSY'});
+  gate.settle({owner,ref:second.ref,count:25,confirmed:true});
   assert.deepEqual(gate.close(owner,second.ref),{closed:true});
   assert.equal(gate.acquire({owner,origin,count:1}),false);
 });

@@ -6,7 +6,6 @@ import RuleEditor from './RuleEditor.jsx';
 import ColumnSettings from './ColumnSettings.jsx';
 import AiPanel from './AiPanel.jsx';
 import CaptureWorkspace from './CaptureWorkspace.jsx';
-import {accessDenied} from './results-model.js';
 import {createBusinessApi} from './business-api.js';
 
 const freshUI=epoch=>({epoch,json:null,valid:true,error:'',notice:'',exportError:'',field:null,fieldPending:false,fieldError:'',invalidField:'',crawl:null,crawlPending:false,crawlError:'',crawlNotice:'',target:null,targetValid:true,http:null,httpValid:true,jsonHint:'',fieldHelp:'',removeField:false});
@@ -48,7 +47,6 @@ function ProfileConfirmation({open,title,description,acceptLabel,disabled,onCanc
   </dialog>;
 }
 function statusOf(state,matches,busy){
-  if(accessDenied(state))return '当前访问受限';
   if(state.phase==='unknown')return '运行状态待确认';
   if(state.phase==='starting')return '正在准备采集…';
   if(busy)return state.stopRequested?'正在停止 · 等待原实例退出':'正在采集…';
@@ -171,12 +169,15 @@ export default function App({previewAiPlaceholder=false,RuleAssistant,ListScopeA
   const crawl=ui.crawl||crawlForm(state.config);
   let matches=false;
   try{matches=Boolean(state.target)&&new URL(state.config.url).origin===new URL(state.target.url).origin;}catch{}
+  const pageTitle=state.target?.title|| (state.target?'当前网页已连接':state.targetPending?'正在确认当前网页…':'当前网页信息不可用');
+  const targetProblem=state.targetError?.code==='E_PERMISSION_DENIED'?'网页读取被权限拒绝。请在扩展详情检查权限，恢复后重新检查。':
+    state.targetError?.code==='E_DOCUMENT_UNRESOLVED'?'当前网页尚未就绪。页面加载完成后可重新检查。':state.targetError?.message;
   const help=state.phase==='unknown'?'开始结果未知，请刷新原实例状态；不要重复开始。':
-    accessDenied(state)?'权限受限；当前草稿保留。恢复方法见上方读取提示。':
+    state.storageError?.code==='E_PERMISSION_DENIED'?'配置读取权限受限；当前草稿保留。请在配置库检查后重新读取。':
     !valid?'配置草稿有误，请修正规则、Headers JSON 或目标网址后再运行或保存。':
     !complete?'填写目标网址并添加采集字段，或选择已保存的配置。':
     pending?ui.fieldPending?'请补全或修正字段与列表范围；按 Esc 可恢复当前输入。':'分页与详情有未应用编辑，请先应用或取消。':
-    !state.target?(state.targetError?'网页信息读取失败，请检查上方原因后刷新当前网页。':'请先打开目标网页，再刷新当前网页。'):!busy&&!matches?'目标网址与当前网页不同源，请切换到目标网站后刷新当前网页。':
+    state.target&&!busy&&!matches?'目标网址与当前网页不同源，请切换到目标网站后刷新当前网页。':
     state.saving?'正在保存配置，请稍候。':naming||state.pendingAction?'请先完成或取消配置操作。':'';
   React.useEffect(()=>{tool.setState?.({dirty:state.dirty||!valid||pending||Boolean(naming)||Boolean(modeChange)||localDirty||aiDirty,busy:busy||state.saving||aiGenerating||aiBusy||workspaceAiBusy||localBusy||ruleAssistOpen});},[tool,state.dirty,valid,pending,naming,modeChange,busy,state.saving,aiGenerating,aiBusy,workspaceAiBusy,localBusy,localDirty,aiDirty,ruleAssistOpen]);
   // Header is a shortcut to the original library/new-draft actions, never a runner.
@@ -395,7 +396,8 @@ export default function App({previewAiPlaceholder=false,RuleAssistant,ListScopeA
 
     <div className="capture-workspace" hidden={managementOpen||workspaceOpen}>
     <Card className="target-section" data-expanded={showContext} role="region" aria-labelledby="target-heading"><CardContent className="target-content">
-      <div className="toolbar target-head"><div className="target-heading"><h2 className="od-page-title" id="target-heading">采集目标</h2><p id="page-title" className="target-title" title={state.target?.title||state.host}>{state.target?.title||(state.targetError?'当前网页信息不可用':state.host)}</p></div><Button base="aria" id="toggle-target" hidden={view==='results'} variant="quiet" aria-expanded={contextOpen} aria-controls="target-body" onClick={()=>setContextOpen(!contextOpen)}>{contextOpen?'收起操作':'网址与运行'}</Button><IconButton id="refresh-target" label="刷新当前网页" hidden={!showContext} disabled={busy||state.saving} onClick={()=>app.refreshTarget()}><svg className="inline-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" aria-hidden="true"><path d="M20 7v5h-5M4 17v-5h5"/><path d="M6.1 7a7 7 0 0 1 11.5-1L20 9M4 15l2.4 3A7 7 0 0 0 18 17"/></svg></IconButton></div>
+      <div className="toolbar target-head"><div className="target-heading"><h2 className="od-page-title" id="target-heading">采集目标</h2><p id="page-title" className="target-title" title={pageTitle} role="status">{pageTitle}</p></div><Button base="aria" id="toggle-target" hidden={view==='results'} variant="quiet" aria-expanded={contextOpen} aria-controls="target-body" onClick={()=>setContextOpen(!contextOpen)}>{contextOpen?'收起操作':'网址与运行'}</Button><IconButton id="refresh-target" label="重新检查当前网页" aria-disabled={state.targetPending} aria-describedby={targetProblem?'page-target-problem':'page-title'} onClick={()=>app.retryTarget()}><svg className="inline-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" aria-hidden="true"><path d="M20 7v5h-5M4 17v-5h5"/><path d="M6.1 7a7 7 0 0 1 11.5-1L20 9M4 15l2.4 3A7 7 0 0 0 18 17"/></svg></IconButton></div>
+      <Message id="page-target-problem" alert>{targetProblem}</Message>
       <p hidden={showContext} className="od-note secondary" role="status">{statusOf(state,matches,busy)}</p>
       <div id="target-body" className="stack" hidden={!showContext}>
       <div id="target-settings" className="stack">

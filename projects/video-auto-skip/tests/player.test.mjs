@@ -142,6 +142,64 @@ test('ordinary playback crosses the intro once; seeking back and resuming preser
   assert.equal(media.time, 36);
 });
 
+test('after a fresh load, seeking into the intro skips once even if playback was already running', async t => {
+  const media = new Media();
+  media.paused = false;
+  media.time = 120;
+  const {player} = setup(t, {media, rules: {intro: fixed(0, 60)}});
+  media.drag(25);
+  await drain();
+  assert.deepEqual(media.writes, [60]);
+  media.land();
+  assert.equal(player.snapshot().action.state, 'confirmed');
+
+  media.drag(25);
+  await tick(media, 26);
+  assert.deepEqual(media.writes, [60], 'a second drag into the skipped interval is a deliberate rewatch');
+});
+
+test('seeking into an unskipped tail while paused waits for play and a seekable endpoint', async t => {
+  const {media} = setup(t, {rules: {outro: fixed(190, 210)}});
+  media.ranges = [[0, 200]];
+  media.drag(195);
+  await drain();
+  assert.deepEqual(media.writes, []);
+  assert.equal(media.paused, true);
+  await play(media);
+  assert.deepEqual(media.writes, []);
+  media.ranges = [[0, 240]];
+  await tick(media, 196);
+  assert.deepEqual(media.writes, [210]);
+  media.land();
+  assert.equal(media.paused, false);
+});
+
+test('saving clears a pending first skip without cancelling a rewatch of the same interval', async t => {
+  const {player, media, rules} = setup(t, {rules: {intro: fixed(30, 90)}});
+  await play(media);
+  media.drag(35);
+  player.refresh();
+  await tick(media, 36);
+  assert.deepEqual(media.writes, []);
+  media.drag(35);
+  await drain();
+  assert.deepEqual(media.writes, [90]);
+  media.land();
+
+  media.pause();
+  media.drag(35);
+  player.refresh();
+  await play(media);
+  assert.deepEqual(media.writes, [90]);
+
+  rules.intro = fixed(30, 95);
+  player.refresh();
+  media.drag(35);
+  await drain();
+  assert.deepEqual(media.writes, [90, 95], 'a new endpoint is eligible on the next drag');
+  media.land();
+});
+
 test('save and attaching to a running interval are inert until exit or a genuine play edge', async t => {
   const media = new Media();
   media.paused = false;
@@ -278,6 +336,84 @@ test('fixed partial outro preserves the remainder; terminal tail recalculates af
   media.end();
   await drain();
   assert.equal(nav, 0, 'End caused by a terminal seek cannot dispatch next');
+});
+
+for (const [mode, rule, from, to] of [
+  ['fixed', fixed(1155, 1243), 1155.17, 1243],
+  ['last 88 seconds', tail(88), 1155.7, 1243.563],
+]) test(mode + ': natural outro confirms once when the same media extends slightly during the seek', async t => {
+  const media = new Media();
+  media.duration = 1243.563;
+  media.ranges = [[0, media.duration]];
+  const {player, statuses} = setup(t, {media, rules: {outro: rule, next: true},
+    selectNext: () => ({}), navigate: () => assert.fail('A skip is not a next-episode request')});
+  await play(media);
+  await tick(media, 1154.9);
+  assert.deepEqual(media.writes, []);
+  await tick(media, from);
+  assert.deepEqual(media.writes, [to]);
+  media.emit('seeking');
+  media.duration = 1243.714667;
+  media.ranges = [[0, media.duration]];
+  media.emit('durationchange');
+  assert.equal(player.snapshot().action.state, 'pending');
+  media.seeking = false;
+  media.emit('seeked');
+  assert.deepEqual(player.snapshot().action, {id: 1, kind: 'outro', state: 'confirmed', from, to});
+  if (mode !== 'fixed') {
+    await tick(media, 1243.65);
+    media.end();
+    await drain();
+    media.play();
+  }
+  media.drag(1156);
+  await tick(media, 1157);
+  media.drag(1154);
+  await tick(media, 1156);
+  assert.deepEqual(media.writes, [to], 'rewatching from inside or just before the outro cannot skip again');
+  assert.equal(statuses.filter(s => s.action?.state === 'confirmed' && s.action.kind === 'outro').length, 1);
+});
+
+test('without an applicable outro, playback ends without a seek or skip feedback and next can still run', async t => {
+  for (const [label, outro] of [['no outro', undefined], ['outro beyond the media duration', fixed(230, 250)]]) {
+    await t.test(label, async t => {
+      const target = {episodeKey: 'next'};
+      const calls = [];
+      const {player, media, statuses} = setup(t, {rules: {outro, next: true},
+        selectNext: () => target, navigate: (_binding, next) => { calls.push(next); return 'playing'; }});
+      await play(media);
+      await tick(media, 229.8);
+      await tick(media, 230.2);
+      await tick(media, 239.6);
+      assert.equal(player.snapshot().action, undefined);
+      assert.deepEqual(calls, []);
+      media.end();
+      await drain();
+      assert.deepEqual(media.writes, []);
+      assert.equal(statuses.some(({action}) => action?.kind === 'intro' || action?.kind === 'outro'), false);
+      assert.deepEqual(calls, [target]);
+      assert.deepEqual(player.snapshot().action, {kind: 'next', state: 'playing'});
+    });
+  }
+});
+
+test('a duration correction is not proof of landing or permission to accept a larger change', async t => {
+  for (const [revisedDuration, landed, reason] of [[240.15, 235, 'seek-unconfirmed'], [241, 240, 'duration-changed']]) {
+    const {player, media, statuses} = setup(t, {rules: {outro: tail(10)}});
+    await play(media);
+    await tick(media, 229);
+    await tick(media, 231);
+    media.emit('seeking');
+    media.duration = revisedDuration;
+    media.ranges = [[0, revisedDuration]];
+    media.emit('durationchange');
+    media.time = landed;
+    media.seeking = false;
+    media.emit('seeked');
+    assert.equal(player.snapshot().action.state, 'unknown');
+    assert.equal(player.snapshot().reason, reason);
+    assert.equal(statuses.some(s => s.action?.state === 'confirmed'), false);
+  }
 });
 
 test('replacing a binding or saving while authorization is pending fences the old action', async t => {

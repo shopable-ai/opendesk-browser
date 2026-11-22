@@ -49,6 +49,18 @@ test('switching modes invalidates stale extraction without unlocking a newer req
   assert.equal(nodes['clip-fetch'].disabled,false);
   assert.equal(nodes['clip-source'].value,'NEW');
 });
+test('changing metadata during an article read formats its result and unlocks fetch',async()=>{
+ const gate=deferred();let calls=0;
+ const {nodes}=mounted({request:()=>{calls++;return gate.promise;}});
+ const pending=nodes['clip-fetch'].fire('click');
+ nodes['clip-meta'].value='yaml';await nodes['clip-meta'].fire('change');
+ assert.equal(nodes['clip-fetch'].disabled,true);
+ gate.resolve({markdown:'ARTICLE',source:'https://example.com/a',title:'Example'});
+ await pending;
+ assert.match(nodes['clip-source'].value,/^---\n[\s\S]*ARTICLE$/);
+ assert.equal(nodes['clip-fetch'].disabled,false);
+ assert.equal(calls,1);
+});
 test('same mode is a no-op; switching to empty selection does not leak article',async()=>{
  let calls=0;
  const {nodes,modes}=mounted({request:async()=>{calls++;return {

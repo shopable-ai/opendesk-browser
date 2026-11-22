@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
-import {EMPTY, cleanRules, resolveInterval, resolveRules, updateScope, validateRules} from '../src/rules.js';
+import {EMPTY, cleanRules, resolveInterval, resolveRules, saveScope, updateScope, validateRules} from '../src/rules.js';
 
 const intro = {kind: 'fixed', start: 30, end: 90};
 const outro = {kind: 'tail', seconds: 90};
@@ -24,7 +24,30 @@ test('relative outro is recomputed for each source and cannot process an unknown
   assert.deepEqual(resolveInterval(outro, 45 * 60), {start: 43 * 60 + 30, end: 45 * 60});
   assert.deepEqual(resolveInterval(outro, 48 * 60), {start: 46 * 60 + 30, end: 48 * 60});
   for (const duration of [NaN, Infinity, 0, 90, 89]) assert.equal(resolveInterval(outro, duration), null);
-  assert.deepEqual(resolveInterval({kind: 'fixed', start: 2510, end: 2610}, 2700), {start: 2510, end: 2610});
+  for (const duration of [2700, 2880]) {
+    assert.deepEqual(resolveInterval({kind: 'fixed', start: 2510, end: 2610}, duration), {start: 2510, end: 2610});
+  }
+});
+
+test('automatic scope keeps existing episode exceptions and does not extend unverified rules to the season', () => {
+  const local = {...one, season: 'season-1'};
+  const data = updateScope(EMPTY, local, 'episode', {next: false});
+  assert.equal(saveScope(EMPTY, local), 'series');
+  assert.equal(saveScope(data, local), 'episode');
+  assert.equal(saveScope(data, {...two, season: local.season}), 'series');
+  assert.equal(saveScope(EMPTY, one), 'episode');
+  assert.equal(saveScope(EMPTY, {...local, seriesKey: 'iyf:unverified'}), 'episode');
+});
+
+test('a disabled saved interval still overrides inherited playback settings and keeps its editable times', () => {
+  const disabled = {...outro, enabled: false};
+  const defaults = updateScope(EMPTY, one, 'series', {outro});
+  const data = cleanRules(updateScope(defaults, one, 'episode', {outro: disabled}));
+  assert.deepEqual(resolveRules(data, one).outro, disabled);
+  assert.equal(resolveInterval(resolveRules(data, one).outro, 2700), null);
+  assert.deepEqual(resolveInterval(resolveRules(data, two).outro, 2700), {start: 2610, end: 2700});
+  assert.equal(validateRules({outro: disabled}, 89), null);
+  assert.ok(validateRules({outro: {...disabled, seconds: 0}}, 2700));
 });
 
 test('invalid, overlapping and whole-episode skips are rejected before they can be saved', () => {

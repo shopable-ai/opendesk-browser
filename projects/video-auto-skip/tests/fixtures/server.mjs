@@ -44,11 +44,11 @@ function byteRange(header, size) {
   return Number.isSafeInteger(start) && start < size && start <= end ? {start, end} : null;
 }
 
-export async function startFixture({directory, port = 0, signal} = {}) {
+export async function startFixture({directory, port = 0, signal, durations = clips} = {}) {
   // Generated media lives only in the caller's temporary directory.
   const files = new Map();
   const colors = ['navy', 'teal', 'purple', 'olive', 'indigo', 'maroon'];
-  const entries = Object.entries(clips);
+  const entries = Object.entries(durations);
   for (const [index, [name, seconds]] of entries.entries()) {
     const file = path.join(directory, name + '.webm');
     await exec('ffmpeg', ['-nostdin', '-hide_banner', '-loglevel', 'error', '-f', 'lavfi',

@@ -195,8 +195,8 @@ function assertWebFeatureSettings(f){
   assert.ok(button,'settings remains available even when Chrome access is already enabled');
   assert.equal(button.disabled,false);
   assert.equal(button.closest('details,[hidden],[inert]'),null,'settings is directly accessible');
-  assert.equal(view.querySelector('details'),null,'no permanent manual entry');
   const setup=view.querySelector('.ec-web-features-setup');
+  assert.equal(setup.querySelector('details'),null,'Chrome settings has no extra manual disclosure');
   const state=setup.querySelector('[role="status"]');
   assert.equal(state.closest('button,[role="switch"],[tabindex]'),null,'Chrome access is a read-only indicator');
   return {button,setup,state};

@@ -277,22 +277,22 @@ test('R5.30.3 navigation during save preflight never claims or replays a write',
   assert.equal(f.calls.some(([name])=>name==='set'),false);
   f.controller.dispose();
 });
-test('R5.30.3 only a dispatched Cookie write retains the unknown-result protection',async()=>{
+test('R5.30.3 only a dispatched Cookie write waits for its original receipt',async()=>{
   const f=fixture();await f.controller.load();
   const pending=deferred(),started=deferred();let writes=0;
   f.cookies.set=async()=>{writes++;started.resolve();return pending.promise;};
   const saving=f.controller.save({...base,name:'new'});
   await started.promise;f.controller.invalidate('网站已切换');
-  assert.equal(f.controller.snapshot().messageType,'error');
-  assert.match(f.controller.snapshot().message,/未知.*不要自动重试/);
+  assert.equal(f.controller.snapshot().settlingPrevious,true);
+  assert.deepEqual(f.controller.snapshot().unknownEffects,[]);
   f.controller.invalidate('授权状态再次更新');
-  assert.equal(f.controller.snapshot().messageType,'error');
-  assert.match(f.controller.snapshot().message,/未知.*不要自动重试/);
-  pending.resolve({saved:true,verified:true});assert.equal(await saving,false);
+  assert.equal(f.controller.snapshot().settlingPrevious,true);
+  pending.resolve({saved:true,verified:true});assert.equal(await saving,true);
   assert.equal(writes,1);
   await f.controller.load();
   assert.equal(f.controller.snapshot().phase,'ready');
   assert.equal(f.controller.snapshot().message,'');
+  assert.equal(f.controller.snapshot().previousReceipt.type,'success');
   f.controller.dispose();
 });
 test('R5.30.3 export invalidation distinguishes sensitive reads from a dispatched sink',async()=>{
@@ -305,9 +305,10 @@ test('R5.30.3 export invalidation distinguishes sensitive reads from a dispatche
     else f.cookies.getAll=async()=>{started.resolve();return pending.promise;};
     const exporting=f.controller.exportTo({method:'copy',format:'json',metadata:true});await started.promise;
     f.controller.invalidate('网站已切换');
-    assert.equal(f.controller.snapshot().messageType,dispatched?'error':'info');
+    assert.equal(f.controller.snapshot().settlingPrevious,dispatched);
     pending.resolve(dispatched?{copied:true}:[base]);
-    assert.equal(await exporting,false);
+    assert.equal(await exporting,dispatched);
+    assert.equal(f.controller.snapshot().previousReceipt?.type,dispatched?'success':undefined);
     assert.equal(copies,dispatched?1:0);
     f.controller.dispose();
   }
@@ -638,7 +639,8 @@ test('R5.30.3 unknown copy/download receipts never report success or retry',asyn
     assert.equal(await f.controller.exportTo({metadata:true,method}),false);
     assert.equal(calls,1);
     assert.equal(f.controller.snapshot().messageType,'error');
-    assert.match(f.controller.snapshot().message,/E_OUTCOME_UNKNOWN/);
+    assert.match(f.controller.snapshot().message,/核对剪贴板或下载记录/);
+    assert.deepEqual(f.controller.snapshot().unknownEffects,[method]);
     f.controller.dispose();
   }
 });
@@ -796,7 +798,7 @@ test('a target change while the export intent is rejected never reaches a sink',
   f.controller.dispose();
 });
 
-test('stale installation, lost grants and missing clicks stop export with actionable safe diagnostics',async()=>{
+test('stale installation, lost grants and missing clicks stop export with actionable feedback',async()=>{
   for(const code of ['E_TOOL_RUNTIME_UNAVAILABLE','E_SITE_GRANT_REQUIRED','E_DOCUMENT_CHANGED','E_USER_GESTURE_REQUIRED','E_TOOL_CHANGED']){
     const f=fixture();await f.controller.load();
     const reads=f.calls.length;
@@ -804,8 +806,8 @@ test('stale installation, lost grants and missing clicks stop export with action
     assert.equal(await f.controller.exportTo({metadata:true,method:'copy'}),false);
     assert.equal(f.calls.some(([name])=>name==='copy'||name==='download'),false);
     assert.equal(f.calls.length,reads,'rejected intent cannot read Cookie values');
-    if(code==='E_USER_GESTURE_REQUIRED')assert.match(f.controller.snapshot().message,/E_USER_GESTURE_REQUIRED/);
-    if(code==='E_TOOL_RUNTIME_UNAVAILABLE')assert.match(f.controller.snapshot().message,/E_TOOL_RUNTIME_UNAVAILABLE.*审阅更新/);
+    if(code==='E_USER_GESTURE_REQUIRED')assert.match(f.controller.snapshot().message,/重新点击复制或下载/);
+    if(code==='E_TOOL_RUNTIME_UNAVAILABLE')assert.match(f.controller.snapshot().message,/审阅更新 Cookie Editor/);
     assert.doesNotMatch(JSON.stringify(f.snapshots),/PRIVATE_ERROR_TEXT|SECRET_FIXTURE/);
     f.controller.dispose();
   }
@@ -822,8 +824,8 @@ test('export rejection and unknown outcomes are never replayed and explain the n
     f.adapter.download=async()=>{calls++;throw Object.assign(Error(code),{code});};
     assert.equal(await f.controller.exportTo({metadata:true,method:'download'}),false);
     assert.equal(calls,1);
-    assert.match(f.controller.snapshot().message,new RegExp(code));
     assert.match(f.controller.snapshot().message,code==='E_CANCELLED'?/已取消/:/核对剪贴板或下载记录/);
+    assert.deepEqual(f.controller.snapshot().unknownEffects,code==='E_CANCELLED'?[]:['download']);
     f.controller.dispose();
   }
 });
@@ -889,6 +891,49 @@ test('R5.20 batched revocation receipts retire the epoch and cannot replay an im
   await f.controller.load();
   assert.equal(await f.controller.executeImport('fresh=PRIVATE'),false);
   assert.equal(writes,1);
+  f.controller.dispose();
+});
+
+test('verified import prefix stays visible after revocation retires the Cookie list',async()=>{
+  for(const code of ['E_GRANT_REVOKED','E_SITE_GRANT_REQUIRED']){
+    const f=fixture();await f.controller.load();let writes=0;
+    const source='fresh=PRIVATE_FIRST; next=PRIVATE_SECOND; later=PRIVATE_THIRD';
+    f.cookies.setMany=async()=>{
+      writes++;return {saved:1,verified:1,stopped:true,results:[
+        {index:0,saved:true,verified:true},{index:1,saved:false,verified:false,code}
+      ]};
+    };
+    assert.equal((await f.controller.previewImport(source)).accepted,3);
+    assert.equal(await f.controller.executeImport(source),false);
+    const {phase,problem,target,rows,previousReceipt,unknownEffects,importOutcome}=f.controller.snapshot();
+    assert.equal(phase,'blocked');assert.equal(problem,code);assert.equal(target,null);
+    assert.deepEqual(rows,[]);assert.deepEqual(unknownEffects,[]);assert.equal(importOutcome,'partial');
+    assert.match(previousReceipt.text,/已确认导入 1\/3 条；其余条目未写入/);
+    assert.doesNotMatch(previousReceipt.text,/shop\.example|fresh|PRIVATE/);
+    await f.controller.retry();
+    assert.deepEqual(f.controller.snapshot().previousReceipt,previousReceipt);
+    assert.equal(await f.controller.executeImport(source),false);
+    assert.equal(writes,1);
+    f.controller.dispose();
+  }
+});
+
+test('unknown delete remains visible across a refresh and requires explicit reconciliation',async()=>{
+  const f=fixture();await f.controller.load();let removals=0;
+  f.cookies.remove=async()=>{
+    removals++;f.replaceRows([]);
+    throw Object.assign(Error('PRIVATE_READBACK_FAILURE'),{code:'E_OUTCOME_UNKNOWN'});
+  };
+  assert.equal(await f.controller.remove(f.controller.snapshot().rows[0].id),false);
+  assert.deepEqual(f.controller.snapshot().unknownEffects,['remove']);
+  assert.doesNotMatch(f.controller.snapshot().message,/PRIVATE_READBACK_FAILURE/);
+  f.controller.invalidate('正在确认网页');
+  await f.controller.retry();
+  assert.deepEqual(f.controller.snapshot().rows,[]);
+  assert.deepEqual(f.controller.snapshot().unknownEffects,['remove']);
+  assert.equal(removals,1);
+  f.controller.acknowledgeUnknown('remove');
+  assert.deepEqual(f.controller.snapshot().unknownEffects,[]);
   f.controller.dispose();
 });
 

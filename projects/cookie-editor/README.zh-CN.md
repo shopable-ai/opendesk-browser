@@ -9,11 +9,21 @@ npm run build --prefix projects/cookie-editor
 node scripts/build-sidebar-tool.mjs projects/cookie-editor --check-project
 ```
 
-当前[正式安装包](cookie-editor.opendesk-tool.json)为 **Cookie Editor 2.0.85**，SHA-256 `bc8147f6104e9dafc1750d724e9838c2724c4caa7711001a178b3b0cc65f17be`。
+当前[正式安装包](cookie-editor.opendesk-tool.json)为 **Cookie Editor 2.0.90**，SHA-256 `d2129f65ac1ddb218812a258756c56c032d73200ccb59b4a2e5e2a3492e6c76d`。
 
 2026-11-08 迁移仅修正目录及有效引用，当时保留 `cookie-editor` / `2.0.68` 安装包（387842 字节，SHA-256 `94a5fc20b4ad4ffc329834d5504f9b2e9ad177a374db2b18043b590804c8f1b6`）。历史验收、账本及 evidence 中的原路径仍表示当时位置，不作为当前命令入口。
 
 只想知道怎么操作，请看[使用与简单测试](QUICKSTART.zh-CN.md)。
+
+排查 Cookie 读写、导入或导出失败时，打开承载 **Cookie Editor** 的扩展窗口或侧栏的 DevTools，在 Console 选择工具的沙箱 iframe，启用 Warnings 并筛选 **[Cookie Editor]**，然后复现问题。日志只含操作、阶段、受限错误码和结果状态；成功及普通取消不产生日志。结果未确认时先按界面提示核对 Chrome Cookie、剪贴板或下载记录，再决定下一步。
+
+## 网页刷新时保留工作区（2.0.90）
+
+网页刷新时，站点栏、标签、搜索和筛选仍可见。确认新文档期间，暂停显示旧网页的 Cookie 数据和操作；新文档就绪后自动恢复，等待过久可点「重新检查」。重新核对目标后，同一授权范围可恢复 Cookie 属性草稿。手输的 Cookie 值及原文档的写入确认不会恢复；换站后也不会显示旧站的数据。
+
+提交导入后换页，原导入框关闭，操作回执仍可见。部分成功会显示已确认的条数；结果未知时须先核对，再发起新导入。已提交的操作不会自动重发。
+
+本包独立复评 **98/100**。同一 SHA-256 的安装包在隔离 Chrome for Testing 155.0.8059.39 的真实侧栏通过 **10/10** 检查，覆盖慢刷新、键盘焦点、旧 Cookie 隔离、自动恢复、属性草稿和跨站切换。三类迟到导入回执由 App 和组件联动测试验证。尚未进行 production 验收，用户现有浏览器未更新。
 
 ## 清理本站 Cookie（2.0.82）
 

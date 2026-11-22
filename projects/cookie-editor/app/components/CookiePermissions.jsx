@@ -14,7 +14,7 @@ function content(phase,reason){
   if(noPage.has(reason))return ['没有可用的网站','请先打开普通 HTTP/HTTPS 网站；不需要反复重试。',false];
   if(restricted.has(reason))return ['当前页面不可管理 Cookie','Chrome 内部页、扩展页或隐身窗口不支持 Cookie 管理。请切换到普通网站。',false];
   if(reason==='E_DOCUMENT_CHANGED')return ['网页已发生变化','请重新确认活动网页后，再手动检查 Cookie。',true];
-  if(reason==='E_DOCUMENT_UNRESOLVED')return ['暂时无法确认当前网页','页面加载完成后会自动检查，也可手动重新检查。',true];
+  if(reason==='E_DOCUMENT_UNRESOLVED')return ['暂时无法确认当前网页','网页就绪后会自动检查。若网页已加载完成，可手动重新检查。',true];
   if(granting.has(reason))return ['Cookie 授权未生效','请通过顶部设置检查 Cookie 授权，然后重新检查。',true];
   if(chromeDenied.has(reason))return ['Chrome Cookie 权限不足','请在 Chrome 扩展权限中恢复 Cookie 或网站访问，再重新检查。',true];
   if(hostLost.has(reason))return ['工具宿主不可用','请核对工具启用状态与安装版本，重新打开 Cookie Editor。',true];
@@ -22,21 +22,22 @@ function content(phase,reason){
   if(reason==='E_RATE_LIMIT')return ['读取请求过于频繁','请等待一分钟后重新检查。',true];
   return ['读取 Cookie 失败','请核对授权及 Cookie Store/Partition，按需手动重新检查。',true];
 }
-export default function CookiePermissions({phase,reason,target,disabled,onRetry,onOffline,readDiagnostic}){
-  if(phase==='ready'||granting.has(reason))return null;
-  if(phase==='loading')return <section className="cookie-permission od-surface od-surface--padded" role="status" aria-live="polite">
+export default function CookiePermissions({phase,reason,target,disabled=false,onRetry,onOffline,readDiagnostic,checking=false}){
+  if(!checking&&(phase==='ready'||granting.has(reason)))return null;
+  if(!checking&&phase==='loading')return <section className="cookie-permission od-surface od-surface--padded" role="status" aria-live="polite">
     正在读取 Cookie…
   </section>;
-  const [heading,help,canRetry]=content(phase,reason);
-  return <section className="cookie-permission od-surface od-surface--padded" role="status" aria-live="polite">
+  const [heading,help,canRetry]=content(phase,checking?'E_DOCUMENT_UNRESOLVED':reason);
+  const unresolved=checking||reason==='E_DOCUMENT_UNRESOLVED';
+  return <section className={'cookie-permission od-surface od-surface--padded'+(unresolved?' cookie-check-recovery':'')}
+    role={unresolved?'region':'status'} aria-label={unresolved?heading:undefined}>
     <strong>{heading}</strong>
-    <p>{help}</p>
-    {/^E_[A-Z_]{1,64}$/.test(reason||'')&&<p className="editor-hint">错误代码：{reason}</p>}
-    {readDiagnostic&&<p className="editor-hint">读取诊断：{readDiagnostic.operation} / {readDiagnostic.stage} / {readDiagnostic.code}</p>}
+    <p>{readDiagnostic?.code==='E_RATE_LIMIT'&&checking
+      ?'请求频率受限。重新检查仍需等待限流结束。':help}</p>
     {target&&<p className="cookie-editor-scope">{target.hostname}</p>}
     {canRetry&&<div className="cookie-permission-actions">
       <Button type="button" disabled={disabled} onClick={onRetry}>重新检查</Button>
-      {reason!=='E_DOCUMENT_UNRESOLVED'&&<Button type="button" variant="secondary"
+      {!unresolved&&<Button type="button" variant="secondary"
         disabled={disabled} onClick={onOffline}>离线文件</Button>}
     </div>}
   </section>;

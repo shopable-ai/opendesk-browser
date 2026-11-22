@@ -1,6 +1,14 @@
-# 视频下载 · Video Downloader R0.3.1（默认 MP4）
+# 视频下载 · Video Downloader R0.3.3（默认 MP4）
 
 唯一业务目录：`projects/video-downloader/`。UI 源为 `src/index.html`、`src/style.css`、`src/main.js`，通过原 `OpenDeskTool.request` 调用固定可信 Host。`trusted/` 由已有 Side Panel Host 静态编译，八个来源文件按精确 Git blob 审查（包含固定转封装库子集）；普通导入包不能携带或替换这些特权代码。
+
+## 0.3.3 换页后保留原下载回执
+
+换页会撤下旧媒体候选，并保留原下载的进度或结果。停止结果未知时，「核对下载状态」只读取原任务，不重复下载或停止。此行为需要对应版本的固定 Browser Host；单独导入工具包不能替换该 Host。
+
+## 0.3.2 保留停止结果未知状态
+
+Chrome 的停止回执丢失后，读回「仍在下载」时继续显示结果未知；确认终态后才结算，不重发停止请求。定向 Node 回归通过。[video-downloader.opendesk-tool.json](video-downloader.opendesk-tool.json) 已晋升并通过 `--check-project`，13,213 字节，SHA-256 `928a7088a896e1a1173f391633e3d79d1d3529c3f44d72ab14a6ecf5f249d62e`。JSON 仅更新版本；行为修复需要包含新固定 Host 的 Browser 构建。本版未验证 Browser 构建或 Chrome 安装。
 
 ## 当前用户操作
 
@@ -20,7 +28,7 @@
 
 本版打开 UI 自动检测一次、不自动下载、不轮询；blob 视频在当前文档尾部 256 条资源记录中保留的旧清单可被发现。普通直接文件保持原时间窗，非法时间/URL、候选上限、文档/来源权限、安装准入和未知保存防重放不变。修复使用原项目 UI 与固定 `trusted/discovery.js`，不增加网页悬浮层、后台监听或通用 Host API。正式包及对应 Browser 固定代码需要配套更新，本地导入同 ID JSON 不能取得官方准入。
 
-唯一正式 UI 包 `0.3.1`，13,213 字节，SHA-256 `c56acd7ed951ac57548b2e871d356beef82dc5c62778f93821f1b9f178548e56`。原打包器候选校验、测试后晋升及 `--check-project` 同源检查通过，权限仍为 `page.mediaDownload`；包已准备，不表示当前 Chrome 已安装新版。
+当时正式 UI 包 `0.3.1`，13,213 字节，SHA-256 `c56acd7ed951ac57548b2e871d356beef82dc5c62778f93821f1b9f178548e56`。原打包器候选校验、测试后晋升及 `--check-project` 同源检查通过，权限仍为 `page.mediaDownload`。
 
 UI、发现、Host 核心与精确来源定向检查 52 项通过；新增用例先复现打开后无按钮、旧 blob 清单丢失，再验证修复及尾部扫描限制。**0.3.1 当前核心操作已在原普通 Chrome 通过**：用户明确允许恢复开发更新后，复用原 `dist/development` 与唯一 `npm run dev`，经原官方审阅从 0.3.0 更新到 0.3.1，权限未变。未刷新原 hls.js demo，打开工具自动检测到 3 个 HLS 候选；主清单显示真实 `320×184 / 246 kbps / 64 段` 与可点击下载按钮。
 

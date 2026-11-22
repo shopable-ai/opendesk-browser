@@ -29,7 +29,7 @@ function exactOrigin(value) {
 }
 
 // HTTP transport, persistence and trusted permission reviews belong to the caller.
-export function CookieHttpConnections({origin = '', accounts = [], accountReady = false, state,
+export function CookieHttpConnections({origin = '', accounts = [], accountReady = false, pageVerified = true, state,
   busy = false, notice = '', onAction, onDirtyChange, onAccounts, onDiscardRequest}) {
   const [form, setForm] = React.useState(null);
   const [error, setError] = React.useState('');
@@ -52,7 +52,7 @@ export function CookieHttpConnections({origin = '', accounts = [], accountReady 
   const detailHeading = React.useRef(null);
   const detailButtons = React.useRef({});
   const connections = state?.connections || [];
-  latest.current = {origin, accounts, accountReady, state, busy, onAction, uncertain};
+  latest.current = {origin, accounts, accountReady, pageVerified, state, busy, onAction, uncertain, form};
   const unknown = Boolean(uncertain) || connections.some(unresolved);
   React.useEffect(() => {
     if (uncertain && !uncertain.connectionId && state?.revision !== uncertain.revision &&
@@ -77,6 +77,11 @@ export function CookieHttpConnections({origin = '', accounts = [], accountReady 
   };
   const dirty = Boolean(form && (form.kind !== 'config' || form.label || form.serviceOrigin ||
     Object.entries(form.drafts || {}).some(([type,draft]) => type !== form.type && (draft.label || draft.serviceOrigin))));
+  const retiredSiteForm = ['bind','accept','unbind'].includes(form?.kind)&&(!pageVerified||form.origin!==origin);
+  React.useLayoutEffect(() => {
+    if (!retiredSiteForm) return;
+    restore.current = true; setForm(null); setError('当前网页已变化，请重新核对本站账号关联。'); setErrorField('');
+  }, [retiredSiteForm]);
   React.useEffect(() => { onDirtyChange?.(dirty); }, [dirty, onDirtyChange]);
   React.useEffect(() => () => onDirtyChange?.(false), [onDirtyChange]);
   React.useEffect(() => { mounted.current = true; return () => { mounted.current = false; }; }, []);
@@ -117,6 +122,7 @@ export function CookieHttpConnections({origin = '', accounts = [], accountReady 
   };
   const open = (event, kind, connection, extra = {}) => {
     if (lock.current || latest.current.busy) return;
+    if (['bind','accept','unbind'].includes(kind)&&!latest.current.pageVerified) return;
     trigger.current = event.currentTarget;
     setError(''); setErrorField('');
     setForm({kind, revision:state.revision, origin, accounts:fingerprint(accounts), accountReady,
@@ -202,7 +208,9 @@ export function CookieHttpConnections({origin = '', accounts = [], accountReady 
   };
   const submit = async event => {
     event?.preventDefault();
-    if (!form || lock.current || latest.current.busy) return;
+    const current = latest.current;
+    if (!form || lock.current || current.busy) return;
+    if (['bind','accept','unbind'].includes(form.kind)&&(!current.pageVerified||current.form!==form)) return;
     if (!fresh(form)) { setError('站点、账号或服务状态已变化，请取消后重新核对。已有输入已保留。'); return; }
     const connection = latest.current.state?.connections?.find(item => item.id === form.connectionId);
     if (form.kind === 'config') {
@@ -346,7 +354,7 @@ export function CookieHttpConnections({origin = '', accounts = [], accountReady 
         {Number.isSafeInteger(connection.resourceCursor)&&connection.resourceCursor>=0&&<button type="button" className={secondary}
           disabled={unavailable || connection.status!=='CONNECTED' || Boolean(form)} aria-label={'读取更多资源：' + connection.label}
           onClick={()=>dispatch('serviceResources',{connectionId:connection.id,cursor:connection.resourceCursor},context(connection),true)}>读取更多账号</button>}
-        <button type="button" className={secondary} disabled={blocked || Boolean(form) || connection.status!=='CONNECTED' || !connection.resources?.length}
+        <button type="button" className={secondary} disabled={!pageVerified || blocked || Boolean(form) || connection.status!=='CONNECTED' || !connection.resources?.length}
           onClick={event=>open(event,'bind',connection)} aria-label={'绑定账号：' + connection.label}>关联本站账号（可跳过）</button>
       </div>
       {connection.status === 'CONNECTED' && !connection.resources?.length && <p>{connection.resourceRead?.status==='OK' ? '服务已连接，后台尚未配置账号。请联系管理员添加；关联本站账号可跳过。' : connection.resourceRead?.status==='FAILED' ? '服务已配对，但账号资源读取失败。请查看检查结果或重新读取服务账号。' : '尚未读取服务账号；读取成功前无法判断后台是否有账号。'}</p>}
@@ -392,15 +400,16 @@ export function CookieHttpConnections({origin = '', accounts = [], accountReady 
       {connection.policy && <>
         <p>已读取服务策略；读取不代表批准，不会自动接受或扩大权限。</p>
         <p>已接受策略：{connection.policy.acceptance ? '版本 ' + connection.policy.acceptance.desiredRevision : '尚未接受'}</p>
-        {connection.policy.acceptance?.scope && <p>已接受范围：{connection.policy.acceptance.scope.bindingIds?.join('、')} · {connection.policy.acceptance.scope.dataCategories?.join('、')} · {connection.policy.acceptance.scope.trigger} · {connection.policy.acceptance.scope.retentionDays} 天</p>}
-        {reviewable(connection) && <button type="button" className={secondary}
+        {connection.policy.acceptance?.scope && <p>已接受范围：{pageVerified&&<>{connection.policy.acceptance.scope.bindingIds?.join('、')} · </>}{connection.policy.acceptance.scope.dataCategories?.join('、')} · {connection.policy.acceptance.scope.trigger} · {connection.policy.acceptance.scope.retentionDays} 天</p>}
+        {pageVerified&&reviewable(connection) && <button type="button" className={secondary}
           disabled={blocked || Boolean(form) || connection.status !== 'CONNECTED'} aria-label={'审阅同步策略：' + connection.label}
           onClick={event => open(event, 'accept', connection, {bindingIds:[], dataCategories:[], retentionDays:connection.policy.desired.scope.retentionDays})}>审阅同步策略</button>}
       </>}
       </details>
       <h4>本站账号关联</h4>
-      {!(connection.bindings||[]).some(binding=>!binding.revoked)&&<p>尚未关联本站账号。关联可跳过；配对与资源读取不依赖关联。</p>}
-      {(connection.bindings || []).map(binding => <div key={binding.bindingId} className="cookie-business-usage-row">
+      {!pageVerified&&<p>网页确认后会显示本站账号关联。</p>}
+      {pageVerified&&!(connection.bindings||[]).some(binding=>!binding.revoked)&&<p>尚未关联本站账号。关联可跳过；配对与资源读取不依赖关联。</p>}
+      {pageVerified&&(connection.bindings || []).map(binding => <div key={binding.bindingId} className="cookie-business-usage-row">
         <strong>{binding.localAccount?.alias}</strong>
         <p>{binding.localAccount?.origin} · 账号版本 {binding.localAccount?.version} · 远端资源 {binding.remoteAccountId}</p>
         <p>{binding.revoked ? '已解绑' : '已绑定'} · {binding.verificationState === 'VERIFIED' ? '已核验' : '未核验（UNVERIFIED），不代表同一登录身份'} · 不传输 Cookie</p>
@@ -418,7 +427,7 @@ export function CookieHttpConnections({origin = '', accounts = [], accountReady 
       <p>会话有效期为 15 分钟。请求仅发往已确认的服务地址，复用安装时批准的网络能力和已有网站访问权限；缺少网站访问权限时，由宿主提示一次授权。</p>
     </details>
     </>}
-    {form && <form className="cookie-http-form" aria-label="HTTP 服务连接编辑"
+    {form && !retiredSiteForm && <form className="cookie-http-form" aria-label="HTTP 服务连接编辑"
       onSubmit={submit} onKeyDown={keyDown} autoComplete="off">
       <header className="cookie-http-form-header">
         <CookieIconButton name="right" className="cookie-http-back" label={detail ? '返回服务详情' : '返回服务列表'} disabled={working || busy} onClick={close}/>

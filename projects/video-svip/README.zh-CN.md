@@ -1,6 +1,10 @@
 # 视频会员 · Video SVIP R0.4A（GitHub 源码候选）
 
-> 2026-10-30：本轮新增 **真实来源决策代码 + 自有授权媒体 Demo 入口**，尚未取得 Chrome 播放实测证据；**正式配置为 0.3.2**，不能称为商用发布。R0.3.2 dev 核心流程已有下述本机记录，R0.4A 的 Mac Chrome 播放增量仍未验收。
+> 当前正式包为 **0.3.3**。R0.3.2 dev 核心流程已有下述本机记录，R0.4A 的 Mac Chrome 播放增量仍未验收。
+
+## 0.3.3 等待活动文档
+
+网页尚未确认时，侧栏显示「等待当前网页加载」，并清除旧的打开和复制入口；确认新文档后恢复。定向 Node 回归通过。[video-svip.opendesk-tool.json](video-svip.opendesk-tool.json) 已晋升并通过 `--check-project`，42,520 字节，SHA-256 `9f5cb7a9bdc9960b266a837cc80825469005c779b3dc00b2e6f402c5db419feb`。新包也同步了已在 `main` 的 HTML、CSS 和来源逻辑，权限不变；未安装到 Chrome 或验证本版播放行为。
 
 ## 当前可执行的功能增量（不是设计稿）
 

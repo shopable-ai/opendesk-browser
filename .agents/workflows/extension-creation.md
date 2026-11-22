@@ -46,6 +46,8 @@
 
 当任务只是修已有工具时，先定位受影响的 F/S/A 编号，**只复查受影响环节**。用户明确只做设计/原型时止步相应阶段，不能自动发布。
 
+依赖当前网页的核心功能，在方案和定向验收中按[网页刷新与换页合同](../../docs/architecture/browser-framework/confirmation-and-feedback.zh-CN.md#网页刷新与换页)检查工作区连续性、旧页面操作失效和已发回执；对不依赖该网页的功能不增加页面门槛。
+
 **业务代码所有权和独立升级必须同时审查**：有后台、拦截或页面注入诉求时，在 Gate A 按 [Sidebar Tool 与 Browser Host 解耦合同](../../docs/architecture/browser-framework/sidebar-tool-host-decoupling.zh-CN.md) 分别标记 L1 源码归属、L2 专属宿主接线、L3 有界策略可独立升级、L4 新特权算法的 Browser 发行需求。第三方应用不可默认新增固定 SW/Host 专用分支；只有公共能力缺口完成证据审查才由 Runtime owner 修改平台。此项是现有工作流增量检查，不新建 Skill/路由器或安装格式。
 
 ## 二-A、Extension Type & Ownership Gate（编码前强制）

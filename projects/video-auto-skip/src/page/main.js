@@ -1,5 +1,5 @@
 import {createPageUI} from '@opendesk/ui';
-import {cleanRules, readScope, resolveRules, RULES_KEY, updateScope, validateRules} from '../rules.js';
+import {cleanRules, readScope, resolveRules, RULES_KEY, saveScope, updateScope, validateRules} from '../rules.js';
 import {createIyfReader, isIyfPage, iyfMediaSelector, nextIyfEpisode} from './iyf-player.js';
 import {identifyLocalPlayer, nextLocalEpisode} from './local-player.js';
 import {createNextReceipt} from './next-receipt.js';
@@ -17,8 +17,8 @@ export default function main({assets} = {}) {
   owner.host.hidden = true;
   owner.host.style.setProperty('display', 'none', 'important');
 
-  let closed = false, binding = null, stopRequests, cancelNavigation, writingRules = false;
-  let stopArrival;
+  let closed = false, binding = null, draftTarget = null, stopRequests, cancelNavigation, writingRules = false;
+  let stopArrival, lastNotifiedSkip;
   const nextReceipt = createNextReceipt({storage: bridge.storage, navigation: window.navigation,
     arrivalType: performance.getEntriesByType('navigation')[0]?.type});
   const loading = new WeakSet();
@@ -29,6 +29,12 @@ export default function main({assets} = {}) {
   const selectNext = iyf ? nextIyfEpisode : nextLocalEpisode;
   const player = createPlayer({
     getBinding: () => isCurrent(binding) ? binding : null,
+    onStatus({state, action}) {
+      if (state !== 'ready' || action?.state !== 'confirmed' ||
+          (action.kind !== 'intro' && action.kind !== 'outro') || action.id === lastNotifiedSkip) return;
+      lastNotifiedSkip = action.id;
+      owner.toast({message: '连播助手：已跳过' + (action.kind === 'intro' ? '片头' : '片尾'), variant: 'success'});
+    },
     async authorize(own) {
       if (writingRules || !isCurrent(own)) return null;
       // The app bridge checks the live installation, permission and precise document on each read.
@@ -95,6 +101,7 @@ export default function main({assets} = {}) {
       if (binding !== own || !isCurrent(own)) return {state: 'binding-changed'};
       if (before.etag !== ifMatch) return {state: 'conflict'};
       const saved = cleanRules(before.value);
+      if (scope !== saveScope(saved, own.context)) return {state: 'rejected'};
       let next;
       try { next = updateScope(saved, own.context, scope, rules); }
       catch { return {state: 'invalid'}; }
@@ -124,6 +131,9 @@ export default function main({assets} = {}) {
     const observed = readPlayer();
     const ready = observed.state === 'ready' && !loading.has(observed.media);
     if (!ready || !sameBinding(binding, observed)) {
+      // Discard the old action binding immediately. Restore draft ownership only
+      // if this document can identify the exact same player, source and episode.
+      if (ready && !sameBinding(draftTarget, observed)) draftTarget = {...observed, id: crypto.randomUUID()};
       const next = ready ? {...observed, id: crypto.randomUUID()} : null;
       if (next !== binding) {
         stopArrival?.();
@@ -140,12 +150,25 @@ export default function main({assets} = {}) {
       reason: observed.reason ?? '正片正在换源。'};
   }
 
+  function withViewport(snapshot) {
+    if (snapshot.state !== 'ready' || !binding) return snapshot;
+    // Viewport position is only a sidebar hint. Playback and authorization
+    // still use the exact media binding even when the user scrolls away.
+    const rect = binding.media.getBoundingClientRect();
+    const offscreen = rect.width > 0 && rect.height > 0 &&
+      (rect.bottom <= 0 || rect.right <= 0 || rect.top >= window.innerHeight || rect.left >= window.innerWidth);
+    return {...snapshot, offscreen, draftTarget: draftTarget.id};
+  }
+
   function mediaLifecycle(event) {
     const media = event.target;
     if (!event.isTrusted || !(media instanceof HTMLVideoElement) ||
         (!media.matches(iyf ? iyfMediaSelector : 'video[data-od-feature]') && media !== binding?.media)) return;
     if (event.type === 'loadedmetadata') loading.delete(media);
-    else loading.add(media);
+    else {
+      loading.add(media);
+      if (iyf) readIyf.invalidate(media);
+    }
     sync();
   }
 
@@ -162,6 +185,7 @@ export default function main({assets} = {}) {
     stopArrival?.();
     cancelNavigation?.();
     binding = null;
+    draftTarget = null;
     stopRequests?.();
     observer.disconnect();
     for (const event of mediaEvents) document.removeEventListener(event, mediaLifecycle, true);
@@ -187,10 +211,10 @@ export default function main({assets} = {}) {
     window.addEventListener('pagehide', dispose, {once: true});
     stopRequests = bridge.onRequest(({operation, payload}) => {
       const snapshot = sync();
-      if (operation === 'video.snapshot') return snapshot;
+      if (operation === 'video.snapshot') return withViewport(snapshot);
       const active = snapshot.state === 'ready' && snapshot.binding === payload?.binding;
       if (operation === 'video.save') return active ? saveRules(binding, payload) : {state: 'binding-changed'};
-      if (operation === 'video.refresh') return snapshot.binding && snapshot.binding === payload?.binding ? player.refresh() : snapshot;
+      if (operation === 'video.refresh') return withViewport(active ? player.refresh() : snapshot);
       if (operation === 'video.preview' || operation === 'video.undo') {
         if (!active || typeof payload.requestId !== 'string' || !/^[0-9a-f]{32}$/.test(payload.requestId)) return snapshot;
         const expected = {requestId: payload.requestId, mediaRevision: payload.mediaRevision, duration: payload.duration};

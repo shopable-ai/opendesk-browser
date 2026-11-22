@@ -88,6 +88,32 @@ test('iYF does not bind a short replacement in the main video slot while the fea
   assert.equal(read(href).state, 'unavailable');
 });
 
+test('iYF keeps only the verified current media when the floating layout removes the title', t => {
+  const {doc, media, setSource} = fixture(t);
+  const read = createIyfReader(doc);
+  const {root} = read(href);
+  const titleBar = root.querySelector('.player-title-bar');
+  titleBar.remove();
+  root.insertAdjacentHTML('afterbegin', '<div class="floating-player-controls"><button class="close-small-player-button"></button></div>');
+  assert.equal(createIyfReader(doc)(href).state, 'unavailable', 'A floating player cannot establish a new identity');
+  assert.equal(read(href).media, media, 'Moving the same video must preserve its binding');
+  doc.querySelector('#episode').textContent = '201';
+  assert.equal(read(href).state, 'unavailable', 'Conflicting episode labels must stop playback automation');
+  doc.querySelector('#episode').textContent = '200';
+  assert.equal(read(href).state, 'unavailable', 'A lost identity must be verified again');
+  root.prepend(titleBar);
+  assert.equal(read(href).media, media);
+  titleBar.remove();
+  setSource('site-interstitial');
+  assert.equal(read(href).state, 'unavailable', 'A different source cannot inherit the verified identity');
+  root.prepend(titleBar);
+  assert.equal(read(href).media, media);
+  titleBar.remove();
+  assert.equal(read(href).media, media);
+  read.invalidate(media);
+  assert.equal(read(href).state, 'unavailable', 'A trusted reload must reverify identity even if currentSrc is reused');
+});
+
 test('iYF does not dispatch against site auto-next, partial groups or conflicting episode links', t => {
   const {doc} = fixture(t);
   const own = identifyIyfPlayer(doc, href);

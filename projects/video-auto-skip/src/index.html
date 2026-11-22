@@ -1,40 +1,54 @@
 <main class="vas" aria-label="连播助手">
   <header class="vas-header">
-    <div>
+    <div class="vas-identity">
       <h1 id="vas-work">连播助手</h1>
-      <p id="vas-context" class="vas-note">正在识别当前播放器…</p>
+      <p id="vas-context" class="vas-note"></p>
     </div>
-    <button type="button" id="vas-refresh">重新识别</button>
+    <button type="button" id="vas-refresh" class="vas-text-button">重新识别</button>
   </header>
-  <p id="vas-feedback" class="vas-feedback" role="status" aria-atomic="true" tabindex="-1" hidden></p>
-  <fieldset id="vas-settings" disabled hidden>
+  <p id="vas-page-status" class="vas-note vas-page-status" role="status" aria-atomic="true">正在连接当前网页…</p>
+  <fieldset id="vas-settings" aria-describedby="vas-page-status">
     <legend class="vas-sr">跳过与连播设置</legend>
-    <label class="vas-field" for="vas-scope">
-      <span>保存范围</span>
-      <select id="vas-scope" aria-describedby="vas-scope-help">
-        <option value="series">本作品当前季</option>
-        <option value="episode">仅本集</option>
-      </select>
-    </label>
-    <p id="vas-scope-help" class="vas-note"></p>
-    <h2>跳过与连播</h2>
     <div id="vas-rules" class="vas-rules"></div>
-    <div class="vas-actions">
-      <button type="button" id="vas-save" class="vas-primary" aria-describedby="vas-edit-status">保存本作品设置</button>
-      <button type="button" id="vas-cancel" hidden>取消修改</button>
+    <div class="vas-row vas-viewport">
+      <div class="vas-row-head">
+        <label class="vas-rule-title" for="vas-window-range">时间轴范围</label>
+        <output id="vas-window-value" for="vas-window-range"></output>
+        <span id="vas-window-auto" class="vas-note">推荐</span>
+        <button id="vas-window-reset" class="vas-text-button" type="button" hidden>恢复推荐</button>
+      </div>
+      <input id="vas-window-range" type="range" min="0" max="4" step="1" aria-describedby="vas-window-help">
+      <div class="vas-window-ticks" aria-hidden="true"><span>1分</span><span>2分</span><span>3分</span><span>5分</span><span>10分</span></div>
+      <p id="vas-window-help" class="vas-sr">只调整时间轴的显示范围，不改变规则或播放位置。</p>
     </div>
+    <div class="vas-footer">
+      <p id="vas-unsaved" class="vas-note" hidden><span>尚未保存的修改</span><button type="button" id="vas-cancel" class="vas-text-button" hidden>放弃修改</button></p>
+      <button type="button" id="vas-save" class="vas-primary" aria-describedby="vas-scope-help vas-edit-status" disabled>保存设置</button>
+    </div>
+    <p id="vas-scope-help" class="vas-note"></p>
     <p id="vas-edit-status" class="vas-note" aria-live="polite"></p>
   </fieldset>
+  <p id="vas-feedback" class="vas-feedback" role="status" aria-atomic="true" tabindex="-1" hidden></p>
   <section id="vas-player" class="vas-player" aria-label="播放器状态" hidden>
-    <p id="vas-media" class="vas-note"></p>
     <p id="vas-action" class="vas-note" role="status"></p>
     <button type="button" id="vas-undo" hidden>返回原位置</button>
+    <details id="vas-playback" class="vas-calibration">
+      <summary>播放与校准</summary>
+      <p id="vas-media" class="vas-note"></p>
+      <div id="vas-calibrations"></div>
+    </details>
   </section>
-  <template id="vas-time-field">
-    <div class="vas-endpoint">
-      <label class="vas-field"><span></span><input type="text" inputmode="numeric" autocomplete="off" spellcheck="false" placeholder="秒或分:秒"></label>
-      <small class="vas-field-error" hidden></small>
-      <label class="vas-range"><span class="vas-sr"></span><input type="range" step="1"><small></small></label>
-    </div>
+  <template id="vas-time-track">
+    <svg class="vas-track" viewBox="0 0 256 35" preserveAspectRatio="none" role="group">
+      <line x1="12" x2="244" y1="17" y2="17" class="vas-track-line" aria-hidden="true"/>
+      <g role="slider" tabindex="0" data-endpoint="start" aria-orientation="horizontal">
+        <circle class="vas-hit" r="12" fill="transparent" aria-hidden="true"/>
+        <circle class="vas-knob" r="8" aria-hidden="true"/>
+      </g>
+      <g role="slider" tabindex="0" data-endpoint="end" aria-orientation="horizontal">
+        <circle class="vas-hit" r="12" fill="transparent" aria-hidden="true"/>
+        <circle class="vas-knob" r="8" aria-hidden="true"/>
+      </g>
+    </svg>
   </template>
 </main>

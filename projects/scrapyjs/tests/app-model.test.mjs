@@ -3,7 +3,7 @@ import assert from 'node:assert/strict';
 import vm from 'node:vm';
 import {webcrypto} from 'node:crypto';
 import {readFile} from 'node:fs/promises';
-const context = vm.createContext({TextEncoder, URL, crypto:webcrypto});
+const context = vm.createContext({TextEncoder, URL, crypto:webcrypto, setTimeout});
 for (const path of ['../adapters/app-sdk.js', '../src/app-model.js']) vm.runInContext(await readFile(new URL(path, import.meta.url), 'utf8'), context);
 const {createApp, validateConfig, DEFAULT_CONFIG} = context.ScrapyAppModel;
 const plain = v => JSON.parse(JSON.stringify(v));
@@ -192,6 +192,47 @@ test('read permission failures remain classified without discarding drafts or in
   await app.load();if(!app.state.config.url)app.state.config=plain(DEFAULT_CONFIG);await app.refreshTarget();
   assert.equal(app.state.storageError,null);assert.equal(app.state.targetError,null);
   assert.equal(app.state.config.timeoutMs,8000);
+});
+test('a same-URL page change during preparation cannot dispatch the original start',async()=>{
+  const preparation=deferred();let starts=0;
+  const {app}=setup({prepare:()=>preparation.promise,start:async()=>{starts++;}});
+  await app.refreshTarget();
+  const starting=app.start(page.url);
+  await app.refreshTarget();
+  preparation.resolve();
+  assert.equal((await starting).status,'failed');
+  assert.match(app.state.error,/当前网页已变化/);
+  assert.equal(starts,0);
+});
+test('unresolved documents retry once; a newer page generation wins without resetting the draft or run receipt',async()=>{
+  const {app,sdk}=setup({read:async clientRequestId=>({clientRequestId,runId:'original',status:'completed',retired:true,
+    result:{data:[],engine:{status:'completed'}}})});
+  await app.refreshTarget();await app.start(page.url);
+  app.edit({...DEFAULT_CONFIG,timeoutMs:8000});
+  const {config,snapshot,clientRequestId,host}=app.state;
+  let reads=0;
+  sdk.currentPage=async()=>{reads++;return {status:'unavailable',code:'E_DOCUMENT_UNRESOLVED'};};
+  const checking=app.refreshTarget();
+  assert.equal(app.state.targetPending,true);
+  assert.equal(app.state.target,null);
+  await app.retryTarget();assert.equal(reads,1,'manual check joins the pending generation');
+  await checking;
+  assert.equal(reads,2,'unresolved is retried once');
+  assert.equal(app.state.targetPending,false);
+  assert.equal(app.state.targetError?.code,'E_DOCUMENT_UNRESOLVED');
+  const outdated=deferred(),latest=deferred();
+  sdk.currentPage=()=>outdated.promise;
+  const oldRead=app.retryTarget();
+  sdk.currentPage=()=>latest.promise;
+  const newRead=app.refreshTarget();
+  outdated.reject(Object.assign(Error('old denial'),{code:'E_PERMISSION_DENIED'}));
+  await oldRead;
+  assert.equal(app.state.targetPending,true);
+  assert.equal(app.state.targetError,null);
+  latest.resolve({...page,title:'New tab',url:'https://books.toscrape.com/'});
+  await newRead;
+  assert.equal(app.state.target.title,'New tab');
+  for(const [key,value] of Object.entries({config,snapshot,clientRequestId,host,dirty:true}))assert.strictEqual(app.state[key],value,key);
 });
 test('conditional storage survives reopen and preserves edited draft during initial load', async () => {
   let record={value:null,etag:'a'}; const writes=[];

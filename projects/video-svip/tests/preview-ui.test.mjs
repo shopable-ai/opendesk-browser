@@ -108,7 +108,7 @@ function parseBody(html) {
   return document;
 }
 
-async function harness(scene = 'tencent', {clipboard = true, product = true} = {}) {
+async function harness(scene = 'tencent', {clipboard = true, product = true, intercept} = {}) {
   const html = await readFile(previewURL, 'utf8');
   const document = parseBody(html), root = document.getElementById('tool-root');
   const location = new URL('https://preview.invalid/projects/video-svip/preview/index.html?scene=' + scene);
@@ -132,7 +132,7 @@ async function harness(scene = 'tencent', {clipboard = true, product = true} = {
   const request = window.OpenDeskTool.request;
   window.OpenDeskTool.request = (op, args) => {
     calls.push({op, args: args && plain(args)});
-    return request(op, args);
+    return intercept ? intercept(op, args, request) : request(op, args);
   };
   if (product) {
     const entry = scripts.find(script => /\bsrc=["']\.\.\/src\/main\.js["']/.test(script[1]));
@@ -156,6 +156,26 @@ async function harness(scene = 'tencent', {clipboard = true, product = true} = {
   return {document, root, node, calls, copied, states, location, choose, click, flush,
     request: (...args) => window.OpenDeskTool.request(...args)};
 }
+
+test('document confirmation after reload clears the old official entry without exposing a technical error',async()=>{
+  let pending=false;
+  const h=await harness('tencent',{intercept(op,args,request){
+    if(pending&&op.startsWith('videoSVIP.'))
+      throw Object.assign(Error('无法确认当前网页的活动主文档'),{code:'E_DOCUMENT_UNRESOLVED'});
+    return request(op,args);
+  }});
+  assert.equal(h.node('vp-open').hidden,false);
+  pending=true;h.root.fire('opendesk-page-changed');await h.flush();
+  assert.equal(h.node('vp-open').hidden,true);
+  assert.equal(h.node('vp-copy').disabled,true);
+  const state=h.node('vp-page-state');
+  const pendingText=state.textContent,pendingKind=state.dataset.kind;
+  pending=false;h.root.fire('opendesk-page-changed');await h.flush();
+  assert.equal(h.node('vp-open').hidden,false);
+  assert.doesNotMatch(pendingText,/E_DOCUMENT_UNRESOLVED/);
+  assert.match(pendingText,/等待当前网页加载/);
+  assert.equal(pendingKind,'neutral');
+});
 
 const originalScenes = ['tencent', 'bilibili', 'youtube', 'switch', 'total', 'changing',
   'unsupported', 'permission', 'watchfail', 'iframe', 'storagefail'];

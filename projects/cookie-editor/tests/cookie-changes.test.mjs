@@ -199,7 +199,7 @@ function appMonitor(){
   const names=[...source.matchAll(/^import (?:\{([^}]+)\}|(\w+)) from /gm)]
     .flatMap(m=>m[1]?m[1].split(',').map(x=>x.trim()):[m[2]]);
   const deps=Object.fromEntries(names.map(name=>[name,name]));
-  const snapshot={phase:'ready',epoch:1,rows:[],changes:[],target:{hostname:'example.com',url:'https://example.com/'}};
+  const snapshot={phase:'ready',epoch:1,rows:[],changes:[],unknownEffects:[],target:{hostname:'example.com',url:'https://example.com/'}};
   Object.assign(deps,{cookiePackage:{version:'test'},createCookieSdkAdapter:()=>({}),
     createCookieController:()=>({snapshot:()=>snapshot})});
   const slots=[];let cursor=0;

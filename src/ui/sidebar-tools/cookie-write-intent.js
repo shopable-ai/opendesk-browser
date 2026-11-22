@@ -29,10 +29,10 @@ export function createCookieWriteIntentGate({now=()=>Date.now()}={}){
         intent=null;throw denied('E_DOCUMENT_CHANGED','保存操作范围已变化或超时');
       }
       if(intent.inFlight)throw denied('E_BUSY','本次保存已被使用');
-      intent.inFlight=true;return true;
+      intent.inFlight=true;return intent.ref;
     },
-    settle({owner,confirmed=false}={}){
-      if(intent?.owner!==owner)return;
+    settle({owner,ref,confirmed=false}){
+      if(!intent||intent.owner!==owner||intent.ref!==ref)return;
       if(intent.inFlight&&intent.stage==='initial'&&intent.action==='set'&&
          intent.renameFrom!==null&&confirmed===true){
         // The trusted Host has independently verified the new Cookie write.

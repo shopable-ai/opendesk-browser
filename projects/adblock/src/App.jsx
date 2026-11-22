@@ -1,6 +1,6 @@
 import * as React from 'react';
 import {Card,CardContent,Switch,Button,IconButton} from '@opendesk/ui';
-import {valid,verified,confirmed,siteHost} from './model.js';
+import {valid,verified,confirmed,confirmedSiteWrite,readyToOperate,siteHost} from './model.js';
 import {validCosmeticSelector} from '../trusted/cosmetic-policy.js';
 
 const siteCopy={
@@ -10,8 +10,6 @@ const siteCopy={
   unavailable:'当前网站身份暂不可用，请切换标签页后重试。'
 };
 const errorText=error=>String(error?.message||error||'操作失败').slice(0,220);
-const readyForInspect=state=>verified(state)&&state.toolEnabled===true&&
-  !state.restartRequired;
 function Status({state,loading}){
   const known=verified(state)&&state.toolEnabled===true&&!state.restartRequired;
   const active=Boolean(known&&state.enabled);
@@ -41,14 +39,17 @@ function App(){
   const [loading,setLoading]=React.useState(true);
   const [busy,setBusy]=React.useState(false);
   const [notice,setNotice]=React.useState('');
+  const [writeReceipt,setWriteReceipt]=React.useState(null);
+  const [statusError,setStatusError]=React.useState('');
   const [problem,setProblem]=React.useState(false);
   const [view,setView]=React.useState('overview');
   const alive=React.useRef(true),reading=React.useRef(0),locked=React.useRef(false);
-  const queued=React.useRef(false),current=React.useRef(null);
+  const current=React.useRef(null);
   const contextRevision=React.useRef(0);
   const lastPickReceipt=React.useRef('');
   const [inspection,setInspection]=React.useState({});
   const [draftSelector,setDraftSelector]=React.useState('');
+  const [draftHost,setDraftHost]=React.useState(null);
   const [editingSelector,setEditingSelector]=React.useState(null);
   const selectorInput=React.useRef(null),editTrigger=React.useRef(null);
   const [allowUnmatched,setAllowUnmatched]=React.useState(false);
@@ -87,77 +88,87 @@ function App(){
     api.root?.addEventListener?.('opendesk-tool-navigation',onNavigate);
     return ()=>api.root?.removeEventListener?.('opendesk-tool-navigation',onNavigate);
   },[api,sharedNavigation,view,busy,selectorDraftDirty]);
-  const refresh=React.useCallback(async(silent=false,preserveNotice=false)=>{
-    if(locked.current){queued.current=true;return;}
+  const refresh=React.useCallback(async(silent=false)=>{
     const turn=++reading.current;
     if(!silent)setLoading(true);
     try{
       if(typeof api?.request!=='function')throw Error('AdBlock Host 未就绪');
       const next=await api.request('adblock.status',{});
       if(!valid(next))throw Error('Chrome DNR 状态数据不完整');
-      if(!alive.current||turn!==reading.current||locked.current)return;
+      if(!alive.current||turn!==reading.current)return;
       current.current=next;setState(next);
-      if(!preserveNotice){setProblem(false);setNotice('');}
+      setStatusError('');
     }catch(error){
-      if(!alive.current||turn!==reading.current||locked.current)return;
-      current.current=null;setState(null);setProblem(true);
-      setNotice('无法核实 Chrome 状态：'+errorText(error));
+      if(!alive.current||turn!==reading.current)return;
+      current.current=null;setState(null);
+      setStatusError('无法核实 Chrome 状态：'+errorText(error));
     }finally{if(alive.current&&turn===reading.current)setLoading(false);}
   },[api]);
+  const recordWrite=React.useCallback((text,problem)=>{
+    setWriteReceipt({text,problem});
+    try{
+      api.ui?.notify?.({message:text.slice(0,220),type:problem?'error':'info'});
+    }catch{ /* The inline receipt remains available with older hosts. */ }
+  },[api]);
   const operate=React.useCallback(async(operation,payload={})=>{
-    if(locked.current||!current.current)return;
-    let needsReadback=false;
-    locked.current=true;reading.current++;
-    const operationContext=contextRevision.current;
-    setBusy(true);setProblem(false);setNotice('正在更新 Chrome 规则并读取最终状态…');
+    if(locked.current||!readyToOperate(current.current))return;
+    if(operation==='adblock.site.set'&&siteHost(current.current)!==payload.host)return;
+    locked.current=true;
+    setBusy(true);setProblem(false);setNotice('');
+    const prefix=payload.host?payload.host+'：':'';
+    const report=(text,problem=false)=>recordWrite(prefix+text,problem);
+    setWriteReceipt(null);
     try{
       const result=await api.request(operation,payload);
-      const checked=await api.request('adblock.status',{});
-      if(operationContext!==contextRevision.current){
-        needsReadback=true;
-        if(alive.current){
-          current.current=null;setState(null);setProblem(true);
-          setNotice('页面或工具在确认期间已切换，旧操作结果不用于当前网页；正在重新读取 Chrome 状态。');
-        }
+      if(!alive.current)return;
+      if(payload.host){
+        if(!confirmedSiteWrite(result,operation,payload))throw Error('Chrome DNR 规则回读不一致');
+        report('过滤设置已由 Chrome 确认；请刷新该网站的网页。');
         return;
       }
+      const checked=await api.request('adblock.status',{});
       if(!confirmed(result,checked,operation,payload))throw Error('Chrome DNR 规则回读不一致');
       if(!alive.current)return;
-      current.current=checked;setState(checked);
-      setNotice(operation==='adblock.site.set'||operation==='adblock.site.restore'
-        ?'设置已由 Chrome 确认；请刷新目标网页。'
-        :checked.enabled?'Chrome 已确认开启过滤。':'Chrome 已确认关闭过滤。');
+      report(checked.enabled?'Chrome 已确认开启过滤。':'Chrome 已确认关闭过滤。');
     }catch(error){
       if(!alive.current)return;
-      if(operationContext!==contextRevision.current){
-        needsReadback=true;current.current=null;setState(null);setProblem(true);
-        setNotice('页面或工具已切换，之前的操作结果不确定；正在读取当前 Chrome 状态。');
-        return;
-      }
-      const cancelled=error?.code==='E_CANCELLED'||/cancel|取消/i.test(errorText(error));
-      if(cancelled)setNotice('已取消，未提交这次更改。');
-      else{
-        current.current=null;setState(null);setProblem(true);
-        needsReadback=true;
-        setNotice('结果未确认（'+String(error?.code||'E_ADBLOCK')+'）：'+errorText(error)+'。正在重新读取 Chrome 状态，不会自动重试写入。');
-      }
+      const cancelled=error?.code==='E_CANCELLED';
+      if(cancelled)report('已取消，未提交这次更改。');
+      else report('结果未确认（'+String(error?.code||'E_ADBLOCK')+'）：'+errorText(error)+'。请核对 Chrome 状态；不会自动重试写入。',true);
     }finally{
+      if(alive.current)await refresh(true);
       locked.current=false;
-      if(alive.current){setBusy(false);setLoading(false);
-        if(queued.current||needsReadback){queued.current=false;void refresh(true);}}
+      if(alive.current)setBusy(false);
     }
-  },[api,refresh]);
+  },[api,recordWrite,refresh]);
   const operateCosmetic=React.useCallback(async(operation,payload={})=>{
-    if(locked.current||!current.current)return;
-    let preserveCosmeticError=false;
-    locked.current=true;reading.current++;
+    if(locked.current||!readyToOperate(current.current))return;
     const generation=contextRevision.current,expectedHost=siteHost(current.current);
+    if(!expectedHost||payload.host&&payload.host!==expectedHost)return;
+    const persistent=['adblock.cosmetic.add','adblock.cosmetic.replace','adblock.cosmetic.restore'].includes(operation);
+    const report=(text,problem=false)=>recordWrite(expectedHost+' · '+payload.selector+'：'+text,problem);
+    locked.current=true;
+    if(persistent)setWriteReceipt(null);
     setBusy(true);setProblem(false);setNotice('');
     try{
       const result=await api.request(operation,payload);
+      if(!alive.current)return;
+      if(persistent){
+        if(!confirmedSiteWrite(result,operation,payload))throw Error('本地规则读回不一致');
+        if(operation!=='adblock.cosmetic.restore'){
+          setDraftSelector('');setEditingSelector(null);setDraftHost(null);
+          setCheckedMatches(null);setAllowUnmatched(false);
+        }
+        report(operation==='adblock.cosmetic.add'?'高级屏蔽规则已保存并读回确认。':
+          operation==='adblock.cosmetic.replace'?'旧规则已原子替换并读回确认。':'已确认永久删除本地规则。');
+        return;
+      }
+      if(generation!==contextRevision.current)return;
       const checked=await api.request('adblock.status',{});
-      if(!valid(checked)||!alive.current||generation!==contextRevision.current||
-         !expectedHost||siteHost(result)!==expectedHost||siteHost(checked)!==expectedHost){
+      if(!alive.current||generation!==contextRevision.current||
+         !readyToOperate(checked)||!readyToOperate(current.current)||
+         siteHost(current.current)!==expectedHost||siteHost(result)!==expectedHost||
+         siteHost(checked)!==expectedHost){
         throw Error('当前网页已变化，请重新读取');
       }
       if(operation==='adblock.cosmetic.pick'&&
@@ -166,18 +177,6 @@ function App(){
         throw Error('网页未进入选择模式或本站保护已暂停');
       if(operation==='adblock.cosmetic.cancel'&&checked.pickerActive===true)
         throw Error('选择状态尚未结束，请重新读取');
-      if(operation==='adblock.cosmetic.restore'&&
-         (checked.cosmeticError||!Array.isArray(checked.cosmeticRules)||
-          checked.cosmeticRules.some(row=>row.selector===payload.selector)))
-        throw Error('本地规则读回仍存在，撤销结果未确认');
-      if(operation==='adblock.cosmetic.add'&&
-         !checked.cosmeticRules?.some(row=>row.selector===payload.selector))
-        throw Error('本地规则读回没有刚添加的规则');
-      if(operation==='adblock.cosmetic.replace'&&
-         (!checked.cosmeticRules?.some(row=>row.selector===payload.selector)||
-           payload.oldSelector!==payload.selector&&
-           checked.cosmeticRules?.some(row=>row.selector===payload.oldSelector)))
-        throw Error('替换规则读回不一致');
       if(['adblock.cosmetic.display','adblock.cosmetic.check','adblock.cosmetic.locate'].includes(operation)){
         if(!Array.isArray(result.inspection)||result.inspection.length!==1||
            result.inspection[0].selector!==payload.selector||
@@ -190,54 +189,43 @@ function App(){
         if(operation==='adblock.cosmetic.check')
           setCheckedMatches({selector:payload.selector,count:result.inspection[0].matches});
       }
-      if(['adblock.cosmetic.add','adblock.cosmetic.replace','adblock.cosmetic.restore'].includes(operation)){
-        inspectSerial.current++;setInspection({});
-      }
-      if(['adblock.cosmetic.add','adblock.cosmetic.replace'].includes(operation)){
-        setDraftSelector('');setEditingSelector(null);
-        setCheckedMatches(null);setAllowUnmatched(false);
-      }
-      current.current=checked;setState(checked);
       const messages={
         'adblock.cosmetic.pick':'网页已进入选择模式。单击目标即隐藏；Esc 或侧边栏可取消。',
         'adblock.cosmetic.cancel':checked.pickOutcome?.status==='saved'?
           '该区域已保存，可从侧边栏撤销。':'已取消网页选择。',
-        'adblock.cosmetic.restore':'已永久删除本地规则，网页区域已恢复。',
         'adblock.cosmetic.display':payload.visible?
           '仅当前网页临时显示该区域；刷新后将恢复屏蔽。':'已在当前网页重新隐藏该区域。',
         'adblock.cosmetic.check':'已从当前网页读取真实匹配数量。',
-         'adblock.cosmetic.locate':'已定位目标，短暂显示后自动恢复原有隐藏状态。',
-        'adblock.cosmetic.add':'高级屏蔽规则已保存并读回确认。',
-        'adblock.cosmetic.replace':'旧规则已原子替换并读回确认。'
+        'adblock.cosmetic.locate':'已定位目标，短暂显示后自动恢复原有隐藏状态。'
       };
       setNotice(messages[operation]||'已完成');
     }catch(error){
       if(!alive.current)return;
-      preserveCosmeticError=true;
-      setProblem(true);setNotice(errorText(error));
+      if(persistent){
+        if(error?.code==='E_CANCELLED')report('已取消，未提交这次更改。');
+        else if(error?.code==='E_ADBLOCK_CONFIRM_TIMEOUT'||error?.code==='E_UI_CONFIRM_BUSY')
+          report('未提交这次更改：'+errorText(error),true);
+        else report('结果未确认：'+errorText(error)+'。请核对该网站的规则，未自动重试。',true);
+      }else if(generation===contextRevision.current){setProblem(true);setNotice(errorText(error));}
     }finally{
+      if(alive.current&&(persistent||generation===contextRevision.current))await refresh(true);
       locked.current=false;
-      if(alive.current){setBusy(false);setLoading(false);
-        if(queued.current||preserveCosmeticError){
-          queued.current=false;
-          // A failed native write requires readback without deleting the error.
-          void refresh(true,preserveCosmeticError);
-        }}
+      if(alive.current)setBusy(false);
     }
-  },[api,refresh]);
+  },[api,recordWrite,refresh]);
   React.useEffect(()=>{
     alive.current=true;
     const onVisible=()=>{if(!document.hidden)void refresh(true);};
     const onPageChanged=()=>{
-      // Invalidate both pending status reads and any already-confirmed write
-      // whose result belongs to a previous tab, page or tool generation.
+      // Discard page data, while keeping the receipt of any submitted write.
       contextRevision.current++;
       reading.current++;
       current.current=null;setState(null);setLoading(true);
       lastPickReceipt.current='';
       inspectSerial.current++;setInspection({});setCheckedMatches(null);
-      setEditingSelector(null);setDraftSelector('');setAllowUnmatched(false);
-      if(locked.current)queued.current=true;
+      setInspectionBusy(false);
+      setAllowUnmatched(false);
+      setNotice('');setProblem(false);
       void refresh();
     };
     const onMessage=event=>{
@@ -268,7 +256,7 @@ function App(){
   // would leave the sidebar stale after Escape or a confirmed webpage click.
   React.useEffect(()=>{
     if(state?.pickerActive!==true)return;
-    const timer=setInterval(()=>{void refresh(true,true);},1500);
+    const timer=setInterval(()=>{void refresh(true);},1500);
     return ()=>clearInterval(timer);
   },[state?.pickerActive,refresh]);
   React.useEffect(()=>{
@@ -284,13 +272,14 @@ function App(){
   },[state]);
   const inspectRules=React.useCallback(async()=>{
     const currentState=current.current,host=siteHost(currentState);
-    if(!host||!readyForInspect(currentState)||locked.current)return;
+    if(!host||!readyToOperate(currentState))return;
     const generation=contextRevision.current,turn=++inspectSerial.current;
     setInspectionBusy(true);
     try{
       const result=await api.request('adblock.cosmetic.inspect',{host});
       if(!alive.current||turn!==inspectSerial.current||
-         generation!==contextRevision.current||siteHost(current.current)!==host)return;
+         generation!==contextRevision.current||!readyToOperate(current.current)||
+         siteHost(current.current)!==host)return;
       if(!Array.isArray(result?.inspection))throw Error('网页匹配回执无效');
       const next={};
       for(const row of result.inspection){
@@ -309,8 +298,9 @@ function App(){
   React.useEffect(()=>{
     if(view!=='cosmetics'||!state||!siteHost(state))return;
     void inspectRules();
-  },[view,siteHost(state),state?.cosmeticRules?.map(x=>x.selector).join('|'),inspectRules]);
-  const ready=Boolean(verified(state)&&state.toolEnabled===true&&!state.restartRequired);
+  },[view,siteHost(state),readyToOperate(state),contextRevision.current,
+    state?.cosmeticRules?.map(x=>x.selector).join('|'),inspectRules]);
+  const ready=readyToOperate(state);
   const on=Boolean(ready&&state.enabled);
   const host=siteHost(state);
   const exceptions=Array.isArray(state?.exceptions)?state.exceptions:[];
@@ -325,10 +315,11 @@ function App(){
   const canRestore=ready&&!busy&&!loading;
   const canEdit=siteOn&&canRestore&&!state?.cosmeticError;
   const draft=draftSelector.trim();
-  const draftChecked=checkedMatches?.selector===draft?checkedMatches.count:null;
+  const canEditDraft=canEdit&&(!draftHost||draftHost===host);
+  const draftChecked=canEditDraft&&checkedMatches?.selector===draft?checkedMatches.count:null;
   const safeDraft=validCosmeticSelector(draft);
   const saveAdvanced=()=>{
-    if(!host||!safeDraft||!canEdit||draftChecked===null||draftChecked>15||
+    if(!host||!safeDraft||!canEditDraft||draftChecked===null||draftChecked>15||
        draftChecked===0&&!allowUnmatched)return;
     const payload=editingSelector===null?
       {host,selector:draft,allowUnmatched}:
@@ -342,7 +333,7 @@ function App(){
     if(editingSelector!==null)selectorInput.current?.focus();
   },[editingSelector]);
   const cancelEditing=()=>{
-    setEditingSelector(null);setDraftSelector('');setCheckedMatches(null);
+    setEditingSelector(null);setDraftSelector('');setDraftHost(null);setCheckedMatches(null);
     setAllowUnmatched(false);editTrigger.current?.focus();
   };
   return <div className="adblock-app">
@@ -372,7 +363,7 @@ function App(){
           <Button variant="primary" className="adblock-pick-trigger" disabled={!siteOn||loading||busy||picking||Boolean(state?.cosmeticError)}
             onClick={()=>void operateCosmetic('adblock.cosmetic.pick')}
             aria-label="在当前网页中点击选择要隐藏的元素"><ActionGlyph kind="locate"/>选择网页元素</Button>
-          <Button variant="secondary" disabled={!host||loading||busy}
+          <Button variant="secondary" disabled={!host||loading}
             onClick={()=>setView('cosmetics')}>已屏蔽 {cosmeticRules.length} 处 →</Button>
         </div>
         {picking?<div className="adblock-pick-panel" role="status">
@@ -427,10 +418,10 @@ function App(){
                     {host,selector:rule.selector,visible:!match.visible})}>
                   <ActionGlyph kind={match?.visible?'hide':'show'}/></IconButton>
                 <IconButton className="adblock-rule-action" label={'编辑屏蔽规则：'+rule.selector}
-                  title="编辑" disabled={!canEdit}
+                  title="编辑" disabled={!canEdit||selectorDraftDirty}
                   onClick={event=>{
                     editTrigger.current=event.currentTarget;
-                    setEditingSelector(rule.selector);setDraftSelector(rule.selector);
+                    setEditingSelector(rule.selector);setDraftSelector(rule.selector);setDraftHost(host);
                     setCheckedMatches(null);setAllowUnmatched(false);
                     if(editingSelector===rule.selector)selectorInput.current?.focus();
                   }}><ActionGlyph kind="edit"/></IconButton>
@@ -441,41 +432,46 @@ function App(){
               </div>
             </div>;
           })}
-        <Button variant="secondary" disabled={!host||busy||inspectionBusy}
+        <Button variant="secondary" disabled={!host||!ready||inspectionBusy}
           onClick={()=>void inspectRules()}>↻ 检查当前网页匹配</Button>
       </CardContent></Card>
       <p className="adblock-help">「临时显示」仅针对当前网页，刷新后继续屏蔽；「删除」永久移除本地规则。没有匹配的历史规则仍可删除。</p>
       <details className="adblock-advanced" open={editingSelector!==null?true:undefined}
         onKeyDown={event=>{
-          if(event.key==='Escape'&&editingSelector!==null&&!busy){
+          if(event.key==='Escape'&&draftHost&&!busy){
             event.preventDefault();event.stopPropagation();cancelEditing();
           }
-        }}
-        onToggle={event=>{if(!event.currentTarget.open&&editingSelector!==null)setEditingSelector(null);}}>
+        }}>
         <summary>高级 · CSS 选择器</summary>
         <div className="adblock-advanced-body">
           <label htmlFor="adblock-selector-input">{editingSelector===null?'新增选择器':'修改现有选择器'}</label>
           <input ref={selectorInput} id="adblock-selector-input" className="adblock-selector-input"
             placeholder=".ad-banner 或 #sponsor" value={draftSelector} maxLength={320}
-            disabled={!canEdit} spellCheck={false} onChange={event=>{
-              setDraftSelector(event.target.value);setCheckedMatches(null);
+            readOnly={!canEditDraft} spellCheck={false} onChange={event=>{
+              if(!canEditDraft)return;
+              const value=event.target.value;
+              setDraftHost(editingSelector!==null||value.trim()?host:null);
+              setDraftSelector(value);setCheckedMatches(null);
             }}/>
+          {draftHost&&draftHost!==host?<p className="adblock-help" role="status">{host?
+            '草稿属于 '+draftHost+'。返回该网站后可继续编辑。':
+            '正在确认当前网站，草稿已保留。'}</p>:null}
           <p className="adblock-muted">仅允许受约束的广告 class、稳定 ID 或 nth-of-type 路径；禁止任意 CSS 声明、通配符和根节点。</p>
           {draft&&!safeDraft?<p className="adblock-help" role="alert">选择器格式不受支持，请使用 #sponsor 或 .ad-banner 等安全规则。</p>:null}
           {draftChecked!==null?<p className="adblock-help" role="status">当前网页匹配 {draftChecked} 个元素{draftChecked===0?'；保存动态规则需明确勾选下方选项':draftChecked>15?'；匹配范围过大，请缩小选择器':''}</p>:null}
           <label className="adblock-dynamic">
-            <input type="checkbox" checked={allowUnmatched} disabled={!canEdit}
+            <input type="checkbox" checked={allowUnmatched} disabled={!canEditDraft}
               onChange={e=>setAllowUnmatched(e.target.checked)}/>
             即使当前页面匹配 0 个元素也保存（仅用于动态页面）
           </label>
           <div className="adblock-rule-actions">
-            <Button variant="secondary" disabled={!canEdit||!safeDraft}
+            <Button variant="secondary" disabled={!canEditDraft||!safeDraft}
               onClick={()=>void operateCosmetic('adblock.cosmetic.check',
                 {host,selector:draft})}>检查匹配 · 高亮</Button>
-            <Button disabled={!canEdit||!safeDraft||draftChecked===null||draftChecked>15||
+            <Button disabled={!canEditDraft||!safeDraft||draftChecked===null||draftChecked>15||
               draftChecked===0&&!allowUnmatched}
               onClick={saveAdvanced}>{editingSelector===null?'添加规则':'保存修改'}</Button>
-            {editingSelector!==null?<Button variant="secondary" onClick={cancelEditing}>取消编辑</Button>:null}
+            {draftHost?<Button variant="secondary" disabled={busy} onClick={cancelEditing}>取消编辑</Button>:null}
           </div>
         </div>
       </details>
@@ -502,10 +498,14 @@ function App(){
         <Button variant="secondary" onClick={()=>setView('exceptions')}>管理网站例外</Button>
       </CardContent></Card>
     </>}
-    <div className="adblock-footer"><IconButton disabled={busy}
+    <div className="adblock-footer"><IconButton
       onClick={()=>void refresh()} label="重新读取 Chrome 广告过滤状态" title="刷新状态">
       <ActionGlyph kind="refresh"/></IconButton></div>
+    {statusError?<p className="adblock-notice" data-error="true" role="alert">{statusError}</p>:null}
     {notice?<p className="adblock-notice" data-error={problem?'true':'false'} role={problem?'alert':'status'}>{notice}</p>:null}
+    {writeReceipt?<p className="adblock-notice" data-error={writeReceipt.problem?'true':'false'}
+      role={writeReceipt.problem?'alert':'status'}>{writeReceipt.text}</p>:busy?
+      <p className="adblock-notice" role="status">正在等待操作结果…</p>:null}
   </div>;
 }
 export default App;

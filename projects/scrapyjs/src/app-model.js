@@ -167,7 +167,7 @@
   function createApp(sdk, onChange = () => {}) {
     const state = {config: copy(EMPTY_CONFIG), target: null, phase: 'idle', host: '尚未连接', engine: '尚未运行', runId: null,
       clientRequestId: null, preparationId: null, result: null, snapshot: null, error: '', notice: '', stopRequested: false, stopAccepted: false, retired: false,
-      dirty: false, saving: false, storageReady: false, storageError: null, targetError: null, conflict: null,
+      dirty: false, saving: false, storageReady: false, storageError: null, targetPending: false, targetError: null, conflict: null,
       records: [], selectedId: null, profileEpoch: 0, pendingAction: null, runProfile: null};
     let etag, revision = 0, loadGeneration = 0, pageGeneration = 0, startGeneration = 0, disposed = false, stopping = false, reading = false;
     let catalog = readCatalog(null);
@@ -255,17 +255,31 @@
       return true;
     }
     async function refreshTarget() {
+      if (disposed) return;
       const generation = ++pageGeneration;
-      state.target = null; emit();
-      try {
-        const info = await sdk.currentPage();
-        if (generation !== pageGeneration || disposed) return;
-        if (info?.status !== 'available') throw Object.assign(new Error(info?.message || '当前网页不可用'),{code:info?.code||''});
-        state.target = {title: String(info.title || ''), url: targetUrl(info.url)};
-        state.host = '当前网页已连接'; state.targetError = null;
-      } catch (error) {if (generation === pageGeneration) {state.target = null; state.host = error.message;state.targetError={code:error.code||'',message:error.message};}}
+      const current = () => !disposed && generation === pageGeneration;
+      Object.assign(state, {target:null, targetPending:true, targetError:null});
       emit();
+      for (let attempt = 0; current(); attempt++) {
+        try {
+          const info = await sdk.currentPage();
+          if (!current()) return;
+          if (info?.status !== 'available') throw Object.assign(new Error(info?.message || '当前网页不可用'),{code:info?.code||''});
+          state.target = {title:String(info.title || ''), url:targetUrl(info.url)};
+        } catch (error) {
+          if (!current()) return;
+          if (error.code === 'E_DOCUMENT_UNRESOLVED' && attempt === 0) {
+            await new Promise(resolve => setTimeout(resolve, 500));
+            continue;
+          }
+          state.targetError = {code:error.code||'', message:error.message};
+        }
+        state.targetPending = false;
+        emit();
+        return;
+      }
     }
+    const retryTarget = () => {if (!state.targetPending) return refreshTarget();};
     async function load({preserve = false} = {}) {
       if (busy() || disposed || state.pendingAction) return;
       const before = revision, generation = ++loadGeneration;
@@ -459,7 +473,7 @@
       if (busy() || state.pendingAction || disposed) return businessReceipt('blocked');
       state.error = ''; state.notice = '';
       let sent = false;
-      const attempt = ++startGeneration, profileEpoch = state.profileEpoch, preparationId = crypto.randomUUID();
+      const attempt = ++startGeneration, profileEpoch = state.profileEpoch, generation = pageGeneration, preparationId = crypto.randomUUID();
       let requestId = null, runId = null;
       const current = () => !disposed && attempt === startGeneration && profileEpoch === state.profileEpoch &&
         (!sent || requestId === state.clientRequestId);
@@ -475,7 +489,7 @@
         emit();
         await sdk.prepare(config);
         if (!current()) return staleReceipt();
-        const generation = pageGeneration;
+        if (generation !== pageGeneration) throw new Error('当前网页已变化，请重新确认目标');
         const info = await sdk.currentPage();
         if (!current()) return staleReceipt();
         if (generation !== pageGeneration || info?.status !== 'available' || targetUrl(info.url) !== state.target?.url) throw new Error('当前网页已变化，请重新确认目标');
@@ -539,7 +553,7 @@
     }
     return {state, edit, touch, checkpointDraft, cancelDraft, configIdentity, configurationLock, assertConfiguration,
       applyConfiguration, undoConfiguration, saveConfigurationCopy,
-      refreshTarget, load, useSaved, save, copyProfile, renameProfile, newProfile, selectProfile, deleteProfile,
+      refreshTarget, retryTarget, load, useSaved, save, copyProfile, renameProfile, newProfile, selectProfile, deleteProfile,
       cancelAction, confirmAction, start, stop, refresh, download,
       dispose() {disposed = true; pageGeneration++;}};
   }

@@ -3,6 +3,8 @@ import assert from 'node:assert/strict';
 import {readFile} from 'node:fs/promises';
 import {transform} from 'esbuild';
 import {renderToStaticMarkup} from 'react-dom/server';
+import {createRoot} from 'react-dom/client';
+import {JSDOM} from 'jsdom';
 import {createElement} from 'react';
 
 // Parse JSX in memory only: no build, bundling, receipts or dist writes.
@@ -28,11 +30,11 @@ function fixture({info=available,result=ready,error}={}){
   return {calls,states,checker};
 }
 
-test('initial render waits for the first check before offering another action',()=>{
+test('initial render shows the check action but keeps it unavailable during connection',()=>{
   assert.equal(INITIAL_STATUS.status,'idle');
   const html=renderToStaticMarkup(createElement(App));
   assert.match(html,/正在连接网页/);
-  assert.doesNotMatch(html,/<button/);
+  assert.match(html,/<button[^>]+aria-disabled="true"[^>]*>重新检查<\/button>/);
   assert.doesNotMatch(html,/队列已就绪/);
 });
 
@@ -165,13 +167,61 @@ test('page changes invalidate old readiness and coalesce checks for the latest t
   await flush();
   assert.deepEqual(calls.slice(before),['currentPage.info']);
   assert.ok(states.slice(statesBefore).every(row=>row.status!=='ready'));
-  assert.equal(states.at(-1).status,'unavailable');
-  assert.match(states.at(-1).message,/等网页加载完成后重试/);
+  assert.equal(states.at(-1).status,'waiting-for-page');
+  assert.match(states.at(-1).message,/网页就绪后会自动检查/);
 
   checker.dispose();
   root.dispatchEvent(new Event('opendesk-page-changed'));
   await flush();
   assert.equal(calls.length,before+1);
+});
+
+test('focused retry remains the same control across a reload and automatic recovery',async()=>{
+  const {window}=new JSDOM('<main id="root"></main>');
+  const container=window.document.querySelector('#root');
+  const page=new window.EventTarget();
+  const route=(info)=>{
+    target=info;
+    page.dispatchEvent(new window.Event('opendesk-page-changed'));
+  };
+  const held=deferred(),calls=[];
+  let target=available;
+  const before={window:globalThis.window,OpenDeskTool:globalThis.OpenDeskTool,
+    IS_REACT_ACT_ENVIRONMENT:globalThis.IS_REACT_ACT_ENVIRONMENT};
+  globalThis.window=window;
+  globalThis.IS_REACT_ACT_ENVIRONMENT=true;
+  globalThis.OpenDeskTool={root:page,request:async operation=>{
+    calls.push(operation);
+    return operation==='currentPage.info'?target:ready;
+  }};
+  const root=createRoot(container);
+  const {act}=await import('react');
+  try{
+    await act(async()=>root.render(createElement(App)));
+    const button=container.querySelector('button');
+    button.focus();
+    await act(async()=>route(held.promise));
+    assert.equal(window.document.activeElement,button);
+    assert.equal(button.getAttribute('aria-disabled'),'true');
+    const count=calls.length;
+    await act(async()=>button.click());
+    assert.equal(calls.length,count);
+
+    await act(async()=>held.resolve({status:'unavailable',reasonCode:'E_DOCUMENT_UNRESOLVED'}));
+    assert.equal(container.querySelector('[role="status"]').textContent,'正在等待网页加载');
+    assert.equal(button.getAttribute('aria-disabled'),'false');
+    await act(async()=>route(available));
+    assert.equal(container.querySelector('[role="status"]').textContent,'队列已就绪');
+    assert.equal(window.document.activeElement,button);
+    assert.equal(container.querySelector('button'),button);
+  }finally{
+    await act(async()=>root.unmount());
+    window.close();
+    for(const [key,value] of Object.entries(before)){
+      if(value===undefined)delete globalThis[key];
+      else globalThis[key]=value;
+    }
+  }
 });
 
 for(const phase of ['currentPage.info','page.request']){

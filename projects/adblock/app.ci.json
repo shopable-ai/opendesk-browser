@@ -4,6 +4,7 @@
   "build": "node:scripts/build-adblock-react.mjs",
   "host": "production",
   "node": [
+    "projects/adblock/tests/refresh-draft.test.mjs",
     "tests/environment/adblock-r12.test.mjs",
     "tests/environment/adblock-page-policy.test.mjs",
     "tests/environment/adblock-cosmetic.test.mjs",

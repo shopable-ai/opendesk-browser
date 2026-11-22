@@ -1,7 +1,7 @@
 {
   "format": "opendesk.sidebar-tool.v2",
   "id": "video-auto-skip",
-  "version": "0.2.0",
+  "version": "0.2.9",
   "title": "连播助手",
   "description": "为本机验收播放器和 iYF 播放页设置片头、片尾及连播规则；iYF 的站点切集继续由站点处理。",
   "capabilities": [
@@ -21,6 +21,6 @@
     "contextMenus": []
   },
   "pageModule": {
-    "revision": 1
+    "revision": 9
   }
 }

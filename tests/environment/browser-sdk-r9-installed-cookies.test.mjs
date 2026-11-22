@@ -517,6 +517,21 @@ test('R9 revocation during the pre-delete native lookup dispatches no expiration
   assert(!f.state.native.includes('remove'));
   assert(f.state.records.some(row=>row.name==='sid'&&row.path==='/account'&&row.value==='PRIVATE_ACCOUNT'));
 });
+test('R9 installed removal reports unknown if final readback fails after native expiration',async()=>{
+  const f=fixture(),getAll=f.api.cookies.getAll;let scans=0;
+  f.api.cookies.getAll=(details,callback)=>{
+    if(++scans!==4)return getAll(details,callback);
+    f.api.runtime.lastError={message:'PRIVATE_READBACK_FAILURE'};
+    try{callback(null);}finally{f.api.runtime.lastError=null;}
+  };
+  await assert.rejects(f.run('remove',{name:'sid',domain:'shop.example.test',path:'/account'}),
+    error=>error.code==='E_OUTCOME_UNKNOWN'&&!error.message.includes('PRIVATE_READBACK_FAILURE'));
+  assert.equal(scans,4);
+  assert.equal(f.state.native.filter(method=>method==='set').length,1);
+  assert(!f.state.records.some(row=>row.name==='sid'&&row.path==='/account'&&row.storeId==='0'&&!row.partitionKey));
+  assert(f.state.records.some(row=>row.name==='sid'&&row.path==='/'));
+});
+
 test('R9 clear preview refuses replacement cookies even when the count is unchanged',async()=>{
   const f=fixture(),preview=await f.run('clearSite',{preview:true,maxCookies:50});
   f.state.records=f.state.records.filter(row=>!(row.name==='sid'&&row.path==='/account'));

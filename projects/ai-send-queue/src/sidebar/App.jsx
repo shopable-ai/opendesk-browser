@@ -14,8 +14,8 @@ const OPEN_CHATGPT={status:'unsupported',title:'请打开 ChatGPT',message:''};
 function unavailableTarget(info){
   switch(info.reasonCode){
     case 'E_DOCUMENT_UNRESOLVED':
-      return {status:'unavailable',title:'暂时无法确认网页',
-        message:'请等网页加载完成后重试。若已加载，请切回 ChatGPT 标签页再检查。'};
+      return {status:'waiting-for-page',title:'正在等待网页加载',
+        message:'网页就绪后会自动检查。如果页面已加载完成，也可手动检查。'};
     case 'E_WINDOW_UNAVAILABLE':
       return {status:'unavailable',title:'暂时无法确认浏览器窗口',
         message:'请在 ChatGPT 所在窗口打开侧栏，再重试。'};
@@ -106,12 +106,12 @@ export default function App(){
   const pending=state.status==='idle'||state.status==='pending';
   const diagnostic=state.code||state.detail;
   return <main className="send-queue-app" aria-label="发送队列">
-    <section className="send-queue-status" aria-label="网页状态" aria-busy={pending}>
+    <section className="send-queue-status" aria-label="网页状态">
       <div className="send-queue-status-row">
         <p className="send-queue-status-title" role="status" aria-live="polite" aria-atomic="true">{state.title}</p>
-        {!pending&&state.status!=='unsupported'&&<button type="button" onClick={()=>{void checker.current?.check();}}>
+        <button type="button" aria-disabled={pending} onClick={()=>{if(!pending)void checker.current?.check();}}>
           重新检查
-        </button>}
+        </button>
       </div>
       {state.message&&<p>{state.message}</p>}
       {diagnostic&&<details key={state.status} className="send-queue-detail">

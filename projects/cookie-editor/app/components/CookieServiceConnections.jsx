@@ -33,7 +33,7 @@ const scopeValid=(scope,desired,rows)=>scope&&desired&&scope.trigger==='MANUAL'&
   Number.isInteger(scope.retentionDays)&&scope.retentionDays>=1&&scope.retentionDays<=30&&scope.retentionDays<=desired.retentionDays&&
   scope.bindingIds.length>0&&scope.bindingIds.every(id=>desired.bindingIds?.includes(id)&&rows.some(row=>row.status==='BOUND'&&row.remoteBindingId===id))&&
   scope.dataCategories.length>0&&scope.dataCategories.every(key=>['ACCOUNT_METADATA','USAGE_SUMMARY'].includes(key)&&desired.dataCategories?.includes(key));
-export function CookieServiceConnections({origin='',accounts=[],accountReady=false,state,
+export function CookieServiceConnections({origin='',accounts=[],accountReady=false,pageVerified=true,state,
   busy=false,notice='',onAction,onDirtyChange,onAccounts,legacyOnly=false}){
   const connections=state?.connections||[];
   const associations=state?.associations||[];
@@ -47,7 +47,7 @@ export function CookieServiceConnections({origin='',accounts=[],accountReady=fal
   const heading=React.useRef(null);
   const firstField=React.useRef(null);
   const latest=React.useRef(null);
-  latest.current={origin,accounts,accountReady,state,busy};
+  latest.current={origin,accounts,accountReady,pageVerified,state,busy,form};
   const available=accounts.filter(item=>item.origin===origin);
   const unknown=connections.some(unresolved);
   const services=registered(state);
@@ -59,6 +59,15 @@ export function CookieServiceConnections({origin='',accounts=[],accountReady=fal
     :form.kind==='rename'?form.label!==form.initialLabel
     :form.kind==='associate'?(form.alias||form.organization||form.providerKey||form.remoteAccountId)
     :['connect','policy','commit','unbind','archive','disconnect','remove'].includes(form.kind)));
+  const siteForm=draft=>['associate','commit','unbind','remove','policy'].includes(draft?.kind);
+  const currentSiteForm=draft=>!siteForm(draft)||latest.current.pageVerified&&
+    latest.current.origin===draft.pageOrigin&&latest.current.form===draft;
+  const retiredSiteForm=siteForm(form)&&
+    (!pageVerified||form.kind!=='associate'&&form.pageOrigin!==origin);
+  React.useLayoutEffect(()=>{
+    if(!retiredSiteForm)return;
+    restore.current=true;setForm(null);setError('当前网页已变化，请重新核对本站账号关联。');
+  },[retiredSiteForm]);
   React.useEffect(()=>{onDirtyChange?.(dirty);},[dirty,onDirtyChange]);
   React.useEffect(()=>()=>onDirtyChange?.(false),[onDirtyChange]);
   React.useEffect(()=>{mounted.current=true;return ()=>{mounted.current=false;};},[]);
@@ -79,7 +88,7 @@ export function CookieServiceConnections({origin='',accounts=[],accountReady=fal
   };
   React.useEffect(()=>{
     if(form?.kind==='associate'&&(form.origin!==origin||(form.alias&&!associationValid(form)))){
-      setForm(previous=>previous?{...previous,alias:'',origin,confirmed:false}:previous);
+      setForm(previous=>previous?.kind==='associate'?{...previous,alias:'',origin,pageOrigin:origin,confirmed:false}:previous);
       setError('站点、账号版本或服务状态已变化，请重新选择账号并核对。');
     }
   },[origin,accounts,accountReady,state,form?.alias,form?.confirmed]);
@@ -87,7 +96,8 @@ export function CookieServiceConnections({origin='',accounts=[],accountReady=fal
   const close=()=>{if(lock.current||latest.current.busy)return;restore.current=true;setForm(null);setError('');};
   const open=(event,draft)=>{
     if(form||lock.current||busy||(unknown&&draft.kind!=='archive'))return;
-    trigger.current=event.currentTarget;setError('');setForm({...draft,revision:state.revision,
+    if(siteForm(draft)&&!latest.current.pageVerified)return;
+    trigger.current=event.currentTarget;setError('');setForm({...draft,pageOrigin:origin,revision:state.revision,
       ...(nativeForm(draft)?{sessionRevision:state.sessionRevision}:{})});
   };
   const reread=async()=>{
@@ -122,7 +132,7 @@ export function CookieServiceConnections({origin='',accounts=[],accountReady=fal
     finally{lock.current=false;if(mounted.current)setPending(false);}
   };
   const confirmNative=async()=>{
-    if(!form)return;
+    if(!form||!currentSiteForm(form))return;
     const current=latest.current;
     const service=current.state?.connections?.find(item=>item.id===form.connectionId);
     const row=current.state?.associations?.find(item=>item.id===form.associationId);
@@ -174,14 +184,14 @@ export function CookieServiceConnections({origin='',accounts=[],accountReady=fal
       return run('serviceOpenManagement',{revision:current.state.revision,sessionRevision:current.state.sessionRevision,connectionId:item.id,associationId},{keepForm:true});
   };
   const saveAssociation=async()=>{
-    if(!form?.confirmed)return;
+    if(!form?.confirmed||!currentSiteForm(form))return;
     if(!associationValid(form)){setError('站点、账号版本或服务状态已变化，请重新选择账号并核对。');return;}
     await run('serviceAssociate',{revision:form.revision,connectionId:form.connectionId,
       alias:form.alias,accountVersion:form.accountVersion,remoteAccountId:form.remoteAccountId.trim(),
       organization:form.organization.trim(),providerKey:form.providerKey.trim()});
   };
   const submit=async event=>{
-    event.preventDefault();if(blocked||lock.current||!form)return;
+    event.preventDefault();if(blocked||lock.current||!form||!currentSiteForm(form))return;
     if(form.revision!==latest.current.state?.revision){setError('服务状态版本已变化，请重新核对后保存。');return;}
     if(form.kind==='rename'){
       const label=form.label.trim();
@@ -264,7 +274,7 @@ export function CookieServiceConnections({origin='',accounts=[],accountReady=fal
             disabled={pending||typeof onAction!=='function'||item.status!=='CONNECTED'}
             onClick={()=>run('serviceReadPolicy',{connectionId:item.id},{readOnly:true})}>读取策略</button>
           <button type="button" className={secondary} aria-label={'审阅策略：'+item.label}
-            disabled={blocked||Boolean(form)||item.status!=='CONNECTED'||!item.policy?.desired}
+            disabled={!pageVerified||blocked||Boolean(form)||item.status!=='CONNECTED'||!item.policy?.desired}
             onClick={event=>open(event,nativeDraft('policy',item,{desiredRevision:item.policy.desired.desiredRevision,
               desiredHash:item.policy.desired.desiredHash,authEpoch:item.policy.authEpoch,
               bindingIds:[],dataCategories:[],retentionDays:String(Math.min(30,item.policy.desired.scope?.retentionDays||30))}))}>审阅策略</button>
@@ -279,7 +289,7 @@ export function CookieServiceConnections({origin='',accounts=[],accountReady=fal
           disabled={blocked||Boolean(form)} onClick={event=>open(event,{kind:'rename',connectionId:item.id,
             label:item.label,initialLabel:item.label})}>改名</button>
         <button type="button" className={secondary} aria-label={'账号关联：'+item.label}
-          disabled={blocked||Boolean(form)||!(item.status==='UNCONNECTED'||item.mode==='local'&&item.status==='CONNECTED')} onClick={event=>open(event,{kind:'associate',connectionId:item.id,
+          disabled={!pageVerified||blocked||Boolean(form)||!(item.status==='UNCONNECTED'||item.mode==='local'&&item.status==='CONNECTED')} onClick={event=>open(event,{kind:'associate',connectionId:item.id,
             epoch:item.epoch,serviceOrigin:item.origin,connectionStatus:item.status,origin,alias:'',organization:item.mode==='local'&&item.status==='CONNECTED'?localOrganization:'',providerKey:item.mode==='local'&&item.status==='CONNECTED'?'codex':'',remoteAccountId:'',confirmed:false})}>账号关联</button>
         <button type="button" className={secondary} aria-label={'断开服务：'+item.label}
           disabled={blocked||Boolean(form)||(item.mode==='local'?!['UNCONNECTED','CONNECTED'].includes(item.status):item.status==='DISCONNECTED')}
@@ -304,7 +314,7 @@ export function CookieServiceConnections({origin='',accounts=[],accountReady=fal
           <button type="button" className={secondary} disabled={pending||busy} onClick={close}>取消</button>
         </div>
       </form>}
-      {associations.filter(row=>row.connectionId===item.id).map(row=><div className="cookie-business-usage-row" key={row.id}>
+      {pageVerified&&associations.filter(row=>row.connectionId===item.id).map(row=><div className="cookie-business-usage-row" key={row.id}>
         <strong>{row.localAlias}</strong><p>{row.localOrigin} · {row.organization} · {row.providerKey} · {row.remoteAccountId}</p>
         <p>未核验 · {associationStatus[row.status]||'状态未知'} · 不代表已确认同一登录身份</p>
         {activeBinding(row)?<>
@@ -322,7 +332,7 @@ export function CookieServiceConnections({origin='',accounts=[],accountReady=fal
         </>}
       </div>)}
     </article>)}
-    {form&&form.kind!=='rename'&&<form className="cookie-business-inquiry" aria-label="服务连接编辑" onSubmit={submit}
+    {form&&!retiredSiteForm&&form.kind!=='rename'&&<form className="cookie-business-inquiry" aria-label="服务连接编辑" onSubmit={submit}
       onKeyDown={onFormKeyDown}>
       <h4>{form.kind==='config'?'服务配置':form.kind==='associate'?'待连接账号关联':form.kind==='disconnect'?'断开服务':({connect:'连接本机服务',policy:'审阅期望策略',commit:'提交远端关联',unbind:'解绑远端关联',archive:'归档未知打开'})[form.kind]||'移除关联'}</h4>
       {revisionReview}

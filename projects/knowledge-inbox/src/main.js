@@ -49,6 +49,23 @@
   let selected=null,exportText='',exportReady=false,kind='all',tag='',records=[],total=0,bytes=0;
   let dirty=false,busy=false,editing=false,creating=false,restoring=false,generation=0,openedFrom=null,searchTimer=0,statusTimer=0,lockedFocus=null;
   let editorStateQueue=Promise.resolve();
+  let writeUnknown=false;
+  const unconfirmedDeletes=new Set();
+  const deleteUnknownMessage='删除结果未知，请核对这条记录，勿重复删除。';
+  const unknownCodes=['E_OUTCOME_UNKNOWN','E_TOOL_TIMEOUT'];
+  async function writeRecord(send){
+    if(writeUnknown)throw Error('上次写入结果未知，请先核对收件箱。');
+    try{
+      const result=await send();
+      if(result?.saved!==true||!result.record?.id)
+        throw Object.assign(Error('写入回执无效'),{code:'E_OUTCOME_UNKNOWN'});
+      return result;
+    }catch(error){
+      if(!unknownCodes.includes(error?.code))throw error;
+      writeUnknown=true;
+      throw Error('保存结果未知。请复制并保留草稿，返回列表刷新核对；确认原结果后可重新打开工具。');
+    }
+  }
   function publishNavigation(){
     if(typeof setNavigation!=='function')return;
     const page=creating?'create':!q('detail').hidden?(editing?'edit':'detail'):'list';
@@ -72,11 +89,14 @@
     if(message&&!error)statusTimer=setTimeout(()=>{q('status').hidden=true;},3400);
   }
   function syncControls(){
+    const deletePending=unconfirmedDeletes.has(selected?.id);
+    q('delete-check').hidden=!deletePending;
     root.querySelectorAll('button,input,select,textarea').forEach(control=>{
       if(q('confirm').contains(control))return;
       let disabled=busy;
-      if(control.id==='ki-save')disabled=disabled||!editing||!dirty||Boolean(formProblem('edit'));
-      if(control.id==='ki-create-save')disabled=disabled||!creating||Boolean(formProblem('create'));
+      if(control.id==='ki-save')disabled=disabled||writeUnknown||!editing||!dirty||Boolean(formProblem('edit'));
+      if(control.id==='ki-create-save')disabled=disabled||writeUnknown||!creating||Boolean(formProblem('create'));
+      if(control.id==='ki-delete')disabled=disabled||deletePending;
       if(control.id==='ki-clear')disabled=disabled||!q('search').value;
       if(control.id==='ki-copy')disabled=disabled||!exportReady;
       control.disabled=disabled;
@@ -93,10 +113,10 @@
     const changed=dirty!==value;
     dirty=value;
     globalThis.OpenDeskTool.setState?.({dirty,busy});
-    q('create-state').textContent=creating?(value?'有未保存内容':'填写标题和正文'):'填写标题和正文';
+    q('create-state').textContent=creating&&writeUnknown?'保存结果待核对':creating&&value?'有未保存内容':'填写标题和正文';
     q('create-state').dataset.dirty=String(value);
     if(!changed){syncControls();return;}
-    q('edit-state').textContent=value?'有未保存修改':'尚未修改';
+    q('edit-state').textContent=editing&&writeUnknown?'保存结果待核对':value?'有未保存修改':'尚未修改';
     q('edit-state').dataset.dirty=String(value);
     syncControls();
     // Preserve notification order so a late "dirty=true" cannot re-arm the host after a save.
@@ -406,8 +426,14 @@
   async function open(id){
     if(!await discard())return;
     openedFrom=id;generation++;
-    const result=await request('knowledge.get',{id});
-    presentation(result.record,result.markdown);say('');
+    let result;
+    try{result=await request('knowledge.get',{id});}
+    catch(error){
+      if(unconfirmedDeletes.has(id)&&error?.code==='E_KNOWLEDGE_NOT_FOUND')return finishDelete(id,true);
+      throw error;
+    }
+    presentation(result.record,result.markdown);
+    say(unconfirmedDeletes.has(id)?deleteUnknownMessage:'',unconfirmedDeletes.has(id));
   }
   function currentPayload(){
     const text=q('content').value;
@@ -424,7 +450,7 @@
       now.draft!==selected.draft;
     updateEditMeta();
     setDirty(next);
-    if(next)q('edit-state').textContent='有未保存修改';
+    if(next&&!writeUnknown)q('edit-state').textContent='有未保存修改';
     reflectValidation('edit');
   }
   async function toggleEdit(){
@@ -452,8 +478,8 @@
     const payload=currentPayload();
     q('edit-state').textContent='正在保存…';
     let result;
-    try{result=await request('knowledge.update',payload);}
-    catch(error){q('edit-state').textContent='保存失败，请重试';throw error;}
+    try{result=await writeRecord(()=>request('knowledge.update',payload));}
+    catch(error){q('edit-state').textContent=writeUnknown?'保存结果待核对':'保存失败，请重试';throw error;}
     // The update response confirms persistence even if a following read fails.
     setDirty(false);
     try{
@@ -500,7 +526,9 @@
     if(!creating)return;
     const issue=reflectValidation('create');
     if(issue)throw new Error(issue);
-    const result=await request('knowledge.create',createPayload());
+    let result;
+    try{result=await writeRecord(()=>request('knowledge.create',createPayload()));}
+    catch(error){if(writeUnknown)q('create-state').textContent='保存结果待核对';throw error;}
     // The write is confirmed; never resubmit on a later read failure.
     setDirty(false);creating=false;openedFrom=result.record.id;
     q('create-view').hidden=true;
@@ -572,7 +600,7 @@
     if((event.ctrlKey||event.metaKey)&&event.key.toLowerCase()==='s'&&(editing||creating)){
       event.preventDefault();
       if(creating&&!q('create-save').disabled)void action(saveCreate)();
-      else if(editing&&dirty)void action(save)();
+      else if(editing&&!q('save').disabled)void action(save)();
     }else if(event.key==='/'&&!event.ctrlKey&&!event.metaKey&&!event.altKey&&!q('list-view').hidden&&
       !['INPUT','TEXTAREA','SELECT'].includes(doc.activeElement?.tagName)){
       event.preventDefault();q('search').focus();
@@ -625,13 +653,43 @@
     q('manage').open=false;const result=await request('knowledge.backup');
     say('已请求备份 '+result.records+' 条记录，请核对 Chrome 下载。');
   }));
+  async function finishDelete(id,reconciled=false){
+    unconfirmedDeletes.delete(id);
+    selected=null;exportReady=false;setDirty(false);
+    q('detail').hidden=true;q('list-view').hidden=false;publishNavigation();
+    const refreshed=await list();laterFocus(q('search'));
+    const message=reconciled?'已核对：该记录已不存在。':'记录已删除。';
+    say(refreshed?message:message+'列表刷新失败，请手动刷新。',!refreshed);
+  }
+  async function checkDelete(id){
+    let result;
+    try{result=await request('knowledge.get',{id});}
+    catch(error){
+      if(error?.code==='E_KNOWLEDGE_NOT_FOUND')return finishDelete(id,true);
+      say(deleteUnknownMessage+'核对失败：'+errorText(error),true);return;
+    }
+    say(result?.record?.id===id?deleteUnknownMessage+'当前记录仍存在。':
+      deleteUnknownMessage+'未收到有效的记录回执。',true);
+  }
+  q('delete-check').addEventListener('click',action(async()=>{
+    if(editing||!unconfirmedDeletes.has(selected?.id))return;
+    const id=selected.id;
+    await checkDelete(id);
+    if(unconfirmedDeletes.has(id))laterFocus(q('delete-check'));
+  }));
   q('delete').addEventListener('click',action(async()=>{
     q('more').open=false;
-    if(!selected||!await ask('确定删除「'+selected.title+'」及其备注和草稿？此操作无法撤销。'))return;
-    await request('knowledge.remove',{id:selected.id,ifRevision:selected.revision});
-    selected=null;exportReady=false;setDirty(false);
-    q('detail').hidden=true;q('list-view').hidden=false;publishNavigation();await list();
-    laterFocus(q('search'));say('记录已删除。');
+    const target=selected;
+    if(!target||editing||dirty||unconfirmedDeletes.has(target.id)||
+      !await ask('确定删除「'+target.title+'」及其备注和草稿？此操作无法撤销。')||selected!==target)return;
+    let receipt;
+    try{receipt=await request('knowledge.remove',{id:target.id,ifRevision:target.revision});}
+    catch(error){if(!unknownCodes.includes(error?.code))throw error;}
+    if(receipt?.saved===true&&receipt.removed===true)return finishDelete(target.id);
+    unconfirmedDeletes.add(target.id);syncControls();
+    say(deleteUnknownMessage,true);
+    await checkDelete(target.id);
+    if(unconfirmedDeletes.has(target.id))laterFocus(q('delete-check'));
   }));
   q('outline-toggle').addEventListener('click',()=>{
     if(editing)return;

@@ -354,7 +354,8 @@ function paintPage(){
  el('vp-provider').textContent=site?.name||'未识别';
  el('vp-episode').textContent=ctx?.episode&&ctx.episode!=='unknown'?
   String(ctx.episode.label||'集数未知').slice(0,50):'集数未知';
- el('vp-page-state').textContent=stopped?'监听已停止 · 点击 ↻ 可重新开始':page?.error||statusText(ctx);
+ el('vp-page-state').textContent=stopped?'监听已停止 · 点击 ↻ 可重新开始':
+  page?.pending?'等待当前网页加载 · 可点击 ↻ 重新识别':page?.error||statusText(ctx);
  el('vp-page-state').dataset.kind=page?.error?'error':
   ctx?.recognitionState==='recognized'?'ready':
   ctx?.recognitionState==='needs-confirmation'||ctx?.recognitionState==='changing'?'warn':'neutral';
@@ -405,7 +406,7 @@ async function refresh({resume=false}={}){
   paintPage();
  }catch(error){
   if(ticket!==pageEpoch||closed||stopped)return;
-  page={error:classify(error)};
+  page=error?.code==='E_DOCUMENT_UNRESOLVED'?{pending:true}:{error:classify(error)};
   paintPage();
  }
 }

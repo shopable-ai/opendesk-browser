@@ -9,6 +9,13 @@ const validKey = value => typeof value === 'string' && keyPattern.test(value);
 const hasOnly = (obj, keys) => isRecord(obj) && Object.keys(obj).every(key => keys.includes(key));
 const validTime = t => Number.isFinite(t) && t >= 0 && t <= Number.MAX_SAFE_INTEGER;
 const invalid = () => new TypeError('已保存的连播规则格式不受支持。');
+export const isEnabled = rule => rule != null && rule !== false && rule.enabled !== false;
+
+export function saveScope(data, context) {
+  // Only the local adapter supplies a verified season with a compatible set of episodes.
+  return context.seriesKey.startsWith('local:') && context.season &&
+    Object.keys(readScope(data, context, 'episode')).length === 0 ? 'series' : 'episode';
+}
 
 function cleanScope(rules) {
   if (!hasOnly(rules, entries)) throw invalid();
@@ -20,11 +27,14 @@ function cleanScope(rules) {
       if (typeof rule !== 'boolean') throw invalid();
       result[key] = rule;
     } else if (rule === null) result[key] = null;
-    else if (rule?.kind === 'fixed' && hasOnly(rule, ['kind', 'start', 'end']) &&
+    else if (rule?.kind === 'fixed' && hasOnly(rule, ['kind', 'start', 'end', 'enabled']) &&
+      (!Object.hasOwn(rule, 'enabled') || rule.enabled === false) &&
       validTime(rule.start) && validTime(rule.end) && rule.start < rule.end) {
-      result[key] = {kind: 'fixed', start: rule.start, end: rule.end};
-    } else if (key === 'outro' && rule?.kind === 'tail' && hasOnly(rule, ['kind', 'seconds']) &&
-      validTime(rule.seconds) && rule.seconds > 0) result[key] = {kind: 'tail', seconds: rule.seconds};
+      result[key] = {kind: 'fixed', start: rule.start, end: rule.end, ...(rule.enabled === false ? {enabled: false} : {})};
+    } else if (key === 'outro' && rule?.kind === 'tail' && hasOnly(rule, ['kind', 'seconds', 'enabled']) &&
+      (!Object.hasOwn(rule, 'enabled') || rule.enabled === false) && validTime(rule.seconds) && rule.seconds > 0) {
+      result[key] = {kind: 'tail', seconds: rule.seconds, ...(rule.enabled === false ? {enabled: false} : {})};
+    }
     else throw invalid();
   }
   return result;
@@ -75,7 +85,7 @@ export function updateScope(data, loc, scope, rules) {
 }
 
 export function resolveInterval(rule, duration) {
-  if (!rule || !Number.isFinite(duration) || duration <= 0) return null;
+  if (!isEnabled(rule) || !Number.isFinite(duration) || duration <= 0) return null;
   let start, end;
   if (rule.kind === 'fixed') ({start, end} = rule);
   else if (rule.kind === 'tail') { start = duration - rule.seconds; end = duration; }
@@ -89,7 +99,7 @@ export function validateRules(rules, duration) {
   const intervals = [];
   for (const key of ['intro', 'outro']) {
     const rule = rules[key];
-    if (!rule) continue;
+    if (!isEnabled(rule)) continue;
     if (!Number.isFinite(duration) || duration <= 0) return '本集时长未知，暂不能启用时间规则。';
     const interval = resolveInterval(rule, duration);
     if (!interval) return labels[key] + '时间超出本集时长，或覆盖了整集。';

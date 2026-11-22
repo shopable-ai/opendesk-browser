@@ -11,7 +11,6 @@ const tool=new URL('../',import.meta.url);
 const controller=await build({entryPoints:[fileURLToPath(new URL('controller/main.js',tool))],
   bundle:true,write:false,platform:'browser',format:'iife',globalName:'CoreController',logLevel:'silent'});
 const modelSources=await Promise.all(['src/app-model.js','adapters/app-sdk.js'].map(path=>readFile(new URL(path,tool),'utf8')));
-const config=JSON.parse(await readFile(new URL('tool.config.json',tool),'utf8'));
 export const fixtureOrigin='http://127.0.0.1:43111';
 export const fixtureBase=fixtureOrigin+'/scrapyjs-fixtures/';
 export const plain=value=>JSON.parse(JSON.stringify(value));
@@ -41,7 +40,6 @@ export async function createCoreFlow({initialConfig}){
       first:()=>({waitFor:async({state})=>{assert.equal(state,'attached');assert.ok(nodes().length,'missing readiness selector: '+selector);}})};
   }};
   await page.goto(initialConfig.url);
-  const task={...config.delegatedTasks[0],installationId:'00000000-0000-4000-8000-000000000001',generation:1};
   async function request(operation,payload){
     calls.push({operation,payload:structuredClone(payload)});
     if(operation==='storage.get'){
@@ -55,13 +53,13 @@ export async function createCoreFlow({initialConfig}){
     }
     if(operation==='currentPage.info')return {status:'available',url,title:'确定性核心链网页'};
     if(operation==='ai.info')throw Error('No Provider configured in UI core fixture');
-    if(operation==='tasks.read'){
-      if(payload.taskId){assert.equal(payload.taskId,task.taskId);return {task:structuredClone(task)};}
+    if(operation==='controllers.read'){
+      if(!payload.clientRequestId){assert.deepEqual(Object.keys(payload),[]);return {controller:{sourceHash:'a'.repeat(64)}};}
       assert.ok(runs.has(payload.clientRequestId),'read must retain the original request identity');
       return structuredClone(runs.get(payload.clientRequestId));
     }
-    if(operation==='tasks.start'){
-      assert.deepEqual(payload.task,task);
+    if(operation==='controllers.start'){
+      assert.deepEqual(Object.keys(payload).sort(),['clientRequestId','params']);
       assert.equal(runs.has(payload.clientRequestId),false,'an uncertain request cannot be replayed');
       const logs=[];
       const scope=vm.createContext({page,params:structuredClone(payload.params),URL,TextEncoder,TextDecoder,

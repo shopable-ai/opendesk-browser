@@ -11,6 +11,7 @@ p{margin:0}
 summary{width:fit-content;cursor:pointer}
 summary:focus-visible{outline:2px solid var(--od-focus);outline-offset:2px}
 button{justify-self:start;max-width:100%;padding:6px 12px;border:1px solid var(--od-line);border-radius:var(--radius-control);background:var(--od-paper);color:var(--od-ink);font:inherit;cursor:pointer}
-button:hover{background:var(--od-muted)}
+button:not([aria-disabled="true"]):hover{background:var(--od-muted)}
+button[aria-disabled="true"]{color:var(--od-sub);cursor:default}
 button:focus-visible{outline:2px solid var(--od-focus);outline-offset:2px}
 }

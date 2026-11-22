@@ -155,6 +155,18 @@ test('stop while native download ID is pending consumes the late result',async()
   await assert.rejects(starting,error=>error.code==='E_MEDIA_STOPPED');
   assert.deepEqual(r.cancelled,[77]);
 });
+test('a lost Chrome cancellation acknowledgement stays unknown while the file is still downloading',async()=>{
+  const r=rig();
+  const detected=await r.request('media.detect');
+  const receipt=await r.request('media.start',{candidateId:detected.candidates[0].id});
+  let stopCalls=0;
+  r.api.downloads.cancel=async()=>{stopCalls++;throw Error('Chrome response lost');};
+  assert.equal((await r.request('media.stop',{taskId:receipt.taskId})).state,'unknown');
+  assert.equal((await r.request('media.status',{taskId:receipt.taskId})).state,'unknown');
+  r.state({state:'interrupted',error:'USER_CANCELED'});
+  assert.equal((await r.request('media.status',{taskId:receipt.taskId})).state,'cancelled');
+  assert.equal(stopCalls,1);
+});
 test('Stop while waiting for admission blocks downloading before calling Chrome',async()=>{
   const r=rig();const d=await r.request('media.detect');
   let unblock,notify;
@@ -344,4 +356,23 @@ test('Stop, navigation, installation revocation and source permission withdrawal
   assert.equal(r.calls,0,action+' must fence Blob/native save');
   if(action==='stop')assert.equal((await r.request('media.status',{taskId:receipt.taskId})).state,'cancelled');
  }
+});
+
+test('navigation keeps read-only access to the original receipt without repeating an uncertain stop',async()=>{
+  const r=rig();
+  const candidateId=(await r.request('media.detect')).candidates[0].id;
+  const receipt=await r.request('media.start',{candidateId});
+  let stopCalls=0;
+  r.api.downloads.cancel=async()=>{stopCalls++;throw Error('Chrome response lost');};
+  assert.equal((await r.request('media.stop',{taskId:receipt.taskId})).state,'unknown');
+  r.navigate();r.host.invalidate({pageChanged:true});r.host.invalidate({pageChanged:true});
+  assert.equal((await r.request('media.status',{candidateId})).state,'unknown');
+  r.state({state:'complete',exists:true,bytesReceived:200});
+  const result=await r.request('media.status',{taskId:receipt.taskId});
+  assert.equal(result.state,'complete');
+  assert.equal(result.stream,null);
+  assert.equal(stopCalls,1);
+  assert.equal(r.calls,1);
+  r.host.invalidate();
+  await assert.rejects(r.request('media.status',{taskId:receipt.taskId}),{code:'E_MEDIA_TASK'});
 });

@@ -1,11 +1,11 @@
 # Quick Notes React · 双版本独立并存
 
-这是基于真实 Quick Notes 的 React 19 + Shared UI 实现：原版在 `../quick-notes/`，工具 ID `quick-notes`；React 版工具 ID `quick-notes-react`、版本 `1.0.0`。**没有修改原版；安装和数据都按工具 ID 隔离。**
+这是 Quick Notes 的 React 19 版本。原版在 `../quick-notes/`，工具 ID `quick-notes`；React 版工具 ID `quick-notes-react`，当前安装包为 `1.0.1`。两个版本的安装和数据各自独立。
 
 ## 功能与开发归属
 
 - 多条笔记新建/编辑/选择/保存/删除，最多 16 条，共用一个 8 KiB `notes` 存储项。
-- 手动刷新/可选关联当前 HTTP(S) 网页；切换页面后防止旧关联静默保存。
+- 手动刷新或关联当前 HTTP(S) 网页。网页失效后可取消关联并保存原有笔记草稿；提交前保留旧关联的核对提示。
 - Cmd/Ctrl+S 保存、未保存切换确认、内联键盘可操作确认、失败保留草稿。
 - ETag `storage.get({withEtag:true})` / `storage.set({ifMatch})` 防止窗口间覆盖；旧字段 `note` 只在**本工具自己的命名空间**恢复与清理。
 - `tasks.open` 只打开已安装任务，**不自动执行**。

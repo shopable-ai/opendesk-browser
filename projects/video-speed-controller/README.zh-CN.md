@@ -1,12 +1,16 @@
-# 视频倍速 · Video Speed Controller（全局核心 / 包版本 1.2.3）
+# 视频倍速 · Video Speed Controller（全局核心 / 包版本 1.2.4）
 
 正式业务唯一源码：projects/video-speed-controller/。这是 OpenDesk Browser 的 Side Panel 应用，不创建独立 Chrome 插件或网页悬浮面板。
+
+## 1.2.4 等待活动文档
+
+页面刷新较慢时，侧栏清除旧倍速并显示「检测中」；确认新文档后恢复实际读回，不重放调速。定向 Node 回归通过。正式包 [video-speed-controller.opendesk-tool.json](video-speed-controller.opendesk-tool.json) 已晋升并通过 `--check-project`，26,207 字节，SHA-256 `0a0ef60c14b8109d25c4973572517f37e5443865d0ade0a892ca9a2015628b2c`。未安装到 Chrome 或验证本版原生行为。
 
 ## 1.2.3 全局界面精简（2026-10-31）
 
 源码与 `preview/index.html` 已删除全局目标行、网站范围及默认开启说明，正常状态仅保留「全局倍速」与开关；异常/未知恢复反馈仍保留。全局控件与预览交互 28 项通过，并以独立离线 Chrome 验证预设和开关。
 
-唯一正式文件为 [video-speed-controller.opendesk-tool.json](video-speed-controller.opendesk-tool.json)，版本 1.2.3，26030 字节，SHA-256 `86b19e3ffd345112f19e7088e14f7bb694812a5f5ffcbb91d5d259a37ec54bfc`。使用原打包器构建、校验后晋升，并以 `--check-project` 核对同源；官方版本准入及对应固定源码 pin 同步更新，权限不变，新增 4 项准入/编译边界检查通过。对正式包的 HTML/JS 实读确认三处文案已删除。
+当时正式包版本为 1.2.3，26030 字节，SHA-256 `86b19e3ffd345112f19e7088e14f7bb694812a5f5ffcbb91d5d259a37ec54bfc`。使用原打包器构建、校验后晋升，并以 `--check-project` 核对同源；官方版本准入及对应固定源码 pin 同步更新，权限不变，新增 4 项准入/编译边界检查通过。对当时正式包的 HTML/JS 实读确认三处文案已删除。
 
 原生更新为 BLOCKED：现有 watcher 曾成功同步同字节的 1.2.3 内置包，Chrome 调试页实读开发服务已连接、revision `6acb989849dd3319b345fd9807f5872591857c76f709620eb00c6153d3aa500e`，并通过原入口选择了本正式文件。确认更新前，其他并行源码修改触发开发服务重启；`src/platform/host/controller-methods.js` 新增的 `../chrome/native-http-transport.js` 导入目标尚不存在，日志报 `Could not resolve` / `Failed to build sw`。随后 development 的 sidepanel.html 及内置包暂缺，Chrome 侧栏显示 `ERR_FILE_NOT_FOUND`。未点击确认更新，最后可确认的已安装版本仍为 1.2.2；不把打包/同步视为已安装。未修改该并行任务文件、重启服务或复制其他产物绕过失败；下方 1.2.2 结果仅为历史证据。
 

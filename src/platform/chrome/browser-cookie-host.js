@@ -382,7 +382,10 @@ export function createTrustedCookieHost({api=globalThis.chrome,now=Date.now}={})
       const chosen=found[0];
       result=await existing.remove({url:args.url,name:args.name,...key},
         {...context,expectedCookieIdentity:redact(chosen)});
-      if((await scan(query)).some(row=>row.name===chosen.name&&row.domain===chosen.domain&&
+      const remaining=await scan(query).catch(()=>{
+        throw error('E_OUTCOME_UNKNOWN','Cookie removal completed but final readback is uncertain');
+      });
+      if(remaining.some(row=>row.name===chosen.name&&row.domain===chosen.domain&&
         row.hostOnly===chosen.hostOnly&&row.path===chosen.path))
         throw error('E_OUTCOME_UNKNOWN','Cookie still exists after native remove');
     }else if(op==='browser.cookies.clearSite'&&args.scope==='site-exact-host'){

@@ -14,7 +14,7 @@ import {assertManagedSiteToolLease} from '../platform/host/managed-site-authorit
 import {MANAGED_SITE_REVIEWED_SCOPE_STORE,reviewedManagedSiteScopeCovers,
   extendReviewedManagedSiteScopes,managedSiteV3RequiredOrigins}
   from '../framework/host/managed-site-reviewed-scopes.js';
-import {browserTextDownloadUrl} from '../framework/sdk/browser-schemas.js';
+import {browserTextDownloadUrl,COOKIE_BATCH_ERROR_CODES} from '../framework/sdk/browser-schemas.js';
 import {requestManagedProxyIntent,createManagedProxyActionGate} from './sidebar-tools/managed-proxy-consent.js';
 import readingTocCatalog from '../../projects/reading-toc/trusted/locales.generated.js';
 import {uiMessage,resolveUiLocale} from './app-localization.js';
@@ -533,6 +533,7 @@ function createSidebarToolsController({api=globalThis.chrome,doc=globalThis.docu
   let cookieAdmissionTool=null,cookieAdmissionEpoch=null;
   let cookieAdmissionState=null,cookieAdmissionHash=null,cookieAdmissionTicket=0;
   let cookieChromeKey='',cookieChromeState=null;
+  let cookiePageRevision=0,lastConfirmedCookieOrigin=null;
   function invalidateCookieAdmission(){
     cookieAdmissionTicket++;cookieAdmissionTool=null;cookieAdmissionState=null;
     cookieAdmissionHash=null;cookieAdmissionEpoch=null;
@@ -638,6 +639,10 @@ function createSidebarToolsController({api=globalThis.chrome,doc=globalThis.docu
     (cookieHasBaseGrant(tool)||!cookieHasSiteGrant(tool,origin));
   const cookieSiteRecord=(tool,origin)=>cookieHasBaseGrant(tool)
     ?cookieAllSiteRecord(tool):cookieSiteBaseRecord(tool,origin);
+  const cookiePermissionOrigin=()=>websiteOrigin(currentPageTarget?.snapshot?.url)||lastConfirmedCookieOrigin;
+  const cookieReadGrantFor=(row,origin,capability,tool)=>
+    tool.capabilities.includes('browser.cookies.write')&&row?.cookieAllSites?.[capability]===true
+      ?row.cookieAllSites:row?.cookieSites?.[origin];
   function renderCookieSettings(show){
     const tool=active,origin=websiteOrigin(currentPageTarget?.snapshot?.url);
     const installationPending=tool?.id==='cookie-editor'&&cookieAdmissionState===null;
@@ -2499,6 +2504,8 @@ function createSidebarToolsController({api=globalThis.chrome,doc=globalThis.docu
     proxyAction??=proxyActionGate.begin(tool.id,operation);
     proxyAction.assertCurrent();
     const videoEnableEpoch=videoShortcutEpoch,regionGeneration=clipRegionGeneration;
+    const cookieWritePage=tool.id==='cookie-editor'&&currentPageTarget?.snapshot;
+    const cookieWriteRevision=cookiePageRevision;
     assertSession(source,token);
     if(!readOnlyPreview)await assertSidebarToolEnabled(api,tool.id);
     assertSession(source,token);
@@ -2899,7 +2906,7 @@ function createSidebarToolsController({api=globalThis.chrome,doc=globalThis.docu
       const hostInstanceId=new URL(globalThis.location.href).searchParams.get('hostInstanceId');
       const packageHash=await sidebarToolPackageHash(tool);
       assertSession(source,token);
-      let importBatchOwner=null,importBatchDocument=null,writeIntentOwner=null,
+      let importBatchOwner=null,importBatchRef=null,writeIntentOwner=null,writeIntentRef=null,
         clearIntentOwner=null,cookieExportContext=null;
       const envelope={protocol:BROWSER_HOST_PROTOCOL,kind:'tool',
         operation,args:payload||{},toolId:tool.id,toolVersion:tool.version,
@@ -3358,12 +3365,12 @@ function createSidebarToolsController({api=globalThis.chrome,doc=globalThis.docu
           assertSession(source,token);
           if(document.origin!==sourceOrigin)
             throw Object.assign(new Error('原始 Chrome 页面已变化'),{code:'E_DOCUMENT_CHANGED'});
-          if(!cookieImportGate.acquire({owner,origin,count:payload.cookies.length,sourceOrigin,document}))
+          importBatchRef=cookieImportGate.acquire({owner,origin,count:payload.cookies.length,sourceOrigin,document});
+          if(!importBatchRef)
             throw Object.assign(new Error('一键导入操作未授权或已结束'),
               {code:'E_USER_GESTURE_REQUIRED'});
           {
             importBatchOwner=owner;
-            importBatchDocument=captured;
             try{
               if(websiteOrigin(currentPageTarget?.snapshot?.url)!==sourceOrigin||
                  cookieSiteRecord(tool,sourceOrigin)?.write!==true)
@@ -3378,15 +3385,16 @@ function createSidebarToolsController({api=globalThis.chrome,doc=globalThis.docu
                   {code:approval?.error?.code||'E_BROWSER'});
               assertSession(source,token);
               envelope.approvalRef=approval.data.approvalRef;
-            }catch(error){cookieImportGate.revoke();throw error;}
+            }catch(error){cookieImportGate.close(owner,importBatchRef);throw error;}
           }
         }
         if(['browser.cookies.set','browser.cookies.remove'].includes(operation)&&
            tool.id==='cookie-editor'&&
            await admittedInstalledCookieTool(tool,revocationEpoch)){
           const owner=cookieImportOwner(tool,token,revocationEpoch);
-          if(cookieWriteGate.acquire({owner,origin,name:payload.name,path:payload.path,
-               action:operation==='browser.cookies.remove'?'remove':'set'})){
+          writeIntentRef=cookieWriteGate.acquire({owner,origin,name:payload.name,path:payload.path,
+            action:operation==='browser.cookies.remove'?'remove':'set'});
+          if(writeIntentRef){
             writeIntentOwner=owner;
             try{
               assertSession(source,token);
@@ -3402,7 +3410,7 @@ function createSidebarToolsController({api=globalThis.chrome,doc=globalThis.docu
                   {code:approval?.error?.code||'E_BROWSER'});
               assertSession(source,token);
               envelope.approvalRef=approval.data.approvalRef;
-            }catch(error){cookieWriteGate.revoke();throw error;}
+            }catch(error){cookieWriteGate.close(owner,writeIntentRef);throw error;}
           }
         }
         // Older installed official packages retain their historic Host review.
@@ -3423,7 +3431,7 @@ function createSidebarToolsController({api=globalThis.chrome,doc=globalThis.docu
             throw Object.assign(new Error('本次清理未获得有效确认，请重新预览并点击清理'),
               {code:'E_USER_GESTURE_REQUIRED'});
           clearIntentOwner=owner;
-          try{
+          {
             if(websiteOrigin(currentPageTarget?.snapshot?.url)!==origin||grant?.clear!==true)
               throw Object.assign(new Error('清理网站或授权已变化'),{code:'E_DOCUMENT_CHANGED'});
             const approval=await api.runtime.sendMessage({protocol:BROWSER_HOST_PROTOCOL,kind:'host',
@@ -3435,7 +3443,7 @@ function createSidebarToolsController({api=globalThis.chrome,doc=globalThis.docu
                 {code:approval?.error?.code||'E_BROWSER'});
             assertSession(source,token);
             envelope.approvalRef=approval.data.approvalRef;
-          }catch(error){cookieClearGate.revoke();throw error;}
+          }
         }
         if(operation==='browser.cookies.observe.start'&&observeClick){
           // The original Bridge consumes one native click synchronously. Bind
@@ -3509,9 +3517,18 @@ function createSidebarToolsController({api=globalThis.chrome,doc=globalThis.docu
       try{
         const bookmarkWrite=['browser.bookmarks.create','browser.bookmarks.update',
           'browser.bookmarks.move','browser.bookmarks.remove','browser.bookmarks.removeTree'].includes(operation);
+        const cookieMutation=['browser.cookies.set','browser.cookies.setMany','browser.cookies.remove'].includes(operation)||
+          operation==='browser.cookies.clearSite'&&payload?.preview!==true;
+        const cookieReceiptUnknown=cause=>Object.assign(
+          new Error('Cookie 操作回执无法核验，请先检查实际 Cookie，勿重复提交'),{code:'E_OUTCOME_UNKNOWN',cause});
+        const cookiePageIsCurrent=()=>cookieWriteRevision===cookiePageRevision&&
+          classifyCookiePageTransition(cookieWritePage,currentPageTarget?.snapshot)==='ignore';
         proxyAction.assertCurrent();
+        if((writeIntentOwner||importBatchOwner||clearIntentOwner)&&!cookiePageIsCurrent())
+          throw Object.assign(new Error('原网页已经变化，本次操作未提交'),{code:'E_COOKIE_NOT_SUBMITTED'});
         try{reply=await api.runtime.sendMessage(envelope);}
         catch(error){
+          if(cookieMutation)throw cookieReceiptUnknown(error);
           if(bookmarkWrite)throw Object.assign(new Error('书签写入回执丢失，请先核对原生数据，勿重复提交'),
             {code:'E_OUTCOME_UNKNOWN',cause:error});
           throw error;
@@ -3519,24 +3536,42 @@ function createSidebarToolsController({api=globalThis.chrome,doc=globalThis.docu
         if(bookmarkWrite&&typeof reply?.ok!=='boolean')
           throw Object.assign(new Error('书签写入回执无法核验，请先核对原生数据'),{code:'E_OUTCOME_UNKNOWN'});
         assertSession(source,token);
+        if(cookieMutation&&(typeof reply?.ok!=='boolean'||
+           !reply.ok&&(typeof reply.error?.code!=='string'||!/^E_[A-Z0-9_]+$/.test(reply.error.code))))
+          throw cookieReceiptUnknown();
         if(!reply?.ok)throw Object.assign(new Error(reply?.error?.message||'浏览器操作失败'),{
           code:reply?.error?.code||'E_BROWSER'});
-        if(importBatchOwner){
-          await currentPageTarget.revalidate(importBatchDocument);
-          assertSession(source,token);
-          const receipts=reply.data?.results;
-          const complete=Array.isArray(receipts)&&receipts.length===payload.cookies.length&&
-            receipts.every((row,index)=>row?.index===index&&row.saved===true&&row.verified===true);
-          cookieImportGate.settle({owner:importBatchOwner,
-            count:payload.cookies.length,confirmed:complete});
+        if(operation==='browser.cookies.setMany'){
+          // A verified prefix belongs to the dispatched request. Navigation
+          // revokes continuation, but cannot undo a receipt with no Cookie data.
+          const {results,saved,verified,stopped}=reply.data??{};
+          const count=payload.cookies.length,partial=stopped===true;
+          const valid=Array.isArray(results)&&results.length>0&&results.length<=count&&
+            (partial||stopped===undefined&&results.length===count)&&
+            results.every((row,index)=>row?.index===index&&(partial&&index===results.length-1
+              ?row.saved===false&&row.verified===false&&COOKIE_BATCH_ERROR_CODES.includes(row.code)
+              :row.saved===true&&row.verified===true&&row.code===undefined));
+          const confirmed=valid?results.length-Number(partial):0;
+          if(!valid||saved!==confirmed||verified!==confirmed)throw cookieReceiptUnknown();
+          if(importBatchOwner)cookieImportGate.settle({owner:importBatchOwner,ref:importBatchRef,count,
+            confirmed:!partial&&cookiePageIsCurrent()});
+          return {saved,verified,results:results.map(({index,saved,verified,code})=>
+            ({index,saved,verified,...(code===undefined?{}:{code})})),...(partial?{stopped:true}:{})};
         }
-        if(writeIntentOwner)cookieWriteGate.settle({owner:writeIntentOwner,
-          confirmed:operation==='browser.cookies.set'&&reply.data?.saved===true&&
+        if(cookieMutation){
+          const data=reply.data;
+          if(operation==='browser.cookies.set'&&(typeof data?.saved!=='boolean'||typeof data?.verified!=='boolean')||
+             operation==='browser.cookies.remove'&&(typeof data?.removed!=='boolean'||typeof data?.verified!=='boolean')||
+             operation==='browser.cookies.clearSite'&&(data?.preview!==false||typeof data.scope!=='string'||
+               !['matched','removed','remaining'].every(key=>Number.isSafeInteger(data[key])&&data[key]>=0&&data[key]<=50)))
+            throw cookieReceiptUnknown();
+        }
+        if(writeIntentOwner)cookieWriteGate.settle({owner:writeIntentOwner,ref:writeIntentRef,
+          confirmed:operation==='browser.cookies.set'&&reply.data?.saved===true&&cookiePageIsCurrent()&&
             reply.data?.verified===true});
       }catch(error){
-        if(importBatchOwner)cookieImportGate.revoke();
-        if(writeIntentOwner)cookieWriteGate.revoke();
-        if(clearIntentOwner)cookieClearGate.revoke();
+        if(importBatchOwner)cookieImportGate.close(importBatchOwner,importBatchRef);
+        if(writeIntentOwner)cookieWriteGate.close(writeIntentOwner,writeIntentRef);
         throw error;
       }
       if(browserExport){
@@ -3717,7 +3752,16 @@ function createSidebarToolsController({api=globalThis.chrome,doc=globalThis.docu
         throw Object.assign(new Error('旧工具实例已撤销；请先保留草稿再重新打开'),{code:'E_TOOL_CHANGED'});
       const packageHash=await knowledgePackageHash(tool);
       assertSession(source,token);
-      const response=await api.runtime.sendMessage({protocol:KNOWLEDGE_PROTOCOL,toolId:tool.id,operation,payload,packageHash,installEpoch:revocationEpoch});
+      const save=operation==='knowledge.create'||operation==='knowledge.update';
+      const remove=operation==='knowledge.remove';
+      const unconfirmed=()=>Object.assign(new Error(remove?'删除结果未知，请核对记录，勿重复删除':
+        '保存结果未知，请先核对收件箱，不要重复提交'),{code:'E_OUTCOME_UNKNOWN'});
+      let response;
+      try{response=await api.runtime.sendMessage({protocol:KNOWLEDGE_PROTOCOL,toolId:tool.id,operation,payload,packageHash,installEpoch:revocationEpoch});}
+      catch(error){throw save||remove?unconfirmed():error;}
+      if((save||remove)&&typeof response?.ok!=='boolean')throw unconfirmed();
+      if(remove&&(response.ok?response.data?.saved!==true||response.data?.removed!==true:
+        typeof response.error?.code!=='string'||!response.error.code))throw unconfirmed();
       assertSession(source,token);
       if(!response?.ok){const error=new Error(response?.error?.message||'知识收件箱未确认操作，请刷新核对');
         error.code=response?.error?.code||'E_KNOWLEDGE';throw error;}
@@ -4348,6 +4392,21 @@ function createSidebarToolsController({api=globalThis.chrome,doc=globalThis.docu
       rateExceeded=++requestCount>120;
     }
     const token=instance,source=event.source,tool=active,revocationEpoch=frameRevocationEpoch;
+    const cookieReadCapability=tool.id==='cookie-editor'&&!readOnlyPreview&&
+      (['browser.cookies.get','browser.cookies.getAll','browser.cookies.getAllPage',
+        'browser.cookies.getCurrentStore','browser.cookies.getPartitionKey'].includes(message.operation)?'read':
+        ['browser.cookies.observe.getStatus','browser.cookies.observe.read'].includes(message.operation)?'observe':
+        message.operation==='browser.cookies.clearSite'&&message.payload?.preview===true?'clear':null);
+    const cookieReadOrigin=cookieReadCapability&&typeof message.payload?.url==='string'&&websiteOrigin(message.payload.url);
+    const cookieReadPage=cookieReadCapability&&currentPageTarget?.snapshot;
+    const cookieReadRevision=cookiePageRevision;
+    const cookieReadGrant=cookieReadCapability&&cookieReadGrantFor(cookieGrantRow(tool),
+      cookieReadOrigin,cookieReadCapability,tool)?.grantEpoch;
+    const assertCookieReadPage=()=>{
+      if(!cookieReadOrigin||cookieReadOrigin!==cookieReadPage?.origin||cookieReadRevision!==cookiePageRevision||
+         classifyCookiePageTransition(cookieReadPage,currentPageTarget?.snapshot)!=='ignore')
+        throw Object.assign(new Error('网页已切换，请重新读取当前网页'),{code:'E_DOCUMENT_CHANGED'});
+    };
     const verifiedGesture=((typeof message.operation==='string'&&
        message.operation.startsWith('cookieAccount.'))||
       message.operation==='cookieEditor.import.begin'||
@@ -4427,16 +4486,41 @@ function createSidebarToolsController({api=globalThis.chrome,doc=globalThis.docu
     const work=previous.catch(()=>{}).then(()=>{
       checkVideoEnable();
       proxyAction.assertCurrent();
+      if(cookieReadCapability)assertCookieReadPage();
       return dispatch(message.operation,message.payload,tool,source,token,revocationEpoch,verifiedGesture,exportClick,exportPort,null,proxyAction,observeClick,regionRequest);
     });
     if(message.operation==='storage.set')queued.set(tool.id,work);
     work.then(async result=>{
       if(!readOnlyPreview){
-        await assertSidebarToolEnabled(api,tool.id);
-        const epochs=requireHostRevocationEpochs((await api.storage.local.get(TOOL_REVOCATION_EPOCHS_STORE))[TOOL_REVOCATION_EPOCHS_STORE]);
-        if((epochs?.[tool.id]??null)!==revocationEpoch)throw new Error('工具请求已撤销，请核对实际结果');
+        try{
+          await assertSidebarToolEnabled(api,tool.id);
+          const epochs=requireHostRevocationEpochs((await api.storage.local.get(TOOL_REVOCATION_EPOCHS_STORE))[TOOL_REVOCATION_EPOCHS_STORE]);
+          if((epochs?.[tool.id]??null)!==revocationEpoch)throw new Error('工具请求已撤销，请核对实际结果');
+        }catch(error){
+          if(message.operation==='knowledge.create'||message.operation==='knowledge.update')
+            throw Object.assign(new Error('保存后无法交付回执，请先核对收件箱，不要重复提交'),{code:'E_OUTCOME_UNKNOWN'});
+          throw error;
+        }
       }
       assertSession(source,token);
+      if(cookieReadCapability){
+        assertCookieReadPage();
+        const [hash,grants,permitted]=await Promise.all([sidebarToolPackageHash(tool),
+          api.storage.local.get(BROWSER_MENU_GRANTS_STORE),
+          api.permissions?.contains?.(cookieChromeRequest(cookieReadOrigin,false))]);
+        const stored=grants[BROWSER_MENU_GRANTS_STORE]?.[tool.id];
+        const grant=cookieReadGrantFor(stored,cookieReadOrigin,cookieReadCapability,tool);
+        if(stored?.version!==tool.version||stored.packageHash!==hash||stored.installEpoch!==revocationEpoch||
+           !cookieReadGrant||grant?.grantEpoch!==cookieReadGrant||grant?.[cookieReadCapability]!==true||
+           message.payload?.includeValues===true&&(grant.values!==true||grant===stored.cookieAllSites&&grant.valueConsent!==true)||!permitted)
+          throw Object.assign(new Error('Cookie 权限已变化，请重新检查'),{code:'E_GRANT_REVOKED'});
+        const observed=await currentPageTarget.revalidate(cookieReadPage,{sameDocument:true});
+        assertSession(source,token);assertCookieReadPage();
+        if(classifyCookiePageTransition(cookieReadPage,observed)!=='ignore')
+          throw Object.assign(new Error('网页已切换，请重新读取当前网页'),{code:'E_DOCUMENT_CHANGED'});
+        if(cookieReadGrantFor(cookieGrantRow(tool),cookieReadOrigin,cookieReadCapability,tool)?.grantEpoch!==cookieReadGrant)
+          throw Object.assign(new Error('Cookie 权限已变化，请重新检查'),{code:'E_GRANT_REVOKED'});
+      }
       if(['browser.launch.consume','browser.page.getSelection'].includes(message.operation)&&
          (!Number.isFinite(result?.expiresAt)||Date.now()>=result.expiresAt))
         throw Object.assign(new Error('选区在交付前已过期；不能重放旧领取'),{code:'E_LAUNCH_EXPIRED'});
@@ -4519,12 +4603,12 @@ function createSidebarToolsController({api=globalThis.chrome,doc=globalThis.docu
       render();
     }
     if(Object.hasOwn(changes||{},BROWSER_MENU_GRANTS_STORE)){
-      const previouslyManaged=active?.id==='cookie-editor'&&
-        cookieHasManageGrant(active,websiteOrigin(currentPageTarget?.snapshot?.url));
+      const origin=cookiePermissionOrigin();
+      const previouslyManaged=active?.id==='cookie-editor'&&cookieHasManageGrant(active,origin);
       menuGrants=changes[BROWSER_MENU_GRANTS_STORE]?.newValue||{};
       // Destroy the old decrypted iframe, then retain a nonprivileged app.
       if(active?.id==='cookie-editor'&&!readOnlyPreview&&frame&&previouslyManaged&&
-        !cookieHasManageGrant(active,websiteOrigin(currentPageTarget?.snapshot?.url))){
+        !cookieHasManageGrant(active,origin)){
         retireUntrustedTool();
         mountTool(active);
         notice('Cookie 授权已撤销，旧数据已清除。',true);
@@ -6285,10 +6369,12 @@ function createSidebarToolsController({api=globalThis.chrome,doc=globalThis.docu
         protocol:SIDEBAR_TOOL_PROTOCOL,kind:'page-changed',instance,toolId:VIDEO_SVIP_ID},'*');
     }
     if(removed&&active?.id==='cookie-editor'&&!readOnlyPreview&&frame){
-      const origin=websiteOrigin(currentPageTarget?.snapshot?.url);
-      const requested=origin?cookieChromeRequest(origin,cookieAdmissionState===true):null;
+      const origin=cookiePermissionOrigin();
+      const requested=origin?cookieChromeRequest(origin,false).origins:[];
+      const scheme=origin?.split(':',1)[0];
       const affected=details?.permissions?.includes('cookies')||
-        details?.origins?.some(pattern=>requested?.origins.includes(pattern));
+        details?.origins?.some(pattern=>requested.includes(pattern)||
+          origin&&['<all_urls>',scheme+'://*/*','*://*/*'].includes(pattern));
       if(affected){
         // Native Chrome revocation also clears already-rendered private values.
         retireUntrustedTool();
@@ -6314,12 +6400,15 @@ function createSidebarToolsController({api=globalThis.chrome,doc=globalThis.docu
     const pageKey=()=>JSON.stringify(['status','windowId','tabId','frameId','documentId','url','origin','title','reason','navigationStarted']
       .map(key=>currentPageTarget.snapshot?.[key]??null));
     let previousPage=pageKey(),previousCookiePage={...currentPageTarget.snapshot},cookiePagePending=false;
+    lastConfirmedCookieOrigin=websiteOrigin(previousCookiePage.url);
     const unsubscribe=currentPageTarget.subscribe(()=>{
       render();
       const nextPage=pageKey(),nextCookiePage={...currentPageTarget.snapshot};
       const priorCookiePage=previousCookiePage;
       if(nextPage===previousPage)return;
       previousPage=nextPage;
+      if(nextCookiePage.status==='available')lastConfirmedCookieOrigin=websiteOrigin(nextCookiePage.url);
+      if(classifyCookiePageTransition(priorCookiePage,nextCookiePage)!=='ignore')cookiePageRevision++;
       clearClipRegions();
       // Only Cookie Editor filters visual changes: the other tools retain
       // the existing page-changed contract. Document/Origin/tab fail closed.
@@ -6335,7 +6424,7 @@ function createSidebarToolsController({api=globalThis.chrome,doc=globalThis.docu
       if(nativeUI?.kind==='ai-proxy')
         frameRoot.dispatchEvent(new Event('opendesk-page-changed'));
       // A navigated document must never reuse a previous key capability.
-      videoShortcutSession=null;stopVideoSVIPWatch();videoDownloader.invalidate();
+      videoShortcutSession=null;stopVideoSVIPWatch();videoDownloader.invalidate({pageChanged:true});
        cookieImportGate.revoke();
        cookieWriteGate.revoke();
        cookieClearGate.revoke();

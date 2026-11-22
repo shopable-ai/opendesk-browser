@@ -70,7 +70,7 @@ test('latest field UI edits, renames and orders saved rules; reopening executes 
   assert.equal(saved.config.itemConfig.book_title,'a::text');
   assert.equal(Object.hasOwn(saved.config.itemConfig,'title'),false);
   assert.deepEqual(saved.config.output,{fieldNames:{book_title:'书名'},fieldOrder:expectedOrder});
-  assert.equal(flow.calls.some(call=>call.operation==='tasks.start'),false,'editing and saving cannot collect');
+  assert.equal(flow.calls.some(call=>call.operation==='controllers.start'),false,'editing and saving cannot collect');
   await ui.dispose();
   ui=await mount(t,flow);({get,label,edit}=ui);
   get('tab-rules').dispatch('click');
@@ -78,7 +78,7 @@ test('latest field UI edits, renames and orders saved rules; reopening executes 
   assert.equal(label('采集规则 book_title').value,'a::text');
   assert.equal(label('book_title 显示名称').value,'书名');
   get('start').dispatch('click');await settle();
-  const starts=flow.calls.filter(call=>call.operation==='tasks.start');
+  const starts=flow.calls.filter(call=>call.operation==='controllers.start');
   assert.equal(starts.length,1);
   const sent=starts[0].payload.params;
   assert.deepEqual(JSON.parse(sent.configJson),saved.config.itemConfig);
@@ -100,7 +100,7 @@ test('latest field UI edits, renames and orders saved rules; reopening executes 
   const titleColumn=exported[0].indexOf('书名');
   assert.deepEqual(exported.slice(1).map(row=>row[titleColumn]),['同名，"甲"','同名，"甲"',"'=SUM(1,2)"],
     'download uses the persisted preset without another name edit');
-  assert.equal(flow.calls.filter(call=>call.operation==='tasks.start').length,1);
+  assert.equal(flow.calls.filter(call=>call.operation==='controllers.start').length,1);
 });
 
 test('merged CSV UI independently orders preview and download, preserves full records and guards invalid drafts',async t=>{
@@ -174,7 +174,7 @@ test('merged CSV UI independently orders preview and download, preserves full re
   assert.equal(hostStates.at(-1).dirty,true,'restoring a valid rule must retain the unsaved draft');
   assert.deepEqual(flow.storage.value.records[0].config,initialConfig(),'Esc must not save or replace stored configuration');
   assert.equal(get('save-config').disabled,false);assert.equal(get('start').disabled,false);
-  assert.equal(flow.calls.filter(call=>call.operation==='tasks.start').length,1,'all later actions only format or edit');
+  assert.equal(flow.calls.filter(call=>call.operation==='controllers.start').length,1,'all later actions only format or edit');
 });
 
 
@@ -193,7 +193,7 @@ test('R14 header reuses library and new draft, rejects stale/unknown actions and
  assert.ok(snapshots.at(-1).headerActions.every(a=>a.disabledReason));
  header('new-profile');header('library');await settle();assert.equal(snapshots.at(-1).page,'home');
  assert.equal(ui.get('config-json').value,'{invalid');
- assert.equal(flow.calls.some(call=>call.operation==='tasks.start'||call.operation==='storage.set'),false);
+ assert.equal(flow.calls.some(call=>call.operation==='controllers.start'||call.operation==='storage.set'),false);
 });
 
 test('R14 fallback keeps content actions and new draft does not run or save',async t=>{
@@ -206,7 +206,7 @@ test('R14 fallback keeps content actions and new draft does not run or save',asy
   assert.equal(snapshots.at(-1).page,'home');
   ui.get('manage-profiles').dispatch('click');await settle();assert.equal(snapshots.at(-1).page,'library');
   ui.get('library-new-profile').dispatch('click');await settle();
-  assert.equal(flow.calls.some(call=>call.operation==='tasks.start'||call.operation==='storage.set'),false);
+  assert.equal(flow.calls.some(call=>call.operation==='controllers.start'||call.operation==='storage.set'),false);
   await ui.dispose();
  }
 });
@@ -224,5 +224,5 @@ test('R14 header cannot leave or create during unknown, active run, saving or re
   await settle();assert.equal(snapshots.at(-1).page,'home');assert.equal(JSON.stringify(ui.app.state.config),original);
   Object.assign(ui.app.state,before);ui.publish();await settle();
  }
- assert.equal(flow.calls.some(call=>call.operation==='tasks.start'||call.operation==='storage.set'),false);
+ assert.equal(flow.calls.some(call=>call.operation==='controllers.start'||call.operation==='storage.set'),false);
 });
