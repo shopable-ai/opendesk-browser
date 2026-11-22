@@ -11,12 +11,12 @@
   <section id="ja-jobs" class="ja-view" aria-label="职位发现">
     <div class="ja-toolbar"><button id="ja-scan" type="button" class="od-button od-button--primary">扫描当前页面</button>
       <span id="ja-scan-count" class="od-note">尚未扫描</span></div>
-    <p class="od-note">打开 BOSS 直聘职位搜索列表，授权后点击扫描。只读取当前已加载的卡片，不翻页、不发消息。</p>
+    <p class="od-note">打开已授权的 BOSS 职位搜索列表后点击扫描。读取当前 DOM、短暂等待异步加载；不翻页、不发消息。职位卡片不是完整 JD。</p>
     <div id="ja-list" class="ja-list" aria-live="polite"></div>
     <p id="ja-jobs-empty" class="ja-empty od-note">当前没有岗位。点击“扫描当前页面”开始。</p>
   </section>
   <section id="ja-queue" class="ja-view" aria-label="待审核清单" hidden>
-    <p class="od-note">这里记录本地待审核岗位，不代表已沟通或已投递。</p>
+    <p class="od-note">这里只存本地待审核岗位，不代表已沟通或已投递。真实投递、任务暂停恢复和投递记录仍未启用。</p>
     <div id="ja-queue-list" class="ja-list"></div>
     <p id="ja-queue-empty" class="ja-empty od-note">没有待审核岗位。</p>
   </section>
@@ -26,9 +26,11 @@
       <label>意向城市（留空不限）<input class="od-field" id="ja-cities" maxlength="120" placeholder="北京,上海,远程"></label>
       <label>最低月薪，单位 K（0 表示不限）<input class="od-field" type="number" id="ja-salary" min="0" max="200" step="1"></label>
       <label>排除关键词（职位、公司、标签）<input class="od-field" id="ja-exclude" maxlength="200" placeholder="培训,外包,驻场"></label>
-      <label>自身技能（用于解释匹配及话术）<input class="od-field" id="ja-skills" maxlength="200" placeholder="Kotlin,JavaScript,Vue"></label>
+      <label>本人真实技能（留空不在话术中声明）<input class="od-field" id="ja-skills" maxlength="200" placeholder="只填自己能够证明的技能"></label>
+      <label class="ja-check"><input type="checkbox" id="ja-headhunters" checked>过滤页面明确标注的猎头</label>
+      <label class="ja-check"><input type="checkbox" id="ja-contacted" checked>避免再次加入页面标注“已沟通”的职位</label>
       <label>沟通话术模板<textarea class="od-field" id="ja-template" rows="4" maxlength="500"></textarea></label>
-      <p class="od-note">支持 {岗位}、{公司}、{技能}。此处的规则评分是确定性的，不是 AI 评估。</p>
+      <p class="od-note">支持 {岗位}、{公司}、{技能}。只显示确定性规则分，不是 AI 简历匹配；缺少完整 JD、HR 活跃度、学历等信息时会标注“待核实”，不能推断为符合条件。</p>
       <button id="ja-save-prefs" class="od-button od-button--primary" type="submit">保存匹配规则</button>
     </form>
   </section>
