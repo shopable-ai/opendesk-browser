@@ -549,3 +549,20 @@ E. **令牌边界**：OAuth 授权码 + PKCE（S256）、随机 state、OIDC non
 4. **绝对禁止宣称已完成**：本轮没有新的运行代码、已创建的线上账号服务、生产登录成功、真实两机同步或历史恢复 PASS。
 
 新增参考入口不另建方案文件，统一从本文件继续。实施前再核验最新 main、目标文件归属及并行任务，所有跨平台公开 API 更新必须回写既有权威合同，不能在业务工具直接调用本方案中的假定 API。
+
+
+### R3.10 现成同步框架的复用评估（减少重复研发）
+
+本方案的 record-level CAS/checkpoint/冲突模型不是声称必须从零研发一个完整分布式同步数据库。以下开源/现成能力值得在 S00 的短 Spike 中做最小适配比较：
+
+| 方案 | 可复用特性 | 与本仓库现状的差距 | R3 推荐 |
+| --- | --- | --- | --- |
+| RxDB Replication | push/pull、checkpoint、conflict handler、删除标记及自动恢复 | 需要把业务数据抽象成 RxDB collection 并维护存储一致性；服务端仍要实现鉴权和 push/pull 契约；默认冲突策略不适合丢掉用户重要规则 | **候选对照 Spike**，仅当能安全接入既有工具读写路径时采用 |
+| Dexie Cloud | IndexedDB 本地优先 + 托管同步、账号 | 要把权威存储移到 Dexie；现有侧栏/网页伴随宿主、8 KiB 限额与身份策略需迁移；计费和数据保留另评估 | 不作为不迁移存储的直接插件 |
+| PouchDB + CouchDB | 成熟的文档复制及版本冲突模型 | 需运行 CouchDB 兼容后端；当前产品使用 SQL/单键存储，不是 CouchDB 文档库；会员和产品级授权仍需自建 | 首版不采用 |
+| PowerSync 等数据库同步平台 | 大数据、离线 SQLite、持续多端同步 | 同步模型和本地存储迁移较重，规则数据只有少量配置 | 大规模业务数据阶段再评估 |
+| **现有受控存储 + 薄 Sync Engine + SQL CAS** | 保留当前业务 owner/权限、实现最小版本控制、同意、VIP 和幂等 | 须正确实现 outbox/游标/事务和双端故障恢复 | **M0 默认**，以 T16–T27 实际测量复杂度 |
+
+**决策门槛**：做一次「现有连播助手单键 rules.v1 → 10 个可同步 scope → 远端可撤销的 push/pull → 恢复」小样本 Spike。若 RxDB 能在无需重建第二套业务数据源、且不扩大权限的前提下显著减少源码和测试复杂度，可修订选择；否则按现有薄引擎实施。**避免把 RxDB/Dexie/PowerSync 与现有 rules.v1 同时当作权威写入来源**。
+
+来源：https://rxdb.info/replication.html ；https://dexie.org/cloud/ ；https://pouchdb.apache.org/guides/replication.html ；https://docs.powersync.com/ 。
