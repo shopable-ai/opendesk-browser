@@ -1,0 +1,435 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Slots Fairness Verifier · OpenDesk R1 交互预览</title>
+<style>
+/* Offline design sketch. Semantic values follow src/ui/design-tokens.css; no host stylesheet injection. */
+:root{--od-ink:#1b2c49;--od-sub:#5b6e86;--od-line:#dfe6ef;--od-brand:#365eda;--od-paper:#fff;--od-bg:#fff;--od-input-border:#7f8da1;--od-muted:#f5f7fb;--od-on-brand:#fff;--od-warning:#80510d;--od-warning-bg:#fff9ec;--od-positive:#117a5d;--od-negative:#ae3d4b;--space-1:4px;--space-2:8px;--space-3:12px;--space-4:16px;--radius-control:8px;--radius-surface:12px;--od-body-size:13px;--od-note-size:12px;--od-meta-size:11px;--od-focus:#365eda}
+*{box-sizing:border-box}html{font-family:-apple-system,BlinkMacSystemFont,"SF Pro Text","PingFang SC",system-ui,sans-serif;line-height:1.5;color:var(--od-ink);background:#f3f6fb}body{margin:0}button,input,select{font:inherit}button{cursor:pointer}button:disabled{cursor:not-allowed;opacity:.48}button:focus-visible,select:focus-visible,input:focus-visible,.evidence-value:focus-visible{outline:2px solid var(--od-focus);outline-offset:2px}[hidden]{display:none!important}
+.preview-lab{max-width:1160px;margin:20px auto 14px;padding:0 18px}.lab-head{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap}.lab-head h1{font-size:18px;letter-spacing:-.025em;margin:0}.lab-kicker{color:var(--od-sub);font-size:12px;margin:4px 0}.sim-mark{font-size:11px;font-weight:700;letter-spacing:.025em;border:1px solid #cad6e9;background:#e9f0ff;color:#274a9a;border-radius:100px;padding:5px 10px;white-space:nowrap}.lab-control{margin-top:14px;background:#fff;border:1px solid var(--od-line);border-radius:12px;padding:12px 14px;display:flex;align-items:center;gap:12px;flex-wrap:wrap;box-shadow:0 3px 12px #223c6310}.lab-control label{font-size:12px;color:var(--od-sub);font-weight:650}.lab-control select{min-width:225px;max-width:100%;background:#fff;border:1px solid var(--od-line);border-radius:8px;padding:8px 10px;color:var(--od-ink)}.lab-control p{margin:0;color:var(--od-sub);font-size:12px;flex:1 1 260px}
+.workspace{max-width:1160px;margin:0 auto;padding:0 18px 24px;display:grid;grid-template-columns:352px minmax(0,1fr);gap:18px;align-items:start}.side-shell{background:#fff;border:1px solid #dce4ef;border-radius:14px;min-width:0;box-shadow:0 8px 30px #172d4c14;overflow:hidden}.shell-nav{height:42px;display:flex;align-items:center;gap:16px;padding:0 16px;background:#f9fbfe;border-bottom:1px solid var(--od-line);font-size:11px;color:var(--od-sub)}.shell-nav b{color:var(--od-brand);font-weight:700}.shell-head{display:flex;align-items:center;gap:10px;padding:14px 16px;border-bottom:1px solid var(--od-line)}.shell-icon{width:31px;height:31px;display:grid;place-items:center;border-radius:9px;color:var(--od-brand);background:#eaf0ff;font-weight:800;font-size:17px}.shell-title{font-weight:700;font-size:13px}.shell-sub{font-size:11px;color:var(--od-sub)}.panel{padding:14px 16px 18px;display:grid;gap:14px}.od-surface{border:1px solid var(--od-line);border-radius:var(--radius-surface);background:var(--od-paper)}.od-surface--padded{padding:12px}.section-head{display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:8px}.section-head h2{font-size:12px;font-weight:700;letter-spacing:-.005em;margin:0}.od-note{font-size:12px;color:var(--od-sub);line-height:1.55;margin:0}.mini{font-size:11px;color:var(--od-sub)}.site-name{font-weight:700;font-size:13px;overflow-wrap:anywhere}.status-line{display:flex;align-items:center;gap:7px;flex-wrap:wrap;margin:7px 0 9px}.pill{display:inline-flex;align-items:center;gap:5px;padding:3px 8px;font-size:11px;font-weight:700;line-height:1.5;border-radius:20px;background:#f0f3f8;color:#52637a}.pill.ok{background:#e9f7f0;color:#137550}.pill.warn{background:#fff3dd;color:#875d0e}.pill.bad{background:#fff0f1;color:#9d3543}.pill.info{background:#eaf0ff;color:#3653ab}.switch-row{display:flex;align-items:center;justify-content:space-between;gap:10px;padding-top:9px;border-top:1px solid var(--od-line);font-size:12px}.switch-copy{display:grid;gap:2px}.switch-copy small{color:var(--od-sub);font-size:11px}.toggle{display:inline-flex;align-items:center;gap:6px;cursor:pointer}.toggle input{position:absolute;opacity:0;width:1px;height:1px}.track{display:block;width:35px;height:20px;border-radius:30px;background:#c6d1df;position:relative;transition:background .15s}.track:before{content:"";position:absolute;top:3px;left:3px;width:14px;height:14px;background:white;border-radius:50%;box-shadow:0 1px 2px #0003;transition:transform .15s}.toggle input:checked+.track{background:var(--od-brand)}.toggle input:checked+.track:before{transform:translateX(15px)}.toggle input:focus-visible+.track{outline:2px solid var(--od-focus);outline-offset:3px}.od-button{display:inline-flex;align-items:center;justify-content:center;gap:5px;min-height:36px;padding:8px 11px;font-weight:650;border:1px solid var(--od-brand);border-radius:var(--radius-control);background:var(--od-brand);color:#fff;max-width:100%;text-align:center}.od-button--secondary{background:var(--od-muted);border-color:var(--od-input-border);color:var(--od-ink)}.od-button--quiet{background:transparent;border-color:transparent;color:var(--od-ink)}.od-button:hover:not(:disabled){filter:brightness(.98)}.od-button.tiny{min-height:29px;font-size:11px;padding:5px 8px}.action-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px}.action-grid .od-button{min-width:0;font-size:12px}.action-grid .wide{grid-column:1/-1}.field-list{margin:0;padding:0;list-style:none;border:1px solid var(--od-line);border-radius:10px;overflow:hidden}.field-item{padding:9px 11px;display:grid;gap:3px}.field-item+.field-item{border-top:1px solid var(--od-line)}.field-top{display:flex;align-items:center;justify-content:space-between;gap:8px;font-size:12px}.field-top strong{font-weight:620}.field-value{color:var(--od-sub);font-size:11px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:100%;font-family:ui-monospace,SFMono-Regular,monospace}.help-status{font-size:12px;color:var(--od-sub);background:var(--od-muted);padding:9px 10px;border-radius:8px;line-height:1.55}.help-status.warn{color:var(--od-warning);background:var(--od-warning-bg)}.help-status.bad{color:var(--od-negative);background:#fff0f1}.map-editor{display:grid;gap:7px;padding:11px;border:1px solid #9bb3f7;background:#f6f8ff;border-radius:10px}.map-editor .title{font-size:12px;font-weight:700}.map-editor label{font-size:11px;font-weight:700}.map-editor select{padding:7px 8px;border:1px solid var(--od-input-border);border-radius:8px;background:white;color:var(--od-ink);min-width:0;width:100%}.map-editor code{display:block;background:#fff;padding:6px;border-radius:6px;overflow-wrap:anywhere;color:#244995;font-size:11px}.map-editor .btnline{display:flex;gap:6px}.map-editor .btnline button{flex:1}.status-summary{border-top:1px solid var(--od-line);padding-top:10px;font-size:12px}.status-summary strong{font-size:12px}.evidence-panel{font-size:11px;line-height:1.6;background:#f6f8fc;border-radius:8px;padding:10px;margin-top:8px;overflow-wrap:anywhere}.evidence-panel code{font-family:ui-monospace,SFMono-Regular,monospace;word-break:break-all}.evidence-panel p{margin:4px 0}.evidence-panel .level{display:block;border-bottom:1px solid var(--od-line);padding:6px 0}.evidence-panel .level:last-child{border-bottom:0}.feedback{min-height:24px;color:#435b80;font-size:12px;line-height:1.55;margin:0}.site-surface{min-width:0;background:#fff;border:1px solid var(--od-line);border-radius:14px;box-shadow:0 8px 30px #172d4c0d;overflow:hidden}.browser-top{padding:11px 15px;background:#f8fafc;border-bottom:1px solid var(--od-line);display:flex;align-items:center;gap:12px}.browser-dots{display:flex;gap:5px}.browser-dots i{display:block;width:8px;height:8px;background:#d4dce8;border-radius:50%}.address{flex:1;border:1px solid #e3e8f0;background:white;border-radius:6px;color:#677991;font-size:11px;padding:6px 10px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.site-area{padding:23px 24px 30px;min-height:610px}.site-eyebrow{font-size:11px;text-transform:uppercase;letter-spacing:.12em;font-weight:750;color:#6b81a9;margin:0 0 7px}.site-area h2{font-size:23px;line-height:1.25;margin:0 0 8px;letter-spacing:-.03em}.site-area>p{font-size:12px;color:var(--od-sub);margin:0 0 20px}.round-header{display:flex;align-items:center;gap:8px;flex-wrap:wrap;justify-content:space-between;margin-bottom:12px}.round-header h3{font-size:14px;margin:0}.round-header small{color:var(--od-sub)}.history-box{border:1px solid #e4e9f1;border-radius:12px;overflow:hidden}.history-box-head{padding:12px 14px;background:#f7f9fd;border-bottom:1px solid #e4e9f1;display:flex;align-items:center;justify-content:space-between;gap:8px;font-size:12px;font-weight:700}.rows{padding:2px 14px}.evidence-row{display:grid;grid-template-columns:minmax(0,148px) minmax(0,1fr);gap:14px;align-items:center;min-height:50px;padding:10px 0;border-bottom:1px solid #edf1f6;font-size:12px}.evidence-row:last-child{border-bottom:0}.evidence-label{font-weight:650;color:#62748c;overflow-wrap:anywhere}.evidence-value{display:block;min-width:0;overflow-wrap:anywhere;border:1px solid transparent;border-radius:6px;padding:5px 6px;font-family:ui-monospace,SFMono-Regular,monospace;font-size:11px;color:#263c5d;background:#f5f7fb;line-height:1.5}.evidence-value:hover{background:#eaf0ff}.site-surface.picking .evidence-value{cursor:crosshair;border-style:dashed;border-color:#a6b6da}.site-surface.picking .evidence-value:hover,.evidence-value.picker-hover{border:2px solid var(--od-brand);background:#e7eeff;padding:4px 5px;box-shadow:0 0 0 3px #365eda1a}.site-surface.picking .evidence-value.selected{border-color:#158061;background:#ebfbf3}.tipbar{margin-top:17px;padding:12px;border:1px solid #dce6f5;background:#f6f9fe;border-radius:9px;font-size:12px;color:#5d708c}.tipbar b{color:#2e5087}.site-helper{margin-top:14px;display:flex;align-items:center;gap:8px;flex-wrap:wrap}.blank-demo{min-height:215px;display:grid;place-items:center;background:linear-gradient(130deg,#0c1626,#202e4b);color:#d2e3ff;border-radius:10px;text-align:center;padding:20px}.blank-demo span{display:block;font-size:12px;color:#a8bedb}.explain{margin-top:12px;color:#73849b;font-size:11px;line-height:1.55}
+@media(max-width:800px){.workspace{grid-template-columns:1fr}.side-shell{max-width:480px}.site-area{min-height:360px;padding:18px}.preview-lab{margin-top:14px}}@media(max-width:370px){.workspace{padding:0 9px 18px}.preview-lab{padding:0 9px}.panel{padding:12px}.evidence-row{grid-template-columns:minmax(0,100px) minmax(0,1fr);gap:8px}.lab-control select{min-width:0;width:100%}}
+</style>
+</head>
+<body>
+<header class="preview-lab">
+ <div class="lab-head"><div><h1>Slots Fairness · 交互设计预览</h1><p class="lab-kicker">OpenDesk Browser / R1 · 侧栏与模拟目标网页</p></div><span class="sim-mark">离线模拟 · 非真实游戏验证</span></div>
+ <div class="lab-control" aria-label="预览场景控制（不属于扩展）">
+   <label for="scenario">测试场景</label>
+   <select id="scenario">
+     <option value="known">01 · 已知站点自动匹配</option>
+     <option value="unknown">02 · 未知站点通用扫描</option>
+     <option value="missing">03 · 字段缺失 → 手动选区</option>
+     <option value="dynamic">04 · DOM 更新 → 自动重新识别</option>
+     <option value="broken">05 · 选择器失效 → 修复</option>
+     <option value="denied">06 · 未授权 → 停止扫描</option>
+     <option value="unrevealed">07 · Server Seed 尚未公开</option>
+     <option value="mismatch">08 · 随机结果不一致</option>
+     <option value="boundary">09 · iframe / Canvas 限制</option>
+   </select><p id="scenario-help">已知适配器自动识别公开数据；模拟预先捕获过哈希承诺。</p>
+ </div>
+</header>
+<main class="workspace">
+ <section class="side-shell" aria-label="OpenDesk Side Panel 模拟">
+  <div class="shell-nav"><b>OpenDesk</b><span>扩展</span><span>我的</span><span>工作流</span></div>
+  <div class="shell-head"><div class="shell-icon" aria-hidden="true">✓</div><div><div class="shell-title">Slots Fairness Verifier</div><div class="shell-sub">当前网页的公开验证证据</div></div></div>
+  <div class="panel">
+   <section class="od-surface od-surface--padded">
+    <div class="section-head"><h2>当前网页</h2><span id="permission-tag" class="pill warn">未授权</span></div>
+    <div id="site-name" class="site-name">—</div>
+    <div class="status-line"><span id="scan-tag" class="pill">等待检测</span><span id="rule-tag" class="pill">无规则</span></div>
+    <div class="switch-row"><div class="switch-copy"><b>自动检测</b><small id="auto-hint">需先有网站授权</small></div><label class="toggle"><input id="auto" type="checkbox" aria-label="自动检测开关"><span class="track" aria-hidden="true"></span></label></div>
+    <button id="grant" class="od-button od-button--quiet tiny" type="button">授予演示权限</button>
+   </section>
+   <section>
+    <div class="section-head"><h2>发现的字段</h2><span class="mini" id="field-count">0 / 5</span></div>
+    <ul id="fields" class="field-list" aria-label="找到的公平性字段"></ul>
+   </section>
+   <section id="editor" class="map-editor" hidden aria-label="点选字段确认">
+    <div class="title">已点选网页元素 · 确认字段</div>
+    <div class="mini" id="selected-text"></div>
+    <label for="map-field">映射为</label>
+    <select id="map-field">
+     <option value="serverSeedHash">Server Seed Hash</option>
+     <option value="serverSeed">Server Seed</option>
+     <option value="clientSeed">Client Seed</option>
+     <option value="nonce">Nonce</option>
+     <option value="randomResult">页面随机结果</option>
+    </select>
+    <label>候选 CSS 选择器</label><code id="candidate-selector"></code>
+    <div class="mini" id="selector-quality"></div>
+    <div class="btnline"><button id="reselect" class="od-button od-button--secondary tiny">重新选择</button><button id="cancel-pick" class="od-button od-button--quiet tiny">取消</button></div>
+   </section>
+   <section>
+    <div class="action-grid">
+     <button id="scan" class="od-button od-button--secondary" type="button">扫描页面</button>
+     <button id="pick" class="od-button od-button--secondary" type="button">选择页面区域</button>
+     <button id="save" class="od-button wide" type="button" disabled>保存匹配规则</button>
+     <button id="verify" class="od-button wide" type="button">验证结果</button>
+     <button id="evidence-button" class="od-button od-button--quiet wide" type="button" aria-expanded="false" aria-controls="evidence" disabled>查看验证证据</button>
+    </div>
+   </section>
+   <section>
+    <div id="result" class="help-status" role="status" aria-live="polite">请授权后扫描当前网页的公开验证字段。</div>
+    <div class="status-summary"><strong id="result-heading">尚未验证</strong><p class="od-note" id="result-scope">识别到字段也不代表游戏公平。</p></div>
+    <div id="evidence" class="evidence-panel" hidden></div>
+   </section>
+   <p id="feedback" class="feedback" role="status" aria-live="polite"></p>
+  </div>
+ </section>
+ <section class="site-surface" id="site-surface" aria-label="只读模拟游戏证据网页">
+  <div class="browser-top"><div class="browser-dots" aria-hidden="true"><i></i><i></i><i></i></div><div id="address" class="address">https://demo.example.invalid/rounds/241</div></div>
+  <div class="site-area">
+   <p class="site-eyebrow">PUBLIC AUDIT DEMO / READ-ONLY</p>
+   <h2 id="demo-title">公开历史与公平性证据</h2>
+   <p id="demo-description">本页是完全虚构、无下注操作的 DOM 样本。左侧选择器仅对右侧模拟网页生效。</p>
+   <div class="round-header"><h3>历史轮次 #241 · 公开信息</h3><small id="round-state">已公开</small></div>
+   <div class="history-box"><div class="history-box-head"><span>Provably Fair / Evidence</span><span class="pill info">演示数据</span></div><div id="mock-site" class="rows"></div></div>
+   <div id="boundary-surface" class="blank-demo" hidden><div><b>Canvas / 跨源 iframe（模拟）</b><span>此图层没有可提取的 HTML 字段，也不模拟越权读取</span></div></div>
+   <div class="site-helper"><button id="mutate" class="od-button od-button--secondary tiny" type="button" hidden>模拟 SPA 新增字段</button><span id="site-hint" class="mini">点击左侧“扫描页面”查看识别结果。</span></div>
+   <div class="tipbar"><b>如何演示：</b><span id="tip">查看左侧自动识别到的字段，然后点“验证结果”。</span></div>
+   <div class="explain">全部值与结论均为演示。无真实网站访问、账户读取、Chrome 权限申请、上传、下注或真钱功能。保存仅在本次预览的内存中有效。</div>
+  </div>
+ </section>
+</main>
+<script>
+(function(){
+"use strict";
+const FIELDS=[
+ {key:"serverSeedHash",name:"Server Seed Hash"},
+ {key:"serverSeed",name:"Server Seed"},
+ {key:"clientSeed",name:"Client Seed"},
+ {key:"nonce",name:"Nonce"},
+ {key:"randomResult",name:"页面随机结果"}
+];
+const HASH="025d9953b16a88c2a5853a59dea1c200f309a9507d3d64a8b02c64eb1f16158f";
+const SEED="demo-server-2026", CLIENT="demo-client-A", NONCE="17", RANDOM="25";
+const helpers={
+ known:"已知适配器识别所有公开字段；模拟事前捕获了承诺。",
+ unknown:"未知站点：通用语义扫描可找字段，但不能猜测网站的实际随机算法。",
+ missing:"“玩家参数 X”不是标准标签。请点选择页面区域，再点右侧对应值、映射为 Client Seed 并保存。",
+ dynamic:"初始缺少 Client Seed。点右侧“模拟 SPA 新增字段”，观察自动增量识别。",
+ broken:"旧规则选择器已失效。请点选新的 Server Seed Hash 值并保存修复。",
+ denied:"未授权场景：任何扫描与自动检测均不应读取模拟网页。",
+ unrevealed:"服务端种子没有公开。事前承诺可记录，不能计算明文种子对应的哈希或随机结果。",
+ mismatch:"复算的模拟随机结果是 25，网页显示 26；报告差异，不能宣布通过。",
+ boundary:"模拟跨域 iframe 或 Canvas：DOM 无法提取。不能跳过权限读取。"
+};
+const $=id=>document.getElementById(id);
+const s={scene:"known",granted:false,auto:false,fields:{},sources:{},rules:{},invalid:new Set(),picking:false,chosen:null,obs:null,timer:null,hasScanned:false,appended:false,verification:null,scanCount:0};
+function safeText(v){return String(v==null?"":v).trim();}
+function row(label,value,attr,valueId){
+ const div=document.createElement("div");div.className="evidence-row";
+ const a=document.createElement("span");a.className="evidence-label";a.textContent=label;
+ const b=document.createElement("span");b.className="evidence-value";b.textContent=value;
+ if(attr)b.setAttribute("data-testid",attr);
+ if(valueId)b.id=valueId;
+ b.tabIndex=0;div.append(a,b);return div;
+}
+function dataRow(key,value,customLabel){
+ const name={serverSeedHash:"Server Seed Hash",serverSeed:"Server Seed",clientSeed:"Client Seed",nonce:"Nonce",randomResult:"Random Result"};
+ const attr={serverSeedHash:"server-hash",serverSeed:"server-seed",clientSeed:"client-seed",nonce:"nonce",randomResult:"random-result"};
+ return row(customLabel||name[key],value, s.scene==="known"||s.scene==="dynamic"||s.scene==="broken"||s.scene==="unrevealed"||s.scene==="mismatch"?attr[key]:null,key==="clientSeed"&&s.scene==="missing"?"manual-client":"");
+}
+function renderSite(){
+ const target=$("mock-site");target.replaceChildren();$("boundary-surface").hidden=s.scene!=="boundary";
+ $("mutate").hidden=s.scene!=="dynamic";
+ const unknown=s.scene==="unknown",missing=s.scene==="missing",unrevealed=s.scene==="unrevealed";
+ const boundary=s.scene==="boundary";
+ $("site-name").textContent=s.scene==="known"?"fairness-demo.local (已知样例)":unknown?"unknown-demo.local (未知样例)":"audit-demo.local (模拟站点)";
+ $("address").textContent="https://"+(s.scene==="known"?"fairness-demo.local":unknown?"unknown-demo.local":"audit-demo.local")+"/rounds/241";
+ $("demo-title").textContent=boundary?"仅图形层的公开记录":s.scene==="broken"?"更新结构后的历史记录":"公开历史与公平性证据";
+ $("round-state").textContent=unrevealed?"种子待公开":boundary?"不可读取":"历史轮次 · 已结束";
+ $("site-hint").textContent=boundary?"无法通过普通 DOM 提取这部分画面。":s.scene==="dynamic"?"页面渲染后可能新增字段；只演示授权范围内观察。":"鼠标点选仅限模拟的证据数值。";
+ const tips={
+ known:"查看左侧自动识别到的字段，然后点“验证结果”。",
+ unknown:"先点“扫描页面”再点“验证结果”，留意“算法不支持”。",
+ missing:"扫描→选择页面区域→点击“玩家参数 X”的值→确认映射→保存→再扫描→验证。",
+ dynamic:"观察左侧缺失状态，点击“模拟 SPA 新增字段”，查看 Observer 是否发现新增值。",
+ broken:"先看失效提示，再点“选择页面区域”修复 Server Seed Hash，保存后再扫描。",
+ denied:"尝试“扫描页面”；再按“授予演示权限”并手动扫描。开关需要单独开启。",
+ unrevealed:"点“验证结果”，确认只能等待种子公开。",
+ mismatch:"点“验证结果”查看 RNG 复算值与页面值。",
+ boundary:"即使授权也没有可见字段；预览不会读取 Canvas/跨源 iframe 内容。"
+ };
+ $("tip").textContent=tips[s.scene];
+ if(boundary){$("mock-site").parentElement.hidden=true;return;}
+ $("mock-site").parentElement.hidden=false;
+ const hashAttr=s.scene==="broken"?"server-hash-v2":null;
+ if(s.scene==="broken")target.append(row("Server Seed Hash",HASH,hashAttr));
+ else target.append(dataRow("serverSeedHash",HASH));
+ if(!unrevealed)target.append(dataRow("serverSeed",SEED));
+ if(missing)target.append(row("玩家参数 X",CLIENT,null,"manual-client"));
+ else if(s.scene!=="dynamic"||s.appended)target.append(dataRow("clientSeed",CLIENT));
+ target.append(dataRow("nonce",NONCE));
+ if(!unrevealed)target.append(dataRow("randomResult",s.scene==="mismatch"?"26":RANDOM));
+}
+function detectKey(label){
+ const v=safeText(label).toLowerCase();
+ if(/server[\s_-]*seed[\s_-]*hash|服务器.*(?:哈希|hash)|服务端.*hash|^seed hash$/.test(v))return "serverSeedHash";
+ if(/server[\s_-]*seed|服务器.*种子|服务端.*种子/.test(v))return "serverSeed";
+ if(/client[\s_-]*seed|客户端.*种子|玩家种子/.test(v))return "clientSeed";
+ if(/\bnonce\b|随机序号/.test(v))return "nonce";
+ if(/random[\s_-]*(?:result|number)|rng|随机结果|随机数/.test(v))return "randomResult";
+ return "";
+}
+function isVisible(el){
+ return !!(el&&el.isConnected&&!el.closest("[hidden]")&&el.getAttribute("type")!=="password");
+}
+function valid(key,v){
+ if(key==="serverSeedHash")return /^[0-9a-f]{64}$/i.test(v);
+ if(key==="nonce")return /^\d{1,10}$/.test(v);
+ if(key==="randomResult")return /^\d{1,2}$/.test(v);
+ return v.length>=3&&v.length<=256;
+}
+function selectorFor(el){
+ const id=el.id;if(id&&document.querySelectorAll("#"+CSS.escape(id)).length===1)return "#"+CSS.escape(id);
+ const test=el.getAttribute("data-testid");
+ if(test){const q='[data-testid="'+CSS.escape(test)+'"]';if($("mock-site").querySelectorAll(q).length===1)return q;}
+ return null;
+}
+function cancelObserve(){
+ if(s.obs){s.obs.disconnect();s.obs=null;}
+ if(s.timer){clearTimeout(s.timer);s.timer=null;}
+}
+function beginObserve(){
+ cancelObserve();
+ if(s.scene!=="dynamic"||!s.auto||!s.granted)return;
+ const watched=$("mock-site");
+ s.obs=new MutationObserver(()=>{
+  if(!s.auto||!s.granted)return;
+  if(s.timer)clearTimeout(s.timer);
+  s.timer=setTimeout(()=>{s.timer=null;if(s.granted&&s.auto)scan("observer");},250);
+ });
+ s.obs.observe(watched,{childList:true,subtree:true,characterData:true});
+}
+function updateAuto(){
+ $("auto").checked=s.auto;$("auto-hint").textContent=s.granted?(s.auto?"已授权 · 仅演示该网站":"已授权 · 手动扫描"):"需先有网站授权";
+ $("grant").textContent=s.granted?"撤销演示权限":"授予演示权限";
+ $("permission-tag").className="pill "+(s.granted?"ok":"warn");
+ $("permission-tag").textContent=s.granted?"演示已授权":"未授权";
+}
+function report(text,level){
+ $("feedback").textContent=text||"";
+ if(level) $("feedback").dataset.level=level;
+}
+function emptyVerification(){
+ s.verification=null;$("result-heading").textContent="尚未验证";$("result-scope").textContent="字段识别不代表游戏公平。";$("evidence-button").disabled=true;$("evidence-button").setAttribute("aria-expanded","false");$("evidence").hidden=true;$("evidence").replaceChildren();
+}
+function addStatus(text,level){
+ $("result").textContent=text;$("result").className="help-status"+(level?" "+level:"");
+}
+function renderFields(){
+ const ul=$("fields");ul.replaceChildren();
+ let n=0;
+ for(const spec of FIELDS){
+  const key=spec.key,val=s.fields[key],invalid=s.invalid.has(key);
+  const li=document.createElement("li");li.className="field-item";li.dataset.key=key;
+  const top=document.createElement("div");top.className="field-top";
+  const name=document.createElement("strong");name.textContent=spec.name;
+  const pill=document.createElement("span");
+  pill.className="pill "+(invalid?"bad":val?"ok":"warn");pill.textContent=invalid?"规则失效":val?"已找到":"未找到";
+  top.append(name,pill);li.append(top);
+  const sub=document.createElement("div");sub.className="field-value";sub.textContent=invalid?"请点选该字段以修复":val?((s.sources[key]==="rule"?"已保存规则 · ":s.sources[key]==="adapter"?"适配器 · ":"语义扫描 · ")+val):"—";
+  li.append(sub);ul.append(li);if(val&&!invalid)n++;
+ }
+ $("field-count").textContent=n+" / 5";
+ $("rule-tag").textContent=s.invalid.size?"规则失效":Object.keys(s.rules).length?"已存 "+Object.keys(s.rules).length+" 条规则":s.scene==="known"?"已知适配器":"通用扫描";
+ $("rule-tag").className="pill "+(s.invalid.size?"bad":Object.keys(s.rules).length||s.scene==="known"?"info":"");
+ $("scan-tag").textContent=!s.granted?"未扫描":s.invalid.size?"需要修复":!s.hasScanned?"等待扫描":n===5?"字段已齐":"已发现 "+n+" 项";
+ $("scan-tag").className="pill "+(!s.granted?"warn":s.invalid.size?"bad":n===5?"ok":"info");
+}
+function scan(reason){
+ if(!s.granted){
+  s.fields={};s.sources={};s.invalid.clear();s.hasScanned=false;emptyVerification();renderFields();
+  addStatus("尚未授权本网站。不会执行自动扫描。","warn");report("需要先点击“授予演示权限”。");return;
+ }
+ s.scanCount++;const out={},src={},invalid=new Set(),site=$("mock-site");
+ if(s.scene!=="boundary"){
+  for(const spec of FIELDS){
+   const key=spec.key,stored=s.rules[key];
+   if(stored){
+    let matches=[];try{matches=[...site.querySelectorAll(stored.selector)];}catch(_){}
+    if(matches.length!==1||!isVisible(matches[0])||!valid(key,safeText(matches[0].textContent))){
+     invalid.add(key);continue;
+    }
+    out[key]=safeText(matches[0].textContent);src[key]="rule";continue;
+   }
+   const hits=[];
+   for(const el of site.querySelectorAll(".evidence-row")){
+    const label=el.querySelector(".evidence-label"),value=el.querySelector(".evidence-value");
+    if(!label||!value||!isVisible(value))continue;
+    const found=detectKey(label.textContent);
+    if(found===key&&valid(key,safeText(value.textContent)))hits.push(value);
+   }
+   if(hits.length===1){out[key]=safeText(hits[0].textContent);src[key]=s.scene==="known"?"adapter":"semantic";}
+   else if(hits.length>1)invalid.add(key);
+  }
+ }
+ s.fields=out;s.sources=src;s.invalid=invalid;s.hasScanned=true;emptyVerification();renderFields();
+ if(s.scene==="boundary")addStatus("当前证据仅在 Canvas / 模拟跨域 iframe 中，DOM 不可读取。未执行越权访问。","warn");
+ else if(invalid.size)addStatus("已保存的 DOM 选择器失效或匹配不唯一。为防止误判，已停止使用相关字段。","bad");
+ else if(!out.serverSeed&&s.scene==="unrevealed")addStatus("已读取承诺哈希；Server Seed 尚未公开，等待事后验证。","warn");
+ else if(Object.keys(out).length<5)addStatus("已发现 "+Object.keys(out).length+"/5 项，仍缺少字段。可点选公开页面中的缺失值。","warn");
+ else addStatus("公开字段已齐；这只是数据提取，不等于已经验证随机结果。");
+ const label=reason==="observer"?"动态监听识别":reason==="auto"?"授权后自动识别":"本次扫描";
+ report(label+"完成；仅对演示页面的可见字段执行了一次受限检查。");
+}
+function stopPick(reset){
+ s.picking=false;$("site-surface").classList.remove("picking");$("pick").textContent="选择页面区域";
+ for(const x of document.querySelectorAll(".picker-hover,.selected"))x.classList.remove("picker-hover","selected");
+ if(reset){s.chosen=null;$("editor").hidden=true;$("save").disabled=true;}
+}
+function startPick(){
+ if(!s.granted){addStatus("未授权：不能进入网页选区。","warn");report("请先授予演示权限。");return;}
+ stopPick(true);s.picking=true;$("site-surface").classList.add("picking");$("pick").textContent="退出选区";
+ report("选区模式已开启：将鼠标移到右侧公开数据的值上，点击选择；Esc 可退出。");
+}
+function choose(el){
+ if(!s.picking||!isVisible(el))return;
+ stopPick(false);s.chosen={element:el,selector:selectorFor(el)};
+ el.classList.add("selected");$("editor").hidden=false;
+ const label=safeText(el.closest(".evidence-row")?.querySelector(".evidence-label")?.textContent);
+ $("map-field").value=detectKey(label)||"clientSeed";
+ $("selected-text").textContent="文本："+safeText(el.textContent).slice(0,105);
+ $("candidate-selector").textContent=s.chosen.selector||"（缺少稳定唯一 selector）";
+ $("selector-quality").textContent=s.chosen.selector?"已找到唯一的稳定锚点；保存时会再次确认字段格式。":"选择器无法稳定定位：请调整所选网页元素。";
+ $("save").disabled=!s.chosen.selector;
+ report("已点选元素。请核对字段类型后点击“保存匹配规则”。");
+}
+function save(){
+ if(!s.granted||!s.chosen||!s.chosen.selector){report("当前没有可保存的稳定选区。");return;}
+ const key=$("map-field").value,sel=s.chosen.selector,site=$("mock-site");
+ const matches=[...site.querySelectorAll(sel)];
+ if(matches.length!==1||!isVisible(matches[0])||!valid(key,safeText(matches[0].textContent))){
+  addStatus("规则未保存：选择器必须唯一、可见，且值符合所选字段格式。","bad");
+  report("请重新点选正确的数据值，或更正字段映射。");return;
+ }
+ for(const [other,r] of Object.entries(s.rules)){
+  if(other!==key&&r.selector===sel){
+   report("保存失败：同一个节点已映射为 "+FIELDS.find(f=>f.key===other).name+"。");return;
+  }
+ }
+ s.rules[key]={selector:sel,extract:"textContent",label:matches[0].closest(".evidence-row")?.querySelector(".evidence-label")?.textContent||"",confirmed:true};
+ stopPick(true);scan("rule");
+ report("匹配规则已保存到本次预览内存；再次扫描将优先复用 "+sel+"。");
+}
+function evidenceLine(name,value){
+ const line=document.createElement("div");line.className="level";
+ const title=document.createElement("b");title.textContent=name+"　";
+ const body=document.createElement("span");body.textContent=value;
+ line.append(title,body);$("evidence").append(line);
+}
+function drawVerification(heading,message,level,lines){
+ s.verification={heading,message,level,lines};$("result-heading").textContent=heading;
+ $("result-scope").textContent=message;addStatus(message,level);
+ $("evidence").replaceChildren();for(const [name,text] of lines)evidenceLine(name,text);
+ $("evidence-button").disabled=false;$("evidence").hidden=true;
+ $("evidence-button").setAttribute("aria-expanded","false");
+}
+async function digest(text){
+ if(!globalThis.crypto||!crypto.subtle||!globalThis.TextEncoder)throw new Error("当前环境未提供 Web Crypto");
+ const bytes=new TextEncoder().encode(text),buffer=await crypto.subtle.digest("SHA-256",bytes);
+ return [...new Uint8Array(buffer)].map(x=>x.toString(16).padStart(2,"0")).join("");
+}
+async function verify(){
+ if(!s.granted){addStatus("未获得访问授权，无法验证页面数据。","warn");report("未执行验证。");return;}
+ if(!s.hasScanned)scan("manual");
+ const vals=s.fields;
+ if(s.invalid.size){
+  drawVerification("规则需修复","匹配规则已失效或不唯一；不能据此出具校验结论。","bad",[["状态","INVALID_SELECTOR"],["影响字段",[...s.invalid].join(", ")]]);
+  return;
+ }
+ if(s.scene==="boundary"){
+  drawVerification("能力边界","Canvas / 模拟跨域 iframe 中无可读 DOM 字段，不能验证。","warn",[["状态","UNREADABLE_FRAME_OR_CANVAS"]]);return;
+ }
+ if(!vals.serverSeedHash||!vals.clientSeed||!vals.nonce){
+  drawVerification("证据不完整","缺少公开必要字段，请通过选区补齐后重试。","warn",[["缺失",FIELDS.filter(f=>!vals[f.key]).map(f=>f.name).join(", ")]]);
+  return;
+ }
+ if(!vals.serverSeed){
+  drawVerification("等待公开 Server Seed","目前只能记录页面上的模拟哈希承诺；不能事后复算种子、RNG 或奖金。","warn",[["L1 承诺","仅演示页面声明；不等于可信第三方事前公证"],["L2-L4","尚未执行"]]);return;
+ }
+ let hashed,computed;
+ try{
+  hashed=await digest(vals.serverSeed);
+  computed=await digest(vals.serverSeed+":"+vals.clientSeed+":"+vals.nonce);
+ }catch(err){
+  drawVerification("算法不可用","Web Crypto 不可用；没有执行真实 SHA-256，不能冒充验证成功。","bad",[["原因",err.message]]);return;
+ }
+ const hashOK=hashed.toLowerCase()===vals.serverSeedHash.toLowerCase();
+ const base=[["来源","离线模拟网页 / 轮次 #241"],["L1 事前承诺",s.scene==="unknown"?"没有可独立证实的事前记录":"仅模拟事前捕获，未提供第三方公证"],["L2 页面承诺哈希",vals.serverSeedHash],["L2 计算的 SHA-256",hashed],["L2 对比",hashOK?"一致":"不一致"]];
+ if(!hashOK){
+  drawVerification("种子哈希不一致","公开种子的 SHA-256 与页面承诺值不匹配；后续层级不通过。","bad",base);return;
+ }
+ if(s.scene==="unknown"){
+  drawVerification("仅核对哈希（模拟）","种子与哈希的关系一致，但站点随机算法未知，RNG/Slots 结果不能验证。","warn",base.concat([["L3","UNSUPPORTED_ALGORITHM"],["L4","无赔率/转轴映射"]]));
+  return;
+ }
+ if(!vals.randomResult){
+  drawVerification("证据不完整","缺少网页公布的随机结果，无法独立比对。","warn",base.concat([["L3","缺页面随机结果"]]));return;
+ }
+ const number=(parseInt(computed.slice(0,8),16)%100).toString();
+ const ok=number===vals.randomResult;
+ const lines=base.concat([["模拟算法","SIM-256-v1 · SHA-256(server:client:nonce)，前 8 hex 取模 100"],["L3 计算随机数",number],["L3 页面随机数",vals.randomResult],["L3 对比",ok?"一致":"不一致"],["L4 Slots 符号/奖金","未验证，无映射资料"]]);
+ drawVerification(ok?"模拟随机数复算一致":"随机结果不一致",ok?"仅 SIM-256-v1 随机数层级一致；不能据此声称整局 Slots 公平。":"页面显示的随机结果与本地模拟算法复算不一致。",ok?"":"bad",lines);
+ report("已执行浏览器 Web Crypto 的 SHA-256 模拟计算；未访问任何真实博彩服务。");
+}
+function switchScenario(name){
+ cancelObserve();stopPick(true);s.scene=name;s.granted=name!=="denied";s.auto=name==="known"||name==="dynamic"||name==="broken";s.fields={};s.sources={};s.rules={};s.invalid.clear();s.hasScanned=false;s.appended=false;s.scanCount=0;
+ if(name==="broken")s.rules.serverSeedHash={selector:'[data-testid="server-hash-v1"]',extract:"textContent",confirmed:true};
+ $("scenario-help").textContent=helpers[name];$("scenario").value=name;
+ renderSite();updateAuto();emptyVerification();renderFields();report("");
+ addStatus(s.granted?"等待扫描，所有样本均为虚构公开数据。":"未授权：不会自动读取模拟网页。",s.granted?"":"warn");
+ if(s.granted&&s.auto){scan("auto");beginObserve();}
+}
+$("scenario").addEventListener("change",e=>switchScenario(e.target.value));
+$("grant").addEventListener("click",()=>{
+ if(s.granted){
+  s.granted=false;s.auto=false;cancelObserve();stopPick(true);s.fields={};s.sources={};s.invalid.clear();s.hasScanned=false;emptyVerification();renderFields();addStatus("已撤销演示权限；不会继续扫描或监听 DOM。","warn");report("停止观察器并清除当前扫描结果。");
+ }else{
+  s.granted=true;addStatus("已授予本次模拟站点权限。点击扫描页面或开启自动检测。");report("此按钮不申请真实 Chrome 权限。");
+ }
+ updateAuto();
+});
+$("auto").addEventListener("change",e=>{
+ if(!s.granted){e.target.checked=false;s.auto=false;addStatus("没有网站授权，不能自动检测。","warn");report("请先授权。");return;}
+ s.auto=e.target.checked;updateAuto();
+ if(s.auto){scan("auto");beginObserve();}else{cancelObserve();report("已停止自动检测与 DOM 监听；仍可手动扫描。");}
+});
+$("scan").addEventListener("click",()=>scan("manual"));
+$("pick").addEventListener("click",()=>s.picking?stopPick(true):startPick());
+$("reselect").addEventListener("click",startPick);
+$("cancel-pick").addEventListener("click",()=>{stopPick(true);report("已取消选区，没有保存规则。");});
+$("save").addEventListener("click",save);
+$("verify").addEventListener("click",verify);
+$("evidence-button").addEventListener("click",()=>{
+ if(!s.verification)return;
+ const open=$("evidence").hidden;$("evidence").hidden=!open;$("evidence-button").setAttribute("aria-expanded",String(open));$("evidence-button").textContent=open?"收起验证证据":"查看验证证据";
+});
+$("site-surface").addEventListener("mouseover",e=>{
+ if(!s.picking)return;
+ const el=e.target.closest(".evidence-value");for(const x of document.querySelectorAll(".picker-hover"))x.classList.remove("picker-hover");
+ if(el&&$("mock-site").contains(el))el.classList.add("picker-hover");
+});
+$("site-surface").addEventListener("click",e=>{
+ if(!s.picking)return;const el=e.target.closest(".evidence-value");if(!el||!$("mock-site").contains(el))return;
+ e.preventDefault();e.stopPropagation();choose(el);
+},true);
+document.addEventListener("keydown",e=>{if(e.key==="Escape"&&(s.picking||s.chosen)){stopPick(true);report("已退出选区，没有修改规则。");}});
+$("mutate").addEventListener("click",()=>{
+ if(s.scene!=="dynamic"||s.appended)return;
+ s.appended=true;
+ const target=$("mock-site"),at=target.querySelectorAll(".evidence-row")[2];
+ target.insertBefore(dataRow("clientSeed",CLIENT),at||null);
+ $("mutate").disabled=true;$("site-hint").textContent="新增字段已进入 DOM；自动监听开关关闭时，需要手动扫描。";
+ report(s.auto&&s.granted?"已更新 DOM；等待 250ms 增量监听。":"已更新 DOM；未开启自动检测，请手动扫描。");
+});
+switchScenario("known");
+window.__SLOTS_PREVIEW_TEST__={getState:()=>({scenario:s.scene,granted:s.granted,auto:s.auto,fields:{...s.fields},invalid:[...s.invalid],rules:{...s.rules},scanCount:s.scanCount,observer:!!s.obs,verification:s.verification?{...s.verification}:null})};
+})();
+</script>
+</body>
+</html>
