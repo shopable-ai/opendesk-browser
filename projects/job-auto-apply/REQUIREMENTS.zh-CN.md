@@ -95,8 +95,8 @@
 ### R3 · 当前交付证据与最小后续动作
 
 - 已提交源码：src/page/main.js、src/main.js、src/index.html、src/style.css、tool.config.json、package.json；版本 0.1.1、Page revision 2。
-- 已提交定向测试：tests/scan.test.mjs（7 项）、tests/match.test.mjs（6 项）、tests/queue.test.mjs（4 项）。实际运行过独立 V8 动态检查，包括职位 ID/重号、工资/猎头/已沟通过滤、未知存储写入锁定；V8_SMOKE_PASS 不等于 Node 全部测试 PASS。
-- 仍需运行并保留回执：node --test projects/job-auto-apply/tests/*.test.mjs；通过原 scripts/build-sidebar-tool.mjs 生成候选并执行同源检查；之后在真实 Chrome 的用户授权安装/网页扫描/导航/撤权中验收。
+- 已提交定向测试：tests/scan.test.mjs（7 项）、tests/match.test.mjs（6 项）、tests/queue.test.mjs（4 项）。独立 V8 动态检查通过；GitHub App CI run 45045711718（源提交 f539b1e3）完成候选构建、同源比对与 60/60 项 Node PASS，其中包括上述 17 项项目测试；该候选 SHA-256 为 37a1873ad220ca5ca1ceb79859475a2595a0c2896cdcd678c5556cf43a21862a，52,321 字节。CI 不是本地或已安装 Chrome，后续 HEAD 如有变更须重新核对同源。
+- 已获 CI Node 和候选同源回执；仍需本机运行 node --test projects/job-auto-apply/tests/*.test.mjs 并在用户授权的真实 Chrome 完成正式候选安装、网页扫描、导航/撤权验收。CI 仅证明构建与 Node，不能证明 BOSS 实站兼容或任务发送。
 - 本轮可用的 CodexPro 本地工作区连接失败；浏览器标签页无登录态 BOSS 搜索页面，因此 Node 正式运行、标准包构建、真实安装、真实网站均 NOT_TESTED。
 - 真实 AI、单岗位发送、执行任务、暂停恢复、历史聊天、简历上传、多平台均 NOT_IMPLEMENTED。不得将任何上述项目作为已完成或模拟 PASS。
 - 下一步顺序：先取得 Node/CI 与原候选打包回执；随后用用户已授权 BOSS 职位列表核实实际 DOM 并修正选择器；只有明确的单岗位身份、审批、Stop、幂等与真实回执全部满足，才继续实现发送，暂不启动自动海投。
