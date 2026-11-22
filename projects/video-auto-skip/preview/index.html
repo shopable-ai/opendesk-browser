@@ -544,7 +544,9 @@ class ContinuityModel {
     return {intro:{enabled:true,mode:'start',start:0,end:90},outro:{enabled:true,mode:'tail',tail:90,start:null,end:null},autoNext:true};
   }
   copy(v) { return ContinuityModel.copy(v); }
-  identity() { const base=`demo:星海航线|s1|e${this.s.episode}|${this.s.version}`; const x=this.r10&&this.r10.context; return x&&(x.kind!=='regular'||x.siteOrigin!=='https://demo.invalid'||!x.edition)?base+'|'+x.mediaKey:base; }
+  identity() { const x=this.r10&&this.r10.context; if(x&&!x.seriesVerified)return 'demo:current-media|'+x.mediaKey;
+    const base=`demo:星海航线|s1|e${this.s.episode}|${this.s.version}`;
+    return x&&(x.kind!=='regular'||x.siteOrigin!=='https://demo.invalid'||!x.edition)?base+'|'+x.mediaKey:base; }
   _workIdentity() { return `demo:星海航线|s1|${this.s.version}`; }
   _notice(text, kind='info') { this.s.status=text; this.s.statusKind=kind; }
   _duration(n=this.s.episode) { return ({3:2700,4:2880,5:null})[n] ?? null; }
@@ -925,7 +927,12 @@ if(typeof module!=='undefined') module.exports=ContinuityModel;
 const R10_FIXTURES = Object.freeze({
  empty:{episode:3,duration:2700,noSaved:true,patternConfirmed:true},
  normal03:{episode:3,duration:2700,patternConfirmed:true},
- normal04:{episode:4,duration:2880,patternConfirmed:true},
+ normal04:{episode:4,duration:2880,patternConfirmed:true,ruleOriginEpisode:3,ruleOriginDuration:2700},
+ samePlaylistUnknownEpisode:{episode:4,duration:2880,patternConfirmed:true,episodeVerified:false,ruleOriginEpisode:3,ruleOriginDuration:2700},
+ partialIdentity:{episode:4,duration:2880,patternConfirmed:true,seasonVerified:false,episodeVerified:false,ruleOriginEpisode:3,ruleOriginDuration:2700},
+ titleHint:{episode:4,duration:2880,seriesVerified:false,seasonVerified:false,episodeVerified:false,playlistVerified:false,patternConfirmed:false,titleHint:'星海航线'},
+ unidentified:{episode:4,duration:2880,noSaved:true,seriesVerified:false,seasonVerified:false,episodeVerified:false,playlistVerified:false,patternConfirmed:false},
+ wrongSeries:{episode:4,duration:2880,seriesKey:'unrelated',playlistVerified:false,patternConfirmed:false},
  history:{episode:4,duration:2880,patternConfirmed:true,localTail:60,historyTail:90},
  merged:{episode:3,duration:5400,kind:'merged',patternConfirmed:false,segmentMap:null},
  special:{episode:3,duration:6000,kind:'special',patternConfirmed:false},
@@ -953,6 +960,8 @@ function r10Context(name){
   episode:3,duration:2700,kind:'regular',edition:'cut-A',ruleEdition:'cut-A',
   versionVerified:true,resourceVerified:true,siteOrigin:'https://demo.invalid',
   sourceFingerprint:'confirmed-playlist-A',playlistVerified:true,patternConfirmed:false,
+  seriesName:'星海航线',seriesKey:'demo-series',seasonKey:'s1',ruleSeriesKey:'demo-series',ruleSeasonKey:'s1',
+  seriesVerified:true,seasonVerified:true,episodeVerified:true,ruleOriginEpisode:3,ruleOriginDuration:2700,
   branchConflict:false,syncConflict:false,segmentMap:null
  },f);
  ctx.mediaKey=ctx.siteOrigin+'|demo-series:s1:e'+ctx.episode+':'+ctx.kind+':'+String(ctx.edition||'unknown');
@@ -972,13 +981,14 @@ ContinuityModel.prototype.r10LoadFixture=function(name){
  const cfg=r10Context(name);if(!cfg)return false;
  // Do not silently migrate a current unsaved draft into a new video fixture.
  if(this.s.dirty){this.s.transition={kind:'r10Fixture',target:name};this._notice('当前有未保存修改：先继续编辑或放弃再切换模拟视频。','warning');return false;}
- this._loadScenario(name==='empty'?'empty':'standard');
+ this._loadScenario(cfg.noSaved?'empty':'standard');
  this.r10.context=cfg; // Bind the edition/kind-specific identity before writing an exact-video exception.
  this.s.episode=cfg.episode;
  this.s.version=cfg.edition==='cut-B'?'版本 B':'标准版 A';
  this.s.duration=cfg.duration;
  if(R10_OWN.call(R10_FIXTURES[name],'tail'))this.s.base.outro={enabled:true,mode:'tail',tail:cfg.tail,start:null,end:null};
- if(cfg.localTail!==undefined||cfg.localInterval||cfg.kind!=='regular'||!cfg.versionVerified||!cfg.resourceVerified)this.s.scope='episode';
+ if(cfg.localTail!==undefined||cfg.localInterval||cfg.kind!=='regular'||!cfg.versionVerified||!cfg.resourceVerified||
+    (!cfg.seriesVerified&&!cfg.playlistVerified)||!cfg.seasonVerified)this.s.scope='episode';
  // Three values coexist: E03 default 90, E04 override 60, E05 override 120.
  if(name==='history'){
   this.s.overrides['demo:星海航线|s1|e4|'+this.s.version]={outro:{enabled:true,mode:'tail',tail:60,start:null,end:null}};
@@ -1051,8 +1061,10 @@ ContinuityModel.prototype.r10Decision=function(key){
   if(!x.versionVerified||!x.edition){
    result.reason='当前剪辑版本未确认';return result;
   }
-  if(x.siteOrigin!=='https://demo.invalid'||x.edition!==x.ruleEdition||x.sourceFingerprint!=='confirmed-playlist-A'){
-   result.compatibility='NOT_APPLICABLE';result.reason='剪辑版本或片源与历史规则不同';return result;
+  if(x.siteOrigin!=='https://demo.invalid'||x.edition!==x.ruleEdition||x.sourceFingerprint!=='confirmed-playlist-A'||
+     (x.seriesVerified&&x.seriesKey!==x.ruleSeriesKey)||
+     (x.seasonVerified&&x.seasonKey!==x.ruleSeasonKey)){
+   result.compatibility='NOT_APPLICABLE';result.reason='作品、季、剪辑版本或片源与历史规则不一致';return result;
   }
   if(x.historicalDuration!==null&&x.historicalDuration!==d){
    result.compatibility='NEEDS_CONFIRMATION';result.reason='同一资源历史时长变化，请核对剪辑/广告/版本';return result;
@@ -1063,8 +1075,8 @@ ContinuityModel.prototype.r10Decision=function(key){
    return result;
   }
   if(!x.playlistVerified||!x.patternConfirmed){
-   result.compatibility='NEEDS_CONFIRMATION';
-   result.reason='站内关系或片头片尾规律还没有可信确认';return result;
+   result.compatibility='UNKNOWN';
+   result.reason='无法核实站内剧集关系或该范围的片头片尾规律';return result;
   }
   result.compatibility='APPLICABLE';result.reason='同站已确认剧集关系、剪辑版本及复用范围';
  }
