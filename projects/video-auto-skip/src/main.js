@@ -312,14 +312,14 @@ export function mountVideoSidebar(tool) {
     if (find('page-status').textContent !== statusText) find('page-status').textContent = statusText;
     find('page-status').classList.toggle('vas-sr', bound && !snapshot.offscreen);
     find('refresh').disabled = busy;
-    find('scope-help').textContent = !lastLinked ? '' : t(scope === 'series' ? 'scopeSeriesHelp' : iyf ? 'scopeEpisodeIyfHelp' : 'scopeEpisodeHelp');
+    find('scope-help').textContent = !lastLinked ? '' : t(scope === 'series' ? 'scopeSeriesHelp' : 'scopeEpisodeHelp');
     find('scope-help').classList.toggle('vas-sr', !hasEdits && !(iyf && storage && Object.keys(readScope(storage.data, c, 'series')).length));
     const active = lastLinked && storage ? resolveRules(storage.data, c) : {};
     const hasEpisodeOutro = Boolean(lastLinked && storage && Object.hasOwn(readScope(storage.data, c, 'episode'), 'outro'));
     for (const key of KEYS) {
       const {toggle, summary, restore} = rows[key];
-      restore.textContent = t(iyf ? 'removeEpisodeOverride' : 'restoreInherited');
-      restore.setAttribute('aria-label', t(iyf ? 'removeEpisodeOverrideAria' : 'restoreRuleAria', {rule: t(NAMES[key])}));
+      restore.textContent = t('restoreInherited');
+      restore.setAttribute('aria-label', t('restoreRuleAria', {rule: t(NAMES[key])}));
       const raw = draft[key], effective = selected(key), siteHandlesNext = key === 'next' && iyf;
       toggle.checked = !siteHandlesNext && (key === 'next' ? isEnabled(effective) : timingOn(effective));
       toggle.disabled = !allowed || siteHandlesNext;
@@ -327,7 +327,7 @@ export function mountVideoSidebar(tool) {
       const reusable = unusable ? reusableOutro() : undefined;
       const archived = scope === 'episode' && iyf && raw === undefined && legacyDefault(key) !== undefined;
       const source = scope === 'episode' ? (raw === undefined ?
-        (archived ? t('summaryArchivedDefault') : unusable ? '作品默认 · ' : canInheritDefaults(c) ? t('summaryInherited') : '') :
+        (archived ? '' : unusable ? '作品默认 · ' : canInheritDefaults(c) ? t('summaryInherited') : '') :
         t('summaryOverride')) : '';
       const proposed = source + (lastLinked ? caption(effective, key) : t('summaryPendingWork')) +
         (unusable || archived ? '（当前视频未采用）' : '');
