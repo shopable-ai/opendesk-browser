@@ -124,12 +124,12 @@ test('the same inherited tail displays both points for the currently bound durat
   assert.deepEqual(points(), ['19:15', 'End']);
   await ui.next({...localLinked, media: {...localLinked.media, duration: 1156.011, revision: 2}});
   assert.deepEqual(points(), ['17:48', 'End']);
-  assert.match(ui.get('tail-match').textContent, /当前视频 17:48–19:16.*自动计算.*来自作品规则.*已生效/);
+  assert.match(ui.get('tail-match').textContent, /当前视频 17:48–19:16.*作品默认.*按倒数 01:28.*当前生效/);
   assert.equal(ui.get('outro-start').disabled, false);
   assert.equal(ui.get('outro-start').parentElement.dataset.endpointState, 'calculated');
   ui.get('clear-outro-start').click();
   assert.deepEqual(points(), ['17:48', 'End']);
-  assert.match(ui.get('tail-match').textContent, /本集无自定义开始时间可清除/);
+  assert.match(ui.get('tail-match').textContent, /17:48–19:16.*作品默认/);
   assert.equal(ui.get('save').disabled, true);
   assert.equal(ui.get('preview-outro').disabled, false);
   await ui.next({...localLinked, media: {...localLinked.media, duration: null, revision: 3}});
@@ -148,8 +148,8 @@ test('a suggested start is a placeholder and never reads as an active rule', asy
   assert.match(ui.get('tail-match').textContent, /尚未设置片尾规则，不会自动跳过/);
   assert.equal(ui.get('save').disabled, true);
   ui.edit('outro-start', '18:30');
-  assert.match(ui.get('tail-match').textContent, /手动设置.*来自本集设置.*待保存/);
-  assert.doesNotMatch(ui.get('tail-match').textContent, /已生效/);
+  assert.match(ui.get('tail-match').textContent, /当前集.*尚未保存/);
+  assert.doesNotMatch(ui.get('tail-match').textContent, /当前生效/);
 });
 
 test('an out-of-bounds fixed default is only a reference and can be corrected for the current episode', async t => {
@@ -164,7 +164,7 @@ test('an out-of-bounds fixed default is only a reference and can be corrected fo
   assert.equal(ui.get('save').disabled, true);
   ui.edit('outro-start', '18:30');
   ui.edit('outro-end', '19:10');
-  assert.match(ui.get('tail-match').textContent, /18:30–19:10.*待保存/);
+  assert.match(ui.get('tail-match').textContent, /18:30–19:10.*固定区间.*尚未保存/);
   assert.match(ui.get('summary-outro').textContent, /已保存：19:15–20:43（当前视频未采用）/);
   assert.equal(ui.get('save').disabled, false);
   ui.get('cancel').click();
@@ -183,7 +183,7 @@ test('matching an unavailable fixed default uses its length as a draft and requi
   assert.match(match.textContent, /01:28/);
   match.click();
   assert.deepEqual([ui.get('outro-start').value, ui.get('outro-end').value], ['17:48', 'End']);
-  assert.match(ui.get('tail-match').textContent, /手动设置.*倒数 01:28.*待保存/);
+  assert.match(ui.get('tail-match').textContent, /倒数 01:28.*尚未保存/);
   assert.equal(ui.get('outro-end-slider').dataset.bound, 'true');
   assert.equal(ui.get('save').disabled, false);
   assert.equal(match.hidden, true);
@@ -213,7 +213,7 @@ for (const method of ['clear button', 'empty input']) test('episode outro ' + me
   ui.get('save').click();
   await settle();
   assert.deepEqual(ui.writes, [{scope: 'episode', rules: {}}]);
-  assert.match(ui.get('tail-match').textContent, /18:32–20:00.*自动计算.*来自作品规则/);
+  assert.match(ui.get('tail-match').textContent, /18:32–20:00.*作品默认.*按倒数 01:28/);
   assert.equal(ui.get('restore-outro').hidden, true);
 });
 
@@ -228,7 +228,7 @@ test('verified local disabled exception stays off until explicitly restored', as
   ui.get('save').click();
   await settle();
   assert.deepEqual(ui.writes.at(-1), {scope: 'episode', rules: {next: false}});
-  assert.match(ui.get('tail-match').textContent, /17:48–19:16.*自动计算.*来自作品规则/);
+  assert.match(ui.get('tail-match').textContent, /17:48–19:16.*作品默认.*按倒数 01:28/);
   ui.get('rule-outro').click();
   ui.get('save').click();
   await settle();
@@ -243,7 +243,7 @@ test('R13: archived iYF work defaults do not silently become active episode rule
   });
   await settle();
   assert.deepEqual([ui.get('outro-start').value, ui.get('outro-end').value], ['', '']);
-  assert.match(ui.get('tail-match').textContent, /尚未设置片尾规则，不会自动跳过/);
+  assert.match(ui.get('tail-match').textContent, /作品默认（当前视频未采用）/);
   assert.match(ui.get('scope-help').textContent, /兼容验证/);
   assert.match(ui.get('summary-outro').textContent, /当前视频未采用/);
   assert.equal(ui.get('save').disabled, true);
@@ -256,7 +256,7 @@ test('R13: archived iYF fixed outro remains usable only as an explicit R10 episo
   const match = ui.get('match-outro-length');
   assert.equal(match.hidden, false);
   assert.match(match.textContent, /01:28/);
-  assert.match(ui.get('tail-match').textContent, /不会自动跳过/);
+  assert.match(ui.get('tail-match').textContent, /作品默认（当前视频未采用）/);
   match.click();
   assert.deepEqual([ui.get('outro-start').value, ui.get('outro-end').value], ['17:48', 'End']);
   assert.equal(ui.get('save').disabled, false);

@@ -24,6 +24,7 @@
       "outroRule": "跳过片尾",
       "nextRule": "自动下一集",
       "autoSkip": "自动跳过",
+      "enableRule": "启用规则",
       "restoreInherited": "移除本集设置",
       "restoreRuleAria": "移除本集设置：{rule}",
       "timeStart": "开始",
@@ -39,7 +40,7 @@
       "previewOutroStart": "查看片尾开始位置",
       "positionCalibration": "{name}位置校准",
       "tailHelp": "End 跟随当前视频的实际结束位置，换集自动重算片尾开始；填入具体结束时间可保留后面的内容。",
-      "crossEpisodeMatch": "跨集匹配",
+      "tailStatusLabel": "片尾状态",
       "frontWindow": "前 {time}",
       "endWindow": "末 {time}",
       "durationPendingShort": "时长待获取",
@@ -126,18 +127,17 @@
       "validationOverlap": "片头和片尾的区间不能重叠。",
       "validationEntire": "片头和片尾合计会跳过整集。",
       "tailWaitingDuration": "等待当前视频时长，暂无法换算。",
-      "tailSetStartSeries": "先设置片尾开始时间，保存后跨集复用。",
-      "tailSetStartEpisode": "先设置片尾开始时间，保存到当前集。",
-      "tailBadRange": "片尾区间有误，请核对时间。",
-      "tailFixed": "{pending}指定区间，不跟随视频结尾。",
-      "tailPendingPrefix": "待保存 · ",
-      "tailWillApply": "待保存 · 将按倒数 {time} 换算。",
-      "tailCanSave": "设置片尾开始时间后可保存。",
-      "tailSaved": "已保存 · {disabled}按倒数 {time} 换算{scope}",
-      "tailDisabled": "跳过已关闭 · ",
-      "tailScopeSeries": "，适用各集。",
-      "tailScopeInherited": "，沿用作品默认。",
-      "tailScopeEpisode": "，仅本集。",
+      "tailVideo": "当前视频 {range} · {source} · {method} · {status}",
+      "tailOff": "自动跳过已关闭：{source}。",
+      "tailBadRange": "当前视频无可用片尾区间，不会自动跳过。",
+      "tailFixedMethod": "固定区间",
+      "tailDefault": "作品默认",
+      "tailRelativeMethod": "按倒数 {time} 换算",
+      "tailUnset": "尚未设置片尾规则，不会自动跳过。时间轴上的建议仅供编辑参考。",
+      "tailMatchLength": "按原片尾时长 {time} 匹配",
+      "tailNotApplied": "（当前视频未采用）",
+      "seasonUnknown": "季号未提供",
+      "lineUnknown": "线路未标识",
       "feedbackDraftLost": "页面或播放器已变化，旧草稿未保存。",
       "feedbackPositionVerified": "已核对播放器位置。",
       "feedbackReconcileFailed": "仍无法核对保存结果。请重新识别；不会自动重试保存。",
@@ -252,6 +252,10 @@
         "source": "自动跳过",
         "text": "Auto-skip"
       },
+      "enableRule": {
+        "source": "启用规则",
+        "text": "Enable rule"
+      },
       "restoreInherited": {
         "source": "移除本集设置",
         "text": "Remove episode setting"
@@ -312,9 +316,9 @@
         "source": "End 跟随当前视频的实际结束位置，换集自动重算片尾开始；填入具体结束时间可保留后面的内容。",
         "text": "End follows the actual video end. The ending start is recalculated for each episode; enter a specific end time to keep later content."
       },
-      "crossEpisodeMatch": {
-        "source": "跨集匹配",
-        "text": "Across-episode matching"
+      "tailStatusLabel": {
+        "source": "片尾状态",
+        "text": "Ending status"
       },
       "frontWindow": {
         "source": "前 {time}",
@@ -660,53 +664,49 @@
         "source": "等待当前视频时长，暂无法换算。",
         "text": "Waiting for video duration; cannot calculate yet."
       },
-      "tailSetStartSeries": {
-        "source": "先设置片尾开始时间，保存后跨集复用。",
-        "text": "Set ending start, then save to reuse across episodes."
+      "tailVideo": {
+        "source": "当前视频 {range} · {source} · {method} · {status}",
+        "text": "Current video {range} · {source} · {method} · {status}"
       },
-      "tailSetStartEpisode": {
-        "source": "先设置片尾开始时间，保存到当前集。",
-        "text": "Set ending start, then save for this episode."
+      "tailOff": {
+        "source": "自动跳过已关闭：{source}。",
+        "text": "Auto-skip is off: {source}."
       },
       "tailBadRange": {
-        "source": "片尾区间有误，请核对时间。",
-        "text": "Ending range is invalid; check the times."
+        "source": "当前视频无可用片尾区间，不会自动跳过。",
+        "text": "No usable ending interval for this video. Auto-skip will not run."
       },
-      "tailFixed": {
-        "source": "{pending}指定区间，不跟随视频结尾。",
-        "text": "{pending}Fixed range; does not follow the video end."
+      "tailFixedMethod": {
+        "source": "固定区间",
+        "text": "Fixed interval"
       },
-      "tailPendingPrefix": {
-        "source": "待保存 · ",
-        "text": "Unsaved · "
+      "tailDefault": {
+        "source": "作品默认",
+        "text": "Series default"
       },
-      "tailWillApply": {
-        "source": "待保存 · 将按倒数 {time} 换算。",
-        "text": "Unsaved · will calculate from last {time}."
+      "tailRelativeMethod": {
+        "source": "按倒数 {time} 换算",
+        "text": "Calculated from the last {time}"
       },
-      "tailCanSave": {
-        "source": "设置片尾开始时间后可保存。",
-        "text": "Set ending start time to enable saving."
+      "tailUnset": {
+        "source": "尚未设置片尾规则，不会自动跳过。时间轴上的建议仅供编辑参考。",
+        "text": "No ending rule is set, so auto-skip will not run. Timeline suggestions are for editing only."
       },
-      "tailSaved": {
-        "source": "已保存 · {disabled}按倒数 {time} 换算{scope}",
-        "text": "Saved · {disabled}calculated from last {time}{scope}"
+      "tailMatchLength": {
+        "source": "按原片尾时长 {time} 匹配",
+        "text": "Match the original ending length ({time})"
       },
-      "tailDisabled": {
-        "source": "跳过已关闭 · ",
-        "text": "Skipping off · "
+      "tailNotApplied": {
+        "source": "（当前视频未采用）",
+        "text": " (not applied to this video)"
       },
-      "tailScopeSeries": {
-        "source": "，适用各集。",
-        "text": ", applies to all episodes."
+      "seasonUnknown": {
+        "source": "季号未提供",
+        "text": "Season not provided"
       },
-      "tailScopeInherited": {
-        "source": "，沿用作品默认。",
-        "text": ", inherited from series defaults."
-      },
-      "tailScopeEpisode": {
-        "source": "，仅本集。",
-        "text": ", this episode only."
+      "lineUnknown": {
+        "source": "线路未标识",
+        "text": "Source not identified"
       },
       "feedbackDraftLost": {
         "source": "页面或播放器已变化，旧草稿未保存。",
@@ -894,6 +894,10 @@
         "source": "自动跳过",
         "text": "自動スキップ"
       },
+      "enableRule": {
+        "source": "启用规则",
+        "text": "ルールを有効にする"
+      },
       "restoreInherited": {
         "source": "移除本集设置",
         "text": "この話の設定を削除"
@@ -954,9 +958,9 @@
         "source": "End 跟随当前视频的实际结束位置，换集自动重算片尾开始；填入具体结束时间可保留后面的内容。",
         "text": "End は現在の動画の実際の終了位置に追従します。話が変わると開始位置を再計算します。終了時刻を指定すると以降の内容を残せます。"
       },
-      "crossEpisodeMatch": {
-        "source": "跨集匹配",
-        "text": "エピソード間の適用"
+      "tailStatusLabel": {
+        "source": "片尾状态",
+        "text": "エンディングの状態"
       },
       "frontWindow": {
         "source": "前 {time}",
@@ -1302,53 +1306,49 @@
         "source": "等待当前视频时长，暂无法换算。",
         "text": "動画の再生時間待ちのため、まだ換算できません。"
       },
-      "tailSetStartSeries": {
-        "source": "先设置片尾开始时间，保存后跨集复用。",
-        "text": "エンディング開始時刻を設定して保存すると、他の話でも再利用できます。"
+      "tailVideo": {
+        "source": "当前视频 {range} · {source} · {method} · {status}",
+        "text": "現在の動画 {range}・{source}・{method}・{status}"
       },
-      "tailSetStartEpisode": {
-        "source": "先设置片尾开始时间，保存到当前集。",
-        "text": "エンディング開始時刻を設定して、この話に保存してください。"
+      "tailOff": {
+        "source": "自动跳过已关闭：{source}。",
+        "text": "自動スキップはオフ：{source}。"
       },
       "tailBadRange": {
-        "source": "片尾区间有误，请核对时间。",
-        "text": "エンディングの範囲が無効です。時刻を確認してください。"
+        "source": "当前视频无可用片尾区间，不会自动跳过。",
+        "text": "この動画で使えるエンディング区間がないため、自動スキップしません。"
       },
-      "tailFixed": {
-        "source": "{pending}指定区间，不跟随视频结尾。",
-        "text": "{pending}指定範囲。動画の末尾には追従しません。"
+      "tailFixedMethod": {
+        "source": "固定区间",
+        "text": "固定区間"
       },
-      "tailPendingPrefix": {
-        "source": "待保存 · ",
-        "text": "未保存・"
+      "tailDefault": {
+        "source": "作品默认",
+        "text": "作品の既定値"
       },
-      "tailWillApply": {
-        "source": "待保存 · 将按倒数 {time} 换算。",
-        "text": "未保存・末尾から {time} を逆算します。"
+      "tailRelativeMethod": {
+        "source": "按倒数 {time} 换算",
+        "text": "終了前 {time} から計算"
       },
-      "tailCanSave": {
-        "source": "设置片尾开始时间后可保存。",
-        "text": "エンディング開始時刻を設定すると保存できます。"
+      "tailUnset": {
+        "source": "尚未设置片尾规则，不会自动跳过。时间轴上的建议仅供编辑参考。",
+        "text": "エンディングのルールが未設定のため、自動スキップしません。タイムラインの候補は編集の目安です。"
       },
-      "tailSaved": {
-        "source": "已保存 · {disabled}按倒数 {time} 换算{scope}",
-        "text": "保存済み・{disabled}末尾から {time} を逆算{scope}"
+      "tailMatchLength": {
+        "source": "按原片尾时长 {time} 匹配",
+        "text": "元のエンディングの長さ（{time}）に合わせる"
       },
-      "tailDisabled": {
-        "source": "跳过已关闭 · ",
-        "text": "スキップはオフ・"
+      "tailNotApplied": {
+        "source": "（当前视频未采用）",
+        "text": "（この動画には適用されません）"
       },
-      "tailScopeSeries": {
-        "source": "，适用各集。",
-        "text": "、各話に適用します。"
+      "seasonUnknown": {
+        "source": "季号未提供",
+        "text": "シーズン番号なし"
       },
-      "tailScopeInherited": {
-        "source": "，沿用作品默认。",
-        "text": "、作品の既定値を継承します。"
-      },
-      "tailScopeEpisode": {
-        "source": "，仅本集。",
-        "text": "、この話だけに適用します。"
+      "lineUnknown": {
+        "source": "线路未标识",
+        "text": "再生ソース未確認"
       },
       "feedbackDraftLost": {
         "source": "页面或播放器已变化，旧草稿未保存。",
@@ -1536,6 +1536,10 @@
         "source": "自动跳过",
         "text": "自動跳過"
       },
+      "enableRule": {
+        "source": "启用规则",
+        "text": "啟用規則"
+      },
       "restoreInherited": {
         "source": "移除本集设置",
         "text": "移除本集設定"
@@ -1596,9 +1600,9 @@
         "source": "End 跟随当前视频的实际结束位置，换集自动重算片尾开始；填入具体结束时间可保留后面的内容。",
         "text": "End 會跟隨目前影片的實際結束位置；換集時重新計算片尾開始。填入指定結束時間可保留後續內容。"
       },
-      "crossEpisodeMatch": {
-        "source": "跨集匹配",
-        "text": "跨集比對"
+      "tailStatusLabel": {
+        "source": "片尾状态",
+        "text": "片尾狀態"
       },
       "frontWindow": {
         "source": "前 {time}",
@@ -1944,53 +1948,49 @@
         "source": "等待当前视频时长，暂无法换算。",
         "text": "等待目前影片時長，暫時無法換算。"
       },
-      "tailSetStartSeries": {
-        "source": "先设置片尾开始时间，保存后跨集复用。",
-        "text": "先設定片尾開始時間，儲存後可跨集重用。"
+      "tailVideo": {
+        "source": "当前视频 {range} · {source} · {method} · {status}",
+        "text": "目前影片 {range}・{source}・{method}・{status}"
       },
-      "tailSetStartEpisode": {
-        "source": "先设置片尾开始时间，保存到当前集。",
-        "text": "先設定片尾開始時間，再儲存至目前集數。"
+      "tailOff": {
+        "source": "自动跳过已关闭：{source}。",
+        "text": "自動跳過已關閉：{source}。"
       },
       "tailBadRange": {
-        "source": "片尾区间有误，请核对时间。",
-        "text": "片尾區間有誤，請核對時間。"
+        "source": "当前视频无可用片尾区间，不会自动跳过。",
+        "text": "目前影片沒有可用的片尾區間，不會自動跳過。"
       },
-      "tailFixed": {
-        "source": "{pending}指定区间，不跟随视频结尾。",
-        "text": "{pending}指定區間，不跟隨影片結尾。"
+      "tailFixedMethod": {
+        "source": "固定区间",
+        "text": "固定區間"
       },
-      "tailPendingPrefix": {
-        "source": "待保存 · ",
-        "text": "待儲存・"
+      "tailDefault": {
+        "source": "作品默认",
+        "text": "作品預設"
       },
-      "tailWillApply": {
-        "source": "待保存 · 将按倒数 {time} 换算。",
-        "text": "待儲存・將依倒數 {time} 換算。"
+      "tailRelativeMethod": {
+        "source": "按倒数 {time} 换算",
+        "text": "依倒數 {time} 換算"
       },
-      "tailCanSave": {
-        "source": "设置片尾开始时间后可保存。",
-        "text": "設定片尾開始時間後即可儲存。"
+      "tailUnset": {
+        "source": "尚未设置片尾规则，不会自动跳过。时间轴上的建议仅供编辑参考。",
+        "text": "尚未設定片尾規則，不會自動跳過。時間軸上的建議僅供編輯參考。"
       },
-      "tailSaved": {
-        "source": "已保存 · {disabled}按倒数 {time} 换算{scope}",
-        "text": "已儲存・{disabled}依倒數 {time} 換算{scope}"
+      "tailMatchLength": {
+        "source": "按原片尾时长 {time} 匹配",
+        "text": "依原片尾長度 {time} 比對"
       },
-      "tailDisabled": {
-        "source": "跳过已关闭 · ",
-        "text": "跳過已關閉・"
+      "tailNotApplied": {
+        "source": "（当前视频未采用）",
+        "text": "（目前影片未套用）"
       },
-      "tailScopeSeries": {
-        "source": "，适用各集。",
-        "text": "，適用各集。"
+      "seasonUnknown": {
+        "source": "季号未提供",
+        "text": "未提供季別"
       },
-      "tailScopeInherited": {
-        "source": "，沿用作品默认。",
-        "text": "，沿用作品預設。"
-      },
-      "tailScopeEpisode": {
-        "source": "，仅本集。",
-        "text": "，僅目前集數。"
+      "lineUnknown": {
+        "source": "线路未标识",
+        "text": "未標示來源"
       },
       "feedbackDraftLost": {
         "source": "页面或播放器已变化，旧草稿未保存。",

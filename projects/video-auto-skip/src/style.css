@@ -188,6 +188,12 @@
 .vas-player button { justify-self: start; }
 .vas .vas-feedback[data-tone="error"] { color: var(--warning); background: var(--warning-bg); }
 .vas-sr { position: absolute; inline-size: 1px; block-size: 1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
+@media (max-width: 280px) {
+  .vas-endpoints { grid-template-columns: minmax(0, 1fr); }
+  .vas-header, .vas-row-head, .vas-source, .vas .vas-tail-match, .vas #vas-unsaved { flex-wrap: wrap; }
+  .vas-rule-title, .vas .vas-toggle-label, .vas-match-label, .vas #vas-window-auto { white-space: normal; }
+  .vas-window-ticks > span { min-inline-size: 0; text-align: center; }
+}
 @media (forced-colors: active) {
   .vas input[role="switch"], .vas-viewport input { appearance: auto; }
   .vas input[role="switch"]::before { display: none; }

@@ -1,14 +1,14 @@
-# 连播助手 · 多语言接入方案 R1（保留原生 HTML）
+# 连播助手 · 多语言接入方案 R1 与本地验收 R2
 
 > 任务标识：OD-VIDEO-AUTO-SKIP-I18N-R1 ｜ 日期：2026-11-22  
 > Owner：`projects/video-auto-skip/` ｜ 目标分支：`main`  
-> 状态：**SOURCE_WIRED + NODE_PASS + CANDIDATE_PASS**（同提交 GitHub App CI 已成功）；正式包晋升、真实 Chrome 安装、全部语言小屏布局验收仍为 **NOT_TESTED**。
+> R1 状态：**SOURCE_WIRED + NODE_PASS + CANDIDATE_PASS**（同提交 GitHub App CI 已成功）。本机 Chrome、升级和当前正式包状态以第 9 节 R2 回执为准。
 
 ## 1. 现场基线与技术决策
 
 - 当前产品属于 `opendesk.sidebar-tool.v2`，采用 `src/index.html`、`src/style.css`、`src/main.js`、`src/editor.js`、Vite 单 IIFE `dist/tool.js`。`src/page/main.js` 属于独立 USER_SCRIPT 网页模块。
 - 实施前基线：`tool.config.json` 尚无 `locales`、项目无 `locales.json`，静态/动态界面存在硬编码中文。R1 已按本合同新增作者语言资源与源码接线；`src/page/main.js` 的网页提示仍是独立运行边界。
-- README 记录：开发源码为 0.2.10，唯一可导入正式工具包仍为 0.2.9；这两种状态不可混淆。`preview/index.html` 只是独立交互预览。
+- R1 实施时，开发源码为 0.2.10，正式可导入包为 0.2.9。`preview/index.html` 只是独立交互预览。
 - 仓库已有 [Sidebar Tool 正式本地化合同](../../docs/api/sidebar-tool-localization.zh-CN.md)、[应用开发 Skill](../../.agents/skills/opendesk-sidebar-tool-dev/SKILL.md) 和原生 HTML/JS 实例 [Reading TOC](../reading-toc/locales.json)、[Reading TOC 源码](../reading-toc/src/main.js)。
 - **架构结论**：HTML/JS 可直接多语言化。仅为多语言而切换 React 会引入不必要的组件迁移、构建与回归成本；未来若出现独立的复杂状态/组件重用需求，另行评估 React，不把两项工作捆绑。
 
@@ -76,7 +76,7 @@ Chrome 扩展原生 `_locales/*/messages.json` 和 OpenDesk 工具作者 `locale
 
 本次实施范围仅包含工具的 `locales.json`、侧栏 HTML/JS、Vite 指纹、定向测试及进度文档；`dist/`、正式 `video-auto-skip.opendesk-tool.json`、`src/page/main.js`、预览大文件、宿主 manifest、授权和播放器业务协议均未改动。GitHub CI 已构建但未晋升同源候选，**未通过真实 Chrome 安装/升级和布局验收前不宣称发布**。
 
-## 8. R1 源码接线进度与未完成验收（2026-11-22）
+## 8. R1 源码接线与当时的验收状态（2026-11-22）
 
 - 已新增作者语言表 `locales.json`，统一 159 个语义键，`zh-CN/en/ja/zh-TW` 四个语言均完整；复用 Host 的只读 `OpenDeskTool.locale/messages/onLocaleChange`，无 React 迁移、无新语言选择器。
 - `src/i18n.js` 使用唯一 `__OPENDESK_TOOL_MESSAGES__` 编译标记；`src/main.js`、`src/editor.js`、`src/time-track.js` 和 `src/index.html` 通过同一 `t(key, params)` 与 DOM 纯文本属性刷新，保留草稿、端点及 End 哨兵。
@@ -86,3 +86,24 @@ Chrome 扩展原生 `_locales/*/messages.json` 和 OpenDesk 工具作者 `locale
 - **CI 已完成**：项目编译、原 Builder 同源候选和组合 Node 回归。CI 候选 `0.2.10` 的 SHA-256 为 `0222a480ef1674fd4b4a104e9707ac64e61f4834dd32cb5da51ef1421dbbeee7`，状态 `CANDIDATE_SOURCE_IDENTICAL`。**仍未完成**：本机独立复跑、320/360/400px 与 200% 缩放、真实安装后的四语言切换/保存/跨集/重开、原生 Chrome 同 ID 升级与前后规则读回。CI 的 Chromium UI 和网页操作步骤被测试配置跳过，不能标记为通过。
 - 现有 `0.2.9` 正式包未被替换，`0.2.10` 源码仍未晋升；**尽管 Builder/Node 门禁已通过，仍须真实侧栏/播放与跨语言人工验收后，才能决定是否按既有发行 Skill 晋升**。不要把 CI 候选或源码提交解释为本机安装成功。
 - 本地 Mac 的未提交工作区未核验：当前本机 CodexPro 与文件隧道不可用，远端 GitHub `main` 的可读/可写状态不能代替本地 `git status`。本地同步时必须先确认/保护 0.2.10 未提交修改。
+
+## 9. R2 本地验收与正式包（2026-11-22）
+
+复用第 8 节的 R1 CI 证据。本轮在本地 `main` 对齐 `59463f1fb` 并保留 R13 已验证剧集的继承、iYF 历史默认保护和独立作品标题索引。历史 0.2.10 已在独立 Chrome 首装并绑定播放器；它与 0.2.9 的网页模块 Revision 同为 9 且内容不同，源码预检不允许这样升级（该拒绝未在 Chrome 实测）。本次晋升路径为 **0.2.16 → 0.2.17**，工具 ID `video-auto-skip`，网页模块 Revision 17。保留 HTML/JavaScript/Vite、原执行身份、权限和 `rules.v1`。
+
+差量修复：补齐规则开关、片尾状态、诊断文案及相关无障碍名称，四语各 160 键；可用宽度不超过 280 CSS px 时，时间端点排列为单列，标题及时间轴文本可换行。修复前的候选在 Chrome 200% 缩放下英语侧栏有横向溢出；同一专项在最终候选通过。没有改播放器执行算法。
+
+以下回执位于本机 `artifacts/sidebar-tools/video-auto-skip/i18n-r2-approval-0810fd059/`，原生回执使用 Chrome for Testing 155.0.8059.39、固定静态 `dist/production`、独立临时 Profile、真实 Chrome Side Panel 和本机多集视频夹具。宽度通过 CDP 设置侧栏视口；语言切换走真实 Host 的设置事件；200% 使用 Chrome tab zoom。
+
+| 项目 | 结果与证据 |
+| --- | --- |
+| R2 Node、资源与请求 | **PASS**：`r2-final-targeted.tap` 39/39。四语键、占位符、回退、纯文本插入、草稿与焦点；组件捕获的语言切换附加业务请求为零，冲突与结果未知由定向 Node 覆盖。 |
+| Chrome 首装、识别与四语 | **PASS**：`candidate-r2-native-i18n.json`。受控审阅、安装、刷新绑定、四语保草稿／焦点／暂停，320/360/400 CSS px 共 12 个组合无横溢，四个清除按钮、`00:00` 和 `End`、保存关开读回，210→240 秒按尾距换算 03:20→03:50。 |
+| 无障碍文案、缩放、播放 | **PASS**：`candidate-r2-native-extra.json`。四语错误、Tooltip 和控件名称；真实 200% 下四语无横溢，实点输入、清除、保存；固定片头及片尾各跳一次，切语言期间自然结束只进一次下一集且播放继续。 |
+| 0.2.9 同 ID 升级与旧规则 | **PASS**：`native-r2-upgrade-029-final.json`。审阅回执确认 0.2.17；待 Revision 17 注册后刷新重新绑定，`rules.v1` 不变，读回 00:00、00:18、03:20、End，尾距 10 秒，仍为已保存状态；新作品索引使用独立键。 |
+| 旧本集例外与作品继承 | **PASS**：`native-r2-upgrade-026-final.json`。先在支持范围切换的旧版用 UI 保存作品默认 00:18 和第 1 集例外 00:22；同 ID 升级后，第 1 集仍为 00:22，第 2 集继承 00:18。 |
+| 正式文件升级与规则读回 | **PASS**：`native-r2-upgrade-0216-formal.json`。从前一正式包 0.2.16 审阅更新到项目的正式 0.2.17 JSON，持久化规则不变，刷新后端点及已保存状态读回一致。 |
+| Vite、候选与正式包 | **PASS**：Vite build-ready ID `48fd93ab-3d4a-4a04-8233-8ad8b11ef5df`；原 Builder 晋升及 `--check-project` 通过，正式 JSON 与验收候选逐字节相同（206417 字节，SHA-256 `3824878a2744a9db2d60a3fd2f22dad8a3c287fd15c47c2edd917ab28eb0b543`）。 |
+| 外部环境 | **NOT_TESTED**：日常 Profile 安装、iYF 实站、Chrome 原生保存冲突及写入未知故障注入、屏幕阅读器朗读。此处回执不覆盖这些场景。 |
+
+网页 USER_SCRIPT 的播放提示仍是中文，本轮未改。公开 [Page Module API](../../docs/api/sidebar-tool-page-module.zh-CN.md#应用网页-api) 提供 `OpenDeskAppPage.readContext()`，可受控读取当前语言和目录，但未公开网页侧实时语言订阅。本地化网页提示可在原授权下另做，不从网页调用 Sidebar Tool API。

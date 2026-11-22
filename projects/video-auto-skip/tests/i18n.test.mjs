@@ -88,7 +88,7 @@ test('live locale change preserves draft, focus, four time inputs, End and cause
   await settle();
   const ids = ['intro-start', 'intro-end', 'outro-start', 'outro-end'];
   const inputs = ids.map(id => root.querySelector('#vas-' + id));
-  assert.equal(inputs.length, 4);
+  assert.ok(inputs.every(input => input?.matches('input')));
   const end = root.querySelector('#vas-outro-end');
   assert.equal(end.placeholder, 'End');
   const intro = root.querySelector('#vas-intro-end');
@@ -102,6 +102,12 @@ test('live locale change preserves draft, focus, four time inputs, End and cause
   assert.equal(stateCalls, beforeState, 'locale switch cannot mutate dirty/busy state');
   assert.equal(dom.window.document.activeElement, intro, 'keyboard focus stays on the same input');
   assert.equal(intro.value, '01:30', 'unsaved text stays untouched');
+  assert.equal(root.querySelector('.vas-match-label').textContent, 'Ending status');
+  assert.match(root.querySelector('#vas-tail-match').textContent, /No ending rule is set/);
+  const endingSwitch = root.querySelector('#vas-rule-outro');
+  const name = endingSwitch.getAttribute('aria-labelledby').split(' ')
+    .map(id => root.querySelector('#' + id).textContent).join(' ');
+  assert.equal(name, 'Ending Enable rule');
   assert.equal(end.placeholder, 'End');
   assert.equal(root.querySelector('#vas-refresh').textContent, 'Detect again');
   assert.equal(root.querySelector('#vas-save').textContent, 'Save settings');

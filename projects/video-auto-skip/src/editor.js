@@ -62,27 +62,26 @@ export function timeIssue(rule, lastSecond) {
 export const outroInterval = (rule, duration) => rule?.kind &&
   resolveInterval({...rule, enabled: undefined}, duration);
 
-export function tailMatchStatus({rule, duration, changed, scope, inherited, reusable, connected = true, overridden}) {
-  const source = scope === 'episode' && !inherited ? '来自本集设置' : '来自作品规则';
+export function tailMatchStatus({rule, duration, changed, scope, inherited, reusable, connected = true, overridden, archived}) {
+  const source = t(scope === 'episode' && !inherited ? 'scopeEpisode' : 'tailDefault');
+  const pending = changed ? t('unsaved') + ' · ' : '';
   const waiting = text => ({state: 'waiting', text});
-  if (rule === null || rule?.enabled === false) return waiting((changed ? '待保存：' : '') +
-    (scope === 'episode' && !inherited ? '自动跳过已关闭：本集单独停用。' : '自动跳过已关闭：作品规则停用。') +
-    (overridden ? '本集单独设置优先。' : ''));
-  if (!connected) return waiting('尚未确认当前播放器，无法判断片尾是否会跳过。');
+  if (rule === null || rule?.enabled === false) return waiting(pending + t('tailOff', {source}) +
+    (overridden ? ' · ' + t('summaryOverride').replace(/ · $/, '') : ''));
+  if (!connected) return waiting(t('unknownMedia'));
+  if (archived) return waiting(duration ? t('tailDefault') + t('tailNotApplied') : t('tailWaitingDuration'));
   if (!rule || rule.kind === 'tail' && rule.seconds === undefined) return waiting(
-    (changed ? '待保存：' : '') + '尚未设置片尾规则，不会自动跳过。时间轴上的建议仅供编辑参考。');
-  if (!duration) return waiting(t('tailWaitingDuration') || '等待当前视频时长，暂无法换算。');
+    pending + t('tailUnset'));
+  if (!duration) return waiting(t('tailWaitingDuration'));
   const interval = outroInterval(rule, duration);
-  if (!interval) return {state: 'error', text: changed
-    ? '待保存的片尾无有效区间，请核对时间。'
-    : '当前视频无可用片尾区间，不会自动跳过。' + (reusable ? '' : '请重新设置开始和结束时间。')};
-  const method = rule.kind === 'tail' ? '按倒数 ' + formatTime(rule.seconds) + ' 换算' : '固定区间';
+  if (!interval) return {state: 'error', text: pending + t('tailBadRange') +
+    (changed || !reusable ? ' ' + t('invalidTime') : '')};
+  const method = rule.kind === 'tail' ? t('tailRelativeMethod', {time: formatTime(rule.seconds)}) : t('tailFixedMethod');
   const calculated = rule.kind === 'tail' && (!changed || inherited);
-  const label = calculated && (inherited || scope === 'series') ? '自动计算' : '手动设置';
+  const status = overridden ? t('summaryOverride').replace(/ · $/, '') : t(changed ? 'unsaved' : 'summaryActive');
   return {state: changed || overridden ? 'waiting' : calculated ? 'matched' : 'interval', interval, calculated,
-    text: '当前视频 ' + formatTime(interval.start) + '–' + formatTime(interval.end) + ' · ' +
-      label + ' · ' + source + ' · ' + method + (overridden ? ' · 本集单独设置优先' : changed ? ' · 待保存' : ' · 已生效') +
-      (inherited ? (changed ? '。保存后恢复继承。' : '。本集无自定义开始时间可清除。') : '')};
+    text: t('tailVideo', {range: formatTime(interval.start) + '–' + formatTime(interval.end), source, method, status}) +
+      (inherited && changed ? ' · ' + t('restoreInherited') : '')};
 }
 
 export function buildTimeEditor({el, button, row, template, calibrationHost, key, canEdit, onEdit, onClear, onMatch, onMark, onPreview}) {
@@ -186,7 +185,7 @@ export function buildTimeEditor({el, button, row, template, calibrationHost, key
     tailStatus.id = 'vas-tail-match';
     const matchPanel = el('p', 'vas-tail-match');
     matchPanel.setAttribute('role', 'status');
-    matchPanel.append(el('strong', 'vas-match-label', '片尾状态'), tailStatus);
+    matchPanel.append(el('strong', 'vas-match-label'), tailStatus);
     matchLength.id = 'vas-match-outro-length';
     matchLength.className = 'vas-match-length';
     matchLength.hidden = true;
@@ -228,7 +227,7 @@ export function buildTimeEditor({el, button, row, template, calibrationHost, key
       tailStatus.parentElement.dataset.state = issue ? 'error' : match.state;
       matchLength.hidden = !reusable;
       matchLength.disabled = locked;
-      const label = reusable ? '按原片尾时长 ' + formatTime(reusable.seconds) + ' 匹配' : '';
+      const label = reusable ? t('tailMatchLength', {time: formatTime(reusable.seconds)}) : '';
       if (matchLength.textContent !== label) matchLength.textContent = label;
     }
     const localized = localizeIssue(issue);
@@ -267,7 +266,7 @@ export function buildTimeEditor({el, button, row, template, calibrationHost, key
     disclosure.textContent = t('positionCalibration', {name: name()});
     if (tailStatus) {
       row.querySelector('#vas-tail-help').textContent = t('tailHelp');
-      row.querySelector('.vas-match-label').textContent = '片尾状态';
+      row.querySelector('.vas-match-label').textContent = t('tailStatusLabel');
     }
     takeStart.disabled = takeEnd.disabled = locked || !canMark;
     preview.disabled = locked || !canPreview;

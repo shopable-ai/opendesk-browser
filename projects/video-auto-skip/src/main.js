@@ -105,8 +105,8 @@ export function mountVideoSidebar(tool) {
     toggle.type = 'checkbox';
     toggle.id = 'vas-rule-' + key;
     const title = el('label', 'vas-rule-title', key === 'next' ? t(NAMES[key]) : t(key === 'intro' ? 'introName' : 'outroName'));
+    title.id = 'vas-rule-title-' + key;
     title.htmlFor = toggle.id;
-    toggle.setAttribute('aria-label', t(NAMES[key]));
     toggle.setAttribute('role', 'switch');
     const summary = el('p', 'vas-note');
     summary.id = 'vas-summary-' + key;
@@ -117,8 +117,13 @@ export function mountVideoSidebar(tool) {
     const source = el('div', 'vas-source');
     source.append(summary, restore);
     head.append(title);
-    if (key !== 'next') head.append(el('label', 'vas-toggle-label', key === 'outro' ? '启用规则' : t('autoSkip')));
-    if (key !== 'next') head.lastElementChild.htmlFor = toggle.id;
+    const autoLabel = key === 'next' ? null : el('label', 'vas-toggle-label');
+    if (autoLabel) {
+      autoLabel.id = 'vas-toggle-label-' + key;
+      autoLabel.htmlFor = toggle.id;
+      head.append(autoLabel);
+    }
+    toggle.setAttribute('aria-labelledby', autoLabel ? title.id + ' ' + autoLabel.id : title.id);
     head.append(toggle);
     row.append(head);
     if (key !== 'next') editors[key] = buildTimeEditor({row, el, button, key,
@@ -153,7 +158,7 @@ export function mountVideoSidebar(tool) {
       toggle.focus();
     });
     find('rules').append(row);
-    return [key, {toggle, summary, restore, title, autoLabel: head.querySelector('.vas-toggle-label')}];
+    return [key, {toggle, summary, restore, title, autoLabel}];
   }));
 
   function resetEditor(key) {
@@ -244,6 +249,16 @@ export function mountVideoSidebar(tool) {
     'position-not-seekable': 'reasonNotSeekable',
     'seek-unconfirmed': 'reasonSeekUnconfirmed',
     'duration-changed': 'reasonDurationChanged',
+    '无法唯一确认 iYF 的作品、选集和播放器。': 'reasonNoMedia',
+    'iYF 的网页、选集和播放器剧集尚未一致。': 'reasonNoMedia',
+    'iYF 正片正在加载，或播放器当前无法唯一确认。': 'reasonNoMedia',
+    'iYF 正在切换播放内容，等待剧集身份确认。': 'statusLoading',
+    '无法唯一确认当前作品与剧集。': 'reasonNoMedia',
+    '页面和播放器的剧集或线路标识不一致。': 'reasonNoMedia',
+    '无法唯一确认当前正片播放器。': 'reasonNoMedia',
+    '正片正在加载。': 'statusLoading',
+    '正片正在换源。': 'statusLoading',
+    '网页模块已停止。': 'statusDisconnected',
   };
   function actionText(snap) {
     const a = snap?.action;
@@ -277,7 +292,7 @@ export function mountVideoSidebar(tool) {
       case 'activation-required': return t('statusActivation');
       case 'permission': return t('statusPermission');
       case 'disconnected': return t('statusDisconnected');
-      default: return [t('statusWaiting'), reasons[snapshot.reason] ? t(reasons[snapshot.reason]) : safeText(snapshot.reason)].filter(Boolean).join(' ');
+      default: return [t('statusWaiting'), Object.hasOwn(reasons, snapshot.reason) ? t(reasons[snapshot.reason]) : safeText(snapshot.reason)].filter(Boolean).join(' ');
     }
   }
 
@@ -303,10 +318,11 @@ export function mountVideoSidebar(tool) {
     find('window-reset').hidden = viewport === undefined;
     find('work').textContent = safeText(c.title) || t('toolTitle');
     find('context').textContent = lastLinked ? [
-      c.season != null && (typeof c.season === 'number' ? t('seasonLabel', {season: c.season}) : safeText(c.season)),
+      c.season != null && (typeof c.season === 'number' ? t('seasonLabel', {season: c.season}) :
+        iyf && c.season === '季号未提供' ? t('seasonUnknown') : safeText(c.season)),
       c.episode != null && (iyf || typeof c.episode === 'number' ?
         t('episodeLabel', {episode: String(c.episode).padStart(2, '0')}) : safeText(c.episode)),
-      safeText(c.line), d && t('lengthLabel', {time: time(d)}),
+      iyf && c.line === '线路未标识' ? t('lineUnknown') : safeText(c.line), d && t('lengthLabel', {time: time(d)}),
     ].filter(Boolean).join(' · ') : '';
     const statusText = pageStatus();
     if (find('page-status').textContent !== statusText) find('page-status').textContent = statusText;
@@ -327,15 +343,15 @@ export function mountVideoSidebar(tool) {
       const reusable = unusable ? reusableOutro() : undefined;
       const archived = scope === 'episode' && iyf && raw === undefined && legacyDefault(key) !== undefined;
       const source = scope === 'episode' ? (raw === undefined ?
-        (archived ? '' : unusable ? '作品默认 · ' : canInheritDefaults(c) ? t('summaryInherited') : '') :
+        (archived ? '' : unusable ? t('tailDefault') + ' · ' : canInheritDefaults(c) ? t('summaryInherited') : '') :
         t('summaryOverride')) : '';
-      const proposed = source + (lastLinked ? caption(effective, key) : t('summaryPendingWork')) +
-        (unusable || archived ? '（当前视频未采用）' : '');
+      const proposed = source + (lastLinked ? caption(archived ? legacyDefault(key) : effective, key) : t('summaryPendingWork')) +
+        (unusable || archived ? t('tailNotApplied') : '');
       const changed = !sameRule(raw, baseline[key]);
       const activeOutroUnavailable = key === 'outro' && bound && d && isEnabled(active[key]) && !outroInterval(active[key], d);
       const message = siteHandlesNext ? t('summaryIyfNext') : changed
         ? t('summaryUnsaved', {proposed, status: t(bound && !activeOutroUnavailable ? 'summaryActive' : 'savedShort'),
-          saved: caption(active[key], key) + (activeOutroUnavailable ? '（当前视频未采用）' : '')}) : proposed;
+          saved: caption(active[key], key) + (activeOutroUnavailable ? t('tailNotApplied') : '')}) : proposed;
       if (summary.textContent !== message) summary.textContent = message;
       // Keep the effective rule available to assistive technology. Show source details when
       // there is an exception, a site restriction, or a draft differs from a saved rule.
@@ -347,7 +363,7 @@ export function mountVideoSidebar(tool) {
         issue: editorIssue(key, lastLinked), canMark: present(player?.time), canPreview: canSeek() && previewPosition(key, snapshot).valid, reusable,
         match: key === 'outro' ? tailMatchStatus({rule: effective, duration: durationOf(snapshot), changed, scope,
           inherited: scope === 'episode' && raw === undefined, overridden: scope === 'series' && hasEpisodeOutro,
-          connected: bound && Boolean(storage), reusable}) : undefined});
+          connected: bound && Boolean(storage), reusable, archived}) : undefined});
     }
     find('save').disabled = !allowed || !hasEdits || Boolean(validation);
     find('save').textContent = busy && pendingWrite ? t('saving') :
@@ -754,10 +770,9 @@ export function mountVideoSidebar(tool) {
     translateStatic(root);
     for (const [key, nodes] of Object.entries(rows)) {
       nodes.title.textContent = t(key === 'next' ? 'nextRule' : key === 'intro' ? 'introName' : 'outroName');
-      nodes.toggle.setAttribute('aria-label', t(NAMES[key]));
       nodes.restore.textContent = t('restoreInherited');
       nodes.restore.setAttribute('aria-label', t('restoreRuleAria', {rule: t(NAMES[key])}));
-      if (nodes.autoLabel) nodes.autoLabel.textContent = key === 'outro' ? '启用规则' : t('autoSkip');
+      if (nodes.autoLabel) nodes.autoLabel.textContent = t(key === 'outro' ? 'enableRule' : 'autoSkip');
     }
     paintFeedback(); // No new request, save, seek, video refresh, or focus movement.
     render(); // Display-only DOM updates preserve the input draft and playback position.
