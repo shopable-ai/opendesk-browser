@@ -1,7 +1,7 @@
 # AI Job Auto Apply · AI 自动求职（R3 源码增强，沿用 R1/R2 身份）
 
 项目 owner：projects/job-auto-apply/；产品 ID：job-auto-apply；当前目标站点：BOSS 直聘（www.zhipin.com）。
-工作分支：main。当前源码版本 0.1.1、Page revision 2。状态：R3_SOURCE_UPDATED / V8_SMOKE_PASS。已补充 Node 回归测试文件，尚无 Node 完整运行及候选构建回执；未安装、未在真实 Chrome/BOSS 页面验收。
+工作分支：main。当前源码版本 0.1.1、Page revision 2。状态：R3_SOURCE_UPDATED / V8_SMOKE_PASS / APP_CI_BUILD_PASS / NODE_PASS。GitHub App CI 于提交 f539b1e379fc2dbd30d2a1f5d41acd811c093309 生成 0.1.1 同源候选包（SHA-256：37a1873ad220ca5ca1ceb79859475a2595a0c2896cdcd678c5556cf43a21862a，52,321 字节），60 项 Node 测试全通过；尚未晋升正式包、未安装、未在真实 Chrome/BOSS 页面验收。后续只改动测试夹具并已恢复至通过时的内容，最新 HEAD 对应 CI 需单独读回。
 
 ## 解决什么问题
 
