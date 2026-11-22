@@ -175,6 +175,8 @@ React/Vue 可复用项目本身的已有预编译配置，源码创建和 UI 调
 
 ## 渐进式 UI 本地化
 
+**原生 HTML/JS 的 i18n 选型与最小接线（2026-11-22）**：多语言本身**不是**迁移 React/Vue 的理由。Sidebar Tool 位于沙箱 iframe，不能直接使用 Chrome 扩展原生的 `chrome.i18n` / `_locales`；先核对现有 `tool.config.json`、`locales.json` 和权威本地化合同。对已有原生 HTML 工具，可用语义化翻译键绑定静态正文、placeholder、title、ARIA 文本，并让 JS 的动态状态/错误/反馈通过同一个 `t(key,params)` 生成。复用 `__OPENDESK_TOOL_MESSAGES__` 唯一构建标记、只读 `OpenDeskTool.messages/locale` 与 `onLocaleChange`，语言变化只更新展示，不得重置草稿、重新执行 page 请求、保存或改变授权。Vite 项目需把翻译源及 helper 纳入原 build-ready 指纹；先确认正式 builder 成功替换唯一标记并遵守词条/大小/占位符约束，再进入原有候选与正式包门禁。真实原生 HTML 示例见 [Reading TOC](../../../projects/reading-toc/src/main.js)，连播助手增量方案见 [多语言接入 R1](../../../projects/video-auto-skip/LOCALIZATION-PLAN.zh-CN.md)。本段不新设 SDK、语言商店或翻译库。
+
 正常创建 Sidebar Tool 时**只写一种源语言**；用户明确要求某种目标语言时，在原 ID 的同一工程加入 `locales.json` 与构建配置 `locales`，使用现有 `scripts/build-sidebar-tool.mjs` 对翻译的源文案、占位符、纯文字约束与离线嵌入执行校验。运行时使用框架提供的只读 `OpenDeskTool.locale` 与 `onLocaleChange` 更新显示，严格禁止通过 `chrome.i18n`、Browser SDK `i18n` 或存储直接改全局语言。交付仍按现有工具打包、同 ID 升级与同源预览规则执行；宿主权限译文不可由用户包覆盖。详情：[正式本地化合同](../../../docs/api/sidebar-tool-localization.zh-CN.md)。
 
 
