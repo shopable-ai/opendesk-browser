@@ -93,7 +93,7 @@
     {id:'job-demo-1004',title:'Android 高级工程师',company:'青川科技（演示）',salary:'30-45K',city:'北京',experience:'5-10年',education:'本科',recruiter:'李女士',activity:'本周活跃',scope:'card_summary',type:'company',contact:'already',description:'负责 Android 核心功能架构、Kotlin 技术方案和团队代码审查。'}
   ];
   var defaultPrefs={roles:'Android,前端,全栈',cities:'北京',salary:20,exclude:'外包,驻场,培训',skills:'Kotlin,Java',noHeadhunter:true,noContacted:true};
-  var state={items:jobs.map(function(x){return Object.assign({},x);}),selected:'job-demo-1001',scanned:false,scanning:false,queue:[],tab:'jobs',prefs:Object.assign({},defaultPrefs),scenario:'normal'};
+  var state={items:jobs.map(function(x){return Object.assign({},x);}),selected:'job-demo-1001',scanned:false,scanning:false,queue:[],tab:'jobs',prefs:Object.assign({},defaultPrefs),scenario:'normal',epoch:0};
   var text=function(el,value){el.textContent=value==null?'':String(value);};
   var btn=function(label,callback,primary){var b=document.createElement('button');b.type='button';b.className=primary?'btn primary':'btn';text(b,label);b.addEventListener('click',callback);return b;};
   var setStatus=function(s){text(byId('status'),s);};
@@ -112,7 +112,7 @@
     var match=String(job.salary).match(/(\d+)\s*[-~–]\s*(\d+)\s*K/i);
     if(state.prefs.salary>0&&match&&Number(match[2])<state.prefs.salary)failed.push('薪资上限低于最低预期');
     if(state.prefs.salary>0&&!match)unsure.push('薪资范围未知');
-    if(job.type==='agency'&&state.prefs.noHeadhunter)failed.push('页面标注猎头/代理属性（需核对）');
+    if(job.type==='headhunter'&&state.prefs.noHeadhunter)failed.push('页面明确标注猎头');
     if(job.contact==='already'&&state.prefs.noContacted)failed.push('页面标注已沟通');
     if(!job.id)unsure.push('缺少稳定职位 ID');
     if(!job.experience)unsure.push('经验要求未知');
@@ -219,7 +219,9 @@
     if(state.scanning||state.scenario==='noaccess'){setStatus('当前页面未获授权，不能执行扫描。');return;}
     state.scanning=true;byId('scan').disabled=true;text(byId('scan'),'扫描中…');setStatus('只读模拟扫描正在准备结果…');
     var delay=state.scenario==='loading'?950:170;
+    var epoch=state.epoch;
     window.setTimeout(function(){
+      if(epoch!==state.epoch)return; // Scenario or permission changed; never apply stale scan data.
       state.scanned=true;state.scanning=false;byId('scan').disabled=false;text(byId('scan'),'重新扫描');render();
       setStatus(state.items.length?'已模拟扫描 '+state.items.length+' 条职位。规则分不代表 AI 简历匹配；没有真实网页请求。':'当前没有扫描结果。已明确显示空状态，不生成假数据。');
     },delay);
@@ -230,7 +232,7 @@
     byId('scan').disabled=state.scanning||state.scenario==='noaccess';
   }
   function changeScenario(mode){
-    state.scenario=mode;state.scanned=false;state.scanning=false;state.queue=[];byId('draft').hidden=true;
+    state.epoch++;state.scenario=mode;state.scanned=false;state.scanning=false;state.queue=[];byId('draft').hidden=true;
     var items=jobs.map(function(x){return Object.assign({},x);});
     if(mode==='contacted')items=[items[3],items[0]];
     if(mode==='restricted')items=[items[1],items[2]];
