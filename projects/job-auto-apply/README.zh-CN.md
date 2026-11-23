@@ -49,6 +49,14 @@
 
 需求、开源项目对照、业务状态契约、许可证和下一轮验收门禁统一保存在同目录 [REQUIREMENTS.zh-CN.md](REQUIREMENTS.zh-CN.md) 的 R3/R4 章节；不创建第二套总需求或竞品文件。
 
+## R5 交互预览与收费竞品
+
+**本轮新增唯一可交互预览**：[preview/index.html](preview/index.html)。在一个离线 HTML 内同时呈现 BOSS 风格模拟职位列表、职位旁的 OpenDesk 规则标记、当前详情里的轻量辅助卡片、现有三 Tab Sidebar；可操作扫描、切换岗位、加入待审、编辑/复制草稿、修改筛选规则，并切换已沟通、身份缺失、硬过滤、无权限、空结果、异步加载等状态。该文件只用虚构数据和内存状态，不加载外部脚本、不访问招聘网站、不发送任何消息；它不是可直接安装的 Page Module，网页注入正式源码仍未接线。设计意图是**网页只辅助当前岗位，侧栏负责跨岗位管理**，不在 BOSS 页面重建一个完整工作台。
+
+**付费竞品**：已将从官方价格/FAQ 核验的国内 5 款、海外 11 款，共 16 款有公开付费方案的产品与网址、档位、权益、功能机会和证据分级收录进 [REQUIREMENTS.zh-CN.md 的 R5 节](REQUIREMENTS.zh-CN.md)。代表性价格：国内 AI投递官 ¥19.9/月卡、BOSS直投 ¥69/约30天、简历快投 ¥39.9/月；海外 Teal+ $29/30天、Simplify+ $39.99/月、Wobo $34.99/月起。这里只证明存在可核对的收费供应，不证明收入、销量、留存、真实平台效果或整体市场规模。价格以厂商当前购买页为准。
+
+**下一阶段最小任务**：先查看并确认上述双区域交互，再对真实 BOSS 页的职位/详情 DOM 进行只读取证，随后在同一个 Page owner 内最小接入受管 UI 和经批准的侧栏通信。最后进行定向 Node/Chrome 验收；未完成前保持正式网页注入 NOT_IMPLEMENTED。真实发送、批量执行、会员支付和 Desktop/CLI 接线不是本次原型的一部分。
+
 ## 从哪些开源项目汲取设计思路
 
 - Get Jobs / 工作无忧：https://github.com/loks666/get_jobs （已核实当前源码中的 Boss.java、BossChatNavigator.java、Locators.java、AiService.java、BossJobService.java、front/app/boss/page.tsx；现行 LICENSE 为 PolyForm Noncommercial 1.0.0，不复制其源码到商业产品）
