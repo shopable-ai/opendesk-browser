@@ -383,6 +383,7 @@ function beginObserve(){
   s.timer=setTimeout(()=>{s.timer=null;if(s.granted&&s.auto)scan("observer");},250);
  });
  s.obs.observe(watched,{childList:true,subtree:true,characterData:true});
+ updateSiteHealth();
 }
 function updateAuto(){
  $("auto").checked=s.auto;$("auto-state").textContent=s.auto?"开":"关";
@@ -452,7 +453,7 @@ function renderHistory(){
  const selector=$("filter-site"),oldValue=selector.value||"all";
  selector.replaceChildren();
  const all=document.createElement("option");all.value="all";all.textContent="全部网站";selector.append(all);
- const options=[...new Set([...s.history,...s.scans].map(r=>r.site))].sort();
+ const options=[...new Set([...s.history,...s.scans].map(r=>r.site).concat(siteId()))].sort();
  for(const origin of options){const option=document.createElement("option");option.value=origin;option.textContent=origin;selector.append(option);}
  selector.value=oldValue==="all"||options.includes(oldValue)?oldValue:"all";
  $("filter-status-group").hidden=s.listKind==="scans";
@@ -575,10 +576,10 @@ function updateSiteHealth(foundCount){
  const last=s.scans.find(row=>row.site===siteId());
  const isUnreadable=s.scene==="boundary";
  const invalid=s.invalid.size>0;
- const status=!s.granted?"未授权":isUnreadable?"无法读取":invalid?"需修复":!s.auto?(s.hasScanned?"已手动检查":"自动检测已关闭"):s.obs?"增量监听中":s.hasScanned?"本页已检查":"等待自动检测";
+ const status=!s.granted?"未授权":isUnreadable?"无法读取":invalid?"需修复":!s.auto?"自动检测已关闭":s.obs?"增量监听中":s.hasScanned?"本页已检查":"等待自动检测";
  $("scan-tag").textContent=status;
  $("scan-tag").className="pill "+(!s.granted||isUnreadable?"warn":invalid?"bad":s.hasScanned?"ok":"info");
- const match=!s.granted?"尚未授权":isUnreadable?"Canvas / iframe 无 DOM 字段":invalid?"规则失效，需重新点选":!s.hasScanned?"等待识别":s.scene==="unrevealed"?"已识别公开字段 "+n+"/5 · 等待种子公开":n<5?"识别 "+n+"/5 · 需要补充":(Object.keys(s.rules).length?"用户规则":"适配器/语义识别")+" · 已匹配 "+n+"/5";
+ const match=!s.granted?"尚未授权":isUnreadable?"Canvas / iframe 无 DOM 字段":invalid?"规则失效，需重新点选":!s.hasScanned?"等待识别":s.scene==="unrevealed"?"已识别公开字段 "+n+"/5 · 等待种子公开":n<5?"识别 "+n+"/5 · 需要补充":(Object.keys(s.rules).length?"用户规则":s.scene==="known"?"已知适配器":"语义识别")+" · 已匹配 "+n+"/5";
  $("rule-tag").textContent=match;
  $("rule-tag").className="sf-match-value "+(invalid?"sf-match-error":n===5?"sf-match-ok":"");
  $("last-site-scan").textContent=last?"上次检查："+last.stamp+" · "+last.source:"尚无检测记录";
