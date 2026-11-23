@@ -623,6 +623,12 @@ E. **令牌边界**：OAuth 授权码 + PKCE（S256）、随机 state、OIDC non
 
 **不应保存**：完整播放 URL、Cookie、Token 明文、观看历史、播放进度、设备指纹、视频内容，以及无限期的用户级匹配请求日志。安全审计的限量网络元信息须有具体用途、短留存期限和访问授权；不可把低熵作品 ID 的 hash 视作匿名。账号删除、撤销 consent、卸载、产品停用/更名、设备撤销和 VIP 过期的删除/保留/导出策略分别定义，不能静默交叉删除。
 
+### R4.3a 全站会员与产品级权限映射（避免每个扩展重复会员）
+
+账号可能购买的是「全站 VIP」或「若干扩展功能包」，不等于每个扩展都要持有一张独立会员表或必须单独购买。共用计费/订阅源（若未来实施）保存 accountId、planId、providerSubscriptionRef、status、validUntil；服务端 Entitlement Resolver 根据**已发布套餐到 feature grant 的规则**计算 (accountId,productId,featureCode) 的有效权限和 quotaPolicy，并可物化到 R3 product_entitlements 或使用短期受控缓存。全站套餐覆盖多个产品时，不复制多个用户身份或重新收费；单独产品订阅则仅发该产品功能，第三方开发者产品默认**不自动继承全站 VIP**，需明确平台/开发者商业协议。浏览器只读取受限的 entitlement 摘要，避免每个视频/扩展重复查询；服务端每次业务调用仍检查真实权益/撤销。支付卡、账单私密字段在支付服务存储，不写在扩展私有配置 JSON。
+
+配额计算的三个正交维度：用户 accountId、产品 productId、具体 featureCode（必要时叠加发布者 publisherId 的总体租户预算），防止单个开发者应用滥用共用后端而影响其他产品。限额是服务端原子事实，客户端缓存只是成本优化。会员套餐和定价未发布；上述为合同设计非线上系统。
+
 ### R4.4 共用 API 形状（与 R3 向后兼容，不新增任意 Collection CRUD）
 
 现有 R3 私有同步契约保持：
