@@ -566,3 +566,106 @@ E. **令牌边界**：OAuth 授权码 + PKCE（S256）、随机 state、OIDC non
 **决策门槛**：做一次「现有连播助手单键 rules.v1 → 10 个可同步 scope → 远端可撤销的 push/pull → 恢复」小样本 Spike。若 RxDB 能在无需重建第二套业务数据源、且不扩大权限的前提下显著减少源码和测试复杂度，可修订选择；否则按现有薄引擎实施。**避免把 RxDB/Dexie/PowerSync 与现有 rules.v1 同时当作权威写入来源**。
 
 来源：https://rxdb.info/replication.html ；https://dexie.org/cloud/ ；https://pouchdb.apache.org/guides/replication.html ；https://docs.powersync.com/ 。
+
+
+## R4 · 多扩展产品注册、通用私有数据与角色边界（2026-11-23）
+
+> 状态：DESIGN_PROPOSAL / NOT_IMPLEMENTED / NOT_TESTED。本节是 R1–R3 的增量扩展，优先定义跨产品/第三方扩展的注册、主键、权限和数据存储边界；既有 Sync Engine、Identity、Entitlement、CAS/变更序列与历史恢复继续由 R3 所有，不复制新引擎。连播助手公共规则的业务级契约见 [R12.2 领域接入修订](../../projects/video-auto-skip/CLOUD-RULES-R12.zh-CN.md#14-r122--多扩展云平台接入与用户身份安全审查2026-11-23)。
+
+### R4.1 核心纠偏：不为每个扩展建立用户表、存储表、会员表
+
+- **统一平台控制面**：一次注册产品/发布者、注册允许能力、版本化业务 Schema、签约/审核策略、用户/角色授权、会员权益、请求预算。Payload CMS 推荐用作平台管理员后台与目录维护/审核；它不应成为任意普通扩展可以自由读写任意 Collection 的入口。
+- **通用个人数据平面**：已有 sync_records(account_id, product_id, record_id)、sync_changes、record_history、sync_op_receipts 等通用记录级协议。不同工具以 product_id 分区、JSON 业务 payload + schemaVersion 校验、CAS/幂等和容量预算共享物理表，不建 video-personal-rules、mouse-gestures-user-data 等重复用户数据表。R3 本身已有该思路，R4 明确面向用户开发工具也适用。
+- **专用领域数据平面**：只有公共高索引/审核业务（如视频 Work/Episode/Edition/SiteAssetMapping/PublicRule）才建专门集合或 SQL 索引；这些是“视频领域表”，不是“每个扩展必须拥有五张表”。其他扩展无需创建这些实体；多产品是否能消费该公共目录须有显式能力注册与许可证/配额控制。
+- **可选多开发者租户**：若多个发布者组织需要管理自己的产品，可采用 publisher_org_id + membership 约束与管理员 UI 过滤；Payload multi-tenant 插件是管理界面多租户的候选，不替代 API 按 account_id+product_id 的隔离，也不应把每个普通消费者当一个 Payload Tenant。参考 https://payloadcms.com/docs/plugins/multi-tenant 。
+
+### R4.2 ID 命名、身份绑定、注册表，而非依赖展示名称
+
+| 标识 | 由谁发放/验证 | 用途与边界 |
+| --- | --- | --- |
+| productId（云端权威产品 ID） | 平台 Product Registry 注册，稳定且不可擅改；可用唯一 qualified key，例如 opendesk.video-auto-skip（示例，尚未注册） | 通用同步、权益、审计、预算与 API 的唯一业务分区；不以可变 displayName 为键 |
+| toolId / pageProgramId | 已安装包与可信宿主确认 | 浏览器运行时/存储边界；视频项目当前分别为 video-auto-skip 与 app.video-auto-skip；须在注册表明确绑定到一个 productId，**不能仅靠去掉 app. 字符串自动合并** |
+| publisherId / orgId | 经验证的开发者账号或组织注册 | 产品的发布/维护和审核权；不能凭发布者身份读取该产品用户私人数据 |
+| accountId | 由服务端验证 IdP (issuer, sub) 映射到内部不透明 UUID | 私有规则所有者；客户端不可自报 accountId/userId，不能用邮箱作不可变主键 |
+| clientId + sessionId | 已注册 OAuth 客户端/可信会话 | 绑定客户端身份、会话撤销和允许的产品权限；必须由服务端验证 audience/scopes |
+| deviceId（随机）+ installationEpoch | 可信客户端生成与安装器代际状态，后端按授权校验 | 去重、撤销及迟到响应 fencing；不要用指纹或完整电脑识别码 |
+| schemaVersion + recordId + revision | 产品 Schema Registry / 同步协议 | 记录可迁移、去重、CAS、回滚；schema 不得由扩展在请求时任意更改 |
+| capabilityCode/featureCode | 平台受审能力注册与服务端 entitlement | 例如 cloud.sync、video-rules.auto-match；不是“拥有 VIP 所有业务 API 自动放行” |
+
+一次合法的同步/匹配请求：浏览器可信 Host 根据实际已安装工具的身份映射 productId，调用经过授予范围的服务端 API；服务端从**已经验证的**用户、客户端、会话、产品注册/许可、同意及权益记录推导有效 scope。路径中的 productId 是查找/路由参数，**不是授权凭证**；第三方工具即使修改路径或 JSON，也不能借此读取其他 productId 或其他 accountId 的数据。安装包声称的 ID/签名/开发调试身份不能单独证明发布者信任；必须分别证明服务端注册与会话受众权限。没有可靠宿主证明时，不以“本机安装了它”作为服务器可验证的全部身份。
+
+注册产品允许自建扩展，按产品能力授予范围：
+- local-only / unregistered：仍可本地使用，不能因为有显示标题就自动获得云能力；
+- registered-private：经注册并获用户明确授权的扩展可用自身 productId 的通用私有同步，服务端做 schema、数据大小、调用预算检查；
+- reviewed-public：如视频标记贡献/公共目录/AI 等高风险能力，需要单独审核、数据许可证及明确用户同意；
+- suspended/revoked：停止新的网络写读能力，按产品/用户保留及导出政策处理个人数据；不擅自清空本地规则。
+
+### R4.3 最小平台数据实体与是否必须保存用户信息
+
+以下为**逻辑表/模块**，首个 Payload 项目不需要全部做成独立 Collection。优先沿用 R3 已定义的表，不重复建立 User/Entitlement/PersonalRule 真相：
+
+| 平台数据 | 最小字段与唯一性 | 来源/位置 |
+| --- | --- | --- |
+| identity principal | internal accountId、issuer、sub，unique(issuer,sub)，账号禁用/删除状态 | 共用 Identity/IdP 映射；没有经过验证的账号时不上传个人记录 |
+| platform_admins | staffId、角色、有效会话/可审计后台操作 | Payload Admin 专用 auth collection；不得当作所有普通用户账号表 |
+| product_registry（新增） | productId 唯一、publisherId、displayName、status、allowedCapabilities、schemaPolicyRef、registeredAt | 共用管理控制面 |
+| product_runtime_bindings（新增或 registry 内子结构） | (productId,runtimeKind,packageIdentity,clientId) 受唯一约束，安装/来源/发布者信任规则 | 可信 Host/Broker + 产品注册，不从客户端自报名决定 |
+| publisher_memberships（后续可选） | publisherOrgId、developerAccountId、role、状态；联合主键 | 开发者门户/团队授权，非普通用户 |
+| product_schema_versions（新增可选） | productId、schemaVersion、JSON schema digest、quotaPolicy、migrationPolicy | 统一验证业务 payload，不能执行开发者提交的任意 JS |
+| app_device_sessions（已有） | accountId、clientId、sessionId、random deviceId、revokedAt | 按确有会话/撤销业务需要保存，不保留浏览器指纹 |
+| product_sync_consents（已有） | accountId、productId、scope、consentRevision、grantedAt、enabled | 登录不代表上传全部产品 |
+| product_public_query_consents（按需新增） | accountId、productId、featureCode、consentRevision、enabled | 公共查询可能暴露观看内容，不能与私人同步授权合并 |
+| product_entitlements（已有） | accountId、productId、featureCode、status、validUntil、quotaPolicyRef | 服务端唯一权益真相；支付敏感信息留支付服务 |
+| sync_records / sync_changes / receipts / history（已有） | accountId、productId、recordId、schemaVersion、revision、payload/tombstone、changeSeq | 通用个人数据/设备同步，不逐扩展建表 |
+| quota_counters / audit_events（按需） | accountId、productId、featureCode、限额窗口、脱敏结果、保留期限 | 用户/产品/功能维度限频、异常审计，不记录播放 URL 或明文历史 |
+
+**必须保存的个人身份最小集**：已登录且同意云功能的用户，需要内部 accountId 与 (issuer,sub) 绑定、各产品授权和权益、与该 accountId 关联的私有业务记录、必要的会话撤销信息。可匿名离线使用的用户无需因此在服务器创建个人资料。邮箱、头像、昵称等资料优先留在 IdP，业务 API 非必需不复制；设备 ID 是随机值，用户更换/清理可撤销。公开规则库只发布经过授权的时间标记和去身份化来源引用，贡献者可追责/删除的 accountId 保存在私有审核关系中，不在公共响应返回。
+
+**不应保存**：完整播放 URL、Cookie、Token 明文、观看历史、播放进度、设备指纹、视频内容，以及无限期的用户级匹配请求日志。安全审计的限量网络元信息须有具体用途、短留存期限和访问授权；不可把低熵作品 ID 的 hash 视作匿名。账号删除、撤销 consent、卸载、产品停用/更名、设备撤销和 VIP 过期的删除/保留/导出策略分别定义，不能静默交叉删除。
+
+### R4.4 共用 API 形状（与 R3 向后兼容，不新增任意 Collection CRUD）
+
+现有 R3 私有同步契约保持：
+- GET /v1/bootstrap（返回已授权产品与可用权益摘要，不包含其他产品原始记录；缓存刷新不按视频每集重复）
+- GET /v1/sync/{productId}/snapshot
+- GET /v1/sync/{productId}/changes?afterSeq=...
+- POST /v1/sync/{productId}/operations
+- GET /v1/sync/{productId}/history、POST /restore
+
+业务专用查询注册在**已审核的 server capability handler**，例如：
+- POST /v1/products/{productId}/video-rules/match（只有具备 video-rules.auto-match 能力的受信产品可以使用；与旧 /v1/video-rules/match 草案的关系在实施前只保留一个 canonical 路径，不双重实现）
+- 产品更换不会要求任意开发者新增物理表；其个人数据继续走 /v1/sync/{productId}。
+- **不能**提供一个无需 schema、权限/作用域约束的动态 /api/{collection}/find 或 /products/{arbitraryName}/query；productId 必须存在于注册表且与可信调用身份允许范围相交。
+
+请求例（仅示意）：
+~~~json
+{
+  "protocolVersion": 1,
+  "operationId": "one-stable-uuid",
+  "recordId": "episode-scope-example",
+  "baseRevision": 2,
+  "schemaVersion": 1,
+  "deleted": false,
+  "payload": {"intro":{"kind":"fixed","start":0,"end":90}}
+}
+~~~
+路径：POST /v1/sync/opendesk.video-auto-skip/operations（示例产品 ID **尚未在生产注册**）。服务端推导 accountId，不允许 body 通过 userId、accountId、publisherId 或 isVip 伪造权限。实际 prod 名字、runtime bindings、产品 Schema 在服务端注册时冻结。
+
+服务端判权次序：认证与会话撤销 → client/product 身份绑定与状态 → account+product 的 consent/权限 → feature entitlement → quota → schema/大小/作用域/版本 → CAS/索引 DB 查询 → 最少返回。任何拒绝不得发生越权数据读取；数据库索引必须含 accountId+productId（私有）或受控 domain+edition（公共），不能只按 recordId 或外部名称筛查。
+
+Payload Admin 管理员可维护目录/策略、审核公共标记；普通用户与开发者都不应直接获得 Payload Collection CRUD。若 Payload Local API 被用于内部查询，必须知晓默认 overrideAccess=true 的风险；在要求用户权限的路径显式 overrideAccess:false + 可信 user，在通过服务端全部权限闸门的内部受控代码才能有审计地特权查询。参考 https://payloadcms.com/docs/local-api/access-control 、https://payloadcms.com/docs/admin/overview 、https://payloadcms.com/docs/rest-api/overview 。
+
+### R4.5 跨产品安全与可实现验收门槛（全部 NOT_TESTED）
+
+- 同一 account 安装 A/B 两个扩展：共享一次身份，但私有记录、同意、权益、配额、撤销分别按 productId 隔离；无同步许可的 C 安装不上传。
+- 两个账号安装同一个 A 扩展：任何轮询/按 id 查找都不能读取对方记录；删除、导出、恢复必须本人 owner 校验。
+- 第三方扩展自报产品 ID 与已审扩展相同、改路径 productId、伪造 publisher/installation/feature：没有服务端注册及受众绑定不可升级能力、不可跨产品读取。
+- 独立工具 ID video-auto-skip 与 app.video-auto-skip 属同一产品的**显式注册绑定**时，不能生成两套会员或重复扣配额；未绑定则安全拒绝而不是猜测。
+- 开发者创建注册私人扩展，按 schemaVersion 和配额同步自己的用户数据；开发者本人不可用管理 API 遍历用户私有记录；发布者停止更新不导致任意清空用户数据。
+- 管理员后台安全与用户 API 隔离：普通用户 Token 不能进入 Payload Admin；管理员行为有审计，管理员角色也不应默认免审读取业务私有数据。
+- 多租户：publisherId 与 accountId 是两个正交维度；Payload 管理面 tenant selector/filterOptions 不可替代服务端数据权限验证。
+- 用户 A→B 切换、安装代际变化、VIP 到期、网络 ACK 丢失、schema 迁移、tombstone/恢复、容量不足均保持旧数据/隔离与幂等。
+- 非 VIP/未同意/本地规则已满足/缓存命中应为 0 公共 match 请求；服务器端再以服务端当前权益与配额阻断直调；查找次数、数据库次数分开计量。
+- 表和 API 架构设计通过不等于代码/真实账号/双设备验收；正式迁移、OAuth/权限、Payload/SQL、Chrome、多开发者与跨设备专项必须分证据记录。
+
+**实施前置顺序**：先建立 Registry + ID/binding/roles/consent/feature/数据分类的合同（R4）；其次在**单一**后端做一个共享 registry + 通用 sync 存储 mock 与视频专用目录 mock；最后两种不同扩展数据（video-auto-skip 和非视频消费者）各跑一轮真实 API 隔离/额度测试。仅视频能跑通不算验证了通用平台。普通扩展云能力与高权限公共内容审核分等级上线；不将完整视频库、公共贡献或真正付费系统作为最小通用协议前置。
