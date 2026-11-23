@@ -501,10 +501,10 @@ async function verify(){
  report("已执行浏览器 Web Crypto 的 SHA-256 模拟计算；未访问任何真实博彩服务。");
 }
 function switchScenario(name){
- cancelObserve();stopPick(true);s.generation++;s.scene=name;s.granted=name!=="denied";s.auto=["known","unknown","missing","dynamic","broken"].includes(name);s.fields={};s.sources={};s.rules={};s.invalid.clear();s.hasScanned=false;s.appended=false;s.scanCount=0;s.panelOpen=true;$("side-shell").hidden=false;$("workspace").classList.remove("panel-closed");$("lab-panel").textContent="关闭模拟侧栏";s.history=[];s.roundNumber=241;if(name==="known"){s.history=[recordForRound(240,"PENDING_REVEAL","L1"),recordForRound(239,"COMMIT_MATCHED","L2")];}renderHistory();
+ cancelObserve();stopPick(true);s.generation++;s.scene=name;s.granted=name!=="denied";s.auto=name!=="denied"&&name!=="boundary";s.fields={};s.sources={};s.rules={};s.invalid.clear();s.hasScanned=false;s.appended=false;s.scanCount=0;s.panelOpen=true;$("side-shell").hidden=false;$("workspace").classList.remove("panel-closed");$("lab-panel").textContent="关闭模拟侧栏";s.history=[];s.roundNumber=241;
  if(name==="broken")s.rules.serverSeedHash={selector:'[data-testid="server-hash-v1"]',extract:"textContent",confirmed:true};
  $("scenario-help").textContent=helpers[name];$("scenario").value=name;
- renderSite();updateAuto();emptyVerification();renderFields();report("");
+ renderSite();if(name==="known"){s.history=[recordForRound(240,"PENDING_REVEAL","L1"),recordForRound(239,"COMMIT_MATCHED","L2")];}renderHistory();updateAuto();emptyVerification();renderFields();report("");
  addStatus(s.granted?"等待扫描，所有样本均为虚构公开数据。":"未授权：不会自动读取模拟网页。",s.granted?"":"warn");
  if(s.granted&&s.auto){scan("auto");beginObserve();}
 }
