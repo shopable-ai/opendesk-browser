@@ -63,6 +63,8 @@
 
 [唯一交互预览 HTML](preview/index.html) 已沿 R5 原文件增量改进：网页进入即模拟识别、列表轻量状态、当前职位证据、侧栏关闭时仍可加入待审及内联编辑/复制草稿；侧栏重新打开、导航、规则重评与模拟撤权不会丢失未显式重置的内存队列。顶栏提供 13 类场景，预览外部控制不属于正式侧栏 UI。测试入口为 `node --test projects/job-auto-apply/tests/preview*.test.mjs`，含 R5 静态门禁与新增 R6 交互 Mock；准确的 Node/CI 证据以对应提交的实际检查为准。
 
+**R6 当前定向回执**：GitHub [App CI 45110104863](https://github.com/shopable-ai/opendesk-browser/actions/runs/45110104863) 对提交 `bd76cc9aa6bdd99368d2c63174c8534e65bcdef4` 执行 78/78 项 Node PASS 和候选源码同源检查；Chromium UI、本机 Chrome、BOSS 实站均 `NOT_TESTED`。同提交的独立全仓 Page userscript 依赖工作流未通过，不把它描述为全部 CI 绿灯。
+
 **此阶段没有修改正式应用源码**：Page host 仍隐藏，`jobs.scan` 仍是只读 RPC；网页标记、详情辅助卡、共享 CAS 入队与规则更新推送都尚未正式接入，BOSS DOM、安装、视觉与真实执行仍待测。代码所有权映射、13 场景、CAS/权限边界及下一轮 J01–J04 步骤统一见 [需求 R6](REQUIREMENTS.zh-CN.md#r6--网页当前职位与-side-panel-的双表面协同2026-11-23)。付费市场仍只见原独立文档。
 
 ## 从哪些开源项目汲取设计思路
