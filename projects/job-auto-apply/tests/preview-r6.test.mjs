@@ -102,7 +102,7 @@ test('R6 contract: 13 external scenarios, one isolated script, stable UI control
   assert.equal((html.match(/<script\b/g)||[]).length,1);
   for(const scenario of scenarios)assert.match(html,new RegExp('value="'+scenario+'"'));
   for(const id of ['toggle-sidebar','preview-sidebar','preview-workspace',
-    'page-fallback','detail-jd-state','embed-facts','preview-state'])
+    'page-fallback','page-inline-draft','page-inline-text','page-inline-copy','detail-jd-state','embed-facts','preview-state'])
     assert.ok(ids.includes(id),id);
   assert.doesNotMatch(behavior,/\bfetch\s*\(|\bXMLHttpRequest\b|\bWebSocket\s*\(|\bchrome\.|OpenDeskTool\.request/);
 });
@@ -142,6 +142,14 @@ test('06 closed Side Panel: page still scans, queues; fallback does not fake ope
   await a.click('page-open');
   assert.equal(a.el('page-fallback').hidden,false);
   assert.equal(a.el('preview-sidebar').hidden,true);
+  await a.click('page-draft');
+  assert.equal(a.el('page-inline-draft').hidden,false);
+  a.el('page-inline-text').value='当前岗位经人工核对的消息';
+  await a.el('page-inline-text').emit('input');
+  await a.click('page-inline-copy');
+  assert.equal(a.copies[0],'当前岗位经人工核对的消息');
+  await a.click('page-inline-close');
+  assert.equal(a.el('page-inline-draft').hidden,true);
 });
 test('07 reopening Side Panel preserves queue and selected Tab',async()=>{
   const a=await ready('sideclosed');
