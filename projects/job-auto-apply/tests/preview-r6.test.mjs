@@ -48,7 +48,7 @@ function mount(){
   f.elements={
     roles:{value:'Android,前端,全栈'},cities:{value:'北京'},salary:{value:'20'},
     exclude:{value:'外包,驻场,培训'},skills:{value:'Kotlin,Java'},
-    noHeadhunter:{checked:true},noContacted:{checked:true}
+    noHeadhunter:{checked:true},noContacted:{checked:true},template:{value:'您好，我看到贵司的「{岗位}」职位，想进一步了解具体职责与团队要求，方便沟通吗？'}
   };
   let timers=[],copies=[];
   const document={
@@ -223,4 +223,49 @@ test('13 queue, editable draft, close/reopen/copy and removal are real mock inte
   assert.equal(a.copies[0],'人工核对后的文本');
   await a.buttons('side-queue','移出清单')[0].emit('click');
   assert.equal(a.el('queue-count').textContent,'0');
+});
+
+
+test('R6.1 sidebar is the default focused preview, switch to dual without losing queue',async()=>{
+  const a=await ready();
+  assert.match(a.el('preview-workspace').className,/focus-sidebar/);
+  assert.equal(a.el('preview-focus').value,'sidebar');
+  await a.click('page-add');
+  assert.equal(a.el('queue-count').textContent,'1');
+  a.el('preview-focus').value='dual';
+  await a.el('preview-focus').emit('change');
+  assert.doesNotMatch(a.el('preview-workspace').className,/focus-sidebar/);
+  a.el('preview-focus').value='sidebar';
+  await a.el('preview-focus').emit('change');
+  assert.match(a.el('preview-workspace').className,/focus-sidebar/);
+  assert.equal(a.el('queue-count').textContent,'1');
+});
+test('R6.1 sidebar KPI and filters agree with evidence, expansion shows unknown facts',async()=>{
+  const a=await ready();
+  assert.equal(a.el('metric-total').textContent,'4');
+  assert.equal(a.el('metric-review').textContent,'1');
+  assert.equal(a.el('metric-blocked').textContent,'3');
+  const filter=a.el('side-filter');
+  filter.value='blocked';await filter.emit('change');
+  assert.equal(a.el('side-jobs').children.length,3);
+  filter.value='unknown';await filter.emit('change');
+  assert.equal(a.el('side-jobs').children.length,1);
+  await a.buttons('side-jobs','查看依据')[0].emit('click');
+  assert.match(a.el('side-jobs').textContent,/规则依据与待确认项/);
+  assert.match(a.el('side-jobs').textContent,/完整 JD 未核实/);
+  filter.value='queued';await filter.emit('change');
+  assert.match(a.el('side-empty').textContent,/此筛选下没有职位/);
+  assert.equal(a.el('side-jobs').children.length,0);
+});
+test('R6.1 confirmed-facts notice and editable template update draft, not AI scoring',async()=>{
+  const a=await ready();
+  assert.match(html,/简历事实状态：未连接/);
+  assert.match(html,/name="skills" value=""/);
+  await a.tabs[2].emit('click');
+  const form=a.el('prefs-form');
+  form.elements.template.value='您好，咨询「{岗位}」在{公司}的职责。';
+  await a.submitPrefs();
+  await a.click('page-add');
+  await a.click('page-draft');
+  assert.equal(a.el('draft-text').value,'您好，咨询「Android 开发工程师」在云杉科技（演示）的职责。');
 });
