@@ -223,7 +223,7 @@ const helpers={
  boundary:"模拟跨域 iframe 或 Canvas：DOM 无法提取。不能跳过权限读取。"
 };
 const $=id=>document.getElementById(id);
-const s={scene:"known",granted:false,auto:false,fields:{},sources:{},rules:{},invalid:new Set(),picking:false,chosen:null,obs:null,timer:null,hasScanned:false,appended:false,verification:null,scanCount:0,generation:0,panelOpen:true,history:[],roundNumber:241};
+const s={scene:"known",granted:false,auto:false,fields:{},sources:{},rules:{},invalid:new Set(),picking:false,chosen:null,obs:null,timer:null,hasScanned:false,appended:false,verification:null,scanCount:0,generation:0,panelOpen:true,history:[],roundNumber:241,tab:"overview",historyVisible:8,selectedHistoryId:null,seededHistory:false};
 function safeText(v){return String(v==null?"":v).trim();}
 function row(label,value,attr,valueId){
  const div=document.createElement("div");div.className="evidence-row";
@@ -316,38 +316,101 @@ function updateAuto(){
  $("permission-tag").className="pill "+(s.granted?"ok":"warn");
  $("permission-tag").textContent=s.granted?"演示已授权":"未授权";
 }
+const historyLabels={PENDING_REVEAL:"等待公开",COMMIT_MATCHED:"哈希一致",RNG_MATCHED:"RNG一致",GAME_MATCHED:"结果一致",MISMATCH:"对照异常",UNSUPPORTED_ALGORITHM:"算法不支持",INCOMPLETE:"证据不足",INVALID_RULE:"规则失效"};
+const reviewedStates=new Set(["COMMIT_MATCHED","RNG_MATCHED","GAME_MATCHED"]);
+function switchTab(tab){
+ if(tab!=="overview"&&tab!=="history")return;
+ s.tab=tab;
+ $("overview-view").hidden=tab!=="overview";$("history-view").hidden=tab!=="history";
+ for(const name of ["overview","history"]){
+  const el=$("tab-"+name);el.setAttribute("aria-selected",String(name===tab));el.classList.toggle("active",name===tab);
+  el.tabIndex=name===tab?0:-1;
+ }
+ if(tab==="history")renderHistory();
+}
+function historyMatches(rec){
+ const site=$("filter-site").value,status=$("filter-status").value,period=$("filter-range").value;
+ if(site!=="all"&&rec.site!==site)return false;
+ if(period!=="all"&&(rec.ageDays??0)>=Number(period))return false;
+ if(status==="reviewed")return reviewedStates.has(rec.status);
+ if(status==="pending")return rec.status==="PENDING_REVEAL";
+ if(status==="mismatch")return rec.status==="MISMATCH";
+ if(status==="incomplete")return ["INCOMPLETE","UNSUPPORTED_ALGORITHM","INVALID_RULE"].includes(rec.status);
+ return true;
+}
 function renderHistory(){
+ const recent=s.history.filter(r=>(r.ageDays??0)<30);
  const stats=$("history-stats");stats.replaceChildren();
- const checked=s.history.length,completed=s.history.filter(r=>["COMMIT_MATCHED","RNG_MATCHED","GAME_MATCHED"].includes(r.status)).length;
- const waiting=s.history.filter(r=>r.status==="PENDING_REVEAL").length,differences=s.history.filter(r=>r.status==="MISMATCH").length;
- for(const [label,n] of [["已发现",checked],["已复核",completed],["待公开",waiting],["不一致",differences]]){
-  const box=document.createElement("div");box.className="history-stat";
-  const big=document.createElement("b");big.textContent=String(n);
-  const small=document.createElement("span");small.textContent=label;box.append(big,small);stats.append(box);
+ const counts=[["已观察",recent.length],["已复核",recent.filter(r=>reviewedStates.has(r.status)).length],["待公开",recent.filter(r=>r.status==="PENDING_REVEAL").length],["异常",recent.filter(r=>r.status==="MISMATCH").length]];
+ for(const [label,n] of counts){
+  const node=document.createElement("div"),value=document.createElement("b"),name=document.createElement("span");
+  node.className="history-stat";value.textContent=String(n);name.textContent=label;node.append(value,name);stats.append(node);
  }
- $("last-detected").textContent=s.history[0]?s.history[0].stamp:"暂无观察";
- $("history-number").textContent="（"+checked+"）";
+ const origins=new Set(recent.map(r=>r.site));
+ $("last-detected").textContent=origins.size+" 个网站 · 本地模拟历史";
+ const current=$("site-name").textContent.split(" ")[0],currentRows=recent.filter(r=>r.site===current);
+ $("current-site-count").textContent="本站历史："+currentRows.length+" 条 · "+currentRows.filter(r=>reviewedStates.has(r.status)).length+" 条完成部分复核";
+ const sel=$("filter-site"),selected=sel.value||"all";sel.replaceChildren();
+ const all=document.createElement("option");all.value="all";all.textContent="全部网站";sel.append(all);
+ for(const origin of [...new Set(s.history.map(r=>r.site))].sort()){
+  const opt=document.createElement("option");opt.value=origin;opt.textContent=origin;sel.append(opt);
+ }
+ sel.value=selected==="all"||[...s.history].some(r=>r.site===selected)?selected:"all";
+ const filtered=s.history.filter(historyMatches);
+ $("history-number").textContent=filtered.length+" 条记录";
  const list=$("history-items");list.replaceChildren();
- for(const rec of s.history.slice(0,8)){
-  const li=document.createElement("li"),left=document.createElement("div"),title=document.createElement("strong"),sub=document.createElement("small"),tag=document.createElement("span");
-  title.textContent="公开记录 #"+rec.round;
-  sub.textContent=rec.stamp+" · "+rec.level+" · "+rec.site;
-  const labels={PENDING_REVEAL:"等待公开",COMMIT_MATCHED:"哈希一致",RNG_MATCHED:"RNG一致",GAME_MATCHED:"结果一致",MISMATCH:"对照异常",UNSUPPORTED_ALGORITHM:"算法不支持",INCOMPLETE:"证据不足"};
-  tag.textContent=labels[rec.status]||rec.status;tag.className="pill "+(rec.status==="MISMATCH"?"bad":rec.status==="PENDING_REVEAL"?"warn":rec.status==="RNG_MATCHED"?"ok":"info");
-  left.append(title,sub);li.append(left,tag);list.append(li);
+ $("history-empty").hidden=filtered.length!==0;
+ for(const rec of filtered.slice(0,s.historyVisible)){
+  const li=document.createElement("li"),button=document.createElement("button");
+  button.type="button";button.className="history-record-action";button.setAttribute("aria-label","查看 "+rec.site+" 轮次 "+rec.round+" 的证据详情");
+  const left=document.createElement("span"),title=document.createElement("strong"),meta=document.createElement("small"),tag=document.createElement("span");
+  left.className="history-record-label";title.textContent=rec.site+" · #"+rec.round;
+  meta.textContent=rec.stamp+" · "+rec.level;
+  tag.className="pill "+(rec.status==="MISMATCH"?"bad":rec.status==="PENDING_REVEAL"?"warn":reviewedStates.has(rec.status)?"ok":"info");
+  tag.textContent=historyLabels[rec.status]||rec.status;
+  left.append(title,meta);button.append(left,tag);button.addEventListener("click",()=>openHistoryDetail(rec.id));
+  li.append(button);list.append(li);
  }
- if(!s.history.length){const li=document.createElement("li");li.textContent="暂无已观察的公开记录";list.append(li);}
+ $("history-more").hidden=filtered.length<=s.historyVisible;
+ if(s.selectedHistoryId&&$("history-detail").hidden===false){
+  const currentRecord=s.history.find(r=>r.id===s.selectedHistoryId);
+  if(currentRecord)renderHistoryDetail(currentRecord);else closeHistoryDetail();
+ }
+}
+function closeHistoryDetail(){
+ s.selectedHistoryId=null;
+ $("history-detail").hidden=true;$("history-list-view").hidden=false;
+}
+function renderHistoryDetail(rec){
+ $("history-detail-title").textContent=rec.site+" · 轮次 #"+rec.round;
+ $("history-detail-meta").textContent=rec.stamp+" · "+(historyLabels[rec.status]||rec.status)+" · "+rec.level;
+ $("history-detail-scope").textContent=rec.evidence?.length?"本次演示记录了可追查的计算输入/对照项目；不代表真实网站的完整公平性证明。":"这条历史仅有状态摘要，缺少可复算的原始证据；不能根据摘要重新宣布验证成功。";
+ const box=$("history-detail-evidence");box.replaceChildren();
+ const rows=rec.evidence?.length?rec.evidence:[
+  ["记录身份",rec.id],["证据范围",rec.level],["算法版本",rec.algorithm||"未保存/未确认"],
+  ["可重复验证","缺少原始输入或独立事前承诺"]
+ ];
+ for(const [name,value] of rows){
+  const line=document.createElement("div"),head=document.createElement("b"),detail=document.createElement("span");
+  line.className="level";head.textContent=String(name)+"　";detail.textContent=String(value);line.append(head,detail);box.append(line);
+ }
+}
+function openHistoryDetail(id){
+ const rec=s.history.find(r=>r.id===id);if(!rec)return;
+ switchTab("history");s.selectedHistoryId=id;
+ $("history-list-view").hidden=true;$("history-detail").hidden=false;renderHistoryDetail(rec);
 }
 function appendHistory(rec){
  const index=s.history.findIndex(x=>x.id===rec.id);
- if(index>=0)s.history.splice(index,1);
+ if(index>=0){const prior=s.history[index];rec={...prior,...rec};s.history.splice(index,1);}
  s.history.unshift(rec);
- if(s.history.length>30)s.history.length=30;
+ if(s.history.length>500)s.history.length=500; // bounded mock only, no persistent storage
  renderHistory();
 }
 function recordForRound(round,status,level){
  const stamp="模拟 "+String(9+Math.floor(round/60)).padStart(2,"0")+":"+String(round%60).padStart(2,"0");
- return {id:s.scene+":"+round,site:$("site-name").textContent.split(" ")[0],round:String(round),stamp,status,level};
+ const site=$("site-name").textContent.split(" ")[0];
+ return {id:site+":"+round,site,round:String(round),stamp,status,level,ageDays:0,algorithm:status==="PENDING_REVEAL"?"待确定":"SIM-256-v1（演示）"};
 }
 function togglePanel(){
  s.panelOpen=!s.panelOpen;
@@ -366,7 +429,8 @@ function simulateRound(){
 }
 function simulateReveal(){
  if(!s.granted||!s.auto){$("scenario-help").textContent="当前无权限或自动检测已关闭，不能补验。";return;}
- const pending=s.history.find(x=>x.status==="PENDING_REVEAL");
+ const currentSite=$("site-name").textContent.split(" ")[0];
+ const pending=s.history.find(x=>x.site===currentSite&&x.status==="PENDING_REVEAL");
  if(!pending){$("scenario-help").textContent="没有可补验的待公开轮次。";return;}
  const status=s.scene==="unknown"?"UNSUPPORTED_ALGORITHM":s.scene==="mismatch"?"MISMATCH":"RNG_MATCHED";
  appendHistory({...pending,status,level:status==="RNG_MATCHED"?"L3":status==="MISMATCH"?"L3 异常":"L2"});
@@ -377,7 +441,7 @@ function report(text,level){
  if(level) $("feedback").dataset.level=level;
 }
 function emptyVerification(){
- s.verification=null;$("evidence-button").textContent="查看验证证据";$("result-heading").textContent="尚未验证";$("result-scope").textContent="字段识别不代表游戏公平。";$("evidence-button").disabled=true;$("evidence-button").setAttribute("aria-expanded","false");$("evidence").hidden=true;$("evidence").replaceChildren();
+ s.verification=null;$("open-current-detail").hidden=true;$("evidence-button").textContent="查看验证证据";$("result-heading").textContent="尚未验证";$("result-scope").textContent="字段识别不代表游戏公平。";$("evidence-button").disabled=true;$("evidence-button").setAttribute("aria-expanded","false");$("evidence").hidden=true;$("evidence").replaceChildren();
 }
 function addStatus(text,level){
  $("result").textContent=text;$("result").className="help-status"+(level?" "+level:"");
@@ -497,9 +561,14 @@ function drawVerification(heading,message,level,lines){
  $("evidence").replaceChildren();for(const [name,text] of lines)evidenceLine(name,text);
  $("evidence-button").disabled=false;$("evidence").hidden=true;
  $("evidence-button").setAttribute("aria-expanded","false");
- if(s.granted&&["模拟随机数复算一致","随机结果不一致","仅核对哈希（模拟）"].includes(heading)){
-  const status=heading==="模拟随机数复算一致"?"RNG_MATCHED":heading==="随机结果不一致"?"MISMATCH":"COMMIT_MATCHED";
-  appendHistory(recordForRound(241,status,status==="COMMIT_MATCHED"?"L2":"L3"));
+ if(s.granted){
+  const status=heading==="模拟随机数复算一致"?"RNG_MATCHED":heading==="仅核对哈希（模拟）"?"COMMIT_MATCHED":/不一致/.test(heading)?"MISMATCH":/等待公开/.test(heading)?"PENDING_REVEAL":/算法/.test(heading)?"UNSUPPORTED_ALGORITHM":/规则需修复/.test(heading)?"INVALID_RULE":"INCOMPLETE";
+  const level=reviewedStates.has(status)?status==="COMMIT_MATCHED"?"L2":"L3":status==="PENDING_REVEAL"?"L1":status==="MISMATCH"?"L2/L3 异常":"未达到可复核层级";
+  const entry=recordForRound(241,status,level);
+  entry.evidence=lines.map(row=>[String(row[0]),String(row[1])]);
+  entry.algorithm=reviewedStates.has(status)||status==="MISMATCH"?"SIM-256-v1（演示）":"未知或未支持";
+  appendHistory(entry);
+  $("open-current-detail").hidden=false;
  }
 }
 async function digest(text){
@@ -558,14 +627,36 @@ async function verify(){
  report("已执行浏览器 Web Crypto 的 SHA-256 模拟计算；未访问任何真实博彩服务。");
 }
 function switchScenario(name){
- cancelObserve();stopPick(true);s.generation++;s.scene=name;s.granted=name!=="denied";s.auto=name!=="denied"&&name!=="boundary";s.fields={};s.sources={};s.rules={};s.invalid.clear();s.hasScanned=false;s.appended=false;s.scanCount=0;s.panelOpen=true;$("side-shell").hidden=false;$("workspace").classList.remove("panel-closed");$("lab-panel").textContent="关闭模拟侧栏";s.history=[];s.roundNumber=241;
+ cancelObserve();stopPick(true);s.generation++;s.scene=name;s.granted=name!=="denied";s.auto=name!=="denied"&&name!=="boundary";s.fields={};s.sources={};s.rules={};s.invalid.clear();s.hasScanned=false;s.appended=false;s.scanCount=0;s.panelOpen=true;$("side-shell").hidden=false;$("workspace").classList.remove("panel-closed");$("lab-panel").textContent="关闭模拟侧栏";s.roundNumber=241;s.historyVisible=8;closeHistoryDetail();switchTab("overview");
  if(name==="broken")s.rules.serverSeedHash={selector:'[data-testid="server-hash-v1"]',extract:"textContent",confirmed:true};
  $("scenario-help").textContent=helpers[name];$("scenario").value=name;
- renderSite();if(name==="known"){s.history=[recordForRound(240,"PENDING_REVEAL","L1"),recordForRound(239,"COMMIT_MATCHED","L2")];}renderHistory();updateAuto();emptyVerification();renderFields();report("");
+ renderSite();
+ if(!s.seededHistory){
+  s.seededHistory=true;
+  s.history=[
+   {...recordForRound(240,"PENDING_REVEAL","L1"),ageDays:0},
+   {...recordForRound(239,"COMMIT_MATCHED","L2"),ageDays:2},
+   {id:"unknown-demo.local:55",site:"unknown-demo.local",round:"55",stamp:"模拟 3 天前",status:"UNSUPPORTED_ALGORITHM",level:"L2",algorithm:"未知",ageDays:3},
+   {id:"audit-demo.local:83",site:"audit-demo.local",round:"83",stamp:"模拟 12 天前",status:"MISMATCH",level:"L3 异常",algorithm:"SIM-256-v1（演示）",ageDays:12}
+  ];
+ }
+ renderHistory();updateAuto();emptyVerification();renderFields();report("");
  addStatus(s.granted?"等待扫描，所有样本均为虚构公开数据。":"未授权：不会自动读取模拟网页。",s.granted?"":"warn");
  if(s.granted&&s.auto){scan("auto");beginObserve();}
 }
 $("scenario").addEventListener("change",e=>switchScenario(e.target.value));
+$("tab-overview").addEventListener("click",()=>switchTab("overview"));
+$("tab-history").addEventListener("click",()=>switchTab("history"));
+$("go-history").addEventListener("click",()=>switchTab("history"));
+$("history-back").addEventListener("click",()=>{closeHistoryDetail();renderHistory();$("tab-history").focus();});
+$("history-more").addEventListener("click",()=>{s.historyVisible+=8;renderHistory();});
+for(const id of ["filter-site","filter-status","filter-range"]){
+ $(id).addEventListener("change",()=>{s.historyVisible=8;closeHistoryDetail();renderHistory();});
+}
+$("open-current-detail").addEventListener("click",()=>{
+ const id=$("site-name").textContent.split(" ")[0]+":241";openHistoryDetail(id);
+});
+
 $("lab-panel").addEventListener("click",togglePanel);
 $("lab-round").addEventListener("click",simulateRound);
 $("lab-reveal").addEventListener("click",simulateReveal);
@@ -604,7 +695,7 @@ $("mutate").addEventListener("click",()=>{
  report(s.auto&&s.granted?"已更新 DOM；等待 250ms 增量监听。":"已更新 DOM；未开启自动检测，请手动扫描。");
 });
 switchScenario("known");
-window.__SLOTS_PREVIEW_TEST__={getState:()=>({scenario:s.scene,granted:s.granted,auto:s.auto,panelOpen:s.panelOpen,history:s.history.map(x=>({...x})),fields:{...s.fields},invalid:[...s.invalid],rules:{...s.rules},scanCount:s.scanCount,observer:!!s.obs,verification:s.verification?{...s.verification}:null})};
+window.__SLOTS_PREVIEW_TEST__={getState:()=>({scenario:s.scene,granted:s.granted,auto:s.auto,panelOpen:s.panelOpen,history:s.history.map(x=>({...x})),tab:s.tab,historyVisible:s.historyVisible,selectedHistoryId:s.selectedHistoryId,filteredHistoryCount:s.history.filter(historyMatches).length,fields:{...s.fields},invalid:[...s.invalid],rules:{...s.rules},scanCount:s.scanCount,observer:!!s.obs,verification:s.verification?{...s.verification}:null})};
 })();
 </script>
 </body>
