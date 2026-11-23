@@ -613,3 +613,14 @@ R5 已有域名、按需权限、可点击统计及跨站历史，但业务首�
 已直接修改 main 的 projects/slots-fairness/preview/index.html、调整 DOM 和脚本可观察状态，新增本站/全站分段范围与时间标注，并执行 GitHub 当前源码的隔离 V8 DOM/Crypto 状态测试 **23/23 PASS**。覆盖已知/未知站、缺字段、规则失效、Server Seed 未公开、Canvas、未授权、动态监听、日期范围及跳转。该回归不是正式 Chromium 视觉或已安装扩展验收。
 
 **官方 Preview Kit create/check、同一仓库 HTML 的真实 Chromium 全宽/320px 截图、真实 Chrome Content Script/host 权限、真实后台历史存储、实际 Slots 算法仍 NOT_TESTED**。在这些门槛完成前，不能把本次离线预览声称为真实交付已获专家 95 分；此前“96”是设计覆盖度自评，并不能代替规范与安装证据。
+
+
+## 19. R7.1：历史筛选与结果列表的统一垂直间距（2026-11-23）
+
+用户指出历史明细的“近30天”下拉与下方记录列表紧贴无间距。定位到两个交付表面：以前聊天中可操作的独立 HTML 适配文件使用 sf-history-index 作为历史子页容器，但未建立纵向布局，实际独立 Chromium 的筛选区下缘到列表上缘测得 **0px**；仓库 preview/index.html 虽有 sf-tabpage 的通用 gap，但其中 history-list-view 没有专门的数据列表间距合同，且旧 history-list 的 margin 7px 会与 gap 叠加，容易产生不同版本间距不一致。
+
+**修复到同一个原文件** projects/slots-fairness/preview/index.html：历史列表容器显式单列 Grid，筛选/列表/空状态/分页每个区块统一 row-gap=var(--space-3)（12px）；筛选项内部 gap=var(--space-2)（8px），标签与字段的间距 var(--space-1)（4px）。清理旧列表首部 margin，确保不叠加到 19px。空结果时隐藏无内容的列表边框，仅显示空结果提示；恢复筛选条件时重新显示列表。其余历史筛选与证据/侧栏业务逻辑不变。
+
+独立 CHAT_ADAPTER_NOT_SOURCE_HTML 的 HTML 文件也做了对等样式修复；在真实 Chromium / page.set_content 下，320 / 360 / 390 / 1200px 四种视口实测筛选区和列表间距均为 **12.0px**、横向溢出均为0、页面异常均为0，时间选择操作正常，并留有 360px 截图。
+
+**证据边界**：此处的浏览器实测属于独立聊天适配文件，不是仓库精确源码的视觉测试；仓库 main 的更新完成、语法与 ID 等静态校验另行验证。官方 sidebar-preview-kit.mjs check 与真正已安装的 Chrome 扩展仍 NOT_TESTED；不会冒充通过。
