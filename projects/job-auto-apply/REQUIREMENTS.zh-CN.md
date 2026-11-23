@@ -294,7 +294,25 @@ S1 厂商功能/营销宣称 → S2 官方定价、套餐或应用商店内购�
 
 预览顶栏依次提供 13 项演示：01 正常多岗位、02 硬条件不符、03 已沟通、04 无 ID、05 JD 未加载、06 侧栏关闭、07 重新打开、08 规则修改、09 空列表、10 异步加载、11 撤权恢复、12 导航/重复扫描、13 待审/草稿编辑复制。附加外部关闭/打开侧栏与显式重置，能在一页中连续验证队列保留。
 
-**自动测试**：已有 `tests/preview.test.mjs`（R5 静态/语法/离线边界 4 项）保持，新增 `tests/preview-r6.test.mjs` 共 14 项（1 合同检查 + 13 交互场景）。R6 在 V8 隔离 Mock DOM 进行过 14/14 场景回放；这说明脚本在模拟 DOM 下可以运行，不等于 Chromium 视觉、实际 Host、CAS 或 BOSS 权限验证。应以 GitHub App CI 对当前提交的 Node 回执补强 `NODE_PASS`。真实 Chromium、Mac 本地 Chrome、BOSS 实站仍 `NOT_TESTED`。**不能用旧 R5 的 64/64 代替 R6 的新测试。**
+**已执行测试**：沿用 `tests/preview.test.mjs` 的 R5 静态/脚本/安全回归 4 项，并新增 `tests/preview-r6.test.mjs` 的 14 项（1 项合同 + 13 项交互）。GitHub App CI [45110104863](https://github.com/shopable-ai/opendesk-browser/actions/runs/45110104863) 在提交 `bd76cc9aa6bdd99368d2c63174c8534e65bcdef4`（本轮预览和测试最新版）执行 `app-validate (job-auto-apply)`，**78/78 Node PASS、候选构建/源同一性 PASS**。该项目的 Chromium UI 和本机 Chrome 测试跳过，均为 `NOT_TESTED`。不把原 R5 的 64/64 或隔离 DOM 模拟解释为真实 UI 验收。
+
+| 场景 | 已执行的离线模拟断言 | 证据状态 |
+| --- | --- | --- |
+| 01 多个岗位 | 页面无需先打开侧栏自动识别；4 个卡片每卡 1 枚标签；规则不冒充 AI | MOCK_PASS |
+| 02 条件不符 | 排除条件与禁用加入待审 | MOCK_PASS |
+| 03 已沟通 | 可见已沟通，避免重复加入 | MOCK_PASS |
+| 04 无稳定 ID | 明确暂无法识别，禁用待审 | MOCK_PASS |
+| 05 完整 JD 未加载 | 显示待确认而不是已匹配全部 JD | MOCK_PASS |
+| 06 侧栏关闭 | 网页独立显示、加入待审、内联编辑复制、侧栏打开能力不存在时给真实手动提示 | MOCK_PASS |
+| 07 侧栏重开 | 待审清单和当前 Tab 保留 | MOCK_PASS |
+| 08 规则变化 | 已存待审不丢弃，标为需要复核，入队动作重新约束 | MOCK_PASS |
+| 09 空结果 | 不制造职位，不残留“识别中”文案或旧内嵌卡 | MOCK_PASS |
+| 10 异步加载 | 过期响应不能覆盖撤权状态，最终有限加载完成 | MOCK_PASS |
+| 11 撤权/恢复 | 页面辅助 UI 消失，禁止扫描；恢复后队列仍在 | MOCK_PASS |
+| 12 导航/重复扫描 | Enter 键选中、重新扫描不产生重复标记/岗位 | MOCK_PASS |
+| 13 待审/草稿 | 加入、编辑、关闭、再开、复制、移除均更改模拟状态 | MOCK_PASS |
+
+**证据隔离**：`MOCK_PASS` 仅代表相应动作在 V8/Node 的伪 DOM 与内存模型里走通，非截图、真实 Chromium、真实 BOSS 或正式 Page-CAS。项目独立 App CI 已通过；同一提交的更广泛 `Page userscript dependencies and package` 工作流 [45110104864](https://github.com/shopable-ai/opendesk-browser/actions/runs/45110104864) 仍失败（共享测试 435 项中 33 项失败），没有将这个全仓问题列为已修复，不得称所有 CI 全绿。
 
 ### R6-D · 下一轮正式 Page 接入（必须分门禁）
 
