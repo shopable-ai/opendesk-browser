@@ -257,4 +257,4 @@ S1 厂商功能/营销宣称 → S2 官方定价、套餐或应用商店内购�
 
 **预览回归证据**：GitHub [App CI run 45101236297](https://github.com/shopable-ai/opendesk-browser/actions/runs/45101236297) 已包含新增 tests/preview.test.mjs 的 4 项测试，项目合计 64/64 Node PASS、候选构建/同源 PASS。此 CI profile 的真实 Chromium UI 作业为 SKIPPED，不能当作已在浏览器里点击/验收的证据。
 
-**完成/未完成**：本轮已补国内外收费产品供应侧证据和互动设计稿；市场 A3/A4 付费结果证据仍未获得，正式注入、跨表面真实消息、BOSS 实站 DOM、真实发送、正式安装仍 NOT_TESTED/NOT_IMPLEMENTED。下一轮先审核这个预览的视觉与交互，再沿原 J01/J02 在真网页采证和最小接线；不重做 R1–R4、竞品全量搜索或直接进入自动海投。
+**完成/未完成**：本轮已补国内外收费产品供应侧证据和互动设计稿；独立市场研究采用 S3/S4 级别的真实付费与经营结果证据仍未获得，正式注入、跨表面真实消息、BOSS 实站 DOM、真实发送、正式安装仍 NOT_TESTED/NOT_IMPLEMENTED。下一轮先审核这个预览的视觉与交互，再沿原 J01/J02 在真网页采证和最小接线；不重做 R1–R4、竞品全量搜索或直接进入自动海投。
