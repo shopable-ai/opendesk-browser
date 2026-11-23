@@ -541,10 +541,10 @@ function addStatus(text,level){
 function updateActions(count){
  const n=count??Object.keys(s.fields).filter(key=>!s.invalid.has(key)).length;
  const repair=s.granted&&s.hasScanned&&(n<5||s.invalid.size>0);
- const allowManual=s.granted&&s.hasScanned&&!s.auto;
+ const allowManual=s.granted&&s.hasScanned&&!s.auto&&n>0&&!s.invalid.size;
  $("pick").hidden=!repair;
  $("verify").hidden=!allowManual;
- $("tools-section").hidden=!repair&&!allowManual&&!s.chosen;
+ $("tools-section").hidden=!repair&&!allowManual&&!s.chosen&&!s.picking;
 }
 function renderFields(){
  const ul=$("fields");ul.replaceChildren();
@@ -619,7 +619,7 @@ function stopPick(reset){
 }
 function startPick(){
  if(!s.granted){addStatus("未授权：不能进入网页选区。","warn");report("请先通过浏览器的站点授权入口允许访问。");return;}
- stopPick(true);s.picking=true;$("site-surface").classList.add("picking");$("pick-label").textContent="退出选区";
+ stopPick(true);s.picking=true;$("site-surface").classList.add("picking");$("pick-label").textContent="退出选区";$("pick").hidden=false;$("tools-section").hidden=false;
  report("选区模式已开启：将鼠标移到右侧公开数据的值上，点击选择；Esc 可退出。");
 }
 function choose(el){
