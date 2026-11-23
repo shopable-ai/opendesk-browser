@@ -1,7 +1,7 @@
 # AI Job Auto Apply · 付费竞品、价格、商业模式与市场验证
 
 > **唯一市场研究权威文档（2026-11-23 首版）**  
-> Owner：\`projects/job-auto-apply/\`；项目：AI Job Auto Apply / AI 自动求职；业务需求另见 [REQUIREMENTS.zh-CN.md](../REQUIREMENTS.zh-CN.md)，交互预览另见 [preview/index.html](../preview/index.html)。  
+> Owner：`projects/job-auto-apply/`；项目：AI Job Auto Apply / AI 自动求职；业务需求另见 [REQUIREMENTS.zh-CN.md](../REQUIREMENTS.zh-CN.md)，交互预览另见 [preview/index.html](../preview/index.html)。  
 > **原始目标**：发现有哪些真正公开收费的求职辅助、自动投递及相邻 AI 产品；比较收费方式、权益、平台和用户价值，再决定 OpenDesk 的免费入口、可验证付费功能及优先级。市场研究**不**授权自动投递、爬取网站、接入付费服务或更改 Browser SDK。
 
 ## 0. 关键结论与样本口径
@@ -120,7 +120,7 @@
 ### 更新规约与后续执行优先级
 
 - **需求与 UX**：继续留在 [REQUIREMENTS.zh-CN.md](../REQUIREMENTS.zh-CN.md)，不要在本市场文档写 OpenDesk 的具体 DOM 实现或替代 R5 Page 预览。
-- **市场与价格**：此文件为唯一权威；后续只改变化的产品行、时间戳、来源和结论，保留定价矛盾记录；不要按版本创建 \`market-r7-final-v2.md\`。
+- **市场与价格**：此文件为唯一权威；后续只改变化的产品行、时间戳、来源和结论，保留定价矛盾记录；不要按版本创建 `market-r7-final-v2.md`。
 - **真实开发依赖**：市场发现仅用于排序产品机会，不能替代目前未完成的 BOSS 真实页面读取、正式安装、单岗位执行/回执安全门禁。
 - **S2→S4 不可跳级**：开源 Star、页面用户数、广告宣传、标价、自动申请次数都不能直接被写成“付费用户证据”“真实面试率”或“已验证 PMF”。
 - **结束状态**：2026-11-23 建立并扩充 **30 款独立公开价格第三方样本 + 1 个官方平台 VIP 参照**；待补 S3/S4、市场覆盖率、付费用户规模、真实 ROI。并非声称全面穷举或商业化能力已开发。
