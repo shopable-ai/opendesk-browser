@@ -396,3 +396,12 @@ R1 文件本身不等于以上测试已通过。执行的实际测试与已知�
 参考：Chrome scripting 和 persistAcrossSessions https://developer.chrome.com/docs/extensions/reference/api/scripting ；SW 限制 https://developer.chrome.com/docs/extensions/develop/migrate/known-issues ；activeTab https://developer.chrome.com/docs/extensions/mv3/user_privacy/ ；storage https://developer.chrome.com/docs/extensions/reference/api/storage ；2026 采集披露政策 https://developer.chrome.com/blog/cws-policy-updates-2026 ；商店赌博限制 https://developer.chrome.com/docs/webstore/troubleshooting 。
 
 **证据状态**：R3 产品/架构设计完成；真实扩展后台监测、存储及侧栏关闭原生测试 NOT_TESTED；离线预览若演示侧栏关闭期间的新增记录，只能标为模拟。
+
+
+### 14.8 本轮实际交付、验证层级与未完成
+
+- 仓库 main 已差量更新 preview/index.html：侧栏移除「撤销模拟权限」按钮；扫描与网页选区增加 SVG 图标（仍保留必要中文标签）；授权范围内模拟发现的轮次在侧栏关闭期间继续存于**同一页面的模拟内存**；侧栏再打开时显示近30天历史汇总、最近记录及 reveal 状态升级；完整字段已识别时默认折叠技术详情，缺失/规则失效时展开。
+- 已新增 docs/competitive-screenshots.md：含公开竞品 UI 图片的可渲染外链、逐图来源和借鉴/禁用对照。当前第三方 CDN 原图未成功下载，因此**只完成带图参考索引，并未把第三方 PNG/WebP 二进制归档到仓库**。不允许混淆两者。
+- 运行证据 A：对 GitHub main 的最新 HTML 源码执行 JavaScript 语法检查、无重复 DOM id、无 grant 文本按钮和外部 script 的静态检查，PASS。隔离 V8 DOM/Crypto 测试桩对更新中的 20 项场景首次返回 19 通过，另 1 项是站点显示名包含「（已知样例）」与测试预期 hostname 不一致；随后已在仓库修正站点 ID 记录，但仍需对最终确切字节重复完整运行。
+- 运行证据 B：独立的本地 CHAT_ADAPTER HTML (sandbox 文件，**不是官方仓库 HTML 字节同源**) 用 Chromium Playwright 在 1200/768/390/360/320px 以及核心流程执行 57/57 断言 PASS，包括开关、历史、关闭/重开、后台事件模拟、缺字段点选、SPA 更新及未授权阻断；保留了截图。该结果仅证明本地模拟适配版可交互，不证明原仓库精确 HTML 的 Chrome 原生验收。
+- 尚未完成：官方 sidebar-preview-kit.mjs create/check、源代码一致性截图、Chrome MV3 同一候选安装与真实 Content Script/权限/持久化/暂停恢复测试、真实网站算法、商店发布审查。全部 NOT_TESTED。当前演示的自动补验**只是状态机模拟**，不能声称已实现真实后台公平性复算。
