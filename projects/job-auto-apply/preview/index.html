@@ -220,6 +220,7 @@
     var target=byId('side-jobs');target.replaceChildren();
     var visible=state.scanned&&state.scenario!=='noaccess';
     byId('side-empty').hidden=visible&&state.items.length>0;
+    if(visible&&state.items.length===0)text(byId('side-empty'),'当前没有已加载职位，不生成虚构结果。');
     if(!visible){text(byId('side-empty'),state.scenario==='noaccess'?'网页权限已撤销；历史待审仍可在下一页签查看。':state.scanning?'只读识别中…':'尚无已确认的当前页面结果');return;}
     state.items.forEach(function(j){
       var r=rank(j),m=mini(j),box=document.createElement('article');box.className='sidebarjob';
