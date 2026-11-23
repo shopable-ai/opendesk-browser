@@ -675,3 +675,114 @@ Payload Admin 管理员可维护目录/策略、审核公共标记；普通用�
 - 表和 API 架构设计通过不等于代码/真实账号/双设备验收；正式迁移、OAuth/权限、Payload/SQL、Chrome、多开发者与跨设备专项必须分证据记录。
 
 **实施前置顺序**：先建立 Registry + ID/binding/roles/consent/feature/数据分类的合同（R4）；其次在**单一**后端做一个共享 registry + 通用 sync 存储 mock 与视频专用目录 mock；最后两种不同扩展数据（video-auto-skip 和非视频消费者）各跑一轮真实 API 隔离/额度测试。仅视频能跑通不算验证了通用平台。普通扩展云能力与高权限公共内容审核分等级上线；不将完整视频库、公共贡献或真正付费系统作为最小通用协议前置。
+
+
+## R5 · Payload 原生资源 API、统一扩展数据、安装清单恢复与可选开发者后端（2026-11-23）
+
+> 状态：DESIGN_PROPOSAL / NOT_IMPLEMENTED / NOT_TESTED。当前仓库 services/ 只有已查得 analytics 与 cookie-share-relay，未核实运行中的 Payload/账号后端；不得将本节视为已部署。此节优先于 R3/R4 中尚未实现的 /v1/sync/{productId}/... 路由候选和 R12 的 /v1/products/.../video-rules/match 候选；**旧路径未真正上线，不要为了兼容草案而部署双路由**。通用同步真相、记录 CAS、账户隔离和 VIP 原则继续沿用 R3/R4，不另建第二套引擎。
+
+### R5.1 原始用户目标、关键架构错误与总体取舍
+
+最终让任何正常注册的 OpenDesk/GrayDove 内部或用户自建扩展，在**没有管理员事先为其建立数据库表/专用 API**的情况下，按已批准范围保存并跨设备恢复个人数据；统一账号还可保存用户希望恢复的扩展清单，换电脑显示可恢复应用并通过原安装审阅恢复。只有高查询/公共共享/业务审核需求的扩展才需要专用领域模块。普通扩展开发者默认**不需要自己提供后端**，可选连接自有服务；不能因为用户提供了 extensionId 就获得跨产品权限。
+
+纠错：
+- 上一版把 /v1/sync/{productId}/changes 作为统一主接口：HTTP 合法但**不是 Payload 原生 Collection CRUD**。Payload 默认前缀 /api，以 kebab-case slug 自动提供 GET/POST/PATCH/DELETE /api/{collection-slug}，并可定义 Collection 内的额外 endpoint 或独立 Next Route。今后第一优先复用原生 Collection，再为 CAS/增量游标/幂等增加必要且少量的自定义 endpoint。Payload 文档：https://payloadcms.com/docs/rest-api/overview 。
+- /v1/extensions/cache 这个示例把「扩展目录」和「用户私有持久设置」语义混淆；用户规则并非可以随时清空的缓存。推荐 extension-data 作为**持久**用户数据 Collection；cache/TTL/NO_MATCH 等派生数据放浏览器本机或共享缓存层，绝不当个人备份的唯一真相。
+- 每个扩展对应一个 Payload Collection 会造成管理员开发前置与 schema 爆炸。**固定少量通用集合 + JSON 数据字段 + 分产品分账号严格授权**是默认；视频公共时间标记等才有受审专业索引。Payload JSON 字段有 jsonSchema/validate 可用（https://payloadcms.com/docs/fields/json），但不能相信作者可在客户端任意改写被批准的 schema。
+
+### R5.2 最小通用 Payload 资源和职责
+
+**M0 核心三集合**（均是统一服务中定义**一次**的 Collection，不按用户开发应用数量复制）：
+
+| Payload Collection slug | 关键字段与唯一身份 | 谁可以调用及用途 |
+| --- | --- | --- |
+| extensions | extensionId（唯一不透明/命名空间 ID），publisherId，displayName，runtimeBindings/packageInfo，sourceKind，status，capabilityGrants，schemaPolicy，releaseDigest | 公共可读已审核目录的有限元信息；平台审核发布；private-draft 用户自建扩展仅本人可见 |
+| user-extensions | accountId（由服务端身份映射），extensionId，desiredState（WANTED/REMOVED），pinnedReleaseRef，restorePolicy，changedRevision，sourceProof | 仅本人管理「下次希望恢复哪些扩展」；不是此设备安装真实性或权限清单 |
+| extension-data | accountId，extensionId，recordKey，schemaVersion，data JSON，recordRevision，deleted/tombstone，updatedAt | 每个账号、扩展、记录隔离的**持久**配置/备份；唯一(accountId,extensionId,recordKey)，严限字节数/总记录/调用预算 |
+
+**后续按需要的共用实体**：identity users 与 admins（不同授权面）；entitlements/consents（R3/R4 已有责任）；extension-data-operations（operationId→digest→receipt，幂等）、extension-data-changes（递增账号/产品变更游标）、extension-data-history（可恢复历史）；必要的 device-install-states 记录**本设备实际安装报告**与撤销代际。不要把安装清单、用户可恢复数据、设备运行权限混为同一张表；历史日志不能无界增长。对 M0 最小实现，可先在同一后端增加必要的事务操作表，不要求每张逻辑表都公开为 Payload Collection。
+
+账户/扩展资源键：私有记录以 (accountId, extensionId, recordKey) 唯一；历史以 (accountId,extensionId,recordKey,revision) 标识；幂等以 (accountId,clientId,operationId) + payloadDigest 唯一。服务器由可信登录验证派生 accountId，扩展 ID 必须存在于 Registry 并受真实安装/发布者绑定和 capability 约束，不能仅凭 body 或 URL 上的 ID 读写他人数据。默认公开目录不能泄漏个人订阅或安装清单。建议在 DB 层实现复合索引/唯一约束，服务侧做事务版本检查、越权测试；Payload 的字段 unique/index 只是组成部分，不能替代跨字段索引、跨记录 CAS、数据库迁移与压测。
+
+Payload 中的普通 users 与后台 admins 可以使用两个 auth collections，配置 admin.user='admins'（https://payloadcms.com/docs/admin/overview）；若另选独立 IdP，必须增加受信适配器/定制授权 Endpoint，不能假定外部 OIDC JWT 会自动使 Payload req.user 有效。Payload Local API 默认 overrideAccess=true；需要尊重请求用户权限时显式 overrideAccess:false + 有效 user（https://payloadcms.com/docs/local-api/access-control）。Admin 可管理系统配置，但不应因此默认浏览用户私有数据；真正保密要求另审加密/密钥边界。
+
+### R5.3 API 统一命名与分层，不要为新用户扩展写新接口
+
+**默认采用 Payload 的 routes.api='/api' 和原生资源名**（如下为架构目标，未实现）：
+
+| 层 | HTTP 路径 | 读写主体与意义 |
+| --- | --- | --- |
+| 扩展目录 | GET /api/extensions | 只返回已发布/本人 private-draft 的有限注册元信息 |
+| 用户希望恢复的扩展 | GET /api/user-extensions | 只读当前已验证用户的 WANTED/REMOVED 清单；按需分页/差量 |
+| 安装意愿 | POST/PATCH /api/user-extensions | 经过用户操作记 desiredState，不执行安装，也不传权限票据 |
+| 私有数据简单读写 | GET/POST/PATCH /api/extension-data | Payload 原生 CRUD；后端强制 accountId 与 extensionId 隔离，并验证 JSON schema、配额和 owner |
+| 真正可靠增量同步 | POST /api/extension-data/sync、GET /api/extension-data/delta | **仅这两个为自定义端点候选**，实现 baseRevision/operationId/tombstone/changeSeq/冲突和原子读写，不能把原生 PATCH 的「更新成功」冒充同步事务 |
+| 公共视频专用能力 | POST /api/video-rules/match | **仅实际业务需要时新增自定义路由**，先验证产品 capability、用户公共查询 consent、权益和限流，然后查受审核的视频领域数据 |
+
+是否把 /api/extension-data/sync 作为 Collection 子路由由 Payload 版本/路由冲突测试确定；若与 document ID 冲突则用根级自定义 /api/extension-sync，不同时公开两个等价入口。原生 GET 的 where/filter/分页不等于用户有权决定 accountId；服务端访问策略必须自动施加 owner 约束并防 limit=unbounded。M0 可以先展示原生 CRUD 的最小 Demo，**但真实跨端多设备恢复必须额外通过事务 CAS/增量与持久队列**。
+
+通用写入数据示例（accountId 完全不由客户端传递）：
+
+~~~http
+POST /api/extension-data
+Authorization: Bearer <trusted-user-token>
+Content-Type: application/json
+~~~
+~~~json
+{
+  "extensionId": "ext-video-sample",
+  "recordKey": "rules.v1",
+  "schemaVersion": 1,
+  "data": {"series":{"series-sample":{"defaults":{"outro":{"kind":"tail","seconds":90}},"episodes":{}}}}
+}
+~~~
+
+此为示意非现有已注册扩展。真实同步写入还需 baseRevision/operationId、稳定 digest、错误恢复、限额闸门，避免客户端对同一记录多个并发 PATCH 丢更新；服务端从受信产品/身份范围推导 owner，不能信任任意传入的 extensionId、isVip 或 accountId。对于真正的第三方独立 Chrome 扩展，服务端无法仅凭 manifest ID 字符串证明请求来自那个已安装扩展；必须明确客户端身份验证与用户授权范围，并说明不能对公有客户端作不可伪造设备证明的安全承诺。授权令牌留可信宿主或正式独立扩展授权客户端，不进入网页上下文。
+
+### R5.4 用户安装清单与新电脑恢复的完整闭环
+
+**新增能力**：与「已安装并获授权扩展的数据恢复」分开，先经独立用户同意建立账号级的**期望安装清单**（user-extensions），供新设备恢复向导使用。它不会把设备 A 当前安装状态写成设备 B 已安装，更不会把浏览器网站权限或包来源授予 B。
+
+流程：
+1. A 电脑用户明确允许同步安装清单；可信安装器枚举 Side Panel Tool、Page Program 和可验证的独立扩展身份。每项保留 extensionId、类型、源站/发行 ID、已审核包版本/摘要或安全来源引用、desiredState、updatedRevision；用户本地未发布源码/私有文件默认**只保存可恢复引用和不可恢复提示**，不偷偷上传 JS 包字节。
+2. A 安装新扩展时更新 WANTED；卸载时区分「仅本机移除」与「从我的恢复列表移除」，避免一台电脑清理临时工具就同步卸载其他电脑。需要恢复清单历史与删除 tombstone，避免旧设备重新上传已经移除的条目。
+3. B 新电脑登录后先下载**清单**，比较本地真实安装列表/版本/来源/权限：INSTALLED / AVAILABLE_TO_RESTORE / SOURCE_UNAVAILABLE / REQUIRES_REVIEW / UNSUPPORTED。提供清晰的批量恢复选择和进度；用户同意后逐项复用现有唯一安装器与安全审阅、包来源和 SHA 验证，不构建第二套安装器。
+4. 只有真实安装完成、工具 ID/版本/包来源合法且网站权限已获准时，再按该用户该产品的 sync consent 恢复**个人数据**。缺失权限可以保存但不标记功能已生效；没有源码/私人包无法自动获取时只列出未恢复项供用户手动导入。不能恢复 Cookie、Token、旧设备的能力授权/原生网页运行实例。
+5. 恢复失败、权限拒绝、旧包/撤销、包下载未知结果：独立记录 UNKNOWN/BLOCKED，先读回真实安装，不盲目重试副作用；不因为一项失败就覆盖既有本地规则或清空其他已安装扩展。
+
+**安全真实边界**：OpenDesk 内部工具可借已有安装器做「批量引导安装+审核」；真正的独立 Chrome 扩展通常仍需 Chrome Web Store/浏览器安装流程，Chrome 管理 API 不能被当成任意 CRX 静默安装手段（https://developer.chrome.com/docs/extensions/reference/api/management）；新增/扩大 host 权限需要按原 Chrome/平台审批，不能从另一台设备复制许可（https://developer.chrome.com/docs/extensions/develop/concepts/declare-permissions）。已有账号同步文档早期规定“不安装扩展”，此处**升级为恢复清单和受控恢复安装流程**，但仍不承诺无审阅静默安装。
+
+### R5.5 开发者是否需要提供后端？分级能力
+
+| 级别 | 适合谁 | 开发者需要自建服务器吗 | 费用/审核/安全边界 |
+| --- | --- | --- | --- |
+| L0 Local Only | 未注册工具、离线小工具 | 不需要 | 原工具继续可用；数据不上云 |
+| L1 Managed Data（默认推荐） | 普通用户自己开发、发布者的设置/规则/笔记 | **不需要**，只需通过受控通用数据/同步能力 | 注册 private-draft extensionId 与产品级同意、JSON 版本/配额；用户可免费试用或使用 VIP 配额 |
+| L2 Managed Domain | 视频公共时间标记、特定社区内容 | 不一定需要，但需平台实现/审核复用模块 | 公共分享、审核、第三方版权、较复杂域模型与服务成本；不开放任意表/查询模板 |
+| L3 Bring Your Own Backend（可选） | 复杂自有业务、AI 服务、私有数据库 | **可选自建**，如作者自己的 API / Supabase | 显示提供方/数据流向/域名/安全审查；作者承担运营成本与服务条款；不能获得平台管理凭证 |
+
+**Supabase 的三个不同角色**：
+A. 平台选择 Supabase PostgreSQL 作为 Payload 的数据库托管：可行，仍由**平台 Payload 服务**管理业务 schema/API/权限，不能让扩展拿 DB 管理密钥；不需要再建一套同用途 Supabase 数据源。Payload 官方 Postgres Adapter https://payloadcms.com/docs/database/postgres 。
+B. 平台直接使用 Supabase Auth+Postgres/RLS 而不使用 Payload 数据写入路径：是**另一种整体后端选型**，不能同时把两个库都当权威状态；若确需 Payload 运营 UI，应明确由谁写、事务如何统一和身份如何映射。
+C. 开发者用自己的 Supabase：默认由开发者管理自己的项目/Schema/用户授权、RLS、配额；不得在扩展包里放 service_role/secret key。前端仅可使用受限公开 key + 实际用户登录和正确 RLS（https://supabase.com/docs/guides/database/postgres/row-level-security）；OpenDesk 账号不等于自动登录每个开发者 Supabase，必须明确外部登录或经过审计的令牌联邦。浏览器沙箱访问外部域名需单独明确权限与用户知情，不允许后台默默导出私人数据。
+
+### R5.6 请求触发、VIP、合规和多扩展公平配额
+
+- 普通个人同步：只在明确启用产品级 sync consent 后，本地**已合法保存的业务记录**发生真实变化才排入持久 outbox；启动/联网恢复拉变更，可合并短时重复写。侧栏开关、渲染、当前视频 timeupdate、滑块尚未保存的草稿、每次打开 App 都**不**生成上传请求。
+- 用户安装清单：仅安装/卸载/版本变更或本人设置“期望恢复”改变时写云；同批次去重。普通登录按需获取当前清单/差量，不按每个扩展独立请求一次。
+- 视频公共匹配：先做本地安全资源身份、已有本地规则、用户同意、entitlement、cache/negative cache/预算短路；必要时服务端查一次，权限拒绝先于数据库匹配；此领域规则仍沿 [R12.1/12.2](../../projects/video-auto-skip/CLOUD-RULES-R12.zh-CN.md)，但请求入口修订为受控 /api/video-rules/match。
+- 共用 Entitlement Resolver 以 accountId + extensionId + featureCode 判断是否可以同步/自动查云、允许次数、容量。全站 VIP 可映射到多个 extensionId 的功能集合；开发者产品是否参加 VIP 由官方注册政策决定，不能无审核继承。服务器强制限制用户、功能、扩展/发布者的调用与字节配额；客户端预检只降低无效请求。
+- 不在用户数据表记录完整页面 URL、Cookie、Token、设备指纹或播放历史。后端业务访问日志默认只记录受控脱敏计数/结果；第三方 BYO 数据提供方的隐私政策、用途、域名和撤销入口应在产品使用前明确可见。数据可导出/删除，账号切换与同步同意撤销不得跨用户或跨产品串写。
+
+### R5.7 失败反例、强制验收与阶段实施
+
+**先攻击**：用户自建私有 extensionId 没有专属表 → 仍能创建自己范围的 extension-data；两个用户同一个 extensionId → 不能互读；一个用户两个不同扩展 → 不能互读；作者把 extensionId 改成知名官方 ID → 不能冒认能力；作者通过 Payload where/limit/Local API 探查私人记录 → 受控 owner 限制/服务端拒绝；用户 A 卸载一项不造成 B 自动卸载；新电脑无法找到私有包 → 必须显示需导入而非伪安装；Chrome 未批准新的 host permission → 不得声称恢复完成；同步同一 key 双设备冲突与遗失 ACK → CAS/幂等可读回；管理员/付费过期 → 权益、数据所有权分离；Supabase BYO service_role 放进 JS → 安全测试拒绝发布或给出阻断。
+
+**可执行最小纵向样板（不是已有结果）**：
+- S0：一个 Payload 本地服务，先建 extensions、user-extensions、extension-data，以及最少一个管理员 auth 和一个测试用户 auth/受信身份边界；两种不同结构工具 video-auto-skip、mouse-gestures（或等价的两个受控 fixture）**无需分别建表**仍可写读不同 JSON；私有扩展注册 private-draft 不要求管理员写新 Collection。
+- S1：在 Payload 默认 /api 路径运行原生 CRUD，测本人可读/越权拒绝、字段权限/JSON Schema/大小限制；再为双设备同步增加**同一个**必要的事务/游标 Endpoint，使用 PostgreSQL 或仅将 SQLite 明确标为功能模拟而不做事务验收（Payload SQLite 事务默认禁用，https://payloadcms.com/docs/database/transactions）。
+- S2：从现有安装器导出 3 个虚构扩展的云清单，在新 Profile 登录后展示 AVAILABLE_TO_RESTORE，不偷偷安装；选择一项后经本机合法安装/审批读取真实安装结果，再恢复对应私人规则。一个用户两个 Profile、两个用户两个产品与取消/失败分别测。
+- S3：初步做 Free/VIP、不同用户/开发者权限、请求去重/403/429/断网/恢复的真实 HTTP 统计；兼容性在真实 Chrome/新机中单独验收，不以 Mock 数据冒充。
+- S4：仅当通用闭环过关，再接视频公共查找专业模块和第三方 BYO 选项，避免本轮同时引入视频社区、Supabase 多服务和正式支付。
+
+**设计方案预期审查指标**（本轮仅静态合同）：平台抽象、Payload 官方契合、普通作者零后端门槛、数据主权与安全、清单恢复与安装安全、双设备一致性、Supabase/BYO 扩展性、成本/VIP、QA 共九项，平均目标至少 95/100，安全/数据正确性不得低于 90；同模型模拟评分不能作为真实独立专家意见。下一阶段 Codex 只能基于 R5 做单个最小后端+两消费者+安装清单恢复的技术 spike，不能照旧 /v1/sync 路由草案重复开发。
