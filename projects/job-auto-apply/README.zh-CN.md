@@ -61,6 +61,8 @@
 
 ## R6 双表面网页交互预览（离线 Mock）
 
+**R6.1 侧栏优先设计（本轮更新）**：同一个 `preview/index.html` 默认切换为「Side Panel 独立预览」（约 390px 内容宽度），顶部可换回「网页 + 侧栏联动」，不新建第二份 HTML。侧栏增加站点/权限上下文、当前识别/未排除/排除统计、当前职位提示、列表筛选、可展开规则依据、队列容量与历史快照、无简历事实状态、可修改沟通模板；保留职位发现/待审核/匹配规则三个原有 Tab。纯内存交互，不表示生产侧栏已修改。新增定向场景测试见 `tests/preview-r6.test.mjs`；最新版 CI 应按最新提交回执核对，不沿用历史 78/78 的通过结论。\n\n
+
 [唯一交互预览 HTML](preview/index.html) 已沿 R5 原文件增量改进：网页进入即模拟识别、列表轻量状态、当前职位证据、侧栏关闭时仍可加入待审及内联编辑/复制草稿；侧栏重新打开、导航、规则重评与模拟撤权不会丢失未显式重置的内存队列。顶栏提供 13 类场景，预览外部控制不属于正式侧栏 UI。测试入口为 `node --test projects/job-auto-apply/tests/preview*.test.mjs`，含 R5 静态门禁与新增 R6 交互 Mock；准确的 Node/CI 证据以对应提交的实际检查为准。
 
 **R6 当前定向回执**：GitHub [App CI 45110104863](https://github.com/shopable-ai/opendesk-browser/actions/runs/45110104863) 对提交 `bd76cc9aa6bdd99368d2c63174c8534e65bcdef4` 执行 78/78 项 Node PASS 和候选源码同源检查；Chromium UI、本机 Chrome、BOSS 实站均 `NOT_TESTED`。同提交的独立全仓 Page userscript 依赖工作流未通过，不把它描述为全部 CI 绿灯。
