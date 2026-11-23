@@ -48,6 +48,7 @@
 .history-list .pill{white-space:nowrap}
 .workspace.panel-closed{grid-template-columns:minmax(0,1fr)}
 .workspace.panel-closed .site-surface{max-width:820px}
+.field-details{min-width:0;max-width:100%}.field-details summary{display:flex;justify-content:space-between;gap:8px;font-size:12px;font-weight:650;padding:8px 2px;cursor:pointer}.field-details[open] summary{margin-bottom:7px}
 </style>
 </head>
 <body>
@@ -91,10 +92,10 @@
     <div id="history-stats" class="history-stats" aria-label="验证历史汇总"></div>
     <details id="history-details" class="history-details"><summary>最近记录 <span id="history-number"></span></summary><ul id="history-items" class="history-list" aria-label="本地模拟验证历史"></ul></details>
    </section>
-   <section>
-    <div class="section-head"><h2>发现的字段</h2><span class="mini" id="field-count">0 / 5</span></div>
+   <details id="field-details" class="field-details">
+    <summary><span>发现的验证字段</span><span class="mini" id="field-count">0 / 5</span></summary>
     <ul id="fields" class="field-list" aria-label="找到的公平性字段"></ul>
-   </section>
+   </details>
    <section id="editor" class="map-editor" hidden aria-label="点选字段确认">
     <div class="title">已点选网页元素 · 确认字段</div>
     <div class="mini" id="selected-text"></div>
@@ -339,7 +340,7 @@ function renderFields(){
   const sub=document.createElement("div");sub.className="field-value";sub.textContent=invalid?"请点选该字段以修复":val?((s.sources[key]==="rule"?"已保存规则 · ":s.sources[key]==="adapter"?"适配器 · ":"语义扫描 · ")+val):"—";
   li.append(sub);ul.append(li);if(val&&!invalid)n++;
  }
- $("field-count").textContent=n+" / 5";
+ $("field-count").textContent=n+" / 5";$("field-details").open=s.granted&&s.hasScanned&&(n<5||s.invalid.size>0);
  $("rule-tag").textContent=s.invalid.size?"规则失效":Object.keys(s.rules).length?"已存 "+Object.keys(s.rules).length+" 条规则":s.scene==="known"?"已知适配器":"通用扫描";
  $("rule-tag").className="pill "+(s.invalid.size?"bad":Object.keys(s.rules).length||s.scene==="known"?"info":"");
  $("scan-tag").textContent=!s.granted?"未扫描":s.invalid.size?"需要修复":!s.hasScanned?"等待扫描":n===5?"字段已齐":"已发现 "+n+" 项";
