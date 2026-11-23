@@ -308,3 +308,91 @@ R1 文件本身不等于以上测试已通过。执行的实际测试与已知�
 - https://www.provablyfair.org/methodology ：将 seed commitment、RNG、结果复演、RTP/赔率与异常条件分成不同审计范围。其独立性/认证声明属于对方自述，本项目只借鉴证据层级与范围透明。
 
 产品定位建议保持 **Browser-local audit assistant（不下注、不预测）**；对不支持 commit/reveal 的普通第三方 Slots 显示“当前无法独立复算”，不应误写“不公平”；对同一网站不同游戏分配不同 adapter/version，不因为共享 origin 就复用 RNG 或 reel 映射。
+
+
+## 14. R3：侧栏关闭后仍自动识别、分层历史与最小保留（2026-11-23）
+
+本节是用户新增的 P0 需求，修订 R1/13.3 的「不默认保留每轮数据」决策：**要在 Server Seed 公开后自动补验，必须在已授权站点暂存最少必要的公开轮次证据**。R1 旧结论保留为历史但不再优先。本节是需求设计，尚非 MV3 实装。
+
+### 14.1 用户目标与条件
+
+用户完成一次站点访问授权和数据留存告知后，当他浏览获准的网页时，即使侧栏没有打开，也能自动发现公开的 Provably Fair 轮次信息、等待种子公开并事后分层复算，之后打开侧栏看到最近历史及汇总。并非「安装后无条件扫描所有网站」：安装不等于 host 授权，activeTab 只支持临时已触发的访问；关闭浏览器、未打开网页、页面被冻结也不能承诺实时监测。
+
+### 14.2 P0 需求树
+
+- BG-01 自动运行与权限：
+  - 已授权站点默认可开启自动检测，不依赖 Side Panel 开闭；用户可关闭开关；未授权站点禁止后台扫描和记录。
+  - Content Script 在有明确 host 授权的匹配页面工作，document_idle 初次受限扫描，SPA 异步时短时增量观察。
+  - MV3 Service Worker 只响应事件、协调存储与计算，允许休眠，不用无限定时器维持 DOM 监听。
+  - 切站、撤权、页面冻结、停用时立即停止有关监听和待发消息；不突破跨源 iframe / Canvas。
+- BG-02 记录与补验：
+  - 首次识别并关联 origin / gameId / roundId / seedPairId / nonce / adapterVersion，避免把不同游戏/回合字段混接。
+  - 区分 DISCOVERED（发现）、PENDING_REVEAL（待公开）、INCOMPLETE、UNSUPPORTED_ALGORITHM、COMMIT_MATCHED（仅 L2）、RNG_MATCHED（L3）、GAME_MATCHED（L4）、MISMATCH、INVALID_RULE。
+  - 稍后在已授权页面实际观察到 reveal，利用有效缓存补验并替换原记录状态；未观察到不补造历史；未经证据校验不能通过。
+  - 去重（同 origin+game+round/事件+seedPair+nonce+algorithmVersion）；多标签、刷新、重试不重复计数。
+- BG-03 Side Panel 历史：
+  - 打开首页先展示：近30天已观察、已完成复核、待补证、对照异常、最后一次检测时间。扫描次数不得冒充已验证次数。
+  - 最近2–3条包含时间、网站、游戏/轮次、证据层级、状态与原因；展开记录有算法版本和来源；完整历史放后续子页/PC。
+  - 关闭侧栏仅解除 UI 订阅，已授权网页的检测和本地记录继续；再次打开读取同一本地快照。
+- BG-04 存储/隐私/性能：
+  - 只采集获许可站点的公开证据。等待 reveal 的最小缓冲：origin、roundId、公开 hash、Client Seed、Nonce、已显示的随机结果、关联 seedPairId、算法版本、观察时间及算法确需的 cursor。
+  - **本地默认缓存**设计预算：每站最多 200 条、最长7天，先到先淘汰；用户授权时明确展示保留政策。对不允许缓存的站点只做即时验证，不承诺关闭后补验。
+  - **历史结果摘要**：每站最多500条、近30天（设计阈值，实机调整），去敏记录标识、最深证据层级、结果状态、时间、算法版本及核验依据摘要；不保留整个 DOM。
+  - storage.local 或已验证的本地数据库保存；service worker / Side Panel 的内存和 localStorage 不作为唯一真相；storage.local 并非自动加密保险库。
+  - 提供清理历史、关闭自动检测、撤销站点授权的独立权限/设置入口；绝不收集密码、Cookie、token、未公开 Seed、私有网络结果和下注建议。
+- P1：按日期/网站/状态筛选；导出脱敏证据；更细的去重/同步冲突/存储统计/审计异常通知（不含博彩辅助）。
+- P2：审核过的适配器更新、规则共享、云同步；不在 R3 实施。
+- 不实现：全网站高频后台轮询、自动下注/收益赔率预测、隐藏种子提取、浏览器关闭时虚构监测、无限存档。
+
+### 14.3 模块边界（目标架构，不是已实现）
+
+    已授权 + 自动检测启用
+           │
+    页面 Content Script（不属于 Side Panel）
+           │
+    站点适配器/字段关联/唯一性校验
+           │
+    轮次去重与证据分层
+           │
+      ┌────┴─────┐
+    待公开      Seed 已公开且算法支持
+      │              │
+    临时缓冲     本地纯函数复算
+      └────┬─────────┘
+       chrome.storage.local / 有界数据库
+             │
+      Side Panel 随时打开读取历史
+
+不要创建第二套 OpenDesk Host/SW。需要在正式实现前核对公开 Page/Program、受信任第一方 Content Script 能力、安装授权契约，证据不充分记 SDK_GAP_NOT_PROVEN。Content Script 不得执行任意服务器发来的 JS。侧栏关闭不会导致 worker 常驻，Chrome 可回收 SW；接受这个边界并做事件幂等。
+
+### 14.4 主页与图标方案
+
+- **移除业务 UI 的「撤销模拟权限」文字按钮**。授权/撤销模拟只放预览实验台；真实站点 Chrome 权限走已存在的宿主准入/设置。
+- 首页优先展示站点/自动检测状态 + 最近活动时间、4 个紧凑指标、最多 3 条最近历史、一个「查看全部」入口。技术字段移到详情，不再全部永久显示首页。
+- 「扫描页面」采用统一 Refresh-Cw（同 Web Markdown Clipper）或 Scan-Search：日常可用图标按钮 + i18n title/aria-label。
+- 「选择页面区域」采用 MousePointer/Crosshair：**缺字段或匹配失效时推荐图标+本地化文字**，因为仅看图标不能可靠理解「从网页中点选字段」；初次教程需点选 Hover 提示、Escape 取消和映射确认。
+- 图标可以降低标签空间，但不是完全免翻译；aria-label、tooltip、空/错误状态与帮助文本仍应随语言包翻译。
+- 「保存匹配规则」只在用户点选并确认后显示，不把保存变成每轮验证必须操作。
+
+### 14.5 新增验收与反方审计
+
+| 测试 | 成功条件 |
+| --- | --- |
+| BG01 | 已授权网站页面保持打开、侧栏关闭后新增公开轮次；重开侧栏能读回去重记录 |
+| BG02 | 未获 host 授权站点不能创建观察器或历史 |
+| BG03 | 先捕获承诺，随后观察 seed reveal 自动复核；未看到 reveal 必须仍待公开 |
+| BG04 | SW 被回收和恢复时不丢提交结果，不重复计数，不无限轮询 |
+| BG05 | 多标签重复轮次/同 nonce 不同游戏/页面变更不会混局 |
+| BG06 | 撤权/禁用/页面切换停止监听，原缓存按披露政策清理 |
+| BG07 | 数据超限被淘汰，仍不影响已存匹配规则；支持用户删除 |
+| BG08 | 规则失效、算法版本变更时禁用旧验证结论 |
+| BG09 | 侧栏开关开启/关闭及 320–390px 窄屏不发生裁切 |
+| BG10 | 已发现≠哈希一致≠RNG 一致≠完整 Slots 公平 |
+| BG11 | Canvas/跨域 frame/浏览器关闭时不伪造检测 |
+| BG12 | 用户清楚理解自动检测会临时保存哪些公开数据，何时删除 |
+
+反方攻击：误把安装等同于所有网页授权；同 nonce/不同游戏拼接错轮；赛后伪造事前哈希；SW 暂停却宣称无间断；长时间缓存侵犯用户活动隐私；副本扩展多个 Tab 造成双计数；商店认为其促进真钱赌博。若任一被证实，当前设计不可标为正式发布通过。
+
+参考：Chrome scripting 和 persistAcrossSessions https://developer.chrome.com/docs/extensions/reference/api/scripting ；SW 限制 https://developer.chrome.com/docs/extensions/develop/migrate/known-issues ；activeTab https://developer.chrome.com/docs/extensions/mv3/user_privacy/ ；storage https://developer.chrome.com/docs/extensions/reference/api/storage ；2026 采集披露政策 https://developer.chrome.com/blog/cws-policy-updates-2026 ；商店赌博限制 https://developer.chrome.com/docs/webstore/troubleshooting 。
+
+**证据状态**：R3 产品/架构设计完成；真实扩展后台监测、存储及侧栏关闭原生测试 NOT_TESTED；离线预览若演示侧栏关闭期间的新增记录，只能标为模拟。
