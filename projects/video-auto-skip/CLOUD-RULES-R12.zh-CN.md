@@ -452,3 +452,14 @@ Content-Type: application/json
 | **算术平均** | | | **96.13** |
 
 评分计算：(97+96+96+97+96+95+96+96)/8 = 96.125，展示为 96.13；以上是**同一模型分别模拟的角色/标准的设计评估**，不是八位真实专家签收，不是最终生产验收评分。真正独立评审应分别提交评分和可复现反例，安全测试/用户身份/数据库迁移/双设备等仍 NOT_TESTED。继续保留的最高风险：可信 runtime→产品绑定证明、身份中心具体技术选择、可撤销能力令牌、Payload API 权限旁路、跨租户资料泄露、真正多扩展性能/配额。
+
+
+## 15. R12.3 · 遵循公共平台 R5 Payload 原生资源与恢复清单合同（2026-11-23）
+
+> 设计更新，NOT_IMPLEMENTED。此前 R12/R12.1/R12.2 列出的 /v1/sync/{productId}/...、/v1/products/{productId}/video-rules/match、/api/video-rules/match 仅为**历史未上线候选**，最终接口主路径按 [统一账号平台 R5](../../docs/architecture/unified-account-cloud-sync-r1.zh-CN.md#r5--payload-原生资源-api统一扩展数据安装清单恢复与可选开发者后端2026-11-23) 冻结：通用扩展目录 /api/extensions、账号级恢复列表 /api/user-extensions、个人私有持久数据 /api/extension-data；复杂一致性仅增设必要的 /api/extension-data/sync、/api/extension-data/delta 等自定义端点；视频领域保留一个经受审能力授权的 /api/video-rules/match，禁止重复实现平行路由。
+>
+> 任何新创建的用户自开发扩展都可以在平台注册 private-draft ID，按独立账号+扩展 ID+recordKey 写通用受控 JSON 记录，不等待管理员为该扩展建表。只有公共视频 Work/Episode/Edition/SiteAssetMapping/PublicRule 需要专门领域索引。Payload Admin 只向后台人员开放；作者不得读取普通用户私有规则。云匹配最小客户端仍按 R12.1 做本地字段缺口、站点资源、公共查询授权、会员权益与缓存去重，不因为扩展已注册就自动上传个人数据。
+>
+> 当前新设备恢复能力从「只恢复已安装工具的数据」扩展为「先恢复用户期望安装清单、经过现有安装审阅/权限校验后再恢复数据」。视频侧不得自行触发安装，也不得将本机网页使用权限和 Cookie 跟随数据同步到其他电脑。安装清单与自动跳过是两个不同产品能力；两个都须有明确验收证据。
+>
+> 专门服务器选项：大多数作者采用平台托管通用数据（不需要自建后端）；如果开发者确需自有 API/Supabase，按照 R5 BYO 的域名、权限、登录、RLS 与用户数据授权要求接入。平台可用 Supabase PostgreSQL 承载 Payload 数据库，但不能让作者借此获取平台 DB service_role 密钥，也不能同时把两套数据库作为同一记录的权威源。M0 先验证一个 Payload + 两个不同扩展数据消费者 + 云恢复清单，再接复杂视频领域规则。
