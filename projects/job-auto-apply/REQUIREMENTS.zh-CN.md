@@ -258,3 +258,49 @@ S1 厂商功能/营销宣称 → S2 官方定价、套餐或应用商店内购�
 **预览回归证据**：GitHub [App CI run 45101236297](https://github.com/shopable-ai/opendesk-browser/actions/runs/45101236297) 已包含新增 tests/preview.test.mjs 的 4 项测试，项目合计 64/64 Node PASS、候选构建/同源 PASS。此 CI profile 的真实 Chromium UI 作业为 SKIPPED，不能当作已在浏览器里点击/验收的证据。
 
 **完成/未完成**：本轮已补国内外收费产品供应侧证据和互动设计稿；独立市场研究采用 S3/S4 级别的真实付费与经营结果证据仍未获得，正式注入、跨表面真实消息、BOSS 实站 DOM、真实发送、正式安装仍 NOT_TESTED/NOT_IMPLEMENTED。下一轮先审核这个预览的视觉与交互，再沿原 J01/J02 在真网页采证和最小接线；不重做 R1–R4、竞品全量搜索或直接进入自动海投。
+
+
+## R6 · 网页当前职位与 Side Panel 的双表面协同（2026-11-23）
+
+**任务**：OD-JOB-AUTO-APPLY-DUAL-SURFACE-UX-R6。承接 R5 现有 HTML，不重新建立项目、宿主、设计系统或市场价格表。解决用户打开已授权招聘网站后，不必等待侧栏打开即可看到职位筛选结果、查看当前岗位证据、加入待审核；侧栏则负责跨岗位清单与规则。当前本节属于 `OFFLINE_PREVIEW_IMPLEMENTED`，正式网站内嵌 UI 仍 `NOT_IMPLEMENTED`。
+
+### R6-A · 用户操作链、状态与取舍
+
+1. **网页打开即识别（模拟）**：只读、有界识别异步职位列表；列表每卡一枚紧凑状态，不挤占招聘站原生操作。展示规则匹配 / 待核实 / 条件不符 / 已沟通 / 已加入待审 / 暂无法识别；无稳定 ID 禁止入队。模拟状态有“离线演示”说明，不得显示为真实 AI 简历分。
+2. **详情只处理当前岗位**：内嵌小卡包含身份、规则解释、主要硬条件与未知事实、完整 JD、招聘者、已沟通证据状态；主操作仅加入待审核、准备草稿和侧栏管理，不提供立即发送、海投或真实申请。
+3. **侧栏关闭也要可用**：页面识别和当前职位入队不依赖 Side Panel；用户点击“准备沟通草稿”时展开当前岗位的最小内联编辑/复制区，而不是在被隐藏的侧栏打开无响应的编辑器。网页无法可靠调用侧栏打开能力时，页面呈现操作路径说明，不制造假打开回执。
+4. **侧栏三 Tab 不扩张**：职位发现展示跨岗位摘要、待审核保留历史快照、匹配规则明确保存后影响页面。规则变更把已保存岗位标为需要复核，不静默删队列或替用户发送。
+5. **场景切换≠清除数据**：此 R6 预览的演示网页导航、关闭/重新打开侧栏、撤权/恢复，都不清除内存队列；只有明确点击“恢复演示”才清除。本地模拟内存不是正式 CAS、账户同步或历史持久化。关闭 HTML 后内存丢失属于预览预期，不是产品契约。
+6. **页面生命周期**：用异步代际 `epoch` 抛弃已经失效的扫描结果；重复扫描仅替换当前页面标记，不追加第二枚。权限撤销时隐藏网页内嵌 UI 及内联草稿，不能再扫描。生产还必须通过受管实例 `onDispose` 清理真实锚点、观察器和定时器；R6 离线验证不能替代该能力。
+
+### R6-B · 唯一预览和代码所有权映射
+
+**预览入口**：[preview/index.html](preview/index.html)。所有场景开关仅在预览页面外部，不应出现在真实招聘网站或正式 Tool 内。当前模拟招聘网站不加载真实 BOSS CSS/脚本；侧栏容器不是宿主可复用 UI 源码。
+
+| 行为 / 预览节点 | 正式 owner 与既有 API | 当前事实 | R7 最小接入 |
+| --- | --- | --- | --- |
+| 职位卡状态 `#site-jobs .quicktag` | `src/page/main.js` 的 Page USER_SCRIPT，`createPageUI` | 仅预览；正式页面 host 被隐藏 | BOSS DOM 读取得证后在卡片附近锚定一个可清理的小标记；不覆盖原卡片 |
+| 当前详情 `#page-addon`、`#embed-facts` | 同一 Page Module、受管 Shadow DOM | 仅预览；当前 Page 仅扫描卡片摘要，尚无可靠完整 JD | 绑定选中岗位身份和详情容器；未知证据保守展示；无稳定 ID 禁止入队 |
+| 侧栏关闭时内联草稿 `#page-inline-draft` | Page UI + 同一受权私有数据/必要时纯内存草稿 | 仅预览；真实剪贴板/网页授权未测 | 用最小样式实现当前岗位编辑、复制；不开辟完整网页工作台 |
+| 三 Tab `#tab-jobs`、`#tab-queue`、`#tab-prefs` | `src/index.html`、`src/style.css`、`src/main.js` 与 `OpenDeskTool.request` | 正式侧栏已有 R3 基础；R6 没有冒称它已实时联动 | 定向调整摘要、当前岗位定位、窄屏反馈、刷新/权限提示 |
+| 待审 `#side-queue`、`#queue-count` | Side Panel 现有 `review-queue` CAS；Page 的 `OpenDeskAppPage.storage.get/set` | 正式 Side Panel 有 CAS；**网页尚未调用共享 CAS** | 网页原子入队；确认回执后展示成功；碰到冲突重读合并去重，回执未知锁定写入 |
+| 规则 `#prefs-form` | Side Panel 的 `preferences` CAS、Page 授权读取 | 正式侧栏可保存；网页尚无规则订阅/同步 | 同一键与 ETag；保存后在当前文档有限刷新，关闭侧栏时在授权的页面唤醒/重验处重新读取 |
+| 模拟侧栏开合 `#toggle-sidebar` | 预览外部控制，不属于网页 UI | Mock-only | **无证据不设计 `openSidebar` 假 SDK**；未验证真实入口时只显示手动路径 |
+| 扫描 `#scan`、网页自动显示状态 | `src/page/main.js` `OpenDeskAppPage.onRequest` + `src/main.js` `request('page.request')` | 正式仅 `jobs.scan` 手动只读；网页自动 UI 未接入 | 保留既有 RPC，增加自发只读/有限 DOM 观察与导航重识别；不加第二套后台/Worker |
+
+**已确认 SDK**：`docs/api/sidebar-tool-page-module.zh-CN.md` 说明：安装后合法 USER_SCRIPT 可使用 `OpenDeskAppPage.storage.get/set`，与 Side Panel 的 `storage.get/set` 同一私有命名空间和 CAS；`OpenDeskAppPage.onRequest` 仅接受侧栏对真实当前文档的 `page.request`。宿主检查安装、源、范围、权限与文档代际。关闭 Side Panel 不停止 Page；撤权/停用/替换应调用受管清理。**尚未在公开合同确认通用 Side Panel 打开函数、Page storage 订阅推送或任意事件通道**，不得自创。存储冲突/回执未知与断权必须优先于 UI 乐观更新。
+
+### R6-C · 预览场景与测试证据口径
+
+预览顶栏依次提供 13 项演示：01 正常多岗位、02 硬条件不符、03 已沟通、04 无 ID、05 JD 未加载、06 侧栏关闭、07 重新打开、08 规则修改、09 空列表、10 异步加载、11 撤权恢复、12 导航/重复扫描、13 待审/草稿编辑复制。附加外部关闭/打开侧栏与显式重置，能在一页中连续验证队列保留。
+
+**自动测试**：已有 `tests/preview.test.mjs`（R5 静态/语法/离线边界 4 项）保持，新增 `tests/preview-r6.test.mjs` 共 14 项（1 合同检查 + 13 交互场景）。R6 在 V8 隔离 Mock DOM 进行过 14/14 场景回放；这说明脚本在模拟 DOM 下可以运行，不等于 Chromium 视觉、实际 Host、CAS 或 BOSS 权限验证。应以 GitHub App CI 对当前提交的 Node 回执补强 `NODE_PASS`。真实 Chromium、Mac 本地 Chrome、BOSS 实站仍 `NOT_TESTED`。**不能用旧 R5 的 64/64 代替 R6 的新测试。**
+
+### R6-D · 下一轮正式 Page 接入（必须分门禁）
+
+- **J01 只读实站取证**：在用户登录、授权的 BOSS 搜索/职位详情中核对列表稳定锚点、选择/详情 ID、JD 完整性、SPA 导航及历史沟通标签；如未知，先做 `NOT_IDENTIFIABLE`/未知状态，不批量尝试站点接口。
+- **J02 正式注入**：修改 `src/page/main.js`（唯一 Page owner）、必要的业务 CSS/子模块与 `tests/scan.test.mjs`，退役 `host.style.display='none'`，使用 `createPageUI` 的受管区域和本项目最小 DOM 锚点；复制页面辅助视觉而非复制整个侧栏。
+- **J03 数据联动**：修改 `src/main.js` 及直接相关 UI/测试。统一岗位主键、私有 CAS、已沟通与已加入状态、队列大小/冲突/重复处理；规则变更带版本的有限重读，侧栏关闭页内仍独立工作；回执未知不重写。
+- **J04 生命周期与原生验收**：真实 Chrome 验证安装/授权/撤销/停用/卸载/升级、列表异步/导航/多 Tab、侧栏关闭/重开、窄屏与键盘。记录实际 URL、版本、commit、截图、DOM 证据和失败用例。未拿到对应本机结果不得写 `CHROME_NATIVE_PASS`。
+- **后置边界**：AI 使用真实且获授权的简历事实，单岗位审批发送与可核实回执应另立任务。R6 不变更 `tool.config.json`、`package.json`、`src/page/main.js`、`src/main.js` 或 Browser Framework，不改市场文档，不安装 Python。
+
