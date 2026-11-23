@@ -270,4 +270,6 @@ A1 商家宣称功能（最弱） → A2 官网存在可核对的付费 SKU / �
 - 模拟“权限撤销” → 网页内嵌分析区隐藏、扫描不可执行；模拟“空结果” → 不生成虚假职位；异步状态 → 恢复后才展示已扫描结果。
 - 不在模拟中复用真实 Cookie、简历、AI 令牌或向第三方页面点击/发送；不以离线预览 PASS 声称 Chrome 已安装/页面注入成功。
 
+**预览回归证据**：GitHub [App CI run 45101236297](https://github.com/shopable-ai/opendesk-browser/actions/runs/45101236297) 已包含新增 tests/preview.test.mjs 的 4 项测试，项目合计 64/64 Node PASS、候选构建/同源 PASS。此 CI profile 的真实 Chromium UI 作业为 SKIPPED，不能当作已在浏览器里点击/验收的证据。
+
 **完成/未完成**：本轮已补国内外收费产品供应侧证据和互动设计稿；市场 A3/A4 付费结果证据仍未获得，正式注入、跨表面真实消息、BOSS 实站 DOM、真实发送、正式安装仍 NOT_TESTED/NOT_IMPLEMENTED。下一轮先审核这个预览的视觉与交互，再沿原 J01/J02 在真网页采证和最小接线；不重做 R1–R4、竞品全量搜索或直接进入自动海投。
