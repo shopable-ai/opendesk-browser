@@ -63,7 +63,7 @@
  </select><label for="preview-focus">预览视角</label><select id="preview-focus" aria-label="选择交互预览视角"><option value="sidebar" selected>Side Panel 独立预览</option><option value="dual">网页 + 侧栏联动</option></select><button id="toggle-sidebar" type="button" aria-pressed="true">关闭模拟侧栏</button><button id="reset" type="button">恢复演示</button></div>
 </header>
 <div class="container">
- <div class="intro"><span id="intro-hint">**侧栏独立预览**：按真实紧凑宽度体验职位扫描、待审、规则、沟通草稿。切换视角可查看网页联动。</span><span class="light preview-state" id="preview-state" role="status" aria-live="polite">离线模拟 · 不发送消息</span></div>
+ <div class="intro"><span id="intro-hint">侧栏独立预览：按紧凑宽度体验职位扫描、待审、规则和沟通草稿；可切换双区域联动。</span><span class="light preview-state" id="preview-state" role="status" aria-live="polite">离线模拟 · 不发送消息</span></div>
  <div class="workspace" id="preview-workspace">
   <main class="browser" aria-label="模拟招聘网站">
    <div class="sitehead"><div class="bossmark">职位发现 <span class="small muted" style="font-weight:400">· 示例网站</span></div><div class="site-nav"><span>找工作</span><span>职位列表</span><span>我的消息</span></div><span class="small muted">本地模拟页面</span></div>
@@ -370,7 +370,7 @@
     if(state.scenario==='noaccess')text(byId('scan'),'网站未授权');
   }
   function changeScenario(mode){
-    state.epoch++;state.scenario=mode;state.scanned=false;state.scanning=false;
+    state.epoch++;state.scenario=mode;state.scanned=false;state.scanning=false;state.filter='all';state.expandedJob='';byId('side-filter').value='all';
     var items=jobs.map(function(x,i){return Object.assign({previewKey:'demo-'+i},x);});
     if(mode==='contacted')items=[items[3],items[0]];
     if(mode==='restricted')items=[items[1],items[2]];
