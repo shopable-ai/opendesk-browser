@@ -156,7 +156,10 @@ test('07 reopening Side Panel preserves queue and selected Tab',async()=>{
   await a.click('page-add');await a.click('toggle-sidebar');
   assert.equal(a.el('preview-sidebar').hidden,false);
   assert.equal(a.el('queue-count').textContent,'1');
+  await a.tabs[1].emit('click');
+  assert.equal(a.el('tab-queue').hidden,false);
   await a.scenario('reopened');await a.settle();
+  assert.equal(a.el('tab-queue').hidden,false,'panel opening must preserve current tab');
   assert.equal(a.el('queue-count').textContent,'1');
   assert.match(a.el('side-queue').textContent,/Android 开发/);
 });
@@ -165,6 +168,7 @@ test('08 changed rules recompute page and flag saved queue, never silently delet
   await a.click('page-add');await a.scenario('rules');await a.settle();
   assert.equal(a.el('queue-count').textContent,'1');
   assert.match(a.el('side-queue').textContent,/规则变化/);
+  assert.match(a.el('embed-score').textContent,/待审·需复核/);
   assert.equal(a.el('page-add').disabled,true);
   assert.equal(Number(a.el('prefs-form').elements.salary.value),42);
 });
