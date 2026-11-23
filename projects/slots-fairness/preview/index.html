@@ -540,7 +540,7 @@ function addStatus(text,level){
 }
 function updateActions(count){
  const n=count??Object.keys(s.fields).filter(key=>!s.invalid.has(key)).length;
- const repair=s.granted&&s.hasScanned&&(n<5||s.invalid.size>0);
+ const repair=s.granted&&s.hasScanned&&s.scene!=="boundary"&&(n<5||s.invalid.size>0);
  const allowManual=s.granted&&s.hasScanned&&!s.auto&&n>0&&!s.invalid.size;
  $("pick").hidden=!repair;
  $("verify").hidden=!allowManual;
@@ -560,7 +560,7 @@ function renderFields(){
   const sub=document.createElement("div");sub.className="field-value";sub.textContent=invalid?"请点选该字段以修复":val?((s.sources[key]==="rule"?"已保存规则 · ":s.sources[key]==="adapter"?"适配器 · ":"语义扫描 · ")+val):"—";
   li.append(sub);ul.append(li);if(val&&!invalid)n++;
  }
- $("field-count").textContent=n+" / 5";$("field-details").open=s.granted&&s.hasScanned&&(n<5||s.invalid.size>0);
+ $("field-count").textContent=n+" / 5";$("field-details").open=s.granted&&s.hasScanned&&(n<5||s.invalid.size>0)&&s.scene!=="boundary";
  updateActions(n);
  $("rule-tag").textContent=s.invalid.size?"规则失效":Object.keys(s.rules).length?"已存 "+Object.keys(s.rules).length+" 条规则":s.scene==="known"?"已知适配器":"通用扫描";
  $("rule-tag").className="pill "+(s.invalid.size?"bad":Object.keys(s.rules).length||s.scene==="known"?"info":"");
@@ -660,7 +660,7 @@ function evidenceLine(name,value){
 }
 function drawVerification(heading,message,level,lines){
  s.verification={heading,message,level,lines};$("status-summary").hidden=false;$("result").hidden=true;$("result-heading").textContent=heading;
- $("result-scope").textContent=message;addStatus(message,level);
+ $("result-scope").textContent=message;addStatus("",level);
  $("evidence").replaceChildren();for(const [name,text] of lines)evidenceLine(name,text);
  $("evidence-button").disabled=false;$("evidence").hidden=true;
  $("evidence-button").setAttribute("aria-expanded","false");
