@@ -297,3 +297,14 @@ R1 文件本身不等于以上测试已通过。执行的实际测试与已知�
 自我否决/反方攻击：①开关在开启状态仍不显示，属于 P0 的可达性失败；② DOM “五字段齐全”其实可能来自不同轮次，若直接继续验算可产生错误结论；③用户没有亲自看到事前 Seed Hash，事后哈希相等不证明承诺时间；④算法只知 SHA256/HMAC 不等于知道 Slots symbol/reel/paytable；⑤移动端/多语言/长哈希导致原生按钮裁切；⑥自动持久化每轮明文与用户可验证目标不成比例；⑦商店审核限制可能令扩展形态不可发。任一项未解决不得给正式交付评分≥95。
 
 修复后候选已解决第①⑤项的**离线布局缺陷**，但模板、真实站点、隐私审计和密码学算法门槛仍未完成。不能人为把 78.5 或任意高分直接调到 95。正式验收需要相同源码字节的官方 UI 生成/静态校验和真实 Chromium/Chrome 证据。
+
+### 13.6 非站点内嵌的独立验证器参考（更接近本产品）
+
+除运营商 Fairness 面板外，建议以独立、只读验证器的 UX 为主要对照，不推荐或导流至赌场：
+
+- https://provable.io/verify ：支持短链接/shortId 唯一定位历史结果，减少用户粘贴；其“Committed vs Verified”状态区分可作为本项目状态命名参考。此服务验证自家发布的记录，不能自动外推到第三方 Slots。
+- https://provablyhero.com/verify ：强调种子在浏览器本地验证和算法覆盖矩阵，且区分 Verified（实际轮次匹配）/ Reference（仅按公开算法实现）；这些都是该网站自己的声明，尚未由本项目独立核验。
+- https://docs.slottylabs.com/guide/provably-fair ：公开请求接口包含 roundId、gameId、paytableVariant、subNonce 等；证明本项目不能把五字段的静态列表当成覆盖所有 Slots 的通用合同。这是技术文档，不保证其生产行为真实可用。
+- https://www.provablyfair.org/methodology ：将 seed commitment、RNG、结果复演、RTP/赔率与异常条件分成不同审计范围。其独立性/认证声明属于对方自述，本项目只借鉴证据层级与范围透明。
+
+产品定位建议保持 **Browser-local audit assistant（不下注、不预测）**；对不支持 commit/reveal 的普通第三方 Slots 显示“当前无法独立复算”，不应误写“不公平”；对同一网站不同游戏分配不同 adapter/version，不因为共享 origin 就复用 RNG 或 reel 映射。
