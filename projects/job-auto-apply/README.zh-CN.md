@@ -59,6 +59,12 @@
 
 **下一阶段最小任务**：先查看并确认上述双区域交互，再对真实 BOSS 页的职位/详情 DOM 进行只读取证，随后在同一个 Page owner 内最小接入受管 UI 和经批准的侧栏通信。最后进行定向 Chrome 验收；未完成前保持正式网页注入 NOT_IMPLEMENTED。真实发送、批量执行、会员支付和 Desktop/CLI 接线不是本次原型的一部分。
 
+## R6 双表面网页交互预览（离线 Mock）
+
+[唯一交互预览 HTML](preview/index.html) 已沿 R5 原文件增量改进：网页进入即模拟识别、列表轻量状态、当前职位证据、侧栏关闭时仍可加入待审及内联编辑/复制草稿；侧栏重新打开、导航、规则重评与模拟撤权不会丢失未显式重置的内存队列。顶栏提供 13 类场景，预览外部控制不属于正式侧栏 UI。测试入口为 `node --test projects/job-auto-apply/tests/preview*.test.mjs`，含 R5 静态门禁与新增 R6 交互 Mock；准确的 Node/CI 证据以对应提交的实际检查为准。
+
+**此阶段没有修改正式应用源码**：Page host 仍隐藏，`jobs.scan` 仍是只读 RPC；网页标记、详情辅助卡、共享 CAS 入队与规则更新推送都尚未正式接入，BOSS DOM、安装、视觉与真实执行仍待测。代码所有权映射、13 场景、CAS/权限边界及下一轮 J01–J04 步骤统一见 [需求 R6](REQUIREMENTS.zh-CN.md#r6--网页当前职位与-side-panel-的双表面协同2026-11-23)。付费市场仍只见原独立文档。
+
 ## 从哪些开源项目汲取设计思路
 
 - Get Jobs / 工作无忧：https://github.com/loks666/get_jobs （已核实当前源码中的 Boss.java、BossChatNavigator.java、Locators.java、AiService.java、BossJobService.java、front/app/boss/page.tsx；现行 LICENSE 为 PolyForm Noncommercial 1.0.0，不复制其源码到商业产品）
