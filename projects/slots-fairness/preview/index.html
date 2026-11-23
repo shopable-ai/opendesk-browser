@@ -131,6 +131,16 @@
 .sf-scope-button{min-height:30px;background:transparent;color:var(--od-sub);border:0;border-radius:6px;font-size:11px;font-weight:650;padding:4px 8px}
 .sf-scope-button[aria-pressed="true"]{background:var(--od-paper);color:var(--od-ink);box-shadow:0 1px 3px #1b2c4918}
 .sf-scope-button:focus-visible{outline:2px solid var(--od-focus)}
+
+/* R7.1: one spacing owner for history list, filters, empty state and pagination.
+   Canonical OpenDesk rhythm: section 12px, controls 8px, field label 4px. */
+#history-list-view{display:grid;grid-template-columns:minmax(0,1fr);row-gap:var(--space-3);min-width:0}
+#history-list-view>*{min-width:0}
+#history-list-view .sf-history-filters{gap:var(--space-2)}
+#history-list-view .sf-history-filters .od-form-field{display:grid;grid-template-columns:minmax(0,1fr);row-gap:var(--space-1)}
+#history-list-view #history-items,
+#history-list-view #history-empty,
+#history-list-view #history-more{margin:0}
 </style>
 </head>
 <body>
@@ -462,7 +472,7 @@ function renderHistory(){
  $("history-view-title").textContent=title;
  $("history-number").textContent=rows.length+" 条";
  $("history-empty").hidden=rows.length!==0;
- const list=$("history-items");list.replaceChildren();
+ const list=$("history-items");list.hidden=rows.length===0;list.replaceChildren();
  for(const rec of rows.slice(0,s.historyVisible)){
   if(s.listKind==="scans")list.append(makeScanButton(rec));
   else{const li=document.createElement("li");li.append(makeRecordButton(rec,true));list.append(li);}
