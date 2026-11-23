@@ -111,6 +111,26 @@
 #tools-section[hidden]{display:none!important}
 #tools-section .action-grid{grid-template-columns:minmax(0,1fr)}
 #tools-section .od-button{width:100%}
+
+/* R7: separate runtime observation from field matching, and avoid two ambiguous dropdowns. */
+.sf-site-line{align-items:flex-start;gap:6px}
+.sf-site-actions{flex:0 0 auto}
+.sf-site-actions .pill{white-space:nowrap}
+.sf-site-health{display:grid;gap:7px;min-width:0;padding-top:8px;border-top:1px solid var(--od-line)}
+.sf-site-match-line{display:flex;align-items:flex-start;gap:8px;justify-content:space-between;min-width:0;font-size:12px}
+.sf-health-name{color:var(--od-sub);white-space:nowrap;flex:0 0 auto}
+.sf-match-value{min-width:0;max-width:100%;font-weight:600;text-align:right;overflow-wrap:anywhere}
+.sf-match-ok{color:var(--od-positive)}
+.sf-match-error{color:var(--od-negative)}
+.sf-site-meta{display:flex;flex-wrap:wrap;justify-content:space-between;gap:3px 9px;color:var(--od-sub);font-size:11px}
+.sf-site-meta .mini{font-size:11px}
+.sf-stats-heading{align-items:center}
+.sf-time-filter{margin:0 0 0 auto;display:flex;align-items:center;gap:5px;min-width:0;font-size:11px;color:var(--od-sub)}
+.sf-time-filter select{width:auto;max-width:120px;font-size:11px;min-height:30px;padding:5px 7px;border-color:var(--od-line)}
+.sf-scope-group{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:3px;margin:0 0 10px;padding:3px;background:var(--od-muted);border-radius:8px}
+.sf-scope-button{min-height:30px;background:transparent;color:var(--od-sub);border:0;border-radius:6px;font-size:11px;font-weight:650;padding:4px 8px}
+.sf-scope-button[aria-pressed="true"]{background:var(--od-paper);color:var(--od-ink);box-shadow:0 1px 3px #1b2c4918}
+.sf-scope-button:focus-visible{outline:2px solid var(--od-focus)}
 </style>
 </head>
 <body>
@@ -147,16 +167,19 @@
     <div class="sf-site-line">
       <strong id="site-name" class="site-name">—</strong>
       <div class="sf-site-actions">
-        <span id="permission-tag" class="pill warn" hidden>未授权</span>
-        <button id="scan" class="od-icon-button od-icon-button--quiet" type="button" aria-label="重新扫描当前网页" title="重新扫描当前网页"><svg class="btn-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M20 11a8 8 0 0 0-14.6-4.4L3 9M3 3v6h6M4 13a8 8 0 0 0 14.6 4.4L21 15M15 15h6v6"/></svg></button>
+        <span id="scan-tag" class="pill warn" role="status">待检查</span>
+        <button id="scan" class="od-icon-button od-icon-button--quiet" type="button" aria-label="重新检查当前网站" title="重新检查当前网站"><svg class="btn-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M20 11a8 8 0 0 0-14.6-4.4L3 9M3 3v6h6M4 13a8 8 0 0 0 14.6 4.4L21 15M15 15h6v6"/></svg></button>
       </div>
     </div>
     <div id="permission-request" class="sf-permission-request" hidden>
-      <p>此网站尚未授权，因此没有自动读取网页。可以在预览中模拟授权。</p>
+      <p>本站未授权，因此无法自动检查或提取公开字段。</p>
       <button id="grant-site" class="od-button tiny" type="button">允许访问本站（模拟）</button>
     </div>
     <div class="switch-row"><div class="switch-copy"><b>自动检测</b><small id="auto-hint">需先有网站授权</small></div><label class="toggle"><input id="auto" type="checkbox" aria-label="自动检测开关"><span class="track" aria-hidden="true"></span><span id="auto-state" class="auto-state" aria-hidden="true">关</span></label></div>
-    <div class="sf-site-meta"><span id="scan-tag" class="pill">等待检测</span><span id="rule-tag" class="pill">无规则</span><span id="current-site-count" class="mini">本站暂无历史</span></div>
+    <div class="sf-site-health" role="group" aria-label="当前网站检测与匹配情况">
+      <div class="sf-site-match-line"><span class="sf-health-name">字段匹配</span><strong id="rule-tag" class="sf-match-value">尚未识别</strong></div>
+      <div class="sf-site-meta"><span id="last-site-scan" class="mini">尚无检测记录</span><span id="current-site-count" class="mini">本站暂无历史</span></div>
+    </div>
    <div id="result-section" class="sf-status-section" role="group" aria-label="当前检测与复核状态">
     <div id="result" class="help-status" role="status" aria-live="polite">等待公开证据扫描</div>
     <div id="status-summary" class="status-summary" hidden><strong id="result-heading">尚未验证</strong><p class="od-note" id="result-scope">识别到字段不代表游戏公平。</p><button id="open-current-detail" class="od-button od-button--quiet tiny" type="button" hidden>查看本次记录详情</button></div>
@@ -166,10 +189,11 @@
    <section class="od-surface od-surface--padded" id="history-home">
     <div class="section-head sf-stats-heading">
       <h2>检测统计</h2>
-      <div class="sf-stats-controls">
-        <select id="summary-scope" class="od-field" aria-label="统计范围"><option value="all">全部网站</option><option value="site">当前网站</option></select>
-        <select id="summary-range" class="od-field" aria-label="统计时间"><option value="30">近30天</option><option value="7">近7天</option><option value="all">全部</option></select>
-      </div>
+      <label class="sf-time-filter" for="summary-range"><span>时间</span><select id="summary-range" class="od-field" aria-label="统计时间范围"><option value="7">近 7 天</option><option value="30" selected>近 30 天</option><option value="all">全部时间</option></select></label>
+    </div>
+    <div class="sf-scope-group" role="group" aria-label="统计的网站范围">
+      <button id="summary-site" class="sf-scope-button" type="button" aria-pressed="true">本网站</button>
+      <button id="summary-all" class="sf-scope-button" type="button" aria-pressed="false">全部网站</button>
     </div>
     <div id="history-stats" class="history-stats" aria-label="点击统计数字查看明细"></div>
     <p class="od-note" id="last-detected">点击数字查看包含时间和网站的具体记录。已复核不代表完全公平。</p>
@@ -273,7 +297,7 @@ const helpers={
  boundary:"模拟跨域 iframe 或 Canvas：DOM 无法提取。不能跳过权限读取。"
 };
 const $=id=>document.getElementById(id);
-const s={scene:"known",granted:false,auto:false,fields:{},sources:{},rules:{},invalid:new Set(),picking:false,chosen:null,obs:null,timer:null,hasScanned:false,appended:false,verification:null,scanCount:0,generation:0,panelOpen:true,history:[],roundNumber:241,ruleCache:{},autoOverrides:{},tab:"overview",historyVisible:8,selectedHistoryId:null,seededHistory:false,scans:[],listKind:'records',metric:'all',detailKind:'record'};
+const s={scene:"known",granted:false,auto:false,fields:{},sources:{},rules:{},invalid:new Set(),picking:false,chosen:null,obs:null,timer:null,hasScanned:false,appended:false,verification:null,scanCount:0,generation:0,panelOpen:true,history:[],roundNumber:241,ruleCache:{},autoOverrides:{},summaryScope:"site",tab:"overview",historyVisible:8,selectedHistoryId:null,seededHistory:false,scans:[],listKind:'records',metric:'all',detailKind:'record'};
 function safeText(v){return String(v==null?"":v).trim();}
 function row(label,value,attr,valueId){
  const div=document.createElement("div");div.className="evidence-row";
@@ -362,11 +386,9 @@ function beginObserve(){
 }
 function updateAuto(){
  $("auto").checked=s.auto;$("auto-state").textContent=s.auto?"开":"关";
- $("auto-hint").textContent=s.granted?(s.auto?"已开启 · 授权页面自动发现":"已关闭 · 可按需检查"):"访问受限 · 需先授权";
+ $("auto-hint").textContent=s.granted?(s.auto?"已开启 · 在授权网页自动发现":"已关闭 · 可按需检查"):"访问受限 · 需先授权";
  $("permission-request").hidden=s.granted;
- $("permission-tag").hidden=s.granted;
- $("permission-tag").className="pill warn";
- $("permission-tag").textContent="未授权";
+ updateSiteHealth();
 }
 const historyLabels={PENDING_REVEAL:"等待公开",COMMIT_MATCHED:"哈希一致",RNG_MATCHED:"RNG一致",GAME_MATCHED:"结果一致",MISMATCH:"对照异常",UNSUPPORTED_ALGORITHM:"算法不支持",INCOMPLETE:"证据不足",INVALID_RULE:"规则失效"};
 const reviewedStates=new Set(["COMMIT_MATCHED","RNG_MATCHED","GAME_MATCHED"]);
@@ -377,7 +399,7 @@ function switchTab(page){
  if(page==="history")renderHistory();
 }
 function summaryRows(){
- const site=$("summary-scope").value,range=$("summary-range").value;
+ const site=s.summaryScope,range=$("summary-range").value;
  const included=r=>(site!=="site"||r.site===siteId())&&(range==="all"||(r.ageDays??0)<Number(range));
  return {records:s.history.filter(included),scans:s.scans.filter(included)};
 }
@@ -399,13 +421,15 @@ function scanMatches(row){
 function showHistory(kind="records",metric="all"){
  s.listKind=kind;s.metric=metric;s.historyVisible=8;
  const {records}=summaryRows();
- $("filter-site").value=$("summary-scope").value==="site"?siteId():"all";
+ $("filter-site").value=s.summaryScope==="site"?siteId():"all";
  $("filter-range").value=$("summary-range").value;
  $("filter-status").value=kind==="scans"?"all":({reviewed:"reviewed",pending:"pending",mismatch:"mismatch"}[metric]||"all");
  closeHistoryDetail();
  switchTab("history");
 }
 function renderHistory(){
+ $("summary-site").setAttribute("aria-pressed",String(s.summaryScope==="site"));
+ $("summary-all").setAttribute("aria-pressed",String(s.summaryScope==="all"));
  const {records,scans}=summaryRows();
  const activeScans=scans.filter(r=>r.mode==="auto"||r.mode==="observer");
  const data=[{key:"scans",label:"自动检测",count:activeScans.length},{key:"reviewed",label:"已复核",count:records.filter(r=>reviewedStates.has(r.status)).length},{key:"pending",label:"待公开",count:records.filter(r=>r.status==="PENDING_REVEAL").length},{key:"mismatch",label:"异常",count:records.filter(r=>r.status==="MISMATCH").length}];
@@ -502,7 +526,7 @@ function appendScan(reason,found,invalid){
  const stamp="模拟 10:"+String(s.scanCount%60).padStart(2,"0");
  s.scans.unshift({id,site,stamp,mode:reason,source,found,invalid,ageDays:0});
  if(s.scans.length>200)s.scans.length=200;
- renderHistory();
+ updateSiteHealth(found);renderHistory();
 }
 function togglePanel(){
  s.panelOpen=!s.panelOpen;
@@ -546,6 +570,19 @@ function updateActions(count){
  $("verify").hidden=!allowManual;
  $("tools-section").hidden=!repair&&!allowManual&&!s.chosen&&!s.picking;
 }
+function updateSiteHealth(foundCount){
+ const n=typeof foundCount==="number"?foundCount:Object.keys(s.fields).filter(key=>!s.invalid.has(key)).length;
+ const last=s.scans.find(row=>row.site===siteId());
+ const isUnreadable=s.scene==="boundary";
+ const invalid=s.invalid.size>0;
+ const status=!s.granted?"未授权":isUnreadable?"无法读取":invalid?"需修复":!s.auto?(s.hasScanned?"已手动检查":"自动检测已关闭"):s.obs?"增量监听中":s.hasScanned?"本页已检查":"等待自动检测";
+ $("scan-tag").textContent=status;
+ $("scan-tag").className="pill "+(!s.granted||isUnreadable?"warn":invalid?"bad":s.hasScanned?"ok":"info");
+ const match=!s.granted?"尚未授权":isUnreadable?"Canvas / iframe 无 DOM 字段":invalid?"规则失效，需重新点选":!s.hasScanned?"等待识别":s.scene==="unrevealed"?"已识别公开字段 "+n+"/5 · 等待种子公开":n<5?"识别 "+n+"/5 · 需要补充":(Object.keys(s.rules).length?"用户规则":"适配器/语义识别")+" · 已匹配 "+n+"/5";
+ $("rule-tag").textContent=match;
+ $("rule-tag").className="sf-match-value "+(invalid?"sf-match-error":n===5?"sf-match-ok":"");
+ $("last-site-scan").textContent=last?"上次检查："+last.stamp+" · "+last.source:"尚无检测记录";
+}
 function renderFields(){
  const ul=$("fields");ul.replaceChildren();
  let n=0;
@@ -562,10 +599,7 @@ function renderFields(){
  }
  $("field-count").textContent=n+" / 5";$("field-details").open=s.granted&&s.hasScanned&&(n<5||s.invalid.size>0)&&s.scene!=="boundary";
  updateActions(n);
- $("rule-tag").textContent=s.invalid.size?"规则失效":Object.keys(s.rules).length?"已存 "+Object.keys(s.rules).length+" 条规则":s.scene==="known"?"已知适配器":"通用扫描";
- $("rule-tag").className="pill "+(s.invalid.size?"bad":Object.keys(s.rules).length||s.scene==="known"?"info":"");
- $("scan-tag").textContent=!s.granted?"未扫描":s.invalid.size?"需要修复":!s.hasScanned?"等待扫描":n===5?"字段已齐":"已发现 "+n+" 项";
- $("scan-tag").className="pill "+(!s.granted?"warn":s.invalid.size?"bad":n===5?"ok":"info");
+ updateSiteHealth(n);
 }
 function scan(reason){
  if(!s.granted){
@@ -757,9 +791,9 @@ for(const id of ["filter-site","filter-status","filter-range"]){
   s.historyVisible=8;s.metric="all";closeHistoryDetail();renderHistory();
  });
 }
-for(const id of ["summary-scope","summary-range"]){
- $(id).addEventListener("change",renderHistory);
-}
+$("summary-site").addEventListener("click",()=>{s.summaryScope="site";renderHistory();});
+$("summary-all").addEventListener("click",()=>{s.summaryScope="all";renderHistory();});
+$("summary-range").addEventListener("change",renderHistory);
 $("grant-site").addEventListener("click",()=>{
  if(s.granted)return;
  s.granted=true;s.auto=true;s.autoOverrides[s.scene]=true;updateAuto();scan("auto");beginObserve();
