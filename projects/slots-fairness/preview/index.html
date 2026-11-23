@@ -290,7 +290,7 @@ function appendHistory(rec){
 }
 function recordForRound(round,status,level){
  const stamp="模拟 "+String(9+Math.floor(round/60)).padStart(2,"0")+":"+String(round%60).padStart(2,"0");
- return {id:s.scene+":"+round,site:$("site-name").textContent,round:String(round),stamp,status,level};
+ return {id:s.scene+":"+round,site:$("site-name").textContent.split(" ")[0],round:String(round),stamp,status,level};
 }
 function togglePanel(){
  s.panelOpen=!s.panelOpen;
