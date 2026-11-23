@@ -252,7 +252,7 @@ const helpers={
  boundary:"模拟跨域 iframe 或 Canvas：DOM 无法提取。不能跳过权限读取。"
 };
 const $=id=>document.getElementById(id);
-const s={scene:"known",granted:false,auto:false,fields:{},sources:{},rules:{},invalid:new Set(),picking:false,chosen:null,obs:null,timer:null,hasScanned:false,appended:false,verification:null,scanCount:0,generation:0,panelOpen:true,history:[],roundNumber:241,tab:"overview",historyVisible:8,selectedHistoryId:null,seededHistory:false};
+const s={scene:"known",granted:false,auto:false,fields:{},sources:{},rules:{},invalid:new Set(),picking:false,chosen:null,obs:null,timer:null,hasScanned:false,appended:false,verification:null,scanCount:0,generation:0,panelOpen:true,history:[],roundNumber:241,tab:"overview",historyVisible:8,selectedHistoryId:null,seededHistory:false,scans:[],listKind:'records',metric:'all',detailKind:'record'};
 function safeText(v){return String(v==null?"":v).trim();}
 function row(label,value,attr,valueId){
  const div=document.createElement("div");div.className="evidence-row";
@@ -272,7 +272,7 @@ function renderSite(){
  $("mutate").hidden=s.scene!=="dynamic";
  const unknown=s.scene==="unknown",missing=s.scene==="missing",unrevealed=s.scene==="unrevealed";
  const boundary=s.scene==="boundary";
- $("site-name").textContent=s.scene==="known"?"fairness-demo.local (已知样例)":unknown?"unknown-demo.local (未知样例)":"audit-demo.local (模拟站点)";
+ $("site-name").textContent=s.scene==="known"?"fairness-demo.local":unknown?"unknown-demo.local":"audit-demo.local";
  $("address").textContent="https://"+(s.scene==="known"?"fairness-demo.local":unknown?"unknown-demo.local":"audit-demo.local")+"/rounds/241";
  $("demo-title").textContent=boundary?"仅图形层的公开记录":s.scene==="broken"?"更新结构后的历史记录":"公开历史与公平性证据";
  $("round-state").textContent=unrevealed?"种子待公开":boundary?"不可读取":"历史轮次 · 已结束";
@@ -340,106 +340,148 @@ function beginObserve(){
  s.obs.observe(watched,{childList:true,subtree:true,characterData:true});
 }
 function updateAuto(){
- $("auto").checked=s.auto;$("auto-state").textContent=s.auto?"开":"关";$("auto-hint").textContent=s.granted?(s.auto?"已授权 · 仅演示该网站":"已授权 · 手动扫描"):"需先有网站授权";
- // Permission simulations are controlled outside the business Side Panel, not by a revoke button.
- $("permission-tag").className="pill "+(s.granted?"ok":"warn");
- $("permission-tag").textContent=s.granted?"演示已授权":"未授权";
+ $("auto").checked=s.auto;$("auto-state").textContent=s.auto?"开":"关";
+ $("auto-hint").textContent=s.granted?(s.auto?"已开启 · 授权页面自动发现":"已关闭 · 可按需检查"):"访问受限 · 需先授权";
+ $("permission-request").hidden=s.granted;
+ $("permission-tag").hidden=s.granted;
+ $("permission-tag").className="pill warn";
+ $("permission-tag").textContent="未授权";
 }
 const historyLabels={PENDING_REVEAL:"等待公开",COMMIT_MATCHED:"哈希一致",RNG_MATCHED:"RNG一致",GAME_MATCHED:"结果一致",MISMATCH:"对照异常",UNSUPPORTED_ALGORITHM:"算法不支持",INCOMPLETE:"证据不足",INVALID_RULE:"规则失效"};
 const reviewedStates=new Set(["COMMIT_MATCHED","RNG_MATCHED","GAME_MATCHED"]);
-function switchTab(tab){
- if(tab!=="overview"&&tab!=="history")return;
- s.tab=tab;
- $("overview-view").hidden=tab!=="overview";$("history-view").hidden=tab!=="history";
- for(const name of ["overview","history"]){
-  const el=$("tab-"+name);el.setAttribute("aria-selected",String(name===tab));el.classList.toggle("active",name===tab);
-  el.tabIndex=name===tab?0:-1;
- }
- if(tab==="history")renderHistory();
+const siteId=()=>$("site-name").textContent.split(" ")[0];
+function switchTab(page){
+ if(page!=="overview"&&page!=="history")return;
+ s.tab=page;$("overview-view").hidden=page!=="overview";$("history-view").hidden=page!=="history";
+ if(page==="history")renderHistory();
+}
+function summaryRows(){
+ const site=$("summary-scope").value,range=$("summary-range").value;
+ const included=r=>(site!=="site"||r.site===siteId())&&(range==="all"||(r.ageDays??0)<Number(range));
+ return {records:s.history.filter(included),scans:s.scans.filter(included)};
 }
 function historyMatches(rec){
- const site=$("filter-site").value,status=$("filter-status").value,period=$("filter-range").value;
+ const site=$("filter-site").value,status=$("filter-status").value,range=$("filter-range").value;
  if(site!=="all"&&rec.site!==site)return false;
- if(period!=="all"&&(rec.ageDays??0)>=Number(period))return false;
+ if(range!=="all"&&(rec.ageDays??0)>=Number(range))return false;
  if(status==="reviewed")return reviewedStates.has(rec.status);
  if(status==="pending")return rec.status==="PENDING_REVEAL";
  if(status==="mismatch")return rec.status==="MISMATCH";
  if(status==="incomplete")return ["INCOMPLETE","UNSUPPORTED_ALGORITHM","INVALID_RULE"].includes(rec.status);
  return true;
 }
+function scanMatches(row){
+ return (row.mode==="auto"||row.mode==="observer")&&
+ ($("filter-site").value==="all"||row.site===$("filter-site").value)&&
+ ($("filter-range").value==="all"||(row.ageDays??0)<Number($("filter-range").value));
+}
+function showHistory(kind="records",metric="all"){
+ s.listKind=kind;s.metric=metric;s.historyVisible=8;
+ const {records}=summaryRows();
+ $("filter-site").value=$("summary-scope").value==="site"?siteId():"all";
+ $("filter-range").value=$("summary-range").value;
+ $("filter-status").value=kind==="scans"?"all":({reviewed:"reviewed",pending:"pending",mismatch:"mismatch"}[metric]||"all");
+ closeHistoryDetail();
+ switchTab("history");
+}
 function renderHistory(){
- const recent=s.history.filter(r=>(r.ageDays??0)<30);
+ const {records,scans}=summaryRows();
+ const activeScans=scans.filter(r=>r.mode==="auto"||r.mode==="observer");
+ const data=[{key:"scans",label:"自动检测",count:activeScans.length},{key:"reviewed",label:"已复核",count:records.filter(r=>reviewedStates.has(r.status)).length},{key:"pending",label:"待公开",count:records.filter(r=>r.status==="PENDING_REVEAL").length},{key:"mismatch",label:"异常",count:records.filter(r=>r.status==="MISMATCH").length}];
  const stats=$("history-stats");stats.replaceChildren();
- const counts=[["已观察",recent.length],["已复核",recent.filter(r=>reviewedStates.has(r.status)).length],["待公开",recent.filter(r=>r.status==="PENDING_REVEAL").length],["异常",recent.filter(r=>r.status==="MISMATCH").length]];
- for(const [label,n] of counts){
-  const node=document.createElement("div"),value=document.createElement("b"),name=document.createElement("span");
-  node.className="history-stat";value.textContent=String(n);name.textContent=label;node.append(value,name);stats.append(node);
+ for(const item of data){
+  const button=document.createElement("button"),value=document.createElement("b"),name=document.createElement("span");
+  button.type="button";button.className="history-stat";
+  button.setAttribute("aria-label","查看"+item.label+"明细，"+item.count+"条");
+  value.textContent=String(item.count);name.textContent=item.label;button.append(value,name);
+  button.addEventListener("click",()=>showHistory(item.key==="scans"?"scans":"records",item.key));
+  stats.append(button);
  }
- const origins=new Set(recent.map(r=>r.site));
- $("last-detected").textContent=origins.size+" 个网站 · 本地模拟历史";
- const current=$("site-name").textContent.split(" ")[0],currentRows=recent.filter(r=>r.site===current);
- $("current-site-count").textContent="本站历史："+currentRows.length+" 条 · "+currentRows.filter(r=>reviewedStates.has(r.status)).length+" 条完成部分复核";
- const sel=$("filter-site"),selected=sel.value||"all";sel.replaceChildren();
- const all=document.createElement("option");all.value="all";all.textContent="全部网站";sel.append(all);
- for(const origin of [...new Set(s.history.map(r=>r.site))].sort()){
-  const opt=document.createElement("option");opt.value=origin;opt.textContent=origin;sel.append(opt);
- }
- sel.value=selected==="all"||[...s.history].some(r=>r.site===selected)?selected:"all";
- const filtered=s.history.filter(historyMatches);
- $("history-number").textContent=filtered.length+" 条记录";
+ const sites=[...new Set([...records,...scans].map(r=>r.site))];
+ $("last-detected").textContent=sites.length+" 个网站 · "+(scans.length?("最近检测 "+scans[0].stamp):"暂无自动检测日志");
+ const own=s.history.filter(r=>r.site===siteId());
+ $("current-site-count").textContent="本站："+own.length+" 条记录";
+ const recent=$("recent-items");recent.replaceChildren();
+ for(const rec of records.slice(0,2)){recent.append(makeRecordButton(rec,false));}
+ if(!records.length){const p=document.createElement("p");p.className="od-note";p.textContent="目前没有符合范围的记录";recent.append(p);}
+ const selector=$("filter-site"),oldValue=selector.value||"all";
+ selector.replaceChildren();
+ const all=document.createElement("option");all.value="all";all.textContent="全部网站";selector.append(all);
+ const options=[...new Set([...s.history,...s.scans].map(r=>r.site))].sort();
+ for(const origin of options){const option=document.createElement("option");option.value=origin;option.textContent=origin;selector.append(option);}
+ selector.value=oldValue==="all"||options.includes(oldValue)?oldValue:"all";
+ $("filter-status-group").hidden=s.listKind==="scans";
+ const rows=s.listKind==="scans"?s.scans.filter(scanMatches):s.history.filter(historyMatches);
+ const title=s.listKind==="scans"?"自动检测日志":({reviewed:"已复核记录",pending:"待公开记录",mismatch:"对照异常记录"}[s.metric]||"历史明细");
+ $("history-view-title").textContent=title;
+ $("history-number").textContent=rows.length+" 条";
+ $("history-empty").hidden=rows.length!==0;
  const list=$("history-items");list.replaceChildren();
- $("history-empty").hidden=filtered.length!==0;
- for(const rec of filtered.slice(0,s.historyVisible)){
-  const li=document.createElement("li"),button=document.createElement("button");
-  button.type="button";button.className="history-record-action";button.setAttribute("aria-label","查看 "+rec.site+" 轮次 "+rec.round+" 的证据详情");
-  const left=document.createElement("span"),title=document.createElement("strong"),meta=document.createElement("small"),tag=document.createElement("span");
-  left.className="history-record-label";title.textContent=rec.site+" · #"+rec.round;
-  meta.textContent=rec.stamp+" · "+rec.level;
-  tag.className="pill "+(rec.status==="MISMATCH"?"bad":rec.status==="PENDING_REVEAL"?"warn":reviewedStates.has(rec.status)?"ok":"info");
-  tag.textContent=historyLabels[rec.status]||rec.status;
-  left.append(title,meta);button.append(left,tag);button.addEventListener("click",()=>openHistoryDetail(rec.id));
-  li.append(button);list.append(li);
+ for(const rec of rows.slice(0,s.historyVisible)){
+  if(s.listKind==="scans")list.append(makeScanButton(rec));
+  else{const li=document.createElement("li");li.append(makeRecordButton(rec,true));list.append(li);}
  }
- $("history-more").hidden=filtered.length<=s.historyVisible;
- if(s.selectedHistoryId&&$("history-detail").hidden===false){
-  const currentRecord=s.history.find(r=>r.id===s.selectedHistoryId);
-  if(currentRecord)renderHistoryDetail(currentRecord);else closeHistoryDetail();
+ $("history-more").hidden=rows.length<=s.historyVisible;
+ if(s.selectedHistoryId&&!$("history-detail").hidden){
+  const target=s.detailKind==="scan"?s.scans.find(r=>r.id===s.selectedHistoryId):s.history.find(r=>r.id===s.selectedHistoryId);
+  if(target)renderHistoryDetail(target);else closeHistoryDetail();
  }
+}
+function makeRecordButton(rec,inList){
+ const button=document.createElement("button"),left=document.createElement("span");
+ const title=document.createElement("strong"),small=document.createElement("small"),status=document.createElement("span");
+ button.type="button";button.className="history-record-action";
+ button.setAttribute("aria-label","查看 "+rec.site+" 轮次 "+rec.round+" 的记录详情");
+ left.className="history-record-label";title.textContent=rec.site+" · #"+rec.round;
+ small.textContent=rec.stamp+" · "+rec.level;
+ status.className="pill "+(rec.status==="MISMATCH"?"bad":rec.status==="PENDING_REVEAL"?"warn":reviewedStates.has(rec.status)?"ok":"info");
+ status.textContent=historyLabels[rec.status]||rec.status;
+ left.append(title,small);button.append(left,status);
+ button.addEventListener("click",()=>openHistoryDetail(rec.id,"record"));
+ return button;
+}
+function makeScanButton(rec){
+ const li=document.createElement("li"),button=document.createElement("button"),left=document.createElement("span"),title=document.createElement("strong"),meta=document.createElement("small"),state=document.createElement("span");
+ button.type="button";button.className="history-record-action";
+ button.setAttribute("aria-label","查看 "+rec.site+" 的自动检测日志");
+ left.className="history-record-label";title.textContent=rec.site;
+ meta.textContent=rec.stamp+" · "+rec.source+" · "+rec.found+"/5 字段";
+ state.className="pill info";state.textContent="扫描";
+ left.append(title,meta);button.append(left,state);button.addEventListener("click",()=>openHistoryDetail(rec.id,"scan"));li.append(button);return li;
 }
 function closeHistoryDetail(){
- s.selectedHistoryId=null;
- $("history-detail").hidden=true;$("history-list-view").hidden=false;
+ s.selectedHistoryId=null;s.detailKind="record";$("history-detail").hidden=true;$("history-list-view").hidden=false;
 }
 function renderHistoryDetail(rec){
- $("history-detail-title").textContent=rec.site+" · 轮次 #"+rec.round;
- $("history-detail-meta").textContent=rec.stamp+" · "+(historyLabels[rec.status]||rec.status)+" · "+rec.level;
- $("history-detail-scope").textContent=rec.evidence?.length?"本次演示记录了可追查的计算输入/对照项目；不代表真实网站的完整公平性证明。":"这条历史仅有状态摘要，缺少可复算的原始证据；不能根据摘要重新宣布验证成功。";
- const box=$("history-detail-evidence");box.replaceChildren();
- const rows=rec.evidence?.length?rec.evidence:[
-  ["记录身份",rec.id],["证据范围",rec.level],["算法版本",rec.algorithm||"未保存/未确认"],
-  ["可重复验证","缺少原始输入或独立事前承诺"]
- ];
- for(const [name,value] of rows){
-  const line=document.createElement("div"),head=document.createElement("b"),detail=document.createElement("span");
-  line.className="level";head.textContent=String(name)+"　";detail.textContent=String(value);line.append(head,detail);box.append(line);
- }
+ const scan=s.detailKind==="scan",site=rec.site;
+ $("history-detail-title").textContent=scan?site+" · 自动检测记录":site+" · 轮次 #"+rec.round;
+ $("history-detail-meta").textContent=rec.stamp+(scan?" · "+rec.source:" · "+(historyLabels[rec.status]||rec.status)+" · "+rec.level);
+ $("history-detail-scope").textContent=scan?"这是一次只读字段扫描，不代表观察到新轮次，也不代表完成公平性验证。":rec.evidence?.length?"该条演示记录包含部分计算与对照信息；仍未验证完整 Slots 结果。":"仅保存了历史状态摘要，没有足够原始输入，不能据此重新宣称验证成功。";
+ const evidence=$("history-detail-evidence");evidence.replaceChildren();
+ const rows=scan?[["检测来源",rec.source],["公开字段",rec.found+"/5"],["结果",rec.invalid?"部分选择器失效":"已执行受限识别"],["实际复算","本次扫描未执行 RNG/游戏公平复算"]]:rec.evidence?.length?rec.evidence:[["记录身份",rec.id],["证据层级",rec.level],["算法版本",rec.algorithm||"未知"],["重新核验","无完整输入，无法复算"]];
+ for(const [key,value] of rows){const div=document.createElement("div"),head=document.createElement("b"),body=document.createElement("span");div.className="level";head.textContent=String(key)+"　";body.textContent=String(value);div.append(head,body);evidence.append(div);}
 }
-function openHistoryDetail(id){
- const rec=s.history.find(r=>r.id===id);if(!rec)return;
- switchTab("history");s.selectedHistoryId=id;
- $("history-list-view").hidden=true;$("history-detail").hidden=false;renderHistoryDetail(rec);
+function openHistoryDetail(id,kind="record"){
+ const target=kind==="scan"?s.scans.find(x=>x.id===id):s.history.find(x=>x.id===id);if(!target)return;
+ s.detailKind=kind;s.selectedHistoryId=id;switchTab("history");
+ $("history-list-view").hidden=true;$("history-detail").hidden=false;renderHistoryDetail(target);
 }
 function appendHistory(rec){
- const index=s.history.findIndex(x=>x.id===rec.id);
- if(index>=0){const prior=s.history[index];rec={...prior,...rec};s.history.splice(index,1);}
- s.history.unshift(rec);
- if(s.history.length>500)s.history.length=500; // bounded mock only, no persistent storage
+ const index=s.history.findIndex(x=>x.id===rec.id);if(index>=0){rec={...s.history[index],...rec};s.history.splice(index,1);}
+ s.history.unshift(rec);if(s.history.length>500)s.history.length=500;
  renderHistory();
 }
 function recordForRound(round,status,level){
  const stamp="模拟 "+String(9+Math.floor(round/60)).padStart(2,"0")+":"+String(round%60).padStart(2,"0");
- const site=$("site-name").textContent.split(" ")[0];
- return {id:site+":"+round,site,round:String(round),stamp,status,level,ageDays:0,algorithm:status==="PENDING_REVEAL"?"待确定":"SIM-256-v1（演示）"};
+ return {id:siteId()+":"+round,site:siteId(),round:String(round),stamp,status,level,ageDays:0,algorithm:status==="PENDING_REVEAL"?"待确定":"SIM-256-v1（演示）"};
+}
+function appendScan(reason,found,invalid){
+ const site=siteId(),id="scan:"+String(s.scanCount);
+ const source=reason==="auto"?"页面自动发现":reason==="observer"?"DOM 增量识别":reason==="rule"?"规则重新匹配":"手动扫描";
+ const stamp="模拟 10:"+String(s.scanCount%60).padStart(2,"0");
+ s.scans.unshift({id,site,stamp,mode:reason,source,found,invalid,ageDays:0});
+ if(s.scans.length>200)s.scans.length=200;
+ renderHistory();
 }
 function togglePanel(){
  s.panelOpen=!s.panelOpen;
@@ -530,7 +572,7 @@ function scan(reason){
    else if(hits.length>1)invalid.add(key);
   }
  }
- s.fields=out;s.sources=src;s.invalid=invalid;s.hasScanned=true;emptyVerification();renderFields();
+ s.fields=out;s.sources=src;s.invalid=invalid;s.hasScanned=true;emptyVerification();renderFields();appendScan(reason,Object.keys(out).length,invalid.size>0);
  if(s.scene==="boundary")addStatus("当前证据仅在 Canvas / 模拟跨域 iframe 中，DOM 不可读取。未执行越权访问。","warn");
  else if(invalid.size)addStatus("已保存的 DOM 选择器失效或匹配不唯一。为防止误判，已停止使用相关字段。","bad");
  else if(!out.serverSeed&&s.scene==="unrevealed")addStatus("已读取承诺哈希；Server Seed 尚未公开，等待事后验证。","warn");
@@ -656,7 +698,7 @@ async function verify(){
  report("已执行浏览器 Web Crypto 的 SHA-256 模拟计算；未访问任何真实博彩服务。");
 }
 function switchScenario(name){
- cancelObserve();stopPick(true);s.generation++;s.scene=name;s.granted=name!=="denied";s.auto=name!=="denied"&&name!=="boundary";s.fields={};s.sources={};s.rules={};s.invalid.clear();s.hasScanned=false;s.appended=false;s.scanCount=0;s.panelOpen=true;$("side-shell").hidden=false;$("workspace").classList.remove("panel-closed");$("lab-panel").textContent="关闭模拟侧栏";s.roundNumber=241;s.historyVisible=8;closeHistoryDetail();switchTab("overview");
+ cancelObserve();stopPick(true);s.generation++;s.scene=name;s.granted=name!=="denied";s.auto=name!=="denied"&&name!=="boundary";s.fields={};s.sources={};s.rules={};s.invalid.clear();s.hasScanned=false;s.appended=false;s.panelOpen=true;$("side-shell").hidden=false;$("workspace").classList.remove("panel-closed");$("lab-panel").textContent="关闭模拟侧栏";s.roundNumber=241;s.historyVisible=8;s.listKind="records";s.metric="all";closeHistoryDetail();switchTab("overview");
  if(name==="broken")s.rules.serverSeedHash={selector:'[data-testid="server-hash-v1"]',extract:"textContent",confirmed:true};
  $("scenario-help").textContent=helpers[name];$("scenario").value=name;
  renderSite();
@@ -674,18 +716,24 @@ function switchScenario(name){
  if(s.granted&&s.auto){scan("auto");beginObserve();}
 }
 $("scenario").addEventListener("change",e=>switchScenario(e.target.value));
-$("tab-overview").addEventListener("click",()=>switchTab("overview"));
-$("tab-history").addEventListener("click",()=>switchTab("history"));
-$("go-history").addEventListener("click",()=>switchTab("history"));
-$("history-back").addEventListener("click",()=>{closeHistoryDetail();renderHistory();$("tab-history").focus();});
+$("go-history").addEventListener("click",()=>showHistory("records","all"));
+$("back-to-overview").addEventListener("click",()=>{closeHistoryDetail();switchTab("overview");});
+$("history-back").addEventListener("click",()=>{closeHistoryDetail();renderHistory();$("back-to-overview").focus();});
 $("history-more").addEventListener("click",()=>{s.historyVisible+=8;renderHistory();});
 for(const id of ["filter-site","filter-status","filter-range"]){
- $(id).addEventListener("change",()=>{s.historyVisible=8;closeHistoryDetail();renderHistory();});
+ $(id).addEventListener("change",()=>{
+  s.historyVisible=8;s.metric="all";closeHistoryDetail();renderHistory();
+ });
 }
-$("open-current-detail").addEventListener("click",()=>{
- const id=$("site-name").textContent.split(" ")[0]+":241";openHistoryDetail(id);
+for(const id of ["summary-scope","summary-range"]){
+ $(id).addEventListener("change",renderHistory);
+}
+$("grant-site").addEventListener("click",()=>{
+ if(s.granted)return;
+ s.granted=true;s.auto=true;updateAuto();scan("auto");beginObserve();
+ report("预览已模拟完成本站授权；正式产品必须通过 Chrome 真实权限确认。");
 });
-
+$("open-current-detail").addEventListener("click",()=>openHistoryDetail(siteId()+":241","record"));
 $("lab-panel").addEventListener("click",togglePanel);
 $("lab-round").addEventListener("click",simulateRound);
 $("lab-reveal").addEventListener("click",simulateReveal);
@@ -724,7 +772,7 @@ $("mutate").addEventListener("click",()=>{
  report(s.auto&&s.granted?"已更新 DOM；等待 250ms 增量监听。":"已更新 DOM；未开启自动检测，请手动扫描。");
 });
 switchScenario("known");
-window.__SLOTS_PREVIEW_TEST__={getState:()=>({scenario:s.scene,granted:s.granted,auto:s.auto,panelOpen:s.panelOpen,history:s.history.map(x=>({...x})),tab:s.tab,historyVisible:s.historyVisible,selectedHistoryId:s.selectedHistoryId,filteredHistoryCount:s.history.filter(historyMatches).length,fields:{...s.fields},invalid:[...s.invalid],rules:{...s.rules},scanCount:s.scanCount,observer:!!s.obs,verification:s.verification?{...s.verification}:null})};
+window.__SLOTS_PREVIEW_TEST__={getState:()=>({scenario:s.scene,granted:s.granted,auto:s.auto,panelOpen:s.panelOpen,history:s.history.map(x=>({...x})),scans:s.scans.map(x=>({...x})),tab:s.tab,listKind:s.listKind,metric:s.metric,historyVisible:s.historyVisible,selectedHistoryId:s.selectedHistoryId,filteredHistoryCount:s.listKind==="scans"?s.scans.filter(scanMatches).length:s.history.filter(historyMatches).length,fields:{...s.fields},invalid:[...s.invalid],rules:{...s.rules},scanCount:s.scanCount,observer:!!s.obs,verification:s.verification?{...s.verification}:null})};
 })();
 </script>
 </body>
