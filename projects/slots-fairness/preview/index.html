@@ -49,6 +49,33 @@
 .workspace.panel-closed{grid-template-columns:minmax(0,1fr)}
 .workspace.panel-closed .site-surface{max-width:820px}
 .field-details{min-width:0;max-width:100%}.field-details summary{display:flex;justify-content:space-between;gap:8px;font-size:12px;font-weight:650;padding:8px 2px;cursor:pointer}.field-details[open] summary{margin-bottom:7px}
+
+/* R4: compact native local navigation and scalable, cross-site history. */
+.sf-local-tabs{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:4px;padding:3px;border-radius:9px;background:var(--od-muted);min-width:0}
+.sf-tab{background:transparent;border:0;color:var(--od-sub);min-height:34px;font-weight:650;border-radius:7px}
+.sf-tab[aria-selected="true"]{background:var(--od-paper);box-shadow:0 1px 3px #1b2c491a;color:var(--od-ink)}
+.sf-tabpage{display:grid;gap:14px;min-width:0;max-width:100%}
+.sf-tabpage[hidden]{display:none!important}
+.sf-history-filters{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}
+.sf-history-filters .od-form-field{min-width:0}
+.sf-history-filters .od-form-field:last-child{grid-column:1/-1}
+.sf-history-filters label{margin:0;font-size:11px}
+.sf-history-filters select{min-width:0;width:100%;font-size:12px;padding:6px 8px}
+.history-list{border:1px solid var(--od-line);border-radius:9px;overflow:hidden}
+.history-list li{padding:0;display:block}
+.history-list li+li{border-top:1px solid var(--od-line)}
+.history-record-action{width:100%;max-width:100%;display:flex;justify-content:space-between;gap:7px;text-align:left;align-items:center;background:var(--od-paper);color:var(--od-ink);border:0;border-radius:0;padding:10px;font-weight:400;min-width:0}
+.history-record-action:hover{background:var(--od-muted)}
+.history-record-label{display:grid;gap:3px;min-width:0}
+.history-record-label strong{font-size:12px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.history-record-label small{font-size:11px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;color:var(--od-sub)}
+.history-record-action .pill{flex-shrink:0}
+.sf-more{width:100%;font-size:12px}
+.sf-history-detail{display:grid;gap:8px;min-width:0}
+.sf-history-detail .evidence-panel{margin:0}
+#last-detected{margin-top:8px}
+#current-site-count{margin:8px 0 0}
+#open-current-detail{margin-top:8px}
 </style>
 </head>
 <body>
@@ -80,17 +107,23 @@
   <div class="shell-nav"><b>OpenDesk</b><span>扩展</span><span>我的</span><span>工作流</span></div>
   <div class="shell-head"><div class="shell-icon" aria-hidden="true">✓</div><div><div class="shell-title">Slots Fairness Verifier</div><div class="shell-sub">当前网页的公开验证证据</div></div></div>
   <div class="panel">
+   <nav class="sf-local-tabs" role="tablist" aria-label="验证助手页面">
+    <button id="tab-overview" type="button" role="tab" aria-selected="true" aria-controls="overview-view" class="sf-tab active">概览</button>
+    <button id="tab-history" type="button" role="tab" aria-selected="false" aria-controls="history-view" class="sf-tab">历史</button>
+   </nav>
+   <div id="overview-view" class="sf-tabpage" role="tabpanel" aria-labelledby="tab-overview">
    <section class="od-surface od-surface--padded">
     <div class="section-head"><h2>当前网页</h2><span id="permission-tag" class="pill warn">未授权</span></div>
     <div id="site-name" class="site-name">—</div>
     <div class="status-line"><span id="scan-tag" class="pill">等待检测</span><span id="rule-tag" class="pill">无规则</span></div>
     <div class="switch-row"><div class="switch-copy"><b>自动检测</b><small id="auto-hint">需先有网站授权</small></div><label class="toggle"><input id="auto" type="checkbox" aria-label="自动检测开关"><span class="track" aria-hidden="true"></span><span id="auto-state" class="auto-state" aria-hidden="true">关</span></label></div>
+    <p class="od-note" id="current-site-count">当前站点：暂无本地历史</p>
     <p class="storage-note">已授权网页的监测与侧栏开闭独立。本预览只在内存暂存必要的公开轮次证据；不访问真实网站或永久保存数据。</p>
    </section>
    <section class="od-surface od-surface--padded" id="history-home">
-    <div class="section-head"><h2>近 30 天 · 模拟验证记录</h2><span class="mini" id="last-detected">暂无观察</span></div>
-    <div id="history-stats" class="history-stats" aria-label="验证历史汇总"></div>
-    <details id="history-details" class="history-details"><summary>最近记录 <span id="history-number"></span></summary><ul id="history-items" class="history-list" aria-label="本地模拟验证历史"></ul></details>
+    <div class="section-head"><h2>全部网站 · 近 30 天</h2><button id="go-history" class="od-button od-button--quiet tiny" type="button">查看历史</button></div>
+    <div id="history-stats" class="history-stats" aria-label="跨网站历史汇总"></div>
+    <p class="od-note" id="last-detected">仅汇总本机演示中已观察的公开记录。</p>
    </section>
    <details id="field-details" class="field-details">
     <summary><span>发现的验证字段</span><span class="mini" id="field-count">0 / 5</span></summary>
@@ -117,15 +150,38 @@
      <button id="pick" class="od-button od-button--secondary" type="button" title="选择网页中可见的证据字段" aria-label="选择网页区域"><svg class="btn-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="m5 3 12 9-6 1-3 7-3-17zM16 16l4 4"/></svg><span id="pick-label">选择网页区域</span></button>
      <button id="save" class="od-button wide" type="button" disabled hidden>保存匹配规则</button>
      <button id="verify" class="od-button wide" type="button">验证结果</button>
-     <button id="evidence-button" class="od-button od-button--quiet wide" type="button" aria-expanded="false" aria-controls="evidence" disabled>查看验证证据</button>
+     <button id="evidence-button" class="od-button od-button--quiet wide" type="button" hidden aria-expanded="false" aria-controls="evidence" disabled>查看验证证据</button>
     </div>
    </section>
    <section>
     <div id="result" class="help-status" role="status" aria-live="polite">请授权后扫描当前网页的公开验证字段。</div>
-    <div class="status-summary"><strong id="result-heading">尚未验证</strong><p class="od-note" id="result-scope">识别到字段也不代表游戏公平。</p></div>
+    <div class="status-summary"><strong id="result-heading">尚未验证</strong><p class="od-note" id="result-scope">识别到字段也不代表游戏公平。</p><button id="open-current-detail" class="od-button od-button--quiet tiny" type="button" hidden>查看本次记录详情</button></div>
     <div id="evidence" class="evidence-panel" hidden></div>
    </section>
    <p id="feedback" class="feedback" role="status" aria-live="polite"></p>
+   </div>
+   <section id="history-view" class="sf-tabpage" role="tabpanel" aria-labelledby="tab-history" hidden>
+    <div id="history-list-view" class="sf-tabpage">
+     <div class="section-head"><h2>跨网站历史</h2><span id="history-number" class="mini">0 条</span></div>
+     <div class="sf-history-filters">
+      <div class="od-form-field"><label class="od-field-label" for="filter-site">网站</label><select class="od-field" id="filter-site"><option value="all">全部网站</option></select></div>
+      <div class="od-form-field"><label class="od-field-label" for="filter-status">状态</label><select class="od-field" id="filter-status"><option value="all">全部状态</option><option value="reviewed">已复核</option><option value="pending">待公开</option><option value="mismatch">对照异常</option><option value="incomplete">无法核验</option></select></div>
+      <div class="od-form-field"><label class="od-field-label" for="filter-range">时间</label><select class="od-field" id="filter-range"><option value="30">近30天</option><option value="7">近7天</option><option value="all">全部模拟数据</option></select></div>
+     </div>
+     <p class="od-note" id="history-empty" hidden>没有符合当前条件的记录。</p>
+     <ul id="history-items" class="history-list" aria-label="跨网站模拟历史"></ul>
+     <button id="history-more" type="button" class="od-button od-button--secondary sf-more" hidden>加载更多</button>
+     <p class="od-note">历史只说明观察与复算范围，不代表网站整体公平。</p>
+    </div>
+    <section id="history-detail" class="od-surface od-surface--padded sf-history-detail" hidden aria-label="记录证据详情">
+     <button id="history-back" type="button" class="od-button od-button--quiet tiny">← 返回历史</button>
+     <h2 id="history-detail-title" class="od-title">记录详情</h2>
+     <p id="history-detail-meta" class="od-note"></p>
+     <p id="history-detail-scope" class="od-note"></p>
+     <div id="history-detail-evidence" class="evidence-panel"></div>
+     <p class="od-note">这是离线模拟；缺少输入或算法版本时，不得将摘要重新称为独立验证。</p>
+    </section>
+   </section>
   </div>
  </section>
  <section class="site-surface" id="site-surface" aria-label="只读模拟游戏证据网页">
