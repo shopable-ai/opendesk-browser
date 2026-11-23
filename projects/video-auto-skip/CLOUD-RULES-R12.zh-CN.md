@@ -346,3 +346,109 @@ VIP 权益 bootstrap 仅在登录、账户/套餐改变、缓存到期或显式�
 **调整实施顺序：** R12.1-D（当前仅形成设计）→ R12.1-S0（Payload 本地模拟服务端、Admin 种子和服务端权限/限流）→ R12.1-C0（客户端纯函数 + cloud eligibility + 缓存 + 可信传输适配）→ R12.1-E0（真实 localhost 两站 fixture 的 0/1 请求及 403/429/断网/兼容性联调）→ M1（两个不同的真实网站和正式授权后端）。S0/C0 可各自实现和单测，但在 E0 联调通过前不得宣称云匹配已实现。M2 社区投稿与 M3 统一账号/VIP 双机恢复后置。
 
 **已完成的只是本 R12.1 设计**，没有执行新代码、搭起 Payload 后端、购买套餐、正式部署、会员真实鉴权或完成本地/Chrome 联调。下一轮 Codex 应以本节取代之前纯本地版的旧 M0 提示词，避免跨对话重做。
+
+
+## 14. R12.2 · 多扩展云平台接入与用户身份安全审查（2026-11-23）
+
+> 状态：DESIGN_ONLY / NOT_IMPLEMENTED / NOT_TESTED。**前置修正 R12.1：不能假定每个扩展都必须创建若干独立 Payload Collection，也不能把 video-works、video-episodes 解释为多扩展通用用户存储。** 平台身份、产品注册、开发者、普通用户、统一私有存储、权益、客户端 ID 绑定一律复用并遵守 [统一账号 R4 共享平台合同](../../docs/architecture/unified-account-cloud-sync-r1.zh-CN.md#r4--多扩展产品注册通用私有数据与角色边界2026-11-23)。本文只持有视频公共匹配领域特殊数据和兼容性判定。无后台源码、真实会员、数据库 migration 或 Chrome 证据。
+
+### 14.1 设计纠偏：名称与集合职责
+
+- 旧方案的 5 个 video-* Payload Collections 是**连播助手公共视频目录的领域建模候选**（或按实际查询规模拆表），绝非“每个 OpenDesk 扩展需要 5 张表”。普通用户个人设置/规则一律走统一的 sync_records，键包括 account_id、product_id、record_id，不另建 video-user-rules 表。
+- Payload 的平台 Admin 采用独立 staff 管理角色；用户自己开发的普通扩展可以通过受控 Registry 注册后获得自身 productId 范围的数据服务，不因此具备管理员或其他扩展权限。扩展开发者是 publisher，普通消费者是 account owner；同一自然人可以拥有多角色，但授权不能跨面混用。
+- 仓库当前工具业务 ID：tool.config.json -> video-auto-skip；网页 Program ID：package.json -> app.video-auto-skip。两者在平台注册表中可以显式声明同属一个产品，不能自动字符串推导或按中文展示名/目录名决定共享云权限。服务端权威 productId 示例 opendesk.video-auto-skip 只是**拟议注册 ID**，未实施；更名或第三方同名不会改变既有身份与记录 owner。
+- Payload Collections 的英文命名按**资源用途**而非扩展数量：平台管理层（如 platform-products / platform-admins / publisher-memberships）与视频领域层（video-works / video-site-assets / video-public-rules）；用户私有同步是 R3 通用表 sync_records 而非 CMS 每个产品 Collection。不要提供可任意传 Collection slug 的数据查询万能接口。
+- 实施服务器目录优先是共用服务 owner（例如既有或经过审计的 services/cloud-api），而非 projects/video-auto-skip/server 作为第二套正式账号/数据库。项目内可以保留测试 fixtures/mock client，但不得以业务目录自建生产会员平台。
+
+### 14.2 从用户 ID 到权限的实际数据路径
+
+1. 开发者注册或管理员预置产品：Product Registry 分配稳定 productId，记录 publisherId、真实运行时 package bindings（tool/page/独立 Chrome 客户端）、允许能力、schemaVersion、状态、预算。先审核 owner 与资格，不能只听请求里报出的扩展名。
+2. 用户登录受信 Identity：服务端验证 issuer/sub，映射为内部 accountId；必要身份/撤销在平台保存，不把 email 或 displayName 当记录主键。尚未登录的用户在本地正常使用，不因本地播放创建云用户观看档案。
+3. 用户实际安装/批准某扩展，再明确开启对应 productId 的私有同步或公共查询 scope。共用宿主 Broker 根据实际授权工具解析产品，不把账号 Bearer Token 下放给任意不可信沙箱；独立扩展的 OAuth client 必须按 R3 单独验证。
+4. 私有规则保存：执行已审的通用 /v1/sync/{productId}/operations；服务端认证后推导 accountId + productId 权限，按 (accountId,productId,recordId) CAS 写 sync_records/history/changes。这里既不保存完整视频 URL，也不把公共数据复制入个人记录，除非用户明确保存为合法个人规则。
+5. 公共视频查询：只有匹配受支持的视频业务产品且已注册 video-rules.auto-match 能力，才调用**唯一**业务路由 /v1/products/{productId}/video-rules/match；先鉴权、产品 capability、公共查询 consent、feature entitlement 和配额，然后按 (siteId,opaqueAssetKey) 精确查视频公共资源映射和合法 LIVE 规则。客户端仍须依 R10 与原 rules.js 做四态/版本/seek 验证。
+6. 社区贡献后置 M2：用户**主动**提交已选择的 intro/outro，审核库私下保存 contributorAccountId 以处理撤销/反滥用，公共 API 不返回原始用户 ID；开发者不能因为发布了扩展就读取用户标记或观影历史。
+
+**最小应存的用户信息**：internal accountId 与外部 issuer/sub 映射、明确授权的每 productId/feature consent、权益/到期状态、必要的随机 deviceId/session 与撤销、私有 scope 记录与修订、必要的低敏感度限额计数/有限审计。不强制复制用户邮箱、昵称、头像、手机号或付款卡资料；没有真实业务必要不记录用户正在观看的作品/完整 URL/播放位置。后台管理员 ID 与开发者 publisherId 独立于普通消费者数据的 owner；对公开规则数据保留合法可追责、可删除的私有贡献关系。所有保存、导出、删除和同步恢复都必须校验 owner，用户与产品两个维度不能缺任何一个。
+
+### 14.3 API 实例与兼容选择
+
+**保持 R3 通用私有 API 不变**：/v1/bootstrap、/v1/sync/{productId}/snapshot|changes|operations|history|restore；只注册一个产品 ID 映射，而不是因为 Page/Sidebar 双运行时重复同步。
+
+**修订公共业务端点命名**：
+- 优选：POST /v1/products/{productId}/video-rules/match。
+- 此地址只有服务端已注册的 video-rules.match handler 接受，拒绝未知 productId、未审核 developer-defined feature 或跨产品调用。
+- 旧 R12.1 的 POST /api/video-rules/match 和旧 R12 的 /v1/video-rules/match 均只是未实现候选，**不应同时部署为多个公开入口**。开始编码前冻结唯一规范路径，测试中如需要内部 alias 也不得弱化判权。
+- 路径带 productId 是**路由信息而非授权凭据**；服务端必须结合 session client/audience、产品 Registry、发布/运行时可信绑定、account 同意和 entitlement 验证。即使恶意插件修改 URL、产品名、payload.userId、isVip 或 publisherId，也只能获得被授权的自身产品能力，绝不能跨账号读写其他 productId。
+- 不允许普通插件通过 Payload 自动 CRUD 或按任意 Collection 名称查询。私有记录 body 限 recordId、schemaVersion、operationId、baseRevision、payload/tombstone（经 schema/大小检查）；公共 match body 只限 siteId、opaqueAssetKey、durationSeconds、neededFields 与协议版本。匿名/Free 默认不自动查，VIP 预检仅降成本，服务器仍负责每次权威放行。
+
+示例 1：同一账号的某产品私有 scope 规则请求（仅示意；productId 尚未正式注册）：
+
+~~~http
+POST /v1/sync/opendesk.video-auto-skip/operations
+Authorization: Bearer <trusted-platform-access-token>
+Content-Type: application/json
+~~~
+~~~json
+{
+  "protocolVersion":1,"operationId":"one-stable-uuid",
+  "recordId":"episode-rule-sample-4",
+  "baseRevision":2,"schemaVersion":1,"deleted":false,
+  "payload":{"outro":{"kind":"tail","seconds":90}}
+}
+~~~
+
+示例 2：同一已验证账号按产品能力查询公共视频规则（仅示意；不含 userId/isVip）：
+
+~~~http
+POST /v1/products/opendesk.video-auto-skip/video-rules/match
+Authorization: Bearer <trusted-platform-access-token>
+Content-Type: application/json
+~~~
+~~~json
+{
+  "protocolVersion":1,"siteId":"fixture-a",
+  "opaqueAssetKey":"ep04-cut-a","durationSeconds":2880,
+  "neededFields":["outro"]
+}
+~~~
+
+服务端内部 owner accountId 绝不来源于请求体；缺少一个已验证维度就拒绝。普通用户没有任何权限直接调用 Payload Admin 管理 API。
+
+### 14.4 反方攻击：必须补充的失败用例
+
+| 攻击/失败情况 | 安全约束与验收 |
+| --- | --- |
+| 两个开发者同名扩展、改名、重装 | Registry productId 唯一；展示名无权威性；老数据须可迁移 |
+| 相同产品有 Side Panel + Page Module 两个 runtime ID | 显式注册绑定，用户只有一套权益/同意/配额/私人同步记录 |
+| 未经审核的第三方扩展填 productId=video-auto-skip 或改 HTTP 路径 | 服务端依据客户端受众/产品范围及 entitlement 拒绝，不能借名称拿权限 |
+| 用户 A 的 token 配 productId=B 或 recordId 猜测其他用户记录 | 以服务端 accountId + productId 双索引过滤且拒绝跨作用域读写 |
+| 扩展开发者使用自身开发者权限访问安装用户数据 | 拒绝；只允许本人产品元数据和受限聚合统计，不能读个人原始设置 |
+| Payload Admin 登录信息混用用户登录、误开放 Collection REST | 不通用化权限；Admin 独立审计与角色，API 对普通用户仅业务受控端点 |
+| 拦截 Payload Local API 默认 bypass | 使用明确 access context/内部已验证能力，不能直接用客户端身份执行特权查找 |
+| VIP/Free 或公共授权过期、账号切换 | 0 无效自动请求；服务端强制 403；按 account/product/entitlementEpoch 失效缓存 |
+| 同名视频、不同剪辑、特殊篇、公共两版冲突 | 仍由原视频版本和逐字段硬性 veto 决策，不能被产品注册/会员身份放宽 |
+| 第三方开发者上传任意 JSON / 伪造 Schema 或超大 payload | 服务器拒绝未知 schemaVersion、大小超限、非法字段；不执行用户提供 JS/SQL/查询表达式 |
+| 贡献者删除个人规则或撤销共享 | 个人私有数据与公共贡献分开；tombstone 和可追责修订/撤销，不泄漏 contributorAccountId |
+| 管理员禁用开发者产品或产品卸载 | 停止新云授权，但按照公开保留/导出/删除政策处理旧数据；本地离线数据不擅删 |
+| 高并发、重试/单飞、数据修订/限额 | 应分别验实际 HTTP 次数、SQL lookup 数、限额扣费与幂等回执；未知提交不盲重放 |
+
+**真实验收补充门槛**：除了视频产品，还必须有一个结构不同的第二种扩展（例如 mouse-gestures）的账号授权 + 通用记录隔离 + schema 版本/配额演示。只有视频公共目录和一个 VIP 测试账号时无法证明这是多扩展平台。M0 可以验证开发用账户和 Mock Payload Admin/DB 规则；真实 OAuth、生产支付、长期后台、双设备与真正跨公网视频网站继续 NOT_TESTED。
+
+### 14.5 多视角模拟专家评审（先攻击，后修订；非外部独立审计）
+
+**修订前主要缺陷**：以视频专用 Collection 误充每扩展的通用存储；未冻结 productId/toolId/pageProgramId 映射；未写清管理员/开发者/普通用户角色；未展示 userId 的来源和最少持久化字段；没有第三方同名和越权 API 测试；无法证明通用存储复用而非复制服务器。
+
+| 模拟角色 | 主要反对意见 | 本轮修订结果 | 设计自评分（/100） |
+| --- | --- | --- | ---: |
+| 平台产品设计 | 扩展数量增长会产生表爆炸、混乱用户体验 | 控制面 Registry + 通用私有数据，领域表按需 | 97 |
+| 扩展生态与开发者平台 | 个人开发扩展同名、发布者冒名、跨产品调用 | 稳定 productId + publisher/binding + capability 审核 | 96 |
+| 身份、RBAC 与安全 | accountId 可以被参数伪造，Admin 与用户账号混淆 | 由受信 IdP 导出 owner、服务器强制校验、角色隔离 | 96 |
+| 数据库与同步 | 键、修订、迁移、容量、幂等易丢数据 | 复用 R3 sync_records / CAS/history/tombstone | 97 |
+| Payload CMS 实施 | 动态任意 Collection 查询和 Local API bypass | Admin 仅管理层、受控端点及独立权限闸门 | 96 |
+| 隐私、合规与 VIP 成本 | 共享数据可能泄露身份、缓存可跨账号串用 | 最小账户字段、分离 consent、限流与授权门 | 95 |
+| 测试/反方攻击 | 仅一个视频扩展无法证明“多扩展” | 增加非视频消费者、同名开发者、改路径/Token 测试 | 96 |
+| 商业可持续性 | 会员权益按名称重复产生、泄漏配额 | 以 productId+featureCode 复用共用 Entitlement | 96 |
+| **算术平均** | | | **96.13** |
+
+评分计算：(97+96+96+97+96+95+96+96)/8 = 96.125，展示为 96.13；以上是**同一模型分别模拟的角色/标准的设计评估**，不是八位真实专家签收，不是最终生产验收评分。真正独立评审应分别提交评分和可复现反例，安全测试/用户身份/数据库迁移/双设备等仍 NOT_TESTED。继续保留的最高风险：可信 runtime→产品绑定证明、身份中心具体技术选择、可撤销能力令牌、Payload API 权限旁路、跨租户资料泄露、真正多扩展性能/配额。
