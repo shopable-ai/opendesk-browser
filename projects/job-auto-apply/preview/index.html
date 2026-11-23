@@ -158,7 +158,7 @@
     var r=rank(job);
     if(!state.scanned)return {label:'识别中',cls:'off'};
     if(!job.id)return {label:'暂无法识别',cls:'unknown'};
-    if(state.queue.some(function(x){return x.id===job.id;}))return {label:'已加入待审',cls:''};
+    if(state.queue.some(function(x){return x.id===job.id;}))return {label:r.failed.length?'待审·需复核':'已加入待审',cls:r.failed.length?'reject':''};
     if(job.contact==='already')return {label:'已沟通',cls:'unknown'};
     if(r.failed.length)return {label:'条件不符',cls:'reject'};
     return {label:r.unsure.length?'待核实':'规则匹配',cls:r.unsure.length?'unknown':''};
@@ -331,7 +331,9 @@
       byId('prefs-form').elements.salary.value=42;
     }
     state.items=items;state.selected=items[0]?key(items[0]):null;
-    text(byId('scan'),'扫描页面');setTab(mode==='workflow'?'queue':'jobs');render();
+    text(byId('scan'),'扫描页面');
+    setTab(mode==='workflow'?'queue':(mode==='sideclosed'||mode==='reopened'?state.tab:'jobs'));
+    render();
     if(mode==='noaccess'){
       setStatus('模拟网站撤权：旧网页 OpenDesk UI 已清理；待审清单仍保持，恢复授权后可继续。');
       return;
