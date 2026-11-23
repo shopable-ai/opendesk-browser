@@ -51,9 +51,7 @@
 .field-details{min-width:0;max-width:100%}.field-details summary{display:flex;justify-content:space-between;gap:8px;font-size:12px;font-weight:650;padding:8px 2px;cursor:pointer}.field-details[open] summary{margin-bottom:7px}
 
 /* R4: compact native local navigation and scalable, cross-site history. */
-.sf-local-tabs{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:4px;padding:3px;border-radius:9px;background:var(--od-muted);min-width:0}
-.sf-tab{background:transparent;border:0;color:var(--od-sub);min-height:34px;font-weight:650;border-radius:7px}
-.sf-tab[aria-selected="true"]{background:var(--od-paper);box-shadow:0 1px 3px #1b2c491a;color:var(--od-ink)}
+/* R5: No local tabs in the main Side Panel, only one drill-down flow. */
 .sf-tabpage{display:grid;gap:14px;min-width:0;max-width:100%}
 .sf-tabpage[hidden]{display:none!important}
 .sf-history-filters{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}
@@ -76,6 +74,30 @@
 #last-detected{margin-top:8px}
 #current-site-count{margin:8px 0 0}
 #open-current-detail{margin-top:8px}
+
+/* R5 compact summary and drilldown; canonical od-* control semantics. */
+.sf-site-section{display:grid;gap:8px}
+.sf-site-line{display:flex;align-items:center;justify-content:space-between;gap:8px;min-width:0}
+.sf-site-line strong{font-size:14px;min-width:0;overflow-wrap:anywhere}
+.sf-permission-request{display:grid;gap:8px;background:var(--od-warning-bg);border:1px solid #dcc58a;border-radius:8px;padding:10px}
+.sf-permission-request p{font-size:12px;margin:0;color:var(--od-warning)}
+.sf-permission-request button{justify-self:start}
+.sf-site-section .switch-row{border-top:1px solid var(--od-line);margin-top:2px}
+.sf-site-meta{display:flex;align-items:center;gap:5px;flex-wrap:wrap}
+.sf-site-meta .mini{font-size:11px}
+.sf-stats-heading{align-items:flex-start;gap:8px;flex-wrap:wrap}
+.sf-stats-controls{display:flex;gap:5px;flex-wrap:wrap;justify-content:flex-end;margin-left:auto}
+.sf-stats-controls select{width:auto;max-width:110px;padding:4px 7px;font-size:11px;min-height:29px;border-color:var(--od-line)}
+.history-stat{border:1px solid transparent;cursor:pointer;font:inherit;color:var(--od-ink);width:100%;max-width:100%;min-height:61px}
+.history-stat:hover{border-color:var(--od-brand);background:#eaf0ff}
+.history-stat:focus-visible{outline:2px solid var(--od-focus);outline-offset:2px}
+.sf-recent-section{min-width:0}
+.sf-recent-items{border:1px solid var(--od-line);border-radius:9px;overflow:hidden}
+.sf-recent-items .history-record-action+.history-record-action{border-top:1px solid var(--od-line)}
+.sf-history-heading{display:flex;align-items:center;gap:6px;flex-wrap:wrap;min-width:0}
+.sf-history-heading h2{font-size:13px;flex:1;min-width:0}
+.sf-history-heading .mini{white-space:nowrap}
+#history-home .section-head{margin-bottom:9px}
 </style>
 </head>
 <body>
@@ -107,23 +129,30 @@
   <div class="shell-nav"><b>OpenDesk</b><span>扩展</span><span>我的</span><span>工作流</span></div>
   <div class="shell-head"><div class="shell-icon" aria-hidden="true">✓</div><div><div class="shell-title">Slots Fairness Verifier</div><div class="shell-sub">当前网页的公开验证证据</div></div></div>
   <div class="panel">
-   <nav class="sf-local-tabs" role="tablist" aria-label="验证助手页面">
-    <button id="tab-overview" type="button" role="tab" aria-selected="true" aria-controls="overview-view" class="sf-tab active">概览</button>
-    <button id="tab-history" type="button" role="tab" aria-selected="false" aria-controls="history-view" class="sf-tab">历史</button>
-   </nav>
-   <div id="overview-view" class="sf-tabpage" role="tabpanel" aria-labelledby="tab-overview">
-   <section class="od-surface od-surface--padded">
-    <div class="section-head"><h2>当前网页</h2><span id="permission-tag" class="pill warn">未授权</span></div>
-    <div id="site-name" class="site-name">—</div>
-    <div class="status-line"><span id="scan-tag" class="pill">等待检测</span><span id="rule-tag" class="pill">无规则</span></div>
+   <div id="overview-view" class="sf-tabpage" role="region" aria-label="检测概览">
+   <section class="od-surface od-surface--padded sf-site-section">
+    <div class="sf-site-line"><strong id="site-name" class="site-name">—</strong><span id="permission-tag" class="pill warn" hidden>未授权</span></div>
+    <div id="permission-request" class="sf-permission-request" hidden>
+      <p>此网站尚未授权，因此没有自动读取网页。可以在预览中模拟授权。</p>
+      <button id="grant-site" class="od-button tiny" type="button">允许访问本站（模拟）</button>
+    </div>
     <div class="switch-row"><div class="switch-copy"><b>自动检测</b><small id="auto-hint">需先有网站授权</small></div><label class="toggle"><input id="auto" type="checkbox" aria-label="自动检测开关"><span class="track" aria-hidden="true"></span><span id="auto-state" class="auto-state" aria-hidden="true">关</span></label></div>
-    <p class="od-note" id="current-site-count">当前站点：暂无本地历史</p>
-    <p class="storage-note">已授权网页的监测与侧栏开闭独立。本预览只在内存暂存必要的公开轮次证据；不访问真实网站或永久保存数据。</p>
+    <div class="sf-site-meta"><span id="scan-tag" class="pill">等待检测</span><span id="rule-tag" class="pill">无规则</span><span id="current-site-count" class="mini">本站暂无历史</span></div>
    </section>
    <section class="od-surface od-surface--padded" id="history-home">
-    <div class="section-head"><h2>全部网站 · 近 30 天</h2><button id="go-history" class="od-button od-button--quiet tiny" type="button">查看历史</button></div>
-    <div id="history-stats" class="history-stats" aria-label="跨网站历史汇总"></div>
-    <p class="od-note" id="last-detected">仅汇总本机演示中已观察的公开记录。</p>
+    <div class="section-head sf-stats-heading">
+      <h2>检测统计</h2>
+      <div class="sf-stats-controls">
+        <select id="summary-scope" class="od-field" aria-label="统计范围"><option value="all">全部网站</option><option value="site">当前网站</option></select>
+        <select id="summary-range" class="od-field" aria-label="统计时间"><option value="30">近30天</option><option value="7">近7天</option><option value="all">全部</option></select>
+      </div>
+    </div>
+    <div id="history-stats" class="history-stats" aria-label="点击统计数字查看明细"></div>
+    <p class="od-note" id="last-detected">点击数字查看包含时间和网站的具体记录。已复核不代表完全公平。</p>
+   </section>
+   <section id="recent-section" class="sf-recent-section">
+     <div class="section-head"><h2>最近记录</h2><button id="go-history" class="od-button od-button--quiet tiny" type="button">查看全部</button></div>
+     <div id="recent-items" class="sf-recent-items"></div>
    </section>
    <details id="field-details" class="field-details">
     <summary><span>发现的验证字段</span><span class="mini" id="field-count">0 / 5</span></summary>
@@ -160,18 +189,18 @@
    </section>
    <p id="feedback" class="feedback" role="status" aria-live="polite"></p>
    </div>
-   <section id="history-view" class="sf-tabpage" role="tabpanel" aria-labelledby="tab-history" hidden>
+   <section id="history-view" class="sf-tabpage" role="region" aria-label="历史明细" hidden>
     <div id="history-list-view" class="sf-tabpage">
-     <div class="section-head"><h2>跨网站历史</h2><span id="history-number" class="mini">0 条</span></div>
+     <div class="sf-history-heading"><button id="back-to-overview" class="od-button od-button--quiet tiny" type="button"><svg class="btn-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="m15 18-6-6 6-6"/></svg>返回</button><h2 id="history-view-title">历史明细</h2><span id="history-number" class="mini">0 条</span></div>
      <div class="sf-history-filters">
       <div class="od-form-field"><label class="od-field-label" for="filter-site">网站</label><select class="od-field" id="filter-site"><option value="all">全部网站</option></select></div>
-      <div class="od-form-field"><label class="od-field-label" for="filter-status">状态</label><select class="od-field" id="filter-status"><option value="all">全部状态</option><option value="reviewed">已复核</option><option value="pending">待公开</option><option value="mismatch">对照异常</option><option value="incomplete">无法核验</option></select></div>
+      <div class="od-form-field" id="filter-status-group"><label class="od-field-label" for="filter-status">状态</label><select class="od-field" id="filter-status"><option value="all">全部状态</option><option value="reviewed">已复核</option><option value="pending">待公开</option><option value="mismatch">对照异常</option><option value="incomplete">无法核验</option></select></div>
       <div class="od-form-field"><label class="od-field-label" for="filter-range">时间</label><select class="od-field" id="filter-range"><option value="30">近30天</option><option value="7">近7天</option><option value="all">全部模拟数据</option></select></div>
      </div>
      <p class="od-note" id="history-empty" hidden>没有符合当前条件的记录。</p>
      <ul id="history-items" class="history-list" aria-label="跨网站模拟历史"></ul>
      <button id="history-more" type="button" class="od-button od-button--secondary sf-more" hidden>加载更多</button>
-     <p class="od-note">历史只说明观察与复算范围，不代表网站整体公平。</p>
+     <p class="od-note">检测次数不等于观察到的轮次数；部分复核不等于完整 Slots 公平。</p>
     </div>
     <section id="history-detail" class="od-surface od-surface--padded sf-history-detail" hidden aria-label="记录证据详情">
      <button id="history-back" type="button" class="od-button od-button--quiet tiny">← 返回历史</button>
