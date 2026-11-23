@@ -786,3 +786,199 @@ C. 开发者用自己的 Supabase：默认由开发者管理自己的项目/Sche
 - S4：仅当通用闭环过关，再接视频公共查找专业模块和第三方 BYO 选项，避免本轮同时引入视频社区、Supabase 多服务和正式支付。
 
 **设计方案预期审查指标**（本轮仅静态合同）：平台抽象、Payload 官方契合、普通作者零后端门槛、数据主权与安全、清单恢复与安装安全、双设备一致性、Supabase/BYO 扩展性、成本/VIP、QA 共九项，平均目标至少 95/100，安全/数据正确性不得低于 90；同模型模拟评分不能作为真实独立专家意见。下一阶段 Codex 只能基于 R5 做单个最小后端+两消费者+安装清单恢复的技术 spike，不能照旧 /v1/sync 路由草案重复开发。
+
+## R5.8 · 100 项模拟反方审查、执行闸门与改进合同（2026-11-23）
+
+> 方法：10 个模拟专家视角 × 每类 10 项不同的攻击/失败输入 = 100 个**设计审查用例**；由同一模型组织，不表示 100 位独立专家或 100 次实际执行。所有新增端到端、安全、数据库和 Chrome 用例 **NOT_TESTED**，不能把本表设计策略视为测试 PASS。之前 R5 的「96/100」仅为未经此 100 项压力检查的估计，不能沿用为当前运行质量评分。Payload 官方依据：[REST](https://payloadcms.com/docs/rest-api/overview)、[Access Control](https://payloadcms.com/docs/access-control/overview)、[Local API 权限](https://payloadcms.com/docs/local-api/access-control)、[Transactions](https://payloadcms.com/docs/database/transactions)、[SQLite](https://payloadcms.com/docs/database/sqlite)。
+
+### R5.8.1 先否决旧设计里五个最危险假设
+
+1. **「只有登录就安全」是错的**：Payload 默认 Collection access 主要检查 req.user 是否存在，并不自动限制该用户只能访问自己的业务记录。extensions / user-extensions / extension-data / user private profile 必须为各操作显式定义 Access Control，read/update/delete 的有效 where 必须强制 accountId，写入 accountId 服务端派生且 immutable；field-level read 禁止泄漏 owner 之外的字段。管理员面与普通消费者面分离。
+2. **「Payload 原生 PATCH + 另一个 CAS 同步路由可以同时开放」是错的**：直接 PATCH/POST/DELETE 会绕过 baseRevision/operationId/receipt，产生丢失更新。生产时对普通消费者**禁止私有 extension-data 和用户恢复清单的原生修改路径**，允许经过 owner-scope 的受控 GET；所有会产生同步记录或安装清单状态改变的操作经一个服务端事务命令入口（候选 POST /api/extension-sync），内部调用 Payload/SQL。普通 JSON CRUD 仅为隔离的初期演示，不得称为可靠云同步。
+3. **「每个浏览器扩展的 ID 都是可证明的发布者身份」是错的**：manifest、包 ID、productId、哈希和 public OAuth clientId 都不是足以证明未经篡改运行客户端的秘密凭证。受信 Host 路由按已批准安装身份派生作用域；独立第三方扩展必须依赖用户 OAuth 授权和严格的账号/产品 scope，不能宣称能彻底防止用户侧伪装的公共客户端；更高风险的公开提交等能力需要额外审核、异常检测及服务端条件。
+4. **「演示 SQLite 单机成功可证明事务一致性」是错的**：Payload 官方 SQLite adapter 默认禁用事务，不支持把多条记录、变更历史和回执视为一次原子提交。可靠同步、真正 CAS 和失联回执的技术 spike 应**优先采用本机 PostgreSQL**；SQLite 可仅证明基础 CMS 表单/CRUD 和单机模拟，不可作为一致性验收依据。
+5. **「数据恢复等于扩展安装恢复」是错的**：云清单仅表达用户的期望，真实安装/来源校验/权限须由每台设备现有安装器完成。安装失败、撤权、私人包不可获取、Page/Tool 双身份都必须有独立状态，不能把清单记录当作可执行授权凭据。
+
+### R5.8.2 调整后的最小业务 API 与安全边界
+
+- **原生资源读入口（可受控）**：GET /api/extensions（公开已审核目录+当前开发者私人草稿），GET /api/user-extensions（仅本人恢复意愿），GET /api/extension-data（仅本账号且当前受授权扩展的合法记录，硬分页/字段白名单）；对 consumer 的 extension-data / user-extensions 原生写端点（POST/PATCH/DELETE）在正式同步路径上设为 DENY，管理员管理另行授权审计。
+- **唯一事务性变更入口（自定义，冻结候选）**：POST /api/extension-sync。命令明确 action=SAVE_RECORD / DELETE_RECORD / SET_RESTORE_INTENT / RESTORE_REVISION，不是一个可以执行任意 Collection 操作的 RPC。Body 仅限 protocolVersion、extensionId、recordKey（或安装意愿键）、schemaVersion、operationId、baseRevision、data/tombstone；服务端从会话解析 accountId+client scopes，再验证 registry+consent+entitlement+quota+schema。每次写入在 Postgres 同一事务中比较版本并提交记录/变更序列/历史/幂等回执。对普通消费请求的 Payload Local API 必须显式 overrideAccess:false 与可信 user，或在全部已验证业务条件之后通过狭窄内部特权存储服务执行，禁止任意用户传 Collection slug。
+- **统一受控增量读取候选**：GET /api/extension-sync/changes?afterSeq=...；需按实际路由冲突和 Payload 版本实测，如有路径冲突必须选另一唯一服务路径，不重复开放别名。以 (accountId,extensionId,changeSeq) 授权、游标水位与 epoch 验证，过期必须要求受控快照重建。身份状态摘要不因每个视频的切换重复请求。
+- **专业视频公共查询仍独立**：POST /api/video-rules/match，只有已注册具 video-rules.match capability 的产品且用户有明确 public-query consent / entitlement / budget 时才执行，服务端只查合法映射和 LIVE 审核规则，不允许普通作者动态创建 CMS 查询脚本。
+- **强制最低字段保护**：敏感字段、Cookie/Token、完整 URL/观看记录默认不上云；通用 JSON 限深、严格 utf-8 字节/记录数/频次上限；产品 schemaVersion 从已注册的受控 schema policy 解析，而不是允许用户在请求里更换后端校验逻辑。
+- **实现必须证明默认 ACL 安全**：Payload 官方默认访问控制可以是「只要 req.user 存在就允许」，不是 owner-scoped ACL；Local API 默认 overrideAccess=true。每个受保护操作都必须逐个配置并写跨账号、跨扩展、跨 publisher 的负例。
+
+### R5.8.3 百项审查矩阵（设计测试输入；未运行）
+
+#### A. 产品身份与注册（扩展生态专家）
+
+| 检查 ID | 反方攻击或故障 | 必须落实的安全策略 | 风险与原状态 |
+| --- | --- | --- | --- |
+| A001 | 新建私有扩展但后台无该扩展表 | 通用记录+受控 private-draft 注册，无建表前置 | P1 · R5已有方向 |
+| A002 | 作者冒用官方扩展同名 | 服务端注册 ID 唯一、显示名无授权效力 | P1 · R5已有方向 |
+| A003 | 扩展更名导致旧数据失联 | 稳定 extensionId+历史别名映射，不改 owner | P1 · R5待补强 |
+| A004 | 同产品 Side Panel 与 Page Program 双身份 | Registry 显式 runtime bindings，共用一套产品权益 | P1 · R5已有方向 |
+| A005 | 旧安装代际伪造新请求 | installEpoch/session fencing 并读回安装状态 | P1 · R5已有方向 |
+| A006 | 产品发布者转让所有权 | 审核迁移和历史保留，不默改用户 owner | P1 · R5待补强 |
+| A007 | 未注册本地工具请求云数据 | 只允许 local-only，按最小受限注册流程升级 | P1 · R5已有方向 |
+| A008 | 第三方复制官方安装包标识 | 不能仅凭包名/hash 自证可信发行者 | P0 · R5待补强 |
+| A009 | 下架产品继续发起云请求 | 产品注册表停用/撤销，独立保护导出与历史 | P1 · R5已有方向 |
+| A010 | 开发者自报高权限 capability | 只有平台签发并登记的能力授权生效 | P1 · R5已有方向 |
+
+#### B. 用户、发布者与管理员身份（身份专家）
+
+| 检查 ID | 反方攻击或故障 | 必须落实的安全策略 | 风险与原状态 |
+| --- | --- | --- | --- |
+| A011 | 访客被自动创建观看账户 | 无云授权保持匿名本地模式 | P0 · R5已有方向 |
+| A012 | 用户 A 切到 B 后迟到响应写入 B | accountEpoch 与隔离命名空间校验 | P0 · R5待补强 |
+| A013 | 两个身份源相同 sub 混合 | 以 issuer+sub 映射不透明 accountId | P1 · R5已有方向 |
+| A014 | 用户修改邮箱导致同步数据丢失 | 邮箱不作主键，identity 映射延续 | P1 · R5已有方向 |
+| A015 | 普通用户 Token 登录 Payload Admin | 区分 consumer auth 与 staff admin | P0 · R5已有方向 |
+| A016 | 发布者拿作者权限导出安装用户资料 | publisher 仅管理元数据/聚合指标，非数据 owner | P1 · R5已有方向 |
+| A017 | 共用电脑退出账号残留云数据 | 会话退出 fencing、私有缓存分区/明确本地处置 | P0 · R5待补强 |
+| A018 | 设备被撤销仍使用旧 refresh Token | 会话与设备撤销、轮换 Token、服务端复核 | P0 · R5待补强 |
+| A019 | 过期 access Token 被当作永久会员 | 服务端验证有效期和权益 epoch | P1 · R5已有方向 |
+| A020 | 账号删除后旧设备重新上传个人资料 | 删除墓碑/账号封禁代际和安全回收策略 | P0 · R5已有方向 |
+
+#### C. Payload 原生 API 与访问控制（CMS 专家）
+
+| 检查 ID | 反方攻击或故障 | 必须落实的安全策略 | 风险与原状态 |
+| --- | --- | --- | --- |
+| A021 | Payload 默认鉴权仅检查登录导致他人可查 | 各 Collection 显式 owner where ACL，不能用默认 ACL | P0 · R5待补强 |
+| A022 | 请求体伪造 accountId 作为文档 owner | 服务端写前强制推导并锁定 owner | P0 · R5已有方向 |
+| A023 | 通过 PATCH 修改 extensionId/owner 字段 | owner/extensionId 创建后不可修改或受控迁移 | P0 · R5待补强 |
+| A024 | 用 where 枚举其他账号数据 | 服务器合并强制 owner 条件且不接受任意过滤表达式 | P0 · R5已有方向 |
+| A025 | depth/populate 关系扩展泄漏他人资料 | depth 限制、字段级权限及关联对象 ACL | P0 · R5待补强 |
+| A026 | limit=0/高分页造成过量数据查询 | 硬分页与最大条数、请求深度预算 | P1 · R5待补强 |
+| A027 | Local API overrideAccess 默认 true 绕过 ACL | 业务用户调用必须显式 overrideAccess:false 和可信 user | P0 · R5已有方向 |
+| A028 | 原生 PATCH 绕过 CAS 同步端点 | 生产私有写入禁止直通 PATCH/DELETE/POST，统一事务提交 | P0 · R5待补强 |
+| A029 | 自定义 sync 路径撞上 /:id | 唯一顶层 /api/extension-sync，路由集成实测 | P0 · R5待补强 |
+| A030 | API 查询返回敏感的 schema/账户/审计字段 | select 白名单、字段级 read 与最小响应 | P0 · R5待补强 |
+
+#### D. 通用数据、版本与存储（数据库专家）
+
+| 检查 ID | 反方攻击或故障 | 必须落实的安全策略 | 风险与原状态 |
+| --- | --- | --- | --- |
+| A031 | 两个扩展都保存 recordKey=rules.v1 | 复合唯一键 accountId+extensionId+recordKey | P0 · R5已有方向 |
+| A032 | 恶意 JSON 单条占满数据库 | 服务端 UTF-8 字节/深度/字段/记录预算 | P0 · R5已有方向 |
+| A033 | 原始 JSON 包含 __proto__ 等危险键 | 结构安全校验，避免对象合并污染 | P0 · R5待补强 |
+| A034 | 旧 schemaVersion 被直接接受并覆写新数据 | 受控 schema registry + 版本门 | P0 · R5待补强 |
+| A035 | 业务升级回滚丢失未知字段 | 不可读时阻断写回并保存保护副本 | P0 · R5已有方向 |
+| A036 | 一个用户无界创建记录 | 账号+扩展+feature 的记录数和字节总配额 | P0 · R5待补强 |
+| A037 | 中文/表情按字符算容量导致超限 | 统一按实际 UTF-8 字节计量 | P0 · R5待补强 |
+| A038 | 扩展上传 Cookie、Token、密码或完整 URL | 默认敏感字段阻断及数据类别告知 | P0 · R5待补强 |
+| A039 | 扩展把大二进制塞进 JSON | 明确 JSON 上限，大对象单独授权/对象存储 | P1 · R5待补强 |
+| A040 | 误删除无导出、无保留政策 | 版本历史+导出/清除/保留生命周期 | P0 · R5已有方向 |
+
+#### E. 可靠同步与数据库原子性（一致性专家）
+
+| 检查 ID | 反方攻击或故障 | 必须落实的安全策略 | 风险与原状态 |
+| --- | --- | --- | --- |
+| A041 | 两设备同时改同一记录最后写覆盖 | 服务器 CAS baseRevision 冲突保留候选 | P0 · R5已有方向 |
+| A042 | 提交成功但 ACK 丢失再次重复写入 | operationId + digest 的持久幂等回执 | P0 · R5待补强 |
+| A043 | 同 operationId 不同内容重放 | 验证 digest 不同直接拒绝 | P0 · R5已有方向 |
+| A044 | 旧设备把已删除的记录重新上传 | tombstone、版本和 cursor 防复活 | P0 · R5已有方向 |
+| A045 | 同步游标超出保留窗口 | REBASE_REQUIRED + 一致快照 + 本地未上传保护 | P0 · R5待补强 |
+| A046 | 多页快照读取时出现版本穿插 | 一致 snapshot epoch/watermark 或受控分页 | P0 · R5待补强 |
+| A047 | 本地保存成功 outbox 还没写就崩溃 | 启动对账重建 dirty，持久 outbox | P0 · R5已有方向 |
+| A048 | 账号变更后旧批次队列继续发送 | account/install/credentialEpoch 全链路 fencing | P0 · R5待补强 |
+| A049 | 恢复旧历史把 revision 直接倒退 | 以新操作产生新 revision 与 changeSeq | P0 · R5已有方向 |
+| A050 | 记录+日志+回执不在同一提交事务 | Postgres 事务内提交，SQLite 不可冒充一致性 PASS | P0 · R5待补强 |
+
+#### F. 安装清单与跨设备恢复（Chrome/UX 专家）
+
+| 检查 ID | 反方攻击或故障 | 必须落实的安全策略 | 风险与原状态 |
+| --- | --- | --- | --- |
+| A051 | 电脑 A 想装不等于电脑 B 已安装 | desired install intent 与 device actual 分离 | P1 · R5已有方向 |
+| A052 | A 本地卸载导致 B 被强制卸载 | 本机移除与云清单 REMOVED 独立操作 | P1 · R5已有方向 |
+| A053 | 已撤销或恶意安装包仍在清单中 | 拉取时重新验证 release/source/revocation | P0 · R5待补强 |
+| A054 | 自建私有扩展源已失效 | 标 SOURCE_UNAVAILABLE、不可假称已恢复 | P0 · R5已有方向 |
+| A055 | 同版本包摘要不同 | 要求来源/签名摘要校验与重新审阅 | P0 · R5待补强 |
+| A056 | 换设备后直接沿用旧网站权限 | 重新走真实授权，拒绝默认恢复权限 | P0 · R5已有方向 |
+| A057 | Sidebar/Program 两套安装被重复计数 | 产品层统一引用、安装实体按运行类型区分 | P1 · R5待补强 |
+| A058 | 独立 Chrome 扩展被静默写入安装 | 只引导官方/浏览器受控安装，不承诺静默 CRX | P0 · R5已有方向 |
+| A059 | 用户在批量恢复中取消一项 | 逐项状态与 idempotent receipt，不影响其他项 | P1 · R5待补强 |
+| A060 | 部分安装成功但数据恢复失败 | 区分 INSTALLED / DATA_PENDING / BLOCKED，旧本地数据不删 | P1 · R5待补强 |
+
+#### G. VIP 权益、计量与费用（商业化专家）
+
+| 检查 ID | 反方攻击或故障 | 必须落实的安全策略 | 风险与原状态 |
+| --- | --- | --- | --- |
+| A061 | Free 的本地能力被错误锁死 | 基础本地使用不依赖权益服务 | P0 · R5已有方向 |
+| A062 | VIP 到期后删除了用户本地数据 | 只降云访问权限，不删除数据 | P0 · R5已有方向 |
+| A063 | 离线陈旧 VIP 摘要允许无限请求 | 客户端提示性预检、服务端权威校验 | P0 · R5已有方向 |
+| A064 | 全站 VIP 被误认为拥有所有第三方功能 | 显式 plan-to-feature 授权映射 | P0 · R5待补强 |
+| A065 | 第三方发布者偷用平台 VIP 资源 | publisher 预算与 capability 审核 | P0 · R5已有方向 |
+| A066 | 短时连续切集打爆服务 | 单飞去重、配额和全局/IP 速率限制 | P1 · R5待补强 |
+| A067 | 日限额只在客户端保存可清除 | 服务器原子账号/产品/功能窗口计数 | P0 · R5已有方向 |
+| A068 | 多实例内存限流器各放宽一次 | 正式部署共享原子计数，不信单进程演示 | P0 · R5待补强 |
+| A069 | 多个入口重复扣减同一请求 | 幂等计费/配额预留与回执核对 | P0 · R5待补强 |
+| A070 | 退款或封禁后旧权益缓存继续使用 | entitlement epoch/撤销/明确有效期 | P0 · R5待补强 |
+
+#### H. 视频公共规则与隐私（视频专家）
+
+| 检查 ID | 反方攻击或故障 | 必须落实的安全策略 | 风险与原状态 |
+| --- | --- | --- | --- |
+| A071 | 本地完整规则仍无意义地访问云 | 按 intro/outro 字段缺口短路到 0 请求 | P1 · R5已有方向 |
+| A072 | 标题/片长相同即自动匹配 | 证据不足 UNKNOWN，明确异版 NOT_APPLICABLE | P1 · R5已有方向 |
+| A073 | 未授权公共查询暴露观看作品 | 独立 public-query consent，默认不发送 | P0 · R5待补强 |
+| A074 | 同剧不同剪辑直接套用绝对时间 | edition/timelineKey 硬 veto | P0 · R5已有方向 |
+| A075 | 45/48 分钟 tail 复制了旧绝对起点 | 验证兼容后按当前可信 D-tailSeconds | P1 · R5已有方向 |
+| A076 | 两个公共时间标记冲突却高票胜出 | QUARANTINED/NEEDS_CONFIRMATION，不自动 seek | P0 · R5待补强 |
+| A077 | 规则被撤销仍由缓存自动使用 | 租约与 revocationEpoch，过期禁止静默自动 | P0 · R5待补强 |
+| A078 | 用户显式关闭片尾又被公共规则打开 | 每字段显式 null/disabled 最高优先 | P0 · R5已有方向 |
+| A079 | 两网站使用相同资源 ID 误认为同媒体 | 映射含 siteId+assetKey+版证据 | P1 · R5已有方向 |
+| A080 | 第三方非商业数据库被卖入 VIP | source license 台账，默认仅自有/已授权数据 | P0 · R5待补强 |
+
+#### I. 第三方后端与 Supabase（生态/安全专家）
+
+| 检查 ID | 反方攻击或故障 | 必须落实的安全策略 | 风险与原状态 |
+| --- | --- | --- | --- |
+| A081 | 扩展包夹带 Supabase service_role key | 明确禁止发布密钥并提供 CI 检测 | P0 · R5已有方向 |
+| A082 | 匿名公开 key 未启用 RLS 可扫全表 | RLS/受众/数据所有者联合验证 | P0 · R5已有方向 |
+| A083 | 第三方 Supabase 的 user_id 直接当平台账号 | 严格独立 user namespace 或受控身份联邦 | P0 · R5待补强 |
+| A084 | 平台 OAuth Token 被转发给自建第三方服务 | 禁止传递主 Token，需 audience 专用授权 | P0 · R5待补强 |
+| A085 | 安装时未经用户同意连出自定义域名 | 显式域名/数据用途披露及站点权限 | P0 · R5待补强 |
+| A086 | 开发者迁移域名劫持用户数据 | 重新审批提供方身份及域名变更 | P1 · R5待补强 |
+| A087 | 退出时第三方仍保留未告知数据副本 | 明确 BYO 独立数据控制方与撤销/导出策略 | P1 · R5待补强 |
+| A088 | 作者后端宕机拖累本地工具 | 自带服务故障独立降级，不阻本地 | P1 · R5已有方向 |
+| A089 | 平台承担所有第三方 API 的无界账单 | 清晰费用归属与 publisher 预算 | P1 · R5已有方向 |
+| A090 | BYO 代理允许请求任意内网地址 SSRF | 严格 allowlist/HTTPS、禁止任意任意 URL 代理 | P0 · R5待补强 |
+
+#### J. 运营、测试与发布（QA/反方审计）
+
+| 检查 ID | 反方攻击或故障 | 必须落实的安全策略 | 风险与原状态 |
+| --- | --- | --- | --- |
+| A091 | 后台管理员直接查看所有私有 JSON | 最小授权/紧急访问审计，分离保密密钥 | P0 · R5待补强 |
+| A092 | 日志中记录观看 URL 和 Bearer Token | 脱敏字段白名单、短期保留、采样 | P0 · R5已有方向 |
+| A093 | 网络超时重新发起已生效的修改 | 回执查询/重用 operationId，不盲重放 | P0 · R5待补强 |
+| A094 | schema migration 途中部分实例仍用旧版 | 版本兼容窗口、灰度与可逆迁移 | P0 · R5待补强 |
+| A095 | 只有业务历史却没有灾难恢复备份 | 独立数据库灾备、恢复演练与 RPO/RTO | P0 · R5待补强 |
+| A096 | 开发专用 VIP 测试密钥进入生产构建 | 开发开关隔离，发行门禁阻断 | P0 · R5待补强 |
+| A097 | 宕机或 DNS 故障使本地配置不能用 | 本地优先、离线保存+队列恢复 | P0 · R5已有方向 |
+| A098 | 只有连播助手单产品 Demo | 再接鼠标手势/第二结构不同扩展 | P1 · R5已有方向 |
+| A099 | 仅 Node 模拟却报告真实双设备成功 | 单元/HTTP/Chrome/Profile/双机分别标证据 | P0 · R5待补强 |
+| A100 | 100 项有设计就冒称 100 项测试通过 | 全部运行项 NOT_TESTED，不伪造 PASS 或外部专家 | P0 · R5已有方向 |
+
+### R5.8.4 评分算法、产出与未完成项
+
+模拟设计评分采取 10 个正交维度各 100 分、**算术平均**；分数衡量文档中的具体需求/反例/执行合同是否覆盖，**不能**用来声明软件上线、真实外部独立评审、100 次工具调用或生产安全通过。
+
+| 维度 | 模拟设计评分 |
+| --- | ---: |
+| 平台通用性 | 97 |
+| Payload API 契合 | 96 |
+| 身份与角色隔离 | 96 |
+| 存储 Schema/迁移 | 96 |
+| 跨设备一致性 | 95 |
+| 安装恢复与浏览器权限 | 96 |
+| 会员与请求成本 | 96 |
+| 媒体规则安全和隐私 | 95 |
+| BYO/Supabase 可扩展 | 96 |
+| 工程验收边界 | 97 |
+| **算术平均** | **96.00/100** |
+
+- 本轮审查项数：100；此前方案需补强风险标记：50；已存在一定设计方向：50。这里的「待补强」代表历史合同对当前用例处理不充分，**不是**已经运行测试失败。当前 100 项均已给出拟议规则，但实际通过数仍为 0（未执行），后续应逐项保存实际 PASS/FAIL/BLOCKED/NOT_TESTED 回执。
+- 高危优先级：P0 70、P1 30，只是设计测试优先级；不得据此推断所有 P0 已被代码修复。
+- 本次修正后最高未解事实：真实受信 Host→扩展身份的服务器校验路径、外部 OAuth IdP 与 Payload req.user 映射、公开客户端伪装边界、账号/产品 schema 动态审查与隐私、Postgres CAS 原子实现、Chrome 安装恢复的来源/权限、独立浏览器扩展与 BYO Supabase 授权。
+- **单轮最小 Codex 实施交接**：先只读核验实际 main 和现有安装器/SDK；在唯一公共后端 owner 里使用 Payload + 本地 PostgreSQL（不要求真正公网部署），只建立 extensions / user-extensions / extension-data 三类通用集合和最少测试用户/管理员。使用两个不同结构扩展的 fixture 与两个测试账号执行原生 GET 的 owner ACL、原生 POST/PATCH 拒绝、受控 POST /api/extension-sync 的记录 CAS/幂等/历史、安装意愿记录与安装审阅的模拟回执；不得提前实现视频公共贡献、真实付费、发布者 BYO 或跨公网双机。输出实际 HTTP/SQL 次数和失败复测，**100 项只进行与本次代码改动相关的最小集合**，其他仍 NOT_TESTED。
