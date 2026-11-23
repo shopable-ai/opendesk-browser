@@ -239,3 +239,61 @@ R1 文件本身不等于以上测试已通过。执行的实际测试与已知�
 本轮额外提供一份离线 **Chat Adapter 交互实验文件**（会话附件），采用仓库批准的 Neutral / `od-*` 语义映射与浅色宿主视觉，不更改正式 Browser 源码。它在本轮隔离 Chromium 的 `page.set_content` 点击测试中覆盖九个模拟场景，**23/23 断言通过**（已验证字段发现、人工点选并保存、规则复用、MutationObserver 模拟更新、规则失效修复、无权限阻断/撤销、未公开种子、模拟结果差异、Canvas/iframe 降级、证据展开与 360px 无水平溢出；没有页面 JS 异常）。当前测试环境无法导航到文件 URL 或本机 HTTP（ERR_BLOCKED_BY_ADMINISTRATOR），因此使用 `set_content`；该隔离文档未提供 Web Crypto，算法显示清楚的“预置静态向量”降级，并非真实 SHA-256 在 Chromium 页面计算通过。
 
 **仍需补做**：可连接本机仓库工具或本地 Codex 时运行官方 `sidebar-preview-kit.mjs create/check`、按受保护区正确迁移业务 UI；再做来自源文件的浏览器点击与视觉校准。未完成上述步骤前不得标记“完全采用官方扩展规范”。
+
+## 13. 交互设计审计 R2：模板来源、被裁切的自动检测开关与字段保存策略（2026-11-23）
+
+### 13.1 复现的缺陷和修复
+
+本次读取了先前聊天交付的完整离线文件 `slots-fairness-chat-preview.html` 与实际截图，并在隔离 Chromium 用 `page.set_content` 检查 DOM 的计算布局：左侧 `.sf-panel` 宽 338px、clientWidth 336px，但内部 `.sf-surface` 被长哈希的最小内容宽度撑成约 455.4px；自动检测 switch 的 x 坐标在约 430px，超出侧栏右边界（x=346px），被 overflow:hidden 裁掉。DOM 中 checkbox 仍为 checked=true，因此“开关消失”不是自动检测停止，而是**窄侧栏布局溢出**。同一问题使“选择页面区域”按钮被裁。
+
+修复动作：侧栏 grid 显式 `minmax(0,1fr)`，所有子项 `min-width:0`、长哈希截断，控制器区域固定/受限宽度，开关提供“开/关”文字及焦点轮廓，保存规则按钮仅在选中后出现，另增加简短的本地存储解释。修复也已以独立、保守的 CSS 限宽差量更新仓库 `preview/index.html`。它仍是人工设计稿，不得称为经过官方模板生成。
+
+**已验证的准确层级**：修订后的聊天离线 HTML `slots-fairness-r2-interactive-preview.html` 通过隔离 Chromium `page.set_content` 的 **49/49 断言**：1200/768/390/360/320px 每个宽度核对开关 ON/OFF 仍在 Side Panel 内、不横向溢出、按钮可见、无 JS 错误、无选区时隐藏禁用“保存”；另测已知/未知（基线沿用）、缺字段→选区→保存→复用、MutationObserver 新增、失效→修复、撤权、未公开种子、不一致、Canvas/iframe。生成宽屏与 360px 截图。仓库版 `preview/index.html` 仅已做 JavaScript 静态解析和文件写入；**未针对该仓库精确字节运行 Chromium 或 Preview Kit check**，不得转移上述测试证据。
+
+### 13.2 现行 UI Skill 合规问题
+
+阅读的权威来源：`.agents/skills/opendesk-ui-preview/SKILL.md`、`scripts/sidebar-preview-kit.mjs`、`scripts/templates/sidebar-preview.html`、`scripts/templates/sidebar-tool-preview-shell.html`、`src/ui/design-tokens.css`、`src/ui/design-system.css`。官方设计稿应先从 `node scripts/sidebar-preview-kit.mjs create --out artifacts/sidebar-preview-kit/slots-fairness-r2 --title 'Slots Fairness Verifier'` 生成，再只改 `#od-preview-app` 内部、脚本的 `/* DESIGN_APP_BEHAVIOR */` 之后；保留真实来源的导航/页头、外部诊断场景、锁定的 Tokens/CSS、CSP，并运行 `node scripts/sidebar-preview-kit.mjs check <生成文件>`。目前不能在连接的本机 workspace 上运行该生成器：**UI_TEMPLATE_PARITY=NOT_TESTED**。聊天适配器只可标记 CHAT_ADAPTER_NOT_SOURCE_HTML。
+
+### 13.3 自动发现、自动保存与历史证据必须分开
+
+| 项目 | 需要自动识别？ | 自动长期保存原始值？ | 推荐处理 |
+| --- | --- | --- | --- |
+| 当前 origin / 许可范围 / path pattern | P0 | 只持久化必要授权、站点匹配设置；原生授权以 Chrome 权限为准 | 使用 host grant + 本地 RuleStore，禁止将前端 toggle 当权限 |
+| Server Seed Hash（公开承诺哈希） | P0 | 默认不记录每轮；只有用户明确启用“承诺证据留存”才记录哈希、轮次和本机观察时刻 | 事前采样有用，但本机时刻不是不可篡改公证 |
+| Client Seed、Nonce | P0 | 默认不持久化原值 | 仅在当前轮次验证使用，刷新时重新读 |
+| Server Seed 明文 | **仅公开后** | 默认不长期保存 | 未公开时显示“等待公开”，绝不尝试解密或读取私有值 |
+| 轮次 ID / 历史记录关联 | **P0 条件必需** | 需要历史证据时仅存脱敏关联 ID | 避免跨轮次混用字段；无法唯一关联则禁 L3/L4 |
+| 网站游戏类型、adapter ID / algorithm version | P0 | **保存非敏感规则元数据** | 未知算法只能到哈希关系，不能臆造 RNG 通过 |
+| RNG cursor / bonus round / 游戏配置 | **站点算法需要时必需** | 默认只保存规格和配置版本，非完整页面历史 | Slots 可多次派生随机值；算法不可由字段名猜测 |
+| 页面展示结果 / 转轴 / 奖金 | L3/L4 对照时按需提取 | 默认不持久化；只有用户授权审计历史留存才存必要去敏摘要 | 结果展示不等于规则能复算 Slots |
+| CSS selector / 属性提取规则 / 语义标签 / 唯一性 / frame 作用域 | P0，规则优先 | **用户确认后自动保存在本地规则** | 安全、可修复、不使用执行型 JS/远程代码 |
+| 密码、Cookie、会话令牌、未公开 Seed、私有接口 | **禁止** | **禁止** | P0 隐私与权限底线 |
+
+主决策：**自动检测=已授权网站上的受限观察；自动保存=用户确认的字段匹配配置；证据留存=未来单独选择的审计功能。** 三者不绑定成一个开关。当前 R1 演示初始 5/5 仅是模拟充分字段，并不证明真实网站达到 L3/L4；任何算法未知、Seed 未公开或轮次错配必须明确降级。
+
+### 13.4 同类型真实 UI 参考（只研究证据 UI，不推荐网站消费）
+
+- 官方种子/Nonce 面板图与多语言布局：Stake 日文技术解释含截图 https://stake.com/ja/blog/jp-blog-provablyfair 。借鉴字段分组、历史 vs 当前承诺，但不用下注按钮或品牌风格。
+- Seed 与 Verify 分区：Primedice 的 Fairness / Verify 双页技术截图 https://www.gamble.io/provably-fair-gaming 。借鉴“当前承诺”和“可验证历史”分离，**不照搬改变种子的游戏控制**。
+- 复算结果明细：Stake 社区计算页技术截图 https://stakecommunity.com/topic/7293-bet-verification-provably-fair/ 。借鉴多层计算值、预置 vs 页面值对比和可复查差异；不保留与公平性无关的投注 UI。
+- 完整 game event 明细/Slots 算法：Stake https://stake.com/provably-fair/game-events 和 https://stake.com/provably-fair/implementation ；其两种 Slots 有固定轮轴/动态带权重映射差异，额外 cursor 会影响 bonus 事件。
+- Shuffle commitment/reveal、HMAC/cursor 代码：https://help.shuffle.com/en/articles/9286047-provably-fair-commitment-schemes 、 https://help.shuffle.com/en/articles/9286058-provably-fair-implementation 。参考种子未公开时只能审计承诺的边界。
+- 商店发布风险：Chrome Web Store https://developer.chrome.com/docs/webstore/program-policies/regulated-goods-and-services 与 https://developer.chrome.com/docs/webstore/troubleshooting ；只读声明不确保不会被判定为促进真钱赌博，必须独立评估。
+
+### 13.5 六视角独立维度自评和反方审计
+
+本轮针对**修复前完整聊天交互预览**的作者分角色自评，而不是独立外部专家；该数值不能替换 R1 需求方案的另一版本评分：
+
+| 角色 | /100 | 扣分依据 |
+| --- | ---: | --- |
+| 产品经理 | 85 | 自动发现闭环清楚，但未区分采集规则、轮次数据和证据留存 |
+| UX/视觉专家 | 76 | 开启开关不可见、长字段溢出、禁用保存按钮常驻、英文技术项过密 |
+| 浏览器扩展架构师 | 77 | 未按官方 Preview Kit 生成，DOM 与运行时权限仍是 Mock |
+| DOM 自动化专家 | 74 | 同轮次/多 frame/Selector 唯一与语义复核仅模拟，缺真实站点样本 |
+| 安全/合规专家 | 86 | 只读和撤权方向正确，但“自动保存”含糊，商店风险仍需裁定 |
+| 密码学专家 | 73 | 固定模拟向量不等于真实算法，可能误将五字段齐全看成完整可验证 |
+| **平均分** | **78.5** | **算术平均（85+76+77+74+86+73）/6** |
+
+自我否决/反方攻击：①开关在开启状态仍不显示，属于 P0 的可达性失败；② DOM “五字段齐全”其实可能来自不同轮次，若直接继续验算可产生错误结论；③用户没有亲自看到事前 Seed Hash，事后哈希相等不证明承诺时间；④算法只知 SHA256/HMAC 不等于知道 Slots symbol/reel/paytable；⑤移动端/多语言/长哈希导致原生按钮裁切；⑥自动持久化每轮明文与用户可验证目标不成比例；⑦商店审核限制可能令扩展形态不可发。任一项未解决不得给正式交付评分≥95。
+
+修复后候选已解决第①⑤项的**离线布局缺陷**，但模板、真实站点、隐私审计和密码学算法门槛仍未完成。不能人为把 78.5 或任意高分直接调到 95。正式验收需要相同源码字节的官方 UI 生成/静态校验和真实 Chromium/Chrome 证据。
