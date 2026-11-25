@@ -2,7 +2,36 @@
 
 入口：[index.html](index.html)。直接用浏览器打开，无需构建或服务。
 
-**当前阶段：设计与离线交互原型。** 本轮重做定时计划列表、新建/编辑计划，补齐独立任务管理。正式 React、SDK、Host、公共 CSS 和开发原型未由本任务修改；不构建安装、不提交发布。目标与功能处置见[目标规格](../../../docs/framework/my-ui-ux-r1-20261114.zh-CN.md)，行为条件及当前证据见[测试规格](../../../docs/framework/my-ui-ux-r1-test-spec-20261114.zh-CN.md)，设计入口见 [DESIGN.md](../../../DESIGN.md#my-ui-ux-20261114)。
+**当前阶段：设计与离线交互原型。** 正式 React、SDK、宿主、公共 CSS 和安装链不在本轮范围。早期定时计划和任务管理方案见[目标规格](../../../docs/framework/my-ui-ux-r1-20261114.zh-CN.md)、[测试规格](../../../docs/framework/my-ui-ux-r1-test-spec-20261114.zh-CN.md)和 [DESIGN.md](../../../DESIGN.md#my-ui-ux-20261114)。
+
+## 百度脚本参数与运行
+
+打开 [离线页](index.html)，点「百度搜索：前三条自然网页结果」行的运行图标。只填关键词即可模拟运行。参数同行配对，关键词带必填星；百度表单的左列按最长标签留出余量，让关键词和网址共用更宽的输入列。默认自动选择标签页：能复用就使用当前百度页，否则从百度首页新开；默认切到执行页。打开「始终新开标签页」才会显示起始网址。「提取网页摘要」的摘要长度保留分类下拉。
+
+「本次运行」使用可展开的分组，收起时仍显示执行去向、操作意图和阻塞原因，必要的复查入口会显示在分组下方。展开可查完整起始网址或当前搜索词。关闭窗口保留该任务的草稿，刷新页面重置示例。要模拟撤权、恢复或未知回执，可用右上角「选择演示状态」；未知回执中可以核对原关键词和目标，不会再次运行。
+
+从仓库根目录复跑时，先按本机 `ego-browser skill` 指南打开离线页（无需本机服务器），创建或复用本任务唯一的 TaskSpace，在 `p1` 打开当前文件。用返回的数字 ID 替换下面的 `ID`；每轮从刚刷新、窗口已关闭的页面开始，也不要同时驱动同一页。完成后只释放本轮自己的 TaskSpace。
+
+```sh
+ego-browser nodejs <<'EOF'
+const task = await taskSpace('OpenDesk 我的：百度参数离线验收');
+const page = task.page('p1');
+await page.goto('file:///Users/shopme/Documents/workspace/opendesk-browser/prototypes/sidebar/my/index.html');
+console.log(task.spaceId);
+EOF
+BAIDU_EGO_SPACE=ID
+{ printf '\nconst SPACE_ID=%s;\n' "$BAIDU_EGO_SPACE"; cat prototypes/sidebar/my/baidu-run-ui.ego.mjs; } | ego-browser nodejs
+```
+
+验收范围与两类评分权重见[百度离线验收规格](baidu-run-ui-spec.md)。脚本比较浏览器载入的 HTML 和工作区文件的完整 SHA-256，报告必须为 `PASSED`。证据以 DOM、焦点、点击命中及可访问性记录为主，截图辅助评审。
+
+2026-11-25 离线候选的 HTML SHA-256 为 `48b2b5c4a25279bd7c8508a508bfe8d5de8343d8cf73b2b2989b15efbb434c50`；该候选的工作区源码和浏览器加载内容在验收首尾一致。[Ego 运行报告（含原生 AX）](../../../artifacts/baidu-run-ui-ego/run-y8bObb/assertions.json)记录 173 项通过，0 项失败、0 个场景中断。[独立评审明细](../../../artifacts/baidu-run-ui-ego/run-y8bObb/reviews.json)记录交互 99/100、视觉 96/100，均严格高于 95，无阻塞。报告仅对应上述指纹，合并后的 HTML 未做浏览器复验。
+
+- [列宽与点击命中](../../../artifacts/baidu-run-ui-ego/label-fit-FDXbhv/column-fit.json)：左列从 136.1 px 缩至 104 px，右列从 187.9 px 增至 220 px；开启新标签页后四行仍对齐，标签都保持单行。
+- 交互扣 1 分：已分别验证条件行相关控件焦点及命中；未记录插入或移除该行后完整的正反向 Tab 顺序。
+- 视觉扣 4 分：展开的编码网址占三行；网址无效时运行按钮仍醒目；恢复授权的具体选项需展开查看；普通和错误状态的焦点环边界不一致。
+- [本轮未达标候选](../../../artifacts/baidu-run-ui-ego/run-3uzNaI/reviews.json)单独留档。最终版本拒绝含换行的关键词和网址且保留原 JSON；原页失效后，显式新开若填错网址会定位到网址输入框，切回自动才复查原页。 [调整前候选](../../../artifacts/baidu-run-ui-ego/run-jy0D3m/reviews.json)也单独留档。
+- 代表性侧栏为 360 × 820 CSS px。中文输入仅验证合成事件；实体输入法、真实 200% 浏览器缩放、多宽度矩阵、真实百度或扩展宿主均未验证。报告、快照和评分位于本地忽略目录 `artifacts/baidu-run-ui-ego/`。
 
 ## 可操作路径
 
@@ -43,10 +72,10 @@
 
 北京时间、每周规则和“明天/下周”均是演示时间，不是实际调度计算。真实完整规则/时区/错过策略、AI、导入验证、复制草稿、权限及安装能力仍归原产品owner，不因原型简化而删除。
 
-## 验证与独立评审
+## 历史验证与独立评审（2026-11-15）
 
-本轮设计阶段已收尾：当前79条离线行为记录通过；[独立视觉报告](review-visual-20261115.md)与[独立交互报告](review-interaction-20261115.md)对列表、新建、编辑、管理、详情、检查确认及一致性逐项均≥95，无本轮待修阻断。仍是供用户审阅的离线方案。
+此前的列表和计划候选有 79 条离线行为记录通过；[独立视觉报告](review-visual-20261115.md)与[独立交互报告](review-interaction-20261115.md)记录了旧候选的结果。这些结果不计入本轮百度参数与运行验收。
 
-当前候选指纹、截图、检查和独立评审结果以[测试规格第5节](../../../docs/framework/my-ui-ux-r1-test-spec-20261114.zh-CN.md#5-当前离线候选独立评审与证据边界)收尾记录为准。首轮专家评分未达标，已按具体意见修改；历史检查与旧候选不合计为本次通过数，分数不替代用户对视觉效果的判断。
+历史列表与计划的候选指纹、检查和独立评审见[旧测试规格第 5 节](../../../docs/framework/my-ui-ux-r1-test-spec-20261114.zh-CN.md#5-当前离线候选独立评审与证据边界)。
 
-本轮证据在忽略目录 `artifacts/my-prototype-20261115/`，旧记录保留在 `artifacts/my-prototype-20261114/`。真实Side Panel、实际扩展身份与开发连接、RunHost、Run/Stop、安装/权限/调度、OS实体IME、production均 **NOT_TESTED**；完整主题/宽度/缩放矩阵延期。原有watcher、dist writer、Profile和其他对话产物均保持原owner。
+该历史轮次的证据在忽略目录 `artifacts/my-prototype-20261115/`，更早的记录保留在 `artifacts/my-prototype-20261114/`。真实 Side Panel、扩展身份与开发连接、RunHost、安装、权限、调度、实体输入法和生产环境均未验证；完整主题、宽度和缩放矩阵延期。
