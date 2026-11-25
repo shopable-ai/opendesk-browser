@@ -4,6 +4,8 @@
 
 **目录边界：** 此处同时保留冻结 Controller Task JSON、对应 JS、Browser Test Lab HTML/HTTP 服务和历史 Node 测试。可安装 Task 不等于独立 Page/Controller 项目；本机 43111 演示服务仍以 examples/tasks 为根，未核对消费者前不要搬走 demo-form.html、workflow-search.html、scrapyjs-fixtures 符号链接或测试文件。Task ID、版本和来源哈希不因目录美化而重写。
 
+新独立可安装业务脚本归 [task-packs/](../../task-packs/README.md)，这里保留教学和测试资产。R10.2/10.3 的 [14 参数脚本](task-params-header.example.js) 是唯一文本作者示例，task-param-items.example.json、task-params-v2.example.json 和 R9 预览内嵌参数为派生数据，未实现正式 v2 安装；见 [参数及编译规范](../../docs/api/task-params.zh-CN.md)。
+
 标准测试页的原「开发」入口操作、可复用草稿和最新实测关联见 [脚本 UI 测试](SCRIPT-UI-TESTING.zh-CN.md)。
 
 

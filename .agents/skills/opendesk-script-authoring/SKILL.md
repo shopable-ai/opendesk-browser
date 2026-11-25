@@ -33,6 +33,8 @@ description: Author and debug Controller automation, Page USER_SCRIPT 网页增�
 用户要独立安装、编辑或更新的网页代码继续使用 Page USER_SCRIPT，按原站点授权与 Chrome「允许用户脚本」开关运行。维护随 Browser 发布的第一方网页按钮时，先按[网页功能的加载与授权](../../../docs/architecture/browser-framework/site-permission-onboarding.zh-CN.md#网页功能的加载与授权)和工作流 Gate A 核对真实入口；网页按钮本身并不要求采用 USER_SCRIPT，也不能为了去掉开关而把动态代码移进可信内容脚本。
 
 
+**独立 Controller 脚本归属**：新独立可安装/跨产品 Task 默认使用 [task-packs/ 唯一业务 owner 与目录规范](../../../task-packs/README.md)；教学 fixture 留 examples，产品私有 Task 留原 owner。普通作者只读公共 SDK，不将网站业务写进 src/、根 scripts/ 或 WebFlow 的私有运行逻辑。不要为单文件强制创建 npm 项目或新增正式运行器。
+
 **Controller 参数声明**：先读 [统一 Task 参数契约](../../../docs/api/task-params.zh-CN.md) 第 0 节。v2 候选优先将一行一参数的文本头部写在 [同一个脚本源码文件](../../../examples/tasks/task-params-header.example.js)，由 [compileTaskSourceParams](../../../scripts/compile-task-param-items.mjs) 静态提取并复用 compileParamItems 生成标准契约。paramItems 与 Schema 是派生数据，不同时手写多份，不执行声明代码，不生成独立表单。**参考解析器已存在，正式构建/安装/运行尚未接入；正式发布仍用 legacy 参数子集。** 不将演示直接安装、补猜必填值或以 UI 配置扩权。
 
 ## 作者决策表：JS / React / Vue 不等于一个执行世界

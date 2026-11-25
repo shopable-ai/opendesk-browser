@@ -2,6 +2,8 @@
 
 [返回总入口](README.md)。Controller 在受控 Worker 中通过公开 `page` 操作获准网页；没有网页全局 document。本地项目、MCP、Sidebar 使用原 RunHost、Authority 和持久结果体系。
 
+独立可安装脚本的业务源码、冻结包及测试归 [task-packs/](../../task-packs/README.md)，不写入通用框架；参数声明、编译前提取及压缩边界见 [统一 Task 参数规范](task-params.zh-CN.md)。文本头部 v2 尚待正式迁移，当前运行能力仍以本页与实际源码为准。
+
 <a id="developer-controller-quickstart"></a>
 
 ## main 输入：推荐零参数环境变量写法（Controller）

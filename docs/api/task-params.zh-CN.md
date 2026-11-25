@@ -1,4 +1,4 @@
-# OpenDesk Task 参数契约（R10.2）
+# OpenDesk Task 参数契约（R10.3）
 
 状态：**设计规范候选；正式 v2 运行、安装、调度和 Chrome 验收尚未实施。** 基准 `e2e2a82e50d978b9a181b1fa22465c4030d38ef7`。本页是 Controller Task 参数设计的开发者规范，不适用于 Page USER_SCRIPT 自定义网页表单、Sidebar Tool 或权限声明。不得将 R9 离线演示视为正式能力。作者当前发布必须使用下述 legacy 子集；v2 示例不得直接安装。
 
@@ -49,6 +49,25 @@ async function main() {
 ### 一份源、一个运行契约
 
 编写：脚本头部（推荐）或高级/既有项目的直接 Schema（兼容），不得同时手写两套。构建：静态抽取入口源码头部 → paramItems 内部中间结构 → paramsSchemaVersion:2 / paramsSchema / paramsUi.version:1；发布仅保留生成的标准 Manifest 及既有业务源码、身份和哈希。已有生成产物与源文件均存在时必须核对确定性编译结果，不能任选一份或用旧结果覆盖。正式 ESM/TS 构建须先抽取入口源文件头部再经过可能移除注释的构建阶段，绑定已授权源/构建产物；沿原 manifestHash/sourceHash 和安装审阅保证一致性，不能重写已发行包。用户运行时只使用可信冻结 Manifest 与实际 params，无需再扫描或执行第三方 JS 生成 UI。权限、站点访问、资源选择、Stop 和未知结果不由参数头部改变。
+
+### 编译、压缩、安装及运行的封版门禁（R10.3）
+
+**作者源和发布产物是两个阶段，不是两套手工配置。** 独立脚本归 [task-packs/](../../task-packs/README.md)，示例仍归 examples/tasks。Controller 现有 ABI 是零参数 `main()`，运行器在受控 AsyncBody 中提供词法 params；不得将 `main(params)` 或 `main({keyword})` 当新标准。多文件 ESM 保留已有兼容包装器，不改 Worker ABI。见 [Controller 文档](controller.zh-CN.md)。
+
+真实源码审计（`122c7167b5b2eaef183fb674b7d773d8d27ccce5`）：`src/scripting/sandbox/worker-runtime.js` 调用 await main()；`scripts/build-program-project.mjs` 生产构建启用 Webpack/Terser，extractComments:false，不保证保留参数注释，且当前 Manifest 仍仅从 project.paramsSchema 取参数；`src/platform/tasks/contract.js` 尚拒绝 v2 参数字段。R10.2 参考解析器在 scripts/compile-task-param-items.mjs，尚未进入上述正式链路。以下是 R11 的实施门禁，不是已实现功能。
+
+| 阶段 | 必须满足 |
+| --- | --- |
+| 源码冻结 | 从原授权入口/版本读取同一字节快照，抽取头部与编译共享该输入；多文件 ESM/TS 在 Webpack 前抽取真实入口，不在 bundle 或依赖中猜声明；保存或修改源文件不自动运行 |
+| 静态提取 | 复用/抽取原 dependency-metadata.js 的前导 trivia 扫描能力，允许合法版权注释、@require、@opendesk-lib 与参数头部共存；不把参数声明赋予权限或扩大 Page/Controller 世界；不读取正文、字符串、模板字面量或块注释内伪头部 |
+| 歧义与版本 | 目前参考解析器仅识别首个非空行，正式迁移须修复共存与重复头部检测、残缺标记、未知版本和 UTF-8 64KiB 头部预算；任何已识别但错误的声明拒绝，缺失头部不等于显式零参数 |
+| 单一来源 | 头部、旧项目 paramsSchema/paramsUi 不允许同时作为手工来源；已有自动生成产物必须与冻结源码确定性展开一致，冲突拒绝；legacy 无头部沿原合同；v2 新包字段受原 Manifest 版本准入 |
+| 编译 | 在任何 Terser/注释删除之前完成抽取、唯一语义校验；之后可删除所有注释及换行。以现有构建前后输入校验和冻结机制拒绝并行修改；缺少声明产物不能偷偷回退旧数据 |
+| 冻结包 | 保留原 opendesk.task-package.v1 容器及 Task Manifest 身份、权限和不可变版本；sourceHash 绑定最终 sourceUtf8；manifestHash 绑定完整 canonical Manifest（含 sourceHash、v2 参数定义）；哈希只证明完整性，不是作者签名或权限授权 |
+| 安装/运行 | 已验证的 Manifest 是发布时参数真相；安装后无需解析原源码或联网，所有窗口/计划/AI 从同一安装身份读取定义，Authority 再校验并使用规范化 params；版本更新、撤权、UNKNOWN 不改变既有保护 |
+| 生命周期 | 普通任务独立发布/安装不要求重新构建 Browser；v2 首次平台上线需框架支持。内置精确资源 pin 与外部安装沿原不同信任链，不按目录名/ID 自动信任 |
+
+反方测试为 R11 必需：同一原始入口的 development/production 构建参数定义语义等价，生产删除全部注释、JS 压缩为一行后仍可导入并渲染、真实执行；只改参数头部（即使最终代码相同）manifestHash 必变化；只改业务代码 sourceHash 与 manifestHash 必变化；参数头部与合法依赖声明共存；重复/残缺/伪造头部、源快照漂移、旧产物、未知版本、哈希篡改拒绝；无头部的 legacy 老包仍可安装、运行、恢复；刷新浏览器后已安装 v2 使用冻结定义；Run/Stop/计划/AI/工作流同一权威校验。检查实际 Webpack/Terser、正式安装及 Chrome 真实 runId/resultId，不能只用字符串删除模拟冒充生产通过。本文档更新不改变运行器、安装器或旧发行包。
 
 ### todo-user 兼容与未来统一
 

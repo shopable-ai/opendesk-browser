@@ -77,11 +77,11 @@
 | 正式 Sidebar Tool 产品 | 新建于 `projects/<id>/`；已有产品以 README、配置及实际构建/Catalog 消费者共同确认原位置 | `tool.config.json`，交付时唯一 `<id>.opendesk-tool.json` |
 | Sidebar 教学示例、Starter、最小复现 | `examples/sidebar-tools/<id>/` | 同一种 Tool 配置与打包器，不复制正式产品 |
 | Page USER_SCRIPT / Page Program | 沿用实际项目，默认 `examples/programs/<id>/` | 原 Page 配置、Candidate/Authority；不用 Sidebar JSON |
-| Controller Task | 沿用原 Controller 项目 | 原 Task 冻结和发布合同 |
+| Controller Task | 新建独立可安装、跨产品消费脚本默认 [task-packs/<task-family>/](../../task-packs/README.md)；已有产品私有 Task 继续原 owner | 原 Task 冻结和发布合同；不新增安装器 |
 | 第一方可信特权业务 | 原产品的 `trusted/`，或尚未提取的必要 `src/<feature>/` | 固定扩展构建与审计；目录名不产生权限 |
 | 公共 Framework / SDK | 原平台模块及根测试目录 | 公共 Host、权限、安装、撤权、执行世界与跨产品合同 |
 
-`projects/` 是正式 Sidebar 产品的新默认，不是要求马上搬走所有 `examples/`。这个约定替代旧文档“所有新 Sidebar 工具默认 examples”的笼统表述；不改变 Page/Task 默认位置。不新建独立仓库、第二套 SDK/Host/打包器或全局测试注册表。
+`projects/` 是正式 Sidebar 产品的新默认，不是要求马上搬走所有 `examples/`。这个约定替代旧文档“所有新 Sidebar 工具默认 examples”的笼统表述；Page 默认位置不变；独立共享 Controller Task 按上表的现有 task-packs 归属，私有 Task 及已有项目不批量迁移。不新建独立仓库、第二套 SDK/Host/打包器或全局测试注册表。
 
 ## 2. 一个项目，从最小结构开始
 

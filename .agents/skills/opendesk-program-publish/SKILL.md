@@ -75,6 +75,8 @@ attach.connected:true 仅是本地绑定，status.connected:true 仅表示 Nativ
 
 ## 正式打包与安装
 
+独立可安装 Controller Task 的源码、发行包和业务测试归 [task-packs/](../../../task-packs/README.md) 或原唯一外部/既有项目；已有合法安装不依赖进入内置发行索引。发布前核对 [统一 Task 参数规范](../../../docs/api/task-params.zh-CN.md) 的编译压缩门禁：v2 必须先提取同一冻结源码头部再压缩，将参数定义写入原 Manifest 与双 hash，安装后只读冻结定义。R10.3 只封存设计，v2 正式构建/准入尚未实现；当前只发布实际支持的 legacy 包，禁止把参考文本头部或模拟测试当作已安装证据。不可变版本不得改写，普通安装不修改 Browser 核心，也不默认信任新业务目录。
+
 仅在需要不可变产物、导入或发布时使用：
 
     node scripts/validate-program-project.mjs <project>
