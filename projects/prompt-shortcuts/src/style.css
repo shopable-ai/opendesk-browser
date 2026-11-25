@@ -248,14 +248,23 @@
   height:34px;min-height:34px;max-height:34px
 }
 .ps-card.is-disabled .ps-card-quick{display:none}
+/* Six list commands in a single compact row. Keep full touch targets and
+   scroll only this overlay if the available width cannot accommodate them. */
 .ps-more{
+  --ps-more-size:30px;--ps-more-min:24px;
   position:absolute;right:7px;top:calc(100% - 5px);z-index:12;
-  display:grid;grid-template-columns:repeat(3,40px);gap:5px;
-  width:max-content;max-width:calc(100% - 14px);margin:0;padding:7px;
+  display:grid;grid-template-columns:repeat(6,minmax(var(--ps-more-min),1fr));gap:4px;justify-content:start;align-items:center;
+  box-sizing:border-box;width:calc(6 * var(--ps-more-size) + 32px);
+  max-width:calc(100% - 14px);margin:0;padding:5px;overflow-x:auto;
   border:1px solid var(--od-line);border-radius:var(--radius-control);
   background:var(--od-paper);box-shadow:0 8px 24px var(--od-line)
 }
-.ps-more>.od-icon-button{flex:none}
+.ps-more>.od-icon-button{
+  box-sizing:border-box;flex:none;width:100%;min-width:0;max-width:none;
+  height:var(--ps-more-size);min-height:var(--ps-more-size);max-height:var(--ps-more-size);padding:0
+}
+.ps-more>.od-icon-button>.ps-icon-svg{width:16px;height:16px;flex:none}
+@media(pointer:coarse){.ps-more{--ps-more-size:44px;--ps-more-min:44px}}
 .ps-detail-head{margin:0 0 var(--space-3)}
 .ps-detail-head h2{margin:0;font-size:15px}
 .ps-detail-identity{display:flex;gap:var(--space-2);align-items:center;margin-bottom:var(--space-3)}
