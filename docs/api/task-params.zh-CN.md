@@ -2,24 +2,25 @@
 
 状态：**设计规范候选；正式 v2 运行、安装、调度和 Chrome 验收尚未实施。** 基准 `e2e2a82e50d978b9a181b1fa22465c4030d38ef7`。本页是 Controller Task 参数设计的开发者规范，不适用于 Page USER_SCRIPT 自定义网页表单、Sidebar Tool 或权限声明。不得将 R9 离线演示视为正式能力。作者当前发布必须使用下述 legacy 子集；v2 示例不得直接安装。
 
-## 0. 开发者速查：脚本文件头部文本参数声明（R10.2）
+## 0. 开发者速查：最小脚本与文本参数声明
 
 **推荐作者入口：一个脚本源码文件同时保存参数定义和业务代码，每个控件一行文本。** 不要求开发者或 AI 再编辑 JSON 参数文件。参考 [Cool Admin Midway Entity 与快速 CRUD](https://node.cool-admin.com/src/guide/quick.html)、[EPS](https://node.cool-admin.com/src/guide/core/eps.html)、[Stylus UserCSS @var](https://github.com/openstyles/stylus/wiki/Writing-UserCSS) 和 [Fiji Script Parameters](https://imagej.net/scripting/parameters)。后两者已证明从脚本或样式头部声明生成输入 UI 的模式；本格式为 OpenDesk 自己的有限语法，不冒充这些项目的标准。
 
 ```javascript
 // ==OpenDeskParams==
 // @version 1
-// @param text query "搜索关键词" required minLength=1 maxLength=120
-// @param slider limit "结果数量" min=1 max=20 step=1 default=3
-// @param switch showExecutionTab "显示执行标签页" default=true
+// @param text keyword "关键词" required minLength=1
+// @param number limit "数量" default=20 min=1 max=100
 // ==/OpenDeskParams==
 
 async function main() {
-  return { params }; // 仅示例，实际脚本在此编写业务
+    const { keyword, limit } = params;
+
+    return { keyword, limit };
 }
 ```
 
-[完整 14 参数脚本文件](../../examples/tasks/task-params-header.example.js) 为唯一演示作者源。现有 [编译器](../../scripts/compile-task-param-items.mjs) 新增 parseTaskParamsHeader(source) 与 compileTaskSourceParams(source)，前者返回 R10.1 中间结构，后者复用 compileParamItems 生成 R10 v2 标准契约。R10.1 JSON 降为派生中间数据，不再推荐手工维护。**这是参考静态解析器与转换器，尚未接入正式构建、开发、安装、运行或 Chrome；当前宿主仍只接受 legacy v1。** 不可直接把示例作为固定任务包安装。
+[最小双参数脚本文件](../../examples/tasks/task-params-minimal.example.js) 是日常作者和 AI 的首选参考：同一个 JS 文件同时包含参数声明与业务代码；只返回 keyword、limit，无网页、网络或其他业务副作用。[完整 14 参数脚本文件](../../examples/tasks/task-params-header.example.js) 仅为完整控件覆盖的唯一 fixture 作者源，对应派生 JSON 和 R9 离线预览，不是业务任务。两个示例用途不同，均不可直接视为正式安装包。预览中的 `many-params-preview`（批量整理网页）只是模拟数据，不创建 web-organizer 业务项目、Task ID、发行包或默认安装项。真实独立业务脚本只归 `task-packs/<task-family>/` 或既有已核实 owner。现有 [编译器](../../scripts/compile-task-param-items.mjs) 新增 parseTaskParamsHeader(source) 与 compileTaskSourceParams(source)，前者返回 R10.1 中间结构，后者复用 compileParamItems 生成 R10 v2 标准契约。R10.1 JSON 降为派生中间数据，不再推荐手工维护。**这是参考静态解析器与转换器，尚未接入正式构建、开发、安装、运行或 Chrome；当前宿主仍只接受 legacy v1。** 不可直接把示例作为固定任务包安装。
 
 ### 一行声明语法
 

@@ -90,3 +90,20 @@ test('header scanner preserves typed literal values, escaping and missing fields
   assert.equal(items[5].label,"引号\" 和空格");
   assert.equal(items[5].description,"路径 C:\\a b");
 });
+
+test('minimal two-parameter authoring example compiles without adding a business task',()=>{
+  const source=readFileSync(new URL('../../examples/tasks/task-params-minimal.example.js',import.meta.url),'utf8');
+  assert.deepEqual(compileTaskSourceParams(source),{
+    paramsSchemaVersion:2,
+    paramsSchema:{
+      type:'object',
+      properties:{
+        keyword:{type:'string',title:'关键词',minLength:1},
+        limit:{type:'integer',title:'数量',default:20,minimum:1,maximum:100}
+      },
+      required:['keyword'],
+      additionalProperties:false
+    },
+    paramsUi:{version:1,order:['keyword','limit'],fields:{}}
+  });
+});

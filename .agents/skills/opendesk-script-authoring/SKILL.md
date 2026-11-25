@@ -35,7 +35,7 @@ description: Author and debug Controller automation, Page USER_SCRIPT 网页增�
 
 **独立 Controller 脚本归属**：新独立可安装/跨产品 Task 默认使用 [task-packs/ 唯一业务 owner 与目录规范](../../../task-packs/README.md)；教学 fixture 留 examples，产品私有 Task 留原 owner。普通作者只读公共 SDK，不将网站业务写进 src/、根 scripts/ 或 WebFlow 的私有运行逻辑。不要为单文件强制创建 npm 项目或新增正式运行器。
 
-**Controller 参数声明**：先读 [统一 Task 参数契约](../../../docs/api/task-params.zh-CN.md) 第 0 节。v2 候选优先将一行一参数的文本头部写在 [同一个脚本源码文件](../../../examples/tasks/task-params-header.example.js)，由 [compileTaskSourceParams](../../../scripts/compile-task-param-items.mjs) 静态提取并复用 compileParamItems 生成标准契约。paramItems 与 Schema 是派生数据，不同时手写多份，不执行声明代码，不生成独立表单。**参考解析器已存在，正式构建/安装/运行尚未接入；正式发布仍用 legacy 参数子集。** 不将演示直接安装、补猜必填值或以 UI 配置扩权。
+**Controller 参数声明**：先读 [统一 Task 参数契约](../../../docs/api/task-params.zh-CN.md) 第 0 节，优先参考 [最小双参数脚本](../../../examples/tasks/task-params-minimal.example.js)；需要查看全部 12 类控件时再读 [完整 fixture](../../../examples/tasks/task-params-header.example.js)。v2 候选在同一 JS 源码文件头部写一行一参数的文本声明，通过 [compileTaskSourceParams](../../../scripts/compile-task-param-items.mjs) 静态提取并复用 compileParamItems 生成标准契约。paramItems 与 Schema 是派生数据，不同时手写多份，不执行声明代码，不生成独立表单。示例只归 examples/tasks/，不作为正式业务或默认安装项；真实独立 Task 归 task-packs/ 或已核实业务 owner。**参考解析器已存在，正式构建/安装/运行尚未接入；正式发布仍用 legacy 参数子集。** 不将演示直接安装、补猜必填值或以 UI 配置扩权。
 
 ## 作者决策表：JS / React / Vue 不等于一个执行世界
 

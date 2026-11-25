@@ -46,7 +46,7 @@ task-packs/
 | [google.search](google.search/README.md) | google.search.top3@1.0.7 默认预置资源；google.search.interaction.top3@1.0.0 独立冻结候选，不是稳定版升级 |
 | [chatgpt.conversation.create](chatgpt.conversation.create/README.md) | 0.2.2 可选目录版本；保留 0.1.0、0.2.0、0.2.1、0.3.0 精确字节，0.3.0 不自动升级/执行 |
 
-参数功能的教学源为 [task-params-header.example.js](../examples/tasks/task-params-header.example.js)（14 参数、12 类控件）。它是无副作用的参考 Controller 源码，并非正式发行/已安装任务；R10.2 的静态解析器已存在，但 v2 正式准入与生产构建仍待实现。
+参数教学优先参考 [task-params-minimal.example.js](../examples/tasks/task-params-minimal.example.js)（两个参数与零参数 main()）；需要控件全覆盖时再读 [task-params-header.example.js](../examples/tasks/task-params-header.example.js)（14 参数、12 类控件）。两者均是无副作用参考 Controller 源码，归 examples/tasks/，不是正式发行、默认预置或已安装任务。`many-params-preview` 只是原型的离线模拟数据，不为其创建 web-organizer 业务脚本或发行包。参考静态解析器已存在，但 v2 正式准入与生产构建仍待实现。
 
 ## 3. 普通作者的开发到安装流程
 
