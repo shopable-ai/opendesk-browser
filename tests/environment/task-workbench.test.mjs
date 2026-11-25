@@ -955,6 +955,105 @@ test('reopening My Tasks restores independent parameter drafts without permissio
   assert.equal(second.starts.length,0);assert.equal(second.permissions.length,0);
 });
 
+test('My parameter reset replaces an invalid form draft with manifest defaults in the original host only',async t=>{
+  const values={},draftStorage={get:async key=>({[key]:structuredClone(values[key])}),
+    set:async next=>Object.assign(values,structuredClone(next))};
+  const panel=make({secondTask:true,draftStorage}),pc=make({draftStorage,appTab:{id:41,windowId:7}});
+  t.after(()=>{panel.ui.dispose();pc.ui.dispose();});await tick();await tick();
+  const trusted={isTrusted:true};
+  pc.field('task-param-name').value='PC draft';pc.action('taskParamsFormInput');
+  panel.myView.data.taskRows.onSelect('demo.second');
+  panel.field('task-param-name').value='Second task draft';panel.action('taskParamsFormInput');
+  panel.myView.actions.taskParametersOpen('demo.form',trusted);
+  const sheet=panel.myView.data.taskRunSheet;
+  panel.field('task-param-name').value='';panel.action('taskParamsFormInput');
+  assert.equal(panel.myView.actions.taskRunClick(trusted,sheet.identity),false);
+  assert.match(panel.field('task-param-name').error,/E_PARAMS/);
+  assert.match(panel.field('task-status').text,/E_PARAMS/);
+
+  assert.equal(panel.myView.data.taskParamsCanReset,true);
+  assert.equal(panel.myView.actions.taskParamsResetClick(trusted,sheet.identity),true);
+  assert.equal(panel.myView.data.taskParamsMode,'form');
+  assert.equal(panel.field('task-param-name').value,'Alice');
+  assert.equal(panel.field('task-param-name').error,'');
+  assert.equal(panel.field('task-status').text,'');
+  assert.equal(panel.myView.data.taskRunSheet,sheet,'reset leaves the sheet, including its target, intact');
+  await tick();await tick();
+
+  const reopened=make({secondTask:true,draftStorage}),pcReopened=make({draftStorage,appTab:{id:41,windowId:7}});
+  t.after(()=>{reopened.ui.dispose();pcReopened.ui.dispose();});await tick();await tick();
+  assert.equal(reopened.field('task-param-name').value,'Alice');
+  reopened.myView.data.taskRows.onSelect('demo.second');
+  assert.equal(reopened.field('task-param-name').value,'Second task draft');
+  assert.equal(pcReopened.field('task-param-name').value,'PC draft');
+  assert.equal(panel.starts.length+panel.permissions.length+panel.catalogOpens.length,0);
+});
+
+test('My parameter reset replaces malformed JSON without changing editor mode or unrelated feedback',async t=>{
+  const f=make(),trusted={isTrusted:true};t.after(()=>f.ui.dispose());
+  Object.assign(f.catalogState.catalog[0].manifest.paramsSchema.properties,{
+    show:{type:'boolean',title:'Show',default:false},limit:{type:'integer',title:'Limit',enum:[0,1],default:0},
+    optional:{type:'string',title:'Optional'}
+  });
+  await tick();await tick();
+  f.myView.actions.taskParametersOpen('demo.form',trusted);
+  const {identity}=f.myView.data.taskRunSheet;
+  f.action('taskParamsModeChange','json');
+  f.field('task-params-json').value='{ malformed';f.action('taskParamsFormInput');
+  assert.equal(f.myView.actions.taskRunClick(trusted,identity),false);
+  assert.match(f.field('task-params-json').error,/E_PARAMS/);
+  f.field('task-status').text='Existing run receipt';
+
+  assert.equal(f.myView.actions.taskParamsResetClick(trusted,identity),true);
+  assert.equal(f.myView.data.taskParamsMode,'json');
+  assert.deepEqual(JSON.parse(f.field('task-params-json').value),{name:'Alice',show:false,limit:0});
+  assert.equal(f.field('task-params-json').error,'');
+  assert.equal(f.field('task-status').text,'Existing run receipt');
+  f.action('taskParamsModeChange','form');
+  assert.equal(f.myView.data.taskParamsMode,'form');
+  assert.equal(f.field('task-param-show').checked,false);
+  assert.equal(f.field('task-param-limit').value,'0');
+  assert.equal(f.field('task-param-optional').omitted,true);
+  assert.equal(f.starts.length+f.permissions.length,0);
+});
+
+test('My parameter reset rejects untrusted, cross-host, stale and occupied sheets',async t=>{
+  const f=make(),pc=make({appTab:{id:41,windowId:7}}),trusted={isTrusted:true};
+  t.after(()=>{f.ui.dispose();pc.ui.dispose();});await tick();await tick();
+  assert.equal(f.myView.data.taskParamsCanReset,false);
+  f.myView.actions.taskParametersOpen('demo.form',trusted);
+  pc.myView.actions.taskParametersOpen('demo.form',trusted);
+  const reset=f.myView.actions.taskParamsResetClick,first=f.myView.data.taskRunSheet.identity;
+  f.field('task-param-name').value='Keep this draft';f.action('taskParamsFormInput');
+  assert.equal(reset({isTrusted:false},first),false);
+  assert.deepEqual(first,pc.myView.data.taskRunSheet.identity);
+  assert.equal(reset(trusted,pc.myView.data.taskRunSheet.identity),false);
+  f.action('taskSheetClose');
+  f.myView.actions.taskParametersOpen('demo.form',trusted);
+  const second=f.myView.data.taskRunSheet.identity;
+  assert.equal(reset(trusted,first),false);
+  assert.equal(f.field('task-param-name').value,'Keep this draft');
+  f.view.slotAvailable=false;await f.ui.refresh();await tick();
+  assert.equal(f.myView.data.taskParamsCanReset,false);
+  assert.equal(reset(trusted,second),false);
+  assert.equal(f.field('task-param-name').value,'Keep this draft');
+  f.view.slotAvailable=true;
+  f.catalogState.installed[0].generation++;await f.ui.refresh();await tick();
+  assert.equal(f.myView.data.taskRunSheet.phase,'stale');
+  assert.equal(f.myView.data.taskParamsCanReset,false);
+  assert.equal(reset(trusted,second),false);
+  f.action('taskSheetClose');
+  f.myView.actions.taskParametersOpen('demo.form',trusted);
+  const current=f.myView.data.taskRunSheet.identity;
+  assert.equal(await f.ui.openTaskRunSheet({task:current,target:{mode:'owned',url:'https://a.example/'}}),true);
+  assert.equal(f.myView.data.taskRunSheet.source,'tool');
+  assert.equal(f.myView.data.taskParamsCanReset,false);
+  f.field('task-param-name').value='Tool draft';
+  assert.equal(reset(trusted,f.myView.data.taskRunSheet.identity),false);
+  assert.equal(f.field('task-param-name').value,'Tool draft');
+  assert.equal(f.starts.length+pc.starts.length,0);
+});
+
 test('switching between two installed tasks preserves each independent unsaved parameter input',async t=>{
   const f=make({secondTask:true});t.after(()=>f.ui.dispose());await tick();await tick();
   const param=f.field('task-param-name');

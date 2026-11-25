@@ -971,6 +971,61 @@
 .task-params-sheet-actions .od-button{display:inline-flex;align-items:center;justify-content:center;gap:5px;white-space:nowrap}
 .task-params-sheet-actions .od-button svg{width:15px;height:15px;flex:none;fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
 @media(max-width:360px){.task-params-sheet[open]{--task-sheet-gutter:var(--space-3)}.task-params-sheet-actions .od-button{padding-inline:var(--space-2)}}
+/* Compact task-row sheet; tool and page requests keep their review layout. */
+.task-params-sheet[data-source=my]{--task-sheet-gutter:var(--od-page-gutter);max-height:calc(100dvh - 56px);box-shadow:0 12px 48px color-mix(in srgb,var(--od-ink) 13%,transparent)}
+.task-params-sheet[data-source=my]::backdrop{background:color-mix(in srgb,var(--od-ink) 24%,transparent)}
+.task-params-sheet[data-source=my] .task-params-sheet-heading{gap:var(--space-2);min-height:56px;padding-block:10px}
+.task-params-sheet[data-source=my] .task-params-sheet-heading>.od-icon-button{align-self:center}
+.task-params-sheet[data-source=my] .task-params-sheet-kicker{margin:0 0 2px;font-size:var(--od-meta-size);line-height:16px}
+.task-params-sheet[data-source=my] .task-params-sheet-heading h2{line-height:18px}
+.task-params-sheet[data-source=my] .task-params-sheet-content{gap:var(--space-2);padding-block:var(--space-2) var(--space-3)}
+.task-sheet-intro{display:grid;gap:var(--space-1);min-width:0}
+.task-sheet-intro:has(>.task-sheet-intro-row:empty):not(:has(.task-run-target)){display:none}
+.task-sheet-intro-row,.task-sheet-script-description{display:flex;align-items:flex-end;gap:var(--space-1);min-width:0}
+.task-sheet-script-description{flex:1}
+.task-sheet-script-description>p{flex:1;min-width:0;margin:0;color:var(--od-sub);font-size:var(--od-note-size);line-height:18px;white-space:pre-wrap;overflow-wrap:anywhere}
+.task-sheet-script-description[data-expanded=false]>p{display:-webkit-box;-webkit-box-orient:vertical;-webkit-line-clamp:2;overflow:hidden}
+.task-sheet-script-description[data-compact=true][data-expanded=false]>p{-webkit-line-clamp:1}
+.task-sheet-intro-row>.task-run-destination-action,.task-sheet-script-description>.od-button{flex:none;min-height:18px;padding:0 2px;border:0;color:var(--od-brand);font-size:var(--od-note-size);font-weight:400;line-height:18px;white-space:nowrap}
+.task-sheet-intro-row>.task-run-destination-action{margin-inline-start:auto;color:var(--od-sub)}
+.task-sheet-script-description>.od-button:hover{text-decoration:underline;text-underline-offset:2px}
+.task-run-destination>.hint{margin:0;overflow-wrap:anywhere}
+.task-params-heading-tools{display:flex;align-items:center;gap:2px;min-width:0}
+.task-params-heading-tools .task-params-reset{width:28px;height:28px;min-width:28px;min-height:28px}
+.task-params-reset svg{width:15px;height:15px}
+.task-params-reset[aria-disabled=true]{opacity:.5;cursor:default}
+.task-params-reset[aria-disabled=true]:hover:not(:disabled){background:transparent}
+.task-params-sheet[data-source=my] .task-params-mode{gap:2px}
+.task-params-sheet[data-source=my] .task-params-mode>.od-button{padding:3px 10px;line-height:18px}
+.task-params-sheet[data-source=my] .task-params-mode [aria-pressed=true]{font-weight:600}
+.task-params-sheet[data-source=my] .task-param-control{grid-template-columns:clamp(104px,34%,142px) minmax(0,1fr)}
+.task-params-sheet[data-source=my] .task-param-control>.od-field-label{display:flex;align-items:center;gap:var(--space-1);border-right:1px solid var(--od-line);background:var(--od-muted);color:var(--od-sub)}
+.task-params-sheet[data-source=my] .task-param-control:has([aria-required=true])>.od-field-label{color:var(--od-ink)}
+.task-params-sheet[data-source=my] .task-param-required{color:var(--od-negative);font-weight:600}
+.task-params-sheet[data-source=my] .task-param-control>.od-field{min-height:40px;padding:7px var(--space-2);font-size:var(--od-note-size)}
+.task-params-sheet[data-source=my] .task-param-control:focus-within{outline:2px solid var(--od-focus);outline-offset:-2px}
+.task-params-sheet[data-source=my] .task-param-field--execution-tab label{font-weight:400}
+.task-param-execution-checkbox{appearance:auto;box-sizing:border-box;width:16px;height:16px;margin:0 3px 0 0;accent-color:var(--od-brand);cursor:pointer}
+.task-params-sheet[data-source=my] .task-param-json{gap:var(--space-2)}
+.task-params-sheet[data-source=my] #task-params-json{min-height:0;padding:7px var(--space-2);border-color:var(--od-line);font-size:var(--od-note-size);line-height:1.65}
+.task-sheet-result-state{margin-inline-start:auto;color:var(--od-sub);font-size:var(--od-meta-size);font-weight:400;text-align:end}
+.task-sheet-result[data-tone=completed] .task-sheet-result-state{color:var(--od-positive)}
+.task-sheet-result[data-tone=failed] .task-sheet-result-state{color:var(--od-negative)}
+.task-sheet-result[data-tone=warning] .task-sheet-result-state{color:var(--od-warning-ink)}
+.task-sheet-result[data-tone=running] .task-sheet-result-state{color:var(--od-brand)}
+.task-sheet-result>summary svg{color:var(--od-sub)}
+.task-sheet-result>summary>.od-disclosure-chevron{margin-inline-start:0}
+.task-sheet-result[open]>summary{border-bottom-color:transparent}
+.task-sheet-result.od-disclosure>.task-sheet-result-body{margin-block:var(--space-2)}
+.task-sheet-result-body>pre{margin:0;min-height:64px;max-height:170px;padding:var(--space-3);overflow:auto;border:1px solid var(--od-line);border-radius:var(--radius-control);background:var(--od-muted);font:var(--od-note-size)/1.65 ui-monospace,Menlo,monospace;white-space:pre-wrap;overflow-wrap:anywhere}
+.task-sheet-result-meta{display:flex;align-items:center;gap:var(--space-2);min-height:24px;margin-top:var(--space-1);font-size:var(--od-meta-size);color:var(--od-sub);line-height:18px}
+.task-sheet-result-meta>span{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.task-sheet-result-meta>.task-result-reveal{width:24px;height:24px;min-width:24px;min-height:24px}
+.task-sheet-result-meta>.task-sheet-result-debug{min-height:24px;padding:3px 0;border:0;background:transparent;color:var(--od-sub);font-size:var(--od-note-size);font-weight:400;line-height:18px;white-space:nowrap}
+.task-sheet-result-debug:hover:not(:disabled){background:transparent;color:var(--od-brand);text-decoration:underline}
+.task-params-sheet[data-source=my] .task-params-sheet-footer{padding-block:var(--space-2) var(--space-3)}
+.task-params-sheet[data-source=my] .task-params-sheet-actions .od-button{gap:var(--space-1);padding:7px var(--space-3);font-size:var(--od-note-size);font-weight:600}
+.task-params-sheet[data-source=my] .task-params-sheet-actions .od-button--secondary{background:var(--od-paper);border-color:var(--od-line);color:var(--od-sub)}
 @media(pointer:coarse){.task-params-sheet :is(.od-button,.od-icon-button,.task-run-target-field .od-field){min-height:44px}.task-params-sheet .od-icon-button{min-width:44px}}
 @media(max-width:360px){.workflow-sheet-panel{max-height:min(78dvh,520px)}.workflow-sheet-content{padding:var(--space-3)}}
 @media(prefers-reduced-motion:reduce){.workflow-sheet-panel,.workflow-sheet-overlay{animation:none!important;transition:none!important}}

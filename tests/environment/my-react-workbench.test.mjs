@@ -396,6 +396,38 @@ test('main task result keeps its owner and redaction, then clears when another t
   }finally{if(root)await React.act(async()=>root.unmount());f.dispose();}
 });
 
+test('the My parameter sheet shows only matching results and clears raw values when viewing diagnostics',async()=>{
+  const f=await fixture();let root;
+  try{
+    const installed=f.state.installed[0];
+    const revision={scriptId:installed.scriptId,sourceHash:f.state.catalog[0].manifest.program.sourceHash};
+    const addRun=(runId,installation,value)=>{
+      f.state.runs.push({runId,state:'completed',revision,taskInstallation:installation});
+      f.state.results.push({runId,revision,outcome:{ok:true,valueWire:encodeValue(value)}});
+    };
+    addRun('previous-installation',{...installed,installationId:'22222222-2222-4222-8222-222222222222'},{message:'上一次安装的结果'});
+    root=await f.mount();await f.fire(f.doc.getElementById('task-parameters-open'),'click',{isTrusted:true});
+    const sheet=f.doc.getElementById('task-parameters-sheet');
+    assert.equal(sheet.querySelector('.task-sheet-result'),null);
+    addRun('current-installation',installed,{token:'private-result-token',summary:'当前安装的结果'});
+    await React.act(async()=>{await f.workbench.refresh();await tick();});
+    const result=sheet.querySelector('.task-sheet-result');
+    const output=result.querySelector('pre');
+    const reveal=result.querySelector('.task-result-reveal'),debug=result.querySelector('.task-sheet-result-debug');
+    assert.match(output.textContent,/当前安装的结果/);
+    assert.doesNotMatch(output.textContent,/private-result-token/);
+    await f.fire(reveal,'click');
+    assert.match(output.textContent,/private-result-token/);
+    await f.fire(debug,'click');
+    assert.match(output.textContent,/runId：current-installation/);
+    assert.doesNotMatch(output.textContent,/private-result-token/);
+    await f.fire(debug,'click');
+    assert.match(output.textContent,/当前安装的结果/);
+    assert.doesNotMatch(output.textContent,/private-result-token/);
+    assert.equal(f.state.starts.length,0);
+  }finally{if(root)await React.act(async()=>root.unmount());f.dispose();}
+});
+
 test('task raw value controls reset on refreshed results and stay hidden for ordinary results',async()=>{
   const f=await fixture({configure({state,installed}){
     state.runs.push({runId:'refreshed-result',state:'completed',revision:{scriptId:installed.scriptId}});
@@ -1292,7 +1324,9 @@ test('leaving a Chinese IME field clears stale composition before an explicit Ru
     await f.fire(f.doc.getElementById('task-run'),'click',{isTrusted:true});
     assert.equal(f.state.starts.length,1);
     assert.equal(f.state.starts[0].params.name,'时间清单');
-    assert.equal(f.doc.getElementById('task-parameters-sheet').open,false);
+    const sheet=f.doc.getElementById('task-parameters-sheet');
+    assert.equal(sheet.open,true,'the sheet keeps the running task and its Stop control visible');
+    assert.ok(sheet.querySelector('#task-sheet-stop'));
     await React.act(async()=>{f.host.finish();await tick();});
   }finally{if(root)await React.act(async()=>root.unmount());f.dispose();}
 });
@@ -1316,6 +1350,7 @@ for(const [reason,pageSnapshot] of [
     assert.equal(f.state.starts[0].expectedTaskGeneration,pin.generation);
     assert.equal(f.view.field('task-run').disabled,true,'busy still blocks another run');
     await React.act(async()=>{f.host.finish();await tick();await tick();});
+    await f.fire(f.doc.getElementById('task-parameters-sheet'),'cancel');
     assert.equal(f.view.field('task-run').disabled,true,'closing the sheet restores the current-site restriction');
   }finally{if(root)await React.act(async()=>root.unmount());f.dispose();}
 });
@@ -1461,6 +1496,33 @@ for(const [stale,label,reason,accessibleGuidance] of [
     assert.equal(f.doc.getElementById('task-run'),null);
     await React.act(async()=>assert.equal(f.view.actions.taskRunClick(native(),f.view.data.taskRunSheet.identity),false));
     assert.equal(f.state.starts.length,0);assert.equal(f.state.permissionCalls.length,0);
+  }finally{if(root)await React.act(async()=>root.unmount());f.dispose();}
+});
+
+test('the installed historical Baidu sheet folds placement but still requires runtime reverification',async()=>{
+  const pkg=JSON.parse(await readFile(new URL('../../task-packs/baidu.search/releases/baidu.search.top3.1.1.5.opendesk-task.json',import.meta.url),'utf8'));
+  const {manifest,manifestHash}=pkg;
+  const f=await fixture({configure({installed,candidate}){
+    const pin={taskId:manifest.taskId,version:manifest.version,manifestHash,
+      scriptId:'task:'+manifest.taskId+':'+manifest.version,runtimeCurrent:false};
+    Object.assign(installed,pin);
+    Object.assign(candidate,pin,{manifest});
+  }});let root;
+  try{
+    root=await f.mount();await f.fire(f.doc.querySelector('.task-card-run'),'click');
+    const sheet=f.doc.getElementById('task-parameters-sheet');
+    const trigger=sheet.querySelector('[aria-controls="task-run-destination-editor"]');
+    const target=f.doc.getElementById('task-run-destination-editor');
+    assert.equal(target.hidden,true);
+    await f.fire(trigger,'click');
+    assert.equal(target.hidden,false);
+    assert.deepEqual([...target.querySelectorAll('option')].map(option=>option.value),['current','owned']);
+    await f.fire(trigger,'click');
+    assert.equal(target.hidden,true);
+    assert.match(sheet.querySelector('footer').textContent,/试运行原任务源码.*打开开发草稿/);
+    assert.equal(f.doc.getElementById('task-run'),null);
+    assert.equal(f.view.actions.taskRunClick(native(),f.view.data.taskRunSheet.identity),false);
+    assert.equal(f.state.starts.length,0);
   }finally{if(root)await React.act(async()=>root.unmount());f.dispose();}
 });
 
@@ -1773,6 +1835,7 @@ test('revision rejection during admission preserves the previous result and clea
     assert.match(f.doc.getElementById('task-status').textContent,/本次未开始运行.*重新打开/);
     assert.match(f.doc.getElementById('task-result').textContent, /"count": 3/);
     assert.equal(f.view.data.taskHistory.length,1);
+    await f.fire(f.doc.getElementById('task-parameters-sheet'),'cancel');
     f.state.installed[0].generation++;
     await React.act(async()=>f.workbench.refresh());
     await f.fire(f.doc.getElementById('task-parameters-open'),'click',{isTrusted:true});

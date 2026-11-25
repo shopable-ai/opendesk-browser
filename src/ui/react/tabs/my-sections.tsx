@@ -4,17 +4,21 @@ import {Button,IconButton} from '../components/ui/button.tsx';
 import {presentSchedulePlan,formatScheduleTime,scheduleFireLabel} from '../../schedule-plan-presentation.js';
 import {scheduleStatusGuidance} from '../../scheduled-task-workbench.js';
 
-export function MyTaskParams({view,disabled=false,clarifyExecutionTab=false}){
+export function MyTaskParams({view,disabled=false,clarifyExecutionTab=false,compact=false}){
   return (view.data.taskParams||[]).map(({name,rule,required})=>{
     const id='task-param-'+name;
     const executionTab=name==='showExecutionTab'&&rule.type==='boolean'&&!rule.enum&&rule.title==='显示执行标签页';
     const fixed=Array.isArray(rule.enum)&&rule.enum.length===1;
     const topThree=name==='limit'&&rule.type==='integer'&&rule.title==='结果数量'&&fixed&&rule.enum[0]===3&&rule.default===3;
-    const fullTitle=executionTab?(clarifyExecutionTab?'运行时切到执行标签页':'切到执行标签页'):topThree?'结果上限':rule.title||name;
+    const checkbox=compact&&executionTab;
+    const fullTitle=executionTab?(compact?rule.title:clarifyExecutionTab?'运行时切到执行标签页':'切到执行标签页'):topThree?'结果上限':rule.title||name;
     const help=rule.description||executionTab?id+'-help':undefined;
     const field=view.field(id),toggle=rule.type==='boolean'&&!rule.enum;
     const isFixedValue=fixed&&(required||Object.hasOwn(rule,'default'))&&!field.error&&!field.omitted&&
       field.value===String(rule.enum[0]);
+    // The task description states the fixed top-three limit; the JSON editor
+    // still exposes its actual schema value, and invalid values stay visible.
+    if(compact&&topThree&&isFixedValue)return null;
     const optionalToggle=toggle&&!required&&!Object.hasOwn(rule,'default');
     // maxLength validates content; it must not silently change a plain text field to textarea.
     const showToggleState=toggle&&(!executionTab||optionalToggle);
@@ -40,10 +44,11 @@ export function MyTaskParams({view,disabled=false,clarifyExecutionTab=false}){
         {rule.enum.map(value=><option key={String(value)} value={String(value)}>{String(value)}</option>)}
       </MyControl>:toggle?<span className="task-param-toggle">
         {showToggleState&&<span id={id+'-state'} className="task-param-toggle-state">{field.omitted?'未填写':field.checked?'是':'否'}</span>}
-        <MyControl view={view} as="input" controlBase="switch" id={id} name={name} type="checkbox" disabled={disabled}
+        <MyControl view={view} as="input" controlBase={checkbox?'native':'switch'} id={id} name={name} type="checkbox" disabled={disabled}
+          className={checkbox?'task-param-execution-checkbox':undefined}
           data-task-param={name} data-task-type="boolean" aria-label={fullTitle}
           aria-required={required||undefined} aria-describedby={describedBy} aria-invalid={error?'true':undefined}
-          onChange={()=>{clearError();view.actions.taskParamsFormChange?.();}}/>
+          onChange={()=>{clearError();if(!checkbox)view.actions.taskParamsFormChange?.();}}/>
         {optionalToggle&&!field.omitted&&<Button variant="quiet" disabled={disabled||field.disabled}
           className="task-param-clear" aria-label={'不填写'+(rule.title||name)} onClick={()=>{
             clearError();field.omitted=true;field.checked=false;view.publish();view.actions.taskParamsFormChange?.();
@@ -51,6 +56,7 @@ export function MyTaskParams({view,disabled=false,clarifyExecutionTab=false}){
       </span>:<MyControl view={view} controlBase="aria" as="input" id={id} name={name} className="od-field" disabled={disabled}
         data-task-param={name} data-task-type={rule.type} aria-label={fullTitle} aria-required={rule.type!=='boolean'&&required||undefined} aria-describedby={describedBy} aria-invalid={error?'true':undefined} onInput={clearError} onChange={clearError}
         type={rule.type==='boolean'?'checkbox':['number','integer'].includes(rule.type)?'number':'text'}
+        placeholder={compact&&name==='query'&&rule.title==='搜索关键词'?'输入要搜索的内容':undefined}
         onCompositionCommit={rule.type==='string'?event=>view.actions.taskParamsFormInput?.(event.nativeEvent):undefined}
         onPaste={event=>{
           if(rule.type!=='string')return;
@@ -62,7 +68,7 @@ export function MyTaskParams({view,disabled=false,clarifyExecutionTab=false}){
         step={rule.type==='integer'?'1':'any'} minLength={rule.minLength} maxLength={rule.maxLength}
         min={rule.minimum} max={rule.maximum} required={required}/>}
       </div>
-      {help&&<p id={help} className={executionTab?'od-field-help':'visually-hidden'}>{executionTab&&(clarifyExecutionTab?'关闭仍会搜索，只是不主动切换标签页。':'关闭开关仍会运行。')}{rule.description&&<span className={executionTab?'visually-hidden':undefined}>{rule.description}</span>}</p>}
+      {help&&<p id={help} className={executionTab&&!compact?'od-field-help':'visually-hidden'}>{executionTab&&(clarifyExecutionTab?'关闭仍会搜索，只是不主动切换标签页。':'关闭开关仍会运行。')}{rule.description&&<span className={executionTab&&!compact?'visually-hidden':undefined}>{rule.description}</span>}</p>}
       {error&&<p id={id+'-error'} className="od-field-help task-param-error" role="alert">{error}</p>}
     </div>;
   });

@@ -13,7 +13,7 @@ import {formatTaskValue, presentTaskValue, formatTaskError, formatTaskRunTechnic
 import {formatRunValue} from './run-value-format.js';
 import {matchTaskReviewHandoff,taskReviewHandoffKey} from './workflow/task-review-handoff.js';
 import {sameTaskPin} from '../platform/tasks/delegation-contract.js';
-import {BUILTIN_TASK_RELEASES} from '../platform/tasks/builtin-releases.js';
+import {BUILTIN_TASK_RELEASES,REVIEWED_BUILTIN_TASK_RELEASES} from '../platform/tasks/builtin-releases.js';
 import {TOOL_UI_CONFIRM_TIMEOUT_MS} from '../sidebar-tools/ui-confirm.js';
 
 const states={candidate:'待验证',verified:'本机验证通过',available:'本地可用'};
@@ -26,15 +26,16 @@ const runStateNames={preparing:'正在准备',running:'运行中',stopping:'正�
 const textValue=formatTaskValue;
 const manualRevisionMessage='任务版本或安装授权已变化，本次未开始运行。请重新打开「参数与运行」，核对后再运行。';
 const baiduRunRelease=BUILTIN_TASK_RELEASES.find(pin=>pin.taskId==='baidu.search.top3'&&pin.version==='1.1.6');
+const baiduLegacyRelease=REVIEWED_BUILTIN_TASK_RELEASES.find(pin=>pin.taskId==='baidu.search.top3'&&pin.version==='1.1.5');
 const baiduHome='https://www.baidu.com/';
 const changedTarget='原标签页已变化。请重新打开参数，或展开「更改执行标签页」重新选择。';
 const sameCurrentTarget=(a,b)=>a?.status==='available'&&b?.status==='available'&&
   ['windowId','tabId','frameId','documentId','url','origin'].every(key=>a[key]===b[key]);
-const baiduRunPresentation=(row,info)=>Boolean(baiduRunRelease&&row?.taskId===baiduRunRelease.taskId&&
-  row.version===baiduRunRelease.version&&row.manifestHash===baiduRunRelease.manifestHash&&
-  info?.manifestHash===baiduRunRelease.manifestHash&&builtinRelease(info)&&
-  info.verification.manifestHash===baiduRunRelease.manifestHash&&info.verification.sourceHash===baiduRunRelease.sourceHash&&
-  info.manifest?.program.sourceHash===baiduRunRelease.sourceHash);
+const matchesBaiduRelease=(row,info,pin)=>Boolean(pin&&row?.taskId===pin.taskId&&row.version===pin.version&&
+  row.manifestHash===pin.manifestHash&&info?.manifestHash===pin.manifestHash&&
+  info.manifest?.program.sourceHash===pin.sourceHash);
+const baiduRunPresentation=(row,info)=>Boolean(matchesBaiduRelease(row,info,baiduRunRelease)&&builtinRelease(info)&&
+  info.verification.manifestHash===baiduRunRelease.manifestHash&&info.verification.sourceHash===baiduRunRelease.sourceHash);
 
 export function createTaskWorkbench({client,host,currentPageTarget,api=globalThis.chrome,
   document:doc=globalThis.document,importDraft,executionSource,debugEnabled=false,
@@ -86,14 +87,14 @@ export function createTaskWorkbench({client,host,currentPageTarget,api=globalThi
       contentHash:info?.verification?.sourceHash||info?.manifest?.program?.sourceHash||row?.contentHash};
   };
   const sameInstallation=(a,b)=>sameTaskPin(a,b)&&a?.installationId===b?.installationId&&a?.generation===b?.generation;
-  let sheetValidation=null;
+  let sheetValidation=null,parameterFailure=null;
   function sheetStatus(status,phase){
     const fields=['task-params-json',...(myView.data.taskParams||[]).map(({name})=>'task-param-'+name)]
       .filter(id=>status&&ui(id).error?.endsWith(status));
     sheetValidation=fields.length?{status,fields}:null;
     if(myView.data.taskRunSheet)myView.data.taskRunSheet={...myView.data.taskRunSheet,status,
       ...(phase?{phase}:{}),busy:sheetBusy};
-    ui('task-status').text=status;myView.publish();
+    ui('task-status').text=status;syncParamsReset();myView.publish();
   }
   function selectSheetTask(taskId){
     if(!installed.some(row=>row.taskId===taskId))throw {code:'E_PERMISSION',message:'任务未安装'};
@@ -134,6 +135,7 @@ export function createTaskWorkbench({client,host,currentPageTarget,api=globalThi
         :preparation.state==='prepared'?'参数和网页身份已持久保存并读回，尚未提交网页执行。'
         :'已恢复原请求，只能查询或停止；不会自动重新运行。',busy:false,
       ...(snapshot?{snapshot,resultText:preparationResultText(snapshot)}:{})});
+    syncParamsReset();
   }
   function preparationResultText(snapshot){
     const outcome=snapshot.results?.find(result=>result.runId===snapshot.run?.runId&&result.resultId===snapshot.run?.resultId)?.outcome;
@@ -148,10 +150,14 @@ export function createTaskWorkbench({client,host,currentPageTarget,api=globalThi
     const reply=await client.request('inspectTaskRun',id?{preparationId:id}:{});
     if(disposed)return null;
     const preparation=reply?.preparation;
-    if(!preparation){if(!id&&sequence===sheetSequence&&request===inspectionSequence)sharedPreparation=null;return null;}
+    if(!preparation){
+      if(!id&&sequence===sheetSequence&&request===inspectionSequence){sharedPreparation=null;syncParamsReset();}
+      return null;
+    }
     if(id&&preparation.preparationId!==id)return null;
     if(sequence!==sheetSequence||request!==inspectionSequence)return reply;
     sharedPreparation=preparation.state==='cancelled'||reply.settled===true?null:preparation;
+    syncParamsReset();
     if(show&&myView.data.taskRunSheet&&myView.data.taskRunSheet.preparationId===originalId){
       if(preparation.pageRequestId){
         const pageReply=await client.request('readPageTaskRequest',{requestId:preparation.pageRequestId});
@@ -208,6 +214,7 @@ export function createTaskWorkbench({client,host,currentPageTarget,api=globalThi
       pageRequestId:requestId,pageBinding:request.pageBinding,preparationId:request.preparationId,
       target:{...request.target},originalParams:params,paramsLocked:true,phase:'editing',
       sites:info.manifest.siteOrigins,status:'来自已安装网页程序的请求；核对后仍需确认执行一次。'});
+    syncParamsReset();
     return true;
   }
   async function refreshPageTaskRequests(){
@@ -263,6 +270,7 @@ export function createTaskWorkbench({client,host,currentPageTarget,api=globalThi
       throw {code:'E_SCHEMA',message:'独立网页目标无效'};
     myView.project('taskRunSheet',{identity:{...task},title:resolved.manifest.title,source:binding||target?'tool':'my',
       phase:'editing',binding,trigger,...(target?{target:{...target}}:{}),sites:resolved.manifest.siteOrigins,status:''});
+    syncParamsReset();
     return true;
   }
   function prepareSheet(event,expected){
@@ -366,9 +374,10 @@ export function createTaskWorkbench({client,host,currentPageTarget,api=globalThi
     const callback=myView.action(fn);myView.actions[name]=callback;
     listeners.push({remove:()=>{if(myView.actions[name]===callback)delete myView.actions[name];}});
   }
-  const fail=error=>{
+  const fail=(error,parameterError=false)=>{
     if(disposed)return;
     const message=formatTaskError(error);
+    parameterFailure=parameterError?{key:renderKey,message}:null;
     ui('task-status').text=message;
     if(catalogList)ui('task-catalog-status').text=message;
     myView.publish();
@@ -406,6 +415,7 @@ export function createTaskWorkbench({client,host,currentPageTarget,api=globalThi
   // Keep the owning Stop control visible across Sidebar tab changes;
   // do not move or restart the run when the user enters Discover/Developer.
   function syncRunDock(view=doc.documentElement?.dataset?.opendeskTab) {
+    syncParamsReset();
     const taskOwns=Boolean(activeRunId && host.currentRun===activeRunId);
     // Task admission may claim RunHost before start() returns its exact runId.
     // That pending task is never a Developer draft with a borrowed Stop control.
@@ -542,13 +552,15 @@ export function createTaskWorkbench({client,host,currentPageTarget,api=globalThi
   function renderTaskStatus() {
     const row=installedRow(),selectedKey=row?identity(row):null;
     const otherOwner=runOwnerKey && runOwnerKey!==selectedKey && (running || (activeRunId && host.currentRun===activeRunId));
+    const notice=selectedKey&&!otherOwner?taskNotices.get(selectedKey):null;
+    myView.data.taskStatusResultNotice=notice?.resultRunId?notice:null;
     ui('task-status').text=otherOwner
       ? `「${runOwnerTitle}」${activeRunId && host.currentRun===activeRunId?'正在运行，底部可停止':'正在准备，暂不可启动其他任务'}`
-      :selectedKey?taskNotices.get(selectedKey)||'':'';
+      :notice?.message||'';
   }
-  function setTaskNotice(taskKey,message) {
+  function setTaskNotice(taskKey,message,resultRunId=null) {
     if(disposed||!taskKey)return;
-    taskNotices.set(taskKey,message);
+    taskNotices.set(taskKey,{message,resultRunId});
     renderTaskStatus();
   }
   const formatCandidate=row=>{
@@ -556,28 +568,48 @@ export function createTaskWorkbench({client,host,currentPageTarget,api=globalThi
     const manifest=row.manifest;
     return `${manifest.title} · v${row.version}\n${manifest.description}\n作者：${manifest.author} · 来源：${manifest.source}\n适用：${manifest.siteOrigins.join(', ')}\n权限：${manifest.permissions.join(', ')}\n最长运行：${(manifest.deadlineMs??30000)/1000} 秒\n状态：${candidateState(row)}${row.verifiedAt&&!builtinRelease(row)?' · 有本机运行验证记录':''}`;
   };
-  function renderForm(row) {
+  function renderForm(row,{reset=false}={}) {
     const key=JSON.stringify(taskIdentity(installed.find(item=>item.taskId===row.taskId)||row));
-    if(renderKey===key)return;
-    rememberParams();renderKey=key;
-    const schema=row.manifest.paramsSchema,prior=parameterDrafts.get(key)||{};
+    if(!reset&&renderKey===key)return;
+    if(!reset)rememberParams();
+    renderKey=key;
+    const schema=row.manifest.paramsSchema,prior=reset?{}:parameterDrafts.get(key)||{};
+    const defaults={};
     const fields=Object.entries(schema.properties).map(([name,rule])=>{
       const control=ui('task-param-'+name),saved=prior[name];
+      const hasDefault=Object.hasOwn(rule,'default'),required=schema.required.includes(name);
+      if(reset&&hasDefault)defaults[name]=rule.default;
       control.error='';
       control.omitted=saved?saved.omitted===true:
-        rule.type==='boolean'&&!rule.enum&&!schema.required.includes(name)&&!Object.hasOwn(rule,'default');
+        !required&&!hasDefault&&(reset||rule.type==='boolean'&&!rule.enum);
       if(rule.type==='boolean'&&!rule.enum)control.checked=saved?.checked??(rule.default===true);
-      else control.value=saved?.value??(Object.hasOwn(rule,'default')?String(rule.default):
-        rule.enum&&schema.required.includes(name)?String(rule.enum[0]):'');
-      return {name,rule,required:schema.required.includes(name)};
+      else control.value=saved?.value??(hasDefault?String(rule.default):
+        rule.enum&&required?String(rule.enum[0]):'');
+      return {name,rule,required};
     });
-    myView.data.taskParamsMode=prior.$editor?.mode==='json'?'json':'form';
-    ui('task-params-json').value=typeof prior.$editor?.value==='string'?prior.$editor.value:'';
+    if(!reset)myView.data.taskParamsMode=prior.$editor?.mode==='json'?'json':'form';
+    // JSON contains declared defaults only; missing required input is still
+    // validated on Run. Form controls keep their existing initial choices.
+    ui('task-params-json').value=reset?JSON.stringify(defaults,null,2):
+      typeof prior.$editor?.value==='string'?prior.$editor.value:'';
     ui('task-params-json').error='';
     myView.project('taskParams',fields);
   }
-  function paramsFromForm(schema,{draft=false}={}) {
-    if(myView.data.taskParamsMode==='json'){
+  function paramsResetCandidate(){
+    const sheet=myView.data.taskRunSheet,row=installedRow(),info=candidateFor(row);
+    if(disposed||catalogSurface||sheetBusy||working||running||host.currentRun||taskRunSlotUnavailable||
+      taskRunControl?.admissionUncertain||workflowClaimPending||sharedPreparation||pendingTaskUninstall||
+      sheet?.source!=='my'||sheet.phase!=='editing'||sheet.busy||sheet.paramsLocked||sheet.recoveryOnly||
+      !row||info?.manifestHash!==row.manifestHash||!sameInstallation(sheet.identity,taskIdentity(row))||
+      !Object.keys(info?.manifest.paramsSchema?.properties||{}).length)return null;
+    return info;
+  }
+  function syncParamsReset(){
+    const canReset=Boolean(paramsResetCandidate());
+    if(myView.data.taskParamsCanReset!==canReset)myView.project('taskParamsCanReset',canReset);
+  }
+  function paramsFromForm(schema,{draft=false,mode=myView.data.taskParamsMode}={}) {
+    if(mode==='json'){
       try{return validateTaskParams(schema,JSON.parse(ui('task-params-json').value));}
       catch(error){
         const failure=error instanceof SyntaxError?{code:'E_PARAMS',message:'参数 JSON 格式无效，请检查括号、引号和逗号'}:error;
@@ -652,7 +684,7 @@ export function createTaskWorkbench({client,host,currentPageTarget,api=globalThi
     const staleSheet=Boolean(mySheet&&(mySheet.phase==='stale'||!sameInstallation(mySheet.identity,taskIdentity(row))));
     if(staleSheet&&mySheet.phase==='editing')
       myView.data.taskRunSheet={...mySheet,phase:'stale',status:''};
-    const needsNewReview=staleSheet||row&&taskNotices.get(identity(row))===manualRevisionMessage;
+    const needsNewReview=staleSheet||row&&taskNotices.get(identity(row))?.message===manualRevisionMessage;
     const ownedTarget=mySheet?.target?.mode==='owned'?mySheet.target:null;
     const frozenTarget=mySheet?.automaticTarget&&mySheet.target?.mode==='current';
     myView.data.baiduRunTargetState=mySheet?.automaticTarget?{
@@ -679,6 +711,7 @@ export function createTaskWorkbench({client,host,currentPageTarget,api=globalThi
     const installation=taskIdentity(row);
     const installedHistory=myView.data.taskHistory?.filter(run=>sameInstallation(run.installation,installation));
     const latestRun=installedHistory?.[0];
+    myView.data.taskSheetRecentResult=mySheet&&!staleSheet?latestRun:null;
     const localUncertainty=taskRunControl?.outcomeUncertain&&taskRunControl.runId&&
       sameInstallation(taskRunControl.installation,installation);
     const uncertainRunId=localUncertainty?taskRunControl.runId:latestRun?.outcomeUncertain?latestRun.runId:null;
@@ -1040,7 +1073,8 @@ export function createTaskWorkbench({client,host,currentPageTarget,api=globalThi
     if(activeRunId&&identity(row)===runOwnerKey){
       const run=runs.find(value=>value.runId===activeRunId),result=matching.find(value=>value.runId===activeRunId);
       if(run&&result&&run.state!=='paused_unknown')setTaskNotice(identity(row),
-        (baidu?'上次执行：':'本次任务：')+resultStateLabel(run,result,baidu));
+        (baidu?'上次执行：':'本次任务：')+resultStateLabel(run,result,baidu),
+        run.state==='completed'&&result.outcome?.ok?run.runId:null);
     }
     update();
   }
@@ -1178,7 +1212,7 @@ export function createTaskWorkbench({client,host,currentPageTarget,api=globalThi
       return expectedIdentity?false:undefined;
     }
     const writeAuthorization=preparation?sheetAuthorization:null;
-    let chosen,params,site,permission,captured,runTarget,startRequested=false;
+    let chosen,params,site,permission,captured,runTarget,startRequested=false,parameterError=false;
     try {
       chosen=agentIntent?installed.find(row=>row.taskId===agentIntent.taskId):installedRow();
       if(!agentIntent)for(const {name}of myView.data.taskParams||[])ui('task-param-'+name).error='';
@@ -1211,8 +1245,10 @@ export function createTaskWorkbench({client,host,currentPageTarget,api=globalThi
       const targetUrl=runTarget.mode==='owned'?runTarget.url:captured.url;
       site=new URL(targetUrl).origin;
       if(!info.manifest.siteOrigins.includes(site))throw {code:'E_PERMISSION',message:'此任务不适用于当前网站'};
+      parameterError=!preparation&&!agentIntent;
       params=preparation?validateTaskParams(info.manifest.paramsSchema,preparation.params):agentIntent?validateTaskParams(info.manifest.paramsSchema,agentIntent.params):
         paramsFromForm(info.manifest.paramsSchema);
+      parameterError=false;
       chosen={...chosen,manifestHash:info.manifestHash,title:info.manifest.title};
       permission=requireChromePermissions({api,request:{origins:[permissionPattern(targetUrl)]}});
     }catch(error){
@@ -1221,7 +1257,7 @@ export function createTaskWorkbench({client,host,currentPageTarget,api=globalThi
         sameInstallation(sheet.identity,expectedIdentity)){
         myView.data.taskRunSheet={...sheet,phase:'stale',status:''};
         update();
-      }else fail(error);
+      }else fail(error,parameterError);
       return agentIntent?Promise.reject(error):(expectedIdentity?false:undefined);
     }
     const sequence=sheetSequence;
@@ -1572,12 +1608,31 @@ export function createTaskWorkbench({client,host,currentPageTarget,api=globalThi
   registerAction('taskParamsFormSubmit',event=>event.preventDefault());
   registerAction('taskParamsFormInput',persistParams);
   registerAction('taskParamsFormChange',persistParams);
+  registerAction('taskParamsResetClick',(event,expected)=>{
+    // The rendered identity belongs to this sheet instance, even when another
+    // host or a reopened sheet is showing the same installed task.
+    if(!event?.isTrusted||!expected||myView.data.taskRunSheet?.identity!==expected)return false;
+    const info=paramsResetCandidate();
+    if(!info)return false;
+    if(parameterFailure&&parameterFailure.key===renderKey){
+      for(const id of ['task-status','task-catalog-status'])
+        if(ui(id).text===parameterFailure.message)ui(id).text='';
+      parameterFailure=null;
+    }
+    renderForm(info,{reset:true});persistParams();
+    return true;
+  });
   registerAction('taskParamsModeChange',mode=>{
     if(!['form','json'].includes(mode)||(myView.data.taskParamsMode||'form')===mode)return;
     const row=installedRow(),schema=candidateFor(row)?.manifest.paramsSchema;
     if(!schema)return;
     try{
-      const params=paramsFromForm(schema,{draft:mode==='json'});
+      // An untouched JSON view of the form is still the same draft. Switching
+      // back must not require a completed form; Run and edited JSON still validate.
+      const formDraft=mode==='form'&&myView.data.taskRunSheet?.source==='my'?
+        paramsFromForm(schema,{draft:true,mode:'form'}):null;
+      const params=formDraft&&ui('task-params-json').value===JSON.stringify(formDraft,null,2)?
+        formDraft:paramsFromForm(schema,{draft:mode==='json'});
       if(mode==='form'){
         const multiline=Object.entries(schema.properties).find(([name,rule])=>
           rule.type==='string'&&!rule.enum&&typeof params[name]==='string'&&/[\r\n]/u.test(params[name]));
@@ -1592,7 +1647,7 @@ export function createTaskWorkbench({client,host,currentPageTarget,api=globalThi
       }
       ui('task-params-json').error='';myView.data.taskParamsMode=mode;
       persistParams();myView.publish();
-    }catch(error){fail(error);}
+    }catch(error){fail(error,true);}
   });
   registerAction('taskParamsMultilinePaste',({name,text,start,end})=>{
     const schema=candidateFor(installedRow())?.manifest.paramsSchema;
@@ -1663,16 +1718,19 @@ export function createTaskWorkbench({client,host,currentPageTarget,api=globalThi
     selectSheetTask(taskId);sheetAuthorization=null;sheetPageRequest=null;
     const row=installedRow(),info=candidateFor(row),manifest=info?.manifest,sites=manifest?.siteOrigins;
     // A new explicit review ends the prior revision rejection, not any run or its receipt.
-    if(taskNotices.get(identity(row))===manualRevisionMessage){
+    if(taskNotices.get(identity(row))?.message===manualRevisionMessage){
       taskNotices.delete(identity(row));renderTaskStatus();
     }
     const baidu=baiduRunPresentation(row,info),page=baidu?siteTarget(sites):null;
+    // The historical release shares the layout, but keeps its original target
+    // selection and must still pass the same runtime validation before running.
+    const legacyBaidu=matchesBaiduRelease(row,info,baiduLegacyRelease);
     const automaticTarget=baidu?(page?{mode:'current',page}:{mode:'owned',url:baiduHome}):null;
     const target=automaticTarget||(sites?.length&&!sites.includes(currentTaskOrigin())?{mode:'owned',url:sites[0]+'/'}:null);
     // Default the target once. Only the person's Run click can open the tab.
     myView.data.taskRunSheet={identity:taskIdentity(row),title:manifest?.title,
       source:'my',phase:'editing',trigger,sites,description:manifest?.description,status:'',...(target?{target}:{}),
-      ...(automaticTarget?{automaticTarget,targetChoice:'auto'}:{})};
+      ...(automaticTarget?{automaticTarget,targetChoice:'auto'}:legacyBaidu?{foldedTarget:true}:{})};
     update();
     // Discovery is read-only. A cross-host preparation is also enforced again
     // by Authority, even if this asynchronous hint has not reached the UI yet.

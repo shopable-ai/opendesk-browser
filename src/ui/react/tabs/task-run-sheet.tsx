@@ -1,6 +1,6 @@
 import * as React from 'react';
 import {MyControl} from './my-controls.tsx';
-import {MyTaskParams} from './my-sections.tsx';
+import {MyTaskParams,TaskResultRevealIcon} from './my-sections.tsx';
 import {TaskGlyph} from './tasks.tsx';
 import {Button,IconButton} from '../components/ui/button.tsx';
 
@@ -21,8 +21,57 @@ function SheetActionIcon({kind}) {
       kind==='cancel'?<><circle cx="12" cy="12" r="9"/><path d="M9 9l6 6m0-6-6 6"/></>:
       kind==='prepare'?<><path d="M5 3h10l4 4v14H5zM14 3v5h5"/><path d="m8 15 2.5 2.5L16 12"/></>:
       kind==='confirm'?<><circle cx="12" cy="12" r="9"/><path d="m8 12 3 3 5-6"/></>:
-      <path d="m8 5 12 7-12 7Z"/>}
+      <path d="m8 5 11 7-11 7Z"/>}
   </svg>;
+}
+
+function ScriptDescription({text,compact}){
+  const [expanded,setExpanded]=React.useState(false),[truncated,setTruncated]=React.useState(false);
+  const paragraph=React.useRef(null);
+  React.useLayoutEffect(()=>{
+    if(expanded)return;
+    const node=paragraph.current;
+    const measure=()=>setTruncated(node.scrollHeight>node.clientHeight);
+    measure();
+    if(typeof ResizeObserver==='undefined')return;
+    const observer=new ResizeObserver(measure);
+    observer.observe(node);
+    return ()=>observer.disconnect();
+  },[expanded,text]);
+  return <div className="task-sheet-script-description" data-expanded={expanded} data-compact={compact}>
+    <p ref={paragraph} id="task-sheet-script-description">{text}</p>
+    {(truncated||expanded)&&<Button variant="quiet" aria-controls="task-sheet-script-description" aria-expanded={expanded}
+      aria-label={expanded?'收起脚本说明':'展开脚本说明'} onClick={()=>setExpanded(value=>!value)}>{expanded?'收起':'展开'}</Button>}
+  </div>;
+}
+
+function SheetResult({row,historyState,active,stopping}){
+  const [revealed,setRevealed]=React.useState(null);
+  const [technical,setTechnical]=React.useState(null);
+  const showTechnical=Boolean(!active&&row?.technical&&technical===row);
+  const show=Boolean(!active&&row&&revealed===row);
+  const label=show?'隐藏完整原值':'查看完整原值';
+  const tone=active?'running':row?.outcomeUncertain?'warning':row?.runState;
+  const state=active?(stopping?'正在停止…':'运行中'):row?(row.outcomeUncertain?'上次 · 结果未知':'上次 · '+row.state):
+    historyState==='loading'?'正在读取…':historyState==='error'?'读取失败':'尚未运行';
+  return <details className="task-sheet-result od-disclosure od-disclosure--icon" data-tone={tone}
+    onToggle={event=>{if(!event.currentTarget.open){setRevealed(null);setTechnical(null);}}}>
+    <summary><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="4" width="18" height="16" rx="2"/><path d="m7 9 3 3-3 3m6 0h4"/></svg>
+      <span>运行结果</span><span className="task-sheet-result-state" role="status">{state}</span>
+      <svg className="od-disclosure-chevron" viewBox="0 0 24 24" aria-hidden="true"><path d="m9 5 7 7-7 7"/></svg>
+    </summary>
+    <div className="task-sheet-result-body">
+      <pre id="task-sheet-result-text" className="task-run-result" aria-label={showTechnical?'调试详情':undefined}>{active?'任务正在运行。':showTechnical?row.technical:show?row.fullText:row?.text||
+        (historyState==='loading'?'正在读取运行记录…':historyState==='error'?'暂时无法读取运行记录。':'尚未运行。')}</pre>
+      {!active&&row&&<div className="task-sheet-result-meta"><span>{row.time}</span>
+        {!showTechnical&&typeof row.fullText==='string'&&<IconButton className="task-result-reveal" label={label} aria-pressed={show}
+          title={show?label:label+'（可能包含敏感信息）'} aria-controls="task-sheet-result-text"
+          onClick={()=>setRevealed(show?null:row)}><TaskResultRevealIcon revealed={show}/></IconButton>}
+        {row.technical&&<Button variant="quiet" className="task-sheet-result-debug" aria-controls="task-sheet-result-text"
+          onClick={()=>{setRevealed(null);setTechnical(showTechnical?null:row);}}>{showTechnical?'返回结果':'调试详情'}</Button>}
+      </div>}
+    </div>
+  </details>;
 }
 
 export function TaskRunSheet({view}){
@@ -47,14 +96,19 @@ export function TaskRunSheet({view}){
   const targetDisabled=fieldsDisabled||view.data.taskTargetDisabled;
   const targetError=my&&view.data.taskTargetUrlError;
   const automatic=my&&Boolean(request.automaticTarget);
+  const foldedTarget=my&&(automatic||request.foldedTarget);
   const automaticState=automatic?view.data.baiduRunTargetState:null;
+  const recentResult=my&&!stale?view.data.taskSheetRecentResult:null;
+  const historyState=view.data.taskHistoryState;
+  const showResult=my&&!stale&&(control||recentResult||historyState==='loading'||historyState==='error');
   const reason=view.data.taskRunBlockedReason;
   const runBlocker=my&&(control?.issue||recoveryAction&&request.recoveryStatus||
-    (targetError&&reason===targetError?(automatic&&!targetExpanded?'请点击「更改」修正起始网址。':'请先修正起始网址。'):reason));
+    (targetError&&reason===targetError?(foldedTarget&&!targetExpanded?'请点击「更改位置」修正起始网址。':'请先修正起始网址。'):reason));
   const owned=request?.target?.mode==='owned';
   const currentOrigin=view.data.taskCurrentTargetOrigin;
   const targetHelp=!automatic&&owned&&!currentOrigin?'当前页不适用，运行时将新建标签页。':'';
-  const destination=owned?(targetError?'新标签页：起始网址待修正':
+  const destination=!automatic?(owned?(targetError?'新标签页：起始网址待修正':'将使用新标签页。'):'将使用当前标签页。'):
+    owned?(targetError?'新标签页：起始网址待修正':
     request.targetChoice==='auto'||request.target.url==='https://www.baidu.com/'?'将在新标签页打开百度。':'将在新标签页打开指定的百度网址。'):
     automaticState?.changed?'原百度标签页已变化。':'将在当前百度标签页搜索。';
   const action=tool?(phase==='editing'?view.actions.taskSheetPrepareClick:
@@ -70,6 +124,9 @@ export function TaskRunSheet({view}){
   const status=stale?'':tool?(request.status||''):(view.field('task-status').text||request?.status||'');
   const fieldExplainsStatus=status&&(view.field('task-params-json').error===status||(view.data.taskParams||[]).some(({name})=>
     view.field('task-param-'+name).error?.endsWith(status)));
+  const resultNotice=view.data.taskStatusResultNotice;
+  const resultShowsStatus=showResult&&!control&&recentResult?.runId&&
+    resultNotice?.resultRunId===recentResult.runId&&resultNotice.message===status;
   const close=()=>{
     if(!request)return;
     backdropPress.current=false;
@@ -198,7 +255,7 @@ export function TaskRunSheet({view}){
     }
   }}>
 <header className="task-params-sheet-heading">
-<span className="task-card-icon"><TaskGlyph/></span>
+<span className="task-card-icon">{my?<svg viewBox="0 0 24 24" aria-hidden="true"><rect x="4" y="3" width="16" height="18" rx="3"/><path d="M8 9h8M8 13h8M8 17h5"/></svg>:<TaskGlyph/>}</span>
 <div><p className="task-params-sheet-kicker">参数与运行</p><h2 id="task-parameters-title">{request?.title||'当前任务'}</h2></div>
 <IconButton className="od-icon-button--quiet" label="关闭任务参数" onClick={close}><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m6 6 12 12M18 6 6 18"/></svg></IconButton>
 </header>
@@ -206,20 +263,31 @@ export function TaskRunSheet({view}){
 {!my&&request?.sites?.length>0&&<p className="hint">适用网站：{request.sites.join('、')}</p>}
 {request?.pageBinding&&<p className="hint">来源网页：{request.pageBinding.url}<br/>网页程序：{request.pageBinding.programId} · 任务版本：{request.identity.version}</p>}
 {!my&&request?.target&&<p className="hint">{owned?'将新建独立网页：':'已核对网页：'}{owned?request.target.url:request.target.expectedUrl}</p>}
-{automatic?<div className="task-run-destination" ref={targetEditor}>
-  <div className="task-run-destination-row">
-    <p className="hint" role="status">{destination}</p>
+{my&&<div className="task-sheet-intro" key={'intro:'+JSON.stringify(request.identity)}>
+  <div className="task-sheet-intro-row">
+    {request.description&&<ScriptDescription text={request.description} compact={Boolean(foldedTarget)}/>}
+    {foldedTarget&&
     <Button ref={targetToggle} variant="quiet" className="task-run-destination-action" disabled={targetDisabled}
       aria-label={targetExpanded?'收起执行标签页选项':'更改执行标签页'} aria-expanded={targetExpanded} aria-controls="task-run-destination-editor"
-      onClick={()=>setTargetExpanded(open=>!open)}>{targetExpanded?'收起':'更改'}</Button>
+      title={destination} onClick={()=>setTargetExpanded(open=>!open)}>{targetExpanded?'收起位置':'更改位置'}</Button>}
   </div>
-  <div id="task-run-destination-editor" hidden={!targetExpanded}>{targetExpanded&&targetFields}</div>
-</div>:targetFields}
+  {foldedTarget?<div id="task-run-destination-editor" className="task-run-destination" ref={targetEditor} hidden={!targetExpanded}>
+    {targetExpanded&&<><p className="hint" role="status">{destination}</p>{targetFields}</>}
+  </div>:targetFields}
+</div>}
 <p id="task-parameters-description" className={my?'visually-hidden':'hint'}>{description}</p>
 {request?.recoveryOnly&&<pre aria-label="原准备参数" className="task-run-result">{JSON.stringify(request.originalParams,null,2)}</pre>}
 <fieldset className="task-params-editor-fields" hidden={request?.recoveryOnly||!hasParams} disabled={fieldsDisabled}>
 <div className="task-params-toolbar">
-<span className="task-params-section-label">运行参数</span>
+<div className="task-params-heading-tools">
+  <span className="task-params-section-label">{my?'脚本参数':'运行参数'}</span>
+  {my&&<IconButton className="task-params-reset od-icon-button--quiet" label="恢复脚本默认参数"
+    aria-disabled={fieldsDisabled||!view.data.taskParamsCanReset} onClick={event=>{
+      if(fieldsDisabled||!view.data.taskParamsCanReset||composing.current)return;
+      if(view.actions.taskParamsResetClick?.(event.nativeEvent,request.identity)===true)
+        dialog.current?.querySelector(view.data.taskParamsMode==='json'?'#task-params-json':'#task-params-form .task-param-fields :is(input,select):not(:disabled)')?.focus({preventScroll:true});
+    }}><SheetActionIcon kind="query"/></IconButton>}
+</div>
 <div className="task-params-mode od-segmented" role="group" aria-label="参数编辑方式">
 {[['form','表单'],['json','JSON']].map(([mode,label])=><Button key={mode} variant="quiet"
   aria-pressed={(view.data.taskParamsMode||'form')===mode} disabled={fieldsDisabled} onClick={()=>view.actions.taskParamsModeChange?.(mode)}>{label}</Button>)}
@@ -227,26 +295,28 @@ export function TaskRunSheet({view}){
 </div>
 <MyControl view={view} as="form" id="task-params-form" onInput={event=>view.actions.taskParamsFormInput?.(event.nativeEvent)} onChange={event=>view.actions.taskParamsFormChange?.(event.nativeEvent)} onSubmit={event=>view.actions.taskParamsFormSubmit?.(event.nativeEvent)} autoComplete="off" aria-label="任务参数">
 <div className="task-param-fields" hidden={view.data.taskParamsMode==='json'}>
-<MyTaskParams view={view} disabled={fieldsDisabled} clarifyExecutionTab={automatic}/>
+<MyTaskParams view={view} disabled={fieldsDisabled} clarifyExecutionTab={automatic} compact={my}/>
 </div>
 <div className="task-param-json" hidden={view.data.taskParamsMode!=='json'}>
-<label htmlFor="task-params-json" className="od-field-label">参数 JSON</label>
-<MyControl view={view} as="textarea" controlBase="aria" id="task-params-json" disabled={fieldsDisabled} className="od-field" rows={8} spellCheck={false} maxLength={65536}
+<label htmlFor="task-params-json" className={my?'visually-hidden':'od-field-label'}>参数 JSON</label>
+<MyControl view={view} as="textarea" controlBase="aria" id="task-params-json" disabled={fieldsDisabled} className="od-field" rows={my?7:8} spellCheck={false} maxLength={65536}
   aria-invalid={view.field('task-params-json').error?'true':undefined}
-  aria-describedby={view.field('task-params-json').error?'task-params-json-error':undefined}
+  aria-describedby={[my?'task-params-json-help':null,view.field('task-params-json').error?'task-params-json-error':null].filter(Boolean).join(' ')||undefined}
   onCompositionCommit={event=>view.actions.taskParamsFormInput?.(event.nativeEvent)}
   onInput={()=>{
     const field=view.field('task-params-json'),status=view.field('task-status');
     if(field.error&&status.text===field.error)status.text='';
     field.error='';view.publish();
   }}/>
+{my&&<p id="task-params-json-help" className="od-field-help">缺失字段仅补入已声明的默认值；只接受脚本声明的参数。</p>}
 {view.field('task-params-json').error&&<p id="task-params-json-error" className="od-field-help task-param-error" role="alert">{view.field('task-params-json').error}</p>}
 </div>
 </MyControl>
 </fieldset>
-{request&&<p className="task-params-sheet-status hint" role="status">{!fieldExplainsStatus&&status!==runBlocker?status:''}</p>}
+{request&&<p className="task-params-sheet-status hint" role="status">{!fieldExplainsStatus&&!resultShowsStatus&&status!==runBlocker?status:''}</p>}
+{showResult&&<SheetResult key={'result:'+JSON.stringify(request.identity)} row={recentResult} historyState={historyState}
+  active={Boolean(control)} stopping={control?.pending}/>}
 {review&&<details className="hint"><summary>查看原运行记录</summary><pre className="task-run-result">{review.record}</pre></details>}
-{my&&request.description&&<details><summary>任务说明</summary><p className="hint">{request.description}</p></details>}
 {request?.snapshot&&<section aria-label="原运行结果">
 <p role="status">运行状态：{request.snapshot.run?.state||'待核对'} · {request.snapshot.run?.retirementState==='released'?'资源已释放':'资源释放未确认'}</p>
 {request.resultText&&<pre className="task-run-result">{request.resultText}</pre>}
@@ -255,7 +325,7 @@ export function TaskRunSheet({view}){
 </div>
 <footer className="task-params-sheet-footer">
 {my&&<p id="task-run-blocker" className={runBlocker?'task-run-blocker':'visually-hidden'} role="status">{runBlocker||''}</p>}
-<div className="task-params-sheet-actions"><Button ref={closeButton} variant="quiet" onClick={close}><SheetActionIcon kind="close"/>{tool||stale||control||review||reconcile?'关闭':'取消'}</Button>{tool&&request?.preparationId&&view.actions.taskSheetQueryClick&&<Button variant="quiet" disabled={request.busy} onClick={event=>view.actions.taskSheetQueryClick(event.nativeEvent)}><SheetActionIcon kind="query"/>查询状态</Button>}
+<div className="task-params-sheet-actions"><Button ref={closeButton} variant={my?'secondary':'quiet'} onClick={close}>{!my&&<SheetActionIcon kind="close"/>}{tool||stale||control||review||reconcile?'关闭':'取消'}</Button>{tool&&request?.preparationId&&view.actions.taskSheetQueryClick&&<Button variant="quiet" disabled={request.busy} onClick={event=>view.actions.taskSheetQueryClick(event.nativeEvent)}><SheetActionIcon kind="query"/>查询状态</Button>}
 {reconcile&&<Button variant={reconcile.requestId?'danger':'quiet'} disabled={reconcile.pending} aria-describedby="task-run-blocker"
   onClick={event=>{closeButton.current?.focus({preventScroll:true});view.actions.taskSheetReconcileClick?.(event.nativeEvent,reconcile.sheet,reconcile.requestId);}}><SheetActionIcon kind={reconcile.requestId?'stop':'query'}/>{reconcile.requestId?(reconcile.pending?'正在取消…':'取消原启动'):'查询原运行'}</Button>}
 {control&&<Button id="task-sheet-stop" variant="danger" disabled={control.pending} aria-describedby="task-run-blocker"
