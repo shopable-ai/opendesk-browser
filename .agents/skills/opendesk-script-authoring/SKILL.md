@@ -32,6 +32,9 @@ description: Author and debug Controller automation, Page USER_SCRIPT 网页增�
 
 用户要独立安装、编辑或更新的网页代码继续使用 Page USER_SCRIPT，按原站点授权与 Chrome「允许用户脚本」开关运行。维护随 Browser 发布的第一方网页按钮时，先按[网页功能的加载与授权](../../../docs/architecture/browser-framework/site-permission-onboarding.zh-CN.md#网页功能的加载与授权)和工作流 Gate A 核对真实入口；网页按钮本身并不要求采用 USER_SCRIPT，也不能为了去掉开关而把动态代码移进可信内容脚本。
 
+
+**Controller 参数声明**：先阅读 [统一 Task 参数契约](../../../docs/api/task-params.zh-CN.md)，按真实宿主支持的版本生成参数。R10 v2 与 paramsUi 是待迁移的开发规范，当前正式宿主仅接受 legacy 子集；不能把离线演示配置直接作为可安装包。数据、UI 和运行 params 分层；严禁自行写独立参数窗口、补猜必填值或以 UI 配置扩权。
+
 ## 作者决策表：JS / React / Vue 不等于一个执行世界
 
 | 用户要做什么 | 源码格式与默认入口 | 从哪儿运行 | 明确不能做的事 |
