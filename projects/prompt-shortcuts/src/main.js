@@ -378,7 +378,15 @@ function iconButton(parent,name,label,callback,action,itemId,{danger=false,disab
 function focusListAction(id,action){
   const b=Array.from(el('ps-list').querySelectorAll('button'))
     .find(node=>node.dataset.itemId===id&&node.dataset.action===action);
-  b?.focus({preventScroll:true});return b;
+  if(!b||b.disabled)return null;
+  b.focus({preventScroll:true});
+  const menu=b.closest('.ps-more');
+  if(menu&&menu.scrollWidth>menu.clientWidth){
+    const bounds=menu.getBoundingClientRect(),rect=b.getBoundingClientRect();
+    if(rect.left<bounds.left+5)menu.scrollLeft+=rect.left-bounds.left-5;
+    else if(rect.right>bounds.right-5)menu.scrollLeft+=rect.right-bounds.right+5;
+  }
+  return b;
 }
 
 function siteMessage(text='',isError=false){
@@ -745,7 +753,8 @@ function render(){
       (expanded===item.id?' is-expanded':''));
     card.dataset.promptId=item.id;
     card.addEventListener('click',event=>{
-      if(!event.target?.closest?.('button'))openDetail(item.id);
+      // Action surfaces and confirmation padding are not detail navigation.
+      if(!event.target?.closest?.('button,.ps-card-actions,.ps-more,.ps-confirm'))openDetail(item.id);
     });
     const mainRow=dom('div','ps-card-main');
     const glyph=dom('div','ps-glyph');glyph.setAttribute('aria-hidden','true');
@@ -765,7 +774,7 @@ function render(){
       render();focusListAction(item.id,opening?'edit':'more');
     },'more',item.id);
     more.setAttribute('aria-expanded',String(expanded===item.id));
-    if(expanded===item.id)more.setAttribute('aria-controls','ps-commands-'+i);
+    if(expanded===item.id)more.setAttribute('aria-controls',(pendingDelete===item.id?'ps-delete-':'ps-commands-')+i);
     mainRow.prepend(glyph);mainRow.append(actions);card.append(mainRow);
     if(!item.nameAuto&&item.name?.trim())card.append(dom('div','ps-card-caption',item.name));
     if(expanded===item.id&&!pendingDelete){
@@ -786,7 +795,7 @@ function render(){
       card.append(commands);
     }
     if(pendingDelete===item.id){
-      const confirm=dom('div','ps-confirm');
+      const confirm=dom('div','ps-confirm');confirm.id='ps-delete-'+i;
       confirm.setAttribute('role','group');confirm.setAttribute('aria-label','删除提示词确认');
       confirm.append(dom('p','','确认删除「'+identity+'」？此操作不能撤销。'));
       const buttons=dom('div','ps-actions');
@@ -1030,7 +1039,10 @@ async function move(id,step){
   if(i<0||j<0||j>=items.length||busy||unconfirmedWrite)return;
   [items[i],items[j]]=[items[j],items[i]];
   const next=model.load({...data,items:items.map((row,order)=>({...row,order}))});
-  try{await commit(next);render();focusListAction(id,step<0?'up':'down');status('顺序已保存。');}
+  try{await commit(next);render();
+    // The just-used direction can become disabled at the first/last position.
+    focusListAction(id,step<0?'up':'down')||focusListAction(id,step<0?'down':'up')||focusListAction(id,'more');
+    status('顺序已保存。');}
   catch(e){status('排序未确认：'+(e.code||e.message)+'；请重新打开核对已保存数据。',true);}
 }
 async function copy(item,allowDisabled=false){
@@ -1171,6 +1183,7 @@ root.addEventListener('opendesk-tool-navigation',event=>{
 });
 root.addEventListener('keydown',event=>{
   if(event.key!=='Escape')return;
+  if(busy&&(pendingDelete||expanded)){event.preventDefault();return;}
   if(pendingDelete){const id=pendingDelete;pendingDelete=null;render();focusListAction(id,'more');event.preventDefault();}
   else if(expanded){const id=expanded;expanded=null;render();focusListAction(id,'more');event.preventDefault();}
   else if(!el('ps-transfer-menu').hidden){closeTransfer();restoreTransferFocus();event.preventDefault();}
