@@ -1114,7 +1114,9 @@ async function remove(){
   try{const outcome=await commit(next);pendingDelete=null;expanded=null;
     render();
     const survivor=data.items[Math.min(deletedIndex,data.items.length-1)];
-    if(survivor)focusListAction(survivor.id,'more');else el('ps-new').focus({preventScroll:true});
+    if(survivor)focusListAction(survivor.id,'more');
+    else el(root.querySelector('.ps')?.classList.contains('ps-host-nav')?'ps-sites-open':'ps-new')
+      .focus({preventScroll:true});
     status(outcome.cleanupFailures?
       '提示词已删除，但旧图片清理未确认；请留意本地图片容量。':'提示词已删除。',
       Boolean(outcome.cleanupFailures));}

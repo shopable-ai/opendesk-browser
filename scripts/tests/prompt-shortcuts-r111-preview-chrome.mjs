@@ -63,9 +63,12 @@ async function click(selector){
     return {x:r.x+r.width/2,y:r.y+r.height/2,width:r.width,height:r.height};
   }.toString()+')('+JSON.stringify(selector)+')');
   assert(rect.width>0&&rect.height>0,'visible '+selector);
+  await clickPoint(rect);
+}
+async function clickPoint({x,y}){
   for(const [type,extra] of [['mouseMoved',{}],['mousePressed',{button:'left',clickCount:1}],
     ['mouseReleased',{button:'left',clickCount:1}]])
-    await call('Input.dispatchMouseEvent',{type,x:rect.x,y:rect.y,...extra});
+    await call('Input.dispatchMouseEvent',{type,x,y,...extra});
 }
 async function reloadPreview(){
   const previousTimeOrigin=await evalChrome('performance.timeOrigin');
@@ -252,7 +255,7 @@ async function run(){
   assert.equal(detail.title,'提示词详情');
   assert.equal(await evalChrome('document.querySelector("#mockDraft").value'),previousDraft);
   await shot('r44-readonly-detail-440px');
-  await click('#detailBack');
+  await click('#hostBack');
   assert.equal(await evalChrome('document.querySelector("#detailView").hidden'),true);
   report.r44ListDetailNoSideEffect=true;
   assert.equal(x.copyDialog,false);assert.equal(x.shapeInputs,0);
@@ -288,44 +291,77 @@ async function run(){
   assert.equal(await evalChrome('document.querySelector("#indexHeading")===null'),true);
   assert.equal(await evalChrome('getComputedStyle(document.querySelector("#listCount")).position'),"absolute");
   assert.equal(await evalChrome('!document.querySelector("#addButton").hidden'),true);
-  // Hover and More must overlay without changing card body width or card height.
-  await click('#size320');
-  const base=await evalChrome('('+function(){
+  const moreSelector='.prompt-actions button[aria-label^="更多操作"]';
+  const cardLayout='('+function(){
     const c=document.querySelector('.prompt-card'),b=c.querySelector('.prompt-content'),u=c.querySelector('.prompt-use');
     return {width:u.getBoundingClientRect().width,textWidth:b.getBoundingClientRect().width,
       height:c.getBoundingClientRect().height,clamp:getComputedStyle(b).webkitLineClamp,body:b.textContent};
-  }.toString()+')()');
-  await click('.prompt-actions button[aria-label^="更多操作"]');
-  const overlay=await evalChrome('('+function(){
-    const c=document.querySelector('.prompt-card'),b=c.querySelector('.prompt-content'),u=c.querySelector('.prompt-use');
-    return {width:u.getBoundingClientRect().width,textWidth:b.getBoundingClientRect().width,
-      height:c.getBoundingClientRect().height,clamp:getComputedStyle(b).webkitLineClamp,body:b.textContent,
-      layer:getComputedStyle(c.querySelector('.prompt-actions')).position,
-      menu:getComputedStyle(c.querySelector('.prompt-more')).position};
-  }.toString()+')()');
-  for(const k of ['width','textWidth','height','clamp','body'])
-    assert.equal(overlay[k],base[k],'hover actions must not reflow '+k);
-  assert.equal(overlay.layer,'absolute');assert.equal(overlay.menu,'absolute');
+  }.toString()+')()';
+  for(const width of [320,360,400,440]){
+    await click('#size'+width);
+    const base=await evalChrome(cardLayout);
+    const hoverPoint=await evalChrome('(()=>{const r=document.querySelector(".prompt-card").getBoundingClientRect();return {x:r.left+r.width/2,y:r.top+r.height/2};})()');
+    await call('Input.dispatchMouseEvent',{type:'mouseMoved',...hoverPoint});
+    await poll('document.querySelector(".prompt-card").matches(":hover")','hover first preview card');
+    assert.deepEqual(await evalChrome(cardLayout),base,'hover must not reflow the card at '+width);
+    await click(moreSelector);
+    const iconMenu=await evalChrome('('+function(){
+      const bar=document.querySelector('.prompt-more'),buttons=[...bar.querySelectorAll('button')];
+      const card=bar.closest('.prompt-card'),actions=card.querySelector('.prompt-actions');
+      const panel=document.querySelector('#sidepanel'),bounds=bar.getBoundingClientRect(),outer=card.getBoundingClientRect();
+      const rects=buttons.map(b=>b.getBoundingClientRect()),near=(actual,expected)=>Math.abs(actual-expected)<=1;
+      return {labels:buttons.map(x=>x.getAttribute('aria-label')),
+        titles:buttons.map(x=>x.title),allSvg:buttons.every(x=>x.querySelector('svg use')),
+        noVisibleText:buttons.every(x=>x.textContent.trim()===''),
+        geometry:{six:rects.length===6,exactSquares:rects.every(r=>near(r.width,30)&&near(r.height,30)),
+          icons:buttons.every(b=>{const r=b.querySelector('svg')?.getBoundingClientRect();return r&&near(r.width,16)&&near(r.height,16);}),
+          oneRow:rects.every(r=>near(r.top,rects[0].top)),
+          noOverlap:rects.every((r,i)=>!i||rects[i-1].right<=r.left+.5)&&
+            [...actions.querySelectorAll('button')].every(b=>b.getBoundingClientRect().bottom<=rects[0].top+.5),
+          contained:bounds.left>=outer.left&&bounds.right<=outer.right&&rects.every(r=>r.left>=bounds.left&&r.right<=bounds.right),
+          absolute:[bar,actions].every(el=>getComputedStyle(el).position==='absolute')},
+        noOverflow:[bar,card,panel].every(el=>el.scrollWidth<=el.clientWidth+1),
+        expanded:actions.querySelector('[aria-expanded]').getAttribute('aria-expanded')};
+    }.toString()+')()');
+    assert.deepEqual(iconMenu.labels.map(x=>x.split('：')[0]),['编辑','停用','上移','下移','复制','删除']);
+    assert(iconMenu.allSvg&&iconMenu.noVisibleText&&iconMenu.noOverflow,'management menu icons or overflow at '+width);
+    assert(iconMenu.titles.every((name,i)=>name===iconMenu.labels[i]&&name));
+    assert.deepEqual(iconMenu.geometry,{six:true,exactSquares:true,icons:true,oneRow:true,noOverlap:true,contained:true,absolute:true},'management menu geometry '+width);
+    assert.deepEqual(await evalChrome(cardLayout),base,'More must not reflow the card at '+width);
+    assert.equal(iconMenu.expanded,'true');
+    const focusedLabel=()=>evalChrome('document.activeElement?.getAttribute("aria-label")?.split("：")[0]');
+    assert.equal(await focusedLabel(),'编辑','More must focus the first command');
+    const screenshot='icon-toolbar-'+width+'px';
+    await shot(screenshot);
+    report.scenes.push({width,form:'icon-actions',overflow:!iconMenu.noOverflow,geometry:iconMenu.geometry,screenshot:screenshot+'.png'});
+    if(width===320){
+      for(const selector of ['.prompt-actions','.prompt-more']){
+        const blank=await evalChrome('('+function(s){
+          const el=document.querySelector(s),r=el.getBoundingClientRect(),x=r.left+r.width/2,y=r.top+2;
+          return {x,y,hit:document.elementFromPoint(x,y)===el};
+        }.toString()+')('+JSON.stringify(selector)+')');
+        assert.equal(blank.hit,true,'blank padding is the pointer target: '+selector);
+        await clickPoint(blank);
+        assert.equal(await evalChrome('!document.querySelector("#indexView").hidden&&document.querySelector("#detailView").hidden&&!!document.querySelector(".prompt-more")'),true,
+          'blank action padding must neither open detail nor close More');
+      }
+      await click(moreSelector);await click(moreSelector);
+      assert.equal(await focusedLabel(),'编辑');
+      for(const label of ['停用','下移','复制','删除']){
+        await pressKey('Tab','Tab',9);
+        assert.equal(await focusedLabel(),label,'Tab must skip the disabled move and reach '+label);
+      }
+      await pressKey('Tab','Tab',9,8);assert.equal(await focusedLabel(),'复制');
+      await pressKey('Tab','Tab',9);assert.equal(await focusedLabel(),'删除');
+      report.r45BlankClicksAndEdgeFocus=true;
+    }
+    await pressKey('Escape','Escape',27);
+    assert.equal(await evalChrome('document.querySelector(".prompt-more")===null'),true);
+    assert.equal(await evalChrome('document.activeElement.matches('+JSON.stringify(moreSelector)+')&&document.activeElement.getAttribute("aria-expanded")==="false"'),true,
+      'Escape must restore focus to More');
+    assert.deepEqual(await evalChrome(cardLayout),base,'closing More must preserve the card layout');
+  }
   report.r44NoTextReflow=true;
-  const iconMenu=await evalChrome('('+function(){
-    const bar=document.querySelector('.prompt-more'),buttons=[...bar.querySelectorAll('button')];
-    const card=bar.closest('.prompt-card'),panel=document.querySelector('#sidepanel');
-    return {count:buttons.length,labels:buttons.map(x=>x.getAttribute('aria-label')),
-      titles:buttons.map(x=>x.title),allSvg:buttons.every(x=>x.querySelector('svg use')),
-      noVisibleText:buttons.every(x=>x.textContent.trim()===''),
-      sizes:buttons.map(x=>[Math.round(x.getBoundingClientRect().width),Math.round(x.getBoundingClientRect().height)]),
-      noOverflow:bar.scrollWidth<=bar.clientWidth+1&&card.scrollWidth<=card.clientWidth+1&&panel.scrollWidth<=panel.clientWidth+1,
-      focused:document.activeElement?.getAttribute('aria-label')};
-  }.toString()+')()');
-  assert.equal(iconMenu.count,6);
-  assert.deepEqual(iconMenu.labels.map(x=>x.split('：')[0]),['编辑','停用','上移','下移','复制','删除']);
-  assert(iconMenu.allSvg&&iconMenu.noVisibleText&&iconMenu.noOverflow);
-  assert(iconMenu.titles.every((name,i)=>name===iconMenu.labels[i]&&name));
-  assert(iconMenu.sizes.every(([w,h])=>w>=38&&h>=38));
-  assert(iconMenu.focused.startsWith('编辑：'));
-  await shot('icon-toolbar-320px');
-  await click('.prompt-actions button[aria-label^="更多操作"]');
-  await click('#size440');
   report.responsiveIconToolbar=true;
   // R1.16 trusted settings: three switches and multi-site status (no fake site authorization).
   await click('#hostMore');
@@ -515,7 +551,7 @@ async function run(){
   await click('.prompt-actions button[aria-label^="更多操作"]');
   assert(await evalChrome('!!document.querySelector(".prompt-more")'));
   assert.equal(await evalChrome('document.activeElement?.getAttribute("aria-label")?.startsWith("编辑：")'),true);
-  await evalChrome('document.dispatchEvent(new KeyboardEvent("keydown",{key:"Escape",bubbles:true}))');
+  await pressKey('Escape','Escape',27);
   assert.equal(await evalChrome('document.querySelector(".prompt-more")===null'),true);
   assert.equal(await evalChrome('document.activeElement?.getAttribute("aria-label")?.startsWith("更多操作")'),true);
   await click('.prompt-actions button[aria-label^="更多操作"]');
@@ -798,7 +834,7 @@ async function run(){
   await poll('document.querySelector("#panelStatus").dataset.kind==="error"','detail copy failure notice');
   x=await state();assert.match(x.notice,/复制失败：模拟剪贴板写入失败/);
   assert.equal(x.copyDialog,false);
-  await click('#detailBack');
+  await click('#hostBack');
   report.simulatedFailure=true;
   // Exercise Unicode editing in the original full preview, including a ZWJ
   // emoji, skin tone, combining accent and blank line; then restore the fixture.

@@ -25,9 +25,16 @@ class FakeNode{
         this.className=[...set].join(' ');return enabled;}
     };
   }
-  append(...nodes){this.children.push(...nodes);}
-  prepend(...nodes){this.children.unshift(...nodes);}
-  replaceChildren(...nodes){this.children=[...nodes];}
+  append(...nodes){for(const node of nodes)node.parentElement=this;this.children.push(...nodes);}
+  prepend(...nodes){for(const node of nodes)node.parentElement=this;this.children.unshift(...nodes);}
+  replaceChildren(...nodes){for(const node of this.children)node.parentElement=null;this.children=[];this.append(...nodes);}
+  closest(selector){
+    const parts=selector.split(',').map(part=>part.trim());
+    for(let node=this;node;node=node.parentElement){
+      if(parts.some(part=>part.startsWith('.')?node.classList.contains(part.slice(1)):node.tagName===part.toUpperCase()))return node;
+    }
+    return null;
+  }
   querySelectorAll(selector){
     if(selector==='[data-scroll-nav]')return allDescendants(this).filter(node=>node.dataset.scrollNav);
     if(selector!=='button')return [];
@@ -251,6 +258,7 @@ test('R1.7 actual Sandbox UI: content-first create, inline confirm, draft guard 
   assert.equal(f.stored().items.length,0);
   assert.equal(n['ps-count'].textContent,'0 个 · 0 个启用');
   assert.equal(n['ps-empty'].hidden,false);
+  assert.equal(n['ps-new'].focused,true,'standalone navigation keeps a visible New button');
 });
 
 test('R1.8 Save click writes without requesting form submission in the restricted sandbox',async()=>{
@@ -548,7 +556,7 @@ test('Prompt list click opens read-only detail; explicit quick copy keeps one ge
   assert.match(host,/promptNativeAction/);
   assert.match(host,/siteCapability\(active\)&&!promptSettings/);
   assert.match(css,/\.ps-card-actions\{\s*position:absolute/);
-  assert.match(css,/\.ps-more\{\s*position:absolute/);
+  assert.match(css,/\.ps-more\{[^}]*\bposition:absolute/);
   assert.match(css,/\.ps-card-main\{grid-template-columns:30px minmax\(0,1fr\)\}/);
   assert.match(css,/\.ps-card:focus-within \.ps-card-actions/);
   const f=await fixture(),n=f.nodes;
@@ -679,9 +687,14 @@ test('R1.17 per-item controls are SVG-only, keyboard-labelled and still use guar
   assert.equal(buttonByAction(n['ps-list'],'up').disabled,true);
   buttonByAction(n['ps-list'],'down').click();await settle();
   assert.deepEqual(f.stored().items.map(row=>row.body),['第二条','第一条']);
-  assert.equal(buttonByAction(n['ps-list'],'down').focused,true,'focus follows the reordered item');
+  assert.equal(buttonByAction(n['ps-list'],'down').disabled,true,'last item cannot move down');
+  assert.equal(buttonByAction(n['ps-list'],'up').focused,true,'focus follows the reordered item to its enabled command');
   buttonByAction(n['ps-list'],'copy').click();await settle();
   assert.equal(f.copies().at(-1),'第一条');
+  buttonByAction(n['ps-list'],'up').click();await settle();
+  assert.deepEqual(f.stored().items.map(row=>row.body),['第一条','第二条']);
+  assert.equal(buttonByAction(n['ps-list'],'up').disabled,true,'first item cannot move up');
+  assert.equal(buttonByAction(n['ps-list'],'down').focused,true,'focus also follows the item to its enabled command at the first position');
 });
 test('R1.17 Save and Continue must acknowledge each Host write before resetting the draft',async()=>{
   const f=await fixture(),n=f.nodes;
@@ -1223,6 +1236,12 @@ test('R1.7 official header: create, draft back, ETag save/readback, edit and foc
   const reopen=await fixture({initialStored:f.stored(),sharedNavigation:true});
   assert.equal(reopen.nodes['ps-count'].textContent,'1 个 · 1 个启用');
   assert.equal(reopen.writes(),0,'return and reopening never duplicate an item');
+  const list=reopen.nodes['ps-list'];
+  buttonByAction(list,'more').click();
+  buttonByAction(list,'delete').click();
+  buttonByText(list,'确认删除').click();await settle();
+  assert.equal(reopen.stored().items.length,0);
+  assert.equal(reopen.nodes['ps-sites-open'].focused,true,'Host navigation hides local New; use a visible control after the last deletion');
 });
 
 test('Prompt detail uses the original trusted Host back without saving',async()=>{

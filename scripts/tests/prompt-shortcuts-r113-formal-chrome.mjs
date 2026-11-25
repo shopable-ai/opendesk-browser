@@ -12,7 +12,12 @@ import {createSidebarToolPackage,encodeSidebarToolPackage} from '../build-sideba
 
 const out=resolve(process.argv[2]||'artifacts/prompt-shortcuts-r113-formal-chrome');
 await mkdir(out,{recursive:true});
-const pkg=await createSidebarToolPackage('projects/prompt-shortcuts');
+const candidatePath=process.argv[3]&&resolve(process.argv[3]);
+const sourcePackage=await createSidebarToolPackage('projects/prompt-shortcuts');
+const sourceBytes=encodeSidebarToolPackage(sourcePackage);
+const candidateBytes=candidatePath?await readFile(candidatePath):sourceBytes;
+if(!candidateBytes.equals(sourceBytes))throw Error('Candidate does not match current Prompt Shortcuts source: '+candidatePath);
+const pkg=candidatePath?JSON.parse(candidateBytes.toString('utf8')):sourcePackage;
 assert.equal(pkg.id,'prompt-shortcuts');
 const config=JSON.parse(await readFile('projects/prompt-shortcuts/tool.config.json','utf8'));
 assert.equal(pkg.version,config.version,'formal candidate must match the current tool manifest');
@@ -38,6 +43,7 @@ const bridge=String.raw`
   globalThis.OpenDeskTool={
     root:document.querySelector('main.ps'),
     setState(state){globalThis.__toolState=state;},
+    setNavigation(state){globalThis.__toolNavigation=state;},
     async request(operation,payload){
       if(operation==='prompt.page.context')return {status:'available',origin:'https://fixture.example',path:'/chat'};
       if(operation==='prompt.page.check')return {valid:true,containerMatches:1,editorMatches:1,editorType:'textarea'};
@@ -128,8 +134,8 @@ const chrome=spawn(process.env.CHROME_BIN||'chromium',[
 let socket,seq=0;
 const outstanding=new Map(),jsErrors=[];
 const report={kind:'FORMAL_PACKAGED_UI_REAL_CHROMIUM_SIMULATED_HOST',installedExtension:false,
-  liveChatGPT:false,version:pkg.version,candidateSource:pkg.id,
-  packageSHA256:createHash('sha256').update(encodeSidebarToolPackage(pkg)).digest('hex'),scenes:[]};
+  liveChatGPT:false,version:pkg.version,candidateSource:pkg.id,candidatePath:candidatePath||null,
+  packageSHA256:createHash('sha256').update(candidateBytes).digest('hex'),scenes:[]};
 const sleep=ms=>new Promise(ok=>setTimeout(ok,ms));
 function rpc(method,params={}){
   const id=++seq;
@@ -196,9 +202,17 @@ async function click(selector){
     return {x:r.x+r.width/2,y:r.y+r.height/2,width:r.width,height:r.height};
   }.toString()+')('+JSON.stringify(selector)+')');
   assert(rect.width>0&&rect.height>0,'visible '+selector);
+  await clickPoint(rect);
+}
+async function clickPoint({x,y}){
   for(const [type,extra] of [['mouseMoved',{}],['mousePressed',{button:'left',clickCount:1}],
     ['mouseReleased',{button:'left',clickCount:1}]])
-    await rpc('Input.dispatchMouseEvent',{type,x:rect.x,y:rect.y,...extra});
+    await rpc('Input.dispatchMouseEvent',{type,x,y,...extra});
+}
+async function pressKey(key,virtualKey,modifiers=0){
+  for(const type of ['keyDown','keyUp'])
+    await rpc('Input.dispatchKeyEvent',{type,key,code:key,windowsVirtualKeyCode:virtualKey,
+      nativeVirtualKeyCode:virtualKey,modifiers});
 }
 async function fill(selector,value){
   return evaluate('('+function(s,v){
@@ -279,7 +293,10 @@ async function run(){
   assert.equal(await evaluate('document.querySelector("#ps-edit").hidden'),true);
   assert.equal(await evaluate('globalThis.__readFormalToolStore().revision'),beforeDetail);
   await screenshot('r44-formal-detail-400px');
-  await click('#ps-detail-back');
+  assert.equal(await evaluate('globalThis.__toolNavigation.page'),'detail');
+  assert.equal(await evaluate('globalThis.__toolNavigation.canBack'),true);
+  // The current Back control belongs to the Host chrome, outside this fixture.
+  await evaluate('OpenDeskTool.root.dispatchEvent(new CustomEvent("opendesk-tool-navigation",{detail:{action:"back"}}))');
   assert.equal(await evaluate('document.querySelector("#ps-detail").hidden'),true);
   assert.equal(await evaluate('document.activeElement?.dataset.action'),'detail');
   report.r44ReadOnlyDetail=true;
@@ -325,8 +342,15 @@ async function run(){
   }
   // R1.17 acceptance: exercise THE FORMAL BUNDLED UI in real Chromium,
   // not just the independent preview, across the complete Side Panel width range.
-  for(const n of [320,360,380,400,440]){
+  const moreSelector='.ps-card-actions button[data-action="more"]';
+  const cardLayout='('+function(){
+    const c=document.querySelector('.ps-card'),u=c.querySelector('.ps-card-use'),t=c.querySelector('.ps-card-preview');
+    return {width:u.getBoundingClientRect().width,textWidth:t.getBoundingClientRect().width,
+      cardHeight:c.getBoundingClientRect().height,clamp:getComputedStyle(t).webkitLineClamp,body:t.textContent};
+  }.toString()+')()';
+  for(const n of [280,320,360,380,400,440]){
     await width(n);
+    await rpc('Input.dispatchMouseEvent',{type:'mouseMoved',x:0,y:0});
     const initial=await evaluate('('+function(){
       const buttons=[...document.querySelectorAll('.ps-card-actions button')];
       return {count:buttons.length,actions:buttons.map(b=>b.dataset.action),
@@ -335,45 +359,72 @@ async function run(){
     assert.equal(initial.count,2,'each card has quick copy and More, never fixed text-width controls');
     assert.deepEqual(initial.actions,['quick-copy','more']);
     assert.equal(Boolean(initial.hasIcons),true);
-    const beforeMenu=await evaluate('('+function(){
-      const c=document.querySelector('.ps-card'),u=c.querySelector('.ps-card-use'),t=c.querySelector('.ps-card-preview');
-      return {width:u.getBoundingClientRect().width,textWidth:t.getBoundingClientRect().width,
-        cardHeight:c.getBoundingClientRect().height,clamp:getComputedStyle(t).webkitLineClamp,body:t.textContent};
-    }.toString()+')()');
-    await click('.ps-card-actions button[data-action="more"]');
+    const beforeMenu=await evaluate(cardLayout);
+    const hoverPoint=await evaluate('(()=>{const r=document.querySelector(".ps-card").getBoundingClientRect();return {x:r.left+r.width/2,y:r.top+r.height/2};})()');
+    await rpc('Input.dispatchMouseEvent',{type:'mouseMoved',...hoverPoint});
+    await poll('document.querySelector(".ps-card").matches(":hover")','hover first formal card');
+    assert.deepEqual(await evaluate(cardLayout),beforeMenu,'hover must not reflow the card at '+n);
+    await click(moreSelector);
     const menu=await evaluate('('+function(){
       const buttons=[...document.querySelectorAll('.ps-card-actions button,.ps-more button')];
-      const c=document.querySelector('.ps-card'),u=c.querySelector('.ps-card-use'),t=c.querySelector('.ps-card-preview');
+      const c=document.querySelector('.ps-card'),actions=c.querySelector('.ps-card-actions');
+      const bar=c.querySelector('.ps-more'),bounds=bar.getBoundingClientRect(),card=c.getBoundingClientRect();
+      const controls=[...bar.querySelectorAll('button')],rects=controls.map(b=>b.getBoundingClientRect());
+      const near=(actual,expected)=>Math.abs(actual-expected)<=1;
       return {actions:buttons.map(b=>b.dataset.action),
         iconOnly:buttons.every(b=>b.textContent.trim()===''&&!!b.querySelector('svg')&&!!b.title&&!!b.getAttribute('aria-label')),
-        geometry:(()=>{const bar=document.querySelector('.ps-more'),controls=[...bar.querySelectorAll('button')];
-          const rects=controls.map(button=>button.getBoundingClientRect()),css=getComputedStyle(bar);
-          return {six:rects.length===6,exactSquares:rects.every(r=>Math.abs(r.width-40)<=1&&Math.abs(r.height-40)<=1),
-            twoRows:rects.slice(0,3).every(r=>Math.abs(r.top-rects[0].top)<=1)&&rects.slice(3).every(r=>r.top>rects[0].top+20),
-            absolute:css.position==='absolute',columns:css.gridTemplateColumns.split(' ').length};})(),
-        unchanged:{width:u.getBoundingClientRect().width,textWidth:t.getBoundingClientRect().width,
-          cardHeight:c.getBoundingClientRect().height,clamp:getComputedStyle(t).webkitLineClamp,body:t.textContent},
-        overlay:getComputedStyle(c.querySelector('.ps-card-actions')).position,
-        hasHorizontalOverflow:document.documentElement.scrollWidth>document.documentElement.clientWidth+1,
-        expanded:document.querySelector('.ps-card-actions button[data-action="more"]')?.getAttribute('aria-expanded')};
+        geometry:{six:rects.length===6,exactSquares:rects.every(r=>near(r.width,30)&&near(r.height,30)),
+          icons:controls.every(b=>{const r=b.querySelector('svg')?.getBoundingClientRect();return r&&near(r.width,16)&&near(r.height,16);}),
+          oneRow:rects.every(r=>near(r.top,rects[0].top)),
+          noOverlap:rects.every((r,i)=>!i||rects[i-1].right<=r.left+.5)&&
+            [...actions.querySelectorAll('button')].every(b=>b.getBoundingClientRect().bottom<=rects[0].top+.5),
+          contained:bounds.left>=card.left&&bounds.right<=card.right&&rects.every(r=>r.left>=bounds.left&&r.right<=bounds.right),
+          absolute:getComputedStyle(bar).position==='absolute'},
+        overlay:getComputedStyle(actions).position,
+        hasHorizontalOverflow:[bar,c,document.documentElement].some(el=>el.scrollWidth>el.clientWidth+1),
+        expanded:actions.querySelector('button[data-action="more"]').getAttribute('aria-expanded')};
     }.toString()+')()');
     assert.deepEqual(menu.actions,['quick-copy','more','edit','toggle','up','down','copy','delete']);
     assert.equal(menu.iconOnly,true);
-    assert.deepEqual(menu.geometry,{six:true,exactSquares:true,twoRows:true,absolute:true,columns:3});
-    assert.deepEqual(menu.unchanged,beforeMenu,'hover and More must not alter card body width, lines or height');
+    assert.deepEqual(menu.geometry,{six:true,exactSquares:true,icons:true,oneRow:true,noOverlap:true,contained:true,absolute:true},'management menu geometry '+n);
+    assert.deepEqual(await evaluate(cardLayout),beforeMenu,'More must not alter card body width, lines or height');
     assert.equal(menu.overlay,'absolute');
     assert.equal(menu.hasHorizontalOverflow,false,'management menu overflow '+n);
     assert.equal(menu.expanded,'true');
+    const focusedAction=()=>evaluate('document.activeElement?.dataset.action');
+    assert.equal(await focusedAction(),'edit','More must focus the first command');
     await screenshot('formal-icon-actions-'+n+'px');
-    report.scenes.push({width:n,form:'icon-actions',overflow:menu.hasHorizontalOverflow,
+    report.scenes.push({width:n,form:'icon-actions',overflow:menu.hasHorizontalOverflow,geometry:menu.geometry,
       screenshot:'formal-icon-actions-'+n+'px.png'});
-    await rpc('Input.dispatchKeyEvent',{type:'keyDown',key:'Escape',code:'Escape',
-      windowsVirtualKeyCode:27,nativeVirtualKeyCode:27});
-    await rpc('Input.dispatchKeyEvent',{type:'keyUp',key:'Escape',code:'Escape',
-      windowsVirtualKeyCode:27,nativeVirtualKeyCode:27});
+    if(n===320){
+      const revision=await evaluate('globalThis.__readFormalToolStore().revision');
+      for(const selector of ['.ps-card-actions','.ps-more']){
+        const blank=await evaluate('('+function(s){
+          const el=document.querySelector(s),r=el.getBoundingClientRect(),x=r.left+r.width/2,y=r.top+2;
+          return {x,y,hit:document.elementFromPoint(x,y)===el};
+        }.toString()+')('+JSON.stringify(selector)+')');
+        assert.equal(blank.hit,true,'blank padding is the pointer target: '+selector);
+        await clickPoint(blank);
+        assert.equal(await evaluate('!document.querySelector("#ps-index").hidden&&document.querySelector("#ps-detail").hidden&&!!document.querySelector(".ps-more")'),true,
+          'blank action padding must neither open detail nor close More');
+      }
+      assert.equal(await evaluate('globalThis.__readFormalToolStore().revision'),revision,'blank clicks must not write');
+      await click(moreSelector);await click(moreSelector);
+      assert.equal(await focusedAction(),'edit');
+      for(const action of ['toggle','copy','delete']){
+        await pressKey('Tab',9);
+        assert.equal(await focusedAction(),action,'Tab must skip disabled moves and reach '+action);
+      }
+      await pressKey('Tab',9,8);assert.equal(await focusedAction(),'copy');
+      await pressKey('Tab',9);assert.equal(await focusedAction(),'delete');
+      report.r45BlankClicksAndEdgeFocus=true;
+    }
+    await pressKey('Escape',27);
     await poll('!document.querySelector(".ps-more")','Esc closes icon actions');
     assert.equal(await evaluate('document.activeElement===document.querySelector(".ps-card-actions button[data-action=more]")'),
       true,'Escape must restore focus to More');
+    assert.equal(await evaluate('document.querySelector('+JSON.stringify(moreSelector)+').getAttribute("aria-expanded")'),'false');
+    assert.deepEqual(await evaluate(cardLayout),beforeMenu,'closing More must preserve the card layout');
   }
   report.iconOnlyFormalActions=true;
   await click('#ps-new');
@@ -411,6 +462,37 @@ async function run(){
   await rpc('Emulation.setEmulatedMedia',{features:[{name:'prefers-color-scheme',value:'dark'}]});
   await screenshot('formal-dark-440px');
   report.darkScreenshot='formal-dark-440px.png';
+  await click(moreSelector);
+  assert.equal(await evaluate('document.querySelectorAll(".ps-more button").length'),6);
+  await screenshot('formal-dark-actions-440px');
+  report.darkActionsScreenshot='formal-dark-actions-440px.png';
+  await pressKey('Escape',27);
+  await rpc('Emulation.setTouchEmulationEnabled',{enabled:true,maxTouchPoints:1});
+  await width(280);
+  await poll('matchMedia("(pointer: coarse)").matches','emulated coarse pointer');
+  await click(moreSelector);
+  const coarse=await evaluate('('+function(){
+    const bar=document.querySelector('.ps-more'),rects=[...bar.querySelectorAll('button')].map(b=>b.getBoundingClientRect());
+    const root=document.documentElement;
+    return {count:rects.length,squares:rects.every(r=>r.width===44&&r.height===44),
+      oneRow:rects.every(r=>r.top===rects[0].top),localScroll:bar.scrollWidth>bar.clientWidth,
+      pageScroll:root.scrollWidth>root.clientWidth+1};
+  }.toString()+')()');
+  assert.deepEqual(coarse,{count:6,squares:true,oneRow:true,localScroll:true,pageScroll:false});
+  const enabledActions=await evaluate('[...document.querySelectorAll(".ps-more button:enabled")].map(b=>b.dataset.action)');
+  assert.equal(enabledActions[0],'edit');
+  assert.equal(enabledActions.at(-1),'delete');
+  for(const action of enabledActions.slice(1)){
+    await pressKey('Tab',9);
+    assert.equal(await evaluate('document.activeElement?.dataset.action'),action);
+  }
+  assert.equal(await evaluate('(()=>{const bar=document.querySelector(".ps-more"),button=document.activeElement;return bar.scrollLeft>0&&button.getBoundingClientRect().right<=bar.getBoundingClientRect().right;})()'),true,
+    'the final touch-size button must scroll into the visible region on focus');
+  await screenshot('formal-coarse-actions-280px');
+  report.coarsePointer280=coarse;
+  await pressKey('Escape',27);
+  await rpc('Emulation.setTouchEmulationEnabled',{enabled:false});
+  await width(440);
   // R3.5: real packaged UI path: new image, decoded preview, failed HTTPS
   // response fallback, recovery, save/reopen, global size persistence.
   // This is controlled HTTPS response in actual Chromium, not public CDN.

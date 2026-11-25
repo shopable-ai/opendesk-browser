@@ -125,7 +125,6 @@ textarea.od-field{line-height:1.65;resize:vertical;font-size:13px}
 .prompt-copy p{margin:4px 0 0;color:var(--od-sub);font-size:11px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .prompt-copy .off{font-size:10px;color:var(--od-warning-ink);border:1px solid var(--od-line);border-radius:99px;padding:1px 5px;margin-left:4px;vertical-align:1px}
 .prompt-actions{display:flex;gap:4px;align-items:center}.prompt-actions .od-button{border-color:transparent;background:var(--od-bg)}
-.prompt-more{display:flex;justify-content:flex-end;gap:6px;flex-wrap:wrap;margin-top:10px;border-top:1px solid var(--od-line);padding-top:10px}
 .prompt-delete{margin-top:10px;background:var(--od-negative-bg);padding:10px;border-radius:10px;font-size:11px}
 .prompt-delete p{margin:0 0 9px}.prompt-delete .actions{display:flex;gap:6px;flex-wrap:wrap}
 .empty{padding:25px 10px;text-align:center;color:var(--od-sub);border:1px dashed var(--od-line);border-radius:12px}.empty strong{display:block;font-size:13px;color:var(--od-ink)}
@@ -308,7 +307,6 @@ textarea.od-field{line-height:1.65;resize:vertical;font-size:13px}
 .prompt-card:focus-within .prompt-actions .od-icon-action,
 .prompt-card.is-menu-open .prompt-actions .od-icon-action{opacity:1;color:var(--od-ink)}
 .prompt-card.is-menu-open .prompt-actions .od-icon-action{background:var(--od-muted)}
-.prompt-more{display:flex;gap:5px;justify-content:flex-end;flex-wrap:wrap;padding-top:8px}
 .prompt-more .od-icon-action{background:var(--od-paper);border-color:var(--od-line)}
 .prompt-more .od-icon-action:hover:not(:disabled){background:var(--od-muted);border-color:var(--od-input-border);color:var(--od-brand)}
 .prompt-more .od-icon-action--danger{color:var(--od-negative)}
@@ -351,9 +349,6 @@ textarea.od-field{line-height:1.65;resize:vertical;font-size:13px}
 /* R2.4.2: switch and icon actions. The existing trusted UI behavior is unchanged. */
 .host-settings .host-setting-row.is-dependent-disabled>span:first-child{opacity:.55}
 .host-settings .host-setting-row.is-dependent-disabled .switch-track{opacity:.46}
-/* R2.4.2: fixed square action targets; right-align without distributing surplus width. */
-.prompt-more{display:flex;align-items:center;justify-content:flex-end;flex-wrap:wrap;gap:6px}
-.prompt-more .od-icon-action{flex:0 0 40px;width:40px;min-width:40px;max-width:40px;height:40px;min-height:40px;aspect-ratio:1}
 /* R2.6: tool-specific import/export action stays inside existing Host header */
 .tool-host-head{position:relative;z-index:12}
 .transfer-holder{position:relative;flex:none}
@@ -1156,6 +1151,19 @@ border:0;background:transparent;color:var(--od-sub)}
   paintPicture(el('detailGlyph'),item);
   setView('detail');el('detailBody').focus({preventScroll:true});
  }
+ function focusListAction(id,action){
+  const card=[...el('promptList').children].find(node=>node.dataset.id===id);
+  const button=card?.querySelector('button[data-list-action="'+action+'"]:not(:disabled)');
+  if(!button)return null;
+  button.focus({preventScroll:true});
+  const menu=button.closest('.prompt-more');
+  if(menu&&menu.scrollWidth>menu.clientWidth){
+   const bounds=menu.getBoundingClientRect(),rect=button.getBoundingClientRect();
+   if(rect.left<bounds.left+5)menu.scrollLeft+=rect.left-bounds.left-5;
+   else if(rect.right>bounds.right-5)menu.scrollLeft+=rect.right-bounds.right+5;
+  }
+  return button;
+ }
  function renderIndex(){
   setSettings();el('listCount').textContent=countText();
   const list=el('promptList');list.replaceChildren();
@@ -1167,7 +1175,9 @@ border:0;background:transparent;color:var(--od-sub)}
     const hasTitle=Boolean(customTitle(item)),identity=itemIdentity(item);
     const card=create('article','prompt-card'+(!item.enabled?' is-disabled':'')+(expandedId===item.id?' is-menu-open':''));
    card.dataset.id=item.id;
-   card.addEventListener('click',event=>{if(!event.target.closest('button'))openDetail(item.id)});
+   card.addEventListener('click',event=>{
+    if(!event.target.closest('button,.prompt-actions,.prompt-more,.prompt-delete'))openDetail(item.id);
+   });
     const row=create('div','prompt-row'),use=create('button','prompt-use'+(!hasTitle&&item.enabled?' is-untitled':''));
    use.type='button';use.disabled=false;
     use.setAttribute('aria-label','查看提示词详情：'+identity);
@@ -1188,29 +1198,31 @@ border:0;background:transparent;color:var(--od-sub)}
    quick.classList.add('preview-quick-copy');
    const more=iconAction(actions,'more','更多操作：'+identity,()=>{
     const willOpen=expandedId!==item.id;expandedId=willOpen?item.id:null;deleteId=null;renderIndex();
-    const target=willOpen?el('prompt-menu-'+i)?.querySelector('button'):el('prompt-more-'+i);
-    target?.focus({preventScroll:true});
+    focusListAction(item.id,willOpen?'edit':'more');
    });
    more.id='prompt-more-'+i;
+   more.dataset.listAction='more';
    more.setAttribute('aria-label','更多操作：'+identity);
    more.setAttribute('aria-expanded',String(expandedId===item.id));
-   if(expandedId===item.id)more.setAttribute('aria-controls','prompt-menu-'+i);
+   if(expandedId===item.id)more.setAttribute('aria-controls',(deleteId===item.id?'prompt-delete-':'prompt-menu-')+i);
    row.append(use,actions);card.append(row);
    if(expandedId===item.id&&!deleteId){
-    const commands=create('div','prompt-more');commands.id='prompt-menu-'+i;commands.setAttribute('role','group');commands.setAttribute('aria-label','提示词操作');
-    iconAction(commands,'pencil','编辑：'+identity,()=>openForm(item.id));
-    iconAction(commands,item.enabled?'eye-off':'eye',item.enabled?'停用：'+identity:'启用：'+identity,()=>{
+    const commands=create('div','prompt-more');commands.id='prompt-menu-'+i;commands.setAttribute('role','group');commands.setAttribute('aria-label','提示词操作：'+identity);
+    const command=(action,name,label,callback,options)=>{
+     iconAction(commands,name,label,callback,options).dataset.listAction=action;
+    };
+    command('edit','pencil','编辑：'+identity,()=>openForm(item.id));
+    command('toggle',item.enabled?'eye-off':'eye',item.enabled?'停用：'+identity:'启用：'+identity,()=>{
      const nextEnabled=!item.enabled,nextItems=state.items.map(row=>row.id===item.id?{...row,enabled:nextEnabled}:row);
      if(!persistDemoItems(nextItems)){notice('模拟存储写入失败，启停状态未改变。','error');return;}
      state.items=nextItems;state.revision++;renderIndex();renderRail();
-     const index=state.items.findIndex(x=>x.id===item.id);
-     el('prompt-menu-'+index)?.querySelectorAll('button')[1]?.focus({preventScroll:true});
+     focusListAction(item.id,'toggle');
      notice(nextEnabled?'「'+identity+'」已启用（模拟）':'「'+identity+'」已停用（模拟）');
     });
-    iconAction(commands,'arrow-up','上移：'+identity,()=>moveItem(i,-1),{disabled:i===0});
-    iconAction(commands,'arrow-down','下移：'+identity,()=>moveItem(i,1),{disabled:i===state.items.length-1});
-    iconAction(commands,'copy','复制：'+identity,()=>void copyPrompt(item));
-    iconAction(commands,'trash','删除：'+identity,()=>{
+    command('up','arrow-up','上移：'+identity,()=>moveItem(i,-1),{disabled:i===0});
+    command('down','arrow-down','下移：'+identity,()=>moveItem(i,1),{disabled:i===state.items.length-1});
+    command('copy','copy','复制：'+identity,()=>void copyPrompt(item));
+    command('delete','trash','删除：'+identity,()=>{
      deleteId=item.id;renderIndex();el('prompt-delete-'+i)?.querySelector('button')?.focus({preventScroll:true});
     },{danger:true});
     card.append(commands);
@@ -1221,7 +1233,7 @@ border:0;background:transparent;color:var(--od-sub)}
     box.append(create('p','','确认删除「'+identity+'」？仅删除模拟数据，操作不能撤销。'));
     const buttons=create('div','actions');
     action(buttons,'取消',()=>{
-     deleteId=null;renderIndex();el('prompt-more-'+i)?.focus({preventScroll:true});
+     deleteId=null;renderIndex();focusListAction(item.id,'more');
     },{small:true});
     action(buttons,'确认删除',()=>{
      const nextItems=state.items.filter(x=>x.id!==item.id);
@@ -1229,8 +1241,8 @@ border:0;background:transparent;color:var(--od-sub)}
      state.items=nextItems;state.revision++;
      if(!cleanupDemoAssets())notice('提示词已删除，但旧图片清理未确认（模拟）','error');
      deleteId=null;expandedId=null;renderIndex();renderRail();
-     const next=Math.min(i,state.items.length-1);
-     (next<0?el('addButton'):el('prompt-more-'+next))?.focus({preventScroll:true});
+     const survivor=state.items[Math.min(i,state.items.length-1)];
+     if(survivor)focusListAction(survivor.id,'more');else el('addButton').focus({preventScroll:true});
      notice('已删除「'+identity+'」（模拟）');
     },{small:true,danger:true});
     box.append(buttons);card.append(box);
@@ -1245,7 +1257,7 @@ border:0;background:transparent;color:var(--od-sub)}
   [nextItems[i],nextItems[target]]=[nextItems[target],nextItems[i]];
   if(!persistDemoItems(nextItems)){notice('模拟存储写入失败，顺序未改变。','error');return;}
   state.items=nextItems;expandedId=moved.id;deleteId=null;state.revision++;renderIndex();renderRail();
-  el('prompt-menu-'+target)?.querySelectorAll('button')[delta<0?2:3]?.focus({preventScroll:true});
+  focusListAction(moved.id,delta<0?'up':'down')||focusListAction(moved.id,delta<0?'down':'up')||focusListAction(moved.id,'more');
   notice('顺序已更新（模拟）');
  }
  let lastUseId=null,lastUseAt=0,using=false;
@@ -1681,9 +1693,11 @@ border:0;background:transparent;color:var(--od-sub)}
   if(!el('transferMenu').hidden){closeTransfer();el('transferButton').focus({preventScroll:true});event.preventDefault();return;}
   if(!el('mockContextMenu').hidden){el('mockContextMenu').hidden=true;el('mockSelection').focus();event.preventDefault();}
   else if(!el('webTooltip').hidden){el('webTooltip').hidden=true;tipButton=null;}
-  else if(expandedId!==null){
-   const index=state.items.findIndex(item=>item.id===expandedId);expandedId=null;deleteId=null;renderIndex();
-   if(index>=0)el('prompt-more-'+index)?.focus({preventScroll:true});event.preventDefault();
+  else if(deleteId!==null||expandedId!==null){
+   event.preventDefault();if(saving)return;
+   const id=deleteId??expandedId;
+   if(deleteId!==null)deleteId=null;else expandedId=null;
+   renderIndex();focusListAction(id,'more');
   }else if(currentView==='detail'){returnIndex();event.preventDefault();}
  });
  window.addEventListener('beforeunload',event=>{if(currentView==='form'&&(dirty||saving||imageUploadBusy)){event.preventDefault();event.returnValue='';}});

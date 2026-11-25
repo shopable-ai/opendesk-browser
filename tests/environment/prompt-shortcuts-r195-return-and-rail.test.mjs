@@ -4,6 +4,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import {readFile} from 'node:fs/promises';
 import {createSidebarToolPackage} from '../../scripts/build-sidebar-tool.mjs';
+import {admitsTrustedPrompt} from '../../src/ui/trusted-prompt-admission.js';
 
 const ROOT='projects/prompt-shortcuts';
 const file=relative=>readFile(ROOT+'/'+relative,'utf8');
@@ -111,10 +112,14 @@ test('R1.9.5 distributable remains source-bound and seeds exactly three editable
   const candidate=await createSidebarToolPackage(ROOT);
   const released=JSON.parse(await file('prompt-shortcuts.opendesk-tool.json'));
   const config=JSON.parse(await file('tool.config.json'));
-  const admission=await readFile('src/ui/trusted-prompt-admission.js','utf8');
   assert.deepEqual(released,candidate,'official installation package must match current source-built candidate');
   assert.equal(released.version,config.version);
-  assert(admission.includes("TRUSTED_PROMPT_VERSION='"+released.version+"'"));
+  // The installed bundle and its active generation govern admission; the fixed component's source marker is independent.
+  const epoch='r195-installed-package';
+  const installation={installed:[released],enableRecords:{[released.id]:true},
+    epochs:{[released.id]:epoch},expectedEpoch:epoch};
+  assert.equal(await admitsTrustedPrompt({tool:released,...installation}),true);
+  assert.equal(await admitsTrustedPrompt({tool:{...released,js:released.js+'\nvoid 0;'},...installation}),false);
   assert.equal(released.initialData.library.items.length,3);
   assert.deepEqual(released.initialData.library.items.map(row=>row.label),['插件','外包','提示']);
 });
