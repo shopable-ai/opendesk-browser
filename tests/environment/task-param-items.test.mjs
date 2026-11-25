@@ -3,7 +3,7 @@ import assert from 'node:assert/strict';
 import {readFileSync} from 'node:fs';
 import {compileParamItems,parseTaskParamsHeader,compileTaskSourceParams} from '../../scripts/compile-task-param-items.mjs';
 const read=path=>JSON.parse(readFileSync(new URL('../../'+path,import.meta.url),'utf8'));
-const compact=read('examples/tasks/task-param-items.example.json'), expanded=read('examples/tasks/task-params-v2.example.json');
+const compact=read('task-packs/examples/task-param-items.example.json'), expanded=read('task-packs/examples/task-params-v2.example.json');
 
 test('one row per field compiles to the existing R10 example without duplicate authoring constraints',()=>{
   assert.equal(compact.paramItems.length,14);
@@ -47,7 +47,7 @@ test('integer and number, typed options, zero/false/empty and absence stay disti
   assert.equal(Object.hasOwn(x.paramsSchema.properties.maybe,'default'),false);
 });
 
-const headerSource=readFileSync(new URL('../../examples/tasks/task-params-header.example.js',import.meta.url),'utf8');
+const headerSource=readFileSync(new URL('../../task-packs/examples/task-params-header.example.js',import.meta.url),'utf8');
 test('script header is the author source; JSON fixtures are derived without changing R9',()=>{
   assert.deepEqual(parseTaskParamsHeader(headerSource),compact);
   assert.deepEqual(compileTaskSourceParams(headerSource),expanded);
@@ -92,7 +92,7 @@ test('header scanner preserves typed literal values, escaping and missing fields
 });
 
 test('minimal two-parameter authoring example compiles without adding a business task',()=>{
-  const source=readFileSync(new URL('../../examples/tasks/task-params-minimal.example.js',import.meta.url),'utf8');
+  const source=readFileSync(new URL('../../task-packs/examples/task-params-minimal.example.js',import.meta.url),'utf8');
   assert.deepEqual(compileTaskSourceParams(source),{
     paramsSchemaVersion:2,
     paramsSchema:{

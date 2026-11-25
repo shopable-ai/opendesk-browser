@@ -70,3 +70,11 @@ test('asset preparation and package verification reject drift and symlinks witho
   await writeFile(target,before.toString()+' ');
   await assert.rejects(verifyPackagedTaskResources(output,{root}),/differs from reviewed source/);
 });
+
+test('parameter authoring examples are not reviewed packaged Task resources',async()=>{
+  assert.ok(PACKAGED_TASK_RESOURCES.every(row=>!row.sourcePath.startsWith('task-packs/examples/')));
+  for(const name of ['task-params-minimal.example.js','task-params-header.example.js','task-param-items.example.json','task-params-v2.example.json']){
+    const path='task-packs/examples/'+name;
+    await assert.rejects(readPackagedTaskResource(path),/Undeclared Task resource/);
+  }
+});

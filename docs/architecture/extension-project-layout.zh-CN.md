@@ -77,7 +77,7 @@
 | 正式 Sidebar Tool 产品 | 新建于 `projects/<id>/`；已有产品以 README、配置及实际构建/Catalog 消费者共同确认原位置 | `tool.config.json`，交付时唯一 `<id>.opendesk-tool.json` |
 | Sidebar 教学示例、Starter、最小复现 | `examples/sidebar-tools/<id>/` | 同一种 Tool 配置与打包器，不复制正式产品 |
 | Page USER_SCRIPT / Page Program | 沿用实际项目，默认 `examples/programs/<id>/` | 原 Page 配置、Candidate/Authority；不用 Sidebar JSON |
-| Controller Task | 新建独立可安装、跨产品消费脚本默认 [task-packs/<task-family>/](../../task-packs/README.md)；已有产品私有 Task 继续原 owner | 原 Task 冻结和发布合同；不新增安装器 |
+| Controller Task | 新建独立可安装、跨产品消费脚本默认 [task-packs/<task-family>/](../../task-packs/README.md)；参数作者示例与派生数据统一归 [task-packs/examples/](../../task-packs/examples/README.md)，不是正式业务 family；已有产品私有 Task、历史测试 Lab 继续原 owner | 原 Task 冻结和发布合同；不新增安装器，不自动发行示例 |
 | 第一方可信特权业务 | 原产品的 `trusted/`，或尚未提取的必要 `src/<feature>/` | 固定扩展构建与审计；目录名不产生权限 |
 | 公共 Framework / SDK | 原平台模块及根测试目录 | 公共 Host、权限、安装、撤权、执行世界与跨产品合同 |
 

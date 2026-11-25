@@ -5,7 +5,7 @@ import {runInNewContext} from 'node:vm';
 import {checkParamsSchema,validateTaskParams,verifyTaskPackage} from '../../src/platform/tasks/contract.js';
 
 const read = path => readFileSync(new URL('../../'+path,import.meta.url),'utf8');
-const example=JSON.parse(read('examples/tasks/task-params-v2.example.json'));
+const example=JSON.parse(read('task-packs/examples/task-params-v2.example.json'));
 const meta=JSON.parse(read('schemas/opendesk-task-params.v2.schema.json'));
 const preview=read('prototypes/sidebar/my/index.html');
 const marker='  const manyParamsFixture = () => compileTask(';

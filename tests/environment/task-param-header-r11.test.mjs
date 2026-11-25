@@ -4,7 +4,7 @@ import {readFileSync} from 'node:fs';
 import {compileTaskSourceParams,parseTaskParamsHeader} from '../../scripts/compile-task-param-items.mjs';
 import {leadingLineComments} from '../../src/scripting/source-trivia.js';
 
-const read=name=>readFileSync(new URL('../../examples/tasks/'+name,import.meta.url),'utf8');
+const read=name=>readFileSync(new URL('../../task-packs/examples/'+name,import.meta.url),'utf8');
 const minimal=read('task-params-minimal.example.js');
 const full=read('task-params-header.example.js');
 const header=minimal.slice(0,minimal.indexOf('async function'));
@@ -59,4 +59,12 @@ test('shared scan follows ECMAScript line endings and stops at first token',()=>
   }
   const rows=[...leadingLineComments('\ufeff /* one\r\ntwo */\r// copyright\u2028  // next\nlet x;\n// ignored')];
   assert.deepEqual(rows.map(({raw,line})=>({raw,line})),[{raw:'// copyright',line:3},{raw:'// next',line:4}]);
+});
+
+test('parameter authoring examples share one home; derived data agrees with source and old copies are absent',()=>{
+  assert.deepEqual(parseTaskParamsHeader(full),JSON.parse(read('task-param-items.example.json')));
+  assert.deepEqual(compileTaskSourceParams(full),JSON.parse(read('task-params-v2.example.json')));
+  for(const name of ['task-params-minimal.example.js','task-params-header.example.js','task-param-items.example.json','task-params-v2.example.json']){
+    assert.throws(()=>readFileSync(new URL('../../examples/tasks/'+name,import.meta.url)),{code:'ENOENT'});
+  }
 });

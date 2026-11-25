@@ -1,7 +1,8 @@
 # 独立 Controller Task 脚本库（Independent Task Packs）
 
-**这是 OpenDesk 可独立开发、验证、安装及更新的业务脚本资产目录，不是浏览器框架源码目录。** 通用能力由原 Controller SDK 提供；「我的」是统一任务管理入口。WebFlow、Subagent、计划、AI 是消费者，不拥有这些共享脚本的第二份实现。
+**这是 OpenDesk 独立 Controller Task 的统一脚本资产目录：作者示例、真实业务源码、发行包及专属测试集中管理，不是浏览器框架源码目录。** 通用能力由原 Controller SDK 提供；「我的」是统一任务管理入口。WebFlow、Subagent、计划、AI 是消费者，不拥有这些共享脚本的第二份实现。
 
+- [开发示例（最小双参数与完整 12 类控件）](examples/README.md)
 - [脚本参数编写规范（文本头部、12 类控件、校验与编译）](../docs/api/task-params.zh-CN.md)
 - [Controller 公共 SDK](../docs/api/controller.zh-CN.md) · [本地项目配置](../docs/api/local-projects.zh-CN.md)
 - [独立 Task 资产及安装/授权合同](../docs/architecture/installed-controller-tasks-and-workflow-consumers.zh-CN.md)
@@ -11,6 +12,13 @@
 
 ```text
 task-packs/
+  README.md
+  examples/                       # 作者参考及派生数据，非正式发行 family
+    README.md
+    task-params-minimal.example.js
+    task-params-header.example.js
+    task-param-items.example.json
+    task-params-v2.example.json
   <task-family>/
     README.md                     # 使用、参数/结果、开发与发行入口
     src/
@@ -28,11 +36,14 @@ task-packs/
 | 类型 | 所有权 |
 | --- | --- |
 | 独立 Controller Task | task-packs/<task-family>/；用户也可在已授权的外部本地项目目录开发 |
-| 普通教学/本机 fixture | examples/tasks/ 或既有 examples/programs/；不冒充正式包 |
+| Controller 参数作者示例、派生数据 | task-packs/examples/；唯一作者入口，不是 Task family 或正式包 |
+| 既有浏览器测试 Lab、历史任务夹具、HTTP 服务 | 保留 examples/tasks/；Page/Controller 多文件项目示例保持 examples/programs/ |
 | Sidebar Tool / WebFlow / Subagent | projects/<id>/ 或既有唯一产品 owner |
 | Page USER_SCRIPT | 原 Page Program 目录及独立 Page 安装合同 |
 | 公共参数、包校验、安装、运行、权限、计划、UI | 原框架模块 src/；不含网站业务特判 |
 | 通用编译、验证、维护工具 | scripts/；不存放用户可安装业务脚本 |
+
+`examples/` 是保留分类名，不得作为业务 family、Task ID、releases 目录、默认安装项、市场发行项或固定预置资源。现有发行入口只读取经审核的精确资源清单；不得为方便发现而自动递归安装该目录。旧测试 Lab 的 43111 服务根和历史夹具位置保持不变。
 
 仅创建当前需要的文件和目录；最小独立单文件 Task 不要求 npm、React、Vue、自定义 HTML 或空 tests/contracts。真实运行入口、权限、版本等安装配置沿用已有 Task Manifest/本地项目格式，不能只凭头部注释决定权限。
 
@@ -46,7 +57,7 @@ task-packs/
 | [google.search](google.search/README.md) | google.search.top3@1.0.7 默认预置资源；google.search.interaction.top3@1.0.0 独立冻结候选，不是稳定版升级 |
 | [chatgpt.conversation.create](chatgpt.conversation.create/README.md) | 0.2.2 可选目录版本；保留 0.1.0、0.2.0、0.2.1、0.3.0 精确字节，0.3.0 不自动升级/执行 |
 
-参数教学优先参考 [task-params-minimal.example.js](../examples/tasks/task-params-minimal.example.js)（两个参数与零参数 main()）；需要控件全覆盖时再读 [task-params-header.example.js](../examples/tasks/task-params-header.example.js)（14 参数、12 类控件）。两者均是无副作用参考 Controller 源码，归 examples/tasks/，不是正式发行、默认预置或已安装任务。`many-params-preview` 只是原型的离线模拟数据，不为其创建 web-organizer 业务脚本或发行包。参考静态解析器已存在，但 v2 正式准入与生产构建仍待实现。
+参数教学优先参考 [task-params-minimal.example.js](examples/task-params-minimal.example.js)（两个参数与零参数 main()）；需要控件全覆盖时再读 [task-params-header.example.js](examples/task-params-header.example.js)（14 参数、12 类控件）。两者均是无副作用参考 Controller 源码，归 task-packs/examples/，不是正式发行、默认预置或已安装任务。`many-params-preview` 只是原型的离线模拟数据，不为其创建 web-organizer 业务脚本或发行包。参考静态解析器已存在，但 v2 正式准入与生产构建仍待实现。
 
 ## 3. 普通作者的开发到安装流程
 

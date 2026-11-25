@@ -20,7 +20,7 @@ async function main() {
 }
 ```
 
-[最小双参数脚本文件](../../examples/tasks/task-params-minimal.example.js) 是日常作者和 AI 的首选参考：同一个 JS 文件同时包含参数声明与业务代码；只返回 keyword、limit，无网页、网络或其他业务副作用。[完整 14 参数脚本文件](../../examples/tasks/task-params-header.example.js) 仅为完整控件覆盖的唯一 fixture 作者源，对应派生 JSON 和 R9 离线预览，不是业务任务。两个示例用途不同，均不可直接视为正式安装包。预览中的 `many-params-preview`（批量整理网页）只是模拟数据，不创建 web-organizer 业务项目、Task ID、发行包或默认安装项。真实独立业务脚本只归 `task-packs/<task-family>/` 或既有已核实 owner。现有 [编译器](../../scripts/compile-task-param-items.mjs) 新增 parseTaskParamsHeader(source) 与 compileTaskSourceParams(source)，前者返回 R10.1 中间结构，后者复用 compileParamItems 生成 R10 v2 标准契约。R10.1 JSON 降为派生中间数据，不再推荐手工维护。**这是参考静态解析器与转换器，尚未接入正式构建、开发、安装、运行或 Chrome；当前宿主仍只接受 legacy v1。** 不可直接把示例作为固定任务包安装。
+[最小双参数脚本文件](../../task-packs/examples/task-params-minimal.example.js) 是日常作者和 AI 的首选参考：同一个 JS 文件同时包含参数声明与业务代码；只返回 keyword、limit，无网页、网络或其他业务副作用。[完整 14 参数脚本文件](../../task-packs/examples/task-params-header.example.js) 仅为完整控件覆盖的唯一 fixture 作者源，对应派生 JSON 和 R9 离线预览，不是业务任务。两个示例用途不同，均不可直接视为正式安装包。预览中的 `many-params-preview`（批量整理网页）只是模拟数据，不创建 web-organizer 业务项目、Task ID、发行包或默认安装项。真实独立业务脚本只归 `task-packs/<task-family>/` 或既有已核实 owner。现有 [编译器](../../scripts/compile-task-param-items.mjs) 新增 parseTaskParamsHeader(source) 与 compileTaskSourceParams(source)，前者返回 R10.1 中间结构，后者复用 compileParamItems 生成 R10 v2 标准契约。R10.1 JSON 降为派生中间数据，不再推荐手工维护。**这是参考静态解析器与转换器，尚未接入正式构建、开发、安装、运行或 Chrome；当前宿主仍只接受 legacy v1。** 不可直接把示例作为固定任务包安装。
 
 ### 一行声明语法
 
@@ -53,7 +53,7 @@ async function main() {
 
 ### 编译、压缩、安装及运行的封版门禁（R10.3）
 
-**作者源和发布产物是两个阶段，不是两套手工配置。** 独立脚本归 [task-packs/](../../task-packs/README.md)，示例仍归 examples/tasks。Controller 现有 ABI 是零参数 `main()`，运行器在受控 AsyncBody 中提供词法 params；不得将 `main(params)` 或 `main({keyword})` 当新标准。多文件 ESM 保留已有兼容包装器，不改 Worker ABI。见 [Controller 文档](controller.zh-CN.md)。
+**作者源和发布产物是两个阶段，不是两套手工配置。** 独立脚本归 [task-packs/](../../task-packs/README.md)，示例仍归 task-packs/examples。Controller 现有 ABI 是零参数 `main()`，运行器在受控 AsyncBody 中提供词法 params；不得将 `main(params)` 或 `main({keyword})` 当新标准。多文件 ESM 保留已有兼容包装器，不改 Worker ABI。见 [Controller 文档](controller.zh-CN.md)。
 
 真实源码审计（`122c7167b5b2eaef183fb674b7d773d8d27ccce5`）：`src/scripting/sandbox/worker-runtime.js` 调用 await main()；`scripts/build-program-project.mjs` 生产构建启用 Webpack/Terser，extractComments:false，不保证保留参数注释，且当前 Manifest 仍仅从 project.paramsSchema 取参数；`src/platform/tasks/contract.js` 尚拒绝 v2 参数字段。R10.2 参考解析器在 scripts/compile-task-param-items.mjs，尚未进入上述正式链路。以下是 R11 的实施门禁，不是已实现功能。
 
@@ -72,13 +72,13 @@ async function main() {
 
 ### R11 静态提取阶段进展（非正式运行验收）
 
-已将参数解析的前导注释扫描抽取为 `src/scripting/source-trivia.js`，供参考解析器和原依赖元数据解析器共享。保持既有声明语法及编译投影，支持合法前导版权注释、独立依赖声明和 UTF-8 64 KiB 参数头部限制，拒绝代码前的重复、残缺标记。新增 `tests/environment/task-param-header-r11.test.mjs`；隔离 Node 22 环境针对经 Git blob SHA 核验的解析器及两份示例执行 6 项测试，均通过。该结果不等于全仓测试、依赖元数据完整回归、生产压缩、正式安装或 Chrome 运行已通过。原 v2 正式准入、构建、UI 和 Authority 接入仍待实施。教学与测试仍复用 examples/tasks/ 现有两份 JS；不创建虚构 task-packs 业务或默认安装项。
+已将参数解析的前导注释扫描抽取为 `src/scripting/source-trivia.js`，供参考解析器和原依赖元数据解析器共享。保持既有声明语法及编译投影，支持合法前导版权注释、独立依赖声明和 UTF-8 64 KiB 参数头部限制，拒绝代码前的重复、残缺标记。新增 `tests/environment/task-param-header-r11.test.mjs`；隔离 Node 22 环境针对经 Git blob SHA 核验的解析器及两份示例执行 6 项测试，均通过。该结果不等于全仓测试、依赖元数据完整回归、生产压缩、正式安装或 Chrome 运行已通过。原 v2 正式准入、构建、UI 和 Authority 接入仍待实施。教学与测试复用 [task-packs/examples/](../../task-packs/examples/README.md) 的两份 JS；R11 目录迁移将两份 JS 及两份派生 JSON 保持原字节移动至此，更新文档、Skill、测试与预览引用。旧 Lab 不搬迁，不创建虚构业务或默认安装项。
 
 ### todo-user 兼容与未来统一
 
 只读核验 `shopable-ai/todo-user@4edb7d0b59f008684c43f6c6213cf46d8d6e548b` 的 `src/modules/operate/views/script.vue`、`src/modules/operate/utils/UtilScrpt.ts`、`src/modules/operate/service/script.api.ts`。旧系统分别保存 content、params、init；params 示例为 { content:true, title:false }，true 表示必填、false 表示可选；doRunByDeviceId 通过 JSON.parse 判定是否需要输入窗口，再将输入赋回 row.params；formatJSON 使用 eval。旧语义没有声明控件和真实类型，不能把 true/false 当成布尔运行值，也不能擅自推断所有类型为 string。后续先核查服务端及真实调用数据，再设计 legacy adapter；应区分脚本定义（源码头部或生成的 schema）与每次运行 params，逐任务迁移。删除 eval 应在 todo-user 自己的兼容任务中进行；本轮不修改 todo-user，也不共用 OpenDesk 浏览器权限、运行身份或宿主。
 
-维护：只修改 examples/tasks/task-params-header.example.js 的文本声明，重新生成 examples/tasks/task-param-items.example.json 及 examples/tasks/task-params-v2.example.json，并同步现有离线 HTML 与文档派生片段。新增测试与既有测试分别核对源→IR→标准契约、标准契约→HTML/MD。定向 Node：`node --test tests/environment/task-param-items.test.mjs tests/environment/task-params-contract-r10.test.mjs`。正式 R11 应接入原构建、TaskWorkbench 和统一 v2 语义验证，不新增第二套安装器或渲染器。
+维护：只修改 task-packs/examples/task-params-header.example.js 的文本声明，重新生成 task-packs/examples/task-param-items.example.json 及 task-packs/examples/task-params-v2.example.json，并同步现有离线 HTML 与文档派生片段。新增测试与既有测试分别核对源→IR→标准契约、标准契约→HTML/MD。定向 Node：`node --test tests/environment/task-param-items.test.mjs tests/environment/task-params-contract-r10.test.mjs`。正式 R11 应接入原构建、TaskWorkbench 和统一 v2 语义验证，不新增第二套安装器或渲染器。
 
 ## 1. 三层契约、版本和唯一来源
 
@@ -91,7 +91,7 @@ async function main() {
 
 选用 JSON Schema Draft 2020-12 的**明确子集**作为语法基础，而非完整实现。参考 [标准](https://json-schema.org/draft/2020-12) 与 [JSON Forms UI Schema](https://jsonforms.io/docs/uischema/)。OpenDesk 特有行为：补入缺失字段的 default；对已支持的 format 做强制语义断言；限制字段、类型、格式与关键字。禁止远程 schema、$ref、$dynamicRef、组合条件、任意 JS/HTML/组件名、动态表达式、网络解析。通用 Schema 验证器可能不填 default、不检查 format 或不拒绝未知关键字，不能替代 OpenDesk 语义准入。组件数组方案耦合 UI，纯 Schema 自动推断不能表达 textarea、slider、radio、switch 和单位，因此选择分层方案。
 
-[机器元 Schema](../../schemas/opendesk-task-params.v2.schema.json) 验证**声明形状**：结构、字段白名单、类型和大小；不能证明 default 合法、跨字段引用一致或 widget 兼容。语义以下文为准，下一轮在既有 checkParamsSchema / validateTaskParams 中实现，不在各 UI 再造验证器。 [脚本头部文本示例](../../examples/tasks/task-params-header.example.js) 是演示作者源；[paramItems 中间 JSON](../../examples/tasks/task-param-items.example.json) 与 [完整多参数 JSON](../../examples/tasks/task-params-v2.example.json) 是其确定性编译产物，离线 HTML 的内嵌镜像由定向测试比对，不运行时联网。只修改作者源，重新编译并同步内嵌对象及文档派生片段，再运行一致性测试；不得改动列表或已定窗口布局。
+[机器元 Schema](../../schemas/opendesk-task-params.v2.schema.json) 验证**声明形状**：结构、字段白名单、类型和大小；不能证明 default 合法、跨字段引用一致或 widget 兼容。语义以下文为准，下一轮在既有 checkParamsSchema / validateTaskParams 中实现，不在各 UI 再造验证器。 [脚本头部文本示例](../../task-packs/examples/task-params-header.example.js) 是演示作者源；[paramItems 中间 JSON](../../task-packs/examples/task-param-items.example.json) 与 [完整多参数 JSON](../../task-packs/examples/task-params-v2.example.json) 是其确定性编译产物，离线 HTML 的内嵌镜像由定向测试比对，不运行时联网。只修改作者源，重新编译并同步内嵌对象及文档派生片段，再运行一致性测试；不得改动列表或已定窗口布局。
 
 ## 2. 当前正式 v1（legacy）与最小可用配置
 
@@ -140,7 +140,7 @@ paramsUi 可省略。version 仅 1；order 若存在必须为全部字段的完�
 | time | string 固定时刻 pattern 默认或显式 | afterTime 无默认，可传 "09:30" | HH:mm；钟表时刻 |
 | url | string format:uri 默认或显式 | startUrl 无默认，可传 "https://example.com/" | HTTP(S) 校验，不替代授权；起始网址 |
 
-各控件完整 JSON 定义见 [14 字段示例](../../examples/tasks/task-params-v2.example.json)，覆盖全部 12 个控件，不是安装包。枚举通过 index 或无碰撞 typed token 映射，不能用 String(value) 当选择身份。未设置的可选 checkbox/switch/multi-checkbox 必须有未设置状态，不等于 false/[]；required 无 default 必须用户明确选择，不自动选第一项。const 或单项 enum 推导固定值：已提供/有 default 时展示为固定只读；缺失时不凭空填入，必填无 default 仍需确认该值。任意只读/隐藏配置不属于 P0，隐藏不是安全措施。
+各控件完整 JSON 定义见 [14 字段示例](../../task-packs/examples/task-params-v2.example.json)，覆盖全部 12 个控件，不是安装包。枚举通过 index 或无碰撞 typed token 映射，不能用 String(value) 当选择身份。未设置的可选 checkbox/switch/multi-checkbox 必须有未设置状态，不等于 false/[]；required 无 default 必须用户明确选择，不自动选第一项。const 或单项 enum 推导固定值：已提供/有 default 时展示为固定只读；缺失时不凭空填入，必填无 default 仍需确认该值。任意只读/隐藏配置不属于 P0，隐藏不是安全措施。
 
 ### 12 类控件的 JSON 示例
 
