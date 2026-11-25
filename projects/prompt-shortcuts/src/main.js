@@ -1183,14 +1183,25 @@ root.addEventListener('opendesk-tool-navigation',event=>{
   else if(event.detail?.action==='primary'&&mode==='index')start();
   else if(event.detail?.action==='secondary'&&mode==='index')toggleTransfer();
 });
+function dismissListActions(event){
+  const id=pendingDelete??expanded;
+  if(!id)return false;
+  event.preventDefault();
+  if(!busy){
+    if(pendingDelete)pendingDelete=null;else expanded=null;
+    render();focusListAction(id,'more');
+  }
+  return true;
+}
 root.addEventListener('keydown',event=>{
-  if(event.key!=='Escape')return;
-  if(busy&&(pendingDelete||expanded)){event.preventDefault();return;}
-  if(pendingDelete){const id=pendingDelete;pendingDelete=null;render();focusListAction(id,'more');event.preventDefault();}
-  else if(expanded){const id=expanded;expanded=null;render();focusListAction(id,'more');event.preventDefault();}
-  else if(!el('ps-transfer-menu').hidden){closeTransfer();restoreTransferFocus();event.preventDefault();}
+  if(event.key!=='Escape'||dismissListActions(event))return;
+  if(!el('ps-transfer-menu').hidden){closeTransfer();restoreTransferFocus();event.preventDefault();}
   else if(stagedImport&&!busy&&!transferBusy){discardImport();restoreTransferFocus();event.preventDefault();}
   else if(mode==='detail'){back();event.preventDefault();}
+});
+// A pointer click on action padding can move focus to the sandbox body.
+root.ownerDocument.addEventListener('keydown',event=>{
+  if(event.key==='Escape'&&event.target===root.ownerDocument.body)dismissListActions(event);
 });
 // The sandbox intentionally disallows forms. Native button activation must
 // save directly, without relying on the browser dispatching a submit event.

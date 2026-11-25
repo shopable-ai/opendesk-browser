@@ -407,9 +407,13 @@ async function run(){
         await clickPoint(blank);
         assert.equal(await evaluate('!document.querySelector("#ps-index").hidden&&document.querySelector("#ps-detail").hidden&&!!document.querySelector(".ps-more")'),true,
           'blank action padding must neither open detail nor close More');
+        await pressKey('Escape',27);
+        await poll('!document.querySelector(".ps-more")','Escape after clicking '+selector);
+        assert.equal(await evaluate('document.activeElement.matches('+JSON.stringify(moreSelector)+')&&document.activeElement.getAttribute("aria-expanded")==="false"'),
+          true,'Escape after clicking '+selector+' must restore focus to More');
+        await click(moreSelector);
       }
       assert.equal(await evaluate('globalThis.__readFormalToolStore().revision'),revision,'blank clicks must not write');
-      await click(moreSelector);await click(moreSelector);
       assert.equal(await focusedAction(),'edit');
       for(const action of ['toggle','copy','delete']){
         await pressKey('Tab',9);

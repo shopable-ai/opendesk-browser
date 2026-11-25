@@ -344,8 +344,12 @@ async function run(){
         await clickPoint(blank);
         assert.equal(await evalChrome('!document.querySelector("#indexView").hidden&&document.querySelector("#detailView").hidden&&!!document.querySelector(".prompt-more")'),true,
           'blank action padding must neither open detail nor close More');
+        await pressKey('Escape','Escape',27);
+        assert.equal(await evalChrome('document.querySelector(".prompt-more")===null'),true,'Escape after clicking '+selector);
+        assert.equal(await evalChrome('document.activeElement.matches('+JSON.stringify(moreSelector)+')&&document.activeElement.getAttribute("aria-expanded")==="false"'),
+          true,'Escape after clicking '+selector+' must restore focus to More');
+        await click(moreSelector);
       }
-      await click(moreSelector);await click(moreSelector);
       assert.equal(await focusedLabel(),'编辑');
       for(const label of ['停用','下移','复制','删除']){
         await pressKey('Tab','Tab',9);

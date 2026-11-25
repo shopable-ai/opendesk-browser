@@ -86,7 +86,7 @@ async function fixture({deferWrites=false,deferReadback=false,deferSiteWrites=fa
   const root={
     ownerDocument:{createElement:tag=>new FakeNode(tag),createElementNS:(_ns,tag)=>new FakeNode(tag),
       execCommand:cmd=>{assert.equal(cmd,'copy');copies.push(nodes['ps-clipboard-buffer'].value);return true;},
-      activeElement:null},
+      activeElement:null,addEventListener(){}},
     querySelector(selector){
       if(selector==='.ps')return page;
       if(selector.startsWith('#'))return nodes[selector.slice(1)]||null;
