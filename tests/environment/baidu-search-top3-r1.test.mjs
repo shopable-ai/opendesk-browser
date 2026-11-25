@@ -16,8 +16,9 @@ test('Baidu Task package is importable and pins identical source and manifest by
   assert.equal(pkg.manifest.program.revision,1);
   assert.equal(pkg.manifest.deadlineMs,120000);
   assert.deepEqual(pkg.manifest.siteOrigins,['https://www.baidu.com']);
-  assert.equal(pkg.sourceUtf8,src);
-  assert.equal(pkg.manifest.program.sourceHash,sha(src));
+  assert.match(src,/^\/\/ ==OpenDeskParams==\n/);
+  assert.equal(src.slice(src.indexOf('\n\n')+2),pkg.sourceUtf8);
+  assert.equal(pkg.manifest.program.sourceHash,sha(pkg.sourceUtf8));
   assert.equal(pkg.manifestHash,sha(canonical(pkg.manifest)));
   assert.deepEqual(pkg.manifest.paramsSchema.properties.limit.enum,[3]);
 });

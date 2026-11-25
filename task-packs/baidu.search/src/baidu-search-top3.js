@@ -1,3 +1,10 @@
+// ==OpenDeskParams==
+// @version 1
+// @param text query "搜索关键词" required minLength=1 maxLength=120
+// @param number limit "结果数量" required const=3 default=3
+// @param switch showExecutionTab "显示执行标签页" default=true
+// ==/OpenDeskParams==
+
 // Fixed Controller Task. Homepage: one visible search; other Baidu pages: one same-origin navigation.
 // Locator operations are ISOLATED DOM actions, not operating-system keyboard/mouse events.
 async function main() {

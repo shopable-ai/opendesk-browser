@@ -86,7 +86,7 @@ async function main() {
 
 **语义核心增量（R11.2）**：`src/platform/tasks/params-v2.js` 实现 v2 声明/值/UI 语义检查、精确十进制步长、真实日历/时间/HTTP(S) URL、唯一枚举数组、默认值补齐与 64 KiB 输入及输出预算。`checkParamsSchema(schema,2,paramsUi)` 和 `validateTaskParams(schema,params,2,paramsUi)` 显式分派；缺省仍为原 legacy，未知版本拒绝。`compileTaskSourceParams` 在源头投影后调用同一语义核心。`validateTaskManifest` 暂仍拒绝 v2，避免未接入版本字段的 UI、调度、Authority 和安装消费者提前接受新包。已安装任务真实准入拒绝 undefined（metadata sentinel），旧包的声明约束不改变。隔离 Node 22 使用现有 protocol 的相关导出代码执行 `node --test tests/environment/task-params-v2-semantics-r11.test.mjs`，7/7 通过；测试源码和语义核心 Git blob 与此提交一致。不是全仓依赖、原 Authority/Local UI 组件、生产构建或 Chrome 通过；新增 R10 分派及静态头部回归仍待在完整环境执行。
 
-百度稳定 1.1.6、Google 稳定 1.0.7、Google interaction 1.0.0 的活动源码仍无 @param，三者 legacy 参数均为 query（必填、1–120）、limit（固定 3、默认 3、required）和 showExecutionTab（默认 true、可选）。新版本应保持这些业务语义，以 const=3 表达固定值，保留原参数名和零参数 main()，不把 Top3 改为可变数量或删除业务非空白检查。先完成通用 v2 准入与正式构建，再由活动作者源码生成新版本候选；冻结旧发行包及 pin 不重写，interaction 不晋升为默认任务。
+百度稳定 1.1.6、Google 稳定 1.0.7、Google interaction 1.0.0 对应的三个活动作者源码已添加 @param：query 必填、1–120，limit 固定 const=3、默认 3、required，showExecutionTab 开关默认 true、可选。迁移仅添加声明头部，业务正文逐字保留，零参数 main()、业务非空白检查与站点权限不变。旧发行包与 pin 保持原字节；新增真实源码/冻结包/静态语义回归，尚未在完整环境执行。先完成通用 v2 准入与正式构建，再生成独立新版本候选；interaction 不晋升为默认任务。现有业务 query.length 为 UTF-16 长度，v2 minLength/maxLength 为 Unicode code point；新发行前需对齐边界与旧版兼容测试，不能以删除业务检查掩盖。
 
 ## 1. 三层契约、版本和唯一来源
 

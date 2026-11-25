@@ -271,7 +271,9 @@ test('Baidu package matches source, version, schema defaults, and builtin releas
   const pkg=JSON.parse(await readFile(new URL('../releases/baidu.search.top3.v1.opendesk-task.json',import.meta.url),'utf8'));
   await verifyTaskPackage(pkg);
   await assertPackagedTask(pkg);
-  assert.equal(pkg.sourceUtf8,await readFile(new URL('../src/baidu-search-top3.js',import.meta.url),'utf8'));
+  const authorSource=await readFile(new URL('../src/baidu-search-top3.js',import.meta.url),'utf8');
+  assert.match(authorSource,/^\/\/ ==OpenDeskParams==\n/);
+  assert.equal(authorSource.slice(authorSource.indexOf('\n\n')+2),pkg.sourceUtf8);
   assert.equal(pkg.manifest.version,'1.1.6');
   assert.deepEqual(pkg.manifest.siteOrigins,['https://www.baidu.com']);
   assert.deepEqual(pkg.manifest.permissions,['page.automation']);

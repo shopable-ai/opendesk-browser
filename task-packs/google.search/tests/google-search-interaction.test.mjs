@@ -105,8 +105,9 @@ test('interaction package verifies its independent identity, exact source, Origi
   assert.equal(pkg.manifest.taskId, 'google.search.interaction.top3');
   assert.equal(pkg.manifest.version, '1.0.0');
   assert.notEqual(pkg.manifest.taskId, 'google.search.top3');
-  assert.equal(pkg.sourceUtf8, source);
-  assert.equal(pkg.manifest.program.sourceHash, await digestUtf8(source));
+  assert.match(source,/^\/\/ ==OpenDeskParams==\n/);
+  assert.equal(source.slice(source.indexOf('\n\n')+2),pkg.sourceUtf8);
+  assert.equal(pkg.manifest.program.sourceHash, await digestUtf8(pkg.sourceUtf8));
   assert.deepEqual(pkg.manifest.siteOrigins, ['https://www.google.com']);
   assert.deepEqual(pkg.manifest.permissions, ['page.automation']);
   for (const extra of [{}, {showExecutionTab: true}, {showExecutionTab: false}]) {

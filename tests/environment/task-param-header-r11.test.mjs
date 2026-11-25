@@ -3,6 +3,7 @@ import assert from 'node:assert/strict';
 import {readFileSync} from 'node:fs';
 import {compileTaskSourceParams,parseTaskParamsHeader} from '../../scripts/compile-task-param-items.mjs';
 import {leadingLineComments} from '../../src/scripting/source-trivia.js';
+import {validateTaskParams,verifyTaskPackage} from '../../src/platform/tasks/contract.js';
 
 const read=name=>readFileSync(new URL('../../task-packs/examples/'+name,import.meta.url),'utf8');
 const minimal=read('task-params-minimal.example.js');
@@ -27,12 +28,7 @@ test('source projection passes the shared v2 semantic validator before build',()
     full.replace('@param date since "更新日期"','@param date since "更新日期" default="2026-02-30"')]){
     assert.throws(()=>compileTaskSourceParams(broken),{code:'E_SCHEMA'});
   }
-  const frozen='// ==OpenDeskParams==\n// @version 1\n// @param text query "搜索关键词" required minLength=1 maxLength=120\n// @param number limit "结果数量" required const=3 default=3\n// @param switch showExecutionTab "显示执行标签页" default=true\n// ==/OpenDeskParams==\n';
-  const v=compileTaskSourceParams(frozen+'async function main() {}');
-  assert.equal(v.paramsSchema.properties.limit.const,3);
-  assert.deepEqual(v.paramsSchema.required,['query','limit']);
-  assert.equal(v.paramsSchema.properties.showExecutionTab.default,true);
-  assert.equal(v.paramsUi.fields.showExecutionTab.widget,'switch');
+
 });
 
 test('copyright and separate dependency declarations coexist in either order',()=>{
@@ -79,5 +75,31 @@ test('parameter authoring examples share one home; derived data agrees with sour
   assert.deepEqual(compileTaskSourceParams(full),JSON.parse(read('task-params-v2.example.json')));
   for(const name of ['task-params-minimal.example.js','task-params-header.example.js','task-param-items.example.json','task-params-v2.example.json']){
     assert.throws(()=>readFileSync(new URL('../../examples/tasks/'+name,import.meta.url)),{code:'ENOENT'});
+  }
+});
+
+
+test('real search author sources declare v2; legacy frozen packages and business bodies remain identical',async()=>{
+  const prefix="// ==OpenDeskParams==\n// @version 1\n// @param text query \"搜索关键词\" required minLength=1 maxLength=120\n// @param number limit \"结果数量\" required const=3 default=3\n// @param switch showExecutionTab \"显示执行标签页\" default=true\n// ==/OpenDeskParams==\n\n";
+  for(const [authorPath,releasePath,version] of [["task-packs/baidu.search/src/baidu-search-top3.js","task-packs/baidu.search/releases/baidu.search.top3.v1.opendesk-task.json","1.1.6"],["task-packs/google.search/src/google-search-top3.js","task-packs/google.search/releases/google.search.top3.v1.opendesk-task.json","1.0.7"],["task-packs/google.search/src/google-search-interaction-top3.js","task-packs/google.search/releases/google.search.interaction.top3.v1.opendesk-task.json","1.0.0"]]){
+    const source=readFileSync(new URL('../../'+authorPath,import.meta.url),'utf8');
+    const pkg=JSON.parse(readFileSync(new URL('../../'+releasePath,import.meta.url),'utf8'));
+    await verifyTaskPackage(pkg);
+    assert.equal(pkg.manifest.version,version);
+    assert.equal(source,prefix+pkg.sourceUtf8);
+    assert.equal(pkg.manifest.paramsSchemaVersion,undefined);
+    const {paramsSchemaVersion,paramsSchema,paramsUi}=compileTaskSourceParams(source);
+    assert.equal(paramsSchemaVersion,2);
+    assert.deepEqual(paramsSchema.properties.query,pkg.manifest.paramsSchema.properties.query);
+    assert.equal(paramsSchema.properties.limit.const,3);
+    assert.equal(paramsSchema.properties.limit.default,3);
+    assert.deepEqual(paramsSchema.required,pkg.manifest.paramsSchema.required);
+    assert.deepEqual(paramsSchema.properties.showExecutionTab,pkg.manifest.paramsSchema.properties.showExecutionTab);
+    assert.equal(paramsUi.fields.showExecutionTab.widget,'switch');
+    const normalize=params=>validateTaskParams(paramsSchema,params,paramsSchemaVersion,paramsUi);
+    assert.deepEqual(normalize({query:'test'}),{query:'test',limit:3,showExecutionTab:true});
+    assert.deepEqual(normalize({query:'test',showExecutionTab:false}),{query:'test',limit:3,showExecutionTab:false});
+    for(const input of [{},{query:''},{query:'test',limit:4},{query:'test',showExecutionTab:'false'},{query:'test',other:1}])
+      assert.throws(()=>normalize(input));
   }
 });

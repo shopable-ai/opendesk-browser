@@ -1,6 +1,6 @@
 # Google 搜索任务
 
-本目录是两个 Controller Task 的业务源码、固定包和定向测试 owner。它们使用同一公开 Controller SDK，身份独立；本轮没有修改稳定版、内置目录或框架。
+本目录是两个 Controller Task 的业务源码、固定包和定向测试 owner。它们使用同一公开 Controller SDK，身份独立。
 
 | 任务 | 固定版本 | 行为 |
 | --- | --- | --- |
@@ -8,6 +8,8 @@
 | `google.search.interaction.top3` | `1.0.0` | 输入与点击测试版；填写、读回、等待建议层搜索按钮、点击一次，再读取前三条自然结果。 |
 
 输入与点击版源码为 [google-search-interaction-top3.js](src/google-search-interaction-top3.js)，包为 [google.search.interaction.top3.v1.opendesk-task.json](releases/google.search.interaction.top3.v1.opendesk-task.json)。它不是稳定任务的升级包。
+
+R11.2：两个活动作者源码均新增 `@param` 头部（query、固定 limit=3、showExecutionTab），业务正文与各自冻结包逐字一致。1.0.7、1.0.0 及既有 pin 未修改；新 v2 包须在通用构建、安装、运行接入与验收后另发新版本，不把 interaction 作为默认任务。参见 [参数规范](../../docs/api/task-params.zh-CN.md)。
 
 参数示例：
 

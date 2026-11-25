@@ -28,13 +28,15 @@ async function run({url='https://www.google.com/',challenge=false,foregroundErro
 }
 test('Google fixed package pins exact source and approved Origin',async()=>{
   const pkg=JSON.parse(await readFile(new URL('../releases/google.search.top3.v1.opendesk-task.json',import.meta.url),'utf8'));
-  await verifyTaskPackage(pkg);await assertPackagedTask(pkg);assert.equal(pkg.sourceUtf8,source);
+  await verifyTaskPackage(pkg);await assertPackagedTask(pkg);
+  assert.match(source,/^\/\/ ==OpenDeskParams==\n/);
+  assert.equal(source.slice(source.indexOf('\n\n')+2),pkg.sourceUtf8);
   assert.equal(pkg.manifest.version,'1.0.7');
   for(const extra of [{},{showExecutionTab:true},{showExecutionTab:false}]){
     assert.equal(validateTaskParams(pkg.manifest.paramsSchema,{query:'OpenDesk Browser',limit:3,...extra}).showExecutionTab,extra.showExecutionTab!==false);
   }
   for(const value of [undefined,null,'true',0,{},[]])assert.throws(()=>validateTaskParams(pkg.manifest.paramsSchema,{query:'OpenDesk Browser',limit:3,showExecutionTab:value}));
-  assert.equal(pkg.manifest.program.sourceHash,await digestUtf8(source));
+  assert.equal(pkg.manifest.program.sourceHash,await digestUtf8(pkg.sourceUtf8));
   assert.deepEqual(pkg.manifest.siteOrigins,['https://www.google.com']);
   assert.deepEqual(pkg.manifest.permissions,['page.automation']);
 });
