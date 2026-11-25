@@ -1,0 +1,23 @@
+{
+  "name": "@opendesk-apps/job-auto-apply",
+  "version": "0.1.1",
+  "private": true,
+  "type": "module",
+  "description": "AI Job Auto Apply 的同包、只读 BOSS 职位发现 Page 模块",
+  "opendesk": {
+    "format": "opendesk.project.v1",
+    "id": "app.job-auto-apply",
+    "runtimeKind": "page-userscript",
+    "sourceFormat": "esm",
+    "entry": "src/page/main.js",
+    "pageRules": {
+      "matches": [
+        "https://www.zhipin.com/web/geek/job*"
+      ],
+      "excludeMatches": [],
+      "runAt": "document_idle",
+      "allFrames": false,
+      "world": "USER_SCRIPT"
+    }
+  }
+}

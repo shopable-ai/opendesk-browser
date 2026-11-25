@@ -1,0 +1,452 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>AI Job Auto Apply · BOSS 页面内嵌 + 侧栏交互预览</title>
+<style>
+:root{color-scheme:light;--ink:#202b32;--muted:#66757b;--border:#e1e7e6;--surface:#fff;--bg:#f4f6f5;--primary:#178268;--weak:#e9f5ef;--warn:#995d1d;--red:#aa3b3b;--radius:12px}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--ink);font:13px/1.55 -apple-system,BlinkMacSystemFont,"PingFang SC","Microsoft YaHei",sans-serif}button,input,select,textarea{font:inherit}button{cursor:pointer}button:disabled{cursor:not-allowed;opacity:.48}button:focus-visible,[role=button]:focus-visible,input:focus-visible,select:focus-visible,textarea:focus-visible{outline:2px solid #239d80;outline-offset:2px}button{transition:background .14s,border-color .14s}h1,h2,h3,p{margin:0}.muted{color:var(--muted)}.small{font-size:11px}.strong{font-weight:700}
+.previewbar{background:#152e2b;color:#fff;padding:12px max(16px,calc((100% - 1500px)/2));display:flex;justify-content:space-between;align-items:center;gap:14px;flex-wrap:wrap}.previewbar h1{font-size:15px;font-weight:740}.previewbar .note{color:#c2d6d2;font-size:11px}.preview-control{display:flex;gap:8px;align-items:center;flex-wrap:wrap}.preview-control label{font-size:11px;color:#d4e4e0}.preview-control select,.preview-control button{border:1px solid #6f8e86;border-radius:8px;background:#24433e;color:white;padding:7px 10px}.container{max-width:1500px;margin:auto;padding:14px}.intro{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:12px;color:#4d6761;font-size:12px}.intro .light{display:inline-block;border:1px solid #d1dfda;border-radius:50px;padding:3px 9px;background:white}.workspace{display:grid;grid-template-columns:minmax(580px,1fr) 345px;gap:14px;align-items:start}.browser,.sidebar{border:1px solid #d9e1df;background:white;border-radius:14px;box-shadow:0 7px 25px #163d2920;overflow:hidden}.browser{min-height:685px}.sitehead{height:48px;background:#fff;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;padding:0 20px;gap:12px}.bossmark{font-size:16px;font-weight:800;letter-spacing:.1px;color:var(--primary)}.sitehead .site-nav{color:#60716b;display:flex;gap:20px;align-items:center}.pagebar{padding:13px 18px;background:#fbfcfb;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;gap:10px}.search{border-radius:8px;background:#fff;border:1px solid #d9e4df;padding:7px 12px;color:#40534c;display:flex;gap:14px;align-items:center}.search strong{font-size:12px}.search .sep{color:#d2dbd6}.sitecontent{display:grid;grid-template-columns:295px minmax(0,1fr);min-height:570px}.joblist{border-right:1px solid var(--border);background:#fbfcfb;padding:13px 10px}.listhead{font-size:12px;font-weight:700;margin:2px 8px 8px}.jobitem{position:relative;padding:12px;border-radius:9px;border:1px solid transparent;margin-bottom:7px;cursor:pointer;background:white}.jobitem:hover{border-color:#cadbd2}.jobitem.selected{border-color:#91cab5;background:#f0f9f4}.jobitem h3{font-size:13px;line-height:1.4;margin-right:34px}.jobitem .salary{color:#d17932;font-weight:800;font-size:13px}.jobitem .info{color:#62726e;font-size:11px;margin-top:5px}.jobitem .quick{margin-top:8px;display:flex;justify-content:space-between;align-items:center;border-top:1px solid #e7eeea;padding-top:7px;font-size:11px;gap:5px}.quicktag{color:#107458;font-weight:700}.quicktag.reject{color:#a35e37}.quicktag.unknown{color:#9c6522}.quicktag.off{color:#94a2a0;font-weight:400}.detail{padding:18px 21px;min-width:0}.detailtop{display:flex;align-items:flex-start;justify-content:space-between;gap:10px}.detailtop h2{font-size:19px}.detailtop .salary{font-size:17px;font-weight:780;color:#d17b28}.tags{display:flex;gap:6px;flex-wrap:wrap;margin:12px 0}.tag{background:#f0f4f2;border:1px solid #e4ebe7;border-radius:5px;padding:2px 7px;color:#61726b;font-size:11px}.detail h3{font-size:13px;margin:13px 0 8px}.jd{line-height:1.9;white-space:pre-line;font-size:12px;color:#4e5c57;border-bottom:1px solid #e8eeea;padding-bottom:14px}.hr{display:flex;gap:8px;align-items:center;color:#50675e;padding-top:9px}.avatar{display:grid;place-items:center;width:28px;height:28px;border-radius:100%;background:#e9efeb;color:#678277;font-weight:650}.original-cta{background:#e8f4ef;border:1px solid #cfe4d8;color:#178268;border-radius:8px;padding:7px 10px;font-size:11px}.insert{background:#f8fcfa;border:1px solid #b7dccc;border-radius:10px;margin-top:15px;padding:12px 13px}.inserthead{display:flex;justify-content:space-between;align-items:center;gap:8px}.inserthead strong{color:#176e56}.inserthead .src{color:#648c7b;font-size:10px}.matchline{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin:10px 0 4px}.matchscore{font-size:21px;font-weight:750;color:#136e56}.matchscore.bad{color:var(--red)}.matchscore.uncertain{color:var(--warn)}.explain{font-size:11px;color:#587063}.explain b{color:#2c5f4f}.insert ul{margin:7px 0 12px;padding-left:17px;font-size:11px;color:#526760}.insert li{margin:2px 0}.rowbtn{display:flex;gap:7px;flex-wrap:wrap}.btn{border:1px solid #d2dfd8;background:white;color:#35574d;border-radius:8px;padding:7px 10px;font-size:12px}.btn.primary{color:#fff;background:#168264;border-color:#168264}.btn.primary:hover:not(:disabled){background:#106950}.btn:hover:not(:disabled){border-color:#94c4b4;background:#eff9f4}.btn.primary:hover:not(:disabled){background:#106950}.insert[hidden],.site-state[hidden],.section[hidden],.draft[hidden],.empty[hidden]{display:none!important}.site-state{background:#fff7e7;border:1px solid #eed2a4;color:#885d2e;padding:10px;border-radius:9px;margin-top:15px;font-size:12px}
+.sidebar{min-height:685px;display:flex;flex-direction:column}.sidehead{padding:13px 15px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between}.sidehead h2{font-size:15px}.sidehead .side-sub{font-size:10px;color:#718179}.mini-pill{background:#f0f3f2;border:1px solid #dde4e0;border-radius:99px;padding:3px 7px;font-size:10px;color:#65746f;white-space:nowrap}.tabs{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));border-bottom:1px solid var(--border);gap:5px;padding:8px}.tab{border:0;border-radius:7px;background:transparent;font-size:12px;padding:7px 3px;color:#718077}.tab.active{background:#e9f4ee;color:#166b53;font-weight:700}.sidebody{padding:13px;flex:1}.toolbar{display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:9px}.toolbar strong{font-size:13px}.summary{padding:9px 10px;border-radius:8px;background:#f5f8f6;color:#607168;font-size:11px;margin-bottom:12px}.sidebarjob{border:1px solid #e0e9e3;border-radius:9px;padding:11px;margin-bottom:8px}.sidebarjob h3{font-size:12px}.sidebarjob .meta{color:#78867d;font-size:11px;margin:3px 0}.sidebarjob .grade{font-size:11px;margin:7px 0;color:#1c745d}.sidebarjob .grade.block{color:#ab6335}.sidebarjob .grade.unknown{color:#a66b22}.sidebarjob .rowbtn{margin-top:8px}.empty{padding:32px 12px;text-align:center;background:#f8faf9;border:1px dashed #d5e1da;border-radius:9px;color:#819088;font-size:12px}.form{display:grid;gap:11px}.form label{display:grid;gap:5px;font-size:12px;color:#44594f}.form input,.form textarea{border:1px solid #d4dfd8;border-radius:8px;padding:8px 9px;min-width:0;width:100%;color:var(--ink);background:white}.form .check{display:flex;align-items:center;gap:8px}.form .check input{width:auto}.status{font-size:11px;border-top:1px solid var(--border);padding:11px 13px;color:#54786a;min-height:39px}.draft{border-top:1px solid #d3e2db;background:#f9fcfa;padding:13px}.draft header{display:flex;align-items:center;justify-content:space-between;gap:7px;margin-bottom:7px}.draft textarea{width:100%;min-height:90px;border-radius:8px;border:1px solid #ccdad3;padding:8px;resize:vertical;color:#354b40}.draft p{font-size:10px;color:#718078;margin:7px 0}.previewfooter{margin-top:12px;color:#7a8881;font-size:11px;text-align:center}
+@media(max-width:1100px){.workspace{grid-template-columns:minmax(0,1fr)}.browser,.sidebar{min-height:0}.sidebody{min-height:235px}}@media(max-width:680px){.container{padding:9px}.sitehead .site-nav{display:none}.sitecontent{grid-template-columns:minmax(0,1fr)}.joblist{border-right:0;border-bottom:1px solid var(--border);display:flex;gap:7px;overflow-x:auto;min-height:136px}.jobitem{min-width:200px}.listhead{display:none}.detail{padding:14px}.preview-control{width:100%}.intro{display:block}.intro .light{margin-top:5px}}
+.workspace.panel-collapsed{grid-template-columns:minmax(0,1fr)}
+.sidebar[hidden],.inline-hint[hidden]{display:none!important}
+.inline-hint{margin-top:10px;border:1px solid #cbded4;background:#f2f8f5;padding:9px;border-radius:8px;font-size:11px;color:#4c665b}
+.inline-editor textarea{width:100%;min-width:0;min-height:76px;margin:6px 0;border-radius:8px;border:1px solid #bbd5c9;padding:8px;resize:vertical;background:#fff;color:var(--ink)}
+.factline{margin-top:6px;font-size:11px;color:#63786f}
+.preview-control button[aria-pressed="true"]{background:#e4f3ee;color:#155a48;border-color:#c0e0d4}
+.jobitem:focus-visible{outline:2px solid #178268;outline-offset:-2px}
+.sidebarjob{overflow-wrap:anywhere}
+.preview-state{white-space:normal}
+@media(max-width:430px){.rowbtn>.btn{flex:1 1 auto}.sidehead{padding:11px}.preview-control select{max-width:190px}}
+
+/* R6.1: Side Panel is the primary preview; dual-surface remains a toggle. */
+.workspace.focus-sidebar{display:block;max-width:390px;margin:0 auto}
+.workspace.focus-sidebar .browser{display:none!important}
+.workspace.focus-sidebar .sidebar{min-height:625px}
+.side-context{padding:10px 13px;border-bottom:1px solid var(--border);background:#fbfdfb}
+.side-context .siteline{display:flex;align-items:center;justify-content:space-between;gap:7px;font-weight:650}
+.side-context .site-detail{margin-top:4px;color:#778b7e;font-size:10px}
+.side-metrics{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:6px;margin-bottom:9px}
+.side-metric{border:1px solid #e2ebe5;background:#fbfdfb;border-radius:8px;padding:9px 7px;min-width:0}
+.side-metric strong{display:block;font-size:17px;line-height:1.1;color:#294c3e}
+.side-metric span{font-size:10px;color:#77867e}
+.side-filter{display:flex;align-items:center;gap:7px;justify-content:space-between;margin:0 0 9px}
+.side-filter select{width:140px;min-width:0;border:1px solid #d7e5db;color:#416454;background:white;border-radius:7px;padding:6px}
+.side-selected{font-size:10px;color:#77897d;margin-bottom:9px;overflow-wrap:anywhere}
+.side-evidence{background:#f7faf8;border-radius:7px;border:1px solid #edf2ee;padding:8px 10px;margin-top:8px;font-size:11px;color:#587163}
+.side-evidence ul{margin:4px 0 0;padding-left:15px}
+.side-evidence li{margin:3px 0}
+.prefs-notice{border:1px solid #e2e9e4;background:#f8faf9;border-radius:8px;padding:9px;font-size:11px;color:#607168}
+.sidebarjob h3{overflow-wrap:anywhere}
+@media(max-width:410px){.workspace.focus-sidebar{max-width:100%}.side-metrics{gap:5px}}
+</style>
+</head>
+<body>
+<header class="previewbar">
+ <div><h1>OpenDesk · AI Job Auto Apply</h1><div class="note">双区域交互预览：招聘网页辅助 + OpenDesk 侧栏</div></div>
+ <div class="preview-control"><label for="scenario">演示状态</label><select id="scenario" aria-label="选择演示状态">
+  <option value="normal">01 · 多个正常职位</option>
+  <option value="restricted">02 · 条件不符合</option>
+  <option value="contacted">03 · 已沟通职位</option>
+  <option value="missing">04 · 缺少稳定职位 ID</option>
+  <option value="partial">05 · 完整 JD 尚未加载</option>
+  <option value="sideclosed">06 · 侧栏关闭、网页运行</option>
+  <option value="reopened">07 · 侧栏重新打开</option>
+  <option value="rules">08 · 规则修改、重新筛选</option>
+  <option value="empty">09 · 空结果</option>
+  <option value="loading">10 · 异步加载</option>
+  <option value="noaccess">11 · 权限撤销（再选正常可恢复）</option>
+  <option value="navigation">12 · 页面切换和重复扫描</option>
+  <option value="workflow">13 · 待审核与草稿操作</option>
+ </select><label for="preview-focus">预览视角</label><select id="preview-focus" aria-label="选择交互预览视角"><option value="sidebar" selected>Side Panel 独立预览</option><option value="dual">网页 + 侧栏联动</option></select><button id="toggle-sidebar" type="button" aria-pressed="true">关闭模拟侧栏</button><button id="reset" type="button">恢复演示</button></div>
+</header>
+<div class="container">
+ <div class="intro"><span id="intro-hint">侧栏独立预览：按紧凑宽度体验职位扫描、待审、规则和沟通草稿；可切换双区域联动。</span><span class="light preview-state" id="preview-state" role="status" aria-live="polite">离线模拟 · 不发送消息</span></div>
+ <div class="workspace" id="preview-workspace">
+  <main class="browser" aria-label="模拟招聘网站">
+   <div class="sitehead"><div class="bossmark">职位发现 <span class="small muted" style="font-weight:400">· 示例网站</span></div><div class="site-nav"><span>找工作</span><span>职位列表</span><span>我的消息</span></div><span class="small muted">本地模拟页面</span></div>
+   <div class="pagebar"><div class="search"><strong>Android 开发</strong><span class="sep">|</span><span>北京</span><span class="sep">|</span><span>20K 以上</span></div><span class="muted small">页面数据仅用于演示</span></div>
+   <div class="sitecontent">
+    <div class="joblist" id="site-jobs" aria-label="模拟职位列表"></div>
+    <article class="detail" id="site-detail" aria-label="职位详情">
+     <div class="detailtop"><div><h2 id="detail-title">请选择职位</h2><div id="detail-company" class="small muted" style="margin-top:5px"></div></div><div id="detail-salary" class="salary"></div></div>
+     <div id="detail-tags" class="tags"></div>
+     <h3>职位描述</h3><p id="detail-jd-state" class="small muted">当前仅有职位摘要</p><p class="jd" id="detail-jd"></p>
+     <div class="hr" id="detail-hr"></div>
+     <div style="display:flex;justify-content:flex-end;margin-top:12px"><span class="original-cta">招聘网站原有操作 · 演示不执行</span></div>
+     <section class="insert" id="page-addon" hidden aria-label="OpenDesk 网页内嵌辅助">
+      <div class="inserthead"><strong>◉ OpenDesk · 当前岗位</strong><span class="src">页面内嵌模块（拟议）</span></div>
+      <div class="matchline"><span class="matchscore" id="embed-score">—</span><span class="explain" id="embed-label"></span></div>
+      <div class="factline" id="embed-facts">完整 JD、身份与沟通历史尚未核实</div>
+      <ul id="embed-reasons"></ul>
+      <div class="rowbtn"><button type="button" id="page-add" class="btn primary">加入待审核</button><button type="button" id="page-draft" class="btn">准备沟通草稿</button><button type="button" id="page-open" class="btn">侧栏管理</button></div>
+      <p id="page-fallback" class="inline-hint" hidden>当前网页无法直接打开 OpenDesk 侧栏。请使用浏览器的「OpenDesk → AI 自动求职」入口，进入「待审核」管理；当前清单不会因关闭侧栏而丢失。</p>
+      <div id="page-inline-draft" class="inline-hint inline-editor" hidden>
+       <label for="page-inline-text">当前岗位沟通草稿 · 人工编辑（不发送）</label>
+       <textarea id="page-inline-text" maxlength="800" aria-label="网页当前岗位草稿"></textarea>
+       <div class="rowbtn"><button id="page-inline-copy" class="btn primary" type="button">复制文字</button><button id="page-inline-close" class="btn" type="button">收起</button></div>
+      </div>
+     </section>
+     <div id="site-state" class="site-state" hidden></div>
+    </article>
+   </div>
+  </main>
+  <aside class="sidebar" id="preview-sidebar" aria-label="模拟 OpenDesk 侧栏">
+   <div class="sidehead"><div><h2>AI 自动求职</h2><div class="side-sub">职位筛选 · 人工审核 · 沟通草稿</div></div><span class="mini-pill">不自动发送</span></div>
+   <div class="side-context"><div class="siteline"><span id="side-context-title">BOSS 直聘 · 当前网站</span><span id="side-context-permission" class="mini-pill">模拟已授权</span></div><div class="site-detail" id="side-context-detail">www.zhipin.com · 当前已加载职位</div></div>
+   <nav class="tabs" aria-label="工作台标签"><button class="tab active" data-tab="jobs" type="button">职位发现</button><button class="tab" data-tab="queue" type="button">待审核 <span id="queue-count">0</span></button><button class="tab" data-tab="prefs" type="button">匹配规则</button></nav>
+   <div class="sidebody">
+    <section class="section" id="tab-jobs">
+     <div class="toolbar"><strong>当前网页职位</strong><button class="btn primary" id="scan" type="button">扫描页面</button></div>
+     <div class="side-metrics" id="side-metrics" aria-label="当前页筛选统计"><div class="side-metric"><strong id="metric-total">0</strong><span>已识别</span></div><div class="side-metric"><strong id="metric-review">0</strong><span>未排除</span></div><div class="side-metric"><strong id="metric-blocked">0</strong><span>排除/已沟通</span></div></div>
+     <div class="summary" id="scan-summary">尚未读取当前网页。点击「扫描页面」后显示确定性匹配结果。</div>
+     <div class="side-filter"><label for="side-filter">筛选列表</label><select id="side-filter" aria-label="筛选当前职位"><option value="all">全部职位</option><option value="potential">未排除</option><option value="unknown">需核实</option><option value="blocked">条件不符/已沟通</option><option value="queued">已加入待审</option></select></div>
+     <div class="side-selected" id="side-selected">当前网页未选择岗位</div>
+     <div id="side-jobs"></div><div class="empty" id="side-empty">尚无扫描结果</div>
+    </section>
+    <section class="section" id="tab-queue" hidden>
+     <div class="toolbar"><strong>待审核清单</strong><span class="small muted" id="queue-limit">0 / 24</span></div>
+     <div class="summary">保留历史岗位快照。加入清单≠已联系或投递；规则变化需复核。</div>
+     <div id="side-queue"></div><div class="empty" id="queue-empty">暂时没有待审核岗位</div>
+    </section>
+    <section class="section" id="tab-prefs" hidden>
+     <form class="form" id="prefs-form">
+      <label>目标职位<input name="roles" value="Android,前端,全栈" maxlength="100"></label>
+      <label>意向城市<input name="cities" value="北京" maxlength="100"></label>
+      <label>最低月薪（K）<input name="salary" type="number" value="20" min="0" max="200"></label>
+      <label>排除关键词<input name="exclude" value="外包,驻场,培训" maxlength="160"></label>
+      <div class="prefs-notice"><strong>简历事实状态：未连接</strong><div>本轮仅使用本人填写的事实；不推断学历、经验或 AI 简历匹配分。真实简历导入属于后续能力。</div></div>
+      <label>本人已确认技能（可留空）<input name="skills" value="" placeholder="只填写真实可证明的技能" maxlength="160"></label>
+      <label class="check"><input name="noHeadhunter" type="checkbox" checked>过滤明确标注的猎头</label>
+      <label class="check"><input name="noContacted" type="checkbox" checked>过滤明确标注已沟通职位</label>
+      <label>沟通草稿模板<textarea name="template" rows="3" maxlength="500">您好，我看到贵司的「{岗位}」职位，想进一步了解具体职责与团队要求，方便沟通吗？</textarea></label>
+      <p class="small muted">支持 {岗位}、{公司}；规则判断不等于 AI 简历匹配。仅在页面明确提供事实时判断，未知项仍需核实。</p>
+      <button class="btn primary" type="submit">应用演示规则</button>
+     </form>
+    </section>
+   </div>
+   <div class="draft" id="draft" hidden>
+    <header><strong id="draft-title">沟通草稿</strong><button class="btn" id="draft-close" type="button">关闭</button></header>
+    <textarea id="draft-text" aria-label="可编辑的沟通草稿" maxlength="800"></textarea>
+    <div class="rowbtn" style="margin-top:7px"><button id="draft-copy" class="btn primary" type="button">复制草稿</button></div>
+    <p>只准备和复制文字；不打开招聘聊天、不上传简历、不发送。</p>
+   </div>
+   <div class="status" id="status" role="status" aria-live="polite">这是一份交互设计预览，尚未连接真实 BOSS。</div>
+  </aside>
+ </div>
+ <div class="previewfooter">外部场景切换仅用于测试；网页区域为 BOSS 风格模拟，侧栏不是正式宿主。数据仅驻留本页内存；规则判断不是 AI 简历匹配。无真实权限、网络请求、聊天或投递。</div>
+</div>
+<script>
+(function(){
+  'use strict';
+  var byId=function(id){return document.getElementById(id);};
+  var jobs=[
+    {id:'job-demo-1001',title:'Android 开发工程师',company:'云杉科技（演示）',salary:'25-40K·15薪',city:'北京·海淀',experience:'3-5年',education:'本科',recruiter:'张女士',activity:'今日活跃',scope:'card_summary',type:'company',contact:'new',description:'1. 负责 Android 客户端业务研发和性能优化。\n2. 使用 Kotlin、Java 进行组件化开发。\n3. 与产品和测试协作，持续改善用户体验。'},
+    {id:'job-demo-1002',title:'Android 驻场外包开发',company:'咨询服务公司（演示）',salary:'17-23K',city:'北京·朝阳',experience:'3-5年',education:'本科',recruiter:'吴先生',activity:'3天前活跃',scope:'card_summary',type:'agency',contact:'new',description:'驻场服务项目，要求 Android、Java 经验；招聘性质需自行核实。'},
+    {id:'job-demo-1003',title:'全栈开发工程师',company:'星禾数字（演示）',salary:'面议',city:'上海',experience:'',education:'',recruiter:'',activity:'',scope:'card_summary',type:'unknown',contact:'new',description:'涉及 Vue3、Node.js 和移动端协作；薪资与学历条件未在当前卡片确认。'},
+    {id:'job-demo-1004',title:'Android 高级工程师',company:'青川科技（演示）',salary:'30-45K',city:'北京',experience:'5-10年',education:'本科',recruiter:'李女士',activity:'本周活跃',scope:'card_summary',type:'company',contact:'already',description:'负责 Android 核心功能架构、Kotlin 技术方案和团队代码审查。'}
+  ];
+  var defaultPrefs={roles:'Android,前端,全栈',cities:'北京',salary:20,exclude:'外包,驻场,培训',skills:'',noHeadhunter:true,noContacted:true,template:'您好，我看到贵司的「{岗位}」职位，想进一步了解具体职责与团队要求，方便沟通吗？'};
+  var state={items:jobs.map(function(x,i){return Object.assign({previewKey:'demo-'+i},x);}),selected:'demo-0',scanned:false,scanning:false,queue:[],tab:'jobs',prefs:Object.assign({},defaultPrefs),scenario:'normal',epoch:0,sidebarOpen:true,draftId:null,draftValue:'',previewFocus:'sidebar',filter:'all',expandedJob:''};
+  var text=function(el,value){el.textContent=value==null?'':String(value);};
+  var btn=function(label,callback,primary){var b=document.createElement('button');b.type='button';b.className=primary?'btn primary':'btn';text(b,label);b.addEventListener('click',callback);return b;};
+  var setStatus=function(s){text(byId('status'),s);};
+  var tokens=function(value){return String(value||'').toLowerCase().split(/[,，、;；|]+/).map(function(x){return x.trim();}).filter(Boolean);};
+  var key=function(j){return j.previewKey||j.id;};
+  var current=function(){return state.items.find(function(x){return key(x)===state.selected;})||state.items[0]||null;};
+  var rank=function(job){
+    var title=job.title.toLowerCase(),all=(job.title+' '+job.company+' '+job.description+' '+job.city).toLowerCase();
+    var failed=[],unsure=[],passed=[];
+    var excludes=tokens(state.prefs.exclude);var blocked=excludes.find(function(x){return all.includes(x);});
+    if(blocked)failed.push('命中排除词：'+blocked);
+    var roles=tokens(state.prefs.roles);
+    if(roles.length&&!roles.some(function(x){return title.includes(x);}))failed.push('职位不在目标岗位范围');else passed.push('岗位方向符合');
+    var cities=tokens(state.prefs.cities);
+    if(cities.length&&job.city&&!cities.some(function(x){return job.city.toLowerCase().includes(x);}))failed.push('城市不符');
+    else if(cities.length&&!job.city)unsure.push('城市未知');
+    var match=String(job.salary).match(/(\d+)\s*[-~–]\s*(\d+)\s*K/i);
+    if(state.prefs.salary>0&&match&&Number(match[2])<state.prefs.salary)failed.push('薪资上限低于最低预期');
+    if(state.prefs.salary>0&&!match)unsure.push('薪资范围未知');
+    if(job.type==='headhunter'&&state.prefs.noHeadhunter)failed.push('页面明确标注猎头');
+    if(job.contact==='already'&&state.prefs.noContacted)failed.push('页面标注已沟通');
+    if(!job.id)unsure.push('缺少稳定职位 ID');
+    if(!job.experience)unsure.push('经验要求未知');
+    if(!job.education)unsure.push('学历要求未知');
+    if(!job.activity)unsure.push('招聘者活跃度未知');
+    if(job.scope!=='full_jd')unsure.push(job.scope==='unavailable'?'职位详情未加载，完整 JD 未核实':'仅有职位摘要，完整 JD 未核实');
+    var skillMatches=tokens(state.prefs.skills).filter(function(x){return all.includes(x);});
+    if(skillMatches.length)passed.push('岗位提及：'+skillMatches.join('、')+'（不是简历证明）');
+    var score=failed.length?0:Math.min(100,55+(roles.length?20:0)+Math.min(3,skillMatches.length)*5+(match?5:0));
+    return {failed:failed,unsure:unsure,passed:passed,score:score,eligible:failed.length===0&&!!job.id};
+  };
+  var mini=function(job){
+    var r=rank(job);
+    if(!state.scanned)return {label:'识别中',cls:'off'};
+    if(!job.id)return {label:'暂无法识别',cls:'unknown'};
+    if(state.queue.some(function(x){return x.id===job.id;}))return {label:r.failed.length?'待审·需复核':'已加入待审',cls:r.failed.length?'reject':''};
+    if(job.contact==='already')return {label:'已沟通',cls:'unknown'};
+    if(r.failed.length)return {label:'条件不符',cls:'reject'};
+    return {label:r.unsure.length?'待核实':'规则匹配',cls:r.unsure.length?'unknown':''};
+  };
+  function renderCards(){
+    var target=byId('site-jobs');target.replaceChildren();
+    var heading=document.createElement('div');heading.className='listhead';text(heading,'搜索结果 · '+state.items.length+' 个模拟职位');target.append(heading);
+    if(!state.items.length){var e=document.createElement('div');e.className='empty';text(e,'当前没有已加载职位');target.append(e);return;}
+    state.items.forEach(function(j){
+      var box=document.createElement('article');box.className='jobitem'+(key(current())===key(j)?' selected':'');box.tabIndex=0;box.setAttribute('role','button');box.setAttribute('aria-label','查看'+j.title);
+      var title=document.createElement('h3');text(title,j.title);box.append(title);
+      var salary=document.createElement('div');salary.className='salary';text(salary,j.salary);box.append(salary);
+      var info=document.createElement('div');info.className='info';text(info,j.company+' · '+(j.city||'地点待核实'));box.append(info);
+      var foot=document.createElement('div');foot.className='quick';var left=document.createElement('span');text(left,j.experience||'经验待核实');foot.append(left);
+      if(state.scanned&&state.scenario!=='noaccess'){var m=mini(j),chip=document.createElement('span');chip.className='quicktag '+m.cls;text(chip,'◉ '+m.label);chip.setAttribute('aria-label','OpenDesk '+m.label);foot.append(chip);}
+      box.append(foot);
+      var select=function(){state.selected=key(j);render();setStatus('当前查看：'+j.title+'（离线职位模拟）。');};
+      box.addEventListener('click',select);
+      box.addEventListener('keydown',function(e){if(e.key==='Enter'||e.key===' '){e.preventDefault();select();}});
+      target.append(box);
+    });
+  }
+  function setReasons(j){
+    var r=rank(j),el=byId('embed-reasons');el.replaceChildren();
+    var facts=r.failed.concat(r.passed,r.unsure.map(function(x){return '待核实：'+x;}));
+    facts.slice(0,5).forEach(function(z){var li=document.createElement('li');text(li,z);el.append(li);});
+    var m=mini(j),val=byId('embed-score');
+    text(val,m.label);val.className='matchscore'+(r.failed.length?' bad':r.unsure.length?' uncertain':'');
+    text(byId('embed-label'),'本地规则筛选 · 演示数据，非 AI 简历匹配');
+    text(byId('embed-facts'),'完整 JD：'+(j.scope==='full_jd'?'模拟已确认':'待确认')+'　招聘者：'+(j.recruiter?'页面显示':'未知')+'　沟通历史：'+(j.contact==='already'?'已沟通':'未核实'));
+    var queued=state.queue.some(function(x){return x.id===j.id&&!!j.id;});
+    byId('page-add').disabled=!r.eligible||queued;
+    text(byId('page-add'),queued?'已加入清单':'加入待审核');
+    byId('page-draft').disabled=!r.eligible;
+    byId('page-fallback').hidden=true;
+  }
+  function renderDetail(){
+    var j=current(),addon=byId('page-addon'),siteState=byId('site-state');
+    siteState.hidden=true;
+    if(!j){
+      byId('page-inline-draft').hidden=true;
+      text(byId('detail-title'),'没有可展示的职位');text(byId('detail-company'),'');text(byId('detail-salary'),'');
+      text(byId('detail-jd'),'');text(byId('detail-jd-state'),'');byId('detail-tags').replaceChildren();byId('detail-hr').replaceChildren();
+      addon.hidden=true;if(state.scenario!=='noaccess'){siteState.hidden=false;text(siteState,'当前页面没有加载到职位。');}return;
+    }
+    text(byId('detail-title'),j.title);text(byId('detail-company'),j.company+' · '+(j.city||'城市待核实'));text(byId('detail-salary'),j.salary);
+    text(byId('detail-jd'),j.description||'页面当前未提供完整职位描述，不能据此判断符合条件。');
+    text(byId('detail-jd-state'),j.scope==='full_jd'?'模拟已读取完整 JD':j.scope==='unavailable'?'详情尚未加载 · 仅显示已知字段':'职位摘要 · 非完整 JD');
+    var tags=byId('detail-tags');tags.replaceChildren();[j.experience||'经验待核实',j.education||'学历待核实'].forEach(function(a){var x=document.createElement('span');x.className='tag';text(x,a);tags.append(x);});
+    var hr=byId('detail-hr');hr.replaceChildren();var face=document.createElement('span');face.className='avatar';text(face,j.recruiter?'招':'?');hr.append(face);
+    var label=document.createElement('span');text(label,(j.recruiter||'招聘者未知')+' · '+(j.activity||'活跃度未知'));hr.append(label);
+    addon.hidden=!state.scanned||state.scenario==='noaccess';
+    if(state.scenario==='noaccess'||state.sidebarOpen||state.draftId!==j.id)byId('page-inline-draft').hidden=true;
+    if(state.scenario==='noaccess')return; // Revocation removes injected UI, not a warning panel inside the site.
+    if(!state.scanned){siteState.hidden=false;text(siteState,state.scanning?'OpenDesk 正在只读识别页面…':'尚未识别当前职位。');}
+    else setReasons(j);
+  }
+  function renderSideJobs(){
+    var target=byId('side-jobs');target.replaceChildren();
+    var visible=state.scanned&&state.scenario!=='noaccess';
+    var filtered=state.items.filter(function(j){
+      if(state.filter==='all')return true;
+      var r=rank(j),inQueue=state.queue.some(function(x){return !!j.id&&x.id===j.id;});
+      if(state.filter==='queued')return inQueue;
+      if(state.filter==='blocked')return r.failed.length>0;
+      if(state.filter==='unknown')return r.unsure.length>0&&r.failed.length===0;
+      return r.failed.length===0;
+    });
+    byId('side-empty').hidden=visible&&filtered.length>0;
+    if(!visible){
+      text(byId('side-empty'),state.scenario==='noaccess'?'网站权限已撤销。历史待审仍可从「待审核」查看。':state.scanning?'只读识别中…':'尚无已确认的当前页面结果');
+      return;
+    }
+    if(!filtered.length){text(byId('side-empty'),state.items.length?'此筛选下没有职位':'当前没有已加载职位，不生成虚构结果。');return;}
+    filtered.forEach(function(j){
+      var r=rank(j),m=mini(j),box=document.createElement('article');box.className='sidebarjob';
+      var h=document.createElement('h3');text(h,j.title);box.append(h);
+      var meta=document.createElement('div');meta.className='meta';text(meta,j.company+' · '+j.salary+' · '+(j.city||'地点未知'));box.append(meta);
+      var grade=document.createElement('div');grade.className='grade'+(r.failed.length?' block':r.unsure.length?' unknown':'');
+      text(grade,m.label+' · '+(r.failed[0]||r.unsure[0]||'岗位方向符合')+'（规则模拟）');box.append(grade);
+      if(state.expandedJob===key(j)){
+        var evidence=document.createElement('div');evidence.className='side-evidence';
+        var cap=document.createElement('strong');text(cap,'规则依据与待确认项');evidence.append(cap);
+        var ul=document.createElement('ul');
+        r.failed.concat(r.passed,r.unsure.map(function(x){return '待核实：'+x;})).slice(0,5).forEach(function(v){var li=document.createElement('li');text(li,v);ul.append(li);});
+        evidence.append(ul);box.append(evidence);
+      }
+      var actions=document.createElement('div');actions.className='rowbtn';
+      actions.append(btn(state.expandedJob===key(j)?'收起依据':'查看依据',function(){state.expandedJob=state.expandedJob===key(j)?'':key(j);state.selected=key(j);render();}));
+      var queued=state.queue.some(function(x){return x.id===j.id&&!!j.id;});
+      var add=btn(queued?'已加入':'加入待审',function(){addQueue(j);},true);add.disabled=!r.eligible||queued;actions.append(add);
+      box.append(actions);target.append(box);
+    });
+  }
+  function renderQueue(){
+    var target=byId('side-queue');target.replaceChildren();
+    byId('queue-empty').hidden=state.queue.length>0;
+    text(byId('queue-count'),state.queue.length);text(byId('queue-limit'),state.queue.length+' / 24');
+    state.queue.forEach(function(j){
+      var box=document.createElement('article');box.className='sidebarjob';
+      var h=document.createElement('h3');text(h,j.title);box.append(h);
+      var meta=document.createElement('div');meta.className='meta';
+      var listed=state.items.some(function(x){return x.id===j.id;});
+      text(meta,j.company+' · '+j.salary+' · '+(listed?'待审核':'历史待审（当前页未出现）'));box.append(meta);
+      var evaluation=rank(j),grade=document.createElement('div');grade.className='grade'+(evaluation.failed.length?' block':'');
+      text(grade,evaluation.failed.length?'规则变化：'+evaluation.failed[0]+' · 请复核':'尚未沟通、未投递');box.append(grade);
+      var actions=document.createElement('div');actions.className='rowbtn';
+      actions.append(btn('准备草稿',function(){openDraft(j);},true));
+      actions.append(btn('移出清单',function(){state.queue=state.queue.filter(function(x){return x.id!==j.id;});render();setStatus('已从内存模拟清单移除，未对网站执行操作。');}));
+      box.append(actions);target.append(box);
+    });
+  }
+  function addQueue(j){
+    var r=rank(j);
+    if(!state.scanned||state.scenario==='noaccess'||!r.eligible){
+      setStatus('不可加入：缺少已授权扫描、稳定 ID 或命中排除规则。');return;
+    }
+    if(state.queue.length>=24){setStatus('模拟待审核清单已满（24 条），请先复核旧岗位。');return;}
+    if(!state.queue.some(function(x){return x.id===j.id;})){
+      state.queue.unshift(Object.assign({},j,{previewKey:undefined}));
+      setStatus('已加入 '+j.title+' · 仅保存在此预览内存，未沟通、未投递。');
+    }else setStatus('此岗位已在待审核清单，不重复添加。');
+    render();
+  }
+  function openDraft(j){
+    if(!j||!j.id)return;
+    var saved=state.queue.some(function(x){return x.id===j.id;});
+    if(!saved&&(!state.scanned||state.scenario==='noaccess'||!rank(j).eligible))return;
+    if(state.draftId!==j.id){
+      state.draftId=j.id;
+      state.draftValue=String(state.prefs.template||defaultPrefs.template).replace(/\{岗位\}/g,j.title).replace(/\{公司\}/g,j.company);
+    }
+    text(byId('draft-title'),'沟通草稿 · '+j.title);byId('draft-text').value=state.draftValue;
+    if(!state.sidebarOpen){
+      byId('page-inline-text').value=state.draftValue;
+      byId('page-inline-draft').hidden=false;
+      setStatus('已展开当前网页的紧凑草稿编辑区；仅复制，不发送。');
+      return;
+    }
+    byId('draft').hidden=false;setTab('queue');
+    setStatus('草稿可以编辑或复制；没有发送、保存简历或实际联系。');
+  }
+  function setTab(tab){
+    state.tab=tab;document.querySelectorAll('[data-tab]').forEach(function(x){
+      var active=x.dataset.tab===tab;x.classList.toggle('active',active);
+      if(active)x.setAttribute('aria-current','page');else x.removeAttribute('aria-current');
+    });
+    ['jobs','queue','prefs'].forEach(function(x){byId('tab-'+x).hidden=x!==tab;});
+  }
+  function scan(){
+    if(state.scanning||state.scenario==='noaccess'){
+      setStatus(state.scenario==='noaccess'?'无网页权限，禁止读取页面。':'正在识别中，避免重复扫描。');return;
+    }
+    var epoch=state.epoch;state.scanning=true;state.scanned=false;
+    text(byId('scan'),'扫描中…');render();setStatus('已授权的模拟网页正在识别职位…');
+    var delay=state.scenario==='loading'?950:100;
+    window.setTimeout(function(){
+      if(epoch!==state.epoch)return; // Discard old navigation/permission/scan results.
+      state.scanned=true;state.scanning=false;render();text(byId('scan'),'重新扫描');
+      setStatus(state.items.length?'网页独立识别 '+state.items.length+' 条模拟职位；不是 AI 评分或真实网页取证。':'扫描完成：没有加载到职位，不制造假结果。');
+    },delay);
+  }
+  function render(){
+    var sidebar=byId('preview-sidebar');sidebar.hidden=!state.sidebarOpen;
+    var ws=byId('preview-workspace');
+    ws.classList.toggle('panel-collapsed',!state.sidebarOpen);
+    ws.classList.toggle('focus-sidebar',state.previewFocus==='sidebar'&&state.sidebarOpen);
+    byId('preview-focus').value=state.previewFocus;
+    text(byId('intro-hint'),state.previewFocus==='sidebar'?'Side Panel 独立预览 · 紧凑实际宽度 · 三个原有 Tab 可点击操作':'双区域联动预览 · 左侧为模拟招聘网页，右侧是应用侧栏');
+    byId('toggle-sidebar').setAttribute('aria-pressed',String(state.sidebarOpen));
+    text(byId('toggle-sidebar'),state.sidebarOpen?'关闭模拟侧栏':'打开模拟侧栏');
+    text(byId('preview-state'),state.scenario==='noaccess'?'权限撤销 · 网页 OpenDesk UI 已移除':state.sidebarOpen?'模拟双区域 · 网页可独立运行':'侧栏关闭 · 网页仍可使用');
+    renderCards();renderDetail();renderSideJobs();renderQueue();
+    var open=state.scanned&&state.scenario!=='noaccess';
+    var total=open?state.items.length:0,unblocked=open?state.items.filter(function(j){return rank(j).failed.length===0;}).length:0;
+    text(byId('metric-total'),total);text(byId('metric-review'),unblocked);text(byId('metric-blocked'),total-unblocked);
+    text(byId('side-context-permission'),state.scenario==='noaccess'?'权限已撤销':state.scanning?'模拟识别中':'模拟已授权');
+    text(byId('side-context-detail'),state.scenario==='noaccess'?'本页不读取新职位 · 清单仍在':'www.zhipin.com · 当前已加载的模拟职位');
+    text(byId('side-selected'),current()?'当前选择：'+current().title+' · 网页详情以网站为准':'当前没有选中的岗位');
+    text(byId('scan-summary'),state.scenario==='noaccess'?'网站权限已撤销，不读取新职位。':state.scanning?'页面正在只读识别…':state.scanned?'本页有 '+state.items.length+' 个模拟职位；本地规则状态不是 AI 简历匹配。':'尚无已识别职位');
+    byId('scan').disabled=state.scanning||state.scenario==='noaccess';
+    if(state.scenario==='noaccess')text(byId('scan'),'网站未授权');
+  }
+  function changeScenario(mode){
+    state.epoch++;state.scenario=mode;state.scanned=false;state.scanning=false;state.filter='all';state.expandedJob='';byId('side-filter').value='all';
+    var items=jobs.map(function(x,i){return Object.assign({previewKey:'demo-'+i},x);});
+    if(mode==='contacted')items=[items[3],items[0]];
+    if(mode==='restricted')items=[items[1],items[2]];
+    if(mode==='missing')items=[Object.assign({},items[0],{id:'',title:'Android 开发（身份待核实）'})];
+    if(mode==='partial')items=[Object.assign({},items[0],{scope:'unavailable',description:''}),items[2]];
+    if(mode==='noaccess')items=[items[0],items[1]];
+    if(mode==='empty')items=[];
+    if(mode==='loading')items=[items[0],items[2]];
+    if(mode==='navigation')items=[items[2],items[0],items[1],items[3]];
+    if(mode==='sideclosed'){state.sidebarOpen=false;state.previewFocus='dual';}
+    if(mode==='reopened'){state.sidebarOpen=true;state.previewFocus='sidebar';}
+    if(mode==='rules'){
+      state.prefs=Object.assign({},state.prefs,{salary:42});
+      byId('prefs-form').elements.salary.value=42;
+    }
+    state.items=items;state.selected=items[0]?key(items[0]):null;
+    text(byId('scan'),'扫描页面');
+    setTab(mode==='workflow'?'queue':(mode==='sideclosed'||mode==='reopened'?state.tab:'jobs'));
+    render();
+    if(mode==='noaccess'){
+      setStatus('模拟网站撤权：旧网页 OpenDesk UI 已清理；待审清单仍保持，恢复授权后可继续。');
+      return;
+    }
+    scan(); // Page independently scans after navigation even when Sidebar is closed.
+  }
+  document.querySelectorAll('[data-tab]').forEach(function(x){x.addEventListener('click',function(){setTab(x.dataset.tab);});});
+  byId('scan').addEventListener('click',scan);
+  byId('page-add').addEventListener('click',function(){var j=current();if(j)addQueue(j);});
+  byId('page-draft').addEventListener('click',function(){var j=current();if(j)openDraft(j);});
+  byId('page-inline-text').addEventListener('input',function(){state.draftValue=byId('page-inline-text').value;});
+  byId('page-inline-close').addEventListener('click',function(){state.draftValue=byId('page-inline-text').value;byId('page-inline-draft').hidden=true;});
+  byId('page-inline-copy').addEventListener('click',async function(){
+    var value=byId('page-inline-text').value.trim();if(!value){text(byId('embed-facts'),'请填写沟通草稿后复制；不会发送。');return;}
+    try{
+      if(!navigator.clipboard?.writeText)throw new Error('clipboard unavailable');
+      await navigator.clipboard.writeText(value);text(byId('embed-facts'),'草稿文字已复制；未沟通或投递。');
+    }catch(_){byId('page-inline-text').focus();byId('page-inline-text').select();text(byId('embed-facts'),'已选中文字，请手动复制；当前离线环境不允许剪贴板写入。');}
+  });
+  byId('page-open').addEventListener('click',function(){
+    if(!state.sidebarOpen){
+      byId('page-fallback').hidden=false;
+      setStatus('当前网页没有经验证的侧栏打开 API。请从浏览器 OpenDesk 入口打开「AI 自动求职」。');
+      return;
+    }
+    setTab('queue');setStatus('已定位模拟侧栏待审核；当前职位仍需人工检查。');
+  });
+  byId('draft-close').addEventListener('click',function(){state.draftValue=byId('draft-text').value;byId('draft').hidden=true;setStatus('草稿已关闭，文本仍在本页内存中。');});
+  byId('draft-text').addEventListener('input',function(){state.draftValue=byId('draft-text').value;});
+  byId('draft-copy').addEventListener('click',async function(){
+    var value=byId('draft-text').value.trim();if(!value){setStatus('请先填写沟通内容。');return;}
+    try{if(!navigator.clipboard||!navigator.clipboard.writeText)throw new Error('no clipboard');await navigator.clipboard.writeText(value);setStatus('草稿已复制到剪贴板；未发送。');}
+    catch(_){byId('draft-text').focus();byId('draft-text').select();setStatus('已选中草稿，可手动复制；当前预览环境不允许写剪贴板。');}
+  });
+  byId('prefs-form').addEventListener('submit',function(e){e.preventDefault();var f=e.currentTarget;state.prefs={roles:f.elements.roles.value,cities:f.elements.cities.value,salary:Math.max(0,Math.min(200,Number(f.elements.salary.value)||0)),exclude:f.elements.exclude.value,skills:f.elements.skills.value,template:f.elements.template.value,noHeadhunter:f.elements.noHeadhunter.checked,noContacted:f.elements.noContacted.checked};render();setStatus('已在预览内应用匹配规则，未保存到真实扩展。');});
+  byId('scenario').addEventListener('change',function(e){changeScenario(e.target.value);});
+  byId('preview-focus').addEventListener('change',function(e){
+    state.previewFocus=e.target.value==='dual'?'dual':'sidebar';
+    if(state.previewFocus==='sidebar')state.sidebarOpen=true;
+    render();setStatus(state.previewFocus==='sidebar'?'已切换为 Side Panel 独立交互预览。':'已切换网页与侧栏联动视角。');
+  });
+  byId('side-filter').addEventListener('change',function(e){state.filter=e.target.value;render();setStatus('仅在侧栏筛选模拟列表，不改变网页或已保存待审记录。');});
+  byId('toggle-sidebar').addEventListener('click',function(){
+    state.sidebarOpen=!state.sidebarOpen;
+    if(!state.sidebarOpen)state.previewFocus='dual';
+    else state.previewFocus='sidebar';
+    render();
+    setStatus(state.sidebarOpen?'模拟侧栏已重新打开，已保留待审清单、规则和草稿。':'模拟侧栏已关闭；网页仍可扫描及加入待审。');
+  });
+  byId('reset').addEventListener('click',function(){
+    state.queue=[];state.sidebarOpen=true;state.previewFocus='sidebar';state.filter='all';state.expandedJob='';byId('side-filter').value='all';state.draftId=null;state.draftValue='';byId('draft').hidden=true;
+    state.prefs=Object.assign({},defaultPrefs);var f=byId('prefs-form');f.elements.roles.value=defaultPrefs.roles;f.elements.cities.value=defaultPrefs.cities;f.elements.salary.value=defaultPrefs.salary;f.elements.exclude.value=defaultPrefs.exclude;f.elements.skills.value=defaultPrefs.skills;f.elements.template.value=defaultPrefs.template;f.elements.noHeadhunter.checked=true;f.elements.noContacted.checked=true;
+    byId('scenario').value='normal';changeScenario('normal');setStatus('演示数据和筛选条件已复位。');
+  });
+  render();
+  scan(); // Standalone Page behavior never depends on opening the Side Panel.
+})();
+</script>
+</body>
+</html>

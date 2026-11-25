@@ -1,0 +1,34 @@
+/* @opendesk-shared-design - scoped layout only; host supplies od-* controls and tokens. */
+.ja-app{min-width:0;padding:var(--space-3,12px);display:grid;gap:var(--space-3,12px);color:var(--od-ink,inherit)}
+.ja-summary,.ja-toolbar,.ja-review-head{display:flex;align-items:center;justify-content:space-between;gap:var(--space-2,8px);min-width:0}
+.ja-summary p{margin:3px 0 0}
+.ja-pill{font-size:11px;white-space:nowrap;padding:4px 7px;border:1px solid var(--od-line,#ddd);border-radius:999px;color:var(--od-sub,#666)}
+.ja-tabs{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:var(--space-1,4px);border-bottom:1px solid var(--od-line,#ddd);padding-bottom:var(--space-2,8px)}
+.ja-tabs .od-button{min-width:0;padding-inline:4px;font-size:12px}
+.ja-tabs [aria-current=page]{font-weight:700;border-color:var(--od-ink,#333)}
+.ja-view[hidden],.ja-review[hidden]{display:none}
+.ja-toolbar{margin-bottom:var(--space-2,8px)}
+.ja-view>.od-note{margin:0 0 var(--space-3,12px)}
+.ja-list{display:grid;gap:var(--space-2,8px)}
+.ja-job{padding:var(--space-3,12px);border:1px solid var(--od-line,#ddd);border-radius:var(--radius-surface,10px);display:grid;gap:7px;min-width:0}
+.ja-job-head{display:flex;align-items:flex-start;gap:8px;justify-content:space-between}
+.ja-job-title{font-size:14px;font-weight:650;overflow-wrap:anywhere}
+.ja-score{flex:none;font-size:12px;border:1px solid var(--od-line,#ddd);border-radius:6px;padding:2px 6px}
+.ja-meta,.ja-reasons{font-size:12px;line-height:1.5;color:var(--od-sub,#666);overflow-wrap:anywhere}
+.ja-reasons{margin:0;padding-left:16px}
+.ja-actions{display:flex;gap:6px;flex-wrap:wrap}
+.ja-empty{padding:var(--space-4,16px) var(--space-3,12px);text-align:center;border:1px dashed var(--od-line,#ddd);border-radius:var(--radius-surface,10px)}
+.ja-form{display:grid;gap:var(--space-3,12px)}
+.ja-form label,.ja-review label{display:grid;gap:5px;font-size:12px}
+.ja-form input,.ja-form textarea,.ja-review textarea{width:100%;min-width:0;box-sizing:border-box}
+.ja-form .od-note{margin:0}
+.ja-review{border:1px solid var(--od-line,#ddd);border-radius:var(--radius-surface,10px);padding:var(--space-3,12px);display:grid;gap:var(--space-2,8px)}
+.ja-review-actions{display:flex;justify-content:flex-end}
+.ja-status{min-height:16px;margin:0;overflow-wrap:anywhere}
+.ja-status[data-state=error]{color:var(--od-negative,#b42318)}
+.ja-status[data-state=success]{color:var(--od-positive,#087443)}
+@media(min-width:800px){.ja-app{max-width:800px;margin-inline:auto}}
+
+.ja-check{display:flex!important;align-items:center;gap:8px;font-size:12px}
+.ja-check input{width:auto!important;min-width:auto!important;accent-color:var(--od-accent,#1767b0)}
+.ja-status[data-state=warning]{color:var(--od-warning,#946200)}
