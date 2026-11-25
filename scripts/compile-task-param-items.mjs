@@ -1,4 +1,5 @@
 // Build-time reference adapter for R10.1. No runtime or permission changes.
+import {leadingLineComments,readSourceLine} from "../src/scripting/source-trivia.js";
 // Input is already parsed JSON; raw duplicate-member detection belongs to the input parser.
 export function compileParamItems(input) {
   const own=(o,k)=>Object.hasOwn(o,k);
@@ -104,30 +105,34 @@ export function compileParamItems(input) {
 
 // R10.2 text metadata source adapter; no runtime installation changes.
 export function parseTaskParamsHeader(source) {
-  // Only the first nonblank line may open this metadata block. No code evaluation.
+  // Scan only leading JavaScript trivia. Never execute source or scan its body.
   if(typeof source!=="string")throw new TypeError("Expected script source text");
   const begin="// ==OpenDeskParams==",end="// ==/OpenDeskParams==";
-  const budget=65536;
-  let pos=source.charCodeAt(0)===0xfeff?1:0,lineNo=0;
+  const budget=65536,encoder=new TextEncoder();
   const fail=(n,msg)=>{throw new TypeError(`OpenDeskParams line ${n}: ${msg}`);};
-  const nextLine=()=>{
-    if(pos>=source.length)return null;
-    const start=pos,n=source.indexOf("\n",pos);
-    pos=n<0?source.length:n+1;
-    lineNo++;
-    return {start,text:source.slice(start,n<0?source.length:n).replace(/\r$/,"")};
-  };
+  const isMarker=raw=>/^\/\/[ \t]*==\/?OpenDeskParams\b/.test(raw);
   let first;
-  while((first=nextLine())&&first.text.trim()===""){
-    if(pos>budget)return null; // Existing source admission owns the full source budget.
+  for(const comment of leadingLineComments(source)){
+    if(!isMarker(comment.raw))continue;
+    if(comment.raw.trim()!==begin)fail(comment.line,"Malformed or unexpected opening marker");
+    first=comment;break;
   }
   if(!first)return null;
-  const marker=first.text.trim();
-  if(marker!==begin){
-    if(marker.startsWith(begin))fail(lineNo,"Malformed opening marker");
-    return null;
-  }
-  if(pos>budget)fail(lineNo,"Metadata header exceeds source character budget");
+  let pos=first.next,lineNo=first.line;
+  let headerBytes=0;
+  const account=(start,next,n)=>{
+    if(next-start>budget-headerBytes)fail(n,"Metadata header exceeds 64 KiB UTF-8 budget");
+    headerBytes+=encoder.encode(source.slice(start,next)).byteLength;
+    if(headerBytes>budget)fail(n,"Metadata header exceeds 64 KiB UTF-8 budget");
+  };
+  account(first.offset,first.next,lineNo);
+  const nextLine=()=>{
+    if(pos>=source.length)return null;
+    const start=pos,current=readSourceLine(source,pos);
+    pos=current.next;lineNo++;
+    account(start,pos,lineNo);
+    return {text:current.raw};
+  };
   const allowed=new Set(["required","default","const","description","placeholder","valueType","min","max","step","unit","options","minLength","maxLength","minItems","maxItems"]);
   const seen=new Set(),items=[];
   let version=false;
@@ -212,10 +217,12 @@ export function parseTaskParamsHeader(source) {
   }
   let line;
   while((line=nextLine())){
-    if(pos>budget)fail(lineNo,"Metadata header exceeds source character budget");
     const s=line.text.trim();
     if(s===end){
       if(!version)fail(lineNo,"Missing version");
+      for(const comment of leadingLineComments(source,pos,lineNo+1)){
+        if(isMarker(comment.raw))fail(comment.line,"Duplicate or unexpected parameter header marker");
+      }
       return {paramItemsVersion:1,paramItems:items};
     }
     if(s===""||s==="//")continue;

@@ -26,11 +26,11 @@ async function main() {
 
 `// @param 控件类型 参数名 "显示名称" [required] [属性=值 ...]`
 
-- 必须在入口脚本首个非空行放置 `// ==OpenDeskParams==`，紧接第一条指令 `// @version 1`，最后 `// ==/OpenDeskParams==`；允许 UTF-8 BOM、LF/CRLF、空行。正文中的同名注释或字符串不参与解析。无头部返回 null（未声明，不能自动视为零参数）；显式空头部才表示零字段。识别到头部但错误时拒绝，不回退旧格式。
+- 必须在入口脚本首个实际 JS token 之前的行注释中放置 `// ==OpenDeskParams==`，紧接第一条指令 `// @version 1`，最后 `// ==/OpenDeskParams==`；允许 UTF-8 BOM、ECMAScript 行结束符、空行、版权注释及独立的合法依赖声明。块注释内的伪标记不参与解析；实际代码前的重复或残缺标记拒绝。正文中的同名注释或字符串不参与解析。无头部返回 null（未声明，不能自动视为零参数）；显式空头部才表示零字段。识别到头部但错误时拒绝，不回退旧格式。
 - 每行一个 @param，控件名与参数名为 ASCII 标识，label 双引号；后续属性之间用空格分隔，属性名与等号之间不得插空格。required 为唯一裸布尔标志，省略为 false；其他属性为 key=value；值使用 JSON 标量/数组字面量（双引号字符串、数字、true/false、数组），支持标准转义；不允许 null、对象、函数、表达式、JSX/HTML、任意正则或组件代码。
 - options 仅用标量数组或 [真实值,"显示名"] 元组数组，例如 options=["a","b"] 或 options=[["markdown","Markdown"],["json","JSON"]]；标量显示 String(value)，元组显式 label。选择类 valueType 缺省 string，可显式 integer/number/boolean，不能自动把数值或布尔转字符串。
 - 与原 R10.1 控件规则一致：数值控件默认 integer，小数写 valueType="number"；min/max/step 唯一映射到 minimum/maximum/multipleOf；unit 仅显示。checkbox/switch 可缺失 default，不能等同 false；required 是存在性，非空文本还需 minLength:1。固定值使用 const；默认值缺失/false/0/""/[] 分别保留。
-- 文本扫描只接受白名单属性，重复字段/属性、错误引号、数组深度超过两层、数组超过 32 项、非法标识、未知头部版本、超过 16 参数、参考头部超过 65536 UTF-16 code units 均拒绝；正式入口还需原 UTF-8 source/request budget。参考解析与 R10.1 转换仅检查形状与投影；完整日期、精度、范围、默认值、控件兼容及权限由下文唯一 v2 语义准入处理。
+- 文本扫描只接受白名单属性，重复字段/属性、错误引号、数组深度超过两层、数组超过 32 项、非法标识、未知头部版本、超过 16 参数、参数头部超过 65536 UTF-8 bytes 均拒绝；正式入口还需原 UTF-8 source/request budget。参考解析与 R10.1 转换仅检查形状与投影；完整日期、精度、范围、默认值、控件兼容及权限由下文唯一 v2 语义准入处理。
 
 | 控件 | 一行属性示例（接在显示名称后） | 实际数据 |
 | --- | --- | --- |
@@ -61,7 +61,7 @@ async function main() {
 | --- | --- |
 | 源码冻结 | 从原授权入口/版本读取同一字节快照，抽取头部与编译共享该输入；多文件 ESM/TS 在 Webpack 前抽取真实入口，不在 bundle 或依赖中猜声明；保存或修改源文件不自动运行 |
 | 静态提取 | 复用/抽取原 dependency-metadata.js 的前导 trivia 扫描能力，允许合法版权注释、@require、@opendesk-lib 与参数头部共存；不把参数声明赋予权限或扩大 Page/Controller 世界；不读取正文、字符串、模板字面量或块注释内伪头部 |
-| 歧义与版本 | 目前参考解析器仅识别首个非空行，正式迁移须修复共存与重复头部检测、残缺标记、未知版本和 UTF-8 64KiB 头部预算；任何已识别但错误的声明拒绝，缺失头部不等于显式零参数 |
+| 歧义与版本 | R11 静态提取增量已补齐前导注释共存、前导重复头部检测、残缺标记、未知版本和 UTF-8 64KiB 头部预算；正式构建尚须调用此解析器；任何已识别但错误的声明拒绝，缺失头部不等于显式零参数 |
 | 单一来源 | 头部、旧项目 paramsSchema/paramsUi 不允许同时作为手工来源；已有自动生成产物必须与冻结源码确定性展开一致，冲突拒绝；legacy 无头部沿原合同；v2 新包字段受原 Manifest 版本准入 |
 | 编译 | 在任何 Terser/注释删除之前完成抽取、唯一语义校验；之后可删除所有注释及换行。以现有构建前后输入校验和冻结机制拒绝并行修改；缺少声明产物不能偷偷回退旧数据 |
 | 冻结包 | 保留原 opendesk.task-package.v1 容器及 Task Manifest 身份、权限和不可变版本；sourceHash 绑定最终 sourceUtf8；manifestHash 绑定完整 canonical Manifest（含 sourceHash、v2 参数定义）；哈希只证明完整性，不是作者签名或权限授权 |
@@ -69,6 +69,10 @@ async function main() {
 | 生命周期 | 普通任务独立发布/安装不要求重新构建 Browser；v2 首次平台上线需框架支持。内置精确资源 pin 与外部安装沿原不同信任链，不按目录名/ID 自动信任 |
 
 反方测试为 R11 必需：同一原始入口的 development/production 构建参数定义语义等价，生产删除全部注释、JS 压缩为一行后仍可导入并渲染、真实执行；只改参数头部（即使最终代码相同）manifestHash 必变化；只改业务代码 sourceHash 与 manifestHash 必变化；参数头部与合法依赖声明共存；重复/残缺/伪造头部、源快照漂移、旧产物、未知版本、哈希篡改拒绝；无头部的 legacy 老包仍可安装、运行、恢复；刷新浏览器后已安装 v2 使用冻结定义；Run/Stop/计划/AI/工作流同一权威校验。检查实际 Webpack/Terser、正式安装及 Chrome 真实 runId/resultId，不能只用字符串删除模拟冒充生产通过。本文档更新不改变运行器、安装器或旧发行包。
+
+### R11 静态提取阶段进展（非正式运行验收）
+
+已将参数解析的前导注释扫描抽取为 `src/scripting/source-trivia.js`，供参考解析器和原依赖元数据解析器共享。保持既有声明语法及编译投影，支持合法前导版权注释、独立依赖声明和 UTF-8 64 KiB 参数头部限制，拒绝代码前的重复、残缺标记。新增 `tests/environment/task-param-header-r11.test.mjs`；隔离 Node 22 环境针对经 Git blob SHA 核验的解析器及两份示例执行 6 项测试，均通过。该结果不等于全仓测试、依赖元数据完整回归、生产压缩、正式安装或 Chrome 运行已通过。原 v2 正式准入、构建、UI 和 Authority 接入仍待实施。教学与测试仍复用 examples/tasks/ 现有两份 JS；不创建虚构 task-packs 业务或默认安装项。
 
 ### todo-user 兼容与未来统一
 

@@ -1,5 +1,6 @@
 // Metadata describes source. Parsing never downloads, grants privileges or authorizes
 // execution. The trusted dependency manager must verify the actual bytes and lock.
+import {leadingLineComments,readSourceLine as readLine} from '../source-trivia.js';
 import {DEFAULT_PAGE_MATCH_PATTERN} from './page-program-rules.js';
 import {normalizePageTaskDelegations} from './page-task-contract.js';
 import {PAGE_OPTIONAL_LIBRARY_IDS} from '../../libs/runtime-contract.js';
@@ -29,43 +30,10 @@ function freeze(value) {
   }
   return value;
 }
-function readLine(source, start) {
-  // Fixed frame resources can occupy a multi-megabyte leading comment. Scan
-  // its line ending in the engine instead of running one RegExp per character.
-  const ending = /[\r\n\u2028\u2029]/g;
-  ending.lastIndex = start;
-  const end = ending.exec(source)?.index ?? source.length;
-  const next = end + (source[end] === '\r' && source[end + 1] === '\n' ? 2 : end < source.length ? 1 : 0);
-  return {raw:source.slice(start,end),end,next};
-}
 function openingHeader(source) {
-  // Skip only JavaScript trivia before the first token. A copyright comment may
-  // precede valid metadata, but a marker inside a string/template/block comment
-  // must not become a dependency declaration. Never scan beyond actual code.
-  let offset = 0, line = 1;
-  while (offset < source.length) {
-    if (/\s/.test(source[offset])) {
-      if (source[offset] === '\r' && source[offset + 1] === '\n') offset++;
-      if (/[\r\n\u2028\u2029]/.test(source[offset])) line++;
-      offset++;
-      continue;
-    }
-    if (source.startsWith('//',offset)) {
-      const current = readLine(source,offset);
-      if (/^\/\/[\t ]*==UserScript\b/.test(current.raw))
-        return {offset,line,malformed:!/^\/\/[\t ]*==UserScript==[\t ]*$/.test(current.raw)};
-      if (current.next > current.end) line++;
-      offset = current.next;
-      continue;
-    }
-    if (source.startsWith('/*',offset)) {
-      const end = source.indexOf('*/',offset + 2);
-      if (end < 0) return null; // Compiler separately rejects unterminated JS.
-      line += (source.slice(offset,end + 2).match(/\r\n|[\r\n\u2028\u2029]/g) || []).length;
-      offset = end + 2;
-      continue;
-    }
-    return null;
+  for (const current of leadingLineComments(source)) {
+    if (/^\/\/[\t ]*==UserScript\b/.test(current.raw))
+      return {offset:current.offset,line:current.line,malformed:!/^\/\/[\t ]*==UserScript==[\t ]*$/.test(current.raw)};
   }
   return null;
 }
